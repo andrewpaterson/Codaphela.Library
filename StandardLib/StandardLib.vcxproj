@@ -1,0 +1,244 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{2CFA23FA-6565-4744-8B75-9790B21CC0E5}</ProjectGuid>
+    <RootNamespace>StandardLib</RootNamespace>
+    <Keyword>Win32Proj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>NotSet</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>NotSet</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC70.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC70.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Debug\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Debug\</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Release\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Release\</IntDir>
+    <ReferencePath Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(VCInstallDir)atlmfc\lib;$(VCInstallDir)lib</ReferencePath>
+    <ReferencePath Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(VCInstallDir)atlmfc\lib;$(VCInstallDir)lib</ReferencePath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(COMMONLIBRARIES);$(IncludePath)</IncludePath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(COMMONLIBRARIES);$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <StructMemberAlignment>Default</StructMemberAlignment>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)$(ProjectName).lib</OutputFile>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <StructMemberAlignment>Default</StructMemberAlignment>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <FunctionLevelLinking>false</FunctionLevelLinking>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)$(ProjectName).lib</OutputFile>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="Base.h" />
+    <ClInclude Include="NamedIndexedData.h" />
+    <ClInclude Include="NamedIndexedObjects.h" />
+    <ClInclude Include="NamedIndexes.h" />
+    <ClInclude Include="NamedIndexesBlock.h" />
+    <ClInclude Include="NamedIndexesBlocks.h" />
+    <ClInclude Include="Parameters.h" />
+    <ClInclude Include="Unknown.h" />
+    <ClInclude Include="SetType.h" />
+    <ClInclude Include="SetUnknown.h" />
+    <ClInclude Include="ArrayType.h" />
+    <ClInclude Include="ArrayUnknown.h" />
+    <ClInclude Include="MapCommon.h" />
+    <ClInclude Include="MapStringUnknown.h" />
+    <ClInclude Include="MapTypeUnknown.h" />
+    <ClInclude Include="ArrayCommonUnknown.h" />
+    <ClInclude Include="ConstructorUnknown.h" />
+    <ClInclude Include="Iterables.h" />
+    <ClInclude Include="Unknowns.h" />
+    <ClInclude Include="BaseObject.h" />
+    <ClInclude Include="Object.h" />
+    <ClInclude Include="Objects.h" />
+    <ClInclude Include="Root.h" />
+    <ClInclude Include="Collection.h" />
+    <ClInclude Include="Set.h" />
+    <ClInclude Include="Array.h" />
+    <ClInclude Include="ArrayCommonObject.h" />
+    <ClInclude Include="Pointer.h" />
+    <ClInclude Include="PointerObject.h" />
+    <ClInclude Include="Named.h" />
+    <ClInclude Include="NamedObject.h" />
+    <ClInclude Include="DependentObjects.h" />
+    <ClInclude Include="ObjectGraphWriter.h" />
+    <ClInclude Include="ObjectReader.h" />
+    <ClInclude Include="ObjectWriter.h" />
+    <ClInclude Include="ObjectWriterChunked.h" />
+    <ClInclude Include="ObjectWriterDest.h" />
+    <ClInclude Include="ObjectWriterIndexed.h" />
+    <ClInclude Include="ObjectWriterSimple.h" />
+    <ClInclude Include="HollowObject.h" />
+    <ClInclude Include="IndexedObjects.h" />
+    <ClInclude Include="ObjectSource.h" />
+    <ClInclude Include="ObjectSourceIndexedData.h" />
+    <ClInclude Include="ObjectSourceFiles.h" />
+    <ClInclude Include="ObjectsSource.h" />
+    <ClInclude Include="Action.h" />
+    <ClInclude Include="Actions.h" />
+    <ClInclude Include="ClassFunctionsCall.h" />
+    <ClInclude Include="Listener.h" />
+    <ClInclude Include="ListenerCall.h" />
+    <ClInclude Include="TimerAlarm.h" />
+    <ClInclude Include="TimerListener.h" />
+    <ClInclude Include="Channel.h" />
+    <ClInclude Include="ChannelPadder.h" />
+    <ClInclude Include="Channels.h" />
+    <ClInclude Include="ChannelsCopier.h" />
+    <ClInclude Include="ChannelsHelper.h" />
+    <ClInclude Include="ChannelAccessor.h" />
+    <ClInclude Include="ChannelsAccessor.h" />
+    <ClInclude Include="ChannelsAccessorAccessBitty.h" />
+    <ClInclude Include="ChannelsAccessorByteAligned.h" />
+    <ClInclude Include="ChannelsAccessorChannelBitty.h" />
+    <ClInclude Include="ChannelsAccessorContiguous.h" />
+    <ClInclude Include="ChannelsAccessorTypeConvert.h" />
+    <ClInclude Include="ChannelsAccessorWorstCase.h" />
+    <ClInclude Include="ChannelsAccessorCreator.h" />
+    <ClInclude Include="SingleChannelAccessor.h" />
+    <ClInclude Include="AbstractClass.h" />
+    <ClInclude Include="ClassStorage.h" />
+    <ClInclude Include="ConcreteClass.h" />
+    <ClInclude Include="PreClass.h" />
+    <ClInclude Include="MathFunction.h" />
+    <ClInclude Include="StandardHeader.h" />
+    <ClInclude Include="TrackerTemplate.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="NamedIndexedData.cpp" />
+    <ClCompile Include="NamedIndexedObjects.cpp" />
+    <ClCompile Include="NamedIndexes.cpp" />
+    <ClCompile Include="NamedIndexesBlock.cpp" />
+    <ClCompile Include="NamedIndexesBlocks.cpp" />
+    <ClCompile Include="Unknown.cpp" />
+    <ClCompile Include="SetUnknown.cpp" />
+    <ClCompile Include="ArrayUnknown.cpp" />
+    <ClCompile Include="MapCommon.cpp" />
+    <ClCompile Include="MapStringUnknown.cpp" />
+    <ClCompile Include="ArrayCommonUnknown.cpp" />
+    <ClCompile Include="ConstructorUnknown.cpp" />
+    <ClCompile Include="Iterables.cpp" />
+    <ClCompile Include="Unknowns.cpp" />
+    <ClCompile Include="BaseObject.cpp" />
+    <ClCompile Include="Object.cpp" />
+    <ClCompile Include="Objects.cpp" />
+    <ClCompile Include="Root.cpp" />
+    <ClCompile Include="Collection.cpp" />
+    <ClCompile Include="Set.cpp" />
+    <ClCompile Include="Array.cpp" />
+    <ClCompile Include="ArrayCommonObject.cpp" />
+    <ClCompile Include="PointerObject.cpp" />
+    <ClCompile Include="NamedObject.cpp" />
+    <ClCompile Include="DependentObjects.cpp" />
+    <ClCompile Include="ObjectGraphWriter.cpp" />
+    <ClCompile Include="ObjectReader.cpp" />
+    <ClCompile Include="ObjectWriter.cpp" />
+    <ClCompile Include="ObjectWriterChunked.cpp" />
+    <ClCompile Include="ObjectWriterDest.cpp" />
+    <ClCompile Include="ObjectWriterIndexed.cpp" />
+    <ClCompile Include="ObjectWriterSimple.cpp" />
+    <ClCompile Include="HollowObject.cpp" />
+    <ClCompile Include="IndexedObjects.cpp" />
+    <ClCompile Include="ObjectSource.cpp" />
+    <ClCompile Include="ObjectsSource.cpp" />
+    <ClCompile Include="Action.cpp" />
+    <ClCompile Include="Actions.cpp" />
+    <ClCompile Include="ClassFunctionsCall.cpp" />
+    <ClCompile Include="ListenerCall.cpp" />
+    <ClCompile Include="TimerAlarm.cpp" />
+    <ClCompile Include="Channel.cpp" />
+    <ClCompile Include="ChannelPadder.cpp" />
+    <ClCompile Include="Channels.cpp" />
+    <ClCompile Include="ChannelsCopier.cpp" />
+    <ClCompile Include="ChannelsHelper.cpp" />
+    <ClCompile Include="ChannelAccessor.cpp" />
+    <ClCompile Include="ChannelsAccessor.cpp" />
+    <ClCompile Include="ChannelsAccessorAccessBitty.cpp" />
+    <ClCompile Include="ChannelsAccessorByteAligned.cpp" />
+    <ClCompile Include="ChannelsAccessorChannelBitty.cpp" />
+    <ClCompile Include="ChannelsAccessorContiguous.cpp" />
+    <ClCompile Include="ChannelsAccessorTypeConvert.cpp" />
+    <ClCompile Include="ChannelsAccessorWorstCase.cpp" />
+    <ClCompile Include="ChannelsAccessorCreator.cpp" />
+    <ClCompile Include="SingleChannelAccessor.cpp" />
+    <ClCompile Include="AbstractClass.cpp" />
+    <ClCompile Include="ClassStorage.cpp" />
+    <ClCompile Include="ConcreteClass.cpp" />
+    <ClCompile Include="PreClass.cpp" />
+    <ClCompile Include="MathFunction.cpp" />
+    <ClCompile Include="StandardHeader.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ObjectsSources.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\CoreLib\CoreLib.vcxproj">
+      <Project>{52a2d18b-bc88-4eb9-9ef0-ae58c1e9fdd5}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\ImageLib\ImageLib.vcxproj">
+      <Project>{1f518043-b152-4b9c-9d61-ddd6400420ed}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\SupportLib\SupportLib.vcxproj">
+      <Project>{221022f1-b103-456a-8f55-721f33f2e26d}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

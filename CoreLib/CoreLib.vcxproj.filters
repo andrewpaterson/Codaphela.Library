@@ -1,0 +1,857 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source">
+      <UniqueIdentifier>{1b785468-eb06-47ef-9811-6657a6ba952a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Script">
+      <UniqueIdentifier>{eb93ce57-a292-4e52-a05b-7e28c898bfb0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Script\Operators">
+      <UniqueIdentifier>{a75859f9-dfd8-4034-ade4-457ed53a9592}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Script\Operators\Logical">
+      <UniqueIdentifier>{45769da6-5855-4065-9e16-17a1bccf99a6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Script\Operators\Logical\Not">
+      <UniqueIdentifier>{8b031984-401b-423a-b005-4523df5e3d81}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Script\Operators\Logical\And">
+      <UniqueIdentifier>{d1d560a7-aa7b-439e-a40f-f2e75e279b77}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Script\Operators\Logical\Or">
+      <UniqueIdentifier>{73a1d268-a2a8-40b3-bed6-056fb239a044}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Script\Operators\Relational">
+      <UniqueIdentifier>{795851b3-12ea-4065-8ef8-64a965046913}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Script\Operators\Relational\LessThan">
+      <UniqueIdentifier>{f12fd8cf-1b24-454e-a0de-016285b2b385}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Script\Operators\Relational\GreaterThan">
+      <UniqueIdentifier>{ebe6f00b-d9cc-4a60-8ffa-2e5a6fda5b94}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Script\Operators\Relational\Equal">
+      <UniqueIdentifier>{4a8c42c0-de54-45f5-be4f-6130235f73b9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Script\Operators\Relational\GreatherThanOrEqual">
+      <UniqueIdentifier>{7845a62e-ce70-4f85-a43f-7464d67ee876}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Script\Operators\Relational\LessThanOrEqual">
+      <UniqueIdentifier>{d524d02e-a3b4-471f-94da-6672a2d3002e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Script\Operators\Relational\NotEqual">
+      <UniqueIdentifier>{d3a1f5a0-110b-4465-b067-597dc3590bb5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Script\Operators\Bitwise">
+      <UniqueIdentifier>{8079b45b-2c12-4f5a-aeaf-087f2a1d3847}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Script\Operators\Bitwise\LeftShift">
+      <UniqueIdentifier>{0d0260fa-c361-442f-961c-740cb18cdad2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Script\Operators\Bitwise\RightShift">
+      <UniqueIdentifier>{074abd41-813d-4d88-9c6b-2bcdc64a4245}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Script\Operators\Bitwise\And">
+      <UniqueIdentifier>{cf2980aa-2043-4aef-8c89-a45699691071}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Script\Operators\Bitwise\Or">
+      <UniqueIdentifier>{a2d374c1-6cf7-4d4e-97e8-ffdc2e331416}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Script\Operators\Bitwise\Not">
+      <UniqueIdentifier>{888552b4-b44a-4619-9bf6-668fe22fd664}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Script\Operators\Bitwise\XOr">
+      <UniqueIdentifier>{20ed77a7-e3b9-49ed-9084-c550c8e04063}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Script\Operators\Arithmetic">
+      <UniqueIdentifier>{99e83bb2-3300-44b8-b37d-db0c49e5a64f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Script\Operators\Arithmetic\Plus">
+      <UniqueIdentifier>{d82a4326-6cc8-4e24-98d6-c24244750b91}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Script\Operators\Arithmetic\Multiply">
+      <UniqueIdentifier>{ff2e8be8-e402-4213-940d-3795399f17b8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Script\Operators\Arithmetic\Power">
+      <UniqueIdentifier>{43c45cd8-5da3-4a78-a0a1-edb96efb2fe5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Script\Operators\Arithmetic\Decrement">
+      <UniqueIdentifier>{bea9bcbf-c3a0-4abd-b009-7c46e213b3f2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Script\Operators\Arithmetic\Divide">
+      <UniqueIdentifier>{b2f3bbd5-a831-4547-94cc-b7d966d270da}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Script\Operators\Arithmetic\Minus">
+      <UniqueIdentifier>{689d8a1b-5f6b-4b28-9a04-5924e8d48aac}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Script\Operators\Arithmetic\Increment">
+      <UniqueIdentifier>{a175e685-c9bb-46cb-8480-74c9a94dd196}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Script\Operators\Arithmetic\Remainder">
+      <UniqueIdentifier>{a04b53e8-76b5-4979-919e-cb5fb635bfbe}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Script\Operators\Assignment">
+      <UniqueIdentifier>{b47ba230-af17-4b42-8d4f-a7079cab139c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Text">
+      <UniqueIdentifier>{a3c45803-943d-4d04-bd42-b7dd854fba20}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Text\Calculator">
+      <UniqueIdentifier>{918f3281-3f0c-4cf8-9bad-3123ee4e9779}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Text\Calculator\Abstract">
+      <UniqueIdentifier>{0875a27d-c1f2-4400-a4e7-37a5b508aed4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Text\XML">
+      <UniqueIdentifier>{f8bd701d-f38a-495b-b113-88d2d33beddf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Text\Markup">
+      <UniqueIdentifier>{7048d359-247b-4c09-a619-0575b301aa4e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Text\Editor">
+      <UniqueIdentifier>{9307b93b-595f-4a74-8b5a-cbb26416f201}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Windows">
+      <UniqueIdentifier>{c8232931-5910-4dcf-ac28-1ab6a236d3dd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Windows\Socket">
+      <UniqueIdentifier>{41d9d9c5-db02-4c62-a8f1-07566756a01a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Function">
+      <UniqueIdentifier>{642d5345-d7e3-4968-9fd8-a1d3d313eda7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\File">
+      <UniqueIdentifier>{ab85f128-c8c8-40fc-9e0c-65e0cd048b9b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\File\Indexed">
+      <UniqueIdentifier>{fdd8605f-cd15-4b90-a1b4-6b38568c1267}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\File\Indexed\Descriptors">
+      <UniqueIdentifier>{dc735322-1c4b-4d98-97de-3db67f50513c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\File\Indexed\Descriptors\Access">
+      <UniqueIdentifier>{87d9a9d5-a2c9-4f73-a84d-b2117f2479b1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\File\Indexed\Descriptors\Access\DiskDirect">
+      <UniqueIdentifier>{9d70b498-f4c8-4ddf-9825-ca741b92163c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\File\Indexed\Descriptors\Access\Memory">
+      <UniqueIdentifier>{46a119bb-4caa-460f-991e-c375a3c17287}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\File\Indexed\Descriptors\Access\Huge">
+      <UniqueIdentifier>{c1be48af-cb5b-4453-bf3b-695c452a2a56}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\File\Indexed\Descriptors\Access\Smart">
+      <UniqueIdentifier>{df3a9ecc-b75f-48b4-bc25-f66a0179c0be}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\File\Indexed\Files">
+      <UniqueIdentifier>{45185ce8-e014-4e90-9c10-56373e68ef95}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\File\Indexed\Cache">
+      <UniqueIdentifier>{6fd727bf-8e44-4bb7-b797-65f77c551a47}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\File\Durable">
+      <UniqueIdentifier>{7d8b0c00-56a2-4df6-b5a9-e8bfa88fc084}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\File\Transaction">
+      <UniqueIdentifier>{c9ef382a-95ad-44c4-90c4-7bf003bdb963}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\File\Transaction\Data">
+      <UniqueIdentifier>{f204e015-5e4a-4541-be42-08df76bcf262}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\File\Transaction\Data\TransientFile">
+      <UniqueIdentifier>{69a25bc1-0eb7-45ef-a9dd-568853720d7c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\File\Transaction\Data\IndexedMemory">
+      <UniqueIdentifier>{55eee94f-cfa4-4c70-b55b-a910e26f75b4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\File\Properties">
+      <UniqueIdentifier>{e911288d-0744-4787-a8ee-8552fefec464}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\File\XML">
+      <UniqueIdentifier>{bf4562d1-3213-4442-a9dd-4c86eb2b5085}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data">
+      <UniqueIdentifier>{50400cc2-9a3f-4613-82e8-508f6a2abdaa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\Array">
+      <UniqueIdentifier>{0456bc65-d368-48b8-97a7-701ddcf24d7e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\Types">
+      <UniqueIdentifier>{57bec575-f7b4-403f-890a-1c5fc3c33649}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\Types\Converter">
+      <UniqueIdentifier>{b9979ed3-358d-48ac-9f7d-a9b88e0e7d8f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\Types\Parser">
+      <UniqueIdentifier>{7ce2b364-4bf5-46a7-9f4f-20ea2a526880}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\Guid">
+      <UniqueIdentifier>{85cdde85-144b-46ee-9635-d569d67f61d0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\File\Files">
+      <UniqueIdentifier>{e7b120aa-72b7-4eb8-b6e6-84ae3ecb8c3c}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="ArrayVariable.cpp">
+      <Filter>Source\Data\Array</Filter>
+    </ClCompile>
+    <ClCompile Include="TypeNames.cpp">
+      <Filter>Source\Data\Types</Filter>
+    </ClCompile>
+    <ClCompile Include="TypeConverter.cpp">
+      <Filter>Source\Data\Types\Converter</Filter>
+    </ClCompile>
+    <ClCompile Include="TypeParser.cpp">
+      <Filter>Source\Data\Types\Parser</Filter>
+    </ClCompile>
+    <ClCompile Include="GuidClass.cpp">
+      <Filter>Source\Data\Guid</Filter>
+    </ClCompile>
+    <ClCompile Include="IndexedConfig.cpp">
+      <Filter>Source\File\Indexed</Filter>
+    </ClCompile>
+    <ClCompile Include="IndexedData.cpp">
+      <Filter>Source\File\Indexed</Filter>
+    </ClCompile>
+    <ClCompile Include="Indexes.cpp">
+      <Filter>Source\File\Indexed</Filter>
+    </ClCompile>
+    <ClCompile Include="IndexDescriptor.cpp">
+      <Filter>Source\File\Indexed\Descriptors</Filter>
+    </ClCompile>
+    <ClCompile Include="IndexDescriptorsFile.cpp">
+      <Filter>Source\File\Indexed\Descriptors</Filter>
+    </ClCompile>
+    <ClCompile Include="IndexedDescriptors.cpp">
+      <Filter>Source\File\Indexed\Descriptors</Filter>
+    </ClCompile>
+    <ClCompile Include="IndexAccess.cpp">
+      <Filter>Source\File\Indexed\Descriptors\Access</Filter>
+    </ClCompile>
+    <ClCompile Include="IndexDiskDirectAccess.cpp">
+      <Filter>Source\File\Indexed\Descriptors\Access\DiskDirect</Filter>
+    </ClCompile>
+    <ClCompile Include="IndexMemoryAccess.cpp">
+      <Filter>Source\File\Indexed\Descriptors\Access\Memory</Filter>
+    </ClCompile>
+    <ClCompile Include="IndexedHuge.cpp">
+      <Filter>Source\File\Indexed\Descriptors\Access\Huge</Filter>
+    </ClCompile>
+    <ClCompile Include="IndexHugeAccess.cpp">
+      <Filter>Source\File\Indexed\Descriptors\Access\Huge</Filter>
+    </ClCompile>
+    <ClCompile Include="IndexSmartAccess.cpp">
+      <Filter>Source\File\Indexed\Descriptors\Access\Smart</Filter>
+    </ClCompile>
+    <ClCompile Include="IndexedFile.cpp">
+      <Filter>Source\File\Indexed\Files</Filter>
+    </ClCompile>
+    <ClCompile Include="IndexedFiles.cpp">
+      <Filter>Source\File\Indexed\Files</Filter>
+    </ClCompile>
+    <ClCompile Include="IndexedCache.cpp">
+      <Filter>Source\File\Indexed\Cache</Filter>
+    </ClCompile>
+    <ClCompile Include="DurableFile.cpp">
+      <Filter>Source\File\Durable</Filter>
+    </ClCompile>
+    <ClCompile Include="DurableFileController.cpp">
+      <Filter>Source\File\Durable</Filter>
+    </ClCompile>
+    <ClCompile Include="DurableSet.cpp">
+      <Filter>Source\File\Durable</Filter>
+    </ClCompile>
+    <ClCompile Include="SubTransaction.cpp">
+      <Filter>Source\File\Transaction</Filter>
+    </ClCompile>
+    <ClCompile Include="Transaction.cpp">
+      <Filter>Source\File\Transaction</Filter>
+    </ClCompile>
+    <ClCompile Include="TransactionController.cpp">
+      <Filter>Source\File\Transaction</Filter>
+    </ClCompile>
+    <ClCompile Include="TransactionIndexedData.cpp">
+      <Filter>Source\File\Transaction\Data</Filter>
+    </ClCompile>
+    <ClCompile Include="ArrayTransientIndexedPointer.cpp">
+      <Filter>Source\File\Transaction\Data\TransientFile</Filter>
+    </ClCompile>
+    <ClCompile Include="TransientIndexedFile.cpp">
+      <Filter>Source\File\Transaction\Data\TransientFile</Filter>
+    </ClCompile>
+    <ClCompile Include="TransientIndexedFileDescriptor.cpp">
+      <Filter>Source\File\Transaction\Data\TransientFile</Filter>
+    </ClCompile>
+    <ClCompile Include="IndexedMemory.cpp">
+      <Filter>Source\File\Transaction\Data\IndexedMemory</Filter>
+    </ClCompile>
+    <ClCompile Include="PropertiesFile.cpp">
+      <Filter>Source\File\Properties</Filter>
+    </ClCompile>
+    <ClCompile Include="XMLFile.cpp">
+      <Filter>Source\File\XML</Filter>
+    </ClCompile>
+    <ClCompile Include="FunctionCaller.cpp">
+      <Filter>Source\Function</Filter>
+    </ClCompile>
+    <ClCompile Include="Annotation.cpp">
+      <Filter>Source\Text</Filter>
+    </ClCompile>
+    <ClCompile Include="EscapeCodes.cpp">
+      <Filter>Source\Text</Filter>
+    </ClCompile>
+    <ClCompile Include="TextParser.cpp">
+      <Filter>Source\Text</Filter>
+    </ClCompile>
+    <ClCompile Include="Calculator.cpp">
+      <Filter>Source\Text\Calculator</Filter>
+    </ClCompile>
+    <ClCompile Include="CalcBinaryExpression.cpp">
+      <Filter>Source\Text\Calculator\Abstract</Filter>
+    </ClCompile>
+    <ClCompile Include="CalcConstExpression.cpp">
+      <Filter>Source\Text\Calculator\Abstract</Filter>
+    </ClCompile>
+    <ClCompile Include="CalcExpression.cpp">
+      <Filter>Source\Text\Calculator\Abstract</Filter>
+    </ClCompile>
+    <ClCompile Include="CalcOperator.cpp">
+      <Filter>Source\Text\Calculator\Abstract</Filter>
+    </ClCompile>
+    <ClCompile Include="CalcParentheses.cpp">
+      <Filter>Source\Text\Calculator\Abstract</Filter>
+    </ClCompile>
+    <ClCompile Include="CalcUnaryExpression.cpp">
+      <Filter>Source\Text\Calculator\Abstract</Filter>
+    </ClCompile>
+    <ClCompile Include="XMLEntity.cpp">
+      <Filter>Source\Text\XML</Filter>
+    </ClCompile>
+    <ClCompile Include="XMLParser.cpp">
+      <Filter>Source\Text\XML</Filter>
+    </ClCompile>
+    <ClCompile Include="MarkupTextParser.cpp">
+      <Filter>Source\Text\Markup</Filter>
+    </ClCompile>
+    <ClCompile Include="PlainTextEditor.cpp">
+      <Filter>Source\Text\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="Thread_Windows.cpp">
+      <Filter>Source\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="Timer_Windows.cpp">
+      <Filter>Source\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="WinConfig.cpp">
+      <Filter>Source\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="WinInit.cpp">
+      <Filter>Source\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="ConnectSocket.cpp">
+      <Filter>Source\Windows\Socket</Filter>
+    </ClCompile>
+    <ClCompile Include="ListenSocket.cpp">
+      <Filter>Source\Windows\Socket</Filter>
+    </ClCompile>
+    <ClCompile Include="Socket.cpp">
+      <Filter>Source\Windows\Socket</Filter>
+    </ClCompile>
+    <ClCompile Include="Operators.cpp">
+      <Filter>Source\Script\Operators</Filter>
+    </ClCompile>
+    <ClCompile Include="OperatorLogicalNot.cpp">
+      <Filter>Source\Script\Operators\Logical\Not</Filter>
+    </ClCompile>
+    <ClCompile Include="OperatorLogicalAnd.cpp">
+      <Filter>Source\Script\Operators\Logical\And</Filter>
+    </ClCompile>
+    <ClCompile Include="OperatorLogicalOr.cpp">
+      <Filter>Source\Script\Operators\Logical\Or</Filter>
+    </ClCompile>
+    <ClCompile Include="OperatorLessThan.cpp">
+      <Filter>Source\Script\Operators\Relational\LessThan</Filter>
+    </ClCompile>
+    <ClCompile Include="OperatorGreaterThan.cpp">
+      <Filter>Source\Script\Operators\Relational\GreaterThan</Filter>
+    </ClCompile>
+    <ClCompile Include="OperatorEqual.cpp">
+      <Filter>Source\Script\Operators\Relational\Equal</Filter>
+    </ClCompile>
+    <ClCompile Include="OperatorGreatherThanOrEqual.cpp">
+      <Filter>Source\Script\Operators\Relational\GreatherThanOrEqual</Filter>
+    </ClCompile>
+    <ClCompile Include="OperatorLessThanOrEqual.cpp">
+      <Filter>Source\Script\Operators\Relational\LessThanOrEqual</Filter>
+    </ClCompile>
+    <ClCompile Include="OperatorNotEqual.cpp">
+      <Filter>Source\Script\Operators\Relational\NotEqual</Filter>
+    </ClCompile>
+    <ClCompile Include="OperatorLeftShift.cpp">
+      <Filter>Source\Script\Operators\Bitwise\LeftShift</Filter>
+    </ClCompile>
+    <ClCompile Include="OperatorRightShift.cpp">
+      <Filter>Source\Script\Operators\Bitwise\RightShift</Filter>
+    </ClCompile>
+    <ClCompile Include="OperatorBitwiseAnd.cpp">
+      <Filter>Source\Script\Operators\Bitwise\And</Filter>
+    </ClCompile>
+    <ClCompile Include="OperatorBitwiseOr.cpp">
+      <Filter>Source\Script\Operators\Bitwise\Or</Filter>
+    </ClCompile>
+    <ClCompile Include="OperatorBitwiseNot.cpp">
+      <Filter>Source\Script\Operators\Bitwise\Not</Filter>
+    </ClCompile>
+    <ClCompile Include="OperatorBitwiseXOr.cpp">
+      <Filter>Source\Script\Operators\Bitwise\XOr</Filter>
+    </ClCompile>
+    <ClCompile Include="OperatorPlus.cpp">
+      <Filter>Source\Script\Operators\Arithmetic\Plus</Filter>
+    </ClCompile>
+    <ClCompile Include="OperatorMultiply.cpp">
+      <Filter>Source\Script\Operators\Arithmetic\Multiply</Filter>
+    </ClCompile>
+    <ClCompile Include="OperatorPower.cpp">
+      <Filter>Source\Script\Operators\Arithmetic\Power</Filter>
+    </ClCompile>
+    <ClCompile Include="OperatorDecrement.cpp">
+      <Filter>Source\Script\Operators\Arithmetic\Decrement</Filter>
+    </ClCompile>
+    <ClCompile Include="OperatorDivide.cpp">
+      <Filter>Source\Script\Operators\Arithmetic\Divide</Filter>
+    </ClCompile>
+    <ClCompile Include="OperatorMinus.cpp">
+      <Filter>Source\Script\Operators\Arithmetic\Minus</Filter>
+    </ClCompile>
+    <ClCompile Include="OperatorIncrement.cpp">
+      <Filter>Source\Script\Operators\Arithmetic\Increment</Filter>
+    </ClCompile>
+    <ClCompile Include="OperatorRemainder.cpp">
+      <Filter>Source\Script\Operators\Arithmetic\Remainder</Filter>
+    </ClCompile>
+    <ClCompile Include="OperatorAssignment.cpp">
+      <Filter>Source\Script\Operators\Assignment</Filter>
+    </ClCompile>
+    <ClCompile Include="Files.cpp">
+      <Filter>Source\File\Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PackFileOffset.cpp">
+      <Filter>Source\File\Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ArrayVariable.h">
+      <Filter>Source\Data\Array</Filter>
+    </ClInclude>
+    <ClInclude Include="TypeNames.h">
+      <Filter>Source\Data\Types</Filter>
+    </ClInclude>
+    <ClInclude Include="TypeConverter.h">
+      <Filter>Source\Data\Types\Converter</Filter>
+    </ClInclude>
+    <ClInclude Include="TypeParser.h">
+      <Filter>Source\Data\Types\Parser</Filter>
+    </ClInclude>
+    <ClInclude Include="GuidClass.h">
+      <Filter>Source\Data\Guid</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexedConfig.h">
+      <Filter>Source\File\Indexed</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexedData.h">
+      <Filter>Source\File\Indexed</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexedGeneral.h">
+      <Filter>Source\File\Indexed</Filter>
+    </ClInclude>
+    <ClInclude Include="Indexes.h">
+      <Filter>Source\File\Indexed</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexDescriptor.h">
+      <Filter>Source\File\Indexed\Descriptors</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexDescriptorsFile.h">
+      <Filter>Source\File\Indexed\Descriptors</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexedDescriptors.h">
+      <Filter>Source\File\Indexed\Descriptors</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexAccess.h">
+      <Filter>Source\File\Indexed\Descriptors\Access</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexDiskDirectAccess.h">
+      <Filter>Source\File\Indexed\Descriptors\Access\DiskDirect</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexMemoryAccess.h">
+      <Filter>Source\File\Indexed\Descriptors\Access\Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexedHuge.h">
+      <Filter>Source\File\Indexed\Descriptors\Access\Huge</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexHugeAccess.h">
+      <Filter>Source\File\Indexed\Descriptors\Access\Huge</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexSmartAccess.h">
+      <Filter>Source\File\Indexed\Descriptors\Access\Smart</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexedFile.h">
+      <Filter>Source\File\Indexed\Files</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexedFiles.h">
+      <Filter>Source\File\Indexed\Files</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexedCache.h">
+      <Filter>Source\File\Indexed\Cache</Filter>
+    </ClInclude>
+    <ClInclude Include="DurableFile.h">
+      <Filter>Source\File\Durable</Filter>
+    </ClInclude>
+    <ClInclude Include="DurableFileController.h">
+      <Filter>Source\File\Durable</Filter>
+    </ClInclude>
+    <ClInclude Include="DurableSet.h">
+      <Filter>Source\File\Durable</Filter>
+    </ClInclude>
+    <ClInclude Include="SubTransaction.h">
+      <Filter>Source\File\Transaction</Filter>
+    </ClInclude>
+    <ClInclude Include="Transaction.h">
+      <Filter>Source\File\Transaction</Filter>
+    </ClInclude>
+    <ClInclude Include="TransactionController.h">
+      <Filter>Source\File\Transaction</Filter>
+    </ClInclude>
+    <ClInclude Include="TransactionIndexedData.h">
+      <Filter>Source\File\Transaction\Data</Filter>
+    </ClInclude>
+    <ClInclude Include="ArrayTransientIndexedPointer.h">
+      <Filter>Source\File\Transaction\Data\TransientFile</Filter>
+    </ClInclude>
+    <ClInclude Include="TransientIndexedFile.h">
+      <Filter>Source\File\Transaction\Data\TransientFile</Filter>
+    </ClInclude>
+    <ClInclude Include="TransientIndexedFileDescriptor.h">
+      <Filter>Source\File\Transaction\Data\TransientFile</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexedMemory.h">
+      <Filter>Source\File\Transaction\Data\IndexedMemory</Filter>
+    </ClInclude>
+    <ClInclude Include="PropertiesFile.h">
+      <Filter>Source\File\Properties</Filter>
+    </ClInclude>
+    <ClInclude Include="XMLFile.h">
+      <Filter>Source\File\XML</Filter>
+    </ClInclude>
+    <ClInclude Include="FunctionCaller.h">
+      <Filter>Source\Function</Filter>
+    </ClInclude>
+    <ClInclude Include="Annotation.h">
+      <Filter>Source\Text</Filter>
+    </ClInclude>
+    <ClInclude Include="EscapeCodes.h">
+      <Filter>Source\Text</Filter>
+    </ClInclude>
+    <ClInclude Include="TextParser.h">
+      <Filter>Source\Text</Filter>
+    </ClInclude>
+    <ClInclude Include="Calculator.h">
+      <Filter>Source\Text\Calculator</Filter>
+    </ClInclude>
+    <ClInclude Include="CalcBinaryExpression.h">
+      <Filter>Source\Text\Calculator\Abstract</Filter>
+    </ClInclude>
+    <ClInclude Include="CalcConstExpression.h">
+      <Filter>Source\Text\Calculator\Abstract</Filter>
+    </ClInclude>
+    <ClInclude Include="CalcExpression.h">
+      <Filter>Source\Text\Calculator\Abstract</Filter>
+    </ClInclude>
+    <ClInclude Include="CalcObject.h">
+      <Filter>Source\Text\Calculator\Abstract</Filter>
+    </ClInclude>
+    <ClInclude Include="CalcOperator.h">
+      <Filter>Source\Text\Calculator\Abstract</Filter>
+    </ClInclude>
+    <ClInclude Include="CalcParentheses.h">
+      <Filter>Source\Text\Calculator\Abstract</Filter>
+    </ClInclude>
+    <ClInclude Include="CalcUnaryExpression.h">
+      <Filter>Source\Text\Calculator\Abstract</Filter>
+    </ClInclude>
+    <ClInclude Include="XMLEntity.h">
+      <Filter>Source\Text\XML</Filter>
+    </ClInclude>
+    <ClInclude Include="XMLParser.h">
+      <Filter>Source\Text\XML</Filter>
+    </ClInclude>
+    <ClInclude Include="MarkupTextParser.h">
+      <Filter>Source\Text\Markup</Filter>
+    </ClInclude>
+    <ClInclude Include="PlainTextEditor.h">
+      <Filter>Source\Text\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="TextEditor.h">
+      <Filter>Source\Text\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="Thread.h">
+      <Filter>Source\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="Thread_Windows.h">
+      <Filter>Source\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="Timer.h">
+      <Filter>Source\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="WinConfig.h">
+      <Filter>Source\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="WinInit.h">
+      <Filter>Source\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="ConnectSocket.h">
+      <Filter>Source\Windows\Socket</Filter>
+    </ClInclude>
+    <ClInclude Include="ListenSocket.h">
+      <Filter>Source\Windows\Socket</Filter>
+    </ClInclude>
+    <ClInclude Include="Socket.h">
+      <Filter>Source\Windows\Socket</Filter>
+    </ClInclude>
+    <ClInclude Include="Operators.h">
+      <Filter>Source\Script\Operators</Filter>
+    </ClInclude>
+    <ClInclude Include="OperatorLogicalNot.h">
+      <Filter>Source\Script\Operators\Logical\Not</Filter>
+    </ClInclude>
+    <ClInclude Include="OperatorLogicalAnd.h">
+      <Filter>Source\Script\Operators\Logical\And</Filter>
+    </ClInclude>
+    <ClInclude Include="OperatorLogicalOr.h">
+      <Filter>Source\Script\Operators\Logical\Or</Filter>
+    </ClInclude>
+    <ClInclude Include="OperatorLessThan.h">
+      <Filter>Source\Script\Operators\Relational\LessThan</Filter>
+    </ClInclude>
+    <ClInclude Include="OperatorGreaterThan.h">
+      <Filter>Source\Script\Operators\Relational\GreaterThan</Filter>
+    </ClInclude>
+    <ClInclude Include="OperatorEqual.h">
+      <Filter>Source\Script\Operators\Relational\Equal</Filter>
+    </ClInclude>
+    <ClInclude Include="OperatorGreatherThanOrEqual.h">
+      <Filter>Source\Script\Operators\Relational\GreatherThanOrEqual</Filter>
+    </ClInclude>
+    <ClInclude Include="OperatorLessThanOrEqual.h">
+      <Filter>Source\Script\Operators\Relational\LessThanOrEqual</Filter>
+    </ClInclude>
+    <ClInclude Include="OperatorNotEqual.h">
+      <Filter>Source\Script\Operators\Relational\NotEqual</Filter>
+    </ClInclude>
+    <ClInclude Include="OperatorLeftShift.h">
+      <Filter>Source\Script\Operators\Bitwise\LeftShift</Filter>
+    </ClInclude>
+    <ClInclude Include="OperatorRightShift.h">
+      <Filter>Source\Script\Operators\Bitwise\RightShift</Filter>
+    </ClInclude>
+    <ClInclude Include="OperatorBitwiseAnd.h">
+      <Filter>Source\Script\Operators\Bitwise\And</Filter>
+    </ClInclude>
+    <ClInclude Include="OperatorBitwiseOr.h">
+      <Filter>Source\Script\Operators\Bitwise\Or</Filter>
+    </ClInclude>
+    <ClInclude Include="OperatorBitwiseNot.h">
+      <Filter>Source\Script\Operators\Bitwise\Not</Filter>
+    </ClInclude>
+    <ClInclude Include="OperatorBitwiseXOr.h">
+      <Filter>Source\Script\Operators\Bitwise\XOr</Filter>
+    </ClInclude>
+    <ClInclude Include="OperatorPlus.h">
+      <Filter>Source\Script\Operators\Arithmetic\Plus</Filter>
+    </ClInclude>
+    <ClInclude Include="OperatorMultiply.h">
+      <Filter>Source\Script\Operators\Arithmetic\Multiply</Filter>
+    </ClInclude>
+    <ClInclude Include="OperatorPower.h">
+      <Filter>Source\Script\Operators\Arithmetic\Power</Filter>
+    </ClInclude>
+    <ClInclude Include="OperatorDecrement.h">
+      <Filter>Source\Script\Operators\Arithmetic\Decrement</Filter>
+    </ClInclude>
+    <ClInclude Include="OperatorDivide.h">
+      <Filter>Source\Script\Operators\Arithmetic\Divide</Filter>
+    </ClInclude>
+    <ClInclude Include="OperatorMinus.h">
+      <Filter>Source\Script\Operators\Arithmetic\Minus</Filter>
+    </ClInclude>
+    <ClInclude Include="OperatorIncrement.h">
+      <Filter>Source\Script\Operators\Arithmetic\Increment</Filter>
+    </ClInclude>
+    <ClInclude Include="OperatorRemainder.h">
+      <Filter>Source\Script\Operators\Arithmetic\Remainder</Filter>
+    </ClInclude>
+    <ClInclude Include="OperatorAssignment.h">
+      <Filter>Source\Script\Operators\Assignment</Filter>
+    </ClInclude>
+    <ClInclude Include="Files.h">
+      <Filter>Source\File\Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PackFileOffset.h">
+      <Filter>Source\File\Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="TypeConverter_Mapping.inl">
+      <Filter>Source\Data\Types\Converter</Filter>
+    </None>
+    <None Include="FunctionCaller_C_Call.inl">
+      <Filter>Source\Function</Filter>
+    </None>
+    <None Include="FunctionCaller_ThisCall.inl">
+      <Filter>Source\Function</Filter>
+    </None>
+    <None Include="FunctionCaller_ThisMultiCall.inl">
+      <Filter>Source\Function</Filter>
+    </None>
+    <None Include="OperatorLessThan_Functions.inl">
+      <Filter>Source\Script\Operators\Relational\LessThan</Filter>
+    </None>
+    <None Include="OperatorLessThan_Mapping.inl">
+      <Filter>Source\Script\Operators\Relational\LessThan</Filter>
+    </None>
+    <None Include="OperatorGreaterThan_Functions.inl">
+      <Filter>Source\Script\Operators\Relational\GreaterThan</Filter>
+    </None>
+    <None Include="OperatorGreaterThan_Mapping.inl">
+      <Filter>Source\Script\Operators\Relational\GreaterThan</Filter>
+    </None>
+    <None Include="OperatorEqualBool_Functions.inl">
+      <Filter>Source\Script\Operators\Relational\Equal</Filter>
+    </None>
+    <None Include="OperatorEqualBool_Mapping.inl">
+      <Filter>Source\Script\Operators\Relational\Equal</Filter>
+    </None>
+    <None Include="OperatorEqualNumber_Functions.inl">
+      <Filter>Source\Script\Operators\Relational\Equal</Filter>
+    </None>
+    <None Include="OperatorEqualNumber_Mapping.inl">
+      <Filter>Source\Script\Operators\Relational\Equal</Filter>
+    </None>
+    <None Include="OperatorGreatherThanOrEqual_Functions.inl">
+      <Filter>Source\Script\Operators\Relational\GreatherThanOrEqual</Filter>
+    </None>
+    <None Include="OperatorGreatherThanOrEqual_Mapping.inl">
+      <Filter>Source\Script\Operators\Relational\GreatherThanOrEqual</Filter>
+    </None>
+    <None Include="OperatorLessThanOrEqual_Functions.inl">
+      <Filter>Source\Script\Operators\Relational\LessThanOrEqual</Filter>
+    </None>
+    <None Include="OperatorLessThanOrEqual_Mapping.inl">
+      <Filter>Source\Script\Operators\Relational\LessThanOrEqual</Filter>
+    </None>
+    <None Include="OperatorNotEqualBool_Functions.inl">
+      <Filter>Source\Script\Operators\Relational\NotEqual</Filter>
+    </None>
+    <None Include="OperatorNotEqualBool_Mapping.inl">
+      <Filter>Source\Script\Operators\Relational\NotEqual</Filter>
+    </None>
+    <None Include="OperatorNotEqualNumber_Functions.inl">
+      <Filter>Source\Script\Operators\Relational\NotEqual</Filter>
+    </None>
+    <None Include="OperatorNotEqualNumber_Mapping.inl">
+      <Filter>Source\Script\Operators\Relational\NotEqual</Filter>
+    </None>
+    <None Include="OperatorLeftShift_Functions.inl">
+      <Filter>Source\Script\Operators\Bitwise\LeftShift</Filter>
+    </None>
+    <None Include="OperatorLeftShift_Mapping.inl">
+      <Filter>Source\Script\Operators\Bitwise\LeftShift</Filter>
+    </None>
+    <None Include="OperatorRightShift_Functions.inl">
+      <Filter>Source\Script\Operators\Bitwise\RightShift</Filter>
+    </None>
+    <None Include="OperatorRightShift_Mapping.inl">
+      <Filter>Source\Script\Operators\Bitwise\RightShift</Filter>
+    </None>
+    <None Include="OperatorBitwiseAnd_Functions.inl">
+      <Filter>Source\Script\Operators\Bitwise\And</Filter>
+    </None>
+    <None Include="OperatorBitwiseAnd_Mapping.inl">
+      <Filter>Source\Script\Operators\Bitwise\And</Filter>
+    </None>
+    <None Include="OperatorBitwiseOr_Functions.inl">
+      <Filter>Source\Script\Operators\Bitwise\Or</Filter>
+    </None>
+    <None Include="OperatorBitwiseOr_Mapping.inl">
+      <Filter>Source\Script\Operators\Bitwise\Or</Filter>
+    </None>
+    <None Include="OperatorBitwiseNot_Functions.inl">
+      <Filter>Source\Script\Operators\Bitwise\Not</Filter>
+    </None>
+    <None Include="OperatorBitwiseNot_Mapping.inl">
+      <Filter>Source\Script\Operators\Bitwise\Not</Filter>
+    </None>
+    <None Include="OperatorBitwiseXOr_Functions.inl">
+      <Filter>Source\Script\Operators\Bitwise\XOr</Filter>
+    </None>
+    <None Include="OperatorBitwiseXOr_Mapping.inl">
+      <Filter>Source\Script\Operators\Bitwise\XOr</Filter>
+    </None>
+    <None Include="OperatorPlus_Functions.inl">
+      <Filter>Source\Script\Operators\Arithmetic\Plus</Filter>
+    </None>
+    <None Include="OperatorPlus_Mapping.inl">
+      <Filter>Source\Script\Operators\Arithmetic\Plus</Filter>
+    </None>
+    <None Include="OperatorMultiply_Functions.inl">
+      <Filter>Source\Script\Operators\Arithmetic\Multiply</Filter>
+    </None>
+    <None Include="OperatorMultiply_Mapping.inl">
+      <Filter>Source\Script\Operators\Arithmetic\Multiply</Filter>
+    </None>
+    <None Include="OperatorPower_Functions.inl">
+      <Filter>Source\Script\Operators\Arithmetic\Power</Filter>
+    </None>
+    <None Include="OperatorPower_Mapping.inl">
+      <Filter>Source\Script\Operators\Arithmetic\Power</Filter>
+    </None>
+    <None Include="OperatorDecrement_Functions.inl">
+      <Filter>Source\Script\Operators\Arithmetic\Decrement</Filter>
+    </None>
+    <None Include="OperatorDecrement_Mapping.inl">
+      <Filter>Source\Script\Operators\Arithmetic\Decrement</Filter>
+    </None>
+    <None Include="OperatorDivide_Functions.inl">
+      <Filter>Source\Script\Operators\Arithmetic\Divide</Filter>
+    </None>
+    <None Include="OperatorDivide_Mapping.inl">
+      <Filter>Source\Script\Operators\Arithmetic\Divide</Filter>
+    </None>
+    <None Include="OperatorMinus_Functions.inl">
+      <Filter>Source\Script\Operators\Arithmetic\Minus</Filter>
+    </None>
+    <None Include="OperatorMinus_Mapping.inl">
+      <Filter>Source\Script\Operators\Arithmetic\Minus</Filter>
+    </None>
+    <None Include="OperatorIncrement_Functions.inl">
+      <Filter>Source\Script\Operators\Arithmetic\Increment</Filter>
+    </None>
+    <None Include="OperatorIncrement_Mapping.inl">
+      <Filter>Source\Script\Operators\Arithmetic\Increment</Filter>
+    </None>
+    <None Include="OperatorRemainder_Functions.inl">
+      <Filter>Source\Script\Operators\Arithmetic\Remainder</Filter>
+    </None>
+    <None Include="OperatorRemainder_Mapping.inl">
+      <Filter>Source\Script\Operators\Arithmetic\Remainder</Filter>
+    </None>
+    <None Include="OperatorAssignment_Functions.inl">
+      <Filter>Source\Script\Operators\Assignment</Filter>
+    </None>
+    <None Include="OperatorAssignment_Mapping.inl">
+      <Filter>Source\Script\Operators\Assignment</Filter>
+    </None>
+  </ItemGroup>
+</Project>

@@ -1,0 +1,393 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{221022F1-B103-456A-8F55-721F33F2E26D}</ProjectGuid>
+    <RootNamespace>SupportLib</RootNamespace>
+    <Keyword>Win32Proj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>NotSet</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>NotSet</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC70.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC70.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Debug\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Debug\</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Release\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Release\</IntDir>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(COMMONLIBRARIES);$(IncludePath)</IncludePath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(COMMONLIBRARIES);$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <StructMemberAlignment>Default</StructMemberAlignment>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+    </ClCompile>
+    <Lib>
+      <AdditionalDependencies>GDIPlus.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(OutDir)$(ProjectName).lib</OutputFile>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <Optimization>Full</Optimization>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <OmitFramePointers>false</OmitFramePointers>
+      <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
+      <WholeProgramOptimization>true</WholeProgramOptimization>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <StructMemberAlignment>Default</StructMemberAlignment>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <FunctionLevelLinking>false</FunctionLevelLinking>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Lib>
+      <AdditionalDependencies>GDIPlus.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(OutDir)$(ProjectName).lib</OutputFile>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="CopyPaste.h" />
+    <ClInclude Include="ChannelTypes.h" />
+    <ClInclude Include="Scene.h" />
+    <ClInclude Include="TrackerTypes.h" />
+    <ClInclude Include="VertexArray.h" />
+    <ClInclude Include="VertexChannel.h" />
+    <ClInclude Include="Image.h" />
+    <ClInclude Include="ImageChannel.h" />
+    <ClInclude Include="ImageCopier.h" />
+    <ClInclude Include="Font.h" />
+    <ClInclude Include="FontList.h" />
+    <ClInclude Include="Glyph.h" />
+    <ClInclude Include="WinText.h" />
+    <ClInclude Include="ImageAccessorCreator.h" />
+    <ClInclude Include="ImageAccessor.h" />
+    <ClInclude Include="ImageAccessorByte.h" />
+    <ClInclude Include="ImageFileType.h" />
+    <ClInclude Include="ImageWriter.h" />
+    <ClInclude Include="RADWriter.h" />
+    <ClInclude Include="ImageReader.h" />
+    <ClInclude Include="PNGReader.h" />
+    <ClInclude Include="RADReader.h" />
+    <ClInclude Include="TGAReader.h" />
+    <ClInclude Include="Rectangle.h" />
+    <ClInclude Include="SubImage.h" />
+    <ClInclude Include="PackAttempt.h" />
+    <ClInclude Include="PackedLine.h" />
+    <ClInclude Include="PackedRectangle.h" />
+    <ClInclude Include="RectangleBestPacker.h" />
+    <ClInclude Include="RectangleLinePacker.h" />
+    <ClInclude Include="RectanglePacker.h" />
+    <ClInclude Include="RectanglePow2Packer.h" />
+    <ClInclude Include="ImageCel.h" />
+    <ClInclude Include="ImageCombiner.h" />
+    <ClInclude Include="ImageDivider.h" />
+    <ClInclude Include="ImageDividerNumbers.h" />
+    <ClInclude Include="FillRectangle.h" />
+    <ClInclude Include="ImageFiller.h" />
+    <ClInclude Include="ImageCelMask.h" />
+    <ClInclude Include="ImageCelMaskTransparent.h" />
+    <ClInclude Include="ImageCelTransparent.h" />
+    <ClInclude Include="PixelOpacity.h" />
+    <ClInclude Include="ImageCelSource.h" />
+    <ClInclude Include="ImageCelSourceBorders.h" />
+    <ClInclude Include="ImageCelSourceGrid.h" />
+    <ClInclude Include="ImageCelSourceRectangles.h" />
+    <ClInclude Include="ImageCelSourceSingle.h" />
+    <ClInclude Include="ImageCelSourceSubImages.h" />
+    <ClInclude Include="ImageCelsSource.h" />
+    <ClInclude Include="ImageModifier.h" />
+    <ClInclude Include="ImageModifierStack.h" />
+    <ClInclude Include="ImageDrawBox.h" />
+    <ClInclude Include="ImageChannelAdd.h" />
+    <ClInclude Include="ImageChannelRename.h" />
+    <ClInclude Include="ImageGreyToRGB.h" />
+    <ClInclude Include="ImageRecolour.h" />
+    <ClInclude Include="ImageRecolourInvertBlackAndWhite.h" />
+    <ClInclude Include="ImageRGBToGrey.h" />
+    <ClInclude Include="BumpMapper.h" />
+    <ClInclude Include="ImageResampler.h" />
+    <ClInclude Include="ImageCelGroup.h" />
+    <ClInclude Include="ImageSource.h" />
+    <ClInclude Include="ImageSourceChunkedFile.h" />
+    <ClInclude Include="ImageSourceDiskFile.h" />
+    <ClInclude Include="ImageSourceMemory.h" />
+    <ClInclude Include="ColourARGB.h" />
+    <ClInclude Include="ImageColour.h" />
+    <ClInclude Include="Material.h" />
+    <ClInclude Include="MaterialHelper.h" />
+    <ClInclude Include="MaterialImage.h" />
+    <ClInclude Include="MaterialProperties.h" />
+    <ClInclude Include="Sequence.h" />
+    <ClInclude Include="Instance.h" />
+    <ClInclude Include="Mesh.h" />
+    <ClInclude Include="MeshDefines.h" />
+    <ClInclude Include="MeshFaceReturn.h" />
+    <ClInclude Include="MeshColours.h" />
+    <ClInclude Include="MeshDetail.h" />
+    <ClInclude Include="MeshMaterials.h" />
+    <ClInclude Include="MeshNormals.h" />
+    <ClInclude Include="MeshPositions.h" />
+    <ClInclude Include="MeshSkin.h" />
+    <ClInclude Include="MeshUVCoords.h" />
+    <ClInclude Include="MeshConnectivity.h" />
+    <ClInclude Include="MeshCorner.h" />
+    <ClInclude Include="MeshEdge.h" />
+    <ClInclude Include="MeshFace.h" />
+    <ClInclude Include="MeshCache.h" />
+    <ClInclude Include="MeshFaceTypes.h" />
+    <ClInclude Include="MeshIndexArray.h" />
+    <ClInclude Include="MeshVertexArray.h" />
+    <ClInclude Include="MeshCacher.h" />
+    <ClInclude Include="MeshTypeIndices.h" />
+    <ClInclude Include="MeshShape.h" />
+    <ClInclude Include="MeshBoundingBox.h" />
+    <ClInclude Include="MeshConvexHull.h" />
+    <ClInclude Include="MeshLeaves.h" />
+    <ClInclude Include="MeshTriangles.h" />
+    <ClInclude Include="ShapesIndexed.h" />
+    <ClInclude Include="MeshEdgeVisibility.h" />
+    <ClInclude Include="MeshEditor.h" />
+    <ClInclude Include="MeshEditorWrapper.h" />
+    <ClInclude Include="MeshPolygons.h" />
+    <ClInclude Include="MeshSelections.h" />
+    <ClInclude Include="MeshModifier.h" />
+    <ClInclude Include="MeshModifierStack.h" />
+    <ClInclude Include="MeshFlatFaces.h" />
+    <ClInclude Include="MeshSmoothFaces.h" />
+    <ClInclude Include="MeshSmoothGroups.h" />
+    <ClInclude Include="MeshSourceModifier.h" />
+    <ClInclude Include="MeshBoxEditor.h" />
+    <ClInclude Include="MeshTorusEditor.h" />
+    <ClInclude Include="MeshDiscEditor.h" />
+    <ClInclude Include="MeshPlaneEditor.h" />
+    <ClInclude Include="MeshRingEditor.h" />
+    <ClInclude Include="MeshConeEditor.h" />
+    <ClInclude Include="MeshCylinderEditor.h" />
+    <ClInclude Include="MeshTubeEditor.h" />
+    <ClInclude Include="MeshGeosphereEditor.h" />
+    <ClInclude Include="MeshSphereEditor.h" />
+    <ClInclude Include="MeshCornerBuilder.h" />
+    <ClInclude Include="MeshFileType.h" />
+    <ClInclude Include="MeshReader.h" />
+    <ClInclude Include="MTLReader.h" />
+    <ClInclude Include="OBJReader.h" />
+    <ClInclude Include="MeshWriter.h" />
+    <ClInclude Include="OBJWriter.h" />
+    <ClInclude Include="Camera.h" />
+    <ClInclude Include="Light.h" />
+    <ClInclude Include="Connection.h" />
+    <ClInclude Include="TileLayer.h" />
+    <ClInclude Include="TileMap.h" />
+    <ClInclude Include="TileMapXML.h" />
+    <ClInclude Include="TileWorld.h" />
+    <ClInclude Include="ImageCelsSourceXML.h" />
+    <ClInclude Include="ObjectSourcesXML.h" />
+    <ClInclude Include="SubImageXML.h" />
+    <ClInclude Include="Tile.h" />
+    <ClInclude Include="TileBoolean.h" />
+    <ClInclude Include="TileImageCel.h" />
+    <ClInclude Include="TileType.h" />
+    <ClInclude Include="Box.h" />
+    <ClInclude Include="ConvexHull.h" />
+    <ClInclude Include="HalfSpace.h" />
+    <ClInclude Include="LineInfinite.h" />
+    <ClInclude Include="LineSegment.h" />
+    <ClInclude Include="Plane.h" />
+    <ClInclude Include="Polygon.h" />
+    <ClInclude Include="Ray.h" />
+    <ClInclude Include="ShapeHelper.h" />
+    <ClInclude Include="Sphere.h" />
+    <ClInclude Include="Triangle.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="CopyPaste_Windows.cpp" />
+    <ClCompile Include="Scene.cpp" />
+    <ClCompile Include="VertexChannel.cpp" />
+    <ClCompile Include="Image.cpp" />
+    <ClCompile Include="ImageChannel.cpp" />
+    <ClCompile Include="ImageCopier.cpp" />
+    <ClCompile Include="Font.cpp" />
+    <ClCompile Include="FontList.cpp" />
+    <ClCompile Include="Glyph.cpp" />
+    <ClCompile Include="WinText.cpp" />
+    <ClCompile Include="ImageAccessorCreator.cpp" />
+    <ClCompile Include="ImageAccessor.cpp" />
+    <ClCompile Include="ImageAccessorByte.cpp" />
+    <ClCompile Include="ImageFileType.cpp" />
+    <ClCompile Include="ImageWriter.cpp" />
+    <ClCompile Include="RADWriter.cpp" />
+    <ClCompile Include="ImageReader.cpp" />
+    <ClCompile Include="PNGReader.cpp" />
+    <ClCompile Include="RADReader.cpp" />
+    <ClCompile Include="TGAReader.cpp" />
+    <ClCompile Include="Rectangle.cpp" />
+    <ClCompile Include="SubImage.cpp" />
+    <ClCompile Include="PackAttempt.cpp" />
+    <ClCompile Include="PackedLine.cpp" />
+    <ClCompile Include="PackedRectangle.cpp" />
+    <ClCompile Include="RectangleBestPacker.cpp" />
+    <ClCompile Include="RectangleLinePacker.cpp" />
+    <ClCompile Include="RectanglePow2Packer.cpp" />
+    <ClCompile Include="ImageCel.cpp" />
+    <ClCompile Include="ImageCombiner.cpp" />
+    <ClCompile Include="ImageDivider.cpp" />
+    <ClCompile Include="ImageDividerNumbers.cpp" />
+    <ClCompile Include="FillRectangle.cpp" />
+    <ClCompile Include="ImageFiller.cpp" />
+    <ClCompile Include="ImageCelMask.cpp" />
+    <ClCompile Include="ImageCelMaskTransparent.cpp" />
+    <ClCompile Include="ImageCelTransparent.cpp" />
+    <ClCompile Include="PixelOpacity.cpp" />
+    <ClCompile Include="ImageCelSource.cpp" />
+    <ClCompile Include="ImageCelSourceBorders.cpp" />
+    <ClCompile Include="ImageCelSourceGrid.cpp" />
+    <ClCompile Include="ImageCelSourceRectangles.cpp" />
+    <ClCompile Include="ImageCelSourceSingle.cpp" />
+    <ClCompile Include="ImageCelSourceSubImages.cpp" />
+    <ClCompile Include="ImageCelsSource.cpp" />
+    <ClCompile Include="ImageModifier.cpp" />
+    <ClCompile Include="ImageModifierStack.cpp" />
+    <ClCompile Include="ImageDrawBox.cpp" />
+    <ClCompile Include="ImageChannelAdd.cpp" />
+    <ClCompile Include="ImageChannelRename.cpp" />
+    <ClCompile Include="ImageGreyToRGB.cpp" />
+    <ClCompile Include="ImageRecolour.cpp" />
+    <ClCompile Include="ImageRecolourInvertBlackAndWhite.cpp" />
+    <ClCompile Include="ImageRGBToGrey.cpp" />
+    <ClCompile Include="BumpMapper.cpp" />
+    <ClCompile Include="ImageResampler.cpp" />
+    <ClCompile Include="ImageCelGroup.cpp" />
+    <ClCompile Include="ImageSource.cpp" />
+    <ClCompile Include="ImageSourceDiskFile.cpp" />
+    <ClCompile Include="ImageSourceMemory.cpp" />
+    <ClCompile Include="ColourARGB.cpp" />
+    <ClCompile Include="ImageColour.cpp" />
+    <ClCompile Include="Material.cpp" />
+    <ClCompile Include="MaterialHelper.cpp" />
+    <ClCompile Include="MaterialImage.cpp" />
+    <ClCompile Include="MaterialProperties.cpp" />
+    <ClCompile Include="Sequence.cpp" />
+    <ClCompile Include="Instance.cpp" />
+    <ClCompile Include="Mesh.cpp" />
+    <ClCompile Include="MeshFaceReturn.cpp" />
+    <ClCompile Include="MeshColours.cpp" />
+    <ClCompile Include="MeshDetail.cpp" />
+    <ClCompile Include="MeshMaterials.cpp" />
+    <ClCompile Include="MeshNormals.cpp" />
+    <ClCompile Include="MeshPositions.cpp" />
+    <ClCompile Include="MeshSkin.cpp" />
+    <ClCompile Include="MeshUVCoords.cpp" />
+    <ClCompile Include="MeshConnectivity.cpp" />
+    <ClCompile Include="MeshCorner.cpp" />
+    <ClCompile Include="MeshEdge.cpp" />
+    <ClCompile Include="MeshFace.cpp" />
+    <ClCompile Include="MeshCache.cpp" />
+    <ClCompile Include="MeshFaceTypes.cpp" />
+    <ClCompile Include="MeshVertexArray.cpp" />
+    <ClCompile Include="MeshCacher.cpp" />
+    <ClCompile Include="MeshTypeIndices.cpp" />
+    <ClCompile Include="MeshShape.cpp" />
+    <ClCompile Include="MeshBoundingBox.cpp" />
+    <ClCompile Include="MeshConvexHull.cpp" />
+    <ClCompile Include="MeshLeaves.cpp" />
+    <ClCompile Include="MeshTriangles.cpp" />
+    <ClCompile Include="ShapesIndexed.cpp" />
+    <ClCompile Include="MeshEdgeVisibility.cpp" />
+    <ClCompile Include="MeshEditor.cpp" />
+    <ClCompile Include="MeshEditorWrapper.cpp" />
+    <ClCompile Include="MeshPolygons.cpp" />
+    <ClCompile Include="MeshSelections.cpp" />
+    <ClCompile Include="MeshModifier.cpp" />
+    <ClCompile Include="MeshModifierStack.cpp" />
+    <ClCompile Include="MeshFlatFaces.cpp" />
+    <ClCompile Include="MeshSmoothFaces.cpp" />
+    <ClCompile Include="MeshSmoothGroups.cpp" />
+    <ClCompile Include="MeshSourceModifier.cpp" />
+    <ClCompile Include="MeshBoxEditor.cpp" />
+    <ClCompile Include="MeshDiscEditor.cpp" />
+    <ClCompile Include="MeshPlaneEditor.cpp" />
+    <ClCompile Include="MeshRingEditor.cpp" />
+    <ClCompile Include="MeshConeEditor.cpp" />
+    <ClCompile Include="MeshCylinderEditor.cpp" />
+    <ClCompile Include="MeshTubeEditor.cpp" />
+    <ClCompile Include="MeshCornerBuilder.cpp" />
+    <ClCompile Include="MeshFileType.cpp" />
+    <ClCompile Include="MeshReader.cpp" />
+    <ClCompile Include="MTLReader.cpp" />
+    <ClCompile Include="OBJReader.cpp" />
+    <ClCompile Include="MeshWriter.cpp" />
+    <ClCompile Include="OBJWriter.cpp" />
+    <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="Light.cpp" />
+    <ClCompile Include="Connection.cpp" />
+    <ClCompile Include="TileLayer.cpp" />
+    <ClCompile Include="TileMap.cpp" />
+    <ClCompile Include="TileMapXML.cpp" />
+    <ClCompile Include="TileWorld.cpp" />
+    <ClCompile Include="ImageCelsSourceXML.cpp" />
+    <ClCompile Include="ObjectSourcesXML.cpp" />
+    <ClCompile Include="SubImageXML.cpp" />
+    <ClCompile Include="Tile.cpp" />
+    <ClCompile Include="TileBoolean.cpp" />
+    <ClCompile Include="TileImageCel.cpp" />
+    <ClCompile Include="TileType.cpp" />
+    <ClCompile Include="Box.cpp" />
+    <ClCompile Include="ConvexHull.cpp" />
+    <ClCompile Include="HalfSpace.cpp" />
+    <ClCompile Include="LineInfinite.cpp" />
+    <ClCompile Include="LineSegment.cpp" />
+    <ClCompile Include="Plane.cpp" />
+    <ClCompile Include="Polygon.cpp" />
+    <ClCompile Include="Ray.cpp" />
+    <ClCompile Include="ShapeHelper.cpp" />
+    <ClCompile Include="Sphere.cpp" />
+    <ClCompile Include="Triangle.cpp" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

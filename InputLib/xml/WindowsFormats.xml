@@ -1,0 +1,61 @@
+<Formats>
+  <Format Name="WinRAW Mouse">
+    <Channel Type="UShort" Name="Flags"/>
+    <Channel Type="UShort" Name=""/>
+    <Channel Type="UShort" Name="Buttons"/>
+    <Channel Type="Short" Name="Wheel"/>
+    <Channel Type="UInt" Name="RawButtons"/>
+    <Channel Type="Int" Name="LastX"/>
+    <Channel Type="Int" Name="LastY"/>
+    <Channel Type="UInt" Name="ExtraInformation"/>
+  </Format>
+  <Format Name="WinRAW Keyboard">
+    <Channel Type="UShort" Name="MakeCode"/>
+    <Channel Type="UShort" Name="Flags"/>
+    <Channel Type="UShort" Name="Reserved"/>
+    <Channel Type="UShort" Name="VKey"/>
+    <Channel Type="UInt" Name="Message"/>
+    <Channel Type="UInt" Name="ExtraInformation"/>
+  </Format>
+  <Format Name="DirectInput Joystick 2">
+    <Channel Type="Int" Name="lX"/>
+    <Channel Type="Int" Name="lY"/>
+    <Channel Type="Int" Name="lZ"/>
+    <Channel Type="Int" Name="lRx"/>
+    <Channel Type="Int" Name="lRy"/>
+    <Channel Type="Int" Name="lRz"/>
+    <Channel Type="Int" Name="rglSlider" Count="2"/>
+    <Channel Type="UInt" Name="rgdwPOV" Count="4"/>
+    <Channel Type="UChar" Name="rgbButtons" Count="128"/>
+    <Channel Type="Int" Name="lVX"/>
+    <Channel Type="Int" Name="lVY"/>
+    <Channel Type="Int" Name="lVZ"/>
+    <Channel Type="Int" Name="lVRx"/>
+    <Channel Type="Int" Name="lVRy"/>
+    <Channel Type="Int" Name="lVRz"/>
+    <Channel Type="Int" Name="rglVSlider" Count="2"/>
+    <Channel Type="Int" Name="lAX"/>
+    <Channel Type="Int" Name="lAY"/>
+    <Channel Type="Int" Name="lAZ"/>
+    <Channel Type="Int" Name="lARx"/>
+    <Channel Type="Int" Name="lARy"/>
+    <Channel Type="Int" Name="lARz"/>
+    <Channel Type="Int" Name="rglASlider" Count="2"/>
+    <Channel Type="Int" Name="lFX"/>
+    <Channel Type="Int" Name="lFY"/>
+    <Channel Type="Int" Name="lFZ"/>
+    <Channel Type="Int" Name="lFRx"/>
+    <Channel Type="Int" Name="lFRy"/>
+    <Channel Type="Int" Name="lFRz"/>
+    <Channel Type="Int" Name="rglFSlider0" Count="2"/>
+  </Format>
+  <Format Name="XInput Gamepad">
+    <Channel Type="Bit" Name="wButtons" Count="16"/>
+    <Channel Type="UChar" Name="bLeftTrigger"/>
+    <Channel Type="UChar" Name="bRightTrigger"/>
+    <Channel Type="Short" Name="sThumbLX"/>
+    <Channel Type="Short" Name="sThumbLY"/>
+    <Channel Type="Short" Name="sThumbRX"/>
+    <Channel Type="Short" Name="sThumbRY"/>
+  </Format>
+</Formats>

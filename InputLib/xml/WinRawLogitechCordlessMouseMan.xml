@@ -1,0 +1,7 @@
+<Device Type="WinRaw">
+  <Category>Mouse</Category>
+  <ID>WinRAW Mouse: Name(Logitech HID-compliant RX250 Optical Mouse), Id(00000100) NumberOfButtons(00000008)</ID>
+  <Friendly>Logitech RX250 Mouse</Friendly>
+  <Sources Type="Named">WinRAW Mouse: Standard 3 Button Mouse</Sources>
+  <Sources Type="Named">WinRAW Mouse: Standard Mouse Wheel</Sources>
+</Device>

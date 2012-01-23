@@ -1,0 +1,175 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{6B7BD894-58DD-4D07-97E1-27DE7AF522A6}</ProjectGuid>
+    <RootNamespace>WorldLib</RootNamespace>
+    <Keyword>Win32Proj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>NotSet</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC70.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC70.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Debug\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Debug\</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Release\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Release\</IntDir>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(COMMONLIBRARIES);$(IncludePath)</IncludePath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(COMMONLIBRARIES);$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;D3D_DEBUG_INFO;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)$(ProjectName).lib</OutputFile>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <Optimization>Full</Optimization>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <OmitFramePointers>true</OmitFramePointers>
+      <WholeProgramOptimization>true</WholeProgramOptimization>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <FunctionLevelLinking>false</FunctionLevelLinking>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)$(ProjectName).lib</OutputFile>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="Animation.cpp" />
+    <ClCompile Include="AnimationInvokeAnimation.cpp" />
+    <ClCompile Include="AnimationManager.cpp" />
+    <ClCompile Include="GraphicsDynamicVertexBuffer.cpp" />
+    <ClCompile Include="GraphicsInstance.cpp" />
+    <ClCompile Include="GraphicsMaterial.cpp" />
+    <ClCompile Include="GraphicsObject.cpp" />
+    <ClCompile Include="GraphicsPrimitive.cpp" />
+    <ClCompile Include="GraphicsState.cpp" />
+    <ClCompile Include="GraphicsTexture.cpp" />
+    <ClCompile Include="GraphicsVertexBuffer.cpp" />
+    <ClCompile Include="GraphicsViewport.cpp" />
+    <ClCompile Include="CameraInstance.cpp" />
+    <ClCompile Include="InterpolatorArray.cpp" />
+    <ClCompile Include="LightInstance.cpp" />
+    <ClCompile Include="Movement.cpp" />
+    <ClCompile Include="ParticleSystem.cpp" />
+    <ClCompile Include="Position.cpp" />
+    <ClCompile Include="PositionHelper.cpp" />
+    <ClCompile Include="Rotation.cpp" />
+    <ClCompile Include="TransformNode.cpp" />
+    <ClCompile Include="VectorArray.cpp" />
+    <ClCompile Include="World.cpp" />
+    <ClCompile Include="AnimationConverter.cpp" />
+    <ClCompile Include="ConversionMapper.cpp" />
+    <ClCompile Include="InstanceConverter.cpp" />
+    <ClCompile Include="MaterialConverter.cpp" />
+    <ClCompile Include="MatrixSelectionConverter.cpp" />
+    <ClCompile Include="MeshConverter.cpp" />
+    <ClCompile Include="MeshSelectionConverter.cpp" />
+    <ClCompile Include="SceneConverter.cpp" />
+    <ClCompile Include="TextureConverter.cpp" />
+    <ClCompile Include="MeshInstance.cpp" />
+    <ClCompile Include="MeshObject.cpp" />
+    <ClCompile Include="HomeGrid.cpp" />
+    <ClCompile Include="MeshAdjuster.cpp" />
+    <ClCompile Include="WorldEditor.cpp" />
+    <ClCompile Include="Map2D.cpp" />
+    <ClCompile Include="Quad2D.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Animation.h" />
+    <ClInclude Include="AnimationInvokeAnimation.h" />
+    <ClInclude Include="AnimationManager.h" />
+    <ClInclude Include="GraphicsDynamicVertexBuffer.h" />
+    <ClInclude Include="GraphicsInstance.h" />
+    <ClInclude Include="GraphicsMaterial.h" />
+    <ClInclude Include="GraphicsObject.h" />
+    <ClInclude Include="GraphicsPrimitive.h" />
+    <ClInclude Include="GraphicsState.h" />
+    <ClInclude Include="GraphicsTexture.h" />
+    <ClInclude Include="GraphicsVertexBuffer.h" />
+    <ClInclude Include="GraphicsViewport.h" />
+    <ClInclude Include="CameraInstance.h" />
+    <ClInclude Include="Interpolator.h" />
+    <ClInclude Include="InterpolatorArray.h" />
+    <ClInclude Include="LightInstance.h" />
+    <ClInclude Include="MatrixArray.h" />
+    <ClInclude Include="Movement.h" />
+    <ClInclude Include="ParticleSystem.h" />
+    <ClInclude Include="Position.h" />
+    <ClInclude Include="PositionHelper.h" />
+    <ClInclude Include="Rotation.h" />
+    <ClInclude Include="TransformNode.h" />
+    <ClInclude Include="VectorArray.h" />
+    <ClInclude Include="World.h" />
+    <ClInclude Include="WorldLists.h" />
+    <ClInclude Include="AnimationConverter.h" />
+    <ClInclude Include="ConversionMapper.h" />
+    <ClInclude Include="InstanceConverter.h" />
+    <ClInclude Include="MaterialConverter.h" />
+    <ClInclude Include="MatrixSelectionConverter.h" />
+    <ClInclude Include="MeshConverter.h" />
+    <ClInclude Include="MeshSelectionConverter.h" />
+    <ClInclude Include="SceneConverter.h" />
+    <ClInclude Include="SelectionOverrides.h" />
+    <ClInclude Include="TextureConverter.h" />
+    <ClInclude Include="MeshInstance.h" />
+    <ClInclude Include="MeshObject.h" />
+    <ClInclude Include="HomeGrid.h" />
+    <ClInclude Include="MeshAdjuster.h" />
+    <ClInclude Include="WorldEditor.h" />
+    <ClInclude Include="Map2D.h" />
+    <ClInclude Include="Quad2D.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

@@ -1,0 +1,285 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source">
+      <UniqueIdentifier>{89ea079f-7b6d-4886-bd1d-2362392a3b3b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Converters">
+      <UniqueIdentifier>{1abcba4e-0dba-4940-9e8e-f114441cb35b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Graphics">
+      <UniqueIdentifier>{0f305fef-b66e-4b4e-ae50-4e0dbaef1cd8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Graphics\D3D9Fixed">
+      <UniqueIdentifier>{948a157f-4601-41d7-bde0-23437af0ec4f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Graphics\D3D9Fixed\Intermediate">
+      <UniqueIdentifier>{233ca6cc-4605-49f3-a44c-2a554138b37d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Mesh">
+      <UniqueIdentifier>{7b3222d2-6a43-43bc-9042-115e52b8a50b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Various">
+      <UniqueIdentifier>{a5f42cc9-134a-4670-a21c-e25df93e9fc3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Various\Map">
+      <UniqueIdentifier>{2098eab3-260d-41e8-b41b-1288abc874bf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\World">
+      <UniqueIdentifier>{902dee0d-d5cf-46c0-80ca-a3c334cffb3c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Animation">
+      <UniqueIdentifier>{ca50ef48-dbd9-4795-85b3-80ff520e2133}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="GraphicsDynamicVertexBuffer.cpp">
+      <Filter>Source\Graphics\D3D9Fixed</Filter>
+    </ClCompile>
+    <ClCompile Include="GraphicsInstance.cpp">
+      <Filter>Source\Graphics\D3D9Fixed</Filter>
+    </ClCompile>
+    <ClCompile Include="GraphicsMaterial.cpp">
+      <Filter>Source\Graphics\D3D9Fixed</Filter>
+    </ClCompile>
+    <ClCompile Include="GraphicsObject.cpp">
+      <Filter>Source\Graphics\D3D9Fixed</Filter>
+    </ClCompile>
+    <ClCompile Include="GraphicsPrimitive.cpp">
+      <Filter>Source\Graphics\D3D9Fixed</Filter>
+    </ClCompile>
+    <ClCompile Include="GraphicsState.cpp">
+      <Filter>Source\Graphics\D3D9Fixed</Filter>
+    </ClCompile>
+    <ClCompile Include="GraphicsTexture.cpp">
+      <Filter>Source\Graphics\D3D9Fixed</Filter>
+    </ClCompile>
+    <ClCompile Include="GraphicsVertexBuffer.cpp">
+      <Filter>Source\Graphics\D3D9Fixed</Filter>
+    </ClCompile>
+    <ClCompile Include="GraphicsViewport.cpp">
+      <Filter>Source\Graphics\D3D9Fixed</Filter>
+    </ClCompile>
+    <ClCompile Include="CameraInstance.cpp">
+      <Filter>Source\World</Filter>
+    </ClCompile>
+    <ClCompile Include="LightInstance.cpp">
+      <Filter>Source\World</Filter>
+    </ClCompile>
+    <ClCompile Include="ParticleSystem.cpp">
+      <Filter>Source\World</Filter>
+    </ClCompile>
+    <ClCompile Include="VectorArray.cpp">
+      <Filter>Source\World</Filter>
+    </ClCompile>
+    <ClCompile Include="World.cpp">
+      <Filter>Source\World</Filter>
+    </ClCompile>
+    <ClCompile Include="AnimationConverter.cpp">
+      <Filter>Source\Converters</Filter>
+    </ClCompile>
+    <ClCompile Include="ConversionMapper.cpp">
+      <Filter>Source\Converters</Filter>
+    </ClCompile>
+    <ClCompile Include="InstanceConverter.cpp">
+      <Filter>Source\Converters</Filter>
+    </ClCompile>
+    <ClCompile Include="MaterialConverter.cpp">
+      <Filter>Source\Converters</Filter>
+    </ClCompile>
+    <ClCompile Include="MatrixSelectionConverter.cpp">
+      <Filter>Source\Converters</Filter>
+    </ClCompile>
+    <ClCompile Include="MeshConverter.cpp">
+      <Filter>Source\Converters</Filter>
+    </ClCompile>
+    <ClCompile Include="MeshSelectionConverter.cpp">
+      <Filter>Source\Converters</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneConverter.cpp">
+      <Filter>Source\Converters</Filter>
+    </ClCompile>
+    <ClCompile Include="TextureConverter.cpp">
+      <Filter>Source\Converters</Filter>
+    </ClCompile>
+    <ClCompile Include="MeshInstance.cpp">
+      <Filter>Source\Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="MeshObject.cpp">
+      <Filter>Source\Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="HomeGrid.cpp">
+      <Filter>Source\Various</Filter>
+    </ClCompile>
+    <ClCompile Include="MeshAdjuster.cpp">
+      <Filter>Source\Various</Filter>
+    </ClCompile>
+    <ClCompile Include="WorldEditor.cpp">
+      <Filter>Source\Various</Filter>
+    </ClCompile>
+    <ClCompile Include="Map2D.cpp">
+      <Filter>Source\Various\Map</Filter>
+    </ClCompile>
+    <ClCompile Include="Quad2D.cpp">
+      <Filter>Source\Various\Map</Filter>
+    </ClCompile>
+    <ClCompile Include="Movement.cpp">
+      <Filter>Source\Animation</Filter>
+    </ClCompile>
+    <ClCompile Include="Position.cpp">
+      <Filter>Source\Animation</Filter>
+    </ClCompile>
+    <ClCompile Include="PositionHelper.cpp">
+      <Filter>Source\Animation</Filter>
+    </ClCompile>
+    <ClCompile Include="Rotation.cpp">
+      <Filter>Source\Animation</Filter>
+    </ClCompile>
+    <ClCompile Include="TransformNode.cpp">
+      <Filter>Source\Animation</Filter>
+    </ClCompile>
+    <ClCompile Include="Animation.cpp">
+      <Filter>Source\Animation</Filter>
+    </ClCompile>
+    <ClCompile Include="AnimationInvokeAnimation.cpp">
+      <Filter>Source\Animation</Filter>
+    </ClCompile>
+    <ClCompile Include="AnimationManager.cpp">
+      <Filter>Source\Animation</Filter>
+    </ClCompile>
+    <ClCompile Include="InterpolatorArray.cpp">
+      <Filter>Source\Animation</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="GraphicsDynamicVertexBuffer.h">
+      <Filter>Source\Graphics\D3D9Fixed</Filter>
+    </ClInclude>
+    <ClInclude Include="GraphicsInstance.h">
+      <Filter>Source\Graphics\D3D9Fixed</Filter>
+    </ClInclude>
+    <ClInclude Include="GraphicsMaterial.h">
+      <Filter>Source\Graphics\D3D9Fixed</Filter>
+    </ClInclude>
+    <ClInclude Include="GraphicsObject.h">
+      <Filter>Source\Graphics\D3D9Fixed</Filter>
+    </ClInclude>
+    <ClInclude Include="GraphicsPrimitive.h">
+      <Filter>Source\Graphics\D3D9Fixed</Filter>
+    </ClInclude>
+    <ClInclude Include="GraphicsState.h">
+      <Filter>Source\Graphics\D3D9Fixed</Filter>
+    </ClInclude>
+    <ClInclude Include="GraphicsTexture.h">
+      <Filter>Source\Graphics\D3D9Fixed</Filter>
+    </ClInclude>
+    <ClInclude Include="GraphicsVertexBuffer.h">
+      <Filter>Source\Graphics\D3D9Fixed</Filter>
+    </ClInclude>
+    <ClInclude Include="GraphicsViewport.h">
+      <Filter>Source\Graphics\D3D9Fixed</Filter>
+    </ClInclude>
+    <ClInclude Include="CameraInstance.h">
+      <Filter>Source\World</Filter>
+    </ClInclude>
+    <ClInclude Include="LightInstance.h">
+      <Filter>Source\World</Filter>
+    </ClInclude>
+    <ClInclude Include="MatrixArray.h">
+      <Filter>Source\World</Filter>
+    </ClInclude>
+    <ClInclude Include="ParticleSystem.h">
+      <Filter>Source\World</Filter>
+    </ClInclude>
+    <ClInclude Include="VectorArray.h">
+      <Filter>Source\World</Filter>
+    </ClInclude>
+    <ClInclude Include="World.h">
+      <Filter>Source\World</Filter>
+    </ClInclude>
+    <ClInclude Include="WorldLists.h">
+      <Filter>Source\World</Filter>
+    </ClInclude>
+    <ClInclude Include="AnimationConverter.h">
+      <Filter>Source\Converters</Filter>
+    </ClInclude>
+    <ClInclude Include="ConversionMapper.h">
+      <Filter>Source\Converters</Filter>
+    </ClInclude>
+    <ClInclude Include="InstanceConverter.h">
+      <Filter>Source\Converters</Filter>
+    </ClInclude>
+    <ClInclude Include="MaterialConverter.h">
+      <Filter>Source\Converters</Filter>
+    </ClInclude>
+    <ClInclude Include="MatrixSelectionConverter.h">
+      <Filter>Source\Converters</Filter>
+    </ClInclude>
+    <ClInclude Include="MeshConverter.h">
+      <Filter>Source\Converters</Filter>
+    </ClInclude>
+    <ClInclude Include="MeshSelectionConverter.h">
+      <Filter>Source\Converters</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneConverter.h">
+      <Filter>Source\Converters</Filter>
+    </ClInclude>
+    <ClInclude Include="SelectionOverrides.h">
+      <Filter>Source\Converters</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureConverter.h">
+      <Filter>Source\Converters</Filter>
+    </ClInclude>
+    <ClInclude Include="MeshInstance.h">
+      <Filter>Source\Mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="MeshObject.h">
+      <Filter>Source\Mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="HomeGrid.h">
+      <Filter>Source\Various</Filter>
+    </ClInclude>
+    <ClInclude Include="MeshAdjuster.h">
+      <Filter>Source\Various</Filter>
+    </ClInclude>
+    <ClInclude Include="WorldEditor.h">
+      <Filter>Source\Various</Filter>
+    </ClInclude>
+    <ClInclude Include="Map2D.h">
+      <Filter>Source\Various\Map</Filter>
+    </ClInclude>
+    <ClInclude Include="Quad2D.h">
+      <Filter>Source\Various\Map</Filter>
+    </ClInclude>
+    <ClInclude Include="Movement.h">
+      <Filter>Source\Animation</Filter>
+    </ClInclude>
+    <ClInclude Include="Position.h">
+      <Filter>Source\Animation</Filter>
+    </ClInclude>
+    <ClInclude Include="PositionHelper.h">
+      <Filter>Source\Animation</Filter>
+    </ClInclude>
+    <ClInclude Include="Rotation.h">
+      <Filter>Source\Animation</Filter>
+    </ClInclude>
+    <ClInclude Include="TransformNode.h">
+      <Filter>Source\Animation</Filter>
+    </ClInclude>
+    <ClInclude Include="Animation.h">
+      <Filter>Source\Animation</Filter>
+    </ClInclude>
+    <ClInclude Include="AnimationInvokeAnimation.h">
+      <Filter>Source\Animation</Filter>
+    </ClInclude>
+    <ClInclude Include="AnimationManager.h">
+      <Filter>Source\Animation</Filter>
+    </ClInclude>
+    <ClInclude Include="Interpolator.h">
+      <Filter>Source\Animation</Filter>
+    </ClInclude>
+    <ClInclude Include="InterpolatorArray.h">
+      <Filter>Source\Animation</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

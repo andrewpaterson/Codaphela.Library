@@ -1,0 +1,10 @@
+mapvIncrement[PT_int] = IncrementInt;
+mapvIncrement[PT_short] = IncrementShort;
+mapvIncrement[PT_char] = IncrementChar;
+mapvIncrement[PT_float] = IncrementFloat;
+mapvIncrement[PT_double] = IncrementDouble;
+mapvIncrement[PT_uint] = IncrementUInt;
+mapvIncrement[PT_ushort] = IncrementUShort;
+mapvIncrement[PT_uchar] = IncrementUChar;
+mapvIncrement[PT_long] = IncrementLong;
+mapvIncrement[PT_ulong] = IncrementULong;

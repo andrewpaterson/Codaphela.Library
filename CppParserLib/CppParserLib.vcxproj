@@ -1,0 +1,272 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{4D010C1E-4DCE-4271-9B1C-87BBF0BC761C}</ProjectGuid>
+    <RootNamespace>CppParserLib</RootNamespace>
+    <Keyword>Win32Proj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>NotSet</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>NotSet</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">DEBUG\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">DEBUG\</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">RELEASE\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">RELEASE\</IntDir>
+    <ReferencePath Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(VCInstallDir)atlmfc\lib;$(VCInstallDir)lib</ReferencePath>
+    <ReferencePath Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(VCInstallDir)atlmfc\lib;$(VCInstallDir)lib</ReferencePath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(COMMONLIBRARIES);$(IncludePath)</IncludePath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(COMMONLIBRARIES);$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <Optimization>Full</Optimization>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <OmitFramePointers>true</OmitFramePointers>
+      <WholeProgramOptimization>true</WholeProgramOptimization>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="AbstractSyntaxTree.cpp" />
+    <ClCompile Include="ASTAggregate.cpp" />
+    <ClCompile Include="ASTArray.cpp" />
+    <ClCompile Include="ASTBinaryExpr.cpp" />
+    <ClCompile Include="ASTCastExpr.cpp" />
+    <ClCompile Include="ASTConstExpr.cpp" />
+    <ClCompile Include="ASTExpression.cpp" />
+    <ClCompile Include="ASTUnaryExpr.cpp" />
+    <ClCompile Include="TernaryExpr.cpp" />
+    <ClCompile Include="ASTAccessSpec.cpp" />
+    <ClCompile Include="ASTClassSpec.cpp" />
+    <ClCompile Include="ASTSimpleSpec.cpp" />
+    <ClCompile Include="ASTSpecifier.cpp" />
+    <ClCompile Include="ASTDeclarator.cpp" />
+    <ClCompile Include="ASTInitDecl.cpp" />
+    <ClCompile Include="ASTListDecl.cpp" />
+    <ClCompile Include="ASTVarDecl.cpp" />
+    <ClCompile Include="ASTName.cpp" />
+    <ClCompile Include="ASTBlockStmt.cpp" />
+    <ClCompile Include="ASTBreakStmt.cpp" />
+    <ClCompile Include="ASTContinueStmt.cpp" />
+    <ClCompile Include="ASTDoStmt.cpp" />
+    <ClCompile Include="ASTExpressionStmt.cpp" />
+    <ClCompile Include="ASTForStmt.cpp" />
+    <ClCompile Include="ASTIfStmt.cpp" />
+    <ClCompile Include="ASTReturnStmt.cpp" />
+    <ClCompile Include="ASTStatement.cpp" />
+    <ClCompile Include="ConditionalStack.cpp" />
+    <ClCompile Include="DefineArguments.cpp" />
+    <ClCompile Include="DefineMap.cpp" />
+    <ClCompile Include="FileDefine.cpp" />
+    <ClCompile Include="LinePreprocessor.cpp" />
+    <ClCompile Include="NamedDefine.cpp" />
+    <ClCompile Include="Preprocessor.cpp" />
+    <ClCompile Include="Preprocessor_Windows.cpp" />
+    <ClCompile Include="PreprocessorAnnotation.cpp" />
+    <ClCompile Include="PreprocessorParser.cpp" />
+    <ClCompile Include="PreprocessorTokeniser.cpp" />
+    <ClCompile Include="PreprocessorTokenParser.cpp" />
+    <ClCompile Include="PPHashes.cpp" />
+    <ClCompile Include="PPReplacement.cpp" />
+    <ClCompile Include="PPToken.cpp" />
+    <ClCompile Include="PPWhiteSpace.cpp" />
+    <ClCompile Include="PPConditional.cpp" />
+    <ClCompile Include="PPInclude.cpp" />
+    <ClCompile Include="PPUnknown.cpp" />
+    <ClCompile Include="PPAbstractHolder.cpp" />
+    <ClCompile Include="PPDirective.cpp" />
+    <ClCompile Include="PPHolder.cpp" />
+    <ClCompile Include="PPLine.cpp" />
+    <ClCompile Include="PPTokenHolder.cpp" />
+    <ClCompile Include="TokenHelper.cpp" />
+    <ClCompile Include="ExternalString.cpp" />
+    <ClCompile Include="PPText.cpp" />
+    <ClCompile Include="PPTextWithSource.cpp" />
+    <ClCompile Include="ArrayCBlockSet.cpp" />
+    <ClCompile Include="CBlock.cpp" />
+    <ClCompile Include="CBlockSet.cpp" />
+    <ClCompile Include="CBlockToken.cpp" />
+    <ClCompile Include="CFile.cpp" />
+    <ClCompile Include="HeaderFile.cpp" />
+    <ClCompile Include="HeaderFileMap.cpp" />
+    <ClCompile Include="HeaderNameMap.cpp" />
+    <ClCompile Include="HeaderNameMapStack.cpp" />
+    <ClCompile Include="Headers.cpp" />
+    <ClCompile Include="TranslationUnit.cpp" />
+    <ClCompile Include="TranslationUnitFileArray.cpp" />
+    <ClCompile Include="CppParser.cpp" />
+    <ClCompile Include="CppReturn.cpp" />
+    <ClCompile Include="Config.cpp" />
+    <ClCompile Include="Library.cpp" />
+    <ClCompile Include="Project.cpp" />
+    <ClCompile Include="CppTokeniser.cpp" />
+    <ClCompile Include="CppToken.cpp" />
+    <ClCompile Include="CTBoolean.cpp" />
+    <ClCompile Include="CTChar.cpp" />
+    <ClCompile Include="CTIdentifier.cpp" />
+    <ClCompile Include="CTReservedWord.cpp" />
+    <ClCompile Include="CTString.cpp" />
+    <ClCompile Include="CTWideString.cpp" />
+    <ClCompile Include="CTDouble.cpp" />
+    <ClCompile Include="CTFloat.cpp" />
+    <ClCompile Include="CTInt.cpp" />
+    <ClCompile Include="CTLongDouble.cpp" />
+    <ClCompile Include="CTLongLong.cpp" />
+    <ClCompile Include="CTNumber.cpp" />
+    <ClCompile Include="CTShort.cpp" />
+    <ClCompile Include="CTNewLine.cpp" />
+    <ClCompile Include="GeneralToken.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="AbstractSyntaxTree.h" />
+    <ClInclude Include="AbstractSyntaxTypes.h" />
+    <ClInclude Include="ASTAggregate.h" />
+    <ClInclude Include="ASTArray.h" />
+    <ClInclude Include="ASTCommon.h" />
+    <ClInclude Include="ASTBinaryExpr.h" />
+    <ClInclude Include="ASTCastExpr.h" />
+    <ClInclude Include="ASTConstExpr.h" />
+    <ClInclude Include="ASTExpression.h" />
+    <ClInclude Include="ASTUnaryExpr.h" />
+    <ClInclude Include="TernaryExpr.h" />
+    <ClInclude Include="SimpleOperator.h" />
+    <ClInclude Include="ASTAccessSpec.h" />
+    <ClInclude Include="ASTClassSpec.h" />
+    <ClInclude Include="ASTSimpleSpec.h" />
+    <ClInclude Include="ASTSpecifier.h" />
+    <ClInclude Include="ClassType.h" />
+    <ClInclude Include="ASTDeclarator.h" />
+    <ClInclude Include="ASTInitDecl.h" />
+    <ClInclude Include="ASTListDecl.h" />
+    <ClInclude Include="ASTVarDecl.h" />
+    <ClInclude Include="ASTName.h" />
+    <ClInclude Include="ASTBlockStmt.h" />
+    <ClInclude Include="ASTBreakStmt.h" />
+    <ClInclude Include="ASTContinueStmt.h" />
+    <ClInclude Include="ASTDoStmt.h" />
+    <ClInclude Include="ASTExpressionStmt.h" />
+    <ClInclude Include="ASTForStmt.h" />
+    <ClInclude Include="ASTIfStmt.h" />
+    <ClInclude Include="ASTReturnStmt.h" />
+    <ClInclude Include="ASTStatement.h" />
+    <ClInclude Include="ConditionalStack.h" />
+    <ClInclude Include="DefineArguments.h" />
+    <ClInclude Include="DefineMap.h" />
+    <ClInclude Include="FileDefine.h" />
+    <ClInclude Include="LinePreprocessor.h" />
+    <ClInclude Include="NamedDefine.h" />
+    <ClInclude Include="Preprocessor.h" />
+    <ClInclude Include="Preprocessor_Linux.h" />
+    <ClInclude Include="PreprocessorAnnotation.h" />
+    <ClInclude Include="PreprocessorParser.h" />
+    <ClInclude Include="PreprocessorTokeniser.h" />
+    <ClInclude Include="PreprocessorTokenParser.h" />
+    <ClInclude Include="PPHashes.h" />
+    <ClInclude Include="PPReplacement.h" />
+    <ClInclude Include="PPToken.h" />
+    <ClInclude Include="PPWhiteSpace.h" />
+    <ClInclude Include="PPConditional.h" />
+    <ClInclude Include="PPInclude.h" />
+    <ClInclude Include="PPUnknown.h" />
+    <ClInclude Include="PPAbstractHolder.h" />
+    <ClInclude Include="PPDirective.h" />
+    <ClInclude Include="PPHolder.h" />
+    <ClInclude Include="PPLine.h" />
+    <ClInclude Include="PPTokenHolder.h" />
+    <ClInclude Include="TokenHelper.h" />
+    <ClInclude Include="ExternalString.h" />
+    <ClInclude Include="PPText.h" />
+    <ClInclude Include="PPTextWithSource.h" />
+    <ClInclude Include="ArrayCBlockSet.h" />
+    <ClInclude Include="CBlock.h" />
+    <ClInclude Include="CBlockSet.h" />
+    <ClInclude Include="CBlockToken.h" />
+    <ClInclude Include="CFile.h" />
+    <ClInclude Include="HeaderFile.h" />
+    <ClInclude Include="HeaderFileMap.h" />
+    <ClInclude Include="HeaderNameMap.h" />
+    <ClInclude Include="HeaderNameMapStack.h" />
+    <ClInclude Include="Headers.h" />
+    <ClInclude Include="TranslationUnit.h" />
+    <ClInclude Include="TranslationUnitFileArray.h" />
+    <ClInclude Include="CppParser.h" />
+    <ClInclude Include="CppReturn.h" />
+    <ClInclude Include="Config.h" />
+    <ClInclude Include="Library.h" />
+    <ClInclude Include="Project.h" />
+    <ClInclude Include="CppTokeniser.h" />
+    <ClInclude Include="CppTokens.h" />
+    <ClInclude Include="CppToken.h" />
+    <ClInclude Include="CTBoolean.h" />
+    <ClInclude Include="CTChar.h" />
+    <ClInclude Include="CTIdentifier.h" />
+    <ClInclude Include="CTReservedWord.h" />
+    <ClInclude Include="CTString.h" />
+    <ClInclude Include="CTWideString.h" />
+    <ClInclude Include="CTDouble.h" />
+    <ClInclude Include="CTFloat.h" />
+    <ClInclude Include="CTInt.h" />
+    <ClInclude Include="CTLongDouble.h" />
+    <ClInclude Include="CTLongLong.h" />
+    <ClInclude Include="CTNumber.h" />
+    <ClInclude Include="CTShort.h" />
+    <ClInclude Include="CTNewLine.h" />
+    <ClInclude Include="GeneralToken.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="VTune\CppParserLib.vpj" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

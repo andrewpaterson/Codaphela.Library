@@ -1,0 +1,38 @@
+<Device Type="Compound">
+  <Device Type="WinRaw">
+    <Category>Mouse</Category>
+    <ID>WinRAW Mouse: Standard 2 Button Mouse</ID>
+    <Friendly>2 Button Mouse</Friendly>
+    <Sources Type="Named">WinRAW Mouse: Standard 2 Button Mouse Buttons</Sources>
+    <Sources Type="Named">WinRAW Mouse: Standard Mouse Axes</Sources>
+  </Device>
+  <Device Type="WinRaw">
+    <Category>Mouse</Category>
+    <ID>WinRAW Mouse: Standard 3 Button Mouse</ID>
+    <Friendly>3 Button Mouse</Friendly>
+    <Sources Type="Named">WinRAW Mouse: Standard 3 Button Mouse Buttons</Sources>
+    <Sources Type="Named">WinRAW Mouse: Standard Mouse Axes</Sources>
+  </Device>
+  <Device Type="WinRaw">
+    <Category>Mouse</Category>
+    <ID>WinRAW Mouse: Standard 3 Button Wheel Mouse</ID>
+    <Friendly>Standard 3 Button Mouse</Friendly>
+    <Sources Type="Named">WinRAW Mouse: Standard 3 Button Mouse Buttons</Sources>
+    <Sources Type="Named">WinRAW Mouse: Standard Mouse Wheel</Sources>
+    <Sources Type="Named">WinRAW Mouse: Standard Mouse Axes</Sources>
+  </Device>
+  <Device Type="WinRaw">
+    <Category>Mouse</Category>
+    <ID>WinRAW Mouse: Standard 4 Button Mouse</ID>
+    <Friendly>3 Button Mouse</Friendly>
+    <Sources Type="Named">WinRAW Mouse: Standard 4 Button Mouse Buttons</Sources>
+    <Sources Type="Named">WinRAW Mouse: Standard Mouse Axes</Sources>
+  </Device>
+  <Device Type="WinRaw">
+    <Category>Mouse</Category>
+    <ID>WinRAW Mouse: Standard 5 Button Mouse</ID>
+    <Friendly>3 Button Mouse</Friendly>
+    <Sources Type="Named">WinRAW Mouse: Standard 5 Button Mouse Buttons</Sources>
+    <Sources Type="Named">WinRAW Mouse: Standard Mouse Axes</Sources>
+  </Device>
+</Device>

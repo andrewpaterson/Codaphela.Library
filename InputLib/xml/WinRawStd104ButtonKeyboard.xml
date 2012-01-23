@@ -1,0 +1,2374 @@
+<Device Type="WinRaw">
+  <Category>Keyboard</Category>
+  <ID>WinRAW Keyboard: Standard 104 Button Keyboard</ID>
+  <Friendly>Standard 104 Button Keyboard</Friendly>
+  <Sources Type="Defined">
+    <Format Type="Named">WinRAW Keyboard</Format>
+    <Source Type="State">
+      <Friendly>Left Control</Friendly>
+      <Generic>Control</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>17</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>17</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>Left Special</Friendly>
+      <Generic>Special</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>91</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>2</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>91</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>3</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>Left Alt</Friendly>
+      <Generic>Alt</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>18</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>18</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>Space</Friendly>
+      <Generic>Space</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>32</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>32</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>Right Alt</Friendly>
+      <Generic>Alt</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>18</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>2</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>18</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>3</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>Right Special</Friendly>
+      <Generic>Special</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>92</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>2</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>92</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>3</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>Menu</Friendly>
+      <Generic>Menu</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>93</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>2</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>93</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>3</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>Right Control</Friendly>
+      <Generic>Control</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>17</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>2</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>17</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>3</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>Cursor Left</Friendly>
+      <Generic>Left</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>37</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>2</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>37</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>3</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>Cursor Down</Friendly>
+      <Generic>Down</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>40</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>2</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>40</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>3</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>Cursor Right</Friendly>
+      <Generic>Right</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>39</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>2</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>39</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>3</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>Numpad 0</Friendly>
+      <Generic>Numpad 0</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>45</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>45</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>Numpad .</Friendly>
+      <Generic>Numpad .</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>46</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>46</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>Escape</Friendly>
+      <Generic>Esc</Generic>
+      <Generic>Cancel</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>27</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>27</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>F1</Friendly>
+      <Generic>F1</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>112</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>112</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>F2</Friendly>
+      <Generic>F2</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>113</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>113</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>F3</Friendly>
+      <Generic>F3</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>114</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>114</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>F4</Friendly>
+      <Generic>F4</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>115</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>115</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>F5</Friendly>
+      <Generic>F5</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>116</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>116</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>F6</Friendly>
+      <Generic>F6</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>117</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>117</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>F7</Friendly>
+      <Generic>F7</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>118</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>118</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>F8</Friendly>
+      <Generic>F8</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>119</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>119</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>F9</Friendly>
+      <Generic>F9</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>120</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>120</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>F10</Friendly>
+      <Generic>F10</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>121</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>121</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>F11</Friendly>
+      <Generic>F11</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>122</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>122</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>F12</Friendly>
+      <Generic>F12</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>123</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>123</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>Print Screen</Friendly>
+      <Generic>Print Screen</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>255</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>2</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>255</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>3</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>Scroll Lock</Friendly>
+      <Generic>Scroll Lock</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>145</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>145</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>Pause/Break</Friendly>
+      <Generic>Pause</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>19</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>4</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>19</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>5</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>`</Friendly>
+      <Generic>`</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>192</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>192</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>1</Friendly>
+      <Generic>1</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>49</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>49</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>2</Friendly>
+      <Generic>2</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>50</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>50</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>3</Friendly>
+      <Generic>3</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>51</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>51</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>4</Friendly>
+      <Generic>4</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>52</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>52</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>5</Friendly>
+      <Generic>5</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>53</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>53</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>6</Friendly>
+      <Generic>6</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>54</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>54</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>7</Friendly>
+      <Generic>7</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>55</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>55</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>8</Friendly>
+      <Generic>8</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>56</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>56</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>9</Friendly>
+      <Generic>9</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>57</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>57</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>0</Friendly>
+      <Generic>0</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>48</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>48</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>-</Friendly>
+      <Generic>-</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>189</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>189</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>=</Friendly>
+      <Generic>=</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>187</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>187</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>Backspace</Friendly>
+      <Generic>Backspace</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>8</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>8</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>Insert</Friendly>
+      <Generic>Insert</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>45</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>2</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>45</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>3</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>Home</Friendly>
+      <Generic>Home</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>36</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>2</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>36</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>3</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>Page Up</Friendly>
+      <Generic>Page Up</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>33</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>2</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>33</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>3</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>Num Lock</Friendly>
+      <Generic>Numeric Lock</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>144</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>144</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>Numpad /</Friendly>
+      <Generic>Numpad /</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>111</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>2</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>111</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>3</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>Numpad *</Friendly>
+      <Generic>Numpad *</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>106</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>106</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>Numpad -</Friendly>
+      <Generic>Numpad -</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>109</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>109</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>Tab</Friendly>
+      <Generic>Tab</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>9</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>9</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>Q</Friendly>
+      <Generic>Q</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>81</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>81</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>W</Friendly>
+      <Generic>W</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>87</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>87</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>E</Friendly>
+      <Generic>E</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>69</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>69</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>R</Friendly>
+      <Generic>R</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>82</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>82</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>T</Friendly>
+      <Generic>T</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>84</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>84</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>Y</Friendly>
+      <Generic>Y</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>89</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>89</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>U</Friendly>
+      <Generic>U</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>85</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>85</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>I</Friendly>
+      <Generic>I</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>73</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>73</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>O</Friendly>
+      <Generic>O</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>79</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>79</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>P</Friendly>
+      <Generic>P</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>80</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>80</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>[</Friendly>
+      <Generic>[</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>219</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>219</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>]</Friendly>
+      <Generic>]</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>221</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>221</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>\</Friendly>
+      <Generic>\</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>220</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>220</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>Delete</Friendly>
+      <Generic>Delete</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>46</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>2</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>46</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>3</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>End</Friendly>
+      <Generic>End</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>35</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>2</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>35</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>3</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>Page Down</Friendly>
+      <Generic>Page Down</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>34</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>2</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>34</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>3</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>Numpad 7</Friendly>
+      <Generic>Numpad 7</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>36</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>36</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>Numpad 8</Friendly>
+      <Generic>Numpad 8</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>38</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>38</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>Numpad 9</Friendly>
+      <Generic>Numpad 9</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>33</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>33</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>Numpad +</Friendly>
+      <Generic>Numpad +</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>107</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>107</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>Caps Lock</Friendly>
+      <Generic>Caps Lock</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>20</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>20</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>A</Friendly>
+      <Generic>A</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>65</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>65</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>S</Friendly>
+      <Generic>S</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>83</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>83</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>D</Friendly>
+      <Generic>D</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>68</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>68</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>F</Friendly>
+      <Generic>F</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>70</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>70</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>G</Friendly>
+      <Generic>G</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>71</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>71</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>H</Friendly>
+      <Generic>H</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>72</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>72</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>J</Friendly>
+      <Generic>J</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>74</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>74</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>K</Friendly>
+      <Generic>K</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>75</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>75</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>L</Friendly>
+      <Generic>L</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>76</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>76</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>;</Friendly>
+      <Generic>;</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>186</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>186</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>'</Friendly>
+      <Generic>'</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>222</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>222</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>Enter</Friendly>
+      <Generic>Enter</Generic>
+      <Generic>Select</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>13</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>13</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>Numpad 4</Friendly>
+      <Generic>Numpad 4</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>37</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>37</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>Numpad 5</Friendly>
+      <Generic>Numpad 5</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>12</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>12</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>Numpad 6</Friendly>
+      <Generic>Numpad 6</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>39</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>39</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>Left Shift</Friendly>
+      <Generic>Shift</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>16</Equals>
+        </Channel>
+        <Channel Name="MakeCode">
+          <Equals>42</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>16</Equals>
+        </Channel>
+        <Channel Name="MakeCode">
+          <Equals>42</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>Z</Friendly>
+      <Generic>Z</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>90</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>90</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>X</Friendly>
+      <Generic>X</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>88</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>88</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>C</Friendly>
+      <Generic>C</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>67</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>67</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>V</Friendly>
+      <Generic>V</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>86</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>86</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>B</Friendly>
+      <Generic>B</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>66</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>66</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>N</Friendly>
+      <Generic>N</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>78</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>78</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>M</Friendly>
+      <Generic>M</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>77</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>77</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>,</Friendly>
+      <Generic>,</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>188</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>188</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>.</Friendly>
+      <Generic>.</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>190</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>190</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>/</Friendly>
+      <Generic>/</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>191</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>191</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>Right Shift</Friendly>
+      <Generic>Shift</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>16</Equals>
+        </Channel>
+        <Channel Name="MakeCode">
+          <Equals>54</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>16</Equals>
+        </Channel>
+        <Channel Name="MakeCode">
+          <Equals>54</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>Cursor Up</Friendly>
+      <Generic>Up</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>38</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>2</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>38</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>3</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>Numpad 1</Friendly>
+      <Generic>Numpad 1</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>35</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>35</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>Numpad 2</Friendly>
+      <Generic>Numpad 2</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>40</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>40</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>Numpad 3</Friendly>
+      <Generic>Numpad 3</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>34</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>34</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+    <Source Type="State">
+      <Friendly>Numpad Enter</Friendly>
+      <Generic>Enter</Generic>
+      <Generic>Select</Generic>
+      <State>
+        <Channel Name="VKey">
+          <Equals>13</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>2</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>13</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>3</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+    </Source>
+  </Sources>
+
+  <Variables Type="Defined">
+    <Variable Name="Num Lock">
+      <Value Name="Numeric">
+        <Active Friendly="Num Lock"/>
+        <Variable Name="Num Lock" Equals="Cursor Movement"/>
+      </Value>
+      <Value Name="Cursor Movement" Initial="True">
+        <Active Friendly="Num Lock"/>
+        <Variable Name="Num Lock" Equals="Numeric"/>
+      </Value>
+    </Variable>
+    <Variable Name="Caps Lock">
+      <Value Name="Uppercase">
+        <Active Friendly="Caps Lock"/>
+        <Variable Name="Caps Lock" Equals="Lowercase"/>
+      </Value>
+      <Value Name="Lowercase" Initial="True">
+        <Active Friendly="Caps Lock"/>
+        <Variable Name="Caps Lock" Equals="Uppercase"/>
+      </Value>
+    </Variable>
+    <Variable Name="Shift Key">
+      <Value Name="Pressed">
+        <Active Generic="Shift"/>
+      </Value>
+      <Value Name="Released" Initial="True">
+        <Inactive Generic="Shift"/>
+      </Value>
+    </Variable>
+    <Variable Name="Shift">
+      <Value Name="Yes shift yes caps">
+        <Variable Name="Caps Lock" Equals="Uppercase"/>
+        <Variable Name="Shift Key" Equals="Pressed"/>
+      </Value>
+      <Value Name="No shift yes caps">
+        <Variable Name="Caps Lock" Equals="Uppercase"/>
+        <Variable Name="Shift Key" Equals="Released"/>
+      </Value>
+      <Value Name="Yes shift no caps">
+        <Variable Name="Caps Lock" Equals="Lowercase"/>
+        <Variable Name="Shift Key" Equals="Pressed"/>
+      </Value>
+      <Value Name="No shift no caps" Initial="True">
+        <Variable Name="Caps Lock" Equals="Lowercase"/>
+        <Variable Name="Shift Key" Equals="Released"/>
+      </Value>
+    </Variable>
+  </Variables>
+
+<!--<Ordered>
+          <Group>
+            <Active DeviceID="WinRAW Keyboard: Standard 104 Button Keyboard" DeviceNum="All" Friendly="Cursor Left"/>
+            <Active DeviceID="WinRAW Keyboard: Standard 104 Button Keyboard" DeviceNum="All" Friendly="Cursor Right"/>
+          </Group>
+          <Group>
+            <Inactive DeviceID="WinRAW Keyboard: Standard 104 Button Keyboard" Friendly="Cursor Left"/>
+            <Inactive DeviceID="WinRAW Keyboard: Standard 104 Button Keyboard" Friendly="Cursor Right"/>
+          </Group>
+          <Active DeviceID="WinRAW Keyboard: Standard 104 Button Keyboard" Friendly="Cursor Up"/>
+          <Inactive DeviceID="WinRAW Keyboard: Standard 104 Button Keyboard" Friendly="Cursor Up"/>
+        </Ordered>-->
+
+</Device>

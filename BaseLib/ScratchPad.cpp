@@ -1,0 +1,94 @@
+/** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
+
+Copyright (c) 2012 Andrew Paterson
+
+This file is part of The Codaphela Project: Codaphela BaseLib
+
+Codaphela BaseLib is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Codaphela BaseLib is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
+
+Microsoft Windows is Copyright Microsoft Corporation
+
+** ------------------------------------------------------------------------ **/
+#include "ScratchPad.h"
+#include "MemoryStack.h"
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CScratchPad::Init(void)
+{
+	Init(6000000);
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CScratchPad::Init(int iChunkSize)
+{
+	mcScratchPad.Init(iChunkSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CScratchPad::Kill(void)
+{
+	mcScratchPad.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void* CScratchPad::Add(int iBytes)
+{
+	return mcScratchPad.Add(iBytes);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CScratchPad::Remove(void)
+{
+	mcScratchPad.Remove();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CScratchPad::Remove(int iNumToRemove)
+{
+	mcScratchPad.Remove(iNumToRemove);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CScratchPad::Reset(void)
+{
+	mcScratchPad.Clear();
+}
+

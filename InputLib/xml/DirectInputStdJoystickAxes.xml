@@ -1,0 +1,133 @@
+<Device Type="Compound">
+  <Device Type="DirectInput">
+    <Category>Joystick</Category>
+    <ID>DirectInput Joystick: Standard 2 Axis Joystick</ID>
+    <Friendly>2 Axis Joystick</Friendly>
+    <Sources Type="Defined">
+      <Format Type="Named">DirectInput Joystick 2</Format>
+      <Source Type="State">
+        <Friendly>Left Axis</Friendly>
+        <Generic>Left</Generic>
+        <State>
+          <Channel Name="lX">
+            <LessThanOrEquals>32768</LessThanOrEquals>
+          </Channel>
+          <Value Type="Channel">lX</Value>
+          <Max>0</Max>
+          <Min>32768</Min>
+        </State>
+        <Rest Type="Numeric">0.0</Rest>
+      </Source>
+      <Source Type="State">
+        <Friendly>Right Axis</Friendly>
+        <Generic>Right</Generic>
+        <State>
+          <Channel Name="lX">
+            <GreaterThanOrEquals>32768</GreaterThanOrEquals>
+          </Channel>
+          <Value Type="Channel">lX</Value>
+          <Max>65536</Max>
+          <Min>32768</Min>
+        </State>
+        <Rest Type="Numeric">0.0</Rest>
+      </Source>
+      <Source Type="State">
+        <Friendly>Forward</Friendly>
+        <Generic>Up</Generic>
+        <State>
+          <Channel Name="lY">
+            <LessThanOrEquals>32768</LessThanOrEquals>
+          </Channel>
+          <Value Type="Channel">lY</Value>
+          <Max>0</Max>
+          <Min>32768</Min>
+        </State>
+        <Rest Type="Numeric">0.0</Rest>
+      </Source>
+      <Source Type="State">
+        <Friendly>Backward</Friendly>
+        <Generic>Down</Generic>
+        <State>
+          <Channel Name="lY">
+            <GreaterThanOrEquals>32768</GreaterThanOrEquals>
+          </Channel>
+          <Value Type="Channel">lY</Value>
+          <Max>65536</Max>
+          <Min>32768</Min>
+        </State>
+        <Rest Type="Numeric">0.0</Rest>
+      </Source>
+    </Sources>
+  </Device>
+
+  <Device Type="DirectInput">
+    <Category>Joystick</Category>
+    <ID>DirectInput Joystick: Standard 3 Axis Joystick</ID>
+    <Friendly>3 Axis Joystick</Friendly>
+    <Sources Type="Named">DirectInput Joystick: Standard 2 Axis Joystick</Sources>
+    <Sources Type="Defined">
+      <Format Type="Named">DirectInput Joystick 2</Format>
+      <Source Type="State">
+        <Friendly>Left Yaw</Friendly>
+        <Generic>Left</Generic>
+        <State>
+          <Channel Name="lRz">
+            <LessThanOrEquals>32768</LessThanOrEquals>
+          </Channel>
+          <Value Type="Channel">lRz</Value>
+          <Max>0</Max>
+          <Min>32768</Min>
+        </State>
+        <Rest Type="Numeric">0.0</Rest>
+      </Source>
+      <Source Type="State">
+        <Friendly>Right Yaw</Friendly>
+        <Generic>Right</Generic>
+        <State>
+          <Channel Name="lRz">
+            <GreaterThanOrEquals>32768</GreaterThanOrEquals>
+          </Channel>
+          <Value Type="Channel">lRz</Value>
+          <Max>65536</Max>
+          <Min>32768</Min>
+        </State>
+        <Rest Type="Numeric">0.0</Rest>
+      </Source>
+    </Sources>
+  </Device>
+
+  <Device Type="DirectInput">
+    <Category>Joystick</Category>
+    <ID>DirectInput Joystick: Standard 4 Axis Joystick</ID>
+    <Friendly>4 Axis Joystick</Friendly>
+    <Sources Type="Named">DirectInput Joystick: Standard 3 Axis Joystick</Sources>
+    <Sources Type="Defined">
+      <Format Type="Named">DirectInput Joystick 2</Format>
+      <Source Type="State">
+        <Friendly>Forward 2</Friendly>
+        <State>
+          <Channel Name="lZ">
+            <LessThanOrEquals>32768</LessThanOrEquals>
+          </Channel>
+          <Value Type="Channel">lZ</Value>
+          <Max>0</Max>
+          <Min>32768</Min>
+        </State>
+        <Rest Type="Numeric">0.0</Rest>
+      </Source>
+      <Source Type="State">
+        <Friendly>Backward 2</Friendly>
+        <State>
+          <Channel Name="lZ">
+            <GreaterThanOrEquals>32768</GreaterThanOrEquals>
+          </Channel>
+          <Value Type="Channel">lZ</Value>
+          <Max>65536</Max>
+          <Min>32768</Min>
+        </State>
+        <Rest Type="Numeric">0.0</Rest>
+      </Source>
+    </Sources>
+  </Device>
+</Device>
+

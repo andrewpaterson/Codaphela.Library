@@ -1,0 +1,14 @@
+IndexedData (objects only)
+
+FileSystem
+  File (DRG, OBJ...)
+  
+PackFiles
+  File
+  
+  
+One object per DRG.  Loads directly into an object instance.
+  otherwise
+Object converter.
+  Name: Meshes/Ships/Alliance/Scout
+  FileSystem: Meshes/Ships/Alliance.OBJ + g Scout

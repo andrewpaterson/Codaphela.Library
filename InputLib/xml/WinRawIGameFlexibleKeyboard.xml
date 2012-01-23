@@ -1,0 +1,7 @@
+<Device Type="WinRaw">
+  <Category>Keyboard</Category>
+  <ID>WinRAW Keyboard: Name(HID Keyboard Device), Type(00000000), SubType(00000000), KeyboardMode(00000001), NumberOfFunctionKeys(0000000C), NumberOfIndicators(00000003), NumberOfKeysTotal(0000009A)</ID>
+  <Friendly>Generic Multimedia Keyboard</Friendly>
+  <Sources Type="Named">WinRAW Keyboard: Standard 104 Button Keyboard</Sources>
+  <Variables Type="Named">WinRAW Keyboard: Standard 104 Button Keyboard</Variables>
+</Device>

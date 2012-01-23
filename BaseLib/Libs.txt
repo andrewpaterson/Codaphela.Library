@@ -1,0 +1,15 @@
+CoreLib -> TypeConverter must be moved to BaseLib
+ImageLib must be removed.  Use the PNG and Zlib .libs rather than compliling them.
+ImageLib must be created.  It must contain only the CImage class and attendants from SupportLib.
+StandardLib -> Object Manger (Unknowns) must move to CoreLib
+StandardLib -> Tracker related classes (including data indicies) must be deleted.  
+StandardLib -> Action must move to CoreLib and/or be deleted
+StandardLib -> Timer must move next to CThread (CoreLib)
+StandardLib must be removed.
+SupportLib -> CopyPaste must next to CThread (CoreLib)
+SupportLib -> Vertex must move to MeshLib
+SupportLib must be removed.
+ShapeLib must be removed.  Move contents to MeshLib
+
+GameLib must be created.
+WorldLib and DirectXLib must be merged.  Non DX functionality must be moved to GameLib

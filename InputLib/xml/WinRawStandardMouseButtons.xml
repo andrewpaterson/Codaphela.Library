@@ -1,0 +1,187 @@
+<Device Type="Compound">
+  <Device Type="WinRaw">
+    <Category>Mouse</Category>
+    <ID>WinRAW Mouse: Standard 2 Button Mouse Buttons</ID>
+    <Friendly>Standard 2 Button Mouse Buttons</Friendly>
+    <Sources Type="Defined">
+      <Format Type="Named">WinRAW Mouse</Format>
+      <Source Type="State">
+        <Friendly>Button 1</Friendly>
+        <Generic>B1</Generic>
+        <Generic>Select</Generic>
+        <State>
+          <Channel Name="Flags">
+            <Equals>0</Equals>
+          </Channel>
+          <Channel Name="Buttons">
+            <Equals>1</Equals>
+          </Channel>
+          <Channel Name="RawButtons">
+            <Equals>0</Equals>
+          </Channel>
+          <Value Type="Numeric">1.0</Value>
+        </State>
+        <State>
+          <Channel Name="Flags">
+            <Equals>0</Equals>
+          </Channel>
+          <Channel Name="Buttons">
+            <Equals>2</Equals>
+          </Channel>
+          <Channel Name="RawButtons">
+            <Equals>0</Equals>
+          </Channel>
+          <Value Type="Numeric">0.0</Value>
+        </State>
+        <Rest Type="Numeric">0.0</Rest>
+      </Source>
+      <Source Type="State">
+        <Friendly>Button 2</Friendly>
+        <Generic>B2</Generic>
+        <Generic>Cancel</Generic>
+        <State>
+          <Channel Name="Flags">
+            <Equals>0</Equals>
+          </Channel>
+          <Channel Name="Buttons">
+            <Equals>4</Equals>
+          </Channel>
+          <Channel Name="RawButtons">
+            <Equals>0</Equals>
+          </Channel>
+          <Value Type="Numeric">1.0</Value>
+        </State>
+        <State>
+          <Channel Name="Flags">
+            <Equals>0</Equals>
+          </Channel>
+          <Channel Name="Buttons">
+            <Equals>8</Equals>
+          </Channel>
+          <Channel Name="RawButtons">
+            <Equals>0</Equals>
+          </Channel>
+          <Value Type="Numeric">0.0</Value>
+        </State>
+        <Rest Type="Numeric">0.0</Rest>
+      </Source>
+    </Sources>
+  </Device>
+
+  <Device Type="WinRaw">
+    <Category>Mouse</Category>
+    <ID>WinRAW Mouse: Standard 3 Button Mouse Buttons</ID>
+    <Friendly>Standard 3 Button Mouse Buttons</Friendly>
+    <Sources Type="Named">WinRAW Mouse: Standard 2 Button Mouse Buttons</Sources>
+    <Sources Type="Defined">
+      <Format Type="Named">WinRAW Mouse</Format>
+      <Source Type="State">
+        <Friendly>Button 3</Friendly>
+        <Generic>B3</Generic>
+        <State>
+          <Channel Name="Flags">
+            <Equals>0</Equals>
+          </Channel>
+          <Channel Name="Buttons">
+            <Equals>16</Equals>
+          </Channel>
+          <Channel Name="RawButtons">
+            <Equals>0</Equals>
+          </Channel>
+          <Value Type="Numeric">1.0</Value>
+        </State>
+        <State>
+          <Channel Name="Flags">
+            <Equals>0</Equals>
+          </Channel>
+          <Channel Name="Buttons">
+            <Equals>32</Equals>
+          </Channel>
+          <Channel Name="RawButtons">
+            <Equals>0</Equals>
+          </Channel>
+          <Value Type="Numeric">0.0</Value>
+        </State>
+        <Rest Type="Numeric">0.0</Rest>
+      </Source>
+    </Sources>
+  </Device>
+
+  <Device Type="WinRaw">
+    <Category>Mouse</Category>
+    <ID>WinRAW Mouse: Standard 4 Button Mouse Buttons</ID>
+    <Friendly>Standard 4 Button Mouse Buttons</Friendly>
+    <Sources Type="Named">WinRAW Mouse: Standard 3 Button Mouse Buttons</Sources>
+    <Sources Type="Defined">
+      <Format Type="Named">WinRAW Mouse</Format>
+      <Source Type="State">
+        <Friendly>Button 4</Friendly>
+        <Generic>B4</Generic>
+        <State>
+          <Channel Name="Flags">
+            <Equals>0</Equals>
+          </Channel>
+          <Channel Name="Buttons">
+            <Equals>64</Equals>
+          </Channel>
+          <Channel Name="RawButtons">
+            <Equals>0</Equals>
+          </Channel>
+          <Value Type="Numeric">1.0</Value>
+        </State>
+        <State>
+          <Channel Name="Flags">
+            <Equals>0</Equals>
+          </Channel>
+          <Channel Name="Buttons">
+            <Equals>128</Equals>
+          </Channel>
+          <Channel Name="RawButtons">
+            <Equals>0</Equals>
+          </Channel>
+          <Value Type="Numeric">0.0</Value>
+        </State>
+        <Rest Type="Numeric">0.0</Rest>
+      </Source>
+    </Sources>
+  </Device>
+
+  <Device Type="WinRaw">
+    <Category>Mouse</Category>
+    <ID>WinRAW Mouse: Standard 5 Button Mouse Buttons</ID>
+    <Friendly>Standard 5 Button Mouse Buttons</Friendly>
+    <Sources Type="Named">WinRAW Mouse: Standard 4 Button Mouse Buttons</Sources>
+    <Sources Type="Defined">
+      <Format Type="Named">WinRAW Mouse</Format>
+      <Source Type="State">
+        <Friendly>Button 5</Friendly>
+        <Generic>B5</Generic>
+        <State>
+          <Channel Name="Flags">
+            <Equals>0</Equals>
+          </Channel>
+          <Channel Name="Buttons">
+            <Equals>256</Equals>
+          </Channel>
+          <Channel Name="RawButtons">
+            <Equals>0</Equals>
+          </Channel>
+          <Value Type="Numeric">1.0</Value>
+        </State>
+        <State>
+          <Channel Name="Flags">
+            <Equals>0</Equals>
+          </Channel>
+          <Channel Name="Buttons">
+            <Equals>512</Equals>
+          </Channel>
+          <Channel Name="RawButtons">
+            <Equals>0</Equals>
+          </Channel>
+          <Value Type="Numeric">0.0</Value>
+        </State>
+        <Rest Type="Numeric">0.0</Rest>
+      </Source>
+    </Sources>
+  </Device>
+</Device>

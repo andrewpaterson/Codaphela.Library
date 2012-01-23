@@ -1,0 +1,627 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source">
+      <UniqueIdentifier>{b8a314c4-62d9-4c4a-a75d-2fb4bd092e84}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Abstract">
+      <UniqueIdentifier>{7ea57f33-79fb-47db-9b38-98ab5b36d6f4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Abstract\Expression">
+      <UniqueIdentifier>{6b0554c2-4e54-4f0a-9717-c1a0c4f3773e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Abstract\Expression\Operator">
+      <UniqueIdentifier>{37ebc90e-89d6-4945-b07d-610545e083f0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Abstract\Specifier">
+      <UniqueIdentifier>{7ebc2e35-1cf3-4975-854c-76f70ccc05ba}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Abstract\Declarator">
+      <UniqueIdentifier>{cba854b8-8580-4c02-94c9-11dce6e0320c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Abstract\Name">
+      <UniqueIdentifier>{7b8d08ea-3d9d-4da3-8a67-ff6656f6f789}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Abstract\Statement">
+      <UniqueIdentifier>{905e3c30-50da-4bfc-80b6-7b9c7b8d3dcc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\General">
+      <UniqueIdentifier>{09cd0f9d-acaa-4776-b6f6-ac2d1b7c8abd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Library">
+      <UniqueIdentifier>{84f7c939-f723-40cb-88b3-5d8c4d942fbb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Parser">
+      <UniqueIdentifier>{48d7cd9a-56b1-45b1-91f9-352b7502ccff}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Preprocessor">
+      <UniqueIdentifier>{f384307c-f873-44d9-a20c-058953f77315}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Preprocessor\Tokens">
+      <UniqueIdentifier>{5833ff6d-fb0e-4b70-923d-35f4d995fe21}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Preprocessor\Tokens\Directives">
+      <UniqueIdentifier>{596b62e3-1364-42e4-9313-fe60298346ab}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Preprocessor\Tokens\Holders">
+      <UniqueIdentifier>{78d68237-3ba5-4b4c-907e-fdf41ea6852f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Preprocessor\Tokens\Helpers">
+      <UniqueIdentifier>{78c4bf1d-e5c3-419c-b8f4-33c8106bb2b1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Preprocessor\Tokens\Text">
+      <UniqueIdentifier>{c3c356e4-c1e1-447f-ba66-dcbb5ab6cf39}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Preprocessor\Maybe">
+      <UniqueIdentifier>{ab5bda68-056d-4f90-acc5-13fe362459bd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Tokeniser">
+      <UniqueIdentifier>{b8562279-4def-4346-94fc-96ebe5f475e3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Tokeniser\Tokens">
+      <UniqueIdentifier>{3fdd4b74-b86a-4442-be5e-234908de65da}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Tokeniser\Tokens\Numbers">
+      <UniqueIdentifier>{ebcfe193-b417-49ee-8101-c7e917c0c5aa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Tokeniser\Tokens\Helpers">
+      <UniqueIdentifier>{c8b85017-0035-4458-91b1-af86384b168e}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="AbstractSyntaxTree.cpp">
+      <Filter>Source\Abstract</Filter>
+    </ClCompile>
+    <ClCompile Include="ASTAggregate.cpp">
+      <Filter>Source\Abstract</Filter>
+    </ClCompile>
+    <ClCompile Include="ASTArray.cpp">
+      <Filter>Source\Abstract</Filter>
+    </ClCompile>
+    <ClCompile Include="ASTBinaryExpr.cpp">
+      <Filter>Source\Abstract\Expression</Filter>
+    </ClCompile>
+    <ClCompile Include="ASTCastExpr.cpp">
+      <Filter>Source\Abstract\Expression</Filter>
+    </ClCompile>
+    <ClCompile Include="ASTConstExpr.cpp">
+      <Filter>Source\Abstract\Expression</Filter>
+    </ClCompile>
+    <ClCompile Include="ASTExpression.cpp">
+      <Filter>Source\Abstract\Expression</Filter>
+    </ClCompile>
+    <ClCompile Include="ASTUnaryExpr.cpp">
+      <Filter>Source\Abstract\Expression</Filter>
+    </ClCompile>
+    <ClCompile Include="TernaryExpr.cpp">
+      <Filter>Source\Abstract\Expression</Filter>
+    </ClCompile>
+    <ClCompile Include="ASTAccessSpec.cpp">
+      <Filter>Source\Abstract\Specifier</Filter>
+    </ClCompile>
+    <ClCompile Include="ASTClassSpec.cpp">
+      <Filter>Source\Abstract\Specifier</Filter>
+    </ClCompile>
+    <ClCompile Include="ASTSimpleSpec.cpp">
+      <Filter>Source\Abstract\Specifier</Filter>
+    </ClCompile>
+    <ClCompile Include="ASTSpecifier.cpp">
+      <Filter>Source\Abstract\Specifier</Filter>
+    </ClCompile>
+    <ClCompile Include="ASTDeclarator.cpp">
+      <Filter>Source\Abstract\Declarator</Filter>
+    </ClCompile>
+    <ClCompile Include="ASTInitDecl.cpp">
+      <Filter>Source\Abstract\Declarator</Filter>
+    </ClCompile>
+    <ClCompile Include="ASTListDecl.cpp">
+      <Filter>Source\Abstract\Declarator</Filter>
+    </ClCompile>
+    <ClCompile Include="ASTVarDecl.cpp">
+      <Filter>Source\Abstract\Declarator</Filter>
+    </ClCompile>
+    <ClCompile Include="ASTName.cpp">
+      <Filter>Source\Abstract\Name</Filter>
+    </ClCompile>
+    <ClCompile Include="ASTBlockStmt.cpp">
+      <Filter>Source\Abstract\Statement</Filter>
+    </ClCompile>
+    <ClCompile Include="ASTBreakStmt.cpp">
+      <Filter>Source\Abstract\Statement</Filter>
+    </ClCompile>
+    <ClCompile Include="ASTContinueStmt.cpp">
+      <Filter>Source\Abstract\Statement</Filter>
+    </ClCompile>
+    <ClCompile Include="ASTDoStmt.cpp">
+      <Filter>Source\Abstract\Statement</Filter>
+    </ClCompile>
+    <ClCompile Include="ASTExpressionStmt.cpp">
+      <Filter>Source\Abstract\Statement</Filter>
+    </ClCompile>
+    <ClCompile Include="ASTForStmt.cpp">
+      <Filter>Source\Abstract\Statement</Filter>
+    </ClCompile>
+    <ClCompile Include="ASTIfStmt.cpp">
+      <Filter>Source\Abstract\Statement</Filter>
+    </ClCompile>
+    <ClCompile Include="ASTReturnStmt.cpp">
+      <Filter>Source\Abstract\Statement</Filter>
+    </ClCompile>
+    <ClCompile Include="ASTStatement.cpp">
+      <Filter>Source\Abstract\Statement</Filter>
+    </ClCompile>
+    <ClCompile Include="ConditionalStack.cpp">
+      <Filter>Source\Preprocessor</Filter>
+    </ClCompile>
+    <ClCompile Include="DefineArguments.cpp">
+      <Filter>Source\Preprocessor</Filter>
+    </ClCompile>
+    <ClCompile Include="DefineMap.cpp">
+      <Filter>Source\Preprocessor</Filter>
+    </ClCompile>
+    <ClCompile Include="FileDefine.cpp">
+      <Filter>Source\Preprocessor</Filter>
+    </ClCompile>
+    <ClCompile Include="LinePreprocessor.cpp">
+      <Filter>Source\Preprocessor</Filter>
+    </ClCompile>
+    <ClCompile Include="NamedDefine.cpp">
+      <Filter>Source\Preprocessor</Filter>
+    </ClCompile>
+    <ClCompile Include="Preprocessor.cpp">
+      <Filter>Source\Preprocessor</Filter>
+    </ClCompile>
+    <ClCompile Include="Preprocessor_Windows.cpp">
+      <Filter>Source\Preprocessor</Filter>
+    </ClCompile>
+    <ClCompile Include="PreprocessorAnnotation.cpp">
+      <Filter>Source\Preprocessor</Filter>
+    </ClCompile>
+    <ClCompile Include="PreprocessorParser.cpp">
+      <Filter>Source\Preprocessor</Filter>
+    </ClCompile>
+    <ClCompile Include="PreprocessorTokeniser.cpp">
+      <Filter>Source\Preprocessor</Filter>
+    </ClCompile>
+    <ClCompile Include="PreprocessorTokenParser.cpp">
+      <Filter>Source\Preprocessor</Filter>
+    </ClCompile>
+    <ClCompile Include="PPHashes.cpp">
+      <Filter>Source\Preprocessor\Tokens</Filter>
+    </ClCompile>
+    <ClCompile Include="PPReplacement.cpp">
+      <Filter>Source\Preprocessor\Tokens</Filter>
+    </ClCompile>
+    <ClCompile Include="PPToken.cpp">
+      <Filter>Source\Preprocessor\Tokens</Filter>
+    </ClCompile>
+    <ClCompile Include="PPWhiteSpace.cpp">
+      <Filter>Source\Preprocessor\Tokens</Filter>
+    </ClCompile>
+    <ClCompile Include="PPConditional.cpp">
+      <Filter>Source\Preprocessor\Tokens\Directives</Filter>
+    </ClCompile>
+    <ClCompile Include="PPInclude.cpp">
+      <Filter>Source\Preprocessor\Tokens\Directives</Filter>
+    </ClCompile>
+    <ClCompile Include="PPUnknown.cpp">
+      <Filter>Source\Preprocessor\Tokens\Directives</Filter>
+    </ClCompile>
+    <ClCompile Include="PPAbstractHolder.cpp">
+      <Filter>Source\Preprocessor\Tokens\Holders</Filter>
+    </ClCompile>
+    <ClCompile Include="PPDirective.cpp">
+      <Filter>Source\Preprocessor\Tokens\Holders</Filter>
+    </ClCompile>
+    <ClCompile Include="PPHolder.cpp">
+      <Filter>Source\Preprocessor\Tokens\Holders</Filter>
+    </ClCompile>
+    <ClCompile Include="PPLine.cpp">
+      <Filter>Source\Preprocessor\Tokens\Holders</Filter>
+    </ClCompile>
+    <ClCompile Include="PPTokenHolder.cpp">
+      <Filter>Source\Preprocessor\Tokens\Holders</Filter>
+    </ClCompile>
+    <ClCompile Include="TokenHelper.cpp">
+      <Filter>Source\Preprocessor\Tokens\Helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="ExternalString.cpp">
+      <Filter>Source\Preprocessor\Tokens\Text</Filter>
+    </ClCompile>
+    <ClCompile Include="PPText.cpp">
+      <Filter>Source\Preprocessor\Tokens\Text</Filter>
+    </ClCompile>
+    <ClCompile Include="PPTextWithSource.cpp">
+      <Filter>Source\Preprocessor\Tokens\Text</Filter>
+    </ClCompile>
+    <ClCompile Include="ArrayCBlockSet.cpp">
+      <Filter>Source\Preprocessor\Maybe</Filter>
+    </ClCompile>
+    <ClCompile Include="CBlock.cpp">
+      <Filter>Source\Preprocessor\Maybe</Filter>
+    </ClCompile>
+    <ClCompile Include="CBlockSet.cpp">
+      <Filter>Source\Preprocessor\Maybe</Filter>
+    </ClCompile>
+    <ClCompile Include="CBlockToken.cpp">
+      <Filter>Source\Preprocessor\Maybe</Filter>
+    </ClCompile>
+    <ClCompile Include="CFile.cpp">
+      <Filter>Source\Preprocessor\Maybe</Filter>
+    </ClCompile>
+    <ClCompile Include="HeaderFile.cpp">
+      <Filter>Source\Preprocessor\Maybe</Filter>
+    </ClCompile>
+    <ClCompile Include="HeaderFileMap.cpp">
+      <Filter>Source\Preprocessor\Maybe</Filter>
+    </ClCompile>
+    <ClCompile Include="HeaderNameMap.cpp">
+      <Filter>Source\Preprocessor\Maybe</Filter>
+    </ClCompile>
+    <ClCompile Include="HeaderNameMapStack.cpp">
+      <Filter>Source\Preprocessor\Maybe</Filter>
+    </ClCompile>
+    <ClCompile Include="Headers.cpp">
+      <Filter>Source\Preprocessor\Maybe</Filter>
+    </ClCompile>
+    <ClCompile Include="TranslationUnit.cpp">
+      <Filter>Source\Preprocessor\Maybe</Filter>
+    </ClCompile>
+    <ClCompile Include="TranslationUnitFileArray.cpp">
+      <Filter>Source\Preprocessor\Maybe</Filter>
+    </ClCompile>
+    <ClCompile Include="CppParser.cpp">
+      <Filter>Source\Parser</Filter>
+    </ClCompile>
+    <ClCompile Include="CppReturn.cpp">
+      <Filter>Source\Parser</Filter>
+    </ClCompile>
+    <ClCompile Include="Config.cpp">
+      <Filter>Source\Library</Filter>
+    </ClCompile>
+    <ClCompile Include="Library.cpp">
+      <Filter>Source\Library</Filter>
+    </ClCompile>
+    <ClCompile Include="Project.cpp">
+      <Filter>Source\Library</Filter>
+    </ClCompile>
+    <ClCompile Include="CppTokeniser.cpp">
+      <Filter>Source\Tokeniser</Filter>
+    </ClCompile>
+    <ClCompile Include="CppToken.cpp">
+      <Filter>Source\Tokeniser\Tokens</Filter>
+    </ClCompile>
+    <ClCompile Include="CTBoolean.cpp">
+      <Filter>Source\Tokeniser\Tokens</Filter>
+    </ClCompile>
+    <ClCompile Include="CTChar.cpp">
+      <Filter>Source\Tokeniser\Tokens</Filter>
+    </ClCompile>
+    <ClCompile Include="CTIdentifier.cpp">
+      <Filter>Source\Tokeniser\Tokens</Filter>
+    </ClCompile>
+    <ClCompile Include="CTReservedWord.cpp">
+      <Filter>Source\Tokeniser\Tokens</Filter>
+    </ClCompile>
+    <ClCompile Include="CTString.cpp">
+      <Filter>Source\Tokeniser\Tokens</Filter>
+    </ClCompile>
+    <ClCompile Include="CTWideString.cpp">
+      <Filter>Source\Tokeniser\Tokens</Filter>
+    </ClCompile>
+    <ClCompile Include="CTDouble.cpp">
+      <Filter>Source\Tokeniser\Tokens\Numbers</Filter>
+    </ClCompile>
+    <ClCompile Include="CTFloat.cpp">
+      <Filter>Source\Tokeniser\Tokens\Numbers</Filter>
+    </ClCompile>
+    <ClCompile Include="CTInt.cpp">
+      <Filter>Source\Tokeniser\Tokens\Numbers</Filter>
+    </ClCompile>
+    <ClCompile Include="CTLongDouble.cpp">
+      <Filter>Source\Tokeniser\Tokens\Numbers</Filter>
+    </ClCompile>
+    <ClCompile Include="CTLongLong.cpp">
+      <Filter>Source\Tokeniser\Tokens\Numbers</Filter>
+    </ClCompile>
+    <ClCompile Include="CTNumber.cpp">
+      <Filter>Source\Tokeniser\Tokens\Numbers</Filter>
+    </ClCompile>
+    <ClCompile Include="CTShort.cpp">
+      <Filter>Source\Tokeniser\Tokens\Numbers</Filter>
+    </ClCompile>
+    <ClCompile Include="CTNewLine.cpp">
+      <Filter>Source\Tokeniser\Tokens\Helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneralToken.cpp">
+      <Filter>Source\General</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="AbstractSyntaxTree.h">
+      <Filter>Source\Abstract</Filter>
+    </ClInclude>
+    <ClInclude Include="AbstractSyntaxTypes.h">
+      <Filter>Source\Abstract</Filter>
+    </ClInclude>
+    <ClInclude Include="ASTAggregate.h">
+      <Filter>Source\Abstract</Filter>
+    </ClInclude>
+    <ClInclude Include="ASTArray.h">
+      <Filter>Source\Abstract</Filter>
+    </ClInclude>
+    <ClInclude Include="ASTCommon.h">
+      <Filter>Source\Abstract</Filter>
+    </ClInclude>
+    <ClInclude Include="ASTBinaryExpr.h">
+      <Filter>Source\Abstract\Expression</Filter>
+    </ClInclude>
+    <ClInclude Include="ASTCastExpr.h">
+      <Filter>Source\Abstract\Expression</Filter>
+    </ClInclude>
+    <ClInclude Include="ASTConstExpr.h">
+      <Filter>Source\Abstract\Expression</Filter>
+    </ClInclude>
+    <ClInclude Include="ASTExpression.h">
+      <Filter>Source\Abstract\Expression</Filter>
+    </ClInclude>
+    <ClInclude Include="ASTUnaryExpr.h">
+      <Filter>Source\Abstract\Expression</Filter>
+    </ClInclude>
+    <ClInclude Include="TernaryExpr.h">
+      <Filter>Source\Abstract\Expression</Filter>
+    </ClInclude>
+    <ClInclude Include="SimpleOperator.h">
+      <Filter>Source\Abstract\Expression\Operator</Filter>
+    </ClInclude>
+    <ClInclude Include="ASTAccessSpec.h">
+      <Filter>Source\Abstract\Specifier</Filter>
+    </ClInclude>
+    <ClInclude Include="ASTClassSpec.h">
+      <Filter>Source\Abstract\Specifier</Filter>
+    </ClInclude>
+    <ClInclude Include="ASTSimpleSpec.h">
+      <Filter>Source\Abstract\Specifier</Filter>
+    </ClInclude>
+    <ClInclude Include="ASTSpecifier.h">
+      <Filter>Source\Abstract\Specifier</Filter>
+    </ClInclude>
+    <ClInclude Include="ClassType.h">
+      <Filter>Source\Abstract\Specifier</Filter>
+    </ClInclude>
+    <ClInclude Include="ASTDeclarator.h">
+      <Filter>Source\Abstract\Declarator</Filter>
+    </ClInclude>
+    <ClInclude Include="ASTInitDecl.h">
+      <Filter>Source\Abstract\Declarator</Filter>
+    </ClInclude>
+    <ClInclude Include="ASTListDecl.h">
+      <Filter>Source\Abstract\Declarator</Filter>
+    </ClInclude>
+    <ClInclude Include="ASTVarDecl.h">
+      <Filter>Source\Abstract\Declarator</Filter>
+    </ClInclude>
+    <ClInclude Include="ASTName.h">
+      <Filter>Source\Abstract\Name</Filter>
+    </ClInclude>
+    <ClInclude Include="ASTBlockStmt.h">
+      <Filter>Source\Abstract\Statement</Filter>
+    </ClInclude>
+    <ClInclude Include="ASTBreakStmt.h">
+      <Filter>Source\Abstract\Statement</Filter>
+    </ClInclude>
+    <ClInclude Include="ASTContinueStmt.h">
+      <Filter>Source\Abstract\Statement</Filter>
+    </ClInclude>
+    <ClInclude Include="ASTDoStmt.h">
+      <Filter>Source\Abstract\Statement</Filter>
+    </ClInclude>
+    <ClInclude Include="ASTExpressionStmt.h">
+      <Filter>Source\Abstract\Statement</Filter>
+    </ClInclude>
+    <ClInclude Include="ASTForStmt.h">
+      <Filter>Source\Abstract\Statement</Filter>
+    </ClInclude>
+    <ClInclude Include="ASTIfStmt.h">
+      <Filter>Source\Abstract\Statement</Filter>
+    </ClInclude>
+    <ClInclude Include="ASTReturnStmt.h">
+      <Filter>Source\Abstract\Statement</Filter>
+    </ClInclude>
+    <ClInclude Include="ASTStatement.h">
+      <Filter>Source\Abstract\Statement</Filter>
+    </ClInclude>
+    <ClInclude Include="ConditionalStack.h">
+      <Filter>Source\Preprocessor</Filter>
+    </ClInclude>
+    <ClInclude Include="DefineArguments.h">
+      <Filter>Source\Preprocessor</Filter>
+    </ClInclude>
+    <ClInclude Include="DefineMap.h">
+      <Filter>Source\Preprocessor</Filter>
+    </ClInclude>
+    <ClInclude Include="FileDefine.h">
+      <Filter>Source\Preprocessor</Filter>
+    </ClInclude>
+    <ClInclude Include="LinePreprocessor.h">
+      <Filter>Source\Preprocessor</Filter>
+    </ClInclude>
+    <ClInclude Include="NamedDefine.h">
+      <Filter>Source\Preprocessor</Filter>
+    </ClInclude>
+    <ClInclude Include="Preprocessor.h">
+      <Filter>Source\Preprocessor</Filter>
+    </ClInclude>
+    <ClInclude Include="Preprocessor_Linux.h">
+      <Filter>Source\Preprocessor</Filter>
+    </ClInclude>
+    <ClInclude Include="PreprocessorAnnotation.h">
+      <Filter>Source\Preprocessor</Filter>
+    </ClInclude>
+    <ClInclude Include="PreprocessorParser.h">
+      <Filter>Source\Preprocessor</Filter>
+    </ClInclude>
+    <ClInclude Include="PreprocessorTokeniser.h">
+      <Filter>Source\Preprocessor</Filter>
+    </ClInclude>
+    <ClInclude Include="PreprocessorTokenParser.h">
+      <Filter>Source\Preprocessor</Filter>
+    </ClInclude>
+    <ClInclude Include="PPHashes.h">
+      <Filter>Source\Preprocessor\Tokens</Filter>
+    </ClInclude>
+    <ClInclude Include="PPReplacement.h">
+      <Filter>Source\Preprocessor\Tokens</Filter>
+    </ClInclude>
+    <ClInclude Include="PPToken.h">
+      <Filter>Source\Preprocessor\Tokens</Filter>
+    </ClInclude>
+    <ClInclude Include="PPWhiteSpace.h">
+      <Filter>Source\Preprocessor\Tokens</Filter>
+    </ClInclude>
+    <ClInclude Include="PPConditional.h">
+      <Filter>Source\Preprocessor\Tokens\Directives</Filter>
+    </ClInclude>
+    <ClInclude Include="PPInclude.h">
+      <Filter>Source\Preprocessor\Tokens\Directives</Filter>
+    </ClInclude>
+    <ClInclude Include="PPUnknown.h">
+      <Filter>Source\Preprocessor\Tokens\Directives</Filter>
+    </ClInclude>
+    <ClInclude Include="PPAbstractHolder.h">
+      <Filter>Source\Preprocessor\Tokens\Holders</Filter>
+    </ClInclude>
+    <ClInclude Include="PPDirective.h">
+      <Filter>Source\Preprocessor\Tokens\Holders</Filter>
+    </ClInclude>
+    <ClInclude Include="PPHolder.h">
+      <Filter>Source\Preprocessor\Tokens\Holders</Filter>
+    </ClInclude>
+    <ClInclude Include="PPLine.h">
+      <Filter>Source\Preprocessor\Tokens\Holders</Filter>
+    </ClInclude>
+    <ClInclude Include="PPTokenHolder.h">
+      <Filter>Source\Preprocessor\Tokens\Holders</Filter>
+    </ClInclude>
+    <ClInclude Include="TokenHelper.h">
+      <Filter>Source\Preprocessor\Tokens\Helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="ExternalString.h">
+      <Filter>Source\Preprocessor\Tokens\Text</Filter>
+    </ClInclude>
+    <ClInclude Include="PPText.h">
+      <Filter>Source\Preprocessor\Tokens\Text</Filter>
+    </ClInclude>
+    <ClInclude Include="PPTextWithSource.h">
+      <Filter>Source\Preprocessor\Tokens\Text</Filter>
+    </ClInclude>
+    <ClInclude Include="ArrayCBlockSet.h">
+      <Filter>Source\Preprocessor\Maybe</Filter>
+    </ClInclude>
+    <ClInclude Include="CBlock.h">
+      <Filter>Source\Preprocessor\Maybe</Filter>
+    </ClInclude>
+    <ClInclude Include="CBlockSet.h">
+      <Filter>Source\Preprocessor\Maybe</Filter>
+    </ClInclude>
+    <ClInclude Include="CBlockToken.h">
+      <Filter>Source\Preprocessor\Maybe</Filter>
+    </ClInclude>
+    <ClInclude Include="CFile.h">
+      <Filter>Source\Preprocessor\Maybe</Filter>
+    </ClInclude>
+    <ClInclude Include="HeaderFile.h">
+      <Filter>Source\Preprocessor\Maybe</Filter>
+    </ClInclude>
+    <ClInclude Include="HeaderFileMap.h">
+      <Filter>Source\Preprocessor\Maybe</Filter>
+    </ClInclude>
+    <ClInclude Include="HeaderNameMap.h">
+      <Filter>Source\Preprocessor\Maybe</Filter>
+    </ClInclude>
+    <ClInclude Include="HeaderNameMapStack.h">
+      <Filter>Source\Preprocessor\Maybe</Filter>
+    </ClInclude>
+    <ClInclude Include="Headers.h">
+      <Filter>Source\Preprocessor\Maybe</Filter>
+    </ClInclude>
+    <ClInclude Include="TranslationUnit.h">
+      <Filter>Source\Preprocessor\Maybe</Filter>
+    </ClInclude>
+    <ClInclude Include="TranslationUnitFileArray.h">
+      <Filter>Source\Preprocessor\Maybe</Filter>
+    </ClInclude>
+    <ClInclude Include="CppParser.h">
+      <Filter>Source\Parser</Filter>
+    </ClInclude>
+    <ClInclude Include="CppReturn.h">
+      <Filter>Source\Parser</Filter>
+    </ClInclude>
+    <ClInclude Include="Config.h">
+      <Filter>Source\Library</Filter>
+    </ClInclude>
+    <ClInclude Include="Library.h">
+      <Filter>Source\Library</Filter>
+    </ClInclude>
+    <ClInclude Include="Project.h">
+      <Filter>Source\Library</Filter>
+    </ClInclude>
+    <ClInclude Include="CppTokeniser.h">
+      <Filter>Source\Tokeniser</Filter>
+    </ClInclude>
+    <ClInclude Include="CppTokens.h">
+      <Filter>Source\Tokeniser</Filter>
+    </ClInclude>
+    <ClInclude Include="CppToken.h">
+      <Filter>Source\Tokeniser\Tokens</Filter>
+    </ClInclude>
+    <ClInclude Include="CTBoolean.h">
+      <Filter>Source\Tokeniser\Tokens</Filter>
+    </ClInclude>
+    <ClInclude Include="CTChar.h">
+      <Filter>Source\Tokeniser\Tokens</Filter>
+    </ClInclude>
+    <ClInclude Include="CTIdentifier.h">
+      <Filter>Source\Tokeniser\Tokens</Filter>
+    </ClInclude>
+    <ClInclude Include="CTReservedWord.h">
+      <Filter>Source\Tokeniser\Tokens</Filter>
+    </ClInclude>
+    <ClInclude Include="CTString.h">
+      <Filter>Source\Tokeniser\Tokens</Filter>
+    </ClInclude>
+    <ClInclude Include="CTWideString.h">
+      <Filter>Source\Tokeniser\Tokens</Filter>
+    </ClInclude>
+    <ClInclude Include="CTDouble.h">
+      <Filter>Source\Tokeniser\Tokens\Numbers</Filter>
+    </ClInclude>
+    <ClInclude Include="CTFloat.h">
+      <Filter>Source\Tokeniser\Tokens\Numbers</Filter>
+    </ClInclude>
+    <ClInclude Include="CTInt.h">
+      <Filter>Source\Tokeniser\Tokens\Numbers</Filter>
+    </ClInclude>
+    <ClInclude Include="CTLongDouble.h">
+      <Filter>Source\Tokeniser\Tokens\Numbers</Filter>
+    </ClInclude>
+    <ClInclude Include="CTLongLong.h">
+      <Filter>Source\Tokeniser\Tokens\Numbers</Filter>
+    </ClInclude>
+    <ClInclude Include="CTNumber.h">
+      <Filter>Source\Tokeniser\Tokens\Numbers</Filter>
+    </ClInclude>
+    <ClInclude Include="CTShort.h">
+      <Filter>Source\Tokeniser\Tokens\Numbers</Filter>
+    </ClInclude>
+    <ClInclude Include="CTNewLine.h">
+      <Filter>Source\Tokeniser\Tokens\Helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="GeneralToken.h">
+      <Filter>Source\General</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="VTune\CppParserLib.vpj" />
+  </ItemGroup>
+</Project>

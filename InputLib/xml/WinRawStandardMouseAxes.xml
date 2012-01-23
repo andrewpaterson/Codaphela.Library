@@ -1,0 +1,56 @@
+<Device Type="WinRaw">
+  <Category>Mouse</Category>
+  <ID>WinRAW Mouse: Standard Mouse Axes</ID>
+  <Friendly>Standard Mouse Axes</Friendly>
+  <Sources Type="Defined">
+    <Format Type="Named">WinRAW Mouse</Format>
+    <Source Type="Delta">
+      <Friendly>Left</Friendly>
+      <Delta>
+        <Channel Name="LastX">
+          <LessThanOrEquals>0</LessThanOrEquals>
+        </Channel>
+        <Sensitivity>-1.0</Sensitivity>
+        <Offset>0.0</Offset>
+        <Value Type="Channel">LastX</Value>
+      </Delta>
+      <Rest Type="Numeric" Emit="True">0.0</Rest>
+    </Source>
+    <Source Type="Delta">
+      <Friendly>Right</Friendly>
+      <Delta>
+        <Channel Name="LastX">
+          <GreaterThanOrEquals>0</GreaterThanOrEquals>
+        </Channel>
+        <Sensitivity>1.0</Sensitivity>
+        <Offset>0.0</Offset>
+        <Value Type="Channel">LastX</Value>
+      </Delta>
+      <Rest Type="Numeric" Emit="True">0.0</Rest>
+    </Source>
+    <Source Type="Delta">
+      <Friendly>Up</Friendly>
+      <Delta>
+        <Channel Name="LastY">
+          <LessThanOrEquals>0</LessThanOrEquals>
+        </Channel>
+        <Sensitivity>-1.0</Sensitivity>
+        <Offset>0.0</Offset>
+        <Value Type="Channel">LastY</Value>
+      </Delta>
+      <Rest Type="Numeric" Emit="True">0.0</Rest>
+    </Source>
+    <Source Type="Delta">
+      <Friendly>Down</Friendly>
+      <Delta>
+        <Channel Name="LastY">
+          <GreaterThanOrEquals>0</GreaterThanOrEquals>
+        </Channel>
+        <Sensitivity>1.0</Sensitivity>
+        <Offset>0.0</Offset>
+        <Value Type="Channel">LastY</Value>
+      </Delta>
+      <Rest Type="Numeric" Emit="True">0.0</Rest>
+    </Source>
+  </Sources>
+</Device>

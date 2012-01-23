@@ -1,0 +1,102 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Meta">
+      <UniqueIdentifier>{28372fd2-b094-401b-af42-a856d4556a7e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Meta\Parser">
+      <UniqueIdentifier>{91319569-2dba-48f3-b797-6ddf96e4c22d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Meta\Tokeniser">
+      <UniqueIdentifier>{38aba4da-ee52-4f72-b709-762afa42e08b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Meta\Tokeniser\Definitions">
+      <UniqueIdentifier>{52201fbd-d857-41e1-a47b-043a13e1e1ba}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Meta\Tokeniser\Values">
+      <UniqueIdentifier>{2339a822-da2c-4981-863b-ea3762d4fd64}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="MetaParser.cpp">
+      <Filter>Meta\Parser</Filter>
+    </ClCompile>
+    <ClCompile Include="NodeConstructor.cpp">
+      <Filter>Meta\Parser</Filter>
+    </ClCompile>
+    <ClCompile Include="Definition.cpp">
+      <Filter>Meta\Tokeniser\Definitions</Filter>
+    </ClCompile>
+    <ClCompile Include="Meta.cpp">
+      <Filter>Meta\Tokeniser\Definitions</Filter>
+    </ClCompile>
+    <ClCompile Include="MetaTokeniser.cpp">
+      <Filter>Meta\Tokeniser\Definitions</Filter>
+    </ClCompile>
+    <ClCompile Include="TokenArray.cpp">
+      <Filter>Meta\Tokeniser\Values</Filter>
+    </ClCompile>
+    <ClCompile Include="TokenDumper.cpp">
+      <Filter>Meta\Tokeniser\Values</Filter>
+    </ClCompile>
+    <ClCompile Include="Tokens.cpp">
+      <Filter>Meta\Tokeniser\Values</Filter>
+    </ClCompile>
+    <ClCompile Include="TokenTree.cpp">
+      <Filter>Meta\Tokeniser\Values</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="MetaParser.h">
+      <Filter>Meta\Parser</Filter>
+    </ClInclude>
+    <ClInclude Include="NodeConstructor.h">
+      <Filter>Meta\Parser</Filter>
+    </ClInclude>
+    <ClInclude Include="ElementTypes.h">
+      <Filter>Meta\Tokeniser</Filter>
+    </ClInclude>
+    <ClInclude Include="CharElement.h">
+      <Filter>Meta\Tokeniser\Definitions</Filter>
+    </ClInclude>
+    <ClInclude Include="Definition.h">
+      <Filter>Meta\Tokeniser\Definitions</Filter>
+    </ClInclude>
+    <ClInclude Include="DefinitionElement.h">
+      <Filter>Meta\Tokeniser\Definitions</Filter>
+    </ClInclude>
+    <ClInclude Include="EndElement.h">
+      <Filter>Meta\Tokeniser\Definitions</Filter>
+    </ClInclude>
+    <ClInclude Include="IdentifierElement.h">
+      <Filter>Meta\Tokeniser\Definitions</Filter>
+    </ClInclude>
+    <ClInclude Include="Meta.h">
+      <Filter>Meta\Tokeniser\Definitions</Filter>
+    </ClInclude>
+    <ClInclude Include="MetaTokeniser.h">
+      <Filter>Meta\Tokeniser\Definitions</Filter>
+    </ClInclude>
+    <ClInclude Include="NodeElement.h">
+      <Filter>Meta\Tokeniser\Definitions</Filter>
+    </ClInclude>
+    <ClInclude Include="TextElement.h">
+      <Filter>Meta\Tokeniser\Definitions</Filter>
+    </ClInclude>
+    <ClInclude Include="TypeElement.h">
+      <Filter>Meta\Tokeniser\Definitions</Filter>
+    </ClInclude>
+    <ClInclude Include="TokenArray.h">
+      <Filter>Meta\Tokeniser\Values</Filter>
+    </ClInclude>
+    <ClInclude Include="TokenDumper.h">
+      <Filter>Meta\Tokeniser\Values</Filter>
+    </ClInclude>
+    <ClInclude Include="Tokens.h">
+      <Filter>Meta\Tokeniser\Values</Filter>
+    </ClInclude>
+    <ClInclude Include="TokenTree.h">
+      <Filter>Meta\Tokeniser\Values</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

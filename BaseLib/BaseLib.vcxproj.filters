@@ -1,0 +1,884 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source">
+      <UniqueIdentifier>{506ea173-25a5-42cb-9648-7878fd53c328}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Constructor">
+      <UniqueIdentifier>{fb48d1b9-9012-4e3c-b180-c4ca8d7cba8c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Pointer">
+      <UniqueIdentifier>{b7b8c09a-ee44-47a8-927e-021d7ae0780c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data">
+      <UniqueIdentifier>{a886e8af-38ac-4ae3-ac02-da28f83e9713}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\Array">
+      <UniqueIdentifier>{bd99f217-fd86-4d5e-addd-181c89f35308}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\Array\Tree">
+      <UniqueIdentifier>{8e1f12d3-fcd6-46c9-9ce9-aad10fa666ac}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\LinkList">
+      <UniqueIdentifier>{fa3dfb29-19bd-41e1-8e9e-400f402430f7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\Tree">
+      <UniqueIdentifier>{4cd9ae6e-01e1-4483-a044-dd7486b0ac0b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\Enumerator">
+      <UniqueIdentifier>{dc315a44-4b20-40c0-ab75-efeb24af625a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\String">
+      <UniqueIdentifier>{bea213cd-2a49-448f-ade4-5d1eb3293042}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\Additional">
+      <UniqueIdentifier>{a59765dd-1bb5-4269-8df6-6e7ec48f23a7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\Map">
+      <UniqueIdentifier>{c19b3a97-f9e7-44b6-8a7e-d8947c2878bd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\Time">
+      <UniqueIdentifier>{42a4f878-ff07-4758-ac35-854ab6035f88}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\Primitive">
+      <UniqueIdentifier>{6b723ddb-f956-4f8f-acc9-b8c5e0079c33}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\Markup">
+      <UniqueIdentifier>{0ae28629-605d-41d5-9f31-20678a9efd52}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\ASCII">
+      <UniqueIdentifier>{5fa05940-5004-442d-987e-2facb4932830}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\Geometric">
+      <UniqueIdentifier>{59e180ea-6000-48b4-a3b6-6783ceae53cd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Define">
+      <UniqueIdentifier>{37c6fc51-c5d8-4b32-a44b-e8a6f4f5e4e3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Error">
+      <UniqueIdentifier>{55b6b0eb-ff99-4d64-8f25-f3e1f6db49a9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Fast">
+      <UniqueIdentifier>{70a84639-2985-4a74-ae2b-80b8a3717887}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\File">
+      <UniqueIdentifier>{ed542d83-8eef-48ca-9599-332ee9bbfcaa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\File\CSV">
+      <UniqueIdentifier>{48aa2a27-68f7-47ba-901c-db7868451abc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\File\Text">
+      <UniqueIdentifier>{5961efd4-d4ed-48d8-ab06-9eb3fdde240f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\File\Naive">
+      <UniqueIdentifier>{661f78df-9dde-404b-a5e3-89daa8c6adce}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\File\Chains">
+      <UniqueIdentifier>{21230f7a-1683-4486-835e-25fe2569f7fa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\File\Compare">
+      <UniqueIdentifier>{773dcc09-adfa-44be-98dd-e6145ad38ce6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\File\IO">
+      <UniqueIdentifier>{53a110d0-06b2-41c9-8688-faf803a7eba0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\File\Utils">
+      <UniqueIdentifier>{168e7e9a-4f7f-4301-98db-25ca4fb850e8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\File\Basic">
+      <UniqueIdentifier>{eec6c5c4-816a-40df-9ff6-cd318a4b4b32}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\File\MD5">
+      <UniqueIdentifier>{7af67dba-66d5-4cfb-9d2c-cd5dd56bafc8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\File\Common">
+      <UniqueIdentifier>{cb53643c-0938-42e3-82da-a71da030ec72}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\File\Names">
+      <UniqueIdentifier>{89f82f63-6d89-4f9d-ae67-393aa2773f77}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\File\System">
+      <UniqueIdentifier>{255ae424-4b6a-4614-9811-563493a1fe63}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\File\Copy">
+      <UniqueIdentifier>{4f5039fe-7a3c-4288-8e21-539dcd785499}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\License">
+      <UniqueIdentifier>{7a5e0a20-0e05-4522-b96a-dcf4304888bb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Math">
+      <UniqueIdentifier>{3611c317-81f0-42ee-bc62-4ae33c574090}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Math\Number">
+      <UniqueIdentifier>{f6d2321d-ffca-4548-878a-156ece45cb11}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Memory">
+      <UniqueIdentifier>{6f7bcefb-667d-48c1-86e3-4a0f57b34548}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Memory\Manager">
+      <UniqueIdentifier>{3d5fb6dd-210b-40ec-8779-1004b43e1581}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Memory\ScratchPad">
+      <UniqueIdentifier>{f240a9dc-60d9-427d-aaec-306e934e552d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\File\Chunk">
+      <UniqueIdentifier>{949bd34f-b556-48ed-a84b-8b4ae041869c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\File\Pack">
+      <UniqueIdentifier>{6157726c-cd9c-49cf-bf91-dfa4ce59e2e7}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="DataMacro.h">
+      <Filter>Source\Data</Filter>
+    </ClInclude>
+    <ClInclude Include="ArrayBit.h">
+      <Filter>Source\Data\Array</Filter>
+    </ClInclude>
+    <ClInclude Include="ArrayBlock.h">
+      <Filter>Source\Data\Array</Filter>
+    </ClInclude>
+    <ClInclude Include="ArrayChar.h">
+      <Filter>Source\Data\Array</Filter>
+    </ClInclude>
+    <ClInclude Include="ArrayDouble.h">
+      <Filter>Source\Data\Array</Filter>
+    </ClInclude>
+    <ClInclude Include="ArrayEmbedded.h">
+      <Filter>Source\Data\Array</Filter>
+    </ClInclude>
+    <ClInclude Include="ArrayFloat.h">
+      <Filter>Source\Data\Array</Filter>
+    </ClInclude>
+    <ClInclude Include="ArrayInt.h">
+      <Filter>Source\Data\Array</Filter>
+    </ClInclude>
+    <ClInclude Include="ArrayInt2D.h">
+      <Filter>Source\Data\Array</Filter>
+    </ClInclude>
+    <ClInclude Include="ArrayLong.h">
+      <Filter>Source\Data\Array</Filter>
+    </ClInclude>
+    <ClInclude Include="ArrayPointer.h">
+      <Filter>Source\Data\Array</Filter>
+    </ClInclude>
+    <ClInclude Include="ArrayPrimitiveTemplate.h">
+      <Filter>Source\Data\Array</Filter>
+    </ClInclude>
+    <ClInclude Include="ArraySimple.h">
+      <Filter>Source\Data\Array</Filter>
+    </ClInclude>
+    <ClInclude Include="ArraySimpleChar.h">
+      <Filter>Source\Data\Array</Filter>
+    </ClInclude>
+    <ClInclude Include="ArrayString.h">
+      <Filter>Source\Data\Array</Filter>
+    </ClInclude>
+    <ClInclude Include="ArrayTemplate.h">
+      <Filter>Source\Data\Array</Filter>
+    </ClInclude>
+    <ClInclude Include="ArrayDenseTemplate.h">
+      <Filter>Source\Data\Array\Tree</Filter>
+    </ClInclude>
+    <ClInclude Include="ArraySparseTemplate.h">
+      <Filter>Source\Data\Array\Tree</Filter>
+    </ClInclude>
+    <ClInclude Include="LinkListBlock.h">
+      <Filter>Source\Data\LinkList</Filter>
+    </ClInclude>
+    <ClInclude Include="LinkListBlockMemoryStack.h">
+      <Filter>Source\Data\LinkList</Filter>
+    </ClInclude>
+    <ClInclude Include="LinkListTemplate.h">
+      <Filter>Source\Data\LinkList</Filter>
+    </ClInclude>
+    <ClInclude Include="LinkListTemplateFreeList.h">
+      <Filter>Source\Data\LinkList</Filter>
+    </ClInclude>
+    <ClInclude Include="LinkListTemplateMemoryStack.h">
+      <Filter>Source\Data\LinkList</Filter>
+    </ClInclude>
+    <ClInclude Include="TreeBlock.h">
+      <Filter>Source\Data\Tree</Filter>
+    </ClInclude>
+    <ClInclude Include="TreeBlockMemoryStack.h">
+      <Filter>Source\Data\Tree</Filter>
+    </ClInclude>
+    <ClInclude Include="TreeInt.h">
+      <Filter>Source\Data\Tree</Filter>
+    </ClInclude>
+    <ClInclude Include="TreeTemplate.h">
+      <Filter>Source\Data\Tree</Filter>
+    </ClInclude>
+    <ClInclude Include="TreeTemplateFreeList.h">
+      <Filter>Source\Data\Tree</Filter>
+    </ClInclude>
+    <ClInclude Include="TreeTemplateMemoryStack.h">
+      <Filter>Source\Data\Tree</Filter>
+    </ClInclude>
+    <ClInclude Include="EnumeratorBlock.h">
+      <Filter>Source\Data\Enumerator</Filter>
+    </ClInclude>
+    <ClInclude Include="EnumeratorEnumerator.h">
+      <Filter>Source\Data\Enumerator</Filter>
+    </ClInclude>
+    <ClInclude Include="EnumeratorPointer.h">
+      <Filter>Source\Data\Enumerator</Filter>
+    </ClInclude>
+    <ClInclude Include="EnumeratorTemplate.h">
+      <Filter>Source\Data\Enumerator</Filter>
+    </ClInclude>
+    <ClInclude Include="EnumeratorVoid.h">
+      <Filter>Source\Data\Enumerator</Filter>
+    </ClInclude>
+    <ClInclude Include="Chars.h">
+      <Filter>Source\Data\String</Filter>
+    </ClInclude>
+    <ClInclude Include="CharsHelper.h">
+      <Filter>Source\Data\String</Filter>
+    </ClInclude>
+    <ClInclude Include="Newline.h">
+      <Filter>Source\Data\String</Filter>
+    </ClInclude>
+    <ClInclude Include="StringHelper.h">
+      <Filter>Source\Data\String</Filter>
+    </ClInclude>
+    <ClInclude Include="AdditionalTypes.h">
+      <Filter>Source\Data\Additional</Filter>
+    </ClInclude>
+    <ClInclude Include="MapIntArraySimpleInt.h">
+      <Filter>Source\Data\Map</Filter>
+    </ClInclude>
+    <ClInclude Include="MapIntInt.h">
+      <Filter>Source\Data\Map</Filter>
+    </ClInclude>
+    <ClInclude Include="MapIntTemplate.h">
+      <Filter>Source\Data\Map</Filter>
+    </ClInclude>
+    <ClInclude Include="MapPtrPtr.h">
+      <Filter>Source\Data\Map</Filter>
+    </ClInclude>
+    <ClInclude Include="MapPtrTemplate.h">
+      <Filter>Source\Data\Map</Filter>
+    </ClInclude>
+    <ClInclude Include="MapStringInt.h">
+      <Filter>Source\Data\Map</Filter>
+    </ClInclude>
+    <ClInclude Include="MapStringString.h">
+      <Filter>Source\Data\Map</Filter>
+    </ClInclude>
+    <ClInclude Include="MapStringTemplate.h">
+      <Filter>Source\Data\Map</Filter>
+    </ClInclude>
+    <ClInclude Include="MapTemplate.h">
+      <Filter>Source\Data\Map</Filter>
+    </ClInclude>
+    <ClInclude Include="Date.h">
+      <Filter>Source\Data\Time</Filter>
+    </ClInclude>
+    <ClInclude Include="DataTypes.h">
+      <Filter>Source\Data\Primitive</Filter>
+    </ClInclude>
+    <ClInclude Include="PrimitiveTypes.h">
+      <Filter>Source\Data\Primitive</Filter>
+    </ClInclude>
+    <ClInclude Include="Markup.h">
+      <Filter>Source\Data\Markup</Filter>
+    </ClInclude>
+    <ClInclude Include="MarkupBase.h">
+      <Filter>Source\Data\Markup</Filter>
+    </ClInclude>
+    <ClInclude Include="MarkupDoc.h">
+      <Filter>Source\Data\Markup</Filter>
+    </ClInclude>
+    <ClInclude Include="MarkupReference.h">
+      <Filter>Source\Data\Markup</Filter>
+    </ClInclude>
+    <ClInclude Include="MarkupSubstitute.h">
+      <Filter>Source\Data\Markup</Filter>
+    </ClInclude>
+    <ClInclude Include="MarkupTag.h">
+      <Filter>Source\Data\Markup</Filter>
+    </ClInclude>
+    <ClInclude Include="MarkupText.h">
+      <Filter>Source\Data\Markup</Filter>
+    </ClInclude>
+    <ClInclude Include="ASCIINode.h">
+      <Filter>Source\Data\ASCII</Filter>
+    </ClInclude>
+    <ClInclude Include="ASCIITree.h">
+      <Filter>Source\Data\ASCII</Filter>
+    </ClInclude>
+    <ClInclude Include="CharsID.h">
+      <Filter>Source\Data\ASCII</Filter>
+    </ClInclude>
+    <ClInclude Include="CharsIDArray.h">
+      <Filter>Source\Data\ASCII</Filter>
+    </ClInclude>
+    <ClInclude Include="Float2.h">
+      <Filter>Source\Data\Geometric</Filter>
+    </ClInclude>
+    <ClInclude Include="Float3.h">
+      <Filter>Source\Data\Geometric</Filter>
+    </ClInclude>
+    <ClInclude Include="Float4.h">
+      <Filter>Source\Data\Geometric</Filter>
+    </ClInclude>
+    <ClInclude Include="Float4x4.h">
+      <Filter>Source\Data\Geometric</Filter>
+    </ClInclude>
+    <ClInclude Include="GeometricTypes.h">
+      <Filter>Source\Data\Geometric</Filter>
+    </ClInclude>
+    <ClInclude Include="Int2.h">
+      <Filter>Source\Data\Geometric</Filter>
+    </ClInclude>
+    <ClInclude Include="Int3.h">
+      <Filter>Source\Data\Geometric</Filter>
+    </ClInclude>
+    <ClInclude Include="Int4.h">
+      <Filter>Source\Data\Geometric</Filter>
+    </ClInclude>
+    <ClInclude Include="Quaternion.h">
+      <Filter>Source\Data\Geometric</Filter>
+    </ClInclude>
+    <ClInclude Include="DebugOutput.h">
+      <Filter>Source\Error</Filter>
+    </ClInclude>
+    <ClInclude Include="Error.h">
+      <Filter>Source\Error</Filter>
+    </ClInclude>
+    <ClInclude Include="ErrorHandler.h">
+      <Filter>Source\Error</Filter>
+    </ClInclude>
+    <ClInclude Include="ErrorTypes.h">
+      <Filter>Source\Error</Filter>
+    </ClInclude>
+    <ClInclude Include="Logger.h">
+      <Filter>Source\Error</Filter>
+    </ClInclude>
+    <ClInclude Include="FloatHelper.h">
+      <Filter>Source\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="IntegerHelper.h">
+      <Filter>Source\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Numbers.h">
+      <Filter>Source\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="PackedFloat.h">
+      <Filter>Source\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Number.h">
+      <Filter>Source\Math\Number</Filter>
+    </ClInclude>
+    <ClInclude Include="NumberControl.h">
+      <Filter>Source\Math\Number</Filter>
+    </ClInclude>
+    <ClInclude Include="ChunkFile.h">
+      <Filter>Source\File\Chunk</Filter>
+    </ClInclude>
+    <ClInclude Include="ChunkFileIndex.h">
+      <Filter>Source\File\Chunk</Filter>
+    </ClInclude>
+    <ClInclude Include="ChunkFileNames.h">
+      <Filter>Source\File\Chunk</Filter>
+    </ClInclude>
+    <ClInclude Include="CSVFile.h">
+      <Filter>Source\File\CSV</Filter>
+    </ClInclude>
+    <ClInclude Include="CSVFileEditable.h">
+      <Filter>Source\File\CSV</Filter>
+    </ClInclude>
+    <ClInclude Include="CSVFileImutable.h">
+      <Filter>Source\File\CSV</Filter>
+    </ClInclude>
+    <ClInclude Include="CSVHelper.h">
+      <Filter>Source\File\CSV</Filter>
+    </ClInclude>
+    <ClInclude Include="TextFile.h">
+      <Filter>Source\File\Text</Filter>
+    </ClInclude>
+    <ClInclude Include="NaiveFile.h">
+      <Filter>Source\File\Naive</Filter>
+    </ClInclude>
+    <ClInclude Include="AbstractFile.h">
+      <Filter>Source\File\Chains</Filter>
+    </ClInclude>
+    <ClInclude Include="BufferedFile.h">
+      <Filter>Source\File\Chains</Filter>
+    </ClInclude>
+    <ClInclude Include="DiskFile.h">
+      <Filter>Source\File\Chains</Filter>
+    </ClInclude>
+    <ClInclude Include="MD5HashFile.h">
+      <Filter>Source\File\Chains</Filter>
+    </ClInclude>
+    <ClInclude Include="MemoryFile.h">
+      <Filter>Source\File\Chains</Filter>
+    </ClInclude>
+    <ClInclude Include="FileCompare.h">
+      <Filter>Source\File\Compare</Filter>
+    </ClInclude>
+    <ClInclude Include="FileIO.h">
+      <Filter>Source\File\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="FileReader.h">
+      <Filter>Source\File\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="FileWriter.h">
+      <Filter>Source\File\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="PackFile.h">
+      <Filter>Source\File\Pack</Filter>
+    </ClInclude>
+    <ClInclude Include="PackFileNode.h">
+      <Filter>Source\File\Pack</Filter>
+    </ClInclude>
+    <ClInclude Include="PackFileReadArrary.h">
+      <Filter>Source\File\Pack</Filter>
+    </ClInclude>
+    <ClInclude Include="PackFiles.h">
+      <Filter>Source\File\Pack</Filter>
+    </ClInclude>
+    <ClInclude Include="FileUtil.h">
+      <Filter>Source\File\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="FileBasic.h">
+      <Filter>Source\File\Basic</Filter>
+    </ClInclude>
+    <ClInclude Include="MD5.h">
+      <Filter>Source\File\MD5</Filter>
+    </ClInclude>
+    <ClInclude Include="FileHeader.h">
+      <Filter>Source\File\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="FileMode.h">
+      <Filter>Source\File\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="FileNames.h">
+      <Filter>Source\File\Names</Filter>
+    </ClInclude>
+    <ClInclude Include="FileNode.h">
+      <Filter>Source\File\Names</Filter>
+    </ClInclude>
+    <ClInclude Include="FileNodeDirectory.h">
+      <Filter>Source\File\Names</Filter>
+    </ClInclude>
+    <ClInclude Include="FileNodeFileSystem.h">
+      <Filter>Source\File\System</Filter>
+    </ClInclude>
+    <ClInclude Include="FileSystem.h">
+      <Filter>Source\File\System</Filter>
+    </ClInclude>
+    <ClInclude Include="FileCopier.h">
+      <Filter>Source\File\Copy</Filter>
+    </ClInclude>
+    <ClInclude Include="FreeList.h">
+      <Filter>Source\Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="FreeListBlock.h">
+      <Filter>Source\Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="FreeListMaybe.h">
+      <Filter>Source\Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="LinkListAligned.h">
+      <Filter>Source\Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="MemoryCache.h">
+      <Filter>Source\Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="MemoryStack.h">
+      <Filter>Source\Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="MemoryStackExtended.h">
+      <Filter>Source\Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="StackMark.h">
+      <Filter>Source\Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="Memory.h">
+      <Filter>Source\Memory\Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="MemoryStats.h">
+      <Filter>Source\Memory\Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="ScratchPad.h">
+      <Filter>Source\Memory\ScratchPad</Filter>
+    </ClInclude>
+    <ClInclude Include="FastFunctions.h">
+      <Filter>Source\Fast</Filter>
+    </ClInclude>
+    <ClInclude Include="FastMemcmp.h">
+      <Filter>Source\Fast</Filter>
+    </ClInclude>
+    <ClInclude Include="FastMemcpy.h">
+      <Filter>Source\Fast</Filter>
+    </ClInclude>
+    <ClInclude Include="FastMemcpyBackwards.h">
+      <Filter>Source\Fast</Filter>
+    </ClInclude>
+    <ClInclude Include="FastMemset.h">
+      <Filter>Source\Fast</Filter>
+    </ClInclude>
+    <ClInclude Include="PointerFunctions.h">
+      <Filter>Source\Pointer</Filter>
+    </ClInclude>
+    <ClInclude Include="PointerRemapper.h">
+      <Filter>Source\Pointer</Filter>
+    </ClInclude>
+    <ClInclude Include="Bool.h">
+      <Filter>Source\Define</Filter>
+    </ClInclude>
+    <ClInclude Include="DebugLog.h">
+      <Filter>Source\Define</Filter>
+    </ClInclude>
+    <ClInclude Include="Define.h">
+      <Filter>Source\Define</Filter>
+    </ClInclude>
+    <ClInclude Include="Version.h">
+      <Filter>Source\Define</Filter>
+    </ClInclude>
+    <ClInclude Include="WindowsHeaders.h">
+      <Filter>Source\Define</Filter>
+    </ClInclude>
+    <ClInclude Include="ConstructorCall.h">
+      <Filter>Source\Constructor</Filter>
+    </ClInclude>
+    <ClInclude Include="Aardvark.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="ArrayBit.cpp">
+      <Filter>Source\Data\Array</Filter>
+    </ClCompile>
+    <ClCompile Include="ArrayBlock.cpp">
+      <Filter>Source\Data\Array</Filter>
+    </ClCompile>
+    <ClCompile Include="ArrayInt.cpp">
+      <Filter>Source\Data\Array</Filter>
+    </ClCompile>
+    <ClCompile Include="ArrayInt2D.cpp">
+      <Filter>Source\Data\Array</Filter>
+    </ClCompile>
+    <ClCompile Include="ArrayLong.cpp">
+      <Filter>Source\Data\Array</Filter>
+    </ClCompile>
+    <ClCompile Include="ArrayPointer.cpp">
+      <Filter>Source\Data\Array</Filter>
+    </ClCompile>
+    <ClCompile Include="ArraySimpleChar.cpp">
+      <Filter>Source\Data\Array</Filter>
+    </ClCompile>
+    <ClCompile Include="ArrayString.cpp">
+      <Filter>Source\Data\Array</Filter>
+    </ClCompile>
+    <ClCompile Include="LinkListBlock.cpp">
+      <Filter>Source\Data\LinkList</Filter>
+    </ClCompile>
+    <ClCompile Include="LinkListBlockMemoryStack.cpp">
+      <Filter>Source\Data\LinkList</Filter>
+    </ClCompile>
+    <ClCompile Include="TreeBlock.cpp">
+      <Filter>Source\Data\Tree</Filter>
+    </ClCompile>
+    <ClCompile Include="TreeBlockMemoryStack.cpp">
+      <Filter>Source\Data\Tree</Filter>
+    </ClCompile>
+    <ClCompile Include="EnumeratorBlock.cpp">
+      <Filter>Source\Data\Enumerator</Filter>
+    </ClCompile>
+    <ClCompile Include="EnumeratorEnumerator.cpp">
+      <Filter>Source\Data\Enumerator</Filter>
+    </ClCompile>
+    <ClCompile Include="EnumeratorPointer.cpp">
+      <Filter>Source\Data\Enumerator</Filter>
+    </ClCompile>
+    <ClCompile Include="EnumeratorTemplate.cpp">
+      <Filter>Source\Data\Enumerator</Filter>
+    </ClCompile>
+    <ClCompile Include="EnumeratorVoid.cpp">
+      <Filter>Source\Data\Enumerator</Filter>
+    </ClCompile>
+    <ClCompile Include="Chars.cpp">
+      <Filter>Source\Data\String</Filter>
+    </ClCompile>
+    <ClCompile Include="CharsHelper.cpp">
+      <Filter>Source\Data\String</Filter>
+    </ClCompile>
+    <ClCompile Include="Newline.cpp">
+      <Filter>Source\Data\String</Filter>
+    </ClCompile>
+    <ClCompile Include="StringHelper.cpp">
+      <Filter>Source\Data\String</Filter>
+    </ClCompile>
+    <ClCompile Include="AdditionalTypes.cpp">
+      <Filter>Source\Data\Additional</Filter>
+    </ClCompile>
+    <ClCompile Include="MapIntInt.cpp">
+      <Filter>Source\Data\Map</Filter>
+    </ClCompile>
+    <ClCompile Include="MapPtrPtr.cpp">
+      <Filter>Source\Data\Map</Filter>
+    </ClCompile>
+    <ClCompile Include="MapStringInt.cpp">
+      <Filter>Source\Data\Map</Filter>
+    </ClCompile>
+    <ClCompile Include="MapStringString.cpp">
+      <Filter>Source\Data\Map</Filter>
+    </ClCompile>
+    <ClCompile Include="Date.cpp">
+      <Filter>Source\Data\Time</Filter>
+    </ClCompile>
+    <ClCompile Include="DataTypes.cpp">
+      <Filter>Source\Data\Primitive</Filter>
+    </ClCompile>
+    <ClCompile Include="Markup.cpp">
+      <Filter>Source\Data\Markup</Filter>
+    </ClCompile>
+    <ClCompile Include="MarkupBase.cpp">
+      <Filter>Source\Data\Markup</Filter>
+    </ClCompile>
+    <ClCompile Include="MarkupDoc.cpp">
+      <Filter>Source\Data\Markup</Filter>
+    </ClCompile>
+    <ClCompile Include="MarkupReference.cpp">
+      <Filter>Source\Data\Markup</Filter>
+    </ClCompile>
+    <ClCompile Include="MarkupSubstitute.cpp">
+      <Filter>Source\Data\Markup</Filter>
+    </ClCompile>
+    <ClCompile Include="MarkupTag.cpp">
+      <Filter>Source\Data\Markup</Filter>
+    </ClCompile>
+    <ClCompile Include="MarkupText.cpp">
+      <Filter>Source\Data\Markup</Filter>
+    </ClCompile>
+    <ClCompile Include="ASCIINode.cpp">
+      <Filter>Source\Data\ASCII</Filter>
+    </ClCompile>
+    <ClCompile Include="ASCIITree.cpp">
+      <Filter>Source\Data\ASCII</Filter>
+    </ClCompile>
+    <ClCompile Include="CharsIDArray.cpp">
+      <Filter>Source\Data\ASCII</Filter>
+    </ClCompile>
+    <ClCompile Include="Float2.cpp">
+      <Filter>Source\Data\Geometric</Filter>
+    </ClCompile>
+    <ClCompile Include="Float3.cpp">
+      <Filter>Source\Data\Geometric</Filter>
+    </ClCompile>
+    <ClCompile Include="Float4.cpp">
+      <Filter>Source\Data\Geometric</Filter>
+    </ClCompile>
+    <ClCompile Include="Float4x4.cpp">
+      <Filter>Source\Data\Geometric</Filter>
+    </ClCompile>
+    <ClCompile Include="GeometricTypes.cpp">
+      <Filter>Source\Data\Geometric</Filter>
+    </ClCompile>
+    <ClCompile Include="Int2.cpp">
+      <Filter>Source\Data\Geometric</Filter>
+    </ClCompile>
+    <ClCompile Include="Int3.cpp">
+      <Filter>Source\Data\Geometric</Filter>
+    </ClCompile>
+    <ClCompile Include="Int4.cpp">
+      <Filter>Source\Data\Geometric</Filter>
+    </ClCompile>
+    <ClCompile Include="Quaternion.cpp">
+      <Filter>Source\Data\Geometric</Filter>
+    </ClCompile>
+    <ClCompile Include="Error.cpp">
+      <Filter>Source\Error</Filter>
+    </ClCompile>
+    <ClCompile Include="ErrorHandler.cpp">
+      <Filter>Source\Error</Filter>
+    </ClCompile>
+    <ClCompile Include="ErrorTypes.cpp">
+      <Filter>Source\Error</Filter>
+    </ClCompile>
+    <ClCompile Include="Logger.cpp">
+      <Filter>Source\Error</Filter>
+    </ClCompile>
+    <ClCompile Include="FloatHelper.cpp">
+      <Filter>Source\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="IntegerHelper.cpp">
+      <Filter>Source\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="Numbers.cpp">
+      <Filter>Source\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="PackedFloat.cpp">
+      <Filter>Source\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="Number.cpp">
+      <Filter>Source\Math\Number</Filter>
+    </ClCompile>
+    <ClCompile Include="NumberControl.cpp">
+      <Filter>Source\Math\Number</Filter>
+    </ClCompile>
+    <ClCompile Include="ChunkFile.cpp">
+      <Filter>Source\File\Chunk</Filter>
+    </ClCompile>
+    <ClCompile Include="ChunkFileIndex.cpp">
+      <Filter>Source\File\Chunk</Filter>
+    </ClCompile>
+    <ClCompile Include="CSVFile.cpp">
+      <Filter>Source\File\CSV</Filter>
+    </ClCompile>
+    <ClCompile Include="CSVFileEditable.cpp">
+      <Filter>Source\File\CSV</Filter>
+    </ClCompile>
+    <ClCompile Include="CSVFileImutable.cpp">
+      <Filter>Source\File\CSV</Filter>
+    </ClCompile>
+    <ClCompile Include="CSVHelper.cpp">
+      <Filter>Source\File\CSV</Filter>
+    </ClCompile>
+    <ClCompile Include="TextFile.cpp">
+      <Filter>Source\File\Text</Filter>
+    </ClCompile>
+    <ClCompile Include="NaiveFile.cpp">
+      <Filter>Source\File\Naive</Filter>
+    </ClCompile>
+    <ClCompile Include="AbstractFile.cpp">
+      <Filter>Source\File\Chains</Filter>
+    </ClCompile>
+    <ClCompile Include="BufferedFile.cpp">
+      <Filter>Source\File\Chains</Filter>
+    </ClCompile>
+    <ClCompile Include="DiskFile.cpp">
+      <Filter>Source\File\Chains</Filter>
+    </ClCompile>
+    <ClCompile Include="MD5HashFile.cpp">
+      <Filter>Source\File\Chains</Filter>
+    </ClCompile>
+    <ClCompile Include="MemoryFile.cpp">
+      <Filter>Source\File\Chains</Filter>
+    </ClCompile>
+    <ClCompile Include="FileCompare.cpp">
+      <Filter>Source\File\Compare</Filter>
+    </ClCompile>
+    <ClCompile Include="FileReader.cpp">
+      <Filter>Source\File\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="FileWriter.cpp">
+      <Filter>Source\File\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="PackFile.cpp">
+      <Filter>Source\File\Pack</Filter>
+    </ClCompile>
+    <ClCompile Include="PackFileNode.cpp">
+      <Filter>Source\File\Pack</Filter>
+    </ClCompile>
+    <ClCompile Include="PackFileReadArrary.cpp">
+      <Filter>Source\File\Pack</Filter>
+    </ClCompile>
+    <ClCompile Include="PackFiles.cpp">
+      <Filter>Source\File\Pack</Filter>
+    </ClCompile>
+    <ClCompile Include="FileUtil.cpp">
+      <Filter>Source\File\Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="FileUtil_Linux.cpp">
+      <Filter>Source\File\Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="FileUtil_Windows.cpp">
+      <Filter>Source\File\Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="FileBasic.cpp">
+      <Filter>Source\File\Basic</Filter>
+    </ClCompile>
+    <ClCompile Include="MD5.cpp">
+      <Filter>Source\File\MD5</Filter>
+    </ClCompile>
+    <ClCompile Include="FileHeader.cpp">
+      <Filter>Source\File\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="FileNodeFileSystem.cpp">
+      <Filter>Source\File\System</Filter>
+    </ClCompile>
+    <ClCompile Include="FileSystem.cpp">
+      <Filter>Source\File\System</Filter>
+    </ClCompile>
+    <ClCompile Include="FileCopier.cpp">
+      <Filter>Source\File\Copy</Filter>
+    </ClCompile>
+    <ClCompile Include="FreeList.cpp">
+      <Filter>Source\Memory</Filter>
+    </ClCompile>
+    <ClCompile Include="FreeListBlock.cpp">
+      <Filter>Source\Memory</Filter>
+    </ClCompile>
+    <ClCompile Include="FreeListMaybe.cpp">
+      <Filter>Source\Memory</Filter>
+    </ClCompile>
+    <ClCompile Include="LinkListAligned.cpp">
+      <Filter>Source\Memory</Filter>
+    </ClCompile>
+    <ClCompile Include="MemoryCache.cpp">
+      <Filter>Source\Memory</Filter>
+    </ClCompile>
+    <ClCompile Include="MemoryStack.cpp">
+      <Filter>Source\Memory</Filter>
+    </ClCompile>
+    <ClCompile Include="MemoryStackExtended.cpp">
+      <Filter>Source\Memory</Filter>
+    </ClCompile>
+    <ClCompile Include="StackMark.cpp">
+      <Filter>Source\Memory</Filter>
+    </ClCompile>
+    <ClCompile Include="Memory.cpp">
+      <Filter>Source\Memory\Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="MemoryStats.cpp">
+      <Filter>Source\Memory\Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="ScratchPad.cpp">
+      <Filter>Source\Memory\ScratchPad</Filter>
+    </ClCompile>
+    <ClCompile Include="FastFunctions.cpp">
+      <Filter>Source\Fast</Filter>
+    </ClCompile>
+    <ClCompile Include="FastMemcmp.cpp">
+      <Filter>Source\Fast</Filter>
+    </ClCompile>
+    <ClCompile Include="FastMemcpy.cpp">
+      <Filter>Source\Fast</Filter>
+    </ClCompile>
+    <ClCompile Include="FastMemcpyBackwards.cpp">
+      <Filter>Source\Fast</Filter>
+    </ClCompile>
+    <ClCompile Include="FastMemset.cpp">
+      <Filter>Source\Fast</Filter>
+    </ClCompile>
+    <ClCompile Include="PointerFunctions.cpp">
+      <Filter>Source\Pointer</Filter>
+    </ClCompile>
+    <ClCompile Include="DebugLog.cpp">
+      <Filter>Source\Define</Filter>
+    </ClCompile>
+    <ClCompile Include="Aardvark.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="MemoryTodo.txt">
+      <Filter>Source\Memory\Manager</Filter>
+    </None>
+    <None Include="gpl.txt">
+      <Filter>Source\License</Filter>
+    </None>
+    <None Include="lgpl.txt">
+      <Filter>Source\License</Filter>
+    </None>
+    <None Include="ArraySimple.txt" />
+    <None Include="VTune\BaseLib.vpj" />
+    <None Include="Libs.txt" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,221 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{2F64AA34-F1CC-43FE-90EE-90E66824EE55}</ProjectGuid>
+    <RootNamespace>InputLib</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>NotSet</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>NotSet</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Debug\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Debug\</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(Configuration)\</IntDir>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(COMMONLIBRARIES);$(IncludePath)</IncludePath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(COMMONLIBRARIES);$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+    </ClCompile>
+    <Lib>
+      <AdditionalDependencies>XInput.lib;dinput8.lib;dxguid.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <Optimization>Full</Optimization>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <OmitFramePointers>true</OmitFramePointers>
+      <WholeProgramOptimization>true</WholeProgramOptimization>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Lib>
+      <AdditionalDependencies>XInput.lib;dinput8.lib;dxguid.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="Input.cpp" />
+    <ClCompile Include="KeyboardKeyList.cpp" />
+    <ClCompile Include="InputActions.cpp" />
+    <ClCompile Include="InputChord.cpp" />
+    <ClCompile Include="InputChordCriteria.cpp" />
+    <ClCompile Include="InputChordCriteriaDesc.cpp" />
+    <ClCompile Include="InputChordDesc.cpp" />
+    <ClCompile Include="InputChordDescs.cpp" />
+    <ClCompile Include="InputChordReader.cpp" />
+    <ClCompile Include="InputChords.cpp" />
+    <ClCompile Include="InputSourceEvaluator.cpp" />
+    <ClCompile Include="InputDevice.cpp" />
+    <ClCompile Include="InputDeviceCopyContext.cpp" />
+    <ClCompile Include="InputDeviceDesc.cpp" />
+    <ClCompile Include="InputDevices.cpp" />
+    <ClCompile Include="InputDevicesReader.cpp" />
+    <ClCompile Include="InputSourceChannel.cpp" />
+    <ClCompile Include="InputSourceDesc.cpp" />
+    <ClCompile Include="InputSourceValue.cpp" />
+    <ClCompile Include="InputCategories.cpp" />
+    <ClCompile Include="InputCategory.cpp" />
+    <ClCompile Include="InputCategoryGeneric.cpp" />
+    <ClCompile Include="InputDataFormat.cpp" />
+    <ClCompile Include="InputDataFormats.cpp" />
+    <ClCompile Include="InputDeviceValue.cpp" />
+    <ClCompile Include="InputDeviceState.cpp" />
+    <ClCompile Include="InputVirtualDevice.cpp" />
+    <ClCompile Include="InputVirtualDeviceCommonality.cpp" />
+    <ClCompile Include="InputVirtualDeviceDesc.cpp" />
+    <ClCompile Include="InputVirtualDeviceReader.cpp" />
+    <ClCompile Include="InputVirtualDeviceSource.cpp" />
+    <ClCompile Include="InputVirtualDeviceSwitch.cpp" />
+    <ClCompile Include="InputVirtualSourceDesc.cpp" />
+    <ClCompile Include="InputDeviceVariable.cpp" />
+    <ClCompile Include="InputDeviceVariableCondition.cpp" />
+    <ClCompile Include="InputDeviceVariableDesc.cpp" />
+    <ClCompile Include="InputDeviceVariables.cpp" />
+    <ClCompile Include="InputDeviceVariableValue.cpp" />
+    <ClCompile Include="InputDeviceVariableValueConditionDesc.cpp" />
+    <ClCompile Include="InputDeviceVariableValueDesc.cpp" />
+    <ClCompile Include="NativeDetail.cpp" />
+    <ClCompile Include="WinDirectInput.cpp" />
+    <ClCompile Include="WinInput.cpp" />
+    <ClCompile Include="WinRaw.cpp" />
+    <ClCompile Include="WinXInput.cpp" />
+    <ClCompile Include="ProgramDeviceDetail.cpp" />
+    <ClCompile Include="ProgramInput.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Input.h" />
+    <ClInclude Include="KeyboardKeyList.h" />
+    <ClInclude Include="InputListener.h" />
+    <ClInclude Include="InputActions.h" />
+    <ClInclude Include="InputChord.h" />
+    <ClInclude Include="InputChordCriteria.h" />
+    <ClInclude Include="InputChordCriteriaDesc.h" />
+    <ClInclude Include="InputChordDesc.h" />
+    <ClInclude Include="InputChordDescs.h" />
+    <ClInclude Include="InputChordReader.h" />
+    <ClInclude Include="InputChords.h" />
+    <ClInclude Include="InputSourceEvaluator.h" />
+    <ClInclude Include="InputDevice.h" />
+    <ClInclude Include="InputDeviceCopyContext.h" />
+    <ClInclude Include="InputDeviceDesc.h" />
+    <ClInclude Include="InputDevicePointerArray.h" />
+    <ClInclude Include="InputDevices.h" />
+    <ClInclude Include="InputDevicesReader.h" />
+    <ClInclude Include="InputDeviceVirtualDeviceArray.h" />
+    <ClInclude Include="InputSourceChannel.h" />
+    <ClInclude Include="InputSourceDesc.h" />
+    <ClInclude Include="InputSourceValue.h" />
+    <ClInclude Include="InputCategories.h" />
+    <ClInclude Include="InputCategory.h" />
+    <ClInclude Include="InputCategoryGeneric.h" />
+    <ClInclude Include="InputDataFormat.h" />
+    <ClInclude Include="InputDataFormats.h" />
+    <ClInclude Include="InputDeviceValue.h" />
+    <ClInclude Include="InputDeviceValueHistory.h" />
+    <ClInclude Include="InputDeviceState.h" />
+    <ClInclude Include="InputVirtualDevice.h" />
+    <ClInclude Include="InputVirtualDeviceCommonality.h" />
+    <ClInclude Include="InputVirtualDeviceDesc.h" />
+    <ClInclude Include="InputVirtualDeviceReader.h" />
+    <ClInclude Include="InputVirtualDeviceSource.h" />
+    <ClInclude Include="InputVirtualDeviceSwitch.h" />
+    <ClInclude Include="InputVirtualSourceDesc.h" />
+    <ClInclude Include="InputDeviceVariable.h" />
+    <ClInclude Include="InputDeviceVariableCondition.h" />
+    <ClInclude Include="InputDeviceVariableDesc.h" />
+    <ClInclude Include="InputDeviceVariableListener.h" />
+    <ClInclude Include="InputDeviceVariables.h" />
+    <ClInclude Include="InputDeviceVariableValue.h" />
+    <ClInclude Include="InputDeviceVariableValueConditionDesc.h" />
+    <ClInclude Include="InputDeviceVariableValueDesc.h" />
+    <ClInclude Include="NativeDetail.h" />
+    <ClInclude Include="WinDirectInput.h" />
+    <ClInclude Include="WinInput.h" />
+    <ClInclude Include="WinRaw.h" />
+    <ClInclude Include="WinXInput.h" />
+    <ClInclude Include="ProgramDeviceDetail.h" />
+    <ClInclude Include="ProgramInput.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="xml\Categories.xml" />
+    <None Include="xml\InputDevices.xml" />
+    <None Include="xml\LinuxFormats.xml" />
+    <None Include="xml\WindowsFormats.xml" />
+    <None Include="xml\DirectInputCreativeGameport.xml" />
+    <None Include="xml\DirectInputFakePS2Gamepad.xml" />
+    <None Include="xml\DirectInputFastJoystick.xml" />
+    <None Include="xml\DirectInputLogitechExtreme3DJoystick.xml" />
+    <None Include="xml\DirectInputManhattanUSBGameport.xml" />
+    <None Include="xml\DirectInputStandardJoysticks.xml" />
+    <None Include="xml\DirectInputStd8ButtonPOVHat.xml" />
+    <None Include="xml\DirectInputStdJoystickAxes.xml" />
+    <None Include="xml\DirectInputStdJoystickButtons.xml" />
+    <None Include="xml\WinRawHIDCompliantMouse.xml" />
+    <None Include="xml\WinRawPS2CompatibleMouse.xml" />
+    <None Include="xml\WinRawStandardMouseAxes.xml" />
+    <None Include="xml\WinRawStandardMouseButtons.xml" />
+    <None Include="xml\WinRawStandardMouses.xml" />
+    <None Include="xml\WinRawStandardMouseWheels.xml" />
+    <None Include="xml\WinRawTerminalServerMouse.xml" />
+    <None Include="xml\WinRawMicrosoftOpticalWheelMouse.xml" />
+    <None Include="xml\WinRawMicrosoftWirelessOpticalWheelMouse.xml" />
+    <None Include="xml\WinRawLogitechCordlessMouseMan.xml" />
+    <None Include="xml\WinRawLogitechG7Mouse.xml" />
+    <None Include="xml\WinRawGeniusPS2Keyboard.xml" />
+    <None Include="xml\WinRawIGameFlexibleKeyboard.xml" />
+    <None Include="xml\WinRawStd104ButtonKeyboard.xml" />
+    <None Include="xml\WinRawTerminalServerKeyboard.xml" />
+    <None Include="xml\WinRawMicrosoftMultimediaKeyboard.xml" />
+    <None Include="xml\WinRawMicrosoftWirelessKeyboard.xml" />
+    <None Include="xml\WinRawAOpenPS2Keyboard.xml" />
+    <None Include="xml\WinRawLogitechWirelessKeyboard.xml" />
+    <None Include="xml\XInputStdGamepad.xml" />
+    <None Include="xml\XInputXBox360Wired.xml" />
+    <None Include="xml\XInputXBox360Wireless.xml" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

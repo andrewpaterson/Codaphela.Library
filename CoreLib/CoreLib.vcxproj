@@ -1,0 +1,309 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{52A2D18B-BC88-4EB9-9EF0-AE58C1E9FDD5}</ProjectGuid>
+    <RootNamespace>CoreLib</RootNamespace>
+    <Keyword>Win32Proj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>NotSet</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>NotSet</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC70.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC70.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Debug\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Debug\</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Release\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Release\</IntDir>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(COMMONLIBRARIES);$(IncludePath)</IncludePath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(COMMONLIBRARIES);$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <StructMemberAlignment>Default</StructMemberAlignment>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)$(ProjectName).lib</OutputFile>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>false</StringPooling>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <StructMemberAlignment>Default</StructMemberAlignment>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)$(ProjectName).lib</OutputFile>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="ArrayVariable.cpp" />
+    <ClCompile Include="Files.cpp" />
+    <ClCompile Include="PackFileOffset.cpp" />
+    <ClCompile Include="TypeNames.cpp" />
+    <ClCompile Include="TypeConverter.cpp" />
+    <ClCompile Include="TypeParser.cpp" />
+    <ClCompile Include="GuidClass.cpp" />
+    <ClCompile Include="IndexedConfig.cpp" />
+    <ClCompile Include="IndexedData.cpp" />
+    <ClCompile Include="Indexes.cpp" />
+    <ClCompile Include="IndexDescriptor.cpp" />
+    <ClCompile Include="IndexDescriptorsFile.cpp" />
+    <ClCompile Include="IndexedDescriptors.cpp" />
+    <ClCompile Include="IndexAccess.cpp" />
+    <ClCompile Include="IndexDiskDirectAccess.cpp" />
+    <ClCompile Include="IndexMemoryAccess.cpp" />
+    <ClCompile Include="IndexedHuge.cpp" />
+    <ClCompile Include="IndexHugeAccess.cpp" />
+    <ClCompile Include="IndexSmartAccess.cpp" />
+    <ClCompile Include="IndexedFile.cpp" />
+    <ClCompile Include="IndexedFiles.cpp" />
+    <ClCompile Include="IndexedCache.cpp" />
+    <ClCompile Include="DurableFile.cpp" />
+    <ClCompile Include="DurableFileController.cpp" />
+    <ClCompile Include="DurableSet.cpp" />
+    <ClCompile Include="SubTransaction.cpp" />
+    <ClCompile Include="Transaction.cpp" />
+    <ClCompile Include="TransactionController.cpp" />
+    <ClCompile Include="TransactionIndexedData.cpp" />
+    <ClCompile Include="ArrayTransientIndexedPointer.cpp" />
+    <ClCompile Include="TransientIndexedFile.cpp" />
+    <ClCompile Include="TransientIndexedFileDescriptor.cpp" />
+    <ClCompile Include="IndexedMemory.cpp" />
+    <ClCompile Include="PropertiesFile.cpp" />
+    <ClCompile Include="XMLFile.cpp" />
+    <ClCompile Include="FunctionCaller.cpp" />
+    <ClCompile Include="Annotation.cpp" />
+    <ClCompile Include="EscapeCodes.cpp" />
+    <ClCompile Include="TextParser.cpp" />
+    <ClCompile Include="Calculator.cpp" />
+    <ClCompile Include="CalcBinaryExpression.cpp" />
+    <ClCompile Include="CalcConstExpression.cpp" />
+    <ClCompile Include="CalcExpression.cpp" />
+    <ClCompile Include="CalcOperator.cpp" />
+    <ClCompile Include="CalcParentheses.cpp" />
+    <ClCompile Include="CalcUnaryExpression.cpp" />
+    <ClCompile Include="XMLEntity.cpp" />
+    <ClCompile Include="XMLParser.cpp" />
+    <ClCompile Include="MarkupTextParser.cpp" />
+    <ClCompile Include="PlainTextEditor.cpp" />
+    <ClCompile Include="Thread_Windows.cpp" />
+    <ClCompile Include="Timer_Windows.cpp" />
+    <ClCompile Include="WinConfig.cpp" />
+    <ClCompile Include="WinInit.cpp" />
+    <ClCompile Include="ConnectSocket.cpp" />
+    <ClCompile Include="ListenSocket.cpp" />
+    <ClCompile Include="Socket.cpp" />
+    <ClCompile Include="Operators.cpp" />
+    <ClCompile Include="OperatorLogicalNot.cpp" />
+    <ClCompile Include="OperatorLogicalAnd.cpp" />
+    <ClCompile Include="OperatorLogicalOr.cpp" />
+    <ClCompile Include="OperatorLessThan.cpp" />
+    <ClCompile Include="OperatorGreaterThan.cpp" />
+    <ClCompile Include="OperatorEqual.cpp" />
+    <ClCompile Include="OperatorGreatherThanOrEqual.cpp" />
+    <ClCompile Include="OperatorLessThanOrEqual.cpp" />
+    <ClCompile Include="OperatorNotEqual.cpp" />
+    <ClCompile Include="OperatorLeftShift.cpp" />
+    <ClCompile Include="OperatorRightShift.cpp" />
+    <ClCompile Include="OperatorBitwiseAnd.cpp" />
+    <ClCompile Include="OperatorBitwiseOr.cpp" />
+    <ClCompile Include="OperatorBitwiseNot.cpp" />
+    <ClCompile Include="OperatorBitwiseXOr.cpp" />
+    <ClCompile Include="OperatorPlus.cpp" />
+    <ClCompile Include="OperatorMultiply.cpp" />
+    <ClCompile Include="OperatorPower.cpp" />
+    <ClCompile Include="OperatorDecrement.cpp" />
+    <ClCompile Include="OperatorDivide.cpp" />
+    <ClCompile Include="OperatorMinus.cpp" />
+    <ClCompile Include="OperatorIncrement.cpp" />
+    <ClCompile Include="OperatorRemainder.cpp" />
+    <ClCompile Include="OperatorAssignment.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ArrayVariable.h" />
+    <ClInclude Include="Files.h" />
+    <ClInclude Include="PackFileOffset.h" />
+    <ClInclude Include="TypeNames.h" />
+    <ClInclude Include="TypeConverter.h" />
+    <ClInclude Include="TypeParser.h" />
+    <ClInclude Include="GuidClass.h" />
+    <ClInclude Include="IndexedConfig.h" />
+    <ClInclude Include="IndexedData.h" />
+    <ClInclude Include="IndexedGeneral.h" />
+    <ClInclude Include="Indexes.h" />
+    <ClInclude Include="IndexDescriptor.h" />
+    <ClInclude Include="IndexDescriptorsFile.h" />
+    <ClInclude Include="IndexedDescriptors.h" />
+    <ClInclude Include="IndexAccess.h" />
+    <ClInclude Include="IndexDiskDirectAccess.h" />
+    <ClInclude Include="IndexMemoryAccess.h" />
+    <ClInclude Include="IndexedHuge.h" />
+    <ClInclude Include="IndexHugeAccess.h" />
+    <ClInclude Include="IndexSmartAccess.h" />
+    <ClInclude Include="IndexedFile.h" />
+    <ClInclude Include="IndexedFiles.h" />
+    <ClInclude Include="IndexedCache.h" />
+    <ClInclude Include="DurableFile.h" />
+    <ClInclude Include="DurableFileController.h" />
+    <ClInclude Include="DurableSet.h" />
+    <ClInclude Include="SubTransaction.h" />
+    <ClInclude Include="Transaction.h" />
+    <ClInclude Include="TransactionController.h" />
+    <ClInclude Include="TransactionIndexedData.h" />
+    <ClInclude Include="ArrayTransientIndexedPointer.h" />
+    <ClInclude Include="TransientIndexedFile.h" />
+    <ClInclude Include="TransientIndexedFileDescriptor.h" />
+    <ClInclude Include="IndexedMemory.h" />
+    <ClInclude Include="PropertiesFile.h" />
+    <ClInclude Include="XMLFile.h" />
+    <ClInclude Include="FunctionCaller.h" />
+    <ClInclude Include="Annotation.h" />
+    <ClInclude Include="EscapeCodes.h" />
+    <ClInclude Include="TextParser.h" />
+    <ClInclude Include="Calculator.h" />
+    <ClInclude Include="CalcBinaryExpression.h" />
+    <ClInclude Include="CalcConstExpression.h" />
+    <ClInclude Include="CalcExpression.h" />
+    <ClInclude Include="CalcObject.h" />
+    <ClInclude Include="CalcOperator.h" />
+    <ClInclude Include="CalcParentheses.h" />
+    <ClInclude Include="CalcUnaryExpression.h" />
+    <ClInclude Include="XMLEntity.h" />
+    <ClInclude Include="XMLParser.h" />
+    <ClInclude Include="MarkupTextParser.h" />
+    <ClInclude Include="PlainTextEditor.h" />
+    <ClInclude Include="TextEditor.h" />
+    <ClInclude Include="Thread.h" />
+    <ClInclude Include="Thread_Windows.h" />
+    <ClInclude Include="Timer.h" />
+    <ClInclude Include="WinConfig.h" />
+    <ClInclude Include="WinInit.h" />
+    <ClInclude Include="ConnectSocket.h" />
+    <ClInclude Include="ListenSocket.h" />
+    <ClInclude Include="Socket.h" />
+    <ClInclude Include="Operators.h" />
+    <ClInclude Include="OperatorLogicalNot.h" />
+    <ClInclude Include="OperatorLogicalAnd.h" />
+    <ClInclude Include="OperatorLogicalOr.h" />
+    <ClInclude Include="OperatorLessThan.h" />
+    <ClInclude Include="OperatorGreaterThan.h" />
+    <ClInclude Include="OperatorEqual.h" />
+    <ClInclude Include="OperatorGreatherThanOrEqual.h" />
+    <ClInclude Include="OperatorLessThanOrEqual.h" />
+    <ClInclude Include="OperatorNotEqual.h" />
+    <ClInclude Include="OperatorLeftShift.h" />
+    <ClInclude Include="OperatorRightShift.h" />
+    <ClInclude Include="OperatorBitwiseAnd.h" />
+    <ClInclude Include="OperatorBitwiseOr.h" />
+    <ClInclude Include="OperatorBitwiseNot.h" />
+    <ClInclude Include="OperatorBitwiseXOr.h" />
+    <ClInclude Include="OperatorPlus.h" />
+    <ClInclude Include="OperatorMultiply.h" />
+    <ClInclude Include="OperatorPower.h" />
+    <ClInclude Include="OperatorDecrement.h" />
+    <ClInclude Include="OperatorDivide.h" />
+    <ClInclude Include="OperatorMinus.h" />
+    <ClInclude Include="OperatorIncrement.h" />
+    <ClInclude Include="OperatorRemainder.h" />
+    <ClInclude Include="OperatorAssignment.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="TypeConverter_Mapping.inl" />
+    <None Include="FunctionCaller_C_Call.inl" />
+    <None Include="FunctionCaller_ThisCall.inl" />
+    <None Include="FunctionCaller_ThisMultiCall.inl" />
+    <None Include="OperatorLessThan_Functions.inl" />
+    <None Include="OperatorLessThan_Mapping.inl" />
+    <None Include="OperatorGreaterThan_Functions.inl" />
+    <None Include="OperatorGreaterThan_Mapping.inl" />
+    <None Include="OperatorEqualBool_Functions.inl" />
+    <None Include="OperatorEqualBool_Mapping.inl" />
+    <None Include="OperatorEqualNumber_Functions.inl" />
+    <None Include="OperatorEqualNumber_Mapping.inl" />
+    <None Include="OperatorGreatherThanOrEqual_Functions.inl" />
+    <None Include="OperatorGreatherThanOrEqual_Mapping.inl" />
+    <None Include="OperatorLessThanOrEqual_Functions.inl" />
+    <None Include="OperatorLessThanOrEqual_Mapping.inl" />
+    <None Include="OperatorNotEqualBool_Functions.inl" />
+    <None Include="OperatorNotEqualBool_Mapping.inl" />
+    <None Include="OperatorNotEqualNumber_Functions.inl" />
+    <None Include="OperatorNotEqualNumber_Mapping.inl" />
+    <None Include="OperatorLeftShift_Functions.inl" />
+    <None Include="OperatorLeftShift_Mapping.inl" />
+    <None Include="OperatorRightShift_Functions.inl" />
+    <None Include="OperatorRightShift_Mapping.inl" />
+    <None Include="OperatorBitwiseAnd_Functions.inl" />
+    <None Include="OperatorBitwiseAnd_Mapping.inl" />
+    <None Include="OperatorBitwiseOr_Functions.inl" />
+    <None Include="OperatorBitwiseOr_Mapping.inl" />
+    <None Include="OperatorBitwiseNot_Functions.inl" />
+    <None Include="OperatorBitwiseNot_Mapping.inl" />
+    <None Include="OperatorBitwiseXOr_Functions.inl" />
+    <None Include="OperatorBitwiseXOr_Mapping.inl" />
+    <None Include="OperatorPlus_Functions.inl" />
+    <None Include="OperatorPlus_Mapping.inl" />
+    <None Include="OperatorMultiply_Functions.inl" />
+    <None Include="OperatorMultiply_Mapping.inl" />
+    <None Include="OperatorPower_Functions.inl" />
+    <None Include="OperatorPower_Mapping.inl" />
+    <None Include="OperatorDecrement_Functions.inl" />
+    <None Include="OperatorDecrement_Mapping.inl" />
+    <None Include="OperatorDivide_Functions.inl" />
+    <None Include="OperatorDivide_Mapping.inl" />
+    <None Include="OperatorMinus_Functions.inl" />
+    <None Include="OperatorMinus_Mapping.inl" />
+    <None Include="OperatorIncrement_Functions.inl" />
+    <None Include="OperatorIncrement_Mapping.inl" />
+    <None Include="OperatorRemainder_Functions.inl" />
+    <None Include="OperatorRemainder_Mapping.inl" />
+    <None Include="OperatorAssignment_Functions.inl" />
+    <None Include="OperatorAssignment_Mapping.inl" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

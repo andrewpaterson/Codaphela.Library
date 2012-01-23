@@ -1,0 +1,26 @@
+<Device Type="DirectInput">
+  <Category>Joystick</Category>
+  <ID>DirectInput Joystick: Name(Logitech Extreme 3D), GUID({C215046D-0000-0000-4449564449500000}), UsagePage(1), Usage(4)</ID>
+  <Friendly>Logitech 3D Joystick</Friendly>
+
+  <Sources Type="Named">DirectInput Joystick: Standard 3 Axis Joystick</Sources>
+  <Sources Type="Named">DirectInput Joystick: Standard 8 Direction POV Hat</Sources>
+  <Sources Type="Named">DirectInput Joystick: Standard 12 Button Joystick</Sources>
+
+  <Sources Type="Defined">
+    <Format Type="Named">DirectInput Joystick 2</Format>
+    <Source Type="State">
+      <Friendly>Throttle</Friendly>
+      <State>
+        <Channel Name="rglSlider[0]">
+          <AlwaysValid/>
+        </Channel>
+        <Value Type="Channel">rglSlider[0]</Value>
+        <Max>0</Max>
+        <Min>65536</Min>
+      </State>
+      <Rest Type="Numeric">0.0</Rest>
+    </Source>
+  </Sources>
+
+</Device>

@@ -1,0 +1,524 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source">
+      <UniqueIdentifier>{636ed3f8-f643-4300-ba93-2e051f543ca6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Object">
+      <UniqueIdentifier>{d9740d88-8bd9-42d4-97e9-084836463738}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Object\Base">
+      <UniqueIdentifier>{b54853fb-63ba-431c-8dd9-0eec91c48062}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Object\Parameters">
+      <UniqueIdentifier>{a878f40d-c2b6-45b2-970e-a555619c173b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Object\Unknown">
+      <UniqueIdentifier>{f6afd551-23b2-4f18-afc8-8b9c8cc67541}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Object\Unknown\Collections">
+      <UniqueIdentifier>{42dcacf3-192e-43fa-bd33-4fc5deb6a2fe}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Object\Unknown\Collections\Set">
+      <UniqueIdentifier>{5fc0746a-f6d9-410e-962d-e54e045193d8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Object\Unknown\Collections\Array">
+      <UniqueIdentifier>{5e693dc7-0404-4431-ab25-3df47103a23c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Object\Unknown\Collections\Map">
+      <UniqueIdentifier>{0e90f5d5-f4a4-45e3-afaa-4a0ebc6ac6e2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Object\Unknown\Collections\Common">
+      <UniqueIdentifier>{59f74b6a-bde7-4beb-ae5b-64832f6da672}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Object\Unknown\Allocation">
+      <UniqueIdentifier>{460059db-f325-43ce-b93b-78bbf6e2fe45}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Object\Object">
+      <UniqueIdentifier>{34cf358b-c053-45ae-abe8-b1bbf53110cf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Object\Object\Collections">
+      <UniqueIdentifier>{ef35a852-e3ae-4a08-9966-65e1a2886333}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Object\Object\Collections\Set">
+      <UniqueIdentifier>{1c4b627b-6c79-42ea-adf3-78125790998f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Object\Object\Collections\Array">
+      <UniqueIdentifier>{2f3fe29a-dbf3-4f94-9964-30d1a99b9bf3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Object\Object\Collections\Common">
+      <UniqueIdentifier>{c36036e3-a9f4-4d63-8360-adf787463e9b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Object\Object\Pointer">
+      <UniqueIdentifier>{910031f2-a533-4d80-bb22-53fa29ad7ce7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Object\Object\Named">
+      <UniqueIdentifier>{9669ec03-ba51-4f14-b777-81c9671fa360}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Object\Object\IO">
+      <UniqueIdentifier>{16ba09be-cb16-4f28-af41-d96110ddbfee}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Object\Object\IO\Dest">
+      <UniqueIdentifier>{998549eb-11d7-4b02-a517-7012ae0b1885}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Object\Object\Hollow">
+      <UniqueIdentifier>{8b0081b3-0a74-4d7d-b50a-68e0413ccd60}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Object\Object\Indexed">
+      <UniqueIdentifier>{f81d6f7f-72f0-4a90-9fa7-d53f4a571fad}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Object\Object\Source">
+      <UniqueIdentifier>{74e3a89c-5442-47ab-86f5-9165765e41bf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Timer">
+      <UniqueIdentifier>{b1feb13a-7fbb-45ed-ba2d-7a44007b40ed}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Class">
+      <UniqueIdentifier>{7deb8151-6a7e-4ba3-b0c2-8b8e4868fcf4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Channels">
+      <UniqueIdentifier>{854cdaec-d2eb-4a41-8e5a-a187d3dc539d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Channels\Accessor">
+      <UniqueIdentifier>{70b56416-3c4a-418f-8e5b-d61dcb0908bc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Channels\Accessor\Types">
+      <UniqueIdentifier>{1c2340f0-1acd-41ff-9421-e38a10d21dce}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Channels\Accessor\Creator">
+      <UniqueIdentifier>{a1d08033-4a58-4899-8e82-bb3c86df4a22}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Channels\Accessor\Single">
+      <UniqueIdentifier>{ffab8034-584e-4cdb-a990-82d0cf7da2d3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Action">
+      <UniqueIdentifier>{c776e7d2-7fdd-4d00-bcbe-e9448c397f1e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\File">
+      <UniqueIdentifier>{72a7554e-c380-4f0f-9f6c-7eb5201c4e61}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\File\Indexed">
+      <UniqueIdentifier>{80fcd037-5325-4e70-9b9b-e4842a8354e5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\File\Indexed\Named">
+      <UniqueIdentifier>{209b2169-aef9-41ce-a876-9195be37c2c5}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Base.h">
+      <Filter>Source\Object\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="Parameters.h">
+      <Filter>Source\Object\Parameters</Filter>
+    </ClInclude>
+    <ClInclude Include="Unknown.h">
+      <Filter>Source\Object\Unknown</Filter>
+    </ClInclude>
+    <ClInclude Include="SetType.h">
+      <Filter>Source\Object\Unknown\Collections\Set</Filter>
+    </ClInclude>
+    <ClInclude Include="SetUnknown.h">
+      <Filter>Source\Object\Unknown\Collections\Set</Filter>
+    </ClInclude>
+    <ClInclude Include="ArrayType.h">
+      <Filter>Source\Object\Unknown\Collections\Array</Filter>
+    </ClInclude>
+    <ClInclude Include="ArrayUnknown.h">
+      <Filter>Source\Object\Unknown\Collections\Array</Filter>
+    </ClInclude>
+    <ClInclude Include="MapCommon.h">
+      <Filter>Source\Object\Unknown\Collections\Map</Filter>
+    </ClInclude>
+    <ClInclude Include="MapStringUnknown.h">
+      <Filter>Source\Object\Unknown\Collections\Map</Filter>
+    </ClInclude>
+    <ClInclude Include="MapTypeUnknown.h">
+      <Filter>Source\Object\Unknown\Collections\Map</Filter>
+    </ClInclude>
+    <ClInclude Include="ArrayCommonUnknown.h">
+      <Filter>Source\Object\Unknown\Collections\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="ConstructorUnknown.h">
+      <Filter>Source\Object\Unknown\Allocation</Filter>
+    </ClInclude>
+    <ClInclude Include="Iterables.h">
+      <Filter>Source\Object\Unknown\Allocation</Filter>
+    </ClInclude>
+    <ClInclude Include="Unknowns.h">
+      <Filter>Source\Object\Unknown\Allocation</Filter>
+    </ClInclude>
+    <ClInclude Include="BaseObject.h">
+      <Filter>Source\Object\Object</Filter>
+    </ClInclude>
+    <ClInclude Include="Object.h">
+      <Filter>Source\Object\Object</Filter>
+    </ClInclude>
+    <ClInclude Include="Objects.h">
+      <Filter>Source\Object\Object</Filter>
+    </ClInclude>
+    <ClInclude Include="Root.h">
+      <Filter>Source\Object\Object</Filter>
+    </ClInclude>
+    <ClInclude Include="Collection.h">
+      <Filter>Source\Object\Object\Collections</Filter>
+    </ClInclude>
+    <ClInclude Include="Set.h">
+      <Filter>Source\Object\Object\Collections\Set</Filter>
+    </ClInclude>
+    <ClInclude Include="Array.h">
+      <Filter>Source\Object\Object\Collections\Array</Filter>
+    </ClInclude>
+    <ClInclude Include="ArrayCommonObject.h">
+      <Filter>Source\Object\Object\Collections\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Pointer.h">
+      <Filter>Source\Object\Object\Pointer</Filter>
+    </ClInclude>
+    <ClInclude Include="PointerObject.h">
+      <Filter>Source\Object\Object\Pointer</Filter>
+    </ClInclude>
+    <ClInclude Include="Named.h">
+      <Filter>Source\Object\Object\Named</Filter>
+    </ClInclude>
+    <ClInclude Include="NamedObject.h">
+      <Filter>Source\Object\Object\Named</Filter>
+    </ClInclude>
+    <ClInclude Include="DependentObjects.h">
+      <Filter>Source\Object\Object\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectGraphWriter.h">
+      <Filter>Source\Object\Object\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectReader.h">
+      <Filter>Source\Object\Object\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectWriter.h">
+      <Filter>Source\Object\Object\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectWriterChunked.h">
+      <Filter>Source\Object\Object\IO\Dest</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectWriterDest.h">
+      <Filter>Source\Object\Object\IO\Dest</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectWriterIndexed.h">
+      <Filter>Source\Object\Object\IO\Dest</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectWriterSimple.h">
+      <Filter>Source\Object\Object\IO\Dest</Filter>
+    </ClInclude>
+    <ClInclude Include="HollowObject.h">
+      <Filter>Source\Object\Object\Hollow</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexedObjects.h">
+      <Filter>Source\Object\Object\Indexed</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectSource.h">
+      <Filter>Source\Object\Object\Source</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectSourceIndexedData.h">
+      <Filter>Source\Object\Object\Source</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectsSource.h">
+      <Filter>Source\Object\Object\Source</Filter>
+    </ClInclude>
+    <ClInclude Include="Action.h">
+      <Filter>Source\Action</Filter>
+    </ClInclude>
+    <ClInclude Include="Actions.h">
+      <Filter>Source\Action</Filter>
+    </ClInclude>
+    <ClInclude Include="ClassFunctionsCall.h">
+      <Filter>Source\Action</Filter>
+    </ClInclude>
+    <ClInclude Include="Listener.h">
+      <Filter>Source\Action</Filter>
+    </ClInclude>
+    <ClInclude Include="ListenerCall.h">
+      <Filter>Source\Action</Filter>
+    </ClInclude>
+    <ClInclude Include="TimerAlarm.h">
+      <Filter>Source\Timer</Filter>
+    </ClInclude>
+    <ClInclude Include="TimerListener.h">
+      <Filter>Source\Timer</Filter>
+    </ClInclude>
+    <ClInclude Include="Channel.h">
+      <Filter>Source\Channels</Filter>
+    </ClInclude>
+    <ClInclude Include="ChannelPadder.h">
+      <Filter>Source\Channels</Filter>
+    </ClInclude>
+    <ClInclude Include="Channels.h">
+      <Filter>Source\Channels</Filter>
+    </ClInclude>
+    <ClInclude Include="ChannelsCopier.h">
+      <Filter>Source\Channels</Filter>
+    </ClInclude>
+    <ClInclude Include="ChannelsHelper.h">
+      <Filter>Source\Channels</Filter>
+    </ClInclude>
+    <ClInclude Include="ChannelAccessor.h">
+      <Filter>Source\Channels\Accessor</Filter>
+    </ClInclude>
+    <ClInclude Include="ChannelsAccessor.h">
+      <Filter>Source\Channels\Accessor</Filter>
+    </ClInclude>
+    <ClInclude Include="ChannelsAccessorAccessBitty.h">
+      <Filter>Source\Channels\Accessor\Types</Filter>
+    </ClInclude>
+    <ClInclude Include="ChannelsAccessorByteAligned.h">
+      <Filter>Source\Channels\Accessor\Types</Filter>
+    </ClInclude>
+    <ClInclude Include="ChannelsAccessorChannelBitty.h">
+      <Filter>Source\Channels\Accessor\Types</Filter>
+    </ClInclude>
+    <ClInclude Include="ChannelsAccessorContiguous.h">
+      <Filter>Source\Channels\Accessor\Types</Filter>
+    </ClInclude>
+    <ClInclude Include="ChannelsAccessorTypeConvert.h">
+      <Filter>Source\Channels\Accessor\Types</Filter>
+    </ClInclude>
+    <ClInclude Include="ChannelsAccessorWorstCase.h">
+      <Filter>Source\Channels\Accessor\Types</Filter>
+    </ClInclude>
+    <ClInclude Include="ChannelsAccessorCreator.h">
+      <Filter>Source\Channels\Accessor\Creator</Filter>
+    </ClInclude>
+    <ClInclude Include="SingleChannelAccessor.h">
+      <Filter>Source\Channels\Accessor\Single</Filter>
+    </ClInclude>
+    <ClInclude Include="AbstractClass.h">
+      <Filter>Source\Class</Filter>
+    </ClInclude>
+    <ClInclude Include="ClassStorage.h">
+      <Filter>Source\Class</Filter>
+    </ClInclude>
+    <ClInclude Include="ConcreteClass.h">
+      <Filter>Source\Class</Filter>
+    </ClInclude>
+    <ClInclude Include="PreClass.h">
+      <Filter>Source\Class</Filter>
+    </ClInclude>
+    <ClInclude Include="TrackerTemplate.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="MathFunction.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="StandardHeader.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectSourceFiles.h">
+      <Filter>Source\Object\Object\Source</Filter>
+    </ClInclude>
+    <ClInclude Include="NamedIndexedObjects.h">
+      <Filter>Source\Object\Object\Indexed</Filter>
+    </ClInclude>
+    <ClInclude Include="NamedIndexedData.h">
+      <Filter>Source\File\Indexed</Filter>
+    </ClInclude>
+    <ClInclude Include="NamedIndexes.h">
+      <Filter>Source\File\Indexed\Named</Filter>
+    </ClInclude>
+    <ClInclude Include="NamedIndexesBlocks.h">
+      <Filter>Source\File\Indexed\Named</Filter>
+    </ClInclude>
+    <ClInclude Include="NamedIndexesBlock.h">
+      <Filter>Source\File\Indexed\Named</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Unknown.cpp">
+      <Filter>Source\Object\Unknown</Filter>
+    </ClCompile>
+    <ClCompile Include="SetUnknown.cpp">
+      <Filter>Source\Object\Unknown\Collections\Set</Filter>
+    </ClCompile>
+    <ClCompile Include="ArrayUnknown.cpp">
+      <Filter>Source\Object\Unknown\Collections\Array</Filter>
+    </ClCompile>
+    <ClCompile Include="MapCommon.cpp">
+      <Filter>Source\Object\Unknown\Collections\Map</Filter>
+    </ClCompile>
+    <ClCompile Include="MapStringUnknown.cpp">
+      <Filter>Source\Object\Unknown\Collections\Map</Filter>
+    </ClCompile>
+    <ClCompile Include="ArrayCommonUnknown.cpp">
+      <Filter>Source\Object\Unknown\Collections\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="ConstructorUnknown.cpp">
+      <Filter>Source\Object\Unknown\Allocation</Filter>
+    </ClCompile>
+    <ClCompile Include="Iterables.cpp">
+      <Filter>Source\Object\Unknown\Allocation</Filter>
+    </ClCompile>
+    <ClCompile Include="Unknowns.cpp">
+      <Filter>Source\Object\Unknown\Allocation</Filter>
+    </ClCompile>
+    <ClCompile Include="BaseObject.cpp">
+      <Filter>Source\Object\Object</Filter>
+    </ClCompile>
+    <ClCompile Include="Object.cpp">
+      <Filter>Source\Object\Object</Filter>
+    </ClCompile>
+    <ClCompile Include="Objects.cpp">
+      <Filter>Source\Object\Object</Filter>
+    </ClCompile>
+    <ClCompile Include="Root.cpp">
+      <Filter>Source\Object\Object</Filter>
+    </ClCompile>
+    <ClCompile Include="Collection.cpp">
+      <Filter>Source\Object\Object\Collections</Filter>
+    </ClCompile>
+    <ClCompile Include="Set.cpp">
+      <Filter>Source\Object\Object\Collections\Set</Filter>
+    </ClCompile>
+    <ClCompile Include="Array.cpp">
+      <Filter>Source\Object\Object\Collections\Array</Filter>
+    </ClCompile>
+    <ClCompile Include="ArrayCommonObject.cpp">
+      <Filter>Source\Object\Object\Collections\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="PointerObject.cpp">
+      <Filter>Source\Object\Object\Pointer</Filter>
+    </ClCompile>
+    <ClCompile Include="NamedObject.cpp">
+      <Filter>Source\Object\Object\Named</Filter>
+    </ClCompile>
+    <ClCompile Include="DependentObjects.cpp">
+      <Filter>Source\Object\Object\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjectGraphWriter.cpp">
+      <Filter>Source\Object\Object\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjectReader.cpp">
+      <Filter>Source\Object\Object\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjectWriter.cpp">
+      <Filter>Source\Object\Object\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjectWriterChunked.cpp">
+      <Filter>Source\Object\Object\IO\Dest</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjectWriterDest.cpp">
+      <Filter>Source\Object\Object\IO\Dest</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjectWriterIndexed.cpp">
+      <Filter>Source\Object\Object\IO\Dest</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjectWriterSimple.cpp">
+      <Filter>Source\Object\Object\IO\Dest</Filter>
+    </ClCompile>
+    <ClCompile Include="HollowObject.cpp">
+      <Filter>Source\Object\Object\Hollow</Filter>
+    </ClCompile>
+    <ClCompile Include="IndexedObjects.cpp">
+      <Filter>Source\Object\Object\Indexed</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjectSource.cpp">
+      <Filter>Source\Object\Object\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjectsSource.cpp">
+      <Filter>Source\Object\Object\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Action.cpp">
+      <Filter>Source\Action</Filter>
+    </ClCompile>
+    <ClCompile Include="Actions.cpp">
+      <Filter>Source\Action</Filter>
+    </ClCompile>
+    <ClCompile Include="ClassFunctionsCall.cpp">
+      <Filter>Source\Action</Filter>
+    </ClCompile>
+    <ClCompile Include="ListenerCall.cpp">
+      <Filter>Source\Action</Filter>
+    </ClCompile>
+    <ClCompile Include="TimerAlarm.cpp">
+      <Filter>Source\Timer</Filter>
+    </ClCompile>
+    <ClCompile Include="Channel.cpp">
+      <Filter>Source\Channels</Filter>
+    </ClCompile>
+    <ClCompile Include="ChannelPadder.cpp">
+      <Filter>Source\Channels</Filter>
+    </ClCompile>
+    <ClCompile Include="Channels.cpp">
+      <Filter>Source\Channels</Filter>
+    </ClCompile>
+    <ClCompile Include="ChannelsCopier.cpp">
+      <Filter>Source\Channels</Filter>
+    </ClCompile>
+    <ClCompile Include="ChannelsHelper.cpp">
+      <Filter>Source\Channels</Filter>
+    </ClCompile>
+    <ClCompile Include="ChannelAccessor.cpp">
+      <Filter>Source\Channels\Accessor</Filter>
+    </ClCompile>
+    <ClCompile Include="ChannelsAccessor.cpp">
+      <Filter>Source\Channels\Accessor</Filter>
+    </ClCompile>
+    <ClCompile Include="ChannelsAccessorAccessBitty.cpp">
+      <Filter>Source\Channels\Accessor\Types</Filter>
+    </ClCompile>
+    <ClCompile Include="ChannelsAccessorByteAligned.cpp">
+      <Filter>Source\Channels\Accessor\Types</Filter>
+    </ClCompile>
+    <ClCompile Include="ChannelsAccessorChannelBitty.cpp">
+      <Filter>Source\Channels\Accessor\Types</Filter>
+    </ClCompile>
+    <ClCompile Include="ChannelsAccessorContiguous.cpp">
+      <Filter>Source\Channels\Accessor\Types</Filter>
+    </ClCompile>
+    <ClCompile Include="ChannelsAccessorTypeConvert.cpp">
+      <Filter>Source\Channels\Accessor\Types</Filter>
+    </ClCompile>
+    <ClCompile Include="ChannelsAccessorWorstCase.cpp">
+      <Filter>Source\Channels\Accessor\Types</Filter>
+    </ClCompile>
+    <ClCompile Include="ChannelsAccessorCreator.cpp">
+      <Filter>Source\Channels\Accessor\Creator</Filter>
+    </ClCompile>
+    <ClCompile Include="SingleChannelAccessor.cpp">
+      <Filter>Source\Channels\Accessor\Single</Filter>
+    </ClCompile>
+    <ClCompile Include="AbstractClass.cpp">
+      <Filter>Source\Class</Filter>
+    </ClCompile>
+    <ClCompile Include="ClassStorage.cpp">
+      <Filter>Source\Class</Filter>
+    </ClCompile>
+    <ClCompile Include="ConcreteClass.cpp">
+      <Filter>Source\Class</Filter>
+    </ClCompile>
+    <ClCompile Include="PreClass.cpp">
+      <Filter>Source\Class</Filter>
+    </ClCompile>
+    <ClCompile Include="MathFunction.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="StandardHeader.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="NamedIndexedObjects.cpp">
+      <Filter>Source\Object\Object\Indexed</Filter>
+    </ClCompile>
+    <ClCompile Include="NamedIndexedData.cpp">
+      <Filter>Source\File\Indexed</Filter>
+    </ClCompile>
+    <ClCompile Include="NamedIndexes.cpp">
+      <Filter>Source\File\Indexed\Named</Filter>
+    </ClCompile>
+    <ClCompile Include="NamedIndexesBlocks.cpp">
+      <Filter>Source\File\Indexed\Named</Filter>
+    </ClCompile>
+    <ClCompile Include="NamedIndexesBlock.cpp">
+      <Filter>Source\File\Indexed\Named</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ObjectsSources.txt">
+      <Filter>Source\Object\Object\Source</Filter>
+    </None>
+  </ItemGroup>
+</Project>

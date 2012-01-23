@@ -1,0 +1,59 @@
+(namespace, objects) 0-X
+
+$structkeyword    "struct"
+$namespacekeyword "namespace"
+$classkeyword     "class"
+$enumkeyword      "enum"
+$public           "public"
+$private          "private"
+
+$keywords
+(structkeyword | namespacekeyword | classkeyword | enumkeyword | private | public)
+
+$namespace
+{ namespacekeyword (identifier<namespaceidentifier> & !keywords) '{'
+   (objects, namespace 0-X)
+} ('}' ';')
+
+$objects
+(field, method, class, enum) 0-X
+
+$enum
+enumkeyword (identifier<enumidentifier> & !keywords) 1-2 '{'
+   (enumvalue ',') 0-X
+   enumvalue ',' 0-X
+('}' ';')
+
+$class
+{ ((classkeyword | structkeyword) (identifier<classidentifier> & !keywords) '{')
+   (modifier, field, method) 0-X
+} ('}' ';')
+
+
+$modifier
+(public | private) 1-1 ':'
+
+$field
+type identifier ';'
+
+$method
+type identifier '(' arguments ')' ';'
+
+$arguments
+(type identifier ',') 0-X (type identifier) 0-1
+
+$enumvalue
+identifier<enuminstance> ('=' integer ) 0-1
+
+$type
+(primitive | classidentifier | enumidentifier) 1-1
+
+$primitive
+("int" | "float" | "bool")
+
+
+Node main = Start();
+if (main.Contains("namespace")  ... do namespace shit
+else if (main.Contains("objects")
+   Node objects = main.GetNode("objects");
+   int numFields = objects.GetNumNodes("field");

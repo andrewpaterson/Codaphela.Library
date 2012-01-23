@@ -1,0 +1,376 @@
+<Device Type="XInput">
+  <Category>Gamepad</Category>
+  <ID>XInput Gamepad: Standard XBox 360 Gamepad</ID>
+  <Friendly>XBox 360 Gamepad</Friendly>
+  <Sources Type="Defined">
+    <Format Type="Named">XInput Gamepad</Format>
+
+    <Source Type="State">
+      <Friendly>Button A</Friendly>
+      <Generic>B1</Generic>
+      <Generic>Select</Generic>
+      <State>
+        <Channel Name="wButtons[12]">
+          <Equals>255</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="wButtons[12]">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+      <Rest Type="Numeric">0.0</Rest>
+    </Source>
+    <Source Type="State">
+      <Friendly>Button B</Friendly>
+      <Generic>B2</Generic>
+      <Generic>Cancel</Generic>
+      <State>
+        <Channel Name="wButtons[13]">
+          <Equals>255</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="wButtons[13]">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+      <Rest Type="Numeric">0.0</Rest>
+    </Source>
+    <Source Type="State">
+      <Friendly>Button X</Friendly>
+      <Generic>B3</Generic>
+      <State>
+        <Channel Name="wButtons[14]">
+          <Equals>255</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="wButtons[14]">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+      <Rest Type="Numeric">0.0</Rest>
+    </Source>
+    <Source Type="State">
+      <Friendly>Button Y</Friendly>
+      <Generic>B4</Generic>
+      <State>
+        <Channel Name="wButtons[15]">
+          <Equals>255</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="wButtons[15]">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+      <Rest Type="Numeric">0.0</Rest>
+    </Source>
+    <Source Type="State">
+      <Friendly>DPad Up</Friendly>
+      <Generic>Up</Generic>
+      <State>
+        <Channel Name="wButtons[0]">
+          <Equals>255</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="wButtons[0]">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+      <Rest Type="Numeric">0.0</Rest>
+    </Source>
+    <Source Type="State">
+      <Friendly>DPad Down</Friendly>
+      <Generic>Down</Generic>
+      <State>
+        <Channel Name="wButtons[1]">
+          <Equals>255</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="wButtons[1]">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+      <Rest Type="Numeric">0.0</Rest>
+    </Source>
+    <Source Type="State">
+      <Friendly>DPad Left</Friendly>
+      <Generic>Left</Generic>
+      <State>
+        <Channel Name="wButtons[2]">
+          <Equals>255</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="wButtons[2]">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+      <Rest Type="Numeric">0.0</Rest>
+    </Source>
+    <Source Type="State">
+      <Friendly>DPad Right</Friendly>
+      <Generic>Right</Generic>
+      <State>
+        <Channel Name="wButtons[3]">
+          <Equals>255</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="wButtons[3]">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+      <Rest Type="Numeric">0.0</Rest>
+    </Source>
+    <Source Type="State">
+      <Friendly>Start</Friendly>
+      <Generic>Select</Generic>
+      <State>
+        <Channel Name="wButtons[4]">
+          <Equals>255</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="wButtons[4]">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+      <Rest Type="Numeric">0.0</Rest>
+    </Source>
+    <Source Type="State">
+      <Friendly>Back</Friendly>
+      <Generic>Cancel</Generic>
+      <State>
+        <Channel Name="wButtons[5]">
+          <Equals>255</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="wButtons[5]">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+      <Rest Type="Numeric">0.0</Rest>
+    </Source>
+    <Source Type="State">
+      <Friendly>Left Thumb</Friendly>
+      <State>
+        <Channel Name="wButtons[6]">
+          <Equals>255</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="wButtons[6]">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+      <Rest Type="Numeric">0.0</Rest>
+    </Source>
+    <Source Type="State">
+      <Friendly>Right Thumb</Friendly>
+      <State>
+        <Channel Name="wButtons[7]">
+          <Equals>255</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="wButtons[7]">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+      <Rest Type="Numeric">0.0</Rest>
+    </Source>
+    <Source Type="State">
+      <Friendly>Left Bumper</Friendly>
+      <Generic>B5</Generic>
+      <State>
+        <Channel Name="wButtons[8]">
+          <Equals>255</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="wButtons[8]">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+      <Rest Type="Numeric">0.0</Rest>
+    </Source>
+    <Source Type="State">
+      <Friendly>Right Bumper</Friendly>
+      <Generic>B6</Generic>
+      <State>
+        <Channel Name="wButtons[9]">
+          <Equals>255</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="wButtons[9]">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+      <Rest Type="Numeric">0.0</Rest>
+    </Source>
+
+    <Source Type="State">
+      <Friendly>Left Tigger</Friendly>
+      <State>
+        <Channel Name="bLeftTrigger">
+          <AlwaysValid/>
+        </Channel>
+        <Value Type="Channel">bLeftTrigger</Value>
+        <Max>255</Max>
+        <Min>0</Min>
+      </State>
+      <Rest Type="Numeric">0.0</Rest>
+    </Source>
+    <Source Type="State">
+      <Friendly>Right Tigger</Friendly>
+      <State>
+        <Channel Name="bRightTrigger">
+          <AlwaysValid/>
+        </Channel>
+        <Value Type="Channel">bRightTrigger</Value>
+        <Max>255</Max>
+        <Min>0</Min>
+      </State>
+      <Rest Type="Numeric">0.0</Rest>
+    </Source>
+
+    <Source Type="State">
+      <Friendly>Left Axis</Friendly>
+      <Generic>Left</Generic>
+      <State>
+        <Channel Name="sThumbLX">
+          <LessThanOrEquals>0</LessThanOrEquals>
+        </Channel>
+        <Value Type="Channel">sThumbLX</Value>
+        <Max>-32768</Max>
+        <Min>0</Min>
+      </State>
+      <Rest Type="Numeric">0.0</Rest>
+    </Source>
+    <Source Type="State">
+      <Friendly>Right Axis</Friendly>
+      <Generic>Right</Generic>
+      <State>
+        <Channel Name="sThumbLX">
+          <GreaterThanOrEquals>0</GreaterThanOrEquals>
+        </Channel>
+        <Value Type="Channel">sThumbLX</Value>
+        <Max>32767</Max>
+        <Min>0</Min>
+      </State>
+      <Rest Type="Numeric">0.0</Rest>
+    </Source>
+    <Source Type="State">
+      <Friendly>Down Axis</Friendly>
+      <Generic>Down</Generic>
+      <State>
+        <Channel Name="sThumbLY">
+          <LessThanOrEquals>0</LessThanOrEquals>
+        </Channel>
+        <Value Type="Channel">sThumbLY</Value>
+        <Max>-32768</Max>
+        <Min>0</Min>
+      </State>
+      <Rest Type="Numeric">0.0</Rest>
+    </Source>
+    <Source Type="State">
+      <Friendly>Up Axis</Friendly>
+      <Generic>Up</Generic>
+      <State>
+        <Channel Name="sThumbLY">
+          <GreaterThanOrEquals>0</GreaterThanOrEquals>
+        </Channel>
+        <Value Type="Channel">sThumbLY</Value>
+        <Max>32767</Max>
+        <Min>0</Min>
+      </State>
+      <Rest Type="Numeric">0.0</Rest>
+    </Source>
+
+    <Source Type="State">
+      <Friendly>Left Axis 2</Friendly>
+      <State>
+        <Channel Name="sThumbRX">
+          <LessThanOrEquals>0</LessThanOrEquals>
+        </Channel>
+        <Value Type="Channel">sThumbRX</Value>
+        <Max>-32768</Max>
+        <Min>0</Min>
+      </State>
+      <Rest Type="Numeric">0.0</Rest>
+    </Source>
+    <Source Type="State">
+      <Friendly>Right Axis 2</Friendly>
+      <State>
+        <Channel Name="sThumbRX">
+          <GreaterThanOrEquals>0</GreaterThanOrEquals>
+        </Channel>
+        <Value Type="Channel">sThumbRX</Value>
+        <Max>32767</Max>
+        <Min>0</Min>
+      </State>
+      <Rest Type="Numeric">0.0</Rest>
+    </Source>
+    <Source Type="State">
+      <Friendly>Down Axis 2</Friendly>
+      <State>
+        <Channel Name="sThumbRY">
+          <LessThanOrEquals>0</LessThanOrEquals>
+        </Channel>
+        <Value Type="Channel">sThumbRY</Value>
+        <Max>-32768</Max>
+        <Min>0</Min>
+      </State>
+      <Rest Type="Numeric">0.0</Rest>
+    </Source>
+    <Source Type="State">
+      <Friendly>Up Axis 2</Friendly>
+      <State>
+        <Channel Name="sThumbRY">
+          <GreaterThanOrEquals>0</GreaterThanOrEquals>
+        </Channel>
+        <Value Type="Channel">sThumbRY</Value>
+        <Max>32767</Max>
+        <Min>0</Min>
+      </State>
+      <Rest Type="Numeric">0.0</Rest>
+    </Source>
+
+  </Sources>
+</Device>
+

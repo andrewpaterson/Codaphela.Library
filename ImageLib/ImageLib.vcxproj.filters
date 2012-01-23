@@ -1,0 +1,141 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="ZLib">
+      <UniqueIdentifier>{3f5b0bf8-ea43-42e5-9afd-027b79df0a85}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="PNG">
+      <UniqueIdentifier>{0cb13ebe-502e-41f0-ada8-aaadc2c41f10}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="adler32.c">
+      <Filter>ZLib</Filter>
+    </ClCompile>
+    <ClCompile Include="compress.c">
+      <Filter>ZLib</Filter>
+    </ClCompile>
+    <ClCompile Include="crc32.c">
+      <Filter>ZLib</Filter>
+    </ClCompile>
+    <ClCompile Include="deflate.c">
+      <Filter>ZLib</Filter>
+    </ClCompile>
+    <ClCompile Include="gzio.c">
+      <Filter>ZLib</Filter>
+    </ClCompile>
+    <ClCompile Include="infback.c">
+      <Filter>ZLib</Filter>
+    </ClCompile>
+    <ClCompile Include="inffast.c">
+      <Filter>ZLib</Filter>
+    </ClCompile>
+    <ClCompile Include="inflate.c">
+      <Filter>ZLib</Filter>
+    </ClCompile>
+    <ClCompile Include="inftrees.c">
+      <Filter>ZLib</Filter>
+    </ClCompile>
+    <ClCompile Include="trees.c">
+      <Filter>ZLib</Filter>
+    </ClCompile>
+    <ClCompile Include="uncompr.c">
+      <Filter>ZLib</Filter>
+    </ClCompile>
+    <ClCompile Include="zutil.c">
+      <Filter>ZLib</Filter>
+    </ClCompile>
+    <ClCompile Include="png.c">
+      <Filter>PNG</Filter>
+    </ClCompile>
+    <ClCompile Include="pngerror.c">
+      <Filter>PNG</Filter>
+    </ClCompile>
+    <ClCompile Include="pnggccrd.c">
+      <Filter>PNG</Filter>
+    </ClCompile>
+    <ClCompile Include="pngget.c">
+      <Filter>PNG</Filter>
+    </ClCompile>
+    <ClCompile Include="pngmem.c">
+      <Filter>PNG</Filter>
+    </ClCompile>
+    <ClCompile Include="pngpread.c">
+      <Filter>PNG</Filter>
+    </ClCompile>
+    <ClCompile Include="pngread.c">
+      <Filter>PNG</Filter>
+    </ClCompile>
+    <ClCompile Include="pngrio.c">
+      <Filter>PNG</Filter>
+    </ClCompile>
+    <ClCompile Include="pngrtran.c">
+      <Filter>PNG</Filter>
+    </ClCompile>
+    <ClCompile Include="pngrutil.c">
+      <Filter>PNG</Filter>
+    </ClCompile>
+    <ClCompile Include="pngset.c">
+      <Filter>PNG</Filter>
+    </ClCompile>
+    <ClCompile Include="pngtest.c">
+      <Filter>PNG</Filter>
+    </ClCompile>
+    <ClCompile Include="pngtrans.c">
+      <Filter>PNG</Filter>
+    </ClCompile>
+    <ClCompile Include="pngvcrd.c">
+      <Filter>PNG</Filter>
+    </ClCompile>
+    <ClCompile Include="pngwio.c">
+      <Filter>PNG</Filter>
+    </ClCompile>
+    <ClCompile Include="pngwrite.c">
+      <Filter>PNG</Filter>
+    </ClCompile>
+    <ClCompile Include="pngwtran.c">
+      <Filter>PNG</Filter>
+    </ClCompile>
+    <ClCompile Include="pngwutil.c">
+      <Filter>PNG</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="crc32.h">
+      <Filter>ZLib</Filter>
+    </ClInclude>
+    <ClInclude Include="deflate.h">
+      <Filter>ZLib</Filter>
+    </ClInclude>
+    <ClInclude Include="inffast.h">
+      <Filter>ZLib</Filter>
+    </ClInclude>
+    <ClInclude Include="inffixed.h">
+      <Filter>ZLib</Filter>
+    </ClInclude>
+    <ClInclude Include="inflate.h">
+      <Filter>ZLib</Filter>
+    </ClInclude>
+    <ClInclude Include="inftrees.h">
+      <Filter>ZLib</Filter>
+    </ClInclude>
+    <ClInclude Include="trees.h">
+      <Filter>ZLib</Filter>
+    </ClInclude>
+    <ClInclude Include="zconf.h">
+      <Filter>ZLib</Filter>
+    </ClInclude>
+    <ClInclude Include="zlib.h">
+      <Filter>ZLib</Filter>
+    </ClInclude>
+    <ClInclude Include="zutil.h">
+      <Filter>ZLib</Filter>
+    </ClInclude>
+    <ClInclude Include="png.h">
+      <Filter>PNG</Filter>
+    </ClInclude>
+    <ClInclude Include="pngconf.h">
+      <Filter>PNG</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

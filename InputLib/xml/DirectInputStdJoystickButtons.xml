@@ -1,0 +1,268 @@
+<Device Type="Compound">
+  <Device Type="DirectInput">
+    <Category>Joystick</Category>
+    <ID>DirectInput Joystick: Standard 2 Button Joystick</ID>
+    <Friendly>2 Button Joystick</Friendly>
+    <Sources Type="Defined">
+      <Format Type="Named">DirectInput Joystick 2</Format>
+
+      <Source Type="State">
+        <Friendly>Button 1</Friendly>
+        <Generic>B1</Generic>
+        <Generic>Select</Generic>
+        <State>
+          <Channel Name="rgbButtons[0]">
+            <Equals>128</Equals>
+          </Channel>
+          <Value Type="Numeric">1.0</Value>
+        </State>
+        <State>
+          <Channel Name="rgbButtons[0]">
+            <Equals>0</Equals>
+          </Channel>
+          <Value Type="Numeric">0.0</Value>
+        </State>
+        <Rest Type="Numeric">0.0</Rest>
+      </Source>
+      <Source Type="State">
+        <Friendly>Button 2</Friendly>
+        <Generic>B2</Generic>
+        <Generic>Cancel</Generic>
+        <State>
+          <Channel Name="rgbButtons[1]">
+            <Equals>128</Equals>
+          </Channel>
+          <Value Type="Numeric">1.0</Value>
+        </State>
+        <State>
+          <Channel Name="rgbButtons[1]">
+            <Equals>0</Equals>
+          </Channel>
+          <Value Type="Numeric">0.0</Value>
+        </State>
+        <Rest Type="Numeric">0.0</Rest>
+      </Source>
+    </Sources>
+  </Device>
+
+  <Device Type="DirectInput">
+    <Category>Joystick</Category>
+    <ID>DirectInput Joystick: Standard 4 Button Joystick</ID>
+    <Friendly>4 Button Joystick</Friendly>
+    <Sources Type="Named">DirectInput Joystick: Standard 2 Button Joystick</Sources>
+    <Sources Type="Defined">
+      <Format Type="Named">DirectInput Joystick 2</Format>
+      <Source Type="State">
+        <Friendly>Button 3</Friendly>
+        <Generic>B3</Generic>
+        <State>
+          <Channel Name="rgbButtons[2]">
+            <Equals>128</Equals>
+          </Channel>
+          <Value Type="Numeric">1.0</Value>
+        </State>
+        <State>
+          <Channel Name="rgbButtons[2]">
+            <Equals>0</Equals>
+          </Channel>
+          <Value Type="Numeric">0.0</Value>
+        </State>
+        <Rest Type="Numeric">0.0</Rest>
+      </Source>
+      <Source Type="State">
+        <Friendly>Button 4</Friendly>
+        <Generic>B4</Generic>
+        <State>
+          <Channel Name="rgbButtons[3]">
+            <Equals>128</Equals>
+          </Channel>
+          <Value Type="Numeric">1.0</Value>
+        </State>
+        <State>
+          <Channel Name="rgbButtons[3]">
+            <Equals>0</Equals>
+          </Channel>
+          <Value Type="Numeric">0.0</Value>
+        </State>
+        <Rest Type="Numeric">0.0</Rest>
+      </Source>
+    </Sources>
+  </Device>
+
+  <Device Type="DirectInput">
+    <Category>Joystick</Category>
+    <ID>DirectInput Joystick: Standard 6 Button Joystick</ID>
+    <Friendly>6 Button Joystick</Friendly>
+    <Sources Type="Named">DirectInput Joystick: Standard 4 Button Joystick</Sources>
+    <Sources Type="Defined">
+      <Format Type="Named">DirectInput Joystick 2</Format>
+      <Source Type="State">
+        <Friendly>Button 5</Friendly>
+        <Generic>B5</Generic>
+        <State>
+          <Channel Name="rgbButtons[4]">
+            <Equals>128</Equals>
+          </Channel>
+          <Value Type="Numeric">1.0</Value>
+        </State>
+        <State>
+          <Channel Name="rgbButtons[4]">
+            <Equals>0</Equals>
+          </Channel>
+          <Value Type="Numeric">0.0</Value>
+        </State>
+        <Rest Type="Numeric">0.0</Rest>
+      </Source>
+      <Source Type="State">
+        <Friendly>Button 6</Friendly>
+        <Generic>B6</Generic>
+        <State>
+          <Channel Name="rgbButtons[5]">
+            <Equals>128</Equals>
+          </Channel>
+          <Value Type="Numeric">1.0</Value>
+        </State>
+        <State>
+          <Channel Name="rgbButtons[5]">
+            <Equals>0</Equals>
+          </Channel>
+          <Value Type="Numeric">0.0</Value>
+        </State>
+        <Rest Type="Numeric">0.0</Rest>
+      </Source>
+    </Sources>
+  </Device>
+
+  <Device Type="DirectInput">
+    <Category>Joystick</Category>
+    <ID>DirectInput Joystick: Standard 8 Button Joystick</ID>
+    <Friendly>8 Button Joystick</Friendly>
+    <Sources Type="Named">DirectInput Joystick: Standard 6 Button Joystick</Sources>
+    <Sources Type="Defined">
+      <Format Type="Named">DirectInput Joystick 2</Format>
+      <Source Type="State">
+        <Friendly>Button 7</Friendly>
+        <Generic>B7</Generic>
+        <State>
+          <Channel Name="rgbButtons[6]">
+            <Equals>128</Equals>
+          </Channel>
+          <Value Type="Numeric">1.0</Value>
+        </State>
+        <State>
+          <Channel Name="rgbButtons[6]">
+            <Equals>0</Equals>
+          </Channel>
+          <Value Type="Numeric">0.0</Value>
+        </State>
+        <Rest Type="Numeric">0.0</Rest>
+      </Source>
+      <Source Type="State">
+        <Friendly>Button 8</Friendly>
+        <Generic>B8</Generic>
+        <State>
+          <Channel Name="rgbButtons[7]">
+            <Equals>128</Equals>
+          </Channel>
+          <Value Type="Numeric">1.0</Value>
+        </State>
+        <State>
+          <Channel Name="rgbButtons[7]">
+            <Equals>0</Equals>
+          </Channel>
+          <Value Type="Numeric">0.0</Value>
+        </State>
+        <Rest Type="Numeric">0.0</Rest>
+      </Source>
+    </Sources>
+  </Device>
+
+  <Device Type="DirectInput">
+    <Category>Joystick</Category>
+    <ID>DirectInput Joystick: Standard 10 Button Joystick</ID>
+    <Friendly>10 Button Joystick</Friendly>
+    <Sources Type="Named">DirectInput Joystick: Standard 8 Button Joystick</Sources>
+    <Sources Type="Defined">
+      <Format Type="Named">DirectInput Joystick 2</Format>
+      <Source Type="State">
+        <Friendly>Button 9</Friendly>
+        <Generic>B9</Generic>
+        <State>
+          <Channel Name="rgbButtons[8]">
+            <Equals>128</Equals>
+          </Channel>
+          <Value Type="Numeric">1.0</Value>
+        </State>
+        <State>
+          <Channel Name="rgbButtons[8]">
+            <Equals>0</Equals>
+          </Channel>
+          <Value Type="Numeric">0.0</Value>
+        </State>
+        <Rest Type="Numeric">0.0</Rest>
+      </Source>
+      <Source Type="State">
+        <Friendly>Button 10</Friendly>
+        <Generic>B10</Generic>
+        <State>
+          <Channel Name="rgbButtons[9]">
+            <Equals>128</Equals>
+          </Channel>
+          <Value Type="Numeric">1.0</Value>
+        </State>
+        <State>
+          <Channel Name="rgbButtons[9]">
+            <Equals>0</Equals>
+          </Channel>
+          <Value Type="Numeric">0.0</Value>
+        </State>
+        <Rest Type="Numeric">0.0</Rest>
+      </Source>
+    </Sources>
+  </Device>
+
+  <Device Type="DirectInput">
+    <Category>Joystick</Category>
+    <ID>DirectInput Joystick: Standard 12 Button Joystick</ID>
+    <Friendly>12 Button Joystick</Friendly>
+    <Sources Type="Named">DirectInput Joystick: Standard 10 Button Joystick</Sources>
+    <Sources Type="Defined">
+      <Format Type="Named">DirectInput Joystick 2</Format>
+      <Source Type="State">
+        <Friendly>Button 11</Friendly>
+        <Generic>B11</Generic>
+        <State>
+          <Channel Name="rgbButtons[10]">
+            <Equals>128</Equals>
+          </Channel>
+          <Value Type="Numeric">1.0</Value>
+        </State>
+        <State>
+          <Channel Name="rgbButtons[10]">
+            <Equals>0</Equals>
+          </Channel>
+          <Value Type="Numeric">0.0</Value>
+        </State>
+        <Rest Type="Numeric">0.0</Rest>
+      </Source>
+      <Source Type="State">
+        <Friendly>Button 12</Friendly>
+        <Generic>B12</Generic>
+        <State>
+          <Channel Name="rgbButtons[11]">
+            <Equals>128</Equals>
+          </Channel>
+          <Value Type="Numeric">1.0</Value>
+        </State>
+        <State>
+          <Channel Name="rgbButtons[11]">
+            <Equals>0</Equals>
+          </Channel>
+          <Value Type="Numeric">0.0</Value>
+        </State>
+        <Rest Type="Numeric">0.0</Rest>
+      </Source>
+    </Sources>
+  </Device>
+</Device>
+

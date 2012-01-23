@@ -1,0 +1,64 @@
+<Device Type="WinRaw" Physical="False">
+  <Category>Mouse</Category>
+  <ID>WinRAW Mouse: Name(Terminal Server Mouse Driver), Id(00000002) NumberOfButtons(00000002)</ID>
+  <Friendly>Server Mouse</Friendly>
+  <Sources Type="Named">WinRAW Mouse: Standard 2 Button Mouse</Sources>
+  <Sources Type="Defined">
+    <Format Type="Named">WinRAW Mouse</Format>
+    <Source Type="State">
+      <Friendly>Left</Friendly>
+      <State>
+        <Channel Name="LastX">
+          <LessThanOrEquals>32768</LessThanOrEquals>
+        </Channel>
+        <Value Type="Channel">LastX</Value>
+        <Max>0</Max>
+        <Min>32768</Min>
+      </State>
+      <State>
+        <Channel Name="LastX">
+          <GreaterThanOrEquals>32768</GreaterThanOrEquals>
+        </Channel>
+        <Value Type="Numeric">0</Value>
+        <Order>0</Order>
+      </State>
+      <Rest Type="None"/>
+    </Source>
+    <Source Type="State">
+      <Friendly>Right</Friendly>
+      <State>
+        <Channel Name="LastX">
+          <GreaterThanOrEquals>32768</GreaterThanOrEquals>
+        </Channel>
+        <Value Type="Channel">LastX</Value>
+        <Max>65535</Max>
+        <Min>32768</Min>
+      </State>
+      <Rest Type="None"/>
+    </Source>
+    <Source Type="State">
+      <Friendly>Up</Friendly>
+      <State>
+        <Channel Name="LastY">
+          <LessThanOrEquals>32768</LessThanOrEquals>
+        </Channel>
+        <Value Type="Channel">LastY</Value>
+        <Max>0</Max>
+        <Min>32768</Min>
+      </State>
+      <Rest Type="None"/>
+    </Source>
+    <Source Type="State">
+      <Friendly>Down</Friendly>
+      <State>
+        <Channel Name="LastY">
+          <GreaterThanOrEquals>32768</GreaterThanOrEquals>
+        </Channel>
+        <Value Type="Channel">LastY</Value>
+        <Max>65535</Max>
+        <Min>32768</Min>
+      </State>
+      <Rest Type="None"/>
+    </Source>
+  </Sources>
+</Device>

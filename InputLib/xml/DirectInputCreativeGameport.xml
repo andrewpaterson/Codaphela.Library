@@ -1,0 +1,7 @@
+<Device Type="DirectInput">
+  <Category>Joystick</Category>
+  <ID>DirectInput Joystick: Name(Creative), GUID({010E045E-0000-0000-4449564449500000}), UsagePage(1), Usage(5)</ID>
+  <Friendly>2 Axis 2 Button 1 POV Joystick</Friendly>
+  <Sources Type="Named">DirectInput Joystick: Standard 2 Axis Joystick</Sources>
+  <Comment>The Creative gameport driver does not work</Comment>
+</Device>

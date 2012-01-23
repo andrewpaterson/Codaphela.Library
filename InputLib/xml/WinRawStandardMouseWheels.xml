@@ -1,0 +1,41 @@
+<Device Type="WinRaw">
+  <Category>Mouse</Category>
+  <ID>WinRAW Mouse: Standard Mouse Wheel</ID>
+  <Friendly>Standard Mouse Wheel</Friendly>
+  <Sources Type="Defined">
+    <Format Type="Named">WinRAW Mouse</Format>
+    <Source Type="State">
+      <Friendly>Wheel Forward</Friendly>
+      <State>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Channel Name="Wheel">
+          <GreaterThan>0</GreaterThan>
+        </Channel>
+        <Channel Name="RawButtons">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <Rest Type="Numeric" Emit="True">0.0</Rest>
+    </Source>
+    <Source Type="State">
+      <Friendly>Wheel Backward</Friendly>
+      <State>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Channel Name="Wheel">
+          <LessThan>0</LessThan>
+        </Channel>
+        <Channel Name="RawButtons">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <Rest Type="Numeric" Emit="True">0.0</Rest>
+    </Source>
+  </Sources>
+</Device>
+

@@ -1,0 +1,6 @@
+<Device Type="XInput">
+  <Category>Gamepad</Category>
+  <ID>XInput Gamepad : Battery(Alkaline)</ID>
+  <Friendly>XBox 360 Wireless Contoller</Friendly>
+  <Sources Type="Named">XInput Gamepad: Standard XBox 360 Gamepad</Sources>
+</Device>

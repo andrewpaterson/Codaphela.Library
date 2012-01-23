@@ -1,0 +1,10 @@
+mapvDecrement[PT_int] = DecrementInt;
+mapvDecrement[PT_short] = DecrementShort;
+mapvDecrement[PT_char] = DecrementChar;
+mapvDecrement[PT_float] = DecrementFloat;
+mapvDecrement[PT_double] = DecrementDouble;
+mapvDecrement[PT_uint] = DecrementUInt;
+mapvDecrement[PT_ushort] = DecrementUShort;
+mapvDecrement[PT_uchar] = DecrementUChar;
+mapvDecrement[PT_long] = DecrementLong;
+mapvDecrement[PT_ulong] = DecrementULong;

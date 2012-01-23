@@ -1,0 +1,59 @@
+/** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
+
+Copyright (c) 2009 Andrew Paterson
+
+This file is part of The Codaphela Project: Codaphela MeshLib
+
+Codaphela MeshLib is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Codaphela MeshLib is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
+
+** ------------------------------------------------------------------------ **/
+#ifndef __CONNECTION_H__
+#define __CONNECTION_H__
+#include "BaseLib/DataTypes.h"
+#include "BaseLib/ArrayTemplate.h"
+#include "BaseLib/LinkListTemplate.h"
+#include "BaseLib/ArrayInt.h"
+#include "BaseLib/ArrayBlock.h"
+#include "BaseLib/ArraySimple.h"
+#include "BaseLib/ChunkFile.h"
+#include "BaseLib/AdditionalTypes.h"
+#include "StandardLib/StandardHeader.h"
+#include "StandardLib/TrackerTemplate.h"
+
+
+class CConnection : public CStandardTrackerObject
+{
+public:
+	BASE_FUNCTIONS(CConnection);
+
+	SFloat4x4			msWorldMatrix;
+	SFloat4x4			msLocalMatrix;  //It's possible to work this out given a parent matrix.
+	BOOL				mbSelected;
+	BOOL				mbTopLevel;
+	BOOL				mbParity;
+
+	void 	Init(void);
+	void 	Kill(void);
+	BOOL	Load(CFileReader* pcFile);
+	BOOL	LoadSpecific(CFileReader* pcFile, int iChunkNum);;
+	BOOL	Save(CFileWriter* pcFile);
+	void	Copy(CConnection* pcConnection);
+};
+
+
+typedef CTrackerTemplate<CConnection> CConnectionTracker;
+
+
+#endif //__CONNECTION_H__
+

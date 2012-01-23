@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE InputDevices [
+  <!ENTITY Categories SYSTEM "file:Categories.xml">
+  <!ENTITY WindowsFormats SYSTEM "file:WindowsFormats.xml">
+  <!ENTITY LinuxFormats SYSTEM "file:LinuxFormats.xml">
+
+  <!ENTITY WinRawStandardMouseAxes SYSTEM "file:WinRawStandardMouseAxes.xml">
+  <!ENTITY WinRawStandardMouseButtons SYSTEM "file:WinRawStandardMouseButtons.xml">
+  <!ENTITY WinRawStandardMouseWheels SYSTEM "file:WinRawStandardMouseWheels.xml">
+  <!ENTITY WinRawStandardMouses SYSTEM "file:WinRawStandardMouses.xml">
+  <!ENTITY WinRawTerminalServerMouse SYSTEM "file:WinRawTerminalServerMouse.xml">
+  <!ENTITY WinRawHIDCompliantMouse SYSTEM "file:WinRawHIDCompliantMouse.xml">
+  <!ENTITY WinRawMicrosoftOpticalWheelMouse SYSTEM "file:WinRawMicrosoftOpticalWheelMouse.xml">
+  <!ENTITY WinRawPS2CompatibleMouse SYSTEM "file:WinRawPS2CompatibleMouse.xml">
+  <!ENTITY WinRawMicrosoftWirelessOpticalWheelMouse SYSTEM "file:WinRawMicrosoftWirelessOpticalWheelMouse.xml">
+  <!ENTITY WinRawLogitechCordlessMouseMan SYSTEM "file:WinRawLogitechCordlessMouseMan.xml">
+  <!ENTITY WinRawLogitechG7Mouse SYSTEM "file:WinRawLogitechG7Mouse.xml">
+
+  <!ENTITY WinRawStd104ButtonKeyboard SYSTEM "file:WinRawStd104ButtonKeyboard.xml">
+  <!ENTITY WinRawMicrosoftMultimediaKeyboard SYSTEM "file:WinRawMicrosoftMultimediaKeyboard.xml">
+  <!ENTITY WinRawTerminalServerKeyboard SYSTEM "file:WinRawTerminalServerKeyboard.xml">
+  <!ENTITY WinRawGeniusPS2Keyboard SYSTEM "file:WinRawGeniusPS2Keyboard.xml">
+  <!ENTITY WinRawIGameFlexibleKeyboard SYSTEM "file:WinRawIGameFlexibleKeyboard.xml">
+  <!ENTITY WinRawMicrosoftWirelessKeyboard SYSTEM "file:WinRawMicrosoftWirelessKeyboard.xml">
+  <!ENTITY WinRawAOpenPS2Keyboard SYSTEM "file:WinRawAOpenPS2Keyboard.xml">
+  <!ENTITY WinRawLogitechWirelessKeyboard SYSTEM "file:WinRawLogitechWirelessKeyboard.xml">
+
+  <!ENTITY DirectInputStd8ButtonPOVHat SYSTEM "file:DirectInputStd8ButtonPOVHat.xml">
+  <!ENTITY DirectInputStdJoystickAxes SYSTEM "file:DirectInputStdJoystickAxes.xml">
+  <!ENTITY DirectInputStdJoystickButtons SYSTEM "file:DirectInputStdJoystickButtons.xml">
+  <!ENTITY DirectInputLogitechExtreme3DJoystick SYSTEM "file:DirectInputLogitechExtreme3DJoystick.xml">
+  <!ENTITY DirectInputFastJoystick SYSTEM "file:DirectInputFastJoystick.xml">
+  <!ENTITY DirectInputStandardJoysticks SYSTEM "file:DirectInputStandardJoysticks.xml">
+  <!ENTITY DirectInputManhattanUSBGameport SYSTEM "file:DirectInputManhattanUSBGameport.xml">
+  <!ENTITY DirectInputFakePS2Gamepad SYSTEM "file:DirectInputFakePS2Gamepad.xml">
+
+  <!ENTITY XInputStdGamepad SYSTEM "file:XInputStdGamepad.xml">
+  <!ENTITY XInputXBox360Wired SYSTEM "file:XInputXBox360Wired.xml">
+  <!ENTITY XInputXBox360Wireless SYSTEM "file:XInputXBox360Wireless.xml">
+]>
+
+<InputDevices>
+  &Categories;
+  &WindowsFormats;
+  &LinuxFormats;
+
+  <!--   ********   Mouses   ********   -->
+
+  &WinRawStandardMouseAxes;
+  &WinRawStandardMouseButtons;
+  &WinRawStandardMouseWheels;
+  &WinRawStandardMouses;
+  &WinRawTerminalServerMouse;
+  &WinRawHIDCompliantMouse;
+  &WinRawMicrosoftOpticalWheelMouse;
+  &WinRawPS2CompatibleMouse;
+  &WinRawMicrosoftWirelessOpticalWheelMouse;
+  &WinRawLogitechCordlessMouseMan;
+  &WinRawLogitechG7Mouse;
+
+  <!--   ********   Keyboards   ********   -->
+
+  &WinRawStd104ButtonKeyboard;
+  &WinRawMicrosoftMultimediaKeyboard;
+  &WinRawTerminalServerKeyboard;
+  &WinRawGeniusPS2Keyboard;
+  &WinRawIGameFlexibleKeyboard;
+  &WinRawMicrosoftWirelessKeyboard;
+  &WinRawAOpenPS2Keyboard;
+  &WinRawLogitechWirelessKeyboard;
+
+<!--   ********   Joysticks   ********   -->
+
+  &DirectInputStdJoystickAxes;
+  &DirectInputStd8ButtonPOVHat;
+  &DirectInputStdJoystickButtons;
+  &DirectInputStandardJoysticks;
+  &DirectInputLogitechExtreme3DJoystick;
+  &DirectInputFastJoystick;
+  &DirectInputManhattanUSBGameport;
+  &DirectInputFakePS2Gamepad;
+
+  <!--   ********   XBox Controllers   ********   -->
+
+  &XInputStdGamepad;
+  &XInputXBox360Wired;
+  &XInputXBox360Wireless;
+</InputDevices>

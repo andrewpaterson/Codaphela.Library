@@ -1,0 +1,33 @@
+<Device Type="DirectInput">
+  <Category>Joystick</Category>
+  <ID>DirectInput Joystick: Name(Twin USB Joystick), GUID({00010810-0000-0000-4449564449500000}), UsagePage(1), Usage(4)</ID>
+  <Friendly>Fake PS2 Gamepad</Friendly>
+  <Sources Type="Named">DirectInput Joystick: Standard 4 Axis Joystick</Sources>
+  <Sources Type="Named">DirectInput Joystick: Standard 8 Direction POV Hat</Sources>
+  <Sources Type="Named">DirectInput Joystick: Standard 12 Button Joystick</Sources>
+
+  <Changes>
+    <Rename Source="Button 5">Left Bumper 1</Rename>
+    <Rename Source="Button 6">Right Bumper 1</Rename>
+    <Rename Source="Button 7">Left Bumper 2</Rename>
+    <Rename Source="Button 8">Right Bumper 2</Rename>
+    <Rename Source="Button 9">Select</Rename>
+    <Rename Source="Button 10">Start</Rename>
+    <Rename Source="Button 11">Left Thumb</Rename>
+    <Rename Source="Button 12">Right Thumb</Rename>
+
+    <Rename Source="Forward">Up Axis</Rename>
+    <Rename Source="Backward">Down Axis</Rename>
+    <Rename Source="Forward 2">Up Axis 2</Rename>
+    <Rename Source="Backward 2">Down Axis 2</Rename>
+    <Rename Source="Left Yaw">Left Axis 2</Rename>
+    <Rename Source="Right Yaw">Right Axis 2</Rename>
+
+    <Rename Source="POV Up">DPad Up</Rename>
+    <Rename Source="POV Down">DPad Down</Rename>
+    <Rename Source="POV Left">DPad Left</Rename>
+    <Rename Source="POV Right">DPad Right</Rename>
+  </Changes>
+
+  <Comment>Ensure 'ANALOG' is on, the red light must be showing.</Comment>
+</Device>

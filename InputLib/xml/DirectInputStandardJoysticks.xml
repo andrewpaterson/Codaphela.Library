@@ -1,0 +1,277 @@
+<Device Type="Compound">
+  <Device Type="DirectInput">
+    <Category>Joystick</Category>
+    <ID>DirectInput Joystick: Standard 2 Axis 2 Button 1 POV Joystick</ID>
+    <Friendly>2 Axis 2 Button 1 POV Joystick</Friendly>
+    <Sources Type="Named">DirectInput Joystick: Standard 2 Axis Joystick</Sources>
+    <Sources Type="Named">DirectInput Joystick: Standard 8 Direction POV Hat</Sources>
+    <Sources Type="Named">DirectInput Joystick: Standard 2 Button Joystick</Sources>
+  </Device>
+  <Device Type="DirectInput">
+    <Category>Joystick</Category>
+    <ID>DirectInput Joystick: Standard 2 Axis 4 Button 1 POV Joystick</ID>
+    <Friendly>2 Axis 4 Button 1 POV Joystick</Friendly>
+    <Sources Type="Named">DirectInput Joystick: Standard 2 Axis Joystick</Sources>
+    <Sources Type="Named">DirectInput Joystick: Standard 8 Direction POV Hat</Sources>
+    <Sources Type="Named">DirectInput Joystick: Standard 4 Button Joystick</Sources>
+  </Device>
+  <Device Type="DirectInput">
+    <Category>Joystick</Category>
+    <ID>DirectInput Joystick: Standard 2 Axis 6 Button 1 POV Joystick</ID>
+    <Friendly>2 Axis 6 Button 1 POV Joystick</Friendly>
+    <Sources Type="Named">DirectInput Joystick: Standard 2 Axis Joystick</Sources>
+    <Sources Type="Named">DirectInput Joystick: Standard 8 Direction POV Hat</Sources>
+    <Sources Type="Named">DirectInput Joystick: Standard 6 Button Joystick</Sources>
+  </Device>
+  <Device Type="DirectInput">
+    <Category>Joystick</Category>
+    <ID>DirectInput Joystick: Standard 2 Axis 8 Button 1 POV Joystick</ID>
+    <Friendly>2 Axis 8 Button 1 POV Joystick</Friendly>
+    <Sources Type="Named">DirectInput Joystick: Standard 2 Axis Joystick</Sources>
+    <Sources Type="Named">DirectInput Joystick: Standard 8 Direction POV Hat</Sources>
+    <Sources Type="Named">DirectInput Joystick: Standard 8 Button Joystick</Sources>
+  </Device>
+  <Device Type="DirectInput">
+    <Category>Joystick</Category>
+    <ID>DirectInput Joystick: Standard 2 Axis 10 Button 1 POV Joystick</ID>
+    <Friendly>2 Axis 10 Button 1 POV Joystick</Friendly>
+    <Sources Type="Named">DirectInput Joystick: Standard 2 Axis Joystick</Sources>
+    <Sources Type="Named">DirectInput Joystick: Standard 8 Direction POV Hat</Sources>
+    <Sources Type="Named">DirectInput Joystick: Standard 10 Button Joystick</Sources>
+  </Device>
+  <Device Type="DirectInput">
+    <Category>Joystick</Category>
+    <ID>DirectInput Joystick: Standard 2 Axis 12 Button 1 POV Joystick</ID>
+    <Friendly>2 Axis 12 Button 1 POV Joystick</Friendly>
+    <Sources Type="Named">DirectInput Joystick: Standard 2 Axis Joystick</Sources>
+    <Sources Type="Named">DirectInput Joystick: Standard 8 Direction POV Hat</Sources>
+    <Sources Type="Named">DirectInput Joystick: Standard 12 Button Joystick</Sources>
+  </Device>
+
+  <Device Type="DirectInput">
+    <Category>Joystick</Category>
+    <ID>DirectInput Joystick: Standard 2 Axis 2 Button Joystick</ID>
+    <Friendly>2 Axis 2 Button Joystick</Friendly>
+    <Sources Type="Named">DirectInput Joystick: Standard 2 Axis Joystick</Sources>
+    <Sources Type="Named">DirectInput Joystick: Standard 2 Button Joystick</Sources>
+  </Device>
+  <Device Type="DirectInput">
+    <Category>Joystick</Category>
+    <ID>DirectInput Joystick: Standard 2 Axis 4 Button Joystick</ID>
+    <Friendly>2 Axis 4 Button Joystick</Friendly>
+    <Sources Type="Named">DirectInput Joystick: Standard 2 Axis Joystick</Sources>
+    <Sources Type="Named">DirectInput Joystick: Standard 4 Button Joystick</Sources>
+  </Device>
+  <Device Type="DirectInput">
+    <Category>Joystick</Category>
+    <ID>DirectInput Joystick: Standard 2 Axis 6 Button Joystick</ID>
+    <Friendly>2 Axis 6 Button Joystick</Friendly>
+    <Sources Type="Named">DirectInput Joystick: Standard 2 Axis Joystick</Sources>
+    <Sources Type="Named">DirectInput Joystick: Standard 6 Button Joystick</Sources>
+  </Device>
+  <Device Type="DirectInput">
+    <Category>Joystick</Category>
+    <ID>DirectInput Joystick: Standard 2 Axis 8 Button Joystick</ID>
+    <Friendly>2 Axis 8 Button Joystick</Friendly>
+    <Sources Type="Named">DirectInput Joystick: Standard 2 Axis Joystick</Sources>
+    <Sources Type="Named">DirectInput Joystick: Standard 8 Button Joystick</Sources>
+  </Device>
+  <Device Type="DirectInput">
+    <Category>Joystick</Category>
+    <ID>DirectInput Joystick: Standard 2 Axis 10 Button Joystick</ID>
+    <Friendly>2 Axis 10 Button Joystick</Friendly>
+    <Sources Type="Named">DirectInput Joystick: Standard 2 Axis Joystick</Sources>
+    <Sources Type="Named">DirectInput Joystick: Standard 10 Button Joystick</Sources>
+  </Device>
+  <Device Type="DirectInput">
+    <Category>Joystick</Category>
+    <ID>DirectInput Joystick: Standard 2 Axis 12 Button Joystick</ID>
+    <Friendly>2 Axis 12 Button Joystick</Friendly>
+    <Sources Type="Named">DirectInput Joystick: Standard 2 Axis Joystick</Sources>
+    <Sources Type="Named">DirectInput Joystick: Standard 12 Button Joystick</Sources>
+  </Device>
+
+  <Device Type="DirectInput">
+    <Category>Joystick</Category>
+    <ID>DirectInput Joystick: Standard 3 Axis 2 Button 1 POV Joystick</ID>
+    <Friendly>3 Axis 2 Button 1 POV Joystick</Friendly>
+    <Sources Type="Named">DirectInput Joystick: Standard 3 Axis Joystick</Sources>
+    <Sources Type="Named">DirectInput Joystick: Standard 8 Direction POV Hat</Sources>
+    <Sources Type="Named">DirectInput Joystick: Standard 2 Button Joystick</Sources>
+  </Device>
+  <Device Type="DirectInput">
+    <Category>Joystick</Category>
+    <ID>DirectInput Joystick: Standard 3 Axis 4 Button 1 POV Joystick</ID>
+    <Friendly>3 Axis 4 Button 1 POV Joystick</Friendly>
+    <Sources Type="Named">DirectInput Joystick: Standard 3 Axis Joystick</Sources>
+    <Sources Type="Named">DirectInput Joystick: Standard 8 Direction POV Hat</Sources>
+    <Sources Type="Named">DirectInput Joystick: Standard 4 Button Joystick</Sources>
+  </Device>
+  <Device Type="DirectInput">
+    <Category>Joystick</Category>
+    <ID>DirectInput Joystick: Standard 3 Axis 6 Button 1 POV Joystick</ID>
+    <Friendly>3 Axis 6 Button 1 POV Joystick</Friendly>
+    <Sources Type="Named">DirectInput Joystick: Standard 3 Axis Joystick</Sources>
+    <Sources Type="Named">DirectInput Joystick: Standard 8 Direction POV Hat</Sources>
+    <Sources Type="Named">DirectInput Joystick: Standard 6 Button Joystick</Sources>
+  </Device>
+  <Device Type="DirectInput">
+    <Category>Joystick</Category>
+    <ID>DirectInput Joystick: Standard 3 Axis 8 Button 1 POV Joystick</ID>
+    <Friendly>3 Axis 8 Button 1 POV Joystick</Friendly>
+    <Sources Type="Named">DirectInput Joystick: Standard 3 Axis Joystick</Sources>
+    <Sources Type="Named">DirectInput Joystick: Standard 8 Direction POV Hat</Sources>
+    <Sources Type="Named">DirectInput Joystick: Standard 8 Button Joystick</Sources>
+  </Device>
+  <Device Type="DirectInput">
+    <Category>Joystick</Category>
+    <ID>DirectInput Joystick: Standard 3 Axis 10 Button 1 POV Joystick</ID>
+    <Friendly>3 Axis 10 Button 1 POV Joystick</Friendly>
+    <Sources Type="Named">DirectInput Joystick: Standard 3 Axis Joystick</Sources>
+    <Sources Type="Named">DirectInput Joystick: Standard 8 Direction POV Hat</Sources>
+    <Sources Type="Named">DirectInput Joystick: Standard 10 Button Joystick</Sources>
+  </Device>
+  <Device Type="DirectInput">
+    <Category>Joystick</Category>
+    <ID>DirectInput Joystick: Standard 3 Axis 12 Button 1 POV Joystick</ID>
+    <Friendly>3 Axis 12 Button 1 POV Joystick</Friendly>
+    <Sources Type="Named">DirectInput Joystick: Standard 3 Axis Joystick</Sources>
+    <Sources Type="Named">DirectInput Joystick: Standard 8 Direction POV Hat</Sources>
+    <Sources Type="Named">DirectInput Joystick: Standard 12 Button Joystick</Sources>
+  </Device>
+
+  <Device Type="DirectInput">
+    <Category>Joystick</Category>
+    <ID>DirectInput Joystick: Standard 3 Axis 2 Button Joystick</ID>
+    <Friendly>3 Axis 2 Button Joystick</Friendly>
+    <Sources Type="Named">DirectInput Joystick: Standard 3 Axis Joystick</Sources>
+    <Sources Type="Named">DirectInput Joystick: Standard 2 Button Joystick</Sources>
+  </Device>
+  <Device Type="DirectInput">
+    <Category>Joystick</Category>
+    <ID>DirectInput Joystick: Standard 3 Axis 4 Button Joystick</ID>
+    <Friendly>3 Axis 4 Button Joystick</Friendly>
+    <Sources Type="Named">DirectInput Joystick: Standard 3 Axis Joystick</Sources>
+    <Sources Type="Named">DirectInput Joystick: Standard 4 Button Joystick</Sources>
+  </Device>
+  <Device Type="DirectInput">
+    <Category>Joystick</Category>
+    <ID>DirectInput Joystick: Standard 3 Axis 6 Button Joystick</ID>
+    <Friendly>3 Axis 6 Button Joystick</Friendly>
+    <Sources Type="Named">DirectInput Joystick: Standard 3 Axis Joystick</Sources>
+    <Sources Type="Named">DirectInput Joystick: Standard 6 Button Joystick</Sources>
+  </Device>
+  <Device Type="DirectInput">
+    <Category>Joystick</Category>
+    <ID>DirectInput Joystick: Standard 3 Axis 8 Button Joystick</ID>
+    <Friendly>3 Axis 8 Button Joystick</Friendly>
+    <Sources Type="Named">DirectInput Joystick: Standard 3 Axis Joystick</Sources>
+    <Sources Type="Named">DirectInput Joystick: Standard 8 Button Joystick</Sources>
+  </Device>
+  <Device Type="DirectInput">
+    <Category>Joystick</Category>
+    <ID>DirectInput Joystick: Standard 3 Axis 10 Button Joystick</ID>
+    <Friendly>3 Axis 10 Button Joystick</Friendly>
+    <Sources Type="Named">DirectInput Joystick: Standard 3 Axis Joystick</Sources>
+    <Sources Type="Named">DirectInput Joystick: Standard 10 Button Joystick</Sources>
+  </Device>
+  <Device Type="DirectInput">
+    <Category>Joystick</Category>
+    <ID>DirectInput Joystick: Standard 3 Axis 12 Button Joystick</ID>
+    <Friendly>3 Axis 12 Button Joystick</Friendly>
+    <Sources Type="Named">DirectInput Joystick: Standard 3 Axis Joystick</Sources>
+    <Sources Type="Named">DirectInput Joystick: Standard 12 Button Joystick</Sources>
+  </Device>
+
+  <Device Type="DirectInput">
+    <Category>Joystick</Category>
+    <ID>DirectInput Joystick: Standard 4 Axis 2 Button 1 POV Joystick</ID>
+    <Friendly>4 Axis 2 Button 1 POV Joystick</Friendly>
+    <Sources Type="Named">DirectInput Joystick: Standard 4 Axis Joystick</Sources>
+    <Sources Type="Named">DirectInput Joystick: Standard 8 Direction POV Hat</Sources>
+    <Sources Type="Named">DirectInput Joystick: Standard 2 Button Joystick</Sources>
+  </Device>
+  <Device Type="DirectInput">
+    <Category>Joystick</Category>
+    <ID>DirectInput Joystick: Standard 4 Axis 4 Button 1 POV Joystick</ID>
+    <Friendly>4 Axis 4 Button 1 POV Joystick</Friendly>
+    <Sources Type="Named">DirectInput Joystick: Standard 4 Axis Joystick</Sources>
+    <Sources Type="Named">DirectInput Joystick: Standard 8 Direction POV Hat</Sources>
+    <Sources Type="Named">DirectInput Joystick: Standard 4 Button Joystick</Sources>
+  </Device>
+  <Device Type="DirectInput">
+    <Category>Joystick</Category>
+    <ID>DirectInput Joystick: Standard 4 Axis 6 Button 1 POV Joystick</ID>
+    <Friendly>4 Axis 6 Button 1 POV Joystick</Friendly>
+    <Sources Type="Named">DirectInput Joystick: Standard 4 Axis Joystick</Sources>
+    <Sources Type="Named">DirectInput Joystick: Standard 8 Direction POV Hat</Sources>
+    <Sources Type="Named">DirectInput Joystick: Standard 6 Button Joystick</Sources>
+  </Device>
+  <Device Type="DirectInput">
+    <Category>Joystick</Category>
+    <ID>DirectInput Joystick: Standard 4 Axis 8 Button 1 POV Joystick</ID>
+    <Friendly>4 Axis 8 Button 1 POV Joystick</Friendly>
+    <Sources Type="Named">DirectInput Joystick: Standard 4 Axis Joystick</Sources>
+    <Sources Type="Named">DirectInput Joystick: Standard 8 Direction POV Hat</Sources>
+    <Sources Type="Named">DirectInput Joystick: Standard 8 Button Joystick</Sources>
+  </Device>
+  <Device Type="DirectInput">
+    <Category>Joystick</Category>
+    <ID>DirectInput Joystick: Standard 4 Axis 10 Button 1 POV Joystick</ID>
+    <Friendly>4 Axis 10 Button 1 POV Joystick</Friendly>
+    <Sources Type="Named">DirectInput Joystick: Standard 4 Axis Joystick</Sources>
+    <Sources Type="Named">DirectInput Joystick: Standard 8 Direction POV Hat</Sources>
+    <Sources Type="Named">DirectInput Joystick: Standard 10 Button Joystick</Sources>
+  </Device>
+  <Device Type="DirectInput">
+    <Category>Joystick</Category>
+    <ID>DirectInput Joystick: Standard 4 Axis 12 Button 1 POV Joystick</ID>
+    <Friendly>4 Axis 12 Button 1 POV Joystick</Friendly>
+    <Sources Type="Named">DirectInput Joystick: Standard 4 Axis Joystick</Sources>
+    <Sources Type="Named">DirectInput Joystick: Standard 8 Direction POV Hat</Sources>
+    <Sources Type="Named">DirectInput Joystick: Standard 12 Button Joystick</Sources>
+  </Device>
+
+  <Device Type="DirectInput">
+    <Category>Joystick</Category>
+    <ID>DirectInput Joystick: Standard 4 Axis 2 Button Joystick</ID>
+    <Friendly>4 Axis 2 Button Joystick</Friendly>
+    <Sources Type="Named">DirectInput Joystick: Standard 4 Axis Joystick</Sources>
+    <Sources Type="Named">DirectInput Joystick: Standard 2 Button Joystick</Sources>
+  </Device>
+  <Device Type="DirectInput">
+    <Category>Joystick</Category>
+    <ID>DirectInput Joystick: Standard 4 Axis 4 Button Joystick</ID>
+    <Friendly>4 Axis 4 Button Joystick</Friendly>
+    <Sources Type="Named">DirectInput Joystick: Standard 4 Axis Joystick</Sources>
+    <Sources Type="Named">DirectInput Joystick: Standard 4 Button Joystick</Sources>
+  </Device>
+  <Device Type="DirectInput">
+    <Category>Joystick</Category>
+    <ID>DirectInput Joystick: Standard 4 Axis 6 Button Joystick</ID>
+    <Friendly>4 Axis 6 Button Joystick</Friendly>
+    <Sources Type="Named">DirectInput Joystick: Standard 4 Axis Joystick</Sources>
+    <Sources Type="Named">DirectInput Joystick: Standard 6 Button Joystick</Sources>
+  </Device>
+  <Device Type="DirectInput">
+    <Category>Joystick</Category>
+    <ID>DirectInput Joystick: Standard 4 Axis 8 Button Joystick</ID>
+    <Friendly>4 Axis 8 Button Joystick</Friendly>
+    <Sources Type="Named">DirectInput Joystick: Standard 4 Axis Joystick</Sources>
+    <Sources Type="Named">DirectInput Joystick: Standard 8 Button Joystick</Sources>
+  </Device>
+  <Device Type="DirectInput">
+    <Category>Joystick</Category>
+    <ID>DirectInput Joystick: Standard 4 Axis 10 Button Joystick</ID>
+    <Friendly>4 Axis 10 Button Joystick</Friendly>
+    <Sources Type="Named">DirectInput Joystick: Standard 4 Axis Joystick</Sources>
+    <Sources Type="Named">DirectInput Joystick: Standard 10 Button Joystick</Sources>
+  </Device>
+  <Device Type="DirectInput">
+    <Category>Joystick</Category>
+    <ID>DirectInput Joystick: Standard 4 Axis 12 Button Joystick</ID>
+    <Friendly>4 Axis 12 Button Joystick</Friendly>
+    <Sources Type="Named">DirectInput Joystick: Standard 4 Axis Joystick</Sources>
+    <Sources Type="Named">DirectInput Joystick: Standard 12 Button Joystick</Sources>
+  </Device>
+</Device>

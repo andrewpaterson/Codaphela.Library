@@ -1,0 +1,9 @@
+<Device Type="WinRaw">
+  <Category>Mouse</Category>
+  <ID>WinRAW Mouse: Name(Logitech HID-compliant Cordless Mouse), Id(00000100) NumberOfButtons(00000010)</ID>
+  <Friendly>Logitech G7 Mouse</Friendly>
+  <Sources Type="Named">WinRAW Mouse: Standard 5 Button Mouse Buttons</Sources>
+  <Sources Type="Named">WinRAW Mouse: Standard Mouse Wheel</Sources>
+  <Sources Type="Named">WinRAW Mouse: Standard Mouse Axes</Sources>
+</Device>
+

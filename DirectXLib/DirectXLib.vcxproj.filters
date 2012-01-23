@@ -1,0 +1,54 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source">
+      <UniqueIdentifier>{a0fa2dc0-d5ae-4b40-abc0-eec85d13a77c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\DirectInput">
+      <UniqueIdentifier>{200f126f-d62e-4987-af64-71bad1b6adab}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Direct3D">
+      <UniqueIdentifier>{9a762eb6-1697-4230-a0fe-1493103aa491}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Direct3D\D3D9Fixed">
+      <UniqueIdentifier>{32e9bc0e-d952-4ee7-bd5c-256a59953ca5}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Direct3DGlobal.cpp">
+      <Filter>Source\Direct3D</Filter>
+    </ClCompile>
+    <ClCompile Include="DebugMovementFlightStyle.cpp">
+      <Filter>Source\DirectInput</Filter>
+    </ClCompile>
+    <ClCompile Include="DebugMovementWalkStyle.cpp">
+      <Filter>Source\DirectInput</Filter>
+    </ClCompile>
+    <ClCompile Include="DirectXGlobal.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Direct3DGlobal.h">
+      <Filter>Source\Direct3D</Filter>
+    </ClInclude>
+    <ClInclude Include="FlexibleVertexFormats.h">
+      <Filter>Source\Direct3D</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureStates.h">
+      <Filter>Source\Direct3D</Filter>
+    </ClInclude>
+    <ClInclude Include="DebugMovementFlightStyle.h">
+      <Filter>Source\DirectInput</Filter>
+    </ClInclude>
+    <ClInclude Include="DebugMovementWalkStyle.h">
+      <Filter>Source\DirectInput</Filter>
+    </ClInclude>
+    <ClInclude Include="Constants.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="DirectXGlobal.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

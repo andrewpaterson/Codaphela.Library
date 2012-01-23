@@ -1,0 +1,200 @@
+<Categories>
+  <Category>
+    <Name>Unknown</Name>
+  </Category>
+  <Category>
+    <Name>Mouse</Name>
+    <Generics>
+      <Generic>Select</Generic>
+      <Generic>Cancel</Generic>
+      <Generic>Left</Generic>
+      <Generic>Right</Generic>
+      <Generic>Up</Generic>
+      <Generic>Down</Generic>
+      <Generic>B1</Generic>
+      <Generic>B2</Generic>
+      <Generic>B3</Generic>
+      <Generic>B4</Generic>
+      <Generic>B5</Generic>
+    </Generics>
+  </Category>
+  <Category>
+    <Name>Keyboard</Name>
+    <Generics>
+      <Generic>Select</Generic>
+      <Generic>Cancel</Generic>
+      <Generic>Left</Generic>
+      <Generic>Right</Generic>
+      <Generic>Up</Generic>
+      <Generic>Down</Generic>
+      <Generic>Control</Generic>
+      <Generic>Special</Generic>
+      <Generic>Shift</Generic>
+      <Generic>Alt</Generic>
+      <Generic>Space</Generic>
+      <Generic>Menu</Generic>
+      <Generic>Esc</Generic>
+      <Generic>F1</Generic>
+      <Generic>F2</Generic>
+      <Generic>F3</Generic>
+      <Generic>F4</Generic>
+      <Generic>F5</Generic>
+      <Generic>F6</Generic>
+      <Generic>F7</Generic>
+      <Generic>F8</Generic>
+      <Generic>F9</Generic>
+      <Generic>F10</Generic>
+      <Generic>F11</Generic>
+      <Generic>F12</Generic>
+      <Generic>Print Screen</Generic>
+      <Generic>Scroll Lock</Generic>
+      <Generic>Numeric Lock</Generic>
+      <Generic>Pause</Generic>
+      <Generic>`</Generic>
+      <Generic>1</Generic>
+      <Generic>2</Generic>
+      <Generic>3</Generic>
+      <Generic>4</Generic>
+      <Generic>5</Generic>
+      <Generic>6</Generic>
+      <Generic>7</Generic>
+      <Generic>8</Generic>
+      <Generic>9</Generic>
+      <Generic>0</Generic>
+      <Generic>-</Generic>
+      <Generic>=</Generic>
+      <Generic>Backspace</Generic>
+      <Generic>Insert</Generic>
+      <Generic>Home</Generic>
+      <Generic>Page Up</Generic>
+      <Generic>Page Down</Generic>
+      <Generic>Tab</Generic>
+      <Generic>Q</Generic>
+      <Generic>W</Generic>
+      <Generic>E</Generic>
+      <Generic>R</Generic>
+      <Generic>T</Generic>
+      <Generic>Y</Generic>
+      <Generic>U</Generic>
+      <Generic>I</Generic>
+      <Generic>O</Generic>
+      <Generic>P</Generic>
+      <Generic>[</Generic>
+      <Generic>]</Generic>
+      <Generic>\</Generic>
+      <Generic>Delete</Generic>
+      <Generic>End</Generic>
+      <Generic>Caps Lock</Generic>
+      <Generic>A</Generic>
+      <Generic>S</Generic>
+      <Generic>D</Generic>
+      <Generic>F</Generic>
+      <Generic>G</Generic>
+      <Generic>H</Generic>
+      <Generic>J</Generic>
+      <Generic>K</Generic>
+      <Generic>L</Generic>
+      <Generic>;</Generic>
+      <Generic>'</Generic>
+      <Generic>Enter</Generic>
+      <Generic>Z</Generic>
+      <Generic>X</Generic>
+      <Generic>C</Generic>
+      <Generic>V</Generic>
+      <Generic>B</Generic>
+      <Generic>N</Generic>
+      <Generic>M</Generic>
+      <Generic>,</Generic>
+      <Generic>.</Generic>
+      <Generic>/</Generic>
+      <Generic>*</Generic>
+      <Generic>+</Generic>
+      <Generic>Numpad /</Generic>
+      <Generic>Numpad *</Generic>
+      <Generic>Numpad -</Generic>
+      <Generic>Numpad 7</Generic>
+      <Generic>Numpad 8</Generic>
+      <Generic>Numpad 9</Generic>
+      <Generic>Numpad +</Generic>
+      <Generic>Numpad 4</Generic>
+      <Generic>Numpad 5</Generic>
+      <Generic>Numpad 6</Generic>
+      <Generic>Numpad 1</Generic>
+      <Generic>Numpad 2</Generic>
+      <Generic>Numpad 3</Generic>
+      <Generic>Numpad 0</Generic>
+      <Generic>Numpad .</Generic>
+    </Generics>
+  </Category>
+  <Category>
+    <Name>Joystick</Name>
+    <Generics>
+      <Generic>Select</Generic>
+      <Generic>Cancel</Generic>
+      <Generic>Left</Generic>
+      <Generic>Right</Generic>
+      <Generic>Up</Generic>
+      <Generic>Down</Generic>
+      <Generic>B1</Generic>
+      <Generic>B2</Generic>
+      <Generic>B3</Generic>
+      <Generic>B4</Generic>
+      <Generic>B5</Generic>
+      <Generic>B6</Generic>
+      <Generic>B7</Generic>
+      <Generic>B8</Generic>
+      <Generic>B9</Generic>
+      <Generic>B10</Generic>
+      <Generic>B11</Generic>
+      <Generic>B12</Generic>
+    </Generics>
+  </Category>
+  <Category>
+    <Name>Gamepad</Name>
+    <Generics>
+      <Generic>Select</Generic>
+      <Generic>Cancel</Generic>
+      <Generic>Left</Generic>
+      <Generic>Right</Generic>
+      <Generic>Up</Generic>
+      <Generic>Down</Generic>
+      <Generic>B1</Generic>
+      <Generic>B2</Generic>
+      <Generic>B3</Generic>
+      <Generic>B4</Generic>
+      <Generic>B5</Generic>
+      <Generic>B6</Generic>
+      <Generic>B7</Generic>
+      <Generic>B8</Generic>
+      <Generic>B9</Generic>
+      <Generic>B10</Generic>
+      <Generic>B11</Generic>
+      <Generic>B12</Generic>
+    </Generics>
+  </Category>
+  <Category>
+    <Name>Pointer</Name>
+  </Category>
+  <Category>
+    <Name>Throttle</Name>
+  </Category>
+  <Category>
+    <Name>Wheel</Name>
+  </Category>
+  <Category>
+    <Name>Accelerometer</Name>
+  </Category>
+  <Category>
+    <Name>Tablet</Name>
+  </Category>
+  <Category>
+    <Name>Pedal</Name>
+  </Category>
+  <Category>
+    <Name>Glove</Name>
+  </Category>
+  <Category>
+    <Name>HeadTracker</Name>
+  </Category>
+</Categories>
+

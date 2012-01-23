@@ -1,0 +1,14 @@
+<Device Type="Compound">
+    <Device Type="WinRaw">
+    <Category>Mouse</Category>
+    <ID>WinRAW Mouse: Name(PS/2 Compatible Mouse), Id(00000002) NumberOfButtons(00000002)</ID>
+    <Friendly>PS/2 Mouse</Friendly>
+    <Sources Type="Named">WinRAW Mouse: Standard 3 Button Wheel Mouse</Sources>
+  </Device>
+  <Device Type="WinRaw">
+    <Category>Mouse</Category>
+    <ID>WinRAW Mouse: Name(PS/2 Compatible Mouse), Id(00000020) NumberOfButtons(00000003)</ID>
+    <Friendly>PS/2 Mouse</Friendly>
+    <Sources Type="Named">WinRAW Mouse: Standard 3 Button Wheel Mouse</Sources>
+  </Device>
+</Device>

@@ -1,0 +1,156 @@
+<Device Type="Compound">
+  <Device Type="DirectInput">
+    <Category>Joystick</Category>
+    <ID>DirectInput Joystick: Standard 8 Direction POV Hat</ID>
+    <Friendly>8 Direction Pad</Friendly>
+    <Sources Type="Defined">
+      <Format Type="Named">DirectInput Joystick 2</Format>
+
+      <Source Type="State">
+        <Friendly>POV Up</Friendly>
+        <Generic>Up</Generic>
+        <State>
+          <Channel Name="rgdwPOV[0]">
+            <Equals>0</Equals>
+          </Channel>
+          <Value Type="Numeric">1.0</Value>
+        </State>
+        <State>
+          <Channel Name="rgdwPOV[0]">
+            <Equals>4500</Equals>
+          </Channel>
+          <Value Type="Numeric">1.0</Value>
+        </State>
+        <State>
+          <Channel Name="rgdwPOV[0]">
+            <Equals>31500</Equals>
+          </Channel>
+          <Value Type="Numeric">1.0</Value>
+        </State>
+        <State>
+          <Channel Name="rgdwPOV[0]">
+            <NotEquals>0</NotEquals>
+          </Channel>
+          <Channel Name="rgdwPOV[0]">
+            <NotEquals>4500</NotEquals>
+          </Channel>
+          <Channel Name="rgdwPOV[0]">
+            <NotEquals>31500</NotEquals>
+          </Channel>
+          <Value Type="Numeric">0.0</Value>
+        </State>
+        <Rest Type="Numeric">0.0</Rest>
+      </Source>
+     
+      <Source Type="State">
+        <Friendly>POV Right</Friendly>
+        <Generic>Right</Generic>
+        <State>
+          <Channel Name="rgdwPOV[0]">
+            <Equals>9000</Equals>
+          </Channel>
+          <Value Type="Numeric">1.0</Value>
+        </State>
+        <State>
+          <Channel Name="rgdwPOV[0]">
+            <Equals>13500</Equals>
+          </Channel>
+          <Value Type="Numeric">1.0</Value>
+        </State>
+        <State>
+          <Channel Name="rgdwPOV[0]">
+            <Equals>4500</Equals>
+          </Channel>
+          <Value Type="Numeric">1.0</Value>
+        </State>
+        <State>
+          <Channel Name="rgdwPOV[0]">
+            <NotEquals>9000</NotEquals>
+          </Channel>
+          <Channel Name="rgdwPOV[0]">
+            <NotEquals>13500</NotEquals>
+          </Channel>
+          <Channel Name="rgdwPOV[0]">
+            <NotEquals>4500</NotEquals>
+          </Channel>
+          <Value Type="Numeric">0.0</Value>
+        </State>
+        <Rest Type="Numeric">0.0</Rest>
+      </Source>
+  
+      <Source Type="State">
+        <Friendly>POV Down</Friendly>
+        <Generic>Down</Generic>
+        <State>
+          <Channel Name="rgdwPOV[0]">
+            <Equals>18000</Equals>
+          </Channel>
+          <Value Type="Numeric">1.0</Value>
+        </State>
+        <State>
+          <Channel Name="rgdwPOV[0]">
+            <Equals>22500</Equals>
+          </Channel>
+          <Value Type="Numeric">1.0</Value>
+        </State>
+        <State>
+          <Channel Name="rgdwPOV[0]">
+            <Equals>13500</Equals>
+          </Channel>
+          <Value Type="Numeric">1.0</Value>
+        </State>
+        <State>
+          <Channel Name="rgdwPOV[0]">
+            <NotEquals>18000</NotEquals>
+          </Channel>
+          <Channel Name="rgdwPOV[0]">
+            <NotEquals>22500</NotEquals>
+          </Channel>
+          <Channel Name="rgdwPOV[0]">
+            <NotEquals>13500</NotEquals>
+          </Channel>
+          <Value Type="Numeric">0.0</Value>
+        </State>
+        <Rest Type="Numeric">0.0</Rest>
+      </Source>
+  
+      <Source Type="State">
+        <Friendly>POV Left</Friendly>
+        <Generic>Left</Generic>
+        <State>
+          <Channel Name="rgdwPOV[0]">
+            <Equals>27000</Equals>
+          </Channel>
+          <Value Type="Numeric">1.0</Value>
+        </State>
+        <State>
+          <Channel Name="rgdwPOV[0]">
+            <Equals>22500</Equals>
+          </Channel>
+          <Value Type="Numeric">1.0</Value>
+        </State>
+        <State>
+          <Channel Name="rgdwPOV[0]">
+            <Equals>31500</Equals>
+          </Channel>
+          <Value Type="Numeric">1.0</Value>
+        </State>
+        <State>
+          <Channel Name="rgdwPOV[0]">
+            <NotEquals>27000</NotEquals>
+          </Channel>
+          <Channel Name="rgdwPOV[0]">
+            <NotEquals>22500</NotEquals>
+          </Channel>
+          <Channel Name="rgdwPOV[0]">
+            <NotEquals>31500</NotEquals>
+          </Channel>
+          <Value Type="Numeric">0.0</Value>
+        </State>
+        <Rest Type="Numeric">0.0</Rest>
+      </Source>
+
+    </Sources>
+  </Device>
+</Device>
+

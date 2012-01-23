@@ -1,0 +1,77 @@
+(object | namespace) 0-X END
+
+$structkeyword    "struct"
+$namespacekeyword "namespace"
+$classkeyword     "class"
+$enumkeyword      "enum"
+$public           "public"
+$private          "private"
+$protected        "protected"
+$typedefkeyword   "typedef"
+$templatekeyword  "template"
+
+$keywords
+(structkeyword | namespacekeyword | classkeyword | enumkeyword | private | public | protected)
+
+$object
+(fieldline | methoddeclaration | class | enum)
+
+$namespace
+(namespacekeyword (identifier /*& !keywords*/) '{'
+   (object | namespace) 0-X
+('}' ';')-- )+NameSpace.
+
+$enum
+(enumkeyword (identifier /*& !keywords*/) '{'
+   (enumvalue (',' enumvalue) 0-X ',' 0-1) 0-1
+('}' ';')-- )+Enum.
+
+$class
+(template ((classkeyword | structkeyword) (identifier /*& !keywords*/) '{')
+   (modifier | methoddeclaration | fieldline) 0-X
+('}' ';')-- )+Class.
+
+$template
+(templatekeyword '<' templatetype (',' templatetype) 0-X '>')
+
+$templatetype
+classkeyword identifier
+
+$modifier
+(public | private | protected) (':')--
+
+$fieldline
+(type variabledeclaration (',' variabledeclaration) 0-X ';')+Field.
+
+$methoddeclaration
+(type variabledeclaration '(' arguments ')' ';')+MethodDeclaration.
+
+$arguments
+(type variabledeclaration ',') 0-X (type variabledeclaration) 0-1
+
+$enumvalue
+identifier ('=' integer ) 0-1
+
+$type
+(primitive | identifier)
+
+$primitive
+("int" | "float" | "bool")
+
+//$typedef
+//typedefkeyword identifier identifier ';'
+
+$variabledeclaration
+'*' 0-3 identifier
+
+//' ' = NT_Ordered
+//',' = NT_Unordered
+//'|' = NT_Exclusive
+//'&' = NT_Inclusive
+
+//Things left out so far:
+//  typedef
+//  extern
+//  template
+//  all inheritance
+//  method definitions

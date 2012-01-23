@@ -1,0 +1,6 @@
+<Device Type="WinRaw">
+  <Category>Mouse</Category>
+  <ID>WinRAW Mouse: Name(Microsoft USB Wheel Mouse Optical), Id(00000100) NumberOfButtons(00000003)</ID>
+  <Friendly>Microsoft Mouse</Friendly>
+  <Sources Type="Named">WinRAW Mouse: Standard 3 Button Wheel Mouse</Sources>
+</Device>
