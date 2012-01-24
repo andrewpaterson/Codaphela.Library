@@ -1,4 +1,3 @@
-
 BaseLib/Debug/*
 CoreLib/Debug/*
 CppParserLib/DEBUG/*
@@ -10,3 +9,14 @@ SupportLib/Debug/*
 TestLib/Debug/*
 WindowLib/Debug/*
 WorldLib/Debug/*
+BaseLib/Release/*
+CoreLib/Release/*
+CppParserLib/Release/*
+DirectXLib/ReleaseGame/*
+GameLib/Release/*
+InputLib/Release/*
+StandardLib/Release/*
+SupportLib/Release/*
+TestLib/Release/*
+WindowLib/Release/*
+WorldLib/Release/*
