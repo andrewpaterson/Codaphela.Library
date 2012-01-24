@@ -28,19 +28,38 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CNamedIndexes::Init(CDurableFileController* pcController, int iCacheSize, int iNewNumBlocks)
 {
-	mpcController = pcController;
 	macBlocks.Init(2);
 	mcCache.Init(iCacheSize);
+	mcFiles.Init(pcController, "NAM");
 
-	AddBlock("",   32,    1,   23, iNewNumBlocks);
-	AddBlock("",   64,   23,   55, iNewNumBlocks);
-	AddBlock("",   96,   55,   87, iNewNumBlocks);
-	AddBlock("",  128,   87,  119, iNewNumBlocks);
-	AddBlock("",  192,  119,  183, iNewNumBlocks);
-	AddBlock("",  256,  183,  247, iNewNumBlocks);
-	AddBlock("",  512,  247,  503, iNewNumBlocks);
-	AddBlock("", 1024,  503, 1015, iNewNumBlocks);
-	AddBlock("", 4096, 1015, 4087, iNewNumBlocks);
+	AddBlock(  32,    1,   23, iNewNumBlocks);
+	AddBlock(  64,   23,   55, iNewNumBlocks);
+	AddBlock(  96,   55,   87, iNewNumBlocks);
+	AddBlock( 128,   87,  119, iNewNumBlocks);
+	AddBlock( 192,  119,  183, iNewNumBlocks);
+	AddBlock( 256,  183,  247, iNewNumBlocks);
+	AddBlock( 512,  247,  503, iNewNumBlocks);
+	AddBlock(1024,  503, 1015, iNewNumBlocks);
+	AddBlock(4096, 1015, 4087, iNewNumBlocks);
+
+	SetBlocksAfterAdding();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CNamedIndexes::SetBlocksAfterAdding(void)
+{
+	int						i;
+	CNamedIndexesBlocks*	pcBlock;
+
+	for (i = 0; i < macBlocks.NumElements(); i++)
+	{
+		pcBlock = macBlocks.Get(i);
+		pcBlock->Set(&mcCache);
+	}
 }
 
 
@@ -60,7 +79,7 @@ void CNamedIndexes::Kill(void)
 	}
 	macBlocks.Kill();
 
-	mpcController = NULL;
+	mcFiles.Kill();
 }
 
 
@@ -170,12 +189,12 @@ CNamedIndexesBlocks* CNamedIndexes::GetBlock(int iNameLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CNamedIndexesBlocks* CNamedIndexes::AddBlock(char* szFileName, int iBlockSize, int iMinNameLength, int iMaxNameLength, int iNewNumBlocks)
+CNamedIndexesBlocks* CNamedIndexes::AddBlock(int iBlockSize, int iMinNameLength, int iMaxNameLength, int iNewNumBlocks)
 {
 	CNamedIndexesBlocks*	pcBlock;
 
 	pcBlock = macBlocks.Add();
-	pcBlock->Init(szFileName, iBlockSize, iMinNameLength, iMaxNameLength, iNewNumBlocks);
+	pcBlock->Init(iBlockSize, iMinNameLength, iMaxNameLength, iNewNumBlocks);
 	return pcBlock;
 }
 

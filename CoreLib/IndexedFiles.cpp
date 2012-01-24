@@ -36,9 +36,10 @@ struct SIndexedFileDescriptor
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedFiles::Init(CDurableFileController* pcDurableFileControl)
+void CIndexedFiles::Init(CDurableFileController* pcDurableFileControl, char* szExtension)
 {
 	mpcDurableFileControl = pcDurableFileControl;
+	mszExtension.Init(szExtension);
 
 	InitIndexedFileDescriptors();
 	ReadIndexedFileDescriptors();
@@ -63,6 +64,7 @@ void CIndexedFiles::Kill(void)
 
 	mcFileDescriptorsFile.Close();
 
+	mszExtension.Kill();
 	mszIndexName.Kill();
 	mszIndexRewrite.Kill();
 }
@@ -78,10 +80,12 @@ void CIndexedFiles::InitIndexedFileDescriptors(void)
 
 	mszIndexName.Init(mpcDurableFileControl->mszWorkingDirectory);
 	mszIndexName.Append(FILE_SEPARATOR);
-	mszIndexName.Append("Files.DAT");
+	mszIndexName.Append("Files.");
+	mszIndexName.Append(mszExtension);
 	mszIndexRewrite.Init(mpcDurableFileControl->mszWorkingDirectory);
 	mszIndexRewrite.Append(FILE_SEPARATOR);
-	mszIndexRewrite.Append("_Files.DAT");
+	mszIndexRewrite.Append("_Files.");
+	mszIndexRewrite.Append(mszExtension);
 
 	mcFileDescriptorsFile.Init(mpcDurableFileControl->mbDurable, mszIndexName.Text(), mszIndexRewrite.Text());
 	mpcDurableFileControl->AddFile(&mcFileDescriptorsFile);
@@ -175,14 +179,16 @@ BOOL CIndexedFiles::DataFileName(char* szFile1, char* szFile2, int iDataSize, in
 	szFileName.Append(iDataSize);
 	szFileName.Append("_");
 	szFileName.Append(iFileNum);
-	szFileName.Append(".DAT");
+	szFileName.Append(".");
+	szFileName.Append(mszExtension);
 	szRewriteName.Init(mpcDurableFileControl->mszWorkingDirectory);
 	szRewriteName.Append(FILE_SEPARATOR);
 	szRewriteName.Append("_");
 	szRewriteName.Append(iDataSize);
 	szRewriteName.Append("_");
 	szRewriteName.Append(iFileNum);
-	szRewriteName.Append(".DAT");
+	szRewriteName.Append(".");
+	szRewriteName.Append(mszExtension);
 
 	if (szFileName.Length() < 65536)
 	{
@@ -192,10 +198,12 @@ BOOL CIndexedFiles::DataFileName(char* szFile1, char* szFile2, int iDataSize, in
 		szRewriteName.Kill();
 		return TRUE;
 	}
-
-	szFileName.Kill();
-	szRewriteName.Kill();
-	return FALSE;
+	else
+	{
+		szFileName.Kill();
+		szRewriteName.Kill();
+		return FALSE;
+	}
 }
 
 

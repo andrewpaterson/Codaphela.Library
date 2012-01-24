@@ -21,6 +21,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __NAMED_INDEXES_BLOCKS_H__
 #define __NAMED_INDEXES_BLOCKS_H__
 #include "BaseLib/ArrayTemplate.h"
+#include "CoreLib/DurableFile.h"
 #include "NamedIndexesBlock.h"
 
 
@@ -28,14 +29,17 @@ class CNamedIndexesBlocks
 {
 protected:
 	CArrayNamedIndexesBlock		macBlocks;
-	int							miBlockWidth;
+	int							miBlockWidth;  //same as miDataSize in CIndexedFile
 	int							miMinNameLength;
 	int							miMaxNameLength;
 	int							miNewNumBlocks;
+	CMemoryCache*				mpcCache;
+	int							miFileNumber;
 
 public:
-	void	Init(char* szFileName, int iBlockSize, int iMinNameLength, int iMaxNameLength, int iNewNumBlocks);
+	void	Init(int iBlockSize, int iMinNameLength, int iMaxNameLength, int iNewNumBlocks);
 	void	Kill(void);
+	void	Set(CMemoryCache* pcCache);
 
 	BOOL	FitsLength(int iNameLength);
 
@@ -48,7 +52,7 @@ public:
 };
 
 typedef CArrayTemplate<CNamedIndexesBlocks> CArrayNamedIndexesBlocks;
-
+ 
 
 #endif // __NAMED_INDEXES_BLOCKS_H__
 

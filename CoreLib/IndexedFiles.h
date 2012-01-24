@@ -37,9 +37,10 @@ public:
 	CArrayIndexedFile			mcFiles;  //These are the data on disk.  Generally one file per data size.
 	CChars						mszIndexName;
 	CChars						mszIndexRewrite;
+	CChars						mszExtension;
 	CDurableFile				mcFileDescriptorsFile;
 
-	void						Init(CDurableFileController* pcDurableFileControl);
+	void						Init(CDurableFileController* pcDurableFileControl, char* szExtension);
 	void						Kill(void);
 
 	void						InitIndexedFileDescriptors(void);

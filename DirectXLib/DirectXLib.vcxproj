@@ -41,8 +41,8 @@
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Game_Debug|Win32'">DebugGame\</IntDir>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Game_Release|Win32'">Game_Release\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Game_Release|Win32'">Game_Release\</IntDir>
-    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Game_Debug|Win32'">$(COMMONLIBRARIES);$(IncludePath)</IncludePath>
-    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Game_Release|Win32'">$(COMMONLIBRARIES);$(IncludePath)</IncludePath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Game_Debug|Win32'">$(COMMONLIBRARIES);$(IncludePath);$(DXSDK_DIR)include</IncludePath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Game_Release|Win32'">$(COMMONLIBRARIES);$(IncludePath);$(DXSDK_DIR)include</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Game_Debug|Win32'">
     <ClCompile>

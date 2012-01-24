@@ -145,7 +145,7 @@ BOOL CIndexedFile::Read(int iIndex, void* pvData)
 		return FALSE;
 	}
 
-	iPosition = iIndex*miDataSize;
+	iPosition = iIndex * miDataSize;
 	iRead = mcFile.Read(EFSO_SET, iPosition, pvData, miDataSize, 1);
 	if (iRead != 1)
 	{

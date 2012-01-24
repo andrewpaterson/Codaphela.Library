@@ -23,15 +23,16 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/Define.h"
 #include "BaseLib/MemoryCache.h"
 #include "CoreLib/DurableFileController.h"
+#include "CoreLib/IndexedFiles.h"
 #include "NamedIndexesBlocks.h"
 
 
 class CNamedIndexes
 {
 protected:
-	CDurableFileController*		mpcController;
 	CArrayNamedIndexesBlocks	macBlocks;
 	CMemoryCache				mcCache;
+	CIndexedFiles				mcFiles;
 
 public:
 	void	Init(CDurableFileController* pcController, int iCacheSize, int iNewNumBlocks);
@@ -44,8 +45,9 @@ public:
 	BOOL	Flush(void);
 
 protected:
+	void					SetBlocksAfterAdding(void);
 	CNamedIndexesBlocks*	GetBlock(int iNameLength);
-	CNamedIndexesBlocks*	AddBlock(char* szFileName, int iBlockSize, int iMinNameLength, int iMaxNameLength, int iNewNumBlocks);
+	CNamedIndexesBlocks*	AddBlock(int iBlockSize, int iMinNameLength, int iMaxNameLength, int iNewNumBlocks);
 };
 
 

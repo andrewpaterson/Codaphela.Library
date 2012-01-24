@@ -19,6 +19,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include "BaseObject.h"
+#include "BaseLib/MemoryCache.h"
 #include "NamedIndexesBlocks.h"
 
 
@@ -26,13 +27,24 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNamedIndexesBlocks::Init(char* szFileName, int iBlockSize, int iMinNameLength, int iMaxNameLength, int iNewNumBlocks)
+void CNamedIndexesBlocks::Init(int iBlockSize, int iMinNameLength, int iMaxNameLength, int iNewNumBlocks)
 {
 	macBlocks.Init(1);
 	miBlockWidth = iBlockSize;
 	miMinNameLength = iMinNameLength;
 	miMaxNameLength = iMaxNameLength;
 	miNewNumBlocks = iNewNumBlocks;
+	miFileNumber = 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CNamedIndexesBlocks::Set(CMemoryCache* pcCache)
+{
+	mpcCache = pcCache;
 }
 
 
@@ -108,7 +120,7 @@ BOOL CNamedIndexesBlocks::Add(OIndex oi, CChars* szName, BOOL bFailOnExisting)
 	{
 		pcNotFullBlock = macBlocks.Add();
 		pcNotFullBlock->Init(miBlockWidth, miNewNumBlocks);
-		pcBlock->Cache();
+		Cache(pcBlock);
 	}
 	return pcNotFullBlock->AddUnsafe(oi, szName);
 }
@@ -120,7 +132,14 @@ BOOL CNamedIndexesBlocks::Add(OIndex oi, CChars* szName, BOOL bFailOnExisting)
 //////////////////////////////////////////////////////////////////////////
 BOOL CNamedIndexesBlocks::Cache(CNamedIndexesBlock* pcBlock)
 {
-
+	if (pcBlock->IsInFile())
+	{
+		
+	}
+	else
+	{
+		return pcBlock->SetCache(mpcCache->Allocate(pcBlock->GetBlockSize()));
+	}
 }
 
 

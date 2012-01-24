@@ -58,7 +58,7 @@ void CIndexedData::Init(CIndexedConfig* pcConfig)
 	mcDurableFileControl.MakeDir(pcConfig->mszWorkingDirectory);
 
 	InitIndices(pcConfig);
-	mcObjectFiles.Init(&mcDurableFileControl);
+	mcObjectFiles.Init(&mcDurableFileControl, "DAT");
 
 	if (pcConfig->miObjectsCacheSize != 0)
 	{

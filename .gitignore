@@ -1,0 +1,12 @@
+
+BaseLib/Debug/*
+CoreLib/Debug/*
+CppParserLib/DEBUG/*
+DirectXLib/DebugGame/*
+GameLib/Debug/*
+InputLib/Debug/*
+StandardLib/Debug/*
+SupportLib/Debug/*
+TestLib/Debug/*
+WindowLib/Debug/*
+WorldLib/Debug/*

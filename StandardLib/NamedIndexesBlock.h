@@ -54,11 +54,11 @@ public:
 	BOOL	CouldContain(CChars* szName);
 	BOOL	IsCached(void);
 	BOOL	IsNotFull(void);
+	BOOL	IsInFile(void);
 
 	BOOL	AddUnsafe(OIndex oi, CChars* szName);
 	OIndex	GetIndex(CChars* szName);
-
-protected:
+	BOOL	SetCache(void* pvCache);
 	int		GetBlockSize(void);
 };
 
