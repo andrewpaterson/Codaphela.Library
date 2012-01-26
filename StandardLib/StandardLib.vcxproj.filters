@@ -327,6 +327,9 @@
     <ClInclude Include="NamedIndexesBlock.h">
       <Filter>Source\File\Indexed\Named</Filter>
     </ClInclude>
+    <ClInclude Include="NamedIndexesBlocksLoader.h">
+      <Filter>Source\File\Indexed\Named</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Unknown.cpp">
@@ -513,6 +516,9 @@
       <Filter>Source\File\Indexed\Named</Filter>
     </ClCompile>
     <ClCompile Include="NamedIndexesBlock.cpp">
+      <Filter>Source\File\Indexed\Named</Filter>
+    </ClCompile>
+    <ClCompile Include="NamedIndexesBlocksLoader.cpp">
       <Filter>Source\File\Indexed\Named</Filter>
     </ClCompile>
   </ItemGroup>

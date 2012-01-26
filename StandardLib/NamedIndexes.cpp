@@ -50,23 +50,6 @@ void CNamedIndexes::Init(CDurableFileController* pcController, int iCacheSize, i
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNamedIndexes::SetBlocksAfterAdding(void)
-{
-	int						i;
-	CNamedIndexesBlocks*	pcBlock;
-
-	for (i = 0; i < macBlocks.NumElements(); i++)
-	{
-		pcBlock = macBlocks.Get(i);
-		pcBlock->Set(&mcCache);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CNamedIndexes::Kill(void)
 {
 	int						i;
@@ -194,8 +177,7 @@ CNamedIndexesBlocks* CNamedIndexes::AddBlock(int iBlockSize, int iMinNameLength,
 	CNamedIndexesBlocks*	pcBlock;
 
 	pcBlock = macBlocks.Add();
-	pcBlock->Init(iBlockSize, iMinNameLength, iMaxNameLength, iNewNumBlocks);
+	pcBlock->Init(iBlockSize, iMinNameLength, iMaxNameLength, iNewNumBlocks, &mcCache, &mcFiles);
 	return pcBlock;
 }
-
 

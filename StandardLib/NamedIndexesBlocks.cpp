@@ -20,6 +20,8 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include "BaseObject.h"
 #include "BaseLib/MemoryCache.h"
+#include "CoreLib/IndexedFiles.h"
+#include "NamedIndexesBlocksLoader.h"
 #include "NamedIndexesBlocks.h"
 
 
@@ -27,14 +29,17 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNamedIndexesBlocks::Init(int iBlockSize, int iMinNameLength, int iMaxNameLength, int iNewNumBlocks)
+void CNamedIndexesBlocks::Init(int iBlockSize, int iMinNameLength, int iMaxNameLength, int iNewNumBlocks, CMemoryCache* pcCache, CIndexedFiles* pcFiles)
 {
 	macBlocks.Init(1);
 	miBlockWidth = iBlockSize;
 	miMinNameLength = iMinNameLength;
 	miMaxNameLength = iMaxNameLength;
 	miNewNumBlocks = iNewNumBlocks;
+	miMaxNumBlocks = miNewNumBlocks * 20;
 	miFileNumber = 0;
+	mpcFiles = pcFiles;
+	mpcCache = pcCache;
 }
 
 
@@ -42,9 +47,16 @@ void CNamedIndexesBlocks::Init(int iBlockSize, int iMinNameLength, int iMaxNameL
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNamedIndexesBlocks::Set(CMemoryCache* pcCache)
+BOOL CNamedIndexesBlocks::Load(void)
 {
-	mpcCache = pcCache;
+	CNamedIndexesBlocksLoader	cLoader;
+	BOOL						bResult;
+
+	cLoader.Init(this);
+	bResult = cLoader.Load();
+	cLoader.Kill();
+	
+	return bResult;
 }
 
 
