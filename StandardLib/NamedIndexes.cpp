@@ -167,6 +167,19 @@ BOOL CNamedIndexes::Remove(CChars* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL CNamedIndexes::Remove(char* szName)
+{
+	CChars	szFake;
+
+	szFake.Fake(szName);
+	return Remove(&szFake);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL CNamedIndexes::Flush(void)
 {
 	int						i;
@@ -218,3 +231,22 @@ CNamedIndexesBlocks* CNamedIndexes::AddBlock(int iBlockSize, int iMinNameLength,
 	return pcBlock;
 }
 
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CNamedIndexes::NumNames(void)
+{
+	int						i;
+	CNamedIndexesBlocks*	pcBlock;
+	int						iNames;
+
+	iNames = 0;
+	for (i = 0; i < macBlocks.NumElements(); i++)
+	{
+		pcBlock = macBlocks.Get(i);
+		iNames += pcBlock->NumNames();
+	}
+	return iNames;}

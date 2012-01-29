@@ -48,6 +48,7 @@ public:
 	BOOL					IsNotFull(void);
 	BOOL					IsFull(void);
 	BOOL					IsInFile(void);
+	BOOL					IsEmpty(void);
 
 	BOOL					AddUnsafe(OIndex oi, CChars* szName);
 	OIndex					GetIndex(CChars* szName);
@@ -55,6 +56,9 @@ public:
 	int						GetUsedByteSize(void);
 	int						GetAllocatedByteSize(void);
 	CNamedIndexedBlock*		GetUnsafe(int iIndex);
+	BOOL					Remove(CChars* szName);
+	void					Dirty(void);
+	int						UsedNames(void);
 };
 
 

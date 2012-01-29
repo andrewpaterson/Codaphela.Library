@@ -235,9 +235,6 @@ OIndex CNamedIndexesBlocks::GetIndex(CChars* szName)
 	int						i;
 	CNamedIndexesBlock*		pcBlock;
 	OIndex					oiExisiting;
-	CNamedIndexesBlock*		pcNotFullBlock;
-
-	pcNotFullBlock = NULL;
 
 	for (i = 0; i < macBlocks.NumElements(); i++)
 	{
@@ -267,7 +264,63 @@ OIndex CNamedIndexesBlocks::GetIndex(CChars* szName)
 //////////////////////////////////////////////////////////////////////////
 BOOL CNamedIndexesBlocks::Remove(CChars* szName)
 {
+	int						i;
+	CNamedIndexesBlock*		pcBlock;
+	CNamedIndexesBlock*		pcNotFullBlock;
+	BOOL					bResult;
+
+	pcNotFullBlock = NULL;
+
+	for (i = 0; i < macBlocks.NumElements(); i++)
+	{
+		pcBlock = macBlocks.Get(i);
+		if (pcBlock->CouldContain(szName))
+		{
+			if (!pcBlock->IsCached())
+			{
+				Cache(pcBlock);
+			}
+
+			bResult = pcBlock->Remove(szName);
+			if (bResult)
+			{
+				if (pcBlock->IsEmpty())
+				{
+					pcBlock->Kill();
+					macBlocks.RemoveAt(i, FALSE);
+					pcBlock = macBlocks.SafeGet(i);
+					if (pcBlock)
+					{
+						pcBlock->Dirty();
+					}
+				}
+				return bResult;
+			}
+		}
+	}
+
 	return FALSE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CNamedIndexesBlocks::NumNames(void)
+{
+	int						i;
+	CNamedIndexesBlock*		pcBlock;
+	int						iNames;
+
+	iNames = 0;
+	for (i = 0; i < macBlocks.NumElements(); i++)
+	{
+		pcBlock = macBlocks.Get(i);
+		iNames += pcBlock->UsedNames();
+	}
+
+	return iNames;
 }
 
 

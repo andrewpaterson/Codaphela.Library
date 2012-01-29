@@ -53,6 +53,7 @@ public:
 	BOOL	Flush(void);
 	BOOL	Cache(CNamedIndexesBlock* pcBlock);
 	BOOL	AddNewBlock(int iBlockWidth, void* pvBlocks, int iNumBlocks, filePos uiFilePos);
+	int		NumNames(void);
 	
 protected:
 	void*					AllocateInCache(int iSize);

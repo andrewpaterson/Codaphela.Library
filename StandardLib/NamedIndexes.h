@@ -42,7 +42,9 @@ public:
 	BOOL	Add(OIndex oi, CChars* szName, BOOL bFailOnExisting = TRUE);
 	OIndex	GetIndex(char* szName);
 	OIndex	GetIndex(CChars* szName);
+	BOOL	Remove(char* szName);
 	BOOL	Remove(CChars* szName);
+	int		NumNames(void);
 
 	BOOL	Flush(void);
 

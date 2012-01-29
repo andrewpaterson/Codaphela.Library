@@ -168,7 +168,7 @@ BOOL CNamedIndexesBlock::AddUnsafe(OIndex oi, CChars* szName)
 
 	sBlock.Set(szName->Text(), oi);
 
-	avFakeBlock.Fake(mpvCachePos, GetAllocatedByteSize(), miUsedBlocks, miNumBlocks);
+	avFakeBlock.Fake(mpvCachePos, miBlockWidth, miUsedBlocks, miNumBlocks);
 	
 	//It's safe to insert into a faked array because we know there is at least one free element in the chunk
 	//That is: miNumBlocks - miUsedBlocks >= 1
@@ -212,8 +212,6 @@ OIndex CNamedIndexesBlock::GetIndex(CChars* szName)
 
 	avFakeBlock.Fake(mpvCachePos, miBlockWidth, miUsedBlocks, miNumBlocks);
 
-	//It's safe to insert into a faked array because we know there is at least one free element in the chunk
-	//That is: miNumBlocks - miUsedBlocks >= 1
 	if (avFakeBlock.FindInSorted(&sBlock, &CompareNamedIndexedBlock, &iIndex))
 	{
 		if (iIndex != -1)
@@ -224,6 +222,65 @@ OIndex CNamedIndexesBlock::GetIndex(CChars* szName)
 	}
 	return INVALID_OBJECT_IDENTIFIER;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CNamedIndexesBlock::Remove(CChars* szName)
+{
+	CArrayBlock				avFakeBlock;
+	CNamedIndexedBlock		sBlock;
+	int						iIndex;
+	CNamedIndexedBlock*		pcBlock;
+	
+	strcpy(sBlock.Name(), szName->Text());
+
+	avFakeBlock.Fake(mpvCachePos, miBlockWidth, miUsedBlocks, miNumBlocks);
+
+	if (avFakeBlock.FindInSorted(&sBlock, &CompareNamedIndexedBlock, &iIndex))
+	{
+		if (iIndex != -1)
+		{
+			avFakeBlock.RemoveAt(iIndex, TRUE);
+			miUsedBlocks--;
+
+			if (miUsedBlocks >= 1)
+			{
+				pcBlock = GetUnsafe(0);
+				mszFirst.Set(pcBlock->Name());
+
+				pcBlock = GetUnsafe(miUsedBlocks-1);
+				mszLast.Set(pcBlock->Name());
+			}
+			return TRUE;
+		}
+	}
+	return FALSE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CNamedIndexesBlock::IsEmpty(void)
+{
+	return miUsedBlocks == 0;
+}
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CNamedIndexesBlock::Dirty(void)
+{
+	mbDirty = TRUE;
+}
+
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -263,5 +320,15 @@ int CNamedIndexesBlock::GetAllocatedByteSize(void)
 CNamedIndexedBlock* CNamedIndexesBlock::GetUnsafe(int iIndex)
 {
 	return (CNamedIndexedBlock*)RemapSinglePointer(mpvCachePos, iIndex * miBlockWidth);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CNamedIndexesBlock::UsedNames(void)
+{
+	return miUsedBlocks;
 }
 
