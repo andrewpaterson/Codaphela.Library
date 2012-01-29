@@ -31,7 +31,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 struct SIndexedCacheDescriptor : public SMemoryCacheDescriptor
 {
-	OIndex						OI;
+	OIndex						oi;
 };
 
 
@@ -59,7 +59,7 @@ public:
 	int							NumCached(void);
 	int							NumIgnored(void);
 
-	SIndexedCacheDescriptor*	TestGetDescriptor(OIndex OI);
+	SIndexedCacheDescriptor*	TestGetDescriptor(OIndex oi);
 };
 
 

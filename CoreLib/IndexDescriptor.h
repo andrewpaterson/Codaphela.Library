@@ -38,7 +38,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 class CIndexDescriptor
 {
 private:
-	OIndex			mOI;
+	OIndex			moi;
 
 	unsigned int	muiDataSize;
 	unsigned int	msFlags;  //These include the user flags.
@@ -50,7 +50,7 @@ private:
 	unsigned int	muiTimeStamp;
 
 public:
-	void 			Init(OIndex OI, unsigned int uiDataSize);
+	void 			Init(OIndex oi, unsigned int uiDataSize);
 	BOOL 			IsAllocated(void);
 	BOOL 			IsDirty(void);
 	void 			Dirty(BOOL bDirty);

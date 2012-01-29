@@ -142,12 +142,12 @@ void CIndexedData::InitIndices(CIndexedConfig* pcConfig)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-unsigned int CIndexedData::Flags(OIndex OI)
+unsigned int CIndexedData::Flags(OIndex oi)
 {
 	CIndexDescriptor		cDescriptor;
 	BOOL						bResult;
 
-	bResult = mcIndices.Get(&cDescriptor, OI);
+	bResult = mcIndices.Get(&cDescriptor, oi);
 	if (bResult)
 	{
 		return cDescriptor.GetUserFlags();
@@ -312,7 +312,7 @@ void CIndexedData::EvictFromCache(SIndexedCacheDescriptor* psExisting)
 	CIndexDescriptor	cDescriptor;
 	BOOL				bResult;
 
-	bResult = mcIndices.Get(&cDescriptor, psExisting->OI);
+	bResult = mcIndices.Get(&cDescriptor, psExisting->oi);
 	cDescriptor.Cache(NULL);
 	mcIndices.Set(&cDescriptor);
 }
@@ -393,7 +393,7 @@ BOOL CIndexedData::WriteEvictedData(SIndexedCacheDescriptor* psCached)
 	CIndexDescriptor	cDescriptor;
 	BOOL				bResult;
 
-	bResult = mcIndices.Get(&cDescriptor, psCached->OI);
+	bResult = mcIndices.Get(&cDescriptor, psCached->oi);
 	if (!bResult)
 	{
 		return FALSE;
@@ -416,7 +416,7 @@ BOOL CIndexedData::ClearDescriptorCache(SIndexedCacheDescriptor* psCached)
 	CIndexDescriptor		cDescriptor;
 	BOOL						bResult;
 
-	bResult = mcIndices.Get(&cDescriptor, psCached->OI);
+	bResult = mcIndices.Get(&cDescriptor, psCached->oi);
 	if (!bResult)
 	{
 		return FALSE;
@@ -461,12 +461,12 @@ BOOL CIndexedData::WriteEvictedData(CArrayPointer* papsEvictedIndexedCacheDescri
 //
 //
 //////////////////////////////////////////////////////////////////////////
-unsigned int CIndexedData::Size(OIndex OI)
+unsigned int CIndexedData::Size(OIndex oi)
 {
 	BOOL						bResult;
 	CIndexDescriptor		cDescriptor;
 
-	bResult = mcIndices.Get(&cDescriptor, OI);
+	bResult = mcIndices.Get(&cDescriptor, oi);
 	if (bResult)
 	{
 		return cDescriptor.GetDataSize();
@@ -479,21 +479,21 @@ unsigned int CIndexedData::Size(OIndex OI)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedData::Add(OIndex OI, void* pvData, unsigned int iDataSize, unsigned int uiTimeStamp)
+BOOL CIndexedData::Add(OIndex oi, void* pvData, unsigned int iDataSize, unsigned int uiTimeStamp)
 {
 	CIndexDescriptor	cDescriptor;
 	BOOL				bResult;
 
 	//It doesn't matter what the result was.
-	bResult = GetDescriptor(OI, &cDescriptor);
+	bResult = GetDescriptor(oi, &cDescriptor);
 	if (bResult)
 	{
-		//Can't add an OI that already exists.
+		//Can't add an oi that already exists.
 		return FALSE;
 	}
 
 	//This init clears the file index.  This means CompareDiskToMemory() will not try and read it to test for changes.
-	cDescriptor.Init(OI, iDataSize);
+	cDescriptor.Init(oi, iDataSize);
 
 	bResult = Write(&cDescriptor, pvData, uiTimeStamp);
 	mcIndices.Set(&cDescriptor);
@@ -505,12 +505,12 @@ BOOL CIndexedData::Add(OIndex OI, void* pvData, unsigned int iDataSize, unsigned
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedData::Set(OIndex OI, void* pvData, unsigned int uiTimeStamp)
+BOOL CIndexedData::Set(OIndex oi, void* pvData, unsigned int uiTimeStamp)
 {
 	CIndexDescriptor	cDescriptor;
 	BOOL				bResult;
 
-	bResult = GetDescriptor(OI, &cDescriptor);
+	bResult = GetDescriptor(oi, &cDescriptor);
 	if (bResult)
 	{
 		if (cDescriptor.IsCached())
@@ -529,7 +529,7 @@ BOOL CIndexedData::Set(OIndex OI, void* pvData, unsigned int uiTimeStamp)
 	}
 	else
 	{
-		//Can't set if the OI doesn't exist.
+		//Can't set if the oi doesn't exist.
 		return FALSE;
 	}
 }
@@ -541,12 +541,12 @@ BOOL CIndexedData::Set(OIndex OI, void* pvData, unsigned int uiTimeStamp)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedData::Set(OIndex OI, void* pvData, unsigned int uiDataSize, unsigned int uiTimeStamp)
+BOOL CIndexedData::Set(OIndex oi, void* pvData, unsigned int uiDataSize, unsigned int uiTimeStamp)
 {
 	CIndexDescriptor	cDescriptor;
 	BOOL				bResult;
 
-	bResult = GetDescriptor(OI, &cDescriptor);
+	bResult = GetDescriptor(oi, &cDescriptor);
 	if (bResult)
 	{
 		if (cDescriptor.GetDataSize() == uiDataSize)
@@ -568,7 +568,7 @@ BOOL CIndexedData::Set(OIndex OI, void* pvData, unsigned int uiDataSize, unsigne
 		else
 		{
 			Invalidate(&cDescriptor);
-			cDescriptor.Init(OI, uiDataSize);
+			cDescriptor.Init(oi, uiDataSize);
 
 			bResult = Write(&cDescriptor, pvData, uiTimeStamp);
 			mcIndices.Set(&cDescriptor);
@@ -577,7 +577,7 @@ BOOL CIndexedData::Set(OIndex OI, void* pvData, unsigned int uiDataSize, unsigne
 	}
 	else
 	{
-		//Can't set if the OI doesn't exist.
+		//Can't set if the oi doesn't exist.
 		return FALSE;
 	}
 }
@@ -587,19 +587,19 @@ BOOL CIndexedData::Set(OIndex OI, void* pvData, unsigned int uiDataSize, unsigne
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedData::SetOrAdd(OIndex OI, void* pvData, unsigned int uiDataSize, unsigned int uiTimeStamp)
+BOOL CIndexedData::SetOrAdd(OIndex oi, void* pvData, unsigned int uiDataSize, unsigned int uiTimeStamp)
 {
 	BOOL				bResult;
 	CIndexDescriptor	cDescriptor;
 
-	bResult = GetDescriptor(OI, &cDescriptor);
+	bResult = GetDescriptor(oi, &cDescriptor);
 	if (bResult)
 	{
-		return Set(OI, pvData, uiDataSize, uiTimeStamp);
+		return Set(oi, pvData, uiDataSize, uiTimeStamp);
 	}
 	else
 	{
-		return Add(OI, pvData, uiDataSize, uiTimeStamp);
+		return Add(oi, pvData, uiDataSize, uiTimeStamp);
 	}
 }
 
@@ -646,9 +646,9 @@ BOOL CIndexedData::CompareDiskToMemory(CIndexDescriptor* pcDescriptor, void* pvD
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedData::GetDescriptor(OIndex OI, CIndexDescriptor* pcDescriptor)
+BOOL CIndexedData::GetDescriptor(OIndex oi, CIndexDescriptor* pcDescriptor)
 {
-	return mcIndices.Get(pcDescriptor, OI);
+	return mcIndices.Get(pcDescriptor, oi);
 }
 
 
@@ -656,12 +656,12 @@ BOOL CIndexedData::GetDescriptor(OIndex OI, CIndexDescriptor* pcDescriptor)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedData::Get(OIndex OI, void* pvData)
+BOOL CIndexedData::Get(OIndex oi, void* pvData)
 {
 	CIndexDescriptor	cDescriptor;
 	BOOL				bResult;
 
-	bResult = GetDescriptor(OI, &cDescriptor);
+	bResult = GetDescriptor(oi, &cDescriptor);
 	if (!bResult)
 	{
 		return FALSE;
@@ -713,20 +713,20 @@ BOOL CIndexedData::GetData(CIndexDescriptor* pcDescriptor, void* pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedData::Remove(OIndex OI)
+BOOL CIndexedData::Remove(OIndex oi)
 {
 	CIndexDescriptor	cDescriptor;
 	BOOL				bResult;
 
 	//This is not correct.  Removed objects must be marked as removed until all transactions are finished.
-	bResult = mcIndices.Get(&cDescriptor, OI);
+	bResult = mcIndices.Get(&cDescriptor, oi);
 	if (bResult)
 	{
 		if (cDescriptor.IsCached())
 		{
 			Invalidate(&cDescriptor);
 		}
-		mcIndices.Remove(OI);
+		mcIndices.Remove(oi);
 		return TRUE;
 	}
 	return FALSE;
@@ -847,7 +847,7 @@ int CIndexedData::NumCached(void)
 //////////////////////////////////////////////////////////////////////////
 int CIndexedData::NumFiles(void)
 {
-	return mcObjectFiles.mcFiles.NumElements();
+	return mcObjectFiles.NumFiles();
 }
 
 
@@ -925,11 +925,11 @@ void CIndexedData::AddFile(CDurableFile* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-unsigned int CIndexedData::TestGetCachedObjectSize(OIndex OI)
+unsigned int CIndexedData::TestGetCachedObjectSize(OIndex oi)
 {
 	SIndexedCacheDescriptor*	psDesc;
 
-	psDesc = mcObjectCache.TestGetDescriptor(OI);
+	psDesc = mcObjectCache.TestGetDescriptor(oi);
 	if (psDesc)
 	{
 		return sizeof(SIndexedCacheDescriptor) + psDesc->iDataSize;

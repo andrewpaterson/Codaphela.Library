@@ -186,7 +186,7 @@ BOOL CTransaction::CommitSubTransaction(void)
 
 			if (psIndexedMemory->uiSize == 0)
 			{
-				bResult = pcParent->Remove(psIndexedMemory->OI);
+				bResult = pcParent->Remove(psIndexedMemory->oi);
 				//You don't check to see if it can be removed from the parent 
 				//because it may have never existed in the parent but only in the child.
 				//(And removing something that doesn't exist fails).
@@ -194,7 +194,7 @@ BOOL CTransaction::CommitSubTransaction(void)
 			else
 			{
 				pvData = mpcSubTransaction->GetData(psIndexedMemory);
-				bResult = pcParent->SetOrAdd(psIndexedMemory->OI, pvData, psIndexedMemory->uiSize);
+				bResult = pcParent->SetOrAdd(psIndexedMemory->oi, pvData, psIndexedMemory->uiSize);
 				if (!bResult)
 				{
 					return FALSE;
@@ -210,11 +210,11 @@ BOOL CTransaction::CommitSubTransaction(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CTransaction::Add(OIndex OI, void* pvData, unsigned int uiDataSize)
+BOOL CTransaction::Add(OIndex oi, void* pvData, unsigned int uiDataSize)
 {
 	if (mpcSubTransaction)
 	{
-		return mpcSubTransaction->Add(OI, pvData, uiDataSize);
+		return mpcSubTransaction->Add(oi, pvData, uiDataSize);
 	}
 	return FALSE;
 }
@@ -224,11 +224,11 @@ BOOL CTransaction::Add(OIndex OI, void* pvData, unsigned int uiDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CTransaction::Set(OIndex OI, void* pvData, unsigned int uiDataSize)
+BOOL CTransaction::Set(OIndex oi, void* pvData, unsigned int uiDataSize)
 {
 	if (mpcSubTransaction)
 	{
-		return mpcSubTransaction->Set(OI, pvData, uiDataSize);
+		return mpcSubTransaction->Set(oi, pvData, uiDataSize);
 	}
 	return FALSE;
 }
@@ -238,11 +238,11 @@ BOOL CTransaction::Set(OIndex OI, void* pvData, unsigned int uiDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CTransaction::Get(OIndex OI, void* pvData)
+BOOL CTransaction::Get(OIndex oi, void* pvData)
 {
 	if (mpcSubTransaction)
 	{
-		return mpcSubTransaction->Get(OI, pvData);
+		return mpcSubTransaction->Get(oi, pvData);
 	}
 	return FALSE;
 }
@@ -252,11 +252,11 @@ BOOL CTransaction::Get(OIndex OI, void* pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CTransaction::Remove(OIndex OI)
+BOOL CTransaction::Remove(OIndex oi)
 {
 	if (mpcSubTransaction)
 	{
-		return mpcSubTransaction->Remove(OI);
+		return mpcSubTransaction->Remove(oi);
 	}
 	return FALSE;
 }

@@ -48,9 +48,9 @@ void CNamedIndexedObjects::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CNamedIndexedObjects::Get(OIndex OI)
+CBaseObject* CNamedIndexedObjects::Get(OIndex oi)
 {
-	return (CBaseObject*)mcObjects.Get(OI);
+	return (CBaseObject*)mcObjects.Get(oi);
 }
 
 
@@ -58,9 +58,9 @@ CBaseObject* CNamedIndexedObjects::Get(OIndex OI)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNamedIndexedObjects::Add(OIndex OI, CBaseObject* pvMemory)
+void CNamedIndexedObjects::Add(OIndex oi, CBaseObject* pvMemory)
 {
-	mcObjects.Add(OI, pvMemory);
+	mcObjects.Add(oi, pvMemory);
 }
 
 
@@ -68,9 +68,9 @@ void CNamedIndexedObjects::Add(OIndex OI, CBaseObject* pvMemory)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNamedIndexedObjects::Remove(OIndex OI)
+void CNamedIndexedObjects::Remove(OIndex oi)
 {
-	mcObjects.Remove(OI);
+	mcObjects.Remove(oi);
 }
 
 

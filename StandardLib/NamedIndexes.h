@@ -35,8 +35,9 @@ protected:
 	CIndexedFiles				mcFiles;
 
 public:
-	void	Init(CDurableFileController* pcController, int iCacheSize, int iNewNumBlocks);
+	BOOL	Init(CDurableFileController* pcController, int iCacheSize, int iNewNumBlocks);
 	void	Kill(void);
+	BOOL	Load(void);
 
 	BOOL	Add(OIndex oi, char* szName, BOOL bFailOnExisting = TRUE);
 	BOOL	Add(OIndex oi, CChars* szName, BOOL bFailOnExisting = TRUE);

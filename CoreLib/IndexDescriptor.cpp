@@ -28,9 +28,9 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexDescriptor::Init(OIndex OI, unsigned int uiDataSize)
+void CIndexDescriptor::Init(OIndex oi, unsigned int uiDataSize)
 {
-	mOI = OI;
+	moi = oi;
 
 	muiDataSize = uiDataSize;
 	msFlags = 0;
@@ -131,7 +131,7 @@ void CIndexDescriptor::Cache(void* pvCache)
 //////////////////////////////////////////////////////////////////////////
 OIndex CIndexDescriptor::GetIndex(void)
 {
-	return mOI;
+	return moi;
 }
 
 

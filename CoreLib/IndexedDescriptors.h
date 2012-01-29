@@ -48,7 +48,7 @@ public:
 
 	BOOL	Get(CIndexDescriptor* pcDescriptor, OIndex oi);
 	BOOL	Set(CIndexDescriptor* pcDescriptor);
-	BOOL	Remove(OIndex OI);
+	BOOL	Remove(OIndex oi);
 
 	void	Save(void);
 	void	Load(void);

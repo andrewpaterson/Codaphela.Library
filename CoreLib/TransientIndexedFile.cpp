@@ -359,7 +359,7 @@ BOOL CTransientIndexedFile::Set(OIndex oi, void* pvData, unsigned int uiSize)
 		{
 			psCacheDesc = (SOIndexIndexCacheDescriptor*)RemapSinglePointer(pvCache, -(int)(sizeof(SOIndexIndexCacheDescriptor)));
 			psCacheDesc->sIndex.iIndex = iPointerIndex;
-			psCacheDesc->sIndex.OI = psPointer->sIndexedMemory.OI;
+			psCacheDesc->sIndex.oi = psPointer->sIndexedMemory.oi;
 
 			memcpy_fast(pvCache, pvData, uiSize);
 
@@ -406,7 +406,7 @@ BOOL CTransientIndexedFile::Allocate(STransientIndexedPointer* psPointer, int iP
 	{
 		psOIndexIndex = (SOIndexIndexCacheDescriptor*)RemapSinglePointer(pvData, -(int)(sizeof(SOIndexIndexCacheDescriptor)));
 		psOIndexIndex->sIndex.iIndex = iPointerIndex;
-		psOIndexIndex->sIndex.OI = psPointer->sIndexedMemory.OI;
+		psOIndexIndex->sIndex.oi = psPointer->sIndexedMemory.oi;
 		psPointer->pvCache = pvData;
 		return TRUE;
 	}
@@ -546,11 +546,11 @@ BOOL CTransientIndexedFile::TestOrder(void)
 	for (i = 0; i < mcPointers.NumElements(); i++)
 	{
 		mcPointers.GetDirect(i, &psTransientIndexedPointer);
-		if (psTransientIndexedPointer->sIndexedMemory.OI <= iLast)
+		if (psTransientIndexedPointer->sIndexedMemory.oi <= iLast)
 		{
 			return FALSE;
 		}
-		iLast = psTransientIndexedPointer->sIndexedMemory.OI;
+		iLast = psTransientIndexedPointer->sIndexedMemory.oi;
 	}
 	return TRUE;
 }
@@ -736,7 +736,7 @@ void CTransientIndexedFile::Dump(void)
 		pvDest = GetData(psIndexedMemory);
 
 		sz.Append("Index[");
-		sz.Append((int)psIndexedMemory->OI);
+		sz.Append((int)psIndexedMemory->oi);
 		sz.Append("] Size[");
 		sz.Append((int)psIndexedMemory->uiSize);
 		sz.Append("] ");

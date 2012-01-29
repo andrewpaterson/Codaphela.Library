@@ -144,24 +144,24 @@ void CIndexedFiles::WriteIndexedFileDescriptors(void)
 	char						szDataFileName[65536];
 	char						szDataRewriteName[65536];
 	SIndexedFileDescriptor*		psFileDescriptor;
-	void*						pvSFileDescriptors;
+	void*						pvFileDescriptors;
 	BOOL						bResult;
 
-	pvSFileDescriptors = malloc(mcFiles.NumElements()*sizeof(SIndexedFileDescriptor));
+	pvFileDescriptors = malloc(mcFiles.NumElements() * sizeof(SIndexedFileDescriptor));
 
 	for (i = 0; i < mcFiles.NumElements(); i++)
 	{
 		pcFileDescriptor = mcFiles.Get(i);
-		psFileDescriptor =  (SIndexedFileDescriptor*)RemapSinglePointer(pvSFileDescriptors, sizeof(SIndexedFileDescriptor)*i);
+		psFileDescriptor =  (SIndexedFileDescriptor*)RemapSinglePointer(pvFileDescriptors, sizeof(SIndexedFileDescriptor) * i);
 		psFileDescriptor->iDataSize = pcFileDescriptor->miDataSize;
 		psFileDescriptor->iFileIndex = pcFileDescriptor->miFileIndex;
 		psFileDescriptor->iFileNum = pcFileDescriptor->miFileNumber;
 
 		bResult = DataFileName(szDataFileName, szDataRewriteName, pcFileDescriptor->miDataSize, pcFileDescriptor->miFileNumber);
 	}
-	mcFileDescriptorsFile.Write(0, pvSFileDescriptors, sizeof(SIndexedFileDescriptor), mcFiles.NumElements());
+	mcFileDescriptorsFile.Write(0, pvFileDescriptors, sizeof(SIndexedFileDescriptor), mcFiles.NumElements());
 
-	free(pvSFileDescriptors);
+	free(pvFileDescriptors);
 }
 
 
@@ -384,6 +384,16 @@ OIndex CIndexedFiles::NumInFile(int iDataSize)
 		}
 	}
 	return iTotal;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CIndexedFiles::NumFiles(void)
+{
+	return mcFiles.NumElements();
 }
 
 

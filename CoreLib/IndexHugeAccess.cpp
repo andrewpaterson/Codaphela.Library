@@ -79,9 +79,9 @@ BOOL CIndexHugeAccess::Set(CIndexDescriptor* pcDescriptor)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexHugeAccess::Remove(OIndex OI)
+BOOL CIndexHugeAccess::Remove(OIndex oi)
 {
-	return mcHugeSupport.Remove(OI);
+	return mcHugeSupport.Remove(oi);
 }
 
 

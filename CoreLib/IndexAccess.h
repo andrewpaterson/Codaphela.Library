@@ -40,7 +40,7 @@ public:
 
 	virtual BOOL 	Get(CIndexDescriptor* pcDescriptor, OIndex oi) =0;
 	virtual	BOOL 	Set(CIndexDescriptor* pcDescriptor) =0;
-	virtual BOOL 	Remove(OIndex OI) =0;
+	virtual BOOL 	Remove(OIndex oi) =0;
 	virtual long long int Length(void) =0;
 
 	virtual void 	Load(void) =0;

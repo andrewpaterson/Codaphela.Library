@@ -43,10 +43,10 @@ public:
 	void			Init(CTransaction* pcTransaction, int iSubTxNum, CTransactionIndexedData* pcData = NULL);
 	void			Kill(void);
 
-	BOOL			Add(OIndex OI, void* pvData, unsigned int uiDataSize);
-	BOOL			Get(OIndex OI, void* pvData);
-	BOOL			Set(OIndex OI, void* pvData, unsigned int uiDataSize);
-	BOOL			Remove(OIndex OI);
+	BOOL			Add(OIndex oi, void* pvData, unsigned int uiDataSize);
+	BOOL			Get(OIndex oi, void* pvData);
+	BOOL			Set(OIndex oi, void* pvData, unsigned int uiDataSize);
+	BOOL			Remove(OIndex oi);
 
 	void*			GetData(SIndexedMemory* psIndexedMemory);
 	SIndexedMemory*	GetIndexedMemory(int iIndexedDataIndex);
@@ -58,7 +58,7 @@ public:
 protected:
 	CTransientIndexedFile*		CreateTransientIndexedFile(char* szDirectory);
 	BOOL						GetDetail(OIndex oi, void** ppvData, unsigned int* puiSize);
-	BOOL						SetOrAdd(OIndex OI, void* pvData, unsigned int uiDataSize);
+	BOOL						SetOrAdd(OIndex oi, void* pvData, unsigned int uiDataSize);
 };
 
 

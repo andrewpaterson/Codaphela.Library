@@ -162,7 +162,7 @@ BOOL CTransactionController::ShouldCommitSucceed(CTransaction* pcTransaction)
 	{
 		psIndexedMemory = pcTransaction->GetIndexedMemory(i);
 
-		bExists = mcIndexedData.GetDescriptor(psIndexedMemory->OI, &cIndexedDataDescriptor);
+		bExists = mcIndexedData.GetDescriptor(psIndexedMemory->oi, &cIndexedDataDescriptor);
 
 		if (bExists)
 		{
@@ -203,12 +203,12 @@ BOOL CTransactionController::CommitTransaction(CTransaction* pcTransaction)
 		psIndexedMemory = pcTransaction->GetIndexedMemory(i);
 		if (psIndexedMemory->IsRemoved())
 		{
-			bResult = mcIndexedData.Remove(psIndexedMemory->OI);
+			bResult = mcIndexedData.Remove(psIndexedMemory->oi);
 		}
 		else
 		{
 			pvTransactionData = pcTransaction->GetData(psIndexedMemory);
-			mcIndexedData.SetOrAdd(psIndexedMemory->OI, pvTransactionData, psIndexedMemory->uiSize, msState.muiTimeStamp);
+			mcIndexedData.SetOrAdd(psIndexedMemory->oi, pvTransactionData, psIndexedMemory->uiSize, msState.muiTimeStamp);
 		}
 	}
 

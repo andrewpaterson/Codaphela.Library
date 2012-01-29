@@ -31,7 +31,7 @@ void STransientIndexedPointer::Init(OIndex oi, unsigned int uiSize)
 {
 	iFileIndex = -1;
 	iIndexInFile = -1;
-	sIndexedMemory.OI = oi;
+	sIndexedMemory.oi = oi;
 	sIndexedMemory.uiSize = uiSize;
 	pvCache = NULL;
 }
@@ -81,11 +81,11 @@ int CompareOIndexToTransientIndexedPointer(const void* pv1, const void* pv2)
 
 	psPointer2 = (STransientIndexedPointer*)pv2;
 
-	if (*psOI < psPointer2->sIndexedMemory.OI)
+	if (*psOI < psPointer2->sIndexedMemory.oi)
 	{
 		return -1;
 	}
-	if (*psOI > psPointer2->sIndexedMemory.OI)
+	if (*psOI > psPointer2->sIndexedMemory.oi)
 	{
 		return 1;
 	}
@@ -104,7 +104,7 @@ void CArrayTransientIndexedPointer::ClearIndexCache(void)
 	miNext = 0;
 	for (i = 0; i < 4; i++)
 	{
-		asIndexCache[i].OI = INVALID_O_INDEX;
+		asIndexCache[i].oi = INVALID_O_INDEX;
 		asIndexCache[i].iIndex = -1;
 	}
 }
@@ -156,22 +156,22 @@ BOOL CArrayTransientIndexedPointer::GetNoCacheTest(OIndex oi, STransientIndexedP
 //////////////////////////////////////////////////////////////////////////
 BOOL CArrayTransientIndexedPointer::Get(OIndex oi, STransientIndexedPointer** ppsPointer, int* piIndex)
 {
-	if (asIndexCache[0].OI == oi)
+	if (asIndexCache[0].oi == oi)
 	{
 		*piIndex = asIndexCache[0].iIndex;
 		return GetDirect(asIndexCache[0].iIndex, ppsPointer);
 	}
-	else if (asIndexCache[1].OI == oi)
+	else if (asIndexCache[1].oi == oi)
 	{
 		*piIndex = asIndexCache[1].iIndex;
 		return GetDirect(asIndexCache[1].iIndex, ppsPointer);
 	}
-	else if (asIndexCache[2].OI == oi)
+	else if (asIndexCache[2].oi == oi)
 	{
 		*piIndex = asIndexCache[2].iIndex;
 		return GetDirect(asIndexCache[2].iIndex, ppsPointer);
 	}
-	else if (asIndexCache[3].OI == oi)
+	else if (asIndexCache[3].oi == oi)
 	{
 		*piIndex = asIndexCache[3].iIndex;
 		return GetDirect(asIndexCache[3].iIndex, ppsPointer);
@@ -200,7 +200,7 @@ BOOL CArrayTransientIndexedPointer::GetDirect(int iIndex, STransientIndexedPoint
 //////////////////////////////////////////////////////////////////////////
 void CArrayTransientIndexedPointer::SetIndexCache(OIndex oi, int iIndex)
 {
-	asIndexCache[miNext].OI = oi;
+	asIndexCache[miNext].oi = oi;
 	asIndexCache[miNext].iIndex = iIndex;
 	miNext++;
 	if (miNext == 4)

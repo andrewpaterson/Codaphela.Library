@@ -26,7 +26,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNamedIndexes::Init(CDurableFileController* pcController, int iCacheSize, int iNewNumBlocks)
+BOOL CNamedIndexes::Init(CDurableFileController* pcController, int iCacheSize, int iNewNumBlocks)
 {
 	macBlocks.Init(2);
 	mcCache.Init(iCacheSize);
@@ -41,6 +41,8 @@ void CNamedIndexes::Init(CDurableFileController* pcController, int iCacheSize, i
 	AddBlock( 512,  247,  503, iNewNumBlocks);
 	AddBlock(1024,  503, 1015, iNewNumBlocks);
 	AddBlock(4096, 1015, 4087, iNewNumBlocks);
+
+	return Load();
 }
 
 
@@ -60,8 +62,33 @@ void CNamedIndexes::Kill(void)
 	}
 	macBlocks.Kill();
 
+	mcCache.Kill();
 	mcFiles.Kill();
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CNamedIndexes::Load(void)
+{
+	int						i;
+	CNamedIndexesBlocks*	pcBlock;
+	BOOL					bResult;
+
+	for (i = 0; i < macBlocks.NumElements(); i++)
+	{
+		pcBlock = macBlocks.Get(i);
+		bResult = pcBlock->Load();
+		if (!bResult)
+		{
+			return FALSE;
+		}
+	}
+	return TRUE;
+}
+
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -230,7 +257,6 @@ CNamedIndexesBlocks* CNamedIndexes::AddBlock(int iBlockSize, int iMinNameLength,
 	pcBlock->Init(iBlockSize, iMinNameLength, iMaxNameLength, iNewNumBlocks, &mcCache, &mcFiles);
 	return pcBlock;
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////

@@ -94,16 +94,16 @@ BOOL CIndexDiskDirectAccess::Set(CIndexDescriptor* pcDescriptor)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexDiskDirectAccess::Remove(OIndex OI)
+BOOL CIndexDiskDirectAccess::Remove(OIndex oi)
 {
 	CIndexDescriptor		cNullDescriptor;
 	int							iResult;
 	unsigned int				loInt;
 
 	memset(&cNullDescriptor, 0, sizeof(CIndexDescriptor));
-	cNullDescriptor.Init(OI, 0);
+	cNullDescriptor.Init(oi, 0);
 
-	loInt = (unsigned int)OI;
+	loInt = (unsigned int)oi;
 	iResult = mpcDescriptorsFile->Write(&cNullDescriptor, loInt);
 
 	return iResult == 1;

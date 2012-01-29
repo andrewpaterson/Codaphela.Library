@@ -132,15 +132,15 @@ BOOL CIndexMemoryAccess::Set(CIndexDescriptor* pcDescriptor)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexMemoryAccess::Remove(OIndex OI)
+BOOL CIndexMemoryAccess::Remove(OIndex oi)
 {
 	unsigned int		loInt;
 	CIndexDescriptor	cNullDescriptor;
 
 	memset(&cNullDescriptor, 0, sizeof(CIndexDescriptor));
-	cNullDescriptor.Init(OI, 0);
+	cNullDescriptor.Init(oi, 0);
 
-	loInt = (unsigned int)OI;
+	loInt = (unsigned int)oi;
 	if (maMemoryArray.NumElements() > (int)loInt)
 	{
 		maMemoryArray.Set(loInt, &cNullDescriptor);

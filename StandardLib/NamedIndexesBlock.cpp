@@ -243,18 +243,23 @@ BOOL CNamedIndexesBlock::Remove(CChars* szName)
 	{
 		if (iIndex != -1)
 		{
-			avFakeBlock.RemoveAt(iIndex, TRUE);
-			miUsedBlocks--;
-
-			if (miUsedBlocks >= 1)
+			if (miUsedBlocks > 1)
 			{
+				avFakeBlock.RemoveAt(iIndex, TRUE);
+				miUsedBlocks--;
+
 				pcBlock = GetUnsafe(0);
 				mszFirst.Set(pcBlock->Name());
 
 				pcBlock = GetUnsafe(miUsedBlocks-1);
 				mszLast.Set(pcBlock->Name());
+				return TRUE;
 			}
-			return TRUE;
+			else
+			{
+				miUsedBlocks--;
+				return TRUE;
+			}
 		}
 	}
 	return FALSE;

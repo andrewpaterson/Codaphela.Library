@@ -144,7 +144,7 @@ BOOL CSubTransaction::Add(OIndex oi, void* pvData, unsigned int uiDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CSubTransaction::Get(OIndex OI, void* pvData)
+BOOL CSubTransaction::Get(OIndex oi, void* pvData)
 {
 	BOOL				bExistsInTransaction;
 	void*				pvCache;
@@ -152,7 +152,7 @@ BOOL CSubTransaction::Get(OIndex OI, void* pvData)
 	BOOL				bExistsInFile;
 	CIndexDescriptor	cDescriptor;
 
-	bExistsInTransaction = GetDetail(OI, &pvCache, &uiSize);
+	bExistsInTransaction = GetDetail(oi, &pvCache, &uiSize);
 	if (bExistsInTransaction)
 	{
 		if (uiSize == 0)
@@ -164,7 +164,7 @@ BOOL CSubTransaction::Get(OIndex OI, void* pvData)
 	}
 	else
 	{
-		bExistsInFile = mpcTransaction->mpcController->mcIndexedData.GetDescriptor(OI, &cDescriptor);
+		bExistsInFile = mpcTransaction->mpcController->mcIndexedData.GetDescriptor(oi, &cDescriptor);
 		if (bExistsInFile)
 		{
 			return mpcTransaction->mpcController->mcIndexedData.GetData(&cDescriptor, pvData);
@@ -178,7 +178,7 @@ BOOL CSubTransaction::Get(OIndex OI, void* pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CSubTransaction::Set(OIndex OI, void* pvData, unsigned int uiDataSize)
+BOOL CSubTransaction::Set(OIndex oi, void* pvData, unsigned int uiDataSize)
 {
 	BOOL				bExistsInTransaction;
 	void*				pvCache;
@@ -191,8 +191,8 @@ BOOL CSubTransaction::Set(OIndex OI, void* pvData, unsigned int uiDataSize)
 		return FALSE;
 	}
 
-	bExistsInTransaction = GetDetail(OI, &pvCache, &uiSize);
-	bExistsInFile = mpcTransaction->mpcController->mcIndexedData.GetDescriptor(OI, &cDescriptor);
+	bExistsInTransaction = GetDetail(oi, &pvCache, &uiSize);
+	bExistsInFile = mpcTransaction->mpcController->mcIndexedData.GetDescriptor(oi, &cDescriptor);
 
 	if (mpcTransaction->mbFailEarly)
 	{
@@ -203,18 +203,18 @@ BOOL CSubTransaction::Set(OIndex OI, void* pvData, unsigned int uiDataSize)
 	{
 		if (uiSize != 0)
 		{
-			return mpcData->Set(OI, pvData, uiDataSize);
+			return mpcData->Set(oi, pvData, uiDataSize);
 		}
 		else
 		{
-			return mpcData->Add(OI, pvData, uiDataSize);
+			return mpcData->Add(oi, pvData, uiDataSize);
 		}
 	}
 	else
 	{
 		if (bExistsInFile)
 		{
-			return mpcData->Add(OI, pvData, uiDataSize);
+			return mpcData->Add(oi, pvData, uiDataSize);
 		}
 		return FALSE;
 	}
@@ -325,19 +325,19 @@ void CSubTransaction::Dump(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CSubTransaction::SetOrAdd(OIndex OI, void* pvData, unsigned int uiDataSize)
+BOOL CSubTransaction::SetOrAdd(OIndex oi, void* pvData, unsigned int uiDataSize)
 {
 	BOOL			bExistsInTransaction;
 	void*			pvCache;
 	unsigned int	uiSize;
 
-	bExistsInTransaction = GetDetail(OI, &pvCache, &uiSize);
+	bExistsInTransaction = GetDetail(oi, &pvCache, &uiSize);
 	if (bExistsInTransaction)
 	{
 		if (uiDataSize != uiSize)
 		{
-			mpcData->Remove(OI);
-			return mpcData->Add(OI, pvData, uiDataSize);
+			mpcData->Remove(oi);
+			return mpcData->Add(oi, pvData, uiDataSize);
 		}
 		else
 		{
@@ -347,7 +347,7 @@ BOOL CSubTransaction::SetOrAdd(OIndex OI, void* pvData, unsigned int uiDataSize)
 	}
 	else
 	{
-		return mpcData->Add(OI, pvData, uiDataSize);
+		return mpcData->Add(oi, pvData, uiDataSize);
 	}
 }
 

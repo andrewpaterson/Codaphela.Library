@@ -33,7 +33,7 @@ typedef long long int OIndex;
 
 struct SOIndexIndex
 {
-	OIndex	OI;
+	OIndex	oi;
 	int		iIndex;
 };
 

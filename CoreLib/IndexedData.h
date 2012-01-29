@@ -58,16 +58,16 @@ public:
 	void 			Init(CIndexedConfig* pcConfig);
 	void 			Kill(void);
 
-	BOOL			Add(OIndex OI, void* pvData, unsigned int uiDataSize, unsigned int uiTimeStamp);
-	BOOL			Set(OIndex OI, void* pvData, unsigned int uiTimeStamp);
-	BOOL			Set(OIndex OI, void* pvData, unsigned int uiDataSize, unsigned int uiTimeStamp);
-	BOOL			SetOrAdd(OIndex OI, void* pvData, unsigned int uiDataSize, unsigned int uiTimeStamp);
+	BOOL			Add(OIndex oi, void* pvData, unsigned int uiDataSize, unsigned int uiTimeStamp);
+	BOOL			Set(OIndex oi, void* pvData, unsigned int uiTimeStamp);
+	BOOL			Set(OIndex oi, void* pvData, unsigned int uiDataSize, unsigned int uiTimeStamp);
+	BOOL			SetOrAdd(OIndex oi, void* pvData, unsigned int uiDataSize, unsigned int uiTimeStamp);
 
-	unsigned int	Size(OIndex OI);
-	unsigned int	Flags(OIndex OI);
-	BOOL			Get(OIndex OI, void* pvData);
+	unsigned int	Size(OIndex oi);
+	unsigned int	Flags(OIndex oi);
+	BOOL			Get(OIndex oi, void* pvData);
 
-	BOOL			Remove(OIndex OI);
+	BOOL			Remove(OIndex oi);
 
 	BOOL			Flush(void);
 	void			DurableBegin(void);
@@ -83,14 +83,14 @@ public:
 	int				TestIndexedDescriptorsLength(void);
 	int				TestNumIgnoredCacheElements(void);
 	CIndexAccess*	TestGetIndexAccess(void);
-	unsigned int	TestGetCachedObjectSize(OIndex OI);
+	unsigned int	TestGetCachedObjectSize(OIndex oi);
 	CDurableFileController* GetDurableFileControl(void);
 
 protected:
 	void 			InitIndices(CIndexedConfig* pcConfig);
 
 	BOOL			GetData(CIndexDescriptor* pcDescriptor, void* pvData);
-	BOOL			GetDescriptor(OIndex OI, CIndexDescriptor* pcDescriptor);
+	BOOL			GetDescriptor(OIndex oi, CIndexDescriptor* pcDescriptor);
 
 	BOOL			ClearDescriptorCache(SIndexedCacheDescriptor* psCached);
 	void			EvictFromCache(SIndexedCacheDescriptor* psExisting);

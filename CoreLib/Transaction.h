@@ -48,10 +48,10 @@ public:
 	void			Begin(unsigned int uiTimeStamp);
 	void			End(void);
 
-	BOOL			Add(OIndex OI, void* pvData, unsigned int uiDataSize);
-	BOOL			Get(OIndex OI, void* pvData);
-	BOOL			Set(OIndex OI, void* pvData, unsigned int uiDataSize);
-	BOOL			Remove(OIndex OI);
+	BOOL			Add(OIndex oi, void* pvData, unsigned int uiDataSize);
+	BOOL			Get(OIndex oi, void* pvData);
+	BOOL			Set(OIndex oi, void* pvData, unsigned int uiDataSize);
+	BOOL			Remove(OIndex oi);
 
 	SIndexedMemory*	GetIndexedMemory(int iIndexedDataIndex);
 	void*			GetData(SIndexedMemory* psIndexedMemory);

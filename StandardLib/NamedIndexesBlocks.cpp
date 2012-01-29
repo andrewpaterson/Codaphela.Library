@@ -46,23 +46,6 @@ void CNamedIndexesBlocks::Init(int iBlockSize, int iMinNameLength, int iMaxNameL
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNamedIndexesBlocks::Load(void)
-{
-	CNamedIndexesBlocksLoader	cLoader;
-	BOOL						bResult;
-
-	cLoader.Init(this);
-	bResult = cLoader.Load();
-	cLoader.Kill();
-	
-	return bResult;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CNamedIndexesBlocks::Kill(void)
 {
 	int						i;
@@ -74,6 +57,23 @@ void CNamedIndexesBlocks::Kill(void)
 		pcBlock->Kill();
 	}
 	macBlocks.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CNamedIndexesBlocks::Load(void)
+{
+	CNamedIndexesBlocksLoader	cLoader;
+	BOOL						bResult;
+
+	cLoader.Init(this);
+	bResult = cLoader.Load();
+	cLoader.Kill();
+
+	return bResult;
 }
 
 
@@ -294,7 +294,7 @@ BOOL CNamedIndexesBlocks::Remove(CChars* szName)
 						pcBlock->Dirty();
 					}
 				}
-				return bResult;
+				return TRUE;
 			}
 		}
 	}

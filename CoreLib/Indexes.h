@@ -46,9 +46,9 @@ class CIndexes
 public:
 	void			Init(int iChunkSize);
 	void			Kill(void);
-	void*			Get(OIndex OI);
-	void			Add(OIndex OI, void* pvMemory);
-	BOOL			Remove(OIndex OI);
+	void*			Get(OIndex oi);
+	void			Add(OIndex oi, void* pvMemory);
+	BOOL			Remove(OIndex oi);
 
 	int				TestNumLevels(void);
 	unsigned int	TestByteSize(void);

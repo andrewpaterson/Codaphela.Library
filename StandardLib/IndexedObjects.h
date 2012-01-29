@@ -29,9 +29,9 @@ class CIndexedObjects : public CIndexes
 public:
 	void			Init(void);
 	void			Kill(void);
-	CBaseObject*	Get(OIndex OI);
-	void			Add(OIndex OI, CBaseObject* pvMemory);
-	void			Remove(OIndex OI);
+	CBaseObject*	Get(OIndex oi);
+	void			Add(OIndex oi, CBaseObject* pvMemory);
+	void			Remove(OIndex oi);
 };
 
 

@@ -58,7 +58,7 @@ void CIndexedMemory::ClearIndexCache(void)
 	miNext = 0;
 	for (i = 0; i < 4; i++)
 	{
-		asIndexCache[i].OI = INVALID_O_INDEX;
+		asIndexCache[i].oi = INVALID_O_INDEX;
 		asIndexCache[i].iIndex = -1;
 	}
 }
@@ -76,11 +76,11 @@ int CompareOIndexToTransactionData(const void* pv1, const void* pv2)
 	psOI = (OIndex*)((SPointerAndSize*)pv1)->pvData;
 	psData2 = (SIndexedMemory*)((SPointerAndSize*)pv2)->pvData;
 
-	if (*psOI < psData2->OI)
+	if (*psOI < psData2->oi)
 	{
 		return -1;
 	}
-	if (*psOI > psData2->OI)
+	if (*psOI > psData2->oi)
 	{
 		return 1;
 	}
@@ -143,7 +143,7 @@ BOOL CIndexedMemory::PrivateAdd(OIndex oi, unsigned int uiSize, void** ppvData, 
 	*ppvData = pvDest;
 
 	psIndexedMemory->uiSize = uiSize;
-	psIndexedMemory->OI = oi;
+	psIndexedMemory->oi = oi;
 	ClearIndexCache();
 	SetIndexCache(oi, iIndex);
 	return TRUE;
@@ -170,7 +170,7 @@ BOOL CIndexedMemory::AddRemoved(OIndex oi)
 	if (psIndexedMemory)
 	{
 		psIndexedMemory->uiSize = 0;
-		psIndexedMemory->OI = oi;
+		psIndexedMemory->oi = oi;
 		ClearIndexCache();
 		SetIndexCache(oi, iIndex);
 		return TRUE;
@@ -196,7 +196,7 @@ BOOL CIndexedMemory::PrivateSetRemoved(OIndex oi, int iIndex)
 	if (psIndexedMemory)
 	{
 		psIndexedMemory->uiSize = 0;
-		psIndexedMemory->OI = oi;
+		psIndexedMemory->oi = oi;
 		SetIndexCache(oi, iIndex);
 		return TRUE;
 	}
@@ -256,22 +256,22 @@ BOOL CIndexedMemory::Set(OIndex oi, void* pvData, unsigned int uiSize)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexedMemory::PrivateGetDetail(OIndex oi, void** ppvData, unsigned int* puiSize, int* piIndex)
 {
-	if (asIndexCache[0].OI == oi)
+	if (asIndexCache[0].oi == oi)
 	{
 		*piIndex = asIndexCache[0].iIndex;
 		return GetDirect(asIndexCache[0].iIndex, ppvData, puiSize);
 	}
-	else if (asIndexCache[1].OI == oi)
+	else if (asIndexCache[1].oi == oi)
 	{
 		*piIndex = asIndexCache[1].iIndex;
 		return GetDirect(asIndexCache[1].iIndex, ppvData, puiSize);
 	}
-	else if (asIndexCache[2].OI == oi)
+	else if (asIndexCache[2].oi == oi)
 	{
 		*piIndex = asIndexCache[2].iIndex;
 		return GetDirect(asIndexCache[2].iIndex, ppvData, puiSize);
 	}
-	else if (asIndexCache[3].OI == oi)
+	else if (asIndexCache[3].oi == oi)
 	{
 		*piIndex = asIndexCache[3].iIndex;
 		return GetDirect(asIndexCache[3].iIndex, ppvData, puiSize);
@@ -435,7 +435,7 @@ SIndexedMemory* CIndexedMemory::GetIndexedData(int iIndexedDataIndex)
 //////////////////////////////////////////////////////////////////////////
 void CIndexedMemory::SetIndexCache(OIndex oi, int iIndex)
 {
-	asIndexCache[miNext].OI = oi;
+	asIndexCache[miNext].oi = oi;
 	asIndexCache[miNext].iIndex = iIndex;
 	miNext++;
 	if (miNext == 4)
@@ -469,11 +469,11 @@ BOOL CIndexedMemory::TestOrder(void)
 	for (i = 0; i < mcDatas.NumElements(); i++)
 	{
 		psData = (SIndexedMemory*)mcDatas.Get(i);
-		if (psData->OI <= iLast)
+		if (psData->oi <= iLast)
 		{
 			return FALSE;
 		}
-		iLast = psData->OI;
+		iLast = psData->oi;
 	}
 	return TRUE;
 }
@@ -514,7 +514,7 @@ void CIndexedMemory::Dump(void)
 		pvDest = RemapSinglePointer(psIndexedMemory, sizeof(SIndexedMemory));
 
 		sz.Append("Index[");
-		sz.Append((int)psIndexedMemory->OI);
+		sz.Append((int)psIndexedMemory->oi);
 		sz.Append("] Size[");
 		sz.Append((int)psIndexedMemory->uiSize);
 		sz.Append("] ");

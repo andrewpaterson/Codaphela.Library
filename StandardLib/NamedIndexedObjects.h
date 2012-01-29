@@ -32,13 +32,13 @@ protected:
 public:
 	void			Init(void);
 	void			Kill(void);
-	CBaseObject*	Get(OIndex OI);
+	CBaseObject*	Get(OIndex oi);
 	void			AddWithID(CBaseObject* pvObject, OIndex oi);
 	void			AddWithIDAndName(CBaseObject* pvObject, OIndex oi, char* szName);
-	void			Remove(OIndex OI);
+	void			Remove(OIndex oi);
 
 protected:
-	void			Add(OIndex OI, CBaseObject* pvMemory);
+	void			Add(OIndex oi, CBaseObject* pvMemory);
 
 };
 

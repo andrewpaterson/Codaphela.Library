@@ -108,7 +108,7 @@ void* CIndexedCache::Allocate(CIndexDescriptor* pcDesc)
 
 	psCacheDesc = (SIndexedCacheDescriptor*)RemapSinglePointer(pvCache, -(int)(sizeof(SIndexedCacheDescriptor)));
 
-	psCacheDesc->OI = pcDesc->GetIndex();
+	psCacheDesc->oi = pcDesc->GetIndex();
 	if (!pcDesc->HasFile())
 	{
 		psCacheDesc->iFlags |= CACHE_DESCRIPTOR_FLAG_DIRTY;
@@ -235,14 +235,14 @@ SIndexedCacheDescriptor* CIndexedCache::GetNext(SIndexedCacheDescriptor* psCurre
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SIndexedCacheDescriptor* CIndexedCache::TestGetDescriptor(OIndex OI)
+SIndexedCacheDescriptor* CIndexedCache::TestGetDescriptor(OIndex oi)
 {
 	SIndexedCacheDescriptor*	psDesc;
 
 	psDesc = GetFirst();
 	while (psDesc)
 	{
-		if (psDesc->OI == OI)
+		if (psDesc->oi == oi)
 		{
 			return psDesc;
 		}

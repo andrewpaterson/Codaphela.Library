@@ -294,7 +294,7 @@ BOOL CIndexedHuge::Set(CIndexDescriptor* pcDescriptor)
 BOOL CIndexedHuge::Remove(OIndex oi)
 {
 	CIndexDescriptor	cIndexedDataDescriptor;
-	BOOL					bResult;
+	BOOL				bResult;
 
 	bResult = Get(&cIndexedDataDescriptor, oi);
 	if (!bResult)

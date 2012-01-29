@@ -28,7 +28,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 struct SIndexedMemory
 {
-	OIndex			OI;
+	OIndex			oi;
 	unsigned int	uiSize;
 
 	BOOL	IsRemoved(void);

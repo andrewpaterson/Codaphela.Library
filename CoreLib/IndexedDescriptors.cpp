@@ -77,9 +77,9 @@ BOOL CIndexedDescriptors::Set(CIndexDescriptor* pcDescriptor)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedDescriptors::Remove(OIndex OI)
+BOOL CIndexedDescriptors::Remove(OIndex oi)
 {
-	return mpcAccess->Remove(OI);
+	return mpcAccess->Remove(oi);
 }
 
 

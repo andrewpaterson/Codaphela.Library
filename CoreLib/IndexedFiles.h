@@ -32,7 +32,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 class CIndexedFiles
 {
-public:
+protected:
 	CDurableFileController*		mpcDurableFileControl;
 	CArrayIndexedFile			mcFiles;  //These are the data on disk.  Generally one file per data size.
 	CChars						mszIndexName;
@@ -40,6 +40,7 @@ public:
 	CChars						mszExtension;
 	CDurableFile				mcFileDescriptorsFile;
 
+public:
 	void						Init(CDurableFileController* pcDurableFileControl, char* szExtension);
 	void						Kill(void);
 
@@ -57,6 +58,7 @@ public:
 	CIndexedFile* 				GetFile(int iFileIndex);
 
 	OIndex						NumInFile(int iDataSize);
+	int							NumFiles(void);
 	
 	void						Dump(void);
 };
