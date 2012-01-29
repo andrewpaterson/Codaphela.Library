@@ -938,7 +938,7 @@ BOOL CPackFiles::RecurseUnpack(CFileNodePackFileNode* pcNode, char* szDestinatio
 
 		cFileUtil.RemoveLastFromPath(&szFileName);
 		cFileUtil.MakeDir(szFileName.Text());
-		bResult = cCopier.Copy(pcPackFile, &cDiskFile, TRUE);
+		bResult = cCopier.Copy(pcPackFile, &cDiskFile);
 
 		cDiskFile.Kill();
 

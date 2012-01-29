@@ -29,7 +29,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileCopier::Copy(CAbstractFile* pcSource, CAbstractFile* pcDest, BOOL bCreate)
+BOOL CFileCopier::Copy(CAbstractFile* pcSource, CAbstractFile* pcDest)
 {
 	CFileBasic	cSource;
 	CFileBasic	cDest;
@@ -63,15 +63,7 @@ BOOL CFileCopier::Copy(CAbstractFile* pcSource, CAbstractFile* pcDest, BOOL bCre
 		return TRUE;
 	}
 
-	if (bCreate)
-	{
-		eWriteMode = EFM_ReadWrite_Create;
-	}
-	else
-	{
-		eWriteMode = EFM_ReadWrite;
-	}
-
+	eWriteMode = EFM_Write_Create;
 	if (!cDest.Open(eWriteMode))
 	{
 		cSource.Close();

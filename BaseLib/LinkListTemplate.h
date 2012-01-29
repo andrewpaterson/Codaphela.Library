@@ -676,7 +676,7 @@ int __CLinkListTemplate<M>::IndexOf(M* pvData)
 	pvNode = GetHead();
 	while (pvNode)
 	{
-		if (pvNode = pvData)
+		if (pvNode == pvData)
 		{
 			return iIndex;
 		}

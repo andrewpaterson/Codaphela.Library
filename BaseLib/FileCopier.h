@@ -28,7 +28,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 class CFileCopier
 {
 public:
-	BOOL Copy(CAbstractFile* pcSource, CAbstractFile* pcDest, BOOL bCreate = FALSE);
+	BOOL Copy(CAbstractFile* pcSource, CAbstractFile* pcDest);
 };
 
 
