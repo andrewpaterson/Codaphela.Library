@@ -25,7 +25,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "IndexedConfig.h"
 #include "IndexedCache.h"
 #include "IndexedData.h"
-#include "IndexedFiles.h"
+#include "IndexedDataFiles.h"
 #include "IndexDescriptorsFile.h"
 #include "IndexSmartAccess.h"
 #include "DurableFileController.h"
@@ -41,7 +41,7 @@ protected:
 	CDurableFileController	mcDurableFileControl;
 
 	CIndexedCache			mcObjectCache;
-	CIndexedFiles			mcObjectFiles;
+	CIndexedDataFiles		mcObjectFiles;
 
 	CIndexedDescriptors		mcIndices;
 	CIndexDescriptorsFile	mcIndicesFile;

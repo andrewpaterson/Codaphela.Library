@@ -364,7 +364,7 @@ CMemoryFile* MemoryFile(void)
 //////////////////////////////////////////////////////////////////////////
 CMemoryFile* MemoryFile(void* pvInitialMem, int iInitialLength)
 {
-	CMemoryFile* pcMemoryFile;
+	CMemoryFile*	pcMemoryFile;
 
 	pcMemoryFile = Malloc(CMemoryFile)
 	pcMemoryFile->Init(pvInitialMem, iInitialLength);

@@ -166,14 +166,12 @@ BOOL CFileReader::ReadTreeTemplate(CTreeTemplate<M>* pcTree)
 	M*			pvData[2];
 	int			iElementSize;
 	int			i;
-	EDataTypes	eType;
 	int			iPathSize[2];
 	int			aiPath[2][1024];
 	int			iNumElements;
 	int			iPathNum;
 	int			iOldPath;
 
-	CheckReadType(eType, DT_TreeTemplate);
 	CheckRead(&iElementSize, sizeof(int));
 	if (iElementSize != sizeof(M))
 	{

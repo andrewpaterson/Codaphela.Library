@@ -161,7 +161,6 @@ BOOL CFileWriter::WriteTreeTemplate(CTreeTemplate<M>* pcTree)
 	int		iPathSize;
 	int		aiPath[1024];
 
-	CheckWriteType(DT_TreeTemplate);
 	iElementSize = sizeof(M);
 	CheckWrite(&iElementSize, sizeof(int));
 	CheckWrite(pcTree, sizeof(CTreeTemplate<M>));

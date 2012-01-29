@@ -441,6 +441,9 @@
     <ClCompile Include="PackFileOffset.cpp">
       <Filter>Source\File\Files</Filter>
     </ClCompile>
+    <ClCompile Include="IndexedDataFiles.cpp">
+      <Filter>Source\File\Indexed\Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ArrayVariable.h">
@@ -700,6 +703,9 @@
     </ClInclude>
     <ClInclude Include="PackFileOffset.h">
       <Filter>Source\File\Files</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexedDataFiles.h">
+      <Filter>Source\File\Indexed\Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

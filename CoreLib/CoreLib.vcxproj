@@ -82,6 +82,7 @@
   <ItemGroup>
     <ClCompile Include="ArrayVariable.cpp" />
     <ClCompile Include="Files.cpp" />
+    <ClCompile Include="IndexedDataFiles.cpp" />
     <ClCompile Include="PackFileOffset.cpp" />
     <ClCompile Include="TypeNames.cpp" />
     <ClCompile Include="TypeConverter.cpp" />
@@ -166,6 +167,7 @@
   <ItemGroup>
     <ClInclude Include="ArrayVariable.h" />
     <ClInclude Include="Files.h" />
+    <ClInclude Include="IndexedDataFiles.h" />
     <ClInclude Include="PackFileOffset.h" />
     <ClInclude Include="TypeNames.h" />
     <ClInclude Include="TypeConverter.h" />
