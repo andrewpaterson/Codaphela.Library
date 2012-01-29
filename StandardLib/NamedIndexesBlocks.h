@@ -38,7 +38,6 @@ protected:
 	CMemoryCache*				mpcCache;
 	CIndexedFiles*				mpcFiles;
 	int							miFileNumber;
-	int							miMaxNumBlocks;
 	
 public:
 	void	Init(int iBlockSize, int iMinNameLength, int iMaxNameLength, int iNewNumBlocks, CMemoryCache* pcCache, CIndexedFiles* pcFiles);
@@ -53,6 +52,10 @@ public:
 
 	BOOL	Flush(void);
 	BOOL	Cache(CNamedIndexesBlock* pcBlock);
+	BOOL	AddNewBlock(int iBlockWidth, void* pvBlocks, int iNumBlocks, filePos uiFilePos);
+	
+protected:
+	void*					AllocateInCache(int iSize);
 };
 
 typedef CArrayTemplate<CNamedIndexesBlocks> CArrayNamedIndexesBlocks;

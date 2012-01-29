@@ -22,44 +22,39 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __NAMED_INDEXES_BLOCK_H__
 #include "BaseLib/AbstractFile.h"
 #include "CoreLib/IndexedGeneral.h"
-
-
-#define MAX_INDEXED_NAME_LENGTH		4087
-
-
-struct SNamedIndexedBlock
-{
-	OIndex	oi;
-	char	szName[MAX_INDEXED_NAME_LENGTH+1];
-};
+#include "NamedIndexedBlock.h"
 
 
 class CNamedIndexesBlock
 {
 protected:
-	filePos			muiFilePos;
-	CChars			mszFirst;
-	CChars			mszLast;
+	filePos		muiFilePos;
+	CChars		mszFirst;
+	CChars		mszLast;
 
-	void*			mpvCachePos;
-	int				miBlockWidth;  //Max name length = miBlockWidth - sizeof(OIndex) - 1 (for trailing 0).
-	int				miNumBlocks;
-	int				miUsedBlocks;
-	BOOL			mbDirty;
+	void*		mpvCachePos;
+	int			miBlockWidth;  //Max name length = miBlockWidth - sizeof(OIndex) - 1 (for trailing 0).
+	int			miNumBlocks;
+	int			miUsedBlocks;
+	BOOL		mbDirty;
 
 public:
-	void	Init(int iBlockWidth, int iNumBlocks);
-	void	Kill(void);
+	void					Init(int iBlockWidth, int iNumBlocks);
+	void					Init(int iBlockWidth, void* pvBlocks, int iNumBlocks, filePos uiFilePos, void* pvCache);
+	void					Kill(void);
 
-	BOOL	CouldContain(CChars* szName);
-	BOOL	IsCached(void);
-	BOOL	IsNotFull(void);
-	BOOL	IsInFile(void);
+	BOOL					CouldContain(CChars* szName);
+	BOOL					IsCached(void);
+	BOOL					IsNotFull(void);
+	BOOL					IsFull(void);
+	BOOL					IsInFile(void);
 
-	BOOL	AddUnsafe(OIndex oi, CChars* szName);
-	OIndex	GetIndex(CChars* szName);
-	BOOL	SetCache(void* pvCache);
-	int		GetBlockSize(void);
+	BOOL					AddUnsafe(OIndex oi, CChars* szName);
+	OIndex					GetIndex(CChars* szName);
+	BOOL					SetCache(void* pvCache);
+	int						GetUsedByteSize(void);
+	int						GetAllocatedByteSize(void);
+	CNamedIndexedBlock*		GetUnsafe(int iIndex);
 };
 
 

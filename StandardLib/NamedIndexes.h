@@ -38,14 +38,15 @@ public:
 	void	Init(CDurableFileController* pcController, int iCacheSize, int iNewNumBlocks);
 	void	Kill(void);
 
+	BOOL	Add(OIndex oi, char* szName, BOOL bFailOnExisting = TRUE);
 	BOOL	Add(OIndex oi, CChars* szName, BOOL bFailOnExisting = TRUE);
+	OIndex	GetIndex(char* szName);
 	OIndex	GetIndex(CChars* szName);
 	BOOL	Remove(CChars* szName);
 
 	BOOL	Flush(void);
 
 protected:
-	void					SetBlocksAfterAdding(void);
 	CNamedIndexesBlocks*	GetBlock(int iNameLength);
 	CNamedIndexesBlocks*	AddBlock(int iBlockSize, int iMinNameLength, int iMaxNameLength, int iNewNumBlocks);
 };

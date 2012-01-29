@@ -41,8 +41,6 @@ void CNamedIndexes::Init(CDurableFileController* pcController, int iCacheSize, i
 	AddBlock( 512,  247,  503, iNewNumBlocks);
 	AddBlock(1024,  503, 1015, iNewNumBlocks);
 	AddBlock(4096, 1015, 4087, iNewNumBlocks);
-
-	SetBlocksAfterAdding();
 }
 
 
@@ -63,6 +61,18 @@ void CNamedIndexes::Kill(void)
 	macBlocks.Kill();
 
 	mcFiles.Kill();
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CNamedIndexes::Add(OIndex oi, char* szName, BOOL bFailOnExisting)
+{
+	CChars	szFake;
+
+	szFake.Fake(szName);
+	return Add(oi, &szFake, bFailOnExisting);
 }
 
 
@@ -90,14 +100,41 @@ BOOL CNamedIndexes::Add(OIndex oi, CChars* szName, BOOL bFailOnExisting)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+OIndex CNamedIndexes::GetIndex(char* szName)
+{
+	CChars	szFake;
+
+	if (szName)
+	{
+		szFake.Fake(szName);
+		return GetIndex(&szFake);
+	}
+	else
+	{
+		return INVALID_OBJECT_IDENTIFIER;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 OIndex CNamedIndexes::GetIndex(CChars* szName)
 {
 	CNamedIndexesBlocks*	pcBlock;
 
-	pcBlock = GetBlock(szName->Length());
-	if (pcBlock)
+	if (szName)
 	{
-		return pcBlock->GetIndex(szName);
+		pcBlock = GetBlock(szName->Length());
+		if (pcBlock)
+		{
+			return pcBlock->GetIndex(szName);
+		}
+		else
+		{
+			return INVALID_OBJECT_IDENTIFIER;
+		}
 	}
 	else
 	{

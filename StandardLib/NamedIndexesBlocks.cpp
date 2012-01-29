@@ -36,7 +36,6 @@ void CNamedIndexesBlocks::Init(int iBlockSize, int iMinNameLength, int iMaxNameL
 	miMinNameLength = iMinNameLength;
 	miMaxNameLength = iMaxNameLength;
 	miNewNumBlocks = iNewNumBlocks;
-	miMaxNumBlocks = miNewNumBlocks * 20;
 	miFileNumber = 0;
 	mpcFiles = pcFiles;
 	mpcCache = pcCache;
@@ -97,8 +96,12 @@ BOOL CNamedIndexesBlocks::Add(OIndex oi, CChars* szName, BOOL bFailOnExisting)
 	int						i;
 	CNamedIndexesBlock*		pcBlock;
 	OIndex					oiExisiting;
+	CNamedIndexesBlock*		pcNotFullBlock1;
+	CNamedIndexesBlock*		pcNotFullBlock2;
 	CNamedIndexesBlock*		pcNotFullBlock;
 
+	pcNotFullBlock1 = NULL;
+	pcNotFullBlock2 = NULL;
 	pcNotFullBlock = NULL;
 
 	for (i = 0; i < macBlocks.NumElements(); i++)
@@ -118,23 +121,68 @@ BOOL CNamedIndexesBlocks::Add(OIndex oi, CChars* szName, BOOL bFailOnExisting)
 				return !bFailOnExisting;
 			}
 
-			if (pcNotFullBlock == NULL)
+			if (pcNotFullBlock1 == NULL)
 			{
 				if (pcBlock->IsNotFull())
 				{
-					pcNotFullBlock = pcBlock;
+					pcNotFullBlock1 = pcBlock;
 				}
 			}
 		}
+		else
+		{
+			if (pcNotFullBlock2 == NULL)
+			{
+				if (pcBlock->IsNotFull())
+				{
+					pcNotFullBlock2 = pcBlock;
+				}
+			}
+		}
+	}
+
+	if ((pcNotFullBlock1 == NULL) && (pcNotFullBlock2 != NULL))
+	{
+		pcNotFullBlock = pcNotFullBlock2;
+	}
+	else if (pcNotFullBlock1 != NULL)
+	{
+		pcNotFullBlock = pcNotFullBlock1;
 	}
 
 	if (pcNotFullBlock == NULL)
 	{
 		pcNotFullBlock = macBlocks.Add();
 		pcNotFullBlock->Init(miBlockWidth, miNewNumBlocks);
-		Cache(pcBlock);
+		Cache(pcNotFullBlock);
 	}
 	return pcNotFullBlock->AddUnsafe(oi, szName);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CNamedIndexesBlocks::AddNewBlock(int iBlockWidth, void* pvBlocks, int iNumBlocks, filePos uiFilePos)
+{
+	CNamedIndexesBlock*		pcBlock;
+	void*					pvCache;
+
+	pcBlock = macBlocks.Add();
+	if (!pcBlock)
+	{
+		return FALSE;
+	}
+
+	pvCache = AllocateInCache(miNewNumBlocks * miBlockWidth);
+	if (!pvCache)
+	{
+		return FALSE;
+	}
+
+	pcBlock->Init(miBlockWidth, pvBlocks, iNumBlocks, uiFilePos, pvCache);
+	return TRUE;
 }
 
 
@@ -146,12 +194,35 @@ BOOL CNamedIndexesBlocks::Cache(CNamedIndexesBlock* pcBlock)
 {
 	if (pcBlock->IsInFile())
 	{
-		
+		return FALSE;
 	}
 	else
 	{
-		return pcBlock->SetCache(mpcCache->Allocate(pcBlock->GetBlockSize()));
+		return pcBlock->SetCache(AllocateInCache(pcBlock->GetAllocatedByteSize()));
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void* CNamedIndexesBlocks::AllocateInCache(int iSize)
+{
+	void*			pvData;
+	CArrayPointer	apEvicted;
+	int				i;
+
+	apEvicted.Init(128);
+	mpcCache->PreAllocate(iSize, &apEvicted);
+
+	for (i = 0; i < apEvicted.NumElements(); i++)
+	{
+	}
+
+	apEvicted.Kill();
+	pvData = mpcCache->Allocate(iSize);
+	return pvData;
 }
 
 
@@ -161,7 +232,32 @@ BOOL CNamedIndexesBlocks::Cache(CNamedIndexesBlock* pcBlock)
 //////////////////////////////////////////////////////////////////////////
 OIndex CNamedIndexesBlocks::GetIndex(CChars* szName)
 {
+	int						i;
+	CNamedIndexesBlock*		pcBlock;
+	OIndex					oiExisiting;
+	CNamedIndexesBlock*		pcNotFullBlock;
 
+	pcNotFullBlock = NULL;
+
+	for (i = 0; i < macBlocks.NumElements(); i++)
+	{
+		pcBlock = macBlocks.Get(i);
+		if (pcBlock->CouldContain(szName))
+		{
+			if (!pcBlock->IsCached())
+			{
+				Cache(pcBlock);
+			}
+
+			oiExisiting = pcBlock->GetIndex(szName);
+			if (oiExisiting != INVALID_OBJECT_IDENTIFIER)
+			{
+				return oiExisiting;
+			}
+		}
+	}
+
+	return INVALID_OBJECT_IDENTIFIER;
 }
 
 
@@ -171,7 +267,7 @@ OIndex CNamedIndexesBlocks::GetIndex(CChars* szName)
 //////////////////////////////////////////////////////////////////////////
 BOOL CNamedIndexesBlocks::Remove(CChars* szName)
 {
-
+	return FALSE;
 }
 
 
@@ -181,6 +277,6 @@ BOOL CNamedIndexesBlocks::Remove(CChars* szName)
 //////////////////////////////////////////////////////////////////////////
 BOOL CNamedIndexesBlocks::Flush(void)
 {
-
+	return FALSE;
 }
 

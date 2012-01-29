@@ -83,6 +83,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Base.h" />
+    <ClInclude Include="NamedIndexedBlock.h" />
     <ClInclude Include="NamedIndexesBlocksLoader.h" />
     <ClInclude Include="NamedIndexedData.h" />
     <ClInclude Include="NamedIndexedObjects.h" />
@@ -159,6 +160,7 @@
     <ClInclude Include="TrackerTemplate.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="NamedIndexedBlock.cpp" />
     <ClCompile Include="NamedIndexedData.cpp" />
     <ClCompile Include="NamedIndexedObjects.cpp" />
     <ClCompile Include="NamedIndexes.cpp" />

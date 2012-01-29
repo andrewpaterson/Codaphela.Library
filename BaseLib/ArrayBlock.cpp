@@ -94,7 +94,7 @@ void CArrayBlock::Fake(void* pvData, int iSize, int iNum, int iChunkSize)
 {
 	mpvArray = pvData;
 	miElementSize = iSize;
-	miNumElements = iNum;
+	miNumElements = iChunkSize;
 	miUsedElements = iNum;
 	miChunkSize = iChunkSize;
 }

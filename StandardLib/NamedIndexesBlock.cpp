@@ -18,23 +18,9 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseObject.h"
+#include "NamedIndexedBlock.h"
 #include "NamedIndexesBlock.h"
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-int CompareNamedIndexedBlock(const void* arg1, const void* arg2)
-{
-	SNamedIndexedBlock*	ps1;
-	SNamedIndexedBlock*	ps2;
-
-	ps1 = (SNamedIndexedBlock*)arg1;
-	ps2 = (SNamedIndexedBlock*)arg2;
-
-	return strcmp(ps1->szName, ps2->szName);
-}
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -52,6 +38,53 @@ void CNamedIndexesBlock::Init(int iBlockWidth, int iNumBlocks)
 	miNumBlocks = iNumBlocks;
 	miUsedBlocks = 0;
 	mbDirty = FALSE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CNamedIndexesBlock::Init(int iBlockWidth, void* pvBlocks, int iNumBlocks, filePos uiFilePos, void* pvCache)
+{
+	CNamedIndexedBlock*	pcBlock;
+	int					i;
+
+	muiFilePos = uiFilePos;
+
+	mpvCachePos = pvCache;
+	miBlockWidth = iBlockWidth;
+	miNumBlocks = iNumBlocks;
+	mbDirty = FALSE;
+
+	memcpy_fast(mpvCachePos, pvBlocks, miUsedBlocks * miBlockWidth);
+
+	miUsedBlocks = iNumBlocks;
+	for (i = 0; i < iNumBlocks; i++)
+	{
+		pcBlock = GetUnsafe(i);
+		if (pcBlock->IsEmpty())
+		{
+			miUsedBlocks = i-1;
+			break;;
+		}
+	}
+
+	if (miUsedBlocks == 0)
+	{
+		mszFirst.Init();
+		mszLast.Init();
+	}
+	else
+	{
+		miUsedBlocks++;
+
+		pcBlock = GetUnsafe(0);
+		mszFirst.Init(pcBlock->Name());
+
+		pcBlock = GetUnsafe(miUsedBlocks-1);
+		mszLast.Init(pcBlock->Name());
+	}
 }
 
 
@@ -97,6 +130,16 @@ BOOL CNamedIndexesBlock::IsNotFull(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL CNamedIndexesBlock::IsFull(void)
+{
+	return miUsedBlocks == miNumBlocks;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL CNamedIndexesBlock::IsInFile(void)
 {
 	return muiFilePos != -1;
@@ -120,13 +163,12 @@ BOOL CNamedIndexesBlock::IsCached(void)
 BOOL CNamedIndexesBlock::AddUnsafe(OIndex oi, CChars* szName)
 {
 	CArrayBlock			avFakeBlock;
-	SNamedIndexedBlock	sBlock;
+	CNamedIndexedBlock	sBlock;
 	int					iIndex;
 
-	strcpy(sBlock.szName, szName->Text());
-	sBlock.oi = oi;
+	sBlock.Set(szName->Text(), oi);
 
-	avFakeBlock.Fake(mpvCachePos, GetBlockSize(), miUsedBlocks, miNumBlocks);
+	avFakeBlock.Fake(mpvCachePos, GetAllocatedByteSize(), miUsedBlocks, miNumBlocks);
 	
 	//It's safe to insert into a faked array because we know there is at least one free element in the chunk
 	//That is: miNumBlocks - miUsedBlocks >= 1
@@ -161,24 +203,26 @@ BOOL CNamedIndexesBlock::AddUnsafe(OIndex oi, CChars* szName)
 //////////////////////////////////////////////////////////////////////////
 OIndex CNamedIndexesBlock::GetIndex(CChars* szName)
 {
-	CArrayBlock			avFakeBlock;
-	SNamedIndexedBlock	sBlock;
-	int					iIndex;
+	CArrayBlock				avFakeBlock;
+	CNamedIndexedBlock		sBlock;
+	CNamedIndexedBlock*		psBlock;
+	int						iIndex;
 
-	strcpy(sBlock.szName, szName->Text());
+	strcpy(sBlock.Name(), szName->Text());
 
-	avFakeBlock.Fake(mpvCachePos, GetBlockSize(), miUsedBlocks, miNumBlocks);
+	avFakeBlock.Fake(mpvCachePos, miBlockWidth, miUsedBlocks, miNumBlocks);
 
 	//It's safe to insert into a faked array because we know there is at least one free element in the chunk
 	//That is: miNumBlocks - miUsedBlocks >= 1
 	if (avFakeBlock.FindInSorted(&sBlock, &CompareNamedIndexedBlock, &iIndex))
 	{
-		return iIndex;
+		if (iIndex != -1)
+		{
+			psBlock = (CNamedIndexedBlock*)avFakeBlock.Get(iIndex);
+			return psBlock->Id();
+		}
 	}
-	else
-	{
-		return FALSE;
-	}
+	return INVALID_OBJECT_IDENTIFIER;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -196,8 +240,28 @@ BOOL CNamedIndexesBlock::SetCache(void* pvCache)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CNamedIndexesBlock::GetBlockSize(void)
+int CNamedIndexesBlock::GetUsedByteSize(void)
 {
 	return miBlockWidth * miUsedBlocks;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CNamedIndexesBlock::GetAllocatedByteSize(void)
+{
+	return miBlockWidth * miNumBlocks;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CNamedIndexedBlock* CNamedIndexesBlock::GetUnsafe(int iIndex)
+{
+	return (CNamedIndexedBlock*)RemapSinglePointer(mpvCachePos, iIndex * miBlockWidth);
 }
 
