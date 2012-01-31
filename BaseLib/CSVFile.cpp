@@ -73,31 +73,23 @@ void CCSVFile::Close(void)
 																		//
 																		//
 ////////////////////////////////////////////////////////////////////////
-#define LINE_BUFFER_LENGTH 256
 BOOL CCSVFile::ReadLine(CChars* szString)
 {
-	char	snz[LINE_BUFFER_LENGTH+1];
+	char	sBuffer[CSV_FILE_LINE_BUFFER_LENGTH+1];
 	int		iLength;
 	BOOL	bDoneAnything;
 
 	bDoneAnything = FALSE;
 	for (;;)
 	{
-		iLength = ReadLine(snz);
+		iLength = ReadLine(sBuffer);
 		if (iLength == 0)
 		{
-			if (bDoneAnything)
-			{
-				return TRUE;
-			}
-			else
-			{
-				return FALSE;
-			}
+			return bDoneAnything;
 		}
-		snz[iLength] = 0;
-		szString->Append(snz);
-		if (iLength < LINE_BUFFER_LENGTH)
+		sBuffer[iLength] = 0;
+		szString->Append(sBuffer);
+		if (iLength < CSV_FILE_LINE_BUFFER_LENGTH)
 		{
 			return TRUE;
 		}
@@ -122,7 +114,7 @@ BOOL CCSVFile::ReadLine(char* szBuffer, int iMaxLength)
 	{
 		iLength = ReadLine(&szBuffer[iPosition]);
 		iPosition += iLength;
-		if ((iLength > 0) && (iLength < LINE_BUFFER_LENGTH))
+		if ((iLength > 0) && (iLength < CSV_FILE_LINE_BUFFER_LENGTH))
 		{
 			szBuffer[iPosition] = 0;
 			return TRUE;
@@ -148,22 +140,22 @@ BOOL CCSVFile::ReadLine(char* szBuffer, int iMaxLength)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CCSVFile::ReadLine(char* snz)
+int CCSVFile::ReadLine(char* sBuffer)
 {
 	int		iNewLinePosition;
 	int		iBytesRead;
 	filePos	iPosition;
 
 	iPosition = mcFile.GetFilePos();
-	iBytesRead = mcFile.Read(snz, 1, LINE_BUFFER_LENGTH);
+	iBytesRead = mcFile.Read(sBuffer, 1, CSV_FILE_LINE_BUFFER_LENGTH);
 	if (iBytesRead == 0)
 	{
 		return 0;
 	}
-	iNewLinePosition = FindFirstByte(snz, '\n', LINE_BUFFER_LENGTH);
+	iNewLinePosition = FindFirstByte(sBuffer, '\n', CSV_FILE_LINE_BUFFER_LENGTH);
 	if (iNewLinePosition != -1)
 	{
-		if (snz[iNewLinePosition-1] == '\r')
+		if (sBuffer[iNewLinePosition-1] == '\r')
 		{
 			mcFile.Seek(iPosition + iNewLinePosition + 1, EFSO_SET);
 			iNewLinePosition--;
@@ -176,7 +168,7 @@ int CCSVFile::ReadLine(char* snz)
 	}
 	else
 	{
-		return LINE_BUFFER_LENGTH;
+		return CSV_FILE_LINE_BUFFER_LENGTH;
 	}
 }
 

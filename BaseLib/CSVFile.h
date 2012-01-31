@@ -23,21 +23,20 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __CSV_FILE_H__
 #define __CSV_FILE_H__
 #include "FileBasic.h"
-#include "MemoryFile.h"
 
+
+#define CSV_FILE_LINE_BUFFER_LENGTH 256
 
 
 class CCSVFile
 {
 protected:
-	int		ReadLine(char* snz);
-
-public:
 	CFileBasic	mcFile;
 	filePos		miFileSize;
 	char		mcSeparator;
 	char		mcDelimiter;
 	
+public:
 	void 	Init(char cSeparator, char cDelimiter);
 	void 	Kill(void);
 
@@ -46,6 +45,9 @@ public:
 
 	BOOL	ReadLine(CChars* szString);
 	BOOL	ReadLine(char* szString, int iMaxLength);
+
+protected:
+	int		ReadLine(char* snz);
 };
 
 

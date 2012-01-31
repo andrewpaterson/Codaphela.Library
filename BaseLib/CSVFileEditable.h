@@ -38,7 +38,8 @@ struct SCSVRowEditable
 	void 		Kill(void);
 	void 		Dump(void);
 	int	 		IndexOf(char* szString);
-	CChars*	Get(int iIndex);
+	int			NumCells(void);
+	CChars*		Get(int iIndex);
 };
 
 
@@ -48,11 +49,9 @@ typedef CArrayTemplate<SCSVRowEditable> CArrayCSVRow;
 class CCSVFileEditable : public CCSVFile
 {
 protected:
-	int					ReadLine(char* snz);
-
-public:
 	CArrayCSVRow	masCSVRows;
 
+public:
 	void 				Init(char cSeparator, char cDelimiter);
 	void 				Kill(void);
 
@@ -64,6 +63,8 @@ public:
 	int					NumRows(void);
 	SCSVRowEditable*	Get(int iRowNum);
 
+protected:
+	int					ReadLine(char* snz);
 };
 
 

@@ -95,6 +95,15 @@ int SCSVRowEditable::IndexOf(char* szString)
 	return -1;
 }
 
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int SCSVRowEditable::NumCells(void)
+{
+	return aszData.NumElements();
+}
+
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -113,7 +122,7 @@ CChars* SCSVRowEditable::Get(int iIndex)
 void CCSVFileEditable::Init(char cSeparator, char cDelimiter)
 {
 	CCSVFile::Init(cSeparator, cDelimiter);
-	masCSVRows.Init(1024);
+	masCSVRows.Init(32);
 }
 
 
@@ -144,7 +153,7 @@ void CCSVFileEditable::Kill(void)
 BOOL CCSVFileEditable::ReadLine(void)
 {
 	SCSVRowEditable*	psCSVRow;
-	BOOL		bResult;
+	BOOL				bResult;
 
 	psCSVRow = masCSVRows.Add();
 	psCSVRow->Init();
@@ -157,6 +166,16 @@ BOOL CCSVFileEditable::ReadLine(void)
 		return FALSE;
 	}
 	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CCSVFileEditable::ReadLine(CChars* szString)
+{
+	return CCSVFile::ReadLine(szString);
 }
 
 
