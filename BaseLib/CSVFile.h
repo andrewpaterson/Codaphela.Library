@@ -34,10 +34,9 @@ protected:
 	CFileBasic	mcFile;
 	filePos		miFileSize;
 	char		mcSeparator;
-	char		mcDelimiter;
 	
 public:
-	void 	Init(char cSeparator, char cDelimiter);
+	void 	Init(char cSeparator);
 	void 	Kill(void);
 
 	void 	Open(CAbstractFile* pcFile);

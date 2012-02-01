@@ -27,12 +27,11 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCSVFile::Init(char cSeparator, char cDelimiter)
+void CCSVFile::Init(char cSeparator)
 {
 	mcFile.Init(NULL);
 	miFileSize = 0;
 	mcSeparator = cSeparator;
-	mcDelimiter = cDelimiter;
 }
 
 

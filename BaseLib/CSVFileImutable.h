@@ -47,7 +47,7 @@ class CCSVFileImmutable : public CCSVFile
 public:
 	CArrayPointer		mapsCSVRows;
 
-	void 				Init(char cSeparator, char cDelimiter);
+	void 				Init(char cSeparator);
 	void 				Kill(void);
 
 	BOOL 				ReadLine(void);

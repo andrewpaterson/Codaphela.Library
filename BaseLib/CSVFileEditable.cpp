@@ -119,9 +119,9 @@ CChars* SCSVRowEditable::Get(int iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCSVFileEditable::Init(char cSeparator, char cDelimiter)
+void CCSVFileEditable::Init(char cSeparator)
 {
-	CCSVFile::Init(cSeparator, cDelimiter);
+	CCSVFile::Init(cSeparator);
 	masCSVRows.Init(32);
 }
 

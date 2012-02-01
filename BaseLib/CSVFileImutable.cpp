@@ -93,9 +93,9 @@ char* SCSVRowImmutable::Get(int iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCSVFileImmutable::Init(char cSeparator, char cDelimiter)
+void CCSVFileImmutable::Init(char cSeparator)
 {
-	CCSVFile::Init(cSeparator, cDelimiter);
+	CCSVFile::Init(cSeparator);
 	mapsCSVRows.Init(16384);
 }
 

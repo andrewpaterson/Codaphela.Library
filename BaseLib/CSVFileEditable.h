@@ -52,7 +52,7 @@ protected:
 	CArrayCSVRow	masCSVRows;
 
 public:
-	void 				Init(char cSeparator, char cDelimiter);
+	void 				Init(char cSeparator);
 	void 				Kill(void);
 
 	BOOL 				ReadLine(void);

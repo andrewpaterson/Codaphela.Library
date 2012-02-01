@@ -28,9 +28,9 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCSVHelper::Init(char* szFileName, char cSeparator, char cDelimiter)
+void CCSVHelper::Init(char* szFileName, char cSeparator)
 {
-	mcFile.Init(cSeparator, cDelimiter);
+	mcFile.Init(cSeparator);
 	mcFile.Open(DiskFile(szFileName));
 	mcFile.ReadAllLines();
 }
