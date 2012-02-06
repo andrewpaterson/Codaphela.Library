@@ -11,6 +11,13 @@
 void CNamedIndexesBlocksLoader::Init(CNamedIndexesBlocks* pcBlocks)
 {
 	mpcFile = pcBlocks->mpcFiles->GetFile(pcBlocks->miBlockWidth, pcBlocks->miFileNumber);
+	if (!mpcFile)
+	{
+		mpvTemp = NULL;
+		mpvBlock = NULL;
+		return;
+	}
+
 	miNumBlocksInFile = mpcFile->miNumDatas;
 	mpcBlocks = pcBlocks;
 
@@ -66,6 +73,11 @@ BOOL CNamedIndexesBlocksLoader::Load(void)
 	iRemaining = miLength;
 	miCurrent = 0;
 	mbBlockSorted = TRUE;
+
+	if (!mpcFile)
+	{
+		return TRUE;
+	}
 
 	while (iRemaining != 0)
 	{
