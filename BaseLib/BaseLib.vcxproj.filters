@@ -877,7 +877,6 @@
     <None Include="lgpl.txt">
       <Filter>Source\License</Filter>
     </None>
-    <None Include="ArraySimple.txt" />
     <None Include="VTune\BaseLib.vpj" />
     <None Include="Libs.txt" />
   </ItemGroup>

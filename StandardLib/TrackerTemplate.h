@@ -297,8 +297,8 @@ T* CTrackerTemplate<T>::Copy(T* p)
 template <class T>
 T* CTrackerTemplate<T>::GetWithName(char* szName)
 {
-	int					i;
-	CImageCelGroup*		pcGroup;
+	int		i;
+	T*		pcGroup;
 
 	for (i = 0; i < mcArray.NumElements(); i++)
 	{

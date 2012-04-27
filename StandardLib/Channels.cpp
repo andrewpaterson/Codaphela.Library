@@ -680,7 +680,7 @@ void CChannels::FreeData(void)
 //////////////////////////////////////////////////////////////////////////
 char* CChannels::GetData(void)
 {
-	//Don't try and get the data whilst the image is changing...
+	//Don't try and get the data whilst the data is changing...
 	if (IsChanging())
 	{
 		return NULL;

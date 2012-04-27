@@ -39,6 +39,7 @@ public:
 	void 	ReInit(void);
 	void	Kill(void);
 	void	Allocate(int iNum);
+	BOOL	Reallocate(int iUsedElements);
 	M*		Add(void);
 	void	Add(M* pvData);
 	void	Set(int iElementPos, M* pvData);
@@ -47,8 +48,8 @@ public:
 	void	BatchInsertElements(int iFirstElementPos, int iNumInBatch, int iNumBatches, int iStrideToNextBatch);
 	M*		SafeGet(int iElementPos);
 	M*		Get(int iElementPos);
-	void	RemoveAt(int iElementPos, int bPreserveOrder = 0);
-	void	RemoveTail(void);
+	BOOL	RemoveAt(int iElementPos, int bPreserveOrder = 0);
+	BOOL	RemoveTail(void);
 	void	BatchRemoveElements(int iFirstElementPos, int iNumInBatch, int iNumBatches, int iStrideToNextBatch);
 	int		ByteSize(void);
 	void	InitFromHeader(void);
@@ -142,11 +143,52 @@ void CArraySimple<M>::Allocate(int iNum)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
+BOOL CArraySimple<M>::Reallocate(int iUsedElements)
+{
+	M*	pvTemp;
+
+	if (iUsedElements == 0)
+	{
+		if (pvArray != NULL)
+		{
+			free(pvArray);
+			pvArray = NULL;
+		}
+		miUsedElements = 0;
+		return TRUE;
+	}
+
+	pvTemp = (M*)realloc(pvArray, iUsedElements * sizeof(M));
+
+	if (pvTemp != NULL)
+	{
+		miUsedElements = iUsedElements;
+		pvArray = pvTemp;
+		return TRUE;
+	}
+	else
+	{
+		gcUserError.Set("CArraySimple, Out of memory.");
+		return FALSE;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
 M* CArraySimple<M>::Add(void)
 {
-	miUsedElements++;
-	pvArray = (M*)realloc(pvArray, miUsedElements * sizeof(M));
-	return &pvArray[miUsedElements-1];
+	if (Reallocate(miUsedElements+1))
+	{
+		return &pvArray[miUsedElements-1];
+	}
+	else
+	{
+		return NULL;
+	}
 }
 
 
@@ -199,26 +241,28 @@ M* CArraySimple<M>::Get(int iElementPos)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CArraySimple<M>::RemoveAt(int iElementPos, int bPreserveOrder)
+BOOL CArraySimple<M>::RemoveAt(int iElementPos, int bPreserveOrder)
 {
 	M*	pvEnd;
 	M*	pvElement;
+	int	iUsedElements;
 
-	miUsedElements--;
-	if (iElementPos < miUsedElements)
+	iUsedElements = miUsedElements - 1;
+	if (iElementPos < iUsedElements)
 	{
 		pvElement = Get(iElementPos);
 		if (!bPreserveOrder)
 		{
-			pvEnd = Get(miUsedElements);
+			pvEnd = Get(iUsedElements);
 			memcpy(pvElement, pvEnd, sizeof(M));
 		}
 		else
 		{
-			memmove(pvElement, (M*)((ENGINE_SIZE_T) pvElement + sizeof(M)), sizeof(M) * (miUsedElements - iElementPos));
+			memmove(pvElement, (M*)((ENGINE_SIZE_T) pvElement + sizeof(M)), sizeof(M) * (iUsedElements - iElementPos));
 		}
 	}
-	pvArray = (M*)realloc(pvArray, miUsedElements * sizeof(M));
+
+	return Reallocate(iUsedElements);
 }
 
 
@@ -227,9 +271,9 @@ void CArraySimple<M>::RemoveAt(int iElementPos, int bPreserveOrder)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CArraySimple<M>::RemoveTail(void)
+BOOL CArraySimple<M>::RemoveTail(void)
 {
-	RemoveAt(miUsedElements - 1);
+	return RemoveAt(miUsedElements - 1);
 }
 
 
@@ -265,13 +309,7 @@ BOOL CArraySimple<M>::SetArraySize(int iNum)
 {
 	if (miUsedElements != iNum)
 	{
-		miUsedElements = iNum;
-		pvArray = (M*)realloc(pvArray, miUsedElements * sizeof(M));
-		if ((miUsedElements > 0) && (pvArray == NULL))
-		{
-			gcUserError.Set("CArraySimple, Out of memory.");
-			return FALSE;
-		}
+		return Reallocate(iNum);
 	}
 	return TRUE;
 }
@@ -287,6 +325,7 @@ M* CArraySimple<M>::SetArraySize(int iNum, int iClearValue)
 	int		iOldUsed;
 	void*	pvClearStart;
 	int		iClearSize;
+	BOOL	bResult;
 
 	if (miUsedElements != iNum)
 	{
@@ -295,8 +334,12 @@ M* CArraySimple<M>::SetArraySize(int iNum, int iClearValue)
 		{
 			iOldUsed = miUsedElements;
 		}
-		miUsedElements = iNum;
-		pvArray = (M*)realloc(pvArray, miUsedElements * sizeof(M));
+		bResult = Reallocate(iNum);
+
+		if (!bResult)
+		{
+			return NULL;
+		}
 
 		if (iOldUsed != -1)
 		{
