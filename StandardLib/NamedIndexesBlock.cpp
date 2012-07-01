@@ -276,6 +276,15 @@ BOOL CNamedIndexesBlock::IsEmpty(void)
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CNamedIndexesBlock::IsCache(void* pvCachePos)
+{
+	return mpvCachePos == pvCachePos;
+}
+
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -332,8 +341,7 @@ CNamedIndexedBlock* CNamedIndexesBlock::GetUnsafe(int iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CNamedIndexesBlock::UsedNames(void)
-{
-	return miUsedBlocks;
-}
-
+int CNamedIndexesBlock::UsedNames(void) { return miUsedBlocks; }
+int CNamedIndexesBlock::GetBlockWidth(void) { return miBlockWidth; }
+int CNamedIndexesBlock::GetNumBlocks(void) { return miNumBlocks; }
+int CNamedIndexesBlock::GetUsedBlocks(void) { return miUsedBlocks; }

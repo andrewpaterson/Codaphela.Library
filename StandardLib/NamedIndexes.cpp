@@ -275,4 +275,5 @@ int CNamedIndexes::NumNames(void)
 		pcBlock = macBlocks.Get(i);
 		iNames += pcBlock->NumNames();
 	}
-	return iNames;}
+	return iNames;
+}

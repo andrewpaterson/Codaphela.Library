@@ -212,16 +212,40 @@ BOOL CNamedIndexesBlocks::Cache(CNamedIndexesBlock* pcBlock)
 //////////////////////////////////////////////////////////////////////////
 void* CNamedIndexesBlocks::AllocateInCache(int iSize)
 {
-	void*			pvData;
-	CArrayPointer	apEvicted;
-	int				i;
+	void*						pvData;
+	CArrayPointer				apEvicted;
+	int							i;
+	SMemoryCacheDescriptor*		psMemoryDesc;
+	int							iDataSize;
+	CArrayBlock					avFakeBlock;
+	CNamedIndexedBlock*			pcBlock;
+	CNamedIndexesBlock*			pcNamedIndexes;
+	void*						pvCacheMem;
 
 	apEvicted.Init(128);
 	mpcCache->PreAllocate(iSize, &apEvicted);
 
 	for (i = 0; i < apEvicted.NumElements(); i++)
 	{
-		//Need to do something with these still.
+		psMemoryDesc = (SMemoryCacheDescriptor *)apEvicted.GetPtr(i);
+		iDataSize = psMemoryDesc->iDataSize;
+		pvCacheMem = RemapSinglePointer(psMemoryDesc, sizeof(SMemoryCacheDescriptor));
+		pcNamedIndexes = GetNamedIndexesBlock(pvCacheMem);
+		if (pcNamedIndexes == NULL)
+		{
+			//Somethings broken.
+			return NULL;
+		}
+
+		avFakeBlock.Fake(pvCacheMem, pcNamedIndexes->GetBlockWidth(), pcNamedIndexes->GetUsedBlocks());
+
+		int j;
+		for (j = 0; j < pcNamedIndexes->GetUsedBlocks(); j++)
+		{
+			pcBlock = (CNamedIndexedBlock*)avFakeBlock.Get(j);
+			xxx;
+			//These blocks need to be written to disk.
+		}
 	}
 
 	apEvicted.Kill();
@@ -259,6 +283,27 @@ OIndex CNamedIndexesBlocks::GetIndex(CChars* szName)
 	}
 
 	return INVALID_OBJECT_IDENTIFIER;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CNamedIndexesBlock* CNamedIndexesBlocks::GetNamedIndexesBlock(void* pvCacheMem)
+{
+	int						i;
+	CNamedIndexesBlock*		pcBlock;
+
+	for (i = 0; i < macBlocks.NumElements(); i++)
+	{
+		pcBlock = macBlocks.Get(i);
+		if (pcBlock->IsCache(pvCacheMem))
+		{
+			return pcBlock;
+		}
+	}
+	return NULL;
 }
 
 

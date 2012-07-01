@@ -49,6 +49,7 @@ public:
 	BOOL					IsFull(void);
 	BOOL					IsInFile(void);
 	BOOL					IsEmpty(void);
+	BOOL					IsCache(void* pvCachePos);
 
 	BOOL					AddUnsafe(OIndex oi, CChars* szName);
 	OIndex					GetIndex(CChars* szName);
@@ -59,6 +60,10 @@ public:
 	BOOL					Remove(CChars* szName);
 	void					Dirty(void);
 	int						UsedNames(void);
+	int						GetBlockWidth(void);
+	int						GetNumBlocks(void);
+	int						GetUsedBlocks(void);
+
 };
 
 
