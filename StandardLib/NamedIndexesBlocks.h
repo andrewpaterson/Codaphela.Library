@@ -56,8 +56,9 @@ public:
 	int		NumNames(void);
 	
 protected:
-	void*					AllocateInCache(int iSize);
+	void*	AllocateInCache(int iSize);
 };
+
 
 typedef CArrayTemplate<CNamedIndexesBlocks> CArrayNamedIndexesBlocks;
  

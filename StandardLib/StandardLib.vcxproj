@@ -227,12 +227,6 @@
   <ItemGroup>
     <None Include="ObjectsSources.txt" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\CoreLib\CoreLib.vcxproj">
-      <Project>{52a2d18b-bc88-4eb9-9ef0-ae58c1e9fdd5}</Project>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

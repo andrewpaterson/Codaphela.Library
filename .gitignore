@@ -20,3 +20,14 @@ SupportLib/Release/*
 TestLib/Release/*
 WindowLib/Release/*
 WorldLib/Release/*
+DirectXLib/Debug
+DirectXLib/Game_Release
+ImageLib/Debug
+ImageLib/Release
+LanguageLib/Debug
+LanguageLib/Release
+StandardLib/StandardLib.sdf
+BerkeleyLib/BerkeleyLib.sdf
+BerkeleyLib/BerkeleyLib.suo
+BerkeleyLib/Debug
+BerkeleyLib/ipch

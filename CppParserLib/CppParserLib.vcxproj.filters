@@ -621,7 +621,4 @@
       <Filter>Source\General</Filter>
     </ClInclude>
   </ItemGroup>
-  <ItemGroup>
-    <None Include="VTune\CppParserLib.vpj" />
-  </ItemGroup>
 </Project>

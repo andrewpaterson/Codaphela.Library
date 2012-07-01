@@ -198,7 +198,10 @@ BOOL CNamedIndexesBlocks::Cache(CNamedIndexesBlock* pcBlock)
 	}
 	else
 	{
-		return pcBlock->SetCache(AllocateInCache(pcBlock->GetAllocatedByteSize()));
+		void* pvCache;
+
+		pvCache = AllocateInCache(pcBlock->GetAllocatedByteSize());
+		return pcBlock->SetCache(pvCache);
 	}
 }
 
@@ -218,6 +221,7 @@ void* CNamedIndexesBlocks::AllocateInCache(int iSize)
 
 	for (i = 0; i < apEvicted.NumElements(); i++)
 	{
+		//Need to do something with these still.
 	}
 
 	apEvicted.Kill();

@@ -263,9 +263,6 @@
     <ClInclude Include="CTNewLine.h" />
     <ClInclude Include="GeneralToken.h" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="VTune\CppParserLib.vpj" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

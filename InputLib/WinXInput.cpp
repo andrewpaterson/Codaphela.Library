@@ -28,13 +28,12 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CXInputDetail::Init(unsigned char	ucType, unsigned char ucSubType, unsigned short	usFlags,  unsigned char ucBattery)
+void CXInputDetail::Init(unsigned char	ucType, unsigned char ucSubType, unsigned short	usFlags)
 {
 	CNativeDetail::Init();
 	this->ucType = ucType;
 	this->ucSubType = ucSubType;
 	this->usFlags = usFlags;
-	this->ucBattery = ucBattery;
 
 	szID.Init();
 	AppendDescription(&szID);
@@ -65,42 +64,9 @@ void CXInputDetail::AppendDescription(CChars* sz)
 	case XINPUT_DEVSUBTYPE_GAMEPAD:
 		sz->Append("Gamepad ");
 		break;
-	case XINPUT_DEVSUBTYPE_WHEEL:
-		sz->Append("Wheel ");
-		break;
-	case XINPUT_DEVSUBTYPE_ARCADE_STICK:
-		sz->Append("Arcade Stick ");
-		break;
-	case XINPUT_DEVSUBTYPE_FLIGHT_SICK:
-		sz->Append("Flight Stick ");
-		break;
-	case XINPUT_DEVSUBTYPE_DANCE_PAD:
-		sz->Append("Dance Pad ");
-		break;
-	case XINPUT_DEVSUBTYPE_GUITAR:
-		sz->Append("Guitar ");
-		break;
-	case XINPUT_DEVSUBTYPE_DRUM_KIT:
-		sz->Append("Drum Kit ");
-		break;
 	}
 	
 	sz->Append(": Battery(");
-	switch (ucBattery)
-	{
-	case BATTERY_TYPE_WIRED:
-		sz->Append("Wired");
-		break;
-	case BATTERY_TYPE_ALKALINE:
-		sz->Append("Alkaline");
-		break;
-	case BATTERY_TYPE_NIMH:
-		sz->Append("NiMH");
-		break;
-	case BATTERY_TYPE_UNKNOWN:
-		sz->Append("Unknown");
-		break;
-	}
 	sz->Append(")");
 }
 
@@ -148,7 +114,7 @@ void CXInputDetail::Dump(void)
 void CWinXInput::Init(CWinInput* pcWinInput)
 {
 	mpcWinInput = pcWinInput;
-	XInputEnable(TRUE);
+//	XInputEnable(TRUE);
 	ResetDetails();
 
 	DumpDetails();
@@ -161,7 +127,7 @@ void CWinXInput::Init(CWinInput* pcWinInput)
 //////////////////////////////////////////////////////////////////////////
 void CWinXInput::Kill(void)
 {
-	XInputEnable(FALSE);
+//	XInputEnable(FALSE);
 }
 
 
@@ -175,7 +141,6 @@ void CWinXInput::ResetDetails(void)
 	XINPUT_STATE				sXState;
 	int							i;
 	XINPUT_CAPABILITIES			sXCaps;
-	XINPUT_BATTERY_INFORMATION	sXBattery;
 
 	for (i = 0; i < MAX_XINPUT_CONTROLLERS; i++)
 	{
@@ -186,9 +151,8 @@ void CWinXInput::ResetDetails(void)
 			masXInputDetail[i].bConnected = TRUE;
 
 			XInputGetCapabilities(i, XINPUT_FLAG_GAMEPAD, &sXCaps);
-			XInputGetBatteryInformation(i, sXCaps.Type, &sXBattery);
 			
-			masXInputDetail[i].Init(sXCaps.Type, sXCaps.SubType, sXCaps.Flags, sXBattery.BatteryType);
+			masXInputDetail[i].Init(sXCaps.Type, sXCaps.SubType, sXCaps.Flags);
 		}
 		else
 		{

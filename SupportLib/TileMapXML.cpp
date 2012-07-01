@@ -450,7 +450,7 @@ BOOL CTileMapXML::ImportTiles(CMarkupTag* pcTag, CTileLayer* pcLayer)
 
 	cMemoryFile.Init(szCSV.Text(), szCSV.Length());
 
-	cCSVFile.Init(',', '"');
+	cCSVFile.Init(',');
 	cCSVFile.Open(&cMemoryFile);
 	cCSVFile.ReadAllLines();
 

@@ -37,12 +37,13 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
     <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Game_Debug|Win32'">DebugGame\</OutDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Game_Debug|Win32'">DebugGame\</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Game_Debug|Win32'">Debug\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Game_Debug|Win32'">Debug\</IntDir>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Game_Release|Win32'">Game_Release\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Game_Release|Win32'">Game_Release\</IntDir>
     <IncludePath Condition="'$(Configuration)|$(Platform)'=='Game_Debug|Win32'">$(COMMONLIBRARIES);$(IncludePath);$(DXSDK_DIR)include</IncludePath>
     <IncludePath Condition="'$(Configuration)|$(Platform)'=='Game_Release|Win32'">$(COMMONLIBRARIES);$(IncludePath);$(DXSDK_DIR)include</IncludePath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Game_Debug|Win32'">$(DXSDK_DIR)lib\x86;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Game_Debug|Win32'">
     <ClCompile>
@@ -57,7 +58,7 @@
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
     </ClCompile>
     <Lib>
-      <AdditionalDependencies>d3d9.lib;d3dx9.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>d3dx9.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(ProjectName).lib</OutputFile>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
@@ -79,6 +80,7 @@
     <Lib>
       <AdditionalDependencies>d3d9.lib;d3dx9.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(ProjectName).lib</OutputFile>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>

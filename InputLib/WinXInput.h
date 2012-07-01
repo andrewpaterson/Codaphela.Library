@@ -23,7 +23,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __WIN_X_INPUT_H__
 #define __WIN_X_INPUT_H__
 #include <windows.h>
-#undef XINPUT_USE_9_1_0
+//#undef XINPUT_USE_9_1_0
 #include <XInput.h>
 #include "BaseLib/Define.h"
 #include "InputDevices.h"
@@ -40,11 +40,10 @@ public:
 	unsigned char	ucType;
 	unsigned char	ucSubType;
 	unsigned short	usFlags;
-	unsigned char	ucBattery;
 
 	CChars			szID;
 
-	void Init(unsigned char	ucType, unsigned char ucSubType, unsigned short	usFlags,  unsigned char ucBattery);
+	void Init(unsigned char	ucType, unsigned char ucSubType, unsigned short	usFlags);
 	void Kill(void);
 	void AppendDescription(CChars* sz);
 	void Disconnect(void);
