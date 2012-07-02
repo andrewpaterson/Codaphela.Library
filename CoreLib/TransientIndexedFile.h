@@ -80,7 +80,7 @@ protected:
 	void								RemapCacheOIndexIndices(int iInsertedIndex);
 
 	BOOL								DataFileName(char* szFile1, int iDataSize, int iFileNum);
-	CTransientIndexedFileDescriptor* 	GetFileForNewAllocation(int iDataSize);
+	CTransientIndexedFileDescriptor* 	GetOrCreateFile(int iDataSize);
 	CTransientIndexedFileDescriptor* 	GetFile(int iDataSize, int iFileNum);
 	CTransientIndexedFileDescriptor* 	GetFile(int iFileIndex);
 

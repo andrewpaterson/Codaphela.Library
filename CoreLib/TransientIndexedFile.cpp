@@ -448,7 +448,7 @@ BOOL CTransientIndexedFile::WriteNew(STransientIndexedPointer* psPointer, void* 
 	CTransientIndexedFileDescriptor*	pcFile;
 	int									iIndex;
 
-	pcFile = GetFileForNewAllocation(psPointer->sIndexedMemory.uiSize);
+	pcFile = GetOrCreateFile(psPointer->sIndexedMemory.uiSize);
 
 	iIndex = pcFile->Write(pvData);
 	if (iIndex == -1)
@@ -559,7 +559,7 @@ BOOL CTransientIndexedFile::TestOrder(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CTransientIndexedFileDescriptor* CTransientIndexedFile::GetFileForNewAllocation(int iDataSize)
+CTransientIndexedFileDescriptor* CTransientIndexedFile::GetOrCreateFile(int iDataSize)
 {
 	int									i;
 	CTransientIndexedFileDescriptor*	pcFile;

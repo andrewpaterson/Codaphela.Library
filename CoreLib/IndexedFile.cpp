@@ -85,23 +85,7 @@ BOOL CIndexedFile::IsFull(void)
 //////////////////////////////////////////////////////////////////////////
 int CIndexedFile::Write(void* pvData)
 {
-	filePos		iIndex;
-	int			iWritten;
-
-	iIndex = mcFile.Size();
-	if ((iIndex % miDataSize) != 0)
-	{
-		return -1;
-	}
-	iWritten = mcFile.Write(EFSO_END, 0, pvData, miDataSize, 1);
-	miNumDatas++;
-
-	if (iWritten != 1)
-	{
-		return -1;
-	}
-
-	return (int)(iIndex / miDataSize);
+	return Write(pvData, 1);
 }
 
 
@@ -111,18 +95,53 @@ int CIndexedFile::Write(void* pvData)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexedFile::Write(int iIndex, void* pvData)
 {
+	return Write(iIndex, pvData, 1);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CIndexedFile::Write(void* pvData, int iCount)
+{
+	filePos		iIndex;
+	int			iWritten;
+
+	iIndex = mcFile.Size();
+	if ((iIndex % miDataSize) != 0)
+	{
+		return -1;
+	}
+	iWritten = mcFile.Write(EFSO_END, 0, pvData, miDataSize, iCount);
+	if (iWritten != 1)
+	{
+		return -1;
+	}
+
+	miNumDatas += iCount;
+	return (int)(iIndex / miDataSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexedFile::Write(int iIndex, void* pvData, int iCount)
+{
 	int			iWritten;
 	filePos		iFileLengh;
 	filePos		iPosition;
 
-	iPosition = iIndex*miDataSize;
-	iWritten = mcFile.Write(EFSO_SET, (int)iPosition, pvData, miDataSize, 1);
-	if (iWritten != 1)
+	iPosition = iIndex * miDataSize;
+	iWritten = mcFile.Write(EFSO_SET, (int)iPosition, pvData, miDataSize, iCount);
+	if (iWritten != iCount)
 	{
 		return FALSE;
 	}
 
-	if (iIndex > miNumDatas)
+	if (iIndex + iCount > miNumDatas)
 	{
 		iFileLengh = mcFile.Size();
 		miNumDatas = (int)(iFileLengh / miDataSize);

@@ -28,7 +28,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 class CNamedIndexesBlock
 {
 protected:
-	filePos		muiFilePos;
+	int			miDataIndex;
 	CChars		mszFirst;
 	CChars		mszLast;
 
@@ -40,7 +40,7 @@ protected:
 
 public:
 	void					Init(int iBlockWidth, int iNumBlocks);
-	void					Init(int iBlockWidth, void* pvBlocks, int iNumBlocks, filePos uiFilePos, void* pvCache);
+	void					Init(int iBlockWidth, void* pvBlocks, int iNumBlocks, int iDataIndex, void* pvCache);
 	void					Kill(void);
 
 	BOOL					CouldContain(CChars* szName);
@@ -58,6 +58,7 @@ public:
 	int						GetAllocatedByteSize(void);
 	CNamedIndexedBlock*		GetUnsafe(int iIndex);
 	BOOL					Remove(CChars* szName);
+	BOOL					Write(CIndexedFile* pcFile);
 	void					Dirty(void);
 	int						UsedNames(void);
 	int						GetBlockWidth(void);

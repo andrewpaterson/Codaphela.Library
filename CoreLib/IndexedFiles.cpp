@@ -181,6 +181,7 @@ BOOL CIndexedFiles::DataFileName(char* szFile1, char* szFile2, int iDataSize, in
 	szFileName.Append(iFileNum);
 	szFileName.Append(".");
 	szFileName.Append(mszExtension);
+
 	szRewriteName.Init(mpcDurableFileControl->mszWorkingDirectory);
 	szRewriteName.Append(FILE_SEPARATOR);
 	szRewriteName.Append("_");
@@ -211,13 +212,13 @@ BOOL CIndexedFiles::DataFileName(char* szFile1, char* szFile2, int iDataSize, in
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexedFile* CIndexedFiles::GetFileForNewAllocation(int iDataSize)
+CIndexedFile* CIndexedFiles::GetOrCreateFile(int iDataSize)
 {
-	int							i;
-	CIndexedFile*		pcFile;
-	int							iNumFiles;
-	char						szFileName[65536];
-	char						szRewriteName[65536];
+	int				i;
+	CIndexedFile*	pcFile;
+	int				iNumFiles;
+	char			szFileName[65536];
+	char			szRewriteName[65536];
 
 	iNumFiles = 0;
 	for (i = 0; i < mcFiles.NumElements(); i++)

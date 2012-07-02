@@ -28,6 +28,8 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 BOOL CNamedIndexes::Init(CDurableFileController* pcController, int iCacheSize, int iNewNumBlocks)
 {
+	BOOL	bResult;
+
 	macBlocks.Init(2);
 	mcCache.Init(iCacheSize);
 	mcFiles.Init(pcController, "NAM");
@@ -42,7 +44,13 @@ BOOL CNamedIndexes::Init(CDurableFileController* pcController, int iCacheSize, i
 	AddBlock(1024,  503, 1015, iNewNumBlocks);
 	AddBlock(4096, 1015, 4087, iNewNumBlocks);
 
-	return Load();
+	bResult = Load();
+	if (!bResult)
+	{
+		return FALSE;
+	}
+
+	return TRUE;
 }
 
 

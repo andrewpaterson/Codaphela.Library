@@ -52,12 +52,13 @@ public:
 
 	BOOL	Flush(void);
 	BOOL	Cache(CNamedIndexesBlock* pcBlock);
-	BOOL	AddNewBlock(int iBlockWidth, void* pvBlocks, int iNumBlocks, filePos uiFilePos);
+	BOOL	AddNewBlock(int iBlockWidth, void* pvBlocks, int iNumBlocks, int iDataIndex);
 	int		NumNames(void);
 	
 protected:
 	void*					AllocateInCache(int iSize);
 	CNamedIndexesBlock*		GetNamedIndexesBlock(void* pvCacheMem);
+	void					WriteBlocks(CNamedIndexesBlock* pcNamedIndexes, CArrayBlock* pavFakeBlock);
 };
 
 

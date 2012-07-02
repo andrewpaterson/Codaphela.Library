@@ -34,7 +34,7 @@ BOOL CIndexedDataFiles::WriteNew(CIndexDescriptor* pcDescriptor, void* pvData)
 	iDataSize = pcDescriptor->GetDataSize();
 	if (iDataSize != 0)
 	{
-		pcFile = GetFileForNewAllocation(iDataSize);
+		pcFile = GetOrCreateFile(iDataSize);
 
 		if (pcFile->mbNew)
 		{

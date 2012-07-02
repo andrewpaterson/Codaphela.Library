@@ -36,7 +36,7 @@ void CNamedIndexesBlocks::Init(int iBlockSize, int iMinNameLength, int iMaxNameL
 	miMinNameLength = iMinNameLength;
 	miMaxNameLength = iMaxNameLength;
 	miNewNumBlocks = iNewNumBlocks;
-	miFileNumber = 0;
+	miFileNumber = -1;
 	mpcFiles = pcFiles;
 	mpcCache = pcCache;
 }
@@ -164,7 +164,7 @@ BOOL CNamedIndexesBlocks::Add(OIndex oi, CChars* szName, BOOL bFailOnExisting)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNamedIndexesBlocks::AddNewBlock(int iBlockWidth, void* pvBlocks, int iNumBlocks, filePos uiFilePos)
+BOOL CNamedIndexesBlocks::AddNewBlock(int iBlockWidth, void* pvBlocks, int iNumBlocks, int iDataIndex)
 {
 	CNamedIndexesBlock*		pcBlock;
 	void*					pvCache;
@@ -181,7 +181,7 @@ BOOL CNamedIndexesBlocks::AddNewBlock(int iBlockWidth, void* pvBlocks, int iNumB
 		return FALSE;
 	}
 
-	pcBlock->Init(miBlockWidth, pvBlocks, iNumBlocks, uiFilePos, pvCache);
+	pcBlock->Init(miBlockWidth, pvBlocks, iNumBlocks, iDataIndex, pvCache);
 	return TRUE;
 }
 
@@ -217,10 +217,10 @@ void* CNamedIndexesBlocks::AllocateInCache(int iSize)
 	int							i;
 	SMemoryCacheDescriptor*		psMemoryDesc;
 	int							iDataSize;
-	CArrayBlock					avFakeBlock;
-	CNamedIndexedBlock*			pcBlock;
 	CNamedIndexesBlock*			pcNamedIndexes;
 	void*						pvCacheMem;
+	CIndexedFile*				pcFile;
+	BOOL						bResult;
 
 	apEvicted.Init(128);
 	mpcCache->PreAllocate(iSize, &apEvicted);
@@ -237,14 +237,21 @@ void* CNamedIndexesBlocks::AllocateInCache(int iSize)
 			return NULL;
 		}
 
-		avFakeBlock.Fake(pvCacheMem, pcNamedIndexes->GetBlockWidth(), pcNamedIndexes->GetUsedBlocks());
-
-		int j;
-		for (j = 0; j < pcNamedIndexes->GetUsedBlocks(); j++)
+		if (miFileNumber != -1)
 		{
-			pcBlock = (CNamedIndexedBlock*)avFakeBlock.Get(j);
-			xxx;
-			//These blocks need to be written to disk.
+			pcFile = mpcFiles->GetFile(miBlockWidth, miFileNumber);
+		}
+		else
+		{
+			pcFile = mpcFiles->GetOrCreateFile(miBlockWidth);
+			miFileNumber = pcFile->miFileNumber;
+		}
+		
+		bResult = pcNamedIndexes->Write(pcFile);
+		if (!bResult)
+		{
+			apEvicted.Kill();
+			return FALSE;
 		}
 	}
 
@@ -252,6 +259,7 @@ void* CNamedIndexesBlocks::AllocateInCache(int iSize)
 	pvData = mpcCache->Allocate(iSize);
 	return pvData;
 }
+
 
 
 //////////////////////////////////////////////////////////////////////////

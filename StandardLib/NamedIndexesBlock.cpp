@@ -20,6 +20,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include "BaseObject.h"
 #include "NamedIndexedBlock.h"
+#include "CoreLib/IndexedFile.h"
 #include "NamedIndexesBlock.h"
 
 
@@ -29,7 +30,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CNamedIndexesBlock::Init(int iBlockWidth, int iNumBlocks)
 {
-	muiFilePos = -1LL;
+	miDataIndex = -1;
 	mszFirst.Init();
 	mszLast.Init();
 
@@ -45,21 +46,21 @@ void CNamedIndexesBlock::Init(int iBlockWidth, int iNumBlocks)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNamedIndexesBlock::Init(int iBlockWidth, void* pvBlocks, int iNumBlocks, filePos uiFilePos, void* pvCache)
+void CNamedIndexesBlock::Init(int iBlockWidth, void* pvBlocks, int iNumBlocks, int iDataIndex, void* pvCache)
 {
 	CNamedIndexedBlock*	pcBlock;
 	int					i;
 
-	muiFilePos = uiFilePos;
+	miDataIndex = iDataIndex;
 
 	mpvCachePos = pvCache;
 	miBlockWidth = iBlockWidth;
 	miNumBlocks = iNumBlocks;
 	mbDirty = FALSE;
+	miUsedBlocks = iNumBlocks;
 
 	memcpy_fast(mpvCachePos, pvBlocks, miUsedBlocks * miBlockWidth);
 
-	miUsedBlocks = iNumBlocks;
 	for (i = 0; i < iNumBlocks; i++)
 	{
 		pcBlock = GetUnsafe(i);
@@ -142,7 +143,7 @@ BOOL CNamedIndexesBlock::IsFull(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CNamedIndexesBlock::IsInFile(void)
 {
-	return muiFilePos != -1;
+	return miDataIndex != -1;
 }
 
 
@@ -263,6 +264,16 @@ BOOL CNamedIndexesBlock::Remove(CChars* szName)
 		}
 	}
 	return FALSE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CNamedIndexesBlock::Write(CIndexedFile* pcFile)
+{
+	return pcFile->Write(miDataIndex, mpvCachePos, miNumBlocks);
 }
 
 

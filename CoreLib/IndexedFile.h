@@ -47,6 +47,8 @@ public:
 	BOOL	IsFull(void);
 	int		Write(void* pvData);
 	BOOL	Write(int iIndex, void* pvData);
+	int		Write(void* pvData, int iCount);
+	BOOL	Write(int iIndex, void* pvData, int iCount);
 	BOOL	Read(int iIndex, void* pvData);
 
 	void	Dump(void);

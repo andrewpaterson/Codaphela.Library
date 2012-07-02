@@ -49,7 +49,7 @@ public:
 	void						WriteIndexedFileDescriptors(void);
 	BOOL						DataFileName(char* szFile1, char* szFile2, int iDataSize, int iFileNum);
 
-	CIndexedFile* 				GetFileForNewAllocation(int iDataSize);
+	CIndexedFile* 				GetOrCreateFile(int iDataSize);
 	CIndexedFile* 				GetFile(int iDataSize, int iFileNum);
 	CIndexedFile* 				GetFile(int iFileIndex);
 
