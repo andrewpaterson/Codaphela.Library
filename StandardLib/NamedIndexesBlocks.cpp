@@ -99,6 +99,8 @@ BOOL CNamedIndexesBlocks::Add(OIndex oi, CChars* szName, BOOL bFailOnExisting)
 	CNamedIndexesBlock*		pcNotFullBlock1;
 	CNamedIndexesBlock*		pcNotFullBlock2;
 	CNamedIndexesBlock*		pcNotFullBlock;
+	CIndexedFile*			pcFile;
+	void*					pvCache;
 
 	pcNotFullBlock1 = NULL;
 	pcNotFullBlock2 = NULL;
@@ -156,6 +158,14 @@ BOOL CNamedIndexesBlocks::Add(OIndex oi, CChars* szName, BOOL bFailOnExisting)
 		pcNotFullBlock->Init(miBlockWidth, miNewNumBlocks);
 		Cache(pcNotFullBlock);
 	}
+	else if (!pcNotFullBlock->IsCached())
+	{
+		pcFile = mpcFiles->GetFile(miBlockWidth, miFileNumber);
+		pvCache = AllocateInCache(pcBlock->GetAllocatedByteSize());
+
+		pcNotFullBlock->Cache(pcFile, pvCache);
+	}
+
 	return pcNotFullBlock->AddUnsafe(oi, szName);
 }
 
@@ -192,14 +202,18 @@ BOOL CNamedIndexesBlocks::AddNewBlock(int iBlockWidth, void* pvBlocks, int iNumB
 //////////////////////////////////////////////////////////////////////////
 BOOL CNamedIndexesBlocks::Cache(CNamedIndexesBlock* pcBlock)
 {
+	CIndexedFile*	pcFile;
+	void*			pvCache;
+	
 	if (pcBlock->IsInFile())
 	{
-		return FALSE;
+		pvCache = AllocateInCache(pcBlock->GetAllocatedByteSize());
+		pcFile = mpcFiles->GetFile(miBlockWidth, miFileNumber);
+
+		return pcBlock->Cache(pcFile, pvCache);
 	}
 	else
 	{
-		void* pvCache;
-
 		pvCache = AllocateInCache(pcBlock->GetAllocatedByteSize());
 		return pcBlock->SetCache(pvCache);
 	}
@@ -247,7 +261,7 @@ void* CNamedIndexesBlocks::AllocateInCache(int iSize)
 			miFileNumber = pcFile->miFileNumber;
 		}
 		
-		bResult = pcNamedIndexes->Write(pcFile);
+		bResult = pcNamedIndexes->Uncache(pcFile);
 		if (!bResult)
 		{
 			apEvicted.Kill();
@@ -271,6 +285,7 @@ OIndex CNamedIndexesBlocks::GetIndex(CChars* szName)
 	int						i;
 	CNamedIndexesBlock*		pcBlock;
 	OIndex					oiExisiting;
+	BOOL					bResult;
 
 	for (i = 0; i < macBlocks.NumElements(); i++)
 	{
@@ -279,7 +294,11 @@ OIndex CNamedIndexesBlocks::GetIndex(CChars* szName)
 		{
 			if (!pcBlock->IsCached())
 			{
-				Cache(pcBlock);
+				bResult = Cache(pcBlock);
+				if (!bResult)
+				{
+					INVALID_OBJECT_IDENTIFIER;
+				}
 			}
 
 			oiExisiting = pcBlock->GetIndex(szName);
@@ -390,3 +409,22 @@ BOOL CNamedIndexesBlocks::Flush(void)
 	return FALSE;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CNamedIndexesBlocks::GetPotentialContainingBlocks(CChars* szName, CArrayNamedIndexesBlockPtr* pcDest)
+{
+	int						i;
+	CNamedIndexesBlock*		pcBlock;
+
+	for (i = 0; i < macBlocks.NumElements(); i++)
+	{
+		pcBlock = macBlocks.Get(i);
+		if (pcBlock->CouldContain(szName))
+		{
+			pcDest->Add(&pcBlock);
+		}
+	}
+}

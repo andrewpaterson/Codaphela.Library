@@ -54,6 +54,7 @@ public:
 	BOOL	Cache(CNamedIndexesBlock* pcBlock);
 	BOOL	AddNewBlock(int iBlockWidth, void* pvBlocks, int iNumBlocks, int iDataIndex);
 	int		NumNames(void);
+	void	GetPotentialContainingBlocks(CChars* szName, CArrayNamedIndexesBlockPtr* pcDest);
 	
 protected:
 	void*					AllocateInCache(int iSize);

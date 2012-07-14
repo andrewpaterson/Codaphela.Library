@@ -112,7 +112,7 @@ BOOL CNamedIndexesBlocksLoader::Load(void)
 		{
 			iOffset = miBlockWidth * i * miNewNumBlocks;
 			psName = (CNamedIndexedBlock*)RemapSinglePointer(mpvTemp, iOffset);
-			mpcBlocks->AddNewBlock(miBlockWidth, psName, miNewNumBlocks, ulliPos + iOffset);
+			mpcBlocks->AddNewBlock(miBlockWidth, psName, miNewNumBlocks, (int)ulliPos + iOffset);
 		}
 
 		ulliPos += iChunk;

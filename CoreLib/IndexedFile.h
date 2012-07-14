@@ -50,6 +50,7 @@ public:
 	int		Write(void* pvData, int iCount);
 	BOOL	Write(int iIndex, void* pvData, int iCount);
 	BOOL	Read(int iIndex, void* pvData);
+	BOOL	Read(int iIndex, void* pvData, int iCount);
 
 	void	Dump(void);
 };

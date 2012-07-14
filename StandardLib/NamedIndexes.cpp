@@ -159,7 +159,7 @@ OIndex CNamedIndexes::GetIndex(CChars* szName)
 {
 	CNamedIndexesBlocks*	pcBlock;
 
-	if (szName)
+	if ((szName) && !szName->Empty())
 	{
 		pcBlock = GetBlock(szName->Length());
 		if (pcBlock)
@@ -231,7 +231,6 @@ BOOL CNamedIndexes::Flush(void)
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -284,4 +283,38 @@ int CNamedIndexes::NumNames(void)
 		iNames += pcBlock->NumNames();
 	}
 	return iNames;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CNamedIndexes::TestGetPotentialContainingBlocks(char* szName, CArrayNamedIndexesBlockPtr* pcDest)
+{
+	int						i;
+	CNamedIndexesBlocks*	pcBlock;
+	int						iNameLength;
+	CChars	szFake;
+
+	if (!szName)
+	{
+		return;
+	}
+
+	szFake.Fake(szName);
+	if (szFake.Empty())
+	{
+		return;
+	}
+	
+	iNameLength = (int)strlen(szName);
+	for (i = 0; i < macBlocks.NumElements(); i++)
+	{
+		pcBlock = macBlocks.Get(i);
+		if (pcBlock->FitsLength(iNameLength))
+		{
+			pcBlock->GetPotentialContainingBlocks(&szFake, pcDest);
+		}
+	}
 }

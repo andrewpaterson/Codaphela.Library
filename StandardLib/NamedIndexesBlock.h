@@ -51,24 +51,33 @@ public:
 	BOOL					IsEmpty(void);
 	BOOL					IsCache(void* pvCachePos);
 
+	int						GetUsedByteSize(void);
+	int						GetAllocatedByteSize(void);
+
 	BOOL					AddUnsafe(OIndex oi, CChars* szName);
 	OIndex					GetIndex(CChars* szName);
 	BOOL					SetCache(void* pvCache);
-	int						GetUsedByteSize(void);
-	int						GetAllocatedByteSize(void);
-	CNamedIndexedBlock*		GetUnsafe(int iIndex);
 	BOOL					Remove(CChars* szName);
-	BOOL					Write(CIndexedFile* pcFile);
 	void					Dirty(void);
+	BOOL					Uncache(CIndexedFile* pcFile);
+	BOOL					Cache(CIndexedFile* pcFile, void* pvCache);
 	int						UsedNames(void);
 	int						GetBlockWidth(void);
 	int						GetNumBlocks(void);
 	int						GetUsedBlocks(void);
+	char*					GetFirst(void);
+	char*					GetLast(void);
+	void					Dump(void);
+	void					Dump(CArrayBlock* pavFakeBlock);
 
+private:
+	BOOL					Write(CIndexedFile* pcFile);
+	CNamedIndexedBlock*		GetUnsafe(int iIndex);
 };
 
 
 typedef CArrayTemplate<CNamedIndexesBlock>	CArrayNamedIndexesBlock;
+typedef CArrayTemplate<CNamedIndexesBlock*>	CArrayNamedIndexesBlockPtr;
 
 
 #endif // __NAMED_INDEXES_BLOCK_H__

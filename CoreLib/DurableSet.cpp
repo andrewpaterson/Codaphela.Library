@@ -60,6 +60,8 @@ BOOL CDurableSet::Recover(void)
 	BOOL		bMarkStart;
 	BOOL		bMarkRewrite;
 
+	//This assumes begin has NOT been called.
+
 	bMarkStart = cFileUtil.Exists(mszMarkStart.Text());
 	bMarkRewrite = cFileUtil.Exists(mszMarkRewrite.Text());
 

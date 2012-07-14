@@ -49,6 +49,8 @@ public:
 
 	BOOL	Flush(void);
 
+	void	TestGetPotentialContainingBlocks(char* szName, CArrayNamedIndexesBlockPtr* pcDest);
+
 protected:
 	CNamedIndexesBlocks*	GetBlock(int iNameLength);
 	CNamedIndexesBlocks*	AddBlock(int iBlockSize, int iMinNameLength, int iMaxNameLength, int iNewNumBlocks);
