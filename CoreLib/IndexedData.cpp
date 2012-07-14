@@ -741,7 +741,7 @@ void CIndexedData::DurableBegin(void)
 {
 	if (mbDurable)
 	{
-		mcDurableFileControl.mcDurableSet.Begin();
+		mcDurableFileControl.Begin();
 	}
 }
 
@@ -754,7 +754,7 @@ void CIndexedData::DurableEnd(void)
 {
 	if (mbDurable)
 	{
-		mcDurableFileControl.mcDurableSet.End();
+		mcDurableFileControl.End();
 	}
 }
 

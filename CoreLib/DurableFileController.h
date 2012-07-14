@@ -29,18 +29,26 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 class CDurableFileController
 {
-public:
+private:
 	CDurableSet		mcDurableSet;
 	CChars			mszWorkingDirectory;
 	BOOL			mbDurable;
 
+public:
 	void			Init(char* szWorkingDirectory, BOOL bDurable);
 	void			Kill(void);
+
+	BOOL			Begin(void);
+	BOOL			End(void);
 
 	void			AddFile(CDurableFile* pcFile);
 
 	BOOL			MakeDir(char* szPathName);
 	BOOL			RemoveDir(char* szPathName);
+
+	BOOL			IsBegun(void);
+	char*			GetWorkingDirectory(void);
+	BOOL			IsDurable(void);
 };
 
 

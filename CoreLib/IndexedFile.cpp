@@ -37,7 +37,7 @@ void CIndexedFile::Init(CDurableFileController* pcDurableFileControl, int iFileI
 	miDataSize = iDataSize;
 	miFileNumber = iFileNum;
 
-	mcFile.Init(pcDurableFileControl->mbDurable, mszFileName.Text(), mszRewriteName.Text());
+	mcFile.Init(pcDurableFileControl->IsDurable(), mszFileName.Text(), mszRewriteName.Text());
 	pcDurableFileControl->AddFile(&mcFile);
 	mcFile.Open();
 
@@ -45,7 +45,7 @@ void CIndexedFile::Init(CDurableFileController* pcDurableFileControl, int iFileI
 	miNumDatas = (int)(iFileLengh / iDataSize);
 	mbNew = TRUE;
 
-	if (pcDurableFileControl->mcDurableSet.HasBegun())
+	if (pcDurableFileControl->IsBegun())
 	{
 		mcFile.Begin();
 	}

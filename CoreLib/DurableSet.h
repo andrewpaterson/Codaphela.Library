@@ -31,6 +31,7 @@ typedef CArrayTemplate<CDurableFile*>	CArrayDurableFilePtr;
 
 class CDurableSet
 {
+private:
 	CArrayDurableFilePtr	mapcFiles;
 	CChars					mszMarkStart;
 	CChars					mszMarkRewrite;

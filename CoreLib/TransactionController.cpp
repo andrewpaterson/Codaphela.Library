@@ -195,7 +195,7 @@ BOOL CTransactionController::CommitTransaction(CTransaction* pcTransaction)
 	}
 
 	msState.muiTimeStamp++;
-	mcIndexedData.mcDurableFileControl.mcDurableSet.Begin();
+	mcIndexedData.mcDurableFileControl.Begin();
 
 	iNumDatas = pcTransaction->NumDatas();
 	for (i = 0; i < iNumDatas; i++)
@@ -218,7 +218,7 @@ BOOL CTransactionController::CommitTransaction(CTransaction* pcTransaction)
 		WriteState();
 	}
 
-	mcIndexedData.mcDurableFileControl.mcDurableSet.End();
+	mcIndexedData.mcDurableFileControl.End();
 
 	return TRUE;
 }

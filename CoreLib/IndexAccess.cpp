@@ -81,6 +81,6 @@ void CIndexAccess::Begin(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexAccess::HasBegun(void)
 {
-	return mpcDescriptorsFile->mpcDurableFileControl->mcDurableSet.HasBegun();
+	return mpcDescriptorsFile->mpcDurableFileControl->IsBegun();
 }
 

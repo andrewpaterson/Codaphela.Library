@@ -32,7 +32,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 void CIndexDescriptorsFile::Init(CDurableFileController* pcDurableFileControl, char* szFileName, char* szRewriteName)
 {
 	mpcDurableFileControl = pcDurableFileControl;
-	mcIndexedDescriptorFile.Init(pcDurableFileControl->mbDurable, szFileName, szRewriteName);
+	mcIndexedDescriptorFile.Init(pcDurableFileControl->IsDurable(), szFileName, szRewriteName);
 	pcDurableFileControl->AddFile(&mcIndexedDescriptorFile);
 	mcIndexedDescriptorFile.Open();
 }
