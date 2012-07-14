@@ -55,11 +55,14 @@ public:
 	BOOL	AddNewBlock(int iBlockWidth, void* pvBlocks, int iNumBlocks, int iDataIndex);
 	int		NumNames(void);
 	void	GetPotentialContainingBlocks(CChars* szName, CArrayNamedIndexesBlockPtr* pcDest);
+	void	SortBlockPtrsCachedFirst(CArrayNamedIndexesBlockPtr* pcDest);
 	
 protected:
 	void*					AllocateInCache(int iSize);
 	CNamedIndexesBlock*		GetNamedIndexesBlock(void* pvCacheMem);
 	void					WriteBlocks(CNamedIndexesBlock* pcNamedIndexes, CArrayBlock* pavFakeBlock);
+	int						FindLastCachedBlock(CArrayNamedIndexesBlockPtr* pcDest, int iEnd);
+	int						FindFirstUncachedBlock(CArrayNamedIndexesBlockPtr* pcDest, int iStart);
 };
 
 
