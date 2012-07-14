@@ -42,7 +42,7 @@ public:
 	BOOL			mbNew;
 
 	void	Init(CDurableFileController* pcDurableFileControl, int iFileIndex, char* szFileName, char* szRewriteName, int iDataSize, int iFileNum);
-	void	Kill(void);
+	BOOL	Kill(void);
 	void	GetFileName(char* szName);
 	BOOL	IsFull(void);
 	int		Write(void* pvData);

@@ -32,7 +32,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 class CTransientIndexedFileDescriptor
 {
 public:
-	int				miFileIndex;
+	int				miFileIndex;  //I'm not sure what this is.
 	CFileBasic		mcFile;
 	int				miDataSize;
 	int				miNumDatas;

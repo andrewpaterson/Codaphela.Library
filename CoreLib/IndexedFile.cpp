@@ -56,12 +56,15 @@ void CIndexedFile::Init(CDurableFileController* pcDurableFileControl, int iFileI
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedFile::Kill(void)
+BOOL CIndexedFile::Kill(void)
 {
+	BOOL bResult;
+
 	miNumDatas = 0;
-	mcFile.Close();
+	bResult = mcFile.Close();
 	mszFileName.Kill();
 	mszRewriteName.Kill();
+	return bResult;
 }
 
 
@@ -114,7 +117,7 @@ int CIndexedFile::Write(void* pvData, int iCount)
 		return -1;
 	}
 	iWritten = mcFile.Write(EFSO_END, 0, pvData, miDataSize, iCount);
-	if (iWritten != 1)
+	if (iWritten != iCount)
 	{
 		return -1;
 	}

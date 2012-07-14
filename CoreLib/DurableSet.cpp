@@ -63,7 +63,7 @@ BOOL CDurableSet::Recover(void)
 	bMarkStart = cFileUtil.Exists(mszMarkStart.Text());
 	bMarkRewrite = cFileUtil.Exists(mszMarkRewrite.Text());
 
-	//If neither then in theory everything is Okay.
+	//If neither then in theory everything is okay.
 	if ((!bMarkStart) && (!bMarkRewrite))
 	{
 		return TestFilesIdentical();
@@ -104,17 +104,20 @@ BOOL CDurableSet::Recover(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDurableSet::Begin(void)
+BOOL CDurableSet::Begin(void)
 {
 	int				i;
 	CDurableFile*	pcDurable;
+	BOOL			bResult;
 
+	bResult = TRUE;
 	mbBegun = TRUE;
 	for (i = 0; i < mapcFiles.NumElements(); i++)
 	{
 		pcDurable = *mapcFiles.Get(i);
-		pcDurable->Begin();
+		bResult &= pcDurable->Begin();
 	}
+	return bResult;
 }
 
 
@@ -122,25 +125,33 @@ void CDurableSet::Begin(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDurableSet::End(void)
+BOOL CDurableSet::End(void)
 {
 	int				i;
 	CDurableFile*	pcDurable;
+	BOOL			bResult;
 
+	bResult = TRUE;
 	MarkStart();
 	for (i = 0; i < mapcFiles.NumElements(); i++)
 	{
 		pcDurable = *mapcFiles.Get(i);
-		pcDurable->End();
+		bResult &= pcDurable->End();
 	}
+	ReturnOnFalse(bResult);
+
+	bResult = TRUE;
 	MarkRewrite();
 	for (i = 0; i < mapcFiles.NumElements(); i++)
 	{
 		pcDurable = *mapcFiles.Get(i);
-		pcDurable->Rewrite();
+		bResult &= pcDurable->Rewrite();
 	}
+	ReturnOnFalse(bResult);
+
 	MarkFinish();
 	mbBegun = FALSE;
+	return TRUE;
 }
 
 
@@ -148,9 +159,15 @@ void CDurableSet::End(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDurableSet::Add(CDurableFile* pcFile)
+BOOL CDurableSet::Add(CDurableFile* pcFile)
 {
 	mapcFiles.Add(&pcFile);
+
+	if (mbBegun)
+	{
+		return pcFile->Begin();
+	}
+	return TRUE;
 }
 
 

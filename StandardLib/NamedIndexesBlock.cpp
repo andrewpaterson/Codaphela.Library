@@ -273,6 +273,17 @@ BOOL CNamedIndexesBlock::Remove(CChars* szName)
 //////////////////////////////////////////////////////////////////////////
 BOOL CNamedIndexesBlock::Write(CIndexedFile* pcFile)
 {
+	int		iIndex;
+
+	if (!IsInFile())
+	{
+		iIndex = pcFile->Write(mpvCachePos, miNumBlocks);
+		if (iIndex == -1)
+		{
+			return FALSE;
+		}
+		miDataIndex = iIndex;
+	}
 	return pcFile->Write(miDataIndex, mpvCachePos, miNumBlocks);
 }
 

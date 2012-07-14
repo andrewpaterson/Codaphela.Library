@@ -348,6 +348,7 @@ BOOL CDurableFile::Close(void)
 	{
 		return FALSE;
 	}
+
 	if (mpcPrimaryFile->IsOpen())
 	{
 		mpcPrimaryFile->Close();

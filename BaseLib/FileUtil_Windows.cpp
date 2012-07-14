@@ -70,6 +70,7 @@ BOOL CFileUtil::RemoveDir(char* szPathName)
 	BOOL				bContinue;
 	BOOL				bValid;
 	CChars				szDirectory;
+	BOOL				bDeleted;
 
 	szDirectory.Init(szPathName);
 	RemoveFileSeparator(&szDirectory);
@@ -79,6 +80,7 @@ BOOL CFileUtil::RemoveDir(char* szPathName)
 
 	hFindHandle = FindFirstFile(szFindName.Text(), &sFindData);
 	bContinue = (hFindHandle != INVALID_HANDLE_VALUE);
+	bDeleted = TRUE;
 	while (bContinue)
 	{
 		bValid = TRUE;
@@ -96,7 +98,7 @@ BOOL CFileUtil::RemoveDir(char* szPathName)
 		{
 			szTemp.Init(szPathName);
 			AppendToPath(&szTemp, sFindData.cFileName);
-			DeleteFile(szTemp.Text());
+			bDeleted &= DeleteFile(szTemp.Text());
 			szTemp.Kill();
 		}
 		bContinue = FindNextFile(hFindHandle, &sFindData);
@@ -106,7 +108,7 @@ BOOL CFileUtil::RemoveDir(char* szPathName)
 
 	szDirectory.Kill();
 	szFindName.Kill();
-	return TRUE;
+	return bDeleted;
 }
 
 

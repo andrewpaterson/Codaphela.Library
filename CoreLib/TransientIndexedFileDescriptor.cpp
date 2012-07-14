@@ -33,6 +33,7 @@ void CTransientIndexedFileDescriptor::Init(int iFileIndex, char* szFileName, int
 	int		iFileLengh;
 
 	miFileIndex = iFileIndex;
+
 	mszFileName.Init(szFileName);
 	miDataSize = iDataSize;
 	miFileNumber = iFileNum;
