@@ -1,6 +1,7 @@
 #include "BaseLib/PointerFunctions.h"
 #include "CoreLib/IndexedFiles.h"
 #include "NamedIndexesBlocks.h"
+#include "NamedIndexes.h"
 #include "NamedIndexesBlocksLoader.h"
 
 
@@ -10,7 +11,7 @@
 //////////////////////////////////////////////////////////////////////////
 void CNamedIndexesBlocksLoader::Init(CNamedIndexesBlocks* pcBlocks)
 {
-	mpcFile = pcBlocks->mpcFiles->GetFile(pcBlocks->miBlockWidth, pcBlocks->miFileNumber);
+	mpcFile = pcBlocks->mpcNamedIndexes->GetFile(pcBlocks->miBlockWidth, pcBlocks->miFileNumber);
 	if (!mpcFile)
 	{
 		mpvTemp = NULL;

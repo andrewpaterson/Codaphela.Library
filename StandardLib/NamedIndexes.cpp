@@ -62,6 +62,8 @@ void CNamedIndexes::Kill(void)
 {
 	int						i;
 	CNamedIndexesBlocks*	pcBlock;
+	
+	Save();
 
 	for (i = 0; i < macBlocks.NumElements(); i++)
 	{
@@ -72,6 +74,23 @@ void CNamedIndexes::Kill(void)
 
 	mcCache.Kill();
 	mcFiles.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CNamedIndexes::Save(void)
+{
+	int						i;
+	CNamedIndexesBlocks*	pcBlock;
+
+	for (i = 0; i < macBlocks.NumElements(); i++)
+	{
+		pcBlock = macBlocks.Get(i);
+		pcBlock->Save();
+	}
 }
 
 
@@ -261,7 +280,7 @@ CNamedIndexesBlocks* CNamedIndexes::AddBlock(int iBlockSize, int iMinNameLength,
 	CNamedIndexesBlocks*	pcBlock;
 
 	pcBlock = macBlocks.Add();
-	pcBlock->Init(iBlockSize, iMinNameLength, iMaxNameLength, iNewNumBlocks, &mcCache, &mcFiles);
+	pcBlock->Init(iBlockSize, iMinNameLength, iMaxNameLength, iNewNumBlocks, this);
 	return pcBlock;
 }
 
@@ -283,6 +302,128 @@ int CNamedIndexes::NumNames(void)
 		iNames += pcBlock->NumNames();
 	}
 	return iNames;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void* CNamedIndexes::AllocateInCache(int iSize)
+{
+	void*						pvData;
+	CArrayPointer				apEvicted;
+	int							i;
+	SMemoryCacheDescriptor*		psMemoryDesc;
+	int							iCacheDescriptorSize;
+	CNamedIndexesBlock*			pcNamedIndexes;
+	void*						pvCacheMem;
+	CIndexedFile*				pcFile;
+	BOOL						bResult;
+	CNamedIndexesBlocks*		pcBlocks;
+
+	apEvicted.Init(128);
+	mcCache.PreAllocate(iSize, &apEvicted);
+
+	for (i = 0; i < apEvicted.NumElements(); i++)
+	{
+		psMemoryDesc = (SMemoryCacheDescriptor *)apEvicted.GetPtr(i);
+		iCacheDescriptorSize = psMemoryDesc->iDataSize;
+		pcBlocks = GetBlockForCacheDescriptorSize(iCacheDescriptorSize);
+		if (!pcBlocks)
+		{
+			return NULL;
+		}
+
+		pvCacheMem = RemapSinglePointer(psMemoryDesc, sizeof(SMemoryCacheDescriptor));
+		pcNamedIndexes = pcBlocks->GetNamedIndexesBlock(pvCacheMem);
+		if (!pcNamedIndexes)
+		{
+			return NULL;
+		}
+
+		pcFile = GetOrCreateFile(pcBlocks->GetDataSize(), pcBlocks->GetFileNumber());
+		pcBlocks->SetFileNumber(pcFile->miFileNumber);
+		if (!pcFile)
+		{
+			return NULL;
+		}
+
+		bResult = pcNamedIndexes->Uncache(pcFile);
+		if (!bResult)
+		{
+			apEvicted.Kill();
+			return NULL;
+		}
+	}
+
+	apEvicted.Kill();
+	pvData = mcCache.Allocate(iSize);
+	return pvData;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CIndexedFile* CNamedIndexes::GetOrCreateFile(int iDataSize, int iFileNumber)
+{
+	CIndexedFile*	pcFile;
+
+	if (iFileNumber != -1)
+	{
+		pcFile = GetFile(iDataSize, iFileNumber);
+	}
+	else
+	{
+		pcFile = mcFiles.GetOrCreateFile(iDataSize);
+	}
+
+	return pcFile;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CIndexedFile* CNamedIndexes::GetFile(int iDataSize, int iFileNumber)
+{
+	return mcFiles.GetFile(iDataSize, iFileNumber);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CNamedIndexesBlocks* CNamedIndexes::GetBlockForCacheDescriptorSize(int iCacheDescriptorSize)
+{
+	int						i;
+	CNamedIndexesBlocks*	pcBlock;
+	CNamedIndexesBlocks*	pcFoundBlock;
+	int						iNumFound;
+
+	iNumFound = 0;
+	for (i = 0; i < macBlocks.NumElements(); i++)
+	{
+		pcBlock = macBlocks.Get(i);
+		if (pcBlock->GetCacheDescriptorSize() == iCacheDescriptorSize)
+		{
+			iNumFound++;
+			pcFoundBlock =  pcBlock;
+		}
+	}
+
+	if (iNumFound == 1)
+	{
+		return pcFoundBlock;
+	}
+	else
+	{
+		return NULL;
+	}
 }
 
 
@@ -318,3 +459,14 @@ void CNamedIndexes::TestGetPotentialContainingBlocks(char* szName, CArrayNamedIn
 		}
 	}
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CNamedIndexesBlocks* CNamedIndexes::TestGetBlock(int iNameLength)
+{
+	return GetBlock(iNameLength);
+}
+

@@ -50,6 +50,7 @@ public:
 	BOOL					IsInFile(void);
 	BOOL					IsEmpty(void);
 	BOOL					IsCache(void* pvCachePos);
+	BOOL					IsDirty(void);
 
 	int						GetUsedByteSize(void);
 	int						GetAllocatedByteSize(void);
@@ -69,9 +70,9 @@ public:
 	char*					GetLast(void);
 	void					Dump(void);
 	void					Dump(CArrayBlock* pavFakeBlock);
+	BOOL					Write(CIndexedFile* pcFile);
 
 private:
-	BOOL					Write(CIndexedFile* pcFile);
 	CNamedIndexedBlock*		GetUnsafe(int iIndex);
 };
 

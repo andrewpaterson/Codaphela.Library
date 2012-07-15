@@ -22,6 +22,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/MemoryCache.h"
 #include "CoreLib/IndexedFiles.h"
 #include "NamedIndexesBlocksLoader.h"
+#include "NamedIndexes.h"
 #include "NamedIndexesBlocks.h"
 
 
@@ -29,7 +30,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNamedIndexesBlocks::Init(int iBlockSize, int iMinNameLength, int iMaxNameLength, int iNewNumBlocks, CMemoryCache* pcCache, CIndexedFiles* pcFiles)
+void CNamedIndexesBlocks::Init(int iBlockSize, int iMinNameLength, int iMaxNameLength, int iNewNumBlocks, CNamedIndexes* pcNamedIndexes)
 {
 	macBlocks.Init(1);
 	miBlockWidth = iBlockSize;
@@ -37,8 +38,7 @@ void CNamedIndexesBlocks::Init(int iBlockSize, int iMinNameLength, int iMaxNameL
 	miMaxNameLength = iMaxNameLength;
 	miNewNumBlocks = iNewNumBlocks;
 	miFileNumber = -1;
-	mpcFiles = pcFiles;
-	mpcCache = pcCache;
+	mpcNamedIndexes = pcNamedIndexes;
 }
 
 
@@ -73,6 +73,32 @@ BOOL CNamedIndexesBlocks::Load(void)
 	bResult = cLoader.Load();
 	cLoader.Kill();
 
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CNamedIndexesBlocks::Save(void)
+{
+	int						i;
+	CNamedIndexesBlock*		pcBlock;
+	CIndexedFile*			pcFile;
+	BOOL					bResult;
+
+	bResult = TRUE;
+	for (i = 0; i < macBlocks.NumElements(); i++)
+	{
+		pcBlock = macBlocks.Get(i);
+		if (pcBlock->IsCached() && pcBlock->IsDirty())
+		{
+			pcFile = mpcNamedIndexes->GetOrCreateFile(miBlockWidth, miFileNumber);
+			miFileNumber = pcFile->miFileNumber;
+			bResult &= pcBlock->Write(pcFile);
+		}
+	}
 	return bResult;
 }
 
@@ -154,8 +180,8 @@ BOOL CNamedIndexesBlocks::Add(OIndex oi, CChars* szName, BOOL bFailOnExisting)
 	}
 	else if (!pcNotFullBlock->IsCached())
 	{
-		pcFile = mpcFiles->GetFile(miBlockWidth, miFileNumber);
-		pvCache = AllocateInCache(pcBlock->GetAllocatedByteSize());
+		pcFile = mpcNamedIndexes->GetFile(miBlockWidth, miFileNumber);
+		pvCache = mpcNamedIndexes->AllocateInCache(pcBlock->GetAllocatedByteSize());
 
 		pcNotFullBlock->Cache(pcFile, pvCache);
 	}
@@ -179,7 +205,7 @@ BOOL CNamedIndexesBlocks::AddNewBlock(int iBlockWidth, void* pvBlocks, int iNumB
 		return FALSE;
 	}
 
-	pvCache = AllocateInCache(miNewNumBlocks * miBlockWidth);
+	pvCache = mpcNamedIndexes->AllocateInCache(miNewNumBlocks * miBlockWidth);
 	if (!pvCache)
 	{
 		return FALSE;
@@ -201,73 +227,17 @@ BOOL CNamedIndexesBlocks::Cache(CNamedIndexesBlock* pcBlock)
 	
 	if (pcBlock->IsInFile())
 	{
-		pvCache = AllocateInCache(pcBlock->GetAllocatedByteSize());
-		pcFile = mpcFiles->GetFile(miBlockWidth, miFileNumber);
+		pvCache = mpcNamedIndexes->AllocateInCache(pcBlock->GetAllocatedByteSize());
+		pcFile = mpcNamedIndexes->GetFile(miBlockWidth, miFileNumber);
 
 		return pcBlock->Cache(pcFile, pvCache);
 	}
 	else
 	{
-		pvCache = AllocateInCache(pcBlock->GetAllocatedByteSize());
+		pvCache = mpcNamedIndexes->AllocateInCache(pcBlock->GetAllocatedByteSize());
 		return pcBlock->SetCache(pvCache);
 	}
 }
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void* CNamedIndexesBlocks::AllocateInCache(int iSize)
-{
-	void*						pvData;
-	CArrayPointer				apEvicted;
-	int							i;
-	SMemoryCacheDescriptor*		psMemoryDesc;
-	int							iDataSize;
-	CNamedIndexesBlock*			pcNamedIndexes;
-	void*						pvCacheMem;
-	CIndexedFile*				pcFile;
-	BOOL						bResult;
-
-	apEvicted.Init(128);
-	mpcCache->PreAllocate(iSize, &apEvicted);
-
-	for (i = 0; i < apEvicted.NumElements(); i++)
-	{
-		psMemoryDesc = (SMemoryCacheDescriptor *)apEvicted.GetPtr(i);
-		iDataSize = psMemoryDesc->iDataSize;
-		pvCacheMem = RemapSinglePointer(psMemoryDesc, sizeof(SMemoryCacheDescriptor));
-		pcNamedIndexes = GetNamedIndexesBlock(pvCacheMem);
-		if (pcNamedIndexes == NULL)
-		{
-			//Somethings broken.
-			return NULL;
-		}
-
-		if (miFileNumber != -1)
-		{
-			pcFile = mpcFiles->GetFile(miBlockWidth, miFileNumber);
-		}
-		else
-		{
-			pcFile = mpcFiles->GetOrCreateFile(miBlockWidth);
-			miFileNumber = pcFile->miFileNumber;
-		}
-		
-		bResult = pcNamedIndexes->Uncache(pcFile);
-		if (!bResult)
-		{
-			apEvicted.Kill();
-			return FALSE;
-		}
-	}
-
-	apEvicted.Kill();
-	pvData = mpcCache->Allocate(iSize);
-	return pvData;
-}
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -309,27 +279,6 @@ OIndex CNamedIndexesBlocks::GetIndex(CChars* szName)
 
 	cArrayBlockPrts.Kill();
 	return INVALID_OBJECT_IDENTIFIER;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CNamedIndexesBlock* CNamedIndexesBlocks::GetNamedIndexesBlock(void* pvCacheMem)
-{
-	int						i;
-	CNamedIndexesBlock*		pcBlock;
-
-	for (i = 0; i < macBlocks.NumElements(); i++)
-	{
-		pcBlock = macBlocks.Get(i);
-		if (pcBlock->IsCache(pvCacheMem))
-		{
-			return pcBlock;
-		}
-	}
-	return NULL;
 }
 
 
@@ -480,6 +429,27 @@ void CNamedIndexesBlocks::SortBlockPtrsCachedFirst(CArrayNamedIndexesBlockPtr* p
 //
 //
 //////////////////////////////////////////////////////////////////////////
+CNamedIndexesBlock* CNamedIndexesBlocks::GetNamedIndexesBlock(void* pvCacheMem)
+{
+	int						i;
+	CNamedIndexesBlock*		pcBlock;
+
+	for (i = 0; i < macBlocks.NumElements(); i++)
+	{
+		pcBlock = macBlocks.Get(i);
+		if (pcBlock->IsCache(pvCacheMem))
+		{
+			return pcBlock;
+		}
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 int CNamedIndexesBlocks::FindLastCachedBlock(CArrayNamedIndexesBlockPtr* pcDest, int iEnd)
 {
 	int						i;
@@ -517,4 +487,22 @@ int CNamedIndexesBlocks::FindFirstUncachedBlock(CArrayNamedIndexesBlockPtr* pcDe
 	return -1;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CNamedIndexesBlocks::GetCacheDescriptorSize(void) 
+{ 
+	return miBlockWidth * miNewNumBlocks; 
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CNamedIndexesBlocks::GetDataSize(void) { return miBlockWidth; }
+int CNamedIndexesBlocks::GetFileNumber(void) { return miFileNumber; }
+void CNamedIndexesBlocks::SetFileNumber(int iFileNumber) { miFileNumber = iFileNumber; }
 

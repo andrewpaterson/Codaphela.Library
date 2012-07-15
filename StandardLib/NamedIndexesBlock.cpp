@@ -290,6 +290,7 @@ BOOL CNamedIndexesBlock::Write(CIndexedFile* pcFile)
 		}
 		miDataIndex = iIndex;
 	}
+	mbDirty = FALSE;
 	return pcFile->Write(miDataIndex, mpvCachePos, miNumBlocks);
 }
 
@@ -481,3 +482,4 @@ int CNamedIndexesBlock::GetNumBlocks(void) { return miNumBlocks; }
 int CNamedIndexesBlock::GetUsedBlocks(void) { return miUsedBlocks; }
 char* CNamedIndexesBlock::GetFirst(void) { return mszFirst.Text(); }
 char* CNamedIndexesBlock::GetLast(void) { return mszLast.Text(); }
+BOOL CNamedIndexesBlock::IsDirty(void) { return mbDirty; }

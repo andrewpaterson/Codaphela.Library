@@ -35,24 +35,30 @@ protected:
 	CIndexedFiles				mcFiles;
 
 public:
-	BOOL	Init(CDurableFileController* pcController, int iCacheSize, int iNewNumBlocks);
-	void	Kill(void);
-	BOOL	Load(void);
+	BOOL					Init(CDurableFileController* pcController, int iCacheSize, int iNewNumBlocks);
+	void					Kill(void);
+	BOOL					Load(void);
+	void					Save(void);
 
-	BOOL	Add(OIndex oi, char* szName, BOOL bFailOnExisting = TRUE);
-	BOOL	Add(OIndex oi, CChars* szName, BOOL bFailOnExisting = TRUE);
-	OIndex	GetIndex(char* szName);
-	OIndex	GetIndex(CChars* szName);
-	BOOL	Remove(char* szName);
-	BOOL	Remove(CChars* szName);
-	int		NumNames(void);
+	BOOL					Add(OIndex oi, char* szName, BOOL bFailOnExisting = TRUE);
+	BOOL					Add(OIndex oi, CChars* szName, BOOL bFailOnExisting = TRUE);
+	OIndex					GetIndex(char* szName);
+	OIndex					GetIndex(CChars* szName);
+	BOOL					Remove(char* szName);
+	BOOL					Remove(CChars* szName);
+	int						NumNames(void);
 
-	BOOL	Flush(void);
+	BOOL					Flush(void);
+	CIndexedFile*			GetFile(int iDataSize, int iFileNumber);
+	CIndexedFile*			GetOrCreateFile(int iDataSize, int iFileNumber);
+	void*					AllocateInCache(int iSize);
 
-	void	TestGetPotentialContainingBlocks(char* szName, CArrayNamedIndexesBlockPtr* pcDest);
+	void					TestGetPotentialContainingBlocks(char* szName, CArrayNamedIndexesBlockPtr* pcDest);
+	CNamedIndexesBlocks*	TestGetBlock(int iNameLength);
 
 protected:
 	CNamedIndexesBlocks*	GetBlock(int iNameLength);
+	CNamedIndexesBlocks*	GetBlockForCacheDescriptorSize(int iCacheDescriptorSize);
 	CNamedIndexesBlocks*	AddBlock(int iBlockSize, int iMinNameLength, int iMaxNameLength, int iNewNumBlocks);
 };
 

@@ -26,6 +26,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 class CMemoryCache;
 class CIndexedFiles;
+class CNamedIndexes;
 class CNamedIndexesBlocks
 {
 friend class CNamedIndexesBlocksLoader;
@@ -35,31 +36,34 @@ protected:
 	int							miMinNameLength;
 	int							miMaxNameLength;
 	int							miNewNumBlocks;
-	CMemoryCache*				mpcCache;
-	CIndexedFiles*				mpcFiles;
 	int							miFileNumber;
+	CNamedIndexes*				mpcNamedIndexes;
 	
 public:
-	void	Init(int iBlockSize, int iMinNameLength, int iMaxNameLength, int iNewNumBlocks, CMemoryCache* pcCache, CIndexedFiles* pcFiles);
-	void	Kill(void);
-	BOOL	Load(void);
+	void					Init(int iBlockSize, int iMinNameLength, int iMaxNameLength, int iNewNumBlocks, CNamedIndexes* pcNamedIndexes);
+	void					Kill(void);
+	BOOL					Load(void);
+	BOOL					Save(void);
 
-	BOOL	FitsLength(int iNameLength);
+	BOOL					FitsLength(int iNameLength);
 
-	BOOL	Add(OIndex oi, CChars* szName, BOOL bFailOnExisting);
-	OIndex	GetIndex(CChars* szName);
-	BOOL	Remove(CChars* szName);
+	BOOL					Add(OIndex oi, CChars* szName, BOOL bFailOnExisting);
+	OIndex					GetIndex(CChars* szName);
+	BOOL					Remove(CChars* szName);
 
-	BOOL	Flush(void);
-	BOOL	Cache(CNamedIndexesBlock* pcBlock);
-	BOOL	AddNewBlock(int iBlockWidth, void* pvBlocks, int iNumBlocks, int iDataIndex);
-	int		NumNames(void);
-	void	GetPotentialContainingBlocks(CChars* szName, CArrayNamedIndexesBlockPtr* pcDest);
-	void	SortBlockPtrsCachedFirst(CArrayNamedIndexesBlockPtr* pcDest);
+	BOOL					Flush(void);
+	BOOL					Cache(CNamedIndexesBlock* pcBlock);
+	BOOL					AddNewBlock(int iBlockWidth, void* pvBlocks, int iNumBlocks, int iDataIndex);
+	int						NumNames(void);
+	void					GetPotentialContainingBlocks(CChars* szName, CArrayNamedIndexesBlockPtr* pcDest);
+	void					SortBlockPtrsCachedFirst(CArrayNamedIndexesBlockPtr* pcDest);
+	int						GetCacheDescriptorSize(void);
+	int						GetDataSize(void);
+	int						GetFileNumber(void);
+	void					SetFileNumber(int iFileNumber);
+	CNamedIndexesBlock*		GetNamedIndexesBlock(void* pvCacheMem);
 	
 protected:
-	void*					AllocateInCache(int iSize);
-	CNamedIndexesBlock*		GetNamedIndexesBlock(void* pvCacheMem);
 	void					WriteBlocks(CNamedIndexesBlock* pcNamedIndexes, CArrayBlock* pavFakeBlock);
 	int						FindLastCachedBlock(CArrayNamedIndexesBlockPtr* pcDest, int iEnd);
 	int						FindFirstUncachedBlock(CArrayNamedIndexesBlockPtr* pcDest, int iStart);
