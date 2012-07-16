@@ -216,7 +216,7 @@ BOOL CIndexedData::CacheRead(CIndexDescriptor* pcDescriptor)
 				cPreAllocated.Kill();
 				return FALSE;
 			}
-			pvData = mcObjectCache.Allocate(pcDescriptor);  //This is complete crap.  Fix it.
+			pvData = mcObjectCache.Allocate(pcDescriptor);  //Remove all Allocate(CIndexDescriptor*)... it's already preallocated.
 			if (!pvData)
 			{
 				cPreAllocated.Kill();
@@ -267,7 +267,7 @@ BOOL CIndexedData::CacheWrite(CIndexDescriptor* pcDescriptor, void* pvData, BOOL
 				return FALSE;
 			}
 
-			bResult = mcObjectCache.Allocate(pcDescriptor, pvData);  //Allocates space in the cache and copies the object.
+			bResult = mcObjectCache.Allocate(pcDescriptor, pvData);  //Remove all Allocate(CIndexDescriptor*)... it's already preallocated.
 			if (!bResult)
 			{
 				cPreAllocated.Kill();
