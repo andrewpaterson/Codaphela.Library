@@ -383,24 +383,25 @@ BOOL CTransientIndexedFile::Set(OIndex oi, void* pvData, unsigned int uiSize)
 BOOL CTransientIndexedFile::Allocate(STransientIndexedPointer* psPointer, int iPointerIndex)
 {
 	SOIndexIndexCacheDescriptor*	psOIndexIndex;
-	CArrayPointer					apcEvicted;
+	CMemoryCacheAllocation			cPreAllocated;
 	int								i;
 	void*							pvData;
 
-	if (!mcCache.PreAllocate(psPointer->sIndexedMemory.uiSize, &apcEvicted))
+	cPreAllocated.Init(psPointer->sIndexedMemory.uiSize);
+	if (!mcCache.PreAllocate(&cPreAllocated))
 	{
+		cPreAllocated.Kill();
 		return FALSE;
 	}
 
-	for (i = 0; i < apcEvicted.NumElements(); i++)
+	for (i = 0; i < cPreAllocated.NumElements(); i++)
 	{
-		psOIndexIndex = (SOIndexIndexCacheDescriptor*)apcEvicted.GetPtr(i);
+		psOIndexIndex = (SOIndexIndexCacheDescriptor*)cPreAllocated.Get(i);
 		pvData = RemapSinglePointer(psOIndexIndex, sizeof(SOIndexIndexCacheDescriptor));
 		Write(psOIndexIndex->sIndex.iIndex, pvData);
 	}
-	apcEvicted.Kill();
 
-	pvData = mcCache.Allocate(psPointer->sIndexedMemory.uiSize);
+	pvData = mcCache.Allocate(&cPreAllocated);
 
 	if (pvData)
 	{
@@ -408,10 +409,12 @@ BOOL CTransientIndexedFile::Allocate(STransientIndexedPointer* psPointer, int iP
 		psOIndexIndex->sIndex.iIndex = iPointerIndex;
 		psOIndexIndex->sIndex.oi = psPointer->sIndexedMemory.oi;
 		psPointer->pvCache = pvData;
+		cPreAllocated.Kill();
 		return TRUE;
 	}
 	else
 	{
+		cPreAllocated.Kill();
 		return FALSE;
 	}
 }

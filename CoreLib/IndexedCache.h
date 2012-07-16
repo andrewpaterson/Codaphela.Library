@@ -45,7 +45,7 @@ public:
 	void						Zero(void);
 	void						Kill(void);
 
-	BOOL						PreAllocate(CIndexDescriptor* pcDesc, CArrayPointer* papIndexedCacheDescriptors);
+	BOOL						PreAllocate(CMemoryCacheAllocation* pcResult);
 	BOOL						Allocate(CIndexDescriptor* pcDesc, void* pvData);
 	void*						Allocate(CIndexDescriptor* pcDesc);
 	void						Clear(void);

@@ -124,9 +124,12 @@ BOOL CNamedIndexes::Load(void)
 BOOL CNamedIndexes::Add(OIndex oi, char* szName, BOOL bFailOnExisting)
 {
 	CChars	szFake;
+	BOOL	bResult;
 
 	szFake.Fake(szName);
-	return Add(oi, &szFake, bFailOnExisting);
+	bResult = Add(oi, &szFake, bFailOnExisting);
+	mcCache.Dump();
+	return bResult;
 }
 
 
@@ -311,8 +314,8 @@ int CNamedIndexes::NumNames(void)
 //////////////////////////////////////////////////////////////////////////
 void* CNamedIndexes::AllocateInCache(int iSize)
 {
+	CMemoryCacheAllocation		cPreAllocated;
 	void*						pvData;
-	CArrayPointer				apEvicted;
 	int							i;
 	SMemoryCacheDescriptor*		psMemoryDesc;
 	int							iCacheDescriptorSize;
@@ -322,12 +325,16 @@ void* CNamedIndexes::AllocateInCache(int iSize)
 	BOOL						bResult;
 	CNamedIndexesBlocks*		pcBlocks;
 
-	apEvicted.Init(128);
-	mcCache.PreAllocate(iSize, &apEvicted);
-
-	for (i = 0; i < apEvicted.NumElements(); i++)
+	cPreAllocated.Init(iSize);
+	if (!mcCache.PreAllocate(&cPreAllocated))
 	{
-		psMemoryDesc = (SMemoryCacheDescriptor *)apEvicted.GetPtr(i);
+		cPreAllocated.Kill();
+		return NULL;
+	}
+
+	for (i = 0; i < cPreAllocated.NumElements(); i++)
+	{
+		psMemoryDesc = cPreAllocated.Get(i);
 		iCacheDescriptorSize = psMemoryDesc->iDataSize;
 		pcBlocks = GetBlockForCacheDescriptorSize(iCacheDescriptorSize);
 		if (!pcBlocks)
@@ -352,13 +359,14 @@ void* CNamedIndexes::AllocateInCache(int iSize)
 		bResult = pcNamedIndexes->Uncache(pcFile);
 		if (!bResult)
 		{
-			apEvicted.Kill();
+			cPreAllocated.Kill();
 			return NULL;
 		}
 	}
 
-	apEvicted.Kill();
-	pvData = mcCache.Allocate(iSize);
+	pvData = mcCache.Allocate(&cPreAllocated);
+	cPreAllocated.Kill();
+
 	return pvData;
 }
 

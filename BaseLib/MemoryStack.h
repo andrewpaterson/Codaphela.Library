@@ -34,7 +34,7 @@ public:
 	int		miElements;
 
 	void		Init(int iSize);
-	void*		Allocate(int iSize);  //Same as Init, but immediately allocates memmory.
+	void*		Allocate(int iSize);  //Same as Init, but immediately allocates memory.
 	void		Clear(void);
 	void		Kill(void);
 
@@ -44,6 +44,7 @@ public:
 
 	SStackMark	Mark(void);
 	void		Rollback(SStackMark* psMark);
+
 };
 
 

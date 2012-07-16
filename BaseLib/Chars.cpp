@@ -2036,6 +2036,83 @@ void CChars::AppendData(char* szData, int iMaxLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CChars::AppendData2(char* szData, int iDataLength, int iMaxLength)
+{
+	int				i;
+	int				iLength;
+	unsigned char	c;
+	BOOL			bLastReadable;
+	
+	if (iDataLength > iMaxLength)
+	{
+		iLength = iMaxLength;
+	}
+	else
+	{
+		iLength = iDataLength;
+	}
+
+	bLastReadable = TRUE;
+	for (i = 0; i < iLength; i++)
+	{
+		if (!bLastReadable)
+		{
+			Append(",");
+		}
+
+		c = szData[i];
+		if (c == 0)
+		{
+			if ((bLastReadable) && (i > 0))
+			{
+				Append("\\0");
+			}
+			else
+			{
+				Append(" 0x00");
+			}
+			bLastReadable = FALSE;
+		}
+		else if (c == '\n')
+		{
+			if (bLastReadable)
+			{
+				Append("\\r");
+			}
+			else
+			{
+				Append(" 0x0D");
+			}
+			bLastReadable = FALSE;
+		}
+		else if ((c < 32) || (c > 126))
+		{
+			bLastReadable = FALSE;
+			Append(" 0x");
+			AppendHexHiLo(&c, 1);
+		}
+		else
+		{
+			if (!bLastReadable)
+			{
+				Append(' ');
+			}
+			bLastReadable = TRUE;
+			Append((char)c);
+		}
+	}
+
+	if (iDataLength > iMaxLength)
+	{
+		Append("...");
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CChars::AppendPointer(void* pv)
 {
 	Append("0x");

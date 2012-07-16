@@ -38,6 +38,9 @@ public:
 	void	Remove(void);
 	void	Remove(int iNumToRemove);
 	void	Reset(void);
+
+	int		GetMemorySize(void);
+	int		GetUsedSize(void);
 };
 
 

@@ -483,3 +483,4 @@ int CNamedIndexesBlock::GetUsedBlocks(void) { return miUsedBlocks; }
 char* CNamedIndexesBlock::GetFirst(void) { return mszFirst.Text(); }
 char* CNamedIndexesBlock::GetLast(void) { return mszLast.Text(); }
 BOOL CNamedIndexesBlock::IsDirty(void) { return mbDirty; }
+

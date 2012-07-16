@@ -22,36 +22,31 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __MEMORY_CACHE_H__
 #define __MEMORY_CACHE_H__
-#include "ArrayPointer.h"
+#include "MemoryCacheAllocation.h"
 
 
 #define CACHE_DESCRIPTOR_FLAG_VALID		0x01
 
 
-struct SMemoryCacheDescriptor
-{
-	SMemoryCacheDescriptor*		psNext;
-	unsigned int				iDataSize;  //Not including the sizeof this.
-	unsigned int				iFlags;
-};
-
-
 class CMemoryCache
 {
-public:
+private:
 	int							miDescriptorSize;
 	void*						mpvCache;
 	unsigned int				muiCacheSize;
 	SMemoryCacheDescriptor*		mpsLast;
 	SMemoryCacheDescriptor*		mpsFirst;
 
+public:
 	void						Init(void);
 	void						Init(unsigned int iCacheSize, int iDescriptorSize = sizeof(SMemoryCacheDescriptor));
 	void						Kill(void);
 
-	BOOL						PreAllocate(int iDataSize, CArrayPointer* papEvictedCacheDescriptors);
-	void*						Allocate(int iDataSize);
-	unsigned int				Remaining(void);
+	BOOL						PreAllocate(CMemoryCacheAllocation* pcResult);
+	void*						Allocate(CMemoryCacheAllocation* pcPreAllocated);
+	void*						QuickAllocate(int iDataSize);
+
+	unsigned int				RemainingAfterLast(void);
 	void						FindOverlapping(void* pvNew, unsigned int uiNewSize, CArrayPointer* papIndexedCacheDescriptors);
 	SMemoryCacheDescriptor*		FindNewFirst(void* pvNew, unsigned int uiNewSize);
 	BOOL						Overlaps(void* pvNew, unsigned int uiNewSize, SMemoryCacheDescriptor* psExisting);
@@ -60,9 +55,14 @@ public:
 
 	SMemoryCacheDescriptor*		GetFirst(void);
 	SMemoryCacheDescriptor*		GetNext(SMemoryCacheDescriptor* psCurrent);
+	SMemoryCacheDescriptor*		GetLast(void);
 	int							NumCached(void);
 	int							NumIgnored(void);
+	BOOL						IsEmpty(void);
 
+	void*						GetData(SMemoryCacheDescriptor* psCacheDesc);
+
+	void						Zero(void);
 	void						Dump(void);
 };
 

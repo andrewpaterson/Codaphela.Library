@@ -109,11 +109,7 @@ void* CMemoryStack::Add(int iSize)
 //////////////////////////////////////////////////////////////////////////
 void CMemoryStack::Remove(void)
 {
-	miElements--;
-	if (miElements == 0)
-	{
-		Clear();
-	}
+	Remove(1);
 }
 
 

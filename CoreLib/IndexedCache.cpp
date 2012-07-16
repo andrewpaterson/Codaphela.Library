@@ -62,9 +62,9 @@ void CIndexedCache::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedCache::PreAllocate(CIndexDescriptor* pcDesc, CArrayPointer* papIndexedCacheDescriptors)
+BOOL CIndexedCache::PreAllocate(CMemoryCacheAllocation* pcResult)
 {
-	return mcCache.PreAllocate(pcDesc->GetDataSize(), papIndexedCacheDescriptors);
+	return mcCache.PreAllocate(pcResult);
 }
 
 
@@ -97,8 +97,12 @@ void* CIndexedCache::Allocate(CIndexDescriptor* pcDesc)
 {
 	void*						pvCache;
 	SIndexedCacheDescriptor*	psCacheDesc;
+	CMemoryCacheAllocation		cPreAllocated;
 
-	pvCache = mcCache.Allocate(pcDesc->GetDataSize());
+	cPreAllocated.Init(pcDesc->GetDataSize());
+	mcCache.PreAllocate(&cPreAllocated);
+	pvCache = mcCache.Allocate(&cPreAllocated);
+	cPreAllocated.Kill();
 
 	if (!pvCache)
 	{

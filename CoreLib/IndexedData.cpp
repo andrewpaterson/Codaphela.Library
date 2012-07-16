@@ -201,32 +201,36 @@ BOOL CIndexedData::Write(CIndexDescriptor* pcDescriptor, void* pvData, unsigned 
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexedData::CacheRead(CIndexDescriptor* pcDescriptor)
 {
-	CArrayPointer	apsEvictedIndexedCacheDescriptors;
-	void*			pvData;
-	BOOL			bResult;
+	void*					pvData;
+	BOOL					bResult;
+	CMemoryCacheAllocation	cPreAllocated;
 
 	if (mbCaching)
 	{
-		if (mcObjectCache.PreAllocate(pcDescriptor, &apsEvictedIndexedCacheDescriptors))  //PreAllocate ensures there will be enough space in the cache.
+		cPreAllocated.Init(pcDescriptor->GetDataSize());
+		if (mcObjectCache.PreAllocate(&cPreAllocated))  //PreAllocate ensures there will be enough space in the cache.
 		{
-			bResult = WriteEvictedData(&apsEvictedIndexedCacheDescriptors);
-			apsEvictedIndexedCacheDescriptors.Kill();
+			bResult = WriteEvictedData(cPreAllocated.GetEvictedArray());
 			if (!bResult)
 			{
+				cPreAllocated.Kill();
 				return FALSE;
 			}
-			pvData = mcObjectCache.Allocate(pcDescriptor);
+			pvData = mcObjectCache.Allocate(pcDescriptor);  //This is complete crap.  Fix it.
 			if (!pvData)
 			{
+				cPreAllocated.Kill();
 				return FALSE;
 			}
 			
 			bResult = mcObjectFiles.Read(pcDescriptor, pvData);
 			if (!bResult)
 			{
+				cPreAllocated.Kill();
 				return FALSE;
 			}
-			EvictOverlappingFromCache(&apsEvictedIndexedCacheDescriptors);
+			EvictOverlappingFromCache(cPreAllocated.GetEvictedArray());
+			cPreAllocated.Kill();
 			return TRUE;
 		}
 		else
@@ -247,34 +251,40 @@ BOOL CIndexedData::CacheRead(CIndexDescriptor* pcDescriptor)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexedData::CacheWrite(CIndexDescriptor* pcDescriptor, void* pvData, BOOL* pbWritten)
 {
-	CArrayPointer	apsEvictedIndexedCacheDescriptors;
-	BOOL			bResult;
+	BOOL					bResult;
+	CMemoryCacheAllocation	cPreAllocated;
 
 	if (mbCaching)
 	{
-		if (mcObjectCache.PreAllocate(pcDescriptor, &apsEvictedIndexedCacheDescriptors))  //PreAllocate ensures there will be enough space in the cache.
+		cPreAllocated.Init(pcDescriptor->GetDataSize());
+		if (mcObjectCache.PreAllocate(&cPreAllocated))  //PreAllocate ensures there will be enough space in the cache.
 		{
 			*pbWritten = FALSE;
-			bResult = WriteEvictedData(&apsEvictedIndexedCacheDescriptors);
-			apsEvictedIndexedCacheDescriptors.Kill();
+			bResult = WriteEvictedData(cPreAllocated.GetEvictedArray());
 			if (!bResult)
 			{
+				cPreAllocated.Kill();
 				return FALSE;
 			}
+
 			bResult = mcObjectCache.Allocate(pcDescriptor, pvData);  //Allocates space in the cache and copies the object.
 			if (!bResult)
 			{
+				cPreAllocated.Kill();
 				return FALSE;
 			}
-			EvictOverlappingFromCache(&apsEvictedIndexedCacheDescriptors);
+
+			EvictOverlappingFromCache(cPreAllocated.GetEvictedArray());
+			cPreAllocated.Kill();
 			return TRUE;
 		}
 		else
 		{
 			//There wasn't enough space in the cache... the object is written immediately.
 			bResult = WriteData(pcDescriptor, pvData);
-			apsEvictedIndexedCacheDescriptors.Kill();
 			*pbWritten = TRUE;
+
+			cPreAllocated.Kill();
 			return bResult;
 		}
 	}

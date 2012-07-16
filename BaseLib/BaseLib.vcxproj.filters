@@ -127,6 +127,15 @@
     <Filter Include="Source\File\Pack">
       <UniqueIdentifier>{6157726c-cd9c-49cf-bf91-dfa4ce59e2e7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Memory\Cache">
+      <UniqueIdentifier>{8b22300d-1f3b-4be8-8a15-eeeed914c01c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Memory\Freelist">
+      <UniqueIdentifier>{d936d49e-2e52-4369-8114-d197e7a112c8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Memory\Stack">
+      <UniqueIdentifier>{91d7bf57-f8bf-4a0d-8a40-ed855a370939}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DataMacro.h">
@@ -474,30 +483,6 @@
     <ClInclude Include="FileCopier.h">
       <Filter>Source\File\Copy</Filter>
     </ClInclude>
-    <ClInclude Include="FreeList.h">
-      <Filter>Source\Memory</Filter>
-    </ClInclude>
-    <ClInclude Include="FreeListBlock.h">
-      <Filter>Source\Memory</Filter>
-    </ClInclude>
-    <ClInclude Include="FreeListMaybe.h">
-      <Filter>Source\Memory</Filter>
-    </ClInclude>
-    <ClInclude Include="LinkListAligned.h">
-      <Filter>Source\Memory</Filter>
-    </ClInclude>
-    <ClInclude Include="MemoryCache.h">
-      <Filter>Source\Memory</Filter>
-    </ClInclude>
-    <ClInclude Include="MemoryStack.h">
-      <Filter>Source\Memory</Filter>
-    </ClInclude>
-    <ClInclude Include="MemoryStackExtended.h">
-      <Filter>Source\Memory</Filter>
-    </ClInclude>
-    <ClInclude Include="StackMark.h">
-      <Filter>Source\Memory</Filter>
-    </ClInclude>
     <ClInclude Include="Memory.h">
       <Filter>Source\Memory\Manager</Filter>
     </ClInclude>
@@ -548,6 +533,33 @@
     </ClInclude>
     <ClInclude Include="Aardvark.h">
       <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="FreeListMaybe.h">
+      <Filter>Source\Memory\Freelist</Filter>
+    </ClInclude>
+    <ClInclude Include="FreeList.h">
+      <Filter>Source\Memory\Freelist</Filter>
+    </ClInclude>
+    <ClInclude Include="FreeListBlock.h">
+      <Filter>Source\Memory\Freelist</Filter>
+    </ClInclude>
+    <ClInclude Include="MemoryCacheAllocation.h">
+      <Filter>Source\Memory\Cache</Filter>
+    </ClInclude>
+    <ClInclude Include="MemoryCache.h">
+      <Filter>Source\Memory\Cache</Filter>
+    </ClInclude>
+    <ClInclude Include="LinkListAligned.h">
+      <Filter>Source\Data\LinkList</Filter>
+    </ClInclude>
+    <ClInclude Include="StackMark.h">
+      <Filter>Source\Memory\Stack</Filter>
+    </ClInclude>
+    <ClInclude Include="MemoryStack.h">
+      <Filter>Source\Memory\Stack</Filter>
+    </ClInclude>
+    <ClInclude Include="MemoryStackExtended.h">
+      <Filter>Source\Memory\Stack</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -809,30 +821,6 @@
     <ClCompile Include="FileCopier.cpp">
       <Filter>Source\File\Copy</Filter>
     </ClCompile>
-    <ClCompile Include="FreeList.cpp">
-      <Filter>Source\Memory</Filter>
-    </ClCompile>
-    <ClCompile Include="FreeListBlock.cpp">
-      <Filter>Source\Memory</Filter>
-    </ClCompile>
-    <ClCompile Include="FreeListMaybe.cpp">
-      <Filter>Source\Memory</Filter>
-    </ClCompile>
-    <ClCompile Include="LinkListAligned.cpp">
-      <Filter>Source\Memory</Filter>
-    </ClCompile>
-    <ClCompile Include="MemoryCache.cpp">
-      <Filter>Source\Memory</Filter>
-    </ClCompile>
-    <ClCompile Include="MemoryStack.cpp">
-      <Filter>Source\Memory</Filter>
-    </ClCompile>
-    <ClCompile Include="MemoryStackExtended.cpp">
-      <Filter>Source\Memory</Filter>
-    </ClCompile>
-    <ClCompile Include="StackMark.cpp">
-      <Filter>Source\Memory</Filter>
-    </ClCompile>
     <ClCompile Include="Memory.cpp">
       <Filter>Source\Memory\Manager</Filter>
     </ClCompile>
@@ -865,6 +853,33 @@
     </ClCompile>
     <ClCompile Include="Aardvark.cpp">
       <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="FreeList.cpp">
+      <Filter>Source\Memory\Freelist</Filter>
+    </ClCompile>
+    <ClCompile Include="FreeListBlock.cpp">
+      <Filter>Source\Memory\Freelist</Filter>
+    </ClCompile>
+    <ClCompile Include="FreeListMaybe.cpp">
+      <Filter>Source\Memory\Freelist</Filter>
+    </ClCompile>
+    <ClCompile Include="MemoryCache.cpp">
+      <Filter>Source\Memory\Cache</Filter>
+    </ClCompile>
+    <ClCompile Include="MemoryCacheAllocation.cpp">
+      <Filter>Source\Memory\Cache</Filter>
+    </ClCompile>
+    <ClCompile Include="LinkListAligned.cpp">
+      <Filter>Source\Data\LinkList</Filter>
+    </ClCompile>
+    <ClCompile Include="MemoryStack.cpp">
+      <Filter>Source\Memory\Stack</Filter>
+    </ClCompile>
+    <ClCompile Include="MemoryStackExtended.cpp">
+      <Filter>Source\Memory\Stack</Filter>
+    </ClCompile>
+    <ClCompile Include="StackMark.cpp">
+      <Filter>Source\Memory\Stack</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

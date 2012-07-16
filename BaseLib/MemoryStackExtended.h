@@ -32,11 +32,12 @@ typedef CArrayTemplate<CMemoryStack> CArrayMemoryStacks;
 
 class CMemoryStackExtended
 {
-public:
+private:
 	CArrayMemoryStacks	mcStacks;
 	int					miChunkSize;
 	int					miElements;
 
+public:
 	void	Init(int iChunkSize);
 	void	Clear(void);
 	void	Kill(void);
@@ -46,6 +47,9 @@ public:
 	void	Remove(int iNumToRemove);  //This is the number of elements to remove, not the amount of memory to remove.
 	void	Mark(CStackMarkExtended* psMark);
 	void	Rollback(CStackMarkExtended* psMark);
+
+	int		GetMemorySize(void);
+	int		GetUsedSize(void);
 };
 
 
