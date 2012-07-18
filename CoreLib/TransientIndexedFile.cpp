@@ -521,15 +521,25 @@ BOOL CTransientIndexedFile::Write(int iPointerIndex, void* pvData)
 void CTransientIndexedFile::RemapCacheOIndexIndices(int iInsertedIndex)
 {
 	SOIndexIndexCacheDescriptor*	psCache;
+	SOIndexIndexCacheDescriptor*	psInitial;
 
 	psCache = (SOIndexIndexCacheDescriptor*)mcCache.GetFirst();
-	while (psCache)
+	psInitial = psCache;
+	if (psInitial)
 	{
-		if (psCache->sIndex.iIndex >= iInsertedIndex)
+		for (;;)
 		{
-			psCache->sIndex.iIndex++;
+			if (psCache->sIndex.iIndex >= iInsertedIndex)
+			{
+				psCache->sIndex.iIndex++;
+			}
+			psCache = (SOIndexIndexCacheDescriptor*)mcCache.GetNext(psCache);
+
+			if (psCache == psInitial)
+			{
+				break;
+			}
 		}
-		psCache = (SOIndexIndexCacheDescriptor*)mcCache.GetNext(psCache);
 	}
 }
 

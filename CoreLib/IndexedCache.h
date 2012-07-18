@@ -54,8 +54,8 @@ public:
 	BOOL						Update(CIndexDescriptor* pcDesc, void* pvData);
 
 	SIndexedCacheDescriptor*	GetHeader(void* pvData);
-	SIndexedCacheDescriptor*	GetFirst(void);
-	SIndexedCacheDescriptor*	GetNext(SIndexedCacheDescriptor* psCurrent);
+	SIndexedCacheDescriptor*	StartIteration(void);
+	SIndexedCacheDescriptor*	Iterate(SIndexedCacheDescriptor* psCurrent);
 	int							NumCached(void);
 	int							NumIgnored(void);
 

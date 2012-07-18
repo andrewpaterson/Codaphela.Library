@@ -128,7 +128,6 @@ BOOL CNamedIndexes::Add(OIndex oi, char* szName, BOOL bFailOnExisting)
 
 	szFake.Fake(szName);
 	bResult = Add(oi, &szFake, bFailOnExisting);
-	mcCache.Dump();
 	return bResult;
 }
 

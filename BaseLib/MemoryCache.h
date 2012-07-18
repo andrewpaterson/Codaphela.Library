@@ -55,6 +55,7 @@ public:
 
 	SMemoryCacheDescriptor*		GetFirst(void);
 	SMemoryCacheDescriptor*		GetNext(SMemoryCacheDescriptor* psCurrent);
+	SMemoryCacheDescriptor*		GetPrev(SMemoryCacheDescriptor* psCurrent);
 	SMemoryCacheDescriptor*		GetLast(void);
 	int							NumCached(void);
 	int							NumIgnored(void);
@@ -64,6 +65,14 @@ public:
 
 	void						Zero(void);
 	void						Dump(void);
+	SMemoryCacheDescriptor*		TestGetFirst(void);
+	SMemoryCacheDescriptor*		TestGetLast(void);
+
+	SMemoryCacheDescriptor*		StartIteration(void);
+	SMemoryCacheDescriptor*		Iterate(SMemoryCacheDescriptor* psCurrent);
+
+protected:
+	SMemoryCacheDescriptor*		OneAllocation(void);
 };
 
 

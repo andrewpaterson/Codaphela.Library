@@ -6,6 +6,7 @@
 struct SMemoryCacheDescriptor
 {
 	SMemoryCacheDescriptor*		psNext;
+	SMemoryCacheDescriptor*		psPrev;
 	unsigned int				iDataSize;  //Not including the sizeof this.
 	unsigned int				iFlags;
 };
@@ -22,14 +23,14 @@ protected:
 	unsigned int				miRemaining;
 
 public:
-	void					Init(int iDataSize);
-	void					Kill(void);
+	void						Init(int iDataSize);
+	void						Kill(void);
 
-	BOOL					HasOverlaps(void);
-	SMemoryCacheDescriptor* Get(int iIndex);
-	int						NumElements(void);
+	BOOL						HasOverlaps(void);
+	SMemoryCacheDescriptor*		Get(int iIndex);
+	int							NumElements(void);
 
-	CArrayPointer*			GetEvictedArray(void);  //This only exists because I haven't finished factoring it out.
+	CArrayPointer*				GetEvictedArray(void);  //This only exists because I haven't finished factoring it out.
 };
 
 

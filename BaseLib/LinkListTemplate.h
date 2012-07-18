@@ -58,7 +58,6 @@ public:
 	void	Detach(SDNode* psNodeHeader);
 	void	Detach(M* pvData);
 	void	FreeDetached(M* pvData);
-	M*		AllocateDetached(void);
 	int		NumElements(void);
 	int		IndexOf(M* pvData);
 	BOOL	IsInList(M* pvData);
@@ -76,7 +75,8 @@ void InsertLinkListBeforeNode(__CLinkListTemplate<M>* pcLinkList, M* psPos);
 
 protected:	
 	void*	MemoryAllocate(int iMemSize);
-	void	Free(void* pvMem);};
+	void	Free(void* pvMem);
+};
 
 
 template<class M>
@@ -86,6 +86,7 @@ public:
 	int		miElementSize;
 
 	void	Init(void);
+	M*		AllocateDetached(void);
 	M* 		InsertAfterTail(void);
 	M* 		InsertBeforeHead(void);
 	M*		InsertBeforeNode(M* psPos);
@@ -447,20 +448,6 @@ void __CLinkListTemplate<M>::FreeDetached(M* psNodeData)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M* __CLinkListTemplate<M>::AllocateDetached(void)
-{
-	SDNode*		psNode;
-	
-	psNode = (SDNode*)MemoryAllocate(sizeof(SDNode) + miElementSize);
-	return CLinkListTemplateHeaderGetData(psNode);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class M>
 void __CLinkListTemplate<M>::Swap(M* psData1, M* psData2)
 {
 	SDNode*		psNode1;
@@ -700,6 +687,19 @@ void CLinkListTemplate<M>::Init(void)
 	miElementSize = sizeof(M);
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+M* CLinkListTemplate<M>::AllocateDetached(void)
+{
+	SDNode*		psNode;
+
+	psNode = (SDNode*)MemoryAllocate(sizeof(SDNode) + miElementSize);
+	return CLinkListTemplateHeaderGetData(psNode);
+}
 
 
 //////////////////////////////////////////////////////////////////////////

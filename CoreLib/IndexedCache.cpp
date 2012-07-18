@@ -219,9 +219,9 @@ SIndexedCacheDescriptor* CIndexedCache::GetHeader(void* pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SIndexedCacheDescriptor* CIndexedCache::GetFirst(void)
+SIndexedCacheDescriptor* CIndexedCache::StartIteration(void)
 {
-	return (SIndexedCacheDescriptor*)mcCache.GetFirst();
+	return (SIndexedCacheDescriptor*)mcCache.StartIteration();
 }
 
 
@@ -229,9 +229,9 @@ SIndexedCacheDescriptor* CIndexedCache::GetFirst(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SIndexedCacheDescriptor* CIndexedCache::GetNext(SIndexedCacheDescriptor* psCurrent)
+SIndexedCacheDescriptor* CIndexedCache::Iterate(SIndexedCacheDescriptor* psCurrent)
 {
-	return (SIndexedCacheDescriptor*)mcCache.GetNext((SIndexedCacheDescriptor*)psCurrent);
+	return (SIndexedCacheDescriptor*)mcCache.Iterate((SIndexedCacheDescriptor*)psCurrent);
 }
 
 
@@ -243,14 +243,14 @@ SIndexedCacheDescriptor* CIndexedCache::TestGetDescriptor(OIndex oi)
 {
 	SIndexedCacheDescriptor*	psDesc;
 
-	psDesc = GetFirst();
+	psDesc = StartIteration();
 	while (psDesc)
 	{
 		if (psDesc->oi == oi)
 		{
 			return psDesc;
 		}
-		psDesc = GetNext(psDesc);
+		psDesc = Iterate(psDesc);
 	}
 	return NULL;
 }

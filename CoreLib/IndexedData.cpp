@@ -782,7 +782,7 @@ BOOL CIndexedData::Flush(void)
 	if (mbCaching)
 	{
 		bAnyFailed = FALSE;
-		psCached = mcObjectCache.GetFirst();
+		psCached = mcObjectCache.StartIteration();
 		while (psCached)
 		{
 			bResult = WriteEvictedData(psCached);
@@ -790,7 +790,7 @@ BOOL CIndexedData::Flush(void)
 			{
 				bAnyFailed = TRUE;
 			}
-			psCached = mcObjectCache.GetNext(psCached);
+			psCached = mcObjectCache.Iterate(psCached);
 		}
 		mcObjectCache.Clear();
 		return bAnyFailed;
@@ -814,7 +814,7 @@ BOOL CIndexedData::Uncache(void)
 	if (mbCaching)
 	{
 		bAnyFailed = FALSE;
-		psCached = mcObjectCache.GetFirst();
+		psCached = mcObjectCache.StartIteration();
 		while (psCached)
 		{
 			bResult = ClearDescriptorCache(psCached);
@@ -822,7 +822,7 @@ BOOL CIndexedData::Uncache(void)
 			{
 				bAnyFailed = TRUE;
 			}
-			psCached = mcObjectCache.GetNext(psCached);
+			psCached = mcObjectCache.Iterate(psCached);
 		}
 		mcObjectCache.Clear();
 		return bAnyFailed;
