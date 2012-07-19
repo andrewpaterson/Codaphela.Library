@@ -63,8 +63,6 @@ void CNamedIndexes::Kill(void)
 	int						i;
 	CNamedIndexesBlocks*	pcBlock;
 	
-	Save();
-
 	for (i = 0; i < macBlocks.NumElements(); i++)
 	{
 		pcBlock = macBlocks.Get(i);

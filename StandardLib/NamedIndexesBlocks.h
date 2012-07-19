@@ -64,7 +64,6 @@ public:
 	CNamedIndexesBlock*		GetNamedIndexesBlock(void* pvCacheMem);
 	
 protected:
-	void					WriteBlocks(CNamedIndexesBlock* pcNamedIndexes, CArrayBlock* pavFakeBlock);
 	int						FindLastCachedBlock(CArrayNamedIndexesBlockPtr* pcDest, int iEnd);
 	int						FindFirstUncachedBlock(CArrayNamedIndexesBlockPtr* pcDest, int iStart);
 };

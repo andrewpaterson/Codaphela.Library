@@ -99,6 +99,11 @@ BOOL CDiskFile::Close(void)
 {
 	int		iReturn;
 
+	if (!mpsFileHandle)
+	{
+		return FALSE;
+	}
+
 	iReturn = fclose(mpsFileHandle);
 	if (iReturn == 0)
 	{

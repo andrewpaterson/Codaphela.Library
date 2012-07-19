@@ -289,9 +289,14 @@ BOOL CNamedIndexesBlock::Write(CIndexedFile* pcFile)
 			return FALSE;
 		}
 		miDataIndex = iIndex;
+		mbDirty = FALSE;
+		return TRUE;
 	}
-	mbDirty = FALSE;
-	return pcFile->Write(miDataIndex, mpvCachePos, miNumBlocks);
+	else
+	{
+		mbDirty = FALSE;
+		return pcFile->Write(miDataIndex, mpvCachePos, miNumBlocks);
+	}
 }
 
 
@@ -327,11 +332,19 @@ BOOL CNamedIndexesBlock::Uncache(CIndexedFile* pcFile)
 BOOL CNamedIndexesBlock::Cache(CIndexedFile* pcFile, void* pvCache)
 {
 	BOOL	bResult;
+	void*	pvClear;
 
 	if (IsInFile())
 	{
 		bResult = SetCache(pvCache);
-		bResult &= pcFile->Read(miDataIndex, pvCache, miNumBlocks);
+		bResult &= pcFile->Read(miDataIndex, pvCache, miUsedBlocks);
+
+		if (IsNotFull())
+		{
+			pvClear = RemapSinglePointer(pvCache, miBlockWidth*miUsedBlocks);
+			memset_fast(pvClear, 0, (miNumBlocks - miUsedBlocks) * miBlockWidth);
+		}
+
 		mbDirty = FALSE;
 		return bResult;
 	}
