@@ -11,11 +11,12 @@
 //////////////////////////////////////////////////////////////////////////
 void CNamedIndexesBlocksLoader::Init(CNamedIndexesBlocks* pcBlocks)
 {
-	mpcFile = pcBlocks->mpcNamedIndexes->GetFile(pcBlocks->miBlockWidth, pcBlocks->miFileNumber);
+	mpcFile = pcBlocks->mpcNamedIndexes->FindFileOnDisk(pcBlocks->miBlockWidth, pcBlocks->miFileNumber);
 	if (!mpcFile)
 	{
 		mpvTemp = NULL;
 		mpvBlock = NULL;
+		miLength = 0;
 		return;
 	}
 
@@ -26,6 +27,7 @@ void CNamedIndexesBlocksLoader::Init(CNamedIndexesBlocks* pcBlocks)
 	{
 		mpvTemp = NULL;
 		mpvBlock = NULL;
+		miLength = 0;
 		return;
 	}
 	
@@ -37,6 +39,7 @@ void CNamedIndexesBlocksLoader::Init(CNamedIndexesBlocks* pcBlocks)
 	{
 		miTempSize = miLength;
 	}
+
 	mpvTemp = malloc((int)miTempSize);
 	mpvBlock = malloc(miNewNumBlocks * miBlockWidth);
 }

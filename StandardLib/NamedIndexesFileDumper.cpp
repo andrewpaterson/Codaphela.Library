@@ -72,6 +72,11 @@ BOOL DumpNamedIndexesFile(CChars* pszDest, char* szFileName, int iDataWidth, int
 		}
 	}
 
+	if (pszDest->EndsWith("\n\n"))
+	{
+		pszDest->RemoveFromEnd(1);
+	}
+
 	pszDest->Append('-', szTemp.Length());
 	pszDest->AppendNewLine();
 

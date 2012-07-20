@@ -57,10 +57,10 @@ public:
 
 	BOOL					AddUnsafe(OIndex oi, CChars* szName);
 	OIndex					GetIndex(CChars* szName);
-	BOOL					SetCache(void* pvCache);
 	BOOL					Remove(CChars* szName);
 	void					Dirty(void);
 	BOOL					Uncache(CIndexedFile* pcFile);
+	BOOL					Cache(void* pvCache);
 	BOOL					Cache(CIndexedFile* pcFile, void* pvCache);
 	int						UsedNames(void);
 	int						GetBlockWidth(void);

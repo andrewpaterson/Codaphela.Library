@@ -336,7 +336,7 @@ BOOL CNamedIndexesBlock::Cache(CIndexedFile* pcFile, void* pvCache)
 
 	if (IsInFile())
 	{
-		bResult = SetCache(pvCache);
+		mpvCachePos = pvCache;
 		bResult &= pcFile->Read(miDataIndex, pvCache, miUsedBlocks);
 
 		if (IsNotFull())
@@ -389,9 +389,10 @@ void CNamedIndexesBlock::Dirty(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNamedIndexesBlock::SetCache(void* pvCache)
+BOOL CNamedIndexesBlock::Cache(void* pvCache)
 {
 	mpvCachePos = pvCache;
+	memset_fast(pvCache, 0, miNumBlocks * miBlockWidth);
 	return pvCache != NULL;
 }
 

@@ -235,7 +235,7 @@ BOOL CNamedIndexesBlocks::Cache(CNamedIndexesBlock* pcBlock)
 	else
 	{
 		pvCache = mpcNamedIndexes->AllocateInCache(pcBlock->GetAllocatedByteSize());
-		return pcBlock->SetCache(pvCache);
+		return pcBlock->Cache(pvCache);
 	}
 }
 
