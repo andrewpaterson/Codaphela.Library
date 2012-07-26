@@ -274,6 +274,12 @@ void memset_fast_16bytes(void* pvDest, unsigned char cVal)
 }
 
 
+void memset_fast(void* pvDest, unsigned char cVal, size_t iByteSize)
+{
+	return memset_fast(pvDest, cVal, (int)iByteSize);
+}
+
+
 void memset_fast(void* pvDest, unsigned char cVal, int iByteSize)
 {
 	if (iByteSize <= 64)

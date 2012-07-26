@@ -28,6 +28,7 @@ typedef void (*memset_fast_func)(void*, unsigned char);
 extern memset_fast_func ga_memset_fast[65];
 
 
+void memset_fast(void* pvDest, unsigned char cVal, size_t iByteSize);
 void memset_fast(void* pvDest, unsigned char cVal, int iByteSize);
 void InitMemsetFast(void);
 
