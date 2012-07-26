@@ -109,9 +109,9 @@ void CIndexHugeAccess::Save(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexHugeAccess::UpdateFile(void)
+BOOL CIndexHugeAccess::UpdateFile(void)
 {
-	mcHugeSupport.UpdateFile();
+	return mcHugeSupport.UpdateFile();
 }
 
 

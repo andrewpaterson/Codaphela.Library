@@ -37,9 +37,9 @@ public:
 
 	void			Init(CDurableFileController* pcDurableFileControl, char* szFileName, char* szRewriteName);
 	void			Kill(void);
-	long long int 	NumDescriptors(void);
-	int				Read(CIndexDescriptor* pcDescriptor, int iPosition, int iNum = 1);
-	int				Write(CIndexDescriptor* pcDescriptor, int iPosition, int iNum = 1);
+	filePos			NumDescriptors(void);
+	filePos			Read(CIndexDescriptor* pcDescriptor, int iPosition, int iNum = 1);
+	filePos			Write(CIndexDescriptor* pcDescriptor, int iPosition, int iNum = 1);
 	CDurableFile*	GetDurableFile(void);
 };
 

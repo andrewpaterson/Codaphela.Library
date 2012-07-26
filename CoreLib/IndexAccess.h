@@ -45,7 +45,7 @@ public:
 
 	virtual void 	Load(void) =0;
 	virtual void 	Save(void) =0;
-	virtual void 	UpdateFile(void) =0;
+	virtual BOOL 	UpdateFile(void) =0;
 
 	virtual BOOL 	IsHuge(void);
 	virtual BOOL 	IsMemory(void);

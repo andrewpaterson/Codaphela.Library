@@ -35,22 +35,24 @@ public:
 	int				miFileIndex;
 	CDurableFile	mcFile;
 	int				miDataSize;
-	int				miNumDatas;
+	filePos			miNumDatas;
 	int				miFileNumber;  //There may be more than one file of the same size.
 	CChars			mszFileName;
 	CChars			mszRewriteName;
 	BOOL			mbNew;
 
-	void	Init(CDurableFileController* pcDurableFileControl, int iFileIndex, char* szFileName, char* szRewriteName, int iDataSize, int iFileNum);
-	BOOL	Kill(void);
-	void	GetFileName(char* szName);
-	BOOL	IsFull(void);
-	int		Write(void* pvData);
-	BOOL	Write(int iIndex, void* pvData);
-	int		Write(void* pvData, int iCount);
-	BOOL	Write(int iIndex, void* pvData, int iCount);
-	BOOL	Read(int iIndex, void* pvData);
-	BOOL	Read(int iIndex, void* pvData, int iCount);
+	void		Init(CDurableFileController* pcDurableFileControl, int iFileIndex, char* szFileName, char* szRewriteName, int iDataSize, int iFileNum);
+	void		Kill(void);
+	BOOL		Open(CDurableFileController* pcDurableFileControl);
+	BOOL		Close(void);
+	void		GetFileName(char* szName);
+	BOOL		IsFull(void);
+	filePos		Write(void* pvData);
+	BOOL		Write(filePos iIndex, void* pvData);
+	filePos		Write(void* pvData, filePos iCount);
+	BOOL		Write(filePos iIndex, void* pvData, filePos iCount);
+	BOOL		Read(filePos iIndex, void* pvData);
+	BOOL		Read(filePos iIndex, void* pvData, filePos iCount);
 
 	void	Dump(void);
 };

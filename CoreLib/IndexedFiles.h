@@ -38,15 +38,17 @@ protected:
 	CChars						mszIndexName;
 	CChars						mszIndexRewrite;
 	CChars						mszExtension;
-	CDurableFile				mcFileDescriptorsFile;
+	CDurableFile				mcDurableFile;
 
 public:
 	void						Init(CDurableFileController* pcDurableFileControl, char* szExtension);
 	void						Kill(void);
+	BOOL						Open(void);
+	BOOL						Close(void);
 
 	void						InitIndexedFileDescriptors(void);
-	void						ReadIndexedFileDescriptors(void);
-	void						WriteIndexedFileDescriptors(void);
+	BOOL						ReadIndexedFileDescriptors(void);
+	BOOL						WriteIndexedFileDescriptors(void);
 	BOOL						DataFileName(char* szFile1, char* szFile2, int iDataSize, int iFileNum);
 
 	CIndexedFile* 				GetOrCreateFile(int iDataSize);

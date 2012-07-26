@@ -53,7 +53,7 @@ void CIndexDescriptorsFile::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-long long int CIndexDescriptorsFile::NumDescriptors(void)
+filePos CIndexDescriptorsFile::NumDescriptors(void)
 {
 	return mcIndexedDescriptorFile.Size() / sizeof(CIndexDescriptor);
 }
@@ -63,7 +63,7 @@ long long int CIndexDescriptorsFile::NumDescriptors(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CIndexDescriptorsFile::Read(CIndexDescriptor* pcDescriptor, int iPosition, int iNum)
+filePos CIndexDescriptorsFile::Read(CIndexDescriptor* pcDescriptor, int iPosition, int iNum)
 {
 	return mcIndexedDescriptorFile.Read(EFSO_SET, iPosition * sizeof(CIndexDescriptor), pcDescriptor, sizeof(CIndexDescriptor), iNum);
 }
@@ -73,7 +73,7 @@ int CIndexDescriptorsFile::Read(CIndexDescriptor* pcDescriptor, int iPosition, i
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CIndexDescriptorsFile::Write(CIndexDescriptor* pcDescriptor, int iPosition, int iNum)
+filePos CIndexDescriptorsFile::Write(CIndexDescriptor* pcDescriptor, int iPosition, int iNum)
 {
 	return mcIndexedDescriptorFile.Write(iPosition * sizeof(CIndexDescriptor), pcDescriptor, sizeof(CIndexDescriptor), iNum);
 }

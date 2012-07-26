@@ -49,7 +49,7 @@ void CIndexDiskDirectAccess::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexDiskDirectAccess::Get(CIndexDescriptor* pcDescriptor, OIndex oi)
 {
-	int	iResult;
+	filePos	iResult;
 	unsigned int iNumDescriptors;
 	unsigned int loInt;
 
@@ -80,8 +80,8 @@ BOOL CIndexDiskDirectAccess::Get(CIndexDescriptor* pcDescriptor, OIndex oi)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexDiskDirectAccess::Set(CIndexDescriptor* pcDescriptor)
 {
-	int	iResult;
-	unsigned int loInt;
+	filePos			iResult;
+	unsigned int	loInt;
 
 	loInt = (unsigned int)pcDescriptor->GetIndex();
 	iResult = mpcDescriptorsFile->Write(pcDescriptor, loInt);
@@ -96,9 +96,9 @@ BOOL CIndexDiskDirectAccess::Set(CIndexDescriptor* pcDescriptor)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexDiskDirectAccess::Remove(OIndex oi)
 {
-	CIndexDescriptor		cNullDescriptor;
-	int							iResult;
-	unsigned int				loInt;
+	CIndexDescriptor	cNullDescriptor;
+	filePos				iResult;
+	unsigned int		loInt;
 
 	memset(&cNullDescriptor, 0, sizeof(CIndexDescriptor));
 	cNullDescriptor.Init(oi, 0);
@@ -142,8 +142,9 @@ void CIndexDiskDirectAccess::Save(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexDiskDirectAccess::UpdateFile(void)
+BOOL CIndexDiskDirectAccess::UpdateFile(void)
 {
+	return TRUE;
 }
 
 

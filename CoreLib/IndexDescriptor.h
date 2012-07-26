@@ -24,6 +24,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define __INDEX_DESCRIPTOR_H__
 #include "BaseLib/ArrayTemplate.h"
 #include "BaseLib/Define.h"
+#include "BaseLib/AbstractFile.h"
 #include "IndexedGeneral.h"
 
 
@@ -44,7 +45,7 @@ private:
 	unsigned int	msFlags;  //These include the user flags.
 
 	int				miFileIndex;  //Which file.
-	int				miIndexInFile;  //Where in the file.
+	filePos			miIndexInFile;  //Where in the file.
 
 	void*			mpvCache;  //Null if object is not cached.
 	unsigned int	muiTimeStamp;
@@ -63,9 +64,9 @@ public:
 	BOOL			IsCached(void);
 	void*			GetCache(void);
 	void			TimeStamp(unsigned int uiTimeStamp);
-	void			File(int iFileIndex, int iIndexInFile);
+	void			File(int iFileIndex, filePos iIndexInFile);
 	int				GetFileIndex(void);
-	int				GetIndexInFile(void);
+	filePos			GetIndexInFile(void);
 	unsigned int	GetTimeStamp(void);
 };
 

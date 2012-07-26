@@ -53,8 +53,8 @@ public:
 
 	BOOL					Flush(void);
 	BOOL					Cache(CNamedIndexesBlock* pcBlock);
-	BOOL					AddNewBlock(int iBlockWidth, void* pvBlocks, int iNumBlocks, int iDataIndex);
-	int						NumNames(void);
+	BOOL					AddNewBlock(int iBlockWidth, void* pvBlocks, filePos iNumBlocks, filePos iDataIndex);
+	filePos					NumNames(void);
 	void					GetPotentialContainingBlocks(CChars* szName, CArrayNamedIndexesBlockPtr* pcDest);
 	void					SortBlockPtrsCachedFirst(CArrayNamedIndexesBlockPtr* pcDest);
 	int						GetCacheDescriptorSize(void);

@@ -134,9 +134,9 @@ void CIndexSmartAccess::Save(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexSmartAccess::UpdateFile(void)
+BOOL CIndexSmartAccess::UpdateFile(void)
 {
-	pcAccess->UpdateFile();
+	return pcAccess->UpdateFile();
 }
 
 

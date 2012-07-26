@@ -59,6 +59,7 @@ void CIndexedData::Init(CIndexedConfig* pcConfig)
 
 	InitIndices(pcConfig);
 	mcObjectFiles.Init(&mcDurableFileControl, "DAT");
+	mcObjectFiles.Open();
 
 	if (pcConfig->miObjectsCacheSize != 0)
 	{
@@ -91,6 +92,7 @@ void CIndexedData::Kill(void)
 	}
 	mcIndices.Save();
 
+	mcObjectFiles.Close();
 	DurableEnd();
 	mcDurableFileControl.Kill();
 

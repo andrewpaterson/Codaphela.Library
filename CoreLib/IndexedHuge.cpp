@@ -328,7 +328,7 @@ void CIndexedHuge::Load(void)
 	OIndex				iRemaining;
 	int					iNumInChunk;
 	int					i;
-	int					iActualRead;
+	filePos				iActualRead;
 
 	miLastOi = INVALID_O_INDEX;
 	iFileSize = mpcFile->Size();
@@ -353,7 +353,7 @@ void CIndexedHuge::Load(void)
 
 	while (iNumToRead != 0)
 	{
-		iActualRead = mpcFile->Read(pacDescriptors, sizeof(CIndexDescriptor), (int)iNumToRead);
+		iActualRead = mpcFile->Read(pacDescriptors, sizeof(CIndexDescriptor), iNumToRead);
 		miDiskReads += iActualRead;
 
 		for (i = 0; i < iNumToRead; i++)
@@ -481,7 +481,7 @@ SIndexedThirdLevelSearch* CIndexedHuge::LoadThirdLevelChunk(SIndexedSecondLevelS
 	SIndexedThirdLevelSearch**	ppsIndexedThirdLevelSearch;
 	SIndexedThirdLevelSearch*	psIndexedThirdLevelSearch;
 	CIndexDescriptor*			psDescriptor;
-	int							iResult;
+	filePos						iResult;
 	OIndex						iOffset;
 	filePos						iLength;
 	int							iNumToRead;
@@ -650,8 +650,8 @@ void CIndexedHuge::SaveThirdLevelChunk(SIndexedThirdLevelSearch* psIndexedThirdL
 	CIndexDescriptor*	pcDescriptor;
 	OIndex				iLastChunkOI;
 	long				iOffset;
-	int					iResult;
-	int					iNumToWrite;
+	filePos				iResult;
+	filePos				iNumToWrite;
 	BOOL				bResult;
 
 	iFirstChunkOI = GetThirdLevelChunkOI(psIndexedThirdLevelSearch);
@@ -683,7 +683,7 @@ void CIndexedHuge::SaveThirdLevelChunk(SIndexedThirdLevelSearch* psIndexedThirdL
 	{
 		iOffset = (int)(iFirstChunkOI * sizeof(CIndexDescriptor));
 		pcDescriptor = GetCachedDescriptor(psIndexedThirdLevelSearch, 0);
-		iNumToWrite = (int)(iLastChunkOI-iFirstChunkOI)+1;
+		iNumToWrite = (filePos)((iLastChunkOI-iFirstChunkOI)+1);
 
 		if (iLength < iOffset)
 		{
@@ -704,16 +704,16 @@ BOOL CIndexedHuge::PadFile(filePos iLength, filePos iOffset)
 {
 	CIndexDescriptor	cZero;
 	filePos				iDiff;
-	int					i;
-	BOOL				bResult;
+	filePos				i;
+	filePos				iResult;
 
 	iDiff = (iOffset - iLength) / sizeof(CIndexDescriptor);
 	cZero.Init(INVALID_O_INDEX, 0);
 	for (i = 0; i < iDiff; i++)
 	{
-		bResult = mpcFile->Write(EFSO_SET, (int)(((iLength/sizeof(CIndexDescriptor)) + i) * sizeof(CIndexDescriptor)), &cZero, sizeof(CIndexDescriptor), 1);
-		miDiskWrites += bResult;
-		if (!bResult)
+		iResult = mpcFile->Write(EFSO_SET, ((iLength/sizeof(CIndexDescriptor)) + i) * sizeof(CIndexDescriptor), &cZero, sizeof(CIndexDescriptor), 1);
+		miDiskWrites += iResult;
+		if (iResult != 1)
 		{
 			return FALSE;
 		}
@@ -798,9 +798,10 @@ SIndexedThirdLevelSearch** CIndexedHuge::GetIndexedThirdLevelChunk(SIndexedSecon
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedHuge::UpdateFile(void)
+BOOL CIndexedHuge::UpdateFile(void)
 {
 	Save();
+	return TRUE;
 }
 
 

@@ -181,11 +181,11 @@ void CIndexMemoryAccess::Save(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexMemoryAccess::UpdateFile(void)
+BOOL CIndexMemoryAccess::UpdateFile(void)
 {
 	int					i;
 	CIndexDescriptor*	pcDescriptor;
-	BOOL				bResult;
+	filePos				iIndex;
 
 	for (i = 0; i < maMemoryArray.NumElements(); i++)
 	{
@@ -195,14 +195,15 @@ void CIndexMemoryAccess::UpdateFile(void)
 			if ((!mbDirtyTesting) || (mbDirtyTesting && pcDescriptor->IsDirty()))
 			{
 				pcDescriptor->Dirty(FALSE);
-				bResult = mpcDescriptorsFile->Write(pcDescriptor, i);
-				if (!bResult)
+				iIndex = mpcDescriptorsFile->Write(pcDescriptor, i);
+				if (iIndex == -1)
 				{
-					return;
+					return FALSE;
 				}
 			}
 		}
 	}
+	return TRUE;
 }
 
 

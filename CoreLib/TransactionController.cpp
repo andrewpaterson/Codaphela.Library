@@ -49,7 +49,7 @@ void CTransactionController::Init(char* szDirectory, unsigned int uiCacheSize, B
 //////////////////////////////////////////////////////////////////////////
 void CTransactionController::InitState(BOOL bDurable)
 {
-	BOOL		bResult;
+	filePos		iRead;
 	CFileUtil	cFileUtil;
 
 	mszStateName.Init(mszDirectory);
@@ -61,8 +61,8 @@ void CTransactionController::InitState(BOOL bDurable)
 	mcStateFile.Init(bDurable, mszStateName.Text(), mszStateRewrite.Text());
 	mcStateFile.Open();
 	mcIndexedData.AddFile(&mcStateFile);
-	bResult = mcStateFile.Read(&msState, sizeof(SControllerState), 1);
-	if (!bResult)
+	iRead = mcStateFile.Read(&msState, sizeof(SControllerState), 1);
+	if (iRead != 1)
 	{
 		msState.muiTimeStamp = 0;
 	}
@@ -80,7 +80,7 @@ void CTransactionController::Kill(void)
 	pcTransaction = mcTransactions.GetHead();
 	while (pcTransaction)
 	{
-		//The transaction is cancelled/lost.
+		//The transaction is canceled/lost.
 		pcTransaction->Kill();
 		pcTransaction = mcTransactions.GetNext(pcTransaction);
 	}
@@ -240,7 +240,10 @@ OIndex CTransactionController::NumElements(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CTransactionController::WriteState(void)
 {
-	return mcStateFile.Write(&msState, sizeof(SControllerState), 1);
+	filePos		iWritten;
+
+	iWritten = mcStateFile.Write(&msState, sizeof(SControllerState), 1);
+	return iWritten == 1;
 }
 
 

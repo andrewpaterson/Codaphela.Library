@@ -178,7 +178,7 @@ void CIndexDescriptor::TimeStamp(unsigned int uiTimeStamp)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexDescriptor::File(int iFileIndex, int iIndexInFile)
+void CIndexDescriptor::File(int iFileIndex, filePos iIndexInFile)
 {
 	miFileIndex = iFileIndex;
 	miIndexInFile = iIndexInFile;
@@ -199,7 +199,7 @@ int CIndexDescriptor::GetFileIndex(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CIndexDescriptor::GetIndexInFile(void)
+filePos CIndexDescriptor::GetIndexInFile(void)
 {
 	return miIndexInFile;
 }

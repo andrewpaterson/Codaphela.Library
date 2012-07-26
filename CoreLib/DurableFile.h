@@ -73,34 +73,34 @@ public:
 
 	BOOL		Open(void);
 	BOOL		Close(void);
-	int			Write(unsigned int iDistance, const void* pvSource, int iSize, int iCount);
-	int			Write(EFileSeekOrigin eOrigin, unsigned int iDistance, const void* pvSource, int iSize, int iCount);
-	int			Write(const void* pvSource, int iSize, int iCount);
-	int			Read(unsigned int iDistance, void* pvDest, int iSize, int iCount);
-	int			Read(EFileSeekOrigin eOrigin, unsigned int iDistance, void* pvDest, int iSize, int iCount);
-	int			Read(void* pvDest, int iSize, int iCount);
+	filePos		Write(filePos iDistance, const void* pvSource, filePos iSize, filePos iCount);
+	filePos		Write(EFileSeekOrigin eOrigin, filePos iDistance, const void* pvSource, filePos iSize, filePos iCount);
+	filePos		Write(const void* pvSource, filePos iSize, filePos iCount);
+	filePos		Read(filePos iDistance, void* pvDest, filePos iSize, filePos iCount);
+	filePos		Read(EFileSeekOrigin eOrigin, filePos iDistance, void* pvDest, filePos iSize, filePos iCount);
+	filePos		Read(void* pvDest, filePos iSize, filePos iCount);
 	void		Seek(EFileSeekOrigin eOrigin, filePos iDistance);
 	filePos		Tell(void);
 	filePos		Size(void);
 	BOOL		IsEof(void);
 
-	int			ReadFromFile(void* pvDest, int iSize, int iCount);
+	filePos		ReadFromFile(void* pvDest, filePos iSize, filePos iCount);
 	filePos		SizeFromFile(void);
 	BOOL		TestIdentical(void);
 
 	void		Dump(void);
 
 protected:
-	BOOL	FindTouchingWriteCommands(CArrayPointer* papvOverlapping, filePos iPosition, filePos iLength, BOOL bMustOverlap);
-	BOOL	Overlaps(filePos iPosition, filePos iLength, SDurableFileCommandWrite* psWrite);
-	BOOL	AmalgamateOverlappingWrites(CArrayPointer* papvOverlapping, const void* pvSource, filePos iPosition, int iLength);
-	BOOL	FindHoles(CArrayPointer* papvOverlapping, filePos iPosition, int iLength);
-	void	UpdateLength(void);
-	void	OpenFilesForBegin(void);
-	BOOL	OpenFilesForEnd(CFileBasic* pcFile);
-	int		PrivateRead(void* pvDest, int iSize, int iCount);
-	BOOL	CopyBackupToPrimary(void);
-	BOOL	CopyPrimaryToBackup(void);
+	BOOL		FindTouchingWriteCommands(CArrayPointer* papvOverlapping, filePos iPosition, filePos iLength, BOOL bMustOverlap);
+	BOOL		Overlaps(filePos iPosition, filePos iLength, SDurableFileCommandWrite* psWrite);
+	BOOL		AmalgamateOverlappingWrites(CArrayPointer* papvOverlapping, const void* pvSource, filePos iPosition, filePos iLength);
+	BOOL		FindHoles(CArrayPointer* papvOverlapping, filePos iPosition, filePos iLength);
+	void		UpdateLength(void);
+	void		OpenFilesForBegin(void);
+	BOOL		OpenFilesForEnd(CFileBasic* pcFile);
+	filePos		PrivateRead(void* pvDest, filePos iSize, filePos iCount);
+	BOOL		CopyBackupToPrimary(void);
+	BOOL		CopyPrimaryToBackup(void);
 };
 
 

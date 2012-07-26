@@ -28,19 +28,19 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 class CNamedIndexesBlock
 {
 protected:
-	int			miDataIndex;
+	filePos		miDataIndex;
 	CChars		mszFirst;
 	CChars		mszLast;
 
 	void*		mpvCachePos;
 	int			miBlockWidth;  //Max name length = miBlockWidth - sizeof(OIndex) - 1 (for trailing 0).
-	int			miNumBlocks;
-	int			miUsedBlocks;
+	filePos		miNumBlocks;
+	filePos		miUsedBlocks;
 	BOOL		mbDirty;
 
 public:
-	void					Init(int iBlockWidth, int iNumBlocks);
-	void					Init(int iBlockWidth, void* pvBlocks, int iNumBlocks, int iDataIndex, void* pvCache);
+	void					Init(int iBlockWidth, filePos iNumBlocks);
+	void					Init(int iBlockWidth, void* pvBlocks, filePos iNumBlocks, filePos iDataIndex, void* pvCache);
 	void					Kill(void);
 
 	BOOL					CouldContain(CChars* szName);
@@ -52,8 +52,8 @@ public:
 	BOOL					IsCache(void* pvCachePos);
 	BOOL					IsDirty(void);
 
-	int						GetUsedByteSize(void);
-	int						GetAllocatedByteSize(void);
+	size_t					GetUsedByteSize(void);
+	size_t					GetAllocatedByteSize(void);
 
 	BOOL					AddUnsafe(OIndex oi, CChars* szName);
 	OIndex					GetIndex(CChars* szName);
@@ -62,18 +62,18 @@ public:
 	BOOL					Uncache(CIndexedFile* pcFile);
 	BOOL					Cache(void* pvCache);
 	BOOL					Cache(CIndexedFile* pcFile, void* pvCache);
-	int						UsedNames(void);
+	filePos					UsedNames(void);
 	int						GetBlockWidth(void);
-	int						GetNumBlocks(void);
-	int						GetUsedBlocks(void);
+	filePos 				GetNumBlocks(void);
+	filePos 				GetUsedBlocks(void);
 	char*					GetFirst(void);
 	char*					GetLast(void);
 	void					Dump(void);
 	void					Dump(CArrayBlock* pavFakeBlock);
-	BOOL					Write(CIndexedFile* pcFile);
+	filePos					Write(CIndexedFile* pcFile);
 
 private:
-	CNamedIndexedBlock*		GetUnsafe(int iIndex);
+	CNamedIndexedBlock*		GetUnsafe(filePos iIndex);
 };
 
 

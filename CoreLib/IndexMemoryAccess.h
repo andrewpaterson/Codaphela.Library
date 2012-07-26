@@ -42,7 +42,7 @@ public:
 
 	void 			Load(void);
 	void 			Save(void);
-	void			UpdateFile(void);
+	BOOL			UpdateFile(void);
 
 	BOOL			IsMemory(void);
 };

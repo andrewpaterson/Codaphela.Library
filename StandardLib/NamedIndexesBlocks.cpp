@@ -194,7 +194,7 @@ BOOL CNamedIndexesBlocks::Add(OIndex oi, CChars* szName, BOOL bFailOnExisting)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNamedIndexesBlocks::AddNewBlock(int iBlockWidth, void* pvBlocks, int iNumBlocks, int iDataIndex)
+BOOL CNamedIndexesBlocks::AddNewBlock(int iBlockWidth, void* pvBlocks, filePos iNumBlocks, filePos iDataIndex)
 {
 	CNamedIndexesBlock*		pcBlock;
 	void*					pvCache;
@@ -338,11 +338,11 @@ BOOL CNamedIndexesBlocks::Remove(CChars* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CNamedIndexesBlocks::NumNames(void)
+filePos CNamedIndexesBlocks::NumNames(void)
 {
 	int						i;
 	CNamedIndexesBlock*		pcBlock;
-	int						iNames;
+	filePos					iNames;
 
 	iNames = 0;
 	for (i = 0; i < macBlocks.NumElements(); i++)

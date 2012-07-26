@@ -46,12 +46,12 @@ public:
 	OIndex					GetIndex(CChars* szName);
 	BOOL					Remove(char* szName);
 	BOOL					Remove(CChars* szName);
-	int						NumNames(void);
+	filePos					NumNames(void);
 
 	BOOL					Flush(void);
 	CIndexedFile*			GetFile(int iDataSize, int iFileNumber);
 	CIndexedFile*			GetOrCreateFile(int iDataSize, int iFileNumber);
-	void*					AllocateInCache(int iSize);
+	void*					AllocateInCache(size_t iSize);
 
 	void					TestGetPotentialContainingBlocks(char* szName, CArrayNamedIndexesBlockPtr* pcDest);
 	CNamedIndexesBlocks*	TestGetBlock(int iNameLength);

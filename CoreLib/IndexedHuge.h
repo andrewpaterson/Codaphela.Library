@@ -105,8 +105,8 @@ protected:
 
 	BOOL						mbDirtyTesting;
 
-	int							miDiskReads;
-	int							miDiskWrites;
+	filePos						miDiskReads;
+	filePos						miDiskWrites;
 
 public:
 	void 						Init(CDurableFile* pcFile, BOOL bDirtyTesting, CIndexedData* pcIndexedData, int iSecondLevelWidth, int iThirdLevelWidth, int iNumSecondLevelChunks, int iNumThirdLevelChunks);
@@ -126,7 +126,7 @@ public:
 	int							GetSecondLevelCacheByteSize(void);
 	int							GetThirdLevelCacheByteSize(void);
 	BOOL 						ChangeStrategy(int iFirstLevelGrouping, int iSecondLevelWidth, int iNumSecondLevelChunks, int iNumThirdeLevelChunks);
-	void						UpdateFile(void);
+	BOOL						UpdateFile(void);
 	void						DumpThirdLevelCache(void);
 
 protected:

@@ -81,6 +81,8 @@ void CNamedIndexes::Save(void)
 		pcBlock = macBlocks.Get(i);
 		pcBlock->Save();
 	}
+
+	mcFiles.Close();
 }
 
 
@@ -93,6 +95,8 @@ BOOL CNamedIndexes::Load(void)
 	int						i;
 	CNamedIndexesBlocks*	pcBlock;
 	BOOL					bResult;
+
+	mcFiles.Open();
 
 	for (i = 0; i < macBlocks.NumElements(); i++)
 	{
@@ -281,11 +285,11 @@ CNamedIndexesBlocks* CNamedIndexes::AddBlock(int iBlockSize, int iMinNameLength,
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CNamedIndexes::NumNames(void)
+filePos CNamedIndexes::NumNames(void)
 {
 	int						i;
 	CNamedIndexesBlocks*	pcBlock;
-	int						iNames;
+	filePos						iNames;
 
 	iNames = 0;
 	for (i = 0; i < macBlocks.NumElements(); i++)
@@ -301,7 +305,7 @@ int CNamedIndexes::NumNames(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CNamedIndexes::AllocateInCache(int iSize)
+void* CNamedIndexes::AllocateInCache(size_t iSize)
 {
 	CMemoryCacheAllocation		cPreAllocated;
 	void*						pvData;
