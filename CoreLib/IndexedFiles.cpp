@@ -195,7 +195,7 @@ BOOL CIndexedFiles::WriteIndexedFileDescriptors(void)
 		pcIndexedFile = mcFiles.Get(i);
 		psFileDescriptor = (SIndexedFileDescriptor*)RemapSinglePointer(pvFileDescriptors, sizeof(SIndexedFileDescriptor) * i);
 		psFileDescriptor->iDataSize = pcIndexedFile->miDataSize;
-		psFileDescriptor->iFileIndex = pcIndexedFile->miFileIndex;
+		psFileDescriptor->iFileIndex = pcIndexedFile->GetFileIndex();
 		psFileDescriptor->iFileNum = pcIndexedFile->miFileNumber;
 
 		bResult &= DataFileName(szDataFileName, szDataRewriteName, pcIndexedFile->miDataSize, pcIndexedFile->miFileNumber);
@@ -324,11 +324,41 @@ CIndexedFile* CIndexedFiles::GetFile(int iFileIndex)
 	{
 		return NULL;
 	}
-	if (pcIndexedFile->miFileIndex != iFileIndex)
+	if (!pcIndexedFile->IsFileIndex(iFileIndex))
 	{
 		return NULL;
 	}
 	return pcIndexedFile;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CIndexedFiles::GetUniqueFileNumber(int iDataSize)
+{
+	int				i;
+	CIndexedFile*	pcIndexedFile;
+	int				iFileNumber;
+
+	iFileNumber = -1;
+	for (i = 0; i < mcFiles.NumElements(); i++)
+	{
+		pcIndexedFile = mcFiles.Get(i);
+		if (pcIndexedFile->miDataSize == iDataSize)
+		{
+			if (iFileNumber != -1)
+			{
+				return -1;
+			}
+			else
+			{
+				iFileNumber = pcIndexedFile->miFileNumber;
+			}
+		}
+	}
+	return iFileNumber;
 }
 
 

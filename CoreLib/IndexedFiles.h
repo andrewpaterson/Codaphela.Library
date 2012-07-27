@@ -54,6 +54,7 @@ public:
 	CIndexedFile* 				GetOrCreateFile(int iDataSize);
 	CIndexedFile* 				GetFile(int iDataSize, int iFileNum);
 	CIndexedFile* 				GetFile(int iFileIndex);
+	int							GetUniqueFileNumber(int iDataSize);
 
 	OIndex						NumInFile(int iDataSize);
 	int							NumFiles(void);

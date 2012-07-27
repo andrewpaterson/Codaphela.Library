@@ -74,7 +74,7 @@ public:
 	void			DurableEnd(void);
 
 	BOOL			IsCaching(void);
-	void			EvictFromCache(CIndexedDataDescriptor* pcDescriptor);
+	BOOL			EvictFromCache(CIndexedDataDescriptor* pcDescriptor);
 	int				NumCached(void);
 	int				NumFiles(void);
 	OIndex			NumInFile(int iDataSize);
@@ -93,8 +93,8 @@ protected:
 	BOOL			GetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor);
 
 	BOOL			ClearDescriptorCache(SIndexedCacheDescriptor* psCached);
-	void			EvictFromCache(SIndexedCacheDescriptor* psExisting);
-	void			EvictOverlappingFromCache(CArrayPointer* papsEvictedIndexedCacheDescriptors);
+	BOOL			EvictFromCache(SIndexedCacheDescriptor* psExisting);
+	BOOL			EvictOverlappingFromCache(CArrayPointer* papsEvictedIndexedCacheDescriptors);
 
 	void			Invalidate(CIndexedDataDescriptor* pcDescriptor);
 	BOOL			Uncache(void);
@@ -104,7 +104,7 @@ protected:
 
 	BOOL			WriteEvictedData(CArrayPointer* papsIndexedCacheDescriptors);
 	BOOL			WriteEvictedData(SIndexedCacheDescriptor* psCached);
-	void			WriteEvictedData(CIndexedDataDescriptor* pcDescriptor, SIndexedCacheDescriptor* psCached);
+	BOOL			WriteEvictedData(CIndexedDataDescriptor* pcDescriptor, SIndexedCacheDescriptor* psCached);
 	BOOL			WriteData(CIndexedDataDescriptor* pcDescriptor, void* pvData);
 
 	void			AddFile(CDurableFile* pcFile);

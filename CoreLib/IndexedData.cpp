@@ -305,15 +305,21 @@ BOOL CIndexedData::CacheWrite(CIndexedDataDescriptor* pcDescriptor, void* pvData
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedData::EvictFromCache(CIndexedDataDescriptor* pcDescriptor)
+BOOL CIndexedData::EvictFromCache(CIndexedDataDescriptor* pcDescriptor)
 {
-	SIndexedCacheDescriptor* psExisting;
+	SIndexedCacheDescriptor*	psExisting;
+	BOOL						bResult;
 
 	if (pcDescriptor->IsCached())
 	{
 		psExisting = mcObjectCache.GetHeader(pcDescriptor->GetCache());
-		WriteEvictedData(pcDescriptor, psExisting);
+		bResult = WriteEvictedData(pcDescriptor, psExisting);
 		mcObjectCache.Invalidate(psExisting);
+		return bResult;
+	}
+	else
+	{
+		return TRUE;
 	}
 }
 
@@ -322,14 +328,20 @@ void CIndexedData::EvictFromCache(CIndexedDataDescriptor* pcDescriptor)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedData::EvictFromCache(SIndexedCacheDescriptor* psExisting)
+BOOL CIndexedData::EvictFromCache(SIndexedCacheDescriptor* psExisting)
 {
 	CIndexedDataDescriptor	cDescriptor;
-	BOOL				bResult;
+	BOOL					bResult;
 
 	bResult = mcIndices.Get(&cDescriptor, psExisting->oi);
+	if (!bResult)
+	{
+		return FALSE;
+	}
+
 	cDescriptor.Cache(NULL);
-	mcIndices.Set(&cDescriptor);
+	bResult = mcIndices.Set(&cDescriptor);
+	return bResult;
 }
 
 
@@ -337,19 +349,22 @@ void CIndexedData::EvictFromCache(SIndexedCacheDescriptor* psExisting)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedData::EvictOverlappingFromCache(CArrayPointer* papsEvictedIndexedCacheDescriptors)
+BOOL CIndexedData::EvictOverlappingFromCache(CArrayPointer* papsEvictedIndexedCacheDescriptors)
 {
 	int							i;
 	SIndexedCacheDescriptor*	psDesc;
 	int							iType;
+	BOOL						bResult;
 
+	bResult = TRUE;
 	for (i = 0; i < papsEvictedIndexedCacheDescriptors->NumElements(); i++)
 	{
 		if (papsEvictedIndexedCacheDescriptors->Get(i, (void**)&psDesc, &iType))
 		{
-			EvictFromCache(psDesc);
+			bResult &= EvictFromCache(psDesc);
 		}
 	}
+	return bResult;
 }
 
 
@@ -387,14 +402,18 @@ BOOL CIndexedData::WriteData(CIndexedDataDescriptor* pcDescriptor, void* pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedData::WriteEvictedData(CIndexedDataDescriptor* pcDescriptor, SIndexedCacheDescriptor* psCached)
+BOOL CIndexedData::WriteEvictedData(CIndexedDataDescriptor* pcDescriptor, SIndexedCacheDescriptor* psCached)
 {
 	void*				pvData;
 
 	if (psCached->iFlags & CACHE_DESCRIPTOR_FLAG_DIRTY)
 	{
 		pvData = RemapSinglePointer(psCached, sizeof(SIndexedCacheDescriptor));
-		WriteData(pcDescriptor, pvData);
+		return WriteData(pcDescriptor, pvData);
+	}
+	else
+	{
+		return TRUE;
 	}
 }
 

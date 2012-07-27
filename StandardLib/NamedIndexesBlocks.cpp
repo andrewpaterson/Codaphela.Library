@@ -64,12 +64,12 @@ void CNamedIndexesBlocks::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNamedIndexesBlocks::Load(void)
+BOOL CNamedIndexesBlocks::Load(int iFileNumber)
 {
 	CNamedIndexesBlocksLoader	cLoader;
 	BOOL						bResult;
 
-	cLoader.Init(this);
+	cLoader.Init(this, iFileNumber);
 	bResult = cLoader.Load();
 	cLoader.Kill();
 

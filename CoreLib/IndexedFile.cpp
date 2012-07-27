@@ -68,7 +68,7 @@ BOOL CIndexedFile::Open(CDurableFileController* pcDurableFileControl)
 	}
 
 	iFileLengh = mcFile.Size();
-	miNumDatas = (int)(iFileLengh / miDataSize);
+	miNumDatas = (iFileLengh / miDataSize);
 	mbNew = TRUE;
 
 	bResult = TRUE;
@@ -176,7 +176,7 @@ BOOL CIndexedFile::Write(filePos iIndex, void* pvData, filePos iCount)
 	}
 
 	iPosition = iIndex * miDataSize;
-	iWritten = mcFile.Write(EFSO_SET, (int)iPosition, pvData, miDataSize, iCount);
+	iWritten = mcFile.Write(EFSO_SET, iPosition, pvData, miDataSize, iCount);
 	if (iWritten != (filePos)iCount)
 	{
 		return FALSE;
@@ -292,4 +292,12 @@ void CIndexedFile::Dump(void)
 
 	mcFile.mbDurable = bDurable;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CIndexedFile::GetFileIndex(void) { return miFileIndex; }
+BOOL CIndexedFile::IsFileIndex(int iFileIndex) { return miFileIndex == iFileIndex; }
 

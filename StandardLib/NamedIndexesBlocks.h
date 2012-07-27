@@ -42,7 +42,7 @@ protected:
 public:
 	void					Init(int iBlockSize, int iMinNameLength, int iMaxNameLength, int iNewNumBlocks, CNamedIndexes* pcNamedIndexes);
 	void					Kill(void);
-	BOOL					Load(void);
+	BOOL					Load(int iFileNumber);
 	BOOL					Save(void);
 
 	BOOL					FitsLength(int iNameLength);

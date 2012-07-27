@@ -66,7 +66,7 @@ void CNamedIndexesBlock::Init(int iBlockWidth, void* pvBlocks, filePos iNumBlock
 		pcBlock = GetUnsafe(i);
 		if (pcBlock->IsEmpty())
 		{
-			miUsedBlocks = i - 1;
+			miUsedBlocks = i;
 			break;;
 		}
 	}
@@ -78,8 +78,6 @@ void CNamedIndexesBlock::Init(int iBlockWidth, void* pvBlocks, filePos iNumBlock
 	}
 	else
 	{
-		miUsedBlocks++;
-
 		pcBlock = GetUnsafe(0);
 		mszFirst.Init(pcBlock->Name());
 

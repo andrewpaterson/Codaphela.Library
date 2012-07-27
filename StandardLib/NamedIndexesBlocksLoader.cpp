@@ -9,9 +9,17 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNamedIndexesBlocksLoader::Init(CNamedIndexesBlocks* pcBlocks)
+void CNamedIndexesBlocksLoader::Init(CNamedIndexesBlocks* pcBlocks, int iFileNumber)
 {
-	mpcFile = pcBlocks->mpcNamedIndexes->GetFile(pcBlocks->miBlockWidth, pcBlocks->miFileNumber);
+	if (iFileNumber != -1)
+	{
+		mpcFile = pcBlocks->mpcNamedIndexes->GetFile(pcBlocks->miBlockWidth, iFileNumber);
+	}
+	else
+	{
+		mpcFile = NULL;
+	}
+
 	if (!mpcFile)
 	{
 		mpvTemp = NULL;
@@ -20,6 +28,7 @@ void CNamedIndexesBlocksLoader::Init(CNamedIndexesBlocks* pcBlocks)
 		return;
 	}
 
+	pcBlocks->SetFileNumber(iFileNumber);
 	miNumBlocksInFile = mpcFile->miNumDatas;
 	mpcBlocks = pcBlocks;
 

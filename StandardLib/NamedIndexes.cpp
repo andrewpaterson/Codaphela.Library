@@ -95,13 +95,20 @@ BOOL CNamedIndexes::Open(void)
 	int						i;
 	CNamedIndexesBlocks*	pcBlock;
 	BOOL					bResult;
+	int						iFileNumber;
 
-	mcFiles.Open();
+	bResult = mcFiles.Open();
+	if (!bResult)
+	{
+		return FALSE;
+	}
 
 	for (i = 0; i < macBlocks.NumElements(); i++)
 	{
 		pcBlock = macBlocks.Get(i);
-		bResult = pcBlock->Load();
+		iFileNumber = mcFiles.GetUniqueFileNumber(pcBlock->GetDataSize());
+
+		bResult = pcBlock->Load(iFileNumber);
 		if (!bResult)
 		{
 			return FALSE;
@@ -370,18 +377,23 @@ void* CNamedIndexes::AllocateInCache(size_t iSize)
 //////////////////////////////////////////////////////////////////////////
 CIndexedFile* CNamedIndexes::GetOrCreateFile(int iDataSize, int iFileNumber)
 {
-	CIndexedFile*	pcFile;
+	CIndexedFile*	pcIndexedFile;
 
 	if (iFileNumber != -1)
 	{
-		pcFile = GetFile(iDataSize, iFileNumber);
+		pcIndexedFile = GetFile(iDataSize, iFileNumber);
 	}
 	else
 	{
-		pcFile = mcFiles.GetOrCreateFile(iDataSize);
+		pcIndexedFile = mcFiles.GetOrCreateFile(iDataSize);
+		if (pcIndexedFile->mbNew)
+		{
+			pcIndexedFile->mbNew = FALSE;
+			mcFiles.WriteIndexedFileDescriptors();
+		}
 	}
 
-	return pcFile;
+	return pcIndexedFile;
 }
 
 

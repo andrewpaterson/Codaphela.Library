@@ -31,8 +31,10 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 class CIndexedFile
 {
+private:
+	int				miFileIndex;  //This is the index of the file in the CIndexedFiles.mcFiles array.
+
 public:
-	int				miFileIndex;
 	CDurableFile	mcFile;
 	int				miDataSize;
 	filePos			miNumDatas;
@@ -54,7 +56,9 @@ public:
 	BOOL		Read(filePos iIndex, void* pvData);
 	BOOL		Read(filePos iIndex, void* pvData, filePos iCount);
 
-	void	Dump(void);
+	int			GetFileIndex(void);
+	BOOL		IsFileIndex(int iFileIndex);
+	void		Dump(void);
 };
 
 

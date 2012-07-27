@@ -23,7 +23,7 @@ protected:
 	BOOL					mbBlockSorted;
 
 public:
-	void	Init(CNamedIndexesBlocks* pcBlocks);
+	void	Init(CNamedIndexesBlocks* pcBlocks, int iFileNumber);
 	void	Kill(void);
 
 	BOOL	Load(void);

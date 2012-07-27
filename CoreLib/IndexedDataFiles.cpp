@@ -49,7 +49,7 @@ BOOL CIndexedDataFiles::WriteNew(CIndexedDataDescriptor* pcIndexDescriptor, void
 		}
 
 		//CIndexedDataDescriptor (pcIndexDescriptor) adjusted here.
-		pcIndexDescriptor->File(pcIndexedFile->miFileIndex, iIndex);
+		pcIndexDescriptor->File(pcIndexedFile->GetFileIndex(), iIndex);
 		return TRUE;
 	}
 	else

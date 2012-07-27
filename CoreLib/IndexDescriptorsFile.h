@@ -25,6 +25,9 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "DurableFile.h"
 
 
+//This class contains a file with every data descriptor in it - regardless of the size of the data it describes.  
+//The actual data is contained in files in the CIndexedDataFiles class.
+
 class CIndexedDataDescriptor;
 class CDurableFileController;
 class CIndexDescriptorsFile
