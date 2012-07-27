@@ -51,35 +51,35 @@ public:
 	CAbstractFile*			mpcFile;
 
 	void*					mpvMem;
-	int						miAllocatedSize;
+	size_t					miAllocatedSize;
 
-	int						miBufferSizeRead;
-	int						miBufferPos;
+	size_t					miBufferSizeRead;
+	size_t					miBufferPos;
 	EBufferType				meType;
 	filePos					mulliFilePos;
 	filePos					mulliCurrentPos;
 	filePos					mulliLength;
 	EBufferLastOperation	meLastOp;
 
-	void	Init(CAbstractFile* pcFile);
-	void	Init(CAbstractFile* pcFile, int iBufferSize);
-	void	Kill(void);
+	void		Init(CAbstractFile* pcFile);
+	void		Init(CAbstractFile* pcFile, int iBufferSize);
+	void		Kill(void);
 
-	BOOL	Open(EFileMode eFileMode);
-	BOOL	Close(void);
-	int		Read(void* pvDest, int iSize, int iCount);
-	int		Seek(filePos iOffset, int iSeekOrigin);
-	int		Write(const void* pvSource, int iSize, int iCount);
-	filePos	Tell(void);
-	BOOL	Eof(void);
-	BOOL	IsOpen(void);
-	filePos	Size(void);
-	BOOL	Flush(void);
+	BOOL		Open(EFileMode eFileMode);
+	BOOL		Close(void);
+	filePos		Read(void* pvDest, filePos iSize, filePos iCount);
+	BOOL		Seek(filePos iOffset, int iSeekOrigin);
+	filePos		Write(const void* pvSource, filePos iSize, filePos iCount);
+	filePos		Tell(void);
+	BOOL		Eof(void);
+	BOOL		IsOpen(void);
+	filePos		Size(void);
+	BOOL		Flush(void);
 
-	void	MatchFilePosToCurrentPos(void);
-	void	BufferSourceFileRead(void);
-	void	CopyFromBuffer(void* pvDest, int iByteSize, int iDestOffset);
-	BOOL	WriteUnwritten(void);
+	void		MatchFilePosToCurrentPos(void);
+	void		BufferSourceFileRead(void);
+	void		CopyFromBuffer(void* pvDest, size_t iByteSize, size_t iDestOffset);
+	BOOL		WriteUnwritten(void);
 };
 
 

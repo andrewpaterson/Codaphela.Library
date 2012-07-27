@@ -131,7 +131,7 @@ BOOL CPackFiles::ChangeReadFiles(CPackFileNode* psPackFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CPackFiles::PrivateRead(CPackFileNode* psPackFile, void* pvBuffer, int iSize, int iCount)
+filePos CPackFiles::PrivateRead(CPackFileNode* psPackFile, void* pvBuffer, filePos iSize, filePos iCount)
 {
 	filePos iRemaining;
 	filePos	iSizeToRead;
@@ -162,7 +162,7 @@ int CPackFiles::PrivateRead(CPackFileNode* psPackFile, void* pvBuffer, int iSize
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CPackFiles::Read(CPackFileNode* psPackFile, void* pvBuffer, int iSize, int iCount)
+filePos CPackFiles::Read(CPackFileNode* psPackFile, void* pvBuffer, filePos iSize, filePos iCount)
 {
 	if (meMode == PFM_Read)
 	{
@@ -259,9 +259,9 @@ BOOL CPackFiles::Seek(CPackFileNode* psPackFile, filePos iOffset, int iSeekOrigi
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CPackFiles::Write(CPackFileNode* psPackFile, const void* pvBuffer, int iSize, int iCount)
+filePos CPackFiles::Write(CPackFileNode* psPackFile, const void* pvBuffer, filePos iSize, filePos iCount)
 {
-	int		iWritten;
+	filePos		iWritten;
 
 	if (meMode == PFM_Write)
 	{

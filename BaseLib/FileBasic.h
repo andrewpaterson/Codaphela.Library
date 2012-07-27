@@ -40,8 +40,8 @@ public:
 	BOOL		Open(EFileMode eMode);
 	BOOL 		Close();
 
-	int			Write(const void* pvSource, int iSize, int iCount);
-	int			Read(void* pvDest, int iSize, int iCount);
+	filePos		Write(const void* pvSource, filePos iSize, filePos iCount);
+	filePos		Read(void* pvDest, filePos iSize, filePos iCount);
 
 	void		Seek(filePos iOffset, EFileSeekOrigin eOrigin);
 	void		Seek(filePos iOffset);

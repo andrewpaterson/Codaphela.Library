@@ -35,19 +35,20 @@ class CAbstractFile
 public:
 	BOOL			mbBasicFileMustFree;  //Set by helpers
 
-			void	Init(void);
-	virtual void	Kill(void) = 0;
-	virtual BOOL	Open(EFileMode eFileMode) = 0;
-	virtual BOOL	Close(void) = 0;
-	virtual int		Read(void* pvBuffer, int iSize, int iCount) = 0;
-	virtual int		Seek(filePos iOffset, int iSeekOrigin) = 0;
-	virtual int		Write(const void* pvBuffer, int iSize, int iCount) = 0;
-	virtual filePos	Tell(void) = 0;
-	virtual BOOL	Eof(void) = 0;
-	virtual BOOL	IsOpen(void) = 0;
-	virtual filePos	Size(void) = 0;
-	virtual BOOL	Flush(void) = 0;
+			void		Init(void);
+	virtual void		Kill(void) = 0;
+	virtual BOOL		Open(EFileMode eFileMode) = 0;
+	virtual BOOL		Close(void) = 0;
+	virtual filePos		Read(void* pvBuffer, filePos iSize, filePos iCount) = 0;
+	virtual BOOL		Seek(filePos iOffset, int iSeekOrigin) = 0;
+	virtual filePos		Write(const void* pvBuffer, filePos iSize, filePos iCount) = 0;
+	virtual filePos		Tell(void) = 0;
+	virtual BOOL		Eof(void) = 0;
+	virtual BOOL		IsOpen(void) = 0;
+	virtual filePos		Size(void) = 0;
+	virtual BOOL		Flush(void) = 0;
 };
+
 
 #endif // __ABSTRACT_FILE_H__
 

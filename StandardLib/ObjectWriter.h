@@ -35,16 +35,16 @@ protected:
 	CObjectGraphWriter*		mpcGraphWriter;
 
 public:
-	void	Init(CObjectGraphWriter* pcGraphWriter, CBaseObject* pcObject);
-	void	Kill(void);
+	void		Init(CObjectGraphWriter* pcGraphWriter, CBaseObject* pcObject);
+	void		Kill(void);
 	
-	BOOL	WritePointer(CPointerObject pObject);
-	BOOL	WriteDependent(CBaseObject* pcObject);
-	BOOL	WriteDependent(CPointerObject pObject);
+	BOOL		WritePointer(CPointerObject pObject);
+	BOOL		WriteDependent(CBaseObject* pcObject);
+	BOOL		WriteDependent(CPointerObject pObject);
 
-	int		Write(const void* pvSource, int iSize, int iCount);
-	void*	GetData(void);
-	int		GetLength(void);
+	filePos		Write(const void* pvSource, filePos iSize, filePos iCount);
+	void*		GetData(void);
+	int			GetLength(void);
 };
 
 

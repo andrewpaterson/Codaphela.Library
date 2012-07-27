@@ -33,6 +33,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "EnumeratorTemplate.h"
 #include "EnumeratorBlock.h"
 #include "ErrorTypes.h"
+#include "AbstractFile.h"
 
 
 #define CheckRead(pvData, iSize) 	if (!Read(pvData, iSize, 1)) { return FALSE; }
@@ -42,7 +43,7 @@ class CFileReader
 {
 public:
 	//The Read.
-	virtual				int		Read(void* pvDest, int iSize, int iCount) =0;
+	virtual				filePos	Read(void* pvDest, filePos iSize, filePos iCount) =0;
 
 	//Chunking
 						int		FindFirstChunkWithName(char* szName);

@@ -268,7 +268,7 @@ BOOL CDurableFile::PrivateWrite(CFileBasic* pcFile)
 	int							i;
 	void*						pvData;
 	SDurableFileCommandWrite*	psWrite;
-	int							iResult;
+	filePos						iResult;
 
 	//Non-durable files cannot hit this code.
 
@@ -279,7 +279,7 @@ BOOL CDurableFile::PrivateWrite(CFileBasic* pcFile)
 		pcFile->Seek(psWrite->iPosition, EFSO_SET);
 		pvData = RemapSinglePointer(psWrite, sizeof(SDurableFileCommandWrite));
 
-		iResult = pcFile->Write(pvData, (int)psWrite->iSize, 1);
+		iResult = pcFile->Write(pvData, psWrite->iSize, 1);
 		if (iResult != 1)
 		{
 			return FALSE;

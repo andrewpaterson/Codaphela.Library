@@ -95,7 +95,7 @@ BOOL CPackFile::Close(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CPackFile::Read(void* pvBuffer, int iSize, int iCount)
+filePos CPackFile::Read(void* pvBuffer, filePos iSize, filePos iCount)
 {
 	if (meMode == EFM_Read)
 	{
@@ -109,13 +109,13 @@ int CPackFile::Read(void* pvBuffer, int iSize, int iCount)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CPackFile::Seek(filePos iOffset, int iSeekOrigin)
+BOOL CPackFile::Seek(filePos iOffset, int iSeekOrigin)
 {
 	if (meMode != EFM_Unknown)
 	{
 		return mpcPackFiles->Seek(mpsPackFile, iOffset, iSeekOrigin);
 	}
-	return 0;
+	return FALSE;
 }
 
 
@@ -123,7 +123,7 @@ int CPackFile::Seek(filePos iOffset, int iSeekOrigin)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CPackFile::Write(const void* pvBuffer, int iSize, int iCount)
+filePos CPackFile::Write(const void* pvBuffer, filePos iSize, filePos iCount)
 {
 	if (meMode == EFM_Write_Create)
 	{

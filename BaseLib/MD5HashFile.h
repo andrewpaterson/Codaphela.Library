@@ -45,30 +45,30 @@ public:
 	BOOL				mbHashing;
 	ELastMD5Operation	meLastOp;
 
-	void	Init(CAbstractFile*	pcFile);  //Don't pass through a file type of hash file again unless you enjoy being stupid.
-	void	Kill(void);
+	void		Init(CAbstractFile*	pcFile);  //Don't pass through a file type of hash file again unless you enjoy being stupid.
+	void		Kill(void);
 
-	BOOL	Open(EFileMode eFileMode);
-	BOOL	Close(void);
-	int		Read(void* pvBuffer, int iSize, int iCount);
-	int		Seek(filePos iOffset, int iSeekOrigin);
-	int		Write(const void* pvBuffer, int iSize, int iCount);
-	filePos	Tell(void);
-	BOOL	Eof(void);
-	BOOL	IsOpen(void);
-	filePos	Size(void);
-	BOOL	Flush(void);
-	void	StopHashing(void);
-	void	StartHashing(void);
-	void	ResetHash(void);
-	void	CopyContextToDest(SMD5Context* psDestContext);
-	void	CopyContextFromSource(SMD5Context* psSourceContext);
-	void	CopyDigestToDest(void* pvDest);
-	void	Dump(void);
+	BOOL		Open(EFileMode eFileMode);
+	BOOL		Close(void);
+	filePos		Read(void* pvBuffer, filePos iSize, filePos iCount);
+	BOOL		Seek(filePos iOffset, int iSeekOrigin);
+	filePos		Write(const void* pvBuffer, filePos iSize, filePos iCount);
+	filePos		Tell(void);
+	BOOL		Eof(void);
+	BOOL		IsOpen(void);
+	filePos		Size(void);
+	BOOL		Flush(void);
+	void		StopHashing(void);
+	void		StartHashing(void);
+	void		ResetHash(void);
+	void		CopyContextToDest(SMD5Context* psDestContext);
+	void		CopyContextFromSource(SMD5Context* psSourceContext);
+	void		CopyDigestToDest(void* pvDest);
+	void		Dump(void);
 };
 
 
-//Helper function to make createing basic files easier.
+//Helper function to make creating basic files easier.
 CMD5HashFile*	MD5HashFile(CAbstractFile* pcFile);
 
 

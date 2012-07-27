@@ -120,7 +120,7 @@ BOOL CFileBasic::IsEndOfFile(void)
 //= Description  : writes a buffer from memory to a file
 //=
 //====================================================================================
-int CFileBasic::Write(const void* pvSource, int iSize, int iCount)
+filePos CFileBasic::Write(const void* pvSource, filePos iSize, filePos iCount)
 {
 	return mpcFile->Write(pvSource, iSize, iCount);
 }
@@ -139,7 +139,7 @@ int CFileBasic::Write(const void* pvSource, int iSize, int iCount)
 //= Description  : Reads from file into a memory buffer
 //=
 //====================================================================================
-int CFileBasic::Read(void* pvDest, int iSize, int iCount)
+filePos CFileBasic::Read(void* pvDest, filePos iSize, filePos iCount)
 {
 	return mpcFile->Read(pvDest, iSize, iCount);
 }

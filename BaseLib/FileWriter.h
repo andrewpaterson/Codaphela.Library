@@ -33,6 +33,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "EnumeratorTemplate.h"
 #include "EnumeratorBlock.h"
 #include "ErrorTypes.h"
+#include "AbstractFile.h"
 
 
 #define CheckWrite(pvData, iSize)	if (!Write(pvData, iSize, 1)) { return FALSE; }
@@ -42,7 +43,7 @@ class CFileWriter
 {
 public:
 	//The Write.
-	virtual				int		Write(const void* pvSource, int iSize, int iCount) =0;
+	virtual				filePos	Write(const void* pvSource, filePos iSize, filePos iCount) =0;
 
 	//Chunking
 						BOOL	WriteChunkBegin(void);

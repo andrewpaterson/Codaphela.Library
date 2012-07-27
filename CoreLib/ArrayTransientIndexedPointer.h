@@ -23,6 +23,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __ARRAY_TRANSIENT_INDEXED_POINTER_H__
 #define __ARRAY_TRANSIENT_INDEXED_POINTER_H__
 #include "BaseLib/ArrayTemplate.h"
+#include "BaseLib/AbstractFile.h"
 #include "TransactionIndexedData.h"
 
 
@@ -31,7 +32,7 @@ struct STransientIndexedPointer
 	SIndexedMemory	sIndexedMemory;
 	void*			pvCache;
 	int				iFileIndex;
-	int				iIndexInFile;
+	filePos			iIndexInFile;
 
 	void	Init(OIndex oi, unsigned int uiSize);
 	BOOL	IsRemoved(void);

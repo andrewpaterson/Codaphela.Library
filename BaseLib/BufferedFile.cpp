@@ -112,19 +112,19 @@ BOOL CBufferedFile::Close(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CBufferedFile::Read(void* pvDest, int iSize, int iCount)
+filePos CBufferedFile::Read(void* pvDest, filePos iSize, filePos iCount)
 {
-	int		iRemainingBuffer;
-	int		iByteSize;
-	int		iBytesRemaining;
-	int		iBytesCopied;
-	int		iResult;
+	filePos		iRemainingBuffer;
+	filePos		iByteSize;
+	filePos		iBytesRemaining;
+	filePos		iBytesCopied;
+	filePos		iResult;
 
 	WriteUnwritten();
 
 	if (meLastOp == BLO_Write)
 	{
-		mpcFile->Seek((filePos)mulliCurrentPos, EFSO_SET);
+		mpcFile->Seek(mulliCurrentPos, EFSO_SET);
 		meLastOp = BLO_Seek;
 	}
 
@@ -146,14 +146,14 @@ int CBufferedFile::Read(void* pvDest, int iSize, int iCount)
 			iRemainingBuffer = miBufferSizeRead - miBufferPos;
 			if (iByteSize <= iRemainingBuffer)
 			{
-				CopyFromBuffer(pvDest, iByteSize, 0);
+				CopyFromBuffer(pvDest, (size_t)iByteSize, 0);
 				return iCount;
 			}
 			else
 			{
 				iBytesCopied = iRemainingBuffer;
 
-				CopyFromBuffer(pvDest, iBytesCopied, 0);
+				CopyFromBuffer(pvDest, (size_t)iBytesCopied, 0);
 
 				BufferSourceFileRead();
 
@@ -163,7 +163,7 @@ int CBufferedFile::Read(void* pvDest, int iSize, int iCount)
 					iBytesRemaining = miBufferSizeRead;
 				}
 
-				CopyFromBuffer(pvDest, iBytesRemaining, iBytesCopied);
+				CopyFromBuffer(pvDest, (size_t)iBytesRemaining, (size_t)iBytesCopied);
 
 				iBytesCopied += iBytesRemaining;
 				return iBytesCopied / iSize;
@@ -178,7 +178,7 @@ int CBufferedFile::Read(void* pvDest, int iSize, int iCount)
 				iByteSize = miBufferSizeRead;
 			}
 
-			CopyFromBuffer(pvDest, iByteSize, 0);
+			CopyFromBuffer(pvDest, (size_t)iByteSize, 0);
 			return iByteSize / iSize;			
 		}
 	}
@@ -189,13 +189,13 @@ int CBufferedFile::Read(void* pvDest, int iSize, int iCount)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CBufferedFile::Write(const void* pvSource, int iSize, int iCount)
+filePos CBufferedFile::Write(const void* pvSource, filePos iSize, filePos iCount)
 {
-	int		iRemainingBuffer;
-	int		iByteSize;
-	int		iResult;
-	BOOL	bResult;
-	int		iSourceRemaining;
+	size_t		iRemainingBuffer;
+	size_t		iByteSize;
+	filePos		iResult;
+	BOOL		bResult;
+	filePos		iSourceRemaining;
 
 	if (meLastOp == BLO_Read)
 	{
@@ -203,7 +203,7 @@ int CBufferedFile::Write(const void* pvSource, int iSize, int iCount)
 		meLastOp = BLO_Seek;
 	}
 
-	iByteSize = iSize * iCount;
+	iByteSize = (size_t)(iSize * iCount);
 	if (iByteSize > miAllocatedSize)
 	{
 		WriteUnwritten();
@@ -238,8 +238,8 @@ int CBufferedFile::Write(const void* pvSource, int iSize, int iCount)
 				bResult = WriteUnwritten();
 
 				iSourceRemaining = iByteSize - iRemainingBuffer;
-				memcpy(mpvMem, RemapSinglePointer(pvSource, iRemainingBuffer), iSourceRemaining);
-				miBufferPos = iSourceRemaining;
+				memcpy(mpvMem, RemapSinglePointer(pvSource, iRemainingBuffer), (size_t)iSourceRemaining);
+				miBufferPos = (size_t)iSourceRemaining;
 				meType = BT_Write;
 
 				mulliCurrentPos += iByteSize;
@@ -275,17 +275,17 @@ int CBufferedFile::Write(const void* pvSource, int iSize, int iCount)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CBufferedFile::Seek(filePos iOffset, int iSeekOrigin)
+BOOL CBufferedFile::Seek(filePos iOffset, int iSeekOrigin)
 {
-	int		iResult;
+	BOOL	bResult;
 
 	WriteUnwritten();
-	iResult = mpcFile->Seek(iOffset, iSeekOrigin);
+	bResult = mpcFile->Seek(iOffset, iSeekOrigin);
 	meLastOp = BLO_Seek;
 	mulliCurrentPos = mpcFile->Tell();
 	mulliFilePos = mulliCurrentPos;
 	meType = BT_Empty;
-	return iResult;
+	return bResult;
 }
 
 
@@ -364,14 +364,14 @@ void CBufferedFile::MatchFilePosToCurrentPos(void)
 //////////////////////////////////////////////////////////////////////////
 void CBufferedFile::BufferSourceFileRead(void)
 {
-	int		iResult;
+	filePos	iResult;
 
 	MatchFilePosToCurrentPos();
 	iResult = mpcFile->Read(mpvMem, 1, miAllocatedSize);
 	meLastOp = BLO_Read;
 	mulliFilePos += iResult;
 	miBufferPos = 0;
-	miBufferSizeRead = iResult;
+	miBufferSizeRead = (size_t)iResult;
 	meType = BT_Read;
 }
 
@@ -380,7 +380,7 @@ void CBufferedFile::BufferSourceFileRead(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBufferedFile::CopyFromBuffer(void* pvDest, int iByteSize, int iDestOffset)
+void CBufferedFile::CopyFromBuffer(void* pvDest, size_t iByteSize, size_t iDestOffset)
 {
 	if (iByteSize > 0)
 	{
@@ -397,11 +397,11 @@ void CBufferedFile::CopyFromBuffer(void* pvDest, int iByteSize, int iDestOffset)
 //////////////////////////////////////////////////////////////////////////
 BOOL CBufferedFile::WriteUnwritten(void)
 {
-	int		iResult;
+	size_t	iResult;
 
 	if (meType == BT_Write)
 	{
-		iResult = mpcFile->Write(mpvMem, miBufferPos, 1);
+		iResult = (size_t)mpcFile->Write(mpvMem, miBufferPos, 1);
 		meLastOp = BLO_Write;
 		if (iResult == 1)
 		{

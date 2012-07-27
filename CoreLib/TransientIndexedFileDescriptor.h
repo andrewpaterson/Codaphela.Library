@@ -39,13 +39,13 @@ public:
 	int				miFileNumber;  //There may be more than one file of the same size.
 	CChars			mszFileName;
 
-	void	Init(int iFileIndex, char* szFileName, int iDataSize, int iFileNum);
-	void	Kill(void);
-	void	GetFileName(char* szName);
-	BOOL	IsFull(void);
-	int		Write(void* pvData);
-	BOOL	Write(int iIndex, void* pvData);
-	BOOL	Read(int iIndex, void* pvData);
+	void		Init(int iFileIndex, char* szFileName, int iDataSize, int iFileNum);
+	void		Kill(void);
+	void		GetFileName(char* szName);
+	BOOL		IsFull(void);
+	filePos		Write(void* pvData);
+	BOOL		Write(filePos iIndex, void* pvData);
+	BOOL		Read(filePos iIndex, void* pvData);
 };
 
 

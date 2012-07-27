@@ -37,25 +37,25 @@ public:
 	int			miInitialLength;
 	BOOL		mbFakeArray;
 
-	void	Init(void);
-	void	Init(void* pvInitialMem, int iInitialLength);
-	void	Kill(void);
+	void		Init(void);
+	void		Init(void* pvInitialMem, int iInitialLength);
+	void		Kill(void);
 
-	void*	GetBufferPointer(void);
-	int		GetBufferSize(void);
-	void	SetBufferPointer(void* pvBuffer);
-	void	SetBufferSize(int iBufferSize);
+	void*		GetBufferPointer(void);
+	int			GetBufferSize(void);
+	void		SetBufferPointer(void* pvBuffer);
+	void		SetBufferSize(int iBufferSize);
 
-	BOOL	Open(EFileMode eFileMode);
-	BOOL	Close(void);
-	int		Read(void* pvBuffer, int iSize, int iCount);
-	int		Seek(filePos iOffset, int iSeekOrigin);
-	int		Write(const void* pvBuffer, int iSize, int iCount);
-	filePos	Tell(void);
-	BOOL	Eof(void);
-	BOOL	IsOpen(void);
-	filePos	Size(void);
-	BOOL	Flush(void);
+	BOOL		Open(EFileMode eFileMode);
+	BOOL		Close(void);
+	filePos		Read(void* pvBuffer, filePos iSize, filePos iCount);
+	BOOL		Seek(filePos iOffset, int iSeekOrigin);
+	filePos		Write(const void* pvBuffer, filePos iSize, filePos iCount);
+	filePos		Tell(void);
+	BOOL		Eof(void);
+	BOOL		IsOpen(void);
+	filePos		Size(void);
+	BOOL		Flush(void);
 };
 
 

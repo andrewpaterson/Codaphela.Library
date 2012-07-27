@@ -146,7 +146,7 @@ int CCSVFile::ReadLine(char* sBuffer)
 	filePos	iPosition;
 
 	iPosition = mcFile.GetFilePos();
-	iBytesRead = mcFile.Read(sBuffer, 1, CSV_FILE_LINE_BUFFER_LENGTH);
+	iBytesRead = (int)mcFile.Read(sBuffer, 1, CSV_FILE_LINE_BUFFER_LENGTH);
 	if (iBytesRead == 0)
 	{
 		return 0;

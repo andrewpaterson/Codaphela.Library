@@ -55,8 +55,8 @@ void CObjectWriter::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CObjectWriter::WriteDependent(CBaseObject* pcObject)
 {
-	int		iResult;
-	OIndex	oi;
+	filePos		iResult;
+	OIndex		oi;
 	
 	if (pcObject)
 	{
@@ -111,7 +111,7 @@ BOOL CObjectWriter::WritePointer(CPointerObject pObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CObjectWriter::Write(const void* pvSource, int iSize, int iCount)
+filePos CObjectWriter::Write(const void* pvSource, filePos iSize, filePos iCount)
 {
 	return mcFile.Write(pvSource, iSize, iCount);
 }

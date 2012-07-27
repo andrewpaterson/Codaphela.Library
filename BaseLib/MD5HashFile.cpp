@@ -135,10 +135,10 @@ BOOL CMD5HashFile::IsOpen(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CMD5HashFile::Read(void* pvBuffer, int iSize, int iCount)
+filePos CMD5HashFile::Read(void* pvBuffer, filePos iSize, filePos iCount)
 {
-	int	iSuccessfulCount;
-	int	iSuccessfulBytes;
+	filePos		iSuccessfulCount;
+	filePos		iSuccessfulBytes;
 
 	if (mbResetMD5OnOperationChange)
 	{
@@ -153,7 +153,7 @@ int CMD5HashFile::Read(void* pvBuffer, int iSize, int iCount)
 	if (iSuccessfulCount > 0)
 	{
 		iSuccessfulBytes = iSuccessfulCount * iSize;
-		MD5Update(&msMD5Context, (unsigned char*)pvBuffer, iSuccessfulBytes);
+		MD5Update(&msMD5Context, (unsigned char*)pvBuffer, (unsigned int)iSuccessfulBytes);
 	}
 	return iSuccessfulCount;
 }
@@ -163,10 +163,10 @@ int CMD5HashFile::Read(void* pvBuffer, int iSize, int iCount)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CMD5HashFile::Write(const void* pvBuffer, int iSize, int iCount)
+filePos CMD5HashFile::Write(const void* pvBuffer, filePos iSize, filePos iCount)
 {
-	int	iSuccessfulCount;
-	int	iSuccessfulBytes;
+	filePos		iSuccessfulCount;
+	filePos		iSuccessfulBytes;
 
 	if (mbResetMD5OnOperationChange)
 	{
@@ -181,7 +181,7 @@ int CMD5HashFile::Write(const void* pvBuffer, int iSize, int iCount)
 	if (iSuccessfulCount > 0)
 	{
 		iSuccessfulBytes = iSuccessfulCount * iSize;
-		MD5Update(&msMD5Context, (unsigned char*)pvBuffer, iSuccessfulBytes);
+		MD5Update(&msMD5Context, (unsigned char*)pvBuffer, (unsigned int)iSuccessfulBytes);
 	}
 	return iSuccessfulCount;
 }
@@ -191,7 +191,7 @@ int CMD5HashFile::Write(const void* pvBuffer, int iSize, int iCount)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CMD5HashFile::Seek(filePos iOffset, int iSeekOrigin)
+BOOL CMD5HashFile::Seek(filePos iOffset, int iSeekOrigin)
 {
 	if (mbResetMD5OnSeek)
 	{

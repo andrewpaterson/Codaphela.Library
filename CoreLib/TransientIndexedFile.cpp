@@ -449,7 +449,7 @@ BOOL CTransientIndexedFile::Read(STransientIndexedPointer* psPointer, int iPoint
 BOOL CTransientIndexedFile::WriteNew(STransientIndexedPointer* psPointer, void* pvData)
 {
 	CTransientIndexedFileDescriptor*	pcFile;
-	int									iIndex;
+	filePos								iIndex;
 
 	pcFile = GetOrCreateFile(psPointer->sIndexedMemory.uiSize);
 

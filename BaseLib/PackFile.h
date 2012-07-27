@@ -40,9 +40,9 @@ public:
 
 	BOOL		Open(EFileMode eFileMode);
 	BOOL		Close(void);
-	int			Read(void* pvBuffer, int iSize, int iCount);
-	int			Seek(filePos iOffset, int iSeekOrigin);
-	int			Write(const void* pvBuffer, int iSize, int iCount);
+	filePos		Read(void* pvBuffer, filePos iSize, filePos iCount);
+	BOOL		Seek(filePos iOffset, int iSeekOrigin);
+	filePos		Write(const void* pvBuffer, filePos iSize, filePos iCount);
 	filePos		Tell(void);
 	BOOL		Eof(void);
 	BOOL		IsOpen(void);

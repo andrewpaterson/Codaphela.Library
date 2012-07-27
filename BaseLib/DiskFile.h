@@ -36,17 +36,17 @@ public:
 	void	Init(char* szName);
 	void	Kill(void);
 
-	BOOL	Open(EFileMode eMode);
-	BOOL	Close(void);
-	BOOL	Create(void);
-	int		Read(void* pvBuffer, int iSize, int iCount);
-	BOOL	Seek(filePos iOffset, int iSeekOrigin);
-	int		Write(const void* pvBuffer, int iSize, int iCount);
-	filePos	Tell(void);
-	BOOL	Eof(void);
-	BOOL	IsOpen(void);
-	filePos	Size(void);
-	BOOL	Flush(void);
+	BOOL		Open(EFileMode eMode);
+	BOOL		Close(void);
+	BOOL		Create(void);
+	filePos		Read(void* pvBuffer, filePos iSize, filePos iCount);
+	BOOL		Seek(filePos iOffset, int iSeekOrigin);
+	filePos		Write(const void* pvBuffer, filePos iSize, filePos iCount);
+	filePos		Tell(void);
+	BOOL		Eof(void);
+	BOOL		IsOpen(void);
+	filePos		Size(void);
+	BOOL		Flush(void);
 };
 
 

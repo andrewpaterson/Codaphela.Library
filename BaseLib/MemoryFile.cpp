@@ -130,7 +130,7 @@ BOOL CMemoryFile::Close(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CMemoryFile::Read(void* pvBuffer, int iSize, int iCount)
+filePos CMemoryFile::Read(void* pvBuffer, filePos iSize, filePos iCount)
 {
 	filePos	iAmountToCopy;
 	filePos iAmountToRead;
@@ -176,7 +176,7 @@ int CMemoryFile::Read(void* pvBuffer, int iSize, int iCount)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CMemoryFile::Seek(filePos iOffset, int iSeekOrigin)
+BOOL CMemoryFile::Seek(filePos iOffset, int iSeekOrigin)
 {
 	if (iSeekOrigin == SEEK_SET)
 	{
@@ -193,7 +193,7 @@ int CMemoryFile::Seek(filePos iOffset, int iSeekOrigin)
 
 	if (iPos > cArray.NumElements())
 	{
-		iPos = cArray.NumElements();  //This is not the same behaviour as file...
+		iPos = cArray.NumElements();  //This is not the same behavior as file...
 	}
 	if (iPos < 0)
 	{
@@ -208,7 +208,7 @@ int CMemoryFile::Seek(filePos iOffset, int iSeekOrigin)
 	{
 		iFlags &= ~_IOEOF;
 	}
-	return 0;
+	return TRUE;
 }
 
 
@@ -216,7 +216,7 @@ int CMemoryFile::Seek(filePos iOffset, int iSeekOrigin)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CMemoryFile::Write(const void* pvBuffer, int iSize, int iCount)
+filePos CMemoryFile::Write(const void* pvBuffer, filePos iSize, filePos iCount)
 {
 	filePos iAmountToCopy;
 	filePos	iAmountToAdd;

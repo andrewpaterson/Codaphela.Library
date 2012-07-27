@@ -82,14 +82,14 @@ protected:
 	BOOL					EndRead(void);
 	BOOL					EndWrite(void);
 	BOOL					Close(CPackFile* pcPackFile);
-	int						Read(CPackFileNode* psPackFile, void* pvBuffer, int iSize, int iCount);
+	filePos					Read(CPackFileNode* psPackFile, void* pvBuffer, filePos iSize, filePos iCount);
 	BOOL					Seek(CPackFileNode* psPackFile, filePos iOffset, int iSeekOrigin);
-	int						Write(CPackFileNode* psPackFile, const void* pvBuffer, int iSize, int iCount);
+	filePos					Write(CPackFileNode* psPackFile, const void* pvBuffer, filePos iSize, filePos iCount);
 	filePos					Tell(CPackFileNode* psPackFile);
 	BOOL					Eof(CPackFileNode* psPackFile);
 	BOOL					Flush(CPackFileNode* psPackFile);
 	CFileNodePackFileNode*	AddFile(char* szFullName);
-	int						PrivateRead(CPackFileNode* psPackFile, void* pvBuffer, int iSize, int iCount);
+	filePos					PrivateRead(CPackFileNode* psPackFile, void* pvBuffer, filePos iSize, filePos iCount);
 	BOOL					PrivateSeek(CPackFileNode* psPackFile, filePos iOffset, int iSeekOrigin);
 	BOOL					ChangeReadFiles(CPackFileNode* psPackFile);
 	char*					ClassName(void);
