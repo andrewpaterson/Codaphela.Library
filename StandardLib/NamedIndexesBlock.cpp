@@ -104,7 +104,7 @@ void CNamedIndexesBlock::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CNamedIndexesBlock::CouldContain(CChars* szName)
 {
-	if ((szName->Compare(&mszFirst) >= 0) && (szName->Compare(&mszLast) <= 0))
+	if ((szName->CompareIgnoreCase(&mszFirst) >= 0) && (szName->CompareIgnoreCase(&mszLast) <= 0))
 	{
 		return TRUE;
 	}

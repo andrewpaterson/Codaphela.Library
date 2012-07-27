@@ -429,7 +429,7 @@ void CNamedIndexesBlocks::SortBlockPtrsCachedFirst(CArrayNamedIndexesBlockPtr* p
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CNamedIndexesBlock* CNamedIndexesBlocks::GetNamedIndexesBlock(void* pvCacheMem)
+CNamedIndexesBlock* CNamedIndexesBlocks::GetBlock(void* pvCacheMem)
 {
 	int						i;
 	CNamedIndexesBlock*		pcBlock;
@@ -443,6 +443,16 @@ CNamedIndexesBlock* CNamedIndexesBlocks::GetNamedIndexesBlock(void* pvCacheMem)
 		}
 	}
 	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CNamedIndexesBlock* CNamedIndexesBlocks::GetBlock(int iIndex)
+{
+	return macBlocks.SafeGet(iIndex);
 }
 
 

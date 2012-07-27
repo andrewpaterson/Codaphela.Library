@@ -61,7 +61,8 @@ public:
 	int						GetDataSize(void);
 	int						GetFileNumber(void);
 	void					SetFileNumber(int iFileNumber);
-	CNamedIndexesBlock*		GetNamedIndexesBlock(void* pvCacheMem);
+	CNamedIndexesBlock*		GetBlock(void* pvCacheMem);
+	CNamedIndexesBlock*		GetBlock(int iIndex);
 	
 protected:
 	int						FindLastCachedBlock(CArrayNamedIndexesBlockPtr* pcDest, int iEnd);

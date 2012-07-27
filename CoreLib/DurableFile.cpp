@@ -81,8 +81,13 @@ void CDurableFile::Init(BOOL bDurable, char* szFileName, char* szRewriteName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDurableFile::Kill(void)
+BOOL CDurableFile::Kill(void)
 {
+	BOOL	bAnyOpen;
+
+	bAnyOpen = mpcPrimaryFile->IsOpen();
+	bAnyOpen &= mpcRewriteFile->IsOpen();
+
 	mpcPrimaryFile->Kill();
 	mpcRewriteFile->Kill();
 
@@ -93,6 +98,8 @@ void CDurableFile::Kill(void)
 
 	free(mpcPrimaryFile);
 	free(mpcRewriteFile);
+
+	return !bAnyOpen;
 }
 
 

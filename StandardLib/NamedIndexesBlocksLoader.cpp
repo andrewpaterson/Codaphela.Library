@@ -81,6 +81,7 @@ BOOL CNamedIndexesBlocksLoader::Load(void)
 	filePos					iPos;
 	filePos					iOffset;
 	filePos					iChunks;
+	filePos					iDataIndex;
 
 	iPos = 0LL;
 	iRemaining = miLength;
@@ -125,7 +126,8 @@ BOOL CNamedIndexesBlocksLoader::Load(void)
 		{
 			iOffset = miBlockWidth * i * miNewNumBlocks;
 			psName = (CNamedIndexedBlock*)RemapSinglePointer(mpvTemp, (size_t)iOffset);
-			mpcBlocks->AddNewBlock(miBlockWidth, psName, miNewNumBlocks, iPos + iOffset);
+			iDataIndex = (iPos + iOffset)/miBlockWidth;
+			mpcBlocks->AddNewBlock(miBlockWidth, psName, miNewNumBlocks, iDataIndex);
 		}
 
 		iPos += iChunk;

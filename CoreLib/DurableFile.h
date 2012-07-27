@@ -64,7 +64,7 @@ public:
 	BOOL				mbDurable;
 
 	void		Init(BOOL bDurable, char* szFileName, char* szRewriteName);
-	void		Kill(void);
+	BOOL		Kill(void);
 
 	BOOL		Begin(void);
 	BOOL		End(void);

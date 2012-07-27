@@ -38,7 +38,7 @@ public:
 	BOOL					Init(CDurableFileController* pcController, int iCacheSize, int iNewNumBlocks);
 	void					Kill(void);
 	BOOL					Open(void);
-	void					Close(void);
+	BOOL					Close(void);
 
 	BOOL					Add(OIndex oi, char* szName, BOOL bFailOnExisting = TRUE);
 	BOOL					Add(OIndex oi, CChars* szName, BOOL bFailOnExisting = TRUE);
@@ -54,10 +54,10 @@ public:
 	void*					AllocateInCache(size_t iSize);
 
 	void					TestGetPotentialContainingBlocks(char* szName, CArrayNamedIndexesBlockPtr* pcDest);
-	CNamedIndexesBlocks*	TestGetBlock(int iNameLength);
+	CNamedIndexesBlocks*	GetBlockWithDataSize(int iNameLength);
 
 protected:
-	CNamedIndexesBlocks*	GetBlock(int iNameLength);
+	CNamedIndexesBlocks*	GetBlockFittingLength(int iNameLength);
 	CNamedIndexesBlocks*	GetBlockForCacheDescriptorSize(int iCacheDescriptorSize);
 	CNamedIndexesBlocks*	AddBlock(int iBlockSize, int iMinNameLength, int iMaxNameLength, int iNewNumBlocks);
 };
