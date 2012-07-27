@@ -46,8 +46,7 @@ public:
 	void						Kill(void);
 
 	BOOL						PreAllocate(CMemoryCacheAllocation* pcResult);
-	BOOL						Allocate(CIndexDescriptor* pcDesc, void* pvData);
-	void*						Allocate(CIndexDescriptor* pcDesc);
+	BOOL						Allocate(CIndexDescriptor* pcDesc, CMemoryCacheAllocation* pcResult);
 	void						Clear(void);
 	void						Invalidate(CIndexDescriptor* pcDesc);
 	void						Invalidate(SIndexedCacheDescriptor* psCacheDesc);

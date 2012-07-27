@@ -72,42 +72,17 @@ BOOL CIndexedCache::PreAllocate(CMemoryCacheAllocation* pcResult)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedCache::Allocate(CIndexDescriptor* pcDesc, void* pvData)
-{
-	void*	pvCache;
-	
-	pvCache = Allocate(pcDesc);
-	if (pvCache)
-	{
-		memcpy_fast(pvCache, pvData, pcDesc->GetDataSize());
-		return TRUE;
-	}
-	else
-	{
-		return FALSE;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void* CIndexedCache::Allocate(CIndexDescriptor* pcDesc)
+BOOL CIndexedCache::Allocate(CIndexDescriptor* pcDesc, CMemoryCacheAllocation* pcResult)
 {
 	void*						pvCache;
 	SIndexedCacheDescriptor*	psCacheDesc;
-	CMemoryCacheAllocation		cPreAllocated;
 
-	cPreAllocated.Init(pcDesc->GetDataSize());
-	mcCache.PreAllocate(&cPreAllocated);
-	pvCache = mcCache.Allocate(&cPreAllocated);
-	cPreAllocated.Kill();
+	pvCache = mcCache.Allocate(pcResult);
 
 	if (!pvCache)
 	{
 		pcDesc->Cache(NULL);
-		return NULL;
+		return FALSE;
 	}
 
 	psCacheDesc = (SIndexedCacheDescriptor*)RemapSinglePointer(pvCache, -(int)(sizeof(SIndexedCacheDescriptor)));
@@ -121,7 +96,7 @@ void* CIndexedCache::Allocate(CIndexDescriptor* pcDesc)
 	//CIndexDescriptor (pcDesc) adjusted here.
 	pcDesc->Cache(pvCache);
 
-	return pvCache;
+	return TRUE;
 }
 
 

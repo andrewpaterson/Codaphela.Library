@@ -203,7 +203,6 @@ BOOL CIndexedData::Write(CIndexDescriptor* pcDescriptor, void* pvData, unsigned 
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexedData::CacheRead(CIndexDescriptor* pcDescriptor)
 {
-	void*					pvData;
 	BOOL					bResult;
 	CMemoryCacheAllocation	cPreAllocated;
 
@@ -218,19 +217,21 @@ BOOL CIndexedData::CacheRead(CIndexDescriptor* pcDescriptor)
 				cPreAllocated.Kill();
 				return FALSE;
 			}
-			pvData = mcObjectCache.Allocate(pcDescriptor);  //Remove all Allocate(CIndexDescriptor*)... it's already preallocated.
-			if (!pvData)
-			{
-				cPreAllocated.Kill();
-				return FALSE;
-			}
-			
-			bResult = mcObjectFiles.Read(pcDescriptor, pvData);
+
+			bResult = mcObjectCache.Allocate(pcDescriptor, &cPreAllocated);
 			if (!bResult)
 			{
 				cPreAllocated.Kill();
 				return FALSE;
 			}
+			
+			bResult = mcObjectFiles.Read(pcDescriptor, pcDescriptor->GetCache());
+			if (!bResult)
+			{
+				cPreAllocated.Kill();
+				return FALSE;
+			}
+
 			EvictOverlappingFromCache(cPreAllocated.GetEvictedArray());
 			cPreAllocated.Kill();
 			return TRUE;
@@ -269,12 +270,14 @@ BOOL CIndexedData::CacheWrite(CIndexDescriptor* pcDescriptor, void* pvData, BOOL
 				return FALSE;
 			}
 
-			bResult = mcObjectCache.Allocate(pcDescriptor, pvData);  //Remove all Allocate(CIndexDescriptor*)... it's already preallocated.
+			bResult = mcObjectCache.Allocate(pcDescriptor, &cPreAllocated);
 			if (!bResult)
 			{
 				cPreAllocated.Kill();
 				return FALSE;
 			}
+
+			memcpy_fast(pcDescriptor->GetCache(), pvData, pcDescriptor->GetDataSize());
 
 			EvictOverlappingFromCache(cPreAllocated.GetEvictedArray());
 			cPreAllocated.Kill();
