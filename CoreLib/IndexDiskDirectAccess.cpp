@@ -47,7 +47,7 @@ void CIndexDiskDirectAccess::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexDiskDirectAccess::Get(CIndexDescriptor* pcDescriptor, OIndex oi)
+BOOL CIndexDiskDirectAccess::Get(CIndexedDataDescriptor* pcDescriptor, OIndex oi)
 {
 	filePos	iResult;
 	unsigned int iNumDescriptors;
@@ -78,7 +78,7 @@ BOOL CIndexDiskDirectAccess::Get(CIndexDescriptor* pcDescriptor, OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexDiskDirectAccess::Set(CIndexDescriptor* pcDescriptor)
+BOOL CIndexDiskDirectAccess::Set(CIndexedDataDescriptor* pcDescriptor)
 {
 	filePos			iResult;
 	unsigned int	loInt;
@@ -96,11 +96,11 @@ BOOL CIndexDiskDirectAccess::Set(CIndexDescriptor* pcDescriptor)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexDiskDirectAccess::Remove(OIndex oi)
 {
-	CIndexDescriptor	cNullDescriptor;
+	CIndexedDataDescriptor	cNullDescriptor;
 	filePos				iResult;
 	unsigned int		loInt;
 
-	memset(&cNullDescriptor, 0, sizeof(CIndexDescriptor));
+	memset(&cNullDescriptor, 0, sizeof(CIndexedDataDescriptor));
 	cNullDescriptor.Init(oi, 0);
 
 	loInt = (unsigned int)oi;

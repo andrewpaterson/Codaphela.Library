@@ -25,7 +25,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "DurableFile.h"
 
 
-class CIndexDescriptor;
+class CIndexedDataDescriptor;
 class CDurableFileController;
 class CIndexDescriptorsFile
 {
@@ -38,8 +38,8 @@ public:
 	void			Init(CDurableFileController* pcDurableFileControl, char* szFileName, char* szRewriteName);
 	void			Kill(void);
 	filePos			NumDescriptors(void);
-	filePos			Read(CIndexDescriptor* pcDescriptor, int iPosition, int iNum = 1);
-	filePos			Write(CIndexDescriptor* pcDescriptor, int iPosition, int iNum = 1);
+	filePos			Read(CIndexedDataDescriptor* pcDescriptor, int iPosition, int iNum = 1);
+	filePos			Write(CIndexedDataDescriptor* pcDescriptor, int iPosition, int iNum = 1);
 	CDurableFile*	GetDurableFile(void);
 };
 

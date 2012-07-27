@@ -71,7 +71,7 @@ void CNamedIndexes::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNamedIndexes::Save(void)
+void CNamedIndexes::Close(void)
 {
 	int						i;
 	CNamedIndexesBlocks*	pcBlock;
@@ -90,7 +90,7 @@ void CNamedIndexes::Save(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNamedIndexes::Load(void)
+BOOL CNamedIndexes::Open(void)
 {
 	int						i;
 	CNamedIndexesBlocks*	pcBlock;

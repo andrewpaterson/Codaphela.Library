@@ -36,7 +36,7 @@ enum EDataDescriptorAccessStyle
 };
 
 
-class CIndexDescriptor;
+class CIndexedDataDescriptor;
 class CIndexAccess;
 class CIndexedDescriptors
 {
@@ -46,8 +46,8 @@ public:
 	void	Init(CIndexAccess* pcAccess);
 	void	Kill(void);
 
-	BOOL	Get(CIndexDescriptor* pcDescriptor, OIndex oi);
-	BOOL	Set(CIndexDescriptor* pcDescriptor);
+	BOOL	Get(CIndexedDataDescriptor* pcDescriptor, OIndex oi);
+	BOOL	Set(CIndexedDataDescriptor* pcDescriptor);
 	BOOL	Remove(OIndex oi);
 
 	void	Save(void);

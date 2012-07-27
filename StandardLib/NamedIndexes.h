@@ -37,8 +37,8 @@ protected:
 public:
 	BOOL					Init(CDurableFileController* pcController, int iCacheSize, int iNewNumBlocks);
 	void					Kill(void);
-	BOOL					Load(void);
-	void					Save(void);
+	BOOL					Open(void);
+	void					Close(void);
 
 	BOOL					Add(OIndex oi, char* szName, BOOL bFailOnExisting = TRUE);
 	BOOL					Add(OIndex oi, CChars* szName, BOOL bFailOnExisting = TRUE);

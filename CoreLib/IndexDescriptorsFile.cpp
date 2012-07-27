@@ -21,7 +21,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
 #include "DurableFileController.h"
-#include "IndexDescriptor.h"
+#include "IndexedDataDescriptor.h"
 #include "IndexDescriptorsFile.h"
 
 
@@ -55,7 +55,7 @@ void CIndexDescriptorsFile::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 filePos CIndexDescriptorsFile::NumDescriptors(void)
 {
-	return mcIndexedDescriptorFile.Size() / sizeof(CIndexDescriptor);
+	return mcIndexedDescriptorFile.Size() / sizeof(CIndexedDataDescriptor);
 }
 
 
@@ -63,9 +63,9 @@ filePos CIndexDescriptorsFile::NumDescriptors(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-filePos CIndexDescriptorsFile::Read(CIndexDescriptor* pcDescriptor, int iPosition, int iNum)
+filePos CIndexDescriptorsFile::Read(CIndexedDataDescriptor* pcDescriptor, int iPosition, int iNum)
 {
-	return mcIndexedDescriptorFile.Read(EFSO_SET, iPosition * sizeof(CIndexDescriptor), pcDescriptor, sizeof(CIndexDescriptor), iNum);
+	return mcIndexedDescriptorFile.Read(EFSO_SET, iPosition * sizeof(CIndexedDataDescriptor), pcDescriptor, sizeof(CIndexedDataDescriptor), iNum);
 }
 
 
@@ -73,9 +73,9 @@ filePos CIndexDescriptorsFile::Read(CIndexDescriptor* pcDescriptor, int iPositio
 //
 //
 //////////////////////////////////////////////////////////////////////////
-filePos CIndexDescriptorsFile::Write(CIndexDescriptor* pcDescriptor, int iPosition, int iNum)
+filePos CIndexDescriptorsFile::Write(CIndexedDataDescriptor* pcDescriptor, int iPosition, int iNum)
 {
-	return mcIndexedDescriptorFile.Write(iPosition * sizeof(CIndexDescriptor), pcDescriptor, sizeof(CIndexDescriptor), iNum);
+	return mcIndexedDescriptorFile.Write(iPosition * sizeof(CIndexedDataDescriptor), pcDescriptor, sizeof(CIndexedDataDescriptor), iNum);
 }
 
 

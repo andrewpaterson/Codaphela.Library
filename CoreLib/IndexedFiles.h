@@ -22,7 +22,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __INDEXED_FILES_H__
 #define __INDEXED_FILES_H__
-#include "IndexDescriptor.h"
+#include "IndexedDataDescriptor.h"
 #include "IndexedFile.h"
 #include "BaseLib/ChunkFile.h"
 #include "BaseLib/Chars.h"

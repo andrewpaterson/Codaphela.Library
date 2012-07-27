@@ -46,11 +46,11 @@ public:
 	void						Kill(void);
 
 	BOOL						PreAllocate(CMemoryCacheAllocation* pcResult);
-	BOOL						Allocate(CIndexDescriptor* pcDesc, CMemoryCacheAllocation* pcResult);
+	BOOL						Allocate(CIndexedDataDescriptor* pcDesc, CMemoryCacheAllocation* pcResult);
 	void						Clear(void);
-	void						Invalidate(CIndexDescriptor* pcDesc);
+	void						Invalidate(CIndexedDataDescriptor* pcDesc);
 	void						Invalidate(SIndexedCacheDescriptor* psCacheDesc);
-	BOOL						Update(CIndexDescriptor* pcDesc, void* pvData);
+	BOOL						Update(CIndexedDataDescriptor* pcDesc, void* pvData);
 
 	SIndexedCacheDescriptor*	GetHeader(void* pvData);
 	SIndexedCacheDescriptor*	StartIteration(void);

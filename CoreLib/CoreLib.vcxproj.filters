@@ -219,9 +219,6 @@
     <ClCompile Include="Indexes.cpp">
       <Filter>Source\File\Indexed</Filter>
     </ClCompile>
-    <ClCompile Include="IndexDescriptor.cpp">
-      <Filter>Source\File\Indexed\Descriptors</Filter>
-    </ClCompile>
     <ClCompile Include="IndexDescriptorsFile.cpp">
       <Filter>Source\File\Indexed\Descriptors</Filter>
     </ClCompile>
@@ -444,6 +441,9 @@
     <ClCompile Include="IndexedDataFiles.cpp">
       <Filter>Source\File\Indexed\Files</Filter>
     </ClCompile>
+    <ClCompile Include="IndexedDataDescriptor.cpp">
+      <Filter>Source\File\Indexed\Descriptors</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ArrayVariable.h">
@@ -472,9 +472,6 @@
     </ClInclude>
     <ClInclude Include="Indexes.h">
       <Filter>Source\File\Indexed</Filter>
-    </ClInclude>
-    <ClInclude Include="IndexDescriptor.h">
-      <Filter>Source\File\Indexed\Descriptors</Filter>
     </ClInclude>
     <ClInclude Include="IndexDescriptorsFile.h">
       <Filter>Source\File\Indexed\Descriptors</Filter>
@@ -706,6 +703,9 @@
     </ClInclude>
     <ClInclude Include="IndexedDataFiles.h">
       <Filter>Source\File\Indexed\Files</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexedDataDescriptor.h">
+      <Filter>Source\File\Indexed\Descriptors</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

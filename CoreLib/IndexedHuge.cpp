@@ -135,7 +135,7 @@ int CIndexedHuge::NumPossibleInMemoryIndexDescriptors(void)
 //////////////////////////////////////////////////////////////////////////
 int CIndexedHuge::GetThirdLevelCacheByteSize(void)
 {
-	return miNumThirdLevelChunks * (sizeof(SIndexedThirdLevelSearch) + (sizeof(CIndexDescriptor) * miThirdLevelChunkWidth));
+	return miNumThirdLevelChunks * (sizeof(SIndexedThirdLevelSearch) + (sizeof(CIndexedDataDescriptor) * miThirdLevelChunkWidth));
 }
 
 
@@ -178,13 +178,13 @@ SIndexedSecondLevelSearch* CIndexedHuge::GetSecondLevelSearch(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexDescriptor* CIndexedHuge::PrivateGetDescriptor(OIndex oi)
+CIndexedDataDescriptor* CIndexedHuge::PrivateGetDescriptor(OIndex oi)
 {
 	SIndexedSecondLevelSearch*	psIndexedSecondLevelSearch;
 	SIndexedThirdLevelSearch*	psIndexedThirdLevelSearch;
 	int							iSecondLevelIndex;
 	int							iThirdLevelOffset;
-	CIndexDescriptor*			pcDescriptorInCache;
+	CIndexedDataDescriptor*			pcDescriptorInCache;
 	int							iSecondLevelOffset;
 
 	psIndexedSecondLevelSearch = GetSecondLevelSearch(oi);
@@ -213,9 +213,9 @@ CIndexDescriptor* CIndexedHuge::PrivateGetDescriptor(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedHuge::Get(CIndexDescriptor* pcDescriptor, OIndex oi)
+BOOL CIndexedHuge::Get(CIndexedDataDescriptor* pcDescriptor, OIndex oi)
 {
-	CIndexDescriptor*			pcDescriptorInCache;
+	CIndexedDataDescriptor*			pcDescriptorInCache;
 
 	if (oi > miLastOi)
 	{
@@ -228,7 +228,7 @@ BOOL CIndexedHuge::Get(CIndexDescriptor* pcDescriptor, OIndex oi)
 		return FALSE;
 	}
 
-	memcpy(pcDescriptor, pcDescriptorInCache, sizeof(CIndexDescriptor));
+	memcpy(pcDescriptor, pcDescriptorInCache, sizeof(CIndexedDataDescriptor));
 	return TRUE;
 }
 
@@ -237,9 +237,9 @@ BOOL CIndexedHuge::Get(CIndexDescriptor* pcDescriptor, OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedHuge::Set(CIndexDescriptor* pcDescriptor)
+BOOL CIndexedHuge::Set(CIndexedDataDescriptor* pcDescriptor)
 {
-	CIndexDescriptor*			pcDescriptorInCache;
+	CIndexedDataDescriptor*			pcDescriptorInCache;
 	OIndex						oi;
 
 	oi = pcDescriptor->GetIndex();
@@ -260,7 +260,7 @@ BOOL CIndexedHuge::Set(CIndexDescriptor* pcDescriptor)
 			}
 			else if (!pcDescriptor->IsDirty())
 			{
-				if (memcmp(pcDescriptor, pcDescriptorInCache, sizeof(CIndexDescriptor)) != 0)
+				if (memcmp(pcDescriptor, pcDescriptorInCache, sizeof(CIndexedDataDescriptor)) != 0)
 				{
 					pcDescriptor->Dirty(TRUE);
 				}
@@ -269,12 +269,12 @@ BOOL CIndexedHuge::Set(CIndexDescriptor* pcDescriptor)
 
 		if (pcDescriptor->IsDirty())
 		{
-			memcpy_fast(pcDescriptorInCache, pcDescriptor, sizeof(CIndexDescriptor));
+			memcpy_fast(pcDescriptorInCache, pcDescriptor, sizeof(CIndexedDataDescriptor));
 		}
 	}
 	else
 	{
-		memcpy_fast(pcDescriptorInCache, pcDescriptor, sizeof(CIndexDescriptor));
+		memcpy_fast(pcDescriptorInCache, pcDescriptor, sizeof(CIndexedDataDescriptor));
 	}
 
 
@@ -293,7 +293,7 @@ BOOL CIndexedHuge::Set(CIndexDescriptor* pcDescriptor)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexedHuge::Remove(OIndex oi)
 {
-	CIndexDescriptor	cIndexedDataDescriptor;
+	CIndexedDataDescriptor	cIndexedDataDescriptor;
 	BOOL				bResult;
 
 	bResult = Get(&cIndexedDataDescriptor, oi);
@@ -323,7 +323,7 @@ OIndex CIndexedHuge::Length(void)
 void CIndexedHuge::Load(void)
 {
 	filePos				iFileSize;
-	CIndexDescriptor*	pacDescriptors;
+	CIndexedDataDescriptor*	pacDescriptors;
 	filePos				iNumToRead;
 	OIndex				iRemaining;
 	int					iNumInChunk;
@@ -337,23 +337,23 @@ void CIndexedHuge::Load(void)
 		return;
 	}
 
-	iNumInChunk = HUGE_DESRIPTOR_READ_SIZE / sizeof(CIndexDescriptor);
+	iNumInChunk = HUGE_DESRIPTOR_READ_SIZE / sizeof(CIndexedDataDescriptor);
 	if (iFileSize <= HUGE_DESRIPTOR_READ_SIZE)
 	{
-		pacDescriptors = (CIndexDescriptor*)malloc((int)iFileSize);
-		iNumToRead = iFileSize / sizeof(CIndexDescriptor);
+		pacDescriptors = (CIndexedDataDescriptor*)malloc((int)iFileSize);
+		iNumToRead = iFileSize / sizeof(CIndexedDataDescriptor);
 		iRemaining = 0;
 	}
 	else
 	{
-		pacDescriptors = (CIndexDescriptor*)malloc(HUGE_DESRIPTOR_READ_SIZE);
+		pacDescriptors = (CIndexedDataDescriptor*)malloc(HUGE_DESRIPTOR_READ_SIZE);
 		iNumToRead = iNumInChunk;
-		iRemaining = (iFileSize / sizeof(CIndexDescriptor)) - iNumToRead;
+		iRemaining = (iFileSize / sizeof(CIndexedDataDescriptor)) - iNumToRead;
 	}
 
 	while (iNumToRead != 0)
 	{
-		iActualRead = mpcFile->Read(pacDescriptors, sizeof(CIndexDescriptor), iNumToRead);
+		iActualRead = mpcFile->Read(pacDescriptors, sizeof(CIndexedDataDescriptor), iNumToRead);
 		miDiskReads += iActualRead;
 
 		for (i = 0; i < iNumToRead; i++)
@@ -480,7 +480,7 @@ SIndexedThirdLevelSearch* CIndexedHuge::LoadThirdLevelChunk(SIndexedSecondLevelS
 {
 	SIndexedThirdLevelSearch**	ppsIndexedThirdLevelSearch;
 	SIndexedThirdLevelSearch*	psIndexedThirdLevelSearch;
-	CIndexDescriptor*			psDescriptor;
+	CIndexedDataDescriptor*			psDescriptor;
 	filePos						iResult;
 	OIndex						iOffset;
 	filePos						iLength;
@@ -511,23 +511,23 @@ SIndexedThirdLevelSearch* CIndexedHuge::LoadThirdLevelChunk(SIndexedSecondLevelS
 	psIndexedThirdLevelSearch->iSecondLevelOffset = iSecondLevelOffset;
 
 	iLength = mpcFile->Size();
-	iDescriptorsInFile = iLength / sizeof(CIndexDescriptor);
+	iDescriptorsInFile = iLength / sizeof(CIndexedDataDescriptor);
 
 	iFirstInThirdLevelChunk = psIndexedSecondLevelSearch->iFirst + ((iSecondLevelOffset / miThirdLevelChunkWidth) * miThirdLevelChunkWidth);
 	iLastInThirdLevelChunk = iFirstInThirdLevelChunk + miThirdLevelChunkWidth-1;
 	if (iDescriptorsInFile > iLastInThirdLevelChunk)
 	{
 		//If the file completely contains this chunk then read the whole chunk.
-		iOffset = iFirstInThirdLevelChunk * sizeof(CIndexDescriptor);
+		iOffset = iFirstInThirdLevelChunk * sizeof(CIndexedDataDescriptor);
 		psDescriptor = GetCachedDescriptor(psIndexedThirdLevelSearch, 0);
-		iResult = mpcFile->Read(EFSO_SET, (unsigned int)iOffset, psDescriptor, sizeof(CIndexDescriptor), miThirdLevelChunkWidth);
+		iResult = mpcFile->Read(EFSO_SET, (unsigned int)iOffset, psDescriptor, sizeof(CIndexedDataDescriptor), miThirdLevelChunkWidth);
 		miDiskReads += iResult;
 	}
 	else if (iDescriptorsInFile <= iFirstInThirdLevelChunk)
 	{
 		//If the file doesn't contain this chunk (or part) then clear the whole chunk.
 		psDescriptor = GetCachedDescriptor(psIndexedThirdLevelSearch, 0);
-		memset_fast(psDescriptor, 0, sizeof(CIndexDescriptor) * miThirdLevelChunkWidth);
+		memset_fast(psDescriptor, 0, sizeof(CIndexedDataDescriptor) * miThirdLevelChunkWidth);
 	}
 	else
 	{
@@ -535,12 +535,12 @@ SIndexedThirdLevelSearch* CIndexedHuge::LoadThirdLevelChunk(SIndexedSecondLevelS
 		iNumToClear = (int)((iLastInThirdLevelChunk - iDescriptorsInFile) + 1);
 		iNumToRead = (miThirdLevelChunkWidth - (iNumToClear));
 
-		iOffset = iFirstInThirdLevelChunk * sizeof(CIndexDescriptor);
+		iOffset = iFirstInThirdLevelChunk * sizeof(CIndexedDataDescriptor);
 		psDescriptor = GetCachedDescriptor(psIndexedThirdLevelSearch, 0);
-		iResult = mpcFile->Read(EFSO_SET, (unsigned int)iOffset, psDescriptor, sizeof(CIndexDescriptor), iNumToRead);
+		iResult = mpcFile->Read(EFSO_SET, (unsigned int)iOffset, psDescriptor, sizeof(CIndexedDataDescriptor), iNumToRead);
 		miDiskReads += iResult;
 		psDescriptor = GetCachedDescriptor(psIndexedThirdLevelSearch, iNumToRead);
-		memset_fast(psDescriptor, 0, sizeof(CIndexDescriptor) * iNumToClear);
+		memset_fast(psDescriptor, 0, sizeof(CIndexedDataDescriptor) * iNumToClear);
 	}
 
 	ppsIndexedThirdLevelSearch = GetIndexedThirdLevelChunk(psIndexedSecondLevelSearch, iSecondLevelOffset);
@@ -611,7 +611,7 @@ void CIndexedHuge::EvictThirdLevelChunk(SIndexedThirdLevelSearch* psIndexedThird
 
 	EvictCachedObjects(psIndexedThirdLevelSearch);
 
-	memset_fast(psIndexedThirdLevelSearch, 0, sizeof(SIndexedThirdLevelSearch) + (miThirdLevelChunkWidth*sizeof(CIndexDescriptor)));
+	memset_fast(psIndexedThirdLevelSearch, 0, sizeof(SIndexedThirdLevelSearch) + (miThirdLevelChunkWidth*sizeof(CIndexedDataDescriptor)));
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -621,7 +621,7 @@ void CIndexedHuge::EvictThirdLevelChunk(SIndexedThirdLevelSearch* psIndexedThird
 void CIndexedHuge::EvictCachedObjects(SIndexedThirdLevelSearch* psIndexedThirdLevelSearch)
 {
 	int					i;
-	CIndexDescriptor*	pcDescriptor;
+	CIndexedDataDescriptor*	pcDescriptor;
 
 	if ((mpcIndexedData) && (mpcIndexedData->IsCaching()))
 	{
@@ -647,7 +647,7 @@ void CIndexedHuge::SaveThirdLevelChunk(SIndexedThirdLevelSearch* psIndexedThirdL
 	filePos				iLength;
 	filePos				iDescriptorsInFile;
 	int					i;
-	CIndexDescriptor*	pcDescriptor;
+	CIndexedDataDescriptor*	pcDescriptor;
 	OIndex				iLastChunkOI;
 	long				iOffset;
 	filePos				iResult;
@@ -657,7 +657,7 @@ void CIndexedHuge::SaveThirdLevelChunk(SIndexedThirdLevelSearch* psIndexedThirdL
 	iFirstChunkOI = GetThirdLevelChunkOI(psIndexedThirdLevelSearch);
 
 	iLength = mpcFile->Size();
-	iDescriptorsInFile = iLength / sizeof(CIndexDescriptor);
+	iDescriptorsInFile = iLength / sizeof(CIndexedDataDescriptor);
 
 	iLastChunkOI = -1;
 	for (i = miThirdLevelChunkWidth-1; i >= 0; i--)
@@ -681,7 +681,7 @@ void CIndexedHuge::SaveThirdLevelChunk(SIndexedThirdLevelSearch* psIndexedThirdL
 
 	if (iLastChunkOI != -1)
 	{
-		iOffset = (int)(iFirstChunkOI * sizeof(CIndexDescriptor));
+		iOffset = (int)(iFirstChunkOI * sizeof(CIndexedDataDescriptor));
 		pcDescriptor = GetCachedDescriptor(psIndexedThirdLevelSearch, 0);
 		iNumToWrite = (filePos)((iLastChunkOI-iFirstChunkOI)+1);
 
@@ -690,7 +690,7 @@ void CIndexedHuge::SaveThirdLevelChunk(SIndexedThirdLevelSearch* psIndexedThirdL
 			bResult = PadFile(iLength, iOffset);
 		}
 
-		iResult = mpcFile->Write(EFSO_SET, (unsigned int)iOffset, pcDescriptor, sizeof(CIndexDescriptor), iNumToWrite);
+		iResult = mpcFile->Write(EFSO_SET, (unsigned int)iOffset, pcDescriptor, sizeof(CIndexedDataDescriptor), iNumToWrite);
 		miDiskWrites += iResult;
 	}
 }
@@ -702,16 +702,16 @@ void CIndexedHuge::SaveThirdLevelChunk(SIndexedThirdLevelSearch* psIndexedThirdL
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexedHuge::PadFile(filePos iLength, filePos iOffset)
 {
-	CIndexDescriptor	cZero;
+	CIndexedDataDescriptor	cZero;
 	filePos				iDiff;
 	filePos				i;
 	filePos				iResult;
 
-	iDiff = (iOffset - iLength) / sizeof(CIndexDescriptor);
+	iDiff = (iOffset - iLength) / sizeof(CIndexedDataDescriptor);
 	cZero.Init(INVALID_O_INDEX, 0);
 	for (i = 0; i < iDiff; i++)
 	{
-		iResult = mpcFile->Write(EFSO_SET, ((iLength/sizeof(CIndexDescriptor)) + i) * sizeof(CIndexDescriptor), &cZero, sizeof(CIndexDescriptor), 1);
+		iResult = mpcFile->Write(EFSO_SET, ((iLength/sizeof(CIndexedDataDescriptor)) + i) * sizeof(CIndexedDataDescriptor), &cZero, sizeof(CIndexedDataDescriptor), 1);
 		miDiskWrites += iResult;
 		if (iResult != 1)
 		{
@@ -761,7 +761,7 @@ SIndexedThirdLevelSearch* CIndexedHuge::GetCachedThirdLevelChunk(int iIndex)
 {
 	SIndexedThirdLevelSearch*	ps;
 
-	ps = (SIndexedThirdLevelSearch*)RemapSinglePointer(mpvThirdLevel, ((sizeof(SIndexedThirdLevelSearch) + (sizeof(CIndexDescriptor)*miThirdLevelChunkWidth))) * iIndex);
+	ps = (SIndexedThirdLevelSearch*)RemapSinglePointer(mpvThirdLevel, ((sizeof(SIndexedThirdLevelSearch) + (sizeof(CIndexedDataDescriptor)*miThirdLevelChunkWidth))) * iIndex);
 	return ps;
 }
 
@@ -770,11 +770,11 @@ SIndexedThirdLevelSearch* CIndexedHuge::GetCachedThirdLevelChunk(int iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexDescriptor* CIndexedHuge::GetCachedDescriptor(SIndexedThirdLevelSearch* psIndexedThirdLevelSearch, int iIndex)
+CIndexedDataDescriptor* CIndexedHuge::GetCachedDescriptor(SIndexedThirdLevelSearch* psIndexedThirdLevelSearch, int iIndex)
 {
-	CIndexDescriptor*		pc;
+	CIndexedDataDescriptor*		pc;
 
-	pc = (CIndexDescriptor*)RemapSinglePointer(psIndexedThirdLevelSearch, sizeof(SIndexedThirdLevelSearch) + iIndex * sizeof(CIndexDescriptor));
+	pc = (CIndexedDataDescriptor*)RemapSinglePointer(psIndexedThirdLevelSearch, sizeof(SIndexedThirdLevelSearch) + iIndex * sizeof(CIndexedDataDescriptor));
 	return pc;
 }
 
@@ -789,7 +789,7 @@ SIndexedThirdLevelSearch** CIndexedHuge::GetIndexedThirdLevelChunk(SIndexedSecon
 	int							iThirdLevelIndex;
 
 	iThirdLevelIndex = (iSecondLevelOffset / miThirdLevelChunkWidth) * miThirdLevelChunkWidth;
-	ppsIndexedThirdLevelSearch = (SIndexedThirdLevelSearch**)RemapSinglePointer(pSIndexedSecondLevelSearch, sizeof(SIndexedSecondLevelSearch) + (sizeof(CIndexDescriptor*) * iThirdLevelIndex));
+	ppsIndexedThirdLevelSearch = (SIndexedThirdLevelSearch**)RemapSinglePointer(pSIndexedSecondLevelSearch, sizeof(SIndexedSecondLevelSearch) + (sizeof(CIndexedDataDescriptor*) * iThirdLevelIndex));
 	return ppsIndexedThirdLevelSearch;
 }
 
@@ -809,11 +809,11 @@ BOOL CIndexedHuge::UpdateFile(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedHuge::Set(CIndexDescriptor* pacDescriptors, int iNumDescriptors)
+BOOL CIndexedHuge::Set(CIndexedDataDescriptor* pacDescriptors, int iNumDescriptors)
 {
 	int					i;
 	BOOL				bDirtyTesting;
-	CIndexDescriptor*	pcDescriptor;
+	CIndexedDataDescriptor*	pcDescriptor;
 
 	bDirtyTesting = mbDirtyTesting;
 	mbDirtyTesting = FALSE;
@@ -841,11 +841,11 @@ void CIndexedHuge::DumpThirdLevelCache(void)
 	CChars						sz;
 	SIndexedThirdLevelSearch*	ps;
 	int							j;
-	CIndexDescriptor*		pc;
+	CIndexedDataDescriptor*		pc;
 
 	sz.Init();
 
-	iThirdLevelCacheSize = miNumThirdLevelChunks * (sizeof(SIndexedThirdLevelSearch) + (sizeof(CIndexDescriptor)*miThirdLevelChunkWidth));
+	iThirdLevelCacheSize = miNumThirdLevelChunks * (sizeof(SIndexedThirdLevelSearch) + (sizeof(CIndexedDataDescriptor)*miThirdLevelChunkWidth));
 	sz.Append("Third Level Cache (");
 	sz.Append(iThirdLevelCacheSize);
 	sz.Append(" bytes)\n--------------------\n");
@@ -854,7 +854,7 @@ void CIndexedHuge::DumpThirdLevelCache(void)
 	sz.Append("\nChunk Count: ");
 	sz.Append(miNumThirdLevelChunks);
 	sz.Append("\nChunk Size: ");
-	sz.Append((int)(sizeof(SIndexedThirdLevelSearch) + (sizeof(CIndexDescriptor)*miThirdLevelChunkWidth)));
+	sz.Append((int)(sizeof(SIndexedThirdLevelSearch) + (sizeof(CIndexedDataDescriptor)*miThirdLevelChunkWidth)));
 	sz.AppendNewLine();
 	for (i = 0; i < miNumThirdLevelChunks; i++)
 	{

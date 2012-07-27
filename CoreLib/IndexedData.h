@@ -74,7 +74,7 @@ public:
 	void			DurableEnd(void);
 
 	BOOL			IsCaching(void);
-	void			EvictFromCache(CIndexDescriptor* pcDescriptor);
+	void			EvictFromCache(CIndexedDataDescriptor* pcDescriptor);
 	int				NumCached(void);
 	int				NumFiles(void);
 	OIndex			NumInFile(int iDataSize);
@@ -89,26 +89,26 @@ public:
 protected:
 	void 			InitIndices(CIndexedConfig* pcConfig);
 
-	BOOL			GetData(CIndexDescriptor* pcDescriptor, void* pvData);
-	BOOL			GetDescriptor(OIndex oi, CIndexDescriptor* pcDescriptor);
+	BOOL			GetData(CIndexedDataDescriptor* pcDescriptor, void* pvData);
+	BOOL			GetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor);
 
 	BOOL			ClearDescriptorCache(SIndexedCacheDescriptor* psCached);
 	void			EvictFromCache(SIndexedCacheDescriptor* psExisting);
 	void			EvictOverlappingFromCache(CArrayPointer* papsEvictedIndexedCacheDescriptors);
 
-	void			Invalidate(CIndexDescriptor* pcDescriptor);
+	void			Invalidate(CIndexedDataDescriptor* pcDescriptor);
 	BOOL			Uncache(void);
-	BOOL			CacheRead(CIndexDescriptor* pcDescriptor);
-	BOOL			CacheWrite(CIndexDescriptor* pcDescriptor, void* pvData, BOOL* pbWritten);
-	BOOL			Write(CIndexDescriptor* pcDescriptor, void* pvData, unsigned int uiTimeStamp);
+	BOOL			CacheRead(CIndexedDataDescriptor* pcDescriptor);
+	BOOL			CacheWrite(CIndexedDataDescriptor* pcDescriptor, void* pvData, BOOL* pbWritten);
+	BOOL			Write(CIndexedDataDescriptor* pcDescriptor, void* pvData, unsigned int uiTimeStamp);
 
 	BOOL			WriteEvictedData(CArrayPointer* papsIndexedCacheDescriptors);
 	BOOL			WriteEvictedData(SIndexedCacheDescriptor* psCached);
-	void			WriteEvictedData(CIndexDescriptor* pcDescriptor, SIndexedCacheDescriptor* psCached);
-	BOOL			WriteData(CIndexDescriptor* pcDescriptor, void* pvData);
+	void			WriteEvictedData(CIndexedDataDescriptor* pcDescriptor, SIndexedCacheDescriptor* psCached);
+	BOOL			WriteData(CIndexedDataDescriptor* pcDescriptor, void* pvData);
 
 	void			AddFile(CDurableFile* pcFile);
-	BOOL			CompareDiskToMemory(CIndexDescriptor* pcDescriptor, void* pvData);
+	BOOL			CompareDiskToMemory(CIndexedDataDescriptor* pcDescriptor, void* pvData);
 };
 
 

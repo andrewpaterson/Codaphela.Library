@@ -61,9 +61,9 @@ long long int CIndexMemoryAccess::Length(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexMemoryAccess::Get(CIndexDescriptor* pcDescriptor, OIndex oi)
+BOOL CIndexMemoryAccess::Get(CIndexedDataDescriptor* pcDescriptor, OIndex oi)
 {
-	CIndexDescriptor*	pcTemp;
+	CIndexedDataDescriptor*	pcTemp;
 	unsigned int		loInt;
 
 	loInt = (unsigned int)oi;
@@ -72,7 +72,7 @@ BOOL CIndexMemoryAccess::Get(CIndexDescriptor* pcDescriptor, OIndex oi)
 	{
 		return FALSE;
 	}
-	memcpy_fast(pcDescriptor, pcTemp, sizeof(CIndexDescriptor));
+	memcpy_fast(pcDescriptor, pcTemp, sizeof(CIndexedDataDescriptor));
 
 	return pcDescriptor->IsAllocated();
 }
@@ -82,10 +82,10 @@ BOOL CIndexMemoryAccess::Get(CIndexDescriptor* pcDescriptor, OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexMemoryAccess::Set(CIndexDescriptor* pcDescriptor)
+BOOL CIndexMemoryAccess::Set(CIndexedDataDescriptor* pcDescriptor)
 {
 	unsigned int		loInt;
-	CIndexDescriptor*	pcExistingDescriptor;
+	CIndexedDataDescriptor*	pcExistingDescriptor;
 
 	loInt = (unsigned int)pcDescriptor->GetIndex();
 	if (mbDirtyTesting)
@@ -103,7 +103,7 @@ BOOL CIndexMemoryAccess::Set(CIndexDescriptor* pcDescriptor)
 			}
 			else if (!pcDescriptor->IsDirty())
 			{
-				if (memcmp(pcDescriptor, pcExistingDescriptor, sizeof(CIndexDescriptor)) != 0)
+				if (memcmp(pcDescriptor, pcExistingDescriptor, sizeof(CIndexedDataDescriptor)) != 0)
 				{
 					pcDescriptor->Dirty(TRUE);
 				}
@@ -135,9 +135,9 @@ BOOL CIndexMemoryAccess::Set(CIndexDescriptor* pcDescriptor)
 BOOL CIndexMemoryAccess::Remove(OIndex oi)
 {
 	unsigned int		loInt;
-	CIndexDescriptor	cNullDescriptor;
+	CIndexedDataDescriptor	cNullDescriptor;
 
-	memset(&cNullDescriptor, 0, sizeof(CIndexDescriptor));
+	memset(&cNullDescriptor, 0, sizeof(CIndexedDataDescriptor));
 	cNullDescriptor.Init(oi, 0);
 
 	loInt = (unsigned int)oi;
@@ -184,7 +184,7 @@ void CIndexMemoryAccess::Save(void)
 BOOL CIndexMemoryAccess::UpdateFile(void)
 {
 	int					i;
-	CIndexDescriptor*	pcDescriptor;
+	CIndexedDataDescriptor*	pcDescriptor;
 	filePos				iIndex;
 
 	for (i = 0; i < maMemoryArray.NumElements(); i++)

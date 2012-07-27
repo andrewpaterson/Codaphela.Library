@@ -24,7 +24,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "BaseLib/PointerRemapper.h"
 #include "BaseLib/FastFunctions.h"
 #include "BaseLib/Chars.h"
-#include "IndexDescriptor.h"
+#include "IndexedDataDescriptor.h"
 #include "IndexedCache.h"
 
 
@@ -72,7 +72,7 @@ BOOL CIndexedCache::PreAllocate(CMemoryCacheAllocation* pcResult)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedCache::Allocate(CIndexDescriptor* pcDesc, CMemoryCacheAllocation* pcResult)
+BOOL CIndexedCache::Allocate(CIndexedDataDescriptor* pcDesc, CMemoryCacheAllocation* pcResult)
 {
 	void*						pvCache;
 	SIndexedCacheDescriptor*	psCacheDesc;
@@ -93,7 +93,7 @@ BOOL CIndexedCache::Allocate(CIndexDescriptor* pcDesc, CMemoryCacheAllocation* p
 		psCacheDesc->iFlags |= CACHE_DESCRIPTOR_FLAG_DIRTY;
 	}
 
-	//CIndexDescriptor (pcDesc) adjusted here.
+	//CIndexedDataDescriptor (pcDesc) adjusted here.
 	pcDesc->Cache(pvCache);
 
 	return TRUE;
@@ -114,7 +114,7 @@ void CIndexedCache::Clear(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedCache::Invalidate(CIndexDescriptor* pcDesc)
+void CIndexedCache::Invalidate(CIndexedDataDescriptor* pcDesc)
 {
 	SIndexedCacheDescriptor*	psCacheDesc;
 
@@ -160,7 +160,7 @@ int CIndexedCache::NumIgnored(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedCache::Update(CIndexDescriptor* pcDesc, void* pvData)
+BOOL CIndexedCache::Update(CIndexedDataDescriptor* pcDesc, void* pvData)
 {
 	SIndexedCacheDescriptor*	psCacheIndex;
 	void*						pvCache;

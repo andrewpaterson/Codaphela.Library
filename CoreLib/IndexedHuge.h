@@ -22,7 +22,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __INDEXED_HUGE_H__
 #define __INDEXED_HUGE_H__
-#include "IndexDescriptor.h"
+#include "IndexedDataDescriptor.h"
 #include "BaseLib/ArrayBlock.h"
 #include "DurableFile.h"
 #include "BaseLib/Numbers.h"
@@ -73,7 +73,7 @@ struct SIndexedThirdLevelSearch
 
 struct __DEBUG_SIndexedThirdLevelSearch : SIndexedThirdLevelSearch
 {
-	CIndexDescriptor	acIndexedDataDescriptor[2];
+	CIndexedDataDescriptor	acIndexedDataDescriptor[2];
 };
 struct __DEBUG_SIndexedSecondLevelSearch : SIndexedSecondLevelSearch
 {
@@ -92,7 +92,7 @@ protected:
 	void*						mpvThirdLevel;
 
 	int							miSecondLevelChunkWidth;  //Where 'width' is how many descriptor chunk pointers there are per first level.
-	int							miThirdLevelChunkWidth;  //Number of CIndexDescriptor's per chunk.
+	int							miThirdLevelChunkWidth;  //Number of CIndexedDataDescriptor's per chunk.
 	
 	int							miNumSecondLevelChunks;
 	int							miNumThirdLevelChunks;
@@ -112,9 +112,9 @@ public:
 	void 						Init(CDurableFile* pcFile, BOOL bDirtyTesting, CIndexedData* pcIndexedData, int iSecondLevelWidth, int iThirdLevelWidth, int iNumSecondLevelChunks, int iNumThirdLevelChunks);
 	void 						Kill(void);
 
-	BOOL 						Get(CIndexDescriptor* pcDescriptor, OIndex oi);
-	BOOL 						Set(CIndexDescriptor* pcDescriptor);
-	BOOL						Set(CIndexDescriptor* pacDescriptors, int iNumDescriptors);
+	BOOL 						Get(CIndexedDataDescriptor* pcDescriptor, OIndex oi);
+	BOOL 						Set(CIndexedDataDescriptor* pcDescriptor);
+	BOOL						Set(CIndexedDataDescriptor* pacDescriptors, int iNumDescriptors);
 	BOOL						Remove(OIndex oi);
 
 	OIndex						Length(void);
@@ -133,7 +133,7 @@ protected:
 	BOOL						PadFile(filePos iLength, filePos iOffset);
 	void						ClearCounters(void);
 
-	CIndexDescriptor*			PrivateGetDescriptor(OIndex oi);
+	CIndexedDataDescriptor*			PrivateGetDescriptor(OIndex oi);
 	SIndexedSecondLevelSearch*	GetSecondLevelSearch(OIndex oi);
 	int							IncrementSecondLevelNumber(int iInput);
 	SIndexedSecondLevelSearch*	LoadSecondLevelChunk(int iFirstLevelIndex);
@@ -143,7 +143,7 @@ protected:
 	void						EvictThirdLevelChunk(SIndexedThirdLevelSearch* psIndexedThirdLevelSearch);
 	SIndexedThirdLevelSearch*	FindUnallocatedThirdLevelChunk(void);
 	SIndexedThirdLevelSearch*	GetCachedThirdLevelChunk(int iIndex);
-	CIndexDescriptor*			GetCachedDescriptor(SIndexedThirdLevelSearch* psIndexedThirdLevelSearch, int iIndex);
+	CIndexedDataDescriptor*			GetCachedDescriptor(SIndexedThirdLevelSearch* psIndexedThirdLevelSearch, int iIndex);
 	SIndexedThirdLevelSearch**	GetIndexedThirdLevelChunk(SIndexedSecondLevelSearch* pSIndexedSecondLevelSearch, int iIndex);
 	OIndex						GetThirdLevelChunkOI(SIndexedThirdLevelSearch* psIndexedThirdLevelSearch);
 	void						SaveThirdLevelChunk(SIndexedThirdLevelSearch* psIndexedThirdLevelSearch);

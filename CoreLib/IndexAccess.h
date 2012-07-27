@@ -23,7 +23,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __INDEX_ACCESS_H__
 #define __INDEX_ACCESS_H__
 #include "IndexedGeneral.h"
-#include "IndexDescriptor.h"
+#include "IndexedDataDescriptor.h"
 #include "DurableFileController.h"
 
 
@@ -38,8 +38,8 @@ public:
 			void	Init(CIndexDescriptorsFile* pcDescriptorsFile);
 	virtual void 	Kill(void) =0;
 
-	virtual BOOL 	Get(CIndexDescriptor* pcDescriptor, OIndex oi) =0;
-	virtual	BOOL 	Set(CIndexDescriptor* pcDescriptor) =0;
+	virtual BOOL 	Get(CIndexedDataDescriptor* pcDescriptor, OIndex oi) =0;
+	virtual	BOOL 	Set(CIndexedDataDescriptor* pcDescriptor) =0;
 	virtual BOOL 	Remove(OIndex oi) =0;
 	virtual long long int Length(void) =0;
 

@@ -59,7 +59,7 @@ long long int CIndexHugeAccess::Length(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexHugeAccess::Get(CIndexDescriptor* pcDescriptor, OIndex oi)
+BOOL CIndexHugeAccess::Get(CIndexedDataDescriptor* pcDescriptor, OIndex oi)
 {
 	return mcHugeSupport.Get(pcDescriptor, oi);
 }
@@ -69,7 +69,7 @@ BOOL CIndexHugeAccess::Get(CIndexDescriptor* pcDescriptor, OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexHugeAccess::Set(CIndexDescriptor* pcDescriptor)
+BOOL CIndexHugeAccess::Set(CIndexedDataDescriptor* pcDescriptor)
 {
 	return mcHugeSupport.Set(pcDescriptor);
 }
@@ -119,7 +119,7 @@ BOOL CIndexHugeAccess::UpdateFile(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexHugeAccess::Set(CIndexDescriptor* pacDescriptors, int iNumDescriptors)
+BOOL CIndexHugeAccess::Set(CIndexedDataDescriptor* pacDescriptors, int iNumDescriptors)
 {
 	return mcHugeSupport.Set(pacDescriptors, iNumDescriptors);
 }

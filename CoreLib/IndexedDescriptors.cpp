@@ -57,7 +57,7 @@ void CIndexedDescriptors::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedDescriptors::Get(CIndexDescriptor* pcDescriptor, OIndex oi)
+BOOL CIndexedDescriptors::Get(CIndexedDataDescriptor* pcDescriptor, OIndex oi)
 {
 	return mpcAccess->Get(pcDescriptor, oi);
 }
@@ -67,7 +67,7 @@ BOOL CIndexedDescriptors::Get(CIndexDescriptor* pcDescriptor, OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedDescriptors::Set(CIndexDescriptor* pcDescriptor)
+BOOL CIndexedDescriptors::Set(CIndexedDataDescriptor* pcDescriptor)
 {
 	return mpcAccess->Set(pcDescriptor);
 }
@@ -132,7 +132,7 @@ OIndex CIndexedDescriptors::NumElements(void)
 {
 	OIndex						i;
 	OIndex						iLength;
-	CIndexDescriptor		cCurrent;
+	CIndexedDataDescriptor		cCurrent;
 	OIndex						iTotal;
 
 	iTotal = 0;
@@ -156,7 +156,7 @@ OIndex CIndexedDescriptors::NumCachedDatas(void)
 {
 	OIndex				i;
 	OIndex				iLength;
-	CIndexDescriptor	cCurrent;
+	CIndexedDataDescriptor	cCurrent;
 	OIndex				iTotal;
 
 	iTotal = 0;

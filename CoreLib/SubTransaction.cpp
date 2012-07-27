@@ -100,7 +100,7 @@ BOOL CSubTransaction::FailOnTimeStamp(unsigned int uiTimeStamp)
 //////////////////////////////////////////////////////////////////////////
 BOOL CSubTransaction::Add(OIndex oi, void* pvData, unsigned int uiDataSize)
 {
-	CIndexDescriptor	cDescriptor;
+	CIndexedDataDescriptor	cDescriptor;
 	BOOL				bExistsInFile;
 	BOOL				bExistsInTransaction;
 	unsigned int		uiSize;
@@ -150,7 +150,7 @@ BOOL CSubTransaction::Get(OIndex oi, void* pvData)
 	void*				pvCache;
 	unsigned int		uiSize;
 	BOOL				bExistsInFile;
-	CIndexDescriptor	cDescriptor;
+	CIndexedDataDescriptor	cDescriptor;
 
 	bExistsInTransaction = GetDetail(oi, &pvCache, &uiSize);
 	if (bExistsInTransaction)
@@ -184,7 +184,7 @@ BOOL CSubTransaction::Set(OIndex oi, void* pvData, unsigned int uiDataSize)
 	void*				pvCache;
 	unsigned int		uiSize;
 	BOOL				bExistsInFile;
-	CIndexDescriptor	cDescriptor;
+	CIndexedDataDescriptor	cDescriptor;
 
 	if (uiDataSize == 0)
 	{
@@ -240,7 +240,7 @@ BOOL CSubTransaction::GetDetail(OIndex oi, void** ppvData, unsigned int* puiSize
 //////////////////////////////////////////////////////////////////////////
 BOOL CSubTransaction::Remove(OIndex oi)
 {
-	CIndexDescriptor	cDescriptor;
+	CIndexedDataDescriptor	cDescriptor;
 	BOOL				bExistsInTransaction;
 	BOOL				bExistsInFile;
 	void*				pvData;

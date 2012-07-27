@@ -25,13 +25,13 @@ void CIndexedDataFiles::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedDataFiles::WriteNew(CIndexDescriptor* pcDescriptor, void* pvData)
+BOOL CIndexedDataFiles::WriteNew(CIndexedDataDescriptor* pcIndexDescriptor, void* pvData)
 {
 	CIndexedFile*	pcIndexedFile;
 	filePos			iIndex;
 	int				iDataSize;
 
-	iDataSize = pcDescriptor->GetDataSize();
+	iDataSize = pcIndexDescriptor->GetDataSize();
 	if (iDataSize != 0)
 	{
 		pcIndexedFile = GetOrCreateFile(iDataSize);
@@ -48,8 +48,8 @@ BOOL CIndexedDataFiles::WriteNew(CIndexDescriptor* pcDescriptor, void* pvData)
 			return FALSE;
 		}
 
-		//CIndexDescriptor (pcDescriptor) adjusted here.
-		pcDescriptor->File(pcIndexedFile->miFileIndex, iIndex);
+		//CIndexedDataDescriptor (pcIndexDescriptor) adjusted here.
+		pcIndexDescriptor->File(pcIndexedFile->miFileIndex, iIndex);
 		return TRUE;
 	}
 	else
@@ -63,15 +63,15 @@ BOOL CIndexedDataFiles::WriteNew(CIndexDescriptor* pcDescriptor, void* pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedDataFiles::WriteExisting(CIndexDescriptor* pcDescriptor, void* pvData)
+BOOL CIndexedDataFiles::WriteExisting(CIndexedDataDescriptor* pcIndexDescriptor, void* pvData)
 {
 	CIndexedFile*	pcIndexedFile;
 	filePos			iResult;
 
-	pcIndexedFile = GetFile(pcDescriptor->GetFileIndex());
+	pcIndexedFile = GetFile(pcIndexDescriptor->GetFileIndex());
 	if (pcIndexedFile)
 	{
-		iResult = pcIndexedFile->Write(pcDescriptor->GetIndexInFile(), pvData);
+		iResult = pcIndexedFile->Write(pcIndexDescriptor->GetIndexInFile(), pvData);
 		return iResult == 1;
 	}
 	else
@@ -85,17 +85,17 @@ BOOL CIndexedDataFiles::WriteExisting(CIndexDescriptor* pcDescriptor, void* pvDa
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedDataFiles::Read(CIndexDescriptor* pcDescriptor, void* pvData)
+BOOL CIndexedDataFiles::Read(CIndexedDataDescriptor* pcIndexDescriptor, void* pvData)
 {
 	CIndexedFile*	pcIndexedFile;
 
-	pcIndexedFile = GetFile(pcDescriptor->GetFileIndex());
+	pcIndexedFile = GetFile(pcIndexDescriptor->GetFileIndex());
 	if (!pcIndexedFile)
 	{
 		return FALSE;
 	}
 
-	return pcIndexedFile->Read(pcDescriptor->GetIndexInFile(), pvData);
+	return pcIndexedFile->Read(pcIndexDescriptor->GetIndexInFile(), pvData);
 }
 
 

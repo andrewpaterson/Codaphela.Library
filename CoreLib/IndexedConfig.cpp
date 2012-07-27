@@ -21,7 +21,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/Numbers.h"
-#include "IndexDescriptor.h"
+#include "IndexedDataDescriptor.h"
 #include "IndexedConfig.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -60,7 +60,7 @@ void CIndexedConfig::OptimiseForStreaming(char* szWorkingDirectory)
 	miIndicesThirdLevelWidth = 2048;
 	miIndicesNumSecondLevelChunks = 8; 
 	miIndicesNumThirdLevelChunks = 1024;
-	miIndicesMemoryChunkSize = miIndicesNumThirdLevelChunks * sizeof(CIndexDescriptor);
+	miIndicesMemoryChunkSize = miIndicesNumThirdLevelChunks * sizeof(CIndexedDataDescriptor);
 	miObjectsCacheSize = 0;
 }
 
@@ -79,7 +79,7 @@ void CIndexedConfig::OptimiseForTransactions(char* szWorkingDirectory)
 	miIndicesThirdLevelWidth = 2048;
 	miIndicesNumSecondLevelChunks = 8; 
 	miIndicesNumThirdLevelChunks = 1024;
-	miIndicesMemoryChunkSize = miIndicesNumThirdLevelChunks * sizeof(CIndexDescriptor);
+	miIndicesMemoryChunkSize = miIndicesNumThirdLevelChunks * sizeof(CIndexedDataDescriptor);
 	miObjectsCacheSize = 128 MB;
 }
 

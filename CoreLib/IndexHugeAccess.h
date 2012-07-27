@@ -36,9 +36,9 @@ public:
 	void 			Init(CIndexDescriptorsFile* pcDescriptorsFile, CIndexedData* pcIndexedData, BOOL bDirtyTesting, int iSecondLevelWidth, int iThirdLevelWidth, int iNumSecondLevelChunks, int iNumThirdLevelChunks);
 	void 			Kill(void);
 
-	BOOL 			Get(CIndexDescriptor* pcDescriptor, OIndex oi);
-	BOOL 			Set(CIndexDescriptor* pcDescriptor);
-	BOOL 			Set(CIndexDescriptor* pacDescriptors, int iNumDescriptors);
+	BOOL 			Get(CIndexedDataDescriptor* pcDescriptor, OIndex oi);
+	BOOL 			Set(CIndexedDataDescriptor* pcDescriptor);
+	BOOL 			Set(CIndexedDataDescriptor* pacDescriptors, int iNumDescriptors);
 	BOOL 			Remove(OIndex oi);
 	long long int	Length(void);
 

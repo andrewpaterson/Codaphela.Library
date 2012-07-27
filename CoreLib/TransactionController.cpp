@@ -150,7 +150,7 @@ BOOL CTransactionController::ShouldCommitSucceed(CTransaction* pcTransaction)
 	int					iNumDatas;
 	SIndexedMemory*		psIndexedMemory;
 	BOOL				bExists;
-	CIndexDescriptor	cIndexedDataDescriptor;
+	CIndexedDataDescriptor	cIndexedDataDescriptor;
 
 	if (pcTransaction->mbFailed)
 	{

@@ -20,7 +20,7 @@ along with Codaphela CoreLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-#include "IndexDescriptor.h"
+#include "IndexedDataDescriptor.h"
 #include "BaseLib/IntegerHelper.h"
 
 
@@ -28,7 +28,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexDescriptor::Init(OIndex oi, unsigned int uiDataSize)
+void CIndexedDataDescriptor::Init(OIndex oi, unsigned int uiDataSize)
 {
 	moi = oi;
 
@@ -47,7 +47,7 @@ void CIndexDescriptor::Init(OIndex oi, unsigned int uiDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexDescriptor::IsAllocated(void)
+BOOL CIndexedDataDescriptor::IsAllocated(void)
 {
 	return muiDataSize != 0;
 }
@@ -57,7 +57,7 @@ BOOL CIndexDescriptor::IsAllocated(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexDescriptor::IsDirty(void)
+BOOL CIndexedDataDescriptor::IsDirty(void)
 {
 	return msFlags & INDEXED_DESCRIPTOR_DIRTY;
 }
@@ -67,7 +67,7 @@ BOOL CIndexDescriptor::IsDirty(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexDescriptor::Dirty(BOOL bDirty)
+void CIndexedDataDescriptor::Dirty(BOOL bDirty)
 {
 	if (bDirty)
 	{
@@ -84,7 +84,7 @@ void CIndexDescriptor::Dirty(BOOL bDirty)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexDescriptor::SetUserFlags(int iFlags)
+BOOL CIndexedDataDescriptor::SetUserFlags(int iFlags)
 {
 	if (iFlags & INDEXED_DESCRIPTOR_DIRTY)
 	{
@@ -99,7 +99,7 @@ BOOL CIndexDescriptor::SetUserFlags(int iFlags)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CIndexDescriptor::GetUserFlags(void)
+int CIndexedDataDescriptor::GetUserFlags(void)
 {
 	return msFlags & ~INDEXED_DESCRIPTOR_DIRTY;
 }
@@ -109,7 +109,7 @@ int CIndexDescriptor::GetUserFlags(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-unsigned int CIndexDescriptor::GetDataSize(void)
+unsigned int CIndexedDataDescriptor::GetDataSize(void)
 {
 	return muiDataSize;
 }
@@ -119,7 +119,7 @@ unsigned int CIndexDescriptor::GetDataSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexDescriptor::Cache(void* pvCache)
+void CIndexedDataDescriptor::Cache(void* pvCache)
 {
 	mpvCache = pvCache;
 }
@@ -129,7 +129,7 @@ void CIndexDescriptor::Cache(void* pvCache)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-OIndex CIndexDescriptor::GetIndex(void)
+OIndex CIndexedDataDescriptor::GetIndex(void)
 {
 	return moi;
 }
@@ -139,7 +139,7 @@ OIndex CIndexDescriptor::GetIndex(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexDescriptor::HasFile(void)
+BOOL CIndexedDataDescriptor::HasFile(void)
 {
 	return miFileIndex != -1;
 }
@@ -148,7 +148,7 @@ BOOL CIndexDescriptor::HasFile(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexDescriptor::IsCached(void)
+BOOL CIndexedDataDescriptor::IsCached(void)
 {
 	return FixBool(mpvCache);
 }
@@ -158,7 +158,7 @@ BOOL CIndexDescriptor::IsCached(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CIndexDescriptor::GetCache(void)
+void* CIndexedDataDescriptor::GetCache(void)
 {
 	return mpvCache;
 }
@@ -168,7 +168,7 @@ void* CIndexDescriptor::GetCache(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexDescriptor::TimeStamp(unsigned int uiTimeStamp)
+void CIndexedDataDescriptor::TimeStamp(unsigned int uiTimeStamp)
 {
 	muiTimeStamp = uiTimeStamp;
 }
@@ -178,7 +178,7 @@ void CIndexDescriptor::TimeStamp(unsigned int uiTimeStamp)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexDescriptor::File(int iFileIndex, filePos iIndexInFile)
+void CIndexedDataDescriptor::File(int iFileIndex, filePos iIndexInFile)
 {
 	miFileIndex = iFileIndex;
 	miIndexInFile = iIndexInFile;
@@ -189,7 +189,7 @@ void CIndexDescriptor::File(int iFileIndex, filePos iIndexInFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CIndexDescriptor::GetFileIndex(void)
+int CIndexedDataDescriptor::GetFileIndex(void)
 {
 	return miFileIndex;
 }
@@ -199,7 +199,7 @@ int CIndexDescriptor::GetFileIndex(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-filePos CIndexDescriptor::GetIndexInFile(void)
+filePos CIndexedDataDescriptor::GetIndexInFile(void)
 {
 	return miIndexInFile;
 }
@@ -209,7 +209,7 @@ filePos CIndexDescriptor::GetIndexInFile(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-unsigned int CIndexDescriptor::GetTimeStamp(void)
+unsigned int CIndexedDataDescriptor::GetTimeStamp(void)
 {
 	return muiTimeStamp;
 }

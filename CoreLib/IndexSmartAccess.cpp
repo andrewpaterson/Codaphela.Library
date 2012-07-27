@@ -68,7 +68,7 @@ void CIndexSmartAccess::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexSmartAccess::Get(CIndexDescriptor* pcDescriptor, OIndex oi)
+BOOL CIndexSmartAccess::Get(CIndexedDataDescriptor* pcDescriptor, OIndex oi)
 {
 	return pcAccess->Get(pcDescriptor, oi);
 }
@@ -78,7 +78,7 @@ BOOL CIndexSmartAccess::Get(CIndexDescriptor* pcDescriptor, OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexSmartAccess::Set(CIndexDescriptor* pcDescriptor)
+BOOL CIndexSmartAccess::Set(CIndexedDataDescriptor* pcDescriptor)
 {
 	if (pcAccess->IsMemory())
 	{

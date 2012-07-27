@@ -20,7 +20,7 @@ along with Codaphela CoreLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-#include "IndexDescriptor.h"
+#include "IndexedDataDescriptor.h"
 #include "IndexDescriptorsFile.h"
 #include "IndexAccess.h"
 
