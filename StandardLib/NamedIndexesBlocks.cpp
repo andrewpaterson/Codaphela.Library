@@ -87,6 +87,7 @@ BOOL CNamedIndexesBlocks::Save(void)
 	CNamedIndexesBlock*		pcBlock;
 	CIndexedFile*			pcFile;
 	BOOL					bResult;
+	filePos					iIndex;
 
 	bResult = TRUE;
 	for (i = 0; i < macBlocks.NumElements(); i++)
@@ -96,7 +97,11 @@ BOOL CNamedIndexesBlocks::Save(void)
 		{
 			pcFile = mpcNamedIndexes->GetOrCreateFile(miBlockWidth, miFileNumber);
 			miFileNumber = pcFile->miFileNumber;
-			bResult &= pcBlock->Write(pcFile);
+			iIndex = pcBlock->Write(pcFile);
+			if (iIndex == -1)
+			{
+				bResult = FALSE;
+			}
 		}
 	}
 	return bResult;

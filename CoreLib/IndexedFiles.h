@@ -58,6 +58,8 @@ public:
 
 	OIndex						NumInFile(int iDataSize);
 	int							NumFiles(void);
+
+	BOOL						ForceCopyPrimaryToBackup(void);
 	
 	void						Dump(void);
 };
