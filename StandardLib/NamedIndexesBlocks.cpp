@@ -30,13 +30,13 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNamedIndexesBlocks::Init(int iBlockSize, int iMinNameLength, int iMaxNameLength, int iNewNumBlocks, CNamedIndexes* pcNamedIndexes)
+void CNamedIndexesBlocks::Init(int iBlockSize, int iMinNameLength, int iMaxNameLength, int iBlockChunkSize, CNamedIndexes* pcNamedIndexes)
 {
 	macBlocks.Init(1);
 	miBlockWidth = iBlockSize;
 	miMinNameLength = iMinNameLength;
 	miMaxNameLength = iMaxNameLength;
-	miNewNumBlocks = iNewNumBlocks;
+	miBlockChunkSize = iBlockChunkSize;
 	miFileNumber = -1;
 	mpcNamedIndexes = pcNamedIndexes;
 }
@@ -180,7 +180,7 @@ BOOL CNamedIndexesBlocks::Add(OIndex oi, CChars* szName, BOOL bFailOnExisting)
 	if (pcNotFullBlock == NULL)
 	{
 		pcNotFullBlock = macBlocks.Add();
-		pcNotFullBlock->Init(miBlockWidth, miNewNumBlocks);
+		pcNotFullBlock->Init(miBlockWidth, miBlockChunkSize);
 		Cache(pcNotFullBlock);
 	}
 	else if (!pcNotFullBlock->IsCached())
@@ -199,7 +199,7 @@ BOOL CNamedIndexesBlocks::Add(OIndex oi, CChars* szName, BOOL bFailOnExisting)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNamedIndexesBlocks::AddNewBlock(int iBlockWidth, void* pvBlocks, filePos iNumBlocks, filePos iDataIndex)
+BOOL CNamedIndexesBlocks::AddNewBlock(int iBlockWidth, void* pvBlocks, filePos iBlockChunkSize, filePos iDataIndex)
 {
 	CNamedIndexesBlock*		pcBlock;
 	void*					pvCache;
@@ -210,13 +210,13 @@ BOOL CNamedIndexesBlocks::AddNewBlock(int iBlockWidth, void* pvBlocks, filePos i
 		return FALSE;
 	}
 
-	pvCache = mpcNamedIndexes->AllocateInCache(miNewNumBlocks * miBlockWidth);
+	pvCache = mpcNamedIndexes->AllocateInCache(miBlockChunkSize * miBlockWidth);
 	if (!pvCache)
 	{
 		return FALSE;
 	}
 
-	pcBlock->Init(miBlockWidth, pvBlocks, iNumBlocks, iDataIndex, pvCache);
+	pcBlock->Init(miBlockWidth, pvBlocks, iBlockChunkSize, iDataIndex, pvCache);
 	return TRUE;
 }
 
@@ -509,7 +509,7 @@ int CNamedIndexesBlocks::FindFirstUncachedBlock(CArrayNamedIndexesBlockPtr* pcDe
 //////////////////////////////////////////////////////////////////////////
 int CNamedIndexesBlocks::GetCacheDescriptorSize(void) 
 { 
-	return miBlockWidth * miNewNumBlocks; 
+	return miBlockWidth * miBlockChunkSize; 
 }
 
 
@@ -520,4 +520,5 @@ int CNamedIndexesBlocks::GetCacheDescriptorSize(void)
 int CNamedIndexesBlocks::GetDataSize(void) { return miBlockWidth; }
 int CNamedIndexesBlocks::GetFileNumber(void) { return miFileNumber; }
 void CNamedIndexesBlocks::SetFileNumber(int iFileNumber) { miFileNumber = iFileNumber; }
+int CNamedIndexesBlocks::GetNumBlocks(void) { return miBlockChunkSize; }
 

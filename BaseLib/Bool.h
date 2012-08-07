@@ -22,6 +22,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __BOOL_H__
 #define __BOOL_H__
+
+
 typedef int                 BOOL;
 #ifndef FALSE
 #define FALSE               0
@@ -29,4 +31,7 @@ typedef int                 BOOL;
 #ifndef TRUE
 #define TRUE                1
 #endif
+
+
 #endif // __BOOL_H__
+

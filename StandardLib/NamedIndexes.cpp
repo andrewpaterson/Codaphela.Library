@@ -19,6 +19,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include "BaseObject.h"
+#include "NamedIndexesOptimiser.h"
 #include "NamedIndexes.h"
 
 
@@ -26,21 +27,21 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNamedIndexes::Init(CDurableFileController* pcController, int iCacheSize, int iNewNumBlocks)
+void CNamedIndexes::Init(CDurableFileController* pcController, int iCacheSize, int iBlockChunkSize)
 {
 	macBlocks.Init(2);
 	mcCache.Init(iCacheSize);
 	mcFiles.Init(pcController, "NAM");
 
-	AddBlock(  32,    1,   23, iNewNumBlocks);
-	AddBlock(  64,   23,   55, iNewNumBlocks);
-	AddBlock(  96,   55,   87, iNewNumBlocks);
-	AddBlock( 128,   87,  119, iNewNumBlocks);
-	AddBlock( 192,  119,  183, iNewNumBlocks);
-	AddBlock( 256,  183,  247, iNewNumBlocks);
-	AddBlock( 512,  247,  503, iNewNumBlocks);
-	AddBlock(1024,  503, 1015, iNewNumBlocks);
-	AddBlock(4096, 1015, 4087, iNewNumBlocks);
+	AddBlock(  32,    1,   23, iBlockChunkSize);
+	AddBlock(  64,   23,   55, iBlockChunkSize);
+	AddBlock(  96,   55,   87, iBlockChunkSize);
+	AddBlock( 128,   87,  119, iBlockChunkSize);
+	AddBlock( 192,  119,  183, iBlockChunkSize);
+	AddBlock( 256,  183,  247, iBlockChunkSize);
+	AddBlock( 512,  247,  503, iBlockChunkSize);
+	AddBlock(1024,  503, 1015, iBlockChunkSize);
+	AddBlock(4096, 1015, 4087, iBlockChunkSize);
 }
 
 
@@ -132,17 +133,57 @@ BOOL CNamedIndexes::Open(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNamedIndexes::Optimise(int iNewNumBlocks)
+BOOL CNamedIndexes::Optimise(int iBlockChunkSize)
 {
 	CNamedIndexesOptimiser	cOptimiser;
+	int						i;
+	CNamedIndexesBlocks*	pcBlocks;
+	CIndexedFile*			pcIndexedFile;
+	TRISTATE				tTotalResult;
+	TRISTATE				tResult;
 
 	if (mcFiles.IsDurable())
 	{
 		return FALSE;
 	}
 
-	
+	cOptimiser.Init();
 
+	tTotalResult = TRIFALSE;
+	for (i = 0; i < macBlocks.NumElements(); i++)
+	{
+		pcBlocks = macBlocks.Get(i);
+		pcIndexedFile = GetFile(pcBlocks->GetDataSize(), pcBlocks->GetFileNumber());
+		tResult = cOptimiser.OptimiseBlock(pcBlocks, pcIndexedFile);
+
+		if (tResult == TRIERROR)
+		{
+			tTotalResult = TRIERROR;
+			break;
+		}
+		if (tResult == TRITRUE)
+		{
+			tTotalResult = TRITRUE;
+		}
+	}
+
+	cOptimiser.Kill();
+
+	if (tTotalResult == TRITRUE)
+	{
+		mcFiles.CopyPrimaryToBackup();
+		return TRUE;
+	}
+	else if (tTotalResult == TRIERROR)
+	{
+		mcFiles.CopyBackupToPrimary();
+		return FALSE;
+	}
+	else
+	{
+		//All files were already optimised.
+		return TRUE;
+	}
 }
 
 
@@ -327,12 +368,12 @@ CNamedIndexesBlocks* CNamedIndexes::GetBlockWithDataSize(int iDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CNamedIndexesBlocks* CNamedIndexes::AddBlock(int iBlockSize, int iMinNameLength, int iMaxNameLength, int iNewNumBlocks)
+CNamedIndexesBlocks* CNamedIndexes::AddBlock(int iBlockSize, int iMinNameLength, int iMaxNameLength, int iBlockChunkSize)
 {
 	CNamedIndexesBlocks*	pcBlock;
 
 	pcBlock = macBlocks.Add();
-	pcBlock->Init(iBlockSize, iMinNameLength, iMaxNameLength, iNewNumBlocks, this);
+	pcBlock->Init(iBlockSize, iMinNameLength, iMaxNameLength, iBlockChunkSize, this);
 	return pcBlock;
 }
 

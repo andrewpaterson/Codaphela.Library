@@ -90,6 +90,7 @@
     <ClInclude Include="NamedIndexesBlock.h" />
     <ClInclude Include="NamedIndexesBlocks.h" />
     <ClInclude Include="NamedIndexesFileDumper.h" />
+    <ClInclude Include="NamedIndexesOptimiser.h" />
     <ClInclude Include="Parameters.h" />
     <ClInclude Include="Unknown.h" />
     <ClInclude Include="SetType.h" />
@@ -168,6 +169,7 @@
     <ClCompile Include="NamedIndexesBlocks.cpp" />
     <ClCompile Include="NamedIndexesBlocksLoader.cpp" />
     <ClCompile Include="NamedIndexesFileDumper.cpp" />
+    <ClCompile Include="NamedIndexesOptimiser.cpp" />
     <ClCompile Include="Unknown.cpp" />
     <ClCompile Include="SetUnknown.cpp" />
     <ClCompile Include="ArrayUnknown.cpp" />

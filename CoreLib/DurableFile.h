@@ -87,6 +87,8 @@ public:
 	filePos		ReadFromFile(void* pvDest, filePos iSize, filePos iCount);
 	filePos		SizeFromFile(void);
 	BOOL		TestIdentical(void);
+	BOOL		CopyBackupToPrimary(void);
+	BOOL		CopyPrimaryToBackup(void);
 
 	void		Dump(void);
 
@@ -99,8 +101,6 @@ protected:
 	void		OpenFilesForBegin(void);
 	BOOL		OpenFilesForEnd(CFileBasic* pcFile);
 	filePos		PrivateRead(void* pvDest, filePos iSize, filePos iCount);
-	BOOL		CopyBackupToPrimary(void);
-	BOOL		CopyPrimaryToBackup(void);
 };
 
 

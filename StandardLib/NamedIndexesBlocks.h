@@ -35,12 +35,12 @@ protected:
 	int							miBlockWidth;  //same as miDataSize in CIndexedFile
 	int							miMinNameLength;
 	int							miMaxNameLength;
-	int							miNewNumBlocks;
+	int							miBlockChunkSize;
 	int							miFileNumber;
 	CNamedIndexes*				mpcNamedIndexes;
 	
 public:
-	void					Init(int iBlockSize, int iMinNameLength, int iMaxNameLength, int iNewNumBlocks, CNamedIndexes* pcNamedIndexes);
+	void					Init(int iBlockSize, int iMinNameLength, int iMaxNameLength, int iBlockChunkSize, CNamedIndexes* pcNamedIndexes);
 	void					Kill(void);
 	BOOL					Load(int iFileNumber);
 	BOOL					Save(void);
@@ -53,7 +53,7 @@ public:
 
 	BOOL					Flush(void);
 	BOOL					Cache(CNamedIndexesBlock* pcBlock);
-	BOOL					AddNewBlock(int iBlockWidth, void* pvBlocks, filePos iNumBlocks, filePos iDataIndex);
+	BOOL					AddNewBlock(int iBlockWidth, void* pvBlocks, filePos iBlockChunkSize, filePos iDataIndex);
 	filePos					NumNames(void);
 	void					GetPotentialContainingBlocks(CChars* szName, CArrayNamedIndexesBlockPtr* pcDest);
 	void					SortBlockPtrsCachedFirst(CArrayNamedIndexesBlockPtr* pcDest);
@@ -63,6 +63,7 @@ public:
 	void					SetFileNumber(int iFileNumber);
 	CNamedIndexesBlock*		GetBlock(void* pvCacheMem);
 	CNamedIndexesBlock*		GetBlock(int iIndex);
+	int						GetNumBlocks(void);
 	
 protected:
 	int						FindLastCachedBlock(CArrayNamedIndexesBlockPtr* pcDest, int iEnd);

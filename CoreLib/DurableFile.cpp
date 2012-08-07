@@ -987,6 +987,7 @@ BOOL CDurableFile::CopyPrimaryToBackup(void)
 	{
 		return FALSE;
 	}
+
 	return cFileUtil.Compare(mszFileName.Text(), mszRewriteName.Text());
 }
 

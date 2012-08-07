@@ -34,13 +34,13 @@ protected:
 
 	void*		mpvCachePos;
 	int			miBlockWidth;  //Max name length = miBlockWidth - sizeof(OIndex) - 1 (for trailing 0).
-	filePos		miNumBlocks;
+	filePos		miBlockChunkSize;
 	filePos		miUsedBlocks;
 	BOOL		mbDirty;
 
 public:
-	void					Init(int iBlockWidth, filePos iNumBlocks);
-	void					Init(int iBlockWidth, void* pvBlocks, filePos iNumBlocks, filePos iDataIndex, void* pvCache);
+	void					Init(int iBlockWidth, filePos iBlockChunkSize);
+	void					Init(int iBlockWidth, void* pvBlocks, filePos iBlockChunkSize, filePos iDataIndex, void* pvCache);
 	void					Kill(void);
 
 	BOOL					CouldContain(CChars* szName);

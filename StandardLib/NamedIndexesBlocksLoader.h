@@ -18,7 +18,7 @@ protected:
 	filePos					miTempSize;
 	int						miBlockWidth;
 	filePos					miMaxNames;
-	filePos					miNewNumBlocks;
+	filePos					miBlockChunkSize;
 	filePos					miCurrent;
 	BOOL					mbBlockSorted;
 

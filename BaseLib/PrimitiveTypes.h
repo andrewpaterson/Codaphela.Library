@@ -22,6 +22,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __PRIMITIVE_TYPES_H__
 #define __PRIMITIVE_TYPES_H__
+#include "Bool.h"
 
 
 #if (WIN32 || LINUX_GNU_32 || WIN_GNU_32)
@@ -29,7 +30,6 @@ typedef unsigned char			int8;
 typedef unsigned char			uint8;
 typedef int						int32;
 typedef unsigned int			uint32;
-typedef int						BOOL;
 typedef short					int16;
 typedef char					char8;
 typedef wchar_t					char16;

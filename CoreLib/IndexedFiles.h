@@ -59,7 +59,9 @@ public:
 	OIndex						NumInFile(int iDataSize);
 	int							NumFiles(void);
 
-	BOOL						ForceCopyPrimaryToBackup(void);
+	BOOL						CopyPrimaryToBackup(void);
+	BOOL						CopyBackupToPrimary(void);
+	BOOL						IsDurable(void);
 	
 	void						Dump(void);
 };

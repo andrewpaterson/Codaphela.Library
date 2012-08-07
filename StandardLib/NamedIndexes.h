@@ -35,13 +35,13 @@ protected:
 	CIndexedFiles				mcFiles;
 
 public:
-	void					Init(CDurableFileController* pcController, int iCacheSize, int iNewNumBlocks);
+	void					Init(CDurableFileController* pcController, int iCacheSize, int iBlockChunkSize);
 	void					Kill(void);
 	BOOL					Open(void);
 	BOOL					Save(void);
 	BOOL					Close(void);
 
-	BOOL					Optimise(int iNewNumBlocks = -1);
+	BOOL					Optimise(int iBlockChunkSize = -1);
 
 	BOOL					Add(OIndex oi, char* szName, BOOL bFailOnExisting = TRUE);
 	BOOL					Add(OIndex oi, CChars* szName, BOOL bFailOnExisting = TRUE);
@@ -62,7 +62,7 @@ public:
 protected:
 	CNamedIndexesBlocks*	GetBlockFittingLength(int iNameLength);
 	CNamedIndexesBlocks*	GetBlockForCacheDescriptorSize(int iCacheDescriptorSize);
-	CNamedIndexesBlocks*	AddBlock(int iBlockSize, int iMinNameLength, int iMaxNameLength, int iNewNumBlocks);
+	CNamedIndexesBlocks*	AddBlock(int iBlockSize, int iMinNameLength, int iMaxNameLength, int iBlockChunkSize);
 };
 
 

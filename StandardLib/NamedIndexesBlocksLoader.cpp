@@ -42,15 +42,15 @@ void CNamedIndexesBlocksLoader::Init(CNamedIndexesBlocks* pcBlocks, int iFileNum
 	
 	miBlockWidth = pcBlocks->miBlockWidth;
 	miLength = miNumBlocksInFile * miBlockWidth;
-	miNewNumBlocks = mpcBlocks->miNewNumBlocks;
-	miTempSize = ((10 MB) / (miNewNumBlocks * miBlockWidth)) * miNewNumBlocks * miBlockWidth;
+	miBlockChunkSize = mpcBlocks->miBlockChunkSize;
+	miTempSize = ((10 MB) / (miBlockChunkSize * miBlockWidth)) * miBlockChunkSize * miBlockWidth;
 	if (miLength <= miTempSize)
 	{
 		miTempSize = miLength;
 	}
 
 	mpvTemp = malloc((int)miTempSize);
-	mpvBlock = malloc((size_t)(miNewNumBlocks * miBlockWidth));
+	mpvBlock = malloc((size_t)(miBlockChunkSize * miBlockWidth));
 }
 
 
@@ -115,8 +115,8 @@ BOOL CNamedIndexesBlocksLoader::Load(void)
 			return FALSE;
 		}
 
-		iChunks = iNames / miNewNumBlocks;
-		iModulous = iNames % miNewNumBlocks;
+		iChunks = iNames / miBlockChunkSize;
+		iModulous = iNames % miBlockChunkSize;
 		if (iModulous != 0)
 		{
 			return FALSE;
@@ -124,10 +124,10 @@ BOOL CNamedIndexesBlocksLoader::Load(void)
 
 		for (i = 0; i < iChunks; i++)
 		{
-			iOffset = miBlockWidth * i * miNewNumBlocks;
+			iOffset = miBlockWidth * i * miBlockChunkSize;
 			psName = (CNamedIndexedBlock*)RemapSinglePointer(mpvTemp, (size_t)iOffset);
-			iDataIndex = (iPos + iOffset)/miBlockWidth;
-			mpcBlocks->AddNewBlock(miBlockWidth, psName, miNewNumBlocks, iDataIndex);
+			iDataIndex = (iPos + iOffset) / miBlockWidth;
+			mpcBlocks->AddNewBlock(miBlockWidth, psName, miBlockChunkSize, iDataIndex);
 		}
 
 		iPos += iChunk;

@@ -336,6 +336,9 @@
     <ClInclude Include="NamedIndexesFileDumper.h">
       <Filter>Source\File\Indexed\Named</Filter>
     </ClInclude>
+    <ClInclude Include="NamedIndexesOptimiser.h">
+      <Filter>Source\File\Indexed\Named</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Unknown.cpp">
@@ -531,6 +534,9 @@
       <Filter>Source\File\Indexed\Named</Filter>
     </ClCompile>
     <ClCompile Include="NamedIndexesFileDumper.cpp">
+      <Filter>Source\File\Indexed\Named</Filter>
+    </ClCompile>
+    <ClCompile Include="NamedIndexesOptimiser.cpp">
       <Filter>Source\File\Indexed\Named</Filter>
     </ClCompile>
   </ItemGroup>
