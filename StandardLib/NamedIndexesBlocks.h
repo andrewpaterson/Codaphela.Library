@@ -32,10 +32,10 @@ class CNamedIndexesBlocks
 friend class CNamedIndexesBlocksLoader;
 protected:
 	CArrayNamedIndexesBlock		macBlocks;
-	int							miBlockWidth;  //same as miDataSize in CIndexedFile
+	int							miBlockWidth;  //Same as miDataSize in CIndexedFile.  Sort of the maximum length of the string.
 	int							miMinNameLength;
 	int							miMaxNameLength;
-	int							miBlockChunkSize;
+	int							miBlockChunkSize;  //The number of strings per block.
 	int							miFileNumber;
 	CNamedIndexes*				mpcNamedIndexes;
 	
@@ -64,6 +64,7 @@ public:
 	CNamedIndexesBlock*		GetBlock(void* pvCacheMem);
 	CNamedIndexesBlock*		GetBlock(int iIndex);
 	int						GetNumBlocks(void);
+	int						GetMaxNameLength(void);
 	
 protected:
 	int						FindLastCachedBlock(CArrayNamedIndexesBlockPtr* pcDest, int iEnd);

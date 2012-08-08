@@ -521,4 +521,5 @@ int CNamedIndexesBlocks::GetDataSize(void) { return miBlockWidth; }
 int CNamedIndexesBlocks::GetFileNumber(void) { return miFileNumber; }
 void CNamedIndexesBlocks::SetFileNumber(int iFileNumber) { miFileNumber = iFileNumber; }
 int CNamedIndexesBlocks::GetNumBlocks(void) { return miBlockChunkSize; }
+int CNamedIndexesBlocks::GetMaxNameLength(void) { return miMaxNameLength; }
 

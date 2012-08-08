@@ -35,29 +35,31 @@ protected:
 	CIndexedFiles				mcFiles;
 
 public:
-	void					Init(CDurableFileController* pcController, int iCacheSize, int iBlockChunkSize);
-	void					Kill(void);
-	BOOL					Open(void);
-	BOOL					Save(void);
-	BOOL					Close(void);
+	void						Init(CDurableFileController* pcController, int iCacheSize, int iBlockChunkSize);
+	void						Kill(void);
+	BOOL						Open(void);
+	BOOL						Save(void);
+	BOOL						Close(void);
 
-	BOOL					Optimise(int iBlockChunkSize = -1);
+	BOOL						Add(OIndex oi, char* szName, BOOL bFailOnExisting = TRUE);
+	BOOL						Add(OIndex oi, CChars* szName, BOOL bFailOnExisting = TRUE);
+	OIndex						GetIndex(char* szName);
+	OIndex						GetIndex(CChars* szName);
+	BOOL						Remove(char* szName);
+	BOOL						Remove(CChars* szName);
+	filePos						NumNames(void);
 
-	BOOL					Add(OIndex oi, char* szName, BOOL bFailOnExisting = TRUE);
-	BOOL					Add(OIndex oi, CChars* szName, BOOL bFailOnExisting = TRUE);
-	OIndex					GetIndex(char* szName);
-	OIndex					GetIndex(CChars* szName);
-	BOOL					Remove(char* szName);
-	BOOL					Remove(CChars* szName);
-	filePos					NumNames(void);
+	BOOL						Flush(void);
+	CIndexedFile*				GetFile(int iDataSize, int iFileNumber);
+	CIndexedFile*				GetOrCreateFile(int iDataSize, int iFileNumber);
+	void*						AllocateInCache(size_t iSize);
 
-	BOOL					Flush(void);
-	CIndexedFile*			GetFile(int iDataSize, int iFileNumber);
-	CIndexedFile*			GetOrCreateFile(int iDataSize, int iFileNumber);
-	void*					AllocateInCache(size_t iSize);
-
-	void					TestGetPotentialContainingBlocks(char* szName, CArrayNamedIndexesBlockPtr* pcDest);
-	CNamedIndexesBlocks*	GetBlockWithDataSize(int iNameLength);
+	void						TestGetPotentialContainingBlocks(char* szName, CArrayNamedIndexesBlockPtr* pcDest);
+	CNamedIndexesBlocks*		GetBlockWithDataSize(int iNameLength);
+	CArrayNamedIndexesBlocks*	GetBlocks(void);
+	CMemoryCache*				GetCache(void);
+	CIndexedFiles*				GetFiles(void);
+	
 
 protected:
 	CNamedIndexesBlocks*	GetBlockFittingLength(int iNameLength);

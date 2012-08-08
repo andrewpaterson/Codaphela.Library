@@ -19,7 +19,6 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include "BaseObject.h"
-#include "NamedIndexesOptimiser.h"
 #include "NamedIndexes.h"
 
 
@@ -126,64 +125,6 @@ BOOL CNamedIndexes::Open(void)
 		}
 	}
 	return TRUE;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CNamedIndexes::Optimise(int iBlockChunkSize)
-{
-	CNamedIndexesOptimiser	cOptimiser;
-	int						i;
-	CNamedIndexesBlocks*	pcBlocks;
-	CIndexedFile*			pcIndexedFile;
-	TRISTATE				tTotalResult;
-	TRISTATE				tResult;
-
-	if (mcFiles.IsDurable())
-	{
-		return FALSE;
-	}
-
-	cOptimiser.Init();
-
-	tTotalResult = TRIFALSE;
-	for (i = 0; i < macBlocks.NumElements(); i++)
-	{
-		pcBlocks = macBlocks.Get(i);
-		pcIndexedFile = GetFile(pcBlocks->GetDataSize(), pcBlocks->GetFileNumber());
-		tResult = cOptimiser.OptimiseBlock(pcBlocks, pcIndexedFile);
-
-		if (tResult == TRIERROR)
-		{
-			tTotalResult = TRIERROR;
-			break;
-		}
-		if (tResult == TRITRUE)
-		{
-			tTotalResult = TRITRUE;
-		}
-	}
-
-	cOptimiser.Kill();
-
-	if (tTotalResult == TRITRUE)
-	{
-		mcFiles.CopyPrimaryToBackup();
-		return TRUE;
-	}
-	else if (tTotalResult == TRIERROR)
-	{
-		mcFiles.CopyBackupToPrimary();
-		return FALSE;
-	}
-	else
-	{
-		//All files were already optimised.
-		return TRUE;
-	}
 }
 
 
@@ -563,3 +504,7 @@ void CNamedIndexes::TestGetPotentialContainingBlocks(char* szName, CArrayNamedIn
 	}
 }
 
+
+CArrayNamedIndexesBlocks* CNamedIndexes::GetBlocks(void) { return &macBlocks; }
+CMemoryCache* CNamedIndexes::GetCache(void) { return &mcCache; }
+CIndexedFiles* CNamedIndexes::GetFiles(void) { return &mcFiles; }

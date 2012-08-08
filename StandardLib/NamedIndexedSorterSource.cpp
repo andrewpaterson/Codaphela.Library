@@ -1,0 +1,50 @@
+#include "NamedIndexedSorterSource.h"
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CNamesIndexedSorterSource::Init(int iMaxStringLength, filePos iPosition)
+{
+	mpszCurrent = (char*)malloc(iMaxStringLength+1);
+	memset(mpszCurrent, 0, iMaxStringLength+1);
+
+	miPosition = iPosition;
+	miCount = 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CNamesIndexedSorterSource::Kill(void)
+{
+	free(mpszCurrent);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CNamesIndexedSorterSource::ReadNext(CAbstractFile* pcFile, int iWidth)
+{
+	filePos		iResult;
+
+	pcFile->Seek(miPosition, EFSO_SET);
+	iResult = pcFile->Read(mpszCurrent, iWidth, 1);
+	miPosition += iWidth;
+
+	if (iResult == 1)
+	{
+		miCount++;
+		return TRUE;
+	}
+	else
+	{
+		return FALSE;
+	}
+}
+

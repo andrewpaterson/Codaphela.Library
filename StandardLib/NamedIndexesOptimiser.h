@@ -23,17 +23,32 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __NAMED_INDEXES_OPTIMISER_H__
 #define __NAMED_INDEXES_OPTIMISER_H__
 #include "BaseLib/ErrorTypes.h"
+#include "NamedIndexedSorterSource.h"
 
 
 class CNamedIndexesBlocks;
 class CIndexedFile;
+class CNamedIndexes;
 class CNamedIndexesOptimiser
 {
 public:
-	void Init(void);
-	void Kill(void);
+	CIndexedFiles*						mpcFiles;
+	CArrayNamedIndexesBlocks*			mpacBlocks;
+	CArrayNamesIndexedSorterSource		macSources;
 
-	TRISTATE OptimiseBlock(CNamedIndexesBlocks* pcBlocks, CIndexedFile* pcIndexedFile);
+	void			Init(CNamedIndexes* pcNamedIndexes);
+	void			Kill(void);
+
+	BOOL			Optimise(void);
+
+private:
+	TRISTATE		OptimiseBlock(CNamedIndexesBlocks* pcBlocks, CIndexedFile* pcIndexedFile);
+	CIndexedFile*	GetFile(int iDataSize, int iFileNumber);
+	BOOL			OpenFiles(void);
+	void			AssignBlockNumbers(void);
+	BOOL			CloseFiles(TRISTATE tOptimiseResult);
+	TRISTATE		AllocateSources(CNamedIndexesBlocks* pcBlocks, CIndexedFile* pcIndexedFile);
+	void			KillSources(void);
 };
 
 

@@ -83,6 +83,7 @@
   <ItemGroup>
     <ClInclude Include="Base.h" />
     <ClInclude Include="NamedIndexedBlock.h" />
+    <ClInclude Include="NamedIndexedSorterSource.h" />
     <ClInclude Include="NamedIndexesBlocksLoader.h" />
     <ClInclude Include="NamedIndexedData.h" />
     <ClInclude Include="NamedIndexedObjects.h" />
@@ -164,6 +165,7 @@
     <ClCompile Include="NamedIndexedBlock.cpp" />
     <ClCompile Include="NamedIndexedData.cpp" />
     <ClCompile Include="NamedIndexedObjects.cpp" />
+    <ClCompile Include="NamedIndexedSorterSource.cpp" />
     <ClCompile Include="NamedIndexes.cpp" />
     <ClCompile Include="NamedIndexesBlock.cpp" />
     <ClCompile Include="NamedIndexesBlocks.cpp" />
