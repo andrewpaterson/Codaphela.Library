@@ -26,9 +26,13 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "IndexedGeneral.h"
 
 
+#define INDEXED_LEVELS_IN_LEVEL	256
+#define MAX_INDEXED_LEVEL_DEPTH	7
+
+
 struct SIndexedLevel
 {
-	(SIndexedLevel*)	apsLevels[256];
+	(SIndexedLevel*)	apsLevels[INDEXED_LEVELS_IN_LEVEL];  //Points
 
 	void Init(void);
 	BOOL IsEmpty(void);
@@ -40,6 +44,7 @@ typedef CFreeList<SIndexedLevel>	CFreeListIndexedObjectsLevel;
 
 class CIndexes
 {
+protected:
 	CFreeListIndexedObjectsLevel	mcLevels;
 	SIndexedLevel					msTop;
 

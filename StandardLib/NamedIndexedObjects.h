@@ -23,6 +23,9 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "IndexedObjects.h"
 
 
+// CIndexedObjects maps a string name to an OIndex and then an OIndex to a CBaseObject*.
+
+
 class CNamedIndexedObjects
 {
 protected:

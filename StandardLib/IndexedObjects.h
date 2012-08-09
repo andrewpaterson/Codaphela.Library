@@ -24,6 +24,9 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseObject.h"
 
 
+// CIndexedObjects maps an OIndex to a CBaseObject*.
+
+
 class CIndexedObjects : public CIndexes
 {
 public:

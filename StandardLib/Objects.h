@@ -21,7 +21,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __OBJECTS_H__
 #define __OBJECTS_H__
 #include "CoreLib/IndexedGeneral.h"
-#include "CoreLib/IndexedData.h"
+#include "NamedIndexedData.h"
 #include "NamedIndexedObjects.h"
 #include "Unknowns.h"
 #include "Pointer.h"
@@ -40,9 +40,9 @@ protected:
 	//On disk objects.
 
 	//In database objects.
-	CIndexedData			mcData;
+	CNamedIndexedData		mcData;
 
-	//In memory objects.
+	//BaseObject* referenced by string name and OIndex.  
 	CNamedIndexedObjects	mcIndexes;
 
 public:

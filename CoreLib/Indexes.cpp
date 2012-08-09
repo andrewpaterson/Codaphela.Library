@@ -41,7 +41,7 @@ BOOL SIndexedLevel::IsEmpty(void)
 {
 	int		i;
 
-	for (i = 0; i < 256; i++)
+	for (i = 0; i < INDEXED_LEVELS_IN_LEVEL; i++)
 	{
 		if (apsLevels[i] != NULL)
 		{
@@ -86,7 +86,7 @@ void* CIndexes::Get(OIndex oi)
 
 	pvOI = (unsigned char*)&oi;
 	psLevel = &msTop;
-	for (iCurrent = 7; iCurrent > 0; iCurrent--)
+	for (iCurrent = MAX_INDEXED_LEVEL_DEPTH; iCurrent > 0; iCurrent--)
 	{
 		ucCurrent = pvOI[iCurrent];
 		psLevel = psLevel->apsLevels[ucCurrent];
@@ -114,7 +114,7 @@ void CIndexes::Add(OIndex oi, void* pvMemory)
 
 	pvOI = (unsigned char*)&oi;
 	psLevel = &msTop;
-	for (iCurrent = 7; iCurrent > 0; iCurrent--)
+	for (iCurrent = MAX_INDEXED_LEVEL_DEPTH; iCurrent > 0; iCurrent--)
 	{
 		ucCurrent = pvOI[iCurrent];
 		psNewLevel = psLevel->apsLevels[ucCurrent];
@@ -140,12 +140,12 @@ BOOL CIndexes::Remove(OIndex oi)
 	unsigned char		ucCurrent;
 	int					iCurrent;
 	unsigned char*		pvOI;
-	SIndexedLevel*		apsLevel[8];
+	SIndexedLevel*		apsLevel[MAX_INDEXED_LEVEL_DEPTH+1];
 	SIndexedLevel*		psLevel;
 
 	pvOI = (unsigned char*)&oi;
 	psLevel = &msTop;
-	for (iCurrent = 7; iCurrent >= 0; iCurrent--)
+	for (iCurrent = MAX_INDEXED_LEVEL_DEPTH; iCurrent >= 0; iCurrent--)
 	{
 		ucCurrent = pvOI[iCurrent];
 		psLevel = psLevel->apsLevels[ucCurrent];
@@ -156,7 +156,7 @@ BOOL CIndexes::Remove(OIndex oi)
 		}
 	}
 
-	for (iCurrent = 1; iCurrent <= 7; iCurrent++)
+	for (iCurrent = 1; iCurrent <= MAX_INDEXED_LEVEL_DEPTH; iCurrent++)
 	{
 		ucCurrent = pvOI[iCurrent-1];
 		apsLevel[iCurrent]->apsLevels[ucCurrent] = NULL;

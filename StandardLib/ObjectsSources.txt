@@ -1,7 +1,7 @@
 IndexedData (objects only)
 
 FileSystem
-  File (DRG, OBJ...)
+  File (DRG, OBJ, ...)
   
 PackFiles
   File
