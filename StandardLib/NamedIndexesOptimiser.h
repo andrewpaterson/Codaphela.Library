@@ -36,19 +36,25 @@ public:
 	CArrayNamedIndexesBlocks*			mpacBlocks;
 	CArrayNamesIndexedSorterSource		macSources;
 
-	void			Init(CNamedIndexes* pcNamedIndexes);
-	void			Kill(void);
+	void						Init(CNamedIndexes* pcNamedIndexes);
+	void						Kill(void);
 
-	BOOL			Optimise(void);
+	BOOL						Optimise(void);
 
 private:
-	TRISTATE		OptimiseBlock(CNamedIndexesBlocks* pcBlocks, CIndexedFile* pcIndexedFile);
-	CIndexedFile*	GetFile(int iDataSize, int iFileNumber);
-	BOOL			OpenFiles(void);
-	void			AssignBlockNumbers(void);
-	BOOL			CloseFiles(TRISTATE tOptimiseResult);
-	TRISTATE		AllocateSources(CNamedIndexesBlocks* pcBlocks, CIndexedFile* pcIndexedFile);
-	void			KillSources(void);
+	BOOL						OptimiseBlock(CNamedIndexesBlocks* pcBlocks, CIndexedFile* pcIndexedFile);
+	CIndexedFile*				GetFile(int iDataSize, int iFileNumber);
+	BOOL						OpenFiles(void);
+	void						AssignBlockNumbers(void);
+	BOOL						CloseFiles(BOOL bCopy);
+	BOOL						AllocateSources(CNamedIndexesBlocks* pcBlocks, CIndexedFile* pcIndexedFile);
+	void						KillSources(void);
+	BOOL						OpenDestinationFile(CFileBasic* pcDestFile, char* szName);
+	CNamesIndexedSorterSource*	GetSmallestSource(int iBlockChunkSize);
+	BOOL						LoadInitialSources(CIndexedFile* pcIndexedFile, int iDataSize);
+	BOOL						CopyFile(char* szDestName, char* szSourceName);
+	void						DeleteFiles(void);
+	char*						TempFileName(CChars* pszDest, char* szName);
 };
 
 

@@ -1,3 +1,4 @@
+#include "NamedIndexedBlock.h"
 #include "NamedIndexedSorterSource.h"
 
 
@@ -5,10 +6,10 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNamesIndexedSorterSource::Init(int iMaxStringLength, filePos iPosition)
+void CNamesIndexedSorterSource::Init(int iWidth, filePos iPosition)
 {
-	mpszCurrent = (char*)malloc(iMaxStringLength+1);
-	memset(mpszCurrent, 0, iMaxStringLength+1);
+	mpcCurrent = (CNamedIndexedBlock*)malloc(iWidth);
+	memset_fast(mpcCurrent, 0, iWidth);
 
 	miPosition = iPosition;
 	miCount = 0;
@@ -21,7 +22,7 @@ void CNamesIndexedSorterSource::Init(int iMaxStringLength, filePos iPosition)
 //////////////////////////////////////////////////////////////////////////
 void CNamesIndexedSorterSource::Kill(void)
 {
-	free(mpszCurrent);
+	free(mpcCurrent);
 }
 
 
@@ -29,15 +30,20 @@ void CNamesIndexedSorterSource::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNamesIndexedSorterSource::ReadNext(CAbstractFile* pcFile, int iWidth)
+BOOL CNamesIndexedSorterSource::ReadNext(CFileBasic* pcFile, int iWidth)
 {
-	filePos		iResult;
+	BOOL	bResult;
 
-	pcFile->Seek(miPosition, EFSO_SET);
-	iResult = pcFile->Read(mpszCurrent, iWidth, 1);
+	bResult = pcFile->Seek(miPosition);
+	if (!bResult)
+	{
+		return FALSE;
+	}
+
+	bResult = pcFile->ReadData(mpcCurrent, iWidth);
 	miPosition += iWidth;
 
-	if (iResult == 1)
+	if (bResult)
 	{
 		miCount++;
 		return TRUE;
@@ -46,5 +52,47 @@ BOOL CNamesIndexedSorterSource::ReadNext(CAbstractFile* pcFile, int iWidth)
 	{
 		return FALSE;
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CNamesIndexedSorterSource::IsSmallerThan(CNamesIndexedSorterSource* pcOther)
+{
+	int		iResult;
+
+	if (mpcCurrent->IsEmpty())
+	{
+		return FALSE;
+	}
+	else
+	{
+		if (pcOther == NULL)
+		{
+			return TRUE;
+		}
+
+		iResult = StrICmp(mpcCurrent->Name(), pcOther->mpcCurrent->Name());
+		if (iResult < 0)
+		{
+			return TRUE;
+		}
+		else
+		{
+			return FALSE;
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CNamesIndexedSorterSource::HasRemaining(int iBlockChunkSize)
+{
+	return miCount <= iBlockChunkSize;
 }
 

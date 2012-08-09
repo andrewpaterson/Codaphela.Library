@@ -47,7 +47,6 @@ public:
 	void		Kill(void);
 	BOOL		Open(CDurableFileController* pcDurableFileControl);
 	BOOL		Close(void);
-	void		GetFileName(char* szName);
 	BOOL		IsFull(void);
 	filePos		Write(void* pvData);
 	BOOL		Write(filePos iIndex, void* pvData);
@@ -61,6 +60,7 @@ public:
 
 	CFileBasic*	GetPrimaryFile(void);
 	CFileBasic*	GetBackupFile(void);
+	char*		GetFileName(void);
 
 	void		Dump(void);
 };

@@ -396,6 +396,7 @@ void* CNamedIndexes::AllocateInCache(size_t iSize)
 	}
 
 	pvData = mcCache.Allocate(&cPreAllocated);
+
 	cPreAllocated.Kill();
 
 	return pvData;

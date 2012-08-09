@@ -170,6 +170,7 @@ BOOL CNamedIndexesBlock::AddUnsafe(OIndex oi, CChars* szName)
 		return FALSE;
 	}
 
+	memset_fast(&sBlock, 0, miBlockWidth);
 	sBlock.Set(szName->Text(), oi);
 	avFakeBlock.Fake(mpvCachePos, miBlockWidth, (int)miUsedBlocks, (int)miBlockChunkSize);
 	

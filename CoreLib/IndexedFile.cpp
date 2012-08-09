@@ -320,4 +320,4 @@ void CIndexedFile::Dump(void)
 //////////////////////////////////////////////////////////////////////////
 int CIndexedFile::GetFileIndex(void) { return miFileIndex; }
 BOOL CIndexedFile::IsFileIndex(int iFileIndex) { return miFileIndex == iFileIndex; }
-
+char* CIndexedFile::GetFileName(void) { return mszFileName.Text(); }

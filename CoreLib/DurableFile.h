@@ -87,12 +87,12 @@ public:
 	filePos		ReadFromFile(void* pvDest, filePos iSize, filePos iCount);
 	filePos		SizeFromFile(void);
 	BOOL		TestIdentical(void);
-	BOOL		CopyBackupToPrimary(void);
-	BOOL		CopyPrimaryToBackup(void);
 
 	void		Dump(void);
 
 protected:
+	BOOL		CopyBackupToPrimary(void);
+	BOOL		CopyPrimaryToBackup(void);
 	BOOL		FindTouchingWriteCommands(CArrayPointer* papvOverlapping, filePos iPosition, filePos iLength, BOOL bMustOverlap);
 	BOOL		Overlaps(filePos iPosition, filePos iLength, SDurableFileCommandWrite* psWrite);
 	BOOL		AmalgamateOverlappingWrites(CArrayPointer* papvOverlapping, const void* pvSource, filePos iPosition, filePos iLength);

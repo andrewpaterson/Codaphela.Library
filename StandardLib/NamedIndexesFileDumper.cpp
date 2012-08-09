@@ -39,7 +39,7 @@ BOOL DumpNamedIndexesFile(CChars* pszDest, char* szFileName, int iDataWidth, int
 	pszDest->Append('-', szTemp.Length());
 	pszDest->AppendNewLine();
 
-	iDataCount = iFileSize/iDataWidth;
+	iDataCount = iFileSize / iDataWidth;
 	for (i = 0; i < iDataCount; i++)
 	{
 		id = *((unsigned long long int*)pvMem);
