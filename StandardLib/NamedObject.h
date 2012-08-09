@@ -20,11 +20,10 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __NAMED_OBJECT_H__
 #define __NAMED_OBJECT_H__
-#include "Named.h"
 #include "Object.h"
 
 
-class CNamedObject : public CObject, public CNamed
+class CNamedObject : public CObject
 {
 friend class CNamedIndexedObjects;
 

@@ -38,7 +38,7 @@ void CObjects::Init(CUnknowns* pcUnknownsAllocatingFrom, char* szWorkingDirector
 	CIndexedConfig	cConfig;
 
 	cConfig.OptimiseForStreaming(szWorkingDirectory);
-	mcData.Init(&cConfig);
+	mcDatabase.Init(&cConfig);
 	mcIndexes.Init();
 }
 
@@ -50,7 +50,7 @@ void CObjects::Init(CUnknowns* pcUnknownsAllocatingFrom, char* szWorkingDirector
 void CObjects::Kill(void)
 {
 	mcIndexes.Kill();
-	mcData.Kill();
+	mcDatabase.Kill();
 	moiNext = INVALID_OBJECT_IDENTIFIER;
 	mpcUnknownsAllocatingFrom = NULL;
 }

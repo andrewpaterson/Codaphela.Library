@@ -183,9 +183,6 @@
     <ClInclude Include="PointerObject.h">
       <Filter>Source\Object\Object\Pointer</Filter>
     </ClInclude>
-    <ClInclude Include="Named.h">
-      <Filter>Source\Object\Object\Named</Filter>
-    </ClInclude>
     <ClInclude Include="NamedObject.h">
       <Filter>Source\Object\Object\Named</Filter>
     </ClInclude>
