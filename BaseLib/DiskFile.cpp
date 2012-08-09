@@ -155,7 +155,10 @@ filePos CDiskFile::Read(void* pvBuffer, filePos iSize, filePos iCount)
 //////////////////////////////////////////////////////////////////////////
 BOOL CDiskFile::Seek(filePos iOffset, int iSeekOrigin)
 {
-	return FixBool(fseek(mpsFileHandle, (size_t)iOffset, iSeekOrigin));
+	int		iResult;
+
+	iResult = fseek(mpsFileHandle, (size_t)iOffset, iSeekOrigin);
+	return iResult == 0;
 }
 
 

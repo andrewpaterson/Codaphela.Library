@@ -158,9 +158,9 @@ filePos CFileBasic::Read(void* pvDest, filePos iSize, filePos iCount)
 //= Description  : Seeks to an offset relative to an origin within the file.
 //=
 //====================================================================================
-void CFileBasic::Seek(filePos iOffset, EFileSeekOrigin eOrigin)
+BOOL CFileBasic::Seek(filePos iOffset, EFileSeekOrigin eOrigin)
 {
-	mpcFile->Seek(iOffset, (eOrigin == EFSO_SET) ? SEEK_SET :((eOrigin == EFSO_END) ? SEEK_END : SEEK_CUR));
+	return mpcFile->Seek(iOffset, (eOrigin == EFSO_SET) ? SEEK_SET :((eOrigin == EFSO_END) ? SEEK_END : SEEK_CUR));
 }
 
 
@@ -177,9 +177,9 @@ void CFileBasic::Seek(filePos iOffset, EFileSeekOrigin eOrigin)
 //= Description  : Seeks to an offset relative to an origin within the file.
 //=
 //====================================================================================
-void CFileBasic::Seek(filePos iOffset)
+BOOL CFileBasic::Seek(filePos iOffset)
 {
-	mpcFile->Seek(iOffset, SEEK_SET);
+	return mpcFile->Seek(iOffset, SEEK_SET);
 }
 
 

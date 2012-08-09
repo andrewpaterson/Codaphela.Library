@@ -46,7 +46,7 @@ public:
 	BOOL    Delete(char* szFileName);
 	BOOL    Exists(char* szFileName);
 	BOOL    Compare(char* szFileName1, char* szFileName2);
-	BOOL    Copy(char* szFileName1, char* szFileName2);
+	BOOL    Copy(char* szSource, char* szDest);
 	int	    Size(char* szFileName);
 
 	//Path name methods

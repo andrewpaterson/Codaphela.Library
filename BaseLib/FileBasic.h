@@ -43,8 +43,8 @@ public:
 	filePos		Write(const void* pvSource, filePos iSize, filePos iCount);
 	filePos		Read(void* pvDest, filePos iSize, filePos iCount);
 
-	void		Seek(filePos iOffset, EFileSeekOrigin eOrigin);
-	void		Seek(filePos iOffset);
+	BOOL		Seek(filePos iOffset, EFileSeekOrigin eOrigin);
+	BOOL		Seek(filePos iOffset);
 
 	void		Flush(void);
 

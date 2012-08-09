@@ -36,7 +36,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "AbstractFile.h"
 
 
-#define CheckWrite(pvData, iSize)	if (!Write(pvData, iSize, 1)) { return FALSE; }
+#define CheckWrite(pvData, iSize)	if (Write(pvData, iSize, 1) != 1) { return FALSE; }
 
 
 class CFileWriter
@@ -44,6 +44,9 @@ class CFileWriter
 public:
 	//The Write.
 	virtual				filePos	Write(const void* pvSource, filePos iSize, filePos iCount) =0;
+
+	//General
+						BOOL	WriteData(void* pvData, int iDataSize);
 
 	//Chunking
 						BOOL	WriteChunkBegin(void);
@@ -84,10 +87,6 @@ public:
 						BOOL	WriteBits(void* pvData, int iBitLength);
 
 						BOOL	WriteIntArray(int* pai, int iLength);
-
-protected:
-						BOOL	WriteData(void* pvData, int iDataSize);
-
 };
 
 

@@ -179,7 +179,7 @@ BOOL CFileUtil::Compare(char* szFileName1, char* szFileName2)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileUtil::Copy(char* szFileName1, char* szFileName2)
+BOOL CFileUtil::Copy(char* szSource, char* szDest)
 {
 	CFileBasic	cPrimary;
 	CFileBasic	cBackup;
@@ -191,17 +191,17 @@ BOOL CFileUtil::Copy(char* szFileName1, char* szFileName2)
 	int			iPartialBlock;
 	void*		pvData;
 
-	cPrimary.Init(DiskFile(szFileName1));
+	cPrimary.Init(DiskFile(szSource));
 	bPrimary = cPrimary.Open(EFM_Read);
 
 	if (!bPrimary)
 	{
-		Delete(szFileName2);
+		Delete(szDest);
 		cPrimary.Kill();
 		return TRUE;
 	}
 
-	cBackup.Init(DiskFile(szFileName2));
+	cBackup.Init(DiskFile(szDest));
 	bBackup = cBackup.Open(EFM_Write_Create);
 	if (!bBackup)
 	{
