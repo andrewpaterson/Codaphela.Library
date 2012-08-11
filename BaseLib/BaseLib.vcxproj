@@ -80,6 +80,7 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="BaseFileNode.h" />
     <ClInclude Include="DataMacro.h" />
     <ClInclude Include="ArrayBit.h" />
     <ClInclude Include="ArrayBlock.h" />
@@ -235,6 +236,7 @@
     <ClCompile Include="ArrayPointer.cpp" />
     <ClCompile Include="ArraySimpleChar.cpp" />
     <ClCompile Include="ArrayString.cpp" />
+    <ClCompile Include="BaseFileNode.cpp" />
     <ClCompile Include="FileSystemIterator.cpp" />
     <ClCompile Include="LinkListBlock.cpp" />
     <ClCompile Include="LinkListBlockMemoryStack.cpp" />

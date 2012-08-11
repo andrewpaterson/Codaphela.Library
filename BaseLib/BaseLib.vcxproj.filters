@@ -573,6 +573,9 @@
     <ClInclude Include="PackFilesGeneral.h">
       <Filter>Source\File\Pack</Filter>
     </ClInclude>
+    <ClInclude Include="BaseFileNode.h">
+      <Filter>Source\File\Names</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ArrayBit.cpp">
@@ -898,6 +901,9 @@
     </ClCompile>
     <ClCompile Include="PackFileIterator.cpp">
       <Filter>Source\File\Pack</Filter>
+    </ClCompile>
+    <ClCompile Include="BaseFileNode.cpp">
+      <Filter>Source\File\Names</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
