@@ -98,6 +98,8 @@
     <ClInclude Include="ArrayTemplate.h" />
     <ClInclude Include="ArrayDenseTemplate.h" />
     <ClInclude Include="ArraySparseTemplate.h" />
+    <ClInclude Include="FileSystemIterator.h" />
+    <ClInclude Include="FileSystemGeneral.h" />
     <ClInclude Include="LinkListBlock.h" />
     <ClInclude Include="LinkListBlockMemoryStack.h" />
     <ClInclude Include="LinkListTemplate.h" />
@@ -231,6 +233,7 @@
     <ClCompile Include="ArrayPointer.cpp" />
     <ClCompile Include="ArraySimpleChar.cpp" />
     <ClCompile Include="ArrayString.cpp" />
+    <ClCompile Include="FileSystemIterator.cpp" />
     <ClCompile Include="LinkListBlock.cpp" />
     <ClCompile Include="LinkListBlockMemoryStack.cpp" />
     <ClCompile Include="MemoryCacheAllocation.cpp" />

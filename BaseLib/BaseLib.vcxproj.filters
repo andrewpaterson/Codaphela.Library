@@ -561,6 +561,12 @@
     <ClInclude Include="MemoryStackExtended.h">
       <Filter>Source\Memory\Stack</Filter>
     </ClInclude>
+    <ClInclude Include="FileSystemGeneral.h">
+      <Filter>Source\File\System</Filter>
+    </ClInclude>
+    <ClInclude Include="FileSystemIterator.h">
+      <Filter>Source\File\System</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ArrayBit.cpp">
@@ -880,6 +886,9 @@
     </ClCompile>
     <ClCompile Include="StackMark.cpp">
       <Filter>Source\Memory\Stack</Filter>
+    </ClCompile>
+    <ClCompile Include="FileSystemIterator.cpp">
+      <Filter>Source\File\System</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

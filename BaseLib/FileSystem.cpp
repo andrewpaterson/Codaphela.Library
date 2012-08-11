@@ -200,3 +200,69 @@ void CFileSystem::RecurseGetFileExtension(CArraySystemFileNodePtrs* paFileNodePt
 	}
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CFileNodeSystemFile* CFileSystem::StartIteration(CFileNodeIterator* psIter)
+{
+	CSystemFileNode*	pcSystemFileNode;
+
+	pcSystemFileNode = mcNames.GetRoot();
+	psIter->Init();
+	psIter->Push(pcSystemFileNode);
+	return Iterate(psIter);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CFileNodeSystemFile* CFileSystem::Iterate(CFileNodeIterator* psIter)
+{
+	SFileSystemIteratorPosition*	psCurrent;
+	int								iDirectoryElements;
+	CSystemFileNode*				pcChild;
+	
+	psCurrent = psIter->Peek();
+	if (!psCurrent)
+	{
+		return NULL;
+	}
+
+	iDirectoryElements = psCurrent->pcNode->Directory()->maNodeFiles.NumElements();
+	psCurrent->iIndex++;
+
+	if (psCurrent->iIndex < iDirectoryElements)
+	{
+		pcChild = (CSystemFileNode*)psCurrent->pcNode->Directory()->maNodeFiles.Get(psCurrent->iIndex);
+		if (pcChild->IsDirectory())
+		{
+			psIter->Push(pcChild);
+			return Iterate(psIter);
+		}
+		else
+		{
+			psIter->SetCurrent(pcChild);
+			return psIter->Current();
+		}
+	}
+	else
+	{
+		psIter->Pop();
+		return Iterate(psIter);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CFileSystem::StopIteration(CFileNodeIterator* psIter)
+{
+	psIter->Kill();
+}
+

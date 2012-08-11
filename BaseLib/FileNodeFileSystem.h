@@ -25,7 +25,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "AbstractFile.h"
 
 
-class CFileNodeSystemFile 
+class CFileNodeSystemFile
 {
 protected:
 	CChars		mszFullPath;
@@ -34,8 +34,6 @@ protected:
 public:
 	void 	Init(void);
 	void 	Kill(void);
-	BOOL 	Load(CFileReader* pcReader);
-	BOOL 	Save(CFileWriter* pcWriter);
 
 	char*	GetFullName(void);
 	void	SetFullName(char* szFullName);
