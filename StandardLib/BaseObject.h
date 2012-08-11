@@ -30,7 +30,13 @@ typedef CArrayTemplate<CBaseObject*>		CArrayBaseObjectPtr;
 typedef CArrayEmbedded<CBaseObject*, 32>	CArrayEmbeddedBaseObjectPtr;
 
 
+//Tested for root is only valid whilst the scene graph is calling CanFindRoot.  It stops the graph from walking already tested objects.
 #define OBJECT_FLAGS_TESTED_FOR_ROOT	0x02
+
+//Invalidated is set when the object on the file system is changed and must be reloaded.  This objects does not use it.
+#define OBJECT_FLAGS_INVALIDATED		0x04
+
+//No object will ever have an invalid identifier.  It is the equivalent of NULL.
 #define INVALID_OBJECT_IDENTIFIER		(-1LL)
 
 
@@ -73,6 +79,7 @@ public:
 	virtual BOOL			IsHollow(void);
 	virtual BOOL			IsCollection(void) =0;
 	virtual BOOL			IsNamed(void);
+			BOOL			IsInvalidated(void);
 
 	virtual char*			GetName(void);
 

@@ -148,9 +148,9 @@ void CFileCompare::ErrorNames(char* szName1, char* szName2, CChars* psz1, CChars
 //////////////////////////////////////////////////////////////////////////
 void CFileCompare::Difference(CChars* psz1, filePos iPosition, char c)
 {
-	psz1->Append(" ");
-	psz1->Append(iPosition);
-	psz1->Append(":[");
+	psz1->Append(" 0x");
+	psz1->AppendHexHiLo(&iPosition, 8);
+	psz1->Append(":[0x");
 	psz1->AppendHexHiLo(&c, 1);
 	psz1->Append("]");
 }

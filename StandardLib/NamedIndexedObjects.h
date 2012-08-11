@@ -36,6 +36,7 @@ public:
 	void			Init(void);
 	void			Kill(void);
 	CBaseObject*	Get(OIndex oi);
+	CBaseObject*	Get(char* szName);
 	void			AddWithID(CBaseObject* pvObject, OIndex oi);
 	void			AddWithIDAndName(CBaseObject* pvObject, OIndex oi, char* szName);
 	void			Remove(OIndex oi);

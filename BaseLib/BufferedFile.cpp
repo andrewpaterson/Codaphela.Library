@@ -87,8 +87,8 @@ BOOL CBufferedFile::Open(EFileMode eFileMode)
 	bResult = mpcFile->Open(eFileMode);
 	meType = BT_Empty;
 	meLastOp = BLO_None;
-	mulliFilePos = 0LL;
-	mulliCurrentPos = 0LL;
+	mulliFilePos = 0;
+	mulliCurrentPos = 0;
 	mulliLength = mpcFile->Size();
 	return bResult;
 }

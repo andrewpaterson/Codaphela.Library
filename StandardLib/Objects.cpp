@@ -33,7 +33,7 @@ CObjects gcObjects;
 void CObjects::Init(CUnknowns* pcUnknownsAllocatingFrom, char* szWorkingDirectory)
 {
 	mpcUnknownsAllocatingFrom = pcUnknownsAllocatingFrom;
-	moiNext = 1LL;
+	moiNext = FIRST_OBJECT_IDENTIFIER;
 
 	CIndexedConfig	cConfig;
 
@@ -85,6 +85,64 @@ void CObjects::AddWithIDAndName(CBaseObject* pvObject, char* szName)
 {
 	mcIndexes.AddWithIDAndName(pvObject, moiNext, szName);
 	StepNextObjectID();
+}
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CPointerObject CObjects::Get(OIndex oi)
+{
+	CBaseObject*	pvObject;
+
+	pvObject = mcIndexes.Get(oi);
+	if (pvObject)
+	{
+		CPointerObject		pObject;
+
+		pObject.mpcObject = pvObject;
+		return pObject;
+	}
+	else
+	{
+		return Null();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CPointerObject CObjects::Get(char* szName)
+{
+	CBaseObject*	pvObject;
+
+	pvObject = mcIndexes.Get(szName);
+	if (pvObject)
+	{
+		CPointerObject		pObject;
+
+		pObject.mpcObject = pvObject;
+		return pObject;
+	}
+	else
+	{
+		return Null();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CPointerObject CObjects::Null(void)
+{
+	CPointerObject		pvObject;
+	return pvObject;
 }
 
 

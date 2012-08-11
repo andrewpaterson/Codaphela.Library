@@ -23,6 +23,9 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Unknown.h"
 
 
+//This class is roughly a void* (or possibly an Object*).  It should probably have been called CObjectPointer but it's easier to start typing CPo...
+
+
 class CBaseObject;
 class CObject;
 class CPointerObject

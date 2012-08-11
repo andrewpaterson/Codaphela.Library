@@ -83,7 +83,7 @@ BOOL CNamedIndexesBlocksLoader::Load(void)
 	filePos					iChunks;
 	filePos					iDataIndex;
 
-	iPos = 0LL;
+	iPos = 0;
 	iRemaining = miLength;
 	miCurrent = 0;
 	mbBlockSorted = TRUE;

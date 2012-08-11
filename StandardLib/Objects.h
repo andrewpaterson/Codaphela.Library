@@ -31,6 +31,9 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #define ONMalloc(classtype, name)	(gcObjects.Add<classtype>(name));
 
 
+#define FIRST_OBJECT_IDENTIFIER (1LL)
+
+
 class CObjects
 {
 protected:
@@ -46,6 +49,12 @@ protected:
 public:
 						void			Init(CUnknowns* pcUnknownsAllocatingFrom, char* szWorkingDirectory);
 						void			Kill(void);
+
+
+						CPointerObject	Get(OIndex oi);
+						CPointerObject	Get(char* szName);
+
+						CPointerObject	Null(void);
 
 	template<class M>	CPointer<M>		Add(void);
 	template<class M>	CPointer<M>		Add(char* szName);
@@ -148,8 +157,6 @@ template<class M>
 CPointer<M> CObjects::Null(void)
 {
 	CPointer<M>		pObject;
-
-	//This looks dodgy, rather define a singleton null object.
 	return pObject;
 }
 
@@ -173,7 +180,7 @@ CPointer<M> CObjects::Get(OIndex oi)
 	}
 	else
 	{
-		return Null();
+		return Null<M>();
 	}
 }
 
@@ -185,16 +192,19 @@ CPointer<M> CObjects::Get(OIndex oi)
 template<class M>
 CPointer<M> CObjects::Get(char* szName)
 {
-	OIndex			oi;
+	CBaseObject*	pvObject;
 
-	oi = mcIndexes.Get(szName);
-	if (oi != INVALID_OBJECT_IDENTIFIER)
+	pvObject = mcIndexes.Get(szName);
+	if (pvObject)
 	{
-		return Get(oi);
+		CPointer<M>		pObject;
+
+		pObject.mpcObject = pvObject;
+		return pObject;
 	}
 	else
 	{
-		return Null();
+		return Null<M>();
 	}
 }
 

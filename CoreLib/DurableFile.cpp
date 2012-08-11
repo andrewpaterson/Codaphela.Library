@@ -913,7 +913,7 @@ filePos CDurableFile::SizeFromFile(void)
 	}
 	else
 	{
-		return 0LL;
+		return 0;
 	}
 }
 

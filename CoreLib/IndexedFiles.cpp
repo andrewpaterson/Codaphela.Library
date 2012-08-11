@@ -372,7 +372,7 @@ OIndex CIndexedFiles::NumInFile(int iDataSize)
 	CIndexedFile*	pcIndexedFile;
 	OIndex			iTotal;
 
-	iTotal = 0LL;
+	iTotal = 0;
 	for (i = 0; i < mcFiles.NumElements(); i++)
 	{
 		pcIndexedFile = mcFiles.Get(i);
