@@ -178,7 +178,7 @@ OIndex CNamedIndexes::GetIndex(char* szName)
 	}
 	else
 	{
-		return INVALID_OBJECT_IDENTIFIER;
+		return INVALID_O_INDEX;
 	}
 }
 
@@ -200,12 +200,12 @@ OIndex CNamedIndexes::GetIndex(CChars* szName)
 		}
 		else
 		{
-			return INVALID_OBJECT_IDENTIFIER;
+			return INVALID_O_INDEX;
 		}
 	}
 	else
 	{
-		return INVALID_OBJECT_IDENTIFIER;
+		return INVALID_O_INDEX;
 	}
 }
 

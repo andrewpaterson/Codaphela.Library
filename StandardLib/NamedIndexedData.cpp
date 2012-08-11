@@ -154,7 +154,7 @@ BOOL CNamedIndexedData::Remove(CChars* szName)
 	OIndex oi;
 
 	oi = mcNames.GetIndex(szName);
-	if (oi != INVALID_OBJECT_IDENTIFIER)
+	if (oi != INVALID_O_INDEX)
 	{
 		ReturnOnFalse(mcNames.Remove(szName));
 	}

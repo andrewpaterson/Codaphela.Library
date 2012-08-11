@@ -36,9 +36,6 @@ typedef CArrayEmbedded<CBaseObject*, 32>	CArrayEmbeddedBaseObjectPtr;
 //Invalidated is set when the object on the file system is changed and must be reloaded.  This objects does not use it.
 #define OBJECT_FLAGS_INVALIDATED		0x04
 
-//No object will ever have an invalid identifier.  It is the equivalent of NULL.
-#define INVALID_OBJECT_IDENTIFIER		(-1LL)
-
 
 class CObjectReader;
 class CObjectWriter;

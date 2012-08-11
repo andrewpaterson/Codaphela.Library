@@ -21,6 +21,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __OBJECTS_H__
 #define __OBJECTS_H__
 #include "CoreLib/IndexedGeneral.h"
+#include "CoreLib/Files.h"
 #include "NamedIndexedData.h"
 #include "NamedIndexedObjects.h"
 #include "Unknowns.h"
@@ -31,16 +32,14 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #define ONMalloc(classtype, name)	(gcObjects.Add<classtype>(name));
 
 
-#define FIRST_OBJECT_IDENTIFIER (1LL)
-
-
 class CObjects
 {
 protected:
 	CUnknowns*				mpcUnknownsAllocatingFrom;
-	CNamedIndexedObjects	mcIndexes;  //Objects (BaseObject*) allocated in Unkonws referenced by name and OIndex.  
 
+	CNamedIndexedObjects	mcMemory;  //Objects (BaseObject*) allocated in Unkonws referenced by name and OIndex.  
 	CNamedIndexedData		mcDatabase;  //Objects in the database also referenced by string and OIndex.  
+	CFiles					mcFiles;
 
 	//CFileSystemData			mcFileSystem;  //Objects on the file system in .DRG files referenced only by name.
 
@@ -53,15 +52,13 @@ public:
 
 						CPointerObject	Get(OIndex oi);
 						CPointerObject	Get(char* szName);
-
-						CPointerObject	Null(void);
+	template<class M> 	CPointer<M>		Get(OIndex oi);
+	template<class M>	CPointer<M>		Get(char* szName);
 
 	template<class M>	CPointer<M>		Add(void);
 	template<class M>	CPointer<M>		Add(char* szName);
 
-	template<class M> 	CPointer<M>		Get(OIndex oi);
-	template<class M>	CPointer<M>		Get(char* szName);
-
+						CPointerObject	Null(void);
 	template<class M>	CPointer<M>		Null(void);
 
 protected:
@@ -170,7 +167,7 @@ CPointer<M> CObjects::Get(OIndex oi)
 {
 	CBaseObject*	pvObject;
 
-	pvObject = mcIndexes.Get(oi);
+	pvObject = mcMemory.Get(oi);
 	if (pvObject)
 	{
 		CPointer<M>		pObject;
@@ -194,7 +191,7 @@ CPointer<M> CObjects::Get(char* szName)
 {
 	CBaseObject*	pvObject;
 
-	pvObject = mcIndexes.Get(szName);
+	pvObject = mcMemory.Get(szName);
 	if (pvObject)
 	{
 		CPointer<M>		pObject;

@@ -63,7 +63,7 @@ CBaseObject* CNamedIndexedObjects::Get(char* szName)
 	OIndex	oi;
 
 	oi = mcNames.Get(szName);
-	if (oi != INVALID_OBJECT_IDENTIFIER)
+	if (oi != INVALID_O_INDEX)
 	{
 		return Get(oi);
 	}

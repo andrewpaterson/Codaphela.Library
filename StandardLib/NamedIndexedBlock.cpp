@@ -79,6 +79,6 @@ int CNamedIndexedBlock::CompareTo(CNamedIndexedBlock* pcOther)
 void CNamedIndexedBlock::Zero(int iBlockWidth)
 {
 	memset_fast(this, 0, iBlockWidth);
-	moi = INVALID_OBJECT_IDENTIFIER;
+	moi = INVALID_O_INDEX;
 }
 

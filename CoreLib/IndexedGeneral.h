@@ -29,6 +29,7 @@ typedef long long int OIndex;
 
 #define INVALID_O_INDEX	((OIndex)-1)
 #define NULL_O_INDEX	((OIndex)0)
+#define FIRST_O_INDEX	((OIndex)1)
 
 
 struct SOIndexIndex

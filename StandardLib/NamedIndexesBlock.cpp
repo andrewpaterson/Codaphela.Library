@@ -226,7 +226,7 @@ OIndex CNamedIndexesBlock::GetIndex(CChars* szName)
 			return psBlock->Id();
 		}
 	}
-	return INVALID_OBJECT_IDENTIFIER;
+	return INVALID_O_INDEX;
 }
 
 

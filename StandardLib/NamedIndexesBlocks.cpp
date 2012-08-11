@@ -147,7 +147,7 @@ BOOL CNamedIndexesBlocks::Add(OIndex oi, CChars* szName, BOOL bFailOnExisting)
 		}
 
 		oiExisiting = pcBlock->GetIndex(szName);
-		if (oiExisiting != INVALID_OBJECT_IDENTIFIER)
+		if (oiExisiting != INVALID_O_INDEX)
 		{
 			//Already exists;
 			cArrayBlockPrts.Kill();
@@ -270,12 +270,12 @@ OIndex CNamedIndexesBlocks::GetIndex(CChars* szName)
 			if (!bResult)
 			{
 				cArrayBlockPrts.Kill();
-				return INVALID_OBJECT_IDENTIFIER;
+				return INVALID_O_INDEX;
 			}
 		}
 
 		oiExisiting = pcBlock->GetIndex(szName);
-		if (oiExisiting != INVALID_OBJECT_IDENTIFIER)
+		if (oiExisiting != INVALID_O_INDEX)
 		{
 			cArrayBlockPrts.Kill();
 			return oiExisiting;
@@ -283,7 +283,7 @@ OIndex CNamedIndexesBlocks::GetIndex(CChars* szName)
 	}
 
 	cArrayBlockPrts.Kill();
-	return INVALID_OBJECT_IDENTIFIER;
+	return INVALID_O_INDEX;
 }
 
 
@@ -312,7 +312,7 @@ BOOL CNamedIndexesBlocks::Remove(CChars* szName)
 			if (!bResult)
 			{
 				cArrayBlockPrts.Kill();
-				return INVALID_OBJECT_IDENTIFIER;
+				return INVALID_O_INDEX;
 			}
 		}
 
