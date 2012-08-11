@@ -157,6 +157,7 @@ public:
 	void	Reverse(void);
 	void	Clear(void);
 	int		CountNewLines(void);
+	int		Count(char c);
 	void	LowerCase(void);
 	void	UpperCase(void);
 

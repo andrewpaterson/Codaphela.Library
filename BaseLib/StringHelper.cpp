@@ -53,10 +53,18 @@ int StrICmp(const char* ps1, const char* ps2)
     iS1Len = (int)strlen(ps1);
     iS2Len = (int)strlen(ps2);
 
-    if ((iS1Len == 0) || (iS2Len == 0))
+    if ((iS1Len == 0) && (iS2Len == 0))
     {
         return 0;
     }
+	else if (iS1Len == 0)
+	{
+		return -1;
+	}
+	else if (iS2Len == 0)
+	{
+		return 1;
+	}
 
     if (iS1Len < iS2Len)
     {

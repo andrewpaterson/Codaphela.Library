@@ -2129,6 +2129,30 @@ int CChars::CountNewLines(void)
 	return ::CountNewLines(mcText.GetData(), mcText.NumElements());
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CChars::Count(char c)
+{
+	int		i;
+	char	cAt;
+	int		iCount;
+
+	iCount = 0;
+	for (i = 0; i < Length(); i++)
+	{
+		cAt = GetChar(i);
+		if (cAt == c)
+		{
+			iCount ++;
+		}
+	}
+	return iCount;
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
