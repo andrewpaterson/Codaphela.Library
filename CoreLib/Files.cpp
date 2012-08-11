@@ -32,52 +32,13 @@ Microsoft Windows is Copyright Microsoft Corporation
 //////////////////////////////////////////////////////////////////////////
 BOOL CFiles::Init(char* szDirectory, char* szPackFilesExtension)
 {
-	CArraySystemFilePtrs		aFileNodePtrs;
-	int							i;
-	CFileNodeSystemFile*		pcFileNodeSystemFile;
-	CPackFileOffset*			pcPackFiles;
-	char*						szFullName;
 	CChars*						pszFullDirectory;
-	CChars						szPackFileOffset;
-	int							iLength;
-	BOOL						bResult;
 
 	mszPackFilesExtension.Init(szPackFilesExtension);
-	iLength = mszPackFilesExtension.Length()+1;
 	mcFileSystem.Init(szDirectory);
 	pszFullDirectory = mcFileSystem.GetFullDirectoryName();
-	mcPackFilesArray.Init();
 
-	aFileNodePtrs.Init(8);
-	mcFileSystem.GetFiles(&aFileNodePtrs, szPackFilesExtension);
-
-	for (i = 0; i < aFileNodePtrs.NumElements(); i++)
-	{
-		pcFileNodeSystemFile = (*aFileNodePtrs.Get(i))->File();
-		pcPackFiles = mcPackFilesArray.Add();
-		CONSTRUCT(pcPackFiles, CPackFileOffset);
-
-		szFullName = pcFileNodeSystemFile->GetFullName();
-
-		szPackFileOffset.Init(szFullName);
-		szPackFileOffset.RemoveFromStart(pszFullDirectory->Length()+1);
-		szPackFileOffset.RemoveFromEnd(iLength);
-		szPackFileOffset.Replace('\\', '/');
-
-		bResult = pcPackFiles->Init(szPackFileOffset.Text(), szFullName);
-		szPackFileOffset.Kill();
-		if (!bResult)
-		{
-			aFileNodePtrs.Kill();
-			Kill();
-			return FALSE;
-		}
-	}
-
-	mcPackFilesArray.QuickSort(&ComparePackFileOffset);
-
-	aFileNodePtrs.Kill();
-	return TRUE;
+	return AddPackFiles();
 }
 
 
@@ -100,6 +61,75 @@ void CFiles::Kill(void)
 
 	mcPackFilesArray.Kill();
 	mcFileSystem.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+BOOL CFiles::AddPackFile(CFileNodeSystemFile* pcFileNodeSystemFile)
+{
+	CPackFileOffset*			pcPackFiles;
+	char*						szFullName;
+	CChars						szPackFileOffset;
+	CChars*						pszFullDirectory;
+	int							iLength;
+	BOOL						bResult;
+	int							iRank;
+
+	pszFullDirectory = mcFileSystem.GetFullDirectoryName();
+	iLength = mszPackFilesExtension.Length()+1;
+
+	pcPackFiles = mcPackFilesArray.Add();
+	CONSTRUCT(pcPackFiles, CPackFileOffset);
+
+	szFullName = pcFileNodeSystemFile->GetFullName();
+
+	szPackFileOffset.Init(szFullName);
+	szPackFileOffset.RemoveFromStart(pszFullDirectory->Length()+1);
+	szPackFileOffset.RemoveFromEnd(iLength);
+	szPackFileOffset.Replace('\\', '/');
+
+	iRank = szPackFileOffset.Count('/');
+
+	bResult = pcPackFiles->Init(szPackFileOffset.Text(), szFullName, iRank);
+	szPackFileOffset.Kill();
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+BOOL CFiles::AddPackFiles(void)
+{
+	CArraySystemFilePtrs		aFileNodePtrs;
+	int							i;
+	CFileNodeSystemFile*		pcFileNodeSystemFile;
+	BOOL						bResult;
+
+	mcPackFilesArray.Init();
+
+	aFileNodePtrs.Init(8);
+	mcFileSystem.GetFiles(&aFileNodePtrs, mszPackFilesExtension.Text());
+	
+	for (i = 0; i < aFileNodePtrs.NumElements(); i++)
+	{
+		pcFileNodeSystemFile = (*aFileNodePtrs.Get(i))->File();
+		bResult = AddPackFile(pcFileNodeSystemFile);
+		if (!bResult)
+		{
+			aFileNodePtrs.Kill();
+			return FALSE;
+		}
+	}
+
+	mcPackFilesArray.QuickSort(&ComparePackFileOffset);
+
+	aFileNodePtrs.Kill();
+	return TRUE;
 }
 
 
@@ -330,9 +360,14 @@ void CFiles::GetFileNames(CMapStringInt* pcFileNames)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFiles::StartIteration(CFileIterator* pcIter)
+CBaseFileNode* CFiles::StartIteration(CFileIterator* pcIter)
 {
-	return FALSE;
+	pcIter->Init();
+	if (mcPackFilesArray.IsEmpty())
+	{
+		pcIter->mbFileSystem = TRUE;
+	}
+	return Iterate(pcIter);
 }
 
 
@@ -340,8 +375,115 @@ BOOL CFiles::StartIteration(CFileIterator* pcIter)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFiles::Iterate(CFileIterator* pcIter)
+CBaseFileNode* CFiles::Iterate(CFileIterator* pcIter)
 {
-	return FALSE;
+	CPackFileOffset*			pcPackFiles;
+	CFileUtil					cFileUtil;
+	char*						szShortName;
+	CFileNodePackFileNode*		pcPackFileNode;
+	CSystemFileNode*			pcSystemFileNode;
+
+	if (!pcIter->mbFileSystem)
+	{
+		if (pcIter->mbMoveOn)
+		{
+			pcIter->mbMoveOn = FALSE;
+			pcIter->i++;
+			if (pcIter->i < mcPackFilesArray.NumElements())
+			{
+				pcPackFiles = mcPackFilesArray.Get(pcIter->i);
+				pcPackFiles->mcPackFiles.FixParents();
+				pcPackFileNode = pcPackFiles->mcPackFiles.StartIteration(&pcIter->cPackFileIterator);
+				if (pcPackFileNode)
+				{
+					return pcPackFileNode;
+				}
+				else
+				{
+					pcPackFiles->mcPackFiles.StopIteration(&pcIter->cPackFileIterator);
+					pcIter->mbMoveOn = TRUE;
+					return Iterate(pcIter);
+				}
+			}
+			else
+			{
+				pcIter->mbFileSystem = TRUE;
+				pcIter->mbMoveOn = TRUE;
+				return Iterate(pcIter);
+			}
+		}
+		else
+		{
+			pcPackFiles = mcPackFilesArray.Get(pcIter->i);
+			pcPackFileNode = pcPackFiles->mcPackFiles.Iterate(&pcIter->cPackFileIterator);
+			if (pcPackFileNode)
+			{
+				return pcPackFileNode;
+			}
+			else
+			{
+				pcPackFiles->mcPackFiles.StopIteration(&pcIter->cPackFileIterator);
+				pcIter->mbMoveOn = TRUE;
+				return Iterate(pcIter);
+			}
+
+		}
+	}
+	else
+	{
+		if (pcIter->mbMoveOn)
+		{
+			pcIter->mbMoveOn = FALSE;
+			pcSystemFileNode = mcFileSystem.StartIteration(&pcIter->cFileSystemIterator);
+			if (pcSystemFileNode)
+			{
+				szShortName = pcSystemFileNode->GetName();
+				if (!cFileUtil.IsExtension(szShortName, mszPackFilesExtension.Text()))
+				{
+					return pcSystemFileNode;
+				}
+				else
+				{
+					return Iterate(pcIter);
+				}
+			}
+			else
+			{
+				mcFileSystem.StopIteration(&pcIter->cFileSystemIterator);
+				return NULL;
+			}
+		}
+		else
+		{
+			pcSystemFileNode = mcFileSystem.Iterate(&pcIter->cFileSystemIterator);
+			if (pcSystemFileNode)
+			{
+				szShortName = pcSystemFileNode->GetName();
+				if (!cFileUtil.IsExtension(szShortName, mszPackFilesExtension.Text()))
+				{
+					return pcSystemFileNode;
+				}
+				else
+				{
+					return Iterate(pcIter);
+				}
+			}
+			else
+			{
+				mcFileSystem.StopIteration(&pcIter->cFileSystemIterator);
+				return NULL;
+			}
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CFiles::StopIteration(CFileIterator* pcIter)
+{
+	pcIter->Kill();
 }
 

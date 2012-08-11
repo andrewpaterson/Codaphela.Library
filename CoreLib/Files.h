@@ -48,8 +48,8 @@ public:
 	int				GetNumPackFiles(void);
 	CAbstractFile*	GetFile(char* szFullName);
 
-	BOOL			StartIteration(CFileIterator* pcIter);
-	BOOL			Iterate(CFileIterator* pcIter);
+	CBaseFileNode*	StartIteration(CFileIterator* pcIter);
+	CBaseFileNode*	Iterate(CFileIterator* pcIter);
 	void			StopIteration(CFileIterator* pcIter);
 
 	void			GetFileNames(CMapStringInt* cFileNames);
@@ -58,6 +58,9 @@ protected:
 	CDiskFile*		GetSystemFile(char* szFullName);
 	CPackFile*		GetPackFile(char* szFullName);
 	CPackFile*		GetPackFile(CPackFileOffset* pcPackFiles, char* szFullName);
+
+	BOOL			AddPackFile(CFileNodeSystemFile* pcFileNodeSystemFile);
+	BOOL			AddPackFiles(void);
 };
 
 

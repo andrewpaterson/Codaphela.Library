@@ -26,6 +26,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "FileSystemGeneral.h"
 #include "FileSystemIterator.h"
 
+
 class CFileSystem
 {
 protected:

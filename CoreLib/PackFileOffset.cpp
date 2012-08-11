@@ -28,10 +28,11 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPackFileOffset::Init(char* szPackFileOffset, char* szPackFileDirectory)
+BOOL CPackFileOffset::Init(char* szPackFileOffset, char* szPackFileDirectory, int iFileRank)
 {
-	CDiskFile*					pcDiskFile;
+	CDiskFile*		pcDiskFile;
 
+	miFileRank = iFileRank;
 	mszOffset.Init(szPackFileOffset);
 	pcDiskFile = DiskFile(szPackFileDirectory);
 	return mcPackFiles.Init(pcDiskFile, PFM_Read);
