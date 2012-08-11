@@ -12,6 +12,9 @@ One object per DRG.  Loads directly into an object instance.
 Object converter.
   Name: Meshes/Ships/Alliance/Scout
   FileSystem: Meshes/Ships/Alliance.OBJ + g Scout
+	
+  Name: Textures/Ships/GreyHull
+  FileSystem: Textures/Ships/GreyHull.PNG
 
 
 Use CBaseObject flags to set an object as invalidated (due to FileSystem change).

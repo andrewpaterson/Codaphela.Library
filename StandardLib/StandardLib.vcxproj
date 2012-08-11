@@ -127,7 +127,6 @@
     <ClInclude Include="HollowObject.h" />
     <ClInclude Include="IndexedObjects.h" />
     <ClInclude Include="ObjectSource.h" />
-    <ClInclude Include="ObjectSourceIndexedData.h" />
     <ClInclude Include="ObjectSourceFiles.h" />
     <ClInclude Include="ObjectsSource.h" />
     <ClInclude Include="Action.h" />

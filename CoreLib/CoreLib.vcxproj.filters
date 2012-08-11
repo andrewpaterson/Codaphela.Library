@@ -444,6 +444,9 @@
     <ClCompile Include="IndexedDataDescriptor.cpp">
       <Filter>Source\File\Indexed\Descriptors</Filter>
     </ClCompile>
+    <ClCompile Include="FileIterator.cpp">
+      <Filter>Source\File\Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ArrayVariable.h">
@@ -706,6 +709,9 @@
     </ClInclude>
     <ClInclude Include="IndexedDataDescriptor.h">
       <Filter>Source\File\Indexed\Descriptors</Filter>
+    </ClInclude>
+    <ClInclude Include="FileIterator.h">
+      <Filter>Source\File\Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

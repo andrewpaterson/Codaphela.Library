@@ -39,9 +39,7 @@ protected:
 
 	CNamedIndexedObjects	mcMemory;  //Objects (BaseObject*) allocated in Unkonws referenced by name and OIndex.  
 	CNamedIndexedData		mcDatabase;  //Objects in the database also referenced by string and OIndex.  
-	CFiles					mcFiles;
-
-	//CFileSystemData			mcFileSystem;  //Objects on the file system in .DRG files referenced only by name.
+	CFiles					mcFiles;  //Objects on the file system (including pack files) in .DRG files referenced only by name.
 
 	OIndex					moiNext;
 

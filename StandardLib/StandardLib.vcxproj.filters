@@ -219,9 +219,6 @@
     <ClInclude Include="ObjectSource.h">
       <Filter>Source\Object\Object\Source</Filter>
     </ClInclude>
-    <ClInclude Include="ObjectSourceIndexedData.h">
-      <Filter>Source\Object\Object\Source</Filter>
-    </ClInclude>
     <ClInclude Include="ObjectsSource.h">
       <Filter>Source\Object\Object\Source</Filter>
     </ClInclude>

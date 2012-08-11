@@ -26,6 +26,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "BaseLib/PackFile.h"
 #include "BaseLib/FileSystem.h"
 #include "BaseLib/MapStringInt.h"
+#include "FileIterator.h"
 #include "PackFileOffset.h"
 
 
@@ -46,6 +47,10 @@ public:
 
 	int				GetNumPackFiles(void);
 	CAbstractFile*	GetFile(char* szFullName);
+
+	BOOL			StartIteration(CFileIterator* pcIter);
+	BOOL			Iterate(CFileIterator* pcIter);
+
 	void			GetFileNames(CMapStringInt* cFileNames);
 
 protected:
