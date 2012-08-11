@@ -50,7 +50,7 @@ public:
 
 	BOOL			StartIteration(CFileIterator* pcIter);
 	BOOL			Iterate(CFileIterator* pcIter);
-	void			StopIteration()CFileIterator* pcIter);
+	void			StopIteration(CFileIterator* pcIter);
 
 	void			GetFileNames(CMapStringInt* cFileNames);
 

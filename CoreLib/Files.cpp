@@ -32,7 +32,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //////////////////////////////////////////////////////////////////////////
 BOOL CFiles::Init(char* szDirectory, char* szPackFilesExtension)
 {
-	CArraySystemFileNodePtrs	aFileNodePtrs;
+	CArraySystemFilePtrs		aFileNodePtrs;
 	int							i;
 	CFileNodeSystemFile*		pcFileNodeSystemFile;
 	CPackFileOffset*			pcPackFiles;
@@ -49,11 +49,11 @@ BOOL CFiles::Init(char* szDirectory, char* szPackFilesExtension)
 	mcPackFilesArray.Init();
 
 	aFileNodePtrs.Init(8);
-	mcFileSystem.GetFileExtension(&aFileNodePtrs, szPackFilesExtension);
+	mcFileSystem.GetFiles(&aFileNodePtrs, szPackFilesExtension);
 
 	for (i = 0; i < aFileNodePtrs.NumElements(); i++)
 	{
-		pcFileNodeSystemFile = *aFileNodePtrs.Get(i);
+		pcFileNodeSystemFile = (*aFileNodePtrs.Get(i))->File();
 		pcPackFiles = mcPackFilesArray.Add();
 		CONSTRUCT(pcPackFiles, CPackFileOffset);
 

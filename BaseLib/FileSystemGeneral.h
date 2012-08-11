@@ -7,7 +7,6 @@
 typedef CFileNode<CFileNodeSystemFile>			CSystemFileNode;
 typedef CFileNodeDirectory<CFileNodeSystemFile>	CSystemDirectoryNode;
 typedef CFileNames<CFileNodeSystemFile>			CSystemFileNames;
-typedef CArrayTemplate<CFileNodeSystemFile*>	CArraySystemFileNodePtrs;
 typedef CArrayTemplate<CSystemFileNode*>		CArraySystemFilePtrs;
 
 

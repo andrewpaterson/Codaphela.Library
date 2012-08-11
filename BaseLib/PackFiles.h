@@ -92,7 +92,6 @@ protected:
 	int						RecurseGetNumUnwrittenNames(CFileNodePackFileNode*	pcNode);
 	BOOL					WriteUnwrittenNames(void);
 	BOOL					RecurseWriteUnwrittenNames(CFileNodePackFileNode* pcNode, CChars* pszPath);
-	void					RecurseGetFiles(CFileNodePackFileNode* pcNode, CArrayPackFileNodePtrs* pcPackFiles);
 	BOOL					RecurseUnpack(CFileNodePackFileNode* pcNode, char* szDestination);
 };
 
