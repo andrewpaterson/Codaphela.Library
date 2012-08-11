@@ -1,5 +1,5 @@
-#ifndef __FILE_NODE_ITERATOR_H__
-#define __FILE_NODE_ITERATOR_H__
+#ifndef __FILE_SYSTEM_ITERATOR_H__
+#define __FILE_SYSTEM_ITERATOR_H__
 #include "FileSystemGeneral.h"
 
 
@@ -13,7 +13,7 @@ struct SFileSystemIteratorPosition
 typedef CArrayTemplate<SFileSystemIteratorPosition>	CArrayFileSystemIteratorPosition;
 
 
-class CFileNodeIterator
+class CFileSystemIterator
 {
 protected:
 	CArrayFileSystemIteratorPosition	macDepth;
@@ -32,5 +32,5 @@ public:
 };
 
 
-#endif // __FILE_NODE_ITERATOR_H__
+#endif // __FILE_SYSTEM_ITERATOR_H__
 

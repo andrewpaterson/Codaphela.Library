@@ -992,3 +992,71 @@ void CPackFiles::RecurseGetFiles(CFileNodePackFileNode* pcNode, CArrayPackFileNo
 	}
 }
 
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CFileNodePackFileNode* CPackFiles::StartIteration(CPackFileIterator* psIter)
+{
+	CFileNodePackFileNode*	pcFileNodePackFileNode;
+
+	pcFileNodePackFileNode = mcNames.GetRoot();
+	psIter->Init();
+	psIter->Push(pcFileNodePackFileNode);
+	return Iterate(psIter);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CFileNodePackFileNode* CPackFiles::Iterate(CPackFileIterator* psIter)
+{
+	SPackFileIteratorPosition*	psCurrent;
+	int							iDirectoryElements;
+	CFileNodePackFileNode*		pcChild;
+
+	psCurrent = psIter->Peek();
+	if (!psCurrent)
+	{
+		return NULL;
+	}
+
+	iDirectoryElements = psCurrent->pcNode->Directory()->maNodeFiles.NumElements();
+	psCurrent->iIndex++;
+
+	if (psCurrent->iIndex < iDirectoryElements)
+	{
+		pcChild = (CFileNodePackFileNode*)psCurrent->pcNode->Directory()->maNodeFiles.Get(psCurrent->iIndex);
+		if (pcChild->IsDirectory())
+		{
+			psIter->Push(pcChild);
+			return Iterate(psIter);
+		}
+		else
+		{
+			psIter->SetCurrent(pcChild);
+			return psIter->Current();
+		}
+	}
+	else
+	{
+		psIter->Pop();
+		return Iterate(psIter);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CPackFiles::StopIteration(CPackFileIterator* psIter)
+{
+	psIter->Kill();
+}
+

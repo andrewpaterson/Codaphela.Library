@@ -567,6 +567,12 @@
     <ClInclude Include="FileSystemIterator.h">
       <Filter>Source\File\System</Filter>
     </ClInclude>
+    <ClInclude Include="PackFileIterator.h">
+      <Filter>Source\File\Pack</Filter>
+    </ClInclude>
+    <ClInclude Include="PackFilesGeneral.h">
+      <Filter>Source\File\Pack</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ArrayBit.cpp">
@@ -889,6 +895,9 @@
     </ClCompile>
     <ClCompile Include="FileSystemIterator.cpp">
       <Filter>Source\File\System</Filter>
+    </ClCompile>
+    <ClCompile Include="PackFileIterator.cpp">
+      <Filter>Source\File\Pack</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

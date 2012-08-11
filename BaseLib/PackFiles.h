@@ -24,22 +24,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define __PACK_FILES_H__
 #include "AbstractFile.h"
 #include "FileBasic.h"
-#include "FileNames.h"
-#include "PackFileReadArrary.h"
-#include "PackFileNode.h"
-
-
-enum EPackFileMode
-{
-	PFM_Read,
-	PFM_Write,
-};
-
-
-typedef CFileNode<CPackFileNode>				CFileNodePackFileNode;
-typedef CFileNames<CPackFileNode>				CFileNamesPackFileNode;
-typedef CArrayTemplate<CFileNodePackFileNode*>	CArrayPackFileNodePtrs;
-
+#include "PackFilesGeneral.h"
+#include "PackFileIterator.h"
 
 class CPackFile;
 class CPackFiles
@@ -69,6 +55,10 @@ public:
 
 	BOOL					AddFile(CAbstractFile* pcFile, char* szFileName);
 	BOOL					AddDirectory(char* szDirectory);
+
+	CFileNodePackFileNode*	StartIteration(CPackFileIterator* psIter);
+	CFileNodePackFileNode*	Iterate(CPackFileIterator* psIter);
+	void					StopIteration(CPackFileIterator* psIter);
 
 	void					GetFiles(CArrayPackFileNodePtrs* pcPackFiles);
 	CFileNodePackFileNode*	GetNode(char* szFullName);

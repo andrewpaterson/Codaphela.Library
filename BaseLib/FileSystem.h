@@ -42,9 +42,9 @@ public:
 	CChars*					GetFullDirectoryName(void);
 	void					GetFiles(CArraySystemFilePtrs* pcFiles);
 
-	CFileNodeSystemFile*	StartIteration(CFileNodeIterator* psIter);
-	CFileNodeSystemFile*	Iterate(CFileNodeIterator* psIter);
-	void					StopIteration(CFileNodeIterator* psIter);
+	CFileNodeSystemFile*	StartIteration(CFileSystemIterator* psIter);
+	CFileNodeSystemFile*	Iterate(CFileSystemIterator* psIter);
+	void					StopIteration(CFileSystemIterator* psIter);
 	
 protected:
 	void					RecurseGetFiles(CSystemFileNode* pcNode, CArraySystemFilePtrs* pcPackFiles);

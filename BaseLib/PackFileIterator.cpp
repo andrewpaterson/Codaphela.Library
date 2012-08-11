@@ -1,11 +1,11 @@
-#include "FileSystemIterator.h"
+#include "PackFileIterator.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFileSystemIterator::Init(void)
+void CPackFileIterator::Init(void)
 {
 	mpcCurrent = NULL;
 	macDepth.Init(8);
@@ -16,7 +16,7 @@ void CFileSystemIterator::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFileSystemIterator::Kill(void)
+void CPackFileIterator::Kill(void)
 {
 	mpcCurrent = NULL;
 	macDepth.Kill();
@@ -27,9 +27,9 @@ void CFileSystemIterator::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFileSystemIterator::Push(CSystemFileNode* pcNode)
+void CPackFileIterator::Push(CFileNodePackFileNode* pcNode)
 {
-	SFileSystemIteratorPosition*	psNode;
+	SPackFileIteratorPosition*	psNode;
 
 	psNode = macDepth.Add();
 
@@ -42,7 +42,7 @@ void CFileSystemIterator::Push(CSystemFileNode* pcNode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SFileSystemIteratorPosition* CFileSystemIterator::Peek(void)
+SPackFileIteratorPosition* CPackFileIterator::Peek(void)
 {
 	return macDepth.Tail();
 }
@@ -52,7 +52,7 @@ SFileSystemIteratorPosition* CFileSystemIterator::Peek(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFileSystemIterator::Pop(void)
+void CPackFileIterator::Pop(void)
 {
 	macDepth.Pop();
 }
@@ -62,7 +62,7 @@ void CFileSystemIterator::Pop(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFileSystemIterator::SetCurrent(CSystemFileNode* pcNode)
+void CPackFileIterator::SetCurrent(CFileNodePackFileNode* pcNode)
 {
 	mpcCurrent = pcNode;	
 }
@@ -72,7 +72,8 @@ void CFileSystemIterator::SetCurrent(CSystemFileNode* pcNode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CFileNodeSystemFile* CFileSystemIterator::Current(void)
+CFileNodePackFileNode* CPackFileIterator::Current(void)
 {
-	return mpcCurrent->File();
+	return mpcCurrent;
 }
+

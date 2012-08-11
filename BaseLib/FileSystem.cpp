@@ -205,7 +205,7 @@ void CFileSystem::RecurseGetFileExtension(CArraySystemFileNodePtrs* paFileNodePt
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CFileNodeSystemFile* CFileSystem::StartIteration(CFileNodeIterator* psIter)
+CFileNodeSystemFile* CFileSystem::StartIteration(CFileSystemIterator* psIter)
 {
 	CSystemFileNode*	pcSystemFileNode;
 
@@ -220,7 +220,7 @@ CFileNodeSystemFile* CFileSystem::StartIteration(CFileNodeIterator* psIter)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CFileNodeSystemFile* CFileSystem::Iterate(CFileNodeIterator* psIter)
+CFileNodeSystemFile* CFileSystem::Iterate(CFileSystemIterator* psIter)
 {
 	SFileSystemIteratorPosition*	psCurrent;
 	int								iDirectoryElements;
@@ -261,7 +261,7 @@ CFileNodeSystemFile* CFileSystem::Iterate(CFileNodeIterator* psIter)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFileSystem::StopIteration(CFileNodeIterator* psIter)
+void CFileSystem::StopIteration(CFileSystemIterator* psIter)
 {
 	psIter->Kill();
 }

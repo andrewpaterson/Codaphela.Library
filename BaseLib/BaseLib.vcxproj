@@ -106,6 +106,8 @@
     <ClInclude Include="LinkListTemplateFreeList.h" />
     <ClInclude Include="LinkListTemplateMemoryStack.h" />
     <ClInclude Include="MemoryCacheAllocation.h" />
+    <ClInclude Include="PackFileIterator.h" />
+    <ClInclude Include="PackFilesGeneral.h" />
     <ClInclude Include="TreeBlock.h" />
     <ClInclude Include="TreeBlockMemoryStack.h" />
     <ClInclude Include="TreeInt.h" />
@@ -237,6 +239,7 @@
     <ClCompile Include="LinkListBlock.cpp" />
     <ClCompile Include="LinkListBlockMemoryStack.cpp" />
     <ClCompile Include="MemoryCacheAllocation.cpp" />
+    <ClCompile Include="PackFileIterator.cpp" />
     <ClCompile Include="TreeBlock.cpp" />
     <ClCompile Include="TreeBlockMemoryStack.cpp" />
     <ClCompile Include="EnumeratorBlock.cpp" />

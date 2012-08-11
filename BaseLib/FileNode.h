@@ -57,7 +57,7 @@ public:
 	void					Kill(void);
 
 	char*					GetName(void);
-	void					GetFullName(CChars* pszDest);
+	char*					GetFullName(CChars* pszDest);
 	BOOL					Is(char* szName);
 	BOOL					IsDirectory(void);
 	BOOL					IsFile(void);
@@ -132,7 +132,7 @@ char* CFileNode<M>::GetName(void)
 //
 //////////////////////////////////////////////////////////////////////////
 template <class M>
-void CFileNode<M>::GetFullName(CChars* pszDest)
+char* CFileNode<M>::GetFullName(CChars* pszDest)
 {
 	CFileNode<M>*	pcCurrent;
 	CChars			szName;
@@ -150,6 +150,7 @@ void CFileNode<M>::GetFullName(CChars* pszDest)
 
 	pszDest->Append(szName);
 	szName.Kill();
+	return pszDest->Text();
 }
 
 
