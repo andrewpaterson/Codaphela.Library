@@ -28,7 +28,7 @@ public:
 	void							Pop(void);
 
 	void							SetCurrent(CSystemFileNode* pcNode);
-	CFileNodeSystemFile*			Current(void);
+	CSystemFileNode*				Current(void);
 };
 
 

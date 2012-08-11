@@ -965,34 +965,17 @@ void CPackFiles::FixParents(void)
 //////////////////////////////////////////////////////////////////////////
 void CPackFiles::GetFiles(CArrayPackFileNodePtrs* pcPackFiles)
 {
-	RecurseGetFiles(mcNames.GetRoot(), pcPackFiles);
-}
+	CPackFileIterator		cIter;
+	CFileNodePackFileNode*	pcFile;
 
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CPackFiles::RecurseGetFiles(CFileNodePackFileNode* pcNode, CArrayPackFileNodePtrs* pcPackFiles)
-{
-	CFileNodePackFileNode*	pcChild;
-	int						i;
-
-	if (pcNode->IsDirectory())
+	pcFile = StartIteration(&cIter);
+	while (pcFile)
 	{
-		for (i = 0; i < pcNode->Directory()->maNodeFiles.NumElements(); i++)
-		{
-			pcChild = (CFileNodePackFileNode*)pcNode->Directory()->maNodeFiles.Get(i);
-			RecurseGetFiles(pcChild, pcPackFiles);
-		}
+		pcPackFiles->Add(&pcFile);
+		pcFile = Iterate(&cIter);
 	}
-	else if (pcNode->IsFile())
-	{
-		pcPackFiles->Add(&pcNode);
-	}
+	StopIteration(&cIter);
 }
-
-
 
 
 //////////////////////////////////////////////////////////////////////////

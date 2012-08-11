@@ -38,17 +38,15 @@ public:
 
 	char*					GetFileName(char* szFileName);
 	CFileNodeSystemFile*	GetFileNode(char* szName, CChars* pszRemainingName);
-	void					GetFileExtension(CArraySystemFileNodePtrs* paFileNodePtrs, char* szExtension);
 	CChars*					GetFullDirectoryName(void);
-	void					GetFiles(CArraySystemFilePtrs* pcFiles);
+	void					GetFiles(CArraySystemFilePtrs* pcSystemFiles);
+	void					GetFiles(CArraySystemFilePtrs* pcSystemFiles, char* szExtension);
 
-	CFileNodeSystemFile*	StartIteration(CFileSystemIterator* psIter);
-	CFileNodeSystemFile*	Iterate(CFileSystemIterator* psIter);
+	CSystemFileNode*		StartIteration(CFileSystemIterator* psIter);
+	CSystemFileNode*		Iterate(CFileSystemIterator* psIter);
 	void					StopIteration(CFileSystemIterator* psIter);
 	
 protected:
-	void					RecurseGetFiles(CSystemFileNode* pcNode, CArraySystemFilePtrs* pcPackFiles);
-	void					RecurseGetFileExtension(CArraySystemFileNodePtrs* paFileNodePtrs, char* szExtension, CSystemFileNode* pcDirectoryNode);
 	void					ReadDirectory(void);
 };
 

@@ -72,7 +72,7 @@ void CFileSystemIterator::SetCurrent(CSystemFileNode* pcNode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CFileNodeSystemFile* CFileSystemIterator::Current(void)
+CSystemFileNode* CFileSystemIterator::Current(void)
 {
-	return mpcCurrent->File();
+	return mpcCurrent;
 }

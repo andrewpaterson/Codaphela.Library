@@ -110,13 +110,52 @@ CFileNodeSystemFile* CFileSystem::GetFileNode(char* szName, CChars* pszRemaining
 }
 
 
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFileSystem::GetFileExtension(CArraySystemFileNodePtrs* paFileNodePtrs, char* szExtension)
+void CFileSystem::GetFiles(CArraySystemFilePtrs* pcSystemFiles)
 {
-	RecurseGetFileExtension(paFileNodePtrs, szExtension, mcNames.GetRoot());
+	CFileSystemIterator		cIter;
+	CSystemFileNode*		pcFile;
+
+	pcFile = StartIteration(&cIter);
+	while (pcFile)
+	{
+		pcSystemFiles->Add(&pcFile);
+		pcFile = Iterate(&cIter);
+	}
+	StopIteration(&cIter);
+
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CFileSystem::GetFiles(CArraySystemFilePtrs* pcSystemFiles, char* szExtension)
+{
+	CFileSystemIterator		cIter;
+	CSystemFileNode*		pcNode;
+	CFileNodeSystemFile*	pcFile;
+	CChars					szFake;
+
+	pcNode = StartIteration(&cIter);
+	while (pcNode)
+	{
+		pcFile = pcNode->File();
+		szFake.Fake(pcFile->GetExtension());
+		if (szFake.Equals(szExtension))
+		{
+			pcSystemFiles->Add(&pcNode);
+		}
+
+		pcNode = Iterate(&cIter);
+	}
+	StopIteration(&cIter);
 }
 
 
@@ -134,78 +173,7 @@ CChars* CFileSystem::GetFullDirectoryName(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFileSystem::GetFiles(CArraySystemFilePtrs* pcSystemFiles)
-{
-	RecurseGetFiles(mcNames.GetRoot(), pcSystemFiles);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CFileSystem::RecurseGetFiles(CSystemFileNode* pcNode, CArraySystemFilePtrs* pcSystemFiles)
-{
-	CSystemFileNode*	pcChild;
-	int					i;
-
-	if (pcNode->IsDirectory())
-	{
-		for (i = 0; i < pcNode->Directory()->maNodeFiles.NumElements(); i++)
-		{
-			pcChild = (CSystemFileNode*)pcNode->Directory()->maNodeFiles.Get(i);
-			RecurseGetFiles(pcChild, pcSystemFiles);
-		}
-	}
-	else if (pcNode->IsFile())
-	{
-		pcSystemFiles->Add(&pcNode);
-	}
-}
-
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CFileSystem::RecurseGetFileExtension(CArraySystemFileNodePtrs* paFileNodePtrs, char* szExtension, CSystemFileNode* pcDirectoryNode)
-{
-	CSystemDirectoryNode*		pcDirectory;
-	int							i;
-	CSystemFileNode*			pcNode;
-	CFileNodeSystemFile*		pcFile;
-	CChars						szFake;
-
-	if (pcDirectoryNode->IsDirectory())
-	{
-		pcDirectory = pcDirectoryNode->Directory();
-		for (i = 0; i < pcDirectory->maNodeFiles.NumElements(); i++)
-		{
-			pcNode = (CSystemFileNode*)pcDirectory->maNodeFiles.Get(i);
-			if (pcNode->IsDirectory())
-			{
-				RecurseGetFileExtension(paFileNodePtrs, szExtension, pcNode);
-			}
-			else if (pcNode->IsFile())
-			{
-				pcFile = pcNode->File();
-				szFake.Fake(pcFile->GetExtension());
-				if (szFake.Equals(szExtension))
-				{
-					paFileNodePtrs->Add(&pcFile);
-				}
-			}
-		}
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CFileNodeSystemFile* CFileSystem::StartIteration(CFileSystemIterator* psIter)
+CSystemFileNode* CFileSystem::StartIteration(CFileSystemIterator* psIter)
 {
 	CSystemFileNode*	pcSystemFileNode;
 
@@ -220,7 +188,7 @@ CFileNodeSystemFile* CFileSystem::StartIteration(CFileSystemIterator* psIter)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CFileNodeSystemFile* CFileSystem::Iterate(CFileSystemIterator* psIter)
+CSystemFileNode* CFileSystem::Iterate(CFileSystemIterator* psIter)
 {
 	SFileSystemIteratorPosition*	psCurrent;
 	int								iDirectoryElements;
