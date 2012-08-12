@@ -351,6 +351,9 @@
     <ClInclude Include="ObjectFileGeneral.h">
       <Filter>Source\Object\Object\IO\Dest</Filter>
     </ClInclude>
+    <ClInclude Include="DependentObjectWriter.h">
+      <Filter>Source\Object\Object\IO</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Unknown.cpp">
@@ -553,6 +556,9 @@
     </ClCompile>
     <ClCompile Include="String.cpp">
       <Filter>Source\Data\String</Filter>
+    </ClCompile>
+    <ClCompile Include="DependentObjectWriter.cpp">
+      <Filter>Source\Object\Object\IO</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

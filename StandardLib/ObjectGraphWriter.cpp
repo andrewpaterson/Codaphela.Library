@@ -18,7 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "ObjectWriter.h"
+#include "DependentObjectWriter.h"
 #include "ObjectGraphWriter.h"
 
 
@@ -75,10 +75,10 @@ BOOL CObjectGraphWriter::Write(CBaseObject* pcObject)
 //////////////////////////////////////////////////////////////////////////
 BOOL CObjectGraphWriter::WriteUnwritten(CBaseObject* pcObject)
 {
-	CObjectWriter	cWriter;
-	BOOL			bResult;
-	CChars			szName;
-	OIndex			oi;
+	CDependentObjectWriter	cWriter;
+	BOOL					bResult;
+	CChars					szName;
+	OIndex					oi;
 
 	cWriter.Init(this, pcObject);
 	bResult = pcObject->Save(&cWriter);

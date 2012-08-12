@@ -20,7 +20,6 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include "ObjectFileGeneral.h"
 #include "PointerObject.h"
-#include "ObjectGraphWriter.h"
 #include "ObjectWriter.h"
 
 
@@ -28,9 +27,8 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectWriter::Init(CObjectGraphWriter* pcGraphWriter, CBaseObject* pcObject)
+void CObjectWriter::Init(CBaseObject* pcObject)
 {
-	mpcGraphWriter = pcGraphWriter;
 	mpcThis = pcObject;
 	mpcMemory = MemoryFile();
 	mcFile.Init(mpcMemory);
@@ -59,24 +57,7 @@ BOOL CObjectWriter::WritePointer(CPointerObject pObject)
 	CBaseObject*	pcBaseObject;
 
 	pcBaseObject = &pObject;
-	return WriteDependent(pcBaseObject);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CObjectWriter::WriteDependent(CBaseObject* pcObject)
-{
-	BOOL		bResult;
-	
-	bResult = PrivateWritePointer(pcObject);
-	if ((pcObject) && (bResult))
-	{
-		mpcGraphWriter->AddDependent(pcObject);
-	}
-	return bResult;
+	return PrivateWritePointer(pcBaseObject);
 }
 
 
