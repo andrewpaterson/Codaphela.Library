@@ -72,7 +72,7 @@ BOOL LoadUncompressedTrueColourTGA(CImage *pcImage, char *szFilename)
 	unsigned char*			pvMem;
 	CImage					cImageImport;
 	CImageCopier			cCopier;
-	int						iRead;
+	filePos					iRead;
 	int						i;
 	int						iStride;
 

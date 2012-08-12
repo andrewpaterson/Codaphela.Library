@@ -264,9 +264,9 @@ BOOL LoadRAD(CImage *pcImage, char *szFileName)
 //////////////////////////////////////////////////////////////////////////
 BOOL LoadRAW(CImage *pcImage, char *szFileName)
 {
-	CFileBasic			sFile;
-	int					iImageSize;
-	BOOL				bResult;
+	CFileBasic	sFile;
+	int			iImageSize;
+	filePos		iResult;
 
 	sFile.Init(DiskFile(szFileName));
 	if (!sFile.Open(EFM_Read))
@@ -291,10 +291,10 @@ BOOL LoadRAW(CImage *pcImage, char *szFileName)
 		return FALSE;
 	}
 
-	bResult = sFile.Read(pcImage->mcChannels.GetData(), iImageSize, 1);
+	iResult = sFile.Read(pcImage->mcChannels.GetData(), iImageSize, 1);
 
 	//Close the file
 	sFile.Close();
 	sFile.Kill();
-	return bResult;
+	return iResult == 1;
 }

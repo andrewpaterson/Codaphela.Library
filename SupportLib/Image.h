@@ -26,7 +26,6 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "BaseLib/GeometricTypes.h"
 #include "StandardLib/StandardHeader.h"
 #include "StandardLib/Channels.h"
-#include "StandardLib/MathFunction.h"
 #include "StandardLib/ArrayType.h"
 #include "StandardLib/TrackerTemplate.h"
 #include "ImageChannel.h"

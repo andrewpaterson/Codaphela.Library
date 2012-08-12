@@ -303,9 +303,6 @@
     <ClInclude Include="TrackerTemplate.h">
       <Filter>Source</Filter>
     </ClInclude>
-    <ClInclude Include="MathFunction.h">
-      <Filter>Source</Filter>
-    </ClInclude>
     <ClInclude Include="StandardHeader.h">
       <Filter>Source</Filter>
     </ClInclude>
@@ -508,9 +505,6 @@
     </ClCompile>
     <ClCompile Include="PreClass.cpp">
       <Filter>Source\Class</Filter>
-    </ClCompile>
-    <ClCompile Include="MathFunction.cpp">
-      <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="StandardHeader.cpp">
       <Filter>Source</Filter>

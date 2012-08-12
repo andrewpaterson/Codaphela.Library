@@ -155,7 +155,6 @@
     <ClInclude Include="ClassStorage.h" />
     <ClInclude Include="ConcreteClass.h" />
     <ClInclude Include="PreClass.h" />
-    <ClInclude Include="MathFunction.h" />
     <ClInclude Include="StandardHeader.h" />
     <ClInclude Include="TrackerTemplate.h" />
   </ItemGroup>
@@ -225,7 +224,6 @@
     <ClCompile Include="ClassStorage.cpp" />
     <ClCompile Include="ConcreteClass.cpp" />
     <ClCompile Include="PreClass.cpp" />
-    <ClCompile Include="MathFunction.cpp" />
     <ClCompile Include="StandardHeader.cpp" />
   </ItemGroup>
   <ItemGroup>

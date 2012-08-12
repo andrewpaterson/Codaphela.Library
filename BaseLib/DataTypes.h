@@ -210,11 +210,5 @@ struct SENode
 };
 
 
-void* UnknownTypeAllocate(int iSize, int iType);
-int UnknownTypeGetType(void* pvData);
-int UnknownTypeGetSize(void* pvData);
-void UnknownTypeFree(void* pvData);
-
-
 #endif // __DATA_TYPES_H__
 
