@@ -82,6 +82,7 @@
   <ItemGroup>
     <ClCompile Include="ArrayVariable.cpp" />
     <ClCompile Include="FileIterator.cpp" />
+    <ClCompile Include="FileIteratorReturn.cpp" />
     <ClCompile Include="Files.cpp" />
     <ClCompile Include="IndexedDataFiles.cpp" />
     <ClCompile Include="PackFileOffset.cpp" />
@@ -168,6 +169,7 @@
   <ItemGroup>
     <ClInclude Include="ArrayVariable.h" />
     <ClInclude Include="FileIterator.h" />
+    <ClInclude Include="FileIteratorReturn.h" />
     <ClInclude Include="Files.h" />
     <ClInclude Include="IndexedDataFiles.h" />
     <ClInclude Include="PackFileOffset.h" />
