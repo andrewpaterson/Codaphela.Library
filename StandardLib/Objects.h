@@ -21,11 +21,11 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __OBJECTS_H__
 #define __OBJECTS_H__
 #include "CoreLib/IndexedGeneral.h"
-#include "CoreLib/Files.h"
 #include "NamedIndexedData.h"
 #include "NamedIndexedObjects.h"
 #include "Unknowns.h"
 #include "Pointer.h"
+#include "ObjectsSource.h"
 
 
 #define OMalloc(classtype)			(gcObjects.Add<classtype>());
@@ -39,7 +39,8 @@ protected:
 
 	CNamedIndexedObjects	mcMemory;  //Objects (BaseObject*) allocated in Unkonws referenced by name and OIndex.  
 	CNamedIndexedData		mcDatabase;  //Objects in the database also referenced by string and OIndex.  
-	CFiles					mcFiles;  //Objects on the file system (including pack files) in .DRG files referenced only by name.
+	
+	CObjectsSource			mcSource;
 
 	OIndex					moiNext;
 

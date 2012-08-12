@@ -109,6 +109,15 @@
     <Filter Include="Source\File\Indexed\Named\Loader">
       <UniqueIdentifier>{d1acf4da-2149-4fbc-94ca-c649d8d89265}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Object\Object\Source\Text">
+      <UniqueIdentifier>{c2e3cc07-a997-441d-9324-ea44c92d1e4f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data">
+      <UniqueIdentifier>{a188da79-5423-454c-bb1a-c091d28e2812}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\String">
+      <UniqueIdentifier>{7967ff9e-3665-4856-a8e3-bb8fd1129628}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Base.h">
@@ -306,9 +315,6 @@
     <ClInclude Include="StandardHeader.h">
       <Filter>Source</Filter>
     </ClInclude>
-    <ClInclude Include="ObjectSourceFiles.h">
-      <Filter>Source\Object\Object\Source</Filter>
-    </ClInclude>
     <ClInclude Include="NamedIndexedObjects.h">
       <Filter>Source\Object\Object\Indexed</Filter>
     </ClInclude>
@@ -338,6 +344,9 @@
     </ClInclude>
     <ClInclude Include="NamedIndexedSorterSource.h">
       <Filter>Source\File\Indexed\Named\Optimiser</Filter>
+    </ClInclude>
+    <ClInclude Include="String.h">
+      <Filter>Source\Data\String</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -539,10 +548,8 @@
     <ClCompile Include="NamedIndexedSorterSource.cpp">
       <Filter>Source\File\Indexed\Named\Optimiser</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="ObjectsSources.txt">
-      <Filter>Source\Object\Object\Source</Filter>
-    </None>
+    <ClCompile Include="String.cpp">
+      <Filter>Source\Data\String</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

@@ -20,17 +20,24 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __OBJECTS_SOURCE_H__
 #define __OBJECTS_SOURCE_H__
+#include "CoreLib/Files.h"
+#include "ArrayUnknown.h"
 #include "Unknown.h"
 
 
+class CObjectSource;
 class CObjectsSource : public CUnknown
 {
 BASE_FUNCTIONS(CObjectsSource);
 protected:
+	CFiles			mcFiles;
+	CArrayUnknown	mcSources;
 
 public:
-	void Init(void);
-	void Kill(void);
+	void	Init(void);
+	void	Kill(void);
+
+	BOOL	AddSource(CObjectSource* pcSource);
 };
 
 

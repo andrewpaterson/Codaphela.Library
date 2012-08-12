@@ -21,16 +21,22 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __OBJECT_SOURCE_H__
 #define __OBJECT_SOURCE_H__
 #include "Unknown.h"
+#include "Object.h"
 
 
+class CObjectConverter;
 class CObjectSource : public CUnknown
 {
 BASE_FUNCTIONS(CObjectSource);
 protected:
+	CObjectConverter*	mpcConverter;
 
 public:
-	void Init(void);
-	void Kill(void);
+	void				Init(CObjectConverter* pcConverter);
+	void				Kill(void);
+
+	virtual CObject*	Convert(char* szFullName) =0;
+	virtual BOOL		Contains(char* szFullName) =0;
 };
 
 

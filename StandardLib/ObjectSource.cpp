@@ -25,8 +25,9 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectSource::Init(void)
+void CObjectSource::Init(CObjectConverter* pcConverter)
 {
+	mpcConverter = pcConverter;
 }
 
 

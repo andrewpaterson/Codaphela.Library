@@ -93,6 +93,7 @@
     <ClInclude Include="NamedIndexesFileDumper.h" />
     <ClInclude Include="NamedIndexesOptimiser.h" />
     <ClInclude Include="Parameters.h" />
+    <ClInclude Include="String.h" />
     <ClInclude Include="Unknown.h" />
     <ClInclude Include="SetType.h" />
     <ClInclude Include="SetUnknown.h" />
@@ -127,7 +128,6 @@
     <ClInclude Include="HollowObject.h" />
     <ClInclude Include="IndexedObjects.h" />
     <ClInclude Include="ObjectSource.h" />
-    <ClInclude Include="ObjectSourceFiles.h" />
     <ClInclude Include="ObjectsSource.h" />
     <ClInclude Include="Action.h" />
     <ClInclude Include="Actions.h" />
@@ -169,6 +169,7 @@
     <ClCompile Include="NamedIndexesBlocksLoader.cpp" />
     <ClCompile Include="NamedIndexesFileDumper.cpp" />
     <ClCompile Include="NamedIndexesOptimiser.cpp" />
+    <ClCompile Include="String.cpp" />
     <ClCompile Include="Unknown.cpp" />
     <ClCompile Include="SetUnknown.cpp" />
     <ClCompile Include="ArrayUnknown.cpp" />
@@ -225,9 +226,6 @@
     <ClCompile Include="ConcreteClass.cpp" />
     <ClCompile Include="PreClass.cpp" />
     <ClCompile Include="StandardHeader.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="ObjectsSources.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

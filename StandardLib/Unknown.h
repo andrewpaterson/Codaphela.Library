@@ -31,19 +31,18 @@ protected:
 	CUnknowns*	mpcUnknownsThisIn;
 
 public:
-							CUnknown(void);
-	void					PreInit(CUnknowns* pcUnknowns);
-	virtual void 			Kill(void);
+						CUnknown(void);
+			void		PreInit(CUnknowns* pcUnknowns);
+	virtual void 		Kill(void);
 
-	virtual BOOL			IsUnknown(void);
-	virtual BOOL			Iterable(void);
-	virtual BOOL			Streamable(void);
-	BOOL					SaveHeader(CFileWriter* pcFile);
-	virtual BOOL			Save(CFileWriter* pcFile);
-	virtual BOOL			Load(CFileReader* pcFile);
-	virtual int				Compare(CUnknown* pcRight);
-	CUnknowns*				GetUnknownsThisIn(void);
-	void					SetNotInUnknowns(void);
+	virtual BOOL		IsUnknown(void);
+	virtual BOOL		Iterable(void);
+			BOOL		SaveHeader(CFileWriter* pcFile);
+	virtual BOOL		Save(CFileWriter* pcFile);
+	virtual BOOL		Load(CFileReader* pcFile);
+	virtual int			Compare(CUnknown* pcRight);
+			CUnknowns*	GetUnknownsThisIn(void);
+			void		SetNotInUnknowns(void);
 };
 
 
