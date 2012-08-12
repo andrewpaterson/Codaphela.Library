@@ -31,10 +31,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 
 class CArrayString;
-class CString  //Make sure nothng has included a 'CString'.  That class is ours.
-{
-public:
-};
 
 
 //Fix CChars to not allocate memory for the empty string.

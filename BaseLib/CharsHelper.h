@@ -23,7 +23,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __CHARS_HELPER_H__
 #define __CHARS_HELPER_H__
 #include "Chars.h"
-//This file contains any useful function that are CChars related but really fit anywhere.
+//This file contains any useful function that are CChars related but don't really fit anywhere.
 
 
 void GenerateRandomNumbersCharList(int iNum);
