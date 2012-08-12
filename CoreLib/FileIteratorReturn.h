@@ -28,6 +28,8 @@ public:
 	void						Init(EFileIteratorReturnType eType, CBaseFileNode* pcNode, int iFileRank);
 	void						Kill(void);
 
+	void						InsertInName(int iIndex, char* szText);
+
 	EFileIteratorReturnType		GetType(void);
 	char*						GetFullName(void);
 	CBaseFileNode*				GetNode(void);

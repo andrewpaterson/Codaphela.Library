@@ -20,7 +20,7 @@ public:
 	void					Kill(void);
 
 	CFileIteratorReturn*	GetCurrent(void);
-	CFileIteratorReturn*	SetCurrent(EFileIteratorReturnType eType, CBaseFileNode* pcNode, int iFileRank);
+	CFileIteratorReturn*	SetCurrent(EFileIteratorReturnType eType, CBaseFileNode* pcNode, int iFileRank, char* szOffset);
 	CFileIteratorReturn*	SetCurrent(void);
 };
 

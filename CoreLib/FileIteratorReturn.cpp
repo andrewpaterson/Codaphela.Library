@@ -43,6 +43,16 @@ void CFileIteratorReturn::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CFileIteratorReturn::InsertInName(int iIndex, char* szText)
+{
+	mszFullName.Insert(iIndex, szText);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 EFileIteratorReturnType CFileIteratorReturn::GetType(void) { return meType; }
 char* CFileIteratorReturn::GetFullName(void) { return mszFullName.Text(); }
 CBaseFileNode* CFileIteratorReturn::GetNode(void) { return mpsNode; }

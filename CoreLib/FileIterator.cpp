@@ -29,11 +29,16 @@ void CFileIterator::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CFileIteratorReturn* CFileIterator::SetCurrent(EFileIteratorReturnType eType, CBaseFileNode* pcNode, int iFileRank)
+CFileIteratorReturn* CFileIterator::SetCurrent(EFileIteratorReturnType eType, CBaseFileNode* pcNode, int iFileRank, char* szOffset)
 {
 	mcCurrent.Kill();
 	mbHasCurrent = TRUE;
 	mcCurrent.Init(eType, pcNode, iFileRank);
+	if (szOffset)
+	{
+		mcCurrent.InsertInName(0, "/");
+		mcCurrent.InsertInName(0, szOffset);
+	}
 	return &mcCurrent;
 }
 
