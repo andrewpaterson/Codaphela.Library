@@ -359,7 +359,7 @@ BOOL CChunkFile::__PrivateReadChunkIndex(filePos iIndexPos, CChunkIndex* pcIndex
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CChunkFile::FindFirstChunkWithName(int iName)
+int CChunkFile::FindFirstChunkWithID(int iName)
 {
 	CChunkStackElement*		psElement;
 
@@ -386,7 +386,7 @@ int CChunkFile::FindFirstChunkWithName(char* szName)
 	piName = mmsziNames.GetWithKey(szName);
 	if (piName)
 	{
-		return FindFirstChunkWithName(*piName);
+		return FindFirstChunkWithID(*piName);
 	}
 	else
 	{
@@ -419,7 +419,7 @@ int CChunkFile::FindNextChunkWithName(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CChunkFile::GetNumChunksWithName(int iName)
+int CChunkFile::GetNumChunksWithID(int iName)
 {
 	CChunkStackElement*		psElement;
 

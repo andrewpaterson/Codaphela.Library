@@ -23,6 +23,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 #if !defined( __AARDVARK_H__ )
 #define __AARDVARK_H__
 
+//The Aardvark files exist to test how correct the compilers preprocessor is.
+//It begins with a double A to ensure there is a good chance it is compiled first.
 #include "Aardvark.h"
 
 #define D3(X) #X

@@ -118,6 +118,9 @@
     <Filter Include="Source\Data\String">
       <UniqueIdentifier>{7967ff9e-3665-4856-a8e3-bb8fd1129628}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Object\Object\IO\Graph">
+      <UniqueIdentifier>{8705b1ae-591f-4793-92d8-06f3a04698bb}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Base.h">
@@ -194,12 +197,6 @@
     </ClInclude>
     <ClInclude Include="NamedObject.h">
       <Filter>Source\Object\Object\Named</Filter>
-    </ClInclude>
-    <ClInclude Include="DependentObjects.h">
-      <Filter>Source\Object\Object\IO</Filter>
-    </ClInclude>
-    <ClInclude Include="ObjectGraphWriter.h">
-      <Filter>Source\Object\Object\IO</Filter>
     </ClInclude>
     <ClInclude Include="ObjectReader.h">
       <Filter>Source\Object\Object\IO</Filter>
@@ -351,8 +348,14 @@
     <ClInclude Include="ObjectFileGeneral.h">
       <Filter>Source\Object\Object\IO\Dest</Filter>
     </ClInclude>
+    <ClInclude Include="DependentObjects.h">
+      <Filter>Source\Object\Object\IO\Graph</Filter>
+    </ClInclude>
     <ClInclude Include="DependentObjectWriter.h">
-      <Filter>Source\Object\Object\IO</Filter>
+      <Filter>Source\Object\Object\IO\Graph</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectGraphWriter.h">
+      <Filter>Source\Object\Object\IO\Graph</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -412,12 +415,6 @@
     </ClCompile>
     <ClCompile Include="NamedObject.cpp">
       <Filter>Source\Object\Object\Named</Filter>
-    </ClCompile>
-    <ClCompile Include="DependentObjects.cpp">
-      <Filter>Source\Object\Object\IO</Filter>
-    </ClCompile>
-    <ClCompile Include="ObjectGraphWriter.cpp">
-      <Filter>Source\Object\Object\IO</Filter>
     </ClCompile>
     <ClCompile Include="ObjectReader.cpp">
       <Filter>Source\Object\Object\IO</Filter>
@@ -557,8 +554,14 @@
     <ClCompile Include="String.cpp">
       <Filter>Source\Data\String</Filter>
     </ClCompile>
+    <ClCompile Include="DependentObjects.cpp">
+      <Filter>Source\Object\Object\IO\Graph</Filter>
+    </ClCompile>
     <ClCompile Include="DependentObjectWriter.cpp">
-      <Filter>Source\Object\Object\IO</Filter>
+      <Filter>Source\Object\Object\IO\Graph</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjectGraphWriter.cpp">
+      <Filter>Source\Object\Object\IO\Graph</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

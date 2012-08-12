@@ -96,9 +96,9 @@ public:
 	BOOL	WriteClose(void);
 
 	int		FindFirstChunkWithName(char* szName);
-	int		FindFirstChunkWithName(int iName);
+	int		FindFirstChunkWithID(int iName);
 	int		FindNextChunkWithName(void);
-	int		GetNumChunksWithName(int iName);
+	int		GetNumChunksWithID(int iName);
 	int		GetNumChunks(void);
 	int		GetChunkName(int iChunkNum);
 	void*	GetMD5Hash(void);
