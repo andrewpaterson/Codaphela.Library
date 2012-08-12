@@ -20,6 +20,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/FileUtil.h"
 #include "BaseLib/DiskFile.h"
+#include "ObjectFileGeneral.h"
 #include "ObjectWriterSimple.h"
 
 
@@ -47,43 +48,50 @@ void CObjectWriterSimple::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectWriterSimple::Write(OIndex oi, char* szObjectName, char* szClassName, void* pvObject, int iLength)
+BOOL CObjectWriterSimple::Write(OIndex oi, char* szObjectName, void* pvObject, int iLength)
 {
 	CFileUtil		cFileUtil;
 	CChars			szFileName;
 	CChars			szDirectory;
 	CFileBasic		cFile;
 	CChars			szFullName;
+	char*			szExtension;
 
 	szFileName.Init();
 	szDirectory.Init();
 	cFileUtil.SplitPath(szObjectName, &szFileName, &szDirectory);
-	szFileName.Append(".DRG");
+	szFileName.Append(".");
+	szFileName.Append(OBJECT_FILE_EXTENSION);
 
 	szFullName.Init(mszDirectory);
 	szFullName.Append(FILE_SEPARATOR[0]);
 	szFullName.Append(szDirectory);
+	szDirectory.Kill();
 
 	cFileUtil.MakeDir(szFullName.Text());
 
 	szFullName.Append(FILE_SEPARATOR[0]);
 	szFullName.Append(szFileName);
+	szFileName.Kill();
 
 	cFile.Init(DiskFile(szFullName.Text()));
+	szFullName.Kill();
 	cFile.Open(EFM_Write_Create);
 
-	ReturnOnFalse(cFile.WriteInt(0));
-	ReturnOnFalse(cFile.WriteString(szClassName));
-	ReturnOnFalse(cFile.WriteLong(oi));
+	//Write file type identifier.
+	szExtension = OBJECT_FILE_EXTENSION;
+	ReturnOnFalse(cFile.WriteData(szExtension, 4));
+	ReturnOnFalse(cFile.WriteInt(BASIC_OBJECT_FILE));
 
+	//Write object identifier.
+	ReturnOnFalse(cFile.WriteLong(oi));
+	ReturnOnFalse(cFile.WriteString(szObjectName));
+
+	//Write object stream.
 	ReturnOnFalse(cFile.WriteData(pvObject, iLength));
 
 	cFile.Close();
 	cFile.Kill();
-
-	szFullName.Kill();
-	szDirectory.Kill();
-	szFileName.Kill();
 	return TRUE;
 }
 

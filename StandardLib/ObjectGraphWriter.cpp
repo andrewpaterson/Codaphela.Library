@@ -99,7 +99,7 @@ BOOL CObjectGraphWriter::WriteUnwritten(CBaseObject* pcObject)
 		szName.Append(oi);
 	}
 
-	ReturnOnFalse(mpcWriter->Write(oi, szName.Text(), pcObject->ClassName(), cWriter.GetData(), cWriter.GetLength()));
+	ReturnOnFalse(mpcWriter->Write(oi, szName.Text(), cWriter.GetData(), cWriter.GetLength()));
 
 	MarkWritten(pcObject);
 	szName.Kill();

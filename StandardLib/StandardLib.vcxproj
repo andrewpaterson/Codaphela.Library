@@ -92,6 +92,7 @@
     <ClInclude Include="NamedIndexesBlocks.h" />
     <ClInclude Include="NamedIndexesFileDumper.h" />
     <ClInclude Include="NamedIndexesOptimiser.h" />
+    <ClInclude Include="ObjectFileGeneral.h" />
     <ClInclude Include="Parameters.h" />
     <ClInclude Include="String.h" />
     <ClInclude Include="Unknown.h" />

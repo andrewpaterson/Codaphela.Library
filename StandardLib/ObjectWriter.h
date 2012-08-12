@@ -45,7 +45,7 @@ public:
 
 protected:
 	BOOL		WriteDependent(CBaseObject* pcObject);
-	BOOL		WriteDependent(CPointerObject pObject);
+	BOOL		PrivateWritePointer(CBaseObject* pcObject);
 
 	filePos		Write(const void* pvSource, filePos iSize, filePos iCount);
 };

@@ -348,6 +348,9 @@
     <ClInclude Include="String.h">
       <Filter>Source\Data\String</Filter>
     </ClInclude>
+    <ClInclude Include="ObjectFileGeneral.h">
+      <Filter>Source\Object\Object\IO\Dest</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Unknown.cpp">

@@ -28,7 +28,7 @@ class CObjectWriterDest : public CUnknown
 {
 BASE_FUNCTIONS(CObjectWriterDest);
 public:
-	virtual BOOL Write(OIndex oi, char* szObjectName, char* szClassName, void* pvObject, int iLength) =0;
+	virtual BOOL Write(OIndex oi, char* szObjectName, void* pvObject, int iLength) =0;
 };
 
 

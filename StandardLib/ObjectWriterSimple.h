@@ -27,13 +27,14 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 class CObjectWriterSimple : public CObjectWriterDest
 {
 BASE_FUNCTIONS(CObjectWriterSimple);
-public:
+protected:
 	CChars	mszDirectory;
 
+public:
 	void Init(char* szDirectory);
 	void Kill(void);
 
-	BOOL Write(OIndex oi, char* szObjectName, char* szClassName, void* pvObject, int iLength);
+	BOOL Write(OIndex oi, char* szObjectName, void* pvObject, int iLength);
 };
 
 

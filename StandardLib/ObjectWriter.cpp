@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "ObjectFileGeneral.h"
 #include "PointerObject.h"
 #include "ObjectGraphWriter.h"
 #include "ObjectWriter.h"
@@ -68,29 +69,14 @@ BOOL CObjectWriter::WritePointer(CPointerObject pObject)
 //////////////////////////////////////////////////////////////////////////
 BOOL CObjectWriter::WriteDependent(CBaseObject* pcObject)
 {
-	filePos		iResult;
-	OIndex		oi;
+	BOOL		bResult;
 	
-	if (pcObject)
+	bResult = PrivateWritePointer(pcObject);
+	if ((pcObject) && (bResult))
 	{
-		oi = pcObject->GetOI();
-		iResult = Write(&oi, sizeof(OIndex), 1);
-		if (iResult == 1)
-		{
-			mpcGraphWriter->AddDependent(pcObject);
-			return TRUE;
-		}
-		else
-		{
-			return FALSE;
-		}
+		mpcGraphWriter->AddDependent(pcObject);
 	}
-	else
-	{
-		oi = NULL_O_INDEX;
-		iResult = Write(&oi, sizeof(OIndex), 1);
-		return iResult == 1;
-	}
+	return bResult;
 }
 
 
@@ -98,12 +84,34 @@ BOOL CObjectWriter::WriteDependent(CBaseObject* pcObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectWriter::WriteDependent(CPointerObject pObject)
+BOOL CObjectWriter::PrivateWritePointer(CBaseObject* pcObject)
 {
-	CBaseObject*	pcBaseObject;
-
-	pcBaseObject = &pObject;
-	return WriteDependent(pcBaseObject);
+	OIndex		oi;
+	char		c;
+	char*		szName;
+	
+	if (pcObject)
+	{
+		if (!pcObject->IsNamed())
+		{
+			c = OBJECT_POINTER_ID;
+			WriteChar(c);
+			oi = pcObject->GetOI();
+			return WriteLong(oi);
+		}
+		else
+		{
+			c = OBJECT_POINTER_NAMED;
+			WriteChar(c);
+			szName = pcObject->GetName();
+			return WriteString(szName);
+		}
+	}
+	else
+	{
+		c = OBJECT_POINTER_NULL;
+		return WriteChar(c);
+	}
 }
 
 
