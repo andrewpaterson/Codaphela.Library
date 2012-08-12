@@ -42,25 +42,31 @@ protected:
 
 public:
 
-	BOOL			Init(char* szDirectory, char* szPackFilesExtension);
-	void			Kill(void);
+	BOOL					Init(char* szDirectory, char* szPackFilesExtension);
+	void					Kill(void);
 
-	int				GetNumPackFiles(void);
-	CAbstractFile*	GetFile(char* szFullName);
+	int						GetNumPackFiles(void);
+	CAbstractFile*			GetFile(char* szFullName);
 
-	CBaseFileNode*	StartIteration(CFileIterator* pcIter);
-	CBaseFileNode*	Iterate(CFileIterator* pcIter);
-	void			StopIteration(CFileIterator* pcIter);
+	CFileIteratorReturn*	StartIteration(CFileIterator* pcIter);
+	CFileIteratorReturn*	Iterate(CFileIterator* pcIter);
+	void					StopIteration(CFileIterator* pcIter);
 
-	void			GetFileNames(CMapStringInt* cFileNames);
+	void					GetFileNames(CMapStringInt* cFileNames);
 
 protected:
-	CDiskFile*		GetSystemFile(char* szFullName);
-	CPackFile*		GetPackFile(char* szFullName);
-	CPackFile*		GetPackFile(CPackFileOffset* pcPackFiles, char* szFullName);
+	CDiskFile*				GetSystemFile(char* szFullName);
+	CPackFile*				GetPackFile(char* szFullName);
+	CPackFile*				GetPackFile(CPackFileOffset* pcPackFiles, char* szFullName);
 
-	BOOL			AddPackFile(CFileNodeSystemFile* pcFileNodeSystemFile);
-	BOOL			AddPackFiles(void);
+	BOOL					AddPackFile(CFileNodeSystemFile* pcFileNodeSystemFile);
+	BOOL					AddPackFiles(void);
+
+	CFileIteratorReturn*	IterateOnFileSystem(CFileIterator* pcIter);
+	CFileIteratorReturn*	IterateInPackFiles(CFileIterator* pcIter);
+
+	CFileIteratorReturn*	IterateInPackFiles(CFileIterator* pcIter, CFileNodePackFileNode* pcPackFileNode, CPackFileOffset* pcPackFiles);
+	CFileIteratorReturn*	IterateFileSystemNode(CFileIterator* pcIter, CSystemFileNode* pcSystemFileNode);
 };
 
 
