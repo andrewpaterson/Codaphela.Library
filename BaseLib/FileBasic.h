@@ -40,9 +40,6 @@ public:
 	BOOL		Open(EFileMode eMode);
 	BOOL 		Close();
 
-	filePos		Write(const void* pvSource, filePos iSize, filePos iCount);
-	filePos		Read(void* pvDest, filePos iSize, filePos iCount);
-
 	BOOL		Seek(filePos iOffset, EFileSeekOrigin eOrigin);
 	BOOL		Seek(filePos iOffset);
 
@@ -53,6 +50,10 @@ public:
 	filePos		GetFileLength(void);
 	filePos		GetFilePos(void);
 	filePos		GetFileSize(void);  //Same as GetFileLength.
+
+	//Generally you shouldn't use these.  Use WriteData instead.
+	filePos		Write(const void* pvSource, filePos iSize, filePos iCount);
+	filePos		Read(void* pvDest, filePos iSize, filePos iCount);
 };
 
 

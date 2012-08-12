@@ -28,7 +28,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileReader::ReadData(void* pvData, int iDataSize)
+BOOL CFileReader::ReadData(void* pvData, filePos iDataSize)
 {
 	CheckRead(pvData, iDataSize);
 	return TRUE;

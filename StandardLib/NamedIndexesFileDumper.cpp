@@ -31,7 +31,7 @@ BOOL DumpNamedIndexesFile(CChars* pszDest, char* szFileName, int iDataWidth, int
 
 	pvMem = malloc(iFileSize);
 	pvAllocated = pvMem;
-	cFile.Read(pvMem, iFileSize, 1);
+	cFile.ReadData(pvMem, iFileSize);
 
 	szTemp.Init(szFileName);
 	pszDest->Append(szTemp);

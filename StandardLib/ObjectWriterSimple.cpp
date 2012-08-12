@@ -76,7 +76,7 @@ BOOL CObjectWriterSimple::Write(OIndex oi, char* szObjectName, char* szClassName
 	ReturnOnFalse(cFile.WriteString(szClassName));
 	ReturnOnFalse(cFile.WriteLong(oi));
 
-	ReturnOnFalse(cFile.Write(pvObject, iLength, 1));
+	ReturnOnFalse(cFile.WriteData(pvObject, iLength));
 
 	cFile.Close();
 	cFile.Kill();

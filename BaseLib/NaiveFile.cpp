@@ -66,7 +66,7 @@ BOOL CNaiveFile::Read(char* szFileName)
 			miSize = mcFile.GetFileSize();
 			
 			mpvMem = malloc((int)miSize);
-			mcFile.Read(mpvMem, (int)miSize, 1);
+			mcFile.ReadData(mpvMem, (int)miSize);
 			mcFile.Close();
 			mcFile.Kill();
 			return TRUE;
@@ -93,7 +93,7 @@ BOOL CNaiveFile::Write(char* szFileName)
 		mszFileName.Init(szFileName);
 		if (mcFile.Open(EFM_Write_Create))
 		{
-			mcFile.Write(mpvMem, (int)miSize, 1);
+			mcFile.WriteData(mpvMem, (int)miSize);
 			mcFile.Close();
 			mcFile.Kill();
 			return TRUE;

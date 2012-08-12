@@ -90,7 +90,7 @@ BOOL CTextFile::Read(CAbstractFile* pcAbstractFile)
 		iSize = mcFile.GetFileSize();
 
 		mcText.SetLength((int)iSize);
-		mcFile.Read(mcText.Text(), (int)iSize, 1);
+		mcFile.ReadData(mcText.Text(), (int)iSize);
 		mcFile.Close();
 		mcFile.Kill();
 		return TRUE;
@@ -115,7 +115,7 @@ BOOL CTextFile::Write(char* szFileName)
 		mcFile.Init(DiskFile(szFileName));
 		if (mcFile.Open(EFM_Write_Create))
 		{
-			mcFile.Write(mcText.Text(), mcText.Length(), 1);
+			mcFile.WriteData(mcText.Text(), mcText.Length());
 			mcFile.Close();
 			mcFile.Kill();
 			return TRUE;

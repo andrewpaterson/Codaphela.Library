@@ -31,7 +31,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 BOOL CFileHeader::Save(CFileWriter* pcWriter, char* szFileType)
 {
 	int			iLen;
-	filePos		iResult;
 
 	memset(this, 0, sizeof(CFileHeader));
 	strcpy(mszCodaphela, ENGINE_NAME);
@@ -47,8 +46,7 @@ BOOL CFileHeader::Save(CFileWriter* pcWriter, char* szFileType)
 		memcpy(mszFileType, szFileType, iLen);
 	}
 
-	iResult = pcWriter->Write(this, sizeof(CFileHeader), 1);
-	return iResult == 1;
+	return pcWriter->WriteData(this, sizeof(CFileHeader));
 }
 
 

@@ -92,7 +92,7 @@ BOOL CFileCopier::Copy(CAbstractFile* pcSource, CAbstractFile* pcDest)
 		{
 			iChunk = (int) iRemaining;
 		}
-		if (!cSource.Read(pvTemp, iChunk, 1))
+		if (!cSource.ReadData(pvTemp, iChunk))
 		{
 			cSource.Close();
 			cDest.Close();
@@ -104,7 +104,7 @@ BOOL CFileCopier::Copy(CAbstractFile* pcSource, CAbstractFile* pcDest)
 			return FALSE;
 		}
 
-		if (!cDest.Write(pvTemp, iChunk, 1))
+		if (!cDest.WriteData(pvTemp, iChunk))
 		{
 			cSource.Close();
 			cDest.Close();

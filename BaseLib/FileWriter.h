@@ -42,11 +42,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 class CFileWriter
 {
 public:
-	//The Write.
-	virtual				filePos	Write(const void* pvSource, filePos iSize, filePos iCount) =0;
-
 	//General
-						BOOL	WriteData(void* pvData, int iDataSize);
+						BOOL	WriteData(void* pvData, filePos iDataSize);
 
 	//Chunking
 						BOOL	WriteChunkBegin(void);
@@ -87,6 +84,9 @@ public:
 						BOOL	WriteBits(void* pvData, int iBitLength);
 
 						BOOL	WriteIntArray(int* pai, int iLength);
+
+protected:
+	virtual				filePos	Write(const void* pvSource, filePos iSize, filePos iCount) =0;
 };
 
 

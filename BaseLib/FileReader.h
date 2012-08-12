@@ -46,7 +46,7 @@ public:
 	virtual				filePos	Read(void* pvDest, filePos iSize, filePos iCount) =0;
 
 	//General
-						BOOL	ReadData(void* pvData, int iDataSize);
+						BOOL	ReadData(void* pvData, filePos iDataSize);
 
 	//Chunking
 						int		FindFirstChunkWithName(char* szName);

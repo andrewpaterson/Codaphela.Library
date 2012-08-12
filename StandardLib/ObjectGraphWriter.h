@@ -25,7 +25,6 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "DependentObjects.h"
 
 
-//I'm not sure what this was for...
 class CObjectGraphWriter
 {
 protected:

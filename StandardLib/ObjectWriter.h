@@ -39,12 +39,15 @@ public:
 	void		Kill(void);
 	
 	BOOL		WritePointer(CPointerObject pObject);
+
+	void*		GetData(void);
+	int			GetLength(void);
+
+protected:
 	BOOL		WriteDependent(CBaseObject* pcObject);
 	BOOL		WriteDependent(CPointerObject pObject);
 
 	filePos		Write(const void* pvSource, filePos iSize, filePos iCount);
-	void*		GetData(void);
-	int			GetLength(void);
 };
 
 

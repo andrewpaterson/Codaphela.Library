@@ -275,7 +275,7 @@ BOOL CDurableFile::PrivateWrite(CFileBasic* pcFile)
 	int							i;
 	void*						pvData;
 	SDurableFileCommandWrite*	psWrite;
-	filePos						iResult;
+	BOOL						bResult;
 
 	//Non-durable files cannot hit this code.
 
@@ -286,8 +286,8 @@ BOOL CDurableFile::PrivateWrite(CFileBasic* pcFile)
 		pcFile->Seek(psWrite->iPosition, EFSO_SET);
 		pvData = RemapSinglePointer(psWrite, sizeof(SDurableFileCommandWrite));
 
-		iResult = pcFile->Write(pvData, psWrite->iSize, 1);
-		if (iResult != 1)
+		bResult = pcFile->WriteData(pvData, psWrite->iSize);
+		if (!bResult)
 		{
 			return FALSE;
 		}
@@ -680,7 +680,7 @@ filePos CDurableFile::ReadFromFile(void* pvDest, filePos iSize, filePos iCount)
 //////////////////////////////////////////////////////////////////////////
 filePos CDurableFile::PrivateRead(void* pvDest, filePos iSize, filePos iCount)
 {
-	filePos		iResult;
+	BOOL		bResult;
 	filePos		iBytes;
 
 	if (miPosition >= miFileLength)
@@ -695,8 +695,8 @@ filePos CDurableFile::PrivateRead(void* pvDest, filePos iSize, filePos iCount)
 	}
 
 	mpcPrimaryFile->Seek(miPosition, EFSO_SET);
-	iResult = mpcPrimaryFile->Read(pvDest, iBytes, 1);
-	if (iResult != 1)
+	bResult = mpcPrimaryFile->ReadData(pvDest, iBytes);
+	if (!bResult)
 	{
 		return 0;
 	}
