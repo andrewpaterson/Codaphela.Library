@@ -23,54 +23,13 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __CHUNK_FILE_H__
 #define __CHUNK_FILE_H__
 #include "Define.h"
+#include "ChunkFileHeader.h"
 #include "ChunkFileNames.h"
-#include "ChunkFileIndex.h"
 #include "FileIO.h"
 #include "FileBasic.h"
-#include "ArrayTemplate.h"
 #include "MapStringInt.h"
-#include "MD5.h"
 #include "ASCIITree.h"
-
-
-#define CHUNK_HEADER_MAGIC 0xb4d85f9a
-
-
-struct SChunkFileHeader
-{
-	filePos		iChunkNamesPos;
-	char		acMD5Hash[16];  //0's if not hashed.
-	int			iMagic;
-
-	void		WriteInit(void);
-};
-
-
-class CChunkHeader
-{
-public:
-	int		iName;
-	filePos	iChunkSize;
-	filePos	iChunkIndexPos;  // -1 if no index.
-	char	acMD5Hash[16];  //0's if not hashed.
-	int		iMagic;
-
-	void WriteInit(void);
-};
-
-
-class CChunkStackElement
-{
-public:
-	CChunkHeader			sHeader;
-	filePos					iChunkHeaderPos;
-	BOOL					bContainsChunks;
-	CChunkIndex				cChunkIndex;
-	SMD5Context				sMD5Context;
-};
-
-
-typedef CArrayTemplate<CChunkStackElement> CChunkStack;
+#include "ChunkStack.h"
 
 
 class CChunkFile : public CFileBasic
@@ -96,11 +55,8 @@ public:
 	BOOL	WriteClose(void);
 
 	int		FindFirstChunkWithName(char* szName);
-	int		FindFirstChunkWithID(int iName);
 	int		FindNextChunkWithName(void);
-	int		GetNumChunksWithID(int iName);
 	int		GetNumChunks(void);
-	int		GetChunkName(int iChunkNum);
 	void*	GetMD5Hash(void);
 	BOOL	ContainsChunks(void);
 
@@ -110,11 +66,14 @@ public:
 
 	BOOL	WriteChunkBegin(void);
 	BOOL	WriteChunkEnd(char* szChunkName);
-	BOOL	WriteChunkEnd(int iChunkName);
 
 protected:
+	int		FindFirstChunkWithID(int iName);
+	int		GetNumChunksWithID(int iName);
 	BOOL	ReadChunkNames(void);
 	BOOL	WriteChunkNames(void);
+	BOOL	WriteChunkEnd(int iChunkName);
+	int		GetChunkName(int iChunkNum);
 };
 
 

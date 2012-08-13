@@ -81,6 +81,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="BaseFileNode.h" />
+    <ClInclude Include="ChunkFileHeader.h" />
+    <ClInclude Include="ChunkStack.h" />
     <ClInclude Include="DataMacro.h" />
     <ClInclude Include="ArrayBit.h" />
     <ClInclude Include="ArrayBlock.h" />
@@ -237,6 +239,7 @@
     <ClCompile Include="ArraySimpleChar.cpp" />
     <ClCompile Include="ArrayString.cpp" />
     <ClCompile Include="BaseFileNode.cpp" />
+    <ClCompile Include="ChunkFileHeader.cpp" />
     <ClCompile Include="FileSystemIterator.cpp" />
     <ClCompile Include="LinkListBlock.cpp" />
     <ClCompile Include="LinkListBlockMemoryStack.cpp" />
