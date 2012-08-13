@@ -20,13 +20,13 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __CHUNK_FILE_NAMES_H__
-#define __CHUNK_FILE_NAMES_H__
+#ifndef __CHUNK_FILE_GENERAL_H__
+#define __CHUNK_FILE_GENERAL_H__
 
 
 #define CFN_Error 0
 #define CFN_Chunk 0xffffffff
 
 
-#endif //__CHUNK_FILE_NAMES_H__
+#endif // __CHUNK_FILE_GENERAL_H__
 

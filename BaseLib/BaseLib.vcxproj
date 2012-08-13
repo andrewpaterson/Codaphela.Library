@@ -172,7 +172,7 @@
     <ClInclude Include="NumberControl.h" />
     <ClInclude Include="ChunkFile.h" />
     <ClInclude Include="ChunkFileIndex.h" />
-    <ClInclude Include="ChunkFileNames.h" />
+    <ClInclude Include="ChunkFileGeneral.h" />
     <ClInclude Include="CSVFile.h" />
     <ClInclude Include="CSVFileEditable.h" />
     <ClInclude Include="CSVFileImutable.h" />

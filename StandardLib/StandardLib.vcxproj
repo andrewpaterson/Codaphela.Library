@@ -83,6 +83,7 @@
   <ItemGroup>
     <ClInclude Include="Base.h" />
     <ClInclude Include="DependentObjectWriter.h" />
+    <ClInclude Include="ChunkFileNames.h" />
     <ClInclude Include="NamedIndexedBlock.h" />
     <ClInclude Include="NamedIndexedSorterSource.h" />
     <ClInclude Include="NamedIndexesBlocksLoader.h" />
@@ -162,6 +163,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="DependentObjectWriter.cpp" />
+    <ClCompile Include="ChunkFileNames.cpp" />
     <ClCompile Include="NamedIndexedBlock.cpp" />
     <ClCompile Include="NamedIndexedData.cpp" />
     <ClCompile Include="NamedIndexedObjects.cpp" />

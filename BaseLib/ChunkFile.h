@@ -24,7 +24,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define __CHUNK_FILE_H__
 #include "Define.h"
 #include "ChunkFileHeader.h"
-#include "ChunkFileNames.h"
+#include "ChunkFileGeneral.h"
 #include "FileIO.h"
 #include "FileBasic.h"
 #include "MapStringInt.h"

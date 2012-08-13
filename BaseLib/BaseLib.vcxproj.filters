@@ -390,9 +390,6 @@
     <ClInclude Include="ChunkFileIndex.h">
       <Filter>Source\File\Chunk</Filter>
     </ClInclude>
-    <ClInclude Include="ChunkFileNames.h">
-      <Filter>Source\File\Chunk</Filter>
-    </ClInclude>
     <ClInclude Include="CSVFile.h">
       <Filter>Source\File\CSV</Filter>
     </ClInclude>
@@ -580,6 +577,9 @@
       <Filter>Source\File\Chunk</Filter>
     </ClInclude>
     <ClInclude Include="ChunkStack.h">
+      <Filter>Source\File\Chunk</Filter>
+    </ClInclude>
+    <ClInclude Include="ChunkFileGeneral.h">
       <Filter>Source\File\Chunk</Filter>
     </ClInclude>
   </ItemGroup>

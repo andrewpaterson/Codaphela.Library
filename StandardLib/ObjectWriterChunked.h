@@ -26,7 +26,16 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 class CObjectWriterChunked : public CObjectWriterDest
 {
 BASE_FUNCTIONS(CObjectWriterChunked);
+protected:
+	CChars				mszDirectory;
+	CChars				mszBaseName;
+	CChunkFileNames		mcChunkFile;
+
 public:
+	void Init(char* szDirectory, char* szBaseName);
+	void Kill(void);
+
+	BOOL Write(OIndex oi, char* szObjectName, void* pvObject, int iLength);
 };
 
 

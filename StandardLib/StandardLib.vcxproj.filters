@@ -121,6 +121,9 @@
     <Filter Include="Source\Object\Object\IO\Graph">
       <UniqueIdentifier>{8705b1ae-591f-4793-92d8-06f3a04698bb}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\File\Chunk">
+      <UniqueIdentifier>{a9727c0f-808f-423d-ac01-83f734db49c3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Base.h">
@@ -357,6 +360,9 @@
     <ClInclude Include="ObjectGraphWriter.h">
       <Filter>Source\Object\Object\IO\Graph</Filter>
     </ClInclude>
+    <ClInclude Include="ChunkFileNames.h">
+      <Filter>Source\File\Chunk</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Unknown.cpp">
@@ -562,6 +568,9 @@
     </ClCompile>
     <ClCompile Include="ObjectGraphWriter.cpp">
       <Filter>Source\Object\Object\IO\Graph</Filter>
+    </ClCompile>
+    <ClCompile Include="ChunkFileNames.cpp">
+      <Filter>Source\File\Chunk</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
