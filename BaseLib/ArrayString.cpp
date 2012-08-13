@@ -320,6 +320,23 @@ CChars* CArrayString::Get(int iIndex)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
+CChars* CArrayString::Tail(void)
+{
+	if (NumElements() > 0)
+	{
+		return Get(NumElements()-1);
+	}
+	else
+	{
+		return NULL;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
 char* CArrayString::GetText(int iIndex)
 {
 	CChars*		pcChars;
@@ -509,5 +526,43 @@ void CArrayString::Dump(void)
 	}
 	sz.Dump();
 	sz.Kill();
+}
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+BOOL CArrayString::Split(char* szString, char cSplitter)
+{
+	CChars			szTemp;
+
+	szTemp.Init(szString);
+	if (!szTemp.Empty())
+	{
+		szTemp.Split(this, cSplitter);
+		szTemp.Kill();
+		return TRUE;
+	}
+	else
+	{
+		return FALSE;
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+BOOL CArrayString::RemoveTail(void)
+{
+	if (NumElements() > 0)
+	{
+		Remove(NumElements()-1);
+		return TRUE;
+	}
+	else
+	{
+		return FALSE;
+	}
 }
 

@@ -49,7 +49,9 @@ public:
 	void 		Remove(CChars* pcChars);
 	void 		Remove(char* szString);
 	void 		Remove(int iIndex);
+	BOOL		RemoveTail(void);
 	CChars* 	Get(int iIndex);
+	CChars* 	Tail(void);
 	char*		GetText(int iIndex);
 	int			GetIndex(char* szStart, int iLen);
 	int			GetIndex(char* szStart);
@@ -58,6 +60,7 @@ public:
 	BOOL		Contains(char* szText);
 	void		QuickSort(BOOL bIgnoreCase = FALSE);
 	void		BubbleSort(BOOL bIgnoreCase = FALSE);
+	BOOL		Split(char* szString, char cSplitter);
 	void		Finalise(void);
 	void		Dump(void);
 };
