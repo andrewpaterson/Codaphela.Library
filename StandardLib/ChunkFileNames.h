@@ -18,6 +18,9 @@ public:
 
 	BOOL	WriteClose(void);
 
+	BOOL	ReadChunkBegin(char* szChunkName);
+	BOOL	ReadChunkEnd(void);
+
 protected:
 	BOOL	WriteChunkBegin(void);
 	BOOL	WriteChunkEnd(char* szChunkName);

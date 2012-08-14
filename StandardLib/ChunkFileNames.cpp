@@ -155,3 +155,103 @@ BOOL CChunkFileNames::WriteChunkEnd(char* szChunkName)
 	return CChunkFile::WriteChunkEnd(szChunkName);
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CChunkFileNames::ReadChunkBegin(char* szChunkName)
+{
+	CArrayString	aszChunkNames;
+	int				iDepth;
+	CChars*			pszName;
+	int				iIndex;
+	BOOL*			abFoundFirst;
+	int				iLength;
+	BOOL			bResult;
+
+	if (!szChunkName)
+	{
+		return FALSE;
+	}
+
+	aszChunkNames.Init(8);
+	aszChunkNames.Split(szChunkName, '/');
+
+	iLength = aszChunkNames.NumElements();
+	if (iLength == 0)
+	{
+		aszChunkNames.Kill();
+		return FALSE;
+	}
+
+	abFoundFirst = (BOOL*)malloc(sizeof(BOOL) * iLength);
+	memset_fast(abFoundFirst, 0, sizeof(BOOL) * iLength);
+
+	for (iDepth = 0;;)
+	{
+		pszName = aszChunkNames.Get(iDepth);
+		if (!abFoundFirst[iDepth])
+		{
+			iIndex = FindFirstChunkWithName(pszName->Text());
+			abFoundFirst[iDepth] = TRUE;
+		}
+		else
+		{
+			iIndex = FindNextChunkWithName();
+		}
+
+		if (iIndex == -1)
+		{
+			abFoundFirst[iDepth] = FALSE;
+			iDepth--;
+
+			if (iDepth == -1)
+			{
+				ReadChunkEnd();
+				aszChunkNames.Kill();
+				free(abFoundFirst);
+				return FALSE;
+			}
+			CChunkFile::ReadChunkEnd();
+		}
+		else
+		{
+			bResult = CChunkFile::ReadChunkBegin(iIndex);
+			if (iDepth == iLength-1)
+			{
+				return TRUE;
+			}
+			iDepth++;
+		}
+	}
+
+	aszChunkNames.Kill();
+	free(abFoundFirst);
+
+	return WriteChunkBegin();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CChunkFileNames::ReadChunkEnd(void)
+{
+	int		i;
+
+	if (mcChunkStack.NumElements() > 0)
+	{
+		for (i = 1; i < mcChunkStack.NumElements(); i++)
+		{
+			mcChunkStack.Get(i)->cChunkIndex.Kill();
+		}
+		mcChunkStack.SetUsedElements(1);
+		return TRUE;
+	}
+	else
+	{
+		return FALSE;
+	}
+}

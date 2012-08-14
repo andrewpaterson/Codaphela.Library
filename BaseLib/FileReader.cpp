@@ -85,6 +85,33 @@ BOOL CFileReader::ReadStringChars(char* szString, int iLength)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
+BOOL CFileReader::ReadString(CChars* szString, BOOL bDoesntMatter)
+{
+	int	iLength;
+
+	ReturnOnFalse(ReadStringLength(&iLength));
+	if (iLength == 0)
+	{
+		szString->Init();
+		return TRUE;
+	}
+	else if (iLength > 0)
+	{
+		szString->Init('@', iLength-1);
+		CheckRead(szString->Text(), iLength);
+		return TRUE;
+	}
+	else
+	{
+		return FALSE;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
 BOOL CFileReader::ReadString(CChars* szString)
 {
 	return szString->Load(this);

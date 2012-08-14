@@ -59,7 +59,8 @@ public:
 	//Strings.
 						BOOL	ReadStringLength(int* piLength);
 						BOOL	ReadStringChars(char* szString, int iLength);
-						BOOL	ReadString(CChars* szString);
+						BOOL	ReadString(CChars* szString);  //Call this one if the string was saved from a CChars
+						BOOL	ReadString(CChars* szString, BOOL bDoesntMatter);  //Or this one if the string was saved from a char*
 
 	//Arrays.
 	template<class M>	BOOL	ReadArrayTemplate(CArrayTemplate<M>* pcArray);

@@ -34,7 +34,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 class CChunkFile : public CFileBasic
 {
-private:
+protected:
 	CChunkStack			mcChunkStack;
 	BOOL				mbLastHashCheck;
 	CMapStringInt		mmsziNames;
