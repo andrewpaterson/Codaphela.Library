@@ -114,7 +114,7 @@ BOOL CFileReader::ReadString(CChars* szString, BOOL bDoesntMatter)
 //////////////////////////////////////////////////////////////////////////
 BOOL CFileReader::ReadString(CChars* szString)
 {
-	return szString->Load(this);
+	return ReadArrayTemplate(&szString->mcText);
 }
 
 

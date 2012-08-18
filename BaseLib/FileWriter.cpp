@@ -76,7 +76,7 @@ BOOL CFileWriter::WriteString(char* szString)
 //////////////////////////////////////////////////////////////////////////
 BOOL CFileWriter::WriteString(CChars* szString)
 {
-	return szString->Save(this);
+	return WriteArrayTemplate(&szString->mcText);
 }
 
 

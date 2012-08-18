@@ -37,10 +37,11 @@ class CArrayString;
 //CChars must be based on something other than CArrayChar.
 //Currently mallocs every 8 characters.
 
-class CFileReader;
-class CFileWriter;
+
 class CChars
 {
+friend class CFileReader;
+friend class CFileWriter;
 protected:
 	CArrayChar	mcText;
 
@@ -58,8 +59,6 @@ public:
 	void	InitList(CChars* szFirst, ...);
 	void	InitLength(int iLength);
 	void	Kill(void);
-	BOOL	Load(CFileReader* pcReader);
-	BOOL	Save(CFileWriter* pcWriter);
 	void	Fake(char* sz);
 	void	Fake(char* sz, int iStartInclusive, int iEndExclusive);
 	int		Length(void);
