@@ -18,18 +18,17 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "ObjectSource.h"
+#include "ObjectConverter.h"
+#include "ObjectSingleSource.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectSource::Init(CObjectConverter* pcConverter, CAbstractFile* pcFile, char* szFileName)
+void CObjectSingleSource::Init(CObjectConverter* pcConverter, CAbstractFile* pcFile, char* szFileName)
 {
-	mpcConverter = pcConverter;
-	mpcFile = pcFile;
-	mszFileName.Init(szFileName);
+	CObjectSource::Init(pcConverter, pcFile, szFileName);
 }
 
 
@@ -37,10 +36,38 @@ void CObjectSource::Init(CObjectConverter* pcConverter, CAbstractFile* pcFile, c
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectSource::Kill(void)
+void CObjectSingleSource::Kill(void)
 {
-	mszFileName.Kill();
-	mpcFile = NULL;
-	mpcConverter = NULL;
-	CUnknown::Kill();
+	CObjectSource::Kill();
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CObjectSingleSource::Contains(char* szFullName)
+{
+	return mszFileName.Equals(szFullName);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CPointerObject CObjectSingleSource::Convert(char* szFullName)
+{
+	return Convert();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CPointerObject CObjectSingleSource::Convert(void)
+{
+	return mpcConverter->Convert(mpcFile, mszFileName.Text());
+}
+

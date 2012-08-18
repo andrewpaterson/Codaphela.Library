@@ -94,7 +94,11 @@
     <ClInclude Include="NamedIndexesBlocks.h" />
     <ClInclude Include="NamedIndexesFileDumper.h" />
     <ClInclude Include="NamedIndexesOptimiser.h" />
+    <ClInclude Include="ObjectConverter.h" />
+    <ClInclude Include="ObjectConverterText.h" />
     <ClInclude Include="ObjectFileGeneral.h" />
+    <ClInclude Include="ObjectSingleSource.h" />
+    <ClInclude Include="ObjectSourceText.h" />
     <ClInclude Include="Parameters.h" />
     <ClInclude Include="String.h" />
     <ClInclude Include="Unknown.h" />
@@ -174,6 +178,10 @@
     <ClCompile Include="NamedIndexesBlocksLoader.cpp" />
     <ClCompile Include="NamedIndexesFileDumper.cpp" />
     <ClCompile Include="NamedIndexesOptimiser.cpp" />
+    <ClCompile Include="ObjectConverter.cpp" />
+    <ClCompile Include="ObjectConverterText.cpp" />
+    <ClCompile Include="ObjectSingleSource.cpp" />
+    <ClCompile Include="ObjectSourceText.cpp" />
     <ClCompile Include="String.cpp" />
     <ClCompile Include="Unknown.cpp" />
     <ClCompile Include="SetUnknown.cpp" />

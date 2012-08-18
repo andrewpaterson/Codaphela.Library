@@ -18,34 +18,23 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __OBJET_WRITER_H__
-#define __OBJET_WRITER_H__
-#include "BaseLib/FileWriter.h"
-#include "BaseLib/MemoryFile.h"
-#include "BaseObject.h"
+#ifndef __OBJECT_SINGLE_SOURCE_H__
+#define __OBJECT_SINGLE_SOURCE_H__
+#include "ObjectSource.h"
 
 
-class CObjectWriter : public CFileWriter
+class CObjectSingleSource : public CObjectSource
 {
-protected:
-	CBaseObject*			mpcThis;
-	CMemoryFile*			mpcMemory;
-	CFileBasic				mcFile;
-
+BASE_FUNCTIONS(CObjectSingleSource);
 public:
-			void			Init(CBaseObject* pcObject);
-	virtual void			Kill(void);
-	
-	virtual BOOL			WritePointer(CPointerObject pObject);
+					void			Init(CObjectConverter* pcConverter, CAbstractFile* pcFile, char* szFileName);
+					void			Kill(void);
 
-			void*			GetData(void);
-			int				GetLength(void);
-
-protected:
-			BOOL			PrivateWritePointer(CBaseObject* pcObject);
-			filePos			Write(const void* pvSource, filePos iSize, filePos iCount);
+			virtual CPointerObject	Convert(void);
+					CPointerObject	Convert(char* szFullName);
+					BOOL			Contains(char* szFullName);
 };
 
 
-#endif // __OBJET_WRITER_H__
+#endif // __OBJECT_SOURCE_H__
 

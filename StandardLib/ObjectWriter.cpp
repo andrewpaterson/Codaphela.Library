@@ -125,4 +125,3 @@ int CObjectWriter::GetLength(void)
 	return mpcMemory->GetBufferSize();
 }
 
-

@@ -1,14 +1,6 @@
+#include "ObjectReader.h"
+#include "ObjectWriter.h"
 #include "String.h"
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CString::Init(void)
-{
-	msz.Init();
-}
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -17,7 +9,8 @@ void CString::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CString::Kill(void)
 {
-	msz.Kill();
+	CChars::Kill();
+	CObject::Kill();
 }
 
 
@@ -25,10 +18,10 @@ void CString::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CString::Save(CFileWriter* pcFile)
+BOOL CString::Save(CObjectWriter* pcFile)
 {
 	ReturnOnFalse(SaveHeader(pcFile));
-	return pcFile->WriteString(&msz);
+	return pcFile->WriteString(this);
 }
 
 
@@ -36,8 +29,8 @@ BOOL CString::Save(CFileWriter* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CString::Load(CFileReader* pcFile)
+BOOL CString::Load(CObjectReader* pcFile)
 {
-	return pcFile->ReadString(&msz);
+	return pcFile->ReadString(this);
 }
 

@@ -28,8 +28,9 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "ObjectsSource.h"
 
 
-#define OMalloc(classtype)			(gcObjects.Add<classtype>());
-#define ONMalloc(classtype, name)	(gcObjects.Add<classtype>(name));
+#define OMalloc(classtype)			(gcObjects.Add<classtype>())
+#define ONMalloc(classtype, name)	(gcObjects.Add<classtype>(name))
+#define ONull						(gcObjects.Null())
 
 
 class CObjects

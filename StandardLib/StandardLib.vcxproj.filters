@@ -363,6 +363,18 @@
     <ClInclude Include="ChunkFileNames.h">
       <Filter>Source\File\Chunk</Filter>
     </ClInclude>
+    <ClInclude Include="ObjectConverterText.h">
+      <Filter>Source\Object\Object\Source\Text</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectSourceText.h">
+      <Filter>Source\Object\Object\Source\Text</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectSingleSource.h">
+      <Filter>Source\Object\Object\Source</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectConverter.h">
+      <Filter>Source\Object\Object\Source</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Unknown.cpp">
@@ -571,6 +583,18 @@
     </ClCompile>
     <ClCompile Include="ChunkFileNames.cpp">
       <Filter>Source\File\Chunk</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjectConverterText.cpp">
+      <Filter>Source\Object\Object\Source\Text</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjectSourceText.cpp">
+      <Filter>Source\Object\Object\Source\Text</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjectSingleSource.cpp">
+      <Filter>Source\Object\Object\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjectConverter.cpp">
+      <Filter>Source\Object\Object\Source</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
