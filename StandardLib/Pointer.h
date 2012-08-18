@@ -32,6 +32,7 @@ public:
 	void 		Init(CObject* pcEmbedding);
 	void		operator = (M* ptr);
 	void		operator = (CPointer<M> pcPointer);
+	void		operator = (CPointerObject pcPointer);
 	M*			operator -> ();
 	M*			operator & ();
 };
@@ -77,6 +78,17 @@ void CPointer<M>::operator = (M* ptr)
 //////////////////////////////////////////////////////////////////////////
 template<class M>
 void CPointer<M>::operator = (CPointer<M> pcPointer)
+{
+	PointTo(pcPointer.mpcObject);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+void CPointer<M>::operator = (CPointerObject pcPointer)
 {
 	PointTo(pcPointer.mpcObject);
 }

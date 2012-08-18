@@ -34,6 +34,8 @@ friend class CObjects;
 friend class CArrayCommonObject;
 friend class CSet;
 friend class CArray;
+template<class M>
+friend class CPointer;
 
 protected:
 	CBaseObject*	mpcObject;
@@ -46,6 +48,7 @@ public:
 	void			operator = (CPointerObject pcPointer);
 	CBaseObject*	operator -> ();
 	CBaseObject*	operator & ();
+	BOOL			operator ! ();
 	BOOL			IsNotNull(void);
 	BOOL			IsNull(void);
 
