@@ -29,9 +29,10 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectWriterChunked::Init(char* szDirectory, char* szBaseName)
+void CObjectWriterChunked::Init(char* szDirectory, char* szBaseName, char* szChunkFileName)
 {
 	CObjectWriter::Init(szDirectory, szBaseName);
+	mszFileName.Init(szChunkFileName);
 }
 
 
@@ -41,6 +42,7 @@ void CObjectWriterChunked::Init(char* szDirectory, char* szBaseName)
 //////////////////////////////////////////////////////////////////////////
 void CObjectWriterChunked::Kill(void)
 {
+	mszFileName.Kill();
 	CObjectWriter::Kill();
 }
 
@@ -54,14 +56,22 @@ BOOL CObjectWriterChunked::Begin(void)
 	CDiskFile*	pcDiskFile;
 	CFileUtil	cFileUtil;
 	CChars		szFullDirectory;
+	CChars		szFileName;
 
 	CObjectWriter::Begin();
 
 	szFullDirectory.Init(mszDirectory);
-	cFileUtil.AppendToPath(&szFullDirectory, mszBaseName.Text());
-
-	pcDiskFile = DiskFile(szFullDirectory.Text());
+	cFileUtil.AppendToPath(&szFullDirectory, mszObjectBaseName.Text());
+	cFileUtil.MakeDir(szFullDirectory.Text());
+	szFileName.Init(szFullDirectory);
 	szFullDirectory.Kill();
+
+	cFileUtil.AppendToPath(&szFileName, mszFileName.Text());
+	szFileName.Append(".");
+	szFileName.Append(OBJECT_FILE_EXTENSION);
+
+	pcDiskFile = DiskFile(szFileName.Text());
+	szFileName.Kill();
 
 	mcChunkFile.Init(pcDiskFile);
 	return mcChunkFile.WriteOpen();

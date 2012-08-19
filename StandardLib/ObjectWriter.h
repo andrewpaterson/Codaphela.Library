@@ -29,7 +29,7 @@ class CObjectWriter : public CUnknown
 BASE_FUNCTIONS(CObjectWriter);
 protected:
 	CChars				mszDirectory;
-	CChars				mszBaseName;
+	CChars				mszObjectBaseName;
 
 public:
 			void Init(char* szDirectory, char* szBaseName);

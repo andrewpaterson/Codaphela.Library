@@ -29,9 +29,10 @@ class CObjectWriterChunked : public CObjectWriter
 BASE_FUNCTIONS(CObjectWriterChunked);
 protected:
 	CChunkFileNames		mcChunkFile;
+	CChars				mszFileName;
 
 public:
-	void Init(char* szDirectory, char* szBaseName);
+	void Init(char* szDirectory, char* szBaseName, char* szChunkFileName);
 	void Kill(void);
 
 	BOOL Begin(void);
