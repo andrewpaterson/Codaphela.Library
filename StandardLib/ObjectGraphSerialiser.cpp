@@ -18,15 +18,15 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "DependentObjectWriter.h"
-#include "ObjectGraphWriter.h"
+#include "DependentObjectSerialiser.h"
+#include "ObjectGraphSerialiser.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectGraphWriter::Init(CObjectWriter* pcWriter)
+void CObjectGraphSerialiser::Init(CObjectWriter* pcWriter)
 {
 	mpcWriter = pcWriter;
 	mcDependentObjects.Init();
@@ -37,7 +37,7 @@ void CObjectGraphWriter::Init(CObjectWriter* pcWriter)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectGraphWriter::Kill(void)
+void CObjectGraphSerialiser::Kill(void)
 {
 	mcDependentObjects.Kill();
 }
@@ -47,7 +47,7 @@ void CObjectGraphWriter::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectGraphWriter::Write(CBaseObject* pcObject)
+BOOL CObjectGraphSerialiser::Write(CBaseObject* pcObject)
 {
 	CBaseObject*	pcUnwritten;
 
@@ -76,12 +76,12 @@ BOOL CObjectGraphWriter::Write(CBaseObject* pcObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectGraphWriter::WriteUnwritten(CBaseObject* pcObject)
+BOOL CObjectGraphSerialiser::WriteUnwritten(CBaseObject* pcObject)
 {
-	CDependentObjectWriter	cWriter;
-	BOOL					bResult;
-	CChars					szName;
-	OIndex					oi;
+	CDependentObjectSerialiser	cWriter;
+	BOOL						bResult;
+	CChars						szName;
+	OIndex						oi;
 
 	cWriter.Init(this, pcObject);
 	bResult = pcObject->Save(&cWriter);
@@ -114,7 +114,7 @@ BOOL CObjectGraphWriter::WriteUnwritten(CBaseObject* pcObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectGraphWriter::AddDependent(CBaseObject* pcObject)
+void CObjectGraphSerialiser::AddDependent(CBaseObject* pcObject)
 {
 	mcDependentObjects.Add(pcObject);
 }
@@ -124,7 +124,8 @@ void CObjectGraphWriter::AddDependent(CBaseObject* pcObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectGraphWriter::MarkWritten(CBaseObject* pcObject)
+void CObjectGraphSerialiser::MarkWritten(CBaseObject* pcObject)
 {
 	mcDependentObjects.Mark(pcObject);
 }
+

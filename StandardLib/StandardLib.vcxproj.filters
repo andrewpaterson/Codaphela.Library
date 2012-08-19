@@ -351,12 +351,6 @@
     <ClInclude Include="DependentObjects.h">
       <Filter>Source\Object\Object\IO\Graph</Filter>
     </ClInclude>
-    <ClInclude Include="DependentObjectWriter.h">
-      <Filter>Source\Object\Object\IO\Graph</Filter>
-    </ClInclude>
-    <ClInclude Include="ObjectGraphWriter.h">
-      <Filter>Source\Object\Object\IO\Graph</Filter>
-    </ClInclude>
     <ClInclude Include="ChunkFileNames.h">
       <Filter>Source\File\Chunk</Filter>
     </ClInclude>
@@ -389,6 +383,12 @@
     </ClInclude>
     <ClInclude Include="ObjectWriter.h">
       <Filter>Source\Object\Object\IO\Writing</Filter>
+    </ClInclude>
+    <ClInclude Include="DependentObjectSerialiser.h">
+      <Filter>Source\Object\Object\IO\Graph</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectGraphSerialiser.h">
+      <Filter>Source\Object\Object\IO\Graph</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -581,12 +581,6 @@
     <ClCompile Include="DependentObjects.cpp">
       <Filter>Source\Object\Object\IO\Graph</Filter>
     </ClCompile>
-    <ClCompile Include="DependentObjectWriter.cpp">
-      <Filter>Source\Object\Object\IO\Graph</Filter>
-    </ClCompile>
-    <ClCompile Include="ObjectGraphWriter.cpp">
-      <Filter>Source\Object\Object\IO\Graph</Filter>
-    </ClCompile>
     <ClCompile Include="ChunkFileNames.cpp">
       <Filter>Source\File\Chunk</Filter>
     </ClCompile>
@@ -619,6 +613,12 @@
     </ClCompile>
     <ClCompile Include="ObjectWriter.cpp">
       <Filter>Source\Object\Object\IO\Writing</Filter>
+    </ClCompile>
+    <ClCompile Include="DependentObjectSerialiser.cpp">
+      <Filter>Source\Object\Object\IO\Graph</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjectGraphSerialiser.cpp">
+      <Filter>Source\Object\Object\IO\Graph</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

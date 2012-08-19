@@ -25,7 +25,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "DependentObjects.h"
 
 
-class CObjectGraphWriter
+class CObjectGraphSerialiser
 {
 protected:
 	CDependentObjects	mcDependentObjects;

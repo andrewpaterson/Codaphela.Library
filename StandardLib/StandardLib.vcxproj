@@ -82,7 +82,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Base.h" />
-    <ClInclude Include="DependentObjectWriter.h" />
+    <ClInclude Include="DependentObjectSerialiser.h" />
     <ClInclude Include="ChunkFileNames.h" />
     <ClInclude Include="NamedIndexedBlock.h" />
     <ClInclude Include="NamedIndexedSorterSource.h" />
@@ -128,7 +128,7 @@
     <ClInclude Include="PointerObject.h" />
     <ClInclude Include="NamedObject.h" />
     <ClInclude Include="DependentObjects.h" />
-    <ClInclude Include="ObjectGraphWriter.h" />
+    <ClInclude Include="ObjectGraphSerialiser.h" />
     <ClInclude Include="ObjectDeserialiser.h" />
     <ClInclude Include="ObjectSerialiser.h" />
     <ClInclude Include="ObjectWriterChunked.h" />
@@ -169,7 +169,7 @@
     <ClInclude Include="TrackerTemplate.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="DependentObjectWriter.cpp" />
+    <ClCompile Include="DependentObjectSerialiser.cpp" />
     <ClCompile Include="ChunkFileNames.cpp" />
     <ClCompile Include="NamedIndexedBlock.cpp" />
     <ClCompile Include="NamedIndexedData.cpp" />
@@ -210,7 +210,7 @@
     <ClCompile Include="PointerObject.cpp" />
     <ClCompile Include="NamedObject.cpp" />
     <ClCompile Include="DependentObjects.cpp" />
-    <ClCompile Include="ObjectGraphWriter.cpp" />
+    <ClCompile Include="ObjectGraphSerialiser.cpp" />
     <ClCompile Include="ObjectDeserialiser.cpp" />
     <ClCompile Include="ObjectSerialiser.cpp" />
     <ClCompile Include="ObjectWriterChunked.cpp" />
