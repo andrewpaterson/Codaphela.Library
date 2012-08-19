@@ -75,7 +75,7 @@ BOOL CObjectWriterChunked::Begin(void)
 	szFileName.Kill();
 
 	mcChunkFile.Init(pcDiskFile);
-	return mcChunkFile.WriteOpen();
+	return mcChunkFile.WriteOpen(CHUNKED_OBJECT_FILE);
 }
 
 

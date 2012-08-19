@@ -6,13 +6,15 @@
 #define CHUNK_HEADER_MAGIC 0xb4d85f9a
 
 
-struct SChunkFileHeader
+class CChunkFileHeader
 {
+public:
+	int			iUserID;
 	filePos		iChunkNamesPos;
 	char		acMD5Hash[16];  //0's if not hashed.
 	int			iMagic;
 
-	void		WriteInit(void);
+	void		WriteInit(int iUserID);
 };
 
 

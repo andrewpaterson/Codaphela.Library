@@ -5,8 +5,9 @@
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void SChunkFileHeader::WriteInit(void)
+void CChunkFileHeader::WriteInit(int iUserID)
 {
+	this->iUserID = iUserID;
 	iChunkNamesPos = -1;
 	memset(acMD5Hash, 0, 16);
 	iMagic = CHUNK_HEADER_MAGIC;
