@@ -26,7 +26,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectGraphWriter::Init(CObjectWriterDest* pcWriter)
+void CObjectGraphWriter::Init(CObjectWriter* pcWriter)
 {
 	mpcWriter = pcWriter;
 	mcDependentObjects.Init();

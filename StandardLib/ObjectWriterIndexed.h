@@ -20,10 +20,10 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __OBJECT_WRITER_INDEXED_H__
 #define __OBJECT_WRITER_INDEXED_H__
-#include "ObjectWriterDest.h"
+#include "ObjectWriter.h"
 
 
-class CObjectWriterIndexed : public CObjectWriterDest
+class CObjectWriterIndexed : public CObjectWriter
 {
 BASE_FUNCTIONS(CObjectWriterIndexed);
 public:

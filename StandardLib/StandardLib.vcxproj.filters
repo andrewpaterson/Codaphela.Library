@@ -210,9 +210,6 @@
     <ClInclude Include="ObjectWriterChunked.h">
       <Filter>Source\Object\Object\IO\Writing</Filter>
     </ClInclude>
-    <ClInclude Include="ObjectWriterDest.h">
-      <Filter>Source\Object\Object\IO\Writing</Filter>
-    </ClInclude>
     <ClInclude Include="ObjectWriterIndexed.h">
       <Filter>Source\Object\Object\IO\Writing</Filter>
     </ClInclude>
@@ -390,6 +387,9 @@
     <ClInclude Include="ObjectDeserialiser.h">
       <Filter>Source\Object\Object\IO\Serilalisation</Filter>
     </ClInclude>
+    <ClInclude Include="ObjectWriter.h">
+      <Filter>Source\Object\Object\IO\Writing</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Unknown.cpp">
@@ -450,9 +450,6 @@
       <Filter>Source\Object\Object\Named</Filter>
     </ClCompile>
     <ClCompile Include="ObjectWriterChunked.cpp">
-      <Filter>Source\Object\Object\IO\Writing</Filter>
-    </ClCompile>
-    <ClCompile Include="ObjectWriterDest.cpp">
       <Filter>Source\Object\Object\IO\Writing</Filter>
     </ClCompile>
     <ClCompile Include="ObjectWriterIndexed.cpp">

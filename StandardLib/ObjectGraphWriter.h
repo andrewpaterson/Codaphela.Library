@@ -21,7 +21,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __OBJET_GRAPH_WRITER_H__
 #define __OBJET_GRAPH_WRITER_H__
 #include "BaseObject.h"
-#include "ObjectWriterDest.h"
+#include "ObjectWriter.h"
 #include "DependentObjects.h"
 
 
@@ -29,10 +29,10 @@ class CObjectGraphWriter
 {
 protected:
 	CDependentObjects		mcDependentObjects;
-	CObjectWriterDest*		mpcWriter;
+	CObjectWriter*		mpcWriter;
 
 public:
-	void	Init(CObjectWriterDest* pcWriter);
+	void	Init(CObjectWriter* pcWriter);
 	void	Kill(void);
 
 	BOOL	Write(CBaseObject* pcObject);
