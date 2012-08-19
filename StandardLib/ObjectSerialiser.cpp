@@ -20,14 +20,14 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include "ObjectFileGeneral.h"
 #include "PointerObject.h"
-#include "ObjectWriter.h"
+#include "ObjectSerialiser.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectWriter::Init(CBaseObject* pcObject)
+void CObjectSerialiser::Init(CBaseObject* pcObject)
 {
 	mpcThis = pcObject;
 	mpcMemory = MemoryFile();
@@ -40,7 +40,7 @@ void CObjectWriter::Init(CBaseObject* pcObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectWriter::Kill(void)
+void CObjectSerialiser::Kill(void)
 {
 	mpcThis = NULL;
 	mcFile.Close();
@@ -52,7 +52,7 @@ void CObjectWriter::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectWriter::WritePointer(CPointerObject pObject)
+BOOL CObjectSerialiser::WritePointer(CPointerObject pObject)
 {
 	CBaseObject*	pcBaseObject;
 
@@ -65,7 +65,7 @@ BOOL CObjectWriter::WritePointer(CPointerObject pObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectWriter::PrivateWritePointer(CBaseObject* pcObject)
+BOOL CObjectSerialiser::PrivateWritePointer(CBaseObject* pcObject)
 {
 	OIndex		oi;
 	char		c;
@@ -100,7 +100,7 @@ BOOL CObjectWriter::PrivateWritePointer(CBaseObject* pcObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-filePos CObjectWriter::Write(const void* pvSource, filePos iSize, filePos iCount)
+filePos CObjectSerialiser::Write(const void* pvSource, filePos iSize, filePos iCount)
 {
 	return mcFile.Write(pvSource, iSize, iCount);
 }
@@ -110,7 +110,7 @@ filePos CObjectWriter::Write(const void* pvSource, filePos iSize, filePos iCount
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CObjectWriter::GetData(void)
+void* CObjectSerialiser::GetData(void)
 {
 	return mpcMemory->GetBufferPointer();
 }
@@ -120,7 +120,7 @@ void* CObjectWriter::GetData(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CObjectWriter::GetLength(void)
+int CObjectSerialiser::GetLength(void)
 {
 	return mpcMemory->GetBufferSize();
 }

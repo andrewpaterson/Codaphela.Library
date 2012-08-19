@@ -10,13 +10,13 @@
 void CDependentObjectWriter::Init(CObjectGraphWriter* pcGraphWriter, CBaseObject* pcObject)
 {
 	mpcGraphWriter = pcGraphWriter;
-	CObjectWriter::Init(pcObject);
+	CObjectSerialiser::Init(pcObject);
 }
 
 
 void CDependentObjectWriter::Kill(void)
 {
-	CObjectWriter::Kill();
+	CObjectSerialiser::Kill();
 }
 
 

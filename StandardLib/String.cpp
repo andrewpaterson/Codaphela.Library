@@ -1,5 +1,5 @@
-#include "ObjectReader.h"
-#include "ObjectWriter.h"
+#include "ObjectDeserialiser.h"
+#include "ObjectSerialiser.h"
 #include "String.h"
 
 
@@ -18,7 +18,7 @@ void CString::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CString::Save(CObjectWriter* pcFile)
+BOOL CString::Save(CObjectSerialiser* pcFile)
 {
 	ReturnOnFalse(SaveHeader(pcFile));
 	return pcFile->WriteString(this);
@@ -29,7 +29,7 @@ BOOL CString::Save(CObjectWriter* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CString::Load(CObjectReader* pcFile)
+BOOL CString::Load(CObjectDeserialiser* pcFile)
 {
 	return pcFile->ReadString(this);
 }

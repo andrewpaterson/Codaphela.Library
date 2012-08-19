@@ -18,34 +18,5 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __OBJET_WRITER_H__
-#define __OBJET_WRITER_H__
-#include "BaseLib/FileWriter.h"
-#include "BaseLib/MemoryFile.h"
-#include "BaseObject.h"
-
-
-class CObjectWriter : public CFileWriter
-{
-protected:
-	CBaseObject*			mpcThis;
-	CMemoryFile*			mpcMemory;
-	CFileBasic				mcFile;
-
-public:
-			void			Init(CBaseObject* pcObject);
-	virtual void			Kill(void);
-	
-	virtual BOOL			WritePointer(CPointerObject pObject);
-
-			void*			GetData(void);
-			int				GetLength(void);
-
-protected:
-			BOOL			PrivateWritePointer(CBaseObject* pcObject);
-			filePos			Write(const void* pvSource, filePos iSize, filePos iCount);
-};
-
-
-#endif // __OBJET_WRITER_H__
+#include "ObjectDeserialiser.h"
 

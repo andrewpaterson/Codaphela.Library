@@ -37,8 +37,8 @@ typedef CArrayEmbedded<CBaseObject*, 32>	CArrayEmbeddedBaseObjectPtr;
 #define OBJECT_FLAGS_INVALIDATED		0x04
 
 
-class CObjectReader;
-class CObjectWriter;
+class CObjectDeserialiser;
+class CObjectSerialiser;
 class CBaseObject : public CUnknown
 {
 template<class M>
@@ -59,8 +59,8 @@ public:
 							CBaseObject();
 			void			Kill(void);
 
-	virtual BOOL			Save(CObjectWriter* pcFile) =0;
-	virtual BOOL			Load(CObjectReader* pcFile) =0;
+	virtual BOOL			Save(CObjectSerialiser* pcFile) =0;
+	virtual BOOL			Load(CObjectDeserialiser* pcFile) =0;
 
 			OIndex			GetOI(void);
 			void			SetObjectID(OIndex oi);

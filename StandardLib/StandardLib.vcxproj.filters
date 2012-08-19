@@ -58,9 +58,6 @@
     <Filter Include="Source\Object\Object\IO">
       <UniqueIdentifier>{16ba09be-cb16-4f28-af41-d96110ddbfee}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Object\Object\IO\Dest">
-      <UniqueIdentifier>{998549eb-11d7-4b02-a517-7012ae0b1885}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source\Object\Object\Hollow">
       <UniqueIdentifier>{8b0081b3-0a74-4d7d-b50a-68e0413ccd60}</UniqueIdentifier>
     </Filter>
@@ -126,6 +123,12 @@
     </Filter>
     <Filter Include="Source\Object\Object\Source\Chunk">
       <UniqueIdentifier>{4e548420-22fe-4037-b223-8ce34e9f42f6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Object\Object\IO\Serilalisation">
+      <UniqueIdentifier>{2f3471e7-66c0-4e70-8671-64a056f51b83}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Object\Object\IO\Writing">
+      <UniqueIdentifier>{998549eb-11d7-4b02-a517-7012ae0b1885}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -204,23 +207,17 @@
     <ClInclude Include="NamedObject.h">
       <Filter>Source\Object\Object\Named</Filter>
     </ClInclude>
-    <ClInclude Include="ObjectReader.h">
-      <Filter>Source\Object\Object\IO</Filter>
-    </ClInclude>
-    <ClInclude Include="ObjectWriter.h">
-      <Filter>Source\Object\Object\IO</Filter>
-    </ClInclude>
     <ClInclude Include="ObjectWriterChunked.h">
-      <Filter>Source\Object\Object\IO\Dest</Filter>
+      <Filter>Source\Object\Object\IO\Writing</Filter>
     </ClInclude>
     <ClInclude Include="ObjectWriterDest.h">
-      <Filter>Source\Object\Object\IO\Dest</Filter>
+      <Filter>Source\Object\Object\IO\Writing</Filter>
     </ClInclude>
     <ClInclude Include="ObjectWriterIndexed.h">
-      <Filter>Source\Object\Object\IO\Dest</Filter>
+      <Filter>Source\Object\Object\IO\Writing</Filter>
     </ClInclude>
     <ClInclude Include="ObjectWriterSimple.h">
-      <Filter>Source\Object\Object\IO\Dest</Filter>
+      <Filter>Source\Object\Object\IO\Writing</Filter>
     </ClInclude>
     <ClInclude Include="HollowObject.h">
       <Filter>Source\Object\Object\Hollow</Filter>
@@ -352,7 +349,7 @@
       <Filter>Source\Data\String</Filter>
     </ClInclude>
     <ClInclude Include="ObjectFileGeneral.h">
-      <Filter>Source\Object\Object\IO\Dest</Filter>
+      <Filter>Source\Object\Object\IO\Writing</Filter>
     </ClInclude>
     <ClInclude Include="DependentObjects.h">
       <Filter>Source\Object\Object\IO\Graph</Filter>
@@ -386,6 +383,12 @@
     </ClInclude>
     <ClInclude Include="ObjectMultipleSource.h">
       <Filter>Source\Object\Object\Source</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectSerialiser.h">
+      <Filter>Source\Object\Object\IO\Serilalisation</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectDeserialiser.h">
+      <Filter>Source\Object\Object\IO\Serilalisation</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -446,23 +449,17 @@
     <ClCompile Include="NamedObject.cpp">
       <Filter>Source\Object\Object\Named</Filter>
     </ClCompile>
-    <ClCompile Include="ObjectReader.cpp">
-      <Filter>Source\Object\Object\IO</Filter>
-    </ClCompile>
-    <ClCompile Include="ObjectWriter.cpp">
-      <Filter>Source\Object\Object\IO</Filter>
-    </ClCompile>
     <ClCompile Include="ObjectWriterChunked.cpp">
-      <Filter>Source\Object\Object\IO\Dest</Filter>
+      <Filter>Source\Object\Object\IO\Writing</Filter>
     </ClCompile>
     <ClCompile Include="ObjectWriterDest.cpp">
-      <Filter>Source\Object\Object\IO\Dest</Filter>
+      <Filter>Source\Object\Object\IO\Writing</Filter>
     </ClCompile>
     <ClCompile Include="ObjectWriterIndexed.cpp">
-      <Filter>Source\Object\Object\IO\Dest</Filter>
+      <Filter>Source\Object\Object\IO\Writing</Filter>
     </ClCompile>
     <ClCompile Include="ObjectWriterSimple.cpp">
-      <Filter>Source\Object\Object\IO\Dest</Filter>
+      <Filter>Source\Object\Object\IO\Writing</Filter>
     </ClCompile>
     <ClCompile Include="HollowObject.cpp">
       <Filter>Source\Object\Object\Hollow</Filter>
@@ -616,6 +613,12 @@
     </ClCompile>
     <ClCompile Include="ObjectMultipleSource.cpp">
       <Filter>Source\Object\Object\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjectDeserialiser.cpp">
+      <Filter>Source\Object\Object\IO\Serilalisation</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjectSerialiser.cpp">
+      <Filter>Source\Object\Object\IO\Serilalisation</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

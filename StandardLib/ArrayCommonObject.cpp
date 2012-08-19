@@ -20,8 +20,8 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include "ArrayCommonUnknown.h"
 #include "Pointer.h"
-#include "ObjectWriter.h"
-#include "ObjectReader.h"
+#include "ObjectSerialiser.h"
+#include "ObjectDeserialiser.h"
 #include "ArrayCommonObject.h"
 
 
@@ -52,7 +52,7 @@ void CArrayCommonObject::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayCommonObject::Save(CObjectWriter* pcFile)
+BOOL CArrayCommonObject::Save(CObjectSerialiser* pcFile)
 {
 	int				i;
 	int				iNumElements;
@@ -77,7 +77,7 @@ BOOL CArrayCommonObject::Save(CObjectWriter* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayCommonObject::Load(CObjectReader* pcFile)
+BOOL CArrayCommonObject::Load(CObjectDeserialiser* pcFile)
 {
 	OIndex			oi;
 	int				i;

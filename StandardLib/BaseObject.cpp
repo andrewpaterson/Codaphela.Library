@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "ObjectWriter.h"
-#include "ObjectReader.h"
+#include "ObjectSerialiser.h"
+#include "ObjectDeserialiser.h"
 #include "BaseObject.h"
 
 

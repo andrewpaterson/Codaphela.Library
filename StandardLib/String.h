@@ -3,16 +3,16 @@
 #include "BaseLib/Chars.h"
 #include "Object.h"
 
-class CObjectWriter;
-class CObjectReader;
+class CObjectSerialiser;
+class CObjectDeserialiser;
 class CString : public CObject, public CChars
 {
 BASE_FUNCTIONS(CString);
 public:
 	void	Kill(void);
 
-	BOOL	Save(CObjectWriter* pcFile);
-	BOOL	Load(CObjectReader* pcFile);
+	BOOL	Save(CObjectSerialiser* pcFile);
+	BOOL	Load(CObjectDeserialiser* pcFile);
 
 };
 

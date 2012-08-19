@@ -40,8 +40,8 @@ public:
 	void	RemoveAll(void);
 	BOOL	IsRoot(void);
 	BOOL	IsSubRoot(void);
-	BOOL	Save(CObjectWriter* pcFile);
-	BOOL	Load(CObjectReader* pcFile);
+	BOOL	Save(CObjectSerialiser* pcFile);
+	BOOL	Load(CObjectDeserialiser* pcFile);
 };
 
 

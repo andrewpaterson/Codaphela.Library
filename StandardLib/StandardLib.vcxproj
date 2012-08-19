@@ -129,8 +129,8 @@
     <ClInclude Include="NamedObject.h" />
     <ClInclude Include="DependentObjects.h" />
     <ClInclude Include="ObjectGraphWriter.h" />
-    <ClInclude Include="ObjectReader.h" />
-    <ClInclude Include="ObjectWriter.h" />
+    <ClInclude Include="ObjectDeserialiser.h" />
+    <ClInclude Include="ObjectSerialiser.h" />
     <ClInclude Include="ObjectWriterChunked.h" />
     <ClInclude Include="ObjectWriterDest.h" />
     <ClInclude Include="ObjectWriterIndexed.h" />
@@ -210,8 +210,8 @@
     <ClCompile Include="NamedObject.cpp" />
     <ClCompile Include="DependentObjects.cpp" />
     <ClCompile Include="ObjectGraphWriter.cpp" />
-    <ClCompile Include="ObjectReader.cpp" />
-    <ClCompile Include="ObjectWriter.cpp" />
+    <ClCompile Include="ObjectDeserialiser.cpp" />
+    <ClCompile Include="ObjectSerialiser.cpp" />
     <ClCompile Include="ObjectWriterChunked.cpp" />
     <ClCompile Include="ObjectWriterDest.cpp" />
     <ClCompile Include="ObjectWriterIndexed.cpp" />

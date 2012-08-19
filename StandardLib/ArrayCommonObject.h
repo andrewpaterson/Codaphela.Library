@@ -48,8 +48,8 @@ public:
 	int		NumTos(void);
 	void	GetTos(CArrayBaseObjectPtr* papcTos);
 
-	BOOL	Save(CObjectWriter* pcFile);
-	BOOL	Load(CObjectReader* pcFile);
+	BOOL	Save(CObjectSerialiser* pcFile);
+	BOOL	Load(CObjectDeserialiser* pcFile);
 
 protected:
 	void	AddTo(CBaseObject* pcTo);
