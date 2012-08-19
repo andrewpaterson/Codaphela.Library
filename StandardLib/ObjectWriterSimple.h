@@ -32,7 +32,7 @@ public:
 	void Kill(void);
 
 	BOOL Begin(void);
-	BOOL Write(OIndex oi, char* szObjectName, void* pvObject, int iLength);
+	BOOL Write(CSerialisedObject* pcSerialised);
 	BOOL End(void);
 };
 

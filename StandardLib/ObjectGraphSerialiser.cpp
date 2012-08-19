@@ -20,6 +20,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include "DependentObjectSerialiser.h"
 #include "ObjectGraphSerialiser.h"
+#include "SerialisedObject.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -80,32 +81,21 @@ BOOL CObjectGraphSerialiser::WriteUnwritten(CBaseObject* pcObject)
 {
 	CDependentObjectSerialiser	cWriter;
 	BOOL						bResult;
-	CChars						szName;
-	OIndex						oi;
+	CSerialisedObject*			pcSerialised;
 
 	cWriter.Init(this, pcObject);
-	bResult = pcObject->Save(&cWriter);
-	if (!bResult)
-	{
-		return FALSE;
-	}
-	
-	oi = pcObject->GetOI();
-	
-	if (pcObject->IsNamed())
-	{
-		szName.Init(pcObject->GetName());
-	}
-	else
-	{
-		szName.Init("Unnamed_");
-		szName.Append(oi);
-	}
 
-	ReturnOnFalse(mpcWriter->Write(oi, szName.Text(), cWriter.GetData(), cWriter.GetLength()));
+	bResult = cWriter.Save();
+	ReturnOnFalse(bResult);
+
+	pcSerialised = (CSerialisedObject*)cWriter.GetData();
+
+	bResult = mpcWriter->Write(pcSerialised);
+	ReturnOnFalse(bResult);
+
+	cWriter.Kill();
 
 	MarkWritten(pcObject);
-	szName.Kill();
 	return TRUE;
 }
 

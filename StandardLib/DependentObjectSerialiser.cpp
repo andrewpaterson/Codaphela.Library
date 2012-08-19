@@ -37,14 +37,15 @@ BOOL CDependentObjectSerialiser::WritePointer(CPointerObject pObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CDependentObjectSerialiser::WriteDependent(CBaseObject* pcObject)
+BOOL CDependentObjectSerialiser::WriteDependent(CBaseObject* pcBaseObject)
 {
 	BOOL		bResult;
 
-	bResult = PrivateWritePointer(pcObject);
-	if ((pcObject) && (bResult))
+	bResult = WriteHeader(pcBaseObject);
+	if ((pcBaseObject) && (bResult))
 	{
-		mpcGraphWriter->AddDependent(pcObject);
+		mpcGraphWriter->AddDependent(pcBaseObject);
 	}
 	return bResult;
 }
+

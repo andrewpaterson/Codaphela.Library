@@ -21,6 +21,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/FileUtil.h"
 #include "BaseLib/DiskFile.h"
 #include "ObjectFileGeneral.h"
+#include "SerialisedObject.h"
 #include "ObjectWriterSimple.h"
 
 
@@ -68,7 +69,7 @@ BOOL CObjectWriterSimple::End(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectWriterSimple::Write(OIndex oi, char* szObjectName, void* pvObject, int iLength)
+BOOL CObjectWriterSimple::Write(CSerialisedObject* pcSerialised)
 {
 	CFileUtil		cFileUtil;
 	CChars			szFileName;
@@ -77,11 +78,11 @@ BOOL CObjectWriterSimple::Write(OIndex oi, char* szObjectName, void* pvObject, i
 	CChars			szFullName;
 	char*			szExtension;
 
-	ReturnOnFalse(ObjectStartsWithBase(szObjectName));
+	ReturnOnFalse(ObjectStartsWithBase(pcSerialised->GetName()));
 
 	szFileName.Init();
 	szDirectory.Init();
-	cFileUtil.SplitPath(szObjectName, &szFileName, &szDirectory);
+	cFileUtil.SplitPath(pcSerialised->GetName(), &szFileName, &szDirectory);
 	szFileName.Append(".");
 	szFileName.Append(OBJECT_FILE_EXTENSION);
 
@@ -105,12 +106,8 @@ BOOL CObjectWriterSimple::Write(OIndex oi, char* szObjectName, void* pvObject, i
 	ReturnOnFalse(cFile.WriteData(szExtension, 4));
 	ReturnOnFalse(cFile.WriteInt(BASIC_OBJECT_FILE));
 
-	//Write object identifier.
-	ReturnOnFalse(cFile.WriteLong(oi));
-	ReturnOnFalse(cFile.WriteString(szObjectName));
-
 	//Write object stream.
-	ReturnOnFalse(cFile.WriteData(pvObject, iLength));
+	ReturnOnFalse(cFile.WriteData(pcSerialised, pcSerialised->GetLength()));
 
 	cFile.Close();
 	cFile.Kill();

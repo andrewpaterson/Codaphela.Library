@@ -104,8 +104,6 @@ BOOL CRoot::IsSubRoot(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CRoot::Save(CObjectSerialiser* pcFile)
 {
-	ReturnOnFalse(SaveHeader(pcFile));
-
 	return pcFile->WritePointer(mpObjects);
 }
 

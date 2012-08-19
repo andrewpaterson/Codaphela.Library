@@ -390,6 +390,9 @@
     <ClInclude Include="ObjectGraphSerialiser.h">
       <Filter>Source\Object\Object\IO\Graph</Filter>
     </ClInclude>
+    <ClInclude Include="SerialisedObject.h">
+      <Filter>Source\Object\Object\IO\Serilalisation</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Unknown.cpp">
@@ -619,6 +622,9 @@
     </ClCompile>
     <ClCompile Include="ObjectGraphSerialiser.cpp">
       <Filter>Source\Object\Object\IO\Graph</Filter>
+    </ClCompile>
+    <ClCompile Include="SerialisedObject.cpp">
+      <Filter>Source\Object\Object\IO\Serilalisation</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -22,6 +22,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/DiskFile.h"
 #include "ChunkFileNames.h"
 #include "ObjectFileGeneral.h"
+#include "SerialisedObject.h"
 #include "ObjectWriterChunked.h"
 
 
@@ -95,25 +96,32 @@ BOOL CObjectWriterChunked::End(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectWriterChunked::Write(OIndex oi, char* szObjectName, void* pvObject, int iLength)
+BOOL CObjectWriterChunked::Write(CSerialisedObject* pcSerialised)
 {
-	CChars	szRemainingName;
+	CChars	szChunkName;
+	OIndex	oi;
 
-	ReturnOnFalse(ObjectStartsWithBase(szObjectName));
-	RemainingName(&szRemainingName, szObjectName);
+	if (pcSerialised->IsNamed())
+	{
+		ReturnOnFalse(ObjectStartsWithBase(pcSerialised->GetName()));
+		RemainingName(&szChunkName, pcSerialised->GetName());
+	}
+	else if (pcSerialised->IsIndexed())
+	{
+		szChunkName.Init("Unnamed/");
+		oi = pcSerialised->GetIndex();
+		szChunkName.AppendHexHiLo(&oi, sizeof(OIndex));
+	}
+	else
+	{
+		return FALSE;
+	}
 
-	ReturnOnFalse(mcChunkFile.WriteChunkBegin(szRemainingName.Text()));
-
-	//Write object identifier.
-	ReturnOnFalse(mcChunkFile.WriteLong(oi));
-	ReturnOnFalse(mcChunkFile.WriteString(szObjectName));
-
-	//Write object stream.
-	ReturnOnFalse(mcChunkFile.WriteData(pvObject, iLength));
-
+	ReturnOnFalse(mcChunkFile.WriteChunkBegin(szChunkName.Text()));
+	ReturnOnFalse(mcChunkFile.WriteData(pcSerialised, pcSerialised->GetLength()));
 	ReturnOnFalse(mcChunkFile.WriteChunkEnd());
 
-	szRemainingName.Kill();
+	szChunkName.Kill();
 	return TRUE;
 }
 

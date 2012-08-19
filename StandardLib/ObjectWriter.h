@@ -24,6 +24,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Unknown.h"
 
 
+class CSerialisedObject;
 class CObjectWriter : public CUnknown
 {
 BASE_FUNCTIONS(CObjectWriter);
@@ -36,7 +37,7 @@ public:
 			void Kill(void);
 
 	virtual BOOL Begin(void);
-	virtual BOOL Write(OIndex oi, char* szObjectName, void* pvObject, int iLength) =0;
+	virtual BOOL Write(CSerialisedObject* pcSerialised) =0;
 	virtual BOOL End(void);
 
 			BOOL ObjectStartsWithBase(char* szObjectName);

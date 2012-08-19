@@ -55,7 +55,14 @@ BOOL CNamedObject::IsNamed(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNamedObject::SetName(char* szName)
+BOOL CNamedObject::InitName(char* szName)
 {
 	mon.Init(szName);
+	if (mon.Length() < MAX_NAMED_OBJECT_NAME_LENGTH)
+	{
+		return TRUE;
+	}
+	mon.SetLength(MAX_NAMED_OBJECT_NAME_LENGTH-1);
+	return FALSE;
 }
+

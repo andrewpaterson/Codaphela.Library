@@ -32,7 +32,6 @@ void CObjectSerialiser::Init(CBaseObject* pcObject)
 	mpcThis = pcObject;
 	mpcMemory = MemoryFile();
 	mcFile.Init(mpcMemory);
-	mcFile.Open(EFM_Write_Create);
 }
 
 
@@ -43,8 +42,37 @@ void CObjectSerialiser::Init(CBaseObject* pcObject)
 void CObjectSerialiser::Kill(void)
 {
 	mpcThis = NULL;
-	mcFile.Close();
 	mcFile.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CObjectSerialiser::Save(void)
+{
+	BOOL		bResult;
+	filePos		iLength;
+
+	bResult = mcFile.Open(EFM_Write_Create);
+	ReturnOnFalse(bResult);
+
+	bResult = WriteInt(0);
+	ReturnOnFalse(bResult);
+	bResult = WriteHeader(mpcThis);
+	ReturnOnFalse(bResult);
+	bResult = mpcThis->SaveHeader(this);
+	ReturnOnFalse(bResult);
+	bResult = mpcThis->Save(this);
+	ReturnOnFalse(bResult);
+	iLength = mcFile.GetFileLength();
+	mcFile.Seek(0);
+	bResult = WriteInt((int)iLength);
+	ReturnOnFalse(bResult);
+
+	bResult = mcFile.Close();
+	return bResult;
 }
 
 
@@ -57,7 +85,7 @@ BOOL CObjectSerialiser::WritePointer(CPointerObject pObject)
 	CBaseObject*	pcBaseObject;
 
 	pcBaseObject = &pObject;
-	return PrivateWritePointer(pcBaseObject);
+	return WriteHeader(pcBaseObject);
 }
 
 
@@ -65,10 +93,20 @@ BOOL CObjectSerialiser::WritePointer(CPointerObject pObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectSerialiser::PrivateWritePointer(CBaseObject* pcObject)
+BOOL CObjectSerialiser::WriteDependent(CBaseObject* pcBaseObject)
+{
+	return WriteHeader(pcBaseObject);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CObjectSerialiser::WriteHeader(CBaseObject* pcObject)
 {
 	OIndex		oi;
-	char		c;
+	int			c;
 	char*		szName;
 	
 	if (pcObject)
@@ -76,14 +114,14 @@ BOOL CObjectSerialiser::PrivateWritePointer(CBaseObject* pcObject)
 		if (!pcObject->IsNamed())
 		{
 			c = OBJECT_POINTER_ID;
-			WriteChar(c);
+			WriteInt(c);
 			oi = pcObject->GetOI();
 			return WriteLong(oi);
 		}
 		else
 		{
 			c = OBJECT_POINTER_NAMED;
-			WriteChar(c);
+			WriteInt(c);
 			szName = pcObject->GetName();
 			return WriteString(szName);
 		}
@@ -91,7 +129,7 @@ BOOL CObjectSerialiser::PrivateWritePointer(CBaseObject* pcObject)
 	else
 	{
 		c = OBJECT_POINTER_NULL;
-		return WriteChar(c);
+		return WriteInt(c);
 	}
 }
 

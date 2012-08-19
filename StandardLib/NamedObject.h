@@ -23,6 +23,9 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Object.h"
 
 
+#define MAX_NAMED_OBJECT_NAME_LENGTH	4096
+
+
 class CNamedObject : public CObject
 {
 friend class CNamedIndexedObjects;
@@ -38,7 +41,7 @@ public:
 	BOOL	IsNamed(void);
 
 private:
-	void	SetName(char* szName);
+	BOOL	InitName(char* szName);
 };
 
 

@@ -103,6 +103,7 @@
     <ClInclude Include="ObjectSourceChunked.h" />
     <ClInclude Include="ObjectSourceText.h" />
     <ClInclude Include="Parameters.h" />
+    <ClInclude Include="SerialisedObject.h" />
     <ClInclude Include="String.h" />
     <ClInclude Include="Unknown.h" />
     <ClInclude Include="SetType.h" />
@@ -189,6 +190,7 @@
     <ClCompile Include="ObjectSourceChunked.cpp" />
     <ClCompile Include="ObjectSourceText.cpp" />
     <ClCompile Include="ObjectWriter.cpp" />
+    <ClCompile Include="SerialisedObject.cpp" />
     <ClCompile Include="String.cpp" />
     <ClCompile Include="Unknown.cpp" />
     <ClCompile Include="SetUnknown.cpp" />

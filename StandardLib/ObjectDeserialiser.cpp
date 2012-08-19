@@ -28,15 +28,28 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectDeserialiser::ReadPointer(CPointerObject* pcPointerObject)
+BOOL CObjectDeserialiser::ReadPointer(CPointerObject* pObject)
+{
+	CBaseObject*	pcBaseObject;
+
+	pObject->Clear();
+	pcBaseObject = &*pObject;
+	return ReadHeader(pcBaseObject);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CObjectDeserialiser::ReadHeader(CBaseObject* pcBaseObject)
 {
 	OIndex		oi;
-	char		c;
+	int			c;
 	CChars		szName;
 
-	ReturnOnFalse(ReadChar(&c));
+	ReturnOnFalse(ReadInt(&c));
 
-	pcPointerObject->Clear();
 	if (c == OBJECT_POINTER_NULL)
 	{
 		return TRUE;
@@ -56,5 +69,15 @@ BOOL CObjectDeserialiser::ReadPointer(CPointerObject* pcPointerObject)
 	{
 		return FALSE;
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CObjectDeserialiser::ReadDependent(CBaseObject* pcBaseObject)
+{
+	return ReadHeader(pcBaseObject);
 }
 

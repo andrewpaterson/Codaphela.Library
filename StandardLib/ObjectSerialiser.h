@@ -35,14 +35,16 @@ protected:
 public:
 			void			Init(CBaseObject* pcObject);
 	virtual void			Kill(void);
+			BOOL			Save(void);
 	
 	virtual BOOL			WritePointer(CPointerObject pObject);
+			BOOL			WriteHeader(CBaseObject* pcBaseObject);
+	virtual BOOL			WriteDependent(CBaseObject* pcBaseObject);
 
 			void*			GetData(void);
 			int				GetLength(void);
 
 protected:
-			BOOL			PrivateWritePointer(CBaseObject* pcObject);
 			filePos			Write(const void* pvSource, filePos iSize, filePos iCount);
 };
 

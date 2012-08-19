@@ -16,9 +16,7 @@ public:
 	void		Kill(void);
 
 	BOOL		WritePointer(CPointerObject pObject);
-
-protected:
-	BOOL		WriteDependent(CBaseObject* pcObject);
+	BOOL		WriteDependent(CBaseObject* pcBaseObject);
 };
 
 

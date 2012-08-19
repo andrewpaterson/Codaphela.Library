@@ -20,7 +20,6 @@ void CString::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CString::Save(CObjectSerialiser* pcFile)
 {
-	ReturnOnFalse(SaveHeader(pcFile));
 	return pcFile->WriteString(this);
 }
 
