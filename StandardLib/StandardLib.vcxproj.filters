@@ -124,6 +124,9 @@
     <Filter Include="Source\File\Chunk">
       <UniqueIdentifier>{a9727c0f-808f-423d-ac01-83f734db49c3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Object\Object\Source\Chunk">
+      <UniqueIdentifier>{4e548420-22fe-4037-b223-8ce34e9f42f6}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Base.h">
@@ -375,6 +378,15 @@
     <ClInclude Include="ObjectConverter.h">
       <Filter>Source\Object\Object\Source</Filter>
     </ClInclude>
+    <ClInclude Include="ObjectConverterChunked.h">
+      <Filter>Source\Object\Object\Source\Chunk</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectSourceChunked.h">
+      <Filter>Source\Object\Object\Source\Chunk</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectMultipleSource.h">
+      <Filter>Source\Object\Object\Source</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Unknown.cpp">
@@ -594,6 +606,15 @@
       <Filter>Source\Object\Object\Source</Filter>
     </ClCompile>
     <ClCompile Include="ObjectConverter.cpp">
+      <Filter>Source\Object\Object\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjectConverterChunked.cpp">
+      <Filter>Source\Object\Object\Source\Chunk</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjectSourceChunked.cpp">
+      <Filter>Source\Object\Object\Source\Chunk</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjectMultipleSource.cpp">
       <Filter>Source\Object\Object\Source</Filter>
     </ClCompile>
   </ItemGroup>

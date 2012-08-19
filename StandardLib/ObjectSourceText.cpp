@@ -8,7 +8,7 @@
 //////////////////////////////////////////////////////////////////////////
 void CObjectSourceText::Init(CObjectConverter* pcConverter, CAbstractFile* pcFile, char* szFileName)
 {
-	CObjectSource::Init(pcConverter, pcFile, szFileName);
+	CObjectSingleSource::Init(pcConverter, pcFile, szFileName);
 }
 
 
@@ -18,6 +18,6 @@ void CObjectSourceText::Init(CObjectConverter* pcConverter, CAbstractFile* pcFil
 //////////////////////////////////////////////////////////////////////////
 void CObjectSourceText::Kill(void)
 {
-	CObjectSource::Kill();
+	CObjectSingleSource::Kill();
 }
 

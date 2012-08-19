@@ -95,9 +95,12 @@
     <ClInclude Include="NamedIndexesFileDumper.h" />
     <ClInclude Include="NamedIndexesOptimiser.h" />
     <ClInclude Include="ObjectConverter.h" />
+    <ClInclude Include="ObjectConverterChunked.h" />
     <ClInclude Include="ObjectConverterText.h" />
     <ClInclude Include="ObjectFileGeneral.h" />
+    <ClInclude Include="ObjectMultipleSource.h" />
     <ClInclude Include="ObjectSingleSource.h" />
+    <ClInclude Include="ObjectSourceChunked.h" />
     <ClInclude Include="ObjectSourceText.h" />
     <ClInclude Include="Parameters.h" />
     <ClInclude Include="String.h" />
@@ -179,8 +182,11 @@
     <ClCompile Include="NamedIndexesFileDumper.cpp" />
     <ClCompile Include="NamedIndexesOptimiser.cpp" />
     <ClCompile Include="ObjectConverter.cpp" />
+    <ClCompile Include="ObjectConverterChunked.cpp" />
     <ClCompile Include="ObjectConverterText.cpp" />
+    <ClCompile Include="ObjectMultipleSource.cpp" />
     <ClCompile Include="ObjectSingleSource.cpp" />
+    <ClCompile Include="ObjectSourceChunked.cpp" />
     <ClCompile Include="ObjectSourceText.cpp" />
     <ClCompile Include="String.cpp" />
     <ClCompile Include="Unknown.cpp" />

@@ -401,6 +401,50 @@ int CArrayString::GetIndex(char* szStart, int iLen)
 	return -1;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+int CArrayString::FindInSorted(char* szString, BOOL bCaseSensitive)
+{
+	CChars	szFake;
+
+	szFake.Fake(szString);
+	return FindInSorted(&szFake, bCaseSensitive);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+int CArrayString::FindInSorted(CChars* szString, BOOL bCaseSensitive)
+{
+	int(*Func)(const void*, const void*);
+	int		iIndex;
+	BOOL	bResult;
+
+	if (bCaseSensitive)
+	{
+		Func = CompareChars;
+	}
+	else
+	{
+		Func = CompareCharsIgnoreCase;
+	}
+	bResult = mcArray.FindInSorted(szString, Func, &iIndex);
+	if (!bResult)
+	{
+		return -1;
+	}
+	else
+	{
+		return iIndex;
+	}
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//

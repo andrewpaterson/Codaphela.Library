@@ -55,6 +55,8 @@ public:
 	char*		GetText(int iIndex);
 	int			GetIndex(char* szStart, int iLen);
 	int			GetIndex(char* szStart);
+	int			FindInSorted(char* szString, BOOL bCaseSensitive = TRUE);
+	int			FindInSorted(CChars* szString, BOOL bCaseSensitive = TRUE);
 	void		Copy(CArrayString* pcSource);
 	BOOL		Equals(CArrayString* pcOther);
 	BOOL		Contains(char* szText);
