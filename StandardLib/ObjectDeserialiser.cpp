@@ -18,5 +18,43 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "CoreLib/IndexedGeneral.h"
+#include "ObjectFileGeneral.h"
+#include "PointerObject.h"
 #include "ObjectDeserialiser.h"
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CObjectDeserialiser::ReadPointer(CPointerObject* pcPointerObject)
+{
+	OIndex		oi;
+	char		c;
+	CChars		szName;
+
+	ReturnOnFalse(ReadChar(&c));
+
+	pcPointerObject->Clear();
+	if (c == OBJECT_POINTER_NULL)
+	{
+		return TRUE;
+	}
+	else if (c == OBJECT_POINTER_ID)
+	{
+		ReturnOnFalse(ReadLong(&oi));
+		return FALSE;
+	}
+	else if (c == OBJECT_POINTER_NAMED)
+	{
+		ReturnOnFalse(ReadString(&szName));
+		szName.Kill();
+		return FALSE;
+	}
+	else
+	{
+		return FALSE;
+	}
+}
 

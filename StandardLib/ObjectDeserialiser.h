@@ -26,6 +26,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 class CObjectDeserialiser : public CFileReader
 {
 public:
+	BOOL ReadPointer(CPointerObject* pcPointerObject);
 };
 
 

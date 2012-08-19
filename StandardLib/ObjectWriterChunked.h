@@ -20,6 +20,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __OBJECT_WRITER_CHUNKED_H__
 #define __OBJECT_WRITER_CHUNKED_H__
+#include "ChunkFileNames.h"
 #include "ObjectWriter.h"
 
 
