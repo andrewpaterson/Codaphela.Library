@@ -1,0 +1,1 @@
+This library is no longer supported.  It has been partially moved into SupportLib.
