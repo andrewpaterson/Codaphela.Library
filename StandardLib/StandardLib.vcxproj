@@ -188,6 +188,7 @@
     <ClCompile Include="ObjectSingleSource.cpp" />
     <ClCompile Include="ObjectSourceChunked.cpp" />
     <ClCompile Include="ObjectSourceText.cpp" />
+    <ClCompile Include="ObjectWriter.cpp" />
     <ClCompile Include="String.cpp" />
     <ClCompile Include="Unknown.cpp" />
     <ClCompile Include="SetUnknown.cpp" />

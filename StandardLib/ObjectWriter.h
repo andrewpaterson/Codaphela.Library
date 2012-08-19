@@ -27,8 +27,20 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 class CObjectWriter : public CUnknown
 {
 BASE_FUNCTIONS(CObjectWriter);
+protected:
+	CChars				mszDirectory;
+	CChars				mszBaseName;
+
 public:
+			void Init(char* szDirectory, char* szBaseName);
+			void Kill(void);
+
+	virtual BOOL Begin(void);
 	virtual BOOL Write(OIndex oi, char* szObjectName, void* pvObject, int iLength) =0;
+	virtual BOOL End(void);
+
+			BOOL ObjectStartsWithBase(char* szObjectName);
+			void RemainingName(CChars* pszRemainingName, char* szObjectName);
 };
 
 

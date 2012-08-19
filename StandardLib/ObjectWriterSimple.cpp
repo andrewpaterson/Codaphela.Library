@@ -28,9 +28,9 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectWriterSimple::Init(char* szDirectory)
+void CObjectWriterSimple::Init(char* szDirectory, char* szBaseName)
 {
-	mszDirectory.Init(szDirectory);
+	CObjectWriter::Init(szDirectory, szBaseName);
 }
 
 
@@ -40,7 +40,27 @@ void CObjectWriterSimple::Init(char* szDirectory)
 //////////////////////////////////////////////////////////////////////////
 void CObjectWriterSimple::Kill(void)
 {
-	mszDirectory.Kill();
+	CObjectWriter::Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CObjectWriterSimple::Begin(void)
+{
+	return CObjectWriter::Begin();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CObjectWriterSimple::End(void)
+{
+	return CObjectWriter::End();
 }
 
 
@@ -56,6 +76,8 @@ BOOL CObjectWriterSimple::Write(OIndex oi, char* szObjectName, void* pvObject, i
 	CFileBasic		cFile;
 	CChars			szFullName;
 	char*			szExtension;
+
+	ReturnOnFalse(ObjectStartsWithBase(szObjectName));
 
 	szFileName.Init();
 	szDirectory.Init();

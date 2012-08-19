@@ -617,5 +617,8 @@
     <ClCompile Include="ObjectSerialiser.cpp">
       <Filter>Source\Object\Object\IO\Serilalisation</Filter>
     </ClCompile>
+    <ClCompile Include="ObjectWriter.cpp">
+      <Filter>Source\Object\Object\IO\Writing</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

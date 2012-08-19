@@ -51,6 +51,8 @@ BOOL CObjectGraphWriter::Write(CBaseObject* pcObject)
 {
 	CBaseObject*	pcUnwritten;
 
+	ReturnOnFalse(mpcWriter->Begin());
+
 	AddDependent(pcObject);
 
 	for (;;)
@@ -65,7 +67,8 @@ BOOL CObjectGraphWriter::Write(CBaseObject* pcObject)
 			break;
 		}
 	}
-	return TRUE;
+
+	return mpcWriter->End();
 }
 
 

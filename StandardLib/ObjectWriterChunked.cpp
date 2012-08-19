@@ -31,25 +31,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CObjectWriterChunked::Init(char* szDirectory, char* szBaseName)
 {
-	CDiskFile*	pcDiskFile;
-	CFileUtil	cFileUtil;
-	CChars		szFullDirectory;
-
-	mszDirectory.Init(szDirectory);
-	mszBaseName.Init(szBaseName);
-	if (mszBaseName.EndsWith("/"))
-	{
-		mszBaseName.RemoveLastCharacter();
-	}
-
-	szFullDirectory.Init(szDirectory);
-	cFileUtil.AppendToPath(&szFullDirectory, szBaseName);
-
-	pcDiskFile = DiskFile(szFullDirectory.Text());
-	szFullDirectory.Kill();
-
-	mcChunkFile.Init(pcDiskFile);
-	mcChunkFile.WriteOpen();
+	CObjectWriter::Init(szDirectory, szBaseName);
 }
 
 
@@ -59,11 +41,43 @@ void CObjectWriterChunked::Init(char* szDirectory, char* szBaseName)
 //////////////////////////////////////////////////////////////////////////
 void CObjectWriterChunked::Kill(void)
 {
+	CObjectWriter::Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CObjectWriterChunked::Begin(void)
+{
+	CDiskFile*	pcDiskFile;
+	CFileUtil	cFileUtil;
+	CChars		szFullDirectory;
+
+	CObjectWriter::Begin();
+
+	szFullDirectory.Init(mszDirectory);
+	cFileUtil.AppendToPath(&szFullDirectory, mszBaseName.Text());
+
+	pcDiskFile = DiskFile(szFullDirectory.Text());
+	szFullDirectory.Kill();
+
+	mcChunkFile.Init(pcDiskFile);
+	return mcChunkFile.WriteOpen();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CObjectWriterChunked::End(void)
+{
 	mcChunkFile.WriteClose();
 	mcChunkFile.Kill();
 
-	mszDirectory.Kill();
-	mszBaseName.Kill();
+	return CObjectWriter::End();
 }
 
 
@@ -74,21 +88,9 @@ void CObjectWriterChunked::Kill(void)
 BOOL CObjectWriterChunked::Write(OIndex oi, char* szObjectName, void* pvObject, int iLength)
 {
 	CChars	szRemainingName;
-	BOOL	bResult;
 
-	szRemainingName.Init(szObjectName);
-	bResult = szRemainingName.StartsWith(mszBaseName.Text());
-	if (!bResult)
-	{
-		szRemainingName.Kill();
-		return FALSE;
-	}
-
-	szRemainingName.RemoveFromStart(mszBaseName.Length());
-	if (szRemainingName.StartsWith("/"))
-	{
-		szRemainingName.RemoveCharacter(0);
-	}
+	ReturnOnFalse(ObjectStartsWithBase(szObjectName));
+	RemainingName(&szRemainingName, szObjectName);
 
 	ReturnOnFalse(mcChunkFile.WriteChunkBegin(szRemainingName.Text()));
 

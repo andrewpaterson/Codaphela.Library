@@ -27,15 +27,15 @@ class CObjectWriterChunked : public CObjectWriter
 {
 BASE_FUNCTIONS(CObjectWriterChunked);
 protected:
-	CChars				mszDirectory;
-	CChars				mszBaseName;
 	CChunkFileNames		mcChunkFile;
 
 public:
 	void Init(char* szDirectory, char* szBaseName);
 	void Kill(void);
 
+	BOOL Begin(void);
 	BOOL Write(OIndex oi, char* szObjectName, void* pvObject, int iLength);
+	BOOL End(void);
 };
 
 
