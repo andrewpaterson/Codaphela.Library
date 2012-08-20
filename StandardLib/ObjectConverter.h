@@ -2,6 +2,8 @@
 #define __OBJECT_CONVERTER_H__
 #include "Unknown.h"
 #include "ObjectSource.h"
+#include "HollowObject.h"
+#include "NamedHollowObject.h"
 
 
 class CObjectConverter : public CUnknown

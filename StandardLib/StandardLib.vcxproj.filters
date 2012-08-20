@@ -130,6 +130,9 @@
     <Filter Include="Source\Object\Object\Source\Native">
       <UniqueIdentifier>{4e548420-22fe-4037-b223-8ce34e9f42f6}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Object\Object\IO\Reader">
+      <UniqueIdentifier>{1fea8d17-7695-4b54-9773-e80e042c3ac2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Base.h">
@@ -345,9 +348,6 @@
     <ClInclude Include="String.h">
       <Filter>Source\Data\String</Filter>
     </ClInclude>
-    <ClInclude Include="ObjectFileGeneral.h">
-      <Filter>Source\Object\Object\IO\Writing</Filter>
-    </ClInclude>
     <ClInclude Include="DependentObjects.h">
       <Filter>Source\Object\Object\IO\Graph</Filter>
     </ClInclude>
@@ -398,6 +398,24 @@
     </ClInclude>
     <ClInclude Include="ObjectSourceNative.h">
       <Filter>Source\Object\Object\Source\Native</Filter>
+    </ClInclude>
+    <ClInclude Include="NamedHollowObject.h">
+      <Filter>Source\Object\Object\Named</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectReaderChunked.h">
+      <Filter>Source\Object\Object\IO\Reader</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectFileGeneral.h">
+      <Filter>Source\Object\Object\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectGraphDeserialiser.h">
+      <Filter>Source\Object\Object\IO\Graph</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectReader.h">
+      <Filter>Source\Object\Object\IO\Reader</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectReaderSimple.h">
+      <Filter>Source\Object\Object\IO\Reader</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -637,6 +655,21 @@
     </ClCompile>
     <ClCompile Include="ObjectSourceNative.cpp">
       <Filter>Source\Object\Object\Source\Native</Filter>
+    </ClCompile>
+    <ClCompile Include="NamedHollowObject.cpp">
+      <Filter>Source\Object\Object\Named</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjectReaderChunked.cpp">
+      <Filter>Source\Object\Object\IO\Reader</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjectGraphDeserialiser.cpp">
+      <Filter>Source\Object\Object\IO\Graph</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjectReader.cpp">
+      <Filter>Source\Object\Object\IO\Reader</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjectReaderSimple.cpp">
+      <Filter>Source\Object\Object\IO\Reader</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

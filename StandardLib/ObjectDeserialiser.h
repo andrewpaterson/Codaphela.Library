@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __OBJECT_READER_H__
-#define __OBJECT_READER_H__
+#ifndef __OBJECT_DESERIALISER_H__
+#define __OBJECT_DESERIALISER_H__
 #include "BaseLib/FileReader.h"
 #include "Pointer.h"
 
@@ -33,4 +33,4 @@ public:
 };
 
 
-#endif // __OBJECT_READER_H__
+#endif // __OBJECT_DESERIALISER_H__
