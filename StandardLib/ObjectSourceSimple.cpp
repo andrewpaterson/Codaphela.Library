@@ -1,15 +1,14 @@
-#include "Unknowns.h"
-#include "Objects.h"
-#include "ObjectSourceChunked.h"
-#include "ObjectConverterChunked.h"
+#include "ObjectSourceSimple.h"
+#include "ObjectConverterNative.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectConverterChunked::Init(void)
+void CObjectSourceSimple::Init(CObjectConverter* pcConverter, CAbstractFile* pcFile, char* szFileName)
 {
+	CObjectSingleSource::Init(pcConverter, pcFile, szFileName);
 }
 
 
@@ -17,9 +16,9 @@ void CObjectConverterChunked::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectConverterChunked::Kill(void)
+void CObjectSourceSimple::Kill(void)
 {
-	CObjectConverter::Kill();
+	CObjectSingleSource::Kill();
 }
 
 
@@ -27,17 +26,7 @@ void CObjectConverterChunked::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CObjectConverterChunked::GetFileExtension(void)
-{
-	return "DRG";
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CObjectConverterChunked::IsFor(CAbstractFile* pcFile)
+BOOL CObjectSourceSimple::IsSimple(void)
 {
 	return TRUE;
 }
@@ -47,13 +36,9 @@ BOOL CObjectConverterChunked::IsFor(CAbstractFile* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CObjectSource* CObjectConverterChunked::CreateSource(CAbstractFile* pcFile, char* szFileName)
+BOOL CObjectSourceSimple::Contains(char* szFullName)
 {
-	CObjectSourceChunked*	pcSource;
-
-	pcSource = UMalloc(CObjectSourceChunked);
-	pcSource->Init(this, pcFile, szFileName);
-	return pcSource;
+	return CObjectSingleSource::Contains(szFullName);
 }
 
 
@@ -61,8 +46,18 @@ CObjectSource* CObjectConverterChunked::CreateSource(CAbstractFile* pcFile, char
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointerObject CObjectConverterChunked::Convert(CAbstractFile* pcFile, char* szFileName)
+CPointerObject CObjectSourceSimple::Convert(void)
 {
-	return ONull;
+	return CObjectSingleSource::Convert();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CPointerObject CObjectSourceSimple::Convert(char* szFullName)
+{
+	return CObjectSingleSource::Convert(szFullName);
 }
 

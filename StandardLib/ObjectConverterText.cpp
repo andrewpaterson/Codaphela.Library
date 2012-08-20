@@ -53,6 +53,11 @@ CObjectSource* CObjectConverterText::CreateSource(CAbstractFile* pcFile, char* s
 {
 	CObjectSourceText*	pcSource;
 
+	if ((!pcFile) || (!szFileName))
+	{
+		return NULL;
+	}
+
 	pcSource = UMalloc(CObjectSourceText);
 	pcSource->Init(this, pcFile, szFileName);
 	return pcSource;

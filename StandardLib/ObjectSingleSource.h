@@ -27,12 +27,12 @@ class CObjectSingleSource : public CObjectSource
 {
 BASE_FUNCTIONS(CObjectSingleSource);
 public:
-					void			Init(CObjectConverter* pcConverter, CAbstractFile* pcFile, char* szFileName);
-					void			Kill(void);
+			void			Init(CObjectConverter* pcConverter, CAbstractFile* pcFile, char* szFileName);
+			void			Kill(void);
 
-			virtual CPointerObject	Convert(void);
-					CPointerObject	Convert(char* szFullName);
-					BOOL			Contains(char* szFullName);
+	virtual CPointerObject	Convert(void);
+			CPointerObject	Convert(char* szFullName);
+			BOOL			Contains(char* szFullName);
 };
 
 

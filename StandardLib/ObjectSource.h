@@ -41,6 +41,8 @@ public:
 
 	virtual CPointerObject	Convert(char* szFullName) =0;
 	virtual BOOL			Contains(char* szFullName) =0;
+
+	virtual BOOL			IsNative(void);
 };
 
 
