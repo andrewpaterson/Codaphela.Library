@@ -1,4 +1,5 @@
 #include "ObjectGraphDeserialiser.h"
+#include "ObjectHeader.h"
 #include "DependentObjectDeserialiser.h"
 
 
@@ -30,7 +31,14 @@ void CDependentObjectDeserialiser::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CDependentObjectDeserialiser::ReadPointer(CPointerObject* pObject)
 {
-	return FALSE;
+	CPointerHeader	cHeader;
+	BOOL			bResult;
+
+	ClearPointer(pObject);
+	bResult = ReadPointerHeader(&cHeader);
+	mpcGraphDeserialiser->DoShitWith(&cHeader);
+	cHeader.Kill();
+	return bResult;
 }
 
 
@@ -38,7 +46,14 @@ BOOL CDependentObjectDeserialiser::ReadPointer(CPointerObject* pObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CDependentObjectDeserialiser::ReadDependent(CBaseObject* pcBaseObject)
+BOOL CDependentObjectDeserialiser::ReadDependent(CUnknown** ppcUnknown)
 {
-	return FALSE;
+	CPointerHeader	cHeader;
+	BOOL			bResult;
+
+	*ppcUnknown = NULL;
+	bResult = ReadPointerHeader(&cHeader);
+	mpcGraphDeserialiser->DoShitWith(&cHeader);
+	cHeader.Kill();
+	return bResult;
 }

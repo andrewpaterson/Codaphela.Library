@@ -124,6 +124,8 @@ BOOL CArrayCommonUnknown::LoadArrayHeader(CFileReader* pcFile, int* piFlags, int
 	ReturnOnFalse(pcFile->ReadInt(piFlags));
 
 	bTypeKnown = FixBool(*piFlags & ARRAY_COMMOM_TYPE_KNOWN);
+
+	//These are all set to false because the flags will be fixed later.
 	Init(bTypeKnown, FALSE, FALSE, FALSE, FALSE, iChunkSize);
 	return TRUE;
 }
@@ -665,6 +667,16 @@ void CArrayCommonUnknown::UnsafeSet(int iIndex, CUnknown* pcUnknown)
 CUnknown* CArrayCommonUnknown::UnsafeGet(int iIndex)
 {
 	return *mcArray.Get(iIndex);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CUnknown** CArrayCommonUnknown::UnsafeGetPointer(int iIndex)
+{
+	return mcArray.Get(iIndex);
 }
 
 

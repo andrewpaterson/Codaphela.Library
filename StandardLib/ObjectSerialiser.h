@@ -38,7 +38,7 @@ public:
 			BOOL			Save(void);
 	
 	virtual BOOL			WritePointer(CPointerObject pObject);
-			BOOL			WriteHeader(CBaseObject* pcBaseObject);
+			BOOL			WritePointerHeader(CBaseObject* pcBaseObject);
 	virtual BOOL			WriteDependent(CBaseObject* pcBaseObject);
 
 			void*			GetData(void);

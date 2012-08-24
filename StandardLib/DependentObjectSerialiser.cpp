@@ -41,7 +41,7 @@ BOOL CDependentObjectSerialiser::WriteDependent(CBaseObject* pcBaseObject)
 {
 	BOOL		bResult;
 
-	bResult = WriteHeader(pcBaseObject);
+	bResult = WritePointerHeader(pcBaseObject);
 	if ((pcBaseObject) && (bResult))
 	{
 		mpcGraphSerialiser->AddDependent(pcBaseObject);

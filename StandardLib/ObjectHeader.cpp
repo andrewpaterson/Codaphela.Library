@@ -29,8 +29,9 @@ void CPointerHeader::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CObjectHeader::Init(void)
 {
-	CPointerHeader::Init();
+	//This should not call CPointerHeader::Init.
 	mszClassName.Zero();
+	miClassSize = 0;
 }
 
 

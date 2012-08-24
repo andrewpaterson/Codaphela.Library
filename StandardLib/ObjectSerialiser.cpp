@@ -60,7 +60,7 @@ BOOL CObjectSerialiser::Save(void)
 
 	bResult = WriteInt(0);
 	ReturnOnFalse(bResult);
-	bResult = WriteHeader(mpcThis);
+	bResult = WritePointerHeader(mpcThis);
 	ReturnOnFalse(bResult);
 	bResult = mpcThis->SaveHeader(this);
 	ReturnOnFalse(bResult);
@@ -85,7 +85,7 @@ BOOL CObjectSerialiser::WritePointer(CPointerObject pObject)
 	CBaseObject*	pcBaseObject;
 
 	pcBaseObject = &pObject;
-	return WriteHeader(pcBaseObject);
+	return WritePointerHeader(pcBaseObject);
 }
 
 
@@ -95,7 +95,7 @@ BOOL CObjectSerialiser::WritePointer(CPointerObject pObject)
 //////////////////////////////////////////////////////////////////////////
 BOOL CObjectSerialiser::WriteDependent(CBaseObject* pcBaseObject)
 {
-	return WriteHeader(pcBaseObject);
+	return WritePointerHeader(pcBaseObject);
 }
 
 
@@ -103,7 +103,7 @@ BOOL CObjectSerialiser::WriteDependent(CBaseObject* pcBaseObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectSerialiser::WriteHeader(CBaseObject* pcObject)
+BOOL CObjectSerialiser::WritePointerHeader(CBaseObject* pcObject)
 {
 	OIndex		oi;
 	int			c;

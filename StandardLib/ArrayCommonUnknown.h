@@ -92,6 +92,7 @@ public:
 	BOOL		IsNotEmpty(void);
 	void		UnsafeSet(int iIndex, CUnknown* pcUnknown);
 	CUnknown*	UnsafeGet(int iIndex);
+	CUnknown**	UnsafeGetPointer(int iIndex);
 	int			UnsafeNumElements(void);
 	BOOL		LoadArrayHeader(CFileReader* pcFile, int* piFlags, int* piNumElements);
 	BOOL		SaveArrayHeader(CFileWriter* pcFile);

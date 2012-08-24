@@ -7,14 +7,14 @@ class CObjectGraphDeserialiser;
 class CDependentObjectDeserialiser : public CObjectDeserialiser
 {
 protected:
-	CObjectGraphDeserialiser* mpcGraphDeserialiser;
+	CObjectGraphDeserialiser*	mpcGraphDeserialiser;
 
 public:
 	void Init(CObjectGraphDeserialiser* pcGraphDeserialiser, CSerialisedObject* pcSerialised);
 	void Kill(void);
 
 	BOOL ReadPointer(CPointerObject* pObject);
-	BOOL ReadDependent(CBaseObject* pcBaseObject);
+	BOOL ReadDependent(CUnknown** ppcUnknown);
 };
 
 

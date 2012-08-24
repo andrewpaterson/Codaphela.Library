@@ -41,13 +41,14 @@ public:
 	virtual void			Kill(void);
 			CPointerObject	Load(void);
 
-	virtual BOOL			ReadPointer(CPointerObject* pObject);
+	virtual BOOL			ReadPointer(CPointerObject* pObject) =0;
 			BOOL			ReadPointerHeader(CPointerHeader* pcPointerHeader);
 			BOOL			ReadObjectHeader(CObjectHeader* pcObjectHeader);
-	virtual BOOL			ReadDependent(CBaseObject* pcBaseObject);
+	virtual BOOL			ReadDependent(CUnknown** ppcUnknown) =0;
 
 protected:
 			filePos			Read(void* pvDest, filePos iSize, filePos iCount);
+			void			ClearPointer(CPointerObject* pObject);
 };
 
 

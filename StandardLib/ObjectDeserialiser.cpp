@@ -77,6 +77,8 @@ CPointerObject CObjectDeserialiser::Load(void)
 		return ONull;
 	}
 
+	CPointerObject	pObject;
+
 	if (sHeader.mcType == OBJECT_POINTER_NULL)
 	{
 		sHeader.Kill();
@@ -84,27 +86,21 @@ CPointerObject CObjectDeserialiser::Load(void)
 	}
 	else if (sHeader.mcType == OBJECT_POINTER_ID)
 	{
-		CPointerObject	pObject;
 
 		pObject = gcObjects.Add(sHeader.mszClassName.Text(), sHeader.moi);
-		sHeader.Kill();
-		return pObject;
 	}
 	else if (sHeader.mcType == OBJECT_POINTER_NAMED)
 	{
-		CPointerObject	pObject;
-
 		pObject = gcObjects.Add(sHeader.mszClassName.Text(), sHeader.mszObjectName.Text(), sHeader.moi);
-		sHeader.Kill();
-		return pObject;
 	}
+	sHeader.Kill();
 
-	//bResult = mpcThis->Save(this);
-	//ReturnOnFalse(bResult);
-	//iLength = mcFile.GetFileLength();
-	//mcFile.Seek(0);
-	//bResult = WriteInt((int)iLength);
-	//ReturnOnFalse(bResult);
+	bResult = pObject->Load(this);
+	if (!bResult)
+	{
+		pObject->Kill();
+		return ONull;
+	}
 
 	bResult = mcFile.Close();
 	return ONull;
@@ -117,12 +113,16 @@ CPointerObject CObjectDeserialiser::Load(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CObjectDeserialiser::ReadPointer(CPointerObject* pObject)
 {
-	CBaseObject*	pcBaseObject;
+	CPointerHeader	cHeader;
+	BOOL			bResult;
 
-	pObject->Clear();
-	pcBaseObject = &*pObject;
-	//return ReadHeader(pcBaseObject);
-	return FALSE;
+	//This *is* the complete implementation of ReadPointer for this class.
+	//The sub classes known how to load/find pointed to objects but not this class.
+
+	ClearPointer(pObject);
+	bResult = ReadPointerHeader(&cHeader);
+	cHeader.Kill();
+	return bResult;
 }
 
 
@@ -132,8 +132,28 @@ BOOL CObjectDeserialiser::ReadPointer(CPointerObject* pObject)
 //////////////////////////////////////////////////////////////////////////
 BOOL CObjectDeserialiser::ReadPointerHeader(CPointerHeader* pcPointerHeader)
 {
-	//CopyPaste below
-	return FALSE;
+	pcPointerHeader->Init();
+
+	ReturnOnFalse(ReadInt(&pcPointerHeader->mcType));
+
+	if (pcPointerHeader->mcType == OBJECT_POINTER_NULL)
+	{
+		return TRUE;
+	}
+	else if (pcPointerHeader->mcType == OBJECT_POINTER_ID)
+	{
+		ReturnOnFalse(ReadLong(&pcPointerHeader->moi));
+	}
+	else if (pcPointerHeader->mcType == OBJECT_POINTER_NAMED)
+	{
+		ReturnOnFalse(ReadLong(&pcPointerHeader->moi));
+		ReturnOnFalse(ReadString(&pcPointerHeader->mszObjectName));
+	}
+	else
+	{
+		return FALSE;
+	}
+	return TRUE;
 }
 
 
@@ -144,27 +164,7 @@ BOOL CObjectDeserialiser::ReadPointerHeader(CPointerHeader* pcPointerHeader)
 BOOL CObjectDeserialiser::ReadObjectHeader(CObjectHeader* pcObjectHeader)
 {
 	pcObjectHeader->Init();
-
-	ReturnOnFalse(ReadInt(&pcObjectHeader->mcType));
-
-	if (pcObjectHeader->mcType == OBJECT_POINTER_NULL)
-	{
-		return TRUE;
-	}
-	else if (pcObjectHeader->mcType == OBJECT_POINTER_ID)
-	{
-		ReturnOnFalse(ReadLong(&pcObjectHeader->moi));
-	}
-	else if (pcObjectHeader->mcType == OBJECT_POINTER_NAMED)
-	{
-		ReturnOnFalse(ReadLong(&pcObjectHeader->moi));
-		ReturnOnFalse(ReadString(&pcObjectHeader->mszObjectName));
-	}
-	else
-	{
-		return FALSE;
-	}
-
+	ReturnOnFalse(ReadPointerHeader(pcObjectHeader));
 	ReturnOnFalse(ReadInt(&pcObjectHeader->miClassSize));
 	ReturnOnFalse(ReadString(&pcObjectHeader->mszClassName));
 	return TRUE;
@@ -175,9 +175,9 @@ BOOL CObjectDeserialiser::ReadObjectHeader(CObjectHeader* pcObjectHeader)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectDeserialiser::ReadDependent(CBaseObject* pcBaseObject)
+filePos CObjectDeserialiser::Read(void* pvDest, filePos iSize, filePos iCount)
 {
-	return FALSE;
+	return mcFile.Read(pvDest, iSize, iCount);
 }
 
 
@@ -185,8 +185,27 @@ BOOL CObjectDeserialiser::ReadDependent(CBaseObject* pcBaseObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-filePos CObjectDeserialiser::Read(void* pvDest, filePos iSize, filePos iCount)
+void CObjectDeserialiser::ClearPointer(CPointerObject* pObject)
 {
-	return mcFile.Read(pvDest, iSize, iCount);
+	pObject->Clear();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CObjectDeserialiser::ReadDependent(CUnknown** ppcUnknown)
+{
+	CPointerHeader	cHeader;
+	BOOL			bResult;
+
+	//This *is* the complete implementation of ReadDependent for this class.
+	//The sub classes known how to load/find dependent objects but not this.
+
+	*ppcUnknown = NULL;
+	bResult = ReadPointerHeader(&cHeader);
+	cHeader.Kill();
+	return bResult;
 }
 
