@@ -5,21 +5,22 @@
 #include "ObjectFileGeneral.h"
 
 
+struct SSerialisedName
+{
+	int		miLength;
+	char	msz[4];
+};
+
+
 class CSerialisedObject
 {
 protected:
-	int		miLength;
-	char	mszType[4];
+	int					miLength;
+	char				mszType[4];
 
-	union
-	{
-		struct SSerialisedName
-		{
-			int		miLength;
-			char	msz[4];
-		} name;
-		OIndex	moi;
-	};
+	OIndex				moi;
+
+	SSerialisedName		sName;
 
 public:
 	BOOL	IsNamed(void);
@@ -29,6 +30,9 @@ public:
 	char*	GetName(void);
 	OIndex	GetIndex(void);
 	int		GetLength(void);
+	void	SetLength(int iLength);
 };
 
+
 #endif // __SERIALISED_OBJECT_H__
+

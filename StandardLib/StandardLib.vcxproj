@@ -82,6 +82,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Base.h" />
+    <ClInclude Include="DependentObjectDeserialiser.h" />
     <ClInclude Include="DependentObjectSerialiser.h" />
     <ClInclude Include="ChunkFileNames.h" />
     <ClInclude Include="NamedHollowObject.h" />
@@ -100,6 +101,7 @@
     <ClInclude Include="ObjectConverterText.h" />
     <ClInclude Include="ObjectFileGeneral.h" />
     <ClInclude Include="ObjectGraphDeserialiser.h" />
+    <ClInclude Include="ObjectHeader.h" />
     <ClInclude Include="ObjectMultipleSource.h" />
     <ClInclude Include="ObjectReader.h" />
     <ClInclude Include="ObjectReaderChunked.h" />
@@ -177,6 +179,7 @@
     <ClInclude Include="TrackerTemplate.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="DependentObjectDeserialiser.cpp" />
     <ClCompile Include="DependentObjectSerialiser.cpp" />
     <ClCompile Include="ChunkFileNames.cpp" />
     <ClCompile Include="NamedHollowObject.cpp" />
@@ -194,6 +197,7 @@
     <ClCompile Include="ObjectConverterNative.cpp" />
     <ClCompile Include="ObjectConverterText.cpp" />
     <ClCompile Include="ObjectGraphDeserialiser.cpp" />
+    <ClCompile Include="ObjectHeader.cpp" />
     <ClCompile Include="ObjectMultipleSource.cpp" />
     <ClCompile Include="ObjectReader.cpp" />
     <ClCompile Include="ObjectReaderChunked.cpp" />

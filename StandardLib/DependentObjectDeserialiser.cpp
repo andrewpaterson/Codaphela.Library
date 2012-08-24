@@ -1,13 +1,15 @@
-#include "ObjectReader.h"
+#include "ObjectGraphDeserialiser.h"
+#include "DependentObjectDeserialiser.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectReader::Init(char* szFullDirectory)
+void CDependentObjectDeserialiser::Init(CObjectGraphDeserialiser* pcGraphDeserialiser, CSerialisedObject* pcSerialised)
 {
-	mszFullDirectory.Init(szFullDirectory);
+	mpcGraphDeserialiser = pcGraphDeserialiser;
+	CObjectDeserialiser::Init(pcSerialised);
 }
 
 
@@ -15,10 +17,10 @@ void CObjectReader::Init(char* szFullDirectory)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectReader::Kill(void)
+void CDependentObjectDeserialiser::Kill(void)
 {
-	mszFullDirectory.Kill();
-	CUnknown::Kill();
+	mpcGraphDeserialiser = NULL;
+	CObjectDeserialiser::Kill();
 }
 
 
@@ -26,9 +28,9 @@ void CObjectReader::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectReader::Begin(void)
+BOOL CDependentObjectDeserialiser::ReadPointer(CPointerObject* pObject)
 {
-	return TRUE;
+	return FALSE;
 }
 
 
@@ -36,8 +38,7 @@ BOOL CObjectReader::Begin(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectReader::End(void)
+BOOL CDependentObjectDeserialiser::ReadDependent(CBaseObject* pcBaseObject)
 {
-	return TRUE;
+	return FALSE;
 }
-

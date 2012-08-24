@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __OBJET_GRAPH_WRITER_H__
-#define __OBJET_GRAPH_WRITER_H__
+#ifndef __OBJET_GRAPH_SERIALISER_H__
+#define __OBJET_GRAPH_SERIALISER_H__
 #include "BaseObject.h"
 #include "ObjectWriter.h"
 #include "DependentObjects.h"
@@ -43,5 +43,5 @@ public:
 };
 
 
-#endif // __OBJET_GRAPH_WRITER_H__
+#endif // __OBJET_GRAPH_SERIALISER_H__
 

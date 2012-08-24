@@ -37,7 +37,7 @@ BOOL CSerialisedObject::IsVoid(void)
 //////////////////////////////////////////////////////////////////////////
 char* CSerialisedObject::GetName(void)
 {
-	return name.msz;
+	return sName.msz;
 }
 
 
@@ -58,5 +58,15 @@ OIndex CSerialisedObject::GetIndex(void)
 int CSerialisedObject::GetLength(void)
 {
 	return miLength;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CSerialisedObject::SetLength(int iLength)
+{
+	miLength = iLength;
 }
 

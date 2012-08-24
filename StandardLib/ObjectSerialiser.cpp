@@ -115,6 +115,7 @@ BOOL CObjectSerialiser::WriteHeader(CBaseObject* pcObject)
 		{
 			c = OBJECT_POINTER_ID;
 			WriteInt(c);
+
 			oi = pcObject->GetOI();
 			return WriteLong(oi);
 		}
@@ -122,6 +123,10 @@ BOOL CObjectSerialiser::WriteHeader(CBaseObject* pcObject)
 		{
 			c = OBJECT_POINTER_NAMED;
 			WriteInt(c);
+
+			oi = pcObject->GetOI();
+			WriteLong(oi);
+
 			szName = pcObject->GetName();
 			return WriteString(szName);
 		}

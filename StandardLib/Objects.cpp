@@ -81,12 +81,108 @@ void CObjects::AddWithID(CBaseObject* pvObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjects::AddWithIDAndName(CBaseObject* pvObject, char* szName)
+void CObjects::AddWithIDAndName(CBaseObject* pvObject, char* szObjectName)
 {
-	mcMemory.AddWithIDAndName(pvObject, moiNext, szName);
+	mcMemory.AddWithIDAndName(pvObject, moiNext, szObjectName);
 	StepNextObjectID();
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CPointerObject CObjects::Add(char* szClassName, OIndex oi)
+{
+	CBaseObject*	pvObject;
+
+	pvObject = (CBaseObject*)mpcUnknownsAllocatingFrom->Add(szClassName);
+	if (pvObject)
+	{
+		if (!pvObject->IsNamed())
+		{
+			CPointerObject	pObject;
+
+			mcMemory.AddWithID(pvObject, oi);
+			pObject.mpcObject = pvObject;
+			return pObject;
+		}
+		else
+		{
+			pvObject->Kill();
+			return ONull;
+		}
+	}
+	else
+	{
+		return ONull;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CPointerObject CObjects::Add(char* szClassName, char* szObjectName, OIndex oi)
+{
+	CBaseObject*	pvObject;
+
+	pvObject = (CBaseObject*)mpcUnknownsAllocatingFrom->Add(szClassName);
+	if (pvObject)
+	{
+		if (pvObject->IsNamed())
+		{
+			CPointerObject	pObject;
+
+			mcMemory.AddWithIDAndName(pvObject, oi, szObjectName);
+			pObject.mpcObject = pvObject;
+			return pObject;
+		}
+		else
+		{
+			pvObject->Kill();
+			return ONull;
+		}
+	}
+	else
+	{
+		return ONull;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CPointerObject CObjects::Add(char* szClassName, char* szObjectName)
+{
+	CBaseObject*	pvObject;
+
+	pvObject = (CBaseObject*)mpcUnknownsAllocatingFrom->Add(szClassName);
+	if (pvObject)
+	{
+		if (pvObject->IsNamed())
+		{
+			CPointerObject	pObject;
+
+			mcMemory.AddWithIDAndName(pvObject, moiNext, szObjectName);
+			StepNextObjectID();
+			pObject.mpcObject = pvObject;
+			return pObject;
+		}
+		else
+		{
+			pvObject->Kill();
+			return ONull;
+		}
+	}
+	else
+	{
+		return ONull;
+	}
+}
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -116,11 +212,11 @@ CPointerObject CObjects::Get(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointerObject CObjects::Get(char* szName)
+CPointerObject CObjects::Get(char* szObjectName)
 {
 	CBaseObject*	pvObject;
 
-	pvObject = mcMemory.Get(szName);
+	pvObject = mcMemory.Get(szObjectName);
 	if (pvObject)
 	{
 		CPointerObject		pObject;

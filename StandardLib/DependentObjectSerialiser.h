@@ -9,10 +9,10 @@ class CObjectGraphSerialiser;
 class CDependentObjectSerialiser : public CObjectSerialiser
 {
 protected:
-	CObjectGraphSerialiser*		mpcGraphWriter;
+	CObjectGraphSerialiser*		mpcGraphSerialiser;
 
 public:
-	void		Init(CObjectGraphSerialiser* pcGraphWriter, CBaseObject* pcObject);
+	void		Init(CObjectGraphSerialiser* pcGraphSerialiser, CBaseObject* pcObject);
 	void		Kill(void);
 
 	BOOL		WritePointer(CPointerObject pObject);

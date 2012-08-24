@@ -21,16 +21,35 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __OBJECT_DESERIALISER_H__
 #define __OBJECT_DESERIALISER_H__
 #include "BaseLib/FileReader.h"
+#include "BaseLib/MemoryFile.h"
+#include "SerialisedObject.h"
+#include "DependentObjects.h"
 #include "Pointer.h"
 
 
+class CObjectHeader;
+class CPointerHeader;
 class CObjectDeserialiser : public CFileReader
 {
+protected:
+	CSerialisedObject*	mpcSerialised;
+	CMemoryFile*		mpcMemory;
+	CFileBasic			mcFile;
+
 public:
-	virtual BOOL ReadPointer(CPointerObject* pObject);
-			BOOL ReadHeader(CBaseObject* pcBaseObject);
-	virtual BOOL ReadDependent(CBaseObject* pcBaseObject);
+			void			Init(CSerialisedObject* pcSerialised);
+	virtual void			Kill(void);
+			CPointerObject	Load(void);
+
+	virtual BOOL			ReadPointer(CPointerObject* pObject);
+			BOOL			ReadPointerHeader(CPointerHeader* pcPointerHeader);
+			BOOL			ReadObjectHeader(CObjectHeader* pcObjectHeader);
+	virtual BOOL			ReadDependent(CBaseObject* pcBaseObject);
+
+protected:
+			filePos			Read(void* pvDest, filePos iSize, filePos iCount);
 };
 
 
 #endif // __OBJECT_DESERIALISER_H__
+

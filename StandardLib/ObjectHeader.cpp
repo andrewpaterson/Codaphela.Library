@@ -1,13 +1,15 @@
-#include "ObjectReader.h"
+#include "ObjectHeader.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectReader::Init(char* szFullDirectory)
+void CPointerHeader::Init(void)
 {
-	mszFullDirectory.Init(szFullDirectory);
+	mcType = 0;
+	mszObjectName.Zero();
+	moi = 0;
 }
 
 
@@ -15,10 +17,9 @@ void CObjectReader::Init(char* szFullDirectory)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectReader::Kill(void)
+void CPointerHeader::Kill(void)
 {
-	mszFullDirectory.Kill();
-	CUnknown::Kill();
+	mszObjectName.Kill();
 }
 
 
@@ -26,9 +27,10 @@ void CObjectReader::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectReader::Begin(void)
+void CObjectHeader::Init(void)
 {
-	return TRUE;
+	CPointerHeader::Init();
+	mszClassName.Zero();
 }
 
 
@@ -36,8 +38,9 @@ BOOL CObjectReader::Begin(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectReader::End(void)
+void CObjectHeader::Kill(void)
 {
-	return TRUE;
+	mszClassName.Kill();
+	CPointerHeader::Kill();
 }
 

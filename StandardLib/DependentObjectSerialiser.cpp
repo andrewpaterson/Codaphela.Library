@@ -7,9 +7,9 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDependentObjectSerialiser::Init(CObjectGraphSerialiser* pcGraphWriter, CBaseObject* pcObject)
+void CDependentObjectSerialiser::Init(CObjectGraphSerialiser* pcGraphSerialiser, CBaseObject* pcObject)
 {
-	mpcGraphWriter = pcGraphWriter;
+	mpcGraphSerialiser = pcGraphSerialiser;
 	CObjectSerialiser::Init(pcObject);
 }
 
@@ -44,7 +44,7 @@ BOOL CDependentObjectSerialiser::WriteDependent(CBaseObject* pcBaseObject)
 	bResult = WriteHeader(pcBaseObject);
 	if ((pcBaseObject) && (bResult))
 	{
-		mpcGraphWriter->AddDependent(pcBaseObject);
+		mpcGraphSerialiser->AddDependent(pcBaseObject);
 	}
 	return bResult;
 }

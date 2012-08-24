@@ -20,8 +20,95 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include "CoreLib/IndexedGeneral.h"
 #include "ObjectFileGeneral.h"
-#include "PointerObject.h"
+#include "ObjectHeader.h"
+#include "Objects.h"
 #include "ObjectDeserialiser.h"
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CObjectDeserialiser::Init(CSerialisedObject* pcSerialised)
+{
+	mpcSerialised = pcSerialised;
+	mpcMemory = MemoryFile(pcSerialised, pcSerialised->GetLength());
+	mcFile.Init(mpcMemory);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CObjectDeserialiser::Kill(void)
+{
+	mcFile.Kill();
+	mpcSerialised = NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CPointerObject CObjectDeserialiser::Load(void)
+{
+	BOOL			bResult;
+	int				iLength;
+	CObjectHeader	sHeader;
+
+	bResult = mcFile.Open(EFM_Read);
+	if (!bResult)
+	{
+		return ONull;
+	}
+
+	bResult = ReadInt(&iLength);
+	if (!bResult)
+	{
+		return ONull;
+	}
+
+	bResult = ReadObjectHeader(&sHeader);
+	if (!bResult)
+	{
+		sHeader.Kill();
+		return ONull;
+	}
+
+	if (sHeader.mcType == OBJECT_POINTER_NULL)
+	{
+		sHeader.Kill();
+		return ONull;
+	}
+	else if (sHeader.mcType == OBJECT_POINTER_ID)
+	{
+		CPointerObject	pObject;
+
+		pObject = gcObjects.Add(sHeader.mszClassName.Text(), sHeader.moi);
+		sHeader.Kill();
+		return pObject;
+	}
+	else if (sHeader.mcType == OBJECT_POINTER_NAMED)
+	{
+		CPointerObject	pObject;
+
+		pObject = gcObjects.Add(sHeader.mszClassName.Text(), sHeader.mszObjectName.Text(), sHeader.moi);
+		sHeader.Kill();
+		return pObject;
+	}
+
+	//bResult = mpcThis->Save(this);
+	//ReturnOnFalse(bResult);
+	//iLength = mcFile.GetFileLength();
+	//mcFile.Seek(0);
+	//bResult = WriteInt((int)iLength);
+	//ReturnOnFalse(bResult);
+
+	bResult = mcFile.Close();
+	return ONull;
+}
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -34,7 +121,8 @@ BOOL CObjectDeserialiser::ReadPointer(CPointerObject* pObject)
 
 	pObject->Clear();
 	pcBaseObject = &*pObject;
-	return ReadHeader(pcBaseObject);
+	//return ReadHeader(pcBaseObject);
+	return FALSE;
 }
 
 
@@ -42,33 +130,44 @@ BOOL CObjectDeserialiser::ReadPointer(CPointerObject* pObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectDeserialiser::ReadHeader(CBaseObject* pcBaseObject)
+BOOL CObjectDeserialiser::ReadPointerHeader(CPointerHeader* pcPointerHeader)
 {
-	OIndex		oi;
-	int			c;
-	CChars		szName;
+	//CopyPaste below
+	return FALSE;
+}
 
-	ReturnOnFalse(ReadInt(&c));
 
-	if (c == OBJECT_POINTER_NULL)
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CObjectDeserialiser::ReadObjectHeader(CObjectHeader* pcObjectHeader)
+{
+	pcObjectHeader->Init();
+
+	ReturnOnFalse(ReadInt(&pcObjectHeader->mcType));
+
+	if (pcObjectHeader->mcType == OBJECT_POINTER_NULL)
 	{
 		return TRUE;
 	}
-	else if (c == OBJECT_POINTER_ID)
+	else if (pcObjectHeader->mcType == OBJECT_POINTER_ID)
 	{
-		ReturnOnFalse(ReadLong(&oi));
-		return FALSE;
+		ReturnOnFalse(ReadLong(&pcObjectHeader->moi));
 	}
-	else if (c == OBJECT_POINTER_NAMED)
+	else if (pcObjectHeader->mcType == OBJECT_POINTER_NAMED)
 	{
-		ReturnOnFalse(ReadString(&szName));
-		szName.Kill();
-		return FALSE;
+		ReturnOnFalse(ReadLong(&pcObjectHeader->moi));
+		ReturnOnFalse(ReadString(&pcObjectHeader->mszObjectName));
 	}
 	else
 	{
 		return FALSE;
 	}
+
+	ReturnOnFalse(ReadInt(&pcObjectHeader->miClassSize));
+	ReturnOnFalse(ReadString(&pcObjectHeader->mszClassName));
+	return TRUE;
 }
 
 
@@ -78,6 +177,16 @@ BOOL CObjectDeserialiser::ReadHeader(CBaseObject* pcBaseObject)
 //////////////////////////////////////////////////////////////////////////
 BOOL CObjectDeserialiser::ReadDependent(CBaseObject* pcBaseObject)
 {
-	return ReadHeader(pcBaseObject);
+	return FALSE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+filePos CObjectDeserialiser::Read(void* pvDest, filePos iSize, filePos iCount)
+{
+	return mcFile.Read(pvDest, iSize, iCount);
 }
 

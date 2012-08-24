@@ -48,11 +48,11 @@ void CDependentObjects::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 int CompareDependentObject(const void* ps1, const void* ps2)
 {
-	SDependentObject*	psObj1;
-	SDependentObject*	psObj2;
+	SDependentWriteObject*	psObj1;
+	SDependentWriteObject*	psObj2;
 
-	psObj1 = (SDependentObject*)ps1;
-	psObj2 = (SDependentObject*)ps2;
+	psObj1 = (SDependentWriteObject*)ps1;
+	psObj2 = (SDependentWriteObject*)ps2;
 
 	if (psObj1->pcObject < psObj2->pcObject)
 	{
@@ -75,7 +75,7 @@ int CompareDependentObject(const void* ps1, const void* ps2)
 //////////////////////////////////////////////////////////////////////////
 void CDependentObjects::Add(CBaseObject* pcObject)
 {
-	SDependentObject	sObject;
+	SDependentWriteObject	sObject;
 	BOOL				bExists;
 	int					iIndex;
 
@@ -97,7 +97,7 @@ void CDependentObjects::Add(CBaseObject* pcObject)
 CBaseObject* CDependentObjects::GetUnwritten(void)
 {
 	int					iOldIndex;
-	SDependentObject*	psObject;
+	SDependentWriteObject*	psObject;
 
 	if (mcObjects.NumElements() == 0)
 	{
@@ -136,7 +136,7 @@ CBaseObject* CDependentObjects::GetUnwritten(void)
 //////////////////////////////////////////////////////////////////////////
 void CDependentObjects::Mark(CBaseObject* pcObject)
 {
-	SDependentObject	sObject;
+	SDependentWriteObject	sObject;
 	int					iIndex;
 
 	sObject.pcObject = pcObject;

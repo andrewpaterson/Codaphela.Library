@@ -133,6 +133,9 @@
     <Filter Include="Source\Object\Object\IO\Reader">
       <UniqueIdentifier>{1fea8d17-7695-4b54-9773-e80e042c3ac2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Object\Object\IO\Common">
+      <UniqueIdentifier>{0eb65bc5-a348-49f9-926b-5ff4d16c4924}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Base.h">
@@ -405,9 +408,6 @@
     <ClInclude Include="ObjectReaderChunked.h">
       <Filter>Source\Object\Object\IO\Reader</Filter>
     </ClInclude>
-    <ClInclude Include="ObjectFileGeneral.h">
-      <Filter>Source\Object\Object\IO</Filter>
-    </ClInclude>
     <ClInclude Include="ObjectGraphDeserialiser.h">
       <Filter>Source\Object\Object\IO\Graph</Filter>
     </ClInclude>
@@ -416,6 +416,15 @@
     </ClInclude>
     <ClInclude Include="ObjectReaderSimple.h">
       <Filter>Source\Object\Object\IO\Reader</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectFileGeneral.h">
+      <Filter>Source\Object\Object\IO\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="DependentObjectDeserialiser.h">
+      <Filter>Source\Object\Object\IO\Graph</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectHeader.h">
+      <Filter>Source\Object\Object\IO\Serilalisation</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -670,6 +679,12 @@
     </ClCompile>
     <ClCompile Include="ObjectReaderSimple.cpp">
       <Filter>Source\Object\Object\IO\Reader</Filter>
+    </ClCompile>
+    <ClCompile Include="DependentObjectDeserialiser.cpp">
+      <Filter>Source\Object\Object\IO\Graph</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjectHeader.cpp">
+      <Filter>Source\Object\Object\IO\Serilalisation</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

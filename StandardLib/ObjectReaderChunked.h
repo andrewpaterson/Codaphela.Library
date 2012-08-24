@@ -7,6 +7,17 @@
 class CObjectReaderChunked : public CObjectReader
 {
 BASE_FUNCTIONS(CObjectReaderChunked);
+protected:
+	CChunkFileNames		mcChunkFile;
+	CChars				mszFileName;
+
+public:
+	void				Init(char* szDirectory, char* szChunkFileName);
+	void				Kill(void);
+
+	BOOL				Begin(void);
+	CSerialisedObject*  Read(char* szChunkName);
+	BOOL				End(void);
 };
 
 

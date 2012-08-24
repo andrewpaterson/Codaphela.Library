@@ -23,14 +23,14 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseObject.h"
 
 
-struct SDependentObject
+struct SDependentWriteObject
 {
 	CBaseObject*	pcObject;
 	BOOL			bWritten;
 };
 
 
-typedef CArrayTemplate<SDependentObject>	CArrayDependentObject;
+typedef CArrayTemplate<SDependentWriteObject>	CArrayDependentObject;
 
 
 class CDependentObjects : public CUnknown

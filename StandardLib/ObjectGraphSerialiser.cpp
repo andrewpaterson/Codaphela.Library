@@ -79,21 +79,21 @@ BOOL CObjectGraphSerialiser::Write(CBaseObject* pcObject)
 //////////////////////////////////////////////////////////////////////////
 BOOL CObjectGraphSerialiser::WriteUnwritten(CBaseObject* pcObject)
 {
-	CDependentObjectSerialiser	cWriter;
+	CDependentObjectSerialiser	cSerialiser;
 	BOOL						bResult;
 	CSerialisedObject*			pcSerialised;
 
-	cWriter.Init(this, pcObject);
+	cSerialiser.Init(this, pcObject);
 
-	bResult = cWriter.Save();
+	bResult = cSerialiser.Save();
 	ReturnOnFalse(bResult);
 
-	pcSerialised = (CSerialisedObject*)cWriter.GetData();
+	pcSerialised = (CSerialisedObject*)cSerialiser.GetData();
 
 	bResult = mpcWriter->Write(pcSerialised);
 	ReturnOnFalse(bResult);
 
-	cWriter.Kill();
+	cSerialiser.Kill();
 
 	MarkWritten(pcObject);
 	return TRUE;

@@ -51,12 +51,15 @@ public:
 
 
 						CPointerObject	Get(OIndex oi);
-						CPointerObject	Get(char* szName);
+						CPointerObject	Get(char* szObjectName);
 	template<class M> 	CPointer<M>		Get(OIndex oi);
-	template<class M>	CPointer<M>		Get(char* szName);
+	template<class M>	CPointer<M>		Get(char* szObjectName);
 
+						CPointerObject	Add(char* szClassName, OIndex oi);
+						CPointerObject	Add(char* szClassName, char* szObjectName, OIndex oi);
+						CPointerObject	Add(char* szClassName, char* szObjectName);
 	template<class M>	CPointer<M>		Add(void);
-	template<class M>	CPointer<M>		Add(char* szName);
+	template<class M>	CPointer<M>		Add(char* szObjectName);
 
 						CPointerObject	Null(void);
 	template<class M>	CPointer<M>		Null(void);
@@ -64,7 +67,7 @@ public:
 protected:
 						void			StepNextObjectID(void);
 						void			AddWithID(CBaseObject* pvObject);
-						void			AddWithIDAndName(CBaseObject* pvObject, char* szName);
+						void			AddWithIDAndName(CBaseObject* pvObject, char* szObjectName);
 	template<class M>	M*				Allocate(void);
 };						
 
@@ -122,7 +125,7 @@ CPointer<M> CObjects::Add(void)
 //////////////////////////////////////////////////////////////////////////
 template<class M>
 //Called by Macro 'ONMalloc'.  Note the 'N'.
-CPointer<M> CObjects::Add(char* szName)
+CPointer<M> CObjects::Add(char* szObjectName)
 {
 	M	m;
 
@@ -132,7 +135,7 @@ CPointer<M> CObjects::Add(char* szName)
 		M*				pvObject;
 
 		pvObject = Allocate<M>();
-		AddWithIDAndName(pvObject, szName);
+		AddWithIDAndName(pvObject, szObjectName);
 
 		//No PointTo because we don't know the embedding object until assignment.
 		pObject.mpcObject = pvObject;
@@ -187,11 +190,11 @@ CPointer<M> CObjects::Get(OIndex oi)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-CPointer<M> CObjects::Get(char* szName)
+CPointer<M> CObjects::Get(char* szObjectName)
 {
 	CBaseObject*	pvObject;
 
-	pvObject = mcMemory.Get(szName);
+	pvObject = mcMemory.Get(szObjectName);
 	if (pvObject)
 	{
 		CPointer<M>		pObject;
