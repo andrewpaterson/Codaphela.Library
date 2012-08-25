@@ -23,7 +23,6 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/FileReader.h"
 #include "BaseLib/MemoryFile.h"
 #include "SerialisedObject.h"
-#include "DependentObjects.h"
 #include "Pointer.h"
 
 
@@ -44,7 +43,7 @@ public:
 	virtual BOOL			ReadPointer(CPointerObject* pObject) =0;
 			BOOL			ReadPointerHeader(CPointerHeader* pcPointerHeader);
 			BOOL			ReadObjectHeader(CObjectHeader* pcObjectHeader);
-	virtual BOOL			ReadDependent(CUnknown** ppcUnknown) =0;
+	virtual BOOL			ReadDependent(CBaseObject** ppcUnknown) =0;
 
 protected:
 			filePos			Read(void* pvDest, filePos iSize, filePos iCount);

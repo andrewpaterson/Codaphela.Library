@@ -22,23 +22,24 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __OBJET_GRAPH_SERIALISER_H__
 #include "BaseObject.h"
 #include "ObjectWriter.h"
-#include "DependentObjects.h"
+#include "DependentWriteObjects.h"
 
 
 class CObjectGraphSerialiser
 {
 protected:
-	CDependentObjects	mcDependentObjects;
-	CObjectWriter*		mpcWriter;
+	CDependentWriteObjects	mcDependentObjects;
+	CObjectWriter*			mpcWriter;
 
 public:
 	void	Init(CObjectWriter* pcWriter);
 	void	Kill(void);
 
 	BOOL	Write(CBaseObject* pcObject);
-	BOOL	WriteUnwritten(CBaseObject* pcObject);
-
 	void	AddDependent(CBaseObject* pcObject);
+
+protected:
+	BOOL	WriteUnwritten(CBaseObject* pcObject);
 	void	MarkWritten(CBaseObject* pcObject);
 };
 

@@ -86,7 +86,6 @@ CPointerObject CObjectDeserialiser::Load(void)
 	}
 	else if (sHeader.mcType == OBJECT_POINTER_ID)
 	{
-
 		pObject = gcObjects.Add(sHeader.mszClassName.Text(), sHeader.moi);
 	}
 	else if (sHeader.mcType == OBJECT_POINTER_NAMED)
@@ -94,6 +93,11 @@ CPointerObject CObjectDeserialiser::Load(void)
 		pObject = gcObjects.Add(sHeader.mszClassName.Text(), sHeader.mszObjectName.Text(), sHeader.moi);
 	}
 	sHeader.Kill();
+
+	if (pObject.IsNull())
+	{
+		return ONull;
+	}
 
 	bResult = pObject->Load(this);
 	if (!bResult)
@@ -103,7 +107,7 @@ CPointerObject CObjectDeserialiser::Load(void)
 	}
 
 	bResult = mcFile.Close();
-	return ONull;
+	return pObject;
 }
 
 
@@ -147,7 +151,7 @@ BOOL CObjectDeserialiser::ReadPointerHeader(CPointerHeader* pcPointerHeader)
 	else if (pcPointerHeader->mcType == OBJECT_POINTER_NAMED)
 	{
 		ReturnOnFalse(ReadLong(&pcPointerHeader->moi));
-		ReturnOnFalse(ReadString(&pcPointerHeader->mszObjectName));
+		ReturnOnFalse(ReadString(&pcPointerHeader->mszObjectName, TRUE));
 	}
 	else
 	{
@@ -166,7 +170,7 @@ BOOL CObjectDeserialiser::ReadObjectHeader(CObjectHeader* pcObjectHeader)
 	pcObjectHeader->Init();
 	ReturnOnFalse(ReadPointerHeader(pcObjectHeader));
 	ReturnOnFalse(ReadInt(&pcObjectHeader->miClassSize));
-	ReturnOnFalse(ReadString(&pcObjectHeader->mszClassName));
+	ReturnOnFalse(ReadString(&pcObjectHeader->mszClassName, TRUE));
 	return TRUE;
 }
 
@@ -195,7 +199,7 @@ void CObjectDeserialiser::ClearPointer(CPointerObject* pObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectDeserialiser::ReadDependent(CUnknown** ppcUnknown)
+BOOL CObjectDeserialiser::ReadDependent(CBaseObject** ppcUnknown)
 {
 	CPointerHeader	cHeader;
 	BOOL			bResult;

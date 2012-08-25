@@ -57,6 +57,8 @@ public:
 	BOOL			Flush(void);
 	void			DurableBegin(void);
 	void			DurableEnd(void);
+
+	OIndex			NumObjects(void);
 };
 
 

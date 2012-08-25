@@ -1,3 +1,4 @@
+#include "ObjectFileGeneral.h"
 #include "ObjectHeader.h"
 
 
@@ -10,6 +11,18 @@ void CPointerHeader::Init(void)
 	mcType = 0;
 	mszObjectName.Zero();
 	moi = 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CPointerHeader::Init(char* szName)
+{
+	mszObjectName.Init(szName);
+	mcType = OBJECT_POINTER_NAMED;
+	moi = INVALID_O_INDEX;
 }
 
 

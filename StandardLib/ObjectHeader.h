@@ -12,6 +12,7 @@ public:
 	OIndex	moi;
 
 	void Init(void);
+	void Init(char* szName);
 	void Kill(void);
 };
 

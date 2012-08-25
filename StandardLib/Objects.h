@@ -38,7 +38,7 @@ class CObjects
 protected:
 	CUnknowns*				mpcUnknownsAllocatingFrom;
 
-	CNamedIndexedObjects	mcMemory;  //Objects (BaseObject*) allocated in Unkonws referenced by name and OIndex.  
+	CNamedIndexedObjects	mcMemory;  //Objects (BaseObject*) allocated in Unknowns referenced by name and OIndex.  
 	CNamedIndexedData		mcDatabase;  //Objects in the database also referenced by string and OIndex.  
 	
 	CObjectsSource			mcSource;
@@ -63,6 +63,10 @@ public:
 
 						CPointerObject	Null(void);
 	template<class M>	CPointer<M>		Null(void);
+
+	template<class M>	void			AddConstructor(void);
+						long long int	NumMemoryObjects(void);
+						long long int	NumDatabaseObjects(void);
 
 protected:
 						void			StepNextObjectID(void);
@@ -206,6 +210,18 @@ CPointer<M> CObjects::Get(char* szObjectName)
 	{
 		return Null<M>();
 	}
+}
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+void CObjects::AddConstructor(void)
+{
+	mpcUnknownsAllocatingFrom->AddConstructor<M>();
 }
 
 

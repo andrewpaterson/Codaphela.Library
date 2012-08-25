@@ -53,7 +53,9 @@ public:
 	BOOL			IsNotNull(void);
 	BOOL			IsNull(void);
 
+	//These two methods should be protected.
 	CPointerObject*	This(void);
+	CBaseObject**	ObjectPtr(void);
 
 protected:
 	BOOL			Dehollow(void);

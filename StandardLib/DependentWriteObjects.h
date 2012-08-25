@@ -18,36 +18,25 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __DEPENDENT_OBJECTS_H__
-#define __DEPENDENT_OBJECTS_H__
-#include "BaseObject.h"
+#ifndef __DEPENDENT_WRITE_OBJECTS_H__
+#define __DEPENDENT_WRITE_OBJECTS_H__
+#include "DependentWriteObject.h"
 
 
-struct SDependentWriteObject
+class CDependentWriteObjects
 {
-	CBaseObject*	pcObject;
-	BOOL			bWritten;
-};
+protected:
+	CArrayDependentWriteObject	mcObjects;
+	int							miGetIndex;
 
-
-typedef CArrayTemplate<SDependentWriteObject>	CArrayDependentObject;
-
-
-class CDependentObjects : public CUnknown
-{
-BASE_FUNCTIONS(CDependentObjects);
 public:
-	CArrayDependentObject	mcObjects;
-	int						miGetIndex;
-
 	void			Init(void);
 	void			Kill(void);
 	void			Add(CBaseObject* pcObject);
 	CBaseObject*	GetUnwritten(void);
 	void			Mark(CBaseObject* pcObject);
-
 };
 
 
-#endif // __DEPENDENT_OBJECTS_H__
+#endif // __DEPENDENT_WRITE_OBJECTS_H__
 

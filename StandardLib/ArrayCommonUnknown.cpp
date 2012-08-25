@@ -127,6 +127,7 @@ BOOL CArrayCommonUnknown::LoadArrayHeader(CFileReader* pcFile, int* piFlags, int
 
 	//These are all set to false because the flags will be fixed later.
 	Init(bTypeKnown, FALSE, FALSE, FALSE, FALSE, iChunkSize);
+	mcArray.GrowToNumElements(*piNumElements);
 	return TRUE;
 }
 
@@ -177,7 +178,7 @@ BOOL CArrayCommonUnknown::Load(CFileReader* pcFile)
 	for (i = 0; i < iNumElements; i++)
 	{
 		ReturnOnFalse(LoadElement(pcFile, &pcUnknown));
-		Add(pcUnknown, FALSE);
+		mcArray.Set(i, &pcUnknown);
 	}
 
 	PostLoad(iFlags);

@@ -51,6 +51,7 @@ void CObjectGraphSerialiser::Kill(void)
 BOOL CObjectGraphSerialiser::Write(CBaseObject* pcObject)
 {
 	CBaseObject*	pcUnwritten;
+	BOOL			bResult;
 
 	ReturnOnFalse(mpcWriter->Begin());
 
@@ -61,7 +62,11 @@ BOOL CObjectGraphSerialiser::Write(CBaseObject* pcObject)
 		pcUnwritten = mcDependentObjects.GetUnwritten();
 		if (pcUnwritten)
 		{
-			ReturnOnFalse(WriteUnwritten(pcUnwritten));
+			bResult = WriteUnwritten(pcUnwritten);
+			if (!bResult)
+			{
+				return FALSE;
+			}
 		}
 		else
 		{

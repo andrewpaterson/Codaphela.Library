@@ -85,6 +85,9 @@
     <ClInclude Include="DependentObjectDeserialiser.h" />
     <ClInclude Include="DependentObjectSerialiser.h" />
     <ClInclude Include="ChunkFileNames.h" />
+    <ClInclude Include="DependentReadObject.h" />
+    <ClInclude Include="DependentReadObjects.h" />
+    <ClInclude Include="DependentWriteObject.h" />
     <ClInclude Include="NamedHollowObject.h" />
     <ClInclude Include="NamedIndexedBlock.h" />
     <ClInclude Include="NamedIndexedSorterSource.h" />
@@ -137,7 +140,7 @@
     <ClInclude Include="Pointer.h" />
     <ClInclude Include="PointerObject.h" />
     <ClInclude Include="NamedObject.h" />
-    <ClInclude Include="DependentObjects.h" />
+    <ClInclude Include="DependentWriteObjects.h" />
     <ClInclude Include="ObjectGraphSerialiser.h" />
     <ClInclude Include="ObjectDeserialiser.h" />
     <ClInclude Include="ObjectSerialiser.h" />
@@ -182,6 +185,9 @@
     <ClCompile Include="DependentObjectDeserialiser.cpp" />
     <ClCompile Include="DependentObjectSerialiser.cpp" />
     <ClCompile Include="ChunkFileNames.cpp" />
+    <ClCompile Include="DependentReadObject.cpp" />
+    <ClCompile Include="DependentReadObjects.cpp" />
+    <ClCompile Include="DependentWriteObject.cpp" />
     <ClCompile Include="NamedHollowObject.cpp" />
     <ClCompile Include="NamedIndexedBlock.cpp" />
     <ClCompile Include="NamedIndexedData.cpp" />
@@ -229,7 +235,7 @@
     <ClCompile Include="ArrayCommonObject.cpp" />
     <ClCompile Include="PointerObject.cpp" />
     <ClCompile Include="NamedObject.cpp" />
-    <ClCompile Include="DependentObjects.cpp" />
+    <ClCompile Include="DependentWriteObjects.cpp" />
     <ClCompile Include="ObjectGraphSerialiser.cpp" />
     <ClCompile Include="ObjectDeserialiser.cpp" />
     <ClCompile Include="ObjectSerialiser.cpp" />

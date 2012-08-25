@@ -11,6 +11,7 @@
 void CObjectGraphDeserialiser::Init(CObjectReader* pcReader)
 {
 	mpcReader = pcReader;
+	mcDependentObjects.Init();
 }
 
 
@@ -21,9 +22,8 @@ void CObjectGraphDeserialiser::Init(CObjectReader* pcReader)
 //////////////////////////////////////////////////////////////////////////
 void CObjectGraphDeserialiser::Kill(void)
 {
-
+	mcDependentObjects.Kill();
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -32,10 +32,12 @@ void CObjectGraphDeserialiser::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 CPointerObject CObjectGraphDeserialiser::Read(char* szObjectName)
 {
-	CDependentObjectDeserialiser	cDeserialiser;
-	CSerialisedObject*				pcSerialised;
 	BOOL							bResult;
 	CPointerObject					pObject;
+	CDependentReadObject*			pcDependent;
+	CPointerHeader					cHeader;
+	CBaseObject*					pcObjectPtr;
+	BOOL							bFirst;
 
 	bResult = mpcReader->Begin();
 	if (!bResult)
@@ -43,10 +45,83 @@ CPointerObject CObjectGraphDeserialiser::Read(char* szObjectName)
 		return ONull;
 	}
 
-	pcSerialised = mpcReader->Read(szObjectName);
-	if (!pcSerialised)
+	pcObjectPtr = NULL;
+	cHeader.Init(szObjectName);
+	mcDependentObjects.Add(&cHeader, &pcObjectPtr);
+
+	bFirst = TRUE;
+	for (;;)
+	{
+		pcDependent = mcDependentObjects.GetUnread();
+		if (pcDependent)
+		{
+			bResult = ReadUnread(pcDependent, bFirst);
+			if (!bResult)
+			{
+				cHeader.Kill();
+				return ONull;
+			}
+			bFirst = FALSE;
+		}
+		else
+		{
+			break;
+		}
+	}
+	cHeader.Kill();
+
+	bResult = mpcReader->End();
+	if (!bResult)
 	{
 		return ONull;
+	}
+
+	pObject = pcObjectPtr;
+	return pObject;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CObjectGraphDeserialiser::AddDependent(CPointerHeader* pcHeader, CBaseObject** ppcObjectPtr)
+{
+	mcDependentObjects.Add(pcHeader, ppcObjectPtr);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CObjectGraphDeserialiser::ReadUnread(CDependentReadObject* pcDependent, BOOL bFirst)
+{
+	CSerialisedObject*				pcSerialised;
+	char*							szObjectName;
+	CDependentObjectDeserialiser	cDeserialiser;
+	OIndex							oi;
+	CPointerObject					pObject;
+
+	pcSerialised = NULL;
+	if (pcDependent->IsNamed())
+	{
+		szObjectName = pcDependent->GetName();
+		pcSerialised = mpcReader->Read(szObjectName);
+
+		if (bFirst)
+		{
+			mcDependentObjects.SetInitialIndex(pcSerialised->GetIndex());
+		}
+	}
+	else
+	{
+		oi = pcDependent->GetIndex();
+		pcSerialised = mpcReader->Read(oi);
+	}
+	if (!pcSerialised)
+	{
+		return FALSE;
 	}
 
 	cDeserialiser.Init(this, pcSerialised);
@@ -55,16 +130,22 @@ CPointerObject CObjectGraphDeserialiser::Read(char* szObjectName)
 	{
 		cDeserialiser.Kill();
 		free(pcSerialised);
-		return ONull;
+		return FALSE;
 	}
 	cDeserialiser.Kill();
 	free(pcSerialised);
-	return pObject;
+	MarkRead(pcDependent);
+	return TRUE;
+}
 
-	bResult = mpcReader->End();
-	if (!bResult)
-	{
-		return ONull;
-	}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CObjectGraphDeserialiser::MarkRead(CDependentReadObject* pcDependent)
+{
+	pcDependent->mbRead = TRUE;
 }
 

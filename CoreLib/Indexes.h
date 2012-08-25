@@ -57,6 +57,8 @@ public:
 
 	int				TestNumLevels(void);
 	unsigned int	TestByteSize(void);
+
+	OIndex			NumIndexed(void);
 };
 
 

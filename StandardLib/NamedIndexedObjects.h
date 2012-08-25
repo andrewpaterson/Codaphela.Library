@@ -40,6 +40,7 @@ public:
 	void			AddWithID(CBaseObject* pvObject, OIndex oi);
 	BOOL			AddWithIDAndName(CBaseObject* pvObject, OIndex oi, char* szName);
 	void			Remove(OIndex oi);
+	OIndex			NumObjects(void);
 
 protected:
 	void			Add(OIndex oi, CBaseObject* pvMemory);

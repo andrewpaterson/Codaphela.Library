@@ -18,14 +18,15 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "DependentObjects.h"
+#include "BaseObject.h"
+#include "DependentWriteObjects.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDependentObjects::Init(void)
+void CDependentWriteObjects::Init(void)
 {
 	mcObjects.Init(128);
 	miGetIndex = 0;
@@ -36,7 +37,7 @@ void CDependentObjects::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDependentObjects::Kill(void)
+void CDependentWriteObjects::Kill(void)
 {
 	mcObjects.Kill();
 }
@@ -46,46 +47,18 @@ void CDependentObjects::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CompareDependentObject(const void* ps1, const void* ps2)
+void CDependentWriteObjects::Add(CBaseObject* pcObject)
 {
-	SDependentWriteObject*	psObj1;
-	SDependentWriteObject*	psObj2;
-
-	psObj1 = (SDependentWriteObject*)ps1;
-	psObj2 = (SDependentWriteObject*)ps2;
-
-	if (psObj1->pcObject < psObj2->pcObject)
-	{
-		return -1;
-	}
-	else if (psObj1->pcObject > psObj2->pcObject)
-	{
-		return 1;
-	}
-	else
-	{
-		return 0;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CDependentObjects::Add(CBaseObject* pcObject)
-{
-	SDependentWriteObject	sObject;
+	CDependentWriteObject	cObject;
 	BOOL				bExists;
 	int					iIndex;
 
-	sObject.pcObject = pcObject;
-	sObject.bWritten = FALSE;
+	cObject.Init(pcObject, FALSE);
 
-	bExists = mcObjects.FindInSorted(&sObject, &CompareDependentObject, &iIndex);
+	bExists = mcObjects.FindInSorted(&cObject, &CompareDependentWriteObject, &iIndex);
 	if (!bExists)
 	{
-		mcObjects.InsertAt(&sObject, iIndex);
+		mcObjects.InsertAt(&cObject, iIndex);
 	}
 }
 
@@ -94,10 +67,10 @@ void CDependentObjects::Add(CBaseObject* pcObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CDependentObjects::GetUnwritten(void)
+CBaseObject* CDependentWriteObjects::GetUnwritten(void)
 {
 	int					iOldIndex;
-	SDependentWriteObject*	psObject;
+	CDependentWriteObject*	psObject;
 
 	if (mcObjects.NumElements() == 0)
 	{
@@ -107,7 +80,7 @@ CBaseObject* CDependentObjects::GetUnwritten(void)
 	iOldIndex = miGetIndex;
 	for (;;)
 	{
-		if (miGetIndex >= mcObjects.NumElements())
+		if (miGetIndex >= mcObjects.NumElements()-1)
 		{
 			miGetIndex = 0;
 		}
@@ -117,9 +90,9 @@ CBaseObject* CDependentObjects::GetUnwritten(void)
 		}
 
 		psObject = mcObjects.Get(miGetIndex);
-		if (!psObject->bWritten)
+		if (!psObject->mbWritten)
 		{
-			return psObject->pcObject;
+			return psObject->mpcObject;
 		}
 
 		if (miGetIndex == iOldIndex)
@@ -134,13 +107,16 @@ CBaseObject* CDependentObjects::GetUnwritten(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDependentObjects::Mark(CBaseObject* pcObject)
+void CDependentWriteObjects::Mark(CBaseObject* pcObject)
 {
-	SDependentWriteObject	sObject;
-	int					iIndex;
+	CDependentWriteObject	cObject;
+	int						iIndex;
+	BOOL					bResult;
+	CDependentWriteObject*	pcDependent;
 
-	sObject.pcObject = pcObject;
-	sObject.bWritten = TRUE;
-
-	iIndex = mcObjects.InsertIntoSorted(&CompareDependentObject, &sObject, TRUE);
+	cObject.Init(pcObject, TRUE);
+	bResult = mcObjects.FindInSorted(&cObject, &CompareDependentWriteObject, &iIndex);
+	pcDependent = mcObjects.Get(iIndex);
+	pcDependent->mbWritten = TRUE;
 }
+

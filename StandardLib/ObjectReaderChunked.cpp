@@ -60,7 +60,6 @@ BOOL CObjectReaderChunked::Begin(void)
 
 	CObjectReader::Begin();
 
-	cFileUtil.MakeDir(mszFullDirectory.Text());
 	szFileName.Init(mszFullDirectory);
 
 	cFileUtil.AppendToPath(&szFileName, mszFileName.Text());
@@ -71,7 +70,7 @@ BOOL CObjectReaderChunked::Begin(void)
 	szFileName.Kill();
 
 	mcChunkFile.Init(pcDiskFile);
-	return mcChunkFile.WriteOpen(CHUNKED_OBJECT_FILE);
+	return mcChunkFile.ReadOpen();
 }
 
 
@@ -133,6 +132,25 @@ CSerialisedObject* CObjectReaderChunked::Read(char* szChunkName)
 		free(pcSerialised);
 		return NULL;
 	}
+	return pcSerialised;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CSerialisedObject* CObjectReaderChunked::Read(OIndex oi)
+{
+	CChars				szChunkName;
+	CSerialisedObject*	pcSerialised;
+
+	szChunkName.Init("Unnamed/");
+	szChunkName.AppendHexHiLo(&oi, sizeof(OIndex));
+
+	pcSerialised = Read(szChunkName.Text());
+
+	szChunkName.Kill();
 	return pcSerialised;
 }
 

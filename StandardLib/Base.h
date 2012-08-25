@@ -22,20 +22,20 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __BASE_H__
 
 
-class _CListenerSuper1
+class _CForceVirtualSuper1
 {
 	virtual void _ForceVirtual1(void) {};
 };
 
 
-class _CListenerSuper2
+class _CForceVirtualSuper2
 {
 	virtual void _ForceVirtual2(void) {};
 };
 
 
 //Inherit from super 1 and 2 to always force virtual multiple inheritance style function calls.
-class CBase : public _CListenerSuper1, public _CListenerSuper2
+class CBase : public _CForceVirtualSuper1, public _CForceVirtualSuper2
 {
 public:
 	virtual char*			ClassName(void) =0;
