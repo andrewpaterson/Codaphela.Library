@@ -200,6 +200,40 @@ unsigned int CIndexes::TestByteSize(void)
 //////////////////////////////////////////////////////////////////////////
 OIndex CIndexes::NumIndexed(void)
 {
-	return 0;
+	return RecurseNumIndexed(&msTop, 0);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+OIndex CIndexes::RecurseNumIndexed(SIndexedLevel* psLevel, int iLevel)
+{
+	int		i;
+	OIndex	iCount;
+
+	iCount = 0;
+	if (iLevel < MAX_INDEXED_LEVEL_DEPTH)
+	{
+		for (i = 0; i < INDEXED_LEVELS_IN_LEVEL; i++)
+		{
+			if (psLevel->apsLevels[i] != NULL)
+			{
+				iCount += RecurseNumIndexed(psLevel->apsLevels[i], iLevel+1);
+			}
+		}
+	}
+	else
+	{
+		for (i = 0; i < INDEXED_LEVELS_IN_LEVEL; i++)
+		{
+			if (psLevel->apsLevels[i] != NULL)
+			{
+				iCount++;
+			}
+		}
+	}
+	return iCount;
 }
 

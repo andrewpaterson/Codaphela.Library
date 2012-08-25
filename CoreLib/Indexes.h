@@ -25,7 +25,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "BaseLib/FreeList.h"
 #include "IndexedGeneral.h"
 
-
+//OIndex is 64 bits equals 8 chars (of combinations each).
 #define INDEXED_LEVELS_IN_LEVEL	256
 #define MAX_INDEXED_LEVEL_DEPTH	7
 
@@ -59,6 +59,9 @@ public:
 	unsigned int	TestByteSize(void);
 
 	OIndex			NumIndexed(void);
+
+protected:
+	OIndex			RecurseNumIndexed(SIndexedLevel* psLevel, int iLevel);
 };
 
 

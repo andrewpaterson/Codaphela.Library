@@ -134,6 +134,6 @@ BOOL CNamedIndexedObjects::AddWithIDAndName(CBaseObject* pvObject, OIndex oi, ch
 //////////////////////////////////////////////////////////////////////////
 OIndex CNamedIndexedObjects::NumObjects(void)
 {
-	return 0;
+	return mcObjects.NumIndexed();
 }
 
