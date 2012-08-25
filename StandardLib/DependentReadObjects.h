@@ -15,6 +15,7 @@ public:
 	void					Add(CPointerHeader* pcHeader, CBaseObject** ppcObjectPtr);
 	CDependentReadObject*	GetUnread(void);
 	void					SetInitialIndex(OIndex oi);
+	void					Mark(OIndex oi);
 };
 
 

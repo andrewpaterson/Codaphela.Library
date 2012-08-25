@@ -21,7 +21,7 @@ public:
 
 protected:
 	BOOL			ReadUnread(CDependentReadObject* pcDependent, BOOL bFirst);
-	void			MarkRead(CDependentReadObject* pcDependent);
+	void			MarkRead(OIndex oi);
 };
 
 

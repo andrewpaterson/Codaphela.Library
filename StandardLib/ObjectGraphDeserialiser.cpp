@@ -119,6 +119,7 @@ BOOL CObjectGraphDeserialiser::ReadUnread(CDependentReadObject* pcDependent, BOO
 		oi = pcDependent->GetIndex();
 		pcSerialised = mpcReader->Read(oi);
 	}
+
 	if (!pcSerialised)
 	{
 		return FALSE;
@@ -132,20 +133,21 @@ BOOL CObjectGraphDeserialiser::ReadUnread(CDependentReadObject* pcDependent, BOO
 		free(pcSerialised);
 		return FALSE;
 	}
+	pcDependent = NULL;
+
 	cDeserialiser.Kill();
 	free(pcSerialised);
-	MarkRead(pcDependent);
+	MarkRead(pObject->GetOI());
 	return TRUE;
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectGraphDeserialiser::MarkRead(CDependentReadObject* pcDependent)
+void CObjectGraphDeserialiser::MarkRead(OIndex oi)
 {
-	pcDependent->mbRead = TRUE;
+	mcDependentObjects.Mark(oi);
 }
 

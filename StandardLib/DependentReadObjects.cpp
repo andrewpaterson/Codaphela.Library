@@ -108,6 +108,24 @@ void CDependentReadObjects::SetInitialIndex(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CDependentReadObjects::Mark(OIndex oi)
+{
+	CDependentReadObject	cObject;
+	int						iIndex;
+	BOOL					bResult;
+	CDependentReadObject*	pcDependent;
+
+	cObject.moi = oi;
+
+	bResult = mcObjects.FindInSorted(&cObject, &CompareDependentReadObject, &iIndex);
+	pcDependent = mcObjects.Get(iIndex);
+	pcDependent->mbRead = TRUE;
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 //void CDependentReadObjects::Mark(CBaseObject* pcObject)
 //{
 //	CDependentReadObject	cObject;
