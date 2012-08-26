@@ -916,15 +916,13 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="MemoryTodo.txt">
-      <Filter>Source\Memory\Manager</Filter>
-    </None>
     <None Include="gpl.txt">
       <Filter>Source\License</Filter>
     </None>
     <None Include="lgpl.txt">
       <Filter>Source\License</Filter>
     </None>
-    <None Include="Libs.txt" />
+    <None Include="LibsTodo.txt" />
+    <None Include="MemoryTodo.txt" />
   </ItemGroup>
 </Project>

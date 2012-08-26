@@ -708,4 +708,7 @@
       <Filter>Source\Object\Object\IO\Chunked</Filter>
     </ClCompile>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="IndexedTodo.txt" />
+  </ItemGroup>
 </Project>
