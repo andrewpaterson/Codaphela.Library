@@ -1,12 +1,25 @@
 #include "DependentReadObjects.h"
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CDependentReadPointer::Init(CBaseObject**	ppcPointedFrom, OIndex oiPointedTo)
+{
+	mppcPointedFrom = ppcPointedFrom;
+	moiPointedTo = oiPointedTo;
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
 void CDependentReadObjects::Init(void)
 {
-	mcObjects.Init(1024);
+	mcObjects.Init(128);
+	mcPointers.Init(512);
 	miGetIndex = 0;
 }
 
@@ -17,6 +30,16 @@ void CDependentReadObjects::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CDependentReadObjects::Kill(void)
 {
+	int						i;
+	CDependentReadObject*	pcDependent;
+
+	mcPointers.Kill();
+
+	for(i = 0; i < mcObjects.NumElements(); i++)
+	{
+		pcDependent = mcObjects.Get(i);
+		pcDependent->Kill();
+	}
 	mcObjects.Kill();
 }
 
@@ -30,8 +53,9 @@ void CDependentReadObjects::Add(CPointerHeader* pcHeader, CBaseObject** ppcObjec
 	CDependentReadObject	cObject;
 	BOOL					bExists;
 	int						iIndex;
+	CDependentReadPointer*	pcPointer;
 
-	cObject.Init(pcHeader, ppcObjectPtr);
+	cObject.Init(pcHeader);
 
 	bExists = mcObjects.FindInSorted(&cObject, &CompareDependentReadObject, &iIndex);
 	if (!bExists)
@@ -42,6 +66,9 @@ void CDependentReadObjects::Add(CPointerHeader* pcHeader, CBaseObject** ppcObjec
 	{
 		cObject.Kill();
 	}
+
+	pcPointer = mcPointers.Add();
+	pcPointer->Init(ppcObjectPtr, pcHeader->moi);
 }
 
 
@@ -92,13 +119,20 @@ CDependentReadObject* CDependentReadObjects::GetUnread(void)
 void CDependentReadObjects::SetInitialIndex(OIndex oi)
 {
 	CDependentReadObject*	pDependent;
+	CDependentReadPointer*	pcPointer;
 
-	if (mcObjects.NumElements() == 1)
+	if ((mcObjects.NumElements() == 1) && (mcPointers.NumElements() == 1))
 	{
 		pDependent = mcObjects.Get(0);
 		if (pDependent->moi == INVALID_O_INDEX)
 		{
 			pDependent->moi = oi;
+		}
+
+		pcPointer = mcPointers.Get(0);
+		if (pcPointer->moiPointedTo == INVALID_O_INDEX)
+		{
+			pcPointer->moiPointedTo = oi;
 		}
 	}
 }
@@ -122,17 +156,23 @@ void CDependentReadObjects::Mark(OIndex oi)
 	pcDependent->mbRead = TRUE;
 }
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-//void CDependentReadObjects::Mark(CBaseObject* pcObject)
-//{
-//	CDependentReadObject	cObject;
-//	int						iIndex;
+int CDependentReadObjects::NumPointers(void)
+{
+	return mcPointers.NumElements();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
 //
-//	cObject.Init(pcObject, TRUE);
 //
-//	iIndex = mcObjects.InsertIntoSorted(&CompareDependentReadObject, &cObject, TRUE);
-//}
-//
+//////////////////////////////////////////////////////////////////////////
+CDependentReadPointer* CDependentReadObjects::GetPointer(int iIndex)
+{
+	return mcPointers.Get(iIndex);
+}
+

@@ -6,13 +6,12 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDependentReadObject::Init(CPointerHeader* pcObjectPtr, CBaseObject** ppcObjectPtr)
+void CDependentReadObject::Init(CPointerHeader* pcObjectPtr)
 {
 	CPointerHeader*	pcThis;
 
 	pcThis = this;
 	memcpy_fast(pcThis, pcObjectPtr, sizeof(CPointerHeader));
-	mppcObjectPtr = ppcObjectPtr;
 	mbRead = FALSE;
 }
 

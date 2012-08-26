@@ -8,10 +8,9 @@ class CBaseObject;
 class CDependentReadObject : public CPointerHeader
 {
 public:
-	CBaseObject**	mppcObjectPtr;
 	BOOL			mbRead;
 
-	void	Init(CPointerHeader* pcObjectPtr, CBaseObject**	ppcObjectPtr);
+	void	Init(CPointerHeader* pcObjectPtr);
 	void	Kill(void);
 
 	BOOL	IsNamed(void);

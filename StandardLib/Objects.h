@@ -68,6 +68,7 @@ public:
 						long long int	NumMemoryObjects(void);
 						long long int	NumDatabaseObjects(void);
 
+						CBaseObject*	GetBaseObject(OIndex oi);
 protected:
 						void			StepNextObjectID(void);
 						void			AddWithID(CBaseObject* pvObject);

@@ -1,0 +1,2 @@
+Remap OIs on chunked file load.
+Overwrite existing objects with the same name (discard anything pointed to).

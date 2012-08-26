@@ -3,10 +3,24 @@
 #include "DependentReadObject.h"
 
 
+class CDependentReadPointer
+{
+public:
+	CBaseObject**	mppcPointedFrom;
+	OIndex			moiPointedTo;
+
+	void Init(CBaseObject**	ppcPointedFrom, OIndex oiPointedTo);
+};
+
+
+typedef CArrayTemplate<CDependentReadPointer>	CArrayDependentReadPointer;
+
+
 class CDependentReadObjects
 {
 protected:
 	CArrayDependentReadObject	mcObjects;
+	CArrayDependentReadPointer	mcPointers;
 	int							miGetIndex;
 
 public:
@@ -16,6 +30,9 @@ public:
 	CDependentReadObject*	GetUnread(void);
 	void					SetInitialIndex(OIndex oi);
 	void					Mark(OIndex oi);
+
+	int						NumPointers(void);
+	CDependentReadPointer*	GetPointer(int iIndex);
 };
 
 

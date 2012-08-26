@@ -1,6 +1,3 @@
-.  Remove redundant uiSize from SMemoryAllocation.
-.  Design persistent smart instance.
-
 What is Missing
 ---------------
 .  GameObject and GameInstance.
@@ -9,14 +6,12 @@ What is Missing
 .  Does every MeshInstance/Object correspond to a Graphics one?
 .  Behaviour and it's link to animation.
 .  Converters don't belong in World.
+.  Clone an instance rather than instance an object.
 .  Portals.
 .  Physics.
-.  Clone an instance rather than instance an object.
 
 Nice to Have
 ------------
 .  World must be rewritten!
 .  Memory manager plugged into world.
 .  Object database plugged into world.
-.  Singleton and PersistenSingleton.
-
