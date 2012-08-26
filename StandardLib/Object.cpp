@@ -25,7 +25,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CObject::CObject(void)
+CObject::CObject()
 {
 	mapTos.Init();
 }
@@ -39,7 +39,6 @@ void CObject::Kill(void)
 {
 	CBaseObject::Kill();
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////

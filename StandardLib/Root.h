@@ -29,12 +29,15 @@ class CObjects;
 class CRoot : public CNamedObject
 {
 friend class CObjects;
+friend class CUnknowns;
+friend class CConstructorUnknown;
 BASE_FUNCTIONS(CRoot);
 protected:
 	CPointer<CSet>	mpObjects;
 	CObjects*		mpcObjectsAllocatingFrom;
 
 protected:
+			CRoot();
 	void	Init(void);
 	void	Init(CObjects* pcObjectsAllocatingFrom);
 

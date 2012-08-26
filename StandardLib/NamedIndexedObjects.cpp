@@ -100,10 +100,6 @@ void CNamedIndexedObjects::Remove(OIndex oi)
 //////////////////////////////////////////////////////////////////////////
 void CNamedIndexedObjects::AddWithID(CBaseObject* pvObject, OIndex oi)
 {
-	if (pvObject->IsRoot())
-	{
-		pvObject->SetDistToRoot(0);
-	}
 	pvObject->SetObjectID(oi);
 	Add(oi, pvObject);
 }

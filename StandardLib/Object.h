@@ -34,7 +34,7 @@ protected:
 	CArrayEmbedded<CBaseObject*, 5>	mapTos;  //Objects that 'this' points to.
 
 public:
-					CObject(void);
+					CObject();
 	void			Kill(void);
 	int				NumTos(void);
 	BOOL			IsCollection(void);
