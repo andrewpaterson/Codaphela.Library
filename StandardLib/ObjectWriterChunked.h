@@ -20,11 +20,12 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __OBJECT_WRITER_CHUNKED_H__
 #define __OBJECT_WRITER_CHUNKED_H__
+#include "ObjectIO.h"
 #include "ChunkFileNames.h"
 #include "ObjectWriter.h"
 
 
-class CObjectWriterChunked : public CObjectWriter
+class CObjectWriterChunked : public CObjectWriter, public CObjectIO
 {
 BASE_FUNCTIONS(CObjectWriterChunked);
 protected:

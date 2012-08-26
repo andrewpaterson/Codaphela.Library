@@ -37,7 +37,6 @@ public:
 
 	BOOL				Begin(void);
 	CSerialisedObject*  Read(char* szObjectName);
-	CSerialisedObject*  Read(OIndex oi);
 	BOOL				End(void);
 };
 

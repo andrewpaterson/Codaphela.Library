@@ -93,64 +93,24 @@ BOOL CObjectReaderChunked::End(void)
 //////////////////////////////////////////////////////////////////////////
 CSerialisedObject* CObjectReaderChunked::Read(char* szChunkName)
 {
-	int					iLength;
 	CSerialisedObject*	pcSerialised;
-	void*				pvOffset;
-	BOOL				bResult;
 
 	if (!mcChunkFile.ReadChunkBegin(szChunkName))
 	{
 		return NULL;
 	}
-	if (!mcChunkFile.ReadInt(&iLength))
-	{
-		return NULL;
-	}
-	if (iLength <= 0)
-	{
-		return NULL;
-	}
 
-	pcSerialised = (CSerialisedObject*)malloc(iLength);
+	pcSerialised = ReadSerialised(&mcChunkFile);
 	if (!pcSerialised)
 	{
 		return NULL;
 	}
 
-	pcSerialised->SetLength(iLength);
-	iLength -= sizeof(int);
-
-	pvOffset = RemapSinglePointer(pcSerialised, sizeof(int));
-	bResult = mcChunkFile.ReadData(pvOffset, iLength);
-	if (!bResult)
-	{
-		free(pcSerialised);
-		return NULL;
-	}
 	if (!mcChunkFile.ReadChunkEnd())
 	{
 		free(pcSerialised);
 		return NULL;
 	}
-	return pcSerialised;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CSerialisedObject* CObjectReaderChunked::Read(OIndex oi)
-{
-	CChars				szChunkName;
-	CSerialisedObject*	pcSerialised;
-
-	szChunkName.Init("Unnamed/");
-	szChunkName.AppendHexHiLo(&oi, sizeof(OIndex));
-
-	pcSerialised = Read(szChunkName.Text());
-
-	szChunkName.Kill();
 	return pcSerialised;
 }
 

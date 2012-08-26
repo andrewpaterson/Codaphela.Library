@@ -99,7 +99,6 @@ BOOL CObjectWriterChunked::End(void)
 BOOL CObjectWriterChunked::Write(CSerialisedObject* pcSerialised)
 {
 	CChars	szChunkName;
-	OIndex	oi;
 
 	if (pcSerialised->IsNamed())
 	{
@@ -108,9 +107,7 @@ BOOL CObjectWriterChunked::Write(CSerialisedObject* pcSerialised)
 	}
 	else if (pcSerialised->IsIndexed())
 	{
-		szChunkName.Init("Unnamed/");
-		oi = pcSerialised->GetIndex();
-		szChunkName.AppendHexHiLo(&oi, sizeof(OIndex));
+		Unnamed(pcSerialised, &szChunkName);
 	}
 	else
 	{

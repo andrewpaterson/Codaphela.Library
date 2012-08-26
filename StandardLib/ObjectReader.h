@@ -17,8 +17,11 @@ public:
 
 	virtual BOOL				Begin(void);
 	virtual CSerialisedObject*  Read(char* szObjectName) =0;
-	virtual CSerialisedObject*  Read(OIndex oi) =0;
+	virtual CSerialisedObject*  Read(OIndex oi);
 	virtual BOOL				End(void);
+
+protected:
+			CSerialisedObject*  ReadSerialised(CFileReader* pcReader);
 };
 
 

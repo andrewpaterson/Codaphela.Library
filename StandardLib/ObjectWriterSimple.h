@@ -21,10 +21,11 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __OBJECT_WRITER_SIMPLE_H__
 #define __OBJECT_WRITER_SIMPLE_H__
 #include "BaseLib/Chars.h"
+#include "ObjectIOSimple.h"
 #include "ObjectWriter.h"
 
 
-class CObjectWriterSimple : public CObjectWriter
+class CObjectWriterSimple : public CObjectWriter, public CObjectIOSimple
 {
 BASE_FUNCTIONS(CObjectWriterSimple);
 public:

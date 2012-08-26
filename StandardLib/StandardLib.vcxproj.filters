@@ -438,6 +438,12 @@
     <ClInclude Include="ObjectWriterChunked.h">
       <Filter>Source\Object\Object\IO\Chunked</Filter>
     </ClInclude>
+    <ClInclude Include="ObjectIOSimple.h">
+      <Filter>Source\Object\Object\IO\Simple</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectIO.h">
+      <Filter>Source\Object\Object\IO\Common</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Unknown.cpp">
@@ -706,6 +712,12 @@
     </ClCompile>
     <ClCompile Include="ObjectWriterChunked.cpp">
       <Filter>Source\Object\Object\IO\Chunked</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjectIOSimple.cpp">
+      <Filter>Source\Object\Object\IO\Simple</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjectIO.cpp">
+      <Filter>Source\Object\Object\IO\Common</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -72,33 +72,34 @@ BOOL CObjectWriterSimple::End(void)
 BOOL CObjectWriterSimple::Write(CSerialisedObject* pcSerialised)
 {
 	CFileUtil		cFileUtil;
-	CChars			szFileName;
 	CChars			szDirectory;
+	CChars			szFileName;
 	CFileBasic		cFile;
-	CChars			szFullName;
 	char*			szExtension;
+	CChars			szUnnamed;
+
+	if (pcSerialised->IsNamed())
+	{
+		ReturnOnFalse(ObjectStartsWithBase(pcSerialised->GetName()));
+		FileName(pcSerialised->GetName(), mszDirectory.Text(), &szDirectory, &szFileName);
+	}
+	else if (pcSerialised->IsIndexed())
+	{
+		FileName(Unnamed(pcSerialised, &szUnnamed), mszDirectory.Text(), &szDirectory, &szFileName);
+		szUnnamed.Kill();
+	}
+	else
+	{
+		return FALSE;
+	}
 
 	ReturnOnFalse(ObjectStartsWithBase(pcSerialised->GetName()));
 
-	szFileName.Init();
-	szDirectory.Init();
-	cFileUtil.SplitPath(pcSerialised->GetName(), &szFileName, &szDirectory);
-	szFileName.Append(".");
-	szFileName.Append(OBJECT_FILE_EXTENSION);
-
-	szFullName.Init(mszDirectory);
-	szFullName.Append(FILE_SEPARATOR[0]);
-	szFullName.Append(szDirectory);
+	cFileUtil.MakeDir(szDirectory.Text());
+	cFile.Init(DiskFile(szFileName.Text()));
+	szFileName.Kill();
 	szDirectory.Kill();
 
-	cFileUtil.MakeDir(szFullName.Text());
-
-	szFullName.Append(FILE_SEPARATOR[0]);
-	szFullName.Append(szFileName);
-	szFileName.Kill();
-
-	cFile.Init(DiskFile(szFullName.Text()));
-	szFullName.Kill();
 	cFile.Open(EFM_Write_Create);
 
 	//Write file type identifier.
@@ -106,7 +107,6 @@ BOOL CObjectWriterSimple::Write(CSerialisedObject* pcSerialised)
 	ReturnOnFalse(cFile.WriteData(szExtension, 4));
 	ReturnOnFalse(cFile.WriteInt(BASIC_OBJECT_FILE));
 
-	//Write object stream.
 	ReturnOnFalse(cFile.WriteData(pcSerialised, pcSerialised->GetLength()));
 
 	cFile.Close();

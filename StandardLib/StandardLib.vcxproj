@@ -105,6 +105,8 @@
     <ClInclude Include="ObjectFileGeneral.h" />
     <ClInclude Include="ObjectGraphDeserialiser.h" />
     <ClInclude Include="ObjectHeader.h" />
+    <ClInclude Include="ObjectIO.h" />
+    <ClInclude Include="ObjectIOSimple.h" />
     <ClInclude Include="ObjectMultipleSource.h" />
     <ClInclude Include="ObjectReader.h" />
     <ClInclude Include="ObjectReaderChunked.h" />
@@ -199,11 +201,13 @@
     <ClCompile Include="NamedIndexesBlocksLoader.cpp" />
     <ClCompile Include="NamedIndexesFileDumper.cpp" />
     <ClCompile Include="NamedIndexesOptimiser.cpp" />
+    <ClCompile Include="ObjectIO.cpp" />
     <ClCompile Include="ObjectConverter.cpp" />
     <ClCompile Include="ObjectConverterNative.cpp" />
     <ClCompile Include="ObjectConverterText.cpp" />
     <ClCompile Include="ObjectGraphDeserialiser.cpp" />
     <ClCompile Include="ObjectHeader.cpp" />
+    <ClCompile Include="ObjectIOSimple.cpp" />
     <ClCompile Include="ObjectMultipleSource.cpp" />
     <ClCompile Include="ObjectReader.cpp" />
     <ClCompile Include="ObjectReaderChunked.cpp" />
