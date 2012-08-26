@@ -27,6 +27,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Pointer.h"
 #include "ObjectsSource.h"
 #include "Root.h"
+#include "IndexGenerator.h"
 
 
 #define ROOT_NAME	"GraphRoot"
@@ -48,7 +49,7 @@ protected:
 	
 	CObjectsSource			mcSource;
 
-	OIndex					moiNext;
+	CIndexGenerator			mcIndexGenerator;
 
 public:
 						void			Init(CUnknowns* pcUnknownsAllocatingFrom, char* szWorkingDirectory);
@@ -76,7 +77,6 @@ public:
 
 						CBaseObject*	GetBaseObject(OIndex oi);
 protected:
-						void			StepNextObjectID(void);
 						void			AddWithID(CBaseObject* pvObject);
 						void			AddWithIDAndName(CBaseObject* pvObject, char* szObjectName);
 	template<class M>	M*				Allocate(void);

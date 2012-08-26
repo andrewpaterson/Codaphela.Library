@@ -88,6 +88,7 @@
     <ClInclude Include="DependentReadObject.h" />
     <ClInclude Include="DependentReadObjects.h" />
     <ClInclude Include="DependentWriteObject.h" />
+    <ClInclude Include="IndexGenerator.h" />
     <ClInclude Include="NamedHollowObject.h" />
     <ClInclude Include="NamedIndexedBlock.h" />
     <ClInclude Include="NamedIndexedSorterSource.h" />
@@ -190,6 +191,7 @@
     <ClCompile Include="DependentReadObject.cpp" />
     <ClCompile Include="DependentReadObjects.cpp" />
     <ClCompile Include="DependentWriteObject.cpp" />
+    <ClCompile Include="IndexGenerator.cpp" />
     <ClCompile Include="NamedHollowObject.cpp" />
     <ClCompile Include="NamedIndexedBlock.cpp" />
     <ClCompile Include="NamedIndexedData.cpp" />

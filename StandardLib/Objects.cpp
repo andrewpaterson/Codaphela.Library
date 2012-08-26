@@ -32,10 +32,10 @@ CObjects gcObjects;
 //////////////////////////////////////////////////////////////////////////
 void CObjects::Init(CUnknowns* pcUnknownsAllocatingFrom, char* szWorkingDirectory)
 {
-	mpcUnknownsAllocatingFrom = pcUnknownsAllocatingFrom;
-	moiNext = FIRST_O_INDEX;
-
 	CIndexedConfig	cConfig;
+
+	mpcUnknownsAllocatingFrom = pcUnknownsAllocatingFrom;
+	mcIndexGenerator.Init();
 
 	cConfig.OptimiseForStreaming(szWorkingDirectory);
 	mcDatabase.Init(&cConfig);
@@ -51,18 +51,8 @@ void CObjects::Kill(void)
 {
 	mcMemory.Kill();
 	mcDatabase.Kill();
-	moiNext = INVALID_O_INDEX;
+	mcIndexGenerator.Kill();
 	mpcUnknownsAllocatingFrom = NULL;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CObjects::StepNextObjectID(void)
-{
-	moiNext++;
 }
 
 
@@ -72,8 +62,7 @@ void CObjects::StepNextObjectID(void)
 //////////////////////////////////////////////////////////////////////////
 void CObjects::AddWithID(CBaseObject* pvObject)
 {
-	mcMemory.AddWithID(pvObject, moiNext);
-	StepNextObjectID();
+	mcMemory.AddWithID(pvObject, mcIndexGenerator.PopIndex());
 }
 
 
@@ -83,8 +72,7 @@ void CObjects::AddWithID(CBaseObject* pvObject)
 //////////////////////////////////////////////////////////////////////////
 void CObjects::AddWithIDAndName(CBaseObject* pvObject, char* szObjectName)
 {
-	mcMemory.AddWithIDAndName(pvObject, moiNext, szObjectName);
-	StepNextObjectID();
+	mcMemory.AddWithIDAndName(pvObject, mcIndexGenerator.PopIndex(), szObjectName);
 }
 
 
@@ -167,8 +155,7 @@ CPointerObject CObjects::Add(char* szClassName, char* szObjectName)
 		{
 			CPointerObject	pObject;
 
-			mcMemory.AddWithIDAndName(pvObject, moiNext, szObjectName);
-			StepNextObjectID();
+			mcMemory.AddWithIDAndName(pvObject, mcIndexGenerator.PopIndex(), szObjectName);
 			pObject.mpcObject = pvObject;
 			return pObject;
 		}
