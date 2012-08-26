@@ -25,14 +25,20 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Pointer.h"
 
 
+class CObjects;
 class CRoot : public CNamedObject
 {
+friend class CObjects;
 BASE_FUNCTIONS(CRoot);
 protected:
 	CPointer<CSet>	mpObjects;
+	CObjects*		mpcObjectsAllocatingFrom;
+
+protected:
+	void	Init(void);
+	void	Init(CObjects* pcObjectsAllocatingFrom);
 
 public:
-	void	Init(void);
 	void	Kill(void);
 
 	void	Add(CPointerObject pObject);

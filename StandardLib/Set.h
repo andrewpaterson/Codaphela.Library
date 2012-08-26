@@ -29,18 +29,16 @@ class CSet : public CArrayCommonObject
 {
 BASE_FUNCTIONS(CSet);
 public:
-	void 			Init(int iChunkSize = ARRAY_COMMOM_CHUNK_SIZE);
-	void 			Kill(void);
+						void 			Init(int iChunkSize = ARRAY_COMMOM_CHUNK_SIZE);
+						void 			Kill(void);
 
-	void			RemoveDuringIteration(SSetIterator* psIter);
+						void			RemoveDuringIteration(SSetIterator* psIter);
 
-	CPointerObject	StartIteration(SSetIterator* psIter);
-	CPointerObject	Iterate(SSetIterator* psIter);
+						CPointerObject	StartIteration(SSetIterator* psIter);
+						CPointerObject	Iterate(SSetIterator* psIter);
 
-	template<class M>
-	CPointer<M>		StartIteration(SSetIterator* psIter);
-	template<class M>
-	CPointer<M>		Iterate(SSetIterator* psIter);
+	template<class M>	CPointer<M>		StartIteration(SSetIterator* psIter);
+	template<class M>	CPointer<M>		Iterate(SSetIterator* psIter);
 };
 
 

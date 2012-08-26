@@ -20,6 +20,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include "Objects.h"
 #include "ObjectSerialiser.h"
+#include "ObjectDeserialiser.h"
 #include "Root.h"
 
 
@@ -30,7 +31,22 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 void CRoot::Init(void)
 {
 	mpObjects.Init(this);
-	mpObjects = OMalloc(CSet);
+	mpcObjectsAllocatingFrom = &gcObjects;
+	mpObjects = mpcObjectsAllocatingFrom->Add<CSet>();
+	mpObjects->Init(1024);
+	mpObjects->MakeSubRoot();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CRoot::Init(CObjects* pcObjectsAllocatingFrom)
+{
+	mpObjects.Init(this);
+	mpcObjectsAllocatingFrom = pcObjectsAllocatingFrom;
+	mpObjects = mpcObjectsAllocatingFrom->Add<CSet>();
 	mpObjects->Init(1024);
 	mpObjects->MakeSubRoot();
 }
@@ -44,6 +60,7 @@ void CRoot::Kill(void)
 {
 	mpObjects->Kill();
 	CUnknown::Kill();
+	mpcObjectsAllocatingFrom = NULL;
 }
 
 
@@ -55,7 +72,6 @@ void CRoot::Add(CPointerObject pObject)
 {
 	mpObjects->Add(pObject);
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -114,8 +130,7 @@ BOOL CRoot::Save(CObjectSerialiser* pcFile)
 //////////////////////////////////////////////////////////////////////////
 BOOL CRoot::Load(CObjectDeserialiser* pcFile)
 {
-	//LoadHeader is already called by whatever allocated this object.
-
-	return FALSE;
+	mpcObjectsAllocatingFrom = &gcObjects;
+	return pcFile->ReadPointer(mpObjects.This());
 }
 

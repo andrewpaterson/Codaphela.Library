@@ -26,12 +26,17 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Unknowns.h"
 #include "Pointer.h"
 #include "ObjectsSource.h"
+#include "Root.h"
+
+
+#define ROOT_NAME	"GraphRoot"
 
 
 #define OMalloc(classtype)			(gcObjects.Add<classtype>())
 #define ONMalloc(classtype, name)	(gcObjects.Add<classtype>(name))
 #define ONull						(gcObjects.Null())
-
+#define ONNull(classtype)			(gcObjects.Null<classtype>())
+#define ORoot()						(gcObjects.AddRoot())
 
 class CObjects
 {
@@ -60,6 +65,7 @@ public:
 						CPointerObject	Add(char* szClassName, char* szObjectName);
 	template<class M>	CPointer<M>		Add(void);
 	template<class M>	CPointer<M>		Add(char* szObjectName);
+						CPointer<CRoot> AddRoot(void);
 
 						CPointerObject	Null(void);
 	template<class M>	CPointer<M>		Null(void);

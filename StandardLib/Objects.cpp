@@ -189,6 +189,24 @@ CPointerObject CObjects::Add(char* szClassName, char* szObjectName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+CPointer<CRoot> CObjects::AddRoot(void)
+{
+	CPointer<CRoot>	cRoot;
+
+	cRoot = Get(ROOT_NAME);
+	if (!cRoot)
+	{
+		cRoot = Add<CRoot>(ROOT_NAME);
+		cRoot->Init(this);
+	}
+	return cRoot;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 CPointerObject CObjects::Get(OIndex oi)
 {
 	CBaseObject*	pvObject;
