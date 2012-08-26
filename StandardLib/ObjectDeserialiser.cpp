@@ -52,7 +52,7 @@ void CObjectDeserialiser::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointerObject CObjectDeserialiser::Load(void)
+CPointerObject CObjectDeserialiser::Load(OIndex oiNew)
 {
 	BOOL			bResult;
 	int				iLength;
@@ -86,11 +86,11 @@ CPointerObject CObjectDeserialiser::Load(void)
 	}
 	else if (sHeader.mcType == OBJECT_POINTER_ID)
 	{
-		pObject = gcObjects.Add(sHeader.mszClassName.Text(), sHeader.moi);
+		pObject = gcObjects.Add(sHeader.mszClassName.Text(), oiNew);
 	}
 	else if (sHeader.mcType == OBJECT_POINTER_NAMED)
 	{
-		pObject = gcObjects.Add(sHeader.mszClassName.Text(), sHeader.mszObjectName.Text(), sHeader.moi);
+		pObject = gcObjects.Add(sHeader.mszClassName.Text(), sHeader.mszObjectName.Text(), oiNew);
 	}
 	sHeader.Kill();
 

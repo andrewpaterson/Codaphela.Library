@@ -6,6 +6,7 @@
 #include "DependentReadObjects.h"
 
 
+class CIndexGenerator;
 class CObjectGraphDeserialiser
 {
 protected:
@@ -13,7 +14,7 @@ protected:
 	CDependentReadObjects	mcDependentObjects;
 
 public:
-	void			Init(CObjectReader* pcReader);
+	void			Init(CObjectReader* pcReader, CIndexGenerator* pcIndexGenerator);
 	void			Kill(void);
 
 	CPointerObject	Read(char* szObjectName);

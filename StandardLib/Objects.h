@@ -52,34 +52,36 @@ protected:
 	CIndexGenerator			mcIndexGenerator;
 
 public:
-						void			Init(CUnknowns* pcUnknownsAllocatingFrom, char* szWorkingDirectory);
-						void			Kill(void);
+						void				Init(CUnknowns* pcUnknownsAllocatingFrom, char* szWorkingDirectory);
+						void				Kill(void);
 
 
-						CPointerObject	Get(OIndex oi);
-						CPointerObject	Get(char* szObjectName);
-	template<class M> 	CPointer<M>		Get(OIndex oi);
-	template<class M>	CPointer<M>		Get(char* szObjectName);
+						CPointerObject		Get(OIndex oi);
+						CPointerObject		Get(char* szObjectName);
+	template<class M> 	CPointer<M>			Get(OIndex oi);
+	template<class M>	CPointer<M>			Get(char* szObjectName);
 
-						CPointerObject	Add(char* szClassName, OIndex oi);
-						CPointerObject	Add(char* szClassName, char* szObjectName, OIndex oi);
-						CPointerObject	Add(char* szClassName, char* szObjectName);
-	template<class M>	CPointer<M>		Add(void);
-	template<class M>	CPointer<M>		Add(char* szObjectName);
-						CPointer<CRoot> AddRoot(void);
+						CPointerObject		Add(char* szClassName, OIndex oi);
+						CPointerObject		Add(char* szClassName, char* szObjectName, OIndex oi);
+						CPointerObject		Add(char* szClassName, char* szObjectName);
+	template<class M>	CPointer<M>			Add(void);
+	template<class M>	CPointer<M>			Add(char* szObjectName);
+						CPointer<CRoot>		AddRoot(void);
 
-						CPointerObject	Null(void);
-	template<class M>	CPointer<M>		Null(void);
+						CPointerObject		Null(void);
+	template<class M>	CPointer<M>			Null(void);
 
-	template<class M>	void			AddConstructor(void);
-						long long int	NumMemoryObjects(void);
-						long long int	NumDatabaseObjects(void);
+	template<class M>	void				AddConstructor(void);
+						long long int		NumMemoryObjects(void);
+						long long int		NumDatabaseObjects(void);
+						CIndexGenerator*	GetIndexGenerator(void);
 
-						CBaseObject*	GetBaseObject(OIndex oi);
+						CBaseObject*		GetBaseObject(OIndex oi);
+
 protected:
-						void			AddWithID(CBaseObject* pvObject);
-						void			AddWithIDAndName(CBaseObject* pvObject, char* szObjectName);
-	template<class M>	M*				Allocate(void);
+						void				AddWithID(CBaseObject* pvObject);
+						void				AddWithIDAndName(CBaseObject* pvObject, char* szObjectName);
+	template<class M>	M*					Allocate(void);
 };						
 
 

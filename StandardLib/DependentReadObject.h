@@ -8,7 +8,8 @@ class CBaseObject;
 class CDependentReadObject : public CPointerHeader
 {
 public:
-	BOOL			mbRead;
+	BOOL	mbRead;
+	OIndex	moiNew;	
 
 	void	Init(CPointerHeader* pcObjectPtr);
 	void	Kill(void);
@@ -16,6 +17,7 @@ public:
 	BOOL	IsNamed(void);
 	char*	GetName(void);
 	OIndex	GetIndex(void);
+	void	SetNewIndex(OIndex oiNew);
 };
 
 

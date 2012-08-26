@@ -16,20 +16,22 @@ public:
 typedef CArrayTemplate<CDependentReadPointer>	CArrayDependentReadPointer;
 
 
+class CIndexGenerator;
 class CDependentReadObjects
 {
 protected:
 	CArrayDependentReadObject	mcObjects;
 	CArrayDependentReadPointer	mcPointers;
 	int							miGetIndex;
+	CIndexGenerator*			mpcIndexGenerator;
 
 public:
-	void					Init(void);
+	void					Init(CIndexGenerator* pcIndexGenerator);
 	void					Kill(void);
 	void					Add(CPointerHeader* pcHeader, CBaseObject** ppcObjectPtr);
 	CDependentReadObject*	GetUnread(void);
 	void					SetInitialIndex(OIndex oi);
-	void					Mark(OIndex oi);
+	BOOL					Mark(OIndex oi);
 
 	int						NumPointers(void);
 	CDependentReadPointer*	GetPointer(int iIndex);

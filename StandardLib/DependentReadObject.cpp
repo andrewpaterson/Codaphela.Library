@@ -13,6 +13,7 @@ void CDependentReadObject::Init(CPointerHeader* pcObjectPtr)
 	pcThis = this;
 	memcpy_fast(pcThis, pcObjectPtr, sizeof(CPointerHeader));
 	mbRead = FALSE;
+	moiNew = INVALID_O_INDEX;
 }
 
 
@@ -23,6 +24,16 @@ void CDependentReadObject::Init(CPointerHeader* pcObjectPtr)
 void CDependentReadObject::Kill(void)
 {
 	CPointerHeader::Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CDependentReadObject::SetNewIndex(OIndex oiNew)
+{
+	moiNew = oiNew;
 }
 
 

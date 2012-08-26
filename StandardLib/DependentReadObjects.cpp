@@ -1,3 +1,4 @@
+#include "IndexGenerator.h"
 #include "DependentReadObjects.h"
 
 
@@ -16,11 +17,12 @@ void CDependentReadPointer::Init(CBaseObject**	ppcPointedFrom, OIndex oiPointedT
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDependentReadObjects::Init(void)
+void CDependentReadObjects::Init(CIndexGenerator* pcIndexGenerator)
 {
 	mcObjects.Init(128);
 	mcPointers.Init(512);
 	miGetIndex = 0;
+	mpcIndexGenerator = pcIndexGenerator;
 }
 
 
@@ -51,24 +53,30 @@ void CDependentReadObjects::Kill(void)
 void CDependentReadObjects::Add(CPointerHeader* pcHeader, CBaseObject** ppcObjectPtr)
 {
 	CDependentReadObject	cObject;
+	CDependentReadObject*	pcExisting;
 	BOOL					bExists;
 	int						iIndex;
 	CDependentReadPointer*	pcPointer;
+	OIndex					oiNew;
 
 	cObject.Init(pcHeader);
 
 	bExists = mcObjects.FindInSorted(&cObject, &CompareDependentReadObject, &iIndex);
 	if (!bExists)
 	{
+		oiNew = mpcIndexGenerator->PopIndex();
+		cObject.SetNewIndex(oiNew);
 		mcObjects.InsertAt(&cObject, iIndex);
 	}
 	else
 	{
+		pcExisting = mcObjects.Get(iIndex);
+		oiNew = pcExisting->moiNew;
 		cObject.Kill();
 	}
 
 	pcPointer = mcPointers.Add();
-	pcPointer->Init(ppcObjectPtr, pcHeader->moi);
+	pcPointer->Init(ppcObjectPtr, oiNew);
 }
 
 
@@ -142,7 +150,7 @@ void CDependentReadObjects::SetInitialIndex(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDependentReadObjects::Mark(OIndex oi)
+BOOL CDependentReadObjects::Mark(OIndex oi)
 {
 	CDependentReadObject	cObject;
 	int						iIndex;
@@ -152,8 +160,13 @@ void CDependentReadObjects::Mark(OIndex oi)
 	cObject.moi = oi;
 
 	bResult = mcObjects.FindInSorted(&cObject, &CompareDependentReadObject, &iIndex);
+	if (!bResult)
+	{
+		return FALSE;
+	}
 	pcDependent = mcObjects.Get(iIndex);
 	pcDependent->mbRead = TRUE;
+	return TRUE;
 }
 
 

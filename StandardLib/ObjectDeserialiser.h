@@ -38,7 +38,7 @@ protected:
 public:
 			void			Init(CSerialisedObject* pcSerialised);
 	virtual void			Kill(void);
-			CPointerObject	Load(void);
+			CPointerObject	Load(OIndex oiNew);
 
 	virtual BOOL			ReadPointer(CPointerObject* pObject) =0;
 			BOOL			ReadPointerHeader(CPointerHeader* pcPointerHeader);
