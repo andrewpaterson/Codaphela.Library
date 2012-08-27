@@ -4,20 +4,28 @@
 #include "ObjectHeader.h"
 
 
+#define DEPENDENT_READ_OBJECT_FLAG_READ		0x01
+#define DEPENDENT_READ_OBJECT_FLAG_EXISTED	0x02
+
 class CBaseObject;
 class CDependentReadObject : public CPointerHeader
 {
-public:
-	BOOL	mbRead;
+protected:
+	BOOL	miFlags;
 	OIndex	moiNew;	
 
+public:
 	void	Init(CPointerHeader* pcObjectPtr);
 	void	Kill(void);
 
 	BOOL	IsNamed(void);
 	char*	GetName(void);
-	OIndex	GetIndex(void);
+	OIndex	GetOldIndex(void);
+	OIndex	GetNewIndex(void);
 	void	SetNewIndex(OIndex oiNew);
+	void	SetRead(void);
+	void	SetExisting(void);
+	BOOL	IsRead(void);
 };
 
 

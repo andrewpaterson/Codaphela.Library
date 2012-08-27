@@ -14,6 +14,8 @@ public:
 	void Init(void);
 	void Init(char* szName);
 	void Kill(void);
+
+	BOOL IsNamed(void);
 };
 
 

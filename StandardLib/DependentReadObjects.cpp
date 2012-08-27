@@ -1,3 +1,4 @@
+#include "Objects.h"
 #include "IndexGenerator.h"
 #include "DependentReadObjects.h"
 
@@ -52,27 +53,47 @@ void CDependentReadObjects::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CDependentReadObjects::Add(CPointerHeader* pcHeader, CBaseObject** ppcObjectPtr)
 {
-	CDependentReadObject	cObject;
-	CDependentReadObject*	pcExisting;
+	CDependentReadObject	cDependent;
+	CDependentReadObject*	pcExistingInFile;
 	BOOL					bExists;
 	int						iIndex;
 	CDependentReadPointer*	pcPointer;
 	OIndex					oiNew;
+	CPointerObject			pExisitingInDatabase;
 
-	cObject.Init(pcHeader);
+	cDependent.Init(pcHeader);
 
-	bExists = mcObjects.FindInSorted(&cObject, &CompareDependentReadObject, &iIndex);
+	bExists = mcObjects.FindInSorted(&cDependent, &CompareDependentReadObject, &iIndex);
 	if (!bExists)
 	{
-		oiNew = mpcIndexGenerator->PopIndex();
-		cObject.SetNewIndex(oiNew);
-		mcObjects.InsertAt(&cObject, iIndex);
+		if (pcHeader->IsNamed())
+		{
+			//Well fuck.  If you have to talk to objects then what was the point of index generator?
+			//Also you shouldn't be talking to gcObjects here.
+			pExisitingInDatabase = gcObjects.Get(pcHeader->mszObjectName.Text());
+			if (pExisitingInDatabase.IsNotNull())
+			{
+				oiNew = pExisitingInDatabase->GetOI();
+				cDependent.SetExisting();
+			}
+			else
+			{
+				oiNew = mpcIndexGenerator->PopIndex();
+			}
+		}
+		else
+		{
+			oiNew = mpcIndexGenerator->PopIndex();
+		}
+
+		cDependent.SetNewIndex(oiNew);
+		mcObjects.InsertAt(&cDependent, iIndex);
 	}
 	else
 	{
-		pcExisting = mcObjects.Get(iIndex);
-		oiNew = pcExisting->moiNew;
-		cObject.Kill();
+		pcExistingInFile = mcObjects.Get(iIndex);
+		oiNew = pcExistingInFile->GetNewIndex();
+		cDependent.Kill();
 	}
 
 	pcPointer = mcPointers.Add();
@@ -107,7 +128,7 @@ CDependentReadObject* CDependentReadObjects::GetUnread(void)
 		}
 
 		psObject = mcObjects.Get(miGetIndex);
-		if (!psObject->mbRead)
+		if (!psObject->IsRead())
 		{
 			return psObject;
 		}
@@ -165,7 +186,7 @@ BOOL CDependentReadObjects::Mark(OIndex oi)
 		return FALSE;
 	}
 	pcDependent = mcObjects.Get(iIndex);
-	pcDependent->mbRead = TRUE;
+	pcDependent->SetRead();
 	return TRUE;
 }
 

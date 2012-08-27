@@ -128,7 +128,7 @@ BOOL CObjectGraphDeserialiser::ReadUnread(CDependentReadObject* pcDependent, BOO
 	}
 	else
 	{
-		pcSerialised = mpcReader->Read(pcDependent->GetIndex());
+		pcSerialised = mpcReader->Read(pcDependent->GetOldIndex());
 		if (!pcSerialised)
 		{
 			return FALSE;
@@ -136,7 +136,7 @@ BOOL CObjectGraphDeserialiser::ReadUnread(CDependentReadObject* pcDependent, BOO
 	}
 
 	oiOld = pcDependent->moi;
-	oiNew = pcDependent->moiNew;
+	oiNew = pcDependent->GetNewIndex();
 	cDeserialiser.Init(this, pcSerialised);
 	pObject = cDeserialiser.Load(oiNew);
 	if (pObject.IsNull())
