@@ -1,3 +1,2 @@
-Remap OIs on chunked file load.
 Overwrite existing objects with the same name (discard anything pointed to).
 Make sure CObjects has a Close method that writes out all in memory objects.
