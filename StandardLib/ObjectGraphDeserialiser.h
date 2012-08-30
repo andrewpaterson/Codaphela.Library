@@ -24,6 +24,7 @@ protected:
 	BOOL			ReadUnread(CDependentReadObject* pcDependent, BOOL bFirst);
 	void			MarkRead(OIndex oi);
 	BOOL			FixPointers(void);
+	BOOL			FixExisting(void);
 };
 
 

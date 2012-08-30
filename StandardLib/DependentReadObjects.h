@@ -1,19 +1,7 @@
 #ifndef __DEPENDENT_READ_OBJECTS_H__
 #define __DEPENDENT_READ_OBJECTS_H__
+#include "DependentReadPointer.h"
 #include "DependentReadObject.h"
-
-
-class CDependentReadPointer
-{
-public:
-	CBaseObject**	mppcPointedFrom;
-	OIndex			moiPointedTo;
-
-	void Init(CBaseObject**	ppcPointedFrom, OIndex oiPointedTo);
-};
-
-
-typedef CArrayTemplate<CDependentReadPointer>	CArrayDependentReadPointer;
 
 
 class CIndexGenerator;
@@ -35,6 +23,9 @@ public:
 
 	int						NumPointers(void);
 	CDependentReadPointer*	GetPointer(int iIndex);
+
+	int						NumObjects(void);
+	CDependentReadObject*	GetObject(int iIndex);
 };
 
 

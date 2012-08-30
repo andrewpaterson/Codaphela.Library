@@ -7,6 +7,7 @@
 #define DEPENDENT_READ_OBJECT_FLAG_READ		0x01
 #define DEPENDENT_READ_OBJECT_FLAG_EXISTED	0x02
 
+
 class CBaseObject;
 class CDependentReadObject : public CPointerHeader
 {
@@ -26,6 +27,7 @@ public:
 	void	SetRead(void);
 	void	SetExisting(void);
 	BOOL	IsRead(void);
+	BOOL	PreExisted(void);
 };
 
 

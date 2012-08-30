@@ -87,6 +87,7 @@
     <ClInclude Include="ChunkFileNames.h" />
     <ClInclude Include="DependentReadObject.h" />
     <ClInclude Include="DependentReadObjects.h" />
+    <ClInclude Include="DependentReadPointer.h" />
     <ClInclude Include="DependentWriteObject.h" />
     <ClInclude Include="IndexGenerator.h" />
     <ClInclude Include="NamedHollowObject.h" />
@@ -112,6 +113,7 @@
     <ClInclude Include="ObjectReader.h" />
     <ClInclude Include="ObjectReaderChunked.h" />
     <ClInclude Include="ObjectReaderSimple.h" />
+    <ClInclude Include="ObjectRemapper.h" />
     <ClInclude Include="ObjectSingleSource.h" />
     <ClInclude Include="ObjectSourceChunked.h" />
     <ClInclude Include="ObjectSourceNative.h" />
@@ -190,6 +192,7 @@
     <ClCompile Include="ChunkFileNames.cpp" />
     <ClCompile Include="DependentReadObject.cpp" />
     <ClCompile Include="DependentReadObjects.cpp" />
+    <ClCompile Include="DependentReadPointer.cpp" />
     <ClCompile Include="DependentWriteObject.cpp" />
     <ClCompile Include="IndexGenerator.cpp" />
     <ClCompile Include="NamedHollowObject.cpp" />
@@ -214,6 +217,7 @@
     <ClCompile Include="ObjectReader.cpp" />
     <ClCompile Include="ObjectReaderChunked.cpp" />
     <ClCompile Include="ObjectReaderSimple.cpp" />
+    <ClCompile Include="ObjectRemapper.cpp" />
     <ClCompile Include="ObjectSingleSource.cpp" />
     <ClCompile Include="ObjectSourceChunked.cpp" />
     <ClCompile Include="ObjectSourceNative.cpp" />
