@@ -18,7 +18,7 @@ public:
 	void			Kill(void);
 
 	CPointerObject	Read(char* szObjectName);
-	void			AddDependent(CPointerHeader* pcHeader, CBaseObject** ppcObjectPtr);
+	void			AddDependent(CPointerHeader* pcHeader, CBaseObject** ppcObjectPtr, CBaseObject* pcContaining);
 
 protected:
 	BOOL			ReadUnread(CDependentReadObject* pcDependent, BOOL bFirst);

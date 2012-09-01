@@ -43,7 +43,7 @@ public:
 	virtual BOOL			ReadPointer(CPointerObject* pObject) =0;
 			BOOL			ReadPointerHeader(CPointerHeader* pcPointerHeader);
 			BOOL			ReadObjectHeader(CObjectHeader* pcObjectHeader);
-	virtual BOOL			ReadDependent(CBaseObject** ppcUnknown) =0;
+	virtual BOOL			ReadDependent(CBaseObject** ppcUnknown, CBaseObject* pcContaining) =0;
 
 protected:
 			filePos			Read(void* pvDest, filePos iSize, filePos iCount);

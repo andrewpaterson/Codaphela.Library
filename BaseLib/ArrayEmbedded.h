@@ -232,7 +232,7 @@ M* CArrayEmbedded<M, I>::Get(int iIndex)
 {
 	if (IsEmbedded())
 	{
-		if (iIndex < miChunkSize)
+		if (iIndex < miUsedElements)
 		{
 			return &mam[iIndex];
 		}

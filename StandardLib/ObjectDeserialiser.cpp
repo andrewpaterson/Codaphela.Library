@@ -191,7 +191,7 @@ filePos CObjectDeserialiser::Read(void* pvDest, filePos iSize, filePos iCount)
 //////////////////////////////////////////////////////////////////////////
 void CObjectDeserialiser::ClearPointer(CPointerObject* pObject)
 {
-	pObject->Clear();
+	pObject->ClearObject();
 }
 
 
@@ -199,7 +199,7 @@ void CObjectDeserialiser::ClearPointer(CPointerObject* pObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectDeserialiser::ReadDependent(CBaseObject** ppcUnknown)
+BOOL CObjectDeserialiser::ReadDependent(CBaseObject** ppcUnknown, CBaseObject* pcContaining)
 {
 	CPointerHeader	cHeader;
 	BOOL			bResult;

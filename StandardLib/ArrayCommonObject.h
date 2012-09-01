@@ -32,31 +32,32 @@ protected:
 	BOOL					mbSubRoot;
 
 public:
-	void	Init(BOOL bUnique, BOOL bIgnoreNull, BOOL bPreserveOrder, int iChunkSize);
-	void	Kill(void);
+	void			Init(BOOL bUnique, BOOL bIgnoreNull, BOOL bPreserveOrder, int iChunkSize);
+	void			Kill(void);
 
-	void	Add(CPointerObject pObject);
-	void	Remove(CPointerObject pObject);
-	void	RemoveAll(void);
+	void			Add(CPointerObject pObject);
+	void			Remove(CPointerObject pObject);
+	void			RemoveAll(void);
 
-	int		NumElements(void);
+	int				NumElements(void);
 
-	void	MakeSubRoot(void);
-	BOOL	IsSubRoot(void);
-	void	SetDistToRoot(int iDistToRoot);
+	void			MakeSubRoot(void);
+	BOOL			IsSubRoot(void);
+	void			SetDistToRoot(int iDistToRoot);
 
-	int		NumTos(void);
-	void	GetTos(CArrayBaseObjectPtr* papcTos);
+	int				NumTos(void);
+	void			GetTos(CArrayBaseObjectPtr* papcTos);
+	CBaseObject*	GetTo(int iTo);
 
-	BOOL	Save(CObjectSerialiser* pcFile);
-	BOOL	Load(CObjectDeserialiser* pcFile);
+	BOOL			Save(CObjectSerialiser* pcFile);
+	BOOL			Load(CObjectDeserialiser* pcFile);
 
 protected:
-	void	AddTo(CBaseObject* pcTo);
-	void	RemoveTo(CBaseObject* pcTo);
-	void	RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged);
-	void	CollectedThoseToBeKilled(CArrayBaseObjectPtr* papcKilled);
-	void	KillChildGraph(void);
+	void			AddTo(CBaseObject* pcTo);
+	void			RemoveTo(CBaseObject* pcTo);
+	void			RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged);
+	void			CollectedThoseToBeKilled(CArrayBaseObjectPtr* papcKilled);
+	void			KillChildGraph(void);
 };
 
 

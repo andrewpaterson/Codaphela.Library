@@ -29,6 +29,7 @@ BASE_FUNCTIONS(CCollection);
 public:
 			void	Kill(void);
 			BOOL	IsCollection(void);
+			BOOL	IsObject(void);
 	virtual void	RemoveAll(void) =0;
 };
 

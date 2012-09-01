@@ -91,7 +91,7 @@ BOOL CArrayCommonObject::Load(CObjectDeserialiser* pcFile)
 	for (i = 0; i < iNumElements; i++)
 	{
 		pcPointedTo = (CBaseObject**)mcArray.UnsafeGetPointer(i);
-		ReturnOnFalse(pcFile->ReadDependent(pcPointedTo));
+		ReturnOnFalse(pcFile->ReadDependent(pcPointedTo, this));
 	}
 
 	mcArray.PostLoad(iFlags);
@@ -297,3 +297,15 @@ void CArrayCommonObject::GetTos(CArrayBaseObjectPtr* papcTos)
 	}
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CBaseObject* CArrayCommonObject::GetTo(int iTo)
+{
+	CBaseObject*	pcPointedTo;
+
+	pcPointedTo = (CBaseObject*)mcArray.UnsafeGet(iTo);
+	return pcPointedTo;
+}

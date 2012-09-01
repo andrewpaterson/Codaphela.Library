@@ -14,7 +14,7 @@ public:
 	void Kill(void);
 
 	BOOL ReadPointer(CPointerObject* pObject);
-	BOOL ReadDependent(CBaseObject** ppcObjectPtr);
+	BOOL ReadDependent(CBaseObject** ppcObjectPtr, CBaseObject* pcContaining);
 };
 
 

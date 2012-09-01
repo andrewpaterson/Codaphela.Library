@@ -9,9 +9,10 @@ class CDependentReadPointer
 {
 public:
 	CBaseObject**	mppcPointedFrom;
+	CBaseObject*	mpcContaining;
 	OIndex			moiPointedTo;
 
-	void Init(CBaseObject**	ppcPointedFrom, OIndex oiPointedTo);
+	void Init(CBaseObject**	ppcPointedFrom, CBaseObject* pcContaining, OIndex oiPointedTo);
 };
 
 

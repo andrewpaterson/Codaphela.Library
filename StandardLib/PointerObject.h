@@ -24,7 +24,8 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 
 //This class is roughly a void* (or possibly an Object*).  It should probably have been called CObjectPointer but it's easier to start typing CPo...
-
+//CPointerObject (and friends) are either declared on the stack or as a field on a CObject; nowhere else.  The only time embedding is NULL is when
+//this pointer is declared on the stack.
 
 class CBaseObject;
 class CObject;
@@ -54,14 +55,15 @@ public:
 	BOOL			IsNull(void);
 
 	//These two methods should be protected.
-	CPointerObject*	This(void);
+	CPointerObject*	This(CObject* pcEmbedding);
+	CObject*		Embedding(void);
 	CBaseObject**	ObjectPtr(void);
 
 protected:
 	BOOL			Dehollow(void);
 	void			PointTo(CBaseObject* pcObject);
 
-	void			Clear(void);
+	void			ClearObject(void);
 };
 
 

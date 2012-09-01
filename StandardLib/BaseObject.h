@@ -44,6 +44,7 @@ class CBaseObject : public CUnknown
 template<class M>
 friend class CPointer;
 friend class CPointerObject;
+friend class CObjectGraphDeserialiser;
 friend class CArrayCommonObject;
 friend class CObject;
 friend class CArray;
@@ -66,15 +67,13 @@ public:
 			void			SetObjectID(OIndex oi);
 
 			BOOL			HasFroms(void);
-			int				NumFroms(void);
-			CBaseObject*	GetFrom(int iFrom);
-	virtual int				NumTos(void) =0;
 
 	virtual BOOL			IsRoot(void);
 	virtual BOOL			IsSubRoot(void);
 			BOOL			IsUnknown(void);
 	virtual BOOL			IsHollow(void);
 	virtual BOOL			IsCollection(void) =0;
+	virtual BOOL			IsObject(void) =0;
 	virtual BOOL			IsNamed(void);
 			BOOL			IsInvalidated(void);
 
@@ -84,9 +83,14 @@ public:
 			int				DistToRoot(void);
 			BOOL			TestedForRoot(void);
 	virtual void			GetTos(CArrayBaseObjectPtr* papcTos) =0;
+			int				NumFroms(void);
+	virtual int				NumTos(void) =0;
 			CBaseObject* 	TestGetTo(int iToIndex);
+			CBaseObject* 	TestGetFrom(int iFromIndex);
 
 protected:
+			CBaseObject*	GetFrom(int iFrom);
+	virtual CBaseObject*	GetTo(int iTo) =0;
 	virtual void			RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged) =0;
 			void			AddFrom(CBaseObject* pcFrom);
 			void			RemoveFrom(CBaseObject* pcFrom);

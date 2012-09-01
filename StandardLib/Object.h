@@ -28,6 +28,7 @@ class CObject : public CBaseObject
 template<class M>
 friend class CPointer;
 friend class CPointerObject;
+friend class CObjectGraphDeserialiser;
 
 BASE_FUNCTIONS(CObject);
 protected:
@@ -38,10 +39,13 @@ public:
 	void			Kill(void);
 	int				NumTos(void);
 	BOOL			IsCollection(void);
+	BOOL			IsObject(void);
 	void			SetDistToRoot(int iDistToRoot);
-	void			GetTos(CArrayBaseObjectPtr* papcTos);
-
+	CBaseObject*	TestGetTo(int iTo);
+	
 protected:
+	void			GetTos(CArrayBaseObjectPtr* papcTos);
+	CBaseObject*	GetTo(int iTo);
 	void			AddTo(CBaseObject* pcTo);
 	void			RemoveTo(CBaseObject* pcTo);
 	void			RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged);

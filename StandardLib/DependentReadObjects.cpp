@@ -40,7 +40,7 @@ void CDependentReadObjects::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDependentReadObjects::Add(CPointerHeader* pcHeader, CBaseObject** ppcObjectPtr)
+void CDependentReadObjects::Add(CPointerHeader* pcHeader, CBaseObject** ppcObjectPtr, CBaseObject* pcContaining)
 {
 	CDependentReadObject	cDependent;
 	CDependentReadObject*	pcExistingInFile;
@@ -86,7 +86,7 @@ void CDependentReadObjects::Add(CPointerHeader* pcHeader, CBaseObject** ppcObjec
 	}
 
 	pcPointer = mcPointers.Add();
-	pcPointer->Init(ppcObjectPtr, oiNew);
+	pcPointer->Init(ppcObjectPtr, pcContaining, oiNew);
 }
 
 

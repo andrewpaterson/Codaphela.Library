@@ -38,10 +38,9 @@ CPointerObject::CPointerObject()
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPointerObject::Clear(void)
+void CPointerObject::ClearObject(void)
 {
 	mpcObject = NULL;
-	mpcEmbedding = NULL;
 }
 
 
@@ -160,9 +159,10 @@ BOOL CPointerObject::IsNull(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointerObject*	CPointerObject::This(void)
+CPointerObject*	CPointerObject::This(CObject* pcEmbedding)
 {
-	//This method should only *ever* be used by CObjectDeserialiser
+	mpcEmbedding = pcEmbedding;
+	//This method should only *ever* be called whilst in the Load method on a CObject
 	return this;
 }
 
@@ -174,6 +174,16 @@ CPointerObject*	CPointerObject::This(void)
 CBaseObject** CPointerObject::ObjectPtr(void)
 {
 	return &mpcObject;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CObject* CPointerObject::Embedding(void)
+{
+	return mpcEmbedding;
 }
 
 

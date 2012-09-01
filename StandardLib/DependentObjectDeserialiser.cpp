@@ -34,6 +34,7 @@ BOOL CDependentObjectDeserialiser::ReadPointer(CPointerObject* pObject)
 	CPointerHeader	cHeader;
 	BOOL			bResult;
 	CBaseObject**	ppcObjectPtr;
+	CObject*		pcEmbedding;
 
 	ClearPointer(pObject);
 	bResult = ReadPointerHeader(&cHeader);
@@ -43,7 +44,8 @@ BOOL CDependentObjectDeserialiser::ReadPointer(CPointerObject* pObject)
 		return FALSE;
 	}
 	ppcObjectPtr = pObject->ObjectPtr();
-	mpcGraphDeserialiser->AddDependent(&cHeader, ppcObjectPtr);
+	pcEmbedding = pObject->Embedding();
+	mpcGraphDeserialiser->AddDependent(&cHeader, ppcObjectPtr, (CBaseObject*)pcEmbedding);
 	
 	//cHeader is killed by mpcGraphDeserialiser.
 	return bResult;
@@ -54,14 +56,14 @@ BOOL CDependentObjectDeserialiser::ReadPointer(CPointerObject* pObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CDependentObjectDeserialiser::ReadDependent(CBaseObject** ppcObjectPtr)
+BOOL CDependentObjectDeserialiser::ReadDependent(CBaseObject** ppcObjectPtr, CBaseObject* pcContaining)
 {
 	CPointerHeader	cHeader;
 	BOOL			bResult;
 
 	*ppcObjectPtr = NULL;
 	bResult = ReadPointerHeader(&cHeader);
-	mpcGraphDeserialiser->AddDependent(&cHeader, ppcObjectPtr);
+	mpcGraphDeserialiser->AddDependent(&cHeader, ppcObjectPtr, pcContaining);
 	
 	//cHeader is killed by mpcGraphDeserialiser.
 	return bResult;

@@ -141,6 +141,6 @@ BOOL CRoot::Save(CObjectSerialiser* pcFile)
 BOOL CRoot::Load(CObjectDeserialiser* pcFile)
 {
 	mpcObjectsAllocatingFrom = &gcObjects;
-	return pcFile->ReadPointer(mpObjects.This());
+	return pcFile->ReadPointer(mpObjects.This(this));
 }
 
