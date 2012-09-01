@@ -37,13 +37,13 @@ public:
 	void			Kill(void);
 	CBaseObject*	Get(OIndex oi);
 	CBaseObject*	Get(char* szName);
-	void			AddWithID(CBaseObject* pvObject, OIndex oi);
-	BOOL			AddWithIDAndName(CBaseObject* pvObject, OIndex oi, char* szName);
+	BOOL			AddWithID(CBaseObject* pvObject, OIndex oi, CBaseObject** ppvExisting/* = NULL*/);
+	BOOL			AddWithIDAndName(CBaseObject* pvObject, OIndex oi, char* szName, CBaseObject** ppvExisting/* = NULL*/);
 	void			Remove(OIndex oi);
 	OIndex			NumObjects(void);
 
 protected:
-	void			Add(OIndex oi, CBaseObject* pvMemory);
+	BOOL			Add(OIndex oi, CBaseObject* pvMemory, CBaseObject** pvExisting);
 
 };
 

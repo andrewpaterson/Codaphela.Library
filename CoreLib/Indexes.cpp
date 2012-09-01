@@ -104,7 +104,7 @@ void* CIndexes::Get(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexes::Add(OIndex oi, void* pvMemory)
+SIndexedLevel* CIndexes::CreateLevels(OIndex oi)
 {
 	unsigned char	ucCurrent;
 	int				iCurrent;
@@ -126,8 +126,55 @@ void CIndexes::Add(OIndex oi, void* pvMemory)
 		}
 		psLevel = psNewLevel;
 	}
-	ucCurrent = pvOI[iCurrent];
-	psLevel->apsLevels[ucCurrent] = (SIndexedLevel*)pvMemory;
+	return psLevel;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexes::Add(OIndex oi, void* pvMemory)
+{
+	unsigned char	ucCurrent;
+	SIndexedLevel*	psLevel;
+
+	psLevel = CreateLevels(oi);
+	ucCurrent = *((unsigned char*)&oi);
+	if (psLevel->apsLevels[ucCurrent] == NULL)
+	{
+		psLevel->apsLevels[ucCurrent] = (SIndexedLevel*)pvMemory;
+		return TRUE;
+	}
+	else
+	{
+		return FALSE;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexes::AddOverwriteExisting(OIndex oi, void* pvMemory, void** pvExisting)
+{
+	unsigned char	ucCurrent;
+	SIndexedLevel*	psLevel;
+
+	psLevel = CreateLevels(oi);
+	ucCurrent = *((unsigned char*)&oi);
+	if (psLevel->apsLevels[ucCurrent] == NULL)
+	{
+		psLevel->apsLevels[ucCurrent] = (SIndexedLevel*)pvMemory;
+		return TRUE;
+	}
+	else
+	{
+		*pvExisting = psLevel->apsLevels[ucCurrent];
+		psLevel->apsLevels[ucCurrent] = (SIndexedLevel*)pvMemory;
+		return TRUE;
+	}
 }
 
 

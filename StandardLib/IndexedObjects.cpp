@@ -55,9 +55,9 @@ CBaseObject* CIndexedObjects::Get(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedObjects::Add(OIndex oi, CBaseObject* pvMemory)
+BOOL CIndexedObjects::Add(OIndex oi, CBaseObject* pvMemory)
 {
-	CIndexes::Add(oi, pvMemory);
+	return CIndexes::Add(oi, pvMemory);
 }
 
 
@@ -65,8 +65,8 @@ void CIndexedObjects::Add(OIndex oi, CBaseObject* pvMemory)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedObjects::Remove(OIndex oi)
+BOOL CIndexedObjects::Remove(OIndex oi)
 {
-	CIndexes::Remove(oi);
+	return CIndexes::Remove(oi);
 }
 

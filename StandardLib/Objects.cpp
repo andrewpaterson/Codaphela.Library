@@ -60,9 +60,9 @@ void CObjects::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjects::AddWithID(CBaseObject* pvObject)
+BOOL CObjects::AddWithID(CBaseObject* pvObject)
 {
-	mcMemory.AddWithID(pvObject, mcIndexGenerator.PopIndex());
+	return mcMemory.AddWithID(pvObject, mcIndexGenerator.PopIndex(), NULL);
 }
 
 
@@ -70,9 +70,9 @@ void CObjects::AddWithID(CBaseObject* pvObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjects::AddWithIDAndName(CBaseObject* pvObject, char* szObjectName)
+BOOL CObjects::AddWithIDAndName(CBaseObject* pvObject, char* szObjectName)
 {
-	mcMemory.AddWithIDAndName(pvObject, mcIndexGenerator.PopIndex(), szObjectName);
+	return mcMemory.AddWithIDAndName(pvObject, mcIndexGenerator.PopIndex(), szObjectName, NULL);
 }
 
 
@@ -80,9 +80,11 @@ void CObjects::AddWithIDAndName(CBaseObject* pvObject, char* szObjectName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointerObject CObjects::Add(char* szClassName, OIndex oi)
+CPointerObject CObjects::Add(char* szClassName, OIndex oi, OIndex* oiExisting)
 {
 	CBaseObject*	pvObject;
+	CBaseObject*	pvExisting;
+	BOOL			bResult;
 
 	pvObject = (CBaseObject*)mpcUnknownsAllocatingFrom->Add(szClassName);
 	if (pvObject)
@@ -91,7 +93,23 @@ CPointerObject CObjects::Add(char* szClassName, OIndex oi)
 		{
 			CPointerObject	pObject;
 
-			mcMemory.AddWithID(pvObject, oi);
+			pvExisting = NULL;
+			mcMemory.AddWithID(pvObject, oi, &pvExisting);
+			if (pvExisting)
+			{
+				bResult = mcMemory.AddWithID(pvExisting, mcIndexGenerator.PopIndex(), NULL);
+				if (!bResult)
+				{
+					pvObject->Kill();
+					return ONull;
+				}
+				*oiExisting = pvExisting->GetOI();
+			}
+			else
+			{
+				*oiExisting = INVALID_O_INDEX;
+			}
+
 			pObject.mpcObject = pvObject;
 			return pObject;
 		}
@@ -112,9 +130,11 @@ CPointerObject CObjects::Add(char* szClassName, OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointerObject CObjects::Add(char* szClassName, char* szObjectName, OIndex oi)
+CPointerObject CObjects::Add(char* szClassName, char* szObjectName, OIndex oi, OIndex* oiExisting)
 {
 	CBaseObject*	pvObject;
+	CBaseObject*	pvExisting;
+	BOOL			bResult;
 
 	pvObject = (CBaseObject*)mpcUnknownsAllocatingFrom->Add(szClassName);
 	if (pvObject)
@@ -123,7 +143,23 @@ CPointerObject CObjects::Add(char* szClassName, char* szObjectName, OIndex oi)
 		{
 			CPointerObject	pObject;
 
-			mcMemory.AddWithIDAndName(pvObject, oi, szObjectName);
+			pvExisting = NULL;
+			mcMemory.AddWithIDAndName(pvObject, oi, szObjectName, &pvExisting);
+			if (pvExisting)
+			{
+				bResult = mcMemory.AddWithID(pvExisting, mcIndexGenerator.PopIndex(), NULL);
+				if (!bResult)
+				{
+					pvObject->Kill();
+					return ONull;
+				}
+				*oiExisting = pvExisting->GetOI();
+			}
+			else
+			{
+				*oiExisting = INVALID_O_INDEX;
+			}
+
 			pObject.mpcObject = pvObject;
 			return pObject;
 		}
@@ -155,7 +191,7 @@ CPointerObject CObjects::Add(char* szClassName, char* szObjectName)
 		{
 			CPointerObject	pObject;
 
-			mcMemory.AddWithIDAndName(pvObject, mcIndexGenerator.PopIndex(), szObjectName);
+			mcMemory.AddWithIDAndName(pvObject, mcIndexGenerator.PopIndex(), szObjectName, NULL);
 			pObject.mpcObject = pvObject;
 			return pObject;
 		}

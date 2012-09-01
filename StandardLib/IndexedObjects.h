@@ -33,8 +33,8 @@ public:
 	void			Init(void);
 	void			Kill(void);
 	CBaseObject*	Get(OIndex oi);
-	void			Add(OIndex oi, CBaseObject* pvMemory);
-	void			Remove(OIndex oi);
+	BOOL			Add(OIndex oi, CBaseObject* pvMemory);
+	BOOL			Remove(OIndex oi);
 };
 
 

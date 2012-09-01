@@ -52,7 +52,8 @@ public:
 	void			Init(int iChunkSize);
 	void			Kill(void);
 	void*			Get(OIndex oi);
-	void			Add(OIndex oi, void* pvMemory);
+	BOOL			Add(OIndex oi, void* pvMemory);
+	BOOL			AddOverwriteExisting(OIndex oi, void* pvMemory, void** pvExisting);
 	BOOL			Remove(OIndex oi);
 
 	int				TestNumLevels(void);
@@ -62,6 +63,7 @@ public:
 
 protected:
 	OIndex			RecurseNumIndexed(SIndexedLevel* psLevel, int iLevel);
+	SIndexedLevel*	CreateLevels(OIndex oi);
 };
 
 

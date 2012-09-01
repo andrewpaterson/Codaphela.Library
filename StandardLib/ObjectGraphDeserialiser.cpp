@@ -229,7 +229,7 @@ BOOL CObjectGraphDeserialiser::FixExisting(void)
 		if (pcReadObject->PreExisted())
 		{
 			pObject = gcObjects.Get(pcReadObject->GetNewIndex());
-
+			pObject->NumFroms();
 		}
 	}
 	return TRUE;

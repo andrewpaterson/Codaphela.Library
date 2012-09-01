@@ -57,6 +57,7 @@ CPointerObject CObjectDeserialiser::Load(OIndex oiNew)
 	BOOL			bResult;
 	int				iLength;
 	CObjectHeader	sHeader;
+	OIndex			oiReplaced;
 
 	bResult = mcFile.Open(EFM_Read);
 	if (!bResult)
@@ -86,11 +87,11 @@ CPointerObject CObjectDeserialiser::Load(OIndex oiNew)
 	}
 	else if (sHeader.mcType == OBJECT_POINTER_ID)
 	{
-		pObject = gcObjects.Add(sHeader.mszClassName.Text(), oiNew);
+		pObject = gcObjects.Add(sHeader.mszClassName.Text(), oiNew, &oiReplaced);
 	}
 	else if (sHeader.mcType == OBJECT_POINTER_NAMED)
 	{
-		pObject = gcObjects.Add(sHeader.mszClassName.Text(), sHeader.mszObjectName.Text(), oiNew);
+		pObject = gcObjects.Add(sHeader.mszClassName.Text(), sHeader.mszObjectName.Text(), oiNew, &oiReplaced);
 	}
 	sHeader.Kill();
 

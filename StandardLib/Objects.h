@@ -61,8 +61,8 @@ public:
 	template<class M> 	CPointer<M>			Get(OIndex oi);
 	template<class M>	CPointer<M>			Get(char* szObjectName);
 
-						CPointerObject		Add(char* szClassName, OIndex oi);
-						CPointerObject		Add(char* szClassName, char* szObjectName, OIndex oi);
+						CPointerObject		Add(char* szClassName, OIndex oi, OIndex* oiExisting);
+						CPointerObject		Add(char* szClassName, char* szObjectName, OIndex oi, OIndex* oiExisting);
 						CPointerObject		Add(char* szClassName, char* szObjectName);
 	template<class M>	CPointer<M>			Add(void);
 	template<class M>	CPointer<M>			Add(char* szObjectName);
@@ -79,8 +79,8 @@ public:
 						CBaseObject*		GetBaseObject(OIndex oi);
 
 protected:
-						void				AddWithID(CBaseObject* pvObject);
-						void				AddWithIDAndName(CBaseObject* pvObject, char* szObjectName);
+						BOOL				AddWithID(CBaseObject* pvObject);
+						BOOL				AddWithIDAndName(CBaseObject* pvObject, char* szObjectName);
 	template<class M>	M*					Allocate(void);
 };						
 

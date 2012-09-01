@@ -78,9 +78,16 @@ CBaseObject* CNamedIndexedObjects::Get(char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNamedIndexedObjects::Add(OIndex oi, CBaseObject* pvMemory)
+BOOL CNamedIndexedObjects::Add(OIndex oi, CBaseObject* pvMemory, CBaseObject** pvExisting)
 {
-	mcObjects.Add(oi, pvMemory);
+	if (pvExisting)
+	{
+		return mcObjects.AddOverwriteExisting(oi, pvMemory, (void**)pvExisting);
+	}
+	else
+	{
+		return mcObjects.Add(oi, pvMemory);
+	}
 }
 
 
@@ -98,10 +105,10 @@ void CNamedIndexedObjects::Remove(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNamedIndexedObjects::AddWithID(CBaseObject* pvObject, OIndex oi)
+BOOL CNamedIndexedObjects::AddWithID(CBaseObject* pvObject, OIndex oi, CBaseObject** ppvExisting)
 {
 	pvObject->SetObjectID(oi);
-	Add(oi, pvObject);
+	return Add(oi, pvObject, ppvExisting);
 }
 
 
@@ -109,12 +116,16 @@ void CNamedIndexedObjects::AddWithID(CBaseObject* pvObject, OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNamedIndexedObjects::AddWithIDAndName(CBaseObject* pvObject, OIndex oi, char* szName)
+BOOL CNamedIndexedObjects::AddWithIDAndName(CBaseObject* pvObject, OIndex oi, char* szName, CBaseObject** ppvExisting)
 {
 	CNamedObject*	pcNamed;
 	BOOL			bResult;
 
-	AddWithID(pvObject, oi);
+	bResult = AddWithID(pvObject, oi, ppvExisting);
+	if (!bResult)
+	{
+		return FALSE;
+	}
 
 	pcNamed = (CNamedObject*)pvObject;
 	bResult = pcNamed->InitName(szName);
