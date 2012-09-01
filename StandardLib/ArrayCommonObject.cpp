@@ -179,7 +179,20 @@ int CArrayCommonObject::NumElements(void)
 //////////////////////////////////////////////////////////////////////////
 int CArrayCommonObject::NumTos(void)
 {
-	return NumElements();
+	CBaseObject*	pcPointedTo;
+	int				i;
+	int				iCount;
+
+	iCount = 0;
+	for (i = 0; i < mcArray.NumElements(); i++)
+	{
+		pcPointedTo = (CBaseObject*)mcArray.UnsafeGet(i);
+		if (pcPointedTo)
+		{
+			iCount++;
+		}
+	}
+	return iCount;
 }
 
 
@@ -223,14 +236,7 @@ void CArrayCommonObject::RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChan
 	for (i = 0; i < mcArray.NumElements(); i++)
 	{
 		pcPointedTo = (CBaseObject*)mcArray.UnsafeGet(i);
-		if (pcPointedTo)
-		{
-			if (pcPointedTo->miDistToRoot != -1)
-			{
-				pcPointedTo->RemoveFrom(this);
-				papcFromsChanged->Add(&pcPointedTo);
-			}
-		}
+		RemoveToFrom(pcPointedTo, papcFromsChanged);
 	}
 	mcArray.ReInit();
 }
@@ -297,15 +303,3 @@ void CArrayCommonObject::GetTos(CArrayBaseObjectPtr* papcTos)
 	}
 }
 
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CBaseObject* CArrayCommonObject::GetTo(int iTo)
-{
-	CBaseObject*	pcPointedTo;
-
-	pcPointedTo = (CBaseObject*)mcArray.UnsafeGet(iTo);
-	return pcPointedTo;
-}

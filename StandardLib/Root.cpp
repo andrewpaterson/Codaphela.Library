@@ -40,7 +40,7 @@ CRoot::CRoot()
 //////////////////////////////////////////////////////////////////////////
 void CRoot::Init(void)
 {
-	mpObjects.Init(this);
+	Pointer(mpObjects.This());
 	mpcObjectsAllocatingFrom = &gcObjects;
 	mpObjects = mpcObjectsAllocatingFrom->Add<CSet>();
 	mpObjects->Init(1024);
@@ -54,7 +54,7 @@ void CRoot::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CRoot::Init(CObjects* pcObjectsAllocatingFrom)
 {
-	mpObjects.Init(this);
+	Pointer(mpObjects.This());
 	mpcObjectsAllocatingFrom = pcObjectsAllocatingFrom;
 	mpObjects = mpcObjectsAllocatingFrom->Add<CSet>();
 	mpObjects->Init(1024);
@@ -141,6 +141,6 @@ BOOL CRoot::Save(CObjectSerialiser* pcFile)
 BOOL CRoot::Load(CObjectDeserialiser* pcFile)
 {
 	mpcObjectsAllocatingFrom = &gcObjects;
-	return pcFile->ReadPointer(mpObjects.This(this));
+	return pcFile->ReadPointer(Pointer(mpObjects.This()));
 }
 

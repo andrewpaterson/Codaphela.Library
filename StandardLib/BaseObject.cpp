@@ -379,6 +379,28 @@ CBaseObject* CBaseObject::TestGetFrom(int iFromIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL CBaseObject::RemoveToFrom(CBaseObject* pcPointedTo, CArrayEmbeddedBaseObjectPtr* papcFromsChanged)
+{
+	if (pcPointedTo)
+	{
+		if (pcPointedTo->miDistToRoot != -1)
+		{
+			pcPointedTo->RemoveFrom(this);
+			papcFromsChanged->Add(&pcPointedTo);
+		}
+		return TRUE;
+	}
+	else
+	{
+		return FALSE;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL CBaseObject::IsRoot(void)
 {
 	return FALSE;

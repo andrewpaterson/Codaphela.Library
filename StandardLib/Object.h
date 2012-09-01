@@ -32,7 +32,7 @@ friend class CObjectGraphDeserialiser;
 
 BASE_FUNCTIONS(CObject);
 protected:
-	CArrayEmbedded<CBaseObject*, 5>	mapTos;  //Objects that 'this' points to.
+	CArrayEmbedded<CPointerObject*, 5>	mapPointers;  //Pointers in this object.  
 
 public:
 					CObject();
@@ -41,12 +41,10 @@ public:
 	BOOL			IsCollection(void);
 	BOOL			IsObject(void);
 	void			SetDistToRoot(int iDistToRoot);
-	CBaseObject*	TestGetTo(int iTo);
+	CPointerObject* Pointer(CPointerObject* pcPointer);
 	
 protected:
 	void			GetTos(CArrayBaseObjectPtr* papcTos);
-	CBaseObject*	GetTo(int iTo);
-	void			AddTo(CBaseObject* pcTo);
 	void			RemoveTo(CBaseObject* pcTo);
 	void			RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged);
 	void			CollectedThoseToBeKilled(CArrayBaseObjectPtr* papcKilled);

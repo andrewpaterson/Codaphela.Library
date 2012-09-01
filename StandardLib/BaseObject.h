@@ -90,8 +90,8 @@ public:
 
 protected:
 			CBaseObject*	GetFrom(int iFrom);
-	virtual CBaseObject*	GetTo(int iTo) =0;
 	virtual void			RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged) =0;
+			BOOL			RemoveToFrom(CBaseObject* pcPointedTo, CArrayEmbeddedBaseObjectPtr* papcFromsChanged);
 			void			AddFrom(CBaseObject* pcFrom);
 			void			RemoveFrom(CBaseObject* pcFrom);
 			void			RemoveEmbeddedFrom(CBaseObject* pcFrom);

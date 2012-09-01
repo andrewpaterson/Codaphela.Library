@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "PointerObject.h"
 #include "Object.h"
 
 
@@ -27,7 +28,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 CObject::CObject()
 {
-	mapTos.Init();
+	mapPointers.Init();
 }
 
 
@@ -37,34 +38,21 @@ CObject::CObject()
 //////////////////////////////////////////////////////////////////////////
 void CObject::Kill(void)
 {
+	int					i;
+	CBaseObject*		pcPointedTo;
+	CPointerObject**	ppPointer;
+
+	for (i = 0; i < mapPointers.NumElements(); i++)
+	{
+		ppPointer = mapPointers.Get(i);
+		pcPointedTo = &(**ppPointer);
+		if (pcPointedTo)
+		{
+			*ppPointer = NULL;
+		}
+	}
+	mapPointers.Kill();
 	CBaseObject::Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CObject::AddTo(CBaseObject* pcTo)
-{
-	if (pcTo != NULL)
-	{
-		mapTos.Add(&pcTo);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CObject::RemoveTo(CBaseObject* pcTo)
-{
-	if (pcTo != NULL)
-	{
-		mapTos.Remove(&pcTo);
-	}
-
 }
 
 
@@ -74,37 +62,22 @@ void CObject::RemoveTo(CBaseObject* pcTo)
 //////////////////////////////////////////////////////////////////////////
 int CObject::NumTos(void)
 {
-	return mapTos.NumElements();
-}
+	int					i;
+	CBaseObject*		pcPointedTo;
+	CPointerObject**	ppPointer;
+	int					iCount;
 
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CBaseObject* CObject::GetTo(int iTo)
-{
-	CBaseObject**	ppTo;
-
-	ppTo = mapTos.Get(iTo);
-	if (ppTo)
+	iCount = 0;
+	for (i = 0; i < mapPointers.NumElements(); i++)
 	{
-		return *ppTo;
+		ppPointer = mapPointers.Get(i);
+		pcPointedTo = &(**ppPointer);
+		if (pcPointedTo)
+		{
+			iCount++;
+		}
 	}
-	else
-	{
-		return NULL;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CBaseObject* CObject::TestGetTo(int iTo)
-{
-	return GetTo(iTo);
+	return iCount;
 }
 
 
@@ -132,45 +105,26 @@ BOOL CObject::IsCollection(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObject::RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged)
-{
-	int				i;
-	CBaseObject**	ppcPointedTo;
-	CBaseObject*	pcPointedTo;
-
-	ppcPointedTo = mapTos.GetData();
-	for (i = 0; i < mapTos.NumElements(); i++)
-	{
-		pcPointedTo = ppcPointedTo[i];
-		if (pcPointedTo->miDistToRoot != -1)
-		{
-			pcPointedTo->RemoveFrom(this);
-			papcFromsChanged->Add(&pcPointedTo);
-		}
-	}
-	mapTos.Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CObject::CollectedThoseToBeKilled(CArrayBaseObjectPtr* papcKilled)
 {
-	int				i;
-	CBaseObject**	ppcPointedTo;
+	int					i;
+	CBaseObject*		pcPointedTo;
+	CPointerObject**	ppPointer;
 
 	MarkForKilling(papcKilled);
 
-	ppcPointedTo = mapTos.GetData();
-	for (i = 0; i < mapTos.NumElements(); i++)
+	for (i = 0; i < mapPointers.NumElements(); i++)
 	{
-		if (ppcPointedTo[i]->miDistToRoot != -1)
+		ppPointer = mapPointers.Get(i);
+		pcPointedTo = &(**ppPointer);
+		if (pcPointedTo)
 		{
-			if (!ppcPointedTo[i]->CanFindRoot())
+			if (pcPointedTo->miDistToRoot != -1)
 			{
-				ppcPointedTo[i]->CollectedThoseToBeKilled(papcKilled);
+				if (!pcPointedTo->CanFindRoot())
+				{
+					pcPointedTo->CollectedThoseToBeKilled(papcKilled);
+				}
 			}
 		}
 	}
@@ -183,14 +137,20 @@ void CObject::CollectedThoseToBeKilled(CArrayBaseObjectPtr* papcKilled)
 //////////////////////////////////////////////////////////////////////////
 void CObject::SetDistToRoot(int iDistToRoot)
 {
-	int				i;
-	CBaseObject**	ppcTos;
+	int					i;
+	CBaseObject*		pcPointedTo;
+	CPointerObject**	ppPointer;
 
 	miDistToRoot = iDistToRoot;
-	ppcTos = mapTos.GetData();
-	for (i = 0; i < mapTos.NumElements(); i++)
+	
+	for (i = 0; i < mapPointers.NumElements(); i++)
 	{
-		PotentiallySetDistToRoot(ppcTos[i], iDistToRoot+1);
+		ppPointer = mapPointers.Get(i);
+		pcPointedTo = &(**ppPointer);
+		if (pcPointedTo)
+		{
+			PotentiallySetDistToRoot(pcPointedTo, iDistToRoot+1);
+		}
 	}
 }
 
@@ -201,13 +161,57 @@ void CObject::SetDistToRoot(int iDistToRoot)
 //////////////////////////////////////////////////////////////////////////
 void CObject::GetTos(CArrayBaseObjectPtr* papcTos)
 {
-	int				i;
-	CBaseObject**	ppcTos;
+	int					iNumPointers;
+	int					i;
+	CPointerObject**	ppPointer;
+	CBaseObject*		pcPointedTo;
 
-	ppcTos = mapTos.GetData();
-	for (i = 0; i < mapTos.NumElements(); i++)
+	iNumPointers = mapPointers.NumElements();
+	for (i = 0; i < iNumPointers; i++)
 	{
-		papcTos->Add(&ppcTos[i]);
+		ppPointer = mapPointers.Get(i);
+		pcPointedTo = &(**ppPointer);
+		if (pcPointedTo)
+		{
+			papcTos->Add(&pcPointedTo);
+		}
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CObject::RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged)
+{
+	int					iNumPointers;
+	int					i;
+	CPointerObject**	ppPointer;
+	CBaseObject*		pcPointedTo;
+
+	iNumPointers = mapPointers.NumElements();
+	for (i = 0; i < iNumPointers; i++)
+	{
+		ppPointer = mapPointers.Get(i);
+		pcPointedTo = &(**ppPointer);
+		if (!RemoveToFrom(pcPointedTo, papcFromsChanged))
+		{
+			(*ppPointer)->ClearObject();
+		}
+	}
+}
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CPointerObject* CObject::Pointer(CPointerObject* pcPointer)
+{
+	pcPointer->Init(this);
+	mapPointers.Add(&pcPointer);
+	return pcPointer;
 }
 

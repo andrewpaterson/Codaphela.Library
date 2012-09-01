@@ -182,7 +182,6 @@ BOOL CObjectGraphDeserialiser::FixPointers(void)
 	int						iNum;
 	CBaseObject*			pcBaseObject;
 	CBaseObject*			pcContaining;
-	CObject*				pcEmbedding;
 
 	iNum = mcDependentObjects.NumPointers();
 	for (i = 0; i < iNum; i++)
@@ -196,11 +195,6 @@ BOOL CObjectGraphDeserialiser::FixPointers(void)
 			pcContaining = pcReadPointer->mpcContaining;
 			if (pcContaining)
 			{
-				if (pcContaining->IsObject())
-				{
-					pcEmbedding = (CObject*)pcContaining;
-					pcEmbedding->AddTo(pcBaseObject);
-				}
 				pcBaseObject->AddFrom(pcContaining);
 			}
 		}

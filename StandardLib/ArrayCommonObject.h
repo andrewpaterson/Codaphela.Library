@@ -47,13 +47,11 @@ public:
 
 	int				NumTos(void);
 	void			GetTos(CArrayBaseObjectPtr* papcTos);
-	CBaseObject*	GetTo(int iTo);
 
 	BOOL			Save(CObjectSerialiser* pcFile);
 	BOOL			Load(CObjectDeserialiser* pcFile);
 
 protected:
-	void			AddTo(CBaseObject* pcTo);
 	void			RemoveTo(CBaseObject* pcTo);
 	void			RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged);
 	void			CollectedThoseToBeKilled(CArrayBaseObjectPtr* papcKilled);
