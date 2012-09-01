@@ -100,6 +100,11 @@ CPointerObject CObjectDeserialiser::Load(OIndex oiNew)
 		return ONull;
 	}
 
+	if (oiReplaced != INVALID_O_INDEX)
+	{
+		AddIndexRemap(oiNew, oiReplaced);
+	}
+
 	bResult = pObject->Load(this);
 	if (!bResult)
 	{
@@ -109,6 +114,15 @@ CPointerObject CObjectDeserialiser::Load(OIndex oiNew)
 
 	bResult = mcFile.Close();
 	return pObject;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CObjectDeserialiser::AddIndexRemap(OIndex oiNew, OIndex oiOld)
+{
 }
 
 

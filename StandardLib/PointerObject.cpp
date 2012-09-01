@@ -215,3 +215,21 @@ BOOL CPointerObject::Dehollow(void)
 	return TRUE;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CPointerObject::RemapFrom(CBaseObject* pcOld)
+{
+	int				iNumFroms;
+	int				i;
+	CBaseObject*	pvFrom;
+
+	iNumFroms = pcOld->NumFroms();
+	for (i = 0; i < iNumFroms; i++)
+	{
+		pvFrom = pcOld->GetFrom(i);
+	}
+}
+

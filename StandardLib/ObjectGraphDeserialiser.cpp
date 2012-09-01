@@ -12,6 +12,7 @@ void CObjectGraphDeserialiser::Init(CObjectReader* pcReader, CIndexGenerator* pc
 {
 	mpcReader = pcReader;
 	mcDependentObjects.Init(pcIndexGenerator);
+	mcIndexRemap.Init(32);
 }
 
 
@@ -21,6 +22,7 @@ void CObjectGraphDeserialiser::Init(CObjectReader* pcReader, CIndexGenerator* pc
 //////////////////////////////////////////////////////////////////////////
 void CObjectGraphDeserialiser::Kill(void)
 {
+	mcIndexRemap.Kill();
 	mcDependentObjects.Kill();
 }
 
@@ -220,7 +222,9 @@ BOOL CObjectGraphDeserialiser::FixExisting(void)
 	CDependentReadObject*	pcReadObject;
 	int						i;
 	int						iNum;
-	CPointerObject			pObject;
+	CPointerObject			pNewObject;
+	CPointerObject			pOldObject;
+	OIndex					oiOld;
 
 	iNum = mcDependentObjects.NumObjects();
 	for (i = 0; i < iNum; i++)
@@ -228,11 +232,46 @@ BOOL CObjectGraphDeserialiser::FixExisting(void)
 		pcReadObject = mcDependentObjects.GetObject(i);
 		if (pcReadObject->PreExisted())
 		{
-			pObject = gcObjects.Get(pcReadObject->GetNewIndex());
-			pObject->NumFroms();
+			oiOld = GetExistingRemap(pcReadObject->GetNewIndex());
+			pNewObject = gcObjects.Get(pcReadObject->GetNewIndex());
+			pOldObject = gcObjects.Get(oiOld);
+	
+			pNewObject.RemapFrom(&pOldObject);
 		}
 	}
 	return TRUE;
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+OIndex CObjectGraphDeserialiser::GetExistingRemap(OIndex oiNew)
+{
+	int				i;
+	CIndexNewOld*	pcRemap;
+
+	for (i = 0; i < mcIndexRemap.NumElements(); i++)
+	{
+		pcRemap = mcIndexRemap.Get(i);
+		if (pcRemap->moiNew = oiNew)
+		{
+			return pcRemap->moiOld;
+		}
+	}
+	return INVALID_O_INDEX;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CObjectGraphDeserialiser::AddIndexRemap(OIndex oiNew, OIndex oiOld)
+{
+	CIndexNewOld*	pcNewOld;
+
+	pcNewOld = mcIndexRemap.Add();
+	pcNewOld->Init(oiNew, oiOld);
+}

@@ -10,11 +10,14 @@ protected:
 	CObjectGraphDeserialiser*	mpcGraphDeserialiser;
 
 public:
-	void Init(CObjectGraphDeserialiser* pcGraphDeserialiser, CSerialisedObject* pcSerialised);
-	void Kill(void);
+	void	Init(CObjectGraphDeserialiser* pcGraphDeserialiser, CSerialisedObject* pcSerialised);
+	void	Kill(void);
 
-	BOOL ReadPointer(CPointerObject* pObject);
-	BOOL ReadDependent(CBaseObject** ppcObjectPtr, CBaseObject* pcContaining);
+	BOOL	ReadPointer(CPointerObject* pObject);
+	BOOL	ReadDependent(CBaseObject** ppcObjectPtr, CBaseObject* pcContaining);
+
+protected:
+	void	AddIndexRemap(OIndex oiNew, OIndex oiOld);
 };
 
 

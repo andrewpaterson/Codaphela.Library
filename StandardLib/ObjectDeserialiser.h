@@ -22,6 +22,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __OBJECT_DESERIALISER_H__
 #include "BaseLib/FileReader.h"
 #include "BaseLib/MemoryFile.h"
+#include "IndexNewOld.h"
 #include "SerialisedObject.h"
 #include "Pointer.h"
 
@@ -48,6 +49,7 @@ public:
 protected:
 			filePos			Read(void* pvDest, filePos iSize, filePos iCount);
 			void			ClearPointer(CPointerObject* pObject);
+	virtual	void			AddIndexRemap(OIndex oiNew, OIndex oiOld);
 };
 
 

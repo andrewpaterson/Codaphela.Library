@@ -38,6 +38,7 @@ friend class CArray;
 template<class M>
 friend class CPointer;
 friend class CObjectDeserialiser;
+friend class CObjectGraphDeserialiser;
 
 protected:
 	CBaseObject*	mpcObject;
@@ -64,6 +65,7 @@ protected:
 	void			PointTo(CBaseObject* pcObject);
 
 	void			ClearObject(void);
+	void			RemapFrom(CBaseObject* pcOld);
 };
 
 

@@ -101,6 +101,7 @@ void CPointer<M>::operator = (CPointerObject pcPointer)
 template<class M>
 M* CPointer<M>::operator -> ()
 {
+	Dehollow();
 	return (M*)mpcObject;
 }
 
@@ -111,6 +112,7 @@ M* CPointer<M>::operator -> ()
 template<class M>
 M* CPointer<M>::operator & ()
 {
+	Dehollow();
 	return (M*)mpcObject;
 }
 

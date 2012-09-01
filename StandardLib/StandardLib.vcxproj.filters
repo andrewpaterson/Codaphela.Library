@@ -453,6 +453,9 @@
     <ClInclude Include="DependentReadPointer.h">
       <Filter>Source\Object\Object\Serilalisation\Graph</Filter>
     </ClInclude>
+    <ClInclude Include="IndexNewOld.h">
+      <Filter>Source\Object\Object\Serilalisation</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Unknown.cpp">
@@ -736,6 +739,9 @@
     </ClCompile>
     <ClCompile Include="DependentReadPointer.cpp">
       <Filter>Source\Object\Object\Serilalisation\Graph</Filter>
+    </ClCompile>
+    <ClCompile Include="IndexNewOld.cpp">
+      <Filter>Source\Object\Object\Serilalisation</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

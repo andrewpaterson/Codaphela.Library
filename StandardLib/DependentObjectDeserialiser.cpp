@@ -69,3 +69,13 @@ BOOL CDependentObjectDeserialiser::ReadDependent(CBaseObject** ppcObjectPtr, CBa
 	return bResult;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CDependentObjectDeserialiser::AddIndexRemap(OIndex oiNew, OIndex oiOld)
+{
+	mpcGraphDeserialiser->AddIndexRemap(oiNew, oiOld);
+}
+
