@@ -36,6 +36,7 @@ public:
 	void			Kill(void);
 
 	void			Add(CPointerObject pObject);
+	void			Set(int iIndex, CPointerObject pObject);
 	void			Remove(CPointerObject pObject);
 	void			RemoveAll(void);
 
@@ -54,6 +55,7 @@ public:
 protected:
 	void			RemoveTo(CBaseObject* pcTo);
 	void			RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged);
+	int				RemapTos(CBaseObject* pcOld, CBaseObject* pcNew);
 	void			CollectedThoseToBeKilled(CArrayBaseObjectPtr* papcKilled);
 	void			KillChildGraph(void);
 };

@@ -44,6 +44,14 @@ struct SSetIterator
 };
 
 
+enum EArrayUnsetReturn
+{
+	AUR_NoChange,
+	AUR_SetNull,
+	AUR_MustRemove,
+};
+
+
 //This is called CArrayCommonUnknown because it *HAS* a _CArrayUnknownPtr not because it *IS* a the base class for unknown arrays (although it is that also).
 class CArrayCommonUnknown : public CUnknown
 {
@@ -55,48 +63,51 @@ private:
 	_CArrayUnknownPtr	mcArray;
 	int					miNonNullElements;
 
-	BOOL		PrivateIterate(SSetIterator* psIter, CUnknown** ppcUnknown);
-	void		PrivateKill(void);
+	BOOL				PrivateIterate(SSetIterator* psIter, CUnknown** ppcUnknown);
+	void				PrivateKill(void);
 
 public:
-	void 		Init(BOOL bTypeKnown, BOOL bKillElements, BOOL bUnique, BOOL bIgnoreNull, BOOL bPreserveOrder, int iChunkSize);
-	void 		Kill(void);
-	void 		ReInit(void);
-	BOOL		Save(CFileWriter* pcFile);
-	BOOL		Load(CFileReader* pcFile);
+	void 				Init(BOOL bTypeKnown, BOOL bKillElements, BOOL bUnique, BOOL bIgnoreNull, BOOL bPreserveOrder, int iChunkSize);
+	void 				Kill(void);
+	void 				ReInit(void);
+	BOOL				Save(CFileWriter* pcFile);
+	BOOL				Load(CFileReader* pcFile);
 
-	int			NumElements(void);
-	void		KillElements(BOOL bKill);
-	void		UniqueElements(BOOL bUnique);
-	void		IgnoreNullElements(BOOL bIgnoreNull);
-	void		PreserveOrder(BOOL bPreserveOrder);
-	void		Sort(void);
-	BOOL		Contains(CUnknown* pcUnknown);
-	int			Find(CUnknown* pcUnknown);
-	void		CleanNullsIfNecessary(void);
-	void		TypeKnown(BOOL bTypeKnown);
-	BOOL		Add(CUnknown* pcUnknown, BOOL bCleanNullsIfNecessary = TRUE);
-	BOOL		AddAll(CArrayCommonUnknown* pcSource);
-	BOOL		Insert(int iIndex, CUnknown* pcUnknown);
-	BOOL		RemoveEnd(int iIndexInclusive);
-	BOOL		Remove(CUnknown* pcUnknown);
-	BOOL		Remove(int iIndex, BOOL bCleanNullsIfNecessary = TRUE);
-	BOOL		RemoveLast(BOOL bCleanNullsIfNecessary = TRUE);
-	void		RemoveDuringIteration(SSetIterator* psIter);
-	CUnknown*	First(void);
-	CUnknown*	Last(void);
-	CUnknown*	StartIteration(SSetIterator* psIter);
-	CUnknown*	Iterate(SSetIterator* psIter);
-	BOOL		IsKillElements(void);
-	BOOL		IsEmpty(void);
-	BOOL		IsNotEmpty(void);
-	void		UnsafeSet(int iIndex, CUnknown* pcUnknown);
-	CUnknown*	UnsafeGet(int iIndex);
-	CUnknown**	UnsafeGetPointer(int iIndex);
-	int			UnsafeNumElements(void);
-	BOOL		LoadArrayHeader(CFileReader* pcFile, int* piFlags, int* piNumElements);
-	BOOL		SaveArrayHeader(CFileWriter* pcFile);
-	void		PostLoad(int iFlags);
+	int					NumElements(void);
+	void				KillElements(BOOL bKill);
+	void				UniqueElements(BOOL bUnique);
+	void				IgnoreNullElements(BOOL bIgnoreNull);
+	void				PreserveOrder(BOOL bPreserveOrder);
+	void				Sort(void);
+	BOOL				Contains(CUnknown* pcUnknown);
+	int					Find(CUnknown* pcUnknown);
+	void				CleanNullsIfNecessary(BOOL bCleanNullsIfNecessary);
+	void				CleanNullsIfNecessary(void);
+	void				TypeKnown(BOOL bTypeKnown);
+	BOOL				Add(CUnknown* pcUnknown, BOOL bCleanNullsIfNecessary = TRUE);
+	BOOL				AddAll(CArrayCommonUnknown* pcSource);
+	BOOL				Set(int iIndex, CUnknown* pcUnknown, BOOL bCleanNullsIfNecessary = TRUE);
+	BOOL				Insert(int iIndex, CUnknown* pcUnknown);
+	BOOL				RemoveEnd(int iIndexInclusive);
+	BOOL				Remove(CUnknown* pcUnknown);
+	BOOL				Remove(int iIndex, BOOL bCleanNullsIfNecessary = TRUE);
+	BOOL				RemoveLast(BOOL bCleanNullsIfNecessary = TRUE);
+	void				RemoveDuringIteration(SSetIterator* psIter);
+	EArrayUnsetReturn	Unset(int iIndex);
+	CUnknown*			First(void);
+	CUnknown*			Last(void);
+	CUnknown*			StartIteration(SSetIterator* psIter);
+	CUnknown*			Iterate(SSetIterator* psIter);
+	BOOL				IsKillElements(void);
+	BOOL				IsEmpty(void);
+	BOOL				IsNotEmpty(void);
+	void				UnsafeSet(int iIndex, CUnknown* pcUnknown);
+	CUnknown*			UnsafeGet(int iIndex);
+	CUnknown**			UnsafeGetPointer(int iIndex);
+	int					UnsafeNumElements(void);
+	BOOL				LoadArrayHeader(CFileReader* pcFile, int* piFlags, int* piNumElements);
+	BOOL				SaveArrayHeader(CFileWriter* pcFile);
+	void				PostLoad(int iFlags);
 
 protected:
 	virtual BOOL	LoadElement(CFileReader* pcFile, CUnknown** ppcUnknown);

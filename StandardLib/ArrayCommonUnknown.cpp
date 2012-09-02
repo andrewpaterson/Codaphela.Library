@@ -362,10 +362,7 @@ int CArrayCommonUnknown::Find(CUnknown* pcUnknown)
 //////////////////////////////////////////////////////////////////////////
 BOOL CArrayCommonUnknown::Add(CUnknown* pcUnknown, BOOL bCleanNullsIfNecessary)
 {
-	if (bCleanNullsIfNecessary)
-	{
-		CleanNullsIfNecessary();
-	}
+	CleanNullsIfNecessary(bCleanNullsIfNecessary);
 
 	if ((pcUnknown == NULL) && (miFlags & ARRAY_COMMOM_IGNORE_NULL))
 	{
@@ -381,7 +378,48 @@ BOOL CArrayCommonUnknown::Add(CUnknown* pcUnknown, BOOL bCleanNullsIfNecessary)
 	}
 	mcArray.Add(&pcUnknown);
 	SetFlag(&miFlags, ARRAY_COMMOM_IS_PTR_SORTED, FALSE);
-	miNonNullElements++;
+
+	if (pcUnknown != NULL)
+	{
+		miNonNullElements++;
+	}
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CArrayCommonUnknown::Set(int iIndex, CUnknown* pcUnknown, BOOL bCleanNullsIfNecessary)
+{
+	EArrayUnsetReturn	eUnset;
+
+	if ((pcUnknown == NULL) && (miFlags & ARRAY_COMMOM_IGNORE_NULL))
+	{
+		CleanNullsIfNecessary(bCleanNullsIfNecessary);
+		return FALSE;
+	}
+
+	if (miFlags & ARRAY_COMMOM_UNIQUE_ONLY)
+	{
+		if (Contains(pcUnknown))
+		{
+			CleanNullsIfNecessary(bCleanNullsIfNecessary);
+			return FALSE;
+		}
+	}
+
+	eUnset = Unset(iIndex);
+	CleanNullsIfNecessary(bCleanNullsIfNecessary);
+
+	mcArray.Set(iIndex, &pcUnknown);
+	SetFlag(&miFlags, ARRAY_COMMOM_IS_PTR_SORTED, FALSE);
+
+	if (pcUnknown != NULL)
+	{
+		miNonNullElements++;
+	}
 	return TRUE;
 }
 
@@ -437,6 +475,19 @@ BOOL CArrayCommonUnknown::Insert(int iIndex, CUnknown* pcUnknown)
 	SetFlag(&miFlags, ARRAY_COMMOM_IS_PTR_SORTED, FALSE);
 	miNonNullElements++;
 	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CArrayCommonUnknown::CleanNullsIfNecessary(BOOL bCleanNullsIfNecessary)
+{
+	if (bCleanNullsIfNecessary)
+	{
+		CleanNullsIfNecessary();
+	}
 }
 
 
@@ -540,16 +591,105 @@ BOOL CArrayCommonUnknown::RemoveLast(BOOL bCleanNullsIfNecessary)
 //////////////////////////////////////////////////////////////////////////
 BOOL CArrayCommonUnknown::Remove(int iIndex, BOOL bCleanNullsIfNecessary)
 {
-	CUnknown*	pcNull;
-	CUnknown*	pcUnknown;
+	EArrayUnsetReturn	eUnset;
 
+	eUnset = Unset(iIndex);
+	if (eUnset == AUR_NoChange)
+	{
+		CleanNullsIfNecessary(bCleanNullsIfNecessary);
+		return FALSE;
+	}
+	else if (eUnset == AUR_SetNull)
+	{
+		CleanNullsIfNecessary(bCleanNullsIfNecessary);
+		return TRUE;
+	}
+	else if (eUnset == AUR_MustRemove)
+	{
+		mcArray.RemoveAt(iIndex, miFlags & ARRAY_COMMOM_PRESERVE_ORDER);
+		CleanNullsIfNecessary(bCleanNullsIfNecessary);
+		return TRUE;
+	}
+	else
+	{
+		return FALSE;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+//BOOL CArrayCommonUnknown::Remove(int iIndex, BOOL bCleanNullsIfNecessary)
+//{
+//	CUnknown*	pcNull;
+//	CUnknown*	pcUnknown;
+//
+//	if ((iIndex < 0) && (iIndex >= mcArray.NumElements()))
+//	{
+//		if (bCleanNullsIfNecessary)
+//		{
+//			CleanNullsIfNecessary();
+//		}
+//		return FALSE;
+//	}
+//
+//	pcUnknown = *mcArray.Get(iIndex);
+//	if (miFlags & ARRAY_COMMOM_IGNORE_NULL)
+//	{
+//		if (pcUnknown != NULL)
+//		{
+//			pcNull = NULL;
+//			mcArray.Set(iIndex, &pcNull);
+//			miNonNullElements--;
+//		}
+//		else
+//		{
+//			if (bCleanNullsIfNecessary)
+//			{
+//				CleanNullsIfNecessary();
+//			}
+//			return FALSE;
+//		}
+//	}
+//	else
+//	{
+//		mcArray.RemoveAt(iIndex, miFlags & ARRAY_COMMOM_PRESERVE_ORDER);
+//		miNonNullElements--;
+//	}
+//
+//	if (miFlags & ARRAY_COMMOM_KILL_ELEMENT)
+//	{
+//		if (pcUnknown)
+//		{
+//			pcUnknown->Kill();
+//		}
+//	}
+//
+//	if (bCleanNullsIfNecessary)
+//	{
+//		CleanNullsIfNecessary();
+//	}
+//	return TRUE;
+//}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+EArrayUnsetReturn CArrayCommonUnknown::Unset(int iIndex)
+{
+	CUnknown*			pcNull;
+	CUnknown*			pcUnknown;
+	EArrayUnsetReturn	eReturn;
+
+	eReturn = AUR_NoChange;
 	if ((iIndex < 0) && (iIndex >= mcArray.NumElements()))
 	{
-		if (bCleanNullsIfNecessary)
-		{
-			CleanNullsIfNecessary();
-		}
-		return FALSE;
+		//Index out of bounds.
+		return eReturn;
 	}
 
 	pcUnknown = *mcArray.Get(iIndex);
@@ -560,20 +700,19 @@ BOOL CArrayCommonUnknown::Remove(int iIndex, BOOL bCleanNullsIfNecessary)
 			pcNull = NULL;
 			mcArray.Set(iIndex, &pcNull);
 			miNonNullElements--;
+			eReturn = AUR_SetNull;
 		}
 		else
 		{
-			if (bCleanNullsIfNecessary)
-			{
-				CleanNullsIfNecessary();
-			}
-			return FALSE;
+			//Setting NULL and ignoring NULLs.
+			return eReturn;
 		}
 	}
 	else
 	{
-		mcArray.RemoveAt(iIndex, miFlags & ARRAY_COMMOM_PRESERVE_ORDER);
+		//Element would be unset here.
 		miNonNullElements--;
+		eReturn = AUR_MustRemove;
 	}
 
 	if (miFlags & ARRAY_COMMOM_KILL_ELEMENT)
@@ -584,11 +723,8 @@ BOOL CArrayCommonUnknown::Remove(int iIndex, BOOL bCleanNullsIfNecessary)
 		}
 	}
 
-	if (bCleanNullsIfNecessary)
-	{
-		CleanNullsIfNecessary();
-	}
-	return TRUE;
+	//The array should be changed.
+	return eReturn;
 }
 
 

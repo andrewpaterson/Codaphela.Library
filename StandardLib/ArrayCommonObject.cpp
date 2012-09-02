@@ -114,6 +114,30 @@ void CArrayCommonObject::Add(CPointerObject pObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CArrayCommonObject::Set(int iIndex, CPointerObject pObject)
+{
+	CBaseObject*		pcPointedTo;
+
+	if ((iIndex < 0) || (iIndex >= mcArray.UnsafeNumElements()))
+	{
+		return;
+	}
+
+	pcPointedTo = (CBaseObject*)mcArray.UnsafeGet(iIndex);
+	mcArray.Set(iIndex, pObject.mpcObject);
+	if (pcPointedTo)
+	{
+		pcPointedTo->RemoveEmbeddedFrom(this);
+	}
+
+	pObject->AddFrom(this);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CArrayCommonObject::Remove(CPointerObject pObject)
 {
 	if (pObject.IsNotNull())
@@ -303,3 +327,30 @@ void CArrayCommonObject::GetTos(CArrayBaseObjectPtr* papcTos)
 	}
 }
 
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CArrayCommonObject::RemapTos(CBaseObject* pcOld, CBaseObject* pcNew)
+{
+	int				iCount;
+	CBaseObject**	ppcPointedTo;
+	int				i;
+
+	iCount = 0;
+	for (i = 0; i < mcArray.NumElements(); i++)
+	{
+		ppcPointedTo = (CBaseObject**)mcArray.UnsafeGetPointer(i);
+		if (*ppcPointedTo)
+		{
+			if (*ppcPointedTo == pcOld)
+			{
+				*ppcPointedTo = pcNew;
+				iCount++;
+			}
+		}
+	}
+	return iCount;
+}
