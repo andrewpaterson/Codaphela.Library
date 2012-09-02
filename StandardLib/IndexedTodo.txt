@@ -1,3 +1,5 @@
-Test 'Set'ting indexes in ArrayCommon.  Make sure the 'to's and 'from's are correctly updated.
+Test 'Set'ting indexes in CArrayCommonObject.  Make sure the 'to's and 'from's are correctly updated.
+Test RemapTos on CObject.  Make sure that operator = and associated machinery is necessary for (**ppPointer) = pcNew;
+Test RemapTos on CArrayCommonObject.  Make sure as above.
 Overwrite existing objects with the same name (discard anything pointed to).
 Make sure CObjects has a Close method that writes out all in memory objects.
