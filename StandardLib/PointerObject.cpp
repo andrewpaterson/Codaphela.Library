@@ -58,26 +58,28 @@ void CPointerObject::Init(CObject* pcEmbedding)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPointerObject::PointTo(CBaseObject* pcObject)
+void CPointerObject::PointTo(CBaseObject* pcNewObject)
 {
-	if (mpcObject != pcObject)
+	CBaseObject*	pcObject;
+
+	if (mpcObject != pcNewObject)
 	{
 		if (mpcObject)
 		{
 			if (mpcEmbedding)
 			{
-				mpcEmbedding->RemoveTo(mpcObject);
-				mpcObject->RemoveEmbeddedFrom(mpcEmbedding);
+				//Stop pointing at the object immediately or it is considered a to during root distance calculations. 
+				pcObject = mpcObject;
+				mpcObject = NULL;
+				
+				//This object we currently point to is no longer pointed to so remove us (embedded) as a from on the pointed to object.
+				pcObject->RemoveEmbeddedFrom(mpcEmbedding);
 			}
 		}
-		mpcObject = pcObject;
+		mpcObject = pcNewObject;
 		if (mpcObject)
 		{
 			mpcObject->AddFrom(mpcEmbedding);
-			if (mpcEmbedding)
-			{
-				mpcEmbedding->AddTo(mpcObject);
-			}
 		}
 	}
 }
@@ -159,9 +161,8 @@ BOOL CPointerObject::IsNull(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointerObject*	CPointerObject::This(CObject* pcEmbedding)
+CPointerObject*	CPointerObject::This(void)
 {
-	mpcEmbedding = pcEmbedding;
 	//This method should only *ever* be called whilst in the Load method on a CObject
 	return this;
 }
@@ -195,7 +196,7 @@ BOOL CPointerObject::Dehollow(void)
 {
 	CHollowObject*	pcHollow;
 
-	if(mpcObject)
+	if (mpcObject)
 	{
 		if (mpcObject->IsHollow())
 		{

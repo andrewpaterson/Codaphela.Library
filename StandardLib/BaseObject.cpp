@@ -174,6 +174,8 @@ CBaseObject* CBaseObject::ClearDistToSubRoot(void)
 		{
 			if (pcPointedFrom->IsSubRoot())
 			{
+				//No point in stepping back to the sub root.  It's root distance is always correct.
+				//Stop at the object immediately pointed from the sub root.
 				return this;
 			}
 
@@ -184,7 +186,7 @@ CBaseObject* CBaseObject::ClearDistToSubRoot(void)
 			}
 		}
 	}
-	return pcRootSet;;
+	return pcRootSet;
 }
 
 

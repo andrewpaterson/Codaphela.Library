@@ -51,6 +51,7 @@ public:
 	BOOL	IsSubRoot(void);
 	BOOL	Save(CObjectSerialiser* pcFile);
 	BOOL	Load(CObjectDeserialiser* pcFile);
+	CSet*	TestGetSet(void);
 };
 
 

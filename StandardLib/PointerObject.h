@@ -37,6 +37,7 @@ friend class CSet;
 friend class CArray;
 template<class M>
 friend class CPointer;
+friend class CObject;
 friend class CObjectDeserialiser;
 friend class CObjectGraphDeserialiser;
 
@@ -56,7 +57,7 @@ public:
 	BOOL			IsNull(void);
 
 	//These two methods should be protected.
-	CPointerObject*	This(CObject* pcEmbedding);
+	CPointerObject*	This(void);
 	CObject*		Embedding(void);
 	CBaseObject**	ObjectPtr(void);
 

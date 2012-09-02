@@ -195,13 +195,10 @@ void CObject::RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged)
 	{
 		ppPointer = mapPointers.Get(i);
 		pcPointedTo = &(**ppPointer);
-		if (!RemoveToFrom(pcPointedTo, papcFromsChanged))
-		{
-			(*ppPointer)->ClearObject();
-		}
+		RemoveToFrom(pcPointedTo, papcFromsChanged);
+		(*ppPointer)->ClearObject();
 	}
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
