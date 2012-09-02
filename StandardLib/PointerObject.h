@@ -60,6 +60,7 @@ public:
 	CPointerObject*	This(void);
 	CObject*		Embedding(void);
 	CBaseObject**	ObjectPtr(void);
+	CBaseObject*	UnsafePointTo(CBaseObject* pcNewObject);
 
 protected:
 	BOOL			Dehollow(void);

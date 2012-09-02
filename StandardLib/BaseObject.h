@@ -103,8 +103,8 @@ protected:
 			CBaseObject*	ClearDistToSubRoot(void);
 	virtual void			CollectedThoseToBeKilled(CArrayBaseObjectPtr* papcKilled) =0;
 			void			MarkForKilling(CArrayBaseObjectPtr* papcKilled);
-			void			KillCollected(CArrayBaseObjectPtr* papcKilled);
-			void			KillThisGraph(void);
+			int				KillCollected(CArrayBaseObjectPtr* papcKilled);
+			int				KillThisGraph(void);
 };
 
 

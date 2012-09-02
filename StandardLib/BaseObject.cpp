@@ -90,16 +90,18 @@ void CBaseObject::RemoveEmbeddedFrom(CBaseObject* pcFrom)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::KillThisGraph(void)
+int CBaseObject::KillThisGraph(void)
 {
-	CArrayBaseObjectPtr	apcKilled;
+	CArrayBaseObjectPtr		apcKilled;
+	int						iNumKilled;
 	
 	apcKilled.Init(1024);
 	CollectedThoseToBeKilled(&apcKilled);
 
-	KillCollected(&apcKilled);
+	iNumKilled = KillCollected(&apcKilled);
 
 	apcKilled.Kill();
+	return iNumKilled;
 }
 
 
@@ -121,7 +123,7 @@ void CBaseObject::MarkForKilling(CArrayBaseObjectPtr* papcKilled)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::KillCollected(CArrayBaseObjectPtr* papcKilled)
+int CBaseObject::KillCollected(CArrayBaseObjectPtr* papcKilled)
 {
 	int								i;
 	int								iNumElements;
@@ -146,6 +148,7 @@ void CBaseObject::KillCollected(CArrayBaseObjectPtr* papcKilled)
 	FixDistToRoot(&apcFromsChanged);
 
 	apcFromsChanged.Kill();
+	return iNumElements;
 }
 
 

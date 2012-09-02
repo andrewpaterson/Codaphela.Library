@@ -233,7 +233,7 @@ int CObject::RemapTos(CBaseObject* pcOld, CBaseObject* pcNew)
 		pcPointedTo = &(**ppPointer);
 		if (pcPointedTo == pcOld)
 		{
-			(**ppPointer) = pcNew;
+			(**ppPointer).UnsafePointTo(pcNew);
 			iCount++;
 		}
 	}
