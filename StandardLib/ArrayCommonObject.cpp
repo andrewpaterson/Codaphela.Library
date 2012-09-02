@@ -18,7 +18,6 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "ArrayCommonUnknown.h"
 #include "Pointer.h"
 #include "ObjectSerialiser.h"
 #include "ObjectDeserialiser.h"
@@ -106,7 +105,10 @@ BOOL CArrayCommonObject::Load(CObjectDeserialiser* pcFile)
 void CArrayCommonObject::Add(CPointerObject pObject)
 {
 	mcArray.Add(pObject.mpcObject);
-	pObject->AddFrom(this);
+	if (pObject.IsNotNull())
+	{
+		pObject->AddFrom(this);
+	}
 }
 
 
@@ -327,6 +329,15 @@ void CArrayCommonObject::GetTos(CArrayBaseObjectPtr* papcTos)
 	}
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CBaseObject* CArrayCommonObject::UnsafeGet(int iIndex)
+{
+	return (CBaseObject*)mcArray.UnsafeGet(iIndex);
+}
 
 
 //////////////////////////////////////////////////////////////////////////

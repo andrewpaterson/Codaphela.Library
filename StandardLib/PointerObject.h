@@ -61,13 +61,13 @@ public:
 	CObject*		Embedding(void);
 	CBaseObject**	ObjectPtr(void);
 	CBaseObject*	UnsafePointTo(CBaseObject* pcNewObject);
+	int				RemapFrom(CBaseObject* pcOld);
 
 protected:
 	BOOL			Dehollow(void);
 	void			PointTo(CBaseObject* pcObject);
 
 	void			ClearObject(void);
-	int				RemapFrom(CBaseObject* pcOld);
 };
 
 
