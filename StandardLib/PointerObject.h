@@ -66,7 +66,7 @@ protected:
 	void			PointTo(CBaseObject* pcObject);
 
 	void			ClearObject(void);
-	void			RemapFrom(CBaseObject* pcOld);
+	int				RemapFrom(CBaseObject* pcOld);
 };
 
 

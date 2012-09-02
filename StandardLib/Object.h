@@ -48,6 +48,7 @@ protected:
 	void			RemoveTo(CBaseObject* pcTo);
 	void			RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged);
 	void			CollectedThoseToBeKilled(CArrayBaseObjectPtr* papcKilled);
+	int				RemapTos(CBaseObject* pcOld, CBaseObject* pcNew);
 };
 
 

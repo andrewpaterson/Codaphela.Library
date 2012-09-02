@@ -221,16 +221,20 @@ BOOL CPointerObject::Dehollow(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPointerObject::RemapFrom(CBaseObject* pcOld)
+int CPointerObject::RemapFrom(CBaseObject* pcOld)
 {
 	int				iNumFroms;
 	int				i;
 	CBaseObject*	pvFrom;
+	int				iCount;
 
+	iCount = 0;
 	iNumFroms = pcOld->NumFroms();
 	for (i = 0; i < iNumFroms; i++)
 	{
 		pvFrom = pcOld->GetFrom(i);
+		iCount += pvFrom->RemapTos(pcOld, mpcObject);
 	}
+	return iCount;
 }
 

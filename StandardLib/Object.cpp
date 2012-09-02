@@ -212,3 +212,31 @@ CPointerObject* CObject::Pointer(CPointerObject* pcPointer)
 	return pcPointer;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CObject::RemapTos(CBaseObject* pcOld, CBaseObject* pcNew)
+{
+	int					iNumPointers;
+	int					i;
+	CPointerObject**	ppPointer;
+	CBaseObject*		pcPointedTo;
+	int					iCount;
+
+	iCount = 0;
+	iNumPointers = mapPointers.NumElements();
+	for (i = 0; i < iNumPointers; i++)
+	{
+		ppPointer = mapPointers.Get(i);
+		pcPointedTo = &(**ppPointer);
+		if (pcPointedTo == pcOld)
+		{
+			(**ppPointer) = pcNew;
+			iCount++;
+		}
+	}
+	return iCount;
+}
+
