@@ -39,7 +39,7 @@ public:
 	CBaseObject*	Get(char* szName);
 	BOOL			AddWithID(CBaseObject* pvObject, OIndex oi, CBaseObject** ppvExisting/* = NULL*/);
 	BOOL			AddWithIDAndName(CBaseObject* pvObject, OIndex oi, char* szName, CBaseObject** ppvExisting/* = NULL*/);
-	void			Remove(OIndex oi);
+	BOOL			Remove(OIndex oi);
 	OIndex			NumObjects(void);
 
 protected:

@@ -77,11 +77,13 @@ public:
 						CIndexGenerator*	GetIndexGenerator(void);
 
 						CBaseObject*		GetBaseObject(OIndex oi);
+						void				RemoveInKill(CBaseObject* pvObject);
 
 protected:
 						BOOL				AddWithID(CBaseObject* pvObject);
 						BOOL				AddWithIDAndName(CBaseObject* pvObject, char* szObjectName);
 	template<class M>	M*					Allocate(void);
+						CBaseObject*		Allocate(char* szClassName);
 };						
 
 
@@ -99,8 +101,16 @@ void ObjectsKill(void);
 template<class M>	
 M* CObjects::Allocate(void)
 {
-	return mpcUnknownsAllocatingFrom->AddUnsafe<M>();
+	M*	pcObject;
+
+	pcObject = mpcUnknownsAllocatingFrom->AddUnsafe<M>();
+	if (pcObject)
+	{
+		pcObject->CBaseObject::PreInit(this);
+	}
+	return pcObject;
 }
+
 
 //////////////////////////////////////////////////////////////////////////
 //

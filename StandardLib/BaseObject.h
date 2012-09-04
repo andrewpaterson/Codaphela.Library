@@ -39,6 +39,7 @@ typedef CArrayEmbedded<CBaseObject*, 32>	CArrayEmbeddedBaseObjectPtr;
 
 class CObjectDeserialiser;
 class CObjectSerialiser;
+class CObjects;
 class CBaseObject : public CUnknown
 {
 template<class M>
@@ -51,6 +52,7 @@ friend class CArray;
 
 BASE_FUNCTIONS(CBaseObject);
 protected:
+	CObjects*							mpcObjectsThisIn;
 	int									miDistToRoot;
 	OIndex								moi;
 	CArrayEmbedded<CBaseObject*, 6>		mapFroms;  //Objects that 'this' is pointed from.  
@@ -58,6 +60,7 @@ protected:
 
 public:
 							CBaseObject();
+			void			PreInit(CObjects* pcObjects);
 			void			Kill(void);
 
 	virtual BOOL			Save(CObjectSerialiser* pcFile) =0;

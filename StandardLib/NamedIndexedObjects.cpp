@@ -95,9 +95,12 @@ BOOL CNamedIndexedObjects::Add(OIndex oi, CBaseObject* pvMemory, CBaseObject** p
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNamedIndexedObjects::Remove(OIndex oi)
+BOOL CNamedIndexedObjects::Remove(OIndex oi)
 {
-	mcObjects.Remove(oi);
+	BOOL	bResult;
+
+	bResult = mcObjects.Remove(oi);
+	return bResult;
 }
 
 

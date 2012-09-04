@@ -21,6 +21,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "ObjectSerialiser.h"
 #include "ObjectDeserialiser.h"
 #include "BaseObject.h"
+#include "Objects.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -40,11 +41,25 @@ CBaseObject::CBaseObject()
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CBaseObject::PreInit(CObjects* pcObjects)
+{
+	mpcObjectsThisIn = pcObjects;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CBaseObject::Kill(void)
 {
 	//This should only be called once all the 'froms' and 'tos' are gone.
 
 	mapFroms.Kill();
+	if (mpcObjectsThisIn)
+	{
+		mpcObjectsThisIn->RemoveInKill(this);
+	}
 	moi = INVALID_O_INDEX;
 	CUnknown::Kill();
 }
