@@ -140,10 +140,11 @@ void CObject::SetDistToRoot(int iDistToRoot)
 	int					i;
 	CBaseObject*		pcPointedTo;
 	CPointerObject**	ppPointer;
+	int					iNumPointers;
 
 	miDistToRoot = iDistToRoot;
-	
-	for (i = 0; i < mapPointers.NumElements(); i++)
+	iNumPointers = mapPointers.NumElements();
+	for (i = 0; i < iNumPointers; i++)
 	{
 		ppPointer = mapPointers.Get(i);
 		pcPointedTo = &(**ppPointer);

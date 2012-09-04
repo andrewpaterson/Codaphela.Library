@@ -44,6 +44,7 @@ protected:
 public:
 	void	Init(void);
 	void	Kill(void);
+	void	Reinit(void);
 
 	M*		Add(void);
 	M*		Add(M* pData);
@@ -63,6 +64,7 @@ public:
 	void	Remove(M* pvElement, int bPreserveOrder = TRUE);
 	void 	RemoveAt(int iIndex, int bPreserveOrder = TRUE);
 	M*		SafeGet(int iIndex);
+	void	Copy(CArrayEmbedded<M, I>* pcArrayEmbedded);
 	BOOL	TestInternalConsistency(void);
 	void 	Zero(void);
 };
@@ -92,6 +94,18 @@ void CArrayEmbedded<M, I>::Kill(void)
 	{
 		mcArray.Kill();
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M, int I>
+void CArrayEmbedded<M, I>::Reinit(void)
+{
+	Kill();
+	Init();
 }
 
 
@@ -531,6 +545,24 @@ M* CArrayEmbedded<M, I>::SafeGet(int iIndex)
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M, int I>
+void CArrayEmbedded<M, I>::Copy(CArrayEmbedded<M, I>* pcArrayEmbedded)
+{
+	int		i;
+	int		iNumElements;
+	M*		pvData;
+
+	iNumElements = pcArrayEmbedded->NumElements();
+	for (i = 0; i < iNumElements; i++)
+	{
+		pvData = pcArrayEmbedded->Get(i);
+		Add(pvData);
+	}
+}
 
 
 //////////////////////////////////////////////////////////////////////////

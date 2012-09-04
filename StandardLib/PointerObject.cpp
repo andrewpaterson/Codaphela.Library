@@ -240,6 +240,7 @@ int CPointerObject::RemapFrom(CBaseObject* pcOld)
 	int				i;
 	CBaseObject*	pvFrom;
 	int				iCount;
+	int				iNumKilled;
 
 	iCount = 0;
 	iNumFroms = pcOld->NumFroms();
@@ -247,7 +248,12 @@ int CPointerObject::RemapFrom(CBaseObject* pcOld)
 	{
 		pvFrom = pcOld->GetFrom(i);
 		iCount += pvFrom->RemapTos(pcOld, mpcObject);
+		mpcObject->AddFrom(pvFrom);
 	}
+
+	mpcObject->CopyFroms(pcOld);
+	mpcObject->SetDistToRoot(pcOld->DistToRoot());
+	iNumKilled = pcOld->KillThisGraph();
 	return iCount;
 }
 

@@ -96,6 +96,8 @@ protected:
 			void			AddFrom(CBaseObject* pcFrom);
 			void			RemoveFrom(CBaseObject* pcFrom);
 			void			RemoveEmbeddedFrom(CBaseObject* pcFrom);
+			void			RemoveAllFroms(void);
+			void			CopyFroms(CBaseObject* pcSource);
 			void			PotentiallySetDistToRoot(CBaseObject* pcTos, int iExpectedDistToRoot);
 			void			FixDistToRoot(void);
 			void			FixDistToRoot(CArrayEmbeddedBaseObjectPtr* papcFromsChanged);

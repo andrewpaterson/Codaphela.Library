@@ -219,9 +219,7 @@ BOOL CObjectGraphDeserialiser::FixExisting(void)
 	CPointerObject			pNewObject;
 	CPointerObject			pOldObject;
 	OIndex					oiOld;
-	int						iNumKilled;
 
-	iNumKilled = 0;
 	iNum = mcDependentObjects.NumObjects();
 	for (i = 0; i < iNum; i++)
 	{
@@ -233,7 +231,6 @@ BOOL CObjectGraphDeserialiser::FixExisting(void)
 			pOldObject = gcObjects.Get(oiOld);
 	
 			pNewObject.RemapFrom(&pOldObject);
-			iNumKilled += pOldObject->KillThisGraph();
 		}
 	}
 	return TRUE;

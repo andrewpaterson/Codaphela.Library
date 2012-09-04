@@ -85,6 +85,16 @@ void CBaseObject::RemoveEmbeddedFrom(CBaseObject* pcFrom)
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CBaseObject::CopyFroms(CBaseObject* pcSource)
+{
+	RemoveAllFroms();
+	mapFroms.Copy(&pcSource->mapFroms);
+}
+
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -271,6 +281,7 @@ void CBaseObject::FixDistToRoot(CArrayEmbeddedBaseObjectPtr* papcFromsChanged)
 		pcTemp = pcFromsChanged->ClearDistToSubRoot();
 		if (!pcSubRoot)
 		{
+			//Theres a bug here, you need to collect all the SubRoots and call FixDistToRoot on all of them.
 			pcSubRoot = pcTemp;
 		}
 	}
@@ -322,10 +333,7 @@ void CBaseObject::AddFrom(CBaseObject* pcFrom)
 		mapFroms.Add(&pcFrom);
 		if (pcFrom->miDistToRoot != -1)
 		{
-			if ((miDistToRoot == -1) || (pcFrom->miDistToRoot < miDistToRoot-1))
-			{
-				SetDistToRoot(pcFrom->miDistToRoot+1);
-			}
+			PotentiallySetDistToRoot(this, pcFrom->miDistToRoot+1);
 		}
 	}
 }
@@ -358,6 +366,7 @@ int CBaseObject::NumFroms(void)
 CBaseObject* CBaseObject::GetFrom(int iFrom)
 {
 	CBaseObject**	ppFrom;
+
 	ppFrom = mapFroms.Get(iFrom);
 	if (ppFrom)
 	{
@@ -488,9 +497,37 @@ BOOL CBaseObject::IsUnknown(void)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::PotentiallySetDistToRoot(CBaseObject* pcTos, int iExpectedDistToRoot)
 {
-	if ((pcTos->miDistToRoot == -1) || (pcTos->miDistToRoot > iExpectedDistToRoot))
+	int				iNumFroms;
+	int				i;
+	CBaseObject*	pcFrom;
+	int				iBestDistToRoot;
+
+	if (pcTos->miDistToRoot == -1)
 	{
 		pcTos->SetDistToRoot(iExpectedDistToRoot);
+	}
+	else
+	{
+		iBestDistToRoot = iExpectedDistToRoot;
+		iNumFroms = pcTos->mapFroms.NumElements();
+		for (i = 0; i < iNumFroms; i++)
+		{
+			pcFrom = pcTos->GetFrom(i);
+			if (pcFrom)
+			{
+				if (pcFrom->miDistToRoot < iBestDistToRoot)
+				{
+					if (pcFrom->miDistToRoot != -1)
+					{
+						iBestDistToRoot = pcFrom->miDistToRoot+1;
+					}
+				}
+			}
+		}
+		if (pcTos->miDistToRoot != iBestDistToRoot)
+		{
+			pcTos->SetDistToRoot(iBestDistToRoot);
+		}
 	}
 }
 
@@ -548,5 +585,15 @@ CBaseObject* CBaseObject::TestGetTo(int iToIndex)
 OIndex CBaseObject::GetOI(void)
 {
 	return moi;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CBaseObject::RemoveAllFroms(void)
+{
+	mapFroms.Reinit();
 }
 
