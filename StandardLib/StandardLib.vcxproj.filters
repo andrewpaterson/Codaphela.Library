@@ -390,9 +390,6 @@
     <ClInclude Include="ObjectConverterNative.h">
       <Filter>Source\Object\Object\Source\Native</Filter>
     </ClInclude>
-    <ClInclude Include="ObjectSourceNative.h">
-      <Filter>Source\Object\Object\Source\Native</Filter>
-    </ClInclude>
     <ClInclude Include="NamedHollowObject.h">
       <Filter>Source\Object\Object\Named</Filter>
     </ClInclude>
@@ -678,9 +675,6 @@
       <Filter>Source\Object\Object\Source\Native</Filter>
     </ClCompile>
     <ClCompile Include="ObjectConverterNative.cpp">
-      <Filter>Source\Object\Object\Source\Native</Filter>
-    </ClCompile>
-    <ClCompile Include="ObjectSourceNative.cpp">
       <Filter>Source\Object\Object\Source\Native</Filter>
     </ClCompile>
     <ClCompile Include="NamedHollowObject.cpp">

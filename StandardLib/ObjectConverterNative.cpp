@@ -51,9 +51,9 @@ BOOL CObjectConverterNative::IsFor(CAbstractFile* pcFile)
 CObjectSource* CObjectConverterNative::CreateSource(CAbstractFile* pcFile, char* szFileName)
 {
 	CObjectSource*	pcSource;
-	BOOL					bResult;
-	CFileBasic				cFile;
-	int						c;
+	BOOL			bResult;
+	CFileBasic		cFile;
+	int				c;
 
 	if ((!pcFile) || (!szFileName))
 	{

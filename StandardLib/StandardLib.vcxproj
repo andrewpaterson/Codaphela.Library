@@ -117,7 +117,6 @@
     <ClInclude Include="ObjectRemapper.h" />
     <ClInclude Include="ObjectSingleSource.h" />
     <ClInclude Include="ObjectSourceChunked.h" />
-    <ClInclude Include="ObjectSourceNative.h" />
     <ClInclude Include="ObjectSourceSimple.h" />
     <ClInclude Include="ObjectSourceText.h" />
     <ClInclude Include="Parameters.h" />
@@ -222,7 +221,6 @@
     <ClCompile Include="ObjectRemapper.cpp" />
     <ClCompile Include="ObjectSingleSource.cpp" />
     <ClCompile Include="ObjectSourceChunked.cpp" />
-    <ClCompile Include="ObjectSourceNative.cpp" />
     <ClCompile Include="ObjectSourceSimple.cpp" />
     <ClCompile Include="ObjectSourceText.cpp" />
     <ClCompile Include="ObjectWriter.cpp" />

@@ -136,7 +136,7 @@ CPointerObject CObjects::Add(char* szClassName, char* szObjectName, OIndex oi, O
 	CBaseObject*	pvExisting;
 	BOOL			bResult;
 
-	pvObject = (CBaseObject*)mpcUnknownsAllocatingFrom->Add(szClassName);
+	pvObject = Allocate(szClassName);
 	if (pvObject)
 	{
 		if (pvObject->IsNamed())
@@ -287,10 +287,21 @@ CPointerObject CObjects::Null(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-long long int CObjects::NumMemoryObjects(void)
+long long int CObjects::NumMemoryIndexes(void)
 {
-	return mcMemory.NumObjects();
+	return mcMemory.NumIndexed();
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CObjects::NumMemoryNames(void)
+{
+	return mcMemory.NumNames();
+}
+
 
 //////////////////////////////////////////////////////////////////////////
 //

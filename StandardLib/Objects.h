@@ -72,7 +72,8 @@ public:
 	template<class M>	CPointer<M>			Null(void);
 
 	template<class M>	void				AddConstructor(void);
-						long long int		NumMemoryObjects(void);
+						long long int		NumMemoryIndexes(void);
+						int					NumMemoryNames(void);
 						long long int		NumDatabaseObjects(void);
 						CIndexGenerator*	GetIndexGenerator(void);
 

@@ -110,8 +110,21 @@ BOOL CNamedIndexedObjects::Remove(OIndex oi)
 //////////////////////////////////////////////////////////////////////////
 BOOL CNamedIndexedObjects::AddWithID(CBaseObject* pvObject, OIndex oi, CBaseObject** ppvExisting)
 {
+	BOOL	bResult;
+
 	pvObject->SetObjectID(oi);
-	return Add(oi, pvObject, ppvExisting);
+	bResult = Add(oi, pvObject, ppvExisting);
+	if (bResult)
+	{
+		if (ppvExisting)
+		{
+			if (*ppvExisting)
+			{
+				(*ppvExisting)->SetObjectID(INVALID_O_INDEX);
+			}
+		}
+	}
+	return bResult;
 }
 
 
@@ -142,8 +155,18 @@ BOOL CNamedIndexedObjects::AddWithIDAndName(CBaseObject* pvObject, OIndex oi, ch
 //
 //
 //////////////////////////////////////////////////////////////////////////
-OIndex CNamedIndexedObjects::NumObjects(void)
+OIndex CNamedIndexedObjects::NumIndexed(void)
 {
 	return mcObjects.NumIndexed();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CNamedIndexedObjects::NumNames(void)
+{
+	return mcNames.NumElements();
 }
 

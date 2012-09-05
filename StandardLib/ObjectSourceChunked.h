@@ -1,10 +1,9 @@
 #ifndef __OBJECT_SOURCE_CHUNKED_H__
 #define __OBJECT_SOURCE_CHUNKED_H__
 #include "ObjectMultipleSource.h"
-#include "ObjectSourceNative.h"
 
 
-class CObjectSourceChunked : public CObjectMultipleSource, public CObjectSourceNative
+class CObjectSourceChunked : public CObjectMultipleSource
 {
 BASE_FUNCTIONS(CObjectSourceChunked);
 public:
@@ -14,6 +13,7 @@ public:
 			BOOL			Contains(char* szFullName);
 	virtual CPointerObject	Convert(char* szFullName);
 			BOOL			IsChunked(void);
+			BOOL			IsNative(void);
 };
 
 
