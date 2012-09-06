@@ -73,26 +73,27 @@ CBaseObject* CPointerObject::UnsafePointTo(CBaseObject* pcNewObject)
 //////////////////////////////////////////////////////////////////////////
 void CPointerObject::PointTo(CBaseObject* pcNewObject)
 {
-	CBaseObject*	pcObject;
+	CBaseObject*	pcOldObject;
 
 	if (mpcObject != pcNewObject)
 	{
-		if (mpcObject)
-		{
-			if (mpcEmbedding)
-			{
-				//Stop pointing at the object immediately or it is considered a to during root distance calculations. 
-				pcObject = mpcObject;
-				mpcObject = NULL;
-				
-				//This object we currently point to is no longer pointed to so remove us (embedded) as a from on the pointed to object.
-				pcObject->RemoveEmbeddedFrom(mpcEmbedding);
-			}
-		}
+		pcOldObject = mpcObject;
 		mpcObject = pcNewObject;
-		if (mpcObject)
-		{
-			mpcObject->AddFrom(mpcEmbedding);
+
+		if (mpcEmbedding)
+		{			
+			if (pcOldObject)
+			{
+				if (pcNewObject)
+				{
+					pcNewObject->AddFrom(mpcEmbedding);
+				}
+				pcOldObject->RemoveFrom(mpcEmbedding);
+			}
+			else if (mpcObject)
+			{
+				mpcObject->AddFrom(mpcEmbedding);
+			}
 		}
 	}
 }

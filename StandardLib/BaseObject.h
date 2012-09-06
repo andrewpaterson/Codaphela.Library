@@ -101,8 +101,8 @@ protected:
 	virtual void			RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged) =0;
 			BOOL			RemoveToFrom(CBaseObject* pcPointedTo, CArrayEmbeddedBaseObjectPtr* papcFromsChanged);
 			void			AddFrom(CBaseObject* pcFrom);
+			void			PrivateRemoveFrom(CBaseObject* pcFrom);
 			void			RemoveFrom(CBaseObject* pcFrom);
-			void			RemoveEmbeddedFrom(CBaseObject* pcFrom);
 			void			RemoveAllFroms(void);
 			void			CopyFroms(CBaseObject* pcSource);
 			void			PotentiallySetDistToRoot(CBaseObject* pcTos, int iExpectedDistToRoot);

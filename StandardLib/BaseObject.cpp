@@ -69,7 +69,7 @@ void CBaseObject::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::RemoveFrom(CBaseObject* pcFrom)
+void CBaseObject::PrivateRemoveFrom(CBaseObject* pcFrom)
 {
 	mapFroms.Remove(&pcFrom, FALSE);
 }
@@ -79,12 +79,12 @@ void CBaseObject::RemoveFrom(CBaseObject* pcFrom)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::RemoveEmbeddedFrom(CBaseObject* pcFrom)
+void CBaseObject::RemoveFrom(CBaseObject* pcFrom)
 {
 	CArrayEmbeddedBaseObjectPtr		apcFromsChanged;
 	CBaseObject*					pcTemp;
 
-	mapFroms.Remove(&pcFrom, FALSE);
+	PrivateRemoveFrom(pcFrom);
 	if (!CanFindRoot())
 	{
 		KillThisGraph();
@@ -414,7 +414,7 @@ BOOL CBaseObject::RemoveToFrom(CBaseObject* pcPointedTo, CArrayEmbeddedBaseObjec
 	{
 		if (pcPointedTo->miDistToRoot >= ROOT_DIST_TO_ROOT)
 		{
-			pcPointedTo->RemoveFrom(this);
+			pcPointedTo->PrivateRemoveFrom(this);
 			papcFromsChanged->Add(&pcPointedTo);
 		}
 		return TRUE;

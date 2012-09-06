@@ -129,7 +129,7 @@ void CArrayCommonObject::Set(int iIndex, CPointerObject pObject)
 	mcArray.Set(iIndex, pObject.mpcObject);
 	if (pcPointedTo)
 	{
-		pcPointedTo->RemoveEmbeddedFrom(this);
+		pcPointedTo->RemoveFrom(this);
 	}
 
 	pObject->AddFrom(this);
@@ -145,7 +145,7 @@ void CArrayCommonObject::Remove(CPointerObject pObject)
 	if (pObject.IsNotNull())
 	{
 		mcArray.Remove(pObject.mpcObject);
-		pObject->RemoveEmbeddedFrom(this);
+		pObject->RemoveFrom(this);
 	}
 }
 

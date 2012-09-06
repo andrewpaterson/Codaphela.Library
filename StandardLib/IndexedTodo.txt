@@ -1,2 +1,1 @@
-Find out why cDouble->mpSplit2 = cNS2 in TestObjectConverter crashed.
 Make sure CObjects has a Close method that writes out all in memory objects.
