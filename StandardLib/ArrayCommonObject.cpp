@@ -238,7 +238,7 @@ void CArrayCommonObject::CollectedThoseToBeKilled(CArrayBaseObjectPtr* papcKille
 		pcPointedTo = (CBaseObject*)mcArray.UnsafeGet(i);
 		if (pcPointedTo)
 		{
-			if (pcPointedTo->miDistToRoot != -1)
+			if (pcPointedTo->miDistToRoot >= ROOT_DIST_TO_ROOT)
 			{
 				if (!pcPointedTo->CanFindRoot())
 				{

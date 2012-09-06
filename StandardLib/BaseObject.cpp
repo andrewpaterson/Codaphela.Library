@@ -31,7 +31,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 CBaseObject::CBaseObject()
 {
 	mapFroms.Init();
-	miDistToRoot = -1;
+	miDistToRoot = UNATTACHED_DIST_TO_ROOT;
 	moi = INVALID_O_INDEX;
 	miFlags = 0;
 }
@@ -138,7 +138,7 @@ void CBaseObject::MarkForKilling(CArrayBaseObjectPtr* papcKilled)
 {
 	CBaseObject*		pcTemp;
 
-	miDistToRoot = -1;
+	miDistToRoot = UNATTACHED_DIST_TO_ROOT;
 	pcTemp = this;
 	papcKilled->Add(&pcTemp);
 }
@@ -190,7 +190,7 @@ CBaseObject* CBaseObject::ClearDistToSubRoot(void)
 	CBaseObject*	pcRootSet;
 	CBaseObject*	pcTemp;
 
-	miDistToRoot = -1;
+	miDistToRoot = UNATTACHED_DIST_TO_ROOT;
 	pcRootSet = NULL;
 
 	iNumFroms = mapFroms.NumElements();
@@ -198,7 +198,7 @@ CBaseObject* CBaseObject::ClearDistToSubRoot(void)
 	for (i = 0; i < iNumFroms; i++)
 	{
 		pcPointedFrom = ppcPointedFrom[i];
-		if (pcPointedFrom->miDistToRoot != -1)
+		if (pcPointedFrom->miDistToRoot >= ROOT_DIST_TO_ROOT)
 		{
 			if (pcPointedFrom->IsSubRoot())
 			{
@@ -247,7 +247,7 @@ BOOL CBaseObject::CanFindRoot(void)
 	for (i = 0; i < iNumFroms; i++)
 	{
 		iPointedFromDist = ppcPointedFrom[i]->miDistToRoot;
-		if ((iPointedFromDist != -1) && (!ppcPointedFrom[i]->TestedForRoot()))
+		if ((iPointedFromDist >= ROOT_DIST_TO_ROOT) && (!ppcPointedFrom[i]->TestedForRoot()))
 		{
 			if (iPointedFromDist < iNearestRoot)
 			{
@@ -346,7 +346,7 @@ void CBaseObject::AddFrom(CBaseObject* pcFrom)
 	if (pcFrom != NULL)
 	{
 		mapFroms.Add(&pcFrom);
-		if (pcFrom->miDistToRoot != -1)
+		if (pcFrom->miDistToRoot >= ROOT_DIST_TO_ROOT)
 		{
 			PotentiallySetDistToRoot(this, pcFrom->miDistToRoot+1);
 		}
@@ -412,7 +412,7 @@ BOOL CBaseObject::RemoveToFrom(CBaseObject* pcPointedTo, CArrayEmbeddedBaseObjec
 {
 	if (pcPointedTo)
 	{
-		if (pcPointedTo->miDistToRoot != -1)
+		if (pcPointedTo->miDistToRoot >= ROOT_DIST_TO_ROOT)
 		{
 			pcPointedTo->RemoveFrom(this);
 			papcFromsChanged->Add(&pcPointedTo);
@@ -517,7 +517,7 @@ void CBaseObject::PotentiallySetDistToRoot(CBaseObject* pcTos, int iExpectedDist
 	CBaseObject*	pcFrom;
 	int				iBestDistToRoot;
 
-	if (pcTos->miDistToRoot == -1)
+	if ((pcTos->miDistToRoot == CLEARED_DIST_TO_ROOT) || (pcTos->miDistToRoot == UNATTACHED_DIST_TO_ROOT))
 	{
 		pcTos->SetDistToRoot(iExpectedDistToRoot);
 	}
@@ -532,7 +532,7 @@ void CBaseObject::PotentiallySetDistToRoot(CBaseObject* pcTos, int iExpectedDist
 			{
 				if (pcFrom->miDistToRoot < iBestDistToRoot)
 				{
-					if (pcFrom->miDistToRoot != -1)
+					if (pcFrom->miDistToRoot >= ROOT_DIST_TO_ROOT)
 					{
 						iBestDistToRoot = pcFrom->miDistToRoot+1;
 					}

@@ -119,7 +119,7 @@ void CObject::CollectedThoseToBeKilled(CArrayBaseObjectPtr* papcKilled)
 		pcPointedTo = &(**ppPointer);
 		if (pcPointedTo)
 		{
-			if (pcPointedTo->miDistToRoot != -1)
+			if (pcPointedTo->miDistToRoot != UNATTACHED_DIST_TO_ROOT)
 			{
 				if (!pcPointedTo->CanFindRoot())
 				{
