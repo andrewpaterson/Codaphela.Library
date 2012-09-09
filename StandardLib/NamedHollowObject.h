@@ -5,6 +5,7 @@
 
 class CNamedHollowObject : public CHollowObject
 {
+friend class CObjects;
 BASE_FUNCTIONS(CNamedHollowObject);
 protected:
 	CChars	mon;

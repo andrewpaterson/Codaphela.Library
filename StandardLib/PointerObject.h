@@ -21,6 +21,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __POINTER_OBJECT_H__
 #define __POINTER_OBJECT_H__
 #include "Unknown.h"
+#include "CoreLib/IndexedGeneral.h"
 
 
 //This class is roughly a void* (or possibly an Object*).  It should probably have been called CObjectPointer but it's easier to start typing CPo...
@@ -67,6 +68,9 @@ public:
 	BOOL			IsHollow(void);
 	BOOL			Load(CObjectDeserialiser* pcFile);
 	int				DistToRoot(void);
+	OIndex			GetIndex(void);
+	char*			GetName(void);
+	BOOL			IsNamed(void);
 
 protected:
 	BOOL			Dehollow(void);

@@ -259,6 +259,7 @@ CPointerObject CObjects::AddHollow(char* szName)
 	BOOL							bResult;
 
 	pcHollow = Allocate<CNamedHollowObject>();
+	pcHollow->InitName(szName);
 
 	pvExisting = NULL;
 	bResult = mcMemory.AddWithIDAndName(pcHollow, mcIndexGenerator.PopIndex(), szName, &pvExisting);
