@@ -16,19 +16,19 @@ protected:
 	CArrayIndexNewOld		mcIndexRemap;
 	
 public:
-	void			Init(CObjectReader* pcReader, CIndexGenerator* pcIndexGenerator);
-	void			Kill(void);
+			void			Init(CObjectReader* pcReader, CIndexGenerator* pcIndexGenerator);
+			void			Kill(void);
 
-	CPointerObject	Read(char* szObjectName);
-	void			AddDependent(CPointerHeader* pcHeader, CBaseObject** ppcObjectPtr, CBaseObject* pcContaining);
-	void			AddIndexRemap(OIndex oiNew, OIndex oiOld);
+			CPointerObject	Read(char* szObjectName);
+	virtual void			AddDependent(CPointerHeader* pcHeader, CBaseObject** ppcObjectPtr, CBaseObject* pcContaining) =0;
+			void			AddIndexRemap(OIndex oiNew, OIndex oiOld);
 
 protected:
-	BOOL			ReadUnread(CDependentReadObject* pcDependent, BOOL bFirst);
-	void			MarkRead(OIndex oi);
-	BOOL			FixPointers(void);
-	BOOL			FixExisting(void);
-	OIndex			GetExistingRemap(OIndex oiNew);
+			BOOL			ReadUnread(CDependentReadObject* pcDependent, BOOL bFirst);
+			void			MarkRead(OIndex oi);
+			BOOL			FixPointers(void);
+			BOOL			FixExisting(void);
+			OIndex			GetExistingRemap(OIndex oiNew);
 };
 
 

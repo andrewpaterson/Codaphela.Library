@@ -17,6 +17,7 @@ public:
 	void					Init(CIndexGenerator* pcIndexGenerator);
 	void					Kill(void);
 	void					Add(CPointerHeader* pcHeader, CBaseObject** ppcObjectPtr, CBaseObject* pcContaining);
+	void					AddIgnoreNamed(CPointerHeader* pcHeader, CBaseObject** ppcObjectPtr, CBaseObject* pcContaining);
 	CDependentReadObject*	GetUnread(void);
 	void					SetInitialIndex(OIndex oi);
 	BOOL					Mark(OIndex oi);

@@ -92,6 +92,46 @@ void CDependentReadObjects::Add(CPointerHeader* pcHeader, CBaseObject** ppcObjec
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CDependentReadObjects::AddIgnoreNamed(CPointerHeader* pcHeader, CBaseObject** ppcObjectPtr, CBaseObject* pcContaining)
+{
+	CDependentReadObject	cDependent;
+	CDependentReadObject*	pcExistingInFile;
+	BOOL					bExists;
+	int						iIndex;
+	CDependentReadPointer*	pcPointer;
+	OIndex					oiNew;
+	CPointerObject			pExisitingInDatabase;
+
+	if (pcHeader->IsNamed())
+	{
+		return;
+	}
+
+	cDependent.Init(pcHeader);
+
+	bExists = mcObjects.FindInSorted(&cDependent, &CompareDependentReadObject, &iIndex);
+	if (!bExists)
+	{
+		oiNew = mpcIndexGenerator->PopIndex();
+		cDependent.SetNewIndex(oiNew);
+		mcObjects.InsertAt(&cDependent, iIndex);
+	}
+	else
+	{
+		pcExistingInFile = mcObjects.Get(iIndex);
+		oiNew = pcExistingInFile->GetNewIndex();
+		cDependent.Kill();
+	}
+
+	pcPointer = mcPointers.Add();
+	pcPointer->Init(ppcObjectPtr, pcContaining, oiNew);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 CDependentReadObject* CDependentReadObjects::GetUnread(void)
 {
 	int						iOldIndex;

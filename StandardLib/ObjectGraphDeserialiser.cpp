@@ -48,7 +48,7 @@ CPointerObject CObjectGraphDeserialiser::Read(char* szObjectName)
 
 	pcObjectPtr = NULL;
 	cHeader.Init(szObjectName);
-	mcDependentObjects.Add(&cHeader, &pcObjectPtr, NULL);
+	AddDependent(&cHeader, &pcObjectPtr, NULL);
 
 	bFirst = TRUE;
 	for (;;)
@@ -89,19 +89,6 @@ CPointerObject CObjectGraphDeserialiser::Read(char* szObjectName)
 
 	pObject = pcObjectPtr;
 	return pObject;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CObjectGraphDeserialiser::AddDependent(CPointerHeader* pcHeader, CBaseObject** ppcObjectPtr, CBaseObject* pcContaining)
-{
-	if ((pcHeader->mcType == OBJECT_POINTER_NAMED) || (pcHeader->mcType == OBJECT_POINTER_ID))
-	{
-		mcDependentObjects.Add(pcHeader, ppcObjectPtr, pcContaining);
-	}
 }
 
 
