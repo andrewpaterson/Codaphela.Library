@@ -68,15 +68,17 @@ CObjectSource* CObjectConverterText::CreateSource(CAbstractFile* pcFile, char* s
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointerObject CObjectConverterText::Convert(CAbstractFile* pcFile)
+CPointerObject CObjectConverterText::Convert(CObjectSource* pcSource, char* szObjectName)
 {
 	CTextFile			cTextFile;
 	CPointer<CString>	pcString;
 	BOOL				bResult;
+	CObjectSourceText*	pcSourceText;
 
+	pcSourceText = (CObjectSourceText*)pcSource;
 	cTextFile.Init();
 
-	bResult = cTextFile.Read(pcFile);
+	bResult = cTextFile.Read(pcSource->GetFile());
 	if (!bResult)
 	{
 		cTextFile.Kill();

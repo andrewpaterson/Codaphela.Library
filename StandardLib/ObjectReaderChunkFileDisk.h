@@ -18,24 +18,28 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __OBJECT_SINGLE_SOURCE_H__
-#define __OBJECT_SINGLE_SOURCE_H__
-#include "ObjectSource.h"
+#ifndef __OBJECT_READER_CHUNK_FILE_DISK_H__
+#define __OBJECT_READER_CHUNK_FILE_DISK_H__
+#include "ObjectReaderChunkFile.h"
 
 
-class CObjectSingleSource : public CObjectSource
+class CObjectReaderChunkFileDisk : public CObjectReaderChunkFile
 {
-BASE_FUNCTIONS(CObjectSingleSource);
+BASE_FUNCTIONS(CObjectReaderChunkFileDisk);
 protected:
-			CChars	mszObjectName;
-public:
-			void			Init(CObjectConverter* pcConverter, CAbstractFile* pcFile, char* szObjectName);
-			void			Kill(void);
+	CChunkFileNames		mcChunkFile;
+	CChars				mszFileName;
+	CChars				mszFullDirectory;
 
-			CPointerObject	Convert(char* szFullName);
-			BOOL			Contains(char* szFullName);
+public:
+	void				Init(char* szDirectory, char* szChunkFileName);
+	void				Kill(void);
+
+	BOOL				Begin(void);
+	CSerialisedObject*  Read(char* szObjectName);
+	BOOL				End(void);
 };
 
 
-#endif // __OBJECT_SOURCE_H__
+#endif // __OBJECT_READER_CHUNK_FILE_DISK_H__
 

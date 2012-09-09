@@ -18,19 +18,22 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "ObjectConverter.h"
-#include "Objects.h"
-#include "ObjectSingleSource.h"
+#include "BaseLib/FileUtil.h"
+#include "BaseLib/DiskFile.h"
+#include "BaseLib/ChunkFileFile.h"
+#include "ChunkFileNames.h"
+#include "ObjectFileGeneral.h"
+#include "SerialisedObject.h"
+#include "ObjectReaderChunkFile.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectSingleSource::Init(CObjectConverter* pcConverter, CAbstractFile* pcFile, char* szObjectName)
+void CObjectReaderChunkFile::Init(CChunkFileNames* pcChunkFile)
 {
-	CObjectSource::Init(pcConverter, pcFile, NULL);
-	mszObjectName.Init(szObjectName);
+	mpcChunkFile = pcChunkFile;
 }
 
 
@@ -38,10 +41,9 @@ void CObjectSingleSource::Init(CObjectConverter* pcConverter, CAbstractFile* pcF
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectSingleSource::Kill(void)
+void CObjectReaderChunkFile::Kill(void)
 {
-	mszObjectName.Kill();
-	CObjectSource::Kill();
+	CObjectReader::Kill();
 }
 
 
@@ -49,25 +51,37 @@ void CObjectSingleSource::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectSingleSource::Contains(char* szFullName)
+CSerialisedObject* CObjectReaderChunkFile::Read(char* szChunkName)
 {
-	return mszObjectName.Equals(szFullName);
-}
+	CSerialisedObject*	pcSerialised;
+	CChunkFileFile		cChunkFile;
+	CFileBasic			cFileBasic;
 
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CPointerObject CObjectSingleSource::Convert(char* szFullName)
-{
-	if (mszObjectName.EqualsIgnoreCase(szFullName))
+	if (!mpcChunkFile->ReadChunkBegin(szChunkName))
 	{
-		return mpcConverter->Convert(this, szFullName);
+		return NULL;
 	}
-	else
+
+	cChunkFile.Init(mpcChunkFile);
+	cFileBasic.Init(&cChunkFile);
+	cFileBasic.Open(EFM_Read);
+
+	pcSerialised = ReadSerialised(&cFileBasic);
+
+	cFileBasic.Close();
+	cFileBasic.Kill();
+	cChunkFile.Kill();
+
+	if (!pcSerialised)
 	{
-		return ONull;
+		return NULL;
 	}
+
+	if (!mpcChunkFile->ReadChunkEnd())
+	{
+		free(pcSerialised);
+		return NULL;
+	}
+	return pcSerialised;
 }
 

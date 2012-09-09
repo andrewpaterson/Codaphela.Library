@@ -1,14 +1,8 @@
 #ifndef __DEPENDENT_OBJECT_GRAPH_DESERIALISER_H__
 #define __DEPENDENT_OBJECT_GRAPH_DESERIALISER_H__
-#include "IndexNewOld.h"
-#include "BaseObject.h"
-#include "ObjectReader.h"
-#include "Pointer.h"
-#include "DependentReadObjects.h"
 #include "ObjectGraphDeserialiser.h"
 
 
-class CIndexGenerator;
 class CDependentObjectGraphDeserialiser : public CObjectGraphDeserialiser
 {
 public:

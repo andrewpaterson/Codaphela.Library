@@ -1,4 +1,6 @@
+#include "Unknowns.h"
 #include "ObjectSourceSimple.h"
+#include "ObjectReaderSimple.h"
 #include "ObjectConverterNative.h"
 
 
@@ -9,6 +11,7 @@
 void CObjectSourceSimple::Init(CObjectConverter* pcConverter, CAbstractFile* pcFile, char* szFileName)
 {
 	CObjectSingleSource::Init(pcConverter, pcFile, szFileName);
+	mpcReader = NULL;
 }
 
 
@@ -56,9 +59,17 @@ BOOL CObjectSourceSimple::Contains(char* szFullName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointerObject CObjectSourceSimple::Convert(void)
+CPointerObject CObjectSourceSimple::Convert(char* szFullName)
 {
-	return CObjectSingleSource::Convert();
+	CPointerObject			cPointer;
+
+	mpcReader = UMalloc(CObjectReaderSimple);
+	mpcReader->Init(NULL);
+
+	cPointer = mpcConverter->Convert(this, szFullName);
+	mpcReader->Kill();
+
+	return cPointer;
 }
 
 
@@ -66,8 +77,8 @@ CPointerObject CObjectSourceSimple::Convert(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointerObject CObjectSourceSimple::Convert(char* szFullName)
+CObjectReader* CObjectSourceSimple::GetReader(void)
 {
-	return CObjectSingleSource::Convert(szFullName);
+	return mpcReader;
 }
 

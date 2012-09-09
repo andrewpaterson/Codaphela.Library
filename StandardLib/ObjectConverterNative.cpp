@@ -1,10 +1,12 @@
 #include "BaseLib/ErrorTypes.h"
+#include "BaseLib/ChunkFileFile.h"
 #include "Unknowns.h"
 #include "Objects.h"
 #include "ObjectFileGeneral.h"
 #include "SerialisedObjectReader.h"
 #include "IndexGenerator.h"
 #include "ObjectDeserialiser.h"
+#include "HollowObjectGraphDeserialiser.h"
 #include "ObjectConverterNative.h"
 
 
@@ -105,27 +107,29 @@ CObjectSource* CObjectConverterNative::CreateSource(CAbstractFile* pcFile, char*
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointerObject CObjectConverterNative::Convert(CAbstractFile* pcFile)
+CPointerObject CObjectConverterNative::Convert(CObjectSource* pcSource, char* szObjectName)
 {
-	CObjectDeserialiser			cDeserialiser;
-	CSerialisedObjectReader		cReader;
-	CFileBasic					cFileBasic;
-	CSerialisedObject*			pcSerialised;
+	CChunkFileFile						cFile;
+	CPointerObject						cPointer;
+	CObjectDeserialiser					cDeserialiser;
+	CFileBasic							cFileBasic;
+	CSerialisedObject*					pcSerialised;
+	CHollowObjectGraphDeserialiser		cGraphDeserialiser;
+	CObjectSourceNative*				pcSourceNative;
+	CObjectReader*						pcReader;
 
-	cFileBasic.Init(pcFile);
-	cFileBasic.Open(EFM_Read);
+	pcSourceNative = (CObjectSourceNative*)pcSource;
+	pcReader = pcSourceNative->GetReader();
 
-	pcSerialised = cReader.ReadSerialised(&cFileBasic);
-
-	cFileBasic.Close();
-	cFileBasic.Kill();
-
+	pcSerialised = pcReader->Read(szObjectName);
 	if (pcSerialised)
 	{
 		CPointerObject	cPointer;
 
-		cDeserialiser.Init(NULL, pcSerialised);
+		cGraphDeserialiser.Init(pcReader, mpcIndexGenerator);
+		cDeserialiser.Init(&cGraphDeserialiser, pcSerialised);
 		cPointer = cDeserialiser.Load(mpcIndexGenerator->PopIndex());
+		cDeserialiser.Kill();
 		return cPointer;
 	}
 	else

@@ -396,9 +396,6 @@
     <ClInclude Include="NamedHollowObject.h">
       <Filter>Source\Object\Object\Named</Filter>
     </ClInclude>
-    <ClInclude Include="ObjectReaderChunked.h">
-      <Filter>Source\Object\Object\IO\Chunked</Filter>
-    </ClInclude>
     <ClInclude Include="ObjectGraphDeserialiser.h">
       <Filter>Source\Object\Object\Serilalisation\Graph</Filter>
     </ClInclude>
@@ -461,6 +458,18 @@
     </ClInclude>
     <ClInclude Include="DependentObjectGraphDeserialiser.h">
       <Filter>Source\Object\Object\Serilalisation\Graph\Dependent</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectReaderChunkFileDisk.h">
+      <Filter>Source\Object\Object\IO\Chunked</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectReaderChunkFile.h">
+      <Filter>Source\Object\Object\IO\Chunked</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectSourceNative.h">
+      <Filter>Source\Object\Object\Source\Native</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectReaderSimpleDisk.h">
+      <Filter>Source\Object\Object\IO\Simple</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -686,9 +695,6 @@
     <ClCompile Include="NamedHollowObject.cpp">
       <Filter>Source\Object\Object\Named</Filter>
     </ClCompile>
-    <ClCompile Include="ObjectReaderChunked.cpp">
-      <Filter>Source\Object\Object\IO\Chunked</Filter>
-    </ClCompile>
     <ClCompile Include="ObjectGraphDeserialiser.cpp">
       <Filter>Source\Object\Object\Serilalisation\Graph</Filter>
     </ClCompile>
@@ -748,6 +754,15 @@
     </ClCompile>
     <ClCompile Include="DependentObjectGraphDeserialiser.cpp">
       <Filter>Source\Object\Object\Serilalisation\Graph\Dependent</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjectReaderChunkFileDisk.cpp">
+      <Filter>Source\Object\Object\IO\Chunked</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjectReaderChunkFile.cpp">
+      <Filter>Source\Object\Object\IO\Chunked</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjectReaderSimpleDisk.cpp">
+      <Filter>Source\Object\Object\IO\Simple</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

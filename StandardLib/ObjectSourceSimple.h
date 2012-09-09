@@ -1,11 +1,16 @@
 #ifndef __OBJECT_SOURCE_SIMPLE_H__
 #define __OBJECT_SOURCE_SIMPLE_H__
+#include "ObjectSourceNative.h"
 #include "ObjectSingleSource.h"
 
 
-class CObjectSourceSimple : public CObjectSingleSource
+class CObjectReaderSimple;
+class CObjectSourceSimple : public CObjectSingleSource, public CObjectSourceNative
 {
 BASE_FUNCTIONS(CObjectSourceSimple);
+protected:
+	CObjectReaderSimple*	mpcReader;
+
 public:
 	void			Init(CObjectConverter* pcConverter, CAbstractFile* pcFile, char* szFileName);
 	void			Kill(void);
@@ -13,8 +18,8 @@ public:
 	BOOL			IsSimple(void);
 	BOOL			IsNative(void);
 	BOOL			Contains(char* szFullName);
-	CPointerObject	Convert(void);
 	CPointerObject	Convert(char* szFullName);
+	CObjectReader*	GetReader(void);
 };
 
 

@@ -29,7 +29,6 @@ void CObjectSource::Init(CObjectConverter* pcConverter, CAbstractFile* pcFile, c
 {
 	mpcConverter = pcConverter;
 	mpcFile = pcFile;
-	mszFileName.Init(szFileName);
 }
 
 
@@ -39,7 +38,6 @@ void CObjectSource::Init(CObjectConverter* pcConverter, CAbstractFile* pcFile, c
 //////////////////////////////////////////////////////////////////////////
 void CObjectSource::Kill(void)
 {
-	mszFileName.Kill();
 	mpcFile = NULL;
 	mpcConverter = NULL;
 	CUnknown::Kill();
@@ -63,5 +61,15 @@ BOOL CObjectSource::IsNative(void)
 BOOL CObjectSource::IsMultiSource(void)
 {
 	return FALSE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CAbstractFile* CObjectSource::GetFile(void)
+{
+	return mpcFile;
 }
 

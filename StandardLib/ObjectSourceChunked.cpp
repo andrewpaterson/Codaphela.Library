@@ -2,6 +2,7 @@
 #include "Objects.h"
 #include "ObjectConverterNative.h"
 #include "ObjectFileGeneral.h"
+#include "ObjectReaderChunkFile.h"
 #include "ObjectSourceChunked.h"
 
 
@@ -17,6 +18,7 @@ BOOL CObjectSourceChunked::Init(CObjectConverter* pcConverter, CAbstractFile* pc
 	ReturnOnFalse(mcChunkFile.ReadOpen());
 	ReturnOnFalse(ReadNames());
 
+	mpcReader = NULL;
 	return mcChunkFile.StackDepth() == 1;
 }
 
@@ -67,21 +69,16 @@ BOOL CObjectSourceChunked::ReadNames(void)
 //////////////////////////////////////////////////////////////////////////
 CPointerObject CObjectSourceChunked::Convert(char* szFullName)
 {
-	BOOL			bResult;
-	CChunkFileFile	cFile;
-	CPointerObject	cPointer;
+	CPointerObject			cPointer;
 
-	bResult = mcChunkFile.ReadChunkBegin(szFullName);
-	if (bResult)
-	{
-		cFile.Init(&mcChunkFile);
-		cPointer = mpcConverter->Convert(&cFile);
-		cFile.Kill();
-		return cPointer;
-	}
-	return ONull;
+	mpcReader = UMalloc(CObjectReaderChunkFile);
+	mpcReader->Init(&mcChunkFile);
+
+	cPointer = mpcConverter->Convert(this, szFullName);
+	mpcReader->Kill();
+
+	return cPointer;
 }
-
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -110,5 +107,15 @@ BOOL CObjectSourceChunked::IsChunked(void)
 BOOL CObjectSourceChunked::IsNative(void)
 {
 	return TRUE; 
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CObjectReader* CObjectSourceChunked::GetReader(void)
+{
+	return mpcReader;
 }
 

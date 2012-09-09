@@ -24,17 +24,18 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "ChunkFileNames.h"
 #include "ObjectFileGeneral.h"
 #include "SerialisedObject.h"
-#include "ObjectReaderChunked.h"
+#include "ObjectReaderChunkFileDisk.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectReaderChunked::Init(char* szDirectory, char* szChunkFileName)
+void CObjectReaderChunkFileDisk::Init(char* szDirectory, char* szChunkFileName)
 {
-	CObjectReader::Init(szDirectory);
+	CObjectReaderChunkFile::Init(&mcChunkFile);
 	mszFileName.Init(szChunkFileName);
+	mszFullDirectory.Init(szDirectory);
 }
 
 
@@ -42,8 +43,9 @@ void CObjectReaderChunked::Init(char* szDirectory, char* szChunkFileName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectReaderChunked::Kill(void)
+void CObjectReaderChunkFileDisk::Kill(void)
 {
+	mszFullDirectory.Kill();
 	mszFileName.Kill();
 	CObjectReader::Kill();
 }
@@ -53,7 +55,7 @@ void CObjectReaderChunked::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectReaderChunked::Begin(void)
+BOOL CObjectReaderChunkFileDisk::Begin(void)
 {
 	CDiskFile*	pcDiskFile;
 	CFileUtil	cFileUtil;
@@ -79,12 +81,11 @@ BOOL CObjectReaderChunked::Begin(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectReaderChunked::End(void)
+BOOL CObjectReaderChunkFileDisk::End(void)
 {
 	mcChunkFile.ReadClose();
 	mcChunkFile.Kill();
-
-	return CObjectReader::End();
+	return TRUE;
 }
 
 
@@ -92,7 +93,7 @@ BOOL CObjectReaderChunked::End(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CSerialisedObject* CObjectReaderChunked::Read(char* szChunkName)
+CSerialisedObject* CObjectReaderChunkFileDisk::Read(char* szChunkName)
 {
 	CSerialisedObject*	pcSerialised;
 	CChunkFileFile		cChunkFile;

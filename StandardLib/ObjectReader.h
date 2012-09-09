@@ -4,14 +4,10 @@
 #include "SerialisedObjectReader.h"
 
 
-class CObjectReader : public CSerialisedObjectReader 
+class CObjectReader : public CSerialisedObjectReader
 {
 BASE_FUNCTIONS(CObjectReader);
-protected:
-	CChars	mszFullDirectory;
-
 public:
-			void				Init(char* szFullDirectory);
 			void				Kill(void);
 
 	virtual BOOL				Begin(void);

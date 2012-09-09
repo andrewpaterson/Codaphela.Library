@@ -1,14 +1,15 @@
 #include "BaseLib/DiskFile.h"
-#include "ObjectReaderSimple.h"
+#include "ObjectReaderSimpleDisk.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectReaderSimple::Init(CFileBasic* pcFile)
+void CObjectReaderSimpleDisk::Init(char* szDirectory)
 {
-	mpcFile = pcFile;
+	CObjectReaderSimple::Init(&mcFile);
+	mszFullDirectory.Init(szDirectory);
 }
 
 
@@ -16,10 +17,10 @@ void CObjectReaderSimple::Init(CFileBasic* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectReaderSimple::Kill(void)
+void CObjectReaderSimpleDisk::Kill(void)
 {
-	mpcFile = NULL;
-	CObjectReader::Kill();
+	mszFullDirectory.Kill();
+	CObjectReaderSimple::Kill();
 }
 
 
@@ -27,7 +28,7 @@ void CObjectReaderSimple::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CSerialisedObject* CObjectReaderSimple::Read(char* szObjectName)
+CSerialisedObject* CObjectReaderSimpleDisk::Read(char* szObjectName)
 {
 	CSerialisedObject*	pcSerialised;
 	CChars				szDirectory;
@@ -36,36 +37,38 @@ CSerialisedObject* CObjectReaderSimple::Read(char* szObjectName)
 	BOOL				bResult;
 	int					iFileType;
 
+	FileName(szObjectName, mszFullDirectory.Text(), &szDirectory, &szFileName);
+
+	mcFile.Init(DiskFile(szFileName.Text()));
 	szFileName.Kill();
 	szDirectory.Kill();
 
-	bResult = mpcFile->Open(EFM_Read);
+	bResult = mcFile.Open(EFM_Read);
 	if (!bResult)
 	{
 		return NULL;
 	}
-	
+
 	//Write file type identifier.
-	bResult = mpcFile->ReadData(szExtension, 4);
+	bResult = mcFile.ReadData(szExtension, 4);
 	if ((!bResult) || (strcmp(szExtension, OBJECT_FILE_EXTENSION) != 0))
 	{
 		return NULL;
 	}
 
-	bResult = mpcFile->ReadInt(&iFileType);
+	bResult = mcFile.ReadInt(&iFileType);
 	if ((!bResult) || (iFileType != BASIC_OBJECT_FILE))
 	{
 		return NULL;
 	}
 
-	pcSerialised = ReadSerialised(mpcFile);
+	pcSerialised = ReadSerialised(&mcFile);
 	if (!pcSerialised)
 	{
 		return NULL;
 	}
 
-	mpcFile->Close();
+	mcFile.Close();
+	mcFile.Kill();
 	return pcSerialised;
 }
-
-

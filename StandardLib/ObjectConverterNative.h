@@ -3,6 +3,7 @@
 #include "ObjectConverter.h"
 #include "ObjectSourceChunked.h"
 #include "ObjectSourceSimple.h"
+#include "ObjectReader.h"
 
 
 class CIndexGenerator;
@@ -12,7 +13,7 @@ class CObjectConverterNative : public CObjectConverter
 BASE_FUNCTIONS(CObjectConverterNative);
 public:
 	CIndexGenerator*	mpcIndexGenerator;
-	//CArrayIndexNewOld		mcIndexRemap;
+	//CObjectReader*		mpcObjectReader;
 
 	void			Init(CIndexGenerator* pcIndexGenerator);
 	void			Kill(void);
@@ -20,7 +21,7 @@ public:
 	char*			GetFileExtension(void);
 	BOOL			IsFor(CAbstractFile* pcFile);
 	CObjectSource*	CreateSource(CAbstractFile* pcFile, char* szFileName);
-	CPointerObject	Convert(CAbstractFile* pcFile);
+	CPointerObject	Convert(CObjectSource* pcSource, char* szObjectName);
 	BOOL			IsNative(void);
 };
 

@@ -7,13 +7,14 @@
 class CObjectReaderSimple : public CObjectReader, public CObjectIOSimple
 {
 BASE_FUNCTIONS(CObjectReaderSimple);
+protected:
+	CFileBasic*		mpcFile;
+
 public:
-	void				Init(char* szDirectory);
+	void				Init(CFileBasic* pcFile);
 	void				Kill(void);
 
-	BOOL				Begin(void);
 	CSerialisedObject*  Read(char* szObjectName);
-	BOOL				End(void);
 };
 
 

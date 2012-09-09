@@ -26,6 +26,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Object.h"
 
 
+class CSerialisedObject;
 class CObjectConverter;
 class CObjectSource : public CUnknown
 {
@@ -33,7 +34,6 @@ BASE_FUNCTIONS(CObjectSource);
 protected:
 	CObjectConverter*	mpcConverter;
 	CAbstractFile*		mpcFile;
-	CChars				mszFileName;
 
 public:
 			void			Init(CObjectConverter* pcConverter, CAbstractFile* pcFile, char* szFileName);
@@ -44,6 +44,8 @@ public:
 
 	virtual BOOL			IsNative(void);
 	virtual BOOL			IsMultiSource(void);
+
+			CAbstractFile*	GetFile(void);
 };
 
 

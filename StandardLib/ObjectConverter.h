@@ -15,7 +15,7 @@ public:
 	virtual char*			GetFileExtension(void) =0;
 	virtual BOOL			IsFor(CAbstractFile* pcFile) =0;
 	virtual CObjectSource*	CreateSource(CAbstractFile* pcFile, char* szFileName)  =0;
-	virtual CPointerObject	Convert(CAbstractFile* pcFile) =0;
+	virtual CPointerObject	Convert(CObjectSource* pcSource, char* szObjectName) =0;
 };
 
 
