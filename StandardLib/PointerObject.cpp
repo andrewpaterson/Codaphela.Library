@@ -187,6 +187,16 @@ CPointerObject*	CPointerObject::This(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+CBaseObject* CPointerObject::Object(void)
+{
+	return mpcObject;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 CBaseObject** CPointerObject::ObjectPtr(void)
 {
 	return &mpcObject;
@@ -216,7 +226,7 @@ BOOL CPointerObject::Dehollow(void)
 		if (mpcObject->IsHollow())
 		{
 			pcHollow = (CHollowObject*)mpcObject;
-			mpcObject = pcHollow->Load();
+			mpcObject = pcHollow->Dehollow();
 			pcHollow->Kill();
 			if (mpcObject)
 			{
@@ -266,6 +276,7 @@ int CPointerObject::RemapFrom(CBaseObject* pcOld)
 //////////////////////////////////////////////////////////////////////////
 BOOL CPointerObject::IsHollow(void)
 {
+	//IsHollow must be available without calling dehollow.
 	if (mpcObject)
 	{
 		return mpcObject->IsHollow();
@@ -298,6 +309,26 @@ BOOL CPointerObject::Load(CObjectDeserialiser* pcFile)
 	else
 	{
 		return FALSE;
+	}
+}
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CPointerObject::DistToRoot(void)
+{
+	//DistToRoot must be available without calling dehollow.
+
+	if (mpcObject)
+	{
+		return mpcObject->DistToRoot();
+	}
+	else
+	{
+		return -1;
 	}
 }
 

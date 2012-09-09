@@ -139,9 +139,6 @@
     <Filter Include="Source\Object\Object\IO\Indexed">
       <UniqueIdentifier>{998549eb-11d7-4b02-a517-7012ae0b1885}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Object\Object\Serilalisation\Graph\Dependent">
-      <UniqueIdentifier>{08ca1212-9712-46d9-a0bd-bbdd4786ed2c}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source\Object\Object\Serilalisation\Graph\Hollow">
       <UniqueIdentifier>{ddea66b7-1382-4329-bda1-aa09481bc648}</UniqueIdentifier>
     </Filter>
@@ -441,24 +438,6 @@
     <ClInclude Include="HollowObjectGraphDeserialiser.h">
       <Filter>Source\Object\Object\Serilalisation\Graph\Hollow</Filter>
     </ClInclude>
-    <ClInclude Include="DependentWriteObjects.h">
-      <Filter>Source\Object\Object\Serilalisation\Graph\Dependent</Filter>
-    </ClInclude>
-    <ClInclude Include="DependentReadObject.h">
-      <Filter>Source\Object\Object\Serilalisation\Graph\Dependent</Filter>
-    </ClInclude>
-    <ClInclude Include="DependentReadObjects.h">
-      <Filter>Source\Object\Object\Serilalisation\Graph\Dependent</Filter>
-    </ClInclude>
-    <ClInclude Include="DependentReadPointer.h">
-      <Filter>Source\Object\Object\Serilalisation\Graph\Dependent</Filter>
-    </ClInclude>
-    <ClInclude Include="DependentWriteObject.h">
-      <Filter>Source\Object\Object\Serilalisation\Graph\Dependent</Filter>
-    </ClInclude>
-    <ClInclude Include="DependentObjectGraphDeserialiser.h">
-      <Filter>Source\Object\Object\Serilalisation\Graph\Dependent</Filter>
-    </ClInclude>
     <ClInclude Include="ObjectReaderChunkFileDisk.h">
       <Filter>Source\Object\Object\IO\Chunked</Filter>
     </ClInclude>
@@ -467,6 +446,24 @@
     </ClInclude>
     <ClInclude Include="ObjectReaderSimpleDisk.h">
       <Filter>Source\Object\Object\IO\Simple</Filter>
+    </ClInclude>
+    <ClInclude Include="DependentWriteObjects.h">
+      <Filter>Source\Object\Object\Serilalisation\Graph</Filter>
+    </ClInclude>
+    <ClInclude Include="DependentObjectGraphDeserialiser.h">
+      <Filter>Source\Object\Object\Serilalisation\Graph</Filter>
+    </ClInclude>
+    <ClInclude Include="DependentReadObject.h">
+      <Filter>Source\Object\Object\Serilalisation\Graph</Filter>
+    </ClInclude>
+    <ClInclude Include="DependentReadObjects.h">
+      <Filter>Source\Object\Object\Serilalisation\Graph</Filter>
+    </ClInclude>
+    <ClInclude Include="DependentReadPointer.h">
+      <Filter>Source\Object\Object\Serilalisation\Graph</Filter>
+    </ClInclude>
+    <ClInclude Include="DependentWriteObject.h">
+      <Filter>Source\Object\Object\Serilalisation\Graph</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -734,24 +731,6 @@
     <ClCompile Include="HollowObjectGraphDeserialiser.cpp">
       <Filter>Source\Object\Object\Serilalisation\Graph\Hollow</Filter>
     </ClCompile>
-    <ClCompile Include="DependentReadObject.cpp">
-      <Filter>Source\Object\Object\Serilalisation\Graph\Dependent</Filter>
-    </ClCompile>
-    <ClCompile Include="DependentReadObjects.cpp">
-      <Filter>Source\Object\Object\Serilalisation\Graph\Dependent</Filter>
-    </ClCompile>
-    <ClCompile Include="DependentReadPointer.cpp">
-      <Filter>Source\Object\Object\Serilalisation\Graph\Dependent</Filter>
-    </ClCompile>
-    <ClCompile Include="DependentWriteObject.cpp">
-      <Filter>Source\Object\Object\Serilalisation\Graph\Dependent</Filter>
-    </ClCompile>
-    <ClCompile Include="DependentWriteObjects.cpp">
-      <Filter>Source\Object\Object\Serilalisation\Graph\Dependent</Filter>
-    </ClCompile>
-    <ClCompile Include="DependentObjectGraphDeserialiser.cpp">
-      <Filter>Source\Object\Object\Serilalisation\Graph\Dependent</Filter>
-    </ClCompile>
     <ClCompile Include="ObjectReaderChunkFileDisk.cpp">
       <Filter>Source\Object\Object\IO\Chunked</Filter>
     </ClCompile>
@@ -760,6 +739,24 @@
     </ClCompile>
     <ClCompile Include="ObjectReaderSimpleDisk.cpp">
       <Filter>Source\Object\Object\IO\Simple</Filter>
+    </ClCompile>
+    <ClCompile Include="DependentObjectGraphDeserialiser.cpp">
+      <Filter>Source\Object\Object\Serilalisation\Graph</Filter>
+    </ClCompile>
+    <ClCompile Include="DependentReadObject.cpp">
+      <Filter>Source\Object\Object\Serilalisation\Graph</Filter>
+    </ClCompile>
+    <ClCompile Include="DependentReadObjects.cpp">
+      <Filter>Source\Object\Object\Serilalisation\Graph</Filter>
+    </ClCompile>
+    <ClCompile Include="DependentReadPointer.cpp">
+      <Filter>Source\Object\Object\Serilalisation\Graph</Filter>
+    </ClCompile>
+    <ClCompile Include="DependentWriteObject.cpp">
+      <Filter>Source\Object\Object\Serilalisation\Graph</Filter>
+    </ClCompile>
+    <ClCompile Include="DependentWriteObjects.cpp">
+      <Filter>Source\Object\Object\Serilalisation\Graph</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

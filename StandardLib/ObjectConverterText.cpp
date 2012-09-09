@@ -82,7 +82,7 @@ CPointerObject CObjectConverterText::Convert(CObjectSource* pcSource, char* szOb
 	if (!bResult)
 	{
 		cTextFile.Kill();
-		return gcObjects.Null();
+		return ONull;
 	}
 
 	pcString = OMalloc(CString);

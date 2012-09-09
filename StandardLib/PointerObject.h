@@ -59,12 +59,14 @@ public:
 
 	CPointerObject*	This(void);
 	CObject*		Embedding(void);
+	CBaseObject*	Object(void);
 	CBaseObject**	ObjectPtr(void);
 	CBaseObject*	UnsafePointTo(CBaseObject* pcNewObject);
 	int				RemapFrom(CBaseObject* pcOld);
 
 	BOOL			IsHollow(void);
 	BOOL			Load(CObjectDeserialiser* pcFile);
+	int				DistToRoot(void);
 
 protected:
 	BOOL			Dehollow(void);

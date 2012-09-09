@@ -27,6 +27,7 @@ protected:
 			BOOL			ReadUnread(CDependentReadObject* pcDependent, BOOL bFirst);
 			void			MarkRead(OIndex oi);
 			BOOL			FixPointers(void);
+			void			FixPointer(CBaseObject* pcBaseObject, CBaseObject** ppcPointedFrom, CBaseObject* pcContaining);
 			BOOL			FixExisting(void);
 			OIndex			GetExistingRemap(OIndex oiNew);
 			void			ForceAddDependent(CPointerHeader* pcHeader, CBaseObject** ppcObjectPtr);

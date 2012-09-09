@@ -9,6 +9,7 @@ public:
 	void			Init(CObjectReader* pcReader, CIndexGenerator* pcIndexGenerator);
 	void			Kill(void);
 
+	CPointerObject	Read(char* szObjectName);
 	void			AddDependent(CPointerHeader* pcHeader, CBaseObject** ppcObjectPtr, CBaseObject* pcContaining);
 };
 

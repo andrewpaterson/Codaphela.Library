@@ -20,6 +20,8 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include "BaseObject.h"
 #include "NamedObject.h"
+#include "HollowObject.h"
+#include "NamedHollowObject.h"
 #include "Objects.h"
 
 
@@ -214,15 +216,54 @@ CPointerObject CObjects::Add(char* szClassName, char* szObjectName)
 //////////////////////////////////////////////////////////////////////////
 CPointer<CRoot> CObjects::AddRoot(void)
 {
-	CPointer<CRoot>	cRoot;
+	CPointer<CRoot>	pRoot;
 
-	cRoot = Get(ROOT_NAME);
-	if (!cRoot)
+	pRoot = Get(ROOT_NAME);
+	if (!pRoot)
 	{
-		cRoot = Add<CRoot>(ROOT_NAME);
-		cRoot->Init(this);
+		pRoot = Add<CRoot>(ROOT_NAME);
+		pRoot->Init(this);
 	}
-	return cRoot;
+	return pRoot;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CPointerObject CObjects::AddHollow(OIndex oi)
+{
+	CPointer<CHollowObject>	pHollow;
+	CHollowObject*			pcHollow;
+	CBaseObject*			pvExisting;
+	BOOL					bResult;
+
+	pcHollow = Allocate<CHollowObject>();
+
+	pvExisting = NULL;
+	bResult = mcMemory.AddWithID(pcHollow, oi, &pvExisting);
+	return pHollow;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CPointerObject CObjects::AddHollow(char* szName)
+{
+	CPointer<CNamedHollowObject>	pHollow;
+	CNamedHollowObject*				pcHollow;
+	CBaseObject*					pvExisting;
+	BOOL							bResult;
+
+	pcHollow = Allocate<CNamedHollowObject>();
+
+	pvExisting = NULL;
+	bResult = mcMemory.AddWithIDAndName(pcHollow, mcIndexGenerator.PopIndex(), szName, &pvExisting);
+	pHollow.mpcObject = pcHollow;
+	return pHollow;
 }
 
 

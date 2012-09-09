@@ -26,11 +26,24 @@ class CHollowObject : public CBaseObject
 {
 BASE_FUNCTIONS(CHollowObject);
 public:
-	void			Kill(void);
 					CHollowObject(void);
+	void			Kill(void);
+	CBaseObject*	Dehollow(void);
+
 	BOOL			IsHollow(void);
 
-	CBaseObject*	Load(void);
+	BOOL			Save(CObjectSerialiser* pcFile);
+	BOOL			Load(CObjectDeserialiser* pcFile);
+	BOOL			IsCollection(void);
+	BOOL			IsObject(void);
+	void			SetDistToRoot(int iDistToRoot);
+	void			GetTos(CArrayBaseObjectPtr* papcTos);
+	int				NumTos(void);
+
+protected:
+	int				RemapTos(CBaseObject* pcOld, CBaseObject* pcNew);
+	void			RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged);
+	void			CollectedThoseToBeKilled(CArrayBaseObjectPtr* papcKilled);
 };
 
 

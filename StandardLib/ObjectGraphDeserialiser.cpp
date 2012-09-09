@@ -168,7 +168,6 @@ BOOL CObjectGraphDeserialiser::FixPointers(void)
 	int						i;
 	int						iNum;
 	CBaseObject*			pcBaseObject;
-	CBaseObject*			pcContaining;
 
 	iNum = mcDependentObjects.NumPointers();
 	for (i = 0; i < iNum; i++)
@@ -177,13 +176,7 @@ BOOL CObjectGraphDeserialiser::FixPointers(void)
 		pcBaseObject = gcObjects.GetBaseObject(pcReadPointer->moiPointedTo);
 		if (pcBaseObject)
 		{
-			*pcReadPointer->mppcPointedFrom = pcBaseObject;
-
-			pcContaining = pcReadPointer->mpcContaining;
-			if (pcContaining)
-			{
-				pcBaseObject->AddFrom(pcContaining);
-			}
+			FixPointer(pcBaseObject, pcReadPointer->mppcPointedFrom, pcReadPointer->mpcContaining);
 		}
 		else
 		{
@@ -191,6 +184,21 @@ BOOL CObjectGraphDeserialiser::FixPointers(void)
 		}
 	}
 	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CObjectGraphDeserialiser::FixPointer(CBaseObject* pcBaseObject, CBaseObject** ppcPointedFrom, CBaseObject* pcContaining)
+{
+	*ppcPointedFrom = pcBaseObject;
+
+	if (pcContaining)
+	{
+		pcBaseObject->AddFrom(pcContaining);
+	}
 }
 
 
