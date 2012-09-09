@@ -119,7 +119,6 @@
     <ClInclude Include="ObjectRemapper.h" />
     <ClInclude Include="ObjectSingleSource.h" />
     <ClInclude Include="ObjectSourceChunked.h" />
-    <ClInclude Include="ObjectSourceNative.h" />
     <ClInclude Include="ObjectSourceSimple.h" />
     <ClInclude Include="ObjectSourceText.h" />
     <ClInclude Include="Parameters.h" />

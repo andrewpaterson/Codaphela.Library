@@ -1,12 +1,12 @@
 #ifndef __OBJECT_SOURCE_CHUNKED_H__
 #define __OBJECT_SOURCE_CHUNKED_H__
 #include "ChunkFileNames.h"
-#include "ObjectSourceNative.h"
 #include "ObjectMultipleSource.h"
 
 
+class CObjectReader;
 class CObjectReaderChunkFile;
-class CObjectSourceChunked : public CObjectMultipleSource, public CObjectSourceNative
+class CObjectSourceChunked : public CObjectMultipleSource
 {
 BASE_FUNCTIONS(CObjectSourceChunked);
 protected:

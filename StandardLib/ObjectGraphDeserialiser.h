@@ -29,6 +29,7 @@ protected:
 			BOOL			FixPointers(void);
 			BOOL			FixExisting(void);
 			OIndex			GetExistingRemap(OIndex oiNew);
+			void			ForceAddDependent(CPointerHeader* pcHeader, CBaseObject** ppcObjectPtr);
 };
 
 

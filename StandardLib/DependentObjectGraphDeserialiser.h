@@ -6,10 +6,10 @@
 class CDependentObjectGraphDeserialiser : public CObjectGraphDeserialiser
 {
 public:
-	void			Init(CObjectReader* pcReader, CIndexGenerator* pcIndexGenerator);
-	void			Kill(void);
+	void	Init(CObjectReader* pcReader, CIndexGenerator* pcIndexGenerator);
+	void	Kill(void);
 
-	void			AddDependent(CPointerHeader* pcHeader, CBaseObject** ppcObjectPtr, CBaseObject* pcContaining);
+	void	AddDependent(CPointerHeader* pcHeader, CBaseObject** ppcObjectPtr, CBaseObject* pcContaining);
 };
 
 

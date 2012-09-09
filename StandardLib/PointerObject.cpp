@@ -20,6 +20,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include "Object.h"
 #include "HollowObject.h"
+#include "ObjectDeserialiser.h"
 #include "PointerObject.h"
 
 
@@ -256,5 +257,47 @@ int CPointerObject::RemapFrom(CBaseObject* pcOld)
 	mpcObject->SetDistToRoot(pcOld->DistToRoot());
 	iNumKilled = pcOld->KillThisGraph();
 	return iCount;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CPointerObject::IsHollow(void)
+{
+	if (mpcObject)
+	{
+		return mpcObject->IsHollow();
+	}
+	else
+	{
+		return FALSE;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CPointerObject::Load(CObjectDeserialiser* pcFile)
+{
+	//Load must be available without calling dehollow.
+	if (mpcObject)
+	{
+		if (!mpcObject->IsHollow())
+		{
+			return mpcObject->Load(pcFile);
+		}
+		else
+		{
+			return FALSE;
+		}
+	}
+	else
+	{
+		return FALSE;
+	}
 }
 

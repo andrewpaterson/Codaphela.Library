@@ -29,6 +29,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 class CBaseObject;
 class CObject;
+class CObjectDeserialiser;
 class CPointerObject
 {
 friend class CObjects;
@@ -56,12 +57,14 @@ public:
 	BOOL			IsNotNull(void);
 	BOOL			IsNull(void);
 
-	//These two methods should be protected.
 	CPointerObject*	This(void);
 	CObject*		Embedding(void);
 	CBaseObject**	ObjectPtr(void);
 	CBaseObject*	UnsafePointTo(CBaseObject* pcNewObject);
 	int				RemapFrom(CBaseObject* pcOld);
+
+	BOOL			IsHollow(void);
+	BOOL			Load(CObjectDeserialiser* pcFile);
 
 protected:
 	BOOL			Dehollow(void);

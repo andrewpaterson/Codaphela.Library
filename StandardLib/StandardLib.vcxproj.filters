@@ -465,9 +465,6 @@
     <ClInclude Include="ObjectReaderChunkFile.h">
       <Filter>Source\Object\Object\IO\Chunked</Filter>
     </ClInclude>
-    <ClInclude Include="ObjectSourceNative.h">
-      <Filter>Source\Object\Object\Source\Native</Filter>
-    </ClInclude>
     <ClInclude Include="ObjectReaderSimpleDisk.h">
       <Filter>Source\Object\Object\IO\Simple</Filter>
     </ClInclude>

@@ -114,7 +114,7 @@ CPointerObject CObjectDeserialiser::Load(OIndex oiNew)
 		AddIndexRemap(oiNew, oiReplaced);
 	}
 
-	bResult = pObject->Load(this);
+	bResult = pObject.Load(this);
 	if (!bResult)
 	{
 		pObject->Kill();

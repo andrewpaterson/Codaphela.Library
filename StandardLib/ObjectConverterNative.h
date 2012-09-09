@@ -13,7 +13,6 @@ class CObjectConverterNative : public CObjectConverter
 BASE_FUNCTIONS(CObjectConverterNative);
 public:
 	CIndexGenerator*	mpcIndexGenerator;
-	//CObjectReader*		mpcObjectReader;
 
 	void			Init(CIndexGenerator* pcIndexGenerator);
 	void			Kill(void);

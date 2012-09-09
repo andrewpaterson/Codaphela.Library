@@ -111,31 +111,32 @@ CPointerObject CObjectConverterNative::Convert(CObjectSource* pcSource, char* sz
 {
 	CChunkFileFile						cFile;
 	CPointerObject						cPointer;
-	CObjectDeserialiser					cDeserialiser;
 	CFileBasic							cFileBasic;
-	CSerialisedObject*					pcSerialised;
 	CHollowObjectGraphDeserialiser		cGraphDeserialiser;
-	CObjectSourceNative*				pcSourceNative;
+	CObjectSourceChunked*				pcSourceChunked;
+	CObjectSourceSimple*				pcSourceSimple;
 	CObjectReader*						pcReader;
 
-	pcSourceNative = (CObjectSourceNative*)pcSource;
-	pcReader = pcSourceNative->GetReader();
-
-	pcSerialised = pcReader->Read(szObjectName);
-	if (pcSerialised)
+	if (pcSource->IsMultiSource() && pcSource->IsNative())
 	{
-		CPointerObject	cPointer;
-
-		cGraphDeserialiser.Init(pcReader, mpcIndexGenerator);
-		cDeserialiser.Init(&cGraphDeserialiser, pcSerialised);
-		cPointer = cDeserialiser.Load(mpcIndexGenerator->PopIndex());
-		cDeserialiser.Kill();
-		return cPointer;
+		pcSourceChunked = (CObjectSourceChunked*)pcSource;
+		pcReader = pcSourceChunked->GetReader();
+	}
+	else if (!pcSource->IsMultiSource() && pcSource->IsNative())
+	{
+		pcSourceSimple = (CObjectSourceSimple*)pcSource;
+		pcReader = pcSourceSimple->GetReader();
 	}
 	else
 	{
 		return ONull;
 	}
+
+	cGraphDeserialiser.Init(pcReader, mpcIndexGenerator);
+	cPointer = cGraphDeserialiser.Read(szObjectName);
+	cGraphDeserialiser.Kill();
+
+	return cPointer;
 }
 
 

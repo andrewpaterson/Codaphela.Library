@@ -1,11 +1,11 @@
 #ifndef __OBJECT_SOURCE_SIMPLE_H__
 #define __OBJECT_SOURCE_SIMPLE_H__
-#include "ObjectSourceNative.h"
 #include "ObjectSingleSource.h"
 
 
+class CObjectReader;
 class CObjectReaderSimple;
-class CObjectSourceSimple : public CObjectSingleSource, public CObjectSourceNative
+class CObjectSourceSimple : public CObjectSingleSource
 {
 BASE_FUNCTIONS(CObjectSourceSimple);
 protected:
