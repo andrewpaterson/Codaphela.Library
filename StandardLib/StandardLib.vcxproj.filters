@@ -139,6 +139,9 @@
     <Filter Include="Source\Object\Object\IO\Indexed">
       <UniqueIdentifier>{998549eb-11d7-4b02-a517-7012ae0b1885}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Object\Object\Serilalisation\Hollow">
+      <UniqueIdentifier>{737865a2-3c38-4919-9008-15e067c4a68b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Base.h">
@@ -453,6 +456,9 @@
     <ClInclude Include="IndexNewOld.h">
       <Filter>Source\Object\Object\Serilalisation</Filter>
     </ClInclude>
+    <ClInclude Include="HollowObjectDeserialiser.h">
+      <Filter>Source\Object\Object\Serilalisation\Hollow</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Unknown.cpp">
@@ -736,6 +742,9 @@
     </ClCompile>
     <ClCompile Include="IndexNewOld.cpp">
       <Filter>Source\Object\Object\Serilalisation</Filter>
+    </ClCompile>
+    <ClCompile Include="HollowObjectDeserialiser.cpp">
+      <Filter>Source\Object\Object\Serilalisation\Hollow</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

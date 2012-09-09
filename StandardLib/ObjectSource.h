@@ -43,6 +43,7 @@ public:
 	virtual BOOL			Contains(char* szFullName) =0;
 
 	virtual BOOL			IsNative(void);
+	virtual BOOL			IsMultiSource(void);
 };
 
 

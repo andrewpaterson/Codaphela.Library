@@ -20,26 +20,39 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __MAP_STRING_INT_H__
-#define __MAP_STRING_INT_H__
-#include "MapStringTemplate.h"
+#ifndef __CHUNK_FILE_FILE_H__
+#define __CHUNK_FILE_FILE_H__
+#include <stdio.h>
+#include "AbstractFile.h"
 
 
-class CMapStringInt : public CMapStringTemplate<int>
+class CChunkFile;
+class CChunkFileFile : public CAbstractFile
 {
+protected:
+	FILE*			mpsFileHandle;
+	CChunkFile*		mpcChunkFile;
+	filePos			miChunkStart;
+	filePos			miChunkSize;
+
+	BOOL			mbEndOfFile;
+
 public:
-	int*	GetWithKey(CChars* psKey);
-	int*	GetWithKey(char* szKey);
-	BOOL	GetAtIndex(int iIndex, CChars** ppsKey, int** ppiData);
-	int*	GetWithKeyAssumeDuplicates(CChars* psKey);
-	BOOL	GetWithKeyNextDuplicate(CChars* psLastKey, int iLastIndex, int** ppiData);
-	void	Put(CChars* psKey, int iData);
-	void	Put(char* szKey, int iData);
-	void	PutAllowDuplicates(CChars* psKey, int iData);
-	void	PutAllowDuplicates(char* szKey, int iData);
-	CChars*	GetWithValue(int iData);
+	void	Init(CChunkFile* pcChunkFile);
+	void	Kill(void);
+
+	BOOL		Open(EFileMode eMode);
+	BOOL		Close(void);
+	filePos		Read(void* pvBuffer, filePos iSize, filePos iCount);
+	BOOL		Seek(filePos iOffset, int iSeekOrigin);
+	filePos		Write(const void* pvBuffer, filePos iSize, filePos iCount);
+	filePos		Tell(void);
+	BOOL		Eof(void);
+	BOOL		IsOpen(void);
+	filePos		Size(void);
+	BOOL		Flush(void);
 };
 
 
-#endif // __MAP_STRING_INT_H__
+#endif // __CHUNK_FILE_FILE_H__
 

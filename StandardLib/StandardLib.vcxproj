@@ -89,6 +89,7 @@
     <ClInclude Include="DependentReadObjects.h" />
     <ClInclude Include="DependentReadPointer.h" />
     <ClInclude Include="DependentWriteObject.h" />
+    <ClInclude Include="HollowObjectDeserialiser.h" />
     <ClInclude Include="IndexGenerator.h" />
     <ClInclude Include="IndexNewOld.h" />
     <ClInclude Include="NamedHollowObject.h" />
@@ -194,6 +195,7 @@
     <ClCompile Include="DependentReadObjects.cpp" />
     <ClCompile Include="DependentReadPointer.cpp" />
     <ClCompile Include="DependentWriteObject.cpp" />
+    <ClCompile Include="HollowObjectDeserialiser.cpp" />
     <ClCompile Include="IndexGenerator.cpp" />
     <ClCompile Include="IndexNewOld.cpp" />
     <ClCompile Include="NamedHollowObject.cpp" />

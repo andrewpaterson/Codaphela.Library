@@ -35,6 +35,9 @@ public:
 	void			Kill(void);
 
 	BOOL			Contains(char* szFullName);
+	BOOL			IsMultiSource(void);
+	char*			GetName(int iIndex);
+	int				NumNames(void);
 };
 
 

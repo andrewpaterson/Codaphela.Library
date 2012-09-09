@@ -1,15 +1,23 @@
+#include "BaseLib/ChunkFileFile.h"
 #include "Objects.h"
+#include "ObjectConverterNative.h"
+#include "ObjectFileGeneral.h"
 #include "ObjectSourceChunked.h"
-#include "ObjectConverterText.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectSourceChunked::Init(CObjectConverter* pcConverter, CAbstractFile* pcFile, char* szFileName)
+BOOL CObjectSourceChunked::Init(CObjectConverter* pcConverter, CAbstractFile* pcFile, char* szFileName)
 {
 	CObjectMultipleSource::Init(pcConverter, pcFile, szFileName);
+
+	mcChunkFile.Init(mpcFile);
+	ReturnOnFalse(mcChunkFile.ReadOpen());
+	ReturnOnFalse(ReadNames());
+
+	return mcChunkFile.StackDepth() == 1;
 }
 
 
@@ -19,7 +27,37 @@ void CObjectSourceChunked::Init(CObjectConverter* pcConverter, CAbstractFile* pc
 //////////////////////////////////////////////////////////////////////////
 void CObjectSourceChunked::Kill(void)
 {
+	mcChunkFile.ReadClose();
+	mcChunkFile.Kill();
+
 	CObjectMultipleSource::Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CObjectSourceChunked::ReadNames(void)
+{
+	SChunkFileNameIterator	sIter;
+	char*					szName;
+
+	szName = mcChunkFile.StartNameIteration(&sIter);
+	while (szName)
+	{
+		if (!sIter.szValue.StartsWith(OBJECT_UNNAMED_FILE))
+		{
+			mcNames.Add(szName);
+		}
+		szName = mcChunkFile.IterateName(&sIter);
+	}
+	mcChunkFile.StopIteration(&sIter);
+
+
+	mcNames.QuickSort(TRUE);
+
+	return TRUE;
 }
 
 
@@ -29,6 +67,18 @@ void CObjectSourceChunked::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 CPointerObject CObjectSourceChunked::Convert(char* szFullName)
 {
+	BOOL			bResult;
+	CChunkFileFile	cFile;
+	CPointerObject	cPointer;
+
+	bResult = mcChunkFile.ReadChunkBegin(szFullName);
+	if (bResult)
+	{
+		cFile.Init(&mcChunkFile);
+		cPointer = mpcConverter->Convert(&cFile);
+		cFile.Kill();
+		return cPointer;
+	}
 	return ONull;
 }
 

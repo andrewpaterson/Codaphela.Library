@@ -123,3 +123,28 @@ void CMapStringInt::PutAllowDuplicates(char* szKey, int iData)
 	CMapStringTemplate<int>::PutAllowDuplicates(szKey, &iData);
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+CChars* CMapStringInt::GetWithValue(int iData)
+{
+	int		i;
+	int		iNum;
+	CChars*	pszKey;
+	int*	piValue;
+
+	iNum = NumElements();
+
+	for (i = 0; i < iNum; i++)
+	{
+		GetAtIndex(i, &pszKey, &piValue);
+		if (*piValue == iData)
+		{
+			return pszKey;
+		}
+	}
+	return NULL;
+}
+

@@ -1152,9 +1152,12 @@ void CChars::SplitLines(CArrayString* aszDest)
 //////////////////////////////////////////////////////////////////////////
 BOOL CChars::Equals(char* szString)
 {
-	if (strcmp(Text(), szString) == 0)
+	if (szString)
 	{
-		return TRUE;
+		if (strcmp(Text(), szString) == 0)
+		{
+			return TRUE;
+		}
 	}
 	return FALSE;
 }

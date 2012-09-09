@@ -2,6 +2,7 @@
 #include "Unknowns.h"
 #include "Objects.h"
 #include "ObjectFileGeneral.h"
+#include "HollowObjectDeserialiser.h"
 #include "ObjectConverterNative.h"
 
 
@@ -50,10 +51,11 @@ BOOL CObjectConverterNative::IsFor(CAbstractFile* pcFile)
 //////////////////////////////////////////////////////////////////////////
 CObjectSource* CObjectConverterNative::CreateSource(CAbstractFile* pcFile, char* szFileName)
 {
-	CObjectSource*	pcSource;
-	BOOL			bResult;
-	CFileBasic		cFile;
-	int				c;
+	CObjectSourceChunked*	pcSourceChunked;
+	CObjectSourceSimple*	pcSourceSimple;
+	BOOL					bResult;
+	CFileBasic				cFile;
+	int						c;
 
 	if ((!pcFile) || (!szFileName))
 	{
@@ -75,15 +77,19 @@ CObjectSource* CObjectConverterNative::CreateSource(CAbstractFile* pcFile, char*
 
 	if (c == CHUNKED_OBJECT_FILE)
 	{
-		pcSource = UMalloc(CObjectSourceChunked);
-		pcSource->Init(this, pcFile, szFileName);
-		return pcSource;
+		pcSourceChunked = UMalloc(CObjectSourceChunked);
+		bResult = pcSourceChunked->Init(this, pcFile, szFileName);
+		if (!bResult)
+		{
+			return NULL;
+		}
+		return pcSourceChunked;
 	}
 	else if (c == BASIC_OBJECT_FILE)
 	{
-		pcSource = UMalloc(CObjectSourceSimple);
-		pcSource->Init(this, pcFile, szFileName);
-		return pcSource;
+		pcSourceSimple = UMalloc(CObjectSourceSimple);
+		pcSourceSimple->Init(this, pcFile, szFileName);
+		return pcSourceSimple;
 	}
 	else
 	{
@@ -96,11 +102,15 @@ CObjectSource* CObjectConverterNative::CreateSource(CAbstractFile* pcFile, char*
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointerObject CObjectConverterNative::Convert(CAbstractFile* pcFile, char* szFileName)
+CPointerObject CObjectConverterNative::Convert(CAbstractFile* pcFile)
 {
+	CHollowObjectDeserialiser		cDeserialiser;
+
+
+
+	cDeserialiser.Init(NULL);
 	return ONull;
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////

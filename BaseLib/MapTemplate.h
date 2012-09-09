@@ -51,6 +51,7 @@ public:
 	void	PutAllowDuplicates(M* psKey, void* pvData, int iDataSize);
 	int		GetIndex(M* psKey);
 	int		NumElements(void);
+
 	void*	PrivateGetDataForKey(M* psKey);  //Rename these and drop the Privates
 	M*		PrivateGetKeyForData(void* pvData);
 };

@@ -3,6 +3,18 @@
 #include "BaseLib/ChunkFile.h"
 
 
+struct SChunkFileNameIterator
+{
+	CChars		szFullName;
+	CArrayInt	aiIndex;
+	BOOL		bDone;
+	CChars		szValue;
+
+	void Init(void);
+	void Kill(void);
+};
+
+
 class CChunkFileNames : public CChunkFile
 {
 protected:
@@ -21,6 +33,10 @@ public:
 	BOOL	ReadChunkBegin(char* szChunkName);
 	BOOL	ReadChunkEnd(void);
 
+	char*	StartNameIteration(SChunkFileNameIterator* psIter);
+	char*	IterateName(SChunkFileNameIterator* psIter);
+	BOOL	StopIteration(SChunkFileNameIterator* psIter);
+
 protected:
 	BOOL	WriteChunkBegin(void);
 	BOOL	WriteChunkEnd(char* szChunkName);
@@ -28,6 +44,8 @@ protected:
 	int		FindChunkNamesMatching(CArrayString* paszOpenChunkNames, CArrayString* paszChunkNames);
 	BOOL	WriteUnmatchedChunkEnds(int iMatchingOpen);
 	BOOL	WriteNewUnmatchedChunks(int iMatchingOpen, CArrayString* paszChunkNames);
+
+	CChars*	PrivateGetChunkName(int iIndex);
 };
 
 

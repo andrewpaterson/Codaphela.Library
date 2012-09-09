@@ -136,6 +136,9 @@
     <Filter Include="Source\Memory\Stack">
       <UniqueIdentifier>{91d7bf57-f8bf-4a0d-8a40-ed855a370939}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\File\Chunk\File">
+      <UniqueIdentifier>{feba0ce7-c90b-4a9d-8b4f-d8d3cf107795}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DataMacro.h">
@@ -582,6 +585,9 @@
     <ClInclude Include="ChunkFileGeneral.h">
       <Filter>Source\File\Chunk</Filter>
     </ClInclude>
+    <ClInclude Include="ChunkFileFile.h">
+      <Filter>Source\File\Chunk\File</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ArrayBit.cpp">
@@ -913,6 +919,9 @@
     </ClCompile>
     <ClCompile Include="ChunkFileHeader.cpp">
       <Filter>Source\File\Chunk</Filter>
+    </ClCompile>
+    <ClCompile Include="ChunkFileFile.cpp">
+      <Filter>Source\File\Chunk\File</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

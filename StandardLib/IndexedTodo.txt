@@ -1,1 +1,4 @@
+CObjectReaderChunked should use ChunkFileFile.
+CHollowObjectDeserialiser AddHollowObject must be implemented.
+CObjectConverterNative Convert must use a variant of CObjectReaderChunked.
 Make sure CObjects has a Close method that writes out all in memory objects.

@@ -19,6 +19,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include "ObjectConverter.h"
+#include "Objects.h"
 #include "ObjectSingleSource.h"
 
 
@@ -58,7 +59,14 @@ BOOL CObjectSingleSource::Contains(char* szFullName)
 //////////////////////////////////////////////////////////////////////////
 CPointerObject CObjectSingleSource::Convert(char* szFullName)
 {
-	return Convert();
+	if (mszFileName.EqualsIgnoreCase(szFullName))
+	{
+		return Convert();
+	}
+	else
+	{
+		return ONull;
+	}
 }
 
 
@@ -68,6 +76,6 @@ CPointerObject CObjectSingleSource::Convert(char* szFullName)
 //////////////////////////////////////////////////////////////////////////
 CPointerObject CObjectSingleSource::Convert(void)
 {
-	return mpcConverter->Convert(mpcFile, mszFileName.Text());
+	return mpcConverter->Convert(mpcFile);
 }
 

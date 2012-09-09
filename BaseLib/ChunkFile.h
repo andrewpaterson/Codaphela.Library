@@ -68,6 +68,10 @@ public:
 	BOOL	WriteChunkBegin(void);
 	BOOL	WriteChunkEnd(char* szChunkName);
 
+	int		StackDepth(void);
+	filePos	ChunkSize(void);
+	filePos	ChunkStart(void);
+
 protected:
 	int		FindFirstChunkWithID(int iName);
 	int		GetNumChunksWithID(int iName);

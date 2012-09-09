@@ -611,3 +611,47 @@ BOOL CChunkFile::ContainsChunks(void)
 	return FALSE;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+int CChunkFile::StackDepth(void)
+{
+	return mcChunkStack.NumElements();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+filePos CChunkFile::ChunkSize(void)
+{
+	CChunkStackElement*		psElement;
+
+	psElement = mcChunkStack.Tail();
+	if (psElement)
+	{
+		return psElement->sHeader.iChunkSize;
+	}
+	return 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+filePos CChunkFile::ChunkStart(void)
+{
+	CChunkStackElement*		psElement;
+
+	psElement = mcChunkStack.Tail();
+	if (psElement)
+	{
+		return psElement->iChunkHeaderPos + sizeof(CChunkHeader);
+	}
+	return 0;
+}
+

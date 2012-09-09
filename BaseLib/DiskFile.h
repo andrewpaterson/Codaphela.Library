@@ -50,7 +50,7 @@ public:
 };
 
 
-//Helper function to make createing basic files easier.
+//Helper function to make creating basic files easier.
 CDiskFile* DiskFile(char* szName);
 
 
