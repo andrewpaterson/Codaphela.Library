@@ -29,27 +29,30 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 class CObjectHeader;
 class CPointerHeader;
+class CObjectGraphDeserialiser;
 class CObjectDeserialiser : public CFileReader
 {
 protected:
-	CSerialisedObject*	mpcSerialised;
-	CMemoryFile*		mpcMemory;
-	CFileBasic			mcFile;
+	CSerialisedObject*			mpcSerialised;
+	CMemoryFile*				mpcMemory;
+	CFileBasic					mcFile;
+	CObjectGraphDeserialiser*	mpcGraphDeserialiser;
 
 public:
-			void			Init(CSerialisedObject* pcSerialised);
-	virtual void			Kill(void);
+			BOOL			Init(CObjectGraphDeserialiser* pcGraphDeserialiser, CSerialisedObject* pcSerialised);
+			void			Kill(void);
 			CPointerObject	Load(OIndex oiNew);
 
-	virtual BOOL			ReadPointer(CPointerObject* pObject) =0;
+			BOOL			ReadPointer(CPointerObject* pObject);
 			BOOL			ReadPointerHeader(CPointerHeader* pcPointerHeader);
 			BOOL			ReadObjectHeader(CObjectHeader* pcObjectHeader);
-	virtual BOOL			ReadDependent(CBaseObject** ppcUnknown, CBaseObject* pcContaining) =0;
+			BOOL			ReadDependent(CBaseObject** ppcObjectPtr, CBaseObject* pcContaining);
 
 protected:
 			filePos			Read(void* pvDest, filePos iSize, filePos iCount);
 			void			ClearPointer(CPointerObject* pObject);
-	virtual	void			AddIndexRemap(OIndex oiNew, OIndex oiOld);
+			void			AddIndexRemap(OIndex oiNew, OIndex oiOld);
+
 };
 
 

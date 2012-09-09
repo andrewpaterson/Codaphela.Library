@@ -22,6 +22,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "ObjectFileGeneral.h"
 #include "ObjectHeader.h"
 #include "Objects.h"
+#include "ObjectGraphDeserialiser.h"
 #include "ObjectDeserialiser.h"
 
 
@@ -29,12 +30,19 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectDeserialiser::Init(CSerialisedObject* pcSerialised)
+BOOL CObjectDeserialiser::Init(CObjectGraphDeserialiser* pcGraphDeserialiser, CSerialisedObject* pcSerialised)
 {
 	mpcSerialised = pcSerialised;
+	if (!pcSerialised)
+	{
+		return FALSE;
+	}
+
 	mpcMemory = MemoryFile(pcSerialised, pcSerialised->GetLength());
 	mcFile.Init(mpcMemory);
-}
+	mpcGraphDeserialiser = pcGraphDeserialiser;
+	return TRUE;
+} 
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -43,6 +51,7 @@ void CObjectDeserialiser::Init(CSerialisedObject* pcSerialised)
 //////////////////////////////////////////////////////////////////////////
 void CObjectDeserialiser::Kill(void)
 {
+	mpcGraphDeserialiser = NULL;
 	mcFile.Kill();
 	mpcSerialised = NULL;
 }
@@ -121,34 +130,6 @@ CPointerObject CObjectDeserialiser::Load(OIndex oiNew)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectDeserialiser::AddIndexRemap(OIndex oiNew, OIndex oiOld)
-{
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CObjectDeserialiser::ReadPointer(CPointerObject* pObject)
-{
-	CPointerHeader	cHeader;
-	BOOL			bResult;
-
-	//This *is* the complete implementation of ReadPointer for this class.
-	//The sub classes known how to load/find pointed to objects but not this class.
-
-	ClearPointer(pObject);
-	bResult = ReadPointerHeader(&cHeader);
-	cHeader.Kill();
-	return bResult;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 BOOL CObjectDeserialiser::ReadPointerHeader(CPointerHeader* pcPointerHeader)
 {
 	pcPointerHeader->Init();
@@ -214,17 +195,53 @@ void CObjectDeserialiser::ClearPointer(CPointerObject* pObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectDeserialiser::ReadDependent(CBaseObject** ppcUnknown, CBaseObject* pcContaining)
+BOOL CObjectDeserialiser::ReadPointer(CPointerObject* pObject)
+{
+	CPointerHeader	cHeader;
+	BOOL			bResult;
+	CBaseObject**	ppcObjectPtr;
+	CObject*		pcEmbedding;
+
+	ClearPointer(pObject);
+	bResult = ReadPointerHeader(&cHeader);
+	if (!bResult)
+	{
+		cHeader.Kill();
+		return FALSE;
+	}
+	ppcObjectPtr = pObject->ObjectPtr();
+	pcEmbedding = pObject->Embedding();
+	mpcGraphDeserialiser->AddDependent(&cHeader, ppcObjectPtr, (CBaseObject*)pcEmbedding);
+
+	//cHeader is killed by mpcGraphDeserialiser.
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CObjectDeserialiser::ReadDependent(CBaseObject** ppcObjectPtr, CBaseObject* pcContaining)
 {
 	CPointerHeader	cHeader;
 	BOOL			bResult;
 
-	//This *is* the complete implementation of ReadDependent for this class.
-	//The sub classes known how to load/find dependent objects but not this.
-
-	*ppcUnknown = NULL;
+	*ppcObjectPtr = NULL;
 	bResult = ReadPointerHeader(&cHeader);
-	cHeader.Kill();
+	mpcGraphDeserialiser->AddDependent(&cHeader, ppcObjectPtr, pcContaining);
+
+	//cHeader is killed by mpcGraphDeserialiser.
 	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CObjectDeserialiser::AddIndexRemap(OIndex oiNew, OIndex oiOld)
+{
+	mpcGraphDeserialiser->AddIndexRemap(oiNew, oiOld);
 }
 

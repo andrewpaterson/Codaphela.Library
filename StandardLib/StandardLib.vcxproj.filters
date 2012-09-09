@@ -378,9 +378,6 @@
     <ClInclude Include="ObjectDeserialiser.h">
       <Filter>Source\Object\Object\Serilalisation</Filter>
     </ClInclude>
-    <ClInclude Include="DependentObjectSerialiser.h">
-      <Filter>Source\Object\Object\Serilalisation\Graph</Filter>
-    </ClInclude>
     <ClInclude Include="ObjectGraphSerialiser.h">
       <Filter>Source\Object\Object\Serilalisation\Graph</Filter>
     </ClInclude>
@@ -404,9 +401,6 @@
     </ClInclude>
     <ClInclude Include="ObjectFileGeneral.h">
       <Filter>Source\Object\Object\IO\Common</Filter>
-    </ClInclude>
-    <ClInclude Include="DependentObjectDeserialiser.h">
-      <Filter>Source\Object\Object\Serilalisation\Graph</Filter>
     </ClInclude>
     <ClInclude Include="ObjectHeader.h">
       <Filter>Source\Object\Object\Serilalisation</Filter>
@@ -456,7 +450,10 @@
     <ClInclude Include="IndexNewOld.h">
       <Filter>Source\Object\Object\Serilalisation</Filter>
     </ClInclude>
-    <ClInclude Include="HollowObjectDeserialiser.h">
+    <ClInclude Include="SerialisedObjectReader.h">
+      <Filter>Source\Object\Object\IO\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="HollowReadObjects.h">
       <Filter>Source\Object\Object\Serilalisation\Hollow</Filter>
     </ClInclude>
   </ItemGroup>
@@ -668,9 +665,6 @@
     <ClCompile Include="ObjectSerialiser.cpp">
       <Filter>Source\Object\Object\Serilalisation</Filter>
     </ClCompile>
-    <ClCompile Include="DependentObjectSerialiser.cpp">
-      <Filter>Source\Object\Object\Serilalisation\Graph</Filter>
-    </ClCompile>
     <ClCompile Include="ObjectGraphSerialiser.cpp">
       <Filter>Source\Object\Object\Serilalisation\Graph</Filter>
     </ClCompile>
@@ -690,9 +684,6 @@
       <Filter>Source\Object\Object\IO\Chunked</Filter>
     </ClCompile>
     <ClCompile Include="ObjectGraphDeserialiser.cpp">
-      <Filter>Source\Object\Object\Serilalisation\Graph</Filter>
-    </ClCompile>
-    <ClCompile Include="DependentObjectDeserialiser.cpp">
       <Filter>Source\Object\Object\Serilalisation\Graph</Filter>
     </ClCompile>
     <ClCompile Include="ObjectHeader.cpp">
@@ -743,7 +734,10 @@
     <ClCompile Include="IndexNewOld.cpp">
       <Filter>Source\Object\Object\Serilalisation</Filter>
     </ClCompile>
-    <ClCompile Include="HollowObjectDeserialiser.cpp">
+    <ClCompile Include="SerialisedObjectReader.cpp">
+      <Filter>Source\Object\Object\IO\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="HollowReadObjects.cpp">
       <Filter>Source\Object\Object\Serilalisation\Hollow</Filter>
     </ClCompile>
   </ItemGroup>

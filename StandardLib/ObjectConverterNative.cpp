@@ -2,7 +2,9 @@
 #include "Unknowns.h"
 #include "Objects.h"
 #include "ObjectFileGeneral.h"
-#include "HollowObjectDeserialiser.h"
+#include "SerialisedObjectReader.h"
+#include "IndexGenerator.h"
+#include "ObjectDeserialiser.h"
 #include "ObjectConverterNative.h"
 
 
@@ -10,8 +12,9 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectConverterNative::Init(void)
+void CObjectConverterNative::Init(CIndexGenerator* pcIndexGenerator)
 {
+	mpcIndexGenerator = pcIndexGenerator;
 }
 
 
@@ -104,12 +107,31 @@ CObjectSource* CObjectConverterNative::CreateSource(CAbstractFile* pcFile, char*
 //////////////////////////////////////////////////////////////////////////
 CPointerObject CObjectConverterNative::Convert(CAbstractFile* pcFile)
 {
-	CHollowObjectDeserialiser		cDeserialiser;
+	CObjectDeserialiser			cDeserialiser;
+	CSerialisedObjectReader		cReader;
+	CFileBasic					cFileBasic;
+	CSerialisedObject*			pcSerialised;
 
+	cFileBasic.Init(pcFile);
+	cFileBasic.Open(EFM_Read);
 
+	pcSerialised = cReader.ReadSerialised(&cFileBasic);
 
-	cDeserialiser.Init(NULL);
-	return ONull;
+	cFileBasic.Close();
+	cFileBasic.Kill();
+
+	if (pcSerialised)
+	{
+		CPointerObject	cPointer;
+
+		cDeserialiser.Init(NULL, pcSerialised);
+		cPointer = cDeserialiser.Load(mpcIndexGenerator->PopIndex());
+		return cPointer;
+	}
+	else
+	{
+		return ONull;
+	}
 }
 
 

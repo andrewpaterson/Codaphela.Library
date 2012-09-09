@@ -1,13 +1,13 @@
 #include "Objects.h"
 #include "IndexGenerator.h"
-#include "DependentReadObjects.h"
+#include "HollowReadObjects.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDependentReadObjects::Init(CIndexGenerator* pcIndexGenerator)
+void CHollowReadObjects::Init(CIndexGenerator* pcIndexGenerator)
 {
 	mcObjects.Init(128);
 	mcPointers.Init(512);
@@ -20,7 +20,7 @@ void CDependentReadObjects::Init(CIndexGenerator* pcIndexGenerator)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDependentReadObjects::Kill(void)
+void CHollowReadObjects::Kill(void)
 {
 	int						i;
 	CDependentReadObject*	pcDependent;
@@ -40,7 +40,7 @@ void CDependentReadObjects::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDependentReadObjects::Add(CPointerHeader* pcHeader, CBaseObject** ppcObjectPtr, CBaseObject* pcContaining)
+void CHollowReadObjects::Add(CPointerHeader* pcHeader, CBaseObject** ppcObjectPtr, CBaseObject* pcContaining)
 {
 	CDependentReadObject	cDependent;
 	CDependentReadObject*	pcExistingInFile;
@@ -50,29 +50,17 @@ void CDependentReadObjects::Add(CPointerHeader* pcHeader, CBaseObject** ppcObjec
 	OIndex					oiNew;
 	CPointerObject			pExisitingInDatabase;
 
+	if (pcHeader->IsNamed())
+	{
+		return;
+	}
+
 	cDependent.Init(pcHeader);
 
 	bExists = mcObjects.FindInSorted(&cDependent, &CompareDependentReadObject, &iIndex);
 	if (!bExists)
 	{
-		if (pcHeader->IsNamed())
-		{
-			pExisitingInDatabase = gcObjects.Get(pcHeader->mszObjectName.Text());
-			if (pExisitingInDatabase.IsNotNull())
-			{
-				oiNew = pExisitingInDatabase->GetOI();
-				cDependent.SetExisting();
-			}
-			else
-			{
-				oiNew = mpcIndexGenerator->PopIndex();
-			}
-		}
-		else
-		{
-			oiNew = mpcIndexGenerator->PopIndex();
-		}
-
+		oiNew = mpcIndexGenerator->PopIndex();
 		cDependent.SetNewIndex(oiNew);
 		mcObjects.InsertAt(&cDependent, iIndex);
 	}
@@ -92,7 +80,7 @@ void CDependentReadObjects::Add(CPointerHeader* pcHeader, CBaseObject** ppcObjec
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CDependentReadObject* CDependentReadObjects::GetUnread(void)
+CDependentReadObject* CHollowReadObjects::GetUnread(void)
 {
 	int						iOldIndex;
 	CDependentReadObject*	psObject;
@@ -132,7 +120,7 @@ CDependentReadObject* CDependentReadObjects::GetUnread(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDependentReadObjects::SetInitialIndex(OIndex oi)
+void CHollowReadObjects::SetInitialIndex(OIndex oi)
 {
 	CDependentReadObject*	pDependent;
 	CDependentReadPointer*	pcPointer;
@@ -158,7 +146,7 @@ void CDependentReadObjects::SetInitialIndex(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CDependentReadObjects::Mark(OIndex oi)
+BOOL CHollowReadObjects::Mark(OIndex oi)
 {
 	CDependentReadObject	cObject;
 	int						iIndex;
@@ -182,7 +170,7 @@ BOOL CDependentReadObjects::Mark(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CDependentReadObjects::NumPointers(void)
+int CHollowReadObjects::NumPointers(void)
 {
 	return mcPointers.NumElements();
 }
@@ -192,7 +180,7 @@ int CDependentReadObjects::NumPointers(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CDependentReadPointer* CDependentReadObjects::GetPointer(int iIndex)
+CDependentReadPointer* CHollowReadObjects::GetPointer(int iIndex)
 {
 	return mcPointers.Get(iIndex);
 }
@@ -202,7 +190,7 @@ CDependentReadPointer* CDependentReadObjects::GetPointer(int iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CDependentReadObjects::NumObjects(void)
+int CHollowReadObjects::NumObjects(void)
 {
 	return mcObjects.NumElements();
 }
@@ -212,7 +200,7 @@ int CDependentReadObjects::NumObjects(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CDependentReadObject* CDependentReadObjects::GetObject(int iIndex)
+CDependentReadObject* CHollowReadObjects::GetObject(int iIndex)
 {
 	return mcObjects.Get(iIndex);
 }

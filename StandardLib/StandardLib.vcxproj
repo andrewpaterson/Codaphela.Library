@@ -82,14 +82,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Base.h" />
-    <ClInclude Include="DependentObjectDeserialiser.h" />
-    <ClInclude Include="DependentObjectSerialiser.h" />
     <ClInclude Include="ChunkFileNames.h" />
     <ClInclude Include="DependentReadObject.h" />
     <ClInclude Include="DependentReadObjects.h" />
     <ClInclude Include="DependentReadPointer.h" />
     <ClInclude Include="DependentWriteObject.h" />
-    <ClInclude Include="HollowObjectDeserialiser.h" />
+    <ClInclude Include="HollowReadObjects.h" />
     <ClInclude Include="IndexGenerator.h" />
     <ClInclude Include="IndexNewOld.h" />
     <ClInclude Include="NamedHollowObject.h" />
@@ -122,6 +120,7 @@
     <ClInclude Include="ObjectSourceText.h" />
     <ClInclude Include="Parameters.h" />
     <ClInclude Include="SerialisedObject.h" />
+    <ClInclude Include="SerialisedObjectReader.h" />
     <ClInclude Include="String.h" />
     <ClInclude Include="Unknown.h" />
     <ClInclude Include="SetType.h" />
@@ -188,14 +187,12 @@
     <ClInclude Include="TrackerTemplate.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="DependentObjectDeserialiser.cpp" />
-    <ClCompile Include="DependentObjectSerialiser.cpp" />
     <ClCompile Include="ChunkFileNames.cpp" />
     <ClCompile Include="DependentReadObject.cpp" />
     <ClCompile Include="DependentReadObjects.cpp" />
     <ClCompile Include="DependentReadPointer.cpp" />
     <ClCompile Include="DependentWriteObject.cpp" />
-    <ClCompile Include="HollowObjectDeserialiser.cpp" />
+    <ClCompile Include="HollowReadObjects.cpp" />
     <ClCompile Include="IndexGenerator.cpp" />
     <ClCompile Include="IndexNewOld.cpp" />
     <ClCompile Include="NamedHollowObject.cpp" />
@@ -227,6 +224,7 @@
     <ClCompile Include="ObjectSourceText.cpp" />
     <ClCompile Include="ObjectWriter.cpp" />
     <ClCompile Include="SerialisedObject.cpp" />
+    <ClCompile Include="SerialisedObjectReader.cpp" />
     <ClCompile Include="String.cpp" />
     <ClCompile Include="Unknown.cpp" />
     <ClCompile Include="SetUnknown.cpp" />

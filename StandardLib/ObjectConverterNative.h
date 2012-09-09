@@ -5,12 +5,16 @@
 #include "ObjectSourceSimple.h"
 
 
+class CIndexGenerator;
 class CObjectSource;
 class CObjectConverterNative : public CObjectConverter
 {
 BASE_FUNCTIONS(CObjectConverterNative);
 public:
-	void			Init(void);
+	CIndexGenerator*	mpcIndexGenerator;
+	//CArrayIndexNewOld		mcIndexRemap;
+
+	void			Init(CIndexGenerator* pcIndexGenerator);
 	void			Kill(void);
 
 	char*			GetFileExtension(void);

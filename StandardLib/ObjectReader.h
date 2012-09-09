@@ -1,11 +1,10 @@
 #ifndef __OBJECT_READER_H__
 #define __OBJECT_READER_H__
 #include "CoreLib/IndexedGeneral.h"
-#include "Unknown.h"
-#include "SerialisedObject.h"
+#include "SerialisedObjectReader.h"
 
 
-class CObjectReader : public CUnknown
+class CObjectReader : public CSerialisedObjectReader 
 {
 BASE_FUNCTIONS(CObjectReader);
 protected:
@@ -19,9 +18,6 @@ public:
 	virtual CSerialisedObject*  Read(char* szObjectName) =0;
 	virtual CSerialisedObject*  Read(OIndex oi);
 	virtual BOOL				End(void);
-
-protected:
-			CSerialisedObject*  ReadSerialised(CFileReader* pcReader);
 };
 
 

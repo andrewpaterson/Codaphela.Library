@@ -27,11 +27,12 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectSerialiser::Init(CBaseObject* pcObject)
+void CObjectSerialiser::Init(CObjectGraphSerialiser* pcGraphSerialiser, CBaseObject* pcObject)
 {
 	mpcThis = pcObject;
 	mpcMemory = MemoryFile();
 	mcFile.Init(mpcMemory);
+	mpcGraphSerialiser = pcGraphSerialiser;
 }
 
 
@@ -41,6 +42,7 @@ void CObjectSerialiser::Init(CBaseObject* pcObject)
 //////////////////////////////////////////////////////////////////////////
 void CObjectSerialiser::Kill(void)
 {
+	mpcGraphSerialiser = NULL;
 	mpcThis = NULL;
 	mcFile.Kill();
 }
@@ -85,7 +87,7 @@ BOOL CObjectSerialiser::WritePointer(CPointerObject pObject)
 	CBaseObject*	pcBaseObject;
 
 	pcBaseObject = &pObject;
-	return WritePointerHeader(pcBaseObject);
+	return WriteDependent(pcBaseObject);
 }
 
 
@@ -95,7 +97,14 @@ BOOL CObjectSerialiser::WritePointer(CPointerObject pObject)
 //////////////////////////////////////////////////////////////////////////
 BOOL CObjectSerialiser::WriteDependent(CBaseObject* pcBaseObject)
 {
-	return WritePointerHeader(pcBaseObject);
+	BOOL		bResult;
+
+	bResult = WritePointerHeader(pcBaseObject);
+	if ((pcBaseObject) && (bResult))
+	{
+		mpcGraphSerialiser->AddDependent(pcBaseObject);
+	}
+	return bResult;
 }
 
 

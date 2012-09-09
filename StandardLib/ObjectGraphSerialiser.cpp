@@ -18,7 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "DependentObjectSerialiser.h"
+#include "ObjectSerialiser.h"
 #include "ObjectGraphSerialiser.h"
 #include "SerialisedObject.h"
 
@@ -84,9 +84,9 @@ BOOL CObjectGraphSerialiser::Write(CBaseObject* pcObject)
 //////////////////////////////////////////////////////////////////////////
 BOOL CObjectGraphSerialiser::WriteUnwritten(CBaseObject* pcObject)
 {
-	CDependentObjectSerialiser	cSerialiser;
-	BOOL						bResult;
-	CSerialisedObject*			pcSerialised;
+	CObjectSerialiser	cSerialiser;
+	BOOL				bResult;
+	CSerialisedObject*	pcSerialised;
 
 	cSerialiser.Init(this, pcObject);
 
