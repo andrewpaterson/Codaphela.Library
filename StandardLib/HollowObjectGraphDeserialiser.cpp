@@ -9,6 +9,7 @@
 void CHollowObjectGraphDeserialiser::Init(CObjectReader* pcReader, CIndexGenerator* pcIndexGenerator)
 {
 	CObjectGraphDeserialiser::Init(pcReader, pcIndexGenerator);
+	mcExistingHollowRemap.Init(32);
 }
 
 
@@ -18,6 +19,7 @@ void CHollowObjectGraphDeserialiser::Init(CObjectReader* pcReader, CIndexGenerat
 //////////////////////////////////////////////////////////////////////////
 void CHollowObjectGraphDeserialiser::Kill(void)
 {
+	mcExistingHollowRemap.Kill();
 	CObjectGraphDeserialiser::Kill();
 }
 
@@ -28,24 +30,13 @@ void CHollowObjectGraphDeserialiser::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CHollowObjectGraphDeserialiser::AddDependent(CPointerHeader* pcHeader, CBaseObject** ppcObjectPtr, CBaseObject* pcContaining)
 {
-	char*	szName;
-
 	if (pcHeader->mcType == OBJECT_POINTER_ID)
 	{
 		mcDependentObjects.AddIgnoreNamed(pcHeader, ppcObjectPtr, pcContaining);
 	}
 	else if (pcHeader->mcType == OBJECT_POINTER_NAMED)
 	{
-		CPointerObject	pObject;
-
-		szName = pcHeader->mszObjectName.Text();
-		pObject = gcObjects.Get(szName);
-		if (pObject.IsNull())
-		{
-			pObject = gcObjects.AddHollow(szName);
-		}
-
-		FixPointer(pObject.Object(), ppcObjectPtr, pcContaining);
+		mcDependentObjects.AddHollow(pcHeader->mszObjectName.Text(), pcHeader->moi, ppcObjectPtr, pcContaining);
 	}
 }
 
@@ -79,7 +70,14 @@ CPointerObject CHollowObjectGraphDeserialiser::Read(char* szObjectName)
 		pcDependent = mcDependentObjects.GetUnread();
 		if (pcDependent)
 		{
-			bResult = ReadUnread(pcDependent, bFirst);
+			if (!pcDependent->IsHollow())
+			{
+				bResult = ReadUnread(pcDependent, bFirst);
+			}
+			else
+			{
+				bResult = AddHollow(pcDependent);
+			}
 			if (!bResult)
 			{
 				return ONull;
@@ -104,7 +102,107 @@ CPointerObject CHollowObjectGraphDeserialiser::Read(char* szObjectName)
 		return ONull;
 	}
 
+	bResult = FixExisting();
+	if (!bResult)
+	{
+		return ONull;
+	}
+
 	pObject = pcObjectPtr;
 	return pObject;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CHollowObjectGraphDeserialiser::AddHollow(CDependentReadObject* pcDependent)
+{
+	char*				szObjectName;
+	CPointerObject		pObject;
+	OIndex				oiNew;
+	OIndex				oiOld;
+	CIndexNewOld*		pcNewOld;
+
+	szObjectName = pcDependent->GetName();
+	oiOld = pcDependent->moi;
+	oiNew = pcDependent->GetNewIndex();
+	pObject = gcObjects.AddHollow(szObjectName, oiNew);
+	if (pObject.IsNull())
+	{
+		return FALSE;
+	}
+	if (oiNew == pObject.GetIndex())
+	{
+		MarkRead(oiOld);
+		return TRUE;
+	}
+	else
+	{
+		pcNewOld = mcExistingHollowRemap.Add();
+		pcNewOld->Init(oiNew, pObject.GetIndex());
+		MarkRead(oiOld);
+		return TRUE;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+OIndex CHollowObjectGraphDeserialiser::GetExistingHollowRemap(OIndex oiNew)
+{
+	int				i;
+	CIndexNewOld*	pcRemap;
+
+	for (i = 0; i < mcExistingHollowRemap.NumElements(); i++)
+	{
+		pcRemap = mcExistingHollowRemap.Get(i);
+		if (pcRemap->moiNew == oiNew)
+		{
+			return pcRemap->moiOld;
+		}
+	}
+	return INVALID_O_INDEX;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CHollowObjectGraphDeserialiser::FixPointers(void)
+{
+	CDependentReadPointer*	pcReadPointer;
+	int						i;
+	int						iNum;
+	CBaseObject*			pcBaseObject;
+	OIndex					oiTo;
+
+	iNum = mcDependentObjects.NumPointers();
+	for (i = 0; i < iNum; i++)
+	{
+		pcReadPointer = mcDependentObjects.GetPointer(i);
+
+		oiTo = GetExistingHollowRemap(pcReadPointer->moiPointedTo);
+		if (oiTo == INVALID_O_INDEX)
+		{
+			oiTo = pcReadPointer->moiPointedTo;
+		}
+
+		pcBaseObject = gcObjects.GetBaseObject(oiTo);
+		if (pcBaseObject)
+		{
+			FixPointer(pcBaseObject, pcReadPointer->mppcPointedFrom, pcReadPointer->mpcContaining);
+		}
+		else
+		{
+			return FALSE;
+		}
+
+	}
+	return TRUE;
 }
 

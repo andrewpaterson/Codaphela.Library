@@ -236,14 +236,22 @@ CPointerObject CObjects::AddHollow(OIndex oi)
 {
 	CPointer<CHollowObject>	pHollow;
 	CHollowObject*			pcHollow;
-	CBaseObject*			pvExisting;
 	BOOL					bResult;
 
 	pcHollow = Allocate<CHollowObject>();
 
-	pvExisting = NULL;
-	bResult = mcMemory.AddWithID(pcHollow, oi, &pvExisting);
-	return pHollow;
+	bResult = mcMemory.AddWithID(pcHollow, oi, NULL);
+	if (bResult)
+	{
+		pHollow.mpcObject = pcHollow;
+		return pHollow;
+	}
+	else
+	{
+		//If an object with this oi already existed in memory 
+		//then a hollow version should not be added.
+		return ONull;
+	}
 }
 
 
@@ -251,20 +259,35 @@ CPointerObject CObjects::AddHollow(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointerObject CObjects::AddHollow(char* szName)
+CPointerObject CObjects::AddHollow(char* szName, OIndex oi)
 {
 	CPointer<CNamedHollowObject>	pHollow;
 	CNamedHollowObject*				pcHollow;
-	CBaseObject*					pvExisting;
 	BOOL							bResult;
+	CBaseObject*					pcExisting;
+
+	pcExisting = mcMemory.Get(szName);
+	if (pcExisting)
+	{
+		pHollow.mpcObject = pcExisting;
+		return pHollow;
+	}
 
 	pcHollow = Allocate<CNamedHollowObject>();
 	pcHollow->InitName(szName);
 
-	pvExisting = NULL;
-	bResult = mcMemory.AddWithIDAndName(pcHollow, mcIndexGenerator.PopIndex(), szName, &pvExisting);
-	pHollow.mpcObject = pcHollow;
-	return pHollow;
+	bResult = mcMemory.AddWithIDAndName(pcHollow, oi, szName, NULL);
+	if (bResult)
+	{
+		pHollow.mpcObject = pcHollow;
+		return pHollow;
+	}
+	else
+	{
+		//If an object with this oi already existed in memory 
+		//then a hollow version should not be added.
+		return ONull;
+	}
 }
 
 

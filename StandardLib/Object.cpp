@@ -232,7 +232,7 @@ int CObject::RemapTos(CBaseObject* pcOld, CBaseObject* pcNew)
 	for (i = 0; i < iNumPointers; i++)
 	{
 		ppPointer = mapPointers.Get(i);
-		pcPointedTo = &(**ppPointer);
+		pcPointedTo = (**ppPointer).Object();
 		if (pcPointedTo == pcOld)
 		{
 			(**ppPointer).UnsafePointTo(pcNew);

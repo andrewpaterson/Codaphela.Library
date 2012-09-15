@@ -60,7 +60,7 @@ void CDependentReadObjects::Add(CPointerHeader* pcHeader, CBaseObject** ppcObjec
 			pExisitingInDatabase = gcObjects.Get(pcHeader->mszObjectName.Text());
 			if (pExisitingInDatabase.IsNotNull())
 			{
-				oiNew = pExisitingInDatabase->GetOI();
+				oiNew = pExisitingInDatabase.GetIndex();
 				cDependent.SetExisting();
 			}
 			else
@@ -108,6 +108,41 @@ void CDependentReadObjects::AddIgnoreNamed(CPointerHeader* pcHeader, CBaseObject
 	}
 
 	cDependent.Init(pcHeader);
+
+	bExists = mcObjects.FindInSorted(&cDependent, &CompareDependentReadObject, &iIndex);
+	if (!bExists)
+	{
+		oiNew = mpcIndexGenerator->PopIndex();
+		cDependent.SetNewIndex(oiNew);
+		mcObjects.InsertAt(&cDependent, iIndex);
+	}
+	else
+	{
+		pcExistingInFile = mcObjects.Get(iIndex);
+		oiNew = pcExistingInFile->GetNewIndex();
+		cDependent.Kill();
+	}
+
+	pcPointer = mcPointers.Add();
+	pcPointer->Init(ppcObjectPtr, pcContaining, oiNew);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CDependentReadObjects::AddHollow(char* szName, OIndex oiOld, CBaseObject** ppcObjectPtr, CBaseObject* pcContaining)
+{
+	CDependentReadObject	cDependent;
+	CDependentReadObject*	pcExistingInFile;
+	BOOL					bExists;
+	int						iIndex;
+	CDependentReadPointer*	pcPointer;
+	OIndex					oiNew;
+	CPointerObject			pExisitingInDatabase;
+
+	cDependent.InitHollow(szName, oiOld);
 
 	bExists = mcObjects.FindInSorted(&cDependent, &CompareDependentReadObject, &iIndex);
 	if (!bExists)

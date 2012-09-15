@@ -6,6 +6,7 @@
 
 #define DEPENDENT_READ_OBJECT_FLAG_READ		0x01
 #define DEPENDENT_READ_OBJECT_FLAG_EXISTED	0x02
+#define DEPENDENT_READ_OBJECT_FLAG_HOLLOW	0x04
 
 
 class CBaseObject;
@@ -17,6 +18,7 @@ protected:
 
 public:
 	void	Init(CPointerHeader* pcObjectPtr);
+	void	InitHollow(char* szName, OIndex oiOld);
 	void	Kill(void);
 
 	BOOL	IsNamed(void);
@@ -28,6 +30,7 @@ public:
 	void	SetExisting(void);
 	BOOL	IsRead(void);
 	BOOL	PreExisted(void);
+	BOOL	IsHollow(void);
 };
 
 

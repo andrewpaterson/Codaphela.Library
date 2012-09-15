@@ -225,7 +225,7 @@ BOOL CObjectGraphDeserialiser::FixExisting(void)
 			pNewObject = gcObjects.Get(pcReadObject->GetNewIndex());
 			pOldObject = gcObjects.Get(oiOld);
 	
-			pNewObject.RemapFrom(&pOldObject);
+			pNewObject.RemapFrom(pOldObject.Object());
 		}
 	}
 	return TRUE;
@@ -244,7 +244,7 @@ OIndex CObjectGraphDeserialiser::GetExistingRemap(OIndex oiNew)
 	for (i = 0; i < mcIndexRemap.NumElements(); i++)
 	{
 		pcRemap = mcIndexRemap.Get(i);
-		if (pcRemap->moiNew = oiNew)
+		if (pcRemap->moiNew == oiNew)
 		{
 			return pcRemap->moiOld;
 		}

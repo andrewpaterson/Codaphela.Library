@@ -21,6 +21,19 @@ void CDependentReadObject::Init(CPointerHeader* pcObjectPtr)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CDependentReadObject::InitHollow(char* szName, OIndex oiOld)
+{
+	mszObjectName.Init(szName);
+	miFlags = DEPENDENT_READ_OBJECT_FLAG_HOLLOW;
+	moiNew = INVALID_O_INDEX;
+	mcType = OBJECT_POINTER_NAMED;
+	moi = oiOld;
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CDependentReadObject::Kill(void)
 {
 	CPointerHeader::Kill();
@@ -114,6 +127,16 @@ BOOL CDependentReadObject::IsRead(void)
 BOOL CDependentReadObject::PreExisted(void)
 {
 	return miFlags & DEPENDENT_READ_OBJECT_FLAG_EXISTED;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CDependentReadObject::IsHollow(void)
+{
+	return miFlags & DEPENDENT_READ_OBJECT_FLAG_HOLLOW;
 }
 
 

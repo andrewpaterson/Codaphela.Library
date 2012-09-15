@@ -71,6 +71,7 @@ public:
 	OIndex			GetIndex(void);
 	char*			GetName(void);
 	BOOL			IsNamed(void);
+	char*			ClassName(void);
 
 protected:
 	BOOL			Dehollow(void);

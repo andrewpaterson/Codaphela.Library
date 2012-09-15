@@ -68,7 +68,7 @@ public:
 	template<class M>	CPointer<M>			Add(char* szObjectName);
 						CPointer<CRoot>		AddRoot(void);
 						CPointerObject		AddHollow(OIndex oi);
-						CPointerObject		AddHollow(char* szName);
+						CPointerObject		AddHollow(char* szName, OIndex oi);
 
 						CPointerObject		Null(void);
 	template<class M>	CPointer<M>			Null(void);
