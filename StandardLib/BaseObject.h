@@ -36,6 +36,9 @@ typedef CArrayEmbedded<CBaseObject*, 32>	CArrayEmbeddedBaseObjectPtr;
 //Invalidated is set when the object on the file system is changed and must be reloaded.  This objects does not use it.
 #define OBJECT_FLAGS_INVALIDATED		0x04
 
+//Dirty must be manually set when an object needs to be written from memory to indexed data.  Objects are - by default always dirty.
+#define OBJECT_FLAGS_DIRTY				0x08
+
 
 #define ROOT_DIST_TO_ROOT			 0
 #define UNATTACHED_DIST_TO_ROOT		-1
@@ -83,10 +86,12 @@ public:
 	virtual BOOL			IsObject(void) =0;
 	virtual BOOL			IsNamed(void);
 			BOOL			IsInvalidated(void);
+			BOOL			IsDirty(void);
 
 	virtual char*			GetName(void);
 
 	virtual void			SetDistToRoot(int iDistToRoot) =0;
+			void			SetDirty(void);
 			int				DistToRoot(void);
 			BOOL			TestedForRoot(void);
 	virtual void			GetTos(CArrayBaseObjectPtr* papcTos) =0;

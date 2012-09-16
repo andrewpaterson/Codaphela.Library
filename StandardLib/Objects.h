@@ -55,6 +55,7 @@ public:
 						void				Init(CUnknowns* pcUnknownsAllocatingFrom, char* szWorkingDirectory);
 						void				Kill(void);
 
+						BOOL				Flush(void);
 
 						CPointerObject		Get(OIndex oi);
 						CPointerObject		Get(char* szObjectName);
@@ -87,7 +88,7 @@ protected:
 						BOOL				AddWithIDAndName(CBaseObject* pvObject, char* szObjectName);
 	template<class M>	M*					Allocate(void);
 						CBaseObject*		Allocate(char* szClassName);
-};						
+};
 
 
 extern CObjects gcObjects;

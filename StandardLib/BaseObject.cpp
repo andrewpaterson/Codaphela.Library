@@ -33,7 +33,7 @@ CBaseObject::CBaseObject()
 	mapFroms.Init();
 	miDistToRoot = UNATTACHED_DIST_TO_ROOT;
 	moi = INVALID_O_INDEX;
-	miFlags = 0;
+	miFlags = OBJECT_FLAGS_DIRTY;
 }
 
 
@@ -53,7 +53,7 @@ void CBaseObject::PreInit(CObjects* pcObjects)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::Kill(void)
 {
-	//This should only be called once all the 'froms' and 'tos' are gone.
+	//This should only be called once all the 'from s' and 'to s' are gone.
 
 	mapFroms.Kill();
 	if (mpcObjectsThisIn)
@@ -480,6 +480,36 @@ BOOL CBaseObject::IsInvalidated(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL CBaseObject::IsDirty(void)
+{
+	return miFlags & OBJECT_FLAGS_DIRTY;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CBaseObject::TestedForRoot(void)
+{
+	return miFlags & OBJECT_FLAGS_TESTED_FOR_ROOT;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CBaseObject::SetDirty(void)
+{
+	miFlags |= OBJECT_FLAGS_DIRTY;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 int CBaseObject::DistToRoot(void)
 {
 	return miDistToRoot;
@@ -544,16 +574,6 @@ void CBaseObject::PotentiallySetDistToRoot(CBaseObject* pcTos, int iExpectedDist
 			pcTos->SetDistToRoot(iBestDistToRoot);
 		}
 	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CBaseObject::TestedForRoot(void)
-{
-	return miFlags & OBJECT_FLAGS_TESTED_FOR_ROOT;
 }
 
 
