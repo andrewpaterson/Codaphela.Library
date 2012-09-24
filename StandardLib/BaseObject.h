@@ -89,6 +89,7 @@ public:
 			BOOL			IsDirty(void);
 
 	virtual char*			GetName(void);
+			int				SerialisedSize(void);
 
 	virtual void			SetDistToRoot(int iDistToRoot) =0;
 			void			SetDirty(void);
@@ -99,6 +100,7 @@ public:
 	virtual int				NumTos(void) =0;
 			CBaseObject* 	TestGetTo(int iToIndex);
 			CBaseObject* 	TestGetFrom(int iFromIndex);
+
 
 protected:
 			CBaseObject*	GetFrom(int iFrom);

@@ -430,6 +430,23 @@ BOOL CBaseObject::RemoveToFrom(CBaseObject* pcPointedTo, CArrayEmbeddedBaseObjec
 //
 //
 //////////////////////////////////////////////////////////////////////////
+int CBaseObject::SerialisedSize(void)
+{
+	CObjectSerialiser	cSerialiser;
+	int					iLength;
+	
+	cSerialiser.Init(NULL, this);
+	cSerialiser.Save();
+	iLength = cSerialiser.GetLength();
+	cSerialiser.Kill();
+	return iLength;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL CBaseObject::IsRoot(void)
 {
 	return FALSE;

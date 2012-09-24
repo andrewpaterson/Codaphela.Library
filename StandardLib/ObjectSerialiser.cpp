@@ -27,12 +27,12 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectSerialiser::Init(CObjectGraphSerialiser* pcGraphSerialiser, CBaseObject* pcObject)
+void CObjectSerialiser::Init(CObjectSingleSerialiser* pcSerialiser, CBaseObject* pcObject)
 {
 	mpcThis = pcObject;
 	mpcMemory = MemoryFile();
 	mcFile.Init(mpcMemory);
-	mpcGraphSerialiser = pcGraphSerialiser;
+	mpcSerialiser = pcSerialiser;
 }
 
 
@@ -42,7 +42,7 @@ void CObjectSerialiser::Init(CObjectGraphSerialiser* pcGraphSerialiser, CBaseObj
 //////////////////////////////////////////////////////////////////////////
 void CObjectSerialiser::Kill(void)
 {
-	mpcGraphSerialiser = NULL;
+	mpcSerialiser = NULL;
 	mpcThis = NULL;
 	mcFile.Kill();
 }
@@ -102,7 +102,10 @@ BOOL CObjectSerialiser::WriteDependent(CBaseObject* pcBaseObject)
 	bResult = WritePointerHeader(pcBaseObject);
 	if ((pcBaseObject) && (bResult))
 	{
-		mpcGraphSerialiser->AddDependent(pcBaseObject);
+		if (mpcSerialiser)
+		{
+			mpcSerialiser->AddDependent(pcBaseObject);
+		}
 	}
 	return bResult;
 }

@@ -29,7 +29,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CObjectGraphSerialiser::Init(CObjectWriter* pcWriter)
 {
-	mpcWriter = pcWriter;
+	CObjectSingleSerialiser::Init(pcWriter);
 	mcDependentObjects.Init();
 }
 
@@ -41,6 +41,7 @@ void CObjectGraphSerialiser::Init(CObjectWriter* pcWriter)
 void CObjectGraphSerialiser::Kill(void)
 {
 	mcDependentObjects.Kill();
+	CObjectSingleSerialiser::Kill();
 }
 
 

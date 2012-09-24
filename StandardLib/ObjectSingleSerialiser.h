@@ -18,31 +18,25 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __OBJET_GRAPH_SERIALISER_H__
-#define __OBJET_GRAPH_SERIALISER_H__
+#ifndef __OBJET_SINGLE_SERIALISER_H__
+#define __OBJET_SINGLE_SERIALISER_H__
 #include "BaseObject.h"
 #include "ObjectWriter.h"
-#include "DependentWriteObjects.h"
-#include "ObjectSingleSerialiser.h"
 
 
-class CObjectGraphSerialiser : public CObjectSingleSerialiser
+class CObjectSingleSerialiser
 {
 protected:
-	CDependentWriteObjects	mcDependentObjects;
+	CObjectWriter*		mpcWriter;
 
 public:
-	void	Init(CObjectWriter* pcWriter);
-	void	Kill(void);
+			void	Init(CObjectWriter* pcWriter);
+			void	Kill(void);
 
-	BOOL	Write(CBaseObject* pcObject);
-	void	AddDependent(CBaseObject* pcObject);
-
-protected:
-	BOOL	WriteUnwritten(CBaseObject* pcObject);
-	void	MarkWritten(CBaseObject* pcObject);
+	virtual BOOL	Write(CBaseObject* pcObject);
+	virtual void	AddDependent(CBaseObject* pcObject);
 };
 
 
-#endif // __OBJET_GRAPH_SERIALISER_H__
+#endif // __OBJET_SINGLE_SERIALISER_H__
 
