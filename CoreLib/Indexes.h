@@ -42,6 +42,16 @@ struct SIndexedLevel
 typedef CFreeList<SIndexedLevel>	CFreeListIndexedObjectsLevel;
 
 
+struct SIndexesIterator
+{
+	(SIndexedLevel*)	apsLevels[MAX_INDEXED_LEVEL_DEPTH+1];
+	int					aiIndex[MAX_INDEXED_LEVEL_DEPTH+1];
+	OIndex				oi;
+
+	void Init(SIndexedLevel* psTop);
+};
+
+
 class CIndexes
 {
 protected:
@@ -60,10 +70,13 @@ public:
 	unsigned int	TestByteSize(void);
 
 	OIndex			NumIndexed(void);
+	OIndex			StartIteration(SIndexesIterator* psIter);
+	OIndex			Iterate(SIndexesIterator* psIter);
 
 protected:
 	OIndex			RecurseNumIndexed(SIndexedLevel* psLevel, int iLevel);
 	SIndexedLevel*	CreateLevels(OIndex oi);
+	OIndex			BackIterate(int iInitialLevel, SIndexesIterator* psIter);
 };
 
 
