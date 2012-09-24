@@ -60,6 +60,7 @@ public:
 	int							NumCached(void);
 	int							NumIgnored(void);
 	BOOL						IsEmpty(void);
+	int							NumCached(int iSize);
 
 	void*						GetData(SMemoryCacheDescriptor* psCacheDesc);
 

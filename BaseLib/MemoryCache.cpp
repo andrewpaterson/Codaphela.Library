@@ -476,7 +476,6 @@ SMemoryCacheDescriptor* CMemoryCache::GetLast(void)
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -496,6 +495,34 @@ int CMemoryCache::NumCached(void)
 	while (psCacheDesc)
 	{
 		iNum++;
+		psCacheDesc = Iterate(psCacheDesc);
+	}
+	return iNum;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CMemoryCache::NumCached(int iSize)
+{
+	SMemoryCacheDescriptor*		psCacheDesc;
+	int							iNum;
+
+	if (IsEmpty())
+	{
+		return 0;
+	}
+
+	iNum = 0;
+	psCacheDesc = StartIteration();
+	while (psCacheDesc)
+	{
+		if (psCacheDesc->iDataSize == iSize)
+		{
+			iNum++;
+		}
 		psCacheDesc = Iterate(psCacheDesc);
 	}
 	return iNum;
@@ -547,7 +574,14 @@ SMemoryCacheDescriptor* CMemoryCache::StartIteration(void)
 {
 	if (!IsEmpty())
 	{
-		return mpsFirst;
+		if (mpsFirst->iFlags & CACHE_DESCRIPTOR_FLAG_VALID)
+		{
+			return mpsFirst;
+		}
+		else
+		{
+			return Iterate(mpsFirst);
+		}
 	}
 	else
 	{
