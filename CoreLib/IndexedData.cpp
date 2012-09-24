@@ -372,7 +372,7 @@ BOOL CIndexedData::EvictOverlappingFromCache(CArrayPointer* papsEvictedIndexedCa
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedData::Invalidate(CIndexedDataDescriptor* pcDescriptor)
+void CIndexedData::InvalidateData(CIndexedDataDescriptor* pcDescriptor)
 {
 	if (mbCaching)
 	{
@@ -516,9 +516,8 @@ unsigned int CIndexedData::Size(OIndex oi)
 BOOL CIndexedData::Add(OIndex oi, void* pvData, unsigned int iDataSize, unsigned int uiTimeStamp)
 {
 	CIndexedDataDescriptor	cDescriptor;
-	BOOL				bResult;
+	BOOL					bResult;
 
-	//It doesn't matter what the result was.
 	bResult = GetDescriptor(oi, &cDescriptor);
 	if (bResult)
 	{
@@ -542,24 +541,12 @@ BOOL CIndexedData::Add(OIndex oi, void* pvData, unsigned int iDataSize, unsigned
 BOOL CIndexedData::Set(OIndex oi, void* pvData, unsigned int uiTimeStamp)
 {
 	CIndexedDataDescriptor	cDescriptor;
-	BOOL				bResult;
+	BOOL					bResult;
 
 	bResult = GetDescriptor(oi, &cDescriptor);
 	if (bResult)
 	{
-		if (cDescriptor.IsCached())
-		{
-			mcObjectCache.Update(&cDescriptor, pvData);
-			cDescriptor.TimeStamp(uiTimeStamp);
-			mcIndices.Set(&cDescriptor);
-			return TRUE;
-		}
-		else
-		{
-			bResult = Write(&cDescriptor, pvData, uiTimeStamp);
-			mcIndices.Set(&cDescriptor);
-			return bResult;
-		}
+		return SetData(&cDescriptor, pvData, uiTimeStamp);
 	}
 	else
 	{
@@ -569,6 +556,37 @@ BOOL CIndexedData::Set(OIndex oi, void* pvData, unsigned int uiTimeStamp)
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexedData::SetData(CIndexedDataDescriptor* pcDescriptor, void* pvData, unsigned int uiTimeStamp)
+{
+	BOOL	bResult;
+	BOOL	bUpdated;
+
+	if (pcDescriptor->IsCached())
+	{
+		bUpdated = mcObjectCache.Update(pcDescriptor, pvData);
+		if (bUpdated && mbWriteThrough)
+		{
+			bResult = WriteData(pcDescriptor, pvData);
+		}
+		else
+		{
+			bResult = TRUE;
+		}
+		pcDescriptor->TimeStamp(uiTimeStamp);
+		mcIndices.Set(pcDescriptor);
+		return bResult;
+	}
+	else
+	{
+		bResult = Write(pcDescriptor, pvData, uiTimeStamp);
+		mcIndices.Set(pcDescriptor);
+		return bResult;
+	}
+}
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -578,41 +596,43 @@ BOOL CIndexedData::Set(OIndex oi, void* pvData, unsigned int uiTimeStamp)
 BOOL CIndexedData::Set(OIndex oi, void* pvData, unsigned int uiDataSize, unsigned int uiTimeStamp)
 {
 	CIndexedDataDescriptor	cDescriptor;
-	BOOL				bResult;
+	BOOL					bResult;
 
 	bResult = GetDescriptor(oi, &cDescriptor);
 	if (bResult)
 	{
-		if (cDescriptor.GetDataSize() == uiDataSize)
-		{
-			if (cDescriptor.IsCached())
-			{
-				mcObjectCache.Update(&cDescriptor, pvData);
-				cDescriptor.TimeStamp(uiTimeStamp);
-				mcIndices.Set(&cDescriptor);
-				return TRUE;
-			}
-			else
-			{
-				bResult = Write(&cDescriptor, pvData, uiTimeStamp);
-				mcIndices.Set(&cDescriptor);
-				return bResult;
-			}
-		}
-		else
-		{
-			Invalidate(&cDescriptor);
-			cDescriptor.Init(oi, uiDataSize);
-
-			bResult = Write(&cDescriptor, pvData, uiTimeStamp);
-			mcIndices.Set(&cDescriptor);
-			return bResult;
-		}
+		return SetData(&cDescriptor, pvData, uiDataSize, uiTimeStamp);
 	}
 	else
 	{
 		//Can't set if the oi doesn't exist.
 		return FALSE;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexedData::SetData(CIndexedDataDescriptor* pcDescriptor, void* pvData, unsigned int uiDataSize, unsigned int uiTimeStamp)
+{
+	BOOL	bResult;
+	OIndex	oi;
+
+	if (pcDescriptor->GetDataSize() == uiDataSize)
+	{
+		return SetData(pcDescriptor, pvData, uiTimeStamp);
+	}
+	else
+	{
+		oi = pcDescriptor->GetIndex();
+		InvalidateData(pcDescriptor);
+		pcDescriptor->Init(oi, uiDataSize);
+
+		bResult = Write(pcDescriptor, pvData, uiTimeStamp);
+		mcIndices.Set(pcDescriptor);
+		return bResult;
 	}
 }
 
@@ -623,7 +643,7 @@ BOOL CIndexedData::Set(OIndex oi, void* pvData, unsigned int uiDataSize, unsigne
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexedData::SetOrAdd(OIndex oi, void* pvData, unsigned int uiDataSize, unsigned int uiTimeStamp)
 {
-	BOOL				bResult;
+	BOOL					bResult;
 	CIndexedDataDescriptor	cDescriptor;
 
 	bResult = GetDescriptor(oi, &cDescriptor);
@@ -750,7 +770,7 @@ BOOL CIndexedData::GetData(CIndexedDataDescriptor* pcDescriptor, void* pvData)
 BOOL CIndexedData::Remove(OIndex oi)
 {
 	CIndexedDataDescriptor	cDescriptor;
-	BOOL				bResult;
+	BOOL					bResult;
 
 	//This is not correct.  Removed objects must be marked as removed until all transactions are finished.
 	bResult = mcIndices.Get(&cDescriptor, oi);
@@ -758,7 +778,7 @@ BOOL CIndexedData::Remove(OIndex oi)
 	{
 		if (cDescriptor.IsCached())
 		{
-			Invalidate(&cDescriptor);
+			InvalidateData(&cDescriptor);
 		}
 		mcIndices.Remove(oi);
 		return TRUE;
@@ -867,6 +887,22 @@ int CIndexedData::NumCached(void)
 	if (mbCaching)
 	{
 		return mcObjectCache.NumCached();
+	}
+	else
+	{
+		return 0;
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CIndexedData::NumCached(int iSize)
+{
+	if (mbCaching)
+	{
+		return mcObjectCache.NumCached(iSize);
 	}
 	else
 	{

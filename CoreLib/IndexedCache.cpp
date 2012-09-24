@@ -150,6 +150,16 @@ int CIndexedCache::NumCached(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+int CIndexedCache::NumCached(int iSize)
+{
+	return mcCache.NumCached(iSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 int CIndexedCache::NumIgnored(void)
 {
 	return mcCache.NumIgnored();
@@ -165,12 +175,14 @@ BOOL CIndexedCache::Update(CIndexedDataDescriptor* pcDesc, void* pvData)
 	SIndexedCacheDescriptor*	psCacheIndex;
 	void*						pvCache;
 	unsigned int				iDataSize;
+	int							iResult;
 
 	//Assumes that the test to make sure this is in the cache has already been done.
 	pvCache = pcDesc->GetCache();
 	iDataSize = pcDesc->GetDataSize();
 	psCacheIndex = GetHeader(pvCache);
-	if (memcmp(pvCache, pvData, iDataSize) != 0)
+	iResult = memcmp(pvCache, pvData, iDataSize);
+	if (iResult != 0)
 	{
 		memcpy_fast(pvCache, pvData, iDataSize);
 		psCacheIndex->iFlags |= CACHE_DESCRIPTOR_FLAG_DIRTY;

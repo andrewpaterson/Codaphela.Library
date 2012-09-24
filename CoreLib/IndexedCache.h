@@ -56,6 +56,7 @@ public:
 	SIndexedCacheDescriptor*	StartIteration(void);
 	SIndexedCacheDescriptor*	Iterate(SIndexedCacheDescriptor* psCurrent);
 	int							NumCached(void);
+	int							NumCached(int iSize);
 	int							NumIgnored(void);
 
 	SIndexedCacheDescriptor*	TestGetDescriptor(OIndex oi);

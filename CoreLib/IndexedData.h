@@ -76,6 +76,7 @@ public:
 	BOOL			IsCaching(void);
 	BOOL			EvictFromCache(CIndexedDataDescriptor* pcDescriptor);
 	int				NumCached(void);
+	int				NumCached(int iSize);
 	int				NumFiles(void);
 	OIndex			NumInFile(int iDataSize);
 	OIndex			NumElements(void);
@@ -89,6 +90,9 @@ public:
 protected:
 	void 			InitIndices(CIndexedConfig* pcConfig);
 
+	BOOL			SetData(CIndexedDataDescriptor* pcDescriptor, void* pvData, unsigned int uiTimeStamp);
+	BOOL			SetData(CIndexedDataDescriptor* pcDescriptor, void* pvData, unsigned int uiDataSize, unsigned int uiTimeStamp);
+
 	BOOL			GetData(CIndexedDataDescriptor* pcDescriptor, void* pvData);
 	BOOL			GetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor);
 
@@ -96,7 +100,7 @@ protected:
 	BOOL			EvictFromCache(SIndexedCacheDescriptor* psExisting);
 	BOOL			EvictOverlappingFromCache(CArrayPointer* papsEvictedIndexedCacheDescriptors);
 
-	void			Invalidate(CIndexedDataDescriptor* pcDescriptor);
+	void			InvalidateData(CIndexedDataDescriptor* pcDescriptor);
 	BOOL			Uncache(void);
 	BOOL			CacheRead(CIndexedDataDescriptor* pcDescriptor);
 	BOOL			CacheWrite(CIndexedDataDescriptor* pcDescriptor, void* pvData, BOOL* pbWritten);

@@ -69,8 +69,33 @@ void CIndexedConfig::OptimiseForStreaming(char* szWorkingDirectory)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CIndexedConfig::OptimiseForGameGraph(char* szWorkingDirectory)
+{
+	//This configuration is used where write performance is important.
+	//The database will become corrupt if it is not closed.
+
+	mszWorkingDirectory = szWorkingDirectory;
+	mbDurable = FALSE;
+	mbDirtyTesting = TRUE;
+	mbWriteThrough = FALSE;
+	miIndicesSecondLevelWidth = 131072;
+	miIndicesThirdLevelWidth = 2048;
+	miIndicesNumSecondLevelChunks = 8; 
+	miIndicesNumThirdLevelChunks = 1024;
+	miIndicesMemoryChunkSize = miIndicesNumThirdLevelChunks * sizeof(CIndexedDataDescriptor);
+	miObjectsCacheSize = 128 MB;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CIndexedConfig::OptimiseForTransactions(char* szWorkingDirectory)
 {
+	//This configuration is used where database consistency is important.
+	//Changes are immediately written to disk atomically.
+
 	mszWorkingDirectory = szWorkingDirectory;
 	mbDurable = TRUE;
 	mbDirtyTesting = TRUE;
@@ -117,6 +142,23 @@ void CIndexedConfig::SetDirtyTesting(BOOL bDirtyTesting)
 	else
 	{
 		mbDirtyTesting = TRUE;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexedConfig::SetWriteThrough(BOOL bWriteThrough)
+{
+	if (bWriteThrough)
+	{
+		mbWriteThrough = TRUE;
+	}
+	else
+	{
+		mbWriteThrough = FALSE;
 	}
 }
 
