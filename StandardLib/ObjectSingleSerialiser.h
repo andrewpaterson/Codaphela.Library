@@ -27,7 +27,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 class CObjectSingleSerialiser
 {
 protected:
-	CObjectWriter*		mpcWriter;
+	CObjectWriter*	mpcWriter;
 
 public:
 			void	Init(CObjectWriter* pcWriter);

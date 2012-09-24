@@ -87,6 +87,9 @@ public:
 						CBaseObject*		GetBaseObject(OIndex oi);
 						void				RemoveInKill(CBaseObject* pvObject);
 
+						OIndex				StartMemoryIteration(SIndexesIterator* psIter);
+						OIndex				IterateMemory(SIndexesIterator* psIter);
+
 protected:
 						BOOL				AddWithID(CBaseObject* pvObject);
 						BOOL				AddWithIDAndName(CBaseObject* pvObject, char* szObjectName);

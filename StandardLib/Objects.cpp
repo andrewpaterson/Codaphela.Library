@@ -77,6 +77,16 @@ void CObjects::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CObjects::Flush(void)
 {
+	SIndexesIterator	sIter;
+	OIndex				oi;
+
+	oi = StartMemoryIteration(&sIter);
+	while (oi != INVALID_O_INDEX)
+	{
+
+		oi = IterateMemory(&sIter);
+	}
+
 	mcDatabase.Flush();
 	return FALSE;
 }
@@ -503,6 +513,26 @@ CBaseObject* CObjects::Allocate(char* szClassName)
 void CObjects::RemoveInKill(CBaseObject* pvObject)
 {
 	mcMemory.Remove(pvObject->GetOI());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+OIndex CObjects::StartMemoryIteration(SIndexesIterator* psIter)
+{
+	return mcMemory.GetObjects()->StartIteration(psIter);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+OIndex CObjects::IterateMemory(SIndexesIterator* psIter)
+{
+	return mcMemory.GetObjects()->Iterate(psIter);
 }
 
 
