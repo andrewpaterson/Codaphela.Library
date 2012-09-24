@@ -23,10 +23,19 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "ObjectWriter.h"
 
 
+class CNamedIndexedData;
 class CObjectWriterIndexed : public CObjectWriter
 {
 BASE_FUNCTIONS(CObjectWriterIndexed);
+protected:
+	CNamedIndexedData*	mpcIndexedData;
+	unsigned int		muiTimeStamp;
+
 public:
+	void Init(CNamedIndexedData* pcIndexedData, unsigned int	uiTimeStamp);
+	void Kill(void);
+
+	BOOL Write(CSerialisedObject* pcSerialised);
 };
 
 

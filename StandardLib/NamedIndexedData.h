@@ -59,6 +59,8 @@ public:
 	void			DurableEnd(void);
 
 	OIndex			NumObjects(void);
+	int				NumCached(int iSize);
+	BOOL			IsCaching(void);
 };
 
 

@@ -142,6 +142,9 @@
     <Filter Include="Source\Object\Object\Serilalisation\Graph\Hollow">
       <UniqueIdentifier>{ddea66b7-1382-4329-bda1-aa09481bc648}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Object\Object\Serilalisation\Single">
+      <UniqueIdentifier>{52a03096-8f90-4a1f-9091-1baf27f0a9e2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Base.h">
@@ -465,6 +468,9 @@
     <ClInclude Include="DependentWriteObject.h">
       <Filter>Source\Object\Object\Serilalisation\Graph</Filter>
     </ClInclude>
+    <ClInclude Include="ObjectSingleSerialiser.h">
+      <Filter>Source\Object\Object\Serilalisation\Single</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Unknown.cpp">
@@ -757,6 +763,9 @@
     </ClCompile>
     <ClCompile Include="DependentWriteObjects.cpp">
       <Filter>Source\Object\Object\Serilalisation\Graph</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjectSingleSerialiser.cpp">
+      <Filter>Source\Object\Object\Serilalisation\Single</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

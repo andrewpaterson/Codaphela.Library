@@ -90,6 +90,16 @@ BOOL CNamedIndexes::Save(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL CNamedIndexes::Flush(void)
+{
+	return Save();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL CNamedIndexes::Close(void)
 {
 	return mcFiles.Close();
@@ -240,26 +250,6 @@ BOOL CNamedIndexes::Remove(char* szName)
 
 	szFake.Fake(szName);
 	return Remove(&szFake);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CNamedIndexes::Flush(void)
-{
-	int						i;
-	CNamedIndexesBlocks*	pcBlock;
-	BOOL					bResult;
-
-	bResult = TRUE;
-	for (i = 0; i < macBlocks.NumElements(); i++)
-	{
-		pcBlock = macBlocks.Get(i);
-		bResult &= pcBlock->Flush();
-	}
-	return bResult;
 }
 
 

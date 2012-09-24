@@ -56,6 +56,8 @@ public:
 						void				Kill(void);
 
 						BOOL				Flush(void);
+						BOOL				Save(CBaseObject* pcObject);
+						BOOL				ForceSave(CBaseObject* pcObject);
 
 						CPointerObject		Get(OIndex oi);
 						CPointerObject		Get(char* szObjectName);
@@ -78,6 +80,7 @@ public:
 						long long int		NumMemoryIndexes(void);
 						int					NumMemoryNames(void);
 						long long int		NumDatabaseObjects(void);
+						int					NumDatabaseObjectsCached(int iSize);
 						CIndexGenerator*	GetIndexGenerator(void);
 
 						CBaseObject*		GetBaseObject(OIndex oi);

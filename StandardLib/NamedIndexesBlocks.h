@@ -51,7 +51,6 @@ public:
 	OIndex					GetIndex(CChars* szName);
 	BOOL					Remove(CChars* szName);
 
-	BOOL					Flush(void);
 	BOOL					Cache(CNamedIndexesBlock* pcBlock);
 	BOOL					AddNewBlock(int iBlockWidth, void* pvBlocks, filePos iBlockChunkSize, filePos iDataIndex);
 	filePos					NumNames(void);

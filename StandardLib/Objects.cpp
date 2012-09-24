@@ -22,6 +22,8 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "NamedObject.h"
 #include "HollowObject.h"
 #include "NamedHollowObject.h"
+#include "ObjectSingleSerialiser.h"
+#include "ObjectWriterIndexed.h"
 #include "Objects.h"
 
 
@@ -39,7 +41,8 @@ void CObjects::Init(CUnknowns* pcUnknownsAllocatingFrom, char* szWorkingDirector
 	mpcUnknownsAllocatingFrom = pcUnknownsAllocatingFrom;
 	mcIndexGenerator.Init();
 
-	cConfig.OptimiseForStreaming(szWorkingDirectory);
+	cConfig.OptimiseForGameGraph(szWorkingDirectory);
+
 	mcDatabase.Init(&cConfig);
 	mcMemory.Init();
 }
@@ -66,6 +69,43 @@ BOOL CObjects::Flush(void)
 {
 	mcDatabase.Flush();
 	return FALSE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CObjects::Save(CBaseObject* pcObject)
+{
+	if (pcObject->IsDirty())
+	{
+		return ForceSave(pcObject);
+	}
+	else
+	{
+		return TRUE;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CObjects::ForceSave(CBaseObject* pcObject)
+{
+	BOOL						bResult;
+	CObjectSingleSerialiser		cGraphSerialiser;
+	CObjectWriterIndexed		cWriter;
+
+	cWriter.Init(&mcDatabase, 0);
+	cGraphSerialiser.Init(&cWriter);
+	bResult = cGraphSerialiser.Write(pcObject);
+	cGraphSerialiser.Kill();
+	cWriter.Kill();
+
+	return bResult;
 }
 
 
@@ -386,6 +426,16 @@ int CObjects::NumMemoryNames(void)
 long long int CObjects::NumDatabaseObjects(void)
 {
 	return mcDatabase.NumObjects();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CObjects::NumDatabaseObjectsCached(int iSize)
+{
+	return mcDatabase.NumCached(iSize);
 }
 
 
