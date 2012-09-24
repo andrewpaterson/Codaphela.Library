@@ -72,6 +72,7 @@ public:
 	char*			GetName(void);
 	BOOL			IsNamed(void);
 	char*			ClassName(void);
+	BOOL			IsDirty(void);
 
 protected:
 	BOOL			Dehollow(void);
