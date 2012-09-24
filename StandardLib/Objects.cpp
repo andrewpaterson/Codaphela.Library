@@ -38,12 +38,22 @@ void CObjects::Init(CUnknowns* pcUnknownsAllocatingFrom, char* szWorkingDirector
 {
 	CIndexedConfig	cConfig;
 
+	cConfig.OptimiseForGameGraph(szWorkingDirectory);
+
+	Init(pcUnknownsAllocatingFrom, &cConfig);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CObjects::Init(CUnknowns* pcUnknownsAllocatingFrom, CIndexedConfig* pcConfig)
+{
 	mpcUnknownsAllocatingFrom = pcUnknownsAllocatingFrom;
 	mcIndexGenerator.Init();
 
-	cConfig.OptimiseForGameGraph(szWorkingDirectory);
-
-	mcDatabase.Init(&cConfig);
+	mcDatabase.Init(pcConfig);
 	mcMemory.Init();
 }
 
@@ -500,10 +510,32 @@ void CObjects::RemoveInKill(CBaseObject* pvObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void ObjectsInit(void)
+{
+	UnknownsInit();
+	gcObjects.Init(&gcUnknowns, (char*)NULL);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void ObjectsInit(char* szWorkingDirectory)
 {
 	UnknownsInit();
 	gcObjects.Init(&gcUnknowns, szWorkingDirectory);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void ObjectsInit(CIndexedConfig* pcConfig)
+{
+	UnknownsInit();
+	gcObjects.Init(&gcUnknowns, pcConfig);
 }
 
 

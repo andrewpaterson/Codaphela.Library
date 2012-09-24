@@ -270,6 +270,36 @@ BOOL CDurableFile::Rewrite(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL CDurableFile::Delete(void)
+{
+	CFileUtil	cFileUtil;
+	BOOL		bResult;
+
+	if (mbBegun)
+	{
+		return FALSE;
+	}
+	else
+	{
+		Close();
+		if (mbDurable)
+		{
+			bResult = cFileUtil.Delete(mszFileName.Text());
+			bResult &= cFileUtil.Delete(mszRewriteName.Text());
+			return bResult;
+		}
+		else
+		{
+			return cFileUtil.Delete(mszFileName.Text());
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL CDurableFile::PrivateWrite(CFileBasic* pcFile)
 {
 	int							i;

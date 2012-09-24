@@ -254,6 +254,27 @@ BOOL CIndexedFiles::DataFileName(char* szFile1, char* szFile2, int iDataSize, in
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL CIndexedFiles::RemoveFiles(void)
+{
+	int							i;
+	CIndexedFile*				pcIndexedFile;
+	BOOL						bResult;
+
+	bResult = TRUE;
+	for (i = 0; i < mcFiles.NumElements(); i++)
+	{
+		pcIndexedFile = mcFiles.Get(i);
+		bResult &= pcIndexedFile->mcFile.Delete();
+	}
+	bResult &= mcDurableFile.Delete();
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 CIndexedFile* CIndexedFiles::GetOrCreateFile(int iDataSize)
 {
 	int				i;

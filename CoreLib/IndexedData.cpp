@@ -71,6 +71,8 @@ void CIndexedData::Init(CIndexedConfig* pcConfig)
 		mcObjectCache.Zero();
 		mbCaching = FALSE;
 	}
+
+	mbTransient = pcConfig->mbTransient;
 }
 
 
@@ -80,20 +82,29 @@ void CIndexedData::Init(CIndexedConfig* pcConfig)
 //////////////////////////////////////////////////////////////////////////
 void CIndexedData::Kill(void)
 {
-	DurableBegin();
-
-	if (!mbDurable)
+	if (!mbTransient)
 	{
-		Flush();
+		DurableBegin();
+
+		if (!mbDurable)
+		{
+			Flush();
+		}
+		else
+		{
+			Uncache();
+		}
+		mcIndices.Save();
+
+		mcObjectFiles.Close();
+		DurableEnd();
 	}
 	else
 	{
-		Uncache();
+		mcObjectFiles.Close();
+		RemoveFiles();
 	}
-	mcIndices.Save();
 
-	mcObjectFiles.Close();
-	DurableEnd();
 	mcDurableFileControl.Kill();
 
 	if (mbCaching)
@@ -106,6 +117,20 @@ void CIndexedData::Kill(void)
 	mcObjectFiles.Kill();
 	mcIndices.Kill();
 	SafeFree(mpvTemp);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexedData::RemoveFiles(void)
+{
+	BOOL	bResult;
+	
+	bResult = mcObjectFiles.RemoveFiles();
+	bResult &= mcIndices.RemoveFile();
+	return bResult;
 }
 
 

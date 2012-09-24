@@ -46,6 +46,8 @@ public:
 	BOOL						Open(void);
 	BOOL						Close(void);
 
+	BOOL						RemoveFiles(void);
+
 	void						InitIndexedFileDescriptors(void);
 	BOOL						ReadIndexedFileDescriptors(void);
 	BOOL						WriteIndexedFileDescriptors(void);

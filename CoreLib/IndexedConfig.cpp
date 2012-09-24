@@ -28,7 +28,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedConfig::Manual(char* szWorkingDirectory, BOOL bDurable, BOOL bDirtyTesting, BOOL bWriteThrough, int iIndicesSecondLevelWidth, int iIndicesThirdLevelWidth, int iIndicesNumSecondLevelChunks, int iIndicesNumThirdLevelChunks, int iIndicesMemoryChunkSize, int iObjectsCacheSize)
+void CIndexedConfig::Manual(char* szWorkingDirectory, BOOL bDurable, BOOL bDirtyTesting, BOOL bWriteThrough, int iIndicesSecondLevelWidth, int iIndicesThirdLevelWidth, int iIndicesNumSecondLevelChunks, int iIndicesNumThirdLevelChunks, int iIndicesMemoryChunkSize, int iObjectsCacheSize, BOOL bTransient)
 {
 	mszWorkingDirectory = szWorkingDirectory;
 	mbDurable = bDurable;
@@ -40,6 +40,7 @@ void CIndexedConfig::Manual(char* szWorkingDirectory, BOOL bDurable, BOOL bDirty
 	miIndicesNumThirdLevelChunks = iIndicesNumThirdLevelChunks;
 	miIndicesMemoryChunkSize = iIndicesMemoryChunkSize;
 	miObjectsCacheSize = iObjectsCacheSize;
+	mbTransient = bTransient;
 }
 
 
@@ -62,6 +63,7 @@ void CIndexedConfig::OptimiseForStreaming(char* szWorkingDirectory)
 	miIndicesNumThirdLevelChunks = 1024;
 	miIndicesMemoryChunkSize = miIndicesNumThirdLevelChunks * sizeof(CIndexedDataDescriptor);
 	miObjectsCacheSize = 0;
+	mbTransient = (szWorkingDirectory == NULL);
 }
 
 
@@ -84,6 +86,7 @@ void CIndexedConfig::OptimiseForGameGraph(char* szWorkingDirectory)
 	miIndicesNumThirdLevelChunks = 1024;
 	miIndicesMemoryChunkSize = miIndicesNumThirdLevelChunks * sizeof(CIndexedDataDescriptor);
 	miObjectsCacheSize = 128 MB;
+	mbTransient = (szWorkingDirectory == NULL);
 }
 
 
@@ -106,6 +109,7 @@ void CIndexedConfig::OptimiseForTransactions(char* szWorkingDirectory)
 	miIndicesNumThirdLevelChunks = 1024;
 	miIndicesMemoryChunkSize = miIndicesNumThirdLevelChunks * sizeof(CIndexedDataDescriptor);
 	miObjectsCacheSize = 128 MB;
+	mbTransient = (szWorkingDirectory == NULL);
 }
 
 
@@ -181,3 +185,14 @@ void CIndexedConfig::SetObjectCacheSize(int iObjectsCacheSize)
 {
 	miObjectsCacheSize = iObjectsCacheSize;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexedConfig::SetTransient(BOOL bTransient)
+{
+	mbTransient = bTransient;
+}
+

@@ -53,6 +53,7 @@ protected:
 
 public:
 						void				Init(CUnknowns* pcUnknownsAllocatingFrom, char* szWorkingDirectory);
+						void				Init(CUnknowns* pcUnknownsAllocatingFrom, CIndexedConfig* pcConfig);
 						void				Kill(void);
 
 						BOOL				Flush(void);
@@ -97,7 +98,9 @@ protected:
 extern CObjects gcObjects;
 
 
+void ObjectsInit(void);
 void ObjectsInit(char* szWorkingDirectory);
+void ObjectsInit(CIndexedConfig* pcConfig);
 void ObjectsKill(void);
 
 

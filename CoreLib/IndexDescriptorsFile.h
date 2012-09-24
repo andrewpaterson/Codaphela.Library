@@ -44,6 +44,7 @@ public:
 	filePos			Read(CIndexedDataDescriptor* pcDescriptor, int iPosition, int iNum = 1);
 	filePos			Write(CIndexedDataDescriptor* pcDescriptor, int iPosition, int iNum = 1);
 	CDurableFile*	GetDurableFile(void);
+	BOOL			Delete(void);
 };
 
 

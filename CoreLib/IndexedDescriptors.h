@@ -54,6 +54,8 @@ public:
 	void	Load(void);
 	void	UpdateFile(void);
 
+	BOOL	RemoveFile(void);
+
 	OIndex	Length(void);
 	OIndex	NumElements(void);
 	OIndex	NumCachedDatas(void);

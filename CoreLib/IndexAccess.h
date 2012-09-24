@@ -47,6 +47,8 @@ public:
 	virtual void 	Save(void) =0;
 	virtual BOOL 	UpdateFile(void) =0;
 
+			BOOL 	RemoveFile(void);
+
 	virtual BOOL 	IsHuge(void);
 	virtual BOOL 	IsMemory(void);
 	virtual BOOL 	IsDisk(void);

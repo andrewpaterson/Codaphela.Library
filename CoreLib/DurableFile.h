@@ -73,6 +73,7 @@ public:
 
 	BOOL		Open(void);
 	BOOL		Close(void);
+	BOOL		Delete(void);
 	filePos		Write(filePos iDistance, const void* pvSource, filePos iSize, filePos iCount);
 	filePos		Write(EFileSeekOrigin eOrigin, filePos iDistance, const void* pvSource, filePos iSize, filePos iCount);
 	filePos		Write(const void* pvSource, filePos iSize, filePos iCount);

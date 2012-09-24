@@ -52,6 +52,7 @@ protected:
 	BOOL					mbDurable;
 	BOOL					mbCaching;
 	BOOL					mbWriteThrough;
+	BOOL					mbTransient;
 
 public:
 	void 			Init(char* szWorkingDirectory, unsigned int uiCacheSize, BOOL bDurable);  //Old style for testing.
@@ -72,6 +73,8 @@ public:
 	BOOL			Flush(void);
 	void			DurableBegin(void);
 	void			DurableEnd(void);
+
+	BOOL			RemoveFiles(void);
 
 	BOOL			IsCaching(void);
 	BOOL			EvictFromCache(CIndexedDataDescriptor* pcDescriptor);
