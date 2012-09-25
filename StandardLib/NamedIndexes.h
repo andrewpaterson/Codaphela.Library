@@ -49,7 +49,6 @@ public:
 	BOOL						Remove(CChars* szName);
 	filePos						NumNames(void);
 
-	BOOL						Flush(void);
 	CIndexedFile*				GetFile(int iDataSize, int iFileNumber);
 	CIndexedFile*				GetOrCreateFile(int iDataSize, int iFileNumber);
 	void*						AllocateInCache(size_t iSize);

@@ -862,11 +862,11 @@ BOOL CIndexedData::Flush(void)
 			psCached = mcObjectCache.Iterate(psCached);
 		}
 		mcObjectCache.Clear();
-		return bAnyFailed;
+		return !bAnyFailed;
 	}
 	else
 	{
-		return FALSE;
+		return TRUE;
 	}
 }
 

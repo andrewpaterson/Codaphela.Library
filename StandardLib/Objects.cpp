@@ -79,16 +79,20 @@ BOOL CObjects::Flush(void)
 {
 	SIndexesIterator	sIter;
 	OIndex				oi;
+	BOOL				bResult;
+	CBaseObject*		pcBaseObject;
 
+	bResult = TRUE;
 	oi = StartMemoryIteration(&sIter);
 	while (oi != INVALID_O_INDEX)
 	{
-
+		pcBaseObject = GetBaseObject(oi);
+		bResult &= Save(pcBaseObject);
 		oi = IterateMemory(&sIter);
 	}
 
-	mcDatabase.Flush();
-	return FALSE;
+	bResult &= mcDatabase.Flush();
+	return bResult;
 }
 
 

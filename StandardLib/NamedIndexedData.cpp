@@ -182,8 +182,11 @@ BOOL CNamedIndexedData::Remove(OIndex oi)
 //////////////////////////////////////////////////////////////////////////
 BOOL CNamedIndexedData::Flush(void)
 {
-	ReturnOnFalse(mcNames.Flush());
-	return mcData.Flush();
+	BOOL	bResult;
+
+	bResult = mcNames.Save();
+	bResult &= mcData.Flush();
+	return bResult;
 }
 
 
