@@ -75,7 +75,7 @@ void CObjects::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjects::Flush(void)
+BOOL CObjects::Flush(BOOL bClearMemory, BOOL bClearCache)
 {
 	SIndexesIterator	sIter;
 	OIndex				oi;
@@ -91,8 +91,95 @@ BOOL CObjects::Flush(void)
 		oi = IterateMemory(&sIter);
 	}
 
-	bResult &= mcDatabase.Flush();
+	if (bClearMemory)
+	{
+		bResult &= ClearMemory();
+	}
+
+	bResult &= mcDatabase.Flush(bClearCache);
 	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CObjects::ClearMemory(void)
+{
+	SIndexesIterator		sIter;
+	OIndex					oi;
+	CBaseObject*			pcBaseObject;
+	CUnknown*				pcUnknown;
+	CArrayUnknownPtr		apcBaseObjects;
+	int						iCount;
+	BOOL					bResult;
+
+	apcBaseObjects.Init(1024);
+	oi = StartMemoryIteration(&sIter);
+
+	iCount = 0;
+	while (oi != INVALID_O_INDEX)
+	{
+		pcBaseObject = GetBaseObject(oi);
+		pcUnknown = pcBaseObject;
+		apcBaseObjects.Add(&pcUnknown);
+		iCount++;
+
+		if (iCount == 1024)
+		{
+			bResult = ClearObjects(&apcBaseObjects);
+			if (!bResult)
+			{
+				apcBaseObjects.Kill();
+				return FALSE;
+			}
+
+			iCount = 0;
+			apcBaseObjects.ReInit();
+		}
+
+		oi = IterateMemory(&sIter);
+	}
+
+	bResult = ClearObjects(&apcBaseObjects);
+	if (!bResult)
+	{
+		apcBaseObjects.Kill();
+		return FALSE;
+	}
+
+	apcBaseObjects.Kill();
+
+	mcMemory.ReInit();
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CObjects::ClearObjects(CArrayUnknownPtr* papcObjectPts)
+{
+	int				i;
+	CBaseObject*	pcBaseObject;
+
+	if (papcObjectPts->IsNotEmpty())
+	{
+		for (i = 0; i < papcObjectPts->NumElements(); i++)
+		{
+			pcBaseObject = (CBaseObject*)(*papcObjectPts->Get(i));
+			pcBaseObject->Kill();
+		}
+
+		mpcUnknownsAllocatingFrom->RemoveInKill(papcObjectPts);
+		return TRUE;
+	}
+	else
+	{
+		return TRUE;
+	}
 }
 
 
@@ -460,6 +547,16 @@ long long int CObjects::NumDatabaseObjects(void)
 int CObjects::NumDatabaseObjectsCached(int iSize)
 {
 	return mcDatabase.NumCached(iSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CObjects::NumDatabaseObjectsCached(void)
+{
+	return mcDatabase.NumCached();
 }
 
 

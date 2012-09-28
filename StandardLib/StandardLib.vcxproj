@@ -81,6 +81,7 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="ArrayUnknownPtr.h" />
     <ClInclude Include="Base.h" />
     <ClInclude Include="ChunkFileNames.h" />
     <ClInclude Include="DependentObjectGraphDeserialiser.h" />

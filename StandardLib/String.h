@@ -13,7 +13,6 @@ public:
 
 	BOOL	Save(CObjectSerialiser* pcFile);
 	BOOL	Load(CObjectDeserialiser* pcFile);
-
 };
 
 

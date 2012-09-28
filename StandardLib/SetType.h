@@ -20,6 +20,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __SET_TYPE_H__
 #define __SET_TYPE_H__
+#include "Unknowns.h"
 #include "SetUnknown.h"
 
 

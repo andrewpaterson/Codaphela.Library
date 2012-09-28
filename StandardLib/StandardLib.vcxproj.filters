@@ -471,6 +471,9 @@
     <ClInclude Include="ObjectSingleSerialiser.h">
       <Filter>Source\Object\Object\Serilalisation\Single</Filter>
     </ClInclude>
+    <ClInclude Include="ArrayUnknownPtr.h">
+      <Filter>Source\Object\Unknown\Allocation</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Unknown.cpp">

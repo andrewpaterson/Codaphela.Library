@@ -44,6 +44,7 @@ typedef CArrayEmbedded<CBaseObject*, 32>	CArrayEmbeddedBaseObjectPtr;
 #define UNATTACHED_DIST_TO_ROOT		-1
 #define CLEARED_DIST_TO_ROOT		-2
 
+
 class CObjectDeserialiser;
 class CObjectSerialiser;
 class CObjects;

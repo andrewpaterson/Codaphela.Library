@@ -22,6 +22,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __UNKNOWNS_H__
 #include "BaseLib/Memory.h"
 #include "BaseLib/ConstructorCall.h"
+#include "ArrayUnknownPtr.h"
 #include "Iterables.h"
 #include "ConstructorUnknown.h"
 
@@ -29,12 +30,10 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #define UMalloc(classtype)	((classtype*)gcUnknowns.Add<classtype>());
 
 
-class CUnknown;
 class CUnknowns
 {
 friend class CConstructorUnknown;
 friend class CMapStringUnknown;
-//friend class CUnknown;
 
 protected:
 	CMemory					mcMemory;
@@ -69,6 +68,7 @@ public:
 						CFreeListBlock*	GetFreeList(unsigned int iElementSize);
 
 						void			RemoveInKill(CUnknown* pcUnknown);
+						void			RemoveInKill(CArrayUnknownPtr* papcObjectPts);
 protected:
 	CUnknown*	AddExisting(CUnknown* pcUnknown);
 	void		DebugName(CUnknown* pcUnknown, char (*pszDebug)[4]);

@@ -39,6 +39,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #define ONNull(classtype)			(gcObjects.Null<classtype>())
 #define ORoot()						(gcObjects.AddRoot())
 
+
 class CObjects
 {
 protected:
@@ -56,7 +57,7 @@ public:
 						void				Init(CUnknowns* pcUnknownsAllocatingFrom, CIndexedConfig* pcConfig);
 						void				Kill(void);
 
-						BOOL				Flush(void);
+						BOOL				Flush(BOOL bClearMemory, BOOL bClearCache);
 						BOOL				Save(CBaseObject* pcObject);
 						BOOL				ForceSave(CBaseObject* pcObject);
 
@@ -81,6 +82,7 @@ public:
 						long long int		NumMemoryIndexes(void);
 						int					NumMemoryNames(void);
 						long long int		NumDatabaseObjects(void);
+						int					NumDatabaseObjectsCached(void);
 						int					NumDatabaseObjectsCached(int iSize);
 						CIndexGenerator*	GetIndexGenerator(void);
 
@@ -95,6 +97,8 @@ protected:
 						BOOL				AddWithIDAndName(CBaseObject* pvObject, char* szObjectName);
 	template<class M>	M*					Allocate(void);
 						CBaseObject*		Allocate(char* szClassName);
+						BOOL				ClearMemory(void);
+						BOOL				ClearObjects(CArrayUnknownPtr* papcObjectPts);
 };
 
 

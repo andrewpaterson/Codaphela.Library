@@ -35,6 +35,7 @@ protected:
 public:
 	void				Init(void);
 	void				Kill(void);
+	void				ReInit(void);
 	CBaseObject*		Get(OIndex oi);
 	CBaseObject*		Get(char* szName);
 	BOOL				AddWithID(CBaseObject* pvObject, OIndex oi, CBaseObject** ppvExisting);

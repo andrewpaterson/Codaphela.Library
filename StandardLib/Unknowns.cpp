@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/ArrayVoidPtr.h"
 #include "Unknown.h"
 #include "Unknowns.h"
 
@@ -215,6 +216,34 @@ void CUnknowns::RemoveInKill(CUnknown* pcUnknown)
 		mcIterables.Remove(pcUnknown);
 	}
 	mcMemory.Remove(pcUnknown);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CUnknowns::RemoveInKill(CArrayUnknownPtr* papcObjectPts)
+{
+	int				i;
+	CUnknown*		pcUnknown;
+	CArrayVoidPtr	cArray;
+	void**			pvData;		
+
+	//Optimise this sometime later as iterables aren't used yet.
+	for (i = 0; i < papcObjectPts->NumElements(); i++)
+	{
+		pcUnknown = *papcObjectPts->Get(i);
+		if (pcUnknown->Iterable())
+		{
+			mcIterables.Remove(pcUnknown);
+		}
+	}
+
+	pvData = (void**)papcObjectPts->GetData();
+	cArray.Fake(pvData, papcObjectPts->NumElements());
+
+	mcMemory.Remove(&cArray);
 }
 
 
