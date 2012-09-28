@@ -54,11 +54,12 @@ public:
 	BOOL			Remove(CChars* szName);
 	BOOL			Remove(OIndex oi);
 
-	BOOL			Flush(void);
+	BOOL			Flush(BOOL bClearCache);
 	void			DurableBegin(void);
 	void			DurableEnd(void);
 
 	OIndex			NumObjects(void);
+	int				NumCached(void);
 	int				NumCached(int iSize);
 	BOOL			IsCaching(void);
 };

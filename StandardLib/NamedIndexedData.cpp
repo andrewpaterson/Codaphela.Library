@@ -180,12 +180,12 @@ BOOL CNamedIndexedData::Remove(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNamedIndexedData::Flush(void)
+BOOL CNamedIndexedData::Flush(BOOL bClearCache)
 {
 	BOOL	bResult;
 
 	bResult = mcNames.Save();
-	bResult &= mcData.Flush();
+	bResult &= mcData.Flush(bClearCache);
 	return bResult;
 }
 
@@ -217,6 +217,16 @@ void CNamedIndexedData::DurableEnd(void)
 OIndex CNamedIndexedData::NumObjects(void)
 {
 	return mcData.NumElements();	
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CNamedIndexedData::NumCached(void)
+{
+	return mcData.NumCached();
 }
 
 
