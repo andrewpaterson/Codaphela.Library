@@ -32,7 +32,7 @@ struct SFNode
 {
 	BOOL	bFull;
 	int		iOffset;
-	void*	pcList;	  //Rember this is only valid provided the freelist never moves in memory.
+	void*	pcList;
 
 	//For testing
 	int*	GetBitArray(void);
@@ -70,6 +70,7 @@ public:
 	void		RemoveDuringIteration(SFreeListIterator* psIterator);
 	BOOL		Contains(M* pvData, BOOL bIsAllocated = TRUE);
 	int			NumElements(void);
+	int			NumNodeElements(SFNode* psNode);
 	void		SetAdditionalSize(int iSize);
 	int			GetElementSize(void);
 	int			GetElementStride(void);
@@ -78,9 +79,13 @@ public:
 	M*			GetElement(SFNode* psNode, int iPosition);
 	int			GetOffset(void);
 	int			GetAlignment(void);
+	int			GetChunkSize(void);
 	void*		GetBitArray(SFNode* psNode);
 	SFNode* 	FindNode(M* pvData, BOOL bIsAllocated = TRUE);
 	int			ByteSize(void);
+	M*			GetFirstNodeElement(SFNode* psNode);
+	M*			GetLastNodeElement(SFNode* psNode);
+	void		RemoveNode(SFNode* psNode);
 
 private:
 	SFNode* AllocateNew(void);
@@ -484,6 +489,17 @@ void __CFreeList<M>::Deallocate(SFNode* psNode)
 	{
 		mpsNotFull = NULL;
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+void __CFreeList<M>::RemoveNode(SFNode* psNode)
+{
+	Deallocate(psNode);
 }
 
 
@@ -942,32 +958,112 @@ int __CFreeList<M>::NumElements(void)
 {
 	SFNode*		psNode;
 	int			iCount;
-	void*		pvBitArray;
-	int			i;
 
 	iCount = 0;
 	psNode = (SFNode*)mcList.GetHead();
 	while (psNode)
 	{
-		if (psNode->bFull)
-		{
-			iCount += miChunkSize;
-		}
-		else
-		{
-			pvBitArray = GetBitArray(psNode);
-			for (i = 0; i < miChunkSize; i++)
-			{
-				if (GetBit(i, pvBitArray))
-				{
-					iCount++;
-				}
-			}
-		}
-
+		iCount += NumNodeElements(psNode);
 		psNode = (SFNode*)mcList.GetNext(psNode);
 	}
 	return iCount;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+int __CFreeList<M>::NumNodeElements(SFNode* psNode)
+{
+	int			iCount;
+	void*		pvBitArray;
+	int			i;
+
+	if (psNode->bFull)
+	{
+		return miChunkSize;
+	}
+	else
+	{
+		iCount = 0;
+		pvBitArray = GetBitArray(psNode);
+		for (i = 0; i < miChunkSize; i++)
+		{
+			if (GetBit(i, pvBitArray))
+			{
+				iCount++;
+			}
+		}
+		return iCount;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+M* __CFreeList<M>::GetFirstNodeElement(SFNode* psNode)
+{
+	int		iPosition;
+	void*	pvBitArray;
+
+	if (psNode->bFull)
+	{
+		return GetElementInNode(psNode, 0);
+	}
+	else
+	{
+		pvBitArray = GetBitArray(psNode);
+		iPosition = FindFirstSetBit(pvBitArray, miChunkSize);
+		if (iPosition == -1)
+		{
+			return NULL;
+		}
+
+		if ((iPosition < 0) || (iPosition >= miChunkSize))
+		{
+			return NULL;
+		}
+
+		return GetElementInNode(psNode, iPosition);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+M* __CFreeList<M>::GetLastNodeElement(SFNode* psNode)
+{
+	int		iPosition;
+	void*	pvBitArray;
+
+	if (psNode->bFull)
+	{
+		return GetElementInNode(psNode, miChunkSize-1);
+	}
+	else
+	{
+		pvBitArray = GetBitArray(psNode);
+		iPosition = FindLastSetBit(pvBitArray, miChunkSize);
+		if (iPosition == -1)
+		{
+			return NULL;
+		}
+
+		if ((iPosition < 0) || (iPosition >= miChunkSize))
+		{
+			return NULL;
+		}
+
+		return GetElementInNode(psNode, iPosition);
+	}
 }
 
 
@@ -1033,6 +1129,17 @@ template<class M>
 int __CFreeList<M>::GetAlignment(void)
 {
 	return miAlignment;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+int __CFreeList<M>::GetChunkSize(void)
+{
+	return miChunkSize;
 }
 
 
