@@ -1,0 +1,112 @@
+#include "MemoryHeader.h"
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+SFreeListParams* SFreeListParams::Init(unsigned int iFreeListSize, int iPrevSize, int iChunkSize)
+{
+	this->iMaxListSize = iFreeListSize;
+	this->iMinListSize = iPrevSize + 1;
+	this->iMaxElementSize = iFreeListSize - sizeof(SMemoryAllocation);
+	this->iMinElementSize = iPrevSize - sizeof(SMemoryAllocation) + 1;
+	this->iChunkSize = iChunkSize;
+	return this;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void SFreeListDesc::Init(unsigned int iStride, int iAlignment, int iOffset)
+{
+	this->iStride = iStride;
+	this->iAlignment = iAlignment;
+	this->iOffset = iOffset;
+	this->pcFreeList = NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void SFreeListDesc::Init(CFreeListBlock* pcFreeList, int iStride, int iAlignment, int iOffset)
+{
+	this->iStride = iStride;
+	this->iAlignment = iAlignment;
+	this->iOffset = iOffset;
+	this->pcFreeList = pcFreeList;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+int CompareFreeListDesc(const void* arg1, const void* arg2)
+{
+	SFreeListDesc*	ps1;
+	SFreeListDesc*	ps2;
+
+	ps1 = (SFreeListDesc*)arg1;
+	ps2 = (SFreeListDesc*)arg2;
+
+	if ((ps1->iStride) < (ps2->iStride))
+	{
+		return -1;
+	}
+	else if ((ps1->iStride) > (ps2->iStride))
+	{
+		return 1;
+	}
+
+	if ((ps1->iAlignment) < (ps2->iAlignment))
+	{
+		return -1;
+	}
+	else if ((ps1->iAlignment) > (ps2->iAlignment))
+	{
+		return 1;
+	}
+
+	if ((ps1->iOffset) < (ps2->iOffset))
+	{
+		return 1;
+	}
+	else if ((ps1->iOffset) > (ps2->iOffset))
+	{
+		return -1;
+	}
+	return 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+int CompareFreeListParam(const void* arg1, const void* arg2)
+{
+	unsigned int		uiElementSize;
+	SFreeListParams*	psParams;
+
+	uiElementSize = *((unsigned int*)arg1);
+	psParams = (SFreeListParams*)arg2;
+
+	if (uiElementSize < psParams->iMinElementSize)
+	{
+		return -1;
+	}
+	else if (uiElementSize > psParams->iMaxElementSize)
+	{
+		return 1;
+	}
+	else
+	{
+		return 0;
+	}
+}
+

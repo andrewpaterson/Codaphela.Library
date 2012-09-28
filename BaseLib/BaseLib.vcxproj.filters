@@ -588,6 +588,12 @@
     <ClInclude Include="ChunkFileFile.h">
       <Filter>Source\File\Chunk\File</Filter>
     </ClInclude>
+    <ClInclude Include="ArrayVoidPtr.h">
+      <Filter>Source\Data\Array</Filter>
+    </ClInclude>
+    <ClInclude Include="MemoryHeader.h">
+      <Filter>Source\Memory\Manager</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ArrayBit.cpp">
@@ -922,6 +928,12 @@
     </ClCompile>
     <ClCompile Include="ChunkFileFile.cpp">
       <Filter>Source\File\Chunk\File</Filter>
+    </ClCompile>
+    <ClCompile Include="ArrayVoidPtr.cpp">
+      <Filter>Source\Data\Array</Filter>
+    </ClCompile>
+    <ClCompile Include="MemoryHeader.cpp">
+      <Filter>Source\Memory\Manager</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -80,6 +80,7 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="ArrayVoidPtr.h" />
     <ClInclude Include="BaseFileNode.h" />
     <ClInclude Include="ChunkFileFile.h" />
     <ClInclude Include="ChunkFileHeader.h" />
@@ -110,6 +111,7 @@
     <ClInclude Include="LinkListTemplateFreeList.h" />
     <ClInclude Include="LinkListTemplateMemoryStack.h" />
     <ClInclude Include="MemoryCacheAllocation.h" />
+    <ClInclude Include="MemoryHeader.h" />
     <ClInclude Include="PackFileIterator.h" />
     <ClInclude Include="PackFilesGeneral.h" />
     <ClInclude Include="TreeBlock.h" />
@@ -239,6 +241,7 @@
     <ClCompile Include="ArrayPointer.cpp" />
     <ClCompile Include="ArraySimpleChar.cpp" />
     <ClCompile Include="ArrayString.cpp" />
+    <ClCompile Include="ArrayVoidPtr.cpp" />
     <ClCompile Include="BaseFileNode.cpp" />
     <ClCompile Include="ChunkFileFile.cpp" />
     <ClCompile Include="ChunkFileHeader.cpp" />
@@ -246,6 +249,7 @@
     <ClCompile Include="LinkListBlock.cpp" />
     <ClCompile Include="LinkListBlockMemoryStack.cpp" />
     <ClCompile Include="MemoryCacheAllocation.cpp" />
+    <ClCompile Include="MemoryHeader.cpp" />
     <ClCompile Include="PackFileIterator.cpp" />
     <ClCompile Include="TreeBlock.cpp" />
     <ClCompile Include="TreeBlockMemoryStack.cpp" />
