@@ -88,7 +88,7 @@ void CIndexedData::Kill(void)
 
 		if (!mbDurable)
 		{
-			Flush();
+			Flush(TRUE);
 		}
 		else
 		{
@@ -842,7 +842,7 @@ void CIndexedData::DurableEnd(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedData::Flush(void)
+BOOL CIndexedData::Flush(BOOL bClearCache)
 {
 	SIndexedCacheDescriptor*	psCached;
 	BOOL						bAnyFailed;
@@ -861,7 +861,10 @@ BOOL CIndexedData::Flush(void)
 			}
 			psCached = mcObjectCache.Iterate(psCached);
 		}
-		mcObjectCache.Clear();
+		if (bClearCache && !bAnyFailed)
+		{
+			mcObjectCache.Clear();
+		}
 		return !bAnyFailed;
 	}
 	else

@@ -70,7 +70,7 @@ public:
 
 	BOOL			Remove(OIndex oi);
 
-	BOOL			Flush(void);
+	BOOL			Flush(BOOL bClearCache);
 	void			DurableBegin(void);
 	void			DurableEnd(void);
 
