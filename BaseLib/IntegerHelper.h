@@ -48,6 +48,8 @@ void 	SetFlag(int* piDest, int iFlag, int iFlagValue);  //Identically to set bit
 void 	SetFlag(unsigned int* piDest, int iFlag, int iFlagValue);  //Identically to set bit but only works on 4bytes.
 int 	FindFirstClearBit(void* pvArray, int iArraySize);
 int 	FindFirstSetBit(void* pvArray, int iArraySize);
+int 	FindLastClearBit(void* pvArray, int iArraySize);
+int 	FindLastSetBit(void* pvArray, int iArraySize);
 int 	FixBool(int i);
 int 	FixBool(void* pv);
 void 	Swap(int* pi1, int* pi2);

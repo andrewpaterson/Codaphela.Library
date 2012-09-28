@@ -180,7 +180,6 @@ void SetBit(int iBit, void* pvArray, int bBit)
 //	iArray size is in bits
 //
 //////////////////////////////////////////////////////////////////////////
-//Oi, can we be a bit less retarded about this implementation.  Use (w AND -w) to get first set bit alone and use int == 0 on ints first.
 int FindFirstSetBit(void* pvArray, int iArraySize)
 {
 	int				iIntSize;
@@ -365,6 +364,48 @@ int FindFirstClearBit(void* pvArray, int iArraySize)
 		}
 		return -1;
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int FindLastClearBit(void* pvArray, int iArraySize)
+{
+	int		i;
+	int		iBit;
+
+	for (i = iArraySize-1; i >= 0; i--)
+	{
+		iBit = GetBit(i, pvArray);
+		if (iBit == 0)
+		{
+			return i;
+		}
+	}
+	return -1;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int FindLastSetBit(void* pvArray, int iArraySize)
+{
+	int		i;
+	int		iBit;
+
+	for (i = iArraySize-1; i >= 0; i--)
+	{
+		iBit = GetBit(i, pvArray);
+		if (iBit)
+		{
+			return i;
+		}
+	}
+	return -1;
 }
 
 
