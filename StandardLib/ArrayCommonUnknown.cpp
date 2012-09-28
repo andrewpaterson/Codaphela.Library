@@ -19,6 +19,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/PointerFunctions.h"
+#include "Unknowns.h"
 #include "ArrayUnknown.h"
 
 

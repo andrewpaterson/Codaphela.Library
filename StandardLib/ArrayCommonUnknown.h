@@ -20,10 +20,8 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __ARRAY_COMMON_UNKNOWN_H__
 #define __ARRAY_COMMON_UNKNOWN_H__
-#include "Unknowns.h"
-
-
-typedef CArrayTemplate<CUnknown*> _CArrayUnknownPtr;
+#include "ArrayUnknownPtr.h"
+#include "Unknown.h"
 
 
 #define ARRAY_COMMOM_KILL_ELEMENT	0x0001
@@ -60,7 +58,7 @@ protected:
 	int					miFlags;
 
 private:
-	_CArrayUnknownPtr	mcArray;
+	CArrayUnknownPtr	mcArray;
 	int					miNonNullElements;
 
 	BOOL				PrivateIterate(SSetIterator* psIter, CUnknown** ppcUnknown);
