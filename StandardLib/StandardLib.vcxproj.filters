@@ -387,9 +387,6 @@
     <ClInclude Include="SerialisedObject.h">
       <Filter>Source\Object\Object\Serilalisation</Filter>
     </ClInclude>
-    <ClInclude Include="ObjectSourceSimple.h">
-      <Filter>Source\Object\Object\Source\Native</Filter>
-    </ClInclude>
     <ClInclude Include="ObjectConverterNative.h">
       <Filter>Source\Object\Object\Source\Native</Filter>
     </ClInclude>
@@ -473,6 +470,9 @@
     </ClInclude>
     <ClInclude Include="ArrayUnknownPtr.h">
       <Filter>Source\Object\Unknown\Allocation</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectSourceSimple.h">
+      <Filter>Source\Object\Object\Source\Native</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

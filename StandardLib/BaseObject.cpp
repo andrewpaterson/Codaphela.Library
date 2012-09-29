@@ -55,6 +55,8 @@ void CBaseObject::Kill(void)
 {
 	//This should only be called once all the 'from s' and 'to s' are gone.
 
+	miFlags |= OBJECT_FLAGS_KILLED;
+
 	mapFroms.Kill();
 	if (mpcObjectsThisIn)
 	{

@@ -69,8 +69,7 @@ void CRoot::Init(CObjects* pcObjectsAllocatingFrom)
 void CRoot::Kill(void)
 {
 	mpObjects->Kill();
-	CUnknown::Kill();
-	mpcObjectsAllocatingFrom = NULL;
+	CBaseObject::Kill();
 }
 
 

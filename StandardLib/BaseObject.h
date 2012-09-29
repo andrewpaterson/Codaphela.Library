@@ -39,6 +39,9 @@ typedef CArrayEmbedded<CBaseObject*, 32>	CArrayEmbeddedBaseObjectPtr;
 //Dirty must be manually set when an object needs to be written from memory to indexed data.  Objects are - by default always dirty.
 #define OBJECT_FLAGS_DIRTY				0x08
 
+//Debug flag marking whether or not an object has had kill called on it.  An object that is killed should be removed from Memory so an object with this flag set is broken.
+#define OBJECT_FLAGS_KILLED				0x10
+
 
 #define ROOT_DIST_TO_ROOT			 0
 #define UNATTACHED_DIST_TO_ROOT		-1
