@@ -42,7 +42,7 @@ protected:
 	void	Init(CObjects* pcObjectsAllocatingFrom);
 
 public:
-	void	Kill(void);
+	void	KillData(void);
 
 	void	Add(CPointerObject pObject);
 	void	Remove(CPointerObject pObject);
