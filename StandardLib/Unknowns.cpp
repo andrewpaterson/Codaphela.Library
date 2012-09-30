@@ -228,7 +228,7 @@ void CUnknowns::RemoveInKill(CArrayUnknownPtr* papcObjectPts)
 	int				i;
 	CUnknown*		pcUnknown;
 	CArrayVoidPtr	cArray;
-	void**			pvData;		
+	void**			pvData;
 
 	//Optimise this sometime later as iterables aren't used yet.
 	for (i = 0; i < papcObjectPts->NumElements(); i++)
