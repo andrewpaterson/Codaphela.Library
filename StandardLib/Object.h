@@ -44,11 +44,13 @@ public:
 	CPointerObject* Pointer(CPointerObject* pcPointer);
 	
 protected:
+	void			KillToPointers(void);
 	void			GetTos(CArrayBaseObjectPtr* papcTos);
 	void			RemoveTo(CBaseObject* pcTo);
 	void			RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged);
-	void			CollectedThoseToBeKilled(CArrayBaseObjectPtr* papcKilled);
+	void			CollectThoseToBeKilled(CArrayBaseObjectPtr* papcKilled);
 	int				RemapTos(CBaseObject* pcOld, CBaseObject* pcNew);
+	void			Free(void);
 };
 
 

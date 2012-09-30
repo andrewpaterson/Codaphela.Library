@@ -38,21 +38,27 @@ CObject::CObject()
 //////////////////////////////////////////////////////////////////////////
 void CObject::Kill(void)
 {
-	int					i;
-	CBaseObject*		pcPointedTo;
-	CPointerObject**	ppPointer;
-
-	for (i = 0; i < mapPointers.NumElements(); i++)
-	{
-		ppPointer = mapPointers.Get(i);
-		pcPointedTo = &(**ppPointer);
-		if (pcPointedTo)
-		{
-			*ppPointer = NULL;
-		}
-	}
-	mapPointers.Kill();
 	CBaseObject::Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CObject::KillToPointers(void)
+{
+	mapPointers.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CObject::Free(void)
+{
+	CBaseObject::Free();
 }
 
 
@@ -71,7 +77,7 @@ int CObject::NumTos(void)
 	for (i = 0; i < mapPointers.NumElements(); i++)
 	{
 		ppPointer = mapPointers.Get(i);
-		pcPointedTo = &(**ppPointer);
+		pcPointedTo = (*ppPointer)->Object();
 		if (pcPointedTo)
 		{
 			iCount++;
@@ -105,7 +111,7 @@ BOOL CObject::IsCollection(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObject::CollectedThoseToBeKilled(CArrayBaseObjectPtr* papcKilled)
+void CObject::CollectThoseToBeKilled(CArrayBaseObjectPtr* papcKilled)
 {
 	int					i;
 	CBaseObject*		pcPointedTo;
@@ -116,14 +122,14 @@ void CObject::CollectedThoseToBeKilled(CArrayBaseObjectPtr* papcKilled)
 	for (i = 0; i < mapPointers.NumElements(); i++)
 	{
 		ppPointer = mapPointers.Get(i);
-		pcPointedTo = &(**ppPointer);
+		pcPointedTo = (*ppPointer)->Object();
 		if (pcPointedTo)
 		{
 			if (pcPointedTo->miDistToRoot != UNATTACHED_DIST_TO_ROOT)
 			{
 				if (!pcPointedTo->CanFindRoot())
 				{
-					pcPointedTo->CollectedThoseToBeKilled(papcKilled);
+					pcPointedTo->CollectThoseToBeKilled(papcKilled);
 				}
 			}
 		}
@@ -196,9 +202,34 @@ void CObject::RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged)
 	for (i = 0; i < iNumPointers; i++)
 	{
 		ppPointer = mapPointers.Get(i);
-		pcPointedTo = &(**ppPointer);
+		pcPointedTo = (*ppPointer)->Object();
 		RemoveToFrom(pcPointedTo, papcFromsChanged);
 		(*ppPointer)->ClearObject();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CObject::RemoveTo(CBaseObject* pcTo)
+{
+	int					iNumPointers;
+	int					i;
+	CPointerObject**	ppPointer;
+	CBaseObject*		pcPointedTo;
+
+	iNumPointers = mapPointers.NumElements();
+	for (i = 0; i < iNumPointers; i++)
+	{
+		ppPointer = mapPointers.Get(i);
+		pcPointedTo = (*ppPointer)->Object();
+	
+		if (pcPointedTo == pcTo)
+		{
+			(*ppPointer)->ClearObject();	
+		}
 	}
 }
 

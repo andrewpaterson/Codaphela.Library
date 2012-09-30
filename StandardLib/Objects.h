@@ -32,6 +32,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 #define ROOT_NAME	"GraphRoot"
 
+#define CLEAR_MEMORY_CHUNK_SIZE		16384
 
 #define OMalloc(classtype)			(gcObjects.Add<classtype>())
 #define ONMalloc(classtype, name)	(gcObjects.Add<classtype>(name))
@@ -42,6 +43,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 class CObjects
 {
+friend class CBaseObject;
 protected:
 	CUnknowns*				mpcUnknownsAllocatingFrom;
 
@@ -75,6 +77,8 @@ public:
 						CPointerObject		AddHollow(OIndex oi);
 						CPointerObject		AddHollow(char* szName, OIndex oi);
 
+						void				Remove(CArrayBaseObjectPtr* papcKilled);
+
 						CPointerObject		Null(void);
 	template<class M>	CPointer<M>			Null(void);
 
@@ -98,7 +102,9 @@ protected:
 	template<class M>	M*					Allocate(void);
 						CBaseObject*		Allocate(char* szClassName);
 						BOOL				ClearMemory(void);
-						BOOL				ClearObjects(CArrayUnknownPtr* papcObjectPts);
+						void				KillDontFreeObjects(CArrayBaseObjectPtr* papcObjectPts);
+						void				FreeObjects(CArrayBaseObjectPtr* papcObjectPts);
+						void				FixDistToRoot(CArrayEmbeddedBaseObjectPtr* papcFromsChanged);
 };
 
 

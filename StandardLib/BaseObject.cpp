@@ -53,11 +53,43 @@ void CBaseObject::PreInit(CObjects* pcObjects)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::Kill(void)
 {
-	//This should only be called once all the 'from s' and 'to s' are gone.
+	CArrayEmbeddedBaseObjectPtr		apcFromsChanged;
+
+	if (mapFroms.IsEmpty())
+	{
+		apcFromsChanged.Init();
+		RemoveAllTos(&apcFromsChanged);
+		mpcObjectsThisIn->FixDistToRoot(&apcFromsChanged);
+		apcFromsChanged.Kill();
+		KillThisGraph();
+	}
+	else
+	{
+		RemoveAllFroms();
+	}
+
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CBaseObject::KillDontFree(void)
+{
+	KillData();
+	mapFroms.Kill();
+	KillToPointers();
 
 	miFlags |= OBJECT_FLAGS_KILLED;
+}
 
-	mapFroms.Kill();
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CBaseObject::Free(void)
+{
 	if (mpcObjectsThisIn)
 	{
 		mpcObjectsThisIn->RemoveInKill(this);
@@ -83,9 +115,7 @@ void CBaseObject::PrivateRemoveFrom(CBaseObject* pcFrom)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::RemoveFrom(CBaseObject* pcFrom)
 {
-	CArrayEmbeddedBaseObjectPtr		apcFromsChanged;
-	CBaseObject*					pcTemp;
-
+	//Removing a 'from' kicks off memory reclamation.  This is the entry point for memory management.
 	PrivateRemoveFrom(pcFrom);
 	if (!CanFindRoot())
 	{
@@ -93,11 +123,8 @@ void CBaseObject::RemoveFrom(CBaseObject* pcFrom)
 	}
 	else
 	{
-		apcFromsChanged.Init();
-		pcTemp = this;
-		apcFromsChanged.Add(&pcTemp);
-		FixDistToRoot(&apcFromsChanged);
-		apcFromsChanged.Kill();
+		//ClearDistToSubRoot();
+		FixDistToRoot();
 	}
 }
 
@@ -108,7 +135,7 @@ void CBaseObject::RemoveFrom(CBaseObject* pcFrom)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::CopyFroms(CBaseObject* pcSource)
 {
-	RemoveAllFroms();
+	mapFroms.Reinit();
 	mapFroms.Copy(&pcSource->mapFroms);
 }
 
@@ -121,12 +148,18 @@ int CBaseObject::KillThisGraph(void)
 {
 	CArrayBaseObjectPtr		apcKilled;
 	int						iNumKilled;
-	
+
+	if (CanFindRoot())
+	{
+		return 0;
+	}
+
 	apcKilled.Init(1024);
-	CollectedThoseToBeKilled(&apcKilled);
 
-	iNumKilled = KillCollected(&apcKilled);
+	CollectThoseToBeKilled(&apcKilled);
+	KillCollected(&apcKilled);
 
+	iNumKilled = apcKilled.NumElements();
 	apcKilled.Kill();
 	return iNumKilled;
 }
@@ -150,32 +183,9 @@ void CBaseObject::MarkForKilling(CArrayBaseObjectPtr* papcKilled)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CBaseObject::KillCollected(CArrayBaseObjectPtr* papcKilled)
+void CBaseObject::KillCollected(CArrayBaseObjectPtr* papcKilled)
 {
-	int								i;
-	int								iNumElements;
-	CBaseObject*					pcKilled;
-	CArrayEmbeddedBaseObjectPtr		apcFromsChanged;
-
-	iNumElements = papcKilled->NumElements();
-	apcFromsChanged.Init();
-
-	for (i = 0; i < iNumElements; i++)
-	{
-		pcKilled = *papcKilled->Get(i);
-		pcKilled->RemoveAllTos(&apcFromsChanged);
-	}
-
-	for (i = 0; i < iNumElements; i++)
-	{
-		pcKilled = *papcKilled->Get(i);
-		pcKilled->Kill();
-	}
-
-	FixDistToRoot(&apcFromsChanged);
-
-	apcFromsChanged.Kill();
-	return iNumElements;
+	mpcObjectsThisIn->Remove(papcKilled);
 }
 
 
@@ -274,39 +284,6 @@ BOOL CBaseObject::CanFindRoot(void)
 	bResult = pcNearestPointedFrom->CanFindRoot();
 	SetFlag(&miFlags, OBJECT_FLAGS_TESTED_FOR_ROOT, FALSE);
 	return bResult;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CBaseObject::FixDistToRoot(CArrayEmbeddedBaseObjectPtr* papcFromsChanged)
-{
-	int				i;
-	int				iNumElements;
-	CBaseObject*	pcSubRoot;
-	CBaseObject*	pcTemp;
-	CBaseObject*	pcFromsChanged;
-
-	//You could optimize this to stop one before the RootSet.
-	pcSubRoot = NULL;
-	iNumElements = papcFromsChanged->NumElements();
-	for (i = 0; i < iNumElements; i++)
-	{
-		pcFromsChanged = *papcFromsChanged->Get(i);
-		pcTemp = pcFromsChanged->ClearDistToSubRoot();
-		if (!pcSubRoot)
-		{
-			//Theres a bug here, you need to collect all the SubRoots and call FixDistToRoot on all of them.
-			pcSubRoot = pcTemp;
-		}
-	}
-
-	if (pcSubRoot)
-	{
-		pcSubRoot->FixDistToRoot();
-	}
 }
 
 
@@ -436,7 +413,7 @@ int CBaseObject::SerialisedSize(void)
 {
 	CObjectSerialiser	cSerialiser;
 	int					iLength;
-	
+
 	cSerialiser.Init(NULL, this);
 	cSerialiser.Save();
 	iLength = cSerialiser.GetLength();
@@ -648,6 +625,20 @@ OIndex CBaseObject::GetOI(void)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::RemoveAllFroms(void)
 {
+	int				iNumFroms;
+	CBaseObject**	ppcPointedFrom;
+	int				i;
+	CBaseObject*	pcPointedFrom;
+
+	iNumFroms = mapFroms.NumElements();
+	ppcPointedFrom = mapFroms.GetData();
+	for (i = 0; i < iNumFroms; i++)
+	{
+		pcPointedFrom = ppcPointedFrom[i];
+		pcPointedFrom->RemoveTo(this);
+	}
+
 	mapFroms.Reinit();
+	KillThisGraph();
 }
 

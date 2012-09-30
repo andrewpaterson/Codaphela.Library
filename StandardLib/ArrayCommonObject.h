@@ -56,10 +56,12 @@ public:
 	CBaseObject*	UnsafeGet(int iIndex);
 
 protected:
+	void			KillToPointers(void);
+	void			KillData(void);
 	void			RemoveTo(CBaseObject* pcTo);
 	void			RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged);
 	int				RemapTos(CBaseObject* pcOld, CBaseObject* pcNew);
-	void			CollectedThoseToBeKilled(CArrayBaseObjectPtr* papcKilled);
+	void			CollectThoseToBeKilled(CArrayBaseObjectPtr* papcKilled);
 	void			KillChildGraph(void);
 };
 

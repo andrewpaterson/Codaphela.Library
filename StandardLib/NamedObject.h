@@ -40,6 +40,9 @@ public:
 	char*	GetName(void);
 	BOOL	IsNamed(void);
 
+protected:
+	void CNamedObject::Free(void);
+
 private:
 	BOOL	InitName(char* szName);
 };

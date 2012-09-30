@@ -41,9 +41,65 @@ void CArrayCommonObject::Init(BOOL bUnique, BOOL bIgnoreNull, BOOL bPreserveOrde
 //////////////////////////////////////////////////////////////////////////
 void CArrayCommonObject::Kill(void)
 {
-	RemoveAll();
-	mcArray.Kill();
 	CCollection::Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CArrayCommonObject::KillToPointers(void)
+{
+	mcArray.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CArrayCommonObject::KillChildGraph(void)
+{
+	CArrayBaseObjectPtr	apcKilled;
+	CBaseObject*		pcPointedTo;
+	int					i;
+
+	apcKilled.Init(1024);
+
+	for (i = 0; i < mcArray.NumElements(); i++)
+	{
+		pcPointedTo = (CBaseObject*)mcArray.UnsafeGet(i);
+		if (pcPointedTo)
+		{
+			pcPointedTo->CollectThoseToBeKilled(&apcKilled);
+		}
+	}
+
+	KillCollected(&apcKilled);
+
+	apcKilled.Kill();
+
+	mcArray.ReInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CArrayCommonObject::RemoveAll(void)
+{
+	KillChildGraph();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CArrayCommonObject::KillData(void)
+{
 }
 
 
@@ -154,45 +210,6 @@ void CArrayCommonObject::Remove(CPointerObject pObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayCommonObject::KillChildGraph(void)
-{
-	CArrayBaseObjectPtr	apcKilled;
-	CBaseObject*		pcPointedTo;
-	int					i;
-
-	apcKilled.Init(1024);
-
-	for (i = 0; i < mcArray.NumElements(); i++)
-	{
-		pcPointedTo = (CBaseObject*)mcArray.UnsafeGet(i);
-		if (pcPointedTo)
-		{
-			pcPointedTo->CollectedThoseToBeKilled(&apcKilled);
-		}
-	}
-
-	KillCollected(&apcKilled);
-
-	apcKilled.Kill();
-
-	mcArray.ReInit();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CArrayCommonObject::RemoveAll(void)
-{
-	KillChildGraph();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 int CArrayCommonObject::NumElements(void)
 {
 	return mcArray.NumElements();
@@ -226,7 +243,7 @@ int CArrayCommonObject::NumTos(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayCommonObject::CollectedThoseToBeKilled(CArrayBaseObjectPtr* papcKilled)
+void CArrayCommonObject::CollectThoseToBeKilled(CArrayBaseObjectPtr* papcKilled)
 {
 	CBaseObject*			pcPointedTo;
 	int						i;
@@ -242,7 +259,7 @@ void CArrayCommonObject::CollectedThoseToBeKilled(CArrayBaseObjectPtr* papcKille
 			{
 				if (!pcPointedTo->CanFindRoot())
 				{
-					pcPointedTo->CollectedThoseToBeKilled(papcKilled);
+					pcPointedTo->CollectThoseToBeKilled(papcKilled);
 				}
 			}
 		}
@@ -265,6 +282,16 @@ void CArrayCommonObject::RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChan
 		RemoveToFrom(pcPointedTo, papcFromsChanged);
 	}
 	mcArray.ReInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CArrayCommonObject::RemoveTo(CBaseObject* pcTo)
+{
+	mcArray.Remove((CUnknown*)pcTo);
 }
 
 

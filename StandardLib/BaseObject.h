@@ -59,6 +59,7 @@ friend class CPointerObject;
 friend class CObjectGraphDeserialiser;
 friend class CArrayCommonObject;
 friend class CObject;
+friend class CObjects;
 friend class CArray;
 
 BASE_FUNCTIONS(CBaseObject);
@@ -72,7 +73,11 @@ protected:
 public:
 							CBaseObject();
 			void			PreInit(CObjects* pcObjects);
+
 			void			Kill(void);
+
+			void			KillDontFree(void);
+	virtual void			KillData(void) =0;
 
 	virtual BOOL			Save(CObjectSerialiser* pcFile) =0;
 	virtual BOOL			Load(CObjectDeserialiser* pcFile) =0;
@@ -104,26 +109,27 @@ public:
 	virtual int				NumTos(void) =0;
 			CBaseObject* 	TestGetTo(int iToIndex);
 			CBaseObject* 	TestGetFrom(int iFromIndex);
-
-
+	virtual void			RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged) =0;
+	
 protected:
+	virtual void			KillToPointers(void) =0;
+	virtual void			Free(void);
 			CBaseObject*	GetFrom(int iFrom);
 	virtual int				RemapTos(CBaseObject* pcOld, CBaseObject* pcNew) =0;
-	virtual void			RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged) =0;
 			BOOL			RemoveToFrom(CBaseObject* pcPointedTo, CArrayEmbeddedBaseObjectPtr* papcFromsChanged);
 			void			AddFrom(CBaseObject* pcFrom);
 			void			PrivateRemoveFrom(CBaseObject* pcFrom);
 			void			RemoveFrom(CBaseObject* pcFrom);
 			void			RemoveAllFroms(void);
+	virtual void			RemoveTo(CBaseObject* pcTo) =0;
 			void			CopyFroms(CBaseObject* pcSource);
 			void			PotentiallySetDistToRoot(CBaseObject* pcTos, int iExpectedDistToRoot);
 			void			FixDistToRoot(void);
-			void			FixDistToRoot(CArrayEmbeddedBaseObjectPtr* papcFromsChanged);
 			BOOL			CanFindRoot(void);
 			CBaseObject*	ClearDistToSubRoot(void);
-	virtual void			CollectedThoseToBeKilled(CArrayBaseObjectPtr* papcKilled) =0;
+	virtual void			CollectThoseToBeKilled(CArrayBaseObjectPtr* papcKilled) =0;
 			void			MarkForKilling(CArrayBaseObjectPtr* papcKilled);
-			int				KillCollected(CArrayBaseObjectPtr* papcKilled);
+			void			KillCollected(CArrayBaseObjectPtr* papcKilled);
 			int				KillThisGraph(void);
 };
 

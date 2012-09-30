@@ -110,30 +110,23 @@ BOOL CObjects::ClearMemory(void)
 	SIndexesIterator		sIter;
 	OIndex					oi;
 	CBaseObject*			pcBaseObject;
-	CUnknown*				pcUnknown;
-	CArrayUnknownPtr		apcBaseObjects;
+	CArrayBaseObjectPtr		apcBaseObjects;
 	int						iCount;
-	BOOL					bResult;
 
-	apcBaseObjects.Init(1024);
+	apcBaseObjects.Init(CLEAR_MEMORY_CHUNK_SIZE);
 	oi = StartMemoryIteration(&sIter);
 
 	iCount = 0;
 	while (oi != INVALID_O_INDEX)
 	{
 		pcBaseObject = GetBaseObject(oi);
-		pcUnknown = pcBaseObject;
-		apcBaseObjects.Add(&pcUnknown);
+		apcBaseObjects.Add(&pcBaseObject);
 		iCount++;
 
-		if (iCount == 1024)
+		if (iCount == CLEAR_MEMORY_CHUNK_SIZE)
 		{
-			bResult = ClearObjects(&apcBaseObjects);
-			if (!bResult)
-			{
-				apcBaseObjects.Kill();
-				return FALSE;
-			}
+			KillDontFreeObjects(&apcBaseObjects);
+			FreeObjects(&apcBaseObjects);
 
 			iCount = 0;
 			apcBaseObjects.ReInit();
@@ -142,12 +135,8 @@ BOOL CObjects::ClearMemory(void)
 		oi = IterateMemory(&sIter);
 	}
 
-	bResult = ClearObjects(&apcBaseObjects);
-	if (!bResult)
-	{
-		apcBaseObjects.Kill();
-		return FALSE;
-	}
+	KillDontFreeObjects(&apcBaseObjects);
+	FreeObjects(&apcBaseObjects);
 
 	apcBaseObjects.Kill();
 
@@ -160,25 +149,48 @@ BOOL CObjects::ClearMemory(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjects::ClearObjects(CArrayUnknownPtr* papcObjectPts)
+void CObjects::KillDontFreeObjects(CArrayBaseObjectPtr* papcObjectPts)
 {
 	int				i;
 	CBaseObject*	pcBaseObject;
+	int				iNumElements;
 
 	if (papcObjectPts->IsNotEmpty())
 	{
-		for (i = 0; i < papcObjectPts->NumElements(); i++)
+		iNumElements = papcObjectPts->NumElements();
+		for (i = 0; i < iNumElements; i++)
 		{
 			pcBaseObject = (CBaseObject*)(*papcObjectPts->Get(i));
-			pcBaseObject->Kill();
+			pcBaseObject->KillDontFree();
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CObjects::FreeObjects(CArrayBaseObjectPtr* papcObjectPts)
+{
+	int					i;
+	CBaseObject*		pcBaseObject;
+	int					iNumElements;
+	CArrayUnknownPtr	cArray;
+	CUnknown**			pvData;
+
+	if (papcObjectPts->IsNotEmpty())
+	{
+		iNumElements = papcObjectPts->NumElements();
+		for (i = 0; i < iNumElements; i++)
+		{
+			pcBaseObject = (*papcObjectPts->Get(i));
+			RemoveInKill(pcBaseObject);
 		}
 
-		mpcUnknownsAllocatingFrom->RemoveInKill(papcObjectPts);
-		return TRUE;
-	}
-	else
-	{
-		return TRUE;
+		pvData = (CUnknown**)papcObjectPts->GetData();
+		cArray.Fake(pvData, papcObjectPts->NumElements());
+		mpcUnknownsAllocatingFrom->RemoveInKill(&cArray);
 	}
 }
 
@@ -495,6 +507,69 @@ CPointerObject CObjects::Get(char* szObjectName)
 	else
 	{
 		return Null();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CObjects::Remove(CArrayBaseObjectPtr* papcKilled)
+{
+	int								i;
+	int								iNumElements;
+	CBaseObject*					pcKilled;
+	CArrayEmbeddedBaseObjectPtr		apcFromsChanged;
+
+	iNumElements = papcKilled->NumElements();
+	apcFromsChanged.Init();
+
+	for (i = 0; i < iNumElements; i++)
+	{
+		pcKilled = *papcKilled->Get(i);
+		pcKilled->RemoveAllTos(&apcFromsChanged);  //Does not kill anything.
+	}
+
+	KillDontFreeObjects(papcKilled);
+	FreeObjects(papcKilled);
+
+	FixDistToRoot(&apcFromsChanged);
+
+	apcFromsChanged.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CObjects::FixDistToRoot(CArrayEmbeddedBaseObjectPtr* papcFromsChanged)
+{
+	int				i;
+	int				iNumElements;
+	CBaseObject*	pcSubRoot;
+	CBaseObject*	pcTemp;
+	CBaseObject*	pcFromsChanged;
+
+	//You could optimize this to stop one before the RootSet.
+	pcSubRoot = NULL;
+	iNumElements = papcFromsChanged->NumElements();
+	for (i = 0; i < iNumElements; i++)
+	{
+		pcFromsChanged = *papcFromsChanged->Get(i);
+
+		pcTemp = pcFromsChanged->ClearDistToSubRoot();
+		if (!pcSubRoot)
+		{
+			//Theres a bug here, you need to collect all the SubRoots and call FixDistToRoot on all of them.
+			pcSubRoot = pcTemp;
+		}
+	}
+
+	if (pcSubRoot)
+	{
+		pcSubRoot->FixDistToRoot();
 	}
 }
 
