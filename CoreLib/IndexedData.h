@@ -22,6 +22,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __INDEXED_DATA_H__
 #define __INDEXED_DATA_H__
+#include "BaseLib/MemoryFile.h"
 #include "IndexedConfig.h"
 #include "IndexedCache.h"
 #include "IndexedData.h"
@@ -67,6 +68,7 @@ public:
 	unsigned int	Size(OIndex oi);
 	unsigned int	Flags(OIndex oi);
 	BOOL			Get(OIndex oi, void* pvData);
+	void*			Get(OIndex oi);
 
 	BOOL			Remove(OIndex oi);
 

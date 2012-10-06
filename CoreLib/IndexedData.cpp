@@ -755,6 +755,35 @@ BOOL CIndexedData::Get(OIndex oi, void* pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void* CIndexedData::Get(OIndex oi)
+{
+	CIndexedDataDescriptor	cDescriptor;
+	BOOL					bResult;
+	filePos					iDataSize;
+	void*					pvData;
+
+	bResult = GetDescriptor(oi, &cDescriptor);
+	if (!bResult)
+	{
+		return NULL;
+	}
+
+	iDataSize = cDescriptor.GetDataSize();
+
+	pvData = malloc((size_t)iDataSize);
+	if (pvData)
+	{
+		GetData(&cDescriptor, pvData);
+		return pvData;
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL CIndexedData::GetData(CIndexedDataDescriptor* pcDescriptor, void* pvData)
 {
 	BOOL	bResult;

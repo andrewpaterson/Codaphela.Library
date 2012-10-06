@@ -50,6 +50,8 @@ public:
 	unsigned int	Flags(OIndex oi);
 	OIndex			GetIndex(CChars* szName);
 	BOOL			Get(OIndex oi, void* pvData);
+	void*			Get(OIndex oi);
+	void*			Get(char* szName);
 
 	BOOL			Remove(CChars* szName);
 	BOOL			Remove(OIndex oi);
