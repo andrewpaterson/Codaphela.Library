@@ -18,40 +18,29 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __OBJECT_DESERIALISER_H__
-#define __OBJECT_DESERIALISER_H__
+#ifndef __OBJECT_INDEXED_DATA_DESERIALISER_H__
+#define __OBJECT_INDEXED_DATA_DESERIALISER_H__
 #include "BaseLib/FileReader.h"
 #include "BaseLib/MemoryFile.h"
 #include "IndexNewOld.h"
 #include "SerialisedObject.h"
+#include "ObjectDeserialiser.h"
 #include "Pointer.h"
 
 
-class CObjectHeader;
-class CPointerHeader;
-class CObjectDeserialiser : public CFileReader
+class CObjectIndexedDataDeserialiser : public CObjectDeserialiser
 {
 protected:
-	CMemoryFile*				mpcMemory;
-	CFileBasic					mcFile;
 
 public:
-			BOOL			Init(CSerialisedObject* pcSerialised);
-			void			Kill(void);
-			CPointerObject	Load(OIndex oiNew);
-
-			BOOL			ReadPointer(CPointerObject* pObject);
-			BOOL			ReadPointerHeader(CPointerHeader* pcPointerHeader);
-			BOOL			ReadObjectHeader(CObjectHeader* pcObjectHeader);
-			BOOL			ReadDependent(CBaseObject** ppcObjectPtr, CBaseObject* pcContaining);
+	BOOL			Init(CSerialisedObject* pcSerialised);
+	void			Kill(void);
 
 protected:
-			filePos			Read(void* pvDest, filePos iSize, filePos iCount);
-			void			ClearPointer(CPointerObject* pObject);
-	virtual void			AddDependent(CPointerHeader* pcHeader, CBaseObject** ppcObjectPtr, CBaseObject* pcContaining) =0;
-	virtual void			AddIndexRemap(OIndex oiNew, OIndex oiOld);
+	void			AddDependent(CPointerHeader* pcHeader, CBaseObject** ppcObjectPtr, CBaseObject* pcContaining);
+	void			AddIndexRemap(OIndex oiNew, OIndex oiOld);
 };
 
 
-#endif // __OBJECT_DESERIALISER_H__
+#endif // __OBJECT_INDEXED_DATA_DESERIALISER_H__
 

@@ -1,6 +1,6 @@
 #include "BaseLib/ErrorTypes.h"
 #include "Objects.h"
-#include "ObjectDeserialiser.h"
+#include "ObjectSourceDeserialiser.h"
 #include "ObjectGraphDeserialiser.h"
 
 
@@ -98,12 +98,12 @@ CPointerObject CObjectGraphDeserialiser::Read(char* szObjectName)
 //////////////////////////////////////////////////////////////////////////
 BOOL CObjectGraphDeserialiser::ReadUnread(CDependentReadObject* pcDependent, BOOL bFirst)
 {
-	CSerialisedObject*		pcSerialised;
-	char*					szObjectName;
-	CObjectDeserialiser		cDeserialiser;
-	CPointerObject			pObject;
-	OIndex					oiNew;
-	OIndex					oiOld;
+	CSerialisedObject*			pcSerialised;
+	char*						szObjectName;
+	CObjectSourceDeserialiser	cDeserialiser;
+	CPointerObject				pObject;
+	OIndex						oiNew;
+	OIndex						oiOld;
 
 	pcSerialised = NULL;
 	if (pcDependent->IsNamed())

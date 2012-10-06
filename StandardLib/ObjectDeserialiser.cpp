@@ -30,9 +30,8 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectDeserialiser::Init(CObjectGraphDeserialiser* pcGraphDeserialiser, CSerialisedObject* pcSerialised)
+BOOL CObjectDeserialiser::Init(CSerialisedObject* pcSerialised)
 {
-	mpcSerialised = pcSerialised;
 	if (!pcSerialised)
 	{
 		return FALSE;
@@ -40,7 +39,6 @@ BOOL CObjectDeserialiser::Init(CObjectGraphDeserialiser* pcGraphDeserialiser, CS
 
 	mpcMemory = MemoryFile(pcSerialised, pcSerialised->GetLength());
 	mcFile.Init(mpcMemory);
-	mpcGraphDeserialiser = pcGraphDeserialiser;
 	return TRUE;
 } 
 
@@ -51,9 +49,7 @@ BOOL CObjectDeserialiser::Init(CObjectGraphDeserialiser* pcGraphDeserialiser, CS
 //////////////////////////////////////////////////////////////////////////
 void CObjectDeserialiser::Kill(void)
 {
-	mpcGraphDeserialiser = NULL;
 	mcFile.Kill();
-	mpcSerialised = NULL;
 }
 
 
@@ -211,7 +207,8 @@ BOOL CObjectDeserialiser::ReadPointer(CPointerObject* pObject)
 	}
 	ppcObjectPtr = pObject->ObjectPtr();
 	pcEmbedding = pObject->Embedding();
-	mpcGraphDeserialiser->AddDependent(&cHeader, ppcObjectPtr, (CBaseObject*)pcEmbedding);
+
+	AddDependent(&cHeader, ppcObjectPtr, (CBaseObject*)pcEmbedding);
 
 	//cHeader is killed by mpcGraphDeserialiser.
 	return bResult;
@@ -229,7 +226,7 @@ BOOL CObjectDeserialiser::ReadDependent(CBaseObject** ppcObjectPtr, CBaseObject*
 
 	*ppcObjectPtr = NULL;
 	bResult = ReadPointerHeader(&cHeader);
-	mpcGraphDeserialiser->AddDependent(&cHeader, ppcObjectPtr, pcContaining);
+	AddDependent(&cHeader, ppcObjectPtr, pcContaining);
 
 	//cHeader is killed by mpcGraphDeserialiser.
 	return bResult;
@@ -242,6 +239,5 @@ BOOL CObjectDeserialiser::ReadDependent(CBaseObject** ppcObjectPtr, CBaseObject*
 //////////////////////////////////////////////////////////////////////////
 void CObjectDeserialiser::AddIndexRemap(OIndex oiNew, OIndex oiOld)
 {
-	mpcGraphDeserialiser->AddIndexRemap(oiNew, oiOld);
 }
 
