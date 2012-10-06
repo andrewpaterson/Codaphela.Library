@@ -474,6 +474,12 @@
     <ClInclude Include="ObjectSourceSimple.h">
       <Filter>Source\Object\Object\Source\Native</Filter>
     </ClInclude>
+    <ClInclude Include="ObjectSourceDeserialiser.h">
+      <Filter>Source\Object\Object\Serilalisation</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectIndexedDataDeserialiser.h">
+      <Filter>Source\Object\Object\Serilalisation</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Unknown.cpp">
@@ -769,6 +775,12 @@
     </ClCompile>
     <ClCompile Include="ObjectSingleSerialiser.cpp">
       <Filter>Source\Object\Object\Serilalisation\Single</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjectSourceDeserialiser.cpp">
+      <Filter>Source\Object\Object\Serilalisation</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjectIndexedDataDeserialiser.cpp">
+      <Filter>Source\Object\Object\Serilalisation</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

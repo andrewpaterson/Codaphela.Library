@@ -105,6 +105,7 @@ protected:
 						void				KillDontFreeObjects(CArrayBaseObjectPtr* papcObjectPts);
 						void				FreeObjects(CArrayBaseObjectPtr* papcObjectPts);
 						void				FixDistToRoot(CArrayEmbeddedBaseObjectPtr* papcFromsChanged);
+						CPointerObject		GetNotInMemory(char* szObjectName);
 };
 
 

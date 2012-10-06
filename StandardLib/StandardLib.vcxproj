@@ -90,6 +90,7 @@
     <ClInclude Include="DependentReadPointer.h" />
     <ClInclude Include="DependentWriteObject.h" />
     <ClInclude Include="HollowObjectGraphDeserialiser.h" />
+    <ClInclude Include="ObjectIndexedDataDeserialiser.h" />
     <ClInclude Include="IndexGenerator.h" />
     <ClInclude Include="IndexNewOld.h" />
     <ClInclude Include="NamedHollowObject.h" />
@@ -121,6 +122,7 @@
     <ClInclude Include="ObjectSingleSerialiser.h" />
     <ClInclude Include="ObjectSingleSource.h" />
     <ClInclude Include="ObjectSourceChunked.h" />
+    <ClInclude Include="ObjectSourceDeserialiser.h" />
     <ClInclude Include="ObjectSourceSimple.h" />
     <ClInclude Include="ObjectSourceText.h" />
     <ClInclude Include="Parameters.h" />
@@ -199,6 +201,7 @@
     <ClCompile Include="DependentReadPointer.cpp" />
     <ClCompile Include="DependentWriteObject.cpp" />
     <ClCompile Include="HollowObjectGraphDeserialiser.cpp" />
+    <ClCompile Include="ObjectIndexedDataDeserialiser.cpp" />
     <ClCompile Include="IndexGenerator.cpp" />
     <ClCompile Include="IndexNewOld.cpp" />
     <ClCompile Include="NamedHollowObject.cpp" />
@@ -229,6 +232,7 @@
     <ClCompile Include="ObjectSingleSerialiser.cpp" />
     <ClCompile Include="ObjectSingleSource.cpp" />
     <ClCompile Include="ObjectSourceChunked.cpp" />
+    <ClCompile Include="ObjectSourceDeserialiser.cpp" />
     <ClCompile Include="ObjectSourceSimple.cpp" />
     <ClCompile Include="ObjectSourceText.cpp" />
     <ClCompile Include="ObjectWriter.cpp" />

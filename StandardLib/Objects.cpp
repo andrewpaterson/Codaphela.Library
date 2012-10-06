@@ -23,6 +23,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "HollowObject.h"
 #include "NamedHollowObject.h"
 #include "ObjectSingleSerialiser.h"
+#include "ObjectIndexedDataDeserialiser.h"
 #include "ObjectWriterIndexed.h"
 #include "Objects.h"
 
@@ -506,7 +507,40 @@ CPointerObject CObjects::Get(char* szObjectName)
 	}
 	else
 	{
-		return Null();
+		return GetNotInMemory(szObjectName);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CPointerObject CObjects::GetNotInMemory(char* szObjectName)
+{
+	void*			pvData;	
+
+	pvData = mcDatabase.Get(szObjectName);
+	if (pvData)
+	{
+		CSerialisedObject*					pcSerialised;
+		CObjectIndexedDataDeserialiser		cDeserialiser;
+		CPointerObject						pObject;
+
+		pcSerialised = (CSerialisedObject*)pvData;
+
+		cDeserialiser.Init(pcSerialised);
+		pObject = cDeserialiser.Load(pcSerialised->GetIndex());
+		cDeserialiser.Kill();
+		free(pvData);
+		return pObject;
+	}
+	else
+	{
+
+
+		//mcSource.
+		return ONull;		
 	}
 }
 
