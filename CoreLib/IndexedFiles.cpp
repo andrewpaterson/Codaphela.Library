@@ -301,6 +301,11 @@ CIndexedFile* CIndexedFiles::GetOrCreateFile(int iDataSize)
 	}
 
 	pcIndexedFile = mcFiles.Add();
+	if (!pcIndexedFile)
+	{
+		return NULL;
+	}
+
 	DataFileName(szFileName, szRewriteName, iDataSize, iNumFiles);
 	pcIndexedFile->Init(mpcDurableFileControl, mcFiles.NumElements()-1, szFileName, szRewriteName, iDataSize, iNumFiles);
 	pcIndexedFile->Open(mpcDurableFileControl);

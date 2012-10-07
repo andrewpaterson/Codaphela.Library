@@ -78,13 +78,23 @@ public:
 
 	BOOL			RemoveFiles(void);
 
+	void			KillNonTransientNonDurable(void);
+	void			KillTransient(void);
+	void			KillEnd(void);
+	void			CloseFiles(void);
+
 	BOOL			IsCaching(void);
-	BOOL			EvictFromCache(CIndexedDataDescriptor* pcDescriptor);
+	BOOL			IsTransient(void);
+	BOOL			IsDurable(void);
 	int				NumCached(void);
 	int				NumCached(int iSize);
 	int				NumFiles(void);
 	OIndex			NumInFile(int iDataSize);
 	OIndex			NumElements(void);
+
+	BOOL			EvictFromCache(CIndexedDataDescriptor* pcDescriptor);
+	BOOL			Uncache(void);
+
 	int				TestNumCachedIndexes(void);
 	int				TestIndexedDescriptorsLength(void);
 	int				TestNumIgnoredCacheElements(void);
@@ -106,7 +116,6 @@ protected:
 	BOOL			EvictOverlappingFromCache(CArrayPointer* papsEvictedIndexedCacheDescriptors);
 
 	void			InvalidateData(CIndexedDataDescriptor* pcDescriptor);
-	BOOL			Uncache(void);
 	BOOL			CacheRead(CIndexedDataDescriptor* pcDescriptor);
 	BOOL			CacheWrite(CIndexedDataDescriptor* pcDescriptor, void* pvData, BOOL* pbWritten);
 	BOOL			Write(CIndexedDataDescriptor* pcDescriptor, void* pvData, unsigned int uiTimeStamp);

@@ -35,7 +35,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 void CIndexedDescriptors::Init(CIndexAccess* pcAccess)
 {
 	mpcAccess = pcAccess;
-	Load();
+	Open();
 
 	if (pcAccess->HasBegun())
 	{
@@ -87,7 +87,7 @@ BOOL CIndexedDescriptors::Remove(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedDescriptors::Save(void)
+void CIndexedDescriptors::Close(void)
 {
 	mpcAccess->Save();
 }
@@ -97,11 +97,10 @@ void CIndexedDescriptors::Save(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedDescriptors::Load(void)
+void CIndexedDescriptors::Open(void)
 {
 	mpcAccess->Load();
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
