@@ -414,11 +414,6 @@ CIndexedFile* CNamedIndexes::GetOrCreateFile(int iDataSize, int iFileNumber)
 	else
 	{
 		pcIndexedFile = mcFiles.GetOrCreateFile(iDataSize);
-		if (pcIndexedFile->mbNew)
-		{
-			pcIndexedFile->mbNew = FALSE;
-			mcFiles.WriteIndexedFileDescriptors();
-		}
 	}
 
 	return pcIndexedFile;

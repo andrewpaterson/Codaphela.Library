@@ -139,7 +139,7 @@ BOOL CNamedIndexesBlocks::Add(OIndex oi, CChars* szName, BOOL bFailOnExisting)
 	for (i = 0; i < cArrayBlockPrts.NumElements(); i++)
 	{
 		pcBlock = *cArrayBlockPrts.Get(i);
-		if (!pcBlock->IsCached())
+		if (pcBlock->IsNotCached())
 		{
 			Cache(pcBlock);
 		}
