@@ -178,7 +178,7 @@ void CIndexedDataDescriptor::TimeStamp(unsigned int uiTimeStamp)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedDataDescriptor::File(int iFileIndex, filePos iIndexInFile)
+void CIndexedDataDescriptor::SetIndexes(int iFileIndex, filePos iIndexInFile)
 {
 	miFileIndex = iFileIndex;
 	miIndexInFile = iIndexInFile;

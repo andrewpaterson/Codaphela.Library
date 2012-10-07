@@ -157,6 +157,7 @@ void CIndexedData::CloseFiles(void)
 {
 	mcIndices.Close();
 	mcObjectFiles.Close();
+	mcIndicesFile.Close();
 }
 
 
@@ -798,7 +799,7 @@ BOOL CIndexedData::GetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor
 BOOL CIndexedData::Get(OIndex oi, void* pvData)
 {
 	CIndexedDataDescriptor	cDescriptor;
-	BOOL				bResult;
+	BOOL					bResult;
 
 	bResult = GetDescriptor(oi, &cDescriptor);
 	if (!bResult)
@@ -806,8 +807,8 @@ BOOL CIndexedData::Get(OIndex oi, void* pvData)
 		return FALSE;
 	}
 
-	GetData(&cDescriptor, pvData);
-	return TRUE;
+	bResult = GetData(&cDescriptor, pvData);
+	return bResult;
 }
 
 
@@ -815,7 +816,7 @@ BOOL CIndexedData::Get(OIndex oi, void* pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CIndexedData::Get(OIndex oi)
+void* CIndexedData::Get(OIndex oi, int* piDataSize)
 {
 	CIndexedDataDescriptor	cDescriptor;
 	BOOL					bResult;
@@ -829,6 +830,7 @@ void* CIndexedData::Get(OIndex oi)
 	}
 
 	iDataSize = cDescriptor.GetDataSize();
+	SafeAssign(piDataSize, (int)iDataSize);
 
 	pvData = malloc((size_t)iDataSize);
 	if (pvData)

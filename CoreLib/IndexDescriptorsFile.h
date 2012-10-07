@@ -40,6 +40,7 @@ public:
 
 	void			Init(CDurableFileController* pcDurableFileControl, char* szFileName, char* szRewriteName);
 	void			Kill(void);
+	void			Close(void);
 	filePos			NumDescriptors(void);
 	filePos			Read(CIndexedDataDescriptor* pcDescriptor, int iPosition, int iNum = 1);
 	filePos			Write(CIndexedDataDescriptor* pcDescriptor, int iPosition, int iNum = 1);

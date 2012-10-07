@@ -64,7 +64,7 @@ public:
 	BOOL			IsCached(void);
 	void*			GetCache(void);
 	void			TimeStamp(unsigned int uiTimeStamp);
-	void			File(int iFileIndex, filePos iIndexInFile);
+	void			SetIndexes(int iFileIndex, filePos iIndexInFile);
 	int				GetFileIndex(void);
 	filePos			GetIndexInFile(void);
 	unsigned int	GetTimeStamp(void);

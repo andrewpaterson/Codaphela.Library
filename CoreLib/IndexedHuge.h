@@ -132,8 +132,11 @@ public:
 protected:
 	BOOL						PadFile(filePos iLength, filePos iOffset);
 	void						ClearCounters(void);
+	void						ClearThirdLevelChunks(void);
+	void						ClearThirdLevelDescriptors(SIndexedThirdLevelSearch* ps);
+	void						ClearThirdLevelDescriptorsFrom(int iFrom, SIndexedThirdLevelSearch* ps);
 
-	CIndexedDataDescriptor*			PrivateGetDescriptor(OIndex oi);
+	CIndexedDataDescriptor*		PrivateGetDescriptor(OIndex oi);
 	SIndexedSecondLevelSearch*	GetSecondLevelSearch(OIndex oi);
 	int							IncrementSecondLevelNumber(int iInput);
 	SIndexedSecondLevelSearch*	LoadSecondLevelChunk(int iFirstLevelIndex);
@@ -143,7 +146,7 @@ protected:
 	void						EvictThirdLevelChunk(SIndexedThirdLevelSearch* psIndexedThirdLevelSearch);
 	SIndexedThirdLevelSearch*	FindUnallocatedThirdLevelChunk(void);
 	SIndexedThirdLevelSearch*	GetCachedThirdLevelChunk(int iIndex);
-	CIndexedDataDescriptor*			GetCachedDescriptor(SIndexedThirdLevelSearch* psIndexedThirdLevelSearch, int iIndex);
+	CIndexedDataDescriptor*		GetCachedDescriptor(SIndexedThirdLevelSearch* psIndexedThirdLevelSearch, int iIndex);
 	SIndexedThirdLevelSearch**	GetIndexedThirdLevelChunk(SIndexedSecondLevelSearch* pSIndexedSecondLevelSearch, int iIndex);
 	OIndex						GetThirdLevelChunkOI(SIndexedThirdLevelSearch* psIndexedThirdLevelSearch);
 	void						SaveThirdLevelChunk(SIndexedThirdLevelSearch* psIndexedThirdLevelSearch);

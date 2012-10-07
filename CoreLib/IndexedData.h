@@ -68,7 +68,7 @@ public:
 	unsigned int	Size(OIndex oi);
 	unsigned int	Flags(OIndex oi);
 	BOOL			Get(OIndex oi, void* pvData);
-	void*			Get(OIndex oi);
+	void*			Get(OIndex oi, int* piDataSize);
 
 	BOOL			Remove(OIndex oi);
 

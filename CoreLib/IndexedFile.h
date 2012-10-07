@@ -41,7 +41,6 @@ public:
 	int				miFileNumber;  //There may be more than one file of the same size.
 	CChars			mszFileName;
 	CChars			mszRewriteName;
-	BOOL			mbNew;
 
 	void		Init(CDurableFileController* pcDurableFileControl, int iFileIndex, char* szFileName, char* szRewriteName, int iDataSize, int iFileNum);
 	void		Kill(void);

@@ -69,7 +69,6 @@ BOOL CIndexedFile::Open(CDurableFileController* pcDurableFileControl)
 
 	iFileLengh = mcFile.Size();
 	miNumDatas = (iFileLengh / miDataSize);
-	mbNew = TRUE;
 
 	bResult = TRUE;
 	if (pcDurableFileControl->IsBegun())
@@ -272,9 +271,6 @@ void CIndexedFile::Dump(void)
 	sz.AppendNewLine();
 	sz.Append("Rewrite Name: ");
 	sz.Append(mszRewriteName);
-	sz.AppendNewLine();
-	sz.Append("New: ");
-	sz.AppendBool(mbNew);
 	sz.AppendNewLine();
 	sz.Append("Durable: ");
 	sz.AppendBool(bDurable);

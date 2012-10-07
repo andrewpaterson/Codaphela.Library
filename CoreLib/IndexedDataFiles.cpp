@@ -36,20 +36,13 @@ BOOL CIndexedDataFiles::WriteNew(CIndexedDataDescriptor* pcIndexDescriptor, void
 	{
 		pcIndexedFile = GetOrCreateFile(iDataSize);
 
-		if (pcIndexedFile->mbNew)
-		{
-			pcIndexedFile->mbNew = FALSE;
-			WriteIndexedFileDescriptors();
-		}
-
 		iIndex = pcIndexedFile->Write(pvData);
 		if (iIndex == -1)
 		{
 			return FALSE;
 		}
 
-		//CIndexedDataDescriptor (pcIndexDescriptor) adjusted here.
-		pcIndexDescriptor->File(pcIndexedFile->GetFileIndex(), iIndex);
+		pcIndexDescriptor->SetIndexes(pcIndexedFile->GetFileIndex(), iIndex);
 		return TRUE;
 	}
 	else
