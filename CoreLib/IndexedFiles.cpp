@@ -181,8 +181,6 @@ BOOL CIndexedFiles::WriteIndexedFileDescriptors(void)
 {
 	int							i;
 	CIndexedFile*				pcIndexedFile;
-	//char						szDataFileName[65536];
-	//char						szDataRewriteName[65536];
 	SIndexedFileDescriptor*		psFileDescriptor;
 	void*						pvFileDescriptors;
 	BOOL						bResult;
@@ -197,8 +195,6 @@ BOOL CIndexedFiles::WriteIndexedFileDescriptors(void)
 		psFileDescriptor->iDataSize = pcIndexedFile->miDataSize;
 		psFileDescriptor->iFileIndex = pcIndexedFile->GetFileIndex();
 		psFileDescriptor->iFileNum = pcIndexedFile->miFileNumber;
-
-		//bResult &= DataFileName(szDataFileName, szDataRewriteName, pcIndexedFile->miDataSize, pcIndexedFile->miFileNumber);
 	}
 	bResult &= mcDurableFile.Write(0, pvFileDescriptors, sizeof(SIndexedFileDescriptor), mcFiles.NumElements());
 

@@ -55,10 +55,6 @@ void CNamedIndexes::Kill(void)
 	int						i;
 	CNamedIndexesBlocks*	pcBlock;
 	
-	Flush();
-
-	mcFiles.Close();
-
 	for (i = 0; i < macBlocks.NumElements(); i++)
 	{
 		pcBlock = macBlocks.Get(i);

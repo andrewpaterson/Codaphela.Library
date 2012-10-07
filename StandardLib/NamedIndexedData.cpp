@@ -43,21 +43,26 @@ void CNamedIndexedData::Kill(void)
 		if (!mcData.IsDurable())
 		{
 			mcData.KillNonTransientNonDurable();
+			mcNames.Close();
 		}
 		else
 		{
 			mcData.DurableBegin();
 			mcData.Uncache();
 			mcData.CloseFiles();
+			mcNames.Close();
 			DurableEnd();
 		}
 	}
 	else
 	{
 		mcData.KillTransient();
+		mcNames.Close();
+//		mcNames.RemoveFiles();
 	}
 
 	mcData.KillEnd();
+	mcNames.Kill();
 }
 
 
@@ -182,7 +187,7 @@ void* CNamedIndexedData::Get(OIndex oi)
 {
 	void*	pvData;
 
-	pvData = mcData.Get(oi);
+	pvData = mcData.Get(oi, (int*)NULL);
 	return pvData;
 }
 
@@ -191,7 +196,7 @@ void* CNamedIndexedData::Get(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void*  CNamedIndexedData::Get(char* szName)
+void* CNamedIndexedData::Get(char* szName)
 {
 	OIndex	oi;
 	void*	pvData;
@@ -199,7 +204,7 @@ void*  CNamedIndexedData::Get(char* szName)
 	oi = mcNames.GetIndex(szName);
 	if (oi != INVALID_O_INDEX)
 	{
-		pvData = mcData.Get(oi);
+		pvData = mcData.Get(oi, (int*)NULL);
 		return pvData;
 	}
 	return NULL;
