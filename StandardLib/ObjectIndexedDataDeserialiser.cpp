@@ -22,6 +22,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "ObjectFileGeneral.h"
 #include "ObjectHeader.h"
 #include "Objects.h"
+#include "HollowObject.h"
 #include "ObjectGraphDeserialiser.h"
 #include "ObjectIndexedDataDeserialiser.h"
 
@@ -57,7 +58,35 @@ void CObjectIndexedDataDeserialiser::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CObjectIndexedDataDeserialiser::AddDependent(CPointerHeader* pcHeader, CBaseObject** ppcObjectPtr, CBaseObject* pcContaining)
 {
-	//Add Hollow...
+	CPointerObject	pObject;
+	CBaseObject*	pcObject;
+
+	pcObject = gcObjects.GetInMemoryObject(pcHeader->moi);
+	if (pcObject == NULL)
+	{
+		 AddHollow(pcHeader, ppcObjectPtr, pcContaining);
+	}
+	FixPointer(pcObject, ppcObjectPtr, pcContaining);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CHollowObject* CObjectIndexedDataDeserialiser::AddHollow(CPointerHeader* pcHeader, CBaseObject** ppcObjectPtr, CBaseObject* pcContaining)
+{
+	CPointerObject		pObject;
+
+	if (pcHeader->IsNamed())
+	{
+		pObject = gcObjects.AddHollow(pcHeader->mszObjectName.Text(), pcHeader->moi);
+	}
+	else
+	{
+		pObject = gcObjects.AddHollow(pcHeader->moi);
+	}
+	return (CHollowObject*)pObject.Object();
 }
 
 
@@ -69,3 +98,17 @@ void CObjectIndexedDataDeserialiser::AddIndexRemap(OIndex oiNew, OIndex oiOld)
 {
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CObjectIndexedDataDeserialiser::FixPointer(CBaseObject* pcBaseObject, CBaseObject** ppcPointedFrom, CBaseObject* pcContaining)
+{
+	*ppcPointedFrom = pcBaseObject;
+
+	if (pcContaining)
+	{
+		pcBaseObject->AddFrom(pcContaining);
+	}
+}

@@ -28,6 +28,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Pointer.h"
 
 
+class CHollowObject;
 class CObjectIndexedDataDeserialiser : public CObjectDeserialiser
 {
 protected:
@@ -38,7 +39,9 @@ public:
 
 protected:
 	void			AddDependent(CPointerHeader* pcHeader, CBaseObject** ppcObjectPtr, CBaseObject* pcContaining);
+	CHollowObject*	AddHollow(CPointerHeader* pcHeader, CBaseObject** ppcObjectPtr, CBaseObject* pcContaining);
 	void			AddIndexRemap(OIndex oiNew, OIndex oiOld);
+	void			FixPointer(CBaseObject* pcBaseObject, CBaseObject** ppcPointedFrom, CBaseObject* pcContaining);
 };
 
 
