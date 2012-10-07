@@ -38,8 +38,26 @@ void CNamedIndexedData::Init(CIndexedConfig* pcConfig)
 //////////////////////////////////////////////////////////////////////////
 void CNamedIndexedData::Kill(void)
 {
-	mcNames.Kill();
-	mcData.Kill();
+	if (!mcData.IsTransient())
+	{
+		if (!mcData.IsDurable())
+		{
+			mcData.KillNonTransientNonDurable();
+		}
+		else
+		{
+			mcData.DurableBegin();
+			mcData.Uncache();
+			mcData.CloseFiles();
+			DurableEnd();
+		}
+	}
+	else
+	{
+		mcData.KillTransient();
+	}
+
+	mcData.KillEnd();
 }
 
 
@@ -99,6 +117,17 @@ BOOL CNamedIndexedData::SetOrAdd(OIndex oi, void* pvData, unsigned int uiDataSiz
 //
 //////////////////////////////////////////////////////////////////////////
 BOOL CNamedIndexedData::SetOrAdd(OIndex oi, CChars* szName, void* pvData, unsigned int uiDataSize, unsigned int uiTimeStamp)
+{
+	ReturnOnFalse(mcNames.Add(oi, szName, FALSE));
+	return mcData.SetOrAdd(oi, pvData, uiDataSize, uiTimeStamp);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CNamedIndexedData::SetOrAdd(OIndex oi, char* szName, void* pvData, unsigned int uiDataSize, unsigned int uiTimeStamp)
 {
 	ReturnOnFalse(mcNames.Add(oi, szName, FALSE));
 	return mcData.SetOrAdd(oi, pvData, uiDataSize, uiTimeStamp);
@@ -216,7 +245,7 @@ BOOL CNamedIndexedData::Flush(BOOL bClearCache)
 {
 	BOOL	bResult;
 
-	bResult = mcNames.Save();
+	bResult = mcNames.Flush();
 	bResult &= mcData.Flush(bClearCache);
 	return bResult;
 }
@@ -246,7 +275,7 @@ void CNamedIndexedData::DurableEnd(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-OIndex CNamedIndexedData::NumObjects(void)
+long long int CNamedIndexedData::NumObjects(void)
 {
 	return mcData.NumElements();	
 }
@@ -269,6 +298,16 @@ int CNamedIndexedData::NumCached(void)
 int CNamedIndexedData::NumCached(int iSize)
 {
 	return mcData.NumCached(iSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+long long int CNamedIndexedData::NumNames(void)
+{
+	return mcNames.NumNames();
 }
 
 

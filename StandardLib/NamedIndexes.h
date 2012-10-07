@@ -40,6 +40,7 @@ public:
 	BOOL						Open(void);
 	BOOL						Save(void);
 	BOOL						Close(void);
+	BOOL						Flush(void);
 
 	BOOL						Add(OIndex oi, char* szName, BOOL bFailOnExisting = TRUE);
 	BOOL						Add(OIndex oi, CChars* szName, BOOL bFailOnExisting = TRUE);

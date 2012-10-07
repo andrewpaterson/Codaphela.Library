@@ -45,6 +45,7 @@ public:
 
 	BOOL			SetOrAdd(OIndex oi, void* pvData, unsigned int uiDataSize, unsigned int uiTimeStamp);
 	BOOL			SetOrAdd(OIndex oi, CChars* szName, void* pvData, unsigned int uiDataSize, unsigned int uiTimeStamp);
+	BOOL			SetOrAdd(OIndex oi, char* szName, void* pvData, unsigned int uiDataSize, unsigned int uiTimeStamp);
 
 	unsigned int	Size(OIndex oi);
 	unsigned int	Flags(OIndex oi);
@@ -60,9 +61,10 @@ public:
 	void			DurableBegin(void);
 	void			DurableEnd(void);
 
-	OIndex			NumObjects(void);
+	long long int	NumObjects(void);
 	int				NumCached(void);
 	int				NumCached(int iSize);
+	long long int	NumNames(void);
 	BOOL			IsCaching(void);
 };
 

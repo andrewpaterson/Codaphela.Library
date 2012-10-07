@@ -128,8 +128,6 @@ BOOL CNamedIndexesBlocks::Add(OIndex oi, CChars* szName, BOOL bFailOnExisting)
 	CNamedIndexesBlock*			pcBlock;
 	OIndex						oiExisiting;
 	CNamedIndexesBlock*			pcNotFullBlock;
-	CIndexedFile*				pcFile;
-	void*						pvCache;
 	CArrayNamedIndexesBlockPtr	cArrayBlockPrts;
 
 	cArrayBlockPrts.Init(16);
@@ -164,34 +162,12 @@ BOOL CNamedIndexesBlocks::Add(OIndex oi, CChars* szName, BOOL bFailOnExisting)
 	}
 	cArrayBlockPrts.Kill();
 
-	if (pcNotFullBlock == NULL)
+	pcNotFullBlock = FindOrCreateAndCacheBlock(pcNotFullBlock);
+	if (pcNotFullBlock)
 	{
-		for (i = 0; i < macBlocks.NumElements(); i++)
-		{
-			pcBlock = macBlocks.Get(i);
-			if (pcBlock->IsNotFull())
-			{
-				pcNotFullBlock = pcBlock;
-				break;
-			}
-		}
+		return pcNotFullBlock->AddUnsafe(oi, szName);
 	}
-
-	if (pcNotFullBlock == NULL)
-	{
-		pcNotFullBlock = macBlocks.Add();
-		pcNotFullBlock->Init(miBlockWidth, miBlockChunkSize);
-		Cache(pcNotFullBlock);
-	}
-	else if (!pcNotFullBlock->IsCached())
-	{
-		pcFile = mpcNamedIndexes->GetFile(miBlockWidth, miFileNumber);
-		pvCache = mpcNamedIndexes->AllocateInCache(pcBlock->GetAllocatedByteSize());
-
-		pcNotFullBlock->Cache(pcFile, pvCache);
-	}
-
-	return pcNotFullBlock->AddUnsafe(oi, szName);
+	return FALSE;
 }
 
 
@@ -232,7 +208,7 @@ BOOL CNamedIndexesBlocks::Cache(CNamedIndexesBlock* pcBlock)
 	
 	if (pcBlock->IsInFile())
 	{
-		pvCache = mpcNamedIndexes->AllocateInCache(pcBlock->GetAllocatedByteSize());
+		pvCache = mpcNamedIndexes->AllocateInCache(pcBlock->GetAllocatedByteSize());  //Calls GetOrCreateFile
 		pcFile = mpcNamedIndexes->GetFile(miBlockWidth, miFileNumber);
 
 		return pcBlock->Cache(pcFile, pvCache);
@@ -240,6 +216,7 @@ BOOL CNamedIndexesBlocks::Cache(CNamedIndexesBlock* pcBlock)
 	else
 	{
 		pvCache = mpcNamedIndexes->AllocateInCache(pcBlock->GetAllocatedByteSize());
+
 		return pcBlock->Cache(pvCache);
 	}
 }
@@ -490,6 +467,74 @@ int CNamedIndexesBlocks::FindFirstUncachedBlock(CArrayNamedIndexesBlockPtr* pcDe
 		}
 	}
 	return -1;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CNamedIndexesBlock* CNamedIndexesBlocks::FindNotFullBlock()
+{
+	int						i;
+	CNamedIndexesBlock*		pcBlock;
+
+	for (i = 0; i < macBlocks.NumElements(); i++)
+	{
+		pcBlock = macBlocks.Get(i);
+		if (pcBlock->IsNotFull())
+		{
+			return pcBlock;
+		}
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CNamedIndexesBlock* CNamedIndexesBlocks::FindOrCreateAndCacheBlock(CNamedIndexesBlock* pcNotFullBlock)
+{
+	BOOL	bResult;
+
+	if (pcNotFullBlock == NULL)
+	{
+		pcNotFullBlock = FindNotFullBlock();
+	}
+
+	if (pcNotFullBlock == NULL)
+	{
+		pcNotFullBlock = macBlocks.Add();
+		pcNotFullBlock->Init(miBlockWidth, miBlockChunkSize);
+
+		bResult = Cache(pcNotFullBlock);
+		if (bResult)
+		{
+			return pcNotFullBlock;
+		}
+		else
+		{
+			return NULL;
+		}
+	}
+	else if (pcNotFullBlock->IsNotCached())
+	{
+		bResult = Cache(pcNotFullBlock);
+		if (bResult)
+		{
+			return pcNotFullBlock;
+		}
+		else
+		{
+			return NULL;
+		}
+	}
+	else
+	{
+		return pcNotFullBlock;
+	}
 }
 
 

@@ -68,6 +68,8 @@ public:
 protected:
 	int						FindLastCachedBlock(CArrayNamedIndexesBlockPtr* pcDest, int iEnd);
 	int						FindFirstUncachedBlock(CArrayNamedIndexesBlockPtr* pcDest, int iStart);
+	CNamedIndexesBlock*		FindNotFullBlock(void);
+	CNamedIndexesBlock*		FindOrCreateAndCacheBlock(CNamedIndexesBlock* pcNotFullBlock);
 };
 
 

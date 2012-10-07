@@ -45,8 +45,9 @@ public:
 
 	BOOL					CouldContain(CChars* szName);
 	BOOL					IsCached(void);
-	BOOL					IsNotFull(void);
+	BOOL					IsNotCached(void);
 	BOOL					IsFull(void);
+	BOOL					IsNotFull(void);
 	BOOL					IsInFile(void);
 	BOOL					IsEmpty(void);
 	BOOL					IsCache(void* pvCachePos);
