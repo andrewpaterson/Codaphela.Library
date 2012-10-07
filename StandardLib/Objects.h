@@ -88,9 +88,10 @@ public:
 						long long int		NumDatabaseObjects(void);
 						int					NumDatabaseObjectsCached(void);
 						int					NumDatabaseObjectsCached(int iSize);
+						long long int		NumDatabaseNames(void);
 						CIndexGenerator*	GetIndexGenerator(void);
 
-						CBaseObject*		GetBaseObject(OIndex oi);
+						CBaseObject*		GetInMemoryObject(OIndex oi);
 						void				RemoveInKill(CBaseObject* pvObject);
 
 						OIndex				StartMemoryIteration(SIndexesIterator* psIter);

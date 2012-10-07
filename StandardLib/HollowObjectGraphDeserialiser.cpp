@@ -192,7 +192,7 @@ BOOL CHollowObjectGraphDeserialiser::FixPointers(void)
 			oiTo = pcReadPointer->moiPointedTo;
 		}
 
-		pcBaseObject = gcObjects.GetBaseObject(oiTo);
+		pcBaseObject = gcObjects.GetInMemoryObject(oiTo);
 		if (pcBaseObject)
 		{
 			FixPointer(pcBaseObject, pcReadPointer->mppcPointedFrom, pcReadPointer->mpcContaining);

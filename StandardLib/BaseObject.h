@@ -56,11 +56,9 @@ class CBaseObject : public CUnknown
 template<class M>
 friend class CPointer;
 friend class CPointerObject;
-friend class CObjectGraphDeserialiser;
 friend class CArrayCommonObject;
 friend class CObject;
 friend class CObjects;
-friend class CArray;
 
 BASE_FUNCTIONS(CBaseObject);
 protected:
@@ -110,6 +108,7 @@ public:
 			CBaseObject* 	TestGetTo(int iToIndex);
 			CBaseObject* 	TestGetFrom(int iFromIndex);
 	virtual void			RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged) =0;
+			void			AddFrom(CBaseObject* pcFrom);
 	
 protected:
 	virtual void			KillToPointers(void) =0;
@@ -117,7 +116,6 @@ protected:
 			CBaseObject*	GetFrom(int iFrom);
 	virtual int				RemapTos(CBaseObject* pcOld, CBaseObject* pcNew) =0;
 			BOOL			RemoveToFrom(CBaseObject* pcPointedTo, CArrayEmbeddedBaseObjectPtr* papcFromsChanged);
-			void			AddFrom(CBaseObject* pcFrom);
 			void			PrivateRemoveFrom(CBaseObject* pcFrom);
 			void			RemoveFrom(CBaseObject* pcFrom);
 			void			RemoveAllFroms(void);

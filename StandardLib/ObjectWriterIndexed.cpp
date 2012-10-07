@@ -34,7 +34,14 @@ BOOL CObjectWriterIndexed::Write(CSerialisedObject* pcSerialised)
 	BOOL	bResult;
 
 	oi = pcSerialised->GetIndex();
-	bResult = mpcIndexedData->SetOrAdd(oi, pcSerialised, pcSerialised->GetLength(), muiTimeStamp);
+	if (pcSerialised->IsNamed())
+	{
+		bResult = mpcIndexedData->SetOrAdd(oi, pcSerialised->GetName(), pcSerialised, pcSerialised->GetLength(), muiTimeStamp);
+	}
+	else
+	{
+		bResult = mpcIndexedData->SetOrAdd(oi, pcSerialised, pcSerialised->GetLength(), muiTimeStamp);
+	}
 
 	return bResult;
 }

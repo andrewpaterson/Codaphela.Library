@@ -173,7 +173,7 @@ BOOL CObjectGraphDeserialiser::FixPointers(void)
 	for (i = 0; i < iNum; i++)
 	{
 		pcReadPointer = mcDependentObjects.GetPointer(i);
-		pcBaseObject = gcObjects.GetBaseObject(pcReadPointer->moiPointedTo);
+		pcBaseObject = gcObjects.GetInMemoryObject(pcReadPointer->moiPointedTo);
 		if (pcBaseObject)
 		{
 			FixPointer(pcBaseObject, pcReadPointer->mppcPointedFrom, pcReadPointer->mpcContaining);

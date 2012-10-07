@@ -66,7 +66,7 @@ void CObjects::Init(CUnknowns* pcUnknownsAllocatingFrom, CIndexedConfig* pcConfi
 void CObjects::Kill(void)
 {
 	mcMemory.Kill();
-	mcDatabase.Kill();
+	mcDatabase.Kill();  //Also flushes.
 	mcIndexGenerator.Kill();
 	mpcUnknownsAllocatingFrom = NULL;
 }
@@ -87,7 +87,7 @@ BOOL CObjects::Flush(BOOL bClearMemory, BOOL bClearCache)
 	oi = StartMemoryIteration(&sIter);
 	while (oi != INVALID_O_INDEX)
 	{
-		pcBaseObject = GetBaseObject(oi);
+		pcBaseObject = GetInMemoryObject(oi);
 		bResult &= Save(pcBaseObject);
 		oi = IterateMemory(&sIter);
 	}
@@ -120,7 +120,7 @@ BOOL CObjects::ClearMemory(void)
 	iCount = 0;
 	while (oi != INVALID_O_INDEX)
 	{
-		pcBaseObject = GetBaseObject(oi);
+		pcBaseObject = GetInMemoryObject(oi);
 		apcBaseObjects.Add(&pcBaseObject);
 		iCount++;
 
@@ -673,7 +673,17 @@ int CObjects::NumDatabaseObjectsCached(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CObjects::GetBaseObject(OIndex oi)
+long long int CObjects::NumDatabaseNames(void)
+{
+	return mcDatabase.NumNames();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CBaseObject* CObjects::GetInMemoryObject(OIndex oi)
 {
 	CBaseObject*	pvObject;
 
