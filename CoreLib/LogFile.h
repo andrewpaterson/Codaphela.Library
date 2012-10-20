@@ -29,8 +29,6 @@ public:
 	void		Init(CAbstractFile* pcBackingFile);
 	void		Kill(void);
 
-	BOOL		Begin(void);
-	BOOL		End(void);
 	BOOL		Rewrite(void);
 	BOOL		PrivateWrite(CAbstractFile* pcFile);
 
@@ -42,7 +40,6 @@ public:
 	filePos		Read(filePos iDistance, void* pvDest, filePos iSize, filePos iCount);
 	filePos		Read(EFileSeekOrigin eOrigin, filePos iDistance, void* pvDest, filePos iSize, filePos iCount);
 	filePos		Read(void* pvDest, filePos iSize, filePos iCount);
-	void		Seek(EFileSeekOrigin eOrigin, filePos iDistance);
 	filePos		Tell(void);
 	filePos		Size(void);
 

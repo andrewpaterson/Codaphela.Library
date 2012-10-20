@@ -53,28 +53,13 @@ void CLogFile::Init(CAbstractFile* pcBackingFile)
 //////////////////////////////////////////////////////////////////////////
 void CLogFile::Kill(void)
 {
-
 	mcWrites.Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CLogFile::Begin(void)
-{
-	return FALSE;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CLogFile::End(void)
-{
-	return FALSE;
+	mpcBackingFile->Kill();
+	if (mpcBackingFile->mbBasicFileMustFree)
+	{
+		free(mpcBackingFile);
+		mpcBackingFile = NULL;
+	}
 }
 
 
@@ -124,7 +109,15 @@ BOOL CLogFile::PrivateWrite(CAbstractFile* pcFile)
 //////////////////////////////////////////////////////////////////////////
 BOOL CLogFile::Open(EFileMode eFileMode)
 {
-	return FALSE;
+	if (!mpcBackingFile->Open(eFileMode))
+	{
+		return FALSE;
+	}
+
+	miFileLength = mpcBackingFile->Size();
+	miLength = miFileLength;
+	miPosition = 0;
+	return TRUE;
 }
 
 
@@ -134,28 +127,12 @@ BOOL CLogFile::Open(EFileMode eFileMode)
 //////////////////////////////////////////////////////////////////////////
 BOOL CLogFile::Close(void)
 {
-	return FALSE;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CLogFile::Seek(EFileSeekOrigin eOrigin, filePos iDistance)
-{
-	if (eOrigin == EFSO_SET)
+	if (!mpcBackingFile->Close())
 	{
-		miPosition = iDistance;
+		return FALSE;
 	}
-	else if (eOrigin == EFSO_CURRENT)
-	{
-		miPosition += iDistance;
-	}
-	else if (eOrigin == EFSO_END)
-	{
-		miPosition = miLength + iDistance;
-	}
+	miPosition = 0;
+	return TRUE;
 }
 
 
@@ -175,7 +152,7 @@ filePos CLogFile::Write(filePos iDistance, const void* pvSource, filePos iSize, 
 //////////////////////////////////////////////////////////////////////////
 filePos CLogFile::Write(EFileSeekOrigin eOrigin, filePos iDistance, const void* pvSource, filePos iSize, filePos iCount)
 {
-	Seek(eOrigin, iDistance);
+	Seek(iDistance, eOrigin);
 	return Write(pvSource, iSize, iCount);
 }
 
@@ -310,7 +287,7 @@ filePos CLogFile::Read(filePos iDistance, void* pvDest, filePos iSize, filePos i
 //////////////////////////////////////////////////////////////////////////
 filePos CLogFile::Read(EFileSeekOrigin eOrigin, filePos iDistance, void* pvDest, filePos iSize, filePos iCount)
 {
-	Seek(eOrigin, iDistance);
+	Seek(iDistance, eOrigin);
 	return Read(pvDest, iSize, iCount);
 }
 
@@ -327,7 +304,7 @@ filePos CLogFile::Read(void* pvDest, filePos iSize, filePos iCount)
 	BOOL						bHoles;
 	filePos						iResult;
 	int							iIndex;
-	SLogFileCommandWrite*	psWrite;
+	SLogFileCommandWrite*		psWrite;
 	void*						pvData;
 	filePos						iLength;
 	filePos						iDestOffset;
@@ -645,9 +622,20 @@ filePos CLogFile::SizeFromFile(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CLogFile::Seek(filePos iOffset, EFileSeekOrigin iSeekOrigin)
+BOOL CLogFile::Seek(filePos iOffset, EFileSeekOrigin eOrigin)
 {
-	Seek((EFileSeekOrigin)iSeekOrigin, iOffset);
+	if (eOrigin == EFSO_SET)
+	{
+		miPosition = iOffset;
+	}
+	else if (eOrigin == EFSO_CURRENT)
+	{
+		miPosition += iOffset;
+	}
+	else if (eOrigin == EFSO_END)
+	{
+		miPosition = miLength + iOffset;
+	}
 	return TRUE;
 }
 
