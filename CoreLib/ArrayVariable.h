@@ -54,6 +54,7 @@ public:
  
 	void	Init(void);
 	void	Init(int iChunkSize);
+	void	ReInit(void);
 	void	Kill(void);
 	void*	Add(int iElementSize);
 	BOOL	Get(int iIndex, void** pvData);

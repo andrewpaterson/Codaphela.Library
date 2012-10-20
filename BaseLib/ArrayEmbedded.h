@@ -44,7 +44,7 @@ protected:
 public:
 	void	Init(void);
 	void	Kill(void);
-	void	Reinit(void);
+	void	ReInit(void);
 
 	M*		Add(void);
 	M*		Add(M* pData);
@@ -102,7 +102,7 @@ void CArrayEmbedded<M, I>::Kill(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, int I>
-void CArrayEmbedded<M, I>::Reinit(void)
+void CArrayEmbedded<M, I>::ReInit(void)
 {
 	Kill();
 	Init();

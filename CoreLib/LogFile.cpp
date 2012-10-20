@@ -67,9 +67,9 @@ void CLogFile::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CLogFile::Rewrite(void)
+void CLogFile::Begin(void)
 {
-	return FALSE;
+	mcWrites.ReInit();
 }
 
 
@@ -77,14 +77,22 @@ BOOL CLogFile::Rewrite(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CLogFile::PrivateWrite(CAbstractFile* pcFile)
+BOOL CLogFile::CommitWrites(void)
+{
+	return CommitWrites(mpcBackingFile);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CLogFile::CommitWrites(CAbstractFile* pcFile)
 {
 	int							i;
 	void*						pvData;
 	SLogFileCommandWrite*		psWrite;
 	filePos						iWritten;
-
-	//Non-durable files cannot hit this code.
 
 	for (i = 0; i < mcWrites.NumElements(); i++)
 	{
@@ -140,27 +148,6 @@ BOOL CLogFile::Close(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-filePos CLogFile::Write(filePos iDistance, const void* pvSource, filePos iSize, filePos iCount)
-{
-	return Write(EFSO_SET, iDistance, pvSource, iSize, iCount);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-filePos CLogFile::Write(EFileSeekOrigin eOrigin, filePos iDistance, const void* pvSource, filePos iSize, filePos iCount)
-{
-	Seek(iDistance, eOrigin);
-	return Write(pvSource, iSize, iCount);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 filePos CLogFile::Write(const void* pvSource, filePos iSize, filePos iCount)
 {
 	SLogFileCommandWrite*	psCommand;
@@ -205,16 +192,16 @@ filePos CLogFile::Write(const void* pvSource, filePos iSize, filePos iCount)
 //////////////////////////////////////////////////////////////////////////
 BOOL CLogFile::AmalgamateOverlappingWrites(CArrayPointer* papvOverlapping, const void* pvSource, filePos iPosition, filePos iLength)
 {
-	filePos						iStart;
-	filePos						iEnd;  //Inclusive;
-	int							i;
+	filePos					iStart;
+	filePos					iEnd;  //Inclusive;
+	int						i;
 	SLogFileCommandWrite*	psWrite;
-	int							iIndex;
-	filePos						iIndeedSize;
+	int						iIndex;
+	filePos					iIndeedSize;
 	SLogFileCommandWrite*	psCommand;
-	void*						pvData;
-	void*						pvDest;
-	void*						pvNewSource;
+	void*					pvData;
+	void*					pvDest;
+	void*					pvNewSource;
 
 	//Find the total size of the write chunk.
 	iStart = iPosition;
@@ -259,7 +246,7 @@ BOOL CLogFile::AmalgamateOverlappingWrites(CArrayPointer* papvOverlapping, const
 	}
 
 	pvDest = RemapSinglePointer(pvData, (int)(iPosition - iStart));
-	memcpy(pvDest, pvSource, (size_t)iLength);
+	memcpy_fast(pvDest, (void*)pvSource, (size_t)iLength);
 
 	//Remove all the old overlapping chunks.
 	for (i = papvOverlapping->NumElements()-1; i >= 0; i--)
@@ -268,27 +255,6 @@ BOOL CLogFile::AmalgamateOverlappingWrites(CArrayPointer* papvOverlapping, const
 		mcWrites.RemoveAt(iIndex, TRUE);
 	}
 	return TRUE;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-filePos CLogFile::Read(filePos iDistance, void* pvDest, filePos iSize, filePos iCount)
-{
-	return Read(EFSO_SET, iDistance, pvDest, iSize, iCount);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-filePos CLogFile::Read(EFileSeekOrigin eOrigin, filePos iDistance, void* pvDest, filePos iSize, filePos iCount)
-{
-	Seek(iDistance, eOrigin);
-	return Read(pvDest, iSize, iCount);
 }
 
 
@@ -375,16 +341,6 @@ filePos CLogFile::Read(void* pvDest, filePos iSize, filePos iCount)
 		miPosition += iResult*iSize;
 		return iResult;
 	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-filePos CLogFile::ReadFromFile(void* pvDest, filePos iSize, filePos iCount)
-{
-	return mpcBackingFile->Read(pvDest, iSize, iCount);
 }
 
 
@@ -505,9 +461,9 @@ BOOL CLogFile::FindHoles(CArrayPointer* papvOverlapping, filePos iPosition, file
 //////////////////////////////////////////////////////////////////////////
 BOOL CLogFile::FindTouchingWriteCommands(CArrayPointer* papvOverlapping, filePos iPosition, filePos iLength, BOOL bMustOverlap)
 {
-	int							i;
+	int						i;
 	SLogFileCommandWrite*	psWrite;
-	BOOL						bInitialised;
+	BOOL					bInitialised;
 
 	bInitialised = FALSE;
 	if (!bMustOverlap)
@@ -605,23 +561,6 @@ filePos CLogFile::Size(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-filePos CLogFile::SizeFromFile(void)
-{
-	if (mpcBackingFile->IsOpen())
-	{
-		return mpcBackingFile->Size();
-	}
-	else
-	{
-		return 0;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 BOOL CLogFile::Seek(filePos iOffset, EFileSeekOrigin eOrigin)
 {
 	if (eOrigin == EFSO_SET)
@@ -674,13 +613,39 @@ BOOL CLogFile::Flush(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+int CLogFile::GetNumWrites(void)
+{
+	return mcWrites.NumElements();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+filePos CLogFile::GetWriteSize(int iIndex)
+{
+	void*					pvData;
+	SLogFileCommandWrite*	psWrite;
+
+	mcWrites.Get(iIndex, &pvData);
+	psWrite = (SLogFileCommandWrite*)pvData;
+
+	return psWrite->iSize;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CLogFile::Dump(void)
 {
-	CChars						sz;
-	int							i;
-	char*						pvData;
+	CChars					sz;
+	int						i;
+	char*					pvData;
 	SLogFileCommandWrite*	psWrite;
-	filePos						iLen;
+	filePos					iLen;
 
 	sz.Init();
 	sz.Append("Log File (?");

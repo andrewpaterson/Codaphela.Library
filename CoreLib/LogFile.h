@@ -29,29 +29,24 @@ public:
 	void		Init(CAbstractFile* pcBackingFile);
 	void		Kill(void);
 
-	BOOL		Rewrite(void);
-	BOOL		PrivateWrite(CAbstractFile* pcFile);
+	void		Begin(void);
+	BOOL		CommitWrites(void);
+	BOOL		CommitWrites(CAbstractFile* pcFile);
 
 	BOOL		Open(EFileMode eFileMode);
 	BOOL		Close(void);
-	filePos		Write(filePos iDistance, const void* pvSource, filePos iSize, filePos iCount);
-	filePos		Write(EFileSeekOrigin eOrigin, filePos iDistance, const void* pvSource, filePos iSize, filePos iCount);
 	filePos		Write(const void* pvSource, filePos iSize, filePos iCount);
-	filePos		Read(filePos iDistance, void* pvDest, filePos iSize, filePos iCount);
-	filePos		Read(EFileSeekOrigin eOrigin, filePos iDistance, void* pvDest, filePos iSize, filePos iCount);
 	filePos		Read(void* pvDest, filePos iSize, filePos iCount);
 	filePos		Tell(void);
 	filePos		Size(void);
-
-	filePos		ReadFromFile(void* pvDest, filePos iSize, filePos iCount);
-	filePos		SizeFromFile(void);
-
 	BOOL		Seek(filePos iOffset, EFileSeekOrigin iSeekOrigin);
 	BOOL		Eof(void);
 	BOOL		IsOpen(void);
 	BOOL		Flush(void);
 
 	void		Dump(void);
+	int			GetNumWrites(void);
+	filePos		GetWriteSize(int iIndex);
 
 protected:
 	BOOL		FindTouchingWriteCommands(CArrayPointer* papvOverlapping, filePos iPosition, filePos iLength, BOOL bMustOverlap);
