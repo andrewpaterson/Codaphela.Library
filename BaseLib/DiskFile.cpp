@@ -153,7 +153,7 @@ filePos CDiskFile::Read(void* pvBuffer, filePos iSize, filePos iCount)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CDiskFile::Seek(filePos iOffset, int iSeekOrigin)
+BOOL CDiskFile::Seek(filePos iOffset, EFileSeekOrigin iSeekOrigin)
 {
 	int		iResult;
 

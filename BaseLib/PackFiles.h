@@ -73,7 +73,7 @@ protected:
 	BOOL					EndWrite(void);
 	BOOL					Close(CPackFile* pcPackFile);
 	filePos					Read(CPackFileNode* psPackFile, void* pvBuffer, filePos iSize, filePos iCount);
-	BOOL					Seek(CPackFileNode* psPackFile, filePos iOffset, int iSeekOrigin);
+	BOOL					Seek(CPackFileNode* psPackFile, filePos iOffset, EFileSeekOrigin iSeekOrigin);
 	filePos					Write(CPackFileNode* psPackFile, const void* pvBuffer, filePos iSize, filePos iCount);
 	filePos					Tell(CPackFileNode* psPackFile);
 	BOOL					Eof(CPackFileNode* psPackFile);

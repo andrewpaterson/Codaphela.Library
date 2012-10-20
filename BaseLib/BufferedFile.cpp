@@ -275,7 +275,7 @@ filePos CBufferedFile::Write(const void* pvSource, filePos iSize, filePos iCount
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CBufferedFile::Seek(filePos iOffset, int iSeekOrigin)
+BOOL CBufferedFile::Seek(filePos iOffset, EFileSeekOrigin iSeekOrigin)
 {
 	BOOL	bResult;
 

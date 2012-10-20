@@ -16,7 +16,7 @@ struct SLogFileCommandWrite
 
 class CLogFile : public CAbstractFile
 {
-public:
+protected:
 	CArrayVariable		mcWrites;
 	filePos				miPosition;
 	filePos				miLength;
@@ -25,7 +25,7 @@ public:
 	CAbstractFile*		mpcBackingFile;
 	BOOL				mbTouched;
 
-protected:
+public:
 	void		Init(CAbstractFile* pcBackingFile);
 	void		Kill(void);
 
@@ -45,10 +45,14 @@ protected:
 	void		Seek(EFileSeekOrigin eOrigin, filePos iDistance);
 	filePos		Tell(void);
 	filePos		Size(void);
-	BOOL		IsEof(void);
 
 	filePos		ReadFromFile(void* pvDest, filePos iSize, filePos iCount);
 	filePos		SizeFromFile(void);
+
+	BOOL		Seek(filePos iOffset, EFileSeekOrigin iSeekOrigin);
+	BOOL		Eof(void);
+	BOOL		IsOpen(void);
+	BOOL		Flush(void);
 
 	void		Dump(void);
 
@@ -60,6 +64,9 @@ protected:
 	void		UpdateLength(void);
 	filePos		PrivateRead(void* pvDest, filePos iSize, filePos iCount);
 };
+
+
+CLogFile* LogFile(CAbstractFile* pcFile);
 
 
 #endif // __LOG_FILE_H__

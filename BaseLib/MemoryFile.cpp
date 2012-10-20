@@ -176,17 +176,17 @@ filePos CMemoryFile::Read(void* pvBuffer, filePos iSize, filePos iCount)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CMemoryFile::Seek(filePos iOffset, int iSeekOrigin)
+BOOL CMemoryFile::Seek(filePos iOffset, EFileSeekOrigin iSeekOrigin)
 {
-	if (iSeekOrigin == SEEK_SET)
+	if (iSeekOrigin == EFSO_SET)
 	{
 		iPos = iOffset;
 	}
-	else if (iSeekOrigin == SEEK_END)
+	else if (iSeekOrigin == EFSO_END)
 	{
 		iPos = cArray.NumElements() + iOffset;
 	}
-	else if (iSeekOrigin == SEEK_CUR)
+	else if (iSeekOrigin == EFSO_CURRENT)
 	{
 		iPos += iOffset;
 	}

@@ -68,7 +68,7 @@ public:
 	BOOL		Open(EFileMode eFileMode);
 	BOOL		Close(void);
 	filePos		Read(void* pvDest, filePos iSize, filePos iCount);
-	BOOL		Seek(filePos iOffset, int iSeekOrigin);
+	BOOL		Seek(filePos iOffset, EFileSeekOrigin iSeekOrigin);
 	filePos		Write(const void* pvSource, filePos iSize, filePos iCount);
 	filePos		Tell(void);
 	BOOL		Eof(void);

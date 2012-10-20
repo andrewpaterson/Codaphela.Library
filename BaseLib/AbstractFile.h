@@ -40,7 +40,7 @@ public:
 	virtual BOOL		Open(EFileMode eFileMode) =0;
 	virtual BOOL		Close(void) =0;
 	virtual filePos		Read(void* pvBuffer, filePos iSize, filePos iCount) =0;
-	virtual BOOL		Seek(filePos iOffset, int iSeekOrigin) =0;
+	virtual BOOL		Seek(filePos iOffset, EFileSeekOrigin iSeekOrigin) =0;
 	virtual filePos		Write(const void* pvBuffer, filePos iSize, filePos iCount) =0;
 	virtual filePos		Tell(void) =0;
 	virtual BOOL		Eof(void) =0;

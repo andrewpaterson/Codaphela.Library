@@ -230,7 +230,7 @@ BOOL CPackFiles::PrivateSeek(CPackFileNode* psPackFile, filePos iOffset, int iSe
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPackFiles::Seek(CPackFileNode* psPackFile, filePos iOffset, int iSeekOrigin)
+BOOL CPackFiles::Seek(CPackFileNode* psPackFile, filePos iOffset, EFileSeekOrigin iSeekOrigin)
 {
 	//Can only seek in read mode.
 	if (meMode == PFM_Read)

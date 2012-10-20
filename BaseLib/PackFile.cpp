@@ -109,7 +109,7 @@ filePos CPackFile::Read(void* pvBuffer, filePos iSize, filePos iCount)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPackFile::Seek(filePos iOffset, int iSeekOrigin)
+BOOL CPackFile::Seek(filePos iOffset, EFileSeekOrigin iSeekOrigin)
 {
 	if (meMode != EFM_Unknown)
 	{

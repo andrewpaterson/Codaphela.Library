@@ -160,7 +160,7 @@ filePos CFileBasic::Read(void* pvDest, filePos iSize, filePos iCount)
 //====================================================================================
 BOOL CFileBasic::Seek(filePos iOffset, EFileSeekOrigin eOrigin)
 {
-	return mpcFile->Seek(iOffset, (eOrigin == EFSO_SET) ? SEEK_SET :((eOrigin == EFSO_END) ? SEEK_END : SEEK_CUR));
+	return mpcFile->Seek(iOffset, eOrigin);
 }
 
 
@@ -179,7 +179,7 @@ BOOL CFileBasic::Seek(filePos iOffset, EFileSeekOrigin eOrigin)
 //====================================================================================
 BOOL CFileBasic::Seek(filePos iOffset)
 {
-	return mpcFile->Seek(iOffset, SEEK_SET);
+	return mpcFile->Seek(iOffset, EFSO_SET);
 }
 
 
