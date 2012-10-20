@@ -155,7 +155,7 @@ void CIndexedData::KillNonTransientNonDurable(void)
 //////////////////////////////////////////////////////////////////////////
 void CIndexedData::CloseFiles(void)
 {
-	mcIndices.Close();
+	mcIndices.Save();
 	mcObjectFiles.Close();
 	mcIndicesFile.Close();
 }

@@ -50,8 +50,8 @@ public:
 	BOOL	Set(CIndexedDataDescriptor* pcDescriptor);
 	BOOL	Remove(OIndex oi);
 
-	void	Close(void);
-	void	Open(void);
+	void	Save(void);
+	void	Load(void);
 	void	UpdateFile(void);
 
 	BOOL	RemoveFile(void);

@@ -62,6 +62,7 @@ public:
 						BOOL				Flush(BOOL bClearMemory, BOOL bClearCache);
 						BOOL				Save(CBaseObject* pcObject);
 						BOOL				ForceSave(CBaseObject* pcObject);
+						BOOL				Close(void);
 
 						CPointerObject		Get(OIndex oi);
 						CPointerObject		Get(char* szObjectName);

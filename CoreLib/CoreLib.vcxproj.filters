@@ -193,6 +193,9 @@
     <Filter Include="Source\File\Files">
       <UniqueIdentifier>{e7b120aa-72b7-4eb8-b6e6-84ae3ecb8c3c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\File\Log">
+      <UniqueIdentifier>{23d0c315-537b-44fa-96a6-6e3739d877e9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ArrayVariable.cpp">
@@ -449,6 +452,9 @@
     </ClCompile>
     <ClCompile Include="FileIteratorReturn.cpp">
       <Filter>Source\File\Files</Filter>
+    </ClCompile>
+    <ClCompile Include="LogFile.cpp">
+      <Filter>Source\File\Log</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -718,6 +724,9 @@
     </ClInclude>
     <ClInclude Include="FileIteratorReturn.h">
       <Filter>Source\File\Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LogFile.h">
+      <Filter>Source\File\Log</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

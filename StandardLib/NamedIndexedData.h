@@ -36,6 +36,7 @@ protected:
 public:
 	void 			Init(CIndexedConfig* pcConfig);
 	void 			Kill(void);
+	BOOL			Close(void);
 
 	BOOL			Add(OIndex oi, void* pvData, unsigned int uiDataSize, unsigned int uiTimeStamp);
 	BOOL			Add(OIndex oi, CChars* szName, void* pvData, unsigned int uiDataSize, unsigned int uiTimeStamp);

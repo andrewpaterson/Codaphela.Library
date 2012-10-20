@@ -70,6 +70,19 @@ void CNamedIndexedData::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL CNamedIndexedData::Close(void)
+{
+
+	xxx
+	//Need to put more thought into Durable Files and Closing.
+	mcData.CloseFiles();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL CNamedIndexedData::Add(OIndex oi, void* pvData, unsigned int uiDataSize, unsigned int uiTimeStamp)
 {
 	return mcData.Add(oi, pvData, uiDataSize, uiTimeStamp);
