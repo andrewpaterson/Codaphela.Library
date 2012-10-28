@@ -259,7 +259,16 @@ filePos CLogFile::Write(const void* pvSource, filePos iSize, filePos iCount)
 		mbTouched = TRUE;
 
 		iByteLength = iSize * iCount;
-		bAny = FindTouchingWriteCommands(miLastWriteOpenIndex + 1, &apvOverlapping, miPosition, iByteLength, FALSE);
+
+		if (miLastWriteOpenIndex == -1)
+		{
+			bAny = FALSE;
+		}
+		else
+		{
+			bAny = FindTouchingWriteCommands(miLastWriteOpenIndex + 1, &apvOverlapping, miPosition, iByteLength, FALSE);
+		}
+
 		if (bAny)
 		{
 			AmalgamateOverlappingWrites(&apvOverlapping, pvSource, miPosition, iByteLength);
@@ -399,66 +408,130 @@ BOOL CLogFile::AmalgamateOverlappingWrites(CArrayPointer* papvOverlapping, const
 //////////////////////////////////////////////////////////////////////////
 filePos CLogFile::Read(void* pvDest, filePos iSize, filePos iCount)
 {
-	CArrayPointer				apvOverlapping;
-	BOOL						bAny;
-	BOOL						bHoles;
-	filePos						iResult;
-	filePos						iBytesReadFromFile;
-	filePos						iByteSize;
-	int							iWriteIndex;
+	filePos		iResult;
+	int			iWriteIndex;
+	filePos		iByteSize;
 
 	if (IsFileModeReadable(meFileMode))
 	{
-		//You can test to see what sections actually NEED zero'ing.
-		iByteSize = iSize * iCount;
-		memset_fast(pvDest, 0, (size_t)iByteSize);
-
-		//XXX: You need to loop all the write commands here.
 		iWriteIndex = FindNextWriteCommand(0);
 		if (iWriteIndex == -1)
 		{
-			bAny = FALSE;
+			return ReadWithNoTouchingWrites(pvDest, iSize, iCount);
+		}
+
+		iResult = ReadFirstTouchingWrites(iWriteIndex, pvDest, iSize, iCount);
+		if (iResult != iCount)
+		{
+			return 0;
+		}
+
+		iWriteIndex = FindNextWriteCommand(iWriteIndex+1);
+		while (iWriteIndex != -1)
+		{
+			iResult = ReadNextTouchingWrites(iWriteIndex, pvDest, iSize, iCount);
+			if (iResult != iCount)
+			{
+				return 0;
+			}
+			iWriteIndex = FindNextWriteCommand(iWriteIndex+1);
+		}
+
+		iByteSize = iSize * iCount;
+		if ((miPosition + iByteSize) > miLength)
+		{
+			iResult = (miLength - miPosition) / iSize;
 		}
 		else
 		{
-			bAny = FindTouchingWriteCommands(iWriteIndex, &apvOverlapping, miPosition, iByteSize, TRUE);
+			iResult = iCount;
 		}
-		if (bAny)
-		{
-			bHoles = FindHoles(&apvOverlapping, miPosition, iByteSize);
-			if (bHoles)
-			{
-				iBytesReadFromFile = ReadFromBackingFile(pvDest, iSize, iCount);
-			}
 
-			CopyWritesToRead(&apvOverlapping, iByteSize, pvDest);
-
-			apvOverlapping.Kill();
-
-			if (miPosition + (iByteSize) > miLength)
-			{
-				iResult = (miLength - miPosition) / iSize;
-				miPosition += iResult * iSize;
-				return iResult;
-			}
-			else
-			{
-				miPosition += iByteSize;
-				return iCount;
-			}
-		}
-		else
-		{
-			iBytesReadFromFile = ReadFromBackingFile(pvDest, iSize, iCount);
-			iResult = iBytesReadFromFile/iSize;
-			miPosition += iResult*iSize;
-			return iResult;
-		}
+		miPosition += iByteSize;
+		return iResult;
 	}
 	else
 	{
 		return 0;
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+filePos CLogFile::ReadWithNoTouchingWrites(void* pvDest, filePos iSize, filePos iCount)
+{
+	filePos		iBytesReadFromFile;
+	filePos		iResult;
+
+	iBytesReadFromFile = ReadFromBackingFile(pvDest, iSize, iCount);
+	iResult = iBytesReadFromFile / iSize;
+	miPosition += iResult * iSize;
+	return iResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+filePos CLogFile::ReadFirstTouchingWrites(int iWriteIndex, void* pvDest, filePos iSize, filePos iCount)
+{
+	CArrayPointer	apvOverlapping;
+	BOOL			bAny;
+	BOOL			bHoles;
+	filePos			iBytesReadFromFile;
+	filePos			iByteSize;
+
+	iByteSize = iSize * iCount;
+	bAny = FindTouchingWriteCommands(iWriteIndex, &apvOverlapping, miPosition, iByteSize, TRUE);
+	if (bAny)
+	{
+		bHoles = FindHoles(&apvOverlapping, miPosition, iByteSize);
+		if (bHoles)
+		{
+			iBytesReadFromFile = ReadFromBackingFile(pvDest, iSize, iCount);
+		}
+
+		CopyWritesToRead(&apvOverlapping, iByteSize, pvDest);
+		apvOverlapping.Kill();
+		return iCount;
+	}
+	else
+	{
+		if (miFileLength == 0)
+		{
+			return iCount;
+		}
+		else
+		{
+			return ReadWithNoTouchingWrites(pvDest, iSize, iCount);
+		}
+	}
+}
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+filePos CLogFile::ReadNextTouchingWrites(int iWriteIndex, void* pvDest, filePos iSize, filePos iCount)
+{
+	CArrayPointer	apvOverlapping;
+	BOOL			bAny;
+	filePos			iByteSize;
+
+	iByteSize = iSize * iCount;
+	bAny = FindTouchingWriteCommands(iWriteIndex, &apvOverlapping, miPosition, iByteSize, TRUE);
+	if (bAny)
+	{
+		CopyWritesToRead(&apvOverlapping, iByteSize, pvDest);
+		apvOverlapping.Kill();
+	}
+	return iCount;
 }
 
 
@@ -524,7 +597,7 @@ int CLogFile::FindNextWriteCommand(int iIndex)
 
 	iNumWrites = 0;
 	bFoundWriteOpen = FALSE;
-	for (i = 0; i < macCommands.NumElements(); i++)
+	for (i = iIndex; i < macCommands.NumElements(); i++)
 	{
 		psCommand = (CLogFileCommand*)macCommands.Get(i);
 		if (psCommand->IsOpen())
@@ -554,7 +627,7 @@ int CLogFile::FindNextWriteCommand(int iIndex)
 //////////////////////////////////////////////////////////////////////////
 filePos CLogFile::ReadFromBackingFile(void* pvDest, filePos iSize, filePos iCount)
 {
-	filePos		iBytes;
+	filePos		iByteSize;
 	filePos		iRead;
 
 	if (miPosition >= miFileLength)
@@ -562,19 +635,19 @@ filePos CLogFile::ReadFromBackingFile(void* pvDest, filePos iSize, filePos iCoun
 		return 0;
 	}
 
-	iBytes = iSize * iCount;
-	if (iBytes > (miFileLength - miPosition))
+	iByteSize = iSize * iCount;
+	if (iByteSize > (miFileLength - miPosition))
 	{
-		iBytes = miFileLength - miPosition;
+		iByteSize = miFileLength - miPosition;
 	}
 
 	mpcBackingFile->Seek(miPosition, EFSO_SET);
-	iRead = mpcBackingFile->Read(pvDest, iBytes, 1);
+	iRead = mpcBackingFile->Read(pvDest, iByteSize, 1);
 	if (iRead != 1)
 	{
 		return 0;
 	}
-	return iBytes;  //Not the count.
+	return iByteSize;  //Not the count.
 }
 
 
@@ -715,37 +788,30 @@ BOOL CLogFile::FindTouchingWriteCommands(int iStartIndex, CArrayPointer* papvOve
 		iLength+=2;
 	}
 
-	if (miLastWriteOpenIndex != -1)
+	for (iIndex = iStartIndex; iIndex < macCommands.NumElements(); iIndex++)
 	{
-		for (iIndex = iStartIndex; iIndex < macCommands.NumElements(); iIndex++)
+		macCommands.Get(iIndex, (void**)&psCommand);
+		if (psCommand->IsWrite())
 		{
-			macCommands.Get(iIndex, (void**)&psCommand);
-			if (psCommand->IsWrite())
+			psWrite = (CLogFileCommandWrite*)psCommand;
+			if (Overlaps(iPosition, iLength, psWrite))
 			{
-				psWrite = (CLogFileCommandWrite*)psCommand;
-				if (Overlaps(iPosition, iLength, psWrite))
+				if (!bInitialised)
 				{
-					if (!bInitialised)
-					{
-						papvOverlapping->Init(8);
-						bInitialised = TRUE;
-					}
-
-					papvOverlapping->Add(psWrite, iIndex);
+					papvOverlapping->Init(8);
+					bInitialised = TRUE;
 				}
-			}
-			else
-			{
-				break;
+
+				papvOverlapping->Add(psWrite, iIndex);
 			}
 		}
+		else
+		{
+			break;
+		}
+	}
 
-		return bInitialised;
-	}
-	else
-	{
-		return FALSE;
-	}
+	return bInitialised;
 }
 
 

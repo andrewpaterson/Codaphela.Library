@@ -52,6 +52,9 @@ protected:
 	BOOL					FindHoles(CArrayPointer* papvOverlapping, filePos iPosition, filePos iLength);
 	void					UpdateLength(void);
 	filePos					ReadFromBackingFile(void* pvDest, filePos iSize, filePos iCount);
+	filePos					ReadWithNoTouchingWrites(void* pvDest, filePos iSize, filePos iCount);
+	filePos					ReadFirstTouchingWrites(int iWriteIndex, void* pvDest, filePos iSize, filePos iCount);
+	filePos					ReadNextTouchingWrites(int iWriteIndex, void* pvDest, filePos iSize, filePos iCount);
 	void					CopyWritesToRead(CArrayPointer* papvOverlapping, filePos iByteSize, void* pvDest);
 	int						FindNextWriteCommand(int iIndex);
 
