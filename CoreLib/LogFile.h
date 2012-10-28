@@ -18,13 +18,14 @@ protected:
 	BOOL				mbTouched;
 	EFileMode			meFileMode;
 
+	BOOL				mbOpenedBackingFile;
 	int					miLastWriteOpenIndex;
 
 public:
 	void		Init(CAbstractFile* pcBackingFile);
 	void		Kill(void);
 
-	void		Begin(void);
+	BOOL		Begin(void);
 	BOOL		Commit(void);
 	BOOL		Commit(CAbstractFile* pcFile);
 

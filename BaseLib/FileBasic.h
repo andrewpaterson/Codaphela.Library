@@ -45,6 +45,8 @@ public:
 
 	void		Flush(void);
 
+	BOOL		Delete(void);
+
 	BOOL		IsEndOfFile(void);
 	BOOL		IsOpen(void);
 	filePos		GetFileLength(void);

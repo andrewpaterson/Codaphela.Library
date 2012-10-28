@@ -38,20 +38,13 @@ void CLogFile::Init(CAbstractFile* pcBackingFile)
 	mpcBackingFile = pcBackingFile;
 
 	miPosition = 0;
-
-	if (pcBackingFile)
-	{
-		miFileLength = pcBackingFile->Size();
-	}
-	else
-	{
-		miFileLength = 0;
-	}
-	miLength = miFileLength;
+	miLength = 0;
+	miFileLength = 0;
 
 	mbTouched = FALSE;
 	meFileMode = EFM_Unknown;
 	miLastWriteOpenIndex = -1;
+	mbOpenedBackingFile = FALSE;
 
 	macCommands.Init(LOG_FILE_COMMAND_CHUNK_SIZE);
 }
@@ -81,9 +74,35 @@ void CLogFile::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CLogFile::Begin(void)
+BOOL CLogFile::Begin(void)
 {
+	BOOL	bMustOpen;
+
 	macCommands.ReInit();
+
+	miPosition = 0;
+
+	if (mpcBackingFile)
+	{
+		bMustOpen = !mpcBackingFile->IsOpen();
+		if (bMustOpen)
+		{
+			ReturnOnFalse(mpcBackingFile->Open(EFM_Read));
+			miFileLength = mpcBackingFile->Size();
+			mbOpenedBackingFile = TRUE;
+		}
+		else
+		{
+			miFileLength = mpcBackingFile->Size();
+		}
+	}
+	else
+	{
+		mbOpenedBackingFile = FALSE;
+		miFileLength = 0;
+	}
+	miLength = miFileLength;
+	return TRUE;
 }
 
 
@@ -110,6 +129,11 @@ BOOL CLogFile::Commit(CAbstractFile* pcFile)
 	CLogFileCommandOpen*		psOpen;
 	CLogFileCommandClose*		psClose;
 	CLogFileCommandDelete*		psDelete;
+
+	if (mbOpenedBackingFile)
+	{
+		mpcBackingFile->Close();
+	}
 
 	for (i = 0; i < macCommands.NumElements(); i++)
 	{
@@ -511,7 +535,6 @@ filePos CLogFile::ReadFirstTouchingWrites(int iWriteIndex, void* pvDest, filePos
 		}
 	}
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -944,6 +967,9 @@ BOOL CLogFile::Delete(void)
 		return FALSE;
 	}
 
+	macCommands.ReInit();
+	miFileLength = 0;
+	miLength = 0;
 	return AddDeleteCommand() != NULL;
 }
 

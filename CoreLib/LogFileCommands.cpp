@@ -158,6 +158,5 @@ void CLogFileCommandDelete::Init(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CLogFileCommandDelete::Delete(CAbstractFile* pcFile)
 {
-	//return pcFile->Delete();
-	return FALSE;
+	return pcFile->Delete();
 }
