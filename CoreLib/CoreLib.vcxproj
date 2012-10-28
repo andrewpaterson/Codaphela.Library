@@ -86,6 +86,7 @@
     <ClCompile Include="Files.cpp" />
     <ClCompile Include="IndexedDataFiles.cpp" />
     <ClCompile Include="LogFile.cpp" />
+    <ClCompile Include="LogFileCommands.cpp" />
     <ClCompile Include="PackFileOffset.cpp" />
     <ClCompile Include="TypeNames.cpp" />
     <ClCompile Include="TypeConverter.cpp" />
@@ -174,6 +175,7 @@
     <ClInclude Include="Files.h" />
     <ClInclude Include="IndexedDataFiles.h" />
     <ClInclude Include="LogFile.h" />
+    <ClInclude Include="LogFileCommands.h" />
     <ClInclude Include="PackFileOffset.h" />
     <ClInclude Include="TypeNames.h" />
     <ClInclude Include="TypeConverter.h" />

@@ -456,6 +456,9 @@
     <ClCompile Include="LogFile.cpp">
       <Filter>Source\File\Log</Filter>
     </ClCompile>
+    <ClCompile Include="LogFileCommands.cpp">
+      <Filter>Source\File\Log</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ArrayVariable.h">
@@ -726,6 +729,9 @@
       <Filter>Source\File\Files</Filter>
     </ClInclude>
     <ClInclude Include="LogFile.h">
+      <Filter>Source\File\Log</Filter>
+    </ClInclude>
+    <ClInclude Include="LogFileCommands.h">
       <Filter>Source\File\Log</Filter>
     </ClInclude>
   </ItemGroup>

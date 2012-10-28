@@ -2,36 +2,31 @@
 #define __LOG_FILE_H__
 #include "BaseLib/AbstractFile.h"
 #include "ArrayVariable.h"
+#include "LogFileCommands.h"
 
-
-#define LOG_FILE_COMMAND_CHUNK_SIZE	4096
-
-
-struct SLogFileCommandWrite
-{
-	filePos	iPosition;
-	filePos	iSize;
-};
 
 
 class CLogFile : public CAbstractFile
 {
 protected:
-	CArrayVariable		mcWrites;
+	CArrayVariable		macCommands;
 	filePos				miPosition;
 	filePos				miLength;
 
 	filePos				miFileLength;
 	CAbstractFile*		mpcBackingFile;
 	BOOL				mbTouched;
+	EFileMode			meFileMode;
+
+	int					miLastWriteOpenIndex;
 
 public:
 	void		Init(CAbstractFile* pcBackingFile);
 	void		Kill(void);
 
 	void		Begin(void);
-	BOOL		CommitWrites(void);
-	BOOL		CommitWrites(CAbstractFile* pcFile);
+	BOOL		Commit(void);
+	BOOL		Commit(CAbstractFile* pcFile);
 
 	BOOL		Open(EFileMode eFileMode);
 	BOOL		Close(void);
@@ -47,14 +42,24 @@ public:
 	void		Dump(void);
 	int			GetNumWrites(void);
 	filePos		GetWriteSize(int iIndex);
+	int			GetNumCommands(void);
+	BOOL		TestFindHoles(int iWriteIndex, CArrayPointer* papvOverlapping, filePos iPosition, filePos iLength);
 
 protected:
-	BOOL		FindTouchingWriteCommands(CArrayPointer* papvOverlapping, filePos iPosition, filePos iLength, BOOL bMustOverlap);
-	BOOL		Overlaps(filePos iPosition, filePos iLength, SLogFileCommandWrite* psWrite);
-	BOOL		AmalgamateOverlappingWrites(CArrayPointer* papvOverlapping, const void* pvSource, filePos iPosition, filePos iLength);
-	BOOL		FindHoles(CArrayPointer* papvOverlapping, filePos iPosition, filePos iLength);
-	void		UpdateLength(void);
-	filePos		PrivateRead(void* pvDest, filePos iSize, filePos iCount);
+	BOOL					FindTouchingWriteCommands(int iStartIndex, CArrayPointer* papvOverlapping, filePos iPosition, filePos iLength, BOOL bMustOverlap);
+	BOOL					Overlaps(filePos iPosition, filePos iLength, CLogFileCommandWrite* psWrite);
+	BOOL					AmalgamateOverlappingWrites(CArrayPointer* papvOverlapping, const void* pvSource, filePos iPosition, filePos iLength);
+	BOOL					FindHoles(CArrayPointer* papvOverlapping, filePos iPosition, filePos iLength);
+	void					UpdateLength(void);
+	filePos					ReadFromBackingFile(void* pvDest, filePos iSize, filePos iCount);
+	void					CopyWritesToRead(CArrayPointer* papvOverlapping, filePos iByteSize, void* pvDest);
+	int						FindNextWriteCommand(int iIndex);
+
+	CLogFileCommandOpen*	AddOpenCommand(EFileMode eFileMode);
+	CLogFileCommandWrite*	AddWriteCommand(filePos iPosition, void* pvSource, filePos iByteLength);
+	CLogFileCommandWrite*	AddWriteCommand(filePos iPosition, filePos iByteLength);
+	CLogFileCommandClose*	AddCloseCommand(void);
+	CLogFileCommandDelete*	AddDeleteCommand(void);
 };
 
 

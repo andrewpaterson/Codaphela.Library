@@ -935,6 +935,9 @@
     <ClCompile Include="MemoryHeader.cpp">
       <Filter>Source\Memory\Manager</Filter>
     </ClCompile>
+    <ClCompile Include="FileMode.cpp">
+      <Filter>Source\File\Common</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="gpl.txt">

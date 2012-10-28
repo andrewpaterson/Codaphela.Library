@@ -38,13 +38,23 @@ void CLogFile::Init(CAbstractFile* pcBackingFile)
 	mpcBackingFile = pcBackingFile;
 
 	miPosition = 0;
-	miLength = 0;
-	miFileLength = 0;
+
+	if (pcBackingFile)
+	{
+		miFileLength = pcBackingFile->Size();
+	}
+	else
+	{
+		miFileLength = 0;
+	}
+	miLength = miFileLength;
+
 	mbTouched = FALSE;
+	meFileMode = EFM_Unknown;
+	miLastWriteOpenIndex = -1;
 
-	mcWrites.Init(LOG_FILE_COMMAND_CHUNK_SIZE);
+	macCommands.Init(LOG_FILE_COMMAND_CHUNK_SIZE);
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -53,12 +63,16 @@ void CLogFile::Init(CAbstractFile* pcBackingFile)
 //////////////////////////////////////////////////////////////////////////
 void CLogFile::Kill(void)
 {
-	mcWrites.Kill();
-	mpcBackingFile->Kill();
-	if (mpcBackingFile->mbBasicFileMustFree)
+	macCommands.Kill();
+
+	if (mpcBackingFile)
 	{
-		free(mpcBackingFile);
-		mpcBackingFile = NULL;
+		mpcBackingFile->Kill();
+		if (mpcBackingFile->mbBasicFileMustFree)
+		{
+			free(mpcBackingFile);
+			mpcBackingFile = NULL;
+		}
 	}
 }
 
@@ -69,7 +83,7 @@ void CLogFile::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CLogFile::Begin(void)
 {
-	mcWrites.ReInit();
+	macCommands.ReInit();
 }
 
 
@@ -77,9 +91,9 @@ void CLogFile::Begin(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CLogFile::CommitWrites(void)
+BOOL CLogFile::Commit(void)
 {
-	return CommitWrites(mpcBackingFile);
+	return Commit(mpcBackingFile);
 }
 
 
@@ -87,24 +101,39 @@ BOOL CLogFile::CommitWrites(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CLogFile::CommitWrites(CAbstractFile* pcFile)
+BOOL CLogFile::Commit(CAbstractFile* pcFile)
 {
 	int							i;
 	void*						pvData;
-	SLogFileCommandWrite*		psWrite;
-	filePos						iWritten;
+	CLogFileCommand*			psCommand;
+	CLogFileCommandWrite*		psWrite;
+	CLogFileCommandOpen*		psOpen;
+	CLogFileCommandClose*		psClose;
+	CLogFileCommandDelete*		psDelete;
 
-	for (i = 0; i < mcWrites.NumElements(); i++)
+	for (i = 0; i < macCommands.NumElements(); i++)
 	{
-		mcWrites.Get(i, &pvData);
-		psWrite = (SLogFileCommandWrite*)pvData;
-		pcFile->Seek(psWrite->iPosition, EFSO_SET);
-		pvData = RemapSinglePointer(psWrite, sizeof(SLogFileCommandWrite));
-
-		iWritten = pcFile->Write(pvData, psWrite->iSize, 1);
-		if (iWritten != 1)
+		macCommands.Get(i, &pvData);
+		psCommand = (CLogFileCommand*)pvData;
+		if (psCommand->IsWrite())
 		{
-			return FALSE;
+			psWrite = (CLogFileCommandWrite*)psCommand;
+			ReturnOnFalse(psWrite->Write(pcFile));
+		}
+		else if (psCommand->IsOpen())
+		{
+			psOpen = (CLogFileCommandOpen*)psCommand;
+			ReturnOnFalse(psOpen->Open(pcFile));
+		}
+		else if (psCommand->IsClose())
+		{
+			psClose = (CLogFileCommandClose*)psCommand;
+			ReturnOnFalse(psClose->Close(pcFile));
+		}
+		else if (psCommand->IsDelete())
+		{
+			psDelete = (CLogFileCommandDelete*)psCommand;
+			ReturnOnFalse(psDelete->Delete(pcFile));
 		}
 	}
 	return TRUE;
@@ -117,15 +146,44 @@ BOOL CLogFile::CommitWrites(CAbstractFile* pcFile)
 //////////////////////////////////////////////////////////////////////////
 BOOL CLogFile::Open(EFileMode eFileMode)
 {
-	if (!mpcBackingFile->Open(eFileMode))
+	if (!AddOpenCommand(eFileMode))
 	{
+		meFileMode = EFM_Unknown;
 		return FALSE;
 	}
 
-	miFileLength = mpcBackingFile->Size();
-	miLength = miFileLength;
+	if (IsFileModeWritable(eFileMode))
+	{
+		miLastWriteOpenIndex = macCommands.NumElements()-1;
+	}
+	else
+	{
+		miLastWriteOpenIndex = -1;
+	}
+
+	meFileMode = eFileMode;
+	
 	miPosition = 0;
 	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CLogFileCommandOpen* CLogFile::AddOpenCommand(EFileMode eFileMode)
+{
+	CLogFileCommandOpen*	psCommand;
+
+	psCommand = (CLogFileCommandOpen*)macCommands.Add(sizeof(CLogFileCommandOpen));
+	if (!psCommand)
+	{
+		return NULL;
+	}
+
+	psCommand->Init(eFileMode);
+	return psCommand;
 }
 
 
@@ -135,10 +193,13 @@ BOOL CLogFile::Open(EFileMode eFileMode)
 //////////////////////////////////////////////////////////////////////////
 BOOL CLogFile::Close(void)
 {
-	if (!mpcBackingFile->Close())
+	if (!AddCloseCommand())
 	{
 		return FALSE;
 	}
+
+	miLastWriteOpenIndex = -1;
+	meFileMode = EFM_Unknown;
 	miPosition = 0;
 	return TRUE;
 }
@@ -148,41 +209,118 @@ BOOL CLogFile::Close(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+CLogFileCommandClose* CLogFile::AddCloseCommand(void)
+{
+	CLogFileCommandClose*	psCommand;
+
+	psCommand = (CLogFileCommandClose*)macCommands.Add(sizeof(CLogFileCommandClose));
+	if (!psCommand)
+	{
+		return NULL;
+	}
+
+	psCommand->Init();
+	return psCommand;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CLogFileCommandDelete* CLogFile::AddDeleteCommand(void)
+{
+	CLogFileCommandDelete*	psCommand;
+
+	psCommand = (CLogFileCommandDelete*)macCommands.Add(sizeof(CLogFileCommandDelete));
+	if (!psCommand)
+	{
+		return NULL;
+	}
+
+	psCommand->Init();
+	return psCommand;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 filePos CLogFile::Write(const void* pvSource, filePos iSize, filePos iCount)
 {
-	SLogFileCommandWrite*	psCommand;
-	CArrayPointer				apvOverlapping;
-	BOOL						bAny;
-	void*						pvData;
-	filePos						iByteLength;
+	CArrayPointer			apvOverlapping;
+	BOOL					bAny;
+	filePos					iByteLength;
+	CLogFileCommandWrite*	pcWrite;
 
-	mbTouched = TRUE;
-
-	iByteLength = iSize * iCount;
-	bAny = FindTouchingWriteCommands(&apvOverlapping, miPosition, iByteLength, FALSE);
-	if (bAny)
+	if (IsFileModeWritable(meFileMode))
 	{
-		AmalgamateOverlappingWrites(&apvOverlapping, pvSource, miPosition, iByteLength);
-		apvOverlapping.Kill();
-		miPosition += iByteLength;
+		mbTouched = TRUE;
+
+		iByteLength = iSize * iCount;
+		bAny = FindTouchingWriteCommands(miLastWriteOpenIndex + 1, &apvOverlapping, miPosition, iByteLength, FALSE);
+		if (bAny)
+		{
+			AmalgamateOverlappingWrites(&apvOverlapping, pvSource, miPosition, iByteLength);
+			apvOverlapping.Kill();
+			miPosition += iByteLength;
+		}
+		else
+		{
+			pcWrite = AddWriteCommand(miPosition, (void*)pvSource, iByteLength);
+			if (!pcWrite)
+			{
+				return 0;
+			}
+
+			miPosition += iByteLength;
+		}
+		UpdateLength();
+		return iCount;
 	}
 	else
 	{
-		psCommand = (SLogFileCommandWrite*)mcWrites.Add(sizeof(SLogFileCommandWrite) + (int)iByteLength);
-		if (!psCommand)
-		{
-			return 0;
-		}
-		pvData = RemapSinglePointer(psCommand, sizeof(SLogFileCommandWrite));
-
-		psCommand->iSize = iByteLength;
-		psCommand->iPosition = miPosition;
-		memcpy_fast(pvData, (void*)pvSource, (int)iByteLength);
-
-		miPosition += iByteLength;
+		return 0;
 	}
-	UpdateLength();
-	return iCount;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CLogFileCommandWrite* CLogFile::AddWriteCommand(filePos iPosition, void* pvSource, filePos iByteLength)
+{
+	CLogFileCommandWrite*	psCommand;
+
+	psCommand = (CLogFileCommandWrite*)macCommands.Add(sizeof(CLogFileCommandWrite) + (int)iByteLength);
+	if (!psCommand)
+	{
+		return NULL;
+	}
+
+	psCommand->Init(iPosition, pvSource, iByteLength);
+	return psCommand;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CLogFileCommandWrite* CLogFile::AddWriteCommand(filePos iPosition, filePos iByteLength)
+{
+	CLogFileCommandWrite*	psCommand;
+
+	psCommand = (CLogFileCommandWrite*)macCommands.Add(sizeof(CLogFileCommandWrite) + (int)iByteLength);
+	if (!psCommand)
+	{
+		return NULL;
+	}
+
+	psCommand->Init(iPosition, iByteLength);
+	return psCommand;
 }
 
 
@@ -195,10 +333,10 @@ BOOL CLogFile::AmalgamateOverlappingWrites(CArrayPointer* papvOverlapping, const
 	filePos					iStart;
 	filePos					iEnd;  //Inclusive;
 	int						i;
-	SLogFileCommandWrite*	psWrite;
+	CLogFileCommandWrite*	psWrite;
 	int						iIndex;
 	filePos					iIndeedSize;
-	SLogFileCommandWrite*	psCommand;
+	CLogFileCommandWrite*	psCommand;
 	void*					pvData;
 	void*					pvDest;
 	void*					pvNewSource;
@@ -224,24 +362,21 @@ BOOL CLogFile::AmalgamateOverlappingWrites(CArrayPointer* papvOverlapping, const
 	iIndeedSize = iEnd - iStart + 1;
 
 	//Allocate enough memory for the new chunk.
-	psCommand = (SLogFileCommandWrite*)mcWrites.Add(sizeof(SLogFileCommandWrite) + (int)iIndeedSize);
+	psCommand = AddWriteCommand(iStart, iIndeedSize);
 	if (!psCommand)
 	{
 		return FALSE;
 	}
 
-	pvData = RemapSinglePointer(psCommand, sizeof(SLogFileCommandWrite));
-
-	psCommand->iSize = iIndeedSize;
-	psCommand->iPosition = iStart;
+	pvData = RemapSinglePointer(psCommand, sizeof(CLogFileCommandWrite));
 
 	//Copy all the overlapping chunks into the new one.
 	for (i = 0; i < papvOverlapping->NumElements(); i++)
 	{
 		iIndex = papvOverlapping->GetType(i);
-		psWrite = (SLogFileCommandWrite*)mcWrites.Get(iIndex);
+		psWrite = (CLogFileCommandWrite*)macCommands.Get(iIndex);
 		pvDest = RemapSinglePointer(pvData, (int)(psWrite->iPosition - iStart));
-		pvNewSource = RemapSinglePointer(psWrite, sizeof(SLogFileCommandWrite));
+		pvNewSource = RemapSinglePointer(psWrite, sizeof(CLogFileCommandWrite));
 		memcpy_fast(pvDest, pvNewSource, (int)psWrite->iSize);
 	}
 
@@ -252,7 +387,7 @@ BOOL CLogFile::AmalgamateOverlappingWrites(CArrayPointer* papvOverlapping, const
 	for (i = papvOverlapping->NumElements()-1; i >= 0; i--)
 	{
 		iIndex = papvOverlapping->GetType(i);
-		mcWrites.RemoveAt(iIndex, TRUE);
+		macCommands.RemoveAt(iIndex, TRUE);
 	}
 	return TRUE;
 }
@@ -266,80 +401,63 @@ filePos CLogFile::Read(void* pvDest, filePos iSize, filePos iCount)
 {
 	CArrayPointer				apvOverlapping;
 	BOOL						bAny;
-	int							i;
 	BOOL						bHoles;
 	filePos						iResult;
-	int							iIndex;
-	SLogFileCommandWrite*		psWrite;
-	void*						pvData;
-	filePos						iLength;
-	filePos						iDestOffset;
-	filePos						iSourceOffset;
-	void*						pvSource;
-	void*						pvNewDest;
 	filePos						iBytesReadFromFile;
 	filePos						iByteSize;
+	int							iWriteIndex;
 
-	//You can test to see what sections actually NEED zero'ing.
-	iByteSize = iSize * iCount;
-	memset_fast(pvDest, 0, (size_t)iByteSize);
-
-	bAny = FindTouchingWriteCommands(&apvOverlapping, miPosition, iByteSize, TRUE);
-	if (bAny)
+	if (IsFileModeReadable(meFileMode))
 	{
-		bHoles = FindHoles(&apvOverlapping, miPosition, iByteSize);
-		if (bHoles)
+		//You can test to see what sections actually NEED zero'ing.
+		iByteSize = iSize * iCount;
+		memset_fast(pvDest, 0, (size_t)iByteSize);
+
+		//XXX: You need to loop all the write commands here.
+		iWriteIndex = FindNextWriteCommand(0);
+		if (iWriteIndex == -1)
 		{
-			iBytesReadFromFile = PrivateRead(pvDest, iSize, iCount);
-		}
-
-		for (i = 0; i < apvOverlapping.NumElements(); i++)
-		{
-			apvOverlapping.Get(i, (void**)&psWrite, &iIndex);
-
-			pvData = RemapSinglePointer(psWrite, sizeof(SLogFileCommandWrite));
-
-			iLength = psWrite->iSize;
-			if ((psWrite->iPosition + psWrite->iSize) > (miPosition + iByteSize))
-			{
-				iLength -= (psWrite->iPosition + psWrite->iSize) - (miPosition + iByteSize);
-			}
-
-			iSourceOffset = 0;
-			iDestOffset = psWrite->iPosition - miPosition;
-			if (psWrite->iPosition < miPosition)
-			{
-				iSourceOffset = miPosition - psWrite->iPosition;
-				iDestOffset = 0;
-			}
-
-			iLength -= iSourceOffset;
-
-			pvSource = RemapSinglePointer(pvData, (int)iSourceOffset);
-			pvNewDest = RemapSinglePointer(pvDest, (int)iDestOffset);
-
-			memcpy_fast(pvNewDest, pvSource, (int)iLength);
-		}
-		apvOverlapping.Kill();
-
-		if (miPosition + (iByteSize) > miLength)
-		{
-			iResult = (miLength - miPosition)/iSize;
-			miPosition += iResult*iSize;
-			return iResult;
+			bAny = FALSE;
 		}
 		else
 		{
-			miPosition += iByteSize;
-			return iCount;
+			bAny = FindTouchingWriteCommands(iWriteIndex, &apvOverlapping, miPosition, iByteSize, TRUE);
+		}
+		if (bAny)
+		{
+			bHoles = FindHoles(&apvOverlapping, miPosition, iByteSize);
+			if (bHoles)
+			{
+				iBytesReadFromFile = ReadFromBackingFile(pvDest, iSize, iCount);
+			}
+
+			CopyWritesToRead(&apvOverlapping, iByteSize, pvDest);
+
+			apvOverlapping.Kill();
+
+			if (miPosition + (iByteSize) > miLength)
+			{
+				iResult = (miLength - miPosition) / iSize;
+				miPosition += iResult * iSize;
+				return iResult;
+			}
+			else
+			{
+				miPosition += iByteSize;
+				return iCount;
+			}
+		}
+		else
+		{
+			iBytesReadFromFile = ReadFromBackingFile(pvDest, iSize, iCount);
+			iResult = iBytesReadFromFile/iSize;
+			miPosition += iResult*iSize;
+			return iResult;
 		}
 	}
 	else
 	{
-		iBytesReadFromFile = PrivateRead(pvDest, iSize, iCount);
-		iResult = iBytesReadFromFile/iSize;
-		miPosition += iResult*iSize;
-		return iResult;
+		return 0;
 	}
 }
 
@@ -348,7 +466,93 @@ filePos CLogFile::Read(void* pvDest, filePos iSize, filePos iCount)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-filePos CLogFile::PrivateRead(void* pvDest, filePos iSize, filePos iCount)
+void CLogFile::CopyWritesToRead(CArrayPointer* papvOverlapping, filePos iByteSize, void* pvDest)
+{
+	int						i;
+	int						iNumWrites;
+	CLogFileCommandWrite*	psWrite;
+	int						iIndex;
+	void*					pvData;
+	filePos					iDestOffset;
+	filePos					iSourceOffset;
+	void*					pvSource;
+	void*					pvNewDest;
+	filePos					iLength;
+
+	iNumWrites = papvOverlapping->NumElements();
+	for (i = 0; i < iNumWrites; i++)
+	{
+		papvOverlapping->Get(i, (void**)&psWrite, &iIndex);
+
+		pvData = RemapSinglePointer(psWrite, sizeof(CLogFileCommandWrite));
+
+		iLength = psWrite->iSize;
+		if ((psWrite->iPosition + psWrite->iSize) > (miPosition + iByteSize))
+		{
+			iLength -= (psWrite->iPosition + psWrite->iSize) - (miPosition + iByteSize);
+		}
+
+		iSourceOffset = 0;
+		iDestOffset = psWrite->iPosition - miPosition;
+		if (psWrite->iPosition < miPosition)
+		{
+			iSourceOffset = miPosition - psWrite->iPosition;
+			iDestOffset = 0;
+		}
+
+		iLength -= iSourceOffset;
+
+		pvSource = RemapSinglePointer(pvData, (int)iSourceOffset);
+		pvNewDest = RemapSinglePointer(pvDest, (int)iDestOffset);
+
+		memcpy_fast(pvNewDest, pvSource, (int)iLength);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CLogFile::FindNextWriteCommand(int iIndex)
+{
+	int						i;
+	CLogFileCommand*		psCommand;
+	int						iNumWrites;
+	CLogFileCommandOpen*	psOpen;
+	BOOL					bFoundWriteOpen;
+
+	iNumWrites = 0;
+	bFoundWriteOpen = FALSE;
+	for (i = 0; i < macCommands.NumElements(); i++)
+	{
+		psCommand = (CLogFileCommand*)macCommands.Get(i);
+		if (psCommand->IsOpen())
+		{
+			psOpen = (CLogFileCommandOpen*)psCommand;
+			if (IsFileModeWritable(psOpen->eMode))
+			{
+				bFoundWriteOpen = TRUE;
+			}
+		}
+		else if (psCommand->IsWrite() && bFoundWriteOpen)
+		{
+			return i;
+		}
+		else if (bFoundWriteOpen)
+		{
+			bFoundWriteOpen = FALSE;
+		}
+	}
+	return -1;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+filePos CLogFile::ReadFromBackingFile(void* pvDest, filePos iSize, filePos iCount)
 {
 	filePos		iBytes;
 	filePos		iRead;
@@ -382,14 +586,14 @@ int CompareLogFileWrite(const void* pv1, const void* pv2)
 {
 	SPointerAndSize*			psTypedPointer1;
 	SPointerAndSize*			psTypedPointer2;
-	SLogFileCommandWrite*	psWrite1;
-	SLogFileCommandWrite*	psWrite2;
+	CLogFileCommandWrite*	psWrite1;
+	CLogFileCommandWrite*	psWrite2;
 
 	psTypedPointer1 = (SPointerAndSize*)pv1;
 	psTypedPointer2 = (SPointerAndSize*)pv2;
 
-	psWrite1 = (SLogFileCommandWrite*)psTypedPointer1->pvData;
-	psWrite2 = (SLogFileCommandWrite*)psTypedPointer2->pvData;
+	psWrite1 = (CLogFileCommandWrite*)psTypedPointer1->pvData;
+	psWrite2 = (CLogFileCommandWrite*)psTypedPointer2->pvData;
 
 	if (psWrite1->iPosition < psWrite2->iPosition)
 	{
@@ -407,36 +611,74 @@ int CompareLogFileWrite(const void* pv1, const void* pv2)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL CLogFile::TestFindHoles(int iWriteIndex, CArrayPointer* papvOverlapping, filePos iPosition, filePos iLength)
+{
+	BOOL	bAny;
+
+	bAny = FindTouchingWriteCommands(iWriteIndex, papvOverlapping, iPosition, iLength, TRUE);
+	if (bAny)
+	{
+		return FindHoles(papvOverlapping, iPosition, iLength);
+	}
+	else
+	{
+		if (iLength == 0)
+		{
+			return FALSE;
+		}
+		else
+		{
+			return TRUE;
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL CLogFile::FindHoles(CArrayPointer* papvOverlapping, filePos iPosition, filePos iLength)
 {
 	CArrayPointer				apvOverlappingSorted;
 	int							i;
-	SLogFileCommandWrite*	psWrite;
+	CLogFileCommandWrite*	psWrite;
 	int							eCommand;
 	BOOL						bHoles;
 	filePos						iEnd;
+
+	if (iLength == 0)
+	{
+		return FALSE;
+	}
+	if (papvOverlapping->NumElements() == 0)
+	{
+		return FALSE;
+	}
 
 	apvOverlappingSorted.Init();
 	apvOverlappingSorted.Copy(papvOverlapping);
 	apvOverlappingSorted.QuickSort(CompareLogFileWrite);
 
+	apvOverlappingSorted.Get(0, (void**)&psWrite, &eCommand);
+	if (psWrite->iPosition > iPosition)
+	{
+		apvOverlappingSorted.Kill();
+		return TRUE;
+	}
+	else
+	{
+		iEnd = psWrite->iPosition + psWrite->iSize -1;
+	}
+
 	bHoles = FALSE;
-	iEnd = -1;
-	for (i = 0; i < apvOverlappingSorted.NumElements(); i++)
+	for (i = 1; i < apvOverlappingSorted.NumElements(); i++)
 	{
 		apvOverlappingSorted.Get(i, (void**)&psWrite, &eCommand);
-		if ((i == 0) && (psWrite->iPosition > iPosition))
+		if (psWrite->iPosition > (iEnd+1))
 		{
 			bHoles = TRUE;
 			break;
-		}
-		else
-		{
-			if (psWrite->iPosition >= (iEnd+1))
-			{
-				bHoles = TRUE;
-				break;
-			}
 		}
 		iEnd = psWrite->iPosition + psWrite->iSize -1;
 		if (iEnd >= (iPosition + iLength-1))
@@ -459,10 +701,11 @@ BOOL CLogFile::FindHoles(CArrayPointer* papvOverlapping, filePos iPosition, file
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CLogFile::FindTouchingWriteCommands(CArrayPointer* papvOverlapping, filePos iPosition, filePos iLength, BOOL bMustOverlap)
+BOOL CLogFile::FindTouchingWriteCommands(int iStartIndex, CArrayPointer* papvOverlapping, filePos iPosition, filePos iLength, BOOL bMustOverlap)
 {
-	int						i;
-	SLogFileCommandWrite*	psWrite;
+	int						iIndex;
+	CLogFileCommandWrite*	psWrite;
+	CLogFileCommand*		psCommand;
 	BOOL					bInitialised;
 
 	bInitialised = FALSE;
@@ -472,22 +715,37 @@ BOOL CLogFile::FindTouchingWriteCommands(CArrayPointer* papvOverlapping, filePos
 		iLength+=2;
 	}
 
-	for (i = 0; i < mcWrites.NumElements(); i++)
+	if (miLastWriteOpenIndex != -1)
 	{
-		mcWrites.Get(i, (void**)&psWrite);
-		if (Overlaps(iPosition, iLength, psWrite))
+		for (iIndex = iStartIndex; iIndex < macCommands.NumElements(); iIndex++)
 		{
-			if (!bInitialised)
+			macCommands.Get(iIndex, (void**)&psCommand);
+			if (psCommand->IsWrite())
 			{
-				papvOverlapping->Init(8);
-				bInitialised = TRUE;
+				psWrite = (CLogFileCommandWrite*)psCommand;
+				if (Overlaps(iPosition, iLength, psWrite))
+				{
+					if (!bInitialised)
+					{
+						papvOverlapping->Init(8);
+						bInitialised = TRUE;
+					}
+
+					papvOverlapping->Add(psWrite, iIndex);
+				}
 			}
-
-			papvOverlapping->Add(psWrite, i /* <-- Cheating like Hell */);
+			else
+			{
+				break;
+			}
 		}
-	}
 
-	return bInitialised;
+		return bInitialised;
+	}
+	else
+	{
+		return FALSE;
+	}
 }
 
 
@@ -495,7 +753,7 @@ BOOL CLogFile::FindTouchingWriteCommands(CArrayPointer* papvOverlapping, filePos
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CLogFile::Overlaps(filePos iPosition, filePos iLength, SLogFileCommandWrite* psWrite)
+BOOL CLogFile::Overlaps(filePos iPosition, filePos iLength, CLogFileCommandWrite* psWrite)
 {
 	filePos		iNewStart;
 	filePos		iNewEnd;  //Inclusive
@@ -595,7 +853,7 @@ BOOL CLogFile::Eof(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CLogFile::IsOpen(void)
 {
-	return mpcBackingFile->IsOpen();
+	return meFileMode != EFM_Unknown;
 }
 
 
@@ -615,7 +873,20 @@ BOOL CLogFile::Flush(void)
 //////////////////////////////////////////////////////////////////////////
 int CLogFile::GetNumWrites(void)
 {
-	return mcWrites.NumElements();
+	int					i;
+	CLogFileCommand*	psCommand;
+	int					iNumWrites;
+
+	iNumWrites = 0;
+	for (i = 0; i < macCommands.NumElements(); i++)
+	{
+		psCommand = (CLogFileCommand*)macCommands.Get(i);
+		if (psCommand->IsWrite())
+		{
+			iNumWrites++;
+		}
+	}
+	return iNumWrites;
 }
 
 
@@ -625,13 +896,36 @@ int CLogFile::GetNumWrites(void)
 //////////////////////////////////////////////////////////////////////////
 filePos CLogFile::GetWriteSize(int iIndex)
 {
-	void*					pvData;
-	SLogFileCommandWrite*	psWrite;
+	int						i;
+	CLogFileCommand*		psCommand;
+	int						iNumWrites;
+	CLogFileCommandWrite*	psWrite;
 
-	mcWrites.Get(iIndex, &pvData);
-	psWrite = (SLogFileCommandWrite*)pvData;
+	iNumWrites = 0;
+	for (i = 0; i < macCommands.NumElements(); i++)
+	{
+		psCommand = (CLogFileCommand*)macCommands.Get(i);
+		if (psCommand->IsWrite())
+		{
+			if (iNumWrites == iIndex)
+			{
+				psWrite = (CLogFileCommandWrite*)psCommand;
+				return psWrite->iSize;
+			}
+			iNumWrites++;
+		}
+	}
+	return -1;
+}
 
-	return psWrite->iSize;
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CLogFile::GetNumCommands(void)
+{
+	return macCommands.NumElements();
 }
 
 
@@ -644,28 +938,28 @@ void CLogFile::Dump(void)
 	CChars					sz;
 	int						i;
 	char*					pvData;
-	SLogFileCommandWrite*	psWrite;
+	CLogFileCommandWrite*	psWrite;
 	filePos					iLen;
 
 	sz.Init();
 	sz.Append("Log File (?");
 	sz.Append(")\n------------------\n");
 	sz.Append("Commands: ");
-	sz.Append(mcWrites.NumElements());
+	sz.Append(macCommands.NumElements());
 	sz.AppendNewLine();
 
-	for (i = 0; i < mcWrites.NumElements(); i++)
+	for (i = 0; i < macCommands.NumElements(); i++)
 	{
-		mcWrites.Get(i, (void**)&pvData);
+		macCommands.Get(i, (void**)&pvData);
 		sz.Append("   ");
 		sz.Append("Write: (");
-		psWrite = (SLogFileCommandWrite*)pvData;
+		psWrite = (CLogFileCommandWrite*)pvData;
 		sz.Append(psWrite->iPosition);
 		sz.Append(", ");
 		sz.Append(psWrite->iSize);
 		sz.Append(") ");
 
-		pvData = (char*)RemapSinglePointer(psWrite, sizeof(SLogFileCommandWrite));
+		pvData = (char*)RemapSinglePointer(psWrite, sizeof(CLogFileCommandWrite));
 		iLen = psWrite->iSize;
 		sz.AppendData(pvData, 80);
 		sz.AppendNewLine();

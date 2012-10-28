@@ -73,7 +73,7 @@ void CMemoryFile::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CMemoryFile::Open(EFileMode eFileMode)
 {
-	if ((eFileMode == EFM_ReadWrite) || (eFileMode == EFM_Write_Create) || (eFileMode == EFM_ReadWrite_Create))
+	if (IsFileModeWritable(eFileMode))
 	{
 		mbFakeArray = FALSE;
 		iFlags = _IOREAD | _IOWRT;
@@ -83,7 +83,7 @@ BOOL CMemoryFile::Open(EFileMode eFileMode)
 		}
 		iPos = 0;
 	}
-	else if ((eFileMode == EFM_Read) || (eFileMode == EFM_Read_Create))
+	else if (IsFileModeReadOnly(eFileMode))
 	{
 		mbFakeArray = TRUE;
 		iFlags = _IOREAD;

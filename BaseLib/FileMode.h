@@ -22,6 +22,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __FILE_MODE_H__
 #define __FILE_MODE_H__
+#include "Bool.h"
 
 
 //---------------------------------
@@ -47,6 +48,11 @@ enum EFileSeekOrigin
 	EFSO_CURRENT = 1,
 	EFSO_END     = 2
 };
+
+
+BOOL IsFileModeWritable(EFileMode eFileMode);
+BOOL IsFileModeReadable(EFileMode eFileMode);
+BOOL IsFileModeReadOnly(EFileMode eFileMode);
 
 
 #endif // __FILE_MODE_H__

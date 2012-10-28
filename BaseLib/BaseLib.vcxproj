@@ -245,6 +245,7 @@
     <ClCompile Include="BaseFileNode.cpp" />
     <ClCompile Include="ChunkFileFile.cpp" />
     <ClCompile Include="ChunkFileHeader.cpp" />
+    <ClCompile Include="FileMode.cpp" />
     <ClCompile Include="FileSystemIterator.cpp" />
     <ClCompile Include="LinkListBlock.cpp" />
     <ClCompile Include="LinkListBlockMemoryStack.cpp" />
