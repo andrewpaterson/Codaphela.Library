@@ -58,6 +58,7 @@ public:
 	BOOL		IsOpen(void);
 	filePos		Size(void);
 	BOOL		Flush(void);
+	BOOL		Delete(void);
 	void		StopHashing(void);
 	void		StartHashing(void);
 	void		ResetHash(void);

@@ -38,6 +38,7 @@ public:
 	BOOL		Eof(void);
 	BOOL		IsOpen(void);
 	BOOL		Flush(void);
+	BOOL		Delete(void);
 
 	void		Dump(void);
 	int			GetNumWrites(void);

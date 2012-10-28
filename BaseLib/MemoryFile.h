@@ -59,6 +59,7 @@ public:
 	BOOL		IsOpen(void);
 	filePos		Size(void);
 	BOOL		Flush(void);
+	BOOL		Delete(void);
 };
 
 
