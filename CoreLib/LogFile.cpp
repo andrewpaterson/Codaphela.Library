@@ -436,12 +436,24 @@ filePos CLogFile::Read(void* pvDest, filePos iSize, filePos iCount)
 	int			iWriteIndex;
 	filePos		iByteSize;
 
+	iByteSize = iSize * iCount;
+
 	if (IsFileModeReadable(meFileMode))
 	{
 		iWriteIndex = FindNextWriteCommand(0);
 		if (iWriteIndex == -1)
 		{
-			return ReadWithNoTouchingWrites(pvDest, iSize, iCount);
+			iResult = ReadWithNoTouchingWrites(pvDest, iSize, iCount);
+			if (iResult != iByteSize)
+			{
+				return 0;
+			}
+			else
+			{
+				miPosition += iByteSize;
+				return iCount;
+			}
+
 		}
 
 		iResult = ReadFirstTouchingWrites(iWriteIndex, pvDest, iSize, iCount);
@@ -461,7 +473,6 @@ filePos CLogFile::Read(void* pvDest, filePos iSize, filePos iCount)
 			iWriteIndex = FindNextWriteCommand(iWriteIndex+1);
 		}
 
-		iByteSize = iSize * iCount;
 		if ((miPosition + iByteSize) > miLength)
 		{
 			iResult = (miLength - miPosition) / iSize;
@@ -488,12 +499,9 @@ filePos CLogFile::Read(void* pvDest, filePos iSize, filePos iCount)
 filePos CLogFile::ReadWithNoTouchingWrites(void* pvDest, filePos iSize, filePos iCount)
 {
 	filePos		iBytesReadFromFile;
-	filePos		iResult;
 
 	iBytesReadFromFile = ReadFromBackingFile(pvDest, iSize, iCount);
-	iResult = iBytesReadFromFile / iSize;
-	miPosition += iResult * iSize;
-	return iResult;
+	return iBytesReadFromFile;
 }
 
 
@@ -531,7 +539,15 @@ filePos CLogFile::ReadFirstTouchingWrites(int iWriteIndex, void* pvDest, filePos
 		}
 		else
 		{
-			return ReadWithNoTouchingWrites(pvDest, iSize, iCount);
+			iBytesReadFromFile = ReadWithNoTouchingWrites(pvDest, iSize, iCount);
+			if (iBytesReadFromFile == iByteSize)
+			{
+				return iCount;
+			}
+			else
+			{
+				return 0;
+			}
 		}
 	}
 }
