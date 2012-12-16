@@ -78,7 +78,9 @@ void CObjects::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CObjects::Close(void)
 {
-	mcDatabase.Close();
+	//xxx
+	////Need to put more thought into Durable Files and Closing.
+	return mcDatabase.Close();
 }
 
 

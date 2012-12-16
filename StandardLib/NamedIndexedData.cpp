@@ -73,9 +73,10 @@ void CNamedIndexedData::Kill(void)
 BOOL CNamedIndexedData::Close(void)
 {
 
-	xxx
-	//Need to put more thought into Durable Files and Closing.
+	//xxx
+	////Need to put more thought into Durable Files and Closing.
 	mcData.CloseFiles();
+	return TRUE;
 }
 
 

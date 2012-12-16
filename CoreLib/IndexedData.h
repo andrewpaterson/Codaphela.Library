@@ -81,7 +81,7 @@ public:
 	void			KillNonTransientNonDurable(void);
 	void			KillTransient(void);
 	void			KillEnd(void);
-	void			CloseFiles(void);
+	BOOL			CloseFiles(void);
 
 	BOOL			IsCaching(void);
 	BOOL			IsTransient(void);

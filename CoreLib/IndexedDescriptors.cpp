@@ -87,9 +87,10 @@ BOOL CIndexedDescriptors::Remove(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedDescriptors::Save(void)
+BOOL CIndexedDescriptors::Save(void)
 {
 	mpcAccess->Save();
+	return TRUE;
 }
 
 
@@ -97,9 +98,10 @@ void CIndexedDescriptors::Save(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedDescriptors::Load(void)
+BOOL CIndexedDescriptors::Load(void)
 {
 	mpcAccess->Load();
+	return TRUE;
 }
 
 

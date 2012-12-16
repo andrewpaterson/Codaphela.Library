@@ -135,7 +135,7 @@ void CBaseObject::RemoveFrom(CBaseObject* pcFrom)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::CopyFroms(CBaseObject* pcSource)
 {
-	mapFroms.Reinit();
+	mapFroms.ReInit();
 	mapFroms.Copy(&pcSource->mapFroms);
 }
 
@@ -638,7 +638,7 @@ void CBaseObject::RemoveAllFroms(void)
 		pcPointedFrom->RemoveTo(this);
 	}
 
-	mapFroms.Reinit();
+	mapFroms.ReInit();
 	KillThisGraph();
 }
 

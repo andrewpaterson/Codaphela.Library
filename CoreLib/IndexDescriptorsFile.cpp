@@ -52,9 +52,9 @@ void CIndexDescriptorsFile::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexDescriptorsFile::Close(void)
+BOOL CIndexDescriptorsFile::Close(void)
 {
-	mcIndexedDescriptorFile.Close();
+	return mcIndexedDescriptorFile.Close();
 }
 
 
