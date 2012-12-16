@@ -44,13 +44,14 @@ public:
 	BOOL		Open(EFileMode eMode);
 	BOOL		Close(void);
 	filePos		Read(void* pvBuffer, filePos iSize, filePos iCount);
-	BOOL		Seek(filePos iOffset, int iSeekOrigin);
+	BOOL		Seek(filePos iOffset, EFileSeekOrigin iSeekOrigin);
 	filePos		Write(const void* pvBuffer, filePos iSize, filePos iCount);
 	filePos		Tell(void);
 	BOOL		Eof(void);
 	BOOL		IsOpen(void);
 	filePos		Size(void);
 	BOOL		Flush(void);
+	BOOL		Delete(void);
 };
 
 

@@ -88,7 +88,7 @@ filePos CChunkFileFile::Read(void* pvBuffer, filePos iSize, filePos iCount)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChunkFileFile::Seek(filePos iOffset, int iSeekOrigin)
+BOOL CChunkFileFile::Seek(filePos iOffset, EFileSeekOrigin iSeekOrigin)
 {
 	if (iSeekOrigin == EFSO_SET)
 	{
@@ -177,3 +177,14 @@ BOOL CChunkFileFile::Flush(void)
 {
 	return FALSE;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CChunkFileFile::Delete(void)
+{
+	return FALSE;
+}
+
