@@ -20,6 +20,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __ARRAY_TYPE_H__
 #define __ARRAY_TYPE_H__
+#include "Unknowns.h"
 #include "ArrayUnknown.h"
 
 

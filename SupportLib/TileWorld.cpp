@@ -21,6 +21,7 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
+#include "StandardLib/Unknowns.h"
 #include "TileBoolean.h"
 #include "TileImageCel.h"
 #include "TileWorld.h"
