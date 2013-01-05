@@ -67,7 +67,10 @@ void CLogFileCommandOpen::Init(EFileMode eMode)
 //////////////////////////////////////////////////////////////////////////
 BOOL CLogFileCommandOpen::Open(CAbstractFile* pcFile)
 {
-	return pcFile->Open(eMode);
+	BOOL	bResult;
+
+	bResult = pcFile->Open(eMode);
+	return bResult;
 }
 
 
@@ -138,7 +141,10 @@ void CLogFileCommandClose::Init(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CLogFileCommandClose::Close(CAbstractFile* pcFile)
 {
-	return pcFile->Close();
+	BOOL bResult;
+
+	bResult = pcFile->Close();
+	return bResult;
 }
 
 
@@ -158,5 +164,8 @@ void CLogFileCommandDelete::Init(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CLogFileCommandDelete::Delete(CAbstractFile* pcFile)
 {
-	return pcFile->Delete();
+	BOOL bResult;
+
+	bResult = pcFile->Delete();
+	return bResult;
 }
