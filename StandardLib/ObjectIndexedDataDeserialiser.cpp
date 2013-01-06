@@ -107,7 +107,7 @@ void CObjectIndexedDataDeserialiser::FixPointer(CBaseObject* pcBaseObject, CBase
 {
 	*ppcPointedFrom = pcBaseObject;
 
-	if (pcContaining)
+	if ((pcContaining) && (pcBaseObject))
 	{
 		pcBaseObject->AddFrom(pcContaining);
 	}

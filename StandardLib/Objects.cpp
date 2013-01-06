@@ -482,7 +482,7 @@ CPointerObject CObjects::AddHollow(char* szName, OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointerObject CObjects::Get(OIndex oi)
+CPointerObject CObjects::GetIfInMemory(OIndex oi)
 {
 	CBaseObject*	pvObject;
 
@@ -498,6 +498,38 @@ CPointerObject CObjects::Get(OIndex oi)
 	{
 		return Null();
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CPointerObject CObjects::Get(OIndex oi)
+{
+	CBaseObject*	pvObject;
+	void*			pvData;
+
+	pvObject = mcMemory.Get(oi);
+	if (pvObject)
+	{
+		CPointerObject		pObject;
+
+		pObject.mpcObject = pvObject;
+		return pObject;
+	}
+
+	pvData = mcDatabase.Get(oi);
+	if (pvData)
+	{
+		CPointerObject	pObject;
+
+		pObject = GetSerialised(pvData);
+		free(pvData);
+		return pObject;
+	}
+
+	return Null();
 }
 
 
@@ -535,15 +567,9 @@ CPointerObject CObjects::GetNotInMemory(char* szObjectName)
 	pvData = mcDatabase.Get(szObjectName);
 	if (pvData)
 	{
-		CSerialisedObject*					pcSerialised;
-		CObjectIndexedDataDeserialiser		cDeserialiser;
-		CPointerObject						pObject;
+		CPointerObject	pObject;
 
-		pcSerialised = (CSerialisedObject*)pvData;
-
-		cDeserialiser.Init(pcSerialised);
-		pObject = cDeserialiser.Load(pcSerialised->GetIndex());
-		cDeserialiser.Kill();
+		pObject = GetSerialised(pvData);
 		free(pvData);
 		return pObject;
 	}
@@ -552,6 +578,32 @@ CPointerObject CObjects::GetNotInMemory(char* szObjectName)
 
 
 		//mcSource.
+		return ONull;		
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CPointerObject CObjects::GetSerialised(void* pvData)
+{
+	CObjectIndexedDataDeserialiser	cDeserialiser;
+	CSerialisedObject*				pcSerialised;
+
+	pcSerialised = (CSerialisedObject*)pvData;
+	if (pcSerialised)
+	{
+		CPointerObject						pObject;
+
+		cDeserialiser.Init(pcSerialised);
+		pObject = cDeserialiser.Load(pcSerialised->GetIndex());
+		cDeserialiser.Kill();
+		return pObject;
+	}
+	else
+	{
 		return ONull;		
 	}
 }

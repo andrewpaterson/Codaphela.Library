@@ -108,6 +108,8 @@ protected:
 						void				FreeObjects(CArrayBaseObjectPtr* papcObjectPts);
 						void				FixDistToRoot(CArrayEmbeddedBaseObjectPtr* papcFromsChanged);
 						CPointerObject		GetNotInMemory(char* szObjectName);
+						CPointerObject		GetIfInMemory(OIndex oi);
+						CPointerObject		GetSerialised(void* pvData);
 };
 
 
