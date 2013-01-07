@@ -42,7 +42,8 @@ void CNamedIndexes::Init(CDurableFileController* pcController, int iCacheSize, i
 	AddBlock(1024,  503, 1015, iBlockChunkSize);
 	AddBlock(4096, 1015, 4087, iBlockChunkSize);
 
-	mcFiles.Open();
+	//mcFiles.Open();
+	Open();
 }
 
 

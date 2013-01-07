@@ -613,6 +613,34 @@ CPointerObject CObjects::GetSerialised(void* pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL CObjects::Contains(char* szObjectName)
+{
+	CBaseObject*	pvObject;
+	void*			pvData;
+
+	//This does not check mcSources intentionally.
+
+	pvObject = mcMemory.Get(szObjectName);
+	if (pvObject)
+	{
+		return TRUE;
+	}
+	else
+	{
+		pvData = mcDatabase.Get(szObjectName);
+		if (pvData)
+		{
+			return TRUE;
+		}
+	}
+	return FALSE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CObjects::Remove(CArrayBaseObjectPtr* papcKilled)
 {
 	int								i;

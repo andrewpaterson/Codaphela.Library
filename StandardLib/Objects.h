@@ -68,6 +68,7 @@ public:
 						CPointerObject		Get(char* szObjectName);
 	template<class M> 	CPointer<M>			Get(OIndex oi);
 	template<class M>	CPointer<M>			Get(char* szObjectName);
+						BOOL				Contains(char* szObjectName);
 
 						CPointerObject		Add(char* szClassName, OIndex oi, OIndex* oiExisting);
 						CPointerObject		Add(char* szClassName, char* szObjectName, OIndex oi, OIndex* oiExisting);
