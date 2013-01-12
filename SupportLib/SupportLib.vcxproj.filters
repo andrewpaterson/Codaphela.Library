@@ -1062,4 +1062,7 @@
       <Filter>Source\Shapes</Filter>
     </ClCompile>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Objectification.txt" />
+  </ItemGroup>
 </Project>

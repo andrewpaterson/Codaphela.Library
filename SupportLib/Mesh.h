@@ -43,7 +43,7 @@ protected:
 
 public:
 	CMeshNormals		mcNormals;			
-	CMeshUVCoords		mcUVs;				
+	CMeshUVCoords		mcUVs;
 	CMeshMaterials		mcMaterials;		
 	CMeshColours		mcColours;			
 	CMeshSkin			mcSkin;				

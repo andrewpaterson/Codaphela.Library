@@ -1,0 +1,21 @@
+Need to be turned into CObjects
+-------------------------------
+Sequence.cpp
+Camera.cpp
+Connection.cpp
+ImageCelGroup.cpp
+Image.cpp
+Light.cpp
+Material.cpp
+Mesh.cpp
+
+Need to be removed
+------------------
+Instance.cpp
+TrackerTypes.h
+Scene.cpp
+
+Conisder these folders
+----------------------
+Font
+
