@@ -37,6 +37,7 @@ public:
 	void			Kill(void);
 
 	void			Add(CPointerObject pObject);
+	void			AddAll(CArrayCommonObject* pcArray);
 	void			Set(int iIndex, CPointerObject pObject);
 	void			Remove(CPointerObject pObject);
 	void			RemoveAll(void);

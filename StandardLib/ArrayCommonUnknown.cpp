@@ -107,7 +107,6 @@ BOOL CArrayCommonUnknown::SaveArrayHeader(CFileWriter* pcFile)
 	ReturnOnFalse(pcFile->WriteInt(mcArray.ChunkSize()));
 	ReturnOnFalse(pcFile->WriteInt(miFlags));
 	return TRUE;
-
 }
 
 

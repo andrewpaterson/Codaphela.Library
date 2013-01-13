@@ -172,6 +172,29 @@ void CArrayCommonObject::Add(CPointerObject pObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CArrayCommonObject::AddAll(CArrayCommonObject* pcArray)
+{
+	int				i;
+	int				iNumElements;
+	CBaseObject*	pcObject;
+
+	iNumElements = pcArray->NumElements();
+	for (i = 0; i < iNumElements; i++)
+	{
+		pcObject = pcArray->UnsafeGet(i);
+		mcArray.Add(pcObject);
+		if (pcObject != NULL)
+		{
+			pcObject->AddFrom(this);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CArrayCommonObject::Set(int iIndex, CPointerObject pObject)
 {
 	CBaseObject*		pcPointedTo;
