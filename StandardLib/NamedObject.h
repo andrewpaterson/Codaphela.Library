@@ -39,6 +39,7 @@ public:
 
 	char*	GetName(void);
 	BOOL	IsNamed(void);
+	BOOL	IsNamed(char* szName);
 
 protected:
 	void CNamedObject::Free(void);

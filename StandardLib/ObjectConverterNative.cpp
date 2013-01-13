@@ -117,6 +117,7 @@ CPointerObject CObjectConverterNative::Convert(CObjectSource* pcSource, char* sz
 	CObjectSourceSimple*				pcSourceSimple;
 	CObjectReader*						pcReader;
 
+	//This if statement should be calling a virtual method instead.
 	if (pcSource->IsMultiSource() && pcSource->IsNative())
 	{
 		pcSourceChunked = (CObjectSourceChunked*)pcSource;

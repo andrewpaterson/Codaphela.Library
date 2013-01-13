@@ -99,6 +99,9 @@ public:
 						OIndex				StartMemoryIteration(SIndexesIterator* psIter);
 						OIndex				IterateMemory(SIndexesIterator* psIter);
 
+						CPointerObject		GetNotInMemory(char* szObjectName);
+						CPointerObject		GetNotInMemory(OIndex oi);
+
 protected:
 						BOOL				AddWithID(CBaseObject* pvObject);
 						BOOL				AddWithIDAndName(CBaseObject* pvObject, char* szObjectName);
@@ -108,7 +111,6 @@ protected:
 						void				KillDontFreeObjects(CArrayBaseObjectPtr* papcObjectPts);
 						void				FreeObjects(CArrayBaseObjectPtr* papcObjectPts);
 						void				FixDistToRoot(CArrayEmbeddedBaseObjectPtr* papcFromsChanged);
-						CPointerObject		GetNotInMemory(char* szObjectName);
 						CPointerObject		GetIfInMemory(OIndex oi);
 						CPointerObject		GetSerialised(void* pvData);
 };

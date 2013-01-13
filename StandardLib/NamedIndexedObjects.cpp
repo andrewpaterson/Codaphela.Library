@@ -147,6 +147,7 @@ BOOL CNamedIndexedObjects::AddWithIDAndName(CBaseObject* pvObject, OIndex oi, ch
 {
 	CNamedObject*	pcNamed;
 	BOOL			bResult;
+	int				iResult;
 
 	bResult = AddWithID(pvObject, oi, ppvExisting);
 	if (!bResult)
@@ -157,7 +158,14 @@ BOOL CNamedIndexedObjects::AddWithIDAndName(CBaseObject* pvObject, OIndex oi, ch
 	pcNamed = (CNamedObject*)pvObject;
 	bResult = pcNamed->InitName(szName);
 
-	mcNames.Add(pcNamed->GetOI(), szName);
+	if (szName != NULL)
+	{
+		iResult = mcNames.Add(pcNamed->GetOI(), szName);
+		if (iResult == -1)
+		{
+			bResult = FALSE;
+		}
+	}
 	return bResult;
 }
 

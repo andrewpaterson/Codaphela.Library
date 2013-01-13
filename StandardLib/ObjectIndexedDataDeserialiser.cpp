@@ -64,7 +64,7 @@ void CObjectIndexedDataDeserialiser::AddDependent(CPointerHeader* pcHeader, CBas
 	pcObject = gcObjects.GetInMemoryObject(pcHeader->moi);
 	if (pcObject == NULL)
 	{
-		 AddHollow(pcHeader, ppcObjectPtr, pcContaining);
+		 pcObject = AddHollow(pcHeader, ppcObjectPtr, pcContaining);
 	}
 	FixPointer(pcObject, ppcObjectPtr, pcContaining);
 }

@@ -508,7 +508,6 @@ CPointerObject CObjects::GetIfInMemory(OIndex oi)
 CPointerObject CObjects::Get(OIndex oi)
 {
 	CBaseObject*	pvObject;
-	void*			pvData;
 
 	pvObject = mcMemory.Get(oi);
 	if (pvObject)
@@ -518,6 +517,20 @@ CPointerObject CObjects::Get(OIndex oi)
 		pObject.mpcObject = pvObject;
 		return pObject;
 	}
+	else
+	{
+		return GetNotInMemory(oi);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CPointerObject CObjects::GetNotInMemory(OIndex oi)
+{
+	void*			pvData;
 
 	pvData = mcDatabase.Get(oi);
 	if (pvData)
