@@ -22,6 +22,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/FileUtil.h"
+#include "StandardLib/Objects.h"
 #include "ImageSourceDiskFile.h"
 #include "ImageSourceMemory.h"
 #include "ImageCombiner.h"
@@ -234,7 +235,7 @@ BOOL CImageCelsSource::Load(void)
 	SSetIterator				sIter;
 	CImageSourceWithCelSources*	pcImageSourceWithCelSources;
 	BOOL						bResult;
-	CImage*						pcMask;
+	CPointer<CImage>			pcMask;
 	CImageSource*				pcImageSource;
 	CImageCelSource*			pcCelsSource;
 	int							iFirstCelIndex;
@@ -253,12 +254,13 @@ BOOL CImageCelsSource::Load(void)
 			return FALSE;
 		}
 
-		mcModifiers.SetImage(pcImageSource->GetImage());
+		mcModifiers.SetImage((CImage*)pcImageSource->GetImage().Object());  //Not sure if this is a hack or not.
 		mcModifiers.ApplyAll();
 
 		if (pcCelsSource->NeedsMask())
 		{
-			pcMask = macFillMasks.Add();
+			pcMask = ONMalloc(CImage, NULL);
+			macFillMasks.Add(pcMask);
 		}
 		iFirstCelIndex = macImageCels.NumElements();
 		pcCelsSource->Divide(pcImageSource->GetImage(), &macImageCels, pcMask);
@@ -311,7 +313,7 @@ CArrayUnknown* CImageCelsSource::TakeControlOfCels(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CArrayImage* CImageCelsSource::TakeControlOfImages(void)
+CArray* CImageCelsSource::TakeControlOfImages(void)
 {
 	macImages.KillElements(FALSE);
 	return &macImages;

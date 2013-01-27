@@ -28,23 +28,6 @@ class CStandardTrackerObject : public CUnknown
 {
 BASE_FUNCTIONS(CStandardTrackerObject);
 protected:
-	int				miUniqueID;
-	CChars			mszName;
-
-public:
-	void			Init(void);
-	void			Init(int iUniqueID, char* szName);  
-	int				GetID(void);
-	char*			GetName(void);
-	BOOL			Load(CFileReader* pcFile);
-	virtual BOOL	LoadSpecific(CFileReader* pcSrc, int iChunkNum) =0;
-	BOOL			BeginLoadStandardTrackerObject(CFileReader* pcFile, int iChunkNum);
-	BOOL			BeginSaveStandardTrackerObject(CFileWriter* pcFile);
-	BOOL			EndLoadStandardTrackerObject(CFileReader* pcFile);
-	BOOL			EndSaveStandardTrackerObject(CFileWriter* pcFile);
-	void			SetName(char* szName);
-	void			SetID(int iID);
-	BOOL			HasName(void);
 };
 
 

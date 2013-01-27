@@ -138,18 +138,18 @@ BOOL CObjectSourcesXML::ImportImages(CTileType* pcType, CMarkupTag* pcTag)
 //////////////////////////////////////////////////////////////////////////
 BOOL CObjectSourcesXML::ImportImage(CTileType* pcType, CMarkupTag* pcTag)
 {
-	CMarkupTag*			pcName;
-	CMarkupTag*			pcCelIndex;
-	CMarkupTag*			pcBrushID;
-	CMarkupTag*			pcSourceName;
-	CMarkupTag*			pcProperties;
-	CChars				szName;
-	int					iCelIndex;
-	int					iBrushID;
-	CChars				szSourceName;
-	CTileImageCel*		pcTile;
-	CImageCelGroup*		pcGroup;
-	CImageCel*			pcCel;
+	CMarkupTag*					pcName;
+	CMarkupTag*					pcCelIndex;
+	CMarkupTag*					pcBrushID;
+	CMarkupTag*					pcSourceName;
+	CMarkupTag*					pcProperties;
+	CChars						szName;
+	int							iCelIndex;
+	int							iBrushID;
+	CChars						szSourceName;
+	CTileImageCel*				pcTile;
+	CPointer<CImageCelGroup>	pcGroup;
+	CImageCel*					pcCel;
 
 	pcName = CMarkupTextParser::GetTag(pcTag, "Name");
 	if (!pcName)

@@ -63,8 +63,8 @@ protected:
 
 	//Output
 	CArrayUnknown						macImageCels;
-	CArrayImage							macFillMasks;
-	CArrayImage							macImages;
+	CArray								macFillMasks;
+	CArray								macImages;
 
 public:
 	void 			Init(BOOL bPackOnLoad = FALSE);
@@ -81,7 +81,7 @@ public:
 
 	CArrayUnknown*	GetCels(void);
 	CArrayUnknown*	TakeControlOfCels(void);
-	CArrayImage*	TakeControlOfImages(void);
+	CArray*			TakeControlOfImages(void);
 	CArrayUnknown*	GetImageCels(void);
 
 private:

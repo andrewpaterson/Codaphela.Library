@@ -33,14 +33,6 @@ int giSceneID = 0;
 //////////////////////////////////////////////////////////////////////////
 void CScene::Init(void)
 {
-	mcMeshTracker.Init();
-	mcLightTracker.Init();
-	mcCameraTracker.Init();
-	mcImageTracker.Init();
-	mcMaterialTracker.Init();
-	mcConnectionTracker.Init();
-	mcSequenceTracker.Init();
-	mcInstanceTracker.Init();
 	iUniqueID = giSceneID;
 	giSceneID++;
 }
@@ -52,14 +44,7 @@ void CScene::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CScene::Kill(void)
 {
-	mcInstanceTracker.Kill();
-	mcSequenceTracker.Kill();
-	mcMaterialTracker.Kill();
-	mcCameraTracker.Kill();
-	mcLightTracker.Kill();
-	mcMeshTracker.Kill();
-	mcImageTracker.Kill();
-	mcConnectionTracker.Kill();
+
 }
 
 
@@ -69,15 +54,6 @@ void CScene::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CScene::Load(CFileReader* pcChunkFile)
 {
-	mcMeshTracker.Load(pcChunkFile);
-	mcLightTracker.Load(pcChunkFile);
-	mcCameraTracker.Load(pcChunkFile);
-	mcMaterialTracker.Load(pcChunkFile);
-	mcImageTracker.Load(pcChunkFile);
-	mcConnectionTracker.Load(pcChunkFile);
-	mcSequenceTracker.Load(pcChunkFile);
-	mcInstanceTracker.Load(pcChunkFile);
-
 	return Touch();
 }
 
@@ -88,45 +64,46 @@ BOOL CScene::Load(CFileReader* pcChunkFile)
 //////////////////////////////////////////////////////////////////////////
 BOOL CScene::Touch(void)
 {
-	int					i;
-	CMesh*				pcMesh;
-	CImage*				pcImage;
-	CImageRGBToGrey		cImageRGBToGrey;
-	CMaterial*			pcMaterial;
-	CMaterialHelper		cMaterialHelper;
-	BOOL				bResult;
-	CImageResampler		cImageResampler;
-	
-	//First do the images... this is important.
-	for (i = 0; i < mcImageTracker.Num(); i++)
-	{
-		pcImage = mcImageTracker.Get(i);
-		
-		cImageRGBToGrey.Init(RGBTGS_OnlyIfChannelsSame);
-		cImageRGBToGrey.Modify(pcImage);
-		cImageRGBToGrey.Kill();
+	//int					i;
+	//CMesh*				pcMesh;
+	//CImage*				pcImage;
+	//CImageRGBToGrey		cImageRGBToGrey;
+	//CMaterial*			pcMaterial;
+	//CMaterialHelper		cMaterialHelper;
+	//BOOL				bResult;
+	//CImageResampler		cImageResampler;
+	//
+	////First do the images... this is important.
+	//for (i = 0; i < mcImageTracker.Num(); i++)
+	//{
+	//	pcImage = mcImageTracker.Get(i);
+	//	
+	//	cImageRGBToGrey.Init(RGBTGS_OnlyIfChannelsSame);
+	//	cImageRGBToGrey.Modify(pcImage);
+	//	cImageRGBToGrey.Kill();
 
-		cImageResampler.Init(IR_NearestNeighbour, RS_Auto);
-		cImageResampler.Modify(pcImage);
-		cImageResampler.Kill();
-	}
+	//	cImageResampler.Init(IR_NearestNeighbour, RS_Auto);
+	//	cImageResampler.Modify(pcImage);
+	//	cImageResampler.Kill();
+	//}
 
-	//Then do the materials.
-	for (i = 0; i < mcMaterialTracker.Num(); i++)
-	{
-		pcMaterial = mcMaterialTracker.Get(i);
+	////Then do the materials.
+	//for (i = 0; i < mcMaterialTracker.Num(); i++)
+	//{
+	//	pcMaterial = mcMaterialTracker.Get(i);
 
-		cMaterialHelper.Init(pcMaterial);
-		cMaterialHelper.Touch(&mcImageTracker);
-		cMaterialHelper.Kill();
-	}
+	//	cMaterialHelper.Init(pcMaterial);
+	//	cMaterialHelper.Touch(&mcImageTracker);
+	//	cMaterialHelper.Kill();
+	//}
 
-	bResult = TRUE;
-	for (i = 0; i < mcMeshTracker.Num(); i++)
-	{
-		pcMesh = mcMeshTracker.Get(i);
+	//bResult = TRUE;
+	//for (i = 0; i < mcMeshTracker.Num(); i++)
+	//{
+	//	pcMesh = mcMeshTracker.Get(i);
 
-		bResult &= pcMesh->Touch();
-	}
-	return bResult;
+	//	bResult &= pcMesh->Touch();
+	//}
+	//return bResult;
+	return FALSE;
 }

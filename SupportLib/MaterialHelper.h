@@ -31,7 +31,7 @@ public:
 
 	void Init(CMaterial* pcMaterial);
 	void Kill(void);
-	void Touch(CImageTracker* pcImageTracker);
+	void Touch(void);
 };
 
 

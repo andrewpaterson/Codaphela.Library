@@ -53,16 +53,17 @@ void CImageSourceDiskFile::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CImageSourceDiskFile::Load(void)
 {
-	BOOL	bResult;
-
-	mpcImage = Allocate();
-	bResult = ReadImage(mpcImage, mszFileName.Text());
+	BOOL		bResult;
+	CImage*		pcImage;
+		
+	mpcImage = Allocate(mszFileName.Text());
+	pcImage = (CImage*)mpcImage.Object();  //Hack so I don't need to re-write the image reader at this moment.
+	bResult = ReadImage(pcImage, mszFileName.Text());
 	if (!bResult)
 	{
 		mpcImage->Kill();
 		return FALSE;
 	}
-	mpcImage->SetName(mszImageName.Text());
 	return TRUE;
 }
 

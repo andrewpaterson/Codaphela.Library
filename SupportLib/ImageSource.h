@@ -24,6 +24,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #ifndef __IMAGE_SOURCE_H__
 #define __IMAGE_SOURCE_H__
 #include "StandardLib/Unknown.h"
+#include "StandardLib/Pointer.h"
 #include "Image.h"
 
 
@@ -35,18 +36,17 @@ class CImageSource : public CUnknown
 {
 BASE_FUNCTIONS(CImageSource);
 protected:
-	CChars			mszImageName;
-	CImage*			mpcImage;
+	CChars				mszImageName;
+	CPointer<CImage>	mpcImage;
 
 public:
-	void			Init(char* szName = NULL);
-	void			Kill(void);
+	void				Init(char* szName = NULL);
+	void				Kill(void);
 
-	CImage*			Allocate(void);
-	virtual BOOL	Load(void) =0;
-	CImage*			TakeControl(void);
-	CImage*			GetImage(void);
-	void			SetImage(CImage* pcImage);
+	CPointer<CImage>	Allocate(char* szName);
+	virtual BOOL		Load(void) =0;
+	CPointer<CImage>	GetImage(void);
+	void				SetImage(CPointer<CImage> pcImage);
 };
 
 

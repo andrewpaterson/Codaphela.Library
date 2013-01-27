@@ -24,6 +24,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #ifndef __IMAGE_MODIFIER_STACK_H__
 #define __IMAGE_MODIFIER_STACK_H__
 #include "StandardLib/ArrayUnknown.h"
+#include "StandardLib/Unknowns.h"
 #include "Image.h"
 #include "ImageModifier.h"
 

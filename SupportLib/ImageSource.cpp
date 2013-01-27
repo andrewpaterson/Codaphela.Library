@@ -22,6 +22,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
 #include "StandardLib/Unknowns.h"
+#include "StandardLib/Objects.h"
 #include "ImageSource.h"
 
 
@@ -42,10 +43,6 @@ void CImageSource::Init(char* szName)
 //////////////////////////////////////////////////////////////////////////
 void CImageSource::Kill(void)
 {
-	if (mpcImage)
-	{
-		mpcImage->Kill();
-	}
 	mpcImage = NULL;
 	mszImageName.Kill();
 	CUnknown::Kill();
@@ -57,11 +54,11 @@ void CImageSource::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CImage* CImageSource::Allocate(void)
+CPointer<CImage> CImageSource::Allocate(char* szName)
 {
-	CImage*	pcImage;
+	CPointer<CImage>	pcImage;
 
-	pcImage = UMalloc(CImage);
+	pcImage = ONMalloc(CImage, szName);
 	return pcImage;
 }
 
@@ -70,21 +67,7 @@ CImage* CImageSource::Allocate(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CImage* CImageSource::TakeControl(void)
-{
-	CImage*	pcImage;
-
-	pcImage = mpcImage;
-	mpcImage = NULL;
-	return pcImage;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CImage* CImageSource::GetImage(void)
+CPointer<CImage> CImageSource::GetImage(void)
 {
 	return mpcImage;
 }
@@ -94,7 +77,7 @@ CImage* CImageSource::GetImage(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageSource::SetImage(CImage* pcImage)
+void CImageSource::SetImage(CPointer<CImage> pcImage)
 {
 	mpcImage = pcImage;
 }

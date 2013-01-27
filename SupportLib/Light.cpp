@@ -18,6 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "StandardLib/ObjectSerialiser.h"
+#include "StandardLib/ObjectDeserialiser.h"
 #include "Light.h"
 
 
@@ -27,7 +29,6 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CLight::Init(void)
 {
-	CStandardTrackerObject::Init();
 	meType = LT_Omni;
 	msColour.Init(0, 0, 0, 0);
 	meDecay = LDT_None;
@@ -43,7 +44,6 @@ void CLight::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CLight::Init(ELightType eType, CImageColourARGB sColour, ELightDecayType eDecay, float fDecayStart, BOOL bCastShadows, float fIntensity)
 {
-	CStandardTrackerObject::Init();
 	msColour = sColour;
 	meDecay = eDecay;
 	mfDecayStart = fDecayStart;
@@ -57,28 +57,15 @@ void CLight::Init(ELightType eType, CImageColourARGB sColour, ELightDecayType eD
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CLight::Kill(void)
+BOOL CLight::Load(CObjectDeserialiser* pcFile)
 {
-	CStandardTrackerObject::Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CLight::LoadSpecific(CFileReader* pcFile, int iChunkNum)
-{
-	ReturnOnFalse(BeginLoadStandardTrackerObject(pcFile, iChunkNum));
-
 	ReturnOnFalse(pcFile->ReadInt((int*)&meType));
 	ReturnOnFalse(msColour.Load(pcFile));
 	ReturnOnFalse(pcFile->ReadInt((int*)&meDecay));
 	ReturnOnFalse(pcFile->ReadFloat(&mfDecayStart));
 	ReturnOnFalse(pcFile->ReadBool(&mbCastShadows));
 	ReturnOnFalse(pcFile->ReadFloat(&mfIntensity));
-
-	return EndLoadStandardTrackerObject(pcFile);
+	return TRUE;
 }
 
 
@@ -86,18 +73,15 @@ BOOL CLight::LoadSpecific(CFileReader* pcFile, int iChunkNum)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CLight::Save(CFileWriter* pcFile)
+BOOL CLight::Save(CObjectSerialiser* pcFile)
 {
-	ReturnOnFalse(BeginSaveStandardTrackerObject(pcFile));
-
-	pcFile->WriteInt(meType);
-	msColour.Save(pcFile);
-	pcFile->WriteInt(meDecay);
-	pcFile->WriteFloat(mfDecayStart);
-	pcFile->WriteBool(mbCastShadows);
-	pcFile->WriteFloat(mfIntensity);
-
-	return EndSaveStandardTrackerObject(pcFile);
+	ReturnOnFalse(pcFile->WriteInt(meType));
+	ReturnOnFalse(msColour.Save(pcFile));
+	ReturnOnFalse(pcFile->WriteInt(meDecay));
+	ReturnOnFalse(pcFile->WriteFloat(mfDecayStart));
+	ReturnOnFalse(pcFile->WriteBool(mbCastShadows));
+	ReturnOnFalse(pcFile->WriteFloat(mfIntensity));
+	return TRUE;
 }
 
 

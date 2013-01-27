@@ -28,11 +28,10 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/ArraySimple.h"
 #include "BaseLib/ChunkFile.h"
 #include "BaseLib/AdditionalTypes.h"
-#include "StandardLib/StandardHeader.h"
-#include "StandardLib/TrackerTemplate.h"
+#include "StandardLib/NamedObject.h"
 
 
-class CConnection : public CStandardTrackerObject
+class CConnection : public CNamedObject
 {
 public:
 	BASE_FUNCTIONS(CConnection);
@@ -44,15 +43,12 @@ public:
 	BOOL				mbParity;
 
 	void 	Init(void);
-	void 	Kill(void);
-	BOOL	Load(CFileReader* pcFile);
-	BOOL	LoadSpecific(CFileReader* pcFile, int iChunkNum);;
-	BOOL	Save(CFileWriter* pcFile);
+	void 	KillData(void);
+
+	BOOL	Load(CObjectDeserialiser* pcFile);
+	BOOL	Save(CObjectSerialiser* pcFile);
 	void	Copy(CConnection* pcConnection);
 };
-
-
-typedef CTrackerTemplate<CConnection> CConnectionTracker;
 
 
 #endif //__CONNECTION_H__

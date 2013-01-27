@@ -21,7 +21,7 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
-#include "StandardLib/Unknowns.h"
+#include "StandardLib/Objects.h"
 #include "TileBoolean.h"
 #include "TileImageCel.h"
 #include "TileWorld.h"
@@ -124,7 +124,7 @@ CTileType* CTileWorld::GetType(char* szTypeName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTileWorld::AddImages(CArrayImage* pacImages)
+void CTileWorld::AddImages(CArray* pacImages)
 {
 	macImages.AddAll(pacImages);
 }
@@ -134,13 +134,23 @@ void CTileWorld::AddImages(CArrayImage* pacImages)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CImageCelGroup* CTileWorld::AddGroup(char* szName)
-{
-	CImageCelGroup*		pcGroup;
+//CImageCelGroup* CTileWorld::AddGroup(char* szName)
+//{
+//	CImageCelGroup*		pcGroup;
+//
+//	pcGroup = macGroups.Add();
+//	pcGroup->Init(szName);
+//	return pcGroup;
+//}
 
-	pcGroup = macGroups.Add();
-	pcGroup->Init(szName);
-	return pcGroup;
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CTileWorld::AddGroup(CPointer<CImageCelGroup> pcGroup)
+{
+	macGroups.Add(pcGroup);
 }
 
 
@@ -148,19 +158,19 @@ CImageCelGroup* CTileWorld::AddGroup(char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CImageCelGroup* CTileWorld::GetGroup(char* szName)
+CPointer<CImageCelGroup> CTileWorld::GetGroup(char* szName)
 {
-	int					i;
-	CImageCelGroup*		pcImageCelGroup;
+	int							i;
+	CPointer<CImageCelGroup>	pcImageCelGroup;
 
 	for (i = 0; i < macGroups.NumElements(); i++)
 	{
 		pcImageCelGroup = macGroups.Get(i);
-		if (pcImageCelGroup->Is(szName))
+		if (pcImageCelGroup->IsNamed(szName))
 		{
 			return pcImageCelGroup;
 		}
 	}
-	return NULL;
+	return ONNull(CImageCelGroup);
 }
 

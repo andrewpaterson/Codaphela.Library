@@ -31,6 +31,8 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "CoreLib/Operators.h"
 #include "StandardLib/ClassStorage.h"
 #include "StandardLib/Unknowns.h"
+#include "StandardLib/ObjectSerialiser.h"
+#include "StandardLib/ObjectDeserialiser.h"
 #include "ColourARGB.h"
 #include "SubImage.h"
 #include "ImageAccessorCreator.h"
@@ -43,7 +45,6 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //////////////////////////////////////////////////////////////////////////
 void CImage::Init(void)
 {
-	CStandardTrackerObject::Init();
 	mcChannels.Init();
 	miWidth = 0;
 	miHeight = 0;
@@ -171,13 +172,12 @@ void CImage::Init(int iWidth, int iHeight, CImage* pcChannelsSource)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImage::Kill(void)
+void CImage::KillData(void)
 {
 	SafeFree(mpsImageChangingDesc);
 	miWidth = 0;
 	miHeight = 0;
 	mcChannels.Kill();
-	CStandardTrackerObject::Kill();
 }
 
 
@@ -364,18 +364,16 @@ BOOL CImage::IsChanging(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CImage::LoadSpecific(CFileReader* pcFile, int iChunkNum)
+BOOL CImage::Load(CObjectDeserialiser* pcFile)
 {
 	mpsImageChangingDesc = NULL;
-
-	ReturnOnFalse(BeginLoadStandardTrackerObject(pcFile, iChunkNum));
 
 	ReturnOnFalse(pcFile->ReadInt(&miWidth));
 	ReturnOnFalse(pcFile->ReadInt(&miHeight));
 
 	ReturnOnFalse(mcChannels.Load(pcFile));
 
-	return EndLoadStandardTrackerObject(pcFile);
+	return TRUE;
 }
 
 
@@ -383,16 +381,13 @@ BOOL CImage::LoadSpecific(CFileReader* pcFile, int iChunkNum)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CImage::Save(CFileWriter* pcFile)
+BOOL CImage::Save(CObjectSerialiser* pcFile)
 {
-	ReturnOnFalse(BeginSaveStandardTrackerObject(pcFile));
-
 	ReturnOnFalse(pcFile->WriteInt(miWidth));
 	ReturnOnFalse(pcFile->WriteInt(miHeight));
 
 	ReturnOnFalse(mcChannels.Save(pcFile));
-
-	return EndSaveStandardTrackerObject(pcFile);
+	return TRUE;
 }
 
 

@@ -20,7 +20,7 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __MESH_CONNECTIVITY_H__
 #define __MESH_CONNECTIVITY_H__
-#include "StandardLib/StandardHeader.h"
+#include "StandardLib/NamedObject.h"
 #include "MeshFaceReturn.h"
 #include "MeshCorner.h"
 #include "MeshEdge.h"

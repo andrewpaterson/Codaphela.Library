@@ -35,14 +35,6 @@ along with Codaphela SceneLib.  If not, see <http://www.gnu.org/licenses/>.
 class CScene
 {
 public:
-	CMeshTracker			mcMeshTracker;
-	CLightTracker			mcLightTracker;
-	CCameraTracker			mcCameraTracker;
-	CImageTracker			mcImageTracker;
-	CMaterialTracker		mcMaterialTracker;
-	CConnectionTracker		mcConnectionTracker;
-	CSequenceTracker		mcSequenceTracker;
-	CInstanceTracker		mcInstanceTracker;
 	int						iUniqueID;
 
 	void Init(void);

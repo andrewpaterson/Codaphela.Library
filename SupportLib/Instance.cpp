@@ -18,6 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "StandardLib/ObjectSerialiser.h"
+#include "StandardLib/ObjectDeserialiser.h"
 #include "Instance.h"
 
 
@@ -27,7 +29,6 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CInstance::Init(void)
 {
-	CStandardTrackerObject::Init();
 	maiConnections.Init(16);
 	meType = TT_Unknown;
 }
@@ -37,10 +38,9 @@ void CInstance::Init(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CInstance::Kill(void)
+void CInstance::KillData(void)
 {	
 	maiConnections.Kill();
-	CStandardTrackerObject::Kill();
 }
 
 
@@ -48,15 +48,12 @@ void CInstance::Kill(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CInstance::LoadSpecific(CFileReader* pcFile, int iChunkNum)
+BOOL CInstance::Load(CObjectDeserialiser* pcFile)
 {
-	ReturnOnFalse(BeginLoadStandardTrackerObject(pcFile, iChunkNum));
-
 	ReturnOnFalse(pcFile->ReadInt((int*)&meType));
 	ReturnOnFalse(pcFile->ReadInt((int*)&miObjectIndex));
 	ReturnOnFalse(pcFile->ReadArraySimple(&maiConnections));
-
-	return EndLoadStandardTrackerObject(pcFile);
+	return TRUE;
 }
 
 
@@ -64,15 +61,12 @@ BOOL CInstance::LoadSpecific(CFileReader* pcFile, int iChunkNum)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CInstance::Save(CFileWriter* pcFile)
+BOOL CInstance::Save(CObjectSerialiser* pcFile)
 {
-	ReturnOnFalse(BeginSaveStandardTrackerObject(pcFile));
-
 	ReturnOnFalse(pcFile->WriteInt(meType));
 	ReturnOnFalse(pcFile->WriteInt(miObjectIndex));
 	ReturnOnFalse(pcFile->WriteArraySimple(&maiConnections));
-
-	return EndSaveStandardTrackerObject(pcFile);
+	return TRUE;
 }
 
 

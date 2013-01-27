@@ -18,6 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "StandardLib/ObjectDeserialiser.h"
+#include "StandardLib/ObjectSerialiser.h"
 #include "Material.h"
 
 
@@ -29,7 +31,6 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CMaterial::Init(void)
 {
-	CStandardTrackerObject::Init();
 	msDiffuse.Init();
 	msDiffuseLevel.Init();
 	msSpecular.Init();
@@ -47,7 +48,7 @@ void CMaterial::Init(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CMaterial::Kill(void)
+void CMaterial::KillData(void)
 {
 	msDiffuse.Kill();
 	msDiffuseLevel.Kill();
@@ -58,7 +59,6 @@ void CMaterial::Kill(void)
 	msDetail.Kill();
 	msDecal.Kill();
 	msReflection.Kill();
-	CStandardTrackerObject::Kill();
 }
 
 
@@ -76,10 +76,8 @@ void CMaterial::Copy(CMaterial* pcMaterial)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CMaterial::LoadSpecific(CFileReader* pcFile, int iChunkNum)
+BOOL CMaterial::Load(CObjectDeserialiser* pcFile)
 {
-	ReturnOnFalse(BeginLoadStandardTrackerObject(pcFile, iChunkNum));
-
 	ReturnOnFalse(msProperties.Load(pcFile));
 	ReturnOnFalse(msDiffuse.Load(pcFile));
 	ReturnOnFalse(msDiffuseLevel.Load(pcFile));
@@ -90,8 +88,7 @@ BOOL CMaterial::LoadSpecific(CFileReader* pcFile, int iChunkNum)
 	ReturnOnFalse(msDetail.Load(pcFile));
 	ReturnOnFalse(msDecal.Load(pcFile));
 	ReturnOnFalse(msReflection.Load(pcFile));
-
-	return EndLoadStandardTrackerObject(pcFile);
+	return TRUE;
 }
 
 
@@ -99,10 +96,8 @@ BOOL CMaterial::LoadSpecific(CFileReader* pcFile, int iChunkNum)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CMaterial::Save(CFileWriter* pcFile)
+BOOL CMaterial::Save(CObjectSerialiser* pcFile)
 {
-	ReturnOnFalse(BeginSaveStandardTrackerObject(pcFile));
-
 	ReturnOnFalse(msProperties.Save(pcFile));
 	ReturnOnFalse(msDiffuse.Save(pcFile));
 	ReturnOnFalse(msDiffuseLevel.Save(pcFile));
@@ -113,8 +108,7 @@ BOOL CMaterial::Save(CFileWriter* pcFile)
 	ReturnOnFalse(msDetail.Save(pcFile));
 	ReturnOnFalse(msDecal.Save(pcFile));
 	ReturnOnFalse(msReflection.Save(pcFile));
-
-	return EndSaveStandardTrackerObject(pcFile);
+	return TRUE;
 }
 
 

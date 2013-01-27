@@ -29,17 +29,6 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //////////////////////////////////////////////////////////////////////////
 void CImageCelGroup::Init(void)
 {
-	Init("__UNNAMED__");
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CImageCelGroup::Init(char* szName)
-{
-	CStandardTrackerObject::Init(-1, szName);
 	mcImageCels.Init();
 }
 
@@ -48,10 +37,9 @@ void CImageCelGroup::Init(char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCelGroup::Kill(void)
+void CImageCelGroup::KillData(void)
 {
 	mcImageCels.Kill();
-	CStandardTrackerObject::Kill();
 }
 
 
@@ -59,7 +47,13 @@ void CImageCelGroup::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CImageCelGroup::LoadSpecific(CFileReader* pcFile, int iChunkNum)
+BOOL CImageCelGroup::Load(CObjectDeserialiser* pcFile)
+{
+	return FALSE;
+}
+
+
+BOOL CImageCelGroup::Save(CObjectSerialiser* pcFile)
 {
 	return FALSE;
 }
@@ -130,15 +124,5 @@ CImage* CImageCelGroup::GetImage(void)
 		}
 	}
 	return pcImage;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CImageCelGroup::Is(char* szName)
-{
-	return mszName.Equals(szName);
 }
 

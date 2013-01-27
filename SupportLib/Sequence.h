@@ -22,8 +22,7 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __SEQUENCE_H__
 #include "BaseLib/ChunkFile.h"
 #include "BaseLib/GeometricTypes.h"
-#include "StandardLib/StandardHeader.h"
-#include "StandardLib/TrackerTemplate.h"
+#include "StandardLib/NamedObject.h"
 
 
 enum EKeyframeType
@@ -59,25 +58,27 @@ struct CAnimKeyFrame
 {
 	int					miType;  //Which parts of the key frame are actually used...
 	SAnimKeyFrameData	msf;
-	float				mfTime;  //Time untill the next frame.
+	float				mfTime;  //Time until the next frame.
 };
 
 
 typedef CArrayTemplate<CAnimKeyFrame>	CArrayAnimKeyFrame;
 
 
-class CSequence : public CStandardTrackerObject
+class CSequence : public CNamedObject
 {
 BASE_FUNCTIONS(CSequence);
 public:
 	CArrayAnimKeyFrame	masKeyFrames;
-	int					miConnectionIndex;  //The connection this keyframe animates
+	int					miConnectionIndex;  //The connection this key-frame animates
 
 	void 			Init(void);
-	void 			Kill(void);
-	BOOL			LoadSpecific(CFileReader* pcFile, int iChunkNum);;
-	BOOL			Save(CFileWriter* pcFile);
+	void 			KillData(void);
+
+	BOOL			Load(CObjectDeserialiser* pcFile);
+	BOOL			Save(CObjectSerialiser* pcFile);
 	void			Copy(CSequence* pcConnection);
+
 	void			Dump(void);
 	CAnimKeyFrame*	Add(SFloat4x4* psMatrix, float fTime);
 	CAnimKeyFrame*	Add(SFloat3* psPosition, SQuaternion* psRotation, float fTime);
@@ -85,9 +86,6 @@ public:
 	CAnimKeyFrame*	Add(SQuaternion* psRotation, float fTime);
 	void			SetConnectionID(int iConnectionID);
 };
-
-
-typedef CTrackerTemplate<CSequence> CSequenceTracker;
 
 
 #endif // __SEQUENCE_H__

@@ -24,6 +24,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #ifndef __TILE_WORLD_H__
 #define __TILE_WORLD_H__
 #include "StandardLib/Unknown.h"
+#include "StandardLib/Pointer.h"
 #include "Image.h"
 #include "ImageCelGroup.h"
 #include "TileMap.h"
@@ -38,19 +39,19 @@ public:
 	CArrayTileMap			macMaps;
 	CArrayTileType			macTileTypes;
 	CTileType*				mpcImageType;
-	CArrayImage				macImages;
-	CArrayImageCelGroup 	macGroups;
+	CArray					macImages;
+	CArray 					macGroups;
 	
-	void 				Init(void);
-	void 				Kill(void);
+	void 						Init(void);
+	void 						Kill(void);
 
-	CTileType*			AddType(char* szTypeName);
-	CTileMap*			AddMap(char* szName, int iCelWidth, int iCelHeight);
-	CTileType*			GetType(char* szTypeName);
+	CTileType*					AddType(char* szTypeName);
+	CTileMap*					AddMap(char* szName, int iCelWidth, int iCelHeight);
+	CTileType*					GetType(char* szTypeName);
 
-	void				AddImages(CArrayImage* pacImages);
-	CImageCelGroup*		AddGroup(char* szName);
-	CImageCelGroup*		GetGroup(char* szName);
+	void						AddImages(CArray* pacImages);
+	void						AddGroup(CPointer<CImageCelGroup> pcGroup);
+	CPointer<CImageCelGroup>	GetGroup(char* szName);
 };
 
 

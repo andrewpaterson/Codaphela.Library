@@ -21,13 +21,12 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __MATERIAL_H__
 #define __MATERIAL_H__
 #include "BaseLib/ChunkFile.h"
-#include "StandardLib/StandardHeader.h"
-#include "StandardLib/TrackerTemplate.h"
+#include "StandardLib/NamedObject.h"
 #include "MaterialImage.h"
 #include "MaterialProperties.h"
 
 
-class CMaterial : public CStandardTrackerObject
+class CMaterial : public CNamedObject
 {
 BASE_FUNCTIONS(CMaterial);
 public:
@@ -44,15 +43,14 @@ public:
 	CMaterialProperties	msProperties;
 
 	void		Init(void);
-	void		Kill(void);
-	BOOL		LoadSpecific(CFileReader* pcFile, int iChunkNum);;
-	BOOL		Save(CFileWriter* pcFile);
+	void		KillData(void);
+
+	BOOL		Load(CObjectDeserialiser* pcFile);
+	BOOL		Save(CObjectSerialiser* pcFile);
 	void		Copy(CMaterial* pcMaterial);
+
 	void		Dump(void);
 };
-
-
-typedef CTrackerTemplate<CMaterial> CMaterialTracker;
 
 
 #endif //__MATERIAL_H__

@@ -18,6 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "StandardLib/ObjectSerialiser.h"
+#include "StandardLib/ObjectDeserialiser.h"
 #include "Sequence.h"
 
 
@@ -27,7 +29,6 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CSequence::Init(void)
 {
-	CStandardTrackerObject::Init();
 	masKeyFrames.Init(128);
 	miConnectionIndex = -1;
 }
@@ -37,10 +38,9 @@ void CSequence::Init(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CSequence::Kill(void)
+void CSequence::KillData(void)
 {	
 	masKeyFrames.Kill();
-	CStandardTrackerObject::Kill();
 }
 
 
@@ -119,14 +119,11 @@ CAnimKeyFrame* CSequence::Add(SQuaternion* psRotation, float fTime)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CSequence::LoadSpecific(CFileReader* pcFile, int iChunkNum)
+BOOL CSequence::Load(CObjectDeserialiser* pcFile)
 {
-	ReturnOnFalse(BeginLoadStandardTrackerObject(pcFile, iChunkNum));
-
 	ReturnOnFalse(pcFile->ReadInt(&miConnectionIndex));
 	ReturnOnFalse(pcFile->ReadArrayTemplate(&masKeyFrames));
-
-	return EndLoadStandardTrackerObject(pcFile);
+	return TRUE;
 }
 
 
@@ -134,14 +131,11 @@ BOOL CSequence::LoadSpecific(CFileReader* pcFile, int iChunkNum)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CSequence::Save(CFileWriter* pcFile)
+BOOL CSequence::Save(CObjectSerialiser* pcFile)
 {
-	ReturnOnFalse(BeginSaveStandardTrackerObject(pcFile));
-
 	ReturnOnFalse(pcFile->WriteInt(miConnectionIndex));
 	ReturnOnFalse(pcFile->WriteArrayTemplate(&masKeyFrames));
-
-	return EndSaveStandardTrackerObject(pcFile);
+	return TRUE;
 }
 
 

@@ -20,7 +20,7 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __MESH_H__
 #define __MESH_H__
-#include "StandardLib/TrackerTemplate.h"
+#include "StandardLib/NamedObject.h"
 #include "ShapesIndexed.h"
 #include "MeshFaceReturn.h"
 #include "MeshPositions.h"
@@ -34,7 +34,7 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "MeshCache.h"
 
 
-class CMesh : public CStandardTrackerObject
+class CMesh : public CNamedObject
 {
 BASE_FUNCTIONS(CMesh);
 protected:
@@ -53,10 +53,10 @@ public:
 
 	void			Init(void);
 	void 			Init(int iUniqueID, char* szName);
-	void 			Kill(void);
-	BOOL			Load(CFileReader* pcFile);
-	BOOL			LoadSpecific(CFileReader* pcFile, int iChunkNum);
-	BOOL			Save(CFileWriter* pcFile);
+	void 			KillData(void);
+
+	BOOL			Load(CObjectDeserialiser* pcFile);
+	BOOL			Save(CObjectSerialiser* pcFile);
 	void			Copy(CMesh* pcMesh);
 	
 	BOOL			Touch(void);
@@ -102,9 +102,6 @@ public:
 protected:
 	void	PrivateInit(void);
 };
-
-
-typedef CTrackerTemplate<CMesh> CMeshTracker;
 
 
 #endif // __MESH_H__

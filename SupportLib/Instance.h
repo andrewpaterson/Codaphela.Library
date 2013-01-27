@@ -28,12 +28,11 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/ArraySimple.h"
 #include "BaseLib/ChunkFile.h"
 #include "BaseLib/AdditionalTypes.h"
-#include "StandardLib/StandardHeader.h"
-#include "StandardLib/TrackerTemplate.h"
+#include "StandardLib/NamedObject.h"
 #include "TrackerTypes.h"
 
 
-class CInstance : public CStandardTrackerObject
+class CInstance : public CNamedObject
 {
 public:
 	BASE_FUNCTIONS(CInstance);
@@ -43,14 +42,12 @@ public:
 	CArraySimpleInt		maiConnections;  //Matricies, just one unless the the object is a skinned mesh.
 	
 	void 	Init(void);
-	void 	Kill(void);
-	BOOL	LoadSpecific(CFileReader* pcFile, int iChunkNum);;
-	BOOL	Save(CFileWriter* pcFile);
+	void 	KillData(void);
+
+	BOOL	Load(CObjectDeserialiser* pcFile);
+	BOOL	Save(CObjectSerialiser* pcFile);
 	void	Copy(CInstance* pcInstance);
 };
-
-
-typedef CTrackerTemplate<CInstance> CInstanceTracker;
 
 
 #endif // __INSTANCE_H__

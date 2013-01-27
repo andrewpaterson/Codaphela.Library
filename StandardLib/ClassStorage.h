@@ -70,7 +70,7 @@ public:
 
 	//BOOL				Save(CFileWriter* pcFile);
 	//BOOL				Load(CFileReader* pcFile);
-	//BOOL				LoadSpecific(CFileReader* pcFile, int iChunkNum);
+	//BOOL				Load(CObjectDeserialiser* pcFile);
 };
 
 

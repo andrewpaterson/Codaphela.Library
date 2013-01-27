@@ -27,10 +27,8 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CCamera::Init(void)
 {
-	CStandardTrackerObject::Init();
 	meCameraType = CT_Perspective;
 	mfFOV = 0.0f;
-
 }
 
 
@@ -40,7 +38,6 @@ void CCamera::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CCamera::Init(ECameraType eCameraType, float fFOV)
 {
-	CStandardTrackerObject::Init();
 	mfFOV = fFOV;
 	meCameraType = eCameraType;
 }
@@ -50,9 +47,9 @@ void CCamera::Init(ECameraType eCameraType, float fFOV)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCamera::Kill(void)
+void CCamera::KillData(void)
 {
-	CStandardTrackerObject::Kill();
+	meCameraType = CT_Unknown;
 }
 
 
@@ -60,14 +57,11 @@ void CCamera::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCamera::LoadSpecific(CFileReader* pcFile, int iChunkNum)
+BOOL CCamera::Load(CObjectDeserialiser* pcFile)
 {
-	ReturnOnFalse(BeginLoadStandardTrackerObject(pcFile, iChunkNum));
-
-	pcFile->ReadInt((int*)&meCameraType);
-	pcFile->ReadFloat(&mfFOV);
-
-	return EndLoadStandardTrackerObject(pcFile);
+	ReturnOnFalse(pcFile->ReadInt((int*)&meCameraType));
+	ReturnOnFalse(pcFile->ReadFloat(&mfFOV));
+	return TRUE;
 }
 
 
@@ -75,14 +69,11 @@ BOOL CCamera::LoadSpecific(CFileReader* pcFile, int iChunkNum)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCamera::Save(CFileWriter* pcFile)
+BOOL CCamera::Save(CObjectSerialiser* pcFile)
 {
-	ReturnOnFalse(BeginSaveStandardTrackerObject(pcFile));
-
-	pcFile->WriteInt(meCameraType);
-	pcFile->WriteFloat(mfFOV);
-
-	return EndSaveStandardTrackerObject(pcFile);
+	ReturnOnFalse(pcFile->WriteInt(meCameraType));
+	ReturnOnFalse(pcFile->WriteFloat(mfFOV));
+	return TRUE;
 }
 
 

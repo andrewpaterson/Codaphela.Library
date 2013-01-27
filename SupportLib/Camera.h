@@ -21,18 +21,18 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __CAMERA_H__
 #define __CAMERA_H__
 #include "BaseLib/ChunkFile.h"
-#include "StandardLib/StandardHeader.h"
-#include "StandardLib/TrackerTemplate.h"
+#include "StandardLib/NamedObject.h"
 
 
 enum ECameraType
 {
+	CT_Unknown,
 	CT_Perspective,
 	CT_Orthonormal,
 };
 
 
-class CCamera : public CStandardTrackerObject
+class CCamera : public CNamedObject
 {
 public:
 	BASE_FUNCTIONS(CCamera);
@@ -42,14 +42,12 @@ public:
 
 	void 	Init(void);
 	void 	Init(ECameraType eCameraType, float fFOV);
-	void 	Kill(void);
+	void 	KillData(void);
 
-	BOOL	LoadSpecific(CFileReader* pcFile, int iChunkNum);
-	BOOL	Save(CFileWriter* pcFile);
+	BOOL	Load(CObjectDeserialiser* pcFile);
+	BOOL	Save(CObjectSerialiser* pcFile);
 	void	Copy(CCamera* pcCamera);
 };
-
-typedef CTrackerTemplate<CCamera> CCameraTracker;
 
 
 #endif // __CAMERA_H__

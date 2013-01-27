@@ -45,50 +45,50 @@ void CMaterialHelper::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMaterialHelper::Touch(CImageTracker* pcImageTracker)
+void CMaterialHelper::Touch(void)
 {
-	CImage*		pcImage;
+	//CImage*		pcImage;
 
-	if (mpcMaterial->msSpecular.iImageID != -1)
-	{
-		pcImage = pcImageTracker->GetWithID(mpcMaterial->msSpecular.iImageID);
-		if (pcImage->HasChannel(IMAGE_DIFFUSE_GREY))
-		{
-			pcImage->RenameChannel(IMAGE_DIFFUSE_GREY, IMAGE_SPECULAR);
-		}
-	}
+	//if (mpcMaterial->msSpecular.iImageID != -1)
+	//{
+	//	pcImage = pcImageTracker->GetWithID(mpcMaterial->msSpecular.iImageID);
+	//	if (pcImage->HasChannel(IMAGE_DIFFUSE_GREY))
+	//	{
+	//		pcImage->RenameChannel(IMAGE_DIFFUSE_GREY, IMAGE_SPECULAR);
+	//	}
+	//}
 
-	if (mpcMaterial->msIllumination.iImageID != -1)
-	{
-		pcImage = pcImageTracker->GetWithID(mpcMaterial->msIllumination.iImageID);
-		if (pcImage->HasChannel(IMAGE_DIFFUSE_GREY))
-		{
-			pcImage->RenameChannel(IMAGE_DIFFUSE_GREY, IMAGE_ILLUMINATION);
-		}
-		else if (pcImage->HasChannels(IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_ZERO))
-		{
-			pcImage->RenameChannel(IMAGE_DIFFUSE_RED, IMAGE_ILLUMINATION_RED);
-			pcImage->RenameChannel(IMAGE_DIFFUSE_GREEN, IMAGE_ILLUMINATION_GREEN);
-			pcImage->RenameChannel(IMAGE_DIFFUSE_BLUE, IMAGE_ILLUMINATION_BLUE);
-		}
-	}
+	//if (mpcMaterial->msIllumination.iImageID != -1)
+	//{
+	//	pcImage = pcImageTracker->GetWithID(mpcMaterial->msIllumination.iImageID);
+	//	if (pcImage->HasChannel(IMAGE_DIFFUSE_GREY))
+	//	{
+	//		pcImage->RenameChannel(IMAGE_DIFFUSE_GREY, IMAGE_ILLUMINATION);
+	//	}
+	//	else if (pcImage->HasChannels(IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_ZERO))
+	//	{
+	//		pcImage->RenameChannel(IMAGE_DIFFUSE_RED, IMAGE_ILLUMINATION_RED);
+	//		pcImage->RenameChannel(IMAGE_DIFFUSE_GREEN, IMAGE_ILLUMINATION_GREEN);
+	//		pcImage->RenameChannel(IMAGE_DIFFUSE_BLUE, IMAGE_ILLUMINATION_BLUE);
+	//	}
+	//}
 
-	if (mpcMaterial->msOpacity.iImageID != -1)
-	{
-		pcImage = pcImageTracker->GetWithID(mpcMaterial->msOpacity.iImageID);
-		if (pcImage->HasChannel(IMAGE_DIFFUSE_GREY))
-		{
-			pcImage->RenameChannel(IMAGE_DIFFUSE_GREY, IMAGE_OPACITY);
-		}
-	}
+	//if (mpcMaterial->msOpacity.iImageID != -1)
+	//{
+	//	pcImage = pcImageTracker->GetWithID(mpcMaterial->msOpacity.iImageID);
+	//	if (pcImage->HasChannel(IMAGE_DIFFUSE_GREY))
+	//	{
+	//		pcImage->RenameChannel(IMAGE_DIFFUSE_GREY, IMAGE_OPACITY);
+	//	}
+	//}
 
-	if (mpcMaterial->msBump.iImageID != -1)
-	{
-		pcImage = pcImageTracker->GetWithID(mpcMaterial->msBump.iImageID);
-		if (pcImage->HasChannel(IMAGE_DIFFUSE_GREY))
-		{
-			ConvertHeightMapTo(TRUE, FALSE, pcImage, pcImage, IMAGE_DIFFUSE_GREY);
-		}
-	}
+	//if (mpcMaterial->msBump.iImageID != -1)
+	//{
+	//	pcImage = pcImageTracker->GetWithID(mpcMaterial->msBump.iImageID);
+	//	if (pcImage->HasChannel(IMAGE_DIFFUSE_GREY))
+	//	{
+	//		ConvertHeightMapTo(TRUE, FALSE, pcImage, pcImage, IMAGE_DIFFUSE_GREY);
+	//	}
+	//}
 }
 

@@ -50,15 +50,12 @@ void AddOBJHeading(CChars* psz)
 //////////////////////////////////////////////////////////////////////////
 void AddOBJName(CMesh* pcMesh, CChars* psz)
 {
-	if (pcMesh->HasName())
-	{
-		psz->Append("#\n");
-		psz->Append("# ");
-		psz->Append(pcMesh->GetName());
-		psz->AppendNewLine();
-		psz->Append("#\n");
-		psz->AppendNewLine();
-	}
+	psz->Append("#\n");
+	psz->Append("# ");
+	psz->Append(pcMesh->GetName());
+	psz->AppendNewLine();
+	psz->Append("#\n");
+	psz->AppendNewLine();
 }
 
 

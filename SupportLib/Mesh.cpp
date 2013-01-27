@@ -21,6 +21,8 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/Numbers.h"
 #include "BaseLib/IntegerHelper.h"
 #include "BaseLib/PointerFunctions.h"
+#include "StandardLib/ObjectDeserialiser.h"
+#include "StandardLib/ObjectSerialiser.h"
 #include "Mesh.h"
 
 
@@ -30,18 +32,6 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CMesh::Init(void)
 {
-	CStandardTrackerObject::Init();
-	PrivateInit();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CMesh::Init(int iUniqueID, char* szName)
-{
-	CStandardTrackerObject::Init(iUniqueID, szName);
 	PrivateInit();
 }
 
@@ -68,7 +58,7 @@ void CMesh::PrivateInit(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMesh::Kill(void)
+void CMesh::KillData(void)
 {
 	mcNormals.Kill();
 	mcUVs.Kill();
@@ -79,7 +69,6 @@ void CMesh::Kill(void)
 	mcPositions.Kill();
 	mcFaceTypes.Kill();
 	mcCache.Kill();
-	CStandardTrackerObject::Kill();
 }
 
 
@@ -87,21 +76,8 @@ void CMesh::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMesh::Load(CFileReader* pcFile)
+BOOL CMesh::Load(CObjectDeserialiser* pcFile)
 {
-	//Fixes: ambiguous access of 'Load'
-	return CStandardTrackerObject::Load(pcFile);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CMesh::LoadSpecific(CFileReader* pcFile, int iChunkNum)
-{
-	ReturnOnFalse(BeginLoadStandardTrackerObject(pcFile, iChunkNum));
-
 	ReturnOnFalse(mcPositions.Load(pcFile));
 	ReturnOnFalse(mcConnectivity.Load(pcFile));
 	ReturnOnFalse(mcNormals.Load(pcFile));
@@ -111,8 +87,7 @@ BOOL CMesh::LoadSpecific(CFileReader* pcFile, int iChunkNum)
 	ReturnOnFalse(mcColours.Load(pcFile));
 	ReturnOnFalse(mcFaceTypes.Load(pcFile));
 	ReturnOnFalse(mcCache.Load(pcFile));
-
-	return EndLoadStandardTrackerObject(pcFile);
+	return TRUE;
 }
 
 
@@ -120,10 +95,8 @@ BOOL CMesh::LoadSpecific(CFileReader* pcFile, int iChunkNum)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMesh::Save(CFileWriter* pcFile)
+BOOL CMesh::Save(CObjectSerialiser* pcFile)
 {
-	ReturnOnFalse(BeginSaveStandardTrackerObject(pcFile));
-	
 	ReturnOnFalse(mcPositions.Save(pcFile));
 	ReturnOnFalse(mcConnectivity.Save(pcFile));
 	ReturnOnFalse(mcNormals.Save(pcFile));
@@ -133,8 +106,7 @@ BOOL CMesh::Save(CFileWriter* pcFile)
 	ReturnOnFalse(mcColours.Save(pcFile));
 	ReturnOnFalse(mcFaceTypes.Save(pcFile));
 	ReturnOnFalse(mcCache.Save(pcFile));
-
-	return EndSaveStandardTrackerObject(pcFile);	
+	return TRUE;
 }
 
 

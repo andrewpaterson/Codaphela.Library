@@ -22,8 +22,7 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __LIGHT_H__
 #include "BaseLib/ChunkFile.h"
 #include "BaseLib/GeometricTypes.h"
-#include "StandardLib/StandardHeader.h"
-#include "StandardLib/TrackerTemplate.h"
+#include "StandardLib/NamedObject.h"
 #include "ImageColour.h"
 
 
@@ -43,7 +42,7 @@ enum ELightType
 };
 
 
-class CLight : public CStandardTrackerObject
+class CLight : public CNamedObject
 {
 public:
 	BASE_FUNCTIONS(CLight);
@@ -57,15 +56,11 @@ public:
 
 	void 	Init(void);
 	void 	Init(ELightType eType, CImageColourARGB sColour, ELightDecayType eDecay, float fDecayStart, BOOL bCastShadows, float fIntensity);
-	void 	Kill(void);
 
-	BOOL	LoadSpecific(CFileReader* pcFile, int iChunkNum);;
-	BOOL	Save(CFileWriter* pcFile);
+	BOOL	Load(CObjectDeserialiser* pcFile);
+	BOOL	Save(CObjectSerialiser* pcFile);
 	void	Copy(CLight* pcLight);
 };
-
-
-typedef CTrackerTemplate<CLight> CLightTracker;
 
 
 #endif // __LIGHT_H__

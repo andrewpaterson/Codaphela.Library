@@ -15,7 +15,14 @@ Instance.cpp
 TrackerTypes.h
 Scene.cpp
 
-Conisder these folders
-----------------------
+Conisder these folders (and classes)
+------------------------------------
 Font
+Shapes
+Tiles
+CImageCel
 
+Fix
+---
+TakeControlOfImages
+NamedObjects must allow for nameless versions also.

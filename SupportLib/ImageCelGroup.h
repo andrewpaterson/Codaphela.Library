@@ -24,13 +24,12 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #ifndef __IMAGE_CEL_GROUP_H__
 #define __IMAGE_CEL_GROUP_H__
 #include "BaseLib/Chars.h"
-#include "StandardLib/StandardHeader.h"
+#include "StandardLib/NamedObject.h"
 #include "StandardLib/ArrayType.h"
-#include "StandardLib/TrackerTemplate.h"
 #include "ImageCel.h"
 
 
-class CImageCelGroup : public CStandardTrackerObject
+class CImageCelGroup : public CNamedObject
 {
 BASE_FUNCTIONS(CImageCelGroup);
 public:
@@ -38,20 +37,16 @@ public:
 
 	void 		Init(void);
 	void 		Init(char* szName);
-	void 		Kill(void);
+	void 		KillData(void);
 
-	BOOL		LoadSpecific(CFileReader* pcFile, int iChunkNum);
+	BOOL		Load(CObjectDeserialiser* pcFile);
+	BOOL		Save(CObjectSerialiser* pcFile);
 	void		AddCel(CImageCel* pcCel);
 	void		AddCels(CArrayCommonUnknown* pcCels);
 	int			NumCels(void);
 	CImageCel*	GetCel(int iIndex);
 	CImage*		GetImage(void);
-	BOOL		Is(char* szName);
 };
-
-
-typedef CArrayType<CImageCelGroup> CArrayImageCelGroup;
-typedef CTrackerTemplate<CImageCelGroup> CImageCelGroupTracker;
 
 
 #endif // __IMAGE_CEL_GROUP_H__

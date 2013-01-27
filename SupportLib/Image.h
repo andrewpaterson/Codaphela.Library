@@ -24,10 +24,9 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #ifndef __IMAGE__H__
 #define __IMAGE__H__
 #include "BaseLib/GeometricTypes.h"
-#include "StandardLib/StandardHeader.h"
+#include "StandardLib/NamedObject.h"
 #include "StandardLib/Channels.h"
-#include "StandardLib/ArrayType.h"
-#include "StandardLib/TrackerTemplate.h"
+#include "StandardLib/Array.h"
 #include "ImageChannel.h"
 #include "Rectangle.h"
 #include "ImageColour.h"
@@ -46,11 +45,11 @@ struct SImageChangingDesc
 };
 
 
-//Image shoudn't be aware of CImageAccessor.
+//Image shouldn't be aware of CImageAccessor.
 class CImageAccessor;
 
 
-class CImage : public CStandardTrackerObject
+class CImage : public CNamedObject
 {
 BASE_FUNCTIONS(CImage);
 public:
@@ -66,7 +65,7 @@ public:
 	void					Init(int iWidth, int iHeight, void* pvUserData, CImageChannelsSource* pcSource);
 	void					Init(int iWidth, int iHeight, CImage* pcChannelsSource);
 	void					Init(CImage* pcChannelsSource);  //This only sets up channels and dimensions.  
-	void					Kill(void);
+	void					KillData(void);
 
 	void					BeginChange(void);
 	void 					AddChannel(int iChannel, EPrimitiveTypes eType, BOOL bReverse = FALSE);
@@ -86,8 +85,8 @@ public:
 	BOOL 					EndChange(void);
 	BOOL					IsChanging(void);
 
-	BOOL					LoadSpecific(CFileReader* pcFile, int iChunkNum);
-	BOOL					Save(CFileWriter* pcFile);
+	BOOL					Load(CObjectDeserialiser* pcFile);
+	BOOL					Save(CObjectSerialiser* pcFile);
 	void					Copy(CImage* pcSource);
 	void					Clear(void);
 
@@ -109,10 +108,6 @@ public:
 	BOOL					HasChannel(int iChannel);
 	BOOL					HasChannels(int iFirst, ...);
 };
-
-
-typedef CArrayType<CImage>	CArrayImage;
-typedef CTrackerTemplate<CImage> CImageTracker;
 
 
 #endif // __IMAGE_H__
