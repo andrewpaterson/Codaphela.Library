@@ -34,7 +34,7 @@ class CObjectIndexedDataDeserialiser : public CObjectDeserialiser
 protected:
 
 public:
-	BOOL			Init(CSerialisedObject* pcSerialised);
+	BOOL			Init(CSerialisedObject* pcSerialised, CObjectAllocator* pcAllocator);
 	void			Kill(void);
 
 protected:

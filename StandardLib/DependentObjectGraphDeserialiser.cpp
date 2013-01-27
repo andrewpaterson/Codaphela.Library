@@ -5,9 +5,9 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDependentObjectGraphDeserialiser::Init(CObjectReader* pcReader, CIndexGenerator* pcIndexGenerator)
+void CDependentObjectGraphDeserialiser::Init(CObjectReader* pcReader, CIndexGenerator* pcIndexGenerator, CObjectAllocator* pcAllocator)
 {
-	CObjectGraphDeserialiser::Init(pcReader, pcIndexGenerator);
+	CObjectGraphDeserialiser::Init(pcReader, pcIndexGenerator, pcAllocator);
 }
 
 

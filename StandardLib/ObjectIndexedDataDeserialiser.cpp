@@ -31,9 +31,9 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectIndexedDataDeserialiser::Init(CSerialisedObject* pcSerialised)
+BOOL CObjectIndexedDataDeserialiser::Init(CSerialisedObject* pcSerialised, CObjectAllocator* pcAllocator)
 {
-	if (!CObjectDeserialiser::Init(pcSerialised))
+	if (!CObjectDeserialiser::Init(pcSerialised, pcAllocator))
 	{
 		return FALSE;
 	}

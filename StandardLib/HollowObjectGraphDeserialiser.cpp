@@ -6,9 +6,9 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHollowObjectGraphDeserialiser::Init(CObjectReader* pcReader, CIndexGenerator* pcIndexGenerator)
+void CHollowObjectGraphDeserialiser::Init(CObjectReader* pcReader, CIndexGenerator* pcIndexGenerator, CObjectAllocator* pcAllocator)
 {
-	CObjectGraphDeserialiser::Init(pcReader, pcIndexGenerator);
+	CObjectGraphDeserialiser::Init(pcReader, pcIndexGenerator, pcAllocator);
 	mcExistingHollowRemap.Init(32);
 }
 

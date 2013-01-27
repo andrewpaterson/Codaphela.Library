@@ -36,7 +36,7 @@ protected:
 	CObjectGraphDeserialiser*	mpcGraphDeserialiser;
 
 public:
-	BOOL			Init(CObjectGraphDeserialiser* pcGraphDeserialiser, CSerialisedObject* pcSerialised);
+	BOOL			Init(CObjectGraphDeserialiser* pcGraphDeserialiser, CSerialisedObject* pcSerialised, CObjectAllocator* pcAllocator);
 	void			Kill(void);
 
 protected:

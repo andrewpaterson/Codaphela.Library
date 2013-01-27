@@ -116,6 +116,7 @@ CPointerObject CObjectConverterNative::Convert(CObjectSource* pcSource, char* sz
 	CObjectSourceChunked*				pcSourceChunked;
 	CObjectSourceSimple*				pcSourceSimple;
 	CObjectReader*						pcReader;
+	CObjectAllocator					cAllocator;
 
 	//This if statement should be calling a virtual method instead.
 	if (pcSource->IsMultiSource() && pcSource->IsNative())
@@ -133,7 +134,8 @@ CPointerObject CObjectConverterNative::Convert(CObjectSource* pcSource, char* sz
 		return ONull;
 	}
 
-	cGraphDeserialiser.Init(pcReader, mpcIndexGenerator);
+	cAllocator.Init(&gcObjects, TRUE);
+	cGraphDeserialiser.Init(pcReader, mpcIndexGenerator, &cAllocator);
 	cPointer = cGraphDeserialiser.Read(szObjectName);
 	cGraphDeserialiser.Kill();
 

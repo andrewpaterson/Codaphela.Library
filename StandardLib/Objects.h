@@ -24,7 +24,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "NamedIndexedData.h"
 #include "NamedIndexedObjects.h"
 #include "Unknowns.h"
-#include "Pointer.h"
+#include "Null.h"
 #include "ObjectsSource.h"
 #include "Root.h"
 #include "IndexGenerator.h"
@@ -36,14 +36,15 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 #define OMalloc(classtype)			(gcObjects.Add<classtype>())
 #define ONMalloc(classtype, name)	(gcObjects.Add<classtype>(name))
-#define ONull						(gcObjects.Null())
-#define ONNull(classtype)			(gcObjects.Null<classtype>())
 #define ORoot()						(gcObjects.AddRoot())
+#define ONull						(Null())
+#define ONNull(classtype)			(Null<classtype>())
 
 
 class CObjects
 {
 friend class CBaseObject;
+friend class CObjectAllocator;
 protected:
 	CUnknowns*				mpcUnknownsAllocatingFrom;
 
@@ -95,12 +96,12 @@ public:
 
 						CBaseObject*		GetInMemoryObject(OIndex oi);
 						void				RemoveInKill(CBaseObject* pvObject);
+						CPointerObject		Dehollow(OIndex oi);
 
 						OIndex				StartMemoryIteration(SIndexesIterator* psIter);
 						OIndex				IterateMemory(SIndexesIterator* psIter);
 
 						CPointerObject		GetNotInMemory(char* szObjectName);
-						CPointerObject		GetNotInMemory(OIndex oi);
 
 protected:
 						BOOL				AddWithID(CBaseObject* pvObject);
@@ -112,7 +113,8 @@ protected:
 						void				FreeObjects(CArrayBaseObjectPtr* papcObjectPts);
 						void				FixDistToRoot(CArrayEmbeddedBaseObjectPtr* papcFromsChanged);
 						CPointerObject		GetIfInMemory(OIndex oi);
-						CPointerObject		GetSerialised(void* pvData);
+						CPointerObject		GetNotInMemory(OIndex oi, BOOL bOverwriteExisting);
+						CPointerObject		GetSerialised(void* pvData, BOOL bOverwriteExisting);
 };
 
 

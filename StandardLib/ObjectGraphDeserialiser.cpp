@@ -8,11 +8,12 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectGraphDeserialiser::Init(CObjectReader* pcReader, CIndexGenerator* pcIndexGenerator)
+void CObjectGraphDeserialiser::Init(CObjectReader* pcReader, CIndexGenerator* pcIndexGenerator, CObjectAllocator* pcAllocator)
 {
 	mpcReader = pcReader;
 	mcDependentObjects.Init(pcIndexGenerator);
 	mcIndexRemap.Init(32);
+	mpcAllocator = pcAllocator;
 }
 
 
@@ -131,7 +132,7 @@ BOOL CObjectGraphDeserialiser::ReadUnread(CDependentReadObject* pcDependent, BOO
 
 	oiOld = pcDependent->moi;
 	oiNew = pcDependent->GetNewIndex();
-	cDeserialiser.Init(this, pcSerialised);
+	cDeserialiser.Init(this, pcSerialised, mpcAllocator);
 	pObject = cDeserialiser.Load(oiNew);
 	if (pObject.IsNull())
 	{

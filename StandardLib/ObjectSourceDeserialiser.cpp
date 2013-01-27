@@ -30,9 +30,9 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectSourceDeserialiser::Init(CObjectGraphDeserialiser* pcGraphDeserialiser, CSerialisedObject* pcSerialised)
+BOOL CObjectSourceDeserialiser::Init(CObjectGraphDeserialiser* pcGraphDeserialiser, CSerialisedObject* pcSerialised, CObjectAllocator* pcAllocator)
 {
-	if (!CObjectDeserialiser::Init(pcSerialised))
+	if (!CObjectDeserialiser::Init(pcSerialised, pcAllocator))
 	{
 		return FALSE;
 	}

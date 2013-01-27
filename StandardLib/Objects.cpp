@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/DebugOutput.h"
 #include "BaseObject.h"
 #include "NamedObject.h"
 #include "HollowObject.h"
@@ -519,7 +520,7 @@ CPointerObject CObjects::Get(OIndex oi)
 	}
 	else
 	{
-		return GetNotInMemory(oi);
+		return GetNotInMemory(oi, FALSE);
 	}
 }
 
@@ -528,7 +529,17 @@ CPointerObject CObjects::Get(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointerObject CObjects::GetNotInMemory(OIndex oi)
+CPointerObject CObjects::Dehollow(OIndex oi)
+{
+	return GetNotInMemory(oi, TRUE);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CPointerObject CObjects::GetNotInMemory(OIndex oi, BOOL bOverwriteExisting)
 {
 	void*			pvData;
 
@@ -537,8 +548,15 @@ CPointerObject CObjects::GetNotInMemory(OIndex oi)
 	{
 		CPointerObject	pObject;
 
-		pObject = GetSerialised(pvData);
+		pObject = GetSerialised(pvData, bOverwriteExisting);
 		free(pvData);
+
+		if (pObject.GetIndex() != oi)
+		{
+			EngineOutput("Whoops, got an object with an OI different to that requetsed.");
+			return Null();
+		}
+
 		return pObject;
 	}
 
@@ -582,7 +600,7 @@ CPointerObject CObjects::GetNotInMemory(char* szObjectName)
 	{
 		CPointerObject	pObject;
 
-		pObject = GetSerialised(pvData);
+		pObject = GetSerialised(pvData, FALSE);
 		free(pvData);
 		return pObject;
 	}
@@ -600,17 +618,19 @@ CPointerObject CObjects::GetNotInMemory(char* szObjectName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointerObject CObjects::GetSerialised(void* pvData)
+CPointerObject CObjects::GetSerialised(void* pvData, BOOL bOverwriteExisting)
 {
 	CObjectIndexedDataDeserialiser	cDeserialiser;
 	CSerialisedObject*				pcSerialised;
+	CObjectAllocator				cAllocator;
 
 	pcSerialised = (CSerialisedObject*)pvData;
 	if (pcSerialised)
 	{
 		CPointerObject						pObject;
 
-		cDeserialiser.Init(pcSerialised);
+		cAllocator.Init(this, bOverwriteExisting);
+		cDeserialiser.Init(pcSerialised, &cAllocator);
 		pObject = cDeserialiser.Load(pcSerialised->GetIndex());
 		cDeserialiser.Kill();
 		return pObject;

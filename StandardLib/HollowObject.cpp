@@ -50,7 +50,7 @@ CBaseObject* CHollowObject::Dehollow(void)
 {
 	CPointerObject	pObject;
 
-	pObject = mpcObjectsThisIn->GetNotInMemory(moi);
+	pObject = mpcObjectsThisIn->Dehollow(moi);
 	return pObject.Object();
 }
 

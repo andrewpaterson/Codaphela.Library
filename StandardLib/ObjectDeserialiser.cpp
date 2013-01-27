@@ -19,9 +19,9 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include "CoreLib/IndexedGeneral.h"
+#include "Null.h"
 #include "ObjectFileGeneral.h"
 #include "ObjectHeader.h"
-#include "Objects.h"
 #include "ObjectGraphDeserialiser.h"
 #include "ObjectDeserialiser.h"
 
@@ -30,12 +30,14 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectDeserialiser::Init(CSerialisedObject* pcSerialised)
+BOOL CObjectDeserialiser::Init(CSerialisedObject* pcSerialised, CObjectAllocator* pcAllocator)
 {
 	if (!pcSerialised)
 	{
 		return FALSE;
 	}
+
+	mpcAllocator = pcAllocator;
 
 	mpcMemory = MemoryFile(pcSerialised, pcSerialised->GetLength());
 	mcFile.Init(mpcMemory);
@@ -67,20 +69,20 @@ CPointerObject CObjectDeserialiser::Load(OIndex oiNew)
 	bResult = mcFile.Open(EFM_Read);
 	if (!bResult)
 	{
-		return ONull;
+		return Null();
 	}
 
 	bResult = ReadInt(&iLength);
 	if (!bResult)
 	{
-		return ONull;
+		return Null();
 	}
 
 	bResult = ReadObjectHeader(&sHeader);
 	if (!bResult)
 	{
 		sHeader.Kill();
-		return ONull;
+		return Null();
 	}
 
 	CPointerObject	pObject;
@@ -88,21 +90,21 @@ CPointerObject CObjectDeserialiser::Load(OIndex oiNew)
 	if (sHeader.mcType == OBJECT_POINTER_NULL)
 	{
 		sHeader.Kill();
-		return ONull;
+		return Null();
 	}
 	else if (sHeader.mcType == OBJECT_POINTER_ID)
 	{
-		pObject = gcObjects.Add(sHeader.mszClassName.Text(), oiNew, &oiReplaced);
+		pObject = mpcAllocator->Add(sHeader.mszClassName.Text(), oiNew, &oiReplaced);
 	}
 	else if (sHeader.mcType == OBJECT_POINTER_NAMED)
 	{
-		pObject = gcObjects.Add(sHeader.mszClassName.Text(), sHeader.mszObjectName.Text(), oiNew, &oiReplaced);
+		pObject = mpcAllocator->Add(sHeader.mszClassName.Text(), sHeader.mszObjectName.Text(), oiNew, &oiReplaced);
 	}
 	sHeader.Kill();
 
 	if (pObject.IsNull())
 	{
-		return ONull;
+		return Null();
 	}
 
 	if (oiReplaced != INVALID_O_INDEX)
@@ -114,7 +116,7 @@ CPointerObject CObjectDeserialiser::Load(OIndex oiNew)
 	if (!bResult)
 	{
 		pObject->Kill();
-		return ONull;
+		return Null();
 	}
 
 	bResult = mcFile.Close();

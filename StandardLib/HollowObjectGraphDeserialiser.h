@@ -9,7 +9,7 @@ protected:
 	CArrayIndexNewOld	mcExistingHollowRemap;
 
 public:
-	void			Init(CObjectReader* pcReader, CIndexGenerator* pcIndexGenerator);
+	void			Init(CObjectReader* pcReader, CIndexGenerator* pcIndexGenerator, CObjectAllocator* pcAllocator);
 	void			Kill(void);
 
 	CPointerObject	Read(char* szObjectName);

@@ -34,6 +34,7 @@ class CObjectDeserialiser;
 class CPointerObject
 {
 friend class CObjects;
+friend class CObjectAllocator;
 friend class CArrayCommonObject;
 friend class CSet;
 friend class CArray;

@@ -22,6 +22,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __OBJECT_DESERIALISER_H__
 #include "BaseLib/FileReader.h"
 #include "BaseLib/MemoryFile.h"
+#include "ObjectAllocator.h"
 #include "IndexNewOld.h"
 #include "SerialisedObject.h"
 #include "Pointer.h"
@@ -32,11 +33,12 @@ class CPointerHeader;
 class CObjectDeserialiser : public CFileReader
 {
 protected:
-	CMemoryFile*				mpcMemory;
-	CFileBasic					mcFile;
+	CMemoryFile*		mpcMemory;
+	CFileBasic			mcFile;
+	CObjectAllocator*	mpcAllocator;
 
 public:
-			BOOL			Init(CSerialisedObject* pcSerialised);
+			BOOL			Init(CSerialisedObject* pcSerialised, CObjectAllocator* pcAllocator);
 			void			Kill(void);
 			CPointerObject	Load(OIndex oiNew);
 
