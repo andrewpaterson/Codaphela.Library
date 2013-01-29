@@ -28,7 +28,7 @@ void CHollowObjectGraphDeserialiser::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHollowObjectGraphDeserialiser::AddDependent(CPointerHeader* pcHeader, CBaseObject** ppcObjectPtr, CBaseObject* pcContaining)
+BOOL CHollowObjectGraphDeserialiser::AddDependent(CPointerHeader* pcHeader, CBaseObject** ppcObjectPtr, CBaseObject* pcContaining)
 {
 	if (pcHeader->mcType == OBJECT_POINTER_ID)
 	{
@@ -38,6 +38,7 @@ void CHollowObjectGraphDeserialiser::AddDependent(CPointerHeader* pcHeader, CBas
 	{
 		mcDependentObjects.AddHollow(pcHeader->mszObjectName.Text(), pcHeader->moi, ppcObjectPtr, pcContaining);
 	}
+	return TRUE;
 }
 
 

@@ -25,10 +25,11 @@ void CDependentObjectGraphDeserialiser::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDependentObjectGraphDeserialiser::AddDependent(CPointerHeader* pcHeader, CBaseObject** ppcObjectPtr, CBaseObject* pcContaining)
+BOOL CDependentObjectGraphDeserialiser::AddDependent(CPointerHeader* pcHeader, CBaseObject** ppcObjectPtr, CBaseObject* pcContaining)
 {
 	if ((pcHeader->mcType == OBJECT_POINTER_NAMED) || (pcHeader->mcType == OBJECT_POINTER_ID))
 	{
 		mcDependentObjects.Add(pcHeader, ppcObjectPtr, pcContaining);
 	}
+	return TRUE;
 }

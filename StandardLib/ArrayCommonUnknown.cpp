@@ -103,7 +103,8 @@ void CArrayCommonUnknown::ReInit(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CArrayCommonUnknown::SaveArrayHeader(CFileWriter* pcFile)
 {
-	ReturnOnFalse(pcFile->WriteInt(NumElements()));
+	ReturnOnFalse(pcFile->WriteInt(mcArray.NumElements()));
+	ReturnOnFalse(pcFile->WriteInt(miNonNullElements));
 	ReturnOnFalse(pcFile->WriteInt(mcArray.ChunkSize()));
 	ReturnOnFalse(pcFile->WriteInt(miFlags));
 	return TRUE;
@@ -116,10 +117,12 @@ BOOL CArrayCommonUnknown::SaveArrayHeader(CFileWriter* pcFile)
 //////////////////////////////////////////////////////////////////////////
 BOOL CArrayCommonUnknown::LoadArrayHeader(CFileReader* pcFile, int* piFlags, int* piNumElements)
 {
-	BOOL			bTypeKnown;
-	int				iChunkSize;
+	BOOL	bTypeKnown;
+	int		iChunkSize;
+	int		iNonNullElements;
 
 	ReturnOnFalse(pcFile->ReadInt(piNumElements));
+	ReturnOnFalse(pcFile->ReadInt(&iNonNullElements));
 	ReturnOnFalse(pcFile->ReadInt(&iChunkSize));
 	ReturnOnFalse(pcFile->ReadInt(piFlags));
 
@@ -127,6 +130,8 @@ BOOL CArrayCommonUnknown::LoadArrayHeader(CFileReader* pcFile, int* piFlags, int
 
 	//These are all set to false because the flags will be fixed later.
 	Init(bTypeKnown, FALSE, FALSE, FALSE, FALSE, iChunkSize);
+	miNonNullElements = iNonNullElements;
+
 	mcArray.GrowToNumElements(*piNumElements);
 	return TRUE;
 }

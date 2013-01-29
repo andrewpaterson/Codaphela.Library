@@ -22,7 +22,7 @@ public:
 			void			Kill(void);
 
 			CPointerObject	Read(char* szObjectName);
-	virtual void			AddDependent(CPointerHeader* pcHeader, CBaseObject** ppcObjectPtr, CBaseObject* pcContaining) =0;
+	virtual BOOL			AddDependent(CPointerHeader* pcHeader, CBaseObject** ppcObjectPtr, CBaseObject* pcContaining) =0;
 			void			AddIndexRemap(OIndex oiNew, OIndex oiOld);
 
 protected:

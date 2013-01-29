@@ -50,7 +50,7 @@ public:
 protected:
 			filePos			Read(void* pvDest, filePos iSize, filePos iCount);
 			void			ClearPointer(CPointerObject* pObject);
-	virtual void			AddDependent(CPointerHeader* pcHeader, CBaseObject** ppcObjectPtr, CBaseObject* pcContaining) =0;
+	virtual BOOL			AddDependent(CPointerHeader* pcHeader, CBaseObject** ppcObjectPtr, CBaseObject* pcContaining) =0;
 	virtual void			AddIndexRemap(OIndex oiNew, OIndex oiOld);
 };
 

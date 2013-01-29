@@ -13,7 +13,7 @@ public:
 	void			Kill(void);
 
 	CPointerObject	Read(char* szObjectName);
-	void			AddDependent(CPointerHeader* pcHeader, CBaseObject** ppcObjectPtr, CBaseObject* pcContaining);
+	BOOL			AddDependent(CPointerHeader* pcHeader, CBaseObject** ppcObjectPtr, CBaseObject* pcContaining);
 	BOOL			AddHollow(CDependentReadObject* pcDependent);
 	OIndex			GetExistingHollowRemap(OIndex oiNew);
 	BOOL			FixPointers(void);

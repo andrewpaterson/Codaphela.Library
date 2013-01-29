@@ -57,9 +57,9 @@ void CObjectSourceDeserialiser::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectSourceDeserialiser::AddDependent(CPointerHeader* pcHeader, CBaseObject** ppcObjectPtr, CBaseObject* pcContaining)
+BOOL CObjectSourceDeserialiser::AddDependent(CPointerHeader* pcHeader, CBaseObject** ppcObjectPtr, CBaseObject* pcContaining)
 {
-	mpcGraphDeserialiser->AddDependent(pcHeader, ppcObjectPtr, pcContaining);
+	return mpcGraphDeserialiser->AddDependent(pcHeader, ppcObjectPtr, pcContaining);
 }
 
 

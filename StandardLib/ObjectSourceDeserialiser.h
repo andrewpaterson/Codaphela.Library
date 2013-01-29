@@ -40,7 +40,7 @@ public:
 	void			Kill(void);
 
 protected:
-	void			AddDependent(CPointerHeader* pcHeader, CBaseObject** ppcObjectPtr, CBaseObject* pcContaining);
+	BOOL			AddDependent(CPointerHeader* pcHeader, CBaseObject** ppcObjectPtr, CBaseObject* pcContaining);
 	void			AddIndexRemap(OIndex oiNew, OIndex oiOld);
 };
 

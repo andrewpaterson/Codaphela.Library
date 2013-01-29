@@ -56,7 +56,7 @@ void CObjectIndexedDataDeserialiser::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectIndexedDataDeserialiser::AddDependent(CPointerHeader* pcHeader, CBaseObject** ppcObjectPtr, CBaseObject* pcContaining)
+BOOL CObjectIndexedDataDeserialiser::AddDependent(CPointerHeader* pcHeader, CBaseObject** ppcObjectPtr, CBaseObject* pcContaining)
 {
 	CPointerObject	pObject;
 	CBaseObject*	pcObject;
@@ -67,6 +67,7 @@ void CObjectIndexedDataDeserialiser::AddDependent(CPointerHeader* pcHeader, CBas
 		 pcObject = AddHollow(pcHeader, ppcObjectPtr, pcContaining);
 	}
 	FixPointer(pcObject, ppcObjectPtr, pcContaining);
+	return pcObject != NULL;
 }
 
 

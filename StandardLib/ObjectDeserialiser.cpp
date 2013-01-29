@@ -228,7 +228,7 @@ BOOL CObjectDeserialiser::ReadDependent(CBaseObject** ppcObjectPtr, CBaseObject*
 
 	*ppcObjectPtr = NULL;
 	bResult = ReadPointerHeader(&cHeader);
-	AddDependent(&cHeader, ppcObjectPtr, pcContaining);
+	bResult &= AddDependent(&cHeader, ppcObjectPtr, pcContaining);
 
 	//cHeader is killed by mpcGraphDeserialiser.
 	return bResult;
