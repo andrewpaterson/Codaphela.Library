@@ -149,8 +149,15 @@ BOOL CNamedIndexedObjects::AddWithIDAndName(CBaseObject* pvObject, OIndex oi, ch
 	BOOL			bResult;
 	int				iResult;
 
-	//Pretty certain you should check if the name exists first.
+	if (mcNames.Contains(szName))
+	{
+		return FALSE;
+	}
 
+	if (!mcNames.IsOnlyValidCharacters(szName))
+	{
+		return FALSE;
+	}
 
 	bResult = AddWithID(pvObject, oi, ppvExisting);
 	if (!bResult)
@@ -165,7 +172,7 @@ BOOL CNamedIndexedObjects::AddWithIDAndName(CBaseObject* pvObject, OIndex oi, ch
 	{
 		iResult = mcNames.Add(pcNamed->GetOI(), szName);
 
-		//-1 is returned if the name does exist.
+		//This should never happen.  The checks at the top cut it out.
 		if (iResult == -1)
 		{
 			bResult = FALSE;
