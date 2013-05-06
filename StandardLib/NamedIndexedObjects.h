@@ -38,17 +38,13 @@ public:
 	void				ReInit(void);
 	CBaseObject*		Get(OIndex oi);
 	CBaseObject*		Get(char* szName);
-	BOOL				AddWithID(CBaseObject* pvObject, OIndex oi, CBaseObject** ppvExisting);
-	BOOL				AddWithIDAndName(CBaseObject* pvObject, OIndex oi, char* szName, CBaseObject** ppvExisting);
+	BOOL				AddWithID(CBaseObject* pvObject, OIndex oi);
+	BOOL				AddWithIDAndName(CBaseObject* pvObject, OIndex oi, char* szName);
 	BOOL				Remove(OIndex oi);
 	OIndex				NumIndexed(void);
 	int					NumNames(void);
 
 	CIndexedObjects*	GetObjects(void);
-
-protected:
-	BOOL			Add(OIndex oi, CBaseObject* pvMemory, CBaseObject** pvExisting);
-
 };
 
 

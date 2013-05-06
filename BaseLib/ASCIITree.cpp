@@ -865,6 +865,46 @@ BOOL CASCIITree::IsEmpty(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL CASCIITree::Contains(char* szText)
+{
+	long long int	lli;
+
+	if ((szText == NULL) || (szText[0] == '\0'))
+	{
+		return FALSE;
+	}
+	
+	lli = Get(szText);
+	return lli != -1LL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CASCIITree::IsOnlyValidCharacters(char* szText)
+{
+	int		i;
+
+	for (i = 0;; i++)
+	{
+		if ((szText == NULL) || (szText[i] == 0))
+		{
+			return TRUE;
+		}
+		else if (szText[i] < ASCII_NODE_START_CHAR)
+		{
+			return FALSE;
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL CASCIITree::TestConsistency(void)
 {
 	return TestConsistency(mpcRoot);

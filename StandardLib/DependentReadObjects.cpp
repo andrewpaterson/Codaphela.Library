@@ -1,3 +1,4 @@
+#include "Pointer.h"
 #include "Objects.h"
 #include "IndexGenerator.h"
 #include "DependentReadObjects.h"

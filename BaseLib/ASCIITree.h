@@ -82,6 +82,8 @@ public:
 
 	BOOL			TestConsistency(void);
 	BOOL			IsEmpty(void);
+	BOOL			Contains(char* szText);
+	BOOL			IsOnlyValidCharacters(char* szText);
 
 	void			DumpWords(void);
 	void			Dump(CArrayInt* pcArrayInt);

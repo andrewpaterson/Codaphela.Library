@@ -21,6 +21,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
 #include "Indexes.h"
+#include "BaseLib/Logger.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -160,6 +161,12 @@ BOOL CIndexes::Add(OIndex oi, void* pvMemory)
 	SIndexedLevel*	psLevel;
 
 	psLevel = CreateLevels(oi);
+	if (!psLevel)
+	{
+		gcLogger.Error("CIndexes::Add cannot create Level");
+		return FALSE;
+	}
+
 	ucCurrent = *((unsigned char*)&oi);
 	if (psLevel->apsLevels[ucCurrent] == NULL)
 	{
@@ -168,6 +175,12 @@ BOOL CIndexes::Add(OIndex oi, void* pvMemory)
 	}
 	else
 	{
+		CChars szOi;
+
+		szOi.Init();
+		szOi.Append(oi);
+		gcLogger.Error2("CIndexes::Add cannot add memory with index [", szOi.Text(), "].  It already exists.", NULL);
+		szOi.Kill();
 		return FALSE;
 	}
 }

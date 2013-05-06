@@ -71,9 +71,6 @@ public:
 	template<class M>	CPointer<M>			Get(char* szObjectName);
 						BOOL				Contains(char* szObjectName);
 
-						CPointerObject		Add(char* szClassName, OIndex oi, OIndex* oiExisting);
-						CPointerObject		Add(char* szClassName, char* szObjectName, OIndex oi, OIndex* oiExisting);
-						CPointerObject		Add(char* szClassName, char* szObjectName);
 	template<class M>	CPointer<M>			Add(void);
 	template<class M>	CPointer<M>			Add(char* szObjectName);
 						CPointer<CRoot>		AddRoot(void);
@@ -105,7 +102,9 @@ public:
 
 protected:
 						BOOL				AddWithID(CBaseObject* pvObject);
+						BOOL				AddWithID(CBaseObject* pvObject, OIndex oi);
 						BOOL				AddWithIDAndName(CBaseObject* pvObject, char* szObjectName);
+						BOOL				AddWithIDAndName(CBaseObject* pvObject, char* szObjectName, OIndex oi);
 	template<class M>	M*					Allocate(void);
 						CBaseObject*		Allocate(char* szClassName);
 						BOOL				ClearMemory(void);

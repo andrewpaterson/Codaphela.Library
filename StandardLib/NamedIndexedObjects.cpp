@@ -20,6 +20,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include "NamedIndexedObjects.h"
 #include "NamedObject.h"
+#include "BaseLib/Logger.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -89,23 +90,6 @@ CBaseObject* CNamedIndexedObjects::Get(char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNamedIndexedObjects::Add(OIndex oi, CBaseObject* pvMemory, CBaseObject** pvExisting)
-{
-	if (pvExisting)
-	{
-		return mcObjects.AddOverwriteExisting(oi, pvMemory, (void**)pvExisting);
-	}
-	else
-	{
-		return mcObjects.Add(oi, pvMemory);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 BOOL CNamedIndexedObjects::Remove(OIndex oi)
 {
 	BOOL	bResult;
@@ -119,23 +103,21 @@ BOOL CNamedIndexedObjects::Remove(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNamedIndexedObjects::AddWithID(CBaseObject* pvObject, OIndex oi, CBaseObject** ppvExisting)
+BOOL CNamedIndexedObjects::AddWithID(CBaseObject* pvObject, OIndex oi)
 {
 	BOOL	bResult;
 
-	pvObject->SetObjectID(oi);
-	bResult = Add(oi, pvObject, ppvExisting);
+	
+	bResult = mcObjects.Add(oi, pvObject);
 	if (bResult)
 	{
-		if (ppvExisting)
-		{
-			if (*ppvExisting)
-			{
-				(*ppvExisting)->SetObjectID(INVALID_O_INDEX);
-			}
-		}
+		pvObject->SetObjectID(oi);
+		return TRUE;
 	}
-	return bResult;
+	else
+	{
+		return FALSE;
+	}
 }
 
 
@@ -143,7 +125,7 @@ BOOL CNamedIndexedObjects::AddWithID(CBaseObject* pvObject, OIndex oi, CBaseObje
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNamedIndexedObjects::AddWithIDAndName(CBaseObject* pvObject, OIndex oi, char* szName, CBaseObject** ppvExisting)
+BOOL CNamedIndexedObjects::AddWithIDAndName(CBaseObject* pvObject, OIndex oi, char* szName)
 {
 	CNamedObject*	pcNamed;
 	BOOL			bResult;
@@ -151,17 +133,22 @@ BOOL CNamedIndexedObjects::AddWithIDAndName(CBaseObject* pvObject, OIndex oi, ch
 
 	if (mcNames.Contains(szName))
 	{
+		gcLogger.Error2("CNamedIndexedObjects::AddWithIDAndName cannot add object named [", szName, "].  It already exists.", NULL);
 		return FALSE;
 	}
 
 	if (!mcNames.IsOnlyValidCharacters(szName))
 	{
+		gcLogger.Error2("CNamedIndexedObjects::AddWithIDAndName cannot add object named [", szName, "].  It's name contains invalid characters.", NULL);
 		return FALSE;
 	}
 
-	bResult = AddWithID(pvObject, oi, ppvExisting);
+	bResult = AddWithID(pvObject, oi);
 	if (!bResult)
 	{
+		char sz[32];
+
+		gcLogger.Error2("CNamedIndexedObjects::AddWithIDAndName cannot add object named [", szName, "].  An index [", IToA(oi, sz, 10), "] already exists.", NULL);
 		return FALSE;
 	}
 
@@ -175,6 +162,9 @@ BOOL CNamedIndexedObjects::AddWithIDAndName(CBaseObject* pvObject, OIndex oi, ch
 		//This should never happen.  The checks at the top cut it out.
 		if (iResult == -1)
 		{
+			char sz[32];
+
+			gcLogger.Error2("CNamedIndexedObjects::AddWithIDAndName cannot add object named [", szName, "] and index [", IToA(oi, sz, 10), "].  It broke unexpectedly", NULL);
 			bResult = FALSE;
 		}
 	}

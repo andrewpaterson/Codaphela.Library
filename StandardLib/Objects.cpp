@@ -18,7 +18,9 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+
 #include "BaseLib/DebugOutput.h"
+#include "BaseLib/Logger.h"
 #include "BaseObject.h"
 #include "NamedObject.h"
 #include "HollowObject.h"
@@ -252,7 +254,7 @@ BOOL CObjects::ForceSave(CBaseObject* pcObject)
 //////////////////////////////////////////////////////////////////////////
 BOOL CObjects::AddWithID(CBaseObject* pvObject)
 {
-	return mcMemory.AddWithID(pvObject, mcIndexGenerator.PopIndex(), NULL);
+	return mcMemory.AddWithID(pvObject, mcIndexGenerator.PopIndex());
 }
 
 
@@ -262,7 +264,7 @@ BOOL CObjects::AddWithID(CBaseObject* pvObject)
 //////////////////////////////////////////////////////////////////////////
 BOOL CObjects::AddWithIDAndName(CBaseObject* pvObject, char* szObjectName)
 {
-	return mcMemory.AddWithIDAndName(pvObject, mcIndexGenerator.PopIndex(), szObjectName, NULL);
+	return mcMemory.AddWithIDAndName(pvObject, mcIndexGenerator.PopIndex(), szObjectName);
 }
 
 
@@ -270,49 +272,9 @@ BOOL CObjects::AddWithIDAndName(CBaseObject* pvObject, char* szObjectName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointerObject CObjects::Add(char* szClassName, OIndex oi, OIndex* oiExisting)
+BOOL CObjects::AddWithID(CBaseObject* pvObject, OIndex oi)
 {
-	CBaseObject*	pvObject;
-	CBaseObject*	pvExisting;
-	BOOL			bResult;
-
-	pvObject = (CBaseObject*)mpcUnknownsAllocatingFrom->Add(szClassName);
-	if (pvObject)
-	{
-		if (!pvObject->IsNamed())
-		{
-			CPointerObject	pObject;
-
-			pvExisting = NULL;
-			mcMemory.AddWithID(pvObject, oi, &pvExisting);
-			if (pvExisting)
-			{
-				bResult = mcMemory.AddWithID(pvExisting, mcIndexGenerator.PopIndex(), NULL);
-				if (!bResult)
-				{
-					pvObject->Kill();
-					return ONull;
-				}
-				*oiExisting = pvExisting->GetOI();
-			}
-			else
-			{
-				*oiExisting = INVALID_O_INDEX;
-			}
-
-			pObject.mpcObject = pvObject;
-			return pObject;
-		}
-		else
-		{
-			pvObject->Kill();
-			return ONull;
-		}
-	}
-	else
-	{
-		return ONull;
-	}
+	return mcMemory.AddWithID(pvObject, oi);
 }
 
 
@@ -320,81 +282,9 @@ CPointerObject CObjects::Add(char* szClassName, OIndex oi, OIndex* oiExisting)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointerObject CObjects::Add(char* szClassName, char* szObjectName, OIndex oi, OIndex* oiExisting)
+BOOL CObjects::AddWithIDAndName(CBaseObject* pvObject, char* szObjectName, OIndex oi)
 {
-	CBaseObject*	pvObject;
-	CBaseObject*	pvExisting;
-	BOOL			bResult;
-
-	pvObject = Allocate(szClassName);
-	if (pvObject)
-	{
-		if (pvObject->IsNamed())
-		{
-			CPointerObject	pObject;
-
-			pvExisting = NULL;
-			mcMemory.AddWithIDAndName(pvObject, oi, szObjectName, &pvExisting);
-			if (pvExisting)
-			{
-				bResult = mcMemory.AddWithID(pvExisting, mcIndexGenerator.PopIndex(), NULL);
-				if (!bResult)
-				{
-					pvObject->Kill();
-					return ONull;
-				}
-				*oiExisting = pvExisting->GetOI();
-			}
-			else
-			{
-				*oiExisting = INVALID_O_INDEX;
-			}
-
-			pObject.mpcObject = pvObject;
-			return pObject;
-		}
-		else
-		{
-			pvObject->Kill();
-			return ONull;
-		}
-	}
-	else
-	{
-		return ONull;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CPointerObject CObjects::Add(char* szClassName, char* szObjectName)
-{
-	CBaseObject*	pvObject;
-
-	pvObject = (CBaseObject*)mpcUnknownsAllocatingFrom->Add(szClassName);
-	if (pvObject)
-	{
-		if (pvObject->IsNamed())
-		{
-			CPointerObject	pObject;
-
-			mcMemory.AddWithIDAndName(pvObject, mcIndexGenerator.PopIndex(), szObjectName, NULL);
-			pObject.mpcObject = pvObject;
-			return pObject;
-		}
-		else
-		{
-			pvObject->Kill();
-			return ONull;
-		}
-	}
-	else
-	{
-		return ONull;
-	}
+	return mcMemory.AddWithIDAndName(pvObject, oi, szObjectName);
 }
 
 
@@ -428,7 +318,7 @@ CPointerObject CObjects::AddHollow(OIndex oi)
 
 	pcHollow = Allocate<CHollowObject>();
 
-	bResult = mcMemory.AddWithID(pcHollow, oi, NULL);
+	bResult = mcMemory.AddWithID(pcHollow, oi);
 	if (bResult)
 	{
 		pHollow.mpcObject = pcHollow;
@@ -436,8 +326,7 @@ CPointerObject CObjects::AddHollow(OIndex oi)
 	}
 	else
 	{
-		//If an object with this oi already existed in memory 
-		//then a hollow version should not be added.
+		gcLogger.Error2("CObjects::AddHollow cannot add hollow object with index [%lli].  An object already exists.", oi);
 		return ONull;
 	}
 }
@@ -464,7 +353,7 @@ CPointerObject CObjects::AddHollow(char* szName, OIndex oi)
 	pcHollow = Allocate<CNamedHollowObject>();
 	pcHollow->InitName(szName);
 
-	bResult = mcMemory.AddWithIDAndName(pcHollow, oi, szName, NULL);
+	bResult = mcMemory.AddWithIDAndName(pcHollow, oi, szName);
 	if (bResult)
 	{
 		pHollow.mpcObject = pcHollow;
@@ -472,8 +361,7 @@ CPointerObject CObjects::AddHollow(char* szName, OIndex oi)
 	}
 	else
 	{
-		//If an object with this oi already existed in memory 
-		//then a hollow version should not be added.
+		gcLogger.Error2("CObjects::AddHollow cannot add hollow object with index [%lli].  An object already exists.", oi);
 		return ONull;
 	}
 }
@@ -606,7 +494,6 @@ CPointerObject CObjects::GetNotInMemory(char* szObjectName)
 	}
 	else
 	{
-
 
 		//mcSource.
 		return ONull;		

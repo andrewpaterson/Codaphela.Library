@@ -3,6 +3,7 @@
 #include "Pointer.h"
 
 
+//This is a private style helper class for allocating objects with a view to either over-writing or re-allocating existing objects that share the index being allocated.
 class CObjects;
 class CObjectAllocator
 {
