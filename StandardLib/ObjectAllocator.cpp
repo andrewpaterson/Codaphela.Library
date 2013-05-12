@@ -32,13 +32,18 @@ CPointerObject CObjectAllocator::Add(char* szClassName)
 	CBaseObject*	pvObject;
 
 	pvObject = mpcObjects->Allocate(szClassName);
+	if (!pvObject)
+	{
+		return ONull;
+	}
+
 	if (!pvObject->IsNamed())
 	{
-		mpcObjects->	AddWithID(pvObject);
+		mpcObjects->AddWithID(pvObject);
 	}
 	else
 	{
-		mpcObjects->	AddWithIDAndName(pvObject, NULL);
+		mpcObjects->AddWithIDAndName(pvObject, NULL);
 	}
 
 	//No PointTo because we don't know the embedding object until assignment.
