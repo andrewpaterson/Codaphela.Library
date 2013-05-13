@@ -60,11 +60,17 @@ CPointerObject CObjectAllocator::Add(char* szClassName, char* szObjectName)
 {
 	CPointerObject	pObject;
 	CBaseObject*	pvObject;
+	BOOL			bResult;
 
 	pvObject = mpcObjects->Allocate(szClassName);
-	if (!pvObject->IsNamed())
+	if (pvObject->IsNamed())
 	{
-		mpcObjects->	AddWithIDAndName(pvObject, szObjectName);
+		bResult = mpcObjects->AddWithIDAndName(pvObject, szObjectName);
+		if (!bResult)
+		{
+			pvObject->Kill();
+			return ONull;
+		}
 	}
 	else
 	{
