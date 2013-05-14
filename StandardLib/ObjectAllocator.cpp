@@ -189,23 +189,31 @@ CPointerObject CObjectAllocator::Add(char* szClassName, char* szObjectName, OInd
 				bResult = mpcObjects->AddWithIDAndName(pvObject, szObjectName, oi);
 				if (!bResult)
 				{
+					pvObject->Kill();
 					return ONull;
 				}
 				*poiExisting = INVALID_O_INDEX;
+				pObject.mpcObject = pvObject;
+				return pObject;
 			}
 			else
 			{
-				bResult = mpcObjects->AddWithIDAndName(pExistingObject.Object(), szObjectName, mpcObjects->GetIndexGenerator()->PopIndex());
+				mpcObjects->Dename(pExistingObject.Object());
+				bResult = mpcObjects->AddWithIDAndName(pvObject, szObjectName, mpcObjects->GetIndexGenerator()->PopIndex());
 				if (!bResult)
 				{
 					pvObject->Kill();
 					return ONull;
 				}
-				*poiExisting = pExistingObject.GetIndex();
-			}
 
-			pObject.mpcObject = pvObject;
-			return pObject;
+				*poiExisting = pExistingObject.GetIndex();
+				pObject.mpcObject = pvObject;
+
+				pObject.RemapFrom(pExistingObject.Object());
+				pExistingObject.Kill();
+
+				return pObject;
+			}
 		}
 		else
 		{

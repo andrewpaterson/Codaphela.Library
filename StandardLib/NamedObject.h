@@ -42,7 +42,8 @@ public:
 	BOOL	IsNamed(char* szName);
 
 protected:
-	void CNamedObject::Free(void);
+	void	Free(void);
+	void	SetName(char* szName);
 
 private:
 	BOOL	InitName(char* szName);

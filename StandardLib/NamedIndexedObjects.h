@@ -30,7 +30,7 @@ class CNamedIndexedObjects
 {
 protected:
 	CASCIITree			mcNames;
-	CIndexedObjects		mcObjects;
+	CIndexedObjects		mcIndexedObjects;
 
 public:
 	void				Init(void);
@@ -40,7 +40,8 @@ public:
 	CBaseObject*		Get(char* szName);
 	BOOL				AddWithID(CBaseObject* pvObject, OIndex oi);
 	BOOL				AddWithIDAndName(CBaseObject* pvObject, OIndex oi, char* szName);
-	BOOL				Remove(OIndex oi);
+	BOOL				RemoveIndex(OIndex oi);
+	BOOL				RemoveName(char* szName);
 	OIndex				NumIndexed(void);
 	int					NumNames(void);
 

@@ -30,7 +30,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 void CNamedIndexedObjects::Init(void)
 {
 	mcNames.Init();
-	mcObjects.Init();
+	mcIndexedObjects.Init();
 }
 
 
@@ -40,7 +40,7 @@ void CNamedIndexedObjects::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CNamedIndexedObjects::Kill(void)
 {
-	mcObjects.Kill();
+	mcIndexedObjects.Kill();
 	mcNames.Kill();
 }
 
@@ -62,7 +62,7 @@ void CNamedIndexedObjects::ReInit(void)
 //////////////////////////////////////////////////////////////////////////
 CBaseObject* CNamedIndexedObjects::Get(OIndex oi)
 {
-	return (CBaseObject*)mcObjects.Get(oi);
+	return (CBaseObject*)mcIndexedObjects.Get(oi);
 }
 
 
@@ -90,11 +90,26 @@ CBaseObject* CNamedIndexedObjects::Get(char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNamedIndexedObjects::Remove(OIndex oi)
+BOOL CNamedIndexedObjects::RemoveIndex(OIndex oi)
 {
 	BOOL	bResult;
 
-	bResult = mcObjects.Remove(oi);
+	//This only removes the index from the indexes, it does not free the object pointer to.
+	bResult = mcIndexedObjects.Remove(oi);
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CNamedIndexedObjects::RemoveName(char* szName)
+{
+	BOOL	bResult;
+
+	//This only removes the name from the names, it does not free the object pointer to.
+	bResult = mcNames.Remove(szName);
 	return bResult;
 }
 
@@ -108,7 +123,7 @@ BOOL CNamedIndexedObjects::AddWithID(CBaseObject* pvObject, OIndex oi)
 	BOOL	bResult;
 
 	
-	bResult = mcObjects.Add(oi, pvObject);
+	bResult = mcIndexedObjects.Add(oi, pvObject);
 	if (bResult)
 	{
 		pvObject->SetObjectID(oi);
@@ -178,7 +193,7 @@ BOOL CNamedIndexedObjects::AddWithIDAndName(CBaseObject* pvObject, OIndex oi, ch
 //////////////////////////////////////////////////////////////////////////
 OIndex CNamedIndexedObjects::NumIndexed(void)
 {
-	return mcObjects.NumIndexed();
+	return mcIndexedObjects.NumIndexed();
 }
 
 
@@ -198,6 +213,6 @@ int CNamedIndexedObjects::NumNames(void)
 //////////////////////////////////////////////////////////////////////////
 CIndexedObjects* CNamedIndexedObjects::GetObjects(void)
 {
-	return &mcObjects;
+	return &mcIndexedObjects;
 }
 

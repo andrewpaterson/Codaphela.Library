@@ -265,8 +265,6 @@ int CPointerObject::RemapFrom(CBaseObject* pcOld)
 	mpcObject->CopyFroms(pcOld);
 	mpcObject->SetDistToRoot(pcOld->DistToRoot());
 
-	pcOld->Kill();
-
 	return iCount;
 }
 
@@ -415,6 +413,20 @@ BOOL CPointerObject::IsDirty(void)
 	else
 	{
 		return FALSE;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CPointerObject::Kill(void)
+{
+	//This method exists so that it's object can be killed without invoking -> and potentially loading it first.
+	if (mpcObject)
+	{
+		return mpcObject->Kill();
 	}
 }
 

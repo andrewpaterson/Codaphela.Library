@@ -292,6 +292,28 @@ BOOL CObjects::AddWithIDAndName(CBaseObject* pvObject, char* szObjectName, OInde
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL CObjects::Dename(CBaseObject* pvObject)
+{
+	char* szName;
+
+	if (pvObject->IsNamed())
+	{
+		szName = pvObject->GetName();
+		if (!StrEmpty(szName))
+		{
+			mcMemory.RemoveName(szName);
+			pvObject->SetName("");
+		}
+		return TRUE;
+	}
+	return FALSE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 CPointer<CRoot> CObjects::AddRoot(void)
 {
 	CPointer<CRoot>	pRoot;
@@ -744,7 +766,8 @@ CBaseObject* CObjects::Allocate(char* szClassName)
 //////////////////////////////////////////////////////////////////////////
 void CObjects::RemoveInKill(CBaseObject* pvObject)
 {
-	mcMemory.Remove(pvObject->GetOI());
+	mcMemory.RemoveIndex(pvObject->GetOI());
+	//Kinda sure ths needs to remove the name too...
 }
 
 

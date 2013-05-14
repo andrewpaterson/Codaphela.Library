@@ -94,6 +94,7 @@ public:
 						CBaseObject*		GetInMemoryObject(OIndex oi);
 						void				RemoveInKill(CBaseObject* pvObject);
 						CPointerObject		Dehollow(OIndex oi);
+						BOOL				Dename(CBaseObject* pvObject);
 
 						OIndex				StartMemoryIteration(SIndexesIterator* psIter);
 						OIndex				IterateMemory(SIndexesIterator* psIter);

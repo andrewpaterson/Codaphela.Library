@@ -538,3 +538,21 @@ char ToUpper(char c)
 	}
 	return c;
 }
+
+
+int StrEmpty(char* szString)
+{
+	if (szString == NULL)
+	{
+		return 1;
+	}
+	else if (szString[0] == '\0')
+	{
+		return 1;
+	}
+	else
+	{
+		return 0;
+	}
+}
+

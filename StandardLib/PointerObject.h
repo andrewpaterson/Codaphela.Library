@@ -74,6 +74,7 @@ public:
 	BOOL			IsNamed(void);
 	char*			ClassName(void);
 	BOOL			IsDirty(void);
+	void			Kill(void);
 
 protected:
 	BOOL			Dehollow(void);

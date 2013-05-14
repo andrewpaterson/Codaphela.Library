@@ -40,6 +40,7 @@ void	ToLower(char* szString);
 void	ToUpper(char* szString);
 char	ToLower(char c);
 char	ToUpper(char c);
+int		StrEmpty(char* szString);
 
 
 #endif // __STRING_HELPER_H__

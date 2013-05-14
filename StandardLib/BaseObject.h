@@ -96,6 +96,7 @@ public:
 			BOOL			IsDirty(void);
 
 	virtual char*			GetName(void);
+	virtual void			SetName(char* szName);
 			int				SerialisedSize(void);
 
 	virtual void			SetDistToRoot(int iDistToRoot) =0;
@@ -109,6 +110,7 @@ public:
 			CBaseObject* 	TestGetFrom(int iFromIndex);
 	virtual void			RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged) =0;
 			void			AddFrom(CBaseObject* pcFrom);
+
 	
 protected:
 	virtual void			KillToPointers(void) =0;
