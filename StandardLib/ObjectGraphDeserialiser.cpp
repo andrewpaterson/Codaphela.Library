@@ -1,6 +1,7 @@
+#include "BaseLib/Logger.h"
 #include "BaseLib/ErrorTypes.h"
 #include "Objects.h"
-#include "ObjectSourceDeserialiser.h"
+#include "ObjectDeserialiser.h"
 #include "ObjectGraphDeserialiser.h"
 
 
@@ -11,7 +12,7 @@
 void CObjectGraphDeserialiser::Init(CObjectReader* pcReader, CIndexGenerator* pcIndexGenerator, CObjectAllocator* pcAllocator)
 {
 	mpcReader = pcReader;
-	mcDependentObjects.Init(pcIndexGenerator);
+	mcDependentObjects.Init();
 	mcIndexRemap.Init(32);
 	mpcAllocator = pcAllocator;
 }
@@ -23,6 +24,7 @@ void CObjectGraphDeserialiser::Init(CObjectReader* pcReader, CIndexGenerator* pc
 //////////////////////////////////////////////////////////////////////////
 void CObjectGraphDeserialiser::Kill(void)
 {
+	mpcAllocator = NULL;
 	mcIndexRemap.Kill();
 	mcDependentObjects.Kill();
 }
@@ -32,57 +34,46 @@ void CObjectGraphDeserialiser::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+//CPointerObject CObjectGraphDeserialiser::Read(OIndex oi)
+//{
+//	CPointerHeader					cHeader;
+//	BOOL							bResult;
+//	CBaseObject*					pcObjectPtr;
+//
+//	CPointerObject					pObject;
+//
+//	pcObjectPtr = NULL;
+//	cHeader.Init(oi);
+//	AddDependent(&cHeader, &pcObjectPtr);
+//
+//	bResult = ReadAfterAddDependent();
+//	if (!bResult)
+//	{
+//		return ONull;
+//	}
+//
+//	pObject = pcObjectPtr;
+//	return pObject;
+//}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 CPointerObject CObjectGraphDeserialiser::Read(char* szObjectName)
 {
-	BOOL							bResult;
-	CPointerObject					pObject;
-	CDependentReadObject*			pcDependent;
 	CPointerHeader					cHeader;
+	BOOL							bResult;
 	CBaseObject*					pcObjectPtr;
-	BOOL							bFirst;
 
-	bResult = mpcReader->Begin();
-	if (!bResult)
-	{
-		return ONull;
-	}
+	CPointerObject					pObject;
 
 	pcObjectPtr = NULL;
 	cHeader.Init(szObjectName);
-	ForceAddDependent(&cHeader, &pcObjectPtr);
+	AddDependent(&cHeader, &pcObjectPtr, NULL);
 
-	bFirst = TRUE;
-	for (;;)
-	{
-		pcDependent = mcDependentObjects.GetUnread();
-		if (pcDependent)
-		{
-			bResult = ReadUnread(pcDependent, bFirst);
-			if (!bResult)
-			{
-				return ONull;
-			}
-			bFirst = FALSE;
-		}
-		else
-		{
-			break;
-		}
-	}
-
-	bResult = mpcReader->End();
-	if (!bResult)
-	{
-		return ONull;
-	}
-
-	bResult = FixPointers();
-	if (!bResult)
-	{
-		return ONull;
-	}
-
-	bResult = FixExisting();
+	bResult = ReadAfterAddDependent();
 	if (!bResult)
 	{
 		return ONull;
@@ -97,14 +88,66 @@ CPointerObject CObjectGraphDeserialiser::Read(char* szObjectName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL CObjectGraphDeserialiser::ReadAfterAddDependent(void)
+{
+	BOOL							bResult;
+	CPointerObject					pObject;
+	CDependentReadObject*			pcDependent;
+	BOOL							bFirst;
+
+	bResult = mpcReader->Begin();
+	if (!bResult)
+	{
+		return FALSE;
+	}
+
+	bFirst = TRUE;
+	for (;;)
+	{
+		pcDependent = mcDependentObjects.GetUnread();
+		if (pcDependent)
+		{
+			bResult = ReadUnread(pcDependent, bFirst);
+			if (!bResult)
+			{
+				return FALSE;
+			}
+			bFirst = FALSE;
+		}
+		else
+		{
+			break;
+		}
+	}
+
+	bResult = mpcReader->End();
+	if (!bResult)
+	{
+		return FALSE;
+	}
+
+	bResult = FixPointers();
+	if (!bResult)
+	{
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL CObjectGraphDeserialiser::ReadUnread(CDependentReadObject* pcDependent, BOOL bFirst)
 {
 	CSerialisedObject*			pcSerialised;
 	char*						szObjectName;
-	CObjectSourceDeserialiser	cDeserialiser;
+	CObjectDeserialiser			cDeserialiser;
 	CPointerObject				pObject;
-	OIndex						oiNew;
 	OIndex						oiOld;
+	OIndex						oiNew;
 
 	pcSerialised = NULL;
 	if (pcDependent->IsNamed())
@@ -131,9 +174,8 @@ BOOL CObjectGraphDeserialiser::ReadUnread(CDependentReadObject* pcDependent, BOO
 	}
 
 	oiOld = pcDependent->moi;
-	oiNew = pcDependent->GetNewIndex();
-	cDeserialiser.Init(this, pcSerialised, mpcAllocator);
-	pObject = cDeserialiser.Load(oiNew);
+	cDeserialiser.Init(this);
+	pObject = cDeserialiser.Load(pcSerialised);
 	if (pObject.IsNull())
 	{
 		cDeserialiser.Kill();
@@ -145,6 +187,10 @@ BOOL CObjectGraphDeserialiser::ReadUnread(CDependentReadObject* pcDependent, BOO
 	cDeserialiser.Kill();
 	free(pcSerialised);
 	MarkRead(oiOld);
+
+	oiNew = pObject.GetIndex();
+	AddIndexRemap(oiNew, oiOld);
+
 	return TRUE;
 }
 
@@ -169,12 +215,15 @@ BOOL CObjectGraphDeserialiser::FixPointers(void)
 	int						i;
 	int						iNum;
 	CBaseObject*			pcBaseObject;
+	OIndex					oiNew;
 
 	iNum = mcDependentObjects.NumPointers();
 	for (i = 0; i < iNum; i++)
 	{
 		pcReadPointer = mcDependentObjects.GetPointer(i);
-		pcBaseObject = gcObjects.GetInMemoryObject(pcReadPointer->moiPointedTo);
+		oiNew = GetNewIndexFromOld(pcReadPointer->moiPointedTo);
+
+		pcBaseObject = gcObjects.GetInMemoryObject(oiNew);
 		if (pcBaseObject)
 		{
 			FixPointer(pcBaseObject, pcReadPointer->mppcPointedFrom, pcReadPointer->mpcContaining);
@@ -192,56 +241,7 @@ BOOL CObjectGraphDeserialiser::FixPointers(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectGraphDeserialiser::FixPointer(CBaseObject* pcBaseObject, CBaseObject** ppcPointedFrom, CBaseObject* pcContaining)
-{
-	*ppcPointedFrom = pcBaseObject;
-
-	if (pcContaining)
-	{
-		pcBaseObject->AddFrom(pcContaining);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CObjectGraphDeserialiser::FixExisting(void)
-{
-	CDependentReadObject*	pcReadObject;
-	int						i;
-	int						iNum;
-	CPointerObject			pNewObject;
-	CPointerObject			pOldObject;
-	OIndex					oiOld;
-	OIndex					oiNew;
-
-	iNum = mcDependentObjects.NumObjects();
-	for (i = 0; i < iNum; i++)
-	{
-		pcReadObject = mcDependentObjects.GetObject(i);
-		if (pcReadObject->PreExisted())
-		{
-			oiNew = pcReadObject->GetNewIndex();
-			oiOld = GetExistingRemap(oiNew);
-
-			pNewObject = gcObjects.Get(oiNew);
-			pOldObject = gcObjects.Get(oiOld);
-	
-			pNewObject.RemapFrom(pOldObject.Object());
-			pOldObject.Kill();
-		}
-	}
-	return TRUE;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-OIndex CObjectGraphDeserialiser::GetExistingRemap(OIndex oiNew)
+OIndex CObjectGraphDeserialiser::GetNewIndexFromOld(OIndex oiOld)
 {
 	int				i;
 	CIndexNewOld*	pcRemap;
@@ -249,9 +249,9 @@ OIndex CObjectGraphDeserialiser::GetExistingRemap(OIndex oiNew)
 	for (i = 0; i < mcIndexRemap.NumElements(); i++)
 	{
 		pcRemap = mcIndexRemap.Get(i);
-		if (pcRemap->moiNew == oiNew)
+		if (pcRemap->moiOld == oiOld)
 		{
-			return pcRemap->moiOld;
+			return pcRemap->moiNew;
 		}
 	}
 	return INVALID_O_INDEX;
@@ -275,11 +275,38 @@ void CObjectGraphDeserialiser::AddIndexRemap(OIndex oiNew, OIndex oiOld)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectGraphDeserialiser::ForceAddDependent(CPointerHeader* pcHeader, CBaseObject** ppcObjectPtr)
+BOOL CObjectGraphDeserialiser::AddDependent(CPointerHeader* pcHeader, CBaseObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingPtrToBeUpdated)
 {
 	if ((pcHeader->mcType == OBJECT_POINTER_NAMED) || (pcHeader->mcType == OBJECT_POINTER_ID))
 	{
-		mcDependentObjects.Add(pcHeader, ppcObjectPtr, NULL);
+		mcDependentObjects.Add(pcHeader, ppcPtrToBeUpdated, pcObjectContainingPtrToBeUpdated);
+	}
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CPointerObject CObjectGraphDeserialiser::AllocateObject(CObjectHeader* pcHeader)
+{
+	if (pcHeader->mcType == OBJECT_POINTER_NULL)
+	{
+		return ONull;
+	}
+	else if (pcHeader->mcType == OBJECT_POINTER_ID)
+	{
+		return mpcAllocator->Add(pcHeader->mszClassName.Text());
+	}
+	else if (pcHeader->mcType == OBJECT_POINTER_NAMED)
+	{
+		return mpcAllocator->Add(pcHeader->mszClassName.Text(), pcHeader->mszObjectName.Text());
+	}
+	else
+	{
+		gcLogger.Error("Cant allocate object for unknown header type.");
+		return ONull;
 	}
 }
 

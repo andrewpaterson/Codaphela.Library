@@ -10,16 +10,15 @@ class CDependentReadObjects
 protected:
 	CArrayDependentReadObject	mcObjects;
 	CArrayDependentReadPointer	mcPointers;
-	int							miGetIndex;
-	CIndexGenerator*			mpcIndexGenerator;
+
+	int							miGetIndex;  //The index of the next object to 'gotten' for reading.
 
 public:
-	void					Init(CIndexGenerator* pcIndexGenerator);
+	void					Init(void);
 	void					Kill(void);
-	void					Add(CPointerHeader* pcHeader, CBaseObject** ppcObjectPtr, CBaseObject* pcContaining);
-	void					AddIgnoreNamed(CPointerHeader* pcHeader, CBaseObject** ppcObjectPtr, CBaseObject* pcContaining);
-	void					AddHollow(char* szName, OIndex oiOld, CBaseObject** ppcObjectPtr, CBaseObject* pcContaining);
+	void					Add(CPointerHeader* pcHeader, CBaseObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingPtrToBeUpdated);
 	CDependentReadObject*	GetUnread(void);
+	CDependentReadObject*	GetObject(OIndex oi);
 	void					SetInitialIndex(OIndex oi);
 	BOOL					Mark(OIndex oi);
 
@@ -27,7 +26,6 @@ public:
 	CDependentReadPointer*	GetPointer(int iIndex);
 
 	int						NumObjects(void);
-	CDependentReadObject*	GetObject(int iIndex);
 };
 
 

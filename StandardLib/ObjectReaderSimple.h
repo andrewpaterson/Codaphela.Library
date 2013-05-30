@@ -15,6 +15,7 @@ public:
 	void				Kill(void);
 
 	CSerialisedObject*  Read(char* szObjectName);
+	CSerialisedObject*	Read(OIndex oi);
 };
 
 

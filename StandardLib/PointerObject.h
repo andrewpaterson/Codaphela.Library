@@ -75,6 +75,7 @@ public:
 	char*			ClassName(void);
 	BOOL			IsDirty(void);
 	void			Kill(void);
+	void			ClearIndex(void);
 
 protected:
 	BOOL			Dehollow(void);

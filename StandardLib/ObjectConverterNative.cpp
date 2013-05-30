@@ -6,7 +6,7 @@
 #include "SerialisedObjectReader.h"
 #include "IndexGenerator.h"
 #include "ObjectDeserialiser.h"
-#include "HollowObjectGraphDeserialiser.h"
+#include "ObjectGraphDeserialiser.h"
 #include "ObjectConverterNative.h"
 
 
@@ -112,7 +112,7 @@ CPointerObject CObjectConverterNative::Convert(CObjectSource* pcSource, char* sz
 	CChunkFileFile						cFile;
 	CPointerObject						cPointer;
 	CFileBasic							cFileBasic;
-	CHollowObjectGraphDeserialiser		cGraphDeserialiser;
+	CObjectGraphDeserialiser			cGraphDeserialiser;
 	CObjectSourceChunked*				pcSourceChunked;
 	CObjectSourceSimple*				pcSourceSimple;
 	CObjectReader*						pcReader;

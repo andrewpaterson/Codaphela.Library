@@ -110,7 +110,7 @@ public:
 			CBaseObject* 	TestGetFrom(int iFromIndex);
 	virtual void			RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged) =0;
 			void			AddFrom(CBaseObject* pcFrom);
-
+			void			FixDistToRoot(void);
 	
 protected:
 	virtual void			KillToPointers(void) =0;
@@ -124,7 +124,6 @@ protected:
 	virtual void			RemoveTo(CBaseObject* pcTo) =0;
 			void			CopyFroms(CBaseObject* pcSource);
 			void			PotentiallySetDistToRoot(CBaseObject* pcTos, int iExpectedDistToRoot);
-			void			FixDistToRoot(void);
 			BOOL			CanFindRoot(void);
 			CBaseObject*	ClearDistToSubRoot(void);
 	virtual void			CollectThoseToBeKilled(CArrayBaseObjectPtr* papcKilled) =0;

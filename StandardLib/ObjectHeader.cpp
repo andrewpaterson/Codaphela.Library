@@ -10,7 +10,19 @@ void CPointerHeader::Init(void)
 {
 	mcType = 0;
 	mszObjectName.Zero();
-	moi = 0;
+	moi = INVALID_O_INDEX;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CPointerHeader::Init(OIndex oi)
+{
+	moi = oi;
+	mszObjectName.Zero();
+	mcType = OBJECT_POINTER_ID;
 }
 
 
@@ -42,7 +54,37 @@ void CPointerHeader::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CPointerHeader::IsNamed(void)
 {
-	return mcType == OBJECT_POINTER_NAMED;
+	if (mcType != OBJECT_POINTER_NAMED)
+	{
+		return FALSE;
+	}
+	
+	if (mszObjectName.Empty())
+	{
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CPointerHeader::IsIndexed(void)
+{
+	if (mcType == OBJECT_POINTER_ID)
+	{
+		return TRUE;
+	}
+
+	if (mcType == OBJECT_POINTER_NAMED && mszObjectName.Empty())
+	{
+		return TRUE;
+	}
+
+	return FALSE;
 }
 
 

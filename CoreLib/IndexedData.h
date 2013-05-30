@@ -70,6 +70,8 @@ public:
 	BOOL			Get(OIndex oi, void* pvData);
 	void*			Get(OIndex oi, int* piDataSize);
 
+	BOOL			Contains(OIndex oi);
+
 	BOOL			Remove(OIndex oi);
 
 	BOOL			Flush(BOOL bClearCache);

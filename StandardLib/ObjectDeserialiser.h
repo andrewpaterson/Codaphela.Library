@@ -25,6 +25,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "ObjectAllocator.h"
 #include "IndexNewOld.h"
 #include "SerialisedObject.h"
+#include "DependentObjectAdder.h"
 #include "Pointer.h"
 
 
@@ -33,14 +34,14 @@ class CPointerHeader;
 class CObjectDeserialiser : public CFileReader
 {
 protected:
-	CMemoryFile*		mpcMemory;
-	CFileBasic			mcFile;
-	CObjectAllocator*	mpcAllocator;
+	CDependentObjectAdder*		mpcDependents;
 
+	CFileBasic					mcFile;
+	
 public:
-			BOOL			Init(CSerialisedObject* pcSerialised, CObjectAllocator* pcAllocator);
+			BOOL			Init(CDependentObjectAdder* pcDependents);
 			void			Kill(void);
-			CPointerObject	Load(OIndex oiNew);
+			CPointerObject	Load(CSerialisedObject* pcSerialised);
 
 			BOOL			ReadPointer(CPointerObject* pObject);
 			BOOL			ReadPointerHeader(CPointerHeader* pcPointerHeader);
@@ -50,8 +51,6 @@ public:
 protected:
 			filePos			Read(void* pvDest, filePos iSize, filePos iCount);
 			void			ClearPointer(CPointerObject* pObject);
-	virtual BOOL			AddDependent(CPointerHeader* pcHeader, CBaseObject** ppcObjectPtr, CBaseObject* pcContaining) =0;
-	virtual void			AddIndexRemap(OIndex oiNew, OIndex oiOld);
 };
 
 

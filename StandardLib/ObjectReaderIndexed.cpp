@@ -1,0 +1,70 @@
+#include "NamedIndexedData.h"
+#include "ObjectReaderIndexed.h"
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CObjectReaderIndexed::Init(CNamedIndexedData* pcIndexedData)
+{
+	mpcIndexedData = pcIndexedData;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CObjectReaderIndexed::Kill(void)
+{
+	mpcIndexedData = NULL;
+	CObjectReader::Kill();
+}
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CSerialisedObject* CObjectReaderIndexed::Read(OIndex oi)
+{
+	void*					pvData;
+	CSerialisedObject*		pcSerialised;
+
+	pvData = mpcIndexedData->Get(oi);
+	if (pvData)
+	{
+		pcSerialised = (CSerialisedObject*)pvData;
+		return pcSerialised;
+	}
+	else
+	{
+		return NULL;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CSerialisedObject* CObjectReaderIndexed::Read(char* szObjectName)
+{
+	void*					pvData;
+	CSerialisedObject*		pcSerialised;
+
+	pvData = mpcIndexedData->Get(szObjectName);
+	if (pvData)
+	{
+		pcSerialised = (CSerialisedObject*)pvData;
+		return pcSerialised;
+	}
+	else
+	{
+		return NULL;
+	}
+}
+
+

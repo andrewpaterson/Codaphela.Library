@@ -887,6 +887,20 @@ BOOL CIndexedData::GetData(CIndexedDataDescriptor* pcDescriptor, void* pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL CIndexedData::Contains(OIndex oi)
+{
+	CIndexedDataDescriptor	cDescriptor;
+	BOOL					bResult;
+
+	bResult = GetDescriptor(oi, &cDescriptor);
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL CIndexedData::Remove(OIndex oi)
 {
 	CIndexedDataDescriptor	cDescriptor;

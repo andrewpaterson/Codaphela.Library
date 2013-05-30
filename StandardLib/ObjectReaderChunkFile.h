@@ -34,6 +34,7 @@ public:
 	void				Init(CChunkFileNames* mpcChunkFile);
 	void				Kill(void);
 
+	CSerialisedObject*	Read(OIndex oi);
 	CSerialisedObject*  Read(char* szObjectName);
 };
 

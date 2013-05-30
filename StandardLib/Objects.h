@@ -73,9 +73,8 @@ public:
 
 	template<class M>	CPointer<M>			Add(void);
 	template<class M>	CPointer<M>			Add(char* szObjectName);
+
 						CPointer<CRoot>		AddRoot(void);
-						CPointerObject		AddHollow(OIndex oi);
-						CPointerObject		AddHollow(char* szName, OIndex oi);
 
 						void				Remove(CArrayBaseObjectPtr* papcKilled);
 
@@ -94,17 +93,18 @@ public:
 						CBaseObject*		GetInMemoryObject(OIndex oi);
 						void				RemoveInKill(CBaseObject* pvObject);
 						CPointerObject		Dehollow(OIndex oi);
+
 						BOOL				Dename(CBaseObject* pvObject);
+						BOOL				Deindex(CBaseObject* pvObject);
 
 						OIndex				StartMemoryIteration(SIndexesIterator* psIter);
 						OIndex				IterateMemory(SIndexesIterator* psIter);
 
 						CPointerObject		GetNotInMemory(char* szObjectName);
+						CPointerObject		GetIfInMemory(char* szObjectName);
 
 protected:
-						BOOL				AddWithID(CBaseObject* pvObject);
 						BOOL				AddWithID(CBaseObject* pvObject, OIndex oi);
-						BOOL				AddWithIDAndName(CBaseObject* pvObject, char* szObjectName);
 						BOOL				AddWithIDAndName(CBaseObject* pvObject, char* szObjectName, OIndex oi);
 	template<class M>	M*					Allocate(void);
 						CBaseObject*		Allocate(char* szClassName);
@@ -114,7 +114,6 @@ protected:
 						void				FixDistToRoot(CArrayEmbeddedBaseObjectPtr* papcFromsChanged);
 						CPointerObject		GetIfInMemory(OIndex oi);
 						CPointerObject		GetNotInMemory(OIndex oi, BOOL bOverwriteExisting);
-						CPointerObject		GetSerialised(void* pvData, BOOL bOverwriteExisting);
 };
 
 
@@ -161,7 +160,7 @@ CPointer<M> CObjects::Add(void)
 		M*				pvObject;
 
 		pvObject = Allocate<M>();
-		AddWithID(pvObject);
+		AddWithID(pvObject, mcIndexGenerator.PopIndex());
 
 		//No PointTo because we don't know the embedding object until assignment.
 		pObject.mpcObject = pvObject;
@@ -191,7 +190,7 @@ CPointer<M> CObjects::Add(char* szObjectName)
 		M*				pvObject;
 
 		pvObject = Allocate<M>();
-		AddWithIDAndName(pvObject, szObjectName);
+		AddWithIDAndName(pvObject, szObjectName, mcIndexGenerator.PopIndex());
 
 		//No PointTo because we don't know the embedding object until assignment.
 		pObject.mpcObject = pvObject;

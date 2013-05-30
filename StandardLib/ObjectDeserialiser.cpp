@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/Logger.h"
 #include "CoreLib/IndexedGeneral.h"
 #include "Null.h"
 #include "ObjectFileGeneral.h"
@@ -30,17 +31,10 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectDeserialiser::Init(CSerialisedObject* pcSerialised, CObjectAllocator* pcAllocator)
+BOOL CObjectDeserialiser::Init(CDependentObjectAdder* pcDependents)
 {
-	if (!pcSerialised)
-	{
-		return FALSE;
-	}
+	mpcDependents = pcDependents;
 
-	mpcAllocator = pcAllocator;
-
-	mpcMemory = MemoryFile(pcSerialised, pcSerialised->GetLength());
-	mcFile.Init(mpcMemory);
 	return TRUE;
 } 
 
@@ -51,7 +45,7 @@ BOOL CObjectDeserialiser::Init(CSerialisedObject* pcSerialised, CObjectAllocator
 //////////////////////////////////////////////////////////////////////////
 void CObjectDeserialiser::Kill(void)
 {
-	mcFile.Kill();
+	mpcDependents = NULL;
 }
 
 
@@ -59,67 +53,74 @@ void CObjectDeserialiser::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointerObject CObjectDeserialiser::Load(OIndex oiNew)
+CPointerObject CObjectDeserialiser::Load(CSerialisedObject* pcSerialised)
 {
 	BOOL			bResult;
 	int				iLength;
 	CObjectHeader	sHeader;
-	OIndex			oiReplaced;
+	CMemoryFile*	pcMemory;
 
+	if (!pcSerialised)
+	{
+		gcLogger.Error("Serialised Object is NULL.  ");
+		return Null();
+	}
+
+	pcMemory = MemoryFile(pcSerialised, pcSerialised->GetLength());
+	mcFile.Init(pcMemory);
 	bResult = mcFile.Open(EFM_Read);
 	if (!bResult)
 	{
+		mcFile.Kill();
 		return Null();
 	}
 
 	bResult = ReadInt(&iLength);
 	if (!bResult)
 	{
+		gcLogger.Error("Could not read serialised object length.");
+		mcFile.Close();
+		mcFile.Kill();
+
 		return Null();
 	}
 
 	bResult = ReadObjectHeader(&sHeader);
 	if (!bResult)
 	{
+		gcLogger.Error("Could not read serialised object header.");
+		mcFile.Close();
+		mcFile.Kill();
 		sHeader.Kill();
 		return Null();
 	}
 
 	CPointerObject	pObject;
+	pObject = mpcDependents->AllocateObject(&sHeader);
 
-	if (sHeader.mcType == OBJECT_POINTER_NULL)
-	{
-		sHeader.Kill();
-		return Null();
-	}
-	else if (sHeader.mcType == OBJECT_POINTER_ID)
-	{
-		pObject = mpcAllocator->Add(sHeader.mszClassName.Text(), oiNew, &oiReplaced);
-	}
-	else if (sHeader.mcType == OBJECT_POINTER_NAMED)
-	{
-		pObject = mpcAllocator->Add(sHeader.mszClassName.Text(), sHeader.mszObjectName.Text(), oiNew, &oiReplaced);
-	}
 	sHeader.Kill();
 
 	if (pObject.IsNull())
 	{
+		mcFile.Close();
+		mcFile.Kill();
 		return Null();
-	}
-
-	if (oiReplaced != INVALID_O_INDEX)
-	{
-		AddIndexRemap(oiNew, oiReplaced);
 	}
 
 	bResult = pObject.Load(this);
 	if (!bResult)
 	{
+		gcLogger.Error("Could not load serialised object.");
+		mcFile.Close();
+		mcFile.Kill();
+
 		pObject->Kill();
 		return Null();
 	}
 
-	bResult = mcFile.Close();
+	mcFile.Close();
+	mcFile.Kill();
+
 	return pObject;
 }
 
@@ -210,9 +211,9 @@ BOOL CObjectDeserialiser::ReadPointer(CPointerObject* pObject)
 	ppcObjectPtr = pObject->ObjectPtr();
 	pcEmbedding = pObject->Embedding();
 
-	AddDependent(&cHeader, ppcObjectPtr, (CBaseObject*)pcEmbedding);
+	bResult &= mpcDependents->AddDependent(&cHeader, ppcObjectPtr, (CBaseObject*)pcEmbedding);  //Pretty certain this cast is bad.
 
-	//cHeader is killed by mpcGraphDeserialiser.
+	//cHeader is killed by mpcDependents.
 	return bResult;
 }
 
@@ -228,18 +229,9 @@ BOOL CObjectDeserialiser::ReadDependent(CBaseObject** ppcObjectPtr, CBaseObject*
 
 	*ppcObjectPtr = NULL;
 	bResult = ReadPointerHeader(&cHeader);
-	bResult &= AddDependent(&cHeader, ppcObjectPtr, pcContaining);
+	bResult &= mpcDependents->AddDependent(&cHeader, ppcObjectPtr, pcContaining);
 
-	//cHeader is killed by mpcGraphDeserialiser.
+	//cHeader is killed by mpcDependents.
 	return bResult;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CObjectDeserialiser::AddIndexRemap(OIndex oiNew, OIndex oiOld)
-{
 }
 

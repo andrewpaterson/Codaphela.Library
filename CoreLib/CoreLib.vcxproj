@@ -85,6 +85,7 @@
     <ClCompile Include="FileIteratorReturn.cpp" />
     <ClCompile Include="Files.cpp" />
     <ClCompile Include="IndexedDataFiles.cpp" />
+    <ClCompile Include="IndexedGeneral.cpp" />
     <ClCompile Include="LogFile.cpp" />
     <ClCompile Include="LogFileCommands.cpp" />
     <ClCompile Include="PackFileOffset.cpp" />

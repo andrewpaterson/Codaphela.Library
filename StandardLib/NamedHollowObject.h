@@ -5,7 +5,6 @@
 
 class CNamedHollowObject : public CHollowObject
 {
-friend class CObjects;
 BASE_FUNCTIONS(CNamedHollowObject);
 protected:
 	CChars	mon;
@@ -16,7 +15,6 @@ public:
 	char*	GetName(void);
 	BOOL	IsNamed(void);
 
-private:
 	BOOL	InitName(char* szName);
 };
 

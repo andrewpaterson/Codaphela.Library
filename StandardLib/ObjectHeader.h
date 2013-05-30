@@ -12,10 +12,12 @@ public:
 	OIndex	moi;
 
 	void Init(void);
+	void Init(OIndex oi);
 	void Init(char* szName);
 	void Kill(void);
 
 	BOOL IsNamed(void);
+	BOOL IsIndexed(void);
 };
 
 

@@ -1,6 +1,6 @@
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
-Copyright (c) 2012 Andrew Paterson
+Copyright (c) 2013 Andrew Paterson
 
 This file is part of The Codaphela Project: Codaphela StandardLib
 
@@ -18,32 +18,27 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __OBJECT_INDEXED_DATA_DESERIALISER_H__
-#define __OBJECT_INDEXED_DATA_DESERIALISER_H__
-#include "BaseLib/FileReader.h"
-#include "BaseLib/MemoryFile.h"
-#include "IndexNewOld.h"
-#include "SerialisedObject.h"
-#include "ObjectDeserialiser.h"
-#include "Pointer.h"
+#ifndef __OBJECT_READER_INDEXED_H__
+#define __OBJECT_READER_INDEXED_H__
+#include "ObjectReader.h"
 
 
-class CHollowObject;
-class CObjectIndexedDataDeserialiser : public CObjectDeserialiser
+//Pretty certain this can be deleted.
+class CNamedIndexedData;
+class CObjectReaderIndexed : public CObjectReader
 {
+BASE_FUNCTIONS(CObjectReaderIndexed);
 protected:
+	CNamedIndexedData*	mpcIndexedData;
 
 public:
-	BOOL			Init(CSerialisedObject* pcSerialised, CObjectAllocator* pcAllocator);
-	void			Kill(void);
+	void				Init(CNamedIndexedData* pcIndexedData);
+	void				Kill(void);
 
-protected:
-	BOOL			AddDependent(CPointerHeader* pcHeader, CBaseObject** ppcObjectPtr, CBaseObject* pcContaining);
-	CHollowObject*	AddHollow(CPointerHeader* pcHeader, CBaseObject** ppcObjectPtr, CBaseObject* pcContaining);
-	void			AddIndexRemap(OIndex oiNew, OIndex oiOld);
-	void			FixPointer(CBaseObject* pcBaseObject, CBaseObject** ppcPointedFrom, CBaseObject* pcContaining);
+	CSerialisedObject*	Read(OIndex oi);
+	CSerialisedObject*	Read(char* szObjectName);
 };
 
 
-#endif // __OBJECT_INDEXED_DATA_DESERIALISER_H__
+#endif // __OBJECT_WRITER_INDEXED_H__
 

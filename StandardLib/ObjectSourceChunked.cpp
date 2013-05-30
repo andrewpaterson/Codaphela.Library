@@ -12,7 +12,7 @@
 //////////////////////////////////////////////////////////////////////////
 BOOL CObjectSourceChunked::Init(CObjectConverter* pcConverter, CAbstractFile* pcFile, char* szFileName)
 {
-	CObjectMultipleSource::Init(pcConverter, pcFile, szFileName);
+	CObjectSource::Init(pcConverter, pcFile, szFileName);
 
 	mcChunkFile.Init(mpcFile);
 	ReturnOnFalse(mcChunkFile.ReadOpen());
@@ -20,6 +20,8 @@ BOOL CObjectSourceChunked::Init(CObjectConverter* pcConverter, CAbstractFile* pc
 
 	mpcReader = NULL;
 	return mcChunkFile.StackDepth() == 1;
+
+	mcNames.Init(8);
 }
 
 
@@ -29,10 +31,12 @@ BOOL CObjectSourceChunked::Init(CObjectConverter* pcConverter, CAbstractFile* pc
 //////////////////////////////////////////////////////////////////////////
 void CObjectSourceChunked::Kill(void)
 {
+	mcNames.Kill();
+
 	mcChunkFile.ReadClose();
 	mcChunkFile.Kill();
 
-	CObjectMultipleSource::Kill();
+	CObjectSource::Kill();
 }
 
 
@@ -86,7 +90,40 @@ CPointerObject CObjectSourceChunked::Convert(char* szFullName)
 //////////////////////////////////////////////////////////////////////////
 BOOL CObjectSourceChunked::Contains(char* szFullName)
 {
-	return CObjectMultipleSource::Contains(szFullName);
+	int		iIndex;
+
+	iIndex = mcNames.FindInSorted(szFullName, FALSE);
+	return iIndex != -1;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CObjectSourceChunked::GetName(int iIndex)
+{
+	return mcNames.Get(iIndex)->Text();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CObjectSourceChunked::NumNames(void)
+{
+	return mcNames.NumElements();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CObjectSourceChunked::IsMultiSource(void)
+{
+	return TRUE;
 }
 
 

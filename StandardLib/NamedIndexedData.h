@@ -55,6 +55,9 @@ public:
 	void*			Get(OIndex oi);
 	void*			Get(char* szName);
 
+	BOOL			Contains(OIndex oi);
+	BOOL			Contains(char* szName);
+
 	BOOL			Remove(CChars* szName);
 	BOOL			Remove(OIndex oi);
 

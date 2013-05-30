@@ -5,6 +5,8 @@
 #include "ObjectFileGeneral.h"
 
 
+//The serialised name maps onto the output of FileWriter.
+//This means it's length is strlen+1.
 struct SSerialisedName
 {
 	int		miLength;
@@ -20,7 +22,7 @@ protected:
 
 	OIndex				moi;
 
-	SSerialisedName		sName;
+	SSerialisedName		msName;
 
 public:
 	BOOL	IsNamed(void);

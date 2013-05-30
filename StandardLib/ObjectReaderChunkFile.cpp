@@ -51,6 +51,25 @@ void CObjectReaderChunkFile::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+CSerialisedObject* CObjectReaderChunkFile::Read(OIndex oi)
+{
+	CChars				szUnnamed;
+	CSerialisedObject*	pcSerialised;
+
+	szUnnamed.Init(OBJECT_UNNAMED_FILE"/");
+	szUnnamed.AppendHexHiLo(&oi, sizeof(OIndex));
+
+	pcSerialised = Read(szUnnamed.Text());
+
+	szUnnamed.Kill();
+	return pcSerialised;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 CSerialisedObject* CObjectReaderChunkFile::Read(char* szChunkName)
 {
 	CSerialisedObject*	pcSerialised;

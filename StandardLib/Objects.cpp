@@ -23,11 +23,11 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/Logger.h"
 #include "BaseObject.h"
 #include "NamedObject.h"
-#include "HollowObject.h"
-#include "NamedHollowObject.h"
 #include "ObjectSingleSerialiser.h"
-#include "ObjectIndexedDataDeserialiser.h"
 #include "ObjectWriterIndexed.h"
+#include "ObjectReaderIndexed.h"
+#include "IndexedDataObjectDeserialiser.h"
+#include "ObjectAllocator.h"
 #include "Objects.h"
 
 
@@ -252,26 +252,6 @@ BOOL CObjects::ForceSave(CBaseObject* pcObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjects::AddWithID(CBaseObject* pvObject)
-{
-	return mcMemory.AddWithID(pvObject, mcIndexGenerator.PopIndex());
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CObjects::AddWithIDAndName(CBaseObject* pvObject, char* szObjectName)
-{
-	return mcMemory.AddWithIDAndName(pvObject, mcIndexGenerator.PopIndex(), szObjectName);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 BOOL CObjects::AddWithID(CBaseObject* pvObject, OIndex oi)
 {
 	return mcMemory.AddWithID(pvObject, oi);
@@ -314,6 +294,16 @@ BOOL CObjects::Dename(CBaseObject* pvObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL CObjects::Deindex(CBaseObject* pvObject)
+{
+	return mcMemory.RemoveIndex(pvObject->GetOI());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 CPointer<CRoot> CObjects::AddRoot(void)
 {
 	CPointer<CRoot>	pRoot;
@@ -328,65 +318,6 @@ CPointer<CRoot> CObjects::AddRoot(void)
 }
 
 
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CPointerObject CObjects::AddHollow(OIndex oi)
-{
-	CPointer<CHollowObject>	pHollow;
-	CHollowObject*			pcHollow;
-	BOOL					bResult;
-
-	pcHollow = Allocate<CHollowObject>();
-
-	bResult = mcMemory.AddWithID(pcHollow, oi);
-	if (bResult)
-	{
-		pHollow.mpcObject = pcHollow;
-		return pHollow;
-	}
-	else
-	{
-		gcLogger.Error2("CObjects::AddHollow cannot add hollow object with index [%lli].  An object already exists.", oi);
-		return ONull;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CPointerObject CObjects::AddHollow(char* szName, OIndex oi)
-{
-	CPointer<CNamedHollowObject>	pHollow;
-	CNamedHollowObject*				pcHollow;
-	BOOL							bResult;
-	CBaseObject*					pcExisting;
-
-	pcExisting = mcMemory.Get(szName);
-	if (pcExisting)
-	{
-		pHollow.mpcObject = pcExisting;
-		return pHollow;
-	}
-
-	pcHollow = Allocate<CNamedHollowObject>();
-	pcHollow->InitName(szName);
-
-	bResult = mcMemory.AddWithIDAndName(pcHollow, oi, szName);
-	if (bResult)
-	{
-		pHollow.mpcObject = pcHollow;
-		return pHollow;
-	}
-	else
-	{
-		gcLogger.Error2("CObjects::AddHollow cannot add hollow object with index [%lli].  An object already exists.", oi);
-		return ONull;
-	}
-}
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -451,26 +382,31 @@ CPointerObject CObjects::Dehollow(OIndex oi)
 //////////////////////////////////////////////////////////////////////////
 CPointerObject CObjects::GetNotInMemory(OIndex oi, BOOL bOverwriteExisting)
 {
-	void*			pvData;
+	CIndexedDataObjectDeserialiser	cDeserialiser;
+	CObjectAllocator				cAllocator;
 
-	pvData = mcDatabase.Get(oi);
-	if (pvData)
+	if (mcDatabase.Contains(oi))
 	{
+		cAllocator.Init(this, bOverwriteExisting);
+		cDeserialiser.Init(&cAllocator, &mcDatabase, &mcMemory);
+
 		CPointerObject	pObject;
 
-		pObject = GetSerialised(pvData, bOverwriteExisting);
-		free(pvData);
+		pObject = cDeserialiser.Read(oi);
+		cDeserialiser.Kill();
 
 		if (pObject.GetIndex() != oi)
 		{
-			EngineOutput("Whoops, got an object with an OI different to that requetsed.");
+			gcLogger.Error2("CObjects::GetNotInMemory requested object with index [", IndexToString(oi), "] but object had index [", IndexToString(pObject.GetIndex()), "].", NULL);
 			return Null();
 		}
 
 		return pObject;
 	}
-
-	return Null();
+	else
+	{
+		return Null();		
+	}
 }
 
 
@@ -501,17 +437,42 @@ CPointerObject CObjects::Get(char* szObjectName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+CPointerObject CObjects::GetIfInMemory(char* szObjectName)
+{
+	CBaseObject*	pvObject;
+
+	pvObject = mcMemory.Get(szObjectName);
+	if (pvObject)
+	{
+		CPointerObject		pObject;
+
+		pObject.mpcObject = pvObject;
+		return pObject;
+	}
+	else
+	{
+		return ONull;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 CPointerObject CObjects::GetNotInMemory(char* szObjectName)
 {
-	void*			pvData;	
+	CIndexedDataObjectDeserialiser	cDeserialiser;
+	CObjectAllocator				cAllocator;
 
-	pvData = mcDatabase.Get(szObjectName);
-	if (pvData)
+	CPointerObject	pObject;
+
+	if (mcDatabase.Contains(szObjectName))
 	{
-		CPointerObject	pObject;
-
-		pObject = GetSerialised(pvData, FALSE);
-		free(pvData);
+		cAllocator.Init(this, TRUE); 
+		cDeserialiser.Init(&cAllocator, &mcDatabase, &mcMemory);
+		pObject = cDeserialiser.Read(szObjectName);
+		cDeserialiser.Kill();
 		return pObject;
 	}
 	else
@@ -527,38 +488,9 @@ CPointerObject CObjects::GetNotInMemory(char* szObjectName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointerObject CObjects::GetSerialised(void* pvData, BOOL bOverwriteExisting)
-{
-	CObjectIndexedDataDeserialiser	cDeserialiser;
-	CSerialisedObject*				pcSerialised;
-	CObjectAllocator				cAllocator;
-
-	pcSerialised = (CSerialisedObject*)pvData;
-	if (pcSerialised)
-	{
-		CPointerObject						pObject;
-
-		cAllocator.Init(this, bOverwriteExisting);
-		cDeserialiser.Init(pcSerialised, &cAllocator);
-		pObject = cDeserialiser.Load(pcSerialised->GetIndex());
-		cDeserialiser.Kill();
-		return pObject;
-	}
-	else
-	{
-		return ONull;		
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 BOOL CObjects::Contains(char* szObjectName)
 {
 	CBaseObject*	pvObject;
-	void*			pvData;
 
 	//This does not check mcSources intentionally.
 
@@ -569,11 +501,7 @@ BOOL CObjects::Contains(char* szObjectName)
 	}
 	else
 	{
-		pvData = mcDatabase.Get(szObjectName);
-		if (pvData)
-		{
-			return TRUE;
-		}
+		return mcDatabase.Contains(szObjectName);
 	}
 	return FALSE;
 }

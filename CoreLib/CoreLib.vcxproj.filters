@@ -459,6 +459,9 @@
     <ClCompile Include="LogFileCommands.cpp">
       <Filter>Source\File\Log</Filter>
     </ClCompile>
+    <ClCompile Include="IndexedGeneral.cpp">
+      <Filter>Source\File\Indexed</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ArrayVariable.h">

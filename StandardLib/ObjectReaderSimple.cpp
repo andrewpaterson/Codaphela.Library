@@ -27,6 +27,25 @@ void CObjectReaderSimple::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+CSerialisedObject* CObjectReaderSimple::Read(OIndex oi)
+{
+	CChars				szUnnamed;
+	CSerialisedObject*	pcSerialised;
+
+	szUnnamed.Init(OBJECT_UNNAMED_FILE"/");
+	szUnnamed.AppendHexHiLo(&oi, sizeof(OIndex));
+
+	pcSerialised = Read(szUnnamed.Text());
+
+	szUnnamed.Kill();
+	return pcSerialised;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 CSerialisedObject* CObjectReaderSimple::Read(char* szObjectName)
 {
 	CSerialisedObject*	pcSerialised;

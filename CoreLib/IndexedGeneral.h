@@ -39,5 +39,8 @@ struct SOIndexIndex
 };
 
 
+char* IndexToString(OIndex oi);
+
+
 #endif // __INDEXED_GENERAL_H__
 

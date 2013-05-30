@@ -12,7 +12,7 @@ public:
 
 	virtual BOOL				Begin(void);
 	virtual CSerialisedObject*  Read(char* szObjectName) =0;
-	virtual CSerialisedObject*  Read(OIndex oi);
+	virtual CSerialisedObject*  Read(OIndex oi) =0;
 	virtual BOOL				End(void);
 };
 

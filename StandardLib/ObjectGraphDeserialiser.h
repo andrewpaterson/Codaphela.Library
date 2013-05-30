@@ -5,34 +5,44 @@
 #include "ObjectReader.h"
 #include "Pointer.h"
 #include "DependentReadObjects.h"
+#include "DependentObjectAdder.h"
+
+
+//The graph deserialiser works with chunk files and simple files.  
+//  It does not deserialise objects out of the database.
+//  It does not create hollow objects.
+//  It does not load objects by id.
 
 
 class CObjectAllocator;
 class CIndexGenerator;
-class CObjectGraphDeserialiser
+class CObjectGraphDeserialiser : public CDependentObjectAdder
 {
 protected:
-	CObjectReader*			mpcReader;
+	CObjectReader*			mpcReader;  //The ObjectReader knows how to load the serialised form of the object by name.
+	CObjectAllocator*		mpcAllocator;
+
 	CDependentReadObjects	mcDependentObjects;
 	CArrayIndexNewOld		mcIndexRemap;
-	CObjectAllocator*		mpcAllocator;
 	
 public:
-			void			Init(CObjectReader* pcReader, CIndexGenerator* pcIndexGenerator, CObjectAllocator* pcAllocator);
-			void			Kill(void);
+	void			Init(CObjectReader* pcReader, CIndexGenerator* pcIndexGenerator, CObjectAllocator* pcAllocator);
+	void			Kill(void);
 
-			CPointerObject	Read(char* szObjectName);
-	virtual BOOL			AddDependent(CPointerHeader* pcHeader, CBaseObject** ppcObjectPtr, CBaseObject* pcContaining) =0;
-			void			AddIndexRemap(OIndex oiNew, OIndex oiOld);
+	CPointerObject	Read(char* szObjectName);
+			 
+	//Used by CObjectDeserialiser
+	BOOL			AddDependent(CPointerHeader* pcHeader, CBaseObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingPtrToBeUpdated);
+	CPointerObject	AllocateObject(CObjectHeader* pcHeader);
 
 protected:
-			BOOL			ReadUnread(CDependentReadObject* pcDependent, BOOL bFirst);
-			void			MarkRead(OIndex oi);
-			BOOL			FixPointers(void);
-			void			FixPointer(CBaseObject* pcBaseObject, CBaseObject** ppcPointedFrom, CBaseObject* pcContaining);
-			BOOL			FixExisting(void);
-			OIndex			GetExistingRemap(OIndex oiNew);
-			void			ForceAddDependent(CPointerHeader* pcHeader, CBaseObject** ppcObjectPtr);
+	//CPointerObject	Read(OIndex oi);
+	BOOL			ReadAfterAddDependent(void);
+	BOOL			ReadUnread(CDependentReadObject* pcDependent, BOOL bFirst);
+	void			MarkRead(OIndex oi);
+	BOOL			FixPointers(void);
+	OIndex			GetNewIndexFromOld(OIndex oiNew);
+	void			AddIndexRemap(OIndex oiNew, OIndex oiOld);
 };
 
 

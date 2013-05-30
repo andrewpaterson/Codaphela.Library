@@ -13,22 +13,8 @@ void CDependentReadObject::Init(CPointerHeader* pcObjectPtr)
 	pcThis = this;
 	memcpy_fast(pcThis, pcObjectPtr, sizeof(CPointerHeader));
 	miFlags = 0;
-	moiNew = INVALID_O_INDEX;
 }
 
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CDependentReadObject::InitHollow(char* szName, OIndex oiOld)
-{
-	mszObjectName.Init(szName);
-	miFlags = DEPENDENT_READ_OBJECT_FLAG_HOLLOW;
-	moiNew = INVALID_O_INDEX;
-	mcType = OBJECT_POINTER_NAMED;
-	moi = oiOld;
-}
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -37,26 +23,6 @@ void CDependentReadObject::InitHollow(char* szName, OIndex oiOld)
 void CDependentReadObject::Kill(void)
 {
 	CPointerHeader::Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CDependentReadObject::SetNewIndex(OIndex oiNew)
-{
-	moiNew = oiNew;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CDependentReadObject::IsNamed(void)
-{
-	return mcType == OBJECT_POINTER_NAMED;
 }
 
 
@@ -77,16 +43,6 @@ char* CDependentReadObject::GetName(void)
 OIndex CDependentReadObject::GetOldIndex(void)
 {
 	return moi;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-OIndex CDependentReadObject::GetNewIndex(void)
-{
-	return moiNew;
 }
 
 
@@ -127,16 +83,6 @@ BOOL CDependentReadObject::IsRead(void)
 BOOL CDependentReadObject::PreExisted(void)
 {
 	return miFlags & DEPENDENT_READ_OBJECT_FLAG_EXISTED;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CDependentReadObject::IsHollow(void)
-{
-	return miFlags & DEPENDENT_READ_OBJECT_FLAG_HOLLOW;
 }
 
 
