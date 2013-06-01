@@ -54,6 +54,7 @@ void CBaseObject::PreInit(CObjects* pcObjects)
 void CBaseObject::Kill(void)
 {
 	CArrayEmbeddedBaseObjectPtr		apcFromsChanged;
+	int								iNumKilled;
 
 	if (mapFroms.IsEmpty())
 	{
@@ -61,11 +62,11 @@ void CBaseObject::Kill(void)
 		RemoveAllTos(&apcFromsChanged);
 		mpcObjectsThisIn->FixDistToRoot(&apcFromsChanged);
 		apcFromsChanged.Kill();
-		KillThisGraph();
+		iNumKilled = KillThisGraph();
 	}
 	else
 	{
-		RemoveAllFroms();
+		iNumKilled = RemoveAllFroms();
 	}
 }
 
@@ -622,7 +623,7 @@ OIndex CBaseObject::GetOI(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::RemoveAllFroms(void)
+int CBaseObject::RemoveAllFroms(void)
 {
 	int				iNumFroms;
 	CBaseObject**	ppcPointedFrom;
@@ -638,7 +639,7 @@ void CBaseObject::RemoveAllFroms(void)
 	}
 
 	mapFroms.ReInit();
-	KillThisGraph();
+	return KillThisGraph();
 }
 
 

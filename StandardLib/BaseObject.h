@@ -120,7 +120,7 @@ protected:
 			BOOL			RemoveToFrom(CBaseObject* pcPointedTo, CArrayEmbeddedBaseObjectPtr* papcFromsChanged);
 			void			PrivateRemoveFrom(CBaseObject* pcFrom);
 			void			RemoveFrom(CBaseObject* pcFrom);
-			void			RemoveAllFroms(void);
+			int				RemoveAllFroms(void);
 	virtual void			RemoveTo(CBaseObject* pcTo) =0;
 			void			CopyFroms(CBaseObject* pcSource);
 			void			PotentiallySetDistToRoot(CBaseObject* pcTos, int iExpectedDistToRoot);

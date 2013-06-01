@@ -694,8 +694,8 @@ CBaseObject* CObjects::Allocate(char* szClassName)
 //////////////////////////////////////////////////////////////////////////
 void CObjects::RemoveInKill(CBaseObject* pvObject)
 {
-	mcMemory.RemoveIndex(pvObject->GetOI());
-	//Kinda sure ths needs to remove the name too...
+	Deindex(pvObject);
+	Dename(pvObject);
 }
 
 
