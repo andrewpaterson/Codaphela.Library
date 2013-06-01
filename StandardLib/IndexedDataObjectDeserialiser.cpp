@@ -58,7 +58,6 @@ CPointerObject CIndexedDataObjectDeserialiser::Read(OIndex oi)
 
 	pcReadObject = pObject.Object();
 	UpdateDependentPointersAndCreateHollowObjects(pcReadObject);
-	pcReadObject->FixDistToRoot();
 
 	return pObject;
 }
@@ -91,7 +90,6 @@ CPointerObject CIndexedDataObjectDeserialiser::Read(char* szObjectName)
 
 	pcReadObject = pObject.Object();
 	UpdateDependentPointersAndCreateHollowObjects(pObject.Object());
-	pcReadObject->FixDistToRoot();
 
 	return pObject;
 }

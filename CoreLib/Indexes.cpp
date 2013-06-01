@@ -223,27 +223,31 @@ BOOL CIndexes::Remove(OIndex oi)
 	SIndexedLevel*		apsLevel[MAX_INDEXED_LEVEL_DEPTH+1];
 	SIndexedLevel*		psLevel;
 
-	pvOI = (unsigned char*)&oi;
+	apsLevel[0] = apsLevel[1] = apsLevel[2] = apsLevel[3] = apsLevel[4] = apsLevel[5] = apsLevel[6] = apsLevel[7] = NULL;
+	pvOI = (unsigned char*)&oi;  //if the index is one then pvOI[0] == 1 and pvOI[1..7] == 0.
 	psLevel = &msTop;
 	for (iCurrent = MAX_INDEXED_LEVEL_DEPTH; iCurrent >= 0; iCurrent--)
 	{
 		ucCurrent = pvOI[iCurrent];
 		psLevel = psLevel->apsLevels[ucCurrent];
-		apsLevel[iCurrent] = psLevel;
+		apsLevel[MAX_INDEXED_LEVEL_DEPTH - iCurrent] = psLevel;
 		if (!psLevel)
 		{
 			return FALSE;
 		}
 	}
 
-	for (iCurrent = 1; iCurrent <= MAX_INDEXED_LEVEL_DEPTH; iCurrent++)
+	for (iCurrent = MAX_INDEXED_LEVEL_DEPTH-1; iCurrent >= 0; iCurrent--)
 	{
-		ucCurrent = pvOI[iCurrent-1];
+		ucCurrent = pvOI[MAX_INDEXED_LEVEL_DEPTH - (iCurrent+1)];
 		apsLevel[iCurrent]->apsLevels[ucCurrent] = NULL;
 
 		if (apsLevel[iCurrent]->IsEmpty())
 		{
-			mcLevels.Remove(apsLevel[iCurrent]);
+			if (!mcLevels.Remove(apsLevel[iCurrent]))
+			{
+				return FALSE;
+			}
 		}
 		else
 		{

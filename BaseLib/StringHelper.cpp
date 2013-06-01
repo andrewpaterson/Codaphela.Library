@@ -20,9 +20,10 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-#include "StringHelper.h"
 #include <string.h>
 #include <ctype.h>
+#include "DataTypes.h"
+#include "StringHelper.h"
 
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -159,8 +160,13 @@ char* IToA(int iValue, char* szResult, int iBase)
 	}
 
 	bNegative = iValue < 0;
-	if (bNegative && (iBase == 10))
+	if (bNegative)
 	{
+		if (iValue == MIN_INT)
+		{
+			strcpy(szResult, "-2147483648");
+			return szResult;
+		}
 		iValue *= -1;
 	}
 	iQuotient = iValue;
@@ -178,7 +184,7 @@ char* IToA(int iValue, char* szResult, int iBase)
 
 
 	// Only apply negative sign for iBase 10
-	if (bNegative && (iBase == 10))
+	if (bNegative)
 	{
 		szResult[iPos] = '-';
 		iPos++;
