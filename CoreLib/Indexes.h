@@ -68,6 +68,7 @@ public:
 
 	int				TestNumLevels(void);
 	unsigned int	TestByteSize(void);
+	BOOL			TestTopIsEmpty(void);
 
 	OIndex			NumIndexed(void);
 	OIndex			StartIteration(SIndexesIterator* psIter);

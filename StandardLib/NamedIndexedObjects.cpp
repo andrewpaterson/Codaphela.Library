@@ -94,9 +94,13 @@ BOOL CNamedIndexedObjects::RemoveIndex(OIndex oi)
 {
 	BOOL	bResult;
 
-	//This only removes the index from the indexes, it does not free the object pointer to.
-	bResult = mcIndexedObjects.Remove(oi);
-	return bResult;
+	if (oi != INVALID_O_INDEX)
+	{
+		//This only removes the index from the indexes, it does not free the object pointer to.
+		bResult = mcIndexedObjects.Remove(oi);
+		return bResult;
+	}
+	return TRUE;
 }
 
 
@@ -108,9 +112,13 @@ BOOL CNamedIndexedObjects::RemoveName(char* szName)
 {
 	BOOL	bResult;
 
-	//This only removes the name from the names, it does not free the object pointer to.
-	bResult = mcNames.Remove(szName);
-	return bResult;
+	if ((szName != NULL) && (szName[0] != 0))
+	{
+		//This only removes the name from the names, it does not free the object pointer to.
+		bResult = mcNames.Remove(szName);
+		return bResult;
+	}
+	return TRUE;
 }
 
 

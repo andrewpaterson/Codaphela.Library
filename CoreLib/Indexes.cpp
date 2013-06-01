@@ -223,12 +223,13 @@ BOOL CIndexes::Remove(OIndex oi)
 	SIndexedLevel*		apsLevel[MAX_INDEXED_LEVEL_DEPTH+1];
 	SIndexedLevel*		psLevel;
 
-	apsLevel[0] = apsLevel[1] = apsLevel[2] = apsLevel[3] = apsLevel[4] = apsLevel[5] = apsLevel[6] = apsLevel[7] = NULL;
+	apsLevel[1] = apsLevel[2] = apsLevel[3] = apsLevel[4] = apsLevel[5] = apsLevel[6] = apsLevel[7] = NULL;
 	pvOI = (unsigned char*)&oi;  //if the index is one then pvOI[0] == 1 and pvOI[1..7] == 0.
 	psLevel = &msTop;
-	for (iCurrent = MAX_INDEXED_LEVEL_DEPTH; iCurrent >= 0; iCurrent--)
+	apsLevel[0] = &msTop;
+	for (iCurrent = MAX_INDEXED_LEVEL_DEPTH-1; iCurrent >= 0; iCurrent--)
 	{
-		ucCurrent = pvOI[iCurrent];
+		ucCurrent = pvOI[iCurrent+1];
 		psLevel = psLevel->apsLevels[ucCurrent];
 		apsLevel[MAX_INDEXED_LEVEL_DEPTH - iCurrent] = psLevel;
 		if (!psLevel)
@@ -237,12 +238,12 @@ BOOL CIndexes::Remove(OIndex oi)
 		}
 	}
 
-	for (iCurrent = MAX_INDEXED_LEVEL_DEPTH-1; iCurrent >= 0; iCurrent--)
+	for (iCurrent = MAX_INDEXED_LEVEL_DEPTH; iCurrent >= 0; iCurrent--)
 	{
-		ucCurrent = pvOI[MAX_INDEXED_LEVEL_DEPTH - (iCurrent+1)];
+		ucCurrent = pvOI[MAX_INDEXED_LEVEL_DEPTH - iCurrent];
 		apsLevel[iCurrent]->apsLevels[ucCurrent] = NULL;
 
-		if (apsLevel[iCurrent]->IsEmpty())
+		if ((apsLevel[iCurrent]->IsEmpty() && iCurrent != 0))
 		{
 			if (!mcLevels.Remove(apsLevel[iCurrent]))
 			{
@@ -285,6 +286,16 @@ unsigned int CIndexes::TestByteSize(void)
 OIndex CIndexes::NumIndexed(void)
 {
 	return RecurseNumIndexed(&msTop, 0);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexes::TestTopIsEmpty(void)
+{
+	return msTop.IsEmpty();
 }
 
 
