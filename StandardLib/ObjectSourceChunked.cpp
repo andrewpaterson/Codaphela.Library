@@ -15,13 +15,13 @@ BOOL CObjectSourceChunked::Init(CObjectConverter* pcConverter, CAbstractFile* pc
 	CObjectSource::Init(pcConverter, pcFile, szFileName);
 
 	mcChunkFile.Init(mpcFile);
+	mcNames.Init(8);
+
 	ReturnOnFalse(mcChunkFile.ReadOpen());
 	ReturnOnFalse(ReadNames());
 
 	mpcReader = NULL;
 	return mcChunkFile.StackDepth() == 1;
-
-	mcNames.Init(8);
 }
 
 
@@ -31,10 +31,10 @@ BOOL CObjectSourceChunked::Init(CObjectConverter* pcConverter, CAbstractFile* pc
 //////////////////////////////////////////////////////////////////////////
 void CObjectSourceChunked::Kill(void)
 {
-	mcNames.Kill();
-
 	mcChunkFile.ReadClose();
 	mcChunkFile.Kill();
+
+	mcNames.Kill();
 
 	CObjectSource::Kill();
 }

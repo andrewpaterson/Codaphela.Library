@@ -2,6 +2,7 @@
 #define __DEPENDENT_READ_OBJECTS_H__
 #include "DependentReadPointer.h"
 #include "DependentReadObject.h"
+#include "IndexNewOld.h"
 
 
 class CIndexGenerator;
@@ -10,6 +11,7 @@ class CDependentReadObjects
 protected:
 	CArrayDependentReadObject	mcObjects;
 	CArrayDependentReadPointer	mcPointers;
+	CArrayIndexNewOld			mcIndexRemap;
 
 	int							miGetIndex;  //The index of the next object to 'gotten' for reading.
 
@@ -26,6 +28,8 @@ public:
 	CDependentReadPointer*	GetPointer(int iIndex);
 
 	int						NumObjects(void);
+	OIndex					GetNewIndexFromOld(OIndex oiOld);
+	void					AddIndexRemap(OIndex oiNew, OIndex oiOld);
 };
 
 

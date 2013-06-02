@@ -12,6 +12,7 @@ void CDependentReadObjects::Init(void)
 {
 	mcObjects.Init(128);
 	mcPointers.Init(512);
+	mcIndexRemap.Init(128);
 	miGetIndex = 0;
 }
 
@@ -25,6 +26,7 @@ void CDependentReadObjects::Kill(void)
 	int						i;
 	CDependentReadObject*	pcDependent;
 
+	mcIndexRemap.Kill();
 	mcPointers.Kill();
 
 	for(i = 0; i < mcObjects.NumElements(); i++)
@@ -219,5 +221,39 @@ CDependentReadPointer* CDependentReadObjects::GetPointer(int iIndex)
 int CDependentReadObjects::NumObjects(void)
 {
 	return mcObjects.NumElements();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+OIndex CDependentReadObjects::GetNewIndexFromOld(OIndex oiOld)
+{
+	int				i;
+	CIndexNewOld*	pcRemap;
+
+	for (i = 0; i < mcIndexRemap.NumElements(); i++)
+	{
+		pcRemap = mcIndexRemap.Get(i);
+		if (pcRemap->moiOld == oiOld)
+		{
+			return pcRemap->moiNew;
+		}
+	}
+	return INVALID_O_INDEX;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CDependentReadObjects::AddIndexRemap(OIndex oiNew, OIndex oiOld)
+{
+	CIndexNewOld*	pcNewOld;
+
+	pcNewOld = mcIndexRemap.Add();
+	pcNewOld->Init(oiNew, oiOld);
 }
 

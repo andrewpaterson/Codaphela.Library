@@ -9,11 +9,10 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectGraphDeserialiser::Init(CObjectReader* pcReader, CIndexGenerator* pcIndexGenerator, CObjectAllocator* pcAllocator)
+void CObjectGraphDeserialiser::Init(CObjectReader* pcReader, CIndexGenerator* pcIndexGenerator, CObjectAllocator* pcAllocator, CDependentReadObjects* pcDependentReadObjects)
 {
 	mpcReader = pcReader;
-	mcDependentObjects.Init();
-	mcIndexRemap.Init(32);
+	mpcDependentObjects = pcDependentReadObjects;
 	mpcAllocator = pcAllocator;
 }
 
@@ -25,36 +24,8 @@ void CObjectGraphDeserialiser::Init(CObjectReader* pcReader, CIndexGenerator* pc
 void CObjectGraphDeserialiser::Kill(void)
 {
 	mpcAllocator = NULL;
-	mcIndexRemap.Kill();
-	mcDependentObjects.Kill();
+	mpcDependentObjects = NULL;
 }
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-//CPointerObject CObjectGraphDeserialiser::Read(OIndex oi)
-//{
-//	CPointerHeader					cHeader;
-//	BOOL							bResult;
-//	CBaseObject*					pcObjectPtr;
-//
-//	CPointerObject					pObject;
-//
-//	pcObjectPtr = NULL;
-//	cHeader.Init(oi);
-//	AddDependent(&cHeader, &pcObjectPtr);
-//
-//	bResult = ReadAfterAddDependent();
-//	if (!bResult)
-//	{
-//		return ONull;
-//	}
-//
-//	pObject = pcObjectPtr;
-//	return pObject;
-//}
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -104,7 +75,7 @@ BOOL CObjectGraphDeserialiser::ReadAfterAddDependent(void)
 	bFirst = TRUE;
 	for (;;)
 	{
-		pcDependent = mcDependentObjects.GetUnread();
+		pcDependent = mpcDependentObjects->GetUnread();
 		if (pcDependent)
 		{
 			bResult = ReadUnread(pcDependent, bFirst);
@@ -161,7 +132,7 @@ BOOL CObjectGraphDeserialiser::ReadUnread(CDependentReadObject* pcDependent, BOO
 
 		if (bFirst)
 		{
-			mcDependentObjects.SetInitialIndex(pcSerialised->GetIndex());
+			mpcDependentObjects->SetInitialIndex(pcSerialised->GetIndex());
 		}
 	}
 	else
@@ -189,7 +160,7 @@ BOOL CObjectGraphDeserialiser::ReadUnread(CDependentReadObject* pcDependent, BOO
 	MarkRead(oiOld);
 
 	oiNew = pObject.GetIndex();
-	AddIndexRemap(oiNew, oiOld);
+	mpcDependentObjects->AddIndexRemap(oiNew, oiOld);
 
 	return TRUE;
 }
@@ -201,7 +172,7 @@ BOOL CObjectGraphDeserialiser::ReadUnread(CDependentReadObject* pcDependent, BOO
 //////////////////////////////////////////////////////////////////////////
 void CObjectGraphDeserialiser::MarkRead(OIndex oi)
 {
-	mcDependentObjects.Mark(oi);
+	mpcDependentObjects->Mark(oi);
 }
 
 
@@ -217,10 +188,10 @@ BOOL CObjectGraphDeserialiser::FixPointers(void)
 	CBaseObject*			pcBaseObject;
 	OIndex					oiNew;
 
-	iNum = mcDependentObjects.NumPointers();
+	iNum = mpcDependentObjects->NumPointers();
 	for (i = 0; i < iNum; i++)
 	{
-		pcReadPointer = mcDependentObjects.GetPointer(i);
+		pcReadPointer = mpcDependentObjects->GetPointer(i);
 		oiNew = GetNewIndexFromOld(pcReadPointer->moiPointedTo);
 
 		pcBaseObject = gcObjects.GetInMemoryObject(oiNew);
@@ -243,31 +214,7 @@ BOOL CObjectGraphDeserialiser::FixPointers(void)
 //////////////////////////////////////////////////////////////////////////
 OIndex CObjectGraphDeserialiser::GetNewIndexFromOld(OIndex oiOld)
 {
-	int				i;
-	CIndexNewOld*	pcRemap;
-
-	for (i = 0; i < mcIndexRemap.NumElements(); i++)
-	{
-		pcRemap = mcIndexRemap.Get(i);
-		if (pcRemap->moiOld == oiOld)
-		{
-			return pcRemap->moiNew;
-		}
-	}
-	return INVALID_O_INDEX;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CObjectGraphDeserialiser::AddIndexRemap(OIndex oiNew, OIndex oiOld)
-{
-	CIndexNewOld*	pcNewOld;
-
-	pcNewOld = mcIndexRemap.Add();
-	pcNewOld->Init(oiNew, oiOld);
+	return mpcDependentObjects->GetNewIndexFromOld(oiOld);
 }
 
 
@@ -279,7 +226,7 @@ BOOL CObjectGraphDeserialiser::AddDependent(CPointerHeader* pcHeader, CBaseObjec
 {
 	if ((pcHeader->mcType == OBJECT_POINTER_NAMED) || (pcHeader->mcType == OBJECT_POINTER_ID))
 	{
-		mcDependentObjects.Add(pcHeader, ppcPtrToBeUpdated, pcObjectContainingPtrToBeUpdated);
+		mpcDependentObjects->Add(pcHeader, ppcPtrToBeUpdated, pcObjectContainingPtrToBeUpdated);
 	}
 	return TRUE;
 }

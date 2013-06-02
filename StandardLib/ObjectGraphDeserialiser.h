@@ -1,6 +1,5 @@
 #ifndef __OBJECT_GRAPH_DESERIALISER_H__
 #define __OBJECT_GRAPH_DESERIALISER_H__
-#include "IndexNewOld.h"
 #include "BaseObject.h"
 #include "ObjectReader.h"
 #include "Pointer.h"
@@ -22,11 +21,10 @@ protected:
 	CObjectReader*			mpcReader;  //The ObjectReader knows how to load the serialised form of the object by name.
 	CObjectAllocator*		mpcAllocator;
 
-	CDependentReadObjects	mcDependentObjects;
-	CArrayIndexNewOld		mcIndexRemap;
+	CDependentReadObjects*	mpcDependentObjects;
 	
 public:
-	void			Init(CObjectReader* pcReader, CIndexGenerator* pcIndexGenerator, CObjectAllocator* pcAllocator);
+	void			Init(CObjectReader* pcReader, CIndexGenerator* pcIndexGenerator, CObjectAllocator* pcAllocator, CDependentReadObjects* pcDependentReadObjects);
 	void			Kill(void);
 
 	CPointerObject	Read(char* szObjectName);
@@ -38,12 +36,10 @@ public:
 	OIndex			GetNewIndexFromOld(OIndex oiNew);
 
 protected:
-	//CPointerObject	Read(OIndex oi);
 	BOOL			ReadAfterAddDependent(void);
 	BOOL			ReadUnread(CDependentReadObject* pcDependent, BOOL bFirst);
 	void			MarkRead(OIndex oi);
 	BOOL			FixPointers(void);
-	void			AddIndexRemap(OIndex oiNew, OIndex oiOld);
 };
 
 
