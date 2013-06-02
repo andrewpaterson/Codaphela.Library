@@ -35,13 +35,14 @@ public:
 	BOOL			AddDependent(CPointerHeader* pcHeader, CBaseObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingPtrToBeUpdated);
 	CPointerObject	AllocateObject(CObjectHeader* pcHeader);
 
+	OIndex			GetNewIndexFromOld(OIndex oiNew);
+
 protected:
 	//CPointerObject	Read(OIndex oi);
 	BOOL			ReadAfterAddDependent(void);
 	BOOL			ReadUnread(CDependentReadObject* pcDependent, BOOL bFirst);
 	void			MarkRead(OIndex oi);
 	BOOL			FixPointers(void);
-	OIndex			GetNewIndexFromOld(OIndex oiNew);
 	void			AddIndexRemap(OIndex oiNew, OIndex oiOld);
 };
 
