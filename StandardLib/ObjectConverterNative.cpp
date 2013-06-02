@@ -17,6 +17,7 @@
 void CObjectConverterNative::Init(CIndexGenerator* pcIndexGenerator)
 {
 	mpcIndexGenerator = pcIndexGenerator;
+	mcDependentObjects.Init();
 }
 
 
@@ -26,6 +27,7 @@ void CObjectConverterNative::Init(CIndexGenerator* pcIndexGenerator)
 //////////////////////////////////////////////////////////////////////////
 void CObjectConverterNative::Kill(void)
 {
+	mcDependentObjects.Kill();
 	CObjectConverter::Kill();
 }
 
@@ -119,23 +121,14 @@ CPointerObject CObjectConverterNative::Convert(CObjectSource* pcSource, char* sz
 	CObjectAllocator					cAllocator;
 
 	//This if statement should be calling a virtual method instead.
-	if (pcSource->IsMultiSource() && pcSource->IsNative())
-	{
-		pcSourceChunked = (CObjectSourceChunked*)pcSource;
-		pcReader = pcSourceChunked->GetReader();
-	}
-	else if (!pcSource->IsMultiSource() && pcSource->IsNative())
-	{
-		pcSourceSimple = (CObjectSourceSimple*)pcSource;
-		pcReader = pcSourceSimple->GetReader();
-	}
-	else
+	pcReader = pcSource->GetReader();
+	if (!pcReader)
 	{
 		return ONull;
 	}
 
 	cAllocator.Init(&gcObjects, TRUE);
-	cGraphDeserialiser.Init(pcReader, mpcIndexGenerator, &cAllocator);
+	cGraphDeserialiser.Init(pcReader, mpcIndexGenerator, &cAllocator, &mcDependentObjects);
 	cPointer = cGraphDeserialiser.Read(szObjectName);
 	cGraphDeserialiser.Kill();
 
@@ -152,3 +145,12 @@ BOOL CObjectConverterNative::IsNative(void)
 	return TRUE;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+OIndex CObjectConverterNative::GetNewIndexFromOld(OIndex oiOld)
+{
+	return mcDependentObjects.GetNewIndexFromOld(oiOld);
+}

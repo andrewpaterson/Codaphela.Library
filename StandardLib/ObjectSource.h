@@ -24,7 +24,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Unknown.h"
 #include "Pointer.h"
 #include "Object.h"
-
+#include "ObjectReader.h"
 
 class CSerialisedObject;
 class CObjectConverter;
@@ -46,6 +46,8 @@ public:
 	virtual BOOL			IsMultiSource(void);
 
 			CAbstractFile*	GetFile(void);
+
+	virtual CObjectReader*	GetReader(void);
 };
 
 
