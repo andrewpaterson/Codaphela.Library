@@ -429,7 +429,6 @@ void CASCIITree::PrivateMoveLastToRemoved(EASCIITreeRemoveStyle eStyle, CASCIINo
 {
 	CASCIINode* pcParent;
 	int			iWordEnd;
-	int			iNodeWordEnd;
 	CCharsID*	pszid;
 	CCharsID*	pszidEnd;
 	int			iEndWord;
@@ -450,7 +449,6 @@ void CASCIITree::PrivateMoveLastToRemoved(EASCIITreeRemoveStyle eStyle, CASCIINo
 		if (pcNode->IsEmpty())
 		{
 			pcParent = pcNode->mpcParent;
-			iNodeWordEnd = pcNode->maiWordEnds[szText[pcParent->miParentLetter] - ASCII_NODE_START_CHAR];
 			mcNodes.Remove(pcNode);
 			pcNode = pcParent;
 		}
