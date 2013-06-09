@@ -35,14 +35,11 @@ void CIndexedDataObjectDeserialiser::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointerObject CIndexedDataObjectDeserialiser::Read(OIndex oi)
+CPointerObject CIndexedDataObjectDeserialiser::Read(CSerialisedObject* pcSerialised)
 {
-	CSerialisedObject*		pcSerialised;
 	CObjectDeserialiser		cDeserialiser;
 	CPointerObject			pObject;
 	CBaseObject*			pcReadObject;
-
-	pcSerialised = (CSerialisedObject*)mpcDatabase->Get(oi);
 
 	cDeserialiser.Init(this);
 	pObject = cDeserialiser.Load(pcSerialised);
@@ -67,31 +64,25 @@ CPointerObject CIndexedDataObjectDeserialiser::Read(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+CPointerObject CIndexedDataObjectDeserialiser::Read(OIndex oi)
+{
+	CSerialisedObject*		pcSerialised;
+
+	pcSerialised = (CSerialisedObject*)mpcDatabase->Get(oi);
+	return Read(pcSerialised);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 CPointerObject CIndexedDataObjectDeserialiser::Read(char* szObjectName)
 {
 	CSerialisedObject*		pcSerialised;
-	CObjectDeserialiser		cDeserialiser;
-	CPointerObject			pObject;
-	CBaseObject*			pcReadObject;
 
 	pcSerialised = (CSerialisedObject*)mpcDatabase->Get(szObjectName);
-
-	cDeserialiser.Init(this);
-	pObject = cDeserialiser.Load(pcSerialised);
-	if (pObject.IsNull())
-	{
-		cDeserialiser.Kill();
-		free(pcSerialised);
-		return ONull;
-	}
-
-	cDeserialiser.Kill();
-	free(pcSerialised);
-
-	pcReadObject = pObject.Object();
-	UpdateDependentPointersAndCreateHollowObjects(pObject.Object());
-
-	return pObject;
+	return Read(pcSerialised);
 }
 
 
