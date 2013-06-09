@@ -44,7 +44,7 @@ public:
 	CPointerObject	AllocateObject(CObjectHeader* pcHeader);
 
 protected:
-	CPointerObject	Read(CSerialisedObject* pcSerialised);
+	CPointerObject	ReadSerialised(CSerialisedObject* pcSerialised);
 	void			UpdateDependentPointersAndCreateHollowObjects(CBaseObject* pcReadObject);
 	void			FixPointerOrCreateHollowObject(CBaseObject* pcReadObject, CDependentReadPointer* pcDependentReadPointer);
 };

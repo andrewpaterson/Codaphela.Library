@@ -119,8 +119,6 @@ BOOL CObjectGraphDeserialiser::ReadUnread(CDependentReadObject* pcDependent, BOO
 	char*						szObjectName;
 	CObjectDeserialiser			cDeserialiser;
 	CPointerObject				pObject;
-	OIndex						oiOld;
-	OIndex						oiNew;
 
 	pcSerialised = NULL;
 	if (pcDependent->IsNamed())
@@ -144,21 +142,46 @@ BOOL CObjectGraphDeserialiser::ReadUnread(CDependentReadObject* pcDependent, BOO
 		{
 			return FALSE;
 		}
+
+		if (bFirst)
+		{
+			mpcDependentObjects->SetInitialIndex(pcSerialised->GetIndex());
+		}
 	}
 
-	oiOld = pcDependent->moi;
-	cDeserialiser.Init(this);
-	pObject = cDeserialiser.Load(pcSerialised);
-	if (pObject.IsNull())
+	if (pcDependent->GetOldIndex() != pcSerialised->GetIndex())
 	{
-		cDeserialiser.Kill();
-		free(pcSerialised);
+		gcLogger.Error2("pcDependent->GetOldIndex [", IndexToString(pcDependent->GetOldIndex()), "] != pcSerialised->GetIndex [", IndexToString(pcSerialised->GetIndex()), "]", NULL);
 		return FALSE;
 	}
-	pcDependent = NULL;
+
+	return ReadSerialsed(pcSerialised);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CObjectGraphDeserialiser::ReadSerialsed(CSerialisedObject* pcSerialised)
+{
+	CObjectDeserialiser			cDeserialiser;
+	CPointerObject				pObject;
+	OIndex						oiNew;
+	OIndex						oiOld;
+
+	oiOld = pcSerialised->GetIndex();
+	cDeserialiser.Init(this);
+	pObject = cDeserialiser.Load(pcSerialised);
 
 	cDeserialiser.Kill();
 	free(pcSerialised);
+
+	if (pObject.IsNull())
+	{
+		return FALSE;
+	}
+
 	MarkRead(oiOld);
 
 	oiNew = pObject.GetIndex();

@@ -22,7 +22,6 @@ protected:
 	CObjectReader*			mpcReader;  //The ObjectReader knows how to load the serialised form of the object by name.
 	CObjectAllocator*		mpcAllocator;
 
-	CDependentReadObjects*	mpcDependentObjects;
 	CNamedIndexedObjects*	mpcMemory;
 	
 public:
@@ -37,6 +36,7 @@ public:
 	OIndex			GetNewIndexFromOld(OIndex oiNew);
 
 protected:
+	BOOL			ReadSerialsed(CSerialisedObject* pcSerialised);
 	BOOL			ReadDependentObjects(void);
 	BOOL			ReadUnread(CDependentReadObject* pcDependent, BOOL bFirst);
 	void			MarkRead(OIndex oi);

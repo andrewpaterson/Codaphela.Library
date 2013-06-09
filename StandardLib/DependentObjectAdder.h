@@ -19,7 +19,7 @@ public:
 	virtual CPointerObject	AllocateObject(CObjectHeader* pcHeader) =0;
 
 protected:
-			void	AddContainingPointer(CBaseObject* pcBaseObject, CBaseObject** ppcPointedFrom, CBaseObject* pcContaining);
+	void	AddContainingPointer(CBaseObject* pcBaseObject, CBaseObject** ppcPointedFrom, CBaseObject* pcContaining);
 };
 
 
