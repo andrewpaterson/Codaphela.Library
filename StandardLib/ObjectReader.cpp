@@ -30,6 +30,3 @@ BOOL CObjectReader::End(void)
 {
 	return TRUE;
 }
-
-
-

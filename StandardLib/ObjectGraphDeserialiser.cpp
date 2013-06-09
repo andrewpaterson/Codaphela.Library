@@ -37,14 +37,25 @@ CPointerObject CObjectGraphDeserialiser::Read(char* szObjectName)
 	CPointerHeader					cHeader;
 	BOOL							bResult;
 	CBaseObject*					pcObjectPtr;
-
 	CPointerObject					pObject;
 
 	pcObjectPtr = NULL;
 	cHeader.Init(szObjectName);
 	AddDependent(&cHeader, &pcObjectPtr, NULL);
+	
+	bResult = mpcReader->Begin();
+	if (!bResult)
+	{
+		return ONull;
+	}
 
-	bResult = ReadAfterAddDependent();
+	bResult = ReadDependentObjects();
+	if (!bResult)
+	{
+		return ONull;
+	}
+
+	bResult = mpcReader->End();
 	if (!bResult)
 	{
 		return ONull;
@@ -59,18 +70,12 @@ CPointerObject CObjectGraphDeserialiser::Read(char* szObjectName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectGraphDeserialiser::ReadAfterAddDependent(void)
+BOOL CObjectGraphDeserialiser::ReadDependentObjects(void)
 {
 	BOOL							bResult;
 	CPointerObject					pObject;
 	CDependentReadObject*			pcDependent;
 	BOOL							bFirst;
-
-	bResult = mpcReader->Begin();
-	if (!bResult)
-	{
-		return FALSE;
-	}
 
 	bFirst = TRUE;
 	for (;;)
@@ -89,12 +94,6 @@ BOOL CObjectGraphDeserialiser::ReadAfterAddDependent(void)
 		{
 			break;
 		}
-	}
-
-	bResult = mpcReader->End();
-	if (!bResult)
-	{
-		return FALSE;
 	}
 
 	bResult = FixPointers();

@@ -36,7 +36,7 @@ public:
 	OIndex			GetNewIndexFromOld(OIndex oiNew);
 
 protected:
-	BOOL			ReadAfterAddDependent(void);
+	BOOL			ReadDependentObjects(void);
 	BOOL			ReadUnread(CDependentReadObject* pcDependent, BOOL bFirst);
 	void			MarkRead(OIndex oi);
 	BOOL			FixPointers(void);
