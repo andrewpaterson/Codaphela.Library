@@ -22,9 +22,10 @@ protected:
 	CObjectAllocator*		mpcAllocator;
 
 	CDependentReadObjects*	mpcDependentObjects;
+	CNamedIndexedObjects*	mpcMemory;
 	
 public:
-	void			Init(CObjectReader* pcReader, CIndexGenerator* pcIndexGenerator, CObjectAllocator* pcAllocator, CDependentReadObjects* pcDependentReadObjects);
+	void			Init(CObjectReader* pcReader, CIndexGenerator* pcIndexGenerator, CObjectAllocator* pcAllocator, CDependentReadObjects* pcDependentReadObjects, CNamedIndexedObjects* pcMemory);
 	void			Kill(void);
 
 	CPointerObject	Read(char* szObjectName);
@@ -39,7 +40,7 @@ protected:
 	BOOL			ReadDependentObjects(void);
 	BOOL			ReadUnread(CDependentReadObject* pcDependent, BOOL bFirst);
 	void			MarkRead(OIndex oi);
-	BOOL			FixPointers(void);
+	BOOL			UpdateDependentPointersAndCreateHollowObjects(void);
 };
 
 

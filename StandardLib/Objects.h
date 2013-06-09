@@ -56,52 +56,53 @@ protected:
 	CIndexGenerator			mcIndexGenerator;
 
 public:
-						void				Init(CUnknowns* pcUnknownsAllocatingFrom, char* szWorkingDirectory);
-						void				Init(CUnknowns* pcUnknownsAllocatingFrom, CIndexedConfig* pcConfig);
-						void				Kill(void);
+						void					Init(CUnknowns* pcUnknownsAllocatingFrom, char* szWorkingDirectory);
+						void					Init(CUnknowns* pcUnknownsAllocatingFrom, CIndexedConfig* pcConfig);
+						void					Kill(void);
 
-						BOOL				Flush(BOOL bClearMemory, BOOL bClearCache);
-						BOOL				Save(CBaseObject* pcObject);
-						BOOL				ForceSave(CBaseObject* pcObject);
-						BOOL				Close(void);
+						BOOL					Flush(BOOL bClearMemory, BOOL bClearCache);
+						BOOL					Save(CBaseObject* pcObject);
+						BOOL					ForceSave(CBaseObject* pcObject);
+						BOOL					Close(void);
 
-						CPointerObject		Get(OIndex oi);
-						CPointerObject		Get(char* szObjectName);
-	template<class M> 	CPointer<M>			Get(OIndex oi);
-	template<class M>	CPointer<M>			Get(char* szObjectName);
-						BOOL				Contains(char* szObjectName);
+						CPointerObject			Get(OIndex oi);
+						CPointerObject			Get(char* szObjectName);
+	template<class M> 	CPointer<M>				Get(OIndex oi);
+	template<class M>	CPointer<M>				Get(char* szObjectName);
+						BOOL					Contains(char* szObjectName);
 
-	template<class M>	CPointer<M>			Add(void);
-	template<class M>	CPointer<M>			Add(char* szObjectName);
+	template<class M>	CPointer<M>				Add(void);
+	template<class M>	CPointer<M>				Add(char* szObjectName);
 
-						CPointer<CRoot>		AddRoot(void);
+						CPointer<CRoot>			AddRoot(void);
 
-						void				Remove(CArrayBaseObjectPtr* papcKilled);
+						void					Remove(CArrayBaseObjectPtr* papcKilled);
 
-						CPointerObject		Null(void);
-	template<class M>	CPointer<M>			Null(void);
+						CPointerObject			Null(void);
+	template<class M>	CPointer<M>				Null(void);
 
-	template<class M>	void				AddConstructor(void);
-						long long int		NumMemoryIndexes(void);
-						int					NumMemoryNames(void);
-						long long int		NumDatabaseObjects(void);
-						int					NumDatabaseObjectsCached(void);
-						int					NumDatabaseObjectsCached(int iSize);
-						long long int		NumDatabaseNames(void);
-						CIndexGenerator*	GetIndexGenerator(void);
+	template<class M>	void					AddConstructor(void);
+						long long int			NumMemoryIndexes(void);
+						int						NumMemoryNames(void);
+						long long int			NumDatabaseObjects(void);
+						int						NumDatabaseObjectsCached(void);
+						int						NumDatabaseObjectsCached(int iSize);
+						long long int			NumDatabaseNames(void);
+						CIndexGenerator*		GetIndexGenerator(void);
+						CNamedIndexedObjects*	GetMemory(void);
 
-						CBaseObject*		GetInMemoryObject(OIndex oi);
-						void				RemoveInKill(CBaseObject* pvObject);
-						CPointerObject		Dehollow(OIndex oi);
+						CBaseObject*			GetInMemoryObject(OIndex oi);
+						void					RemoveInKill(CBaseObject* pvObject);
+						CPointerObject			Dehollow(OIndex oi);
 
-						BOOL				Dename(CBaseObject* pvObject);
-						BOOL				Deindex(CBaseObject* pvObject);
+						BOOL					Dename(CBaseObject* pvObject);
+						BOOL					Deindex(CBaseObject* pvObject);
 
-						OIndex				StartMemoryIteration(SIndexesIterator* psIter);
-						OIndex				IterateMemory(SIndexesIterator* psIter);
+						OIndex					StartMemoryIteration(SIndexesIterator* psIter);
+						OIndex					IterateMemory(SIndexesIterator* psIter);
 
-						CPointerObject		GetNotInMemory(char* szObjectName);
-						CPointerObject		GetIfInMemory(char* szObjectName);
+						CPointerObject			GetNotInMemory(char* szObjectName);
+						CPointerObject			GetIfInMemory(char* szObjectName);
 
 protected:
 						BOOL				AddWithID(CBaseObject* pvObject, OIndex oi);

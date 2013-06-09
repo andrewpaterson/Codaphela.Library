@@ -94,8 +94,10 @@ void CIndexedDataObjectDeserialiser::UpdateDependentPointersAndCreateHollowObjec
 {
 	CDependentReadPointer*	pcDependentReadPointer;
 	int						i;
+	int						iNum;
 
-	for (i = 0; i < mcDependentObjects.NumPointers(); i++)
+	iNum = mcDependentObjects.NumPointers();
+	for (i = 0; i < iNum; i++)
 	{
 		pcDependentReadPointer = mcDependentObjects.GetPointer(i);
 		FixPointerOrCreateHollowObject(pcReadObject, pcDependentReadPointer);

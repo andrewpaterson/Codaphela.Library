@@ -9,11 +9,12 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectGraphDeserialiser::Init(CObjectReader* pcReader, CIndexGenerator* pcIndexGenerator, CObjectAllocator* pcAllocator, CDependentReadObjects* pcDependentReadObjects)
+void CObjectGraphDeserialiser::Init(CObjectReader* pcReader, CIndexGenerator* pcIndexGenerator, CObjectAllocator* pcAllocator, CDependentReadObjects* pcDependentReadObjects, CNamedIndexedObjects* pcMemory)
 {
 	mpcReader = pcReader;
 	mpcDependentObjects = pcDependentReadObjects;
 	mpcAllocator = pcAllocator;
+	mpcMemory = pcMemory;
 }
 
 
@@ -23,6 +24,7 @@ void CObjectGraphDeserialiser::Init(CObjectReader* pcReader, CIndexGenerator* pc
 //////////////////////////////////////////////////////////////////////////
 void CObjectGraphDeserialiser::Kill(void)
 {
+	mpcMemory = NULL;
 	mpcAllocator = NULL;
 	mpcDependentObjects = NULL;
 }
@@ -96,7 +98,7 @@ BOOL CObjectGraphDeserialiser::ReadDependentObjects(void)
 		}
 	}
 
-	bResult = FixPointers();
+	bResult = UpdateDependentPointersAndCreateHollowObjects();
 	if (!bResult)
 	{
 		return FALSE;
@@ -179,7 +181,7 @@ void CObjectGraphDeserialiser::MarkRead(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectGraphDeserialiser::FixPointers(void)
+BOOL CObjectGraphDeserialiser::UpdateDependentPointersAndCreateHollowObjects(void)
 {
 	CDependentReadPointer*	pcReadPointer;
 	int						i;
@@ -193,7 +195,8 @@ BOOL CObjectGraphDeserialiser::FixPointers(void)
 		pcReadPointer = mpcDependentObjects->GetPointer(i);
 		oiNew = GetNewIndexFromOld(pcReadPointer->moiPointedTo);
 
-		pcBaseObject = gcObjects.GetInMemoryObject(oiNew);
+		
+		pcBaseObject = mpcMemory->Get(oiNew);
 		if (pcBaseObject)
 		{
 			FixPointer(pcBaseObject, pcReadPointer->mppcPointedFrom, pcReadPointer->mpcContaining);
