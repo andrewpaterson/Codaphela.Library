@@ -12,6 +12,7 @@
 //////////////////////////////////////////////////////////////////////////
 void CIndexedDataObjectDeserialiser::Init(CObjectAllocator* pcAllocator, CNamedIndexedData* pcDatabase, CNamedIndexedObjects* pcMemory)
 {
+	CDependentObjectAdder::Init(&mcDependentObjects);
 	mpcAllocator = pcAllocator;
 	mpcDatabase = pcDatabase;
 	mpcMemory = pcMemory;
@@ -28,6 +29,7 @@ void CIndexedDataObjectDeserialiser::Kill(void)
 {
 	mpcAllocator = NULL;
 	mcDependentObjects.Kill();
+	CDependentObjectAdder::Kill();
 }
 
 
@@ -96,10 +98,10 @@ void CIndexedDataObjectDeserialiser::UpdateDependentPointersAndCreateHollowObjec
 	int						i;
 	int						iNum;
 
-	iNum = mcDependentObjects.NumPointers();
+	iNum = mpcDependentObjects->NumPointers();
 	for (i = 0; i < iNum; i++)
 	{
-		pcDependentReadPointer = mcDependentObjects.GetPointer(i);
+		pcDependentReadPointer = mpcDependentObjects->GetPointer(i);
 		FixPointerOrCreateHollowObject(pcReadObject, pcDependentReadPointer);
 	}
 }
@@ -111,41 +113,30 @@ void CIndexedDataObjectDeserialiser::UpdateDependentPointersAndCreateHollowObjec
 //////////////////////////////////////////////////////////////////////////
 void CIndexedDataObjectDeserialiser::FixPointerOrCreateHollowObject(CBaseObject* pcReadObject, CDependentReadPointer* pcDependentReadPointer)
 {
-	CBaseObject*			pcObject;
+	CBaseObject*			pcBaseObject;
 	CDependentReadObject*	pcDependentReadObject;
 	CPointerObject			pObject;
+	OIndex					oiNew;
 
-	pcObject = mpcMemory->Get(pcDependentReadPointer->moiPointedTo);
+	oiNew = pcDependentReadPointer->moiPointedTo;
+	pcBaseObject = mpcMemory->Get(oiNew);
 
-	if (!pcObject)
+	if (!pcBaseObject)
 	{
-		pcDependentReadObject = mcDependentObjects.GetObject(pcDependentReadPointer->moiPointedTo);
+		pcDependentReadObject = mpcDependentObjects->GetObject(pcDependentReadPointer->moiPointedTo);
 		if (pcDependentReadObject->mcType == OBJECT_POINTER_ID)
 		{
 			pObject = mpcAllocator->AddHollow(pcDependentReadObject->moi);
-			pcObject = pObject.Object();
+			pcBaseObject = pObject.Object();
 		}
 		else if (pcDependentReadObject->mcType == OBJECT_POINTER_NAMED)
 		{
 			pObject = mpcAllocator->AddHollow(pcDependentReadObject->mszObjectName.Text(), pcDependentReadObject->moi);
-			pcObject = pObject.Object();
+			pcBaseObject = pObject.Object();
 		}
 	}
-	FixPointer(pcObject, pcDependentReadPointer->mppcPointedFrom, pcDependentReadPointer->mpcContaining);
-}
 
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CIndexedDataObjectDeserialiser::AddDependent(CPointerHeader* pcHeader, CBaseObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingPtrToBeUpdated)
-{
-	if ((pcHeader->mcType == OBJECT_POINTER_NAMED) || (pcHeader->mcType == OBJECT_POINTER_ID))
-	{
-		mcDependentObjects.Add(pcHeader, ppcPtrToBeUpdated, pcObjectContainingPtrToBeUpdated);
-	}
-	return TRUE;
+	AddContainingPointer(pcBaseObject, pcDependentReadPointer->mppcPointedFrom, pcDependentReadPointer->mpcContaining);
 }
 
 

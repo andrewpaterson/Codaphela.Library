@@ -11,8 +11,8 @@
 //////////////////////////////////////////////////////////////////////////
 void CObjectGraphDeserialiser::Init(CObjectReader* pcReader, CIndexGenerator* pcIndexGenerator, CObjectAllocator* pcAllocator, CDependentReadObjects* pcDependentReadObjects, CNamedIndexedObjects* pcMemory)
 {
+	CDependentObjectAdder::Init(pcDependentReadObjects);
 	mpcReader = pcReader;
-	mpcDependentObjects = pcDependentReadObjects;
 	mpcAllocator = pcAllocator;
 	mpcMemory = pcMemory;
 }
@@ -27,6 +27,7 @@ void CObjectGraphDeserialiser::Kill(void)
 	mpcMemory = NULL;
 	mpcAllocator = NULL;
 	mpcDependentObjects = NULL;
+	CDependentObjectAdder::Kill();
 }
 
 
@@ -195,14 +196,14 @@ BOOL CObjectGraphDeserialiser::UpdateDependentPointersAndCreateHollowObjects(voi
 		pcReadPointer = mpcDependentObjects->GetPointer(i);
 		oiNew = GetNewIndexFromOld(pcReadPointer->moiPointedTo);
 
-		
 		pcBaseObject = mpcMemory->Get(oiNew);
 		if (pcBaseObject)
 		{
-			FixPointer(pcBaseObject, pcReadPointer->mppcPointedFrom, pcReadPointer->mpcContaining);
+			AddContainingPointer(pcBaseObject, pcReadPointer->mppcPointedFrom, pcReadPointer->mpcContaining);
 		}
 		else
 		{
+			gcLogger.Error2("Could not get object with index [", IndexToString(oiNew), "] from memory trying to update containing pointer.", NULL);
 			return FALSE;
 		}
 	}
@@ -217,20 +218,6 @@ BOOL CObjectGraphDeserialiser::UpdateDependentPointersAndCreateHollowObjects(voi
 OIndex CObjectGraphDeserialiser::GetNewIndexFromOld(OIndex oiOld)
 {
 	return mpcDependentObjects->GetNewIndexFromOld(oiOld);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CObjectGraphDeserialiser::AddDependent(CPointerHeader* pcHeader, CBaseObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingPtrToBeUpdated)
-{
-	if ((pcHeader->mcType == OBJECT_POINTER_NAMED) || (pcHeader->mcType == OBJECT_POINTER_ID))
-	{
-		mpcDependentObjects->Add(pcHeader, ppcPtrToBeUpdated, pcObjectContainingPtrToBeUpdated);
-	}
-	return TRUE;
 }
 
 

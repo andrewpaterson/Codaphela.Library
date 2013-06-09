@@ -1,12 +1,32 @@
+#include "ObjectFileGeneral.h"
 #include "DependentObjectAdder.h"
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CDependentObjectAdder::Init(CDependentReadObjects*	pcDependentObjects)
+{
+	mpcDependentObjects = pcDependentObjects;
+}
+
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDependentObjectAdder::FixPointer(CBaseObject* pcBaseObject, CBaseObject** ppcPointedFrom, CBaseObject* pcContaining)
+void CDependentObjectAdder::Kill(void)
+{
+	mpcDependentObjects = NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CDependentObjectAdder::AddContainingPointer(CBaseObject* pcBaseObject, CBaseObject** ppcPointedFrom, CBaseObject* pcContaining)
 {
 	*ppcPointedFrom = pcBaseObject;
 
@@ -16,3 +36,17 @@ void CDependentObjectAdder::FixPointer(CBaseObject* pcBaseObject, CBaseObject** 
 	}
 }
 
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CDependentObjectAdder::AddDependent(CPointerHeader* pcHeader, CBaseObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingPtrToBeUpdated)
+{
+	if ((pcHeader->mcType == OBJECT_POINTER_NAMED) || (pcHeader->mcType == OBJECT_POINTER_ID))
+	{
+		mpcDependentObjects->Add(pcHeader, ppcPtrToBeUpdated, pcObjectContainingPtrToBeUpdated);
+	}
+	return TRUE;
+}

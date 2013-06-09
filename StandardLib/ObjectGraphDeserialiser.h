@@ -5,6 +5,7 @@
 #include "Pointer.h"
 #include "DependentReadObjects.h"
 #include "DependentObjectAdder.h"
+#include "NamedIndexedObjects.h"
 
 
 //The graph deserialiser works with chunk files and simple files.  
@@ -31,7 +32,6 @@ public:
 	CPointerObject	Read(char* szObjectName);
 			 
 	//Used by CObjectDeserialiser
-	BOOL			AddDependent(CPointerHeader* pcHeader, CBaseObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingPtrToBeUpdated);
 	CPointerObject	AllocateObject(CObjectHeader* pcHeader);
 
 	OIndex			GetNewIndexFromOld(OIndex oiNew);

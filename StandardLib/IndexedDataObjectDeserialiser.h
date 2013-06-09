@@ -32,7 +32,7 @@ protected:
 	CNamedIndexedData*				mpcDatabase;
 	CNamedIndexedObjects*			mpcMemory;
 
-	CDependentReadObjects			mcDependentObjects;
+	CDependentReadObjects			mcDependentObjects;  //CDependentObjectAdder points to this CDependentReadObjects.
 
 public:
 	void			Init(CObjectAllocator* pcAllocator, CNamedIndexedData* pcDatabase, CNamedIndexedObjects* pcMemory);
@@ -41,8 +41,6 @@ public:
 	CPointerObject	Read(OIndex oi);
 	CPointerObject	Read(char* szObjectName);
 
-	BOOL			AddDependent(CPointerHeader* pcHeader, CBaseObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingPtrToBeUpdated);
-	BOOL			AddDependent(CPointerHeader* pcHeader, CBaseObject** ppcPtrToBeUpdated);
 	CPointerObject	AllocateObject(CObjectHeader* pcHeader);
 
 protected:
