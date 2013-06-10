@@ -21,7 +21,6 @@ public:
 	void					Add(CPointerHeader* pcHeader, CBaseObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingPtrToBeUpdated);
 	CDependentReadObject*	GetUnread(void);
 	CDependentReadObject*	GetObject(OIndex oi);
-	void					SetInitialIndex(OIndex oi);
 	BOOL					Mark(OIndex oi);
 
 	int						NumPointers(void);

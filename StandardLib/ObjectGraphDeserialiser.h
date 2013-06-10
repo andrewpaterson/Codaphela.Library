@@ -36,9 +36,9 @@ public:
 	OIndex			GetNewIndexFromOld(OIndex oiNew);
 
 protected:
-	BOOL			ReadSerialsed(CSerialisedObject* pcSerialised);
+	CPointerObject	ReadSerialsed(CSerialisedObject* pcSerialised);
 	BOOL			ReadDependentObjects(void);
-	BOOL			ReadUnread(CDependentReadObject* pcDependent, BOOL bFirst);
+	BOOL			ReadUnread(CDependentReadObject* pcDependent);
 	void			MarkRead(OIndex oi);
 	BOOL			UpdateDependentPointersAndCreateHollowObjects(void);
 };

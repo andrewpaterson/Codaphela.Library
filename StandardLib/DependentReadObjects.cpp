@@ -124,38 +124,6 @@ CDependentReadObject* CDependentReadObjects::GetUnread(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDependentReadObjects::SetInitialIndex(OIndex oi)
-{
-	//This method is *way* dodgy, it exists because the initial addDepenent call made by the ObjectGraphDeserialiser hasn't yet read the serialised object and doesn't know it's Index.
-
-	CDependentReadObject*	pDependent;
-	CDependentReadPointer*	pcPointer;
-
-	if ((mcObjects.NumElements() == 1) && (mcPointers.NumElements() == 1))
-	{
-		pDependent = mcObjects.Get(0);
-		if (pDependent->moi == INVALID_O_INDEX)
-		{
-			pDependent->moi = oi;
-		}
-
-		pcPointer = mcPointers.Get(0);
-		if (pcPointer->moiPointedTo == INVALID_O_INDEX)
-		{
-			pcPointer->moiPointedTo = oi;
-		}
-	}
-	else
-	{
-		gcLogger.Error("CDependentReadObjects: Could not set initial index.");
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 BOOL CDependentReadObjects::Mark(OIndex oi)
 {
 	CDependentReadObject*	pcDependent;

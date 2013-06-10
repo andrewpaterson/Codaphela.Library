@@ -11,12 +11,14 @@ BASE_FUNCTIONS(CObjectReader);
 public:
 			void				Kill(void);
 
-			CSerialisedObject*  ReadSerialised(CFileReader* pcReader);
-
 	virtual BOOL				Begin(void);
 	virtual CSerialisedObject*  Read(char* szObjectName) =0;
 	virtual CSerialisedObject*  Read(OIndex oi) =0;
 	virtual BOOL				End(void);
+
+protected:
+	CSerialisedObject*  ReadSerialised(CFileReader* pcReader);
+
 };
 
 

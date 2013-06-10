@@ -75,13 +75,11 @@ CPointerObject CIndexedDataObjectDeserialiser::ReadSerialised(CSerialisedObject*
 	cDeserialiser.Kill();
 	free(pcSerialised);
 
-	if (pObject.IsNull())
+	if (pObject.IsNotNull())
 	{
-		return ONull;
+		pcReadObject = pObject.Object();
+		UpdateDependentPointersAndCreateHollowObjects(pcReadObject);
 	}
-
-	pcReadObject = pObject.Object();
-	UpdateDependentPointersAndCreateHollowObjects(pcReadObject);
 
 	return pObject;
 }

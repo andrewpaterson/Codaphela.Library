@@ -37,16 +37,18 @@ void CObjectGraphDeserialiser::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 CPointerObject CObjectGraphDeserialiser::Read(char* szObjectName)
 {
-	CPointerHeader					cHeader;
 	BOOL							bResult;
-	CBaseObject*					pcObjectPtr;
 	CPointerObject					pObject;
-
-	pcObjectPtr = NULL;
-	cHeader.Init(szObjectName);
-	AddDependent(&cHeader, &pcObjectPtr, NULL);
+	CSerialisedObject*			pcSerialised;
 	
 	bResult = mpcReader->Begin();
+	if (!bResult)
+	{
+		return ONull;
+	}
+
+	pcSerialised = mpcReader->Read(szObjectName);
+	pObject = ReadSerialsed(pcSerialised);
 	if (!bResult)
 	{
 		return ONull;
@@ -64,7 +66,6 @@ CPointerObject CObjectGraphDeserialiser::Read(char* szObjectName)
 		return ONull;
 	}
 
-	pObject = pcObjectPtr;
 	return pObject;
 }
 
@@ -78,20 +79,17 @@ BOOL CObjectGraphDeserialiser::ReadDependentObjects(void)
 	BOOL							bResult;
 	CPointerObject					pObject;
 	CDependentReadObject*			pcDependent;
-	BOOL							bFirst;
 
-	bFirst = TRUE;
 	for (;;)
 	{
 		pcDependent = mpcDependentObjects->GetUnread();
 		if (pcDependent)
 		{
-			bResult = ReadUnread(pcDependent, bFirst);
+			bResult = ReadUnread(pcDependent);
 			if (!bResult)
 			{
 				return FALSE;
 			}
-			bFirst = FALSE;
 		}
 		else
 		{
@@ -113,7 +111,7 @@ BOOL CObjectGraphDeserialiser::ReadDependentObjects(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectGraphDeserialiser::ReadUnread(CDependentReadObject* pcDependent, BOOL bFirst)
+BOOL CObjectGraphDeserialiser::ReadUnread(CDependentReadObject* pcDependent)
 {
 	CSerialisedObject*			pcSerialised;
 	char*						szObjectName;
@@ -129,11 +127,6 @@ BOOL CObjectGraphDeserialiser::ReadUnread(CDependentReadObject* pcDependent, BOO
 		{
 			return FALSE;
 		}
-
-		if (bFirst)
-		{
-			mpcDependentObjects->SetInitialIndex(pcSerialised->GetIndex());
-		}
 	}
 	else
 	{
@@ -141,11 +134,6 @@ BOOL CObjectGraphDeserialiser::ReadUnread(CDependentReadObject* pcDependent, BOO
 		if (!pcSerialised)
 		{
 			return FALSE;
-		}
-
-		if (bFirst)
-		{
-			mpcDependentObjects->SetInitialIndex(pcSerialised->GetIndex());
 		}
 	}
 
@@ -155,7 +143,8 @@ BOOL CObjectGraphDeserialiser::ReadUnread(CDependentReadObject* pcDependent, BOO
 		return FALSE;
 	}
 
-	return ReadSerialsed(pcSerialised);
+	pObject = ReadSerialsed(pcSerialised);
+	return pObject.IsNotNull();
 }
 
 
@@ -163,7 +152,7 @@ BOOL CObjectGraphDeserialiser::ReadUnread(CDependentReadObject* pcDependent, BOO
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectGraphDeserialiser::ReadSerialsed(CSerialisedObject* pcSerialised)
+CPointerObject CObjectGraphDeserialiser::ReadSerialsed(CSerialisedObject* pcSerialised)
 {
 	CObjectDeserialiser			cDeserialiser;
 	CPointerObject				pObject;
@@ -177,17 +166,15 @@ BOOL CObjectGraphDeserialiser::ReadSerialsed(CSerialisedObject* pcSerialised)
 	cDeserialiser.Kill();
 	free(pcSerialised);
 
-	if (pObject.IsNull())
+	if (pObject.IsNotNull())
 	{
-		return FALSE;
+		MarkRead(oiOld);
+
+		oiNew = pObject.GetIndex();
+		mpcDependentObjects->AddIndexRemap(oiNew, oiOld);
 	}
 
-	MarkRead(oiOld);
-
-	oiNew = pObject.GetIndex();
-	mpcDependentObjects->AddIndexRemap(oiNew, oiOld);
-
-	return TRUE;
+	return pObject;
 }
 
 
