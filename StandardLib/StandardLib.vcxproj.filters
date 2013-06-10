@@ -426,9 +426,6 @@
     <ClInclude Include="IndexNewOld.h">
       <Filter>Source\Object\Object\Serilalisation</Filter>
     </ClInclude>
-    <ClInclude Include="SerialisedObjectReader.h">
-      <Filter>Source\Object\Object\IO\Common</Filter>
-    </ClInclude>
     <ClInclude Include="ObjectReaderChunkFileDisk.h">
       <Filter>Source\Object\Object\IO\Chunked</Filter>
     </ClInclude>
@@ -730,9 +727,6 @@
     </ClCompile>
     <ClCompile Include="IndexNewOld.cpp">
       <Filter>Source\Object\Object\Serilalisation</Filter>
-    </ClCompile>
-    <ClCompile Include="SerialisedObjectReader.cpp">
-      <Filter>Source\Object\Object\IO\Common</Filter>
     </ClCompile>
     <ClCompile Include="ObjectReaderChunkFileDisk.cpp">
       <Filter>Source\Object\Object\IO\Chunked</Filter>

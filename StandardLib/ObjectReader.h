@@ -1,14 +1,17 @@
 #ifndef __OBJECT_READER_H__
 #define __OBJECT_READER_H__
 #include "CoreLib/IndexedGeneral.h"
-#include "SerialisedObjectReader.h"
+#include "SerialisedObject.h"
+#include "Unknown.h"
 
 
-class CObjectReader : public CSerialisedObjectReader
+class CObjectReader : public CUnknown
 {
 BASE_FUNCTIONS(CObjectReader);
 public:
 			void				Kill(void);
+
+			CSerialisedObject*  ReadSerialised(CFileReader* pcReader);
 
 	virtual BOOL				Begin(void);
 	virtual CSerialisedObject*  Read(char* szObjectName) =0;

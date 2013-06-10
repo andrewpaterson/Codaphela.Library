@@ -3,7 +3,6 @@
 #include "Unknowns.h"
 #include "Objects.h"
 #include "ObjectFileGeneral.h"
-#include "SerialisedObjectReader.h"
 #include "IndexGenerator.h"
 #include "ObjectDeserialiser.h"
 #include "ObjectGraphDeserialiser.h"

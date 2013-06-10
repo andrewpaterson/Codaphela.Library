@@ -126,7 +126,6 @@
     <ClInclude Include="ObjectSourceText.h" />
     <ClInclude Include="Parameters.h" />
     <ClInclude Include="SerialisedObject.h" />
-    <ClInclude Include="SerialisedObjectReader.h" />
     <ClInclude Include="String.h" />
     <ClInclude Include="Unknown.h" />
     <ClInclude Include="SetType.h" />
@@ -235,7 +234,6 @@
     <ClCompile Include="ObjectSourceText.cpp" />
     <ClCompile Include="ObjectWriter.cpp" />
     <ClCompile Include="SerialisedObject.cpp" />
-    <ClCompile Include="SerialisedObjectReader.cpp" />
     <ClCompile Include="String.cpp" />
     <ClCompile Include="Unknown.cpp" />
     <ClCompile Include="SetUnknown.cpp" />
