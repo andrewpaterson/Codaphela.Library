@@ -1,3 +1,4 @@
+#include "BaseLib/Logger.h"
 #include "Pointer.h"
 #include "Objects.h"
 #include "IndexGenerator.h"
@@ -143,6 +144,10 @@ void CDependentReadObjects::SetInitialIndex(OIndex oi)
 		{
 			pcPointer->moiPointedTo = oi;
 		}
+	}
+	else
+	{
+		gcLogger.Error("CDependentReadObjects: Could not set initial index.");
 	}
 }
 
