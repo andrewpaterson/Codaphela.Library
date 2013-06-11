@@ -45,8 +45,8 @@ public:
 
 protected:
 	CPointerObject	ReadSerialised(CSerialisedObject* pcSerialised);
-	void			UpdateDependentPointersAndCreateHollowObjects(CBaseObject* pcReadObject);
-	void			FixPointerOrCreateHollowObject(CBaseObject* pcReadObject, CDependentReadPointer* pcDependentReadPointer);
+	BOOL			AddContainingPointersAndCreateHollowObjects(void);
+	BOOL			AddContainingPointersAndCreateHollowObject(CDependentReadPointer* pcDependentReadPointer);
 };
 
 

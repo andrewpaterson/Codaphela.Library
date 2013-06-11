@@ -67,7 +67,6 @@ CPointerObject CIndexedDataObjectDeserialiser::ReadSerialised(CSerialisedObject*
 {
 	CObjectDeserialiser		cDeserialiser;
 	CPointerObject			pObject;
-	CBaseObject*			pcReadObject;
 
 	cDeserialiser.Init(this);
 	pObject = cDeserialiser.Load(pcSerialised);
@@ -77,8 +76,7 @@ CPointerObject CIndexedDataObjectDeserialiser::ReadSerialised(CSerialisedObject*
 
 	if (pObject.IsNotNull())
 	{
-		pcReadObject = pObject.Object();
-		UpdateDependentPointersAndCreateHollowObjects(pcReadObject);
+		AddContainingPointersAndCreateHollowObjects();
 	}
 
 	return pObject;
@@ -89,7 +87,7 @@ CPointerObject CIndexedDataObjectDeserialiser::ReadSerialised(CSerialisedObject*
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedDataObjectDeserialiser::UpdateDependentPointersAndCreateHollowObjects(CBaseObject* pcReadObject)
+BOOL CIndexedDataObjectDeserialiser::AddContainingPointersAndCreateHollowObjects(void)
 {
 	CDependentReadPointer*	pcDependentReadPointer;
 	int						i;
@@ -99,8 +97,12 @@ void CIndexedDataObjectDeserialiser::UpdateDependentPointersAndCreateHollowObjec
 	for (i = 0; i < iNum; i++)
 	{
 		pcDependentReadPointer = mpcDependentObjects->GetPointer(i);
-		FixPointerOrCreateHollowObject(pcReadObject, pcDependentReadPointer);
+		if (!AddContainingPointersAndCreateHollowObject(pcDependentReadPointer))
+		{
+			return FALSE;
+		}
 	}
+	return TRUE;
 }
 
 
@@ -108,7 +110,7 @@ void CIndexedDataObjectDeserialiser::UpdateDependentPointersAndCreateHollowObjec
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedDataObjectDeserialiser::FixPointerOrCreateHollowObject(CBaseObject* pcReadObject, CDependentReadPointer* pcDependentReadPointer)
+BOOL CIndexedDataObjectDeserialiser::AddContainingPointersAndCreateHollowObject(CDependentReadPointer* pcDependentReadPointer)
 {
 	CBaseObject*			pcBaseObject;
 	CDependentReadObject*	pcDependentReadObject;
@@ -134,6 +136,7 @@ void CIndexedDataObjectDeserialiser::FixPointerOrCreateHollowObject(CBaseObject*
 	}
 
 	AddContainingPointer(pcBaseObject, pcDependentReadPointer->mppcPointedFrom, pcDependentReadPointer->mpcContaining);
+	return TRUE;
 }
 
 

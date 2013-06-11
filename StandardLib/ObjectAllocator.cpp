@@ -335,3 +335,36 @@ CPointerObject CObjectAllocator::AddHollow(char* szObjectName, OIndex oiForced)
 		return ONull;
 	}
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CPointerObject CObjectAllocator::AddHollow(char* szObjectName)
+{
+	CPointer<CNamedHollowObject>	pHollow;
+	CNamedHollowObject*				pcHollow;
+	BOOL							bResult;
+	CPointerObject					pcExisting;
+
+	pcExisting = mpcObjects->GetIfInMemory(szObjectName);
+	if (pcExisting.IsNotNull())
+	{
+		return pcExisting;
+	}
+
+	pcHollow = mpcObjects->Allocate<CNamedHollowObject>();
+	pcHollow->InitName(szObjectName);
+
+	bResult = gcObjects.AddWithIDAndName(pcHollow, szObjectName, mpcObjects->GetIndexGenerator()->PopIndex());
+	if (bResult)
+	{
+		pHollow.mpcObject = pcHollow;
+		return pHollow;
+	}
+	else
+	{
+		return ONull;
+	}
+}

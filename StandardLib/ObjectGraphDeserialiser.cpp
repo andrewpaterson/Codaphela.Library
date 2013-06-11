@@ -9,12 +9,13 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectGraphDeserialiser::Init(CObjectReader* pcReader, CIndexGenerator* pcIndexGenerator, CObjectAllocator* pcAllocator, CDependentReadObjects* pcDependentReadObjects, CNamedIndexedObjects* pcMemory)
+void CObjectGraphDeserialiser::Init(CObjectReader* pcReader, BOOL bNamedHollows, CIndexGenerator* pcIndexGenerator, CObjectAllocator* pcAllocator, CDependentReadObjects* pcDependentReadObjects, CNamedIndexedObjects* pcMemory)
 {
 	CDependentObjectAdder::Init(pcDependentReadObjects);
 	mpcReader = pcReader;
 	mpcAllocator = pcAllocator;
 	mpcMemory = pcMemory;
+	mbNamedHollows = bNamedHollows;
 }
 
 
@@ -49,7 +50,7 @@ CPointerObject CObjectGraphDeserialiser::Read(char* szObjectName)
 
 	pcSerialised = mpcReader->Read(szObjectName);
 	pObject = ReadSerialsed(pcSerialised);
-	if (!bResult)
+	if (pObject.IsNull())
 	{
 		return ONull;
 	}
@@ -85,10 +86,28 @@ BOOL CObjectGraphDeserialiser::ReadDependentObjects(void)
 		pcDependent = mpcDependentObjects->GetUnread();
 		if (pcDependent)
 		{
-			bResult = ReadUnread(pcDependent);
-			if (!bResult)
+			if (mbNamedHollows)
 			{
-				return FALSE;
+				if (pcDependent->IsIndexed())
+				{
+					bResult = ReadUnread(pcDependent);
+					if (!bResult)
+					{
+						return FALSE;
+					}
+				}
+				else
+				{
+					MarkRead(pcDependent->GetOldIndex());
+				}
+			}
+			else
+			{
+				bResult = ReadUnread(pcDependent);
+				if (!bResult)
+				{
+					return FALSE;
+				}
 			}
 		}
 		else
@@ -97,13 +116,8 @@ BOOL CObjectGraphDeserialiser::ReadDependentObjects(void)
 		}
 	}
 
-	bResult = UpdateDependentPointersAndCreateHollowObjects();
-	if (!bResult)
-	{
-		return FALSE;
-	}
-
-	return TRUE;
+	bResult = AddContainingPointersAndCreateHollowObjects();
+	return bResult;
 }
 
 
@@ -192,31 +206,54 @@ void CObjectGraphDeserialiser::MarkRead(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectGraphDeserialiser::UpdateDependentPointersAndCreateHollowObjects(void)
+BOOL CObjectGraphDeserialiser::AddContainingPointersAndCreateHollowObjects(void)
 {
-	CDependentReadPointer*	pcReadPointer;
+	CDependentReadPointer*	pcDependentReadPointer;
 	int						i;
 	int						iNum;
-	CBaseObject*			pcBaseObject;
-	OIndex					oiNew;
 
 	iNum = mpcDependentObjects->NumPointers();
 	for (i = 0; i < iNum; i++)
 	{
-		pcReadPointer = mpcDependentObjects->GetPointer(i);
-		oiNew = GetNewIndexFromOld(pcReadPointer->moiPointedTo);
-
-		pcBaseObject = mpcMemory->Get(oiNew);
-		if (pcBaseObject)
+		pcDependentReadPointer = mpcDependentObjects->GetPointer(i);
+		if (!AddContainingPointersAndCreateHollowObject(pcDependentReadPointer))
 		{
-			AddContainingPointer(pcBaseObject, pcReadPointer->mppcPointedFrom, pcReadPointer->mpcContaining);
-		}
-		else
-		{
-			gcLogger.Error2("Could not get object with index [", IndexToString(oiNew), "] from memory trying to update containing pointer.", NULL);
 			return FALSE;
 		}
 	}
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CObjectGraphDeserialiser::AddContainingPointersAndCreateHollowObject(CDependentReadPointer* pcDependentReadPointer)
+{
+	OIndex					oiNew;
+	CBaseObject*			pcBaseObject;
+	CDependentReadObject*	pcDependentReadObject;
+	CPointerObject			pObject;
+
+	oiNew = GetNewIndexFromOld(pcDependentReadPointer->moiPointedTo);
+	pcBaseObject = mpcMemory->Get(oiNew);
+
+	if (!pcBaseObject)
+	{
+		pcDependentReadObject = mpcDependentObjects->GetObject(pcDependentReadPointer->moiPointedTo);
+		if (pcDependentReadObject->mcType == OBJECT_POINTER_NAMED)
+		{
+			pObject = mpcAllocator->AddHollow(pcDependentReadObject->mszObjectName.Text());
+			pcBaseObject = pObject.Object();
+		}
+		else if (pcDependentReadObject->mcType == OBJECT_POINTER_ID)
+		{
+			return FALSE;
+		}
+	}
+
+	AddContainingPointer(pcBaseObject, pcDependentReadPointer->mppcPointedFrom, pcDependentReadPointer->mpcContaining);
 	return TRUE;
 }
 

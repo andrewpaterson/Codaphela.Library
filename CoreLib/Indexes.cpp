@@ -105,6 +105,11 @@ void* CIndexes::Get(OIndex oi)
 	unsigned char*	pvOI;
 	SIndexedLevel*	psLevel;
 
+	if (oi == INVALID_O_INDEX)
+	{
+		return NULL;
+	}
+
 	pvOI = (unsigned char*)&oi;
 	psLevel = &msTop;
 	for (iCurrent = MAX_INDEXED_LEVEL_DEPTH; iCurrent > 0; iCurrent--)

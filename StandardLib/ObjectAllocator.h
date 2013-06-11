@@ -24,6 +24,7 @@ public:
 	CPointerObject		Add(char* szClassName, char* szObjectName, OIndex oiForced);
 	CPointerObject		Add(char* szClassName, char* szObjectName, OIndex oiForced, OIndex* poiExisting);
 
+	CPointerObject		AddHollow(char* szObjectName);
 	CPointerObject		AddHollow(OIndex oiForced);
 	CPointerObject		AddHollow(char* szObjectName, OIndex oiForced);
 };
