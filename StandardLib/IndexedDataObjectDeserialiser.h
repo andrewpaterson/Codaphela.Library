@@ -28,11 +28,11 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 class CIndexedDataObjectDeserialiser : public CDependentObjectAdder
 {
 protected:
-	CObjectAllocator*				mpcAllocator;
-	CNamedIndexedData*				mpcDatabase;
-	CNamedIndexedObjects*			mpcMemory;
+	CObjectAllocator*		mpcAllocator;
+	CNamedIndexedData*		mpcDatabase;
+	CNamedIndexedObjects*	mpcMemory;
 
-	CDependentReadObjects			mcDependentObjects;  //CDependentObjectAdder points to this CDependentReadObjects.
+	CDependentReadObjects	mcDependentObjects;  //CDependentObjectAdder points to this CDependentReadObjects.
 
 public:
 	void			Init(CObjectAllocator* pcAllocator, CNamedIndexedData* pcDatabase, CNamedIndexedObjects* pcMemory);
