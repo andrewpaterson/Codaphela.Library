@@ -361,7 +361,7 @@ CPointerObject CObjects::Get(OIndex oi)
 	}
 	else
 	{
-		return GetNotInMemory(oi, FALSE);
+		return GetNotInMemory(oi);
 	}
 }
 
@@ -372,7 +372,7 @@ CPointerObject CObjects::Get(OIndex oi)
 //////////////////////////////////////////////////////////////////////////
 CPointerObject CObjects::Dehollow(OIndex oi)
 {
-	return GetNotInMemory(oi, TRUE);
+	return GetNotInMemory(oi);
 }
 
 
@@ -380,14 +380,14 @@ CPointerObject CObjects::Dehollow(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointerObject CObjects::GetNotInMemory(OIndex oi, BOOL bOverwriteExisting)
+CPointerObject CObjects::GetNotInMemory(OIndex oi)
 {
 	CIndexedDataObjectDeserialiser	cDeserialiser;
 	CObjectAllocator				cAllocator;
 
 	if (mcDatabase.Contains(oi))
 	{
-		cAllocator.Init(this, bOverwriteExisting);
+		cAllocator.Init(this);
 		cDeserialiser.Init(&cAllocator, &mcDatabase, &mcMemory);
 
 		CPointerObject	pObject;
@@ -469,7 +469,7 @@ CPointerObject CObjects::GetNotInMemory(char* szObjectName)
 
 	if (mcDatabase.Contains(szObjectName))
 	{
-		cAllocator.Init(this, TRUE); 
+		cAllocator.Init(this); 
 		cDeserialiser.Init(&cAllocator, &mcDatabase, &mcMemory);
 		pObject = cDeserialiser.Read(szObjectName);
 		cDeserialiser.Kill();

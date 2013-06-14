@@ -127,7 +127,7 @@ CPointerObject CObjectConverterNative::Convert(CObjectSource* pcSource, char* sz
 	mcDependentObjects.Kill();
 	mcDependentObjects.Init();
 
-	cAllocator.Init(&gcObjects, TRUE);
+	cAllocator.Init(&gcObjects);
 	cGraphDeserialiser.Init(pcReader, TRUE,  mpcIndexGenerator, &cAllocator, &mcDependentObjects, gcObjects.GetMemory());
 	cPointer = cGraphDeserialiser.Read(szObjectName);
 	cGraphDeserialiser.Kill();

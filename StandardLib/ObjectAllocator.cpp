@@ -9,10 +9,9 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectAllocator::Init(CObjects* pcObjects, BOOL bOverwriteExisting)
+void CObjectAllocator::Init(CObjects* pcObjects)
 {
 	mpcObjects = pcObjects;
-	mbOverwriteExisting = bOverwriteExisting;
 }
 
 
@@ -72,11 +71,6 @@ CPointerObject CObjectAllocator::Add(char* szClassName, OIndex oiForced)
 	{
 		CPointerObject	pObject;
 
-		if (mbOverwriteExisting)
-		{
-			//Check if exists and Dename etc...
-		}
-
 		if (!pvObject->IsNamed())
 		{
 			bResult = mpcObjects->AddWithID(pvObject, oiForced);
@@ -133,11 +127,6 @@ CPointerObject CObjectAllocator::Add(char* szClassName, char* szObjectName, OInd
 		{
 			CPointerObject	pObject;
 			CPointerObject	pExistingObject;
-
-			if (mbOverwriteExisting)
-			{
-				//Check if exists and Dename etc...
-			}
 
 			pExistingObject = mpcObjects->GetIfInMemory(szObjectName);
 			if (pExistingObject.IsNull())

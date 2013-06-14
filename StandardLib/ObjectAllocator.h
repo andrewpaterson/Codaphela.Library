@@ -10,10 +10,9 @@ class CObjectAllocator
 {
 protected:
 	CObjects*	mpcObjects;
-	BOOL		mbOverwriteExisting;
 
 public:
-	void				Init(CObjects* pcObjects, BOOL bOverwriteExisting);
+	void				Init(CObjects* pcObjects);
 	void				Kill(void);
 
 	CPointerObject		Add(char* szClassName);

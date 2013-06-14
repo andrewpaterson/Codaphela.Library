@@ -114,7 +114,7 @@ protected:
 						void				FreeObjects(CArrayBaseObjectPtr* papcObjectPts);
 						void				FixDistToRoot(CArrayEmbeddedBaseObjectPtr* papcFromsChanged);
 						CPointerObject		GetIfInMemory(OIndex oi);
-						CPointerObject		GetNotInMemory(OIndex oi, BOOL bOverwriteExisting);
+						CPointerObject		GetNotInMemory(OIndex oi);
 };
 
 
