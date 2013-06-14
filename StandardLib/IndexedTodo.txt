@@ -1,8 +1,8 @@
-DependentReadObjects should not be aware of gcObjects.
-Make sure CObjects has a Close method that writes out all in memory objects.
-
-CBaseObject's mpcObjectsThisIn doesn't seem to be set always (after load?)
-ObjectAllocator must take over the Objects .Add functions.
 ASCIITree needs to be split into two, one without Words.
 Hollow objects must be discared on dehollowfication, not remapped.
-Objects .GetNotInMemory does not try and load from sources.
+
+*Objects .GetNotInMemory does not try and load from sources.
+*DependentReadObjects should not be aware of gcObjects.
+*Make sure CObjects has a Close method that writes out all in memory objects.
+*CBaseObject's mpcObjectsThisIn doesn't seem to be set always (after load?)
+*ObjectAllocator must take over the Objects .Add functions.

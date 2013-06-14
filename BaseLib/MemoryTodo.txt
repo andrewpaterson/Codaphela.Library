@@ -1,7 +1,7 @@
 What is Missing
 ---------------
-.  GameObject and GameInstance.
-.  Find GraphicsObject by name.
+*  GameObject and GameInstance. (Handled by Objects)
+*  Find GraphicsObject by name. (Handled by Objects)
 .  Programmatic way of instancing GraphicsObjects.
 .  Does every MeshInstance/Object correspond to a Graphics one?
 .  Behaviour and it's link to animation.
