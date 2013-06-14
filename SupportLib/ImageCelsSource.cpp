@@ -239,7 +239,7 @@ BOOL CImageCelsSource::Load(void)
 	CImageSource*				pcImageSource;
 	CImageCelSource*			pcCelsSource;
 	int							iFirstCelIndex;
-	CImage*						pcCombined;
+	CPointer<CImage>			pcCombined;
 
 	pcImageSourceWithCelSources = (CImageSourceWithCelSources*)macImageSources.StartIteration(&sIter);
 	while (pcImageSourceWithCelSources)
@@ -263,14 +263,14 @@ BOOL CImageCelsSource::Load(void)
 			macFillMasks.Add(pcMask);
 		}
 		iFirstCelIndex = macImageCels.NumElements();
-		pcCelsSource->Divide(pcImageSource->GetImage(), &macImageCels, pcMask);
+		pcCelsSource->Divide((CImage*)pcImageSource->GetImage().Object(), &macImageCels, (CImage*)pcMask.Object());
 
 		if (mbPackOnLoad)
 		{
 			pcCombined = Combine(iFirstCelIndex);
 			pcImageSource->GetImage()->Kill();
 			pcImageSource->SetImage(pcCombined);
-			if (pcMask)
+			if (pcMask.IsNotNull())
 			{
 				macFillMasks.Remove(pcMask);
 			}
@@ -297,42 +297,19 @@ CArrayUnknown* CImageCelsSource::GetCels(void)
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CArrayUnknown* CImageCelsSource::TakeControlOfCels(void)
+CPointer<CImage> CImageCelsSource::Combine(int iFirstCelIndex)
 {
-	macImageCels.KillElements(FALSE);
-	return &macImageCels;
-}
+	CImageCombiner		cImageCombiner;
+	CPointer<CImage>	pcDest;
+	int					i;
+	CImageCel*			pcCel;
+	BOOL				bResult;
 
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CArray* CImageCelsSource::TakeControlOfImages(void)
-{
-	macImages.KillElements(FALSE);
-	return &macImages;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CImage* CImageCelsSource::Combine(int iFirstCelIndex)
-{
-	CImageCombiner	cImageCombiner;
-	CImage*			pcDest;
-	int				i;
-	CImageCel*		pcCel;
-	BOOL			bResult;
-
-	pcDest = UMalloc(CImage);
+	pcDest = ONMalloc(CImage, "");
 	cImageCombiner.Init(pcDest, ICL_Best, ICS_Arbitrary);
 
 	for (i = iFirstCelIndex; i < macImageCels.NumElements(); i++)
@@ -351,7 +328,7 @@ CImage* CImageCelsSource::Combine(int iFirstCelIndex)
 	else
 	{
 		pcDest->Kill();
-		return NULL;
+		return ONNull(CImage);
 	}
 }
 
@@ -364,12 +341,12 @@ void CImageCelsSource::PopulateImageArray(void)
 {
 	int								i;
 	CImageSourceWithCelSources*		pcSource;
-	CImage*							pcImage;
+	CPointer<CImage>				pcImage;
 
 	for (i = 0; i < macImageSources.NumElements(); i++)
 	{
 		pcSource = macImageSources.Get(i);
-		pcImage = pcSource->GetImageSource()->TakeControl();
+		pcImage = pcSource->GetImageSource()->GetImage()
 		macImages.Add(pcImage);
 	}	
 }

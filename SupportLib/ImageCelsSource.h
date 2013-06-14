@@ -67,26 +67,24 @@ protected:
 	CArray								macImages;
 
 public:
-	void 			Init(BOOL bPackOnLoad = FALSE);
-	void 			Kill(void);
+	void 				Init(BOOL bPackOnLoad = FALSE);
+	void 				Kill(void);
 
-	void			AddSource(CImageSource* pcImageSource, CImageCelSource* pcCelSource);
-	void			AddDiskFileSources(char* szPathName, char* szFileNameContains, char* szImageName, CImageCelSource* pcCelSource);
-	void			AddDiskFileSource(char* szFileName, char* szImageName, CImageCelSource* pcCelSource);
-	void			AddMemorySource(CImage* pcImage, CImageCelSource* pcCelSource);
+	void				AddSource(CImageSource* pcImageSource, CImageCelSource* pcCelSource);
+	void				AddDiskFileSources(char* szPathName, char* szFileNameContains, char* szImageName, CImageCelSource* pcCelSource);
+	void				AddDiskFileSource(char* szFileName, char* szImageName, CImageCelSource* pcCelSource);
+	void				AddMemorySource(CImage* pcImage, CImageCelSource* pcCelSource);
 
-	void			AddModifier(CImageModifier* pcModifier);
+	void				AddModifier(CImageModifier* pcModifier);
 
-	BOOL			Load(void);
+	BOOL				Load(void);
 
-	CArrayUnknown*	GetCels(void);
-	CArrayUnknown*	TakeControlOfCels(void);
-	CArray*			TakeControlOfImages(void);
-	CArrayUnknown*	GetImageCels(void);
+	CArrayUnknown*		GetCels(void);
+	CArrayUnknown*		GetImageCels(void);
 
 private:
-	CImage*			Combine(int iFirstCelIndex);
-	void			PopulateImageArray(void);
+	CPointer<CImage>	Combine(int iFirstCelIndex);
+	void				PopulateImageArray(void);
 };
 
 

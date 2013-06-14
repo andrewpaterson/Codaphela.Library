@@ -19,6 +19,8 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include "Connection.h"
+#include "StandardLib/ObjectDeserialiser.h"
+#include "StandardLib/ObjectSerialiser.h"
 
 
 //////////////////////////////////////////////////////////////////////////

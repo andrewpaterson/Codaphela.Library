@@ -19,6 +19,8 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include "Camera.h"
+#include "StandardLib/ObjectDeserialiser.h"
+#include "StandardLib/ObjectSerialiser.h"
 
 
 //////////////////////////////////////////////////////////////////////////

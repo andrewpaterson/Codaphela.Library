@@ -143,11 +143,11 @@ BOOL CImageCelsSourceXML::ImportCels(CMarkupTag* pcCelsTag, char* szFileName)
 	cCelsSource.AddDiskFileSource(szFileName, szGroupName.Text(), &cSubImagesSource);
 	cCelsSource.Load();
 
-	mpcWorld->AddImages(cCelsSource.TakeControlOfImages());
+	mpcWorld->AddImages(cCelsSource.GetImages());
 
 	pcGroup = ONMalloc(CImageCelGroup, szGroupName.Text());
 	mpcWorld->AddGroup(pcGroup);
-	pcGroup->AddCels(cCelsSource.TakeControlOfCels());
+	pcGroup->AddCels(cCelsSource.GetImageCels());
 
 	szGroupName.Kill();
 	cSubImagesSource.Kill();
