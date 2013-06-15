@@ -301,15 +301,20 @@ void CBaseObject::FixDistToRoot(void)
 	CBaseObject**	ppcPointedFrom;
 	int				iNearestRoot;
 	int				iNumElements;
+	int				iDistToRoot;
 
 	iNearestRoot = MAX_INT;
 	ppcPointedFrom = mapFroms.GetData();
 	iNumElements = mapFroms.NumElements();
 	for (i = 0; i < iNumElements; i++)
 	{
-		if (ppcPointedFrom[i]->miDistToRoot < iNearestRoot)
+		iDistToRoot = ppcPointedFrom[i]->miDistToRoot;
+		if (iDistToRoot != UNATTACHED_DIST_TO_ROOT)
 		{
-			iNearestRoot = ppcPointedFrom[i]->miDistToRoot;
+			if (iDistToRoot < iNearestRoot)
+			{
+				iNearestRoot = iDistToRoot;
+			}
 		}
 	}
 
