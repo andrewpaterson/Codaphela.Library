@@ -109,7 +109,6 @@ BOOL CConnection::Save(CObjectSerialiser* pcFile)
 void CConnection::Copy(CConnection* pcConnection)
 {
 	Init();
-	SetID(pcConnection->miUniqueID);
 	memcpy(&msWorldMatrix, &pcConnection->msWorldMatrix, sizeof(SFloat4x4));
 	memcpy(&msLocalMatrix, &pcConnection->msLocalMatrix, sizeof(SFloat4x4));
 }

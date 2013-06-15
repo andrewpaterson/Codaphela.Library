@@ -52,7 +52,6 @@ public:
 	CMeshCache			mcCache;			//Touched, Depends: FaceTypes
 
 	void			Init(void);
-	void 			Init(int iUniqueID, char* szName);
 	void 			KillData(void);
 
 	BOOL			Load(CObjectDeserialiser* pcFile);

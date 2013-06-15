@@ -79,6 +79,7 @@ public:
 
 	BOOL				Load(void);
 
+	CArray*				GetImages(void);
 	CArrayUnknown*		GetCels(void);
 	CArrayUnknown*		GetImageCels(void);
 

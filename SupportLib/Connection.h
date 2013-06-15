@@ -33,8 +33,8 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 
 class CConnection : public CNamedObject
 {
+BASE_FUNCTIONS(CConnection);
 public:
-	BASE_FUNCTIONS(CConnection);
 
 	SFloat4x4			msWorldMatrix;
 	SFloat4x4			msLocalMatrix;  //It's possible to work this out given a parent matrix.

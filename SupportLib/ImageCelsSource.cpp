@@ -310,7 +310,7 @@ CPointer<CImage> CImageCelsSource::Combine(int iFirstCelIndex)
 	BOOL				bResult;
 
 	pcDest = ONMalloc(CImage, "");
-	cImageCombiner.Init(pcDest, ICL_Best, ICS_Arbitrary);
+	cImageCombiner.Init((CImage*)pcDest.Object(), ICL_Best, ICS_Arbitrary);
 
 	for (i = iFirstCelIndex; i < macImageCels.NumElements(); i++)
 	{
@@ -346,7 +346,7 @@ void CImageCelsSource::PopulateImageArray(void)
 	for (i = 0; i < macImageSources.NumElements(); i++)
 	{
 		pcSource = macImageSources.Get(i);
-		pcImage = pcSource->GetImageSource()->GetImage()
+		pcImage = pcSource->GetImageSource()->GetImage();
 		macImages.Add(pcImage);
 	}	
 }
@@ -360,3 +360,14 @@ CArrayUnknown* CImageCelsSource::GetImageCels(void)
 {
 	return &macImageCels;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CArray* CImageCelsSource::GetImages(void)
+{
+	return &macImages;
+}
+

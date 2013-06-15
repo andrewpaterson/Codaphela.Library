@@ -31,6 +31,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 CBaseObject::CBaseObject()
 {
 	mapFroms.Init();
+	mpcObjectsThisIn = NULL;
 	miDistToRoot = UNATTACHED_DIST_TO_ROOT;
 	moi = INVALID_O_INDEX;
 	miFlags = OBJECT_FLAGS_DIRTY;
@@ -156,8 +157,11 @@ int CBaseObject::KillThisGraph(void)
 
 	apcKilled.Init(1024);
 
-	CollectThoseToBeKilled(&apcKilled);
-	KillCollected(&apcKilled);
+	if (mpcObjectsThisIn)
+	{
+		CollectThoseToBeKilled(&apcKilled);
+		KillCollected(&apcKilled);
+	}
 
 	iNumKilled = apcKilled.NumElements();
 	apcKilled.Kill();
