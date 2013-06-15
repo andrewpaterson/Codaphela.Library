@@ -1,3 +1,5 @@
+Added a template type to CArray (use a default to maintain compatability).
+Add a Ptr class wrapping CPointer.
 ASCIITree needs to be split into two, one without Words.
 Hollow objects must be discared on dehollowfication, not remapped.
 

@@ -37,21 +37,27 @@ protected:
 	CObjects*		mpcObjectsAllocatingFrom;
 
 protected:
-			CRoot();
-	void	Init(void);
-	void	Init(CObjects* pcObjectsAllocatingFrom);
+	CRoot();
+	void			Init(void);
+	void			Init(CObjects* pcObjectsAllocatingFrom);
 
 public:
-	void	KillData(void);
+	void			KillData(void);
 
-	void	Add(CPointerObject pObject);
-	void	Remove(CPointerObject pObject);
-	void	RemoveAll(void);
-	BOOL	IsRoot(void);
-	BOOL	IsSubRoot(void);
-	BOOL	Save(CObjectSerialiser* pcFile);
-	BOOL	Load(CObjectDeserialiser* pcFile);
-	CSet*	TestGetSet(void);
+	void			Add(CPointerObject pObject);
+	void			Remove(CPointerObject pObject);
+	void			RemoveAll(void);
+	BOOL			IsRoot(void);
+	BOOL			IsSubRoot(void);
+
+	BOOL			Save(CObjectSerialiser* pcFile);
+	BOOL			Load(CObjectDeserialiser* pcFile);
+
+	CPointerObject	Get(char* szObjectName);
+	CPointer<CSet>	GetAll(void);
+
+	CSet*			TestGetSet(void);
+	BOOL			IsSetHollow(void);
 };
 
 
