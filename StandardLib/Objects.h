@@ -103,6 +103,8 @@ public:
 
 						CPointerObject			GetNotInMemory(char* szObjectName);
 						CPointerObject			GetIfInMemory(char* szObjectName);
+						CPointerObject		GetIfInMemory(OIndex oi);
+						CPointerObject		GetNotInMemory(OIndex oi);
 
 protected:
 						BOOL				AddWithID(CBaseObject* pvObject, OIndex oi);
@@ -113,8 +115,6 @@ protected:
 						void				KillDontFreeObjects(CArrayBaseObjectPtr* papcObjectPts);
 						void				FreeObjects(CArrayBaseObjectPtr* papcObjectPts);
 						void				FixDistToRoot(CArrayEmbeddedBaseObjectPtr* papcFromsChanged);
-						CPointerObject		GetIfInMemory(OIndex oi);
-						CPointerObject		GetNotInMemory(OIndex oi);
 };
 
 

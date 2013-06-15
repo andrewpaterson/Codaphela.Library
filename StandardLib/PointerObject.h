@@ -50,6 +50,7 @@ protected:
 
 public:
 					CPointerObject();
+					CPointerObject(CPointerObject* pcPointer);
 	void 			Init(CObject* pcEmbedding);
 	void			operator = (CBaseObject* ptr);
 	void			operator = (CPointerObject pcPointer);

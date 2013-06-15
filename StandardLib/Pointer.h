@@ -29,6 +29,7 @@ class CPointer : public CPointerObject
 {
 public:
 				CPointer();
+				CPointer(CPointerObject* pcPointer);
 	void 		Init(CObject* pcEmbedding);
 	void		operator = (M* ptr);
 	void		operator = (CPointer<M> pcPointer);
@@ -47,6 +48,20 @@ CPointer<M>::CPointer()
 {
 	//Calls CPointerObject()
 }
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+CPointer<M>::CPointer(CPointerObject* pcPointer)
+{
+	mpcObject = pcPointer->mpcObject;
+	mpcEmbedding = pcPointer->mpcEmbedding;
+}
+
 
 
 //////////////////////////////////////////////////////////////////////////
