@@ -839,8 +839,16 @@ void* CIndexedData::Get(OIndex oi, int* piDataSize)
 	pvData = malloc((size_t)iDataSize);
 	if (pvData)
 	{
-		GetData(&cDescriptor, pvData);
-		return pvData;
+		bResult = GetData(&cDescriptor, pvData);
+		if (bResult)
+		{
+			return pvData;
+		}
+		else
+		{
+			free(pvData);
+			return NULL;
+		}
 	}
 	return NULL;
 }

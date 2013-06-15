@@ -28,7 +28,17 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedConfig::Manual(char* szWorkingDirectory, BOOL bDurable, BOOL bDirtyTesting, BOOL bWriteThrough, int iIndicesSecondLevelWidth, int iIndicesThirdLevelWidth, int iIndicesNumSecondLevelChunks, int iIndicesNumThirdLevelChunks, int iIndicesMemoryChunkSize, int iObjectsCacheSize, BOOL bTransient)
+void CIndexedConfig::Manual(char* szWorkingDirectory, 
+							BOOL bDurable, 
+							BOOL bDirtyTesting, 
+							BOOL bWriteThrough, 
+							int iIndicesSecondLevelWidth, 
+							int iIndicesThirdLevelWidth, 
+							int iIndicesNumSecondLevelChunks, 
+							int iIndicesNumThirdLevelChunks, 
+							int iIndicesMemoryChunkSize, 
+							int iObjectsCacheSize, 
+							BOOL bTransient)
 {
 	mszWorkingDirectory = szWorkingDirectory;
 	mbDurable = bDurable;
