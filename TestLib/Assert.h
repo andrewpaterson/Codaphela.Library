@@ -31,7 +31,7 @@ along with Codaphela TestLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/GeometricTypes.h"
 
 
-void BeginTests(void);
+void PrivateBeginTests(char* szFile);
 void PrivateTestStatistics(char* szFile);
 int  TestTotalStatistics(void);
 void InitTotalStatistics(void);
@@ -69,6 +69,7 @@ BOOL PrivateAssertFile(char* szExpectedFileName, void* pcMemory, int iLength, in
 
 
 #define TestStatistics()			PrivateTestStatistics(__FILE__)
+#define BeginTests()				PrivateBeginTests(__FILE__)
 #define AssertString(e, a)			EmbreakFailure(PrivateAssertString(e, a, TRUE, __LINE__, __FILE__))
 #define AssertStringCase(e, a, c)	EmbreakFailure(PrivateAssertString(e, a, c, __LINE__, __FILE__))
 #define AssertTristate(e, a)		EmbreakFailure(PrivateAssertTristate(e, a, __LINE__, __FILE__))

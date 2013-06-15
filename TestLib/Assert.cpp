@@ -54,11 +54,20 @@ void ToMD5String(unsigned char* puc, char* sz);
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void BeginTests(void)
+void PrivateBeginTests(char* szFile)
 {
+	CChars	sz;
+
 	giTestsRun = 0;
 	giTestsPassed = 0;
 	giTestsFailed = 0;
+
+	sz.Init();
+	sz.Append("--------------- ");
+	sz.Append(szFile);
+	sz.Append(" ---------------\n");
+	gcLogger.Add(sz.Text());
+	sz.Kill();
 }
 
 
@@ -71,9 +80,6 @@ void PrivateTestStatistics(char* szFile)
 	CChars	sz;
 
 	sz.Init();
-	sz.Append("--------------- ");
-	sz.Append(szFile);
-	sz.Append(" ---------------\n");
 
 	if (giTestsRun > 0)
 	{
