@@ -13,9 +13,8 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectConverterNative::Init(CIndexGenerator* pcIndexGenerator)
+void CObjectConverterNative::Init(void)
 {
-	mpcIndexGenerator = pcIndexGenerator;
 	mcDependentObjects.Init();
 }
 
@@ -128,7 +127,7 @@ CPointerObject CObjectConverterNative::Convert(CObjectSource* pcSource, char* sz
 	mcDependentObjects.Init();
 
 	cAllocator.Init(&gcObjects);
-	cGraphDeserialiser.Init(pcReader, TRUE,  mpcIndexGenerator, &cAllocator, &mcDependentObjects, gcObjects.GetMemory());
+	cGraphDeserialiser.Init(pcReader, TRUE,  &cAllocator, &mcDependentObjects, gcObjects.GetMemory());
 	cPointer = cGraphDeserialiser.Read(szObjectName);
 	cGraphDeserialiser.Kill();
 
@@ -150,7 +149,7 @@ BOOL CObjectConverterNative::IsNative(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-OIndex CObjectConverterNative::GetNewIndexFromOld(OIndex oiOld)
+OIndex CObjectConverterNative::TestGetNewIndexFromOld(OIndex oiOld)
 {
 	return mcDependentObjects.GetNewIndexFromOld(oiOld);
 }

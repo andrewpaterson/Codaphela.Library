@@ -1,6 +1,11 @@
+Superseded by Pivotal Tracker:
+https://www.pivotaltracker.com/s/projects/850411
+
 Added a template type to CArray (use a default to maintain compatability).
 Add a Ptr class wrapping CPointer.
 ASCIITree needs to be split into two, one without Words.
+FixDistToRoot needs to be moved out of Objects.
+Fix IndexedData Huge descriptor caching bug.
 
 *Objects .GetNotInMemory does not try and load from sources.
 *DependentReadObjects should not be aware of gcObjects.

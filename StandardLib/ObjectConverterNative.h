@@ -13,10 +13,9 @@ class CObjectConverterNative : public CObjectConverter
 {
 BASE_FUNCTIONS(CObjectConverterNative);
 public:
-	CIndexGenerator*		mpcIndexGenerator;
-	CDependentReadObjects	mcDependentObjects;
+	CDependentReadObjects	mcDependentObjects;  //This is a field for testing purposes only.
 
-	void			Init(CIndexGenerator* pcIndexGenerator);
+	void			Init(void);
 	void			Kill(void);
 
 	char*			GetFileExtension(void);
@@ -25,7 +24,7 @@ public:
 	CPointerObject	Convert(CObjectSource* pcSource, char* szObjectName);
 	BOOL			IsNative(void);
 
-	OIndex			GetNewIndexFromOld(OIndex oiNew);
+	OIndex			TestGetNewIndexFromOld(OIndex oiNew);
 };
 
 

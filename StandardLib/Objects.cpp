@@ -59,6 +59,8 @@ void CObjects::Init(CUnknowns* pcUnknownsAllocatingFrom, CIndexedConfig* pcConfi
 
 	mcDatabase.Init(pcConfig);
 	mcMemory.Init();
+
+	mcSource.Init();
 }
 
 
@@ -68,6 +70,7 @@ void CObjects::Init(CUnknowns* pcUnknownsAllocatingFrom, CIndexedConfig* pcConfi
 //////////////////////////////////////////////////////////////////////////
 void CObjects::Kill(void)
 {
+	mcSource.Kill();
 	mcMemory.Kill();
 	mcDatabase.Kill();  //Also flushes.
 	mcIndexGenerator.Kill();

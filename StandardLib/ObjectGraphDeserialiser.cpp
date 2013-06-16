@@ -9,7 +9,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectGraphDeserialiser::Init(CObjectReader* pcReader, BOOL bNamedHollows, CIndexGenerator* pcIndexGenerator, CObjectAllocator* pcAllocator, CDependentReadObjects* pcDependentReadObjects, CNamedIndexedObjects* pcMemory)
+void CObjectGraphDeserialiser::Init(CObjectReader* pcReader, BOOL bNamedHollows, CObjectAllocator* pcAllocator, CDependentReadObjects* pcDependentReadObjects, CNamedIndexedObjects* pcMemory)
 {
 	CDependentObjectAdder::Init(pcDependentReadObjects);
 	mpcReader = pcReader;

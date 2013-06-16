@@ -61,6 +61,9 @@ public:
 						void					Kill(void);
 						void					Dump(void);
 
+	template<class M>	void					AddConstructor(void);
+	template<class M>	CObjectSource*			AddSource(CAbstractFile* pcFile, char* szFileName);
+
 						BOOL					Flush(BOOL bClearMemory, BOOL bClearCache);
 						BOOL					Save(CBaseObject* pcObject);
 						BOOL					ForceSave(CBaseObject* pcObject);
@@ -82,7 +85,6 @@ public:
 						CPointerObject			Null(void);
 	template<class M>	CPointer<M>				Null(void);
 
-	template<class M>	void					AddConstructor(void);
 						long long int			NumMemoryIndexes(void);
 						int						NumMemoryNames(void);
 						long long int			NumDatabaseObjects(void);
@@ -275,6 +277,17 @@ template<class M>
 void CObjects::AddConstructor(void)
 {
 	mpcUnknownsAllocatingFrom->AddConstructor<M>();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+CObjectSource* CObjects::AddSource(CAbstractFile* pcFile, char* szFileName)
+{
+	return mcSource.AddSource<M>(pcFile, szFileName);
 }
 
 

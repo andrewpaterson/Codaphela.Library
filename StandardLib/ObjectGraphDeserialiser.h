@@ -26,7 +26,7 @@ protected:
 	BOOL					mbNamedHollows;
 	
 public:
-	void			Init(CObjectReader* pcReader, BOOL bNamedHollows, CIndexGenerator* pcIndexGenerator, CObjectAllocator* pcAllocator, CDependentReadObjects* pcDependentReadObjects, CNamedIndexedObjects* pcMemory);
+	void			Init(CObjectReader* pcReader, BOOL bNamedHollows, CObjectAllocator* pcAllocator, CDependentReadObjects* pcDependentReadObjects, CNamedIndexedObjects* pcMemory);
 	void			Kill(void);
 
 	CPointerObject	Read(char* szObjectName);

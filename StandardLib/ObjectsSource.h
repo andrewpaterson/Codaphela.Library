@@ -22,6 +22,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __OBJECTS_SOURCE_H__
 #include "CoreLib/Files.h"
 #include "ArrayUnknown.h"
+#include "MapStringUnknown.h"
 #include "Unknown.h"
 
 
@@ -30,16 +31,69 @@ class CObjectsSource : public CUnknown
 {
 BASE_FUNCTIONS(CObjectsSource);
 protected:
-	CFiles			mcFiles;
-	CArrayUnknown	mcSources;
+	CFiles				mcFiles;
+	CArrayUnknown		macSources;
+	CMapStringUnknown	mmszpcConverters;
 
 public:
-	void	Init(void);
-	void	Kill(void);
-
-	BOOL	AddSource(CObjectSource* pcSource);
+								void			Init(void);
+								void			Kill(void);
+	template<class TConverter>	TConverter*		AddConverter(void);
+	template<class TConverter>	CObjectSource*	AddSource(CAbstractFile* pcFile, char* szFileName);
 };
 
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class TConverter>
+CObjectSource* CObjectsSource::AddSource(CAbstractFile* pcFile, char* szFileName)
+{
+	TConverter*		pcConveter;
+	CObjectSource*	pcSource;
+
+	pcConveter = AddConverter<TConverter>();
+	pcSource = pcConveter->CreateSource(pcFile, szFileName);
+	if (pcSource)
+	{
+		macSources.Add(pcSource);
+		return pcSource;
+	}
+	else
+	{
+		return NULL;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class TConverter>
+TConverter* CObjectsSource::AddConverter(void)
+{
+	TConverter*	pcConveter;
+	TConverter	t;
+	char*		szClassName;
+	CUnknown*	pcExistingConverter;
+
+	szClassName = t.ClassName();
+	pcExistingConverter = mmszpcConverters.Get(szClassName);
+	if (!pcExistingConverter)
+	{
+		pcConveter = gcUnknowns.Add<TConverter>();
+		pcConveter->Init();
+
+		mmszpcConverters.Put(szClassName, pcConveter);
+		return pcConveter;
+	}
+	else
+	{
+		return (TConverter*)pcExistingConverter;
+	}
+
+}
 
 #endif // __OBJECTS_SOURCE_H__
 
