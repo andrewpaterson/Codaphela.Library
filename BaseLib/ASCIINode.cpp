@@ -56,6 +56,10 @@ BOOL CASCIINode::IsEmpty(void)
 		{
 			return FALSE;
 		}
+		if (mapcChildren[i] != NULL)
+		{
+			return FALSE;
+		}
 	}
 	return TRUE;
 }

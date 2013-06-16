@@ -85,6 +85,8 @@ public:
 	BOOL			Contains(char* szText);
 	BOOL			IsOnlyValidCharacters(char* szText);
 
+	void			Dump(void);
+	void			RecurseDump(CASCIINode* pcNode, CChars* psz, int iLevel);
 	void			DumpWords(void);
 	void			Dump(CArrayInt* pcArrayInt);
 	void			DumpTree(void);
@@ -100,7 +102,8 @@ public:
 	void			PrivateGetLengthTerminated(CASCIINode** ppcLastNode, CASCIINode** ppcLastWord, int* piLastNode, int* piLastWord, char* szTextStart, char* szTextEndInclusive);
 
 protected:
-	BOOL			TestConsistency(CASCIINode* pcNode);
+	BOOL			TestWordConsistency(CASCIINode* pcNode);
+	BOOL			TestNodeConsistency(CASCIINode* pcNode, int iLevel);
 	BOOL			TestOnlyValidCharacters(char* szText, int iLen);
 	CCharsID*		GetCharsID(int iIndex);
 
