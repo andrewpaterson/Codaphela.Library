@@ -173,6 +173,38 @@ void CLogger::Warning(char* szText)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CLogger::Info2(char* szText, ...)
+{
+	va_list		vaMarker;
+	char*		sz;
+	CChars		szInfo;
+
+	if (szText)
+	{
+		szInfo.Init(szText);
+		va_start(vaMarker, szText);
+		sz = va_arg(vaMarker, char*);
+		while (sz != NULL)
+		{
+			szInfo.Append(sz);
+			sz = va_arg(vaMarker, char*);
+		}
+		va_end(vaMarker);
+
+		Info(szInfo.Text());
+		szInfo.Kill();
+	}
+	else
+	{
+		Info("");
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CLogger::Info(char* szText)
 {
 	Add("INFO", szText);

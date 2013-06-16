@@ -594,6 +594,9 @@
     <ClInclude Include="MemoryHeader.h">
       <Filter>Source\Memory\Manager</Filter>
     </ClInclude>
+    <ClInclude Include="LogString.h">
+      <Filter>Source\Error</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ArrayBit.cpp">
@@ -937,6 +940,9 @@
     </ClCompile>
     <ClCompile Include="FileMode.cpp">
       <Filter>Source\File\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="LogString.cpp">
+      <Filter>Source\Error</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

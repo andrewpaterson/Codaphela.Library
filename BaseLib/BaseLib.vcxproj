@@ -110,6 +110,7 @@
     <ClInclude Include="LinkListTemplate.h" />
     <ClInclude Include="LinkListTemplateFreeList.h" />
     <ClInclude Include="LinkListTemplateMemoryStack.h" />
+    <ClInclude Include="LogString.h" />
     <ClInclude Include="MemoryCacheAllocation.h" />
     <ClInclude Include="MemoryHeader.h" />
     <ClInclude Include="PackFileIterator.h" />
@@ -249,6 +250,7 @@
     <ClCompile Include="FileSystemIterator.cpp" />
     <ClCompile Include="LinkListBlock.cpp" />
     <ClCompile Include="LinkListBlockMemoryStack.cpp" />
+    <ClCompile Include="LogString.cpp" />
     <ClCompile Include="MemoryCacheAllocation.cpp" />
     <ClCompile Include="MemoryHeader.cpp" />
     <ClCompile Include="PackFileIterator.cpp" />

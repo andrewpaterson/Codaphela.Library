@@ -45,6 +45,7 @@ public:
 	void Error2(char* szText, ...);
 	void Warning(char* szText);
 	void Info(char* szText);
+	void Info2(char* szText, ...);
 	void Debug(char* szText);
 	void Disable(void);
 	void Enable(void);
