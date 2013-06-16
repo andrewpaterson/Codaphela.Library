@@ -46,6 +46,8 @@ public:
 	int					NumNames(void);
 
 	CIndexedObjects*	GetObjects(void);
+	CBaseObject*		StartIteration(SIndexesIterator* psIter);
+	CBaseObject*		Iterate(SIndexesIterator* psIter);
 };
 
 

@@ -224,3 +224,43 @@ CIndexedObjects* CNamedIndexedObjects::GetObjects(void)
 	return &mcIndexedObjects;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CBaseObject* CNamedIndexedObjects::StartIteration(SIndexesIterator* psIter)
+{
+	OIndex		oi;
+
+	oi = mcIndexedObjects.StartIteration(psIter);
+	if (oi != INVALID_O_INDEX)
+	{
+		return Get(oi);
+	}
+	else
+	{
+		return NULL;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CBaseObject* CNamedIndexedObjects::Iterate(SIndexesIterator* psIter)
+{
+	OIndex		oi;
+
+	oi = mcIndexedObjects.Iterate(psIter);
+	if (oi != INVALID_O_INDEX)
+	{
+		return Get(oi);
+	}
+	else
+	{
+		return NULL;
+	}
+}
+

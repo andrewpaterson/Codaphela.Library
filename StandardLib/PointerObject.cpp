@@ -238,7 +238,7 @@ BOOL CPointerObject::Dehollow(void)
 		{
 			pcHollow = (CHollowObject*)mpcObject;
 			mpcObject = pcHollow->Dehollow();
-			pcHollow->Kill();
+			
 			if (mpcObject)
 			{
 				return TRUE;
@@ -450,7 +450,7 @@ void CPointerObject::ClearIndex(void)
 {
 	if (mpcObject)
 	{
-		mpcObject->SetObjectID(INVALID_O_INDEX);
+		mpcObject->ClearIndex();
 	}
 }
 

@@ -82,6 +82,7 @@ public:
 
 			OIndex			GetOI(void);
 			void			SetObjectID(OIndex oi);
+			void			ClearIndex(void);
 
 			BOOL			HasFroms(void);
 
