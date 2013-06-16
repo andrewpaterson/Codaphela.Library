@@ -46,6 +46,7 @@ public:
 	int					NumNames(void);
 
 	CIndexedObjects*	GetObjects(void);
+	CASCIITree*			GetNames(void);
 	CBaseObject*		StartIteration(SIndexesIterator* psIter);
 	CBaseObject*		Iterate(SIndexesIterator* psIter);
 };

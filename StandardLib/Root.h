@@ -37,29 +37,47 @@ protected:
 	CObjects*		mpcObjectsAllocatingFrom;
 
 protected:
-	CRoot();
-	void			Init(void);
-	void			Init(CObjects* pcObjectsAllocatingFrom);
+						CRoot();
+						void			Init(void);
+						void			Init(CObjects* pcObjectsAllocatingFrom);
 
 public:
-	void			KillData(void);
+						void			KillData(void);
 
-	void			Add(CPointerObject pObject);
-	void			Remove(CPointerObject pObject);
-	void			RemoveAll(void);
-	BOOL			IsRoot(void);
-	BOOL			IsSubRoot(void);
+						void			Add(CPointerObject pObject);
+						void			Remove(CPointerObject pObject);
+						void			RemoveAll(void);
+						BOOL			IsRoot(void);
+						BOOL			IsSubRoot(void);
 
-	BOOL			Save(CObjectSerialiser* pcFile);
-	BOOL			Load(CObjectDeserialiser* pcFile);
+						BOOL			Save(CObjectSerialiser* pcFile);
+						BOOL			Load(CObjectDeserialiser* pcFile);
 
-	CPointerObject	Get(char* szObjectName);
-	CPointer<CSet>	GetAll(void);
+						CPointerObject	Get(char* szObjectName);
+	template<class M>	CPointer<M>		Get(char* szObjectName);
+						CPointer<CSet>	GetAll(void);
 
-	CSet*			TestGetSet(void);
-	BOOL			IsSetHollow(void);
+						CSet*			TestGetSet(void);
+						BOOL			IsSetHollow(void);
 };
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+//Called by Macro 'OMalloc'
+CPointer<M> CRoot::Get(char* szObjectName)
+{
+	CPointerObject	pObject;
+	CPointer<M>		pM;
+
+	pObject = Get(szObjectName);
+
+	pM = pObject;
+	return pM;
+}
 
 
 #endif // __ROOT_H__
