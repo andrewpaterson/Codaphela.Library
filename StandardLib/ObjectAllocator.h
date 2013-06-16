@@ -26,6 +26,9 @@ public:
 	CPointerObject		AddHollow(char* szObjectName);
 	CPointerObject		AddHollow(OIndex oiForced);
 	CPointerObject		AddHollow(char* szObjectName, OIndex oiForced);
+
+protected:
+	CPointerObject ReplaceExisting(CBaseObject* pvExisting, CBaseObject* pvObject, char* szObjectName, OIndex oiForced);
 };
 
 
