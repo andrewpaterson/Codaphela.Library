@@ -59,6 +59,7 @@ public:
 						void					Init(CUnknowns* pcUnknownsAllocatingFrom, char* szWorkingDirectory);
 						void					Init(CUnknowns* pcUnknownsAllocatingFrom, CIndexedConfig* pcConfig);
 						void					Kill(void);
+						void					Dump(void);
 
 						BOOL					Flush(BOOL bClearMemory, BOOL bClearCache);
 						BOOL					Save(CBaseObject* pcObject);
@@ -103,8 +104,8 @@ public:
 
 						CPointerObject			GetNotInMemory(char* szObjectName);
 						CPointerObject			GetIfInMemory(char* szObjectName);
-						CPointerObject		GetIfInMemory(OIndex oi);
-						CPointerObject		GetNotInMemory(OIndex oi);
+						CPointerObject			GetIfInMemory(OIndex oi);
+						CPointerObject			GetNotInMemory(OIndex oi);
 
 protected:
 						BOOL				AddWithID(CBaseObject* pvObject, OIndex oi);

@@ -79,6 +79,52 @@ void CObjects::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CObjects::Dump(void)
+{
+	CChars				sz;
+	SIndexesIterator	sIter;
+	CBaseObject*		pcBaseObject;
+	int					iDistToRoot;
+
+	sz.Init("-------------------------- Memory -------------------------- \n");
+	pcBaseObject = mcMemory.StartIteration(&sIter);
+	while (pcBaseObject)
+	{
+		iDistToRoot = pcBaseObject->DistToRoot();
+		sz.Append(pcBaseObject->DistToRoot());
+		if (iDistToRoot >= 0 && iDistToRoot <= 9)
+		{
+			sz.Append(":  ");
+		}
+		else
+		{
+			sz.Append(": ");
+		}
+
+		sz.Append(pcBaseObject->ClassName());
+		sz.Append("(");
+		sz.Append(pcBaseObject->ClassSize());
+		sz.Append(") ");
+		sz.Append(pcBaseObject->GetOI());
+		if (pcBaseObject->IsNamed())
+		{
+			sz.Append(" ");
+			sz.Append(pcBaseObject->GetName());
+		}
+		sz.Append("\n");
+		pcBaseObject = mcMemory.Iterate(&sIter);
+	}
+
+	sz.Append("------------------------------------------------------------ \n");
+	sz.Dump();
+	sz.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL CObjects::Close(void)
 {
 	//xxx
@@ -264,7 +310,14 @@ BOOL CObjects::AddWithID(CBaseObject* pvObject, OIndex oi)
 //////////////////////////////////////////////////////////////////////////
 BOOL CObjects::AddWithIDAndName(CBaseObject* pvObject, char* szObjectName, OIndex oi)
 {
-	return mcMemory.AddWithIDAndName(pvObject, oi, szObjectName);
+	if (szObjectName != NULL)
+	{
+		return mcMemory.AddWithIDAndName(pvObject, oi, szObjectName);
+	}
+	else
+	{
+		return mcMemory.AddWithID(pvObject, oi);
+	}
 }
 
 
