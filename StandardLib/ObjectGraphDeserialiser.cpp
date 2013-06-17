@@ -36,10 +36,10 @@ void CObjectGraphDeserialiser::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointerObject CObjectGraphDeserialiser::Read(char* szObjectName)
+CPointer CObjectGraphDeserialiser::Read(char* szObjectName)
 {
 	BOOL							bResult;
-	CPointerObject					pObject;
+	CPointer					pObject;
 	CSerialisedObject*			pcSerialised;
 	
 	bResult = mpcReader->Begin();
@@ -78,7 +78,7 @@ CPointerObject CObjectGraphDeserialiser::Read(char* szObjectName)
 BOOL CObjectGraphDeserialiser::ReadDependentObjects(void)
 {
 	BOOL							bResult;
-	CPointerObject					pObject;
+	CPointer					pObject;
 	CDependentReadObject*			pcDependent;
 
 	for (;;)
@@ -130,7 +130,7 @@ BOOL CObjectGraphDeserialiser::ReadUnread(CDependentReadObject* pcDependent)
 	CSerialisedObject*			pcSerialised;
 	char*						szObjectName;
 	CObjectDeserialiser			cDeserialiser;
-	CPointerObject				pObject;
+	CPointer				pObject;
 
 	pcSerialised = NULL;
 	if (pcDependent->IsNamed())
@@ -166,10 +166,10 @@ BOOL CObjectGraphDeserialiser::ReadUnread(CDependentReadObject* pcDependent)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointerObject CObjectGraphDeserialiser::ReadSerialsed(CSerialisedObject* pcSerialised)
+CPointer CObjectGraphDeserialiser::ReadSerialsed(CSerialisedObject* pcSerialised)
 {
 	CObjectDeserialiser			cDeserialiser;
-	CPointerObject				pObject;
+	CPointer				pObject;
 	OIndex						oiNew;
 	OIndex						oiOld;
 
@@ -234,7 +234,7 @@ BOOL CObjectGraphDeserialiser::AddContainingPointersAndCreateHollowObject(CDepen
 	OIndex					oiNew;
 	CBaseObject*			pcBaseObject;
 	CDependentReadObject*	pcDependentReadObject;
-	CPointerObject			pObject;
+	CPointer			pObject;
 
 	oiNew = GetNewIndexFromOld(pcDependentReadPointer->moiPointedTo);
 	pcBaseObject = mpcMemory->Get(oiNew);
@@ -273,7 +273,7 @@ OIndex CObjectGraphDeserialiser::GetNewIndexFromOld(OIndex oiOld)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointerObject CObjectGraphDeserialiser::AllocateObject(CObjectHeader* pcHeader)
+CPointer CObjectGraphDeserialiser::AllocateObject(CObjectHeader* pcHeader)
 {
 	if (pcHeader->mcType == OBJECT_POINTER_NULL)
 	{

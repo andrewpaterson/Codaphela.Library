@@ -3,7 +3,7 @@
 #include "Pointer.h"
 
 
-CPointerObject Null(void);
+CPointer Null(void);
 
 template<class M>
 Ptr<M> Null(void);

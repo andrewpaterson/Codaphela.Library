@@ -41,16 +41,16 @@ protected:
 public:
 			BOOL			Init(CDependentObjectAdder* pcDependents);
 			void			Kill(void);
-			CPointerObject	Load(CSerialisedObject* pcSerialised);
+			CPointer	Load(CSerialisedObject* pcSerialised);
 
-			BOOL			ReadPointer(CPointerObject* pObject);
+			BOOL			ReadPointer(CPointer* pObject);
 			BOOL			ReadPointerHeader(CPointerHeader* pcPointerHeader);
 			BOOL			ReadObjectHeader(CObjectHeader* pcObjectHeader);
 			BOOL			ReadDependent(CBaseObject** ppcObjectPtr, CBaseObject* pcContaining);
 
 protected:
 			filePos			Read(void* pvDest, filePos iSize, filePos iCount);
-			void			ClearPointer(CPointerObject* pObject);
+			void			ClearPointer(CPointer* pObject);
 };
 
 

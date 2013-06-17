@@ -107,10 +107,10 @@ CObjectSource* CObjectConverterNative::CreateSource(CAbstractFile* pcFile, char*
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointerObject CObjectConverterNative::Convert(CObjectSource* pcSource, char* szObjectName)
+CPointer CObjectConverterNative::Convert(CObjectSource* pcSource, char* szObjectName)
 {
 	CChunkFileFile						cFile;
-	CPointerObject						cPointer;
+	CPointer						cPointer;
 	CFileBasic							cFileBasic;
 	CObjectGraphDeserialiser			cGraphDeserialiser;
 	CObjectReader*						pcReader;

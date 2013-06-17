@@ -50,7 +50,7 @@ void CDependentReadObjects::Add(CPointerHeader* pcHeader, CBaseObject** ppcPtrTo
 	BOOL					bOiExistsInDependents;
 	int						iIndex;
 	CDependentReadPointer*	pcPointer;
-	CPointerObject			pExisitingInDatabase;
+	CPointer			pExisitingInDatabase;
 	BOOL					bNameExistsInDatabase;
 
 	cDependent.Init(pcHeader);

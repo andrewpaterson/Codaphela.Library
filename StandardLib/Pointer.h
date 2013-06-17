@@ -26,15 +26,15 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 class CObject;
 
 template<class M = CBaseObject>
-class Ptr : public CPointerObject
+class Ptr : public CPointer
 {
 public:
 			Ptr();
-			Ptr(CPointerObject cPointer);
+			Ptr(CPointer cPointer);
 	void 	Init(CObject* pcEmbedding);
 	void	operator = (M* ptr);
 	void	operator = (Ptr<M> pcPointer);
-	void	operator = (CPointerObject pcPointer);
+	void	operator = (CPointer pcPointer);
 	M*		operator -> ();
 	M*		operator & ();
 };
@@ -57,9 +57,9 @@ Ptr<M>::Ptr()
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-Ptr<M>::Ptr(CPointerObject cPointer)
+Ptr<M>::Ptr(CPointer cPointer)
 {
-	CPointerObject::Construct(cPointer);
+	CPointer::Construct(cPointer);
 }
 
 
@@ -70,7 +70,7 @@ Ptr<M>::Ptr(CPointerObject cPointer)
 template<class M>
 void Ptr<M>::Init(CObject* pcEmbedding)
 {
-	CPointerObject::Init(pcEmbedding);
+	CPointer::Init(pcEmbedding);
 }
 
 
@@ -101,7 +101,7 @@ void Ptr<M>::operator = (Ptr<M> pcPointer)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void Ptr<M>::operator = (CPointerObject pcPointer)
+void Ptr<M>::operator = (CPointer pcPointer)
 {
 	PointTo(pcPointer.mpcObject);
 }

@@ -20,7 +20,7 @@ public:
 
 			BOOL				ReadNames(void);
 			BOOL				Contains(char* szFullName);
-	virtual CPointerObject		Convert(char* szFullName);
+	virtual CPointer		Convert(char* szFullName);
 			BOOL				IsChunked(void);
 			BOOL				IsNative(void);
 			BOOL				IsMultiSource(void);

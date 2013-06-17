@@ -75,7 +75,7 @@ void CRoot::KillData(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CRoot::Add(CPointerObject pObject)
+void CRoot::Add(CPointer pObject)
 {
 	mpObjects->Add(pObject);
 }
@@ -85,7 +85,7 @@ void CRoot::Add(CPointerObject pObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CRoot::Remove(CPointerObject pObject)
+void CRoot::Remove(CPointer pObject)
 {
 	mpObjects->Remove(pObject);
 }
@@ -149,10 +149,10 @@ BOOL CRoot::Load(CObjectDeserialiser* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointerObject CRoot::Get(char* szObjectName)
+CPointer CRoot::Get(char* szObjectName)
 {
 	SSetIterator	sIter;
-	CPointerObject	pObject;
+	CPointer	pObject;
 	char*			szName;
 
 	if ((szObjectName == NULL) || (szObjectName[0] == '\0'))

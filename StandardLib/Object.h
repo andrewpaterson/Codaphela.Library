@@ -27,12 +27,12 @@ class CObject : public CBaseObject
 {
 template<class M>
 friend class Ptr;
-friend class CPointerObject;
+friend class CPointer;
 friend class CObjectGraphDeserialiser;
 
 BASE_FUNCTIONS(CObject);
 protected:
-	CArrayEmbedded<CPointerObject*, 5>	mapPointers;  //Pointers in this object.  
+	CArrayEmbedded<CPointer*, 5>	mapPointers;  //Pointers in this object.  
 
 public:
 					CObject();
@@ -41,7 +41,7 @@ public:
 	BOOL			IsCollection(void);
 	BOOL			IsObject(void);
 	void			SetDistToRoot(int iDistToRoot);
-	CPointerObject* Pointer(CPointerObject* pcPointer);
+	CPointer* Pointer(CPointer* pcPointer);
 	
 protected:
 	void			KillToPointers(void);

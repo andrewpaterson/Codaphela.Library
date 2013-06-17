@@ -158,7 +158,7 @@ BOOL CArrayCommonObject::Load(CObjectDeserialiser* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayCommonObject::Add(CPointerObject pObject)
+void CArrayCommonObject::Add(CPointer pObject)
 {
 	mcArray.Add(pObject.mpcObject);
 	if (pObject.IsNotNull())
@@ -195,7 +195,7 @@ void CArrayCommonObject::AddAll(CArrayCommonObject* pcArray)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayCommonObject::Set(int iIndex, CPointerObject pObject)
+void CArrayCommonObject::Set(int iIndex, CPointer pObject)
 {
 	CBaseObject*		pcPointedTo;
 
@@ -219,7 +219,7 @@ void CArrayCommonObject::Set(int iIndex, CPointerObject pObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayCommonObject::Remove(CPointerObject pObject)
+void CArrayCommonObject::Remove(CPointer pObject)
 {
 	if (pObject.IsNotNull())
 	{

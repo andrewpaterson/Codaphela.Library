@@ -70,7 +70,7 @@ int CObject::NumTos(void)
 {
 	int					i;
 	CBaseObject*		pcPointedTo;
-	CPointerObject**	ppPointer;
+	CPointer**	ppPointer;
 	int					iCount;
 
 	iCount = 0;
@@ -115,7 +115,7 @@ void CObject::CollectThoseToBeKilled(CArrayBaseObjectPtr* papcKilled)
 {
 	int					i;
 	CBaseObject*		pcPointedTo;
-	CPointerObject**	ppPointer;
+	CPointer**	ppPointer;
 
 	MarkForKilling(papcKilled);
 
@@ -145,7 +145,7 @@ void CObject::SetDistToRoot(int iDistToRoot)
 {
 	int					i;
 	CBaseObject*		pcPointedTo;
-	CPointerObject**	ppPointer;
+	CPointer**	ppPointer;
 	int					iNumPointers;
 
 	miDistToRoot = iDistToRoot;
@@ -171,7 +171,7 @@ void CObject::GetTos(CArrayBaseObjectPtr* papcTos)
 {
 	int					iNumPointers;
 	int					i;
-	CPointerObject**	ppPointer;
+	CPointer**	ppPointer;
 	CBaseObject*		pcPointedTo;
 
 	iNumPointers = mapPointers.NumElements();
@@ -195,7 +195,7 @@ void CObject::RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged)
 {
 	int					iNumPointers;
 	int					i;
-	CPointerObject**	ppPointer;
+	CPointer**	ppPointer;
 	CBaseObject*		pcPointedTo;
 
 	iNumPointers = mapPointers.NumElements();
@@ -217,7 +217,7 @@ void CObject::RemoveTo(CBaseObject* pcTo)
 {
 	int					iNumPointers;
 	int					i;
-	CPointerObject**	ppPointer;
+	CPointer**	ppPointer;
 	CBaseObject*		pcPointedTo;
 
 	iNumPointers = mapPointers.NumElements();
@@ -238,7 +238,7 @@ void CObject::RemoveTo(CBaseObject* pcTo)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointerObject* CObject::Pointer(CPointerObject* pcPointer)
+CPointer* CObject::Pointer(CPointer* pcPointer)
 {
 	pcPointer->Init(this);
 	mapPointers.Add(&pcPointer);
@@ -254,7 +254,7 @@ int CObject::RemapTos(CBaseObject* pcOld, CBaseObject* pcNew)
 {
 	int					iNumPointers;
 	int					i;
-	CPointerObject**	ppPointer;
+	CPointer**	ppPointer;
 	CBaseObject*		pcPointedTo;
 	int					iCount;
 

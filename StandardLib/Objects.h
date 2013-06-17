@@ -68,8 +68,8 @@ public:
 						BOOL					ForceSave(CBaseObject* pcObject);
 						BOOL					Close(void);
 
-						CPointerObject			Get(OIndex oi);
-						CPointerObject			Get(char* szObjectName);
+						CPointer			Get(OIndex oi);
+						CPointer			Get(char* szObjectName);
 	template<class M> 	Ptr<M>				Get(OIndex oi);
 	template<class M>	Ptr<M>				Get(char* szObjectName);
 						BOOL					Contains(char* szObjectName);
@@ -81,7 +81,7 @@ public:
 
 						void					Remove(CArrayBaseObjectPtr* papcKilled);
 
-						CPointerObject			Null(void);
+						CPointer			Null(void);
 	template<class M>	Ptr<M>				Null(void);
 
 						long long int			NumMemoryIndexes(void);
@@ -102,7 +102,7 @@ public:
 
 						OIndex					StartMemoryIteration(SIndexesIterator* psIter);
 						OIndex					IterateMemory(SIndexesIterator* psIter);
-						CPointerObject			TestGetFromMemory(OIndex oi);
+						CPointer			TestGetFromMemory(OIndex oi);
 protected:
 						BOOL					AddWithID(CBaseObject* pvObject, OIndex oi);
 						BOOL					AddWithIDAndName(CBaseObject* pvObject, char* szObjectName, OIndex oi);

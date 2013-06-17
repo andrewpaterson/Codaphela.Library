@@ -59,9 +59,9 @@ BOOL CObjectSourceSimple::Contains(char* szFullName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointerObject CObjectSourceSimple::Convert(char* szFullName)
+CPointer CObjectSourceSimple::Convert(char* szFullName)
 {
-	CPointerObject			cPointer;
+	CPointer			cPointer;
 
 	mpcReader = UMalloc(CObjectReaderSimple);
 	mpcReader->Init(NULL);

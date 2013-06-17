@@ -16,7 +16,7 @@ public:
 
 			BOOL			AddDependent(CPointerHeader* pcHeader, CBaseObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingPtrToBeUpdated);
 
-	virtual CPointerObject	AllocateObject(CObjectHeader* pcHeader) =0;
+	virtual CPointer	AllocateObject(CObjectHeader* pcHeader) =0;
 
 protected:
 	void	AddContainingPointer(CBaseObject* pcBaseObject, CBaseObject** ppcPointedFrom, CBaseObject* pcContaining);

@@ -379,10 +379,10 @@ Ptr<CRoot> CObjects::AddRoot(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointerObject CObjects::Get(OIndex oi)
+CPointer CObjects::Get(OIndex oi)
 {
 	CBaseObject*	pvObject;
-	CPointerObject	pObject;
+	CPointer	pObject;
 
 	pvObject = mcMemory.Get(oi);
 	if (pvObject)
@@ -406,10 +406,10 @@ CPointerObject CObjects::Get(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointerObject CObjects::Get(char* szObjectName)
+CPointer CObjects::Get(char* szObjectName)
 {
 	CBaseObject*	pvObject;
-	CPointerObject	pObject;
+	CPointer	pObject;
 
 	pvObject = GetFromMemory(szObjectName);
 	if (pvObject)
@@ -493,7 +493,7 @@ CBaseObject* CObjects::GetFromDatabase(OIndex oi)
 	cAllocator.Init(this);
 	cDeserialiser.Init(&cAllocator, &mcDatabase, &mcMemory);
 
-	CPointerObject	pObject;
+	CPointer	pObject;
 
 	pObject = cDeserialiser.Read(oi);
 	cDeserialiser.Kill();
@@ -517,7 +517,7 @@ CBaseObject* CObjects::GetFromDatabase(char* szObjectName)
 	CIndexedDataObjectDeserialiser	cDeserialiser;
 	CObjectAllocator				cAllocator;
 
-	CPointerObject	pObject;
+	CPointer	pObject;
 
 	if (mcDatabase.Contains(szObjectName))
 	{
@@ -541,7 +541,7 @@ CBaseObject* CObjects::GetFromDatabase(char* szObjectName)
 CBaseObject* CObjects::GetFromSources(char* szObjectName)
 {
 	CObjectSource*	pcSource;
-	CPointerObject	pObject;
+	CPointer	pObject;
 
 	pcSource = mcSource.GetSource(szObjectName);
 	if (pcSource)
@@ -560,9 +560,9 @@ CBaseObject* CObjects::GetFromSources(char* szObjectName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointerObject CObjects::TestGetFromMemory(OIndex oi)
+CPointer CObjects::TestGetFromMemory(OIndex oi)
 {
-	CPointerObject	pObject;
+	CPointer	pObject;
 
 	pObject.mpcObject = GetFromMemory(oi);
 	return pObject;
@@ -586,7 +586,7 @@ CBaseObject* CObjects::Dehollow(OIndex oi)
 CBaseObject* CObjects::Dehollow(char* szObjectName)
 {
 	CBaseObject*	pvObject;
-	CPointerObject	pObject;
+	CPointer	pObject;
 
 	pvObject = GetFromDatabase(szObjectName);
 	if (pvObject)
@@ -694,9 +694,9 @@ void CObjects::FixDistToRoot(CArrayEmbeddedBaseObjectPtr* papcFromsChanged)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointerObject CObjects::Null(void)
+CPointer CObjects::Null(void)
 {
-	CPointerObject		pvObject;
+	CPointer		pvObject;
 	return pvObject;
 }
 

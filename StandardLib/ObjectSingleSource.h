@@ -32,7 +32,7 @@ public:
 			void			Init(CObjectConverter* pcConverter, CAbstractFile* pcFile, char* szObjectName);
 			void			Kill(void);
 
-			CPointerObject	Convert(char* szFullName);
+			CPointer	Convert(char* szFullName);
 			BOOL			Contains(char* szFullName);
 };
 

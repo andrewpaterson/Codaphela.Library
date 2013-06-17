@@ -25,13 +25,13 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 
 //This class is roughly a void* (or possibly an Object*).  It should probably have been called CObjectPointer but it's easier to start typing CPo...
-//CPointerObject (and friends) are either declared on the stack or as a field on a CObject; nowhere else.  The only time embedding is NULL is when
+//CPointer (and friends) are either declared on the stack or as a field on a CObject; nowhere else.  The only time embedding is NULL is when
 //this pointer is declared on the stack.
 
 class CBaseObject;
 class CObject;
 class CObjectDeserialiser;
-class CPointerObject
+class CPointer
 {
 friend class CObjects;
 friend class CObjectAllocator;
@@ -49,18 +49,18 @@ protected:
 	CObject*		mpcEmbedding;  //Collections do not embed pointer objects.  They manage their own pointers.
 
 public:
-					CPointerObject();
-					CPointerObject(CPointerObject* pcPointer);
+					CPointer();
+					CPointer(CPointer* pcPointer);
 	void 			Init(CObject* pcEmbedding);
 	void			operator = (CBaseObject* ptr);
-	void			operator = (CPointerObject pcPointer);
+	void			operator = (CPointer pcPointer);
 	CBaseObject*	operator -> ();
 	CBaseObject*	operator & ();
 	BOOL			operator ! ();
 	BOOL			IsNotNull(void);
 	BOOL			IsNull(void);
 
-	CPointerObject*	This(void);
+	CPointer*	This(void);
 	CObject*		Embedding(void);
 	CBaseObject*	Object(void);
 	CBaseObject**	ObjectPtr(void);
@@ -82,7 +82,7 @@ protected:
 	void			Dehollow(void);
 	void			PointTo(CBaseObject* pcObject);
 	CBaseObject*	Dereference(void);
-	void			Construct(CPointerObject cPointer);
+	void			Construct(CPointer cPointer);
 
 	void			ClearObject(void);
 };

@@ -5,9 +5,9 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointerObject Null(void)
+CPointer Null(void)
 {
-	CPointerObject		pvObject;
+	CPointer		pvObject;
 	return pvObject;
 }
 

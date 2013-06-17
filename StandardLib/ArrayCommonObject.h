@@ -36,10 +36,10 @@ public:
 	void			Init(BOOL bUnique, BOOL bIgnoreNull, BOOL bPreserveOrder, int iChunkSize);
 	void			Kill(void);
 
-	void			Add(CPointerObject pObject);
+	void			Add(CPointer pObject);
 	void			AddAll(CArrayCommonObject* pcArray);
-	void			Set(int iIndex, CPointerObject pObject);
-	void			Remove(CPointerObject pObject);
+	void			Set(int iIndex, CPointer pObject);
+	void			Remove(CPointer pObject);
 	void			RemoveAll(void);
 
 	int				NumElements(void);

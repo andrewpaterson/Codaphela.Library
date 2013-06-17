@@ -55,10 +55,10 @@ void CSet::RemoveDuringIteration(SSetIterator* psIter)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointerObject CSet::StartIteration(SSetIterator* psIter)
+CPointer CSet::StartIteration(SSetIterator* psIter)
 {
 	CBaseObject*	pcObject;
-	CPointerObject	pObject;
+	CPointer	pObject;
 
 	pcObject = (CBaseObject*)mcArray.StartIteration(psIter);
 	pObject.mpcObject = pcObject;
@@ -70,10 +70,10 @@ CPointerObject CSet::StartIteration(SSetIterator* psIter)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointerObject CSet::Iterate(SSetIterator* psIter)
+CPointer CSet::Iterate(SSetIterator* psIter)
 {
 	CBaseObject*	pcObject;
-	CPointerObject	pObject;
+	CPointer	pObject;
 
 	pcObject = (CBaseObject*)mcArray.Iterate(psIter);
 	pObject.mpcObject = pcObject;

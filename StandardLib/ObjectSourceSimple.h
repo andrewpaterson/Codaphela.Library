@@ -18,7 +18,7 @@ public:
 	BOOL			IsSimple(void);
 	BOOL			IsNative(void);
 	BOOL			Contains(char* szFullName);
-	CPointerObject	Convert(char* szFullName);
+	CPointer	Convert(char* szFullName);
 	CObjectReader*	GetReader(void);
 };
 

@@ -44,8 +44,8 @@ protected:
 public:
 						void			KillData(void);
 
-						void			Add(CPointerObject pObject);
-						void			Remove(CPointerObject pObject);
+						void			Add(CPointer pObject);
+						void			Remove(CPointer pObject);
 						void			RemoveAll(void);
 						BOOL			IsRoot(void);
 						BOOL			IsSubRoot(void);
@@ -53,7 +53,7 @@ public:
 						BOOL			Save(CObjectSerialiser* pcFile);
 						BOOL			Load(CObjectDeserialiser* pcFile);
 
-						CPointerObject	Get(char* szObjectName);
+						CPointer	Get(char* szObjectName);
 	template<class M>	Ptr<M>		Get(char* szObjectName);
 						Ptr<CSet>	GetAll(void);
 
@@ -70,7 +70,7 @@ template<class M>
 //Called by Macro 'OMalloc'
 Ptr<M> CRoot::Get(char* szObjectName)
 {
-	CPointerObject	pObject;
+	CPointer	pObject;
 	Ptr<M>		pM;
 
 	pObject = Get(szObjectName);

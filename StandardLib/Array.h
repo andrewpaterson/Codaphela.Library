@@ -32,9 +32,9 @@ public:
 	void 			Init(int iChunkSize = ARRAY_COMMOM_CHUNK_SIZE);
 	void 			Kill(void);
 
-	void			Insert(int iIndex, CPointerObject pObject);
-	CPointerObject	Get(int iIndex);
-	void			Set(int iIndex, CPointerObject pObject);
+	void			Insert(int iIndex, CPointer pObject);
+	CPointer	Get(int iIndex);
+	void			Set(int iIndex, CPointer pObject);
 
 	template<class M>
 	Ptr<M>		Get(int iIndex);

@@ -53,7 +53,7 @@ void CObjectDeserialiser::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointerObject CObjectDeserialiser::Load(CSerialisedObject* pcSerialised)
+CPointer CObjectDeserialiser::Load(CSerialisedObject* pcSerialised)
 {
 	BOOL			bResult;
 	int				iLength;
@@ -95,7 +95,7 @@ CPointerObject CObjectDeserialiser::Load(CSerialisedObject* pcSerialised)
 		return Null();
 	}
 
-	CPointerObject	pObject;
+	CPointer	pObject;
 	pObject = mpcDependents->AllocateObject(&sHeader);
 
 	sHeader.Kill();
@@ -184,7 +184,7 @@ filePos CObjectDeserialiser::Read(void* pvDest, filePos iSize, filePos iCount)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectDeserialiser::ClearPointer(CPointerObject* pObject)
+void CObjectDeserialiser::ClearPointer(CPointer* pObject)
 {
 	pObject->ClearObject();
 }
@@ -194,7 +194,7 @@ void CObjectDeserialiser::ClearPointer(CPointerObject* pObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectDeserialiser::ReadPointer(CPointerObject* pObject)
+BOOL CObjectDeserialiser::ReadPointer(CPointer* pObject)
 {
 	CPointerHeader	cHeader;
 	BOOL			bResult;

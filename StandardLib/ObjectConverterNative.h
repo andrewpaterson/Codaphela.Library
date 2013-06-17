@@ -21,7 +21,7 @@ public:
 	char*			GetFileExtension(void);
 	BOOL			IsFor(CAbstractFile* pcFile);
 	CObjectSource*	CreateSource(CAbstractFile* pcFile, char* szFileName);
-	CPointerObject	Convert(CObjectSource* pcSource, char* szObjectName);
+	CPointer	Convert(CObjectSource* pcSource, char* szObjectName);
 	BOOL			IsNative(void);
 
 	OIndex			TestGetNewIndexFromOld(OIndex oiNew);

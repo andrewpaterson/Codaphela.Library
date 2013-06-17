@@ -28,7 +28,7 @@ void CObjectAllocator::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointerObject CObjectAllocator::Add(char* szClassName)
+CPointer CObjectAllocator::Add(char* szClassName)
 {
 	CBaseObject*	pvObject;
 
@@ -38,7 +38,7 @@ CPointerObject CObjectAllocator::Add(char* szClassName)
 		return ONull;
 	}
 
-	CPointerObject	pObject;
+	CPointer	pObject;
 
 	mpcObjects->AddWithIDAndName(pvObject, NULL, mpcObjects->GetIndexGenerator()->PopIndex());
 
@@ -52,7 +52,7 @@ CPointerObject CObjectAllocator::Add(char* szClassName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointerObject CObjectAllocator::Add(char* szClassName, OIndex oiForced)
+CPointer CObjectAllocator::Add(char* szClassName, OIndex oiForced)
 {
 	CBaseObject*	pvExisting;
 	CBaseObject*	pvObject;
@@ -64,9 +64,9 @@ CPointerObject CObjectAllocator::Add(char* szClassName, OIndex oiForced)
 		return ONull;
 	}
 
-	CPointerObject	pObject;
+	CPointer	pObject;
 
-	CPointerObject	pExistingObject;
+	CPointer	pExistingObject;
 
 	pExistingObject = mpcObjects->GetFromMemory(oiForced);
 	if (pExistingObject.IsNull())
@@ -93,7 +93,7 @@ CPointerObject CObjectAllocator::Add(char* szClassName, OIndex oiForced)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointerObject CObjectAllocator::Add(char* szClassName, char* szObjectName)
+CPointer CObjectAllocator::Add(char* szClassName, char* szObjectName)
 {
 	OIndex oiExisting;
 
@@ -105,9 +105,9 @@ CPointerObject CObjectAllocator::Add(char* szClassName, char* szObjectName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointerObject CObjectAllocator::Add(char* szClassName, char* szObjectName, OIndex* poiExisting)
+CPointer CObjectAllocator::Add(char* szClassName, char* szObjectName, OIndex* poiExisting)
 {
-	CPointerObject	pObject;
+	CPointer	pObject;
 	OIndex			oi;
 
 	oi = mpcObjects->GetIndexGenerator()->PopIndex();
@@ -121,7 +121,7 @@ CPointerObject CObjectAllocator::Add(char* szClassName, char* szObjectName, OInd
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointerObject CObjectAllocator::Add(char* szClassName, char* szObjectName, OIndex oiForced)
+CPointer CObjectAllocator::Add(char* szClassName, char* szObjectName, OIndex oiForced)
 {
 	OIndex oiExisting;
 
@@ -133,7 +133,7 @@ CPointerObject CObjectAllocator::Add(char* szClassName, char* szObjectName, OInd
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointerObject CObjectAllocator::Add(char* szClassName, char* szObjectName, OIndex oiForced, OIndex* poiExisting)
+CPointer CObjectAllocator::Add(char* szClassName, char* szObjectName, OIndex oiForced, OIndex* poiExisting)
 {
 	CBaseObject*	pvObject;
 	CBaseObject*	pvExisting;
@@ -152,7 +152,7 @@ CPointerObject CObjectAllocator::Add(char* szClassName, char* szObjectName, OInd
 		return ONull;
 	}
 
-	CPointerObject	pExistingObject;
+	CPointer	pExistingObject;
 
 	pExistingObject = mpcObjects->GetFromMemory(szObjectName);
 	if (pExistingObject.IsNull())
@@ -164,7 +164,7 @@ CPointerObject CObjectAllocator::Add(char* szClassName, char* szObjectName, OInd
 			return ONull;
 		}
 
-		CPointerObject	pObject;
+		CPointer	pObject;
 
 		*poiExisting = INVALID_O_INDEX;
 		pObject.mpcObject = pvObject;
@@ -183,7 +183,7 @@ CPointerObject CObjectAllocator::Add(char* szClassName, char* szObjectName, OInd
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointerObject CObjectAllocator::ReplaceExisting(CBaseObject* pvExisting, CBaseObject* pvObject, char* szObjectName, OIndex oiForced)
+CPointer CObjectAllocator::ReplaceExisting(CBaseObject* pvExisting, CBaseObject* pvObject, char* szObjectName, OIndex oiForced)
 {
 	BOOL bResult;
 
@@ -196,7 +196,7 @@ CPointerObject CObjectAllocator::ReplaceExisting(CBaseObject* pvExisting, CBaseO
 		return ONull;
 	}
 
-	CPointerObject	pObject;
+	CPointer	pObject;
 
 	pObject.mpcObject = pvObject;
 
@@ -212,12 +212,12 @@ CPointerObject CObjectAllocator::ReplaceExisting(CBaseObject* pvExisting, CBaseO
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointerObject CObjectAllocator::AddHollow(OIndex oiForced)
+CPointer CObjectAllocator::AddHollow(OIndex oiForced)
 {
 	Ptr<CHollowObject>		pHollow;
 	CHollowObject*				pcHollow;
 	BOOL						bResult;
-	CPointerObject				pcExisting;
+	CPointer				pcExisting;
 
 	pcExisting = mpcObjects->GetFromMemory(oiForced);
 	if (pcExisting.IsNotNull())
@@ -248,12 +248,12 @@ CPointerObject CObjectAllocator::AddHollow(OIndex oiForced)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointerObject CObjectAllocator::AddHollow(char* szObjectName, OIndex oiForced)
+CPointer CObjectAllocator::AddHollow(char* szObjectName, OIndex oiForced)
 {
 	Ptr<CNamedHollowObject>	pHollow;
 	CNamedHollowObject*				pcHollow;
 	BOOL							bResult;
-	CPointerObject					pcExisting;
+	CPointer					pcExisting;
 
 	if ((szObjectName == NULL || szObjectName[0] == '\0'))
 	{
@@ -298,12 +298,12 @@ CPointerObject CObjectAllocator::AddHollow(char* szObjectName, OIndex oiForced)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointerObject CObjectAllocator::AddHollow(char* szObjectName)
+CPointer CObjectAllocator::AddHollow(char* szObjectName)
 {
 	Ptr<CNamedHollowObject>	pHollow;
 	CNamedHollowObject*				pcHollow;
 	BOOL							bResult;
-	CPointerObject					pcExisting;
+	CPointer					pcExisting;
 
 	if ((szObjectName == NULL || szObjectName[0] == '\0'))
 	{

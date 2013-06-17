@@ -45,7 +45,7 @@ void CArray::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArray::Insert(int iIndex, CPointerObject pObject)
+void CArray::Insert(int iIndex, CPointer pObject)
 {
 	mcArray.Insert(iIndex, pObject.mpcObject);
 	pObject->AddFrom(this);
@@ -56,10 +56,10 @@ void CArray::Insert(int iIndex, CPointerObject pObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointerObject CArray::Get(int iIndex)
+CPointer CArray::Get(int iIndex)
 {
 	CBaseObject*	pcObject;
-	CPointerObject	pObject;
+	CPointer	pObject;
 
 	if ((iIndex >=0) && (iIndex < mcArray.UnsafeNumElements()))
 	{
@@ -75,10 +75,10 @@ CPointerObject CArray::Get(int iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArray::Set(int iIndex, CPointerObject pObject)
+void CArray::Set(int iIndex, CPointer pObject)
 {
 	CBaseObject*	pcObject;
-	CPointerObject	pTemp;
+	CPointer	pTemp;
 
 	if ((iIndex >=0) && (iIndex < mcArray.UnsafeNumElements()))
 	{

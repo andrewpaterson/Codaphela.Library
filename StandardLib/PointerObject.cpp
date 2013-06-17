@@ -28,7 +28,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointerObject::CPointerObject()
+CPointer::CPointer()
 {
 	mpcObject = NULL;
 	mpcEmbedding = NULL;
@@ -39,7 +39,7 @@ CPointerObject::CPointerObject()
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointerObject::CPointerObject(CPointerObject* pcPointer)
+CPointer::CPointer(CPointer* pcPointer)
 {
 	mpcObject = pcPointer->mpcObject;
 	mpcEmbedding = pcPointer->mpcEmbedding;
@@ -50,7 +50,7 @@ CPointerObject::CPointerObject(CPointerObject* pcPointer)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPointerObject::ClearObject(void)
+void CPointer::ClearObject(void)
 {
 	mpcObject = NULL;
 }
@@ -60,7 +60,7 @@ void CPointerObject::ClearObject(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPointerObject::Init(CObject* pcEmbedding)
+void CPointer::Init(CObject* pcEmbedding)
 {
 	mpcEmbedding = pcEmbedding;
 }
@@ -69,7 +69,7 @@ void CPointerObject::Init(CObject* pcEmbedding)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CPointerObject::UnsafePointTo(CBaseObject* pcNewObject)
+CBaseObject* CPointer::UnsafePointTo(CBaseObject* pcNewObject)
 {
 	CBaseObject*	pcObject;
 
@@ -83,7 +83,7 @@ CBaseObject* CPointerObject::UnsafePointTo(CBaseObject* pcNewObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPointerObject::PointTo(CBaseObject* pcNewObject)
+void CPointer::PointTo(CBaseObject* pcNewObject)
 {
 	CBaseObject*	pcOldObject;
 
@@ -115,7 +115,7 @@ void CPointerObject::PointTo(CBaseObject* pcNewObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPointerObject::operator = (CBaseObject* ptr)
+void CPointer::operator = (CBaseObject* ptr)
 {
 	//This operator override exists only to allow NULL assignment.
 	PointTo(ptr);
@@ -126,7 +126,7 @@ void CPointerObject::operator = (CBaseObject* ptr)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPointerObject::operator = (CPointerObject pcPointer)
+void CPointer::operator = (CPointer pcPointer)
 {
 	PointTo(pcPointer.mpcObject);
 }
@@ -136,7 +136,7 @@ void CPointerObject::operator = (CPointerObject pcPointer)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CPointerObject::operator -> ()
+CBaseObject* CPointer::operator -> ()
 {
 	if ((mpcObject) && (mpcObject->IsHollow()))
 	{
@@ -150,7 +150,7 @@ CBaseObject* CPointerObject::operator -> ()
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CPointerObject::operator & ()
+CBaseObject* CPointer::operator & ()
 {
 	if ((mpcObject) && (mpcObject->IsHollow()))
 	{
@@ -163,7 +163,7 @@ CBaseObject* CPointerObject::operator & ()
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPointerObject::operator ! ()
+BOOL CPointer::operator ! ()
 {
 	return mpcObject == NULL;
 }
@@ -173,7 +173,7 @@ BOOL CPointerObject::operator ! ()
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPointerObject::IsNotNull(void)
+BOOL CPointer::IsNotNull(void)
 {
 	return mpcObject != NULL;
 }
@@ -183,7 +183,7 @@ BOOL CPointerObject::IsNotNull(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPointerObject::IsNull(void)
+BOOL CPointer::IsNull(void)
 {
 	return mpcObject == NULL;
 }
@@ -193,7 +193,7 @@ BOOL CPointerObject::IsNull(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointerObject*	CPointerObject::This(void)
+CPointer*	CPointer::This(void)
 {
 	//This method should only *ever* be called whilst in the Load method on a CObject
 	return this;
@@ -204,7 +204,7 @@ CPointerObject*	CPointerObject::This(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CPointerObject::Object(void)
+CBaseObject* CPointer::Object(void)
 {
 	return mpcObject;
 }
@@ -214,7 +214,7 @@ CBaseObject* CPointerObject::Object(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject** CPointerObject::ObjectPtr(void)
+CBaseObject** CPointer::ObjectPtr(void)
 {
 	return &mpcObject;
 }
@@ -224,7 +224,7 @@ CBaseObject** CPointerObject::ObjectPtr(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CObject* CPointerObject::Embedding(void)
+CObject* CPointer::Embedding(void)
 {
 	return mpcEmbedding;
 }
@@ -234,7 +234,7 @@ CObject* CPointerObject::Embedding(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPointerObject::Dehollow(void)
+void CPointer::Dehollow(void)
 {
 	CHollowObject*	pcHollow;
 
@@ -247,7 +247,7 @@ void CPointerObject::Dehollow(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CPointerObject::Dereference(void)
+CBaseObject* CPointer::Dereference(void)
 {
 	if ((mpcObject) && (mpcObject->IsHollow()))
 	{
@@ -262,7 +262,7 @@ CBaseObject* CPointerObject::Dereference(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CPointerObject::RemapFrom(CBaseObject* pcOld)
+int CPointer::RemapFrom(CBaseObject* pcOld)
 {
 	int				iNumFroms;
 	int				i;
@@ -289,7 +289,7 @@ int CPointerObject::RemapFrom(CBaseObject* pcOld)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPointerObject::IsHollow(void)
+BOOL CPointer::IsHollow(void)
 {
 	if (mpcObject)
 	{
@@ -306,7 +306,7 @@ BOOL CPointerObject::IsHollow(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPointerObject::Load(CObjectDeserialiser* pcFile)
+BOOL CPointer::Load(CObjectDeserialiser* pcFile)
 {
 	if (mpcObject)
 	{
@@ -331,7 +331,7 @@ BOOL CPointerObject::Load(CObjectDeserialiser* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CPointerObject::DistToRoot(void)
+int CPointer::DistToRoot(void)
 {
 	if (mpcObject)
 	{
@@ -348,7 +348,7 @@ int CPointerObject::DistToRoot(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-OIndex CPointerObject::GetIndex(void)
+OIndex CPointer::GetIndex(void)
 {
 	if (mpcObject)
 	{
@@ -365,7 +365,7 @@ OIndex CPointerObject::GetIndex(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CPointerObject::GetName(void)
+char* CPointer::GetName(void)
 {
 	if (mpcObject && mpcObject->IsNamed())
 	{
@@ -382,7 +382,7 @@ char* CPointerObject::GetName(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPointerObject::IsNamed(void)
+BOOL CPointer::IsNamed(void)
 {
 	if (mpcObject)
 	{
@@ -399,7 +399,7 @@ BOOL CPointerObject::IsNamed(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CPointerObject::ClassName(void)
+char* CPointer::ClassName(void)
 {
 	if (mpcObject)
 	{
@@ -416,7 +416,7 @@ char* CPointerObject::ClassName(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPointerObject::IsDirty(void)
+BOOL CPointer::IsDirty(void)
 {
 	if (mpcObject)
 	{
@@ -433,7 +433,7 @@ BOOL CPointerObject::IsDirty(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPointerObject::Kill(void)
+void CPointer::Kill(void)
 {
 	//This method exists so that it's object can be killed without invoking -> and potentially loading it first.
 	if (mpcObject)
@@ -447,7 +447,7 @@ void CPointerObject::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPointerObject::ClearIndex(void)
+void CPointer::ClearIndex(void)
 {
 	if (mpcObject)
 	{
@@ -460,7 +460,7 @@ void CPointerObject::ClearIndex(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPointerObject::Construct(CPointerObject cPointer)
+void CPointer::Construct(CPointer cPointer)
 {
 	mpcObject = cPointer.mpcObject;
 	mpcEmbedding = cPointer.mpcEmbedding;

@@ -37,7 +37,7 @@ void CIndexedDataObjectDeserialiser::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointerObject CIndexedDataObjectDeserialiser::Read(OIndex oi)
+CPointer CIndexedDataObjectDeserialiser::Read(OIndex oi)
 {
 	CSerialisedObject*		pcSerialised;
 
@@ -50,7 +50,7 @@ CPointerObject CIndexedDataObjectDeserialiser::Read(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointerObject CIndexedDataObjectDeserialiser::Read(char* szObjectName)
+CPointer CIndexedDataObjectDeserialiser::Read(char* szObjectName)
 {
 	CSerialisedObject*		pcSerialised;
 
@@ -63,10 +63,10 @@ CPointerObject CIndexedDataObjectDeserialiser::Read(char* szObjectName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointerObject CIndexedDataObjectDeserialiser::ReadSerialised(CSerialisedObject* pcSerialised)
+CPointer CIndexedDataObjectDeserialiser::ReadSerialised(CSerialisedObject* pcSerialised)
 {
 	CObjectDeserialiser		cDeserialiser;
-	CPointerObject			pObject;
+	CPointer			pObject;
 
 	cDeserialiser.Init(this);
 	pObject = cDeserialiser.Load(pcSerialised);
@@ -114,7 +114,7 @@ BOOL CIndexedDataObjectDeserialiser::AddContainingPointersAndCreateHollowObject(
 {
 	CBaseObject*			pcBaseObject;
 	CDependentReadObject*	pcDependentReadObject;
-	CPointerObject			pObject;
+	CPointer			pObject;
 	OIndex					oiNew;
 
 	oiNew = pcDependentReadPointer->moiPointedTo;
@@ -144,7 +144,7 @@ BOOL CIndexedDataObjectDeserialiser::AddContainingPointersAndCreateHollowObject(
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointerObject CIndexedDataObjectDeserialiser::AllocateObject(CObjectHeader* pcHeader)
+CPointer CIndexedDataObjectDeserialiser::AllocateObject(CObjectHeader* pcHeader)
 {
 	if (pcHeader->mcType == OBJECT_POINTER_NULL)
 	{
