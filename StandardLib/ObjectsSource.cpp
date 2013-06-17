@@ -43,3 +43,24 @@ void CObjectsSource::Kill(void)
 	macSources.Kill();
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CObjectSource* CObjectsSource::GetSource(char* szFullName)
+{
+	int					i;
+	CObjectSource*		pcSource;
+
+	for (i = 0; i < macSources.NumElements(); i++)
+	{
+		pcSource = (CObjectSource*)macSources.Get(i);
+		if (pcSource->Contains(szFullName))
+		{
+			return pcSource;
+		}
+	}
+	return NULL;
+}
+

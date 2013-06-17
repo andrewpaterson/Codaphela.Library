@@ -68,7 +68,7 @@ CPointerObject CObjectAllocator::Add(char* szClassName, OIndex oiForced)
 
 	CPointerObject	pExistingObject;
 
-	pExistingObject = mpcObjects->GetIfInMemory(oiForced);
+	pExistingObject = mpcObjects->GetFromMemory(oiForced);
 	if (pExistingObject.IsNull())
 	{
 		bResult = mpcObjects->AddWithIDAndName(pvObject, NULL, oiForced);
@@ -154,7 +154,7 @@ CPointerObject CObjectAllocator::Add(char* szClassName, char* szObjectName, OInd
 
 	CPointerObject	pExistingObject;
 
-	pExistingObject = mpcObjects->GetIfInMemory(szObjectName);
+	pExistingObject = mpcObjects->GetFromMemory(szObjectName);
 	if (pExistingObject.IsNull())
 	{
 		bResult = mpcObjects->AddWithIDAndName(pvObject, szObjectName, oiForced);
@@ -219,7 +219,7 @@ CPointerObject CObjectAllocator::AddHollow(OIndex oiForced)
 	BOOL						bResult;
 	CPointerObject				pcExisting;
 
-	pcExisting = mpcObjects->GetIfInMemory(oiForced);
+	pcExisting = mpcObjects->GetFromMemory(oiForced);
 	if (pcExisting.IsNotNull())
 	{
 		return pcExisting;
@@ -260,13 +260,13 @@ CPointerObject CObjectAllocator::AddHollow(char* szObjectName, OIndex oiForced)
 		return AddHollow(oiForced);
 	}
 
-	pcExisting = mpcObjects->GetIfInMemory(szObjectName);
+	pcExisting = mpcObjects->GetFromMemory(szObjectName);
 	if (pcExisting.IsNotNull())
 	{
 		return pcExisting;
 	}
 
-	pcExisting = mpcObjects->GetIfInMemory(oiForced);
+	pcExisting = mpcObjects->GetFromMemory(oiForced);
 	if (pcExisting.IsNotNull())
 	{
 		gcLogger.Error2("CObjectAllocator::AddHollow cannot add hollow object named [", szObjectName, "] another object with index [", IndexToString(oiForced), "] and name [", pcExisting.GetName(), "] already exists.", NULL);
@@ -310,7 +310,7 @@ CPointerObject CObjectAllocator::AddHollow(char* szObjectName)
 		return ONull;
 	}
 
-	pcExisting = mpcObjects->GetIfInMemory(szObjectName);
+	pcExisting = mpcObjects->GetFromMemory(szObjectName);
 	if (pcExisting.IsNotNull())
 	{
 		return pcExisting;

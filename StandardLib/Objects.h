@@ -104,10 +104,10 @@ public:
 						OIndex					StartMemoryIteration(SIndexesIterator* psIter);
 						OIndex					IterateMemory(SIndexesIterator* psIter);
 
-						CPointerObject			GetNotInMemory(char* szObjectName);
-						CPointerObject			GetIfInMemory(char* szObjectName);
-						CPointerObject			GetIfInMemory(OIndex oi);
-						CPointerObject			GetNotInMemory(OIndex oi);
+						CPointerObject			GetFromMemory(OIndex oi);
+						CPointerObject			GetFromMemory(char* szObjectName);
+						CPointerObject			GetFromDatabase(OIndex oi);
+						CPointerObject			GetFromDatabase(char* szObjectName);
 
 protected:
 						BOOL				AddWithID(CBaseObject* pvObject, OIndex oi);

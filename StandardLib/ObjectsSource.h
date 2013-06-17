@@ -40,6 +40,8 @@ public:
 								void			Kill(void);
 	template<class TConverter>	TConverter*		AddConverter(void);
 	template<class TConverter>	CObjectSource*	AddSource(CAbstractFile* pcFile, char* szFileName);
+								CObjectSource*	GetSource(char* szObjectName);
+
 };
 
 //////////////////////////////////////////////////////////////////////////

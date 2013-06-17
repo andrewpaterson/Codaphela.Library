@@ -374,13 +374,67 @@ CPointer<CRoot> CObjects::AddRoot(void)
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CPointerObject CObjects::Get(OIndex oi)
+{
+	CBaseObject*	pvObject;
+
+	pvObject = mcMemory.Get(oi);
+	if (pvObject)
+	{
+		CPointerObject		pObject;
+
+		pObject.mpcObject = pvObject;
+		return pObject;
+	}
+	else
+	{
+		return GetFromDatabase(oi);
+	}
+}
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointerObject CObjects::GetIfInMemory(OIndex oi)
+CPointerObject CObjects::Dehollow(OIndex oi)
+{
+	return GetFromDatabase(oi);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CPointerObject CObjects::Get(char* szObjectName)
+{
+	CBaseObject*	pvObject;
+
+	pvObject = mcMemory.Get(szObjectName);
+	if (pvObject)
+	{
+		CPointerObject		pObject;
+
+		pObject.mpcObject = pvObject;
+		return pObject;
+	}
+	else
+	{
+		return GetFromDatabase(szObjectName);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CPointerObject CObjects::GetFromMemory(OIndex oi)
 {
 	CBaseObject*	pvObject;
 
@@ -403,11 +457,11 @@ CPointerObject CObjects::GetIfInMemory(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointerObject CObjects::Get(OIndex oi)
+CPointerObject CObjects::GetFromMemory(char* szObjectName)
 {
 	CBaseObject*	pvObject;
 
-	pvObject = mcMemory.Get(oi);
+	pvObject = mcMemory.Get(szObjectName);
 	if (pvObject)
 	{
 		CPointerObject		pObject;
@@ -417,7 +471,7 @@ CPointerObject CObjects::Get(OIndex oi)
 	}
 	else
 	{
-		return GetNotInMemory(oi);
+		return Null();;
 	}
 }
 
@@ -426,17 +480,7 @@ CPointerObject CObjects::Get(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointerObject CObjects::Dehollow(OIndex oi)
-{
-	return GetNotInMemory(oi);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CPointerObject CObjects::GetNotInMemory(OIndex oi)
+CPointerObject CObjects::GetFromDatabase(OIndex oi)
 {
 	CIndexedDataObjectDeserialiser	cDeserialiser;
 	CObjectAllocator				cAllocator;
@@ -453,7 +497,7 @@ CPointerObject CObjects::GetNotInMemory(OIndex oi)
 
 		if (pObject.GetIndex() != oi)
 		{
-			gcLogger.Error2("CObjects::GetNotInMemory requested object with index [", IndexToString(oi), "] but object had index [", IndexToString(pObject.GetIndex()), "].", NULL);
+			gcLogger.Error2("CObjects::GetFromDatabase requested object with index [", IndexToString(oi), "] but object had index [", IndexToString(pObject.GetIndex()), "].", NULL);
 			return Null();
 		}
 
@@ -470,53 +514,7 @@ CPointerObject CObjects::GetNotInMemory(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointerObject CObjects::Get(char* szObjectName)
-{
-	CBaseObject*	pvObject;
-
-	pvObject = mcMemory.Get(szObjectName);
-	if (pvObject)
-	{
-		CPointerObject		pObject;
-
-		pObject.mpcObject = pvObject;
-		return pObject;
-	}
-	else
-	{
-		return GetNotInMemory(szObjectName);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CPointerObject CObjects::GetIfInMemory(char* szObjectName)
-{
-	CBaseObject*	pvObject;
-
-	pvObject = mcMemory.Get(szObjectName);
-	if (pvObject)
-	{
-		CPointerObject		pObject;
-
-		pObject.mpcObject = pvObject;
-		return pObject;
-	}
-	else
-	{
-		return ONull;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CPointerObject CObjects::GetNotInMemory(char* szObjectName)
+CPointerObject CObjects::GetFromDatabase(char* szObjectName)
 {
 	CIndexedDataObjectDeserialiser	cDeserialiser;
 	CObjectAllocator				cAllocator;
@@ -535,7 +533,7 @@ CPointerObject CObjects::GetNotInMemory(char* szObjectName)
 	{
 
 		//mcSource.
-		return ONull;		
+		return Null();;		
 	}
 }
 
