@@ -771,7 +771,4 @@
       <Filter>Source\Object\Object\Serilalisation</Filter>
     </ClCompile>
   </ItemGroup>
-  <ItemGroup>
-    <None Include="IndexedTodo.txt" />
-  </ItemGroup>
 </Project>

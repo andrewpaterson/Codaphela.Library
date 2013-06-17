@@ -952,7 +952,6 @@
     <None Include="lgpl.txt">
       <Filter>Source\License</Filter>
     </None>
-    <None Include="LibsTodo.txt" />
     <None Include="MemoryTodo.txt" />
   </ItemGroup>
 </Project>

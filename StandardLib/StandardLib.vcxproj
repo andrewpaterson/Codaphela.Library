@@ -291,9 +291,6 @@
     <ClCompile Include="PreClass.cpp" />
     <ClCompile Include="StandardHeader.cpp" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="IndexedTodo.txt" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

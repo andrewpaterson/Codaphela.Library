@@ -679,9 +679,9 @@ void CIndexedHuge::EvictThirdLevelChunk(SIndexedThirdLevelSearch* psIndexedThird
 		mpsFirstThirdLevelChunk = psIndexedThirdLevelSearch->psNext;
 	}
 
-	SaveThirdLevelChunk(psIndexedThirdLevelSearch);
-
 	EvictCachedObjects(psIndexedThirdLevelSearch);
+
+	SaveThirdLevelChunk(psIndexedThirdLevelSearch);
 
 	memset_fast(psIndexedThirdLevelSearch, 0, sizeof(SIndexedThirdLevelSearch) + (miThirdLevelChunkWidth*sizeof(CIndexedDataDescriptor)));
 
@@ -694,7 +694,7 @@ void CIndexedHuge::EvictThirdLevelChunk(SIndexedThirdLevelSearch* psIndexedThird
 //////////////////////////////////////////////////////////////////////////
 void CIndexedHuge::EvictCachedObjects(SIndexedThirdLevelSearch* psIndexedThirdLevelSearch)
 {
-	int					i;
+	int						i;
 	CIndexedDataDescriptor*	pcDescriptor;
 
 	if ((mpcIndexedData) && (mpcIndexedData->IsCaching()))
@@ -729,6 +729,7 @@ void CIndexedHuge::SaveThirdLevelChunk(SIndexedThirdLevelSearch* psIndexedThirdL
 	filePos						iResult;
 	filePos						iNumToWrite;
 	BOOL						bResult;
+	void**						pvCaches;
 
 	iFirstChunkOI = GetThirdLevelChunkOI(psIndexedThirdLevelSearch);
 
@@ -751,10 +752,13 @@ void CIndexedHuge::SaveThirdLevelChunk(SIndexedThirdLevelSearch* psIndexedThirdL
 
 	if (iLastChunkOI != -1)
 	{
+		pvCaches = (void**)malloc(miThirdLevelChunkWidth * sizeof(void*));
 		for (i = 0; i < miThirdLevelChunkWidth; i++)
 		{
 			pcDescriptor = GetCachedDescriptor(psIndexedThirdLevelSearch, i);
 			pcDescriptor->Dirty(FALSE);
+			pvCaches[i] = pcDescriptor->GetCache();
+			pcDescriptor->Cache(NULL);
 		}
 
 		iOffset = iFirstChunkOI * sizeof(CIndexedDataDescriptor);
@@ -768,6 +772,14 @@ void CIndexedHuge::SaveThirdLevelChunk(SIndexedThirdLevelSearch* psIndexedThirdL
 
 		iResult = mpcFile->Write(EFSO_SET, iOffset, pcDescriptor, sizeof(CIndexedDataDescriptor), iNumToWrite);
 		miDiskWrites += iResult;
+
+		for (i = 0; i < miThirdLevelChunkWidth; i++)
+		{
+			pcDescriptor = GetCachedDescriptor(psIndexedThirdLevelSearch, i);
+			pcDescriptor->Cache(pvCaches[i]);
+		}
+
+		free(pvCaches);
 	}
 }
 
