@@ -727,6 +727,8 @@ int CObjects::NumMemoryNames(void)
 //////////////////////////////////////////////////////////////////////////
 long long int CObjects::NumDatabaseObjects(void)
 {
+	//This is a very slow method.  
+	//It loads every descriptor from 0 to the LastOI and checks if it points to an object.
 	return mcDatabase.NumObjects();
 }
 
