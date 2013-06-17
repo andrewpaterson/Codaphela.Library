@@ -148,7 +148,7 @@ void CTileWorld::AddImages(CArray* pacImages)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTileWorld::AddGroup(CPointer<CImageCelGroup> pcGroup)
+void CTileWorld::AddGroup(Ptr<CImageCelGroup> pcGroup)
 {
 	macGroups.Add(pcGroup);
 }
@@ -158,10 +158,10 @@ void CTileWorld::AddGroup(CPointer<CImageCelGroup> pcGroup)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointer<CImageCelGroup> CTileWorld::GetGroup(char* szName)
+Ptr<CImageCelGroup> CTileWorld::GetGroup(char* szName)
 {
-	int							i;
-	CPointer<CImageCelGroup>	pcImageCelGroup;
+	int						i;
+	Ptr<CImageCelGroup>		pcImageCelGroup;
 
 	for (i = 0; i < macGroups.NumElements(); i++)
 	{
@@ -171,6 +171,6 @@ CPointer<CImageCelGroup> CTileWorld::GetGroup(char* szName)
 			return pcImageCelGroup;
 		}
 	}
-	return ONNull(CImageCelGroup);
+	return ONull;
 }
 

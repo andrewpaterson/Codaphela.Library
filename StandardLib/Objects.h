@@ -70,19 +70,19 @@ public:
 
 						CPointerObject			Get(OIndex oi);
 						CPointerObject			Get(char* szObjectName);
-	template<class M> 	CPointer<M>				Get(OIndex oi);
-	template<class M>	CPointer<M>				Get(char* szObjectName);
+	template<class M> 	Ptr<M>				Get(OIndex oi);
+	template<class M>	Ptr<M>				Get(char* szObjectName);
 						BOOL					Contains(char* szObjectName);
 
-	template<class M>	CPointer<M>				Add(void);
-	template<class M>	CPointer<M>				Add(char* szObjectName);
+	template<class M>	Ptr<M>				Add(void);
+	template<class M>	Ptr<M>				Add(char* szObjectName);
 
-						CPointer<CRoot>			AddRoot(void);
+						Ptr<CRoot>			AddRoot(void);
 
 						void					Remove(CArrayBaseObjectPtr* papcKilled);
 
 						CPointerObject			Null(void);
-	template<class M>	CPointer<M>				Null(void);
+	template<class M>	Ptr<M>				Null(void);
 
 						long long int			NumMemoryIndexes(void);
 						int						NumMemoryNames(void);
@@ -153,13 +153,13 @@ M* CObjects::Allocate(void)
 //////////////////////////////////////////////////////////////////////////
 template<class M>
 //Called by Macro 'OMalloc'
-CPointer<M> CObjects::Add(void)
+Ptr<M> CObjects::Add(void)
 {
 	M	m;
 
 	if (!m.IsNamed())
 	{
-		CPointer<M>		pObject;
+		Ptr<M>		pObject;
 		M*				pvObject;
 
 		pvObject = Allocate<M>();
@@ -183,13 +183,13 @@ CPointer<M> CObjects::Add(void)
 //////////////////////////////////////////////////////////////////////////
 template<class M>
 //Called by Macro 'ONMalloc'.  Note the 'N'.
-CPointer<M> CObjects::Add(char* szObjectName)
+Ptr<M> CObjects::Add(char* szObjectName)
 {
 	M	m;
 
 	if (m.IsNamed())
 	{
-		CPointer<M>		pObject;
+		Ptr<M>		pObject;
 		M*				pvObject;
 
 		pvObject = Allocate<M>();
@@ -212,9 +212,9 @@ CPointer<M> CObjects::Add(char* szObjectName)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-CPointer<M> CObjects::Null(void)
+Ptr<M> CObjects::Null(void)
 {
-	CPointer<M>		pObject;
+	Ptr<M>		pObject;
 	return pObject;
 }
 
@@ -224,14 +224,14 @@ CPointer<M> CObjects::Null(void)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-CPointer<M> CObjects::Get(OIndex oi)
+Ptr<M> CObjects::Get(OIndex oi)
 {
 	CBaseObject*	pvObject;
 
 	pvObject = mcMemory.Get(oi);
 	if (pvObject)
 	{
-		CPointer<M>		pObject;
+		Ptr<M>		pObject;
 
 		pObject.mpcObject = pvObject;
 		return pObject;
@@ -248,14 +248,14 @@ CPointer<M> CObjects::Get(OIndex oi)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-CPointer<M> CObjects::Get(char* szObjectName)
+Ptr<M> CObjects::Get(char* szObjectName)
 {
 	CBaseObject*	pvObject;
 
 	pvObject = mcMemory.Get(szObjectName);
 	if (pvObject)
 	{
-		CPointer<M>		pObject;
+		Ptr<M>		pObject;
 
 		pObject.mpcObject = pvObject;
 		return pObject;

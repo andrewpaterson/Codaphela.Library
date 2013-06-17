@@ -54,9 +54,9 @@ void CImageSource::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointer<CImage> CImageSource::Allocate(char* szName)
+Ptr<CImage> CImageSource::Allocate(char* szName)
 {
-	CPointer<CImage>	pcImage;
+	Ptr<CImage>	pcImage;
 
 	pcImage = ONMalloc(CImage, szName);
 	return pcImage;
@@ -67,7 +67,7 @@ CPointer<CImage> CImageSource::Allocate(char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointer<CImage> CImageSource::GetImage(void)
+Ptr<CImage> CImageSource::GetImage(void)
 {
 	return mpcImage;
 }
@@ -77,7 +77,7 @@ CPointer<CImage> CImageSource::GetImage(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageSource::SetImage(CPointer<CImage> pcImage)
+void CImageSource::SetImage(Ptr<CImage> pcImage)
 {
 	mpcImage = pcImage;
 }

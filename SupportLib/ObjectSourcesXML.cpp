@@ -148,7 +148,7 @@ BOOL CObjectSourcesXML::ImportImage(CTileType* pcType, CMarkupTag* pcTag)
 	int							iBrushID;
 	CChars						szSourceName;
 	CTileImageCel*				pcTile;
-	CPointer<CImageCelGroup>	pcGroup;
+	Ptr<CImageCelGroup>	pcGroup;
 	CImageCel*					pcCel;
 
 	pcName = CMarkupTextParser::GetTag(pcTag, "Name");

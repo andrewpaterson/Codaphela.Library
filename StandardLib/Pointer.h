@@ -26,14 +26,14 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 class CObject;
 
 template<class M = CBaseObject>
-class CPointer : public CPointerObject
+class Ptr : public CPointerObject
 {
 public:
-			CPointer();
-			CPointer(CPointerObject cPointer);
+			Ptr();
+			Ptr(CPointerObject cPointer);
 	void 	Init(CObject* pcEmbedding);
 	void	operator = (M* ptr);
-	void	operator = (CPointer<M> pcPointer);
+	void	operator = (Ptr<M> pcPointer);
 	void	operator = (CPointerObject pcPointer);
 	M*		operator -> ();
 	M*		operator & ();
@@ -47,7 +47,7 @@ public:
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-CPointer<M>::CPointer()
+Ptr<M>::Ptr()
 {
 }
 
@@ -57,7 +57,7 @@ CPointer<M>::CPointer()
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-CPointer<M>::CPointer(CPointerObject cPointer)
+Ptr<M>::Ptr(CPointerObject cPointer)
 {
 	CPointerObject::Construct(cPointer);
 }
@@ -68,7 +68,7 @@ CPointer<M>::CPointer(CPointerObject cPointer)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CPointer<M>::Init(CObject* pcEmbedding)
+void Ptr<M>::Init(CObject* pcEmbedding)
 {
 	CPointerObject::Init(pcEmbedding);
 }
@@ -79,7 +79,7 @@ void CPointer<M>::Init(CObject* pcEmbedding)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CPointer<M>::operator = (M* ptr)
+void Ptr<M>::operator = (M* ptr)
 {
 	PointTo(ptr);
 }
@@ -90,7 +90,7 @@ void CPointer<M>::operator = (M* ptr)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CPointer<M>::operator = (CPointer<M> pcPointer)
+void Ptr<M>::operator = (Ptr<M> pcPointer)
 {
 	PointTo(pcPointer.mpcObject);
 }
@@ -101,7 +101,7 @@ void CPointer<M>::operator = (CPointer<M> pcPointer)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CPointer<M>::operator = (CPointerObject pcPointer)
+void Ptr<M>::operator = (CPointerObject pcPointer)
 {
 	PointTo(pcPointer.mpcObject);
 }
@@ -112,7 +112,7 @@ void CPointer<M>::operator = (CPointerObject pcPointer)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M* CPointer<M>::operator -> ()
+M* Ptr<M>::operator -> ()
 {
 	return (M*)Dereference();
 }
@@ -123,7 +123,7 @@ M* CPointer<M>::operator -> ()
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M* CPointer<M>::operator & ()
+M* Ptr<M>::operator & ()
 {
 	return (M*)Dereference();
 }

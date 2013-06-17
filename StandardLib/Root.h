@@ -33,8 +33,8 @@ friend class CUnknowns;
 friend class CConstructorUnknown;
 BASE_FUNCTIONS(CRoot);
 protected:
-	CPointer<CSet>	mpObjects;
-	CObjects*		mpcObjectsAllocatingFrom;
+	Ptr<CSet>	mpObjects;
+	CObjects*	mpcObjectsAllocatingFrom;
 
 protected:
 						CRoot();
@@ -54,8 +54,8 @@ public:
 						BOOL			Load(CObjectDeserialiser* pcFile);
 
 						CPointerObject	Get(char* szObjectName);
-	template<class M>	CPointer<M>		Get(char* szObjectName);
-						CPointer<CSet>	GetAll(void);
+	template<class M>	Ptr<M>		Get(char* szObjectName);
+						Ptr<CSet>	GetAll(void);
 
 						CSet*			TestGetSet(void);
 						BOOL			IsSetHollow(void);
@@ -68,10 +68,10 @@ public:
 //////////////////////////////////////////////////////////////////////////
 template<class M>
 //Called by Macro 'OMalloc'
-CPointer<M> CRoot::Get(char* szObjectName)
+Ptr<M> CRoot::Get(char* szObjectName)
 {
 	CPointerObject	pObject;
-	CPointer<M>		pM;
+	Ptr<M>		pM;
 
 	pObject = Get(szObjectName);
 

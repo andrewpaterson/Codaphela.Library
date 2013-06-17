@@ -71,7 +71,7 @@ CObjectSource* CObjectConverterText::CreateSource(CAbstractFile* pcFile, char* s
 CPointerObject CObjectConverterText::Convert(CObjectSource* pcSource, char* szObjectName)
 {
 	CTextFile			cTextFile;
-	CPointer<CString>	pcString;
+	Ptr<CString>	pcString;
 	BOOL				bResult;
 	CObjectSourceText*	pcSourceText;
 

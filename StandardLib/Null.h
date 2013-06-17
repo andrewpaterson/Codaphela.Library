@@ -6,7 +6,7 @@
 CPointerObject Null(void);
 
 template<class M>
-CPointer<M> Null(void);
+Ptr<M> Null(void);
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -14,9 +14,9 @@ CPointer<M> Null(void);
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-CPointer<M> Null(void)
+Ptr<M> Null(void)
 {
-	CPointer<M>		pObject;
+	Ptr<M>		pObject;
 	return pObject;
 }
 

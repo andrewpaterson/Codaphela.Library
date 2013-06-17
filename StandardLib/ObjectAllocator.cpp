@@ -214,7 +214,7 @@ CPointerObject CObjectAllocator::ReplaceExisting(CBaseObject* pvExisting, CBaseO
 //////////////////////////////////////////////////////////////////////////
 CPointerObject CObjectAllocator::AddHollow(OIndex oiForced)
 {
-	CPointer<CHollowObject>		pHollow;
+	Ptr<CHollowObject>		pHollow;
 	CHollowObject*				pcHollow;
 	BOOL						bResult;
 	CPointerObject				pcExisting;
@@ -250,7 +250,7 @@ CPointerObject CObjectAllocator::AddHollow(OIndex oiForced)
 //////////////////////////////////////////////////////////////////////////
 CPointerObject CObjectAllocator::AddHollow(char* szObjectName, OIndex oiForced)
 {
-	CPointer<CNamedHollowObject>	pHollow;
+	Ptr<CNamedHollowObject>	pHollow;
 	CNamedHollowObject*				pcHollow;
 	BOOL							bResult;
 	CPointerObject					pcExisting;
@@ -300,7 +300,7 @@ CPointerObject CObjectAllocator::AddHollow(char* szObjectName, OIndex oiForced)
 //////////////////////////////////////////////////////////////////////////
 CPointerObject CObjectAllocator::AddHollow(char* szObjectName)
 {
-	CPointer<CNamedHollowObject>	pHollow;
+	Ptr<CNamedHollowObject>	pHollow;
 	CNamedHollowObject*				pcHollow;
 	BOOL							bResult;
 	CPointerObject					pcExisting;

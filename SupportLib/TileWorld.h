@@ -50,8 +50,8 @@ public:
 	CTileType*					GetType(char* szTypeName);
 
 	void						AddImages(CArray* pacImages);
-	void						AddGroup(CPointer<CImageCelGroup> pcGroup);
-	CPointer<CImageCelGroup>	GetGroup(char* szName);
+	void						AddGroup(Ptr<CImageCelGroup> pcGroup);
+	Ptr<CImageCelGroup>	GetGroup(char* szName);
 };
 
 

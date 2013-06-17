@@ -26,7 +26,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 class CObject : public CBaseObject
 {
 template<class M>
-friend class CPointer;
+friend class Ptr;
 friend class CPointerObject;
 friend class CObjectGraphDeserialiser;
 

@@ -37,8 +37,8 @@ public:
 						CPointerObject	StartIteration(SSetIterator* psIter);
 						CPointerObject	Iterate(SSetIterator* psIter);
 
-	template<class M>	CPointer<M>		StartIteration(SSetIterator* psIter);
-	template<class M>	CPointer<M>		Iterate(SSetIterator* psIter);
+	template<class M>	Ptr<M>		StartIteration(SSetIterator* psIter);
+	template<class M>	Ptr<M>		Iterate(SSetIterator* psIter);
 };
 
 
@@ -47,7 +47,7 @@ public:
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-CPointer<M> CSet::StartIteration(SSetIterator* psIter)
+Ptr<M> CSet::StartIteration(SSetIterator* psIter)
 {
 	return (M*)StartIteration(psIter);
 }
@@ -57,7 +57,7 @@ CPointer<M> CSet::StartIteration(SSetIterator* psIter)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-CPointer<M> CSet::Iterate(SSetIterator* psIter)
+Ptr<M> CSet::Iterate(SSetIterator* psIter)
 {
 	return (M*)Iterate(psIter);
 }

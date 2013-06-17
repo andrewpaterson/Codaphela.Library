@@ -37,7 +37,7 @@ public:
 	void			Set(int iIndex, CPointerObject pObject);
 
 	template<class M>
-	CPointer<M>		Get(int iIndex);
+	Ptr<M>		Get(int iIndex);
 };
 
 
@@ -46,7 +46,7 @@ public:
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-CPointer<M> CArray::Get(int iIndex)
+Ptr<M> CArray::Get(int iIndex)
 {
 	return (M*)Get(iIndex);
 }

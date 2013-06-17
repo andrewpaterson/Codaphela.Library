@@ -182,7 +182,7 @@ CPointerObject CRoot::Get(char* szObjectName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointer<CSet> CRoot::GetAll(void)
+Ptr<CSet> CRoot::GetAll(void)
 {
 	return mpObjects;
 }

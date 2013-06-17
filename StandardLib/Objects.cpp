@@ -361,9 +361,9 @@ BOOL CObjects::Deindex(CBaseObject* pvObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointer<CRoot> CObjects::AddRoot(void)
+Ptr<CRoot> CObjects::AddRoot(void)
 {
-	CPointer<CRoot>	pRoot;
+	Ptr<CRoot>	pRoot;
 
 	pRoot = Get(ROOT_NAME);
 	if (!pRoot)

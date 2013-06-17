@@ -235,11 +235,11 @@ BOOL CImageCelsSource::Load(void)
 	SSetIterator				sIter;
 	CImageSourceWithCelSources*	pcImageSourceWithCelSources;
 	BOOL						bResult;
-	CPointer<CImage>			pcMask;
+	Ptr<CImage>					pcMask;
 	CImageSource*				pcImageSource;
 	CImageCelSource*			pcCelsSource;
 	int							iFirstCelIndex;
-	CPointer<CImage>			pcCombined;
+	Ptr<CImage>					pcCombined;
 
 	pcImageSourceWithCelSources = (CImageSourceWithCelSources*)macImageSources.StartIteration(&sIter);
 	while (pcImageSourceWithCelSources)
@@ -301,13 +301,13 @@ CArrayUnknown* CImageCelsSource::GetCels(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointer<CImage> CImageCelsSource::Combine(int iFirstCelIndex)
+Ptr<CImage> CImageCelsSource::Combine(int iFirstCelIndex)
 {
-	CImageCombiner		cImageCombiner;
-	CPointer<CImage>	pcDest;
-	int					i;
-	CImageCel*			pcCel;
-	BOOL				bResult;
+	CImageCombiner	cImageCombiner;
+	Ptr<CImage>		pcDest;
+	int				i;
+	CImageCel*		pcCel;
+	BOOL			bResult;
 
 	pcDest = ONMalloc(CImage, "");
 	cImageCombiner.Init((CImage*)pcDest.Object(), ICL_Best, ICS_Arbitrary);
@@ -328,7 +328,7 @@ CPointer<CImage> CImageCelsSource::Combine(int iFirstCelIndex)
 	else
 	{
 		pcDest->Kill();
-		return ONNull(CImage);
+		return ONull;
 	}
 }
 
@@ -341,7 +341,7 @@ void CImageCelsSource::PopulateImageArray(void)
 {
 	int								i;
 	CImageSourceWithCelSources*		pcSource;
-	CPointer<CImage>				pcImage;
+	Ptr<CImage>						pcImage;
 
 	for (i = 0; i < macImageSources.NumElements(); i++)
 	{

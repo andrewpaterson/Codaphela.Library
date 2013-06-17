@@ -54,7 +54,7 @@ class CObjects;
 class CBaseObject : public CUnknown
 {
 template<class M>
-friend class CPointer;
+friend class Ptr;
 friend class CPointerObject;
 friend class CArrayCommonObject;
 friend class CObject;

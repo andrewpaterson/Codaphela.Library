@@ -117,7 +117,7 @@ BOOL CImageCelsSourceXML::ImportCels(CMarkupTag* pcCelsTag, char* szFileName)
 	CImageCelsSource			cCelsSource;
 	CChars						szGroupName;
 	CFileUtil					cFileUtil;
-	CPointer<CImageCelGroup>	pcGroup;
+	Ptr<CImageCelGroup>			pcGroup;
 
 	acSubImages.Init();
 	pcCelTag = pcCelsTag->GetTag("Cel", &sIter);

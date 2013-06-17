@@ -38,7 +38,7 @@ friend class CObjectAllocator;
 friend class CArrayCommonObject;
 friend class CSet;
 friend class CArray;
-template<class M> friend class CPointer;
+template<class M> friend class Ptr;
 template<class M> friend class Ptr;
 friend class CObject;
 friend class CObjectDeserialiser;
