@@ -36,9 +36,9 @@ CHollowObject::CHollowObject(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CHollowObject::IsHollow(void)
+void CHollowObject::Kill(void)
 {
-	return TRUE;
+	CBaseObject::Kill();
 }
 
 
@@ -49,6 +49,16 @@ BOOL CHollowObject::IsHollow(void)
 CBaseObject* CHollowObject::Dehollow(void)
 {
 	return mpcObjectsThisIn->Dehollow(moi);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CHollowObject::IsHollow(void)
+{
+	return TRUE;
 }
 
 

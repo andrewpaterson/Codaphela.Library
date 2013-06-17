@@ -79,7 +79,7 @@ public:
 	void			ClearIndex(void);
 
 protected:
-	BOOL			Dehollow(void);
+	void			Dehollow(void);
 	void			PointTo(CBaseObject* pcObject);
 
 	void			ClearObject(void);

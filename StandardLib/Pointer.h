@@ -116,7 +116,10 @@ void CPointer<M>::operator = (CPointerObject pcPointer)
 template<class M>
 M* CPointer<M>::operator -> ()
 {
-	Dehollow();
+	if ((mpcObject) && (mpcObject->IsHollow()))
+	{
+		Dehollow();
+	}
 	return (M*)mpcObject;
 }
 
@@ -127,7 +130,10 @@ M* CPointer<M>::operator -> ()
 template<class M>
 M* CPointer<M>::operator & ()
 {
-	Dehollow();
+	if ((mpcObject) && (mpcObject->IsHollow()))
+	{
+		Dehollow();
+	}
 	return (M*)mpcObject;
 }
 

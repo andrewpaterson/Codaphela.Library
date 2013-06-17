@@ -10,12 +10,13 @@ protected:
 	CChars	mon;
 
 public:
-	void	Kill(void);
+	void			Kill(void);
+	CBaseObject*	Dehollow(void);
 
-	char*	GetName(void);
-	BOOL	IsNamed(void);
+	char*			GetName(void);
+	BOOL			IsNamed(void);
 
-	BOOL	InitName(char* szName);
+	BOOL			InitName(char* szName);
 };
 
 

@@ -583,6 +583,31 @@ CBaseObject* CObjects::Dehollow(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+CBaseObject* CObjects::Dehollow(char* szObjectName)
+{
+	CBaseObject*	pvObject;
+	CPointerObject	pObject;
+
+	pvObject = GetFromDatabase(szObjectName);
+	if (pvObject)
+	{
+		return pvObject;
+	}
+
+	pvObject = GetFromSources(szObjectName);
+	if (pvObject)
+	{
+		return pvObject;
+	}
+
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL CObjects::Contains(char* szObjectName)
 {
 	CBaseObject*	pvObject;

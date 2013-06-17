@@ -96,6 +96,7 @@ public:
 
 						void					RemoveInKill(CBaseObject* pvObject);
 						CBaseObject*			Dehollow(OIndex oi);
+						CBaseObject*			Dehollow(char* szObjectName);
 
 						BOOL					Dename(CBaseObject* pvObject);
 						BOOL					Deindex(CBaseObject* pvObject);

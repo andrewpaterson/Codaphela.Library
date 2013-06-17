@@ -138,7 +138,10 @@ void CPointerObject::operator = (CPointerObject pcPointer)
 //////////////////////////////////////////////////////////////////////////
 CBaseObject* CPointerObject::operator -> ()
 {
-	Dehollow();
+	if ((mpcObject) && (mpcObject->IsHollow()))
+	{
+		Dehollow();
+	}
 	return mpcObject;
 }
 
@@ -149,7 +152,10 @@ CBaseObject* CPointerObject::operator -> ()
 //////////////////////////////////////////////////////////////////////////
 CBaseObject* CPointerObject::operator & ()
 {
-	Dehollow();
+	if ((mpcObject) && (mpcObject->IsHollow()))
+	{
+		Dehollow();
+	}
 	return mpcObject;
 }
 
@@ -228,28 +234,12 @@ CObject* CPointerObject::Embedding(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPointerObject::Dehollow(void)
+void CPointerObject::Dehollow(void)
 {
 	CHollowObject*	pcHollow;
 
-	if (mpcObject)
-	{
-		if (mpcObject->IsHollow())
-		{
-			pcHollow = (CHollowObject*)mpcObject;
-			mpcObject = pcHollow->Dehollow();
-			
-			if (mpcObject)
-			{
-				return TRUE;
-			}
-			else
-			{
-				return FALSE;
-			}
-		}
-	}
-	return TRUE;
+	pcHollow = (CHollowObject*)mpcObject;
+	mpcObject = pcHollow->Dehollow();
 }
 
 
@@ -286,7 +276,6 @@ int CPointerObject::RemapFrom(CBaseObject* pcOld)
 //////////////////////////////////////////////////////////////////////////
 BOOL CPointerObject::IsHollow(void)
 {
-	//IsHollow must be available without calling dehollow.
 	if (mpcObject)
 	{
 		return mpcObject->IsHollow();
@@ -304,7 +293,6 @@ BOOL CPointerObject::IsHollow(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CPointerObject::Load(CObjectDeserialiser* pcFile)
 {
-	//Load must be available without calling dehollow.
 	if (mpcObject)
 	{
 		if (!mpcObject->IsHollow())
@@ -330,8 +318,6 @@ BOOL CPointerObject::Load(CObjectDeserialiser* pcFile)
 //////////////////////////////////////////////////////////////////////////
 int CPointerObject::DistToRoot(void)
 {
-	//DistToRoot must be available without calling dehollow.
-
 	if (mpcObject)
 	{
 		return mpcObject->DistToRoot();

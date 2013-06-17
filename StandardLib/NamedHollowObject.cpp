@@ -1,3 +1,4 @@
+#include "Objects.h"
 #include "NamedHollowObject.h"
 #include "NamedObject.h"
 
@@ -10,6 +11,16 @@ void CNamedHollowObject::Kill(void)
 {
 	mon.Kill();
 	CHollowObject::Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CBaseObject* CNamedHollowObject::Dehollow(void)
+{
+	return mpcObjectsThisIn->Dehollow(mon.Text());
 }
 
 
