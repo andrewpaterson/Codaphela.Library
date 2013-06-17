@@ -71,6 +71,9 @@ void CIndexedHuge::ClearCounters(void)
 {
 	miDiskReads = 0;
 	miDiskWrites = 0;
+	miObjectEvictions = 0;
+	miThirdLevelEvictions = 0;
+	miSecondLevelEvictions = 0;
 }
 
 
@@ -102,10 +105,10 @@ BOOL CIndexedHuge::ChangeStrategy(int iSecondLevelWidth, int iThirdLevelWidth, i
 	SafeFree(mpvThirdLevel);
 
 	iSecondLevelCacheSize = GetSecondLevelCacheByteSize();
-	iThirdLevelCacheSize = GetThirdLevelCacheByteSize();
-
 	mpvSecondLevel = malloc(iSecondLevelCacheSize);
 	memset_fast(mpvSecondLevel, 0, iSecondLevelCacheSize);
+
+	iThirdLevelCacheSize = GetThirdLevelCacheByteSize();
 	mpvThirdLevel = malloc(iThirdLevelCacheSize);
 	ClearThirdLevelChunks();
 
@@ -284,6 +287,18 @@ BOOL CIndexedHuge::Set(CIndexedDataDescriptor* pcDescriptor)
 	}
 
 	return TRUE;
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexedHuge::Set(OIndex oi, unsigned int uiDataSize)
+{
+	CIndexedDataDescriptor cIndex;
+
+	cIndex.Init(oi, uiDataSize);
+	return Set(&cIndex);
 }
 
 
@@ -636,6 +651,8 @@ void CIndexedHuge::EvictSecondLevelChunk(SIndexedSecondLevelSearch* psIndexedSec
 			EvictThirdLevelChunk(psIndexedThirdLevelSearch);
 		}
 	}
+
+	miSecondLevelEvictions += miSecondLevelChunkWidth;
 }
 
 
@@ -667,6 +684,8 @@ void CIndexedHuge::EvictThirdLevelChunk(SIndexedThirdLevelSearch* psIndexedThird
 	EvictCachedObjects(psIndexedThirdLevelSearch);
 
 	memset_fast(psIndexedThirdLevelSearch, 0, sizeof(SIndexedThirdLevelSearch) + (miThirdLevelChunkWidth*sizeof(CIndexedDataDescriptor)));
+
+	miThirdLevelEvictions += miThirdLevelChunkWidth;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -686,6 +705,8 @@ void CIndexedHuge::EvictCachedObjects(SIndexedThirdLevelSearch* psIndexedThirdLe
 			if (pcDescriptor->IsAllocated())
 			{
 				mpcIndexedData->EvictFromCache(pcDescriptor);
+
+				miObjectEvictions++;
 			}
 		}
 	}
@@ -891,62 +912,102 @@ BOOL CIndexedHuge::Set(CIndexedDataDescriptor* pacDescriptors, int iNumDescripto
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedHuge::DumpThirdLevelCache(void)
+int CIndexedHuge::GetObjectEvictions(void)
+{
+	return miObjectEvictions;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CIndexedHuge::GetThirdLevelEvictions(void)
+{
+	return miThirdLevelEvictions;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CIndexedHuge::GetSecondLevelEvictions(void)
+{
+	return miSecondLevelEvictions;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexedHuge::DumpThirdLevelCache(CChars* psz)
 {
 	int 						iThirdLevelCacheSize;
 	int							i;
-	CChars						sz;
 	SIndexedThirdLevelSearch*	ps;
 	int							j;
 	CIndexedDataDescriptor*		pc;
 
-	sz.Init();
-
 	iThirdLevelCacheSize = miNumThirdLevelChunks * (sizeof(SIndexedThirdLevelSearch) + (sizeof(CIndexedDataDescriptor)*miThirdLevelChunkWidth));
-	sz.Append("Third Level Cache (");
-	sz.Append(iThirdLevelCacheSize);
-	sz.Append(" bytes)\n--------------------\n");
-	sz.Append("Chunk Width: ");
-	sz.Append(miThirdLevelChunkWidth);
-	sz.Append("\nChunk Count: ");
-	sz.Append(miNumThirdLevelChunks);
-	sz.Append("\nChunk Size: ");
-	sz.Append((int)(sizeof(SIndexedThirdLevelSearch) + (sizeof(CIndexedDataDescriptor)*miThirdLevelChunkWidth)));
-	sz.AppendNewLine();
+	psz->Append("Third Level Cache (");
+	psz->Append(iThirdLevelCacheSize);
+	psz->Append(" bytes)\n--------------------\n");
+	psz->Append("Chunk Width: ");
+	psz->Append(miThirdLevelChunkWidth);
+	psz->Append("\nChunk Count: ");
+	psz->Append(miNumThirdLevelChunks);
+	psz->Append("\nChunk Size: ");
+	psz->Append((int)(sizeof(SIndexedThirdLevelSearch) + (sizeof(CIndexedDataDescriptor)*miThirdLevelChunkWidth)));
+	psz->AppendNewLine();
 	for (i = 0; i < miNumThirdLevelChunks; i++)
 	{
 		ps = GetCachedThirdLevelChunk(i);
-		sz.Append("Valid: ");
-		sz.Append(ps->bValid);
-		sz.AppendNewLine();
+		psz->Append("Valid: ");
+		psz->Append(ps->bValid);
+		psz->AppendNewLine();
 		if (ps->bValid)
 		{
-			sz.Append("Parent: ");
-			sz.Append((int)ps->psParent->iFirst);
-			sz.Append(" - ");
-			sz.Append((int)ps->psParent->iLast);
-			sz.Append(" (");
-			sz.Append(ps->iSecondLevelOffset);
-			sz.Append(")\n");
+			psz->Append("Parent: ");
+			psz->Append((int)ps->psParent->iFirst);
+			psz->Append(" - ");
+			psz->Append((int)ps->psParent->iLast);
+			psz->Append(" (");
+			psz->Append(ps->iSecondLevelOffset);
+			psz->Append(")\n");
 
 			for (j = 0; j < miThirdLevelChunkWidth; j++)
 			{
 				pc = GetCachedDescriptor(ps, j);
 				if (pc->IsAllocated())
 				{
-					sz.Append("    OI: ");
-					sz.Append((int)pc->GetIndex());
-					sz.Append("\n");
+					psz->Append("    OI: ");
+					psz->Append((int)pc->GetIndex());
+					psz->AppendNewLine();
 				}
 				else
 				{
-					sz.Append("    Unallocated\n");
+					psz->Append("    Unallocated\n");
 				}
 			}
 		}
-		sz.AppendNewLine();
+		psz->AppendNewLine();
 	}
-	sz.AppendNewLine();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexedHuge::DumpThirdLevelCache(void)
+{
+	CChars	sz;
+
+	sz.Init();
+
+	DumpThirdLevelCache(&sz);
 
 	sz.Dump();
 	sz.Kill();

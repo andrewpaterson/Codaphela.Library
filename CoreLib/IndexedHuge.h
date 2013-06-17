@@ -107,6 +107,9 @@ protected:
 
 	filePos						miDiskReads;
 	filePos						miDiskWrites;
+	int							miObjectEvictions;
+	int							miThirdLevelEvictions;
+	int							miSecondLevelEvictions;
 
 public:
 	void 						Init(CDurableFile* pcFile, BOOL bDirtyTesting, CIndexedData* pcIndexedData, int iSecondLevelWidth, int iThirdLevelWidth, int iNumSecondLevelChunks, int iNumThirdLevelChunks);
@@ -115,6 +118,7 @@ public:
 	BOOL 						Get(CIndexedDataDescriptor* pcDescriptor, OIndex oi);
 	BOOL 						Set(CIndexedDataDescriptor* pcDescriptor);
 	BOOL						Set(CIndexedDataDescriptor* pacDescriptors, int iNumDescriptors);
+	BOOL						Set(OIndex oi, unsigned int uiDataSize);
 	BOOL						Remove(OIndex oi);
 
 	OIndex						Length(void);
@@ -128,6 +132,10 @@ public:
 	BOOL 						ChangeStrategy(int iFirstLevelGrouping, int iSecondLevelWidth, int iNumSecondLevelChunks, int iNumThirdeLevelChunks);
 	BOOL						UpdateFile(void);
 	void						DumpThirdLevelCache(void);
+	void						DumpThirdLevelCache(CChars* psz);
+	int							GetObjectEvictions(void);
+	int							GetThirdLevelEvictions(void);
+	int							GetSecondLevelEvictions(void);
 
 protected:
 	BOOL						PadFile(filePos iLength, filePos iOffset);
