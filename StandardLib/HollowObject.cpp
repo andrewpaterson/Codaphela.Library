@@ -48,10 +48,7 @@ BOOL CHollowObject::IsHollow(void)
 //////////////////////////////////////////////////////////////////////////
 CBaseObject* CHollowObject::Dehollow(void)
 {
-	CPointerObject	pObject;
-
-	pObject = mpcObjectsThisIn->Dehollow(moi);
-	return pObject.Object();
+	return mpcObjectsThisIn->Dehollow(moi);
 }
 
 

@@ -94,30 +94,29 @@ public:
 						CIndexGenerator*		GetIndexGenerator(void);
 						CNamedIndexedObjects*	GetMemory(void);
 
-						CBaseObject*			GetInMemoryObject(OIndex oi);
 						void					RemoveInKill(CBaseObject* pvObject);
-						CPointerObject			Dehollow(OIndex oi);
+						CBaseObject*			Dehollow(OIndex oi);
 
 						BOOL					Dename(CBaseObject* pvObject);
 						BOOL					Deindex(CBaseObject* pvObject);
 
 						OIndex					StartMemoryIteration(SIndexesIterator* psIter);
 						OIndex					IterateMemory(SIndexesIterator* psIter);
-
-						CPointerObject			GetFromMemory(OIndex oi);
-						CPointerObject			GetFromMemory(char* szObjectName);
-						CPointerObject			GetFromDatabase(OIndex oi);
-						CPointerObject			GetFromDatabase(char* szObjectName);
-
+						CPointerObject			TestGetFromMemory(OIndex oi);
 protected:
-						BOOL				AddWithID(CBaseObject* pvObject, OIndex oi);
-						BOOL				AddWithIDAndName(CBaseObject* pvObject, char* szObjectName, OIndex oi);
-	template<class M>	M*					Allocate(void);
-						CBaseObject*		Allocate(char* szClassName);
-						BOOL				ClearMemory(void);
-						void				KillDontFreeObjects(CArrayBaseObjectPtr* papcObjectPts);
-						void				FreeObjects(CArrayBaseObjectPtr* papcObjectPts);
-						void				FixDistToRoot(CArrayEmbeddedBaseObjectPtr* papcFromsChanged);
+						BOOL					AddWithID(CBaseObject* pvObject, OIndex oi);
+						BOOL					AddWithIDAndName(CBaseObject* pvObject, char* szObjectName, OIndex oi);
+	template<class M>	M*						Allocate(void);
+						CBaseObject*			Allocate(char* szClassName);
+						CBaseObject*			GetFromMemory(OIndex oi);
+						CBaseObject*			GetFromMemory(char* szObjectName);
+						CBaseObject*			GetFromDatabase(OIndex oi);
+						CBaseObject*			GetFromDatabase(char* szObjectName);
+						CBaseObject*			GetFromSources(char* szObjectName);
+						BOOL					ClearMemory(void);
+						void					KillDontFreeObjects(CArrayBaseObjectPtr* papcObjectPts);
+						void					FreeObjects(CArrayBaseObjectPtr* papcObjectPts);
+						void					FixDistToRoot(CArrayEmbeddedBaseObjectPtr* papcFromsChanged);
 };
 
 
