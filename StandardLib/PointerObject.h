@@ -38,8 +38,8 @@ friend class CObjectAllocator;
 friend class CArrayCommonObject;
 friend class CSet;
 friend class CArray;
-template<class M>
-friend class CPointer;
+template<class M> friend class CPointer;
+template<class M> friend class Ptr;
 friend class CObject;
 friend class CObjectDeserialiser;
 friend class CObjectGraphDeserialiser;
@@ -81,6 +81,8 @@ public:
 protected:
 	void			Dehollow(void);
 	void			PointTo(CBaseObject* pcObject);
+	CBaseObject*	Dereference(void);
+	void			Construct(CPointerObject cPointer);
 
 	void			ClearObject(void);
 };

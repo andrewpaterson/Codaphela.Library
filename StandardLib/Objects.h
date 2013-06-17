@@ -38,7 +38,6 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #define ONMalloc(classtype, name)	(gcObjects.Add<classtype>(name))
 #define ORoot()						(gcObjects.AddRoot())
 #define ONull						(Null())
-#define ONNull(classtype)			(Null<classtype>())
 
 
 class CObjects

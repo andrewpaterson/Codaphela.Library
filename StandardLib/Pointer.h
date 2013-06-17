@@ -21,22 +21,25 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __POINTER_H__
 #define __POINTER_H__
 #include "PointerObject.h"
-
+#include "BaseObject.h"
 
 class CObject;
-template<class M>
+
+template<class M = CBaseObject>
 class CPointer : public CPointerObject
 {
 public:
-				CPointer();
-				CPointer(CPointerObject* pcPointer);
-	void 		Init(CObject* pcEmbedding);
-	void		operator = (M* ptr);
-	void		operator = (CPointer<M> pcPointer);
-	void		operator = (CPointerObject pcPointer);
-	M*			operator -> ();
-	M*			operator & ();
+			CPointer();
+			CPointer(CPointerObject cPointer);
+	void 	Init(CObject* pcEmbedding);
+	void	operator = (M* ptr);
+	void	operator = (CPointer<M> pcPointer);
+	void	operator = (CPointerObject pcPointer);
+	M*		operator -> ();
+	M*		operator & ();
 };
+
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -46,9 +49,7 @@ public:
 template<class M>
 CPointer<M>::CPointer()
 {
-	//Calls CPointerObject()
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -56,12 +57,10 @@ CPointer<M>::CPointer()
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-CPointer<M>::CPointer(CPointerObject* pcPointer)
+CPointer<M>::CPointer(CPointerObject cPointer)
 {
-	mpcObject = pcPointer->mpcObject;
-	mpcEmbedding = pcPointer->mpcEmbedding;
+	CPointerObject::Construct(cPointer);
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -82,7 +81,6 @@ void CPointer<M>::Init(CObject* pcEmbedding)
 template<class M>
 void CPointer<M>::operator = (M* ptr)
 {
-	//This operator override exists only to allow NULL assignment.
 	PointTo(ptr);
 }
 
@@ -116,12 +114,9 @@ void CPointer<M>::operator = (CPointerObject pcPointer)
 template<class M>
 M* CPointer<M>::operator -> ()
 {
-	if ((mpcObject) && (mpcObject->IsHollow()))
-	{
-		Dehollow();
-	}
-	return (M*)mpcObject;
+	return (M*)Dereference();
 }
+
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -130,11 +125,7 @@ M* CPointer<M>::operator -> ()
 template<class M>
 M* CPointer<M>::operator & ()
 {
-	if ((mpcObject) && (mpcObject->IsHollow()))
-	{
-		Dehollow();
-	}
-	return (M*)mpcObject;
+	return (M*)Dereference();
 }
 
 
