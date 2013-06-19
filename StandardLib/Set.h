@@ -18,16 +18,16 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __SET_H__
-#define __SET_H__
+#ifndef __SET_OBJECT_H__
+#define __SET_OBJECT_H__
 #include "SetUnknown.h"
 #include "ArrayCommonObject.h"
 #include "PointerObject.h"
 
 
-class CSet : public CArrayCommonObject
+class CSetObject : public CArrayCommonObject
 {
-BASE_FUNCTIONS(CSet);
+BASE_FUNCTIONS(CSetObject);
 public:
 						void 			Init(int iChunkSize = ARRAY_COMMOM_CHUNK_SIZE);
 						void 			Kill(void);
@@ -47,7 +47,7 @@ public:
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-Ptr<M> CSet::StartIteration(SSetIterator* psIter)
+Ptr<M> CSetObject::StartIteration(SSetIterator* psIter)
 {
 	return (M*)StartIteration(psIter);
 }
@@ -57,11 +57,11 @@ Ptr<M> CSet::StartIteration(SSetIterator* psIter)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-Ptr<M> CSet::Iterate(SSetIterator* psIter)
+Ptr<M> CSetObject::Iterate(SSetIterator* psIter)
 {
 	return (M*)Iterate(psIter);
 }
 
 
-#endif // __SET_H__
+#endif // __SET_OBJECT_H__
 

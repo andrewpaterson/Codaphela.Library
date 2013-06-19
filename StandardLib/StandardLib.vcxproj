@@ -145,7 +145,7 @@
     <ClInclude Include="Root.h" />
     <ClInclude Include="Collection.h" />
     <ClInclude Include="Set.h" />
-    <ClInclude Include="Array.h" />
+    <ClInclude Include="ArrayObject.h" />
     <ClInclude Include="ArrayCommonObject.h" />
     <ClInclude Include="Pointer.h" />
     <ClInclude Include="PointerObject.h" />
@@ -250,7 +250,7 @@
     <ClCompile Include="Root.cpp" />
     <ClCompile Include="Collection.cpp" />
     <ClCompile Include="Set.cpp" />
-    <ClCompile Include="Array.cpp" />
+    <ClCompile Include="ArrayObject.cpp" />
     <ClCompile Include="ArrayCommonObject.cpp" />
     <ClCompile Include="PointerObject.cpp" />
     <ClCompile Include="NamedObject.cpp" />

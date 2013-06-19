@@ -207,9 +207,6 @@
     <ClInclude Include="Set.h">
       <Filter>Source\Object\Object\Collections\Set</Filter>
     </ClInclude>
-    <ClInclude Include="Array.h">
-      <Filter>Source\Object\Object\Collections\Array</Filter>
-    </ClInclude>
     <ClInclude Include="ArrayCommonObject.h">
       <Filter>Source\Object\Object\Collections\Common</Filter>
     </ClInclude>
@@ -474,6 +471,9 @@
     <ClInclude Include="IndexedDataObjectDeserialiser.h">
       <Filter>Source\Object\Object\Serilalisation\Indexed</Filter>
     </ClInclude>
+    <ClInclude Include="ArrayObject.h">
+      <Filter>Source\Object\Object\Collections\Array</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Unknown.cpp">
@@ -520,9 +520,6 @@
     </ClCompile>
     <ClCompile Include="Set.cpp">
       <Filter>Source\Object\Object\Collections\Set</Filter>
-    </ClCompile>
-    <ClCompile Include="Array.cpp">
-      <Filter>Source\Object\Object\Collections\Array</Filter>
     </ClCompile>
     <ClCompile Include="ArrayCommonObject.cpp">
       <Filter>Source\Object\Object\Collections\Common</Filter>
@@ -769,6 +766,9 @@
     </ClCompile>
     <ClCompile Include="DependentObjectAdder.cpp">
       <Filter>Source\Object\Object\Serilalisation</Filter>
+    </ClCompile>
+    <ClCompile Include="ArrayObject.cpp">
+      <Filter>Source\Object\Object\Collections\Array</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

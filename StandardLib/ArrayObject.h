@@ -18,26 +18,26 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __ARRAY_H__
-#define __ARRAY_H__
+#ifndef __ARRAY_OBJECT_H__
+#define __ARRAY_OBJECT_H__
 #include "ArrayUnknown.h"
 #include "ArrayCommonObject.h"
 #include "PointerObject.h"
 
 
-class CArray : public CArrayCommonObject
+class CArrayObject : public CArrayCommonObject
 {
-BASE_FUNCTIONS(CArray);
+BASE_FUNCTIONS(CArrayObject);
 public:
 	void 			Init(int iChunkSize = ARRAY_COMMOM_CHUNK_SIZE);
 	void 			Kill(void);
 
 	void			Insert(int iIndex, CPointer pObject);
-	CPointer	Get(int iIndex);
+	CPointer		Get(int iIndex);
 	void			Set(int iIndex, CPointer pObject);
 
 	template<class M>
-	Ptr<M>		Get(int iIndex);
+	Ptr<M>			Get(int iIndex);
 };
 
 
@@ -46,11 +46,11 @@ public:
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-Ptr<M> CArray::Get(int iIndex)
+Ptr<M> CArrayObject::Get(int iIndex)
 {
 	return (M*)Get(iIndex);
 }
 
 
-#endif // __ARRAY_H__
+#endif // __ARRAY_OBJECT_H__
 

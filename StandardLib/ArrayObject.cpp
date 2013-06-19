@@ -18,14 +18,14 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "Array.h"
+#include "ArrayObject.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArray::Init(int iChunkSize)
+void CArrayObject::Init(int iChunkSize)
 {
 	CArrayCommonObject::Init(FALSE, FALSE, TRUE, iChunkSize);
 }
@@ -35,7 +35,7 @@ void CArray::Init(int iChunkSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArray::Kill(void)
+void CArrayObject::Kill(void)
 {
 	CArrayCommonObject::Kill();
 }
@@ -45,9 +45,9 @@ void CArray::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArray::Insert(int iIndex, CPointer pObject)
+void CArrayObject::Insert(int iIndex, CPointer pObject)
 {
-	mcArray.Insert(iIndex, pObject.mpcObject);
+	mcArray.Insert(iIndex, pObject.Object());
 	pObject->AddFrom(this);
 }
 
@@ -56,15 +56,15 @@ void CArray::Insert(int iIndex, CPointer pObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointer CArray::Get(int iIndex)
+CPointer CArrayObject::Get(int iIndex)
 {
 	CBaseObject*	pcObject;
-	CPointer	pObject;
+	CPointer		pObject;
 
 	if ((iIndex >=0) && (iIndex < mcArray.UnsafeNumElements()))
 	{
 		pcObject = (CBaseObject*)mcArray.UnsafeGet(iIndex);
-		pObject.mpcObject = pcObject;
+		pObject.AssignObject(pcObject);
 		return pObject;
 	}
 	return pObject;
@@ -75,7 +75,7 @@ CPointer CArray::Get(int iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArray::Set(int iIndex, CPointer pObject)
+void CArrayObject::Set(int iIndex, CPointer pObject)
 {
 	CBaseObject*	pcObject;
 	CPointer	pTemp;
@@ -83,7 +83,7 @@ void CArray::Set(int iIndex, CPointer pObject)
 	if ((iIndex >=0) && (iIndex < mcArray.UnsafeNumElements()))
 	{
 		pcObject = (CBaseObject*)mcArray.UnsafeGet(iIndex);
-		pTemp.mpcObject = pcObject;
+		pTemp.AssignObject(pcObject);
 		pTemp = pObject;
 	}
 }

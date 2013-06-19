@@ -33,8 +33,8 @@ friend class CUnknowns;
 friend class CConstructorUnknown;
 BASE_FUNCTIONS(CRoot);
 protected:
-	Ptr<CSet>	mpObjects;
-	CObjects*	mpcObjectsAllocatingFrom;
+	Ptr<CSetObject>	mpObjects;
+	CObjects*		mpcObjectsAllocatingFrom;
 
 protected:
 						CRoot();
@@ -53,11 +53,11 @@ public:
 						BOOL			Save(CObjectSerialiser* pcFile);
 						BOOL			Load(CObjectDeserialiser* pcFile);
 
-						CPointer	Get(char* szObjectName);
-	template<class M>	Ptr<M>		Get(char* szObjectName);
-						Ptr<CSet>	GetAll(void);
+						CPointer		Get(char* szObjectName);
+	template<class M>	Ptr<M>			Get(char* szObjectName);
+						Ptr<CSetObject>	GetAll(void);
 
-						CSet*			TestGetSet(void);
+						CSetObject*		TestGetSet(void);
 						BOOL			IsSetHollow(void);
 };
 

@@ -42,7 +42,7 @@ void CRoot::Init(void)
 {
 	Pointer(mpObjects.This());
 	mpcObjectsAllocatingFrom = &gcObjects;
-	mpObjects = mpcObjectsAllocatingFrom->Add<CSet>();
+	mpObjects = mpcObjectsAllocatingFrom->Add<CSetObject>();
 	mpObjects->Init(1024);
 	mpObjects->MakeSubRoot();
 }
@@ -56,7 +56,7 @@ void CRoot::Init(CObjects* pcObjectsAllocatingFrom)
 {
 	Pointer(mpObjects.This());
 	mpcObjectsAllocatingFrom = pcObjectsAllocatingFrom;
-	mpObjects = mpcObjectsAllocatingFrom->Add<CSet>();
+	mpObjects = mpcObjectsAllocatingFrom->Add<CSetObject>();
 	mpObjects->Init(1024);
 	mpObjects->MakeSubRoot();
 }
@@ -182,7 +182,7 @@ CPointer CRoot::Get(char* szObjectName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CSet> CRoot::GetAll(void)
+Ptr<CSetObject> CRoot::GetAll(void)
 {
 	return mpObjects;
 }
@@ -192,7 +192,7 @@ Ptr<CSet> CRoot::GetAll(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CSet* CRoot::TestGetSet(void)
+CSetObject* CRoot::TestGetSet(void)
 {
 	return	&mpObjects;
 }

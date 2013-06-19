@@ -36,8 +36,7 @@ class CPointer
 friend class CObjects;
 friend class CObjectAllocator;
 friend class CArrayCommonObject;
-friend class CSet;
-friend class CArray;
+friend class CSetObject;
 template<class M> friend class Ptr;
 template<class M> friend class Ptr;
 friend class CObject;
@@ -60,7 +59,7 @@ public:
 	BOOL			IsNotNull(void);
 	BOOL			IsNull(void);
 
-	CPointer*	This(void);
+	CPointer*		This(void);
 	CObject*		Embedding(void);
 	CBaseObject*	Object(void);
 	CBaseObject**	ObjectPtr(void);
@@ -77,6 +76,7 @@ public:
 	BOOL			IsDirty(void);
 	void			Kill(void);
 	void			ClearIndex(void);
+	void			AssignObject(CBaseObject* pcObject);
 
 protected:
 	void			Dehollow(void);

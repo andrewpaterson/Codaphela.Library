@@ -25,7 +25,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CSet::Init(int iChunkSize)
+void CSetObject::Init(int iChunkSize)
 {
 	CArrayCommonObject::Init(FALSE, TRUE, FALSE, iChunkSize);
 }
@@ -35,7 +35,7 @@ void CSet::Init(int iChunkSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CSet::Kill(void)
+void CSetObject::Kill(void)
 {
 	CArrayCommonObject::Kill();
 }
@@ -45,7 +45,7 @@ void CSet::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CSet::RemoveDuringIteration(SSetIterator* psIter)
+void CSetObject::RemoveDuringIteration(SSetIterator* psIter)
 {
 	mcArray.RemoveDuringIteration(psIter);
 }
@@ -55,7 +55,7 @@ void CSet::RemoveDuringIteration(SSetIterator* psIter)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointer CSet::StartIteration(SSetIterator* psIter)
+CPointer CSetObject::StartIteration(SSetIterator* psIter)
 {
 	CBaseObject*	pcObject;
 	CPointer	pObject;
@@ -70,7 +70,7 @@ CPointer CSet::StartIteration(SSetIterator* psIter)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointer CSet::Iterate(SSetIterator* psIter)
+CPointer CSetObject::Iterate(SSetIterator* psIter)
 {
 	CBaseObject*	pcObject;
 	CPointer	pObject;
