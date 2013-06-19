@@ -1,6 +1,6 @@
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
-Copyright (c) 2012 Andrew Paterson
+Copyright (c) 2013 Andrew Paterson
 
 This file is part of The Codaphela Project: Codaphela StandardLib
 
@@ -18,50 +18,39 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __POINTER_H__
-#define __POINTER_H__
-#include "PointerObject.h"
+#ifndef __ARRAY_H__
+#define __ARRAY_H__
+#include "Pointer.h"
+#include "ArrayObject.h"
 #include "BaseObject.h"
 
-class CObject;
 
-template<class M = CBaseObject>
-class Ptr : public CPointer
+template<class M = CBaseObjec>
+class CArray : public CArrayObject
 {
+BASE_FUNCTIONS(CArray);
 public:
-			Ptr();
-			Ptr(CBaseObject* ptr);
-			Ptr(CPointer cPointer);
-	void 	Init(CObject* pcEmbedding);
-	void	operator = (M* ptr);
-	void	operator = (Ptr<M> pcPointer);
-	void	operator = (CPointer pcPointer);
-	M*		operator -> ();
-	M*		operator & ();
+	Ptr<CArray<M>>	Init(int iChunkSize = ARRAY_COMMOM_CHUNK_SIZE);
+
+	void			Add(Ptr<M> pObject);
+	void			AddAll(Ptr<CArrayCommonObject> pcArray);
+	void			Insert(int iIndex, Ptr<M> pObject);
+	Ptr<M>			Get(int iIndex);
+	void			Set(int iIndex, Ptr<M> pObject);
+	BOOL			RemoveAt(int iIndex);
+	BOOL			Remove(Ptr<M> pObject);
 };
 
 
-
-
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-Ptr<M>::Ptr()
+Ptr<CArray<M>> CArray<M>::Init(int iChunkSize)
 {
-}
-
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-template<class M>
-Ptr<M>::Ptr(CBaseObject* ptr)
-{
-	PointTo(ptr);
+	CArrayObject::Init(iChunkSize);
+	return Ptr<CArray<M>>(this);
 }
 
 
@@ -70,9 +59,9 @@ Ptr<M>::Ptr(CBaseObject* ptr)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-Ptr<M>::Ptr(CPointer cPointer)
+void CArray<M>::Add(Ptr<M> pObject)
 {
-	CPointer::Construct(cPointer);
+	CArrayObject::Add(pObject);
 }
 
 
@@ -81,9 +70,10 @@ Ptr<M>::Ptr(CPointer cPointer)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void Ptr<M>::Init(CObject* pcEmbedding)
+void CArray<M>::AddAll(Ptr<CArrayCommonObject> pcArray)
 {
-	CPointer::Init(pcEmbedding);
+	pcArray->ClassName();
+	CArrayObject::AddAll((CArrayCommonObject*)pcArray.Dereference());
 }
 
 
@@ -92,9 +82,9 @@ void Ptr<M>::Init(CObject* pcEmbedding)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void Ptr<M>::operator = (M* ptr)
+void CArray<M>::Insert(int iIndex, Ptr<M> pObject)
 {
-	PointTo(ptr);
+	CArrayObject::Insert(iIndex, pObject);
 }
 
 
@@ -103,9 +93,9 @@ void Ptr<M>::operator = (M* ptr)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void Ptr<M>::operator = (Ptr<M> pcPointer)
+void CArray<M>::Set(int iIndex, Ptr<M> pObject)
 {
-	PointTo(pcPointer.mpcObject);
+	CArrayObject::Set(iIndex, pObject);
 }
 
 
@@ -114,9 +104,19 @@ void Ptr<M>::operator = (Ptr<M> pcPointer)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void Ptr<M>::operator = (CPointer pcPointer)
+Ptr<M> CArray<M>::Get(int iIndex)
 {
-	PointTo(pcPointer.mpcObject);
+	return CArrayObject::Get(iIndex);
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+BOOL CArray<M>::RemoveAt(int iIndex)
+{
+	return CArrayObject::RemoveAt(iIndex);
 }
 
 
@@ -125,22 +125,11 @@ void Ptr<M>::operator = (CPointer pcPointer)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M* Ptr<M>::operator -> ()
+BOOL CArray<M>::Remove(Ptr<M> pObject)
 {
-	return (M*)Dereference();
+	return CArrayObject::Remove(pObject);
 }
 
 
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-template<class M>
-M* Ptr<M>::operator & ()
-{
-	return (M*)Dereference();
-}
-
-
-#endif // __POINTER_H__
+#endif // __ARRAY_H__
 

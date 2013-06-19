@@ -155,25 +155,16 @@ template<class M>
 //Called by Macro 'OMalloc'
 Ptr<M> CObjects::Add(void)
 {
-	M	m;
+	M		m;
+	Ptr<M>	pObject;
+	M*		pvObject;
 
-	if (!m.IsNamed())
-	{
-		Ptr<M>		pObject;
-		M*				pvObject;
+	pvObject = Allocate<M>();
+	AddWithID(pvObject, mcIndexGenerator.PopIndex());
 
-		pvObject = Allocate<M>();
-		AddWithID(pvObject, mcIndexGenerator.PopIndex());
-
-		//No PointTo because we don't know the embedding object until assignment.
-		pObject.mpcObject = pvObject;
-		return pObject;
-	}
-	else
-	{
-		//Can't add a named object without a name
-		return Null<M>();
-	}
+	//No PointTo because we don't know the embedding object until assignment.
+	pObject.mpcObject = pvObject;
+	return pObject;
 }
 
 

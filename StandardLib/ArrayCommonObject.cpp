@@ -219,13 +219,17 @@ void CArrayCommonObject::Set(int iIndex, CPointer pObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayCommonObject::Remove(CPointer pObject)
+BOOL CArrayCommonObject::Remove(CPointer pObject)
 {
 	if (pObject.IsNotNull())
 	{
-		mcArray.Remove(pObject.mpcObject);
-		pObject->RemoveFrom(this);
+		if (mcArray.Remove(pObject.mpcObject))
+		{
+			pObject->RemoveFrom(this);
+			return TRUE;
+		}
 	}
+	return FALSE;
 }
 
 

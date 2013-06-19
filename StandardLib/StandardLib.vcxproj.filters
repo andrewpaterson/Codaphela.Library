@@ -474,6 +474,9 @@
     <ClInclude Include="ArrayObject.h">
       <Filter>Source\Object\Object\Collections\Array</Filter>
     </ClInclude>
+    <ClInclude Include="Array.h">
+      <Filter>Source\Object\Object\Collections\Array</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Unknown.cpp">

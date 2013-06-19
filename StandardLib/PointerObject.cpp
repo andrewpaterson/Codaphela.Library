@@ -193,7 +193,7 @@ BOOL CPointer::IsNull(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointer*	CPointer::This(void)
+CPointer* CPointer::This(void)
 {
 	//This method should only *ever* be called whilst in the Load method on a CObject
 	return this;

@@ -112,6 +112,7 @@ public:
 	virtual void			RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged) =0;
 			void			AddFrom(CBaseObject* pcFrom);
 			void			FixDistToRoot(void);
+			void			RemoveFrom(CBaseObject* pcFrom);
 	
 protected:
 	virtual void			KillToPointers(void) =0;
@@ -120,7 +121,6 @@ protected:
 	virtual int				RemapTos(CBaseObject* pcOld, CBaseObject* pcNew) =0;
 			BOOL			RemoveToFrom(CBaseObject* pcPointedTo, CArrayEmbeddedBaseObjectPtr* papcFromsChanged);
 			void			PrivateRemoveFrom(CBaseObject* pcFrom);
-			void			RemoveFrom(CBaseObject* pcFrom);
 			int				RemoveAllFroms(void);
 	virtual void			RemoveTo(CBaseObject* pcTo) =0;
 			void			CopyFroms(CBaseObject* pcSource);

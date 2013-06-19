@@ -77,11 +77,11 @@ public:
 	void			Kill(void);
 	void			ClearIndex(void);
 	void			AssignObject(CBaseObject* pcObject);
+	CBaseObject*	Dereference(void);
 
 protected:
 	void			Dehollow(void);
 	void			PointTo(CBaseObject* pcObject);
-	CBaseObject*	Dereference(void);
 	void			Construct(CPointer cPointer);
 
 	void			ClearObject(void);
