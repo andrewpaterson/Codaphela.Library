@@ -120,4 +120,3 @@ CPointer CSetObject::Iterate(SSetIterator* psIter)
 	return pObject;
 }
 
-

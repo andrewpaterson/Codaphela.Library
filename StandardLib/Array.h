@@ -31,6 +31,7 @@ class CArray : public CArrayObject
 BASE_FUNCTIONS(CArray);
 public:
 	Ptr<CArray<M>>	Init(int iChunkSize = ARRAY_COMMOM_CHUNK_SIZE);
+	void			Kill(void);
 
 	void			Add(Ptr<M> pObject);
 	void			AddAll(Ptr<CArrayCommonObject> pcArray);
@@ -51,6 +52,17 @@ Ptr<CArray<M>> CArray<M>::Init(int iChunkSize)
 {
 	CArrayObject::Init(iChunkSize);
 	return Ptr<CArray<M>>(this);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+void CArray<M>::Kill(void)
+{
+	CArrayObject::Kill();
 }
 
 
