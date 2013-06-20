@@ -29,18 +29,18 @@ class CArrayObject : public CArrayCommonObject
 {
 BASE_FUNCTIONS(CArrayObject);
 public:
-	void 			Init(int iChunkSize = ARRAY_COMMOM_CHUNK_SIZE);
+	Ptr<CArrayObject>	Init(int iChunkSize = ARRAY_COMMOM_CHUNK_SIZE);
 
-	void			Add(CPointer pObject);
-	void			AddAll(Ptr<CArrayObject> pcArray);
-	void			Insert(int iIndex, CPointer pObject);
-	CPointer		Get(int iIndex);
-	void			Set(int iIndex, CPointer pObject);
-	BOOL			Remove(CPointer pObject);
-	BOOL			RemoveAt(int iIndex);
+	void				Add(CPointer pObject);
+	void				AddAll(Ptr<CArrayObject> pcArray);
+	void				Insert(int iIndex, CPointer pObject);
+	CPointer			Get(int iIndex);
+	void				Set(int iIndex, CPointer pObject);
+	BOOL				Remove(CPointer pObject);
+	BOOL				RemoveAt(int iIndex);
 
 	template<class M>
-	Ptr<M>			Get(int iIndex);
+	Ptr<M>				Get(int iIndex);
 };
 
 

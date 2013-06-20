@@ -38,8 +38,8 @@ protected:
 
 protected:
 						CRoot();
-						void			Init(void);
-						void			Init(CObjects* pcObjectsAllocatingFrom);
+						Ptr<CRoot>		Init(void);
+						Ptr<CRoot>		Init(CObjects* pcObjectsAllocatingFrom);
 
 public:
 						void			KillData(void);

@@ -25,9 +25,10 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayObject::Init(int iChunkSize)
+Ptr<CArrayObject> CArrayObject::Init(int iChunkSize)
 {
 	CArrayCommonObject::Init(FALSE, FALSE, TRUE, iChunkSize);
+	return Ptr<CArrayObject>(this);
 }
 
 

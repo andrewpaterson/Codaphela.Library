@@ -38,13 +38,15 @@ CRoot::CRoot()
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CRoot::Init(void)
+Ptr<CRoot> CRoot::Init(void)
 {
 	Pointer(mpObjects.This());
 	mpcObjectsAllocatingFrom = &gcObjects;
 	mpObjects = mpcObjectsAllocatingFrom->Add<CSetObject>();
 	mpObjects->Init(1024);
 	mpObjects->MakeSubRoot();
+
+	return Ptr<CRoot>(this);
 }
 
 
@@ -52,13 +54,15 @@ void CRoot::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CRoot::Init(CObjects* pcObjectsAllocatingFrom)
+Ptr<CRoot> CRoot::Init(CObjects* pcObjectsAllocatingFrom)
 {
 	Pointer(mpObjects.This());
 	mpcObjectsAllocatingFrom = pcObjectsAllocatingFrom;
 	mpObjects = mpcObjectsAllocatingFrom->Add<CSetObject>();
 	mpObjects->Init(1024);
 	mpObjects->MakeSubRoot();
+
+	return Ptr<CRoot>(this);
 }
 
 
