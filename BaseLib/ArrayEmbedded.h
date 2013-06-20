@@ -513,6 +513,7 @@ void CArrayEmbedded<M, I>::RemoveAt(int iIndex, int bPreserveOrder)
 {
 	void*	pSource;
 	void*	pDest;
+	int		iMove;
 
 	if (IsEmbedded())
 	{
@@ -520,7 +521,12 @@ void CArrayEmbedded<M, I>::RemoveAt(int iIndex, int bPreserveOrder)
 		pSource = RemapSinglePointer(pDest, miElementSize);
 
 		miUsedElements--;
-		memmove(pDest, pSource, miElementSize * (miUsedElements - iIndex));
+
+		iMove = miUsedElements - iIndex;
+		if (iMove > 0)
+		{
+			memmove(pDest, pSource, miElementSize * iMove);
+		}
 	}
 	else
 	{

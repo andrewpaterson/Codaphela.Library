@@ -155,16 +155,24 @@ template<class M>
 //Called by Macro 'OMalloc'
 Ptr<M> CObjects::Add(void)
 {
-	M		m;
-	Ptr<M>	pObject;
-	M*		pvObject;
+	M	m;
 
-	pvObject = Allocate<M>();
-	AddWithID(pvObject, mcIndexGenerator.PopIndex());
+	if (!m.IsNamed())
+	{
+		Ptr<M>	pObject;
+		M*		pvObject;
 
-	//No PointTo because we don't know the embedding object until assignment.
-	pObject.mpcObject = pvObject;
-	return pObject;
+		pvObject = Allocate<M>();
+		AddWithID(pvObject, mcIndexGenerator.PopIndex());
+
+		//No PointTo because we don't know the embedding object until assignment.
+		pObject.mpcObject = pvObject;
+		return pObject;
+	}
+	else
+	{
+		return Add<M>("");
+	}
 }
 
 
@@ -180,8 +188,8 @@ Ptr<M> CObjects::Add(char* szObjectName)
 
 	if (m.IsNamed())
 	{
-		Ptr<M>		pObject;
-		M*				pvObject;
+		Ptr<M>	pObject;
+		M*		pvObject;
 
 		pvObject = Allocate<M>();
 		AddWithIDAndName(pvObject, szObjectName, mcIndexGenerator.PopIndex());
