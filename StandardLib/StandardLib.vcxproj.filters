@@ -204,9 +204,6 @@
     <ClInclude Include="Collection.h">
       <Filter>Source\Object\Object\Collections</Filter>
     </ClInclude>
-    <ClInclude Include="Set.h">
-      <Filter>Source\Object\Object\Collections\Set</Filter>
-    </ClInclude>
     <ClInclude Include="ArrayCommonObject.h">
       <Filter>Source\Object\Object\Collections\Common</Filter>
     </ClInclude>
@@ -477,6 +474,12 @@
     <ClInclude Include="Array.h">
       <Filter>Source\Object\Object\Collections\Array</Filter>
     </ClInclude>
+    <ClInclude Include="SetObject.h">
+      <Filter>Source\Object\Object\Collections\Set</Filter>
+    </ClInclude>
+    <ClInclude Include="Set.h">
+      <Filter>Source\Object\Object\Collections\Set</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Unknown.cpp">
@@ -520,9 +523,6 @@
     </ClCompile>
     <ClCompile Include="Collection.cpp">
       <Filter>Source\Object\Object\Collections</Filter>
-    </ClCompile>
-    <ClCompile Include="Set.cpp">
-      <Filter>Source\Object\Object\Collections\Set</Filter>
     </ClCompile>
     <ClCompile Include="ArrayCommonObject.cpp">
       <Filter>Source\Object\Object\Collections\Common</Filter>
@@ -772,6 +772,9 @@
     </ClCompile>
     <ClCompile Include="ArrayObject.cpp">
       <Filter>Source\Object\Object\Collections\Array</Filter>
+    </ClCompile>
+    <ClCompile Include="SetObject.cpp">
+      <Filter>Source\Object\Object\Collections\Set</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

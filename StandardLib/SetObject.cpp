@@ -18,16 +18,17 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "Set.h"
+#include "SetObject.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CSetObject::Init(int iChunkSize)
+Ptr<CSetObject> CSetObject::Init(int iChunkSize)
 {
 	CArrayCommonObject::Init(FALSE, TRUE, FALSE, iChunkSize);
+	return Ptr<CSetObject>(this);
 }
 
 
@@ -38,6 +39,45 @@ void CSetObject::Init(int iChunkSize)
 void CSetObject::Kill(void)
 {
 	CArrayCommonObject::Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CSetObject::Add(CPointer pObject)
+{
+	CArrayCommonObject::Add(pObject);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CPointer CSetObject::Get(int iIndex)
+{
+	CBaseObject*	pcObject;
+	CPointer		pObject;
+
+	if ((iIndex >=0) && (iIndex < mcArray.UnsafeNumElements()))
+	{
+		pcObject = (CBaseObject*)mcArray.UnsafeGet(iIndex);
+		pObject.AssignObject(pcObject);
+		return pObject;
+	}
+	return pObject;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CSetObject::Remove(CPointer pObject)
+{
+	return CArrayCommonObject::Remove(pObject);
 }
 
 

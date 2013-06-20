@@ -127,6 +127,7 @@
     <ClInclude Include="ObjectSourceText.h" />
     <ClInclude Include="Parameters.h" />
     <ClInclude Include="SerialisedObject.h" />
+    <ClInclude Include="Set.h" />
     <ClInclude Include="String.h" />
     <ClInclude Include="Unknown.h" />
     <ClInclude Include="SetType.h" />
@@ -145,7 +146,7 @@
     <ClInclude Include="Objects.h" />
     <ClInclude Include="Root.h" />
     <ClInclude Include="Collection.h" />
-    <ClInclude Include="Set.h" />
+    <ClInclude Include="SetObject.h" />
     <ClInclude Include="ArrayObject.h" />
     <ClInclude Include="ArrayCommonObject.h" />
     <ClInclude Include="Pointer.h" />
@@ -250,7 +251,7 @@
     <ClCompile Include="Objects.cpp" />
     <ClCompile Include="Root.cpp" />
     <ClCompile Include="Collection.cpp" />
-    <ClCompile Include="Set.cpp" />
+    <ClCompile Include="SetObject.cpp" />
     <ClCompile Include="ArrayObject.cpp" />
     <ClCompile Include="ArrayCommonObject.cpp" />
     <ClCompile Include="PointerObject.cpp" />

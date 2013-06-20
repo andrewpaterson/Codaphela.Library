@@ -20,7 +20,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __ROOT_H__
 #define __ROOT_H__
-#include "Set.h"
+#include "SetObject.h"
 #include "NamedObject.h"
 #include "Pointer.h"
 

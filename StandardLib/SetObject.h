@@ -18,29 +18,32 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __ARRAY_OBJECT_H__
-#define __ARRAY_OBJECT_H__
-#include "ArrayUnknown.h"
+#ifndef __SET_OBJECT_H__
+#define __SET_OBJECT_H__
+#include "SetUnknown.h"
 #include "ArrayCommonObject.h"
+#include "PointerObject.h"
 #include "Pointer.h"
 
 
-class CArrayObject : public CArrayCommonObject
+class CSetObject : public CArrayCommonObject
 {
-BASE_FUNCTIONS(CArrayObject);
+BASE_FUNCTIONS(CSetObject);
 public:
-	void 			Init(int iChunkSize = ARRAY_COMMOM_CHUNK_SIZE);
+						Ptr<CSetObject> Init(int iChunkSize = ARRAY_COMMOM_CHUNK_SIZE);
+						void 			Kill(void);
 
-	void			Add(CPointer pObject);
-	void			AddAll(Ptr<CArrayObject> pcArray);
-	void			Insert(int iIndex, CPointer pObject);
-	CPointer		Get(int iIndex);
-	void			Set(int iIndex, CPointer pObject);
-	BOOL			Remove(CPointer pObject);
-	BOOL			RemoveAt(int iIndex);
+						void			Add(CPointer pObject);
+						CPointer		Get(int iIndex);
+						BOOL			Remove(CPointer pObject);
 
-	template<class M>
-	Ptr<M>			Get(int iIndex);
+						void			RemoveDuringIteration(SSetIterator* psIter);
+
+						CPointer		StartIteration(SSetIterator* psIter);
+						CPointer		Iterate(SSetIterator* psIter);
+
+	template<class M>	Ptr<M>			StartIteration(SSetIterator* psIter);
+	template<class M>	Ptr<M>			Iterate(SSetIterator* psIter);
 };
 
 
@@ -49,11 +52,21 @@ public:
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-Ptr<M> CArrayObject::Get(int iIndex)
+Ptr<M> CSetObject::StartIteration(SSetIterator* psIter)
 {
-	return (M*)Get(iIndex);
+	return (M*)StartIteration(psIter);
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+Ptr<M> CSetObject::Iterate(SSetIterator* psIter)
+{
+	return (M*)Iterate(psIter);
 }
 
 
-#endif // __ARRAY_OBJECT_H__
+#endif // __SET_OBJECT_H__
 
