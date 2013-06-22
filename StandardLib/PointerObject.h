@@ -33,16 +33,7 @@ class CObject;
 class CObjectDeserialiser;
 class CPointer
 {
-friend class CObjects;
-friend class CObjectAllocator;
-friend class CArrayCommonObject;
-friend class CSetObject;
 template<class M> friend class Ptr;
-template<class M> friend class Ptr;
-friend class CObject;
-friend class CObjectDeserialiser;
-friend class CObjectGraphDeserialiser;
-
 protected:
 	CBaseObject*	mpcObject;
 	CObject*		mpcEmbedding;  //Collections do not embed pointer objects.  They manage their own pointers.
@@ -79,7 +70,6 @@ public:
 	void			AssignObject(CBaseObject* pcObject);
 	CBaseObject*	Dereference(void);
 
-protected:
 	void			Dehollow(void);
 	void			PointTo(CBaseObject* pcObject);
 	void			Construct(CPointer cPointer);

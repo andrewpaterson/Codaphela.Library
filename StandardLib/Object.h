@@ -35,22 +35,23 @@ protected:
 	CArrayEmbedded<CPointer*, 5>	mapPointers;  //Pointers in this object.  
 
 public:
-					CObject();
-	void			Kill(void);
-	int				NumTos(void);
-	BOOL			IsCollection(void);
-	BOOL			IsObject(void);
-	void			SetDistToRoot(int iDistToRoot);
-	CPointer* Pointer(CPointer* pcPointer);
+	CObject();
+	void		Kill(void);
+	int			NumTos(void);
+	BOOL		IsCollection(void);
+	BOOL		IsObject(void);
+	void		SetDistToRoot(int iDistToRoot);
+	CPointer*	Pointer(CPointer* pcPointer);
+	void		Embedded(CBaseObject* pcObject);
 	
 protected:
-	void			KillToPointers(void);
-	void			GetTos(CArrayBaseObjectPtr* papcTos);
-	void			RemoveTo(CBaseObject* pcTo);
-	void			RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged);
-	void			CollectThoseToBeKilled(CArrayBaseObjectPtr* papcKilled);
-	int				RemapTos(CBaseObject* pcOld, CBaseObject* pcNew);
-	void			Free(void);
+	void		KillToPointers(void);
+	void		GetTos(CArrayBaseObjectPtr* papcTos);
+	void		RemoveTo(CBaseObject* pcTo);
+	void		RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged);
+	void		CollectThoseToBeKilled(CArrayBaseObjectPtr* papcKilled);
+	int			RemapTos(CBaseObject* pcOld, CBaseObject* pcNew);
+	void		Free(void);
 };
 
 

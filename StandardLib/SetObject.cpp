@@ -101,7 +101,7 @@ CPointer CSetObject::StartIteration(SSetIterator* psIter)
 	CPointer	pObject;
 
 	pcObject = (CBaseObject*)mcArray.StartIteration(psIter);
-	pObject.mpcObject = pcObject;
+	pObject.AssignObject(pcObject);
 	return pObject;
 }
 
@@ -116,7 +116,7 @@ CPointer CSetObject::Iterate(SSetIterator* psIter)
 	CPointer	pObject;
 
 	pcObject = (CBaseObject*)mcArray.Iterate(psIter);
-	pObject.mpcObject = pcObject;
+	pObject.AssignObject(pcObject);
 	return pObject;
 }
 

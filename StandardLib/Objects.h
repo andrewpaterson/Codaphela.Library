@@ -166,7 +166,7 @@ Ptr<M> CObjects::Add(void)
 		AddWithID(pvObject, mcIndexGenerator.PopIndex());
 
 		//No PointTo because we don't know the embedding object until assignment.
-		pObject.mpcObject = pvObject;
+		pObject.AssignObject(pvObject);
 		return pObject;
 	}
 	else
@@ -195,7 +195,7 @@ Ptr<M> CObjects::Add(char* szObjectName)
 		AddWithIDAndName(pvObject, szObjectName, mcIndexGenerator.PopIndex());
 
 		//No PointTo because we don't know the embedding object until assignment.
-		pObject.mpcObject = pvObject;
+		pObject.AssignObject(pvObject);
 		return pObject;
 	}
 	else
@@ -232,7 +232,7 @@ Ptr<M> CObjects::Get(OIndex oi)
 	{
 		Ptr<M>		pObject;
 
-		pObject.mpcObject = pvObject;
+		pObject.AssignObject(pvObject);
 		return pObject;
 	}
 	else
@@ -256,7 +256,7 @@ Ptr<M> CObjects::Get(char* szObjectName)
 	{
 		Ptr<M>		pObject;
 
-		pObject.mpcObject = pvObject;
+		pObject.AssignObject(pvObject);
 		return pObject;
 	}
 	else

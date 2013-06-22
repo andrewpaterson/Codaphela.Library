@@ -387,14 +387,14 @@ CPointer CObjects::Get(OIndex oi)
 	pvObject = mcMemory.Get(oi);
 	if (pvObject)
 	{
-		pObject.mpcObject = pvObject;
+		pObject.AssignObject(pvObject);
 		return pObject;
 	}
 
 	pvObject = GetFromDatabase(oi);
 	if (pvObject)
 	{
-		pObject.mpcObject = pvObject;
+		pObject.AssignObject(pvObject);
 		return pObject;
 	}
 
@@ -414,21 +414,21 @@ CPointer CObjects::Get(char* szObjectName)
 	pvObject = GetFromMemory(szObjectName);
 	if (pvObject)
 	{
-		pObject.mpcObject = pvObject;
+		pObject.AssignObject(pvObject);
 		return pObject;
 	}
 
 	pvObject = GetFromDatabase(szObjectName);
 	if (pvObject)
 	{
-		pObject.mpcObject = pvObject;
+		pObject.AssignObject(pvObject);
 		return pObject;
 	}
 
 	pvObject = GetFromSources(szObjectName);
 	if (pvObject)
 	{
-		pObject.mpcObject = pvObject;
+		pObject.AssignObject(pvObject);
 		return pObject;
 	}
 
@@ -564,7 +564,7 @@ CPointer CObjects::TestGetFromMemory(OIndex oi)
 {
 	CPointer	pObject;
 
-	pObject.mpcObject = GetFromMemory(oi);
+	pObject.AssignObject(GetFromMemory(oi));
 	return pObject;
 }
 
