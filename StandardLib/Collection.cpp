@@ -49,3 +49,5 @@ int CCollection::IsObject(void)
 {
 	return FALSE;
 }
+
+

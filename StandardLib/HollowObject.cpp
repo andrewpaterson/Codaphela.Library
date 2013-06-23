@@ -108,6 +108,11 @@ BOOL CHollowObject::IsObject(void)
 //////////////////////////////////////////////////////////////////////////
 void CHollowObject::SetDistToRoot(int iDistToRoot)
 {
+	if (miDistToRoot == iDistToRoot)
+	{
+		return;
+	}
+
 	miDistToRoot = iDistToRoot;
 }
 
@@ -177,8 +182,6 @@ void CHollowObject::KillData(void)
 }
 
 
-
-
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -186,3 +189,4 @@ void CHollowObject::KillData(void)
 void CHollowObject::RemoveTo(CBaseObject* pcTo)
 {
 }
+

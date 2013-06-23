@@ -555,7 +555,14 @@ BOOL CArrayCommonUnknown::Remove(CUnknown* pcUnknown)
 	}
 
 	iIndex = Find(pcUnknown);
-	return Remove(iIndex);
+	if (iIndex != -1)
+	{
+		return Remove(iIndex);
+	}
+	else
+	{
+		return FALSE;
+	}
 }
 
 

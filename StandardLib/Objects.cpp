@@ -83,38 +83,18 @@ void CObjects::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjects::Dump(void)
+void CObjects::DumpMemory(void)
 {
 	CChars				sz;
 	SIndexesIterator	sIter;
 	CBaseObject*		pcBaseObject;
-	int					iDistToRoot;
 
 	sz.Init("-------------------------- Memory -------------------------- \n");
 	pcBaseObject = mcMemory.StartIteration(&sIter);
 	while (pcBaseObject)
 	{
-		iDistToRoot = pcBaseObject->DistToRoot();
-		sz.Append(pcBaseObject->DistToRoot());
-		if (iDistToRoot >= 0 && iDistToRoot <= 9)
-		{
-			sz.Append(":  ");
-		}
-		else
-		{
-			sz.Append(": ");
-		}
+		PrintObject(&sz, pcBaseObject);
 
-		sz.Append(pcBaseObject->ClassName());
-		sz.Append("(");
-		sz.Append(pcBaseObject->ClassSize());
-		sz.Append(") ");
-		sz.Append(pcBaseObject->GetOI());
-		if (pcBaseObject->IsNamed())
-		{
-			sz.Append(" ");
-			sz.Append(pcBaseObject->GetName());
-		}
 		sz.Append("\n");
 		pcBaseObject = mcMemory.Iterate(&sIter);
 	}
@@ -122,6 +102,143 @@ void CObjects::Dump(void)
 	sz.Append("------------------------------------------------------------ \n");
 	sz.Dump();
 	sz.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CObjects::DumpGraph(void)
+{
+	CChars				sz;
+	Ptr<CRoot>			pRoot;
+
+	sz.Init("-------------------------- Graph --------------------------- \n");
+
+
+	pRoot = Get(ROOT_NAME);
+	if (pRoot.IsNotNull())
+	{
+		RecurseDumpGraph(&sz, pRoot.Object(), 0, FALSE);
+	}
+
+	sz.Append("------------------------------------------------------------ \n");
+	sz.Dump();
+	sz.Kill();
+
+	SIndexesIterator	sIter;
+	CBaseObject*		pcBaseObject;
+	CBaseObject*		pcEmbeddedObject;
+	CObject*			pcObject;
+	int					i;
+
+	pcBaseObject = mcMemory.StartIteration(&sIter);
+	while (pcBaseObject)
+	{
+		SetFlag(&pcBaseObject->miFlags, OBJECT_FLAGS_DUMPED, FALSE);
+
+		if (pcBaseObject->IsObject())
+		{
+			pcObject = (CObject*)pcBaseObject;
+			for (i = 0; i < pcObject->mapEmbedded.NumElements(); i++)
+			{
+				pcEmbeddedObject = *pcObject->mapEmbedded.Get(i);
+				SetFlag(&pcEmbeddedObject->miFlags, OBJECT_FLAGS_DUMPED, FALSE);
+			}
+		}
+		pcBaseObject = mcMemory.Iterate(&sIter);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CObjects::RecurseDumpGraph(CChars* psz, CBaseObject* pcBaseObject, int iLevel, BOOL bEmbedded)
+{
+	CObject*				pcObject;
+	CArrayBaseObjectPtr		apcTos;
+	int						i;
+	CBaseObject*			pcToObject;
+	CBaseObject*			pcEmbeddedObject;
+
+	psz->Append(' ', iLevel * 3);
+	if ((pcBaseObject->miFlags & OBJECT_FLAGS_DUMPED) || (pcBaseObject->miDistToRoot < iLevel))
+	{
+		psz->Append('*');
+		PrintObject(psz, pcBaseObject, bEmbedded);
+		psz->AppendNewLine();
+		return;
+	}
+	else
+	{
+		psz->Append(' ');
+		PrintObject(psz, pcBaseObject, bEmbedded);
+		psz->AppendNewLine();
+	}
+
+	pcBaseObject->miFlags |= OBJECT_FLAGS_DUMPED;
+
+
+	apcTos.Init();
+	pcBaseObject->GetTos(&apcTos);
+	for (i = 0; i < apcTos.NumElements(); i++)
+	{
+		pcToObject = *apcTos.Get(i);
+		RecurseDumpGraph(psz, pcToObject, iLevel+1, FALSE);
+	}
+
+	if (pcBaseObject->IsObject())
+	{
+		pcObject = (CObject*)pcBaseObject;
+		for (i = 0; i < pcObject->mapEmbedded.NumElements(); i++)
+		{
+			pcEmbeddedObject = *pcObject->mapEmbedded.Get(i);
+			RecurseDumpGraph(psz, pcEmbeddedObject, iLevel, TRUE);
+		}
+	}
+
+	apcTos.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CObjects::PrintObject(CChars* psz, CBaseObject* pcBaseObject, BOOL bEmbedded)
+{
+	int		iDistToRoot;
+
+	psz->Append("[");
+	iDistToRoot = pcBaseObject->DistToRoot();
+	if (iDistToRoot >= 0 && iDistToRoot <= 9)
+	{
+		psz->Append(" ");
+	}
+	psz->Append(pcBaseObject->DistToRoot());
+	psz->Append("]:");
+
+	if (bEmbedded)
+	{
+		psz->Append("(");
+	}
+	psz->Append(pcBaseObject->ClassName());
+	psz->Append("(");
+	psz->Append(pcBaseObject->ClassSize());
+	psz->Append(") ");
+	psz->Append(pcBaseObject->GetOI());
+	if (pcBaseObject->IsNamed())
+	{
+		psz->Append(" ");
+		psz->Append(pcBaseObject->GetName());
+	}
+	if (bEmbedded)
+	{
+		psz->Append(")");
+	}
 }
 
 
@@ -662,31 +779,32 @@ void CObjects::Remove(CArrayBaseObjectPtr* papcKilled)
 //////////////////////////////////////////////////////////////////////////
 void CObjects::FixDistToRoot(CArrayEmbeddedBaseObjectPtr* papcFromsChanged)
 {
-	int				i;
-	int				iNumElements;
-	CBaseObject*	pcSubRoot;
-	CBaseObject*	pcTemp;
-	CBaseObject*	pcFromsChanged;
+	int								i;
+	int								iNumElements;
+	CBaseObject*					pcSubRoot;
+	CBaseObject*					pcFromsChanged;
+	CArrayEmbeddedBaseObjectPtr		apcSubRoots;
+	int								iNumSubRoots;
 
-	//You could optimize this to stop one before the RootSet.
-	pcSubRoot = NULL;
+	apcSubRoots.Init();
 	iNumElements = papcFromsChanged->NumElements();
 	for (i = 0; i < iNumElements; i++)
 	{
 		pcFromsChanged = *papcFromsChanged->Get(i);
-
-		pcTemp = pcFromsChanged->ClearDistToSubRoot();
-		if (!pcSubRoot)
+		pcSubRoot = pcFromsChanged->ClearDistToSubRoot();
+		if (pcSubRoot)
 		{
-			//Theres a bug here, you need to collect all the SubRoots and call FixDistToRoot on all of them.
-			pcSubRoot = pcTemp;
+			apcSubRoots.Add(&pcSubRoot);
 		}
 	}
 
-	if (pcSubRoot)
+	iNumSubRoots = apcSubRoots.NumElements();
+	for (i = 0; i < iNumSubRoots; i++)
 	{
+		pcSubRoot = *apcSubRoots.Get(i);
 		pcSubRoot->FixDistToRoot();
 	}
+	apcSubRoots.Kill();
 }
 
 

@@ -351,6 +351,11 @@ void CArrayCommonObject::SetDistToRoot(int iDistToRoot)
 	CBaseObject*			pcPointedTo;
 	int						i;
 
+	if (miDistToRoot == iDistToRoot)
+	{
+		return;
+	}
+
 	miDistToRoot = iDistToRoot;
 
 	for (i = 0; i < mcArray.UnsafeNumElements(); i++)

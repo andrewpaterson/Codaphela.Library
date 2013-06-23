@@ -41,12 +41,13 @@ public:
 			int				NumTos(void);
 
 protected:
-	void			KillToPointers(void);
-	void			KillData(void);
-	int				RemapTos(CBaseObject* pcOld, CBaseObject* pcNew);
-	void			RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged);
-	void			RemoveTo(CBaseObject* pcTo);
-	void			CollectThoseToBeKilled(CArrayBaseObjectPtr* papcKilled);
+	void	KillToPointers(void);
+	void	KillData(void);
+	int		RemapTos(CBaseObject* pcOld, CBaseObject* pcNew);
+	void	RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged);
+	void	RemoveTo(CBaseObject* pcTo);
+	void	CollectThoseToBeKilled(CArrayBaseObjectPtr* papcKilled);
+	BOOL	CanFindRoot(void);
 };
 
 

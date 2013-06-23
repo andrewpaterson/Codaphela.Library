@@ -42,6 +42,9 @@ typedef CArrayEmbedded<CBaseObject*, 32>	CArrayEmbeddedBaseObjectPtr;
 //Debug flag marking whether or not an object has had kill called on it.  An object that is killed should be removed from Memory so an object with this flag set is broken.
 #define OBJECT_FLAGS_KILLED				0x10
 
+//Debug flag marking whether or not an object has had it's graph dumped yet.
+#define OBJECT_FLAGS_DUMPED				0x20
+
 
 #define ROOT_DIST_TO_ROOT			 0
 #define UNATTACHED_DIST_TO_ROOT		-1
@@ -66,6 +69,7 @@ protected:
 	int									miDistToRoot;
 	OIndex								moi;
 	CArrayEmbedded<CBaseObject*, 6>		mapFroms;  //Objects that 'this' is pointed from.  
+	CBaseObject*						mpcEmbedded;  //Object that 'this' is embedded in.
 	int									miFlags;
 
 public:
@@ -83,8 +87,6 @@ public:
 			OIndex			GetOI(void);
 			void			SetObjectID(OIndex oi);
 			void			ClearIndex(void);
-
-			BOOL			HasFroms(void);
 
 	virtual BOOL			IsRoot(void);
 	virtual BOOL			IsSubRoot(void);
@@ -124,6 +126,8 @@ protected:
 			int				RemoveAllFroms(void);
 	virtual void			RemoveTo(CBaseObject* pcTo) =0;
 			void			CopyFroms(CBaseObject* pcSource);
+			void			GetFroms(CArrayEmbeddedBaseObjectPtr* papcFroms);
+	virtual void			RecurseGetFroms(CArrayEmbeddedBaseObjectPtr* papcFroms);
 			void			PotentiallySetDistToRoot(CBaseObject* pcTos, int iExpectedDistToRoot);
 			BOOL			CanFindRoot(void);
 			CBaseObject*	ClearDistToSubRoot(void);
@@ -131,6 +135,9 @@ protected:
 			void			MarkForKilling(CArrayBaseObjectPtr* papcKilled);
 			void			KillCollected(CArrayBaseObjectPtr* papcKilled);
 			int				KillThisGraph(void);
+			BOOL			IsUnattached(void);
+			BOOL			IsEmbedded(void);
+			BOOL			IsNotEmbedded(void);
 };
 
 

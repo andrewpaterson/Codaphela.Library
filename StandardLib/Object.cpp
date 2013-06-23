@@ -29,6 +29,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 CObject::CObject()
 {
 	mapPointers.Init();
+	mapEmbedded.Init();
 }
 
 
@@ -48,6 +49,7 @@ void CObject::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CObject::KillToPointers(void)
 {
+	mapEmbedded.Kill();
 	mapPointers.Kill();
 }
 
@@ -143,10 +145,34 @@ void CObject::CollectThoseToBeKilled(CArrayBaseObjectPtr* papcKilled)
 //////////////////////////////////////////////////////////////////////////
 void CObject::SetDistToRoot(int iDistToRoot)
 {
-	int					i;
-	CBaseObject*		pcPointedTo;
-	CPointer**	ppPointer;
-	int					iNumPointers;
+	int				i;
+	int				iNumEmbedded;
+	CBaseObject*	pcEmbedded;
+
+	if (miDistToRoot != iDistToRoot)
+	{
+		PrivateSetDistToRoot(iDistToRoot);
+	}
+
+	iNumEmbedded = mapEmbedded.NumElements();
+	for (i = 0; i < iNumEmbedded; i++)
+	{
+		pcEmbedded = *mapEmbedded.Get(i);
+		pcEmbedded->SetDistToRoot(iDistToRoot);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CObject::PrivateSetDistToRoot(int iDistToRoot)
+{
+	int				i;
+	CBaseObject*	pcPointedTo;
+	CPointer**		ppPointer;
+	int				iNumPointers;
 
 	miDistToRoot = iDistToRoot;
 
@@ -161,7 +187,6 @@ void CObject::SetDistToRoot(int iDistToRoot)
 		}
 	}
 }
-
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -215,10 +240,10 @@ void CObject::RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged)
 //////////////////////////////////////////////////////////////////////////
 void CObject::RemoveTo(CBaseObject* pcTo)
 {
-	int					iNumPointers;
-	int					i;
-	CPointer**	ppPointer;
-	CBaseObject*		pcPointedTo;
+	int				iNumPointers;
+	int				i;
+	CPointer**		ppPointer;
+	CBaseObject*	pcPointedTo;
 
 	iNumPointers = mapPointers.NumElements();
 	for (i = 0; i < iNumPointers; i++)
@@ -252,7 +277,8 @@ CPointer* CObject::Pointer(CPointer* pcPointer)
 //////////////////////////////////////////////////////////////////////////
 void CObject::Embedded(CBaseObject* pcObject)
 {
-
+	pcObject->mpcEmbedded = this;
+	mapEmbedded.Add(&pcObject);
 }
 
 
@@ -281,5 +307,27 @@ int CObject::RemapTos(CBaseObject* pcOld, CBaseObject* pcNew)
 		}
 	}
 	return iCount;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CObject::RecurseGetFroms(CArrayEmbeddedBaseObjectPtr* papcFroms)
+{
+	int				i;
+	int				iNumEmbedded;
+	CBaseObject*	pcEmbedded;
+
+	CBaseObject::RecurseGetFroms(papcFroms);
+
+	iNumEmbedded = mapEmbedded.NumElements();
+	for (i = 0; i < iNumEmbedded; i++)
+	{
+		pcEmbedded = *mapEmbedded.Get(i);
+
+		pcEmbedded->RecurseGetFroms(papcFroms);
+	}
 }
 

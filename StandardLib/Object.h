@@ -28,11 +28,14 @@ class CObject : public CBaseObject
 template<class M>
 friend class Ptr;
 friend class CPointer;
+friend class CObjects;
 friend class CObjectGraphDeserialiser;
 
 BASE_FUNCTIONS(CObject);
 protected:
-	CArrayEmbedded<CPointer*, 5>	mapPointers;  //Pointers in this object.  
+	CArrayEmbedded<CPointer*, 5>		mapPointers;  //Pointers in this object.  
+	CArrayEmbedded<CBaseObject*, 3>		mapEmbedded;  //Objects embedded in this object
+
 
 public:
 	CObject();
@@ -52,6 +55,8 @@ protected:
 	void		CollectThoseToBeKilled(CArrayBaseObjectPtr* papcKilled);
 	int			RemapTos(CBaseObject* pcOld, CBaseObject* pcNew);
 	void		Free(void);
+	void		RecurseGetFroms(CArrayEmbeddedBaseObjectPtr* papcFroms);
+	void		PrivateSetDistToRoot(int iDistToRoot);
 };
 
 

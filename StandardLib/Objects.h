@@ -58,7 +58,8 @@ public:
 						void					Init(CUnknowns* pcUnknownsAllocatingFrom, char* szWorkingDirectory);
 						void					Init(CUnknowns* pcUnknownsAllocatingFrom, CIndexedConfig* pcConfig);
 						void					Kill(void);
-						void					Dump(void);
+						void					DumpMemory(void);
+						void					DumpGraph(void);
 
 	template<class M>	void					AddConstructor(void);
 	template<class M>	CObjectSource*			AddSource(CAbstractFile* pcFile, char* szFileName);
@@ -68,21 +69,21 @@ public:
 						BOOL					ForceSave(CBaseObject* pcObject);
 						BOOL					Close(void);
 
-						CPointer			Get(OIndex oi);
-						CPointer			Get(char* szObjectName);
-	template<class M> 	Ptr<M>				Get(OIndex oi);
-	template<class M>	Ptr<M>				Get(char* szObjectName);
+						CPointer				Get(OIndex oi);
+						CPointer				Get(char* szObjectName);
+	template<class M> 	Ptr<M>					Get(OIndex oi);
+	template<class M>	Ptr<M>					Get(char* szObjectName);
 						BOOL					Contains(char* szObjectName);
 
-	template<class M>	Ptr<M>				Add(void);
-	template<class M>	Ptr<M>				Add(char* szObjectName);
+	template<class M>	Ptr<M>					Add(void);
+	template<class M>	Ptr<M>					Add(char* szObjectName);
 
-						Ptr<CRoot>			AddRoot(void);
+						Ptr<CRoot>				AddRoot(void);
 
 						void					Remove(CArrayBaseObjectPtr* papcKilled);
 
-						CPointer			Null(void);
-	template<class M>	Ptr<M>				Null(void);
+						CPointer				Null(void);
+	template<class M>	Ptr<M>					Null(void);
 
 						long long int			NumMemoryIndexes(void);
 						int						NumMemoryNames(void);
@@ -102,7 +103,7 @@ public:
 
 						OIndex					StartMemoryIteration(SIndexesIterator* psIter);
 						OIndex					IterateMemory(SIndexesIterator* psIter);
-						CPointer			TestGetFromMemory(OIndex oi);
+						CPointer				TestGetFromMemory(OIndex oi);
 protected:
 						BOOL					AddWithID(CBaseObject* pvObject, OIndex oi);
 						BOOL					AddWithIDAndName(CBaseObject* pvObject, char* szObjectName, OIndex oi);
@@ -117,6 +118,8 @@ protected:
 						void					KillDontFreeObjects(CArrayBaseObjectPtr* papcObjectPts);
 						void					FreeObjects(CArrayBaseObjectPtr* papcObjectPts);
 						void					FixDistToRoot(CArrayEmbeddedBaseObjectPtr* papcFromsChanged);
+						void					RecurseDumpGraph(CChars* psz, CBaseObject* pcObject, int iLevel, BOOL bEmbedded);
+						void					PrintObject(CChars* psz, CBaseObject* pcBaseObject, BOOL bEmbedded = FALSE);
 };
 
 

@@ -32,6 +32,7 @@ CBaseObject::CBaseObject()
 {
 	mapFroms.Init();
 	mpcObjectsThisIn = NULL;
+	mpcEmbedded = NULL;
 	miDistToRoot = UNATTACHED_DIST_TO_ROOT;
 	moi = INVALID_O_INDEX;
 	miFlags = OBJECT_FLAGS_DIRTY;
@@ -57,7 +58,7 @@ void CBaseObject::Kill(void)
 	CArrayEmbeddedBaseObjectPtr		apcFromsChanged;
 	int								iNumKilled;
 
-	if (mapFroms.IsEmpty())
+	if (IsUnattached())
 	{
 		apcFromsChanged.Init();
 		RemoveAllTos(&apcFromsChanged);
@@ -91,12 +92,15 @@ void CBaseObject::KillDontFree(void)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::Free(void)
 {
-	if (mpcObjectsThisIn)
+	if (IsNotEmbedded())
 	{
-		mpcObjectsThisIn->RemoveInKill(this);
+		if (mpcObjectsThisIn)
+		{
+			mpcObjectsThisIn->RemoveInKill(this);
+		}
+		moi = INVALID_O_INDEX;
+		CUnknown::Kill();
 	}
-	moi = INVALID_O_INDEX;
-	CUnknown::Kill();
 }
 
 
@@ -119,7 +123,7 @@ void CBaseObject::RemoveFrom(CBaseObject* pcFrom)
 	//Removing a 'from' kicks off memory reclamation.  This is the entry point for memory management.
 	PrivateRemoveFrom(pcFrom);
 	if (!CanFindRoot())
-	{
+	{	
 		KillThisGraph();
 	}
 	else
@@ -138,6 +142,48 @@ void CBaseObject::CopyFroms(CBaseObject* pcSource)
 {
 	mapFroms.ReInit();
 	mapFroms.Copy(&pcSource->mapFroms);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CBaseObject::GetFroms(CArrayEmbeddedBaseObjectPtr* papcFroms)
+{
+	CBaseObject*	pcNotEmbedded;
+
+	if (mpcEmbedded == NULL)
+	{
+		pcNotEmbedded = this;
+	}
+	else
+	{
+		pcNotEmbedded = mpcEmbedded;
+		for (;;)
+		{
+			if (pcNotEmbedded->mpcEmbedded)
+			{
+				pcNotEmbedded = pcNotEmbedded->mpcEmbedded;
+			}
+			else
+			{
+				break;
+			}
+		}
+	}
+
+	pcNotEmbedded->RecurseGetFroms(papcFroms);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CBaseObject::RecurseGetFroms(CArrayEmbeddedBaseObjectPtr* papcFroms)
+{
+	papcFroms->Copy((CArrayEmbeddedBaseObjectPtr*)&mapFroms);
 }
 
 
@@ -199,18 +245,21 @@ void CBaseObject::KillCollected(CArrayBaseObjectPtr* papcKilled)
 //////////////////////////////////////////////////////////////////////////
 CBaseObject* CBaseObject::ClearDistToSubRoot(void)
 {
-	int				i;
-	int				iNumFroms;
-	CBaseObject**	ppcPointedFrom;
-	CBaseObject*	pcPointedFrom;
-	CBaseObject*	pcRootSet;
-	CBaseObject*	pcTemp;
+	int								i;
+	int								iNumFroms;
+	CBaseObject**					ppcPointedFrom;
+	CBaseObject*					pcPointedFrom;
+	CBaseObject*					pcRootSet;
+	CBaseObject*					pcTemp;
+	CArrayEmbeddedBaseObjectPtr		apcFroms;
 
 	miDistToRoot = UNATTACHED_DIST_TO_ROOT;
 	pcRootSet = NULL;
 
-	iNumFroms = mapFroms.NumElements();
-	ppcPointedFrom = mapFroms.GetData();
+	apcFroms.Init();
+	GetFroms(&apcFroms);
+	iNumFroms = apcFroms.NumElements();
+	ppcPointedFrom = apcFroms.GetData();
 	for (i = 0; i < iNumFroms; i++)
 	{
 		pcPointedFrom = ppcPointedFrom[i];
@@ -220,6 +269,7 @@ CBaseObject* CBaseObject::ClearDistToSubRoot(void)
 			{
 				//No point in stepping back to the sub root.  It's root distance is always correct.
 				//Stop at the object immediately pointed from the sub root.
+				apcFroms.Kill();
 				return this;
 			}
 
@@ -230,6 +280,8 @@ CBaseObject* CBaseObject::ClearDistToSubRoot(void)
 			}
 		}
 	}
+
+	apcFroms.Kill();
 	return pcRootSet;
 }
 
@@ -240,26 +292,31 @@ CBaseObject* CBaseObject::ClearDistToSubRoot(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CBaseObject::CanFindRoot(void)
 {
-	int				iNumFroms;
-	int				i;
-	CBaseObject**	ppcPointedFrom;
-	int				iNearestRoot;
-	CBaseObject*	pcNearestPointedFrom;
-	int				iPointedFromDist;
-	BOOL			bResult;
+	int								iNumFroms;
+	int								i;
+	CBaseObject**					ppcPointedFrom;
+	int								iNearestRoot;
+	CBaseObject*					pcNearestPointedFrom;
+	int								iPointedFromDist;
+	BOOL							bResult;
+	CArrayEmbeddedBaseObjectPtr		apcFroms;
 
 	SetFlag(&miFlags, OBJECT_FLAGS_TESTED_FOR_ROOT, TRUE);
 
-	iNumFroms = mapFroms.NumElements();
+	apcFroms.Init();
+	GetFroms(&apcFroms);
+	iNumFroms = apcFroms.NumElements();
+
 	if (iNumFroms == 0)
 	{
+		apcFroms.Kill();
 		SetFlag(&miFlags, OBJECT_FLAGS_TESTED_FOR_ROOT, FALSE);
 		return FALSE;
 	}
 
 	iNearestRoot = MAX_INT;
 	pcNearestPointedFrom = NULL;
-	ppcPointedFrom = mapFroms.GetData();
+	ppcPointedFrom = apcFroms.GetData();
 	for (i = 0; i < iNumFroms; i++)
 	{
 		iPointedFromDist = ppcPointedFrom[i]->miDistToRoot;
@@ -273,8 +330,11 @@ BOOL CBaseObject::CanFindRoot(void)
 		}
 	}
 
+	apcFroms.Kill();
+
 	if (pcNearestPointedFrom == NULL)
 	{
+		apcFroms.Kill();
 		SetFlag(&miFlags, OBJECT_FLAGS_TESTED_FOR_ROOT, FALSE);
 		return FALSE;
 	}
@@ -287,6 +347,7 @@ BOOL CBaseObject::CanFindRoot(void)
 
 	bResult = pcNearestPointedFrom->CanFindRoot();
 	SetFlag(&miFlags, OBJECT_FLAGS_TESTED_FOR_ROOT, FALSE);
+
 	return bResult;
 }
 
@@ -297,16 +358,22 @@ BOOL CBaseObject::CanFindRoot(void)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::FixDistToRoot(void)
 {
-	int				i;
-	CBaseObject**	ppcPointedFrom;
-	int				iNearestRoot;
-	int				iNumElements;
-	int				iDistToRoot;
+	int								i;
+	CBaseObject**					ppcPointedFrom;
+	int								iNearestRoot;
+	int								iNumFroms;
+	int								iDistToRoot;
+	CArrayEmbeddedBaseObjectPtr		apcFroms;
 
 	iNearestRoot = MAX_INT;
-	ppcPointedFrom = mapFroms.GetData();
-	iNumElements = mapFroms.NumElements();
-	for (i = 0; i < iNumElements; i++)
+
+	apcFroms.Init();
+	GetFroms(&apcFroms);
+
+	iNumFroms = apcFroms.NumElements();
+	ppcPointedFrom = apcFroms.GetData();
+
+	for (i = 0; i < iNumFroms; i++)
 	{
 		iDistToRoot = ppcPointedFrom[i]->miDistToRoot;
 		if (iDistToRoot != UNATTACHED_DIST_TO_ROOT)
@@ -317,6 +384,8 @@ void CBaseObject::FixDistToRoot(void)
 			}
 		}
 	}
+
+	apcFroms.Kill();
 
 	if (iNearestRoot+1 != miDistToRoot)
 	{
@@ -339,16 +408,6 @@ void CBaseObject::AddFrom(CBaseObject* pcFrom)
 			PotentiallySetDistToRoot(this, pcFrom->miDistToRoot+1);
 		}
 	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CBaseObject::HasFroms(void)
-{
-	return mapFroms.IsNotEmpty();
 }
 
 
@@ -565,30 +624,26 @@ void CBaseObject::PotentiallySetDistToRoot(CBaseObject* pcTos, int iExpectedDist
 	if ((pcTos->miDistToRoot == CLEARED_DIST_TO_ROOT) || (pcTos->miDistToRoot == UNATTACHED_DIST_TO_ROOT))
 	{
 		pcTos->SetDistToRoot(iExpectedDistToRoot);
+		return;
 	}
-	else
+
+	iBestDistToRoot = iExpectedDistToRoot;
+	iNumFroms = pcTos->mapFroms.NumElements();
+	for (i = 0; i < iNumFroms; i++)
 	{
-		iBestDistToRoot = iExpectedDistToRoot;
-		iNumFroms = pcTos->mapFroms.NumElements();
-		for (i = 0; i < iNumFroms; i++)
+		pcFrom = pcTos->GetFrom(i);
+		if (pcFrom)
 		{
-			pcFrom = pcTos->GetFrom(i);
-			if (pcFrom)
+			if (pcFrom->miDistToRoot < iBestDistToRoot)
 			{
-				if (pcFrom->miDistToRoot < iBestDistToRoot)
+				if (pcFrom->miDistToRoot >= ROOT_DIST_TO_ROOT)
 				{
-					if (pcFrom->miDistToRoot >= ROOT_DIST_TO_ROOT)
-					{
-						iBestDistToRoot = pcFrom->miDistToRoot+1;
-					}
+					iBestDistToRoot = pcFrom->miDistToRoot+1;
 				}
 			}
 		}
-		if (pcTos->miDistToRoot != iBestDistToRoot)
-		{
-			pcTos->SetDistToRoot(iBestDistToRoot);
-		}
 	}
+	pcTos->SetDistToRoot(iBestDistToRoot);
 }
 
 
@@ -669,3 +724,39 @@ int CBaseObject::RemoveAllFroms(void)
 void CBaseObject::SetName(char* szName)
 {
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CBaseObject::IsUnattached(void)
+{
+	if (mapFroms.IsEmpty() && IsNotEmbedded())
+	{
+		return TRUE;
+	}
+	return FALSE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CBaseObject::IsNotEmbedded(void)
+{
+	return mpcEmbedded == NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CBaseObject::IsEmbedded(void)
+{
+	return mpcEmbedded != NULL;
+}
+
+
