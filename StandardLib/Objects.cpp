@@ -38,6 +38,17 @@ CObjects gcObjects;
 //////////////////////////////////////////////////////////////////////////
 //
 //
+////////////////////////////////////////////////////////////////////////////
+CObjects::CObjects()
+{
+	mbInitialised = FALSE;
+	mpcUnknownsAllocatingFrom = NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
 //////////////////////////////////////////////////////////////////////////
 void CObjects::Init(CUnknowns* pcUnknownsAllocatingFrom, char* szWorkingDirectory)
 {
@@ -62,6 +73,8 @@ void CObjects::Init(CUnknowns* pcUnknownsAllocatingFrom, CIndexedConfig* pcConfi
 	mcMemory.Init();
 
 	mcSource.Init();
+
+	mbInitialised = TRUE;
 }
 
 
@@ -71,6 +84,7 @@ void CObjects::Init(CUnknowns* pcUnknownsAllocatingFrom, CIndexedConfig* pcConfi
 //////////////////////////////////////////////////////////////////////////
 void CObjects::Kill(void)
 {
+	mbInitialised = FALSE;
 	mcSource.Kill();
 	mcMemory.Kill();
 	mcDatabase.Kill();  //Also flushes.
@@ -404,10 +418,13 @@ BOOL CObjects::ForceSave(CBaseObject* pcObject)
 	BOOL						bResult;
 	CObjectSingleSerialiser		cGraphSerialiser;
 	CObjectWriterIndexed		cWriter;
+	CBaseObject*				pcContainer;
+
+	pcContainer = pcObject->GetEmbeddingContainer();
 
 	cWriter.Init(&mcDatabase, 0);
 	cGraphSerialiser.Init(&cWriter);
-	bResult = cGraphSerialiser.Write(pcObject);
+	bResult = cGraphSerialiser.Write(pcContainer);
 	cGraphSerialiser.Kill();
 	cWriter.Kill();
 
@@ -482,13 +499,27 @@ Ptr<CRoot> CObjects::AddRoot(void)
 {
 	Ptr<CRoot>	pRoot;
 
-	pRoot = Get(ROOT_NAME);
+	pRoot = GetRoot();
 	if (!pRoot)
 	{
 		pRoot = Add<CRoot>(ROOT_NAME);
 		pRoot->Init(this);
 	}
 	return pRoot;
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CRoot> CObjects::GetRoot(void)
+{
+	if (!mbInitialised)
+	{
+		gcLogger.Error("CObjects is not initialised.");
+		return ONull;
+	}
+	return Get(ROOT_NAME);
 }
 
 

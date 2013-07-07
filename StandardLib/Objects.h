@@ -45,6 +45,7 @@ class CObjects
 friend class CBaseObject;
 friend class CObjectAllocator;
 protected:
+	BOOL					mbInitialised;
 	CUnknowns*				mpcUnknownsAllocatingFrom;
 
 	CNamedIndexedObjects	mcMemory;  //Objects (BaseObject*) allocated in Unknowns referenced by name and OIndex.  
@@ -55,6 +56,7 @@ protected:
 	CIndexGenerator			mcIndexGenerator;
 
 public:
+												CObjects();
 						void					Init(CUnknowns* pcUnknownsAllocatingFrom, char* szWorkingDirectory);
 						void					Init(CUnknowns* pcUnknownsAllocatingFrom, CIndexedConfig* pcConfig);
 						void					Kill(void);
@@ -79,6 +81,7 @@ public:
 	template<class M>	Ptr<M>					Add(char* szObjectName);
 
 						Ptr<CRoot>				AddRoot(void);
+						Ptr<CRoot>				GetRoot(void);
 
 						void					Remove(CArrayBaseObjectPtr* papcKilled);
 
@@ -124,7 +127,6 @@ protected:
 
 
 extern CObjects gcObjects;
-
 
 void ObjectsInit(void);
 void ObjectsInit(char* szWorkingDirectory);
