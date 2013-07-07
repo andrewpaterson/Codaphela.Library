@@ -25,7 +25,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseObject.h"
 
 
-template<class M = CBaseObjec>
+template<class M = CBaseObject>
 class CArray : public CArrayObject
 {
 BASE_FUNCTIONS(CArray);
