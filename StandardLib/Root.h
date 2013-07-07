@@ -53,6 +53,8 @@ public:
 						BOOL			Save(CObjectSerialiser* pcFile);
 						BOOL			Load(CObjectDeserialiser* pcFile);
 
+						CPointer		Get(int iIndex);
+	template<class M>	Ptr<M>			Get(int iIndex);
 						CPointer		Get(char* szObjectName);
 	template<class M>	Ptr<M>			Get(char* szObjectName);
 						Ptr<CSetObject>	GetAll(void);
@@ -67,7 +69,23 @@ public:
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-//Called by Macro 'OMalloc'
+Ptr<M> CRoot::Get(int iIndex)
+{
+	CPointer	pObject;
+	Ptr<M>		pM;
+
+	pObject = Get(iIndex);
+
+	pM = pObject;
+	return pM;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
 Ptr<M> CRoot::Get(char* szObjectName)
 {
 	CPointer	pObject;
