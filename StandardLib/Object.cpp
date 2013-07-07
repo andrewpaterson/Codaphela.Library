@@ -331,3 +331,121 @@ void CObject::RecurseGetFroms(CArrayEmbeddedBaseObjectPtr* papcFroms)
 	}
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CObject::IsEmbeddedDirty(void)
+{
+	int				i;
+	CBaseObject*	pcEmbedded;
+
+	if (miFlags & OBJECT_FLAGS_DIRTY)
+	{
+		return TRUE;
+	}
+	else
+	{
+		for (i = 0; i < mapEmbedded.NumElements(); i++)	
+		{
+			pcEmbedded = *mapEmbedded.Get(i);
+			if (pcEmbedded->IsEmbeddedDirty())
+			{
+				return TRUE;
+			}
+		}
+		return FALSE;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CObject::GetEmbeddedIndex(CBaseObject* pcEmbedded)
+{
+	int		iIndex;
+
+	if (pcEmbedded == this)
+	{
+		return 0;
+	}
+	else
+	{
+		iIndex = 0;
+		if (RecurseGetEmbeddedIndex(pcEmbedded, &iIndex))
+		{
+			return iIndex;
+		}
+		else
+		{
+			return -1;
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CObject::RecurseGetEmbeddedIndex(CBaseObject* pcTest, int* piIndex)
+{
+	int				i;
+	CBaseObject*	pcEmbedded;
+	CObject*		pcObject;
+
+	if (pcTest == this)
+	{
+		return TRUE;
+	}
+	else
+	{
+		for (i = 0; i < mapEmbedded.NumElements(); i++)	
+		{
+			pcEmbedded = *mapEmbedded.Get(i);
+			(*piIndex)++;
+
+			if (pcEmbedded->IsObject())
+			{
+				pcObject = (CObject*)pcEmbedded;
+				if (pcObject->RecurseGetEmbeddedIndex(pcTest, piIndex))
+				{
+					return TRUE;
+				}
+			}
+			else
+			{
+				if (pcEmbedded == pcTest)
+				{
+					return TRUE;
+				}
+			}
+		}
+		return FALSE;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CObject::GetNumEmbedded(void)
+{
+	int				i;
+	CBaseObject*	pcEmbedded;
+	int				iCount;
+
+	iCount = 1;
+	for (i = 0; i < mapEmbedded.NumElements(); i++)	
+	{
+		pcEmbedded = *mapEmbedded.Get(i);
+
+		iCount += pcEmbedded->GetNumEmbedded();
+	}
+	return iCount;
+}
+

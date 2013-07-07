@@ -102,6 +102,11 @@ public:
 	virtual void			SetName(char* szName);
 			int				SerialisedSize(void);
 
+			CBaseObject*	GetEmbeddingContainer(void);
+	virtual BOOL			IsEmbeddedDirty(void);
+	virtual int				GetEmbeddedIndex(CBaseObject* pcEmbedded);
+	virtual int				GetNumEmbedded(void);
+
 	virtual void			SetDistToRoot(int iDistToRoot) =0;
 			void			SetDirty(void);
 			int				DistToRoot(void);

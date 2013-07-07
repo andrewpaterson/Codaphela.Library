@@ -36,7 +36,6 @@ protected:
 	CArrayEmbedded<CPointer*, 5>		mapPointers;  //Pointers in this object.  
 	CArrayEmbedded<CBaseObject*, 3>		mapEmbedded;  //Objects embedded in this object
 
-
 public:
 	CObject();
 	void		Kill(void);
@@ -46,6 +45,9 @@ public:
 	void		SetDistToRoot(int iDistToRoot);
 	CPointer*	Pointer(CPointer* pcPointer);
 	void		Embedded(CBaseObject* pcObject);
+	BOOL		IsEmbeddedDirty(void);
+	int			GetEmbeddedIndex(CBaseObject* pcEmbedded);
+	int			GetNumEmbedded(void);
 	
 protected:
 	void		KillToPointers(void);
@@ -57,6 +59,7 @@ protected:
 	void		Free(void);
 	void		RecurseGetFroms(CArrayEmbeddedBaseObjectPtr* papcFroms);
 	void		PrivateSetDistToRoot(int iDistToRoot);
+	BOOL		RecurseGetEmbeddedIndex(CBaseObject* pcTest, int* piIndex);
 };
 
 
