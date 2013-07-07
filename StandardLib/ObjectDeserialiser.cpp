@@ -62,7 +62,7 @@ CPointer CObjectDeserialiser::Load(CSerialisedObject* pcSerialised)
 
 	if (!pcSerialised)
 	{
-		gcLogger.Error("Serialised Object is NULL.  ");
+		gcLogger.Error("CObjectDeserialiser::Load Serialised Object is NULL.  ");
 		return Null();
 	}
 
@@ -78,7 +78,7 @@ CPointer CObjectDeserialiser::Load(CSerialisedObject* pcSerialised)
 	bResult = ReadInt(&iLength);
 	if (!bResult)
 	{
-		gcLogger.Error("Could not read serialised object length.");
+		gcLogger.Error("CObjectDeserialiser::Load Could not read serialised object length.");
 		mcFile.Close();
 		mcFile.Kill();
 
@@ -88,7 +88,7 @@ CPointer CObjectDeserialiser::Load(CSerialisedObject* pcSerialised)
 	bResult = ReadObjectHeader(&sHeader);
 	if (!bResult)
 	{
-		gcLogger.Error("Could not read serialised object header.");
+		gcLogger.Error("CObjectDeserialiser::Load Could not read serialised object header.");
 		mcFile.Close();
 		mcFile.Kill();
 		sHeader.Kill();
@@ -102,6 +102,7 @@ CPointer CObjectDeserialiser::Load(CSerialisedObject* pcSerialised)
 
 	if (pObject.IsNull())
 	{
+		gcLogger.Error("CObjectDeserialiser::Load Could not load serialised object.");
 		mcFile.Close();
 		mcFile.Kill();
 		return Null();
@@ -110,7 +111,7 @@ CPointer CObjectDeserialiser::Load(CSerialisedObject* pcSerialised)
 	bResult = pObject.Load(this);
 	if (!bResult)
 	{
-		gcLogger.Error("Could not load serialised object.");
+		gcLogger.Error("CObjectDeserialiser::Load Could not load serialised object.");
 		mcFile.Close();
 		mcFile.Kill();
 

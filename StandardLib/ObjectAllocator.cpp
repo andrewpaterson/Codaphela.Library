@@ -142,12 +142,13 @@ CPointer CObjectAllocator::Add(char* szClassName, char* szObjectName, OIndex oiF
 	pvObject = mpcObjects->Allocate(szClassName);
 	if (!pvObject)
 	{
+		gcLogger.Error2("CObjectAllocator::AddHollow cannot add object named [", szObjectName, "] class [", szClassName, "].", NULL);
 		return ONull;
 	}
 
 	if (!pvObject->IsNamed())
 	{
-		gcLogger.Error2("CObjectAllocator::AddHollow cannot object named [", szObjectName, "] the class ", pvObject->ClassName(), " is not derived from NamedObject.", NULL);
+		gcLogger.Error2("CObjectAllocator::AddHollow cannot add object named [", szObjectName, "] the class ", pvObject->ClassName(), " is not derived from NamedObject.", NULL);
 		pvObject->Kill();
 		return ONull;
 	}
@@ -219,6 +220,12 @@ CPointer CObjectAllocator::AddHollow(OIndex oiForced)
 	BOOL						bResult;
 	CPointer				pcExisting;
 
+	if (oiForced == INVALID_O_INDEX)
+	{
+		gcLogger.Error("CObjectAllocator::AddHollow Cannot allocate a hollow object with an invalid index.");
+		return ONull;
+	}
+
 	pcExisting = mpcObjects->GetFromMemory(oiForced);
 	if (pcExisting.IsNotNull())
 	{
@@ -254,6 +261,12 @@ CPointer CObjectAllocator::AddHollow(char* szObjectName, OIndex oiForced)
 	CNamedHollowObject*				pcHollow;
 	BOOL							bResult;
 	CPointer					pcExisting;
+
+	if (oiForced == INVALID_O_INDEX)
+	{
+		gcLogger.Error("CObjectAllocator::AddHollow Cannot allocate a hollow object with an invalid index.");
+		return ONull;
+	}
 
 	if ((szObjectName == NULL || szObjectName[0] == '\0'))
 	{
