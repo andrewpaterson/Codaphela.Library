@@ -6,7 +6,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPointerHeader::Init(void)
+void CObjectIdentifier::Init(void)
 {
 	mcType = 0;
 	mszObjectName.Zero();
@@ -18,11 +18,11 @@ void CPointerHeader::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPointerHeader::Init(OIndex oi)
+void CObjectIdentifier::Init(OIndex oi)
 {
+	mcType = OBJECT_POINTER_ID;
 	moi = oi;
 	mszObjectName.Zero();
-	mcType = OBJECT_POINTER_ID;
 }
 
 
@@ -30,11 +30,11 @@ void CPointerHeader::Init(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPointerHeader::Init(char* szName)
+void CObjectIdentifier::Init(char* szName)
 {
-	mszObjectName.Init(szName);
 	mcType = OBJECT_POINTER_NAMED;
 	moi = INVALID_O_INDEX;
+	mszObjectName.Init(szName);
 }
 
 
@@ -42,7 +42,7 @@ void CPointerHeader::Init(char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPointerHeader::Kill(void)
+void CObjectIdentifier::Kill(void)
 {
 	mszObjectName.Kill();
 }
@@ -52,7 +52,7 @@ void CPointerHeader::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPointerHeader::IsNamed(void)
+BOOL CObjectIdentifier::IsNamed(void)
 {
 	if (mcType != OBJECT_POINTER_NAMED)
 	{
@@ -72,7 +72,7 @@ BOOL CPointerHeader::IsNamed(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPointerHeader::IsIndexed(void)
+BOOL CObjectIdentifier::IsIndexed(void)
 {
 	if (mcType == OBJECT_POINTER_ID)
 	{
@@ -94,7 +94,7 @@ BOOL CPointerHeader::IsIndexed(void)
 //////////////////////////////////////////////////////////////////////////
 void CObjectHeader::Init(void)
 {
-	//This should not call CPointerHeader::Init.
+	//This should not call CObjectIdentifier::Init.
 	mszClassName.Zero();
 	miClassSize = 0;
 }
@@ -107,6 +107,27 @@ void CObjectHeader::Init(void)
 void CObjectHeader::Kill(void)
 {
 	mszClassName.Kill();
-	CPointerHeader::Kill();
+	CObjectIdentifier::Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CPointerHeader::Init(void)
+{
+	//This should not call CObjectIdentifier::Init.
+	miEmbeddedIndex = 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CPointerHeader::Kill(void)
+{
+	CObjectIdentifier::Kill();
 }
 

@@ -14,12 +14,12 @@ public:
 			void			Init(CDependentReadObjects*	pcDependentObjects);
 			void			Kill(void);
 
-			BOOL			AddDependent(CPointerHeader* pcHeader, CBaseObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingPtrToBeUpdated);
+			BOOL			AddDependent(CObjectIdentifier* pcHeader, CBaseObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingPtrToBeUpdated);
 
 	virtual CPointer	AllocateObject(CObjectHeader* pcHeader) =0;
 
 protected:
-	void	AddContainingPointer(CBaseObject* pcBaseObject, CBaseObject** ppcPointedFrom, CBaseObject* pcContaining);
+			void	AddContainingPointer(CBaseObject* pcBaseObject, CBaseObject** ppcPointedFrom, CBaseObject* pcContaining);
 };
 
 

@@ -9,13 +9,13 @@
 
 
 class CBaseObject;
-class CDependentReadObject : public CPointerHeader
+class CDependentReadObject : public CObjectIdentifier
 {
 protected:
 	BOOL	miFlags;
 
 public:
-	void	Init(CPointerHeader* pcObjectPtr);
+	void	Init(CObjectIdentifier* pcObjectPtr);
 	void	Kill(void);
 
 	char*	GetName(void);

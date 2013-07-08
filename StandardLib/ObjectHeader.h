@@ -4,7 +4,7 @@
 #include "CoreLib/IndexedGeneral.h"
 
 
-class CPointerHeader
+class CObjectIdentifier
 {
 public:
 	int		mcType;
@@ -21,11 +21,21 @@ public:
 };
 
 
-class CObjectHeader : public CPointerHeader
+class CObjectHeader : public CObjectIdentifier
 {
 public:
 	int		miClassSize;
 	CChars	mszClassName;
+
+	void Init(void);
+	void Kill(void);
+};
+
+
+class CPointerHeader : public CObjectIdentifier
+{
+public:
+	int	miEmbeddedIndex;
 
 	void Init(void);
 	void Kill(void);

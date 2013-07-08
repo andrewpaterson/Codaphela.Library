@@ -6,12 +6,12 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDependentReadObject::Init(CPointerHeader* pcObjectPtr)
+void CDependentReadObject::Init(CObjectIdentifier* pcObjectPtr)
 {
-	CPointerHeader*	pcThis;
+	CObjectIdentifier*	pcThis;
 
 	pcThis = this;
-	memcpy_fast(pcThis, pcObjectPtr, sizeof(CPointerHeader));
+	memcpy_fast(pcThis, pcObjectPtr, sizeof(CObjectIdentifier));
 	miFlags = 0;
 }
 
@@ -22,7 +22,7 @@ void CDependentReadObject::Init(CPointerHeader* pcObjectPtr)
 //////////////////////////////////////////////////////////////////////////
 void CDependentReadObject::Kill(void)
 {
-	CPointerHeader::Kill();
+	CObjectIdentifier::Kill();
 }
 
 

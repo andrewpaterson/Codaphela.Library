@@ -43,7 +43,7 @@ void CDependentReadObjects::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDependentReadObjects::Add(CPointerHeader* pcHeader, CBaseObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingPtrToBeUpdated)
+void CDependentReadObjects::Add(CObjectIdentifier* pcHeader, CBaseObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingPtrToBeUpdated)
 {
 	CDependentReadObject	cDependent;
 	CDependentReadObject*	pcExistingInFile;
