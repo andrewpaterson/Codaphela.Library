@@ -174,7 +174,7 @@ BOOL CFileCompare::Compare(char* szName1, char* szName2, CChars* psz1, CChars* p
 		psz1->Append(iLength1);
 		psz1->Append("]");
 
-		psz1->Append(szName2);
+		psz2->Append(szName2);
 		psz2->Append(" size [");
 		psz2->Append(iLength2);
 		psz2->Append("]");
