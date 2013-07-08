@@ -130,7 +130,7 @@ CPointer CObjectDeserialiser::Load(CSerialisedObject* pcSerialised)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectDeserialiser::ReadPointerHeader(CPointerHeader* pcPointerHeader)
+BOOL CObjectDeserialiser::ReadIdentifier(CObjectIdentifier* pcPointerHeader)
 {
 	pcPointerHeader->Init();
 
@@ -164,7 +164,7 @@ BOOL CObjectDeserialiser::ReadPointerHeader(CPointerHeader* pcPointerHeader)
 BOOL CObjectDeserialiser::ReadObjectHeader(CObjectHeader* pcObjectHeader)
 {
 	pcObjectHeader->Init();
-	ReturnOnFalse(ReadPointerHeader(pcObjectHeader));
+	ReturnOnFalse(ReadIdentifier(pcObjectHeader));
 	ReturnOnFalse(ReadInt(&pcObjectHeader->miClassSize));
 	ReturnOnFalse(ReadString(&pcObjectHeader->mszClassName, TRUE));
 	return TRUE;
@@ -203,16 +203,28 @@ BOOL CObjectDeserialiser::ReadPointer(CPointer* pObject)
 	CObject*		pcEmbedding;
 
 	ClearPointer(pObject);
-	bResult = ReadPointerHeader(&cHeader);
+
+	bResult = ReadIdentifier(&cHeader);
 	if (!bResult)
 	{
 		cHeader.Kill();
 		return FALSE;
 	}
+
+	if ((cHeader.mcType == OBJECT_POINTER_NAMED) || (cHeader.mcType == OBJECT_POINTER_ID))
+	{
+		bResult = ReadInt(&cHeader.miEmbeddedIndex);
+		if (!bResult)
+		{
+			cHeader.Kill();
+			return FALSE;
+		}
+	}
+
 	ppcObjectPtr = pObject->ObjectPtr();
 	pcEmbedding = pObject->Embedding();
 
-	bResult &= mpcDependents->AddDependent(&cHeader, ppcObjectPtr, (CBaseObject*)pcEmbedding);  //Pretty certain this cast is bad.
+	bResult &= mpcDependents->AddDependent(&cHeader, ppcObjectPtr, (CBaseObject*)pcEmbedding);
 
 	//cHeader is killed by mpcDependents.
 	return bResult;
@@ -228,11 +240,27 @@ BOOL CObjectDeserialiser::ReadDependent(CBaseObject** ppcObjectPtr, CBaseObject*
 	CPointerHeader	cHeader;
 	BOOL			bResult;
 
-	*ppcObjectPtr = NULL;
-	bResult = ReadPointerHeader(&cHeader);
-	bResult &= mpcDependents->AddDependent(&cHeader, ppcObjectPtr, pcContaining);
+	bResult = ReadIdentifier(&cHeader);
+	if (bResult)
+	{
+		if ((cHeader.mcType == OBJECT_POINTER_NAMED) || (cHeader.mcType == OBJECT_POINTER_ID))
+		{
+			bResult = ReadInt(&cHeader.miEmbeddedIndex);
+
+			*ppcObjectPtr = NULL;
+			bResult &= mpcDependents->AddDependent(&cHeader, ppcObjectPtr, pcContaining);
+			return bResult;
+		}
+		else
+		{
+			return TRUE;
+		}
+	}
+	else
+	{
+		return FALSE;
+	}
 
 	//cHeader is killed by mpcDependents.
-	return bResult;
 }
 

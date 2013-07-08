@@ -35,19 +35,19 @@ protected:
 	CObjectSingleSerialiser*	mpcSerialiser;
 
 public:
-			void			Init(CObjectSingleSerialiser* pcSerialiser, CBaseObject* pcObject);
-			void			Kill(void);
-			BOOL			Save(void);
+	void			Init(CObjectSingleSerialiser* pcSerialiser, CBaseObject* pcObject);
+	void			Kill(void);
+	BOOL			Save(void);
 	
-			BOOL			WritePointer(CPointer pObject);
-			BOOL			WritePointerHeader(CBaseObject* pcBaseObject);
-			BOOL			WriteDependent(CBaseObject* pcBaseObject);
+	BOOL			WritePointer(CPointer pObject);
+	BOOL			WriteIdentifier(CBaseObject* pcBaseObject);
+	BOOL			WriteDependent(CBaseObject* pcBaseObject);
 
-			void*			GetData(void);
-			int				GetLength(void);
+	void*			GetData(void);
+	int				GetLength(void);
 
 protected:
-			filePos			Write(const void* pvSource, filePos iSize, filePos iCount);
+	filePos			Write(const void* pvSource, filePos iSize, filePos iCount);
 };
 
 

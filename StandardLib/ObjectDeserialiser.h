@@ -30,7 +30,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 
 class CObjectHeader;
-class CPointerHeader;
+class CObjectIdentifier;
 class CObjectDeserialiser : public CFileReader
 {
 protected:
@@ -39,18 +39,18 @@ protected:
 	CFileBasic					mcFile;
 	
 public:
-			BOOL			Init(CDependentObjectAdder* pcDependents);
-			void			Kill(void);
-			CPointer	Load(CSerialisedObject* pcSerialised);
+	BOOL		Init(CDependentObjectAdder* pcDependents);
+	void		Kill(void);
+	CPointer	Load(CSerialisedObject* pcSerialised);
 
-			BOOL			ReadPointer(CPointer* pObject);
-			BOOL			ReadPointerHeader(CPointerHeader* pcPointerHeader);
-			BOOL			ReadObjectHeader(CObjectHeader* pcObjectHeader);
-			BOOL			ReadDependent(CBaseObject** ppcObjectPtr, CBaseObject* pcContaining);
+	BOOL		ReadPointer(CPointer* pObject);
+	BOOL		ReadIdentifier(CObjectIdentifier* pcPointerHeader);
+	BOOL		ReadObjectHeader(CObjectHeader* pcObjectHeader);
+	BOOL		ReadDependent(CBaseObject** ppcObjectPtr, CBaseObject* pcContaining);
 
 protected:
-			filePos			Read(void* pvDest, filePos iSize, filePos iCount);
-			void			ClearPointer(CPointer* pObject);
+	filePos		Read(void* pvDest, filePos iSize, filePos iCount);
+	void		ClearPointer(CPointer* pObject);
 };
 
 

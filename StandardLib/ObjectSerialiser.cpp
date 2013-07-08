@@ -62,7 +62,7 @@ BOOL CObjectSerialiser::Save(void)
 
 	bResult = WriteInt(0);
 	ReturnOnFalse(bResult);
-	bResult = WritePointerHeader(mpcThis);
+	bResult = WriteIdentifier(mpcThis);
 	ReturnOnFalse(bResult);
 	bResult = mpcThis->SaveHeader(this);
 	ReturnOnFalse(bResult);
@@ -101,18 +101,28 @@ BOOL CObjectSerialiser::WriteDependent(CBaseObject* pcBaseObject)
 	CBaseObject*	pcContainer;
 	int				iEmbeddedIndex;
 
-	pcContainer = pcBaseObject->GetEmbeddingContainer();
-	iEmbeddedIndex = pcContainer->GetEmbeddedIndex(pcBaseObject);
-
-	bResult = WritePointerHeader(pcContainer, iEmbeddedIndex);
-	if ((pcBaseObject) && (bResult))
+	if (pcBaseObject)
 	{
-		if (mpcSerialiser)
+		pcContainer = pcBaseObject->GetEmbeddingContainer();
+		iEmbeddedIndex = pcContainer->GetEmbeddedIndex(pcBaseObject);
+
+		bResult = WriteIdentifier(pcContainer);
+		bResult &= WriteInt(iEmbeddedIndex);
+
+		if (bResult)
 		{
-			mpcSerialiser->AddDependent(pcContainer);
+			if (mpcSerialiser)
+			{
+				mpcSerialiser->AddDependent(pcContainer);
+			}
 		}
+		return bResult;
 	}
-	return bResult;
+	else
+	{
+		bResult = WriteIdentifier(NULL);
+		return bResult;
+	}
 }
 
 
@@ -120,7 +130,7 @@ BOOL CObjectSerialiser::WriteDependent(CBaseObject* pcBaseObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectSerialiser::WritePointerHeader(CBaseObject* pcObject)
+BOOL CObjectSerialiser::WriteIdentifier(CBaseObject* pcObject)
 {
 	OIndex		oi;
 	int			c;
