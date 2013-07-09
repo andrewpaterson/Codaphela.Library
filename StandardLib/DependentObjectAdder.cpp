@@ -42,11 +42,11 @@ void CDependentObjectAdder::AddContainingPointer(CBaseObject* pcBaseObject, CBas
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CDependentObjectAdder::AddDependent(CObjectIdentifier* pcHeader, CBaseObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingPtrToBeUpdated)
+BOOL CDependentObjectAdder::AddDependent(CObjectIdentifier* pcHeader, CBaseObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingPtrToBeUpdated, int iEmbeddedIndex)
 {
 	if ((pcHeader->mcType == OBJECT_POINTER_NAMED) || (pcHeader->mcType == OBJECT_POINTER_ID))
 	{
-		mpcDependentObjects->Add(pcHeader, ppcPtrToBeUpdated, pcObjectContainingPtrToBeUpdated);
+		mpcDependentObjects->Add(pcHeader, ppcPtrToBeUpdated, pcObjectContainingPtrToBeUpdated, iEmbeddedIndex);
 	}
 	return TRUE;
 }

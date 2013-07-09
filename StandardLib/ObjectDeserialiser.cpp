@@ -219,15 +219,19 @@ BOOL CObjectDeserialiser::ReadPointer(CPointer* pObject)
 			cHeader.Kill();
 			return FALSE;
 		}
+		ppcObjectPtr = pObject->ObjectPtr();
+		pcEmbedding = pObject->Embedding();
+
+		bResult &= mpcDependents->AddDependent(&cHeader, ppcObjectPtr, (CBaseObject*)pcEmbedding, cHeader.miEmbeddedIndex);
+		return bResult;
+	}
+	else
+	{
+		return TRUE;
 	}
 
-	ppcObjectPtr = pObject->ObjectPtr();
-	pcEmbedding = pObject->Embedding();
-
-	bResult &= mpcDependents->AddDependent(&cHeader, ppcObjectPtr, (CBaseObject*)pcEmbedding);
 
 	//cHeader is killed by mpcDependents.
-	return bResult;
 }
 
 
@@ -248,7 +252,7 @@ BOOL CObjectDeserialiser::ReadDependent(CBaseObject** ppcObjectPtr, CBaseObject*
 			bResult = ReadInt(&cHeader.miEmbeddedIndex);
 
 			*ppcObjectPtr = NULL;
-			bResult &= mpcDependents->AddDependent(&cHeader, ppcObjectPtr, pcContaining);
+			bResult &= mpcDependents->AddDependent(&cHeader, ppcObjectPtr, pcContaining, cHeader.miEmbeddedIndex);
 			return bResult;
 		}
 		else

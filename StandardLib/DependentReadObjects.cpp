@@ -43,14 +43,14 @@ void CDependentReadObjects::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDependentReadObjects::Add(CObjectIdentifier* pcHeader, CBaseObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingPtrToBeUpdated)
+void CDependentReadObjects::Add(CObjectIdentifier* pcHeader, CBaseObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingPtrToBeUpdated, int iEmbeddedIndex)
 {
 	CDependentReadObject	cDependent;
 	CDependentReadObject*	pcExistingInFile;
 	BOOL					bOiExistsInDependents;
 	int						iIndex;
 	CDependentReadPointer*	pcPointer;
-	CPointer			pExisitingInDatabase;
+	CPointer				pExisitingInDatabase;
 	BOOL					bNameExistsInDatabase;
 
 	cDependent.Init(pcHeader);
@@ -76,7 +76,7 @@ void CDependentReadObjects::Add(CObjectIdentifier* pcHeader, CBaseObject** ppcPt
 	}
 
 	pcPointer = mcPointers.Add();
-	pcPointer->Init(ppcPtrToBeUpdated, pcObjectContainingPtrToBeUpdated, pcHeader->moi);
+	pcPointer->Init(ppcPtrToBeUpdated, pcObjectContainingPtrToBeUpdated, pcHeader->moi, iEmbeddedIndex);
 }
 
 
