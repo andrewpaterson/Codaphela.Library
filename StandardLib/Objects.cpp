@@ -170,13 +170,21 @@ void CObjects::DumpGraph(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjects::RecurseDumpGraph(CChars* psz, CBaseObject* pcBaseObject, int iLevel, BOOL bEmbedded)
+void CObjects::RecurseDumpGraph(CChars* psz, CEmbeddedObject* pcIncoming, int iLevel, BOOL bEmbedded)
 {
-	CObject*				pcObject;
-	CArrayBaseObjectPtr		apcTos;
-	int						i;
-	CBaseObject*			pcToObject;
-	CBaseObject*			pcEmbeddedObject;
+	CObject*					pcObject;
+	CArrayEmbeddedObjectPtr		apcTos;
+	int							i;
+	CEmbeddedObject*			pcToObject;
+	CBaseObject*				pcEmbeddedObject;
+	CBaseObject*				pcBaseObject;
+
+	if (!pcIncoming->IsBaseObject())
+	{
+		return;
+	}
+
+	pcBaseObject = (CBaseObject*)pcIncoming;
 
 	psz->Append(' ', iLevel * 3);
 	if ((pcBaseObject->miFlags & OBJECT_FLAGS_DUMPED) || (pcBaseObject->miDistToRoot < iLevel))
@@ -652,7 +660,7 @@ CBaseObject* CObjects::GetFromDatabase(OIndex oi)
 		return NULL;
 	}
 
-	return pObject.Object();
+	return pObject.BaseObject();
 }
 
 
@@ -673,7 +681,7 @@ CBaseObject* CObjects::GetFromDatabase(char* szObjectName)
 		cDeserialiser.Init(&cAllocator, &mcDatabase, &mcMemory);
 		pObject = cDeserialiser.Read(szObjectName);
 		cDeserialiser.Kill();
-		return pObject.Object();
+		return pObject.BaseObject();
 	}
 	else
 	{
@@ -695,7 +703,7 @@ CBaseObject* CObjects::GetFromSources(char* szObjectName)
 	if (pcSource)
 	{
 		pObject = pcSource->Convert(szObjectName);
-		return pObject.Object();
+		return pObject.BaseObject();
 	}
 	else
 	{

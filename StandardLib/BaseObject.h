@@ -22,7 +22,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __BASE_OBJECT_H__
 #include "BaseLib/ArrayEmbedded.h"
 #include "CoreLib/IndexedGeneral.h"
-#include "Unknown.h"
+#include "EmbeddedObject.h"
 
 
 class CBaseObject;
@@ -46,15 +46,10 @@ typedef CArrayEmbedded<CBaseObject*, 32>	CArrayEmbeddedBaseObjectPtr;
 #define OBJECT_FLAGS_DUMPED				0x20
 
 
-#define ROOT_DIST_TO_ROOT			 0
-#define UNATTACHED_DIST_TO_ROOT		-1
-#define CLEARED_DIST_TO_ROOT		-2
-
-
 class CObjectDeserialiser;
 class CObjectSerialiser;
 class CObjects;
-class CBaseObject : public CUnknown
+class CBaseObject : public CEmbeddedObject
 {
 template<class M>
 friend class Ptr;
@@ -73,63 +68,62 @@ protected:
 	int									miFlags;
 
 public:
-							CBaseObject();
-			void			PreInit(CObjects* pcObjects);
+								CBaseObject();
+			void				PreInit(CObjects* pcObjects);
 
-			void			Kill(void);
+			void				Kill(void);
 
-			void			KillDontFree(void);
-	virtual void			KillData(void) =0;
+			void				KillDontFree(void);
+	virtual void				KillData(void) =0;
 
-	virtual BOOL			Save(CObjectSerialiser* pcFile) =0;
-	virtual BOOL			Load(CObjectDeserialiser* pcFile) =0;
+	virtual BOOL				Save(CObjectSerialiser* pcFile) =0;
+	virtual BOOL				Load(CObjectDeserialiser* pcFile) =0;
 
-			OIndex			GetOI(void);
-			void			SetObjectID(OIndex oi);
-			void			ClearIndex(void);
+			OIndex				GetOI(void);
+			void				SetObjectID(OIndex oi);
+			void				ClearIndex(void);
 
-	virtual BOOL			IsRoot(void);
-	virtual BOOL			IsSubRoot(void);
-			BOOL			IsUnknown(void);
-	virtual BOOL			IsHollow(void);
-	virtual BOOL			IsCollection(void) =0;
-	virtual BOOL			IsObject(void) =0;
-	virtual BOOL			IsNamed(void);
-			BOOL			IsInvalidated(void);
-			BOOL			IsDirty(void);
+	virtual BOOL				IsRoot(void);
+	virtual BOOL				IsSubRoot(void);
+			BOOL				IsUnknown(void);
+			BOOL				IsHollow(void);
+	virtual BOOL				IsCollection(void) =0;
+	virtual BOOL				IsObject(void) =0;
+	virtual BOOL				IsNamed(void);
+			BOOL				IsInvalidated(void);
+			BOOL				IsDirty(void);
 
-	virtual char*			GetName(void);
-	virtual void			SetName(char* szName);
-			int				SerialisedSize(void);
+	virtual char*				GetName(void);
+	virtual void				SetName(char* szName);
+			int					SerialisedSize(void);
 
-			CBaseObject*	GetEmbeddingContainer(void);
-	virtual BOOL			IsEmbeddedDirty(void);
-	virtual int				GetEmbeddedIndex(CBaseObject* pcEmbedded);
-	virtual int				GetNumEmbedded(void);
+			CBaseObject*		GetEmbeddingContainer(void);
+	virtual BOOL				IsEmbeddedDirty(void);
+	virtual int					GetEmbeddedIndex(CBaseObject* pcEmbedded);
+	virtual int					GetNumEmbedded(void);
 
-	virtual void			SetDistToRoot(int iDistToRoot) =0;
-			void			SetDirty(void);
-			int				DistToRoot(void);
-			BOOL			TestedForRoot(void);
-	virtual void			GetTos(CArrayBaseObjectPtr* papcTos) =0;
-			int				NumFroms(void);
-	virtual int				NumTos(void) =0;
-			CBaseObject* 	TestGetTo(int iToIndex);
-			CBaseObject* 	TestGetFrom(int iFromIndex);
-	virtual void			RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged) =0;
-			void			AddFrom(CBaseObject* pcFrom);
-			void			FixDistToRoot(void);
-			void			RemoveFrom(CBaseObject* pcFrom);
+	virtual void				SetDistToRoot(int iDistToRoot) =0;
+			void				SetDirty(void);
+			int					DistToRoot(void);
+			BOOL				TestedForRoot(void);
+	virtual void				GetTos(CArrayEmbeddedObjectPtr* papcTos) =0;
+			int					NumFroms(void);
+	virtual int					NumTos(void) =0;
+			CEmbeddedObject* 	TestGetTo(int iToIndex);
+			CBaseObject* 		TestGetFrom(int iFromIndex);
+	virtual void				RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged) =0;
+			void				AddFrom(CBaseObject* pcFrom);
+			void				FixDistToRoot(void);
+			void				RemoveFrom(CBaseObject* pcFrom);
 	
 protected:
 	virtual void			KillToPointers(void) =0;
 	virtual void			Free(void);
 			CBaseObject*	GetFrom(int iFrom);
-	virtual int				RemapTos(CBaseObject* pcOld, CBaseObject* pcNew) =0;
-			BOOL			RemoveToFrom(CBaseObject* pcPointedTo, CArrayEmbeddedBaseObjectPtr* papcFromsChanged);
+			int				RemapTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew) =0;
+			BOOL			RemoveToFrom(CEmbeddedObject* pcPointedTo, CArrayEmbeddedBaseObjectPtr* papcFromsChanged);
 			void			PrivateRemoveFrom(CBaseObject* pcFrom);
 			int				RemoveAllFroms(void);
-	virtual void			RemoveTo(CBaseObject* pcTo) =0;
 			void			CopyFroms(CBaseObject* pcSource);
 			void			GetFroms(CArrayEmbeddedBaseObjectPtr* papcFroms);
 	virtual void			RecurseGetFroms(CArrayEmbeddedBaseObjectPtr* papcFroms);
@@ -143,6 +137,7 @@ protected:
 			BOOL			IsUnattached(void);
 			BOOL			IsEmbedded(void);
 			BOOL			IsNotEmbedded(void);
+			BOOL			IsBaseObject(void);
 };
 
 

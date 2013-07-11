@@ -69,9 +69,9 @@ void CPointer::Init(CObject* pcEmbedding)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CPointer::UnsafePointTo(CBaseObject* pcNewObject)
+CEmbeddedObject* CPointer::UnsafePointTo(CEmbeddedObject* pcNewObject)
 {
-	CBaseObject*	pcObject;
+	CEmbeddedObject*	pcObject;
 
 	pcObject = mpcObject;
 	mpcObject = pcNewObject;
@@ -83,9 +83,9 @@ CBaseObject* CPointer::UnsafePointTo(CBaseObject* pcNewObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPointer::PointTo(CBaseObject* pcNewObject)
+void CPointer::PointTo(CEmbeddedObject* pcNewObject)
 {
-	CBaseObject*	pcOldObject;
+	CEmbeddedObject*	pcOldObject;
 
 	if (mpcObject != pcNewObject)
 	{
@@ -115,7 +115,7 @@ void CPointer::PointTo(CBaseObject* pcNewObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPointer::operator = (CBaseObject* ptr)
+void CPointer::operator = (CEmbeddedObject* ptr)
 {
 	//This operator override exists only to allow NULL assignment.
 	PointTo(ptr);
@@ -136,7 +136,7 @@ void CPointer::operator = (CPointer pcPointer)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CPointer::operator -> ()
+CEmbeddedObject* CPointer::operator -> ()
 {
 	if ((mpcObject) && (mpcObject->IsHollow()))
 	{
@@ -150,7 +150,7 @@ CBaseObject* CPointer::operator -> ()
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CPointer::operator & ()
+CEmbeddedObject* CPointer::operator & ()
 {
 	if ((mpcObject) && (mpcObject->IsHollow()))
 	{
@@ -204,7 +204,7 @@ CPointer* CPointer::This(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CPointer::Object(void)
+CEmbeddedObject* CPointer::Object(void)
 {
 	return mpcObject;
 }
@@ -214,9 +214,26 @@ CBaseObject* CPointer::Object(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject** CPointer::ObjectPtr(void)
+CEmbeddedObject** CPointer::ObjectPtr(void)
 {
 	return &mpcObject;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CBaseObject* CPointer::BaseObject(void)
+{
+	if (mpcObject && mpcObject->IsBaseObject())
+	{
+		return (CBaseObject*)mpcObject;
+	}
+	else
+	{
+		return NULL;
+	}
 }
 
 
@@ -247,14 +264,13 @@ void CPointer::Dehollow(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CPointer::Dereference(void)
+CEmbeddedObject* CPointer::Dereference(void)
 {
 	if ((mpcObject) && (mpcObject->IsHollow()))
 	{
 		Dehollow();
 	}
 	return mpcObject;
-
 }
 
 
@@ -262,7 +278,7 @@ CBaseObject* CPointer::Dereference(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CPointer::RemapFrom(CBaseObject* pcOld)
+int CPointer::RemapFrom(CEmbeddedObject* pcOld)
 {
 	int				iNumFroms;
 	int				i;
@@ -460,7 +476,7 @@ void CPointer::ClearIndex(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPointer::AssignObject(CBaseObject* pcObject)
+void CPointer::AssignObject(CEmbeddedObject* pcObject)
 {
 	mpcObject = pcObject;
 }

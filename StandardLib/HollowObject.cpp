@@ -121,7 +121,7 @@ void CHollowObject::SetDistToRoot(int iDistToRoot)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHollowObject::GetTos(CArrayBaseObjectPtr* papcTos)
+void CHollowObject::GetTos(CArrayEmbeddedObjectPtr* papcTos)
 {
 }
 
@@ -140,7 +140,7 @@ int CHollowObject::NumTos(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CHollowObject::RemapTos(CBaseObject* pcOld, CBaseObject* pcNew)
+int CHollowObject::RemapTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew)
 {
 	return 0;
 }
@@ -186,7 +186,7 @@ void CHollowObject::KillData(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHollowObject::RemoveTo(CBaseObject* pcTo)
+void CHollowObject::RemoveTo(CEmbeddedObject* pcTo)
 {
 }
 

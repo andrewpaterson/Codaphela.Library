@@ -20,7 +20,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __POINTER_OBJECT_H__
 #define __POINTER_OBJECT_H__
-#include "Unknown.h"
+#include "EmbeddedObject.h"
 #include "CoreLib/IndexedGeneral.h"
 
 
@@ -28,53 +28,54 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //CPointer (and friends) are either declared on the stack or as a field on a CObject; nowhere else.  The only time embedding is NULL is when
 //this pointer is declared on the stack.
 
-class CBaseObject;
+class CEmbeddedObject;
 class CObject;
 class CObjectDeserialiser;
 class CPointer
 {
 template<class M> friend class Ptr;
 protected:
-	CBaseObject*	mpcObject;
-	CObject*		mpcEmbedding;  //Collections do not embed pointer objects.  They manage their own pointers.
+	CEmbeddedObject*	mpcObject;
+	CObject*			mpcEmbedding;  //Collections do not embed pointer objects.  They manage their own pointers.
 
 public:
-					CPointer();
-					CPointer(CPointer* pcPointer);
-	void 			Init(CObject* pcEmbedding);
-	void			operator = (CBaseObject* ptr);
-	void			operator = (CPointer pcPointer);
-	CBaseObject*	operator -> ();
-	CBaseObject*	operator & ();
-	BOOL			operator ! ();
-	BOOL			IsNotNull(void);
-	BOOL			IsNull(void);
+	CPointer();
+	CPointer(CPointer* pcPointer);
+	void 				Init(CObject* pcEmbedding);
+	void				operator = (CEmbeddedObject* ptr);
+	void				operator = (CPointer pcPointer);
+	CEmbeddedObject*	operator -> ();
+	CEmbeddedObject*	operator & ();
+	BOOL				operator ! ();
+	BOOL				IsNotNull(void);
+	BOOL				IsNull(void);
 
-	CPointer*		This(void);
-	CObject*		Embedding(void);
-	CBaseObject*	Object(void);
-	CBaseObject**	ObjectPtr(void);
-	CBaseObject*	UnsafePointTo(CBaseObject* pcNewObject);
-	int				RemapFrom(CBaseObject* pcOld);
+	CPointer*			This(void);
+	CObject*			Embedding(void);
+	CEmbeddedObject*	Object(void);
+	CEmbeddedObject**	ObjectPtr(void);
+	CEmbeddedObject*	UnsafePointTo(CEmbeddedObject* pcNewObject);
+	CBaseObject*		BaseObject(void);
+	int					RemapFrom(CEmbeddedObject* pcOld);
 
-	BOOL			IsHollow(void);
-	BOOL			Load(CObjectDeserialiser* pcFile);
-	int				DistToRoot(void);
-	OIndex			GetIndex(void);
-	char*			GetName(void);
-	BOOL			IsNamed(void);
-	char*			ClassName(void);
-	BOOL			IsDirty(void);
-	void			Kill(void);
-	void			ClearIndex(void);
-	void			AssignObject(CBaseObject* pcObject);
-	CBaseObject*	Dereference(void);
+	BOOL				IsHollow(void);
+	BOOL				Load(CObjectDeserialiser* pcFile);
+	int					DistToRoot(void);
+	OIndex				GetIndex(void);
+	char*				GetName(void);
+	BOOL				IsNamed(void);
+	char*				ClassName(void);
+	BOOL				IsDirty(void);
+	void				Kill(void);
+	void				ClearIndex(void);
+	void				AssignObject(CEmbeddedObject* pcObject);
+	CEmbeddedObject*	Dereference(void);
 
-	void			Dehollow(void);
-	void			PointTo(CBaseObject* pcObject);
-	void			Construct(CPointer cPointer);
+	void				Dehollow(void);
+	void				PointTo(CEmbeddedObject* pcObject);
+	void				Construct(CPointer cPointer);
 
-	void			ClearObject(void);
+	void				ClearObject(void);
 };
 
 

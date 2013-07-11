@@ -121,7 +121,7 @@ protected:
 						void					KillDontFreeObjects(CArrayBaseObjectPtr* papcObjectPts);
 						void					FreeObjects(CArrayBaseObjectPtr* papcObjectPts);
 						void					FixDistToRoot(CArrayEmbeddedBaseObjectPtr* papcFromsChanged);
-						void					RecurseDumpGraph(CChars* psz, CBaseObject* pcObject, int iLevel, BOOL bEmbedded);
+						void					RecurseDumpGraph(CChars* psz, CEmbeddedObject* pcObject, int iLevel, BOOL bEmbedded);
 						void					PrintObject(CChars* psz, CBaseObject* pcBaseObject, BOOL bEmbedded = FALSE);
 };
 

@@ -316,7 +316,7 @@ void CArrayCommonObject::RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChan
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayCommonObject::RemoveTo(CBaseObject* pcTo)
+void CArrayCommonObject::RemoveTo(CEmbeddedObject* pcTo)
 {
 	mcArray.Remove((CUnknown*)pcTo);
 }
@@ -373,10 +373,10 @@ void CArrayCommonObject::SetDistToRoot(int iDistToRoot)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayCommonObject::GetTos(CArrayBaseObjectPtr* papcTos)
+void CArrayCommonObject::GetTos(CArrayEmbeddedObjectPtr* papcTos)
 {
-	CBaseObject*	pcPointedTo;
-	int				i;
+	CEmbeddedObject*	pcPointedTo;
+	int					i;
 
 	for (i = 0; i < mcArray.NumElements(); i++)
 	{
@@ -403,16 +403,16 @@ CBaseObject* CArrayCommonObject::UnsafeGet(int iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CArrayCommonObject::RemapTos(CBaseObject* pcOld, CBaseObject* pcNew)
+int CArrayCommonObject::RemapTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew)
 {
-	int				iCount;
-	CBaseObject**	ppcPointedTo;
-	int				i;
+	int					iCount;
+	CEmbeddedObject**	ppcPointedTo;
+	int					i;
 
 	iCount = 0;
 	for (i = 0; i < mcArray.NumElements(); i++)
 	{
-		ppcPointedTo = (CBaseObject**)mcArray.UnsafeGetPointer(i);
+		ppcPointedTo = (CEmbeddedObject**)mcArray.UnsafeGetPointer(i);
 		if (*ppcPointedTo)
 		{
 			if (*ppcPointedTo == pcOld)

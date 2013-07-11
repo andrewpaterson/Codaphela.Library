@@ -455,14 +455,20 @@ CBaseObject* CBaseObject::TestGetFrom(int iFromIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CBaseObject::RemoveToFrom(CBaseObject* pcPointedTo, CArrayEmbeddedBaseObjectPtr* papcFromsChanged)
+BOOL CBaseObject::RemoveToFrom(CEmbeddedObject* pcPointedTo, CArrayEmbeddedBaseObjectPtr* papcFromsChanged)
 {
+	CBaseObject*	pcBaseObject;
+
 	if (pcPointedTo)
 	{
-		if (pcPointedTo->miDistToRoot >= ROOT_DIST_TO_ROOT)
+		if (pcPointedTo->IsBaseObject())
 		{
-			pcPointedTo->PrivateRemoveFrom(this);
-			papcFromsChanged->Add(&pcPointedTo);
+			pcBaseObject = (CBaseObject*)pcPointedTo;
+			if (pcBaseObject->miDistToRoot >= ROOT_DIST_TO_ROOT)
+			{
+				pcBaseObject->PrivateRemoveFrom(this);
+				papcFromsChanged->Add(&pcBaseObject);
+			}
 		}
 		return TRUE;
 	}
@@ -701,11 +707,11 @@ BOOL CBaseObject::IsHollow(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CBaseObject::TestGetTo(int iToIndex)
+CEmbeddedObject* CBaseObject::TestGetTo(int iToIndex)
 {
-	CBaseObject**		ppTo;
-	CBaseObject*		pTo;
-	CArrayBaseObjectPtr	apcTos;
+	CEmbeddedObject**			ppTo;
+	CEmbeddedObject*			pTo;
+	CArrayEmbeddedObjectPtr		apcTos;
 
 	apcTos.Init(32);
 	GetTos(&apcTos);
@@ -815,5 +821,15 @@ CBaseObject* CBaseObject::GetEmbeddingContainer(void)
 	}
 
 	return pcContainer;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CBaseObject::IsBaseObject(void)
+{
+	return TRUE;
 }
 

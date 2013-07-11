@@ -71,8 +71,8 @@ void CObject::Free(void)
 int CObject::NumTos(void)
 {
 	int					i;
-	CBaseObject*		pcPointedTo;
-	CPointer**	ppPointer;
+	CEmbeddedObject*	pcPointedTo;
+	CPointer**			ppPointer;
 	int					iCount;
 
 	iCount = 0;
@@ -117,14 +117,14 @@ void CObject::CollectThoseToBeKilled(CArrayBaseObjectPtr* papcKilled)
 {
 	int					i;
 	CBaseObject*		pcPointedTo;
-	CPointer**	ppPointer;
+	CPointer**			ppPointer;
 
 	MarkForKilling(papcKilled);
 
 	for (i = 0; i < mapPointers.NumElements(); i++)
 	{
 		ppPointer = mapPointers.Get(i);
-		pcPointedTo = (*ppPointer)->Object();
+		pcPointedTo = (*ppPointer)->BaseObject();
 		if (pcPointedTo)
 		{
 			if (pcPointedTo->miDistToRoot != UNATTACHED_DIST_TO_ROOT)
@@ -180,7 +180,7 @@ void CObject::PrivateSetDistToRoot(int iDistToRoot)
 	for (i = 0; i < iNumPointers; i++)
 	{
 		ppPointer = mapPointers.Get(i);
-		pcPointedTo = (**ppPointer).Object();
+		pcPointedTo = (**ppPointer).BaseObject();
 		if (pcPointedTo)
 		{
 			PotentiallySetDistToRoot(pcPointedTo, iDistToRoot+1);
@@ -192,12 +192,12 @@ void CObject::PrivateSetDistToRoot(int iDistToRoot)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObject::GetTos(CArrayBaseObjectPtr* papcTos)
+void CObject::GetTos(CArrayEmbeddedObjectPtr* papcTos)
 {
 	int					iNumPointers;
 	int					i;
-	CPointer**	ppPointer;
-	CBaseObject*		pcPointedTo;
+	CPointer**			ppPointer;
+	CEmbeddedObject*	pcPointedTo;
 
 	iNumPointers = mapPointers.NumElements();
 	for (i = 0; i < iNumPointers; i++)
@@ -220,8 +220,8 @@ void CObject::RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged)
 {
 	int					iNumPointers;
 	int					i;
-	CPointer**	ppPointer;
-	CBaseObject*		pcPointedTo;
+	CPointer**			ppPointer;
+	CEmbeddedObject*	pcPointedTo;
 
 	iNumPointers = mapPointers.NumElements();
 	for (i = 0; i < iNumPointers; i++)
@@ -238,12 +238,12 @@ void CObject::RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObject::RemoveTo(CBaseObject* pcTo)
+void CObject::RemoveTo(CEmbeddedObject* pcTo)
 {
 	int				iNumPointers;
 	int				i;
 	CPointer**		ppPointer;
-	CBaseObject*	pcPointedTo;
+	CEmbeddedObject*	pcPointedTo;
 
 	iNumPointers = mapPointers.NumElements();
 	for (i = 0; i < iNumPointers; i++)
@@ -286,12 +286,12 @@ void CObject::Embedded(CBaseObject* pcObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CObject::RemapTos(CBaseObject* pcOld, CBaseObject* pcNew)
+int CObject::RemapTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew)
 {
 	int					iNumPointers;
 	int					i;
-	CPointer**	ppPointer;
-	CBaseObject*		pcPointedTo;
+	CPointer**			ppPointer;
+	CEmbeddedObject*	pcPointedTo;
 	int					iCount;
 
 	iCount = 0;

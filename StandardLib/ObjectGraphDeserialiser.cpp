@@ -246,7 +246,7 @@ BOOL CObjectGraphDeserialiser::AddContainingPointersAndCreateHollowObject(CDepen
 		{
 			pObject = mpcAllocator->AddHollow(pcDependentReadObject->mszObjectName.Text());
 			mpcDependentObjects->AddIndexRemap(pObject.GetIndex(), pcDependentReadPointer->moiPointedTo);
-			pcBaseObject = pObject.Object();
+			pcBaseObject = (CBaseObject*)(pObject.Object());
 		}
 		else if (pcDependentReadObject->mcType == OBJECT_POINTER_ID)
 		{

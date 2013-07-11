@@ -83,7 +83,7 @@ CPointer CObjectAllocator::Add(char* szClassName, OIndex oiForced)
 	}
 	else
 	{
-		pvExisting = pExistingObject.Object();
+		pvExisting = pExistingObject.BaseObject();
 		return ReplaceExisting(pvExisting, pvObject, NULL, oiForced);
 	}
 }
@@ -174,7 +174,7 @@ CPointer CObjectAllocator::Add(char* szClassName, char* szObjectName, OIndex oiF
 	else
 	{
 		*poiExisting = pExistingObject.GetIndex();
-		pvExisting = pExistingObject.Object();
+		pvExisting = pExistingObject.BaseObject();
 		return ReplaceExisting(pvExisting, pvObject, szObjectName, oiForced);
 	}
 }

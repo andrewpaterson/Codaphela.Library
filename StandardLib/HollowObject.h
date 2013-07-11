@@ -37,15 +37,15 @@ public:
 			BOOL			IsCollection(void);
 			BOOL			IsObject(void);
 			void			SetDistToRoot(int iDistToRoot);
-			void			GetTos(CArrayBaseObjectPtr* papcTos);
+			void			GetTos(CArrayEmbeddedObjectPtr* papcTos);
 			int				NumTos(void);
 
 protected:
 	void	KillToPointers(void);
 	void	KillData(void);
-	int		RemapTos(CBaseObject* pcOld, CBaseObject* pcNew);
+	int		RemapTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew);
 	void	RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged);
-	void	RemoveTo(CBaseObject* pcTo);
+	void	RemoveTo(CEmbeddedObject* pcTo);
 	void	CollectThoseToBeKilled(CArrayBaseObjectPtr* papcKilled);
 	BOOL	CanFindRoot(void);
 };

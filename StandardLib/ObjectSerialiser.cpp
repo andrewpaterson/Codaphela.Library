@@ -86,8 +86,15 @@ BOOL CObjectSerialiser::WritePointer(CPointer pObject)
 {
 	CBaseObject*	pcBaseObject;
 
-	pcBaseObject = &pObject;
-	return WriteDependent(pcBaseObject);
+	if (pObject.Object()->IsBaseObject())
+	{
+		pcBaseObject = (CBaseObject*)(&pObject);
+		return WriteDependent(pcBaseObject);
+	}
+	else
+	{
+		return FALSE;
+	}
 }
 
 

@@ -51,11 +51,11 @@ public:
 	
 protected:
 	void		KillToPointers(void);
-	void		GetTos(CArrayBaseObjectPtr* papcTos);
-	void		RemoveTo(CBaseObject* pcTo);
+	void		GetTos(CArrayEmbeddedObjectPtr* papcTos);
+	void		RemoveTo(CEmbeddedObject* pcTo);
 	void		RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged);
 	void		CollectThoseToBeKilled(CArrayBaseObjectPtr* papcKilled);
-	int			RemapTos(CBaseObject* pcOld, CBaseObject* pcNew);
+	int			RemapTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew);
 	void		Free(void);
 	void		RecurseGetFroms(CArrayEmbeddedBaseObjectPtr* papcFroms);
 	void		PrivateSetDistToRoot(int iDistToRoot);

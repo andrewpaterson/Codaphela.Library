@@ -114,7 +114,7 @@ BOOL CIndexedDataObjectDeserialiser::AddContainingPointersAndCreateHollowObject(
 {
 	CBaseObject*			pcBaseObject;
 	CDependentReadObject*	pcDependentReadObject;
-	CPointer			pObject;
+	CPointer				pObject;
 	OIndex					oiNew;
 
 	oiNew = pcDependentReadPointer->moiPointedTo;
@@ -126,12 +126,12 @@ BOOL CIndexedDataObjectDeserialiser::AddContainingPointersAndCreateHollowObject(
 		if (pcDependentReadObject->mcType == OBJECT_POINTER_ID)
 		{
 			pObject = mpcAllocator->AddHollow(pcDependentReadObject->moi);
-			pcBaseObject = pObject.Object();
+			pcBaseObject = pObject.BaseObject();
 		}
 		else if (pcDependentReadObject->mcType == OBJECT_POINTER_NAMED)
 		{
 			pObject = mpcAllocator->AddHollow(pcDependentReadObject->mszObjectName.Text(), pcDependentReadObject->moi);
-			pcBaseObject = pObject.Object();
+			pcBaseObject = pObject.BaseObject();
 		}
 	}
 

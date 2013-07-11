@@ -49,7 +49,7 @@ public:
 	void			SetDistToRoot(int iDistToRoot);
 
 	int				NumTos(void);
-	void			GetTos(CArrayBaseObjectPtr* papcTos);
+	void			GetTos(CArrayEmbeddedObjectPtr* papcTos);
 
 	BOOL			Save(CObjectSerialiser* pcFile);
 	BOOL			Load(CObjectDeserialiser* pcFile);
@@ -59,9 +59,9 @@ public:
 protected:
 	void			KillToPointers(void);
 	void			KillData(void);
-	void			RemoveTo(CBaseObject* pcTo);
+	void			RemoveTo(CEmbeddedObject* pcTo);
 	void			RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged);
-	int				RemapTos(CBaseObject* pcOld, CBaseObject* pcNew);
+	int				RemapTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew);
 	void			CollectThoseToBeKilled(CArrayBaseObjectPtr* papcKilled);
 	void			KillChildGraph(void);
 };
