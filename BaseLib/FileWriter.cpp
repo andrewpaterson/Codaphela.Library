@@ -228,6 +228,16 @@ BOOL CFileWriter::WriteChar(char c)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
+BOOL CFileWriter::WriteChar(unsigned char c)
+{
+	CheckWrite(&c, sizeof(unsigned char));
+	return TRUE;
+}
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
 BOOL CFileWriter::WriteBool(BOOL b)
 {
 	CheckWrite(&b, sizeof(BOOL));
@@ -242,6 +252,17 @@ BOOL CFileWriter::WriteBool(BOOL b)
 BOOL CFileWriter::WriteShort(short int i)
 {
 	CheckWrite(&i, sizeof(short int));
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+BOOL CFileWriter::WriteShort(unsigned short int i)
+{
+	CheckWrite(&i, sizeof(unsigned short int));
 	return TRUE;
 }
 

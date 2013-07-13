@@ -87,8 +87,10 @@ public:
 						BOOL	ReadFloat(float* pf);
 						BOOL	ReadDouble(double* pf);
 						BOOL	ReadChar(char* pc);
+						BOOL	ReadChar(unsigned char* pc);
 						BOOL	ReadBool(BOOL* pb);
 						BOOL	ReadShort(short int* pi);
+						BOOL	ReadShort(unsigned short int* pi);
 						BOOL	ReadBits(void* pvData, int iByteLength);
 						BOOL	ReadIntArray(int* pai, int iLength);
 };

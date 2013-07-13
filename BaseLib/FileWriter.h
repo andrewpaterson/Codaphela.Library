@@ -79,8 +79,10 @@ public:
 						BOOL	WriteFloat(float f);
 						BOOL	WriteDouble(double f);
 						BOOL	WriteChar(char c);
+						BOOL	WriteChar(unsigned char c);
 						BOOL	WriteBool(BOOL b);
 						BOOL	WriteShort(short int i);
+						BOOL	WriteShort(unsigned short int i);
 						BOOL	WriteBits(void* pvData, int iBitLength);
 
 						BOOL	WriteIntArray(int* pai, int iLength);
