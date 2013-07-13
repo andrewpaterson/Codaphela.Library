@@ -106,12 +106,14 @@ public:
 	virtual void				GetTos(CArrayEmbeddedObjectPtr* papcTos) =0;
 			int					NumFroms(void);
 	virtual int					NumTos(void) =0;
-			CEmbeddedObject* 	TestGetTo(int iToIndex);
-			CBaseObject* 		TestGetFrom(int iFromIndex);
 	virtual void				RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged) =0;
 			void				AddFrom(CBaseObject* pcFrom);
 			void				FixDistToRoot(void);
 			void				RemoveFrom(CBaseObject* pcFrom);
+
+			CEmbeddedObject* 	TestGetTo(int iToIndex);
+			CBaseObject* 		TestGetFrom(int iFromIndex);
+			int					TestGetNumEmbeddedFromFlags(void);
 	
 protected:
 	virtual void			KillToPointers(void) =0;

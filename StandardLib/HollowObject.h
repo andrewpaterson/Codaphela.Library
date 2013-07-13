@@ -27,6 +27,7 @@ class CHollowObject : public CBaseObject
 BASE_FUNCTIONS(CHollowObject);
 public:
 							CHollowObject(void);
+			void			Init(unsigned short iNumEmbedded);
 			void			Kill(void);
 	virtual	CBaseObject*	Dehollow(void);
 
@@ -39,6 +40,7 @@ public:
 			void			SetDistToRoot(int iDistToRoot);
 			void			GetTos(CArrayEmbeddedObjectPtr* papcTos);
 			int				NumTos(void);
+			int				GetNumEmbedded(void);
 
 protected:
 	void	KillToPointers(void);

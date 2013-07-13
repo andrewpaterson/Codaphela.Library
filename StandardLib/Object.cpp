@@ -438,6 +438,13 @@ int CObject::GetNumEmbedded(void)
 	int				i;
 	CBaseObject*	pcEmbedded;
 	int				iCount;
+	int				iNumEmbedded;
+
+	iNumEmbedded = GetNumEmbeddedFromFlags();
+	if (iNumEmbedded != 0)
+	{
+		return iNumEmbedded;
+	}
 
 	iCount = 1;
 	for (i = 0; i < mapEmbedded.NumElements(); i++)	
@@ -446,6 +453,9 @@ int CObject::GetNumEmbedded(void)
 
 		iCount += pcEmbedded->GetNumEmbedded();
 	}
-	return iCount;
+
+	iNumEmbedded = iCount;
+	SetNumEmbeddedFlag(iNumEmbedded);
+	return iNumEmbedded;
 }
 
