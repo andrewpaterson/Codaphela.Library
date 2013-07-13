@@ -10,6 +10,7 @@ public:
 	BOOL	Save(CObjectSerialiser* pcFile);
 	BOOL	Load(CObjectDeserialiser* pcFile);
 	void	RemoveTo(CEmbeddedObject* pcTo);
+	int		GetNumEmbedded(void);
 };
 
 

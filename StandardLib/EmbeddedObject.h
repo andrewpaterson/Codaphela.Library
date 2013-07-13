@@ -46,7 +46,7 @@ public:
 			BOOL			IsEmbedded(void);
 			BOOL			IsNotEmbedded(void);
 	virtual int				GetEmbeddedIndex(CEmbeddedObject* pcEmbedded);
-	virtual int				GetNumEmbedded(void);
+	virtual int				GetNumEmbedded(void) =0;
 			void			SetEmbedded(CBaseObject* pcEmbedded);
 };
 

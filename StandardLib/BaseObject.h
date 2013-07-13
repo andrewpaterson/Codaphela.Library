@@ -97,6 +97,7 @@ public:
 			int					SerialisedSize(void);
 
 	virtual BOOL				IsEmbeddedDirty(void);
+			int					GetNumEmbedded(void);
 
 	virtual void				SetDistToRoot(int iDistToRoot) =0;
 			void				SetDirty(void);
@@ -132,6 +133,8 @@ protected:
 			int				KillThisGraph(void);
 			BOOL			IsUnattached(void);
 			BOOL			IsBaseObject(void);
+			int				GetNumEmbeddedFromFlags(void);
+			void			SetNumEmbeddedFlag(int iNumEmbedded);
 };
 
 
