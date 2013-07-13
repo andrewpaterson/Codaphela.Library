@@ -125,12 +125,12 @@ BOOL CIndexedDataObjectDeserialiser::AddContainingPointersAndCreateHollowObject(
 		pcDependentReadObject = mpcDependentObjects->GetObject(pcDependentReadPointer->moiPointedTo);
 		if (pcDependentReadObject->mcType == OBJECT_POINTER_ID)
 		{
-			pObject = mpcAllocator->AddHollow(pcDependentReadObject->moi);
+			pObject = mpcAllocator->AddHollow(pcDependentReadObject->moi, pcDependentReadPointer->miNumEmbedded);
 			pcBaseObject = pObject.BaseObject();
 		}
 		else if (pcDependentReadObject->mcType == OBJECT_POINTER_NAMED)
 		{
-			pObject = mpcAllocator->AddHollow(pcDependentReadObject->mszObjectName.Text(), pcDependentReadObject->moi);
+			pObject = mpcAllocator->AddHollow(pcDependentReadObject->mszObjectName.Text(), pcDependentReadObject->moi, pcDependentReadPointer->miNumEmbedded);
 			pcBaseObject = pObject.BaseObject();
 		}
 	}

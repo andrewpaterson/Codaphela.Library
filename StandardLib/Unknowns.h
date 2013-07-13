@@ -47,6 +47,7 @@ public:
 						void			Remove(CUnknown* pcUnknown);
 	template<class M>	M*				Add(void);
 	template<class M>	M*				AddUnsafe(void);
+	template<class M>	M*				AddUnsafe(int iAdditionalSize);
 						CUnknown*		Add(char* szClassName);
 						CUnknown*		AddFromHeader(CFileReader* pcFile);
 						BOOL			LoadUnknown(CFileReader* pcFile, CUnknown** ppcUnknown);
@@ -114,12 +115,23 @@ M* CUnknowns::Add(void)
 template<class M>
 M* CUnknowns::AddUnsafe(void)
 {
+	return AddUnsafe<M>(0);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+M* CUnknowns::AddUnsafe(int iAdditionalSize)
+{
 	M*		pv;
 	char	szDebug[4];
 	int		iSize;
 
 	iSize = sizeof(M);
-	pv = (M*)mcMemory.Add(iSize);
+	pv = (M*)mcMemory.Add(iSize + iAdditionalSize);
 	if (pv)
 	{
 		CONSTRUCT(pv, M);

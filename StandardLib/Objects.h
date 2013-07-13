@@ -39,7 +39,8 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #define ORoot()						(gcObjects.AddRoot())
 #define ONull						(Null())
 
-
+class CHollowObject;
+class CNamedHollowObject;
 class CObjects
 {
 friend class CBaseObject;
@@ -111,6 +112,7 @@ protected:
 						BOOL					AddWithID(CBaseObject* pvObject, OIndex oi);
 						BOOL					AddWithIDAndName(CBaseObject* pvObject, char* szObjectName, OIndex oi);
 	template<class M>	M*						Allocate(void);
+	template<class M>	M*						Allocate(int iAdditionalBytes);
 						CBaseObject*			Allocate(char* szClassName);
 						CBaseObject*			GetFromMemory(OIndex oi);
 						CBaseObject*			GetFromMemory(char* szObjectName);
@@ -123,6 +125,9 @@ protected:
 						void					FixDistToRoot(CArrayEmbeddedBaseObjectPtr* papcFromsChanged);
 						void					RecurseDumpGraph(CChars* psz, CEmbeddedObject* pcObject, int iLevel, BOOL bEmbedded);
 						void					PrintObject(CChars* psz, CBaseObject* pcBaseObject, BOOL bEmbedded = FALSE);
+						CNamedHollowObject*		AllocateNamedHollow(unsigned short iNumEmbedded);
+						CHollowObject*			AllocateHollow(unsigned short iNumEmbedded);
+						void					AppenedHollowEmbeddedObjects(CBaseObject* pcHollow, unsigned short iNumEmbedded, void* pvEmbedded) ;
 };
 
 
@@ -140,6 +145,17 @@ void ObjectsKill(void);
 //////////////////////////////////////////////////////////////////////////
 template<class M>	
 M* CObjects::Allocate(void)
+{
+	return Allocate<M>(0);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M>	
+M* CObjects::Allocate(int iAdditionalBytes)
 {
 	M*	pcObject;
 

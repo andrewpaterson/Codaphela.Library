@@ -23,9 +23,9 @@ public:
 	CPointer		Add(char* szClassName, char* szObjectName, OIndex oiForced);
 	CPointer		Add(char* szClassName, char* szObjectName, OIndex oiForced, OIndex* poiExisting);
 
-	CPointer		AddHollow(char* szObjectName);
-	CPointer		AddHollow(OIndex oiForced);
-	CPointer		AddHollow(char* szObjectName, OIndex oiForced);
+	CPointer		AddHollow(char* szObjectName, unsigned short iNumEmbedded);
+	CPointer		AddHollow(OIndex oiForced, unsigned short iNumEmbedded);
+	CPointer		AddHollow(char* szObjectName, OIndex oiForced, unsigned short iNumEmbedded);
 
 protected:
 	CPointer ReplaceExisting(CBaseObject* pvExisting, CBaseObject* pvObject, char* szObjectName, OIndex oiForced);

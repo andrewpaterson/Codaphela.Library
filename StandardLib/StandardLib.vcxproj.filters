@@ -483,6 +483,9 @@
     <ClInclude Include="EmbeddedObject.h">
       <Filter>Source\Object\Object</Filter>
     </ClInclude>
+    <ClInclude Include="HollowEmbeddedObject.h">
+      <Filter>Source\Object\Object</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Unknown.cpp">
@@ -780,6 +783,9 @@
       <Filter>Source\Object\Object\Collections\Set</Filter>
     </ClCompile>
     <ClCompile Include="EmbeddedObject.cpp">
+      <Filter>Source\Object\Object</Filter>
+    </ClCompile>
+    <ClCompile Include="HollowEmbeddedObject.cpp">
       <Filter>Source\Object\Object</Filter>
     </ClCompile>
   </ItemGroup>

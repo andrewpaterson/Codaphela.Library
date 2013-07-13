@@ -99,15 +99,18 @@ BOOL CObjectSerialiser::WriteDependent(CEmbeddedObject* pcDependent)
 {
 	BOOL			bResult;
 	CBaseObject*	pcContainer;
-	int				iEmbeddedIndex;
+	unsigned short	iEmbeddedIndex;
+	unsigned short	iNumEmbedded;
 
 	if (pcDependent)
 	{
 		pcContainer = pcDependent->GetEmbeddingContainer();
 		iEmbeddedIndex = pcContainer->GetEmbeddedIndex(pcDependent);
+		iNumEmbedded = pcContainer->GetNumEmbedded();
 
 		bResult = WriteIdentifier(pcContainer);
-		bResult &= WriteInt(iEmbeddedIndex);
+		bResult &= WriteShort(iNumEmbedded);
+		bResult &= WriteShort(iEmbeddedIndex);
 
 		if (bResult)
 		{

@@ -30,6 +30,8 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "ObjectAllocator.h"
 #include "ObjectSource.h"
 #include "Objects.h"
+#include "NamedHollowObject.h"
+#include "HollowEmbeddedObject.h"
 
 
 CObjects gcObjects;
@@ -986,6 +988,92 @@ CNamedIndexedObjects* CObjects::GetMemory(void)
 {
 	return &mcMemory;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CNamedHollowObject* CObjects::AllocateNamedHollow(unsigned short iNumEmbedded)
+{
+	CNamedHollowObject*		pcHollow;
+	int					iAdditionalBytes;
+	void*				pvEmbedded;
+
+	if (iNumEmbedded == 0)
+	{
+		return NULL;
+	}
+	if (iNumEmbedded == 1)
+	{
+		pcHollow = Allocate<CNamedHollowObject>();
+		return pcHollow;
+	}
+	else
+	{
+		iAdditionalBytes = sizeof(CHollowEmbeddedObject) * (iNumEmbedded-1);
+		pcHollow = Allocate<CNamedHollowObject>(iAdditionalBytes);
+		pvEmbedded = RemapSinglePointer(pcHollow, sizeof(CNamedHollowObject));
+
+		AppenedHollowEmbeddedObjects(pcHollow, iNumEmbedded, pvEmbedded);
+
+		return pcHollow;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CHollowObject* CObjects::AllocateHollow(unsigned short iNumEmbedded)
+{
+	CHollowObject*		pcHollow;
+	int					iAdditionalBytes;
+	void*				pvEmbedded;
+
+	if (iNumEmbedded == 0)
+	{
+		return NULL;
+	}
+	if (iNumEmbedded == 1)
+	{
+		pcHollow = Allocate<CHollowObject>();
+		return pcHollow;
+	}
+	else
+	{
+		iAdditionalBytes = sizeof(CHollowEmbeddedObject) * (iNumEmbedded-1);
+		pcHollow = Allocate<CHollowObject>(iAdditionalBytes);
+		pvEmbedded = RemapSinglePointer(pcHollow, sizeof(CHollowObject));
+
+		AppenedHollowEmbeddedObjects(pcHollow, iNumEmbedded, pvEmbedded);
+
+		return pcHollow;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CObjects::AppenedHollowEmbeddedObjects(CBaseObject* pcHollow, unsigned short iNumEmbedded, void* pvEmbedded) 
+{
+	CHollowEmbeddedObject	cEmbeddedObject;
+	int						i;
+	CHollowEmbeddedObject*	pcEmbeddedObject;
+
+	cEmbeddedObject.SetEmbedded(pcHollow);
+
+	for (i = 0; i < iNumEmbedded-1; i++)
+	{
+		pcEmbeddedObject = (CHollowEmbeddedObject*)pvEmbedded;
+		memcpy(pcEmbeddedObject, &cEmbeddedObject, sizeof(CHollowEmbeddedObject));
+		pvEmbedded = RemapSinglePointer(pvEmbedded, sizeof(CHollowEmbeddedObject));
+	}
+}
+
 
 
 //////////////////////////////////////////////////////////////////////////

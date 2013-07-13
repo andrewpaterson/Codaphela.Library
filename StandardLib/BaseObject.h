@@ -31,19 +31,22 @@ typedef CArrayEmbedded<CBaseObject*, 32>	CArrayEmbeddedBaseObjectPtr;
 
 
 //Tested for root is only valid whilst the scene graph is calling CanFindRoot.  It stops the graph from walking already tested objects.
-#define OBJECT_FLAGS_TESTED_FOR_ROOT	0x02
+#define OBJECT_FLAGS_TESTED_FOR_ROOT		0x02
 
 //Invalidated is set when the object on the file system is changed and must be reloaded.  This objects does not use it.
-#define OBJECT_FLAGS_INVALIDATED		0x04
+#define OBJECT_FLAGS_INVALIDATED			0x04
 
 //Dirty must be manually set when an object needs to be written from memory to indexed data.  Objects are - by default always dirty.
-#define OBJECT_FLAGS_DIRTY				0x08
+#define OBJECT_FLAGS_DIRTY					0x08
 
 //Debug flag marking whether or not an object has had kill called on it.  An object that is killed should be removed from Memory so an object with this flag set is broken.
-#define OBJECT_FLAGS_KILLED				0x10
+#define OBJECT_FLAGS_KILLED					0x10
 
 //Debug flag marking whether or not an object has had it's graph dumped yet.
-#define OBJECT_FLAGS_DUMPED				0x20
+#define OBJECT_FLAGS_DUMPED					0x20
+
+//How man embedded objects are in the object.  If you have more than 255 then you need your head smacked.
+#define OBJECT_FLAGS_NUM_EMBEDDED			0x0000FF00
 
 
 class CObjectDeserialiser;

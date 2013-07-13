@@ -91,6 +91,7 @@
     <ClInclude Include="DependentReadPointer.h" />
     <ClInclude Include="DependentWriteObject.h" />
     <ClInclude Include="EmbeddedObject.h" />
+    <ClInclude Include="HollowEmbeddedObject.h" />
     <ClInclude Include="IndexedDataObjectDeserialiser.h" />
     <ClInclude Include="Null.h" />
     <ClInclude Include="ObjectAllocator.h" />
@@ -202,6 +203,7 @@
     <ClCompile Include="DependentReadPointer.cpp" />
     <ClCompile Include="DependentWriteObject.cpp" />
     <ClCompile Include="EmbeddedObject.cpp" />
+    <ClCompile Include="HollowEmbeddedObject.cpp" />
     <ClCompile Include="IndexedDataObjectDeserialiser.cpp" />
     <ClCompile Include="Null.cpp" />
     <ClCompile Include="ObjectAllocator.cpp" />

@@ -35,7 +35,8 @@ public:
 class CPointerHeader : public CObjectIdentifier
 {
 public:
-	int	miEmbeddedIndex;
+	unsigned short	miNumEmbedded;
+	unsigned short	miEmbeddedIndex;
 
 	void Init(void);
 	void Kill(void);
