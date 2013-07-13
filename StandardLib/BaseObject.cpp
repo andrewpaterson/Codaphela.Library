@@ -780,9 +780,8 @@ int CBaseObject::GetNumEmbeddedFromFlags(void)
 void CBaseObject::SetNumEmbeddedFlag(int iNumEmbedded)
 {
 	iNumEmbedded = iNumEmbedded << 8;
-	miFlags &= (!OBJECT_FLAGS_NUM_EMBEDDED);
+	miFlags &= ~OBJECT_FLAGS_NUM_EMBEDDED;
 	miFlags |= iNumEmbedded & OBJECT_FLAGS_NUM_EMBEDDED;
-
 }
 
 
