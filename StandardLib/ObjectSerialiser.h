@@ -41,7 +41,7 @@ public:
 	
 	BOOL			WritePointer(CPointer pObject);
 	BOOL			WriteIdentifier(CBaseObject* pcBaseObject);
-	BOOL			WriteDependent(CBaseObject* pcBaseObject);
+	BOOL			WriteDependent(CEmbeddedObject* pcBaseObject);
 
 	void*			GetData(void);
 	int				GetLength(void);

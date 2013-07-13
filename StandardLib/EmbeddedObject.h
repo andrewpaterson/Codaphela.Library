@@ -14,10 +14,18 @@ typedef CArrayTemplate<CEmbeddedObject*>	CArrayEmbeddedObjectPtr;
 
 
 class CBaseObject;
+class CObjectSerialiser;
+class CObjectDeserialiser;
 class CEmbeddedObject : public CUnknown
 {
 BASE_FUNCTIONS(CEmbeddedObject);
+protected:
+	CBaseObject*	mpcEmbedded;  //Object that 'this' is embedded in.
+
 public:
+							CEmbeddedObject();
+	virtual BOOL			Save(CObjectSerialiser* pcFile) =0;
+	virtual BOOL			Load(CObjectDeserialiser* pcFile) =0;
 	virtual void			AddFrom(CBaseObject* pcFrom);
 	virtual BOOL			IsHollow(void);
 	virtual void			RemoveFrom(CBaseObject* mpcEmbedding);
@@ -34,6 +42,12 @@ public:
 	virtual void			ClearIndex(void);
 	virtual BOOL			IsBaseObject(void);
 	virtual void			RemoveTo(CEmbeddedObject* pcTo) =0;
+			CBaseObject*	GetEmbeddingContainer(void);
+			BOOL			IsEmbedded(void);
+			BOOL			IsNotEmbedded(void);
+	virtual int				GetEmbeddedIndex(CEmbeddedObject* pcEmbedded);
+	virtual int				GetNumEmbedded(void);
+
 };
 
 

@@ -64,7 +64,6 @@ protected:
 	int									miDistToRoot;
 	OIndex								moi;
 	CArrayEmbedded<CBaseObject*, 6>		mapFroms;  //Objects that 'this' is pointed from.  
-	CBaseObject*						mpcEmbedded;  //Object that 'this' is embedded in.
 	int									miFlags;
 
 public:
@@ -75,9 +74,6 @@ public:
 
 			void				KillDontFree(void);
 	virtual void				KillData(void) =0;
-
-	virtual BOOL				Save(CObjectSerialiser* pcFile) =0;
-	virtual BOOL				Load(CObjectDeserialiser* pcFile) =0;
 
 			OIndex				GetOI(void);
 			void				SetObjectID(OIndex oi);
@@ -97,10 +93,7 @@ public:
 	virtual void				SetName(char* szName);
 			int					SerialisedSize(void);
 
-			CBaseObject*		GetEmbeddingContainer(void);
 	virtual BOOL				IsEmbeddedDirty(void);
-	virtual int					GetEmbeddedIndex(CBaseObject* pcEmbedded);
-	virtual int					GetNumEmbedded(void);
 
 	virtual void				SetDistToRoot(int iDistToRoot) =0;
 			void				SetDirty(void);
@@ -135,8 +128,6 @@ protected:
 			void			KillCollected(CArrayBaseObjectPtr* papcKilled);
 			int				KillThisGraph(void);
 			BOOL			IsUnattached(void);
-			BOOL			IsEmbedded(void);
-			BOOL			IsNotEmbedded(void);
 			BOOL			IsBaseObject(void);
 };
 

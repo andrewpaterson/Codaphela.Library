@@ -32,7 +32,6 @@ CBaseObject::CBaseObject()
 {
 	mapFroms.Init();
 	mpcObjectsThisIn = NULL;
-	mpcEmbedded = NULL;
 	miDistToRoot = UNATTACHED_DIST_TO_ROOT;
 	moi = INVALID_O_INDEX;
 	miFlags = OBJECT_FLAGS_DIRTY;
@@ -153,26 +152,7 @@ void CBaseObject::GetFroms(CArrayEmbeddedBaseObjectPtr* papcFroms)
 {
 	CBaseObject*	pcNotEmbedded;
 
-	if (mpcEmbedded == NULL)
-	{
-		pcNotEmbedded = this;
-	}
-	else
-	{
-		pcNotEmbedded = mpcEmbedded;
-		for (;;)
-		{
-			if (pcNotEmbedded->mpcEmbedded)
-			{
-				pcNotEmbedded = pcNotEmbedded->mpcEmbedded;
-			}
-			else
-			{
-				break;
-			}
-		}
-	}
-
+	pcNotEmbedded = GetEmbeddingContainer();
 	pcNotEmbedded->RecurseGetFroms(papcFroms);
 }
 
@@ -573,33 +553,6 @@ BOOL CBaseObject::IsEmbeddedDirty(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CBaseObject::GetEmbeddedIndex(CBaseObject* pcEmbedded)
-{
-	if (pcEmbedded == this)
-	{
-		return 0;
-	}
-	else
-	{
-		return -1;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-int CBaseObject::GetNumEmbedded(void)
-{
-	return 1;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 BOOL CBaseObject::TestedForRoot(void)
 {
 	return miFlags & OBJECT_FLAGS_TESTED_FOR_ROOT;
@@ -783,44 +736,6 @@ BOOL CBaseObject::IsUnattached(void)
 		return TRUE;
 	}
 	return FALSE;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CBaseObject::IsNotEmbedded(void)
-{
-	return mpcEmbedded == NULL;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CBaseObject::IsEmbedded(void)
-{
-	return mpcEmbedded != NULL;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CBaseObject* CBaseObject::GetEmbeddingContainer(void)
-{
-	CBaseObject*	pcContainer;
-
-	pcContainer = this;
-	while (pcContainer->IsEmbedded())
-	{
-		pcContainer = pcContainer->mpcEmbedded;
-	}
-
-	return pcContainer;
 }
 
 

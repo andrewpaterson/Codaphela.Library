@@ -84,17 +84,10 @@ BOOL CObjectSerialiser::Save(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CObjectSerialiser::WritePointer(CPointer pObject)
 {
-	CBaseObject*	pcBaseObject;
+	CEmbeddedObject*	pcEmbeddedObject;
 
-	if (pObject.Object()->IsBaseObject())
-	{
-		pcBaseObject = (CBaseObject*)(&pObject);
-		return WriteDependent(pcBaseObject);
-	}
-	else
-	{
-		return FALSE;
-	}
+	pcEmbeddedObject = (&pObject);
+	return WriteDependent(pcEmbeddedObject);
 }
 
 
@@ -102,16 +95,16 @@ BOOL CObjectSerialiser::WritePointer(CPointer pObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectSerialiser::WriteDependent(CBaseObject* pcBaseObject)
+BOOL CObjectSerialiser::WriteDependent(CEmbeddedObject* pcDependent)
 {
 	BOOL			bResult;
 	CBaseObject*	pcContainer;
 	int				iEmbeddedIndex;
 
-	if (pcBaseObject)
+	if (pcDependent)
 	{
-		pcContainer = pcBaseObject->GetEmbeddingContainer();
-		iEmbeddedIndex = pcContainer->GetEmbeddedIndex(pcBaseObject);
+		pcContainer = pcDependent->GetEmbeddingContainer();
+		iEmbeddedIndex = pcContainer->GetEmbeddedIndex(pcDependent);
 
 		bResult = WriteIdentifier(pcContainer);
 		bResult &= WriteInt(iEmbeddedIndex);
