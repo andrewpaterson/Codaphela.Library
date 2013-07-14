@@ -17,6 +17,9 @@ public:
 	BOOL			IsNamed(void);
 
 	BOOL			InitName(char* szName);
+
+protected:
+	CEmbeddedObject*	GetRemappedEmbeddedObject(int iIndex);
 };
 
 

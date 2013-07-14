@@ -33,28 +33,29 @@ protected:
 	BOOL					mbSubRoot;
 
 public:
-	void			Init(BOOL bUnique, BOOL bIgnoreNull, BOOL bPreserveOrder, int iChunkSize);
-	void			Kill(void);
+	void				Init(BOOL bUnique, BOOL bIgnoreNull, BOOL bPreserveOrder, int iChunkSize);
+	void				Kill(void);
 
-	void			Add(CPointer pObject);
-	void			AddAll(CArrayCommonObject* pcArray);
-	void			Set(int iIndex, CPointer pObject);
-	BOOL			Remove(CPointer pObject);
-	void			RemoveAll(void);
+	void				Add(CPointer pObject);
+	void				AddAll(CArrayCommonObject* pcArray);
+	void				Set(int iIndex, CPointer pObject);
+	BOOL				Remove(CPointer pObject);
+	void				RemoveAll(void);
 
-	int				NumElements(void);
+	int					NumElements(void);
 
-	void			MakeSubRoot(void);
-	BOOL			IsSubRoot(void);
-	void			SetDistToRoot(int iDistToRoot);
+	void				MakeSubRoot(void);
+	BOOL				IsSubRoot(void);
+	void				SetDistToRoot(int iDistToRoot);
 
-	int				NumTos(void);
-	void			GetTos(CArrayEmbeddedObjectPtr* papcTos);
+	int					NumTos(void);
+	void				GetTos(CArrayEmbeddedObjectPtr* papcTos);
 
-	BOOL			Save(CObjectSerialiser* pcFile);
-	BOOL			Load(CObjectDeserialiser* pcFile);
+	BOOL				Save(CObjectSerialiser* pcFile);
+	BOOL				Load(CObjectDeserialiser* pcFile);
 
-	CBaseObject*	UnsafeGet(int iIndex);
+	CBaseObject*		UnsafeGet(int iIndex);
+	CEmbeddedObject*	GetEmbeddedObject(int iIndex);
 
 protected:
 	void			KillToPointers(void);

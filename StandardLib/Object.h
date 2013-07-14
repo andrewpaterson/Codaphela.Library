@@ -37,29 +37,32 @@ protected:
 	CArrayEmbedded<CBaseObject*, 3>		mapEmbedded;  //Objects embedded in this object
 
 public:
-	CObject();
-	void		Kill(void);
-	int			NumTos(void);
-	BOOL		IsCollection(void);
-	BOOL		IsObject(void);
-	void		SetDistToRoot(int iDistToRoot);
-	CPointer*	Pointer(CPointer* pcPointer);
-	void		Embedded(CBaseObject* pcObject);
-	BOOL		IsEmbeddedDirty(void);
-	int			GetEmbeddedIndex(CBaseObject* pcEmbedded);
-	int			GetNumEmbedded(void);
+						CObject();
+	void				Kill(void);
+	int					NumTos(void);
+	BOOL				IsCollection(void);
+	BOOL				IsObject(void);
+	void				SetDistToRoot(int iDistToRoot);
+	CPointer*			Pointer(CPointer* pcPointer);
+	void				Embedded(CBaseObject* pcObject);
+	BOOL				IsEmbeddedDirty(void);
+	int					GetEmbeddedIndex(CBaseObject* pcEmbedded);
+	int					GetNumEmbedded(void);
+	CEmbeddedObject*	GetEmbeddedObject(int iIndex);
+	CBaseObject*		Dehollow(void);
 	
 protected:
-	void		KillToPointers(void);
-	void		GetTos(CArrayEmbeddedObjectPtr* papcTos);
-	void		RemoveTo(CEmbeddedObject* pcTo);
-	void		RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged);
-	void		CollectThoseToBeKilled(CArrayBaseObjectPtr* papcKilled);
-	int			RemapTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew);
-	void		Free(void);
-	void		RecurseGetFroms(CArrayEmbeddedBaseObjectPtr* papcFroms);
-	void		PrivateSetDistToRoot(int iDistToRoot);
-	BOOL		RecurseGetEmbeddedIndex(CBaseObject* pcTest, int* piIndex);
+	void				KillToPointers(void);
+	void				GetTos(CArrayEmbeddedObjectPtr* papcTos);
+	void				RemoveTo(CEmbeddedObject* pcTo);
+	void				RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged);
+	void				CollectThoseToBeKilled(CArrayBaseObjectPtr* papcKilled);
+	int					RemapTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew);
+	void				Free(void);
+	void				RecurseGetFroms(CArrayEmbeddedBaseObjectPtr* papcFroms);
+	void				PrivateSetDistToRoot(int iDistToRoot);
+	BOOL				RecurseGetEmbeddedIndex(CBaseObject* pcTest, int* piIndex);
+	CEmbeddedObject*	RecurseGetEmbeddedObject(int iIndex, int* iCount);
 };
 
 

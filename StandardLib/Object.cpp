@@ -459,3 +459,72 @@ int CObject::GetNumEmbedded(void)
 	return iNumEmbedded;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CEmbeddedObject* CObject::GetEmbeddedObject(int iIndex)
+{
+	int					iCount;
+	CEmbeddedObject*	pcReturned;
+
+	iCount = 0;
+	pcReturned = RecurseGetEmbeddedObject(iIndex, &iCount);
+	return pcReturned;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CEmbeddedObject* CObject::RecurseGetEmbeddedObject(int iIndex, int* piCount)
+{
+	int					i;
+	CBaseObject*		pcEmbedded;
+	CObject*			pcObject;
+	CEmbeddedObject*	pcReturned;
+
+	if (iIndex == *piCount)
+	{
+		return this;
+	}
+	else
+	{
+		for (i = 0; i < mapEmbedded.NumElements(); i++)	
+		{
+			pcEmbedded = *mapEmbedded.Get(i);
+			(*piCount)++;
+
+			if (pcEmbedded->IsObject())
+			{
+				pcObject = (CObject*)pcEmbedded;
+				pcReturned = pcObject->RecurseGetEmbeddedObject(iIndex, piCount);
+				if (pcReturned)
+				{
+					return pcReturned;
+				}
+			}
+			else
+			{
+				if (iIndex == *piCount)
+				{
+					return pcEmbedded;
+				}
+			}
+		}
+		return NULL;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CBaseObject* CObject::Dehollow(void)
+{
+	return this;
+}
+

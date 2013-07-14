@@ -26,30 +26,32 @@ class CHollowObject : public CBaseObject
 {
 BASE_FUNCTIONS(CHollowObject);
 public:
-							CHollowObject(void);
-			void			Init(unsigned short iNumEmbedded);
-			void			Kill(void);
-	virtual	CBaseObject*	Dehollow(void);
+								CHollowObject(void);
+			void				Init(unsigned short iNumEmbedded);
+			void				Kill(void);
+			CBaseObject*		Dehollow(void);
 
-			BOOL			IsHollow(void);
+			BOOL				IsHollow(void);
 
-			BOOL			Save(CObjectSerialiser* pcFile);
-			BOOL			Load(CObjectDeserialiser* pcFile);
-			BOOL			IsCollection(void);
-			BOOL			IsObject(void);
-			void			SetDistToRoot(int iDistToRoot);
-			void			GetTos(CArrayEmbeddedObjectPtr* papcTos);
-			int				NumTos(void);
-			int				GetNumEmbedded(void);
+			BOOL				Save(CObjectSerialiser* pcFile);
+			BOOL				Load(CObjectDeserialiser* pcFile);
+			BOOL				IsCollection(void);
+			BOOL				IsObject(void);
+			void				SetDistToRoot(int iDistToRoot);
+			void				GetTos(CArrayEmbeddedObjectPtr* papcTos);
+			int					NumTos(void);
+			int					GetNumEmbedded(void);
+			CEmbeddedObject*	GetEmbeddedObject(int iIndex);
 
 protected:
-	void	KillToPointers(void);
-	void	KillData(void);
-	int		RemapTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew);
-	void	RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged);
-	void	RemoveTo(CEmbeddedObject* pcTo);
-	void	CollectThoseToBeKilled(CArrayBaseObjectPtr* papcKilled);
-	BOOL	CanFindRoot(void);
+			void				KillToPointers(void);
+			void				KillData(void);
+			int					RemapTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew);
+			void				RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged);
+			void				RemoveTo(CEmbeddedObject* pcTo);
+			void				CollectThoseToBeKilled(CArrayBaseObjectPtr* papcKilled);
+			BOOL				CanFindRoot(void);
+	virtual	CEmbeddedObject*	GetRemappedEmbeddedObject(int iIndex);
 };
 
 

@@ -27,10 +27,11 @@ class CCollection : public CBaseObject
 {
 BASE_FUNCTIONS(CCollection);
 public:
-			void	Kill(void);
-			BOOL	IsCollection(void);
-			BOOL	IsObject(void);
-	virtual void	RemoveAll(void) =0;
+			void			Kill(void);
+			BOOL			IsCollection(void);
+			BOOL			IsObject(void);
+	virtual void			RemoveAll(void) =0;
+			CBaseObject*	Dehollow(void);
 };
 
 

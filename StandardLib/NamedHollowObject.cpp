@@ -1,6 +1,7 @@
 #include "Objects.h"
-#include "NamedHollowObject.h"
 #include "NamedObject.h"
+#include "HollowEmbeddedObject.h"
+#include "NamedHollowObject.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -43,6 +44,7 @@ BOOL CNamedHollowObject::IsNamed(void)
 	return TRUE;
 }
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -56,5 +58,18 @@ BOOL CNamedHollowObject::InitName(char* szName)
 	}
 	mon.SetLength(MAX_NAMED_OBJECT_NAME_LENGTH-1);
 	return FALSE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CEmbeddedObject* CNamedHollowObject::GetRemappedEmbeddedObject(int iIndex)
+{
+	CEmbeddedObject*	pcEmbedded;
+
+	pcEmbedded = (CEmbeddedObject*)RemapSinglePointer(this, sizeof(CNamedHollowObject) + sizeof(CHollowEmbeddedObject)*(iIndex-1));
+	return pcEmbedded;
 }
 

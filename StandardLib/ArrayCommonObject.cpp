@@ -424,3 +424,19 @@ int CArrayCommonObject::RemapTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew)
 	}
 	return iCount;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CEmbeddedObject* CArrayCommonObject::GetEmbeddedObject(int iIndex)
+{
+	if (iIndex == 0)
+	{
+		return this;
+	}
+
+	return NULL;
+}
+

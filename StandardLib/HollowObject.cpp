@@ -19,6 +19,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include "Objects.h"
+#include "HollowEmbeddedObject.h"
 #include "HollowObject.h"
 
 
@@ -209,3 +210,37 @@ int CHollowObject::GetNumEmbedded(void)
 {
 	return GetNumEmbeddedFromFlags();
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CEmbeddedObject* CHollowObject::GetEmbeddedObject(int iIndex)
+{
+	if (iIndex >= GetNumEmbeddedFromFlags())
+	{
+		return NULL;
+	}
+
+	if (iIndex == 0)
+	{
+		return this;
+	}
+
+	return GetRemappedEmbeddedObject(iIndex);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CEmbeddedObject* CHollowObject::GetRemappedEmbeddedObject(int iIndex)
+{
+	CEmbeddedObject*	pcEmbedded;
+
+	pcEmbedded = (CEmbeddedObject*)RemapSinglePointer(this, sizeof(CHollowObject) + sizeof(CHollowEmbeddedObject)*(iIndex-1));
+	return pcEmbedded;
+}
+
