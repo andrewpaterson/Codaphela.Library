@@ -140,7 +140,7 @@ CEmbeddedObject* CPointer::operator -> ()
 {
 	if ((mpcObject) && (mpcObject->IsHollow()))
 	{
-		Dehollow();
+		mpcObject = mpcObject->Dehollow();
 	}
 	return mpcObject;
 }
@@ -154,7 +154,7 @@ CEmbeddedObject* CPointer::operator & ()
 {
 	if ((mpcObject) && (mpcObject->IsHollow()))
 	{
-		Dehollow();
+		mpcObject = mpcObject->Dehollow();
 	}
 	return mpcObject;
 }
@@ -251,24 +251,11 @@ CObject* CPointer::Embedding(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPointer::Dehollow(void)
-{
-	CHollowObject*	pcHollow;
-
-	pcHollow = (CHollowObject*)mpcObject;
-	mpcObject = pcHollow->Dehollow();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 CEmbeddedObject* CPointer::Dereference(void)
 {
 	if ((mpcObject) && (mpcObject->IsHollow()))
 	{
-		Dehollow();
+		mpcObject = mpcObject->Dehollow();
 	}
 	return mpcObject;
 }

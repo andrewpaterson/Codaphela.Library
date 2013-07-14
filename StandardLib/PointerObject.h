@@ -71,7 +71,6 @@ public:
 	void				AssignObject(CEmbeddedObject* pcObject);
 	CEmbeddedObject*	Dereference(void);
 
-	void				Dehollow(void);
 	void				PointTo(CEmbeddedObject* pcObject);
 	void				Construct(CPointer cPointer);
 
