@@ -145,6 +145,9 @@
     <Filter Include="Source\Object\Object\Serilalisation\Indexed">
       <UniqueIdentifier>{302cf9ae-684d-4734-8ebb-e95c2596e133}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Data\Pointer">
+      <UniqueIdentifier>{2041e945-c1cb-4e33-9f2a-2015b2dc0f38}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Base.h">
@@ -486,6 +489,9 @@
     <ClInclude Include="HollowEmbeddedObject.h">
       <Filter>Source\Object\Object</Filter>
     </ClInclude>
+    <ClInclude Include="PointerContainer.h">
+      <Filter>Source\Data\Pointer</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Unknown.cpp">
@@ -787,6 +793,9 @@
     </ClCompile>
     <ClCompile Include="HollowEmbeddedObject.cpp">
       <Filter>Source\Object\Object</Filter>
+    </ClCompile>
+    <ClCompile Include="PointerContainer.cpp">
+      <Filter>Source\Data\Pointer</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -128,6 +128,7 @@
     <ClInclude Include="ObjectSourceSimple.h" />
     <ClInclude Include="ObjectSourceText.h" />
     <ClInclude Include="Parameters.h" />
+    <ClInclude Include="PointerContainer.h" />
     <ClInclude Include="SerialisedObject.h" />
     <ClInclude Include="Set.h" />
     <ClInclude Include="String.h" />
@@ -239,6 +240,7 @@
     <ClCompile Include="ObjectSourceSimple.cpp" />
     <ClCompile Include="ObjectSourceText.cpp" />
     <ClCompile Include="ObjectWriter.cpp" />
+    <ClCompile Include="PointerContainer.cpp" />
     <ClCompile Include="SerialisedObject.cpp" />
     <ClCompile Include="String.cpp" />
     <ClCompile Include="Unknown.cpp" />
