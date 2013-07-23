@@ -163,7 +163,7 @@ void CArrayCommonObject::Add(CPointer pObject)
 	mcArray.Add(pObject.Object());
 	if (pObject.IsNotNull())
 	{
-		pObject->AddFrom(this);
+		pObject.AddFrom(this);
 	}
 }
 
