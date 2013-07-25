@@ -20,6 +20,7 @@ void CPointerContainer::Class(void)
 Ptr<CPointerContainer> CPointerContainer::Init(CPointer pPointer)
 {
 	Class();
+	mp = pPointer;
 	return this;
 }
 
