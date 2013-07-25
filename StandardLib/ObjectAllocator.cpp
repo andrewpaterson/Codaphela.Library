@@ -257,9 +257,9 @@ CPointer CObjectAllocator::AddHollow(OIndex oiForced, unsigned short iNumEmbedde
 //////////////////////////////////////////////////////////////////////////
 CPointer CObjectAllocator::AddHollow(char* szObjectName, OIndex oiForced, unsigned short iNumEmbedded)
 {
-	Ptr<CNamedHollowObject>	pHollow;
-	CNamedHollowObject*				pcHollow;
-	BOOL							bResult;
+	Ptr<CNamedHollowObject>		pHollow;
+	CNamedHollowObject*			pcHollow;
+	BOOL						bResult;
 	CPointer					pcExisting;
 
 	if (oiForced == INVALID_O_INDEX)
@@ -291,8 +291,6 @@ CPointer CObjectAllocator::AddHollow(char* szObjectName, OIndex oiForced, unsign
 	{
 		return ONull;
 	}
-
-	pcHollow->InitName(szObjectName);
 
 	bResult = gcObjects.AddWithIDAndName(pcHollow, szObjectName, oiForced);
 	if (bResult)

@@ -18,9 +18,10 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/Logger.h"
 #include "NamedIndexedObjects.h"
 #include "NamedObject.h"
-#include "BaseLib/Logger.h"
+#include "NamedHollowObject.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -150,9 +151,10 @@ BOOL CNamedIndexedObjects::AddWithID(CBaseObject* pvObject, OIndex oi)
 //////////////////////////////////////////////////////////////////////////
 BOOL CNamedIndexedObjects::AddWithIDAndName(CBaseObject* pvObject, OIndex oi, char* szName)
 {
-	CNamedObject*	pcNamed;
-	BOOL			bResult;
-	int				iResult;
+	CNamedObject*		pcNamed;
+	CNamedHollowObject*	pcNamedHollow;
+	BOOL				bResult;
+	int					iResult;
 
 	if (mcNames.Contains(szName))
 	{
@@ -175,12 +177,20 @@ BOOL CNamedIndexedObjects::AddWithIDAndName(CBaseObject* pvObject, OIndex oi, ch
 		return FALSE;
 	}
 
-	pcNamed = (CNamedObject*)pvObject;
-	bResult = pcNamed->InitName(szName);
+	if (!pvObject->IsHollow())
+	{
+		pcNamed = (CNamedObject*)pvObject;
+		bResult = pcNamed->InitName(szName);
+	}
+	else
+	{
+		pcNamedHollow = (CNamedHollowObject*)pvObject;
+		bResult = pcNamedHollow->InitName(szName);
+	}
 
 	if ((szName != NULL) && (szName[0] != 0))
 	{
-		iResult = mcNames.Add(pcNamed->GetOI(), szName);
+		iResult = mcNames.Add(pvObject->GetOI(), szName);
 
 		//This should never happen.  The checks at the top cut it out.
 		if (iResult == -1)
