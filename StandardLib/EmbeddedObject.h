@@ -1,5 +1,6 @@
 #ifndef __EMBEDDED_OBJECT__
 #define __EMBEDDED_OBJECT__
+#include "BaseLib/ArrayEmbedded.h"
 #include "CoreLib/IndexedGeneral.h"
 #include "Unknown.h"
 
@@ -14,25 +15,28 @@ typedef CArrayTemplate<CEmbeddedObject*>	CArrayEmbeddedObjectPtr;
 
 
 class CBaseObject;
+typedef CArrayTemplate<CBaseObject*>		CArrayBaseObjectPtr;
+typedef CArrayEmbedded<CBaseObject*, 32>	CArrayEmbeddedBaseObjectPtr;
+
+
 class CObjectSerialiser;
 class CObjectDeserialiser;
 class CEmbeddedObject : public CUnknown
 {
 BASE_FUNCTIONS(CEmbeddedObject);
 protected:
-	CBaseObject*	mpcEmbedded;  //Object that 'this' is embedded in.
+	CBaseObject*						mpcEmbedded;  //Object that 'this' is embedded in.
+	CArrayEmbedded<CBaseObject*, 6>		mapFroms;  //Objects that 'this' is pointed from.  
 
 public:
 								CEmbeddedObject();
+	virtual void				KillDontFree(void) =0;
+			void				KillFroms(void);
 	virtual BOOL				Save(CObjectSerialiser* pcFile) =0;
 	virtual BOOL				Load(CObjectDeserialiser* pcFile) =0;
-	virtual void				AddFrom(CBaseObject* pcFrom);
 	virtual BOOL				IsHollow(void) =0;
 	virtual void				RemoveFrom(CBaseObject* mpcEmbedding);
-	virtual int					NumFroms(void);
-	virtual CBaseObject*		GetFrom(int i);
 	virtual int					RemapTos(CEmbeddedObject* pcOld, CEmbeddedObject* mpcObject);
-	virtual void				CopyFroms(CEmbeddedObject* pcOld);
 	virtual void				SetDistToRoot(int iDistToRoot);
 	virtual int					DistToRoot(void);
 	virtual OIndex				GetOI(void);
@@ -50,6 +54,19 @@ public:
 			void				SetEmbedded(CBaseObject* pcEmbedded);
 	virtual CEmbeddedObject*	GetEmbeddedObject(int iIndex) =0;
 	virtual CBaseObject*		Dehollow(void) =0;
+
+			void				CopyFroms(CEmbeddedObject* pcSource);
+	virtual void				AddFrom(CBaseObject* pcFrom) =0;
+			int					NumFroms(void);
+			CBaseObject*		GetFrom(int iFrom);
+			CBaseObject*		TestGetFrom(int iFromIndex);
+protected:
+			BOOL			IsUnattached(void);
+			void			RemoveAllFroms(void);
+			void			PrivateRemoveFrom(CBaseObject* pcFrom);
+			void			GetFroms(CArrayEmbeddedBaseObjectPtr* papcFroms);
+	virtual void			RecurseGetFroms(CArrayEmbeddedBaseObjectPtr* papcFroms);
+
 };
 
 

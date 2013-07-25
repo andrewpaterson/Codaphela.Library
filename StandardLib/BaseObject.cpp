@@ -30,7 +30,6 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 CBaseObject::CBaseObject()
 {
-	mapFroms.Init();
 	mpcObjectsThisIn = NULL;
 	miDistToRoot = UNATTACHED_DIST_TO_ROOT;
 	moi = INVALID_O_INDEX;
@@ -78,7 +77,7 @@ void CBaseObject::Kill(void)
 void CBaseObject::KillDontFree(void)
 {
 	KillData();
-	mapFroms.Kill();
+	KillFroms();
 	KillToPointers();
 
 	miFlags |= OBJECT_FLAGS_KILLED;
@@ -107,16 +106,6 @@ void CBaseObject::Free(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::PrivateRemoveFrom(CBaseObject* pcFrom)
-{
-	mapFroms.Remove(&pcFrom, FALSE);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CBaseObject::RemoveFrom(CBaseObject* pcFrom)
 {
 	//Removing a 'from' kicks off memory reclamation.  This is the entry point for memory management.
@@ -130,40 +119,6 @@ void CBaseObject::RemoveFrom(CBaseObject* pcFrom)
 		//ClearDistToSubRoot();
 		FixDistToRoot();
 	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CBaseObject::CopyFroms(CBaseObject* pcSource)
-{
-	mapFroms.ReInit();
-	mapFroms.Copy(&pcSource->mapFroms);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CBaseObject::GetFroms(CArrayEmbeddedBaseObjectPtr* papcFroms)
-{
-	CBaseObject*	pcNotEmbedded;
-
-	pcNotEmbedded = GetEmbeddingContainer();
-	pcNotEmbedded->RecurseGetFroms(papcFroms);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CBaseObject::RecurseGetFroms(CArrayEmbeddedBaseObjectPtr* papcFroms)
-{
-	papcFroms->Copy((CArrayEmbeddedBaseObjectPtr*)&mapFroms);
 }
 
 
@@ -378,63 +333,6 @@ void CBaseObject::FixDistToRoot(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::AddFrom(CBaseObject* pcFrom)
-{
-	if (pcFrom != NULL)
-	{
-		mapFroms.Add(&pcFrom);
-		if (pcFrom->miDistToRoot >= ROOT_DIST_TO_ROOT)
-		{
-			PotentiallySetDistToRoot(this, pcFrom->miDistToRoot+1);
-		}
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-int CBaseObject::NumFroms(void)
-{
-	return mapFroms.NumElements();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CBaseObject* CBaseObject::GetFrom(int iFrom)
-{
-	CBaseObject**	ppFrom;
-
-	ppFrom = mapFroms.Get(iFrom);
-	if (ppFrom)
-	{
-		return *ppFrom;
-	}
-	else
-	{
-		return NULL;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CBaseObject* CBaseObject::TestGetFrom(int iFromIndex)
-{
-	return GetFrom(iFromIndex);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 BOOL CBaseObject::RemoveToFrom(CEmbeddedObject* pcPointedTo, CArrayEmbeddedBaseObjectPtr* papcFromsChanged)
 {
 	CBaseObject*	pcBaseObject;
@@ -613,24 +511,41 @@ BOOL CBaseObject::IsUnknown(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::PotentiallySetDistToRoot(CBaseObject* pcTos, int iExpectedDistToRoot)
+void CBaseObject::AddFrom(CBaseObject* pcFrom)
+{
+	if (pcFrom != NULL)
+	{
+		mapFroms.Add(&pcFrom);
+		if (pcFrom->miDistToRoot >= ROOT_DIST_TO_ROOT)
+		{
+			PotentiallySetDistToRoot(this, pcFrom->miDistToRoot+1);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CBaseObject::PotentiallySetDistToRoot(CBaseObject* pcTo, int iExpectedDistToRoot)
 {
 	int				iNumFroms;
 	int				i;
 	CBaseObject*	pcFrom;
 	int				iBestDistToRoot;
 
-	if ((pcTos->miDistToRoot == CLEARED_DIST_TO_ROOT) || (pcTos->miDistToRoot == UNATTACHED_DIST_TO_ROOT))
+	if ((pcTo->miDistToRoot == CLEARED_DIST_TO_ROOT) || (pcTo->miDistToRoot == UNATTACHED_DIST_TO_ROOT))
 	{
-		pcTos->SetDistToRoot(iExpectedDistToRoot);
+		pcTo->SetDistToRoot(iExpectedDistToRoot);
 		return;
 	}
 
 	iBestDistToRoot = iExpectedDistToRoot;
-	iNumFroms = pcTos->mapFroms.NumElements();
+	iNumFroms = pcTo->mapFroms.NumElements();
 	for (i = 0; i < iNumFroms; i++)
 	{
-		pcFrom = pcTos->GetFrom(i);
+		pcFrom = pcTo->GetFrom(i);
 		if (pcFrom)
 		{
 			if (pcFrom->miDistToRoot < iBestDistToRoot)
@@ -642,7 +557,7 @@ void CBaseObject::PotentiallySetDistToRoot(CBaseObject* pcTos, int iExpectedDist
 			}
 		}
 	}
-	pcTos->SetDistToRoot(iBestDistToRoot);
+	pcTo->SetDistToRoot(iBestDistToRoot);
 }
 
 
@@ -698,20 +613,7 @@ OIndex CBaseObject::GetOI(void)
 //////////////////////////////////////////////////////////////////////////
 int CBaseObject::RemoveAllFroms(void)
 {
-	int				iNumFroms;
-	CBaseObject**	ppcPointedFrom;
-	int				i;
-	CBaseObject*	pcPointedFrom;
-
-	iNumFroms = mapFroms.NumElements();
-	ppcPointedFrom = mapFroms.GetData();
-	for (i = 0; i < iNumFroms; i++)
-	{
-		pcPointedFrom = ppcPointedFrom[i];
-		pcPointedFrom->RemoveTo(this);
-	}
-
-	mapFroms.ReInit();
+	CEmbeddedObject::RemoveAllFroms();
 	return KillThisGraph();
 }
 
@@ -722,20 +624,6 @@ int CBaseObject::RemoveAllFroms(void)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::SetName(char* szName)
 {
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CBaseObject::IsUnattached(void)
-{
-	if (mapFroms.IsEmpty() && IsNotEmbedded())
-	{
-		return TRUE;
-	}
-	return FALSE;
 }
 
 

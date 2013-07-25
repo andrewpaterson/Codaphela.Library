@@ -3,10 +3,12 @@
 #include "EmbeddedObject.h"
 
 
+class CHollowObject;
 class CHollowEmbeddedObject : public CEmbeddedObject
 {
 BASE_FUNCTIONS(CHollowEmbeddedObject);
 public:
+	void				KillDontFree(void);
 	BOOL				Save(CObjectSerialiser* pcFile);
 	BOOL				Load(CObjectDeserialiser* pcFile);
 	void				RemoveTo(CEmbeddedObject* pcTo);
@@ -15,6 +17,8 @@ public:
 	BOOL				IsHollow(void);
 	CBaseObject*		Dehollow(void);
 	int					GetEmbeddedIndex(void);
+	CHollowObject*		GetHollowObject(void);
+	void				AddFrom(CBaseObject* pcFrom);
 };
 
 

@@ -20,14 +20,8 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __BASE_OBJECT_H__
 #define __BASE_OBJECT_H__
-#include "BaseLib/ArrayEmbedded.h"
 #include "CoreLib/IndexedGeneral.h"
 #include "EmbeddedObject.h"
-
-
-class CBaseObject;
-typedef CArrayTemplate<CBaseObject*>		CArrayBaseObjectPtr;
-typedef CArrayEmbedded<CBaseObject*, 32>	CArrayEmbeddedBaseObjectPtr;
 
 
 //Tested for root is only valid whilst the scene graph is calling CanFindRoot.  It stops the graph from walking already tested objects.
@@ -66,7 +60,6 @@ protected:
 	CObjects*							mpcObjectsThisIn;
 	int									miDistToRoot;
 	OIndex								moi;
-	CArrayEmbedded<CBaseObject*, 6>		mapFroms;  //Objects that 'this' is pointed from.  
 	int									miFlags;
 
 public:
@@ -104,7 +97,6 @@ public:
 			int					DistToRoot(void);
 			BOOL				TestedForRoot(void);
 	virtual void				GetTos(CArrayEmbeddedObjectPtr* papcTos) =0;
-			int					NumFroms(void);
 	virtual int					NumTos(void) =0;
 	virtual void				RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged) =0;
 			void				AddFrom(CBaseObject* pcFrom);
@@ -112,20 +104,14 @@ public:
 			void				RemoveFrom(CBaseObject* pcFrom);
 
 			CEmbeddedObject* 	TestGetTo(int iToIndex);
-			CBaseObject* 		TestGetFrom(int iFromIndex);
 			int					TestGetNumEmbeddedFromFlags(void);
 	
 protected:
 	virtual void			KillToPointers(void) =0;
 	virtual void			Free(void);
-			CBaseObject*	GetFrom(int iFrom);
 			int				RemapTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew) =0;
 			BOOL			RemoveToFrom(CEmbeddedObject* pcPointedTo, CArrayEmbeddedBaseObjectPtr* papcFromsChanged);
-			void			PrivateRemoveFrom(CBaseObject* pcFrom);
 			int				RemoveAllFroms(void);
-			void			CopyFroms(CBaseObject* pcSource);
-			void			GetFroms(CArrayEmbeddedBaseObjectPtr* papcFroms);
-	virtual void			RecurseGetFroms(CArrayEmbeddedBaseObjectPtr* papcFroms);
 			void			PotentiallySetDistToRoot(CBaseObject* pcTos, int iExpectedDistToRoot);
 			BOOL			CanFindRoot(void);
 			CBaseObject*	ClearDistToSubRoot(void);
@@ -133,7 +119,6 @@ protected:
 			void			MarkForKilling(CArrayBaseObjectPtr* papcKilled);
 			void			KillCollected(CArrayBaseObjectPtr* papcKilled);
 			int				KillThisGraph(void);
-			BOOL			IsUnattached(void);
 			BOOL			IsBaseObject(void);
 			int				GetNumEmbeddedFromFlags(void);
 			void			SetNumEmbeddedFlag(int iNumEmbedded);
