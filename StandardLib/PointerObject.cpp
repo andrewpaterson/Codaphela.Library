@@ -267,22 +267,59 @@ CEmbeddedObject* CPointer::Dereference(void)
 //////////////////////////////////////////////////////////////////////////
 int CPointer::RemapFrom(CEmbeddedObject* pcOld)
 {
+	int					iCount;
+	int					iNumEmbeddedOld;
+	CEmbeddedObject*	pcEmbeddedOld;
+	int					iNumEmbeddedNew;
+	int					iNumEmbedded;
+	CEmbeddedObject*	pcEmbeddedNew;
+	int					i;
+
+	iNumEmbeddedNew = mpcObject->GetNumEmbedded();
+	iNumEmbeddedOld = pcOld->GetNumEmbedded();
+
+	iNumEmbedded = iNumEmbeddedNew;
+	if (iNumEmbeddedOld < iNumEmbeddedNew)
+	{
+		iNumEmbedded = iNumEmbeddedOld;
+	}
+
+	iCount = 0;
+	for (i = 0; i < iNumEmbedded; i++)
+	{
+		pcEmbeddedOld = pcOld->GetEmbeddedObject(i);
+		pcEmbeddedNew = mpcObject->GetEmbeddedObject(i);
+
+		iCount += RemapEmbeddedFrom(pcEmbeddedNew, pcEmbeddedOld);
+	}
+
+	return iCount;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CPointer::RemapEmbeddedFrom(CEmbeddedObject* pcNew, CEmbeddedObject* pcOld)
+{
 	int				iNumFroms;
 	int				i;
 	CBaseObject*	pvFrom;
 	int				iCount;
 
 	iCount = 0;
+
 	iNumFroms = pcOld->NumFroms();
 	for (i = 0; i < iNumFroms; i++)
 	{
 		pvFrom = pcOld->GetFrom(i);
-		iCount += pvFrom->RemapTos(pcOld, mpcObject);
-		mpcObject->AddFrom(pvFrom);
+		iCount += pvFrom->RemapTos(pcOld, pcNew);
+		pcNew->AddFrom(pvFrom);
 	}
 
-	mpcObject->CopyFroms(pcOld);
-	mpcObject->SetDistToRoot(pcOld->DistToRoot());
+	pcNew->CopyFroms(pcOld);
+	pcNew->SetDistToRoot(pcOld->DistToRoot());
 
 	return iCount;
 }
