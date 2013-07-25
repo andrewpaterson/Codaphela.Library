@@ -997,8 +997,9 @@ CNamedIndexedObjects* CObjects::GetMemory(void)
 CNamedHollowObject* CObjects::AllocateNamedHollow(unsigned short iNumEmbedded)
 {
 	CNamedHollowObject*		pcHollow;
-	int					iAdditionalBytes;
-	void*				pvEmbedded;
+	int						iAdditionalBytes;
+	void*					pvEmbedded;
+	int						iHollowSize;
 
 	if (iNumEmbedded == 0)
 	{
@@ -1016,7 +1017,8 @@ CNamedHollowObject* CObjects::AllocateNamedHollow(unsigned short iNumEmbedded)
 		pcHollow = Allocate<CNamedHollowObject>(iAdditionalBytes);
 		pcHollow->Init(iNumEmbedded);
 
-		pvEmbedded = RemapSinglePointer(pcHollow, sizeof(CNamedHollowObject));
+		iHollowSize = sizeof(CNamedHollowObject);
+		pvEmbedded = RemapSinglePointer(pcHollow, iHollowSize);
 		AppenedHollowEmbeddedObjects(pcHollow, iNumEmbedded, pvEmbedded);
 
 		return pcHollow;
@@ -1077,7 +1079,6 @@ void CObjects::AppenedHollowEmbeddedObjects(CBaseObject* pcHollow, unsigned shor
 		pvEmbedded = RemapSinglePointer(pvEmbedded, sizeof(CHollowEmbeddedObject));
 	}
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
