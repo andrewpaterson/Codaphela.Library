@@ -165,7 +165,6 @@ BOOL CObjectDeserialiser::ReadObjectHeader(CObjectHeader* pcObjectHeader)
 {
 	pcObjectHeader->Init();
 	ReturnOnFalse(ReadIdentifier(pcObjectHeader));
-	ReturnOnFalse(ReadInt(&pcObjectHeader->miClassSize));
 	ReturnOnFalse(ReadString(&pcObjectHeader->mszClassName, TRUE));
 	return TRUE;
 }

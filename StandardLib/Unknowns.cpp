@@ -121,17 +121,10 @@ CUnknown* CUnknowns::Add(char* szClassName)
 CUnknown* CUnknowns::AddFromHeader(CFileReader* pcFile)
 {
 	BOOL		bResult;
-	int			iClassSize;
 	int			iLength;
 	char		sz[256];
 	char*		psz;
 	CUnknown*	pcUnknown;
-
-	bResult = pcFile->ReadInt(&iClassSize);
-	if (bResult != TRUE)
-	{
-		return NULL;
-	}
 
 	bResult = pcFile->ReadStringLength(&iLength);
 	if (bResult != TRUE)
