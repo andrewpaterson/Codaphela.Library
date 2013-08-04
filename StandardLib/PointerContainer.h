@@ -15,6 +15,8 @@ public:
 	Ptr<CPointerContainer>	Init(CEmbeddedObject* pcObject);
 	void					KillData(void);
 
+	void					Clear();
+
 	BOOL					Save(CObjectSerialiser* pcFile);
 	BOOL					Load(CObjectDeserialiser* pcFile);
 };
