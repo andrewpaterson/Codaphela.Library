@@ -19,6 +19,7 @@ public:
 	int					GetEmbeddedIndex(void);
 	CHollowObject*		GetHollowObject(void);
 	void				AddFrom(CBaseObject* pcFrom);
+	int					NumFroms(void);
 };
 
 

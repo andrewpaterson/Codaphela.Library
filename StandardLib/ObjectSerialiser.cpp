@@ -20,6 +20,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include "ObjectFileGeneral.h"
 #include "PointerObject.h"
+#include "Object.h"
 #include "ObjectSerialiser.h"
 
 
@@ -98,7 +99,7 @@ BOOL CObjectSerialiser::WritePointer(CPointer pObject)
 BOOL CObjectSerialiser::WriteDependent(CEmbeddedObject* pcDependent)
 {
 	BOOL			bResult;
-	CBaseObject*	pcContainer;
+	CObject*		pcContainer;
 	unsigned short	iEmbeddedIndex;
 	unsigned short	iNumEmbedded;
 

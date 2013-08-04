@@ -310,10 +310,10 @@ int CPointer::RemapEmbeddedFrom(CEmbeddedObject* pcNew, CEmbeddedObject* pcOld)
 
 	iCount = 0;
 
-	iNumFroms = pcOld->NumFroms();
+	iNumFroms = pcOld->PrivateNumFroms();
 	for (i = 0; i < iNumFroms; i++)
 	{
-		pvFrom = pcOld->GetFrom(i);
+		pvFrom = pcOld->PrivateGetFrom(i);
 		iCount += pvFrom->RemapTos(pcOld, pcNew);
 		pcNew->AddFrom(pvFrom);
 	}

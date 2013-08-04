@@ -113,9 +113,9 @@ BOOL CEmbeddedObject::IsBaseObject(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CEmbeddedObject::GetEmbeddingContainer(void)
+CObject* CEmbeddedObject::GetEmbeddingContainer(void)
 {
-	CEmbeddedObject*	pcContainer;
+	CEmbeddedObject*	pcContainer;  //This is a CBaseObject but as we're compiling in CEmbeddedObject...
 
 	pcContainer = this;
 	while (pcContainer->IsEmbedded())
@@ -123,7 +123,7 @@ CBaseObject* CEmbeddedObject::GetEmbeddingContainer(void)
 		pcContainer = (CEmbeddedObject*)pcContainer->mpcEmbedded;
 	}
 
-	return (CBaseObject*)pcContainer;
+	return (CObject*)pcContainer;
 }
 
 
@@ -236,6 +236,36 @@ void CEmbeddedObject::PrivateRemoveFrom(CBaseObject* pcFrom)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+int CEmbeddedObject::PrivateNumFroms(void)
+{
+	return mapFroms.NumElements();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CBaseObject* CEmbeddedObject::PrivateGetFrom(int iFrom)
+{
+	CBaseObject**	ppFrom;
+
+	ppFrom = mapFroms.Get(iFrom);
+	if (ppFrom)
+	{
+		return *ppFrom;
+	}
+	else
+	{
+		return NULL;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CEmbeddedObject::CopyFroms(CEmbeddedObject* pcSource)
 {
 	mapFroms.ReInit();
@@ -270,38 +300,8 @@ void CEmbeddedObject::RecurseGetFroms(CArrayEmbeddedBaseObjectPtr* papcFroms)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CEmbeddedObject::NumFroms(void)
-{
-	return mapFroms.NumElements();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CBaseObject* CEmbeddedObject::GetFrom(int iFrom)
-{
-	CBaseObject**	ppFrom;
-
-	ppFrom = mapFroms.Get(iFrom);
-	if (ppFrom)
-	{
-		return *ppFrom;
-	}
-	else
-	{
-		return NULL;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 CBaseObject* CEmbeddedObject::TestGetFrom(int iFromIndex)
 {
-	return GetFrom(iFromIndex);
+	return PrivateGetFrom(iFromIndex);
 }
 

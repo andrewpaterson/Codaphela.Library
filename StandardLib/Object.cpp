@@ -364,7 +364,7 @@ BOOL CObject::IsEmbeddedDirty(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CObject::GetEmbeddedIndex(CBaseObject* pcEmbedded)
+int CObject::GetEmbeddedIndex(CEmbeddedObject* pcEmbedded)
 {
 	int		iIndex;
 
@@ -391,7 +391,7 @@ int CObject::GetEmbeddedIndex(CBaseObject* pcEmbedded)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObject::RecurseGetEmbeddedIndex(CBaseObject* pcTest, int* piIndex)
+BOOL CObject::RecurseGetEmbeddedIndex(CEmbeddedObject* pcTest, int* piIndex)
 {
 	int				i;
 	CBaseObject*	pcEmbedded;
@@ -528,3 +528,37 @@ CBaseObject* CObject::Dehollow(void)
 	return this;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CObject::NumFroms(void)
+{
+	CObject*	pcContainer;
+
+	pcContainer = GetEmbeddingContainer();
+	return pcContainer->RecurseNumFroms();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CObject::RecurseNumFroms(void)
+{
+	int				i;
+	int				iCount;
+	CBaseObject*	pcBaseObject;
+
+	iCount = PrivateNumFroms();
+
+	for (i = 0; i < mapEmbedded.NumElements(); i++)
+	{
+		pcBaseObject = *mapEmbedded.Get(i);
+		iCount += pcBaseObject->RecurseNumFroms();
+	}
+	return iCount;
+
+}

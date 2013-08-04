@@ -542,10 +542,10 @@ void CBaseObject::PotentiallySetDistToRoot(CBaseObject* pcTo, int iExpectedDistT
 	}
 
 	iBestDistToRoot = iExpectedDistToRoot;
-	iNumFroms = pcTo->mapFroms.NumElements();
+	iNumFroms = pcTo->PrivateNumFroms();
 	for (i = 0; i < iNumFroms; i++)
 	{
-		pcFrom = pcTo->GetFrom(i);
+		pcFrom = pcTo->PrivateGetFrom(i);
 		if (pcFrom)
 		{
 			if (pcFrom->miDistToRoot < iBestDistToRoot)
@@ -680,5 +680,15 @@ void CBaseObject::SetNumEmbeddedFlag(int iNumEmbedded)
 int CBaseObject::TestGetNumEmbeddedFromFlags(void)
 {
 	return GetNumEmbeddedFromFlags();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CBaseObject::RecurseNumFroms(void)
+{
+	return PrivateNumFroms();
 }
 

@@ -46,10 +46,11 @@ public:
 	CPointer*			Pointer(CPointer* pcPointer);
 	void				Embedded(CBaseObject* pcObject);
 	BOOL				IsEmbeddedDirty(void);
-	int					GetEmbeddedIndex(CBaseObject* pcEmbedded);
+	int					GetEmbeddedIndex(CEmbeddedObject* pcEmbedded);
 	int					GetNumEmbedded(void);
 	CEmbeddedObject*	GetEmbeddedObject(int iIndex);
 	CBaseObject*		Dehollow(void);
+	int					NumFroms(void);
 	
 protected:
 	void				KillToPointers(void);
@@ -61,8 +62,9 @@ protected:
 	void				Free(void);
 	void				RecurseGetFroms(CArrayEmbeddedBaseObjectPtr* papcFroms);
 	void				PrivateSetDistToRoot(int iDistToRoot);
-	BOOL				RecurseGetEmbeddedIndex(CBaseObject* pcTest, int* piIndex);
+	BOOL				RecurseGetEmbeddedIndex(CEmbeddedObject* pcTest, int* piIndex);
 	CEmbeddedObject*	RecurseGetEmbeddedObject(int iIndex, int* iCount);
+	int					RecurseNumFroms(void);
 };
 
 

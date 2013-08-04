@@ -244,3 +244,23 @@ CEmbeddedObject* CHollowObject::GetRemappedEmbeddedObject(int iIndex)
 	return pcEmbedded;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CHollowObject::NumFroms(void)
+{
+	CHollowEmbeddedObject*	pcEmbedded;
+	int						iCount;	
+	int						i;
+
+	iCount = mapFroms.NumElements();
+	for (i = 0; i < GetNumEmbedded(); i++)
+	{
+		pcEmbedded = (CHollowEmbeddedObject*)GetEmbeddedObject(i);
+		iCount += pcEmbedded->NumFroms();
+	}
+	return iCount;
+}
+

@@ -57,6 +57,8 @@ public:
 	CBaseObject*		UnsafeGet(int iIndex);
 	CEmbeddedObject*	GetEmbeddedObject(int iIndex);
 
+	int					NumFroms(void);
+
 protected:
 	void			KillToPointers(void);
 	void			KillData(void);
