@@ -61,7 +61,7 @@ public:
 	BOOL	IsEmpty(void);
 	BOOL	IsNotEmpty(void);
 	int		NumElements(void);
-	void	Remove(M* pvElement, int bPreserveOrder = TRUE);
+	BOOL	Remove(M* pvElement, int bPreserveOrder = TRUE);
 	void 	RemoveAt(int iIndex, int bPreserveOrder = TRUE);
 	M*		SafeGet(int iIndex);
 	void	Copy(CArrayEmbedded<M, I>* pcArrayEmbedded);
@@ -492,7 +492,7 @@ int CArrayEmbedded<M, I>::NumElements(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, int I>
-void CArrayEmbedded<M, I>::Remove(M* pData, int bPreserveOrder)
+BOOL CArrayEmbedded<M, I>::Remove(M* pData, int bPreserveOrder)
 {
 	int		iIndex;
 
@@ -500,6 +500,11 @@ void CArrayEmbedded<M, I>::Remove(M* pData, int bPreserveOrder)
 	if (iIndex != -1)
 	{
 		RemoveAt(iIndex, bPreserveOrder);
+		return TRUE;
+	}
+	else
+	{
+		return FALSE;
 	}
 }
 

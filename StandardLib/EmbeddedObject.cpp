@@ -226,9 +226,9 @@ void CEmbeddedObject::RemoveAllFroms(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CEmbeddedObject::PrivateRemoveFrom(CBaseObject* pcFrom)
+BOOL CEmbeddedObject::PrivateRemoveFrom(CBaseObject* pcFrom)
 {
-	mapFroms.Remove(&pcFrom, FALSE);
+	return mapFroms.Remove(&pcFrom, FALSE);
 }
 
 

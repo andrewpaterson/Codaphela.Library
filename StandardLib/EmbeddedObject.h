@@ -65,7 +65,7 @@ public:
 protected:
 			BOOL			IsUnattached(void);
 			void			RemoveAllFroms(void);
-			void			PrivateRemoveFrom(CBaseObject* pcFrom);
+			BOOL			PrivateRemoveFrom(CBaseObject* pcFrom);
 			void			GetFroms(CArrayEmbeddedBaseObjectPtr* papcFroms);
 	virtual void			RecurseGetFroms(CArrayEmbeddedBaseObjectPtr* papcFroms);
 
