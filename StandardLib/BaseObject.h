@@ -106,6 +106,7 @@ public:
 
 			CEmbeddedObject* 	TestGetTo(int iToIndex);
 			int					TestGetNumEmbeddedFromFlags(void);
+	virtual void				RecurseSetFlagEmbedded(int iFlag, int iFlagValue);
 	
 protected:
 	virtual void			KillToPointers(void) =0;
@@ -122,7 +123,8 @@ protected:
 			int				KillThisGraph(void);
 			BOOL			IsBaseObject(void);
 			int				GetNumEmbeddedFromFlags(void);
-			void			SetNumEmbeddedFlag(int iNumEmbedded);
+			void			SetFlagNumEmbedded(int iNumEmbedded);
+			void			SetFlagEmbedded(int iFlag, int iFlagValue);
 };
 
 

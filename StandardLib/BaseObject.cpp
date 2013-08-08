@@ -108,16 +108,20 @@ void CBaseObject::Free(void)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::RemoveFrom(CBaseObject* pcFrom)
 {
+	CBaseObject*	pcContainer;
+
 	//Removing a 'from' kicks off memory reclamation.  This is the entry point for memory management.
 	PrivateRemoveFrom(pcFrom);
+
+	pcContainer = GetEmbeddingContainer();
 	if (!CanFindRoot())
 	{	
-		KillThisGraph();
+		pcContainer->KillThisGraph();
 	}
 	else
 	{
 		//ClearDistToSubRoot();
-		FixDistToRoot();
+		pcContainer->FixDistToRoot();
 	}
 }
 
@@ -136,17 +140,21 @@ int CBaseObject::KillThisGraph(void)
 		return 0;
 	}
 
-	apcKilled.Init(1024);
-
 	if (mpcObjectsThisIn)
 	{
+		apcKilled.Init(1024);
+
 		CollectThoseToBeKilled(&apcKilled);
 		KillCollected(&apcKilled);
-	}
 
-	iNumKilled = apcKilled.NumElements();
-	apcKilled.Kill();
-	return iNumKilled;
+		iNumKilled = apcKilled.NumElements();
+		apcKilled.Kill();
+		return iNumKilled;
+	}
+	else
+	{
+		return 0;
+	}
 }
 
 
@@ -225,6 +233,29 @@ CBaseObject* CBaseObject::ClearDistToSubRoot(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CBaseObject::SetFlagEmbedded(int iFlag, int iFlagValue)
+{
+	CObject*	pcContainer;
+
+	pcContainer = GetEmbeddingContainer();
+	pcContainer->RecurseSetFlagEmbedded(iFlag, iFlagValue);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CBaseObject::RecurseSetFlagEmbedded(int iFlag, int iFlagValue)
+{
+	SetFlag(&miFlags, iFlag, iFlagValue);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL CBaseObject::CanFindRoot(void)
 {
 	int								iNumFroms;
@@ -236,7 +267,7 @@ BOOL CBaseObject::CanFindRoot(void)
 	BOOL							bResult;
 	CArrayEmbeddedBaseObjectPtr		apcFroms;
 
-	SetFlag(&miFlags, OBJECT_FLAGS_TESTED_FOR_ROOT, TRUE);
+	SetFlagEmbedded(OBJECT_FLAGS_TESTED_FOR_ROOT, TRUE);
 
 	apcFroms.Init();
 	GetFroms(&apcFroms);
@@ -245,7 +276,7 @@ BOOL CBaseObject::CanFindRoot(void)
 	if (iNumFroms == 0)
 	{
 		apcFroms.Kill();
-		SetFlag(&miFlags, OBJECT_FLAGS_TESTED_FOR_ROOT, FALSE);
+		SetFlagEmbedded(OBJECT_FLAGS_TESTED_FOR_ROOT, FALSE);
 		return FALSE;
 	}
 
@@ -270,18 +301,18 @@ BOOL CBaseObject::CanFindRoot(void)
 	if (pcNearestPointedFrom == NULL)
 	{
 		apcFroms.Kill();
-		SetFlag(&miFlags, OBJECT_FLAGS_TESTED_FOR_ROOT, FALSE);
+		SetFlagEmbedded(OBJECT_FLAGS_TESTED_FOR_ROOT, FALSE);
 		return FALSE;
 	}
 
 	if (pcNearestPointedFrom->IsRoot())
 	{
-		SetFlag(&miFlags, OBJECT_FLAGS_TESTED_FOR_ROOT, FALSE);
+		SetFlagEmbedded(OBJECT_FLAGS_TESTED_FOR_ROOT, FALSE);
 		return TRUE;
 	}
 
 	bResult = pcNearestPointedFrom->CanFindRoot();
-	SetFlag(&miFlags, OBJECT_FLAGS_TESTED_FOR_ROOT, FALSE);
+	SetFlagEmbedded(OBJECT_FLAGS_TESTED_FOR_ROOT, FALSE);
 
 	return bResult;
 }
@@ -643,7 +674,7 @@ BOOL CBaseObject::IsBaseObject(void)
 //////////////////////////////////////////////////////////////////////////
 int CBaseObject::GetNumEmbedded(void)
 {
-	SetNumEmbeddedFlag(1);
+	SetFlagNumEmbedded(1);
 	return 1;
 }
 
@@ -665,7 +696,7 @@ int CBaseObject::GetNumEmbeddedFromFlags(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::SetNumEmbeddedFlag(int iNumEmbedded)
+void CBaseObject::SetFlagNumEmbedded(int iNumEmbedded)
 {
 	iNumEmbedded = iNumEmbedded << 8;
 	miFlags &= ~OBJECT_FLAGS_NUM_EMBEDDED;

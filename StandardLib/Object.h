@@ -51,6 +51,7 @@ public:
 	CEmbeddedObject*	GetEmbeddedObject(int iIndex);
 	CBaseObject*		Dehollow(void);
 	int					NumFroms(void);
+	void				RecurseSetFlagEmbedded(int iFlag, int iFlagValue);
 	
 protected:
 	void				KillToPointers(void);

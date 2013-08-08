@@ -455,7 +455,7 @@ int CObject::GetNumEmbedded(void)
 	}
 
 	iNumEmbedded = iCount;
-	SetNumEmbeddedFlag(iNumEmbedded);
+	SetFlagNumEmbedded(iNumEmbedded);
 	return iNumEmbedded;
 }
 
@@ -562,3 +562,23 @@ int CObject::RecurseNumFroms(void)
 	return iCount;
 
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CObject::RecurseSetFlagEmbedded(int iFlag, int iFlagValue)
+{
+	int				i;
+	CBaseObject*	pcBaseObject;
+
+	SetFlag(&miFlags, iFlag, iFlagValue);
+
+	for (i = 0; i < mapEmbedded.NumElements(); i++)
+	{
+		pcBaseObject = *mapEmbedded.Get(i);
+		pcBaseObject->RecurseSetFlagEmbedded(iFlag, iFlagValue);
+	}
+}
+
