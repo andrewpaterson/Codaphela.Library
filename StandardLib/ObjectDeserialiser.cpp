@@ -62,7 +62,7 @@ CPointer CObjectDeserialiser::Load(CSerialisedObject* pcSerialised)
 
 	if (!pcSerialised)
 	{
-		gcLogger.Error("CObjectDeserialiser::Load Serialised Object is NULL.  ");
+		gcLogger.Error("CObjectDeserialiser::Load Serialised Object is NULL.");
 		return Null();
 	}
 

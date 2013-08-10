@@ -55,7 +55,14 @@ CPointer CIndexedDataObjectDeserialiser::Read(char* szObjectName)
 	CSerialisedObject*		pcSerialised;
 
 	pcSerialised = (CSerialisedObject*)mpcDatabase->Get(szObjectName);
-	return ReadSerialised(pcSerialised);
+	if (pcSerialised)
+	{
+		return ReadSerialised(pcSerialised);
+	}
+	else
+	{
+		return ONull;
+	}
 }
 
 
