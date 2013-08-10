@@ -155,7 +155,11 @@ BOOL CRoot::Load(CObjectDeserialiser* pcFile)
 //////////////////////////////////////////////////////////////////////////
 CPointer CRoot::Get(int iIndex)
 {
-	return mpObjects->Get(iIndex);
+	CPointer	pObject;
+
+	mpObjects.Dereference();
+	pObject = mpObjects->Get(iIndex);
+	return pObject;
 }
 
 
