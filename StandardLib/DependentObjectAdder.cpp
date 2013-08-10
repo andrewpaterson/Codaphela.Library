@@ -26,7 +26,7 @@ void CDependentObjectAdder::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDependentObjectAdder::AddContainingPointer(CBaseObject* pcBaseObject, CBaseObject** ppcPointedFrom, CBaseObject* pcContaining)
+void CDependentObjectAdder::AddContainingPointer(CEmbeddedObject* pcBaseObject, CEmbeddedObject** ppcPointedFrom, CBaseObject* pcContaining)
 {
 	*ppcPointedFrom = pcBaseObject;
 
@@ -42,7 +42,7 @@ void CDependentObjectAdder::AddContainingPointer(CBaseObject* pcBaseObject, CBas
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CDependentObjectAdder::AddDependent(CObjectIdentifier* pcHeader, CBaseObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingPtrToBeUpdated, unsigned short iNumEmbedded, unsigned short iEmbeddedIndex)
+BOOL CDependentObjectAdder::AddDependent(CObjectIdentifier* pcHeader, CEmbeddedObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingPtrToBeUpdated, unsigned short iNumEmbedded, unsigned short iEmbeddedIndex)
 {
 	if ((pcHeader->mcType == OBJECT_POINTER_NAMED) || (pcHeader->mcType == OBJECT_POINTER_ID))
 	{

@@ -133,10 +133,10 @@ BOOL CArrayCommonObject::Save(CObjectSerialiser* pcFile)
 //////////////////////////////////////////////////////////////////////////
 BOOL CArrayCommonObject::Load(CObjectDeserialiser* pcFile)
 {
-	int				i;
-	int				iFlags;
-	int				iNumElements;
-	CBaseObject**	pcPointedTo;
+	int					i;
+	int					iFlags;
+	int					iNumElements;
+	CEmbeddedObject**	pcPointedTo;
 
 	//Note: This function has never been called.
 	ReturnOnFalse(mcArray.LoadArrayHeader(pcFile, &iFlags, &iNumElements));
@@ -145,7 +145,7 @@ BOOL CArrayCommonObject::Load(CObjectDeserialiser* pcFile)
 
 	for (i = 0; i < iNumElements; i++)
 	{
-		pcPointedTo = (CBaseObject**)mcArray.UnsafeGetPointer(i);
+		pcPointedTo = (CEmbeddedObject**)mcArray.UnsafeGetPointer(i);
 		ReturnOnFalse(pcFile->ReadDependent(pcPointedTo, this));
 	}
 

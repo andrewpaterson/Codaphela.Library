@@ -196,10 +196,10 @@ void CObjectDeserialiser::ClearPointer(CPointer* pObject)
 //////////////////////////////////////////////////////////////////////////
 BOOL CObjectDeserialiser::ReadPointer(CPointer* pObject)
 {
-	CPointerHeader	cHeader;
-	BOOL			bResult;
-	CBaseObject**	ppcObjectPtr;
-	CObject*		pcEmbedding;
+	CPointerHeader		cHeader;
+	BOOL				bResult;
+	CEmbeddedObject**	ppcObjectPtr;
+	CObject*			pcEmbedding;
 
 	ClearPointer(pObject);
 
@@ -219,7 +219,7 @@ BOOL CObjectDeserialiser::ReadPointer(CPointer* pObject)
 			cHeader.Kill();
 			return FALSE;
 		}
-		ppcObjectPtr = (CBaseObject**)(pObject->ObjectPtr());
+		ppcObjectPtr = pObject->ObjectPtr();
 		pcEmbedding = pObject->Embedding();
 
 		bResult &= mpcDependents->AddDependent(&cHeader, ppcObjectPtr, (CBaseObject*)pcEmbedding, cHeader.miNumEmbedded, cHeader.miEmbeddedIndex);
@@ -239,7 +239,7 @@ BOOL CObjectDeserialiser::ReadPointer(CPointer* pObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectDeserialiser::ReadDependent(CBaseObject** ppcObjectPtr, CBaseObject* pcContaining)
+BOOL CObjectDeserialiser::ReadDependent(CEmbeddedObject** ppcObjectPtr, CBaseObject* pcContaining)
 {
 	CPointerHeader	cHeader;
 	BOOL			bResult;

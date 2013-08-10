@@ -18,7 +18,7 @@ protected:
 public:
 	void					Init(void);
 	void					Kill(void);
-	void					Add(CObjectIdentifier* pcHeader, CBaseObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingPtrToBeUpdated, unsigned short iNumEmbedded, unsigned short iEmbeddedIndex);
+	void					Add(CObjectIdentifier* pcHeader, CEmbeddedObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingPtrToBeUpdated, unsigned short iNumEmbedded, unsigned short iEmbeddedIndex);
 	CDependentReadObject*	GetUnread(void);
 	CDependentReadObject*	GetObject(OIndex oi);
 	BOOL					Mark(OIndex oi);

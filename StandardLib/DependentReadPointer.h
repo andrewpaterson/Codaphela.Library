@@ -5,16 +5,17 @@
 
 
 class CBaseObject;
+class CEmbeddedObject;
 class CDependentReadPointer
 {
 public:
-	CBaseObject**	mppcPointedFrom;
-	CBaseObject*	mpcContaining;
-	OIndex			moiPointedTo;  //This pointer refers to the OLD index (ie: the one in the file not in the database).
-	unsigned short	miEmbeddedIndex;
-	unsigned short	miNumEmbedded;
+	CEmbeddedObject**	mppcPointedFrom;
+	CBaseObject*		mpcContaining;
+	OIndex				moiPointedTo;  //This pointer refers to the OLD index (ie: the one in the file not in the database).
+	unsigned short		miEmbeddedIndex;
+	unsigned short		miNumEmbedded;
 
-	void Init(CBaseObject**	ppcPointedFrom, CBaseObject* pcContaining, OIndex oiPointedTo, unsigned short iNumEmbedded, unsigned short iEmbeddedIndex);
+	void Init(CEmbeddedObject**	ppcPointedFrom, CBaseObject* pcContaining, OIndex oiPointedTo, unsigned short iNumEmbedded, unsigned short iEmbeddedIndex);
 };
 
 
