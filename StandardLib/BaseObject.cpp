@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/Logger.h"
 #include "ObjectSerialiser.h"
 #include "ObjectDeserialiser.h"
 #include "BaseObject.h"
@@ -55,6 +56,21 @@ void CBaseObject::Kill(void)
 {
 	CArrayEmbeddedBaseObjectPtr		apcFromsChanged;
 	int								iNumKilled;
+	CBaseObject*					pcContainer;
+
+	//This method is for the user to forcibly kill an object.
+	//It is not called internally.  KillThisGraph is method used to free objects that are unattached.
+
+	//Note this does NOT call CUnknown::Kill.  That is handled elsewhere.
+
+	if (IsEmbedded())
+	{
+		//Kill should not be called on an embedded object.
+		pcContainer = GetEmbeddingContainer();
+		gcLogger.Error2("CBaseObject::Kill object of class [", ClassName(), "] called Kill but is embedded in object with index [", IndexToString(pcContainer->GetOI()),"] of class [", pcContainer->ClassName(), "].", NULL);
+
+		return;
+	}
 
 	if (IsUnattached())
 	{
@@ -130,10 +146,23 @@ void CBaseObject::RemoveFrom(CBaseObject* pcFrom)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CBaseObject::RecurseSetDistToRoot(int iDistToRoot)
+{
+	miDistToRoot = iDistToRoot;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 int CBaseObject::KillThisGraph(void)
 {
 	CArrayBaseObjectPtr		apcKilled;
 	int						iNumKilled;
+
+	//This method will never be called on an embedded object.
+	//ie: Only the containing object can KillThisGraph.
 
 	if (CanFindRoot())
 	{
@@ -162,13 +191,59 @@ int CBaseObject::KillThisGraph(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CBaseObject::CollectPointedToToBeKilled(CArrayBaseObjectPtr* papcKilled, CBaseObject* pcPointedTo)
+{
+	if (pcPointedTo)
+	{
+		if (pcPointedTo->miDistToRoot != UNATTACHED_DIST_TO_ROOT)
+		{
+			if (!pcPointedTo->CanFindRoot())
+			{
+				pcPointedTo->CollectThoseToBeKilled(papcKilled);
+			}
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CBaseObject::MarkForKilling(CArrayBaseObjectPtr* papcKilled)
 {
 	CBaseObject*		pcTemp;
 
-	miDistToRoot = UNATTACHED_DIST_TO_ROOT;
+	RecurseSetDistToRoot(UNATTACHED_DIST_TO_ROOT);
 	pcTemp = this;
 	papcKilled->Add(&pcTemp);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CBaseObject::CollectThoseToBeKilled(CArrayBaseObjectPtr* papcKilled)
+{
+	CBaseObject*		pcContainer;
+
+	pcContainer = GetEmbeddingContainer();
+	pcContainer->ContainerCollectThoseToBeKilled(papcKilled);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CBaseObject::ContainerCollectThoseToBeKilled(CArrayBaseObjectPtr* papcKilled)
+{
+	//This method will never be called on an embedded object.
+	//Only the containing object can ContainerCollectThoseToBeKilled.
+
+	MarkForKilling(papcKilled);
+	CollectPointedToToBeKilled(papcKilled);
 }
 
 
@@ -235,7 +310,7 @@ CBaseObject* CBaseObject::ClearDistToSubRoot(void)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::SetFlagEmbedded(int iFlag, int iFlagValue)
 {
-	CObject*	pcContainer;
+	CBaseObject*	pcContainer;
 
 	pcContainer = GetEmbeddingContainer();
 	pcContainer->RecurseSetFlagEmbedded(iFlag, iFlagValue);

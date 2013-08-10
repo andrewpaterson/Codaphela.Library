@@ -47,7 +47,7 @@ public:
 	virtual void				ClearIndex(void);
 	virtual BOOL				IsBaseObject(void);
 	virtual void				RemoveTo(CEmbeddedObject* pcTo) =0;
-			CObject*			GetEmbeddingContainer(void);
+			CBaseObject*		GetEmbeddingContainer(void);
 			BOOL				IsEmbedded(void);
 			BOOL				IsNotEmbedded(void);
 	virtual int					GetEmbeddedIndex(CEmbeddedObject* pcEmbedded);

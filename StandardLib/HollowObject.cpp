@@ -170,7 +170,7 @@ void CHollowObject::RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHollowObject::CollectThoseToBeKilled(CArrayBaseObjectPtr* papcKilled)
+void CHollowObject::CollectPointedToToBeKilled(CArrayBaseObjectPtr* papcKilled)
 {
 }
 
@@ -256,7 +256,7 @@ int CHollowObject::NumFroms(void)
 	int						i;
 
 	iCount = mapFroms.NumElements();
-	for (i = 0; i < GetNumEmbedded(); i++)
+	for (i = 1; i < GetNumEmbedded(); i++)
 	{
 		pcEmbedded = (CHollowEmbeddedObject*)GetEmbeddedObject(i);
 		iCount += pcEmbedded->NumFroms();

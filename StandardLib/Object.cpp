@@ -58,6 +58,27 @@ void CObject::KillToPointers(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CObject::KillDontFree(void)
+{
+	int					iNumEmbedded;
+	CBaseObject*		pcEmbedded;
+	int					i;
+
+	CBaseObject::KillDontFree();
+
+	iNumEmbedded = mapEmbedded.NumElements();
+	for (i = 0; i < iNumEmbedded; i++)
+	{
+		pcEmbedded = *mapEmbedded.Get(i);
+		pcEmbedded->KillDontFree();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CObject::Free(void)
 {
 	CBaseObject::Free();
@@ -113,28 +134,26 @@ BOOL CObject::IsCollection(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObject::CollectThoseToBeKilled(CArrayBaseObjectPtr* papcKilled)
+void CObject::CollectPointedToToBeKilled(CArrayBaseObjectPtr* papcKilled)
 {
 	int					i;
 	CBaseObject*		pcPointedTo;
 	CPointer**			ppPointer;
-
-	MarkForKilling(papcKilled);
+	int					iNumEmbedded;
+	CBaseObject*		pcEmbedded;
 
 	for (i = 0; i < mapPointers.NumElements(); i++)
 	{
 		ppPointer = mapPointers.Get(i);
 		pcPointedTo = (*ppPointer)->BaseObject();
-		if (pcPointedTo)
-		{
-			if (pcPointedTo->miDistToRoot != UNATTACHED_DIST_TO_ROOT)
-			{
-				if (!pcPointedTo->CanFindRoot())
-				{
-					pcPointedTo->CollectThoseToBeKilled(papcKilled);
-				}
-			}
-		}
+		CBaseObject::CollectPointedToToBeKilled(papcKilled, pcPointedTo);
+	}
+
+	iNumEmbedded = mapEmbedded.NumElements();
+	for (i = 0; i < iNumEmbedded; i++)
+	{
+		pcEmbedded = *mapEmbedded.Get(i);
+		pcEmbedded->CollectPointedToToBeKilled(papcKilled);
 	}
 }
 
@@ -174,6 +193,8 @@ void CObject::PrivateSetDistToRoot(int iDistToRoot)
 	CPointer**		ppPointer;
 	int				iNumPointers;
 
+	//There could be an issue here where the embedded object miDistToRoot is lower than it's container.
+
 	miDistToRoot = iDistToRoot;
 
 	iNumPointers = mapPointers.NumElements();
@@ -187,6 +208,28 @@ void CObject::PrivateSetDistToRoot(int iDistToRoot)
 		}
 	}
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CObject::RecurseSetDistToRoot(int iDistToRoot)
+{
+	int				i;
+	int				iNumEmbedded;
+	CBaseObject*	pcEmbedded;
+
+	miDistToRoot = iDistToRoot;
+
+	iNumEmbedded = mapEmbedded.NumElements();
+	for (i = 0; i < iNumEmbedded; i++)
+	{
+		pcEmbedded = *mapEmbedded.Get(i);
+		pcEmbedded->RecurseSetDistToRoot(iDistToRoot);
+	}
+}
+
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -535,7 +578,7 @@ CBaseObject* CObject::Dehollow(void)
 //////////////////////////////////////////////////////////////////////////
 int CObject::NumFroms(void)
 {
-	CObject*	pcContainer;
+	CBaseObject*	pcContainer;
 
 	pcContainer = GetEmbeddingContainer();
 	return pcContainer->RecurseNumFroms();

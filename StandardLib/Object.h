@@ -52,13 +52,15 @@ public:
 	CBaseObject*		Dehollow(void);
 	int					NumFroms(void);
 	void				RecurseSetFlagEmbedded(int iFlag, int iFlagValue);
+	void				RecurseSetDistToRoot(int iDistToRoot);
 	
 protected:
+	void				KillDontFree(void);
 	void				KillToPointers(void);
 	void				GetTos(CArrayEmbeddedObjectPtr* papcTos);
 	void				RemoveTo(CEmbeddedObject* pcTo);
 	void				RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged);
-	void				CollectThoseToBeKilled(CArrayBaseObjectPtr* papcKilled);
+	void				CollectPointedToToBeKilled(CArrayBaseObjectPtr* papcKilled);
 	int					RemapTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew);
 	void				Free(void);
 	void				RecurseGetFroms(CArrayEmbeddedBaseObjectPtr* papcFroms);

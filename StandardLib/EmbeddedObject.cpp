@@ -113,7 +113,7 @@ BOOL CEmbeddedObject::IsBaseObject(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CObject* CEmbeddedObject::GetEmbeddingContainer(void)
+CBaseObject* CEmbeddedObject::GetEmbeddingContainer(void)
 {
 	CEmbeddedObject*	pcContainer;  //This is a CBaseObject but as we're compiling in CEmbeddedObject...
 
@@ -123,7 +123,7 @@ CObject* CEmbeddedObject::GetEmbeddingContainer(void)
 		pcContainer = (CEmbeddedObject*)pcContainer->mpcEmbedded;
 	}
 
-	return (CObject*)pcContainer;
+	return (CBaseObject*)pcContainer;
 }
 
 
@@ -191,11 +191,10 @@ void CEmbeddedObject::KillFroms()
 //////////////////////////////////////////////////////////////////////////
 BOOL CEmbeddedObject::IsUnattached(void)
 {
-	if (mapFroms.IsEmpty() && IsNotEmbedded())
-	{
-		return TRUE;
-	}
-	return FALSE;
+	int	iNumFroms;
+	
+	iNumFroms = NumFroms();
+	return iNumFroms == 0;
 }
 
 

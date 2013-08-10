@@ -21,6 +21,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "BaseLib/DebugOutput.h"
 #include "BaseLib/Logger.h"
+#include "BaseLib/LogString.h"
 #include "BaseObject.h"
 #include "NamedObject.h"
 #include "ObjectSingleSerialiser.h"
@@ -789,12 +790,15 @@ BOOL CObjects::Contains(char* szObjectName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjects::Remove(CArrayBaseObjectPtr* papcKilled)
+BOOL CObjects::Remove(CArrayBaseObjectPtr* papcKilled)
 {
 	int								i;
 	int								iNumElements;
 	CBaseObject*					pcKilled;
 	CArrayEmbeddedBaseObjectPtr		apcFromsChanged;
+	CBaseObject*					pcContainer;
+
+	//No embedded objects should be in the list papcKilled.
 
 	iNumElements = papcKilled->NumElements();
 	apcFromsChanged.Init();
@@ -802,6 +806,12 @@ void CObjects::Remove(CArrayBaseObjectPtr* papcKilled)
 	for (i = 0; i < iNumElements; i++)
 	{
 		pcKilled = *papcKilled->Get(i);
+		if (pcKilled->IsEmbedded())
+		{
+			pcContainer = pcKilled->GetEmbeddingContainer();
+			gcLogger.Error2("Objects::Remove object of class [", pcKilled->ClassName(), "] is marked for killing but is embedded in object with index [", IndexToString(pcContainer->GetOI()),"] of class [", pcContainer->ClassName(), "].", NULL);
+			return FALSE;
+		}
 		pcKilled->RemoveAllTos(&apcFromsChanged);  //Does not kill anything.
 	}
 
@@ -811,6 +821,7 @@ void CObjects::Remove(CArrayBaseObjectPtr* papcKilled)
 	FixDistToRoot(&apcFromsChanged);
 
 	apcFromsChanged.Kill();
+	return TRUE;
 }
 
 

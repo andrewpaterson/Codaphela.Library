@@ -65,7 +65,7 @@ protected:
 	void			RemoveTo(CEmbeddedObject* pcTo);
 	void			RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged);
 	int				RemapTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew);
-	void			CollectThoseToBeKilled(CArrayBaseObjectPtr* papcKilled);
+	void			CollectPointedToToBeKilled(CArrayBaseObjectPtr* papcKilled);
 	void			KillChildGraph(void);
 };
 

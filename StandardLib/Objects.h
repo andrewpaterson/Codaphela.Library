@@ -84,7 +84,7 @@ public:
 						Ptr<CRoot>				AddRoot(void);
 						Ptr<CRoot>				GetRoot(void);
 
-						void					Remove(CArrayBaseObjectPtr* papcKilled);
+						BOOL					Remove(CArrayBaseObjectPtr* papcKilled);
 
 						CPointer				Null(void);
 	template<class M>	Ptr<M>					Null(void);

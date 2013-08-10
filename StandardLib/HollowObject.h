@@ -50,7 +50,7 @@ protected:
 			int					RemapTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew);
 			void				RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged);
 			void				RemoveTo(CEmbeddedObject* pcTo);
-			void				CollectThoseToBeKilled(CArrayBaseObjectPtr* papcKilled);
+			void				CollectPointedToToBeKilled(CArrayBaseObjectPtr* papcKilled);
 			BOOL				CanFindRoot(void);
 	virtual	CEmbeddedObject*	GetRemappedEmbeddedObject(int iIndex);
 };

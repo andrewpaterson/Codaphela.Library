@@ -270,26 +270,15 @@ int CArrayCommonObject::NumTos(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayCommonObject::CollectThoseToBeKilled(CArrayBaseObjectPtr* papcKilled)
+void CArrayCommonObject::CollectPointedToToBeKilled(CArrayBaseObjectPtr* papcKilled)
 {
 	CBaseObject*			pcPointedTo;
 	int						i;
 
-	MarkForKilling(papcKilled);
-
 	for (i = 0; i < mcArray.NumElements(); i++)
 	{
 		pcPointedTo = (CBaseObject*)mcArray.UnsafeGet(i);
-		if (pcPointedTo)
-		{
-			if (pcPointedTo->miDistToRoot >= ROOT_DIST_TO_ROOT)
-			{
-				if (!pcPointedTo->CanFindRoot())
-				{
-					pcPointedTo->CollectThoseToBeKilled(papcKilled);
-				}
-			}
-		}
+		CBaseObject::CollectPointedToToBeKilled(papcKilled, pcPointedTo);
 	}
 }
 

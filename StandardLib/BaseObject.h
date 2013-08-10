@@ -68,7 +68,7 @@ public:
 
 			void				Kill(void);
 
-			void				KillDontFree(void);
+	virtual void				KillDontFree(void);
 	virtual void				KillData(void) =0;
 
 			OIndex				GetOI(void);
@@ -107,6 +107,7 @@ public:
 			CEmbeddedObject* 	TestGetTo(int iToIndex);
 			int					TestGetNumEmbeddedFromFlags(void);
 	virtual void				RecurseSetFlagEmbedded(int iFlag, int iFlagValue);
+	virtual void				RecurseSetDistToRoot(int iDistToRoot);
 	
 protected:
 	virtual void			KillToPointers(void) =0;
@@ -117,7 +118,10 @@ protected:
 			void			PotentiallySetDistToRoot(CBaseObject* pcTos, int iExpectedDistToRoot);
 			BOOL			CanFindRoot(void);
 			CBaseObject*	ClearDistToSubRoot(void);
-	virtual void			CollectThoseToBeKilled(CArrayBaseObjectPtr* papcKilled) =0;
+			void			CollectThoseToBeKilled(CArrayBaseObjectPtr* papcKilled);
+	virtual void			CollectPointedToToBeKilled(CArrayBaseObjectPtr* papcKilled) =0;
+			void			ContainerCollectThoseToBeKilled(CArrayBaseObjectPtr* papcKilled);
+			void			CollectPointedToToBeKilled(CArrayBaseObjectPtr* papcKilled, CBaseObject* pcPointedTo);
 			void			MarkForKilling(CArrayBaseObjectPtr* papcKilled);
 			void			KillCollected(CArrayBaseObjectPtr* papcKilled);
 			int				KillThisGraph(void);
