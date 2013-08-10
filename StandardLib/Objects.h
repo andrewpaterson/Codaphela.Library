@@ -55,6 +55,7 @@ protected:
 	CObjectsSource			mcSource;
 
 	CIndexGenerator			mcIndexGenerator;
+	BOOL					mbDatabase;
 
 public:
 												CObjects();

@@ -46,6 +46,7 @@ CObjects::CObjects()
 {
 	mbInitialised = FALSE;
 	mpcUnknownsAllocatingFrom = NULL;
+	mbDatabase = FALSE;
 }
 
 
@@ -72,7 +73,16 @@ void CObjects::Init(CUnknowns* pcUnknownsAllocatingFrom, CIndexedConfig* pcConfi
 	mpcUnknownsAllocatingFrom = pcUnknownsAllocatingFrom;
 	mcIndexGenerator.Init();
 
-	mcDatabase.Init(pcConfig);
+	if (pcConfig->mszWorkingDirectory)
+	{
+		mcDatabase.Init(pcConfig);
+		mbDatabase = TRUE;
+	}
+	else
+	{
+		mbDatabase = FALSE;
+	}
+
 	mcMemory.Init();
 
 	mcSource.Init();
@@ -90,7 +100,10 @@ void CObjects::Kill(void)
 	mbInitialised = FALSE;
 	mcSource.Kill();
 	mcMemory.Kill();
-	mcDatabase.Kill();  //Also flushes.
+	if (mbDatabase)
+	{
+		mcDatabase.Kill();  //Also flushes.
+	}
 	mcIndexGenerator.Kill();
 	mpcUnknownsAllocatingFrom = NULL;
 }
@@ -273,9 +286,16 @@ void CObjects::PrintObject(CChars* psz, CBaseObject* pcBaseObject, BOOL bEmbedde
 //////////////////////////////////////////////////////////////////////////
 BOOL CObjects::Close(void)
 {
-	//xxx
-	////Need to put more thought into Durable Files and Closing.
-	return mcDatabase.Close();
+	if (mbDatabase)
+	{
+		//xxx
+		////Need to put more thought into Durable Files and Closing.
+		return mcDatabase.Close();
+	}
+	else
+	{
+		return TRUE;
+	}
 }
 
 
@@ -290,22 +310,30 @@ BOOL CObjects::Flush(BOOL bClearMemory, BOOL bClearCache)
 	BOOL				bResult;
 	CBaseObject*		pcBaseObject;
 
-	bResult = TRUE;
-	oi = StartMemoryIteration(&sIter);
-	while (oi != INVALID_O_INDEX)
+	if (mbDatabase)
 	{
-		pcBaseObject = GetFromMemory(oi);
-		bResult &= Save(pcBaseObject);
-		oi = IterateMemory(&sIter);
-	}
+		bResult = TRUE;
+		oi = StartMemoryIteration(&sIter);
+		while (oi != INVALID_O_INDEX)
+		{
+			pcBaseObject = GetFromMemory(oi);
+			bResult &= Save(pcBaseObject);
+			oi = IterateMemory(&sIter);
+		}
 
-	if (bClearMemory)
+		if (bClearMemory)
+		{
+			bResult &= ClearMemory();
+		}
+
+		bResult &= mcDatabase.Flush(bClearCache);
+		return bResult;
+	}
+	else
 	{
-		bResult &= ClearMemory();
+		bResult = ClearMemory();
+		return bResult;
 	}
-
-	bResult &= mcDatabase.Flush(bClearCache);
-	return bResult;
 }
 
 
@@ -644,6 +672,11 @@ CBaseObject* CObjects::GetFromDatabase(OIndex oi)
 	CIndexedDataObjectDeserialiser	cDeserialiser;
 	CObjectAllocator				cAllocator;
 
+	if (!mbDatabase)
+	{
+		return NULL;
+	}
+
 	if (!mcDatabase.Contains(oi))
 	{
 		return NULL;
@@ -675,6 +708,11 @@ CBaseObject* CObjects::GetFromDatabase(char* szObjectName)
 {
 	CIndexedDataObjectDeserialiser	cDeserialiser;
 	CObjectAllocator				cAllocator;
+
+	if (!mbDatabase)
+	{
+		return NULL;
+	}
 
 	CPointer	pObject;
 
@@ -780,7 +818,14 @@ BOOL CObjects::Contains(char* szObjectName)
 	}
 	else
 	{
-		return mcDatabase.Contains(szObjectName);
+		if (mbDatabase)
+		{
+			return mcDatabase.Contains(szObjectName);
+		}
+		else
+		{
+			return FALSE;
+		}
 	}
 	return FALSE;
 }
@@ -897,9 +942,16 @@ int CObjects::NumMemoryNames(void)
 //////////////////////////////////////////////////////////////////////////
 long long int CObjects::NumDatabaseObjects(void)
 {
-	//This is a very slow method.  
-	//It loads every descriptor from 0 to the LastOI and checks if it points to an object.
-	return mcDatabase.NumObjects();
+	if (mbDatabase)
+	{
+		//This is a very slow method.  
+		//It loads every descriptor from 0 to the LastOI and checks if it points to an object.
+		return mcDatabase.NumObjects();
+	}
+	else
+	{
+		return 0;
+	}
 }
 
 
@@ -909,7 +961,14 @@ long long int CObjects::NumDatabaseObjects(void)
 //////////////////////////////////////////////////////////////////////////
 int CObjects::NumDatabaseObjectsCached(int iSize)
 {
-	return mcDatabase.NumCached(iSize);
+	if (mbDatabase)
+	{
+		return mcDatabase.NumCached(iSize);
+	}
+	else
+	{
+		return 0;
+	}
 }
 
 
@@ -919,7 +978,14 @@ int CObjects::NumDatabaseObjectsCached(int iSize)
 //////////////////////////////////////////////////////////////////////////
 int CObjects::NumDatabaseObjectsCached(void)
 {
-	return mcDatabase.NumCached();
+	if (mbDatabase)
+	{
+		return mcDatabase.NumCached();
+	}
+	else
+	{
+		return 0;
+	}
 }
 
 
@@ -929,7 +995,14 @@ int CObjects::NumDatabaseObjectsCached(void)
 //////////////////////////////////////////////////////////////////////////
 long long int CObjects::NumDatabaseNames(void)
 {
-	return mcDatabase.NumNames();
+	if (mbDatabase)
+	{
+		return mcDatabase.NumNames();
+	}
+	else
+	{
+		return 0;
+	}
 }
 
 
