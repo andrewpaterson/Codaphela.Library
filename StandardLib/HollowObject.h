@@ -42,6 +42,7 @@ public:
 			int					NumTos(void);
 			int					GetNumEmbedded(void);
 			CEmbeddedObject*	GetEmbeddedObject(int iIndex);
+			int					GetEmbeddedIndex(CEmbeddedObject* pcEmbedded);
 			int					NumFroms(void);
 
 protected:

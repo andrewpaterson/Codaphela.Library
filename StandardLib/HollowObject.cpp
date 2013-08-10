@@ -236,6 +236,35 @@ CEmbeddedObject* CHollowObject::GetEmbeddedObject(int iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+int CHollowObject::GetEmbeddedIndex(CEmbeddedObject* pcEmbedded)
+{
+	CHollowEmbeddedObject*	pcCurrent;
+	int						i;
+
+	if (pcEmbedded == this)
+	{
+		return 0;
+	}
+	else
+	{
+		for (i = 1; i < GetNumEmbedded(); i++)
+		{
+			pcCurrent = (CHollowEmbeddedObject*)GetEmbeddedObject(i);
+			if (pcCurrent == pcEmbedded)
+			{
+				return i;
+			}
+		}
+
+		return -1;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 CEmbeddedObject* CHollowObject::GetRemappedEmbeddedObject(int iIndex)
 {
 	CEmbeddedObject*	pcEmbedded;
