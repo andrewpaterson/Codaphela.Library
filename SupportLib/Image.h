@@ -65,6 +65,7 @@ public:
 	void					Init(int iWidth, int iHeight, void* pvUserData, CImageChannelsSource* pcSource);
 	void					Init(int iWidth, int iHeight, CImage* pcChannelsSource);
 	void					Init(CImage* pcChannelsSource);  //This only sets up channels and dimensions.  
+	void					Class(void);
 	void					KillData(void);
 
 	void					BeginChange(void);

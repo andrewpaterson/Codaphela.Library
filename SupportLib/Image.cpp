@@ -172,6 +172,16 @@ void CImage::Init(int iWidth, int iHeight, CImage* pcChannelsSource)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CImage::Class(void)
+{
+	CObject::Class();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CImage::KillData(void)
 {
 	SafeFree(mpsImageChangingDesc);
@@ -372,7 +382,6 @@ BOOL CImage::Load(CObjectDeserialiser* pcFile)
 	ReturnOnFalse(pcFile->ReadInt(&miHeight));
 
 	ReturnOnFalse(mcChannels.Load(pcFile));
-
 	return TRUE;
 }
 
