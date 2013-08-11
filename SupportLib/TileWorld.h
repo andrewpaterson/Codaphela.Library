@@ -39,8 +39,8 @@ public:
 	CArrayTileMap			macMaps;
 	CArrayTileType			macTileTypes;
 	CTileType*				mpcImageType;
-	CArray					macImages;
-	CArray 					macGroups;
+	CArray<CImage>			macImages;
+	CArray<CImageCelGroup>	macGroups;
 	
 	void 						Init(void);
 	void 						Kill(void);
@@ -49,7 +49,7 @@ public:
 	CTileMap*					AddMap(char* szName, int iCelWidth, int iCelHeight);
 	CTileType*					GetType(char* szTypeName);
 
-	void						AddImages(CArray* pacImages);
+	void						AddImages(Ptr<CArray<CImage>> pacImages);
 	void						AddGroup(Ptr<CImageCelGroup> pcGroup);
 	Ptr<CImageCelGroup>	GetGroup(char* szName);
 };

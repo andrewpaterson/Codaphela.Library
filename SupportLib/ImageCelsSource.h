@@ -24,6 +24,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #ifndef __IMAGE_CELS_SOURCE_H__
 #define __IMAGE_CELS_SOURCE_H__
 #include "StandardLib/Unknown.h"
+#include "StandardLib/Pointer.h"
 #include "Image.h"
 #include "ImageCelGroup.h"
 #include "ImageSource.h"
@@ -63,8 +64,8 @@ protected:
 
 	//Output
 	CArrayUnknown						macImageCels;
-	CArray								macFillMasks;
-	CArray								macImages;
+	CArray<CImage>						macFillMasks;
+	CArray<CImage>						macImages;
 
 public:
 	void 				Init(BOOL bPackOnLoad = FALSE);
@@ -79,7 +80,7 @@ public:
 
 	BOOL				Load(void);
 
-	CArray*				GetImages(void);
+	Ptr<CArray<CImage>>	GetImages(void);
 	CArrayUnknown*		GetCels(void);
 	CArrayUnknown*		GetImageCels(void);
 

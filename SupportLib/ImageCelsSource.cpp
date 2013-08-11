@@ -366,8 +366,8 @@ CArrayUnknown* CImageCelsSource::GetImageCels(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CArray* CImageCelsSource::GetImages(void)
+Ptr<CArray<CImage>> CImageCelsSource::GetImages(void)
 {
-	return &macImages;
+	return Ptr<CImage>(&macImages);
 }
 

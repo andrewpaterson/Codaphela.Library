@@ -124,7 +124,7 @@ CTileType* CTileWorld::GetType(char* szTypeName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTileWorld::AddImages(CArray* pacImages)
+void CTileWorld::AddImages(Ptr<CArray<CImage>> pacImages)
 {
 	macImages.AddAll(pacImages);
 }
