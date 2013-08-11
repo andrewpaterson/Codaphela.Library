@@ -51,7 +51,8 @@ public:
 	int					GetNumEmbedded(void);
 	CEmbeddedObject*	GetEmbeddedObject(int iIndex);
 	CBaseObject*		Dehollow(void);
-	int					NumFroms(void);
+	int					NumHeapFroms(void);
+	int					NumTotalFroms(void);
 	void				RecurseSetFlagEmbedded(int iFlag, int iFlagValue);
 	void				RecurseSetDistToRoot(int iDistToRoot);
 	
@@ -68,7 +69,8 @@ protected:
 	void				PrivateSetDistToRoot(int iDistToRoot);
 	BOOL				RecurseGetEmbeddedIndex(CEmbeddedObject* pcTest, int* piIndex);
 	CEmbeddedObject*	RecurseGetEmbeddedObject(int iIndex, int* iCount);
-	int					RecurseNumFroms(void);
+	int					RecurseNumHeapFroms(void);
+	int					RecurseNumTotalFroms(void);
 };
 
 

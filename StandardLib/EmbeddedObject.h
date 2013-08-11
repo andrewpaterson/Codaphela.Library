@@ -27,7 +27,8 @@ class CEmbeddedObject : public CUnknown
 BASE_FUNCTIONS(CEmbeddedObject);
 protected:
 	CBaseObject*						mpcEmbedded;  //Object that 'this' is embedded in.
-	CArrayEmbedded<CBaseObject*, 6>		mapFroms;  //Objects that 'this' is pointed from.  
+	CArrayEmbedded<CBaseObject*, 6>		mapHeapFroms;  //Objects on the heap that 'this' is pointed from
+	int									miStackFroms;  //Objects on the stack that 'this' is pointed from.  
 
 public:
 								CEmbeddedObject();
@@ -58,12 +59,11 @@ public:
 
 			void				CopyFroms(CEmbeddedObject* pcSource);
 	virtual void				AddFrom(CBaseObject* pcFrom) =0;
-	virtual int					NumFroms(void) =0;
-			int					PrivateNumFroms(void);
+	virtual int					NumHeapFroms(void);
+	virtual int					NumTotalFroms(void);
 			CBaseObject*		PrivateGetFrom(int iFrom);
 			CBaseObject*		TestGetFrom(int iFromIndex);
 protected:
-			BOOL			IsUnattached(void);
 			void			RemoveAllFroms(void);
 			BOOL			PrivateRemoveFrom(CBaseObject* pcFrom);
 			void			GetFroms(CArrayEmbeddedBaseObjectPtr* papcFroms);

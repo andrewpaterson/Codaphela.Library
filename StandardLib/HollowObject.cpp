@@ -287,17 +287,40 @@ CEmbeddedObject* CHollowObject::GetRemappedEmbeddedObject(int iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CHollowObject::NumFroms(void)
+int CHollowObject::NumHeapFroms(void)
 {
 	CHollowEmbeddedObject*	pcEmbedded;
 	int						iCount;	
 	int						i;
 
-	iCount = mapFroms.NumElements();
+	iCount = CEmbeddedObject::NumHeapFroms();
+
 	for (i = 1; i < GetNumEmbedded(); i++)
 	{
 		pcEmbedded = (CHollowEmbeddedObject*)GetEmbeddedObject(i);
-		iCount += pcEmbedded->NumFroms();
+		iCount += pcEmbedded->NumHeapFroms();
+	}
+	return iCount;
+}
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CHollowObject::NumTotalFroms(void)
+{
+	CHollowEmbeddedObject*	pcEmbedded;
+	int						iCount;	
+	int						i;
+
+	iCount = CEmbeddedObject::NumTotalFroms();
+
+	for (i = 1; i < GetNumEmbedded(); i++)
+	{
+		pcEmbedded = (CHollowEmbeddedObject*)GetEmbeddedObject(i);
+		iCount += pcEmbedded->NumTotalFroms();
 	}
 	return iCount;
 }

@@ -103,7 +103,8 @@ public:
 			void				AddFrom(CBaseObject* pcFrom);
 			void				FixDistToRoot(void);
 			void				RemoveFrom(CBaseObject* pcFrom);
-	virtual int					RecurseNumFroms(void);
+	virtual int					RecurseNumHeapFroms(void);
+	virtual int					RecurseNumTotalFroms(void);
 
 			CEmbeddedObject* 	TestGetTo(int iToIndex);
 			int					TestGetNumEmbeddedFromFlags(void);

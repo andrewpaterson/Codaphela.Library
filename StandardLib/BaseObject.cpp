@@ -67,6 +67,7 @@ void CBaseObject::Kill(void)
 	CArrayEmbeddedBaseObjectPtr		apcFromsChanged;
 	int								iNumKilled;
 	CBaseObject*					pcContainer;
+	int								iNumFroms;
 
 	//This method is for the user to forcibly kill an object.
 	//It is not called internally.  KillThisGraph is method used to free objects that are unattached.
@@ -82,7 +83,8 @@ void CBaseObject::Kill(void)
 		return;
 	}
 
-	if (IsUnattached())
+	iNumFroms = NumHeapFroms();
+	if (iNumFroms == 0)
 	{
 		apcFromsChanged.Init();
 		RemoveAllTos(&apcFromsChanged);
@@ -631,7 +633,7 @@ void CBaseObject::AddFrom(CBaseObject* pcFrom)
 {
 	if (pcFrom != NULL)
 	{
-		mapFroms.Add(&pcFrom);
+		mapHeapFroms.Add(&pcFrom);
 		if (pcFrom->miDistToRoot >= ROOT_DIST_TO_ROOT)
 		{
 			PotentiallySetDistToRoot(this, pcFrom->miDistToRoot+1);
@@ -658,7 +660,7 @@ void CBaseObject::PotentiallySetDistToRoot(CBaseObject* pcTo, int iExpectedDistT
 	}
 
 	iBestDistToRoot = iExpectedDistToRoot;
-	iNumFroms = pcTo->PrivateNumFroms();
+	iNumFroms = pcTo->CEmbeddedObject::NumHeapFroms();
 	for (i = 0; i < iNumFroms; i++)
 	{
 		pcFrom = pcTo->PrivateGetFrom(i);
@@ -803,8 +805,18 @@ int CBaseObject::TestGetNumEmbeddedFromFlags(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CBaseObject::RecurseNumFroms(void)
+int CBaseObject::RecurseNumHeapFroms(void)
 {
-	return PrivateNumFroms();
+	return CEmbeddedObject::NumHeapFroms();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CBaseObject::RecurseNumTotalFroms(void)
+{
+	return CEmbeddedObject::NumTotalFroms();
 }
 

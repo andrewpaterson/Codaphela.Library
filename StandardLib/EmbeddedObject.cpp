@@ -7,7 +7,8 @@
 //////////////////////////////////////////////////////////////////////////
 CEmbeddedObject::CEmbeddedObject()
 {
-	mapFroms.Init();
+	mapHeapFroms.Init();
+	miStackFroms = 0;
 	mpcEmbedded = NULL;
 }
 
@@ -181,20 +182,7 @@ void CEmbeddedObject::SetEmbedded(CBaseObject* pcEmbedded)
 //////////////////////////////////////////////////////////////////////////
 void CEmbeddedObject::KillFroms()
 {
-	mapFroms.Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CEmbeddedObject::IsUnattached(void)
-{
-	int	iNumFroms;
-	
-	iNumFroms = NumFroms();
-	return iNumFroms == 0;
+	mapHeapFroms.Kill();
 }
 
 
@@ -209,15 +197,15 @@ void CEmbeddedObject::RemoveAllFroms(void)
 	int					i;
 	CEmbeddedObject*	pcPointedFrom;
 
-	iNumFroms = mapFroms.NumElements();
-	ppcPointedFrom = (CEmbeddedObject**)mapFroms.GetData();
+	iNumFroms = mapHeapFroms.NumElements();
+	ppcPointedFrom = (CEmbeddedObject**)mapHeapFroms.GetData();
 	for (i = 0; i < iNumFroms; i++)
 	{
 		pcPointedFrom = ppcPointedFrom[i];
 		pcPointedFrom->RemoveTo(this);
 	}
 
-	mapFroms.ReInit();
+	mapHeapFroms.ReInit();
 }
 
 
@@ -227,17 +215,7 @@ void CEmbeddedObject::RemoveAllFroms(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CEmbeddedObject::PrivateRemoveFrom(CBaseObject* pcFrom)
 {
-	return mapFroms.Remove(&pcFrom, FALSE);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-int CEmbeddedObject::PrivateNumFroms(void)
-{
-	return mapFroms.NumElements();
+	return mapHeapFroms.Remove(&pcFrom, FALSE);
 }
 
 
@@ -249,7 +227,7 @@ CBaseObject* CEmbeddedObject::PrivateGetFrom(int iFrom)
 {
 	CBaseObject**	ppFrom;
 
-	ppFrom = mapFroms.Get(iFrom);
+	ppFrom = mapHeapFroms.Get(iFrom);
 	if (ppFrom)
 	{
 		return *ppFrom;
@@ -267,8 +245,10 @@ CBaseObject* CEmbeddedObject::PrivateGetFrom(int iFrom)
 //////////////////////////////////////////////////////////////////////////
 void CEmbeddedObject::CopyFroms(CEmbeddedObject* pcSource)
 {
-	mapFroms.ReInit();
-	mapFroms.Copy(&pcSource->mapFroms);
+	mapHeapFroms.ReInit();
+	mapHeapFroms.Copy(&pcSource->mapHeapFroms);
+
+	miStackFroms = pcSource->miStackFroms;
 }
 
 
@@ -291,7 +271,7 @@ void CEmbeddedObject::GetFroms(CArrayEmbeddedBaseObjectPtr* papcFroms)
 //////////////////////////////////////////////////////////////////////////
 void CEmbeddedObject::RecurseGetFroms(CArrayEmbeddedBaseObjectPtr* papcFroms)
 {
-	papcFroms->Copy((CArrayEmbeddedBaseObjectPtr*)&mapFroms);
+	papcFroms->Copy((CArrayEmbeddedBaseObjectPtr*)&mapHeapFroms);
 }
 
 
@@ -302,5 +282,29 @@ void CEmbeddedObject::RecurseGetFroms(CArrayEmbeddedBaseObjectPtr* papcFroms)
 CBaseObject* CEmbeddedObject::TestGetFrom(int iFromIndex)
 {
 	return PrivateGetFrom(iFromIndex);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CEmbeddedObject::NumHeapFroms(void)
+{
+	return mapHeapFroms.NumElements();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CEmbeddedObject::NumTotalFroms(void)
+{
+	int		iTotalFroms;
+
+	iTotalFroms = mapHeapFroms.NumElements();
+	iTotalFroms += miStackFroms;
+	return iTotalFroms;
 }
 

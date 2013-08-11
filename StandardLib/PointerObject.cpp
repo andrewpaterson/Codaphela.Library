@@ -310,7 +310,7 @@ int CPointer::RemapEmbeddedFrom(CEmbeddedObject* pcNew, CEmbeddedObject* pcOld)
 
 	iCount = 0;
 
-	iNumFroms = pcOld->PrivateNumFroms();
+	iNumFroms = pcOld->CEmbeddedObject::NumHeapFroms();
 	for (i = 0; i < iNumFroms; i++)
 	{
 		pvFrom = pcOld->PrivateGetFrom(i);
