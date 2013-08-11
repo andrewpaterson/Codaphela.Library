@@ -1020,9 +1020,54 @@ CIndexGenerator* CObjects::GetIndexGenerator(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL CObjects::ValidateCanAllocate(char* szClassName)
+{
+	if ((szClassName == NULL) || (szClassName[0] == 0))
+	{
+		gcLogger.Error("CObjects::Allocate Cannot allocate an object of class with empty name.");
+		return FALSE;
+	}
+
+	if (!mbInitialised)
+	{
+		gcLogger.Error2("CObjects::Allocate Cannot allocate object of class [", szClassName, "].  CObjects has not been initialised.", NULL);
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CObjects::ValidateCanAllocate(void)
+{
+	if (!mbInitialised)
+	{
+		gcLogger.Error2("CObjects::Allocate Cannot allocate object.  CObjects has not been initialised.", NULL);
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 CBaseObject* CObjects::Allocate(char* szClassName)
 {
 	CBaseObject*	pvObject;
+	BOOL			bResult;
+
+	bResult = ValidateCanAllocate(szClassName);
+	if (!bResult)
+	{
+		return NULL;
+	}
 
 	pvObject = (CBaseObject*)mpcUnknownsAllocatingFrom->Add(szClassName);
 	if (pvObject)

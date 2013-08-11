@@ -115,6 +115,8 @@ protected:
 	template<class M>	M*						Allocate(void);
 	template<class M>	M*						Allocate(int iAdditionalBytes);
 						CBaseObject*			Allocate(char* szClassName);
+						BOOL					ValidateCanAllocate(char* szClassName);
+						BOOL					ValidateCanAllocate(void);
 						CBaseObject*			GetFromMemory(OIndex oi);
 						CBaseObject*			GetFromMemory(char* szObjectName);
 						CBaseObject*			GetFromDatabase(OIndex oi);
@@ -158,7 +160,14 @@ M* CObjects::Allocate(void)
 template<class M>	
 M* CObjects::Allocate(int iAdditionalBytes)
 {
-	M*	pcObject;
+	M*		pcObject;
+	BOOL	bResult;
+
+	bResult = ValidateCanAllocate();
+	if (!bResult)
+	{
+		return NULL;
+	}
 
 	pcObject = mpcUnknownsAllocatingFrom->AddUnsafe<M>(iAdditionalBytes);
 	if (pcObject)
