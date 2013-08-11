@@ -248,7 +248,7 @@ BOOL CImageCelsSource::Load(void)
 		pcImageSource = pcImageSourceWithCelSources->GetImageSource();
 		pcCelsSource = pcImageSourceWithCelSources->GetCelsSource();
 
-		bResult = pcImageSource->Load();
+		bResult = pcImageSource->LoadImage();
 		if (!bResult)
 		{
 			return FALSE;

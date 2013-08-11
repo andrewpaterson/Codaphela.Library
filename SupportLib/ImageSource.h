@@ -36,17 +36,17 @@ class CImageSource : public CUnknown
 {
 BASE_FUNCTIONS(CImageSource);
 protected:
-	CChars				mszImageName;
-	Ptr<CImage>	mpcImage;
+	CChars			mszImageName;
+	Ptr<CImage>		mpcImage;
 
 public:
-	void				Init(char* szName = NULL);
-	void				Kill(void);
+					void			Init(char* szName = NULL);
+					void			Kill(void);
 
-	Ptr<CImage>	Allocate(char* szName);
-	virtual BOOL		Load(void) =0;
-	Ptr<CImage>	GetImage(void);
-	void				SetImage(Ptr<CImage> pcImage);
+					Ptr<CImage>		Allocate(char* szName);
+	virtual			BOOL			LoadImage(void) =0;
+					Ptr<CImage>		GetImage(void);
+					void			SetImage(Ptr<CImage> pcImage);
 };
 
 

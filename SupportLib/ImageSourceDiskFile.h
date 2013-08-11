@@ -37,7 +37,7 @@ public:
 	void Init(char* szFileName, char* szImageName = NULL);
 	void Kill(void);
 
-	BOOL Load(void);
+	BOOL LoadImage(void);
 };
 
 

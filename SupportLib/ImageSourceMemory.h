@@ -35,7 +35,7 @@ public:
 	void Init(CImage* pcImage);
 	void Kill(void);
 
-	BOOL Load(void);
+	BOOL LoadImage(void);
 };
 
 

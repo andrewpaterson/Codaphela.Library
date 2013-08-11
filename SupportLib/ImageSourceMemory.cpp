@@ -51,7 +51,7 @@ void CImageSourceMemory::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CImageSourceMemory::Load(void)
+BOOL CImageSourceMemory::LoadImage(void)
 {
 	return TRUE;
 }

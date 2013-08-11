@@ -51,7 +51,7 @@ void CImageSourceDiskFile::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CImageSourceDiskFile::Load(void)
+BOOL CImageSourceDiskFile::LoadImage(void)
 {
 	BOOL		bResult;
 	CImage*		pcImage;
