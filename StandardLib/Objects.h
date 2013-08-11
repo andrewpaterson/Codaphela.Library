@@ -39,6 +39,9 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #define ORoot()						(gcObjects.AddRoot())
 #define ONull						(Null())
 
+//Temporary until stack Pointers are destructorated.
+#define ReturnKillNull(object)		object->Kill(); return Null();
+
 class CHollowObject;
 class CNamedHollowObject;
 class CObjects
