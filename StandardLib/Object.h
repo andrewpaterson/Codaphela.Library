@@ -39,7 +39,6 @@ protected:
 public:
 						CObject();
 	void				Kill(void);
-	virtual	void		Class(void) =0;
 	int					NumTos(void);
 	BOOL				IsCollection(void);
 	BOOL				IsObject(void);

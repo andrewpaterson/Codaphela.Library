@@ -34,6 +34,7 @@ protected:
 
 public:
 	void				Init(BOOL bUnique, BOOL bIgnoreNull, BOOL bPreserveOrder, int iChunkSize);
+	void				Class(void);
 	void				Kill(void);
 
 	void				Add(CPointer pObject);

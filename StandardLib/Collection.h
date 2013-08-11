@@ -23,6 +23,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseObject.h"
 
 
+//Note: This class has no fields.
 class CCollection : public CBaseObject
 {
 BASE_FUNCTIONS(CCollection);
