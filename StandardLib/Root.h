@@ -42,6 +42,7 @@ protected:
 						Ptr<CRoot>		Init(CObjects* pcObjectsAllocatingFrom);
 
 public:
+						void			Class(void);
 						void			KillData(void);
 
 						void			Add(CPointer pObject);
