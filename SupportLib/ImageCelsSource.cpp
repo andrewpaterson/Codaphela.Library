@@ -307,18 +307,17 @@ Ptr<CImage> CImageCelsSource::Combine(int iFirstCelIndex)
 	Ptr<CImage>		pcDest;
 	int				i;
 	CImageCel*		pcCel;
-	BOOL			bResult;
 
 	pcDest = ONMalloc(CImage, "");
-	cImageCombiner.Init((CImage*)pcDest.Object(), ICL_Best, ICS_Arbitrary);
+	cImageCombiner.Init(ICL_Best, ICS_Arbitrary);
 
 	for (i = iFirstCelIndex; i < macImageCels.NumElements(); i++)
 	{
 		pcCel = (CImageCel*)macImageCels.Get(i);
 		cImageCombiner.AddCel(pcCel);
 	}
-	bResult = cImageCombiner.Combine();
-	if (bResult)
+	pcDest = cImageCombiner.Combine();
+	if (pcDest.IsNotNull())
 	{
 		macImageCels.RemoveEnd(iFirstCelIndex);
 		macImageCels.AddAll(&cImageCombiner.mcDestCels);
@@ -327,8 +326,7 @@ Ptr<CImage> CImageCelsSource::Combine(int iFirstCelIndex)
 	}
 	else
 	{
-		pcDest->Kill();
-		return ONull;
+		ReturnKillNull(pcDest);
 	}
 }
 

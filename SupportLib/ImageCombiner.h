@@ -61,26 +61,26 @@ public:
 	EImageCombineSize		meSize;
 	EImageCombineChannels	meChannels;
 	SInt2					msSize;  //Only if ICS_UserSpecified.
-	CImage*					mpcDestImage;  //Assumed to be uninitialised.
+	Ptr<CImage>				mpcDestImage;  //Assumed to be uninitialised.
 	CArrayUnknown			mcSourceCels;
 	CArrayUnknown			mcDestCels;  //Theres a one-to-one between dest and source cells.
 	int						miOutsideEdgeWidth;  //Gap around the outside of the destination image and the rectangles.
 	int						miInnerEdgeWidth;  //Gap between rectangles.
 	CArrayChannel			masChannels;
 
-	void				Init(EImageCombineLayout eLayout, int iWidth, int iHeight, EImageCombineSize eSize, EImageCombineChannels eChannels, CImage* pcDest, int iOutsideEdgeWidth, int iInnerEdgeWidth, BOOL bKillDestCels);
-	void 				Init(CImage* pcDest, EImageCombineLayout eLayout, EImageCombineSize eSize, EImageCombineChannels eChannels = ICC_FromCels, int iOutsideEdgeWidth = 0, int iInnerEdgeWidth = 0, BOOL bKillDestCels = FALSE);  //Don't pass ICS_UserSpecified in here, use the one below.
-	void 				Init(CImage* pcDest, EImageCombineLayout eLayout, int iWidth, int iHeight, EImageCombineChannels eChannels = ICC_FromCels, int iOutsideEdgeWidth = 0, int iInnerEdgeWidth = 0, BOOL bKillDestCels = FALSE);
+	void				Init(EImageCombineLayout eLayout, int iWidth, int iHeight, EImageCombineSize eSize, EImageCombineChannels eChannels, int iOutsideEdgeWidth, int iInnerEdgeWidth, BOOL bKillDestCels);
+	void 				Init(EImageCombineLayout eLayout, EImageCombineSize eSize, EImageCombineChannels eChannels = ICC_FromCels, int iOutsideEdgeWidth = 0, int iInnerEdgeWidth = 0, BOOL bKillDestCels = FALSE);  //Don't pass ICS_UserSpecified in here, use the one below.
+	void 				Init(EImageCombineLayout eLayout, int iWidth, int iHeight, EImageCombineChannels eChannels = ICC_FromCels, int iOutsideEdgeWidth = 0, int iInnerEdgeWidth = 0, BOOL bKillDestCels = FALSE);
 	void				Kill(void);
 	void 				AddCel(CImageCel* pcCel);
 	void 				AddCels(CArrayUnknown* pcCels);
 	void				AddChannel(EChannel eChannel, EPrimitiveTypes eType);
-	BOOL				Combine(void);
+	Ptr<CImage>			Combine(void);
 	CArrayUnknown*		GetCels(void);  //If something else is taking ownership of the cels (the normal case) then bKillDestCels must be FALSE.
 
 private:
 	CRectanglePacker*	GetPacker(void);
-	BOOL				InitiailiseDestImage(SInt2 sSize);
+	Ptr<CImage>			InitiailiseDestImage(SInt2 sSize);
 	void				CalculateChannels(void);
 	void				CalculateChannelsFromCels(void);
 	void				UpdateChannels(CArrayChannel* pasSource);

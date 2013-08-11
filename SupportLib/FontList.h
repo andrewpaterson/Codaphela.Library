@@ -23,24 +23,22 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 ** ------------------------------------------------------------------------ **/
 #ifndef __FONT_LIST_H__
 #define __FONT_LIST_H__
-#include "StandardLib/SetType.h"
+#include "StandardLib/Set.h"
 #include "WinText.h"
 #include "Font.h"
 
 
-typedef CSetType<CFont>		CSetFont;
-
 class CFontList
 {
 public:
-	CWinText	mcWinText;
-	CSetFont	mscFonts;
+	CWinText		mcWinText;
+	CSet<CFont>		mscFonts;
 
-	void 	Init(HWND hWnd);
-	void 	Kill(void);
-	void	SetHWnd(HWND hWnd);
-	CFont*	CreateFromSystem(char* szName, int iHeight, int iWidth, int iWeight);
-	CFont*	Get(char* szName);
+	void 		Init(HWND hWnd);
+	void 		Kill(void);
+	void		SetHWnd(HWND hWnd);
+	Ptr<CFont>	CreateFromSystem(char* szName, int iHeight, int iWidth, int iWeight);
+	Ptr<CFont>	Get(char* szName);
 };
 
 #endif // __FONT_LIST_H__

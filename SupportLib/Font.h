@@ -23,6 +23,9 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 ** ------------------------------------------------------------------------ **/
 #ifndef __FONT_H__
 #define __FONT_H__
+#include "StandardLib/Object.h"
+#include "StandardLib/ObjectSerialiser.h"
+#include "StandardLib/ObjectDeserialiser.h"
 #include "Image.h"
 #include "Glyph.h"
 
@@ -31,12 +34,12 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #define NUM_LETTERS		96
 
 
-class CFont : public CUnknown
+class CFont : public CObject
 {
 BASE_FUNCTIONS(CFont);
 protected:
 	CChars			mszName;
-	CImage			mcImage;
+	Ptr<CImage>		pcImage;
 	int				miAverageWidth;
 	int				miHeight;
 	BOOL			mbFixedWidh;
@@ -46,17 +49,22 @@ protected:
 	int				miDescent;
 
 public:
-	void		Init(char* szName, int iSpaceWidth, int iAscent, int iDescent);
-	void 		Kill(void);
+	Ptr<CFont>	Init(char* szName, int iSpaceWidth, int iAscent, int iDescent);
+	void		Class(void);
+	void 		KillData(void);
+
+	BOOL		Save(CObjectSerialiser* pcFile);
+	BOOL		Load(CObjectDeserialiser* pcFile);
+
 	void 		Done(void);
 	BOOL		Is(char* szName);
 	int 		Width(char* szText);
 	int			Height(void);
-	void		FreeImage(void);
 	BOOL		IsWhiteSpace(char c);
 	CGlyph*		GetGlyph(char c);
 	CGlyph*		AddGlyph(CImageCel* pcCel, int iStep);
-	CImage*		GetImage(void);
+	Ptr<CImage>	GetImage(void);
+	void		SetImage(Ptr<CImage> pcImage);
 	int			GetSpace(void);
 	int			GetAscent(void);
 	int			GetDescent(void);

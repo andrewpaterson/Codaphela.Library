@@ -72,13 +72,13 @@ public:
 	void 				Draw(char* szString, SWinFontInstance* psInstance, HDC hDC, int iFlags, BOOL bSingleLine, RECT* psRect);
 	void 				Draw(char* szString, SWinFontInstance* psInstance, HDC hDC, int x, int y);
 			
-	CFont*				GenerateFont(SWinFontInstance* pcWinFont, char* szFontName);
+	Ptr<CFont>			GenerateFont(SWinFontInstance* pcWinFont, char* szFontName);
 
 private:
-	void				DrawTextToImage(CImage* pcDestImage, CChars*, HDC hDC);
+	Ptr<CImage>			DrawTextToImage(CChars*, HDC hDC);
 	void				GetSourceGlyphs(CChars* pszDest);
 	void				GetSourceRectangles(CArrayRectangle* pacRectangles, CChars* pszLetters, HDC hDC);
-	void				PackImage(CImage* pcDestImage, CFont* pcFont, CImage* pcSource, CArrayRectangle* pacRectangles);
+	Ptr<CImage>			PackImage(Ptr<CFont> pcFont, CImage* pcSource, CArrayRectangle* pacRectangles);
 };
 
 

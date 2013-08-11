@@ -50,9 +50,9 @@ void CFontList::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CFont* CFontList::CreateFromSystem(char* szName, int iHeight, int iWidth, int iWeight)
+Ptr<CFont> CFontList::CreateFromSystem(char* szName, int iHeight, int iWidth, int iWeight)
 {
-	CFont*				pcFont;
+	Ptr<CFont>			pcFont;
 	CChars				szUniqueName;
 	SWinFontInstance*	psWinFont;
 
@@ -97,7 +97,7 @@ CFont* CFontList::CreateFromSystem(char* szName, int iHeight, int iWidth, int iW
 	}
 
 	pcFont = Get(szUniqueName.Text());
-	if (pcFont)
+	if (pcFont.IsNotNull())
 	{
 		szUniqueName.Kill();
 		return pcFont;
@@ -117,13 +117,13 @@ CFont* CFontList::CreateFromSystem(char* szName, int iHeight, int iWidth, int iW
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CFont* CFontList::Get(char* szName)
+Ptr<CFont> CFontList::Get(char* szName)
 {
 	SSetIterator	sIter;
-	CFont*			pcFont;
+	Ptr<CFont>		pcFont;
 
 	pcFont = mscFonts.StartIteration(&sIter);
-	while (pcFont)
+	while (pcFont.IsNotNull())
 	{
 		if (pcFont->Is(szName))
 		{
