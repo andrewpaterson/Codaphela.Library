@@ -42,9 +42,6 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //How man embedded objects are in the object.  If you have more than 255 then you need your head smacked.
 #define OBJECT_FLAGS_NUM_EMBEDDED			0x0000FF00
 
-//Has the Class() method describing this classes fields been correctly called.
-#define OBJECT_FLAGS_CLASS_CALLED			0x10000
-
 
 class CObjectDeserialiser;
 class CObjectSerialiser;
@@ -67,8 +64,8 @@ protected:
 
 public:
 								CBaseObject();
-			void				PreInit(CObjects* pcObjects);
-	virtual	void				Class(void) =0;
+	virtual	void				PreInit(CObjects* pcObjects);
+	virtual	void				Class(void);
 
 			void				Kill(void);
 

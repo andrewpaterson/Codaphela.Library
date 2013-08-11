@@ -163,7 +163,7 @@ M* CObjects::Allocate(int iAdditionalBytes)
 	pcObject = mpcUnknownsAllocatingFrom->AddUnsafe<M>(iAdditionalBytes);
 	if (pcObject)
 	{
-		pcObject->CBaseObject::PreInit(this);
+		pcObject->PreInit(this);
 	}
 	return pcObject;
 }

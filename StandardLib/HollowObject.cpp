@@ -48,6 +48,7 @@ void CHollowObject::Init(unsigned short iNumEmbedded)
 //////////////////////////////////////////////////////////////////////////
 void CHollowObject::Class(void)
 {
+	CBaseObject::Class();
 }
 
 

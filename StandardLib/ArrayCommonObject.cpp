@@ -41,7 +41,7 @@ void CArrayCommonObject::Init(BOOL bUnique, BOOL bIgnoreNull, BOOL bPreserveOrde
 //////////////////////////////////////////////////////////////////////////
 void CArrayCommonObject::Class(void)
 {
-
+	CCollection::Class();
 }
 
 

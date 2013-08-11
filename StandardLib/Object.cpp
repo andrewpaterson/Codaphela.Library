@@ -37,6 +37,27 @@ CObject::CObject()
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CObject::PreInit(CObjects* pcObjects)
+{
+	int					iNumEmbedded;
+	CBaseObject*		pcEmbedded;
+	int					i;
+
+	CBaseObject::PreInit(pcObjects);
+
+	iNumEmbedded = mapEmbedded.NumElements();
+	for (i = 0; i < iNumEmbedded; i++)
+	{
+		pcEmbedded = *mapEmbedded.Get(i);
+		pcEmbedded->PreInit(NULL);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CObject::Kill(void)
 {
 	CBaseObject::Kill();

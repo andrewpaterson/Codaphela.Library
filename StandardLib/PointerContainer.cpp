@@ -9,6 +9,7 @@
 //////////////////////////////////////////////////////////////////////////
 void CPointerContainer::Class(void)
 {
+	CObject::Class();
 	Pointer(mp.This());
 }
 
@@ -19,7 +20,6 @@ void CPointerContainer::Class(void)
 //////////////////////////////////////////////////////////////////////////
 Ptr<CPointerContainer> CPointerContainer::Init(CPointer pPointer)
 {
-	Class();
 	mp = pPointer;
 	return this;
 }
@@ -31,7 +31,6 @@ Ptr<CPointerContainer> CPointerContainer::Init(CPointer pPointer)
 //////////////////////////////////////////////////////////////////////////
 Ptr<CPointerContainer> CPointerContainer::Init(CEmbeddedObject* pcObject)
 {
-	Class();
 	mp = pcObject;
 	return this;
 }
@@ -62,8 +61,6 @@ BOOL CPointerContainer::Save(CObjectSerialiser* pcFile)
 //////////////////////////////////////////////////////////////////////////
 BOOL CPointerContainer::Load(CObjectDeserialiser* pcFile)
 {
-	Class();
-
 	return pcFile->ReadPointer(mp.This());
 }
 

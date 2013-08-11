@@ -38,6 +38,7 @@ protected:
 
 public:
 						CObject();
+	void				PreInit(CObjects* pcObjects);
 	void				Kill(void);
 	int					NumTos(void);
 	BOOL				IsCollection(void);
