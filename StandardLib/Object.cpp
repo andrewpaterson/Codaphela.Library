@@ -329,7 +329,7 @@ void CObject::RemoveTo(CEmbeddedObject* pcTo)
 //////////////////////////////////////////////////////////////////////////
 CPointer* CObject::Pointer(CPointer* pcPointer)
 {
-	pcPointer->Init(this);
+	pcPointer->SetEmbedding(this);
 	mapPointers.Add(&pcPointer);
 	return pcPointer;
 }

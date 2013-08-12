@@ -41,7 +41,7 @@ protected:
 public:
 	CPointer();
 	CPointer(CPointer* pcPointer);
-	void 				Init(CObject* pcEmbedding);
+	void 				SetEmbedding(CObject* pcEmbedding);
 	void				operator = (CEmbeddedObject* ptr);
 	void				operator = (CPointer pcPointer);
 	CEmbeddedObject*	operator -> ();

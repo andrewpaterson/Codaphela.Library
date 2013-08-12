@@ -60,7 +60,7 @@ void CPointer::ClearObject(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPointer::Init(CObject* pcEmbedding)
+void CPointer::SetEmbedding(CObject* pcEmbedding)
 {
 	mpcEmbedding = pcEmbedding;
 }

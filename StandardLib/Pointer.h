@@ -32,10 +32,9 @@ public:
 			Ptr();
 			Ptr(CEmbeddedObject* ptr);
 			Ptr(CPointer cPointer);
-	void 	Init(CObject* pcEmbedding);
 	void	operator = (M* ptr);
 	void	operator = (Ptr<M> pcPointer);
-	void	operator = (CPointer pcPointer);
+	void	operator = (CPointer& pcPointer);
 	M*		operator -> ();
 	M*		operator & ();
 };
@@ -51,7 +50,6 @@ template<class M>
 Ptr<M>::Ptr()
 {
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -73,17 +71,6 @@ template<class M>
 Ptr<M>::Ptr(CPointer cPointer)
 {
 	CPointer::Construct(cPointer);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-template<class M>
-void Ptr<M>::Init(CObject* pcEmbedding)
-{
-	CPointer::Init(pcEmbedding);
 }
 
 
@@ -114,7 +101,7 @@ void Ptr<M>::operator = (Ptr<M> pcPointer)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void Ptr<M>::operator = (CPointer pcPointer)
+void Ptr<M>::operator = (CPointer& pcPointer)
 {
 	PointTo(pcPointer.mpcObject);
 }
