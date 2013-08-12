@@ -31,7 +31,7 @@ class Ptr : public CPointer
 public:
 			Ptr();
 			Ptr(CEmbeddedObject* ptr);
-			Ptr(CPointer cPointer);
+			Ptr(CPointer& cPointer);
 	void	operator = (M* ptr);
 	void	operator = (Ptr<M> pcPointer);
 	void	operator = (CPointer& pcPointer);
@@ -68,7 +68,7 @@ Ptr<M>::Ptr(CEmbeddedObject* ptr)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-Ptr<M>::Ptr(CPointer cPointer)
+Ptr<M>::Ptr(CPointer& cPointer)
 {
 	CPointer::Construct(cPointer);
 }

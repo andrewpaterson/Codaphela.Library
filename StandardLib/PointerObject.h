@@ -39,14 +39,18 @@ protected:
 	CObject*			mpcEmbedding;  //Collections do not embed pointer objects.  They manage their own pointers.
 
 public:
-	CPointer();
-	CPointer(CPointer* pcPointer);
-	void 				SetEmbedding(CObject* pcEmbedding);
+						CPointer();
+						CPointer(CPointer& pcPointer);
+						CPointer(CEmbeddedObject* pcObject);
+
 	void				operator = (CEmbeddedObject* ptr);
-	void				operator = (CPointer pcPointer);
+	void				operator = (CPointer& pcPointer);
 	CEmbeddedObject*	operator -> ();
 	CEmbeddedObject*	operator & ();
 	BOOL				operator ! ();
+
+	void 				SetEmbedding(CObject* pcEmbedding);
+
 	BOOL				IsNotNull(void);
 	BOOL				IsNull(void);
 
@@ -73,7 +77,7 @@ public:
 	CEmbeddedObject*	Dereference(void);
 
 	void				PointTo(CEmbeddedObject* pcObject);
-	void				Construct(CPointer cPointer);
+	void				Construct(CPointer& cPointer);
 	void				AddFrom(CBaseObject* pcFrom);
 
 	void				ClearObject(void);
