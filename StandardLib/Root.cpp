@@ -88,7 +88,7 @@ void CRoot::Class(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CRoot::Add(CPointer pObject)
+void CRoot::Add(CPointer& pObject)
 {
 	mpObjects->Add(pObject);
 }
@@ -98,7 +98,7 @@ void CRoot::Add(CPointer pObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CRoot::Remove(CPointer pObject)
+void CRoot::Remove(CPointer& pObject)
 {
 	mpObjects->Remove(pObject);
 }

@@ -39,7 +39,7 @@ public:
 	void			Kill(void);
 	BOOL			Save(void);
 	
-	BOOL			WritePointer(CPointer pObject);
+	BOOL			WritePointer(CPointer& pObject);
 	BOOL			WriteIdentifier(CBaseObject* pcBaseObject);
 	BOOL			WriteDependent(CEmbeddedObject* pcBaseObject);
 

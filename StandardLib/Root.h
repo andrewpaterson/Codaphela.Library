@@ -45,8 +45,8 @@ public:
 						void			Class(void);
 						void			KillData(void);
 
-						void			Add(CPointer pObject);
-						void			Remove(CPointer pObject);
+						void			Add(CPointer& pObject);
+						void			Remove(CPointer& pObject);
 						void			RemoveAll(void);
 						BOOL			IsRoot(void);
 						BOOL			IsSubRoot(void);

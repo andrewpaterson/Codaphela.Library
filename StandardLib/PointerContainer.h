@@ -11,7 +11,7 @@ public:
 	Ptr<>	mp;
 
 	void					Class(void);
-	Ptr<CPointerContainer>	Init(CPointer pPointer);
+	Ptr<CPointerContainer>	Init(CPointer& pPointer);
 	Ptr<CPointerContainer>	Init(CEmbeddedObject* pcObject);
 	void					KillData(void);
 

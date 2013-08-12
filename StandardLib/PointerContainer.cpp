@@ -18,7 +18,7 @@ void CPointerContainer::Class(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CPointerContainer> CPointerContainer::Init(CPointer pPointer)
+Ptr<CPointerContainer> CPointerContainer::Init(CPointer& pPointer)
 {
 	mp = pPointer;
 	return this;

@@ -37,10 +37,10 @@ public:
 	void				Class(void);
 	void				Kill(void);
 
-	void				Add(CPointer pObject);
+	void				Add(CPointer& pObject);
 	void				AddAll(CArrayCommonObject* pcArray);
-	void				Set(int iIndex, CPointer pObject);
-	BOOL				Remove(CPointer pObject);
+	void				Set(int iIndex, CPointer& pObject);
+	BOOL				Remove(CPointer& pObject);
 	void				RemoveAll(void);
 
 	int					NumElements(void);

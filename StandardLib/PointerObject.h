@@ -58,7 +58,7 @@ public:
 	CObject*			Embedding(void);
 	CEmbeddedObject*	Object(void);
 	CEmbeddedObject**	ObjectPtr(void);
-	CEmbeddedObject*	UnsafePointTo(CEmbeddedObject* pcNewObject);
+	void				UnsafePointTo(CEmbeddedObject* pcNewObject);
 	CBaseObject*		BaseObject(void);
 	int					RemapFrom(CEmbeddedObject* pcOld);
 	int					RemapEmbeddedFrom(CEmbeddedObject* pcNew, CEmbeddedObject* pcOld);

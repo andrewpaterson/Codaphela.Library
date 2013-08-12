@@ -36,7 +36,7 @@ Ptr<CArrayObject> CArrayObject::Init(int iChunkSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayObject::Add(CPointer pObject)
+void CArrayObject::Add(CPointer& pObject)
 {
 	CArrayCommonObject::Add(pObject);
 }
@@ -56,7 +56,7 @@ void CArrayObject::AddAll(Ptr<CArrayObject> pcArray)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayObject::Insert(int iIndex, CPointer pObject)
+void CArrayObject::Insert(int iIndex, CPointer& pObject)
 {
 	mcArray.Insert(iIndex, pObject.Object());
 	pObject->AddFrom(this);
@@ -86,7 +86,7 @@ CPointer CArrayObject::Get(int iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayObject::Set(int iIndex, CPointer pObject)
+void CArrayObject::Set(int iIndex, CPointer& pObject)
 {
 	CBaseObject*	pcObject;
 	CPointer	pTemp;
@@ -104,7 +104,7 @@ void CArrayObject::Set(int iIndex, CPointer pObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayObject::Remove(CPointer pObject)
+BOOL CArrayObject::Remove(CPointer& pObject)
 {
 	return CArrayCommonObject::Remove(pObject);
 }

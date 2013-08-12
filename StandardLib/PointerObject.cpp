@@ -30,6 +30,9 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 CPointer::CPointer()
 {
+	//Default Constructor.
+	//Generally this should be avoided.
+
 	mpcObject = NULL;
 	mpcEmbedding = NULL;
 }
@@ -41,8 +44,9 @@ CPointer::CPointer()
 //////////////////////////////////////////////////////////////////////////
 CPointer::CPointer(CPointer& pcPointer)
 {
-	mpcObject = pcPointer.mpcObject;
 	mpcEmbedding = pcPointer.mpcEmbedding;
+	mpcObject = NULL;
+	PointTo(pcPointer.mpcObject);
 }
 
 
@@ -52,8 +56,9 @@ CPointer::CPointer(CPointer& pcPointer)
 //////////////////////////////////////////////////////////////////////////
 CPointer::CPointer(CEmbeddedObject* pcObject)
 {
-	mpcObject = pcObject;
 	mpcEmbedding = NULL;
+	mpcObject = NULL;
+	PointTo(pcObject);
 }
 
 
@@ -61,10 +66,10 @@ CPointer::CPointer(CEmbeddedObject* pcObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPointer::operator = (CEmbeddedObject* ptr)
+void CPointer::operator = (CEmbeddedObject* pcObject)
 {
 	//This operator override exists only to allow NULL assignment.
-	PointTo(ptr);
+	PointTo(pcObject);
 }
 
 
@@ -138,13 +143,9 @@ void CPointer::SetEmbedding(CObject* pcEmbedding)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CEmbeddedObject* CPointer::UnsafePointTo(CEmbeddedObject* pcNewObject)
+void CPointer::UnsafePointTo(CEmbeddedObject* pcNewObject)
 {
-	CEmbeddedObject*	pcObject;
-
-	pcObject = mpcObject;
 	mpcObject = pcNewObject;
-	return pcObject;
 }
 
 

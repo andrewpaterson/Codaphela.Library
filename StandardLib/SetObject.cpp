@@ -36,7 +36,7 @@ Ptr<CSetObject> CSetObject::Init(int iChunkSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CSetObject::Add(CPointer pObject)
+void CSetObject::Add(CPointer& pObject)
 {
 	CArrayCommonObject::Add(pObject);
 }
@@ -65,7 +65,7 @@ CPointer CSetObject::Get(int iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CSetObject::Remove(CPointer pObject)
+BOOL CSetObject::Remove(CPointer& pObject)
 {
 	return CArrayCommonObject::Remove(pObject);
 }

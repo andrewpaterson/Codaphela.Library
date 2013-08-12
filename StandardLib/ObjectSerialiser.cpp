@@ -83,7 +83,7 @@ BOOL CObjectSerialiser::Save(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectSerialiser::WritePointer(CPointer pObject)
+BOOL CObjectSerialiser::WritePointer(CPointer& pObject)
 {
 	CEmbeddedObject*	pcEmbeddedObject;
 
