@@ -19,6 +19,8 @@ public:
 	int					GetEmbeddedIndex(void);
 	CHollowObject*		GetHollowObject(void);
 	void				AddFrom(CBaseObject* pcFrom);
+	void				RemoveFrom(CBaseObject* mpcEmbedding);
+	void				TryKill(void);
 };
 
 

@@ -28,6 +28,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "ObjectsSource.h"
 #include "Root.h"
 #include "IndexGenerator.h"
+#include "Pointer.h"
 
 
 #define ROOT_NAME	"GraphRoot"

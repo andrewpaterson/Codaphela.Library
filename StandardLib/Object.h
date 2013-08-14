@@ -52,6 +52,7 @@ public:
 	CEmbeddedObject*	GetEmbeddedObject(int iIndex);
 	CBaseObject*		Dehollow(void);
 	int					NumHeapFroms(void);
+	int					NumStackFroms(void);
 	int					NumTotalFroms(void);
 	void				RecurseSetFlagEmbedded(int iFlag, int iFlagValue);
 	void				RecurseSetDistToRoot(int iDistToRoot);
@@ -71,6 +72,7 @@ protected:
 	CEmbeddedObject*	RecurseGetEmbeddedObject(int iIndex, int* iCount);
 	int					RecurseNumHeapFroms(void);
 	int					RecurseNumTotalFroms(void);
+	int					RecurseNumStackFroms(void);
 };
 
 

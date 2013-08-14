@@ -136,13 +136,23 @@ void CBaseObject::Free(void)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::RemoveFrom(CBaseObject* pcFrom)
 {
-	CBaseObject*	pcContainer;
-
 	//Removing a 'from' kicks off memory reclamation.  This is the entry point for memory management.
 	PrivateRemoveFrom(pcFrom);
 
+	TryKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CBaseObject::TryKill(void)
+{
+	CBaseObject*	pcContainer;
+
 	pcContainer = GetEmbeddingContainer();
-	if (!CanFindRoot())
+	if (!CanFindRoot() && !HasStackPointers())
 	{	
 		pcContainer->KillThisGraph();
 	}
@@ -440,9 +450,12 @@ void CBaseObject::FixDistToRoot(void)
 
 	apcFroms.Kill();
 
-	if (iNearestRoot+1 != miDistToRoot)
+	if (iNumFroms > 0)
 	{
-		SetDistToRoot(iNearestRoot+1);
+		if (iNearestRoot+1 != miDistToRoot)
+		{
+			SetDistToRoot(iNearestRoot+1);
+		}
 	}
 }
 
@@ -808,6 +821,16 @@ int CBaseObject::TestGetNumEmbeddedFromFlags(void)
 int CBaseObject::RecurseNumHeapFroms(void)
 {
 	return CEmbeddedObject::NumHeapFroms();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CBaseObject::RecurseNumStackFroms(void)
+{
+	return CEmbeddedObject::NumStackFroms();
 }
 
 

@@ -42,6 +42,7 @@ public:
 						CPointer();
 						CPointer(CPointer& pcPointer);
 						CPointer(CEmbeddedObject* pcObject);
+						~CPointer();
 
 	void				operator = (CEmbeddedObject* ptr);
 	void				operator = (CPointer& pcPointer);

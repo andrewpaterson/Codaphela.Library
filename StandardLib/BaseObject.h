@@ -105,6 +105,7 @@ public:
 			void				RemoveFrom(CBaseObject* pcFrom);
 	virtual int					RecurseNumHeapFroms(void);
 	virtual int					RecurseNumTotalFroms(void);
+	virtual int					RecurseNumStackFroms(void);
 
 			CEmbeddedObject* 	TestGetTo(int iToIndex);
 			int					TestGetNumEmbeddedFromFlags(void);
@@ -131,6 +132,7 @@ protected:
 			int				GetNumEmbeddedFromFlags(void);
 			void			SetFlagNumEmbedded(int iNumEmbedded);
 			void			SetFlagEmbedded(int iFlag, int iFlagValue);
+			void			TryKill(void);
 };
 
 

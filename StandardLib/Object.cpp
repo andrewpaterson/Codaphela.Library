@@ -665,6 +665,40 @@ int CObject::RecurseNumTotalFroms(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+int CObject::NumStackFroms(void)
+{
+	CBaseObject*	pcContainer;
+
+	pcContainer = GetEmbeddingContainer();
+	return pcContainer->RecurseNumStackFroms();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CObject::RecurseNumStackFroms(void)
+{
+	int				i;
+	int				iCount;
+	CBaseObject*	pcBaseObject;
+
+	iCount = CEmbeddedObject::NumStackFroms();
+
+	for (i = 0; i < mapEmbedded.NumElements(); i++)
+	{
+		pcBaseObject = *mapEmbedded.Get(i);
+		iCount += pcBaseObject->RecurseNumTotalFroms();
+	}
+	return iCount;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CObject::RecurseSetFlagEmbedded(int iFlag, int iFlagValue)
 {
 	int				i;
