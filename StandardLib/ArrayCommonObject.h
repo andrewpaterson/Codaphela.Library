@@ -42,6 +42,7 @@ public:
 	void				Set(int iIndex, CPointer& pObject);
 	BOOL				Remove(CPointer& pObject);
 	void				RemoveAll(void);
+	BOOL				Remove(CBaseObject* pcObject);
 
 	int					NumElements(void);
 

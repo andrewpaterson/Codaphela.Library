@@ -32,9 +32,7 @@ BASE_FUNCTIONS(CSetObject);
 public:
 						Ptr<CSetObject> Init(int iChunkSize = ARRAY_COMMOM_CHUNK_SIZE);
 
-						void			Add(CPointer& pObject);
 						CPointer		Get(int iIndex);
-						BOOL			Remove(CPointer& pObject);
 
 						void			RemoveDuringIteration(SSetIterator* psIter);
 

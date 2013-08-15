@@ -46,7 +46,8 @@ public:
 						void			KillData(void);
 
 						void			Add(CPointer& pObject);
-						void			Remove(CPointer& pObject);
+						BOOL			Remove(CPointer& pObject);
+						BOOL			Remove(CBaseObject* pcObject);
 						void			RemoveAll(void);
 						BOOL			IsRoot(void);
 						BOOL			IsSubRoot(void);
