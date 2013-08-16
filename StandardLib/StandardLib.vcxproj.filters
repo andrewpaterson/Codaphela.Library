@@ -492,6 +492,12 @@
     <ClInclude Include="PointerContainer.h">
       <Filter>Source\Data\Pointer</Filter>
     </ClInclude>
+    <ClInclude Include="StackPointers.h">
+      <Filter>Source\Object\Object\Pointer</Filter>
+    </ClInclude>
+    <ClInclude Include="StackPointer.h">
+      <Filter>Source\Object\Object\Pointer</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Unknown.cpp">
@@ -796,6 +802,12 @@
     </ClCompile>
     <ClCompile Include="PointerContainer.cpp">
       <Filter>Source\Data\Pointer</Filter>
+    </ClCompile>
+    <ClCompile Include="StackPointers.cpp">
+      <Filter>Source\Object\Object\Pointer</Filter>
+    </ClCompile>
+    <ClCompile Include="StackPointer.cpp">
+      <Filter>Source\Object\Object\Pointer</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

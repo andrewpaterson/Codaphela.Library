@@ -131,6 +131,8 @@
     <ClInclude Include="PointerContainer.h" />
     <ClInclude Include="SerialisedObject.h" />
     <ClInclude Include="Set.h" />
+    <ClInclude Include="StackPointer.h" />
+    <ClInclude Include="StackPointers.h" />
     <ClInclude Include="String.h" />
     <ClInclude Include="Unknown.h" />
     <ClInclude Include="SetType.h" />
@@ -242,6 +244,8 @@
     <ClCompile Include="ObjectWriter.cpp" />
     <ClCompile Include="PointerContainer.cpp" />
     <ClCompile Include="SerialisedObject.cpp" />
+    <ClCompile Include="StackPointer.cpp" />
+    <ClCompile Include="StackPointers.cpp" />
     <ClCompile Include="String.cpp" />
     <ClCompile Include="Unknown.cpp" />
     <ClCompile Include="SetUnknown.cpp" />
