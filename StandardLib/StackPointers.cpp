@@ -44,9 +44,15 @@ CStackPointer* CStackPointers::Add(CPointer* pcPointer)
 	CStackPointer*	pcStackPointer;
 
 	pcStackPointer = FindUnused();
-
-	pcStackPointer->Init(pcPointer);
-	return pcStackPointer;
+	if (pcStackPointer)
+	{
+		pcStackPointer->Init(pcPointer);
+		return pcStackPointer;
+	}
+	else
+	{
+		return NULL;
+	}
 }
 
 
@@ -60,11 +66,17 @@ CStackPointer* CStackPointers::Add(CPointer* pcPointer, CStackPointer* pcFirst)
 	CStackPointer*	pcLast;
 
 	pcStackPointer = FindUnused();
-
-	pcLast = pcFirst->FindLast();
-	pcStackPointer->Init(pcPointer);
-	pcLast->SetNext(pcStackPointer);
-	return pcStackPointer;
+	if (pcStackPointer)
+	{
+		pcLast = pcFirst->FindLast();
+		pcStackPointer->Init(pcPointer);
+		pcLast->SetNext(pcStackPointer);
+		return pcStackPointer;
+	}
+	else
+	{
+		return NULL;
+	}
 }
 
 
@@ -76,9 +88,6 @@ CStackPointer* CStackPointers::FindUnused(void)
 {
 	int				i;
 	CStackPointer*	pcPointer;
-	int				iMidEnd;
-
-	iMidEnd = miNumPointers - miLastUsed;
 
 	for (i = miLastUsed; i < miNumPointers; i++)
 	{
@@ -90,7 +99,7 @@ CStackPointer* CStackPointers::FindUnused(void)
 		}
 	}
 
-	for (i = 0; i < iMidEnd; i++)
+	for (i = 0; i < miLastUsed; i++)
 	{
 		pcPointer = &mpcMemory[i];
 		if (!pcPointer->mbUsed)
@@ -126,3 +135,14 @@ int CStackPointers::UsedPointers(void)
 
 	return iCount;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CStackPointers::Remove(CStackPointer* pcFirst)
+{
+	pcFirst->Remove();
+}
+

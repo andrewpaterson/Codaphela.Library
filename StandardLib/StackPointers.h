@@ -19,6 +19,8 @@ public:
 	CStackPointer*	Add(CPointer* pcPointer, CStackPointer* pcFirst);
 	int				UsedPointers(void);
 
+	void			Remove(CStackPointer* pcFirst);
+
 protected:
 	CStackPointer*	FindUnused(void);
 };

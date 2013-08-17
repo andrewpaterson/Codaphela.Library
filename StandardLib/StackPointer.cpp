@@ -68,6 +68,7 @@ CStackPointer* CStackPointer::FindLast(void)
 	pcNext = this;
 	while (pcNext->mpcNext != NULL)
 	{
+		pcNext = pcNext->mpcNext;
 	}
 
 	return pcNext;
@@ -82,3 +83,23 @@ CStackPointer* CStackPointer::GetNext(void)
 {
 	return mpcNext;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CStackPointer::Remove(void)
+{
+	CStackPointer* pcNext;
+	CStackPointer* pcThis;
+
+	pcNext = this;
+	while (pcNext != NULL)
+	{
+		pcThis = pcNext;
+		pcNext = pcNext->mpcNext;
+		pcThis->Kill();
+	}
+}
+

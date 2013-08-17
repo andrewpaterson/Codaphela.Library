@@ -21,6 +21,8 @@ public:
 	int				NumPointers(void);
 	CStackPointer*	FindLast(void);
 	CStackPointer*	GetNext(void);
+	
+	void			Remove(void);
 };
 
 
