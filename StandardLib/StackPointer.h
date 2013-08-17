@@ -1,9 +1,9 @@
 #ifndef __STACK_POINTER_H__
 #define __STACK_POINTER_H__
 #include "BaseLib/Define.h"
-#include "PointerObject.h"
 
 
+class CPointer;
 class CStackPointer
 {
 protected:
@@ -22,7 +22,10 @@ public:
 	CStackPointer*	FindLast(void);
 	CStackPointer*	GetNext(void);
 	
-	void			Remove(void);
+	CStackPointer*	Remove(CPointer* pcPointer);
+	void			RemoveAll(void);
+	void			ClearPointer(void);
+	CStackPointer*	ClearPointerGetNext(void);
 };
 
 

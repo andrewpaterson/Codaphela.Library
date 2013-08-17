@@ -23,6 +23,7 @@ public:
 	void				RemoveFrom(CBaseObject* mpcEmbedding);
 	void				TryKill(void);
 	CObjects*			GetObjects(void);
+	CStackPointers*		GetStackPointers(void);
 };
 
 

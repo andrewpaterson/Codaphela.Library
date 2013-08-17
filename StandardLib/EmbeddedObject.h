@@ -2,6 +2,8 @@
 #define __EMBEDDED_OBJECT__
 #include "BaseLib/ArrayEmbedded.h"
 #include "CoreLib/IndexedGeneral.h"
+#include "StackPointer.h"
+#include "StackPointers.h"
 #include "Unknown.h"
 
 
@@ -29,10 +31,11 @@ BASE_FUNCTIONS(CEmbeddedObject);
 protected:
 	CBaseObject*						mpcEmbedded;  //Object that 'this' is embedded in.
 	CArrayEmbedded<CBaseObject*, 6>		mapHeapFroms;  //Objects on the heap that 'this' is pointed from
-	int									miStackFroms;  //Objects on the stack that 'this' is pointed from.  
+	CStackPointer*						mpcStackFroms;  //Objects on the stack that 'this' is pointed from.  
 
 public:
 								CEmbeddedObject();
+								~CEmbeddedObject();
 	virtual void				KillDontFree(void) =0;
 			void				KillFroms(void);
 	virtual BOOL				Save(CObjectSerialiser* pcFile) =0;
@@ -64,17 +67,18 @@ public:
 	virtual int					NumHeapFroms(void);
 	virtual int					NumStackFroms(void);
 	virtual int					NumTotalFroms(void);
-			void				AddStackFrom(void);
-			void				RemoveStackFrom(void);
+			void				AddStackFrom(CPointer* pcPointer);
+			void				RemoveStackFrom(CPointer* pcPointer);
 			CBaseObject*		PrivateGetFrom(int iFrom);
 			CBaseObject*		TestGetFrom(int iFromIndex);
 protected:
-	virtual void			TryKill(void) =0;
-			void			RemoveAllFroms(void);
-			BOOL			PrivateRemoveFrom(CBaseObject* pcFrom);
-			void			GetFroms(CArrayEmbeddedBaseObjectPtr* papcFroms);
-	virtual void			RecurseGetFroms(CArrayEmbeddedBaseObjectPtr* papcFroms);
-	virtual CObjects*		GetObjects(void) =0;
+	virtual void				TryKill(void) =0;
+			void				RemoveAllFroms(void);
+			BOOL				PrivateRemoveFrom(CBaseObject* pcFrom);
+			void				GetFroms(CArrayEmbeddedBaseObjectPtr* papcFroms);
+	virtual void				RecurseGetFroms(CArrayEmbeddedBaseObjectPtr* papcFroms);
+	virtual CObjects*			GetObjects(void) =0;
+	virtual CStackPointers*		GetStackPointers(void) =0;
 };
 
 

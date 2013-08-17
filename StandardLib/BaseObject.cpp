@@ -83,6 +83,8 @@ void CBaseObject::Kill(void)
 		return;
 	}
 
+	ClearStackPointersTo();
+
 	iNumFroms = NumHeapFroms();
 	if (iNumFroms == 0)
 	{
@@ -97,6 +99,7 @@ void CBaseObject::Kill(void)
 		iNumKilled = RemoveAllFroms();
 	}
 }
+
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -161,16 +164,6 @@ void CBaseObject::TryKill(void)
 		//ClearDistToSubRoot();
 		pcContainer->FixDistToRoot();
 	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CBaseObject::RecurseSetDistToRoot(int iDistToRoot)
-{
-	miDistToRoot = iDistToRoot;
 }
 
 
@@ -283,6 +276,16 @@ void CBaseObject::KillCollected(CArrayBaseObjectPtr* papcKilled)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CBaseObject::RecurseSetDistToRoot(int iDistToRoot)
+{
+	miDistToRoot = iDistToRoot;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 CBaseObject* CBaseObject::ClearDistToSubRoot(void)
 {
 	int								i;
@@ -323,6 +326,23 @@ CBaseObject* CBaseObject::ClearDistToSubRoot(void)
 
 	apcFroms.Kill();
 	return pcRootSet;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CBaseObject::ClearStackPointersTo(void)
+{
+
+	CStackPointer*	pcStackPointer;
+
+	pcStackPointer = mpcStackFroms;
+	while (pcStackPointer)
+	{
+		pcStackPointer = pcStackPointer->ClearPointerGetNext();
+	}
 }
 
 

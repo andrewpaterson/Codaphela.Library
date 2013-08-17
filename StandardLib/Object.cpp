@@ -19,6 +19,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include "PointerObject.h"
+#include "Objects.h"
 #include "Object.h"
 
 
@@ -710,6 +711,26 @@ void CObject::RecurseSetFlagEmbedded(int iFlag, int iFlagValue)
 	{
 		pcBaseObject = *mapEmbedded.Get(i);
 		pcBaseObject->RecurseSetFlagEmbedded(iFlag, iFlagValue);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CStackPointers* CObject::GetStackPointers(void)
+{
+	CObjects*	pcObjects;
+
+	pcObjects = GetObjects();
+	if (pcObjects)
+	{
+		return pcObjects->GetStackPointers();
+	}
+	else
+	{
+		return NULL;
 	}
 }
 

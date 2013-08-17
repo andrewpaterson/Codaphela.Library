@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "Objects.h"
 #include "Collection.h"
 
 
@@ -58,4 +59,19 @@ int CCollection::IsObject(void)
 CBaseObject* CCollection::Dehollow(void)
 {
 	return this;
+}
+
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CStackPointers* CCollection::GetStackPointers(void)
+{
+	CObjects*	pcObjects;
+
+	pcObjects = GetObjects();
+	return pcObjects->GetStackPointers();
 }

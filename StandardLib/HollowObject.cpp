@@ -325,3 +325,24 @@ int CHollowObject::NumTotalFroms(void)
 	return iCount;
 }
 
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CStackPointers* CHollowObject::GetStackPointers(void)
+{
+	CObjects*	pcObjects;
+
+	pcObjects = GetObjects();
+	if (pcObjects)
+	{
+		return pcObjects->GetStackPointers();
+	}
+	else
+	{
+		return NULL;
+	}
+}
+

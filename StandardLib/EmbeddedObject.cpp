@@ -8,8 +8,18 @@
 CEmbeddedObject::CEmbeddedObject()
 {
 	mapHeapFroms.Init();
-	miStackFroms = 0;
+	mpcStackFroms = NULL;
 	mpcEmbedded = NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CEmbeddedObject::~CEmbeddedObject()
+{
+	//This destructor will only be called if the object was allocated on the stack.
 }
 
 
@@ -174,6 +184,7 @@ void CEmbeddedObject::SetEmbedded(CBaseObject* pcEmbedded)
 void CEmbeddedObject::KillFroms()
 {
 	mapHeapFroms.Kill();
+	mpcStackFroms = NULL;
 }
 
 
@@ -239,7 +250,7 @@ void CEmbeddedObject::CopyFroms(CEmbeddedObject* pcSource)
 	mapHeapFroms.ReInit();
 	mapHeapFroms.Copy(&pcSource->mapHeapFroms);
 
-	miStackFroms = pcSource->miStackFroms;
+	mpcStackFroms = pcSource->mpcStackFroms;
 }
 
 
@@ -282,10 +293,7 @@ CBaseObject* CEmbeddedObject::TestGetFrom(int iFromIndex)
 //////////////////////////////////////////////////////////////////////////
 BOOL CEmbeddedObject::HasStackPointers(void)
 {
-	int		iNumStackFroms;
-
-	iNumStackFroms = NumStackFroms();
-	return iNumStackFroms > 0;
+	return mpcStackFroms != NULL;
 }
 
 
@@ -305,7 +313,14 @@ int CEmbeddedObject::NumHeapFroms(void)
 //////////////////////////////////////////////////////////////////////////
 int CEmbeddedObject::NumStackFroms(void)
 {
-	return miStackFroms;
+	if (mpcStackFroms == NULL)
+	{
+		return 0;
+	}
+	else
+	{
+		return mpcStackFroms->NumPointers();
+	}
 }
 
 
@@ -318,7 +333,7 @@ int CEmbeddedObject::NumTotalFroms(void)
 	int		iTotalFroms;
 
 	iTotalFroms = mapHeapFroms.NumElements();
-	iTotalFroms += miStackFroms;
+	iTotalFroms += NumStackFroms();
 	return iTotalFroms;
 }
 
@@ -327,9 +342,22 @@ int CEmbeddedObject::NumTotalFroms(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CEmbeddedObject::AddStackFrom(void)
+void CEmbeddedObject::AddStackFrom(CPointer* pcPointer)
 {
-	miStackFroms++;
+	CStackPointers*	pcStackPointers;
+
+	pcStackPointers = GetStackPointers();
+	if (pcStackPointers)
+	{
+		if (mpcStackFroms)
+		{
+			pcStackPointers->Add(pcPointer, mpcStackFroms);
+		}
+		else
+		{
+			mpcStackFroms = pcStackPointers->Add(pcPointer);
+		}
+	}
 }
 
 
@@ -337,9 +365,18 @@ void CEmbeddedObject::AddStackFrom(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CEmbeddedObject::RemoveStackFrom(void)
+void CEmbeddedObject::RemoveStackFrom(CPointer* pcPointer)
 {
-	miStackFroms--;
+	CStackPointers*	pcStackPointers;
 
-	TryKill();
+	pcStackPointers = GetStackPointers();
+	if (pcStackPointers)
+	{
+		if (mpcStackFroms)
+		{
+			mpcStackFroms = pcStackPointers->Remove(mpcStackFroms, pcPointer);
+			TryKill();
+		}
+	}
 }
+

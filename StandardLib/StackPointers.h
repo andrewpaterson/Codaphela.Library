@@ -19,7 +19,9 @@ public:
 	CStackPointer*	Add(CPointer* pcPointer, CStackPointer* pcFirst);
 	int				UsedPointers(void);
 
-	void			Remove(CStackPointer* pcFirst);
+	void			RemoveAll(CStackPointer* pcFirst);
+	CStackPointer* 	Remove(CStackPointer* pcFirst, CPointer* pcPointer);
+	void			ClearAllPointers(void);
 
 	CStackPointer*	FindUnused(void);
 	void			TestAdd(int iIndex);

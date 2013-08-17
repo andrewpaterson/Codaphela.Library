@@ -1,5 +1,6 @@
 #include "BaseObject.h"
 #include "HollowObject.h"
+#include "Objects.h"
 #include "HollowEmbeddedObject.h"
 
 
@@ -160,3 +161,25 @@ CObjects* CHollowEmbeddedObject::GetObjects(void)
 	pcHollow = GetHollowObject();
 	return pcHollow->GetObjects();
 }
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CStackPointers* CHollowEmbeddedObject::GetStackPointers(void)
+{
+	CObjects*	pcObjects;
+
+	pcObjects = GetObjects();
+	if (pcObjects)
+	{
+		return pcObjects->GetStackPointers();
+	}
+	else
+	{
+		return NULL;
+	}
+}
+

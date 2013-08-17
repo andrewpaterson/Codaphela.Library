@@ -33,6 +33,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Objects.h"
 #include "NamedHollowObject.h"
 #include "HollowEmbeddedObject.h"
+#include "StackPointers.h"
 
 
 CObjects gcObjects;
@@ -87,6 +88,8 @@ void CObjects::Init(CUnknowns* pcUnknownsAllocatingFrom, CIndexedConfig* pcConfi
 
 	mcSource.Init();
 
+	mcStackPointers.Init(2048);
+
 	mbInitialised = TRUE;
 }
 
@@ -98,6 +101,7 @@ void CObjects::Init(CUnknowns* pcUnknownsAllocatingFrom, CIndexedConfig* pcConfi
 void CObjects::Kill(void)
 {
 	mbInitialised = FALSE;
+	KillStackPointers();
 	mcSource.Kill();
 	mcMemory.Kill();
 	if (mbDatabase)
@@ -106,6 +110,16 @@ void CObjects::Kill(void)
 	}
 	mcIndexGenerator.Kill();
 	mpcUnknownsAllocatingFrom = NULL;
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CObjects::KillStackPointers(void)
+{
+	mcStackPointers.ClearAllPointers();
+	mcStackPointers.Kill();
 }
 
 
@@ -1207,6 +1221,16 @@ void CObjects::AppenedHollowEmbeddedObjects(CBaseObject* pcHollow, unsigned shor
 		memcpy(pcEmbeddedObject, &cEmbeddedObject, sizeof(CHollowEmbeddedObject));
 		pvEmbedded = RemapSinglePointer(pvEmbedded, sizeof(CHollowEmbeddedObject));
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CStackPointers* CObjects::GetStackPointers(void)
+{
+	return &mcStackPointers;
 }
 
 

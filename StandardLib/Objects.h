@@ -61,11 +61,14 @@ protected:
 	CIndexGenerator			mcIndexGenerator;
 	BOOL					mbDatabase;
 
+	CStackPointers			mcStackPointers;
+
 public:
 												CObjects();
 						void					Init(CUnknowns* pcUnknownsAllocatingFrom, char* szWorkingDirectory);
 						void					Init(CUnknowns* pcUnknownsAllocatingFrom, CIndexedConfig* pcConfig);
 						void					Kill(void);
+						void					KillStackPointers(void);
 						void					DumpMemory(void);
 						void					DumpGraph(void);
 
@@ -109,6 +112,8 @@ public:
 
 						BOOL					Dename(CBaseObject* pvObject);
 						BOOL					Deindex(CBaseObject* pvObject);
+
+						CStackPointers*			GetStackPointers(void);
 
 						OIndex					StartMemoryIteration(SIndexesIterator* psIter);
 						OIndex					IterateMemory(SIndexesIterator* psIter);

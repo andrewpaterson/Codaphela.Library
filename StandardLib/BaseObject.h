@@ -57,10 +57,10 @@ friend class CObjects;
 
 BASE_FUNCTIONS(CBaseObject);
 protected:
-	CObjects*							mpcObjectsThisIn;
-	int									miDistToRoot;
-	OIndex								moi;
-	int									miFlags;
+	CObjects*	mpcObjectsThisIn;
+	int			miDistToRoot;
+	OIndex		moi;
+	int			miFlags;
 
 public:
 								CBaseObject();
@@ -134,6 +134,7 @@ protected:
 			void			SetFlagNumEmbedded(int iNumEmbedded);
 			void			SetFlagEmbedded(int iFlag, int iFlagValue);
 			void			TryKill(void);
+			void			ClearStackPointersTo(void);
 };
 
 

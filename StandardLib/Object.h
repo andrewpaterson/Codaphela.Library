@@ -73,6 +73,7 @@ protected:
 	int					RecurseNumHeapFroms(void);
 	int					RecurseNumTotalFroms(void);
 	int					RecurseNumStackFroms(void);
+	CStackPointers*		GetStackPointers(void);
 };
 
 

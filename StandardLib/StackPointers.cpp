@@ -141,9 +141,39 @@ int CStackPointers::UsedPointers(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CStackPointers::Remove(CStackPointer* pcFirst)
+void CStackPointers::ClearAllPointers(void)
 {
-	pcFirst->Remove();
+	int				i;
+	CStackPointer*	pcStackPointer;
+
+	for (i = 0; i < miNumPointers; i++)
+	{
+		pcStackPointer = &mpcMemory[i];
+		if (pcStackPointer->mbUsed)
+		{
+			pcStackPointer->ClearPointer();
+		}
+	}	
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CStackPointers::RemoveAll(CStackPointer* pcFirst)
+{
+	pcFirst->RemoveAll();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CStackPointer* CStackPointers::Remove(CStackPointer* pcFirst, CPointer* pcPointer)
+{
+	return pcFirst->Remove(pcPointer);
 }
 
 

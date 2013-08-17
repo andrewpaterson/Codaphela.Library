@@ -1,3 +1,4 @@
+#include "Pointer.h"
 #include "StackPointer.h"
 
 
@@ -89,7 +90,45 @@ CStackPointer* CStackPointer::GetNext(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CStackPointer::Remove(void)
+CStackPointer* CStackPointer::Remove(CPointer* pcPointer)
+{
+	CStackPointer* pcNext;
+	CStackPointer* pcPrev;
+	CStackPointer* pcThis;
+
+	pcNext = this;
+	pcPrev = NULL;
+	while (pcNext != NULL)
+	{
+		pcThis = pcNext;
+		if (pcThis->mpcPointer == pcPointer)
+		{
+			if (pcPrev)
+			{
+				pcPrev->SetNext(pcThis->mpcNext);
+				pcThis->Kill();
+				return this;
+			}
+			else
+			{
+				pcNext = mpcNext;
+				Kill();
+				return pcNext;
+			}
+		}
+		pcPrev = pcNext;
+		pcNext = pcNext->mpcNext;
+	}
+
+	return this;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CStackPointer::RemoveAll(void)
 {
 	CStackPointer* pcNext;
 	CStackPointer* pcThis;
@@ -101,5 +140,27 @@ void CStackPointer::Remove(void)
 		pcNext = pcNext->mpcNext;
 		pcThis->Kill();
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CStackPointer::ClearPointer(void)
+{
+	mpcPointer->ClearObject();
+}
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CStackPointer* CStackPointer::ClearPointerGetNext(void)
+{
+	ClearPointer();
+	return GetNext();
 }
 

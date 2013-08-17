@@ -73,7 +73,7 @@ CPointer::~CPointer()
 	{
 		if (mpcObject)
 		{
-			mpcObject->RemoveStackFrom();
+			mpcObject->RemoveStackFrom(this);
 		}
 	}
 }
@@ -198,12 +198,12 @@ void CPointer::PointTo(CEmbeddedObject* pcNewObject)
 		{
 			if (pcOldObject)
 			{
-				pcOldObject->RemoveStackFrom();
+				pcOldObject->RemoveStackFrom(this);
 			}
 
 			if (mpcObject)
 			{
-				mpcObject->AddStackFrom();
+				mpcObject->AddStackFrom(this);
 			}
 		}
 	}
@@ -544,7 +544,7 @@ void CPointer::ClearIndex(void)
 void CPointer::AssignObject(CEmbeddedObject* pcObject)
 {
 	mpcObject = pcObject;
-	mpcObject->AddStackFrom();
+	mpcObject->AddStackFrom(this);
 }
 
 
