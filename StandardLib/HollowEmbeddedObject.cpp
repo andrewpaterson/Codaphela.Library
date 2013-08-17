@@ -123,8 +123,8 @@ CHollowObject* CHollowEmbeddedObject::GetHollowObject(void)
 void CHollowEmbeddedObject::AddFrom(CBaseObject* pcFrom)
 {
 	CHollowObject*	pcHollow;
-	pcHollow = GetHollowObject();
 
+	pcHollow = GetHollowObject();
 	pcHollow->AddFrom(pcFrom);
 }
 
@@ -147,3 +147,16 @@ void CHollowEmbeddedObject::TryKill(void)
 {
 }
 
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CObjects* CHollowEmbeddedObject::GetObjects(void)
+{
+	CHollowObject*	pcHollow;
+
+	pcHollow = GetHollowObject();
+	return pcHollow->GetObjects();
+}

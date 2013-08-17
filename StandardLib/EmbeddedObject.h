@@ -20,6 +20,7 @@ typedef CArrayEmbedded<CBaseObject*, 32>	CArrayEmbeddedBaseObjectPtr;
 
 
 class CObject;
+class CObjects;
 class CObjectSerialiser;
 class CObjectDeserialiser;
 class CEmbeddedObject : public CUnknown
@@ -73,7 +74,7 @@ protected:
 			BOOL			PrivateRemoveFrom(CBaseObject* pcFrom);
 			void			GetFroms(CArrayEmbeddedBaseObjectPtr* papcFroms);
 	virtual void			RecurseGetFroms(CArrayEmbeddedBaseObjectPtr* papcFroms);
-
+	virtual CObjects*		GetObjects(void) =0;
 };
 
 

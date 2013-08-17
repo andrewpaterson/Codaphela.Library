@@ -3,6 +3,7 @@
 #include "EmbeddedObject.h"
 
 
+class CObjects;
 class CHollowObject;
 class CHollowEmbeddedObject : public CEmbeddedObject
 {
@@ -21,6 +22,7 @@ public:
 	void				AddFrom(CBaseObject* pcFrom);
 	void				RemoveFrom(CBaseObject* mpcEmbedding);
 	void				TryKill(void);
+	CObjects*			GetObjects(void);
 };
 
 

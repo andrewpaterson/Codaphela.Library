@@ -106,6 +106,7 @@ public:
 	virtual int					RecurseNumHeapFroms(void);
 	virtual int					RecurseNumTotalFroms(void);
 	virtual int					RecurseNumStackFroms(void);
+			CObjects*			GetObjects(void);
 
 			CEmbeddedObject* 	TestGetTo(int iToIndex);
 			int					TestGetNumEmbeddedFromFlags(void);

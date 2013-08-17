@@ -343,4 +343,3 @@ void CEmbeddedObject::RemoveStackFrom(void)
 
 	TryKill();
 }
-

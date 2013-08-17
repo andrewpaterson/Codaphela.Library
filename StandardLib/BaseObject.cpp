@@ -843,3 +843,17 @@ int CBaseObject::RecurseNumTotalFroms(void)
 	return CEmbeddedObject::NumTotalFroms();
 }
 
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CObjects* CBaseObject::GetObjects(void)
+{
+	CBaseObject*	pcBaseObject;
+
+	pcBaseObject = GetEmbeddingContainer();
+	return pcBaseObject->mpcObjectsThisIn;
+}
