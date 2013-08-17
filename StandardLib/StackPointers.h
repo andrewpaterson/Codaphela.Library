@@ -21,8 +21,11 @@ public:
 
 	void			Remove(CStackPointer* pcFirst);
 
-protected:
 	CStackPointer*	FindUnused(void);
+	void			TestAdd(int iIndex);
+	void			TestKill(int iIndex);
+	void			TestSetLastUsed(int iLastUsed);
+	int				TestFindUnusedIndex(int iLastUsed);
 };
 
 
