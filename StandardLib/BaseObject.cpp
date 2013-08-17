@@ -470,7 +470,7 @@ void CBaseObject::FixDistToRoot(void)
 
 	apcFroms.Kill();
 
-	if (iNumFroms > 0)
+	if ((iNumFroms > 0) && (iNearestRoot != MAX_INT))
 	{
 		if (iNearestRoot+1 != miDistToRoot)
 		{
