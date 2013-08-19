@@ -293,7 +293,10 @@ CBaseObject* CEmbeddedObject::TestGetFrom(int iFromIndex)
 //////////////////////////////////////////////////////////////////////////
 BOOL CEmbeddedObject::HasStackPointers(void)
 {
-	return mpcStackFroms != NULL;
+	int		iNumStackPointers;
+
+	iNumStackPointers = NumStackFroms();
+	return iNumStackPointers != 0;
 }
 
 
@@ -380,3 +383,15 @@ void CEmbeddedObject::RemoveStackFrom(CPointer* pcPointer)
 	}
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CEmbeddedObject::IsAllocatedInObjects(void)
+{
+	CObjects*	pcObjects;
+
+	pcObjects = GetObjects();
+	return pcObjects != NULL;
+}

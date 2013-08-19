@@ -253,7 +253,7 @@ Ptr<M> CObjects::Add(char* szObjectName)
 template<class M>
 Ptr<M> CObjects::Null(void)
 {
-	Ptr<M>		pObject;
+	Ptr<M> pObject;
 	return pObject;
 }
 

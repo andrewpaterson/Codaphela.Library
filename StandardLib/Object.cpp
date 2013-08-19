@@ -690,7 +690,7 @@ int CObject::RecurseNumStackFroms(void)
 	for (i = 0; i < mapEmbedded.NumElements(); i++)
 	{
 		pcBaseObject = *mapEmbedded.Get(i);
-		iCount += pcBaseObject->RecurseNumTotalFroms();
+		iCount += pcBaseObject->RecurseNumStackFroms();
 	}
 	return iCount;
 }

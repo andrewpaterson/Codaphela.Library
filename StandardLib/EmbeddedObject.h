@@ -71,6 +71,7 @@ public:
 			void				RemoveStackFrom(CPointer* pcPointer);
 			CBaseObject*		PrivateGetFrom(int iFrom);
 			CBaseObject*		TestGetFrom(int iFromIndex);
+			BOOL				IsAllocatedInObjects(void);
 protected:
 	virtual void				TryKill(void) =0;
 			void				RemoveAllFroms(void);
