@@ -141,7 +141,7 @@ BOOL CPointer::operator ! ()
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPointer::ClearObject(void)
+void CPointer::UnsafeClearObject(void)
 {
 	mpcObject = NULL;
 }
@@ -552,17 +552,6 @@ void CPointer::AssignObject(CEmbeddedObject* pcObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPointer::Construct(CPointer& cPointer)
-{
-	mpcObject = cPointer.mpcObject;
-	mpcEmbedding = cPointer.mpcEmbedding;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CPointer::AddFrom(CBaseObject* pcFrom)
 {
 	if (mpcObject)
@@ -571,3 +560,25 @@ void CPointer::AddFrom(CBaseObject* pcFrom)
 	}
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CEmbeddedObject* CPointer::ClearObject(BOOL bTryKill)
+{
+	CEmbeddedObject*	pOldObject;
+
+	if (bTryKill)
+	{
+		PointTo(NULL);
+		return mpcObject;
+	}
+	else
+	{
+		pOldObject = mpcObject;
+		mpcObject->UnsafeRemoveStackFrom(this);
+		mpcObject = NULL;
+		return pOldObject;
+	}
+}

@@ -7,8 +7,7 @@
 //////////////////////////////////////////////////////////////////////////
 CPointer Null(void)
 {
-	CPointer		pvObject;
-	return pvObject;
+	return CPointer();
 }
 
 

@@ -59,7 +59,7 @@ BOOL CObjectSingleSource::Contains(char* szFullName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointer CObjectSingleSource::Convert(char* szFullName)
+CBaseObject* CObjectSingleSource::Convert(char* szFullName)
 {
 	if (mszObjectName.EqualsIgnoreCase(szFullName))
 	{
@@ -67,7 +67,7 @@ CPointer CObjectSingleSource::Convert(char* szFullName)
 	}
 	else
 	{
-		return ONull;
+		return NULL;
 	}
 }
 

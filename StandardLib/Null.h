@@ -16,8 +16,7 @@ Ptr<M> Null(void);
 template<class M>
 Ptr<M> Null(void)
 {
-	Ptr<M>		pObject;
-	return pObject;
+	return Ptr<M>();
 }
 
 

@@ -388,6 +388,25 @@ void CEmbeddedObject::RemoveStackFrom(CPointer* pcPointer)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CEmbeddedObject::UnsafeRemoveStackFrom(CPointer* pcPointer)
+{
+	CStackPointers*	pcStackPointers;
+
+	pcStackPointers = GetStackPointers();
+	if (pcStackPointers)
+	{
+		if (mpcStackFroms)
+		{
+			mpcStackFroms = pcStackPointers->Remove(mpcStackFroms, pcPointer);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL CEmbeddedObject::IsAllocatedInObjects(void)
 {
 	CObjects*	pcObjects;

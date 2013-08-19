@@ -27,13 +27,13 @@ class CObjectSingleSource : public CObjectSource
 {
 BASE_FUNCTIONS(CObjectSingleSource);
 protected:
-			CChars	mszObjectName;
+	CChars	mszObjectName;
 public:
-			void			Init(CObjectConverter* pcConverter, CAbstractFile* pcFile, char* szObjectName);
-			void			Kill(void);
+	void			Init(CObjectConverter* pcConverter, CAbstractFile* pcFile, char* szObjectName);
+	void			Kill(void);
 
-			CPointer	Convert(char* szFullName);
-			BOOL			Contains(char* szFullName);
+	CBaseObject*	Convert(char* szFullName);
+	BOOL			Contains(char* szFullName);
 };
 
 

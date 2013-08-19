@@ -69,6 +69,7 @@ public:
 	virtual int					NumTotalFroms(void);
 			void				AddStackFrom(CPointer* pcPointer);
 			void				RemoveStackFrom(CPointer* pcPointer);
+			void				UnsafeRemoveStackFrom(CPointer* pcPointer);
 			CBaseObject*		PrivateGetFrom(int iFrom);
 			CBaseObject*		TestGetFrom(int iFromIndex);
 			BOOL				IsAllocatedInObjects(void);

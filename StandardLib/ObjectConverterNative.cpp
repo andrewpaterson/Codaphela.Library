@@ -107,20 +107,20 @@ CObjectSource* CObjectConverterNative::CreateSource(CAbstractFile* pcFile, char*
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointer CObjectConverterNative::Convert(CObjectSource* pcSource, char* szObjectName)
+CBaseObject* CObjectConverterNative::Convert(CObjectSource* pcSource, char* szObjectName)
 {
-	CChunkFileFile						cFile;
-	CPointer						cPointer;
-	CFileBasic							cFileBasic;
-	CObjectGraphDeserialiser			cGraphDeserialiser;
-	CObjectReader*						pcReader;
-	CObjectAllocator					cAllocator;
+	CChunkFileFile				cFile;
+	CBaseObject*				pvObject;
+	CFileBasic					cFileBasic;
+	CObjectGraphDeserialiser	cGraphDeserialiser;
+	CObjectReader*				pcReader;
+	CObjectAllocator			cAllocator;
 
 	//This if statement should be calling a virtual method instead.
 	pcReader = pcSource->GetReader();
 	if (!pcReader)
 	{
-		return ONull;
+		return NULL;
 	}
 
 	mcDependentObjects.Kill();
@@ -128,10 +128,10 @@ CPointer CObjectConverterNative::Convert(CObjectSource* pcSource, char* szObject
 
 	cAllocator.Init(&gcObjects);
 	cGraphDeserialiser.Init(pcReader, TRUE,  &cAllocator, &mcDependentObjects, gcObjects.GetMemory());
-	cPointer = cGraphDeserialiser.Read(szObjectName);
+	pvObject = cGraphDeserialiser.Read(szObjectName);
 	cGraphDeserialiser.Kill();
 
-	return cPointer;
+	return pvObject;
 }
 
 

@@ -15,20 +15,20 @@ protected:
 	CObjectReaderChunkFile*		mpcReader;
 
 public:
-			BOOL				Init(CObjectConverter* pcConverter, CAbstractFile* pcFile, char* szFileName);
-			void				Kill(void);
+	BOOL			Init(CObjectConverter* pcConverter, CAbstractFile* pcFile, char* szFileName);
+	void			Kill(void);
 
-			BOOL				ReadNames(void);
-			BOOL				Contains(char* szFullName);
-	virtual CPointer		Convert(char* szFullName);
-			BOOL				IsChunked(void);
-			BOOL				IsNative(void);
-			BOOL				IsMultiSource(void);
+	BOOL			ReadNames(void);
+	BOOL			Contains(char* szFullName);
+	CBaseObject*	Convert(char* szFullName);
+	BOOL			IsChunked(void);
+	BOOL			IsNative(void);
+	BOOL			IsMultiSource(void);
 
-			char*				GetName(int iIndex);
-			int					NumNames(void);
+	char*			GetName(int iIndex);
+	int				NumNames(void);
 
-			CObjectReader*		GetReader(void);
+	CObjectReader*	GetReader(void);
 };
 
 

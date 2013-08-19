@@ -71,7 +71,8 @@ Ptr<M>::Ptr(CEmbeddedObject* ptr)
 template<class M>
 Ptr<M>::Ptr(CPointer& cPointer)
 {
-	CPointer::Construct(cPointer);
+	mpcObject = cPointer.mpcObject;
+	mpcEmbedding = cPointer.mpcEmbedding;
 }
 
 

@@ -14,7 +14,7 @@ public:
 	char*			GetFileExtension(void);
 	BOOL			IsFor(CAbstractFile* pcFile);
 	CObjectSource*	CreateSource(CAbstractFile* pcFile, char* szFileName);
-	CPointer	Convert(CObjectSource* pcSource, char* szObjectName);
+	CBaseObject*	Convert(CObjectSource* pcSource, char* szObjectName);
 };
 
 

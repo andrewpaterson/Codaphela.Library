@@ -77,9 +77,8 @@ CBaseObject* CObjectGraphDeserialiser::Read(char* szObjectName)
 //////////////////////////////////////////////////////////////////////////
 BOOL CObjectGraphDeserialiser::ReadDependentObjects(void)
 {
-	BOOL							bResult;
-	CPointer					pObject;
-	CDependentReadObject*			pcDependent;
+	BOOL					bResult;
+	CDependentReadObject*	pcDependent;
 
 	for (;;)
 	{

@@ -89,11 +89,12 @@ CPointer CArrayObject::Get(int iIndex)
 void CArrayObject::Set(int iIndex, CPointer& pObject)
 {
 	CBaseObject*	pcObject;
-	CPointer	pTemp;
 
 	if ((iIndex >=0) && (iIndex < mcArray.UnsafeNumElements()))
 	{
 		pcObject = (CBaseObject*)mcArray.UnsafeGet(iIndex);
+		
+		CPointer	pTemp;
 		pTemp.AssignObject(pcObject);
 		pTemp = pObject;
 	}

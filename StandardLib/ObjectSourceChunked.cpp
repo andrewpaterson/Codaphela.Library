@@ -71,17 +71,17 @@ BOOL CObjectSourceChunked::ReadNames(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointer CObjectSourceChunked::Convert(char* szFullName)
+CBaseObject* CObjectSourceChunked::Convert(char* szFullName)
 {
-	CPointer			cPointer;
+	CBaseObject*	pvObject;
 
 	mpcReader = UMalloc(CObjectReaderChunkFile);
 	mpcReader->Init(&mcChunkFile);
 
-	cPointer = mpcConverter->Convert(this, szFullName);
+	pvObject = mpcConverter->Convert(this, szFullName);
 	mpcReader->Kill();
 
-	return cPointer;
+	return pvObject;
 }
 
 //////////////////////////////////////////////////////////////////////////

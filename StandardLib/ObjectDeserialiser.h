@@ -50,7 +50,6 @@ public:
 
 protected:
 	filePos			Read(void* pvDest, filePos iSize, filePos iCount);
-	void			ClearPointer(CPointer* pObject);
 };
 
 

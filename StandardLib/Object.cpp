@@ -305,7 +305,7 @@ void CObject::RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged)
 		ppPointer = mapPointers.Get(i);
 		pcPointedTo = (*ppPointer)->Object();
 		RemoveToFrom(pcPointedTo, papcFromsChanged);
-		(*ppPointer)->ClearObject();
+		(*ppPointer)->UnsafeClearObject();
 	}
 }
 
@@ -329,7 +329,7 @@ void CObject::RemoveTo(CEmbeddedObject* pcTo)
 	
 		if (pcPointedTo == pcTo)
 		{
-			(*ppPointer)->ClearObject();	
+			(*ppPointer)->UnsafeClearObject();	
 		}
 	}
 }

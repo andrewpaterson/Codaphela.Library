@@ -149,7 +149,7 @@ void CStackPointer::RemoveAll(void)
 //////////////////////////////////////////////////////////////////////////
 void CStackPointer::ClearPointer(void)
 {
-	mpcPointer->ClearObject();
+	mpcPointer->UnsafeClearObject();
 }
 
 

@@ -59,17 +59,17 @@ BOOL CObjectSourceSimple::Contains(char* szFullName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointer CObjectSourceSimple::Convert(char* szFullName)
+CBaseObject* CObjectSourceSimple::Convert(char* szFullName)
 {
-	CPointer			cPointer;
+	CBaseObject*	pvObject;
 
 	mpcReader = UMalloc(CObjectReaderSimple);
 	mpcReader->Init(NULL);
 
-	cPointer = mpcConverter->Convert(this, szFullName);
+	pvObject = mpcConverter->Convert(this, szFullName);
 	mpcReader->Kill();
 
-	return cPointer;
+	return pvObject;
 }
 
 

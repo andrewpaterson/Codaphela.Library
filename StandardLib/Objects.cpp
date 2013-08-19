@@ -685,6 +685,7 @@ CBaseObject* CObjects::GetFromDatabase(OIndex oi)
 {
 	CIndexedDataObjectDeserialiser	cDeserialiser;
 	CObjectAllocator				cAllocator;
+	CBaseObject*					pvObject;
 
 	if (!mbDatabase)
 	{
@@ -699,18 +700,16 @@ CBaseObject* CObjects::GetFromDatabase(OIndex oi)
 	cAllocator.Init(this);
 	cDeserialiser.Init(&cAllocator, &mcDatabase, &mcMemory);
 
-	CPointer	pObject;
-
-	pObject = cDeserialiser.Read(oi);
+	pvObject = cDeserialiser.Read(oi);
 	cDeserialiser.Kill();
 
-	if (pObject.GetIndex() != oi)
+	if (pvObject->GetOI() != oi)
 	{
-		gcLogger.Error2("CObjects::GetFromDatabase requested object with index [", IndexToString(oi), "] but object had index [", IndexToString(pObject.GetIndex()), "].", NULL);
+		gcLogger.Error2("CObjects::GetFromDatabase requested object with index [", IndexToString(oi), "] but object had index [", IndexToString(pvObject->GetOI()), "].", NULL);
 		return NULL;
 	}
 
-	return pObject.BaseObject();
+	return pvObject;
 }
 
 
@@ -722,21 +721,20 @@ CBaseObject* CObjects::GetFromDatabase(char* szObjectName)
 {
 	CIndexedDataObjectDeserialiser	cDeserialiser;
 	CObjectAllocator				cAllocator;
+	CBaseObject*					pvObject;
 
 	if (!mbDatabase)
 	{
 		return NULL;
 	}
 
-	CPointer	pObject;
-
 	if (mcDatabase.Contains(szObjectName))
 	{
 		cAllocator.Init(this); 
 		cDeserialiser.Init(&cAllocator, &mcDatabase, &mcMemory);
-		pObject = cDeserialiser.Read(szObjectName);
+		pvObject = cDeserialiser.Read(szObjectName);
 		cDeserialiser.Kill();
-		return pObject.BaseObject();
+		return pvObject;
 	}
 	else
 	{
@@ -752,13 +750,13 @@ CBaseObject* CObjects::GetFromDatabase(char* szObjectName)
 CBaseObject* CObjects::GetFromSources(char* szObjectName)
 {
 	CObjectSource*	pcSource;
-	CPointer	pObject;
+	CBaseObject*	pvObject;
 
 	pcSource = mcSource.GetSource(szObjectName);
 	if (pcSource)
 	{
-		pObject = pcSource->Convert(szObjectName);
-		return pObject.BaseObject();
+		pvObject = pcSource->Convert(szObjectName);
+		return pvObject;
 	}
 	else
 	{

@@ -78,10 +78,10 @@ public:
 	CEmbeddedObject*	Dereference(void);
 
 	void				PointTo(CEmbeddedObject* pcObject);
-	void				Construct(CPointer& cPointer);
 	void				AddFrom(CBaseObject* pcFrom);
 
-	void				ClearObject(void);
+	CEmbeddedObject*	ClearObject(BOOL bTryKill = TRUE);
+	void				UnsafeClearObject(void);
 };
 
 

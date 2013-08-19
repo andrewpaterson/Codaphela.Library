@@ -122,9 +122,8 @@ BOOL CIndexedDataObjectDeserialiser::AddContainingPointersAndCreateHollowObject(
 {
 	CEmbeddedObject*		pcBaseObject;
 	CDependentReadObject*	pcDependentReadObject;
-	CPointer				pHollow;
 	OIndex					oiNew;
-	CHollowObject*			pcHollowObject;
+	CBaseObject*			pcHollowObject;
 
 	oiNew = pcDependentReadPointer->moiPointedTo;
 	pcBaseObject = mpcMemory->Get(oiNew);
@@ -138,13 +137,11 @@ BOOL CIndexedDataObjectDeserialiser::AddContainingPointersAndCreateHollowObject(
 		pcDependentReadObject = mpcDependentObjects->GetObject(pcDependentReadPointer->moiPointedTo);
 		if (pcDependentReadObject->mcType == OBJECT_POINTER_ID)
 		{
-			pHollow = mpcAllocator->AddHollow(pcDependentReadObject->moi, pcDependentReadPointer->miNumEmbedded);
-			pcHollowObject = (CHollowObject*)pHollow.BaseObject();
+			pcHollowObject = mpcAllocator->AddHollow(pcDependentReadObject->moi, pcDependentReadPointer->miNumEmbedded);
 		}
 		else if (pcDependentReadObject->mcType == OBJECT_POINTER_NAMED)
 		{
-			pHollow = mpcAllocator->AddHollow(pcDependentReadObject->mszObjectName.Text(), pcDependentReadObject->moi, pcDependentReadPointer->miNumEmbedded);
-			pcHollowObject = (CHollowObject*)pHollow.BaseObject();
+			pcHollowObject = mpcAllocator->AddHollow(pcDependentReadObject->mszObjectName.Text(), pcDependentReadObject->moi, pcDependentReadPointer->miNumEmbedded);
 		}
 
 		pcBaseObject = pcHollowObject->GetEmbeddedObject(pcDependentReadPointer->miEmbeddedIndex);

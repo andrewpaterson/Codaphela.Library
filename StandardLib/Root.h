@@ -73,12 +73,7 @@ public:
 template<class M>
 Ptr<M> CRoot::Get(int iIndex)
 {
-	CPointer	pObject;
-	Ptr<M>		pM;
-
-	pObject = Get(iIndex);
-
-	pM = pObject;
+	Ptr<M> pM = Get(iIndex);
 	return pM;
 }
 
@@ -90,12 +85,7 @@ Ptr<M> CRoot::Get(int iIndex)
 template<class M>
 Ptr<M> CRoot::Get(char* szObjectName)
 {
-	CPointer	pObject;
-	Ptr<M>		pM;
-
-	pObject = Get(szObjectName);
-
-	pM = pObject;
+	Ptr<M> pM = Get(szObjectName);
 	return pM;
 }
 

@@ -39,7 +39,7 @@ public:
 			void			Init(CObjectConverter* pcConverter, CAbstractFile* pcFile, char* szFileName);
 			void			Kill(void);
 
-	virtual CPointer	Convert(char* szFullName) =0;
+	virtual CBaseObject*	Convert(char* szFullName) =0;
 	virtual BOOL			Contains(char* szFullName) =0;
 
 	virtual BOOL			IsNative(void);

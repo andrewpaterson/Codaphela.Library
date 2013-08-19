@@ -185,16 +185,6 @@ filePos CObjectDeserialiser::Read(void* pvDest, filePos iSize, filePos iCount)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectDeserialiser::ClearPointer(CPointer* pObject)
-{
-	pObject->ClearObject();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 BOOL CObjectDeserialiser::ReadPointer(CPointer* pObject)
 {
 	CPointerHeader		cHeader;
@@ -202,7 +192,7 @@ BOOL CObjectDeserialiser::ReadPointer(CPointer* pObject)
 	CEmbeddedObject**	ppcObjectPtr;
 	CObject*			pcEmbedding;
 
-	ClearPointer(pObject);
+	pObject->UnsafeClearObject();
 
 	bResult = ReadIdentifier(&cHeader);
 	if (!bResult)

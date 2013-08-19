@@ -174,10 +174,8 @@ BOOL CRoot::Load(CObjectDeserialiser* pcFile)
 //////////////////////////////////////////////////////////////////////////
 CPointer CRoot::Get(int iIndex)
 {
-	CPointer	pObject;
-
 	mpObjects.Dereference();
-	pObject = mpObjects->Get(iIndex);
+	CPointer pObject = mpObjects->Get(iIndex);
 	return pObject;
 }
 
@@ -189,7 +187,6 @@ CPointer CRoot::Get(int iIndex)
 CPointer CRoot::Get(char* szObjectName)
 {
 	SSetIterator	sIter;
-	CPointer	pObject;
 	char*			szName;
 
 	if ((szObjectName == NULL) || (szObjectName[0] == '\0'))
@@ -197,7 +194,7 @@ CPointer CRoot::Get(char* szObjectName)
 		return ONull;
 	}
 
-	pObject = mpObjects->StartIteration(&sIter);
+	CPointer pObject = mpObjects->StartIteration(&sIter);
 	while (pObject.IsNotNull())
 	{
 		szName = pObject.GetName();
