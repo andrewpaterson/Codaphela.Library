@@ -122,6 +122,7 @@
     <ClInclude Include="ObjectReaderIndexed.h" />
     <ClInclude Include="ObjectReaderSimple.h" />
     <ClInclude Include="ObjectReaderSimpleDisk.h" />
+    <ClInclude Include="ObjectRemapFrom.h" />
     <ClInclude Include="ObjectSingleSerialiser.h" />
     <ClInclude Include="ObjectSingleSource.h" />
     <ClInclude Include="ObjectSourceChunked.h" />
@@ -236,6 +237,7 @@
     <ClCompile Include="ObjectReaderIndexed.cpp" />
     <ClCompile Include="ObjectReaderSimple.cpp" />
     <ClCompile Include="ObjectReaderSimpleDisk.cpp" />
+    <ClCompile Include="ObjectRemapFrom.cpp" />
     <ClCompile Include="ObjectSingleSerialiser.cpp" />
     <ClCompile Include="ObjectSingleSource.cpp" />
     <ClCompile Include="ObjectSourceChunked.cpp" />

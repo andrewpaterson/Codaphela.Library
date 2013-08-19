@@ -2,6 +2,7 @@
 #include "ObjectAllocator.h"
 #include "HollowObject.h"
 #include "NamedHollowObject.h"
+#include "ObjectRemapFrom.h"
 #include "Objects.h"
 
 
@@ -172,7 +173,8 @@ CBaseObject* CObjectAllocator::Add(char* szClassName, char* szObjectName, OIndex
 //////////////////////////////////////////////////////////////////////////
 CBaseObject* CObjectAllocator::ReplaceExisting(CBaseObject* pvExisting, CBaseObject* pvObject, char* szObjectName, OIndex oiForced)
 {
-	BOOL bResult;
+	BOOL				bResult;
+	CObjectRemapFrom	cRemapper;
 
 	mpcObjects->Dename(pvExisting);
 	mpcObjects->Deindex(pvExisting);
@@ -183,16 +185,12 @@ CBaseObject* CObjectAllocator::ReplaceExisting(CBaseObject* pvExisting, CBaseObj
 		return NULL;
 	}
 
-	CPointer	pObject; //Fix me
-
-	pObject.AssignObject(pvObject);
-
-	pObject.RemapFrom(pvExisting);  //Remap from does not belong on Pointer.
+	cRemapper.RemapFrom(pvExisting, pvObject);
 
 	pvExisting->ClearIndex();
 	pvExisting->Kill();
 
-	return (CBaseObject*)pObject.Object();  //Fix me
+	return pvObject;
 }
 
 //////////////////////////////////////////////////////////////////////////

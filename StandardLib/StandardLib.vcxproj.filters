@@ -498,6 +498,9 @@
     <ClInclude Include="StackPointer.h">
       <Filter>Source\Object\Object\Pointer</Filter>
     </ClInclude>
+    <ClInclude Include="ObjectRemapFrom.h">
+      <Filter>Source\Object\Object</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Unknown.cpp">
@@ -808,6 +811,9 @@
     </ClCompile>
     <ClCompile Include="StackPointer.cpp">
       <Filter>Source\Object\Object\Pointer</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjectRemapFrom.cpp">
+      <Filter>Source\Object\Object</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

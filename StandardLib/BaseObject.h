@@ -46,6 +46,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 class CObjectDeserialiser;
 class CObjectSerialiser;
 class CObjects;
+class CObjectRemapFrom;
 class CBaseObject : public CEmbeddedObject
 {
 template<class M>
@@ -54,6 +55,7 @@ friend class CPointer;
 friend class CArrayCommonObject;
 friend class CObject;
 friend class CObjects;
+friend class CObjectRemapFrom;
 
 BASE_FUNCTIONS(CBaseObject);
 protected:
