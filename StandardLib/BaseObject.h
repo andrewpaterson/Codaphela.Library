@@ -65,6 +65,7 @@ protected:
 public:
 								CBaseObject();
 	virtual	void				PreInit(CObjects* pcObjects);
+			void				PreInit(void);
 	virtual	void				Class(void);
 
 			void				Kill(void);
