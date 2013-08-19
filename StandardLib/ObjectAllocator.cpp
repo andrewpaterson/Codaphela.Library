@@ -28,23 +28,19 @@ void CObjectAllocator::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointer CObjectAllocator::Add(char* szClassName)
+CBaseObject* CObjectAllocator::Add(char* szClassName)
 {
 	CBaseObject*	pvObject;
 
 	pvObject = mpcObjects->Allocate(szClassName);
 	if (!pvObject)
 	{
-		return ONull;
+		return NULL;
 	}
-
-	CPointer	pObject;
 
 	mpcObjects->AddWithIDAndName(pvObject, NULL, mpcObjects->GetIndexGenerator()->PopIndex());
 
-	//No PointTo because we don't know the embedding object until assignment.
-	pObject.AssignObject(pvObject);
-	return pObject;
+	return pvObject;
 }
 
 
@@ -52,7 +48,7 @@ CPointer CObjectAllocator::Add(char* szClassName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointer CObjectAllocator::Add(char* szClassName, OIndex oiForced)
+CBaseObject* CObjectAllocator::Add(char* szClassName, OIndex oiForced)
 {
 	CBaseObject*	pvExisting;
 	CBaseObject*	pvObject;
@@ -61,29 +57,23 @@ CPointer CObjectAllocator::Add(char* szClassName, OIndex oiForced)
 	pvObject = mpcObjects->Allocate(szClassName);
 	if (!pvObject)
 	{
-		return ONull;
+		return NULL;
 	}
 
-	CPointer	pObject;
-
-	CPointer	pExistingObject;
-
-	pExistingObject = mpcObjects->GetFromMemory(oiForced);
-	if (pExistingObject.IsNull())
+	pvExisting = mpcObjects->GetFromMemory(oiForced);
+	if (pvExisting == NULL)
 	{
 		bResult = mpcObjects->AddWithIDAndName(pvObject, NULL, oiForced);
 		if (!bResult)
 		{
 			pvObject->Kill();
-			return ONull;
+			return NULL;
 		}
 
-		pObject.AssignObject(pvObject);
-		return pObject;
+		return pvObject;
 	}
 	else
 	{
-		pvExisting = pExistingObject.BaseObject();
 		return ReplaceExisting(pvExisting, pvObject, NULL, oiForced);
 	}
 }
@@ -93,7 +83,7 @@ CPointer CObjectAllocator::Add(char* szClassName, OIndex oiForced)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointer CObjectAllocator::Add(char* szClassName, char* szObjectName)
+CBaseObject* CObjectAllocator::Add(char* szClassName, char* szObjectName)
 {
 	OIndex oiExisting;
 
@@ -105,15 +95,15 @@ CPointer CObjectAllocator::Add(char* szClassName, char* szObjectName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointer CObjectAllocator::Add(char* szClassName, char* szObjectName, OIndex* poiExisting)
+CBaseObject* CObjectAllocator::Add(char* szClassName, char* szObjectName, OIndex* poiExisting)
 {
-	CPointer	pObject;
+	CBaseObject*	pvObject;
 	OIndex			oi;
 
 	oi = mpcObjects->GetIndexGenerator()->PopIndex();
-	pObject = Add(szClassName, szObjectName, oi, poiExisting);
+	pvObject = Add(szClassName, szObjectName, oi, poiExisting);
 
-	return pObject;
+	return pvObject;
 }
 
 
@@ -121,7 +111,7 @@ CPointer CObjectAllocator::Add(char* szClassName, char* szObjectName, OIndex* po
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointer CObjectAllocator::Add(char* szClassName, char* szObjectName, OIndex oiForced)
+CBaseObject* CObjectAllocator::Add(char* szClassName, char* szObjectName, OIndex oiForced)
 {
 	OIndex oiExisting;
 
@@ -133,7 +123,7 @@ CPointer CObjectAllocator::Add(char* szClassName, char* szObjectName, OIndex oiF
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointer CObjectAllocator::Add(char* szClassName, char* szObjectName, OIndex oiForced, OIndex* poiExisting)
+CBaseObject* CObjectAllocator::Add(char* szClassName, char* szObjectName, OIndex oiForced, OIndex* poiExisting)
 {
 	CBaseObject*	pvObject;
 	CBaseObject*	pvExisting;
@@ -143,38 +133,34 @@ CPointer CObjectAllocator::Add(char* szClassName, char* szObjectName, OIndex oiF
 	if (!pvObject)
 	{
 		gcLogger.Error2("CObjectAllocator::Add cannot add object named [", szObjectName, "] class [", szClassName, "].", NULL);
-		return ONull;
+		return NULL;
 	}
 
 	if (!pvObject->IsNamed())
 	{
 		gcLogger.Error2("CObjectAllocator::Add cannot add object named [", szObjectName, "] the class ", pvObject->ClassName(), " is not derived from NamedObject.", NULL);
 		pvObject->Kill();
-		return ONull;
+		return NULL;
 	}
 
-	CPointer	pExistingObject;
 
-	pExistingObject = mpcObjects->GetFromMemory(szObjectName);
-	if (pExistingObject.IsNull())
+	pvExisting = mpcObjects->GetFromMemory(szObjectName);
+	if (pvExisting == NULL)
 	{
 		bResult = mpcObjects->AddWithIDAndName(pvObject, szObjectName, oiForced);
 		if (!bResult)
 		{
 			pvObject->Kill();
-			return ONull;
+			return NULL;
 		}
 
-		CPointer	pObject;
-
 		*poiExisting = INVALID_O_INDEX;
-		pObject.AssignObject(pvObject);
-		return pObject;
+
+		return pvObject;
 	}
 	else
 	{
-		*poiExisting = pExistingObject.GetIndex();
-		pvExisting = pExistingObject.BaseObject();
+		*poiExisting = pvExisting->GetOI();
 		return ReplaceExisting(pvExisting, pvObject, szObjectName, oiForced);
 	}
 }
@@ -184,7 +170,7 @@ CPointer CObjectAllocator::Add(char* szClassName, char* szObjectName, OIndex oiF
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointer CObjectAllocator::ReplaceExisting(CBaseObject* pvExisting, CBaseObject* pvObject, char* szObjectName, OIndex oiForced)
+CBaseObject* CObjectAllocator::ReplaceExisting(CBaseObject* pvExisting, CBaseObject* pvObject, char* szObjectName, OIndex oiForced)
 {
 	BOOL bResult;
 
@@ -194,40 +180,39 @@ CPointer CObjectAllocator::ReplaceExisting(CBaseObject* pvExisting, CBaseObject*
 	if (!bResult)
 	{
 		pvObject->Kill();
-		return ONull;
+		return NULL;
 	}
 
-	CPointer	pObject;
+	CPointer	pObject; //Fix me
 
 	pObject.AssignObject(pvObject);
 
-	pObject.RemapFrom(pvExisting);
+	pObject.RemapFrom(pvExisting);  //Remap from does not belong on Pointer.
 
 	pvExisting->ClearIndex();
 	pvExisting->Kill();
 
-	return pObject;
+	return (CBaseObject*)pObject.Object();  //Fix me
 }
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointer CObjectAllocator::AddHollow(OIndex oiForced, unsigned short iNumEmbedded)
+CBaseObject* CObjectAllocator::AddHollow(OIndex oiForced, unsigned short iNumEmbedded)
 {
-	Ptr<CHollowObject>	pHollow;
 	CHollowObject*		pcHollow;
 	BOOL				bResult;
-	CPointer			pcExisting;
+	CBaseObject*		pcExisting;
 
 	if (oiForced == INVALID_O_INDEX)
 	{
 		gcLogger.Error("CObjectAllocator::AddHollow Cannot allocate a hollow object with an invalid index.");
-		return ONull;
+		return NULL;
 	}
 
 	pcExisting = mpcObjects->GetFromMemory(oiForced);
-	if (pcExisting.IsNotNull())
+	if (pcExisting)
 	{
 		return pcExisting;
 	}
@@ -235,18 +220,17 @@ CPointer CObjectAllocator::AddHollow(OIndex oiForced, unsigned short iNumEmbedde
 	pcHollow = mpcObjects->AllocateHollow(iNumEmbedded);
 	if (!pcHollow)
 	{
-		return ONull;
+		return NULL;
 	}
 
 	bResult = mpcObjects->AddWithIDAndName(pcHollow, NULL, oiForced);
 	if (bResult)
 	{
-		pHollow.AssignObject(pcHollow);
-		return pHollow;
+		return pcHollow;
 	}
 	else
 	{
-		return ONull;
+		return NULL;
 	}
 }
 
@@ -255,17 +239,16 @@ CPointer CObjectAllocator::AddHollow(OIndex oiForced, unsigned short iNumEmbedde
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointer CObjectAllocator::AddHollow(char* szObjectName, OIndex oiForced, unsigned short iNumEmbedded)
+CBaseObject* CObjectAllocator::AddHollow(char* szObjectName, OIndex oiForced, unsigned short iNumEmbedded)
 {
-	Ptr<CNamedHollowObject>		pHollow;
 	CNamedHollowObject*			pcHollow;
 	BOOL						bResult;
-	CPointer					pcExisting;
+	CBaseObject*				pvExisting;
 
 	if (oiForced == INVALID_O_INDEX)
 	{
 		gcLogger.Error("CObjectAllocator::AddHollow Cannot allocate a hollow object with an invalid index.");
-		return ONull;
+		return NULL;
 	}
 
 	if ((szObjectName == NULL || szObjectName[0] == '\0'))
@@ -273,34 +256,33 @@ CPointer CObjectAllocator::AddHollow(char* szObjectName, OIndex oiForced, unsign
 		return AddHollow(oiForced, iNumEmbedded);
 	}
 
-	pcExisting = mpcObjects->GetFromMemory(szObjectName);
-	if (pcExisting.IsNotNull())
+	pvExisting = mpcObjects->GetFromMemory(szObjectName);
+	if (pvExisting)
 	{
-		return pcExisting;
+		return pvExisting;
 	}
 
-	pcExisting = mpcObjects->GetFromMemory(oiForced);
-	if (pcExisting.IsNotNull())
+	pvExisting = mpcObjects->GetFromMemory(oiForced);
+	if (pvExisting)
 	{
-		gcLogger.Error2("CObjectAllocator::AddHollow cannot add hollow object named [", szObjectName, "] another object with index [", IndexToString(oiForced), "] and name [", pcExisting.GetName(), "] already exists.", NULL);
-		return ONull;
+		gcLogger.Error2("CObjectAllocator::AddHollow cannot add hollow object named [", szObjectName, "] another object with index [", IndexToString(oiForced), "] and name [", pvExisting->GetName(), "] already exists.", NULL);
+		return NULL;
 	}
 
 	pcHollow = mpcObjects->AllocateNamedHollow(iNumEmbedded);
 	if (!pcHollow)
 	{
-		return ONull;
+		return NULL;
 	}
 
 	bResult = gcObjects.AddWithIDAndName(pcHollow, szObjectName, oiForced);
 	if (bResult)
 	{
-		pHollow.AssignObject(pcHollow);
-		return pHollow;
+		return pcHollow;
 	}
 	else
 	{
-		return ONull;
+		return NULL;
 	}
 }
 
@@ -309,28 +291,27 @@ CPointer CObjectAllocator::AddHollow(char* szObjectName, OIndex oiForced, unsign
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointer CObjectAllocator::AddHollow(char* szObjectName, unsigned short iNumEmbedded)
+CBaseObject* CObjectAllocator::AddHollow(char* szObjectName, unsigned short iNumEmbedded)
 {
-	Ptr<CNamedHollowObject>	pHollow;
-	CNamedHollowObject*				pcHollow;
-	BOOL							bResult;
-	CPointer					pcExisting;
+	CNamedHollowObject*		pcHollow;
+	BOOL					bResult;
+	CBaseObject*			pvExisting;
 
 	if ((szObjectName == NULL || szObjectName[0] == '\0'))
 	{
-		return ONull;
+		return NULL;
 	}
 
-	pcExisting = mpcObjects->GetFromMemory(szObjectName);
-	if (pcExisting.IsNotNull())
+	pvExisting = mpcObjects->GetFromMemory(szObjectName);
+	if (pvExisting)
 	{
-		return pcExisting;
+		return pvExisting;
 	}
 
 	pcHollow = mpcObjects->AllocateNamedHollow(iNumEmbedded);
 	if (!pcHollow)
 	{
-		return ONull;
+		return NULL;
 	}
 
 	pcHollow->InitName(szObjectName);
@@ -338,11 +319,10 @@ CPointer CObjectAllocator::AddHollow(char* szObjectName, unsigned short iNumEmbe
 	bResult = gcObjects.AddWithIDAndName(pcHollow, szObjectName, mpcObjects->GetIndexGenerator()->PopIndex());
 	if (bResult)
 	{
-		pHollow.AssignObject(pcHollow);
-		return pHollow;
+		return pcHollow;
 	}
 	else
 	{
-		return ONull;
+		return NULL;
 	}
 }

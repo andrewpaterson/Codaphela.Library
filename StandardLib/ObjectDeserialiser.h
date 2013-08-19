@@ -39,18 +39,18 @@ protected:
 	CFileBasic					mcFile;
 	
 public:
-	BOOL		Init(CDependentObjectAdder* pcDependents);
-	void		Kill(void);
-	CPointer	Load(CSerialisedObject* pcSerialised);
+	BOOL			Init(CDependentObjectAdder* pcDependents);
+	void			Kill(void);
+	CBaseObject*	Load(CSerialisedObject* pcSerialised);
 
-	BOOL		ReadPointer(CPointer* pObject);
-	BOOL		ReadIdentifier(CObjectIdentifier* pcPointerHeader);
-	BOOL		ReadObjectHeader(CObjectHeader* pcObjectHeader);
-	BOOL		ReadDependent(CEmbeddedObject** ppcObjectPtr, CBaseObject* pcContaining);
+	BOOL			ReadPointer(CPointer* pObject);
+	BOOL			ReadIdentifier(CObjectIdentifier* pcPointerHeader);
+	BOOL			ReadObjectHeader(CObjectHeader* pcObjectHeader);
+	BOOL			ReadDependent(CEmbeddedObject** ppcObjectPtr, CBaseObject* pcContaining);
 
 protected:
-	filePos		Read(void* pvDest, filePos iSize, filePos iCount);
-	void		ClearPointer(CPointer* pObject);
+	filePos			Read(void* pvDest, filePos iSize, filePos iCount);
+	void			ClearPointer(CPointer* pObject);
 };
 
 

@@ -53,7 +53,7 @@ void CObjectDeserialiser::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointer CObjectDeserialiser::Load(CSerialisedObject* pcSerialised)
+CBaseObject* CObjectDeserialiser::Load(CSerialisedObject* pcSerialised)
 {
 	BOOL			bResult;
 	int				iLength;
@@ -63,7 +63,7 @@ CPointer CObjectDeserialiser::Load(CSerialisedObject* pcSerialised)
 	if (!pcSerialised)
 	{
 		gcLogger.Error("CObjectDeserialiser::Load Serialised Object is NULL.");
-		return Null();
+		return NULL;
 	}
 
 	pcMemory = MemoryFile(pcSerialised, pcSerialised->GetLength());
@@ -72,7 +72,7 @@ CPointer CObjectDeserialiser::Load(CSerialisedObject* pcSerialised)
 	if (!bResult)
 	{
 		mcFile.Kill();
-		return Null();
+		return NULL;
 	}
 
 	bResult = ReadInt(&iLength);
@@ -82,7 +82,7 @@ CPointer CObjectDeserialiser::Load(CSerialisedObject* pcSerialised)
 		mcFile.Close();
 		mcFile.Kill();
 
-		return Null();
+		return NULL;
 	}
 
 	bResult = ReadObjectHeader(&sHeader);
@@ -92,37 +92,38 @@ CPointer CObjectDeserialiser::Load(CSerialisedObject* pcSerialised)
 		mcFile.Close();
 		mcFile.Kill();
 		sHeader.Kill();
-		return Null();
+		return NULL;
 	}
 
-	CPointer	pObject;
-	pObject = mpcDependents->AllocateObject(&sHeader);
+	CBaseObject*	pvObject;
+
+	pvObject = mpcDependents->AllocateObject(&sHeader);
 
 	sHeader.Kill();
 
-	if (pObject.IsNull())
+	if (pvObject == NULL)
 	{
 		gcLogger.Error("CObjectDeserialiser::Load Could not load serialised object.");
 		mcFile.Close();
 		mcFile.Kill();
-		return Null();
+		return NULL;
 	}
 
-	bResult = pObject.Load(this);
+	bResult = pvObject->Load(this);
 	if (!bResult)
 	{
 		gcLogger.Error("CObjectDeserialiser::Load Could not load serialised object.");
 		mcFile.Close();
 		mcFile.Kill();
 
-		pObject->Kill();
-		return Null();
+		pvObject->Kill();
+		return NULL;
 	}
 
 	mcFile.Close();
 	mcFile.Kill();
 
-	return pObject;
+	return pvObject;
 }
 
 

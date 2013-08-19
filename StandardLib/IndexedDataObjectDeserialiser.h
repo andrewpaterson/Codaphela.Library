@@ -38,13 +38,13 @@ public:
 	void			Init(CObjectAllocator* pcAllocator, CNamedIndexedData* pcDatabase, CNamedIndexedObjects* pcMemory);
 	void			Kill(void);
 
-	CPointer	Read(OIndex oi);
-	CPointer	Read(char* szObjectName);
+	CBaseObject*	Read(OIndex oi);
+	CBaseObject*	Read(char* szObjectName);
 
-	CPointer	AllocateObject(CObjectHeader* pcHeader);
+	CBaseObject*	AllocateObject(CObjectHeader* pcHeader);
 
 protected:
-	CPointer	ReadSerialised(CSerialisedObject* pcSerialised);
+	CBaseObject*	ReadSerialised(CSerialisedObject* pcSerialised);
 	BOOL			AddContainingPointersAndCreateHollowObjects(void);
 	BOOL			AddContainingPointersAndCreateHollowObject(CDependentReadPointer* pcDependentReadPointer);
 };

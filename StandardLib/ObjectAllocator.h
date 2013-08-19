@@ -15,20 +15,20 @@ public:
 	void				Init(CObjects* pcObjects);
 	void				Kill(void);
 
-	CPointer		Add(char* szClassName);
-	CPointer		Add(char* szClassName, OIndex oiForced);
+	CBaseObject*	Add(char* szClassName);
+	CBaseObject*	Add(char* szClassName, OIndex oiForced);
 
-	CPointer		Add(char* szClassName, char* szObjectName);
-	CPointer		Add(char* szClassName, char* szObjectName, OIndex* poiExisting);
-	CPointer		Add(char* szClassName, char* szObjectName, OIndex oiForced);
-	CPointer		Add(char* szClassName, char* szObjectName, OIndex oiForced, OIndex* poiExisting);
+	CBaseObject*	Add(char* szClassName, char* szObjectName);
+	CBaseObject*	Add(char* szClassName, char* szObjectName, OIndex* poiExisting);
+	CBaseObject*	Add(char* szClassName, char* szObjectName, OIndex oiForced);
+	CBaseObject*	Add(char* szClassName, char* szObjectName, OIndex oiForced, OIndex* poiExisting);
 
-	CPointer		AddHollow(char* szObjectName, unsigned short iNumEmbedded);
-	CPointer		AddHollow(OIndex oiForced, unsigned short iNumEmbedded);
-	CPointer		AddHollow(char* szObjectName, OIndex oiForced, unsigned short iNumEmbedded);
+	CBaseObject*	AddHollow(char* szObjectName, unsigned short iNumEmbedded);
+	CBaseObject*	AddHollow(OIndex oiForced, unsigned short iNumEmbedded);
+	CBaseObject*	AddHollow(char* szObjectName, OIndex oiForced, unsigned short iNumEmbedded);
 
 protected:
-	CPointer ReplaceExisting(CBaseObject* pvExisting, CBaseObject* pvObject, char* szObjectName, OIndex oiForced);
+	CBaseObject*	ReplaceExisting(CBaseObject* pvExisting, CBaseObject* pvObject, char* szObjectName, OIndex oiForced);
 };
 
 

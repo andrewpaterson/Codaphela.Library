@@ -29,15 +29,15 @@ public:
 	void			Init(CObjectReader* pcReader, BOOL bNamedHollows, CObjectAllocator* pcAllocator, CDependentReadObjects* pcDependentReadObjects, CNamedIndexedObjects* pcMemory);
 	void			Kill(void);
 
-	CPointer	Read(char* szObjectName);
+	CBaseObject*	Read(char* szObjectName);
 			 
 	//Used by CObjectDeserialiser
-	CPointer	AllocateObject(CObjectHeader* pcHeader);
+	CBaseObject*	AllocateObject(CObjectHeader* pcHeader);
 
 	OIndex			GetNewIndexFromOld(OIndex oiNew);
 
 protected:
-	CPointer	ReadSerialsed(CSerialisedObject* pcSerialised);
+	CBaseObject*	ReadSerialsed(CSerialisedObject* pcSerialised);
 	BOOL			ReadDependentObjects(void);
 	BOOL			ReadUnread(CDependentReadObject* pcDependent);
 	void			MarkRead(OIndex oi);

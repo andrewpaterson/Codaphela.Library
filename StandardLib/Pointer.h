@@ -21,11 +21,11 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __POINTER_H__
 #define __POINTER_H__
 #include "PointerObject.h"
-#include "BaseObject.h"
+#include "EmbeddedObject.h"
 
 class CObject;
 
-template<class M = CBaseObject>
+template<class M = CEmbeddedObject>
 class Ptr : public CPointer
 {
 public:
@@ -33,8 +33,8 @@ public:
 			Ptr(CEmbeddedObject* ptr);
 			Ptr(CPointer& cPointer);
 			~Ptr();
-	void	operator = (M* ptr);
-	void	operator = (Ptr<M> pcPointer);
+
+	void	operator = (CEmbeddedObject* pcObject);
 	void	operator = (CPointer& pcPointer);
 	M*		operator -> ();
 	M*		operator & ();
@@ -90,20 +90,9 @@ Ptr<M>::~Ptr()
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void Ptr<M>::operator = (M* ptr)
+void Ptr<M>::operator = (CEmbeddedObject* pcObject)
 {
-	PointTo(ptr);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-template<class M>
-void Ptr<M>::operator = (Ptr<M> pcPointer)
-{
-	PointTo(pcPointer.mpcObject);
+	PointTo(pcObject);
 }
 
 

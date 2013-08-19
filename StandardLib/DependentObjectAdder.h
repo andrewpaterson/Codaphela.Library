@@ -11,15 +11,15 @@ protected:
 	CDependentReadObjects*	mpcDependentObjects;
 
 public:
-			void		Init(CDependentReadObjects*	pcDependentObjects);
-			void		Kill(void);
+			void			Init(CDependentReadObjects*	pcDependentObjects);
+			void			Kill(void);
 
-			BOOL		AddDependent(CObjectIdentifier* pcHeader, CEmbeddedObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingPtrToBeUpdated, unsigned short iNumEmbedded, unsigned short iEmbeddedIndex);
+			BOOL			AddDependent(CObjectIdentifier* pcHeader, CEmbeddedObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingPtrToBeUpdated, unsigned short iNumEmbedded, unsigned short iEmbeddedIndex);
 
-	virtual CPointer	AllocateObject(CObjectHeader* pcHeader) =0;
+	virtual CBaseObject*	AllocateObject(CObjectHeader* pcHeader) =0;
 
 protected:
-			void		AddContainingPointer(CEmbeddedObject* pcBaseObject, CEmbeddedObject** ppcPointedFrom, CBaseObject* pcContaining);
+			void			AddContainingPointer(CEmbeddedObject* pcBaseObject, CEmbeddedObject** ppcPointedFrom, CBaseObject* pcContaining);
 };
 
 

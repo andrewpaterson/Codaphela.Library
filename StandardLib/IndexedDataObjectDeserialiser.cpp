@@ -38,7 +38,7 @@ void CIndexedDataObjectDeserialiser::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointer CIndexedDataObjectDeserialiser::Read(OIndex oi)
+CBaseObject* CIndexedDataObjectDeserialiser::Read(OIndex oi)
 {
 	CSerialisedObject*		pcSerialised;
 
@@ -51,7 +51,7 @@ CPointer CIndexedDataObjectDeserialiser::Read(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointer CIndexedDataObjectDeserialiser::Read(char* szObjectName)
+CBaseObject* CIndexedDataObjectDeserialiser::Read(char* szObjectName)
 {
 	CSerialisedObject*		pcSerialised;
 
@@ -62,7 +62,7 @@ CPointer CIndexedDataObjectDeserialiser::Read(char* szObjectName)
 	}
 	else
 	{
-		return ONull;
+		return NULL;
 	}
 }
 
@@ -71,23 +71,23 @@ CPointer CIndexedDataObjectDeserialiser::Read(char* szObjectName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointer CIndexedDataObjectDeserialiser::ReadSerialised(CSerialisedObject* pcSerialised)
+CBaseObject* CIndexedDataObjectDeserialiser::ReadSerialised(CSerialisedObject* pcSerialised)
 {
 	CObjectDeserialiser		cDeserialiser;
-	CPointer			pObject;
+	CBaseObject*			pvObject;
 
 	cDeserialiser.Init(this);
-	pObject = cDeserialiser.Load(pcSerialised);
+	pvObject = cDeserialiser.Load(pcSerialised);
 
 	cDeserialiser.Kill();
 	free(pcSerialised);
 
-	if (pObject.IsNotNull())
+	if (pvObject)
 	{
 		AddContainingPointersAndCreateHollowObjects();
 	}
 
-	return pObject;
+	return pvObject;
 }
 
 
@@ -158,11 +158,11 @@ BOOL CIndexedDataObjectDeserialiser::AddContainingPointersAndCreateHollowObject(
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointer CIndexedDataObjectDeserialiser::AllocateObject(CObjectHeader* pcHeader)
+CBaseObject* CIndexedDataObjectDeserialiser::AllocateObject(CObjectHeader* pcHeader)
 {
 	if (pcHeader->mcType == OBJECT_POINTER_NULL)
 	{
-		return ONull;
+		return NULL;
 	}
 	else if (pcHeader->mcType == OBJECT_POINTER_ID)
 	{
@@ -175,7 +175,7 @@ CPointer CIndexedDataObjectDeserialiser::AllocateObject(CObjectHeader* pcHeader)
 	else
 	{
 		gcLogger.Error("Cant allocate object for unknown header type.");
-		return ONull;
+		return NULL;
 	}
 }
 

@@ -40,11 +40,11 @@ protected:
 
 public:
 						CPointer();
-						CPointer(CPointer& pcPointer);
 						CPointer(CEmbeddedObject* pcObject);
+						CPointer(CPointer& pcPointer);
 						~CPointer();
 
-	void				operator = (CEmbeddedObject* ptr);
+	void				operator = (CEmbeddedObject* pcObject);
 	void				operator = (CPointer& pcPointer);
 	CEmbeddedObject*	operator -> ();
 	CEmbeddedObject*	operator & ();
