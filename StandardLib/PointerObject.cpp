@@ -559,3 +559,4 @@ CEmbeddedObject* CPointer::ClearObject(BOOL bTryKill)
 		return pOldObject;
 	}
 }
+

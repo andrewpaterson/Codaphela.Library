@@ -75,7 +75,7 @@ public:
 			CBaseObject*		TestGetFrom(int iFromIndex);
 			BOOL				IsAllocatedInObjects(void);
 protected:
-	virtual void				TryKill(void) =0;
+	virtual void				TryKill(BOOL bStackPointerRemoved) =0;
 			void				RemoveAllFroms(void);
 			BOOL				PrivateRemoveFrom(CBaseObject* pcFrom);
 			void				GetFroms(CArrayEmbeddedBaseObjectPtr* papcFroms);

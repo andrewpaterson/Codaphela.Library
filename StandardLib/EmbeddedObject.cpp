@@ -390,7 +390,7 @@ void CEmbeddedObject::RemoveStackFrom(CPointer* pcPointer)
 		if (mpcStackFroms)
 		{
 			mpcStackFroms = pcStackPointers->Remove(mpcStackFroms, pcPointer);
-			TryKill();
+			TryKill(TRUE);
 		}
 	}
 }

@@ -121,7 +121,6 @@ protected:
 	virtual void			Free(void);
 			int				RemapTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew) =0;
 			BOOL			RemoveToFrom(CEmbeddedObject* pcPointedTo, CArrayEmbeddedBaseObjectPtr* papcFromsChanged);
-			int				RemoveAllFroms(void);
 			void			PotentiallySetDistToRoot(CBaseObject* pcTos, int iExpectedDistToRoot);
 			BOOL			CanFindRoot(void);
 			CBaseObject*	ClearDistToSubRoot(void);
@@ -129,14 +128,14 @@ protected:
 	virtual void			CollectPointedToToBeKilled(CArrayBaseObjectPtr* papcKilled) =0;
 			void			ContainerCollectThoseToBeKilled(CArrayBaseObjectPtr* papcKilled);
 			void			CollectPointedToToBeKilled(CArrayBaseObjectPtr* papcKilled, CBaseObject* pcPointedTo);
-			void			MarkForKilling(CArrayBaseObjectPtr* papcKilled);
+			void			MarkThisForKilling(CArrayBaseObjectPtr* papcKilled);
 			void			KillCollected(CArrayBaseObjectPtr* papcKilled);
 			int				KillThisGraph(void);
 			BOOL			IsBaseObject(void);
 			int				GetNumEmbeddedFromFlags(void);
 			void			SetFlagNumEmbedded(int iNumEmbedded);
 			void			SetFlagEmbedded(int iFlag, int iFlagValue);
-			void			TryKill(void);
+			void			TryKill(BOOL bStackPointerRemoved);
 			void			ClearStackPointersTo(void);
 };
 

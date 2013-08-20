@@ -107,7 +107,8 @@ void CBaseObject::Kill(void)
 	}
 	else
 	{
-		iNumKilled = RemoveAllFroms();
+		RemoveAllFroms();
+		iNumKilled = KillThisGraph();
 	}
 }
 
@@ -153,7 +154,7 @@ void CBaseObject::RemoveHeapFrom(CBaseObject* pcFrom)
 	//Removing a 'from' kicks off memory reclamation.  This is the entry point for memory management.
 	PrivateRemoveFrom(pcFrom);
 
-	TryKill();
+	TryKill(FALSE);
 }
 
 
@@ -161,19 +162,48 @@ void CBaseObject::RemoveHeapFrom(CBaseObject* pcFrom)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::TryKill(void)
+void CBaseObject::TryKill(BOOL bStackPointerRemoved)
 {
 	CBaseObject*	pcContainer;
+	BOOL			bHasStackPointers;
+	BOOL			bHasHeapPointers;
+	BOOL			bCanFindRoot;
+	BOOL			bMustKill;
 
 	pcContainer = GetEmbeddingContainer();
-	if (!CanFindRoot() && !HasStackPointers())
-	{	
-		pcContainer->KillThisGraph();
+
+	if (!bStackPointerRemoved)
+	{
+		bHasStackPointers = HasStackPointers();
+		bCanFindRoot = CanFindRoot();
+
+		//If we removed a heap pointer and have no stack pointers and cannot find the root
+		bMustKill = !bCanFindRoot && !bHasStackPointers;
+		if (bMustKill)
+		{
+			//then we can kill this object.
+			pcContainer->KillThisGraph();
+		}
+		else
+		{
+			pcContainer->FixDistToRoot();
+		}
 	}
 	else
 	{
-		//ClearDistToSubRoot();
-		pcContainer->FixDistToRoot();
+		bHasHeapPointers = HasHeapPointers();
+		bHasStackPointers = HasStackPointers();
+
+		//If we removed a stack pointer and have no more stack pointers and have no heap pointers (regardless of wether or not they can find the root)
+		bMustKill = !bHasHeapPointers && !bHasStackPointers;
+		if (bMustKill)
+		{
+			//then we can kill this object.
+			pcContainer->KillThisGraph();
+		}
+
+		//If we still have heap pointers but no stack pointers and we can't find the root then this object is still being initialised 
+		//and should not be kill.ed
 	}
 }
 
@@ -190,10 +220,8 @@ int CBaseObject::KillThisGraph(void)
 	//This method will never be called on an embedded object.
 	//ie: Only the containing object can KillThisGraph.
 
-	if (CanFindRoot())
-	{
-		return 0;
-	}
+	//This method will only be called on an object that cannot find the root.
+	//If an object is being forcibly killed then it's tos and froms will have already been removed.
 
 	if (mpcObjectsThisIn)
 	{
@@ -221,7 +249,7 @@ void CBaseObject::CollectPointedToToBeKilled(CArrayBaseObjectPtr* papcKilled, CB
 {
 	if (pcPointedTo)
 	{
-		if (pcPointedTo->miDistToRoot != UNATTACHED_DIST_TO_ROOT)
+		if (pcPointedTo->miDistToRoot != UNATTACHED_DIST_TO_ROOT)  //Fix me.  Probably that just means delete me.
 		{
 			if (!pcPointedTo->CanFindRoot())
 			{
@@ -236,7 +264,7 @@ void CBaseObject::CollectPointedToToBeKilled(CArrayBaseObjectPtr* papcKilled, CB
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::MarkForKilling(CArrayBaseObjectPtr* papcKilled)
+void CBaseObject::MarkThisForKilling(CArrayBaseObjectPtr* papcKilled)
 {
 	CBaseObject*		pcTemp;
 
@@ -268,7 +296,7 @@ void CBaseObject::ContainerCollectThoseToBeKilled(CArrayBaseObjectPtr* papcKille
 	//This method will never be called on an embedded object.
 	//Only the containing object can ContainerCollectThoseToBeKilled.
 
-	MarkForKilling(papcKilled);
+	MarkThisForKilling(papcKilled);
 	CollectPointedToToBeKilled(papcKilled);
 }
 
@@ -766,17 +794,6 @@ CEmbeddedObject* CBaseObject::TestGetTo(int iToIndex)
 OIndex CBaseObject::GetOI(void)
 {
 	return moi;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-int CBaseObject::RemoveAllFroms(void)
-{
-	CEmbeddedObject::RemoveAllFroms();
-	return KillThisGraph();
 }
 
 
