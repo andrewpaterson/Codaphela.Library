@@ -215,6 +215,39 @@ void CLogger::Info(char* szText)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CLogger::Debug2(char* szText, ...)
+{
+	va_list		vaMarker;
+	char*		sz;
+	CChars		szInfo;
+
+	if (szText)
+	{
+		szInfo.Init(szText);
+		va_start(vaMarker, szText);
+		sz = va_arg(vaMarker, char*);
+		while (sz != NULL)
+		{
+			szInfo.Append(sz);
+			sz = va_arg(vaMarker, char*);
+		}
+		va_end(vaMarker);
+
+		Debug(szInfo.Text());
+		szInfo.Kill();
+	}
+	else
+	{
+		Debug("");
+	}
+}
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CLogger::Debug(char* szText)
 {
 	Add("DEBUG", szText);

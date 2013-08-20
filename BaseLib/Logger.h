@@ -47,6 +47,7 @@ public:
 	void Info(char* szText);
 	void Info2(char* szText, ...);
 	void Debug(char* szText);
+	void Debug2(char* szText, ...);
 	void Disable(void);
 	void Enable(void);
 	void SetEngineOutput(BOOL bEngineOut);

@@ -38,3 +38,12 @@ char* LongLongToString(long long int lli)
 	return gaszLogToStringScratchPad[iCount];
 }
 
+
+char* PointerToString(void* pv)
+{
+	int iCount = IncrementLogToStringCount();
+	
+	IToA((size_t)pv, gaszLogToStringScratchPad[iCount], 16);
+	return gaszLogToStringScratchPad[iCount];
+}
+

@@ -26,6 +26,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 char* IntToString(int i);
 char* LongLongToString(long long int lli);
+char* PointerToString(void* pv);
 
 
 #endif // __LOG_TO_STRING_H__
