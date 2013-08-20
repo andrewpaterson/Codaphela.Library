@@ -52,7 +52,7 @@ int CObjectRemapFrom::RemapEmbeddedFrom(CEmbeddedObject* pcNew, CEmbeddedObject*
 	{
 		pvFrom = pcOld->PrivateGetFrom(i);
 		iCount += pvFrom->RemapTos(pcOld, pcNew);
-		pcNew->AddFrom(pvFrom);
+		pcNew->AddHeapFrom(pvFrom);
 	}
 
 	pcNew->CopyFroms(pcOld);

@@ -59,7 +59,7 @@ void CArrayObject::AddAll(Ptr<CArrayObject> pcArray)
 void CArrayObject::Insert(int iIndex, CPointer& pObject)
 {
 	mcArray.Insert(iIndex, pObject.Object());
-	pObject->AddFrom(this);
+	pObject->AddHeapFrom(this);
 }
 
 
@@ -124,7 +124,7 @@ BOOL CArrayObject::RemoveAt(int iIndex)
 	{
 		if (mcArray.Remove(iIndex))
 		{
-			pObject->RemoveFrom(this);
+			pObject->RemoveHeapFrom(this);
 			return TRUE;
 		}
 	}

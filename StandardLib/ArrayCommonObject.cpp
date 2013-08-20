@@ -115,7 +115,7 @@ BOOL CArrayCommonObject::Remove(CBaseObject* pcObject)
 	{
 		if (mcArray.Remove(pcObject))
 		{
-			pcObject->RemoveFrom(this);
+			pcObject->RemoveHeapFrom(this);
 			return TRUE;
 		}
 	}
@@ -192,7 +192,7 @@ void CArrayCommonObject::Add(CPointer& pObject)
 	mcArray.Add(pObject.Object());
 	if (pObject.IsNotNull())
 	{
-		pObject.AddFrom(this);
+		pObject.AddHeapFrom(this);
 	}
 }
 
@@ -214,7 +214,7 @@ void CArrayCommonObject::AddAll(CArrayCommonObject* pcArray)
 		mcArray.Add(pcObject);
 		if (pcObject != NULL)
 		{
-			pcObject->AddFrom(this);
+			pcObject->AddHeapFrom(this);
 		}
 	}
 }
@@ -237,10 +237,10 @@ void CArrayCommonObject::Set(int iIndex, CPointer& pObject)
 	mcArray.Set(iIndex, pObject.Object());
 	if (pcPointedTo)
 	{
-		pcPointedTo->RemoveFrom(this);
+		pcPointedTo->RemoveHeapFrom(this);
 	}
 
-	pObject->AddFrom(this);
+	pObject.AddHeapFrom(this);
 }
 
 
@@ -254,7 +254,7 @@ BOOL CArrayCommonObject::Remove(CPointer& pObject)
 	{
 		if (mcArray.Remove(pObject.Object()))
 		{
-			pObject->RemoveFrom(this);
+			pObject->RemoveHeapFrom(this);
 			return TRUE;
 		}
 	}

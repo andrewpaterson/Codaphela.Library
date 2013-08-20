@@ -103,9 +103,9 @@ public:
 	virtual void				GetTos(CArrayEmbeddedObjectPtr* papcTos) =0;
 	virtual int					NumTos(void) =0;
 	virtual void				RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged) =0;
-			void				AddFrom(CBaseObject* pcFrom);
+			void				AddHeapFrom(CBaseObject* pcFrom);
 			void				FixDistToRoot(void);
-			void				RemoveFrom(CBaseObject* pcFrom);
+			void				RemoveHeapFrom(CBaseObject* pcFrom);
 	virtual int					RecurseNumHeapFroms(void);
 	virtual int					RecurseNumTotalFroms(void);
 	virtual int					RecurseNumStackFroms(void);

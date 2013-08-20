@@ -19,8 +19,8 @@ public:
 	CBaseObject*		Dehollow(void);
 	int					GetEmbeddedIndex(void);
 	CHollowObject*		GetHollowObject(void);
-	void				AddFrom(CBaseObject* pcFrom);
-	void				RemoveFrom(CBaseObject* mpcEmbedding);
+	void				AddHeapFrom(CBaseObject* pcFrom);
+	void				RemoveHeapFrom(CBaseObject* mpcEmbedding);
 	void				TryKill(void);
 	CObjects*			GetObjects(void);
 	CStackPointers*		GetStackPointers(void);

@@ -41,7 +41,7 @@ public:
 	virtual BOOL				Save(CObjectSerialiser* pcFile) =0;
 	virtual BOOL				Load(CObjectDeserialiser* pcFile) =0;
 	virtual BOOL				IsHollow(void) =0;
-	virtual void				RemoveFrom(CBaseObject* mpcEmbedding) =0;
+	virtual void				RemoveHeapFrom(CBaseObject* mpcEmbedding) =0;
 	virtual int					RemapTos(CEmbeddedObject* pcOld, CEmbeddedObject* mpcObject);
 	virtual void				SetDistToRoot(int iDistToRoot);
 	virtual int					DistToRoot(void);
@@ -61,9 +61,10 @@ public:
 	virtual CEmbeddedObject*	GetEmbeddedObject(int iIndex) =0;
 	virtual CBaseObject*		Dehollow(void) =0;
 
-	virtual BOOL				HasStackPointers(void);
+			BOOL				HasStackPointers(void);
+			BOOL				HasHeapPointers(void);
 			void				CopyFroms(CEmbeddedObject* pcSource);
-	virtual void				AddFrom(CBaseObject* pcFrom) =0;
+	virtual void				AddHeapFrom(CBaseObject* pcFrom) =0;
 	virtual int					NumHeapFroms(void);
 	virtual int					NumStackFroms(void);
 	virtual int					NumTotalFroms(void);

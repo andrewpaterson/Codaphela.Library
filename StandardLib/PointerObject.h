@@ -80,7 +80,7 @@ public:
 	CEmbeddedObject*	Dereference(void);
 
 	void				PointTo(CEmbeddedObject* pcObject);
-	void				AddFrom(CBaseObject* pcFrom);
+	void				AddHeapFrom(CBaseObject* pcFrom);
 
 	CEmbeddedObject*	ClearObject(BOOL bTryKill = TRUE);
 	void				UnsafeClearObject(void);

@@ -59,14 +59,14 @@ CPointer::CPointer()
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointer::CPointer(CPointer& pcPointer)
+CPointer::CPointer(CPointer& cPointer)
 {
 	LOG_POINTER_DEBUG();
 
-	mpcEmbedding = pcPointer.mpcEmbedding;
+	mpcEmbedding = cPointer.mpcEmbedding;
 	mpcObject = NULL;
 
-	PointTo(pcPointer.mpcObject);
+	PointTo(cPointer.mpcObject);
 }
 
 
@@ -214,13 +214,13 @@ void CPointer::PointTo(CEmbeddedObject* pcNewObject)
 			{
 				if (mpcObject)
 				{
-					mpcObject->AddFrom(mpcEmbedding);
+					mpcObject->AddHeapFrom(mpcEmbedding);
 				}
-				pcOldObject->RemoveFrom(mpcEmbedding);
+				pcOldObject->RemoveHeapFrom(mpcEmbedding);
 			}
 			else if (mpcObject)
 			{
-				mpcObject->AddFrom(mpcEmbedding);
+				mpcObject->AddHeapFrom(mpcEmbedding);
 			}
 		}
 		else
@@ -529,11 +529,11 @@ void CPointer::AssignObject(CEmbeddedObject* pcObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPointer::AddFrom(CBaseObject* pcFrom)
+void CPointer::AddHeapFrom(CBaseObject* pcFrom)
 {
 	if (mpcObject)
 	{
-		mpcObject->AddFrom(pcFrom);
+		mpcObject->AddHeapFrom(pcFrom);
 	}
 }
 

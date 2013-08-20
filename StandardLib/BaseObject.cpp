@@ -148,7 +148,7 @@ void CBaseObject::Free(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::RemoveFrom(CBaseObject* pcFrom)
+void CBaseObject::RemoveHeapFrom(CBaseObject* pcFrom)
 {
 	//Removing a 'from' kicks off memory reclamation.  This is the entry point for memory management.
 	PrivateRemoveFrom(pcFrom);
@@ -673,7 +673,7 @@ BOOL CBaseObject::IsUnknown(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::AddFrom(CBaseObject* pcFrom)
+void CBaseObject::AddHeapFrom(CBaseObject* pcFrom)
 {
 	if (pcFrom != NULL)
 	{
