@@ -20,8 +20,11 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __POINTER_H__
 #define __POINTER_H__
+#include "BaseLib/Logger.h"
+#include "BaseLib/Define.h"
 #include "PointerObject.h"
 #include "EmbeddedObject.h"
+
 
 class CObject;
 
@@ -30,9 +33,8 @@ class Ptr : public CPointer
 {
 public:
 			Ptr();
-			Ptr(CEmbeddedObject* ptr);
+			Ptr(CEmbeddedObject* pcObject);
 			Ptr(CPointer& cPointer);
-			~Ptr();
 
 	void	operator = (CEmbeddedObject* pcObject);
 	void	operator = (CPointer& pcPointer);
@@ -50,6 +52,7 @@ public:
 template<class M>
 Ptr<M>::Ptr()
 {
+	CPointer::CPointer();
 }
 
 
@@ -58,9 +61,9 @@ Ptr<M>::Ptr()
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-Ptr<M>::Ptr(CEmbeddedObject* ptr)
+Ptr<M>::Ptr(CEmbeddedObject* pcObject)
 {
-	PointTo(ptr);
+	CPointer::CPointer(pcObject);
 }
 
 
@@ -71,18 +74,7 @@ Ptr<M>::Ptr(CEmbeddedObject* ptr)
 template<class M>
 Ptr<M>::Ptr(CPointer& cPointer)
 {
-	mpcObject = cPointer.mpcObject;
-	mpcEmbedding = cPointer.mpcEmbedding;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-template<class M>
-Ptr<M>::~Ptr()
-{
+	CPointer::CPointer(cPointer);
 }
 
 
@@ -93,6 +85,8 @@ Ptr<M>::~Ptr()
 template<class M>
 void Ptr<M>::operator = (CEmbeddedObject* pcObject)
 {
+	LOG_POINTER_DEBUG();
+
 	PointTo(pcObject);
 }
 
@@ -104,6 +98,8 @@ void Ptr<M>::operator = (CEmbeddedObject* pcObject)
 template<class M>
 void Ptr<M>::operator = (CPointer& pcPointer)
 {
+	LOG_POINTER_DEBUG();
+
 	PointTo(pcPointer.mpcObject);
 }
 

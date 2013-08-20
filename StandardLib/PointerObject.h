@@ -24,6 +24,9 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "CoreLib/IndexedGeneral.h"
 
 
+#define LOG_POINTER_DEBUG()	LogPointerDebug(this, __ENGINE_PRETTY_FUNCTION__)
+
+
 //This class is roughly a void* (or possibly an Object*).  It should probably have been called CObjectPointer but it's easier to start typing CPo...
 //CPointer (and friends) are either declared on the stack or as a field on a CObject; nowhere else.  The only time embedding is NULL is when
 //this pointer is declared on the stack.
@@ -82,6 +85,9 @@ public:
 	CEmbeddedObject*	ClearObject(BOOL bTryKill = TRUE);
 	void				UnsafeClearObject(void);
 };
+
+
+void LogPointerDebug(void* pvThis, char* szMethod);
 
 
 #endif // __POINTER_OBJECT_H__

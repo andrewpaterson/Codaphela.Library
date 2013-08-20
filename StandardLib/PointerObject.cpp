@@ -18,6 +18,9 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/Define.h"
+#include "BaseLib/LogString.h"
+#include "BaseLib/Logger.h"
 #include "Object.h"
 #include "HollowObject.h"
 #include "ObjectDeserialiser.h"
@@ -29,10 +32,23 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void LogPointerDebug(void* pvThis, char* szMethod)
+{
+#ifdef DEBUG_POINTER
+#ifdef DEBUG
+	gcLogger.Debug2(PointerToString(pvThis), "->", szMethod, NULL);
+#endif // DEBUG
+#endif // DEBUG_POINTER
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 CPointer::CPointer()
 {
-	//Default Constructor.
-	//Generally this should be avoided.
+	LOG_POINTER_DEBUG();
 
 	mpcObject = NULL;
 	mpcEmbedding = NULL;
@@ -45,8 +61,11 @@ CPointer::CPointer()
 //////////////////////////////////////////////////////////////////////////
 CPointer::CPointer(CPointer& pcPointer)
 {
+	LOG_POINTER_DEBUG();
+
 	mpcEmbedding = pcPointer.mpcEmbedding;
 	mpcObject = NULL;
+
 	PointTo(pcPointer.mpcObject);
 }
 
@@ -57,8 +76,11 @@ CPointer::CPointer(CPointer& pcPointer)
 //////////////////////////////////////////////////////////////////////////
 CPointer::CPointer(CEmbeddedObject* pcObject)
 {
+	LOG_POINTER_DEBUG();
+
 	mpcEmbedding = NULL;
 	mpcObject = NULL;
+
 	PointTo(pcObject);
 }
 
@@ -70,6 +92,8 @@ CPointer::CPointer(CEmbeddedObject* pcObject)
 //////////////////////////////////////////////////////////////////////////
 CPointer::~CPointer()
 {
+	LOG_POINTER_DEBUG();
+
 	if (!mpcEmbedding)
 	{
 		if (mpcObject)
@@ -86,6 +110,8 @@ CPointer::~CPointer()
 //////////////////////////////////////////////////////////////////////////
 void CPointer::operator = (CEmbeddedObject* pcObject)
 {
+	LOG_POINTER_DEBUG();
+
 	//This operator override exists only to allow NULL assignment.
 	PointTo(pcObject);
 }
@@ -97,6 +123,8 @@ void CPointer::operator = (CEmbeddedObject* pcObject)
 //////////////////////////////////////////////////////////////////////////
 void CPointer::operator = (CPointer& pcPointer)
 {
+	LOG_POINTER_DEBUG();
+
 	PointTo(pcPointer.mpcObject);
 }
 
