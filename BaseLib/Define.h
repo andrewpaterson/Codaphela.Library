@@ -61,8 +61,9 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define FILE_SEPARATOR "\\"
 #define _FS_ FILE_SEPARATOR
 #define OTHER_OS_FILE_SEPARATOR "/"
+#define __ENGINE_FUNCTION__ __FUNCTION__
+#define __ENGINE_PRETTY_FUNCTION__ __FUNCSIG__
 #define __ENGINE_DECORATED_FUNCTION__ __FUNCDNAME__
-#define __ENGINE_PRETTY_FUNCTION__ __FUNCTION__
 #endif // WIN32
 
 
