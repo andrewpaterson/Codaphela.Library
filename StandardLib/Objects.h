@@ -43,6 +43,8 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //Temporary until stack Pointers are destructorated.
 #define ReturnKillNull(object)		object->Kill(); return Null();
 
+#define  LOG_OBJECT_ALLOCATION(pcObject) LogObjectAllocation(pcObject)
+
 class CHollowObject;
 class CNamedHollowObject;
 class CObjects
@@ -150,6 +152,8 @@ void ObjectsInit(char* szWorkingDirectory);
 void ObjectsInit(CIndexedConfig* pcConfig);
 void ObjectsKill(void);
 
+void LogObjectAllocation(CBaseObject* pcObject);
+
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -203,6 +207,9 @@ Ptr<M> CObjects::Add(void)
 		M*		pvObject;
 
 		pvObject = Allocate<M>();
+
+		LOG_OBJECT_ALLOCATION(pvObject);
+
 		AddWithID(pvObject, mcIndexGenerator.PopIndex());
 
 		//No PointTo because we don't know the embedding object until assignment.
@@ -232,7 +239,9 @@ Ptr<M> CObjects::Add(char* szObjectName)
 		M*		pvObject;
 
 		pvObject = Allocate<M>();
+
 		AddWithIDAndName(pvObject, szObjectName, mcIndexGenerator.PopIndex());
+		LOG_OBJECT_ALLOCATION(pvObject);
 
 		//No PointTo because we don't know the embedding object until assignment.
 		pObject.AssignObject(pvObject);

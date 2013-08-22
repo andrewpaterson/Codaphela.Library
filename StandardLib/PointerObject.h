@@ -20,8 +20,10 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __POINTER_OBJECT_H__
 #define __POINTER_OBJECT_H__
-#include "EmbeddedObject.h"
+#include "BaseLib/LogString.h"
+#include "BaseLib/Logger.h"
 #include "CoreLib/IndexedGeneral.h"
+#include "EmbeddedObject.h"
 
 
 #define LOG_POINTER_DEBUG()	LogPointerDebug(this, __ENGINE_PRETTY_FUNCTION__)

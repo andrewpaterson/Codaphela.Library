@@ -38,8 +38,9 @@ CBaseObject* CObjectAllocator::Add(char* szClassName)
 	{
 		return NULL;
 	}
-
+	
 	mpcObjects->AddWithIDAndName(pvObject, NULL, mpcObjects->GetIndexGenerator()->PopIndex());
+	LOG_OBJECT_ALLOCATION(pvObject);
 
 	return pvObject;
 }
@@ -70,12 +71,16 @@ CBaseObject* CObjectAllocator::Add(char* szClassName, OIndex oiForced)
 			pvObject->Kill();
 			return NULL;
 		}
+		LOG_OBJECT_ALLOCATION(pvObject);
 
 		return pvObject;
 	}
 	else
 	{
-		return ReplaceExisting(pvExisting, pvObject, NULL, oiForced);
+		pvObject = ReplaceExisting(pvExisting, pvObject, NULL, oiForced);
+		LOG_OBJECT_ALLOCATION(pvObject);
+		
+		return pvObject;
 	}
 }
 
@@ -144,7 +149,6 @@ CBaseObject* CObjectAllocator::Add(char* szClassName, char* szObjectName, OIndex
 		return NULL;
 	}
 
-
 	pvExisting = mpcObjects->GetFromMemory(szObjectName);
 	if (pvExisting == NULL)
 	{
@@ -154,15 +158,18 @@ CBaseObject* CObjectAllocator::Add(char* szClassName, char* szObjectName, OIndex
 			pvObject->Kill();
 			return NULL;
 		}
+		LOG_OBJECT_ALLOCATION(pvObject);
 
 		*poiExisting = INVALID_O_INDEX;
-
 		return pvObject;
 	}
 	else
 	{
 		*poiExisting = pvExisting->GetOI();
-		return ReplaceExisting(pvExisting, pvObject, szObjectName, oiForced);
+		pvObject = ReplaceExisting(pvExisting, pvObject, szObjectName, oiForced);
+		LOG_OBJECT_ALLOCATION(pvObject);
+
+		return pvObject;
 	}
 }
 
@@ -178,6 +185,7 @@ CBaseObject* CObjectAllocator::ReplaceExisting(CBaseObject* pvExisting, CBaseObj
 
 	mpcObjects->Dename(pvExisting);
 	mpcObjects->Deindex(pvExisting);
+
 	bResult = mpcObjects->AddWithIDAndName(pvObject, szObjectName, oiForced);
 	if (!bResult)
 	{

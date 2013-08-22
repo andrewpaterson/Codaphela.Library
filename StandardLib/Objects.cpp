@@ -42,6 +42,36 @@ CObjects gcObjects;
 //////////////////////////////////////////////////////////////////////////
 //
 //
+//////////////////////////////////////////////////////////////////////////
+void LogObjectAllocation(CBaseObject* pcObject)
+{
+#ifdef DEBUG_OBJECT_ALLOCATION
+#ifdef DEBUG
+	char*	szClass;
+	char*	szName;
+	char*	szIndex;
+	char*	szAddress;
+
+	if (pcObject != NULL)
+	{
+		szClass = pcObject->ClassName();
+		szIndex = IndexToString(pcObject->GetOI());
+		szName = pcObject->GetName();
+		szAddress = PointerToString(pcObject);
+		gcLogger.Debug2("Allocate ", szClass, ": ", szIndex, " ", szName, " (", szAddress, ")]", NULL);
+	}
+	else
+	{
+		gcLogger.Debug2("Allocate NULL]", NULL);
+	}
+#endif // DEBUG
+#endif // DEBUG_OBJECT_ALLOCATION
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
 ////////////////////////////////////////////////////////////////////////////
 CObjects::CObjects()
 {
