@@ -32,11 +32,32 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void LogPointerDebug(void* pvThis, char* szMethod)
+void LogPointerDebug(CPointer* pvThis, char* szMethod)
 {
 #ifdef DEBUG_POINTER
 #ifdef DEBUG
-	gcLogger.Debug2(PointerToString(pvThis), "->", szMethod, NULL);
+	char*	szEmbeddingClass;
+	char*	szEmbeddingName;
+	char*	szEmbeddingIndex;
+	char*	szEmbeddingAddress;
+
+	CObject*	pcEmbedding;
+
+	pcEmbedding = pvThis->Embedding();
+	if (pcEmbedding != NULL)
+	{
+		szEmbeddingClass = pcEmbedding->ClassName();
+		szEmbeddingIndex = IndexToString(pcEmbedding->GetOI());
+		szEmbeddingName = pcEmbedding->GetName();
+		szEmbeddingAddress = PointerToString(pcEmbedding);
+		gcLogger.Debug2(PointerToString(pvThis), "->", szMethod, " [Embedding ", szEmbeddingClass, ": ", szEmbeddingIndex, " ", szEmbeddingName, " (", szEmbeddingAddress, ")]", NULL);
+	}
+	else
+	{
+		gcLogger.Debug2(PointerToString(pvThis), "->", szMethod, " [Embedding NULL]", NULL);
+	}
+
+	
 #endif // DEBUG
 #endif // DEBUG_POINTER
 }
@@ -48,10 +69,10 @@ void LogPointerDebug(void* pvThis, char* szMethod)
 //////////////////////////////////////////////////////////////////////////
 CPointer::CPointer()
 {
-	LOG_POINTER_DEBUG();
-
 	mpcObject = NULL;
 	mpcEmbedding = NULL;
+
+	LOG_POINTER_DEBUG();
 }
 
 
@@ -61,10 +82,10 @@ CPointer::CPointer()
 //////////////////////////////////////////////////////////////////////////
 CPointer::CPointer(CPointer& cPointer)
 {
-	LOG_POINTER_DEBUG();
-
 	mpcEmbedding = cPointer.mpcEmbedding;
 	mpcObject = NULL;
+
+	LOG_POINTER_DEBUG();
 
 	PointTo(cPointer.mpcObject);
 }
@@ -76,10 +97,10 @@ CPointer::CPointer(CPointer& cPointer)
 //////////////////////////////////////////////////////////////////////////
 CPointer::CPointer(CEmbeddedObject* pcObject)
 {
-	LOG_POINTER_DEBUG();
-
 	mpcEmbedding = NULL;
 	mpcObject = NULL;
+
+	LOG_POINTER_DEBUG();
 
 	PointTo(pcObject);
 }

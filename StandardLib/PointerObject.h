@@ -87,7 +87,7 @@ public:
 };
 
 
-void LogPointerDebug(void* pvThis, char* szMethod);
+void LogPointerDebug(CPointer* pvThis, char* szMethod);
 
 
 #endif // __POINTER_OBJECT_H__
