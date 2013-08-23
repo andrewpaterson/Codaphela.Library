@@ -43,7 +43,7 @@ CObjects gcObjects;
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void LogObjectAllocation(CBaseObject* pcObject)
+void LogObjectAllocation(CBaseObject* pcObject, char* szMethod)
 {
 #ifdef DEBUG_OBJECT_ALLOCATION
 #ifdef DEBUG
@@ -58,11 +58,41 @@ void LogObjectAllocation(CBaseObject* pcObject)
 		szIndex = IndexToString(pcObject->GetOI());
 		szName = pcObject->GetName();
 		szAddress = PointerToString(pcObject);
-		gcLogger.Debug2("Allocate ", szClass, ": ", szIndex, " ", szName, " (", szAddress, ")]", NULL);
+		gcLogger.Debug2(szMethod, "Allocate ", szClass, ": ", szIndex, " ", szName, " (", szAddress, ")]", NULL);
 	}
 	else
 	{
-		gcLogger.Debug2("Allocate NULL]", NULL);
+		gcLogger.Debug2(szMethod, "Allocate NULL]", NULL);
+	}
+#endif // DEBUG
+#endif // DEBUG_OBJECT_ALLOCATION
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void LogObjectDestruction(CBaseObject* pcObject, char* szMethod)
+{
+#ifdef DEBUG_OBJECT_ALLOCATION
+#ifdef DEBUG
+	char*	szClass;
+	char*	szName;
+	char*	szIndex;
+	char*	szAddress;
+
+	if (pcObject != NULL)
+	{
+		szClass = pcObject->ClassName();
+		szIndex = IndexToString(pcObject->GetOI());
+		szName = pcObject->GetName();
+		szAddress = PointerToString(pcObject);
+		gcLogger.Debug2(szMethod, "Kill ", szClass, ": ", szIndex, " ", szName, " (", szAddress, ")]", NULL);
+	}
+	else
+	{
+		gcLogger.Debug2(szMethod, "Kill NULL]", NULL);
 	}
 #endif // DEBUG
 #endif // DEBUG_OBJECT_ALLOCATION

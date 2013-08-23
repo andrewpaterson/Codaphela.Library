@@ -220,6 +220,7 @@ CBaseObject* CObjectAllocator::AddHollow(OIndex oiForced, unsigned short iNumEmb
 	pcExisting = mpcObjects->GetFromMemory(oiForced);
 	if (pcExisting)
 	{
+		LOG_OBJECT_ALLOCATION(pcExisting);
 		return pcExisting;
 	}
 
@@ -232,6 +233,7 @@ CBaseObject* CObjectAllocator::AddHollow(OIndex oiForced, unsigned short iNumEmb
 	bResult = mpcObjects->AddWithIDAndName(pcHollow, NULL, oiForced);
 	if (bResult)
 	{
+		LOG_OBJECT_ALLOCATION(pcHollow);
 		return pcHollow;
 	}
 	else
@@ -284,6 +286,7 @@ CBaseObject* CObjectAllocator::AddHollow(char* szObjectName, OIndex oiForced, un
 	bResult = gcObjects.AddWithIDAndName(pcHollow, szObjectName, oiForced);
 	if (bResult)
 	{
+		LOG_OBJECT_ALLOCATION(pcHollow);
 		return pcHollow;
 	}
 	else
@@ -325,6 +328,7 @@ CBaseObject* CObjectAllocator::AddHollow(char* szObjectName, unsigned short iNum
 	bResult = gcObjects.AddWithIDAndName(pcHollow, szObjectName, mpcObjects->GetIndexGenerator()->PopIndex());
 	if (bResult)
 	{
+		LOG_OBJECT_ALLOCATION(pcHollow);
 		return pcHollow;
 	}
 	else

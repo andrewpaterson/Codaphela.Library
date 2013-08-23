@@ -43,7 +43,8 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //Temporary until stack Pointers are destructorated.
 #define ReturnKillNull(object)		object->Kill(); return Null();
 
-#define  LOG_OBJECT_ALLOCATION(pcObject) LogObjectAllocation(pcObject)
+#define  LOG_OBJECT_ALLOCATION(pcObject) LogObjectAllocation(pcObject, __ENGINE_PRETTY_FUNCTION__)
+#define  LOG_OBJECT_DESTRUCTION(pcObject) LogObjectDestruction(pcObject, __ENGINE_PRETTY_FUNCTION__)
 
 class CHollowObject;
 class CNamedHollowObject;
@@ -152,7 +153,8 @@ void ObjectsInit(char* szWorkingDirectory);
 void ObjectsInit(CIndexedConfig* pcConfig);
 void ObjectsKill(void);
 
-void LogObjectAllocation(CBaseObject* pcObject);
+void LogObjectAllocation(CBaseObject* pcObject, char* szMethod);
+void LogObjectDestruction(CBaseObject* pcObject, char* szMethod);
 
 
 //////////////////////////////////////////////////////////////////////////
