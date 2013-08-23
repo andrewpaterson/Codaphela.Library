@@ -119,6 +119,8 @@ void CBaseObject::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::KillDontFree(void)
 {
+	LOG_OBJECT_DESTRUCTION(this);
+
 	KillData();
 	KillFroms();
 	KillToPointers();
@@ -193,9 +195,10 @@ void CBaseObject::TryKill(BOOL bStackPointerRemoved)
 	{
 		bHasHeapPointers = HasHeapPointers();
 		bHasStackPointers = HasStackPointers();
+		bCanFindRoot = IsRoot();
 
 		//If we removed a stack pointer and have no more stack pointers and have no heap pointers (regardless of wether or not they can find the root)
-		bMustKill = !bHasHeapPointers && !bHasStackPointers;
+		bMustKill = !bHasHeapPointers && !bHasStackPointers && !bCanFindRoot;
 		if (bMustKill)
 		{
 			//then we can kill this object.
@@ -422,6 +425,11 @@ BOOL CBaseObject::CanFindRoot(void)
 	int								iPointedFromDist;
 	BOOL							bResult;
 	CArrayEmbeddedBaseObjectPtr		apcFroms;
+
+	if (this->IsRoot())
+	{
+		return TRUE;
+	}
 
 	SetFlagEmbedded(OBJECT_FLAGS_TESTED_FOR_ROOT, TRUE);
 
