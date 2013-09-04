@@ -39,6 +39,7 @@ public:
 
 	void	operator = (CEmbeddedObject* pcObject);
 	void	operator = (CPointer& pcPointer);
+	void	operator = (Ptr& pcPointer);
 	M*		operator -> ();
 	M*		operator & ();
 };
@@ -65,7 +66,7 @@ Ptr<M>::Ptr(CPointer& cPointer)
 {
 	LOG_POINTER_DEBUG();
 
-	mpcEmbedding = cPointer.mpcEmbedding;
+	mpcEmbedding = NULL;
 	mpcObject = NULL;
 
 	PointTo(cPointer.mpcObject);
@@ -116,6 +117,19 @@ void Ptr<M>::operator = (CEmbeddedObject* pcObject)
 //////////////////////////////////////////////////////////////////////////
 template<class M>
 void Ptr<M>::operator = (CPointer& pcPointer)
+{
+	LOG_POINTER_DEBUG();
+
+	PointTo(pcPointer.mpcObject);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+void Ptr<M>::operator = (Ptr& pcPointer)
 {
 	LOG_POINTER_DEBUG();
 

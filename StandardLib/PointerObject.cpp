@@ -82,7 +82,7 @@ CPointer::CPointer()
 //////////////////////////////////////////////////////////////////////////
 CPointer::CPointer(CPointer& cPointer)
 {
-	mpcEmbedding = cPointer.mpcEmbedding;
+	mpcEmbedding = NULL;
 	mpcObject = NULL;
 
 	LOG_POINTER_DEBUG();
@@ -542,7 +542,10 @@ void CPointer::ClearIndex(void)
 void CPointer::AssignObject(CEmbeddedObject* pcObject)
 {
 	mpcObject = pcObject;
-	mpcObject->AddStackFrom(this);
+	if (mpcObject)
+	{
+		mpcObject->AddStackFrom(this);
+	}
 }
 
 
