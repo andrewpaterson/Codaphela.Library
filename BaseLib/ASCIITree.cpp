@@ -77,7 +77,9 @@ int CASCIITree::Add(long long int lliID, char* szText, char* szLastCharInclusive
 	int				iLen;
 
 #ifdef DEBUG_ASCII_TREE
+#ifdef DEBUG
 	gcLogger.Info2("CASCIITree::Add(", LongLongToString(lliID), ", \"", szText, "\");", NULL);
+#endif //  DEBUG
 #endif // DEBUG_ASCII_TREE
 
 	if (szLastCharInclusive == NULL)
@@ -359,6 +361,7 @@ BOOL CASCIITree::Remove(EASCIITreeRemoveStyle eStyle, char* szText, char* szLast
 	int				iLen;
 
 #ifdef DEBUG_ASCII_TREE
+#ifdef DEBUG
 	char*	szStyle = NULL;
 	switch (eStyle)
 	{
@@ -373,6 +376,7 @@ BOOL CASCIITree::Remove(EASCIITreeRemoveStyle eStyle, char* szText, char* szLast
 		break;
 	}
 	gcLogger.Info2("CASCIITree::Remove(", szStyle, ", \"", szText, "\");", NULL);
+#endif // DEBUG
 #endif // DEBUG_ASCII_TREE
 
 	if (szText == NULL)
