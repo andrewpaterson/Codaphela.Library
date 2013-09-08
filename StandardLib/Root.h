@@ -60,6 +60,7 @@ public:
 						CPointer		Get(char* szObjectName);
 	template<class M>	Ptr<M>			Get(char* szObjectName);
 						Ptr<CSetObject>	GetAll(void);
+						int				NumObjects(void);
 
 						CSetObject*		TestGetSet(void);
 						BOOL			IsSetHollow(void);
