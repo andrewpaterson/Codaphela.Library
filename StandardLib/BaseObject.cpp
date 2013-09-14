@@ -186,9 +186,13 @@ void CBaseObject::TryKill(BOOL bStackPointerRemoved)
 			//then we can kill this object.
 			pcContainer->KillThisGraph();
 		}
-		else
+		else if (bCanFindRoot)
 		{
 			pcContainer->FixDistToRoot();
+		}
+		else if (bHasStackPointers)
+		{
+			pcContainer->ClearDistToSubRoot();
 		}
 	}
 	else
@@ -337,8 +341,11 @@ CBaseObject* CBaseObject::ClearDistToSubRoot(void)
 	CBaseObject*					pcRootSet;
 	CBaseObject*					pcTemp;
 	CArrayEmbeddedBaseObjectPtr		apcFroms;
+	CBaseObject*					pcNotEmbedded;
 
-	miDistToRoot = UNATTACHED_DIST_TO_ROOT;
+	pcNotEmbedded = (CBaseObject*)GetEmbeddingContainer();
+	pcNotEmbedded->RecurseSetDistToRoot(UNATTACHED_DIST_TO_ROOT);
+	
 	pcRootSet = NULL;
 
 	apcFroms.Init();
