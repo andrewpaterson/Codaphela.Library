@@ -54,7 +54,7 @@ public:
 	void*				Add(unsigned int iSize);
 	void*				Add(unsigned int iSize, int iAlignment, int iOffset = 0);
 	void				Remove(void* pv);
-	void				Remove(CArrayVoidPtr* pav);
+	BOOL				Remove(CArrayVoidPtr* pav);
 	CFreeListBlock*		GetFreeList(unsigned int iElementSize, int iAlignment, int iOffset);
 	CFreeListBlock*		GetFreeList(unsigned int iElementSize);
 	void*				Grow(void* pvInitial, unsigned int iSize);

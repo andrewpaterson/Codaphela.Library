@@ -20,6 +20,7 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
+#include "Logger.h"
 #include "Memory.h"
 
 
@@ -181,7 +182,7 @@ void CMemory::Remove(void* pv)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMemory::Remove(CArrayVoidPtr* pav)
+BOOL CMemory::Remove(CArrayVoidPtr* pav)
 {
 	int					i;
 	void*				pv;
@@ -220,8 +221,8 @@ void CMemory::Remove(CArrayVoidPtr* pav)
 				}
 				else
 				{
-					//WierdSpace.
-					int xxx = 0;
+					gcLogger.Error("CMemory::Remove: Could not deallocate memory.");
+					return FALSE;
 				}
 			}
 		}
@@ -230,6 +231,7 @@ void CMemory::Remove(CArrayVoidPtr* pav)
 			DeallocateInLargeList(psAlloc);
 		}
 	}
+	return TRUE;
 }
 
 
