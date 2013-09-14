@@ -27,6 +27,7 @@ class CObjectSerialiser;
 class CObjectDeserialiser;
 class CEmbeddedObject : public CUnknown
 {
+friend class CPointer;
 BASE_FUNCTIONS(CEmbeddedObject);
 protected:
 	CBaseObject*						mpcEmbedded;  //Object that 'this' is embedded in.
@@ -69,8 +70,8 @@ public:
 	virtual int					NumStackFroms(void);
 	virtual int					NumTotalFroms(void);
 			void				AddStackFrom(CPointer* pcPointer);
+			void				RemoveStackFromTryKill(CPointer* pcPointer);
 			void				RemoveStackFrom(CPointer* pcPointer);
-			void				UnsafeRemoveStackFrom(CPointer* pcPointer);
 			CBaseObject*		PrivateGetFrom(int iFrom);
 			CBaseObject*		TestGetFrom(int iFromIndex);
 			BOOL				IsAllocatedInObjects(void);

@@ -380,7 +380,7 @@ void CEmbeddedObject::AddStackFrom(CPointer* pcPointer)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CEmbeddedObject::RemoveStackFrom(CPointer* pcPointer)
+void CEmbeddedObject::RemoveStackFromTryKill(CPointer* pcPointer)
 {
 	CStackPointers*	pcStackPointers;
 
@@ -400,7 +400,7 @@ void CEmbeddedObject::RemoveStackFrom(CPointer* pcPointer)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CEmbeddedObject::UnsafeRemoveStackFrom(CPointer* pcPointer)
+void CEmbeddedObject::RemoveStackFrom(CPointer* pcPointer)
 {
 	CStackPointers*	pcStackPointers;
 

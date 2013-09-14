@@ -119,7 +119,7 @@ CPointer::~CPointer()
 	{
 		if (mpcObject)
 		{
-			mpcObject->RemoveStackFrom(this);
+			mpcObject->RemoveStackFromTryKill(this);
 		}
 	}
 }
@@ -248,7 +248,7 @@ void CPointer::PointTo(CEmbeddedObject* pcNewObject)
 		{
 			if (pcOldObject)
 			{
-				pcOldObject->RemoveStackFrom(this);
+				pcOldObject->RemoveStackFromTryKill(this);
 			}
 
 			if (mpcObject)
@@ -572,13 +572,29 @@ CEmbeddedObject* CPointer::ClearObject(BOOL bTryKill)
 
 	if (bTryKill)
 	{
-		PointTo(NULL);
+		if (mpcEmbedding)
+		{			
+			if (mpcObject)
+			{
+				mpcObject->RemoveHeapFrom(mpcEmbedding);
+			}
+		}
+		else
+		{
+			if (mpcObject)
+			{
+				mpcObject->RemoveStackFrom(this);
+				mpcObject->TryKill(FALSE);
+			}
+		}
+		
+		mpcObject = NULL;
 		return mpcObject;
 	}
 	else
 	{
 		pOldObject = mpcObject;
-		mpcObject->UnsafeRemoveStackFrom(this);
+		mpcObject->RemoveStackFrom(this);
 		mpcObject = NULL;
 		return pOldObject;
 	}
