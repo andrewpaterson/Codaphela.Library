@@ -164,7 +164,7 @@ void CBaseObject::RemoveHeapFrom(CBaseObject* pcFrom)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::TryKill(BOOL bStackPointerRemoved)
+void CBaseObject::TryKill(BOOL bDontTryFindRoot)
 {
 	CBaseObject*	pcContainer;
 	BOOL			bHasStackPointers;
@@ -174,7 +174,7 @@ void CBaseObject::TryKill(BOOL bStackPointerRemoved)
 
 	pcContainer = GetEmbeddingContainer();
 
-	if (!bStackPointerRemoved)
+	if (!bDontTryFindRoot)
 	{
 		bHasStackPointers = HasStackPointers();
 		bCanFindRoot = CanFindRoot();

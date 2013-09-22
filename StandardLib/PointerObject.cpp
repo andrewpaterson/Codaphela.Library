@@ -133,7 +133,6 @@ void CPointer::operator = (CEmbeddedObject* pcObject)
 {
 	LOG_POINTER_DEBUG();
 
-	//This operator override exists only to allow NULL assignment.
 	PointTo(pcObject);
 }
 
