@@ -94,6 +94,7 @@ void CArrayEmbedded<M, I>::Kill(void)
 	{
 		mcArray.Kill();
 	}
+	miUsedElements = 0;
 }
 
 
