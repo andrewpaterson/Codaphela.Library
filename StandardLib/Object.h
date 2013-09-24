@@ -67,7 +67,7 @@ protected:
 	void				CollectPointedToToBeKilled(CArrayBaseObjectPtr* papcKilled);
 	int					RemapTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew);
 	void				Free(void);
-	void				RecurseGetFroms(CArrayEmbeddedBaseObjectPtr* papcFroms);
+	void				RecurseGetHeapFroms(CArrayEmbeddedBaseObjectPtr* papcFroms);
 	void				PrivateSetDistToRoot(int iDistToRoot);
 	BOOL				RecurseGetEmbeddedIndex(CEmbeddedObject* pcTest, int* piIndex);
 	CEmbeddedObject*	RecurseGetEmbeddedObject(int iIndex, int* iCount);
@@ -75,6 +75,7 @@ protected:
 	int					RecurseNumTotalFroms(void);
 	int					RecurseNumStackFroms(void);
 	CStackPointers*		GetStackPointers(void);
+	void				RecurseGetStackFroms(CArrayPointerPtr* papcFroms);
 };
 
 

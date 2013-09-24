@@ -20,6 +20,10 @@ class CBaseObject;
 typedef CArrayTemplate<CBaseObject*>		CArrayBaseObjectPtr;
 typedef CArrayEmbedded<CBaseObject*, 32>	CArrayEmbeddedBaseObjectPtr;
 
+class CPointer;
+typedef CArrayEmbedded<CPointer*, 32>	CArrayPointerPtr;
+
+
 
 class CObject;
 class CObjects;
@@ -64,7 +68,6 @@ public:
 
 			BOOL				HasStackPointers(void);
 			BOOL				HasHeapPointers(void);
-			void				CopyFroms(CEmbeddedObject* pcSource);
 	virtual void				AddHeapFrom(CBaseObject* pcFrom) =0;
 	virtual int					NumHeapFroms(void);
 	virtual int					NumStackFroms(void);
@@ -72,17 +75,21 @@ public:
 			void				AddStackFrom(CPointer* pcPointer);
 			void				RemoveStackFromTryKill(CPointer* pcPointer);
 			void				RemoveStackFrom(CPointer* pcPointer);
-			CBaseObject*		PrivateGetFrom(int iFrom);
+			CBaseObject*		PrivateGetHeapFrom(int iFrom);
 			CBaseObject*		TestGetFrom(int iFromIndex);
 			BOOL				IsAllocatedInObjects(void);
+			void				GetStackFroms(CArrayPointerPtr* papcFroms);
+			CStackPointer*		GetFirstStackFrom(void);
+
 protected:
 	virtual void				TryKill(BOOL bStackPointerRemoved) =0;
 			void				RemoveAllFroms(void);
 			BOOL				PrivateRemoveFrom(CBaseObject* pcFrom);
-			void				GetFroms(CArrayEmbeddedBaseObjectPtr* papcFroms);
-	virtual void				RecurseGetFroms(CArrayEmbeddedBaseObjectPtr* papcFroms);
+			void				GetHeapFroms(CArrayEmbeddedBaseObjectPtr* papcFroms);
+	virtual void				RecurseGetHeapFroms(CArrayEmbeddedBaseObjectPtr* papcFroms);
 	virtual CObjects*			GetObjects(void) =0;
 	virtual CStackPointers*		GetStackPointers(void) =0;
+	virtual void				RecurseGetStackFroms(CArrayPointerPtr* papcFroms);
 };
 
 
