@@ -26,6 +26,7 @@ public:
 	void			RemoveAll(void);
 	void			ClearPointer(void);
 	CStackPointer*	ClearPointerGetNext(void);
+	CPointer*		GetPointer(void);
 };
 
 
