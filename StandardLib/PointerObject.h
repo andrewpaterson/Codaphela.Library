@@ -66,7 +66,7 @@ public:
 	CEmbeddedObject**	ObjectPtr(void);
 	void				UnsafePointTo(CEmbeddedObject* pcNewObject);
 	CBaseObject*		BaseObject(void);
-	int					RemapFrom(CEmbeddedObject* pcOld);
+	int					Remap(CEmbeddedObject* pcOld);
 
 	BOOL				IsHollow(void);
 	BOOL				Load(CObjectDeserialiser* pcFile);

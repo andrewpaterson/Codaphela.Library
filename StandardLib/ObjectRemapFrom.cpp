@@ -1,8 +1,9 @@
 #include "BaseObject.h"
+#include "PointerObject.h"
 #include "ObjectRemapFrom.h"
 
 
-int CObjectRemapFrom::RemapFrom(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew)
+int CObjectRemapFrom::Remap(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew)
 {
 	int					iCount;
 	int					iNumEmbeddedOld;
@@ -27,8 +28,9 @@ int CObjectRemapFrom::RemapFrom(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew)
 		pcEmbeddedOld = pcOld->GetEmbeddedObject(i);
 		pcEmbeddedNew = pcNew->GetEmbeddedObject(i);
 
-		iCount += RemapEmbeddedFrom(pcEmbeddedNew, pcEmbeddedOld);
+		iCount += RemapEmbedded(pcEmbeddedNew, pcEmbeddedOld);
 	}
+	pcOld->KillFroms();
 
 	return iCount;
 }
@@ -38,24 +40,31 @@ int CObjectRemapFrom::RemapFrom(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CObjectRemapFrom::RemapEmbeddedFrom(CEmbeddedObject* pcNew, CEmbeddedObject* pcOld)
+int CObjectRemapFrom::RemapEmbedded(CEmbeddedObject* pcNew, CEmbeddedObject* pcOld)
 {
-	int				iNumFroms;
+	int				iNumHeapFroms;
 	int				i;
 	CBaseObject*	pvFrom;
 	int				iCount;
+	CStackPointer*	pcStackPointer;
 
 	iCount = 0;
 
-	iNumFroms = pcOld->CEmbeddedObject::NumHeapFroms();
-	for (i = 0; i < iNumFroms; i++)
+	iNumHeapFroms = pcOld->CEmbeddedObject::NumHeapFroms();
+	for (i = 0; i < iNumHeapFroms; i++)
 	{
-		pvFrom = pcOld->PrivateGetFrom(i);
+		pvFrom = pcOld->PrivateGetHeapFrom(i);
 		iCount += pvFrom->RemapTos(pcOld, pcNew);
 		pcNew->AddHeapFrom(pvFrom);
 	}
 
-	pcNew->CopyFroms(pcOld);
+	pcStackPointer = pcOld->GetFirstStackFrom();
+	while (pcStackPointer)
+	{
+		pcStackPointer->GetPointer()->AssignObject(pcNew);
+		pcStackPointer = pcStackPointer->GetNext();
+	}
+
 	pcNew->SetDistToRoot(pcOld->DistToRoot());
 
 	return iCount;

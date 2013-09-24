@@ -106,7 +106,6 @@ CPointer::CPointer(CEmbeddedObject* pcObject)
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -355,11 +354,11 @@ CEmbeddedObject* CPointer::Dereference(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CPointer::RemapFrom(CEmbeddedObject* pcOld)
+int CPointer::Remap(CEmbeddedObject* pcOld)
 {
 	CObjectRemapFrom	cRemapper;
 
-	return cRemapper.RemapFrom(pcOld, mpcObject);
+	return cRemapper.Remap(pcOld, mpcObject);
 }
 
 
