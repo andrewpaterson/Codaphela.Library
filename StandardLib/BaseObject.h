@@ -39,6 +39,9 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //Debug flag marking whether or not an object has had it's graph dumped yet.
 #define OBJECT_FLAGS_DUMPED					0x20
 
+//This object cannot be reached and is marked for killing.
+#define OBJECT_FLAGS_UNREACHABLE			0x40
+
 //How man embedded objects are in the object.  If you have more than 255 then you need your head smacked.
 #define OBJECT_FLAGS_NUM_EMBEDDED			0x0000FF00
 
@@ -137,6 +140,7 @@ protected:
 			void			SetFlagEmbedded(int iFlag, int iFlagValue);
 			void			TryKill(BOOL bStackPointerRemoved);
 			void			ClearStackPointersTo(void);
+			BOOL			IsMarkedUnreachable(void);
 };
 
 

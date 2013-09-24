@@ -254,11 +254,19 @@ int CBaseObject::KillThisGraph(void)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::CollectPointedToToBeKilled(CArrayBaseObjectPtr* papcKilled, CBaseObject* pcPointedTo)
 {
+	BOOL			bHasStackPointers;
+	BOOL			bCanFindRoot;
+	BOOL			bMustKill;
+
 	if (pcPointedTo)
 	{
-		if (pcPointedTo->miDistToRoot != UNATTACHED_DIST_TO_ROOT)  //Fix me.  Probably that just means delete me.
+		if (!pcPointedTo->IsMarkedUnreachable())
 		{
-			if (!pcPointedTo->CanFindRoot())
+			bHasStackPointers = pcPointedTo->HasStackPointers();
+			bCanFindRoot = pcPointedTo->CanFindRoot();
+
+			bMustKill = !bCanFindRoot && !bHasStackPointers;
+			if (bMustKill)
 			{
 				pcPointedTo->CollectThoseToBeKilled(papcKilled);
 			}
@@ -275,7 +283,10 @@ void CBaseObject::MarkThisForKilling(CArrayBaseObjectPtr* papcKilled)
 {
 	CBaseObject*		pcTemp;
 
+	//These both assume we are the embedding container.
 	RecurseSetDistToRoot(UNATTACHED_DIST_TO_ROOT);
+	RecurseSetFlagEmbedded(OBJECT_FLAGS_UNREACHABLE, TRUE);
+
 	pcTemp = this;
 	papcKilled->Add(&pcTemp);
 }
@@ -349,7 +360,7 @@ CBaseObject* CBaseObject::ClearDistToSubRoot(void)
 	pcRootSet = NULL;
 
 	apcFroms.Init();
-	GetFroms(&apcFroms);
+	GetHeapFroms(&apcFroms);
 	iNumFroms = apcFroms.NumElements();
 	ppcPointedFrom = apcFroms.GetData();
 	for (i = 0; i < iNumFroms; i++)
@@ -441,7 +452,7 @@ BOOL CBaseObject::CanFindRoot(void)
 	SetFlagEmbedded(OBJECT_FLAGS_TESTED_FOR_ROOT, TRUE);
 
 	apcFroms.Init();
-	GetFroms(&apcFroms);
+	GetHeapFroms(&apcFroms);
 	iNumFroms = apcFroms.NumElements();
 
 	if (iNumFroms == 0)
@@ -505,7 +516,7 @@ void CBaseObject::FixDistToRoot(void)
 	iNearestRoot = MAX_INT;
 
 	apcFroms.Init();
-	GetFroms(&apcFroms);
+	GetHeapFroms(&apcFroms);
 
 	iNumFroms = apcFroms.NumElements();
 	ppcPointedFrom = apcFroms.GetData();
@@ -750,7 +761,7 @@ void CBaseObject::PotentiallySetDistToRoot(CBaseObject* pcTo, int iExpectedDistT
 	iNumFroms = pcTo->CEmbeddedObject::NumHeapFroms();
 	for (i = 0; i < iNumFroms; i++)
 	{
-		pcFrom = pcTo->PrivateGetFrom(i);
+		pcFrom = pcTo->PrivateGetHeapFrom(i);
 		if (pcFrom)
 		{
 			if (pcFrom->miDistToRoot < iBestDistToRoot)
@@ -920,3 +931,14 @@ CObjects* CBaseObject::GetObjects(void)
 	pcBaseObject = GetEmbeddingContainer();
 	return pcBaseObject->mpcObjectsThisIn;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CBaseObject::IsMarkedUnreachable(void)
+{
+	return miFlags & OBJECT_FLAGS_UNREACHABLE;
+}
+

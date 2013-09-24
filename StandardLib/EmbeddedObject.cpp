@@ -225,7 +225,7 @@ BOOL CEmbeddedObject::PrivateRemoveFrom(CBaseObject* pcFrom)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CEmbeddedObject::PrivateGetFrom(int iFrom)
+CBaseObject* CEmbeddedObject::PrivateGetHeapFrom(int iFrom)
 {
 	CBaseObject**	ppFrom;
 
@@ -245,25 +245,12 @@ CBaseObject* CEmbeddedObject::PrivateGetFrom(int iFrom)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CEmbeddedObject::CopyFroms(CEmbeddedObject* pcSource)
-{
-	mapHeapFroms.ReInit();
-	mapHeapFroms.Copy(&pcSource->mapHeapFroms);
-
-	mpcStackFroms = pcSource->mpcStackFroms;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CEmbeddedObject::GetFroms(CArrayEmbeddedBaseObjectPtr* papcFroms)
+void CEmbeddedObject::GetHeapFroms(CArrayEmbeddedBaseObjectPtr* papcFroms)
 {
 	CEmbeddedObject*	pcNotEmbedded;
 
 	pcNotEmbedded = (CEmbeddedObject*)GetEmbeddingContainer();
-	pcNotEmbedded->RecurseGetFroms(papcFroms);
+	pcNotEmbedded->RecurseGetHeapFroms(papcFroms);
 }
 
 
@@ -271,7 +258,7 @@ void CEmbeddedObject::GetFroms(CArrayEmbeddedBaseObjectPtr* papcFroms)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CEmbeddedObject::RecurseGetFroms(CArrayEmbeddedBaseObjectPtr* papcFroms)
+void CEmbeddedObject::RecurseGetHeapFroms(CArrayEmbeddedBaseObjectPtr* papcFroms)
 {
 	papcFroms->Copy((CArrayEmbeddedBaseObjectPtr*)&mapHeapFroms);
 }
@@ -283,7 +270,7 @@ void CEmbeddedObject::RecurseGetFroms(CArrayEmbeddedBaseObjectPtr* papcFroms)
 //////////////////////////////////////////////////////////////////////////
 CBaseObject* CEmbeddedObject::TestGetFrom(int iFromIndex)
 {
-	return PrivateGetFrom(iFromIndex);
+	return PrivateGetHeapFrom(iFromIndex);
 }
 
 
@@ -426,3 +413,47 @@ BOOL CEmbeddedObject::IsAllocatedInObjects(void)
 	pcObjects = GetObjects();
 	return pcObjects != NULL;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CEmbeddedObject::GetStackFroms(CArrayPointerPtr* papcFroms)
+{
+	CEmbeddedObject*	pcNotEmbedded;
+	
+	pcNotEmbedded = (CEmbeddedObject*)GetEmbeddingContainer();
+	pcNotEmbedded->RecurseGetStackFroms(papcFroms);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CStackPointer* CEmbeddedObject::GetFirstStackFrom(void)
+{
+	return mpcStackFroms;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CEmbeddedObject::RecurseGetStackFroms(CArrayPointerPtr* papcFroms)
+{
+	CStackPointer*	pcStackPointer;
+	CPointer*		pcPointer;
+
+	pcStackPointer = mpcStackFroms;
+	while (pcStackPointer)
+	{
+		pcPointer = pcStackPointer->GetPointer();
+		papcFroms->Add(&pcPointer);
+
+		pcStackPointer = pcStackPointer->GetNext();
+	}
+}
+
