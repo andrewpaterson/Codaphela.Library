@@ -354,11 +354,11 @@ CEmbeddedObject* CPointer::Dereference(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CPointer::Remap(CEmbeddedObject* pcOld)
+int CPointer::MorphInto(CEmbeddedObject* pcNew)
 {
 	CObjectRemapFrom	cRemapper;
 
-	return cRemapper.Remap(pcOld, mpcObject);
+	return cRemapper.Remap(mpcObject, pcNew);
 }
 
 
