@@ -45,6 +45,7 @@ public:
 	BOOL				Remove(CBaseObject* pcObject);
 
 	int					NumElements(void);
+	int					NonNullElements(void);
 
 	void				MakeSubRoot(void);
 	BOOL				IsSubRoot(void);

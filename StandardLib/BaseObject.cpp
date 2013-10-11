@@ -122,7 +122,7 @@ void CBaseObject::KillDontFree(void)
 	LOG_OBJECT_DESTRUCTION(this);
 
 	KillData();
-	KillFroms();
+	CEmbeddedObject::KillFroms();
 	KillToPointers();
 
 	miFlags |= OBJECT_FLAGS_KILLED;

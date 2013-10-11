@@ -112,6 +112,27 @@ void CObject::KillDontFree(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CObject::KillFroms(void)
+{
+	int				i;
+	int				iNumEmbedded;
+	CBaseObject*	pcEmbedded;
+
+	CEmbeddedObject::KillFroms();
+	
+	iNumEmbedded = mapEmbedded.NumElements();
+	for (i = 0; i < iNumEmbedded; i++)
+	{
+		pcEmbedded = *mapEmbedded.Get(i);
+		pcEmbedded->KillFroms();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CObject::Free(void)
 {
 	CBaseObject::Free();

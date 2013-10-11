@@ -103,6 +103,7 @@ public:
 	CUnknown*			UnsafeGet(int iIndex);
 	CUnknown**			UnsafeGetPointer(int iIndex);
 	int					UnsafeNumElements(void);
+	int					UnsafeNonNullElements(void);
 	BOOL				LoadArrayHeader(CFileReader* pcFile, int* piFlags, int* piNumElements);
 	BOOL				SaveArrayHeader(CFileWriter* pcFile);
 	void				PostLoad(int iFlags);
