@@ -65,7 +65,7 @@ int CObjectRemapFrom::RemapEmbedded(CEmbeddedObject* pcNew, CEmbeddedObject* pcO
 	pcStackPointer = pcOld->GetFirstStackFrom();
 	while (pcStackPointer)
 	{
-		pcStackPointer->GetPointer()->AssignObject(pcNew);
+		pcStackPointer->GetPointer()->UnsafePointTo(pcNew);
 		pcStackPointer = pcStackPointer->GetNext();
 	}
 
