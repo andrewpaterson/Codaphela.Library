@@ -29,6 +29,7 @@ along with Codaphela TestLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/Define.h"
 #include "BaseLib/FloatHelper.h"
 #include "BaseLib/GeometricTypes.h"
+#include "BaseLib/Validation.h"
 
 
 void PrivateBeginTests(char* szFile);
@@ -64,37 +65,33 @@ BOOL PrivateAssertFile(char* szExpectedFileName, char* szActualFileName, int iLi
 BOOL PrivateAssertFile(char* szExpectedFileName, void* pcMemory, int iLength, int iLine, char* szFile);
 
 
-#define Break()	__asm int 3;
-#define EmbreakFailure(test)	if (!test) Break();
-
-
 #define TestStatistics()			PrivateTestStatistics(__FILE__)
 #define BeginTests()				PrivateBeginTests(__FILE__)
-#define AssertString(e, a)			EmbreakFailure(PrivateAssertString(e, a, TRUE, __LINE__, __FILE__))
-#define AssertStringCase(e, a, c)	EmbreakFailure(PrivateAssertString(e, a, c, __LINE__, __FILE__))
-#define AssertTristate(e, a)		EmbreakFailure(PrivateAssertTristate(e, a, __LINE__, __FILE__))
-#define AssertBool(e, a)			EmbreakFailure(PrivateAssertBool(e, a, __LINE__, __FILE__))
-#define AssertTrue(a)				EmbreakFailure(PrivateAssertBool(TRUE, a, __LINE__, __FILE__))
-#define AssertFalse(a)				EmbreakFailure(PrivateAssertBool(FALSE, a, __LINE__, __FILE__))
-#define AssertChar(e, a)			EmbreakFailure(PrivateAssertChar(e, a, __LINE__, __FILE__))
-#define AssertInt(e, a)		    	EmbreakFailure(PrivateAssertInt(e, a, __LINE__, __FILE__))
-#define AssertIntHex(e, a)			EmbreakFailure(PrivateAssertIntHex(e, a, __LINE__, __FILE__))
-#define AssertShort(e, a)			EmbreakFailure(PrivateAssertShort(e, a, __LINE__, __FILE__))
-#define AssertShortHex(e, a)		EmbreakFailure(PrivateAssertShortHex(e, a, __LINE__, __FILE__))
-#define AssertLongLongInt(e, a)		EmbreakFailure(PrivateAssertLongLongInt(e, a, __LINE__, __FILE__))
-#define AssertFloat(e, a, t)		EmbreakFailure(PrivateAssertFloat(e, a, t, __LINE__, __FILE__))
-#define AssertFloat3(e, a, t)		EmbreakFailure(PrivateAssertFloat3(e, a, t, __LINE__, __FILE__))
-#define AssertMemory(e, a, s)		EmbreakFailure(PrivateAssertMemory(e, a, s, __LINE__, __FILE__))
-#define AssertZero(a, s)			EmbreakFailure(PrivateAssertZero(a, s, __LINE__, __FILE__))
-#define AssertNegative(a)			EmbreakFailure(PrivateAssertNegative(a, __LINE__, __FILE__))
-#define AssertPositive(a)			EmbreakFailure(PrivateAssertPositive(a, __LINE__, __FILE__))
-#define AssertNumber(e, a)			EmbreakFailure(PrivateAssertNumber(e, a, __LINE__, __FILE__))
-#define AssertPointer(e, a)			EmbreakFailure(PrivateAssertPointer(e, a, __LINE__, __FILE__))
-#define AssertNotNull(a)			EmbreakFailure(PrivateAssertNotNull(a, __LINE__, __FILE__))
-#define AssertNull(a)				EmbreakFailure(PrivateAssertNull(a, __LINE__, __FILE__))
-#define AssertMD5(e, a)				EmbreakFailure(PrivateAssertMD5(e, a, __LINE__, __FILE__))
-#define AssertFile(e, a)			EmbreakFailure(PrivateAssertFile(e, a, __LINE__, __FILE__))
-#define AssertFileMemory(e, a, l)	EmbreakFailure(PrivateAssertFile(e, a, l, __LINE__, __FILE__))
+#define AssertString(e, a)			Validate(PrivateAssertString(e, a, TRUE, __LINE__, __FILE__))
+#define AssertStringCase(e, a, c)	Validate(PrivateAssertString(e, a, c, __LINE__, __FILE__))
+#define AssertTristate(e, a)		Validate(PrivateAssertTristate(e, a, __LINE__, __FILE__))
+#define AssertBool(e, a)			Validate(PrivateAssertBool(e, a, __LINE__, __FILE__))
+#define AssertTrue(a)				Validate(PrivateAssertBool(TRUE, a, __LINE__, __FILE__))
+#define AssertFalse(a)				Validate(PrivateAssertBool(FALSE, a, __LINE__, __FILE__))
+#define AssertChar(e, a)			Validate(PrivateAssertChar(e, a, __LINE__, __FILE__))
+#define AssertInt(e, a)		    	Validate(PrivateAssertInt(e, a, __LINE__, __FILE__))
+#define AssertIntHex(e, a)			Validate(PrivateAssertIntHex(e, a, __LINE__, __FILE__))
+#define AssertShort(e, a)			Validate(PrivateAssertShort(e, a, __LINE__, __FILE__))
+#define AssertShortHex(e, a)		Validate(PrivateAssertShortHex(e, a, __LINE__, __FILE__))
+#define AssertLongLongInt(e, a)		Validate(PrivateAssertLongLongInt(e, a, __LINE__, __FILE__))
+#define AssertFloat(e, a, t)		Validate(PrivateAssertFloat(e, a, t, __LINE__, __FILE__))
+#define AssertFloat3(e, a, t)		Validate(PrivateAssertFloat3(e, a, t, __LINE__, __FILE__))
+#define AssertMemory(e, a, s)		Validate(PrivateAssertMemory(e, a, s, __LINE__, __FILE__))
+#define AssertZero(a, s)			Validate(PrivateAssertZero(a, s, __LINE__, __FILE__))
+#define AssertNegative(a)			Validate(PrivateAssertNegative(a, __LINE__, __FILE__))
+#define AssertPositive(a)			Validate(PrivateAssertPositive(a, __LINE__, __FILE__))
+#define AssertNumber(e, a)			Validate(PrivateAssertNumber(e, a, __LINE__, __FILE__))
+#define AssertPointer(e, a)			Validate(PrivateAssertPointer(e, a, __LINE__, __FILE__))
+#define AssertNotNull(a)			Validate(PrivateAssertNotNull(a, __LINE__, __FILE__))
+#define AssertNull(a)				Validate(PrivateAssertNull(a, __LINE__, __FILE__))
+#define AssertMD5(e, a)				Validate(PrivateAssertMD5(e, a, __LINE__, __FILE__))
+#define AssertFile(e, a)			Validate(PrivateAssertFile(e, a, __LINE__, __FILE__))
+#define AssertFileMemory(e, a, l)	Validate(PrivateAssertFile(e, a, l, __LINE__, __FILE__))
 
 
 #endif // __ASSERT_FUNCTIONS_H__

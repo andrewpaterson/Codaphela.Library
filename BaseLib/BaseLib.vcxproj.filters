@@ -139,6 +139,9 @@
     <Filter Include="Source\File\Chunk\File">
       <UniqueIdentifier>{feba0ce7-c90b-4a9d-8b4f-d8d3cf107795}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Validation">
+      <UniqueIdentifier>{9578599c-0d13-4921-b43b-f8f2a6e0d99c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DataMacro.h">
@@ -596,6 +599,9 @@
     </ClInclude>
     <ClInclude Include="LogString.h">
       <Filter>Source\Error</Filter>
+    </ClInclude>
+    <ClInclude Include="Validation.h">
+      <Filter>Source\Validation</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

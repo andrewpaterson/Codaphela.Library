@@ -228,6 +228,7 @@
     <ClInclude Include="Bool.h" />
     <ClInclude Include="DebugLog.h" />
     <ClInclude Include="Define.h" />
+    <ClInclude Include="Validation.h" />
     <ClInclude Include="Version.h" />
     <ClInclude Include="WindowsHeaders.h" />
     <ClInclude Include="ConstructorCall.h" />
