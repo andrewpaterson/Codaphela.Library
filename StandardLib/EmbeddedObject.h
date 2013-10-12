@@ -48,8 +48,8 @@ public:
 	virtual BOOL				IsHollow(void) =0;
 	virtual void				RemoveHeapFrom(CBaseObject* mpcEmbedding) =0;
 	virtual int					RemapTos(CEmbeddedObject* pcOld, CEmbeddedObject* mpcObject);
-	virtual void				SetDistToRoot(int iDistToRoot);
-	virtual int					DistToRoot(void);
+	virtual void				SetDistToRoot(int iDistToRoot) =0;
+	virtual int					GetDistToRoot(void) =0;
 	virtual OIndex				GetOI(void);
 	virtual BOOL				IsNamed(void);
 	virtual char*				GetName(void);

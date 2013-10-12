@@ -326,12 +326,12 @@ void CObjects::PrintObject(CChars* psz, CBaseObject* pcBaseObject, BOOL bEmbedde
 
 	psz->Append(PointerToString(pcBaseObject));
 	psz->Append(" [");
-	iDistToRoot = pcBaseObject->DistToRoot();
+	iDistToRoot = pcBaseObject->GetDistToRoot();
 	if (iDistToRoot >= 0 && iDistToRoot <= 9)
 	{
 		psz->Append(" ");
 	}
-	psz->Append(pcBaseObject->DistToRoot());
+	psz->Append(pcBaseObject->GetDistToRoot());
 	psz->Append("]:");
 
 	if (bEmbedded)

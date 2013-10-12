@@ -101,7 +101,7 @@ public:
 
 	virtual void				SetDistToRoot(int iDistToRoot) =0;
 			void				SetDirty(void);
-			int					DistToRoot(void);
+			int					GetDistToRoot(void);
 			BOOL				TestedForRoot(void);
 	virtual void				GetTos(CArrayEmbeddedObjectPtr* papcTos) =0;
 	virtual int					NumTos(void) =0;

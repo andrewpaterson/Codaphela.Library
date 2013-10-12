@@ -70,7 +70,7 @@ public:
 
 	BOOL				IsHollow(void);
 	BOOL				Load(CObjectDeserialiser* pcFile);
-	int					DistToRoot(void);
+	int					GetDistToRoot(void);
 	OIndex				GetIndex(void);
 	char*				GetName(void);
 	BOOL				IsNamed(void);

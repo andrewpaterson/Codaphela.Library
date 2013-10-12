@@ -69,7 +69,7 @@ int CObjectRemapFrom::RemapEmbedded(CEmbeddedObject* pcNew, CEmbeddedObject* pcO
 		pcStackPointer = pcStackPointer->GetNext();
 	}
 
-	pcNew->SetDistToRoot(pcOld->DistToRoot());
+	pcNew->SetDistToRoot(pcOld->GetDistToRoot());
 
 	return iCount;
 }

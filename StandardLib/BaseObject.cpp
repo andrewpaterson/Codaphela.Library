@@ -687,7 +687,7 @@ void CBaseObject::SetDirty(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CBaseObject::DistToRoot(void)
+int CBaseObject::GetDistToRoot(void)
 {
 	return miDistToRoot;
 }

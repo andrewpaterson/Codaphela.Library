@@ -408,11 +408,11 @@ BOOL CPointer::Load(CObjectDeserialiser* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CPointer::DistToRoot(void)
+int CPointer::GetDistToRoot(void)
 {
 	if (mpcObject)
 	{
-		return mpcObject->DistToRoot();
+		return mpcObject->GetDistToRoot();
 	}
 	else
 	{
