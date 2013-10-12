@@ -671,19 +671,6 @@ int CObject::NumTotalFroms(void)
 //////////////////////////////////////////////////////////////////////////
 int CObject::NumStackFroms(void)
 {
-	CBaseObject*	pcContainer;
-
-	pcContainer = GetEmbeddingContainer();
-	return pcContainer->RecurseNumStackFroms();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-int CObject::RecurseNumStackFroms(void)
-{
 	int				i;
 	int				iCount;
 	CBaseObject*	pcBaseObject;
@@ -693,7 +680,7 @@ int CObject::RecurseNumStackFroms(void)
 	for (i = 0; i < mapEmbedded.NumElements(); i++)
 	{
 		pcBaseObject = *mapEmbedded.Get(i);
-		iCount += pcBaseObject->RecurseNumStackFroms();
+		iCount += pcBaseObject->NumStackFroms();
 	}
 	return iCount;
 }

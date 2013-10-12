@@ -264,7 +264,7 @@ BOOL CEmbeddedObject::HasStackPointers(void)
 {
 	int		iNumStackPointers;
 
-	iNumStackPointers = NumStackFroms();
+	iNumStackPointers = GetEmbeddingContainer()->NumStackFroms();
 	return iNumStackPointers != 0;
 }
 
