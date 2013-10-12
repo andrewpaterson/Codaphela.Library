@@ -512,6 +512,8 @@ void CObjects::FreeObjects(CArrayBaseObjectPtr* papcObjectPts)
 //////////////////////////////////////////////////////////////////////////
 BOOL CObjects::Save(CBaseObject* pcObject)
 {
+	pcObject->ValidateNoEmbeddingContainer();
+
 	if (pcObject->IsDirty())
 	{
 		return ForceSave(pcObject);

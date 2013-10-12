@@ -77,7 +77,6 @@ public:
 			CBaseObject*		PrivateGetHeapFrom(int iFrom);
 			CBaseObject*		TestGetFrom(int iFromIndex);
 			BOOL				IsAllocatedInObjects(void);
-			void				GetStackFroms(CArrayPointerPtr* papcFroms);
 			CStackPointer*		GetFirstStackFrom(void);
 
 			void				ValidateNoEmbeddingContainer(void);
@@ -86,7 +85,8 @@ protected:
 	virtual void				TryKill(BOOL bStackPointerRemoved) =0;
 			void				RemoveAllFroms(void);
 			BOOL				PrivateRemoveFrom(CBaseObject* pcFrom);
-			void				GetHeapFroms(CArrayEmbeddedBaseObjectPtr* papcFroms);
+	virtual void				GetStackFroms(CArrayPointerPtr* papcFroms);
+	virtual void				GetHeapFroms(CArrayEmbeddedBaseObjectPtr* papcFroms);
 	virtual CObjects*			GetObjects(void) =0;
 	virtual CStackPointers*		GetStackPointers(void) =0;
 };

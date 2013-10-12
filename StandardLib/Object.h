@@ -48,7 +48,7 @@ public:
 	void				SetDistToRootAndSetPointedTosExpectedDistToRoot(int iDistToRoot);
 	CPointer*			Pointer(CPointer* pcPointer);
 	void				Embedded(CBaseObject* pcObject);
-	BOOL				IsEmbeddedDirty(void);
+	BOOL				IsDirty(void);
 	int					GetEmbeddedIndex(CEmbeddedObject* pcEmbedded);
 	int					GetNumEmbedded(void);
 	CEmbeddedObject*	GetEmbeddedObject(int iIndex);

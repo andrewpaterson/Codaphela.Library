@@ -430,7 +430,7 @@ void CObject::GetHeapFroms(CArrayEmbeddedBaseObjectPtr* papcFroms)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObject::IsEmbeddedDirty(void)
+BOOL CObject::IsDirty(void)
 {
 	int				i;
 	CBaseObject*	pcEmbedded;
@@ -444,7 +444,7 @@ BOOL CObject::IsEmbeddedDirty(void)
 		for (i = 0; i < mapEmbedded.NumElements(); i++)	
 		{
 			pcEmbedded = *mapEmbedded.Get(i);
-			if (pcEmbedded->IsEmbeddedDirty())
+			if (pcEmbedded->IsDirty())
 			{
 				return TRUE;
 			}

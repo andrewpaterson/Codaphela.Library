@@ -91,13 +91,12 @@ public:
 	virtual BOOL				IsObject(void) =0;
 	virtual BOOL				IsNamed(void);
 			BOOL				IsInvalidated(void);
-			BOOL				IsDirty(void);
+	virtual BOOL				IsDirty(void);
 
 	virtual char*				GetName(void);
 	virtual void				SetName(char* szName);
 			int					SerialisedSize(void);
 
-	virtual BOOL				IsEmbeddedDirty(void);
 			int					GetNumEmbedded(void);
 
 	virtual void				SetDistToRootAndSetPointedTosExpectedDistToRoot(int iDistToRoot) =0;
