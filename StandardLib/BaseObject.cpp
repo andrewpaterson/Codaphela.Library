@@ -692,15 +692,8 @@ void CBaseObject::SetExpectedDistToRoot(int iExpectedDistToRoot)
 {
 	int	iBestDistToRoot;
 
-	if ((miDistToRoot == CLEARED_DIST_TO_ROOT) || (miDistToRoot == UNATTACHED_DIST_TO_ROOT))
-	{
-		SetDistToRootAndSetPointedTosExpectedDistToRoot(iExpectedDistToRoot);
-	}
-	else
-	{
-		iBestDistToRoot = CalculateDistToRootFromPointedFroms(iExpectedDistToRoot);
-		SetDistToRootAndSetPointedTosExpectedDistToRoot(iBestDistToRoot);
-	}
+	iBestDistToRoot = CalculateDistToRootFromPointedFroms(iExpectedDistToRoot);
+	SetDistToRootAndSetPointedTosExpectedDistToRoot(iBestDistToRoot);
 }
 
 
