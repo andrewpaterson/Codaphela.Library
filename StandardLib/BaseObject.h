@@ -74,6 +74,7 @@ public:
 	virtual	void				Class(void);
 
 			void				Kill(void);
+			void				TryKill(BOOL bStackPointerRemoved);
 
 	virtual void				KillDontFree(void);
 	virtual void				KillData(void) =0;
@@ -140,7 +141,6 @@ protected:
 			int				GetNumEmbeddedFromFlags(void);
 			void			SetFlagNumEmbedded(int iNumEmbedded);
 			void			SetFlagEmbedded(int iFlag, int iFlagValue);
-			void			TryKill(BOOL bStackPointerRemoved);
 			void			ClearStackPointersTo(void);
 			BOOL			IsMarkedUnreachable(void);
 };

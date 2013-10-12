@@ -582,7 +582,7 @@ CEmbeddedObject* CPointer::ClearObject(BOOL bTryKill)
 			if (mpcObject)
 			{
 				mpcObject->RemoveStackFrom(this);
-				mpcObject->TryKill(FALSE);
+				mpcObject->GetEmbeddingContainer()->TryKill(FALSE);
 			}
 		}
 		

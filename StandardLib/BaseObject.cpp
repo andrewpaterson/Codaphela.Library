@@ -156,7 +156,7 @@ void CBaseObject::RemoveHeapFrom(CBaseObject* pcFrom)
 	//Removing a 'from' kicks off memory reclamation.  This is the entry point for memory management.
 	PrivateRemoveFrom(pcFrom);
 
-	TryKill(FALSE);
+	GetEmbeddingContainer()->TryKill(FALSE);
 }
 
 
@@ -166,13 +166,10 @@ void CBaseObject::RemoveHeapFrom(CBaseObject* pcFrom)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::TryKill(BOOL bDontTryFindRoot)
 {
-	CBaseObject*	pcContainer;
 	BOOL			bHasStackPointers;
 	BOOL			bHasHeapPointers;
 	BOOL			bCanFindRoot;
 	BOOL			bMustKill;
-
-	pcContainer = GetEmbeddingContainer();
 
 	if (!bDontTryFindRoot)
 	{
@@ -184,15 +181,15 @@ void CBaseObject::TryKill(BOOL bDontTryFindRoot)
 		if (bMustKill)
 		{
 			//then we can kill this object.
-			pcContainer->KillThisGraph();
+			KillThisGraph();
 		}
 		else if (bCanFindRoot)
 		{
-			pcContainer->FixDistToRoot();
+			FixDistToRoot();
 		}
 		else if (bHasStackPointers)
 		{
-			pcContainer->ClearDistToSubRoot();
+			ClearDistToSubRoot();
 		}
 	}
 	else
@@ -201,12 +198,12 @@ void CBaseObject::TryKill(BOOL bDontTryFindRoot)
 		bHasStackPointers = HasStackPointers();
 		bCanFindRoot = IsRoot();
 
-		//If we removed a stack pointer and have no more stack pointers and have no heap pointers (regardless of wether or not they can find the root)
+		//If we removed a stack pointer and have no more stack pointers and have no heap pointers (regardless of whether or not they can find the root)
 		bMustKill = !bHasHeapPointers && !bHasStackPointers && !bCanFindRoot;
 		if (bMustKill)
 		{
 			//then we can kill this object.
-			pcContainer->KillThisGraph();
+			KillThisGraph();
 		}
 
 		//If we still have heap pointers but no stack pointers and we can't find the root then this object is still being initialised 

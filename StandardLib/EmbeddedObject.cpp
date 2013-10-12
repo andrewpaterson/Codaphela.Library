@@ -1,3 +1,4 @@
+#include "BaseObject.h"
 #include "EmbeddedObject.h"
 
 
@@ -358,7 +359,7 @@ void CEmbeddedObject::RemoveStackFromTryKill(CPointer* pcPointer)
 		if (mpcStackFroms)
 		{
 			mpcStackFroms = pcStackPointers->Remove(mpcStackFroms, pcPointer);
-			TryKill(TRUE);
+			GetEmbeddingContainer()->TryKill(TRUE);
 		}
 	}
 }
@@ -402,9 +403,9 @@ BOOL CEmbeddedObject::IsAllocatedInObjects(void)
 //////////////////////////////////////////////////////////////////////////
 void CEmbeddedObject::GetStackFroms(CArrayPointerPtr* papcFroms)
 {
-	CEmbeddedObject*	pcNotEmbedded;
+	CBaseObject*	pcNotEmbedded;
 	
-	pcNotEmbedded = (CEmbeddedObject*)GetEmbeddingContainer();
+	pcNotEmbedded = GetEmbeddingContainer();
 	pcNotEmbedded->RecurseGetStackFroms(papcFroms);
 }
 
