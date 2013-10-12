@@ -439,3 +439,20 @@ void CEmbeddedObject::RecurseGetStackFroms(CArrayPointerPtr* papcFroms)
 	}
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CEmbeddedObject::ValidateNoEmbeddingContainer(void)
+{
+#if DEBUG
+	CEmbeddedObject*	pcContainer;	
+	BOOL				bHasEmbeddingContainer;
+
+	pcContainer = GetEmbeddingContainer();
+	bHasEmbeddingContainer = pcContainer != this;
+	Validate(!bHasEmbeddingContainer);
+#endif // DEBUG
+}
+

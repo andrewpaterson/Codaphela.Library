@@ -1,6 +1,7 @@
 #ifndef __EMBEDDED_OBJECT__
 #define __EMBEDDED_OBJECT__
 #include "BaseLib/ArrayEmbedded.h"
+#include "BaseLib/Validation.h"
 #include "CoreLib/IndexedGeneral.h"
 #include "StackPointer.h"
 #include "StackPointers.h"
@@ -21,7 +22,6 @@ typedef CArrayEmbedded<CBaseObject*, 32>	CArrayEmbeddedBaseObjectPtr;
 
 class CPointer;
 typedef CArrayEmbedded<CPointer*, 32>	CArrayPointerPtr;
-
 
 
 class CObject;
@@ -79,6 +79,8 @@ public:
 			BOOL				IsAllocatedInObjects(void);
 			void				GetStackFroms(CArrayPointerPtr* papcFroms);
 			CStackPointer*		GetFirstStackFrom(void);
+
+			void				ValidateNoEmbeddingContainer(void);
 
 protected:
 	virtual void				TryKill(BOOL bStackPointerRemoved) =0;

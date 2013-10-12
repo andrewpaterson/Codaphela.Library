@@ -166,6 +166,8 @@ void CBaseObject::RemoveHeapFrom(CBaseObject* pcFrom)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::TryKill(BOOL bDontTryFindRoot)
 {
+	ValidateNoEmbeddingContainer();
+
 	BOOL			bHasStackPointers;
 	BOOL			bHasHeapPointers;
 	BOOL			bCanFindRoot;
@@ -207,7 +209,7 @@ void CBaseObject::TryKill(BOOL bDontTryFindRoot)
 		}
 
 		//If we still have heap pointers but no stack pointers and we can't find the root then this object is still being initialised 
-		//and should not be kill.ed
+		//and should not be killed.
 	}
 }
 
@@ -298,6 +300,8 @@ void CBaseObject::MarkThisForKilling(CArrayBaseObjectPtr* papcKilled)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::CollectThoseToBeKilled(CArrayBaseObjectPtr* papcKilled)
 {
+	ValidateNoEmbeddingContainer();
+
 	MarkThisForKilling(papcKilled);
 	CollectPointedToToBeKilled(papcKilled);
 }
@@ -329,6 +333,8 @@ void CBaseObject::SetDistToRootUnattached(void)
 //////////////////////////////////////////////////////////////////////////
 CBaseObject* CBaseObject::ClearDistToSubRoot(void)
 {
+	ValidateNoEmbeddingContainer();
+
 	int								i;
 	int								iNumFroms;
 	CBaseObject**					ppcPointedFrom;
@@ -379,7 +385,6 @@ CBaseObject* CBaseObject::ClearDistToSubRoot(void)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::ClearStackPointersTo(void)
 {
-
 	CStackPointer*	pcStackPointer;
 
 	pcStackPointer = mpcStackFroms;
@@ -406,6 +411,8 @@ void CBaseObject::SetFlag(int iFlag, int iFlagValue)
 //////////////////////////////////////////////////////////////////////////
 BOOL CBaseObject::CanFindRoot(void)
 {
+	ValidateNoEmbeddingContainer();
+
 	int								iNumFroms;
 	int								i;
 	CBaseObject**					ppcPointedFrom;
@@ -477,6 +484,8 @@ BOOL CBaseObject::CanFindRoot(void)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::FixDistToRoot(void)
 {
+	ValidateNoEmbeddingContainer();
+
 	int								i;
 	CBaseObject**					ppcPointedFrom;
 	int								iNearestRoot;
