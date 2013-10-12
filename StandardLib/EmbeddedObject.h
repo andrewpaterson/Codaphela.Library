@@ -9,7 +9,6 @@
 
 #define ROOT_DIST_TO_ROOT			 0
 #define UNATTACHED_DIST_TO_ROOT		-1
-#define CLEARED_DIST_TO_ROOT		-2
 
 
 class CEmbeddedObject;

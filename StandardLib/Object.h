@@ -57,7 +57,7 @@ public:
 	int					NumStackFroms(void);
 	int					NumTotalFroms(void);
 	void				RecurseSetFlagEmbedded(int iFlag, int iFlagValue);
-	void				RecurseSetDistToRoot(int iDistToRoot);
+	void				SetDistToRootUnattached(void);
 	
 protected:
 	void				KillDontFree(void);

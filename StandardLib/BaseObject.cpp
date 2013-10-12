@@ -284,7 +284,7 @@ void CBaseObject::MarkThisForKilling(CArrayBaseObjectPtr* papcKilled)
 	CBaseObject*		pcTemp;
 
 	//These both assume we are the embedding container.
-	RecurseSetDistToRoot(UNATTACHED_DIST_TO_ROOT);
+	SetDistToRootUnattached();
 	RecurseSetFlagEmbedded(OBJECT_FLAGS_UNREACHABLE, TRUE);
 
 	pcTemp = this;
@@ -333,9 +333,9 @@ void CBaseObject::KillCollected(CArrayBaseObjectPtr* papcKilled)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::RecurseSetDistToRoot(int iDistToRoot)
+void CBaseObject::SetDistToRootUnattached(void)
 {
-	miDistToRoot = iDistToRoot;
+	miDistToRoot = UNATTACHED_DIST_TO_ROOT;
 }
 
 
@@ -355,7 +355,7 @@ CBaseObject* CBaseObject::ClearDistToSubRoot(void)
 	CBaseObject*					pcNotEmbedded;
 
 	pcNotEmbedded = (CBaseObject*)GetEmbeddingContainer();
-	pcNotEmbedded->RecurseSetDistToRoot(UNATTACHED_DIST_TO_ROOT);
+	pcNotEmbedded->SetDistToRootUnattached();
 	
 	pcRootSet = NULL;
 
@@ -537,10 +537,7 @@ void CBaseObject::FixDistToRoot(void)
 
 	if ((iNumFroms > 0) && (iNearestRoot != MAX_INT))
 	{
-		if (iNearestRoot+1 != miDistToRoot)
-		{
-			SetDistToRootAndSetPointedTosExpectedDistToRoot(iNearestRoot+1);
-		}
+		SetDistToRootAndSetPointedTosExpectedDistToRoot(iNearestRoot+1);
 	}
 }
 

@@ -266,19 +266,19 @@ void CObject::SetPointedTosDistToRoot(int iDistToRoot)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObject::RecurseSetDistToRoot(int iDistToRoot)
+void CObject::SetDistToRootUnattached(void)
 {
 	int				i;
 	int				iNumEmbedded;
 	CBaseObject*	pcEmbedded;
 
-	miDistToRoot = iDistToRoot;
+	miDistToRoot = UNATTACHED_DIST_TO_ROOT;
 
 	iNumEmbedded = mapEmbedded.NumElements();
 	for (i = 0; i < iNumEmbedded; i++)
 	{
 		pcEmbedded = *mapEmbedded.Get(i);
-		pcEmbedded->RecurseSetDistToRoot(iDistToRoot);
+		pcEmbedded->SetDistToRootUnattached();
 	}
 }
 
