@@ -335,10 +335,9 @@ CBaseObject* CBaseObject::ClearDistToSubRoot(void)
 	CBaseObject*					pcRootSet;
 	CBaseObject*					pcTemp;
 	CArrayEmbeddedBaseObjectPtr		apcFroms;
-	CBaseObject*					pcNotEmbedded;
+	CBaseObject*					pcContainer;
 
-	pcNotEmbedded = (CBaseObject*)GetEmbeddingContainer();
-	pcNotEmbedded->SetDistToRootUnattached();
+	SetDistToRootUnattached();
 	
 	pcRootSet = NULL;
 
@@ -359,7 +358,8 @@ CBaseObject* CBaseObject::ClearDistToSubRoot(void)
 				return this;
 			}
 
-			pcTemp = pcPointedFrom->ClearDistToSubRoot();
+			pcContainer = pcPointedFrom->GetEmbeddingContainer();
+			pcTemp = pcContainer->ClearDistToSubRoot();
 			if (pcTemp != NULL)
 			{
 				pcRootSet = pcTemp;

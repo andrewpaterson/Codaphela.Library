@@ -955,13 +955,15 @@ void CObjects::FixDistToRoot(CArrayEmbeddedBaseObjectPtr* papcFromsChanged)
 	CBaseObject*					pcFromsChanged;
 	CArrayEmbeddedBaseObjectPtr		apcSubRoots;
 	int								iNumSubRoots;
+	CBaseObject*					pcContainer;
 
 	apcSubRoots.Init();
 	iNumElements = papcFromsChanged->NumElements();
 	for (i = 0; i < iNumElements; i++)
 	{
 		pcFromsChanged = *papcFromsChanged->Get(i);
-		pcSubRoot = pcFromsChanged->ClearDistToSubRoot();
+		pcContainer = pcFromsChanged->GetEmbeddingContainer();
+		pcSubRoot = pcContainer->ClearDistToSubRoot();
 		if (pcSubRoot)
 		{
 			apcSubRoots.Add(&pcSubRoot);
