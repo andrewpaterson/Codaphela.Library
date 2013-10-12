@@ -260,13 +260,14 @@ void CBaseObject::CollectPointedToToBeKilled(CArrayBaseObjectPtr* papcKilled, CB
 	{
 		if (!pcPointedTo->IsMarkedUnreachable())
 		{
-			bHasStackPointers = pcPointedTo->HasStackPointers();
-			bCanFindRoot = pcPointedTo->CanFindRoot();
+			pcContainer = pcPointedTo->GetEmbeddingContainer();
+
+			bHasStackPointers = pcContainer->HasStackPointers();
+			bCanFindRoot = pcContainer->CanFindRoot();
 
 			bMustKill = !bCanFindRoot && !bHasStackPointers;
 			if (bMustKill)
 			{
-				pcContainer = pcPointedTo->GetEmbeddingContainer();
 				pcContainer->CollectThoseToBeKilled(papcKilled);
 			}
 		}
@@ -393,19 +394,6 @@ void CBaseObject::ClearStackPointersTo(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::SetFlagEmbedded(int iFlag, int iFlagValue)
-{
-	CBaseObject*	pcContainer;
-
-	pcContainer = GetEmbeddingContainer();
-	pcContainer->SetFlag(iFlag, iFlagValue);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CBaseObject::SetFlag(int iFlag, int iFlagValue)
 {
 	::SetFlag(&miFlags, iFlag, iFlagValue);
@@ -432,7 +420,7 @@ BOOL CBaseObject::CanFindRoot(void)
 		return TRUE;
 	}
 
-	SetFlagEmbedded(OBJECT_FLAGS_TESTED_FOR_ROOT, TRUE);
+	SetFlag(OBJECT_FLAGS_TESTED_FOR_ROOT, TRUE);
 
 	apcFroms.Init();
 	GetHeapFroms(&apcFroms);
@@ -441,7 +429,7 @@ BOOL CBaseObject::CanFindRoot(void)
 	if (iNumFroms == 0)
 	{
 		apcFroms.Kill();
-		SetFlagEmbedded(OBJECT_FLAGS_TESTED_FOR_ROOT, FALSE);
+		SetFlag(OBJECT_FLAGS_TESTED_FOR_ROOT, FALSE);
 		return FALSE;
 	}
 
@@ -466,18 +454,18 @@ BOOL CBaseObject::CanFindRoot(void)
 	if (pcNearestPointedFrom == NULL)
 	{
 		apcFroms.Kill();
-		SetFlagEmbedded(OBJECT_FLAGS_TESTED_FOR_ROOT, FALSE);
+		SetFlag(OBJECT_FLAGS_TESTED_FOR_ROOT, FALSE);
 		return FALSE;
 	}
 
 	if (pcNearestPointedFrom->IsRoot())
 	{
-		SetFlagEmbedded(OBJECT_FLAGS_TESTED_FOR_ROOT, FALSE);
+		SetFlag(OBJECT_FLAGS_TESTED_FOR_ROOT, FALSE);
 		return TRUE;
 	}
 
-	bResult = pcNearestPointedFrom->CanFindRoot();
-	SetFlagEmbedded(OBJECT_FLAGS_TESTED_FOR_ROOT, FALSE);
+	bResult = pcNearestPointedFrom->GetEmbeddingContainer()->CanFindRoot();
+	SetFlag(OBJECT_FLAGS_TESTED_FOR_ROOT, FALSE);
 
 	return bResult;
 }

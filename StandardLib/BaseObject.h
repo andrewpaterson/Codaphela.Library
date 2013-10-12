@@ -139,7 +139,6 @@ protected:
 			BOOL			IsBaseObject(void);
 			int				GetNumEmbeddedFromFlags(void);
 			void			SetFlagNumEmbedded(int iNumEmbedded);
-			void			SetFlagEmbedded(int iFlag, int iFlagValue);
 			void			ClearStackPointersTo(void);
 			BOOL			IsMarkedUnreachable(void);
 };
