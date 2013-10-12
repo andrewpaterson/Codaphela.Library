@@ -688,24 +688,24 @@ void CBaseObject::SetDirty(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::PotentiallySetDistToRoot(CBaseObject* pcTo, int iExpectedDistToRoot)
+void CBaseObject::PotentiallySetDistToRoot(int iExpectedDistToRoot)
 {
 	int				iNumFroms;
 	int				i;
 	CBaseObject*	pcFrom;
 	int				iBestDistToRoot;
 
-	if ((pcTo->miDistToRoot == CLEARED_DIST_TO_ROOT) || (pcTo->miDistToRoot == UNATTACHED_DIST_TO_ROOT))
+	if ((miDistToRoot == CLEARED_DIST_TO_ROOT) || (miDistToRoot == UNATTACHED_DIST_TO_ROOT))
 	{
-		pcTo->SetDistToRoot(iExpectedDistToRoot);
+		SetDistToRoot(iExpectedDistToRoot);
 		return;
 	}
 
 	iBestDistToRoot = iExpectedDistToRoot;
-	iNumFroms = pcTo->CEmbeddedObject::NumHeapFroms();
+	iNumFroms = CEmbeddedObject::NumHeapFroms();
 	for (i = 0; i < iNumFroms; i++)
 	{
-		pcFrom = pcTo->PrivateGetHeapFrom(i);
+		pcFrom = PrivateGetHeapFrom(i);
 		if (pcFrom)
 		{
 			if (pcFrom->miDistToRoot < iBestDistToRoot)
@@ -717,7 +717,7 @@ void CBaseObject::PotentiallySetDistToRoot(CBaseObject* pcTo, int iExpectedDistT
 			}
 		}
 	}
-	pcTo->SetDistToRoot(iBestDistToRoot);
+	SetDistToRoot(iBestDistToRoot);
 }
 
 
@@ -772,7 +772,7 @@ void CBaseObject::AddHeapFrom(CBaseObject* pcFrom)
 		mapHeapFroms.Add(&pcFrom);
 		if (pcFrom->miDistToRoot >= ROOT_DIST_TO_ROOT)
 		{
-			PotentiallySetDistToRoot(this, pcFrom->miDistToRoot+1);
+			PotentiallySetDistToRoot(pcFrom->miDistToRoot+1);
 		}
 	}
 }

@@ -224,14 +224,16 @@ void CObject::SetDistToRoot(int iDistToRoot)
 
 	if (miDistToRoot != iDistToRoot)
 	{
-		SetPointedTosDistToRoot(iDistToRoot);
-	}
+		miDistToRoot = iDistToRoot;
 
-	iNumEmbedded = mapEmbedded.NumElements();
-	for (i = 0; i < iNumEmbedded; i++)
-	{
-		pcEmbedded = *mapEmbedded.Get(i);
-		pcEmbedded->SetDistToRoot(iDistToRoot);
+		SetPointedTosDistToRoot(iDistToRoot);
+
+		iNumEmbedded = mapEmbedded.NumElements();
+		for (i = 0; i < iNumEmbedded; i++)
+		{
+			pcEmbedded = *mapEmbedded.Get(i);
+			pcEmbedded->SetDistToRoot(iDistToRoot);
+		}
 	}
 }
 
@@ -247,10 +249,6 @@ void CObject::SetPointedTosDistToRoot(int iDistToRoot)
 	CPointer**		ppPointer;
 	int				iNumPointers;
 
-	//There could be an issue here where the embedded object miDistToRoot is lower than it's container.
-
-	miDistToRoot = iDistToRoot;
-
 	iNumPointers = mapPointers.NumElements();
 	for (i = 0; i < iNumPointers; i++)
 	{
@@ -258,7 +256,7 @@ void CObject::SetPointedTosDistToRoot(int iDistToRoot)
 		pcPointedTo = (**ppPointer).BaseObject();
 		if (pcPointedTo)
 		{
-			PotentiallySetDistToRoot(pcPointedTo, iDistToRoot+1);
+			pcPointedTo->PotentiallySetDistToRoot(iDistToRoot + 1);
 		}
 	}
 }
@@ -423,7 +421,6 @@ void CObject::RecurseGetHeapFroms(CArrayEmbeddedBaseObjectPtr* papcFroms)
 	for (i = 0; i < iNumEmbedded; i++)
 	{
 		pcEmbedded = *mapEmbedded.Get(i);
-
 		pcEmbedded->RecurseGetHeapFroms(papcFroms);
 	}
 }

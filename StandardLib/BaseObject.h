@@ -125,7 +125,7 @@ protected:
 	virtual void			Free(void);
 			int				RemapTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew) =0;
 			BOOL			RemoveToFrom(CEmbeddedObject* pcPointedTo, CArrayEmbeddedBaseObjectPtr* papcFromsChanged);
-			void			PotentiallySetDistToRoot(CBaseObject* pcTos, int iExpectedDistToRoot);
+			void			PotentiallySetDistToRoot(int iExpectedDistToRoot);
 	virtual BOOL			CanFindRoot(void);
 			CBaseObject*	ClearDistToSubRoot(void);
 			void			CollectThoseToBeKilled(CArrayBaseObjectPtr* papcKilled);

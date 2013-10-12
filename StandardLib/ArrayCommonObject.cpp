@@ -379,19 +379,17 @@ void CArrayCommonObject::SetDistToRoot(int iDistToRoot)
 	CBaseObject*			pcPointedTo;
 	int						i;
 
-	if (miDistToRoot == iDistToRoot)
+	if (miDistToRoot != iDistToRoot)
 	{
-		return;
-	}
+		miDistToRoot = iDistToRoot;
 
-	miDistToRoot = iDistToRoot;
-
-	for (i = 0; i < mcArray.UnsafeNumElements(); i++)
-	{
-		pcPointedTo = (CBaseObject*)mcArray.UnsafeGet(i);
-		if (pcPointedTo)
+		for (i = 0; i < mcArray.UnsafeNumElements(); i++)
 		{
-			PotentiallySetDistToRoot(pcPointedTo, iDistToRoot+1);
+			pcPointedTo = (CBaseObject*)mcArray.UnsafeGet(i);
+			if (pcPointedTo)
+			{
+				pcPointedTo->PotentiallySetDistToRoot(iDistToRoot+1);
+			}
 		}
 	}
 }
