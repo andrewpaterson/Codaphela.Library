@@ -216,7 +216,7 @@ void CObject::CollectPointedToToBeKilled(CArrayBaseObjectPtr* papcKilled)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObject::SetDistToRoot(int iDistToRoot)
+void CObject::SetDistToRootAndSetPointedTosExpectedDistToRoot(int iDistToRoot)
 {
 	int				i;
 	int				iNumEmbedded;
@@ -232,7 +232,7 @@ void CObject::SetDistToRoot(int iDistToRoot)
 		for (i = 0; i < iNumEmbedded; i++)
 		{
 			pcEmbedded = *mapEmbedded.Get(i);
-			pcEmbedded->SetDistToRoot(iDistToRoot);
+			pcEmbedded->SetDistToRootAndSetPointedTosExpectedDistToRoot(iDistToRoot);
 		}
 	}
 }
@@ -256,7 +256,7 @@ void CObject::SetPointedTosDistToRoot(int iDistToRoot)
 		pcPointedTo = (**ppPointer).BaseObject();
 		if (pcPointedTo)
 		{
-			pcPointedTo->PotentiallySetDistToRoot(iDistToRoot + 1);
+			pcPointedTo->SetExpectedDistToRoot(iDistToRoot + 1);
 		}
 	}
 }

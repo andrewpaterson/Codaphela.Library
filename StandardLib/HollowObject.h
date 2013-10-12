@@ -38,7 +38,7 @@ public:
 			BOOL				Load(CObjectDeserialiser* pcFile);
 			BOOL				IsCollection(void);
 			BOOL				IsObject(void);
-			void				SetDistToRoot(int iDistToRoot);
+			void				SetDistToRootAndSetPointedTosExpectedDistToRoot(int iDistToRoot);
 			void				GetTos(CArrayEmbeddedObjectPtr* papcTos);
 			int					NumTos(void);
 			int					GetNumEmbedded(void);

@@ -45,7 +45,7 @@ public:
 	int					NumTos(void);
 	BOOL				IsCollection(void);
 	BOOL				IsObject(void);
-	void				SetDistToRoot(int iDistToRoot);
+	void				SetDistToRootAndSetPointedTosExpectedDistToRoot(int iDistToRoot);
 	CPointer*			Pointer(CPointer* pcPointer);
 	void				Embedded(CBaseObject* pcObject);
 	BOOL				IsEmbeddedDirty(void);

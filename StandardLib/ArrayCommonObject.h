@@ -49,7 +49,7 @@ public:
 
 	void				MakeSubRoot(void);
 	BOOL				IsSubRoot(void);
-	void				SetDistToRoot(int iDistToRoot);
+	void				SetDistToRootAndSetPointedTosExpectedDistToRoot(int iDistToRoot);
 
 	int					NumTos(void);
 	void				GetTos(CArrayEmbeddedObjectPtr* papcTos);

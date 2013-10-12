@@ -162,7 +162,7 @@ void CHollowEmbeddedObject::TryKill(BOOL bStackPointerRemoved)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHollowEmbeddedObject::SetDistToRoot(int iDistToRoot)
+void CHollowEmbeddedObject::SetDistToRootAndSetPointedTosExpectedDistToRoot(int iDistToRoot)
 {
 }
 

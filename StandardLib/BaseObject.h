@@ -99,7 +99,7 @@ public:
 	virtual BOOL				IsEmbeddedDirty(void);
 			int					GetNumEmbedded(void);
 
-	virtual void				SetDistToRoot(int iDistToRoot) =0;
+	virtual void				SetDistToRootAndSetPointedTosExpectedDistToRoot(int iDistToRoot) =0;
 			void				SetDirty(void);
 			int					GetDistToRoot(void);
 			BOOL				TestedForRoot(void);
@@ -125,7 +125,8 @@ protected:
 	virtual void			Free(void);
 			int				RemapTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew) =0;
 			BOOL			RemoveToFrom(CEmbeddedObject* pcPointedTo, CArrayEmbeddedBaseObjectPtr* papcFromsChanged);
-			void			PotentiallySetDistToRoot(int iExpectedDistToRoot);
+			void			SetExpectedDistToRoot(int iExpectedDistToRoot);
+			int				CalculateDistToRootFromPointedFroms(int iDistToRoot);
 	virtual BOOL			CanFindRoot(void);
 			CBaseObject*	ClearDistToSubRoot(void);
 			void			CollectThoseToBeKilled(CArrayBaseObjectPtr* papcKilled);

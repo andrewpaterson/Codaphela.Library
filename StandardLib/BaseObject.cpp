@@ -539,7 +539,7 @@ void CBaseObject::FixDistToRoot(void)
 	{
 		if (iNearestRoot+1 != miDistToRoot)
 		{
-			SetDistToRoot(iNearestRoot+1);
+			SetDistToRootAndSetPointedTosExpectedDistToRoot(iNearestRoot+1);
 		}
 	}
 }
@@ -688,20 +688,34 @@ void CBaseObject::SetDirty(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::PotentiallySetDistToRoot(int iExpectedDistToRoot)
+void CBaseObject::SetExpectedDistToRoot(int iExpectedDistToRoot)
+{
+	int	iBestDistToRoot;
+
+	if ((miDistToRoot == CLEARED_DIST_TO_ROOT) || (miDistToRoot == UNATTACHED_DIST_TO_ROOT))
+	{
+		SetDistToRootAndSetPointedTosExpectedDistToRoot(iExpectedDistToRoot);
+	}
+	else
+	{
+		iBestDistToRoot = CalculateDistToRootFromPointedFroms(iExpectedDistToRoot);
+		SetDistToRootAndSetPointedTosExpectedDistToRoot(iBestDistToRoot);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CBaseObject::CalculateDistToRootFromPointedFroms(int iDistToRoot)
 {
 	int				iNumFroms;
 	int				i;
 	CBaseObject*	pcFrom;
 	int				iBestDistToRoot;
 
-	if ((miDistToRoot == CLEARED_DIST_TO_ROOT) || (miDistToRoot == UNATTACHED_DIST_TO_ROOT))
-	{
-		SetDistToRoot(iExpectedDistToRoot);
-		return;
-	}
-
-	iBestDistToRoot = iExpectedDistToRoot;
+	iBestDistToRoot = iDistToRoot;
 	iNumFroms = CEmbeddedObject::NumHeapFroms();
 	for (i = 0; i < iNumFroms; i++)
 	{
@@ -717,7 +731,7 @@ void CBaseObject::PotentiallySetDistToRoot(int iExpectedDistToRoot)
 			}
 		}
 	}
-	SetDistToRoot(iBestDistToRoot);
+	return iBestDistToRoot;
 }
 
 
@@ -772,7 +786,7 @@ void CBaseObject::AddHeapFrom(CBaseObject* pcFrom)
 		mapHeapFroms.Add(&pcFrom);
 		if (pcFrom->miDistToRoot >= ROOT_DIST_TO_ROOT)
 		{
-			PotentiallySetDistToRoot(pcFrom->miDistToRoot+1);
+			SetExpectedDistToRoot(pcFrom->miDistToRoot+1);
 		}
 	}
 }

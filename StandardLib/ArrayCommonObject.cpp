@@ -374,7 +374,7 @@ BOOL CArrayCommonObject::IsSubRoot(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayCommonObject::SetDistToRoot(int iDistToRoot)
+void CArrayCommonObject::SetDistToRootAndSetPointedTosExpectedDistToRoot(int iDistToRoot)
 {
 	CBaseObject*			pcPointedTo;
 	int						i;
@@ -388,7 +388,7 @@ void CArrayCommonObject::SetDistToRoot(int iDistToRoot)
 			pcPointedTo = (CBaseObject*)mcArray.UnsafeGet(i);
 			if (pcPointedTo)
 			{
-				pcPointedTo->PotentiallySetDistToRoot(iDistToRoot+1);
+				pcPointedTo->SetExpectedDistToRoot(iDistToRoot+1);
 			}
 		}
 	}
