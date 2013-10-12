@@ -729,17 +729,17 @@ int CObject::RecurseNumStackFroms(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObject::RecurseSetFlagEmbedded(int iFlag, int iFlagValue)
+void CObject::SetFlag(int iFlag, int iFlagValue)
 {
 	int				i;
 	CBaseObject*	pcBaseObject;
 
-	SetFlag(&miFlags, iFlag, iFlagValue);
+	::SetFlag(&miFlags, iFlag, iFlagValue);
 
 	for (i = 0; i < mapEmbedded.NumElements(); i++)
 	{
 		pcBaseObject = *mapEmbedded.Get(i);
-		pcBaseObject->RecurseSetFlagEmbedded(iFlag, iFlagValue);
+		pcBaseObject->SetFlag(iFlag, iFlagValue);
 	}
 }
 

@@ -285,7 +285,7 @@ void CBaseObject::MarkThisForKilling(CArrayBaseObjectPtr* papcKilled)
 
 	//These both assume we are the embedding container.
 	SetDistToRootUnattached();
-	RecurseSetFlagEmbedded(OBJECT_FLAGS_UNREACHABLE, TRUE);
+	SetFlag(OBJECT_FLAGS_UNREACHABLE, TRUE);
 
 	pcTemp = this;
 	papcKilled->Add(&pcTemp);
@@ -415,7 +415,7 @@ void CBaseObject::SetFlagEmbedded(int iFlag, int iFlagValue)
 	CBaseObject*	pcContainer;
 
 	pcContainer = GetEmbeddingContainer();
-	pcContainer->RecurseSetFlagEmbedded(iFlag, iFlagValue);
+	pcContainer->SetFlag(iFlag, iFlagValue);
 }
 
 
@@ -423,9 +423,9 @@ void CBaseObject::SetFlagEmbedded(int iFlag, int iFlagValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::RecurseSetFlagEmbedded(int iFlag, int iFlagValue)
+void CBaseObject::SetFlag(int iFlag, int iFlagValue)
 {
-	SetFlag(&miFlags, iFlag, iFlagValue);
+	::SetFlag(&miFlags, iFlag, iFlagValue);
 }
 
 

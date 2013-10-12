@@ -116,7 +116,7 @@ public:
 
 			CEmbeddedObject* 	TestGetTo(int iToIndex);
 			int					TestGetNumEmbeddedFromFlags(void);
-	virtual void				RecurseSetFlagEmbedded(int iFlag, int iFlagValue);
+	virtual void				SetFlag(int iFlag, int iFlagValue);
 	virtual void				SetDistToRootUnattached(void);
 			BOOL				TestCanFindRoot(void);
 	

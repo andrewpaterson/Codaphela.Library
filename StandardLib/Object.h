@@ -56,7 +56,7 @@ public:
 	int					NumHeapFroms(void);
 	int					NumStackFroms(void);
 	int					NumTotalFroms(void);
-	void				RecurseSetFlagEmbedded(int iFlag, int iFlagValue);
+	void				SetFlag(int iFlag, int iFlagValue);
 	void				SetDistToRootUnattached(void);
 	
 protected:
