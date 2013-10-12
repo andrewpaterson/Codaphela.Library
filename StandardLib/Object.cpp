@@ -409,19 +409,19 @@ int CObject::RemapTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObject::RecurseGetHeapFroms(CArrayEmbeddedBaseObjectPtr* papcFroms)
+void CObject::GetHeapFroms(CArrayEmbeddedBaseObjectPtr* papcFroms)
 {
 	int				i;
 	int				iNumEmbedded;
 	CBaseObject*	pcEmbedded;
 
-	CBaseObject::RecurseGetHeapFroms(papcFroms);
+	CBaseObject::GetHeapFroms(papcFroms);
 
 	iNumEmbedded = mapEmbedded.NumElements();
 	for (i = 0; i < iNumEmbedded; i++)
 	{
 		pcEmbedded = *mapEmbedded.Get(i);
-		pcEmbedded->RecurseGetHeapFroms(papcFroms);
+		pcEmbedded->GetHeapFroms(papcFroms);
 	}
 }
 
@@ -729,20 +729,20 @@ CStackPointers* CObject::GetStackPointers(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObject::RecurseGetStackFroms(CArrayPointerPtr* papcFroms)
+void CObject::GetStackFroms(CArrayPointerPtr* papcFroms)
 {
 	int				i;
 	int				iNumEmbedded;
 	CBaseObject*	pcEmbedded;
 
-	CBaseObject::RecurseGetStackFroms(papcFroms);
+	CBaseObject::GetStackFroms(papcFroms);
 
 	iNumEmbedded = mapEmbedded.NumElements();
 	for (i = 0; i < iNumEmbedded; i++)
 	{
 		pcEmbedded = *mapEmbedded.Get(i);
 
-		pcEmbedded->RecurseGetStackFroms(papcFroms);
+		pcEmbedded->GetStackFroms(papcFroms);
 	}
 }
 

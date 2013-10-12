@@ -87,10 +87,8 @@ protected:
 			void				RemoveAllFroms(void);
 			BOOL				PrivateRemoveFrom(CBaseObject* pcFrom);
 			void				GetHeapFroms(CArrayEmbeddedBaseObjectPtr* papcFroms);
-	virtual void				RecurseGetHeapFroms(CArrayEmbeddedBaseObjectPtr* papcFroms);
 	virtual CObjects*			GetObjects(void) =0;
 	virtual CStackPointers*		GetStackPointers(void) =0;
-	virtual void				RecurseGetStackFroms(CArrayPointerPtr* papcFroms);
 };
 
 

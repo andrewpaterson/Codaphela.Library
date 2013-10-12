@@ -58,6 +58,8 @@ public:
 	int					NumTotalFroms(void);
 	void				SetFlag(int iFlag, int iFlagValue);
 	void				SetDistToRootUnattached(void);
+	void				GetHeapFroms(CArrayEmbeddedBaseObjectPtr* papcFroms);
+	void				GetStackFroms(CArrayPointerPtr* papcFroms);
 	
 protected:
 	void				KillDontFree(void);
@@ -68,12 +70,10 @@ protected:
 	void				CollectPointedToToBeKilled(CArrayBaseObjectPtr* papcKilled);
 	int					RemapTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew);
 	void				Free(void);
-	void				RecurseGetHeapFroms(CArrayEmbeddedBaseObjectPtr* papcFroms);
 	void				SetPointedTosDistToRoot(int iDistToRoot);
 	BOOL				RecurseGetEmbeddedIndex(CEmbeddedObject* pcTest, int* piIndex);
 	CEmbeddedObject*	RecurseGetEmbeddedObject(int iIndex, int* iCount);
 	CStackPointers*		GetStackPointers(void);
-	void				RecurseGetStackFroms(CArrayPointerPtr* papcFroms);
 };
 
 
