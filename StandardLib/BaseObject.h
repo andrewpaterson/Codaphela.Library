@@ -132,7 +132,6 @@ protected:
 			CBaseObject*	ClearDistToSubRoot(void);
 			void			CollectThoseToBeKilled(CArrayBaseObjectPtr* papcKilled);
 	virtual void			CollectPointedToToBeKilled(CArrayBaseObjectPtr* papcKilled) =0;
-			void			ContainerCollectThoseToBeKilled(CArrayBaseObjectPtr* papcKilled);
 			void			CollectPointedToToBeKilled(CArrayBaseObjectPtr* papcKilled, CBaseObject* pcPointedTo);
 			void			MarkThisForKilling(CArrayBaseObjectPtr* papcKilled);
 			void			KillCollected(CArrayBaseObjectPtr* papcKilled);

@@ -74,6 +74,7 @@ void CArrayCommonObject::KillChildGraph(void)
 	CArrayBaseObjectPtr	apcKilled;
 	CBaseObject*		pcPointedTo;
 	int					i;
+	CBaseObject*		pcContainer;
 
 	apcKilled.Init(1024);
 
@@ -82,7 +83,8 @@ void CArrayCommonObject::KillChildGraph(void)
 		pcPointedTo = (CBaseObject*)mcArray.UnsafeGet(i);
 		if (pcPointedTo)
 		{
-			pcPointedTo->CollectThoseToBeKilled(&apcKilled);
+			pcContainer = pcPointedTo->GetEmbeddingContainer();
+			pcContainer->CollectThoseToBeKilled(&apcKilled);
 		}
 	}
 

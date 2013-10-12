@@ -254,6 +254,7 @@ void CBaseObject::CollectPointedToToBeKilled(CArrayBaseObjectPtr* papcKilled, CB
 	BOOL			bHasStackPointers;
 	BOOL			bCanFindRoot;
 	BOOL			bMustKill;
+	CBaseObject*	pcContainer;
 
 	if (pcPointedTo)
 	{
@@ -265,7 +266,8 @@ void CBaseObject::CollectPointedToToBeKilled(CArrayBaseObjectPtr* papcKilled, CB
 			bMustKill = !bCanFindRoot && !bHasStackPointers;
 			if (bMustKill)
 			{
-				pcPointedTo->CollectThoseToBeKilled(papcKilled);
+				pcContainer = pcPointedTo->GetEmbeddingContainer();
+				pcContainer->CollectThoseToBeKilled(papcKilled);
 			}
 		}
 	}
@@ -295,22 +297,6 @@ void CBaseObject::MarkThisForKilling(CArrayBaseObjectPtr* papcKilled)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::CollectThoseToBeKilled(CArrayBaseObjectPtr* papcKilled)
 {
-	CBaseObject*		pcContainer;
-
-	pcContainer = GetEmbeddingContainer();
-	pcContainer->ContainerCollectThoseToBeKilled(papcKilled);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CBaseObject::ContainerCollectThoseToBeKilled(CArrayBaseObjectPtr* papcKilled)
-{
-	//This method will never be called on an embedded object.
-	//Only the containing object can ContainerCollectThoseToBeKilled.
-
 	MarkThisForKilling(papcKilled);
 	CollectPointedToToBeKilled(papcKilled);
 }
