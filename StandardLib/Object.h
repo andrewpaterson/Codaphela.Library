@@ -72,7 +72,6 @@ protected:
 	void				SetPointedTosDistToRoot(int iDistToRoot);
 	BOOL				RecurseGetEmbeddedIndex(CEmbeddedObject* pcTest, int* piIndex);
 	CEmbeddedObject*	RecurseGetEmbeddedObject(int iIndex, int* iCount);
-	int					RecurseNumHeapFroms(void);
 	int					RecurseNumTotalFroms(void);
 	int					RecurseNumStackFroms(void);
 	CStackPointers*		GetStackPointers(void);

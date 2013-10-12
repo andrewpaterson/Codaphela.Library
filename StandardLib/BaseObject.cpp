@@ -680,7 +680,7 @@ int CBaseObject::CalculateDistToRootFromPointedFroms(int iDistToRoot)
 	iNumFroms = CEmbeddedObject::NumHeapFroms();
 	for (i = 0; i < iNumFroms; i++)
 	{
-		pcFrom = PrivateGetHeapFrom(i);
+		pcFrom = CEmbeddedObject::PrivateGetHeapFrom(i);
 		if (pcFrom)
 		{
 			if (pcFrom->miDistToRoot < iBestDistToRoot)
@@ -861,16 +861,6 @@ void CBaseObject::SetFlagNumEmbedded(int iNumEmbedded)
 int CBaseObject::TestGetNumEmbeddedFromFlags(void)
 {
 	return GetNumEmbeddedFromFlags();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-int CBaseObject::RecurseNumHeapFroms(void)
-{
-	return CEmbeddedObject::NumHeapFroms();
 }
 
 

@@ -629,19 +629,6 @@ CBaseObject* CObject::Dehollow(void)
 //////////////////////////////////////////////////////////////////////////
 int CObject::NumHeapFroms(void)
 {
-	CBaseObject*	pcContainer;
-
-	pcContainer = GetEmbeddingContainer();
-	return pcContainer->RecurseNumHeapFroms();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-int CObject::RecurseNumHeapFroms(void)
-{
 	int				i;
 	int				iCount;
 	CBaseObject*	pcBaseObject;
@@ -651,7 +638,7 @@ int CObject::RecurseNumHeapFroms(void)
 	for (i = 0; i < mapEmbedded.NumElements(); i++)
 	{
 		pcBaseObject = *mapEmbedded.Get(i);
-		iCount += pcBaseObject->RecurseNumHeapFroms();
+		iCount += pcBaseObject->NumHeapFroms();
 	}
 	return iCount;
 }

@@ -277,7 +277,7 @@ BOOL CEmbeddedObject::HasHeapPointers(void)
 {
 	int		iNumHeapPointers;
 
-	iNumHeapPointers = NumHeapFroms();
+	iNumHeapPointers = GetEmbeddingContainer()->NumHeapFroms();
 	return iNumHeapPointers != 0;
 }
 
