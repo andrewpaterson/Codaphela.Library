@@ -118,6 +118,7 @@ public:
 			int					TestGetNumEmbeddedFromFlags(void);
 	virtual void				RecurseSetFlagEmbedded(int iFlag, int iFlagValue);
 	virtual void				RecurseSetDistToRoot(int iDistToRoot);
+			BOOL				TestCanFindRoot(void);
 	
 protected:
 	virtual void			KillToPointers(void) =0;

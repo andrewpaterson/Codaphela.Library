@@ -324,7 +324,8 @@ void CObjects::PrintObject(CChars* psz, CBaseObject* pcBaseObject, BOOL bEmbedde
 {
 	int		iDistToRoot;
 
-	psz->Append("[");
+	psz->Append(PointerToString(pcBaseObject));
+	psz->Append(" [");
 	iDistToRoot = pcBaseObject->DistToRoot();
 	if (iDistToRoot >= 0 && iDistToRoot <= 9)
 	{
