@@ -110,7 +110,6 @@ public:
 			void				AddHeapFrom(CBaseObject* pcFrom);
 			void				FixDistToRoot(void);
 			void				RemoveHeapFrom(CBaseObject* pcFrom);
-	virtual int					RecurseNumTotalFroms(void);
 	virtual int					RecurseNumStackFroms(void);
 			CObjects*			GetObjects(void);
 
