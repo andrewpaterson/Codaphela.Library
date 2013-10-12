@@ -224,7 +224,7 @@ void CObject::SetDistToRoot(int iDistToRoot)
 
 	if (miDistToRoot != iDistToRoot)
 	{
-		PrivateSetDistToRoot(iDistToRoot);
+		SetPointedTosDistToRoot(iDistToRoot);
 	}
 
 	iNumEmbedded = mapEmbedded.NumElements();
@@ -240,7 +240,7 @@ void CObject::SetDistToRoot(int iDistToRoot)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObject::PrivateSetDistToRoot(int iDistToRoot)
+void CObject::SetPointedTosDistToRoot(int iDistToRoot)
 {
 	int				i;
 	CBaseObject*	pcPointedTo;

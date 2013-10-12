@@ -69,7 +69,7 @@ protected:
 	int					RemapTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew);
 	void				Free(void);
 	void				RecurseGetHeapFroms(CArrayEmbeddedBaseObjectPtr* papcFroms);
-	void				PrivateSetDistToRoot(int iDistToRoot);
+	void				SetPointedTosDistToRoot(int iDistToRoot);
 	BOOL				RecurseGetEmbeddedIndex(CEmbeddedObject* pcTest, int* piIndex);
 	CEmbeddedObject*	RecurseGetEmbeddedObject(int iIndex, int* iCount);
 	int					RecurseNumHeapFroms(void);

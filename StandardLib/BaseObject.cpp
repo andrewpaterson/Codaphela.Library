@@ -683,6 +683,44 @@ void CBaseObject::SetDirty(void)
 }
 
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CBaseObject::PotentiallySetDistToRoot(CBaseObject* pcTo, int iExpectedDistToRoot)
+{
+	int				iNumFroms;
+	int				i;
+	CBaseObject*	pcFrom;
+	int				iBestDistToRoot;
+
+	if ((pcTo->miDistToRoot == CLEARED_DIST_TO_ROOT) || (pcTo->miDistToRoot == UNATTACHED_DIST_TO_ROOT))
+	{
+		pcTo->SetDistToRoot(iExpectedDistToRoot);
+		return;
+	}
+
+	iBestDistToRoot = iExpectedDistToRoot;
+	iNumFroms = pcTo->CEmbeddedObject::NumHeapFroms();
+	for (i = 0; i < iNumFroms; i++)
+	{
+		pcFrom = pcTo->PrivateGetHeapFrom(i);
+		if (pcFrom)
+		{
+			if (pcFrom->miDistToRoot < iBestDistToRoot)
+			{
+				if (pcFrom->miDistToRoot >= ROOT_DIST_TO_ROOT)
+				{
+					iBestDistToRoot = pcFrom->miDistToRoot+1;
+				}
+			}
+		}
+	}
+	pcTo->SetDistToRoot(iBestDistToRoot);
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -737,43 +775,6 @@ void CBaseObject::AddHeapFrom(CBaseObject* pcFrom)
 			PotentiallySetDistToRoot(this, pcFrom->miDistToRoot+1);
 		}
 	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CBaseObject::PotentiallySetDistToRoot(CBaseObject* pcTo, int iExpectedDistToRoot)
-{
-	int				iNumFroms;
-	int				i;
-	CBaseObject*	pcFrom;
-	int				iBestDistToRoot;
-
-	if ((pcTo->miDistToRoot == CLEARED_DIST_TO_ROOT) || (pcTo->miDistToRoot == UNATTACHED_DIST_TO_ROOT))
-	{
-		pcTo->SetDistToRoot(iExpectedDistToRoot);
-		return;
-	}
-
-	iBestDistToRoot = iExpectedDistToRoot;
-	iNumFroms = pcTo->CEmbeddedObject::NumHeapFroms();
-	for (i = 0; i < iNumFroms; i++)
-	{
-		pcFrom = pcTo->PrivateGetHeapFrom(i);
-		if (pcFrom)
-		{
-			if (pcFrom->miDistToRoot < iBestDistToRoot)
-			{
-				if (pcFrom->miDistToRoot >= ROOT_DIST_TO_ROOT)
-				{
-					iBestDistToRoot = pcFrom->miDistToRoot+1;
-				}
-			}
-		}
-	}
-	pcTo->SetDistToRoot(iBestDistToRoot);
 }
 
 
