@@ -226,7 +226,6 @@
     <ClInclude Include="PointerFunctions.h" />
     <ClInclude Include="PointerRemapper.h" />
     <ClInclude Include="Bool.h" />
-    <ClInclude Include="DebugLog.h" />
     <ClInclude Include="Define.h" />
     <ClInclude Include="Validation.h" />
     <ClInclude Include="Version.h" />
@@ -348,7 +347,6 @@
     <ClCompile Include="FastMemcpyBackwards.cpp" />
     <ClCompile Include="FastMemset.cpp" />
     <ClCompile Include="PointerFunctions.cpp" />
-    <ClCompile Include="DebugLog.cpp" />
     <ClCompile Include="Aardvark.cpp" />
   </ItemGroup>
   <ItemGroup>

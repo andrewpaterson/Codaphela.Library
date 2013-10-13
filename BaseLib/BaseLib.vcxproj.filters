@@ -519,9 +519,6 @@
     <ClInclude Include="Bool.h">
       <Filter>Source\Define</Filter>
     </ClInclude>
-    <ClInclude Include="DebugLog.h">
-      <Filter>Source\Define</Filter>
-    </ClInclude>
     <ClInclude Include="Define.h">
       <Filter>Source\Define</Filter>
     </ClInclude>
@@ -889,9 +886,6 @@
     </ClCompile>
     <ClCompile Include="PointerFunctions.cpp">
       <Filter>Source\Pointer</Filter>
-    </ClCompile>
-    <ClCompile Include="DebugLog.cpp">
-      <Filter>Source\Define</Filter>
     </ClCompile>
     <ClCompile Include="Aardvark.cpp">
       <Filter>Source</Filter>

@@ -20,8 +20,9 @@ along with Codaphela CoreLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-#include "Indexes.h"
 #include "BaseLib/Logger.h"
+#include "BaseLib/LogString.h"
+#include "Indexes.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -184,7 +185,7 @@ BOOL CIndexes::Add(OIndex oi, void* pvMemory)
 
 		szOi.Init();
 		szOi.Append(oi);
-		gcLogger.Error2("CIndexes::Add cannot add memory with index [", szOi.Text(), "].  It already exists.", NULL);
+		gcLogger.Error2(__METHOD__, " Cannot add memory with index [", szOi.Text(), "].  It already exists.", NULL);
 		szOi.Kill();
 		return FALSE;
 	}

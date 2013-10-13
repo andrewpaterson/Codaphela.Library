@@ -24,9 +24,13 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define __LOG_TO_STRING_H__
 
 
+#define __METHOD__ MethodToString(__FILE__, __LINE__, __ENGINE_PRETTY_FUNCTION__)
+
+
 char* IntToString(int i);
 char* LongLongToString(long long int lli);
 char* PointerToString(void* pv);
+char* MethodToString(char* szFile, int iLine, char* szFunction);
 
 
 #endif // __LOG_TO_STRING_H__
