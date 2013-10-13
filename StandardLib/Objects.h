@@ -137,7 +137,7 @@ protected:
 						BOOL					ClearMemory(void);
 						void					KillDontFreeObjects(CArrayBaseObjectPtr* papcObjectPts);
 						void					FreeObjects(CArrayBaseObjectPtr* papcObjectPts);
-						void					FixDistToRoot(CArrayEmbeddedBaseObjectPtr* papcFromsChanged);
+						void					FixDistToRootFromSubRoot(CArrayEmbeddedBaseObjectPtr* papcFromsChanged);
 						void					RecurseDumpGraph(CChars* psz, CEmbeddedObject* pcObject, int iLevel, BOOL bEmbedded);
 						void					PrintObject(CChars* psz, CBaseObject* pcBaseObject, BOOL bEmbedded = FALSE);
 						CNamedHollowObject*		AllocateNamedHollow(unsigned short iNumEmbedded);

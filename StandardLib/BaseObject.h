@@ -107,7 +107,7 @@ public:
 	virtual int					NumTos(void) =0;
 	virtual void				RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged) =0;
 			void				AddHeapFrom(CBaseObject* pcFrom);
-			void				FixDistToRoot(void);
+			void				FixDistToRootFromPointedFroms(void);
 			void				RemoveHeapFrom(CBaseObject* pcFrom);
 			CObjects*			GetObjects(void);
 

@@ -80,7 +80,8 @@ public:
 			BOOL				IsAllocatedInObjects(void);
 			CStackPointer*		GetFirstStackFrom(void);
 
-			void				ValidateNoEmbeddingContainer(void);
+			void				LogNotExpectedToBeEmbedded(char* szMethod);
+			void				ValidateNotEmbedded(char* szMethod);
 
 protected:
 	virtual void				TryKill(BOOL bStackPointerRemoved) =0;

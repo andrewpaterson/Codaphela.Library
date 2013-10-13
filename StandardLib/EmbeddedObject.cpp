@@ -1,3 +1,4 @@
+#include "BaseLib/Logger.h"
 #include "BaseObject.h"
 #include "EmbeddedObject.h"
 
@@ -418,15 +419,24 @@ void CEmbeddedObject::GetStackFroms(CArrayPointerPtr* papcFroms)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CEmbeddedObject::ValidateNoEmbeddingContainer(void)
+void CEmbeddedObject::ValidateNotEmbedded(char* szMethod)
 {
-#if DEBUG
-	CEmbeddedObject*	pcContainer;	
-	BOOL				bHasEmbeddingContainer;
+	if (IsEmbedded())
+	{
+		LogNotExpectedToBeEmbedded(szMethod);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CEmbeddedObject::LogNotExpectedToBeEmbedded(char* szMethod)
+{
+	CBaseObject*					pcContainer;
 
 	pcContainer = GetEmbeddingContainer();
-	bHasEmbeddingContainer = pcContainer != this;
-	Validate(!bHasEmbeddingContainer);
-#endif // DEBUG
+	gcLogger.Error2(szMethod, " called on embedded object of class [", ClassName(), "] with embedding index [", IndexToString(pcContainer->GetOI()),"] and embedding class [", pcContainer->ClassName(), "].", NULL);
 }
 

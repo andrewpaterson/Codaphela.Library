@@ -83,13 +83,13 @@ void CBaseObject::Kill(void)
 	//This method is for the user to forcibly kill an object.
 	//It is not called internally.  KillThisGraph is method used to free objects that are unattached.
 
-	//Note this does NOT call CUnknown::Kill.  That is handled elsewhere.
+	//This does NOT call CUnknown::Kill.  That is handled elsewhere.
 
+	
 	if (IsEmbedded())
 	{
-		//Kill should not be called on an embedded object.
 		pcContainer = GetEmbeddingContainer();
-		gcLogger.Error2("CBaseObject::Kill object of class [", ClassName(), "] called Kill but is embedded in object with index [", IndexToString(pcContainer->GetOI()),"] of class [", pcContainer->ClassName(), "].", NULL);
+		gcLogger.Error2("CBaseObject::Kill called on embedded object of class [", ClassName(), "] with embedding index [", IndexToString(pcContainer->GetOI()),"] and embedding class [", pcContainer->ClassName(), "].", NULL);
 
 		return;
 	}
@@ -101,7 +101,7 @@ void CBaseObject::Kill(void)
 	{
 		apcFromsChanged.Init();
 		RemoveAllTos(&apcFromsChanged);
-		mpcObjectsThisIn->FixDistToRoot(&apcFromsChanged);
+		mpcObjectsThisIn->FixDistToRootFromSubRoot(&apcFromsChanged);
 		apcFromsChanged.Kill();
 		iNumKilled = KillThisGraph();
 	}
@@ -166,7 +166,7 @@ void CBaseObject::RemoveHeapFrom(CBaseObject* pcFrom)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::TryKill(BOOL bDontTryFindRoot)
 {
-	ValidateNoEmbeddingContainer();
+	ValidateNotEmbedded(__ENGINE_PRETTY_FUNCTION__);
 
 	BOOL			bHasStackPointers;
 	BOOL			bHasHeapPointers;
@@ -187,7 +187,7 @@ void CBaseObject::TryKill(BOOL bDontTryFindRoot)
 		}
 		else if (bCanFindRoot)
 		{
-			FixDistToRoot();
+			FixDistToRootFromPointedFroms();
 		}
 		else if (bHasStackPointers)
 		{
@@ -300,7 +300,7 @@ void CBaseObject::MarkThisForKilling(CArrayBaseObjectPtr* papcKilled)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::CollectThoseToBeKilled(CArrayBaseObjectPtr* papcKilled)
 {
-	ValidateNoEmbeddingContainer();
+	ValidateNotEmbedded(__ENGINE_PRETTY_FUNCTION__);
 
 	MarkThisForKilling(papcKilled);
 	CollectPointedToToBeKilled(papcKilled);
@@ -333,7 +333,8 @@ void CBaseObject::SetDistToRootUnattached(void)
 //////////////////////////////////////////////////////////////////////////
 CBaseObject* CBaseObject::ClearDistToSubRoot(void)
 {
-	ValidateNoEmbeddingContainer();
+	//The object returned here is always the object immediately below the sub-root, not the sub-root itself.
+	ValidateNotEmbedded(__ENGINE_PRETTY_FUNCTION__);
 
 	int								i;
 	int								iNumFroms;
@@ -411,7 +412,7 @@ void CBaseObject::SetFlag(int iFlag, int iFlagValue)
 //////////////////////////////////////////////////////////////////////////
 BOOL CBaseObject::CanFindRoot(void)
 {
-	ValidateNoEmbeddingContainer();
+	ValidateNotEmbedded(__ENGINE_PRETTY_FUNCTION__);
 
 	int								iNumFroms;
 	int								i;
@@ -484,7 +485,7 @@ BOOL CBaseObject::CanFindRoot(void)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::SetExpectedDistToRoot(int iExpectedDistToRoot)
 {
-	ValidateNoEmbeddingContainer();
+	ValidateNotEmbedded(__ENGINE_PRETTY_FUNCTION__);
 
 	int	iBestDistToRoot;
 
@@ -548,9 +549,9 @@ int CBaseObject::CalculateDistToRootFromPointedFroms(int iDistToRoot)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::FixDistToRoot(void)
+void CBaseObject::FixDistToRootFromPointedFroms(void)
 {
-	ValidateNoEmbeddingContainer();
+	ValidateNotEmbedded(__ENGINE_PRETTY_FUNCTION__);
 
 	int	iNearestRoot;
 

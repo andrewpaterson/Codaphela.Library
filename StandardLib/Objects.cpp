@@ -512,7 +512,7 @@ void CObjects::FreeObjects(CArrayBaseObjectPtr* papcObjectPts)
 //////////////////////////////////////////////////////////////////////////
 BOOL CObjects::Save(CBaseObject* pcObject)
 {
-	pcObject->ValidateNoEmbeddingContainer();
+	pcObject->ValidateNotEmbedded(__ENGINE_PRETTY_FUNCTION__);
 
 	if (pcObject->IsDirty())
 	{
@@ -938,7 +938,7 @@ BOOL CObjects::Remove(CArrayBaseObjectPtr* papcKilled)
 	KillDontFreeObjects(papcKilled);
 	FreeObjects(papcKilled);
 
-	FixDistToRoot(&apcFromsChanged);
+	FixDistToRootFromSubRoot(&apcFromsChanged);
 
 	apcFromsChanged.Kill();
 	return TRUE;
@@ -949,7 +949,7 @@ BOOL CObjects::Remove(CArrayBaseObjectPtr* papcKilled)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjects::FixDistToRoot(CArrayEmbeddedBaseObjectPtr* papcFromsChanged)
+void CObjects::FixDistToRootFromSubRoot(CArrayEmbeddedBaseObjectPtr* papcFromsChanged)
 {
 	int								i;
 	int								iNumElements;
@@ -976,7 +976,7 @@ void CObjects::FixDistToRoot(CArrayEmbeddedBaseObjectPtr* papcFromsChanged)
 	for (i = 0; i < iNumSubRoots; i++)
 	{
 		pcSubRoot = *apcSubRoots.Get(i);
-		pcSubRoot->FixDistToRoot();
+		pcSubRoot->FixDistToRootFromPointedFroms();
 	}
 	apcSubRoots.Kill();
 }
