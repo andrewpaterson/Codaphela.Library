@@ -221,7 +221,7 @@ BOOL CMemory::Remove(CArrayVoidPtr* pav)
 				}
 				else
 				{
-					gcLogger.Error("CMemory::Remove: Could not deallocate memory.");
+					gcLogger.Error2(__METHOD__, " Could not deallocate memory.", NULL);
 					return FALSE;
 				}
 			}

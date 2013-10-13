@@ -74,7 +74,7 @@ public:
 	virtual	void				Class(void);
 
 			void				Kill(void);
-			void				TryKill(BOOL bStackPointerRemoved);
+			void				TryKill(BOOL bDontTryFindRoot);
 
 	virtual void				KillDontFree(void);
 	virtual void				KillData(void) =0;
