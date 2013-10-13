@@ -123,7 +123,8 @@ protected:
 			int				RemapTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew) =0;
 			BOOL			RemoveToFrom(CEmbeddedObject* pcPointedTo, CArrayEmbeddedBaseObjectPtr* papcFromsChanged);
 			void			SetExpectedDistToRoot(int iExpectedDistToRoot);
-			int				CalculateDistToRootFromPointedFroms(int iDistToRoot);
+			int				CalculateDistToRootFromPointedFroms(void);
+	virtual int				CalculateDistToRootFromPointedFroms(int iDistToRoot);
 	virtual BOOL			CanFindRoot(void);
 			CBaseObject*	ClearDistToSubRoot(void);
 			void			CollectThoseToBeKilled(CArrayBaseObjectPtr* papcKilled);

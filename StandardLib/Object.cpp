@@ -287,6 +287,29 @@ void CObject::SetDistToRootUnattached(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+int CObject::CalculateDistToRootFromPointedFroms(int iDistToRoot)
+{
+	int				i;
+	int				iNumEmbedded;
+	CBaseObject*	pcEmbedded;
+
+	iDistToRoot = CBaseObject::CalculateDistToRootFromPointedFroms(iDistToRoot);
+
+	iNumEmbedded = mapEmbedded.NumElements();
+	for (i = 0; i < iNumEmbedded; i++)
+	{
+		pcEmbedded = *mapEmbedded.Get(i);
+		iDistToRoot = pcEmbedded->CalculateDistToRootFromPointedFroms(iDistToRoot);
+	}
+
+	return iDistToRoot;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CObject::GetTos(CArrayEmbeddedObjectPtr* papcTos)
 {
 	int					iNumPointers;
