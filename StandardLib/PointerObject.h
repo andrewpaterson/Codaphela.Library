@@ -80,10 +80,10 @@ public:
 	void				AssignObject(CEmbeddedObject* pcObject);
 	CEmbeddedObject*	Dereference(void);
 
-	void				PointTo(CEmbeddedObject* pcObject);
+	void				PointTo(CEmbeddedObject* pcObject, BOOL bKillIfNoRoot);
 	void				AddHeapFrom(CBaseObject* pcFrom);
 
-	CEmbeddedObject*	ClearObject(BOOL bTryKill = TRUE);
+	CEmbeddedObject*	Return(void);
 	void				UnsafeClearObject(void);
 };
 

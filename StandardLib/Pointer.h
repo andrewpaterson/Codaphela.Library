@@ -69,7 +69,7 @@ Ptr<M>::Ptr(CPointer& cPointer)
 	mpcEmbedding = NULL;
 	mpcObject = NULL;
 
-	PointTo(cPointer.mpcObject);
+	PointTo(cPointer.mpcObject, FALSE);
 }
 
 
@@ -85,7 +85,7 @@ Ptr<M>::Ptr(CEmbeddedObject* pcObject)
 	mpcEmbedding = NULL;
 	mpcObject = NULL;
 
-	PointTo(pcObject);
+	PointTo(pcObject, FALSE);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -107,7 +107,7 @@ void Ptr<M>::operator = (CEmbeddedObject* pcObject)
 {
 	LOG_POINTER_DEBUG();
 
-	PointTo(pcObject);
+	PointTo(pcObject, TRUE);
 }
 
 
@@ -120,7 +120,7 @@ void Ptr<M>::operator = (CPointer& pcPointer)
 {
 	LOG_POINTER_DEBUG();
 
-	PointTo(pcPointer.mpcObject);
+	PointTo(pcPointer.mpcObject, TRUE);
 }
 
 
@@ -133,7 +133,7 @@ void Ptr<M>::operator = (Ptr& pcPointer)
 {
 	LOG_POINTER_DEBUG();
 
-	PointTo(pcPointer.mpcObject);
+	PointTo(pcPointer.mpcObject, TRUE);
 }
 
 

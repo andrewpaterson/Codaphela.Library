@@ -94,6 +94,6 @@ CBaseObject* CObjectConverterText::Convert(CObjectSource* pcSource, char* szObje
 	pcString->Init(cTextFile.Text());
 
 	cTextFile.Kill();
-	return (CBaseObject*)pcString.ClearObject(FALSE);
+	return (CBaseObject*)pcString.Return();
 }
 

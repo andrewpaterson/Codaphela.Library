@@ -23,7 +23,7 @@ public:
 	CHollowObject*		GetHollowObject(void);
 	void				AddHeapFrom(CBaseObject* pcFrom);
 	void				RemoveHeapFrom(CBaseObject* mpcEmbedding);
-	void				TryKill(BOOL bStackPointerRemoved);
+	void				TryKill(BOOL bKillIfNoRoot);
 	CObjects*			GetObjects(void);
 	CStackPointers*		GetStackPointers(void);
 };

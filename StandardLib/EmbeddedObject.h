@@ -74,7 +74,7 @@ public:
 	virtual int					NumStackFroms(void);
 	virtual int					NumTotalFroms(void);
 			void				AddStackFrom(CPointer* pcPointer);
-			void				RemoveStackFromTryKill(CPointer* pcPointer);
+			void				RemoveStackFromTryKill(CPointer* pcPointer, BOOL bKillIfNoRoot);
 			void				RemoveStackFrom(CPointer* pcPointer);
 			CBaseObject*		PrivateGetHeapFrom(int iFrom);
 			CBaseObject*		TestGetFrom(int iFromIndex);
@@ -85,7 +85,7 @@ public:
 			void				ValidateNotEmbedded(char* szMethod);
 
 protected:
-	virtual void				TryKill(BOOL bStackPointerRemoved) =0;
+	virtual void				TryKill(BOOL bKillIfNoRoot) =0;
 			void				RemoveAllFroms(void);
 			BOOL				PrivateRemoveFrom(CBaseObject* pcFrom);
 	virtual void				GetStackFroms(CArrayPointerPtr* papcFroms);

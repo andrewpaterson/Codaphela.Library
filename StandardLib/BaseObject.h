@@ -74,7 +74,7 @@ public:
 	virtual	void				Class(void);
 
 			void				Kill(void);
-			void				TryKill(BOOL bDontTryFindRoot);
+			void				TryKill(BOOL bKillIfNoRoot);
 
 	virtual void				KillDontFree(void);
 	virtual void				KillData(void) =0;

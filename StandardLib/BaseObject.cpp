@@ -148,7 +148,7 @@ void CBaseObject::RemoveHeapFrom(CBaseObject* pcFrom)
 	//Removing a 'from' kicks off memory reclamation.  This is the entry point for memory management.
 	PrivateRemoveFrom(pcFrom);
 
-	GetEmbeddingContainer()->TryKill(FALSE);
+	GetEmbeddingContainer()->TryKill(TRUE);
 }
 
 
@@ -156,7 +156,7 @@ void CBaseObject::RemoveHeapFrom(CBaseObject* pcFrom)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::TryKill(BOOL bDontTryFindRoot)
+void CBaseObject::TryKill(BOOL bKillIfNoRoot)
 {
 	ValidateNotEmbedded(__METHOD__);
 
@@ -165,7 +165,7 @@ void CBaseObject::TryKill(BOOL bDontTryFindRoot)
 	BOOL			bCanFindRoot;
 	BOOL			bMustKill;
 
-	if (!bDontTryFindRoot)
+	if (bKillIfNoRoot)
 	{
 		bHasStackPointers = HasStackPointers();
 		bCanFindRoot = CanFindRoot();

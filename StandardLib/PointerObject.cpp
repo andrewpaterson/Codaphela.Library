@@ -86,7 +86,7 @@ CPointer::CPointer(CPointer& cPointer)
 
 	LOG_POINTER_DEBUG();
 
-	PointTo(cPointer.mpcObject);
+	PointTo(cPointer.mpcObject, FALSE);
 }
 
 
@@ -101,7 +101,7 @@ CPointer::CPointer(CEmbeddedObject* pcObject)
 
 	LOG_POINTER_DEBUG();
 
-	PointTo(pcObject);
+	PointTo(pcObject, FALSE);
 }
 
 
@@ -117,7 +117,7 @@ CPointer::~CPointer()
 	{
 		if (mpcObject)
 		{
-			mpcObject->RemoveStackFromTryKill(this);
+			mpcObject->RemoveStackFromTryKill(this, FALSE);
 		}
 	}
 }
@@ -131,7 +131,7 @@ void CPointer::operator = (CEmbeddedObject* pcObject)
 {
 	LOG_POINTER_DEBUG();
 
-	PointTo(pcObject);
+	PointTo(pcObject, TRUE);
 }
 
 
@@ -143,7 +143,7 @@ void CPointer::operator = (CPointer& pcPointer)
 {
 	LOG_POINTER_DEBUG();
 
-	PointTo(pcPointer.mpcObject);
+	PointTo(pcPointer.mpcObject, TRUE);
 }
 
 
@@ -217,7 +217,7 @@ void CPointer::UnsafePointTo(CEmbeddedObject* pcNewObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPointer::PointTo(CEmbeddedObject* pcNewObject)
+void CPointer::PointTo(CEmbeddedObject* pcNewObject, BOOL bKillIfNoRoot)
 {
 	CEmbeddedObject*	pcOldObject;
 
@@ -245,7 +245,7 @@ void CPointer::PointTo(CEmbeddedObject* pcNewObject)
 		{
 			if (pcOldObject)
 			{
-				pcOldObject->RemoveStackFromTryKill(this);
+				pcOldObject->RemoveStackFromTryKill(this, bKillIfNoRoot);
 			}
 
 			if (mpcObject)
@@ -255,6 +255,25 @@ void CPointer::PointTo(CEmbeddedObject* pcNewObject)
 		}
 	}
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CEmbeddedObject* CPointer::Return(void)
+{
+	CEmbeddedObject*	pOldObject;
+
+	//Call this method when you need to return a pointers object but no other 
+	//pointers point to the object and this pointers destructor must not destroy the object.
+
+	pOldObject = mpcObject;
+	mpcObject->RemoveStackFrom(this);
+	mpcObject = NULL;
+	return pOldObject;
+}
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -557,43 +576,3 @@ void CPointer::AddHeapFrom(CBaseObject* pcFrom)
 		mpcObject->AddHeapFrom(pcFrom);
 	}
 }
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CEmbeddedObject* CPointer::ClearObject(BOOL bTryKill)
-{
-	CEmbeddedObject*	pOldObject;
-
-	if (bTryKill)
-	{
-		if (mpcEmbedding)
-		{			
-			if (mpcObject)
-			{
-				mpcObject->RemoveHeapFrom(mpcEmbedding);
-			}
-		}
-		else
-		{
-			if (mpcObject)
-			{
-				mpcObject->RemoveStackFrom(this);
-				mpcObject->GetEmbeddingContainer()->TryKill(FALSE);
-			}
-		}
-		
-		mpcObject = NULL;
-		return mpcObject;
-	}
-	else
-	{
-		pOldObject = mpcObject;
-		mpcObject->RemoveStackFrom(this);
-		mpcObject = NULL;
-		return pOldObject;
-	}
-}
-

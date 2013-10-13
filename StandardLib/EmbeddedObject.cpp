@@ -337,7 +337,7 @@ void CEmbeddedObject::AddStackFrom(CPointer* pcPointer)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CEmbeddedObject::RemoveStackFromTryKill(CPointer* pcPointer)
+void CEmbeddedObject::RemoveStackFromTryKill(CPointer* pcPointer, BOOL bKillIfNoRoot)
 {
 	CStackPointers*	pcStackPointers;
 
@@ -347,7 +347,7 @@ void CEmbeddedObject::RemoveStackFromTryKill(CPointer* pcPointer)
 		if (mpcStackFroms)
 		{
 			mpcStackFroms = pcStackPointers->Remove(mpcStackFroms, pcPointer);
-			GetEmbeddingContainer()->TryKill(TRUE);
+			GetEmbeddingContainer()->TryKill(bKillIfNoRoot);
 		}
 	}
 }

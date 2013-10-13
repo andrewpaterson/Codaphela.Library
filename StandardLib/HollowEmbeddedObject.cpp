@@ -153,7 +153,7 @@ void CHollowEmbeddedObject::RemoveHeapFrom(CBaseObject* mpcEmbedding)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHollowEmbeddedObject::TryKill(BOOL bStackPointerRemoved)
+void CHollowEmbeddedObject::TryKill(BOOL bKillIfNoRoot)
 {
 }
 
