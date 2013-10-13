@@ -937,7 +937,7 @@ BOOL CObjects::Remove(CArrayBaseObjectPtr* papcKilled)
 	KillDontFreeObjects(papcKilled);
 	FreeObjects(papcKilled);
 
-	FixDistToRootFromSubRoot(&apcFromsChanged);
+	UpdateDistToRootFromSubRoot(&apcFromsChanged);
 
 	apcFromsChanged.Kill();
 	return TRUE;
@@ -948,7 +948,7 @@ BOOL CObjects::Remove(CArrayBaseObjectPtr* papcKilled)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjects::FixDistToRootFromSubRoot(CArrayEmbeddedBaseObjectPtr* papcFromsChanged)
+void CObjects::UpdateDistToRootFromSubRoot(CArrayEmbeddedBaseObjectPtr* papcFromsChanged)
 {
 	int								i;
 	int								iNumElements;
@@ -975,7 +975,7 @@ void CObjects::FixDistToRootFromSubRoot(CArrayEmbeddedBaseObjectPtr* papcFromsCh
 	for (i = 0; i < iNumSubRoots; i++)
 	{
 		pcSubRoot = *apcSubRoots.Get(i);
-		pcSubRoot->FixDistToRootFromPointedFroms();
+		pcSubRoot->UpdateDistToRootFromPointedFroms();
 	}
 	apcSubRoots.Kill();
 }

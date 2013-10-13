@@ -93,7 +93,7 @@ void CBaseObject::Kill(void)
 	{
 		apcFromsChanged.Init();
 		RemoveAllTos(&apcFromsChanged);
-		mpcObjectsThisIn->FixDistToRootFromSubRoot(&apcFromsChanged);
+		mpcObjectsThisIn->UpdateDistToRootFromSubRoot(&apcFromsChanged);
 		apcFromsChanged.Kill();
 		iNumKilled = KillThisGraph();
 	}
@@ -179,7 +179,7 @@ void CBaseObject::TryKill(BOOL bDontTryFindRoot)
 		}
 		else if (bCanFindRoot)
 		{
-			FixDistToRootFromPointedFroms();
+			UpdateDistToRootFromPointedFroms();
 		}
 		else if (bHasStackPointers)
 		{
@@ -541,7 +541,7 @@ int CBaseObject::CalculateDistToRootFromPointedFroms(int iDistToRoot)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::FixDistToRootFromPointedFroms(void)
+void CBaseObject::UpdateDistToRootFromPointedFroms(void)
 {
 	ValidateNotEmbedded(__METHOD__);
 
