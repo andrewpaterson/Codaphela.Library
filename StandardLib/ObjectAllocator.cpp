@@ -194,12 +194,12 @@ CBaseObject* CObjectAllocator::ReplaceExisting(CBaseObject* pvExisting, CBaseObj
 	}
 
 	cRemapper.Remap(pvExisting, pvObject);
-
 	pvExisting->ClearIndex();
 	pvExisting->Kill();
 
 	return pvObject;
 }
+
 
 //////////////////////////////////////////////////////////////////////////
 //

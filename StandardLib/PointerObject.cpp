@@ -375,8 +375,16 @@ CEmbeddedObject* CPointer::Dereference(void)
 int CPointer::MorphInto(CEmbeddedObject* pcNew)
 {
 	CObjectRemapFrom	cRemapper;
+	int					iCount;
+	CEmbeddedObject*	pvExisting;
 
-	return cRemapper.Remap(mpcObject, pcNew);
+	pvExisting = mpcObject;
+
+	iCount = cRemapper.Remap(mpcObject, pcNew);
+
+	pvExisting->Kill();
+
+	return iCount;
 }
 
 

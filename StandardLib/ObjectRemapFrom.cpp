@@ -34,6 +34,7 @@ int CObjectRemapFrom::Remap(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew)
 
 		iCount += RemapEmbedded(pcEmbeddedNew, pcEmbeddedOld);
 	}
+
 	pcOld->KillFroms();
 
 	return iCount;

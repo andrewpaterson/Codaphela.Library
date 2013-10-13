@@ -49,7 +49,7 @@ OIndex CEmbeddedObject::GetOI(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CEmbeddedObject::IsNamed()
+BOOL CEmbeddedObject::IsNamed(void)
 {
 	return FALSE;
 }
@@ -59,7 +59,7 @@ BOOL CEmbeddedObject::IsNamed()
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CEmbeddedObject::GetName()
+char* CEmbeddedObject::GetName(void)
 {
 	return NULL;
 }
@@ -69,7 +69,7 @@ char* CEmbeddedObject::GetName()
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CEmbeddedObject::IsDirty()
+BOOL CEmbeddedObject::IsDirty(void)
 {
 	return FALSE;
 }
@@ -79,7 +79,7 @@ BOOL CEmbeddedObject::IsDirty()
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CEmbeddedObject::ClearIndex()
+void CEmbeddedObject::ClearIndex(void)
 {
 }
 
@@ -175,7 +175,7 @@ void CEmbeddedObject::KillInternalData()
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CEmbeddedObject::KillFroms()
+void CEmbeddedObject::KillFroms(void)
 {
 	mapHeapFroms.Kill();
 	mpcStackFroms = NULL;

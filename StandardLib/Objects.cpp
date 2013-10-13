@@ -747,7 +747,7 @@ CBaseObject* CObjects::GetFromDatabase(OIndex oi)
 {
 	CIndexedDataObjectDeserialiser	cDeserialiser;
 	CObjectAllocator				cAllocator;
-	CBaseObject*					pvObject;
+	CBaseObject*					pvBaseObject;
 
 	if (!mbDatabase)
 	{
@@ -762,16 +762,16 @@ CBaseObject* CObjects::GetFromDatabase(OIndex oi)
 	cAllocator.Init(this);
 	cDeserialiser.Init(&cAllocator, &mcDatabase, &mcMemory);
 
-	pvObject = cDeserialiser.Read(oi);
+	pvBaseObject = cDeserialiser.Read(oi);
 	cDeserialiser.Kill();
 
-	if (pvObject->GetOI() != oi)
+	if (pvBaseObject->GetOI() != oi)
 	{
-		gcLogger.Error2(__METHOD__, " Requested object with index [", IndexToString(oi), "] but object had index [", IndexToString(pvObject->GetOI()), "].", NULL);
+		gcLogger.Error2(__METHOD__, " Requested object with index [", IndexToString(oi), "] but object had index [", IndexToString(pvBaseObject->GetOI()), "].", NULL);
 		return NULL;
 	}
 
-	return pvObject;
+	return pvBaseObject;
 }
 
 

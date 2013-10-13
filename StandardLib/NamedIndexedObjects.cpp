@@ -97,7 +97,7 @@ BOOL CNamedIndexedObjects::RemoveIndex(OIndex oi)
 
 	if (oi != INVALID_O_INDEX)
 	{
-		//This only removes the index from the indexes, it does not free the object pointer to.
+		//This only removes the index from the indexes, it does not free the object pointer too.
 		bResult = mcIndexedObjects.Remove(oi);
 		return bResult;
 	}
