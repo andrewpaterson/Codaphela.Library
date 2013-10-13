@@ -22,7 +22,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #include <string.h>
 #include "ErrorHandler.h"
-#include "Logger.h"
+#include "Log.h"
 
 
 CUserError	gcUserError;

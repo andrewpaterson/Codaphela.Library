@@ -19,8 +19,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/ArrayVoidPtr.h"
-#include "BaseLib/LogString.h"
-#include "BaseLib/Logger.h"
+#include "BaseLib/Log.h"
 #include "Unknown.h"
 #include "Unknowns.h"
 

@@ -1,4 +1,4 @@
-#include "BaseLib/Logger.h"
+#include "BaseLib/Log.h"
 #include "Pointer.h"
 #include "Objects.h"
 #include "IndexGenerator.h"

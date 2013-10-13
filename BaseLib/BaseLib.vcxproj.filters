@@ -600,6 +600,9 @@
     <ClInclude Include="Validation.h">
       <Filter>Source\Validation</Filter>
     </ClInclude>
+    <ClInclude Include="Log.h">
+      <Filter>Source\Error</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ArrayBit.cpp">

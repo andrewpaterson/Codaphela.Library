@@ -20,8 +20,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 
 #include "BaseLib/DebugOutput.h"
-#include "BaseLib/Logger.h"
-#include "BaseLib/LogString.h"
+#include "BaseLib/Log.h"
 #include "BaseObject.h"
 #include "NamedObject.h"
 #include "ObjectSingleSerialiser.h"

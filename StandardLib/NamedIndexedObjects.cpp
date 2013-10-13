@@ -18,8 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "BaseLib/Logger.h"
-#include "BaseLib/LogString.h"
+#include "BaseLib/Log.h"
 #include "NamedIndexedObjects.h"
 #include "NamedObject.h"
 #include "NamedHollowObject.h"

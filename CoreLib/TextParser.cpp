@@ -22,7 +22,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #include <math.h>
 #include "BaseLib/Newline.h"
-#include "BaseLib/Logger.h"
+#include "BaseLib/Log.h"
 #include "BaseLib/PointerFunctions.h"
 #include "BaseLib/StringHelper.h"
 #include "TextParser.h"

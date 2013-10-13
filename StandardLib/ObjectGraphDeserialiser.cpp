@@ -1,4 +1,4 @@
-#include "BaseLib/Logger.h"
+#include "BaseLib/Log.h"
 #include "BaseLib/ErrorTypes.h"
 #include "Objects.h"
 #include "ObjectDeserialiser.h"
