@@ -184,6 +184,7 @@ void CBaseObject::TryKill(BOOL bDontTryFindRoot)
 		else if (bHasStackPointers)
 		{
 			ClearDistToSubRoot();
+			UnattachDistToRoot();
 		}
 	}
 	else
@@ -278,7 +279,7 @@ void CBaseObject::MarkThisForKilling(CArrayBaseObjectPtr* papcKilled)
 	CBaseObject*		pcTemp;
 
 	//These both assume we are the embedding container.
-	SetDistToRootUnattached();
+	ClearDistToRoot();
 	SetFlag(OBJECT_FLAGS_UNREACHABLE, TRUE);
 
 	pcTemp = this;
@@ -313,9 +314,9 @@ void CBaseObject::KillCollected(CArrayBaseObjectPtr* papcKilled)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::SetDistToRootUnattached(void)
+void CBaseObject::ClearDistToRoot(void)
 {
-	miDistToRoot = UNATTACHED_DIST_TO_ROOT;
+	miDistToRoot = CLEARED_DIST_TO_ROOT;
 }
 
 
@@ -337,7 +338,7 @@ CBaseObject* CBaseObject::ClearDistToSubRoot(void)
 	CArrayEmbeddedBaseObjectPtr		apcFroms;
 	CBaseObject*					pcContainer;
 
-	SetDistToRootUnattached();
+	ClearDistToRoot();
 	
 	pcRootSet = NULL;
 
@@ -490,6 +491,21 @@ void CBaseObject::SetExpectedDistToRoot(int iExpectedDistToRoot)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CBaseObject::SetCalculatedDistToRoot(void)
+{
+	ValidateNotEmbedded(__METHOD__);
+
+	int	iBestDistToRoot;
+
+	iBestDistToRoot = CalculateDistToRootFromPointedFroms();
+	SetDistToRootAndSetPointedTosExpectedDistToRoot(iBestDistToRoot);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 int CBaseObject::CalculateDistToRootFromPointedFroms(void)
 {
 	int iDistToRoot;
@@ -552,6 +568,18 @@ void CBaseObject::UpdateDistToRootFromPointedFroms(void)
 	{
 		SetDistToRootAndSetPointedTosExpectedDistToRoot(iNearestRoot);
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CBaseObject::UnattachDistToRoot(void)
+{
+	ValidateNotEmbedded(__METHOD__);
+
+	SetDistToRootAndSetPointedTosExpectedDistToRoot(UNATTACHED_DIST_TO_ROOT);
 }
 
 

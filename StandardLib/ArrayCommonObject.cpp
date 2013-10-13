@@ -378,14 +378,29 @@ BOOL CArrayCommonObject::IsSubRoot(void)
 //////////////////////////////////////////////////////////////////////////
 void CArrayCommonObject::SetDistToRootAndSetPointedTosExpectedDistToRoot(int iDistToRoot)
 {
-	CBaseObject*			pcPointedTo;
-	int						i;
-
 	if (miDistToRoot != iDistToRoot)
 	{
 		miDistToRoot = iDistToRoot;
 
-		for (i = 0; i < mcArray.UnsafeNumElements(); i++)
+		SetPointedTosDistToRoot(iDistToRoot);
+	}
+}
+
+	//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CArrayCommonObject::SetPointedTosDistToRoot(int iDistToRoot)
+{
+	CBaseObject*			pcPointedTo;
+	int						i;
+	int						iNumElements;
+
+	if (iDistToRoot >= ROOT_DIST_TO_ROOT)
+	{
+		iNumElements = mcArray.UnsafeNumElements();
+
+		for (i = 0; i < iNumElements; i++)
 		{
 			pcPointedTo = (CBaseObject*)mcArray.UnsafeGet(i);
 			if (pcPointedTo)
@@ -393,6 +408,23 @@ void CArrayCommonObject::SetDistToRootAndSetPointedTosExpectedDistToRoot(int iDi
 				pcPointedTo->SetExpectedDistToRoot(iDistToRoot+1);
 			}
 		}
+	}
+	else if (iDistToRoot == UNATTACHED_DIST_TO_ROOT)
+	{
+		iNumElements = mcArray.UnsafeNumElements();
+
+		for (i = 0; i < iNumElements; i++)
+		{
+			pcPointedTo = (CBaseObject*)mcArray.UnsafeGet(i);
+			if (pcPointedTo)
+			{
+				pcPointedTo->SetCalculatedDistToRoot();
+			}
+		}
+	}
+	else
+	{
+		gcLogger.Error2(__METHOD__, "Don't know how to set dist to root to [", IntToString(iDistToRoot), "].", NULL);
 	}
 }
 

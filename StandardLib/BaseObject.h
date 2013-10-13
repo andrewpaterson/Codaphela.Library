@@ -108,13 +108,14 @@ public:
 	virtual void				RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged) =0;
 			void				AddHeapFrom(CBaseObject* pcFrom);
 			void				UpdateDistToRootFromPointedFroms(void);
+			void				UnattachDistToRoot(void);
 			void				RemoveHeapFrom(CBaseObject* pcFrom);
 			CObjects*			GetObjects(void);
 
 			CEmbeddedObject* 	TestGetTo(int iToIndex);
 			int					TestGetNumEmbeddedFromFlags(void);
 	virtual void				SetFlag(int iFlag, int iFlagValue);
-	virtual void				SetDistToRootUnattached(void);
+	virtual void				ClearDistToRoot(void);
 			BOOL				TestCanFindRoot(void);
 	
 protected:
@@ -123,6 +124,7 @@ protected:
 			int				RemapTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew) =0;
 			BOOL			RemoveToFrom(CEmbeddedObject* pcPointedTo, CArrayEmbeddedBaseObjectPtr* papcFromsChanged);
 			void			SetExpectedDistToRoot(int iExpectedDistToRoot);
+			void			SetCalculatedDistToRoot(void);
 			int				CalculateDistToRootFromPointedFroms(void);
 	virtual int				CalculateDistToRootFromPointedFroms(int iDistToRoot);
 	virtual BOOL			CanFindRoot(void);

@@ -57,7 +57,7 @@ public:
 	int					NumStackFroms(void);
 	int					NumTotalFroms(void);
 	void				SetFlag(int iFlag, int iFlagValue);
-	void				SetDistToRootUnattached(void);
+	void				ClearDistToRoot(void);
 	void				GetHeapFroms(CArrayEmbeddedBaseObjectPtr* papcFroms);
 	void				GetStackFroms(CArrayPointerPtr* papcFroms);
 	

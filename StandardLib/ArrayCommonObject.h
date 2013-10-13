@@ -68,6 +68,7 @@ protected:
 	int				RemapTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew);
 	void			CollectPointedToToBeKilled(CArrayBaseObjectPtr* papcKilled);
 	void			KillChildGraph(void);
+	void			SetPointedTosDistToRoot(int iDistToRoot);
 };
 
 

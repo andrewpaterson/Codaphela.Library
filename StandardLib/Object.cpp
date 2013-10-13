@@ -249,15 +249,37 @@ void CObject::SetPointedTosDistToRoot(int iDistToRoot)
 	CPointer**		ppPointer;
 	int				iNumPointers;
 
-	iNumPointers = mapPointers.NumElements();
-	for (i = 0; i < iNumPointers; i++)
+	if (iDistToRoot >= ROOT_DIST_TO_ROOT)
 	{
-		ppPointer = mapPointers.Get(i);
-		pcPointedTo = (**ppPointer).BaseObject();
-		if (pcPointedTo)
+		iNumPointers = mapPointers.NumElements();
+
+		for (i = 0; i < iNumPointers; i++)
 		{
-			pcPointedTo->SetExpectedDistToRoot(iDistToRoot + 1);
+			ppPointer = mapPointers.Get(i);
+			pcPointedTo = (**ppPointer).BaseObject();
+			if (pcPointedTo)
+			{
+				pcPointedTo->SetExpectedDistToRoot(iDistToRoot + 1);
+			}
 		}
+	}
+	else if (iDistToRoot == UNATTACHED_DIST_TO_ROOT)
+	{
+		iNumPointers = mapPointers.NumElements();
+
+		for (i = 0; i < iNumPointers; i++)
+		{
+			ppPointer = mapPointers.Get(i);
+			pcPointedTo = (**ppPointer).BaseObject();
+			if (pcPointedTo)
+			{
+				pcPointedTo->SetCalculatedDistToRoot();
+			}
+		}
+	}
+	else
+	{
+		gcLogger.Error2(__METHOD__, "Don't know how to set dist to root to [", IntToString(iDistToRoot), "].", NULL);
 	}
 }
 
@@ -266,19 +288,19 @@ void CObject::SetPointedTosDistToRoot(int iDistToRoot)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObject::SetDistToRootUnattached(void)
+void CObject::ClearDistToRoot(void)
 {
 	int				i;
 	int				iNumEmbedded;
 	CBaseObject*	pcEmbedded;
 
-	miDistToRoot = UNATTACHED_DIST_TO_ROOT;
+	CBaseObject::ClearDistToRoot();
 
 	iNumEmbedded = mapEmbedded.NumElements();
 	for (i = 0; i < iNumEmbedded; i++)
 	{
 		pcEmbedded = *mapEmbedded.Get(i);
-		pcEmbedded->SetDistToRootUnattached();
+		pcEmbedded->ClearDistToRoot();
 	}
 }
 
