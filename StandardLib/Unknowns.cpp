@@ -19,6 +19,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/ArrayVoidPtr.h"
+#include "BaseLib/LogString.h"
 #include "BaseLib/Logger.h"
 #include "Unknown.h"
 #include "Unknowns.h"
@@ -96,7 +97,7 @@ CUnknown* CUnknowns::Add(char* szClassName)
 
 	if ((szClassName == NULL) || (szClassName[0] == 0))
 	{
-		gcLogger.Error("CUnknowns::Add No constructor found for class with empty name.");
+		gcLogger.Error2(__METHOD__, " No constructor found for class with empty name.", NULL);
 		return NULL;
 	}
 
@@ -108,7 +109,7 @@ CUnknown* CUnknowns::Add(char* szClassName)
 	}
 	else
 	{
-		gcLogger.Error2("CUnknowns::Add No constructor found for class [", szClassName, "].", NULL);
+		gcLogger.Error2(__METHOD__, " No constructor found for class [", szClassName, "].", NULL);
 		return NULL;	
 	}
 }

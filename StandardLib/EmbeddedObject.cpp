@@ -437,6 +437,6 @@ void CEmbeddedObject::LogNotExpectedToBeEmbedded(char* szMethod)
 	CBaseObject*					pcContainer;
 
 	pcContainer = GetEmbeddingContainer();
-	gcLogger.Error2(szMethod, " called on embedded object of class [", ClassName(), "] with embedding index [", IndexToString(pcContainer->GetOI()),"] and embedding class [", pcContainer->ClassName(), "].", NULL);
+	gcLogger.Error2(szMethod, " Cannot be called on embedded object of class [", ClassName(), "] with embedding index [", IndexToString(pcContainer->GetOI()),"] and embedding class [", pcContainer->ClassName(), "].", NULL);
 }
 

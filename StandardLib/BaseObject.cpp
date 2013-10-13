@@ -77,7 +77,6 @@ void CBaseObject::Kill(void)
 {
 	CArrayEmbeddedBaseObjectPtr		apcFromsChanged;
 	int								iNumKilled;
-	CBaseObject*					pcContainer;
 	int								iNumFroms;
 
 	//This method is for the user to forcibly kill an object.
@@ -85,14 +84,7 @@ void CBaseObject::Kill(void)
 
 	//This does NOT call CUnknown::Kill.  That is handled elsewhere.
 
-	
-	if (IsEmbedded())
-	{
-		pcContainer = GetEmbeddingContainer();
-		gcLogger.Error2("CBaseObject::Kill called on embedded object of class [", ClassName(), "] with embedding index [", IndexToString(pcContainer->GetOI()),"] and embedding class [", pcContainer->ClassName(), "].", NULL);
-
-		return;
-	}
+	ValidateNotEmbedded(__METHOD__);
 
 	ClearStackPointersTo();
 
@@ -166,7 +158,7 @@ void CBaseObject::RemoveHeapFrom(CBaseObject* pcFrom)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::TryKill(BOOL bDontTryFindRoot)
 {
-	ValidateNotEmbedded(__ENGINE_PRETTY_FUNCTION__);
+	ValidateNotEmbedded(__METHOD__);
 
 	BOOL			bHasStackPointers;
 	BOOL			bHasHeapPointers;
@@ -300,7 +292,7 @@ void CBaseObject::MarkThisForKilling(CArrayBaseObjectPtr* papcKilled)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::CollectThoseToBeKilled(CArrayBaseObjectPtr* papcKilled)
 {
-	ValidateNotEmbedded(__ENGINE_PRETTY_FUNCTION__);
+	ValidateNotEmbedded(__METHOD__);
 
 	MarkThisForKilling(papcKilled);
 	CollectPointedToToBeKilled(papcKilled);
@@ -334,7 +326,7 @@ void CBaseObject::SetDistToRootUnattached(void)
 CBaseObject* CBaseObject::ClearDistToSubRoot(void)
 {
 	//The object returned here is always the object immediately below the sub-root, not the sub-root itself.
-	ValidateNotEmbedded(__ENGINE_PRETTY_FUNCTION__);
+	ValidateNotEmbedded(__METHOD__);
 
 	int								i;
 	int								iNumFroms;
@@ -412,7 +404,7 @@ void CBaseObject::SetFlag(int iFlag, int iFlagValue)
 //////////////////////////////////////////////////////////////////////////
 BOOL CBaseObject::CanFindRoot(void)
 {
-	ValidateNotEmbedded(__ENGINE_PRETTY_FUNCTION__);
+	ValidateNotEmbedded(__METHOD__);
 
 	int								iNumFroms;
 	int								i;
@@ -485,7 +477,7 @@ BOOL CBaseObject::CanFindRoot(void)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::SetExpectedDistToRoot(int iExpectedDistToRoot)
 {
-	ValidateNotEmbedded(__ENGINE_PRETTY_FUNCTION__);
+	ValidateNotEmbedded(__METHOD__);
 
 	int	iBestDistToRoot;
 
@@ -551,7 +543,7 @@ int CBaseObject::CalculateDistToRootFromPointedFroms(int iDistToRoot)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::FixDistToRootFromPointedFroms(void)
 {
-	ValidateNotEmbedded(__ENGINE_PRETTY_FUNCTION__);
+	ValidateNotEmbedded(__METHOD__);
 
 	int	iNearestRoot;
 

@@ -19,6 +19,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/Logger.h"
+#include "BaseLib/LogString.h"
 #include "NamedIndexedObjects.h"
 #include "NamedObject.h"
 #include "NamedHollowObject.h"
@@ -158,13 +159,13 @@ BOOL CNamedIndexedObjects::AddWithIDAndName(CBaseObject* pvObject, OIndex oi, ch
 
 	if (mcNames.Contains(szName))
 	{
-		gcLogger.Error2("CNamedIndexedObjects::AddWithIDAndName cannot add object named [", szName, "].  It already exists.", NULL);
+		gcLogger.Error2(__METHOD__, " Cannot add object named [", szName, "].  It already exists.", NULL);
 		return FALSE;
 	}
 
 	if (!mcNames.IsOnlyValidCharacters(szName))
 	{
-		gcLogger.Error2("CNamedIndexedObjects::AddWithIDAndName cannot add object named [", szName, "].  It's name contains invalid characters.", NULL);
+		gcLogger.Error2(__METHOD__, " Cannot add object named [", szName, "].  It's name contains invalid characters.", NULL);
 		return FALSE;
 	}
 
@@ -173,7 +174,7 @@ BOOL CNamedIndexedObjects::AddWithIDAndName(CBaseObject* pvObject, OIndex oi, ch
 	{
 		char sz[32];
 
-		gcLogger.Error2("CNamedIndexedObjects::AddWithIDAndName cannot add object named [", szName, "].  An index [", IToA(oi, sz, 10), "] already exists.", NULL);
+		gcLogger.Error2(__METHOD__, " Cannot add object named [", szName, "].  An index [", IToA(oi, sz, 10), "] already exists.", NULL);
 		return FALSE;
 	}
 
@@ -197,7 +198,7 @@ BOOL CNamedIndexedObjects::AddWithIDAndName(CBaseObject* pvObject, OIndex oi, ch
 		{
 			char sz[32];
 
-			gcLogger.Error2("CNamedIndexedObjects::AddWithIDAndName cannot add object named [", szName, "] and index [", IToA(oi, sz, 10), "].  It broke unexpectedly", NULL);
+			gcLogger.Error2(__METHOD__, " Cannot add object named [", szName, "] and index [", IToA(oi, sz, 10), "].  It broke unexpectedly", NULL);
 			bResult = FALSE;
 		}
 	}

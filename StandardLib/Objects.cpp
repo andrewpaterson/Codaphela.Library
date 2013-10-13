@@ -512,7 +512,7 @@ void CObjects::FreeObjects(CArrayBaseObjectPtr* papcObjectPts)
 //////////////////////////////////////////////////////////////////////////
 BOOL CObjects::Save(CBaseObject* pcObject)
 {
-	pcObject->ValidateNotEmbedded(__ENGINE_PRETTY_FUNCTION__);
+	pcObject->ValidateNotEmbedded(__METHOD__);
 
 	if (pcObject->IsDirty())
 	{
@@ -768,7 +768,7 @@ CBaseObject* CObjects::GetFromDatabase(OIndex oi)
 
 	if (pvObject->GetOI() != oi)
 	{
-		gcLogger.Error2("CObjects::GetFromDatabase requested object with index [", IndexToString(oi), "] but object had index [", IndexToString(pvObject->GetOI()), "].", NULL);
+		gcLogger.Error2(__METHOD__, " Requested object with index [", IndexToString(oi), "] but object had index [", IndexToString(pvObject->GetOI()), "].", NULL);
 		return NULL;
 	}
 
@@ -929,7 +929,7 @@ BOOL CObjects::Remove(CArrayBaseObjectPtr* papcKilled)
 		if (pcKilled->IsEmbedded())
 		{
 			pcContainer = pcKilled->GetEmbeddingContainer();
-			gcLogger.Error2("Objects::Remove object of class [", pcKilled->ClassName(), "] is marked for killing but is embedded in object with index [", IndexToString(pcContainer->GetOI()),"] of class [", pcContainer->ClassName(), "].", NULL);
+			gcLogger.Error2(__METHOD__, " Object of class [", pcKilled->ClassName(), "] is marked for killing but is embedded in object with index [", IndexToString(pcContainer->GetOI()),"] of class [", pcContainer->ClassName(), "].", NULL);
 			return FALSE;
 		}
 		pcKilled->RemoveAllTos(&apcFromsChanged);  //Does not kill anything.
@@ -1101,13 +1101,13 @@ BOOL CObjects::ValidateCanAllocate(char* szClassName)
 {
 	if ((szClassName == NULL) || (szClassName[0] == 0))
 	{
-		gcLogger.Error("CObjects::Allocate Cannot allocate an object of class with empty name.");
+		gcLogger.Error2(__METHOD__, " Cannot allocate an object of class with empty name.", NULL);
 		return FALSE;
 	}
 
 	if (!mbInitialised)
 	{
-		gcLogger.Error2("CObjects::Allocate Cannot allocate object of class [", szClassName, "].  CObjects has not been initialised.", NULL);
+		gcLogger.Error2(__METHOD__, " Cannot allocate object of class [", szClassName, "].  CObjects has not been initialised.", NULL);
 		return FALSE;
 	}
 
@@ -1123,7 +1123,7 @@ BOOL CObjects::ValidateCanAllocate(void)
 {
 	if (!mbInitialised)
 	{
-		gcLogger.Error2("CObjects::Allocate Cannot allocate object.  CObjects has not been initialised.", NULL);
+		gcLogger.Error2(__METHOD__, " Cannot allocate object.  CObjects has not been initialised.", NULL);
 		return FALSE;
 	}
 

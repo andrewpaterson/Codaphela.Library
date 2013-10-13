@@ -138,13 +138,13 @@ CBaseObject* CObjectAllocator::Add(char* szClassName, char* szObjectName, OIndex
 	pvObject = mpcObjects->Allocate(szClassName);
 	if (!pvObject)
 	{
-		gcLogger.Error2("CObjectAllocator::Add cannot add object named [", szObjectName, "] class [", szClassName, "].", NULL);
+		gcLogger.Error2(__METHOD__, " Cannot add object named [", szObjectName, "] class [", szClassName, "].", NULL);
 		return NULL;
 	}
 
 	if (!pvObject->IsNamed())
 	{
-		gcLogger.Error2("CObjectAllocator::Add cannot add object named [", szObjectName, "] the class ", pvObject->ClassName(), " is not derived from NamedObject.", NULL);
+		gcLogger.Error2(__METHOD__, " Cannot add object named [", szObjectName, "] the class ", pvObject->ClassName(), " is not derived from NamedObject.", NULL);
 		pvObject->Kill();
 		return NULL;
 	}
@@ -273,7 +273,7 @@ CBaseObject* CObjectAllocator::AddHollow(char* szObjectName, OIndex oiForced, un
 	pvExisting = mpcObjects->GetFromMemory(oiForced);
 	if (pvExisting)
 	{
-		gcLogger.Error2("CObjectAllocator::AddHollow cannot add hollow object named [", szObjectName, "] another object with index [", IndexToString(oiForced), "] and name [", pvExisting->GetName(), "] already exists.", NULL);
+		gcLogger.Error2(__METHOD__, " Cannot add hollow object named [", szObjectName, "] another object with index [", IndexToString(oiForced), "] and name [", pvExisting->GetName(), "] already exists.", NULL);
 		return NULL;
 	}
 
