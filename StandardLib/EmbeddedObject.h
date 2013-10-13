@@ -43,6 +43,7 @@ public:
 								CEmbeddedObject();
 								~CEmbeddedObject();
 	virtual void				KillDontFree(void) =0;
+	virtual void				KillInternalData(void);
 	virtual void				KillFroms(void);
 	virtual BOOL				Save(CObjectSerialiser* pcFile) =0;
 	virtual BOOL				Load(CObjectDeserialiser* pcFile) =0;

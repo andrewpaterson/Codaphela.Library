@@ -186,8 +186,9 @@ void CHollowObject::CollectPointedToToBeKilled(CArrayBaseObjectPtr* papcKilled)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHollowObject::KillToPointers(void)
+void CHollowObject::KillInternalData(void)
 {
+	CBaseObject::KillInternalData();
 }
 
 

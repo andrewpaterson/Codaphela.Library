@@ -61,7 +61,7 @@ public:
 	CEmbeddedObject*	GetEmbeddedObject(int iIndex);
 
 protected:
-	void			KillToPointers(void);
+	void			KillInternalData(void);
 	void			KillData(void);
 	void			RemoveTo(CEmbeddedObject* pcTo);
 	void			RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged);

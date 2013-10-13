@@ -88,6 +88,7 @@ void CBaseObject::Kill(void)
 
 	ClearStackPointersTo();
 
+	//Stack pointers?
 	iNumFroms = NumHeapFroms();
 	if (iNumFroms == 0)
 	{
@@ -114,8 +115,7 @@ void CBaseObject::KillDontFree(void)
 	LOG_OBJECT_DESTRUCTION(this);
 
 	KillData();
-	CEmbeddedObject::KillFroms();
-	KillToPointers();
+	KillInternalData();
 
 	miFlags |= OBJECT_FLAGS_KILLED;
 }
@@ -136,6 +136,16 @@ void CBaseObject::Free(void)
 		moi = INVALID_O_INDEX;
 		CUnknown::Kill();
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CBaseObject::KillInternalData(void)
+{
+	CEmbeddedObject::KillInternalData();
 }
 
 
@@ -759,7 +769,7 @@ void CBaseObject::AddHeapFrom(CBaseObject* pcFromObject)
 		mapHeapFroms.Add(&pcFromObject);
 		if (pcFromObject->miDistToRoot >= ROOT_DIST_TO_ROOT)
 		{
-			SetExpectedDistToRoot(pcFromObject->miDistToRoot+1);
+			GetEmbeddingContainer()->SetExpectedDistToRoot(pcFromObject->miDistToRoot+1);
 		}
 	}
 }

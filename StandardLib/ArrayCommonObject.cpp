@@ -59,8 +59,9 @@ void CArrayCommonObject::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayCommonObject::KillToPointers(void)
+void CArrayCommonObject::KillInternalData(void)
 {
+	CBaseObject::KillInternalData();
 	mcArray.Kill();
 }
 
@@ -393,6 +394,7 @@ void CArrayCommonObject::SetDistToRootAndSetPointedTosExpectedDistToRoot(int iDi
 void CArrayCommonObject::SetPointedTosDistToRoot(int iDistToRoot)
 {
 	CBaseObject*			pcPointedTo;
+	CBaseObject*			pcContainer;
 	int						i;
 	int						iNumElements;
 
@@ -405,7 +407,8 @@ void CArrayCommonObject::SetPointedTosDistToRoot(int iDistToRoot)
 			pcPointedTo = (CBaseObject*)mcArray.UnsafeGet(i);
 			if (pcPointedTo)
 			{
-				pcPointedTo->SetExpectedDistToRoot(iDistToRoot+1);
+				pcContainer = pcPointedTo->GetEmbeddingContainer();
+				pcContainer->SetExpectedDistToRoot(iDistToRoot+1);
 			}
 		}
 	}
@@ -418,7 +421,8 @@ void CArrayCommonObject::SetPointedTosDistToRoot(int iDistToRoot)
 			pcPointedTo = (CBaseObject*)mcArray.UnsafeGet(i);
 			if (pcPointedTo)
 			{
-				pcPointedTo->SetCalculatedDistToRoot();
+				pcContainer = pcPointedTo->GetEmbeddingContainer();
+				pcContainer->SetCalculatedDistToRoot();
 			}
 		}
 	}

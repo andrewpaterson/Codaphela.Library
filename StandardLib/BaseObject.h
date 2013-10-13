@@ -119,7 +119,7 @@ public:
 			BOOL				TestCanFindRoot(void);
 	
 protected:
-	virtual void			KillToPointers(void) =0;
+			void			KillInternalData(void);
 	virtual void			Free(void);
 			int				RemapTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew) =0;
 			BOOL			RemoveToFrom(CEmbeddedObject* pcPointedTo, CArrayEmbeddedBaseObjectPtr* papcFromsChanged);

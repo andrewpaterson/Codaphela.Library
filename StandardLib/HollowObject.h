@@ -49,7 +49,7 @@ public:
 			CStackPointers*		GetStackPointers(void);
 
 protected:
-			void				KillToPointers(void);
+			void				KillInternalData(void);
 			void				KillData(void);
 			int					RemapTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew);
 			void				RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged);

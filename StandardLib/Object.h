@@ -63,7 +63,7 @@ public:
 	
 protected:
 	void				KillDontFree(void);
-	void				KillToPointers(void);
+	void				KillInternalData(void);
 	void				GetTos(CArrayEmbeddedObjectPtr* papcTos);
 	void				RemoveTo(CEmbeddedObject* pcTo);
 	void				RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged);

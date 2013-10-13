@@ -80,8 +80,9 @@ void CObject::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObject::KillToPointers(void)
+void CObject::KillInternalData(void)
 {
+	CBaseObject::KillInternalData();
 	mapEmbedded.Kill();
 	mapPointers.Kill();
 }
@@ -97,14 +98,14 @@ void CObject::KillDontFree(void)
 	CBaseObject*		pcEmbedded;
 	int					i;
 
-	CBaseObject::KillDontFree();
-
 	iNumEmbedded = mapEmbedded.NumElements();
 	for (i = 0; i < iNumEmbedded; i++)
 	{
 		pcEmbedded = *mapEmbedded.Get(i);
 		pcEmbedded->KillDontFree();
 	}
+
+	CBaseObject::KillDontFree();
 }
 
 
@@ -248,6 +249,7 @@ void CObject::SetPointedTosDistToRoot(int iDistToRoot)
 	CBaseObject*	pcPointedTo;
 	CPointer**		ppPointer;
 	int				iNumPointers;
+	CBaseObject*	pcContainer;
 
 	if (iDistToRoot >= ROOT_DIST_TO_ROOT)
 	{
@@ -259,7 +261,8 @@ void CObject::SetPointedTosDistToRoot(int iDistToRoot)
 			pcPointedTo = (**ppPointer).BaseObject();
 			if (pcPointedTo)
 			{
-				pcPointedTo->SetExpectedDistToRoot(iDistToRoot + 1);
+				pcContainer = pcPointedTo->GetEmbeddingContainer();
+				pcContainer->SetExpectedDistToRoot(iDistToRoot + 1);
 			}
 		}
 	}
@@ -273,7 +276,8 @@ void CObject::SetPointedTosDistToRoot(int iDistToRoot)
 			pcPointedTo = (**ppPointer).BaseObject();
 			if (pcPointedTo)
 			{
-				pcPointedTo->SetCalculatedDistToRoot();
+				pcContainer = pcPointedTo->GetEmbeddingContainer();
+				pcContainer->SetCalculatedDistToRoot();
 			}
 		}
 	}
