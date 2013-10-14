@@ -59,6 +59,7 @@ friend class CArrayCommonObject;
 friend class CObject;
 friend class CObjects;
 friend class CObjectRemapFrom;
+friend class CEmbeddedObject;
 
 BASE_FUNCTIONS(CBaseObject);
 protected:
@@ -106,10 +107,8 @@ public:
 	virtual void				GetTos(CArrayEmbeddedObjectPtr* papcTos) =0;
 	virtual int					NumTos(void) =0;
 	virtual void				RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged) =0;
-			void				AddHeapFrom(CBaseObject* pcFrom);
 			void				UpdateDistToRootFromPointedFroms(void);
 			void				UnattachDistToRoot(void);
-			void				RemoveHeapFrom(CBaseObject* pcFrom);
 			CObjects*			GetObjects(void);
 			CStackPointers*		GetStackPointers(void);
 

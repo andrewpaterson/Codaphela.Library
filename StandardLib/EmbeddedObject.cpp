@@ -205,11 +205,42 @@ void CEmbeddedObject::RemoveAllFroms(void)
 }
 
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CEmbeddedObject::PrivateRemoveFrom(CBaseObject* pcFrom)
+void CEmbeddedObject::AddHeapFrom(CBaseObject* pcFromObject)
+{
+	if (pcFromObject != NULL)
+	{
+		mapHeapFroms.Add(&pcFromObject);
+		if (pcFromObject->miDistToRoot >= ROOT_DIST_TO_ROOT)
+		{
+			GetEmbeddingContainer()->SetExpectedDistToRoot(pcFromObject->miDistToRoot+1);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CEmbeddedObject::RemoveHeapFrom(CBaseObject* pcFrom)
+{
+	//Removing a 'from' kicks off memory reclamation.  This is the entry point for memory management.
+	PrivateRemoveHeapFrom(pcFrom);
+
+	GetEmbeddingContainer()->TryKill(TRUE);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CEmbeddedObject::PrivateRemoveHeapFrom(CBaseObject* pcFrom)
 {
 	return mapHeapFroms.Remove(&pcFrom, FALSE);
 }

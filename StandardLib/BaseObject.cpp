@@ -153,19 +153,6 @@ void CBaseObject::KillInternalData(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::RemoveHeapFrom(CBaseObject* pcFrom)
-{
-	//Removing a 'from' kicks off memory reclamation.  This is the entry point for memory management.
-	PrivateRemoveFrom(pcFrom);
-
-	GetEmbeddingContainer()->TryKill(TRUE);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CBaseObject::TryKill(BOOL bKillIfNoRoot)
 {
 	ValidateNotEmbedded(__METHOD__);
@@ -608,7 +595,7 @@ BOOL CBaseObject::RemoveToFrom(CEmbeddedObject* pcPointedTo, CArrayEmbeddedBaseO
 			pcBaseObject = (CBaseObject*)pcPointedTo;
 			if (pcBaseObject->miDistToRoot >= ROOT_DIST_TO_ROOT)
 			{
-				pcBaseObject->PrivateRemoveFrom(this);
+				pcBaseObject->PrivateRemoveHeapFrom(this);
 				papcFromsChanged->Add(&pcBaseObject);
 			}
 		}
@@ -755,23 +742,6 @@ void CBaseObject::ClearIndex(void)
 BOOL CBaseObject::IsUnknown(void)
 {
 	return FALSE;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CBaseObject::AddHeapFrom(CBaseObject* pcFromObject)
-{
-	if (pcFromObject != NULL)
-	{
-		mapHeapFroms.Add(&pcFromObject);
-		if (pcFromObject->miDistToRoot >= ROOT_DIST_TO_ROOT)
-		{
-			GetEmbeddingContainer()->SetExpectedDistToRoot(pcFromObject->miDistToRoot+1);
-		}
-	}
 }
 
 
