@@ -66,21 +66,22 @@ public:
 			void				SetEmbedded(CBaseObject* pcEmbedded);
 	virtual CEmbeddedObject*	GetEmbeddedObject(int iIndex) =0;
 	virtual CBaseObject*		Dehollow(void) =0;
+			BOOL				IsAllocatedInObjects(void);
 
-			BOOL				HasStackPointers(void);
 			BOOL				HasHeapPointers(void);
 			void				AddHeapFrom(CBaseObject* pcFromObject);
 			void				RemoveHeapFrom(CBaseObject* pcFromObject);
 	virtual int					NumHeapFroms(void);
-	virtual int					NumStackFroms(void);
-			int					NumTotalFroms(void);
+			CBaseObject*		GetHeapFrom(int iFromIndex);
+
 			void				AddStackFrom(CPointer* pcPointer);
-			void				RemoveStackFromTryKill(CPointer* pcPointer, BOOL bKillIfNoRoot);
+			BOOL				HasStackPointers(void);
 			void				RemoveStackFrom(CPointer* pcPointer);
-			CBaseObject*		PrivateGetHeapFrom(int iFrom);
-			CBaseObject*		TestGetFrom(int iFromIndex);
-			BOOL				IsAllocatedInObjects(void);
+			void				RemoveStackFromTryKill(CPointer* pcPointer, BOOL bKillIfNoRoot);
+	virtual int					NumStackFroms(void);
 			CStackPointer*		GetFirstStackFrom(void);
+
+			int					NumTotalFroms(void);
 
 			void				LogNotExpectedToBeEmbedded(char* szMethod);
 			void				ValidateNotEmbedded(char* szMethod);

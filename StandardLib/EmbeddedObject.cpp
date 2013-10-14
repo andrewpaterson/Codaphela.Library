@@ -250,7 +250,7 @@ BOOL CEmbeddedObject::PrivateRemoveHeapFrom(CBaseObject* pcFrom)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CEmbeddedObject::PrivateGetHeapFrom(int iFrom)
+CBaseObject* CEmbeddedObject::GetHeapFrom(int iFrom)
 {
 	CBaseObject**	ppFrom;
 
@@ -273,16 +273,6 @@ CBaseObject* CEmbeddedObject::PrivateGetHeapFrom(int iFrom)
 void CEmbeddedObject::GetHeapFroms(CArrayEmbeddedBaseObjectPtr* papcFroms)
 {
 	papcFroms->Copy((CArrayEmbeddedBaseObjectPtr*)&mapHeapFroms);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CBaseObject* CEmbeddedObject::TestGetFrom(int iFromIndex)
-{
-	return PrivateGetHeapFrom(iFromIndex);
 }
 
 

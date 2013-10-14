@@ -534,7 +534,7 @@ int CBaseObject::CalculateDistToRootFromPointedFroms(int iDistToRoot)
 	iNumFroms = CEmbeddedObject::NumHeapFroms();
 	for (i = 0; i < iNumFroms; i++)
 	{
-		pcFrom = CEmbeddedObject::PrivateGetHeapFrom(i);
+		pcFrom = CEmbeddedObject::GetHeapFrom(i);
 		if (pcFrom)
 		{
 			if (pcFrom->miDistToRoot < iBestDistToRoot)
