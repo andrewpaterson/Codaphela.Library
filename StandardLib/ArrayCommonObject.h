@@ -41,8 +41,10 @@ public:
 	void				AddAll(CArrayCommonObject* pcArray);
 	void				Set(int iIndex, CPointer& pObject);
 	BOOL				Remove(CPointer& pObject);
-	void				RemoveAll(void);
 	BOOL				Remove(CBaseObject* pcObject);
+	void				RemoveAll(void);
+
+	void				KillAll(void);
 
 	int					NumElements(void);
 	int					NonNullElements(void);
@@ -67,7 +69,6 @@ protected:
 	void			RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged);
 	int				RemapTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew);
 	void			CollectPointedToToBeKilled(CArrayBaseObjectPtr* papcKilled);
-	void			KillChildGraph(void);
 	void			SetPointedTosDistToRoot(int iDistToRoot);
 };
 

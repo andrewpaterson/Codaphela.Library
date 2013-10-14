@@ -33,6 +33,7 @@ public:
 			void			Kill(void);
 			BOOL			IsCollection(void);
 			BOOL			IsObject(void);
+	virtual void			KillAll(void) =0;
 	virtual void			RemoveAll(void) =0;
 			CBaseObject*	Dehollow(void);
 };

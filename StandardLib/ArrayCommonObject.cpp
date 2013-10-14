@@ -70,40 +70,6 @@ void CArrayCommonObject::KillInternalData(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayCommonObject::KillChildGraph(void)
-{
-	CArrayBaseObjectPtr	apcKilled;
-	CBaseObject*		pcPointedTo;
-	int					i;
-	CBaseObject*		pcContainer;
-
-	apcKilled.Init(1024);
-
-	for (i = 0; i < mcArray.NumElements(); i++)
-	{
-		pcPointedTo = (CBaseObject*)mcArray.UnsafeGet(i);
-		if (pcPointedTo)
-		{
-			pcPointedTo->RemoveAllHeapFroms();
-			pcPointedTo->RemoveAllStackFroms();
-
-			pcContainer = pcPointedTo->GetEmbeddingContainer();
-			pcContainer->CollectThoseToBeKilled(&apcKilled);
-		}
-	}
-
-	KillCollected(&apcKilled);
-
-	apcKilled.Kill();
-
-	mcArray.ReInit();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CArrayCommonObject::RemoveAll(void)
 {
 	int				i;
@@ -128,7 +94,39 @@ void CArrayCommonObject::RemoveAll(void)
 //////////////////////////////////////////////////////////////////////////
 void CArrayCommonObject::KillAll(void)
 {
-	KillChildGraph();
+	CArrayBaseObjectPtr	apcKilled;
+	CBaseObject*		pcPointedTo;
+	int					i;
+	CBaseObject*		pcContainer;
+
+	apcKilled.Init(1024);
+
+	for (i = 0; i < mcArray.NumElements(); i++)
+	{
+		pcPointedTo = (CBaseObject*)mcArray.UnsafeGet(i);
+		if (pcPointedTo)
+		{
+			pcContainer = pcPointedTo->GetEmbeddingContainer();
+			pcContainer->RemoveAllStackFroms();
+			pcContainer->CollectThoseToBeKilled(&apcKilled);
+		}
+	}
+
+	for (i = 0; i < mcArray.NumElements(); i++)
+	{
+		pcPointedTo = (CBaseObject*)mcArray.UnsafeGet(i);
+		if (pcPointedTo)
+		{
+			pcContainer = pcPointedTo->GetEmbeddingContainer();
+			pcContainer->RemoveAllHeapFroms();
+		}
+	}
+
+	KillCollected(&apcKilled);
+
+	apcKilled.Kill();
+
+	mcArray.ReInit();
 }
 
 

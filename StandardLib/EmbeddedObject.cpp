@@ -186,7 +186,7 @@ void CEmbeddedObject::KillFroms(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CEmbeddedObject::RemoveAllFroms(void)
+void CEmbeddedObject::RemoveAllHeapFroms(void)
 {
 	int					iNumFroms;
 	CEmbeddedObject**	ppcPointedFrom;
@@ -194,16 +194,18 @@ void CEmbeddedObject::RemoveAllFroms(void)
 	CEmbeddedObject*	pcPointedFrom;
 
 	iNumFroms = mapHeapFroms.NumElements();
-	ppcPointedFrom = (CEmbeddedObject**)mapHeapFroms.GetData();
-	for (i = 0; i < iNumFroms; i++)
+	if (iNumFroms > 0)
 	{
-		pcPointedFrom = ppcPointedFrom[i];
-		pcPointedFrom->RemoveTo(this);
+		ppcPointedFrom = (CEmbeddedObject**)mapHeapFroms.GetData();
+		for (i = 0; i < iNumFroms; i++)
+		{
+			pcPointedFrom = ppcPointedFrom[i];
+			pcPointedFrom->RemoveTo(this);
+		}
+
+		mapHeapFroms.ReInit();
 	}
-
-	mapHeapFroms.ReInit();
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -418,6 +420,33 @@ void CEmbeddedObject::RemoveStackFrom(CPointer* pcPointer)
 		if (mpcStackFroms)
 		{
 			mpcStackFroms = pcStackPointers->Remove(mpcStackFroms, pcPointer);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CEmbeddedObject::RemoveAllStackFroms(void)
+{
+	CStackPointers*		pcStackPointers;
+	CStackPointer*		pcStackPointer;
+
+	pcStackPointers = GetStackPointers();
+	if (pcStackPointers)
+	{
+		if (mpcStackFroms)
+		{
+			pcStackPointer = mpcStackFroms;
+			while (pcStackPointer)
+			{
+				pcStackPointer = pcStackPointer->ClearPointerGetNext();
+			}
+
+			pcStackPointers->RemoveAll(mpcStackFroms);
+			mpcStackFroms = NULL;
 		}
 	}
 }

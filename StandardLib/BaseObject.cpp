@@ -78,7 +78,6 @@ void CBaseObject::Kill(void)
 	CArrayEmbeddedBaseObjectPtr		apcFromsChanged;
 	int								iNumKilled;
 	int								iNumFroms;
-
 	//This method is for the user to forcibly kill an object.
 	//It is not called internally.  KillThisGraph is method used to free objects that are unattached.
 
@@ -86,9 +85,8 @@ void CBaseObject::Kill(void)
 
 	ValidateNotEmbedded(__METHOD__);
 
-	ClearStackPointersTo();
-
-	//Stack pointers?
+	RemoveAllStackFroms();
+	
 	iNumFroms = NumHeapFroms();
 	if (iNumFroms == 0)
 	{
@@ -96,13 +94,13 @@ void CBaseObject::Kill(void)
 		RemoveAllTos(&apcFromsChanged);
 		mpcObjectsThisIn->UpdateDistToRootFromSubRoot(&apcFromsChanged);
 		apcFromsChanged.Kill();
-		iNumKilled = KillThisGraph();
 	}
 	else
 	{
-		RemoveAllFroms();
-		iNumKilled = KillThisGraph();
+		RemoveAllHeapFroms();
 	}
+
+	iNumKilled = KillThisGraph();
 }
 
 
@@ -367,22 +365,6 @@ CBaseObject* CBaseObject::ClearDistToRootForPathToNearestSubRoot(void)
 
 	apcFroms.Kill();
 	return pcRootSet;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CBaseObject::ClearStackPointersTo(void)
-{
-	CStackPointer*	pcStackPointer;
-
-	pcStackPointer = mpcStackFroms;
-	while (pcStackPointer)
-	{
-		pcStackPointer = pcStackPointer->ClearPointerGetNext();
-	}
 }
 
 

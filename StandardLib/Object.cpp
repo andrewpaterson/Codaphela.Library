@@ -363,9 +363,9 @@ void CObject::RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged)
 //////////////////////////////////////////////////////////////////////////
 void CObject::RemoveTo(CEmbeddedObject* pcTo)
 {
-	int				iNumPointers;
-	int				i;
-	CPointer**		ppPointer;
+	int					iNumPointers;
+	int					i;
+	CPointer**			ppPointer;
 	CEmbeddedObject*	pcPointedTo;
 
 	iNumPointers = mapPointers.NumElements();
