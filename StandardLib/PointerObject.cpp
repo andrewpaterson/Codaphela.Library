@@ -584,3 +584,19 @@ void CPointer::AddHeapFrom(CBaseObject* pcFrom)
 		mpcObject->AddHeapFrom(pcFrom);
 	}
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CPointer::DumpFroms(void)
+{
+	CBaseObject* pvBaseObject = BaseObject();
+
+	if (pvBaseObject)
+	{
+		pvBaseObject->DumpFroms();
+	}
+}
+

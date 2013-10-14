@@ -45,8 +45,7 @@ public:
 			CEmbeddedObject*	GetEmbeddedObject(int iIndex);
 			int					GetEmbeddedIndex(CEmbeddedObject* pcEmbedded);
 			int					NumHeapFroms(void);
-			int					NumTotalFroms(void);
-			CStackPointers*		GetStackPointers(void);
+			int					NumStackFroms(void);
 
 protected:
 			void				KillInternalData(void);

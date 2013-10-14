@@ -61,17 +61,3 @@ CBaseObject* CCollection::Dehollow(void)
 	return this;
 }
 
-
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CStackPointers* CCollection::GetStackPointers(void)
-{
-	CObjects*	pcObjects;
-
-	pcObjects = GetObjects();
-	return pcObjects->GetStackPointers();
-}

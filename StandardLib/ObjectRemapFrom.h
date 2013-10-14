@@ -10,6 +10,7 @@ public:
 
 private:
 	int RemapEmbedded(CEmbeddedObject* pcNew, CEmbeddedObject* pcOld);
+	int	CalculateNumEmbedded(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew);
 };
 
 

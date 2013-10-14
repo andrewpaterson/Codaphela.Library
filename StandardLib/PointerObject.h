@@ -85,6 +85,8 @@ public:
 
 	CEmbeddedObject*	Return(void);
 	void				UnsafeClearObject(void);
+
+	void				DumpFroms(void);
 };
 
 

@@ -193,7 +193,7 @@ void CBaseObject::TryKill(BOOL bKillIfNoRoot)
 		}
 		else if (bHasStackPointers)
 		{
-			ClearDistToSubRoot();
+			ClearDistToRootForPathToNearestSubRoot();
 			UnattachDistToRoot();
 		}
 	}
@@ -334,7 +334,7 @@ void CBaseObject::ClearDistToRoot(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CBaseObject::ClearDistToSubRoot(void)
+CBaseObject* CBaseObject::ClearDistToRootForPathToNearestSubRoot(void)
 {
 	//The object returned here is always the object immediately below the sub-root, not the sub-root itself.
 	ValidateNotEmbedded(__METHOD__);
@@ -370,7 +370,7 @@ CBaseObject* CBaseObject::ClearDistToSubRoot(void)
 			}
 
 			pcContainer = pcPointedFrom->GetEmbeddingContainer();
-			pcTemp = pcContainer->ClearDistToSubRoot();
+			pcTemp = pcContainer->ClearDistToRootForPathToNearestSubRoot();
 			if (pcTemp != NULL)
 			{
 				pcRootSet = pcTemp;
@@ -886,7 +886,6 @@ int CBaseObject::TestGetNumEmbeddedFromFlags(void)
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -897,6 +896,26 @@ CObjects* CBaseObject::GetObjects(void)
 
 	pcBaseObject = GetEmbeddingContainer();
 	return pcBaseObject->mpcObjectsThisIn;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CStackPointers* CBaseObject::GetStackPointers(void)
+{
+	CObjects*	pcObjects;
+
+	pcObjects = GetObjects();
+	if (pcObjects)
+	{
+		return pcObjects->GetStackPointers();
+	}
+	else
+	{
+		return NULL;
+	}
 }
 
 
@@ -919,3 +938,84 @@ BOOL CBaseObject::TestCanFindRoot(void)
 	return CanFindRoot();
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CBaseObject::PrintObject(CChars* psz, BOOL bEmbedded)
+{
+	int		iDistToRoot;
+
+	psz->Append(PointerToString(this));
+	psz->Append(" [");
+	iDistToRoot = GetDistToRoot();
+	if (iDistToRoot >= 0 && iDistToRoot <= 9)
+	{
+		psz->Append(" ");
+	}
+	psz->Append(iDistToRoot);
+	psz->Append("]:");
+
+	if (bEmbedded)
+	{
+		psz->Append("(");
+	}
+	psz->Append(ClassName());
+	psz->Append("(");
+	psz->Append(ClassSize());
+	psz->Append(") ");
+	psz->Append(GetOI());
+	if (IsNamed())
+	{
+		psz->Append(" ");
+		psz->Append(GetName());
+	}
+	if (bEmbedded)
+	{
+		psz->Append(")");
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CBaseObject::DumpFroms(void)
+{
+	CChars				sz;
+	int					i;
+	int					iNumEmbedded;
+	CEmbeddedObject*	pcEmbedded;
+
+	sz.Init();
+
+	sz.Append("-- ");
+	PrintObject(&sz);
+	sz.Append(" --\n");
+	sz.Append("Total Heap Froms [");
+	sz.Append(NumHeapFroms());
+	sz.Append("], ");
+
+	sz.Append("Stack Froms [");
+	sz.Append(NumStackFroms());
+	sz.Append("]\n");
+
+	iNumEmbedded = GetNumEmbedded();
+	for (i = 0; i < iNumEmbedded; i++)
+	{
+		pcEmbedded = GetEmbeddedObject(i);
+		sz.Append("Embedded ");
+		sz.Append(i);
+		sz.Append(" Heap Froms [");
+		sz.Append(pcEmbedded->CEmbeddedObject::NumHeapFroms());
+		sz.Append("], ");
+		sz.Append("Stack Froms [");
+		sz.Append(pcEmbedded->CEmbeddedObject::NumStackFroms());
+		sz.Append("]\n");
+	}
+
+	sz.Dump();
+	sz.Kill();
+}

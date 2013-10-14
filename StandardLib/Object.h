@@ -55,7 +55,6 @@ public:
 	CBaseObject*		Dehollow(void);
 	int					NumHeapFroms(void);
 	int					NumStackFroms(void);
-	int					NumTotalFroms(void);
 	void				SetFlag(int iFlag, int iFlagValue);
 	void				ClearDistToRoot(void);
 	void				GetHeapFroms(CArrayEmbeddedBaseObjectPtr* papcFroms);
@@ -74,7 +73,6 @@ protected:
 	void				SetPointedTosDistToRoot(int iDistToRoot);
 	BOOL				RecurseGetEmbeddedIndex(CEmbeddedObject* pcTest, int* piIndex);
 	CEmbeddedObject*	RecurseGetEmbeddedObject(int iIndex, int* iCount);
-	CStackPointers*		GetStackPointers(void);
 };
 
 

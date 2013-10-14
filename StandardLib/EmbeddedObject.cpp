@@ -313,11 +313,7 @@ int CEmbeddedObject::NumStackFroms(void)
 //////////////////////////////////////////////////////////////////////////
 int CEmbeddedObject::NumTotalFroms(void)
 {
-	int		iTotalFroms;
-
-	iTotalFroms = mapHeapFroms.NumElements();
-	iTotalFroms += NumStackFroms();
-	return iTotalFroms;
+	return NumStackFroms() + NumHeapFroms();
 }
 
 

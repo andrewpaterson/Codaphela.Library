@@ -130,12 +130,12 @@ CHollowObject* CHollowEmbeddedObject::GetHollowObject(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHollowEmbeddedObject::AddHeapFrom(CBaseObject* pcFrom)
+void CHollowEmbeddedObject::AddHeapFrom(CBaseObject* pcFromObject)
 {
 	CHollowObject*	pcHollow;
 
 	pcHollow = GetHollowObject();
-	pcHollow->AddHeapFrom(pcFrom);
+	pcHollow->AddHeapFrom(pcFromObject);
 }
 
 

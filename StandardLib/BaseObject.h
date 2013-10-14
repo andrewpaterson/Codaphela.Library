@@ -111,12 +111,15 @@ public:
 			void				UnattachDistToRoot(void);
 			void				RemoveHeapFrom(CBaseObject* pcFrom);
 			CObjects*			GetObjects(void);
+			CStackPointers*		GetStackPointers(void);
 
 			CEmbeddedObject* 	TestGetTo(int iToIndex);
 			int					TestGetNumEmbeddedFromFlags(void);
 	virtual void				SetFlag(int iFlag, int iFlagValue);
 	virtual void				ClearDistToRoot(void);
 			BOOL				TestCanFindRoot(void);
+			void				PrintObject(CChars* psz, BOOL bEmbedded = FALSE);
+			void				DumpFroms(void);
 	
 protected:
 			void			KillInternalData(void);
@@ -128,7 +131,7 @@ protected:
 			int				CalculateDistToRootFromPointedFroms(void);
 	virtual int				CalculateDistToRootFromPointedFroms(int iDistToRoot);
 	virtual BOOL			CanFindRoot(void);
-			CBaseObject*	ClearDistToSubRoot(void);
+			CBaseObject*	ClearDistToRootForPathToNearestSubRoot(void);
 			void			CollectThoseToBeKilled(CArrayBaseObjectPtr* papcKilled);
 	virtual void			CollectPointedToToBeKilled(CArrayBaseObjectPtr* papcKilled) =0;
 			void			CollectPointedToToBeKilled(CArrayBaseObjectPtr* papcKilled, CBaseObject* pcPointedTo);

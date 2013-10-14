@@ -196,7 +196,7 @@ void CObjects::DumpMemory(void)
 	pcBaseObject = mcMemory.StartIteration(&sIter);
 	while (pcBaseObject)
 	{
-		PrintObject(&sz, pcBaseObject);
+		pcBaseObject->PrintObject(&sz);
 
 		sz.Append("\n");
 		pcBaseObject = mcMemory.Iterate(&sIter);
@@ -279,14 +279,14 @@ void CObjects::RecurseDumpGraph(CChars* psz, CEmbeddedObject* pcIncoming, int iL
 	if ((pcBaseObject->miFlags & OBJECT_FLAGS_DUMPED) || (pcBaseObject->miDistToRoot < iLevel))
 	{
 		psz->Append('*');
-		PrintObject(psz, pcBaseObject, bEmbedded);
+		pcBaseObject->PrintObject(psz, bEmbedded);
 		psz->AppendNewLine();
 		return;
 	}
 	else
 	{
 		psz->Append(' ');
-		PrintObject(psz, pcBaseObject, bEmbedded);
+		pcBaseObject->PrintObject(psz, bEmbedded);
 		psz->AppendNewLine();
 	}
 
@@ -312,45 +312,6 @@ void CObjects::RecurseDumpGraph(CChars* psz, CEmbeddedObject* pcIncoming, int iL
 	}
 
 	apcTos.Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CObjects::PrintObject(CChars* psz, CBaseObject* pcBaseObject, BOOL bEmbedded)
-{
-	int		iDistToRoot;
-
-	psz->Append(PointerToString(pcBaseObject));
-	psz->Append(" [");
-	iDistToRoot = pcBaseObject->GetDistToRoot();
-	if (iDistToRoot >= 0 && iDistToRoot <= 9)
-	{
-		psz->Append(" ");
-	}
-	psz->Append(pcBaseObject->GetDistToRoot());
-	psz->Append("]:");
-
-	if (bEmbedded)
-	{
-		psz->Append("(");
-	}
-	psz->Append(pcBaseObject->ClassName());
-	psz->Append("(");
-	psz->Append(pcBaseObject->ClassSize());
-	psz->Append(") ");
-	psz->Append(pcBaseObject->GetOI());
-	if (pcBaseObject->IsNamed())
-	{
-		psz->Append(" ");
-		psz->Append(pcBaseObject->GetName());
-	}
-	if (bEmbedded)
-	{
-		psz->Append(")");
-	}
 }
 
 
@@ -964,7 +925,7 @@ void CObjects::UpdateDistToRootFromSubRoot(CArrayEmbeddedBaseObjectPtr* papcFrom
 	{
 		pcFromsChanged = *papcFromsChanged->Get(i);
 		pcContainer = pcFromsChanged->GetEmbeddingContainer();
-		pcSubRoot = pcContainer->ClearDistToSubRoot();
+		pcSubRoot = pcContainer->ClearDistToRootForPathToNearestSubRoot();
 		if (pcSubRoot)
 		{
 			apcSubRoots.Add(&pcSubRoot);

@@ -10,23 +10,14 @@
 int CObjectRemapFrom::Remap(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew)
 {
 	int					iCount;
-	int					iNumEmbeddedOld;
 	CEmbeddedObject*	pcEmbeddedOld;
-	int					iNumEmbeddedNew;
 	int					iNumEmbedded;
 	CEmbeddedObject*	pcEmbeddedNew;
 	int					i;
 
-	iNumEmbeddedNew = pcNew->GetNumEmbedded();
-	iNumEmbeddedOld = pcOld->GetNumEmbedded();
-
-	iNumEmbedded = iNumEmbeddedNew;
-	if (iNumEmbeddedOld < iNumEmbeddedNew)
-	{
-		iNumEmbedded = iNumEmbeddedOld;
-	}
-
+	iNumEmbedded = CalculateNumEmbedded(pcOld, pcNew);
 	iCount = 0;
+
 	for (i = 0; i < iNumEmbedded; i++)
 	{
 		pcEmbeddedOld = pcOld->GetEmbeddedObject(i);
@@ -75,3 +66,25 @@ int CObjectRemapFrom::RemapEmbedded(CEmbeddedObject* pcNew, CEmbeddedObject* pcO
 	return iCount;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CObjectRemapFrom::CalculateNumEmbedded(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew)
+{
+	int					iNumEmbeddedOld;
+	int					iNumEmbeddedNew;
+	int					iNumEmbedded;
+
+	iNumEmbeddedNew = pcNew->GetNumEmbedded();
+	iNumEmbeddedOld = pcOld->GetNumEmbedded();
+
+	iNumEmbedded = iNumEmbeddedNew;
+	if (iNumEmbeddedOld < iNumEmbeddedNew)
+	{
+		iNumEmbedded = iNumEmbeddedOld;
+	}
+
+	return iNumEmbedded;
+}

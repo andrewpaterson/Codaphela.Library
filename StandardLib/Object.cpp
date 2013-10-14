@@ -678,9 +678,9 @@ CBaseObject* CObject::Dehollow(void)
 //////////////////////////////////////////////////////////////////////////
 int CObject::NumHeapFroms(void)
 {
+	CBaseObject*	pcBaseObject;
 	int				i;
 	int				iCount;
-	CBaseObject*	pcBaseObject;
 
 	iCount = CEmbeddedObject::NumHeapFroms();
 
@@ -697,32 +697,11 @@ int CObject::NumHeapFroms(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CObject::NumTotalFroms(void)
-{
-	int				i;
-	int				iCount;
-	CBaseObject*	pcBaseObject;
-
-	iCount = CEmbeddedObject::NumTotalFroms();
-
-	for (i = 0; i < mapEmbedded.NumElements(); i++)
-	{
-		pcBaseObject = *mapEmbedded.Get(i);
-		iCount += pcBaseObject->NumTotalFroms();
-	}
-	return iCount;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 int CObject::NumStackFroms(void)
 {
+	CBaseObject*	pcBaseObject;
 	int				i;
 	int				iCount;
-	CBaseObject*	pcBaseObject;
 
 	iCount = CEmbeddedObject::NumStackFroms();
 
@@ -750,26 +729,6 @@ void CObject::SetFlag(int iFlag, int iFlagValue)
 	{
 		pcBaseObject = *mapEmbedded.Get(i);
 		pcBaseObject->SetFlag(iFlag, iFlagValue);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CStackPointers* CObject::GetStackPointers(void)
-{
-	CObjects*	pcObjects;
-
-	pcObjects = GetObjects();
-	if (pcObjects)
-	{
-		return pcObjects->GetStackPointers();
-	}
-	else
-	{
-		return NULL;
 	}
 }
 

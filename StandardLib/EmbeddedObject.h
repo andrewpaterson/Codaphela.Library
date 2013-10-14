@@ -73,7 +73,7 @@ public:
 	virtual void				AddHeapFrom(CBaseObject* pcFrom) =0;
 	virtual int					NumHeapFroms(void);
 	virtual int					NumStackFroms(void);
-	virtual int					NumTotalFroms(void);
+			int					NumTotalFroms(void);
 			void				AddStackFrom(CPointer* pcPointer);
 			void				RemoveStackFromTryKill(CPointer* pcPointer, BOOL bKillIfNoRoot);
 			void				RemoveStackFrom(CPointer* pcPointer);

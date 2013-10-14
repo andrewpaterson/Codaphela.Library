@@ -35,7 +35,6 @@ public:
 			BOOL			IsObject(void);
 	virtual void			RemoveAll(void) =0;
 			CBaseObject*	Dehollow(void);
-			CStackPointers*	GetStackPointers(void);
 };
 
 

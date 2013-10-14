@@ -288,60 +288,37 @@ CEmbeddedObject* CHollowObject::GetRemappedEmbeddedObject(int iIndex)
 //////////////////////////////////////////////////////////////////////////
 int CHollowObject::NumHeapFroms(void)
 {
-	CHollowEmbeddedObject*	pcEmbedded;
-	int						iCount;	
+	CHollowEmbeddedObject*	pcHollowEmbedded;
 	int						i;
+	int						iCount;	
 
 	iCount = CEmbeddedObject::NumHeapFroms();
 
 	for (i = 1; i < GetNumEmbedded(); i++)
 	{
-		pcEmbedded = (CHollowEmbeddedObject*)GetEmbeddedObject(i);
-		iCount += pcEmbedded->NumHeapFroms();
+		pcHollowEmbedded = (CHollowEmbeddedObject*)GetEmbeddedObject(i);
+		iCount += pcHollowEmbedded->NumHeapFroms();
 	}
 	return iCount;
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CHollowObject::NumTotalFroms(void)
+int CHollowObject::NumStackFroms(void)
 {
-	CHollowEmbeddedObject*	pcEmbedded;
-	int						iCount;	
+	CHollowEmbeddedObject*	pcHollowEmbedded;
 	int						i;
+	int						iCount;	
 
-	iCount = CEmbeddedObject::NumTotalFroms();
+	iCount = CEmbeddedObject::NumStackFroms();
 
 	for (i = 1; i < GetNumEmbedded(); i++)
 	{
-		pcEmbedded = (CHollowEmbeddedObject*)GetEmbeddedObject(i);
-		iCount += pcEmbedded->NumTotalFroms();
+		pcHollowEmbedded = (CHollowEmbeddedObject*)GetEmbeddedObject(i);
+		iCount += pcHollowEmbedded->NumStackFroms();
 	}
 	return iCount;
 }
-
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CStackPointers* CHollowObject::GetStackPointers(void)
-{
-	CObjects*	pcObjects;
-
-	pcObjects = GetObjects();
-	if (pcObjects)
-	{
-		return pcObjects->GetStackPointers();
-	}
-	else
-	{
-		return NULL;
-	}
-}
-
