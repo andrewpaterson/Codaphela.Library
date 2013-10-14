@@ -41,7 +41,6 @@ public:
 	void				PreInit(CObjects* pcObjects);
 	void				PreInit(void);
 	void				Kill(void);
-	void				KillFroms(void);
 	int					NumTos(void);
 	BOOL				IsCollection(void);
 	BOOL				IsObject(void);

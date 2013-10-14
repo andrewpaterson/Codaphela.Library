@@ -26,8 +26,6 @@ int CObjectRemapFrom::Remap(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew)
 		iCount += RemapEmbedded(pcEmbeddedNew, pcEmbeddedOld);
 	}
 
-	pcOld->KillFroms();
-
 	return iCount;
 }
 
@@ -68,6 +66,8 @@ int CObjectRemapFrom::RemapEmbedded(CEmbeddedObject* pcNew, CEmbeddedObject* pcO
 	}
 
 	pcNew->SetDistToRootAndSetPointedTosExpectedDistToRoot(pcOld->GetDistToRoot());
+
+	pcOld->KillFroms();
 
 	return iCount;
 }
