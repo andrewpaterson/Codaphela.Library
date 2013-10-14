@@ -84,6 +84,9 @@ void CArrayCommonObject::KillChildGraph(void)
 		pcPointedTo = (CBaseObject*)mcArray.UnsafeGet(i);
 		if (pcPointedTo)
 		{
+			pcPointedTo->RemoveAllHeapFroms();
+			pcPointedTo->RemoveAllStackFroms();
+
 			pcContainer = pcPointedTo->GetEmbeddingContainer();
 			pcContainer->CollectThoseToBeKilled(&apcKilled);
 		}
@@ -102,6 +105,28 @@ void CArrayCommonObject::KillChildGraph(void)
 //
 //////////////////////////////////////////////////////////////////////////
 void CArrayCommonObject::RemoveAll(void)
+{
+	int				i;
+	CBaseObject*	pcObject;
+
+	for (i = 0; i < NumElements(); i++)
+	{
+		pcObject = UnsafeGet(i);
+		if (pcObject)
+		{
+			pcObject->RemoveHeapFrom(this);
+		}
+	}
+
+	mcArray.ReInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CArrayCommonObject::KillAll(void)
 {
 	KillChildGraph();
 }
