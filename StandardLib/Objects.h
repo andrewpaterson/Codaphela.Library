@@ -74,6 +74,7 @@ public:
 						void					KillStackPointers(void);
 						void					DumpMemory(void);
 						void					DumpGraph(void);
+						void					ValidateMemoryEmpty(void);
 
 	template<class M>	void					AddConstructor(void);
 	template<class M>	CObjectSource*			AddSource(CAbstractFile* pcFile, char* szFileName);
@@ -142,6 +143,7 @@ protected:
 						CNamedHollowObject*		AllocateNamedHollow(unsigned short iNumEmbedded);
 						CHollowObject*			AllocateHollow(unsigned short iNumEmbedded);
 						void					AppenedHollowEmbeddedObjects(CBaseObject* pcHollow, unsigned short iNumEmbedded, void* pvEmbedded) ;
+						void					PrintMemory(CChars* psz);
 };
 
 

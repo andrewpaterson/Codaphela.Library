@@ -171,6 +171,7 @@ void CObjects::Kill(void)
 	mpcUnknownsAllocatingFrom = NULL;
 }
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -186,22 +187,56 @@ void CObjects::KillStackPointers(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjects::DumpMemory(void)
+void CObjects::ValidateMemoryEmpty(void)
 {
-	CChars				sz;
+	OIndex	iNumIndexed;
+
+	iNumIndexed = mcMemory.NumIndexed();
+	if (iNumIndexed != 0)
+	{
+		CChars				sz;
+
+		sz.Init("\n");
+		sz.Append("Memory not empty.  ");
+		sz.Append(iNumIndexed);
+		sz.Append(" objects are still indexed.\n");
+		PrintMemory(&sz);
+		gcLogger.Error(sz.Text());
+		sz.Kill();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CObjects::PrintMemory(CChars* psz)
+{
 	SIndexesIterator	sIter;
 	CBaseObject*		pcBaseObject;
 
-	sz.Init("-------------------------- Memory -------------------------- \n");
 	pcBaseObject = mcMemory.StartIteration(&sIter);
 	while (pcBaseObject)
 	{
-		pcBaseObject->PrintObject(&sz);
+		pcBaseObject->PrintObject(psz);
 
-		sz.Append("\n");
+		psz->Append("\n");
 		pcBaseObject = mcMemory.Iterate(&sIter);
 	}
+}
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CObjects::DumpMemory(void)
+{
+	CChars				sz;
+
+	sz.Init("-------------------------- Memory -------------------------- \n");
+	PrintMemory(&sz);
 	sz.Append("------------------------------------------------------------ \n");
 	sz.Dump();
 	sz.Kill();
@@ -938,7 +973,20 @@ void CObjects::UpdateDistToRootFromSubRoot(CArrayEmbeddedBaseObjectPtr* papcFrom
 		pcSubRoot = *apcSubRoots.Get(i);
 		pcSubRoot->UpdateDistToRootFromPointedFroms();
 	}
+
 	apcSubRoots.Kill();
+
+	//Deal with all the objects that have no path back to the root.
+	//Only the immediate object should be wrong (left as cleared).
+	for (i = 0; i < iNumElements; i++)
+	{
+		pcFromsChanged = *papcFromsChanged->Get(i);
+		pcContainer = pcFromsChanged->GetEmbeddingContainer();
+		if (pcContainer->miDistToRoot == CLEARED_DIST_TO_ROOT)
+		{
+			pcContainer->UnattachDistToRoot();
+		}
+	}
 }
 
 
@@ -1296,6 +1344,7 @@ void ObjectsInit(CIndexedConfig* pcConfig)
 //////////////////////////////////////////////////////////////////////////
 void ObjectsKill(void)
 {
+	//gcObjects.ValidateMemoryEmpty();
 	gcObjects.Kill();
 	UnknownsKill();
 }

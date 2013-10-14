@@ -42,6 +42,7 @@ protected:
 						Ptr<CRoot>		Init(CObjects* pcObjectsAllocatingFrom);
 
 public:
+						void			Kill(void);
 						void			Class(void);
 						void			KillData(void);
 
@@ -62,6 +63,8 @@ public:
 						Ptr<CSetObject>	GetAll(void);
 						int				NumObjects(void);
 
+						void			CreateSet(void);
+						void			NullifySet(void);
 						CSetObject*		TestGetSet(void);
 						BOOL			IsSetHollow(void);
 };
