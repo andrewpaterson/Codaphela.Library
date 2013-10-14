@@ -614,7 +614,7 @@ Ptr<CRoot> CObjects::AddRoot(void)
 	if (!pRoot)
 	{
 		pRoot = Add<CRoot>(ROOT_NAME);
-		pRoot->Init(this);
+		pRoot->Init();
 	}
 	return pRoot;
 }

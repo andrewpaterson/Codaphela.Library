@@ -39,7 +39,6 @@ protected:
 protected:
 						CRoot();
 						Ptr<CRoot>		Init(void);
-						Ptr<CRoot>		Init(CObjects* pcObjectsAllocatingFrom);
 
 public:
 						void			Kill(void);
