@@ -958,12 +958,23 @@ void CBaseObject::DumpFroms(void)
 	int					i;
 	int					iNumEmbedded;
 	CEmbeddedObject*	pcEmbedded;
+	int					j;
+	int					iNumHeapFroms;
+	CBaseObject*		pcFromObject;
+	int					iLength;
+	CChars				szLine;
 
 	sz.Init();
 
 	sz.Append("-- ");
 	PrintObject(&sz);
 	sz.Append(" --\n");
+	iLength = sz.Length()-1;
+
+	szLine.Init('-', iLength);
+	szLine.AppendNewLine();
+
+	sz.Insert(0, &szLine);
 	sz.Append("Total Heap Froms [");
 	sz.Append(NumHeapFroms());
 	sz.Append("], ");
@@ -976,15 +987,27 @@ void CBaseObject::DumpFroms(void)
 	for (i = 0; i < iNumEmbedded; i++)
 	{
 		pcEmbedded = GetEmbeddedObject(i);
+		iNumHeapFroms = pcEmbedded->CEmbeddedObject::NumHeapFroms();
 		sz.Append("Embedded ");
 		sz.Append(i);
 		sz.Append(" Heap Froms [");
-		sz.Append(pcEmbedded->CEmbeddedObject::NumHeapFroms());
+		sz.Append(iNumHeapFroms);
 		sz.Append("], ");
 		sz.Append("Stack Froms [");
 		sz.Append(pcEmbedded->CEmbeddedObject::NumStackFroms());
 		sz.Append("]\n");
+
+		for (j = 0; j < iNumHeapFroms; j++)
+		{
+			pcFromObject = pcEmbedded->GetHeapFrom(j);
+			sz.Append(" ");
+			pcFromObject->PrintObject(&sz);
+			sz.AppendNewLine();
+		}
 	}
+
+	sz.Append(&szLine);
+	szLine.Kill();
 
 	sz.Dump();
 	sz.Kill();

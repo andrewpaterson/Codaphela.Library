@@ -68,15 +68,27 @@ CStackPointer* CStackPointers::Add(CPointer* pcPointer, CStackPointer* pcFirst)
 	pcStackPointer = FindUnused();
 	if (pcStackPointer)
 	{
-		pcLast = pcFirst->FindLast();
 		pcStackPointer->Init(pcPointer);
-		pcLast->SetNext(pcStackPointer);
+		Add(pcStackPointer, pcFirst);
 		return pcStackPointer;
 	}
 	else
 	{
 		return NULL;
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CStackPointers::Add(CStackPointer* pcStackPointer, CStackPointer* pcFirst)
+{
+	CStackPointer*	pcLast;
+
+	pcLast = pcFirst->FindLast();
+	pcLast->SetNext(pcStackPointer);
 }
 
 

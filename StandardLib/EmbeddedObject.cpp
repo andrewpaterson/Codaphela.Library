@@ -365,6 +365,29 @@ void CEmbeddedObject::AddStackFrom(CPointer* pcPointer)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CEmbeddedObject::AddStackFroms(CStackPointer* pcStackPointer)
+{
+	CStackPointers*	pcStackPointers;
+
+	pcStackPointers = GetStackPointers();
+	if (pcStackPointers)
+	{
+		if (mpcStackFroms)
+		{
+			pcStackPointers->Add(pcStackPointer, mpcStackFroms);
+		}
+		else
+		{
+			mpcStackFroms = pcStackPointer;
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CEmbeddedObject::RemoveStackFromTryKill(CPointer* pcPointer, BOOL bKillIfNoRoot)
 {
 	CStackPointers*	pcStackPointers;

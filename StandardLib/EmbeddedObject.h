@@ -75,6 +75,7 @@ public:
 			CBaseObject*		GetHeapFrom(int iFromIndex);
 
 			void				AddStackFrom(CPointer* pcPointer);
+			void				AddStackFroms(CStackPointer* pcStackPointer);
 			BOOL				HasStackPointers(void);
 			void				RemoveStackFrom(CPointer* pcPointer);
 			void				RemoveStackFromTryKill(CPointer* pcPointer, BOOL bKillIfNoRoot);
