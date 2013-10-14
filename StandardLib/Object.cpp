@@ -168,6 +168,48 @@ BOOL CObject::IsCollection(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CObject::RemoveAllHeapFroms(void)
+{
+	int					i;
+	int					iNumEmbedded;
+	CBaseObject*		pcEmbedded;
+
+	CEmbeddedObject::RemoveAllHeapFroms();
+
+	iNumEmbedded = mapEmbedded.NumElements();
+	for (i = 0; i < iNumEmbedded; i++)
+	{
+		pcEmbedded = *mapEmbedded.Get(i);
+		pcEmbedded->RemoveAllHeapFroms();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CObject::RemoveAllStackFroms(void)
+{
+	int					i;
+	int					iNumEmbedded;
+	CBaseObject*		pcEmbedded;
+
+	CEmbeddedObject::RemoveAllStackFroms();
+
+	iNumEmbedded = mapEmbedded.NumElements();
+	for (i = 0; i < iNumEmbedded; i++)
+	{
+		pcEmbedded = *mapEmbedded.Get(i);
+		pcEmbedded->RemoveAllStackFroms();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CObject::CollectPointedToToBeKilled(CArrayBaseObjectPtr* papcKilled)
 {
 	int					i;

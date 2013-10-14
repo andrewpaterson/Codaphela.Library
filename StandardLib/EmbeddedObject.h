@@ -89,8 +89,8 @@ public:
 
 protected:
 	virtual void				TryKill(BOOL bKillIfNoRoot) =0;
-			void				RemoveAllHeapFroms(void);
-			void				RemoveAllStackFroms(void);
+	virtual void				RemoveAllHeapFroms(void);
+	virtual void				RemoveAllStackFroms(void);
 			BOOL				PrivateRemoveHeapFrom(CBaseObject* pcFrom);
 	virtual void				GetStackFroms(CArrayPointerPtr* papcFroms);
 	virtual void				GetHeapFroms(CArrayEmbeddedBaseObjectPtr* papcFroms);
