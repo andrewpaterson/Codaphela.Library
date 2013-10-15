@@ -68,6 +68,9 @@ public:
 	virtual CBaseObject*		Dehollow(void) =0;
 			BOOL				IsAllocatedInObjects(void);
 
+	virtual int					NumTos(void) =0;
+	virtual void				GetTos(CArrayEmbeddedObjectPtr* papcTos) =0;
+
 			BOOL				HasHeapPointers(void);
 			void				AddHeapFrom(CBaseObject* pcFromObject);
 			void				RemoveHeapFrom(CBaseObject* pcFromObject);

@@ -104,8 +104,6 @@ public:
 			void				SetDirty(void);
 			int					GetDistToRoot(void);
 			BOOL				TestedForRoot(void);
-	virtual void				GetTos(CArrayEmbeddedObjectPtr* papcTos) =0;
-	virtual int					NumTos(void) =0;
 	virtual void				RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged) =0;
 			void				UpdateDistToRootFromPointedFroms(void);
 			void				UnattachDistToRoot(void);
@@ -119,6 +117,8 @@ public:
 			BOOL				TestCanFindRoot(void);
 			void				PrintObject(CChars* psz, BOOL bEmbedded = FALSE);
 			void				DumpFroms(void);
+			void				DumpTos(void);
+			void				Dump(void);
 	
 protected:
 			void			KillInternalData(void);

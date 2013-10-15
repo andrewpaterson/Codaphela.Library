@@ -24,6 +24,8 @@ public:
 	void				TryKill(BOOL bKillIfNoRoot);
 	CObjects*			GetObjects(void);
 	CStackPointers*		GetStackPointers(void);
+	void				GetTos(CArrayEmbeddedObjectPtr* papcTos);
+	int					NumTos(void);
 };
 
 

@@ -52,6 +52,8 @@ Ptr<CRoot> CRoot::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CRoot::Kill(void)
 {
+	mpObjects->Kill();
+	CNamedObject::Kill();
 }
 
 

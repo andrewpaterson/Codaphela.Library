@@ -87,6 +87,8 @@ public:
 	void				UnsafeClearObject(void);
 
 	void				DumpFroms(void);
+	void				DumpTos(void);
+	void				Dump(void);
 };
 
 
