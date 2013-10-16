@@ -1011,7 +1011,7 @@ void CBaseObject::DumpTos(void)
 	CEmbeddedObject**			ppcToObject;
 	int							iLength;
 	CChars						szLine;
-	CArrayEmbeddedObjectPtr		cTos;
+	CArrayEmbeddedObjectPtr		acTos;
 	CBaseObject*				pcToObject;
 	int							iTotalTos;
 
@@ -1041,9 +1041,9 @@ void CBaseObject::DumpTos(void)
 	for (i = 0; i < iNumEmbedded; i++)
 	{
 		pcEmbedded = GetEmbeddedObject(i);
-		cTos.Init();
-		pcEmbedded->GetTos(&cTos);
-		iNumTos = cTos.NumElements();
+		acTos.Init();
+		pcEmbedded->GetTos(&acTos);
+		iNumTos = acTos.NumElements();
 		sz.Append("Embedded ");
 		sz.Append(i);
 		sz.Append(" Tos [");
@@ -1052,7 +1052,7 @@ void CBaseObject::DumpTos(void)
 
 		for (j = 0; j < iNumTos; j++)
 		{
-			ppcToObject = cTos.Get(j);  //A pointed to never comes back NULL.
+			ppcToObject = acTos.Get(j);  //A pointed to never comes back NULL.
 			sz.Append(" ");
 				
 			if ((*ppcToObject)->IsBaseObject())
@@ -1066,6 +1066,8 @@ void CBaseObject::DumpTos(void)
 			}
 			sz.AppendNewLine();
 		}
+
+		acTos.Kill();
 	}
 
 	sz.Append(&szLine);

@@ -319,7 +319,7 @@ int CArrayCommonObject::NumTos(void)
 	int				iCount;
 
 	iCount = 0;
-	for (i = 0; i < mcArray.NumElements(); i++)
+	for (i = 0; i < mcArray.UnsafeNumElements(); i++)
 	{
 		pcPointedTo = (CBaseObject*)mcArray.UnsafeGet(i);
 		if (pcPointedTo)
@@ -465,7 +465,7 @@ void CArrayCommonObject::GetTos(CArrayEmbeddedObjectPtr* papcTos)
 	CEmbeddedObject*	pcPointedTo;
 	int					i;
 
-	for (i = 0; i < mcArray.NumElements(); i++)
+	for (i = 0; i < mcArray.UnsafeNumElements(); i++)
 	{
 		pcPointedTo = (CBaseObject*)mcArray.UnsafeGet(i);
 		if (pcPointedTo)
