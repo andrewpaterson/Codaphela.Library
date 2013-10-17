@@ -57,27 +57,27 @@ void CUnknowns::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CUnknown* CUnknowns::AddExisting(CUnknown* pcUnknown)
+CUnknown* CUnknowns::AddExisting(CUnknown* pcExisting)
 {
 	char		szDebug[4];
 	int			iSize;
-	CUnknown*	pc;
+	CUnknown*	pcNew;
 	
-	iSize = pcUnknown->ClassSize();
-	pc = (CUnknown*)mcMemory.Add(iSize);
-	if (pc)
+	iSize = pcExisting->ClassSize();
+	pcNew = (CUnknown*)mcMemory.Add(iSize);
+	if (pcNew)
 	{
-		memcpy(pc, pcUnknown, iSize);
+		memcpy(pcNew, pcExisting, iSize);
 
-		DebugName(pc, &szDebug);
-		mcMemory.SetDebugName(pc, &szDebug);
+		DebugName(pcNew, &szDebug);
+		mcMemory.SetDebugName(pcNew, &szDebug);
 
-		pc->PreInit(this);
-		if (pc->Iterable())
+		pcNew->PreInit(this);
+		if (pcNew->Iterable())
 		{
-			mcIterables.Add(pc);
+			mcIterables.Add(pcNew);
 		}
-		return pc;
+		return pcNew;
 	}
 	else
 	{

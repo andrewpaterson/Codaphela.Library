@@ -71,7 +71,7 @@ public:
 						void			RemoveInKill(CUnknown* pcUnknown);
 						void			RemoveInKill(CArrayUnknownPtr* papcObjectPts);
 protected:
-	CUnknown*	AddExisting(CUnknown* pcUnknown);
+	CUnknown*	AddExisting(CUnknown* pcExisting);
 	void		DebugName(CUnknown* pcUnknown, char (*pszDebug)[4]);
 	void		BreakOnAdd(unsigned int uiAllocCount);
 	BOOL		IsFreed(CUnknown* pcUnknown);

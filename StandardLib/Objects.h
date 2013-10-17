@@ -74,7 +74,7 @@ public:
 						void					KillStackPointers(void);
 						void					DumpMemory(void);
 						void					DumpGraph(void);
-						void					ValidateMemoryEmpty(void);
+						void					ValidateEmpty(void);
 
 	template<class M>	void					AddConstructor(void);
 	template<class M>	CObjectSource*			AddSource(CAbstractFile* pcFile, char* szFileName);

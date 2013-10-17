@@ -187,7 +187,7 @@ void CObjects::KillStackPointers(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjects::ValidateMemoryEmpty(void)
+void CObjects::ValidateEmpty(void)
 {
 	OIndex	iNumIndexed;
 
@@ -1344,7 +1344,7 @@ void ObjectsInit(CIndexedConfig* pcConfig)
 //////////////////////////////////////////////////////////////////////////
 void ObjectsKill(void)
 {
-	//gcObjects.ValidateMemoryEmpty();
+	//gcObjects.ValidateEmpty();
 	gcObjects.Kill();
 	UnknownsKill();
 }
