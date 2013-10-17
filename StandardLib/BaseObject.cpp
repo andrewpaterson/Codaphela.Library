@@ -394,15 +394,9 @@ BOOL CBaseObject::CanFindRoot(void)
 		return TRUE;
 	}
 
-	if (NumHeapFroms() == 0)
-	{
-		return FALSE;
-	}
-
 	SetFlag(OBJECT_FLAGS_TESTED_FOR_ROOT, TRUE);
 
 	pcPointedFrom = GetClosestFromToRoot();
-
 	if (pcPointedFrom == NULL)
 	{
 		SetFlag(OBJECT_FLAGS_TESTED_FOR_ROOT, FALSE);
@@ -410,8 +404,8 @@ BOOL CBaseObject::CanFindRoot(void)
 	}
 
 	bResult = pcPointedFrom->GetEmbeddingContainer()->CanFindRoot();
-	SetFlag(OBJECT_FLAGS_TESTED_FOR_ROOT, FALSE);
 
+	SetFlag(OBJECT_FLAGS_TESTED_FOR_ROOT, FALSE);
 	return bResult;
 }
 
