@@ -123,7 +123,7 @@ void CObject::Free(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CObject::NumTos(void)
+int CObject::UnsafeNumEmbeddedObjectTos(void)
 {
 	int					i;
 	CEmbeddedObject*	pcPointedTo;
@@ -140,6 +140,30 @@ int CObject::NumTos(void)
 			iCount++;
 		}
 	}
+	return iCount;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CObject::NumTos(void)
+{
+	int					i;
+	int					iNumEmbedded;
+	CBaseObject*		pcEmbedded;
+	int					iCount;
+
+	iCount = UnsafeNumEmbeddedObjectTos();
+
+	iNumEmbedded = mapEmbedded.NumElements();
+	for (i = 0; i < iNumEmbedded; i++)
+	{
+		pcEmbedded = *mapEmbedded.Get(i);
+		iCount += pcEmbedded->UnsafeNumEmbeddedObjectTos();
+	}
+
 	return iCount;
 }
 
@@ -399,6 +423,27 @@ CEmbeddedObject* CObject::GetClosestFromToRoot(void)
 //
 //////////////////////////////////////////////////////////////////////////
 void CObject::GetTos(CArrayEmbeddedObjectPtr* papcTos)
+{
+	int				i;
+	int				iNumEmbedded;
+	CBaseObject*	pcEmbedded;
+
+	UnsafeGetEmbeddedObjectTos(papcTos);
+
+	iNumEmbedded = mapEmbedded.NumElements();
+	for (i = 0; i < iNumEmbedded; i++)
+	{
+		pcEmbedded = *mapEmbedded.Get(i);
+		pcEmbedded->GetTos(papcTos);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CObject::UnsafeGetEmbeddedObjectTos(CArrayEmbeddedObjectPtr* papcTos)
 {
 	int					iNumPointers;
 	int					i;

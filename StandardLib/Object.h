@@ -41,7 +41,6 @@ public:
 	void				PreInit(CObjects* pcObjects);
 	void				PreInit(void);
 	void				Kill(void);
-	int					NumTos(void);
 	BOOL				IsCollection(void);
 	BOOL				IsObject(void);
 	void				SetDistToRootAndSetPointedTosExpectedDistToRoot(int iDistToRoot);
@@ -58,11 +57,14 @@ public:
 	void				ClearDistToRoot(void);
 	void				GetHeapFroms(CArrayEmbeddedBaseObjectPtr* papcFroms);
 	void				GetStackFroms(CArrayPointerPtr* papcFroms);
-	
+	int					NumTos(void);
+	int					UnsafeNumEmbeddedObjectTos(void);
+	void				GetTos(CArrayEmbeddedObjectPtr* papcTos);
+	void				UnsafeGetEmbeddedObjectTos(CArrayEmbeddedObjectPtr* papcTos);
+
 protected:
 	void				KillDontFree(void);
 	void				KillInternalData(void);
-	void				GetTos(CArrayEmbeddedObjectPtr* papcTos);
 	void				RemoveTo(CEmbeddedObject* pcTo);
 	void				RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged);
 	void				RemoveAllHeapFroms(void);

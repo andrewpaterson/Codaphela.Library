@@ -54,7 +54,9 @@ public:
 	void				SetDistToRootAndSetPointedTosExpectedDistToRoot(int iDistToRoot);
 
 	int					NumTos(void);
+	int					UnsafeNumEmbeddedObjectTos(void);
 	void				GetTos(CArrayEmbeddedObjectPtr* papcTos);
+	void				UnsafeGetEmbeddedObjectTos(CArrayEmbeddedObjectPtr* papcTos);
 
 	BOOL				Save(CObjectSerialiser* pcFile);
 	BOOL				Load(CObjectDeserialiser* pcFile);

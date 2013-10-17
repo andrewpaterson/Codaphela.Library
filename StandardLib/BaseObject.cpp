@@ -1004,7 +1004,7 @@ void CBaseObject::DumpTos(void)
 	{
 		pcEmbedded = GetEmbeddedObject(i);
 		acTos.Init();
-		pcEmbedded->GetTos(&acTos);
+		pcEmbedded->UnsafeGetEmbeddedObjectTos(&acTos);
 		iNumTos = acTos.NumElements();
 		sz.Append("Embedded ");
 		sz.Append(i);

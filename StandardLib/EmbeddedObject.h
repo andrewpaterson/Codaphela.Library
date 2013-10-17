@@ -69,7 +69,9 @@ public:
 			BOOL				IsAllocatedInObjects(void);
 
 	virtual int					NumTos(void) =0;
+	virtual int					UnsafeNumEmbeddedObjectTos(void);
 	virtual void				GetTos(CArrayEmbeddedObjectPtr* papcTos) =0;
+	virtual void				UnsafeGetEmbeddedObjectTos(CArrayEmbeddedObjectPtr* papcTos);
 
 			BOOL				HasHeapPointers(void);
 			void				AddHeapFrom(CBaseObject* pcFromObject);
