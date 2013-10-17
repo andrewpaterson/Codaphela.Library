@@ -36,7 +36,7 @@ friend class CPointer;
 BASE_FUNCTIONS(CEmbeddedObject);
 protected:
 	CBaseObject*						mpcEmbedded;  //Object that 'this' is embedded in.
-	CArrayEmbedded<CBaseObject*, 6>		mapHeapFroms;  //Objects on the heap that 'this' is pointed from
+	CArrayEmbedded<CBaseObject*, 6>		mapHeapFroms;  //Objects on the heap that 'this' is pointed from.  Pretty Certain this is an array of CEmbeddedObject, not CBaseObject.
 	CStackPointer*						mpcStackFroms;  //Objects on the stack that 'this' is pointed from.  
 
 public:
@@ -99,6 +99,7 @@ protected:
 	virtual void				GetHeapFroms(CArrayEmbeddedBaseObjectPtr* papcFroms);
 	virtual CObjects*			GetObjects(void) =0;
 	virtual CStackPointers*		GetStackPointers(void) =0;
+	virtual CEmbeddedObject*	GetClosestFromToRoot(void);
 };
 
 

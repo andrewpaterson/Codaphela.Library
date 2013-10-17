@@ -64,7 +64,7 @@ CEmbeddedObject* CHollowEmbeddedObject::GetEmbeddedObject(int iIndex)
 //////////////////////////////////////////////////////////////////////////
 int CHollowEmbeddedObject::GetDistToRoot(void)
 {
-	return UNATTACHED_DIST_TO_ROOT;
+	return GetHollowObject()->GetDistToRoot();
 }
 
 

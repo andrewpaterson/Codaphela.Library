@@ -353,6 +353,47 @@ int CObject::CalculateDistToRootFromPointedFroms(int iDistToRoot)
 }
 
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CEmbeddedObject* CObject::GetClosestFromToRoot(void)
+{
+	int					i;
+	int					iNumEmbedded;
+	CBaseObject*		pcEmbedded;
+	CEmbeddedObject*	pcNearesetPointedFrom;
+	CEmbeddedObject*	pcEmbeddedNearesetPointedFrom;
+
+	pcNearesetPointedFrom = CEmbeddedObject::GetClosestFromToRoot();
+
+	iNumEmbedded = mapEmbedded.NumElements();
+	for (i = 0; i < iNumEmbedded; i++)
+	{
+		pcEmbedded = *mapEmbedded.Get(i);
+		pcEmbeddedNearesetPointedFrom = pcEmbedded->GetClosestFromToRoot();
+
+		if (pcNearesetPointedFrom == NULL)
+		{
+			pcNearesetPointedFrom = pcEmbeddedNearesetPointedFrom;
+		}
+		else
+		{
+			if (pcEmbeddedNearesetPointedFrom != NULL)
+			{
+				if (pcEmbeddedNearesetPointedFrom->GetDistToRoot() < pcNearesetPointedFrom->GetDistToRoot())
+				{
+					pcNearesetPointedFrom = pcEmbeddedNearesetPointedFrom;
+				}
+			}
+		}
+	}
+
+	return pcNearesetPointedFrom;
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //

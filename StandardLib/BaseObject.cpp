@@ -386,14 +386,8 @@ BOOL CBaseObject::CanFindRoot(void)
 {
 	ValidateNotEmbedded(__METHOD__);
 
-	int								iNumFroms;
-	int								i;
-	CBaseObject**					ppcPointedFrom;
-	int								iNearestRoot;
-	CBaseObject*					pcNearestPointedFrom;
-	int								iPointedFromDist;
+	CEmbeddedObject*				pcPointedFrom;
 	BOOL							bResult;
-	CArrayEmbeddedBaseObjectPtr		apcFroms;
 
 	if (this->IsRoot())
 	{
@@ -405,37 +399,17 @@ BOOL CBaseObject::CanFindRoot(void)
 		return FALSE;
 	}
 
-	apcFroms.Init();
-	GetHeapFroms(&apcFroms);
-	iNumFroms = apcFroms.NumElements();
-
 	SetFlag(OBJECT_FLAGS_TESTED_FOR_ROOT, TRUE);
 
-	iNearestRoot = MAX_INT;
-	pcNearestPointedFrom = NULL;
-	ppcPointedFrom = apcFroms.GetData();
-	for (i = 0; i < iNumFroms; i++)
-	{
-		iPointedFromDist = ppcPointedFrom[i]->miDistToRoot;
-		if ((iPointedFromDist >= ROOT_DIST_TO_ROOT) && (!ppcPointedFrom[i]->TestedForRoot()))
-		{
-			if (iPointedFromDist < iNearestRoot)
-			{
-				iNearestRoot = iPointedFromDist;
-				pcNearestPointedFrom = ppcPointedFrom[i];
-			}
-		}
-	}
+	pcPointedFrom = GetClosestFromToRoot();
 
-	apcFroms.Kill();
-
-	if (pcNearestPointedFrom == NULL)
+	if (pcPointedFrom == NULL)
 	{
 		SetFlag(OBJECT_FLAGS_TESTED_FOR_ROOT, FALSE);
 		return FALSE;
 	}
 
-	bResult = pcNearestPointedFrom->GetEmbeddingContainer()->CanFindRoot();
+	bResult = pcPointedFrom->GetEmbeddingContainer()->CanFindRoot();
 	SetFlag(OBJECT_FLAGS_TESTED_FOR_ROOT, FALSE);
 
 	return bResult;

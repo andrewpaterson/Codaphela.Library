@@ -63,7 +63,6 @@ CStackPointer* CStackPointers::Add(CPointer* pcPointer)
 CStackPointer* CStackPointers::Add(CPointer* pcPointer, CStackPointer* pcFirst)
 {
 	CStackPointer*	pcStackPointer;
-	CStackPointer*	pcLast;
 
 	pcStackPointer = FindUnused();
 	if (pcStackPointer)

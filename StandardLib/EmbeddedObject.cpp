@@ -100,7 +100,7 @@ BOOL CEmbeddedObject::IsBaseObject(void)
 //////////////////////////////////////////////////////////////////////////
 CBaseObject* CEmbeddedObject::GetEmbeddingContainer(void)
 {
-	CEmbeddedObject*	pcContainer;  //This is a CBaseObject but as we're compiling in CEmbeddedObject...
+	CEmbeddedObject*	pcContainer;
 
 	pcContainer = this;
 	while (pcContainer->IsEmbedded())
@@ -310,6 +310,38 @@ BOOL CEmbeddedObject::HasHeapPointers(void)
 int CEmbeddedObject::NumHeapFroms(void)
 {
 	return mapHeapFroms.NumElements();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CEmbeddedObject* CEmbeddedObject::GetClosestFromToRoot(void)
+{
+	int				iNearestRoot;
+	CBaseObject*	pcNearestPointedFrom;
+	int				i;
+	int				iNumFroms;
+	CBaseObject*	pcFrom;
+
+	iNearestRoot = MAX_DIST_TO_ROOT;
+	pcNearestPointedFrom = NULL;
+	iNumFroms = mapHeapFroms.NumElements();
+	for (i = 0; i < iNumFroms; i++)
+	{
+		pcFrom = *mapHeapFroms.Get(i);
+		if ((pcFrom->miDistToRoot >= ROOT_DIST_TO_ROOT) && (!pcFrom->TestedForRoot()))
+		{
+			if (pcFrom->miDistToRoot < iNearestRoot)
+			{
+				iNearestRoot = pcFrom->miDistToRoot;
+				pcNearestPointedFrom = pcFrom;
+			}
+		}
+	}
+
+	return pcNearestPointedFrom;
 }
 
 

@@ -67,6 +67,7 @@ protected:
 	void				RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged);
 	void				RemoveAllHeapFroms(void);
 	void				RemoveAllStackFroms(void);
+	CEmbeddedObject*	GetClosestFromToRoot(void);
 	void				CollectPointedToToBeKilled(CArrayBaseObjectPtr* papcKilled);
 	int					RemapTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew);
 	int					CalculateDistToRootFromPointedFroms(int iDistToRoot);
