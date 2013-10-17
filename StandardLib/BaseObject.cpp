@@ -400,18 +400,16 @@ BOOL CBaseObject::CanFindRoot(void)
 		return TRUE;
 	}
 
-	SetFlag(OBJECT_FLAGS_TESTED_FOR_ROOT, TRUE);
+	if (NumHeapFroms() == 0)
+	{
+		return FALSE;
+	}
 
 	apcFroms.Init();
 	GetHeapFroms(&apcFroms);
 	iNumFroms = apcFroms.NumElements();
 
-	if (iNumFroms == 0)
-	{
-		apcFroms.Kill();
-		SetFlag(OBJECT_FLAGS_TESTED_FOR_ROOT, FALSE);
-		return FALSE;
-	}
+	SetFlag(OBJECT_FLAGS_TESTED_FOR_ROOT, TRUE);
 
 	iNearestRoot = MAX_INT;
 	pcNearestPointedFrom = NULL;
@@ -433,15 +431,8 @@ BOOL CBaseObject::CanFindRoot(void)
 
 	if (pcNearestPointedFrom == NULL)
 	{
-		apcFroms.Kill();
 		SetFlag(OBJECT_FLAGS_TESTED_FOR_ROOT, FALSE);
 		return FALSE;
-	}
-
-	if (pcNearestPointedFrom->IsRoot())
-	{
-		SetFlag(OBJECT_FLAGS_TESTED_FOR_ROOT, FALSE);
-		return TRUE;
 	}
 
 	bResult = pcNearestPointedFrom->GetEmbeddingContainer()->CanFindRoot();
@@ -521,9 +512,12 @@ int CBaseObject::CalculateDistToRootFromPointedFroms(int iDistToRoot)
 		{
 			if (pcFrom->miDistToRoot < iBestDistToRoot)
 			{
-				if (pcFrom->miDistToRoot >= ROOT_DIST_TO_ROOT)
+				if (pcFrom->GetEmbeddingContainer()->CanFindRoot())
 				{
-					iBestDistToRoot = pcFrom->miDistToRoot+1;
+					if (pcFrom->miDistToRoot >= ROOT_DIST_TO_ROOT)
+					{
+						iBestDistToRoot = pcFrom->miDistToRoot+1;
+					}
 				}
 			}
 		}
