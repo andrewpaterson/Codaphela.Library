@@ -7,10 +7,18 @@
 //////////////////////////////////////////////////////////////////////////
 SFreeListParams* SFreeListParams::Init(unsigned int iFreeListSize, int iPrevSize, int iChunkSize)
 {
-	this->iMaxListSize = iFreeListSize;
-	this->iMinListSize = iPrevSize + 1;
-	this->iMaxElementSize = iFreeListSize - sizeof(SMemoryAllocation);
-	this->iMinElementSize = iPrevSize - sizeof(SMemoryAllocation) + 1;
+	iMaxListSize = iFreeListSize;
+	iMinListSize = iPrevSize + 1;
+	iMaxElementSize = iFreeListSize - sizeof(SMemoryAllocation);
+	if (iPrevSize >= sizeof(SMemoryAllocation) + 1)
+	{
+		iMinElementSize = iPrevSize - sizeof(SMemoryAllocation) + 1;
+	}
+	else
+	{
+		iMinElementSize = 1;
+	}
+
 	this->iChunkSize = iChunkSize;
 	return this;
 }

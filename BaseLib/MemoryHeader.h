@@ -12,9 +12,9 @@
 
 struct SMemoryAllocation
 {
+	SFNode*			psFreeListNode;  //This is only valid when in a free list.
 	unsigned int	uiAllocCount;
 	unsigned int	uiSize;
-	SFNode*			psFreeListNode;  //This is only valid when in a free list.
 	char			szDebug[4];
 };
 
@@ -23,8 +23,8 @@ struct SFreeListParams
 {
 	unsigned int	iMaxListSize;  //This is the size of the actual element in the freelist including SMemoryAllocation
 	unsigned int	iMinListSize;  //This is the size of the previous element in the freelist including SMemoryAllocation +1.
-	//These exist for some Binary Search Compare function stuffs.
 
+	//These exist for some binary search Compare function stuffs.
 	unsigned int	iMaxElementSize;
 	unsigned int	iMinElementSize;
 

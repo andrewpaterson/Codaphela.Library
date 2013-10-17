@@ -44,9 +44,10 @@ public:
 	CMemoryStats				mcStats;
 	CArrayFreeListDesc			mcOrder;
 	CArrayFreeListParams		mcParams;
-	unsigned int				muiAdds;
+	unsigned int				muiAllocCount;
 	unsigned int				muiBreakAlloc;
 	unsigned int				muiFreeListSizeLimit;
+	BOOL						mbBreakOnAlloc;
 
 	void				Init(void);
 	void				Init(int iDefaultAlignment, BOOL bDefaultFreeListParams = TRUE);

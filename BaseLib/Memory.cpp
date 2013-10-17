@@ -21,6 +21,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
 #include "Log.h"
+#include "Validation.h"
 #include "Memory.h"
 
 
@@ -45,8 +46,9 @@ void CMemory::Init(int iDefaultAlignment, BOOL bDefaultFreeListParams)
 	miDefaultAlignment = iDefaultAlignment;
 	mcStats.Init();
  	mcOrder.Init(8);
-	muiAdds = 0;
-	muiBreakAlloc = 0xffffffff;
+	muiAllocCount = 0;
+	muiBreakAlloc = 0;
+	mbBreakOnAlloc = FALSE;
 
 	if (bDefaultFreeListParams)
 	{
@@ -91,7 +93,6 @@ void CMemory::InitFreeListParams(void)
 	SFreeListParams		sParam;
 
 	mcParams.Init(1);
-	mcParams.Add(sParam.Init(16  , 8   , 32*32));
 	mcParams.Add(sParam.Init(24  , 16  , 32*32));
 	mcParams.Add(sParam.Init(32  , 24  , 28*32));
 	mcParams.Add(sParam.Init(40  , 32  , 24*32));
@@ -329,20 +330,22 @@ void* CMemory::Add(unsigned int uiSize, int iAlignment, int iOffset)
 	CFreeListBlock*	pcFreeList;
 	void*				pv;
 
-	if (muiAdds == muiBreakAlloc)
+	if ((mbBreakOnAlloc) && (muiAllocCount == muiBreakAlloc))
 	{
 		CChars	sz;
 
-		sz.Init("CMemory::Add: muiAdds == ");
+		sz.Init("CMemory::Add: muiAllocCount == ");
 		sz.Append(muiBreakAlloc);
 		sz.AppendNewLine();
 		sz.Dump();
 		sz.Kill();
+
+		Break();
 	}
 
 	if (uiSize == 0)
 	{
-		muiAdds++;
+		muiAllocCount++;
 		return NULL;
 	}
 
@@ -350,13 +353,13 @@ void* CMemory::Add(unsigned int uiSize, int iAlignment, int iOffset)
 	{
 		pcFreeList = GetOrAddFreeList(uiSize, iAlignment, iOffset);
 		pv = AllocateInFreeList(pcFreeList, uiSize);
-		muiAdds++;
+		muiAllocCount++;
 		return pv;
 	}
 	else
 	{
 		pv = AllocateInLargeList(uiSize, iAlignment, iOffset);
-		muiAdds++;
+		muiAllocCount++;
 		return pv;
 	}
 }
@@ -440,7 +443,7 @@ void* CMemory::AllocateInFreeList(CFreeListBlock* pcFreeList, unsigned int uiEle
 	psMemoryAllocation = (SMemoryAllocation*)pcFreeList->Add(&psNode);
 	psMemoryAllocation->uiSize = uiElementSize;
 	psMemoryAllocation->psFreeListNode = psNode;
-	psMemoryAllocation->uiAllocCount = muiAdds;
+	psMemoryAllocation->uiAllocCount = muiAllocCount;
 	psMemoryAllocation->szDebug[0] = psMemoryAllocation->szDebug[1] = psMemoryAllocation->szDebug[2]= psMemoryAllocation->szDebug[3] = -1;
 	return RemapSinglePointer(psMemoryAllocation, sizeof(SMemoryAllocation));
 }
@@ -480,7 +483,7 @@ void* CMemory::AllocateInLargeList(unsigned int uiSize, int iAlignment, int iOff
 	psMemoryAllocation = (SMemoryAllocation*)mcLargeList.InsertAfterTail(uiSize + sizeof(SMemoryAllocation), iAlignment, iOffset);
 	psMemoryAllocation->uiSize = uiSize;
 	psMemoryAllocation->psFreeListNode = NULL;
-	psMemoryAllocation->uiAllocCount = muiAdds;
+	psMemoryAllocation->uiAllocCount = muiAllocCount;
 	psMemoryAllocation->szDebug[0] = psMemoryAllocation->szDebug[1] = psMemoryAllocation->szDebug[2]= psMemoryAllocation->szDebug[3] = -1;
 	return RemapSinglePointer(psMemoryAllocation, sizeof(SMemoryAllocation));
 }
@@ -613,6 +616,7 @@ void CMemory::SetDebugName(void* pv, char (*pszDebug)[4])
 //////////////////////////////////////////////////////////////////////////
 void CMemory::BreakOnAdd(unsigned int uiAllocCount)
 {
+	mbBreakOnAlloc = TRUE;
 	muiBreakAlloc = uiAllocCount;
 }
 
