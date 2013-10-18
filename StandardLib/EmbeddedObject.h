@@ -67,6 +67,9 @@ public:
 	virtual CEmbeddedObject*	GetEmbeddedObject(int iIndex) =0;
 	virtual CBaseObject*		Dehollow(void) =0;
 			BOOL				IsAllocatedInObjects(void);
+	virtual void				ValidateConsistency(void) =0;
+			void				ValidateFroms(void);
+			void				ValidateFlags(void);
 
 	virtual int					NumTos(void) =0;
 	virtual int					UnsafeNumEmbeddedObjectTos(void);
@@ -89,6 +92,7 @@ public:
 
 			int					NumTotalFroms(void);
 
+			void				PrintObject(CChars* psz, BOOL bEmbedded = FALSE);
 			void				LogNotExpectedToBeEmbedded(char* szMethod);
 			void				ValidateNotEmbedded(char* szMethod);
 

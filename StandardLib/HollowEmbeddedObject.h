@@ -26,6 +26,7 @@ public:
 	CStackPointers*		GetStackPointers(void);
 	void				GetTos(CArrayEmbeddedObjectPtr* papcTos);
 	int					NumTos(void);
+	void				ValidateConsistency(void);
 };
 
 

@@ -355,14 +355,14 @@ void CObjects::RecurseDumpGraph(CChars* psz, CEmbeddedObject* pcIncoming, int iL
 //////////////////////////////////////////////////////////////////////////
 void CObjects::ValidateConsistency(void)
 {
-	Ptr<CRoot>			pRoot;
+	CRoot*				pcRoot;
 	SIndexesIterator	sIter;
 	CBaseObject*		pcBaseObject;
 
-	pRoot = Get(ROOT_NAME);
-	if (pRoot.IsNotNull())
+	pcRoot = (CRoot*)GetFromMemory(ROOT_NAME);
+	if (pcRoot != NULL)
 	{
-		RecurseValidateConsistency(pRoot.BaseObject());
+		RecurseValidateConsistency(pcRoot);
 	}
 
 	pcBaseObject = mcMemory.StartIteration(&sIter);
@@ -384,18 +384,25 @@ void CObjects::RecurseValidateConsistency(CBaseObject* pcBaseObject)
 	CEmbeddedObject*			pcToObject;
 	CBaseObject*				pcToContainerObject;
 
-	pcBaseObject->SetFlag(OBJECT_FLAGS_TESTED_FOR_SANITY, TRUE);
+	pcBaseObject->ValidateNotEmbedded(__METHOD__);
 
-	apcTos.Init();
-	pcBaseObject->GetTos(&apcTos);
-	for (i = 0; i < apcTos.NumElements(); i++)
+	if (!pcBaseObject->TestedForSanity())
 	{
-		pcToObject = *apcTos.Get(i);
-		pcToContainerObject = pcToObject->GetEmbeddingContainer();
-		RecurseValidateConsistency(pcToContainerObject);
-	}
+		pcBaseObject->SetFlag(OBJECT_FLAGS_TESTED_FOR_SANITY, TRUE);
 
-	apcTos.Kill();
+		pcBaseObject->ValidateConsistency();
+
+		apcTos.Init();
+		pcBaseObject->GetTos(&apcTos);
+		for (i = 0; i < apcTos.NumElements(); i++)
+		{
+			pcToObject = *apcTos.Get(i);
+			pcToContainerObject = pcToObject->GetEmbeddingContainer();
+			RecurseValidateConsistency(pcToContainerObject);
+		}
+
+		apcTos.Kill();
+	}
 }
 
 
@@ -717,7 +724,7 @@ CPointer CObjects::Get(OIndex oi)
 CPointer CObjects::Get(char* szObjectName)
 {
 	CBaseObject*	pvObject;
-	CPointer	pObject;
+	CPointer		pObject;
 
 	pvObject = GetFromMemory(szObjectName);
 	if (pvObject)

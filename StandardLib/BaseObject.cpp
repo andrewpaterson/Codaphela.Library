@@ -643,6 +643,16 @@ BOOL CBaseObject::TestedForRoot(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL CBaseObject::TestedForSanity(void)
+{
+	return miFlags & OBJECT_FLAGS_TESTED_FOR_SANITY;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CBaseObject::SetDirty(void)
 {
 	miFlags |= OBJECT_FLAGS_DIRTY;
@@ -857,45 +867,6 @@ BOOL CBaseObject::TestCanFindRoot(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::PrintObject(CChars* psz, BOOL bEmbedded)
-{
-	int		iDistToRoot;
-
-	psz->Append(PointerToString(this));
-	psz->Append(" [");
-	iDistToRoot = GetDistToRoot();
-	if (iDistToRoot >= 0 && iDistToRoot <= 9)
-	{
-		psz->Append(" ");
-	}
-	psz->Append(iDistToRoot);
-	psz->Append("]:");
-
-	if (bEmbedded)
-	{
-		psz->Append("(");
-	}
-	psz->Append(ClassName());
-	psz->Append("(");
-	psz->Append(ClassSize());
-	psz->Append(") ");
-	psz->Append(GetOI());
-	if (IsNamed())
-	{
-		psz->Append(" ");
-		psz->Append(GetName());
-	}
-	if (bEmbedded)
-	{
-		psz->Append(")");
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CBaseObject::DumpFroms(void)
 {
 	CChars				sz;
@@ -1046,5 +1017,77 @@ void CBaseObject::DumpTos(void)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::Dump(void)
 {
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CBaseObject::ValidateFlag(int iFlag, char* szFlag)
+{
+	CChars	sz;
+
+	if (miFlags & iFlag)
+	{
+		sz.Init();
+		PrintObject(&sz, IsEmbedded());
+		gcLogger.Error2(__METHOD__, " Object {", sz.Text(), "} should not have flag [", szFlag,"] set.", NULL);
+		sz.Kill();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CBaseObject::ValidateFlags(void)
+{
+	CChars			sz;
+	CBaseObject*	pcContainer;
+
+	ValidateFlag(OBJECT_FLAGS_TESTED_FOR_ROOT, "OBJECT_FLAGS_TESTED_FOR_ROOT");
+	ValidateFlag(OBJECT_FLAGS_KILLED, "OBJECT_FLAGS_KILLED");
+	ValidateFlag(OBJECT_FLAGS_DUMPED, "OBJECT_FLAGS_DUMPED");
+	ValidateFlag(OBJECT_FLAGS_UNREACHABLE, "OBJECT_FLAGS_UNREACHABLE");
+
+	if (!((miDistToRoot >= ROOT_DIST_TO_ROOT) || (miDistToRoot == UNATTACHED_DIST_TO_ROOT)))
+	{
+		sz.Init();
+		PrintObject(&sz, IsEmbedded());
+		gcLogger.Error2(__METHOD__, " Object {", sz.Text(), "} should not have a dist to root of [", IntToString(miDistToRoot), "].", NULL);
+		sz.Kill();
+	}
+
+	if (IsEmbedded())
+	{
+		pcContainer = GetEmbeddingContainer();
+		if (pcContainer->GetDistToRoot() != GetDistToRoot())
+		{
+			sz.Init();
+			PrintObject(&sz, IsEmbedded());
+			gcLogger.Error2(__METHOD__, " Object {", sz.Text(), "} should have a dist to root [", IntToString(miDistToRoot), "] the same as it's embedding object [", IntToString(pcContainer->GetDistToRoot()),"].", NULL);
+			sz.Kill();
+		}
+
+		if (moi != INVALID_O_INDEX)
+		{
+			sz.Init();
+			PrintObject(&sz, IsEmbedded());
+			gcLogger.Error2(__METHOD__, " Object {", sz.Text(), "} should have an Index [", IndexToString(moi), "] of INVALID_O_INDEX [", IndexToString(INVALID_O_INDEX),"].", NULL);
+			sz.Kill();
+		}
+	}
+	else
+	{
+		if (moi == INVALID_O_INDEX)
+		{
+			sz.Init();
+			PrintObject(&sz, IsEmbedded());
+			gcLogger.Error2(__METHOD__, " Object {", sz.Text(), "} should not have an Index of INVALID_O_INDEX [", IndexToString(INVALID_O_INDEX),"].", NULL);
+			sz.Kill();
+		}
+	}
 }
 

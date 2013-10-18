@@ -454,7 +454,7 @@ void CObject::UnsafeGetEmbeddedObjectTos(CArrayEmbeddedObjectPtr* papcTos)
 	for (i = 0; i < iNumPointers; i++)
 	{
 		ppPointer = mapPointers.Get(i);
-		pcPointedTo = &(**ppPointer);
+		pcPointedTo = (*ppPointer)->Object();
 		if (pcPointedTo)
 		{
 			papcTos->Add(&pcPointedTo);
@@ -858,6 +858,31 @@ void CObject::GetStackFroms(CArrayPointerPtr* papcFroms)
 		pcEmbedded = *mapEmbedded.Get(i);
 
 		pcEmbedded->GetStackFroms(papcFroms);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CObject::ValidateConsistency(void)
+{
+	ValidateNotEmbedded(__METHOD__);
+
+	int				i;
+	int				iNumEmbedded;
+	CBaseObject*	pcEmbedded;
+
+	ValidateFlags();
+	ValidateFroms();
+
+	iNumEmbedded = mapEmbedded.NumElements();
+	for (i = 0; i < iNumEmbedded; i++)
+	{
+		pcEmbedded = *mapEmbedded.Get(i);
+		pcEmbedded->ValidateFlags();
+		pcEmbedded->ValidateFroms();
 	}
 }
 

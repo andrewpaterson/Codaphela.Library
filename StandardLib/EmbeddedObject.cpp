@@ -1,4 +1,5 @@
 #include "BaseLib/Log.h"
+#include "Objects.h"
 #include "BaseObject.h"
 #include "EmbeddedObject.h"
 
@@ -240,6 +241,8 @@ void CEmbeddedObject::AddHeapFrom(CBaseObject* pcFromObject)
 		{
 			GetEmbeddingContainer()->SetExpectedDistToRoot(pcFromObject->miDistToRoot+1);
 		}
+
+		GetObjects()->ValidateConsistency();
 	}
 }
 
@@ -254,6 +257,8 @@ void CEmbeddedObject::RemoveHeapFrom(CBaseObject* pcFrom)
 	PrivateRemoveHeapFrom(pcFrom);
 
 	GetEmbeddingContainer()->TryKill(TRUE);
+
+	GetObjects()->ValidateConsistency();
 }
 
 
@@ -513,6 +518,76 @@ BOOL CEmbeddedObject::IsAllocatedInObjects(void)
 
 	pcObjects = GetObjects();
 	return pcObjects != NULL;
+}
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CEmbeddedObject::PrintObject(CChars* psz, BOOL bEmbedded)
+{
+	int		iDistToRoot;
+
+	psz->Append(PointerToString(this));
+	psz->Append(" [");
+	iDistToRoot = GetDistToRoot();
+	if (iDistToRoot >= 0 && iDistToRoot <= 9)
+	{
+		psz->Append(" ");
+	}
+	psz->Append(iDistToRoot);
+	psz->Append("]:");
+
+	if (bEmbedded)
+	{
+		psz->Append("(");
+	}
+	psz->Append(ClassName());
+	psz->Append("(");
+	psz->Append(ClassSize());
+	psz->Append(") ");
+	psz->Append(GetOI());
+	if (IsNamed())
+	{
+		psz->Append(" ");
+		psz->Append(GetName());
+	}
+	if (bEmbedded)
+	{
+		psz->Append(")");
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CEmbeddedObject::ValidateFroms(void)
+{
+	int				i;
+	CBaseObject*	pcBaseObject;
+	CChars			szObject;
+	CChars			szFromObject;
+	int				iThisDistToRoot;
+	int				iOtherDistToRoot;
+
+	for (i = 0; i < mapHeapFroms.NumElements(); i++)
+	{
+		pcBaseObject = *mapHeapFroms.Get(i);
+		iThisDistToRoot = GetDistToRoot();
+		iOtherDistToRoot = pcBaseObject->GetDistToRoot();
+		if ((iThisDistToRoot >= ROOT_DIST_TO_ROOT && iOtherDistToRoot >= ROOT_DIST_TO_ROOT) && (iOtherDistToRoot < iThisDistToRoot - 1))
+		{
+			szObject.Init();
+			PrintObject(&szObject, IsEmbedded());
+			szFromObject.Init();
+			pcBaseObject->PrintObject(&szFromObject, pcBaseObject->IsEmbedded());
+			gcLogger.Error2(__METHOD__, " Object {", szObject.Text(), "} pointed to from object {", szFromObject.Text(), "} cannot have a DistToRoot that is different by more than 1.", NULL);
+		}
+	}
 }
 
 

@@ -61,6 +61,7 @@ public:
 	int					UnsafeNumEmbeddedObjectTos(void);
 	void				GetTos(CArrayEmbeddedObjectPtr* papcTos);
 	void				UnsafeGetEmbeddedObjectTos(CArrayEmbeddedObjectPtr* papcTos);
+	void				ValidateConsistency(void);
 
 protected:
 	void				KillDontFree(void);

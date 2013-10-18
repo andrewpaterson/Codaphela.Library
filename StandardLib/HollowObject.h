@@ -46,6 +46,7 @@ public:
 			int					GetEmbeddedIndex(CEmbeddedObject* pcEmbedded);
 			int					NumHeapFroms(void);
 			int					NumStackFroms(void);
+			void				ValidateConsistency(void);
 
 protected:
 			void				KillInternalData(void);

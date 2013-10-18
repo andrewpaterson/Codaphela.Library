@@ -63,6 +63,7 @@ public:
 
 	CBaseObject*		UnsafeGet(int iIndex);
 	CEmbeddedObject*	GetEmbeddedObject(int iIndex);
+	void				ValidateConsistency(void);
 
 protected:
 	void			KillInternalData(void);

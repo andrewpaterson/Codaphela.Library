@@ -110,6 +110,8 @@ public:
 	virtual void				RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged) =0;
 			void				UpdateDistToRootFromPointedFroms(void);
 			void				UnattachDistToRoot(void);
+
+			BOOL				TestedForSanity(void);
 			CObjects*			GetObjects(void);
 			CStackPointers*		GetStackPointers(void);
 
@@ -118,10 +120,11 @@ public:
 	virtual void				SetFlag(int iFlag, int iFlagValue);
 	virtual void				ClearDistToRoot(void);
 			BOOL				TestCanFindRoot(void);
-			void				PrintObject(CChars* psz, BOOL bEmbedded = FALSE);
 			void				DumpFroms(void);
 			void				DumpTos(void);
 			void				Dump(void);
+			void				ValidateFlag(int iFlag, char* szFlag);
+			void				ValidateFlags(void);
 	
 protected:
 			void			KillInternalData(void);
