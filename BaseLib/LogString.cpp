@@ -63,7 +63,13 @@ char* PointerToString(void* pv)
 {
 	int iCount = IncrementLogToStringCount();
 	
-	IToA((size_t)pv, gaszLogToStringScratchPad[iCount], 16);
+	CChars	sz;
+
+	sz.Init();
+	sz.AppendHexHiLo(pv, sizeof(size_t));
+	//IToA((size_t)pv, gaszLogToStringScratchPad[iCount], 16);
+	strcpy(gaszLogToStringScratchPad[iCount], sz.Text());
+	sz.Kill();
 	return gaszLogToStringScratchPad[iCount];
 }
 
