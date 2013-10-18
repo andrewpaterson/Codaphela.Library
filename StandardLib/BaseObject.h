@@ -115,6 +115,7 @@ public:
 			CObjects*			GetObjects(void);
 			CStackPointers*		GetStackPointers(void);
 
+	virtual BOOL				ContainsTo(CEmbeddedObject* pcEmbedded);
 			CEmbeddedObject* 	TestGetTo(int iToIndex);
 			int					TestGetNumEmbeddedFromFlags(void);
 	virtual void				SetFlag(int iFlag, int iFlagValue);
@@ -131,6 +132,7 @@ protected:
 	virtual void			Free(void);
 			int				RemapTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew) =0;
 			BOOL			RemoveToFrom(CEmbeddedObject* pcPointedTo, CArrayEmbeddedBaseObjectPtr* papcFromsChanged);
+	virtual void			RemoveEmbeddedObjectAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged) =0;
 			void			SetExpectedDistToRoot(int iExpectedDistToRoot);
 			void			SetCalculatedDistToRoot(void);
 			int				CalculateDistToRootFromPointedFroms(void);

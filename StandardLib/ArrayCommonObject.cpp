@@ -380,6 +380,16 @@ void CArrayCommonObject::RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChan
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CArrayCommonObject::RemoveEmbeddedObjectAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged)
+{
+	RemoveAllTos(papcFromsChanged);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CArrayCommonObject::RemoveTo(CEmbeddedObject* pcTo)
 {
 	mcArray.Remove((CUnknown*)pcTo);
@@ -493,6 +503,30 @@ void CArrayCommonObject::GetTos(CArrayEmbeddedObjectPtr* papcTos)
 void CArrayCommonObject::UnsafeGetEmbeddedObjectTos(CArrayEmbeddedObjectPtr* papcTos)
 {
 	GetTos(papcTos);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CArrayCommonObject::ContainsTo(CEmbeddedObject* pcEmbedded)
+{
+	CEmbeddedObject*	pcPointedTo;
+	int					i;
+
+	for (i = 0; i < mcArray.UnsafeNumElements(); i++)
+	{
+		pcPointedTo = (CBaseObject*)mcArray.UnsafeGet(i);
+		if (pcPointedTo)
+		{
+			if (pcPointedTo == pcEmbedded)
+			{
+				return TRUE;
+			}
+		}
+	}
+	return FALSE;
 }
 
 

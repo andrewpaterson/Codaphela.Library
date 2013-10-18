@@ -60,6 +60,7 @@ public:
 	int					NumTos(void);
 	int					UnsafeNumEmbeddedObjectTos(void);
 	void				GetTos(CArrayEmbeddedObjectPtr* papcTos);
+	BOOL				ContainsTo(CEmbeddedObject* pcEmbedded);
 	void				UnsafeGetEmbeddedObjectTos(CArrayEmbeddedObjectPtr* papcTos);
 	void				ValidateConsistency(void);
 
@@ -68,6 +69,7 @@ protected:
 	void				KillInternalData(void);
 	void				RemoveTo(CEmbeddedObject* pcTo);
 	void				RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged);
+	void				RemoveEmbeddedObjectAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged);
 	void				RemoveAllHeapFroms(void);
 	void				RemoveAllStackFroms(void);
 	CEmbeddedObject*	GetClosestFromToRoot(void);

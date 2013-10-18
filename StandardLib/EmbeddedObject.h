@@ -36,8 +36,8 @@ friend class CPointer;
 BASE_FUNCTIONS(CEmbeddedObject);
 protected:
 	CBaseObject*						mpcEmbedded;  //Object that 'this' is embedded in.
-	CArrayEmbedded<CBaseObject*, 6>		mapHeapFroms;  //Objects on the heap that 'this' is pointed from.  Pretty Certain this is an array of CEmbeddedObject, not CBaseObject.
-	CStackPointer*						mpcStackFroms;  //Objects on the stack that 'this' is pointed from.  
+	CArrayEmbedded<CBaseObject*, 6>		mapHeapFroms;  //Objects on the heap that 'this' is pointed to from.  This is a BaseOject not an EmbeddedObject because HollowEmbeddedObjects cannot point to anything.
+	CStackPointer*						mpcStackFroms;  //Objects on the stack that 'this' is pointed to from.  
 
 public:
 								CEmbeddedObject();

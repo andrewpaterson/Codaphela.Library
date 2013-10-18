@@ -443,6 +443,35 @@ void CObject::GetTos(CArrayEmbeddedObjectPtr* papcTos)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL CObject::ContainsTo(CEmbeddedObject* pcEmbedded)
+{
+	int					iNumPointers;
+	int					i;
+	CPointer**			ppPointer;
+	CEmbeddedObject*	pcPointedTo;
+
+	iNumPointers = mapPointers.NumElements();
+	for (i = 0; i < iNumPointers; i++)
+	{
+		ppPointer = mapPointers.Get(i);
+		pcPointedTo = (*ppPointer)->Object();
+		if (pcPointedTo)
+		{
+			if (pcPointedTo == pcEmbedded)
+			{
+				return TRUE;
+			}
+		}
+	}
+
+	return FALSE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CObject::UnsafeGetEmbeddedObjectTos(CArrayEmbeddedObjectPtr* papcTos)
 {
 	int					iNumPointers;
@@ -467,7 +496,7 @@ void CObject::UnsafeGetEmbeddedObjectTos(CArrayEmbeddedObjectPtr* papcTos)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObject::RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged)
+void CObject::RemoveEmbeddedObjectAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged)
 {
 	int					iNumPointers;
 	int					i;
@@ -481,6 +510,27 @@ void CObject::RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged)
 		pcPointedTo = (*ppPointer)->Object();
 		RemoveToFrom(pcPointedTo, papcFromsChanged);
 		(*ppPointer)->UnsafeClearObject();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CObject::RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged)
+{
+	int				i;
+	int				iNumEmbedded;
+	CBaseObject*	pcEmbedded;
+
+	RemoveEmbeddedObjectAllTos(papcFromsChanged);
+
+	iNumEmbedded = mapEmbedded.NumElements();
+	for (i = 0; i < iNumEmbedded; i++)
+	{
+		pcEmbedded = *mapEmbedded.Get(i);
+		pcEmbedded->RemoveEmbeddedObjectAllTos(papcFromsChanged);
 	}
 }
 

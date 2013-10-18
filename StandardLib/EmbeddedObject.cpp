@@ -573,10 +573,12 @@ void CEmbeddedObject::ValidateFroms(void)
 	CChars			szFromObject;
 	int				iThisDistToRoot;
 	int				iOtherDistToRoot;
+	BOOL			bFromPointsTo;
 
 	for (i = 0; i < mapHeapFroms.NumElements(); i++)
 	{
 		pcBaseObject = *mapHeapFroms.Get(i);
+
 		iThisDistToRoot = GetDistToRoot();
 		iOtherDistToRoot = pcBaseObject->GetDistToRoot();
 		if ((iThisDistToRoot >= ROOT_DIST_TO_ROOT && iOtherDistToRoot >= ROOT_DIST_TO_ROOT) && (iOtherDistToRoot < iThisDistToRoot - 1))
@@ -586,6 +588,16 @@ void CEmbeddedObject::ValidateFroms(void)
 			szFromObject.Init();
 			pcBaseObject->PrintObject(&szFromObject, pcBaseObject->IsEmbedded());
 			gcLogger.Error2(__METHOD__, " Object {", szObject.Text(), "} pointed to from object {", szFromObject.Text(), "} cannot have a DistToRoot that is different by more than 1.", NULL);
+		}
+
+		bFromPointsTo = pcBaseObject->ContainsTo(this);
+		if (!bFromPointsTo)
+		{
+			szObject.Init();
+			PrintObject(&szObject, IsEmbedded());
+			szFromObject.Init();
+			pcBaseObject->PrintObject(&szFromObject, pcBaseObject->IsEmbedded());
+			gcLogger.Error2(__METHOD__, " Object {", szObject.Text(), "} pointed to from object {", szFromObject.Text(), "} does not have a from pointing to.", NULL);
 		}
 	}
 }

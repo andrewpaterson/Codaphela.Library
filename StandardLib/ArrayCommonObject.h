@@ -57,6 +57,8 @@ public:
 	int					UnsafeNumEmbeddedObjectTos(void);
 	void				GetTos(CArrayEmbeddedObjectPtr* papcTos);
 	void				UnsafeGetEmbeddedObjectTos(CArrayEmbeddedObjectPtr* papcTos);
+	BOOL				ContainsTo(CEmbeddedObject* pcEmbedded);
+	void				RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged);
 
 	BOOL				Save(CObjectSerialiser* pcFile);
 	BOOL				Load(CObjectDeserialiser* pcFile);
@@ -65,11 +67,12 @@ public:
 	CEmbeddedObject*	GetEmbeddedObject(int iIndex);
 	void				ValidateConsistency(void);
 
+
 protected:
 	void			KillInternalData(void);
 	void			KillData(void);
 	void			RemoveTo(CEmbeddedObject* pcTo);
-	void			RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged);
+	void			RemoveEmbeddedObjectAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged);
 	int				RemapTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew);
 	void			CollectPointedToToBeKilled(CArrayBaseObjectPtr* papcKilled);
 	void			SetPointedTosDistToRoot(int iDistToRoot);

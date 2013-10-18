@@ -46,14 +46,15 @@ public:
 			int					GetEmbeddedIndex(CEmbeddedObject* pcEmbedded);
 			int					NumHeapFroms(void);
 			int					NumStackFroms(void);
+			void				RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged);
 			void				ValidateConsistency(void);
 
 protected:
 			void				KillInternalData(void);
 			void				KillData(void);
 			int					RemapTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew);
-			void				RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged);
 			void				RemoveTo(CEmbeddedObject* pcTo);
+			void				RemoveEmbeddedObjectAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged);
 			void				CollectPointedToToBeKilled(CArrayBaseObjectPtr* papcKilled);
 	virtual	CEmbeddedObject*	GetRemappedEmbeddedObject(int iIndex);
 };
