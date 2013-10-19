@@ -32,7 +32,7 @@ void CDependentObjectAdder::AddContainingPointer(CEmbeddedObject* pcBaseObject, 
 
 	if (pcContaining)
 	{
-		pcBaseObject->AddHeapFrom(pcContaining);
+		pcBaseObject->AddHeapFrom(pcContaining, FALSE);
 	}
 }
 

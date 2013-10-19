@@ -350,7 +350,7 @@ void CHollowObject::ValidateConsistency(void)
 {
 	ValidateBaseObjectDetail();
 	ValidateFroms();
-	//ValidateCanFindRoot();
+	ValidateCanFindRoot();
 	ValidateTos();
 }
 
