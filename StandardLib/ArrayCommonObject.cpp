@@ -589,5 +589,7 @@ CEmbeddedObject* CArrayCommonObject::GetEmbeddedObject(int iIndex)
 //////////////////////////////////////////////////////////////////////////
 void CArrayCommonObject::ValidateConsistency(void)
 {
+	ValidateFlags();
+	ValidateFroms();
 }
 

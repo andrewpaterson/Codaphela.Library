@@ -1,5 +1,4 @@
-#include "BaseObject.h"
-#include "PointerObject.h"
+#include "Objects.h"
 #include "ObjectRemapFrom.h"
 
 
@@ -50,7 +49,7 @@ int CObjectRemapFrom::RemapEmbedded(CEmbeddedObject* pcNew, CEmbeddedObject* pcO
 	{
 		pvFrom = pcOld->CEmbeddedObject::GetHeapFrom(i);
 		iCount += pvFrom->RemapTos(pcOld, pcNew);
-		pcNew->AddHeapFrom(pvFrom);
+		pcNew->AddHeapFrom(pvFrom, FALSE);
 	}
 
 	pcFirstStackPointer = pcOld->GetFirstStackFrom();
@@ -68,6 +67,8 @@ int CObjectRemapFrom::RemapEmbedded(CEmbeddedObject* pcNew, CEmbeddedObject* pcO
 	pcNew->SetDistToRootAndSetPointedTosExpectedDistToRoot(pcOld->GetDistToRoot());
 
 	pcOld->KillFroms();
+
+	pcNew->GetObjects()->ValidateConsistency();
 
 	return iCount;
 }

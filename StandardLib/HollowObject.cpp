@@ -339,5 +339,7 @@ int CHollowObject::NumStackFroms(void)
 //////////////////////////////////////////////////////////////////////////
 void CHollowObject::ValidateConsistency(void)
 {
+	ValidateFlags();
+	ValidateFroms();
 }
 
