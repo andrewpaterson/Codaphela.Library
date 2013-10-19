@@ -18,7 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "Pointer.h"
+#include "Objects.h"
 #include "ObjectSerialiser.h"
 #include "ObjectDeserialiser.h"
 #include "ArrayCommonObject.h"
@@ -80,11 +80,13 @@ void CArrayCommonObject::RemoveAll(void)
 		pcObject = UnsafeGet(i);
 		if (pcObject)
 		{
-			pcObject->RemoveHeapFrom(this);
+			pcObject->RemoveHeapFrom(this, FALSE);
 		}
 	}
 
 	mcArray.ReInit();
+
+	mpcObjectsThisIn->ValidateConsistency();
 }
 
 
@@ -582,6 +584,37 @@ CEmbeddedObject* CArrayCommonObject::GetEmbeddedObject(int iIndex)
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CArrayCommonObject::ValidateEmbeddedObjectTos(void)
+{
+	ValidateTos();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CArrayCommonObject::ValidateTos(void)
+{
+	int					iCount;
+	CEmbeddedObject**	ppcPointedTo;
+	int					i;
+
+	iCount = 0;
+	for (i = 0; i < mcArray.NumElements(); i++)
+	{
+		ppcPointedTo = (CEmbeddedObject**)mcArray.UnsafeGetPointer(i);
+		if (*ppcPointedTo)
+		{
+			ValidateTo(*ppcPointedTo);
+		}
+	}
+}
+
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -592,5 +625,6 @@ void CArrayCommonObject::ValidateConsistency(void)
 	ValidateBaseObjectDetail();
 	ValidateFroms();
 	ValidateCanFindRoot();
+	ValidateTos();
 }
 

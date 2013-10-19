@@ -68,7 +68,10 @@ public:
 	virtual CBaseObject*		Dehollow(void) =0;
 			BOOL				IsAllocatedInObjects(void);
 	virtual void				ValidateConsistency(void) =0;
+			void				ValidateFrom(CBaseObject* pcBaseObject);
 			void				ValidateFroms(void);
+			void				ValidateTo(CEmbeddedObject* pcPointedTo);
+	virtual void				ValidateTos(void);
 			void				ValidateBaseObjectDetail(void);
 
 	virtual int					NumTos(void) =0;
@@ -80,6 +83,7 @@ public:
 			void				AddHeapFrom(CBaseObject* pcFromObject);
 			void				AddHeapFrom(CBaseObject* pcFromObject, BOOL bValidate);
 			void				RemoveHeapFrom(CBaseObject* pcFromObject);
+			void				RemoveHeapFrom(CBaseObject* pcFromObject, BOOL bValidate);
 	virtual int					NumHeapFroms(void);
 			CBaseObject*		GetHeapFrom(int iFromIndex);
 
@@ -92,6 +96,7 @@ public:
 			CStackPointer*		GetFirstStackFrom(void);
 
 			int					NumTotalFroms(void);
+			BOOL				ContainsFrom(CEmbeddedObject* pcBaseObject);
 
 	virtual CObjects*			GetObjects(void) =0;
 			void				PrintObject(CChars* psz, BOOL bEmbedded = FALSE);

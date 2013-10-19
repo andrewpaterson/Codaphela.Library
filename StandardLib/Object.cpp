@@ -912,6 +912,50 @@ void CObject::GetStackFroms(CArrayPointerPtr* papcFroms)
 }
 
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CObject::ValidateEmbeddedObjectTos(void)
+{
+	int					i;
+	CEmbeddedObject*	pcPointedTo;
+	CPointer**			ppPointer;
+
+	for (i = 0; i < mapPointers.NumElements(); i++)
+	{
+		ppPointer = mapPointers.Get(i);
+		pcPointedTo = (*ppPointer)->Object();
+		if (pcPointedTo)
+		{
+			ValidateTo(pcPointedTo);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CObject::ValidateTos(void)
+{
+	int				i;
+	int				iNumEmbedded;
+	CBaseObject*	pcEmbedded;
+
+	ValidateEmbeddedObjectTos();
+
+	iNumEmbedded = mapEmbedded.NumElements();
+	for (i = 0; i < iNumEmbedded; i++)
+	{
+		pcEmbedded = *mapEmbedded.Get(i);
+		pcEmbedded->ValidateEmbeddedObjectTos();
+	}
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -927,6 +971,7 @@ void CObject::ValidateConsistency(void)
 	ValidateBaseObjectDetail();
 	ValidateFroms();
 	ValidateCanFindRoot();
+	ValidateTos();
 
 	iNumEmbedded = mapEmbedded.NumElements();
 	for (i = 0; i < iNumEmbedded; i++)
@@ -934,6 +979,7 @@ void CObject::ValidateConsistency(void)
 		pcEmbedded = *mapEmbedded.Get(i);
 		pcEmbedded->ValidateBaseObjectDetail();
 		pcEmbedded->ValidateFroms();
+		pcEmbedded->ValidateTos();
 	}
 }
 

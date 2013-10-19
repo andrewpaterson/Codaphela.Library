@@ -1400,7 +1400,6 @@ void ObjectsInit(CIndexedConfig* pcConfig)
 //////////////////////////////////////////////////////////////////////////
 void ObjectsKill(void)
 {
-	//gcObjects.ValidateEmpty();
 	gcObjects.Kill();
 	UnknownsKill();
 }

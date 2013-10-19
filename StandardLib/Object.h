@@ -62,6 +62,7 @@ public:
 	void				GetTos(CArrayEmbeddedObjectPtr* papcTos);
 	BOOL				ContainsTo(CEmbeddedObject* pcEmbedded);
 	void				UnsafeGetEmbeddedObjectTos(CArrayEmbeddedObjectPtr* papcTos);
+	void				ValidateTos(void);
 	void				ValidateConsistency(void);
 
 protected:
@@ -80,6 +81,7 @@ protected:
 	void				SetPointedTosDistToRoot(int iDistToRoot);
 	BOOL				RecurseGetEmbeddedIndex(CEmbeddedObject* pcTest, int* piIndex);
 	CEmbeddedObject*	RecurseGetEmbeddedObject(int iIndex, int* iCount);
+	void				ValidateEmbeddedObjectTos(void);
 };
 
 

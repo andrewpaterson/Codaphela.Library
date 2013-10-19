@@ -268,14 +268,27 @@ void CEmbeddedObject::AddHeapFrom(CBaseObject* pcFromObject, BOOL bValidate)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CEmbeddedObject::RemoveHeapFrom(CBaseObject* pcFrom)
+void CEmbeddedObject::RemoveHeapFrom(CBaseObject* pcFromObject)
 {
 	//Removing a 'from' kicks off memory reclamation.  This is the entry point for memory management.
-	PrivateRemoveHeapFrom(pcFrom);
+	PrivateRemoveHeapFrom(pcFromObject);
 
 	GetEmbeddingContainer()->TryKill(TRUE);
 
 	GetObjects()->ValidateConsistency();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CEmbeddedObject::RemoveHeapFrom(CBaseObject* pcFromObject, BOOL bValidate)
+{
+	//Removing a 'from' kicks off memory reclamation.  This is the entry point for memory management.
+	PrivateRemoveHeapFrom(pcFromObject);
+
+	GetEmbeddingContainer()->TryKill(TRUE);
 }
 
 
@@ -410,6 +423,30 @@ int CEmbeddedObject::NumStackFroms(void)
 int CEmbeddedObject::NumTotalFroms(void)
 {
 	return NumStackFroms() + NumHeapFroms();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CEmbeddedObject::ContainsFrom(CEmbeddedObject* pcBaseObject)
+{
+	int				i;
+	int				iNumFroms;
+	CBaseObject*	pcFrom;
+
+	iNumFroms = mapHeapFroms.NumElements();
+	for (i = 0; i < iNumFroms; i++)
+	{
+		pcFrom = *mapHeapFroms.Get(i);
+		if (pcFrom == pcBaseObject)
+		{
+			return TRUE;
+		}
+	}
+
+	return FALSE;
 }
 
 
@@ -582,41 +619,89 @@ void CEmbeddedObject::PrintObject(CChars* psz, BOOL bEmbedded)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CEmbeddedObject::ValidateFrom(CBaseObject* pcBaseObject)
+{
+	CChars	szObject;
+	CChars	szFromObject;
+	int		iThisDistToRoot;
+	int		iOtherDistToRoot;
+	BOOL	bFromPointsToTo;
+
+	iThisDistToRoot = GetDistToRoot();
+	iOtherDistToRoot = pcBaseObject->GetDistToRoot();
+	if ((iThisDistToRoot >= ROOT_DIST_TO_ROOT && iOtherDistToRoot >= ROOT_DIST_TO_ROOT) && (iOtherDistToRoot < iThisDistToRoot - 1))
+	{
+		szObject.Init();
+		PrintObject(&szObject, IsEmbedded());
+		szFromObject.Init();
+		pcBaseObject->PrintObject(&szFromObject, pcBaseObject->IsEmbedded());
+		gcLogger.Error2(__METHOD__, " Object {", szObject.Text(), "} pointed to from object {", szFromObject.Text(), "} cannot have a DistToRoot that is different by more than 1.", NULL);
+		szFromObject.Kill();
+		szObject.Kill();
+	}
+
+	bFromPointsToTo = pcBaseObject->ContainsTo(this);
+	if (!bFromPointsToTo)
+	{
+		szObject.Init();
+		PrintObject(&szObject, IsEmbedded());
+		szFromObject.Init();
+		pcBaseObject->PrintObject(&szFromObject, pcBaseObject->IsEmbedded());
+		gcLogger.Error2(__METHOD__, " Object {", szObject.Text(), "} pointed to from object {", szFromObject.Text(), "} does not have a from pointing to.", NULL);
+		szFromObject.Kill();
+		szObject.Kill();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CEmbeddedObject::ValidateTo(CEmbeddedObject* pcPointedTo)
+{
+	CChars	szObject;
+	CChars	szToObject;
+	BOOL	bToPointsToFrom;
+
+	bToPointsToFrom = pcPointedTo->ContainsFrom(this);
+	if (!bToPointsToFrom)
+	{
+		szObject.Init();
+		PrintObject(&szObject, IsEmbedded());
+		szToObject.Init();
+		pcPointedTo->PrintObject(&szToObject, pcPointedTo->IsEmbedded());
+		gcLogger.Error2(__METHOD__, " Object {", szObject.Text(), "} pointing to object {", szToObject.Text(), "} does not have a from pointing to.", NULL);
+		szToObject.Kill();
+		szObject.Kill();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CEmbeddedObject::ValidateFroms(void)
 {
 	int				i;
 	CBaseObject*	pcBaseObject;
-	CChars			szObject;
-	CChars			szFromObject;
-	int				iThisDistToRoot;
-	int				iOtherDistToRoot;
-	BOOL			bFromPointsTo;
 
 	for (i = 0; i < mapHeapFroms.NumElements(); i++)
 	{
 		pcBaseObject = *mapHeapFroms.Get(i);
 
-		iThisDistToRoot = GetDistToRoot();
-		iOtherDistToRoot = pcBaseObject->GetDistToRoot();
-		if ((iThisDistToRoot >= ROOT_DIST_TO_ROOT && iOtherDistToRoot >= ROOT_DIST_TO_ROOT) && (iOtherDistToRoot < iThisDistToRoot - 1))
-		{
-			szObject.Init();
-			PrintObject(&szObject, IsEmbedded());
-			szFromObject.Init();
-			pcBaseObject->PrintObject(&szFromObject, pcBaseObject->IsEmbedded());
-			gcLogger.Error2(__METHOD__, " Object {", szObject.Text(), "} pointed to from object {", szFromObject.Text(), "} cannot have a DistToRoot that is different by more than 1.", NULL);
-		}
-
-		bFromPointsTo = pcBaseObject->ContainsTo(this);
-		if (!bFromPointsTo)
-		{
-			szObject.Init();
-			PrintObject(&szObject, IsEmbedded());
-			szFromObject.Init();
-			pcBaseObject->PrintObject(&szFromObject, pcBaseObject->IsEmbedded());
-			gcLogger.Error2(__METHOD__, " Object {", szObject.Text(), "} pointed to from object {", szFromObject.Text(), "} does not have a from pointing to.", NULL);
-		}
+		ValidateFrom(pcBaseObject);
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CEmbeddedObject::ValidateTos(void)
+{
 }
 
 

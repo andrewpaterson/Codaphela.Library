@@ -99,3 +99,4 @@ int CObjectRemapFrom::CalculateNumEmbedded(CEmbeddedObject* pcOld, CEmbeddedObje
 
 	return iNumEmbedded;
 }
+

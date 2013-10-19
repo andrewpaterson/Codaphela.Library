@@ -130,6 +130,7 @@ public:
 			void				ValidateIndex(void);
 			void				ValidateObjectsThisIn(void);
 			void				ValidateCanFindRoot(void);
+	virtual void				ValidateEmbeddedObjectTos(void) =0;
 			void				ValidateBaseObjectDetail(void);
 	
 protected:

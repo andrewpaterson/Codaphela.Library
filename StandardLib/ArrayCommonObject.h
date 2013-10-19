@@ -65,16 +65,19 @@ public:
 
 	CBaseObject*		UnsafeGet(int iIndex);
 	CEmbeddedObject*	GetEmbeddedObject(int iIndex);
+
+	void				ValidateEmbeddedObjectTos(void);
+	void				ValidateTos(void);
 	void				ValidateConsistency(void);
 
 protected:
-	void			KillInternalData(void);
-	void			KillData(void);
-	void			RemoveTo(CEmbeddedObject* pcTo);
-	void			RemoveEmbeddedObjectAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged);
-	int				RemapTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew);
-	void			CollectPointedToToBeKilled(CArrayBaseObjectPtr* papcKilled);
-	void			SetPointedTosDistToRoot(int iDistToRoot);
+	void	KillInternalData(void);
+	void	KillData(void);
+	void	RemoveTo(CEmbeddedObject* pcTo);
+	void	RemoveEmbeddedObjectAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged);
+	int		RemapTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew);
+	void	CollectPointedToToBeKilled(CArrayBaseObjectPtr* papcKilled);
+	void	SetPointedTosDistToRoot(int iDistToRoot);
 };
 
 

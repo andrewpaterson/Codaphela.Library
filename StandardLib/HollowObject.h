@@ -47,6 +47,7 @@ public:
 			int					NumHeapFroms(void);
 			int					NumStackFroms(void);
 			void				RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged);
+			void				ValidateEmbeddedObjectTos(void);
 			void				ValidateConsistency(void);
 
 protected:
