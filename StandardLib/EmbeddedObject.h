@@ -78,6 +78,7 @@ public:
 
 			BOOL				HasHeapPointers(void);
 			void				AddHeapFrom(CBaseObject* pcFromObject);
+			void				AddHeapFrom(CBaseObject* pcFromObject, BOOL bValidate);
 			void				RemoveHeapFrom(CBaseObject* pcFromObject);
 	virtual int					NumHeapFroms(void);
 			CBaseObject*		GetHeapFrom(int iFromIndex);
@@ -92,6 +93,7 @@ public:
 
 			int					NumTotalFroms(void);
 
+	virtual CObjects*			GetObjects(void) =0;
 			void				PrintObject(CChars* psz, BOOL bEmbedded = FALSE);
 			void				LogNotExpectedToBeEmbedded(char* szMethod);
 			void				ValidateNotEmbedded(char* szMethod);
@@ -103,7 +105,6 @@ protected:
 			BOOL				PrivateRemoveHeapFrom(CBaseObject* pcFrom);
 	virtual void				GetStackFroms(CArrayPointerPtr* papcFroms);
 	virtual void				GetHeapFroms(CArrayEmbeddedBaseObjectPtr* papcFroms);
-	virtual CObjects*			GetObjects(void) =0;
 	virtual CStackPointers*		GetStackPointers(void) =0;
 	virtual CEmbeddedObject*	GetClosestFromToRoot(void);
 };

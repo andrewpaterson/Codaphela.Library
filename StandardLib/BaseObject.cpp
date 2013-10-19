@@ -1088,6 +1088,14 @@ void CBaseObject::ValidateFlags(void)
 			gcLogger.Error2(__METHOD__, " Object {", sz.Text(), "} should have an Index [", IndexToString(moi), "] of INVALID_O_INDEX [", IndexToString(INVALID_O_INDEX),"].", NULL);
 			sz.Kill();
 		}
+
+		if (mpcObjectsThisIn != NULL)
+		{
+			sz.Init();
+			PrintObject(&sz, IsEmbedded());
+			gcLogger.Error2(__METHOD__, " Object {", sz.Text(), "} should not have ObjectsThisIn [", PointerToString(mpcObjectsThisIn), "] set.", NULL);
+			sz.Kill();
+		}
 	}
 	else
 	{
@@ -1096,6 +1104,14 @@ void CBaseObject::ValidateFlags(void)
 			sz.Init();
 			PrintObject(&sz, IsEmbedded());
 			gcLogger.Error2(__METHOD__, " Object {", sz.Text(), "} should not have an Index of INVALID_O_INDEX [", IndexToString(INVALID_O_INDEX),"].", NULL);
+			sz.Kill();
+		}
+
+		if (mpcObjectsThisIn == NULL)
+		{
+			sz.Init();
+			PrintObject(&sz, IsEmbedded());
+			gcLogger.Error2(__METHOD__, " Object {", sz.Text(), "} should have ObjectsThisIn [NULL] set.", NULL);
 			sz.Kill();
 		}
 	}

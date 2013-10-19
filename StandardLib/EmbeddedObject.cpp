@@ -251,6 +251,23 @@ void CEmbeddedObject::AddHeapFrom(CBaseObject* pcFromObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CEmbeddedObject::AddHeapFrom(CBaseObject* pcFromObject, BOOL bValidate)
+{
+	if (pcFromObject != NULL)
+	{
+		mapHeapFroms.Add(&pcFromObject);
+		if (pcFromObject->miDistToRoot >= ROOT_DIST_TO_ROOT)
+		{
+			GetEmbeddingContainer()->SetExpectedDistToRoot(pcFromObject->miDistToRoot+1);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CEmbeddedObject::RemoveHeapFrom(CBaseObject* pcFrom)
 {
 	//Removing a 'from' kicks off memory reclamation.  This is the entry point for memory management.
