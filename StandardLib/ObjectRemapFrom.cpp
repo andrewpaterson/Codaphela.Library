@@ -6,7 +6,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CObjectRemapFrom::Remap(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew)
+int CObjectRemapFrom::Remap(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew, BOOL bClearOldIndex)
 {
 	int					iCount;
 	CEmbeddedObject*	pcEmbeddedOld;
@@ -24,6 +24,12 @@ int CObjectRemapFrom::Remap(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew)
 
 		iCount += RemapEmbedded(pcEmbeddedNew, pcEmbeddedOld);
 	}
+
+	if (bClearOldIndex)
+	{
+		pcOld->ClearIndex();
+	}
+	pcOld->Kill();
 
 	return iCount;
 }
@@ -67,8 +73,6 @@ int CObjectRemapFrom::RemapEmbedded(CEmbeddedObject* pcNew, CEmbeddedObject* pcO
 	pcNew->SetDistToRootAndSetPointedTosExpectedDistToRoot(pcOld->GetDistToRoot());
 
 	pcOld->KillFroms();
-
-	pcNew->GetObjects()->ValidateConsistency();
 
 	return iCount;
 }

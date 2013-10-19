@@ -924,14 +924,15 @@ void CObject::ValidateConsistency(void)
 	int				iNumEmbedded;
 	CBaseObject*	pcEmbedded;
 
-	ValidateFlags();
+	ValidateBaseObjectDetail();
 	ValidateFroms();
+	ValidateCanFindRoot();
 
 	iNumEmbedded = mapEmbedded.NumElements();
 	for (i = 0; i < iNumEmbedded; i++)
 	{
 		pcEmbedded = *mapEmbedded.Get(i);
-		pcEmbedded->ValidateFlags();
+		pcEmbedded->ValidateBaseObjectDetail();
 		pcEmbedded->ValidateFroms();
 	}
 }

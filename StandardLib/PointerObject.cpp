@@ -380,9 +380,7 @@ int CPointer::MorphInto(CEmbeddedObject* pcNew)
 
 	pvExisting = mpcObject;
 
-	iCount = cRemapper.Remap(mpcObject, pcNew);
-
-	pvExisting->Kill();
+	iCount = cRemapper.Remap(mpcObject, pcNew, FALSE);
 
 	return iCount;
 }

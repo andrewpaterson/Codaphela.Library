@@ -126,6 +126,11 @@ public:
 			void				Dump(void);
 			void				ValidateFlag(int iFlag, char* szFlag);
 			void				ValidateFlags(void);
+			void				ValidateDistToRoot(void);
+			void				ValidateIndex(void);
+			void				ValidateObjectsThisIn(void);
+			void				ValidateCanFindRoot(void);
+			void				ValidateBaseObjectDetail(void);
 	
 protected:
 			void			KillInternalData(void);

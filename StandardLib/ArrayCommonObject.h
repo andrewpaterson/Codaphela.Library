@@ -67,7 +67,6 @@ public:
 	CEmbeddedObject*	GetEmbeddedObject(int iIndex);
 	void				ValidateConsistency(void);
 
-
 protected:
 	void			KillInternalData(void);
 	void			KillData(void);

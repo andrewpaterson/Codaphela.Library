@@ -101,6 +101,8 @@ void CBaseObject::Kill(void)
 	}
 
 	iNumKilled = KillThisGraph();
+
+	mpcObjectsThisIn->ValidateConsistency();
 }
 
 
@@ -1052,15 +1054,47 @@ void CBaseObject::ValidateFlag(int iFlag, char* szFlag)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::ValidateFlags(void)
+void CBaseObject::ValidateCanFindRoot(void)
 {
 	CChars			sz;
-	CBaseObject*	pcContainer;
+	BOOL			bCanFindRoot;
 
+	if (miDistToRoot > ROOT_DIST_TO_ROOT)
+	{
+		bCanFindRoot = CanFindRoot();
+
+		if (!bCanFindRoot)
+		{
+			sz.Init();
+			PrintObject(&sz, IsEmbedded());
+			gcLogger.Error2(__METHOD__, " Object {", sz.Text(), "} should be able to find the Root object.", NULL);
+			sz.Kill();
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CBaseObject::ValidateFlags(void)
+{
 	ValidateFlag(OBJECT_FLAGS_TESTED_FOR_ROOT, "OBJECT_FLAGS_TESTED_FOR_ROOT");
 	ValidateFlag(OBJECT_FLAGS_KILLED, "OBJECT_FLAGS_KILLED");
 	ValidateFlag(OBJECT_FLAGS_DUMPED, "OBJECT_FLAGS_DUMPED");
 	ValidateFlag(OBJECT_FLAGS_UNREACHABLE, "OBJECT_FLAGS_UNREACHABLE");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CBaseObject::ValidateDistToRoot(void)
+{
+	CChars			sz;
+	CBaseObject*	pcContainer;
 
 	if (!((miDistToRoot >= ROOT_DIST_TO_ROOT) || (miDistToRoot == UNATTACHED_DIST_TO_ROOT)))
 	{
@@ -1080,20 +1114,25 @@ void CBaseObject::ValidateFlags(void)
 			gcLogger.Error2(__METHOD__, " Object {", sz.Text(), "} should have a dist to root [", IntToString(miDistToRoot), "] the same as it's embedding object [", IntToString(pcContainer->GetDistToRoot()),"].", NULL);
 			sz.Kill();
 		}
+	}
+}
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CBaseObject::ValidateIndex(void)
+{
+	CChars			sz;
+
+	if (IsEmbedded())
+	{
 		if (moi != INVALID_O_INDEX)
 		{
 			sz.Init();
 			PrintObject(&sz, IsEmbedded());
 			gcLogger.Error2(__METHOD__, " Object {", sz.Text(), "} should have an Index [", IndexToString(moi), "] of INVALID_O_INDEX [", IndexToString(INVALID_O_INDEX),"].", NULL);
-			sz.Kill();
-		}
-
-		if (mpcObjectsThisIn != NULL)
-		{
-			sz.Init();
-			PrintObject(&sz, IsEmbedded());
-			gcLogger.Error2(__METHOD__, " Object {", sz.Text(), "} should not have ObjectsThisIn [", PointerToString(mpcObjectsThisIn), "] set.", NULL);
 			sz.Kill();
 		}
 	}
@@ -1106,7 +1145,30 @@ void CBaseObject::ValidateFlags(void)
 			gcLogger.Error2(__METHOD__, " Object {", sz.Text(), "} should not have an Index of INVALID_O_INDEX [", IndexToString(INVALID_O_INDEX),"].", NULL);
 			sz.Kill();
 		}
+	}
+}
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CBaseObject::ValidateObjectsThisIn(void)
+{
+	CChars			sz;
+
+	if (IsEmbedded())
+	{
+		if (mpcObjectsThisIn != NULL)
+		{
+			sz.Init();
+			PrintObject(&sz, IsEmbedded());
+			gcLogger.Error2(__METHOD__, " Object {", sz.Text(), "} should not have ObjectsThisIn [", PointerToString(mpcObjectsThisIn), "] set.", NULL);
+			sz.Kill();
+		}
+	}
+	else
+	{
 		if (mpcObjectsThisIn == NULL)
 		{
 			sz.Init();
@@ -1115,5 +1177,18 @@ void CBaseObject::ValidateFlags(void)
 			sz.Kill();
 		}
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CBaseObject::ValidateBaseObjectDetail(void)
+{
+	ValidateFlags();
+	ValidateDistToRoot();
+	ValidateIndex();
+	ValidateObjectsThisIn();
 }
 

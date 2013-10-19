@@ -69,7 +69,7 @@ public:
 			BOOL				IsAllocatedInObjects(void);
 	virtual void				ValidateConsistency(void) =0;
 			void				ValidateFroms(void);
-			void				ValidateFlags(void);
+			void				ValidateBaseObjectDetail(void);
 
 	virtual int					NumTos(void) =0;
 	virtual int					UnsafeNumEmbeddedObjectTos(void);
