@@ -59,7 +59,7 @@ void CArrayObject::AddAll(Ptr<CArrayObject> pcArray)
 void CArrayObject::Insert(int iIndex, CPointer& pObject)
 {
 	mcArray.Insert(iIndex, pObject.Object());
-	pObject->AddHeapFrom(this);
+	pObject.AddHeapFrom(this);
 }
 
 

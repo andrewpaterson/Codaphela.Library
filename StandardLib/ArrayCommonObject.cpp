@@ -218,10 +218,7 @@ BOOL CArrayCommonObject::Load(CObjectDeserialiser* pcFile)
 void CArrayCommonObject::Add(CPointer& pObject)
 {
 	mcArray.Add(pObject.Object());
-	if (pObject.IsNotNull())
-	{
-		pObject.AddHeapFrom(this);
-	}
+	pObject.AddHeapFrom(this);
 }
 
 
