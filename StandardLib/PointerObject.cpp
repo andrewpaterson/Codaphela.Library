@@ -232,7 +232,7 @@ void CPointer::PointTo(CEmbeddedObject* pcNewObject, BOOL bKillIfNoRoot)
 			{
 				if (mpcObject)
 				{
-					mpcObject->AddHeapFrom(mpcEmbedding);
+					mpcObject->AddHeapFrom(mpcEmbedding, FALSE);
 				}
 				pcOldObject->RemoveHeapFrom(mpcEmbedding);
 			}

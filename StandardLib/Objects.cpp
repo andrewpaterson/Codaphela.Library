@@ -373,7 +373,7 @@ void CObjects::ValidateIndexedObjects(void)
 	pcBaseObject = mcMemory.StartIteration(&sIter);
 	while (pcBaseObject)
 	{
-		if (pcBaseObject->miFlags & OBJECT_FLAGS_TESTED_FOR_SANITY)
+		if (!(pcBaseObject->miFlags & OBJECT_FLAGS_TESTED_FOR_SANITY))
 		{
 			pcBaseObject->ValidateConsistency();
 		}

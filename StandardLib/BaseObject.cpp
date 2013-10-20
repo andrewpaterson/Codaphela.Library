@@ -1056,6 +1056,8 @@ void CBaseObject::ValidateFlag(int iFlag, char* szFlag)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::ValidateCanFindRoot(void)
 {
+	ValidateNotEmbedded(__METHOD__);
+
 	CChars			sz;
 	BOOL			bCanFindRoot;
 
@@ -1070,6 +1072,33 @@ void CBaseObject::ValidateCanFindRoot(void)
 			gcLogger.Error2(__METHOD__, " Object {", sz.Text(), "} should be able to find the Root object.", NULL);
 			sz.Kill();
 		}
+	}
+	else if (miDistToRoot == ROOT_DIST_TO_ROOT)
+	{
+		if (!IsRoot())
+		{
+			sz.Init();
+			PrintObject(&sz, IsEmbedded());
+			gcLogger.Error2(__METHOD__, " Object {", sz.Text(), "} has a dist to root [0] but is not the Root object.", NULL);
+			sz.Kill();
+		}
+	}
+	else if (miDistToRoot == UNATTACHED_DIST_TO_ROOT)
+	{
+	}
+	else if (miDistToRoot == CLEARED_DIST_TO_ROOT)
+	{
+		sz.Init();
+		PrintObject(&sz, IsEmbedded());
+		gcLogger.Error2(__METHOD__, " Object {", sz.Text(), "} should not have dist to root [CLEARED_DIST_TO_ROOT].", NULL);
+		sz.Kill();
+	}
+	else
+	{
+		sz.Init();
+		PrintObject(&sz, IsEmbedded());
+		gcLogger.Error2(__METHOD__, " Object {", sz.Text(), "} should not have dist to root [", IntToString(miDistToRoot), "].", NULL);
+		sz.Kill();
 	}
 }
 
