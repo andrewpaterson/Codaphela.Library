@@ -1078,12 +1078,35 @@ void CBaseObject::ValidateCanFindRoot(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CBaseObject::ValidateContainerFlag(void)
+{
+	CChars			sz;
+
+	if (IsEmbedded())
+	{
+		if ((mpcEmbedded->miFlags & ~OBJECT_FLAGS_NUM_EMBEDDED) != (miFlags & ~OBJECT_FLAGS_NUM_EMBEDDED))
+		{
+			sz.Init();
+			PrintObject(&sz, IsEmbedded());
+			gcLogger.Error2(__METHOD__, " Object {", sz.Text(), "} should not have the same flags [", IntToString(miFlags) ,"] as it's embedding container's flags [", IntToString(mpcEmbedded->miFlags), "].", NULL);
+			sz.Kill();
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CBaseObject::ValidateFlags(void)
 {
 	ValidateFlag(OBJECT_FLAGS_TESTED_FOR_ROOT, "OBJECT_FLAGS_TESTED_FOR_ROOT");
 	ValidateFlag(OBJECT_FLAGS_KILLED, "OBJECT_FLAGS_KILLED");
 	ValidateFlag(OBJECT_FLAGS_DUMPED, "OBJECT_FLAGS_DUMPED");
 	ValidateFlag(OBJECT_FLAGS_UNREACHABLE, "OBJECT_FLAGS_UNREACHABLE");
+
+	ValidateContainerFlag();
 }
 
 
@@ -1190,5 +1213,17 @@ void CBaseObject::ValidateBaseObjectDetail(void)
 	ValidateDistToRoot();
 	ValidateIndex();
 	ValidateObjectsThisIn();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CBaseObject::ValidateEmbeddedConsistency(void)
+{
+	ValidateBaseObjectDetail();
+	ValidateFroms();
+	ValidateTos();
 }
 

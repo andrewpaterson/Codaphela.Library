@@ -82,6 +82,7 @@ protected:
 	BOOL				RecurseGetEmbeddedIndex(CEmbeddedObject* pcTest, int* piIndex);
 	CEmbeddedObject*	RecurseGetEmbeddedObject(int iIndex, int* iCount);
 	void				ValidateEmbeddedObjectTos(void);
+	void				ValidateEmbeddedConsistency(void);
 };
 
 

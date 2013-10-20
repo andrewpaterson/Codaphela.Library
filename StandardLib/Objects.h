@@ -141,7 +141,9 @@ protected:
 						void					FreeObjects(CArrayBaseObjectPtr* papcObjectPts);
 						void					UpdateDistToRootFromSubRoot(CArrayEmbeddedBaseObjectPtr* papcFromsChanged);
 						void					RecurseDumpGraph(CChars* psz, CEmbeddedObject* pcObject, int iLevel, BOOL bEmbedded);
-						void					RecurseValidateConsistency(CBaseObject* pcBaseObject);
+						void					ValidateSceneGraph(void);
+						void					ValidateIndexedObjects(void);
+						void					RecurseValidateSceneGraph(CBaseObject* pcBaseObject);
 						CNamedHollowObject*		AllocateNamedHollow(unsigned short iNumEmbedded);
 						CHollowObject*			AllocateHollow(unsigned short iNumEmbedded);
 						void					AppenedHollowEmbeddedObjects(CBaseObject* pcHollow, unsigned short iNumEmbedded, void* pvEmbedded) ;

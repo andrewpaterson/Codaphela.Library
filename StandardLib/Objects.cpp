@@ -349,35 +349,62 @@ void CObjects::RecurseDumpGraph(CChars* psz, CEmbeddedObject* pcIncoming, int iL
 	apcTos.Kill();
 }
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
 void CObjects::ValidateConsistency(void)
 {
-	CRoot*				pcRoot;
+	ValidateSceneGraph();
+	ValidateIndexedObjects();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CObjects::ValidateIndexedObjects(void)
+{
 	SIndexesIterator	sIter;
 	CBaseObject*		pcBaseObject;
-
-	pcRoot = (CRoot*)GetFromMemory(ROOT_NAME);
-	if (pcRoot != NULL)
-	{
-		RecurseValidateConsistency(pcRoot);
-	}
 
 	pcBaseObject = mcMemory.StartIteration(&sIter);
 	while (pcBaseObject)
 	{
+		if (pcBaseObject->miFlags & OBJECT_FLAGS_TESTED_FOR_SANITY)
+		{
+			pcBaseObject->ValidateConsistency();
+		}
+
 		pcBaseObject->SetFlag(OBJECT_FLAGS_TESTED_FOR_SANITY, FALSE);
 		pcBaseObject = mcMemory.Iterate(&sIter);
 	}
 }
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjects::RecurseValidateConsistency(CBaseObject* pcBaseObject)
+void CObjects::ValidateSceneGraph(void)
+{
+	CRoot*				pcRoot;
+
+	pcRoot = (CRoot*)GetFromMemory(ROOT_NAME);
+	if (pcRoot != NULL)
+	{
+		RecurseValidateSceneGraph(pcRoot);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CObjects::RecurseValidateSceneGraph(CBaseObject* pcBaseObject)
 {
 	CArrayEmbeddedObjectPtr		apcTos;
 	int							i;
@@ -398,7 +425,7 @@ void CObjects::RecurseValidateConsistency(CBaseObject* pcBaseObject)
 		{
 			pcToObject = *apcTos.Get(i);
 			pcToContainerObject = pcToObject->GetEmbeddingContainer();
-			RecurseValidateConsistency(pcToContainerObject);
+			RecurseValidateSceneGraph(pcToContainerObject);
 		}
 
 		apcTos.Kill();

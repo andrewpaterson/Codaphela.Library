@@ -960,26 +960,32 @@ void CObject::ValidateTos(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObject::ValidateConsistency(void)
+void CObject::ValidateEmbeddedConsistency(void)
 {
-	ValidateNotEmbedded(__METHOD__);
-
 	int				i;
 	int				iNumEmbedded;
 	CBaseObject*	pcEmbedded;
 
-	ValidateBaseObjectDetail();
-	ValidateFroms();
-	ValidateCanFindRoot();
-	ValidateTos();
+	CBaseObject::ValidateEmbeddedConsistency();
 
 	iNumEmbedded = mapEmbedded.NumElements();
 	for (i = 0; i < iNumEmbedded; i++)
 	{
 		pcEmbedded = *mapEmbedded.Get(i);
-		pcEmbedded->ValidateBaseObjectDetail();
-		pcEmbedded->ValidateFroms();
-		pcEmbedded->ValidateTos();
+		pcEmbedded->ValidateEmbeddedConsistency();
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CObject::ValidateConsistency(void)
+{
+	ValidateNotEmbedded(__METHOD__);
+
+	ValidateEmbeddedConsistency();
+	ValidateCanFindRoot();
 }
 

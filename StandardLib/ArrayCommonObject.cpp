@@ -622,9 +622,7 @@ void CArrayCommonObject::ValidateTos(void)
 //////////////////////////////////////////////////////////////////////////
 void CArrayCommonObject::ValidateConsistency(void)
 {
-	ValidateBaseObjectDetail();
-	ValidateFroms();
+	ValidateEmbeddedConsistency();
 	ValidateCanFindRoot();
-	ValidateTos();
 }
 

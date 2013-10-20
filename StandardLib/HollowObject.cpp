@@ -348,9 +348,7 @@ void CHollowObject::ValidateEmbeddedObjectTos(void)
 //////////////////////////////////////////////////////////////////////////
 void CHollowObject::ValidateConsistency(void)
 {
-	ValidateBaseObjectDetail();
-	ValidateFroms();
+	ValidateEmbeddedConsistency();
 	ValidateCanFindRoot();
-	ValidateTos();
 }
 

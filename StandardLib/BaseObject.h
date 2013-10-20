@@ -125,12 +125,14 @@ public:
 			void				DumpTos(void);
 			void				Dump(void);
 			void				ValidateFlag(int iFlag, char* szFlag);
+			void				ValidateContainerFlag(void);
 			void				ValidateFlags(void);
 			void				ValidateDistToRoot(void);
 			void				ValidateIndex(void);
 			void				ValidateObjectsThisIn(void);
 			void				ValidateCanFindRoot(void);
 	virtual void				ValidateEmbeddedObjectTos(void) =0;
+	virtual void				ValidateEmbeddedConsistency(void);
 			void				ValidateBaseObjectDetail(void);
 	
 protected:
