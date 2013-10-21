@@ -104,7 +104,6 @@ public:
 			void				ValidateNotEmbedded(char* szMethod);
 
 protected:
-	virtual void				TryKill(BOOL bKillIfNoRoot) =0;
 	virtual void				RemoveAllHeapFroms(void);
 	virtual void				RemoveAllStackFroms(void);
 			BOOL				PrivateRemoveHeapFrom(CBaseObject* pcFrom);

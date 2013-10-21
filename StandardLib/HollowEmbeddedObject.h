@@ -21,7 +21,6 @@ public:
 	CBaseObject*		Dehollow(void);
 	int					GetEmbeddedIndex(void);
 	CHollowObject*		GetHollowObject(void);
-	void				TryKill(BOOL bKillIfNoRoot);
 	CObjects*			GetObjects(void);
 	CStackPointers*		GetStackPointers(void);
 	void				GetTos(CArrayEmbeddedObjectPtr* papcTos);
