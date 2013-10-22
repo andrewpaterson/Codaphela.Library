@@ -83,6 +83,7 @@ protected:
 	CEmbeddedObject*	RecurseGetEmbeddedObject(int iIndex, int* iCount);
 	void				ValidateEmbeddedObjectTos(void);
 	void				ValidateEmbeddedConsistency(void);
+	BOOL				IsDistToRootValid(void);
 };
 
 

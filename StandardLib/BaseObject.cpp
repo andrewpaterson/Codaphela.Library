@@ -21,8 +21,8 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/Log.h"
 #include "ObjectSerialiser.h"
 #include "ObjectDeserialiser.h"
-#include "BaseObject.h"
 #include "Objects.h"
+#include "BaseObject.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -146,6 +146,73 @@ void CBaseObject::Free(void)
 void CBaseObject::KillInternalData(void)
 {
 	CEmbeddedObject::KillInternalData();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CBaseObject::ClearDistToRootToValidDist(CBaseObject* pcTo, CDistToRootCalculator* pcCalc)
+{
+	//It is assumed at this point that all the tos and froms have been updated.
+
+	ValidateNotEmbedded(__METHOD__);
+
+
+	int								i;
+	CArrayEmbeddedBaseObjectPtr		apcFroms;
+	CBaseObject*					pcFrom;
+	CBaseObject*					pcContainer;
+
+	if (!IsDistToRootValid())
+	{
+		ClearDistToRoot();
+
+		apcFroms.Init();
+		GetHeapFroms(&apcFroms);
+
+		for (i = 0; i < apcFroms.NumElements(); i ++)
+		{
+			pcFrom = *apcFroms.Get(i);
+			pcContainer = pcFrom->GetEmbeddingContainer();
+			pcContainer->ClearDistToRootToValidDist(this, pcCalc);
+		}
+
+		apcFroms.Kill();
+	}
+	else
+	{
+		pcCalc->Add(pcTo, miDistToRoot+1);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CBaseObject::IsDistToRootValid(void)
+{
+	int				i;
+	CBaseObject*	pcBaseObject;
+	int				iExpectedDistToRoot;
+
+	if (miDistToRoot < ROOT_DIST_TO_ROOT)
+	{
+		return FALSE;
+	}
+
+	iExpectedDistToRoot = miDistToRoot - 1;
+	for (i = 0; i < mapHeapFroms.NumElements(); i++)
+	{
+		pcBaseObject = *mapHeapFroms.Get(i);
+		if (pcBaseObject->GetDistToRoot() == iExpectedDistToRoot)
+		{
+			return TRUE;
+		}
+	}
+	return FALSE;
 }
 
 

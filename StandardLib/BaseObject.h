@@ -22,6 +22,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __BASE_OBJECT_H__
 #include "CoreLib/IndexedGeneral.h"
 #include "EmbeddedObject.h"
+#include "DistToRootCalculator.h"
 
 
 //Tested for root is only valid whilst the scene graph is calling CanFindRoot.  It stops the graph from walking already tested objects.
@@ -110,6 +111,7 @@ public:
 	virtual void				RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged) =0;
 			void				UpdateDistToRootFromPointedFroms(void);
 			void				UnattachDistToRoot(void);
+			void				ClearDistToRootToValidDist(CBaseObject* pcTo, CDistToRootCalculator* pcCalc);
 
 			BOOL				TestedForSanity(void);
 			CObjects*			GetObjects(void);
@@ -157,6 +159,7 @@ protected:
 			int				GetNumEmbeddedFromFlags(void);
 			void			SetFlagNumEmbedded(int iNumEmbedded);
 			BOOL			IsMarkedUnreachable(void);
+	virtual BOOL			IsDistToRootValid(void);
 };
 
 

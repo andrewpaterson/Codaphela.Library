@@ -912,6 +912,33 @@ void CObject::GetStackFroms(CArrayPointerPtr* papcFroms)
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CObject::IsDistToRootValid(void)
+{
+	int				i;
+	int				iNumEmbedded;
+	CBaseObject*	pcEmbedded;
+
+	if (!CBaseObject::IsDistToRootValid())
+	{
+		return FALSE;
+	}
+
+	iNumEmbedded = mapEmbedded.NumElements();
+	for (i = 0; i < iNumEmbedded; i++)
+	{
+		pcEmbedded = *mapEmbedded.Get(i);
+		if (!pcEmbedded->IsDistToRootValid())
+		{
+			return FALSE;
+		}
+	}
+	return TRUE;
+}
+
 
 //////////////////////////////////////////////////////////////////////////
 //

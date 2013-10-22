@@ -501,6 +501,9 @@
     <ClInclude Include="ObjectRemapFrom.h">
       <Filter>Source\Object\Object</Filter>
     </ClInclude>
+    <ClInclude Include="DistToRootCalculator.h">
+      <Filter>Source\Object\Object</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Unknown.cpp">
@@ -813,6 +816,9 @@
       <Filter>Source\Object\Object\Pointer</Filter>
     </ClCompile>
     <ClCompile Include="ObjectRemapFrom.cpp">
+      <Filter>Source\Object\Object</Filter>
+    </ClCompile>
+    <ClCompile Include="DistToRootCalculator.cpp">
       <Filter>Source\Object\Object</Filter>
     </ClCompile>
   </ItemGroup>
