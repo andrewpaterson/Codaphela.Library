@@ -26,6 +26,8 @@ public:
 
 	void			Add(CBaseObject* pcObject, int iExpectedDist);
 	SDistToRoot*	GetLowest(void);
+	int				NumElements(void);
+	SDistToRoot*	Get(int iIndex);
 };
 
 

@@ -102,6 +102,7 @@ public:
 			void				PrintObject(CChars* psz, BOOL bEmbedded = FALSE);
 			void				LogNotExpectedToBeEmbedded(char* szMethod);
 			void				ValidateNotEmbedded(char* szMethod);
+			BOOL				TestRemoveHeapFrom(CBaseObject* pcFromObject);
 
 protected:
 	virtual void				RemoveAllHeapFroms(void);

@@ -168,6 +168,7 @@ void CBaseObject::ClearDistToRootToValidDist(CBaseObject* pcTo, CDistToRootCalcu
 	if (!IsDistToRootValid())
 	{
 		ClearDistToRoot();
+		SetFlag(OBJECT_FLAGS_CLEARED_TO_ROOT, TRUE);
 
 		apcFroms.Init();
 		GetHeapFroms(&apcFroms);
@@ -176,10 +177,15 @@ void CBaseObject::ClearDistToRootToValidDist(CBaseObject* pcTo, CDistToRootCalcu
 		{
 			pcFrom = *apcFroms.Get(i);
 			pcContainer = pcFrom->GetEmbeddingContainer();
-			pcContainer->ClearDistToRootToValidDist(this, pcCalc);
+			if (!(pcContainer->miFlags & OBJECT_FLAGS_CLEARED_TO_ROOT))
+			{
+				pcContainer->ClearDistToRootToValidDist(this, pcCalc);
+			}
 		}
 
 		apcFroms.Kill();
+
+		SetFlag(OBJECT_FLAGS_CLEARED_TO_ROOT, FALSE);
 	}
 	else
 	{
@@ -1201,6 +1207,7 @@ void CBaseObject::ValidateFlags(void)
 	ValidateFlag(OBJECT_FLAGS_KILLED, "OBJECT_FLAGS_KILLED");
 	ValidateFlag(OBJECT_FLAGS_DUMPED, "OBJECT_FLAGS_DUMPED");
 	ValidateFlag(OBJECT_FLAGS_UNREACHABLE, "OBJECT_FLAGS_UNREACHABLE");
+	ValidateFlag(OBJECT_FLAGS_CLEARED_TO_ROOT, "OBJECT_FLAGS_CLEARED_TO_ROOT");
 
 	ValidateContainerFlag();
 }

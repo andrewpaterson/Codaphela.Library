@@ -46,6 +46,9 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //Tested for sanity is only valid whilst the scene graph is calling ValidateConsistency.  It stops the graph from walking already tested objects.
 #define OBJECT_FLAGS_TESTED_FOR_SANITY		0x80
 
+//Tested for sanity is only valid whilst the scene graph is calling ValidateConsistency.  It stops the graph from walking already tested objects.
+#define OBJECT_FLAGS_CLEARED_TO_ROOT		0x10000
+
 //How man embedded objects are in the object.  If you have more than 255 then you need your head smacked.
 #define OBJECT_FLAGS_NUM_EMBEDDED			0x0000FF00
 
