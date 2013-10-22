@@ -1,6 +1,6 @@
 #ifndef __POINTER_CONTAINER_H__
 #define __POINTER_CONTAINER_H__
-#include "Object.h"
+#include "NamedObject.h"
 #include "Pointer.h"
 
 
@@ -20,6 +20,26 @@ public:
 
 	BOOL					Save(CObjectSerialiser* pcFile);
 	BOOL					Load(CObjectDeserialiser* pcFile);
+};
+
+
+class CNamedPointerContainer : public CNamedObject
+{
+	BASE_FUNCTIONS(CPointerContainer);
+public:
+	Ptr<>	mp;
+
+	void						Class(void);
+	Ptr<CNamedPointerContainer>	Init(void);
+	Ptr<CNamedPointerContainer>	Init(CPointer& pPointer);
+	Ptr<CNamedPointerContainer>	Init(CEmbeddedObject* pcObject);
+	void						KillData(void);
+
+	void						Clear();
+
+	BOOL						Save(CObjectSerialiser* pcFile);
+	BOOL						Load(CObjectDeserialiser* pcFile);
+
 };
 
 

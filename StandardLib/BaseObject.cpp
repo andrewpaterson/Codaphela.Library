@@ -159,7 +159,6 @@ void CBaseObject::ClearDistToRootToValidDist(CBaseObject* pcTo, CDistToRootCalcu
 
 	ValidateNotEmbedded(__METHOD__);
 
-
 	int								i;
 	CArrayEmbeddedBaseObjectPtr		apcFroms;
 	CBaseObject*					pcFrom;
