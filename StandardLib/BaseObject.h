@@ -114,7 +114,7 @@ public:
 	virtual void				RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged) =0;
 			void				UpdateDistToRootFromPointedFroms(void);
 			void				UnattachDistToRoot(void);
-			void				ClearDistToRootToValidDist(CBaseObject* pcTo, CDistToRootCalculator* pcCalc);
+			void				ClearDistToRootToValidDist(CBaseObject* pcTo, CDistToRootEffectedFroms* pcCalc);
 
 			BOOL				TestedForSanity(void);
 			CObjects*			GetObjects(void);

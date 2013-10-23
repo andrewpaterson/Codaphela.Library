@@ -148,6 +148,9 @@
     <Filter Include="Source\Data\Pointer">
       <UniqueIdentifier>{2041e945-c1cb-4e33-9f2a-2015b2dc0f38}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Object\Object\Distance">
+      <UniqueIdentifier>{e2da8052-1373-4d1d-8f90-2758043ce82a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Base.h">
@@ -502,7 +505,10 @@
       <Filter>Source\Object\Object</Filter>
     </ClInclude>
     <ClInclude Include="DistToRootCalculator.h">
-      <Filter>Source\Object\Object</Filter>
+      <Filter>Source\Object\Object\Distance</Filter>
+    </ClInclude>
+    <ClInclude Include="DistToRootEffectedFroms.h">
+      <Filter>Source\Object\Object\Distance</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -819,7 +825,10 @@
       <Filter>Source\Object\Object</Filter>
     </ClCompile>
     <ClCompile Include="DistToRootCalculator.cpp">
-      <Filter>Source\Object\Object</Filter>
+      <Filter>Source\Object\Object\Distance</Filter>
+    </ClCompile>
+    <ClCompile Include="DistToRootEffectedFroms.cpp">
+      <Filter>Source\Object\Object\Distance</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

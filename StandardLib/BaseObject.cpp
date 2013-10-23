@@ -153,7 +153,7 @@ void CBaseObject::KillInternalData(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::ClearDistToRootToValidDist(CBaseObject* pcTo, CDistToRootCalculator* pcCalc)
+void CBaseObject::ClearDistToRootToValidDist(CBaseObject* pcTo, CDistToRootEffectedFroms* pcCalc)
 {
 	//It is assumed at this point that all the tos and froms have been updated.
 
