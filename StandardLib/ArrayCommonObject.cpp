@@ -398,7 +398,7 @@ void CArrayCommonObject::UpdateEmbeddedObjectTosDistToRoot(CDistToRootEffectedFr
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayCommonObject::DoneUpdateEmbeddedObjectTosDistToRoot(void)
+void CArrayCommonObject::ClearEmbeddedObjectTosUpdatedToRootFlag(void)
 {
 	int					i;
 	CEmbeddedObject*	pcPointedTo;
@@ -408,7 +408,7 @@ void CArrayCommonObject::DoneUpdateEmbeddedObjectTosDistToRoot(void)
 	{
 		pcPointedTo = (CBaseObject*)mcArray.UnsafeGet(i);
 		pcBaseObject = pcPointedTo->GetEmbeddingContainer();
-		pcBaseObject->DoneUpdateTosDistToRoot();
+		pcBaseObject->ClearTosUpdatedToRootFlag();
 	}
 }
 

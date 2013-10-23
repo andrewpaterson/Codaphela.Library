@@ -79,7 +79,7 @@ protected:
 	void	CollectPointedToToBeKilled(CArrayBaseObjectPtr* papcKilled);
 	void	SetPointedTosDistToRoot(int iDistToRoot);
 	void	UpdateEmbeddedObjectTosDistToRoot(CDistToRootEffectedFroms* pcEffectedFroms, int iStopDist, int iExpectedDist);
-	void	DoneUpdateEmbeddedObjectTosDistToRoot(void);
+	void	ClearEmbeddedObjectTosUpdatedToRootFlag(void);
 };
 
 

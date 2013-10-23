@@ -16,6 +16,7 @@ public:
 	void Calculate(void);
 	void Calculate(CDistToRootEffectedFroms* pcEffectedFroms);
 	void UpdateTosDistToRoot(CDistToRootEffectedFroms* pcEffectedFroms);
+	void ClearFlagsAndFindDetached(CDistToRootEffectedFroms* pcEffectedFroms);
 };
 
 

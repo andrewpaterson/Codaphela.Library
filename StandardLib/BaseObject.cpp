@@ -626,7 +626,7 @@ void CBaseObject::UpdateTosDistToRoot(CDistToRootEffectedFroms* pcEffectedFroms,
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::DoneUpdateTosDistToRoot(void)
+void CBaseObject::ClearTosUpdatedToRootFlag(void)
 {
 	ValidateNotEmbedded(__METHOD__);
 
@@ -637,7 +637,7 @@ void CBaseObject::DoneUpdateTosDistToRoot(void)
 
 	SetFlag(OBJECT_FLAGS_UPDATED_TO_ROOT, FALSE);
 
-	DoneUpdateEmbeddedObjectTosDistToRoot();
+	ClearEmbeddedObjectTosUpdatedToRootFlag();
 }
 
 

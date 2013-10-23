@@ -103,7 +103,7 @@ protected:
 	virtual CStackPointers*		GetStackPointers(void) =0;
 	virtual CEmbeddedObject*	GetClosestFromToRoot(void);
 	virtual void				UpdateEmbeddedObjectTosDistToRoot(CDistToRootEffectedFroms* pcEffectedFroms, int iStopDist, int iExpectedDist) =0;
-	virtual void				DoneUpdateEmbeddedObjectTosDistToRoot(void) =0;
+	virtual void				ClearEmbeddedObjectTosUpdatedToRootFlag(void) =0;
 };
 
 

@@ -29,7 +29,7 @@ public:
 
 protected:
 	void				UpdateEmbeddedObjectTosDistToRoot(CDistToRootEffectedFroms* pcEffectedFroms, int iStopDist, int iExpectedDist);
-	void				DoneUpdateEmbeddedObjectTosDistToRoot(void);
+	void				ClearEmbeddedObjectTosUpdatedToRootFlag(void);
 };
 
 

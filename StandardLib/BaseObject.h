@@ -113,7 +113,7 @@ public:
 	virtual void				RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged) =0;
 			void				UpdateDistToRootFromPointedFroms(void);
 			void				UpdateTosDistToRoot(CDistToRootEffectedFroms* pcEffectedFroms, int iStopDist, int iExpectedDist);
-			void				DoneUpdateTosDistToRoot(void);
+			void				ClearTosUpdatedToRootFlag(void);
 			void				UnattachDistToRoot(void);
 			void				ClearDistToRootToValidDist(CBaseObject* pcTo, CDistToRootEffectedFroms* pcCalc);
 
