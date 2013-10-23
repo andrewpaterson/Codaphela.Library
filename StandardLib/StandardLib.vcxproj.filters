@@ -510,6 +510,9 @@
     <ClInclude Include="DistToRootEffectedFroms.h">
       <Filter>Source\Object\Object\Distance</Filter>
     </ClInclude>
+    <ClInclude Include="ObjectPointerArrays.h">
+      <Filter>Source\Object\Object</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Unknown.cpp">

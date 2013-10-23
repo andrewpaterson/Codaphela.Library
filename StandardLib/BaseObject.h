@@ -22,7 +22,6 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __BASE_OBJECT_H__
 #include "CoreLib/IndexedGeneral.h"
 #include "EmbeddedObject.h"
-#include "DistToRootCalculator.h"
 
 
 //Tested for root is only valid whilst the scene graph is calling CanFindRoot.  It stops the graph from walking already tested objects.
@@ -46,8 +45,8 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //Tested for sanity is only valid whilst the scene graph is calling ValidateConsistency.  It stops the graph from walking already tested objects.
 #define OBJECT_FLAGS_TESTED_FOR_SANITY		0x80
 
-//Tested for sanity is only valid whilst the scene graph is calling ValidateConsistency.  It stops the graph from walking already tested objects.
 #define OBJECT_FLAGS_CLEARED_TO_ROOT		0x10000
+#define OBJECT_FLAGS_UPDATED_TO_ROOT		0x20000
 
 //How man embedded objects are in the object.  If you have more than 255 then you need your head smacked.
 #define OBJECT_FLAGS_NUM_EMBEDDED			0x0000FF00
@@ -113,6 +112,8 @@ public:
 			BOOL				TestedForRoot(void);
 	virtual void				RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged) =0;
 			void				UpdateDistToRootFromPointedFroms(void);
+			void				UpdateTosDistToRoot(CDistToRootEffectedFroms* pcEffectedFroms, int iStopDist, int iExpectedDist);
+			void				DoneUpdateTosDistToRoot(void);
 			void				UnattachDistToRoot(void);
 			void				ClearDistToRootToValidDist(CBaseObject* pcTo, CDistToRootEffectedFroms* pcCalc);
 
@@ -129,7 +130,7 @@ public:
 			void				DumpFroms(void);
 			void				DumpTos(void);
 			void				Dump(void);
-			void				ValidateFlag(int iFlag, char* szFlag);
+			void				ValidateFlagNotSet(int iFlag, char* szFlag);
 			void				ValidateContainerFlag(void);
 			void				ValidateFlags(void);
 			void				ValidateDistToRoot(void);
@@ -148,6 +149,7 @@ protected:
 	virtual void			RemoveEmbeddedObjectAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged) =0;
 			void			SetExpectedDistToRoot(int iExpectedDistToRoot);
 			void			SetCalculatedDistToRoot(void);
+	virtual void			SetDistToRoot(int iDistToRoot);
 			int				CalculateDistToRootFromPointedFroms(void);
 	virtual int				CalculateDistToRootFromPointedFroms(int iDistToRoot);
 	virtual BOOL			CanFindRoot(void);

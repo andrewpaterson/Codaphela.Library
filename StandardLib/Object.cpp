@@ -288,6 +288,29 @@ void CObject::SetDistToRootAndSetPointedTosExpectedDistToRoot(int iDistToRoot)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CObject::SetDistToRoot(int iDistToRoot)
+{
+	ValidateNotEmbedded(__METHOD__);
+
+	int				i;
+	int				iNumEmbedded;
+	CBaseObject*	pcEmbedded;
+
+	CBaseObject::SetDistToRoot(iDistToRoot);
+
+	iNumEmbedded = mapEmbedded.NumElements();
+	for (i = 0; i < iNumEmbedded; i++)
+	{
+		pcEmbedded = *mapEmbedded.Get(i);
+		pcEmbedded->SetDistToRoot(iDistToRoot);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CObject::SetPointedTosDistToRoot(int iDistToRoot)
 {
 	int				i;
@@ -531,6 +554,78 @@ void CObject::RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged)
 	{
 		pcEmbedded = *mapEmbedded.Get(i);
 		pcEmbedded->RemoveEmbeddedObjectAllTos(papcFromsChanged);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CObject::UpdateEmbeddedObjectTosDistToRoot(CDistToRootEffectedFroms* pcEffectedFroms, int iStopDist, int iExpectedDist)
+{
+	int					i;
+	int					iNumEmbedded;
+	CBaseObject*		pcEmbedded;
+	int					iNumPointers;
+	CPointer**			ppPointer;
+	CEmbeddedObject*	pcPointedTo;
+	CBaseObject*		pcBaseObject;
+
+	iNumPointers = mapPointers.NumElements();
+	for (i = 0; i < iNumPointers; i++)
+	{
+		ppPointer = mapPointers.Get(i);
+		pcPointedTo = (*ppPointer)->Object();
+		if (pcPointedTo)
+		{
+			pcBaseObject = pcPointedTo->GetEmbeddingContainer();
+			pcBaseObject->UpdateTosDistToRoot(pcEffectedFroms, iStopDist, iExpectedDist+1);
+		}
+	}
+
+	iNumEmbedded = mapEmbedded.NumElements();
+	for (i = 0; i < iNumEmbedded; i++)
+	{
+		pcEmbedded = *mapEmbedded.Get(i);
+
+		pcEmbedded->UpdateEmbeddedObjectTosDistToRoot(pcEffectedFroms, iStopDist, iExpectedDist);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CObject::DoneUpdateEmbeddedObjectTosDistToRoot(void)
+{
+	int					i;
+	int					iNumEmbedded;
+	CBaseObject*		pcEmbedded;
+	int					iNumPointers;
+	CPointer**			ppPointer;
+	CEmbeddedObject*	pcPointedTo;
+	CBaseObject*		pcBaseObject;
+
+	iNumPointers = mapPointers.NumElements();
+	for (i = 0; i < iNumPointers; i++)
+	{
+		ppPointer = mapPointers.Get(i);
+		pcPointedTo = (*ppPointer)->Object();
+		if (pcPointedTo)
+		{
+			pcBaseObject = pcPointedTo->GetEmbeddingContainer();
+			pcBaseObject->DoneUpdateTosDistToRoot();
+		}
+	}
+
+	iNumEmbedded = mapEmbedded.NumElements();
+	for (i = 0; i < iNumEmbedded; i++)
+	{
+		pcEmbedded = *mapEmbedded.Get(i);
+
+		pcEmbedded->DoneUpdateEmbeddedObjectTosDistToRoot();
 	}
 }
 

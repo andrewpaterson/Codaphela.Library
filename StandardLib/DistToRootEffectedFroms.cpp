@@ -9,6 +9,7 @@
 void CDistToRootEffectedFroms::Init(void)
 {
 	macExpectedDists.Init(1024);
+	mapcLowestFroms.Init(1024);
 }
 
 
@@ -18,6 +19,7 @@ void CDistToRootEffectedFroms::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CDistToRootEffectedFroms::Kill(void)
 {
+	mapcLowestFroms.Kill();
 	macExpectedDists.Kill();
 }
 
@@ -28,21 +30,24 @@ void CDistToRootEffectedFroms::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CDistToRootEffectedFroms::Add(CBaseObject* pcObject, int iExpectedDist)
 {
-	SDistToRoot*	pcDistToRoot;
+	SDistToRoot*	psDistToRoot;
 
-	pcDistToRoot = Get(pcObject);
+	if (pcObject)
+	{
+		psDistToRoot = Get(pcObject);
 
-	if (!pcDistToRoot)
-	{
-		pcDistToRoot = macExpectedDists.Add();
-		pcDistToRoot->iExpectedDist = iExpectedDist;
-		pcDistToRoot->pcObject = pcObject;
-	}
-	else
-	{
-		if (pcDistToRoot->iExpectedDist > iExpectedDist)
+		if (!psDistToRoot)
 		{
-			pcDistToRoot->iExpectedDist = iExpectedDist;
+			psDistToRoot = macExpectedDists.Add();
+			psDistToRoot->iExpectedDist = iExpectedDist;
+			psDistToRoot->pcObject = pcObject;
+		}
+		else
+		{
+			if (psDistToRoot->iExpectedDist > iExpectedDist)
+			{
+				psDistToRoot->iExpectedDist = iExpectedDist;
+			}
 		}
 	}
 }
@@ -55,14 +60,14 @@ void CDistToRootEffectedFroms::Add(CBaseObject* pcObject, int iExpectedDist)
 SDistToRoot* CDistToRootEffectedFroms::Get(CBaseObject* pcObject)
 {
 	int				i;
-	SDistToRoot*	pcDistToRoot;
+	SDistToRoot*	psDistToRoot;
 
 	for (i = 0; i < macExpectedDists.NumElements(); i++)
 	{
-		pcDistToRoot = macExpectedDists.Get(i);
-		if (pcDistToRoot->pcObject == pcObject)
+		psDistToRoot = macExpectedDists.Get(i);
+		if (psDistToRoot->pcObject == pcObject)
 		{
-			return pcDistToRoot;
+			return psDistToRoot;
 		}
 	}
 
@@ -79,18 +84,18 @@ SDistToRoot* CDistToRootEffectedFroms::GetLowest(void)
 	int				i;
 	int				iMinDist;
 	SDistToRoot*	pcMinDistToRoot;
-	SDistToRoot*	pcDistToRoot;
+	SDistToRoot*	psDistToRoot;
 
 	iMinDist = MAX_DIST_TO_ROOT;
 	pcMinDistToRoot = NULL;
 
 	for (i = 0; i < macExpectedDists.NumElements(); i++)
 	{
-		pcDistToRoot = macExpectedDists.Get(i);
-		if (pcDistToRoot->iExpectedDist < iMinDist)
+		psDistToRoot = macExpectedDists.Get(i);
+		if (psDistToRoot->iExpectedDist < iMinDist)
 		{
-			iMinDist = pcDistToRoot->iExpectedDist;
-			pcMinDistToRoot = pcDistToRoot;
+			iMinDist = psDistToRoot->iExpectedDist;
+			pcMinDistToRoot = psDistToRoot;
 		}
 	}
 
@@ -102,25 +107,25 @@ SDistToRoot* CDistToRootEffectedFroms::GetLowest(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SDistToRoot* CDistToRootEffectedFroms::GetSecondLowest(SDistToRoot* pcLowest)
+SDistToRoot* CDistToRootEffectedFroms::GetSecondLowest(SDistToRoot* psLowest)
 {
 	int				i;
 	int				iMinDist;
 	SDistToRoot*	pcMinDistToRoot;
-	SDistToRoot*	pcDistToRoot;
+	SDistToRoot*	psDistToRoot;
 
 	iMinDist = MAX_DIST_TO_ROOT;
 	pcMinDistToRoot = NULL;
 
 	for (i = 0; i < macExpectedDists.NumElements(); i++)
 	{
-		pcDistToRoot = macExpectedDists.Get(i);
-		if (pcDistToRoot->iExpectedDist < iMinDist)
+		psDistToRoot = macExpectedDists.Get(i);
+		if (psDistToRoot->iExpectedDist < iMinDist)
 		{
-			if (pcDistToRoot->pcObject != pcLowest->pcObject)
+			if (psDistToRoot->pcObject != psLowest->pcObject)
 			{
-				iMinDist = pcDistToRoot->iExpectedDist;
-				pcMinDistToRoot = pcDistToRoot;
+				iMinDist = psDistToRoot->iExpectedDist;
+				pcMinDistToRoot = psDistToRoot;
 			}
 		}
 	}
@@ -146,5 +151,53 @@ int CDistToRootEffectedFroms::NumElements(void)
 SDistToRoot* CDistToRootEffectedFroms::Get(int iIndex)
 {
 	return macExpectedDists.SafeGet(iIndex);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CDistToRootEffectedFroms::Remove(SDistToRoot* psDistToRoot)
+{
+	int				i;
+	SDistToRoot*	psCurrent;
+
+	for (i = 0; i < macExpectedDists.NumElements(); i++)
+	{
+		psCurrent = macExpectedDists.Get(i);
+		if (psCurrent == psDistToRoot)
+		{
+			macExpectedDists.RemoveAt(i);
+			break;
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CDistToRootEffectedFroms::MarkLowestFroms(void)
+{
+	int				i;
+	SDistToRoot*	psCurrent;
+
+	for (i = 0; i < macExpectedDists.NumElements(); i++)
+	{
+		psCurrent = macExpectedDists.Get(i);
+		mapcLowestFroms.Add(&psCurrent->pcObject);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CArrayBaseObjectPtr* CDistToRootEffectedFroms::GetLowestFroms(void)
+{
+	return &mapcLowestFroms;
 }
 

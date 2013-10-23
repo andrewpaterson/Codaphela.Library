@@ -1,10 +1,11 @@
 #ifndef __EMBEDDED_OBJECT__
 #define __EMBEDDED_OBJECT__
-#include "BaseLib/ArrayEmbedded.h"
 #include "BaseLib/Validation.h"
 #include "CoreLib/IndexedGeneral.h"
 #include "StackPointer.h"
 #include "StackPointers.h"
+#include "ObjectPointerArrays.h"
+#include "DistToRootCalculator.h"
 #include "Unknown.h"
 
 
@@ -12,18 +13,6 @@
 #define UNATTACHED_DIST_TO_ROOT		-1
 #define CLEARED_DIST_TO_ROOT		-2
 #define MAX_DIST_TO_ROOT			 MAX_INT
-
-
-class CEmbeddedObject;
-typedef CArrayTemplate<CEmbeddedObject*>	CArrayEmbeddedObjectPtr;
-
-
-class CBaseObject;
-typedef CArrayTemplate<CBaseObject*>		CArrayBaseObjectPtr;
-typedef CArrayEmbedded<CBaseObject*, 32>	CArrayEmbeddedBaseObjectPtr;
-
-class CPointer;
-typedef CArrayEmbedded<CPointer*, 32>	CArrayPointerPtr;
 
 
 class CObject;
@@ -50,6 +39,7 @@ public:
 	virtual BOOL				IsHollow(void) =0;
 	virtual int					RemapTos(CEmbeddedObject* pcOld, CEmbeddedObject* mpcObject);
 	virtual void				SetDistToRootAndSetPointedTosExpectedDistToRoot(int iDistToRoot) =0;
+
 	virtual int					GetDistToRoot(void) =0;
 	virtual OIndex				GetOI(void);
 	virtual BOOL				IsNamed(void);
@@ -112,6 +102,8 @@ protected:
 	virtual void				GetHeapFroms(CArrayEmbeddedBaseObjectPtr* papcFroms);
 	virtual CStackPointers*		GetStackPointers(void) =0;
 	virtual CEmbeddedObject*	GetClosestFromToRoot(void);
+	virtual void				UpdateEmbeddedObjectTosDistToRoot(CDistToRootEffectedFroms* pcEffectedFroms, int iStopDist, int iExpectedDist) =0;
+	virtual void				DoneUpdateEmbeddedObjectTosDistToRoot(void) =0;
 };
 
 

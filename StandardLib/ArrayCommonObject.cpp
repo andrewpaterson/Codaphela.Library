@@ -379,6 +379,44 @@ void CArrayCommonObject::RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChan
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CArrayCommonObject::UpdateEmbeddedObjectTosDistToRoot(CDistToRootEffectedFroms* pcEffectedFroms, int iStopDist, int iExpectedDist)
+{
+	int					i;
+	CEmbeddedObject*	pcPointedTo;
+	CBaseObject*		pcBaseObject;
+
+	for (i = 0; i < mcArray.NumElements(); i++)
+	{
+		pcPointedTo = (CBaseObject*)mcArray.UnsafeGet(i);
+		pcBaseObject = pcPointedTo->GetEmbeddingContainer();
+		pcBaseObject->UpdateTosDistToRoot(pcEffectedFroms, iStopDist, iExpectedDist+1);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CArrayCommonObject::DoneUpdateEmbeddedObjectTosDistToRoot(void)
+{
+	int					i;
+	CEmbeddedObject*	pcPointedTo;
+	CBaseObject*		pcBaseObject;
+
+	for (i = 0; i < mcArray.NumElements(); i++)
+	{
+		pcPointedTo = (CBaseObject*)mcArray.UnsafeGet(i);
+		pcBaseObject = pcPointedTo->GetEmbeddingContainer();
+		pcBaseObject->DoneUpdateTosDistToRoot();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CArrayCommonObject::RemoveEmbeddedObjectAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged)
 {
 	RemoveAllTos(papcFromsChanged);

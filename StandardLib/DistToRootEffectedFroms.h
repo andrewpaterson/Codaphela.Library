@@ -1,6 +1,6 @@
 #ifndef __DIST_TO_ROOT_EFFECTED_FROMS_H__
 #define __DIST_TO_ROOT_EFFECTED_FROMS_H__
-#include "BaseLib/ArrayTemplate.h"
+#include "ObjectPointerArrays.h"
 
 
 class CBaseObject;
@@ -19,18 +19,22 @@ typedef CArrayTemplate<SDistToRoot>		CArrayDistToRoot;
 class CDistToRootEffectedFroms
 {
 private:
-	CArrayDistToRoot	macExpectedDists;
+	CArrayDistToRoot		macExpectedDists;
+	CArrayBaseObjectPtr		mapcLowestFroms;
 
 public:
-	void			Init(void);
-	void			Kill(void);
+	void					Init(void);
+	void					Kill(void);
 
-	void			Add(CBaseObject* pcObject, int iExpectedDist);
-	SDistToRoot*	GetLowest(void);
-	SDistToRoot*	GetSecondLowest(SDistToRoot* pcLowest);
-	int				NumElements(void);
-	SDistToRoot*	Get(int iIndex);
-	SDistToRoot*	Get(CBaseObject* pcObject);
+	void					Add(CBaseObject* pcObject, int iExpectedDist);
+	SDistToRoot*			GetLowest(void);
+	SDistToRoot*			GetSecondLowest(SDistToRoot* psLowest);
+	int						NumElements(void);
+	SDistToRoot*			Get(int iIndex);
+	SDistToRoot*			Get(CBaseObject* pcObject);
+	void					Remove(SDistToRoot* psDistToRoot);
+	void					MarkLowestFroms(void);
+	CArrayBaseObjectPtr*	GetLowestFroms(void);
 };
 
 

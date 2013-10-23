@@ -518,6 +518,16 @@ void CBaseObject::SetCalculatedDistToRoot(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CBaseObject::SetDistToRoot(int iDistToRoot)
+{
+	miDistToRoot = iDistToRoot;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 int CBaseObject::CalculateDistToRootFromPointedFroms(void)
 {
 	int iDistToRoot;
@@ -583,6 +593,51 @@ void CBaseObject::UpdateDistToRootFromPointedFroms(void)
 	{
 		SetDistToRootAndSetPointedTosExpectedDistToRoot(iNearestRoot);
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CBaseObject::UpdateTosDistToRoot(CDistToRootEffectedFroms* pcEffectedFroms, int iStopDist, int iExpectedDist)
+{
+	ValidateNotEmbedded(__METHOD__);
+
+	if (miFlags & OBJECT_FLAGS_UPDATED_TO_ROOT)
+	{
+		return;
+	}
+
+	if (iExpectedDist == iStopDist)
+	{
+		pcEffectedFroms->Add(this, iExpectedDist);
+		return;
+	}
+
+	SetDistToRoot(iExpectedDist);
+	SetFlag(OBJECT_FLAGS_UPDATED_TO_ROOT, TRUE);
+
+	UpdateEmbeddedObjectTosDistToRoot(pcEffectedFroms, iStopDist, iExpectedDist);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CBaseObject::DoneUpdateTosDistToRoot(void)
+{
+	ValidateNotEmbedded(__METHOD__);
+
+	if (!(miFlags & OBJECT_FLAGS_UPDATED_TO_ROOT))
+	{
+		return;
+	}
+
+	SetFlag(OBJECT_FLAGS_UPDATED_TO_ROOT, FALSE);
+
+	DoneUpdateEmbeddedObjectTosDistToRoot();
 }
 
 
@@ -1108,7 +1163,7 @@ void CBaseObject::Dump(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::ValidateFlag(int iFlag, char* szFlag)
+void CBaseObject::ValidateFlagNotSet(int iFlag, char* szFlag)
 {
 	CChars	sz;
 
@@ -1202,11 +1257,12 @@ void CBaseObject::ValidateContainerFlag(void)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::ValidateFlags(void)
 {
-	ValidateFlag(OBJECT_FLAGS_TESTED_FOR_ROOT, "OBJECT_FLAGS_TESTED_FOR_ROOT");
-	ValidateFlag(OBJECT_FLAGS_KILLED, "OBJECT_FLAGS_KILLED");
-	ValidateFlag(OBJECT_FLAGS_DUMPED, "OBJECT_FLAGS_DUMPED");
-	ValidateFlag(OBJECT_FLAGS_UNREACHABLE, "OBJECT_FLAGS_UNREACHABLE");
-	ValidateFlag(OBJECT_FLAGS_CLEARED_TO_ROOT, "OBJECT_FLAGS_CLEARED_TO_ROOT");
+	ValidateFlagNotSet(OBJECT_FLAGS_TESTED_FOR_ROOT, "OBJECT_FLAGS_TESTED_FOR_ROOT");
+	ValidateFlagNotSet(OBJECT_FLAGS_KILLED, "OBJECT_FLAGS_KILLED");
+	ValidateFlagNotSet(OBJECT_FLAGS_DUMPED, "OBJECT_FLAGS_DUMPED");
+	ValidateFlagNotSet(OBJECT_FLAGS_UNREACHABLE, "OBJECT_FLAGS_UNREACHABLE");
+	ValidateFlagNotSet(OBJECT_FLAGS_CLEARED_TO_ROOT, "OBJECT_FLAGS_CLEARED_TO_ROOT");
+	ValidateFlagNotSet(OBJECT_FLAGS_UPDATED_TO_ROOT, "OBJECT_FLAGS_UPDATED_TO_ROOT");
 
 	ValidateContainerFlag();
 }

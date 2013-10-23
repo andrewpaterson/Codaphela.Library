@@ -118,6 +118,7 @@
     <ClInclude Include="ObjectHeader.h" />
     <ClInclude Include="ObjectIO.h" />
     <ClInclude Include="ObjectIOSimple.h" />
+    <ClInclude Include="ObjectPointerArrays.h" />
     <ClInclude Include="ObjectReader.h" />
     <ClInclude Include="ObjectReaderChunkFile.h" />
     <ClInclude Include="ObjectReaderChunkFileDisk.h" />
