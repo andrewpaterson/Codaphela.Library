@@ -1,6 +1,7 @@
 #ifndef __DIST_TO_ROOT_CALCULATOR_H__
 #define __DIST_TO_ROOT_CALCULATOR_H__
 #include "DistToRootEffectedFroms.h"
+#include "DistDetachedFroms.h"
 
 
 class CDistToRootCalculator
@@ -14,9 +15,9 @@ public:
 
 	void AddFromChanged(CBaseObject* pcObject);
 	void Calculate(void);
-	void Calculate(CDistToRootEffectedFroms* pcEffectedFroms);
+	void Calculate(CDistToRootEffectedFroms* pcEffectedFroms, CDistDetachedFroms* pcDetached);
 	void UpdateTosDistToRoot(CDistToRootEffectedFroms* pcEffectedFroms);
-	void ClearFlagsAndFindDetached(CDistToRootEffectedFroms* pcEffectedFroms);
+	void ClearTosUpdatedToRootFlag(CDistToRootEffectedFroms* pcEffectedFroms);
 };
 
 

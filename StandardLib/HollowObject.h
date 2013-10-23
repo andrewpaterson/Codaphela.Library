@@ -60,6 +60,7 @@ protected:
 	virtual	CEmbeddedObject*	GetRemappedEmbeddedObject(int iIndex);
 			void				UpdateEmbeddedObjectTosDistToRoot(CDistToRootEffectedFroms* pcEffectedFroms, int iStopDist, int iExpectedDist);
 			void				ClearEmbeddedObjectTosUpdatedToRootFlag(void);
+			void				UpdateEmbeddedObjectTosDetached(CDistDetachedFroms* pcDetached);
 };
 
 

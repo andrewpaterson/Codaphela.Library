@@ -197,6 +197,32 @@ void CBaseObject::ClearDistToRootToValidDist(CBaseObject* pcTo, CDistToRootEffec
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CBaseObject::UpdateTosDetached(CDistDetachedFroms* pcDetached)
+{
+	ValidateNotEmbedded(__METHOD__);
+
+	if (miDistToRoot == CLEARED_DIST_TO_ROOT)
+	{
+		pcDetached->Add(this);
+		SetFlag(UNATTACHED_DIST_TO_ROOT, TRUE);
+		SetFlag(CLEARED_DIST_TO_ROOT, FALSE);
+		SetDistToRoot(UNATTACHED_DIST_TO_ROOT);
+		UpdateEmbeddedObjectTosDetached(pcDetached);
+	}
+	else if (!CanFindRoot())
+	{
+		pcDetached->Add(this);
+		SetFlag(UNATTACHED_DIST_TO_ROOT, TRUE);
+		SetDistToRoot(UNATTACHED_DIST_TO_ROOT);
+		UpdateEmbeddedObjectTosDetached(pcDetached);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL CBaseObject::IsDistToRootValid(void)
 {
 	int				i;

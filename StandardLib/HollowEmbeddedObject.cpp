@@ -214,3 +214,13 @@ void CHollowEmbeddedObject::UpdateEmbeddedObjectTosDistToRoot(CDistToRootEffecte
 void CHollowEmbeddedObject::ClearEmbeddedObjectTosUpdatedToRootFlag(void)
 {
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CHollowEmbeddedObject::UpdateEmbeddedObjectTosDetached(CDistDetachedFroms* pcDetached)
+{
+}
+

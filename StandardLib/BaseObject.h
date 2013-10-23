@@ -116,6 +116,7 @@ public:
 			void				ClearTosUpdatedToRootFlag(void);
 			void				UnattachDistToRoot(void);
 			void				ClearDistToRootToValidDist(CBaseObject* pcTo, CDistToRootEffectedFroms* pcCalc);
+			void				UpdateTosDetached(CDistDetachedFroms* pcDetached);
 
 			BOOL				TestedForSanity(void);
 			CObjects*			GetObjects(void);

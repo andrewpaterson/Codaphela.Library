@@ -80,6 +80,7 @@ protected:
 	void	SetPointedTosDistToRoot(int iDistToRoot);
 	void	UpdateEmbeddedObjectTosDistToRoot(CDistToRootEffectedFroms* pcEffectedFroms, int iStopDist, int iExpectedDist);
 	void	ClearEmbeddedObjectTosUpdatedToRootFlag(void);
+	void	UpdateEmbeddedObjectTosDetached(CDistDetachedFroms* pcDetached);
 };
 
 

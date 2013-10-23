@@ -90,6 +90,7 @@
     <ClInclude Include="DependentReadObjects.h" />
     <ClInclude Include="DependentReadPointer.h" />
     <ClInclude Include="DependentWriteObject.h" />
+    <ClInclude Include="DistDetachedFroms.h" />
     <ClInclude Include="DistToRootCalculator.h" />
     <ClInclude Include="DistToRootEffectedFroms.h" />
     <ClInclude Include="EmbeddedObject.h" />
@@ -209,6 +210,7 @@
     <ClCompile Include="DependentReadObjects.cpp" />
     <ClCompile Include="DependentReadPointer.cpp" />
     <ClCompile Include="DependentWriteObject.cpp" />
+    <ClCompile Include="DistDetachedFroms.cpp" />
     <ClCompile Include="DistToRootCalculator.cpp" />
     <ClCompile Include="DistToRootEffectedFroms.cpp" />
     <ClCompile Include="EmbeddedObject.cpp" />

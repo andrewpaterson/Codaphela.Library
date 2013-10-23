@@ -39,11 +39,14 @@ void CDistToRootCalculator::AddFromChanged(CBaseObject* pcObject)
 void CDistToRootCalculator::Calculate(void)
 {
 	CDistToRootEffectedFroms	cEffectedFroms;
+	CDistDetachedFroms			cDetached;
 
 	cEffectedFroms.Init();
+	cDetached.Init();
 
-	Calculate(&cEffectedFroms);
+	Calculate(&cEffectedFroms, &cDetached);
 
+	cDetached.Kill();
 	cEffectedFroms.Kill();
 }
 
@@ -52,11 +55,16 @@ void CDistToRootCalculator::Calculate(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDistToRootCalculator::Calculate(CDistToRootEffectedFroms* pcEffectedFroms)
+void CDistToRootCalculator::Calculate(CDistToRootEffectedFroms* pcEffectedFroms, CDistDetachedFroms* pcDetached)
 {
 	mpcFromChanged->ClearDistToRootToValidDist(NULL, pcEffectedFroms);
 	UpdateTosDistToRoot(pcEffectedFroms);
-	ClearFlagsAndFindDetached(pcEffectedFroms);
+	ClearTosUpdatedToRootFlag(pcEffectedFroms);
+
+	if (mpcFromChanged->GetDistToRoot() == CLEARED_DIST_TO_ROOT)
+	{
+		mpcFromChanged->UpdateTosDetached(pcDetached);
+	}
 }
 
 
@@ -71,8 +79,6 @@ void CDistToRootCalculator::UpdateTosDistToRoot(CDistToRootEffectedFroms* pcEffe
 	int						iStopDist;
 	CBaseObject*			pcObject;
 	int						iExpectedDist;
-	int						i;
-	CArrayBaseObjectPtr*	papcLowestFroms;
 
 	pcEffectedFroms->MarkLowestFroms();
 	
@@ -104,7 +110,7 @@ void CDistToRootCalculator::UpdateTosDistToRoot(CDistToRootEffectedFroms* pcEffe
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDistToRootCalculator::ClearFlagsAndFindDetached(CDistToRootEffectedFroms* pcEffectedFroms)
+void CDistToRootCalculator::ClearTosUpdatedToRootFlag(CDistToRootEffectedFroms* pcEffectedFroms)
 {
 	CArrayBaseObjectPtr*	papcLowestFroms;
 	CBaseObject*			pcObject;

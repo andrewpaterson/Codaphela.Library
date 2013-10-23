@@ -417,6 +417,25 @@ void CArrayCommonObject::ClearEmbeddedObjectTosUpdatedToRootFlag(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CArrayCommonObject::UpdateEmbeddedObjectTosDetached(CDistDetachedFroms* pcDetached)
+{
+	int					i;
+	CEmbeddedObject*	pcPointedTo;
+	CBaseObject*		pcBaseObject;
+
+	for (i = 0; i < mcArray.NumElements(); i++)
+	{
+		pcPointedTo = (CBaseObject*)mcArray.UnsafeGet(i);
+		pcBaseObject = pcPointedTo->GetEmbeddingContainer();
+		pcBaseObject->UpdateTosDetached(pcDetached);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CArrayCommonObject::RemoveEmbeddedObjectAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged)
 {
 	RemoveAllTos(papcFromsChanged);
