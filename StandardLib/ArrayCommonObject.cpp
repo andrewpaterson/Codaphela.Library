@@ -379,7 +379,7 @@ void CArrayCommonObject::RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChan
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayCommonObject::UpdateEmbeddedObjectTosDistToRoot(CDistToRootEffectedFroms* pcEffectedFroms, int iStopDist, int iExpectedDist)
+void CArrayCommonObject::UpdateEmbeddedObjectTosDistToRoot(CDistToRootEffectedFroms* pcEffectedFroms, int iExpectedDist)
 {
 	int					i;
 	CEmbeddedObject*	pcPointedTo;
@@ -389,7 +389,11 @@ void CArrayCommonObject::UpdateEmbeddedObjectTosDistToRoot(CDistToRootEffectedFr
 	{
 		pcPointedTo = (CBaseObject*)mcArray.UnsafeGet(i);
 		pcBaseObject = pcPointedTo->GetEmbeddingContainer();
-		pcBaseObject->UpdateTosDistToRoot(pcEffectedFroms, iStopDist, iExpectedDist+1);
+		if (!pcBaseObject->IsUpdatedToRoot())
+		{
+			pcBaseObject->ClearDistToRoot();
+			pcEffectedFroms->Add(pcBaseObject, iExpectedDist+1);
+		}
 	}
 }
 

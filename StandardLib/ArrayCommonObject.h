@@ -78,7 +78,7 @@ protected:
 	int		RemapTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew);
 	void	CollectPointedToToBeKilled(CArrayBaseObjectPtr* papcKilled);
 	void	SetPointedTosDistToRoot(int iDistToRoot);
-	void	UpdateEmbeddedObjectTosDistToRoot(CDistToRootEffectedFroms* pcEffectedFroms, int iStopDist, int iExpectedDist);
+	void	UpdateEmbeddedObjectTosDistToRoot(CDistToRootEffectedFroms* pcEffectedFroms, int iExpectedDist);
 	void	ClearEmbeddedObjectTosUpdatedToRootFlag(void);
 	void	UpdateEmbeddedObjectTosDetached(CDistDetachedFroms* pcDetached);
 };

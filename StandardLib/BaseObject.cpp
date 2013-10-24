@@ -626,25 +626,32 @@ void CBaseObject::UpdateDistToRootFromPointedFroms(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::UpdateTosDistToRoot(CDistToRootEffectedFroms* pcEffectedFroms, int iStopDist, int iExpectedDist)
+void CBaseObject::UpdateTosDistToRoot(CDistToRootEffectedFroms* pcEffectedFroms, int iExpectedDist)
 {
 	ValidateNotEmbedded(__METHOD__);
+
+	CEmbeddedObject*	pcClosestToRoot;
+	int					iClosestToRoot;
 
 	if (miFlags & OBJECT_FLAGS_UPDATED_TO_ROOT)
 	{
 		return;
 	}
 
-	if (iExpectedDist == iStopDist)
+	pcClosestToRoot = GetClosestFromToRoot();
+	if (pcClosestToRoot)
 	{
-		pcEffectedFroms->Add(this, iExpectedDist);
-		return;
+		iClosestToRoot = pcClosestToRoot->GetDistToRoot()+1;
+		if (iClosestToRoot < iExpectedDist)
+		{
+			iExpectedDist = iClosestToRoot;
+		}
 	}
 
 	SetDistToRoot(iExpectedDist);
 	SetFlag(OBJECT_FLAGS_UPDATED_TO_ROOT, TRUE);
 
-	UpdateEmbeddedObjectTosDistToRoot(pcEffectedFroms, iStopDist, iExpectedDist);
+	UpdateEmbeddedObjectTosDistToRoot(pcEffectedFroms, iExpectedDist);
 }
 
 
@@ -1015,6 +1022,16 @@ CStackPointers* CBaseObject::GetStackPointers(void)
 BOOL CBaseObject::IsMarkedUnreachable(void)
 {
 	return miFlags & OBJECT_FLAGS_UNREACHABLE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CBaseObject::IsUpdatedToRoot(void)
+{
+	return miFlags & OBJECT_FLAGS_UPDATED_TO_ROOT;
 }
 
 

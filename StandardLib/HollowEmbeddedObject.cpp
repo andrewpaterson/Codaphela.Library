@@ -202,7 +202,7 @@ void CHollowEmbeddedObject::ValidateConsistency(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHollowEmbeddedObject::UpdateEmbeddedObjectTosDistToRoot(CDistToRootEffectedFroms* pcEffectedFroms, int iStopDist, int iExpectedDist)
+void CHollowEmbeddedObject::UpdateEmbeddedObjectTosDistToRoot(CDistToRootEffectedFroms* pcEffectedFroms, int iExpectedDist)
 {
 }
 

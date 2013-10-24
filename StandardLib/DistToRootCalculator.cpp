@@ -75,31 +75,19 @@ void CDistToRootCalculator::Calculate(CDistToRootEffectedFroms* pcEffectedFroms,
 void CDistToRootCalculator::UpdateTosDistToRoot(CDistToRootEffectedFroms* pcEffectedFroms)
 {
 	SDistToRoot*			psLowestDistToRoot;
-	SDistToRoot*			psSecondLowestDistToRoot;
-	int						iStopDist;
 	CBaseObject*			pcObject;
 	int						iExpectedDist;
 
 	pcEffectedFroms->MarkLowestFroms();
-	
+
 	psLowestDistToRoot = pcEffectedFroms->GetLowest();	
 	while (psLowestDistToRoot)
 	{
-		psSecondLowestDistToRoot = pcEffectedFroms->GetSecondLowest(psLowestDistToRoot);
-		if (psSecondLowestDistToRoot)
-		{
-			iStopDist = psSecondLowestDistToRoot->iExpectedDist+1;
-		}
-		else
-		{
-			iStopDist = MAX_DIST_TO_ROOT;
-		}
-
 		iExpectedDist = psLowestDistToRoot->iExpectedDist;
 		pcObject = psLowestDistToRoot->pcObject;
 		pcEffectedFroms->Remove(psLowestDistToRoot);
 
-		pcObject->UpdateTosDistToRoot(pcEffectedFroms, iStopDist, iExpectedDist);
+		pcObject->UpdateTosDistToRoot(pcEffectedFroms, iExpectedDist);
 
 		psLowestDistToRoot = pcEffectedFroms->GetLowest();	
 	}

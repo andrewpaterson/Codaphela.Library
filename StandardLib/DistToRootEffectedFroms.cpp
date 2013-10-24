@@ -107,37 +107,6 @@ SDistToRoot* CDistToRootEffectedFroms::GetLowest(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SDistToRoot* CDistToRootEffectedFroms::GetSecondLowest(SDistToRoot* psLowest)
-{
-	int				i;
-	int				iMinDist;
-	SDistToRoot*	pcMinDistToRoot;
-	SDistToRoot*	psDistToRoot;
-
-	iMinDist = MAX_DIST_TO_ROOT;
-	pcMinDistToRoot = NULL;
-
-	for (i = 0; i < macExpectedDists.NumElements(); i++)
-	{
-		psDistToRoot = macExpectedDists.Get(i);
-		if (psDistToRoot->iExpectedDist < iMinDist)
-		{
-			if (psDistToRoot->pcObject != psLowest->pcObject)
-			{
-				iMinDist = psDistToRoot->iExpectedDist;
-				pcMinDistToRoot = psDistToRoot;
-			}
-		}
-	}
-
-	return pcMinDistToRoot;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 int CDistToRootEffectedFroms::NumElements(void)
 {
 	return macExpectedDists.NumElements();
@@ -168,7 +137,7 @@ void CDistToRootEffectedFroms::Remove(SDistToRoot* psDistToRoot)
 		psCurrent = macExpectedDists.Get(i);
 		if (psCurrent == psDistToRoot)
 		{
-			macExpectedDists.RemoveAt(i);
+			macExpectedDists.RemoveAt(i, FALSE);
 			break;
 		}
 	}

@@ -28,7 +28,7 @@ public:
 	void				ValidateConsistency(void);
 
 protected:
-	void				UpdateEmbeddedObjectTosDistToRoot(CDistToRootEffectedFroms* pcEffectedFroms, int iStopDist, int iExpectedDist);
+	void				UpdateEmbeddedObjectTosDistToRoot(CDistToRootEffectedFroms* pcEffectedFroms, int iExpectedDist);
 	void				ClearEmbeddedObjectTosUpdatedToRootFlag(void);
 	void				UpdateEmbeddedObjectTosDetached(CDistDetachedFroms* pcDetached);
 };

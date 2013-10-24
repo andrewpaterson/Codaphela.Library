@@ -99,6 +99,7 @@ public:
 	virtual BOOL				IsNamed(void);
 			BOOL				IsInvalidated(void);
 	virtual BOOL				IsDirty(void);
+			BOOL				IsUpdatedToRoot(void);
 
 	virtual char*				GetName(void);
 	virtual void				SetName(char* szName);
@@ -112,7 +113,7 @@ public:
 			BOOL				TestedForRoot(void);
 	virtual void				RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged) =0;
 			void				UpdateDistToRootFromPointedFroms(void);
-			void				UpdateTosDistToRoot(CDistToRootEffectedFroms* pcEffectedFroms, int iStopDist, int iExpectedDist);
+			void				UpdateTosDistToRoot(CDistToRootEffectedFroms* pcEffectedFroms, int iExpectedDist);
 			void				ClearTosUpdatedToRootFlag(void);
 			void				UnattachDistToRoot(void);
 			void				ClearDistToRootToValidDist(CBaseObject* pcTo, CDistToRootEffectedFroms* pcCalc);

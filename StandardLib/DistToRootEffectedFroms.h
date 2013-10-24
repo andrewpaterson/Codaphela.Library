@@ -28,7 +28,6 @@ public:
 
 	void					Add(CBaseObject* pcObject, int iExpectedDist);
 	SDistToRoot*			GetLowest(void);
-	SDistToRoot*			GetSecondLowest(SDistToRoot* psLowest);
 	int						NumElements(void);
 	SDistToRoot*			Get(int iIndex);
 	SDistToRoot*			Get(CBaseObject* pcObject);

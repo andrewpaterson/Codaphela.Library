@@ -177,7 +177,7 @@ void CHollowObject::RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHollowObject::UpdateEmbeddedObjectTosDistToRoot(CDistToRootEffectedFroms* pcEffectedFroms, int iStopDist, int iExpectedDist)
+void CHollowObject::UpdateEmbeddedObjectTosDistToRoot(CDistToRootEffectedFroms* pcEffectedFroms, int iExpectedDist)
 {
 }
 
