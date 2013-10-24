@@ -66,7 +66,7 @@ char* PointerToString(void* pv)
 	CChars	sz;
 
 	sz.Init();
-	sz.AppendHexHiLo(pv, sizeof(size_t));
+	sz.AppendHexHiLo(&pv, sizeof(size_t));
 	strcpy(gaszLogToStringScratchPad[iCount], sz.Text());
 	sz.Kill();
 	return gaszLogToStringScratchPad[iCount];
