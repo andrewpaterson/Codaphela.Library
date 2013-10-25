@@ -7,10 +7,13 @@ class CDistDetachedFroms
 {
 private:
 	CArrayBaseObjectPtr		apcDetached;
+
 public:
-	void Init(void);
-	void Kill(void);
-	void Add(CBaseObject* pcObject);
+	void			Init(void);
+	void			Kill(void);
+	void			Add(CBaseObject* pcObject);
+	int				Num(void);
+	CBaseObject*	Get(int iIndex);
 };
 
 
