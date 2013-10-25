@@ -128,7 +128,7 @@ public:
 			int					TestGetNumEmbeddedFromFlags(void);
 	virtual void				SetFlag(int iFlag, int iFlagValue);
 	virtual void				ClearDistToRoot(void);
-			BOOL				TestCanFindRoot(void);
+	virtual BOOL				CanFindRoot(void);
 			void				DumpFroms(void);
 			void				DumpTos(void);
 			void				Dump(void);
@@ -154,7 +154,6 @@ protected:
 	virtual void			SetDistToRoot(int iDistToRoot);
 			int				CalculateDistToRootFromPointedFroms(void);
 	virtual int				CalculateDistToRootFromPointedFroms(int iDistToRoot);
-	virtual BOOL			CanFindRoot(void);
 			CBaseObject*	ClearDistToRootForPathToNearestSubRoot(void);
 			void			CollectThoseToBeKilled(CArrayBaseObjectPtr* papcKilled);
 	virtual void			CollectPointedToToBeKilled(CArrayBaseObjectPtr* papcKilled) =0;
