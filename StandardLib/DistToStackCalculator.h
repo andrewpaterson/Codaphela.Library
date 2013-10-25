@@ -10,6 +10,7 @@ private:
 public:
 	void Init(void);
 	void Kill(void);
+	void Calculate(CDistDetachedFroms* pcDetached);
 };
 
 
