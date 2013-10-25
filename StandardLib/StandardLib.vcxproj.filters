@@ -151,6 +151,12 @@
     <Filter Include="Source\Object\Object\Distance">
       <UniqueIdentifier>{e2da8052-1373-4d1d-8f90-2758043ce82a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Object\Object\Distance\Heap">
+      <UniqueIdentifier>{f94de073-a072-4702-86f9-851dc5eb7017}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Object\Object\Distance\Stack">
+      <UniqueIdentifier>{4b1a6f45-2322-44af-a95d-1985553e1843}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Base.h">
@@ -504,17 +510,20 @@
     <ClInclude Include="ObjectRemapFrom.h">
       <Filter>Source\Object\Object</Filter>
     </ClInclude>
-    <ClInclude Include="DistToRootCalculator.h">
-      <Filter>Source\Object\Object\Distance</Filter>
-    </ClInclude>
-    <ClInclude Include="DistToRootEffectedFroms.h">
-      <Filter>Source\Object\Object\Distance</Filter>
-    </ClInclude>
     <ClInclude Include="ObjectPointerArrays.h">
       <Filter>Source\Object\Object</Filter>
     </ClInclude>
+    <ClInclude Include="DistToRootEffectedFroms.h">
+      <Filter>Source\Object\Object\Distance\Heap</Filter>
+    </ClInclude>
     <ClInclude Include="DistDetachedFroms.h">
-      <Filter>Source\Object\Object\Distance</Filter>
+      <Filter>Source\Object\Object\Distance\Heap</Filter>
+    </ClInclude>
+    <ClInclude Include="DistToRootCalculator.h">
+      <Filter>Source\Object\Object\Distance\Heap</Filter>
+    </ClInclude>
+    <ClInclude Include="DistToStackCalculator.h">
+      <Filter>Source\Object\Object\Distance\Stack</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -830,14 +839,17 @@
     <ClCompile Include="ObjectRemapFrom.cpp">
       <Filter>Source\Object\Object</Filter>
     </ClCompile>
+    <ClCompile Include="DistDetachedFroms.cpp">
+      <Filter>Source\Object\Object\Distance\Heap</Filter>
+    </ClCompile>
     <ClCompile Include="DistToRootCalculator.cpp">
-      <Filter>Source\Object\Object\Distance</Filter>
+      <Filter>Source\Object\Object\Distance\Heap</Filter>
     </ClCompile>
     <ClCompile Include="DistToRootEffectedFroms.cpp">
-      <Filter>Source\Object\Object\Distance</Filter>
+      <Filter>Source\Object\Object\Distance\Heap</Filter>
     </ClCompile>
-    <ClCompile Include="DistDetachedFroms.cpp">
-      <Filter>Source\Object\Object\Distance</Filter>
+    <ClCompile Include="DistToStackCalculator.cpp">
+      <Filter>Source\Object\Object\Distance\Stack</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
