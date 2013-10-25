@@ -25,7 +25,7 @@ public:
 
 class CNamedPointerContainer : public CNamedObject
 {
-	BASE_FUNCTIONS(CPointerContainer);
+BASE_FUNCTIONS(CNamedPointerContainer);
 public:
 	Ptr<>	mp;
 
