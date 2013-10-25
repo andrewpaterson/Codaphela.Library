@@ -632,14 +632,11 @@ void CObject::ClearEmbeddedObjectTosUpdatedToRootFlag(void)
 }
 
 
-
-
-
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObject::UpdateEmbeddedObjectTosDetached(CDistDetachedFroms* pcDetached)
+void CObject::UpdateEmbeddedObjectTosDetached(CDistDetachedFroms* pcDetached, CDistToRootEffectedFroms* pcEffectedFroms)
 {
 	int					i;
 	int					iNumEmbedded;
@@ -657,7 +654,7 @@ void CObject::UpdateEmbeddedObjectTosDetached(CDistDetachedFroms* pcDetached)
 		if (pcPointedTo)
 		{
 			pcBaseObject = pcPointedTo->GetEmbeddingContainer();
-			pcBaseObject->UpdateTosDetached(pcDetached);
+			pcBaseObject->UpdateTosDetached(pcDetached, pcEffectedFroms);
 		}
 	}
 
@@ -665,7 +662,7 @@ void CObject::UpdateEmbeddedObjectTosDetached(CDistDetachedFroms* pcDetached)
 	for (i = 0; i < iNumEmbedded; i++)
 	{
 		pcEmbedded = *mapEmbedded.Get(i);
-		pcEmbedded->UpdateEmbeddedObjectTosDetached(pcDetached);
+		pcEmbedded->UpdateEmbeddedObjectTosDetached(pcDetached, pcEffectedFroms);
 	}
 }
 

@@ -220,7 +220,7 @@ void CHollowEmbeddedObject::ClearEmbeddedObjectTosUpdatedToRootFlag(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHollowEmbeddedObject::UpdateEmbeddedObjectTosDetached(CDistDetachedFroms* pcDetached)
+void CHollowEmbeddedObject::UpdateEmbeddedObjectTosDetached(CDistDetachedFroms* pcDetached, CDistToRootEffectedFroms* pcEffectedFroms)
 {
 }
 

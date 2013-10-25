@@ -5,9 +5,9 @@
 
 class CDistDetachedFroms
 {
-public:
+private:
 	CArrayBaseObjectPtr		apcDetached;
-
+public:
 	void Init(void);
 	void Kill(void);
 	void Add(CBaseObject* pcObject);
@@ -15,3 +15,4 @@ public:
 
 
 #endif // __DIST_DETACHED_FROMS_H__
+

@@ -197,9 +197,11 @@ void CBaseObject::ClearDistToRootToValidDist(CBaseObject* pcTo, CDistToRootEffec
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::UpdateTosDetached(CDistDetachedFroms* pcDetached)
+void CBaseObject::UpdateTosDetached(CDistDetachedFroms* pcDetached, CDistToRootEffectedFroms* pcEffectedFroms)
 {
 	ValidateNotEmbedded(__METHOD__);
+
+	CEmbeddedObject*	pcClosestFrom;
 
 	if (miDistToRoot == CLEARED_DIST_TO_ROOT)
 	{
@@ -207,14 +209,22 @@ void CBaseObject::UpdateTosDetached(CDistDetachedFroms* pcDetached)
 		SetFlag(UNATTACHED_DIST_TO_ROOT, TRUE);
 		SetFlag(CLEARED_DIST_TO_ROOT, FALSE);
 		SetDistToRoot(UNATTACHED_DIST_TO_ROOT);
-		UpdateEmbeddedObjectTosDetached(pcDetached);
+		UpdateEmbeddedObjectTosDetached(pcDetached, pcEffectedFroms);
 	}
 	else if (!CanFindRoot())
 	{
 		pcDetached->Add(this);
 		SetFlag(UNATTACHED_DIST_TO_ROOT, TRUE);
 		SetDistToRoot(UNATTACHED_DIST_TO_ROOT);
-		UpdateEmbeddedObjectTosDetached(pcDetached);
+		UpdateEmbeddedObjectTosDetached(pcDetached, pcEffectedFroms);
+	}
+	else if (!IsDistToRootValid())
+	{
+		pcClosestFrom = GetClosestFromToRoot();
+		if (pcClosestFrom)
+		{
+			pcEffectedFroms->Add(this, pcClosestFrom->GetDistToRoot()+1);
+		}
 	}
 }
 

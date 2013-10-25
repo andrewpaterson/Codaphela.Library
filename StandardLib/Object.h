@@ -78,7 +78,7 @@ protected:
 	int					RemapTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew);
 	void				UpdateEmbeddedObjectTosDistToRoot(CDistToRootEffectedFroms* pcEffectedFroms, int iExpectedDist);
 	void				ClearEmbeddedObjectTosUpdatedToRootFlag(void);
-	void				UpdateEmbeddedObjectTosDetached(CDistDetachedFroms* pcDetached);
+	void				UpdateEmbeddedObjectTosDetached(CDistDetachedFroms* pcDetached, CDistToRootEffectedFroms* pcEffectedFroms);
 	int					CalculateDistToRootFromPointedFroms(int iDistToRoot);
 	void				Free(void);
 	void				SetPointedTosDistToRoot(int iDistToRoot);
