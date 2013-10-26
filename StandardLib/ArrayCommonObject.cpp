@@ -398,7 +398,7 @@ void CArrayCommonObject::UpdateEmbeddedObjectTosDistToRoot(CDistToRootEffectedFr
 		if (pcPointedTo)
 		{
 			pcBaseObject = pcPointedTo->GetEmbeddingContainer();
-			if (!pcBaseObject->IsUpdatedToRoot())
+			if (!pcBaseObject->IsUpdateTosDistToRoot())
 			{
 				pcBaseObject->ClearDistToRoot();
 				pcEffectedFroms->Add(pcBaseObject, iExpectedDist+1);
@@ -412,7 +412,7 @@ void CArrayCommonObject::UpdateEmbeddedObjectTosDistToRoot(CDistToRootEffectedFr
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayCommonObject::ClearEmbeddedObjectTosUpdatedToRootFlag(void)
+void CArrayCommonObject::ClearEmbeddedObjectTosUpdatedTosFlags(void)
 {
 	int					i;
 	CEmbeddedObject*	pcPointedTo;
@@ -426,7 +426,7 @@ void CArrayCommonObject::ClearEmbeddedObjectTosUpdatedToRootFlag(void)
 		if (pcPointedTo)
 		{
 			pcBaseObject = pcPointedTo->GetEmbeddingContainer();
-			pcBaseObject->ClearTosUpdatedToRootFlag();
+			pcBaseObject->ClearTosUpdatedTosFlags();
 		}
 	}
 }
@@ -450,7 +450,10 @@ void CArrayCommonObject::UpdateEmbeddedObjectTosDetached(CDistDetachedFroms* pcD
 		if (pcPointedTo)
 		{
 			pcBaseObject = pcPointedTo->GetEmbeddingContainer();
-			pcBaseObject->UpdateTosDetached(pcDetached, pcEffectedFroms);
+			if (!pcBaseObject->IsUpdateTosDetached())
+			{
+				pcBaseObject->UpdateTosDetached(pcDetached, pcEffectedFroms);
+			}
 		}
 	}
 }

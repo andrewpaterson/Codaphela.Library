@@ -45,8 +45,9 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //Tested for sanity is only valid whilst the scene graph is calling ValidateConsistency.  It stops the graph from walking already tested objects.
 #define OBJECT_FLAGS_TESTED_FOR_SANITY		0x80
 
-#define OBJECT_FLAGS_CLEARED_TO_ROOT		0x10000
-#define OBJECT_FLAGS_UPDATED_TO_ROOT		0x20000
+#define OBJECT_FLAGS_CLEARED_TO_ROOT				0x10000
+#define OBJECT_FLAGS_UPDATED_TOS_DIST_TO_ROOT		0x20000
+#define OBJECT_FLAGS_UPDATED_TOS_DETACHED			0x40000
 
 //How man embedded objects are in the object.  If you have more than 255 then you need your head smacked.
 #define OBJECT_FLAGS_NUM_EMBEDDED			0x0000FF00
@@ -99,7 +100,8 @@ public:
 	virtual BOOL				IsNamed(void);
 			BOOL				IsInvalidated(void);
 	virtual BOOL				IsDirty(void);
-			BOOL				IsUpdatedToRoot(void);
+			BOOL				IsUpdateTosDistToRoot(void);
+			BOOL				IsUpdateTosDetached(void);
 
 	virtual char*				GetName(void);
 	virtual void				SetName(char* szName);
@@ -114,7 +116,7 @@ public:
 	virtual void				RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged) =0;
 			void				UpdateDistToRootFromPointedFroms(void);
 			void				UpdateTosDistToRoot(CDistToRootEffectedFroms* pcEffectedFroms, int iExpectedDist);
-			void				ClearTosUpdatedToRootFlag(void);
+			void				ClearTosUpdatedTosFlags(void);
 			void				UnattachDistToRoot(void);
 			void				ClearDistToRootToValidDist(CBaseObject* pcTo, CDistToRootEffectedFroms* pcCalc);
 			void				UpdateTosDetached(CDistDetachedFroms* pcDetached, CDistToRootEffectedFroms* pcEffectedFroms);
@@ -127,6 +129,7 @@ public:
 			CEmbeddedObject* 	TestGetTo(int iToIndex);
 			int					TestGetNumEmbeddedFromFlags(void);
 	virtual void				SetFlag(int iFlag, int iFlagValue);
+			int					GetFlags(void);
 	virtual void				ClearDistToRoot(void);
 	virtual BOOL				CanFindRoot(void);
 			void				DumpFroms(void);

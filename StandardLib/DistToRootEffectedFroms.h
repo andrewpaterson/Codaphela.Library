@@ -35,6 +35,7 @@ public:
 	void					Remove(SDistToRoot* psDistToRoot);
 	void					MarkLowestFroms(void);
 	CArrayBaseObjectPtr*	GetLowestFroms(void);
+	void					AddChangedFromAsLowest(CBaseObject* pcFromChanged);
 };
 
 

@@ -59,7 +59,7 @@ protected:
 			void				CollectPointedToToBeKilled(CArrayBaseObjectPtr* papcKilled);
 	virtual	CEmbeddedObject*	GetRemappedEmbeddedObject(int iIndex);
 			void				UpdateEmbeddedObjectTosDistToRoot(CDistToRootEffectedFroms* pcEffectedFroms, int iExpectedDist);
-			void				ClearEmbeddedObjectTosUpdatedToRootFlag(void);
+			void				ClearEmbeddedObjectTosUpdatedTosFlags(void);
 			void				UpdateEmbeddedObjectTosDetached(CDistDetachedFroms* pcDetached, CDistToRootEffectedFroms* pcEffectedFroms);
 };
 

@@ -79,6 +79,37 @@ void CDistToRootCalculator::Calculate(CDistToRootEffectedFroms* pcEffectedFroms,
 	//If they can add those froms pointing to it objects to an array of objects to start from.
 	mpcFromChanged->ClearDistToRootToValidDist(NULL, pcEffectedFroms);
 
+	//Cyclic dependencies will cause lowest pointers to be incorrectly added.  Remove them.
+	RemoveDetachedLowest(pcEffectedFroms);
+
+	//Copy the starting from objects into an array so their flags can be fixed later.
+	pcEffectedFroms->MarkLowestFroms();
+
+	//For all the starting objects walk the 'tos' and update their 'to' graphs distances to the Root object.
+	UpdateTosDistToRoot(pcEffectedFroms);
+
+	//If the changed from can no longer find the root object then it is detached and it's tos must be detached also,
+	//Unless another from pointing to the 'detached' to can find the Root object.
+	if (mpcFromChanged->GetDistToRoot() == CLEARED_DIST_TO_ROOT)
+	{
+		mpcFromChanged->UpdateTosDetached(pcDetached, pcEffectedFroms);
+
+		pcEffectedFroms->MarkLowestFroms();
+
+		UpdateTosDistToRoot(pcEffectedFroms);
+	}
+
+	pcEffectedFroms->AddChangedFromAsLowest(mpcFromChanged);
+	ClearTosUpdatedTosFlags(pcEffectedFroms);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CDistToRootCalculator::RemoveDetachedLowest(CDistToRootEffectedFroms* pcEffectedFroms)
+{
 	int				i;
 	CBaseObject*	pcBaseObject;
 
@@ -90,25 +121,6 @@ void CDistToRootCalculator::Calculate(CDistToRootEffectedFroms* pcEffectedFroms,
 			pcEffectedFroms->Remove(i);
 		}
 	}
-
-	//Copy the starting from objects into an array so their flags can be fixed later.
-	pcEffectedFroms->MarkLowestFroms();
-
-	//For all the starting objects walk the 'tos' and update their 'to' graphs distances to the Root object.
-	UpdateTosDistToRoot(pcEffectedFroms);
-
-	//If the changed from can no longer find the root object then it is detached and it's tos must be detached also,
-	//Unless another from pointig to the 'detached' to can find the Root object.
-	if (mpcFromChanged->GetDistToRoot() == CLEARED_DIST_TO_ROOT)
-	{
-		mpcFromChanged->UpdateTosDetached(pcDetached, pcEffectedFroms);
-
-		pcEffectedFroms->MarkLowestFroms();
-
-		UpdateTosDistToRoot(pcEffectedFroms);
-	}
-
-	ClearTosUpdatedToRootFlag(pcEffectedFroms);
 }
 
 
@@ -140,7 +152,7 @@ void CDistToRootCalculator::UpdateTosDistToRoot(CDistToRootEffectedFroms* pcEffe
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDistToRootCalculator::ClearTosUpdatedToRootFlag(CDistToRootEffectedFroms* pcEffectedFroms)
+void CDistToRootCalculator::ClearTosUpdatedTosFlags(CDistToRootEffectedFroms* pcEffectedFroms)
 {
 	CArrayBaseObjectPtr*	papcLowestFroms;
 	CBaseObject*			pcObject;
@@ -150,7 +162,7 @@ void CDistToRootCalculator::ClearTosUpdatedToRootFlag(CDistToRootEffectedFroms* 
 	for (i = 0; i < papcLowestFroms->NumElements(); i++)
 	{
 		pcObject = *papcLowestFroms->Get(i);
-		pcObject->ClearTosUpdatedToRootFlag();
+		pcObject->ClearTosUpdatedTosFlags();
 	}
 }
 

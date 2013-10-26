@@ -18,7 +18,8 @@ public:
 	void Calculate(CDistDetachedFroms* pcDetached);
 	void Calculate(CDistToRootEffectedFroms* pcEffectedFroms, CDistDetachedFroms* pcDetached);
 	void UpdateTosDistToRoot(CDistToRootEffectedFroms* pcEffectedFroms);
-	void ClearTosUpdatedToRootFlag(CDistToRootEffectedFroms* pcEffectedFroms);
+	void RemoveDetachedLowest(CDistToRootEffectedFroms* pcEffectedFroms);
+	void ClearTosUpdatedTosFlags(CDistToRootEffectedFroms* pcEffectedFroms);
 };
 
 

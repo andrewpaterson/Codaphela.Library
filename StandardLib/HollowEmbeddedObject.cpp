@@ -211,7 +211,7 @@ void CHollowEmbeddedObject::UpdateEmbeddedObjectTosDistToRoot(CDistToRootEffecte
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHollowEmbeddedObject::ClearEmbeddedObjectTosUpdatedToRootFlag(void)
+void CHollowEmbeddedObject::ClearEmbeddedObjectTosUpdatedTosFlags(void)
 {
 }
 

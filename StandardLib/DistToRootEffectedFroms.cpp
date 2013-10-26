@@ -32,22 +32,19 @@ void CDistToRootEffectedFroms::Add(CBaseObject* pcObject, int iExpectedDist)
 {
 	SDistToRoot*	psDistToRoot;
 
-	if (pcObject)
-	{
-		psDistToRoot = Get(pcObject);
+	psDistToRoot = Get(pcObject);
 
-		if (!psDistToRoot)
+	if (!psDistToRoot)
+	{
+		psDistToRoot = macExpectedDists.Add();
+		psDistToRoot->iExpectedDist = iExpectedDist;
+		psDistToRoot->pcObject = pcObject;
+	}
+	else
+	{
+		if (psDistToRoot->iExpectedDist > iExpectedDist)
 		{
-			psDistToRoot = macExpectedDists.Add();
 			psDistToRoot->iExpectedDist = iExpectedDist;
-			psDistToRoot->pcObject = pcObject;
-		}
-		else
-		{
-			if (psDistToRoot->iExpectedDist > iExpectedDist)
-			{
-				psDistToRoot->iExpectedDist = iExpectedDist;
-			}
 		}
 	}
 }
@@ -178,5 +175,28 @@ void CDistToRootEffectedFroms::MarkLowestFroms(void)
 CArrayBaseObjectPtr* CDistToRootEffectedFroms::GetLowestFroms(void)
 {
 	return &mapcLowestFroms;
+}
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CDistToRootEffectedFroms::AddChangedFromAsLowest(CBaseObject* pcFromChanged)
+{
+	int				i;
+	CBaseObject*	pcObject;
+
+	for (i = 0; i < mapcLowestFroms.NumElements(); i++)
+	{
+		pcObject = *mapcLowestFroms.Get(i);
+		if (pcObject == pcFromChanged)
+		{
+			return;
+		}
+	}
+
+	mapcLowestFroms.Add(&pcFromChanged);
 }
 
