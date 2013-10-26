@@ -33,6 +33,7 @@ CBaseObject::CBaseObject()
 {
 	mpcObjectsThisIn = NULL;
 	miDistToRoot = UNATTACHED_DIST_TO_ROOT;
+	miDistToStack = UNKNOWN_DIST_TO_STACK;
 	moi = INVALID_O_INDEX;
 	miFlags = OBJECT_FLAGS_DIRTY;
 }
@@ -534,6 +535,16 @@ void CBaseObject::SetCalculatedDistToRoot(void)
 void CBaseObject::SetDistToRoot(int iDistToRoot)
 {
 	miDistToRoot = iDistToRoot;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CBaseObject::SetDistToStack(int iDistToStack)
+{
+	miDistToStack = iDistToStack;
 }
 
 

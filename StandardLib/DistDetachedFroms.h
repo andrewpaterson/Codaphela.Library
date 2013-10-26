@@ -6,7 +6,7 @@
 class CDistDetachedFroms
 {
 private:
-	CArrayBaseObjectPtr		apcDetached;
+	CArrayBaseObjectPtr		mapcDetachedFromRoot;
 
 public:
 	void			Init(void);

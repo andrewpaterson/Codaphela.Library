@@ -7,7 +7,7 @@
 //////////////////////////////////////////////////////////////////////////
 void CDistDetachedFroms::Init(void)
 {
-	apcDetached.Init(1024);
+	mapcDetachedFromRoot.Init(1024);
 }
 
 
@@ -17,7 +17,7 @@ void CDistDetachedFroms::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CDistDetachedFroms::Kill(void)
 {
-	apcDetached.Kill();
+	mapcDetachedFromRoot.Kill();
 }
 
 
@@ -27,7 +27,7 @@ void CDistDetachedFroms::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CDistDetachedFroms::Add(CBaseObject* pcObject)
 {
-	apcDetached.Add(&pcObject);
+	mapcDetachedFromRoot.Add(&pcObject);
 }
 
 
@@ -37,7 +37,7 @@ void CDistDetachedFroms::Add(CBaseObject* pcObject)
 //////////////////////////////////////////////////////////////////////////
 int CDistDetachedFroms::Num(void)
 {
-	return apcDetached.NumElements();
+	return mapcDetachedFromRoot.NumElements();
 }
 
 
@@ -47,6 +47,6 @@ int CDistDetachedFroms::Num(void)
 //////////////////////////////////////////////////////////////////////////
 CBaseObject* CDistDetachedFroms::Get(int iIndex)
 {
-	return *apcDetached.Get(iIndex);
+	return *mapcDetachedFromRoot.Get(iIndex);
 }
 

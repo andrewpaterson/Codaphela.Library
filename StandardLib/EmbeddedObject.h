@@ -15,6 +15,8 @@
 #define CLEARED_DIST_TO_ROOT		-2
 #define MAX_DIST_TO_ROOT			 MAX_INT
 
+#define UNKNOWN_DIST_TO_STACK -1;
+
 
 class CObject;
 class CObjects;

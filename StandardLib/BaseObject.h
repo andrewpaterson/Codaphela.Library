@@ -70,9 +70,10 @@ friend class CEmbeddedObject;
 
 BASE_FUNCTIONS(CBaseObject);
 protected:
+	OIndex		moi;
 	CObjects*	mpcObjectsThisIn;
 	int			miDistToRoot;
-	OIndex		moi;
+	int			miDistToStack;
 	int			miFlags;
 
 public:
@@ -155,6 +156,7 @@ protected:
 			void			SetExpectedDistToRoot(int iExpectedDistToRoot);
 			void			SetCalculatedDistToRoot(void);
 	virtual void			SetDistToRoot(int iDistToRoot);
+	virtual void			SetDistToStack(int iDistToStack);
 			int				CalculateDistToRootFromPointedFroms(void);
 	virtual int				CalculateDistToRootFromPointedFroms(int iDistToRoot);
 			CBaseObject*	ClearDistToRootForPathToNearestSubRoot(void);

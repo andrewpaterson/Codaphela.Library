@@ -311,6 +311,29 @@ void CObject::SetDistToRoot(int iDistToRoot)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CObject::SetDistToStack(int iDistToStack)
+{
+	ValidateNotEmbedded(__METHOD__);
+
+	int				i;
+	int				iNumEmbedded;
+	CBaseObject*	pcEmbedded;
+
+	CBaseObject::SetDistToStack(iDistToStack);
+
+	iNumEmbedded = mapEmbedded.NumElements();
+	for (i = 0; i < iNumEmbedded; i++)
+	{
+		pcEmbedded = *mapEmbedded.Get(i);
+		pcEmbedded->SetDistToStack(iDistToStack);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CObject::SetPointedTosDistToRoot(int iDistToRoot)
 {
 	int				i;

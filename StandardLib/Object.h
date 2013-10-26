@@ -83,6 +83,7 @@ protected:
 	void				Free(void);
 	void				SetPointedTosDistToRoot(int iDistToRoot);
 	void				SetDistToRoot(int iDistToRoot);
+	void				SetDistToStack(int iDistToRoot);
 	BOOL				RecurseGetEmbeddedIndex(CEmbeddedObject* pcTest, int* piIndex);
 	CEmbeddedObject*	RecurseGetEmbeddedObject(int iIndex, int* iCount);
 	void				ValidateEmbeddedObjectTos(void);
