@@ -1265,7 +1265,7 @@ void CBaseObject::ValidateCanFindRoot(void)
 		{
 			sz.Init();
 			PrintObject(&sz, IsEmbedded());
-			gcLogger.Error2(__METHOD__, " Object {", sz.Text(), "} should be able to find the Root object.", NULL);
+			gcLogger.Error2(__METHOD__, " Object {", sz.Text(), "} has a positive dist to root and should be able to find the Root object.", NULL);
 			sz.Kill();
 		}
 	}
@@ -1281,6 +1281,15 @@ void CBaseObject::ValidateCanFindRoot(void)
 	}
 	else if (miDistToRoot == UNATTACHED_DIST_TO_ROOT)
 	{
+		bCanFindRoot = CanFindRoot();
+
+		if (bCanFindRoot)
+		{
+			sz.Init();
+			PrintObject(&sz, IsEmbedded());
+			gcLogger.Error2(__METHOD__, " Object {", sz.Text(), "} has an [UNATTACHED_DIST_TO_ROOT] dist to root should not be able to find the Root object.", NULL);
+			sz.Kill();
+		}
 	}
 	else if (miDistToRoot == CLEARED_DIST_TO_ROOT)
 	{
