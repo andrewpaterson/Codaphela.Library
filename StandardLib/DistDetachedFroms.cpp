@@ -8,6 +8,7 @@
 void CDistDetachedFroms::Init(void)
 {
 	mapcDetachedFromRoot.Init(1024);
+	mapcCompletelyDetached.Init(1024);
 }
 
 
@@ -17,6 +18,7 @@ void CDistDetachedFroms::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CDistDetachedFroms::Kill(void)
 {
+	mapcCompletelyDetached.Kill();
 	mapcDetachedFromRoot.Kill();
 }
 
@@ -25,7 +27,7 @@ void CDistDetachedFroms::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDistDetachedFroms::Add(CBaseObject* pcObject)
+void CDistDetachedFroms::AddDetachedFromRoot(CBaseObject* pcObject)
 {
 	mapcDetachedFromRoot.Add(&pcObject);
 }
@@ -35,7 +37,7 @@ void CDistDetachedFroms::Add(CBaseObject* pcObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CDistDetachedFroms::Num(void)
+int CDistDetachedFroms::NumDetachedFromRoot(void)
 {
 	return mapcDetachedFromRoot.NumElements();
 }
@@ -45,8 +47,38 @@ int CDistDetachedFroms::Num(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CDistDetachedFroms::Get(int iIndex)
+CBaseObject* CDistDetachedFroms::GetDetachedFromRoot(int iIndex)
 {
 	return *mapcDetachedFromRoot.Get(iIndex);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CDistDetachedFroms::AddCompletelyDetached(CBaseObject* pcObject)
+{
+	mapcCompletelyDetached.Add(&pcObject);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CDistDetachedFroms::NumCompletelyDetached(void)
+{
+	return mapcCompletelyDetached.NumElements();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CBaseObject* CDistDetachedFroms::GetCompletelyDetached(int iIndex)
+{
+	return *mapcCompletelyDetached.Get(iIndex);
 }
 

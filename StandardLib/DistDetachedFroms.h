@@ -7,15 +7,22 @@ class CDistDetachedFroms
 {
 private:
 	CArrayBaseObjectPtr		mapcDetachedFromRoot;
+	CArrayBaseObjectPtr		mapcCompletelyDetached;
 
 public:
 	void			Init(void);
 	void			Kill(void);
-	void			Add(CBaseObject* pcObject);
-	int				Num(void);
-	CBaseObject*	Get(int iIndex);
+
+	void			AddDetachedFromRoot(CBaseObject* pcObject);
+	int				NumDetachedFromRoot(void);
+	CBaseObject*	GetDetachedFromRoot(int iIndex);
+
+	void			AddCompletelyDetached(CBaseObject* pcObject);
+	int				NumCompletelyDetached(void);
+	CBaseObject*	GetCompletelyDetached(int iIndex);
 };
 
 
 #endif // __DIST_DETACHED_FROMS_H__
+
 
