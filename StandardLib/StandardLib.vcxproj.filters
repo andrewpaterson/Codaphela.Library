@@ -525,6 +525,9 @@
     <ClInclude Include="DistToStackCalculator.h">
       <Filter>Source\Object\Object\Distance\Stack</Filter>
     </ClInclude>
+    <ClInclude Include="DistCalculator.h">
+      <Filter>Source\Object\Object\Distance</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Unknown.cpp">
@@ -850,6 +853,9 @@
     </ClCompile>
     <ClCompile Include="DistToStackCalculator.cpp">
       <Filter>Source\Object\Object\Distance\Stack</Filter>
+    </ClCompile>
+    <ClCompile Include="DistCalculator.cpp">
+      <Filter>Source\Object\Object\Distance</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
