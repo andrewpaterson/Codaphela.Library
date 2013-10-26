@@ -206,15 +206,12 @@ void CBaseObject::UpdateTosDetached(CDistDetachedFroms* pcDetached, CDistToRootE
 	if (miDistToRoot == CLEARED_DIST_TO_ROOT)
 	{
 		pcDetached->Add(this);
-		SetFlag(UNATTACHED_DIST_TO_ROOT, TRUE);
-		SetFlag(CLEARED_DIST_TO_ROOT, FALSE);
 		SetDistToRoot(UNATTACHED_DIST_TO_ROOT);
 		UpdateEmbeddedObjectTosDetached(pcDetached, pcEffectedFroms);
 	}
 	else if (!CanFindRoot())
 	{
 		pcDetached->Add(this);
-		SetFlag(UNATTACHED_DIST_TO_ROOT, TRUE);
 		SetDistToRoot(UNATTACHED_DIST_TO_ROOT);
 		UpdateEmbeddedObjectTosDetached(pcDetached, pcEffectedFroms);
 	}
