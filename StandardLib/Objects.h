@@ -143,6 +143,7 @@ protected:
 						void					RecurseDumpGraph(CChars* psz, CEmbeddedObject* pcObject, int iLevel, BOOL bEmbedded);
 						void					ValidateSceneGraph(void);
 						void					ValidateIndexedObjects(void);
+						void					ClearValidationFlags(void);
 						void					RecurseValidateSceneGraph(CBaseObject* pcBaseObject);
 						CNamedHollowObject*		AllocateNamedHollow(unsigned short iNumEmbedded);
 						CHollowObject*			AllocateHollow(unsigned short iNumEmbedded);

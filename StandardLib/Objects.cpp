@@ -358,6 +358,7 @@ void CObjects::ValidateConsistency(void)
 {
 	ValidateSceneGraph();
 	ValidateIndexedObjects();
+	ClearValidationFlags();
 }
 
 
@@ -375,9 +376,35 @@ void CObjects::ValidateIndexedObjects(void)
 	{
 		if (!(pcBaseObject->miFlags & OBJECT_FLAGS_TESTED_FOR_SANITY))
 		{
+			pcBaseObject->SetFlag(OBJECT_FLAGS_TESTED_FOR_SANITY, TRUE);
+
 			pcBaseObject->ValidateConsistency();
 		}
 
+		pcBaseObject = mcMemory.Iterate(&sIter);
+	}
+
+	pcBaseObject = mcMemory.StartIteration(&sIter);
+	while (pcBaseObject)
+	{
+		pcBaseObject->SetFlag(OBJECT_FLAGS_TESTED_FOR_SANITY, FALSE);
+		pcBaseObject = mcMemory.Iterate(&sIter);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CObjects::ClearValidationFlags(void)
+{
+	SIndexesIterator	sIter;
+	CBaseObject*		pcBaseObject;
+
+	pcBaseObject = mcMemory.StartIteration(&sIter);
+	while (pcBaseObject)
+	{
 		pcBaseObject->SetFlag(OBJECT_FLAGS_TESTED_FOR_SANITY, FALSE);
 		pcBaseObject = mcMemory.Iterate(&sIter);
 	}
