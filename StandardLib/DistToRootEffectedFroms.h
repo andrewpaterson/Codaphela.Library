@@ -31,6 +31,7 @@ public:
 	int						NumElements(void);
 	SDistToRoot*			Get(int iIndex);
 	SDistToRoot*			Get(CBaseObject* pcObject);
+	void					Remove(int iIndex);
 	void					Remove(SDistToRoot* psDistToRoot);
 	void					MarkLowestFroms(void);
 	CArrayBaseObjectPtr*	GetLowestFroms(void);

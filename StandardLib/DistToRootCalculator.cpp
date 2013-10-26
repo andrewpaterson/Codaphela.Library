@@ -79,6 +79,18 @@ void CDistToRootCalculator::Calculate(CDistToRootEffectedFroms* pcEffectedFroms,
 	//If they can add those froms pointing to it objects to an array of objects to start from.
 	mpcFromChanged->ClearDistToRootToValidDist(NULL, pcEffectedFroms);
 
+	int				i;
+	CBaseObject*	pcBaseObject;
+
+	for (i = pcEffectedFroms->NumElements()-1; i >= 0; i--)
+	{
+		pcBaseObject = pcEffectedFroms->Get(i)->pcObject;
+		if (!pcBaseObject->CanFindRoot())
+		{
+			pcEffectedFroms->Remove(i);
+		}
+	}
+
 	//Copy the starting from objects into an array so their flags can be fixed later.
 	pcEffectedFroms->MarkLowestFroms();
 
