@@ -640,7 +640,7 @@ void CBaseObject::UpdateTosDistToRoot(CDistToRootEffectedFroms* pcEffectedFroms,
 	CEmbeddedObject*	pcClosestToRoot;
 	int					iClosestToRoot;
 
-	if (miFlags & OBJECT_FLAGS_UPDATED_TO_ROOT)
+	if (IsUpdatedToRoot())
 	{
 		return;
 	}
@@ -670,7 +670,7 @@ void CBaseObject::ClearTosUpdatedToRootFlag(void)
 {
 	ValidateNotEmbedded(__METHOD__);
 
-	if (!(miFlags & OBJECT_FLAGS_UPDATED_TO_ROOT))
+	if (!(IsUpdatedToRoot()))
 	{
 		return;
 	}
