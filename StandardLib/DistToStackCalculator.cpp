@@ -35,7 +35,7 @@ void CDistToStackCalculator::Calculate(CDistDetachedFroms* pcDetached)
 		//Kill them all!
 		pcDetached->CopyRootDetachedToCompletelyDetached();
 	}
-	if (iNumWithStackPointers == pcDetached->NumDetachedFromRoot())
+	else if (iNumWithStackPointers == pcDetached->NumDetachedFromRoot())
 	{
 		//Kill none of them.
 		ResetObjectsToUnknownDistToStack(pcDetached);
@@ -59,15 +59,13 @@ void CDistToStackCalculator::InitialiseCompletelyDetached(CDistDetachedFroms* pc
 	int				iNumDetached;
 	CBaseObject*	pcBaseObject;
 
-	pcDetached->CopyRootDetachedToCompletelyDetached();
-
 	iNumDetached = pcDetached->NumDetachedFromRoot();
-	for (i = iNumDetached-1; i >= 0; i--)
+	for (i = 0; i < iNumDetached; i++)
 	{
 		pcBaseObject = pcDetached->GetDetachedFromRoot(i);
-		if (pcBaseObject->GetDistToStack() == 0)
+		if (pcBaseObject->GetDistToStack() == UNKNOWN_DIST_TO_STACK)
 		{
-			pcDetached->RemoveCompletelyDetached(i);
+			pcDetached->AddCompletelyDetached(pcBaseObject);
 		}
 	}
 }
@@ -112,8 +110,6 @@ int CDistToStackCalculator::UpdateDistToStackForObjectsWithFromStackDist(CDistDe
 void CDistToStackCalculator::UpdateDistToStackForAllObjects(CDistDetachedFroms* pcDetached)
 {
 	int iNumUpdated;
-
-	pcDetached->CopyRootDetachedToCompletelyDetached();
 
 	iNumUpdated = -1;
 	while (iNumUpdated != 0)
