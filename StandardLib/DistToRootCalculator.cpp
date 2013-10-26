@@ -134,7 +134,8 @@ void CDistToRootCalculator::UpdateTosDistToRoot(CDistToRootEffectedFroms* pcEffe
 	CBaseObject*			pcObject;
 	int						iExpectedDist;
 
-	psLowestDistToRoot = pcEffectedFroms->GetLowest();	
+	//This is probably really slow.
+	psLowestDistToRoot = pcEffectedFroms->GetLowest();
 	while (psLowestDistToRoot)
 	{
 		iExpectedDist = psLowestDistToRoot->iExpectedDist;
@@ -143,7 +144,7 @@ void CDistToRootCalculator::UpdateTosDistToRoot(CDistToRootEffectedFroms* pcEffe
 
 		pcObject->UpdateTosDistToRoot(pcEffectedFroms, iExpectedDist);
 
-		psLowestDistToRoot = pcEffectedFroms->GetLowest();	
+		psLowestDistToRoot = pcEffectedFroms->GetLowest();
 	}
 }
 

@@ -113,6 +113,7 @@ public:
 	virtual void				SetDistToRootAndSetPointedTosExpectedDistToRoot(int iDistToRoot) =0;
 			void				SetDirty(void);
 			int					GetDistToRoot(void);
+			int					GetDistToStack(void);
 			BOOL				TestedForRoot(void);
 	virtual void				RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged) =0;
 			void				UpdateDistToRootFromPointedFroms(void);
@@ -125,6 +126,7 @@ public:
 			BOOL				TestedForSanity(void);
 			CObjects*			GetObjects(void);
 			CStackPointers*		GetStackPointers(void);
+	virtual void				SetDistToStack(int iDistToStack);
 
 	virtual BOOL				ContainsTo(CEmbeddedObject* pcEmbedded);
 			CEmbeddedObject* 	TestGetTo(int iToIndex);
@@ -156,7 +158,6 @@ protected:
 			void			SetExpectedDistToRoot(int iExpectedDistToRoot);
 			void			SetCalculatedDistToRoot(void);
 	virtual void			SetDistToRoot(int iDistToRoot);
-	virtual void			SetDistToStack(int iDistToStack);
 			int				CalculateDistToRootFromPointedFroms(void);
 	virtual int				CalculateDistToRootFromPointedFroms(int iDistToRoot);
 			CBaseObject*	ClearDistToRootForPathToNearestSubRoot(void);

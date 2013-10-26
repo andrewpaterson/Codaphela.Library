@@ -57,6 +57,7 @@ public:
 	void				ClearDistToRoot(void);
 	void				GetHeapFroms(CArrayEmbeddedBaseObjectPtr* papcFroms);
 	void				GetStackFroms(CArrayPointerPtr* papcFroms);
+	CBaseObject*		GetClosestFromToStack(void);
 	int					NumTos(void);
 	int					UnsafeNumEmbeddedObjectTos(void);
 	void				GetTos(CArrayEmbeddedObjectPtr* papcTos);
@@ -73,7 +74,7 @@ protected:
 	void				RemoveEmbeddedObjectAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged);
 	void				RemoveAllHeapFroms(void);
 	void				RemoveAllStackFroms(void);
-	CEmbeddedObject*	GetClosestFromToRoot(void);
+	CBaseObject*		GetClosestFromToRoot(void);
 	void				CollectPointedToToBeKilled(CArrayBaseObjectPtr* papcKilled);
 	int					RemapTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew);
 	void				UpdateEmbeddedObjectTosDistToRoot(CDistToRootEffectedFroms* pcEffectedFroms, int iExpectedDist);

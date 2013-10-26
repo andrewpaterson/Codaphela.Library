@@ -371,7 +371,7 @@ int CEmbeddedObject::NumHeapFroms(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CEmbeddedObject* CEmbeddedObject::GetClosestFromToRoot(void)
+CBaseObject* CEmbeddedObject::GetClosestFromToRoot(void)
 {
 	int				iNearestRoot;
 	CBaseObject*	pcNearestPointedFrom;
@@ -385,11 +385,43 @@ CEmbeddedObject* CEmbeddedObject::GetClosestFromToRoot(void)
 	for (i = 0; i < iNumFroms; i++)
 	{
 		pcFrom = *mapHeapFroms.Get(i);
-		if ((pcFrom->miDistToRoot >= ROOT_DIST_TO_ROOT) && (!pcFrom->TestedForRoot()))
+		if ((pcFrom->miDistToRoot >= ROOT_DIST_TO_ROOT) && (!pcFrom->TestedForRoot()))  //What the hell is !pcFrom->TestedForRoot() here for?
 		{
 			if (pcFrom->miDistToRoot < iNearestRoot)
 			{
 				iNearestRoot = pcFrom->miDistToRoot;
+				pcNearestPointedFrom = pcFrom;
+			}
+		}
+	}
+
+	return pcNearestPointedFrom;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CBaseObject* CEmbeddedObject::GetClosestFromToStack(void)
+{
+	int				iNearestStack;
+	CBaseObject*	pcNearestPointedFrom;
+	int				i;
+	int				iNumFroms;
+	CBaseObject*	pcFrom;
+
+	iNearestStack = MAX_DIST_TO_ROOT;
+	pcNearestPointedFrom = NULL;
+	iNumFroms = mapHeapFroms.NumElements();
+	for (i = 0; i < iNumFroms; i++)
+	{
+		pcFrom = *mapHeapFroms.Get(i);
+		if (pcFrom->miDistToStack >= 0)
+		{
+			if (pcFrom->miDistToStack < iNearestStack)
+			{
+				iNearestStack = pcFrom->miDistToStack;
 				pcNearestPointedFrom = pcFrom;
 			}
 		}

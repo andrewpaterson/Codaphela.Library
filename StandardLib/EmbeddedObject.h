@@ -15,7 +15,8 @@
 #define CLEARED_DIST_TO_ROOT		-2
 #define MAX_DIST_TO_ROOT			 MAX_INT
 
-#define UNKNOWN_DIST_TO_STACK -1;
+#define UNKNOWN_DIST_TO_STACK		-2
+#define UNATTACHED_DIST_TO_STACK	-1
 
 
 class CObject;
@@ -87,6 +88,7 @@ public:
 			void				RemoveStackFromTryKill(CPointer* pcPointer, BOOL bKillIfNoRoot);
 	virtual int					NumStackFroms(void);
 			CStackPointer*		GetFirstStackFrom(void);
+	virtual CBaseObject*		GetClosestFromToStack(void);
 
 			int					NumTotalFroms(void);
 			BOOL				ContainsFrom(CEmbeddedObject* pcBaseObject);
@@ -104,7 +106,7 @@ protected:
 	virtual void				GetStackFroms(CArrayPointerPtr* papcFroms);
 	virtual void				GetHeapFroms(CArrayEmbeddedBaseObjectPtr* papcFroms);
 	virtual CStackPointers*		GetStackPointers(void) =0;
-	virtual CEmbeddedObject*	GetClosestFromToRoot(void);
+	virtual CBaseObject*		GetClosestFromToRoot(void);
 	virtual void				UpdateEmbeddedObjectTosDistToRoot(CDistToRootEffectedFroms* pcEffectedFroms, int iExpectedDist) =0;
 	virtual void				ClearEmbeddedObjectTosUpdatedTosFlags(void) =0;
 	virtual void				UpdateEmbeddedObjectTosDetached(CDistDetachedFroms* pcDetached, CDistToRootEffectedFroms* pcEffectedFroms) =0;

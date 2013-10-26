@@ -20,6 +20,9 @@ public:
 	void			AddCompletelyDetached(CBaseObject* pcObject);
 	int				NumCompletelyDetached(void);
 	CBaseObject*	GetCompletelyDetached(int iIndex);
+	void			RemoveCompletelyDetached(int iIndex);
+
+	void			CopyRootDetachedToCompletelyDetached(void);
 };
 
 

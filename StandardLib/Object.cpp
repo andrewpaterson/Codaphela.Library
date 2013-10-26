@@ -423,12 +423,11 @@ int CObject::CalculateDistToRootFromPointedFroms(int iDistToRoot)
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CEmbeddedObject* CObject::GetClosestFromToRoot(void)
+CBaseObject* CObject::GetClosestFromToRoot(void)
 {
 	int					i;
 	int					iNumEmbedded;
@@ -460,7 +459,46 @@ CEmbeddedObject* CObject::GetClosestFromToRoot(void)
 		}
 	}
 
-	return pcNearesetPointedFrom;
+	return (CBaseObject*)pcNearesetPointedFrom;
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CBaseObject* CObject::GetClosestFromToStack(void)
+{
+	int					i;
+	int					iNumEmbedded;
+	CBaseObject*		pcEmbedded;
+	CEmbeddedObject*		pcNearesetPointedFrom;
+	CEmbeddedObject*	pcEmbeddedNearesetPointedFrom;
+
+	pcNearesetPointedFrom = CEmbeddedObject::GetClosestFromToStack();
+
+	iNumEmbedded = mapEmbedded.NumElements();
+	for (i = 0; i < iNumEmbedded; i++)
+	{
+		pcEmbedded = *mapEmbedded.Get(i);
+		pcEmbeddedNearesetPointedFrom = pcEmbedded->GetClosestFromToStack();
+
+		if (pcNearesetPointedFrom == NULL)
+		{
+			pcNearesetPointedFrom = pcEmbeddedNearesetPointedFrom;
+		}
+		else
+		{
+			if (pcEmbeddedNearesetPointedFrom != NULL)
+			{
+				if (pcEmbeddedNearesetPointedFrom->GetDistToRoot() < pcNearesetPointedFrom->GetDistToRoot())
+				{
+					pcNearesetPointedFrom = pcEmbeddedNearesetPointedFrom;
+				}
+			}
+		}
+	}
+
+	return (CBaseObject*)pcNearesetPointedFrom;
 }
 
 

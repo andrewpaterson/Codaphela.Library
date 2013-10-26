@@ -1,3 +1,4 @@
+#include "BaseObject.h"
 #include "DistDetachedFroms.h"
 
 
@@ -80,5 +81,25 @@ int CDistDetachedFroms::NumCompletelyDetached(void)
 CBaseObject* CDistDetachedFroms::GetCompletelyDetached(int iIndex)
 {
 	return *mapcCompletelyDetached.Get(iIndex);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CDistDetachedFroms::RemoveCompletelyDetached(int iIndex)
+{
+	mapcCompletelyDetached.RemoveAt(iIndex, FALSE);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CDistDetachedFroms::CopyRootDetachedToCompletelyDetached(void)
+{
+	mapcCompletelyDetached.Copy(&mapcDetachedFromRoot);
 }
 
