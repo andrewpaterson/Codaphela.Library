@@ -52,8 +52,6 @@ public:
 						BOOL			IsRoot(void);
 						BOOL			IsSubRoot(void);
 
-						void			KillAll(void);
-
 						BOOL			Save(CObjectSerialiser* pcFile);
 						BOOL			Load(CObjectDeserialiser* pcFile);
 
