@@ -110,6 +110,7 @@ protected:
 	virtual void				UpdateEmbeddedObjectTosDistToRoot(CDistToRootEffectedFroms* pcEffectedFroms, int iExpectedDist) =0;
 	virtual void				ClearEmbeddedObjectTosUpdatedTosFlags(void) =0;
 	virtual void				UpdateEmbeddedObjectTosDetached(CDistDetachedFroms* pcDetached, CDistToRootEffectedFroms* pcEffectedFroms) =0;
+	virtual void				UpdateEmbeddedObjectTosUnattached(CDistToRootEffectedFroms* pcEffectedFroms) =0;
 };
 
 

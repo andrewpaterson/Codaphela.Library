@@ -168,7 +168,7 @@ int CHollowObject::RemapTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHollowObject::RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged)
+void CHollowObject::RemoveAllTos(void)
 {
 }
 
@@ -191,7 +191,6 @@ void CHollowObject::ClearEmbeddedObjectTosUpdatedTosFlags(void)
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -205,7 +204,16 @@ void CHollowObject::UpdateEmbeddedObjectTosDetached(CDistDetachedFroms* pcDetach
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHollowObject::RemoveEmbeddedObjectAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged)
+void CHollowObject::UpdateEmbeddedObjectTosUnattached(CDistToRootEffectedFroms* pcEffectedFroms)
+{
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CHollowObject::RemoveEmbeddedObjectAllTos(void)
 {
 }
 

@@ -7,17 +7,19 @@
 class CDistCalculator
 {
 private:
-	CDistToRootCalculator		cDistToRootCalculator;
-	CDistToStackCalculator		cDistToStackCalculator;
-
-	CDistDetachedFroms			cDetached;
-	CDistToRootEffectedFroms	cEffectedFroms;
+	CDistToRootCalculator		mcDistToRootCalculator;
+	CDistToStackCalculator		mcDistToStackCalculator;
+	
+	CDistDetachedFroms			mcDetached;
+	CDistToRootEffectedFroms	mcEffectedFroms;
 
 public:
-	void Init(void);
-	void Kill(void);
+	void					Init(void);
+	void					Kill(void);
 
-	void Calculate(CBaseObject* pcFromChanged);
+	CArrayBaseObjectPtr*	Calculate(CBaseObject* pcFromChanged);
 };
+
+
 #endif // __DIST_CALCULATOR_H__
 

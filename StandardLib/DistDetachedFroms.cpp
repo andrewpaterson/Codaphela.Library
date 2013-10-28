@@ -103,3 +103,13 @@ void CDistDetachedFroms::CopyRootDetachedToCompletelyDetached(void)
 	mapcCompletelyDetached.Copy(&mapcDetachedFromRoot);
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CArrayBaseObjectPtr* CDistDetachedFroms::GetCompletelyDetachedArray(void)
+{
+	return &mapcCompletelyDetached;
+}
+

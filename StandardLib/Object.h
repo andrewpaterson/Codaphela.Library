@@ -70,8 +70,8 @@ protected:
 	void				KillDontFree(void);
 	void				KillInternalData(void);
 	void				RemoveTo(CEmbeddedObject* pcTo);
-	void				RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged);
-	void				RemoveEmbeddedObjectAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged);
+	void				RemoveAllTos(void);
+	void				RemoveEmbeddedObjectAllTos(void);
 	void				RemoveAllHeapFroms(void);
 	void				RemoveAllStackFroms(void);
 	CBaseObject*		GetClosestFromToRoot(void);
@@ -90,6 +90,7 @@ protected:
 	void				ValidateEmbeddedObjectTos(void);
 	void				ValidateEmbeddedConsistency(void);
 	BOOL				IsDistToRootValid(void);
+	void				UpdateEmbeddedObjectTosUnattached(CDistToRootEffectedFroms* pcEffectedFroms);
 };
 
 

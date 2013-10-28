@@ -224,3 +224,12 @@ void CHollowEmbeddedObject::UpdateEmbeddedObjectTosDetached(CDistDetachedFroms* 
 {
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CHollowEmbeddedObject::UpdateEmbeddedObjectTosUnattached(CDistToRootEffectedFroms* pcEffectedFroms)
+{
+}
+

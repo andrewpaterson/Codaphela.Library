@@ -139,7 +139,6 @@ protected:
 						BOOL					ClearMemory(void);
 						void					KillDontFreeObjects(CArrayBaseObjectPtr* papcObjectPts);
 						void					FreeObjects(CArrayBaseObjectPtr* papcObjectPts);
-						void					UpdateDistToRootFromSubRoot(CArrayEmbeddedBaseObjectPtr* papcFromsChanged);
 						void					RecurseDumpGraph(CChars* psz, CEmbeddedObject* pcObject, int iLevel, BOOL bEmbedded);
 						void					ValidateSceneGraph(void);
 						void					ValidateIndexedObjects(void);

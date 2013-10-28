@@ -26,16 +26,6 @@ void CDistToRootCalculator::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDistToRootCalculator::AddFromChanged(CBaseObject* pcObject)
-{
-	mpcFromChanged = pcObject;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CDistToRootCalculator::Calculate(void)
 {
 	CDistToRootEffectedFroms	cEffectedFroms;
@@ -65,10 +55,10 @@ void CDistToRootCalculator::Calculate(CDistToRootEffectedFroms* pcEffectedFroms,
 	RemoveDetachedLowest(pcEffectedFroms);
 
 	//Copy the starting from objects into an array so their flags can be fixed later.
-	pcEffectedFroms->MarkLowestFroms();
+	pcEffectedFroms->MarkExpectedDistLowestFroms();
 
 	//For all the starting objects walk the 'tos' and update their 'to' graphs distances to the Root object.
-	UpdateTosDistToRoot(pcEffectedFroms);
+	UpdateAttachedTosDistToRoot(pcEffectedFroms);
 
 	//If the changed from can no longer find the root object then it is detached and it's tos must be detached also,
 	//Unless another from pointing to the 'detached' to can find the Root object.
@@ -76,13 +66,27 @@ void CDistToRootCalculator::Calculate(CDistToRootEffectedFroms* pcEffectedFroms,
 	{
 		mpcFromChanged->UpdateTosDetached(pcDetached, pcEffectedFroms);
 
-		pcEffectedFroms->MarkLowestFroms();
+		pcEffectedFroms->MarkExpectedDistLowestFroms();
 
-		UpdateTosDistToRoot(pcEffectedFroms);
+		UpdateAttachedTosDistToRoot(pcEffectedFroms);
 	}
+
+	pcEffectedFroms->MarkUnattachedLowestFroms();
+
+	UpdateUnattachedTosDistToRoot(pcEffectedFroms);
 
 	pcEffectedFroms->AddChangedFromAsLowest(mpcFromChanged);
 	ClearTosUpdatedTosFlags(pcEffectedFroms);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CDistToRootCalculator::AddFromChanged(CBaseObject* pcObject)
+{
+	mpcFromChanged = pcObject;
 }
 
 
@@ -94,13 +98,17 @@ void CDistToRootCalculator::RemoveDetachedLowest(CDistToRootEffectedFroms* pcEff
 {
 	int				i;
 	CBaseObject*	pcBaseObject;
+	SDistToRoot*	psDistToRoot;
+	int				iNumEffectedFroms;
 
-	for (i = pcEffectedFroms->NumElements()-1; i >= 0; i--)
+	iNumEffectedFroms = pcEffectedFroms->NumExpectedDists();
+	for (i = iNumEffectedFroms-1; i >= 0; i--)
 	{
-		pcBaseObject = pcEffectedFroms->Get(i)->pcObject;
+		psDistToRoot = pcEffectedFroms->GetExpectedDist(i);
+		pcBaseObject = psDistToRoot->pcObject;
 		if (!pcBaseObject->CanFindRoot())
 		{
-			pcEffectedFroms->Remove(i);
+			pcEffectedFroms->RemoveExpectedDist(i);
 		}
 	}
 }
@@ -110,7 +118,7 @@ void CDistToRootCalculator::RemoveDetachedLowest(CDistToRootEffectedFroms* pcEff
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDistToRootCalculator::UpdateTosDistToRoot(CDistToRootEffectedFroms* pcEffectedFroms)
+void CDistToRootCalculator::UpdateAttachedTosDistToRoot(CDistToRootEffectedFroms* pcEffectedFroms)
 {
 	SDistToRoot*			psLowestDistToRoot;
 	CBaseObject*			pcObject;
@@ -122,11 +130,29 @@ void CDistToRootCalculator::UpdateTosDistToRoot(CDistToRootEffectedFroms* pcEffe
 	{
 		iExpectedDist = psLowestDistToRoot->iExpectedDist;
 		pcObject = psLowestDistToRoot->pcObject;
-		pcEffectedFroms->Remove(psLowestDistToRoot);
-
+		pcEffectedFroms->RemoveExpectedDist(psLowestDistToRoot);
 		pcObject->UpdateTosDistToRoot(pcEffectedFroms, iExpectedDist);
 
 		psLowestDistToRoot = pcEffectedFroms->GetLowest();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CDistToRootCalculator::UpdateUnattachedTosDistToRoot(CDistToRootEffectedFroms* pcEffectedFroms)
+{
+	CBaseObject*			pcBaseObject;
+
+	pcBaseObject = pcEffectedFroms->GetUnattached();
+	while (pcBaseObject)
+	{
+		pcEffectedFroms->RemoveUnattached(pcBaseObject);
+		pcBaseObject->UpdateTosUnattached(pcEffectedFroms);
+
+		pcBaseObject = pcEffectedFroms->GetUnattached();
 	}
 }
 

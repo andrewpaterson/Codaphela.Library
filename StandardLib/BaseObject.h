@@ -115,13 +115,13 @@ public:
 			int					GetDistToRoot(void);
 			int					GetDistToStack(void);
 			BOOL				TestedForRoot(void);
-	virtual void				RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged) =0;
-			void				UpdateDistToRootFromPointedFroms(void);
+	virtual void				RemoveAllTos(void) =0;
 			void				UpdateTosDistToRoot(CDistToRootEffectedFroms* pcEffectedFroms, int iExpectedDist);
 			void				ClearTosUpdatedTosFlags(void);
 			void				UnattachDistToRoot(void);
 			void				ClearDistToRootToValidDist(CBaseObject* pcTo, CDistToRootEffectedFroms* pcCalc);
 			void				UpdateTosDetached(CDistDetachedFroms* pcDetached, CDistToRootEffectedFroms* pcEffectedFroms);
+			void				UpdateTosUnattached(CDistToRootEffectedFroms* pcEffectedFroms);
 
 			BOOL				TestedForSanity(void);
 			CObjects*			GetObjects(void);
@@ -153,20 +153,17 @@ protected:
 			void			KillInternalData(void);
 	virtual void			Free(void);
 			int				RemapTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew) =0;
-			BOOL			RemoveToFrom(CEmbeddedObject* pcPointedTo, CArrayEmbeddedBaseObjectPtr* papcFromsChanged);
-	virtual void			RemoveEmbeddedObjectAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged) =0;
+			BOOL			RemoveToFrom(CEmbeddedObject* pcPointedTo);
+	virtual void			RemoveEmbeddedObjectAllTos(void) =0;
 			void			SetExpectedDistToRoot(int iExpectedDistToRoot);
 			void			SetCalculatedDistToRoot(void);
 	virtual void			SetDistToRoot(int iDistToRoot);
 			int				CalculateDistToRootFromPointedFroms(void);
 	virtual int				CalculateDistToRootFromPointedFroms(int iDistToRoot);
-			CBaseObject*	ClearDistToRootForPathToNearestSubRoot(void);
 			void			CollectThoseToBeKilled(CArrayBaseObjectPtr* papcKilled);
 	virtual void			CollectPointedToToBeKilled(CArrayBaseObjectPtr* papcKilled) =0;
 			void			CollectPointedToToBeKilled(CArrayBaseObjectPtr* papcKilled, CBaseObject* pcPointedTo);
 			void			MarkThisForKilling(CArrayBaseObjectPtr* papcKilled);
-			void			KillCollected(CArrayBaseObjectPtr* papcKilled);
-			int				KillThisGraph(void);
 			BOOL			IsBaseObject(void);
 			int				GetNumEmbeddedFromFlags(void);
 			void			SetFlagNumEmbedded(int iNumEmbedded);

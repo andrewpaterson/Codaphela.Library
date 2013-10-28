@@ -16,7 +16,8 @@ public:
 	void AddFromChanged(CBaseObject* pcObject);
 	void Calculate(void);
 	void Calculate(CDistToRootEffectedFroms* pcEffectedFroms, CDistDetachedFroms* pcDetached);
-	void UpdateTosDistToRoot(CDistToRootEffectedFroms* pcEffectedFroms);
+	void UpdateAttachedTosDistToRoot(CDistToRootEffectedFroms* pcEffectedFroms);
+	void UpdateUnattachedTosDistToRoot(CDistToRootEffectedFroms* pcEffectedFroms);
 	void RemoveDetachedLowest(CDistToRootEffectedFroms* pcEffectedFroms);
 	void ClearTosUpdatedTosFlags(CDistToRootEffectedFroms* pcEffectedFroms);
 };

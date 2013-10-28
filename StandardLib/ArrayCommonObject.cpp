@@ -94,50 +94,6 @@ void CArrayCommonObject::RemoveAll(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayCommonObject::KillAll(void)
-{
-	CArrayBaseObjectPtr	apcKilled;
-	CBaseObject*		pcPointedTo;
-	int					i;
-	CBaseObject*		pcContainer;
-	int					iNumElements;
-
-	apcKilled.Init(1024);
-	iNumElements = mcArray.UnsafeNumElements();
-
-	for (i = 0; i < iNumElements; i++)
-	{
-		pcPointedTo = (CBaseObject*)mcArray.UnsafeGet(i);
-		if (pcPointedTo)
-		{
-			pcContainer = pcPointedTo->GetEmbeddingContainer();
-			pcContainer->RemoveAllStackFroms();
-			pcContainer->CollectThoseToBeKilled(&apcKilled);
-		}
-	}
-
-	for (i = 0; i < iNumElements; i++)
-	{
-		pcPointedTo = (CBaseObject*)mcArray.UnsafeGet(i);
-		if (pcPointedTo)
-		{
-			pcContainer = pcPointedTo->GetEmbeddingContainer();
-			pcContainer->RemoveAllHeapFroms();
-		}
-	}
-
-	KillCollected(&apcKilled);
-
-	apcKilled.Kill();
-
-	mcArray.ReInit();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 BOOL CArrayCommonObject::Remove(CBaseObject* pcObject)
 {
 	//This is a test method.
@@ -363,7 +319,7 @@ void CArrayCommonObject::CollectPointedToToBeKilled(CArrayBaseObjectPtr* papcKil
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayCommonObject::RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged)
+void CArrayCommonObject::RemoveAllTos(void)
 {
 	CBaseObject*			pcPointedTo;
 	int						i;
@@ -373,7 +329,7 @@ void CArrayCommonObject::RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChan
 		pcPointedTo = (CBaseObject*)mcArray.UnsafeGet(i);
 		if (pcPointedTo)
 		{
-			RemoveToFrom(pcPointedTo, papcFromsChanged);
+			RemoveToFrom(pcPointedTo);
 		}
 	}
 	mcArray.ReInit();
@@ -401,7 +357,7 @@ void CArrayCommonObject::UpdateEmbeddedObjectTosDistToRoot(CDistToRootEffectedFr
 			if (!pcBaseObject->IsUpdateTosDistToRoot())
 			{
 				pcBaseObject->ClearDistToRoot();
-				pcEffectedFroms->Add(pcBaseObject, iExpectedDist+1);
+				pcEffectedFroms->AddExpectedDist(pcBaseObject, iExpectedDist+1);
 			}
 		}
 	}
@@ -463,9 +419,37 @@ void CArrayCommonObject::UpdateEmbeddedObjectTosDetached(CDistDetachedFroms* pcD
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayCommonObject::RemoveEmbeddedObjectAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged)
+void CArrayCommonObject::UpdateEmbeddedObjectTosUnattached(CDistToRootEffectedFroms* pcEffectedFroms)
 {
-	RemoveAllTos(papcFromsChanged);
+	int					i;
+	CEmbeddedObject*	pcPointedTo;
+	CBaseObject*		pcBaseObject;
+	int					iNumElements;
+
+	iNumElements = mcArray.UnsafeNumElements();
+	for (i = 0; i < iNumElements; i++)
+	{
+		pcPointedTo = (CBaseObject*)mcArray.UnsafeGet(i);
+		if (pcPointedTo)
+		{
+			pcBaseObject = pcPointedTo->GetEmbeddingContainer();
+			if (!pcBaseObject->IsUpdateTosDetached())
+			{
+				pcEffectedFroms->AddUnattached(pcBaseObject);
+				pcBaseObject->UpdateTosUnattached(pcEffectedFroms);
+			}
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CArrayCommonObject::RemoveEmbeddedObjectAllTos(void)
+{
+	RemoveAllTos();
 }
 
 

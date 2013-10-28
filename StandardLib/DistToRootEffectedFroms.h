@@ -20,20 +20,26 @@ class CDistToRootEffectedFroms
 {
 private:
 	CArrayDistToRoot		macExpectedDists;
+	CArrayBaseObjectPtr		mapcUnattched;
 	CArrayBaseObjectPtr		mapcLowestFroms;
 
 public:
 	void					Init(void);
 	void					Kill(void);
 
-	void					Add(CBaseObject* pcObject, int iExpectedDist);
+	void					AddExpectedDist(CBaseObject* pcObject, int iExpectedDist);
+	void					AddUnattached(CBaseObject* pcObject);
 	SDistToRoot*			GetLowest(void);
-	int						NumElements(void);
-	SDistToRoot*			Get(int iIndex);
-	SDistToRoot*			Get(CBaseObject* pcObject);
-	void					Remove(int iIndex);
-	void					Remove(SDistToRoot* psDistToRoot);
-	void					MarkLowestFroms(void);
+	CBaseObject*			GetUnattached(void);
+	int						NumExpectedDists(void);
+	SDistToRoot*			GetExpectedDist(int iIndex);
+	SDistToRoot*			GetExpectedDist(CBaseObject* pcObject);
+	BOOL					ContainsUnattached(CBaseObject* pcObject);
+	void					RemoveExpectedDist(int iIndex);
+	void					RemoveExpectedDist(SDistToRoot* psDistToRoot);
+	void					RemoveUnattached(CBaseObject* pcBaseObject);
+	void					MarkExpectedDistLowestFroms(void);
+	void					MarkUnattachedLowestFroms(void);
 	CArrayBaseObjectPtr*	GetLowestFroms(void);
 	void					AddChangedFromAsLowest(CBaseObject* pcFromChanged);
 };

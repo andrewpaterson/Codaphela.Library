@@ -44,8 +44,6 @@ public:
 	BOOL				Remove(CBaseObject* pcObject);
 	void				RemoveAll(void);
 
-	void				KillAll(void);
-
 	int					NumElements(void);
 	int					NonNullElements(void);
 
@@ -58,7 +56,7 @@ public:
 	void				GetTos(CArrayEmbeddedObjectPtr* papcTos);
 	void				UnsafeGetEmbeddedObjectTos(CArrayEmbeddedObjectPtr* papcTos);
 	BOOL				ContainsTo(CEmbeddedObject* pcEmbedded);
-	void				RemoveAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged);
+	void				RemoveAllTos(void);
 
 	BOOL				Save(CObjectSerialiser* pcFile);
 	BOOL				Load(CObjectDeserialiser* pcFile);
@@ -74,13 +72,14 @@ protected:
 	void	KillInternalData(void);
 	void	KillData(void);
 	void	RemoveTo(CEmbeddedObject* pcTo);
-	void	RemoveEmbeddedObjectAllTos(CArrayEmbeddedBaseObjectPtr* papcFromsChanged);
+	void	RemoveEmbeddedObjectAllTos(void);
 	int		RemapTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew);
 	void	CollectPointedToToBeKilled(CArrayBaseObjectPtr* papcKilled);
 	void	SetPointedTosDistToRoot(int iDistToRoot);
 	void	UpdateEmbeddedObjectTosDistToRoot(CDistToRootEffectedFroms* pcEffectedFroms, int iExpectedDist);
 	void	ClearEmbeddedObjectTosUpdatedTosFlags(void);
 	void	UpdateEmbeddedObjectTosDetached(CDistDetachedFroms* pcDetached, CDistToRootEffectedFroms* pcEffectedFroms);
+	void	UpdateEmbeddedObjectTosUnattached(CDistToRootEffectedFroms* pcEffectedFroms);
 };
 
 

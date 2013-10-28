@@ -1020,13 +1020,11 @@ BOOL CObjects::Remove(CArrayBaseObjectPtr* papcKilled)
 	int								i;
 	int								iNumElements;
 	CBaseObject*					pcKilled;
-	CArrayEmbeddedBaseObjectPtr		apcFromsChanged;
 	CBaseObject*					pcContainer;
 
 	//No embedded objects should be in the list papcKilled.
 
 	iNumElements = papcKilled->NumElements();
-	apcFromsChanged.Init();
 
 	for (i = 0; i < iNumElements; i++)
 	{
@@ -1037,66 +1035,18 @@ BOOL CObjects::Remove(CArrayBaseObjectPtr* papcKilled)
 			gcLogger.Error2(__METHOD__, " Object of class [", pcKilled->ClassName(), "] is marked for killing but is embedded in object with index [", IndexToString(pcContainer->GetOI()),"] of class [", pcContainer->ClassName(), "].", NULL);
 			return FALSE;
 		}
-		pcKilled->RemoveAllTos(&apcFromsChanged);  //Does not kill anything.
+	}
+
+	for (i = 0; i < iNumElements; i++)
+	{
+		pcKilled = *papcKilled->Get(i);
+		pcKilled->RemoveAllTos();
 	}
 
 	KillDontFreeObjects(papcKilled);
 	FreeObjects(papcKilled);
 
-	UpdateDistToRootFromSubRoot(&apcFromsChanged);
-
-	apcFromsChanged.Kill();
 	return TRUE;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CObjects::UpdateDistToRootFromSubRoot(CArrayEmbeddedBaseObjectPtr* papcFromsChanged)
-{
-	int								i;
-	int								iNumElements;
-	CBaseObject*					pcSubRoot;
-	CBaseObject*					pcFromsChanged;
-	CArrayEmbeddedBaseObjectPtr		apcSubRoots;
-	int								iNumSubRoots;
-	CBaseObject*					pcContainer;
-
-	apcSubRoots.Init();
-	iNumElements = papcFromsChanged->NumElements();
-	for (i = 0; i < iNumElements; i++)
-	{
-		pcFromsChanged = *papcFromsChanged->Get(i);
-		pcContainer = pcFromsChanged->GetEmbeddingContainer();
-		pcSubRoot = pcContainer->ClearDistToRootForPathToNearestSubRoot();
-		if (pcSubRoot)
-		{
-			apcSubRoots.Add(&pcSubRoot);
-		}
-	}
-
-	iNumSubRoots = apcSubRoots.NumElements();
-	for (i = 0; i < iNumSubRoots; i++)
-	{
-		pcSubRoot = *apcSubRoots.Get(i);
-		pcSubRoot->UpdateDistToRootFromPointedFroms();
-	}
-
-	apcSubRoots.Kill();
-
-	//Deal with all the objects that have no path back to the root.
-	//Only the immediate object should be wrong (left as cleared).
-	for (i = 0; i < iNumElements; i++)
-	{
-		pcFromsChanged = *papcFromsChanged->Get(i);
-		pcContainer = pcFromsChanged->GetEmbeddingContainer();
-		if (pcContainer->miDistToRoot == CLEARED_DIST_TO_ROOT)
-		{
-			pcContainer->UnattachDistToRoot();
-		}
-	}
 }
 
 

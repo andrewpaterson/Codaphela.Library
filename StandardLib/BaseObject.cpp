@@ -22,6 +22,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "ObjectSerialiser.h"
 #include "ObjectDeserialiser.h"
 #include "Objects.h"
+#include "DistCalculator.h"
 #include "BaseObject.h"
 
 
@@ -76,32 +77,22 @@ void CBaseObject::Class(void)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::Kill(void)
 {
-	CArrayEmbeddedBaseObjectPtr		apcFromsChanged;
-	int								iNumKilled;
-	int								iNumFroms;
-	//This method is for the user to forcibly kill an object.
-	//It is not called internally.  KillThisGraph is method used to free objects that are unattached.
+	CDistCalculator			cDistCalculator;
+	CArrayBaseObjectPtr*	papcKilled;
 
-	//This does NOT call CUnknown::Kill.  That is handled elsewhere.
+	//This method is for the user to forcibly kill an object.
+	//It is not called internally.
 
 	ValidateNotEmbedded(__METHOD__);
 
 	RemoveAllStackFroms();
-	
-	iNumFroms = NumHeapFroms();
-	if (iNumFroms == 0)
-	{
-		apcFromsChanged.Init();
-		RemoveAllTos(&apcFromsChanged);
-		mpcObjectsThisIn->UpdateDistToRootFromSubRoot(&apcFromsChanged);
-		apcFromsChanged.Kill();
-	}
-	else
-	{
-		RemoveAllHeapFroms();
-	}
+	RemoveAllHeapFroms();
 
-	iNumKilled = KillThisGraph();
+	cDistCalculator.Init();
+	papcKilled = cDistCalculator.Calculate(this);
+
+	mpcObjectsThisIn->Remove(papcKilled);
+	cDistCalculator.Kill();
 
 	mpcObjectsThisIn->ValidateConsistency();
 }
@@ -165,21 +156,36 @@ void CBaseObject::ClearDistToRootToValidDist(CBaseObject* pcTo, CDistToRootEffec
 	CBaseObject*					pcFrom;
 	CBaseObject*					pcContainer;
 
+	if (IsRoot())
+	{
+		return;
+	}
+
 	if (!IsDistToRootValid())
 	{
 		ClearDistToRoot();
 		SetFlag(OBJECT_FLAGS_CLEARED_TO_ROOT, TRUE);
 
 		apcFroms.Init();
-		GetHeapFroms(&apcFroms);
+		GetHeapFroms(&apcFroms);  //This needs optimisation.
 
-		for (i = 0; i < apcFroms.NumElements(); i ++)
+		if (apcFroms.NumElements() > 0)
 		{
-			pcFrom = *apcFroms.Get(i);
-			pcContainer = pcFrom->GetEmbeddingContainer();
-			if (!(pcContainer->miFlags & OBJECT_FLAGS_CLEARED_TO_ROOT))
+			for (i = 0; i < apcFroms.NumElements(); i ++)
 			{
-				pcContainer->ClearDistToRootToValidDist(this, pcCalc);
+				pcFrom = *apcFroms.Get(i);
+				pcContainer = pcFrom->GetEmbeddingContainer();
+				if (!(pcContainer->miFlags & OBJECT_FLAGS_CLEARED_TO_ROOT))
+				{
+					pcContainer->ClearDistToRootToValidDist(this, pcCalc);
+				}
+			}
+		}
+		else
+		{
+			if (HasStackPointers())
+			{
+				pcCalc->AddUnattached(this);
 			}
 		}
 
@@ -191,7 +197,7 @@ void CBaseObject::ClearDistToRootToValidDist(CBaseObject* pcTo, CDistToRootEffec
 	{
 		if (pcTo != NULL)
 		{
-			pcCalc->Add(pcTo, miDistToRoot+1);
+			pcCalc->AddExpectedDist(pcTo, miDistToRoot+1);
 		}
 	}
 }
@@ -233,82 +239,41 @@ void CBaseObject::TryKill(BOOL bKillIfNoRoot)
 {
 	ValidateNotEmbedded(__METHOD__);
 
-	BOOL			bHasStackPointers;
-	BOOL			bHasHeapPointers;
-	BOOL			bCanFindRoot;
-	BOOL			bMustKill;
+	BOOL					bHasStackPointers;
+	BOOL					bHasHeapPointers;
+	BOOL					bMustKill;
+	CDistCalculator			cDistCalculator;
+	CArrayBaseObjectPtr*	papcKilled;
+
+	if (IsRoot())
+	{
+		return;
+	}
 
 	if (bKillIfNoRoot)
 	{
-		bHasStackPointers = HasStackPointers();
-		bCanFindRoot = CanFindRoot();
+		cDistCalculator.Init();
+		papcKilled = cDistCalculator.Calculate(this);
 
-		//If we removed a heap pointer and have no stack pointers and cannot find the root
-		bMustKill = !bCanFindRoot && !bHasStackPointers;
-		if (bMustKill)
-		{
-			//then we can kill this object.
-			KillThisGraph();
-		}
-		else if (bCanFindRoot)
-		{
-			UpdateDistToRootFromPointedFroms();
-		}
-		else if (bHasStackPointers)
-		{
-			ClearDistToRootForPathToNearestSubRoot();
-			UnattachDistToRoot();
-		}
+		mpcObjectsThisIn->Remove(papcKilled);
+		cDistCalculator.Kill();
 	}
 	else
 	{
+		cDistCalculator.Init();
+		papcKilled = cDistCalculator.Calculate(this);
+
 		bHasHeapPointers = HasHeapPointers();
 		bHasStackPointers = HasStackPointers();
-		bCanFindRoot = IsRoot();
 
 		//If we removed a stack pointer and have no more stack pointers and have no heap pointers (regardless of whether or not they can find the root)
-		bMustKill = !bHasHeapPointers && !bHasStackPointers && !bCanFindRoot;
+		bMustKill = !bHasHeapPointers && !bHasStackPointers;
 		if (bMustKill)
 		{
-			//then we can kill this object.
-			KillThisGraph();
+			mpcObjectsThisIn->Remove(papcKilled);
 		}
 
-		//If we still have heap pointers but no stack pointers and we can't find the root then this object is still being initialised 
-		//and should not be killed.
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-int CBaseObject::KillThisGraph(void)
-{
-	CArrayBaseObjectPtr		apcKilled;
-	int						iNumKilled;
-
-	//This method will never be called on an embedded object.
-	//ie: Only the containing object can KillThisGraph.
-
-	//This method will only be called on an object that cannot find the root.
-	//If an object is being forcibly killed then it's tos and froms will have already been removed.
-
-	if (mpcObjectsThisIn)
-	{
-		apcKilled.Init(1024);
-
-		CollectThoseToBeKilled(&apcKilled);
-		KillCollected(&apcKilled);
-
-		iNumKilled = apcKilled.NumElements();
-		apcKilled.Kill();
-		return iNumKilled;
-	}
-	else
-	{
-		return 0;
+		cDistCalculator.Kill();
 	}
 }
 
@@ -377,72 +342,9 @@ void CBaseObject::CollectThoseToBeKilled(CArrayBaseObjectPtr* papcKilled)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::KillCollected(CArrayBaseObjectPtr* papcKilled)
-{
-	mpcObjectsThisIn->Remove(papcKilled);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CBaseObject::ClearDistToRoot(void)
 {
 	miDistToRoot = CLEARED_DIST_TO_ROOT;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CBaseObject* CBaseObject::ClearDistToRootForPathToNearestSubRoot(void)
-{
-	//The object returned here is always the object immediately below the sub-root, not the sub-root itself.
-	ValidateNotEmbedded(__METHOD__);
-
-	int								i;
-	int								iNumFroms;
-	CBaseObject**					ppcPointedFrom;
-	CBaseObject*					pcPointedFrom;
-	CBaseObject*					pcRootSet;
-	CBaseObject*					pcTemp;
-	CArrayEmbeddedBaseObjectPtr		apcFroms;
-	CBaseObject*					pcContainer;
-
-	ClearDistToRoot();
-	
-	pcRootSet = NULL;
-
-	apcFroms.Init();
-	GetHeapFroms(&apcFroms);
-	iNumFroms = apcFroms.NumElements();
-	ppcPointedFrom = apcFroms.GetData();
-	for (i = 0; i < iNumFroms; i++)
-	{
-		pcPointedFrom = ppcPointedFrom[i];
-		if (pcPointedFrom->miDistToRoot >= ROOT_DIST_TO_ROOT)
-		{
-			if (pcPointedFrom->IsSubRoot())
-			{
-				//No point in stepping back to the sub root.  It's root distance is always correct.
-				//Stop at the object immediately pointed from the sub root.
-				apcFroms.Kill();
-				return this;
-			}
-
-			pcContainer = pcPointedFrom->GetEmbeddingContainer();
-			pcTemp = pcContainer->ClearDistToRootForPathToNearestSubRoot();
-			if (pcTemp != NULL)
-			{
-				pcRootSet = pcTemp;
-			}
-		}
-	}
-
-	apcFroms.Kill();
-	return pcRootSet;
 }
 
 
@@ -606,24 +508,6 @@ int CBaseObject::CalculateDistToRootFromPointedFroms(int iDistToRoot)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::UpdateDistToRootFromPointedFroms(void)
-{
-	ValidateNotEmbedded(__METHOD__);
-
-	int	iNearestRoot;
-
-	iNearestRoot = CalculateDistToRootFromPointedFroms();
-	if (iNearestRoot != UNATTACHED_DIST_TO_ROOT)
-	{
-		SetDistToRootAndSetPointedTosExpectedDistToRoot(iNearestRoot);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CBaseObject::UpdateTosDistToRoot(CDistToRootEffectedFroms* pcEffectedFroms, int iExpectedDist)
 {
 	ValidateNotEmbedded(__METHOD__);
@@ -657,6 +541,7 @@ void CBaseObject::UpdateTosDetached(CDistDetachedFroms* pcDetached, CDistToRootE
 	ValidateNotEmbedded(__METHOD__);
 
 	CEmbeddedObject*	pcClosestFrom;
+	int					iClosestDistToRoot;
 
 	SetFlag(OBJECT_FLAGS_UPDATED_TOS_DETACHED, TRUE);
 
@@ -677,11 +562,31 @@ void CBaseObject::UpdateTosDetached(CDistDetachedFroms* pcDetached, CDistToRootE
 		pcClosestFrom = GetClosestFromToRoot();
 		if (pcClosestFrom)
 		{
-			pcEffectedFroms->Add(this, pcClosestFrom->GetDistToRoot()+1);
+			iClosestDistToRoot = pcClosestFrom->GetDistToRoot();
+			pcEffectedFroms->AddExpectedDist(this, iClosestDistToRoot+1);
 		}
 	}
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CBaseObject::UpdateTosUnattached(CDistToRootEffectedFroms* pcEffectedFroms)
+{
+	ValidateNotEmbedded(__METHOD__);
+
+	if ((miDistToRoot >= ROOT_DIST_TO_ROOT) || (miDistToRoot == UNATTACHED_DIST_TO_ROOT))
+	{
+		return;
+	}
+
+	SetFlag(OBJECT_FLAGS_UPDATED_TOS_DETACHED, TRUE);
+	UnattachDistToRoot();
+
+	UpdateEmbeddedObjectTosUnattached(pcEffectedFroms);
+}
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -718,7 +623,7 @@ void CBaseObject::UnattachDistToRoot(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CBaseObject::RemoveToFrom(CEmbeddedObject* pcPointedTo, CArrayEmbeddedBaseObjectPtr* papcFromsChanged)
+BOOL CBaseObject::RemoveToFrom(CEmbeddedObject* pcPointedTo)
 {
 	CBaseObject*	pcBaseObject;
 
@@ -727,11 +632,7 @@ BOOL CBaseObject::RemoveToFrom(CEmbeddedObject* pcPointedTo, CArrayEmbeddedBaseO
 		if (pcPointedTo->IsBaseObject())
 		{
 			pcBaseObject = (CBaseObject*)pcPointedTo;
-			if (pcBaseObject->miDistToRoot >= ROOT_DIST_TO_ROOT)
-			{
-				pcBaseObject->PrivateRemoveHeapFrom(this);
-				papcFromsChanged->Add(&pcBaseObject);
-			}
+			pcBaseObject->PrivateRemoveHeapFrom(this);  //If the object pointed to us is also being killed then we needed remove our from from it.
 		}
 		return TRUE;
 	}
