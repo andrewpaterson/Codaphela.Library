@@ -471,6 +471,7 @@ void CBaseObject::UpdateTosDistToRoot(CDistCalculatorParameters* pcParameters)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::UpdateTosDetached(CDistCalculatorParameters* pcParameters)
 {
+	//This function is called recursively.  And I suspect it is incorrect.
 	ValidateNotEmbedded(__METHOD__);
 
 	CEmbeddedObject*	pcClosestFrom;
@@ -516,7 +517,7 @@ void CBaseObject::UpdateTosUnattached(CDistCalculatorParameters* pcParameters)
 	}
 
 	SetFlag(OBJECT_FLAGS_UPDATED_TOS_DETACHED, TRUE);
-	UnattachDistToRoot();
+	SetDistToRoot(UNATTACHED_DIST_TO_ROOT);
 
 	UpdateEmbeddedObjectTosUnattached(pcParameters);
 }
@@ -596,18 +597,6 @@ void CBaseObject::ClearTosFlagsFromLowest(void)
 	SetFlag(OBJECT_FLAGS_UPDATED_TOS_DIST_TO_ROOT | OBJECT_FLAGS_UPDATED_TOS_DETACHED, FALSE);
 
 	ClearEmbeddedObjectTosUpdatedTosFlags();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CBaseObject::UnattachDistToRoot(void)
-{
-	ValidateNotEmbedded(__METHOD__);
-
-	SetDistToRootAndSetPointedTosExpectedDistToRoot(UNATTACHED_DIST_TO_ROOT);
 }
 
 

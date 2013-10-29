@@ -117,7 +117,6 @@ public:
 			BOOL				TestedForRoot(void);
 	virtual void				RemoveAllTos(void) =0;
 			void				UpdateTosDistToRoot(CDistCalculatorParameters* pcParametersUpdateTosUnattached);
-			void				UnattachDistToRoot(void);
 			void				CollectStartingObjectsAndSetClearedToRoot(CBaseObject* pcTo, CDistCalculatorParameters* pcCalc);
 
 			void				ClearTosFlagsFromLowest(void);
