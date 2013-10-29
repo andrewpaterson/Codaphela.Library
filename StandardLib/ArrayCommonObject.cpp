@@ -382,7 +382,7 @@ void CArrayCommonObject::ClearEmbeddedObjectTosUpdatedTosFlags(void)
 		if (pcPointedTo)
 		{
 			pcBaseObject = pcPointedTo->GetEmbeddingContainer();
-			pcBaseObject->ClearTosUpdatedTosFlags();
+			pcBaseObject->ClearTosFlagsFromLowest();
 		}
 	}
 }
@@ -423,22 +423,13 @@ void CArrayCommonObject::UpdateEmbeddedObjectTosUnattached(CDistCalculatorParame
 {
 	int					i;
 	CEmbeddedObject*	pcPointedTo;
-	CBaseObject*		pcBaseObject;
 	int					iNumElements;
 
 	iNumElements = mcArray.UnsafeNumElements();
 	for (i = 0; i < iNumElements; i++)
 	{
 		pcPointedTo = (CBaseObject*)mcArray.UnsafeGet(i);
-		if (pcPointedTo)
-		{
-			pcBaseObject = pcPointedTo->GetEmbeddingContainer();
-			if (!pcBaseObject->IsUpdateTosDetached())
-			{
-				pcParameters->AddUnattached(pcBaseObject);
-				pcBaseObject->UpdateTosUnattached(pcParameters);
-			}
-		}
+		AddUnattachedIfDetachedTosUpdated(pcPointedTo, pcParameters);
 	}
 }
 

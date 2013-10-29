@@ -585,7 +585,26 @@ void CBaseObject::UpdateTosUnattached(CDistCalculatorParameters* pcParameters)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::ClearTosUpdatedTosFlags(void)
+void CBaseObject::AddUnattachedIfDetachedTosUpdated(CEmbeddedObject* pcPointedTo, CDistCalculatorParameters* pcParameters)
+{
+	CBaseObject*		pcBaseObject;
+
+	if (pcPointedTo)
+	{
+		pcBaseObject = pcPointedTo->GetEmbeddingContainer();
+		if (!pcBaseObject->IsUpdateTosDetached())
+		{
+			pcParameters->AddUnattached(pcBaseObject);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CBaseObject::ClearTosFlagsFromLowest(void)
 {
 	ValidateNotEmbedded(__METHOD__);
 

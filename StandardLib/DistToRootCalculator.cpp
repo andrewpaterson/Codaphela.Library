@@ -167,7 +167,7 @@ void CDistToRootCalculator::ClearTosFlagsFromLowest(CDistCalculatorParameters* p
 	for (i = 0; i < papcLowestFroms->NumElements(); i++)
 	{
 		pcObject = *papcLowestFroms->Get(i);
-		pcObject->ClearTosUpdatedTosFlags();
+		pcObject->ClearTosFlagsFromLowest();
 	}
 }
 
