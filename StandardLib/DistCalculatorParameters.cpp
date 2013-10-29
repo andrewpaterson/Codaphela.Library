@@ -36,6 +36,8 @@ void CDistCalculatorParameters::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CDistCalculatorParameters::AddExpectedDist(CBaseObject* pcObject, int iExpectedDist)
 {
+	//This method is never called with an iExpectedDist less than ROOT_DIST_TO_ROOT
+
 	SDistToRoot*	psDistToRoot;
 
 	psDistToRoot = GetExpectedDist(pcObject);
@@ -157,9 +159,29 @@ CBaseObject* CDistCalculatorParameters::GetUnattached(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+CBaseObject* CDistCalculatorParameters::GetUnattached(int iIndex)
+{
+	return *mapcUnattched.Get(iIndex);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 int CDistCalculatorParameters::NumExpectedDists(void)
 {
 	return macExpectedDists.NumElements();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CDistCalculatorParameters::NumUnattached(void)
+{
+	return mapcUnattched.NumElements();
 }
 
 

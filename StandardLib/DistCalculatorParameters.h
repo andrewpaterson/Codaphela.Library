@@ -33,7 +33,9 @@ public:
 	void					AddUnattached(CBaseObject* pcObject);
 	SDistToRoot*			GetLowest(void);
 	CBaseObject*			GetUnattached(void);
+	CBaseObject*			GetUnattached(int iIndex);
 	int						NumExpectedDists(void);
+	int						NumUnattached(void);
 	SDistToRoot*			GetExpectedDist(int iIndex);
 	SDistToRoot*			GetExpectedDist(CBaseObject* pcObject);
 	BOOL					ContainsUnattached(CBaseObject* pcObject);
