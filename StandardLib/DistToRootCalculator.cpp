@@ -49,7 +49,7 @@ void CDistToRootCalculator::Calculate(CDistToRootEffectedFroms* pcEffectedFroms,
 {
 	//Check if the "FromChanged" object has any froms pointing to it that can still find the Root object.
 	//If they can add those froms pointing to it objects to an array of objects to start from.
-	mpcFromChanged->ClearDistToRootToValidDist(NULL, pcEffectedFroms);
+	mpcFromChanged->CollectStartingObjects(NULL, pcEffectedFroms);
 
 	//Cyclic dependencies will cause lowest pointers to be incorrectly added.  Remove them.
 	RemoveDetachedLowest(pcEffectedFroms);
@@ -122,16 +122,14 @@ void CDistToRootCalculator::UpdateAttachedTosDistToRoot(CDistToRootEffectedFroms
 {
 	SDistToRoot*			psLowestDistToRoot;
 	CBaseObject*			pcObject;
-	int						iExpectedDist;
 
 	//This is probably really slow.
 	psLowestDistToRoot = pcEffectedFroms->GetLowest();
 	while (psLowestDistToRoot)
 	{
-		iExpectedDist = psLowestDistToRoot->iExpectedDist;
 		pcObject = psLowestDistToRoot->pcObject;
 		pcEffectedFroms->RemoveExpectedDist(psLowestDistToRoot);
-		pcObject->UpdateTosDistToRoot(pcEffectedFroms, iExpectedDist);
+		pcObject->UpdateTosDistToRoot(pcEffectedFroms);
 
 		psLowestDistToRoot = pcEffectedFroms->GetLowest();
 	}

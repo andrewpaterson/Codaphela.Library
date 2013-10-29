@@ -145,7 +145,7 @@ void CBaseObject::KillInternalData(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::ClearDistToRootToValidDist(CBaseObject* pcTo, CDistToRootEffectedFroms* pcCalc)
+void CBaseObject::CollectStartingObjects(CBaseObject* pcTo, CDistToRootEffectedFroms* pcCalc)
 {
 	//It is assumed at this point that all the tos and froms have been updated.
 
@@ -177,7 +177,7 @@ void CBaseObject::ClearDistToRootToValidDist(CBaseObject* pcTo, CDistToRootEffec
 				pcContainer = pcFrom->GetEmbeddingContainer();
 				if (!(pcContainer->miFlags & OBJECT_FLAGS_CLEARED_TO_ROOT))
 				{
-					pcContainer->ClearDistToRootToValidDist(this, pcCalc);
+					pcContainer->CollectStartingObjects(this, pcCalc);
 				}
 			}
 		}
@@ -508,7 +508,7 @@ int CBaseObject::CalculateDistToRootFromPointedFroms(int iDistToRoot)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::UpdateTosDistToRoot(CDistToRootEffectedFroms* pcEffectedFroms, int iExpectedDist)
+void CBaseObject::UpdateTosDistToRoot(CDistToRootEffectedFroms* pcEffectedFroms)
 {
 	ValidateNotEmbedded(__METHOD__);
 
@@ -516,19 +516,12 @@ void CBaseObject::UpdateTosDistToRoot(CDistToRootEffectedFroms* pcEffectedFroms,
 	int					iClosestToRoot;
 
 	pcClosestToRoot = GetClosestFromToRoot();
-	if (pcClosestToRoot)
-	{
-		iClosestToRoot = pcClosestToRoot->GetDistToRoot()+1;
-		if (iClosestToRoot < iExpectedDist)
-		{
-			iExpectedDist = iClosestToRoot;
-		}
-	}
+	iClosestToRoot = pcClosestToRoot->GetDistToRoot()+1;
 
-	SetDistToRoot(iExpectedDist);
+	SetDistToRoot(iClosestToRoot);
 	SetFlag(OBJECT_FLAGS_UPDATED_TOS_DIST_TO_ROOT, TRUE);
 
-	UpdateEmbeddedObjectTosDistToRoot(pcEffectedFroms, iExpectedDist);
+	UpdateEmbeddedObjectTosDistToRoot(pcEffectedFroms, iClosestToRoot);
 }
 
 

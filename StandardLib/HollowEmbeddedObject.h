@@ -13,6 +13,7 @@ public:
 	BOOL				Save(CObjectSerialiser* pcFile);
 	BOOL				Load(CObjectDeserialiser* pcFile);
 	void				RemoveTo(CEmbeddedObject* pcTo);
+	int					GetDistToStack(void);
 	int					GetDistToRoot(void);
 	void				SetDistToRootAndSetPointedTosExpectedDistToRoot(int iDistToRoot);
 	int					GetNumEmbedded(void);

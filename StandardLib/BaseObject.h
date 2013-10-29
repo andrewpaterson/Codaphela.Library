@@ -116,10 +116,10 @@ public:
 			int					GetDistToStack(void);
 			BOOL				TestedForRoot(void);
 	virtual void				RemoveAllTos(void) =0;
-			void				UpdateTosDistToRoot(CDistToRootEffectedFroms* pcEffectedFroms, int iExpectedDist);
+			void				UpdateTosDistToRoot(CDistToRootEffectedFroms* pcEffectedFroms);
 			void				ClearTosUpdatedTosFlags(void);
 			void				UnattachDistToRoot(void);
-			void				ClearDistToRootToValidDist(CBaseObject* pcTo, CDistToRootEffectedFroms* pcCalc);
+			void				CollectStartingObjects(CBaseObject* pcTo, CDistToRootEffectedFroms* pcCalc);
 			void				UpdateTosDetached(CDistDetachedFroms* pcDetached, CDistToRootEffectedFroms* pcEffectedFroms);
 			void				UpdateTosUnattached(CDistToRootEffectedFroms* pcEffectedFroms);
 
