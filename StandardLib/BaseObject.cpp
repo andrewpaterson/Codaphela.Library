@@ -581,6 +581,7 @@ void CBaseObject::UpdateTosUnattached(CDistCalculatorParameters* pcParameters)
 	UpdateEmbeddedObjectTosUnattached(pcParameters);
 }
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -595,6 +596,25 @@ void CBaseObject::AddUnattachedIfDetachedTosUpdated(CEmbeddedObject* pcPointedTo
 		if (!pcBaseObject->IsUpdateTosDetached())
 		{
 			pcParameters->AddUnattached(pcBaseObject);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CBaseObject::UpdateTosDetached(CEmbeddedObject* pcPointedTo, CDistCalculatorParameters* pcParameters)
+{
+	CBaseObject*		pcBaseObject;
+
+	if (pcPointedTo)
+	{
+		pcBaseObject = pcPointedTo->GetEmbeddingContainer();
+		if (!pcBaseObject->IsUpdateTosDetached())
+		{
+			pcBaseObject->UpdateTosDetached(pcParameters);
 		}
 	}
 }

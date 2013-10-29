@@ -123,6 +123,7 @@ public:
 			void				UpdateTosDetached(CDistCalculatorParameters* pcParameters);
 			void				UpdateTosUnattached(CDistCalculatorParameters* pcParameters);
 			void				AddUnattachedIfDetachedTosUpdated(CEmbeddedObject* pcPointedTo, CDistCalculatorParameters* pcParameters);
+			void				UpdateTosDetached(CEmbeddedObject* pcPointedTo, CDistCalculatorParameters* pcParameters);
 
 			BOOL				TestedForSanity(void);
 			CObjects*			GetObjects(void);

@@ -666,21 +666,13 @@ void CObject::UpdateEmbeddedObjectTosDetached(CDistCalculatorParameters* pcParam
 	int					iNumPointers;
 	CPointer**			ppPointer;
 	CEmbeddedObject*	pcPointedTo;
-	CBaseObject*		pcBaseObject;
 
 	iNumPointers = mapPointers.NumElements();
 	for (i = 0; i < iNumPointers; i++)
 	{
 		ppPointer = mapPointers.Get(i);
 		pcPointedTo = (*ppPointer)->Object();
-		if (pcPointedTo)
-		{
-			pcBaseObject = pcPointedTo->GetEmbeddingContainer();
-			if (!pcBaseObject->IsUpdateTosDetached())
-			{
-				pcBaseObject->UpdateTosDetached(pcParameters);
-			}
-		}
+		UpdateTosDetached(pcPointedTo, pcParameters);
 	}
 
 	iNumEmbedded = mapEmbedded.NumElements();

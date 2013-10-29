@@ -76,6 +76,7 @@ protected:
 	int		RemapTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew);
 	void	CollectPointedToToBeKilled(CArrayBaseObjectPtr* papcKilled);
 	void	SetPointedTosDistToRoot(int iDistToRoot);
+
 	void	UpdateEmbeddedObjectTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist);
 	void	ClearEmbeddedObjectTosUpdatedTosFlags(void);
 	void	UpdateEmbeddedObjectTosDetached(CDistCalculatorParameters* pcParameters);
