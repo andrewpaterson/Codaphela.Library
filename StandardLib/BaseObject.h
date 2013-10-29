@@ -117,13 +117,16 @@ public:
 			BOOL				TestedForRoot(void);
 	virtual void				RemoveAllTos(void) =0;
 			void				UpdateTosDistToRoot(CDistCalculatorParameters* pcParametersUpdateTosUnattached);
-			void				ClearTosFlagsFromLowest(void);
 			void				UnattachDistToRoot(void);
 			void				CollectStartingObjectsAndSetClearedToRoot(CBaseObject* pcTo, CDistCalculatorParameters* pcCalc);
+
+			void				ClearTosFlagsFromLowest(void);
 			void				UpdateTosDetached(CDistCalculatorParameters* pcParameters);
 			void				UpdateTosUnattached(CDistCalculatorParameters* pcParameters);
+
 			void				AddUnattachedIfDetachedTosUpdated(CEmbeddedObject* pcPointedTo, CDistCalculatorParameters* pcParameters);
 			void				UpdateTosDetached(CEmbeddedObject* pcPointedTo, CDistCalculatorParameters* pcParameters);
+			void				AddExpectedDistToRoot(CEmbeddedObject* pcPointedTo, int iExpectedDist, CDistCalculatorParameters* pcParameters);
 
 			BOOL				TestedForSanity(void);
 			CObjects*			GetObjects(void);
@@ -152,22 +155,22 @@ public:
 			void				ValidateBaseObjectDetail(void);
 	
 protected:
-			void			KillInternalData(void);
-	virtual void			Free(void);
-			int				RemapTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew) =0;
-			BOOL			RemoveToFrom(CEmbeddedObject* pcPointedTo);
-	virtual void			RemoveEmbeddedObjectAllTos(void) =0;
-			void			SetExpectedDistToRoot(int iExpectedDistToRoot);
-			void			SetCalculatedDistToRoot(void);
-	virtual void			SetDistToRoot(int iDistToRoot);
-			int				CalculateDistToRootFromPointedFroms(void);
-	virtual int				CalculateDistToRootFromPointedFroms(int iDistToRoot);
-			void			CollectThoseToBeKilled(CArrayBaseObjectPtr* papcKilled);
-			BOOL			IsBaseObject(void);
-			int				GetNumEmbeddedFromFlags(void);
-			void			SetFlagNumEmbedded(int iNumEmbedded);
-			BOOL			IsMarkedUnreachable(void);
-	virtual BOOL			IsDistToRootValid(void);
+			void				KillInternalData(void);
+	virtual void				Free(void);
+			int					RemapTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew) =0;
+			BOOL				RemoveToFrom(CEmbeddedObject* pcPointedTo);
+	virtual void				RemoveEmbeddedObjectAllTos(void) =0;
+			void				SetExpectedDistToRoot(int iExpectedDistToRoot);
+			void				SetCalculatedDistToRoot(void);
+	virtual void				SetDistToRoot(int iDistToRoot);
+			int					CalculateDistToRootFromPointedFroms(void);
+	virtual int					CalculateDistToRootFromPointedFroms(int iDistToRoot);
+			void				CollectThoseToBeKilled(CArrayBaseObjectPtr* papcKilled);
+			BOOL				IsBaseObject(void);
+			int					GetNumEmbeddedFromFlags(void);
+			void				SetFlagNumEmbedded(int iNumEmbedded);
+			BOOL				IsMarkedUnreachable(void);
+	virtual BOOL				IsDistToRootValid(void);
 };
 
 

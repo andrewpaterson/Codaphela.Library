@@ -599,22 +599,13 @@ void CObject::UpdateEmbeddedObjectTosDistToRoot(CDistCalculatorParameters* pcPar
 	int					iNumPointers;
 	CPointer**			ppPointer;
 	CEmbeddedObject*	pcPointedTo;
-	CBaseObject*		pcBaseObject;
 
 	iNumPointers = mapPointers.NumElements();
 	for (i = 0; i < iNumPointers; i++)
 	{
 		ppPointer = mapPointers.Get(i);
 		pcPointedTo = (*ppPointer)->Object();
-		if (pcPointedTo)
-		{
-			pcBaseObject = pcPointedTo->GetEmbeddingContainer();
-			if (!pcBaseObject->IsUpdateTosDistToRoot())
-			{
-				pcBaseObject->ClearDistToRoot();
-				pcParameters->AddExpectedDist(pcBaseObject, iExpectedDist+1);
-			}
-		}
+		AddExpectedDistToRoot(pcPointedTo, iExpectedDist+1, pcParameters);
 	}
 
 	iNumEmbedded = mapEmbedded.NumElements();

@@ -327,22 +327,13 @@ void CArrayCommonObject::UpdateEmbeddedObjectTosDistToRoot(CDistCalculatorParame
 {
 	int					i;
 	CEmbeddedObject*	pcPointedTo;
-	CBaseObject*		pcBaseObject;
 	int					iNumElements;
 
 	iNumElements = mcArray.UnsafeNumElements();
 	for (i = 0; i < iNumElements; i++)
 	{
 		pcPointedTo = (CBaseObject*)mcArray.UnsafeGet(i);
-		if (pcPointedTo)
-		{
-			pcBaseObject = pcPointedTo->GetEmbeddingContainer();
-			if (!pcBaseObject->IsUpdateTosDistToRoot())
-			{
-				pcBaseObject->ClearDistToRoot();
-				pcParameters->AddExpectedDist(pcBaseObject, iExpectedDist+1);
-			}
-		}
+		AddExpectedDistToRoot(pcPointedTo, iExpectedDist+1, pcParameters);
 	}
 }
 

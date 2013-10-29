@@ -564,6 +564,26 @@ void CBaseObject::UpdateTosDetached(CEmbeddedObject* pcPointedTo, CDistCalculato
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CBaseObject::AddExpectedDistToRoot(CEmbeddedObject* pcPointedTo, int iExpectedDist, CDistCalculatorParameters* pcParameters)
+{
+	CBaseObject*		pcBaseObject;
+
+	if (pcPointedTo)
+	{
+		pcBaseObject = pcPointedTo->GetEmbeddingContainer();
+		if (!pcBaseObject->IsUpdateTosDistToRoot())
+		{
+			pcBaseObject->ClearDistToRoot();
+			pcParameters->AddExpectedDist(pcBaseObject, iExpectedDist);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CBaseObject::ClearTosFlagsFromLowest(void)
 {
 	ValidateNotEmbedded(__METHOD__);
