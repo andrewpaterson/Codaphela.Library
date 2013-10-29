@@ -73,10 +73,11 @@ void CDistToRootCalculator::Calculate(CDistCalculatorParameters* pcParameters)
 
 	pcParameters->MarkUnattachedLowestFroms();
 
+	pcParameters->AddChangedFromAsLowest(mpcFromChanged);
+
 	//This method adds additional unattached objects.  Which is bad.
 	UpdateUnattachedTosDistToRoot(pcParameters);
 
-	pcParameters->AddChangedFromAsLowest(mpcFromChanged);
 	ClearTosUpdatedTosFlags(pcParameters);
 }
 
