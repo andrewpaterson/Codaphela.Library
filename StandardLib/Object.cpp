@@ -619,7 +619,7 @@ void CObject::RemoveAllTos(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObject::UpdateEmbeddedObjectTosDistToRoot(CDistToRootEffectedFroms* pcEffectedFroms, int iExpectedDist)
+void CObject::UpdateEmbeddedObjectTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist)
 {
 	int					i;
 	int					iNumEmbedded;
@@ -640,7 +640,7 @@ void CObject::UpdateEmbeddedObjectTosDistToRoot(CDistToRootEffectedFroms* pcEffe
 			if (!pcBaseObject->IsUpdateTosDistToRoot())
 			{
 				pcBaseObject->ClearDistToRoot();
-				pcEffectedFroms->AddExpectedDist(pcBaseObject, iExpectedDist+1);
+				pcParameters->AddExpectedDist(pcBaseObject, iExpectedDist+1);
 			}
 		}
 	}
@@ -649,7 +649,7 @@ void CObject::UpdateEmbeddedObjectTosDistToRoot(CDistToRootEffectedFroms* pcEffe
 	for (i = 0; i < iNumEmbedded; i++)
 	{
 		pcEmbedded = *mapEmbedded.Get(i);
-		pcEmbedded->UpdateEmbeddedObjectTosDistToRoot(pcEffectedFroms, iExpectedDist);
+		pcEmbedded->UpdateEmbeddedObjectTosDistToRoot(pcParameters, iExpectedDist);
 	}
 }
 
@@ -658,7 +658,7 @@ void CObject::UpdateEmbeddedObjectTosDistToRoot(CDistToRootEffectedFroms* pcEffe
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObject::UpdateEmbeddedObjectTosDetached(CDistDetachedFroms* pcDetached, CDistToRootEffectedFroms* pcEffectedFroms)
+void CObject::UpdateEmbeddedObjectTosDetached(CDistCalculatorParameters* pcParameters)
 {
 	int					i;
 	int					iNumEmbedded;
@@ -678,7 +678,7 @@ void CObject::UpdateEmbeddedObjectTosDetached(CDistDetachedFroms* pcDetached, CD
 			pcBaseObject = pcPointedTo->GetEmbeddingContainer();
 			if (!pcBaseObject->IsUpdateTosDetached())
 			{
-				pcBaseObject->UpdateTosDetached(pcDetached, pcEffectedFroms);
+				pcBaseObject->UpdateTosDetached(pcParameters);
 			}
 		}
 	}
@@ -687,7 +687,7 @@ void CObject::UpdateEmbeddedObjectTosDetached(CDistDetachedFroms* pcDetached, CD
 	for (i = 0; i < iNumEmbedded; i++)
 	{
 		pcEmbedded = *mapEmbedded.Get(i);
-		pcEmbedded->UpdateEmbeddedObjectTosDetached(pcDetached, pcEffectedFroms);
+		pcEmbedded->UpdateEmbeddedObjectTosDetached(pcParameters);
 	}
 }
 
@@ -696,7 +696,7 @@ void CObject::UpdateEmbeddedObjectTosDetached(CDistDetachedFroms* pcDetached, CD
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObject::UpdateEmbeddedObjectTosUnattached(CDistToRootEffectedFroms* pcEffectedFroms)
+void CObject::UpdateEmbeddedObjectTosUnattached(CDistCalculatorParameters* pcParameters)
 {
 	int					i;
 	int					iNumEmbedded;
@@ -716,7 +716,7 @@ void CObject::UpdateEmbeddedObjectTosUnattached(CDistToRootEffectedFroms* pcEffe
 			pcBaseObject = pcPointedTo->GetEmbeddingContainer();
 			if (!pcBaseObject->IsUpdateTosDetached())
 			{
-				pcEffectedFroms->AddUnattached(pcBaseObject);
+				pcParameters->AddUnattached(pcBaseObject);
 			}
 		}
 	}
@@ -725,7 +725,7 @@ void CObject::UpdateEmbeddedObjectTosUnattached(CDistToRootEffectedFroms* pcEffe
 	for (i = 0; i < iNumEmbedded; i++)
 	{
 		pcEmbedded = *mapEmbedded.Get(i);
-		pcEmbedded->UpdateEmbeddedObjectTosUnattached(pcEffectedFroms);
+		pcEmbedded->UpdateEmbeddedObjectTosUnattached(pcParameters);
 	}
 }
 

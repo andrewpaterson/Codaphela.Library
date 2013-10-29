@@ -28,16 +28,13 @@ void CDistToRootCalculator::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CDistToRootCalculator::Calculate(void)
 {
-	CDistToRootEffectedFroms	cEffectedFroms;
-	CDistDetachedFroms			cDetached;
+	CDistCalculatorParameters	cDistParameters;
 
-	cEffectedFroms.Init();
-	cDetached.Init();
+	cDistParameters.Init();
 
-	Calculate(&cEffectedFroms, &cDetached);
+	Calculate(&cDistParameters);
 
-	cDetached.Kill();
-	cEffectedFroms.Kill();
+	cDistParameters.Kill();
 }
 
 
@@ -45,38 +42,42 @@ void CDistToRootCalculator::Calculate(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDistToRootCalculator::Calculate(CDistToRootEffectedFroms* pcEffectedFroms, CDistDetachedFroms* pcDetached)
+void CDistToRootCalculator::Calculate(CDistCalculatorParameters* pcParameters)
 {
-	//Check if the "FromChanged" object has any froms pointing to it that can still find the Root object.
-	//If they can add those froms pointing to it objects to an array of objects to start from.
-	mpcFromChanged->CollectStartingObjects(NULL, pcEffectedFroms);
+	//These finder methods belong in a different calculator
+	{
+		//Check if the "FromChanged" object has any froms pointing to it that can still find the Root object.
+		//If they can add those froms pointing to it objects to an array of objects to start from.
+		mpcFromChanged->CollectStartingObjects(NULL, pcParameters);
 
-	//Cyclic dependencies will cause lowest pointers to be incorrectly added.  Remove them.
-	RemoveDetachedLowest(pcEffectedFroms);
+		//Cyclic dependencies will cause lowest pointers to be incorrectly added.  Remove them.
+		RemoveDetachedLowest(pcParameters);
+	}
 
 	//Copy the starting from objects into an array so their flags can be fixed later.
-	pcEffectedFroms->MarkExpectedDistLowestFroms();
+	pcParameters->MarkExpectedDistLowestFroms();
 
 	//For all the starting objects walk the 'tos' and update their 'to' graphs distances to the Root object.
-	UpdateAttachedTosDistToRoot(pcEffectedFroms);
+	UpdateAttachedTosDistToRoot(pcParameters);
 
 	//If the changed from can no longer find the root object then it is detached and it's tos must be detached also,
 	//Unless another from pointing to the 'detached' to can find the Root object.
 	if (mpcFromChanged->GetDistToRoot() == CLEARED_DIST_TO_ROOT)
 	{
-		mpcFromChanged->UpdateTosDetached(pcDetached, pcEffectedFroms);
+		mpcFromChanged->UpdateTosDetached(pcParameters);
 
-		pcEffectedFroms->MarkExpectedDistLowestFroms();
+		pcParameters->MarkExpectedDistLowestFroms();
 
-		UpdateAttachedTosDistToRoot(pcEffectedFroms);
+		UpdateAttachedTosDistToRoot(pcParameters);
 	}
 
-	pcEffectedFroms->MarkUnattachedLowestFroms();
+	pcParameters->MarkUnattachedLowestFroms();
 
-	UpdateUnattachedTosDistToRoot(pcEffectedFroms);
+	//This method adds additional unattached objects.  Which is bad.
+	UpdateUnattachedTosDistToRoot(pcParameters);
 
-	pcEffectedFroms->AddChangedFromAsLowest(mpcFromChanged);
-	ClearTosUpdatedTosFlags(pcEffectedFroms);
+	pcParameters->AddChangedFromAsLowest(mpcFromChanged);
+	ClearTosUpdatedTosFlags(pcParameters);
 }
 
 
@@ -94,21 +95,21 @@ void CDistToRootCalculator::AddFromChanged(CBaseObject* pcObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDistToRootCalculator::RemoveDetachedLowest(CDistToRootEffectedFroms* pcEffectedFroms)
+void CDistToRootCalculator::RemoveDetachedLowest(CDistCalculatorParameters* pcParameters)
 {
 	int				i;
 	CBaseObject*	pcBaseObject;
 	SDistToRoot*	psDistToRoot;
 	int				iNumEffectedFroms;
 
-	iNumEffectedFroms = pcEffectedFroms->NumExpectedDists();
+	iNumEffectedFroms = pcParameters->NumExpectedDists();
 	for (i = iNumEffectedFroms-1; i >= 0; i--)
 	{
-		psDistToRoot = pcEffectedFroms->GetExpectedDist(i);
+		psDistToRoot = pcParameters->GetExpectedDist(i);
 		pcBaseObject = psDistToRoot->pcObject;
 		if (!pcBaseObject->CanFindRoot())
 		{
-			pcEffectedFroms->RemoveExpectedDist(i);
+			pcParameters->RemoveExpectedDist(i);
 		}
 	}
 }
@@ -118,20 +119,20 @@ void CDistToRootCalculator::RemoveDetachedLowest(CDistToRootEffectedFroms* pcEff
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDistToRootCalculator::UpdateAttachedTosDistToRoot(CDistToRootEffectedFroms* pcEffectedFroms)
+void CDistToRootCalculator::UpdateAttachedTosDistToRoot(CDistCalculatorParameters* pcParameters)
 {
 	SDistToRoot*			psLowestDistToRoot;
 	CBaseObject*			pcObject;
 
 	//This is probably really slow.
-	psLowestDistToRoot = pcEffectedFroms->GetLowest();
+	psLowestDistToRoot = pcParameters->GetLowest();
 	while (psLowestDistToRoot)
 	{
 		pcObject = psLowestDistToRoot->pcObject;
-		pcEffectedFroms->RemoveExpectedDist(psLowestDistToRoot);
-		pcObject->UpdateTosDistToRoot(pcEffectedFroms);
+		pcParameters->RemoveExpectedDist(psLowestDistToRoot);
+		pcObject->UpdateTosDistToRoot(pcParameters);
 
-		psLowestDistToRoot = pcEffectedFroms->GetLowest();
+		psLowestDistToRoot = pcParameters->GetLowest();
 	}
 }
 
@@ -140,17 +141,17 @@ void CDistToRootCalculator::UpdateAttachedTosDistToRoot(CDistToRootEffectedFroms
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDistToRootCalculator::UpdateUnattachedTosDistToRoot(CDistToRootEffectedFroms* pcEffectedFroms)
+void CDistToRootCalculator::UpdateUnattachedTosDistToRoot(CDistCalculatorParameters* pcParameters)
 {
 	CBaseObject*			pcBaseObject;
 
-	pcBaseObject = pcEffectedFroms->GetUnattached();
+	pcBaseObject = pcParameters->GetUnattached();
 	while (pcBaseObject)
 	{
-		pcEffectedFroms->RemoveUnattached(pcBaseObject);
-		pcBaseObject->UpdateTosUnattached(pcEffectedFroms);
+		pcParameters->RemoveUnattached(pcBaseObject);
+		pcBaseObject->UpdateTosUnattached(pcParameters);
 
-		pcBaseObject = pcEffectedFroms->GetUnattached();
+		pcBaseObject = pcParameters->GetUnattached();
 	}
 }
 
@@ -159,13 +160,13 @@ void CDistToRootCalculator::UpdateUnattachedTosDistToRoot(CDistToRootEffectedFro
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDistToRootCalculator::ClearTosUpdatedTosFlags(CDistToRootEffectedFroms* pcEffectedFroms)
+void CDistToRootCalculator::ClearTosUpdatedTosFlags(CDistCalculatorParameters* pcParameters)
 {
 	CArrayBaseObjectPtr*	papcLowestFroms;
 	CBaseObject*			pcObject;
 	int						i;
 
-	papcLowestFroms = pcEffectedFroms->GetLowestFroms();
+	papcLowestFroms = pcParameters->GetLowestFroms();
 	for (i = 0; i < papcLowestFroms->NumElements(); i++)
 	{
 		pcObject = *papcLowestFroms->Get(i);

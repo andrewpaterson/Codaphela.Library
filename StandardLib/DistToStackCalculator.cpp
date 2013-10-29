@@ -7,7 +7,6 @@
 //////////////////////////////////////////////////////////////////////////
 void CDistToStackCalculator::Init(void)
 {
-
 }
 
 
@@ -17,7 +16,6 @@ void CDistToStackCalculator::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CDistToStackCalculator::Kill(void)
 {
-
 }
 
 
@@ -25,7 +23,7 @@ void CDistToStackCalculator::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDistToStackCalculator::Calculate(CDistDetachedFroms* pcDetached)
+void CDistToStackCalculator::Calculate(CDistCalculatorParameters* pcDetached)
 {
 	int		iNumWithStackPointers;
 
@@ -53,7 +51,7 @@ void CDistToStackCalculator::Calculate(CDistDetachedFroms* pcDetached)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDistToStackCalculator::InitialiseCompletelyDetached(CDistDetachedFroms* pcDetached)
+void CDistToStackCalculator::InitialiseCompletelyDetached(CDistCalculatorParameters* pcDetached)
 {
 	int				i;
 	int				iNumDetached;
@@ -75,7 +73,7 @@ void CDistToStackCalculator::InitialiseCompletelyDetached(CDistDetachedFroms* pc
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CDistToStackCalculator::UpdateDistToStackForObjectsWithFromStackDist(CDistDetachedFroms* pcDetached)
+int CDistToStackCalculator::UpdateDistToStackForObjectsWithFromStackDist(CDistCalculatorParameters* pcDetached)
 {
 	int				i;
 	int				iNumDetached;
@@ -107,7 +105,7 @@ int CDistToStackCalculator::UpdateDistToStackForObjectsWithFromStackDist(CDistDe
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDistToStackCalculator::UpdateDistToStackForAllObjects(CDistDetachedFroms* pcDetached)
+void CDistToStackCalculator::UpdateDistToStackForAllObjects(CDistCalculatorParameters* pcDetached)
 {
 	int iNumUpdated;
 
@@ -123,7 +121,7 @@ void CDistToStackCalculator::UpdateDistToStackForAllObjects(CDistDetachedFroms* 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CDistToStackCalculator::UpdateDistToStackForObjectsWithStackPointers(CDistDetachedFroms* pcDetached)
+int CDistToStackCalculator::UpdateDistToStackForObjectsWithStackPointers(CDistCalculatorParameters* pcDetached)
 {
 	int				i;
 	int				iNumDetached;
@@ -150,7 +148,7 @@ int CDistToStackCalculator::UpdateDistToStackForObjectsWithStackPointers(CDistDe
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDistToStackCalculator::ResetObjectsToUnknownDistToStack(CDistDetachedFroms* pcDetached)
+void CDistToStackCalculator::ResetObjectsToUnknownDistToStack(CDistCalculatorParameters* pcDetached)
 {
 	int				i;
 	int				iNumDetached;

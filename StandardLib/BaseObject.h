@@ -116,12 +116,12 @@ public:
 			int					GetDistToStack(void);
 			BOOL				TestedForRoot(void);
 	virtual void				RemoveAllTos(void) =0;
-			void				UpdateTosDistToRoot(CDistToRootEffectedFroms* pcEffectedFroms);
+			void				UpdateTosDistToRoot(CDistCalculatorParameters* pcParameters);
 			void				ClearTosUpdatedTosFlags(void);
 			void				UnattachDistToRoot(void);
-			void				CollectStartingObjects(CBaseObject* pcTo, CDistToRootEffectedFroms* pcCalc);
-			void				UpdateTosDetached(CDistDetachedFroms* pcDetached, CDistToRootEffectedFroms* pcEffectedFroms);
-			void				UpdateTosUnattached(CDistToRootEffectedFroms* pcEffectedFroms);
+			void				CollectStartingObjects(CBaseObject* pcTo, CDistCalculatorParameters* pcCalc);
+			void				UpdateTosDetached(CDistCalculatorParameters* pcParameters);
+			void				UpdateTosUnattached(CDistCalculatorParameters* pcParameters);
 
 			BOOL				TestedForSanity(void);
 			CObjects*			GetObjects(void);

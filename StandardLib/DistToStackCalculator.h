@@ -1,6 +1,6 @@
 #ifndef __DIST_TO_STACK_CALCULATOR_H__
 #define __DIST_TO_STACK_CALCULATOR_H__
-#include "DistDetachedFroms.h"
+#include "DistCalculatorParameters.h"
 
 
 class CDistToStackCalculator
@@ -11,12 +11,12 @@ public:
 	void			Init(void);
 	void			Kill(void);
 
-	void			Calculate(CDistDetachedFroms* pcDetached);
-	int				UpdateDistToStackForObjectsWithStackPointers(CDistDetachedFroms* pcDetached);
-	void			InitialiseCompletelyDetached(CDistDetachedFroms* pcDetached);
-	void			ResetObjectsToUnknownDistToStack(CDistDetachedFroms* pcDetached);
-	int				UpdateDistToStackForObjectsWithFromStackDist(CDistDetachedFroms* pcDetached);
-	void			UpdateDistToStackForAllObjects(CDistDetachedFroms* pcDetached);
+	void			Calculate(CDistCalculatorParameters* pcDetached);
+	int				UpdateDistToStackForObjectsWithStackPointers(CDistCalculatorParameters* pcDetached);
+	void			InitialiseCompletelyDetached(CDistCalculatorParameters* pcDetached);
+	void			ResetObjectsToUnknownDistToStack(CDistCalculatorParameters* pcDetached);
+	int				UpdateDistToStackForObjectsWithFromStackDist(CDistCalculatorParameters* pcDetached);
+	void			UpdateDistToStackForAllObjects(CDistCalculatorParameters* pcDetached);
 };
 
 

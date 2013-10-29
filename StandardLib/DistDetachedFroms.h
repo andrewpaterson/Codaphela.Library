@@ -3,7 +3,7 @@
 #include "ObjectPointerArrays.h"
 
 
-class CDistDetachedFroms
+class CDistCalculatorParameters
 {
 private:
 	CArrayBaseObjectPtr		mapcDetachedFromRoot;

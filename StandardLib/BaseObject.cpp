@@ -145,7 +145,7 @@ void CBaseObject::KillInternalData(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::CollectStartingObjects(CBaseObject* pcTo, CDistToRootEffectedFroms* pcCalc)
+void CBaseObject::CollectStartingObjects(CBaseObject* pcTo, CDistCalculatorParameters* pcCalc)
 {
 	//It is assumed at this point that all the tos and froms have been updated.
 
@@ -508,7 +508,7 @@ int CBaseObject::CalculateDistToRootFromPointedFroms(int iDistToRoot)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::UpdateTosDistToRoot(CDistToRootEffectedFroms* pcEffectedFroms)
+void CBaseObject::UpdateTosDistToRoot(CDistCalculatorParameters* pcParameters)
 {
 	ValidateNotEmbedded(__METHOD__);
 
@@ -521,7 +521,7 @@ void CBaseObject::UpdateTosDistToRoot(CDistToRootEffectedFroms* pcEffectedFroms)
 	SetDistToRoot(iClosestToRoot);
 	SetFlag(OBJECT_FLAGS_UPDATED_TOS_DIST_TO_ROOT, TRUE);
 
-	UpdateEmbeddedObjectTosDistToRoot(pcEffectedFroms, iClosestToRoot);
+	UpdateEmbeddedObjectTosDistToRoot(pcParameters, iClosestToRoot);
 }
 
 
@@ -529,7 +529,7 @@ void CBaseObject::UpdateTosDistToRoot(CDistToRootEffectedFroms* pcEffectedFroms)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::UpdateTosDetached(CDistDetachedFroms* pcDetached, CDistToRootEffectedFroms* pcEffectedFroms)
+void CBaseObject::UpdateTosDetached(CDistCalculatorParameters* pcParameters)
 {
 	ValidateNotEmbedded(__METHOD__);
 
@@ -540,15 +540,15 @@ void CBaseObject::UpdateTosDetached(CDistDetachedFroms* pcDetached, CDistToRootE
 
 	if (miDistToRoot == CLEARED_DIST_TO_ROOT)
 	{
-		pcDetached->AddDetachedFromRoot(this);
+		pcParameters->AddDetachedFromRoot(this);
 		SetDistToRoot(UNATTACHED_DIST_TO_ROOT);
-		UpdateEmbeddedObjectTosDetached(pcDetached, pcEffectedFroms);
+		UpdateEmbeddedObjectTosDetached(pcParameters);
 	}
 	else if (!CanFindRoot())
 	{
-		pcDetached->AddDetachedFromRoot(this);
+		pcParameters->AddDetachedFromRoot(this);
 		SetDistToRoot(UNATTACHED_DIST_TO_ROOT);
-		UpdateEmbeddedObjectTosDetached(pcDetached, pcEffectedFroms);
+		UpdateEmbeddedObjectTosDetached(pcParameters);
 	}
 	else if (!IsDistToRootValid())
 	{
@@ -556,7 +556,7 @@ void CBaseObject::UpdateTosDetached(CDistDetachedFroms* pcDetached, CDistToRootE
 		if (pcClosestFrom)
 		{
 			iClosestDistToRoot = pcClosestFrom->GetDistToRoot();
-			pcEffectedFroms->AddExpectedDist(this, iClosestDistToRoot+1);
+			pcParameters->AddExpectedDist(this, iClosestDistToRoot+1);
 		}
 	}
 }
@@ -566,7 +566,7 @@ void CBaseObject::UpdateTosDetached(CDistDetachedFroms* pcDetached, CDistToRootE
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::UpdateTosUnattached(CDistToRootEffectedFroms* pcEffectedFroms)
+void CBaseObject::UpdateTosUnattached(CDistCalculatorParameters* pcParameters)
 {
 	ValidateNotEmbedded(__METHOD__);
 
@@ -578,7 +578,7 @@ void CBaseObject::UpdateTosUnattached(CDistToRootEffectedFroms* pcEffectedFroms)
 	SetFlag(OBJECT_FLAGS_UPDATED_TOS_DETACHED, TRUE);
 	UnattachDistToRoot();
 
-	UpdateEmbeddedObjectTosUnattached(pcEffectedFroms);
+	UpdateEmbeddedObjectTosUnattached(pcParameters);
 }
 
 //////////////////////////////////////////////////////////////////////////

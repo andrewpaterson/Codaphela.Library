@@ -108,10 +108,10 @@ protected:
 	virtual void				GetHeapFroms(CArrayEmbeddedBaseObjectPtr* papcFroms);
 	virtual CStackPointers*		GetStackPointers(void) =0;
 	virtual CBaseObject*		GetClosestFromToRoot(void);
-	virtual void				UpdateEmbeddedObjectTosDistToRoot(CDistToRootEffectedFroms* pcEffectedFroms, int iExpectedDist) =0;
+	virtual void				UpdateEmbeddedObjectTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist) =0;
 	virtual void				ClearEmbeddedObjectTosUpdatedTosFlags(void) =0;
-	virtual void				UpdateEmbeddedObjectTosDetached(CDistDetachedFroms* pcDetached, CDistToRootEffectedFroms* pcEffectedFroms) =0;
-	virtual void				UpdateEmbeddedObjectTosUnattached(CDistToRootEffectedFroms* pcEffectedFroms) =0;
+	virtual void				UpdateEmbeddedObjectTosDetached(CDistCalculatorParameters* pcParameters) =0;
+	virtual void				UpdateEmbeddedObjectTosUnattached(CDistCalculatorParameters* pcParameters) =0;
 };
 
 

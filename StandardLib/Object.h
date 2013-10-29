@@ -77,9 +77,9 @@ protected:
 	CBaseObject*		GetClosestFromToRoot(void);
 	void				CollectPointedToToBeKilled(CArrayBaseObjectPtr* papcKilled);
 	int					RemapTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew);
-	void				UpdateEmbeddedObjectTosDistToRoot(CDistToRootEffectedFroms* pcEffectedFroms, int iExpectedDist);
+	void				UpdateEmbeddedObjectTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist);
 	void				ClearEmbeddedObjectTosUpdatedTosFlags(void);
-	void				UpdateEmbeddedObjectTosDetached(CDistDetachedFroms* pcDetached, CDistToRootEffectedFroms* pcEffectedFroms);
+	void				UpdateEmbeddedObjectTosDetached(CDistCalculatorParameters* pcParameters);
 	int					CalculateDistToRootFromPointedFroms(int iDistToRoot);
 	void				Free(void);
 	void				SetPointedTosDistToRoot(int iDistToRoot);
@@ -90,7 +90,7 @@ protected:
 	void				ValidateEmbeddedObjectTos(void);
 	void				ValidateEmbeddedConsistency(void);
 	BOOL				IsDistToRootValid(void);
-	void				UpdateEmbeddedObjectTosUnattached(CDistToRootEffectedFroms* pcEffectedFroms);
+	void				UpdateEmbeddedObjectTosUnattached(CDistCalculatorParameters* pcParameters);
 };
 
 

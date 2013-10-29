@@ -16,12 +16,14 @@ struct SDistToRoot
 typedef CArrayTemplate<SDistToRoot>		CArrayDistToRoot;
 
 
-class CDistToRootEffectedFroms
+class CDistCalculatorParameters
 {
 private:
 	CArrayDistToRoot		macExpectedDists;
 	CArrayBaseObjectPtr		mapcUnattched;
 	CArrayBaseObjectPtr		mapcLowestFroms;
+	CArrayBaseObjectPtr		mapcDetachedFromRoot;
+	CArrayBaseObjectPtr		mapcCompletelyDetached;
 
 public:
 	void					Init(void);
@@ -42,6 +44,19 @@ public:
 	void					MarkUnattachedLowestFroms(void);
 	CArrayBaseObjectPtr*	GetLowestFroms(void);
 	void					AddChangedFromAsLowest(CBaseObject* pcFromChanged);
+
+public:
+	void					AddDetachedFromRoot(CBaseObject* pcObject);
+	int						NumDetachedFromRoot(void);
+	CBaseObject*			GetDetachedFromRoot(int iIndex);
+
+	void					AddCompletelyDetached(CBaseObject* pcObject);
+	int						NumCompletelyDetached(void);
+	CBaseObject*			GetCompletelyDetached(int iIndex);
+	void					RemoveCompletelyDetached(int iIndex);
+
+	void					CopyRootDetachedToCompletelyDetached(void);
+	CArrayBaseObjectPtr*	GetCompletelyDetachedArray(void);
 };
 
 

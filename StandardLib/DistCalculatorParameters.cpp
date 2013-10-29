@@ -1,16 +1,18 @@
 #include "EmbeddedObject.h"
-#include "DistToRootEffectedFroms.h"
+#include "DistCalculatorParameters.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDistToRootEffectedFroms::Init(void)
+void CDistCalculatorParameters::Init(void)
 {
 	macExpectedDists.Init(1024);
 	mapcLowestFroms.Init(1024);
 	mapcUnattched.Init(1024);
+	mapcDetachedFromRoot.Init(1024);
+	mapcCompletelyDetached.Init(1024);
 }
 
 
@@ -18,8 +20,10 @@ void CDistToRootEffectedFroms::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDistToRootEffectedFroms::Kill(void)
+void CDistCalculatorParameters::Kill(void)
 {
+	mapcCompletelyDetached.Kill();
+	mapcDetachedFromRoot.Kill();
 	mapcUnattched.Kill();
 	mapcLowestFroms.Kill();
 	macExpectedDists.Kill();
@@ -30,7 +34,7 @@ void CDistToRootEffectedFroms::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDistToRootEffectedFroms::AddExpectedDist(CBaseObject* pcObject, int iExpectedDist)
+void CDistCalculatorParameters::AddExpectedDist(CBaseObject* pcObject, int iExpectedDist)
 {
 	SDistToRoot*	psDistToRoot;
 
@@ -56,7 +60,7 @@ void CDistToRootEffectedFroms::AddExpectedDist(CBaseObject* pcObject, int iExpec
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDistToRootEffectedFroms::AddUnattached(CBaseObject* pcObject)
+void CDistCalculatorParameters::AddUnattached(CBaseObject* pcObject)
 {
 	mapcUnattched.Add(&pcObject);
 }
@@ -66,7 +70,7 @@ void CDistToRootEffectedFroms::AddUnattached(CBaseObject* pcObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SDistToRoot* CDistToRootEffectedFroms::GetExpectedDist(CBaseObject* pcObject)
+SDistToRoot* CDistCalculatorParameters::GetExpectedDist(CBaseObject* pcObject)
 {
 	int				i;
 	SDistToRoot*	psDistToRoot;
@@ -88,7 +92,7 @@ SDistToRoot* CDistToRootEffectedFroms::GetExpectedDist(CBaseObject* pcObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CDistToRootEffectedFroms::ContainsUnattached(CBaseObject* pcObject)
+BOOL CDistCalculatorParameters::ContainsUnattached(CBaseObject* pcObject)
 {
 	int				i;
 	CBaseObject*	pcCurrent;
@@ -110,7 +114,7 @@ BOOL CDistToRootEffectedFroms::ContainsUnattached(CBaseObject* pcObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SDistToRoot* CDistToRootEffectedFroms::GetLowest(void)
+SDistToRoot* CDistCalculatorParameters::GetLowest(void)
 {
 	int				i;
 	int				iMinDist;
@@ -138,7 +142,7 @@ SDistToRoot* CDistToRootEffectedFroms::GetLowest(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CDistToRootEffectedFroms::GetUnattached(void)
+CBaseObject* CDistCalculatorParameters::GetUnattached(void)
 {
 	if (mapcUnattched.IsEmpty())
 	{
@@ -153,7 +157,7 @@ CBaseObject* CDistToRootEffectedFroms::GetUnattached(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CDistToRootEffectedFroms::NumExpectedDists(void)
+int CDistCalculatorParameters::NumExpectedDists(void)
 {
 	return macExpectedDists.NumElements();
 }
@@ -163,7 +167,7 @@ int CDistToRootEffectedFroms::NumExpectedDists(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SDistToRoot* CDistToRootEffectedFroms::GetExpectedDist(int iIndex)
+SDistToRoot* CDistCalculatorParameters::GetExpectedDist(int iIndex)
 {
 	return macExpectedDists.SafeGet(iIndex);
 }
@@ -173,7 +177,7 @@ SDistToRoot* CDistToRootEffectedFroms::GetExpectedDist(int iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDistToRootEffectedFroms::RemoveExpectedDist(int iIndex)
+void CDistCalculatorParameters::RemoveExpectedDist(int iIndex)
 {
 	macExpectedDists.RemoveAt(iIndex);
 }
@@ -183,7 +187,7 @@ void CDistToRootEffectedFroms::RemoveExpectedDist(int iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDistToRootEffectedFroms::RemoveExpectedDist(SDistToRoot* psDistToRoot)
+void CDistCalculatorParameters::RemoveExpectedDist(SDistToRoot* psDistToRoot)
 {
 	int				i;
 	SDistToRoot*	psCurrent;
@@ -204,7 +208,7 @@ void CDistToRootEffectedFroms::RemoveExpectedDist(SDistToRoot* psDistToRoot)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDistToRootEffectedFroms::RemoveUnattached(CBaseObject* pcBaseObject)
+void CDistCalculatorParameters::RemoveUnattached(CBaseObject* pcBaseObject)
 {
 	int				i;
 	CBaseObject*	pcCurrent;
@@ -225,7 +229,7 @@ void CDistToRootEffectedFroms::RemoveUnattached(CBaseObject* pcBaseObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDistToRootEffectedFroms::MarkExpectedDistLowestFroms(void)
+void CDistCalculatorParameters::MarkExpectedDistLowestFroms(void)
 {
 	int				i;
 	SDistToRoot*	psCurrent;
@@ -242,7 +246,7 @@ void CDistToRootEffectedFroms::MarkExpectedDistLowestFroms(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDistToRootEffectedFroms::MarkUnattachedLowestFroms(void)
+void CDistCalculatorParameters::MarkUnattachedLowestFroms(void)
 {
 	int				i;
 	CBaseObject*	pcCurrent;
@@ -259,7 +263,7 @@ void CDistToRootEffectedFroms::MarkUnattachedLowestFroms(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CArrayBaseObjectPtr* CDistToRootEffectedFroms::GetLowestFroms(void)
+CArrayBaseObjectPtr* CDistCalculatorParameters::GetLowestFroms(void)
 {
 	return &mapcLowestFroms;
 }
@@ -269,7 +273,7 @@ CArrayBaseObjectPtr* CDistToRootEffectedFroms::GetLowestFroms(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDistToRootEffectedFroms::AddChangedFromAsLowest(CBaseObject* pcFromChanged)
+void CDistCalculatorParameters::AddChangedFromAsLowest(CBaseObject* pcFromChanged)
 {
 	int				i;
 	CBaseObject*	pcObject;
@@ -286,5 +290,95 @@ void CDistToRootEffectedFroms::AddChangedFromAsLowest(CBaseObject* pcFromChanged
 	}
 
 	mapcLowestFroms.Add(&pcFromChanged);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CDistCalculatorParameters::AddDetachedFromRoot(CBaseObject* pcObject)
+{
+	mapcDetachedFromRoot.Add(&pcObject);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CDistCalculatorParameters::NumDetachedFromRoot(void)
+{
+	return mapcDetachedFromRoot.NumElements();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CBaseObject* CDistCalculatorParameters::GetDetachedFromRoot(int iIndex)
+{
+	return *mapcDetachedFromRoot.Get(iIndex);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CDistCalculatorParameters::AddCompletelyDetached(CBaseObject* pcObject)
+{
+	mapcCompletelyDetached.Add(&pcObject);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CDistCalculatorParameters::NumCompletelyDetached(void)
+{
+	return mapcCompletelyDetached.NumElements();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CBaseObject* CDistCalculatorParameters::GetCompletelyDetached(int iIndex)
+{
+	return *mapcCompletelyDetached.Get(iIndex);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CDistCalculatorParameters::RemoveCompletelyDetached(int iIndex)
+{
+	mapcCompletelyDetached.RemoveAt(iIndex, FALSE);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CDistCalculatorParameters::CopyRootDetachedToCompletelyDetached(void)
+{
+	mapcCompletelyDetached.Copy(&mapcDetachedFromRoot);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CArrayBaseObjectPtr* CDistCalculatorParameters::GetCompletelyDetachedArray(void)
+{
+	return &mapcCompletelyDetached;
 }
 

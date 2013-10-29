@@ -29,10 +29,10 @@ public:
 	void				ValidateConsistency(void);
 
 protected:
-	void				UpdateEmbeddedObjectTosDistToRoot(CDistToRootEffectedFroms* pcEffectedFroms, int iExpectedDist);
+	void				UpdateEmbeddedObjectTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist);
 	void				ClearEmbeddedObjectTosUpdatedTosFlags(void);
-	void				UpdateEmbeddedObjectTosDetached(CDistDetachedFroms* pcDetached, CDistToRootEffectedFroms* pcEffectedFroms);
-	void				UpdateEmbeddedObjectTosUnattached(CDistToRootEffectedFroms* pcEffectedFroms);
+	void				UpdateEmbeddedObjectTosDetached(CDistCalculatorParameters* pcParameters);
+	void				UpdateEmbeddedObjectTosUnattached(CDistCalculatorParameters* pcParameters);
 };
 
 

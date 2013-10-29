@@ -91,9 +91,8 @@
     <ClInclude Include="DependentReadPointer.h" />
     <ClInclude Include="DependentWriteObject.h" />
     <ClInclude Include="DistCalculator.h" />
-    <ClInclude Include="DistDetachedFroms.h" />
     <ClInclude Include="DistToRootCalculator.h" />
-    <ClInclude Include="DistToRootEffectedFroms.h" />
+    <ClInclude Include="DistCalculatorParameters.h" />
     <ClInclude Include="DistToStackCalculator.h" />
     <ClInclude Include="EmbeddedObject.h" />
     <ClInclude Include="HollowEmbeddedObject.h" />
@@ -213,9 +212,8 @@
     <ClCompile Include="DependentReadPointer.cpp" />
     <ClCompile Include="DependentWriteObject.cpp" />
     <ClCompile Include="DistCalculator.cpp" />
-    <ClCompile Include="DistDetachedFroms.cpp" />
     <ClCompile Include="DistToRootCalculator.cpp" />
-    <ClCompile Include="DistToRootEffectedFroms.cpp" />
+    <ClCompile Include="DistCalculatorParameters.cpp" />
     <ClCompile Include="DistToStackCalculator.cpp" />
     <ClCompile Include="EmbeddedObject.cpp" />
     <ClCompile Include="HollowEmbeddedObject.cpp" />

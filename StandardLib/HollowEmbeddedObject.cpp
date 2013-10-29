@@ -212,7 +212,7 @@ void CHollowEmbeddedObject::ValidateConsistency(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHollowEmbeddedObject::UpdateEmbeddedObjectTosDistToRoot(CDistToRootEffectedFroms* pcEffectedFroms, int iExpectedDist)
+void CHollowEmbeddedObject::UpdateEmbeddedObjectTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist)
 {
 }
 
@@ -230,7 +230,7 @@ void CHollowEmbeddedObject::ClearEmbeddedObjectTosUpdatedTosFlags(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHollowEmbeddedObject::UpdateEmbeddedObjectTosDetached(CDistDetachedFroms* pcDetached, CDistToRootEffectedFroms* pcEffectedFroms)
+void CHollowEmbeddedObject::UpdateEmbeddedObjectTosDetached(CDistCalculatorParameters* pcParameters)
 {
 }
 
@@ -239,7 +239,7 @@ void CHollowEmbeddedObject::UpdateEmbeddedObjectTosDetached(CDistDetachedFroms* 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHollowEmbeddedObject::UpdateEmbeddedObjectTosUnattached(CDistToRootEffectedFroms* pcEffectedFroms)
+void CHollowEmbeddedObject::UpdateEmbeddedObjectTosUnattached(CDistCalculatorParameters* pcParameters)
 {
 }
 

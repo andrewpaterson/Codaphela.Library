@@ -10,8 +10,7 @@ private:
 	CDistToRootCalculator		mcDistToRootCalculator;
 	CDistToStackCalculator		mcDistToStackCalculator;
 	
-	CDistDetachedFroms			mcDetached;
-	CDistToRootEffectedFroms	mcEffectedFroms;
+	CDistCalculatorParameters	mcParameters;
 
 public:
 	void					Init(void);

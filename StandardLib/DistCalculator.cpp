@@ -7,8 +7,8 @@
 //////////////////////////////////////////////////////////////////////////
 void CDistCalculator::Init(void)
 {
-	mcEffectedFroms.Init();
-	mcDetached.Init();
+	mcParameters.Init();
+
 	mcDistToRootCalculator.Init();
 	mcDistToStackCalculator.Init();
 }
@@ -22,8 +22,8 @@ void CDistCalculator::Kill(void)
 {
 	mcDistToStackCalculator.Kill();
 	mcDistToRootCalculator.Kill();
-	mcDetached.Kill();
-	mcEffectedFroms.Kill();
+
+	mcParameters.Kill();
 }
 
 
@@ -34,9 +34,9 @@ void CDistCalculator::Kill(void)
 CArrayBaseObjectPtr* CDistCalculator::Calculate(CBaseObject* pcFromChanged)
 {
 	mcDistToRootCalculator.AddFromChanged(pcFromChanged);
-	mcDistToRootCalculator.Calculate(&mcEffectedFroms, &mcDetached);
-	mcDistToStackCalculator.Calculate(&mcDetached);
+	mcDistToRootCalculator.Calculate(&mcParameters);
+	mcDistToStackCalculator.Calculate(&mcParameters);
 
-	return mcDetached.GetCompletelyDetachedArray();
+	return mcParameters.GetCompletelyDetachedArray();
 }
 

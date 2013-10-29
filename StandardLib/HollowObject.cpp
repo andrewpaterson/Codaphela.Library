@@ -177,7 +177,7 @@ void CHollowObject::RemoveAllTos(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHollowObject::UpdateEmbeddedObjectTosDistToRoot(CDistToRootEffectedFroms* pcEffectedFroms, int iExpectedDist)
+void CHollowObject::UpdateEmbeddedObjectTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist)
 {
 }
 
@@ -195,7 +195,7 @@ void CHollowObject::ClearEmbeddedObjectTosUpdatedTosFlags(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHollowObject::UpdateEmbeddedObjectTosDetached(CDistDetachedFroms* pcDetached, CDistToRootEffectedFroms* pcEffectedFroms)
+void CHollowObject::UpdateEmbeddedObjectTosDetached(CDistCalculatorParameters* pcParameters)
 {
 }
 
@@ -204,7 +204,7 @@ void CHollowObject::UpdateEmbeddedObjectTosDetached(CDistDetachedFroms* pcDetach
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHollowObject::UpdateEmbeddedObjectTosUnattached(CDistToRootEffectedFroms* pcEffectedFroms)
+void CHollowObject::UpdateEmbeddedObjectTosUnattached(CDistCalculatorParameters* pcParameters)
 {
 }
 

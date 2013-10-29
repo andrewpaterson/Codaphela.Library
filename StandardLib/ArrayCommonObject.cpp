@@ -340,7 +340,7 @@ void CArrayCommonObject::RemoveAllTos(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayCommonObject::UpdateEmbeddedObjectTosDistToRoot(CDistToRootEffectedFroms* pcEffectedFroms, int iExpectedDist)
+void CArrayCommonObject::UpdateEmbeddedObjectTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist)
 {
 	int					i;
 	CEmbeddedObject*	pcPointedTo;
@@ -357,7 +357,7 @@ void CArrayCommonObject::UpdateEmbeddedObjectTosDistToRoot(CDistToRootEffectedFr
 			if (!pcBaseObject->IsUpdateTosDistToRoot())
 			{
 				pcBaseObject->ClearDistToRoot();
-				pcEffectedFroms->AddExpectedDist(pcBaseObject, iExpectedDist+1);
+				pcParameters->AddExpectedDist(pcBaseObject, iExpectedDist+1);
 			}
 		}
 	}
@@ -392,7 +392,7 @@ void CArrayCommonObject::ClearEmbeddedObjectTosUpdatedTosFlags(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayCommonObject::UpdateEmbeddedObjectTosDetached(CDistDetachedFroms* pcDetached, CDistToRootEffectedFroms* pcEffectedFroms)
+void CArrayCommonObject::UpdateEmbeddedObjectTosDetached(CDistCalculatorParameters* pcParameters)
 {
 	int					i;
 	CEmbeddedObject*	pcPointedTo;
@@ -408,7 +408,7 @@ void CArrayCommonObject::UpdateEmbeddedObjectTosDetached(CDistDetachedFroms* pcD
 			pcBaseObject = pcPointedTo->GetEmbeddingContainer();
 			if (!pcBaseObject->IsUpdateTosDetached())
 			{
-				pcBaseObject->UpdateTosDetached(pcDetached, pcEffectedFroms);
+				pcBaseObject->UpdateTosDetached(pcParameters);
 			}
 		}
 	}
@@ -419,7 +419,7 @@ void CArrayCommonObject::UpdateEmbeddedObjectTosDetached(CDistDetachedFroms* pcD
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayCommonObject::UpdateEmbeddedObjectTosUnattached(CDistToRootEffectedFroms* pcEffectedFroms)
+void CArrayCommonObject::UpdateEmbeddedObjectTosUnattached(CDistCalculatorParameters* pcParameters)
 {
 	int					i;
 	CEmbeddedObject*	pcPointedTo;
@@ -435,8 +435,8 @@ void CArrayCommonObject::UpdateEmbeddedObjectTosUnattached(CDistToRootEffectedFr
 			pcBaseObject = pcPointedTo->GetEmbeddingContainer();
 			if (!pcBaseObject->IsUpdateTosDetached())
 			{
-				pcEffectedFroms->AddUnattached(pcBaseObject);
-				pcBaseObject->UpdateTosUnattached(pcEffectedFroms);
+				pcParameters->AddUnattached(pcBaseObject);
+				pcBaseObject->UpdateTosUnattached(pcParameters);
 			}
 		}
 	}
