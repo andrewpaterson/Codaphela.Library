@@ -615,6 +615,7 @@ BOOL CEmbeddedObject::IsAllocatedInObjects(void)
 void CEmbeddedObject::PrintObject(CChars* psz, BOOL bEmbedded)
 {
 	int		iDistToRoot;
+	int		iDistToStack;
 
 	psz->Append(PointerToString(this));
 	psz->Append(" [");
@@ -624,6 +625,12 @@ void CEmbeddedObject::PrintObject(CChars* psz, BOOL bEmbedded)
 		psz->Append(" ");
 	}
 	psz->Append(iDistToRoot);
+	iDistToStack = GetDistToStack();
+	if (iDistToStack != UNKNOWN_DIST_TO_STACK)
+	{
+		psz->Append(",");
+		psz->Append(iDistToStack);
+	}
 	psz->Append("]:");
 
 	if (bEmbedded)
