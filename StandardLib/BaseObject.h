@@ -121,7 +121,7 @@ public:
 
 			void				ClearTosFlagsFromLowest(void);
 			void				UpdateTosDetached(CDistCalculatorParameters* pcParameters);
-			void				UpdateTosUnattached(CDistCalculatorParameters* pcParameters);
+			void				UpdateTosUnattached(CDistCalculatorParameters* pcParameters);  //--> AddUnattachedIfDetachedTosUpdated
 
 			void				AddUnattachedIfDetachedTosUpdated(CEmbeddedObject* pcPointedTo, CDistCalculatorParameters* pcParameters);
 			void				UpdateTosDetachedIfDetachedTosUpdated(CEmbeddedObject* pcPointedTo, CDistCalculatorParameters* pcParameters);

@@ -47,14 +47,22 @@ void CDistToRootCalculator::Calculate(CDistCalculatorParameters* pcParameters)
 	//These finder methods belong in a different calculator
 	{
 		//Check if the "FromChanged" object has any froms pointing to it that can still find the Root object.
-		//If they can add those froms pointing to it objects to an array of objects to start from.
+		//If they can add those froms pointing to it objects to an array of objects to start from (macExpectedDists).
+		//
+		//Also check if the "FromChanged" object has any froms pointing to it that can still find the stack.
+		//If they can add those froms pointing to it objects to an array of objects to start from (mapcUnattched).
+		//
+		//This method also has side effect of setting the objects dist to root to CLEARED_DIST_TO_ROOT.
 		mpcFromChanged->CollectStartingObjectsAndSetClearedToRoot(NULL, pcParameters);
 
 		//Cyclic dependencies will cause lowest pointers to be incorrectly added.  Remove them.
+		//This method is broken.
 		RemoveDetachedLowest(pcParameters);
 	}
 
 	pcParameters->MarkExpectedDistLowestFroms();
+
+	//Firstly deal with the case where objects pointed to by our potentially detached object can still find the root.
 	UpdateAttachedTosDistToRoot(pcParameters);
 
 	//If the changed from can no longer find the root object then it is detached and it's tos must be detached also,
@@ -72,6 +80,7 @@ void CDistToRootCalculator::Calculate(CDistCalculatorParameters* pcParameters)
 	pcParameters->AddChangedFromAsLowest(mpcFromChanged);
 
 	//This method adds additional unattached objects.  Which is bad.
+	//Basically all this method does is set the DistToRoot to UNATTACHED_DIST_TO_ROOT rather than CLEARED_DIST_TO_ROOT.
 	UpdateUnattachedTosDistToRoot(pcParameters);
 
 	ClearTosFlagsFromLowest(pcParameters);
@@ -99,6 +108,8 @@ void CDistToRootCalculator::RemoveDetachedLowest(CDistCalculatorParameters* pcPa
 	SDistToRoot*	psDistToRoot;
 	int				iNumEffectedFroms;
 
+	//This methods fails if a cyclic set of from pointers contains a stack pointer deep inside.
+	//The whole method should probably be removed and CollectStartingObjectsAndSetClearedToRoot must check if it can find the Root instead.
 	iNumEffectedFroms = pcParameters->NumExpectedDists();
 	for (i = iNumEffectedFroms-1; i >= 0; i--)
 	{
@@ -108,6 +119,12 @@ void CDistToRootCalculator::RemoveDetachedLowest(CDistCalculatorParameters* pcPa
 		{
 			pcParameters->RemoveExpectedDist(i);
 		}
+
+		//Do this.
+		//if (pcBaseObject->HasStackPointers())
+		//{
+		//	pcParameters->AddUnattached(pcBaseObject);
+		//}
 	}
 }
 
@@ -163,6 +180,7 @@ void CDistToRootCalculator::ClearTosFlagsFromLowest(CDistCalculatorParameters* p
 	CBaseObject*			pcObject;
 	int						i;
 
+	//Rather than doing this add every object touched into an array.  It's cheaper in the long run.
 	papcLowestFroms = pcParameters->GetLowestFroms();
 	for (i = 0; i < papcLowestFroms->NumElements(); i++)
 	{

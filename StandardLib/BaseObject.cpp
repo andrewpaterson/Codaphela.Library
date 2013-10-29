@@ -145,7 +145,7 @@ void CBaseObject::KillInternalData(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::CollectStartingObjectsAndSetClearedToRoot(CBaseObject* pcTo, CDistCalculatorParameters* pcCalc)
+void CBaseObject::CollectStartingObjectsAndSetClearedToRoot(CBaseObject* pcTo, CDistCalculatorParameters* pcParameters)
 {
 	//It is assumed at this point that all the tos and froms have been updated.
 
@@ -177,7 +177,7 @@ void CBaseObject::CollectStartingObjectsAndSetClearedToRoot(CBaseObject* pcTo, C
 				pcContainer = pcFrom->GetEmbeddingContainer();
 				if (!(pcContainer->miFlags & OBJECT_FLAGS_CLEARED_TO_ROOT))
 				{
-					pcContainer->CollectStartingObjectsAndSetClearedToRoot(this, pcCalc);
+					pcContainer->CollectStartingObjectsAndSetClearedToRoot(this, pcParameters);
 				}
 			}
 		}
@@ -185,7 +185,7 @@ void CBaseObject::CollectStartingObjectsAndSetClearedToRoot(CBaseObject* pcTo, C
 		{
 			if (HasStackPointers())
 			{
-				pcCalc->AddUnattached(this);
+				pcParameters->AddUnattached(this);
 			}
 		}
 
@@ -197,7 +197,7 @@ void CBaseObject::CollectStartingObjectsAndSetClearedToRoot(CBaseObject* pcTo, C
 	{
 		if (pcTo != NULL)
 		{
-			pcCalc->AddExpectedDist(pcTo, miDistToRoot+1);
+			pcParameters->AddExpectedDist(pcTo, miDistToRoot+1);
 		}
 	}
 }
@@ -491,6 +491,7 @@ void CBaseObject::UpdateTosDetached(CDistCalculatorParameters* pcParameters)
 		SetDistToRoot(UNATTACHED_DIST_TO_ROOT);
 		UpdateEmbeddedObjectTosDetached(pcParameters);
 	}
+
 	else if (!IsDistToRootValid())
 	{
 		pcClosestFrom = GetClosestFromToRoot();
