@@ -376,7 +376,7 @@ void CArrayCommonObject::UpdateEmbeddedObjectTosDetached(CDistCalculatorParamete
 	for (i = 0; i < iNumElements; i++)
 	{
 		pcPointedTo = (CBaseObject*)mcArray.UnsafeGet(i);
-		UpdateTosDetached(pcPointedTo, pcParameters);
+		UpdateTosDetachedIfDetachedTosUpdated(pcPointedTo, pcParameters);
 	}
 }
 

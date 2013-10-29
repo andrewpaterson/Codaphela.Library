@@ -125,7 +125,7 @@ public:
 			void				UpdateTosUnattached(CDistCalculatorParameters* pcParameters);
 
 			void				AddUnattachedIfDetachedTosUpdated(CEmbeddedObject* pcPointedTo, CDistCalculatorParameters* pcParameters);
-			void				UpdateTosDetached(CEmbeddedObject* pcPointedTo, CDistCalculatorParameters* pcParameters);
+			void				UpdateTosDetachedIfDetachedTosUpdated(CEmbeddedObject* pcPointedTo, CDistCalculatorParameters* pcParameters);
 			void				AddExpectedDistToRoot(CEmbeddedObject* pcPointedTo, int iExpectedDist, CDistCalculatorParameters* pcParameters);
 
 			BOOL				TestedForSanity(void);

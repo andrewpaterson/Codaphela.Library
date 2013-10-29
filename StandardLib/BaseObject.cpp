@@ -545,7 +545,7 @@ void CBaseObject::AddUnattachedIfDetachedTosUpdated(CEmbeddedObject* pcPointedTo
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::UpdateTosDetached(CEmbeddedObject* pcPointedTo, CDistCalculatorParameters* pcParameters)
+void CBaseObject::UpdateTosDetachedIfDetachedTosUpdated(CEmbeddedObject* pcPointedTo, CDistCalculatorParameters* pcParameters)
 {
 	CBaseObject*		pcBaseObject;
 
