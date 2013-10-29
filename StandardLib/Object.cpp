@@ -234,34 +234,6 @@ void CObject::RemoveAllStackFroms(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObject::CollectPointedToToBeKilled(CArrayBaseObjectPtr* papcKilled)
-{
-	int					i;
-	CBaseObject*		pcPointedTo;
-	CPointer**			ppPointer;
-	int					iNumEmbedded;
-	CBaseObject*		pcEmbedded;
-
-	for (i = 0; i < mapPointers.NumElements(); i++)
-	{
-		ppPointer = mapPointers.Get(i);
-		pcPointedTo = (*ppPointer)->BaseObject();
-		CBaseObject::CollectPointedToToBeKilled(papcKilled, pcPointedTo);
-	}
-
-	iNumEmbedded = mapEmbedded.NumElements();
-	for (i = 0; i < iNumEmbedded; i++)
-	{
-		pcEmbedded = *mapEmbedded.Get(i);
-		pcEmbedded->CollectPointedToToBeKilled(papcKilled);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CObject::SetDistToRootAndSetPointedTosExpectedDistToRoot(int iDistToRoot)
 {
 	int				i;

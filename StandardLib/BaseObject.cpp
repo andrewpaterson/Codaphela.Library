@@ -282,66 +282,6 @@ void CBaseObject::TryKill(BOOL bKillIfNoRoot)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::CollectPointedToToBeKilled(CArrayBaseObjectPtr* papcKilled, CBaseObject* pcPointedTo)
-{
-	BOOL			bHasStackPointers;
-	BOOL			bCanFindRoot;
-	BOOL			bMustKill;
-	CBaseObject*	pcContainer;
-
-	if (pcPointedTo)
-	{
-		if (!pcPointedTo->IsMarkedUnreachable())
-		{
-			pcContainer = pcPointedTo->GetEmbeddingContainer();
-
-			bHasStackPointers = pcContainer->HasStackPointers();
-			bCanFindRoot = pcContainer->CanFindRoot();
-
-			bMustKill = !bCanFindRoot && !bHasStackPointers;
-			if (bMustKill)
-			{
-				pcContainer->CollectThoseToBeKilled(papcKilled);
-			}
-		}
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CBaseObject::MarkThisForKilling(CArrayBaseObjectPtr* papcKilled)
-{
-	CBaseObject*		pcTemp;
-
-	//These both assume we are the embedding container.
-	ClearDistToRoot();
-	SetFlag(OBJECT_FLAGS_UNREACHABLE, TRUE);
-
-	pcTemp = this;
-	papcKilled->Add(&pcTemp);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CBaseObject::CollectThoseToBeKilled(CArrayBaseObjectPtr* papcKilled)
-{
-	ValidateNotEmbedded(__METHOD__);
-
-	MarkThisForKilling(papcKilled);
-	CollectPointedToToBeKilled(papcKilled);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CBaseObject::ClearDistToRoot(void)
 {
 	miDistToRoot = CLEARED_DIST_TO_ROOT;

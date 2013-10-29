@@ -56,7 +56,6 @@ protected:
 			int					RemapTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew);
 			void				RemoveTo(CEmbeddedObject* pcTo);
 			void				RemoveEmbeddedObjectAllTos(void);
-			void				CollectPointedToToBeKilled(CArrayBaseObjectPtr* papcKilled);
 	virtual	CEmbeddedObject*	GetRemappedEmbeddedObject(int iIndex);
 			void				UpdateEmbeddedObjectTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist);
 			void				ClearEmbeddedObjectTosUpdatedTosFlags(void);

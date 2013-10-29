@@ -302,23 +302,6 @@ int CArrayCommonObject::UnsafeNumEmbeddedObjectTos(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayCommonObject::CollectPointedToToBeKilled(CArrayBaseObjectPtr* papcKilled)
-{
-	CBaseObject*			pcPointedTo;
-	int						i;
-
-	for (i = 0; i < mcArray.UnsafeNumElements(); i++)
-	{
-		pcPointedTo = (CBaseObject*)mcArray.UnsafeGet(i);
-		CBaseObject::CollectPointedToToBeKilled(papcKilled, pcPointedTo);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CArrayCommonObject::RemoveAllTos(void)
 {
 	CBaseObject*			pcPointedTo;

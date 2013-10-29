@@ -163,9 +163,6 @@ protected:
 			int				CalculateDistToRootFromPointedFroms(void);
 	virtual int				CalculateDistToRootFromPointedFroms(int iDistToRoot);
 			void			CollectThoseToBeKilled(CArrayBaseObjectPtr* papcKilled);
-	virtual void			CollectPointedToToBeKilled(CArrayBaseObjectPtr* papcKilled) =0;
-			void			CollectPointedToToBeKilled(CArrayBaseObjectPtr* papcKilled, CBaseObject* pcPointedTo);
-			void			MarkThisForKilling(CArrayBaseObjectPtr* papcKilled);
 			BOOL			IsBaseObject(void);
 			int				GetNumEmbeddedFromFlags(void);
 			void			SetFlagNumEmbedded(int iNumEmbedded);
