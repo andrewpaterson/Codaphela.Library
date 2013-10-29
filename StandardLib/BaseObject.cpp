@@ -145,7 +145,7 @@ void CBaseObject::KillInternalData(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::CollectStartingObjects(CBaseObject* pcTo, CDistCalculatorParameters* pcCalc)
+void CBaseObject::CollectStartingObjectsAndSetClearedToRoot(CBaseObject* pcTo, CDistCalculatorParameters* pcCalc)
 {
 	//It is assumed at this point that all the tos and froms have been updated.
 
@@ -177,7 +177,7 @@ void CBaseObject::CollectStartingObjects(CBaseObject* pcTo, CDistCalculatorParam
 				pcContainer = pcFrom->GetEmbeddingContainer();
 				if (!(pcContainer->miFlags & OBJECT_FLAGS_CLEARED_TO_ROOT))
 				{
-					pcContainer->CollectStartingObjects(this, pcCalc);
+					pcContainer->CollectStartingObjectsAndSetClearedToRoot(this, pcCalc);
 				}
 			}
 		}

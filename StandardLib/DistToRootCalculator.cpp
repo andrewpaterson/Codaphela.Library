@@ -48,26 +48,22 @@ void CDistToRootCalculator::Calculate(CDistCalculatorParameters* pcParameters)
 	{
 		//Check if the "FromChanged" object has any froms pointing to it that can still find the Root object.
 		//If they can add those froms pointing to it objects to an array of objects to start from.
-		mpcFromChanged->CollectStartingObjects(NULL, pcParameters);
+		mpcFromChanged->CollectStartingObjectsAndSetClearedToRoot(NULL, pcParameters);
 
 		//Cyclic dependencies will cause lowest pointers to be incorrectly added.  Remove them.
 		RemoveDetachedLowest(pcParameters);
 	}
 
-	//Copy the starting from objects into an array so their flags can be fixed later.
 	pcParameters->MarkExpectedDistLowestFroms();
-
-	//For all the starting objects walk the 'tos' and update their 'to' graphs distances to the Root object.
 	UpdateAttachedTosDistToRoot(pcParameters);
 
 	//If the changed from can no longer find the root object then it is detached and it's tos must be detached also,
 	//Unless another from pointing to the 'detached' to can find the Root object.
 	if (mpcFromChanged->GetDistToRoot() == CLEARED_DIST_TO_ROOT)
 	{
-		mpcFromChanged->UpdateTosDetached(pcParameters);
+		mpcFromChanged->UpdateTosDetached(pcParameters);  //This is a weird shitty method.
 
 		pcParameters->MarkExpectedDistLowestFroms();
-
 		UpdateAttachedTosDistToRoot(pcParameters);
 	}
 
@@ -78,7 +74,7 @@ void CDistToRootCalculator::Calculate(CDistCalculatorParameters* pcParameters)
 	//This method adds additional unattached objects.  Which is bad.
 	UpdateUnattachedTosDistToRoot(pcParameters);
 
-	ClearTosUpdatedTosFlags(pcParameters);
+	ClearTosFlagsFromLowest(pcParameters);
 }
 
 
@@ -161,7 +157,7 @@ void CDistToRootCalculator::UpdateUnattachedTosDistToRoot(CDistCalculatorParamet
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDistToRootCalculator::ClearTosUpdatedTosFlags(CDistCalculatorParameters* pcParameters)
+void CDistToRootCalculator::ClearTosFlagsFromLowest(CDistCalculatorParameters* pcParameters)
 {
 	CArrayBaseObjectPtr*	papcLowestFroms;
 	CBaseObject*			pcObject;

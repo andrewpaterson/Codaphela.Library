@@ -119,7 +119,7 @@ public:
 			void				UpdateTosDistToRoot(CDistCalculatorParameters* pcParameters);
 			void				ClearTosUpdatedTosFlags(void);
 			void				UnattachDistToRoot(void);
-			void				CollectStartingObjects(CBaseObject* pcTo, CDistCalculatorParameters* pcCalc);
+			void				CollectStartingObjectsAndSetClearedToRoot(CBaseObject* pcTo, CDistCalculatorParameters* pcCalc);
 			void				UpdateTosDetached(CDistCalculatorParameters* pcParameters);
 			void				UpdateTosUnattached(CDistCalculatorParameters* pcParameters);
 
