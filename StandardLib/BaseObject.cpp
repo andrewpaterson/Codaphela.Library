@@ -156,7 +156,6 @@ void CBaseObject::CollectStartingObjectsAndSetClearedToRoot(CBaseObject* pcTo, C
 	CBaseObject*					pcFrom;
 	CBaseObject*					pcContainer;
 	BOOL							bCanFindRoot;
-	BOOL							bRootDistValid;
 
 	if (IsRoot())
 	{
@@ -164,15 +163,6 @@ void CBaseObject::CollectStartingObjectsAndSetClearedToRoot(CBaseObject* pcTo, C
 	}
 
 	bCanFindRoot = CanFindRootThroughValidPath();
-	bRootDistValid = IsDistToRootValid();
-
-	if (bCanFindRoot != bRootDistValid)
-	{
-		if (bCanFindRoot && !bRootDistValid)
-		{
-			Break();
-		}
-	}
 
 	if (!bCanFindRoot)
 	{
