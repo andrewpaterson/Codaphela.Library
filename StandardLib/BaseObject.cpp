@@ -155,13 +155,26 @@ void CBaseObject::CollectStartingObjectsAndSetClearedToRoot(CBaseObject* pcTo, C
 	CArrayEmbeddedBaseObjectPtr		apcFroms;
 	CBaseObject*					pcFrom;
 	CBaseObject*					pcContainer;
+	BOOL							bCanFindRoot;
+	BOOL							bRootDistValid;
 
 	if (IsRoot())
 	{
 		return;
 	}
 
-	if (!IsDistToRootValid())
+	bCanFindRoot = CanFindRootThroughValidPath();
+	bRootDistValid = IsDistToRootValid();
+
+	if (bCanFindRoot != bRootDistValid)
+	{
+		if (bCanFindRoot && !bRootDistValid)
+		{
+			int xxx = 3;
+		}
+	}
+
+	if (!bCanFindRoot)
 	{
 		SetDistToRoot(CLEARED_DIST_TO_ROOT);
 		SetFlag(OBJECT_FLAGS_CLEARED_TO_ROOT, TRUE);
@@ -327,6 +340,44 @@ BOOL CBaseObject::CanFindRoot(void)
 	bResult = pcPointedFrom->GetEmbeddingContainer()->CanFindRoot();
 
 	SetFlag(OBJECT_FLAGS_TESTED_FOR_ROOT, FALSE);
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CBaseObject::CanFindRootThroughValidPath(void)
+{
+	ValidateNotEmbedded(__METHOD__);
+
+	CEmbeddedObject*	pcPointedFrom;
+	BOOL				bResult;
+	int					iFromDistToRoot;
+
+	if (this->IsRoot())
+	{
+		return TRUE;
+	}
+	if (miDistToRoot < ROOT_DIST_TO_ROOT)
+	{
+		return FALSE;
+	}
+
+	pcPointedFrom = GetClosestFromToRoot();
+	if (pcPointedFrom == NULL)
+	{
+		return FALSE;
+	}
+
+	iFromDistToRoot = pcPointedFrom->GetDistToRoot();
+	if (iFromDistToRoot >= miDistToRoot)
+	{
+		return FALSE;
+	}
+
+	bResult = pcPointedFrom->GetEmbeddingContainer()->CanFindRoot();
 	return bResult;
 }
 

@@ -54,10 +54,6 @@ void CDistToRootCalculator::Calculate(CDistCalculatorParameters* pcParameters)
 		//
 		//This method also has side effect of setting the objects dist to root to CLEARED_DIST_TO_ROOT.
 		mpcFromChanged->CollectStartingObjectsAndSetClearedToRoot(NULL, pcParameters);
-
-		//Cyclic dependencies will cause lowest pointers to be incorrectly added.  Remove them.
-		//This method is broken.
-		RemoveDetachedLowest(pcParameters);
 	}
 
 	pcParameters->MarkExpectedDistLowestFroms();
@@ -94,38 +90,6 @@ void CDistToRootCalculator::Calculate(CDistCalculatorParameters* pcParameters)
 void CDistToRootCalculator::AddFromChanged(CBaseObject* pcObject)
 {
 	mpcFromChanged = pcObject;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CDistToRootCalculator::RemoveDetachedLowest(CDistCalculatorParameters* pcParameters)
-{
-	int				i;
-	CBaseObject*	pcBaseObject;
-	SDistToRoot*	psDistToRoot;
-	int				iNumEffectedFroms;
-
-	//This methods fails if a cyclic set of from pointers contains a stack pointer deep inside.
-	//The whole method should probably be removed and CollectStartingObjectsAndSetClearedToRoot must check if it can find the Root instead.
-	iNumEffectedFroms = pcParameters->NumExpectedDists();
-	for (i = iNumEffectedFroms-1; i >= 0; i--)
-	{
-		psDistToRoot = pcParameters->GetExpectedDist(i);
-		pcBaseObject = psDistToRoot->pcObject;
-		if (!pcBaseObject->CanFindRoot())
-		{
-			pcParameters->RemoveExpectedDist(i);
-		}
-
-		//Do this.
-		//if (pcBaseObject->HasStackPointers())
-		//{
-		//	pcParameters->AddUnattached(pcBaseObject);
-		//}
-	}
 }
 
 

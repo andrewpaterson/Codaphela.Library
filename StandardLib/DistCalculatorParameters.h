@@ -25,29 +25,32 @@ private:
 	CArrayBaseObjectPtr		mapcDetachedFromRoot;
 	CArrayBaseObjectPtr		mapcCompletelyDetached;
 
+	CArrayBaseObjectPtr		mapcObjectTouched;
+
 public:
 	void					Init(void);
 	void					Kill(void);
 
 	void					AddExpectedDist(CBaseObject* pcObject, int iExpectedDist);
-	void					AddUnattached(CBaseObject* pcObject);
 	SDistToRoot*			GetLowest(void);
-	CBaseObject*			GetUnattached(void);
-	CBaseObject*			GetUnattached(int iIndex);
 	int						NumExpectedDists(void);
-	int						NumUnattached(void);
 	SDistToRoot*			GetExpectedDist(int iIndex);
 	SDistToRoot*			GetExpectedDist(CBaseObject* pcObject);
-	BOOL					ContainsUnattached(CBaseObject* pcObject);
 	void					RemoveExpectedDist(int iIndex);
 	void					RemoveExpectedDist(SDistToRoot* psDistToRoot);
+
+	void					AddUnattached(CBaseObject* pcObject);
+	CBaseObject*			GetUnattached(void);
+	CBaseObject*			GetUnattached(int iIndex);
+	BOOL					ContainsUnattached(CBaseObject* pcObject);
+	int						NumUnattached(void);
 	void					RemoveUnattached(CBaseObject* pcBaseObject);
+
 	void					MarkExpectedDistLowestFroms(void);
 	void					MarkUnattachedLowestFroms(void);
 	CArrayBaseObjectPtr*	GetLowestFroms(void);
 	void					AddChangedFromAsLowest(CBaseObject* pcFromChanged);
 
-public:
 	void					AddDetachedFromRoot(CBaseObject* pcObject);
 	int						NumDetachedFromRoot(void);
 	CBaseObject*			GetDetachedFromRoot(int iIndex);
@@ -56,9 +59,10 @@ public:
 	int						NumCompletelyDetached(void);
 	CBaseObject*			GetCompletelyDetached(int iIndex);
 	void					RemoveCompletelyDetached(int iIndex);
-
 	void					CopyRootDetachedToCompletelyDetached(void);
 	CArrayBaseObjectPtr*	GetCompletelyDetachedArray(void);
+
+	void					AddTouchedObject(CBaseObject* pcObject);
 };
 
 

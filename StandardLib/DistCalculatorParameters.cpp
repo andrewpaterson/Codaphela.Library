@@ -13,6 +13,7 @@ void CDistCalculatorParameters::Init(void)
 	mapcUnattched.Init(1024);
 	mapcDetachedFromRoot.Init(1024);
 	mapcCompletelyDetached.Init(1024);
+	mapcObjectTouched.Init(1024);
 }
 
 
@@ -22,6 +23,7 @@ void CDistCalculatorParameters::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CDistCalculatorParameters::Kill(void)
 {
+	mapcObjectTouched.Kill();
 	mapcCompletelyDetached.Kill();
 	mapcDetachedFromRoot.Kill();
 	mapcUnattched.Kill();
@@ -402,5 +404,15 @@ void CDistCalculatorParameters::CopyRootDetachedToCompletelyDetached(void)
 CArrayBaseObjectPtr* CDistCalculatorParameters::GetCompletelyDetachedArray(void)
 {
 	return &mapcCompletelyDetached;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CDistCalculatorParameters::AddTouchedObject(CBaseObject* pcObject)
+{
+	mapcObjectTouched.Add(&pcObject);
 }
 
