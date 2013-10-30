@@ -323,7 +323,7 @@ BOOL CBaseObject::CanFindRoot(void)
 	CEmbeddedObject*				pcPointedFrom;
 	BOOL							bResult;
 
-	if (this->IsRoot())
+	if (IsRoot())
 	{
 		return TRUE;
 	}
