@@ -9,7 +9,6 @@
 void CDistCalculatorParameters::Init(void)
 {
 	macExpectedDists.Init(1024);
-	mapcUnattched.Init(1024);
 	mapcDetachedFromRoot.Init(1024);
 	mapcCompletelyDetached.Init(1024);
 	mapcTouched.Init(1024);
@@ -25,7 +24,6 @@ void CDistCalculatorParameters::Kill(void)
 	mapcTouched.Kill();
 	mapcCompletelyDetached.Kill();
 	mapcDetachedFromRoot.Kill();
-	mapcUnattched.Kill();
 	macExpectedDists.Kill();
 }
 
@@ -62,16 +60,6 @@ void CDistCalculatorParameters::AddExpectedDist(CBaseObject* pcObject, int iExpe
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDistCalculatorParameters::AddUnattached(CBaseObject* pcObject)
-{
-	mapcUnattched.Add(&pcObject);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 SDistToRoot* CDistCalculatorParameters::GetExpectedDist(CBaseObject* pcObject)
 {
 	int				i;
@@ -87,28 +75,6 @@ SDistToRoot* CDistCalculatorParameters::GetExpectedDist(CBaseObject* pcObject)
 	}
 
 	return NULL;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CDistCalculatorParameters::ContainsUnattached(CBaseObject* pcObject)
-{
-	int				i;
-	CBaseObject*	pcCurrent;
-
-	for (i = 0; i < mapcUnattched.NumElements(); i++)
-	{
-		pcCurrent = *mapcUnattched.Get(i);
-		if (pcCurrent == pcObject)
-		{
-			return TRUE;
-		}
-	}
-
-	return FALSE;
 }
 
 
@@ -144,44 +110,9 @@ SDistToRoot* CDistCalculatorParameters::GetLowest(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CDistCalculatorParameters::GetUnattached(void)
-{
-	if (mapcUnattched.IsEmpty())
-	{
-		return NULL;
-	}
-
-	return *mapcUnattched.Tail();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CBaseObject* CDistCalculatorParameters::GetUnattached(int iIndex)
-{
-	return *mapcUnattched.Get(iIndex);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 int CDistCalculatorParameters::NumExpectedDists(void)
 {
 	return macExpectedDists.NumElements();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-int CDistCalculatorParameters::NumUnattached(void)
-{
-	return mapcUnattched.NumElements();
 }
 
 
@@ -220,27 +151,6 @@ void CDistCalculatorParameters::RemoveExpectedDist(SDistToRoot* psDistToRoot)
 		if (psCurrent == psDistToRoot)
 		{
 			macExpectedDists.RemoveAt(i, FALSE);
-			break;
-		}
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CDistCalculatorParameters::RemoveUnattached(CBaseObject* pcBaseObject)
-{
-	int				i;
-	CBaseObject*	pcCurrent;
-
-	for (i = mapcUnattched.NumElements()-1; i >= 0; i--)
-	{
-		pcCurrent = *mapcUnattched.Get(i);
-		if (pcCurrent == pcBaseObject)
-		{
-			mapcUnattched.RemoveAt(i, FALSE);
 			break;
 		}
 	}

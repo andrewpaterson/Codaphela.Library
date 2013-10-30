@@ -87,7 +87,6 @@ protected:
 	void				ValidateEmbeddedObjectTos(void);
 	void				ValidateEmbeddedConsistency(void);
 	BOOL				IsDistToRootValid(void);
-	void				UpdateEmbeddedObjectTosUnattached(CDistCalculatorParameters* pcParameters);
 };
 
 

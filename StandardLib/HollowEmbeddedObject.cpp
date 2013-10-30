@@ -237,12 +237,3 @@ void CHollowEmbeddedObject::UpdateEmbeddedObjectTosDetached(CDistCalculatorParam
 {
 }
 
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CHollowEmbeddedObject::UpdateEmbeddedObjectTosUnattached(CDistCalculatorParameters* pcParameters)
-{
-}
-

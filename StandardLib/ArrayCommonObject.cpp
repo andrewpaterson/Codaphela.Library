@@ -361,25 +361,6 @@ void CArrayCommonObject::UpdateEmbeddedObjectTosDetached(CDistCalculatorParamete
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayCommonObject::UpdateEmbeddedObjectTosUnattached(CDistCalculatorParameters* pcParameters)
-{
-	int					i;
-	CEmbeddedObject*	pcPointedTo;
-	int					iNumElements;
-
-	iNumElements = mcArray.UnsafeNumElements();
-	for (i = 0; i < iNumElements; i++)
-	{
-		pcPointedTo = (CBaseObject*)mcArray.UnsafeGet(i);
-		AddUnattachedIfDetachedTosUpdated(pcPointedTo, pcParameters);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CArrayCommonObject::RemoveEmbeddedObjectAllTos(void)
 {
 	RemoveAllTos();

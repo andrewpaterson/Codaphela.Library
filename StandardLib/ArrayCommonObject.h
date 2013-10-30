@@ -79,7 +79,6 @@ protected:
 	void	UpdateEmbeddedObjectTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist);
 	void	ClearEmbeddedObjectTosUpdatedTosFlags(void);
 	void	UpdateEmbeddedObjectTosDetached(CDistCalculatorParameters* pcParameters);
-	void	UpdateEmbeddedObjectTosUnattached(CDistCalculatorParameters* pcParameters);
 };
 
 

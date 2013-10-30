@@ -70,7 +70,6 @@ void CDistToRootCalculator::Calculate(CDistCalculatorParameters* pcParameters)
 
 	//This method adds additional unattached objects.  Which is bad.
 	//Basically all this method does is set the DistToRoot to UNATTACHED_DIST_TO_ROOT rather than CLEARED_DIST_TO_ROOT.
-	UpdateUnattachedTosDistToRoot(pcParameters);
 
 	int				i;
 	int				iNumTouched;
@@ -82,6 +81,10 @@ void CDistToRootCalculator::Calculate(CDistCalculatorParameters* pcParameters)
 	{
 		pcBaseObject = pcParameters->GetTouched(i);
 		pcBaseObject->ClearDistTouchedFlags();
+		if (pcBaseObject->GetDistToRoot() == CLEARED_DIST_TO_ROOT)
+		{
+			pcBaseObject->SetDistToRoot(UNATTACHED_DIST_TO_ROOT);
+		}
 	}
 }
 
@@ -117,21 +120,3 @@ void CDistToRootCalculator::UpdateAttachedTosDistToRoot(CDistCalculatorParameter
 	}
 }
 
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CDistToRootCalculator::UpdateUnattachedTosDistToRoot(CDistCalculatorParameters* pcParameters)
-{
-	CBaseObject*			pcBaseObject;
-
-	pcBaseObject = pcParameters->GetUnattached();
-	while (pcBaseObject)
-	{
-		pcParameters->RemoveUnattached(pcBaseObject);
-		pcBaseObject->UpdateTosUnattached(pcParameters);
-
-		pcBaseObject = pcParameters->GetUnattached();
-	}
-}

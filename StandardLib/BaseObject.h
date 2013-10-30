@@ -114,15 +114,14 @@ public:
 			void				SetDirty(void);
 			int					GetDistToRoot(void);
 			int					GetDistToStack(void);
+	virtual BOOL				SetDistToRoot(int iDistToRoot);
 			BOOL				TestedForRoot(void);
 	virtual void				RemoveAllTos(void) =0;
-			void				UpdateTosDistToRoot(CDistCalculatorParameters* pcParametersUpdateTosUnattached);
+			void				UpdateTosDistToRoot(CDistCalculatorParameters* pcParameters);
 			void				CollectStartingObjectsAndSetClearedToRoot(CBaseObject* pcTo, CDistCalculatorParameters* pcCalc);
 
 			void				UpdateTosDetached(CDistCalculatorParameters* pcParameters);
-			void				UpdateTosUnattached(CDistCalculatorParameters* pcParameters);  //--> AddUnattachedIfDetachedTosUpdated
 
-			void				AddUnattachedIfDetachedTosUpdated(CEmbeddedObject* pcPointedTo, CDistCalculatorParameters* pcParameters);
 			void				UpdateTosDetachedIfDetachedTosUpdated(CEmbeddedObject* pcPointedTo, CDistCalculatorParameters* pcParameters);
 			void				AddExpectedDistToRoot(CEmbeddedObject* pcPointedTo, int iExpectedDist, CDistCalculatorParameters* pcParameters);
 			void				ClearDistTouchedFlags(void);
@@ -162,7 +161,6 @@ protected:
 	virtual void				RemoveEmbeddedObjectAllTos(void) =0;
 			void				SetExpectedDistToRoot(int iExpectedDistToRoot);
 			void				SetCalculatedDistToRoot(void);
-	virtual BOOL				SetDistToRoot(int iDistToRoot);
 			int					CalculateDistToRootFromPointedFroms(void);
 	virtual int					CalculateDistToRootFromPointedFroms(int iDistToRoot);
 			void				CollectThoseToBeKilled(CArrayBaseObjectPtr* papcKilled);

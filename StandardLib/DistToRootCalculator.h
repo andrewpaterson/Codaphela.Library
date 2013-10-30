@@ -16,7 +16,6 @@ public:
 	void Calculate(void);
 	void Calculate(CDistCalculatorParameters* pcParameters);
 	void UpdateAttachedTosDistToRoot(CDistCalculatorParameters* pcParameters);
-	void UpdateUnattachedTosDistToRoot(CDistCalculatorParameters* pcParameters);
 };
 
 

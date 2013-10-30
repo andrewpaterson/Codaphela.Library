@@ -20,7 +20,6 @@ class CDistCalculatorParameters
 {
 private:
 	CArrayDistToRoot		macExpectedDists;
-	CArrayBaseObjectPtr		mapcUnattched;
 	CArrayBaseObjectPtr		mapcDetachedFromRoot;
 	CArrayBaseObjectPtr		mapcCompletelyDetached;
 	CArrayBaseObjectPtr		mapcTouched;
@@ -36,13 +35,6 @@ public:
 	SDistToRoot*			GetExpectedDist(CBaseObject* pcObject);
 	void					RemoveExpectedDist(int iIndex);
 	void					RemoveExpectedDist(SDistToRoot* psDistToRoot);
-
-	void					AddUnattached(CBaseObject* pcObject);
-	CBaseObject*			GetUnattached(void);
-	CBaseObject*			GetUnattached(int iIndex);
-	BOOL					ContainsUnattached(CBaseObject* pcObject);
-	int						NumUnattached(void);
-	void					RemoveUnattached(CBaseObject* pcBaseObject);
 
 
 	void					AddDetachedFromRoot(CBaseObject* pcObject);

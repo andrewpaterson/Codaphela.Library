@@ -199,7 +199,7 @@ void CBaseObject::CollectStartingObjectsAndSetClearedToRoot(CBaseObject* pcTo, C
 		{
 			if (HasStackPointers())
 			{
-				pcParameters->AddUnattached(this);
+//				pcParameters->AddUnattached(this);
 			}
 		}
 
@@ -545,53 +545,13 @@ void CBaseObject::UpdateTosDetached(CDistCalculatorParameters* pcParameters)
 		UpdateEmbeddedObjectTosDetached(pcParameters);
 	}
 
-	else if (!IsDistToRootValid())
+	else if (!IsDistToRootValid())  //CanFindRoot is implied by the previous if.
 	{
 		pcClosestFrom = GetClosestFromToRoot();
 		if (pcClosestFrom)
 		{
 			iClosestDistToRoot = pcClosestFrom->GetDistToRoot();
 			pcParameters->AddExpectedDist(this, iClosestDistToRoot+1);
-		}
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CBaseObject::UpdateTosUnattached(CDistCalculatorParameters* pcParameters)
-{
-	ValidateNotEmbedded(__METHOD__);
-
-	if ((miDistToRoot >= ROOT_DIST_TO_ROOT) || (miDistToRoot == UNATTACHED_DIST_TO_ROOT))
-	{
-		return;
-	}
-
-	pcParameters->AddTouched(this);
-	SetFlag(OBJECT_FLAGS_UPDATED_TOS_DETACHED, TRUE);
-	SetDistToRoot(UNATTACHED_DIST_TO_ROOT);
-
-	UpdateEmbeddedObjectTosUnattached(pcParameters);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CBaseObject::AddUnattachedIfDetachedTosUpdated(CEmbeddedObject* pcPointedTo, CDistCalculatorParameters* pcParameters)
-{
-	CBaseObject*		pcPointedToContainer;
-
-	if (pcPointedTo)
-	{
-		pcPointedToContainer = pcPointedTo->GetEmbeddingContainer();
-		if (!pcPointedToContainer->IsUpdateTosDetached())
-		{
-			pcParameters->AddUnattached(pcPointedToContainer);
 		}
 	}
 }

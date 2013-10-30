@@ -628,36 +628,6 @@ void CObject::UpdateEmbeddedObjectTosDetached(CDistCalculatorParameters* pcParam
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObject::UpdateEmbeddedObjectTosUnattached(CDistCalculatorParameters* pcParameters)
-{
-	int					i;
-	int					iNumEmbedded;
-	CBaseObject*		pcEmbedded;
-	int					iNumPointers;
-	CPointer**			ppPointer;
-	CEmbeddedObject*	pcPointedTo;
-
-	iNumPointers = mapPointers.NumElements();
-	for (i = 0; i < iNumPointers; i++)
-	{
-		ppPointer = mapPointers.Get(i);
-		pcPointedTo = (*ppPointer)->Object();
-		AddUnattachedIfDetachedTosUpdated(pcPointedTo, pcParameters);
-	}
-
-	iNumEmbedded = mapEmbedded.NumElements();
-	for (i = 0; i < iNumEmbedded; i++)
-	{
-		pcEmbedded = *mapEmbedded.Get(i);
-		pcEmbedded->UpdateEmbeddedObjectTosUnattached(pcParameters);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CObject::RemoveTo(CEmbeddedObject* pcTo)
 {
 	int					iNumPointers;
