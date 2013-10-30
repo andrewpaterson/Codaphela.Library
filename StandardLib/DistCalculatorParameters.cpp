@@ -82,7 +82,7 @@ SDistToRoot* CDistCalculatorParameters::GetExpectedDist(CBaseObject* pcObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SDistToRoot* CDistCalculatorParameters::GetLowest(void)
+SDistToRoot* CDistCalculatorParameters::GetLowestExpectedDist(void)
 {
 	int				i;
 	int				iMinDist;
@@ -142,18 +142,10 @@ void CDistCalculatorParameters::RemoveExpectedDist(int iIndex)
 //////////////////////////////////////////////////////////////////////////
 void CDistCalculatorParameters::RemoveExpectedDist(SDistToRoot* psDistToRoot)
 {
-	int				i;
-	SDistToRoot*	psCurrent;
-
-	for (i = 0; i < macExpectedDists.NumElements(); i++)
-	{
-		psCurrent = macExpectedDists.Get(i);
-		if (psCurrent == psDistToRoot)
-		{
-			macExpectedDists.RemoveAt(i, FALSE);
-			break;
-		}
-	}
+	int	iIndex;
+	
+	iIndex = macExpectedDists.GetIndex(psDistToRoot);
+	macExpectedDists.RemoveAt(iIndex, TRUE);  //Preserving order is (unfortunately) important.
 }
 
 
@@ -184,6 +176,28 @@ int CDistCalculatorParameters::NumDetachedFromRoot(void)
 CBaseObject* CDistCalculatorParameters::GetDetachedFromRoot(int iIndex)
 {
 	return *mapcDetachedFromRoot.Get(iIndex);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CBaseObject** CDistCalculatorParameters::GetNextDetachedFromRoot(void)
+{
+	return mapcDetachedFromRoot.SafeGet(0);
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CDistCalculatorParameters::RemoveDetachedFromRoot(CBaseObject** ppcObject)
+{
+	int	iIndex;
+
+	iIndex = mapcDetachedFromRoot.GetIndex(ppcObject);
+	mapcDetachedFromRoot.RemoveAt(iIndex, TRUE);  //Preserving order is (unfortunately) important.
 }
 
 

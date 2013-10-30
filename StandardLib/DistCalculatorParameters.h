@@ -19,17 +19,18 @@ typedef CArrayTemplate<SDistToRoot>		CArrayDistToRoot;
 class CDistCalculatorParameters
 {
 private:
+	CArrayBaseObjectPtr		mapcTouched;
 	CArrayDistToRoot		macExpectedDists;
 	CArrayBaseObjectPtr		mapcDetachedFromRoot;
+
 	CArrayBaseObjectPtr		mapcCompletelyDetached;
-	CArrayBaseObjectPtr		mapcTouched;
 
 public:
 	void					Init(void);
 	void					Kill(void);
 
 	void					AddExpectedDist(CBaseObject* pcObject, int iExpectedDist);
-	SDistToRoot*			GetLowest(void);
+	SDistToRoot*			GetLowestExpectedDist(void);
 	int						NumExpectedDists(void);
 	SDistToRoot*			GetExpectedDist(int iIndex);
 	SDistToRoot*			GetExpectedDist(CBaseObject* pcObject);
@@ -40,6 +41,8 @@ public:
 	void					AddDetachedFromRoot(CBaseObject* pcObject);
 	int						NumDetachedFromRoot(void);
 	CBaseObject*			GetDetachedFromRoot(int iIndex);
+	CBaseObject**			GetNextDetachedFromRoot(void);
+	void					RemoveDetachedFromRoot(CBaseObject** ppcObject);
 
 	void					AddCompletelyDetached(CBaseObject* pcObject);
 	int						NumCompletelyDetached(void);

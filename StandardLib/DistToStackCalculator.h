@@ -12,7 +12,7 @@ public:
 	void			Kill(void);
 
 	void			Calculate(CDistCalculatorParameters* pcDetached);
-	int				UpdateDistToStackForObjectsWithStackPointers(CDistCalculatorParameters* pcDetached);
+	int				CollectDetached(CDistCalculatorParameters* pcParameters);
 	void			InitialiseCompletelyDetached(CDistCalculatorParameters* pcDetached);
 	void			ResetObjectsToUnknownDistToStack(CDistCalculatorParameters* pcDetached);
 	int				UpdateDistToStackForObjectsWithFromStackDist(CDistCalculatorParameters* pcDetached);

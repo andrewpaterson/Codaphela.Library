@@ -27,7 +27,7 @@ void CDistToStackCalculator::Calculate(CDistCalculatorParameters* pcDetached)
 {
 	int		iNumWithStackPointers;
 
-	iNumWithStackPointers = UpdateDistToStackForObjectsWithStackPointers(pcDetached);
+	iNumWithStackPointers = CollectDetached(pcDetached);
 	if (iNumWithStackPointers == 0)
 	{
 		//Kill them all!
@@ -121,22 +121,28 @@ void CDistToStackCalculator::UpdateDistToStackForAllObjects(CDistCalculatorParam
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CDistToStackCalculator::UpdateDistToStackForObjectsWithStackPointers(CDistCalculatorParameters* pcDetached)
+int CDistToStackCalculator::CollectDetached(CDistCalculatorParameters* pcParameters)
 {
 	int				i;
-	int				iNumDetached;
+	int				iNumTouched;
 	CBaseObject*	pcBaseObject;
 	int				iNumWithStackPointers;
+	int				iDistToRoot;
 
 	iNumWithStackPointers = 0;
-	iNumDetached = pcDetached->NumDetachedFromRoot();
-	for (i = 0; i < iNumDetached; i++)
+	iNumTouched = pcParameters->NumTouched();
+	for (i = 0; i < iNumTouched; i++)
 	{
-		pcBaseObject = pcDetached->GetDetachedFromRoot(i);
-		if (pcBaseObject->HasStackPointers())
+		pcBaseObject = pcParameters->GetTouched(i);
+		iDistToRoot = pcBaseObject->GetDistToRoot();
+		if (iDistToRoot == UNATTACHED_DIST_TO_ROOT)
 		{
-			pcBaseObject->SetDistToStack(0);
-			iNumWithStackPointers++;
+			pcParameters->AddDetachedFromRoot(pcBaseObject);
+			if (pcBaseObject->HasStackPointers())
+			{
+				pcBaseObject->SetDistToStack(0);
+				iNumWithStackPointers++;
+			}
 		}
 	}
 

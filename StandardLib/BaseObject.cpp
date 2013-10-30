@@ -178,7 +178,7 @@ void CBaseObject::CollectStartingObjectsAndSetClearedToRoot(CBaseObject* pcTo, C
 	{
 		pcParameters->AddTouched(this);
 		SetDistToRoot(CLEARED_DIST_TO_ROOT);
-		SetFlag(OBJECT_FLAGS_CLEARED_TO_ROOT, TRUE);
+		SetFlag(OBJECT_FLAGS_CLEARED_DIST_TO_ROOT, TRUE);
 
 		apcFroms.Init();
 		GetHeapFroms(&apcFroms);  //This needs optimisation.
@@ -189,7 +189,7 @@ void CBaseObject::CollectStartingObjectsAndSetClearedToRoot(CBaseObject* pcTo, C
 			{
 				pcFrom = *apcFroms.Get(i);
 				pcContainer = pcFrom->GetEmbeddingContainer();
-				if (!(pcContainer->miFlags & OBJECT_FLAGS_CLEARED_TO_ROOT))
+				if (!(pcContainer->miFlags & OBJECT_FLAGS_CLEARED_DIST_TO_ROOT))
 				{
 					pcContainer->CollectStartingObjectsAndSetClearedToRoot(this, pcParameters);
 				}
@@ -197,10 +197,7 @@ void CBaseObject::CollectStartingObjectsAndSetClearedToRoot(CBaseObject* pcTo, C
 		}
 		else
 		{
-			if (HasStackPointers())
-			{
-//				pcParameters->AddUnattached(this);
-			}
+			pcParameters->AddDetachedFromRoot(this);
 		}
 
 		apcFroms.Kill();
@@ -499,7 +496,7 @@ int CBaseObject::CalculateDistToRootFromPointedFroms(int iDistToRoot)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::UpdateTosDistToRoot(CDistCalculatorParameters* pcParameters)
+void CBaseObject::UpdateAttachedTosDistToRoot(CDistCalculatorParameters* pcParameters)
 {
 	ValidateNotEmbedded(__METHOD__);
 
@@ -523,37 +520,13 @@ void CBaseObject::UpdateTosDistToRoot(CDistCalculatorParameters* pcParameters)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::UpdateTosDetached(CDistCalculatorParameters* pcParameters)
 {
-	//This function is called recursively.  And I suspect it is incorrect.
 	ValidateNotEmbedded(__METHOD__);
-
-	CEmbeddedObject*	pcClosestFrom;
-	int					iClosestDistToRoot;
-
+	
 	pcParameters->AddTouched(this);
-	SetFlag(OBJECT_FLAGS_UPDATED_TOS_DETACHED, TRUE);
+	SetFlag(OBJECT_FLAGS_UPDATED_TOS_DIST_TO_ROOT, TRUE);
+	SetDistToRoot(CLEARED_DIST_TO_ROOT);
 
-	if (miDistToRoot == CLEARED_DIST_TO_ROOT)
-	{
-		pcParameters->AddDetachedFromRoot(this);
-		SetDistToRoot(UNATTACHED_DIST_TO_ROOT);
-		UpdateEmbeddedObjectTosDetached(pcParameters);
-	}
-	else if (!CanFindRoot())
-	{
-		pcParameters->AddDetachedFromRoot(this);
-		SetDistToRoot(UNATTACHED_DIST_TO_ROOT);
-		UpdateEmbeddedObjectTosDetached(pcParameters);
-	}
-
-	else if (!IsDistToRootValid())  //CanFindRoot is implied by the previous if.
-	{
-		pcClosestFrom = GetClosestFromToRoot();
-		if (pcClosestFrom)
-		{
-			iClosestDistToRoot = pcClosestFrom->GetDistToRoot();
-			pcParameters->AddExpectedDist(this, iClosestDistToRoot+1);
-		}
-	}
+	UpdateEmbeddedObjectTosDetached(pcParameters);
 }
 
 
@@ -564,13 +537,25 @@ void CBaseObject::UpdateTosDetached(CDistCalculatorParameters* pcParameters)
 void CBaseObject::UpdateTosDetachedIfDetachedTosUpdated(CEmbeddedObject* pcPointedTo, CDistCalculatorParameters* pcParameters)
 {
 	CBaseObject*		pcPointedToContainer;
+	CEmbeddedObject*	pcClosestFrom;
+	int					iClosestDistToRoot;
 
 	if (pcPointedTo)
 	{
 		pcPointedToContainer = pcPointedTo->GetEmbeddingContainer();
-		if (!pcPointedToContainer->IsUpdateTosDetached())
+		if (!pcPointedToContainer->IsUpdateAttachedTosDistToRoot())
 		{
-			pcPointedToContainer->UpdateTosDetached(pcParameters);
+			pcPointedToContainer->SetDistToRoot(CLEARED_DIST_TO_ROOT);
+			if (pcPointedToContainer->CanFindRoot())
+			{
+				pcClosestFrom = pcPointedToContainer->GetClosestFromToRoot();
+				iClosestDistToRoot = pcClosestFrom->GetDistToRoot();
+				pcParameters->AddExpectedDist(pcPointedToContainer, iClosestDistToRoot+1);
+			}
+			else
+			{
+				pcParameters->AddDetachedFromRoot(pcPointedToContainer);
+			}
 		}
 	}
 }
@@ -587,7 +572,7 @@ void CBaseObject::AddExpectedDistToRoot(CEmbeddedObject* pcPointedTo, int iExpec
 	if (pcPointedTo)
 	{
 		pcPointedToContainer = pcPointedTo->GetEmbeddingContainer();
-		if (!pcPointedToContainer->IsUpdateTosDistToRoot())
+		if (!pcPointedToContainer->IsUpdateAttachedTosDistToRoot())
 		{
 			pcPointedToContainer->SetDistToRoot(CLEARED_DIST_TO_ROOT);
 			pcParameters->AddExpectedDist(pcPointedToContainer, iExpectedDist);
@@ -604,7 +589,7 @@ void CBaseObject::ClearDistTouchedFlags(void)
 {
 	ValidateNotEmbedded(__METHOD__);
 
-	SetFlag(OBJECT_FLAGS_CLEARED_TO_ROOT | OBJECT_FLAGS_UPDATED_TOS_DIST_TO_ROOT | OBJECT_FLAGS_UPDATED_TOS_DETACHED, FALSE);
+	SetFlag(OBJECT_FLAGS_CLEARED_DIST_TO_ROOT | OBJECT_FLAGS_UPDATED_TOS_DIST_TO_ROOT, FALSE);
 }
 
 
@@ -614,7 +599,7 @@ void CBaseObject::ClearDistTouchedFlags(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CBaseObject::HasDistTouchedFlag(void)
 {
-	return miFlags & (OBJECT_FLAGS_CLEARED_TO_ROOT | OBJECT_FLAGS_UPDATED_TOS_DIST_TO_ROOT | OBJECT_FLAGS_UPDATED_TOS_DETACHED);
+	return miFlags & (OBJECT_FLAGS_CLEARED_DIST_TO_ROOT | OBJECT_FLAGS_UPDATED_TOS_DIST_TO_ROOT);
 }
 
 
@@ -967,19 +952,11 @@ BOOL CBaseObject::IsMarkedUnreachable(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CBaseObject::IsUpdateTosDistToRoot(void)
+BOOL CBaseObject::IsUpdateAttachedTosDistToRoot(void)
 {
 	return miFlags & OBJECT_FLAGS_UPDATED_TOS_DIST_TO_ROOT;
 }
 
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CBaseObject::IsUpdateTosDetached(void)
-{
-	return miFlags & OBJECT_FLAGS_UPDATED_TOS_DETACHED;
-}
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -1249,9 +1226,8 @@ void CBaseObject::ValidateFlags(void)
 	ValidateFlagNotSet(OBJECT_FLAGS_KILLED, "OBJECT_FLAGS_KILLED");
 	ValidateFlagNotSet(OBJECT_FLAGS_DUMPED, "OBJECT_FLAGS_DUMPED");
 	ValidateFlagNotSet(OBJECT_FLAGS_UNREACHABLE, "OBJECT_FLAGS_UNREACHABLE");
-	ValidateFlagNotSet(OBJECT_FLAGS_CLEARED_TO_ROOT, "OBJECT_FLAGS_CLEARED_TO_ROOT");
+	ValidateFlagNotSet(OBJECT_FLAGS_CLEARED_DIST_TO_ROOT, "OBJECT_FLAGS_CLEARED_DIST_TO_ROOT");
 	ValidateFlagNotSet(OBJECT_FLAGS_UPDATED_TOS_DIST_TO_ROOT, "OBJECT_FLAGS_UPDATED_TOS_DIST_TO_ROOT");
-	ValidateFlagNotSet(OBJECT_FLAGS_UPDATED_TOS_DETACHED, "OBJECT_FLAGS_UPDATED_TOS_DETACHED");
 
 	ValidateContainerFlag();
 }

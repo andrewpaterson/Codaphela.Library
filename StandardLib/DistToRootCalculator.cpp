@@ -56,20 +56,8 @@ void CDistToRootCalculator::Calculate(CDistCalculatorParameters* pcParameters)
 		mpcFromChanged->CollectStartingObjectsAndSetClearedToRoot(NULL, pcParameters);
 	}
 
-	//Firstly deal with the case where objects pointed to by our potentially detached object can still find the root.
-	UpdateAttachedTosDistToRoot(pcParameters);
+	UpdateAttachedAndDetachedDistToRoot(pcParameters);
 
-	//If the changed from can no longer find the root object then it is detached and it's tos must be detached also,
-	//Unless another from pointing to the 'detached' to can find the Root object.
-	if (mpcFromChanged->GetDistToRoot() == CLEARED_DIST_TO_ROOT)
-	{
-		mpcFromChanged->UpdateTosDetached(pcParameters);  //This is a weird shitty method.
-
-		UpdateAttachedTosDistToRoot(pcParameters);
-	}
-
-	//This method adds additional unattached objects.  Which is bad.
-	//Basically all this method does is set the DistToRoot to UNATTACHED_DIST_TO_ROOT rather than CLEARED_DIST_TO_ROOT.
 
 	int				i;
 	int				iNumTouched;
@@ -105,18 +93,45 @@ void CDistToRootCalculator::AddFromChanged(CBaseObject* pcObject)
 //////////////////////////////////////////////////////////////////////////
 void CDistToRootCalculator::UpdateAttachedTosDistToRoot(CDistCalculatorParameters* pcParameters)
 {
-	SDistToRoot*			psLowestDistToRoot;
-	CBaseObject*			pcObject;
+	SDistToRoot*	psLowestDistToRoot;
+	CBaseObject*	pcObject;
 
-	//This is probably really slow.
-	psLowestDistToRoot = pcParameters->GetLowest();
+	psLowestDistToRoot = pcParameters->GetLowestExpectedDist();
 	while (psLowestDistToRoot)
 	{
 		pcObject = psLowestDistToRoot->pcObject;
 		pcParameters->RemoveExpectedDist(psLowestDistToRoot);
-		pcObject->UpdateTosDistToRoot(pcParameters);
+		pcObject->UpdateAttachedTosDistToRoot(pcParameters);
 
-		psLowestDistToRoot = pcParameters->GetLowest();
+		psLowestDistToRoot = pcParameters->GetLowestExpectedDist();
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CDistToRootCalculator::UpdateAttachedAndDetachedDistToRoot(CDistCalculatorParameters* pcParameters)
+{
+	CBaseObject**	ppcObject;
+	CBaseObject*	pcObject;
+
+	for (;;)
+	{
+		UpdateAttachedTosDistToRoot(pcParameters);
+
+		ppcObject = pcParameters->GetNextDetachedFromRoot();
+		if (ppcObject)
+		{
+			pcObject = (*ppcObject);
+			pcParameters->RemoveDetachedFromRoot(ppcObject);
+			pcObject->UpdateTosDetached(pcParameters);
+		}
+		else
+		{
+			break;
+		}
+	} 
 }
 
