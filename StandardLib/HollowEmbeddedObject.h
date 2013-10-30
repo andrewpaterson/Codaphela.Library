@@ -15,7 +15,8 @@ public:
 	void				RemoveTo(CEmbeddedObject* pcTo);
 	int					GetDistToStack(void);
 	int					GetDistToRoot(void);
-	void				SetDistToRootAndSetPointedTosExpectedDistToRoot(int iDistToRoot);
+	BOOL				SetDistToRoot(int iDistToRoot);
+	void				SetPointedTosExpectedDistToRoot(int iDistToRoot);
 	int					GetNumEmbedded(void);
 	CEmbeddedObject*	GetEmbeddedObject(int iIndex);
 	BOOL				IsHollow(void);

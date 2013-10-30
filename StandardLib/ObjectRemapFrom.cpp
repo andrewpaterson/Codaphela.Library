@@ -47,6 +47,8 @@ int CObjectRemapFrom::RemapEmbedded(CEmbeddedObject* pcNew, CEmbeddedObject* pcO
 	int				iCount;
 	CStackPointer*	pcStackPointer;
 	CStackPointer*	pcFirstStackPointer;
+	int				iOldDistToRoot;
+	BOOL			bDistChanged;;
 
 	iCount = 0;
 
@@ -70,7 +72,12 @@ int CObjectRemapFrom::RemapEmbedded(CEmbeddedObject* pcNew, CEmbeddedObject* pcO
 		pcNew->AddStackFroms(pcFirstStackPointer);
 	}
 
-	pcNew->SetDistToRootAndSetPointedTosExpectedDistToRoot(pcOld->GetDistToRoot());
+	iOldDistToRoot = pcOld->GetDistToRoot();
+	bDistChanged = pcNew->SetDistToRoot(iOldDistToRoot);
+	if (bDistChanged)
+	{
+		pcNew->SetPointedTosExpectedDistToRoot(iOldDistToRoot);
+	}
 
 	pcOld->KillFroms();
 

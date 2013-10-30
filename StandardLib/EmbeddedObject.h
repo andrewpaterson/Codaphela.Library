@@ -42,7 +42,8 @@ public:
 	virtual BOOL				Load(CObjectDeserialiser* pcFile) =0;
 	virtual BOOL				IsHollow(void) =0;
 	virtual int					RemapTos(CEmbeddedObject* pcOld, CEmbeddedObject* mpcObject);
-	virtual void				SetDistToRootAndSetPointedTosExpectedDistToRoot(int iDistToRoot) =0;
+	virtual BOOL				SetDistToRoot(int iDistToRoot) =0;
+	virtual void				SetPointedTosExpectedDistToRoot(int iDistToRoot) =0;
 
 	virtual int					GetDistToRoot(void) =0;
 	virtual int					GetDistToStack(void) =0;

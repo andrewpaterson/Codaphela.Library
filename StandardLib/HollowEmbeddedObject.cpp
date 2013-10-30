@@ -140,8 +140,20 @@ CHollowObject* CHollowEmbeddedObject::GetHollowObject(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHollowEmbeddedObject::SetDistToRootAndSetPointedTosExpectedDistToRoot(int iDistToRoot)
+void CHollowEmbeddedObject::SetPointedTosExpectedDistToRoot(int iDistToRoot)
 {
+	NotImplemented(__METHOD__);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CHollowEmbeddedObject::SetDistToRoot(int iDistToRoot)
+{
+	NotImplemented(__METHOD__);
+	return FALSE;
 }
 
 

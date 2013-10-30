@@ -163,8 +163,9 @@ void CBaseObject::CollectStartingObjectsAndSetClearedToRoot(CBaseObject* pcTo, C
 
 	if (!IsDistToRootValid())
 	{
-		ClearDistToRoot();
+		SetDistToRoot(CLEARED_DIST_TO_ROOT);
 		SetFlag(OBJECT_FLAGS_CLEARED_TO_ROOT, TRUE);
+		pcParameters->AddTouchedObject(this);
 
 		apcFroms.Init();
 		GetHeapFroms(&apcFroms);  //This needs optimisation.
@@ -282,16 +283,6 @@ void CBaseObject::TryKill(BOOL bKillIfNoRoot)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::ClearDistToRoot(void)
-{
-	miDistToRoot = CLEARED_DIST_TO_ROOT;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CBaseObject::SetFlag(int iFlag, int iFlagValue)
 {
 	::SetFlag(&miFlags, iFlag, iFlagValue);
@@ -351,7 +342,10 @@ void CBaseObject::SetExpectedDistToRoot(int iExpectedDistToRoot)
 	int	iBestDistToRoot;
 
 	iBestDistToRoot = CalculateDistToRootFromPointedFroms(iExpectedDistToRoot);
-	SetDistToRootAndSetPointedTosExpectedDistToRoot(iBestDistToRoot);
+	if (SetDistToRoot(iBestDistToRoot))
+	{
+		SetPointedTosExpectedDistToRoot(iBestDistToRoot);
+	}
 }
 
 
@@ -366,7 +360,10 @@ void CBaseObject::SetCalculatedDistToRoot(void)
 	int	iBestDistToRoot;
 
 	iBestDistToRoot = CalculateDistToRootFromPointedFroms();
-	SetDistToRootAndSetPointedTosExpectedDistToRoot(iBestDistToRoot);
+	if (SetDistToRoot(iBestDistToRoot))
+	{
+		SetPointedTosExpectedDistToRoot(iBestDistToRoot);
+	}
 }
 
 
@@ -374,9 +371,14 @@ void CBaseObject::SetCalculatedDistToRoot(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::SetDistToRoot(int iDistToRoot)
+BOOL CBaseObject::SetDistToRoot(int iDistToRoot)
 {
-	miDistToRoot = iDistToRoot;
+	if (miDistToRoot != iDistToRoot)
+	{
+		miDistToRoot = iDistToRoot;
+		return TRUE;
+	}
+	return FALSE;
 }
 
 
@@ -575,7 +577,7 @@ void CBaseObject::AddExpectedDistToRoot(CEmbeddedObject* pcPointedTo, int iExpec
 		pcBaseObject = pcPointedTo->GetEmbeddingContainer();
 		if (!pcBaseObject->IsUpdateTosDistToRoot())
 		{
-			pcBaseObject->ClearDistToRoot();
+			pcBaseObject->SetDistToRoot(CLEARED_DIST_TO_ROOT);
 			pcParameters->AddExpectedDist(pcBaseObject, iExpectedDist);
 		}
 	}

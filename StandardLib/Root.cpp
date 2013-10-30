@@ -30,7 +30,8 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 CRoot::CRoot()
 {
-	SetDistToRootAndSetPointedTosExpectedDistToRoot(ROOT_DIST_TO_ROOT);
+	SetDistToRoot(ROOT_DIST_TO_ROOT);
+	SetPointedTosExpectedDistToRoot(ROOT_DIST_TO_ROOT);
 }
 
 

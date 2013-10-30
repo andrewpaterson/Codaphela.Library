@@ -126,12 +126,8 @@ BOOL CHollowObject::IsObject(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHollowObject::SetDistToRootAndSetPointedTosExpectedDistToRoot(int iDistToRoot)
+void CHollowObject::SetPointedTosExpectedDistToRoot(int iDistToRoot)
 {
-	if (miDistToRoot != iDistToRoot)
-	{
-		miDistToRoot = iDistToRoot;
-	}
 }
 
 

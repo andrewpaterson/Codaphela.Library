@@ -49,7 +49,7 @@ public:
 
 	void				MakeSubRoot(void);
 	BOOL				IsSubRoot(void);
-	void				SetDistToRootAndSetPointedTosExpectedDistToRoot(int iDistToRoot);
+	void				SetPointedTosExpectedDistToRoot(int iDistToRoot);
 
 	int					NumTos(void);
 	int					UnsafeNumEmbeddedObjectTos(void);

@@ -234,24 +234,19 @@ void CObject::RemoveAllStackFroms(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObject::SetDistToRootAndSetPointedTosExpectedDistToRoot(int iDistToRoot)
+void CObject::SetPointedTosExpectedDistToRoot(int iDistToRoot)
 {
 	int				i;
 	int				iNumEmbedded;
 	CBaseObject*	pcEmbedded;
 
-	if (miDistToRoot != iDistToRoot)
+	SetPointedTosDistToRoot(iDistToRoot);
+
+	iNumEmbedded = mapEmbedded.NumElements();
+	for (i = 0; i < iNumEmbedded; i++)
 	{
-		miDistToRoot = iDistToRoot;
-
-		SetPointedTosDistToRoot(iDistToRoot);
-
-		iNumEmbedded = mapEmbedded.NumElements();
-		for (i = 0; i < iNumEmbedded; i++)
-		{
-			pcEmbedded = *mapEmbedded.Get(i);
-			pcEmbedded->SetDistToRootAndSetPointedTosExpectedDistToRoot(iDistToRoot);
-		}
+		pcEmbedded = *mapEmbedded.Get(i);
+		pcEmbedded->SetPointedTosExpectedDistToRoot(iDistToRoot);
 	}
 }
 
@@ -260,20 +255,23 @@ void CObject::SetDistToRootAndSetPointedTosExpectedDistToRoot(int iDistToRoot)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObject::SetDistToRoot(int iDistToRoot)
+BOOL CObject::SetDistToRoot(int iDistToRoot)
 {
 	int				i;
 	int				iNumEmbedded;
 	CBaseObject*	pcEmbedded;
+	BOOL			bAnyChange;
 
-	CBaseObject::SetDistToRoot(iDistToRoot);
+	bAnyChange = CBaseObject::SetDistToRoot(iDistToRoot);
 
 	iNumEmbedded = mapEmbedded.NumElements();
 	for (i = 0; i < iNumEmbedded; i++)
 	{
 		pcEmbedded = *mapEmbedded.Get(i);
-		pcEmbedded->SetDistToRoot(iDistToRoot);
+		bAnyChange |= pcEmbedded->SetDistToRoot(iDistToRoot);
 	}
+
+	return bAnyChange;
 }
 
 
@@ -343,27 +341,6 @@ void CObject::SetPointedTosDistToRoot(int iDistToRoot)
 	else
 	{
 		gcLogger.Error2(__METHOD__, "Don't know how to set dist to root to [", IntToString(iDistToRoot), "].", NULL);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CObject::ClearDistToRoot(void)
-{
-	int				i;
-	int				iNumEmbedded;
-	CBaseObject*	pcEmbedded;
-
-	CBaseObject::ClearDistToRoot();
-
-	iNumEmbedded = mapEmbedded.NumElements();
-	for (i = 0; i < iNumEmbedded; i++)
-	{
-		pcEmbedded = *mapEmbedded.Get(i);
-		pcEmbedded->ClearDistToRoot();
 	}
 }
 
@@ -1100,21 +1077,21 @@ BOOL CObject::IsDistToRootValid(void)
 	int				iNumEmbedded;
 	CBaseObject*	pcEmbedded;
 
-	if (!CBaseObject::IsDistToRootValid())
+	if (CBaseObject::IsDistToRootValid())
 	{
-		return FALSE;
+		return TRUE;
 	}
 
 	iNumEmbedded = mapEmbedded.NumElements();
 	for (i = 0; i < iNumEmbedded; i++)
 	{
 		pcEmbedded = *mapEmbedded.Get(i);
-		if (!pcEmbedded->IsDistToRootValid())
+		if (pcEmbedded->IsDistToRootValid())
 		{
-			return FALSE;
+			return TRUE;
 		}
 	}
-	return TRUE;
+	return FALSE;
 }
 
 

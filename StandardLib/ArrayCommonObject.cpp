@@ -444,14 +444,9 @@ BOOL CArrayCommonObject::IsSubRoot(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayCommonObject::SetDistToRootAndSetPointedTosExpectedDistToRoot(int iDistToRoot)
+void CArrayCommonObject::SetPointedTosExpectedDistToRoot(int iDistToRoot)
 {
-	if (miDistToRoot != iDistToRoot)
-	{
-		miDistToRoot = iDistToRoot;
-
-		SetPointedTosDistToRoot(iDistToRoot);
-	}
+	SetPointedTosDistToRoot(iDistToRoot);
 }
 
 	//////////////////////////////////////////////////////////////////////////

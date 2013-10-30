@@ -110,7 +110,7 @@ public:
 
 			int					GetNumEmbedded(void);
 
-	virtual void				SetDistToRootAndSetPointedTosExpectedDistToRoot(int iDistToRoot) =0;
+	virtual void				SetPointedTosExpectedDistToRoot(int iDistToRoot) =0;
 			void				SetDirty(void);
 			int					GetDistToRoot(void);
 			int					GetDistToStack(void);
@@ -137,8 +137,8 @@ public:
 			int					TestGetNumEmbeddedFromFlags(void);
 	virtual void				SetFlag(int iFlag, int iFlagValue);
 			int					GetFlags(void);
-	virtual void				ClearDistToRoot(void);
-	virtual BOOL				CanFindRoot(void);
+			BOOL				CanFindRoot(void);
+			BOOL				CanFindRootThroughValidPath(void);
 			void				DumpFroms(void);
 			void				DumpTos(void);
 			void				Dump(void);
@@ -161,7 +161,7 @@ protected:
 	virtual void				RemoveEmbeddedObjectAllTos(void) =0;
 			void				SetExpectedDistToRoot(int iExpectedDistToRoot);
 			void				SetCalculatedDistToRoot(void);
-	virtual void				SetDistToRoot(int iDistToRoot);
+	virtual BOOL				SetDistToRoot(int iDistToRoot);
 			int					CalculateDistToRootFromPointedFroms(void);
 	virtual int					CalculateDistToRootFromPointedFroms(int iDistToRoot);
 			void				CollectThoseToBeKilled(CArrayBaseObjectPtr* papcKilled);

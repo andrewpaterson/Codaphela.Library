@@ -43,7 +43,7 @@ public:
 	void				Kill(void);
 	BOOL				IsCollection(void);
 	BOOL				IsObject(void);
-	void				SetDistToRootAndSetPointedTosExpectedDistToRoot(int iDistToRoot);
+	void				SetPointedTosExpectedDistToRoot(int iDistToRoot);
 	CPointer*			Pointer(CPointer* pcPointer);
 	void				Embedded(CBaseObject* pcObject);
 	BOOL				IsDirty(void);
@@ -54,7 +54,6 @@ public:
 	int					NumHeapFroms(void);
 	int					NumStackFroms(void);
 	void				SetFlag(int iFlag, int iFlagValue);
-	void				ClearDistToRoot(void);
 	void				GetHeapFroms(CArrayEmbeddedBaseObjectPtr* papcFroms);
 	void				GetStackFroms(CArrayPointerPtr* papcFroms);
 	CBaseObject*		GetClosestFromToStack(void);
@@ -82,8 +81,8 @@ protected:
 	int					CalculateDistToRootFromPointedFroms(int iDistToRoot);
 	void				Free(void);
 	void				SetPointedTosDistToRoot(int iDistToRoot);
-	void				SetDistToRoot(int iDistToRoot);
-	void				SetDistToStack(int iDistToRoot);
+	BOOL				SetDistToRoot(int iDistToRoot);
+	void				SetDistToStack(int iDistToStack);
 	BOOL				RecurseGetEmbeddedIndex(CEmbeddedObject* pcTest, int* piIndex);
 	CEmbeddedObject*	RecurseGetEmbeddedObject(int iIndex, int* iCount);
 	void				ValidateEmbeddedObjectTos(void);
