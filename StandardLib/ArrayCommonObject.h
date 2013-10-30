@@ -62,6 +62,7 @@ public:
 	BOOL				Load(CObjectDeserialiser* pcFile);
 
 	CBaseObject*		UnsafeGet(int iIndex);
+	BOOL				UnsafeRemove(CBaseObject* pcObject);
 	CEmbeddedObject*	GetEmbeddedObject(int iIndex);
 
 	void				ValidateEmbeddedObjectTos(void);
