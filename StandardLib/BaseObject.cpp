@@ -77,7 +77,7 @@ void CBaseObject::Class(void)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::Kill(void)
 {
-	CDistCalculator			cDistCalculator;
+	CDistCalculator*		pcDistCalculator;
 	CArrayBaseObjectPtr*	papcKilled;
 
 	//This method is for the user to forcibly kill an object.
@@ -88,11 +88,13 @@ void CBaseObject::Kill(void)
 	RemoveAllStackFroms();
 	RemoveAllHeapFroms();
 
-	cDistCalculator.Init();
-	papcKilled = cDistCalculator.Calculate(this);
+	pcDistCalculator = mpcObjectsThisIn->GetDistCalculator();
+
+	pcDistCalculator->Init();
+	papcKilled = pcDistCalculator->Calculate(this);
 
 	mpcObjectsThisIn->Remove(papcKilled);
-	cDistCalculator.Kill();
+	pcDistCalculator->Kill();
 
 	mpcObjectsThisIn->ValidateConsistency();
 }
@@ -241,7 +243,7 @@ void CBaseObject::TryKill(BOOL bKillIfNoRoot)
 	BOOL					bHasStackPointers;
 	BOOL					bHasHeapPointers;
 	BOOL					bMustKill;
-	CDistCalculator			cDistCalculator;
+	CDistCalculator*		pcDistCalculator;
 	CArrayBaseObjectPtr*	papcKilled;
 
 	if (IsRoot())
@@ -249,18 +251,20 @@ void CBaseObject::TryKill(BOOL bKillIfNoRoot)
 		return;
 	}
 
+	pcDistCalculator = mpcObjectsThisIn->GetDistCalculator();
+	
 	if (bKillIfNoRoot)
 	{
-		cDistCalculator.Init();
-		papcKilled = cDistCalculator.Calculate(this);
+		pcDistCalculator->Init();
+		papcKilled = pcDistCalculator->Calculate(this);
 
 		mpcObjectsThisIn->Remove(papcKilled);
-		cDistCalculator.Kill();
+		pcDistCalculator->Kill();
 	}
 	else
 	{
-		cDistCalculator.Init();
-		papcKilled = cDistCalculator.Calculate(this);
+		pcDistCalculator->Init();
+		papcKilled = pcDistCalculator->Calculate(this);
 
 		bHasHeapPointers = HasHeapPointers();
 		bHasStackPointers = HasStackPointers();
@@ -272,7 +276,7 @@ void CBaseObject::TryKill(BOOL bKillIfNoRoot)
 			mpcObjectsThisIn->Remove(papcKilled);
 		}
 
-		cDistCalculator.Kill();
+		pcDistCalculator->Kill();
 	}
 }
 

@@ -8,10 +8,10 @@
 //////////////////////////////////////////////////////////////////////////
 void CDistCalculatorParameters::Init(void)
 {
-	macExpectedDists.Init(1024);
-	mapcDetachedFromRoot.Init(1024);
-	mapcCompletelyDetached.Init(1024);
-	mapcTouched.Init(1024);
+	macExpectedDists.Init();
+	mapcDetachedFromRoot.Init();
+	mapcCompletelyDetached.Init(32);
+	mapcTouched.Init();
 }
 
 
@@ -247,7 +247,17 @@ void CDistCalculatorParameters::RemoveCompletelyDetached(int iIndex)
 //////////////////////////////////////////////////////////////////////////
 void CDistCalculatorParameters::CopyRootDetachedToCompletelyDetached(void)
 {
-	mapcCompletelyDetached.Copy(&mapcDetachedFromRoot);
+	//Poor mans copy for now.  Should resize and memcpy rather.
+	int				i;
+	int				iNum;
+	CBaseObject*	pcBaseObject;
+
+	iNum = mapcDetachedFromRoot.NumElements();
+	for (i = 0; i < iNum; i++)
+	{
+		pcBaseObject = *mapcDetachedFromRoot.Get(i);
+		mapcCompletelyDetached.Add(&pcBaseObject);
+	}
 }
 
 

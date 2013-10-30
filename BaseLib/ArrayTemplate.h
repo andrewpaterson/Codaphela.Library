@@ -695,7 +695,7 @@ BOOL __CArrayTemplate<M>::Copy(__CArrayTemplate* pcTemplateArray)
 	BOOL	bResult;
 
 	//Assumes the array is initialised.  
-	//Returns wether or not it had to be resized.
+	//Returns whether or not it had to be resized.
 	bResult = FALSE;
 	if ((pcTemplateArray->miNumElements != miNumElements) || (pcTemplateArray->miChunkSize != miChunkSize))
 	{

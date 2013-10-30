@@ -19,11 +19,11 @@ typedef CArrayTemplate<SDistToRoot>		CArrayDistToRoot;
 class CDistCalculatorParameters
 {
 private:
-	CArrayBaseObjectPtr		mapcTouched;
-	CArrayDistToRoot		macExpectedDists;
-	CArrayBaseObjectPtr		mapcDetachedFromRoot;
+	CArrayEmbeddedBaseObjectPtr		mapcTouched;
+	CArrayDistToRoot				macExpectedDists;
+	CArrayEmbeddedBaseObjectPtr		mapcDetachedFromRoot;
 
-	CArrayBaseObjectPtr		mapcCompletelyDetached;
+	CArrayBaseObjectPtr				mapcCompletelyDetached;
 
 public:
 	void					Init(void);

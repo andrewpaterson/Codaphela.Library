@@ -29,6 +29,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Root.h"
 #include "IndexGenerator.h"
 #include "Pointer.h"
+#include "DistCalculator.h"
 
 
 #define ROOT_NAME	"GraphRoot"
@@ -40,8 +41,6 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #define ORoot()						(gcObjects.AddRoot())
 #define ONull						(Null())
 
-//Temporary until stack Pointers are destructorated.
-#define ReturnKillNull(object)		object->Kill(); return Null();
 
 #define  LOG_OBJECT_ALLOCATION(pcObject) LogObjectAllocation(pcObject, __ENGINE_PRETTY_FUNCTION__)
 #define  LOG_OBJECT_DESTRUCTION(pcObject) LogObjectDestruction(pcObject, __ENGINE_PRETTY_FUNCTION__)
@@ -65,6 +64,8 @@ protected:
 	BOOL					mbDatabase;
 
 	CStackPointers			mcStackPointers;
+
+	CDistCalculator			mcDistCalculator;
 
 public:
 												CObjects();
@@ -119,6 +120,8 @@ public:
 						BOOL					Deindex(CBaseObject* pvObject);
 
 						CStackPointers*			GetStackPointers(void);
+
+						CDistCalculator*		GetDistCalculator(void);
 
 						OIndex					StartMemoryIteration(SIndexesIterator* psIter);
 						OIndex					IterateMemory(SIndexesIterator* psIter);

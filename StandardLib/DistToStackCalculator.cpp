@@ -23,26 +23,26 @@ void CDistToStackCalculator::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDistToStackCalculator::Calculate(CDistCalculatorParameters* pcDetached)
+void CDistToStackCalculator::Calculate(CDistCalculatorParameters* pcParameters)
 {
 	int		iNumWithStackPointers;
 
-	iNumWithStackPointers = CollectDetached(pcDetached);
+	iNumWithStackPointers = CollectDetached(pcParameters);
 	if (iNumWithStackPointers == 0)
 	{
 		//Kill them all!
-		pcDetached->CopyRootDetachedToCompletelyDetached();
+		pcParameters->CopyRootDetachedToCompletelyDetached();
 	}
-	else if (iNumWithStackPointers == pcDetached->NumDetachedFromRoot())
+	else if (iNumWithStackPointers == pcParameters->NumDetachedFromRoot())
 	{
 		//Kill none of them.
-		ResetObjectsToUnknownDistToStack(pcDetached);
+		ResetObjectsToUnknownDistToStack(pcParameters);
 	}
 	else
 	{
-		InitialiseCompletelyDetached(pcDetached);
-		UpdateDistToStackForAllObjects(pcDetached);
-		ResetObjectsToUnknownDistToStack(pcDetached);
+		InitialiseCompletelyDetached(pcParameters);
+		UpdateDistToStackForAllObjects(pcParameters);
+		ResetObjectsToUnknownDistToStack(pcParameters);
 	}
 }
 
@@ -51,19 +51,19 @@ void CDistToStackCalculator::Calculate(CDistCalculatorParameters* pcDetached)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDistToStackCalculator::InitialiseCompletelyDetached(CDistCalculatorParameters* pcDetached)
+void CDistToStackCalculator::InitialiseCompletelyDetached(CDistCalculatorParameters* pcParameters)
 {
 	int				i;
 	int				iNumDetached;
 	CBaseObject*	pcBaseObject;
 
-	iNumDetached = pcDetached->NumDetachedFromRoot();
+	iNumDetached = pcParameters->NumDetachedFromRoot();
 	for (i = 0; i < iNumDetached; i++)
 	{
-		pcBaseObject = pcDetached->GetDetachedFromRoot(i);
+		pcBaseObject = pcParameters->GetDetachedFromRoot(i);
 		if (pcBaseObject->GetDistToStack() == UNKNOWN_DIST_TO_STACK)
 		{
-			pcDetached->AddCompletelyDetached(pcBaseObject);
+			pcParameters->AddCompletelyDetached(pcBaseObject);
 		}
 	}
 }
@@ -73,7 +73,7 @@ void CDistToStackCalculator::InitialiseCompletelyDetached(CDistCalculatorParamet
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CDistToStackCalculator::UpdateDistToStackForObjectsWithFromStackDist(CDistCalculatorParameters* pcDetached)
+int CDistToStackCalculator::UpdateDistToStackForObjectsWithFromStackDist(CDistCalculatorParameters* pcParameters)
 {
 	int				i;
 	int				iNumDetached;
@@ -82,18 +82,18 @@ int CDistToStackCalculator::UpdateDistToStackForObjectsWithFromStackDist(CDistCa
 	CBaseObject*	pcClosest;
 	int				iNumUpdated;
 
-	iNumDetached = pcDetached->NumCompletelyDetached();
+	iNumDetached = pcParameters->NumCompletelyDetached();
 	iNumUpdated = 0;
 	for (i = iNumDetached-1; i >= 0; i--)
 	{
-		pcBaseObject = pcDetached->GetCompletelyDetached(i);
+		pcBaseObject = pcParameters->GetCompletelyDetached(i);
 		pcClosest = pcBaseObject->GetClosestFromToStack();
 		if (pcClosest != NULL)
 		{
 			iNumUpdated++;
 			iClosestFrom = pcClosest->GetDistToStack();
 			pcBaseObject->SetDistToStack(iClosestFrom+1);
-			pcDetached->RemoveCompletelyDetached(i);
+			pcParameters->RemoveCompletelyDetached(i);
 		}
 	}
 
@@ -105,14 +105,14 @@ int CDistToStackCalculator::UpdateDistToStackForObjectsWithFromStackDist(CDistCa
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDistToStackCalculator::UpdateDistToStackForAllObjects(CDistCalculatorParameters* pcDetached)
+void CDistToStackCalculator::UpdateDistToStackForAllObjects(CDistCalculatorParameters* pcParameters)
 {
 	int iNumUpdated;
 
 	iNumUpdated = -1;
 	while (iNumUpdated != 0)
 	{
-		iNumUpdated = UpdateDistToStackForObjectsWithFromStackDist(pcDetached);
+		iNumUpdated = UpdateDistToStackForObjectsWithFromStackDist(pcParameters);
 	}
 }
 
@@ -154,16 +154,16 @@ int CDistToStackCalculator::CollectDetached(CDistCalculatorParameters* pcParamet
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDistToStackCalculator::ResetObjectsToUnknownDistToStack(CDistCalculatorParameters* pcDetached)
+void CDistToStackCalculator::ResetObjectsToUnknownDistToStack(CDistCalculatorParameters* pcParameters)
 {
 	int				i;
 	int				iNumDetached;
 	CBaseObject*	pcBaseObject;
 
-	iNumDetached = pcDetached->NumDetachedFromRoot();
+	iNumDetached = pcParameters->NumDetachedFromRoot();
 	for (i = 0; i < iNumDetached; i++)
 	{
-		pcBaseObject = pcDetached->GetDetachedFromRoot(i);
+		pcBaseObject = pcParameters->GetDetachedFromRoot(i);
 		pcBaseObject->SetDistToStack(UNKNOWN_DIST_TO_STACK);
 	}
 }
