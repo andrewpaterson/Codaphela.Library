@@ -545,15 +545,19 @@ void CBaseObject::UpdateTosDetachedIfDetachedTosUpdated(CEmbeddedObject* pcPoint
 		pcPointedToContainer = pcPointedTo->GetEmbeddingContainer();
 		if (!pcPointedToContainer->IsUpdateAttachedTosDistToRoot())
 		{
-			pcPointedToContainer->SetDistToRoot(CLEARED_DIST_TO_ROOT);
 			if (pcPointedToContainer->CanFindRoot())
 			{
-				pcClosestFrom = pcPointedToContainer->GetClosestFromToRoot();
-				iClosestDistToRoot = pcClosestFrom->GetDistToRoot();
-				pcParameters->AddExpectedDist(pcPointedToContainer, iClosestDistToRoot+1);
+				if (!pcPointedToContainer->IsDistToRootValid())
+				{
+					pcPointedToContainer->SetDistToRoot(CLEARED_DIST_TO_ROOT);
+					pcClosestFrom = pcPointedToContainer->GetClosestFromToRoot();
+					iClosestDistToRoot = pcClosestFrom->GetDistToRoot();
+					pcParameters->AddExpectedDist(pcPointedToContainer, iClosestDistToRoot+1);
+				}
 			}
 			else
 			{
+				pcPointedToContainer->SetDistToRoot(CLEARED_DIST_TO_ROOT);
 				pcParameters->AddDetachedFromRoot(pcPointedToContainer);
 			}
 		}
