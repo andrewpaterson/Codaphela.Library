@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/Logger.h"
 #include "Unknown.h"
 #include "Unknowns.h"
 
@@ -148,5 +149,15 @@ void CUnknown::SetNotInUnknowns(void)
 BOOL CUnknown::IsUnknown(void)
 {
 	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CUnknown::NotImplemented(char* szMethod)
+{
+	gcLogger.Error2(szMethod, " is not implemented and should not be called.", NULL);
 }
 

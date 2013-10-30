@@ -43,6 +43,7 @@ public:
 	virtual int			Compare(CUnknown* pcRight);
 			CUnknowns*	GetUnknownsThisIn(void);
 			void		SetNotInUnknowns(void);
+			void		NotImplemented(char* szMethod);
 };
 
 
