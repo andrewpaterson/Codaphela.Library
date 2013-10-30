@@ -110,7 +110,6 @@ protected:
 	virtual CStackPointers*		GetStackPointers(void) =0;
 	virtual CBaseObject*		GetClosestFromToRoot(void);
 	virtual void				UpdateEmbeddedObjectTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist) =0;
-	virtual void				ClearEmbeddedObjectTosUpdatedTosFlags(void) =0;
 	virtual void				UpdateEmbeddedObjectTosDetached(CDistCalculatorParameters* pcParameters) =0;
 	virtual void				UpdateEmbeddedObjectTosUnattached(CDistCalculatorParameters* pcParameters) =0;
 };

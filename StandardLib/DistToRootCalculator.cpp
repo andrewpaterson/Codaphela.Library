@@ -44,7 +44,7 @@ void CDistToRootCalculator::Calculate(void)
 //////////////////////////////////////////////////////////////////////////
 void CDistToRootCalculator::Calculate(CDistCalculatorParameters* pcParameters)
 {
-	//These finder methods belong in a different calculator
+	//This finder method does not belong in this calculator.
 	{
 		//Check if the "FromChanged" object has any froms pointing to it that can still find the Root object.
 		//If they can add those froms pointing to it objects to an array of objects to start from (macExpectedDists).
@@ -56,8 +56,6 @@ void CDistToRootCalculator::Calculate(CDistCalculatorParameters* pcParameters)
 		mpcFromChanged->CollectStartingObjectsAndSetClearedToRoot(NULL, pcParameters);
 	}
 
-	pcParameters->MarkExpectedDistLowestFroms();
-
 	//Firstly deal with the case where objects pointed to by our potentially detached object can still find the root.
 	UpdateAttachedTosDistToRoot(pcParameters);
 
@@ -67,19 +65,24 @@ void CDistToRootCalculator::Calculate(CDistCalculatorParameters* pcParameters)
 	{
 		mpcFromChanged->UpdateTosDetached(pcParameters);  //This is a weird shitty method.
 
-		pcParameters->MarkExpectedDistLowestFroms();
 		UpdateAttachedTosDistToRoot(pcParameters);
 	}
-
-	pcParameters->MarkUnattachedLowestFroms();
-
-	pcParameters->AddChangedFromAsLowest(mpcFromChanged);
 
 	//This method adds additional unattached objects.  Which is bad.
 	//Basically all this method does is set the DistToRoot to UNATTACHED_DIST_TO_ROOT rather than CLEARED_DIST_TO_ROOT.
 	UpdateUnattachedTosDistToRoot(pcParameters);
 
-	ClearTosFlagsFromLowest(pcParameters);
+	int				i;
+	int				iNumTouched;
+	CBaseObject*	pcBaseObject;
+
+	iNumTouched = pcParameters->NumTouched();
+
+	for (i = 0; i < iNumTouched; i++)
+	{
+		pcBaseObject = pcParameters->GetTouched(i);
+		pcBaseObject->ClearDistTouchedFlags();
+	}
 }
 
 
@@ -132,24 +135,3 @@ void CDistToRootCalculator::UpdateUnattachedTosDistToRoot(CDistCalculatorParamet
 		pcBaseObject = pcParameters->GetUnattached();
 	}
 }
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CDistToRootCalculator::ClearTosFlagsFromLowest(CDistCalculatorParameters* pcParameters)
-{
-	CArrayBaseObjectPtr*	papcLowestFroms;
-	CBaseObject*			pcObject;
-	int						i;
-
-	//Rather than doing this add every object touched into an array.  It's cheaper in the long run.
-	papcLowestFroms = pcParameters->GetLowestFroms();
-	for (i = 0; i < papcLowestFroms->NumElements(); i++)
-	{
-		pcObject = *papcLowestFroms->Get(i);
-		pcObject->ClearTosFlagsFromLowest();
-	}
-}
-

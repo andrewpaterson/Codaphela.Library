@@ -654,42 +654,6 @@ void CObject::UpdateEmbeddedObjectTosUnattached(CDistCalculatorParameters* pcPar
 }
 
 
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CObject::ClearEmbeddedObjectTosUpdatedTosFlags(void)
-{
-	int					i;
-	int					iNumEmbedded;
-	CBaseObject*		pcEmbedded;
-	int					iNumPointers;
-	CPointer**			ppPointer;
-	CEmbeddedObject*	pcPointedTo;
-	CBaseObject*		pcBaseObject;
-
-	iNumPointers = mapPointers.NumElements();
-	for (i = 0; i < iNumPointers; i++)
-	{
-		ppPointer = mapPointers.Get(i);
-		pcPointedTo = (*ppPointer)->Object();
-		if (pcPointedTo)
-		{
-			pcBaseObject = pcPointedTo->GetEmbeddingContainer();
-			pcBaseObject->ClearTosFlagsFromLowest();
-		}
-	}
-
-	iNumEmbedded = mapEmbedded.NumElements();
-	for (i = 0; i < iNumEmbedded; i++)
-	{
-		pcEmbedded = *mapEmbedded.Get(i);
-		pcEmbedded->ClearEmbeddedObjectTosUpdatedTosFlags();
-	}
-}
-
-
 //////////////////////////////////////////////////////////////////////////
 //
 //

@@ -21,11 +21,9 @@ class CDistCalculatorParameters
 private:
 	CArrayDistToRoot		macExpectedDists;
 	CArrayBaseObjectPtr		mapcUnattched;
-	CArrayBaseObjectPtr		mapcLowestFroms;
 	CArrayBaseObjectPtr		mapcDetachedFromRoot;
 	CArrayBaseObjectPtr		mapcCompletelyDetached;
-
-	CArrayBaseObjectPtr		mapcObjectTouched;
+	CArrayBaseObjectPtr		mapcTouched;
 
 public:
 	void					Init(void);
@@ -46,10 +44,6 @@ public:
 	int						NumUnattached(void);
 	void					RemoveUnattached(CBaseObject* pcBaseObject);
 
-	void					MarkExpectedDistLowestFroms(void);
-	void					MarkUnattachedLowestFroms(void);
-	CArrayBaseObjectPtr*	GetLowestFroms(void);
-	void					AddChangedFromAsLowest(CBaseObject* pcFromChanged);
 
 	void					AddDetachedFromRoot(CBaseObject* pcObject);
 	int						NumDetachedFromRoot(void);
@@ -62,7 +56,9 @@ public:
 	void					CopyRootDetachedToCompletelyDetached(void);
 	CArrayBaseObjectPtr*	GetCompletelyDetachedArray(void);
 
-	void					AddTouchedObject(CBaseObject* pcObject);
+	void					AddTouched(CBaseObject* pcObject);
+	int						NumTouched(void);
+	CBaseObject*			GetTouched(int iIndex);
 };
 
 

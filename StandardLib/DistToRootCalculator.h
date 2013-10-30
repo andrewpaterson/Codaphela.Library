@@ -17,8 +17,6 @@ public:
 	void Calculate(CDistCalculatorParameters* pcParameters);
 	void UpdateAttachedTosDistToRoot(CDistCalculatorParameters* pcParameters);
 	void UpdateUnattachedTosDistToRoot(CDistCalculatorParameters* pcParameters);
-	void RemoveDetachedLowest(CDistCalculatorParameters* pcParameters);
-	void ClearTosFlagsFromLowest(CDistCalculatorParameters* pcParameters);
 };
 
 

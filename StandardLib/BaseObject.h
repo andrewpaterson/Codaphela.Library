@@ -119,13 +119,14 @@ public:
 			void				UpdateTosDistToRoot(CDistCalculatorParameters* pcParametersUpdateTosUnattached);
 			void				CollectStartingObjectsAndSetClearedToRoot(CBaseObject* pcTo, CDistCalculatorParameters* pcCalc);
 
-			void				ClearTosFlagsFromLowest(void);
 			void				UpdateTosDetached(CDistCalculatorParameters* pcParameters);
 			void				UpdateTosUnattached(CDistCalculatorParameters* pcParameters);  //--> AddUnattachedIfDetachedTosUpdated
 
 			void				AddUnattachedIfDetachedTosUpdated(CEmbeddedObject* pcPointedTo, CDistCalculatorParameters* pcParameters);
 			void				UpdateTosDetachedIfDetachedTosUpdated(CEmbeddedObject* pcPointedTo, CDistCalculatorParameters* pcParameters);
 			void				AddExpectedDistToRoot(CEmbeddedObject* pcPointedTo, int iExpectedDist, CDistCalculatorParameters* pcParameters);
+			void				ClearDistTouchedFlags(void);
+			BOOL				HasDistTouchedFlag(void);
 
 			BOOL				TestedForSanity(void);
 			CObjects*			GetObjects(void);

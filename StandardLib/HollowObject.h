@@ -58,7 +58,6 @@ protected:
 			void				RemoveEmbeddedObjectAllTos(void);
 	virtual	CEmbeddedObject*	GetRemappedEmbeddedObject(int iIndex);
 			void				UpdateEmbeddedObjectTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist);
-			void				ClearEmbeddedObjectTosUpdatedTosFlags(void);
 			void				UpdateEmbeddedObjectTosDetached(CDistCalculatorParameters* pcParameters);
 			void				UpdateEmbeddedObjectTosUnattached(CDistCalculatorParameters* pcParameters);
 };
