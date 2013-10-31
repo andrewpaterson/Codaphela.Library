@@ -1,3 +1,5 @@
+#include "BaseLib/Logger.h"
+#include "BaseLib/LogString.h"
 #include "BaseObject.h"
 #include "DistToRootCalculator.h"
 
@@ -44,21 +46,20 @@ void CDistToRootCalculator::Calculate(void)
 //////////////////////////////////////////////////////////////////////////
 void CDistToRootCalculator::Calculate(CDistCalculatorParameters* pcParameters)
 {
-	//This finder method does not belong in this calculator.
-	{
-		//Check if the "FromChanged" object has any froms pointing to it that can still find the Root object.
-		//If they can add those froms pointing to it objects to an array of objects to start from (macExpectedDists).
-		//
-		//Also check if the "FromChanged" object has any froms pointing to it that can still find the stack.
-		//If they can add those froms pointing to it objects to an array of objects to start from (mapcUnattched).
-		//
-		//This method also has side effect of setting the objects dist to root to CLEARED_DIST_TO_ROOT.
-		mpcFromChanged->CollectStartingObjectsAndSetClearedToRoot(NULL, pcParameters);
-	}
+	CollectStartingObjectsAndSetClearedToRoot(pcParameters);
 
 	UpdateAttachedAndDetachedDistToRoot(pcParameters);
 
+	ClearTouchedFlagsAndDetach(pcParameters);
+}
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CDistToRootCalculator::ClearTouchedFlagsAndDetach(CDistCalculatorParameters* pcParameters)
+{
 	int				i;
 	int				iNumTouched;
 	CBaseObject*	pcBaseObject;
@@ -72,6 +73,46 @@ void CDistToRootCalculator::Calculate(CDistCalculatorParameters* pcParameters)
 		if (pcBaseObject->GetDistToRoot() == CLEARED_DIST_TO_ROOT)
 		{
 			pcBaseObject->SetDistToRoot(UNATTACHED_DIST_TO_ROOT);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CDistToRootCalculator::CollectStartingObjectsAndSetClearedToRoot(CDistCalculatorParameters* pcParameters)
+{
+	//Check if the "FromChanged" object has any froms pointing to it that can still find the Root object.
+	//If they can add those froms pointing to it objects to an array of objects to start from (macExpectedDists).
+	//
+	//Also check if the "FromChanged" object has any froms pointing to it that can still find the stack.
+	//If they can add those froms pointing to it objects to an array of objects to start from (mapcUnattched).
+	//
+	//This method also has side effect of setting the objects dist to root to CLEARED_DIST_TO_ROOT.
+	mpcFromChanged->CollectStartingObjectsAndSetClearedToRoot(NULL, pcParameters);
+
+	ValidateStartingObject(mpcFromChanged, pcParameters);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CDistToRootCalculator::ValidateStartingObject(CBaseObject* pcObject, CDistCalculatorParameters* pcParameters)
+{
+	if (!pcParameters->HasStartingObjects())
+	{
+		if (!(mpcFromChanged->HasStackPointers() || mpcFromChanged->CanFindRoot()))
+		{
+			CChars	sz;
+
+			sz.Init();
+			mpcFromChanged->PrintObject(&sz);
+			gcLogger.Error2(__METHOD__, " Could not find any starting objects for ", sz.Text(), NULL);
+			sz.Kill();
 		}
 	}
 }

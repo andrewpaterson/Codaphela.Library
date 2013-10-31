@@ -263,9 +263,6 @@ void CBaseObject::TryKill(BOOL bKillIfNoRoot)
 	}
 	else
 	{
-		pcDistCalculator->Init();
-		papcKilled = pcDistCalculator->Calculate(this);
-
 		bHasHeapPointers = HasHeapPointers();
 		bHasStackPointers = HasStackPointers();
 
@@ -273,10 +270,11 @@ void CBaseObject::TryKill(BOOL bKillIfNoRoot)
 		bMustKill = !bHasHeapPointers && !bHasStackPointers;
 		if (bMustKill)
 		{
+			pcDistCalculator->Init();
+			papcKilled = pcDistCalculator->Calculate(this);
 			mpcObjectsThisIn->Remove(papcKilled);
+			pcDistCalculator->Kill();
 		}
-
-		pcDistCalculator->Kill();
 	}
 }
 

@@ -15,8 +15,11 @@ public:
 	void AddFromChanged(CBaseObject* pcObject);
 	void Calculate(void);
 	void Calculate(CDistCalculatorParameters* pcParameters);
+	void CollectStartingObjectsAndSetClearedToRoot(CDistCalculatorParameters* pcParameters);
 	void UpdateAttachedTosDistToRoot(CDistCalculatorParameters* pcParameters);
 	void UpdateAttachedAndDetachedDistToRoot(CDistCalculatorParameters* pcParameters);
+	void ClearTouchedFlagsAndDetach(CDistCalculatorParameters* pcParameters);
+	void ValidateStartingObject(CBaseObject* pcObject, CDistCalculatorParameters* pcParameters);
 };
 
 
