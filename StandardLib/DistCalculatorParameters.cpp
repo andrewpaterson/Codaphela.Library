@@ -21,6 +21,12 @@ void CDistCalculatorParameters::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CDistCalculatorParameters::Kill(void)
 {
+	int x = 3;
+	if (x < 0)
+	{
+		Dump();
+	}
+
 	mapcTouched.Kill();
 	mapcCompletelyDetached.Kill();
 	mapcDetachedFromRoot.Kill();
@@ -301,5 +307,123 @@ int CDistCalculatorParameters::NumTouched(void)
 CBaseObject* CDistCalculatorParameters::GetTouched(int iIndex)
 {
 	return *mapcTouched.Get(iIndex);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CDistCalculatorParameters::PrintArray(CChars* psz, CArrayEmbeddedBaseObjectPtr* pcArray)
+{
+	int				i;
+	int				iNum;
+	CBaseObject*	pcBaseObject;
+
+	iNum = pcArray->NumElements();
+
+
+	for (i = 0; i < iNum; i++)
+	{
+		pcBaseObject = *pcArray->Get(i);
+		pcBaseObject->PrintObject(psz, FALSE);
+		
+		if (i != iNum -1)
+		{
+			psz->Append(", ");
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CDistCalculatorParameters::PrintArray(CChars* psz, CArrayBaseObjectPtr* pcArray)
+{
+	int				i;
+	int				iNum;
+	CBaseObject*	pcBaseObject;
+
+	iNum = pcArray->NumElements();
+
+
+	for (i = 0; i < iNum; i++)
+	{
+		pcBaseObject = *pcArray->Get(i);
+		pcBaseObject->PrintObject(psz, FALSE);
+
+		if (i != iNum -1)
+		{
+			psz->Append(", ");
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CDistCalculatorParameters::PrintArray(CChars* psz, CArrayDistToRoot* pcArray)
+{
+	int				i;
+	int				iNum;
+	SDistToRoot*	psDistToRoot;
+
+	iNum = pcArray->NumElements();
+
+	for (i = 0; i < iNum; i++)
+	{
+		psDistToRoot = pcArray->Get(i);
+		psDistToRoot->pcObject->PrintObject(psz, FALSE);
+
+		if (i != iNum -1)
+		{
+			psz->Append(", ");
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CDistCalculatorParameters::Dump(void)
+{
+	CChars sz;
+
+	sz.Init();
+
+	sz.Append("      Touched [");
+	sz.Append(mapcTouched.NumElements());
+	sz.Append("]:  ");
+	PrintArray(&sz, &mapcTouched);
+
+	sz.AppendNewLine();
+
+	sz.Append("ExpectedDists [");
+	sz.Append(macExpectedDists.NumElements());
+	sz.Append("]:  ");
+	PrintArray(&sz, &macExpectedDists);
+	sz.AppendNewLine();
+
+	sz.Append("     Detached [");
+	sz.Append(mapcDetachedFromRoot.NumElements());
+	sz.Append("]:  ");
+	PrintArray(&sz, &mapcDetachedFromRoot);
+	sz.AppendNewLine();
+	sz.AppendNewLine();
+
+	sz.Append("  C. Detached [");
+	sz.Append(mapcCompletelyDetached.NumElements());
+	sz.Append("]:  ");
+	PrintArray(&sz, &mapcCompletelyDetached);
+	sz.AppendNewLine();
+
+	sz.Dump();
+	sz.Kill();
 }
 

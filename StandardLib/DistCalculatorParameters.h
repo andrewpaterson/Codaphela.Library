@@ -1,5 +1,6 @@
 #ifndef __DIST_TO_ROOT_EFFECTED_FROMS_H__
 #define __DIST_TO_ROOT_EFFECTED_FROMS_H__
+#include "BaseLib/Chars.h"
 #include "ObjectPointerArrays.h"
 
 
@@ -28,6 +29,7 @@ private:
 public:
 	void					Init(void);
 	void					Kill(void);
+	void					Dump(void);
 
 	void					AddExpectedDist(CBaseObject* pcObject, int iExpectedDist);
 	SDistToRoot*			GetLowestExpectedDist(void);
@@ -54,6 +56,10 @@ public:
 	void					AddTouched(CBaseObject* pcObject);
 	int						NumTouched(void);
 	CBaseObject*			GetTouched(int iIndex);
+
+	void					PrintArray(CChars* psz, CArrayEmbeddedBaseObjectPtr* pcArray);
+	void					PrintArray(CChars* psz, CArrayBaseObjectPtr* pcArray);
+	void					PrintArray(CChars* psz, CArrayDistToRoot* pcArray);
 };
 
 
