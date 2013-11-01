@@ -174,6 +174,15 @@ void CEmbeddedObject::UnsafeGetEmbeddedObjectTos(CArrayEmbeddedObjectPtr* papcTo
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CEmbeddedObject::CollectAndClearTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters)
+{
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CEmbeddedObject::SetEmbedded(CBaseObject* pcEmbedded)
 {
 	mpcEmbedded = pcEmbedded;
@@ -273,7 +282,7 @@ void CEmbeddedObject::RemoveHeapFrom(CBaseObject* pcFromObject)
 	//Removing a 'from' kicks off memory reclamation.  This is the entry point for memory management.
 	PrivateRemoveHeapFrom(pcFromObject);
 
-	GetEmbeddingContainer()->TryKill(TRUE);
+	GetEmbeddingContainer()->TryKill(TRUE, TRUE);
 
 	GetObjects()->ValidateConsistency();
 }
@@ -288,7 +297,7 @@ void CEmbeddedObject::RemoveHeapFrom(CBaseObject* pcFromObject, BOOL bValidate)
 	//Removing a 'from' kicks off memory reclamation.  This is the entry point for memory management.
 	PrivateRemoveHeapFrom(pcFromObject);
 
-	GetEmbeddingContainer()->TryKill(TRUE);
+	GetEmbeddingContainer()->TryKill(TRUE, TRUE);
 }
 
 
@@ -386,6 +395,38 @@ CBaseObject* CEmbeddedObject::GetClosestFromToRoot(void)
 	{
 		pcFrom = *mapHeapFroms.Get(i);
 		if ((pcFrom->miDistToRoot >= ROOT_DIST_TO_ROOT) && (!pcFrom->TestedForRoot()))  //What the hell is !pcFrom->TestedForRoot() here for?
+		{
+			if (pcFrom->miDistToRoot < iNearestRoot)
+			{
+				iNearestRoot = pcFrom->miDistToRoot;
+				pcNearestPointedFrom = pcFrom;
+			}
+		}
+	}
+
+	return pcNearestPointedFrom;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CBaseObject* CEmbeddedObject::GetClosestFromForCanFindRoot(void)
+{
+	int				iNearestRoot;
+	CBaseObject*	pcNearestPointedFrom;
+	int				i;
+	int				iNumFroms;
+	CBaseObject*	pcFrom;
+
+	iNearestRoot = MAX_DIST_TO_ROOT;
+	pcNearestPointedFrom = NULL;
+	iNumFroms = mapHeapFroms.NumElements();
+	for (i = 0; i < iNumFroms; i++)
+	{
+		pcFrom = *mapHeapFroms.Get(i);
+		if ((pcFrom->miDistToRoot >= ROOT_DIST_TO_ROOT) && (!pcFrom->TestedForRoot()))
 		{
 			if (pcFrom->miDistToRoot < iNearestRoot)
 			{
@@ -542,7 +583,7 @@ void CEmbeddedObject::RemoveStackFromTryKill(CPointer* pcPointer, BOOL bKillIfNo
 		if (mpcStackFroms)
 		{
 			mpcStackFroms = pcStackPointers->Remove(mpcStackFroms, pcPointer);
-			GetEmbeddingContainer()->TryKill(bKillIfNoRoot);
+			GetEmbeddingContainer()->TryKill(bKillIfNoRoot, FALSE);
 		}
 	}
 }

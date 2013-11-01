@@ -341,7 +341,7 @@ void CArrayCommonObject::RemoveAllTos(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayCommonObject::UpdateEmbeddedObjectTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist)
+void CArrayCommonObject::UpdateAttachedEmbeddedObjectTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist)
 {
 	int					i;
 	CEmbeddedObject*	pcPointedTo;
@@ -352,25 +352,6 @@ void CArrayCommonObject::UpdateEmbeddedObjectTosDistToRoot(CDistCalculatorParame
 	{
 		pcPointedTo = (CBaseObject*)mcArray.UnsafeGet(i);
 		AddExpectedDistToRoot(pcPointedTo, iExpectedDist+1, pcParameters);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CArrayCommonObject::UpdateEmbeddedObjectTosDetached(CDistCalculatorParameters* pcParameters)
-{
-	int					i;
-	CEmbeddedObject*	pcPointedTo;
-	int					iNumElements;
-
-	iNumElements = mcArray.UnsafeNumElements();
-	for (i = 0; i < iNumElements; i++)
-	{
-		pcPointedTo = (CBaseObject*)mcArray.UnsafeGet(i);
-		UpdateTosDetachedIfDetachedTosUpdated(pcPointedTo, pcParameters);
 	}
 }
 
@@ -497,6 +478,30 @@ void CArrayCommonObject::GetTos(CArrayEmbeddedObjectPtr* papcTos)
 void CArrayCommonObject::UnsafeGetEmbeddedObjectTos(CArrayEmbeddedObjectPtr* papcTos)
 {
 	GetTos(papcTos);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CArrayCommonObject::CollectAndClearTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters)
+{
+	CEmbeddedObject*	pcPointedTo;
+	int					i;
+	int					iNumElements;
+	CBaseObject*		pcContainer;
+
+	iNumElements = mcArray.UnsafeNumElements();
+	for (i = 0; i < iNumElements; i++)
+	{
+		pcPointedTo = (CEmbeddedObject*)mcArray.UnsafeGet(i);
+		if (pcPointedTo)
+		{
+			pcContainer = pcPointedTo->GetEmbeddingContainer();
+			pcContainer->CollectAndClearInvalidDistToRootObjects(pcParameters);
+		}
+	}
 }
 
 

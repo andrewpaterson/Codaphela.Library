@@ -11,12 +11,13 @@ public:
 	void			Init(void);
 	void			Kill(void);
 
-	void			Calculate(CDistCalculatorParameters* pcDetached);
-	int				CollectDetached(CDistCalculatorParameters* pcParameters);
+	void			CalculateFromTouched(CDistCalculatorParameters* pcDetached);
+	int				CollectDetachedAndSetDistToStackZero(CDistCalculatorParameters* pcParameters);
 	void			InitialiseCompletelyDetached(CDistCalculatorParameters* pcDetached);
 	void			ResetObjectsToUnknownDistToStack(CDistCalculatorParameters* pcDetached);
 	int				UpdateDistToStackForObjectsWithFromStackDist(CDistCalculatorParameters* pcDetached);
 	void			UpdateDistToStackForAllObjects(CDistCalculatorParameters* pcDetached);
+	void			UpdateAttachedAndDetachedDistToRoot(CDistCalculatorParameters* pcParameters);
 };
 
 

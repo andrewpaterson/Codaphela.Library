@@ -79,11 +79,14 @@ void CBaseObject::Kill(void)
 {
 	CDistCalculator*		pcDistCalculator;
 	CArrayBaseObjectPtr*	papcKilled;
+	BOOL					bHeapFromChanged;
 
 	//This method is for the user to forcibly kill an object.
 	//It is not called internally.
 
 	ValidateNotEmbedded(__METHOD__);
+
+	bHeapFromChanged = HasHeapPointers();
 
 	RemoveAllStackFroms();
 	RemoveAllHeapFroms();
@@ -91,7 +94,7 @@ void CBaseObject::Kill(void)
 	pcDistCalculator = mpcObjectsThisIn->GetDistCalculator();
 
 	pcDistCalculator->Init();
-	papcKilled = pcDistCalculator->Calculate(this);
+	papcKilled = pcDistCalculator->Calculate(this, bHeapFromChanged);
 
 	mpcObjectsThisIn->Remove(papcKilled);
 	pcDistCalculator->Kill();
@@ -147,9 +150,10 @@ void CBaseObject::KillInternalData(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::CollectStartingObjectsAndSetClearedToRoot(CBaseObject* pcTo, CDistCalculatorParameters* pcParameters)
+void CBaseObject::CollectValidDistStartingObjectsAndSetClearedToRoot(CBaseObject* pcTo, CDistCalculatorParameters* pcParameters)
 {
 	//It is assumed at this point that all the tos and froms have been updated.
+	//This method will only be called on an object that can find Root.
 
 	ValidateNotEmbedded(__METHOD__);
 
@@ -157,23 +161,20 @@ void CBaseObject::CollectStartingObjectsAndSetClearedToRoot(CBaseObject* pcTo, C
 	CArrayEmbeddedBaseObjectPtr		apcFroms;
 	CBaseObject*					pcFrom;
 	CBaseObject*					pcContainer;
-	BOOL							bCanFindRoot;
 
 	if (IsRoot())
 	{
 		return;
 	}
 
-	bCanFindRoot = CanFindRootThroughValidPath();
-
-	if (!bCanFindRoot)
+	if (!IsDistToRootValid())
 	{
 		pcParameters->AddTouched(this);
 		SetDistToRoot(CLEARED_DIST_TO_ROOT);
 		SetFlag(OBJECT_FLAGS_CLEARED_DIST_TO_ROOT, TRUE);
 
 		apcFroms.Init();
-		GetHeapFroms(&apcFroms);  //This needs optimisation.
+		GetHeapFroms(&apcFroms);
 
 		if (apcFroms.NumElements() > 0)
 		{
@@ -183,14 +184,14 @@ void CBaseObject::CollectStartingObjectsAndSetClearedToRoot(CBaseObject* pcTo, C
 				pcContainer = pcFrom->GetEmbeddingContainer();
 				if (!(pcContainer->miFlags & OBJECT_FLAGS_CLEARED_DIST_TO_ROOT))
 				{
-					pcContainer->CollectStartingObjectsAndSetClearedToRoot(this, pcParameters);
+					pcContainer->CollectValidDistStartingObjectsAndSetClearedToRoot(this, pcParameters);
 				}
 			}
 		}
-		else
-		{
-			pcParameters->AddDetachedFromRoot(this);
-		}
+		//else
+		//{
+		//	gcLogger.Error2(__METHOD__, " How can this find the root but have no froms?", NULL);
+		//}
 
 		apcFroms.Kill();
 	}
@@ -199,6 +200,33 @@ void CBaseObject::CollectStartingObjectsAndSetClearedToRoot(CBaseObject* pcTo, C
 		if (pcTo != NULL)
 		{
 			pcParameters->AddExpectedDist(pcTo, miDistToRoot+1);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CBaseObject::CollectAndClearInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters)
+{
+	ValidateNotEmbedded(__METHOD__);
+
+	if (IsRoot())
+	{
+		return;
+	}
+
+	if (!(miFlags & OBJECT_FLAGS_DIST_CALCULATOR_TOUCHED))
+	{
+		if (!CanFindRootThroughValidPath())
+		{
+			pcParameters->AddTouched(this);
+			SetFlag(OBJECT_FLAGS_DIST_CALCULATOR_TOUCHED, TRUE);
+			SetDistToRoot(CLEARED_DIST_TO_ROOT);
+
+			CollectAndClearTosInvalidDistToRootObjects(pcParameters);
 		}
 	}
 }
@@ -236,7 +264,7 @@ BOOL CBaseObject::IsDistToRootValid(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::TryKill(BOOL bKillIfNoRoot)
+void CBaseObject::TryKill(BOOL bKillIfNoRoot, BOOL bHeapFromChanged)
 {
 	ValidateNotEmbedded(__METHOD__);
 
@@ -256,7 +284,7 @@ void CBaseObject::TryKill(BOOL bKillIfNoRoot)
 	if (bKillIfNoRoot)
 	{
 		pcDistCalculator->Init();
-		papcKilled = pcDistCalculator->Calculate(this);
+		papcKilled = pcDistCalculator->Calculate(this, bHeapFromChanged);
 
 		mpcObjectsThisIn->Remove(papcKilled);
 		pcDistCalculator->Kill();
@@ -271,7 +299,7 @@ void CBaseObject::TryKill(BOOL bKillIfNoRoot)
 		if (bMustKill)
 		{
 			pcDistCalculator->Init();
-			papcKilled = pcDistCalculator->Calculate(this);
+			papcKilled = pcDistCalculator->Calculate(this, bHeapFromChanged);
 			mpcObjectsThisIn->Remove(papcKilled);
 			pcDistCalculator->Kill();
 		}
@@ -317,7 +345,7 @@ BOOL CBaseObject::CanFindRoot(void)
 
 	SetFlag(OBJECT_FLAGS_TESTED_FOR_ROOT, TRUE);
 
-	pcPointedFrom = GetClosestFromToRoot();
+	pcPointedFrom = GetClosestFromForCanFindRoot();
 	if (pcPointedFrom == NULL)
 	{
 		SetFlag(OBJECT_FLAGS_TESTED_FOR_ROOT, FALSE);
@@ -343,7 +371,7 @@ BOOL CBaseObject::CanFindRootThroughValidPath(void)
 	BOOL				bResult;
 	int					iFromDistToRoot;
 
-	if (this->IsRoot())
+	if (IsRoot())
 	{
 		return TRUE;
 	}
@@ -352,19 +380,25 @@ BOOL CBaseObject::CanFindRootThroughValidPath(void)
 		return FALSE;
 	}
 
-	pcPointedFrom = GetClosestFromToRoot();
+	SetFlag(OBJECT_FLAGS_TESTED_FOR_ROOT, TRUE);
+
+	pcPointedFrom = GetClosestFromForCanFindRoot();
 	if (pcPointedFrom == NULL)
 	{
+		SetFlag(OBJECT_FLAGS_TESTED_FOR_ROOT, FALSE);
 		return FALSE;
 	}
 
 	iFromDistToRoot = pcPointedFrom->GetDistToRoot();
 	if (iFromDistToRoot >= miDistToRoot)
 	{
+		SetFlag(OBJECT_FLAGS_TESTED_FOR_ROOT, FALSE);
 		return FALSE;
 	}
 
-	bResult = pcPointedFrom->GetEmbeddingContainer()->CanFindRoot();
+	bResult = pcPointedFrom->GetEmbeddingContainer()->CanFindRootThroughValidPath();
+
+	SetFlag(OBJECT_FLAGS_TESTED_FOR_ROOT, FALSE);
 	return bResult;
 }
 
@@ -502,58 +536,7 @@ void CBaseObject::UpdateAttachedTosDistToRoot(CDistCalculatorParameters* pcParam
 	SetDistToRoot(iClosestToRoot);
 	SetFlag(OBJECT_FLAGS_UPDATED_TOS_DIST_TO_ROOT, TRUE);
 
-	UpdateEmbeddedObjectTosDistToRoot(pcParameters, iClosestToRoot);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CBaseObject::UpdateTosDetached(CDistCalculatorParameters* pcParameters)
-{
-	ValidateNotEmbedded(__METHOD__);
-	
-	pcParameters->AddTouched(this);
-	SetFlag(OBJECT_FLAGS_UPDATED_TOS_DIST_TO_ROOT, TRUE);
-	SetDistToRoot(CLEARED_DIST_TO_ROOT);
-
-	UpdateEmbeddedObjectTosDetached(pcParameters);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CBaseObject::UpdateTosDetachedIfDetachedTosUpdated(CEmbeddedObject* pcPointedTo, CDistCalculatorParameters* pcParameters)
-{
-	CBaseObject*		pcPointedToContainer;
-	CEmbeddedObject*	pcClosestFrom;
-	int					iClosestDistToRoot;
-
-	if (pcPointedTo)
-	{
-		pcPointedToContainer = pcPointedTo->GetEmbeddingContainer();
-		if (!pcPointedToContainer->IsUpdateAttachedTosDistToRoot())
-		{
-			if (pcPointedToContainer->CanFindRoot())
-			{
-				if (!pcPointedToContainer->IsDistToRootValid())
-				{
-					pcPointedToContainer->SetDistToRoot(CLEARED_DIST_TO_ROOT);
-					pcClosestFrom = pcPointedToContainer->GetClosestFromToRoot();
-					iClosestDistToRoot = pcClosestFrom->GetDistToRoot();
-					pcParameters->AddExpectedDist(pcPointedToContainer, iClosestDistToRoot+1);
-				}
-			}
-			else
-			{
-				pcPointedToContainer->SetDistToRoot(CLEARED_DIST_TO_ROOT);
-				pcParameters->AddDetachedFromRoot(pcPointedToContainer);
-			}
-		}
-	}
+	UpdateAttachedEmbeddedObjectTosDistToRoot(pcParameters, iClosestToRoot);
 }
 
 
@@ -585,7 +568,7 @@ void CBaseObject::ClearDistTouchedFlags(void)
 {
 	ValidateNotEmbedded(__METHOD__);
 
-	SetFlag(OBJECT_FLAGS_CLEARED_DIST_TO_ROOT | OBJECT_FLAGS_UPDATED_TOS_DIST_TO_ROOT, FALSE);
+	SetFlag(OBJECT_FLAGS_CLEARED_DIST_TO_ROOT | OBJECT_FLAGS_UPDATED_TOS_DIST_TO_ROOT | OBJECT_FLAGS_DIST_CALCULATOR_TOUCHED, FALSE);
 }
 
 

@@ -57,6 +57,7 @@ public:
 	void				UnsafeGetEmbeddedObjectTos(CArrayEmbeddedObjectPtr* papcTos);
 	BOOL				ContainsTo(CEmbeddedObject* pcEmbedded);
 	void				RemoveAllTos(void);
+	void				CollectAndClearTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters);
 
 	BOOL				Save(CObjectSerialiser* pcFile);
 	BOOL				Load(CObjectDeserialiser* pcFile);
@@ -77,9 +78,8 @@ protected:
 	int		RemapTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew);
 	void	SetPointedTosDistToRoot(int iDistToRoot);
 
-	void	UpdateEmbeddedObjectTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist);
+	void	UpdateAttachedEmbeddedObjectTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist);
 	void	ClearEmbeddedObjectTosUpdatedTosFlags(void);
-	void	UpdateEmbeddedObjectTosDetached(CDistCalculatorParameters* pcParameters);
 };
 
 

@@ -1,3 +1,4 @@
+#include "BaseObject.h"
 #include "DistCalculator.h"
 
 
@@ -31,12 +32,74 @@ void CDistCalculator::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CArrayBaseObjectPtr* CDistCalculator::Calculate(CBaseObject* pcFromChanged)
+CArrayBaseObjectPtr* CDistCalculator::Calculate(CBaseObject* pcFromChanged, BOOL bHeapFromChanged)
+{
+	if (bHeapFromChanged)
+	{
+		return CalculateHeapFromChanged(pcFromChanged);
+	}
+	else
+	{
+		return CalculateStackFromChanged(pcFromChanged);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CArrayBaseObjectPtr* CDistCalculator::CalculateHeapFromChanged(CBaseObject* pcFromChanged)
 {
 	mcDistToRootCalculator.AddFromChanged(pcFromChanged);
 	mcDistToRootCalculator.Calculate(&mcParameters);
-	mcDistToStackCalculator.Calculate(&mcParameters);
+
+	mcDistToStackCalculator.CalculateFromTouched(&mcParameters);
 
 	return mcParameters.GetCompletelyDetachedArray();
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CArrayBaseObjectPtr* CDistCalculator::CalculateStackFromChanged(CBaseObject* pcFromChanged)
+{
+	if (pcFromChanged->HasStackPointers())
+	{
+		return mcParameters.GetCompletelyDetachedArray();
+	}
+	else if (pcFromChanged->IsDistToRootValid())
+	{
+		return mcParameters.GetCompletelyDetachedArray();
+	}
+	else
+	{
+		pcFromChanged->CollectAndClearInvalidDistToRootObjects(&mcParameters);
+		ClearTouchedFlags(&mcParameters);
+		mcDistToStackCalculator.CalculateFromTouched(&mcParameters);
+		return mcParameters.GetCompletelyDetachedArray();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CDistCalculator::ClearTouchedFlags(CDistCalculatorParameters* pcParameters)
+{
+	int				i;
+	int				iNumTouched;
+	CBaseObject*	pcBaseObject;
+
+	iNumTouched = pcParameters->NumTouched();
+
+	for (i = 0; i < iNumTouched; i++)
+	{
+		pcBaseObject = pcParameters->GetTouched(i);
+		pcBaseObject->ClearDistTouchedFlags();
+		pcBaseObject->SetDistToRoot(UNATTACHED_DIST_TO_ROOT);
+	}
+}

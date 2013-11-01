@@ -30,8 +30,7 @@ public:
 	void				ValidateConsistency(void);
 
 protected:
-	void				UpdateEmbeddedObjectTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist);
-	void				UpdateEmbeddedObjectTosDetached(CDistCalculatorParameters* pcParameters);
+	void				UpdateAttachedEmbeddedObjectTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist);
 };
 
 

@@ -224,16 +224,7 @@ void CHollowEmbeddedObject::ValidateConsistency(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHollowEmbeddedObject::UpdateEmbeddedObjectTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist)
-{
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CHollowEmbeddedObject::UpdateEmbeddedObjectTosDetached(CDistCalculatorParameters* pcParameters)
+void CHollowEmbeddedObject::UpdateAttachedEmbeddedObjectTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist)
 {
 }
 

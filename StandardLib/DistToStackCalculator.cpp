@@ -23,11 +23,12 @@ void CDistToStackCalculator::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDistToStackCalculator::Calculate(CDistCalculatorParameters* pcParameters)
+void CDistToStackCalculator::CalculateFromTouched(CDistCalculatorParameters* pcParameters)
 {
 	int		iNumWithStackPointers;
 
-	iNumWithStackPointers = CollectDetached(pcParameters);
+	iNumWithStackPointers = CollectDetachedAndSetDistToStackZero(pcParameters);
+
 	if (iNumWithStackPointers == 0)
 	{
 		//Kill them all!
@@ -63,6 +64,8 @@ void CDistToStackCalculator::InitialiseCompletelyDetached(CDistCalculatorParamet
 		pcBaseObject = pcParameters->GetDetachedFromRoot(i);
 		if (pcBaseObject->GetDistToStack() == UNKNOWN_DIST_TO_STACK)
 		{
+			//Copy everything with no stack dist into completely detached.  
+			//They'll be moved out as the stack dists are updated.
 			pcParameters->AddCompletelyDetached(pcBaseObject);
 		}
 	}
@@ -121,7 +124,7 @@ void CDistToStackCalculator::UpdateDistToStackForAllObjects(CDistCalculatorParam
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CDistToStackCalculator::CollectDetached(CDistCalculatorParameters* pcParameters)
+int CDistToStackCalculator::CollectDetachedAndSetDistToStackZero(CDistCalculatorParameters* pcParameters)
 {
 	int				i;
 	int				iNumTouched;
@@ -167,4 +170,6 @@ void CDistToStackCalculator::ResetObjectsToUnknownDistToStack(CDistCalculatorPar
 		pcBaseObject->SetDistToStack(UNKNOWN_DIST_TO_STACK);
 	}
 }
+
+
 

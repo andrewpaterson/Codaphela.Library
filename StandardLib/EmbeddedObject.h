@@ -74,6 +74,7 @@ public:
 	virtual int					UnsafeNumEmbeddedObjectTos(void);
 	virtual void				GetTos(CArrayEmbeddedObjectPtr* papcTos) =0;
 	virtual void				UnsafeGetEmbeddedObjectTos(CArrayEmbeddedObjectPtr* papcTos);
+	virtual void				CollectAndClearTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters);
 
 			BOOL				HasHeapPointers(void);
 			void				AddHeapFrom(CBaseObject* pcFromObject);
@@ -94,6 +95,7 @@ public:
 
 			int					NumTotalFroms(void);
 			BOOL				ContainsFrom(CEmbeddedObject* pcBaseObject);
+	virtual CBaseObject*		GetClosestFromToRoot(void);
 
 	virtual CObjects*			GetObjects(void) =0;
 			void				PrintObject(CChars* psz, BOOL bEmbedded = FALSE);
@@ -108,9 +110,8 @@ protected:
 	virtual void				GetStackFroms(CArrayPointerPtr* papcFroms);
 	virtual void				GetHeapFroms(CArrayEmbeddedBaseObjectPtr* papcFroms);
 	virtual CStackPointers*		GetStackPointers(void) =0;
-	virtual CBaseObject*		GetClosestFromToRoot(void);
-	virtual void				UpdateEmbeddedObjectTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist) =0;
-	virtual void				UpdateEmbeddedObjectTosDetached(CDistCalculatorParameters* pcParameters) =0;
+	virtual CBaseObject*		GetClosestFromForCanFindRoot(void);
+	virtual void				UpdateAttachedEmbeddedObjectTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist) =0;
 };
 
 

@@ -46,11 +46,37 @@ void CDistToRootCalculator::Calculate(void)
 //////////////////////////////////////////////////////////////////////////
 void CDistToRootCalculator::Calculate(CDistCalculatorParameters* pcParameters)
 {
-	CollectStartingObjectsAndSetClearedToRoot(pcParameters);
+	CollectAndClearInvalidRootDistances(mpcFromChanged, pcParameters);
+	
+	int				i;
+	int				iNumTouched;
+	CBaseObject*	pcTouched;
+	CBaseObject*	pcClosestFrom;
 
-	UpdateAttachedAndDetachedDistToRoot(pcParameters);
+	iNumTouched = pcParameters->NumTouched();
+	for (i = 0; i < iNumTouched; i++)
+	{
+		pcTouched = pcParameters->GetTouched(i);
+		pcClosestFrom = pcTouched->GetClosestFromToRoot();
+		if (pcClosestFrom)
+		{
+			pcParameters->AddExpectedDist(pcTouched, pcClosestFrom->GetDistToRoot()+1);
+		}
+	}
+
+	UpdateAttachedTosDistToRoot(pcParameters);
 
 	ClearTouchedFlagsAndDetach(pcParameters);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CDistToRootCalculator::CollectAndClearInvalidRootDistances(CBaseObject* pcFromChanged, CDistCalculatorParameters* pcParameters)
+{
+	pcFromChanged->CollectAndClearInvalidDistToRootObjects(pcParameters);
 }
 
 
@@ -82,38 +108,16 @@ void CDistToRootCalculator::ClearTouchedFlagsAndDetach(CDistCalculatorParameters
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDistToRootCalculator::CollectStartingObjectsAndSetClearedToRoot(CDistCalculatorParameters* pcParameters)
+void CDistToRootCalculator::ValidateExpectedDistStartingObjects(CBaseObject* pcObject, CDistCalculatorParameters* pcParameters)
 {
-	//Check if the "FromChanged" object has any froms pointing to it that can still find the Root object.
-	//If they can add those froms pointing to it objects to an array of objects to start from (macExpectedDists).
-	//
-	//Also check if the "FromChanged" object has any froms pointing to it that can still find the stack.
-	//If they can add those froms pointing to it objects to an array of objects to start from (mapcUnattched).
-	//
-	//This method also has side effect of setting the objects dist to root to CLEARED_DIST_TO_ROOT.
-	mpcFromChanged->CollectStartingObjectsAndSetClearedToRoot(NULL, pcParameters);
-
-	ValidateStartingObject(mpcFromChanged, pcParameters);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CDistToRootCalculator::ValidateStartingObject(CBaseObject* pcObject, CDistCalculatorParameters* pcParameters)
-{
-	if (!pcParameters->HasStartingObjects())
+	if (pcParameters->NumExpectedDists() == 0) 
 	{
-		if (!(mpcFromChanged->HasStackPointers() || mpcFromChanged->CanFindRoot()))
-		{
-			CChars	sz;
+		CChars	sz;
 
-			sz.Init();
-			mpcFromChanged->PrintObject(&sz);
-			gcLogger.Error2(__METHOD__, " Could not find any starting objects for ", sz.Text(), NULL);
-			sz.Kill();
-		}
+		sz.Init();
+		pcObject->PrintObject(&sz);
+		gcLogger.Error2(__METHOD__, " Could not find any starting objects for ", sz.Text(), NULL);
+		sz.Kill();
 	}
 }
 
@@ -136,43 +140,18 @@ void CDistToRootCalculator::UpdateAttachedTosDistToRoot(CDistCalculatorParameter
 {
 	SDistToRoot*	psLowestDistToRoot;
 	CBaseObject*	pcObject;
+	int				iExpectedDist;
 
 	psLowestDistToRoot = pcParameters->GetLowestExpectedDist();
 	while (psLowestDistToRoot)
 	{
 		pcObject = psLowestDistToRoot->pcObject;
+		iExpectedDist = psLowestDistToRoot->iExpectedDist;
+
 		pcParameters->RemoveExpectedDist(psLowestDistToRoot);
 		pcObject->UpdateAttachedTosDistToRoot(pcParameters);
 
 		psLowestDistToRoot = pcParameters->GetLowestExpectedDist();
 	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CDistToRootCalculator::UpdateAttachedAndDetachedDistToRoot(CDistCalculatorParameters* pcParameters)
-{
-	CBaseObject**	ppcObject;
-	CBaseObject*	pcObject;
-
-	for (;;)
-	{
-		UpdateAttachedTosDistToRoot(pcParameters);
-
-		ppcObject = pcParameters->GetNextDetachedFromRoot();
-		if (ppcObject)
-		{
-			pcObject = (*ppcObject);
-			pcParameters->RemoveDetachedFromRoot(ppcObject);
-			pcObject->UpdateTosDetached(pcParameters);
-		}
-		else
-		{
-			break;
-		}
-	} 
 }
 

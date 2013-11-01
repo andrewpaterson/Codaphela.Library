@@ -16,7 +16,10 @@ public:
 	void					Init(void);
 	void					Kill(void);
 
-	CArrayBaseObjectPtr*	Calculate(CBaseObject* pcFromChanged);
+	CArrayBaseObjectPtr*	Calculate(CBaseObject* pcFromChanged, BOOL bHeapFromChanged);
+	CArrayBaseObjectPtr*	CalculateHeapFromChanged(CBaseObject* pcFromChanged);
+	CArrayBaseObjectPtr*	CalculateStackFromChanged(CBaseObject* pcFromChanged);
+	void					ClearTouchedFlags(CDistCalculatorParameters* pcParameters);
 };
 
 

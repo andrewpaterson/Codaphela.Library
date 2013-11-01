@@ -56,11 +56,13 @@ public:
 	void				SetFlag(int iFlag, int iFlagValue);
 	void				GetHeapFroms(CArrayEmbeddedBaseObjectPtr* papcFroms);
 	void				GetStackFroms(CArrayPointerPtr* papcFroms);
+	CBaseObject*		GetClosestFromToRoot(void);
 	CBaseObject*		GetClosestFromToStack(void);
 	int					NumTos(void);
 	int					UnsafeNumEmbeddedObjectTos(void);
 	void				GetTos(CArrayEmbeddedObjectPtr* papcTos);
 	BOOL				ContainsTo(CEmbeddedObject* pcEmbedded);
+	void				CollectAndClearTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters);
 	void				UnsafeGetEmbeddedObjectTos(CArrayEmbeddedObjectPtr* papcTos);
 	void				ValidateTos(void);
 	void				ValidateConsistency(void);
@@ -73,10 +75,9 @@ protected:
 	void				RemoveEmbeddedObjectAllTos(void);
 	void				RemoveAllHeapFroms(void);
 	void				RemoveAllStackFroms(void);
-	CBaseObject*		GetClosestFromToRoot(void);
+	CBaseObject*		GetClosestFromForCanFindRoot(void);
 	int					RemapTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew);
-	void				UpdateEmbeddedObjectTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist);
-	void				UpdateEmbeddedObjectTosDetached(CDistCalculatorParameters* pcParameters);
+	void				UpdateAttachedEmbeddedObjectTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist);
 	int					CalculateDistToRootFromPointedFroms(int iDistToRoot);
 	void				Free(void);
 	void				SetPointedTosDistToRoot(int iDistToRoot);

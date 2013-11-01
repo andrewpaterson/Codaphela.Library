@@ -523,7 +523,7 @@
       <Filter>Source\Object\Object\Distance</Filter>
     </ClInclude>
     <ClInclude Include="DistCalculatorParameters.h">
-      <Filter>Source\Object\Object\Distance\Heap</Filter>
+      <Filter>Source\Object\Object\Distance</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -849,7 +849,7 @@
       <Filter>Source\Object\Object\Distance</Filter>
     </ClCompile>
     <ClCompile Include="DistCalculatorParameters.cpp">
-      <Filter>Source\Object\Object\Distance\Heap</Filter>
+      <Filter>Source\Object\Object\Distance</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
