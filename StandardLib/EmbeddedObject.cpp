@@ -279,10 +279,13 @@ void CEmbeddedObject::AddHeapFrom(CBaseObject* pcFromObject, BOOL bValidate)
 //////////////////////////////////////////////////////////////////////////
 void CEmbeddedObject::RemoveHeapFrom(CBaseObject* pcFromObject)
 {
+	CBaseObject*	pcContainer;
+
 	//Removing a 'from' kicks off memory reclamation.  This is the entry point for memory management.
 	PrivateRemoveHeapFrom(pcFromObject);
 
-	GetEmbeddingContainer()->TryKill(TRUE, TRUE);
+	pcContainer = GetEmbeddingContainer();
+	pcContainer->TryKill(TRUE, TRUE);
 
 	GetObjects()->ValidateConsistency();
 }
@@ -294,10 +297,13 @@ void CEmbeddedObject::RemoveHeapFrom(CBaseObject* pcFromObject)
 //////////////////////////////////////////////////////////////////////////
 void CEmbeddedObject::RemoveHeapFrom(CBaseObject* pcFromObject, BOOL bValidate)
 {
+	CBaseObject*	pcContainer;
+
 	//Removing a 'from' kicks off memory reclamation.  This is the entry point for memory management.
 	PrivateRemoveHeapFrom(pcFromObject);
 
-	GetEmbeddingContainer()->TryKill(TRUE, TRUE);
+	pcContainer = GetEmbeddingContainer();
+	pcContainer->TryKill(TRUE, TRUE);
 }
 
 
@@ -576,6 +582,7 @@ void CEmbeddedObject::AddStackFroms(CStackPointer* pcStackPointer)
 void CEmbeddedObject::RemoveStackFromTryKill(CPointer* pcPointer, BOOL bKillIfNoRoot)
 {
 	CStackPointers*	pcStackPointers;
+	CBaseObject*	pcContainer;
 
 	pcStackPointers = GetStackPointers();
 	if (pcStackPointers)
@@ -583,7 +590,8 @@ void CEmbeddedObject::RemoveStackFromTryKill(CPointer* pcPointer, BOOL bKillIfNo
 		if (mpcStackFroms)
 		{
 			mpcStackFroms = pcStackPointers->Remove(mpcStackFroms, pcPointer);
-			GetEmbeddingContainer()->TryKill(bKillIfNoRoot, FALSE);
+			pcContainer = GetEmbeddingContainer();
+			pcContainer->TryKill(bKillIfNoRoot, FALSE);
 		}
 	}
 }
