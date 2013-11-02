@@ -77,8 +77,9 @@ CArrayBaseObjectPtr* CDistCalculator::CalculateStackFromChanged(CBaseObject* pcF
 	else
 	{
 		pcFromChanged->CollectAndClearInvalidDistToRootObjects(&mcParameters);
-		ClearTouchedFlags(&mcParameters);
+		ChangeClearedDistToUnattachedDist(&mcParameters);
 		mcDistToStackCalculator.CalculateFromTouched(&mcParameters);
+		ClearTouchedFlags(&mcParameters);
 		return mcParameters.GetCompletelyDetachedArray();
 	}
 }
@@ -100,6 +101,24 @@ void CDistCalculator::ClearTouchedFlags(CDistCalculatorParameters* pcParameters)
 	{
 		pcBaseObject = pcParameters->GetTouched(i);
 		pcBaseObject->ClearDistTouchedFlags();
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CDistCalculator::ChangeClearedDistToUnattachedDist(CDistCalculatorParameters* pcParameters)
+{
+	int				i;
+	int				iNumTouched;
+	CBaseObject*	pcBaseObject;
+
+	iNumTouched = pcParameters->NumTouched();
+
+	for (i = 0; i < iNumTouched; i++)
+	{
+		pcBaseObject = pcParameters->GetTouched(i);
 		pcBaseObject->SetDistToRoot(UNATTACHED_DIST_TO_ROOT);
 	}
 }

@@ -1,6 +1,7 @@
 #include "BaseObject.h"
 #include "DistToStackCalculator.h"
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -127,26 +128,14 @@ void CDistToStackCalculator::UpdateDistToStackForAllObjects(CDistCalculatorParam
 int CDistToStackCalculator::CollectDetachedAndSetDistToStackZero(CDistCalculatorParameters* pcParameters)
 {
 	int				i;
-	int				iNumTouched;
 	CBaseObject*	pcBaseObject;
 	int				iNumWithStackPointers;
-	int				iDistToRoot;
 
 	iNumWithStackPointers = 0;
-	iNumTouched = pcParameters->NumTouched();
-	for (i = 0; i < iNumTouched; i++)
+	for (i = 0; i < pcParameters->NumTouched(); i++)
 	{
 		pcBaseObject = pcParameters->GetTouched(i);
-		iDistToRoot = pcBaseObject->GetDistToRoot();
-		if (iDistToRoot == UNATTACHED_DIST_TO_ROOT)
-		{
-			pcParameters->AddDetachedFromRoot(pcBaseObject);
-			if (pcBaseObject->HasStackPointers())
-			{
-				pcBaseObject->SetDistToStack(0);
-				iNumWithStackPointers++;
-			}
-		}
+		iNumWithStackPointers += pcBaseObject->CollectDetachedFroms(pcParameters);
 	}
 
 	return iNumWithStackPointers;
@@ -170,6 +159,4 @@ void CDistToStackCalculator::ResetObjectsToUnknownDistToStack(CDistCalculatorPar
 		pcBaseObject->SetDistToStack(UNKNOWN_DIST_TO_STACK);
 	}
 }
-
-
 

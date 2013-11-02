@@ -228,3 +228,13 @@ void CHollowEmbeddedObject::UpdateAttachedEmbeddedObjectTosDistToRoot(CDistCalcu
 {
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CHollowEmbeddedObject::CollectEmbeddedObjectDetachedFroms(CDistCalculatorParameters* pcParameters)
+{
+	return 0;
+}
+

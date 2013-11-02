@@ -188,10 +188,6 @@ void CBaseObject::CollectValidDistStartingObjectsAndSetClearedToRoot(CBaseObject
 				}
 			}
 		}
-		//else
-		//{
-		//	gcLogger.Error2(__METHOD__, " How can this find the root but have no froms?", NULL);
-		//}
 
 		apcFroms.Kill();
 	}
@@ -229,6 +225,77 @@ void CBaseObject::CollectAndClearInvalidDistToRootObjects(CDistCalculatorParamet
 			CollectAndClearTosInvalidDistToRootObjects(pcParameters);
 		}
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CBaseObject::CollectDetachedFroms(CDistCalculatorParameters* pcParameters)
+{
+	ValidateNotEmbedded(__METHOD__);
+
+	int					iNumWithStackPointers;
+
+	iNumWithStackPointers = 0;
+
+	if (miDistToRoot != UNATTACHED_DIST_TO_ROOT)
+	{
+		return 0;
+	}
+
+	if (miFlags & OBJECT_FLAGS_DIST_FROM_WALKED)
+	{
+		return 0;
+	}
+
+	pcParameters->AddDetachedFromRoot(this);
+
+	if (HasStackPointers())
+	{
+		SetDistToStack(0);
+		iNumWithStackPointers++;
+	}
+
+	if (!(miFlags & OBJECT_FLAGS_DIST_CALCULATOR_TOUCHED))
+	{
+		SetFlag(OBJECT_FLAGS_DIST_CALCULATOR_TOUCHED, TRUE);
+		pcParameters->AddTouched(this);
+	}
+
+	SetFlag(OBJECT_FLAGS_DIST_FROM_WALKED, TRUE);
+
+	iNumWithStackPointers += CollectEmbeddedObjectDetachedFroms(pcParameters);
+	return iNumWithStackPointers;
+}
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CBaseObject::CollectEmbeddedObjectDetachedFroms(CDistCalculatorParameters* pcParameters)
+{
+	int					i;
+	int					iNumFroms;
+	CEmbeddedObject*	pcEmbedded;
+	CBaseObject*		pcBaseObject;
+	int					iNumWithStackPointers;
+
+	iNumWithStackPointers = 0;
+	iNumFroms = mapHeapFroms.NumElements();
+	for (i = 0; i < iNumFroms; i++)
+	{
+		pcEmbedded = *mapHeapFroms.Get(i);
+		pcBaseObject = pcEmbedded->GetEmbeddingContainer();
+
+		iNumWithStackPointers += pcBaseObject->CollectDetachedFroms(pcParameters);
+	}
+
+	return iNumWithStackPointers;
+
 }
 
 
@@ -568,7 +635,7 @@ void CBaseObject::ClearDistTouchedFlags(void)
 {
 	ValidateNotEmbedded(__METHOD__);
 
-	SetFlag(OBJECT_FLAGS_CLEARED_DIST_TO_ROOT | OBJECT_FLAGS_UPDATED_TOS_DIST_TO_ROOT | OBJECT_FLAGS_DIST_CALCULATOR_TOUCHED, FALSE);
+	SetFlag(OBJECT_FLAGS_CLEARED_DIST_TO_ROOT | OBJECT_FLAGS_UPDATED_TOS_DIST_TO_ROOT | OBJECT_FLAGS_DIST_CALCULATOR_TOUCHED | OBJECT_FLAGS_DIST_FROM_WALKED, FALSE);
 }
 
 

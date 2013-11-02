@@ -20,6 +20,7 @@ public:
 	CArrayBaseObjectPtr*	CalculateHeapFromChanged(CBaseObject* pcFromChanged);
 	CArrayBaseObjectPtr*	CalculateStackFromChanged(CBaseObject* pcFromChanged);
 	void					ClearTouchedFlags(CDistCalculatorParameters* pcParameters);
+	void					ChangeClearedDistToUnattachedDist(CDistCalculatorParameters* pcParameters);
 };
 
 

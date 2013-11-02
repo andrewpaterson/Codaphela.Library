@@ -31,6 +31,7 @@ public:
 
 protected:
 	void				UpdateAttachedEmbeddedObjectTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist);
+	int					CollectEmbeddedObjectDetachedFroms(CDistCalculatorParameters* pcParameters);
 };
 
 

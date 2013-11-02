@@ -63,6 +63,7 @@ public:
 	void				GetTos(CArrayEmbeddedObjectPtr* papcTos);
 	BOOL				ContainsTo(CEmbeddedObject* pcEmbedded);
 	void				CollectAndClearTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters);
+	int					CollectEmbeddedObjectDetachedFroms(CDistCalculatorParameters* pcParameters);
 	void				UnsafeGetEmbeddedObjectTos(CArrayEmbeddedObjectPtr* papcTos);
 	void				ValidateTos(void);
 	void				ValidateConsistency(void);

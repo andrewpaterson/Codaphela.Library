@@ -48,6 +48,8 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #define OBJECT_FLAGS_CLEARED_DIST_TO_ROOT			0x10000
 #define OBJECT_FLAGS_UPDATED_TOS_DIST_TO_ROOT		0x20000
 #define OBJECT_FLAGS_DIST_CALCULATOR_TOUCHED		0x40000
+#define OBJECT_FLAGS_DIST_FROM_WALKED				0x80000
+
 
 //How man embedded objects are in the object.  If you have more than 255 then you need your head smacked.
 #define OBJECT_FLAGS_NUM_EMBEDDED			0x0000FF00
@@ -120,6 +122,8 @@ public:
 			void				CollectValidDistStartingObjectsAndSetClearedToRoot(CBaseObject* pcTo, CDistCalculatorParameters* pcParameters);
 			void				CollectAndClearInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters);
 	virtual BOOL				IsDistToRootValid(void);
+			int					CollectDetachedFroms(CDistCalculatorParameters* pcParameters);
+			int					CollectEmbeddedObjectDetachedFroms(CDistCalculatorParameters* pcParameters);
 
 			void				AddExpectedDistToRoot(CEmbeddedObject* pcPointedTo, int iExpectedDist, CDistCalculatorParameters* pcParameters);
 			void				ClearDistTouchedFlags(void);

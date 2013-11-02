@@ -578,6 +578,30 @@ void CObject::CollectAndClearTosInvalidDistToRootObjects(CDistCalculatorParamete
 //
 //
 //////////////////////////////////////////////////////////////////////////
+int CObject::CollectEmbeddedObjectDetachedFroms(CDistCalculatorParameters* pcParameters)
+{
+	int					iNumEmbedded;
+	int					i;
+	CEmbeddedObject*	pcEmbedded;
+	int					iNumWithStackPointers;
+
+	iNumWithStackPointers = CBaseObject::CollectEmbeddedObjectDetachedFroms(pcParameters);
+
+	iNumEmbedded = mapEmbedded.NumElements();
+	for (i = 0; i < iNumEmbedded; i++)
+	{
+		pcEmbedded = *mapEmbedded.Get(i);
+		iNumWithStackPointers += pcEmbedded->CollectEmbeddedObjectDetachedFroms(pcParameters);
+	}
+
+	return iNumWithStackPointers;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CObject::UnsafeGetEmbeddedObjectTos(CArrayEmbeddedObjectPtr* papcTos)
 {
 	int					iNumPointers;
