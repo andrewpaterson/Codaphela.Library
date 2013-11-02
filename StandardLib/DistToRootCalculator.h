@@ -17,7 +17,6 @@ public:
 	void Calculate(CDistCalculatorParameters* pcParameters);
 	void CollectAndClearInvalidRootDistances(CBaseObject* pcFromChanged, CDistCalculatorParameters* pcParameters);
 	void UpdateAttachedTosDistToRoot(CDistCalculatorParameters* pcParameters);
-	//void UpdateAttachedAndDetachedDistToRoot(CDistCalculatorParameters* pcParameters);
 	void ClearTouchedFlagsAndDetach(CDistCalculatorParameters* pcParameters);
 	void ValidateExpectedDistStartingObjects(CBaseObject* pcObject, CDistCalculatorParameters* pcParameters);
 };

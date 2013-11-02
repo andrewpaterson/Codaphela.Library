@@ -17,7 +17,6 @@ public:
 	void			ResetObjectsToUnknownDistToStack(CDistCalculatorParameters* pcDetached);
 	int				UpdateDistToStackForObjectsWithFromStackDist(CDistCalculatorParameters* pcDetached);
 	void			UpdateDistToStackForAllObjects(CDistCalculatorParameters* pcDetached);
-	void			UpdateAttachedAndDetachedDistToRoot(CDistCalculatorParameters* pcParameters);
 };
 
 
