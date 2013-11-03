@@ -688,13 +688,17 @@ void CEmbeddedObject::PrintObject(CChars* psz, BOOL bEmbedded)
 	psz->Append(ClassName());
 	psz->Append("(");
 	psz->Append(ClassSize());
-	psz->Append(") ");
+	psz->Append(") Index:");
 	psz->Append(GetOI());
 	if (IsNamed())
 	{
-		psz->Append(" ");
+		psz->Append(" Name:");
 		psz->Append(GetName());
 	}
+	psz->Append(" Froms:");
+	psz->Append(CEmbeddedObject::NumHeapFroms());
+	psz->Append(",");
+	psz->Append(CEmbeddedObject::NumStackFroms());
 	if (bEmbedded)
 	{
 		psz->Append(")");
