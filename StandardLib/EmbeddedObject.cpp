@@ -30,6 +30,26 @@ CEmbeddedObject::~CEmbeddedObject()
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CEmbeddedObject::Kill(void)
+{
+	NotImplemented(__METHOD__);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CEmbeddedObject::Kill(BOOL bHeapFromChanged)
+{
+	NotImplemented(__METHOD__);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 int CEmbeddedObject::RemapTos(CEmbeddedObject* pcOld, CEmbeddedObject* mpcObject)
 {
 	return 0;
@@ -364,7 +384,7 @@ BOOL CEmbeddedObject::HasStackPointers(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CEmbeddedObject::HasHeapPointers(void)
+BOOL CEmbeddedObject::HasHeapFroms(void)
 {
 	int		iNumHeapPointers;
 
@@ -400,7 +420,7 @@ CBaseObject* CEmbeddedObject::GetClosestFromToRoot(void)
 	for (i = 0; i < iNumFroms; i++)
 	{
 		pcFrom = *mapHeapFroms.Get(i);
-		if ((pcFrom->miDistToRoot >= ROOT_DIST_TO_ROOT) && (!pcFrom->TestedForRoot()))  //What the hell is !pcFrom->TestedForRoot() here for?
+		if (pcFrom->miDistToRoot >= ROOT_DIST_TO_ROOT)
 		{
 			if (pcFrom->miDistToRoot < iNearestRoot)
 			{

@@ -13,7 +13,9 @@ int CObjectRemapFrom::Remap(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew, BOOL
 	int					iNumEmbedded;
 	CEmbeddedObject*	pcEmbeddedNew;
 	int					i;
+	BOOL				bHeapFromChanged;
 
+	bHeapFromChanged = pcOld->HasHeapFroms();
 	iNumEmbedded = CalculateNumEmbedded(pcOld, pcNew);
 	iCount = 0;
 
@@ -29,7 +31,7 @@ int CObjectRemapFrom::Remap(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew, BOOL
 	{
 		pcOld->ClearIndex();
 	}
-	pcOld->Kill();
+	pcOld->Kill(bHeapFromChanged);
 
 	return iCount;
 }

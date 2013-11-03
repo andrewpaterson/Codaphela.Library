@@ -35,6 +35,8 @@ protected:
 public:
 								CEmbeddedObject();
 								~CEmbeddedObject();
+	virtual void				Kill(void);
+	virtual void				Kill(BOOL bHeapFromChanged);
 	virtual void				KillDontFree(void) =0;
 	virtual void				KillInternalData(void);
 			void				KillFroms(void);
@@ -77,7 +79,7 @@ public:
 	virtual void				CollectAndClearTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters);
 	virtual int					CollectEmbeddedObjectDetachedFroms(CDistCalculatorParameters* pcParameters) =0;
 
-			BOOL				HasHeapPointers(void);
+			BOOL				HasHeapFroms(void);
 			void				AddHeapFrom(CBaseObject* pcFromObject);
 			void				AddHeapFrom(CBaseObject* pcFromObject, BOOL bValidate);
 			void				RemoveHeapFrom(CBaseObject* pcFromObject);

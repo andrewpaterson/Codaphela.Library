@@ -85,6 +85,7 @@ public:
 	virtual	void				Class(void);
 
 			void				Kill(void);
+			void				Kill(BOOL bHeapFromChanged);
 			void				TryKill(BOOL bKillIfNoRoot, BOOL bHeapFromChanged);
 
 	virtual void				KillDontFree(void);

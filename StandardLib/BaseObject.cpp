@@ -77,16 +77,28 @@ void CBaseObject::Class(void)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::Kill(void)
 {
+	BOOL					bHeapFromChanged;
+
+	bHeapFromChanged = HasHeapFroms();
+	Kill(bHeapFromChanged);
+
+	mpcObjectsThisIn->ValidateConsistency();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CBaseObject::Kill(BOOL bHeapFromChanged)
+{
 	CDistCalculator*		pcDistCalculator;
 	CArrayBaseObjectPtr*	papcKilled;
-	BOOL					bHeapFromChanged;
 
 	//This method is for the user to forcibly kill an object.
 	//It is not called internally.
 
 	ValidateNotEmbedded(__METHOD__);
-
-	bHeapFromChanged = HasHeapPointers();
 
 	RemoveAllStackFroms();
 	RemoveAllHeapFroms();
@@ -98,8 +110,6 @@ void CBaseObject::Kill(void)
 
 	mpcObjectsThisIn->Remove(papcKilled);
 	pcDistCalculator->Kill();
-
-	mpcObjectsThisIn->ValidateConsistency();
 }
 
 
@@ -358,7 +368,7 @@ void CBaseObject::TryKill(BOOL bKillIfNoRoot, BOOL bHeapFromChanged)
 	}
 	else
 	{
-		bHasHeapPointers = HasHeapPointers();
+		bHasHeapPointers = HasHeapFroms();
 		bHasStackPointers = HasStackPointers();
 
 		//If we removed a stack pointer and have no more stack pointers and have no heap pointers (regardless of whether or not they can find the root)
