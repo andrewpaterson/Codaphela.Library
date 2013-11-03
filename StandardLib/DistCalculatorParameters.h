@@ -57,6 +57,8 @@ public:
 	int						NumTouched(void);
 	CBaseObject*			GetTouched(int iIndex);
 
+	void					ClearTouchedFlags(void);
+
 	void					PrintArray(CChars* psz, CArrayEmbeddedBaseObjectPtr* pcArray);
 	void					PrintArray(CChars* psz, CArrayBaseObjectPtr* pcArray);
 	void					PrintArray(CChars* psz, CArrayDistToRoot* pcArray);

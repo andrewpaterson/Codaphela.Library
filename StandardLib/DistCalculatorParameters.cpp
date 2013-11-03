@@ -391,6 +391,26 @@ void CDistCalculatorParameters::PrintArray(CChars* psz, CArrayDistToRoot* pcArra
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CDistCalculatorParameters::ClearTouchedFlags(void)
+{
+	int				i;
+	int				iNumTouched;
+	CBaseObject*	pcBaseObject;
+
+	iNumTouched = NumTouched();
+
+	for (i = 0; i < iNumTouched; i++)
+	{
+		pcBaseObject = GetTouched(i);
+		pcBaseObject->ClearDistTouchedFlags();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CDistCalculatorParameters::Dump(void)
 {
 	CChars sz;

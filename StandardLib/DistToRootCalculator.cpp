@@ -30,7 +30,7 @@ void CDistToRootCalculator::Calculate(CBaseObject* pcObject, CDistCalculatorPara
 
 	UpdateAttachedTosDistToRoot(pcParameters);
 
-	ClearTouchedFlagsAndDetach(pcParameters);
+	ResetObjectsToUnattachedDistToRoot(pcParameters);
 }
 
 
@@ -48,7 +48,7 @@ void CDistToRootCalculator::CollectAndClearInvalidRootDistances(CBaseObject* pcF
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDistToRootCalculator::ClearTouchedFlagsAndDetach(CDistCalculatorParameters* pcParameters)
+void CDistToRootCalculator::ResetObjectsToUnattachedDistToRoot(CDistCalculatorParameters* pcParameters)
 {
 	int				i;
 	int				iNumTouched;
@@ -59,7 +59,6 @@ void CDistToRootCalculator::ClearTouchedFlagsAndDetach(CDistCalculatorParameters
 	for (i = 0; i < iNumTouched; i++)
 	{
 		pcBaseObject = pcParameters->GetTouched(i);
-		pcBaseObject->ClearDistTouchedFlags();
 		if (pcBaseObject->GetDistToRoot() == CLEARED_DIST_TO_ROOT)
 		{
 			pcBaseObject->SetDistToRoot(UNATTACHED_DIST_TO_ROOT);

@@ -48,7 +48,8 @@ CArrayBaseObjectPtr* CDistCalculator::CalculateHeapFromChanged(CBaseObject* pcFr
 	mcDistToRootCalculator.Calculate(pcFromChanged, &mcParameters);
 
 	mcDistToStackCalculator.CalculateFromTouched(&mcParameters);
-
+	mcDistToStackCalculator.ResetObjectsToUnknownDistToStack(&mcParameters);
+	mcParameters.ClearTouchedFlags();
 	return mcParameters.GetCompletelyDetachedArray();
 }
 
@@ -71,6 +72,7 @@ CArrayBaseObjectPtr* CDistCalculator::CalculateStackFromChanged(CBaseObject* pcF
 	{
 		mcDistToStackCalculator.Calculate(pcFromChanged, &mcParameters);
 		mcDistToStackCalculator.ResetObjectsToUnknownDistToStack(&mcParameters);
+		mcParameters.ClearTouchedFlags();
 		return mcParameters.GetCompletelyDetachedArray();
 	}
 }
