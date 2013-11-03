@@ -1407,3 +1407,64 @@ void CBaseObject::ValidateEmbeddedConsistency(void)
 	ValidateTos();
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CBaseObject::ValidateObjectIdentifiers(void)
+{
+	CChars			sz;
+	CChars			szContainer;
+	CBaseObject*	pcContainer;
+	char*			szName;
+	CBaseObject*	pcThis;
+
+	if (IsNamed())
+	{
+		if (IsEmbedded())
+		{
+			pcContainer = GetEmbeddingContainer();
+
+			szContainer.Init();
+			pcContainer->PrintObject(&szContainer, FALSE);
+
+			sz.Init();
+			PrintObject(&sz, IsEmbedded());
+
+			gcLogger.Error2(__METHOD__, " Object {", sz.Text(), "} should have a name as it's embedded in object {", szContainer.Text(), "}.", NULL);
+
+			sz.Kill();
+			szContainer.Kill();
+		}
+		else
+		{
+			szName = GetName();
+			pcThis = mpcObjectsThisIn->GetFromMemory(szName);
+			if (pcThis != this)
+			{
+				sz.Init();
+				PrintObject(&sz, IsEmbedded());
+
+				gcLogger.Error2(__METHOD__, " Object {", sz.Text(), "} does not match the Named Object in Objects.", NULL);
+				
+				sz.Kill();
+			}
+		}
+	}
+
+	if (!IsEmbedded())
+	{
+		pcThis = mpcObjectsThisIn->GetFromMemory(GetOI());
+		if (pcThis != this)
+		{
+			sz.Init();
+			PrintObject(&sz, IsEmbedded());
+
+			gcLogger.Error2(__METHOD__, " Object {", sz.Text(), "} does not match the Object in Objects.", NULL);
+
+			sz.Kill();
+		}
+	}
+}
+

@@ -126,6 +126,7 @@ public:
 						OIndex					StartMemoryIteration(SIndexesIterator* psIter);
 						OIndex					IterateMemory(SIndexesIterator* psIter);
 						CPointer				TestGetFromMemory(OIndex oi);
+						CPointer				TestGetFromMemory(char* szName);
 protected:
 						BOOL					AddWithID(CBaseObject* pvObject, OIndex oi);
 						BOOL					AddWithIDAndName(CBaseObject* pvObject, char* szObjectName, OIndex oi);

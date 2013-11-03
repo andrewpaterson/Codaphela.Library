@@ -154,6 +154,7 @@ public:
 			void				ValidateCanFindRoot(void);
 	virtual void				ValidateEmbeddedObjectTos(void) =0;
 	virtual void				ValidateEmbeddedConsistency(void);
+	virtual void				ValidateObjectIdentifiers(void);
 			void				ValidateBaseObjectDetail(void);
 	
 protected:

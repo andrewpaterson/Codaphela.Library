@@ -1172,6 +1172,7 @@ void CObject::ValidateConsistency(void)
 {
 	ValidateNotEmbedded(__METHOD__);
 
+	ValidateObjectIdentifiers();
 	ValidateEmbeddedConsistency();
 	ValidateCanFindRoot();
 }
