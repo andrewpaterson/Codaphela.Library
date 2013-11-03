@@ -8,7 +8,6 @@ class CDistToRootCalculator
 public:
 	void Calculate(CBaseObject* pcObject, CDistCalculatorParameters* pcParameters);
 
-	void Calculate(CBaseObject* pcObject);
 	void CollectAndClearInvalidRootDistances(CBaseObject* pcFromChanged, CDistCalculatorParameters* pcParameters);
 	void UpdateAttachedTosDistToRoot(CDistCalculatorParameters* pcParameters);
 	void ClearTouchedFlagsAndDetach(CDistCalculatorParameters* pcParameters);

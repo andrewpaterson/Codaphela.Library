@@ -8,22 +8,6 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDistToRootCalculator::Calculate(CBaseObject* pcObject)
-{
-	CDistCalculatorParameters	cDistParameters;
-
-	cDistParameters.Init();
-
-	Calculate(pcObject, &cDistParameters);
-
-	cDistParameters.Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CDistToRootCalculator::Calculate(CBaseObject* pcObject, CDistCalculatorParameters* pcParameters)
 {
 	CollectAndClearInvalidRootDistances(pcObject, pcParameters);
