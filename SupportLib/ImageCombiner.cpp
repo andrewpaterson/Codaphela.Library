@@ -175,7 +175,7 @@ Ptr<CImage> CImageCombiner::InitiailiseDestImage(SInt2 sSize)
 	}
 	else
 	{
-		ReturnKillNull(pcImage);
+		return ONull;
 	}
 }
 

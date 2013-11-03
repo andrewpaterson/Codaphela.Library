@@ -326,7 +326,7 @@ Ptr<CImage> CImageCelsSource::Combine(int iFirstCelIndex)
 	}
 	else
 	{
-		ReturnKillNull(pcDest);
+		return ONull;
 	}
 }
 
