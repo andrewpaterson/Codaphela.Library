@@ -51,8 +51,7 @@ CArrayBaseObjectPtr* CDistCalculator::Calculate(CBaseObject* pcFromChanged, BOOL
 //////////////////////////////////////////////////////////////////////////
 CArrayBaseObjectPtr* CDistCalculator::CalculateHeapFromChanged(CBaseObject* pcFromChanged)
 {
-	mcDistToRootCalculator.AddFromChanged(pcFromChanged);
-	mcDistToRootCalculator.Calculate(&mcParameters);
+	mcDistToRootCalculator.Calculate(pcFromChanged, &mcParameters);
 
 	mcDistToStackCalculator.CalculateFromTouched(&mcParameters);
 

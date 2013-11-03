@@ -5,16 +5,12 @@
 
 class CDistToRootCalculator
 {
-private:
-	CBaseObject*	mpcFromChanged;
-
 public:
 	void Init(void);
 	void Kill(void);
 
-	void AddFromChanged(CBaseObject* pcObject);
-	void Calculate(void);
-	void Calculate(CDistCalculatorParameters* pcParameters);
+	void Calculate(CBaseObject* pcObject);
+	void Calculate(CBaseObject* pcObject, CDistCalculatorParameters* pcParameters);
 	void CollectAndClearInvalidRootDistances(CBaseObject* pcFromChanged, CDistCalculatorParameters* pcParameters);
 	void UpdateAttachedTosDistToRoot(CDistCalculatorParameters* pcParameters);
 	void ClearTouchedFlagsAndDetach(CDistCalculatorParameters* pcParameters);

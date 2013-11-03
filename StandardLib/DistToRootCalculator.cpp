@@ -10,7 +10,6 @@
 //////////////////////////////////////////////////////////////////////////
 void CDistToRootCalculator::Init(void)
 {
-	mpcFromChanged = NULL;
 }
 
 
@@ -20,7 +19,6 @@ void CDistToRootCalculator::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CDistToRootCalculator::Kill(void)
 {
-	mpcFromChanged = NULL;
 }
 
 
@@ -28,13 +26,13 @@ void CDistToRootCalculator::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDistToRootCalculator::Calculate(void)
+void CDistToRootCalculator::Calculate(CBaseObject* pcObject)
 {
 	CDistCalculatorParameters	cDistParameters;
 
 	cDistParameters.Init();
 
-	Calculate(&cDistParameters);
+	Calculate(pcObject, &cDistParameters);
 
 	cDistParameters.Kill();
 }
@@ -44,9 +42,9 @@ void CDistToRootCalculator::Calculate(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDistToRootCalculator::Calculate(CDistCalculatorParameters* pcParameters)
+void CDistToRootCalculator::Calculate(CBaseObject* pcObject, CDistCalculatorParameters* pcParameters)
 {
-	CollectAndClearInvalidRootDistances(mpcFromChanged, pcParameters);
+	CollectAndClearInvalidRootDistances(pcObject, pcParameters);
 	
 	int				i;
 	int				iNumTouched;
@@ -119,16 +117,6 @@ void CDistToRootCalculator::ValidateExpectedDistStartingObjects(CBaseObject* pcO
 		gcLogger.Error2(__METHOD__, " Could not find any starting objects for ", sz.Text(), NULL);
 		sz.Kill();
 	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CDistToRootCalculator::AddFromChanged(CBaseObject* pcObject)
-{
-	mpcFromChanged = pcObject;
 }
 
 
