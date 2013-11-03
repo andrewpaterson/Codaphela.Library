@@ -8,10 +8,8 @@ class CDistToStackCalculator
 private:
 
 public:
-	void			Init(void);
-	void			Kill(void);
-
 	void			CalculateFromTouched(CDistCalculatorParameters* pcDetached);
+
 	int				CollectDetachedAndSetDistToStackZero(CDistCalculatorParameters* pcParameters);
 	void			InitialiseCompletelyDetached(CDistCalculatorParameters* pcDetached);
 	void			ResetObjectsToUnknownDistToStack(CDistCalculatorParameters* pcDetached);

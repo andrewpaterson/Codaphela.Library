@@ -9,9 +9,6 @@
 void CDistCalculator::Init(void)
 {
 	mcParameters.Init();
-
-	mcDistToRootCalculator.Init();
-	mcDistToStackCalculator.Init();
 }
 
 
@@ -21,9 +18,6 @@ void CDistCalculator::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CDistCalculator::Kill(void)
 {
-	mcDistToStackCalculator.Kill();
-	mcDistToRootCalculator.Kill();
-
 	mcParameters.Kill();
 }
 
