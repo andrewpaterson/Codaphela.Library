@@ -269,7 +269,7 @@ CEmbeddedObject* CPointer::Return(void)
 	//pointers point to the object and this pointers destructor must not destroy the object.
 
 	pOldObject = mpcObject;
-	mpcObject->RemoveStackFrom(this);
+	mpcObject->PrivateRemoveStackFrom(this);
 	mpcObject = NULL;
 	return pOldObject;
 }

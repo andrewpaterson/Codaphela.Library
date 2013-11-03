@@ -8,13 +8,16 @@ class CDistToStackCalculator
 private:
 
 public:
-	void			CalculateFromTouched(CDistCalculatorParameters* pcDetached);
+	void			Calculate(CBaseObject* pcFromChanged, CDistCalculatorParameters* pcParameters);
+	void			CalculateFromTouched(CDistCalculatorParameters* pcParameters);
 
 	int				CollectDetachedAndSetDistToStackZero(CDistCalculatorParameters* pcParameters);
-	void			InitialiseCompletelyDetached(CDistCalculatorParameters* pcDetached);
-	void			ResetObjectsToUnknownDistToStack(CDistCalculatorParameters* pcDetached);
-	int				UpdateDistToStackForObjectsWithFromStackDist(CDistCalculatorParameters* pcDetached);
-	void			UpdateDistToStackForAllObjects(CDistCalculatorParameters* pcDetached);
+	void			InitialiseCompletelyDetached(CDistCalculatorParameters* pcParameters);
+	void			ResetObjectsToUnknownDistToStack(CDistCalculatorParameters* pcParameters);
+	int				UpdateDistToStackForObjectsWithFromStackDist(CDistCalculatorParameters* pcParameters);
+	void			UpdateDistToStackForAllObjects(CDistCalculatorParameters* pcParameters);
+	void			ResetObjectsToUnattachedDistToRoot(CDistCalculatorParameters* pcParameters);
+	void			ClearTouchedFlags(CDistCalculatorParameters* pcParameters);
 };
 
 

@@ -601,7 +601,7 @@ void CEmbeddedObject::RemoveStackFromTryKill(CPointer* pcPointer, BOOL bKillIfNo
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CEmbeddedObject::RemoveStackFrom(CPointer* pcPointer)
+void CEmbeddedObject::PrivateRemoveStackFrom(CPointer* pcPointer)
 {
 	CStackPointers*	pcStackPointers;
 
@@ -833,6 +833,16 @@ void CEmbeddedObject::GetStackFroms(CArrayPointerPtr* papcFroms)
 BOOL CEmbeddedObject::TestRemoveHeapFrom(CBaseObject* pcFromObject)
 {
 	return PrivateRemoveHeapFrom(pcFromObject);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CEmbeddedObject::TestRemoveStackFrom(CPointer* pcPointer)
+{
+	PrivateRemoveStackFrom(pcPointer);
 }
 
 

@@ -88,7 +88,7 @@ public:
 			void				AddStackFrom(CPointer* pcPointer);
 			void				AddStackFroms(CStackPointer* pcStackPointer);
 			BOOL				HasStackPointers(void);
-			void				RemoveStackFrom(CPointer* pcPointer);
+			void				PrivateRemoveStackFrom(CPointer* pcPointer);
 			void				RemoveStackFromTryKill(CPointer* pcPointer, BOOL bKillIfNoRoot);
 	virtual int					NumStackFroms(void);
 			CStackPointer*		GetFirstStackFrom(void);
@@ -103,6 +103,7 @@ public:
 			void				LogNotExpectedToBeEmbedded(char* szMethod);
 			void				ValidateNotEmbedded(char* szMethod);
 			BOOL				TestRemoveHeapFrom(CBaseObject* pcFromObject);
+			void				TestRemoveStackFrom(CPointer* pcPointer);
 
 protected:
 	virtual void				RemoveAllHeapFroms(void);

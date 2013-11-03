@@ -395,7 +395,8 @@ void CDistCalculatorParameters::Dump(void)
 {
 	CChars sz;
 
-	sz.Init();
+	sz.Init("--------- DistCalculatorParameters ---------");
+	sz.AppendNewLine();
 
 	sz.Append("      Touched [");
 	sz.Append(mapcTouched.NumElements());
@@ -421,6 +422,9 @@ void CDistCalculatorParameters::Dump(void)
 	sz.Append(mapcCompletelyDetached.NumElements());
 	sz.Append("]:  ");
 	PrintArray(&sz, &mapcCompletelyDetached);
+	sz.AppendNewLine();
+
+	sz.Append("--------------------------------------------");
 	sz.AppendNewLine();
 
 	sz.Dump();
