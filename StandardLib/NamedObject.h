@@ -44,6 +44,7 @@ public:
 protected:
 	void	Free(void);
 	void	SetName(char* szName);
+	void	ClearName(void);
 
 private:
 	BOOL	InitName(char* szName);

@@ -30,6 +30,7 @@ int CObjectRemapFrom::Remap(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew, BOOL
 	if (bClearOldIndex)
 	{
 		pcOld->ClearIndex();
+		pcOld->ClearName();
 	}
 	pcOld->Kill(bHeapFromChanged);
 

@@ -20,6 +20,7 @@ public:
 
 protected:
 	CEmbeddedObject*	GetRemappedEmbeddedObject(int iIndex);
+	void				ClearName(void);
 };
 
 

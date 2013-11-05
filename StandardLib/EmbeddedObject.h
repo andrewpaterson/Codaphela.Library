@@ -54,6 +54,7 @@ public:
 	virtual char*				GetName(void);
 	virtual BOOL				IsDirty(void);
 	virtual void				ClearIndex(void);
+	virtual void				ClearName(void);
 	virtual BOOL				IsBaseObject(void);
 	virtual void				RemoveTo(CEmbeddedObject* pcTo) =0;
 			CBaseObject*		GetEmbeddingContainer(void);

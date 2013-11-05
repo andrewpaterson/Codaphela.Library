@@ -73,7 +73,8 @@ public:
 						void					Init(CUnknowns* pcUnknownsAllocatingFrom, CIndexedConfig* pcConfig);
 						void					Kill(void);
 						void					KillStackPointers(void);
-						void					DumpMemory(void);
+						void					DumpIndex(void);
+						void					DumpNames(void);
 						void					DumpGraph(void);
 						void					ValidateEmpty(void);
 						void					ValidateConsistency(void);
