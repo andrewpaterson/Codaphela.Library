@@ -897,6 +897,8 @@ void CASCIITree::Dump(CArrayInt* pcArrayInt)
 		psz = GetCharsID(iIndex);
 		if (psz)
 		{
+			sz2.Append(psz->mlliID);
+			sz2.Append(":");
 			sz2.Append(psz->Text());
 			sz2.AppendNewLine();
 		}
