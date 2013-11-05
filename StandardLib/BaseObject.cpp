@@ -1440,15 +1440,18 @@ void CBaseObject::ValidateObjectIdentifiers(void)
 		else
 		{
 			szName = GetName();
-			pcThis = mpcObjectsThisIn->GetFromMemory(szName);
-			if (pcThis != this)
+			if (!StrEmpty(szName))
 			{
-				sz.Init();
-				PrintObject(&sz, IsEmbedded());
+				pcThis = mpcObjectsThisIn->GetFromMemory(szName);
+				if (pcThis != this)
+				{
+					sz.Init();
+					PrintObject(&sz, IsEmbedded());
 
-				gcLogger.Error2(__METHOD__, " Object {", sz.Text(), "} does not match the Named Object in Objects.", NULL);
-				
-				sz.Kill();
+					gcLogger.Error2(__METHOD__, " Object {", sz.Text(), "} does not match the Named Object in Objects.", NULL);
+
+					sz.Kill();
+				}
 			}
 		}
 	}
