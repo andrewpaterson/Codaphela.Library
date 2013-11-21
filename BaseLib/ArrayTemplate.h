@@ -443,6 +443,11 @@ void __CArrayTemplate<M>::RemoveAtNoDeallocate(int iIndex, BOOL bPreserveOrder, 
 	void*	pEnd;
 
 	miUsedElements--;
+	if (iIndex == miUsedElements)
+	{
+		return;
+	}
+
 	pSource = RemapSinglePointer(mpvArray, iIndex * iDataSize);
 
 	if (bPreserveOrder)
