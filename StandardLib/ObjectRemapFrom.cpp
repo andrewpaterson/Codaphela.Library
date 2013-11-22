@@ -82,7 +82,7 @@ int CObjectRemapFrom::RemapEmbedded(CEmbeddedObject* pcNew, CEmbeddedObject* pcO
 		pcNew->SetPointedTosExpectedDistToRoot(iOldDistToRoot);
 	}
 
-	pcOld->KillFroms();
+	pcOld->PostRemapFroms();
 
 	return iCount;
 }

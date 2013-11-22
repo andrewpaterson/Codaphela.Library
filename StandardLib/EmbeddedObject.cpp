@@ -233,10 +233,10 @@ void CEmbeddedObject::KillInternalData()
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CEmbeddedObject::KillFroms(void)
+void CEmbeddedObject::PostRemapFroms(void)
 {
 	mapHeapFroms.Kill();
-	mpcStackFroms = NULL;  //This is wrong.  Your need to mark all the stack froms as unused.
+	mpcStackFroms = NULL;
 }
 
 
