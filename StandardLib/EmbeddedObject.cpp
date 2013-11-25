@@ -224,8 +224,6 @@ void CEmbeddedObject::SetEmbedded(CBaseObject* pcEmbedded)
 //////////////////////////////////////////////////////////////////////////
 void CEmbeddedObject::KillInternalData()
 {
-	CStackPointers*	pcStackPointers;
-
 	mapHeapFroms.Kill();
 
 	RemoveAllStackFroms();

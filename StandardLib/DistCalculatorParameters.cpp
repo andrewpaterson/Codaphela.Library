@@ -321,8 +321,6 @@ void CDistCalculatorParameters::PrintArray(CChars* psz, CArrayEmbeddedBaseObject
 	CBaseObject*	pcBaseObject;
 
 	iNum = pcArray->NumElements();
-
-
 	for (i = 0; i < iNum; i++)
 	{
 		pcBaseObject = *pcArray->Get(i);
@@ -347,8 +345,6 @@ void CDistCalculatorParameters::PrintArray(CChars* psz, CArrayBaseObjectPtr* pcA
 	CBaseObject*	pcBaseObject;
 
 	iNum = pcArray->NumElements();
-
-
 	for (i = 0; i < iNum; i++)
 	{
 		pcBaseObject = *pcArray->Get(i);
@@ -373,7 +369,6 @@ void CDistCalculatorParameters::PrintArray(CChars* psz, CArrayDistToRoot* pcArra
 	SDistToRoot*	psDistToRoot;
 
 	iNum = pcArray->NumElements();
-
 	for (i = 0; i < iNum; i++)
 	{
 		psDistToRoot = pcArray->Get(i);
