@@ -947,6 +947,9 @@
     <ClCompile Include="LogString.cpp">
       <Filter>Source\Error</Filter>
     </ClCompile>
+    <ClCompile Include="ChunkStack.cpp">
+      <Filter>Source\File\Chunk\File</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="gpl.txt">

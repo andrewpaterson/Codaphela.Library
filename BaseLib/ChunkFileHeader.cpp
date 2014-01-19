@@ -7,6 +7,7 @@
 //////////////////////////////////////////////////////////////////////////
 void CChunkFileHeader::WriteInit(int iUserID)
 {
+	memset(this, 0xEE, sizeof(CChunkFileHeader));
 	this->iUserID = iUserID;
 	iChunkNamesPos = -1;
 	memset(acMD5Hash, 0, 16);
@@ -20,6 +21,7 @@ void CChunkFileHeader::WriteInit(int iUserID)
 //////////////////////////////////////////////////////////////////////////
 void CChunkHeader::WriteInit(void)
 {
+	memset(this, 0xEE, sizeof(CChunkFileHeader));
 	iChunkIndexPos = -1;
 	iChunkSize = 0;
 	iName = -1;

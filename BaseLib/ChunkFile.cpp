@@ -169,10 +169,7 @@ BOOL CChunkFile::WriteChunkBegin(void)
 	}
 
 	psElement = mcChunkStack.Push();
-	psElement->cChunkIndex.WriteInit();
-	psElement->iChunkHeaderPos = iFilePos;
-	psElement->bContainsChunks = 0;
-	psElement->sHeader.WriteInit();
+	psElement->Init(iFilePos);
 	ReturnOnFalse(CFileBasic::Write(&psElement->sHeader, sizeof(CChunkHeader), 1));  //This write is ignored from a hashing point of view.
 
 	((CMD5HashFile*)mpcFile)->StartHashing(); //Reset the files current MD5 hash for the new chunk.
