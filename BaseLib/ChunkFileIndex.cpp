@@ -27,6 +27,20 @@ Microsoft Windows is Copyright Microsoft Corporation
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
+void SChunkIndex::Init(filePos iChunkDataPos, int iName, filePos iChunkSize)
+{
+	memset(this, 0xEE, sizeof(SChunkIndex));
+
+	this->iChunkDataPos = iChunkDataPos;
+	this->iName = iName;
+	this->iChunkSize = iChunkSize;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
 void CChunkIndex::ReadInit(void)
 {
 	mcChunkIndices.Init(CHUNK_INDEX_CHUNK_SIZE);

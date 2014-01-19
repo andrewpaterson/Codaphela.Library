@@ -233,9 +233,7 @@ BOOL CChunkFile::WriteChunkEnd(int iChunkName)
 		if (psParent)
 		{
 			psIndexParent = psParent->cChunkIndex.mcChunkIndices.Add();
-			psIndexParent->iChunkDataPos = psElement->iChunkHeaderPos + sizeof(CChunkHeader);
-			psIndexParent->iName = iChunkName;
-			psIndexParent->iChunkSize = psElement->sHeader.iChunkSize;
+			psIndexParent->Init(psElement->iChunkHeaderPos + sizeof(CChunkHeader), iChunkName, psElement->sHeader.iChunkSize);
 		}
 
 		CFileBasic::Seek(psElement->iChunkHeaderPos, EFSO_SET);
