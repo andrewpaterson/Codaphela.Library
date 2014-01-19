@@ -33,42 +33,42 @@ protected:
 	BOOL					mbSubRoot;
 
 public:
-	void				Init(BOOL bUnique, BOOL bIgnoreNull, BOOL bPreserveOrder, int iChunkSize);
-	void				Class(void);
-	void				Kill(void);
+	Ptr<CArrayCommonObject>	Init(BOOL bUnique, BOOL bIgnoreNull, BOOL bPreserveOrder, int iChunkSize);
+	void					Class(void);
+	void					Kill(void);
 
-	void				Add(CPointer& pObject);
-	void				AddAll(CArrayCommonObject* pcArray);
-	void				Set(int iIndex, CPointer& pObject);
-	BOOL				Remove(CPointer& pObject);
-	BOOL				Remove(CBaseObject* pcObject);
-	void				RemoveAll(void);
+	void					Add(CPointer& pObject);
+	void					AddAll(CArrayCommonObject* pcArray);
+	void					Set(int iIndex, CPointer& pObject);
+	BOOL					Remove(CPointer& pObject);
+	BOOL					Remove(CBaseObject* pcObject);
+	void					RemoveAll(void);
 
-	int					NumElements(void);
-	int					NonNullElements(void);
+	int						NumElements(void);
+	int						NonNullElements(void);
 
-	void				MakeSubRoot(void);
-	BOOL				IsSubRoot(void);
-	void				SetPointedTosExpectedDistToRoot(int iDistToRoot);
+	void					MakeSubRoot(void);
+	BOOL					IsSubRoot(void);
+	void					SetPointedTosExpectedDistToRoot(int iDistToRoot);
 
-	int					NumTos(void);
-	int					UnsafeNumEmbeddedObjectTos(void);
-	void				GetTos(CArrayEmbeddedObjectPtr* papcTos);
-	void				UnsafeGetEmbeddedObjectTos(CArrayEmbeddedObjectPtr* papcTos);
-	BOOL				ContainsTo(CEmbeddedObject* pcEmbedded);
-	void				RemoveAllTos(void);
-	void				CollectAndClearTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters);
+	int						NumTos(void);
+	int						UnsafeNumEmbeddedObjectTos(void);
+	void					GetTos(CArrayEmbeddedObjectPtr* papcTos);
+	void					UnsafeGetEmbeddedObjectTos(CArrayEmbeddedObjectPtr* papcTos);
+	BOOL					ContainsTo(CEmbeddedObject* pcEmbedded);
+	void					RemoveAllTos(void);
+	void					CollectAndClearTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters);
 
-	BOOL				Save(CObjectSerialiser* pcFile);
-	BOOL				Load(CObjectDeserialiser* pcFile);
+	BOOL					Save(CObjectSerialiser* pcFile);
+	BOOL					Load(CObjectDeserialiser* pcFile);
 
-	CBaseObject*		UnsafeGet(int iIndex);
-	BOOL				UnsafeRemove(CBaseObject* pcObject);
-	CEmbeddedObject*	GetEmbeddedObject(int iIndex);
+	CBaseObject*			UnsafeGet(int iIndex);
+	BOOL					UnsafeRemove(CBaseObject* pcObject);
+	CEmbeddedObject*		GetEmbeddedObject(int iIndex);
 
-	void				ValidateEmbeddedObjectTos(void);
-	void				ValidateTos(void);
-	void				ValidateConsistency(void);
+	void					ValidateEmbeddedObjectTos(void);
+	void					ValidateTos(void);
+	void					ValidateConsistency(void);
 
 protected:
 	void	KillInternalData(void);

@@ -60,6 +60,7 @@ public:
 			CBaseObject*		GetEmbeddingContainer(void);
 			BOOL				IsEmbedded(void);
 			BOOL				IsNotEmbedded(void);
+	virtual BOOL				IsInitialised(void) =0;
 	virtual int					GetEmbeddedIndex(CEmbeddedObject* pcEmbedded);
 	virtual int					GetNumEmbedded(void) =0;
 			void				SetEmbedded(CBaseObject* pcEmbedded);
@@ -81,12 +82,11 @@ public:
 	virtual int					CollectEmbeddedObjectDetachedFroms(CDistCalculatorParameters* pcParameters) =0;
 
 			BOOL				HasHeapFroms(void);
-			void				AddHeapFrom(CBaseObject* pcFromObject);
 			void				AddHeapFrom(CBaseObject* pcFromObject, BOOL bValidate);
-			void				RemoveHeapFrom(CBaseObject* pcFromObject);
 			void				RemoveHeapFrom(CBaseObject* pcFromObject, BOOL bValidate);
 	virtual int					NumHeapFroms(void);
 			CBaseObject*		GetHeapFrom(int iFromIndex);
+			void				UnsafeAddHeapFrom(CBaseObject* pcFromObject);
 
 			void				AddStackFrom(CPointer* pcPointer);
 			void				AddStackFroms(CStackPointer* pcStackPointer);
@@ -104,6 +104,8 @@ public:
 	virtual CObjects*			GetObjects(void) =0;
 			void				PrintObject(CChars* psz, BOOL bEmbedded = FALSE);
 			void				LogNotExpectedToBeEmbedded(char* szMethod);
+			void				LogExpectedToBeInitialised(char* szMethod);
+			void				ValidateInitialised(char* szMethod);
 			void				ValidateNotEmbedded(char* szMethod);
 			BOOL				TestRemoveHeapFrom(CBaseObject* pcFromObject);
 			void				TestRemoveStackFrom(CPointer* pcPointer);

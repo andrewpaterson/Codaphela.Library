@@ -28,6 +28,7 @@ public:
 	void				GetTos(CArrayEmbeddedObjectPtr* papcTos);
 	int					NumTos(void);
 	void				ValidateConsistency(void);
+	BOOL				IsInitialised(void);
 
 protected:
 	void				UpdateAttachedEmbeddedObjectTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist);

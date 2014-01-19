@@ -60,7 +60,18 @@ int CObjectRemapFrom::RemapEmbedded(CEmbeddedObject* pcNew, CEmbeddedObject* pcO
 	{
 		pvFrom = pcOld->CEmbeddedObject::GetHeapFrom(i);
 		iCount += pvFrom->RemapTos(pcOld, pcNew);
-		pcNew->AddHeapFrom(pvFrom, FALSE);
+
+		if (pcNew->IsInitialised())
+		{
+			pcNew->AddHeapFrom(pvFrom, FALSE);
+		}
+		else
+		{
+			//If the object is not initialised it cannot point to any other objects
+			//This means this dist to root calculation for tos can be skipped.
+			pcNew->UnsafeAddHeapFrom(pvFrom);
+			pcNew->SetDistToRoot(pcOld->GetDistToRoot());
+		}
 	}
 
 	pcFirstStackPointer = pcOld->GetFirstStackFrom();

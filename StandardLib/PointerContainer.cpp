@@ -21,6 +21,8 @@ void CPointerContainer::Class(void)
 Ptr<CPointerContainer> CPointerContainer::Init(void)
 {
 	mp = NULL;;
+
+	CBaseObject::Init();
 	return this;
 }
 
@@ -32,6 +34,8 @@ Ptr<CPointerContainer> CPointerContainer::Init(void)
 Ptr<CPointerContainer> CPointerContainer::Init(CPointer& pPointer)
 {
 	mp = pPointer;
+
+	CBaseObject::Init();
 	return this;
 }
 
@@ -43,6 +47,8 @@ Ptr<CPointerContainer> CPointerContainer::Init(CPointer& pPointer)
 Ptr<CPointerContainer> CPointerContainer::Init(CEmbeddedObject* pcObject)
 {
 	mp = pcObject;
+
+	CBaseObject::Init();
 	return this;
 }
 
@@ -104,6 +110,8 @@ void CNamedPointerContainer::Class(void)
 Ptr<CNamedPointerContainer> CNamedPointerContainer::Init(void)
 {
 	mp = NULL;;
+
+	CBaseObject::Init();
 	return this;
 }
 
@@ -115,6 +123,8 @@ Ptr<CNamedPointerContainer> CNamedPointerContainer::Init(void)
 Ptr<CNamedPointerContainer> CNamedPointerContainer::Init(CPointer& pPointer)
 {
 	mp = pPointer;
+
+	CBaseObject::Init();
 	return this;
 }
 
@@ -126,6 +136,8 @@ Ptr<CNamedPointerContainer> CNamedPointerContainer::Init(CPointer& pPointer)
 Ptr<CNamedPointerContainer> CNamedPointerContainer::Init(CEmbeddedObject* pcObject)
 {
 	mp = pcObject;
+
+	CBaseObject::Init();
 	return this;
 }
 

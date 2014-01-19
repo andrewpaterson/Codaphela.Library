@@ -124,7 +124,7 @@ BOOL CArrayObject::RemoveAt(int iIndex)
 	{
 		if (mcArray.Remove(iIndex))
 		{
-			pObject->RemoveHeapFrom(this);
+			pObject->RemoveHeapFrom(this, TRUE);
 			return TRUE;
 		}
 	}

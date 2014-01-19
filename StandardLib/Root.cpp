@@ -43,6 +43,7 @@ Ptr<CRoot> CRoot::Init(void)
 {
 	mpcObjectsAllocatingFrom = mpcObjectsThisIn;
 	CreateSet();
+	CBaseObject::Init();
 	return Ptr<CRoot>(this);
 }
 
@@ -84,8 +85,7 @@ void CRoot::Class(void)
 //////////////////////////////////////////////////////////////////////////
 void CRoot::CreateSet(void)
 {
-	mpObjects = mpcObjectsAllocatingFrom->Add<CSetObject>();
-	mpObjects->Init(1024);
+	mpObjects = mpcObjectsAllocatingFrom->Add<CSetObject>()->Init(1024);
 	mpObjects->MakeSubRoot();
 }
 

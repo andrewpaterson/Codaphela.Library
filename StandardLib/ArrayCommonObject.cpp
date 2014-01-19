@@ -28,10 +28,12 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayCommonObject::Init(BOOL bUnique, BOOL bIgnoreNull, BOOL bPreserveOrder, int iChunkSize)
+Ptr<CArrayCommonObject> CArrayCommonObject::Init(BOOL bUnique, BOOL bIgnoreNull, BOOL bPreserveOrder, int iChunkSize)
 {
 	mcArray.Init(FALSE, FALSE, bUnique, bIgnoreNull, bPreserveOrder, iChunkSize);
 	mbSubRoot = FALSE;
+	CCollection::Init();
+	return this;
 }
 
 
@@ -101,7 +103,7 @@ BOOL CArrayCommonObject::Remove(CBaseObject* pcObject)
 	{
 		if (mcArray.Remove(pcObject))
 		{
-			pcObject->RemoveHeapFrom(this);
+			pcObject->RemoveHeapFrom(this, TRUE);
 			return TRUE;
 		}
 	}
@@ -215,7 +217,7 @@ void CArrayCommonObject::AddAll(CArrayCommonObject* pcArray)
 		mcArray.Add(pcObject);
 		if (pcObject != NULL)
 		{
-			pcObject->AddHeapFrom(this);
+			pcObject->AddHeapFrom(this, TRUE);
 		}
 	}
 }
@@ -238,7 +240,7 @@ void CArrayCommonObject::Set(int iIndex, CPointer& pObject)
 	mcArray.Set(iIndex, pObject.Object());
 	if (pcPointedTo)
 	{
-		pcPointedTo->RemoveHeapFrom(this);
+		pcPointedTo->RemoveHeapFrom(this, TRUE);
 	}
 
 	pObject.AddHeapFrom(this);
@@ -255,7 +257,7 @@ BOOL CArrayCommonObject::Remove(CPointer& pObject)
 	{
 		if (mcArray.Remove(pObject.Object()))
 		{
-			pObject->RemoveHeapFrom(this);
+			pObject->RemoveHeapFrom(this, TRUE);
 			return TRUE;
 		}
 	}

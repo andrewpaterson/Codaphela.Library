@@ -123,6 +123,7 @@ CBaseObject* CObjectDeserialiser::Load(CSerialisedObject* pcSerialised)
 	mcFile.Close();
 	mcFile.Kill();
 
+	pvObject->CBaseObject::Init();
 	return pvObject;
 }
 

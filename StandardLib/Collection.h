@@ -30,6 +30,7 @@ class CCollection : public CBaseObject
 {
 BASE_FUNCTIONS(CCollection);
 public:
+			void			Init(void);
 			void			Kill(void);
 			BOOL			IsCollection(void);
 			BOOL			IsObject(void);

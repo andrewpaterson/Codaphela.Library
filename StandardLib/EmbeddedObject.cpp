@@ -271,33 +271,22 @@ void CEmbeddedObject::RemoveAllHeapFroms(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CEmbeddedObject::AddHeapFrom(CBaseObject* pcFromObject)
-{
-	if (pcFromObject != NULL)
-	{
-		mapHeapFroms.Add(&pcFromObject);
-		if (pcFromObject->miDistToRoot >= ROOT_DIST_TO_ROOT)
-		{
-			GetEmbeddingContainer()->SetExpectedDistToRoot(pcFromObject->miDistToRoot+1);
-		}
-
-		GetObjects()->ValidateConsistency();
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CEmbeddedObject::AddHeapFrom(CBaseObject* pcFromObject, BOOL bValidate)
 {
+	CBaseObject*	pcEmbedding;
+
 	if (pcFromObject != NULL)
 	{
 		mapHeapFroms.Add(&pcFromObject);
 		if (pcFromObject->miDistToRoot >= ROOT_DIST_TO_ROOT)
 		{
-			GetEmbeddingContainer()->SetExpectedDistToRoot(pcFromObject->miDistToRoot+1);
+			pcEmbedding = GetEmbeddingContainer();
+			pcEmbedding->SetExpectedDistToRoot(pcFromObject->miDistToRoot+1);
+		}
+
+		if (bValidate)
+		{
+			GetObjects()->ValidateConsistency();
 		}
 	}
 }
@@ -307,17 +296,22 @@ void CEmbeddedObject::AddHeapFrom(CBaseObject* pcFromObject, BOOL bValidate)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CEmbeddedObject::RemoveHeapFrom(CBaseObject* pcFromObject)
+void CEmbeddedObject::UnsafeAddHeapFrom(CBaseObject* pcFromObject)
 {
-	CBaseObject*	pcContainer;
+	mapHeapFroms.Add(&pcFromObject);
+}
 
-	//Removing a 'from' kicks off memory reclamation.  This is the entry point for memory management.
-	PrivateRemoveHeapFrom(pcFromObject);
 
-	pcContainer = GetEmbeddingContainer();
-	pcContainer->TryKill(TRUE, TRUE);
-
-	GetObjects()->ValidateConsistency();
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CEmbeddedObject::ValidateInitialised(char* szMethod)
+{
+	if (!IsInitialised())
+	{
+		LogExpectedToBeInitialised(szMethod);
+	}
 }
 
 
@@ -334,6 +328,11 @@ void CEmbeddedObject::RemoveHeapFrom(CBaseObject* pcFromObject, BOOL bValidate)
 
 	pcContainer = GetEmbeddingContainer();
 	pcContainer->TryKill(TRUE, TRUE);
+
+	if (bValidate)
+	{
+		GetObjects()->ValidateConsistency();
+	}
 }
 
 
@@ -899,5 +898,20 @@ void CEmbeddedObject::LogNotExpectedToBeEmbedded(char* szMethod)
 
 	pcContainer = GetEmbeddingContainer();
 	gcLogger.Error2(szMethod, " Cannot be called on embedded object of class [", ClassName(), "] with embedding index [", IndexToString(pcContainer->GetOI()),"] and embedding class [", pcContainer->ClassName(), "].", NULL);
+}
+
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CEmbeddedObject::LogExpectedToBeInitialised(char* szMethod)
+{
+	CBaseObject*					pcContainer;
+
+	pcContainer = GetEmbeddingContainer();
+	gcLogger.Error2(szMethod, " Cannot be called on un-initialised object of class [", ClassName(), "] with index [", IndexToString(GetOI()),"].", NULL);
 }
 

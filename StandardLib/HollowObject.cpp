@@ -40,6 +40,7 @@ CHollowObject::CHollowObject(void)
 void CHollowObject::Init(unsigned short iNumEmbedded)
 {
 	SetFlagNumEmbedded(iNumEmbedded);
+	CBaseObject::Init();
 }
 
 //////////////////////////////////////////////////////////////////////////

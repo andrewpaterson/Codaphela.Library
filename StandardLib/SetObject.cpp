@@ -28,6 +28,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 Ptr<CSetObject> CSetObject::Init(int iChunkSize)
 {
 	CArrayCommonObject::Init(FALSE, TRUE, FALSE, iChunkSize);
+	CBaseObject::Init();
 	return Ptr<CSetObject>(this);
 }
 

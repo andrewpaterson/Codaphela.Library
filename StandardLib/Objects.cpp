@@ -743,11 +743,11 @@ Ptr<CRoot> CObjects::AddRoot(void)
 	pRoot = GetRoot();
 	if (!pRoot)
 	{
-		pRoot = Add<CRoot>(ROOT_NAME);
-		pRoot->Init();
+		pRoot = Add<CRoot>(ROOT_NAME)->Init();
 	}
 	return pRoot;
 }
+
 
 //////////////////////////////////////////////////////////////////////////
 //
