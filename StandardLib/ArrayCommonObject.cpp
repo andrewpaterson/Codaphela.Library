@@ -420,6 +420,10 @@ void CArrayCommonObject::SetPointedTosDistToRoot(int iDistToRoot)
 
 	iNumElements = mcArray.UnsafeNumElements();
 
+#ifdef DEBUG
+	Validate((iNumElements != 0xCCCCCCCC));
+#endif // DEBUG
+
 	if (iDistToRoot >= ROOT_DIST_TO_ROOT)
 	{
 		for (i = 0; i < iNumElements; i++)

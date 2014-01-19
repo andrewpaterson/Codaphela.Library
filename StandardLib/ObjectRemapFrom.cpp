@@ -86,12 +86,16 @@ int CObjectRemapFrom::RemapEmbedded(CEmbeddedObject* pcNew, CEmbeddedObject* pcO
 		pcNew->AddStackFroms(pcFirstStackPointer);
 	}
 
-	iOldDistToRoot = pcOld->GetDistToRoot();
-	bDistChanged = pcNew->SetDistToRoot(iOldDistToRoot);
-	if (bDistChanged)
-	{
-		pcNew->SetPointedTosExpectedDistToRoot(iOldDistToRoot);
-	}
+	//This isn't necessary because AddHeapFrom already updates the tos DistToRoot.
+	//iOldDistToRoot = pcOld->GetDistToRoot();
+	//bDistChanged = pcNew->SetDistToRoot(iOldDistToRoot);
+	//if (bDistChanged)
+	//{
+	//	if (pcNew->IsInitialised())
+	//	{
+	//		pcNew->SetPointedTosExpectedDistToRoot(iOldDistToRoot);
+	//	}
+	//}
 
 	pcOld->PostRemapFroms();
 
