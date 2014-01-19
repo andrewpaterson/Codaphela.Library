@@ -36,7 +36,7 @@ CBaseObject::CBaseObject()
 	miDistToRoot = UNATTACHED_DIST_TO_ROOT;
 	miDistToStack = UNKNOWN_DIST_TO_STACK;
 	moi = INVALID_O_INDEX;
-	miFlags = OBJECT_FLAGS_DIRTY;
+	miFlags = OBJECT_FLAGS_DIRTY | OBJECT_FLAGS_CALLED_CONSTRUCTOR;
 }
 
 
@@ -48,6 +48,7 @@ void CBaseObject::PreInit(CObjects* pcObjects)
 {
 	mpcObjectsThisIn = pcObjects;
 	Class();
+	SetFlag(OBJECT_FLAGS_CALLED_PREINIT, TRUE);
 }
 
 
@@ -68,6 +69,17 @@ void CBaseObject::PreInit(void)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::Class(void)
 {
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CBaseObject::Init(void)
+{
+	//This method needs to be idempotent.
+
+	SetFlag(OBJECT_FLAGS_CALLED_INIT, TRUE);
 }
 
 
@@ -350,7 +362,7 @@ void CBaseObject::TryKill(BOOL bKillIfNoRoot, BOOL bHeapFromChanged)
 	BOOL					bMustKill;
 	CDistCalculator*		pcDistCalculator;
 	CArrayBaseObjectPtr*	papcKilled;
-
+	
 	if (IsRoot())
 	{
 		return;
@@ -505,6 +517,7 @@ void CBaseObject::SetExpectedDistToRoot(int iExpectedDistToRoot)
 void CBaseObject::SetCalculatedDistToRoot(void)
 {
 	ValidateNotEmbedded(__METHOD__);
+	ValidateInitialised(__METHOD__);
 
 	int	iBestDistToRoot;
 
@@ -934,7 +947,7 @@ int CBaseObject::GetNumEmbeddedFromFlags(void)
 {
 	int	iNumEmbedded;
 
-	iNumEmbedded = (miFlags & OBJECT_FLAGS_NUM_EMBEDDED) >> 8;
+	iNumEmbedded = (miFlags & OBJECT_FLAGS_NUM_EMBEDDED) >> OBJECT_FLAGS_NUM_EMBEDDED_SHIFT;
 	return iNumEmbedded;
 }
 
@@ -945,7 +958,7 @@ int CBaseObject::GetNumEmbeddedFromFlags(void)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::SetFlagNumEmbedded(int iNumEmbedded)
 {
-	iNumEmbedded = iNumEmbedded << 8;
+	iNumEmbedded = iNumEmbedded << OBJECT_FLAGS_NUM_EMBEDDED_SHIFT;
 	miFlags &= ~OBJECT_FLAGS_NUM_EMBEDDED;
 	miFlags |= iNumEmbedded & OBJECT_FLAGS_NUM_EMBEDDED;
 }
@@ -1011,6 +1024,16 @@ BOOL CBaseObject::IsMarkedUnreachable(void)
 BOOL CBaseObject::IsUpdateAttachedTosDistToRoot(void)
 {
 	return miFlags & OBJECT_FLAGS_UPDATED_TOS_DIST_TO_ROOT;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CBaseObject::IsInitialised(void)
+{
+	return miFlags & OBJECT_FLAGS_CALLED_INIT;
 }
 
 
@@ -1193,6 +1216,24 @@ void CBaseObject::ValidateFlagNotSet(int iFlag, char* szFlag)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CBaseObject::ValidateFlagSet(int iFlag, char* szFlag)
+{
+	CChars	sz;
+
+	if (!(miFlags & iFlag))
+	{
+		sz.Init();
+		PrintObject(&sz, IsEmbedded());
+		gcLogger.Error2(__METHOD__, " Object {", sz.Text(), "} should have flag [", szFlag,"] set.", NULL);
+		sz.Kill();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CBaseObject::ValidateCanFindRoot(void)
 {
 	ValidateNotEmbedded(__METHOD__);
@@ -1257,15 +1298,19 @@ void CBaseObject::ValidateCanFindRoot(void)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::ValidateContainerFlag(void)
 {
-	CChars			sz;
+	CChars	sz;
+	int		iEmbeddedFlags;
+	int		iThisFlags;
 
 	if (IsEmbedded())
 	{
-		if ((mpcEmbedded->miFlags & ~OBJECT_FLAGS_NUM_EMBEDDED) != (miFlags & ~OBJECT_FLAGS_NUM_EMBEDDED))
+		iEmbeddedFlags = mpcEmbedded->miFlags & ~(OBJECT_FLAGS_NUM_EMBEDDED | OBJECT_FLAGS_CALLED_INIT);
+		iThisFlags = miFlags & ~(OBJECT_FLAGS_NUM_EMBEDDED | OBJECT_FLAGS_CALLED_INIT);
+		if ((iEmbeddedFlags) != (iThisFlags))
 		{
 			sz.Init();
 			PrintObject(&sz, IsEmbedded());
-			gcLogger.Error2(__METHOD__, " Object {", sz.Text(), "} should not have the same flags [", IntToString(miFlags) ,"] as it's embedding container's flags [", IntToString(mpcEmbedded->miFlags), "].", NULL);
+			gcLogger.Error2(__METHOD__, " Object {", sz.Text(), "} should have the same flags [", IntToString(miFlags, 16) ,"] as it's embedding container's flags [", IntToString(mpcEmbedded->miFlags, 16), "].", NULL);
 			sz.Kill();
 		}
 	}
@@ -1285,6 +1330,8 @@ void CBaseObject::ValidateFlags(void)
 	ValidateFlagNotSet(OBJECT_FLAGS_CLEARED_DIST_TO_ROOT, "OBJECT_FLAGS_CLEARED_DIST_TO_ROOT");
 	ValidateFlagNotSet(OBJECT_FLAGS_UPDATED_TOS_DIST_TO_ROOT, "OBJECT_FLAGS_UPDATED_TOS_DIST_TO_ROOT");
 	ValidateFlagNotSet(OBJECT_FLAGS_DIST_CALCULATOR_TOUCHED, "OBJECT_FLAGS_DIST_CALCULATOR_TOUCHED");
+	ValidateFlagSet(OBJECT_FLAGS_CALLED_CONSTRUCTOR, "OBJECT_FLAGS_CALLED_CONSTRUCTOR");
+	ValidateFlagSet(OBJECT_FLAGS_CALLED_PREINIT, "OBJECT_FLAGS_CALLED_PREINIT");
 
 	ValidateContainerFlag();
 }

@@ -25,34 +25,41 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 
 //Tested for root is only valid whilst the scene graph is calling CanFindRoot.  It stops the graph from walking already tested objects.
-#define OBJECT_FLAGS_TESTED_FOR_ROOT		0x02
+#define OBJECT_FLAGS_TESTED_FOR_ROOT			  0x02
 
 //Invalidated is set when the object on the file system is changed and must be reloaded.  This objects does not use it.
-#define OBJECT_FLAGS_INVALIDATED			0x04
+#define OBJECT_FLAGS_INVALIDATED				  0x04
 
 //Dirty must be manually set when an object needs to be written from memory to indexed data.  Objects are - by default always dirty.
-#define OBJECT_FLAGS_DIRTY					0x08
+#define OBJECT_FLAGS_DIRTY						  0x08
 
 //Debug flag marking whether or not an object has had kill called on it.  An object that is killed should be removed from Memory so an object with this flag set is broken.
-#define OBJECT_FLAGS_KILLED					0x10
+#define OBJECT_FLAGS_KILLED						  0x10
 
 //Debug flag marking whether or not an object has had it's graph dumped yet.
-#define OBJECT_FLAGS_DUMPED					0x20
+#define OBJECT_FLAGS_DUMPED						  0x20
 
 //This object cannot be reached and is marked for killing.
-#define OBJECT_FLAGS_UNREACHABLE			0x40
+#define OBJECT_FLAGS_UNREACHABLE				  0x40
 
 //Tested for sanity is only valid whilst the scene graph is calling ValidateConsistency.  It stops the graph from walking already tested objects.
-#define OBJECT_FLAGS_TESTED_FOR_SANITY		0x80
+#define OBJECT_FLAGS_TESTED_FOR_SANITY			  0x80
 
-#define OBJECT_FLAGS_CLEARED_DIST_TO_ROOT			0x10000
-#define OBJECT_FLAGS_UPDATED_TOS_DIST_TO_ROOT		0x20000
-#define OBJECT_FLAGS_DIST_CALCULATOR_TOUCHED		0x40000
-#define OBJECT_FLAGS_DIST_FROM_WALKED				0x80000
+//Object initialisation life-cycle
+#define OBJECT_FLAGS_CALLED_CONSTRUCTOR			 0x100
+#define OBJECT_FLAGS_CALLED_PREINIT				 0x200
+#define OBJECT_FLAGS_CALLED_INIT				 0x400
+#define OBJECT_FLAGS_UNUSED						 0x800
+
+#define OBJECT_FLAGS_CLEARED_DIST_TO_ROOT		0x1000
+#define OBJECT_FLAGS_UPDATED_TOS_DIST_TO_ROOT	0x2000
+#define OBJECT_FLAGS_DIST_CALCULATOR_TOUCHED	0x4000
+#define OBJECT_FLAGS_DIST_FROM_WALKED			0x8000
 
 
 //How man embedded objects are in the object.  If you have more than 255 then you need your head smacked.
-#define OBJECT_FLAGS_NUM_EMBEDDED			0x0000FF00
+#define OBJECT_FLAGS_NUM_EMBEDDED			0x00FF0000
+#define OBJECT_FLAGS_NUM_EMBEDDED_SHIFT				16
 
 
 class CObjectDeserialiser;
@@ -83,6 +90,7 @@ public:
 	virtual	void				PreInit(CObjects* pcObjects);
 			void				PreInit(void);
 	virtual	void				Class(void);
+			void				Init(void);
 
 			void				Kill(void);
 			void				Kill(BOOL bHeapFromChanged);
@@ -105,6 +113,7 @@ public:
 			BOOL				IsInvalidated(void);
 	virtual BOOL				IsDirty(void);
 			BOOL				IsUpdateAttachedTosDistToRoot(void);
+			BOOL				IsInitialised(void);
 
 	virtual char*				GetName(void);
 	virtual void				SetName(char* szName);
@@ -145,6 +154,7 @@ public:
 			void				DumpFroms(void);
 			void				DumpTos(void);
 			void				Dump(void);
+			void				ValidateFlagSet(int iFlag, char* szFlag);
 			void				ValidateFlagNotSet(int iFlag, char* szFlag);
 			void				ValidateContainerFlag(void);
 			void				ValidateFlags(void);
