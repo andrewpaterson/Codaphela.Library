@@ -27,3 +27,4 @@ void CBerkeleyDB::Kill(void)
 {
 	mpDb->close(0);
 }
+
