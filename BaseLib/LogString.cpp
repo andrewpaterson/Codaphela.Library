@@ -33,11 +33,11 @@ int IncrementLogToStringCount(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* IntToString(int i)
+char* IntToString(int i, int iBase)
 {
 	int iCount = IncrementLogToStringCount();
 
-	IToA(i, gaszLogToStringScratchPad[iCount], 10);
+	IToA(i, gaszLogToStringScratchPad[iCount], iBase);
 	return gaszLogToStringScratchPad[iCount];
 }
 
@@ -46,11 +46,11 @@ char* IntToString(int i)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* LongLongToString(long long int lli)
+char* LongLongToString(long long int lli, int iBase)
 {
 	int iCount = IncrementLogToStringCount();
 
-	IToA(lli, gaszLogToStringScratchPad[iCount], 10);
+	IToA(lli, gaszLogToStringScratchPad[iCount], iBase);
 	return gaszLogToStringScratchPad[iCount];
 }
 
