@@ -50,8 +50,6 @@ int CObjectRemapFrom::RemapEmbedded(CEmbeddedObject* pcNew, CEmbeddedObject* pcO
 	int				iCount;
 	CStackPointer*	pcStackPointer;
 	CStackPointer*	pcFirstStackPointer;
-	int				iOldDistToRoot;
-	BOOL			bDistChanged;;
 
 	iCount = 0;
 

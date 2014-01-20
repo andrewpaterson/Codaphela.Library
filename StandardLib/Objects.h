@@ -77,7 +77,7 @@ public:
 						void					DumpNames(void);
 						void					DumpGraph(void);
 						void					ValidateEmpty(void);
-						void					ValidateConsistency(void);
+						void					ValidateObjectsConsistency(void);
 
 	template<class M>	void					AddConstructor(void);
 	template<class M>	CObjectSource*			AddSource(CAbstractFile* pcFile, char* szFileName);

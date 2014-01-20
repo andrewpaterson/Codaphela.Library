@@ -284,10 +284,12 @@ void CEmbeddedObject::AddHeapFrom(CBaseObject* pcFromObject, BOOL bValidate)
 			pcEmbedding->SetExpectedDistToRoot(pcFromObject->miDistToRoot+1);
 		}
 
+#ifdef DEBUG
 		if (bValidate)
 		{
-			GetObjects()->ValidateConsistency();
+			GetObjects()->ValidateObjectsConsistency();
 		}
+#endif
 	}
 }
 
@@ -329,10 +331,12 @@ void CEmbeddedObject::RemoveHeapFrom(CBaseObject* pcFromObject, BOOL bValidate)
 	pcContainer = GetEmbeddingContainer();
 	pcContainer->TryKill(TRUE, TRUE);
 
+#ifdef DEBUG
 	if (bValidate)
 	{
-		GetObjects()->ValidateConsistency();
+		GetObjects()->ValidateObjectsConsistency();
 	}
+#endif
 }
 
 

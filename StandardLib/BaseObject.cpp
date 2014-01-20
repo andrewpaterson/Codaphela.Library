@@ -94,7 +94,9 @@ void CBaseObject::Kill(void)
 	bHeapFromChanged = HasHeapFroms();
 	Kill(bHeapFromChanged);
 
-	mpcObjectsThisIn->ValidateConsistency();
+#ifdef DEBUG
+	mpcObjectsThisIn->ValidateObjectsConsistency();
+#endif
 }
 
 

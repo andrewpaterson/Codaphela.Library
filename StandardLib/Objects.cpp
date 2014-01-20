@@ -374,8 +374,11 @@ void CObjects::RecurseDumpGraph(CChars* psz, CEmbeddedObject* pcIncoming, int iL
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjects::ValidateConsistency(void)
+void CObjects::ValidateObjectsConsistency(void)
 {
+	//If this method is called from an Object - rather than a test file - the it should be wrapped with a #ifdef DEBUG
+	//This is because it is still useful to have ValidateObjectsConsistency called in RELEASE from tests.
+
 	ValidateSceneGraph();
 	ValidateIndexedObjects();
 	ClearValidationFlags();

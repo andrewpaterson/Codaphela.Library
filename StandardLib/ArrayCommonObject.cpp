@@ -88,7 +88,9 @@ void CArrayCommonObject::RemoveAll(void)
 
 	mcArray.ReInit();
 
-	mpcObjectsThisIn->ValidateConsistency();
+#ifdef DEBUG
+	mpcObjectsThisIn->ValidateObjectsConsistency();
+#endif
 }
 
 
