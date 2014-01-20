@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela TestLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include <Time.h>
 #include "BaseLib/Chars.h"
 #include "BaseLib/FileBasic.h"
 #include "BaseLib/Define.h"
@@ -34,6 +35,8 @@ int	giTestsFailed;
 int	giTotalTestsRun;
 int	giTotalTestsPassed;
 int	giTotalTestsFailed;
+
+clock_t gClock;
 
 BOOL Fail(void);
 BOOL Pass(void);
@@ -112,11 +115,14 @@ void PrivateTestStatistics(char* szFile)
 //////////////////////////////////////////////////////////////////////////
 void InitTotalStatistics(void)
 {
+	gClock = clock();
+
 	gcLogger.Init();
 
 	giTotalTestsRun = 0;
 	giTotalTestsPassed = 0;
 	giTotalTestsFailed = 0;
+
 }
 
 
@@ -126,7 +132,10 @@ void InitTotalStatistics(void)
 //////////////////////////////////////////////////////////////////////////
 int TestTotalStatistics(void)
 {
-	CChars	sz;
+	CChars		sz;
+	clock_t		time;
+
+	time = clock() - gClock;
 
 	sz.Init();
 	sz.Append("------------------------------ Total Results ------------------------------\n");
@@ -141,6 +150,11 @@ int TestTotalStatistics(void)
 		sz.AppendNewLine();
 		sz.Append("Total Failed: ");
 		sz.Append(giTotalTestsFailed);
+		sz.AppendNewLine();
+		sz.AppendNewLine();
+		sz.Append("Time Taken: ");
+		sz.Append((float)time / ((float)CLOCKS_PER_SEC));
+		sz.Append("s");
 		sz.AppendNewLine();
 		sz.AppendNewLine();
 
