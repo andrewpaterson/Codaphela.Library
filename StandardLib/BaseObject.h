@@ -168,8 +168,8 @@ public:
 			void				ValidateBaseObjectDetail(void);
 	
 protected:
+	virtual void				KillIdentifiers(void);
 			void				KillInternalData(void);
-	virtual void				Free(void);
 			int					RemapTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew) =0;
 			BOOL				RemoveToFrom(CEmbeddedObject* pcPointedTo);
 	virtual void				RemoveEmbeddedObjectAllTos(void) =0;

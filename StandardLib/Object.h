@@ -80,7 +80,6 @@ protected:
 	int					RemapTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew);
 	void				UpdateAttachedEmbeddedObjectTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist);
 	int					CalculateDistToRootFromPointedFroms(int iDistToRoot);
-	void				Free(void);
 	void				SetPointedTosDistToRoot(int iDistToRoot);
 	BOOL				SetDistToRoot(int iDistToRoot);
 	void				SetDistToStack(int iDistToStack);

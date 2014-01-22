@@ -1267,6 +1267,7 @@ void CObjects::RemoveInKill(CBaseObject* pvObject)
 {
 	Deindex(pvObject);
 	Dename(pvObject);
+	pvObject->KillIdentifiers();
 }
 
 

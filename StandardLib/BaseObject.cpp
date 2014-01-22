@@ -146,17 +146,9 @@ void CBaseObject::KillDontFree(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::Free(void)
+void CBaseObject::KillInternalData(void)
 {
-	if (IsNotEmbedded())
-	{
-		if (mpcObjectsThisIn)
-		{
-			mpcObjectsThisIn->RemoveInKill(this);
-		}
-		moi = INVALID_O_INDEX;
-		CUnknown::Kill();
-	}
+	CEmbeddedObject::KillInternalData();
 }
 
 
@@ -164,9 +156,8 @@ void CBaseObject::Free(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::KillInternalData(void)
+void CBaseObject::KillIdentifiers(void)
 {
-	CEmbeddedObject::KillInternalData();
 }
 
 

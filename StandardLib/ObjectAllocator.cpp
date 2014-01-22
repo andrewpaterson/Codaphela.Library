@@ -188,7 +188,7 @@ CBaseObject* CObjectAllocator::ReplaceExisting(CBaseObject* pvExisting, CBaseObj
 
 	bResult = mpcObjects->AddWithIDAndName(pvObject, szObjectName, oiForced);
 	if (!bResult)
-	{
+	{ 
 		pvObject->Kill();
 		return NULL;
 	}
