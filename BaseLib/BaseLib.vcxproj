@@ -105,6 +105,8 @@
     <ClInclude Include="ArraySparseTemplate.h" />
     <ClInclude Include="FileSystemIterator.h" />
     <ClInclude Include="FileSystemGeneral.h" />
+    <ClInclude Include="IndexTree.h" />
+    <ClInclude Include="IndexTreeNode.h" />
     <ClInclude Include="LinkListBlock.h" />
     <ClInclude Include="LinkListBlockMemoryStack.h" />
     <ClInclude Include="LinkListTemplate.h" />
@@ -250,6 +252,8 @@
     <ClCompile Include="ChunkStack.cpp" />
     <ClCompile Include="FileMode.cpp" />
     <ClCompile Include="FileSystemIterator.cpp" />
+    <ClCompile Include="IndexTree.cpp" />
+    <ClCompile Include="IndexTreeNode.cpp" />
     <ClCompile Include="LinkListBlock.cpp" />
     <ClCompile Include="LinkListBlockMemoryStack.cpp" />
     <ClCompile Include="LogString.cpp" />

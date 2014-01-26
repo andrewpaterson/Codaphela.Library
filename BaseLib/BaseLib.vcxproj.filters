@@ -142,6 +142,9 @@
     <Filter Include="Source\Validation">
       <UniqueIdentifier>{9578599c-0d13-4921-b43b-f8f2a6e0d99c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Data\Index">
+      <UniqueIdentifier>{8cd85cda-086a-48d1-b7b3-6392d190bd4d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DataMacro.h">
@@ -603,6 +606,12 @@
     <ClInclude Include="Log.h">
       <Filter>Source\Error</Filter>
     </ClInclude>
+    <ClInclude Include="IndexTree.h">
+      <Filter>Source\Data\Index</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexTreeNode.h">
+      <Filter>Source\Data\Index</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ArrayBit.cpp">
@@ -949,6 +958,12 @@
     </ClCompile>
     <ClCompile Include="ChunkStack.cpp">
       <Filter>Source\File\Chunk\File</Filter>
+    </ClCompile>
+    <ClCompile Include="IndexTree.cpp">
+      <Filter>Source\Data\Index</Filter>
+    </ClCompile>
+    <ClCompile Include="IndexTreeNode.cpp">
+      <Filter>Source\Data\Index</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
