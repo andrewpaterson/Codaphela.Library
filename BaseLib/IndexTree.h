@@ -15,10 +15,13 @@ protected:
 
 public:
 	void				Init(void);
+	void				Kill(void);
+	void				RecurseKill(CIndexTreeNode* pcNode);
 	CIndexTreeNode*		AllocateNode(void);
+	void				FreeNode(CIndexTreeNode* pcNode);
 	CIndexTreeNode*		GetIndexNode(char* pszKey);
 	void*				Get(char* pszKey);
-	void				Put(void* pvObject, char* pszKey);
+	BOOL				Put(void* pvObject, char* pszKey);
 	void*				Remove(char* pszKey);
 	CIndexTreeNode*		SetOldWithCurrent(CIndexTreeNode* pcCurrent, CIndexTreeNode* pcOld, char c);
 	void				FindAll(CArrayVoidPtr* papvElements);
