@@ -95,7 +95,10 @@ void CBaseObject::Kill(void)
 	Kill(bHeapFromChanged);
 
 #ifdef DEBUG
-	mpcObjectsThisIn->ValidateObjectsConsistency();
+	if (mpcObjectsThisIn)
+	{
+		mpcObjectsThisIn->ValidateObjectsConsistency();
+	}
 #endif
 }
 
@@ -117,13 +120,16 @@ void CBaseObject::Kill(BOOL bHeapFromChanged)
 	RemoveAllStackFroms();
 	RemoveAllHeapFroms();
 
-	pcDistCalculator = mpcObjectsThisIn->GetDistCalculator();
+	if (mpcObjectsThisIn)
+	{
+		pcDistCalculator = mpcObjectsThisIn->GetDistCalculator();
 
-	pcDistCalculator->Init();
-	papcKilled = pcDistCalculator->Calculate(this, bHeapFromChanged);
+		pcDistCalculator->Init();
+		papcKilled = pcDistCalculator->Calculate(this, bHeapFromChanged);
 
-	mpcObjectsThisIn->Remove(papcKilled);
-	pcDistCalculator->Kill();
+		mpcObjectsThisIn->Remove(papcKilled);
+		pcDistCalculator->Kill();
+	}
 }
 
 
