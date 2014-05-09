@@ -9,7 +9,7 @@ class CIndexGenerator;
 class CDependentReadObjects
 {
 protected:
-	CArrayDependentReadObject	mcObjects;
+	CArrayDependentReadObject	mcReadObjects;
 	CArrayDependentReadPointer	mcPointers;
 	CArrayIndexNewOld			mcIndexRemap;
 

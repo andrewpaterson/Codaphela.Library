@@ -281,7 +281,7 @@ CBaseObject* CObjectAllocator::AddHollow(char* szObjectName, OIndex oiForced, un
 		return NULL;
 	}
 
-	bResult = gcObjects.AddWithIDAndName(pcHollow, szObjectName, oiForced);
+	bResult = mpcObjects->AddWithIDAndName(pcHollow, szObjectName, oiForced);
 	if (bResult)
 	{
 		LOG_OBJECT_ALLOCATION(pcHollow);
@@ -323,7 +323,7 @@ CBaseObject* CObjectAllocator::AddHollow(char* szObjectName, unsigned short iNum
 
 	pcHollow->InitName(szObjectName);
 
-	bResult = gcObjects.AddWithIDAndName(pcHollow, szObjectName, mpcObjects->GetIndexGenerator()->PopIndex());
+	bResult = mpcObjects->AddWithIDAndName(pcHollow, szObjectName, mpcObjects->GetIndexGenerator()->PopIndex());
 	if (bResult)
 	{
 		LOG_OBJECT_ALLOCATION(pcHollow);

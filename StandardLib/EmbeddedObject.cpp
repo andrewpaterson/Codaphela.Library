@@ -287,7 +287,10 @@ void CEmbeddedObject::AddHeapFrom(CBaseObject* pcFromObject, BOOL bValidate)
 #ifdef DEBUG
 		if (bValidate)
 		{
-			GetObjects()->ValidateObjectsConsistency();
+			if (IsAllocatedInObjects())
+			{
+				GetObjects()->ValidateObjectsConsistency();
+			}
 		}
 #endif
 	}
@@ -334,7 +337,10 @@ void CEmbeddedObject::RemoveHeapFrom(CBaseObject* pcFromObject, BOOL bValidate)
 #ifdef DEBUG
 	if (bValidate)
 	{
-		GetObjects()->ValidateObjectsConsistency();
+		if (IsAllocatedInObjects())
+		{
+			GetObjects()->ValidateObjectsConsistency();
+		}
 	}
 #endif
 }

@@ -11,7 +11,7 @@
 //////////////////////////////////////////////////////////////////////////
 void CDependentReadObjects::Init(void)
 {
-	mcObjects.Init(128);
+	mcReadObjects.Init(128);
 	mcPointers.Init(512);
 	mcIndexRemap.Init(128);
 	miGetIndex = 0;
@@ -30,12 +30,12 @@ void CDependentReadObjects::Kill(void)
 	mcIndexRemap.Kill();
 	mcPointers.Kill();
 
-	for(i = 0; i < mcObjects.NumElements(); i++)
+	for(i = 0; i < mcReadObjects.NumElements(); i++)
 	{
-		pcDependent = mcObjects.Get(i);
+		pcDependent = mcReadObjects.Get(i);
 		pcDependent->Kill();
 	}
-	mcObjects.Kill();
+	mcReadObjects.Kill();
 }
 
 
@@ -55,7 +55,7 @@ void CDependentReadObjects::Add(CObjectIdentifier* pcHeader, CEmbeddedObject** p
 
 	cDependent.Init(pcHeader);
 
-	bOiExistsInDependents = mcObjects.FindInSorted(&cDependent, &CompareDependentReadObject, &iIndex);
+	bOiExistsInDependents = mcReadObjects.FindInSorted(&cDependent, &CompareDependentReadObject, &iIndex);
 	if (!bOiExistsInDependents)
 	{
 		if (pcHeader->IsNamed())
@@ -67,11 +67,11 @@ void CDependentReadObjects::Add(CObjectIdentifier* pcHeader, CEmbeddedObject** p
 			}
 		}
 
-		mcObjects.InsertAt(&cDependent, iIndex);
+		mcReadObjects.InsertAt(&cDependent, iIndex);
 	}
 	else
 	{
-		pcExistingInFile = mcObjects.Get(iIndex);
+		pcExistingInFile = mcReadObjects.Get(iIndex);
 		cDependent.Kill();
 	}
 
@@ -89,7 +89,7 @@ CDependentReadObject* CDependentReadObjects::GetUnread(void)
 	int						iOldIndex;
 	CDependentReadObject*	psObject;
 
-	if (mcObjects.NumElements() == 0)
+	if (mcReadObjects.NumElements() == 0)
 	{
 		return NULL;
 	}
@@ -97,7 +97,7 @@ CDependentReadObject* CDependentReadObjects::GetUnread(void)
 	iOldIndex = miGetIndex;
 	for (;;)
 	{
-		if (miGetIndex >= mcObjects.NumElements()-1)
+		if (miGetIndex >= mcReadObjects.NumElements()-1)
 		{
 			miGetIndex = 0;
 		}
@@ -106,7 +106,7 @@ CDependentReadObject* CDependentReadObjects::GetUnread(void)
 			miGetIndex++;
 		}
 
-		psObject = mcObjects.Get(miGetIndex);
+		psObject = mcReadObjects.Get(miGetIndex);
 		if (!psObject->IsRead())
 		{
 			return psObject;
@@ -152,12 +152,12 @@ CDependentReadObject* CDependentReadObjects::GetObject(OIndex oi)
 
 	cObject.moi = oi;
 
-	bResult = mcObjects.FindInSorted(&cObject, &CompareDependentReadObject, &iIndex);
+	bResult = mcReadObjects.FindInSorted(&cObject, &CompareDependentReadObject, &iIndex);
 	if (!bResult)
 	{
 		return NULL;
 	}
-	pcDependent = mcObjects.Get(iIndex);
+	pcDependent = mcReadObjects.Get(iIndex);
 	return pcDependent;
 }
 
@@ -188,7 +188,7 @@ CDependentReadPointer* CDependentReadObjects::GetPointer(int iIndex)
 //////////////////////////////////////////////////////////////////////////
 int CDependentReadObjects::NumObjects(void)
 {
-	return mcObjects.NumElements();
+	return mcReadObjects.NumElements();
 }
 
 
