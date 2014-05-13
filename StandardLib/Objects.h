@@ -63,16 +63,15 @@ protected:
 	CIndexGenerator			mcIndexGenerator;
 	BOOL					mbDatabase;
 
-	CStackPointers			mcStackPointers;
+	CStackPointers*			mpcStackPointers;
 
 	CDistCalculator			mcDistCalculator;
 
 public:
 												CObjects();
-						void					Init(CUnknowns* pcUnknownsAllocatingFrom, char* szWorkingDirectory);
-						void					Init(CUnknowns* pcUnknownsAllocatingFrom, CIndexedConfig* pcConfig);
+						void					Init(CUnknowns* pcUnknownsAllocatingFrom, CStackPointers* pcStackPointers, char* szWorkingDirectory);
+						void					Init(CUnknowns* pcUnknownsAllocatingFrom, CStackPointers* pcStackPointers, CIndexedConfig* pcConfig);
 						void					Kill(void);
-						void					KillStackPointers(void);
 						void					DumpIndex(void);
 						void					DumpNames(void);
 						void					DumpGraph(void);

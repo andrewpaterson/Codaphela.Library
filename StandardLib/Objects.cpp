@@ -106,6 +106,7 @@ CObjects::CObjects()
 {
 	mbInitialised = FALSE;
 	mpcUnknownsAllocatingFrom = NULL;
+	mpcStackPointers = NULL;
 	mbDatabase = FALSE;
 }
 
@@ -114,13 +115,13 @@ CObjects::CObjects()
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjects::Init(CUnknowns* pcUnknownsAllocatingFrom, char* szWorkingDirectory)
+void CObjects::Init(CUnknowns* pcUnknownsAllocatingFrom, CStackPointers* pcStackPointers, char* szWorkingDirectory)
 {
 	CIndexedConfig	cConfig;
 
 	cConfig.OptimiseForGameGraph(szWorkingDirectory);
 
-	Init(pcUnknownsAllocatingFrom, &cConfig);
+	Init(pcUnknownsAllocatingFrom, pcStackPointers, &cConfig);
 }
 
 
@@ -128,9 +129,10 @@ void CObjects::Init(CUnknowns* pcUnknownsAllocatingFrom, char* szWorkingDirector
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjects::Init(CUnknowns* pcUnknownsAllocatingFrom, CIndexedConfig* pcConfig)
+void CObjects::Init(CUnknowns* pcUnknownsAllocatingFrom, CStackPointers* pcStackPointers, CIndexedConfig* pcConfig)
 {
 	mpcUnknownsAllocatingFrom = pcUnknownsAllocatingFrom;
+	mpcStackPointers = pcStackPointers;
 	mcIndexGenerator.Init();
 
 	if (pcConfig->mszWorkingDirectory)
@@ -147,8 +149,6 @@ void CObjects::Init(CUnknowns* pcUnknownsAllocatingFrom, CIndexedConfig* pcConfi
 
 	mcSource.Init();
 
-	mcStackPointers.Init(2048);
-
 	mbInitialised = TRUE;
 }
 
@@ -160,7 +160,6 @@ void CObjects::Init(CUnknowns* pcUnknownsAllocatingFrom, CIndexedConfig* pcConfi
 void CObjects::Kill(void)
 {
 	mbInitialised = FALSE;
-	KillStackPointers();
 	mcSource.Kill();
 	mcMemory.Kill();
 	if (mbDatabase)
@@ -169,17 +168,6 @@ void CObjects::Kill(void)
 	}
 	mcIndexGenerator.Kill();
 	mpcUnknownsAllocatingFrom = NULL;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CObjects::KillStackPointers(void)
-{
-	mcStackPointers.ClearAllPointers();
-	mcStackPointers.Kill();
 }
 
 
@@ -1398,7 +1386,7 @@ void CObjects::AppenedHollowEmbeddedObjects(CBaseObject* pcHollow, unsigned shor
 //////////////////////////////////////////////////////////////////////////
 CStackPointers* CObjects::GetStackPointers(void)
 {
-	return &mcStackPointers;
+	return mpcStackPointers;
 }
 
 
@@ -1419,7 +1407,8 @@ CDistCalculator* CObjects::GetDistCalculator(void)
 void ObjectsInit(void)
 {
 	UnknownsInit();
-	gcObjects.Init(&gcUnknowns, (char*)NULL);
+	gcStackPointers.Init(2048);
+	gcObjects.Init(&gcUnknowns, &gcStackPointers, (char*)NULL);
 }
 
 
@@ -1430,7 +1419,8 @@ void ObjectsInit(void)
 void ObjectsInit(char* szWorkingDirectory)
 {
 	UnknownsInit();
-	gcObjects.Init(&gcUnknowns, szWorkingDirectory);
+	gcStackPointers.Init(2048);
+	gcObjects.Init(&gcUnknowns, &gcStackPointers, szWorkingDirectory);
 }
 
 
@@ -1441,7 +1431,8 @@ void ObjectsInit(char* szWorkingDirectory)
 void ObjectsInit(CIndexedConfig* pcConfig)
 {
 	UnknownsInit();
-	gcObjects.Init(&gcUnknowns, pcConfig);
+	gcStackPointers.Init(2048);
+	gcObjects.Init(&gcUnknowns, &gcStackPointers, pcConfig);
 }
 
 
@@ -1452,6 +1443,8 @@ void ObjectsInit(CIndexedConfig* pcConfig)
 void ObjectsKill(void)
 {
 	gcObjects.Kill();
+	gcStackPointers.ClearAllPointers();
+	gcStackPointers.Kill();
 	UnknownsKill();
 }
 

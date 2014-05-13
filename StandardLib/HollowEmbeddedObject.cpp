@@ -177,17 +177,7 @@ CObjects* CHollowEmbeddedObject::GetObjects(void)
 //////////////////////////////////////////////////////////////////////////
 CStackPointers* CHollowEmbeddedObject::GetStackPointers(void)
 {
-	CObjects*	pcObjects;
-
-	pcObjects = GetObjects();
-	if (pcObjects)
-	{
-		return pcObjects->GetStackPointers();
-	}
-	else
-	{
-		return NULL;
-	}
+	return &gcStackPointers;
 }
 
 

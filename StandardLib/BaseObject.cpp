@@ -992,17 +992,7 @@ CObjects* CBaseObject::GetObjects(void)
 //////////////////////////////////////////////////////////////////////////
 CStackPointers* CBaseObject::GetStackPointers(void)
 {
-	CObjects*	pcObjects;
-
-	pcObjects = GetObjects();
-	if (pcObjects)
-	{
-		return pcObjects->GetStackPointers();
-	}
-	else
-	{
-		return NULL;
-	}
+	return &gcStackPointers;
 }
 
 
