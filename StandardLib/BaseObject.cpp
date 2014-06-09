@@ -275,7 +275,7 @@ int CBaseObject::CollectDetachedFroms(CDistCalculatorParameters* pcParameters)
 
 	if (HasStackPointers())
 	{
-		SetDistToStack(0);
+		SetDistToStack(MIN_POINTER_DIST_TO_STACK);
 		iNumWithStackPointers++;
 	}
 
