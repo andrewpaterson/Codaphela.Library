@@ -37,7 +37,7 @@ CUnknown::CUnknown(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CUnknown::PreInit(CUnknowns* pcUnknowns)
+void CUnknown::SetUnknowns(CUnknowns* pcUnknowns)
 {
 	mpcUnknownsThisIn = pcUnknowns;
 }

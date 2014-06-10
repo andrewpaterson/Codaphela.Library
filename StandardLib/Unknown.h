@@ -32,7 +32,7 @@ protected:
 
 public:
 						CUnknown(void);
-			void		PreInit(CUnknowns* pcUnknowns);
+			void		SetUnknowns(CUnknowns* pcUnknowns);
 	virtual void 		Kill(void);
 
 	virtual BOOL		IsUnknown(void);

@@ -34,7 +34,7 @@ CBaseObject::CBaseObject()
 {
 	mpcObjectsThisIn = NULL;
 	miDistToRoot = UNATTACHED_DIST_TO_ROOT;
-	miDistToStack = UNKNOWN_DIST_TO_STACK;
+	miDistToStack = MIN_OBJECT_DIST_TO_STACK;
 	moi = INVALID_O_INDEX;
 	miFlags = OBJECT_FLAGS_DIRTY | OBJECT_FLAGS_CALLED_CONSTRUCTOR;
 }
@@ -44,22 +44,12 @@ CBaseObject::CBaseObject()
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::PreInit(CObjects* pcObjects)
+void CBaseObject::Allocate(CObjects* pcObjects)
 {
 	mpcObjectsThisIn = pcObjects;
+	SetFlag(OBJECT_FLAGS_CALLED_ALLOCATE, TRUE);
 	Class();
-	SetFlag(OBJECT_FLAGS_CALLED_PREINIT, TRUE);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CBaseObject::PreInit(void)
-{
-	//Call this if you need to allocate objects on the stack.
-	PreInit(NULL);
+	miDistToStack = UNKNOWN_DIST_TO_STACK;
 }
 
 
@@ -70,6 +60,7 @@ void CBaseObject::PreInit(void)
 void CBaseObject::Class(void)
 {
 }
+
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -1320,7 +1311,7 @@ void CBaseObject::ValidateFlags(void)
 	ValidateFlagNotSet(OBJECT_FLAGS_UPDATED_TOS_DIST_TO_ROOT, "OBJECT_FLAGS_UPDATED_TOS_DIST_TO_ROOT");
 	ValidateFlagNotSet(OBJECT_FLAGS_DIST_CALCULATOR_TOUCHED, "OBJECT_FLAGS_DIST_CALCULATOR_TOUCHED");
 	ValidateFlagSet(OBJECT_FLAGS_CALLED_CONSTRUCTOR, "OBJECT_FLAGS_CALLED_CONSTRUCTOR");
-	ValidateFlagSet(OBJECT_FLAGS_CALLED_PREINIT, "OBJECT_FLAGS_CALLED_PREINIT");
+	ValidateFlagSet(OBJECT_FLAGS_CALLED_ALLOCATE, "OBJECT_FLAGS_CALLED_ALLOCATE");
 
 	ValidateContainerFlag();
 }

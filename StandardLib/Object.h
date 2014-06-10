@@ -38,8 +38,7 @@ protected:
 
 public:
 						CObject();
-	void				PreInit(CObjects* pcObjects);
-	void				PreInit(void);
+	void				Allocate(CObjects* pcObjects);
 	void				Kill(void);
 	BOOL				IsCollection(void);
 	BOOL				IsObject(void);

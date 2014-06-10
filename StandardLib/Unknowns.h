@@ -139,7 +139,7 @@ M* CUnknowns::AddUnsafe(int iAdditionalSize)
 		DebugName(pv, &szDebug);
 		mcMemory.SetDebugName(pv, &szDebug);
 
-		pv->CUnknown::PreInit(this);
+		pv->CUnknown::SetUnknowns(this);
 		if (pv->Iterable())
 		{
 			mcIterables.Add(pv);

@@ -38,31 +38,20 @@ CObject::CObject()
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObject::PreInit(CObjects* pcObjects)
+void CObject::Allocate(CObjects* pcObjects)
 {
 	int					iNumEmbedded;
 	CBaseObject*		pcEmbedded;
 	int					i;
 
-	CBaseObject::PreInit(pcObjects);
+	CBaseObject::Allocate(pcObjects);
 
 	iNumEmbedded = mapEmbedded.NumElements();
 	for (i = 0; i < iNumEmbedded; i++)
 	{
 		pcEmbedded = *mapEmbedded.Get(i);
-		pcEmbedded->PreInit(NULL);
+		pcEmbedded->Allocate(NULL);
 	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CObject::PreInit(void)
-{
-	//Call this if you need to allocate objects on the stack.
-	PreInit(NULL);
 }
 
 

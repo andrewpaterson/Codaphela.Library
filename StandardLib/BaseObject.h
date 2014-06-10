@@ -47,7 +47,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 //Object initialisation life-cycle
 #define OBJECT_FLAGS_CALLED_CONSTRUCTOR			 0x100
-#define OBJECT_FLAGS_CALLED_PREINIT				 0x200
+#define OBJECT_FLAGS_CALLED_ALLOCATE			 0x200
 #define OBJECT_FLAGS_CALLED_INIT				 0x400
 #define OBJECT_FLAGS_UNUSED						 0x800
 
@@ -87,8 +87,7 @@ protected:
 
 public:
 								CBaseObject();
-	virtual	void				PreInit(CObjects* pcObjects);
-			void				PreInit(void);
+	virtual void				Allocate(CObjects* pcObjects);
 	virtual	void				Class(void);
 			void				Init(void);
 

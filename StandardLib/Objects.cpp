@@ -1241,7 +1241,7 @@ CBaseObject* CObjects::Allocate(char* szClassName)
 	pvObject = (CBaseObject*)mpcUnknownsAllocatingFrom->Add(szClassName);
 	if (pvObject)
 	{
-		pvObject->CBaseObject::PreInit(this);
+		pvObject->CBaseObject::Allocate(this);
 	}
 	return pvObject;
 }

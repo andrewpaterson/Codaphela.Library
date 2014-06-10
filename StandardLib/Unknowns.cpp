@@ -72,7 +72,7 @@ CUnknown* CUnknowns::AddExisting(CUnknown* pcExisting)
 		DebugName(pcNew, &szDebug);
 		mcMemory.SetDebugName(pcNew, &szDebug);
 
-		pcNew->PreInit(this);
+		pcNew->SetUnknowns(this);
 		if (pcNew->Iterable())
 		{
 			mcIterables.Add(pcNew);
