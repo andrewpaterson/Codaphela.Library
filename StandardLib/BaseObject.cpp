@@ -374,7 +374,7 @@ void CBaseObject::TryKill(BOOL bKillIfNoRoot, BOOL bHeapFromChanged)
 		bHasStackPointers = HasStackPointers();
 
 		//If we removed a stack pointer and have no more stack pointers and have no heap pointers (regardless of whether or not they can find the root)
-		bMustKill = !bHasHeapPointers && !bHasStackPointers;
+		bMustKill = !bHasHeapPointers && !bHasStackPointers && (miDistToStack != 0);
 		if (bMustKill)
 		{
 			pcDistCalculator->Init();
