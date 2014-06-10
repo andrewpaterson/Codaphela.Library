@@ -146,6 +146,7 @@ public:
 	virtual BOOL				ContainsTo(CEmbeddedObject* pcEmbedded);
 			CEmbeddedObject* 	TestGetTo(int iToIndex);
 			int					TestGetNumEmbeddedFromFlags(void);
+			void				ClearFlagNumEmbedded(void);
 	virtual void				SetFlag(int iFlag, int iFlagValue);
 			int					GetFlags(void);
 			BOOL				CanFindRoot(void);
