@@ -717,6 +717,7 @@ CPointer* CObject::Pointer(CPointer* pcPointer)
 //////////////////////////////////////////////////////////////////////////
 void CObject::Embedded(CBaseObject* pcObject)
 {
+	pcObject->Class();
 	pcObject->mpcEmbedded = this;
 	mapEmbedded.Add(&pcObject);
 }
@@ -955,6 +956,149 @@ CEmbeddedObject* CObject::RecurseGetEmbeddedObject(int iIndex, int* piCount)
 		}
 		return NULL;
 	}
+}
+
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CObject::GetFieldPointerIndex(CPointer* pcFieldPointer)
+{
+	int		iIndex;
+
+	iIndex = 0;
+	if (RecurseGetFieldPointerIndex(pcFieldPointer, &iIndex))
+	{
+		return iIndex;
+	}
+	else
+	{
+		return -1;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CObject::RecurseGetFieldPointerIndex(CPointer* pcTest, int* piIndex)
+{
+	int				i;
+	CBaseObject*	pcEmbedded;
+	CObject*		pcObject;
+	CPointer*		pcFieldPointer;
+
+	for (i = 0; i < mapPointers.NumElements(); i++)	
+	{
+		pcFieldPointer = *mapPointers.Get(i);
+
+		if (pcFieldPointer == pcTest)
+		{
+			return TRUE;
+		}
+		(*piIndex)++;
+	}
+
+	for (i = 0; i < mapEmbedded.NumElements(); i++)	
+	{
+		pcEmbedded = *mapEmbedded.Get(i);
+
+		if (pcEmbedded->IsObject())
+		{
+			pcObject = (CObject*)pcEmbedded;
+			if (pcObject->RecurseGetFieldPointerIndex(pcTest, piIndex))
+			{
+				return TRUE;
+			}
+		}
+	}
+	return FALSE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CObject::GetNumFieldPointers(void)
+{
+	int				i;
+	CBaseObject*	pcEmbedded;
+	CObject*		pcObject;
+	int				iCount;
+
+	iCount = mapPointers.NumElements();
+
+	for (i = 0; i < mapEmbedded.NumElements(); i++)	
+	{
+		pcEmbedded = *mapEmbedded.Get(i);
+		if (pcEmbedded->IsObject())
+		{
+			pcObject = (CObject*)pcEmbedded;
+			iCount += pcObject->GetNumFieldPointers();
+		}
+	}
+
+	return iCount;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CPointer* CObject::GetFieldPointer(int iIndex)
+{
+	int			iCount;
+	CPointer*	pcReturned;
+
+	iCount = 0;
+	pcReturned = RecurseGetFieldPointer(iIndex, &iCount);
+	return pcReturned;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CPointer* CObject::RecurseGetFieldPointer(int iIndex, int* piCount)
+{
+	int				i;
+	CBaseObject*	pcEmbedded;
+	CObject*		pcObject;
+	CPointer*		pcReturned;
+	CPointer*		pcFieldPointer;
+
+	for (i = 0; i < mapPointers.NumElements(); i++)	
+	{
+		pcFieldPointer = *mapPointers.Get(i);
+		if (*piCount == iIndex)
+		{
+			return pcFieldPointer;
+		}
+		(*piCount)++;
+	}
+
+	for (i = 0; i < mapEmbedded.NumElements(); i++)	
+	{
+		pcEmbedded = *mapEmbedded.Get(i);
+
+		if (pcEmbedded->IsObject())
+		{
+			pcObject = (CObject*)pcEmbedded;
+			pcReturned = pcObject->RecurseGetFieldPointer(iIndex, piCount);
+			if (pcReturned)
+			{
+				return pcReturned;
+			}
+		}
+	}
+	return NULL;
 }
 
 

@@ -49,6 +49,11 @@ public:
 	int					GetEmbeddedIndex(CEmbeddedObject* pcEmbedded);
 	int					GetNumEmbedded(void);
 	CEmbeddedObject*	GetEmbeddedObject(int iIndex);
+	int					GetFieldPointerIndex(CPointer* pcFieldPointer);
+	BOOL				RecurseGetFieldPointerIndex(CPointer* pcTest, int* piIndex);
+	int					GetNumFieldPointers(void);
+	CPointer*			GetFieldPointer(int iIndex);
+	CPointer*			RecurseGetFieldPointer(int iIndex, int* piCount);
 	CBaseObject*		Dehollow(void);
 	int					NumHeapFroms(void);
 	int					NumStackFroms(void);
