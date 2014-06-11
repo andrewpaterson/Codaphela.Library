@@ -46,6 +46,44 @@ char* IntToString(int i, int iBase)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+char* IntToFlags(int iInt)
+{
+	int iIndex;
+	int iCount = IncrementLogToStringCount();
+	int iBit;
+	int	i;
+
+	iIndex = 0;
+	for (i = 31; i >= 0; i--)
+	{
+		iBit = (1 << i) & iInt;
+		if (iBit)
+		{
+			gaszLogToStringScratchPad[iCount][iIndex] = '1';
+			iIndex++;
+		}
+		else
+		{
+			gaszLogToStringScratchPad[iCount][iIndex] = '0';
+			iIndex++;
+		}
+
+		if ((i % 8 == 0) && (i != 0))
+		{
+			gaszLogToStringScratchPad[iCount][iIndex] = ' ';
+			iIndex++;
+		}
+	}
+	
+	gaszLogToStringScratchPad[iCount][iIndex] = '\0';
+	return gaszLogToStringScratchPad[iCount];
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 char* LongLongToString(long long int lli, int iBase)
 {
 	int iCount = IncrementLogToStringCount();
