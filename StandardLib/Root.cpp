@@ -43,7 +43,8 @@ Ptr<CRoot> CRoot::Init(void)
 {
 	mpcObjectsAllocatingFrom = mpcObjectsThisIn;
 	CreateSet();
-	CBaseObject::Init();
+	
+	CObject::Init();
 	return Ptr<CRoot>(this);
 }
 

@@ -49,7 +49,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #define OBJECT_FLAGS_CALLED_CONSTRUCTOR			 0x100
 #define OBJECT_FLAGS_CALLED_ALLOCATE			 0x200
 #define OBJECT_FLAGS_CALLED_INIT				 0x400
-#define OBJECT_FLAGS_UNUSED						 0x800
+#define OBJECT_FLAGS_CALLED_CLASS				 0x800
 
 #define OBJECT_FLAGS_CLEARED_DIST_TO_ROOT		0x1000
 #define OBJECT_FLAGS_UPDATED_TOS_DIST_TO_ROOT	0x2000
@@ -113,6 +113,7 @@ public:
 	virtual BOOL				IsDirty(void);
 			BOOL				IsUpdateAttachedTosDistToRoot(void);
 			BOOL				IsInitialised(void);
+			BOOL				HasClass(void);
 
 	virtual char*				GetName(void);
 	virtual void				SetName(char* szName);
@@ -166,6 +167,7 @@ public:
 	virtual void				ValidateEmbeddedConsistency(void);
 	virtual void				ValidateObjectIdentifiers(void);
 			void				ValidateBaseObjectDetail(void);
+			void				ValidateHasClass(void);
 	
 protected:
 	virtual void				KillIdentifiers(void);
@@ -182,6 +184,7 @@ protected:
 			int					GetNumEmbeddedFromFlags(void);
 			void				SetFlagNumEmbedded(int iNumEmbedded);
 			BOOL				IsMarkedUnreachable(void);
+			void				ReplaceOneWithX(char* szDest, char* szMask);
 };
 
 

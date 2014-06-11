@@ -59,6 +59,7 @@ void CBaseObject::Allocate(CObjects* pcObjects)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::Class(void)
 {
+	SetFlag(OBJECT_FLAGS_CALLED_CLASS, TRUE);
 }
 
 
@@ -68,8 +69,11 @@ void CBaseObject::Class(void)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::Init(void)
 {
-	//This method needs to be idempotent.
+#ifdef DEBUG
+	ValidateHasClass();
+#endif
 
+	//This method needs to be idempotent.
 	SetFlag(OBJECT_FLAGS_CALLED_INIT, TRUE);
 }
 
@@ -1021,9 +1025,42 @@ BOOL CBaseObject::IsUpdateAttachedTosDistToRoot(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL CBaseObject::HasClass(void)
+{
+	return miFlags & OBJECT_FLAGS_CALLED_CLASS;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL CBaseObject::IsInitialised(void)
 {
 	return miFlags & OBJECT_FLAGS_CALLED_INIT;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CBaseObject::ReplaceOneWithX(char* szDest, char* szMask)
+{
+	int i;
+
+	for (i = 0; ; i++)
+	{
+		if ((szMask[i] == '\0') || (szDest == '\0'))
+		{
+			return;
+		}
+
+		if (szMask[i] == '1')
+		{
+			szDest[i] ='X';
+		}
+	}
 }
 
 
@@ -1291,16 +1328,27 @@ void CBaseObject::ValidateContainerFlag(void)
 	CChars	sz;
 	int		iEmbeddedFlags;
 	int		iThisFlags;
+	int		iIgnoredFlags;
+	char*	szEmbeddedFlags;
+	char*	szFlags;
+	char*	szIgnoredFlags;
 
 	if (IsEmbedded())
 	{
-		iEmbeddedFlags = mpcEmbedded->miFlags & ~(OBJECT_FLAGS_NUM_EMBEDDED | OBJECT_FLAGS_CALLED_INIT);
-		iThisFlags = miFlags & ~(OBJECT_FLAGS_NUM_EMBEDDED | OBJECT_FLAGS_CALLED_INIT);
+		iIgnoredFlags = (OBJECT_FLAGS_NUM_EMBEDDED | OBJECT_FLAGS_CALLED_INIT | OBJECT_FLAGS_CALLED_CLASS);
+		iEmbeddedFlags = mpcEmbedded->miFlags & ~iIgnoredFlags;
+		iThisFlags = miFlags & ~iIgnoredFlags;
 		if ((iEmbeddedFlags) != (iThisFlags))
 		{
 			sz.Init();
 			PrintObject(&sz, IsEmbedded());
-			gcLogger.Error2(__METHOD__, " Object {", sz.Text(), "} should have the same flags [", IntToString(miFlags, 16) ,"] as it's embedding container's flags [", IntToString(mpcEmbedded->miFlags, 16), "].", NULL);
+			szFlags = IntToFlags(miFlags);
+			szEmbeddedFlags = IntToFlags(mpcEmbedded->miFlags);
+			szIgnoredFlags = IntToFlags(iIgnoredFlags);
+			ReplaceOneWithX(szFlags, szIgnoredFlags);
+			ReplaceOneWithX(szEmbeddedFlags, szIgnoredFlags);
+
+			gcLogger.Error2(__METHOD__, " Object {", sz.Text(), "} should have the same flags [", szFlags ,"] as it's embedding container's flags [", szEmbeddedFlags, "].", NULL);
 			sz.Kill();
 		}
 	}
@@ -1505,6 +1553,26 @@ void CBaseObject::ValidateObjectIdentifiers(void)
 
 			sz.Kill();
 		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CBaseObject::ValidateHasClass(void)
+{
+	CChars sz;
+
+	if (!HasClass())
+	{
+		sz.Init();
+		PrintObject(&sz, IsEmbedded());
+
+		gcLogger.Error2(__METHOD__, " Object {", sz.Text(), "} does not have Class initialised.", NULL);
+
+		sz.Kill();
 	}
 }
 

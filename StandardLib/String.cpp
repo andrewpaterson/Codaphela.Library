@@ -20,8 +20,8 @@ void CString::Class(void)
 Ptr<CString> CString::Init(char* sz)
 {
 	CChars::Init(sz);
-	CObject::Init();
 
+	CObject::Init();
 	return this;
 }
 
