@@ -169,6 +169,7 @@ public:
 	virtual void				ValidateEmbeddedConsistency(void);
 	virtual void				ValidateObjectIdentifiers(void);
 			void				ValidateBaseObjectDetail(void);
+			void				ValidateAllocation(void);
 			void				ValidateHasClass(void);
 	
 protected:

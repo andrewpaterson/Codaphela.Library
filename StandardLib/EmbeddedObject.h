@@ -63,7 +63,6 @@ public:
 			BOOL				IsEmbedded(void);
 			BOOL				IsNotEmbedded(void);
 	virtual BOOL				IsInitialised(void) =0;
-			BOOL				IsInHeap(void);
 			BOOL				IsInStack(void);
 	virtual int					GetEmbeddedIndex(CEmbeddedObject* pcEmbedded);
 	virtual int					GetNumEmbedded(void) =0;

@@ -281,7 +281,7 @@ int CBaseObject::CollectDetachedFroms(CDistCalculatorParameters* pcParameters)
 
 	if (HasStackPointers())
 	{
-		if (IsInHeap())
+		if (IsAllocatedInObjects())
 		{
 			SetDistToStack(MIN_HEAP_DIST_TO_STACK);
 		}
@@ -1391,6 +1391,34 @@ void CBaseObject::ValidateFlags(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CBaseObject::ValidateAllocation(void)
+{
+	BOOL	bDistToStackZero;
+	BOOL	bAllocateCalled;
+	BOOL	bInObjects;
+	BOOL	bAllSame;
+	CChars	sz;
+
+	bDistToStackZero = GetDistToStack() == 0;
+	bAllocateCalled = miFlags & OBJECT_FLAGS_CALLED_ALLOCATE;
+	bAllocateCalled = FixBool(bAllocateCalled);
+	bInObjects = IsAllocatedInObjects();
+	bAllSame = !bDistToStackZero == bAllocateCalled == bInObjects;
+
+	if (!bAllSame)
+	{
+		sz.Init();
+		PrintObject(&sz, IsEmbedded());
+		gcLogger.Error2(__METHOD__, " Object {", sz.Text(), "} should not have a dist to stack of [", IntToString(GetDistToStack()), "] and flag OBJECT_FLAGS_CALLED_ALLOCATE [", IntToString(bAllocateCalled), "] and be allocated in Objects [0x", PointerToString(GetObjects()), "].", NULL);
+		sz.Kill();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CBaseObject::ValidateDistToRoot(void)
 {
 	CChars			sz;
@@ -1487,6 +1515,7 @@ void CBaseObject::ValidateObjectsThisIn(void)
 void CBaseObject::ValidateBaseObjectDetail(void)
 {
 	ValidateFlags();
+	ValidateAllocation();
 	ValidateDistToRoot();
 	ValidateIndex();
 	ValidateObjectsThisIn();

@@ -149,7 +149,7 @@ void CDistToStackCalculator::ResetObjectsToUnknownDistToStack(CDistCalculatorPar
 	for (i = 0; i < iNumDetached; i++)
 	{
 		pcBaseObject = pcParameters->GetDetachedFromRoot(i);
-		if (pcBaseObject->IsInHeap())
+		if (pcBaseObject->IsAllocatedInObjects())
 		{
 			pcBaseObject->SetDistToStack(UNKNOWN_DIST_TO_STACK);
 		}

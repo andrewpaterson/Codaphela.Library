@@ -543,28 +543,11 @@ BOOL CPointer::IsInHeap(void)
 {
 	if (mpcEmbedding)
 	{
-		return mpcEmbedding->IsInHeap();
+		return mpcEmbedding->IsAllocatedInObjects();
 	}
 	else
 	{
 		return FALSE;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CPointer::IsInStack(void)
-{
-	if (mpcEmbedding)
-	{
-		return mpcEmbedding->IsInStack();
-	}
-	else
-	{
-		return TRUE;
 	}
 }
 
