@@ -10,12 +10,12 @@
 //////////////////////////////////////////////////////////////////////////
 void CDistToRootCalculator::Calculate(CBaseObject* pcObject, CDistCalculatorParameters* pcParameters)
 {
-	CollectAndClearInvalidRootDistances(pcObject, pcParameters);
-	
 	int				i;
 	int				iNumTouched;
 	CBaseObject*	pcTouched;
 	CBaseObject*	pcClosestFrom;
+
+	CollectAndClearInvalidRootDistances(pcObject, pcParameters);
 
 	iNumTouched = pcParameters->NumTouched();
 	for (i = 0; i < iNumTouched; i++)

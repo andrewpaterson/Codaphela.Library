@@ -582,14 +582,11 @@ void CObjects::KillDontFreeObjects(CArrayBaseObjectPtr* papcObjectPts)
 	CBaseObject*	pcBaseObject;
 	int				iNumElements;
 
-	if (papcObjectPts->IsNotEmpty())
+	iNumElements = papcObjectPts->NumElements();
+	for (i = 0; i < iNumElements; i++)
 	{
-		iNumElements = papcObjectPts->NumElements();
-		for (i = 0; i < iNumElements; i++)
-		{
-			pcBaseObject = (CBaseObject*)(*papcObjectPts->Get(i));
-			pcBaseObject->KillDontFree();
-		}
+		pcBaseObject = (CBaseObject*)(*papcObjectPts->Get(i));
+		pcBaseObject->KillDontFree();
 	}
 }
 
@@ -1049,6 +1046,10 @@ BOOL CObjects::Remove(CArrayBaseObjectPtr* papcKilled)
 	//No embedded objects should be in the list papcKilled.
 
 	iNumElements = papcKilled->NumElements();
+	if (iNumElements == 0)
+	{
+		return TRUE;
+	}
 
 	for (i = 0; i < iNumElements; i++)
 	{

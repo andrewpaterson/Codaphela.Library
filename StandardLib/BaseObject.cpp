@@ -34,7 +34,7 @@ CBaseObject::CBaseObject()
 {
 	mpcObjectsThisIn = NULL;
 	miDistToRoot = UNATTACHED_DIST_TO_ROOT;
-	miDistToStack = MIN_OBJECT_DIST_TO_STACK;
+	miDistToStack = MIN_STACK_DIST_TO_STACK;
 	moi = INVALID_O_INDEX;
 	miFlags = OBJECT_FLAGS_DIRTY | OBJECT_FLAGS_CALLED_CONSTRUCTOR;
 }
@@ -263,7 +263,7 @@ int CBaseObject::CollectDetachedFroms(CDistCalculatorParameters* pcParameters)
 {
 	ValidateNotEmbedded(__METHOD__);
 
-	int					iNumWithStackPointers;
+	int	iNumWithStackPointers;
 
 	iNumWithStackPointers = 0;
 
@@ -281,7 +281,10 @@ int CBaseObject::CollectDetachedFroms(CDistCalculatorParameters* pcParameters)
 
 	if (HasStackPointers())
 	{
-		SetDistToStack(MIN_POINTER_DIST_TO_STACK);
+		if (IsInHeap())
+		{
+			SetDistToStack(MIN_HEAP_DIST_TO_STACK);
+		}
 		iNumWithStackPointers++;
 	}
 
