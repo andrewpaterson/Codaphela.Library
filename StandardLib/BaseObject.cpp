@@ -62,7 +62,7 @@ void CBaseObject::Allocate(CObjects* pcObjects)
 	mpcObjectsThisIn = pcObjects;
 	SetFlag(OBJECT_FLAGS_CALLED_ALLOCATE, TRUE);
 	Class();
-	miDistToStack = UNKNOWN_DIST_TO_STACK;
+	SetDistToStack(UNKNOWN_DIST_TO_STACK);
 }
 
 
