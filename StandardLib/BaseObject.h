@@ -87,6 +87,8 @@ protected:
 
 public:
 								CBaseObject();
+								~CBaseObject();
+
 	virtual void				Allocate(CObjects* pcObjects);
 	virtual	void				Class(void);
 			void				Init(void);

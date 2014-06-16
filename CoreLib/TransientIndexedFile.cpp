@@ -597,7 +597,7 @@ CTransientIndexedFileDescriptor* CTransientIndexedFile::GetOrCreateFile(int iDat
 	}
 
 	pcFile = mcFiles.Add();
-	CONSTRUCT(pcFile, CTransientIndexedFileDescriptor);
+	new (pcFile) CTransientIndexedFileDescriptor();
 	DataFileName(szFileName, iDataSize, iNumFiles);
 	pcFile->Init(mcFiles.NumElements()-1, szFileName, iDataSize, iNumFiles);
 	return pcFile;

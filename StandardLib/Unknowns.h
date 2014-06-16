@@ -134,7 +134,8 @@ M* CUnknowns::AddUnsafe(int iAdditionalSize)
 	pv = (M*)mcMemory.Add(iSize + iAdditionalSize);
 	if (pv)
 	{
-		CONSTRUCT(pv, M);
+		memset(pv, 0, iSize + iAdditionalSize);
+		new(pv) M();
 
 		DebugName(pv, &szDebug);
 		mcMemory.SetDebugName(pv, &szDebug);

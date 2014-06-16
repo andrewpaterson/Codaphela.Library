@@ -36,11 +36,10 @@ protected:
 	Ptr<CSetObject>	mpObjects;
 	CObjects*		mpcObjectsAllocatingFrom;
 
-protected:
-						CRoot();
-						Ptr<CRoot>		Init(void);
-
 public:
+						CRoot();
+
+						Ptr<CRoot>		Init(void);
 						void			Kill(void);
 						void			Class(void);
 						void			KillData(void);

@@ -20,6 +20,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __CONSTRUCTOR_UNKNOWN_H__
 #define __CONSTRUCTOR_UNKNOWN_H__
+#include "BaseLib/ConstructorCall.h"
 #include "Unknown.h"
 #include "MapStringUnknown.h"
 
@@ -50,11 +51,10 @@ public:
 template<class M>
 void CConstructorUnknown::Add(void)
 {
-	M	cUnknown;
+	M* pvM = NewMalloc<M>();
 
-	AddUnknown(&cUnknown);
+	AddUnknown(pvM);
 }
-
 
 
 #endif // __CONSTRUCTOR_UNKNOWN_H__

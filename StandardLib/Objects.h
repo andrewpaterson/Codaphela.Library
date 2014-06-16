@@ -210,27 +210,26 @@ template<class M>
 //Called by Macro 'OMalloc'
 Ptr<M> CObjects::Add(void)
 {
-	M	m;
+	Ptr<M>	pObject;
+	M*		pvObject;
 
-	if (!m.IsNamed())
+	pvObject = Allocate<M>();
+	if (pvObject->IsNamed())
 	{
-		Ptr<M>	pObject;
-		M*		pvObject;
-
-		pvObject = Allocate<M>();
-
 		LOG_OBJECT_ALLOCATION(pvObject);
-
-		AddWithID(pvObject, mcIndexGenerator.PopIndex());
+		AddWithIDAndName(pvObject, "", mcIndexGenerator.PopIndex());
 
 		//No PointTo because we don't know the embedding object until assignment.
 		pObject.AssignObject(pvObject);
 		return pObject;
 	}
-	else
-	{
-		return Add<M>("");
-	}
+
+	LOG_OBJECT_ALLOCATION(pvObject);
+	AddWithID(pvObject, mcIndexGenerator.PopIndex());
+
+	//No PointTo because we don't know the embedding object until assignment.
+	pObject.AssignObject(pvObject);
+	return pObject;
 }
 
 
@@ -242,27 +241,23 @@ template<class M>
 //Called by Macro 'ONMalloc'.  Note the 'N'.
 Ptr<M> CObjects::Add(char* szObjectName)
 {
-	M	m;
+	Ptr<M>	pObject;
+	M*		pvObject;
 
-	if (m.IsNamed())
-	{
-		Ptr<M>	pObject;
-		M*		pvObject;
-
-		pvObject = Allocate<M>();
-
-		AddWithIDAndName(pvObject, szObjectName, mcIndexGenerator.PopIndex());
-		LOG_OBJECT_ALLOCATION(pvObject);
-
-		//No PointTo because we don't know the embedding object until assignment.
-		pObject.AssignObject(pvObject);
-		return pObject;
-	}
-	else
+	pvObject = Allocate<M>();
+	if (!pvObject->IsNamed())
 	{
 		//Can't add an unnamed object with a name.
+		mpcUnknownsAllocatingFrom->Remove(pvObject);
 		return Null<M>();
 	}
+
+	LOG_OBJECT_ALLOCATION(pvObject);
+	AddWithIDAndName(pvObject, szObjectName, mcIndexGenerator.PopIndex());
+
+	//No PointTo because we don't know the embedding object until assignment.
+	pObject.AssignObject(pvObject);
+	return pObject;
 }
 
 

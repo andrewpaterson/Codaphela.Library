@@ -82,7 +82,7 @@ BOOL CFiles::AddPackFile(CFileNodeSystemFile* pcFileNodeSystemFile)
 	iLength = mszPackFilesExtension.Length()+1;
 
 	pcPackFiles = mcPackFilesArray.Add();
-	CONSTRUCT(pcPackFiles, CPackFileOffset);
+	new(pcPackFiles) CPackFileOffset();
 
 	szFullName = pcFileNodeSystemFile->GetFullName();
 
