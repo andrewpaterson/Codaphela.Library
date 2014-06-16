@@ -117,7 +117,7 @@ void CBaseObject::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::Kill(BOOL bHeapFromChanged)
 {
-	CDistCalculator*		pcDistCalculator;
+	CDistCalculator			cDistCalculator;
 	CArrayBaseObjectPtr*	papcKilled;
 
 	//This method is for the user to forcibly kill an object.
@@ -130,13 +130,11 @@ void CBaseObject::Kill(BOOL bHeapFromChanged)
 
 	if (mpcObjectsThisIn)
 	{
-		pcDistCalculator = mpcObjectsThisIn->GetDistCalculator();
-
-		pcDistCalculator->Init();
-		papcKilled = pcDistCalculator->Calculate(this, bHeapFromChanged);
+		cDistCalculator.Init();
+		papcKilled = cDistCalculator.Calculate(this, bHeapFromChanged);
 
 		mpcObjectsThisIn->Remove(papcKilled);
-		pcDistCalculator->Kill();
+		cDistCalculator.Kill();
 	}
 }
 
@@ -367,7 +365,7 @@ void CBaseObject::TryKill(BOOL bKillIfNoRoot, BOOL bHeapFromChanged)
 	BOOL					bHasStackPointers;
 	BOOL					bHasHeapPointers;
 	BOOL					bMustKill;
-	CDistCalculator*		pcDistCalculator;
+	CDistCalculator			cDistCalculator;
 	CArrayBaseObjectPtr*	papcKilled;
 	
 	if (IsRoot())
@@ -375,15 +373,13 @@ void CBaseObject::TryKill(BOOL bKillIfNoRoot, BOOL bHeapFromChanged)
 		return;
 	}
 
-	pcDistCalculator = mpcObjectsThisIn->GetDistCalculator();
-	
 	if (bKillIfNoRoot)
 	{
-		pcDistCalculator->Init();
-		papcKilled = pcDistCalculator->Calculate(this, bHeapFromChanged);
+		cDistCalculator.Init();
+		papcKilled = cDistCalculator.Calculate(this, bHeapFromChanged);
 
 		mpcObjectsThisIn->Remove(papcKilled);
-		pcDistCalculator->Kill();
+		cDistCalculator.Kill();
 	}
 	else
 	{
@@ -394,10 +390,10 @@ void CBaseObject::TryKill(BOOL bKillIfNoRoot, BOOL bHeapFromChanged)
 		bMustKill = !bHasHeapPointers && !bHasStackPointers && (miDistToStack != 0);
 		if (bMustKill)
 		{
-			pcDistCalculator->Init();
-			papcKilled = pcDistCalculator->Calculate(this, bHeapFromChanged);
+			cDistCalculator.Init();
+			papcKilled = cDistCalculator.Calculate(this, bHeapFromChanged);
 			mpcObjectsThisIn->Remove(papcKilled);
-			pcDistCalculator->Kill();
+			cDistCalculator.Kill();
 		}
 	}
 }

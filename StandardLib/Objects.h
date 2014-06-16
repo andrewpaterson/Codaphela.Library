@@ -121,8 +121,6 @@ public:
 
 						CStackPointers*			GetStackPointers(void);
 
-						CDistCalculator*		GetDistCalculator(void);
-
 						OIndex					StartMemoryIteration(SIndexesIterator* psIter);
 						OIndex					IterateMemory(SIndexesIterator* psIter);
 						CPointer				TestGetFromMemory(OIndex oi);
