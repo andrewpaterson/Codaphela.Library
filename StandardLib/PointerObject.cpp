@@ -113,12 +113,9 @@ CPointer::~CPointer()
 {
 	LOG_POINTER_DEBUG();
 
-	if (!mpcEmbedding)
+	if (mpcObject)
 	{
-		if (mpcObject)
-		{
-			mpcObject->RemoveStackFromTryKill(this, FALSE);
-		}
+		mpcObject->RemoveStackFromTryKill(this, FALSE);
 	}
 }
 
@@ -226,7 +223,7 @@ void CPointer::PointTo(CEmbeddedObject* pcNewObject, BOOL bKillIfNoRoot)
 		pcOldObject = mpcObject;
 		mpcObject = pcNewObject;
 
-		if (IsInHeap())
+		if (IsEmbeddingAllocatedInObjects())
 		{			
 			if (pcOldObject)
 			{
@@ -539,7 +536,7 @@ BOOL CPointer::IsDirty(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPointer::IsInHeap(void)
+BOOL CPointer::IsEmbeddingAllocatedInObjects(void)
 {
 	if (mpcEmbedding)
 	{

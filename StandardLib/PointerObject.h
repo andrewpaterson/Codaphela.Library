@@ -75,7 +75,7 @@ public:
 	BOOL				IsNamed(void);
 	char*				ClassName(void);
 	BOOL				IsDirty(void);
-	BOOL				IsInHeap(void);
+	BOOL				IsEmbeddingAllocatedInObjects(void);
 	void				Kill(void);
 	void				ClearIndex(void);
 	void				AssignObject(CEmbeddedObject* pcObject);
