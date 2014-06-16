@@ -22,20 +22,17 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __CONSTRUCTOR_CALL_H__
 #define __CONSTRUCTOR_CALL_H__
-
-
-#define CONSTRUCT(mem, type)	{ type _o_; memcpy(mem, &_o_, sizeof(type)); }
+#include <new> 
 
 
 template<class M>
 M* NewMalloc(void)
 {
 	M*	pv;
-	M	v;
 
 	pv = (M*)malloc(sizeof(M));
-
-	memcpy(pv, &v, sizeof(M));
+	memset(pv, 0, sizeof(M));
+	new(pv) M();
 
 	return pv;
 }
