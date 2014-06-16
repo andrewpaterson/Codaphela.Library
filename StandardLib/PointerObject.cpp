@@ -226,7 +226,7 @@ void CPointer::PointTo(CEmbeddedObject* pcNewObject, BOOL bKillIfNoRoot)
 		pcOldObject = mpcObject;
 		mpcObject = pcNewObject;
 
-		if (mpcEmbedding)
+		if (IsInHeap())
 		{			
 			if (pcOldObject)
 			{
@@ -523,6 +523,40 @@ BOOL CPointer::IsDirty(void)
 	else
 	{
 		return FALSE;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CPointer::IsInHeap(void)
+{
+	if (mpcEmbedding)
+	{
+		return mpcEmbedding->IsInHeap();
+	}
+	else
+	{
+		return FALSE;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CPointer::IsInStack(void)
+{
+	if (mpcEmbedding)
+	{
+		return mpcEmbedding->IsInStack();
+	}
+	else
+	{
+		return TRUE;
 	}
 }
 

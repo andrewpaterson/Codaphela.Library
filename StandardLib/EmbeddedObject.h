@@ -37,6 +37,7 @@ protected:
 public:
 								CEmbeddedObject();
 								~CEmbeddedObject();
+
 	virtual void				Kill(void);
 	virtual void				Kill(BOOL bHeapFromChanged);
 	virtual void				KillDontFree(void) =0;
@@ -63,6 +64,8 @@ public:
 			BOOL				IsEmbedded(void);
 			BOOL				IsNotEmbedded(void);
 	virtual BOOL				IsInitialised(void) =0;
+			BOOL				IsInHeap(void);
+			BOOL				IsInStack(void);
 	virtual int					GetEmbeddedIndex(CEmbeddedObject* pcEmbedded);
 	virtual int					GetNumEmbedded(void) =0;
 			void				SetEmbedded(CBaseObject* pcEmbedded);
