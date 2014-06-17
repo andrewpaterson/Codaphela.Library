@@ -32,6 +32,7 @@ char* LongLongToString(long long int lli, int iBase = 10);
 char* PointerToString(void* pv);
 char* MethodToString(char* szFile, int iLine, char* szFunction);
 char* IntToFlags(int iInt);
+char* ShortToFlags(int siShort);
 
 
 #endif // __LOG_TO_STRING_H__

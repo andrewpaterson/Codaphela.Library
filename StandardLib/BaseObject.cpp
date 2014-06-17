@@ -1359,9 +1359,9 @@ void CBaseObject::ValidateContainerFlag(void)
 		{
 			sz.Init();
 			PrintObject(&sz, IsEmbedded());
-			szFlags = IntToFlags(miFlags);
-			szEmbeddedFlags = IntToFlags(mpcEmbedded->miFlags);
-			szIgnoredFlags = IntToFlags(iIgnoredFlags);
+			szFlags = ShortToFlags(miFlags);
+			szEmbeddedFlags = ShortToFlags(mpcEmbedded->miFlags);
+			szIgnoredFlags = ShortToFlags(iIgnoredFlags);
 			ReplaceOneWithX(szFlags, szIgnoredFlags);
 			ReplaceOneWithX(szEmbeddedFlags, szIgnoredFlags);
 
