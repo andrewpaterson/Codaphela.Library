@@ -46,6 +46,8 @@ int 	GetBitReverseHiLo(int iBit, void* pvArray);  //return 1 or 0 in char.
 void 	SetBit(int iBit, void* pvArray, int bBit);  //bBit can only take 1 or 0.
 void 	SetFlag(int* piDest, int iFlag, int iFlagValue);  //Identically to set bit but only works on 4bytes.
 void 	SetFlag(unsigned int* piDest, int iFlag, int iFlagValue);  //Identically to set bit but only works on 4bytes.
+void 	SetFlag(short int* psiDest, int iFlag, int iFlagValue);  //Identically to set bit but only works on 4bytes.
+void 	SetFlag(unsigned short int* psiDest, int iFlag, int iFlagValue);  //Identically to set bit but only works on 2bytes.
 int 	FindFirstClearBit(void* pvArray, int iArraySize);
 int 	FindFirstSetBit(void* pvArray, int iArraySize);
 int 	FindLastClearBit(void* pvArray, int iArraySize);
