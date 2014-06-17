@@ -1070,7 +1070,7 @@ BOOL CObjects::Remove(CArrayBaseObjectPtr* papcKilled)
 	for (i = 0; i < iNumElements; i++)
 	{
 		pcKilled = *papcKilled->Get(i);
-		pcKilled->RemoveAllTos();
+		pcKilled->UnsafeRemoveAllTos();
 	}
 
 	KillDontFreeObjects(papcKilled);

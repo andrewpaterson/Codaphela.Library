@@ -605,7 +605,7 @@ void CObject::UnsafeGetEmbeddedObjectTos(CArrayEmbeddedObjectPtr* papcTos)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObject::RemoveEmbeddedObjectAllTos(void)
+void CObject::UnsafeRemoveEmbeddedObjectAllTos(void)
 {
 	int					iNumPointers;
 	int					i;
@@ -627,19 +627,19 @@ void CObject::RemoveEmbeddedObjectAllTos(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObject::RemoveAllTos(void)
+void CObject::UnsafeRemoveAllTos(void)
 {
 	int				i;
 	int				iNumEmbedded;
 	CBaseObject*	pcEmbedded;
 
-	RemoveEmbeddedObjectAllTos();
+	UnsafeRemoveEmbeddedObjectAllTos();
 
 	iNumEmbedded = mapEmbedded.NumElements();
 	for (i = 0; i < iNumEmbedded; i++)
 	{
 		pcEmbedded = *mapEmbedded.Get(i);
-		pcEmbedded->RemoveAllTos();
+		pcEmbedded->UnsafeRemoveAllTos();
 	}
 }
 

@@ -129,7 +129,7 @@ public:
 			int					GetDistToStack(void);
 	virtual BOOL				SetDistToRoot(int iDistToRoot);
 			BOOL				TestedForRoot(void);
-	virtual void				RemoveAllTos(void) =0;
+	virtual void				UnsafeRemoveAllTos(void) =0;
 			void				UpdateAttachedTosDistToRoot(CDistCalculatorParameters* pcParameters);
 			void				CollectValidDistStartingObjectsAndSetClearedToRoot(CBaseObject* pcTo, CDistCalculatorParameters* pcParameters);
 			void				CollectAndClearInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters);
@@ -177,7 +177,7 @@ protected:
 			void				KillInternalData(void);
 			int					RemapTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew) =0;
 			BOOL				RemoveToFrom(CEmbeddedObject* pcPointedTo);
-	virtual void				RemoveEmbeddedObjectAllTos(void) =0;
+	virtual void				UnsafeRemoveEmbeddedObjectAllTos(void) =0;
 			void				SetExpectedDistToRoot(int iExpectedDistToRoot);
 			void				SetCalculatedDistToRoot(void);
 			int					CalculateDistToRootFromPointedFroms(void);

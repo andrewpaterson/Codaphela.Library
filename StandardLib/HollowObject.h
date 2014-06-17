@@ -46,7 +46,7 @@ public:
 			int					GetEmbeddedIndex(CEmbeddedObject* pcEmbedded);
 			int					NumHeapFroms(void);
 			int					NumStackFroms(void);
-			void				RemoveAllTos(void);
+			void				UnsafeRemoveAllTos(void);
 			void				ValidateEmbeddedObjectTos(void);
 			void				ValidateConsistency(void);
 
@@ -55,7 +55,7 @@ protected:
 			void				KillData(void);
 			int					RemapTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew);
 			void				RemoveTo(CEmbeddedObject* pcTo);
-			void				RemoveEmbeddedObjectAllTos(void);
+			void				UnsafeRemoveEmbeddedObjectAllTos(void);
 	virtual	CEmbeddedObject*	GetRemappedEmbeddedObject(int iIndex);
 			void				UpdateAttachedEmbeddedObjectTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist);
 };

@@ -324,9 +324,9 @@ int CArrayCommonObject::UnsafeNumEmbeddedObjectTos(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayCommonObject::RemoveAllTos(void)
+void CArrayCommonObject::UnsafeRemoveAllTos(void)
 {
-	RemoveEmbeddedObjectAllTos();
+	UnsafeRemoveEmbeddedObjectAllTos();
 }
 
 
@@ -353,7 +353,7 @@ void CArrayCommonObject::UpdateAttachedEmbeddedObjectTosDistToRoot(CDistCalculat
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayCommonObject::RemoveEmbeddedObjectAllTos(void)
+void CArrayCommonObject::UnsafeRemoveEmbeddedObjectAllTos(void)
 {
 	CBaseObject*			pcPointedTo;
 	int						i;
