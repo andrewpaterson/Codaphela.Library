@@ -83,24 +83,13 @@ void CBaseObject::Class(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::Init(void)
-{
-#ifdef DEBUG
-	ValidateHasClass();
-#endif
-
-	//This method needs to be idempotent.
-	SetFlag(OBJECT_FLAGS_CALLED_INIT, TRUE);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CBaseObject::PreInit(void)
 {
 	CBaseObject*	pcContainer;
+
+#ifdef DEBUG
+	ValidateHasClass();
+#endif
 
 	pcContainer = GetEmbeddingContainer();
 	pcContainer->ContainerPreInit();
@@ -1415,7 +1404,7 @@ void CBaseObject::ValidateContainerFlag(void)
 
 	if (IsEmbedded())
 	{
-		iIgnoredFlags = (OBJECT_FLAGS_CALLED_INIT | OBJECT_FLAGS_CALLED_CLASS);
+		iIgnoredFlags = OBJECT_FLAGS_CALLED_CLASS;
 		iEmbeddedFlags = mpcEmbedded->miFlags & ~iIgnoredFlags;
 		iThisFlags = miFlags & ~iIgnoredFlags;
 		if ((iEmbeddedFlags) != (iThisFlags))
@@ -1682,6 +1671,31 @@ void CBaseObject::ValidateHasClass(void)
 		gcLogger.Error2(__METHOD__, " Object {", sz.Text(), "} does not have Class initialised.", NULL);
 
 		sz.Kill();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CBaseObject::ValidateInitCalled(void)
+{
+	CChars	szObject;
+
+	if (miPreInits != miPostInits)
+	{
+		szObject.Init();
+		PrintObject(&szObject, IsEmbedded());
+		gcLogger.Error2(__METHOD__, " Object {", szObject.Text(), "} has pre-inits [", IntToString(miPreInits), "] not equal to post inits [", IntToString(miPostInits), "].", NULL);
+		szObject.Kill();
+	}
+	else if (miPreInits == 0)
+	{
+		szObject.Init();
+		PrintObject(&szObject, IsEmbedded());
+		gcLogger.Error2(__METHOD__, " Object {", szObject.Text(), "} has a pre-init of zero.", NULL);
+		szObject.Kill();
 	}
 }
 

@@ -343,3 +343,4 @@ void CLogger::SetEngineOutput(BOOL bEngineOut)
 {
 	mbEngineOut = bEngineOut;
 }
+

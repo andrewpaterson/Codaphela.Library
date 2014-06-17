@@ -89,7 +89,6 @@ public:
 	virtual void				Allocate(CObjects* pcObjects);
 	virtual	void				Class(void);
 
-			void				Init(void);
 			void				PreInit(void);
 			void				PostInit(void);
 	virtual void				Initialised(void);
@@ -156,9 +155,11 @@ public:
 			int					GetFlags(void);
 			BOOL				CanFindRoot(void);
 			BOOL				CanFindRootThroughValidPath(void);
+
 			void				DumpFroms(void);
 			void				DumpPointerTos(void);
 			void				Dump(void);
+
 			void				ValidateFlagSet(int iFlag, char* szFlag);
 			void				ValidateFlagNotSet(int iFlag, char* szFlag);
 			void				ValidateContainerFlag(void);
@@ -173,6 +174,7 @@ public:
 			void				ValidateBaseObjectDetail(void);
 			void				ValidateAllocation(void);
 			void				ValidateHasClass(void);
+			void				ValidateInitCalled(void);
 	
 protected:
 	virtual void				KillIdentifiers(void);

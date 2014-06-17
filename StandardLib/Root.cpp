@@ -41,10 +41,12 @@ CRoot::CRoot()
 //////////////////////////////////////////////////////////////////////////
 Ptr<CRoot> CRoot::Init(void)
 {
+	PreInit();
+
 	mpcObjectsAllocatingFrom = mpcObjectsThisIn;
 	CreateSet();
-	
-	CObject::Init();
+
+	PostInit();
 	return Ptr<CRoot>(this);
 }
 

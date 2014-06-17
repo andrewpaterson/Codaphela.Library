@@ -19,9 +19,9 @@ void CString::Class(void)
 //////////////////////////////////////////////////////////////////////////
 Ptr<CString> CString::Init(char* sz)
 {
+	PreInit();
 	CChars::Init(sz);
-
-	CObject::Init();
+	PostInit();
 	return this;
 }
 
