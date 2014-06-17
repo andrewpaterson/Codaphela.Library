@@ -1060,6 +1060,11 @@ BOOL CObjects::Remove(CArrayBaseObjectPtr* papcKilled)
 			gcLogger.Error2(__METHOD__, " Object of class [", pcKilled->ClassName(), "] is marked for killing but is embedded in object with index [", IndexToString(pcContainer->GetOI()),"] of class [", pcContainer->ClassName(), "].", NULL);
 			return FALSE;
 		}
+		else if (!pcKilled->IsAllocatedInObjects())
+		{
+			gcLogger.Error2(__METHOD__, " Object of class [", pcKilled->ClassName(), "] is marked for killing but is not allocated in Objects [0x", PointerToString(this),"].", NULL);
+			return FALSE;
+		}
 	}
 
 	for (i = 0; i < iNumElements; i++)

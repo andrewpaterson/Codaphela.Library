@@ -639,7 +639,7 @@ void CObject::RemoveAllTos(void)
 	for (i = 0; i < iNumEmbedded; i++)
 	{
 		pcEmbedded = *mapEmbedded.Get(i);
-		pcEmbedded->RemoveEmbeddedObjectAllTos();
+		pcEmbedded->RemoveAllTos();
 	}
 }
 

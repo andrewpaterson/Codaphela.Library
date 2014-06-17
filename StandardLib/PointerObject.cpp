@@ -248,14 +248,6 @@ void CPointer::PointTo(CEmbeddedObject* pcNewObject, BOOL bKillIfNoRoot)
 			if (mpcObject)
 			{
 				mpcObject->AddStackFrom(this);
-
-				//CDistCalculatorParameters	cParams;
-				//CDistToStackCalculator		cCalculator;
-				//CBaseObject*				pcContainer;
-				//cParams.Init();
-				//pcContainer = mpcObject->GetEmbeddingContainer();
-				//cCalculator.Calculate(pcContainer, &cParams);
-				//cParams.Kill();
 			}
 		}
 	}

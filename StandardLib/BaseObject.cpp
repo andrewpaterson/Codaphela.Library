@@ -97,7 +97,7 @@ void CBaseObject::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::Kill(void)
 {
-	BOOL					bHeapFromChanged;
+	BOOL	bHeapFromChanged;
 
 	bHeapFromChanged = HasHeapFroms();
 	Kill(bHeapFromChanged);
@@ -125,16 +125,23 @@ void CBaseObject::Kill(BOOL bHeapFromChanged)
 
 	ValidateNotEmbedded(__METHOD__);
 
-	RemoveAllStackFroms();
-	RemoveAllHeapFroms();
-
-	if (mpcObjectsThisIn)
+	if (IsAllocatedInObjects())
 	{
+		RemoveAllStackFroms();
+		RemoveAllHeapFroms();
+
 		cDistCalculator.Init();
 		papcKilled = cDistCalculator.Calculate(this, bHeapFromChanged);
 
 		mpcObjectsThisIn->Remove(papcKilled);
 		cDistCalculator.Kill();
+	}
+	else
+	{
+//		RemoveAllTos();
+
+		RemoveAllStackFroms();
+		RemoveAllHeapFroms();
 	}
 }
 
