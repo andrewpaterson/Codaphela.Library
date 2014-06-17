@@ -88,7 +88,11 @@ public:
 
 	virtual void				Allocate(CObjects* pcObjects);
 	virtual	void				Class(void);
+
 			void				Init(void);
+			void				PreInit(void);
+			void				PostInit(void);
+	virtual void				Initialised(void);
 
 			void				Kill(void);
 			void				Kill(BOOL bHeapFromChanged);
@@ -186,6 +190,8 @@ protected:
 			void				SetFlagNumEmbedded(int iNumEmbedded);
 			BOOL				IsMarkedUnreachable(void);
 			void				ReplaceOneWithX(char* szDest, char* szMask);
+			void				ContainerPreInit(void);
+			void				ContainerPostInit(void);
 };
 
 
