@@ -50,7 +50,7 @@ void CEmbeddedObject::Kill(BOOL bHeapFromChanged)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CEmbeddedObject::RemapTos(CEmbeddedObject* pcOld, CEmbeddedObject* mpcObject)
+int CEmbeddedObject::RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* mpcObject)
 {
 	return 0;
 }
@@ -193,7 +193,7 @@ int CEmbeddedObject::UnsafeNumEmbeddedObjectTos(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CEmbeddedObject::UnsafeGetEmbeddedObjectTos(CArrayEmbeddedObjectPtr* papcTos)
+void CEmbeddedObject::UnsafeGetEmbeddedObjectPointerTos(CArrayEmbeddedObjectPtr* papcTos)
 {
 }
 
@@ -202,7 +202,7 @@ void CEmbeddedObject::UnsafeGetEmbeddedObjectTos(CArrayEmbeddedObjectPtr* papcTo
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CEmbeddedObject::CollectAndClearTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters)
+void CEmbeddedObject::CollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters)
 {
 }
 
@@ -258,7 +258,7 @@ void CEmbeddedObject::RemoveAllHeapFroms(void)
 		for (i = 0; i < iNumFroms; i++)
 		{
 			pcPointedFrom = ppcPointedFrom[i];
-			pcPointedFrom->RemoveTo(this);
+			pcPointedFrom->RemovePointerTo(this);
 		}
 
 		mapHeapFroms.ReInit();
@@ -764,7 +764,7 @@ void CEmbeddedObject::ValidateFrom(CBaseObject* pcBaseObject)
 	CChars	szFromObject;
 	int		iThisDistToRoot;
 	int		iOtherDistToRoot;
-	BOOL	bFromPointsToTo;
+	BOOL	bFromPointsTo;
 
 	iThisDistToRoot = GetDistToRoot();
 	iOtherDistToRoot = pcBaseObject->GetDistToRoot();
@@ -779,8 +779,8 @@ void CEmbeddedObject::ValidateFrom(CBaseObject* pcBaseObject)
 		szObject.Kill();
 	}
 
-	bFromPointsToTo = pcBaseObject->ContainsTo(this);
-	if (!bFromPointsToTo)
+	bFromPointsTo = pcBaseObject->ContainsPointerTo(this);
+	if (!bFromPointsTo)
 	{
 		szObject.Init();
 		PrintObject(&szObject, IsEmbedded());
@@ -797,7 +797,7 @@ void CEmbeddedObject::ValidateFrom(CBaseObject* pcBaseObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CEmbeddedObject::ValidateTo(CEmbeddedObject* pcPointedTo)
+void CEmbeddedObject::ValidatePointerTo(CEmbeddedObject* pcPointedTo)
 {
 	CChars	szObject;
 	CChars	szToObject;
@@ -839,7 +839,7 @@ void CEmbeddedObject::ValidateFroms(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CEmbeddedObject::ValidateTos(void)
+void CEmbeddedObject::ValidatePointerTos(void)
 {
 }
 

@@ -138,7 +138,7 @@ void CBaseObject::Kill(BOOL bHeapFromChanged)
 	}
 	else
 	{
-		RemoveAllTos();
+		RemoveAllPointerTos();
 
 		RemoveAllStackFroms();
 		RemoveAllHeapFroms();
@@ -256,7 +256,7 @@ void CBaseObject::CollectAndClearInvalidDistToRootObjects(CDistCalculatorParamet
 			SetFlag(OBJECT_FLAGS_DIST_CALCULATOR_TOUCHED, TRUE);
 			SetDistToRoot(CLEARED_DIST_TO_ROOT);
 
-			CollectAndClearTosInvalidDistToRootObjects(pcParameters);
+			CollectAndClearPointerTosInvalidDistToRootObjects(pcParameters);
 		}
 	}
 }
@@ -518,7 +518,7 @@ void CBaseObject::SetExpectedDistToRoot(int iExpectedDistToRoot)
 	iBestDistToRoot = CalculateDistToRootFromPointedFroms(iExpectedDistToRoot);
 	if (SetDistToRoot(iBestDistToRoot))
 	{
-		SetPointedTosExpectedDistToRoot(iBestDistToRoot);
+		SetPointerTosExpectedDistToRoot(iBestDistToRoot);
 	}
 }
 
@@ -537,7 +537,7 @@ void CBaseObject::SetCalculatedDistToRoot(void)
 	iBestDistToRoot = CalculateDistToRootFromPointedFroms();
 	if (SetDistToRoot(iBestDistToRoot))
 	{
-		SetPointedTosExpectedDistToRoot(iBestDistToRoot);
+		SetPointerTosExpectedDistToRoot(iBestDistToRoot);
 	}
 }
 
@@ -639,7 +639,7 @@ void CBaseObject::UpdateAttachedTosDistToRoot(CDistCalculatorParameters* pcParam
 	SetDistToRoot(iClosestToRoot);
 	SetFlag(OBJECT_FLAGS_UPDATED_TOS_DIST_TO_ROOT, TRUE);
 
-	UpdateAttachedEmbeddedObjectTosDistToRoot(pcParameters, iClosestToRoot);
+	UpdateAttachedEmbeddedObjectPointerTosDistToRoot(pcParameters, iClosestToRoot);
 }
 
 
@@ -654,7 +654,7 @@ void CBaseObject::AddExpectedDistToRoot(CEmbeddedObject* pcPointedTo, int iExpec
 	if (pcPointedTo)
 	{
 		pcPointedToContainer = pcPointedTo->GetEmbeddingContainer();
-		if (!pcPointedToContainer->IsUpdateAttachedTosDistToRoot())
+		if (!pcPointedToContainer->IsUpdateAttachedPointerTosDistToRoot())
 		{
 			pcPointedToContainer->SetDistToRoot(CLEARED_DIST_TO_ROOT);
 			pcParameters->AddExpectedDist(pcPointedToContainer, iExpectedDist);
@@ -880,14 +880,14 @@ BOOL CBaseObject::IsHollow(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CEmbeddedObject* CBaseObject::TestGetTo(int iToIndex)
+CEmbeddedObject* CBaseObject::TestGetPointerTo(int iToIndex)
 {
 	CEmbeddedObject**			ppTo;
 	CEmbeddedObject*			pTo;
 	CArrayEmbeddedObjectPtr		apcTos;
 
 	apcTos.Init(32);
-	GetTos(&apcTos);
+	GetPointerTos(&apcTos);
 	ppTo = apcTos.SafeGet(iToIndex);
 	if (ppTo)
 	{
@@ -906,7 +906,7 @@ CEmbeddedObject* CBaseObject::TestGetTo(int iToIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CBaseObject::ContainsTo(CEmbeddedObject* pcEmbedded)
+BOOL CBaseObject::ContainsPointerTo(CEmbeddedObject* pcEmbedded)
 {
 	return FALSE;
 }
@@ -1034,7 +1034,7 @@ BOOL CBaseObject::IsMarkedUnreachable(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CBaseObject::IsUpdateAttachedTosDistToRoot(void)
+BOOL CBaseObject::IsUpdateAttachedPointerTosDistToRoot(void)
 {
 	return miFlags & OBJECT_FLAGS_UPDATED_TOS_DIST_TO_ROOT;
 }
@@ -1153,7 +1153,7 @@ void CBaseObject::DumpFroms(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::DumpTos(void)
+void CBaseObject::DumpPointerTos(void)
 {
 	CChars						sz;
 	int							i;
@@ -1183,7 +1183,7 @@ void CBaseObject::DumpTos(void)
 	for (i = 0; i < iNumEmbedded; i++)
 	{
 		pcEmbedded = GetEmbeddedObject(i);
-		iTotalTos += pcEmbedded->NumTos();
+		iTotalTos += pcEmbedded->NumPointerTos();
 	}
 
 	sz.Insert(0, &szLine);
@@ -1195,7 +1195,7 @@ void CBaseObject::DumpTos(void)
 	{
 		pcEmbedded = GetEmbeddedObject(i);
 		acTos.Init();
-		pcEmbedded->UnsafeGetEmbeddedObjectTos(&acTos);
+		pcEmbedded->UnsafeGetEmbeddedObjectPointerTos(&acTos);
 		iNumTos = acTos.NumElements();
 		sz.Append("Embedded ");
 		sz.Append(i);
@@ -1537,7 +1537,7 @@ void CBaseObject::ValidateEmbeddedConsistency(void)
 {
 	ValidateBaseObjectDetail();
 	ValidateFroms();
-	ValidateTos();
+	ValidatePointerTos();
 }
 
 

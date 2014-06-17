@@ -127,7 +127,7 @@ int CObject::UnsafeNumEmbeddedObjectTos(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CObject::NumTos(void)
+int CObject::NumPointerTos(void)
 {
 	int					i;
 	int					iNumEmbedded;
@@ -213,7 +213,7 @@ void CObject::RemoveAllStackFroms(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObject::SetPointedTosExpectedDistToRoot(int iDistToRoot)
+void CObject::SetPointerTosExpectedDistToRoot(int iDistToRoot)
 {
 	int				i;
 	int				iNumEmbedded;
@@ -225,7 +225,7 @@ void CObject::SetPointedTosExpectedDistToRoot(int iDistToRoot)
 	for (i = 0; i < iNumEmbedded; i++)
 	{
 		pcEmbedded = *mapEmbedded.Get(i);
-		pcEmbedded->SetPointedTosExpectedDistToRoot(iDistToRoot);
+		pcEmbedded->SetPointerTosExpectedDistToRoot(iDistToRoot);
 	}
 }
 
@@ -471,19 +471,19 @@ CBaseObject* CObject::GetClosestFromToStack(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObject::GetTos(CArrayEmbeddedObjectPtr* papcTos)
+void CObject::GetPointerTos(CArrayEmbeddedObjectPtr* papcTos)
 {
 	int				i;
 	int				iNumEmbedded;
 	CBaseObject*	pcEmbedded;
 
-	UnsafeGetEmbeddedObjectTos(papcTos);
+	UnsafeGetEmbeddedObjectPointerTos(papcTos);
 
 	iNumEmbedded = mapEmbedded.NumElements();
 	for (i = 0; i < iNumEmbedded; i++)
 	{
 		pcEmbedded = *mapEmbedded.Get(i);
-		pcEmbedded->GetTos(papcTos);
+		pcEmbedded->GetPointerTos(papcTos);
 	}
 }
 
@@ -492,7 +492,7 @@ void CObject::GetTos(CArrayEmbeddedObjectPtr* papcTos)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObject::ContainsTo(CEmbeddedObject* pcEmbedded)
+BOOL CObject::ContainsPointerTo(CEmbeddedObject* pcEmbedded)
 {
 	int					iNumPointers;
 	int					i;
@@ -522,7 +522,7 @@ BOOL CObject::ContainsTo(CEmbeddedObject* pcEmbedded)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObject::CollectAndClearTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters)
+void CObject::CollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters)
 {
 	int					iNumPointers;
 	int					i;
@@ -548,7 +548,7 @@ void CObject::CollectAndClearTosInvalidDistToRootObjects(CDistCalculatorParamete
 	for (i = 0; i < iNumEmbedded; i++)
 	{
 		pcEmbedded = *mapEmbedded.Get(i);
-		pcEmbedded->CollectAndClearTosInvalidDistToRootObjects(pcParameters);
+		pcEmbedded->CollectAndClearPointerTosInvalidDistToRootObjects(pcParameters);
 	}
 }
 
@@ -581,7 +581,7 @@ int CObject::CollectEmbeddedObjectDetachedFroms(CDistCalculatorParameters* pcPar
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObject::UnsafeGetEmbeddedObjectTos(CArrayEmbeddedObjectPtr* papcTos)
+void CObject::UnsafeGetEmbeddedObjectPointerTos(CArrayEmbeddedObjectPtr* papcTos)
 {
 	int					iNumPointers;
 	int					i;
@@ -605,7 +605,7 @@ void CObject::UnsafeGetEmbeddedObjectTos(CArrayEmbeddedObjectPtr* papcTos)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObject::UnsafeRemoveEmbeddedObjectAllTos(void)
+void CObject::UnsafeRemoveEmbeddedObjectAllPointerTos(void)
 {
 	int					iNumPointers;
 	int					i;
@@ -627,19 +627,19 @@ void CObject::UnsafeRemoveEmbeddedObjectAllTos(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObject::UnsafeRemoveAllTos(void)
+void CObject::UnsafeRemoveAllPointerTos(void)
 {
 	int				i;
 	int				iNumEmbedded;
 	CBaseObject*	pcEmbedded;
 
-	UnsafeRemoveEmbeddedObjectAllTos();
+	UnsafeRemoveEmbeddedObjectAllPointerTos();
 
 	iNumEmbedded = mapEmbedded.NumElements();
 	for (i = 0; i < iNumEmbedded; i++)
 	{
 		pcEmbedded = *mapEmbedded.Get(i);
-		pcEmbedded->UnsafeRemoveAllTos();
+		pcEmbedded->UnsafeRemoveAllPointerTos();
 	}
 }
 
@@ -648,7 +648,7 @@ void CObject::UnsafeRemoveAllTos(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObject::RemoveEmbeddedObjectAllTos(void)
+void CObject::RemoveEmbeddedObjectAllPointerTos(void)
 {
 	int					iNumPointers;
 	int					i;
@@ -667,19 +667,19 @@ void CObject::RemoveEmbeddedObjectAllTos(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObject::RemoveAllTos(void)
+void CObject::RemoveAllPointerTos(void)
 {
 	int				i;
 	int				iNumEmbedded;
 	CBaseObject*	pcEmbedded;
 
-	RemoveEmbeddedObjectAllTos();
+	RemoveEmbeddedObjectAllPointerTos();
 
 	iNumEmbedded = mapEmbedded.NumElements();
 	for (i = 0; i < iNumEmbedded; i++)
 	{
 		pcEmbedded = *mapEmbedded.Get(i);
-		pcEmbedded->RemoveAllTos();
+		pcEmbedded->RemoveAllPointerTos();
 	}
 }
 
@@ -688,7 +688,7 @@ void CObject::RemoveAllTos(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObject::UpdateAttachedEmbeddedObjectTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist)
+void CObject::UpdateAttachedEmbeddedObjectPointerTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist)
 {
 	int					i;
 	int					iNumEmbedded;
@@ -709,7 +709,7 @@ void CObject::UpdateAttachedEmbeddedObjectTosDistToRoot(CDistCalculatorParameter
 	for (i = 0; i < iNumEmbedded; i++)
 	{
 		pcEmbedded = *mapEmbedded.Get(i);
-		pcEmbedded->UpdateAttachedEmbeddedObjectTosDistToRoot(pcParameters, iExpectedDist);
+		pcEmbedded->UpdateAttachedEmbeddedObjectPointerTosDistToRoot(pcParameters, iExpectedDist);
 	}
 }
 
@@ -718,7 +718,7 @@ void CObject::UpdateAttachedEmbeddedObjectTosDistToRoot(CDistCalculatorParameter
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObject::RemoveTo(CEmbeddedObject* pcTo)
+void CObject::RemovePointerTo(CEmbeddedObject* pcTo)
 {
 	int					iNumPointers;
 	int					i;
@@ -767,7 +767,7 @@ void CObject::Embedded(CBaseObject* pcObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CObject::RemapTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew)
+int CObject::RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew)
 {
 	int					iNumPointers;
 	int					i;
@@ -1005,12 +1005,12 @@ CEmbeddedObject* CObject::RecurseGetEmbeddedObject(int iIndex, int* piCount)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CObject::GetFieldPointerIndex(CPointer* pcFieldPointer)
+int CObject::GetFieldPointerToIndex(CPointer* pcFieldPointer)
 {
 	int		iIndex;
 
 	iIndex = 0;
-	if (RecurseGetFieldPointerIndex(pcFieldPointer, &iIndex))
+	if (RecurseGetFieldPointerToIndex(pcFieldPointer, &iIndex))
 	{
 		return iIndex;
 	}
@@ -1025,7 +1025,7 @@ int CObject::GetFieldPointerIndex(CPointer* pcFieldPointer)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObject::RecurseGetFieldPointerIndex(CPointer* pcTest, int* piIndex)
+BOOL CObject::RecurseGetFieldPointerToIndex(CPointer* pcTest, int* piIndex)
 {
 	int				i;
 	CBaseObject*	pcEmbedded;
@@ -1050,7 +1050,7 @@ BOOL CObject::RecurseGetFieldPointerIndex(CPointer* pcTest, int* piIndex)
 		if (pcEmbedded->IsObject())
 		{
 			pcObject = (CObject*)pcEmbedded;
-			if (pcObject->RecurseGetFieldPointerIndex(pcTest, piIndex))
+			if (pcObject->RecurseGetFieldPointerToIndex(pcTest, piIndex))
 			{
 				return TRUE;
 			}
@@ -1064,7 +1064,7 @@ BOOL CObject::RecurseGetFieldPointerIndex(CPointer* pcTest, int* piIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CObject::GetNumFieldPointers(void)
+int CObject::GetNumFieldPointerTos(void)
 {
 	int				i;
 	CBaseObject*	pcEmbedded;
@@ -1079,7 +1079,7 @@ int CObject::GetNumFieldPointers(void)
 		if (pcEmbedded->IsObject())
 		{
 			pcObject = (CObject*)pcEmbedded;
-			iCount += pcObject->GetNumFieldPointers();
+			iCount += pcObject->GetNumFieldPointerTos();
 		}
 	}
 
@@ -1091,13 +1091,13 @@ int CObject::GetNumFieldPointers(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointer* CObject::GetFieldPointer(int iIndex)
+CPointer* CObject::GetFieldPointerTo(int iIndex)
 {
 	int			iCount;
 	CPointer*	pcReturned;
 
 	iCount = 0;
-	pcReturned = RecurseGetFieldPointer(iIndex, &iCount);
+	pcReturned = RecurseGetFieldPointerTo(iIndex, &iCount);
 	return pcReturned;
 }
 
@@ -1106,7 +1106,7 @@ CPointer* CObject::GetFieldPointer(int iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointer* CObject::RecurseGetFieldPointer(int iIndex, int* piCount)
+CPointer* CObject::RecurseGetFieldPointerTo(int iIndex, int* piCount)
 {
 	int				i;
 	CBaseObject*	pcEmbedded;
@@ -1131,7 +1131,7 @@ CPointer* CObject::RecurseGetFieldPointer(int iIndex, int* piCount)
 		if (pcEmbedded->IsObject())
 		{
 			pcObject = (CObject*)pcEmbedded;
-			pcReturned = pcObject->RecurseGetFieldPointer(iIndex, piCount);
+			pcReturned = pcObject->RecurseGetFieldPointerTo(iIndex, piCount);
 			if (pcReturned)
 			{
 				return pcReturned;
@@ -1267,7 +1267,7 @@ BOOL CObject::IsDistToRootValid(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObject::ValidateEmbeddedObjectTos(void)
+void CObject::ValidateEmbeddedObjectPointerTos(void)
 {
 	int					i;
 	CEmbeddedObject*	pcPointedTo;
@@ -1279,7 +1279,7 @@ void CObject::ValidateEmbeddedObjectTos(void)
 		pcPointedTo = (*ppPointer)->Object();
 		if (pcPointedTo)
 		{
-			ValidateTo(pcPointedTo);
+			ValidatePointerTo(pcPointedTo);
 		}
 	}
 }
@@ -1289,19 +1289,19 @@ void CObject::ValidateEmbeddedObjectTos(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObject::ValidateTos(void)
+void CObject::ValidatePointerTos(void)
 {
 	int				i;
 	int				iNumEmbedded;
 	CBaseObject*	pcEmbedded;
 
-	ValidateEmbeddedObjectTos();
+	ValidateEmbeddedObjectPointerTos();
 
 	iNumEmbedded = mapEmbedded.NumElements();
 	for (i = 0; i < iNumEmbedded; i++)
 	{
 		pcEmbedded = *mapEmbedded.Get(i);
-		pcEmbedded->ValidateEmbeddedObjectTos();
+		pcEmbedded->ValidateEmbeddedObjectPointerTos();
 	}
 }
 

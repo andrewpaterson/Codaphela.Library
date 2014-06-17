@@ -337,7 +337,7 @@ void CObjects::RecurseDumpGraph(CChars* psz, CEmbeddedObject* pcIncoming, int iL
 
 
 	apcTos.Init();
-	pcBaseObject->UnsafeGetEmbeddedObjectTos(&apcTos);
+	pcBaseObject->UnsafeGetEmbeddedObjectPointerTos(&apcTos);
 	for (i = 0; i < apcTos.NumElements(); i++)
 	{
 		pcToObject = *apcTos.Get(i);
@@ -458,7 +458,7 @@ void CObjects::RecurseValidateSceneGraph(CBaseObject* pcBaseObject)
 		pcBaseObject->ValidateConsistency();
 
 		apcTos.Init();
-		pcBaseObject->GetTos(&apcTos);
+		pcBaseObject->GetPointerTos(&apcTos);
 		for (i = 0; i < apcTos.NumElements(); i++)
 		{
 			pcToObject = *apcTos.Get(i);
@@ -1070,7 +1070,7 @@ BOOL CObjects::Remove(CArrayBaseObjectPtr* papcKilled)
 	for (i = 0; i < iNumElements; i++)
 	{
 		pcKilled = *papcKilled->Get(i);
-		pcKilled->UnsafeRemoveAllTos();
+		pcKilled->UnsafeRemoveAllPointerTos();
 	}
 
 	KillDontFreeObjects(papcKilled);

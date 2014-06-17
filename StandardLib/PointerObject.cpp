@@ -614,13 +614,13 @@ void CPointer::DumpFroms(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPointer::DumpTos(void)
+void CPointer::DumpPointerTos(void)
 {
 	CBaseObject* pvBaseObject = BaseObject();
 
 	if (pvBaseObject)
 	{
-		pvBaseObject->DumpTos();
+		pvBaseObject->DumpPointerTos();
 	}
 }
 

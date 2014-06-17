@@ -113,7 +113,7 @@ public:
 	virtual BOOL				IsNamed(void);
 			BOOL				IsInvalidated(void);
 	virtual BOOL				IsDirty(void);
-			BOOL				IsUpdateAttachedTosDistToRoot(void);
+			BOOL				IsUpdateAttachedPointerTosDistToRoot(void);
 			BOOL				IsInitialised(void);
 			BOOL				HasClass(void);
 
@@ -123,14 +123,14 @@ public:
 
 			int					GetNumEmbedded(void);
 
-	virtual void				SetPointedTosExpectedDistToRoot(int iDistToRoot) =0;
+	virtual void				SetPointerTosExpectedDistToRoot(int iDistToRoot) =0;
 			void				SetDirty(void);
 			int					GetDistToRoot(void);
 			int					GetDistToStack(void);
 	virtual BOOL				SetDistToRoot(int iDistToRoot);
 			BOOL				TestedForRoot(void);
-	virtual void				UnsafeRemoveAllTos(void) =0;
-	virtual void				RemoveAllTos(void) =0;
+	virtual void				UnsafeRemoveAllPointerTos(void) =0;
+	virtual void				RemoveAllPointerTos(void) =0;
 			void				UpdateAttachedTosDistToRoot(CDistCalculatorParameters* pcParameters);
 			void				CollectValidDistStartingObjectsAndSetClearedToRoot(CBaseObject* pcTo, CDistCalculatorParameters* pcParameters);
 			void				CollectAndClearInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters);
@@ -147,8 +147,8 @@ public:
 			CStackPointers*		GetStackPointers(void);
 	virtual void				SetDistToStack(int iDistToStack);
 
-	virtual BOOL				ContainsTo(CEmbeddedObject* pcEmbedded);
-			CEmbeddedObject* 	TestGetTo(int iToIndex);
+	virtual BOOL				ContainsPointerTo(CEmbeddedObject* pcEmbedded);
+			CEmbeddedObject* 	TestGetPointerTo(int iToIndex);
 			int					TestGetNumEmbeddedFromFlags(void);
 			void				ClearFlagNumEmbedded(void);
 	virtual void				SetFlag(int iFlag, int iFlagValue);
@@ -156,7 +156,7 @@ public:
 			BOOL				CanFindRoot(void);
 			BOOL				CanFindRootThroughValidPath(void);
 			void				DumpFroms(void);
-			void				DumpTos(void);
+			void				DumpPointerTos(void);
 			void				Dump(void);
 			void				ValidateFlagSet(int iFlag, char* szFlag);
 			void				ValidateFlagNotSet(int iFlag, char* szFlag);
@@ -166,7 +166,7 @@ public:
 			void				ValidateIndex(void);
 			void				ValidateObjectsThisIn(void);
 			void				ValidateCanFindRoot(void);
-	virtual void				ValidateEmbeddedObjectTos(void) =0;
+	virtual void				ValidateEmbeddedObjectPointerTos(void) =0;
 	virtual void				ValidateEmbeddedConsistency(void);
 	virtual void				ValidateObjectIdentifiers(void);
 			void				ValidateBaseObjectDetail(void);
@@ -176,9 +176,9 @@ public:
 protected:
 	virtual void				KillIdentifiers(void);
 			void				KillInternalData(void);
-			int					RemapTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew) =0;
+			int					RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew) =0;
 			BOOL				RemoveToFrom(CEmbeddedObject* pcPointedTo);
-	virtual void				UnsafeRemoveEmbeddedObjectAllTos(void) =0;
+	virtual void				UnsafeRemoveEmbeddedObjectAllPointerTos(void) =0;
 			void				SetExpectedDistToRoot(int iExpectedDistToRoot);
 			void				SetCalculatedDistToRoot(void);
 			int					CalculateDistToRootFromPointedFroms(void);

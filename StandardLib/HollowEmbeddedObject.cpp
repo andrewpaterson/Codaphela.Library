@@ -28,7 +28,7 @@ BOOL CHollowEmbeddedObject::Load(CObjectDeserialiser* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHollowEmbeddedObject::RemoveTo(CEmbeddedObject* pcTo)
+void CHollowEmbeddedObject::RemovePointerTo(CEmbeddedObject* pcTo)
 {
 }
 
@@ -140,7 +140,7 @@ CHollowObject* CHollowEmbeddedObject::GetHollowObject(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHollowEmbeddedObject::SetPointedTosExpectedDistToRoot(int iDistToRoot)
+void CHollowEmbeddedObject::SetPointerTosExpectedDistToRoot(int iDistToRoot)
 {
 	NotImplemented(__METHOD__);
 }
@@ -185,7 +185,7 @@ CStackPointers* CHollowEmbeddedObject::GetStackPointers(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHollowEmbeddedObject::GetTos(CArrayEmbeddedObjectPtr* papcTos)
+void CHollowEmbeddedObject::GetPointerTos(CArrayEmbeddedObjectPtr* papcTos)
 {
 }
 
@@ -194,7 +194,7 @@ void CHollowEmbeddedObject::GetTos(CArrayEmbeddedObjectPtr* papcTos)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CHollowEmbeddedObject::NumTos(void)
+int CHollowEmbeddedObject::NumPointerTos(void)
 {
 	return 0;
 }
@@ -214,7 +214,7 @@ void CHollowEmbeddedObject::ValidateConsistency(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHollowEmbeddedObject::UpdateAttachedEmbeddedObjectTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist)
+void CHollowEmbeddedObject::UpdateAttachedEmbeddedObjectPointerTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist)
 {
 }
 

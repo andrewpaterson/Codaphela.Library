@@ -45,9 +45,9 @@ public:
 	virtual BOOL				Save(CObjectSerialiser* pcFile) =0;
 	virtual BOOL				Load(CObjectDeserialiser* pcFile) =0;
 	virtual BOOL				IsHollow(void) =0;
-	virtual int					RemapTos(CEmbeddedObject* pcOld, CEmbeddedObject* mpcObject);
+	virtual int					RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* mpcObject);
 	virtual BOOL				SetDistToRoot(int iDistToRoot) =0;
-	virtual void				SetPointedTosExpectedDistToRoot(int iDistToRoot) =0;
+	virtual void				SetPointerTosExpectedDistToRoot(int iDistToRoot) =0;
 
 	virtual int					GetDistToRoot(void) =0;
 	virtual int					GetDistToStack(void) =0;
@@ -58,7 +58,7 @@ public:
 	virtual void				ClearIndex(void);
 	virtual void				ClearName(void);
 	virtual BOOL				IsBaseObject(void);
-	virtual void				RemoveTo(CEmbeddedObject* pcTo) =0;
+	virtual void				RemovePointerTo(CEmbeddedObject* pcTo) =0;
 			CBaseObject*		GetEmbeddingContainer(void);
 			BOOL				IsEmbedded(void);
 			BOOL				IsNotEmbedded(void);
@@ -73,15 +73,15 @@ public:
 	virtual void				ValidateConsistency(void) =0;
 			void				ValidateFrom(CBaseObject* pcBaseObject);
 			void				ValidateFroms(void);
-			void				ValidateTo(CEmbeddedObject* pcPointedTo);
-	virtual void				ValidateTos(void);
+			void				ValidatePointerTo(CEmbeddedObject* pcPointedTo);
+	virtual void				ValidatePointerTos(void);
 			void				ValidateBaseObjectDetail(void);
 
-	virtual int					NumTos(void) =0;
+	virtual int					NumPointerTos(void) =0;
 	virtual int					UnsafeNumEmbeddedObjectTos(void);
-	virtual void				GetTos(CArrayEmbeddedObjectPtr* papcTos) =0;
-	virtual void				UnsafeGetEmbeddedObjectTos(CArrayEmbeddedObjectPtr* papcTos);
-	virtual void				CollectAndClearTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters);
+	virtual void				GetPointerTos(CArrayEmbeddedObjectPtr* papcTos) =0;
+	virtual void				UnsafeGetEmbeddedObjectPointerTos(CArrayEmbeddedObjectPtr* papcTos);
+	virtual void				CollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters);
 	virtual int					CollectEmbeddedObjectDetachedFroms(CDistCalculatorParameters* pcParameters) =0;
 
 			BOOL				HasHeapFroms(void);
@@ -121,7 +121,7 @@ protected:
 	virtual void				GetHeapFroms(CArrayEmbeddedBaseObjectPtr* papcFroms);
 	virtual CStackPointers*		GetStackPointers(void) =0;
 	virtual CBaseObject*		GetClosestFromForCanFindRoot(void);
-	virtual void				UpdateAttachedEmbeddedObjectTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist) =0;
+	virtual void				UpdateAttachedEmbeddedObjectPointerTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist) =0;
 };
 
 

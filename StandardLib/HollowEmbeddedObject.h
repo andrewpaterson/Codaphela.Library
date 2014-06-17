@@ -12,11 +12,11 @@ public:
 	void				KillDontFree(void);
 	BOOL				Save(CObjectSerialiser* pcFile);
 	BOOL				Load(CObjectDeserialiser* pcFile);
-	void				RemoveTo(CEmbeddedObject* pcTo);
+	void				RemovePointerTo(CEmbeddedObject* pcTo);
 	int					GetDistToStack(void);
 	int					GetDistToRoot(void);
 	BOOL				SetDistToRoot(int iDistToRoot);
-	void				SetPointedTosExpectedDistToRoot(int iDistToRoot);
+	void				SetPointerTosExpectedDistToRoot(int iDistToRoot);
 	int					GetNumEmbedded(void);
 	CEmbeddedObject*	GetEmbeddedObject(int iIndex);
 	BOOL				IsHollow(void);
@@ -25,13 +25,13 @@ public:
 	CHollowObject*		GetHollowObject(void);
 	CObjects*			GetObjects(void);
 	CStackPointers*		GetStackPointers(void);
-	void				GetTos(CArrayEmbeddedObjectPtr* papcTos);
-	int					NumTos(void);
+	void				GetPointerTos(CArrayEmbeddedObjectPtr* papcTos);
+	int					NumPointerTos(void);
 	void				ValidateConsistency(void);
 	BOOL				IsInitialised(void);
 
 protected:
-	void				UpdateAttachedEmbeddedObjectTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist);
+	void				UpdateAttachedEmbeddedObjectPointerTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist);
 	int					CollectEmbeddedObjectDetachedFroms(CDistCalculatorParameters* pcParameters);
 };
 

@@ -49,16 +49,16 @@ public:
 
 	void					MakeSubRoot(void);
 	BOOL					IsSubRoot(void);
-	void					SetPointedTosExpectedDistToRoot(int iDistToRoot);
+	void					SetPointerTosExpectedDistToRoot(int iDistToRoot);
 
-	int						NumTos(void);
+	int						NumPointerTos(void);
 	int						UnsafeNumEmbeddedObjectTos(void);
-	void					GetTos(CArrayEmbeddedObjectPtr* papcTos);
-	void					UnsafeGetEmbeddedObjectTos(CArrayEmbeddedObjectPtr* papcTos);
-	BOOL					ContainsTo(CEmbeddedObject* pcEmbedded);
-	void					UnsafeRemoveAllTos(void);
-	void					RemoveAllTos(void);
-	void					CollectAndClearTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters);
+	void					GetPointerTos(CArrayEmbeddedObjectPtr* papcTos);
+	void					UnsafeGetEmbeddedObjectPointerTos(CArrayEmbeddedObjectPtr* papcTos);
+	BOOL					ContainsPointerTo(CEmbeddedObject* pcEmbedded);
+	void					UnsafeRemoveAllPointerTos(void);
+	void					RemoveAllPointerTos(void);
+	void					CollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters);
 
 	BOOL					Save(CObjectSerialiser* pcFile);
 	BOOL					Load(CObjectDeserialiser* pcFile);
@@ -67,20 +67,20 @@ public:
 	BOOL					UnsafeRemove(CBaseObject* pcObject);
 	CEmbeddedObject*		GetEmbeddedObject(int iIndex);
 
-	void					ValidateEmbeddedObjectTos(void);
-	void					ValidateTos(void);
+	void					ValidateEmbeddedObjectPointerTos(void);
+	void					ValidatePointerTos(void);
 	void					ValidateConsistency(void);
 
 protected:
 	void	KillInternalData(void);
 	void	KillData(void);
-	void	RemoveTo(CEmbeddedObject* pcTo);
-	void	UnsafeRemoveEmbeddedObjectAllTos(void);
-	void	RemoveEmbeddedObjectAllTos(void);
-	int		RemapTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew);
+	void	RemovePointerTo(CEmbeddedObject* pcTo);
+	void	UnsafeRemoveEmbeddedObjectAllPointerTos(void);
+	void	RemoveEmbeddedObjectAllPointerTos(void);
+	int		RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew);
 	void	SetPointedTosDistToRoot(int iDistToRoot);
 
-	void	UpdateAttachedEmbeddedObjectTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist);
+	void	UpdateAttachedEmbeddedObjectPointerTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist);
 	void	ClearEmbeddedObjectTosUpdatedTosFlags(void);
 };
 

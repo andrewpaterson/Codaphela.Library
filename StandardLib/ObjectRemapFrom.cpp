@@ -57,7 +57,7 @@ int CObjectRemapFrom::RemapEmbedded(CEmbeddedObject* pcNew, CEmbeddedObject* pcO
 	for (i = 0; i < iNumHeapFroms; i++)
 	{
 		pvFrom = pcOld->CEmbeddedObject::GetHeapFrom(i);
-		iCount += pvFrom->RemapTos(pcOld, pcNew);
+		iCount += pvFrom->RemapPointerTos(pcOld, pcNew);
 
 		if (pcNew->IsInitialised())
 		{
