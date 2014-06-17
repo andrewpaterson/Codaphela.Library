@@ -65,7 +65,7 @@ public:
 
 	CBaseObject*			UnsafeGet(int iIndex);
 	BOOL					UnsafeRemove(CBaseObject* pcObject);
-	CEmbeddedObject*		GetEmbeddedObject(int iIndex);
+	CEmbeddedObject*		GetEmbeddedObject(unsigned short int iIndex);
 
 	void					ValidateEmbeddedObjectPointerTos(void);
 	void					ValidatePointerTos(void);

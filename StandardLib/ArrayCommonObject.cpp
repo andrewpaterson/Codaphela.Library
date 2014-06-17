@@ -612,7 +612,7 @@ int CArrayCommonObject::RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject*
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CEmbeddedObject* CArrayCommonObject::GetEmbeddedObject(int iIndex)
+CEmbeddedObject* CArrayCommonObject::GetEmbeddedObject(unsigned short int iIndex)
 {
 	if (iIndex == 0)
 	{

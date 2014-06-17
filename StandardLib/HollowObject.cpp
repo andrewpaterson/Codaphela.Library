@@ -229,7 +229,7 @@ void CHollowObject::RemovePointerTo(CEmbeddedObject* pcTo)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CHollowObject::GetNumEmbedded(void)
+unsigned short int CHollowObject::GetNumEmbedded(void)
 {
 	return GetNumEmbeddedFromFlags();
 }
@@ -239,7 +239,7 @@ int CHollowObject::GetNumEmbedded(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CEmbeddedObject* CHollowObject::GetEmbeddedObject(int iIndex)
+CEmbeddedObject* CHollowObject::GetEmbeddedObject(unsigned short int iIndex)
 {
 	if (iIndex >= GetNumEmbeddedFromFlags())
 	{

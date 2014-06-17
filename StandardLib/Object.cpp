@@ -913,7 +913,7 @@ BOOL CObject::RecurseGetEmbeddedIndex(CEmbeddedObject* pcTest, int* piIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CObject::GetNumEmbedded(void)
+unsigned short int CObject::GetNumEmbedded(void)
 {
 	int				i;
 	CBaseObject*	pcEmbedded;
@@ -944,7 +944,7 @@ int CObject::GetNumEmbedded(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CEmbeddedObject* CObject::GetEmbeddedObject(int iIndex)
+CEmbeddedObject* CObject::GetEmbeddedObject(unsigned short int iIndex)
 {
 	int					iCount;
 	CEmbeddedObject*	pcReturned;

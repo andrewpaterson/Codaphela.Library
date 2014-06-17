@@ -98,10 +98,10 @@ BOOL CObjectSerialiser::WritePointer(CPointer& pObject)
 //////////////////////////////////////////////////////////////////////////
 BOOL CObjectSerialiser::WriteDependent(CEmbeddedObject* pcDependent)
 {
-	BOOL			bResult;
-	CBaseObject*	pcContainer;
-	unsigned short	iEmbeddedIndex;
-	unsigned short	iNumEmbedded;
+	BOOL				bResult;
+	CBaseObject*		pcContainer;
+	unsigned short int	iEmbeddedIndex;
+	unsigned short int	iNumEmbedded;
 
 	if (pcDependent)
 	{

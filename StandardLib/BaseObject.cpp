@@ -37,6 +37,9 @@ CBaseObject::CBaseObject()
 	miDistToStack = MIN_STACK_DIST_TO_STACK;
 	moi = INVALID_O_INDEX;
 	miFlags = OBJECT_FLAGS_DIRTY | OBJECT_FLAGS_CALLED_CONSTRUCTOR;
+	miNumEmbedded = 0;
+	miPreInits = 0;
+	miPostInits = 0;
 }
 
 
@@ -945,7 +948,7 @@ BOOL CBaseObject::IsBaseObject(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CBaseObject::GetNumEmbedded(void)
+unsigned short int CBaseObject::GetNumEmbedded(void)
 {
 	SetFlagNumEmbedded(1);
 	return 1;
@@ -956,12 +959,9 @@ int CBaseObject::GetNumEmbedded(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CBaseObject::GetNumEmbeddedFromFlags(void)
+unsigned short int CBaseObject::GetNumEmbeddedFromFlags(void)
 {
-	int	iNumEmbedded;
-
-	iNumEmbedded = (miFlags & OBJECT_FLAGS_NUM_EMBEDDED) >> OBJECT_FLAGS_NUM_EMBEDDED_SHIFT;
-	return iNumEmbedded;
+	return miNumEmbedded;
 }
 
 
@@ -971,9 +971,7 @@ int CBaseObject::GetNumEmbeddedFromFlags(void)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::SetFlagNumEmbedded(int iNumEmbedded)
 {
-	iNumEmbedded = iNumEmbedded << OBJECT_FLAGS_NUM_EMBEDDED_SHIFT;
-	miFlags &= ~OBJECT_FLAGS_NUM_EMBEDDED;
-	miFlags |= iNumEmbedded & OBJECT_FLAGS_NUM_EMBEDDED;
+	miNumEmbedded = (unsigned short int)iNumEmbedded;
 }
 
 
@@ -983,7 +981,7 @@ void CBaseObject::SetFlagNumEmbedded(int iNumEmbedded)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::ClearFlagNumEmbedded(void)
 {
-	miFlags &= ~OBJECT_FLAGS_NUM_EMBEDDED;
+	miNumEmbedded = 0;
 }
 
 
@@ -1354,7 +1352,7 @@ void CBaseObject::ValidateContainerFlag(void)
 
 	if (IsEmbedded())
 	{
-		iIgnoredFlags = (OBJECT_FLAGS_NUM_EMBEDDED | OBJECT_FLAGS_CALLED_INIT | OBJECT_FLAGS_CALLED_CLASS);
+		iIgnoredFlags = (OBJECT_FLAGS_CALLED_INIT | OBJECT_FLAGS_CALLED_CLASS);
 		iEmbeddedFlags = mpcEmbedded->miFlags & ~iIgnoredFlags;
 		iThisFlags = miFlags & ~iIgnoredFlags;
 		if ((iEmbeddedFlags) != (iThisFlags))

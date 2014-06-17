@@ -56,12 +56,6 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #define OBJECT_FLAGS_DIST_CALCULATOR_TOUCHED	0x4000
 #define OBJECT_FLAGS_DIST_FROM_WALKED			0x8000
 
-
-//How man embedded objects are in the object.  If you have more than 255 then you need your head smacked.
-#define OBJECT_FLAGS_NUM_EMBEDDED			0x00FF0000
-#define OBJECT_FLAGS_NUM_EMBEDDED_SHIFT				16
-
-
 class CObjectDeserialiser;
 class CObjectSerialiser;
 class CObjects;
@@ -79,11 +73,14 @@ friend class CEmbeddedObject;
 
 BASE_FUNCTIONS(CBaseObject);
 protected:
-	OIndex		moi;
-	CObjects*	mpcObjectsThisIn;
-	int			miDistToRoot;
-	int			miDistToStack;
-	int			miFlags;
+	OIndex				moi;
+	CObjects*			mpcObjectsThisIn;
+	int					miDistToRoot;
+	int					miDistToStack;
+	unsigned short int	miFlags;
+	unsigned short int  miNumEmbedded;
+	unsigned short int	miPreInits;
+	unsigned short int	miPostInits;
 
 public:
 								CBaseObject();
@@ -121,7 +118,7 @@ public:
 	virtual void				SetName(char* szName);
 			int					SerialisedSize(void);
 
-			int					GetNumEmbedded(void);
+			unsigned short int	GetNumEmbedded(void);
 
 	virtual void				SetPointerTosExpectedDistToRoot(int iDistToRoot) =0;
 			void				SetDirty(void);
@@ -149,7 +146,7 @@ public:
 
 	virtual BOOL				ContainsPointerTo(CEmbeddedObject* pcEmbedded);
 			CEmbeddedObject* 	TestGetPointerTo(int iToIndex);
-			int					TestGetNumEmbeddedFromFlags(void);
+			int 				TestGetNumEmbeddedFromFlags(void);
 			void				ClearFlagNumEmbedded(void);
 	virtual void				SetFlag(int iFlag, int iFlagValue);
 			int					GetFlags(void);
@@ -185,7 +182,7 @@ protected:
 	virtual int					CalculateDistToRootFromPointedFroms(int iDistToRoot);
 			void				CollectThoseToBeKilled(CArrayBaseObjectPtr* papcKilled);
 			BOOL				IsBaseObject(void);
-			int					GetNumEmbeddedFromFlags(void);
+			unsigned short int	GetNumEmbeddedFromFlags(void);
 			void				SetFlagNumEmbedded(int iNumEmbedded);
 			BOOL				IsMarkedUnreachable(void);
 			void				ReplaceOneWithX(char* szDest, char* szMask);
