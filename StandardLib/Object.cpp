@@ -648,6 +648,46 @@ void CObject::UnsafeRemoveAllTos(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CObject::RemoveEmbeddedObjectAllTos(void)
+{
+	int					iNumPointers;
+	int					i;
+	CPointer**			ppPointer;
+
+	iNumPointers = mapPointers.NumElements();
+	for (i = 0; i < iNumPointers; i++)
+	{
+		ppPointer = mapPointers.Get(i);
+		(*ppPointer)->PointTo(NULL, TRUE);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CObject::RemoveAllTos(void)
+{
+	int				i;
+	int				iNumEmbedded;
+	CBaseObject*	pcEmbedded;
+
+	RemoveEmbeddedObjectAllTos();
+
+	iNumEmbedded = mapEmbedded.NumElements();
+	for (i = 0; i < iNumEmbedded; i++)
+	{
+		pcEmbedded = *mapEmbedded.Get(i);
+		pcEmbedded->RemoveAllTos();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CObject::UpdateAttachedEmbeddedObjectTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist)
 {
 	int					i;

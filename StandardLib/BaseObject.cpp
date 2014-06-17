@@ -138,7 +138,7 @@ void CBaseObject::Kill(BOOL bHeapFromChanged)
 	}
 	else
 	{
-//		UnsafeRemoveAllTos();
+		RemoveAllTos();
 
 		RemoveAllStackFroms();
 		RemoveAllHeapFroms();

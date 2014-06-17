@@ -77,7 +77,9 @@ protected:
 	void				KillInternalData(void);
 	void				RemoveTo(CEmbeddedObject* pcTo);
 	void				UnsafeRemoveAllTos(void);
+	void				RemoveAllTos(void);
 	void				UnsafeRemoveEmbeddedObjectAllTos(void);
+	void				RemoveEmbeddedObjectAllTos(void);
 	void				RemoveAllHeapFroms(void);
 	void				RemoveAllStackFroms(void);
 	CBaseObject*		GetClosestFromForCanFindRoot(void);

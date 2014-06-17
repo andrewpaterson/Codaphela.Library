@@ -47,6 +47,7 @@ public:
 			int					NumHeapFroms(void);
 			int					NumStackFroms(void);
 			void				UnsafeRemoveAllTos(void);
+			void				RemoveAllTos(void);
 			void				ValidateEmbeddedObjectTos(void);
 			void				ValidateConsistency(void);
 

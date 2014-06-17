@@ -130,6 +130,7 @@ public:
 	virtual BOOL				SetDistToRoot(int iDistToRoot);
 			BOOL				TestedForRoot(void);
 	virtual void				UnsafeRemoveAllTos(void) =0;
+	virtual void				RemoveAllTos(void) =0;
 			void				UpdateAttachedTosDistToRoot(CDistCalculatorParameters* pcParameters);
 			void				CollectValidDistStartingObjectsAndSetClearedToRoot(CBaseObject* pcTo, CDistCalculatorParameters* pcParameters);
 			void				CollectAndClearInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters);
