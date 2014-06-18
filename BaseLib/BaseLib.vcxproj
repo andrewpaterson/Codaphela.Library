@@ -113,6 +113,7 @@
     <ClInclude Include="LinkListTemplateFreeList.h" />
     <ClInclude Include="LinkListTemplateMemoryStack.h" />
     <ClInclude Include="Log.h" />
+    <ClInclude Include="LogConfig.h" />
     <ClInclude Include="LogString.h" />
     <ClInclude Include="MemoryCacheAllocation.h" />
     <ClInclude Include="MemoryHeader.h" />
