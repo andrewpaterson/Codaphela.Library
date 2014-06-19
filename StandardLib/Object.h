@@ -87,6 +87,7 @@ protected:
 	CBaseObject*		GetClosestFromForCanFindRoot(void);
 	int					RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew);
 	void				UpdateAttachedEmbeddedObjectPointerTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist);
+	void				BaseUpdateAttachedEmbeddedObjectPointerTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist);
 	int					CalculateDistToRootFromPointedFroms(int iDistToRoot);
 	void				SetPointedTosDistToRoot(int iDistToRoot);
 	BOOL				SetDistToRoot(int iDistToRoot);

@@ -689,16 +689,13 @@ void CObject::RemoveAllPointerTos(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObject::UpdateAttachedEmbeddedObjectPointerTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist)
+void CObject::BaseUpdateAttachedEmbeddedObjectPointerTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist)
 {
 	int					i;
-	int					iNumEmbedded;
-	CBaseObject*		pcEmbedded;
 	int					iNumPointers;
 	CPointer**			ppPointer;
 	CEmbeddedObject*	pcPointedTo;
 
-	//This should become a mthod.
 	iNumPointers = mapPointers.NumElements();
 	for (i = 0; i < iNumPointers; i++)
 	{
@@ -706,6 +703,20 @@ void CObject::UpdateAttachedEmbeddedObjectPointerTosDistToRoot(CDistCalculatorPa
 		pcPointedTo = (*ppPointer)->Object();
 		AddExpectedDistToRoot(pcPointedTo, iExpectedDist+1, pcParameters);
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CObject::UpdateAttachedEmbeddedObjectPointerTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist)
+{
+	int					i;
+	int					iNumEmbedded;
+	CBaseObject*		pcEmbedded;
+
+	BaseUpdateAttachedEmbeddedObjectPointerTosDistToRoot(pcParameters, iExpectedDist);
 
 	iNumEmbedded = mapEmbedded.NumElements();
 	for (i = 0; i < iNumEmbedded; i++)
