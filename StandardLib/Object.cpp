@@ -134,13 +134,14 @@ int CObject::NumPointerTos(void)
 	CBaseObject*		pcEmbedded;
 	int					iCount;
 
+	//This should be renamed.
 	iCount = UnsafeNumEmbeddedObjectTos();
 
 	iNumEmbedded = mapEmbedded.NumElements();
 	for (i = 0; i < iNumEmbedded; i++)
 	{
 		pcEmbedded = *mapEmbedded.Get(i);
-		iCount += pcEmbedded->UnsafeNumEmbeddedObjectTos();
+		iCount += pcEmbedded->NumPointerTos();
 	}
 
 	return iCount;
@@ -532,6 +533,7 @@ void CObject::CollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculatorP
 	int					iNumEmbedded;
 	CEmbeddedObject*	pcEmbedded;
 
+	//This should be a method.
 	iNumPointers = mapPointers.NumElements();
 	for (i = 0; i < iNumPointers; i++)
 	{
@@ -633,6 +635,7 @@ void CObject::UnsafeRemoveAllPointerTos(void)
 	int				iNumEmbedded;
 	CBaseObject*	pcEmbedded;
 
+	//This should be renamed to UnsafeUnsafeRemoveAllPointerTos.  Ha.
 	UnsafeRemoveEmbeddedObjectAllPointerTos();
 
 	iNumEmbedded = mapEmbedded.NumElements();
@@ -673,6 +676,7 @@ void CObject::RemoveAllPointerTos(void)
 	int				iNumEmbedded;
 	CBaseObject*	pcEmbedded;
 
+	//This should be renamed to UnsafeRemoveAllPointerTos.  Except it already exists.
 	RemoveEmbeddedObjectAllPointerTos();
 
 	iNumEmbedded = mapEmbedded.NumElements();
@@ -697,6 +701,7 @@ void CObject::UpdateAttachedEmbeddedObjectPointerTosDistToRoot(CDistCalculatorPa
 	CPointer**			ppPointer;
 	CEmbeddedObject*	pcPointedTo;
 
+	//This should become a mthod.
 	iNumPointers = mapPointers.NumElements();
 	for (i = 0; i < iNumPointers; i++)
 	{
@@ -1295,6 +1300,7 @@ void CObject::ValidatePointerTos(void)
 	int				iNumEmbedded;
 	CBaseObject*	pcEmbedded;
 
+	//This should be renamed.
 	ValidateEmbeddedObjectPointerTos();
 
 	iNumEmbedded = mapEmbedded.NumElements();
