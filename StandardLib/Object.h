@@ -60,10 +60,10 @@ public:
 	int					NumPointerTos(void);
 	int					BaseNumPointerTos(void);
 	void				GetPointerTos(CArrayEmbeddedObjectPtr* papcTos);
+	void				BaseGetPointerTos(CArrayEmbeddedObjectPtr* papcTos);
 	BOOL				ContainsPointerTo(CEmbeddedObject* pcEmbedded);
 	void				CollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters);
 	int					CollectDetachedFroms(CDistCalculatorParameters* pcParameters);
-	void				BaseGetPointerTos(CArrayEmbeddedObjectPtr* papcTos);
 
 	int					GetFieldPointerToIndex(CPointer* pcFieldPointer);
 	BOOL				RecurseGetFieldPointerToIndex(CPointer* pcTest, int* piIndex);
@@ -78,10 +78,10 @@ protected:
 	void				KillDontFree(void);
 	void				KillInternalData(void);
 	void				RemovePointerTo(CEmbeddedObject* pcTo);
-	void				UnsafeRemoveAllPointerTos(void);
+	void				RemoveAllPointerTosDontKill(void);
 	void				RemoveAllPointerTos(void);
-	void				UnsafeRemoveEmbeddedObjectAllPointerTos(void);
-	void				RemoveEmbeddedObjectAllPointerTos(void);
+	void				BaseRemoveAllPointerTosDontKill(void);
+	void				BaseRemoveAllPointerTos(void);
 	void				RemoveAllHeapFroms(void);
 	void				RemoveAllStackFroms(void);
 	CBaseObject*		GetClosestFromForCanFindRoot(void);

@@ -166,7 +166,7 @@ int CHollowObject::RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNe
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHollowObject::UnsafeRemoveAllPointerTos(void)
+void CHollowObject::RemoveAllPointerTosDontKill(void)
 {
 }
 
@@ -193,7 +193,7 @@ void CHollowObject::UpdateAttachedEmbeddedObjectPointerTosDistToRoot(CDistCalcul
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHollowObject::UnsafeRemoveEmbeddedObjectAllPointerTos(void)
+void CHollowObject::BaseRemoveAllPointerTosDontKill(void)
 {
 }
 

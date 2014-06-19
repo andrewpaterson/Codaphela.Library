@@ -56,7 +56,7 @@ public:
 	void					GetPointerTos(CArrayEmbeddedObjectPtr* papcTos);
 	void					BaseGetPointerTos(CArrayEmbeddedObjectPtr* papcTos);
 	BOOL					ContainsPointerTo(CEmbeddedObject* pcEmbedded);
-	void					UnsafeRemoveAllPointerTos(void);
+	void					RemoveAllPointerTosDontKill(void);
 	void					RemoveAllPointerTos(void);
 	void					CollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters);
 
@@ -75,8 +75,8 @@ protected:
 	void	KillInternalData(void);
 	void	KillData(void);
 	void	RemovePointerTo(CEmbeddedObject* pcTo);
-	void	UnsafeRemoveEmbeddedObjectAllPointerTos(void);
-	void	RemoveEmbeddedObjectAllPointerTos(void);
+	void	BaseRemoveAllPointerTosDontKill(void);
+	void	BaseRemoveAllPointerTos(void);
 	int		RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew);
 	void	SetPointedTosDistToRoot(int iDistToRoot);
 

@@ -324,9 +324,9 @@ int CArrayCommonObject::BaseNumPointerTos(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayCommonObject::UnsafeRemoveAllPointerTos(void)
+void CArrayCommonObject::RemoveAllPointerTosDontKill(void)
 {
-	UnsafeRemoveEmbeddedObjectAllPointerTos();
+	BaseRemoveAllPointerTosDontKill();
 }
 
 
@@ -336,7 +336,7 @@ void CArrayCommonObject::UnsafeRemoveAllPointerTos(void)
 //////////////////////////////////////////////////////////////////////////
 void CArrayCommonObject::RemoveAllPointerTos(void)
 {
-	RemoveEmbeddedObjectAllPointerTos();
+	BaseRemoveAllPointerTos();
 }
 
 
@@ -363,7 +363,7 @@ void CArrayCommonObject::UpdateAttachedEmbeddedObjectPointerTosDistToRoot(CDistC
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayCommonObject::UnsafeRemoveEmbeddedObjectAllPointerTos(void)
+void CArrayCommonObject::BaseRemoveAllPointerTosDontKill(void)
 {
 	CBaseObject*			pcPointedTo;
 	int						i;
@@ -384,7 +384,7 @@ void CArrayCommonObject::UnsafeRemoveEmbeddedObjectAllPointerTos(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayCommonObject::RemoveEmbeddedObjectAllPointerTos(void)
+void CArrayCommonObject::BaseRemoveAllPointerTos(void)
 {
 	CBaseObject*			pcPointedTo;
 	int						i;
