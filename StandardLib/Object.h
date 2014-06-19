@@ -93,7 +93,7 @@ protected:
 	void				SetDistToStack(int iDistToStack);
 	BOOL				RecurseGetEmbeddedIndex(CEmbeddedObject* pcTest, int* piIndex);
 	CEmbeddedObject*	RecurseGetEmbeddedObject(int iIndex, int* iCount);
-	void				ValidateEmbeddedObjectPointerTos(void);
+	void				BaseValidatePointerTos(void);
 	void				ValidateEmbeddedConsistency(void);
 	BOOL				IsDistToRootValid(void);
 };

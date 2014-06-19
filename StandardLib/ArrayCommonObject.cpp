@@ -627,7 +627,7 @@ CEmbeddedObject* CArrayCommonObject::GetEmbeddedObject(unsigned short int iIndex
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayCommonObject::ValidateEmbeddedObjectPointerTos(void)
+void CArrayCommonObject::BaseValidatePointerTos(void)
 {
 	ValidatePointerTos();
 }

@@ -344,7 +344,7 @@ int CHollowObject::NumStackFroms(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHollowObject::ValidateEmbeddedObjectPointerTos(void)
+void CHollowObject::BaseValidatePointerTos(void)
 {
 }
 

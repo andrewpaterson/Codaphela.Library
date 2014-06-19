@@ -168,7 +168,7 @@ public:
 			void				ValidateIndex(void);
 			void				ValidateObjectsThisIn(void);
 			void				ValidateCanFindRoot(void);
-	virtual void				ValidateEmbeddedObjectPointerTos(void) =0;
+	virtual void				BaseValidatePointerTos(void) =0;
 	virtual void				ValidateEmbeddedConsistency(void);
 	virtual void				ValidateObjectIdentifiers(void);
 			void				ValidateBaseObjectDetail(void);

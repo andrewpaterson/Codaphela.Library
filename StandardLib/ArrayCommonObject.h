@@ -67,7 +67,7 @@ public:
 	BOOL					UnsafeRemove(CBaseObject* pcObject);
 	CEmbeddedObject*		GetEmbeddedObject(unsigned short int iIndex);
 
-	void					ValidateEmbeddedObjectPointerTos(void);
+	void					BaseValidatePointerTos(void);
 	void					ValidatePointerTos(void);
 	void					ValidateConsistency(void);
 

@@ -48,7 +48,7 @@ public:
 			int					NumStackFroms(void);
 			void				RemoveAllPointerTosDontKill(void);
 			void				RemoveAllPointerTos(void);
-			void				ValidateEmbeddedObjectPointerTos(void);
+			void				BaseValidatePointerTos(void);
 			void				ValidateConsistency(void);
 
 protected:

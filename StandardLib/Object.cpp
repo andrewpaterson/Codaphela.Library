@@ -1269,7 +1269,7 @@ BOOL CObject::IsDistToRootValid(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObject::ValidateEmbeddedObjectPointerTos(void)
+void CObject::BaseValidatePointerTos(void)
 {
 	int					i;
 	CEmbeddedObject*	pcPointedTo;
@@ -1297,14 +1297,13 @@ void CObject::ValidatePointerTos(void)
 	int				iNumEmbedded;
 	CBaseObject*	pcEmbedded;
 
-	//This should be renamed.
-	ValidateEmbeddedObjectPointerTos();
+	BaseValidatePointerTos();
 
 	iNumEmbedded = mapEmbedded.NumElements();
 	for (i = 0; i < iNumEmbedded; i++)
 	{
 		pcEmbedded = *mapEmbedded.Get(i);
-		pcEmbedded->ValidateEmbeddedObjectPointerTos();
+		pcEmbedded->BaseValidatePointerTos();
 	}
 }
 
