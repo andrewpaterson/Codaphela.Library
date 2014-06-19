@@ -67,10 +67,8 @@ public:
 	int					CollectDetachedFroms(CDistCalculatorParameters* pcParameters);
 
 	int					GetFieldPointerToIndex(CPointer* pcFieldPointer);
-	BOOL				RecurseGetFieldPointerToIndex(CPointer* pcTest, int* piIndex);
 	int					GetNumFieldPointerTos(void);
 	CPointer*			GetFieldPointerTo(int iIndex);
-	CPointer*			RecurseGetFieldPointerTo(int iIndex, int* piCount);
 
 	void				ValidatePointerTos(void);
 	void				ValidateConsistency(void);
@@ -95,6 +93,8 @@ protected:
 	void				SetDistToStack(int iDistToStack);
 	BOOL				RecurseGetEmbeddedIndex(CEmbeddedObject* pcTest, int* piIndex);
 	CEmbeddedObject*	RecurseGetEmbeddedObject(int iIndex, int* iCount);
+	BOOL				RecurseGetFieldPointerToIndex(CPointer* pcTest, int* piIndex);
+	CPointer*			RecurseGetFieldPointerTo(int iIndex, int* piCount);
 	void				BaseValidatePointerTos(void);
 	void				ValidateEmbeddedConsistency(void);
 	BOOL				IsDistToRootValid(void);
