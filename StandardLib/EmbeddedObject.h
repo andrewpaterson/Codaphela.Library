@@ -78,7 +78,7 @@ public:
 			void				ValidateBaseObjectDetail(void);
 
 	virtual int					NumPointerTos(void) =0;
-	virtual int					UnsafeNumEmbeddedObjectTos(void);
+	virtual int					BaseNumPointerTos(void);
 	virtual void				GetPointerTos(CArrayEmbeddedObjectPtr* papcTos) =0;
 	virtual void				UnsafeGetEmbeddedObjectPointerTos(CArrayEmbeddedObjectPtr* papcTos);
 	virtual void				CollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters);

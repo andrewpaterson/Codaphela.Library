@@ -58,7 +58,7 @@ public:
 	CBaseObject*		GetClosestFromToRoot(void);
 	CBaseObject*		GetClosestFromToStack(void);
 	int					NumPointerTos(void);
-	int					UnsafeNumEmbeddedObjectTos(void);
+	int					BaseNumPointerTos(void);
 	void				GetPointerTos(CArrayEmbeddedObjectPtr* papcTos);
 	BOOL				ContainsPointerTo(CEmbeddedObject* pcEmbedded);
 	void				CollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters);

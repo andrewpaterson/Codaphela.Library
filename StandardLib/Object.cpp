@@ -102,7 +102,7 @@ void CObject::KillDontFree(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CObject::UnsafeNumEmbeddedObjectTos(void)
+int CObject::BaseNumPointerTos(void)
 {
 	int					i;
 	CEmbeddedObject*	pcPointedTo;
@@ -135,7 +135,7 @@ int CObject::NumPointerTos(void)
 	int					iCount;
 
 	//This should be renamed.
-	iCount = UnsafeNumEmbeddedObjectTos();
+	iCount = BaseNumPointerTos();
 
 	iNumEmbedded = mapEmbedded.NumElements();
 	for (i = 0; i < iNumEmbedded; i++)

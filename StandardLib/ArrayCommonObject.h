@@ -52,7 +52,7 @@ public:
 	void					SetPointerTosExpectedDistToRoot(int iDistToRoot);
 
 	int						NumPointerTos(void);
-	int						UnsafeNumEmbeddedObjectTos(void);
+	int						BaseNumPointerTos(void);
 	void					GetPointerTos(CArrayEmbeddedObjectPtr* papcTos);
 	void					UnsafeGetEmbeddedObjectPointerTos(CArrayEmbeddedObjectPtr* papcTos);
 	BOOL					ContainsPointerTo(CEmbeddedObject* pcEmbedded);

@@ -183,7 +183,7 @@ int CEmbeddedObject::GetEmbeddedIndex(CEmbeddedObject* pcEmbedded)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CEmbeddedObject::UnsafeNumEmbeddedObjectTos(void)
+int CEmbeddedObject::BaseNumPointerTos(void)
 {
 	return 0;
 }
