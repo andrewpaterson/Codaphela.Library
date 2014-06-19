@@ -517,22 +517,18 @@ BOOL CObject::ContainsPointerTo(CEmbeddedObject* pcEmbedded)
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObject::CollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters)
+void CObject::BaseCollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters)
 {
 	int					iNumPointers;
 	int					i;
 	CPointer**			ppPointer;
 	CEmbeddedObject*	pcPointedTo;
 	CBaseObject*		pcContainer;
-	int					iNumEmbedded;
-	CEmbeddedObject*	pcEmbedded;
 
-	//This should be a method.
 	iNumPointers = mapPointers.NumElements();
 	for (i = 0; i < iNumPointers; i++)
 	{
@@ -544,6 +540,20 @@ void CObject::CollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculatorP
 			pcContainer->CollectAndClearInvalidDistToRootObjects(pcParameters);
 		}
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CObject::CollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters)
+{
+	int					i;
+	int					iNumEmbedded;
+	CEmbeddedObject*	pcEmbedded;
+
+	BaseCollectAndClearPointerTosInvalidDistToRootObjects(pcParameters);
 
 	iNumEmbedded = mapEmbedded.NumElements();
 	for (i = 0; i < iNumEmbedded; i++)

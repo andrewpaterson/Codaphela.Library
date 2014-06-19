@@ -63,6 +63,7 @@ public:
 	void				BaseGetPointerTos(CArrayEmbeddedObjectPtr* papcTos);
 	BOOL				ContainsPointerTo(CEmbeddedObject* pcEmbedded);
 	void				CollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters);
+	void				BaseCollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters);
 	int					CollectDetachedFroms(CDistCalculatorParameters* pcParameters);
 
 	int					GetFieldPointerToIndex(CPointer* pcFieldPointer);
