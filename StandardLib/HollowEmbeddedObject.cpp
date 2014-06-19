@@ -223,7 +223,7 @@ void CHollowEmbeddedObject::UpdateAttachedEmbeddedObjectPointerTosDistToRoot(CDi
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CHollowEmbeddedObject::CollectEmbeddedObjectDetachedFroms(CDistCalculatorParameters* pcParameters)
+int CHollowEmbeddedObject::CollectDetachedFroms(CDistCalculatorParameters* pcParameters)
 {
 	return 0;
 }

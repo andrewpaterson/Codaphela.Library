@@ -321,7 +321,7 @@ void CBaseObject::CollectAndClearInvalidDistToRootObjects(CDistCalculatorParamet
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CBaseObject::CollectDetachedFroms(CDistCalculatorParameters* pcParameters)
+int CBaseObject::CollectDetachedAndSetDistToStackZero(CDistCalculatorParameters* pcParameters)
 {
 	ValidateNotEmbedded(__METHOD__);
 
@@ -358,7 +358,7 @@ int CBaseObject::CollectDetachedFroms(CDistCalculatorParameters* pcParameters)
 
 	SetFlag(OBJECT_FLAGS_DIST_FROM_WALKED, TRUE);
 
-	iNumWithStackPointers += CollectEmbeddedObjectDetachedFroms(pcParameters);
+	iNumWithStackPointers += CollectDetachedFroms(pcParameters);
 	return iNumWithStackPointers;
 }
 
@@ -368,7 +368,7 @@ int CBaseObject::CollectDetachedFroms(CDistCalculatorParameters* pcParameters)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CBaseObject::CollectEmbeddedObjectDetachedFroms(CDistCalculatorParameters* pcParameters)
+int CBaseObject::CollectDetachedFroms(CDistCalculatorParameters* pcParameters)
 {
 	int					i;
 	int					iNumFroms;
@@ -383,7 +383,7 @@ int CBaseObject::CollectEmbeddedObjectDetachedFroms(CDistCalculatorParameters* p
 		pcEmbedded = *mapHeapFroms.Get(i);
 		pcBaseObject = pcEmbedded->GetEmbeddingContainer();
 
-		iNumWithStackPointers += pcBaseObject->CollectDetachedFroms(pcParameters);
+		iNumWithStackPointers += pcBaseObject->CollectDetachedAndSetDistToStackZero(pcParameters);
 	}
 
 	return iNumWithStackPointers;

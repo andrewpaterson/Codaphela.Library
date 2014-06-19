@@ -135,8 +135,8 @@ public:
 			void				CollectValidDistStartingObjectsAndSetClearedToRoot(CBaseObject* pcTo, CDistCalculatorParameters* pcParameters);
 			void				CollectAndClearInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters);
 	virtual BOOL				IsDistToRootValid(void);
+			int					CollectDetachedAndSetDistToStackZero(CDistCalculatorParameters* pcParameters);
 			int					CollectDetachedFroms(CDistCalculatorParameters* pcParameters);
-			int					CollectEmbeddedObjectDetachedFroms(CDistCalculatorParameters* pcParameters);
 
 			void				AddExpectedDistToRoot(CEmbeddedObject* pcPointedTo, int iExpectedDist, CDistCalculatorParameters* pcParameters);
 			void				ClearDistTouchedFlags(void);

@@ -82,7 +82,7 @@ public:
 	virtual void				GetPointerTos(CArrayEmbeddedObjectPtr* papcTos) =0;
 	virtual void				UnsafeGetEmbeddedObjectPointerTos(CArrayEmbeddedObjectPtr* papcTos);
 	virtual void				CollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters);
-	virtual int					CollectEmbeddedObjectDetachedFroms(CDistCalculatorParameters* pcParameters) =0;
+	virtual int					CollectDetachedFroms(CDistCalculatorParameters* pcParameters) =0;
 
 			BOOL				HasHeapFroms(void);
 			void				AddHeapFrom(CBaseObject* pcFromObject, BOOL bValidate);

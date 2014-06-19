@@ -134,7 +134,6 @@ int CObject::NumPointerTos(void)
 	CBaseObject*		pcEmbedded;
 	int					iCount;
 
-	//This should be renamed.
 	iCount = BaseNumPointerTos();
 
 	iNumEmbedded = mapEmbedded.NumElements();
@@ -559,20 +558,20 @@ void CObject::CollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculatorP
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CObject::CollectEmbeddedObjectDetachedFroms(CDistCalculatorParameters* pcParameters)
+int CObject::CollectDetachedFroms(CDistCalculatorParameters* pcParameters)
 {
 	int					iNumEmbedded;
 	int					i;
 	CEmbeddedObject*	pcEmbedded;
 	int					iNumWithStackPointers;
 
-	iNumWithStackPointers = CBaseObject::CollectEmbeddedObjectDetachedFroms(pcParameters);
+	iNumWithStackPointers = CBaseObject::CollectDetachedFroms(pcParameters);
 
 	iNumEmbedded = mapEmbedded.NumElements();
 	for (i = 0; i < iNumEmbedded; i++)
 	{
 		pcEmbedded = *mapEmbedded.Get(i);
-		iNumWithStackPointers += pcEmbedded->CollectEmbeddedObjectDetachedFroms(pcParameters);
+		iNumWithStackPointers += pcEmbedded->CollectDetachedFroms(pcParameters);
 	}
 
 	return iNumWithStackPointers;
