@@ -337,7 +337,7 @@ void CObjects::RecurseDumpGraph(CChars* psz, CEmbeddedObject* pcIncoming, int iL
 
 
 	apcTos.Init();
-	pcBaseObject->UnsafeGetEmbeddedObjectPointerTos(&apcTos);
+	pcBaseObject->BaseGetPointerTos(&apcTos);
 	for (i = 0; i < apcTos.NumElements(); i++)
 	{
 		pcToObject = *apcTos.Get(i);

@@ -477,7 +477,7 @@ void CObject::GetPointerTos(CArrayEmbeddedObjectPtr* papcTos)
 	int				iNumEmbedded;
 	CBaseObject*	pcEmbedded;
 
-	UnsafeGetEmbeddedObjectPointerTos(papcTos);
+	BaseGetPointerTos(papcTos);
 
 	iNumEmbedded = mapEmbedded.NumElements();
 	for (i = 0; i < iNumEmbedded; i++)
@@ -582,7 +582,7 @@ int CObject::CollectDetachedFroms(CDistCalculatorParameters* pcParameters)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObject::UnsafeGetEmbeddedObjectPointerTos(CArrayEmbeddedObjectPtr* papcTos)
+void CObject::BaseGetPointerTos(CArrayEmbeddedObjectPtr* papcTos)
 {
 	int					iNumPointers;
 	int					i;

@@ -193,7 +193,7 @@ int CEmbeddedObject::BaseNumPointerTos(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CEmbeddedObject::UnsafeGetEmbeddedObjectPointerTos(CArrayEmbeddedObjectPtr* papcTos)
+void CEmbeddedObject::BaseGetPointerTos(CArrayEmbeddedObjectPtr* papcTos)
 {
 }
 

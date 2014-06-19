@@ -1245,7 +1245,7 @@ void CBaseObject::DumpPointerTos(void)
 	{
 		pcEmbedded = GetEmbeddedObject(i);
 		acTos.Init();
-		pcEmbedded->UnsafeGetEmbeddedObjectPointerTos(&acTos);
+		pcEmbedded->BaseGetPointerTos(&acTos);
 		iNumTos = acTos.NumElements();
 		sz.Append("Embedded ");
 		sz.Append(i);

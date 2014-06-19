@@ -80,7 +80,7 @@ public:
 	virtual int					NumPointerTos(void) =0;
 	virtual int					BaseNumPointerTos(void);
 	virtual void				GetPointerTos(CArrayEmbeddedObjectPtr* papcTos) =0;
-	virtual void				UnsafeGetEmbeddedObjectPointerTos(CArrayEmbeddedObjectPtr* papcTos);
+	virtual void				BaseGetPointerTos(CArrayEmbeddedObjectPtr* papcTos);
 	virtual void				CollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters);
 	virtual int					CollectDetachedFroms(CDistCalculatorParameters* pcParameters) =0;
 
