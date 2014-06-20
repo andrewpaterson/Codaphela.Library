@@ -172,13 +172,13 @@ void CBaseObject::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::Kill(BOOL bHeapFromChanged)
 {
+	ValidateNotEmbedded(__METHOD__);
+
 	CDistCalculator			cDistCalculator;
 	CArrayBaseObjectPtr*	papcKilled;
 
 	//This method is for the user to forcibly kill an object.
 	//It is not called internally.
-
-	ValidateNotEmbedded(__METHOD__);
 
 	if (IsAllocatedInObjects())
 	{
@@ -197,6 +197,8 @@ void CBaseObject::Kill(BOOL bHeapFromChanged)
 
 		RemoveAllStackFroms();
 		RemoveAllHeapFroms();
+
+		KillDontFree();
 	}
 }
 
