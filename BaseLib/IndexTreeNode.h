@@ -7,19 +7,36 @@
 class CIndexTreeNode
 {
 protected:
-	CIndexTreeNode*		mapbChildren[MAX_UCHAR];
 	void*				mpvObject;
+	CIndexTreeNode*		mpcParent;
+	unsigned char		muiFirstIndex;
+	unsigned char		muiLastIndex;
+	unsigned char		muiUnused;
+	unsigned char		muiEmpty;
+	CIndexTreeNode*		mapcChildren[1];  //The rest are allocated after the end of the object, up to MAX_UCHAR.
 
 public:
-	void				Init(void);
-	CIndexTreeNode*		Get(int iIndex);
+	void				Init(CIndexTreeNode* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex);
+	void				Init(CIndexTreeNode* pcParent, void* pvObject);
+	void				Init(CIndexTreeNode* pcParent);
+	void				Contain(unsigned char uiIndex);
+	CIndexTreeNode*		Get(unsigned char uiIndex);
 	void*				GetObject(void);
-	void				Set(int iIndex, CIndexTreeNode* pcNode);
-	void				Clear(int iIndex);
+	void				Set(unsigned char uiIndex, CIndexTreeNode* pcNode);
+	void				Clear(unsigned char uiIndex);
 	BOOL				SetObject(void* pvObject);
 	void				ClearObject(void);
 	BOOL				IsEmpty(void);
-	int					GetEndIndex(void);
+	unsigned char		GetFirstIndex(void);
+	unsigned char		GetLastIndex(void);
+	BOOL				HasNodes(void);
+	BOOL				ContainsIndex(unsigned char uiIndex);
+	int					GetAdditionalIndexes(unsigned char uiIndex);
+	int					GetNumIndexes(void);
+	CIndexTreeNode*		GetNode(int i);
+	CIndexTreeNode*		GetParent(void);
+	void				RemapChildNodes(CIndexTreeNode* pcOldNode, CIndexTreeNode* pcNewNode);
+	void				SetChildsParent(void);
 };
 
 

@@ -1,3 +1,4 @@
+#include "Numbers.h"
 #include "IndexTree.h"
 
 
@@ -7,7 +8,7 @@
 //////////////////////////////////////////////////////////////////////////
 void CIndexTree::Init(void)
 {
-	mpRoot = AllocateNode();
+	mpcRoot = AllocateRoot();
 	miSize = 0;
 	miModifications = 0;
 }
@@ -19,7 +20,6 @@ void CIndexTree::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CIndexTree::Kill(void)
 {
-
 }
 
 
@@ -34,9 +34,9 @@ void CIndexTree::RecurseKill(CIndexTreeNode* pcNode)
 
 	if (pcNode != NULL)
 	{
-		for (i = 0; i < pcNode->GetEndIndex(); i++)
+		for (i = 0; i < pcNode->GetNumIndexes(); i++)
 		{
-			pcChild = pcNode->Get(i);
+			pcChild = pcNode->GetNode(i);
 			RecurseKill(pcChild);
 		}
 		FreeNode(pcNode);
@@ -48,12 +48,69 @@ void CIndexTree::RecurseKill(CIndexTreeNode* pcNode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTreeNode* CIndexTree::AllocateNode(void)
+CIndexTreeNode* CIndexTree::AllocateNode(CIndexTreeNode* pcParent)
 {
 	CIndexTreeNode*	pcNode;
 
 	pcNode = (CIndexTreeNode*)malloc(sizeof(CIndexTreeNode));
-	pcNode->Init();
+	pcNode->Init(pcParent);
+	return pcNode;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CIndexTreeNode* CIndexTree::AllocateRoot(void)
+{
+	CIndexTreeNode*		pcNode;
+	int					iAdditionalSize;
+
+	iAdditionalSize = MAX_UCHAR * sizeof(CIndexTreeNode*);
+	pcNode = (CIndexTreeNode*)malloc(sizeof(CIndexTreeNode) + iAdditionalSize);
+	pcNode->Init(NULL, 0, MAX_UCHAR);
+	return pcNode;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CIndexTreeNode* CIndexTree::ReallocateNode(CIndexTreeNode* pcNode, unsigned char uiIndex)
+{
+	int					iAdditionalSize;
+	CIndexTreeNode*		pcOldNode;
+	CIndexTreeNode*		pcParent;
+
+	if (!pcNode->HasNodes())
+	{
+		pcNode->Contain(uiIndex);
+		return pcNode;
+	}
+
+	if (pcNode->ContainsIndex(uiIndex))
+	{
+		return pcNode;
+	}
+
+	iAdditionalSize = pcNode->GetAdditionalIndexes(uiIndex);
+	iAdditionalSize = iAdditionalSize * sizeof(CIndexTreeNode*);
+
+	pcOldNode = pcNode;
+	pcNode = (CIndexTreeNode*)realloc(pcNode, sizeof(CIndexTreeNode) + iAdditionalSize);
+	pcNode->Contain(uiIndex);
+
+	if (pcOldNode != pcNode)
+	{
+		pcParent = pcNode->GetParent();
+		if (pcParent)
+		{
+			pcParent->RemapChildNodes(pcOldNode, pcNode);
+		}
+	}
+
 	return pcNode;
 }
 
@@ -66,6 +123,7 @@ void CIndexTree::FreeNode(CIndexTreeNode* pcNode)
 {
 	free(pcNode);
 }
+
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -81,11 +139,9 @@ CIndexTreeNode* CIndexTree::GetIndexNode(char* pszKey)
 		return NULL;
 	}
 
-	//pszKey = TransformKey(pszKey);
-
 	iKeySize = strlen(pszKey);
 
-	pcCurrent = mpRoot;
+	pcCurrent = mpcRoot;
 	for (int i = 0; i < iKeySize; i++)
 	{
 		char c = pszKey[i];
@@ -133,25 +189,21 @@ BOOL CIndexTree::Put(void* pvObject, char* pszKey)
 {
 	int					iKeySize;
 	CIndexTreeNode*		pcCurrent;
-	CIndexTreeNode*		pcOld;
 	void*				pvOldObject;
+	unsigned char		c;
 
 	if (StrEmpty(pszKey))
 	{
 		return FALSE;
 	}
 
-	//	pszKey = transformKey(pszKey);
-
 	iKeySize = strlen(pszKey);
-	pcCurrent = mpRoot;
-	pcOld = mpRoot;
+	pcCurrent = mpcRoot;
 
 	for (int i = 0; i < iKeySize; i++)
 	{
-		char c = pszKey[i];
-		pcCurrent = SetOldWithCurrent(pcCurrent, pcOld, c);
-		pcOld = pcCurrent;
+		c = pszKey[i];
+		pcCurrent = SetOldWithCurrent(pcCurrent, c);
 	}
 
 	miModifications++;
@@ -166,15 +218,28 @@ BOOL CIndexTree::Put(void* pvObject, char* pszKey)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTreeNode* CIndexTree::SetOldWithCurrent(CIndexTreeNode* pcCurrent, CIndexTreeNode* pcOld, char c)
+CIndexTreeNode* CIndexTree::SetOldWithCurrent(CIndexTreeNode* pcParent, unsigned char c)
 {
-	pcCurrent = pcCurrent->Get(c);
+	CIndexTreeNode* pcNew;
+	CIndexTreeNode* pcCurrent;
+	CIndexTreeNode* pcReallocedParent;
+
+	pcCurrent = pcParent->Get(c);
 	if (pcCurrent == NULL)
 	{
-		pcCurrent = AllocateNode();
-		pcOld->Set(c, pcCurrent);
+		pcNew = AllocateNode(pcParent);
+		pcReallocedParent = ReallocateNode(pcParent, c);
+		pcReallocedParent->Set(c, pcNew);
+		if (pcParent != pcReallocedParent)
+		{
+			pcReallocedParent->SetChildsParent();
+		}
+		return pcNew;
 	}
-	return pcCurrent;
+	else
+	{
+		return pcCurrent;
+	}
 }
 
 
@@ -196,11 +261,9 @@ void* CIndexTree::Remove(char* pszKey)
 		return NULL;
 	}
 
-	//	pszKey = transformKey(pszKey);
-
 	apcPath.Init();
 	iKeySize = strlen(pszKey);
-	pcCurrent = mpRoot;
+	pcCurrent = mpcRoot;
 	apcPath.Add(&pcCurrent);
 	for (int i = 0; i < iKeySize; i++)
 	{
@@ -244,7 +307,7 @@ void* CIndexTree::Remove(char* pszKey)
 //////////////////////////////////////////////////////////////////////////
 void CIndexTree::FindAll(CArrayVoidPtr* papvElements)
 {
-	RecurseFindAll(mpRoot, papvElements);
+	RecurseFindAll(mpcRoot, papvElements);
 }
 
 
@@ -265,9 +328,9 @@ void CIndexTree::RecurseFindAll(CIndexTreeNode* pcNode, CArrayVoidPtr* papvEleme
 			papvElements->Add(pvObject);
 		}
 
-		for (i = 0; i < pcNode->GetEndIndex(); i++)
+		for (i = 0; i < pcNode->GetNumIndexes(); i++)
 		{
-			pcChild = pcNode->Get(i);
+			pcChild = pcNode->GetNode(i);
 			RecurseFindAll(pcChild, papvElements);
 		}
 	}
@@ -292,7 +355,7 @@ BOOL CIndexTree::ValidateSize(void)
 {
 	int iSizeFromRecursion;
 
-	iSizeFromRecursion = RecurseSize(mpRoot);
+	iSizeFromRecursion = RecurseSize(mpcRoot);
 
 	if (miSize != iSizeFromRecursion)
 	{
@@ -311,7 +374,7 @@ BOOL CIndexTree::ValidateSize(void)
 //////////////////////////////////////////////////////////////////////////
 int CIndexTree::RecurseSize(void)
 {
-	return RecurseSize(mpRoot);
+	return RecurseSize(mpcRoot);
 }
 
 
@@ -334,9 +397,9 @@ int CIndexTree::RecurseSize(CIndexTreeNode* pcNode)
 			count++;
 		}
 
-		for (i = 0; i < pcNode->GetEndIndex(); i++)
+		for (i = 0; i < pcNode->GetNumIndexes(); i++)
 		{
-			pcChild = pcNode->Get(i);
+			pcChild = pcNode->GetNode(i);
 			count += RecurseSize(pcChild);
 		}
 	}
@@ -369,19 +432,9 @@ BOOL CIndexTree::HasKey(char* pszKey)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-//Iterator<void*> Iterator()
-//{
-//	return new IndexTreeIterator(this);
-//}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 int CIndexTree::CountAllocatedNodes(void)
 {
-	return RecurseCountAllocatedNodes(mpRoot);
+	return RecurseCountAllocatedNodes(mpcRoot);
 }
 
 
@@ -397,9 +450,9 @@ int CIndexTree::RecurseCountAllocatedNodes(CIndexTreeNode* pcNode)
 	if (pcNode != NULL)
 	{
 		int count = 1;
-		for (i = 0; i < pcNode->GetEndIndex(); i++)
+		for (i = 0; i < pcNode->GetNumIndexes(); i++)
 		{
-			pcChild = pcNode->Get(i);
+			pcChild = pcNode->GetNode(i);
 			count += RecurseCountAllocatedNodes(pcChild);
 		}
 		return count;
@@ -417,7 +470,7 @@ int CIndexTree::RecurseCountAllocatedNodes(CIndexTreeNode* pcNode)
 //////////////////////////////////////////////////////////////////////////
 int CIndexTree::CountListSize(void)
 {
-	return RecurseCountListSize(mpRoot);
+	return RecurseCountListSize(mpcRoot);
 }
 
 
@@ -432,8 +485,8 @@ int CIndexTree::RecurseCountListSize(CIndexTreeNode* pcNode)
 
 	if (pcNode != NULL)
 	{
-		int count = pcNode->GetEndIndex()+1;
-		for (i = 0; i < pcNode->GetEndIndex(); i++)
+		int count = pcNode->GetNumIndexes();
+		for (i = 0; i < pcNode->GetNumIndexes(); i++)
 		{
 			pcChild = pcNode->Get(i);
 			count += RecurseCountListSize(pcChild);

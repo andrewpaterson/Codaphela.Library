@@ -22,6 +22,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #include "ScratchPad.h"
 #include "MemoryStack.h"
+#include "Numbers.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -30,7 +31,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //////////////////////////////////////////////////////////////////////////
 void CScratchPad::Init(void)
 {
-	Init(6000000);
+	Init(6 MB);
 }
 
 //////////////////////////////////////////////////////////////////////////

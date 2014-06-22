@@ -1,3 +1,4 @@
+#include "PointerRemapper.h"
 #include "IndexTreeNode.h"
 
 
@@ -5,9 +6,26 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNode::Init(void)
+void CIndexTreeNode::Init(CIndexTreeNode* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex)
 {
-	memset(this, 0, sizeof(CIndexTreeNode));
+	size_t tSize;
+
+	mpvObject = NULL;
+	muiFirstIndex = uiFirstIndex;
+	muiLastIndex = uiLastIndex;
+	muiUnused = 0xFF;
+	muiEmpty = FALSE;
+	mpcParent = pcParent;
+
+	if (muiFirstIndex == muiLastIndex)
+	{
+		mapcChildren[0] = NULL;
+	}
+	else
+	{
+		tSize = (uiLastIndex - uiFirstIndex + 1) * sizeof(CIndexTreeNode*);
+		memset(mapcChildren, 0, tSize);
+	}
 }
 
 
@@ -15,13 +33,76 @@ void CIndexTreeNode::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTreeNode* CIndexTreeNode::Get(int iIndex)
+void CIndexTreeNode::Init(CIndexTreeNode* pcParent, void* pvObject)
 {
-	int iChildIndex = iIndex;
+	Init(pcParent);
+	mpvObject = pvObject;
+}
 
-	if (iChildIndex <= MAX_UCHAR)
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexTreeNode::Init(CIndexTreeNode* pcParent)
+{
+	mpvObject = NULL;
+	mpcParent = pcParent;
+	muiFirstIndex = 0;
+	muiLastIndex = 0;
+	muiUnused = 0xFF;
+	muiEmpty = TRUE;
+	mapcChildren[0] = NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexTreeNode::Contain(unsigned char uiIndex)
+{
+	unsigned char	uiOldNumIndexes;
+	void*			pvDest;
+	size_t			tSize;
+
+	if (muiEmpty == TRUE)
 	{
-		return mapbChildren[iChildIndex];
+		muiEmpty = FALSE;
+		muiFirstIndex = uiIndex;
+		muiLastIndex = uiIndex;
+		return;
+	}
+
+	uiOldNumIndexes = GetNumIndexes();
+
+	if (uiIndex < muiFirstIndex)
+	{
+		tSize = (muiFirstIndex - uiIndex) * sizeof(CIndexTreeNode*);
+		pvDest = RemapSinglePointer(mapcChildren, tSize);
+		memcpy(pvDest, mapcChildren, uiOldNumIndexes * sizeof(CIndexTreeNode*));
+		memset(mapcChildren, 0, tSize);
+		muiFirstIndex = uiIndex;
+	}
+	else if (uiIndex > muiLastIndex)
+	{
+		tSize = (uiIndex - muiLastIndex) * sizeof(CIndexTreeNode*);
+		pvDest = RemapSinglePointer(mapcChildren, uiOldNumIndexes * sizeof(CIndexTreeNode*));
+		memset(pvDest, 0, tSize);
+		muiLastIndex = uiIndex;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CIndexTreeNode* CIndexTreeNode::Get(unsigned char uiIndex)
+{
+	if (ContainsIndex(uiIndex))
+	{
+		return mapcChildren[uiIndex - muiFirstIndex];
 	}
 	else
 	{
@@ -44,9 +125,12 @@ void* CIndexTreeNode::GetObject(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNode::Set(int iIndex, CIndexTreeNode* pcNode)
+void CIndexTreeNode::Set(unsigned char uiIndex, CIndexTreeNode* pcNode)
 {
-	mapbChildren[iIndex] = pcNode;
+	if (ContainsIndex(uiIndex))
+	{
+		mapcChildren[uiIndex - muiFirstIndex] = pcNode;
+	}
 }
 
 
@@ -54,9 +138,12 @@ void CIndexTreeNode::Set(int iIndex, CIndexTreeNode* pcNode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNode::Clear(int iIndex)
+void CIndexTreeNode::Clear(unsigned char uiIndex)
 {
-	mapbChildren[iIndex] =  NULL;
+	if (ContainsIndex(uiIndex))
+	{
+		mapcChildren[uiIndex - muiFirstIndex] = NULL;
+	}
 }
 
 
@@ -103,9 +190,14 @@ BOOL CIndexTreeNode::IsEmpty(void)
 		return FALSE;
 	}
 
-	for (i = 0; i <= MAX_UCHAR; i++)
+	if (muiEmpty == TRUE)
 	{
-		pcChild = mapbChildren[i];
+		return TRUE;
+	}
+
+	for (i = 0; i <= muiLastIndex - muiFirstIndex; i++)
+	{
+		pcChild = mapcChildren[i];
 		if (pcChild != NULL)
 		{
 			return FALSE;
@@ -119,8 +211,147 @@ BOOL CIndexTreeNode::IsEmpty(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CIndexTreeNode::GetEndIndex(void)
+unsigned char CIndexTreeNode::GetFirstIndex(void)
 {
-	return MAX_UCHAR;
+	return muiFirstIndex;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+unsigned char CIndexTreeNode::GetLastIndex(void)
+{
+	return muiLastIndex;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeNode::HasNodes(void)
+{
+	return muiEmpty == FALSE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeNode::ContainsIndex(unsigned char uiIndex)
+{
+	if ((uiIndex >= muiFirstIndex) && (uiIndex <= muiLastIndex))
+	{
+		return TRUE;
+	}	
+	else
+	{
+		return FALSE;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CIndexTreeNode::GetAdditionalIndexes(unsigned char uiIndex)
+{
+	unsigned char uiFirstIndex;
+	unsigned char uiLastIndex;
+
+	if (uiIndex < muiFirstIndex)
+	{
+		uiFirstIndex = uiIndex;
+		uiLastIndex = muiLastIndex;
+	}
+	else if (uiIndex > muiLastIndex)
+	{
+		uiFirstIndex = muiFirstIndex;
+		uiLastIndex = uiIndex;
+	}
+	else
+	{
+		uiFirstIndex = muiFirstIndex;
+		uiLastIndex = muiLastIndex;
+	}
+
+	return ((uiLastIndex - uiFirstIndex + 1) - 1);   //+1 because uiLast is inclusive.  -1 because CIndexTreeNode already includes 1.	
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CIndexTreeNode::GetNumIndexes(void)
+{
+	return muiLastIndex - muiFirstIndex + 1;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CIndexTreeNode* CIndexTreeNode::GetNode(int i)
+{
+	return mapcChildren[i];
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CIndexTreeNode* CIndexTreeNode::GetParent(void)
+{
+	return mpcParent;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexTreeNode::RemapChildNodes(CIndexTreeNode* pcOldNode, CIndexTreeNode* pcNewNode)
+{
+	int		i;
+	int		iNumNodes;
+
+	iNumNodes = GetNumIndexes();
+
+	for (i = 0; i < iNumNodes; i++)
+	{
+		if (mapcChildren[i] == pcOldNode)
+		{
+			mapcChildren[i] = pcNewNode;
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexTreeNode::SetChildsParent(void)
+{
+	int					i;
+	int					iNumNodes;
+	CIndexTreeNode*		pcChild;
+
+	iNumNodes = GetNumIndexes();
+
+	for (i = 0; i < iNumNodes; i++)
+	{
+		pcChild = mapcChildren[i];
+		if (pcChild)
+		{
+			pcChild->mpcParent = this;
+		}
+	}
 }
 
