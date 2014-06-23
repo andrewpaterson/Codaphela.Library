@@ -208,7 +208,7 @@ BOOL CFileReader::ReadEnumeratorBlock(CEnumeratorBlock* pcEnumerator)
 		//Actually this is copied from ReadString because I need the string length first.
 		CheckRead(&iReadSize, sizeof(int));
 
-		pcEnumerator->PrivateAllocateNodeData(psNode, iReadSize);
+		pcEnumerator->AllocateNodeData(psNode, iReadSize);
 		CheckRead(psNode->szName, iReadSize);
 		if (psNode->iDataSize)
 		{

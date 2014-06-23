@@ -50,21 +50,9 @@ public:
 	CLinkListSENode		mcList;
 	BOOL				mbCaseSensitive;
 
-	void*		MemoryAllocate(int iSize);
-	void		Free(void* pvMem);
-
+public:
 	void		Init(void);
 	void		Kill(void);
-	void		PrivateAllocateNodeData(SENode* psNode, int iLen);
-	int			PrivateAddGetNode(char* szName, M* pvData, int iDataSize, int iKeySize, int iNum, BOOL bReplace, SENode** pcThisNode);
-	SENode*		PrivateGetWithKey(char* szName, M* pvKey, int iKeySize, SENode* psStartNode);
-	SENode*		PrivateGetWithKey(char* szName, int iNameLen, M* pvKey, int iKeySize, SENode* psStartNode);
-	int			PrivateGetNextID(int iNum);
-	void		PrivateInsertID(SENode* psNode);
-	void		PrivateRemoveID(SENode* psNode);
-	void		PrivateRemove(SENode* psNode);
-	BOOL		PrivateCompare(char* szName, M* pvKey, int iKeySize, SENode* psNode);
-	BOOL		PrivateCompare(char* szName, int iNameLen, M* pvKey, int iKeySize, SENode* psNode);
 	int			Get(char* szName, M** pvData);
 	int			Get(char* szName, int iNameLen, M** pvData);
 	int			GetNumMatchingWithKey(char* szName, M* pvKey, int iKeySize);
@@ -82,6 +70,22 @@ public:
 	void		QuickSort(void);
 	void		BubbleSort(void);
 	void		RecreateIDArray(void);
+	void		AllocateNodeData(SENode* psNode, int iLen);
+
+protected:
+	void*		Malloc(size_t tSize);
+	void*		Realloc(void* pv, size_t iMemSize);
+	void		Free(void* pvMem);
+
+	int			PrivateAddGetNode(char* szName, M* pvData, int iDataSize, int iKeySize, int iNum, BOOL bReplace, SENode** pcThisNode);
+	SENode*		PrivateGetWithKey(char* szName, M* pvKey, int iKeySize, SENode* psStartNode);
+	SENode*		PrivateGetWithKey(char* szName, int iNameLen, M* pvKey, int iKeySize, SENode* psStartNode);
+	int			PrivateGetNextID(int iNum);
+	void		PrivateInsertID(SENode* psNode);
+	void		PrivateRemoveID(SENode* psNode);
+	void		PrivateRemove(SENode* psNode);
+	BOOL		PrivateCompare(char* szName, M* pvKey, int iKeySize, SENode* psNode);
+	BOOL		PrivateCompare(char* szName, int iNameLen, M* pvKey, int iKeySize, SENode* psNode);
 };
 
 
@@ -100,9 +104,9 @@ public:
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void* __CEnumeratorTemplate<M>::MemoryAllocate(int iMemSize)
+void* __CEnumeratorTemplate<M>::Malloc(size_t tSize)
 {
-	return malloc(iMemSize);
+	return malloc(tSize);
 }
 
 
@@ -114,6 +118,18 @@ template<class M>
 void __CEnumeratorTemplate<M>::Free(void* pvMem)
 {
 	free(pvMem);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+void* __CEnumeratorTemplate<M>::Realloc(void* pv, size_t tSize)
+{
+	pv = realloc(pv, tSize);
+	return pv;
 }
 
 
@@ -167,12 +183,12 @@ void __CEnumeratorTemplate<M>::Kill(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void __CEnumeratorTemplate<M>::PrivateAllocateNodeData(SENode* psNode, int iLen)
+void __CEnumeratorTemplate<M>::AllocateNodeData(SENode* psNode, int iLen)
 {
-	psNode->szName = (char*)MemoryAllocate(iLen);
+	psNode->szName = (char*)Malloc(iLen);
 	if (psNode->iDataSize)
 	{
-		psNode->pvData = MemoryAllocate(psNode->iDataSize);
+		psNode->pvData = Malloc(psNode->iDataSize);
 	}
 	else
 	{
@@ -227,7 +243,7 @@ int __CEnumeratorTemplate<M>::PrivateAddGetNode(char* szName, M* pvData, int iDa
 			{
 				if (psNode->pvData == NULL)
 				{
-					psNode->pvData = MemoryAllocate(iDataSize);
+					psNode->pvData = Malloc(iDataSize);
 				}
 				psNode->iFlags = ENUMERATOR_MANAGED;
 
@@ -287,7 +303,7 @@ int __CEnumeratorTemplate<M>::PrivateAddGetNode(char* szName, M* pvData, int iDa
 		psNode->iNum = PrivateGetNextID(iNum);
 		psNode->iDataSize = iDataSize;
 
-		PrivateAllocateNodeData(psNode, iLen);
+		AllocateNodeData(psNode, iLen);
 
 		if (iDataSize)
 		{
