@@ -39,6 +39,11 @@ public:
 	int					CountListSize(void);
 	int					RecurseCountListSize(CIndexTreeNode* pcNode);
 	int					GetModifications(void);
+
+protected:
+	void*				Malloc(size_t tSize);
+	void*				Realloc(void* pv, size_t tSize);
+	void				Free(void* pv);
 };
 
 

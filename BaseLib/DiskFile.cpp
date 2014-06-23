@@ -264,7 +264,7 @@ CDiskFile* DiskFile(char* szName)
 {
 	CDiskFile* pcDiskFile;
 
-	pcDiskFile = Malloc(CDiskFile);
+	pcDiskFile = NewMalloc<CDiskFile>();
 	pcDiskFile->Init(szName);
 	pcDiskFile->mbBasicFileMustFree = TRUE;
 	return pcDiskFile;

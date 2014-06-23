@@ -451,7 +451,7 @@ CBufferedFile* BufferedFile(CAbstractFile* pcFile, int iBufferSize)
 {
 	CBufferedFile* pCBufferedFile;
 
-	pCBufferedFile = Malloc(CBufferedFile);
+	pCBufferedFile = NewMalloc<CBufferedFile>();
 	pCBufferedFile->Init(pcFile, iBufferSize);
 	pCBufferedFile->mbBasicFileMustFree = TRUE;
 	return pCBufferedFile;

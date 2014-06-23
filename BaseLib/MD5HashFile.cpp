@@ -321,7 +321,7 @@ CMD5HashFile* MD5HashFile(CAbstractFile* pcFile)
 {
 	CMD5HashFile* pcHashFile;
 
-	pcHashFile = Malloc(CMD5HashFile);
+	pcHashFile = NewMalloc<CMD5HashFile>();
 	pcHashFile->Init(pcFile);
 	pcHashFile->mbBasicFileMustFree = TRUE;
 	return pcHashFile;

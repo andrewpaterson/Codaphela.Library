@@ -367,7 +367,7 @@ CMemoryFile* MemoryFile(void)
 {
 	CMemoryFile* pcMemoryFile;
 
-	pcMemoryFile = Malloc(CMemoryFile);
+	pcMemoryFile = NewMalloc<CMemoryFile>();
 	pcMemoryFile->Init();
 	pcMemoryFile->mbBasicFileMustFree = TRUE;
 	return pcMemoryFile;
@@ -382,7 +382,7 @@ CMemoryFile* MemoryFile(void* pvInitialMem, int iInitialLength)
 {
 	CMemoryFile*	pcMemoryFile;
 
-	pcMemoryFile = Malloc(CMemoryFile)
+	pcMemoryFile = NewMalloc<CMemoryFile>();
 	pcMemoryFile->Init(pvInitialMem, iInitialLength);
 	pcMemoryFile->mbBasicFileMustFree = TRUE;
 	return pcMemoryFile;

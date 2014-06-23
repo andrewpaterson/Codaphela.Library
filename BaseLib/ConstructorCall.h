@@ -38,8 +38,5 @@ M* NewMalloc(void)
 }
 
 
-#define Malloc(type)	NewMalloc<type>();
-
-
 #endif // __CONSTRUCTOR_CALL_H__
 

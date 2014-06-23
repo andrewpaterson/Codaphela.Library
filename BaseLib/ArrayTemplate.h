@@ -42,18 +42,6 @@ protected:
 	int		miNumElements;
 	M*		mpvArray;
 
-protected:
-	BOOL	BinarySearch(M* pData, int iLeft, int iRight, int(*)(const void*, const void*), int* piIndex);
-	void	CopyArrayInto(__CArrayTemplate<M>* pcTemplateArray, int iIndex);
-	void	CopyBlockInto(M* paElements, int iLength, int iIndex);
-	void	Free(void* pvMem);
-	void*	MemoryAllocate(int iMemSize);
-	void	PrivateRemoveAt(int iIndex, BOOL bPreserveOrder, int iDataSize);
-	void	PrivateRemoveRange(int iStartIndex, int iEndIndexExclusive, int bPreserveOrder, int iDataSize);
-	void*	Realloc(void* pvMem, int iMemSize);
-	void	RemoveAtNoDeallocate(int iIndex, BOOL bPreserveOrder, int iDataSize);
-	void 	SetArraySize(int iNumElements);
-
 public:
 	void 	InitFromHeader(void);
 	void 	Init(SArrayTemplateHeader* psHeader);
@@ -124,6 +112,19 @@ public:
 	M*		Tail(void);
 	void	Unuse(void);
 	void 	Zero(void);
+
+protected:
+	void*	Malloc(size_t tSize);
+	void*	Realloc(void* pv, size_t iMemSize);
+	void	Free(void* pv);
+
+	BOOL	BinarySearch(M* pData, int iLeft, int iRight, int(*)(const void*, const void*), int* piIndex);
+	void	CopyArrayInto(__CArrayTemplate<M>* pcTemplateArray, int iIndex);
+	void	CopyBlockInto(M* paElements, int iLength, int iIndex);
+	void	PrivateRemoveAt(int iIndex, BOOL bPreserveOrder, int iDataSize);
+	void	PrivateRemoveRange(int iStartIndex, int iEndIndexExclusive, int bPreserveOrder, int iDataSize);
+	void	RemoveAtNoDeallocate(int iIndex, BOOL bPreserveOrder, int iDataSize);
+	void 	SetArraySize(int iNumElements);
 };
 
 
@@ -154,9 +155,9 @@ public:
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void* __CArrayTemplate<M>::MemoryAllocate(int iMemSize)
+void* __CArrayTemplate<M>::Malloc(size_t tSize)
 {
-	return malloc(iMemSize);
+	return malloc(tSize);
 }
 
 
@@ -165,9 +166,9 @@ void* __CArrayTemplate<M>::MemoryAllocate(int iMemSize)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void __CArrayTemplate<M>::Free(void* pvMem)
+void __CArrayTemplate<M>::Free(void* pv)
 {
-	free(pvMem);
+	free(pv);
 }
 
 
@@ -176,10 +177,10 @@ void __CArrayTemplate<M>::Free(void* pvMem)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void* __CArrayTemplate<M>::Realloc(void* pvMem, int iMemSize)
+void* __CArrayTemplate<M>::Realloc(void* pv, size_t tSize)
 {
-	pvMem = realloc(pvMem, iMemSize);
-	return pvMem;
+	pv = realloc(pv, tSize);
+	return pv;
 }
 
 
@@ -191,7 +192,7 @@ template<class M>
 void __CArrayTemplate<M>::InitFromHeader(void)
 {
 	//This function assumes that the value of mpvArray was invalid.
-	mpvArray = (M*)MemoryAllocate(miElementSize * miNumElements);
+	mpvArray = (M*)Malloc(miElementSize * miNumElements);
 }
 
 
@@ -1094,7 +1095,7 @@ void __CArrayTemplate<M>::Swap(int iIndex1, int iIndex2)
 	}
 	else
 	{
-		pvTemp = (M*)MemoryAllocate(miElementSize);
+		pvTemp = (M*)Malloc(miElementSize);
 	}
 
 	pElement1 = Get(iIndex1);

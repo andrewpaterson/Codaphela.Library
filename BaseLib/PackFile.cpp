@@ -219,7 +219,7 @@ CPackFile* PackFile(CPackFiles* pcPackFiles, CPackFileNode* psPackFile)
 {
 	CPackFile*	pcPackFile;
 
-	pcPackFile = Malloc(CPackFile);
+	pcPackFile = NewMalloc<CPackFile>();
 	pcPackFile->Init(pcPackFiles, psPackFile);
 	pcPackFile->mbBasicFileMustFree = TRUE;
 	return pcPackFile;

@@ -48,11 +48,41 @@ void CIndexTree::RecurseKill(CIndexTreeNode* pcNode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void* CIndexTree::Malloc(size_t tSize)
+{
+	return malloc(tSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void* CIndexTree::Realloc(void* pv, size_t tSize)
+{
+	return realloc(pv, tSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexTree::Free(void* pv)
+{
+	free(pv);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 CIndexTreeNode* CIndexTree::AllocateNode(CIndexTreeNode* pcParent)
 {
 	CIndexTreeNode*	pcNode;
 
-	pcNode = (CIndexTreeNode*)malloc(sizeof(CIndexTreeNode));
+	pcNode = (CIndexTreeNode*)Malloc(sizeof(CIndexTreeNode));
 	pcNode->Init(pcParent);
 	return pcNode;
 }
@@ -68,7 +98,7 @@ CIndexTreeNode* CIndexTree::AllocateRoot(void)
 	int					iAdditionalSize;
 
 	iAdditionalSize = MAX_UCHAR * sizeof(CIndexTreeNode*);
-	pcNode = (CIndexTreeNode*)malloc(sizeof(CIndexTreeNode) + iAdditionalSize);
+	pcNode = (CIndexTreeNode*)Malloc(sizeof(CIndexTreeNode) + iAdditionalSize);
 	pcNode->Init(NULL, 0, MAX_UCHAR);
 	return pcNode;
 }
@@ -99,7 +129,7 @@ CIndexTreeNode* CIndexTree::ReallocateNode(CIndexTreeNode* pcNode, unsigned char
 	iAdditionalSize = iAdditionalSize * sizeof(CIndexTreeNode*);
 
 	pcOldNode = pcNode;
-	pcNode = (CIndexTreeNode*)realloc(pcNode, sizeof(CIndexTreeNode) + iAdditionalSize);
+	pcNode = (CIndexTreeNode*)Realloc(pcNode, sizeof(CIndexTreeNode) + iAdditionalSize);
 	pcNode->Contain(uiIndex);
 
 	if (pcOldNode != pcNode)
@@ -121,7 +151,7 @@ CIndexTreeNode* CIndexTree::ReallocateNode(CIndexTreeNode* pcNode, unsigned char
 //////////////////////////////////////////////////////////////////////////
 void CIndexTree::FreeNode(CIndexTreeNode* pcNode)
 {
-	free(pcNode);
+	Free(pcNode);
 }
 
 
