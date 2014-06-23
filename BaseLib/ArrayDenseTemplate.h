@@ -61,13 +61,14 @@ typedef CFreeList<SDenseNode>	CDenseNodes;
 template<class M>
 class __CArrayDenseTemplate
 {
-public:
+private:
 	CDenseNodes		mcDenseNodes;
 	CFreeListBlock	mcElementNodes;
 	SDenseNode*		mpsRoot;
 	int				miUsedElements;
 	int				miUsedNodes;
 
+public:
 	void			Init(int iNodeChunkSize, int iElementChunkSize, int iElementSize);
 	void			Kill(void);
 	M*				Add(void);
@@ -82,6 +83,8 @@ public:
 	void 			RemoveTail(void);
 	M*				Get(int iElementPos);
 	M*				SafeGet(int iElementPos);
+	int				NumUsedElements(void);;
+	int				NumUsedNodes(void);
 	SDenseNode*		RotateLeft(SDenseNode* psNode);
 	SDenseNode*		RotateRight(SDenseNode* psNode);
 	void			Rebalance(void);
@@ -89,6 +92,7 @@ public:
 	void			RecurseRebalanceChildren(SDenseNode* psNode, int iNumElements);
 	void			IncreaseLeftCounts(SDenseNode* psNode);
 	void			DecreaseLeftCounts(SDenseNode* psNode);
+	SDenseNode*		TestGetRoot(void);
 
 	void			Search(int iElementPos, SDenseNode** ppsNode, BOOL* pbLeft, BOOL* pbInsertionLeft);
 	SDenseNode*		PrivateAddNode(void);
@@ -490,6 +494,39 @@ void __CArrayDenseTemplate<M>::DecreaseLeftCounts(SDenseNode* psNode)
 		}
 		psNode = psNode->psParent;
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+SDenseNode* __CArrayDenseTemplate<M>::TestGetRoot(void)
+{
+	return mpsRoot;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+int __CArrayDenseTemplate<M>::NumUsedElements(void)
+{
+	return miUsedElements;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+int __CArrayDenseTemplate<M>::NumUsedNodes(void)
+{
+	return miUsedNodes;
 }
 
 
