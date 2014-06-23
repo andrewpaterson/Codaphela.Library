@@ -30,12 +30,14 @@ Microsoft Windows is Copyright Microsoft Corporation
 template <class M>
 class CArraySimple
 {
-public:
+protected:
 	int		miUsedElements;
 	M*		pvArray;
 
+public:
 	void	Init(void);
 	void	Init(int iIgnored);
+	void	InitFromHeader(void);
 	void 	ReInit(void);
 	void	Kill(void);
 	void	Allocate(int iNum);
@@ -52,7 +54,6 @@ public:
 	BOOL	RemoveTail(void);
 	void	BatchRemoveElements(int iFirstElementPos, int iNumInBatch, int iNumBatches, int iStrideToNextBatch);
 	int		ByteSize(void);
-	void	InitFromHeader(void);
 	BOOL	SetArraySize(int iNum);
 	M*		SetArraySize(int iNum, int iClearValue);
 	int		NumElements(void);
@@ -76,6 +77,11 @@ public:
 	M*		Tail(void);
 	M*		GetData(void);
 	void	FakeSetUsedElements(int iUsedElements);
+
+protected:
+	void*	Malloc(size_t tSize);
+	void*	Realloc(void* pv, size_t iMemSize);
+	void	Free(void* pv);
 };
 
 
@@ -121,7 +127,7 @@ void CArraySimple<M>::ReInit(void)
 template<class M>
 void CArraySimple<M>::Kill(void)
 {
-	free(pvArray);
+	Free(pvArray);
 	pvArray = NULL;
 	miUsedElements = 0;
 }
@@ -151,14 +157,14 @@ BOOL CArraySimple<M>::Reallocate(int iUsedElements)
 	{
 		if (pvArray != NULL)
 		{
-			free(pvArray);
+			Free(pvArray);
 			pvArray = NULL;
 		}
 		miUsedElements = 0;
 		return TRUE;
 	}
 
-	pvTemp = (M*)realloc(pvArray, iUsedElements * sizeof(M));
+	pvTemp = (M*)Realloc(pvArray, iUsedElements * sizeof(M));
 
 	if (pvTemp != NULL)
 	{
@@ -296,7 +302,7 @@ template<class M>
 void CArraySimple<M>::InitFromHeader(void)
 {
 	//This function assumes that the value of pvArray was invalid.
-	pvArray = (M*)malloc(miUsedElements * sizeof(M));
+	pvArray = (M*)Malloc(miUsedElements * sizeof(M));
 }
 
 
@@ -748,7 +754,7 @@ M* CArraySimple<M>::InsertNumElementsAt(int iNumElements, int iElementPos)
 		return NULL;
 	}
 
-	pvNew = (M*)malloc((miUsedElements + iNumElements) * sizeof(M));
+	pvNew = (M*)Malloc((miUsedElements + iNumElements) * sizeof(M));
 
 	if (iElementPos > 0)
 	{
@@ -760,7 +766,7 @@ M* CArraySimple<M>::InsertNumElementsAt(int iNumElements, int iElementPos)
 	pvTo = &pvNew[iElementPos + iNumElements];
 	memcpy(pvTo, pvFrom, iNumToMove * sizeof(M));
 
-	free(pvArray);
+	Free(pvArray);
 	pvArray = pvNew;
 
 	return (M*)pvFrom;
@@ -926,6 +932,40 @@ void CArraySimple<M>::BatchInsertElements(int iFirstElementPos, int iNumInBatch,
 			memcpy(RemapSinglePointer(pcFirst, iTotalStride * (i+1) - iStrideToNextBatch), RemapSinglePointer(pcFirst, iStrideToNextBatch * i), iStrideToNextBatch);
 		}
 	}	
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+void* CArraySimple<M>::Malloc(size_t tSize)
+{
+	return malloc(tSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+void CArraySimple<M>::Free(void* pv)
+{
+	free(pv);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+void* CArraySimple<M>::Realloc(void* pv, size_t tSize)
+{
+	pv = realloc(pv, tSize);
+	return pv;
 }
 
 
