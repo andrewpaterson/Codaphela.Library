@@ -90,7 +90,6 @@ public:
 	M*		InsertNumElementsAt(int iNumElements, int iIndex);
 	BOOL	IsEmpty(void);
 	BOOL	IsNotEmpty(void);
-	int		MallocSize(void);
 	int		NumElements(void);
 	void	Pop(M* pvData);
 	void	Pop(void);
@@ -1386,17 +1385,6 @@ void __CArrayTemplate<M>::InsertBlockAt(M* paElements, int iLength, int iIndex)
 {
 	InsertNumElementsAt(iLength, iIndex);
 	CopyBlockInto(paElements, iLength, iIndex);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class M>
-int __CArrayTemplate<M>::MallocSize(void)
-{
-	return ByteSize();
 }
 
 

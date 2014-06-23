@@ -1101,7 +1101,7 @@ CLogFile* LogFile(CAbstractFile* pcFile)
 {
 	CLogFile* pcLogFile;
 
-	pcLogFile = Malloc(CLogFile);
+	pcLogFile = NewMalloc<CLogFile>();
 	pcLogFile->Init(pcFile);
 	pcLogFile->mbBasicFileMustFree = TRUE;
 	return pcLogFile;

@@ -236,7 +236,7 @@ BOOL CCalculator::Identifier(CCalcConstExpression** ppcConst)
 		sz = (char*)malloc(iLength+1);
 		mcParser.GetIdentifier(sz);
 		free(sz);
-		*ppcConst = Malloc(CCalcConstExpression);
+		*ppcConst = NewMalloc<CCalcConstExpression>();
 		(*ppcConst)->SetValue(cNumber.Zero());
 		return TRUE;
 	}
@@ -260,7 +260,7 @@ BOOL CCalculator::Value(CCalcConstExpression** ppcConst)
 	tResult = mcParser.GetHexadecimal(&ulli);
 	if (tResult == TRITRUE)
 	{
-		*ppcConst = Malloc(CCalcConstExpression);
+		*ppcConst = NewMalloc<CCalcConstExpression>();
 		(*ppcConst)->SetValue(cNumber.Init((int)ulli));
 		return TRUE;
 	}
@@ -269,7 +269,7 @@ BOOL CCalculator::Value(CCalcConstExpression** ppcConst)
 	if (tResult == TRITRUE)
 	{
 		mcParser.GetExactCharacter('L', FALSE);
-		*ppcConst = Malloc(CCalcConstExpression);
+		*ppcConst = NewMalloc<CCalcConstExpression>();
 		(*ppcConst)->SetValue(&cNumber);
 		return TRUE;
 	}
@@ -299,7 +299,7 @@ BOOL CCalculator::Operator(CCalcOperator** pcOperator)
 		{
 			eOp = (ECalcOperator)i;
 			mcParser.PassPosition();
-			*pcOperator = Malloc(CCalcOperator);
+			*pcOperator = NewMalloc<CCalcOperator>();
 			(*pcOperator)->Set(eOp);
 			return TRUE;
 		}
@@ -337,7 +337,7 @@ BOOL CCalculator::Parentheses(CCalcParentheses** ppcParentheses)
 		if (tResult == TRITRUE)
 		{
 			mcParser.PassPosition();
-			*ppcParentheses = Malloc(CCalcParentheses);
+			*ppcParentheses = NewMalloc<CCalcParentheses>();
 			(*ppcParentheses)->SetExpression(NULL);
 			return TRUE;
 		}
@@ -350,7 +350,7 @@ BOOL CCalculator::Parentheses(CCalcParentheses** ppcParentheses)
 				if (tResult == TRITRUE)
 				{
 					mcParser.PassPosition();
-					*ppcParentheses = Malloc(CCalcParentheses);
+					*ppcParentheses = NewMalloc<CCalcParentheses>();
 					(*ppcParentheses)->SetExpression(pcExpression);
 					return TRUE;
 				}
@@ -422,7 +422,7 @@ void CCalculator::BuildExpression(CCalcExpression** ppcExpression, CArrayPointer
 				if (pcObject->IsExpression())
 				{
 					pcOperand = (CCalcExpression*)pcObject;
-					pcUnary = Malloc(CCalcUnaryExpression);
+					pcUnary = NewMalloc<CCalcUnaryExpression>();
 					pcUnary->Set(pcOperand, pcOperator);
 					pcArray->RemoveAt(iIndex+1);
 					pcArray->Set(iIndex, pcUnary, 0);
@@ -452,7 +452,7 @@ void CCalculator::BuildExpression(CCalcExpression** ppcExpression, CArrayPointer
 					{
 						pcOperandLeft = (CCalcExpression*)pcObjectLeft;
 						pcOperandRight = (CCalcExpression*)pcObjectRight;
-						pcBinary = Malloc(CCalcBinaryExpression);
+						pcBinary = NewMalloc<CCalcBinaryExpression>();
 						pcBinary->Set(pcOperandLeft, pcOperator, pcOperandRight);
 						pcArray->RemoveAt(iIndex+1);
 						pcArray->Set(iIndex, pcBinary, 0);

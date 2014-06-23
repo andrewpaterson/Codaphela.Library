@@ -49,8 +49,8 @@ void CDurableFile::Init(BOOL bDurable, char* szFileName, char* szRewriteName)
 
 	mcWrites.Init(COMMAND_CHUNK_SIZE);
 
-	mpcPrimaryFile = Malloc(CFileBasic);
-	mpcRewriteFile = Malloc(CFileBasic);
+	mpcPrimaryFile = NewMalloc<CFileBasic>();
+	mpcRewriteFile = NewMalloc<CFileBasic>();
 
 	if (szFileName)
 	{

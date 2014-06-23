@@ -77,7 +77,7 @@ CTransientIndexedFile* CSubTransaction::CreateTransientIndexedFile(char* szDirec
 	sz.Append("_");
 	sz.Append(miSubTxNum);
 
-	pcData = Malloc(CTransientIndexedFile);
+	pcData = NewMalloc<CTransientIndexedFile>();
 	pcData->Init(sz.Text(), 1 MB);
 
 	sz.Kill();
