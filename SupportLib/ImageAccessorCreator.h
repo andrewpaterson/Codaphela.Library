@@ -23,6 +23,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 ** ------------------------------------------------------------------------ **/
 #ifndef __IMAGE_ACCESSOR_CREATOR_H__
 #define __IMAGE_ACCESSOR_CREATOR_H__
+#include "StandardLib/Pointer.h"
 #include "StandardLib/ChannelsAccessorCreator.h"
 #include "ImageAccessor.h"
 #include "ImageColour.h"
@@ -32,16 +33,16 @@ class CImageAccessorCreator
 {
 public:
 	static CImageAccessor* CreateEmpty(void);
-	static CImageAccessor* Create(CImage* pcImage, int iFirst, ...);
-	static CImageAccessor* Create(CImage* pcImage, CImage* pcChannels);
-	static CImageAccessor* Create(CImage* pcImage, CArrayInt* paiChannels);
-	static CImageAccessor* Create(CImage* pcImage, CImageColour* pcColour);
+	static CImageAccessor* Create(Ptr<CImage> pcImage, int iFirst, ...);
+	static CImageAccessor* Create(Ptr<CImage> pcImage, Ptr<CImage> pcChannels);
+	static CImageAccessor* Create(Ptr<CImage> pcImage, CArrayInt* paiChannels);
+	static CImageAccessor* Create(Ptr<CImage> pcImage, CImageColour* pcColour);
 
 public:
 	CChannelsAccessorCreator	mcCreator;
-	CImage*						mpcImage;
+	Ptr<CImage>						mpcImage;
 
-	void				Init(CImage* pcImage);
+	void				Init(Ptr<CImage> pcImage);
 	void				Kill(void);
 	CImageAccessor*		Create(void);
 	CImageAccessor*		CreateAndKill(void);
@@ -51,7 +52,7 @@ public:
 	void	AddAccess(int iChannel1, int iChannel2, int iChannel3, EPrimitiveTypes eType = PT_Undefined);
 	void	AddAccess(int iChannel1, int iChannel2, int iChannel3, int iChannel4, EPrimitiveTypes eType = PT_Undefined);
 	void	AddAccess(CArrayInt* paiChannels, EPrimitiveTypes eType = PT_Undefined);
-	void	AddAccess(CImage* pcChannels);
+	void	AddAccess(Ptr<CImage> pcChannels);
 	void	AddAccess(CImageAccessor* pcChannels);
 
 	void	AddAccess(CImageColour* pcColour);

@@ -23,6 +23,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 ** ------------------------------------------------------------------------ **/
 #ifndef __IMAGE_ACCESSOR_H__
 #define __IMAGE_ACCESSOR_H__
+#include "StandardLib/Pointer.h"
 #include "StandardLib/ChannelsAccessor.h"
 #include "ImageChannel.h"
 #include "ImageColour.h"
@@ -37,11 +38,11 @@ class CImageAccessor : public CUnknown
 BASE_FUNCTIONS(CImageAccessor);
 protected:
 	CChannelsAccessor*	mpcAccessor;
-	CImage*				mpcImage;
+	Ptr<CImage>			mpcImage;
 	int					miWidth;
 
 public:
-	void 				Init(CImage* pcImage, CChannelsAccessor* pcAccessor);
+	void 				Init(Ptr<CImage> pcImage, CChannelsAccessor* pcAccessor);
 	virtual void		Kill(void);
 
 	virtual void*		Get(int x, int y);
@@ -62,7 +63,7 @@ public:
 	int					GetBitSize(void);
 	int					GetByteSize(void);
 	CChannelsAccessor*	GetAccessor(void);
-	CImage*				GetImage(void);
+	Ptr<CImage>				GetImage(void);
 	int					GetWidth(void);
 };
 

@@ -23,11 +23,12 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 ** ------------------------------------------------------------------------ **/
 #ifndef __IMAGE_WRITER_H__
 #define __IMAGE_WRITER_H__
+#include "StandardLib/Pointer.h"
 #include "ImageFileType.h"
 #include "Image.h"
 
 
-BOOL WriteImage(CImage* pcImage, char* szFileName, EImageType eImageType = IT_Unknown);
+BOOL WriteImage(Ptr<CImage> pcImage, char* szFileName, EImageType eImageType = IT_Unknown);
 
 
 #endif //__IMAGE_WRITER_H__

@@ -29,7 +29,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageAccessorByte::Init(CImage* pcImage, CChannelsAccessor* pcAccessor)
+void CImageAccessorByte::Init(Ptr<CImage> pcImage, CChannelsAccessor* pcAccessor)
 {
 	CChannelsAccessorContiguous*	pcContiguous;
 

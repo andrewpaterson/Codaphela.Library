@@ -38,7 +38,7 @@ void CComponentFactory::Init(CWorld* pcWorld, CUnknowns* pcUnknowns, CInput* pcI
 {
 	CFileUtil	cFileUtil;
 	CChars		sz;
-	CFont*		pcFont;
+	Ptr<CFont>	pFont;
 
 	macComponents.Init();
 
@@ -50,10 +50,10 @@ void CComponentFactory::Init(CWorld* pcWorld, CUnknowns* pcUnknowns, CInput* pcI
 	mpcState0 = CreateState(0);
 	mpcState1 = CreateState(1);
 
-	pcFont = mpcFontList->CreateFromSystem("MS Sans Serif", 6, 7, FW_NORMAL);
-	mpcSansSerif = CreateTextParameters(pcFont);
-	pcFont = mpcFontList->CreateFromSystem("Fixedsys", 0, 0, FW_DONTCARE);
-	mpcFixedSys = CreateTextParameters(pcFont);
+	pFont = mpcFontList->CreateFromSystem("MS Sans Serif", 6, 7, FW_NORMAL);
+	mpcSansSerif = CreateTextParameters(pFont);
+	pFont = mpcFontList->CreateFromSystem("Fixedsys", 0, 0, FW_DONTCARE);
+	mpcFixedSys = CreateTextParameters(pFont);
 	mpcDefaultFont = mpcFixedSys;
 
 	sz.Init("BlueBorderNormal.bmp");
@@ -128,7 +128,7 @@ BOOL CComponentFactory::RemoveComponent(CComponent* pcComponent)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CTextParameters* CComponentFactory::CreateTextParameters(CFont* pcFont)
+CTextParameters* CComponentFactory::CreateTextParameters(Ptr<CFont> pFont)
 {
 	CTextParameters*	pcTextParameters;
 
@@ -138,7 +138,7 @@ CTextParameters* CComponentFactory::CreateTextParameters(CFont* pcFont)
 		return NULL;
 	}
 
-	pcTextParameters->Init(pcFont, mpcState1, mpcWorld);
+	pcTextParameters->Init(pFont, mpcState1, mpcWorld);
 	return pcTextParameters;
 }
 

@@ -102,7 +102,7 @@ BOOL GetEncoderClsid(EImageType eImageType, CLSID* psID)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void WriteGDIPlusImage(CImage* pcImage, char* szFileName, EImageType eImageType)
+void WriteGDIPlusImage(Ptr<CImage> pcImage, char* szFileName, EImageType eImageType)
 {
 	// Initialize GDI+.
 	GdiplusStartupInput gdiplusStartupInput;
@@ -170,7 +170,7 @@ Shutdown:
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL WriteImage(CImage* pcImage, char* szFileName, EImageType eType)
+BOOL WriteImage(Ptr<CImage> pcImage, char* szFileName, EImageType eType)
 {
 	if (eType == IT_Unknown)
 	{

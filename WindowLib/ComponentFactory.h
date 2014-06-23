@@ -68,7 +68,7 @@ public:
 
 	CGraphicsState*		CreateState(int iNumTextures);
 
-	CTextParameters*	CreateTextParameters(CFont* pcFont);
+	CTextParameters*	CreateTextParameters(Ptr<CFont> pFont);
 	CText*				CreateText(void);
 	CTextField*			CreateTextField(char* szString, BOOL bDefaultBorder = TRUE, BOOL bDefaultBackground = TRUE);
 

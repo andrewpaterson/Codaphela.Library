@@ -18,7 +18,6 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "BaseLib/DebugLog.h"
 #include "ComponentPointers.h"
 #include "Component.h"
 
@@ -76,8 +75,6 @@ void CComponentPointers::Add(CComponent* pcComponent)
 //////////////////////////////////////////////////////////////////////////
 void CComponentPointers::Remove(CComponent* pcComponent, BOOL bKillComponent)
 {
-	DEBUG_LOG_P(pcComponent->ClassName())
-
 	mcComponents.Remove(pcComponent);
 	if (bKillComponent)
 	{

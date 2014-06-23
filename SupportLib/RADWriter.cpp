@@ -32,7 +32,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL SaveRAD(CImage *pcImage, char *szPathName)
+BOOL SaveRAD(Ptr<CImage> pcImage, char *szPathName)
 {
 	CTextFile	cTextFile;
 	CChars*		szText;
@@ -113,7 +113,7 @@ BOOL SaveRAD(CImage *pcImage, char *szPathName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL SaveRAW(CImage* pcImage, char* szFileName)
+BOOL SaveRAW(Ptr<CImage> pcImage, char* szFileName)
 {
 	CNaiveFile	cNaiveFile;
 	BOOL		bResult;

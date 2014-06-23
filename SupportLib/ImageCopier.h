@@ -23,6 +23,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 ** ------------------------------------------------------------------------ **/
 #ifndef __IMAGE_COPIER_H__
 #define __IMAGE_COPIER_H__
+#include "StandardLib/Pointer.h"
 #include "ImageAccessor.h"
 #include "Rectangle.h"
 
@@ -32,18 +33,18 @@ class CImageCopier : public CUnknown
 {
 BASE_FUNCTIONS(CImageCopier);
 public:
-	static void Copy(CImage* pcSource, CImage* pcDest, int iDestX, int iDestY, CRectangle* psSourceRect = NULL);
-	static void Copy(CImage* pcSource, CImage* pcDest, int iDestX, int iDestY, int iSourceX1, int iSourceY1, int iSourceX2, int iSourceY2);
-	static void Copy(CImageCel* pcSource, CImage* pcDest, int iDestX, int iDestY);
+	static void Copy(Ptr<CImage> pcSource, Ptr<CImage> pcDest, int iDestX, int iDestY, CRectangle* psSourceRect = NULL);
+	static void Copy(Ptr<CImage> pcSource, Ptr<CImage> pcDest, int iDestX, int iDestY, int iSourceX1, int iSourceY1, int iSourceX2, int iSourceY2);
+	static void Copy(CImageCel* pcSource, Ptr<CImage> pcDest, int iDestX, int iDestY);
 
 public:
-	CImage*				mpcSource;
-	CImage*				mpcDest;
+	Ptr<CImage>			mpcSource;
+	Ptr<CImage>			mpcDest;
 	CImageAccessor*		mpcSourceAccessor;
 	CImageAccessor*		mpcDestAccessor;
 	BOOL				mbKillAccessors;
 
-	void Init(CImage* pcSource, CImage* pcDest);
+	void Init(Ptr<CImage> pcSource, Ptr<CImage> pcDest);
 	void Init(CImageAccessor* pcSourceAccessor, CImageAccessor* pcDestAccessor);
 	void Kill(void);
 

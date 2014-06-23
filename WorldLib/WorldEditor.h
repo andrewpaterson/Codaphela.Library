@@ -33,16 +33,16 @@ class CSceneConverter;
 class CWorldEditor
 {
 public:
-	CMeshSelectionConverter		mcMeshSelectionConverter;
+	CMeshSelectionConverter				mcMeshSelectionConverter;
 	CTransformNodeSelectionConverter	mcMatrixSelectionConverter;
-	CMeshAdjusterSet			macMeshAdjusters;
-	CSelectionColourArray		mcWhiteZeroColours;
-	CGraphicsMaterial*			mpcZBufferlessMaterial;
-	CGraphicsMaterial*			mpCLightInstancelessMaterial;
-	CGraphicsMaterial*			mpcBlendMaterial;
-	float						mfPointSize;
-	int							miMeshID;
-	CSceneConverter*			mpcSceneConverter;
+	CMeshAdjusterSet					macMeshAdjusters;
+	CSelectionColourArray				mcWhiteZeroColours;
+	CGraphicsMaterial*					mpcZBufferlessMaterial;
+	CGraphicsMaterial*					mpCLightInstancelessMaterial;
+	CGraphicsMaterial*					mpcBlendMaterial;
+	float								mfPointSize;
+	int									miMeshID;
+	CSceneConverter*					mpcSceneConverter;
 
 	void 			Init(CSceneConverter* pcSceneConverter);
 	void 			Kill(void);

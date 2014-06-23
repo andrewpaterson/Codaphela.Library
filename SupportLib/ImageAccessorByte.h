@@ -37,7 +37,7 @@ protected:
 	unsigned char*	mpucImageData;
 
 public:
-	void	Init(CImage* pcImage, CChannelsAccessor* pcAccessor);
+	void	Init(Ptr<CImage> pcImage, CChannelsAccessor* pcAccessor);
 	void	Kill(void);
 
 	void*	Get(int x, int y);

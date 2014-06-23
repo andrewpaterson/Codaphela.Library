@@ -110,7 +110,7 @@ Ptr<CImage> CImageCombiner::Combine(void)
 		acPackedRects.Kill();
 		return mpcDestImage;
 	}
-	return FALSE;
+	return NULL;
 }
 
 

@@ -42,11 +42,11 @@ public:
 	void 				Init(CWorld* pcWorld);
 	void 				Kill(void);
 	BOOL				Convert(CGraphicsTexture** ppcGraphicsTexture, D3DFORMAT d3dFormat, CImageCopier* pcExport, BOOL bDiscard);
-	BOOL				Convert(CGraphicsTexture** ppcGraphicsTexture, D3DFORMAT d3dFormat, CImage* pcImage, CImage* pcExport, BOOL bDiscard);
-	BOOL				Convert(CGraphicsTexture** ppcGraphicsTexture, CImage* pcImage, BOOL bDiscard);
+	BOOL				Convert(CGraphicsTexture** ppcGraphicsTexture, D3DFORMAT d3dFormat, Ptr<CImage> pcImage, Ptr<CImage> pcExport, BOOL bDiscard);
+	BOOL				Convert(CGraphicsTexture** ppcGraphicsTexture, Ptr<CImage> pcImage, BOOL bDiscard);
 
 private:
-	void				SetExternalChannel(CImage* pcExport, D3DFORMAT d3dFormat);
+	void				SetExternalChannel(Ptr<CImage> pcExport, D3DFORMAT d3dFormat);
 };
 
 

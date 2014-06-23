@@ -32,7 +32,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCopier::Init(CImage* pcSource, CImage* pcDest)
+void CImageCopier::Init(Ptr<CImage> pcSource, Ptr<CImage> pcDest)
 {
 	CImageAccessorCreator	cCreator;
 
@@ -178,7 +178,7 @@ void CImageCopier::Copy(int iDestX, int iDestY, int iSourceX1, int iSourceY1, in
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCopier::Copy(CImage* pcSource, CImage* pcDest, int iDestX, int iDestY, CRectangle* psSourceRect)
+void CImageCopier::Copy(Ptr<CImage> pcSource, Ptr<CImage> pcDest, int iDestX, int iDestY, CRectangle* psSourceRect)
 {
 	CImageCopier	cCopier;
 
@@ -192,7 +192,7 @@ void CImageCopier::Copy(CImage* pcSource, CImage* pcDest, int iDestX, int iDestY
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCopier::Copy(CImage* pcSource, CImage* pcDest, int iDestX, int iDestY, int iSourceX1, int iSourceY1, int iSourceX2, int iSourceY2)
+void CImageCopier::Copy(Ptr<CImage> pcSource, Ptr<CImage> pcDest, int iDestX, int iDestY, int iSourceX1, int iSourceY1, int iSourceX2, int iSourceY2)
 {
 	CImageCopier	cCopier;
 
@@ -206,7 +206,7 @@ void CImageCopier::Copy(CImage* pcSource, CImage* pcDest, int iDestX, int iDestY
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCopier::Copy(CImageCel* pcSource, CImage* pcDest, int iDestX, int iDestY)
+void CImageCopier::Copy(CImageCel* pcSource, Ptr<CImage> pcDest, int iDestX, int iDestY)
 {
 	CImageCopier cCopier;
 
