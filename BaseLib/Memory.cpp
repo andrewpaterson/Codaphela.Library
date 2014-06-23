@@ -44,7 +44,6 @@ void CMemory::Init(int iDefaultAlignment, BOOL bDefaultFreeListParams)
 	mcFreeLists.Init();
 	mcLargeList.Init();
 	miDefaultAlignment = iDefaultAlignment;
-	mcStats.Init();
  	mcOrder.Init(8);
 	muiAllocCount = 0;
 	muiBreakAlloc = 0;
@@ -80,7 +79,6 @@ void CMemory::Kill(void)
 	mcFreeLists.Kill();
 
 	mcLargeList.Kill();
-	mcStats.Kill();
 }
 
 

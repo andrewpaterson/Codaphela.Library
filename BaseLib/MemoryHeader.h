@@ -2,7 +2,6 @@
 #define __MEMORY_HEADER_H__
 #include "FreeListBlock.h"
 #include "PointerRemapper.h"
-#include "MemoryStats.h"
 #include "ArrayVoidPtr.h"
 #include "LinkListAligned.h"
 
@@ -44,8 +43,6 @@ struct SFreeListDesc
 	unsigned int		iStride;
 	int					iAlignment;
 	int					iOffset;
-
-	//int					iCompareHash;
 
 	void Init(unsigned int iStride, int iAlignment, int iOffset);
 	void Init(CFreeListBlock* pcFreeList, int iStride, int iAlignment, int iOffset);

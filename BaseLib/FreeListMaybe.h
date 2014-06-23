@@ -36,8 +36,8 @@ private:
 	void* PrivateCreateFreeList(void);
 
 public:
-	CFreeListBlock*	mpcFreeList;
-	CLinkListBlock*	mpcLinkList;
+	CFreeListBlock*		mpcFreeList;
+	CLinkListBlock*		mpcLinkList;
 	int					miElementSize;
 	int					miChunkSize;
 

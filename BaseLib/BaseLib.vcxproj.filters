@@ -492,9 +492,6 @@
     <ClInclude Include="Memory.h">
       <Filter>Source\Memory\Manager</Filter>
     </ClInclude>
-    <ClInclude Include="MemoryStats.h">
-      <Filter>Source\Memory\Manager</Filter>
-    </ClInclude>
     <ClInclude Include="ScratchPad.h">
       <Filter>Source\Memory\ScratchPad</Filter>
     </ClInclude>
@@ -876,9 +873,6 @@
       <Filter>Source\File\Copy</Filter>
     </ClCompile>
     <ClCompile Include="Memory.cpp">
-      <Filter>Source\Memory\Manager</Filter>
-    </ClCompile>
-    <ClCompile Include="MemoryStats.cpp">
       <Filter>Source\Memory\Manager</Filter>
     </ClCompile>
     <ClCompile Include="ScratchPad.cpp">

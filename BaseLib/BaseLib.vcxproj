@@ -220,7 +220,6 @@
     <ClInclude Include="MemoryStackExtended.h" />
     <ClInclude Include="StackMark.h" />
     <ClInclude Include="Memory.h" />
-    <ClInclude Include="MemoryStats.h" />
     <ClInclude Include="ScratchPad.h" />
     <ClInclude Include="FastFunctions.h" />
     <ClInclude Include="FastMemcmp.h" />
@@ -346,7 +345,6 @@
     <ClCompile Include="MemoryStackExtended.cpp" />
     <ClCompile Include="StackMark.cpp" />
     <ClCompile Include="Memory.cpp" />
-    <ClCompile Include="MemoryStats.cpp" />
     <ClCompile Include="ScratchPad.cpp" />
     <ClCompile Include="FastFunctions.cpp" />
     <ClCompile Include="FastMemcmp.cpp" />

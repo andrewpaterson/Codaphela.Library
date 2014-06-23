@@ -30,10 +30,7 @@ class CMemory
 private:
 	CLinkListFreeListBlock		mcFreeLists;  
 	CLinkListAligned			mcLargeList;
-
-private:
 	int							miDefaultAlignment;
-	CMemoryStats				mcStats;
 	CArrayFreeListDesc			mcOrder;
 	CArrayFreeListParams		mcParams;
 	unsigned int				muiAllocCount;
