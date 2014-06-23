@@ -28,18 +28,10 @@ Microsoft Windows is Copyright Microsoft Corporation
 class CMemory
 {
 private:
-	CFreeListBlock*		GetOrAddFreeList(unsigned int iElementSize, int iAlignment, int iOffset);
-	SFreeListParams*	GetParamsForSize(unsigned int iElementSize);
-	void				InitFreeListParams(void);
-	void*				AllocateInFreeList(CFreeListBlock* pcFreeList, unsigned int uiElementSize);
-	void				DeallocateInFreeList(CFreeListBlock* pcFreeList, SMemoryAllocation* psAlloc);
-	void*				AllocateInLargeList(unsigned int uiSize, int iAlignment, int iOffset);
-	void				DeallocateInLargeList(SMemoryAllocation* psAlloc);
-	void				CopyAllocation(void* pvDest, void* pvSource, unsigned int uiDestSize, unsigned int uiSourceSize);
-
-public:
 	CLinkListFreeListBlock		mcFreeLists;  
 	CLinkListAligned			mcLargeList;
+
+private:
 	int							miDefaultAlignment;
 	CMemoryStats				mcStats;
 	CArrayFreeListDesc			mcOrder;
@@ -49,6 +41,7 @@ public:
 	unsigned int				muiFreeListSizeLimit;
 	BOOL						mbBreakOnAlloc;
 
+public:
 	void				Init(void);
 	void				Init(int iDefaultAlignment, BOOL bDefaultFreeListParams = TRUE);
 	void				Kill(void);
@@ -68,9 +61,22 @@ public:
 	void*				StartIteration(SMemoryIterator* psIterator);
 	void*				Iterate(SMemoryIterator* psIterator);
 
+	CFreeListBlock*		TestGetFreeListsHead(void);
+	void*				TestGetLargeListsHead(void);
+
 protected:
 	int					RemoveNode(CArrayVoidPtr* pav, int i, SMemoryAllocation* psAlloc, int iChunkSize, SFNode* psNode, CFreeListBlock* pcList);
 	int					RemoveElements(CArrayVoidPtr* pav, int i, int iChunkSize, SFNode* psNode, CFreeListBlock* pcList);
+
+private:
+	CFreeListBlock*		GetOrAddFreeList(unsigned int iElementSize, int iAlignment, int iOffset);
+	SFreeListParams*	GetParamsForSize(unsigned int iElementSize);
+	void				InitFreeListParams(void);
+	void*				AllocateInFreeList(CFreeListBlock* pcFreeList, unsigned int uiElementSize);
+	void				DeallocateInFreeList(CFreeListBlock* pcFreeList, SMemoryAllocation* psAlloc);
+	void*				AllocateInLargeList(unsigned int uiSize, int iAlignment, int iOffset);
+	void				DeallocateInLargeList(SMemoryAllocation* psAlloc);
+	void				CopyAllocation(void* pvDest, void* pvSource, unsigned int uiDestSize, unsigned int uiSourceSize);
 };
 
 
