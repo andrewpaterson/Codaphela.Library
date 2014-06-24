@@ -147,7 +147,7 @@ BOOL CFileReader::ReadLinkListBlock(CLinkListBlock* pcLinkList)
 	void*			pvData;
 
 	CheckRead(pcLinkList, sizeof(CLinkListBlock));
-	iNumElements = pcLinkList->miNumElements;
+	iNumElements = pcLinkList->NumElements();
 	pcLinkList->Init();
 	for (i = 0; i < iNumElements; i++)
 	{

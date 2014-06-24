@@ -103,12 +103,11 @@ BOOL CFileWriter::WriteArrayUnknown(CArrayBlock* pcArray)
 BOOL CFileWriter::WriteLinkListBlock(CLinkListBlock* pcLinkList)
 {
 	void*			pvData;
-	int				i;
 	SUnknownType	sType;
 
 	CheckWrite(pcLinkList, sizeof(CLinkListBlock));
 	pvData = pcLinkList->GetHead();
-	for (i = 0; i < pcLinkList->miNumElements; i++)
+	while (pvData)
 	{
 		pcLinkList->GetNodeTypeAndSize(pvData, &sType);
 		CheckWrite(&sType, sizeof(SUnknownType));

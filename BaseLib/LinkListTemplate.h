@@ -37,11 +37,12 @@ struct SDNode
 template<class M>
 class __CLinkListTemplate
 {
-public:
+protected:
 	SDNode*		mpsHead; 
 	SDNode*		mpsTail;
 	int			miNumElements;
 
+public:
 	void	Kill(void);
 	M* 		GetHead(void);
 	M* 		GetTail(void);
@@ -83,9 +84,10 @@ protected:
 template<class M>
 class CLinkListTemplate : public __CLinkListTemplate<M>
 {
-public:
+protected:
 	int		miElementSize;
 
+public:
 	void	Init(void);
 	M*		AllocateDetached(void);
 	M* 		InsertAfterTail(void);

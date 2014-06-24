@@ -136,13 +136,12 @@ BOOL CFileWriter::WriteLinkListTemplate(CLinkListTemplate<M>* pcLinkList)
 {
 	M*		pvData;
 	int		iElementSize;
-	int		i;
 
 	iElementSize = sizeof(M);
 	CheckWrite(&iElementSize, sizeof(int));
 	CheckWrite(pcLinkList, sizeof(CLinkListTemplate<M>));
 	pvData = pcLinkList->GetHead();
-	for (i = 0; i < pcLinkList->miNumElements; i++)
+	while (pvData)
 	{
 		CheckWrite(pvData, sizeof(M));
 		pvData = pcLinkList->GetNext(pvData);

@@ -149,7 +149,7 @@ BOOL CFileReader::ReadLinkListTemplate(CLinkListTemplate<M>* pcLinkList)
 		return FALSE;
 	}
 	CheckRead(pcLinkList, sizeof(CLinkListTemplate<M>));
-	iNumElements = pcLinkList->miNumElements;
+	iNumElements = pcLinkList->NumElements();
 	pcLinkList->Init();
 	for (i = 0; i < iNumElements; i++)
 	{
