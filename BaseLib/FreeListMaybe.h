@@ -31,10 +31,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 class CFreeListMaybe
 {
-private:
-	void* PrivateCreateLinkList(void);
-	void* PrivateCreateFreeList(void);
-
 public:
 	CFreeListBlock*		mpcFreeList;
 	CLinkListBlock*		mpcLinkList;
@@ -48,6 +44,14 @@ public:
 	void*	AddUseMalloc(void);  //Just for completeness.
 	void	Remove(void* pvElement);
 	BOOL	SafeRemove(void* pvElement);  //Make sure to only remove elements which we have allocated.
+
+protected:
+	void*	Malloc(size_t tSize);
+	void*	Realloc(void* pv, size_t iMemSize);
+	void	Free(void* pv);
+
+	void*	CreateLinkList(void);
+	void*	CreateFreeList(void);
 };
 
 
