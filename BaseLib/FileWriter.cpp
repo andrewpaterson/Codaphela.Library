@@ -132,7 +132,7 @@ BOOL CFileWriter::WriteTreeUnknown(CTreeBlock* pcTree)
 
 	CheckWrite(pcTree, sizeof(CTreeBlock));
 
-	if (pcTree->miNumElements != 0)
+	if (pcTree->NumElements() != 0)
 	{
 		pvData = pcTree->StartTraversal();
 		while (pvData != NULL)

@@ -183,7 +183,7 @@ BOOL CFileReader::ReadTreeTemplate(CTreeTemplate<M>* pcTree)
 	}
 
 	CheckRead(pcTree, sizeof(CTreeTemplate<M>));
-	iNumElements = pcTree->miNumElements;
+	iNumElements = pcTree->NumElements();
 	iPathNum = 0;
 	iOldPath = 0;
 	pcTree->Init();

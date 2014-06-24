@@ -41,10 +41,10 @@ class CTreeTemplate
 {
 protected:
 	STNode*	mpsRoot;
+	int		miNumElements;
 
 public:
-	int		miLevel;  //Level is only valid during traversals
-	int		miNumElements;
+	int		miLevel;  //Level is only valid during traversals.  WTF? A traversal object should hold this.
 
 public:
 	void	Init(void);

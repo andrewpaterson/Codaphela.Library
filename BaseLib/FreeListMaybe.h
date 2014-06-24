@@ -31,15 +31,16 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 class CFreeListMaybe
 {
-public:
+protected:
 	CFreeListBlock*		mpcFreeList;
 	CLinkListBlock*		mpcLinkList;
 	int					miElementSize;
 	int					miChunkSize;
 
+public:
 	void	Init(int iElementSize, int iChunkSize = NUM_ELEMENTS_IN_CHUNK);
 	void	Kill(void);
-	void*	Add(void);  //This is a malloc equivalent.
+	void*	Add(void);
 	void*	AddUseFreelist(int iChunkSize = 0);				//Force usage of a freelist if not yet used.
 	void*	AddUseMalloc(void);  //Just for completeness.
 	void	Remove(void* pvElement);

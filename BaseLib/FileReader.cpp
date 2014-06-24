@@ -173,7 +173,7 @@ BOOL CFileReader::ReadTreeUnknown(CTreeBlock* pcTree)
 	SUnknownType	sType;
 
 	CheckRead(pcTree, sizeof(CTreeBlock));
-	iNumElements = pcTree->miNumElements;
+	iNumElements = pcTree->NumElements();
 	pcTree->Init();
 
 	for (i = 0; i < iNumElements; i++)

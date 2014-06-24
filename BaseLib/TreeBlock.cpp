@@ -207,7 +207,7 @@ void CTreeBlock::FreeDetached(void* psNodeData)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CTreeBlock::MallocSize(void)
+int CTreeBlock::ByteSize(void)
 {
 	void*	pvNode;
 	int		iSize;

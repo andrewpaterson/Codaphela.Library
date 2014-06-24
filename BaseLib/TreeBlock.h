@@ -35,9 +35,6 @@ struct STUNode
 typedef CTreeTemplate<void> __CTreeBlock;
 class CTreeBlock : public __CTreeBlock
 {
-private:
-	void	RecursiveFreeNodes(STNode *psNode);
-
 public:
 	void	Kill(void);
 
@@ -61,11 +58,12 @@ public:
 	int		RemoveBranch(void* psNodeData);
 	void	Remove(void* psNodeData);
 
-	int		MallocSize(void);
+	int		ByteSize(void);
 	
 protected:
 	void	FreeDetached(void* psNodeData);
 	void*	AllocateDetached(int iDataSize, int iDataType);
+	void	RecursiveFreeNodes(STNode *psNode);
 };
 
 

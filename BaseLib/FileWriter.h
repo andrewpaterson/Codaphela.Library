@@ -167,7 +167,7 @@ BOOL CFileWriter::WriteTreeTemplate(CTreeTemplate<M>* pcTree)
 	CheckWrite(&iElementSize, sizeof(int));
 	CheckWrite(pcTree, sizeof(CTreeTemplate<M>));
 
-	if (pcTree->miNumElements != 0)
+	if (pcTree->NumElements() != 0)
 	{
 		pvData = pcTree->StartTraversal();
 		while (pvData != NULL)
