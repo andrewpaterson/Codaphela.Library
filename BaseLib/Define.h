@@ -54,7 +54,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 #endif
 
 #include <stdlib.h>
-#include <malloc.h>
 #include <memory.h>
 #include "Bool.h"
 #define ENGINE_SIZE_T size_t
