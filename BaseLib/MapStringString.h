@@ -32,19 +32,23 @@ template class CMapStringTemplate<CChars>;
 class CMapStringString : public CMapStringTemplate<CChars>
 {
 public:
-	CChars*	PrivateAllocateNode(char* szKey, char* szValue);
-	void	PrivateFreeNode(CChars* psKey);
-
 	void	Kill(void);
+
 	void	Put(CChars* psKey, CChars* psValue);
 	void	Put(char* psKey, char* psValue);
+
 	CChars* GetWithKey(CChars* psKey);
 	char*	GetWithKey(char* psKey);
 	BOOL	GetAtIndex(int iIndex, CChars** ppsKey, CChars** ppsData);
+
 	void	Remove(CChars* szKey);
 	void	Remove(char* szKey);
 
 	void	Dump(void);
+
+protected:
+	CChars*	AllocateNode(char* szKey, char* szValue);
+	void	FreeNode(CChars* psKey);
 };
 
 

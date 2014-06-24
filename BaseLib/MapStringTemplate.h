@@ -29,17 +29,16 @@ template<class D>
 class CMapStringTemplate : public CMapTemplate<CChars, D>
 {
 public:
-	CChars*		PrivateAllocateNode(char* szText);
-	void		PrivateFreeNode(CChars* psKey);
-
 	void	Init(int iChunkSize, BOOL bCaseSensitive = TRUE);
 	void	Kill(void);
+
 	D*		GetWithKey(CChars* psKey);
 	D*		GetWithKey(char* szKey);
 	D*		GetWithKey(char* psKey, int iLength);
 	D*		GetWithKeyAssumeDuplicates(CChars* psKey);
 	BOOL	GetWithKeyNextDuplicate(CChars* psLastKey, int iLastIndex, D** ppsData);
 	BOOL	GetAtIndex(int iIndex, CChars** ppsKey, D** ppsData);
+
 	D*		Put(CChars* psKey);
 	D*		Put(char* szKey);
 	void	Put(CChars* psKey, D* psData);
@@ -48,10 +47,16 @@ public:
 	D*		PutAllowDuplicates(CChars* psKey);
 	void	PutAllowDuplicates(char* szKey, D* pvData);
 	void	PutAllowDuplicates(CChars* psKey, D* pvData);
+
 	void	Remove(CChars* szKey);
 	void	Remove(char* szKey);
+
 	BOOL	IsCaseSensitive(void);
 	void	SetCaseSensitive(BOOL bCaseSensitive);
+
+protected:
+	CChars*	AllocateNode(char* szText);
+	void	FreeNode(CChars* psKey);
 };
 
 
@@ -86,7 +91,7 @@ void CMapStringTemplate<D>::Kill(void)
 	for (i = 0; i < this->mcArray.NumElements(); i++)
 	{
 		psData = (CChars*)this->mcArray.GetPtr(i);
-		PrivateFreeNode(psData);
+		FreeNode(psData);
 	}
 
 	this->mcArray.Kill();
@@ -99,7 +104,7 @@ void CMapStringTemplate<D>::Kill(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class D>
-CChars* CMapStringTemplate<D>::PrivateAllocateNode(char* szText)
+CChars* CMapStringTemplate<D>::AllocateNode(char* szText)
 {
 	CChars*	sz;
 
@@ -114,7 +119,7 @@ CChars* CMapStringTemplate<D>::PrivateAllocateNode(char* szText)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class D>
-void CMapStringTemplate<D>::PrivateFreeNode(CChars* psKey)
+void CMapStringTemplate<D>::FreeNode(CChars* psKey)
 {
 	psKey->Kill();
 	free(psKey);
@@ -230,9 +235,9 @@ D* CMapStringTemplate<D>::Put(char* szKey)
 	}
 	else
 	{
-		ps = PrivateAllocateNode(szKey);
+		ps = AllocateNode(szKey);
 		this->mcArray.InsertIntoSorted(this->Func, ps, -1);
-		psData = this->PrivateGetDataForKey(ps);
+		psData = this->GetDataForKey(ps);
 		return psData;
 	}
 }
@@ -292,9 +297,9 @@ D* CMapStringTemplate<D>::PutAllowDuplicates(char* szKey)
 	CChars*		ps;
 	D*			psData;
 
-	ps = PrivateAllocateNode(szKey);
+	ps = AllocateNode(szKey);
 	this->mcArray.InsertIntoSorted(this->Func, ps, -1);
-	psData = this->PrivateGetDataForKey(ps);
+	psData = this->GetDataForKey(ps);
 	return psData;
 }
 
@@ -354,7 +359,7 @@ void CMapStringTemplate<D>::Remove(char* szKey)
 	if (iIndex != -1)
 	{
 		ps = (CChars*)this->mcArray.GetPtr(iIndex);
-		PrivateFreeNode(ps);
+		FreeNode(ps);
 		this->mcArray.RemoveAt(iIndex, 1);
 	}
 }

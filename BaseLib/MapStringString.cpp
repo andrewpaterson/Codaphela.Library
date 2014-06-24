@@ -35,7 +35,7 @@ void CMapStringString::Kill(void)
 	for (i = 0; i < mcArray.NumElements(); i++)
 	{
 		psKey = (CChars*)mcArray.GetPtr(i);
-		PrivateFreeNode(psKey);
+		FreeNode(psKey);
 	}
 
 	mcArray.Kill();
@@ -47,7 +47,7 @@ void CMapStringString::Kill(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CChars* CMapStringString::PrivateAllocateNode(char* szKey, char* szValue)
+CChars* CMapStringString::AllocateNode(char* szKey, char* szValue)
 {
 	CChars*	sz;
 	CChars* szData;
@@ -55,7 +55,7 @@ CChars* CMapStringString::PrivateAllocateNode(char* szKey, char* szValue)
 	sz = (CChars*)malloc(sizeof(CChars) + sizeof(CChars));
 	sz->Init(szKey);
 
-	szData = PrivateGetDataForKey(sz);
+	szData = GetDataForKey(sz);
 	szData->Init(szValue);
 
 	return sz;
@@ -66,11 +66,11 @@ CChars* CMapStringString::PrivateAllocateNode(char* szKey, char* szValue)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CMapStringString::PrivateFreeNode(CChars* psKey)
+void CMapStringString::FreeNode(CChars* psKey)
 {
 	CChars* szData;
 
-	szData = PrivateGetDataForKey(psKey);
+	szData = GetDataForKey(psKey);
 	szData->Kill();
 	psKey->Kill();
 	free(psKey);
@@ -108,7 +108,7 @@ void CMapStringString::Put(char* psKey, char* psValue)
 	}
 	else
 	{
-		ps = PrivateAllocateNode(psKey, psValue);
+		ps = AllocateNode(psKey, psValue);
 		mcArray.InsertIntoSorted(Func, ps, -1);
 	}
 }
@@ -176,7 +176,7 @@ void CMapStringString::Remove(char* szKey)
 	if (iIndex != -1)
 	{
 		ps = (CChars*)mcArray.GetPtr(iIndex);
-		PrivateFreeNode(ps);
+		FreeNode(ps);
 		mcArray.RemoveAt(iIndex, 1);
 	}
 }

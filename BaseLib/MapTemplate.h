@@ -30,10 +30,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 template<class M>
 class __CMapTemplate
 {
-protected:
-	M*		PrivateAllocateNode(int iDataSize);
-	void	PrivateFreeNode(M* psKey);
-
 public:
 	int(*Func)(const void*, const void*);
 	CArrayPointer	mcArray;
@@ -52,8 +48,12 @@ public:
 	int		GetIndex(M* psKey);
 	int		NumElements(void);
 
-	void*	PrivateGetDataForKey(M* psKey);  //Rename these and drop the Privates
-	M*		PrivateGetKeyForData(void* pvData);
+protected:
+	M*		AllocateNode(int iDataSize);
+	void	FreeNode(M* psKey);
+
+	void*	GetDataForKey(M* psKey);  //Rename these and drop the Privates
+	M*		GetKeyForData(void* pvData);
 };
 
 
@@ -61,16 +61,19 @@ template<class M, class D>
 class CMapTemplate : public __CMapTemplate<M>
 {
 public:
-	D*		PrivateGetDataForKey(M* psKey);
-
 	void	Init(int iChunkSize);
 	void	Init(int iChunkSize, int(* Func)(const void*, const void*));
+
 	D*		GetWithKey(M* psKey);
 	D*		GetWithKeyAssumeDuplicates(M* psKey);
 	BOOL	GetWithKeyNextDuplicate(M* psLastKey, int iLastIndex, D** ppsData);
 	BOOL	GetAtIndex(int iIndex, M** ppsKey, D** ppsData);
+
 	D*		Put(M* psKey);
 	void	Put(M* psKey, D* psData);
+
+protected:
+	D*		GetDataForKey(M* psKey);
 };
 
 
@@ -87,7 +90,7 @@ void __CMapTemplate<M>::Kill(void)
 	for (i = 0; i < mcArray.NumElements(); i++)
 	{
 		psKey = (M*)mcArray.GetPtr(i);
-		PrivateFreeNode(psKey);
+		FreeNode(psKey);
 	}
 
 	mcArray.Kill();
@@ -100,7 +103,7 @@ void __CMapTemplate<M>::Kill(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void* __CMapTemplate<M>::PrivateGetDataForKey(M* psKey)
+void* __CMapTemplate<M>::GetDataForKey(M* psKey)
 {
 	if (psKey == NULL)
 	{
@@ -115,7 +118,7 @@ void* __CMapTemplate<M>::PrivateGetDataForKey(M* psKey)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M* __CMapTemplate<M>::PrivateGetKeyForData(void* pvData)
+M* __CMapTemplate<M>::GetKeyForData(void* pvData)
 {
 	if (pvData == NULL)
 	{
@@ -130,7 +133,7 @@ M* __CMapTemplate<M>::PrivateGetKeyForData(void* pvData)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M* __CMapTemplate<M>::PrivateAllocateNode(int iDataSize)
+M* __CMapTemplate<M>::AllocateNode(int iDataSize)
 {
 	return (M*)malloc(miKeySize + iDataSize);
 }
@@ -141,7 +144,7 @@ M* __CMapTemplate<M>::PrivateAllocateNode(int iDataSize)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void __CMapTemplate<M>::PrivateFreeNode(M* psData)
+void __CMapTemplate<M>::FreeNode(M* psData)
 {
 	free(psData);
 }
@@ -161,7 +164,7 @@ void __CMapTemplate<M>::Remove(M* psKey)
 	if (iIndex != -1)
 	{
 		ps = (M*)mcArray.GetPtr(iIndex);
-		PrivateFreeNode(ps);
+		FreeNode(ps);
 		mcArray.RemoveAt(iIndex, 1);
 	}
 }
@@ -185,7 +188,7 @@ BOOL __CMapTemplate<M>::GetWithKey(M* psSearch, void** ppvData, int* piDataSize)
 		return FALSE;
 	}
 	bResult = mcArray.Get(i, (void**)&psKey, &iSize);
-	*ppvData = PrivateGetDataForKey(psKey);
+	*ppvData = GetDataForKey(psKey);
 	*piDataSize = iSize;
 	return TRUE;
 }
@@ -210,7 +213,7 @@ BOOL __CMapTemplate<M>::GetWithKeyAssumeDuplicates(M* psSearch, void** ppvData, 
 	}
 
 	bResult = mcArray.Get(i, (void**)&psKey, &iSize);
-	*ppvData = PrivateGetDataForKey(psKey);
+	*ppvData = GetDataForKey(psKey);
 	*piDataSize = iSize;
 	return TRUE;
 }
@@ -234,19 +237,19 @@ void* __CMapTemplate<M>::Put(M* psSearch, int iDataSize)
 		GetAtIndex(iIndex, &psKey, &pvData, &iCurrentSize);
 		if (iCurrentSize != iDataSize)
 		{
-			PrivateFreeNode(psKey);
-			psKey = PrivateAllocateNode(iDataSize);
+			FreeNode(psKey);
+			psKey = AllocateNode(iDataSize);
 			mcArray.Set(iIndex, psKey, iDataSize);
 		}
-		pvData = PrivateGetDataForKey(psKey);
+		pvData = GetDataForKey(psKey);
 		return pvData;
 	}
 	else
 	{
-		psKey = PrivateAllocateNode(iDataSize);
+		psKey = AllocateNode(iDataSize);
 		memcpy(psKey, psSearch, miKeySize);
 		mcArray.InsertIntoSorted(Func, psKey, iDataSize);
-		pvData = PrivateGetDataForKey(psKey);
+		pvData = GetDataForKey(psKey);
 		return pvData;
 	}
 }
@@ -263,10 +266,10 @@ void* __CMapTemplate<M>::PutAllowDuplicates(M* psSearch, int iDataSize)
 	void*	pvData;
 
 
-	psKey = PrivateAllocateNode(iDataSize);
+	psKey = AllocateNode(iDataSize);
 	memcpy(psKey, psSearch, miKeySize);
 	mcArray.InsertIntoSorted(Func, psKey, iDataSize);
-	pvData = PrivateGetDataForKey(psKey);
+	pvData = GetDataForKey(psKey);
 	return pvData;
 }
 
@@ -335,7 +338,7 @@ BOOL __CMapTemplate<M>::GetAtIndex(int iIndex, M** ppsKey, void** ppsData, int* 
 
 	if (ppsData)
 	{
-		psData = PrivateGetDataForKey(psKey);
+		psData = GetDataForKey(psKey);
 		*ppsData = psData;
 	}
 
@@ -365,7 +368,7 @@ BOOL __CMapTemplate<M>::GetWithKeyNextDuplicate(M* psLastKey, int iLastIndex, vo
 		return FALSE;
 	}
 	bResult = mcArray.Get(i, (void**)&psKey, &iSize);
-	*ppvData = PrivateGetDataForKey(psKey);
+	*ppvData = GetDataForKey(psKey);
 	*piDataSize = iSize;
 	return TRUE;
 
@@ -396,9 +399,9 @@ int __CMapTemplate<M>::GetIndex(M* psKey)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, class D>
-D* CMapTemplate<M, D>::PrivateGetDataForKey(M* psKey)
+D* CMapTemplate<M, D>::GetDataForKey(M* psKey)
 {
-	return (D*) __CMapTemplate<M>::PrivateGetDataForKey(psKey);
+	return (D*) __CMapTemplate<M>::GetDataForKey(psKey);
 }
 
 
