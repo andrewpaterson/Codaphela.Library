@@ -45,7 +45,7 @@ void CArraySimpleChar::Init(char* sz)
 
 	iNumElements = (int)strlen(sz) + 1;
 	Allocate(iNumElements);
-	memcpy(pvArray, sz, iNumElements);
+	memcpy(mpvArray, sz, iNumElements);
 }
 
 
@@ -127,3 +127,12 @@ char CArraySimpleChar::GetValue(int iElementPos)
 	return *Get(iElementPos);
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CArraySimpleChar::GetArray(void)
+{
+	return mpvArray;
+}

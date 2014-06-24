@@ -32,7 +32,7 @@ class CArraySimple
 {
 protected:
 	int		miUsedElements;
-	M*		pvArray;
+	M*		mpvArray;
 
 public:
 	void	Init(void);
@@ -93,7 +93,7 @@ template<class M>
 void CArraySimple<M>::Init(void)
 {
 	miUsedElements = 0;
-	pvArray = NULL;
+	mpvArray = NULL;
 }
 
 
@@ -127,8 +127,8 @@ void CArraySimple<M>::ReInit(void)
 template<class M>
 void CArraySimple<M>::Kill(void)
 {
-	Free(pvArray);
-	pvArray = NULL;
+	Free(mpvArray);
+	mpvArray = NULL;
 	miUsedElements = 0;
 }
 
@@ -155,21 +155,21 @@ BOOL CArraySimple<M>::Reallocate(int iUsedElements)
 
 	if (iUsedElements == 0)
 	{
-		if (pvArray != NULL)
+		if (mpvArray != NULL)
 		{
-			Free(pvArray);
-			pvArray = NULL;
+			Free(mpvArray);
+			mpvArray = NULL;
 		}
 		miUsedElements = 0;
 		return TRUE;
 	}
 
-	pvTemp = (M*)Realloc(pvArray, iUsedElements * sizeof(M));
+	pvTemp = (M*)Realloc(mpvArray, iUsedElements * sizeof(M));
 
 	if (pvTemp != NULL)
 	{
 		miUsedElements = iUsedElements;
-		pvArray = pvTemp;
+		mpvArray = pvTemp;
 		return TRUE;
 	}
 	else
@@ -189,7 +189,7 @@ M* CArraySimple<M>::Add(void)
 {
 	if (Reallocate(miUsedElements+1))
 	{
-		return &pvArray[miUsedElements-1];
+		return &mpvArray[miUsedElements-1];
 	}
 	else
 	{
@@ -226,7 +226,7 @@ M* CArraySimple<M>::SafeGet(int iElementPos)
 	}
 	else
 	{
-		return &pvArray[iElementPos];
+		return &mpvArray[iElementPos];
 	}
 }
 
@@ -238,7 +238,7 @@ M* CArraySimple<M>::SafeGet(int iElementPos)
 template<class M>
 M* CArraySimple<M>::Get(int iElementPos)
 {
-	return &pvArray[iElementPos];
+	return &mpvArray[iElementPos];
 }
 
 
@@ -301,8 +301,8 @@ int CArraySimple<M>::ByteSize(void)
 template<class M>
 void CArraySimple<M>::InitFromHeader(void)
 {
-	//This function assumes that the value of pvArray was invalid.
-	pvArray = (M*)Malloc(miUsedElements * sizeof(M));
+	//This function assumes that the value of mpvArray was invalid.
+	mpvArray = (M*)Malloc(miUsedElements * sizeof(M));
 }
 
 
@@ -349,7 +349,7 @@ M* CArraySimple<M>::SetArraySize(int iNum, int iClearValue)
 
 		if (iOldUsed != -1)
 		{
-			pvClearStart = (void*)((ENGINE_SIZE_T) ((int)((ENGINE_SIZE_T) pvArray) + (iOldUsed * sizeof(M))));
+			pvClearStart = (void*)((ENGINE_SIZE_T) ((int)((ENGINE_SIZE_T) mpvArray) + (iOldUsed * sizeof(M))));
 			iClearSize = (miUsedElements - iOldUsed) * sizeof(M);
 			memset(pvClearStart, iClearValue, iClearSize);
 			return (M*)pvClearStart;
@@ -381,7 +381,7 @@ void CArraySimple<M>::Copy(CArraySimple* pArray)
 {
 	Kill();
 	SetArraySize(pArray->NumElements());
-	memcpy(pvArray, pArray->pvArray, miUsedElements * sizeof(M));
+	memcpy(mpvArray, pArray->mpvArray, miUsedElements * sizeof(M));
 }
 
 
@@ -394,7 +394,7 @@ void CArraySimple<M>::Zero(void)
 {
 	if (miUsedElements != 0)
 	{
-		memset(pvArray, 0, miUsedElements * sizeof(M));
+		memset(mpvArray, 0, miUsedElements * sizeof(M));
 	}
 }
 
@@ -420,7 +420,7 @@ void CArraySimple<M>::Zero(int iStart, int iEnd)
 template<class M>
 void CArraySimple<M>::QuickSort(int(* Func)(const void*, const void*))
 {
-	qsort((void*)pvArray, miUsedElements, sizeof(M), Func);
+	qsort((void*)mpvArray, miUsedElements, sizeof(M), Func);
 }
 
 
@@ -518,7 +518,7 @@ M* CArraySimple<M>::InsertAt(int iElementPos)
 	Add();
 
 	//This assumes that iElementPos is within the array (or the last element).
-	ptr = (M*)((ENGINE_SIZE_T) pvArray + iElementPos * sizeof(M));
+	ptr = (M*)((ENGINE_SIZE_T) mpvArray + iElementPos * sizeof(M));
 	memmove((M*)((ENGINE_SIZE_T) ptr + sizeof(M)), ptr, sizeof(M) * (miUsedElements - 1 - iElementPos));
 	return ptr;
 }
@@ -548,7 +548,7 @@ int CArraySimple<M>::Find(M* pData)
 	int		i;
 	M*	pPos;
 
-	pPos = pvArray;
+	pPos = mpvArray;
 
 	for (i = 0; i < miUsedElements; i++)
 	{
@@ -572,7 +572,7 @@ int CArraySimple<M>::FindWithKey(M* pData, int iKeyOffset, int iKeySize)
 	int		i;
 	M*	pPos;
 
-	pPos = pvArray;
+	pPos = mpvArray;
 
 	for (i = 0; i < miUsedElements; i++)
 	{
@@ -596,7 +596,7 @@ int	CArraySimple<M>::FindWithIntKey(int iKey, int iKeyOffset)
 	int		i;
 	void*	pPos;
 
-	pPos = (void*)((ENGINE_SIZE_T) ((int)((ENGINE_SIZE_T) pvArray) + iKeyOffset));
+	pPos = (void*)((ENGINE_SIZE_T) ((int)((ENGINE_SIZE_T) mpvArray) + iKeyOffset));
 	for (i = 0; i < miUsedElements; i++)
 	{
 		if (*((int*)pPos) == iKey)
@@ -672,7 +672,7 @@ int CArraySimple<M>::GetIndex(M* pvElement)
 	int iBase;
 	int iDifference;
 
-	iBase = (int)(ENGINE_SIZE_T) pvArray;
+	iBase = (int)(ENGINE_SIZE_T) mpvArray;
 	iPosition = (int)(ENGINE_SIZE_T) pvElement;
 	iDifference = iPosition - iBase;
 
@@ -703,7 +703,7 @@ void CArraySimple<M>::Set(int iElementPos, M* pvData)
 	M*	pvTemp;
 
 	pvTemp = Get(iElementPos);
-	memcpy((M*)((ENGINE_SIZE_T) pvArray + (iElementPos) * sizeof(M)), pvData, sizeof(M));
+	memcpy((M*)((ENGINE_SIZE_T) mpvArray + (iElementPos) * sizeof(M)), pvData, sizeof(M));
 }
 
 
@@ -758,7 +758,7 @@ M* CArraySimple<M>::InsertNumElementsAt(int iNumElements, int iElementPos)
 
 	if (iElementPos > 0)
 	{
-		memcpy(pvNew, pvArray, iElementPos * sizeof(M));
+		memcpy(pvNew, mpvArray, iElementPos * sizeof(M));
 	}
 
 	iNumToMove = miUsedElements - iElementPos;
@@ -766,8 +766,8 @@ M* CArraySimple<M>::InsertNumElementsAt(int iNumElements, int iElementPos)
 	pvTo = &pvNew[iElementPos + iNumElements];
 	memcpy(pvTo, pvFrom, iNumToMove * sizeof(M));
 
-	Free(pvArray);
-	pvArray = pvNew;
+	Free(mpvArray);
+	mpvArray = pvNew;
 
 	return (M*)pvFrom;
 }
@@ -796,7 +796,7 @@ M* CArraySimple<M>::Tail(void)
 template<class M>
 M* CArraySimple<M>::GetData(void)
 {
-	return pvArray;
+	return mpvArray;
 }
 
 

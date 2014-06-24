@@ -39,6 +39,7 @@ public:
 	int		AddIfUnique(char c);
 	int		Find(char c);
 	char	GetValue(int iElementPos);
+	char*	GetArray(void);
 };
 
 
