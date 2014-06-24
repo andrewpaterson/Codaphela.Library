@@ -40,10 +40,13 @@ private:
 
 public:
 	void	Kill(void);
+
 	int		GetNodeType(void* psData);
 	int		GetNodeSize(void* psData);
+
 	void	GetNodeTypeAndSize(void* pvData, SUnknownType* psType);
 	void	SetNodeTypeAndSize(void* pvData, SUnknownType* psType);
+
 	void*	InsertRoot(int iDataSize, int iDataType);
 	void*	InsertOnRightOfChildren(void* psParent, int iDataSize, int iDataType);
 	void*	InsertOnLeftOfChildren(void* psParent, int iDataSize, int iDataType);
@@ -52,15 +55,17 @@ public:
 	void*	InsertAtChildNum(void* psParent, int iChildNum, int iDataSize, int iDataType);
 	void*	InsertOnUp(void* psPos, int iDataSize, int iDataType);
 	void*	InsertOnAcross(void* psPos, int iDataSize, int iDataType);
-	void	FreeDetached(void* psNodeData);
-	void*	AllocateDetached(int iDataSize, int iDataType);
+
 	void	Detach(void* psNodeData);
 	BOOL	RemoveLeaf(void* psNodeData);
 	int		RemoveBranch(void* psNodeData);
 	void	Remove(void* psNodeData);
 
-	//Get malloc size.
 	int		MallocSize(void);
+	
+protected:
+	void	FreeDetached(void* psNodeData);
+	void*	AllocateDetached(int iDataSize, int iDataType);
 };
 
 

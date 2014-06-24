@@ -11,7 +11,7 @@
 
 struct SMemoryAllocation
 {
-	SFNode*			psFreeListNode;  //This is only valid when in a free list.
+	SFNode*			psFreeListNode;  //This is only valid when in a freelist.
 	unsigned int	uiAllocCount;
 	unsigned int	uiSize;
 	char			szDebug[4];

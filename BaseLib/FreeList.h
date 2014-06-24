@@ -438,7 +438,7 @@ SFNode* __CFreeList<M>::AllocateNew(void)
 	int			iTotalSize;
 	int			iBitArraySize;
 
-	//Find the size of this free list block.  It is integer alligned.
+	//Find the size of this freelist block.  It is integer aligned.
 	//miChunkSize+1 ... -1 to ensure enough space given alignment.
 	iBitArraySize = CalculateBitArraySize();
 
@@ -910,7 +910,7 @@ SFNode* __CFreeList<M>::FindNode(M* pvData, BOOL bIsAllocated)
 template<class M>
 int __CFreeList<M>::ByteSize(void)
 {
-	//This returns just the size of the allocated (malloc'd) blocks.  It does not include the free list 'header' or the link list 'header. 
+	//This returns just the size of the allocated memory allocated blocks.  It does not include the freelist 'header' or the link list 'header. 
 	return mcList.ByteSize();
 }
 
