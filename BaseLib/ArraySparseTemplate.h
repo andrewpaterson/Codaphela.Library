@@ -23,6 +23,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __ARRAY_SPARSE_TEMPLATE_H__
 #define __ARRAY_SPARSE_TEMPLATE_H__
 #include <stdlib.h>
+#include "DataMacro.h"
 #include "Define.h"
 #include "FastMemset.h"
 #include "FreeListBlock.h"
@@ -291,16 +292,16 @@ M* __CArraySparseTemplate<M>::Set(int iElementPos)
 		}
 		else
 		{
-			return HeaderGetData(SSparseNode, M, psNode);
+			return HeaderGetData<SSparseNode, M>(psNode);
 		}
 		RecurseIncreaseDepths(psNode, 1);
 		RecurseRebalance(psNode);  //Not psNewNode?
-		return HeaderGetData(SSparseNode, M, psNewNode);
+		return HeaderGetData<SSparseNode, M>(psNewNode);
 	}
 	else
 	{
 		mpsRoot = AllocateNode(iElementPos, NULL);
-		return HeaderGetData(SSparseNode, M, mpsRoot);
+		return HeaderGetData<SSparseNode, M>(mpsRoot);
 	}
 }
 
@@ -317,7 +318,7 @@ M* __CArraySparseTemplate<M>::Get(int iElementPos)
 	psNode = Search(iElementPos);
 	if (psNode->iIndex == iElementPos)
 	{
-		return HeaderGetData(SSparseNode, M, psNode);
+		return HeaderGetData<SSparseNode, M>(psNode);
 	}
 	return NULL;
 }

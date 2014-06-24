@@ -47,11 +47,11 @@ void CLinkListAligned::Kill(void)
 	SDANode*	psNode2;
 	void*		pvData;
 
-	pvData = HeaderGetDataMacro<SDNode, void>(mpsHead);  //Yes this is the correct macro.
+	pvData = HeaderGetData<SDNode, void>(mpsHead);  //Yes this is the correct macro.
 	psNode = CLinkListAlignedDataGetHeader(pvData);
 	while (psNode)
 	{
-		pvData = HeaderGetDataMacro<SDNode, void>(psNode->sDNode.psNext);  //Yes this is the correct macro.
+		pvData = HeaderGetData<SDNode, void>(psNode->sDNode.psNext);  //Yes this is the correct macro.
 		psNode2 = CLinkListAlignedDataGetHeader(pvData);
 		FreeNode(psNode);
 		psNode = psNode2;

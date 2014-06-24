@@ -68,8 +68,8 @@ protected:
 };
 
 
-#define CLinkListAlignedDataGetHeader(pvData)		DataGetHeaderMacro<SDANode, void>(pvData)
-#define CLinkListAlignedHeaderGetData(pvHeader)		HeaderGetDataMacro<SDANode, void>(pvHeader)
+#define CLinkListAlignedDataGetHeader(pvData)		DataGetHeader<SDANode, void>(pvData)
+#define CLinkListAlignedHeaderGetData(pvHeader)		HeaderGetData<SDANode, void>(pvHeader)
 
 #endif // __LINK_LIST_ALIGNED_H__
 

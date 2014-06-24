@@ -151,7 +151,7 @@ void CTreeBlock::RecursiveFreeNodes(STNode *psNode)
 	{
 		RecursiveFreeNodes(psNode->psUp);
 		psTemp = psNode->psAcross;
-		pvData = HeaderGetDataMacro<STNode, void>(psNode);
+		pvData = HeaderGetData<STNode, void>(psNode);
 		psFree = CTreeUnknownDataGetHeader(pvData);
 		__CTreeBlock::Free(psFree);
 		miNumElements--;

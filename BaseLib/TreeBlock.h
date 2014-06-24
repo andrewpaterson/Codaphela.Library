@@ -67,8 +67,8 @@ protected:
 };
 
 
-#define CTreeUnknownDataGetHeader(pvData)	DataGetHeaderMacro<STUNode, void>(pvData)
-#define CTreeUnknownHeaderGetData(pvHeader)	HeaderGetDataMacro<STUNode, void>(pvHeader)
+#define CTreeUnknownDataGetHeader(pvData)	DataGetHeader<STUNode, void>(pvData)
+#define CTreeUnknownHeaderGetData(pvHeader)	HeaderGetData<STUNode, void>(pvHeader)
 
 
 #endif //__TREE_BLOCK_H__

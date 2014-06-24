@@ -138,8 +138,8 @@ protected:
 };
 
 
-#define CTreeTemplateDataGetHeader(pvData)		DataGetHeaderMacro<STNode, M>(pvData)
-#define CTreeTemplateHeaderGetData(pvHeader)	HeaderGetDataMacro<STNode, M>(pvHeader)
+#define CTreeTemplateDataGetHeader(pvData)		DataGetHeader<STNode, M>(pvData)
+#define CTreeTemplateHeaderGetData(pvHeader)	HeaderGetData<STNode, M>(pvHeader)
 
 
 //////////////////////////////////////////////////////////////////////////

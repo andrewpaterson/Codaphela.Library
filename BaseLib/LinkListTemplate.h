@@ -99,8 +99,8 @@ public:
 };
 
 
-#define CLinkListTemplateDataGetHeader(pvData)		DataGetHeaderMacro<SDNode, M>(pvData)
-#define CLinkListTemplateHeaderGetData(pvHeader)	HeaderGetDataMacro<SDNode, M>(pvHeader)
+#define CLinkListTemplateDataGetHeader(pvData)		DataGetHeader<SDNode, M>(pvData)
+#define CLinkListTemplateHeaderGetData(pvHeader)	HeaderGetData<SDNode, M>(pvHeader)
 
 
 

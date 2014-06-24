@@ -60,8 +60,8 @@ protected:
 };
 
 
-#define CLinkListBlockDataGetHeader(pvData)		DataGetHeaderMacro<SDUNode, void>(pvData)
-#define CLinkListBlockHeaderGetData(pvHeader)		HeaderGetDataMacro<SDUNode, void>(pvHeader)
+#define CLinkListBlockDataGetHeader(pvData)		DataGetHeader<SDUNode, void>(pvData)
+#define CLinkListBlockHeaderGetData(pvHeader)		HeaderGetData<SDUNode, void>(pvHeader)
 
 
 #endif //__LINK_LIST_BLOCK_H__

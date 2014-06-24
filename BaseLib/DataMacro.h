@@ -22,19 +22,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __DATA_MACRO_H__
 #define __DATA_MACRO_H__
-
-
-#define HeaderAndDataAllocate(SHeaderType, SDataType) \
-	HeaderAllocateMacro<SHeaderType, SDataType>()
-
-#define HeaderGetData(SHeaderType, SDataType, Header) \
-	HeaderGetDataMacro<SHeaderType, SDataType>(Header)
-
-#define DataGetHeader(SHeaderType, SDataType, Data) \
-	DataGetHeaderMacro<SHeaderType, SDataType>(Data)
-
-#define HeaderAndDataFree(SHeaderType, SDataType, Data) \
-	HeaderFreeMacro<SHeaderType, SDataType>(Data)
+#include "PointerRemapper.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -42,17 +30,13 @@ Microsoft Windows is Copyright Microsoft Corporation
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class T, class M>
-M* HeaderAllocateMacro()
+M* HeaderGetData(T* pv)
 {
-	void*	pv;
-
-	pv = malloc(sizeof(T) + sizeof(M));
 	if (pv == NULL)
 	{
-		gcUserError.Set("Not enough memory to allocate unknown type");
 		return NULL;
 	}
-	return (M*)((ENGINE_SIZE_T) ((int)((ENGINE_SIZE_T) pv) + sizeof(T)));
+	return (M*)RemapSinglePointer(pv, sizeof(T));
 }
 
 
@@ -61,46 +45,15 @@ M* HeaderAllocateMacro()
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class T, class M>
-M* HeaderGetDataMacro(T* pv)
+T* DataGetHeader(M* pv)
 {
 	if (pv == NULL)
 	{
 		return NULL;
 	}
-	return (M*)((ENGINE_SIZE_T) ((int)((ENGINE_SIZE_T) pv) + sizeof(T)));
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class T, class M>
-T* DataGetHeaderMacro(M* pv)
-{
-	if (pv == NULL)
-	{
-		return NULL;
-	}
-	return (T*)((ENGINE_SIZE_T) ((int)((ENGINE_SIZE_T) pv) - sizeof(T)));
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class T, class M>
-void HeaderFreeMacro(M* pv)
-{
-	T* pvHeader;
-
-	pvHeader = DataGetHeaderMacro<T, M>(pv);
-	if (pvHeader)
-	{
-		free(pvHeader);
-	}
+	return (T*)RemapSinglePointer(pv, -((int)sizeof(T)));
 }
 
 
 #endif // __DATA_MACRO_H__
+
