@@ -72,9 +72,8 @@ BOOL CMapStringUnknown::Save(CFileWriter* pcFile)
 
 	bCaseSensitive = mcMap.IsCaseSensitive();
 
+	ReturnOnFalse(mcMap.WriteMapHeader(pcFile));
 	ReturnOnFalse(pcFile->WriteInt(miFlags));
-	ReturnOnFalse(pcFile->WriteArrayTemplateHeader(&mcMap.mcArray));
-	ReturnOnFalse(pcFile->WriteInt(mcMap.miKeySize));
 	ReturnOnFalse(pcFile->WriteBool(bCaseSensitive));
 
 	for (i = 0; i < mcMap.NumElements(); i++)
@@ -99,12 +98,10 @@ BOOL CMapStringUnknown::Load(CFileReader* pcFile)
 	BOOL			bCaseSensitive;
 	CUnknown*		pcUnknown;
 
+	ReturnOnFalse(mcMap.ReadMapHeader(pcFile));
 	ReturnOnFalse(pcFile->ReadInt(&miFlags));
-	ReturnOnFalse(pcFile->ReadArrayTemplateHeader(&mcMap.mcArray));
-	ReturnOnFalse(pcFile->ReadInt(&mcMap.miKeySize));
 	ReturnOnFalse(pcFile->ReadBool(&bCaseSensitive));
 	
-	mcMap.mcArray.InitFromHeader();
 	mcMap.SetCaseSensitive(bCaseSensitive);
 
 	for (i = 0; i < mcMap.NumElements(); i++)

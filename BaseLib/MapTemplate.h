@@ -25,16 +25,19 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include <stdlib.h>
 #include "ArrayPointer.h"
 #include "PointerRemapper.h"
+#include "FileReader.h"
+#include "FileWriter.h"
 
 
 template<class M>
 class __CMapTemplate
 {
-public:
+protected:
 	int(*Func)(const void*, const void*);
 	CArrayPointer	mcArray;
 	int				miKeySize;
 
+public:
 	void	Kill(void);
 	void	Remove(M* psKey);
 	BOOL	GetWithKey(M* psKey, void** ppvData, int* piDataSize);
@@ -48,8 +51,9 @@ public:
 	int		GetIndex(M* psKey);
 	void*	GetData(int iNode);
 	int		NumElements(void);
+	BOOL	ReadMapHeader(CFileReader* pcFile);
+	BOOL	WriteMapHeader(CFileWriter* pcFile);
 
-protected:
 protected:
 	void*	Malloc(size_t tSize);
 	void*	Realloc(void* pv, size_t iMemSize);
@@ -352,7 +356,32 @@ int __CMapTemplate<M>::NumElements(void)
 	return mcArray.NumElements();
 }
 
-void*	GetData(int iNode);
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+BOOL __CMapTemplate<M>::ReadMapHeader(CFileReader* pcFile)
+{
+	ReturnOnFalse(pcFile->ReadArrayTemplateHeader(&mcArray));
+	ReturnOnFalse(pcFile->ReadInt(&miKeySize));
+	mcArray.InitFromHeader();
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+BOOL __CMapTemplate<M>::WriteMapHeader(CFileWriter* pcFile)
+{
+	ReturnOnFalse(pcFile->WriteArrayTemplateHeader(&mcArray));
+	ReturnOnFalse(pcFile->WriteInt(miKeySize));
+	return TRUE;
+}
 
 
 //////////////////////////////////////////////////////////////////////////
