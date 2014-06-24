@@ -141,7 +141,7 @@ void* CLinkListAligned::AllocateDetached(int iDataSize, int iAlignment, int iOff
 	iOffset = ::CalculateOffset(iOffset - sizeof(SDANode), iAlignment);
 	iTotalSize = iDataSize + sizeof(SDANode) + iAlignment-1;
 
-	pvMem = MemoryAllocate(iTotalSize);
+	pvMem = Malloc(iTotalSize);
 	psNode = CalculateActualStart(pvMem, iAlignment, iOffset);
 	psNode->sAligned.iAlignment = iAlignment;
 	psNode->sAligned.iOffset = iOffset;

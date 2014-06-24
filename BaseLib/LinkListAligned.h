@@ -28,7 +28,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 struct SAlignedData
 {
 	unsigned int	iSize;
-	void*			pvAlloc;  //This is the original malloc.
+	void*			pvAlloc;  //This is the original allocation pointer.
 	int				iAlignment;
 	int				iOffset;
 };

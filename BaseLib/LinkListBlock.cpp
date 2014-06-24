@@ -177,7 +177,7 @@ void* CLinkListBlock::AllocateDetached(int iDataSize, int iDataType)
 {
 	SDUNode*		psNode;
 	
-	psNode = (SDUNode*)MemoryAllocate(sizeof(SDUNode) + iDataSize);
+	psNode = (SDUNode*)Malloc(sizeof(SDUNode) + iDataSize);
 	psNode->sType.miSize = iDataSize;
 	psNode->sType.miType = iDataType;
 	return CLinkListBlockHeaderGetData(psNode);

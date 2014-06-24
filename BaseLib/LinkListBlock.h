@@ -53,7 +53,6 @@ public:
 	void*	GetHeadAndType(int* piType);
 	void*	GetNextAndType(void* pvData, int* piType);
 
-	//Get malloc size.
 	int		ByteSize(void);
 
 protected:

@@ -74,8 +74,9 @@ void InsertLinkListBeforeNode(__CLinkListTemplate<M>* pcLinkList, M* psPos);
 	void	InsertIntoSorted(int(*)(const void*, const void*), M* psNode);
 
 protected:	
-	void*	MemoryAllocate(int iMemSize);
-	void	Free(void* pvMem);
+	void*	Malloc(size_t tSize);
+	void*	Realloc(void* pv, size_t iMemSize);
+	void	Free(void* pv);
 };
 
 
@@ -100,14 +101,15 @@ public:
 #define CLinkListTemplateHeaderGetData(pvHeader)	HeaderGetDataMacro<SDNode, M>(pvHeader)
 
 
+
 //////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void* __CLinkListTemplate<M>::MemoryAllocate(int iMemSize)
+void* __CLinkListTemplate<M>::Malloc(size_t tSize)
 {
-	return malloc(iMemSize);
+	return malloc(tSize);
 }
 
 
@@ -116,9 +118,21 @@ void* __CLinkListTemplate<M>::MemoryAllocate(int iMemSize)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void __CLinkListTemplate<M>::Free(void* pvMem)
+void __CLinkListTemplate<M>::Free(void* pv)
 {
-	free(pvMem);
+	free(pv);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+void* __CLinkListTemplate<M>::Realloc(void* pv, size_t tSize)
+{
+	pv = realloc(pv, tSize);
+	return pv;
 }
 
 
@@ -697,7 +711,7 @@ M* CLinkListTemplate<M>::AllocateDetached(void)
 {
 	SDNode*		psNode;
 
-	psNode = (SDNode*)MemoryAllocate(sizeof(SDNode) + miElementSize);
+	psNode = (SDNode*)Malloc(sizeof(SDNode) + miElementSize);
 	return CLinkListTemplateHeaderGetData(psNode);
 }
 
@@ -712,7 +726,7 @@ M* CLinkListTemplate<M>::InsertAfterTail(void)
 	SDNode*		psNode;
 	M*			psData;
 
-	psNode = (SDNode*)MemoryAllocate(sizeof(SDNode) + miElementSize);
+	psNode = (SDNode*)Malloc(sizeof(SDNode) + miElementSize);
 	psData = CLinkListTemplateHeaderGetData(psNode);
 	InsertDetachedAfterTail(psData);
 	return psData;
@@ -729,7 +743,7 @@ M* CLinkListTemplate<M>::InsertBeforeHead(void)
 	SDNode*		psNode;
 	M*			psData;
 
-	psNode = (SDNode*)MemoryAllocate(sizeof(SDNode) + miElementSize);
+	psNode = (SDNode*)Malloc(sizeof(SDNode) + miElementSize);
 	psData = CLinkListTemplateHeaderGetData(psNode);
 	InsertDetachedBeforeHead(psData);
 	return psData;
@@ -746,7 +760,7 @@ M* CLinkListTemplate<M>::InsertBeforeNode(M* psPos)
 	SDNode*		psNode;
 	M*			psData;
 
-	psNode = (SDNode*)MemoryAllocate(sizeof(SDNode) + miElementSize);
+	psNode = (SDNode*)Malloc(sizeof(SDNode) + miElementSize);
 	psData = CLinkListTemplateHeaderGetData(psNode);
 	InsertDetachedBeforeNode(psData, psPos);
 	return psData;
@@ -763,7 +777,7 @@ M* CLinkListTemplate<M>::InsertAfterNode(M* psPos)
 	SDNode*		psNode;
 	M*			psData;
 
-	psNode = (SDNode*)MemoryAllocate(sizeof(SDNode) + miElementSize);
+	psNode = (SDNode*)Malloc(sizeof(SDNode) + miElementSize);
 	psData = CLinkListTemplateHeaderGetData(psNode);
 	InsertDetachedAfterNode(psData, psPos);
 	return psData;
