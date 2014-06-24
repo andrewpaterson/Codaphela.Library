@@ -108,7 +108,7 @@ CChars* CMapStringTemplate<D>::AllocateNode(char* szText)
 {
 	CChars*	sz;
 
-	sz = (CChars*)malloc(sizeof(CChars) + sizeof(D));
+	sz = (CChars*)Malloc(sizeof(CChars) + sizeof(D));
 	sz->Init(szText);
 	return sz;
 }
@@ -122,7 +122,7 @@ template<class D>
 void CMapStringTemplate<D>::FreeNode(CChars* psKey)
 {
 	psKey->Kill();
-	free(psKey);
+	Free(psKey);
 }
 
 

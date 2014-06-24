@@ -49,6 +49,11 @@ public:
 	int		NumElements(void);
 
 protected:
+protected:
+	void*	Malloc(size_t tSize);
+	void*	Realloc(void* pv, size_t iMemSize);
+	void	Free(void* pv);
+
 	M*		AllocateNode(int iDataSize);
 	void	FreeNode(M* psKey);
 
@@ -75,6 +80,40 @@ public:
 protected:
 	D*		GetDataForKey(M* psKey);
 };
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+void* __CMapTemplate<M>::Malloc(size_t tSize)
+{
+	return malloc(tSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+void __CMapTemplate<M>::Free(void* pv)
+{
+	free(pv);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+void* __CMapTemplate<M>::Realloc(void* pv, size_t tSize)
+{
+	pv = realloc(pv, tSize);
+	return pv;
+}
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -135,7 +174,7 @@ M* __CMapTemplate<M>::GetKeyForData(void* pvData)
 template<class M>
 M* __CMapTemplate<M>::AllocateNode(int iDataSize)
 {
-	return (M*)malloc(miKeySize + iDataSize);
+	return (M*)Malloc(miKeySize + iDataSize);
 }
 
 
@@ -146,7 +185,7 @@ M* __CMapTemplate<M>::AllocateNode(int iDataSize)
 template<class M>
 void __CMapTemplate<M>::FreeNode(M* psData)
 {
-	free(psData);
+	Free(psData);
 }
 
 

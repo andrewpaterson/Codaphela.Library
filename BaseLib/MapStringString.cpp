@@ -52,7 +52,7 @@ CChars* CMapStringString::AllocateNode(char* szKey, char* szValue)
 	CChars*	sz;
 	CChars* szData;
 
-	sz = (CChars*)malloc(sizeof(CChars) + sizeof(CChars));
+	sz = (CChars*)Malloc(sizeof(CChars) + sizeof(CChars));
 	sz->Init(szKey);
 
 	szData = GetDataForKey(sz);

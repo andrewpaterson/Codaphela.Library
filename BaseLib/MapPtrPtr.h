@@ -30,6 +30,7 @@ class CMapPtrPtr : public CMapPtrTemplate<void*>
 public:
 	void*	GetWithKey(void* pvKey);
 	void	GetAtIndex(int iIndex, void*** pppvKey, void*** pppvData);
+
 	void	Put(void* pvKey, void* pvData);
 };
 
