@@ -40,15 +40,13 @@ void CMapStringUnknown::Init(BOOL bKillElements, BOOL bOverwriteExisting, int iC
 void CMapStringUnknown::Kill(void)
 {
 	int				i;
-	void*			pv;
 	CUnknown**		ppcUnknown;
 
 	if (miFlags & MAP_COMMOM_KILL_ELEMENT)
 	{
-		for (i = 0; i < mcMap.mcArray.NumElements(); i++)
+		for (i = 0; i < mcMap.NumElements(); i++)
 		{
-			pv = mcMap.mcArray.GetPtr(i);
-			ppcUnknown = mcMap.PrivateGetDataForKey((CChars*)pv);
+			ppcUnknown = mcMap.GetData(i);
 			if (ppcUnknown)
 			{
 				(*ppcUnknown)->Kill();
@@ -97,11 +95,9 @@ BOOL CMapStringUnknown::Save(CFileWriter* pcFile)
 BOOL CMapStringUnknown::Load(CFileReader* pcFile)
 {
 	int				i;
-	CChars			szKey;
 	CUnknown**		ppcUnknown;
 	BOOL			bCaseSensitive;
 	CUnknown*		pcUnknown;
-	STypedPointer*	psType;
 
 	ReturnOnFalse(pcFile->ReadInt(&miFlags));
 	ReturnOnFalse(pcFile->ReadArrayTemplateHeader(&mcMap.mcArray));
@@ -113,13 +109,7 @@ BOOL CMapStringUnknown::Load(CFileReader* pcFile)
 
 	for (i = 0; i < mcMap.NumElements(); i++)
 	{
-		psType = mcMap.mcArray.CArrayTemplate::Get(i);
-		ReturnOnFalse(pcFile->ReadString(&szKey));
-		psType->iType = -1;
-		psType->pvData = mcMap.PrivateAllocateNode(szKey.Text());
-		szKey.Kill();
-		ppcUnknown = mcMap.PrivateGetDataForKey((CChars*)psType->pvData);
-
+		ppcUnknown = mcMap.LoadNode(pcFile, i);
 		pcUnknown = gcUnknowns.AddFromHeader(pcFile);
 		if (!pcUnknown)
 		{

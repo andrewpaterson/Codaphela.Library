@@ -46,6 +46,7 @@ public:
 	void*	PutAllowDuplicates(M* psKey, int iDataSize);
 	void	PutAllowDuplicates(M* psKey, void* pvData, int iDataSize);
 	int		GetIndex(M* psKey);
+	void*	GetData(int iNode);
 	int		NumElements(void);
 
 protected:
@@ -350,6 +351,8 @@ int __CMapTemplate<M>::NumElements(void)
 {
 	return mcArray.NumElements();
 }
+
+void*	GetData(int iNode);
 
 
 //////////////////////////////////////////////////////////////////////////

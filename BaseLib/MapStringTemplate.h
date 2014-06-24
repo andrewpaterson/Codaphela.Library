@@ -24,6 +24,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define __MAP_STRING_TEMPLATE_H__
 #include "MapTemplate.h"
 #include "Chars.h"
+#include "FileReader.h"
 
 template<class D>
 class CMapStringTemplate : public CMapTemplate<CChars, D>
@@ -38,6 +39,7 @@ public:
 	D*		GetWithKeyAssumeDuplicates(CChars* psKey);
 	BOOL	GetWithKeyNextDuplicate(CChars* psLastKey, int iLastIndex, D** ppsData);
 	BOOL	GetAtIndex(int iIndex, CChars** ppsKey, D** ppsData);
+	D*		GetData(int iIndex);
 
 	D*		Put(CChars* psKey);
 	D*		Put(char* szKey);
@@ -53,6 +55,8 @@ public:
 
 	BOOL	IsCaseSensitive(void);
 	void	SetCaseSensitive(BOOL bCaseSensitive);
+
+	D*		LoadNode(CFileReader* pcFile, int iNode);
 
 protected:
 	CChars*	AllocateNode(char* szText);
@@ -179,6 +183,22 @@ template<class D>
 BOOL CMapStringTemplate<D>::GetAtIndex(int iIndex, CChars** ppsKey, D** ppsData)
 {
 	return CMapTemplate<CChars, D>::GetAtIndex(iIndex, ppsKey, ppsData);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class D>
+D* CMapStringTemplate<D>::GetData(int iIndex)
+{
+	CChars*	pcKey;
+	D*		ps;
+
+	pcKey = (CChars*)mcArray.GetPtr(iIndex);;
+	ps = GetDataForKey(pcKey);
+	return ps;
 }
 
 
@@ -375,6 +395,7 @@ BOOL CMapStringTemplate<D>::IsCaseSensitive(void)
 	return Func == CompareChars;
 }
 
+
 //////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//
@@ -390,6 +411,29 @@ void CMapStringTemplate<D>::SetCaseSensitive(BOOL bCaseSensitive)
 	{
 		Func = CompareCharsIgnoreCase;
 	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class D>
+D* CMapStringTemplate<D>::LoadNode(CFileReader* pcFile, int iNode)
+{
+	CChars			szKey;
+	D*				psData;
+	STypedPointer*	psType;
+
+	psType = mcArray.CArrayTemplate::Get(iNode);
+	if (!pcFile->ReadString(&szKey))
+	{
+		return NULL;
+	}
+	psType->iType = -1;
+	psType->pvData = AllocateNode(szKey.Text());
+	szKey.Kill();
+	psData = GetDataForKey((CChars*)psType->pvData);
+	return psData;
 }
 
 

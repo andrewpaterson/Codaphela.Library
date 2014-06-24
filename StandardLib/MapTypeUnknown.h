@@ -64,7 +64,7 @@ void CMapTypeUnknown<K>::Kill(void)
 		for (i = 0; i < mcMap.mcArray.NumElements(); i++)
 		{
 			pv = mcMap.mcArray.GetPtr(i);
-			ppcUnknown = mcMap.PrivateGetDataForKey(pv);
+			ppcUnknown = mcMap.GetDataForKey(pv);
 			if (ppcUnknown)
 			{
 				(*ppcUnknown)->Kill();

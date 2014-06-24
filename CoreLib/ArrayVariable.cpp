@@ -271,7 +271,7 @@ CFreeListMaybe* CArrayVariable::GetFreeListForSize(int iSize)
 	psFreelist = mcFreeLists.GetHead();
 	while (psFreelist)
 	{
-		if (psFreelist->miElementSize == iSize)
+		if (psFreelist->GetElementSize() == iSize)
 		{
 			return psFreelist;
 		}

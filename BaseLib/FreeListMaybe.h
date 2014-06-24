@@ -45,6 +45,7 @@ public:
 	void*	AddUseMalloc(void);  //Just for completeness.
 	void	Remove(void* pvElement);
 	BOOL	SafeRemove(void* pvElement);  //Make sure to only remove elements which we have allocated.
+	int		GetElementSize(void);
 
 protected:
 	void*	Malloc(size_t tSize);
