@@ -32,8 +32,8 @@ class CTreeTemplateFreeList : public CTreeTemplate<M>
 protected:	
 	CFreeList<M>		mcFreeList;
 
-	void*	MemoryAllocate(int iMemSize);
-	void	Free(void* pvMem);
+	void*	Malloc(size_t tSize);
+	void	Free(void* pv);
 
 public:
 	void	Init(void);
@@ -47,9 +47,16 @@ public:
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template <class M>
-void* CTreeTemplateFreeList<M>::MemoryAllocate(int iMemSize)
+void* CTreeTemplateFreeList<M>::Malloc(size_t tSize)
 {
-	return mcFreeList.Add();
+	if (tSize == mcFreeList.GetElementSize())
+	{
+		return mcFreeList.Add();
+	}
+	else
+	{
+		return NULL;
+	}
 }
 
 
@@ -58,9 +65,9 @@ void* CTreeTemplateFreeList<M>::MemoryAllocate(int iMemSize)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template <class M>
-void CTreeTemplateFreeList<M>::Free(void* pvMem)
+void CTreeTemplateFreeList<M>::Free(void* pv)
 {
-	return mcFreeList.Remove(pvMem);
+	return mcFreeList.Remove(pv);
 }
 
 

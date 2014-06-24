@@ -31,13 +31,14 @@ class CTreeBlockMemoryStack : public CTreeBlock
 protected:	
 	CMemoryStack*	mpcMemoryStack;
 
-	void*	MemoryAllocate(int iMemSize);
-	void	Free(void* pvMem);
-
 public:
 	void	Init(void);
 	void	Init(CMemoryStack* pcMemoryStack);
 	void	Kill(void);
+
+protected:	
+	void*	Malloc(size_t tSize);
+	void	Free(void* pv);
 };
 
 

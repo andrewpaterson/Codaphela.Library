@@ -32,8 +32,8 @@ class CLinkListTemplateFreeList : public CLinkListTemplate<M>
 protected:	
 	CFreeListBlock	mcFreeList;  //Only Unknown types of freelists can be managed.
 
-	void*	MemoryAllocate(int iMemSize);
-	void	Free(void* pvMem);
+	void*	Malloc(size_t tSize);
+	void	Free(void* pv);
 
 public:
 	void	Init(void);
@@ -49,9 +49,16 @@ public:
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template <class M>
-void* CLinkListTemplateFreeList<M>::MemoryAllocate(int iMemSize)
+void* CLinkListTemplateFreeList<M>::Malloc(size_t tSize)
 {
-	return mcFreeList.Add();
+	if (tSize == mcFreeList.GetElementSize())
+	{
+		return mcFreeList.Add();
+	}
+	else
+	{
+		return NULL;
+	}
 }
 
 
@@ -60,9 +67,9 @@ void* CLinkListTemplateFreeList<M>::MemoryAllocate(int iMemSize)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template <class M>
-void CLinkListTemplateFreeList<M>::Free(void* pvMem)
+void CLinkListTemplateFreeList<M>::Free(void* pv)
 {
-	mcFreeList.Remove(pvMem);
+	mcFreeList.Remove(pv);
 }
 
 

@@ -31,13 +31,14 @@ class CTreeTemplateMemoryStack : public CTreeTemplate<M>
 protected:	
 	CMemoryStack*	mpcMemoryStack;
 
-	void*	Allocate(int iMemSize);
-	void	Free(void* pvMem);
-
 public:
 	void	Init(void);
 	void	Init(CMemoryStack* pcMemoryStack);
 	void	Kill(void);
+
+protected:
+	void*	Malloc(size_t tSize);
+	void	Free(void* pv);
 }
 
 
@@ -46,11 +47,11 @@ public:
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template <class M>
-void* CTreeTemplateMemoryStack<M>::Allocate(int iMemSize)
+void* CTreeTemplateMemoryStack<M>::Malloc(size_t tSize)
 {
 	if (mpcMemoryStack)
 	{
-		return mpcMemoryStack->Add(iMemSize);
+		return mpcMemoryStack->Add(tSize);
 	}
 	return NULL;
 }
@@ -61,7 +62,7 @@ void* CTreeTemplateMemoryStack<M>::Allocate(int iMemSize)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template <class M>
-void CTreeTemplateMemoryStack<M>::Free(void* pvMem)
+void CTreeTemplateMemoryStack<M>::Free(void* pv)
 {
 }
 

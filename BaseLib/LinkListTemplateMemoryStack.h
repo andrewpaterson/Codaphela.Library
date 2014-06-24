@@ -32,8 +32,8 @@ class CLinkListTemplateMemoryStack : public CLinkListTemplate<M>
 protected:	
 	CMemoryStack*	mpcMemoryStack;
 
-	void*	MemoryAllocate(int iMemSize);
-	void	Free(void* pvMem);
+	void*	Malloc(size_t tSize);
+	void	Free(void* pv);
 
 public:
 	void	Init(void);
@@ -47,7 +47,7 @@ public:
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template <class M>
-void* CLinkListTemplateMemoryStack<M>::MalMemoryAllocateloc(int iMemSize)
+void* CLinkListTemplateMemoryStack<M>::Malloc(size_t tSize)
 {
 	if (mpcMemoryStack)
 	{
@@ -62,7 +62,7 @@ void* CLinkListTemplateMemoryStack<M>::MalMemoryAllocateloc(int iMemSize)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template <class M>
-void CLinkListTemplateMemoryStack<M>::Free(void* pvMem)
+void CLinkListTemplateMemoryStack<M>::Free(void* pv)
 {
 }
 

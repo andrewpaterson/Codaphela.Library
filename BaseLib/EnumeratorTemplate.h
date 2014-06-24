@@ -75,7 +75,7 @@ public:
 protected:
 	void*		Malloc(size_t tSize);
 	void*		Realloc(void* pv, size_t iMemSize);
-	void		Free(void* pvMem);
+	void		Free(void* pv);
 
 	int			PrivateAddGetNode(char* szName, M* pvData, int iDataSize, int iKeySize, int iNum, BOOL bReplace, SENode** pcThisNode);
 	SENode*		PrivateGetWithKey(char* szName, M* pvKey, int iKeySize, SENode* psStartNode);
@@ -115,9 +115,9 @@ void* __CEnumeratorTemplate<M>::Malloc(size_t tSize)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void __CEnumeratorTemplate<M>::Free(void* pvMem)
+void __CEnumeratorTemplate<M>::Free(void* pv)
 {
-	free(pvMem);
+	free(pv);
 }
 
 

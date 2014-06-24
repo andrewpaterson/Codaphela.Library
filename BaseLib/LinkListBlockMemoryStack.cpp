@@ -27,11 +27,11 @@ Microsoft Windows is Copyright Microsoft Corporation
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CLinkListBlockMemoryStack::MemoryAllocate(int iMemSize)
+void* CLinkListBlockMemoryStack::Malloc(size_t tSize)
 {
 	if (mpcMemoryStack)
 	{
-		return mpcMemoryStack->Add(iMemSize);
+		return mpcMemoryStack->Add(tSize);
 	}
 	return NULL;
 }
@@ -41,7 +41,7 @@ void* CLinkListBlockMemoryStack::MemoryAllocate(int iMemSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CLinkListBlockMemoryStack::Free(void* pvMem)
+void CLinkListBlockMemoryStack::Free(void* pv)
 {
 }
 

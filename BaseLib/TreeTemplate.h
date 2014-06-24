@@ -42,18 +42,11 @@ class CTreeTemplate
 protected:
 	STNode*	mpsRoot;
 
-	void	RecursiveFreeNodes(STNode* pNode);
-	void	RecursiveAddNodeForCreate(CTreeTemplate<M>* pcTreeSource, M* pvData1Source, M* pvData2Dest);
-void	ReplaceLeafWithTree(CTreeTemplate<M>* pcTree, STNode* psNode);
-	void*	MemoryAllocate(int iMemSize);
-	void	Free(void* pvMem);
-	STNode*	PrivateFindLeftChild(STNode* psNodeHeader);
-	int		CountElements();
-
 public:
 	int		miLevel;  //Level is only valid during traversals
 	int		miNumElements;
 
+public:
 	void	Init(void);
 	void	Kill(void);
 	void	Copy(CTreeTemplate* pcTreeSrc);
@@ -109,7 +102,7 @@ void	InsertTreeOnLeftOfChildren(M* psParent, CTreeTemplate<M>* pcTree);
 void	InsertTreeOnRightOfChildren(M* psParent, CTreeTemplate<M>* pcTree);
 void	InsertTreeOnPath(int* aiPos, int iLevel, CTreeTemplate<M>* pcTree);
 
-	//Comparision functions.
+	//Comparison functions.
 	int		Equals(CTreeTemplate<M>* pcTree);
 	int		Equals(CTreeTemplate<M>* pcTree, int iKeyOffset, int iKeySize);
 
@@ -132,8 +125,15 @@ void	InsertTreeOnPath(int* aiPos, int iLevel, CTreeTemplate<M>* pcTree);
 	int		RemoveBranch(M* psNodeData);
 	void	Remove(M* psNodeData);
 
-	//Get malloc size.
-	int		MallocSize(void);
+protected:
+	void*	Malloc(size_t tSize);
+	void	Free(void* pv);
+
+	void	RecursiveFreeNodes(STNode* pNode);
+	void	RecursiveAddNodeForCreate(CTreeTemplate<M>* pcTreeSource, M* pvData1Source, M* pvData2Dest);
+	void	ReplaceLeafWithTree(CTreeTemplate<M>* pcTree, STNode* psNode);
+	STNode*	PrivateFindLeftChild(STNode* psNodeHeader);
+	int		CountElements();
 };
 
 
@@ -146,9 +146,9 @@ void	InsertTreeOnPath(int* aiPos, int iLevel, CTreeTemplate<M>* pcTree);
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void* CTreeTemplate<M>::MemoryAllocate(int iMemSize)
+void* CTreeTemplate<M>::Malloc(size_t tSize)
 {
-	return malloc(iMemSize);
+	return malloc(tSize);
 }
 
 
@@ -157,9 +157,9 @@ void* CTreeTemplate<M>::MemoryAllocate(int iMemSize)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CTreeTemplate<M>::Free(void* pvMem)
+void CTreeTemplate<M>::Free(void* pv)
 {
-	free(pvMem);
+	free(pv);
 }
 
 
@@ -1046,7 +1046,7 @@ M* CTreeTemplate<M>::AllocateDetached(void)
 {
 	STNode*		psNode;
 
-	psNode = (STNode*)MemoryAllocate(sizeof(STNode) + sizeof(M));
+	psNode = (STNode*)Malloc(sizeof(STNode) + sizeof(M));
 	return CTreeTemplateHeaderGetData(psNode);
 }
 
@@ -1303,17 +1303,6 @@ void CTreeTemplate<M>::InsertTreeOnRightOfChildren(M* psParent, CTreeTemplate<M>
 template<class M>
 void CTreeTemplate<M>::InsertTreeOnPath(int* aiPos, int iLevel, CTreeTemplate<M>* pcTree)
 {
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class M>
-int CTreeTemplate<M>::MallocSize(void)
-{
-	return miNumElements * (sizeof(M) + sizeof(STNode));
 }
 
 

@@ -180,7 +180,7 @@ void* CTreeBlock::AllocateDetached(int iDataSize, int iDataType)
 {
 	STUNode*	psNode;
 	
-	psNode = (STUNode*)MemoryAllocate(sizeof(STUNode) + iDataSize);
+	psNode = (STUNode*)Malloc(sizeof(STUNode) + iDataSize);
 	psNode->sType.miSize = iDataSize;
 	psNode->sType.miType = iDataType;
 	return CTreeUnknownHeaderGetData(psNode);
