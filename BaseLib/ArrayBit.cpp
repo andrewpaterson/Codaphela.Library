@@ -47,7 +47,7 @@ void CArrayBit::Kill(void)
 {
 	if (Large())
 	{
-		free(aLarge.mpvData);
+		Free(aLarge.mpvData);
 	}
 	Init();
 }
@@ -100,7 +100,7 @@ void CArrayBit::GrowBy(int iNumBits)
 
 	if ((iOldByteSize <= iTransitionSize) && (iNewByteSize > iTransitionSize))
 	{
-		pvData = malloc(iNewByteSize);
+		pvData = Malloc(iNewByteSize);
 		memcpy_fast(pvData, GetData(), iNewByteSize);
 		aLarge.mpvData = pvData;
 		miNumBits += iNumBits;
@@ -108,7 +108,7 @@ void CArrayBit::GrowBy(int iNumBits)
 	}
 
 	miNumBits += iNumBits;
-	aLarge.mpvData = realloc(aLarge.mpvData, iNewByteSize);
+	aLarge.mpvData = Realloc(aLarge.mpvData, iNewByteSize);
 }
 
 
@@ -259,3 +259,35 @@ int CArrayBit::ByteSize(int iNumBits)
 	return (iNumBits + 7) / 8;
 }
 
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void* CArrayBit::Malloc(size_t tSize)
+{
+	return malloc(tSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CArrayBit::Free(void* pv)
+{
+	free(pv);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void* CArrayBit::Realloc(void* pv, size_t tSize)
+{
+	pv = realloc(pv, tSize);
+	return pv;
+}

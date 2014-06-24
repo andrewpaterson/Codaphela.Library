@@ -127,6 +127,7 @@ void	InsertTreeOnPath(int* aiPos, int iLevel, CTreeTemplate<M>* pcTree);
 
 protected:
 	void*	Malloc(size_t tSize);
+	void*	Realloc(void* pv, size_t tSize);
 	void	Free(void* pv);
 
 	void	RecursiveFreeNodes(STNode* pNode);
@@ -160,6 +161,18 @@ template<class M>
 void CTreeTemplate<M>::Free(void* pv)
 {
 	free(pv);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+void* CTreeTemplate<M>::Realloc(void* pv, size_t tSize)
+{
+	pv = realloc(pv, tSize);
+	return pv;
 }
 
 

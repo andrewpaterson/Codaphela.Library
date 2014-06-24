@@ -75,7 +75,8 @@ void* CFreeListMaybe::Malloc(size_t tSize)
 //////////////////////////////////////////////////////////////////////////
 void* CFreeListMaybe::Realloc(void* pv, size_t tSize)
 {
-	return realloc(pv, tSize);
+	pv = realloc(pv, tSize);
+	return pv;
 }
 
 

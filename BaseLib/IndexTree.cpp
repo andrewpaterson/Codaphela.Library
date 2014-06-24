@@ -58,9 +58,9 @@ void* CIndexTree::Malloc(size_t tSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CIndexTree::Realloc(void* pv, size_t tSize)
+void CIndexTree::Free(void* pv)
 {
-	return realloc(pv, tSize);
+	free(pv);
 }
 
 
@@ -68,9 +68,10 @@ void* CIndexTree::Realloc(void* pv, size_t tSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTree::Free(void* pv)
+void* CIndexTree::Realloc(void* pv, size_t tSize)
 {
-	free(pv);
+	pv = realloc(pv, tSize);
+	return pv;
 }
 
 
