@@ -27,7 +27,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 class CArrayBit
 {
-public:
+protected:
 	int		miNumBits;
 
 	union
@@ -43,6 +43,7 @@ public:
 		} aSmall;
 	};
 
+public:
 	void	Init(void);
 	void	Kill(void);
 	void	Zero(void);
