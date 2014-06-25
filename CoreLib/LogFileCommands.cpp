@@ -1,3 +1,5 @@
+#include "BaseLib/PointerRemapper.h"
+#include "BaseLib/FastMemcpy.h"
 #include "LogFileCommands.h"
 
 //////////////////////////////////////////////////////////////////////////

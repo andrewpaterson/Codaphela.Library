@@ -54,7 +54,7 @@ BOOL CClassField::Load(CFileReader* pcFile)
 {
 	ReturnOnFalse(pcFile->ReadInt(&iType));
 	ReturnOnFalse(pcFile->ReadInt(&iMemberOffset));
-	ReturnOnFalse(pcFile->ReadString(&szName));
+	ReturnOnFalse(szName.ReadString(pcFile));
 	return TRUE;
 }
 
@@ -67,7 +67,7 @@ BOOL CClassField::Save(CFileWriter* pcFile)
 {
 	ReturnOnFalse(pcFile->WriteInt(iType));
 	ReturnOnFalse(pcFile->WriteInt(iMemberOffset));
-	ReturnOnFalse(pcFile->WriteString(&szName));
+	ReturnOnFalse(szName.WriteString(pcFile));
 	return TRUE;
 }
 
@@ -167,7 +167,7 @@ BOOL CClassMethodDesc::Load(CFileReader* pcFile)
 	ReturnOnFalse(pcFile->ReadInt(&miArgumentType));
 	ReturnOnFalse(pcFile->ReadInt(&miReturnType));
 	ReturnOnFalse(pcFile->ReadInt((int*)&meConvention));
-	ReturnOnFalse(pcFile->ReadString(&mszName));
+	ReturnOnFalse(mszName.ReadString(pcFile));
 	ReturnOnFalse(pcFile->ReadInt(&miGeneric));
 	return TRUE;
 }
@@ -182,7 +182,7 @@ BOOL CClassMethodDesc::Save(CFileWriter* pcFile)
 	ReturnOnFalse(pcFile->WriteInt(miArgumentType));
 	ReturnOnFalse(pcFile->WriteInt(miReturnType));
 	ReturnOnFalse(pcFile->WriteInt((int)meConvention));
-	ReturnOnFalse(pcFile->WriteString(&mszName));
+	ReturnOnFalse(mszName.WriteString(pcFile));
 	ReturnOnFalse(pcFile->WriteInt(miGeneric));
 	return TRUE;
 }

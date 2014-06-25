@@ -364,7 +364,7 @@ int __CMapTemplate<M>::NumElements(void)
 template<class M>
 BOOL __CMapTemplate<M>::ReadMapHeader(CFileReader* pcFile)
 {
-	ReturnOnFalse(pcFile->ReadArrayTemplateHeader(&mcArray));
+	ReturnOnFalse(mcArray.ReadArrayTemplateHeader(pcFile));
 	ReturnOnFalse(pcFile->ReadInt(&miKeySize));
 	mcArray.InitFromHeader();
 	return TRUE;
@@ -378,7 +378,7 @@ BOOL __CMapTemplate<M>::ReadMapHeader(CFileReader* pcFile)
 template<class M>
 BOOL __CMapTemplate<M>::WriteMapHeader(CFileWriter* pcFile)
 {
-	ReturnOnFalse(pcFile->WriteArrayTemplateHeader(&mcArray));
+	ReturnOnFalse(mcArray.WriteArrayTemplateHeader(pcFile));
 	ReturnOnFalse(pcFile->WriteInt(miKeySize));
 	return TRUE;
 }

@@ -79,7 +79,7 @@ BOOL CMapStringUnknown::Save(CFileWriter* pcFile)
 	for (i = 0; i < mcMap.NumElements(); i++)
 	{
 		mcMap.GetAtIndex(i, &psz, &ppcUnknown);
-		ReturnOnFalse(pcFile->WriteString(psz));
+		ReturnOnFalse(psz->WriteString(pcFile));
 		ReturnOnFalse((*ppcUnknown)->SaveHeader(pcFile));
 		ReturnOnFalse((*ppcUnknown)->Save(pcFile));
 	}

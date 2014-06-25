@@ -839,12 +839,12 @@ BOOL CChannels::Load(CFileReader* pcFile)
 {
 	mpsChangingDesc = NULL;
 	mpvUserData = NULL;
-	ReturnOnFalse(pcFile->ReadArrayTemplate(&masChannelOffsets));
+	ReturnOnFalse(masChannelOffsets.ReadArrayTemplate(pcFile));
 	ReturnOnFalse(pcFile->ReadInt(&miSize));
 	ReturnOnFalse(pcFile->ReadInt(&miByteStride));
 	ReturnOnFalse(pcFile->ReadInt(&miBitStride));
 	ReturnOnFalse(pcFile->ReadBool(&mbOnlyBasicTypes));
-	ReturnOnFalse(pcFile->ReadArrayTemplate(&mabData));
+	ReturnOnFalse(mabData.ReadArrayTemplate(pcFile));
 	mpvDataCache = mabData.GetData();
 	return TRUE;
 }
@@ -856,12 +856,12 @@ BOOL CChannels::Load(CFileReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 BOOL CChannels::Save(CFileWriter* pcFile)
 {
-	ReturnOnFalse(pcFile->WriteArrayTemplate(&masChannelOffsets));
+	ReturnOnFalse(masChannelOffsets.WriteArrayTemplate(pcFile));
 	ReturnOnFalse(pcFile->WriteInt(miSize));
 	ReturnOnFalse(pcFile->WriteInt(miByteStride));
 	ReturnOnFalse(pcFile->WriteInt(miBitStride));
 	ReturnOnFalse(pcFile->WriteBool(mbOnlyBasicTypes));
-	ReturnOnFalse(pcFile->WriteArrayTemplate(&mabData));
+	ReturnOnFalse(mabData.WriteArrayTemplate(pcFile));
 	return TRUE;
 }
 

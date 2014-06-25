@@ -1,3 +1,4 @@
+#include "BaseLib/StringHelper.h"
 #include "NamedIndexedBlock.h"
 #include "NamedIndexedSorterSource.h"
 

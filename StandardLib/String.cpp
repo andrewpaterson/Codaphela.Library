@@ -52,7 +52,7 @@ void CString::KillData(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CString::Save(CObjectSerialiser* pcFile)
 {
-	return pcFile->WriteString(this);
+	return CChars::WriteString(pcFile);
 }
 
 
@@ -62,6 +62,6 @@ BOOL CString::Save(CObjectSerialiser* pcFile)
 //////////////////////////////////////////////////////////////////////////
 BOOL CString::Load(CObjectDeserialiser* pcFile)
 {
-	return pcFile->ReadString(this);
+	return CChars::ReadString(pcFile);
 }
 
