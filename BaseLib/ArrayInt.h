@@ -32,6 +32,9 @@ public:
 	void	RemoveRemap(int iElementPos);
 	int		FindUnusedInSorted(void);
 	void	Dump(void);
+
+	BOOL	WriteArrayInt(CFileWriter* pcFileWriter);
+	BOOL	ReadArrayInt(CFileReader* pcFileReader);
 };
 
 

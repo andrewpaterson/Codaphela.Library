@@ -55,6 +55,9 @@ public:
 
 	int		ByteSize(void);
 
+	BOOL	WriteLinkListBlock(CFileWriter* pcFileWriter);
+	BOOL	ReadLinkListBlock(CFileReader* pcFileReader);
+
 protected:
 	int		GetNodeSize(void* psData);
 };

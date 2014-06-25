@@ -20,8 +20,9 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-#include "MD5HashFile.h"
 #include "ConstructorCall.h"
+#include "Chars.h"
+#include "MD5HashFile.h"
 
 
 //////////////////////////////////////////////////////////////////////////

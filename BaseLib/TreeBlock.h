@@ -60,6 +60,9 @@ public:
 
 	int		ByteSize(void);
 	
+	BOOL	WriteTreeUnknown(CFileWriter* pcFileWriter);
+	BOOL	ReadTreeUnknown(CFileReader* pcFileReader);
+
 protected:
 	void	FreeDetached(void* psNodeData);
 	void*	AllocateDetached(int iDataSize, int iDataType);

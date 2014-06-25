@@ -39,6 +39,9 @@ public:
 	int		Add(char* szName, void* pvData, int iDataSize, int iKeySize, int iNum, BOOL bReplace = TRUE);
 	void*	Add(char* szName, int iDataSize = 0);
 	void*	Add(char* szName, int iDataSize, int iNum);
+
+	BOOL	WriteEnumeratorBlock(CFileWriter* pcFileWriter);
+	BOOL	ReadEnumeratorBlock(CFileReader* pcFileReader);
 };
 
 

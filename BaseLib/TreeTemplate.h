@@ -125,6 +125,9 @@ void	InsertTreeOnPath(int* aiPos, int iLevel, CTreeTemplate<M>* pcTree);
 	int		RemoveBranch(M* psNodeData);
 	void	Remove(M* psNodeData);
 
+	BOOL	WriteTreeTemplate(CFileWriter* pcFileWriter);
+	BOOL	ReadTreeTemplate(CFileReader* pcFileReader);
+
 protected:
 	void*	Malloc(size_t tSize);
 	void*	Realloc(void* pv, size_t tSize);
@@ -1316,6 +1319,127 @@ void CTreeTemplate<M>::InsertTreeOnRightOfChildren(M* psParent, CTreeTemplate<M>
 template<class M>
 void CTreeTemplate<M>::InsertTreeOnPath(int* aiPos, int iLevel, CTreeTemplate<M>* pcTree)
 {
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+BOOL CTreeTemplate<M>::WriteTreeTemplate(CFileWriter* pcFileWriter)
+{
+	M*		pvData;
+	int		iElementSize;
+	int		iPathSize;
+	int		aiPath[1024];
+
+	iElementSize = sizeof(M);
+	if (!pcFileWriter->WriteData(&iElementSize, sizeof(int))) 
+	{ 
+		return FALSE; 
+	}
+
+	if (!pcFileWriter->WriteData(this, sizeof(CTreeTemplate<M>))) 
+	{ 
+		return FALSE; 
+	}
+
+	if (NumElements() != 0)
+	{
+		pvData = StartTraversal();
+		while (pvData != NULL)
+		{
+			iPathSize = GetPathTo(aiPath, pvData);
+			if (iPathSize >= 1024)
+			{
+				return FALSE; 
+			}
+			if (!pcFileWriter->WriteData(&iPathSize, sizeof(int))) 
+			{ 
+				return FALSE; 
+			}
+
+			if (iPathSize != 0)
+			{
+				if (!pcFileWriter->WriteData(aiPath, sizeof(int) * iPathSize)) 
+				{ 
+					return FALSE; 
+				}
+			}
+			if (!pcFileWriter->WriteData(pvData, sizeof(M)))
+			{ 
+				return FALSE; 
+			}
+
+			pvData = TraverseFrom(pvData);
+		}
+	}
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+BOOL CTreeTemplate<M>::ReadTreeTemplate(CFileReader* pcFileReader)
+{
+	M*			pvData[2];
+	int			iElementSize;
+	int			i;
+	int			iPathSize[2];
+	int			aiPath[2][1024];
+	int			iNumElements;
+	int			iPathNum;
+	int			iOldPath;
+
+	if (!pcFileReader->ReadData(&iElementSize, sizeof(int))) 
+	{ 
+		return FALSE; 
+	}
+
+	if (iElementSize != sizeof(M))
+	{
+		return FALSE;
+	}
+
+	if (!pcFileReader->ReadData(this, sizeof(CTreeTemplate<M>))) 
+	{ 
+		return FALSE; 
+	}
+
+	iNumElements = NumElements();
+	iPathNum = 0;
+	iOldPath = 0;
+	Init();
+
+	for (i = 0; i < iNumElements; i++)
+	{
+		if (!pcFileReader->ReadData(&iPathSize[iPathNum], sizeof(int))) 
+		{ 
+			return FALSE; 
+		}
+
+		if (iPathSize[iPathNum] != 0)
+		{
+			if (!pcFileReader->ReadData(aiPath[iPathNum], sizeof(int) * iPathSize[iPathNum])) 
+			{ 
+				return FALSE; 
+			}
+		}
+		pvData[iPathNum] = InsertOnPath(aiPath[iPathNum], iPathSize[iPathNum], aiPath[iOldPath], iPathSize[iOldPath], pvData[iOldPath]);
+		if (!pcFileReader->ReadData(pvData[iPathNum], sizeof(M))) 
+		{ 
+			return FALSE; 
+		}
+
+		iOldPath = iPathNum;
+		iPathNum++;
+		iPathNum = iPathNum % 2;
+	}
+	return TRUE;
 }
 
 

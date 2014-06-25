@@ -425,7 +425,7 @@ D* CMapStringTemplate<D>::LoadNode(CFileReader* pcFile, int iNode)
 	STypedPointer*	psType;
 
 	psType = mcArray.CArrayTemplate::Get(iNode);
-	if (!pcFile->ReadString(&szKey))
+	if (!szKey.ReadString(pcFile))
 	{
 		return NULL;
 	}

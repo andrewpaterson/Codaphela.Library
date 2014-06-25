@@ -142,3 +142,56 @@ void CArrayInt::Dump(void)
 	//EngineOutput("]\n");
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+BOOL CArrayInt::WriteArrayInt(CFileWriter* pcFileWriter)
+{
+	int		iElementSize;
+
+	iElementSize = sizeof(int);
+	if (pcFileWriter->WriteData(&iElementSize, sizeof(int))) 
+	{ 
+		return FALSE; 
+	}
+	if (!pcFileWriter->WriteData(this, sizeof(CArrayInt))) 
+	{ 
+		return FALSE; 
+	}
+
+	if (NumElements() != 0)
+	{
+		if (pcFileWriter->WriteData(GetData(), ByteSize())) 
+		{ 
+			return FALSE; 
+		}
+	}
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+BOOL CArrayInt::ReadArrayInt(CFileReader* pcFileReader)
+{
+	int			iElementSize;
+
+	CheckRead(&iElementSize, sizeof(int));
+	if (iElementSize != sizeof(int))
+	{
+		return FALSE;
+	}
+	CheckRead(pcArray, sizeof(CArrayInt));
+
+	if (pcArray->NumElements() != 0)
+	{
+		pcArray->InitFromHeader();
+		CheckRead(GetData(), ByteSize());
+	}
+	return TRUE;
+}
+

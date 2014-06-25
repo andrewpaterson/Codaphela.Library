@@ -20,6 +20,7 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
+#include <string.h>
 #include "FileIO.h"
 #include "FileHeader.h"
 
@@ -58,8 +59,7 @@ BOOL CFileHeader::Load(CFileReader* pcReader)
 {
 	filePos		iResult;
 
-	iResult = pcReader->Read(this, sizeof(CFileHeader), 1);
-	if (iResult != 1)
+	if (!pcReader->ReadData(this, sizeof(CFileHeader)))
 	{
 		return FALSE;
 	}

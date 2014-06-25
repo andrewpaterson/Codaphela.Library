@@ -25,6 +25,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "FastMemset.h"
 #include "PointerRemapper.h"
 #include "FastFunctions.h"
+#include "FileIO.h"
 
 
 struct SArrayTemplateHeader
@@ -47,37 +48,33 @@ public:
 	void 	Init(SArrayTemplateHeader* psHeader);
 	void	Init(__CArrayTemplate<M>* pcTemplateArray);
 	void 	Kill(void);
+	void 	Finalise(void);
+
+	int		NumElements(void);
+	BOOL	IsEmpty(void);
+	BOOL	IsNotEmpty(void);
+	int		AllocatedElements(void);
+	int 	ElementSize(void);
 
 	M*		Add(void);
 	M*		Add(M* pvData);
 	M* 		AddGetIndex(int* piIndex);
 	int 	AddIfUnique(M* pData);
 	int 	AddIfUniqueKey(M* pData, int iKeyOffset, int iKeySize);
-	int		AllocatedElements(void);
+
 	void	BatchInsertElements(int iFirstIndex, int iNumInBatch, int iNumBatches, int iStrideToNextBatch);
 	void	BatchRemoveElements(int iFirstIndex, int iNumInBatch, int iNumBatches, int iStrideToNextBatch);
-	void	BubbleSort(int(*)(const void*, const void*));
-	int 	ByteSize(void);
-	int		ChunkSize(void);
-	BOOL	Contains(M* pData);
+
 	BOOL 	Copy(__CArrayTemplate<M>* pcTemplateArray);
-	int 	ElementSize(void);
-	BOOL	Equals(__CArrayTemplate<M>* pcTemplateArray);
-	void 	Finalise(void);
-	int 	Find(M* pData);
-	BOOL	FindInSorted(M* pData, int(*)(const void*, const void*), int* piIndex);
-	int		FindWithIntKey(int iKey);
-	int		FindWithIntKey(int iKey, int iKeyOffset);
-	int 	FindWithKey(M* pData, int iKeyOffset, int iKeySize);
+
 	M*		Get(int iIndex);
+	M*		SafeGet(int iIndex);
 	int		GetAdjustedIndex(int iIndex);
 	M*		GetData(void);
 	void	GetHeader(SArrayTemplateHeader* psHeader);
 	int		GetIndex(M* pvElement);
-	void	GrowByChunk(void);
-	int		GrowByNumElements(int iNumElements);
-	M*		GrowToAtLeastNumElements(int iNumElements, BOOL bClear = FALSE, int iClear = 0);  //ie:  Don't shrink the array.
-	int		GrowToNumElements(int iNumElements);  //Can shrink the array.  Should probably call this resize.
+	M*		Tail(void);
+
 	void	InsertArrayAfterEnd(__CArrayTemplate<M>* pcTemplateArray);
 	void	InsertArrayAt(__CArrayTemplate<M>* pcTemplateArray, int iIndex);
 	void	InsertArrayBeforeStart(__CArrayTemplate<M>* pcTemplateArray);
@@ -88,29 +85,50 @@ public:
 	void	InsertBlockBeforeStart(M* paElements, int iLength);
 	int		InsertIntoSorted(int(*)(const void*, const void*), M* pvElement, BOOL bOverwriteExisting);
 	M*		InsertNumElementsAt(int iNumElements, int iIndex);
-	BOOL	IsEmpty(void);
-	BOOL	IsNotEmpty(void);
-	int		NumElements(void);
+
 	void	Pop(M* pvData);
 	void	Pop(void);
 	void 	Push(M* pvElement);
 	M*		Push(void);
 	void 	PushCopy(void);
+
+	void	GrowByChunk(void);
+	int		GrowByNumElements(int iNumElements);
+	M*		GrowToAtLeastNumElements(int iNumElements, BOOL bClear = FALSE, int iClear = 0);  //ie:  Don't shrink the array.
+	int		GrowToNumElements(int iNumElements);  //Can shrink the array.  Should probably call this resize.
+
+	void	BubbleSort(int(*)(const void*, const void*));
 	void	QuickSort(int(*)(const void*, const void*));
+	void	Reverse(void);
+
+	BOOL	Contains(M* pData);
+	BOOL	Equals(__CArrayTemplate<M>* pcTemplateArray);
+	int 	Find(M* pData);
+	BOOL	FindInSorted(M* pData, int(*)(const void*, const void*), int* piIndex);
+	int		FindWithIntKey(int iKey);
+	int		FindWithIntKey(int iKey, int iKeyOffset);
+	int 	FindWithKey(M* pData, int iKeyOffset, int iKeySize);
+
 	void 	RemoveAt(int iIndex, int bPreserveOrder = TRUE);
 	void	RemoveAt(int* paiIndex, int iNumElements, BOOL bPreserveOrder = TRUE);
 	void	RemoveAtNoDeallocate(int iIndex, int bPreserveOrder);
 	void	RemoveRange(int iStartIndex, int iEndIndexExclusive, BOOL bPreserveOrder = TRUE);
 	void 	RemoveTail(void);
-	void	Reverse(void);
-	M*		SafeGet(int iIndex);
-	BOOL	SafeSet(int iIndex, M* pvData);
+
 	void	Set(int iIndex, M* pvData);
-	void	SetUsedElements(int iNumElements);
+	BOOL	SafeSet(int iIndex, M* pvData);
 	void	Swap(int iIndex1, int iIndex2);
-	M*		Tail(void);
 	void	Unuse(void);
 	void 	Zero(void);
+
+	int 	ByteSize(void);
+	int		ChunkSize(void);
+	void	SetUsedElements(int iNumElements);
+
+	BOOL	WriteArrayTemplateHeader(CFileWriter* pcFileWriter);
+	BOOL	WriteArrayTemplate(CFileWriter* pcFileWriter);
+	BOOL	ReadArrayTemplateHeader(CFileReader* pcFileReader);
+	BOOL	ReadArrayTemplate(CFileReader* pcFileReader);
 
 protected:
 	void*	Malloc(size_t tSize);
@@ -1657,6 +1675,94 @@ template<class M>
 int __CArrayTemplate<M>::ChunkSize(void)
 {
 	return miChunkSize;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+BOOL __CArrayTemplate<M>::WriteArrayTemplate(CFileWriter* pcFileWriter)
+{
+	if (!WriteArrayTemplateHeader(pcFileWriter))
+	{
+		return FALSE;
+	}
+
+	if (pcArray->NumElements() != 0)
+	{
+		if (!pcFileWriter->WriteData(pcArray->GetData(), pcArray->ByteSize()))
+		{
+			return FALSE;
+		}
+	}
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+BOOL __CArrayTemplate<M>::WriteArrayTemplateHeader(CFileWriter* pcFileWriter)
+{
+	SArrayTemplateHeader	sHeader;
+
+	GetHeader(&sHeader);
+	if (!pcFileWriter->WriteData(&sHeader, sizeof(SArrayTemplateHeader)))
+	{ 
+		return FALSE; 
+	}
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+BOOL __CArrayTemplate<M>::ReadArrayTemplate(CFileReader* pcFileReader)
+{
+	if (!ReadArrayTemplateHeader(pcFileReader))
+	{
+		return FALSE;
+	}
+
+	if (NumElements() != 0)
+	{
+		if (!pcFileReader->ReadData(GetData(), ByteSize()))
+		{ 
+			return FALSE; 
+		}
+	}
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+BOOL __CArrayTemplate<M>::ReadArrayTemplateHeader(CFileReader* pcFileReader)
+{
+	SArrayTemplateHeader	sHeader;
+
+	if (!pcFileReader->ReadData(&sHeader, sizeof(SArrayTemplateHeader)))
+	{ 
+		return FALSE; 
+	}
+
+	if (sHeader.miElementSize != sizeof(M))
+	{
+		return FALSE;
+	}
+
+	Init(&sHeader);
+	return TRUE;
 }
 
 

@@ -156,6 +156,10 @@ public:
 	void	LowerCase(void);
 	void	UpperCase(void);
 
+	BOOL	WriteString(CFileWriter* pcWriter);
+	BOOL	ReadString(CFileReader* pcReader);
+	BOOL	ReadString(CFileReader* pcReader, BOOL bDoesntMatter);  //Call this if the string was saved from a char*
+
 	//Suspicious... should probably be in a helper class or something.
 	void	PassifyNewlines(void);
 

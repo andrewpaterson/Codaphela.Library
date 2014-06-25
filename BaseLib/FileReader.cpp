@@ -20,6 +20,7 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
+#include <string.h>
 #include "FileReader.h"
 #include "IntegerHelper.h"
 
@@ -31,30 +32,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 BOOL CFileReader::ReadData(void* pvData, filePos iDataSize)
 {
 	CheckRead(pvData, iDataSize);
-	return TRUE;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-BOOL CFileReader::ReadArrayInt(CArrayInt* pcArray)
-{
-	int			iElementSize;
-
-	CheckRead(&iElementSize, sizeof(int));
-	if (iElementSize != sizeof(int))
-	{
-		return FALSE;
-	}
-	CheckRead(pcArray, sizeof(CArrayInt));
-
-	if (pcArray->NumElements() != 0)
-	{
-		pcArray->InitFromHeader();
-		CheckRead(pcArray->GetData(), pcArray->ByteSize());
-	}
 	return TRUE;
 }
 
@@ -77,145 +54,6 @@ BOOL CFileReader::ReadStringLength(int* piLength)
 BOOL CFileReader::ReadStringChars(char* szString, int iLength)
 {
 	CheckRead(szString, iLength);
-	return TRUE;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-BOOL CFileReader::ReadString(CChars* szString, BOOL bDoesntMatter)
-{
-	int	iLength;
-
-	ReturnOnFalse(ReadStringLength(&iLength));
-	if (iLength == 0)
-	{
-		szString->Init();
-		return TRUE;
-	}
-	else if (iLength > 0)
-	{
-		szString->Init('@', iLength-1);
-		CheckRead(szString->Text(), iLength);
-		return TRUE;
-	}
-	else
-	{
-		return FALSE;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-BOOL CFileReader::ReadString(CChars* szString)
-{
-	return ReadArrayTemplate(&szString->mcText);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-BOOL CFileReader::ReadArrayUnknown(CArrayBlock* pcArray)
-{
-	CheckRead(pcArray, sizeof(CArrayBlock));
-
-	if (pcArray->NumElements() != 0)
-	{
-		pcArray->InitFromHeader();
-		CheckRead(pcArray->GetData(), pcArray->ByteSize());
-	}
-	return TRUE;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-BOOL CFileReader::ReadLinkListBlock(CLinkListBlock* pcLinkList)
-{
-	int				iNumElements;
-	int				i;
-	SUnknownType	sType;
-	void*			pvData;
-
-	CheckRead(pcLinkList, sizeof(CLinkListBlock));
-	iNumElements = pcLinkList->NumElements();
-	pcLinkList->Init();
-	for (i = 0; i < iNumElements; i++)
-	{
-		CheckRead(&sType, sizeof(SUnknownType));
-		pvData = pcLinkList->InsertAfterTail(sType.miSize, sType.miType);
-		CheckRead(pvData, sType.miSize);
-	}
-	return TRUE;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-BOOL CFileReader::ReadTreeUnknown(CTreeBlock* pcTree)
-{
-	void*			pvData;
-	int				i;
-	int				iPathSize;
-	int				aiPath[1024];
-	int				iNumElements;
-	SUnknownType	sType;
-
-	CheckRead(pcTree, sizeof(CTreeBlock));
-	iNumElements = pcTree->NumElements();
-	pcTree->Init();
-
-	for (i = 0; i < iNumElements; i++)
-	{
-		CheckRead(&sType, sizeof(SUnknownType));
-		CheckRead(&iPathSize, sizeof(int));
-		CheckRead(aiPath, sizeof(int) * iPathSize);
-		pvData = pcTree->InsertOnPath(aiPath, iPathSize, sType.miSize, sType.miType);
-		CheckRead(pvData, sType.miSize);
-	}
-	return TRUE;
-}
-
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-BOOL CFileReader::ReadEnumeratorBlock(CEnumeratorBlock* pcEnumerator)
-{
-	SENode*		psNode;
-	int			iReadSize;
-
-	CheckRead(&pcEnumerator->mbCaseSensitive, sizeof(BOOL));
-	ReturnOnFalse(ReadArrayTemplate(&pcEnumerator->mcIDArray));
-	ReturnOnFalse(ReadLinkListTemplate(&pcEnumerator->mcList));
-
-	psNode = pcEnumerator->mcList.GetHead();
-	while (psNode)
-	{
-		//Actually this is copied from ReadString because I need the string length first.
-		CheckRead(&iReadSize, sizeof(int));
-
-		pcEnumerator->AllocateNodeData(psNode, iReadSize);
-		CheckRead(psNode->szName, iReadSize);
-		if (psNode->iDataSize)
-		{
-			ReturnOnFalse(ReadData(psNode->pvData, psNode->iDataSize));
-		}
-		psNode = pcEnumerator->mcList.GetNext(psNode);
-	}
 	return TRUE;
 }
 

@@ -109,3 +109,48 @@ void CArrayBlock::FakeSetUsedElements(int iUsedElements)
 	miUsedElements = iUsedElements;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+BOOL CArrayBlock::WriteArrayUnknown(CFileWriter* pcFileWriter)
+{
+	if (!WriteData(this, sizeof(CArrayBlock))) 
+	{ 
+		return FALSE; 
+	}
+
+	if (pcArray->NumElements() != 0)
+	{
+		if (!WriteData(GetData(), ByteSize())) 
+		{ 
+			return FALSE; 
+		}
+	}
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+BOOL CArrayBlock::ReadArrayUnknown(CFileReader* pcFileReader)
+{
+	if (!pcFileReader->ReadData(this, sizeof(CArrayBlock))) 
+	{ 
+		return FALSE; 
+	}
+
+	if (NumElements() != 0)
+	{
+		InitFromHeader();
+		if (!pcFileReader->ReadData(GetData(), ByteSize())) 
+		{ 
+			return FALSE; 
+		}
+	}
+	return TRUE;
+}
+

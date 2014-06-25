@@ -25,6 +25,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "Define.h"
 #include "PointerRemapper.h"
 #include "ErrorHandler.h"
+#include "FileIO.h"
 
 
 template <class M>
@@ -77,6 +78,9 @@ public:
 	M*		Tail(void);
 	M*		GetData(void);
 	void	FakeSetUsedElements(int iUsedElements);
+
+	BOOL	WriteArraySimple(CFileWriter* pcFileWriter);
+	BOOL	ReadArraySimple(CFileReader* pcFileReader);
 
 protected:
 	void*	Malloc(size_t tSize);
@@ -966,6 +970,54 @@ void* CArraySimple<M>::Realloc(void* pv, size_t tSize)
 {
 	pv = realloc(pv, tSize);
 	return pv;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+BOOL CArraySimple<M>::WriteArraySimple(CFileWriter* pcFileWriter)
+{
+	int iElementSize;
+
+	iElementSize = sizeof(M);
+	if (!pcFileWriter->WriteData(this, sizeof(CArraySimple<M>)))
+	{ 
+		return FALSE; 
+	}
+	if (NumElements() != 0)
+	{
+		if (!pcFileWriter->WriteData(GetData(), ByteSize())) 
+		{ 
+			return FALSE; 
+		}
+	}
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+BOOL CArraySimple<M>::ReadArraySimple(CFileReader* pcFileReader)
+{
+	if (!pcFileReader->ReadData(this, sizeof(CArraySimple<M>))) 
+	{ 
+		return FALSE; 
+	}
+	if (NumElements() != 0)
+	{
+		InitFromHeader();
+		if (!pcFileReader->ReadData(GetData(), ByteSize())) 
+		{ 
+			return FALSE; 
+		}
+	}
+	return TRUE;
 }
 
 

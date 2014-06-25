@@ -346,3 +346,99 @@ void CTreeBlock::Remove(void* psNodeData)
 	__CTreeBlock::Free(psNodeHeader);
 }
 
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+BOOL CTreeBlock::WriteTreeUnknown(CFileWriter* pcFileWriter)
+{
+	void*			pvData;
+	int				iPathSize;
+	int				aiPath[1024];
+	SUnknownType	sType;
+
+	if (!pcFileWriter->WriteData(this, sizeof(CTreeBlock))) 
+	{ 
+		return FALSE; 
+	}
+
+	if (NumElements() != 0)
+	{
+		pvData = StartTraversal();
+		while (pvData != NULL)
+		{
+			iPathSize = GetPathTo(aiPath, pvData);
+			if (iPathSize >= 1024)
+			{
+				return FALSE; 
+			}
+			GetNodeTypeAndSize(pvData, &sType);
+			if (!pcFileWriter->WriteData(&sType, sizeof(SUnknownType)))
+			{ 
+				return FALSE; 
+			}
+			if (!pcFileWriter->WriteData(&iPathSize, sizeof(int))) 
+			{ 
+				return FALSE; 
+			}
+			if (!pcFileWriter->WriteData(aiPath, sizeof(int) * iPathSize)) 
+			{ 
+				return FALSE; 
+			}
+			if (!pcFileWriter->WriteData(pvData, sType.miSize)) 
+			{ 
+				return FALSE; 
+			}
+			pvData = TraverseFrom(pvData);
+		}
+	}
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+BOOL CTreeBlock::ReadTreeUnknown(CFileReader* pcFileReader)
+{
+	void*			pvData;
+	int				i;
+	int				iPathSize;
+	int				aiPath[1024];
+	int				iNumElements;
+	SUnknownType	sType;
+
+	if (!pcFileReader->ReadData(this, sizeof(CTreeBlock))) 
+	{ 
+		return FALSE; 
+	}
+
+	iNumElements = NumElements();
+	Init();
+
+	for (i = 0; i < iNumElements; i++)
+	{
+		if (!pcFileReader->ReadData(&sType, sizeof(SUnknownType))) 
+		{ 
+			return FALSE; 
+		}
+		if (!pcFileReader->ReadData(&iPathSize, sizeof(int))) 
+		{ 
+			return FALSE; 
+		}
+		if (!pcFileReader->ReadData(aiPath, sizeof(int) * iPathSize)) 
+		{ 
+			return FALSE; 
+		}
+		pvData = InsertOnPath(aiPath, iPathSize, sType.miSize, sType.miType);
+		if (!pcFileReader->ReadData(pvData, sType.miSize)) 
+		{ 
+			return FALSE; 
+		}
+	}
+	return TRUE;
+}

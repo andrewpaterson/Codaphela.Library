@@ -281,3 +281,72 @@ BOOL CLinkListBlock::SafeRemove(void* pvData)
 	return FALSE;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+BOOL CLinkListBlock::WriteLinkListBlock(CFileWriter* pcFileWriter)
+{
+	void*			pvData;
+	SUnknownType	sType;
+
+	if (!pcFileWriter->WriteData(this, sizeof(CLinkListBlock))) 
+	{ 
+		return FALSE; 
+	}
+
+	pvData = GetHead();
+	while (pvData)
+	{
+		GetNodeTypeAndSize(pvData, &sType);
+		if (!pcFileWriter->WriteData(&sType, sizeof(SUnknownType))) 
+		{ 
+			return FALSE; 
+		}
+
+		if (!pcFileWriter->WriteData(pvData, sType.miSize)) 
+		{ 
+			return FALSE; 
+		}
+
+		pvData = GetNext(pvData);
+	}
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+BOOL CLinkListBlock::ReadLinkListBlock(CFileReader* pcFileReader)
+{
+	int				iNumElements;
+	int				i;
+	SUnknownType	sType;
+	void*			pvData;
+
+	if (!pcFileReader->ReadData(this, sizeof(CLinkListBlock))) 
+	{ 
+		return FALSE; 
+	}
+
+	iNumElements = NumElements();
+	Init();
+	for (i = 0; i < iNumElements; i++)
+	{
+		if (!pcFileReader->ReadData(&sType, sizeof(SUnknownType))) 
+		{ 
+			return FALSE; 
+		}
+
+		pvData = InsertAfterTail(sType.miSize, sType.miType);
+		if (!pcFileReader->ReadData(pvData, sType.miSize)) 
+		{ 
+			return FALSE; 
+		}
+	}
+	return TRUE;
+}
+

@@ -23,7 +23,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __ABSTRACT_FILE_H__
 #define __ABSTRACT_FILE_H__
 #include "Define.h"
-#include "Chars.h"
 #include "FileMode.h"
 
 

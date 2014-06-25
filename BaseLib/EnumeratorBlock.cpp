@@ -84,3 +84,99 @@ void* CEnumeratorBlock::Add(char* szName, int iDataSize, int iNum)
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+BOOL CEnumeratorBlock::WriteEnumeratorBlock(CFileWriter* pcFileWriter)
+{
+	SENode*		psNode;
+
+	if (!pcFileWriter->WriteData(&mbCaseSensitive, sizeof(BOOL))) 
+	{ 
+		return FALSE; 
+	}
+
+	if (!mcIDArray.WriteArrayTemplate(pcFileWriter))
+	{
+		return FALSE;
+	}
+
+	if (!mcList.WriteLinkListTemplate(pcFileWriter))
+	{
+
+		return FALSE;
+	}
+
+	psNode = mcList.GetHead();
+	while (psNode)
+	{
+		if (!pcFileWriter->WriteString(psNode->szName))
+		{
+			return FALSE;
+		}
+
+		if (psNode->iDataSize)
+		{
+			if (!pcFileWriter->WriteData(psNode->pvData, psNode->iDataSize))
+			{
+				return FALSE;
+			}
+		}
+		psNode = mcList.GetNext(psNode);
+	}
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+BOOL CEnumeratorBlock::ReadEnumeratorBlock(CFileReader* pcFileReader)
+{
+	SENode*		psNode;
+	int			iReadSize;
+
+	if (!pcFileReader->ReadData(&mbCaseSensitive, sizeof(BOOL))) 
+	{ 
+		return FALSE; 
+	}
+
+	if (!mcIDArray.ReadArrayTemplate(pcFileReader))
+	{
+		return FALSE;
+	}
+
+	if (!mcList.ReadLinkListTemplate(pcFileReader))
+	{
+		return FALSE;
+	}
+
+	psNode = mcList.GetHead();
+	while (psNode)
+	{
+		//Actually this is copied from ReadString because I need the string length first.
+		if (!pcFileReader->ReadData(&iReadSize, sizeof(int))) 
+		{ 
+			return FALSE; 
+		}
+
+		AllocateNodeData(psNode, iReadSize);
+		if (!pcFileReader->ReadData(psNode->szName, iReadSize)) 
+		{ 
+			return FALSE; 
+		}
+
+		if (psNode->iDataSize)
+		{
+			if (!pcFileReader->ReadData(psNode->pvData, psNode->iDataSize))
+			{ 
+				return FALSE; 
+			}
+		}
+		psNode = mcList.GetNext(psNode);
+	}
+	return TRUE;
+}
+

@@ -24,6 +24,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define __TEMPLATE_LIST_H__
 #include "Define.h"
 #include "DataMacro.h"
+#include "FileIO.h"
 
 
 //For the LinkedList.
@@ -73,6 +74,9 @@ void InsertLinkListBeforeNode(__CLinkListTemplate<M>* pcLinkList, M* psPos);
 	void	Swap(M* psData1, M* psData2);
 	void	BubbleSort(int(*)(const void*, const void*));
 	void	InsertIntoSorted(int(*)(const void*, const void*), M* psNode);
+
+	BOOL	WriteLinkListTemplate(CFileWriter* pcFileWriter);
+	BOOL	ReadLinkListTemplate(CFileReader* pcFileReader);
 
 protected:	
 	void*	Malloc(size_t tSize);
@@ -806,6 +810,82 @@ template<class M>
 int CLinkListTemplate<M>::ByteSize(void)
 {
 	return ((sizeof(SDNode) + miElementSize) * miNumElements);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+BOOL CLinkListTemplate<M>::WriteLinkListTemplate(CFileWriter* pcFileWriter)
+{
+	M*		pvData;
+	int		iElementSize;
+
+	iElementSize = sizeof(M);
+	if (!WriteData(&iElementSize, sizeof(int)))
+	{ 
+		return FALSE; 
+	}
+
+	if (!WriteData(this, sizeof(CLinkListTemplate<M>))) 
+	{ 
+		return FALSE; 
+	}
+
+	pvData = GetHead();
+	while (pvData)
+	{
+		if (!WriteData(pvData, sizeof(M))) 
+		{ 
+			return FALSE; 
+		}
+
+		pvData = GetNext(pvData);
+	}
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+BOOL CLinkListTemplate<M>::ReadLinkListTemplate(CFileReader* pcFileReader)
+{
+	M*			pvData;
+	int			iNumElements;
+	int			iElementSize;
+	int			i;
+
+	if (!ReadData(&iElementSize, sizeof(int))) 
+	{ 
+		return FALSE; 
+	}
+
+	if (iElementSize != sizeof(M))
+	{
+		return FALSE;
+	}
+	if (!ReadData(this, sizeof(CLinkListTemplate<M>))) 
+	{ 
+		return FALSE; 
+	}
+
+	iNumElements = NumElements();
+	pcLinkList->Init();
+	for (i = 0; i < iNumElements; i++)
+	{
+		pvData = InsertAfterTail();
+		if (!ReadData(pvData, sizeof(M))) 
+		{ 
+			return FALSE; 
+		}
+
+	}
+	return TRUE;
 }
 
 

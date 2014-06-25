@@ -93,9 +93,12 @@ template<class M>
 class CEnumeratorTemplate : public __CEnumeratorTemplate<M>
 {
 public:
-	int			Add(char* szName, M* pvData, int iNum);
-	int			Add(char* szName, M* pvData, int iKeySize, int iNum, BOOL bReplace = TRUE);
-	int			Add(char* szName, int iNameLen, M* pvData, int iKeySize, int iNum, BOOL bReplace = TRUE);
+	int		Add(char* szName, M* pvData, int iNum);
+	int		Add(char* szName, M* pvData, int iKeySize, int iNum, BOOL bReplace = TRUE);
+	int		Add(char* szName, int iNameLen, M* pvData, int iKeySize, int iNum, BOOL bReplace = TRUE);
+
+	BOOL	WriteEnumeratorTemplate(CFileWriter* pcFileWriter);
+	BOOL	ReadEnumeratorTemplate(CFileReader* pcFileReader);
 };
 
 
@@ -1006,6 +1009,28 @@ int CEnumeratorTemplate<M>::Add(char* szName, int iNameLen, M* pvData, int iKeyS
 	memcpy(sz, szName, iNameLen);
 	sz[iNameLen] = 0;
 	return __CEnumeratorTemplate<M>::PrivateAddGetNode(sz, pvData, sizeof(M), iKeySize, iNum, bReplace, NULL);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+BOOL CEnumeratorTemplate<M>::WriteEnumeratorTemplate(CFileWriter* pcFileWriter)
+{
+	return WriteEnumeratorBlock(pcFileWriter);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>	
+BOOL CEnumeratorTemplate<M>::ReadEnumeratorTemplate(CFileReader* pcFileReader)
+{
+	return ReadEnumeratorBlock(pcFileReader);
 }
 
 

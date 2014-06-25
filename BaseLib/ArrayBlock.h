@@ -38,6 +38,9 @@ public:
 	void 	ReInit(void);
 	void	Fake(void* pvData, int iSize, int iNum, int iChunkSize = 1);
 	void	FakeSetUsedElements(int iUsedElements);
+
+	BOOL	WriteArrayUnknown(CFileWriter* pcFileWriter);
+	BOOL	ReadArrayUnknown(CFileReader* pcFileReader);
 };
 
 
