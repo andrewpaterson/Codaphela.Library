@@ -180,17 +180,27 @@ BOOL CArrayInt::ReadArrayInt(CFileReader* pcFileReader)
 {
 	int			iElementSize;
 
-	CheckRead(&iElementSize, sizeof(int));
+	if (!pcFileReader->ReadData(&iElementSize, sizeof(int))) 
+	{ 
+		return FALSE; 
+	}
+
 	if (iElementSize != sizeof(int))
 	{
 		return FALSE;
 	}
-	CheckRead(pcArray, sizeof(CArrayInt));
+	if (!pcFileReader->ReadData(this, sizeof(CArrayInt))) 
+	{ 
+		return FALSE; 
+	}
 
-	if (pcArray->NumElements() != 0)
+	if (NumElements() != 0)
 	{
-		pcArray->InitFromHeader();
-		CheckRead(GetData(), ByteSize());
+		InitFromHeader();
+		if (!pcFileReader->ReadData(GetData(), ByteSize())) 
+		{ 
+			return FALSE; 
+		}
 	}
 	return TRUE;
 }
