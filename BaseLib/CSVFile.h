@@ -22,6 +22,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __CSV_FILE_H__
 #define __CSV_FILE_H__
+#include "Chars.h"
 #include "FileBasic.h"
 
 

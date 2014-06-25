@@ -57,8 +57,6 @@ BOOL CFileHeader::Save(CFileWriter* pcWriter, char* szFileType)
 //////////////////////////////////////////////////////////////////////////
 BOOL CFileHeader::Load(CFileReader* pcReader)
 {
-	filePos		iResult;
-
 	if (!pcReader->ReadData(this, sizeof(CFileHeader)))
 	{
 		return FALSE;

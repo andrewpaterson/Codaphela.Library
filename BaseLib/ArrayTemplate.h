@@ -1690,9 +1690,9 @@ BOOL __CArrayTemplate<M>::WriteArrayTemplate(CFileWriter* pcFileWriter)
 		return FALSE;
 	}
 
-	if (pcArray->NumElements() != 0)
+	if (NumElements() != 0)
 	{
-		if (!pcFileWriter->WriteData(pcArray->GetData(), pcArray->ByteSize()))
+		if (!pcFileWriter->WriteData(GetData(), ByteSize()))
 		{
 			return FALSE;
 		}

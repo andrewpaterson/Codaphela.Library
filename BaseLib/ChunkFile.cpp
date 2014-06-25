@@ -243,7 +243,7 @@ BOOL CChunkFile::WriteChunkEnd(int iChunkName)
 
 		if (psElement->bContainsChunks)
 		{
-			ReturnOnFalse(WriteArrayTemplate(&psElement->cChunkIndex.mcChunkIndices));
+			ReturnOnFalse(psElement->cChunkIndex.mcChunkIndices.WriteArrayTemplate(this));
 		}
 		psElement->cChunkIndex.Kill();
 		mcChunkStack.Pop();
@@ -278,8 +278,8 @@ BOOL CChunkFile::WriteChunkNames(void)
 	for (i = 0; i < iNum; i++)
 	{
 		mmsziNames.GetAtIndex(i, &psz, &pi);
-		ReturnOnFalse(CFileIO::WriteString(psz));
-		ReturnOnFalse(CFileIO::WriteInt(*pi));
+		ReturnOnFalse(psz->WriteString(this));
+		ReturnOnFalse(WriteInt(*pi));
 	}
 	
 	return TRUE;
@@ -330,7 +330,7 @@ BOOL CChunkFile::__PrivateReadChunkBegin(void)
 BOOL CChunkFile::__PrivateReadChunkIndex(filePos iIndexPos, CChunkIndex* pcIndex)
 {
 	CFileBasic::Seek(iIndexPos, EFSO_SET);
-	return ReadArrayTemplate(&pcIndex->mcChunkIndices);
+	return pcIndex->mcChunkIndices.ReadArrayTemplate(this);
 }
 
 
@@ -558,8 +558,8 @@ BOOL CChunkFile::ReadChunkNames(void)
 	ReturnOnFalse(CFileIO::ReadInt(&iNum));
 	for (i = 0; i < iNum; i++)
 	{
-		ReturnOnFalse(CFileIO::ReadString(&sz));
-		ReturnOnFalse(CFileIO::ReadInt(&iVal));
+		ReturnOnFalse(sz.ReadString(this));
+		ReturnOnFalse(ReadInt(&iVal));
 
 		mmsziNames.Put(sz.Text(), iVal);
 		sz.Kill();

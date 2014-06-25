@@ -116,14 +116,14 @@ void CArrayBlock::FakeSetUsedElements(int iUsedElements)
 //////////////////////////////////////////////////////////////////////////
 BOOL CArrayBlock::WriteArrayUnknown(CFileWriter* pcFileWriter)
 {
-	if (!WriteData(this, sizeof(CArrayBlock))) 
+	if (!pcFileWriter->WriteData(this, sizeof(CArrayBlock))) 
 	{ 
 		return FALSE; 
 	}
 
-	if (pcArray->NumElements() != 0)
+	if (NumElements() != 0)
 	{
-		if (!WriteData(GetData(), ByteSize())) 
+		if (!pcFileWriter->WriteData(GetData(), ByteSize())) 
 		{ 
 			return FALSE; 
 		}

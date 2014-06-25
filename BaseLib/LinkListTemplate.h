@@ -75,9 +75,6 @@ void InsertLinkListBeforeNode(__CLinkListTemplate<M>* pcLinkList, M* psPos);
 	void	BubbleSort(int(*)(const void*, const void*));
 	void	InsertIntoSorted(int(*)(const void*, const void*), M* psNode);
 
-	BOOL	WriteLinkListTemplate(CFileWriter* pcFileWriter);
-	BOOL	ReadLinkListTemplate(CFileReader* pcFileReader);
-
 protected:	
 	void*	Malloc(size_t tSize);
 	void*	Realloc(void* pv, size_t iMemSize);
@@ -100,6 +97,9 @@ public:
 	M*		InsertAfterNode(M* psPos);
 	M*		Add(void);
 	int		ByteSize(void);
+
+	BOOL	WriteLinkListTemplate(CFileWriter* pcFileWriter);
+	BOOL	ReadLinkListTemplate(CFileReader* pcFileReader);
 };
 
 
@@ -824,12 +824,12 @@ BOOL CLinkListTemplate<M>::WriteLinkListTemplate(CFileWriter* pcFileWriter)
 	int		iElementSize;
 
 	iElementSize = sizeof(M);
-	if (!WriteData(&iElementSize, sizeof(int)))
+	if (!pcFileWriter->WriteData(&iElementSize, sizeof(int)))
 	{ 
 		return FALSE; 
 	}
 
-	if (!WriteData(this, sizeof(CLinkListTemplate<M>))) 
+	if (!pcFileWriter->WriteData(this, sizeof(CLinkListTemplate<M>))) 
 	{ 
 		return FALSE; 
 	}
@@ -837,7 +837,7 @@ BOOL CLinkListTemplate<M>::WriteLinkListTemplate(CFileWriter* pcFileWriter)
 	pvData = GetHead();
 	while (pvData)
 	{
-		if (!WriteData(pvData, sizeof(M))) 
+		if (!pcFileWriter->WriteData(pvData, sizeof(M))) 
 		{ 
 			return FALSE; 
 		}
@@ -860,7 +860,7 @@ BOOL CLinkListTemplate<M>::ReadLinkListTemplate(CFileReader* pcFileReader)
 	int			iElementSize;
 	int			i;
 
-	if (!ReadData(&iElementSize, sizeof(int))) 
+	if (!pcFileReader->ReadData(&iElementSize, sizeof(int))) 
 	{ 
 		return FALSE; 
 	}
@@ -869,21 +869,20 @@ BOOL CLinkListTemplate<M>::ReadLinkListTemplate(CFileReader* pcFileReader)
 	{
 		return FALSE;
 	}
-	if (!ReadData(this, sizeof(CLinkListTemplate<M>))) 
+	if (!pcFileReader->ReadData(this, sizeof(CLinkListTemplate<M>))) 
 	{ 
 		return FALSE; 
 	}
 
 	iNumElements = NumElements();
-	pcLinkList->Init();
+	Init();
 	for (i = 0; i < iNumElements; i++)
 	{
 		pvData = InsertAfterTail();
-		if (!ReadData(pvData, sizeof(M))) 
+		if (!pcFileReader->ReadData(pvData, sizeof(M))) 
 		{ 
 			return FALSE; 
 		}
-
 	}
 	return TRUE;
 }
