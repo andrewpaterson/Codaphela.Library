@@ -2200,7 +2200,11 @@ BOOL CChars::ReadString(CFileReader* pcReader, BOOL bDoesntMatter)
 {
 	int	iLength;
 
-	ReturnOnFalse(pcReader->ReadStringLength(&iLength));
+	if (!pcReader->ReadStringLength(&iLength))
+	{
+		return FALSE;
+	}
+
 	if (iLength == 0)
 	{
 		Init();
@@ -2209,7 +2213,7 @@ BOOL CChars::ReadString(CFileReader* pcReader, BOOL bDoesntMatter)
 	else if (iLength > 0)
 	{
 		Init('@', iLength-1);
-		if (pcReader->ReadData(Text(), iLength)) 
+		if (!pcReader->ReadData(Text(), iLength)) 
 		{ 
 			return FALSE; 
 		}

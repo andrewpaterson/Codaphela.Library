@@ -85,7 +85,7 @@ BOOL CChunkFile::WriteClose(void)
 	((CMD5HashFile*)mpcFile)->StopHashing();
 	((CMD5HashFile*)mpcFile)->CopyDigestToDest(msHeader.acMD5Hash);
 	CFileBasic::Seek(0);
-	ReturnOnFalse(CFileBasic::Write(&msHeader, sizeof(CChunkFileHeader), 1));
+	ReturnOnFalse(CFileBasic::WriteData(&msHeader, sizeof(CChunkFileHeader)));
 	CFileBasic::Seek(0, EFSO_END);
 	ReturnOnFalse(CFileBasic::Close());
 
