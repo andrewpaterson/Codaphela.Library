@@ -92,7 +92,6 @@ BOOL CMemoryFile::Open(EFileMode eFileMode)
 			cArray.ReInit();
 			cArray.Fake((char*)mpvInitialMem, miInitialLength);
 		}
-		//cArray.SetAllocateSize(MEMORY_FILE_CHUNK_SIZE);
 		iPos = 0;
 	}
 	else

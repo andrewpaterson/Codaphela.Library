@@ -82,6 +82,21 @@ BOOL FloatEqual(float f1, float f2, float fTolerance)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL DoubleEqual(double f1, double f2, double fTolerance)
+{
+	// f1 == f2
+	if ((f2 - fTolerance > f1) || (f2 + fTolerance < f1))
+	{
+		return FALSE;
+	}
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL FloatEqual(float f1, float f2)
 {
 	return FloatEqual(f1, f2, SMALL_NUMBER);
@@ -286,9 +301,23 @@ void InterpolateFloat(float* fDest, float f1, float f2, float fPos)
 //////////////////////////////////////////////////////////////////////////
 float FloatToleranceForDecimals(int iDecimals)
 {
-	float fTolerance;
+	double fTolerance;
 
-	fTolerance = powf(10.0f, (float)iDecimals);
+	fTolerance = pow(10.0, iDecimals);
+	fTolerance = 1.0/fTolerance;
+	return fTolerance;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+double DoubleToleranceForDecimals(int iDecimals)
+{
+	long double fTolerance;
+
+	fTolerance = powl(10.0, (long double)iDecimals);
 	fTolerance = 1.0f/fTolerance;
 	return fTolerance;
 }

@@ -41,6 +41,8 @@ float	InterpolateFloat(float f1, float f2, float fPos);
 void	InterpolateFloat(float* fDest, float f1, float f2, float fPos);
 float	FloatToleranceForDecimals(int iDecimals);
 int		FloatWholeNumbers(float f);
+double	DoubleToleranceForDecimals(int iDecimals);
+BOOL	DoubleEqual(double f1, double f2, double fTolerance);
 void	Swap(float* f1, float* f2);
 float	NotANumber(void);
 BOOL	IsNotANumber(float* pf);

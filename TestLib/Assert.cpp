@@ -49,6 +49,7 @@ void ToIntHexString(int i, char* sz);
 void ToLongLongIntString(long long int i, char* sz);
 void ToFloatString(float f, char* sz, int iDecimals);
 void ToFloat3String(SFloat3* psFloat3, char* sz, int iWholeNumbers, int iDecimals);
+void ToDoubleString(double f, char* sz, int iDecimals);
 void ToPointerString(void* pv, char* sz);
 void ToMD5String(unsigned char* puc, char* sz);
 
@@ -401,6 +402,30 @@ BOOL PrivateAssertFloat(float fExpected, float fActual, int iDecimals, int iLine
 	{
 		ToFloatString(fExpected, szExpected, iDecimals);
 		ToFloatString(fActual, szActual, iDecimals);
+		return Fail(szExpected, szActual, iLine, szFile);
+	}
+	else
+	{
+		return Pass();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL PrivateAssertDouble(double fExpected, double fActual, int iDecimals, int iLine, char* szFile)
+{
+	char	szExpected[32];
+	char	szActual[32];
+	double	fTolerance;
+
+	fTolerance = DoubleToleranceForDecimals(iDecimals);
+	if (!DoubleEqual(fExpected, fActual, fTolerance))
+	{
+		ToDoubleString(fExpected, szExpected, iDecimals);
+		ToDoubleString(fActual, szActual, iDecimals);
 		return Fail(szExpected, szActual, iLine, szFile);
 	}
 	else
@@ -922,6 +947,19 @@ void ToFloat3String(SFloat3* psFloat3, char* sz, int iWholeNumbers, int iDecimal
 	psFloat3->ToString(&c, iWholeNumbers, iDecimals);
 	strcpy(sz, c.Text());
 	c.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void ToDoubleString(double f, char* sz, int iDecimals)
+{
+	char szFormatter[20];
+
+	sprintf(szFormatter, "%%.%if", iDecimals);
+	sprintf(sz, szFormatter, f);
 }
 
 
