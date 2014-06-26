@@ -2196,7 +2196,7 @@ BOOL CChars::ReadString(CFileReader* pcReader)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChars::ReadString(CFileReader* pcReader, BOOL bDoesntMatter)
+BOOL CChars::ReadChars(CFileReader* pcReader)
 {
 	int	iLength;
 
