@@ -305,7 +305,7 @@ float FloatToleranceForDecimals(int iDecimals)
 
 	fTolerance = pow(10.0, iDecimals);
 	fTolerance = 1.0/fTolerance;
-	return fTolerance;
+	return (float)fTolerance;
 }
 
 

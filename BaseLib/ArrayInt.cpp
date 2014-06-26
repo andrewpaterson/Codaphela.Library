@@ -152,7 +152,7 @@ BOOL CArrayInt::WriteArrayInt(CFileWriter* pcFileWriter)
 	int		iElementSize;
 
 	iElementSize = sizeof(int);
-	if (pcFileWriter->WriteData(&iElementSize, sizeof(int))) 
+	if (!pcFileWriter->WriteData(&iElementSize, sizeof(int))) 
 	{ 
 		return FALSE; 
 	}
@@ -163,7 +163,7 @@ BOOL CArrayInt::WriteArrayInt(CFileWriter* pcFileWriter)
 
 	if (NumElements() != 0)
 	{
-		if (pcFileWriter->WriteData(GetData(), ByteSize())) 
+		if (!pcFileWriter->WriteData(GetData(), ByteSize())) 
 		{ 
 			return FALSE; 
 		}
