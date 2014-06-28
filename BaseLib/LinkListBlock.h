@@ -28,8 +28,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 struct SDUNode
 {
-	SUnknownType	sType;
-	SDNode			sDNode;
+	int		iSize;
+	SDNode	sDNode;
 };
 
 
@@ -39,8 +39,6 @@ public:
 	void	Init(void);
 	void	Kill(void);
 	int		GetNodeType(void* psData);
-	void	GetNodeTypeAndSize(void* pvData, SUnknownType* psType);
-	void	SetNodeTypeAndSize(void* pvData, SUnknownType* psType);
 	void*	InsertAfterTail(int iDataSize);
 	void*	InsertBeforeHead(int iDataSize);
 	void*	InsertBeforeNode(int iDataSize, void* psPos);

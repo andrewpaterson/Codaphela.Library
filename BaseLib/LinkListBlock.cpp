@@ -64,52 +64,12 @@ void CLinkListBlock::Kill(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CLinkListBlock::GetNodeType(void* pvData)
-{
-	SDUNode*		psNodeHeader;
-
-	psNodeHeader = DataGetHeader<SDUNode, void>(pvData);
-	return psNodeHeader->sType.miType;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
 int	CLinkListBlock::GetNodeSize(void* pvData)
 {
 	SDUNode*		psNodeHeader;
 
 	psNodeHeader = DataGetHeader<SDUNode, void>(pvData);
-	return psNodeHeader->sType.miSize + sizeof(SDUNode);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void CLinkListBlock::GetNodeTypeAndSize(void* pvData, SUnknownType* psType)
-{
-	SDUNode*		psNodeHeader;
-
-	psNodeHeader = DataGetHeader<SDUNode, void>(pvData);
-	psType->miSize = psNodeHeader->sType.miSize;
-	psType->miType = psNodeHeader->sType.miType;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void CLinkListBlock::SetNodeTypeAndSize(void* pvData, SUnknownType* psType)
-{
-	SDUNode*		psNodeHeader;
-
-	psNodeHeader = DataGetHeader<SDUNode, void>(pvData);
-	memcpy(&psNodeHeader->sType, psType, sizeof(SUnknownType));
+	return psNodeHeader->iSize + sizeof(SDUNode);
 }
 
 
@@ -178,7 +138,7 @@ void* CLinkListBlock::AllocateDetached(int iDataSize)
 	SDUNode*		psNode;
 	
 	psNode = (SDUNode*)Malloc(sizeof(SDUNode) + iDataSize);
-	psNode->sType.miSize = iDataSize;
+	psNode->iSize = iDataSize;
 	return HeaderGetData<SDUNode, void>(psNode);
 }
 
@@ -254,7 +214,7 @@ BOOL CLinkListBlock::SafeRemove(void* pvData)
 BOOL CLinkListBlock::WriteLinkListBlock(CFileWriter* pcFileWriter)
 {
 	void*			pvData;
-	SUnknownType	sType;
+	int				iSize;
 
 	if (!pcFileWriter->WriteData(this, sizeof(CLinkListBlock))) 
 	{ 
@@ -264,13 +224,12 @@ BOOL CLinkListBlock::WriteLinkListBlock(CFileWriter* pcFileWriter)
 	pvData = GetHead();
 	while (pvData)
 	{
-		GetNodeTypeAndSize(pvData, &sType);
-		if (!pcFileWriter->WriteData(&sType, sizeof(SUnknownType))) 
+		iSize = GetNodeSize(pvData);
+		if (!pcFileWriter->WriteInt(iSize)) 
 		{ 
 			return FALSE; 
 		}
-
-		if (!pcFileWriter->WriteData(pvData, sType.miSize)) 
+		if (!pcFileWriter->WriteData(pvData, iSize)) 
 		{ 
 			return FALSE; 
 		}
@@ -289,8 +248,8 @@ BOOL CLinkListBlock::ReadLinkListBlock(CFileReader* pcFileReader)
 {
 	int				iNumElements;
 	int				i;
-	SUnknownType	sType;
 	void*			pvData;
+	int				iSize;
 
 	if (!pcFileReader->ReadData(this, sizeof(CLinkListBlock))) 
 	{ 
@@ -301,13 +260,13 @@ BOOL CLinkListBlock::ReadLinkListBlock(CFileReader* pcFileReader)
 	Init();
 	for (i = 0; i < iNumElements; i++)
 	{
-		if (!pcFileReader->ReadData(&sType, sizeof(SUnknownType))) 
+		if (!pcFileReader->ReadInt(&iSize)) 
 		{ 
 			return FALSE; 
 		}
 
-		pvData = InsertAfterTail(sType.miSize);
-		if (!pcFileReader->ReadData(pvData, sType.miSize)) 
+		pvData = InsertAfterTail(iSize);
+		if (!pcFileReader->ReadData(pvData, iSize)) 
 		{ 
 			return FALSE; 
 		}

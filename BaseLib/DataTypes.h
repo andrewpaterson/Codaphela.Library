@@ -191,14 +191,6 @@ public:
 };
 
 
-//For runtime-known data types.
-struct SUnknownType
-{
-	int			miType;
-	int			miSize;
-};
-
-
 //For the enumerator.
 struct SENode
 {
