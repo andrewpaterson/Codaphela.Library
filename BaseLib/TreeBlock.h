@@ -27,8 +27,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 struct STUNode
 {
-	SUnknownType	sType;
-	STNode			sTNode;
+	int		iSize;
+	STNode	sTNode;
 };
 
 
@@ -38,20 +38,16 @@ class CTreeBlock : public __CTreeBlock
 public:
 	void	Kill(void);
 
-	int		GetNodeType(void* psData);
 	int		GetNodeSize(void* psData);
 
-	void	GetNodeTypeAndSize(void* pvData, SUnknownType* psType);
-	void	SetNodeTypeAndSize(void* pvData, SUnknownType* psType);
-
-	void*	InsertRoot(int iDataSize, int iDataType);
-	void*	InsertOnRightOfChildren(void* psParent, int iDataSize, int iDataType);
-	void*	InsertOnLeftOfChildren(void* psParent, int iDataSize, int iDataType);
-	void*	InsertOnPath(int* aiPos, int iLevel, int iDataSize, int iDataType);
-	void*	InsertOnPath(int* aiPos, int iLevel, int iDataSize, int iDataType, int* aiOldPos, int iOldLevel, void* psOldNode);
-	void*	InsertAtChildNum(void* psParent, int iChildNum, int iDataSize, int iDataType);
-	void*	InsertOnUp(void* psPos, int iDataSize, int iDataType);
-	void*	InsertOnAcross(void* psPos, int iDataSize, int iDataType);
+	void*	InsertRoot(int iDataSize);
+	void*	InsertOnRightOfChildren(void* psParent, int iDataSize);
+	void*	InsertOnLeftOfChildren(void* psParent, int iDataSize);
+	void*	InsertOnPath(int* aiPos, int iLevel, int iDataSize);
+	void*	InsertOnPath(int* aiPos, int iLevel, int iDataSize, int* aiOldPos, int iOldLevel, void* psOldNode);
+	void*	InsertAtChildNum(void* psParent, int iChildNum, int iDataSize);
+	void*	InsertOnUp(void* psPos, int iDataSize);
+	void*	InsertOnAcross(void* psPos, int iDataSize);
 
 	void	Detach(void* psNodeData);
 	BOOL	RemoveLeaf(void* psNodeData);
@@ -65,13 +61,9 @@ public:
 
 protected:
 	void	FreeDetached(void* psNodeData);
-	void*	AllocateDetached(int iDataSize, int iDataType);
+	void*	AllocateDetached(int iDataSize);
 	void	RecursiveFreeNodes(STNode *psNode);
 };
-
-
-#define CTreeUnknownDataGetHeader(pvData)	DataGetHeader<STUNode, void>(pvData)
-#define CTreeUnknownHeaderGetData(pvHeader)	HeaderGetData<STUNode, void>(pvHeader)
 
 
 #endif //__TREE_BLOCK_H__
