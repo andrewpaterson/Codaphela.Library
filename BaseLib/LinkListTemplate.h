@@ -540,9 +540,6 @@ int	__CLinkListTemplate<M>::NumElements(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-//
-//	!!!!!!!!!! CAUTION: Not optimised !!!!!!!!!!
-//
 template<class M>
 void __CLinkListTemplate<M>::BubbleSort(int(* Func)(const void*, const void*))
 {

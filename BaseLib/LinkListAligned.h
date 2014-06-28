@@ -47,6 +47,7 @@ class CLinkListAligned : public __CLinkListTemplate<void>
 public:
 	void		Init(void);
 	void		Kill(void);
+	void*		Add(int iDataSize, int iAlignment);
 	void*		InsertAfterTail(unsigned int iSize, int iAlignment, int iOffset);
 	void*		InsertBeforeHead(int iDataSize, int iAlignment, int iOffset);
 	void*		InsertBeforeNode(void* psPos, int iDataSize, int iAlignment, int iOffset);
@@ -67,9 +68,6 @@ protected:
 	int			GetNodeSize(void* pvMem);
 };
 
-
-#define CLinkListAlignedDataGetHeader(pvData)		DataGetHeader<SDANode, void>(pvData)
-#define CLinkListAlignedHeaderGetData(pvHeader)		HeaderGetData<SDANode, void>(pvHeader)
 
 #endif // __LINK_LIST_ALIGNED_H__
 

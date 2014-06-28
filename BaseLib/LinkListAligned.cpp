@@ -48,11 +48,11 @@ void CLinkListAligned::Kill(void)
 	void*		pvData;
 
 	pvData = HeaderGetData<SDNode, void>(mpsHead);  //Yes this is the correct macro.
-	psNode = CLinkListAlignedDataGetHeader(pvData);
+	psNode = DataGetHeader<SDANode, void>(pvData);
 	while (psNode)
 	{
 		pvData = HeaderGetData<SDNode, void>(psNode->sDNode.psNext);  //Yes this is the correct macro.
-		psNode2 = CLinkListAlignedDataGetHeader(pvData);
+		psNode2 = DataGetHeader<SDANode, void>(pvData);
 		FreeNode(psNode);
 		psNode = psNode2;
 	}
@@ -148,7 +148,17 @@ void* CLinkListAligned::AllocateDetached(int iDataSize, int iAlignment, int iOff
 	psNode->sAligned.iSize = iDataSize;
 	psNode->sAligned.pvAlloc = pvMem;
 
-	return CLinkListAlignedHeaderGetData(psNode);
+	return HeaderGetData<SDANode, void>(psNode);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void* CLinkListAligned::Add(int iDataSize, int iAlignment)
+{
+	return InsertAfterTail(iDataSize, iAlignment, 0);
 }
 
 
@@ -182,7 +192,7 @@ int CLinkListAligned::GetNodeSize(void* pvMem)
 {
 	SDANode*		psNodeHeader;
 
-	psNodeHeader = CLinkListAlignedDataGetHeader(pvMem);
+	psNodeHeader = DataGetHeader<SDANode, void>(pvMem);
 	return psNodeHeader->sAligned.iSize + sizeof(SDANode) + psNodeHeader->sAligned.iAlignment-1;;
 }
 
@@ -256,7 +266,7 @@ void CLinkListAligned::FreeDetached(void* pvData)
 {
 	SDANode*		psNodeHeader;
 
-	psNodeHeader = CLinkListAlignedDataGetHeader(pvData);
+	psNodeHeader = DataGetHeader<SDANode, void>(pvData);
 	if (psNodeHeader)
 	{
 		FreeNode(psNodeHeader);
@@ -276,7 +286,7 @@ void* CLinkListAligned::Grow(void* pvData, unsigned int uiNewSize)
 	void*			pvNew;
 	unsigned int	uiSize;
 
-	psNodeHeader = CLinkListAlignedDataGetHeader(pvData);
+	psNodeHeader = DataGetHeader<SDANode, void>(pvData);
 
 	if (uiNewSize == 0)
 	{
