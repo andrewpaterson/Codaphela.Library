@@ -204,34 +204,16 @@
     <ClInclude Include="LinkListBlock.h">
       <Filter>Source\Data\LinkList</Filter>
     </ClInclude>
-    <ClInclude Include="LinkListBlockMemoryStack.h">
-      <Filter>Source\Data\LinkList</Filter>
-    </ClInclude>
     <ClInclude Include="LinkListTemplate.h">
       <Filter>Source\Data\LinkList</Filter>
     </ClInclude>
     <ClInclude Include="LinkListTemplateFreeList.h">
       <Filter>Source\Data\LinkList</Filter>
     </ClInclude>
-    <ClInclude Include="LinkListTemplateMemoryStack.h">
-      <Filter>Source\Data\LinkList</Filter>
-    </ClInclude>
     <ClInclude Include="TreeBlock.h">
       <Filter>Source\Data\Tree</Filter>
     </ClInclude>
-    <ClInclude Include="TreeBlockMemoryStack.h">
-      <Filter>Source\Data\Tree</Filter>
-    </ClInclude>
-    <ClInclude Include="TreeInt.h">
-      <Filter>Source\Data\Tree</Filter>
-    </ClInclude>
     <ClInclude Include="TreeTemplate.h">
-      <Filter>Source\Data\Tree</Filter>
-    </ClInclude>
-    <ClInclude Include="TreeTemplateFreeList.h">
-      <Filter>Source\Data\Tree</Filter>
-    </ClInclude>
-    <ClInclude Include="TreeTemplateMemoryStack.h">
       <Filter>Source\Data\Tree</Filter>
     </ClInclude>
     <ClInclude Include="EnumeratorBlock.h">
@@ -641,13 +623,7 @@
     <ClCompile Include="LinkListBlock.cpp">
       <Filter>Source\Data\LinkList</Filter>
     </ClCompile>
-    <ClCompile Include="LinkListBlockMemoryStack.cpp">
-      <Filter>Source\Data\LinkList</Filter>
-    </ClCompile>
     <ClCompile Include="TreeBlock.cpp">
-      <Filter>Source\Data\Tree</Filter>
-    </ClCompile>
-    <ClCompile Include="TreeBlockMemoryStack.cpp">
       <Filter>Source\Data\Tree</Filter>
     </ClCompile>
     <ClCompile Include="EnumeratorBlock.cpp">

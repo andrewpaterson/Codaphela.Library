@@ -108,10 +108,8 @@
     <ClInclude Include="IndexTree.h" />
     <ClInclude Include="IndexTreeNode.h" />
     <ClInclude Include="LinkListBlock.h" />
-    <ClInclude Include="LinkListBlockMemoryStack.h" />
     <ClInclude Include="LinkListTemplate.h" />
     <ClInclude Include="LinkListTemplateFreeList.h" />
-    <ClInclude Include="LinkListTemplateMemoryStack.h" />
     <ClInclude Include="Log.h" />
     <ClInclude Include="LogConfig.h" />
     <ClInclude Include="LogString.h" />
@@ -120,11 +118,7 @@
     <ClInclude Include="PackFileIterator.h" />
     <ClInclude Include="PackFilesGeneral.h" />
     <ClInclude Include="TreeBlock.h" />
-    <ClInclude Include="TreeBlockMemoryStack.h" />
-    <ClInclude Include="TreeInt.h" />
     <ClInclude Include="TreeTemplate.h" />
-    <ClInclude Include="TreeTemplateFreeList.h" />
-    <ClInclude Include="TreeTemplateMemoryStack.h" />
     <ClInclude Include="EnumeratorBlock.h" />
     <ClInclude Include="EnumeratorEnumerator.h" />
     <ClInclude Include="EnumeratorPointer.h" />
@@ -255,13 +249,11 @@
     <ClCompile Include="IndexTree.cpp" />
     <ClCompile Include="IndexTreeNode.cpp" />
     <ClCompile Include="LinkListBlock.cpp" />
-    <ClCompile Include="LinkListBlockMemoryStack.cpp" />
     <ClCompile Include="LogString.cpp" />
     <ClCompile Include="MemoryCacheAllocation.cpp" />
     <ClCompile Include="MemoryHeader.cpp" />
     <ClCompile Include="PackFileIterator.cpp" />
     <ClCompile Include="TreeBlock.cpp" />
-    <ClCompile Include="TreeBlockMemoryStack.cpp" />
     <ClCompile Include="EnumeratorBlock.cpp" />
     <ClCompile Include="EnumeratorEnumerator.cpp" />
     <ClCompile Include="EnumeratorPointer.cpp" />
