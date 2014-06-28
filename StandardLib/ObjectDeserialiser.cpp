@@ -149,7 +149,7 @@ BOOL CObjectDeserialiser::ReadIdentifier(CObjectIdentifier* pcPointerHeader)
 	else if (pcPointerHeader->mcType == OBJECT_POINTER_NAMED)
 	{
 		ReturnOnFalse(ReadLong(&pcPointerHeader->moi));
-		ReturnOnFalse(pcPointerHeader->mszObjectName.ReadString(this, TRUE));
+		ReturnOnFalse(pcPointerHeader->mszObjectName.ReadChars(this));
 	}
 	else
 	{
@@ -167,7 +167,7 @@ BOOL CObjectDeserialiser::ReadObjectHeader(CObjectHeader* pcObjectHeader)
 {
 	pcObjectHeader->Init();
 	ReturnOnFalse(ReadIdentifier(pcObjectHeader));
-	ReturnOnFalse(pcObjectHeader->mszClassName.ReadString(this, TRUE));
+	ReturnOnFalse(pcObjectHeader->mszClassName.ReadChars(this));
 	return TRUE;
 }
 
