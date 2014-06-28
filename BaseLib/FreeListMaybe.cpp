@@ -104,7 +104,7 @@ void* CFreeListMaybe::Add(void)
 	{
 		if (mpcLinkList->NumElements() != NUM_ELEMENTS_BEFORE_FREELIST)
 		{
-			return mpcLinkList->InsertAfterTail(miElementSize, 0);
+			return mpcLinkList->InsertAfterTail(miElementSize);
 		}
 		else
 		{
@@ -123,7 +123,7 @@ void* CFreeListMaybe::CreateLinkList(void)
 {
 	mpcLinkList = (CLinkListBlock*)Malloc(sizeof(CLinkListBlock));
 	mpcLinkList->Init();
-	return mpcLinkList->InsertAfterTail(miElementSize, 0);
+	return mpcLinkList->InsertAfterTail(miElementSize);
 }
 
 
@@ -161,7 +161,7 @@ void* CFreeListMaybe::AddUseLinkedList(void)
 {
 	if (mpcLinkList)
 	{
-		return mpcLinkList->InsertAfterTail(miElementSize, 0);
+		return mpcLinkList->InsertAfterTail(miElementSize);
 	}
 	return CreateLinkList();
 }

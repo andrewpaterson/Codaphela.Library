@@ -41,17 +41,14 @@ public:
 	int		GetNodeType(void* psData);
 	void	GetNodeTypeAndSize(void* pvData, SUnknownType* psType);
 	void	SetNodeTypeAndSize(void* pvData, SUnknownType* psType);
-	void*	InsertAfterTail(int iDataSize, int iDataType);
-	void*	InsertBeforeHead(int iDataSize, int iDataType);
-	void*	InsertBeforeNode(int iDataSize, int iDataType, void* psPos);
-	void*	InsertAfterNode(int iDataSize, int iDataType, void* psPos); 
-	void*	AllocateDetached(int iDataSize, int iDataType);
+	void*	InsertAfterTail(int iDataSize);
+	void*	InsertBeforeHead(int iDataSize);
+	void*	InsertBeforeNode(int iDataSize, void* psPos);
+	void*	InsertAfterNode(int iDataSize, void* psPos); 
+	void*	AllocateDetached(int iDataSize);
 	void	Remove(void* pvData);
 	BOOL	SafeRemove(void* pvData);
 	void	FreeDetached(void* psNodeData);
-
-	void*	GetHeadAndType(int* piType);
-	void*	GetNextAndType(void* pvData, int* piType);
 
 	int		ByteSize(void);
 

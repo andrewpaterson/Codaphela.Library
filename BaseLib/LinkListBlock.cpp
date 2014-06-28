@@ -117,11 +117,11 @@ void CLinkListBlock::SetNodeTypeAndSize(void* pvData, SUnknownType* psType)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CLinkListBlock::InsertAfterTail(int iDataSize, int iDataType)
+void* CLinkListBlock::InsertAfterTail(int iDataSize)
 {
 	void*			pvData;
 	
-	pvData = AllocateDetached(iDataSize, iDataType);
+	pvData = AllocateDetached(iDataSize);
 	__CLinkListTemplate<void>::InsertDetachedAfterTail(pvData);
 	return pvData;
 }
@@ -131,11 +131,11 @@ void* CLinkListBlock::InsertAfterTail(int iDataSize, int iDataType)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CLinkListBlock::InsertBeforeHead(int iDataSize, int iDataType)
+void* CLinkListBlock::InsertBeforeHead(int iDataSize)
 {
 	void*			pvData;
 	
-	pvData = AllocateDetached(iDataSize, iDataType);
+	pvData = AllocateDetached(iDataSize);
 	__CLinkListTemplate<void>::InsertDetachedBeforeHead(pvData);
 	return pvData;
 }
@@ -145,11 +145,11 @@ void* CLinkListBlock::InsertBeforeHead(int iDataSize, int iDataType)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CLinkListBlock::InsertBeforeNode(int iDataSize, int iDataType, void* psPos)
+void* CLinkListBlock::InsertBeforeNode(int iDataSize, void* psPos)
 {
 	void*			pvData;
 	
-	pvData = AllocateDetached(iDataSize, iDataType);
+	pvData = AllocateDetached(iDataSize);
 	__CLinkListTemplate<void>::InsertDetachedBeforeNode(pvData, psPos);
 	return pvData;
 }
@@ -159,11 +159,11 @@ void* CLinkListBlock::InsertBeforeNode(int iDataSize, int iDataType, void* psPos
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CLinkListBlock::InsertAfterNode(int iDataSize, int iDataType, void* psPos)
+void* CLinkListBlock::InsertAfterNode(int iDataSize, void* psPos)
 {
 	void*			pvData;
 	
-	pvData = AllocateDetached(iDataSize, iDataType);
+	pvData = AllocateDetached(iDataSize);
 	__CLinkListTemplate<void>::InsertDetachedAfterNode(pvData, psPos);
 	return pvData;
 }
@@ -173,13 +173,12 @@ void* CLinkListBlock::InsertAfterNode(int iDataSize, int iDataType, void* psPos)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CLinkListBlock::AllocateDetached(int iDataSize, int iDataType)
+void* CLinkListBlock::AllocateDetached(int iDataSize)
 {
 	SDUNode*		psNode;
 	
 	psNode = (SDUNode*)Malloc(sizeof(SDUNode) + iDataSize);
 	psNode->sType.miSize = iDataSize;
-	psNode->sType.miType = iDataType;
 	return HeaderGetData<SDUNode, void>(psNode);
 }
 
@@ -219,40 +218,6 @@ int CLinkListBlock::ByteSize(void)
 	}
 
 	return iSize;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void* CLinkListBlock::GetHeadAndType(int* piType)
-{
-	SDUNode*		psNodeHeader;
-	void*			pvData;
-
-	pvData = GetHead();
-	psNodeHeader = DataGetHeader<SDUNode, void>(pvData);
-	*piType = psNodeHeader->sType.miType;
-	return pvData;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void* CLinkListBlock::GetNextAndType(void* pvData, int* piType)
-{
-	SDUNode*		psNodeHeader;
-
-	pvData = GetNext(pvData);
-	if (pvData)
-	{
-		psNodeHeader = DataGetHeader<SDUNode, void>(pvData);
-		*piType = psNodeHeader->sType.miType;
-	}
-	return pvData;
 }
 
 
@@ -341,7 +306,7 @@ BOOL CLinkListBlock::ReadLinkListBlock(CFileReader* pcFileReader)
 			return FALSE; 
 		}
 
-		pvData = InsertAfterTail(sType.miSize, sType.miType);
+		pvData = InsertAfterTail(sType.miSize);
 		if (!pcFileReader->ReadData(pvData, sType.miSize)) 
 		{ 
 			return FALSE; 

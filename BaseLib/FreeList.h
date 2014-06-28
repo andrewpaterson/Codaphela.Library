@@ -459,7 +459,7 @@ SFNode* __CFreeList<M>::AllocateNew(void)
 	}
 	else
 	{
-		psNew = (SFNode*)mcList.InsertAfterTail(iTotalSize, -1);
+		psNew = (SFNode*)mcList.InsertAfterTail(iTotalSize);
 	}
 	memset(psNew, 0, sizeof(SFNode) + iBitArraySize);
 	mpsNotFull = psNew;
