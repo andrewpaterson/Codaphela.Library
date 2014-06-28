@@ -46,11 +46,11 @@ void CLinkListBlock::Kill(void)
 	void*		pvData;
 
 	pvData = HeaderGetData<SDNode, void>(mpsHead);  //Yes this is the correct macro.
-	psNode = CLinkListBlockDataGetHeader(pvData);
+	psNode = DataGetHeader<SDUNode, void>(pvData);
 	while (psNode)
 	{
 		pvData = HeaderGetData<SDNode, void>(psNode->sDNode.psNext);  //Yes this is the correct macro.
-		psNode2 = CLinkListBlockDataGetHeader(pvData);
+		psNode2 = DataGetHeader<SDUNode, void>(pvData);
 		Free(psNode);
 		psNode = psNode2;
 	}
@@ -68,7 +68,7 @@ int CLinkListBlock::GetNodeType(void* pvData)
 {
 	SDUNode*		psNodeHeader;
 
-	psNodeHeader = CLinkListBlockDataGetHeader(pvData);
+	psNodeHeader = DataGetHeader<SDUNode, void>(pvData);
 	return psNodeHeader->sType.miType;
 }
 
@@ -81,7 +81,7 @@ int	CLinkListBlock::GetNodeSize(void* pvData)
 {
 	SDUNode*		psNodeHeader;
 
-	psNodeHeader = CLinkListBlockDataGetHeader(pvData);
+	psNodeHeader = DataGetHeader<SDUNode, void>(pvData);
 	return psNodeHeader->sType.miSize + sizeof(SDUNode);
 }
 
@@ -94,7 +94,7 @@ void CLinkListBlock::GetNodeTypeAndSize(void* pvData, SUnknownType* psType)
 {
 	SDUNode*		psNodeHeader;
 
-	psNodeHeader = CLinkListBlockDataGetHeader(pvData);
+	psNodeHeader = DataGetHeader<SDUNode, void>(pvData);
 	psType->miSize = psNodeHeader->sType.miSize;
 	psType->miType = psNodeHeader->sType.miType;
 }
@@ -108,7 +108,7 @@ void CLinkListBlock::SetNodeTypeAndSize(void* pvData, SUnknownType* psType)
 {
 	SDUNode*		psNodeHeader;
 
-	psNodeHeader = CLinkListBlockDataGetHeader(pvData);
+	psNodeHeader = DataGetHeader<SDUNode, void>(pvData);
 	memcpy(&psNodeHeader->sType, psType, sizeof(SUnknownType));
 }
 
@@ -180,7 +180,7 @@ void* CLinkListBlock::AllocateDetached(int iDataSize, int iDataType)
 	psNode = (SDUNode*)Malloc(sizeof(SDUNode) + iDataSize);
 	psNode->sType.miSize = iDataSize;
 	psNode->sType.miType = iDataType;
-	return CLinkListBlockHeaderGetData(psNode);
+	return HeaderGetData<SDUNode, void>(psNode);
 }
 
 
@@ -192,7 +192,7 @@ void CLinkListBlock::FreeDetached(void* psNodeData)
 {
 	SDUNode*		psNodeHeader;
 
-	psNodeHeader = CLinkListBlockDataGetHeader(psNodeData);
+	psNodeHeader = DataGetHeader<SDUNode, void>(psNodeData);
 	if (psNodeHeader)
 	{
 		Free(psNodeHeader);
@@ -232,7 +232,7 @@ void* CLinkListBlock::GetHeadAndType(int* piType)
 	void*			pvData;
 
 	pvData = GetHead();
-	psNodeHeader = CLinkListBlockDataGetHeader(pvData);
+	psNodeHeader = DataGetHeader<SDUNode, void>(pvData);
 	*piType = psNodeHeader->sType.miType;
 	return pvData;
 }
@@ -249,7 +249,7 @@ void* CLinkListBlock::GetNextAndType(void* pvData, int* piType)
 	pvData = GetNext(pvData);
 	if (pvData)
 	{
-		psNodeHeader = CLinkListBlockDataGetHeader(pvData);
+		psNodeHeader = DataGetHeader<SDUNode, void>(pvData);
 		*piType = psNodeHeader->sType.miType;
 	}
 	return pvData;

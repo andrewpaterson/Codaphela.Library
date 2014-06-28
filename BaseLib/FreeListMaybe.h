@@ -41,8 +41,8 @@ public:
 	void	Init(int iElementSize, int iChunkSize = NUM_ELEMENTS_IN_CHUNK);
 	void	Kill(void);
 	void*	Add(void);
-	void*	AddUseFreelist(int iChunkSize = 0);				//Force usage of a freelist if not yet used.
-	void*	AddUseMalloc(void);  //Just for completeness.
+	void*	AddUseFreeList(int iChunkSize = 0);				//Force usage of a freelist if not yet used.
+	void*	AddUseLinkedList(void);  //Just for completeness.
 	void	Remove(void* pvElement);
 	BOOL	SafeRemove(void* pvElement);  //Make sure to only remove elements which we have allocated.
 	int		GetElementSize(void);

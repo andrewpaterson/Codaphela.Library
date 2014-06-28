@@ -143,7 +143,7 @@ void* CFreeListMaybe::CreateFreeList(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CFreeListMaybe::AddUseFreelist(int iChunkSize)
+void* CFreeListMaybe::AddUseFreeList(int iChunkSize)
 {
 	if (mpcFreeList)
 	{
@@ -157,7 +157,7 @@ void* CFreeListMaybe::AddUseFreelist(int iChunkSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CFreeListMaybe::AddUseMalloc(void)
+void* CFreeListMaybe::AddUseLinkedList(void)
 {
 	if (mpcLinkList)
 	{
