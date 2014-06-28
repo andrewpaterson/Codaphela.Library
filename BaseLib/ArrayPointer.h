@@ -25,6 +25,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "ArrayTemplate.h"
 #include "Define.h"
 
+
 struct STypedPointer
 {
 	void*	pvData;

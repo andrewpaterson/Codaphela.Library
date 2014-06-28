@@ -39,6 +39,7 @@ protected:
 
 public:
 	void	Kill(void);
+	void	KillArray(void);
 	void	Remove(M* psKey);
 	BOOL	GetWithKey(M* psKey, void** ppvData, int* piDataSize);
 	BOOL	GetWithKeyAssumeDuplicates(M* psKey, void** ppvData, int* piDataSize);
@@ -137,6 +138,17 @@ void __CMapTemplate<M>::Kill(void)
 		FreeNode(psKey);
 	}
 
+	KillArray();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+void __CMapTemplate<M>::KillArray(void)
+{
 	mcArray.Kill();
 	Func = NULL;
 }
