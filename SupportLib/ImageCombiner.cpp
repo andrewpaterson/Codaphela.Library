@@ -264,8 +264,8 @@ void CImageCombiner::UpdateChannels(CArrayChannel* pasSource)
 		if (iIndex != -1)
 		{
 			psDest = masChannels.Get(iIndex);
-			iSourceSize = gcTypeNames.GetSize(psSource->eType);
-			iDestSize = gcTypeNames.GetSize(psDest->eType);
+			iSourceSize = gcTypeNames.GetByteSize(psSource->eType);
+			iDestSize = gcTypeNames.GetByteSize(psDest->eType);
 
 			if (iSourceSize > iDestSize)
 			{

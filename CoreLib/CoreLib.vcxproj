@@ -122,7 +122,6 @@
     <ClCompile Include="PropertiesFile.cpp" />
     <ClCompile Include="XMLFile.cpp" />
     <ClCompile Include="FunctionCaller.cpp" />
-    <ClCompile Include="Annotation.cpp" />
     <ClCompile Include="EscapeCodes.cpp" />
     <ClCompile Include="TextParser.cpp" />
     <ClCompile Include="Calculator.cpp" />
@@ -212,7 +211,6 @@
     <ClInclude Include="PropertiesFile.h" />
     <ClInclude Include="XMLFile.h" />
     <ClInclude Include="FunctionCaller.h" />
-    <ClInclude Include="Annotation.h" />
     <ClInclude Include="EscapeCodes.h" />
     <ClInclude Include="TextParser.h" />
     <ClInclude Include="Calculator.h" />

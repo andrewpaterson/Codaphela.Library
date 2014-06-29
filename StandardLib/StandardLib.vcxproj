@@ -147,7 +147,6 @@
     <ClInclude Include="ArrayUnknown.h" />
     <ClInclude Include="MapCommon.h" />
     <ClInclude Include="MapStringUnknown.h" />
-    <ClInclude Include="MapTypeUnknown.h" />
     <ClInclude Include="ArrayCommonUnknown.h" />
     <ClInclude Include="ConstructorUnknown.h" />
     <ClInclude Include="Iterables.h" />
@@ -174,7 +173,6 @@
     <ClInclude Include="HollowObject.h" />
     <ClInclude Include="IndexedObjects.h" />
     <ClInclude Include="ObjectSource.h" />
-    <ClInclude Include="ObjectsSource.h" />
     <ClInclude Include="Action.h" />
     <ClInclude Include="Actions.h" />
     <ClInclude Include="ClassFunctionsCall.h" />
@@ -283,7 +281,6 @@
     <ClCompile Include="HollowObject.cpp" />
     <ClCompile Include="IndexedObjects.cpp" />
     <ClCompile Include="ObjectSource.cpp" />
-    <ClCompile Include="ObjectsSource.cpp" />
     <ClCompile Include="Action.cpp" />
     <ClCompile Include="Actions.cpp" />
     <ClCompile Include="ClassFunctionsCall.cpp" />

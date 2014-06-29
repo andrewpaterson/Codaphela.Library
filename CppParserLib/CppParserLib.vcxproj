@@ -112,7 +112,6 @@
     <ClCompile Include="NamedDefine.cpp" />
     <ClCompile Include="Preprocessor.cpp" />
     <ClCompile Include="Preprocessor_Windows.cpp" />
-    <ClCompile Include="PreprocessorAnnotation.cpp" />
     <ClCompile Include="PreprocessorParser.cpp" />
     <ClCompile Include="PreprocessorTokeniser.cpp" />
     <ClCompile Include="PreprocessorTokenParser.cpp" />
@@ -207,7 +206,6 @@
     <ClInclude Include="NamedDefine.h" />
     <ClInclude Include="Preprocessor.h" />
     <ClInclude Include="Preprocessor_Linux.h" />
-    <ClInclude Include="PreprocessorAnnotation.h" />
     <ClInclude Include="PreprocessorParser.h" />
     <ClInclude Include="PreprocessorTokeniser.h" />
     <ClInclude Include="PreprocessorTokenParser.h" />

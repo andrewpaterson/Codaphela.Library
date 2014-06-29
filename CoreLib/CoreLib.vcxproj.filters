@@ -297,9 +297,6 @@
     <ClCompile Include="FunctionCaller.cpp">
       <Filter>Source\Function</Filter>
     </ClCompile>
-    <ClCompile Include="Annotation.cpp">
-      <Filter>Source\Text</Filter>
-    </ClCompile>
     <ClCompile Include="EscapeCodes.cpp">
       <Filter>Source\Text</Filter>
     </ClCompile>
@@ -565,9 +562,6 @@
     </ClInclude>
     <ClInclude Include="FunctionCaller.h">
       <Filter>Source\Function</Filter>
-    </ClInclude>
-    <ClInclude Include="Annotation.h">
-      <Filter>Source\Text</Filter>
     </ClInclude>
     <ClInclude Include="EscapeCodes.h">
       <Filter>Source\Text</Filter>

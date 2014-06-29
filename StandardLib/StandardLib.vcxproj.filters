@@ -186,9 +186,6 @@
     <ClInclude Include="MapStringUnknown.h">
       <Filter>Source\Object\Unknown\Collections\Map</Filter>
     </ClInclude>
-    <ClInclude Include="MapTypeUnknown.h">
-      <Filter>Source\Object\Unknown\Collections\Map</Filter>
-    </ClInclude>
     <ClInclude Include="ArrayCommonUnknown.h">
       <Filter>Source\Object\Unknown\Collections\Common</Filter>
     </ClInclude>
@@ -238,9 +235,6 @@
       <Filter>Source\Object\Object\Indexed</Filter>
     </ClInclude>
     <ClInclude Include="ObjectSource.h">
-      <Filter>Source\Object\Object\Source</Filter>
-    </ClInclude>
-    <ClInclude Include="ObjectsSource.h">
       <Filter>Source\Object\Object\Source</Filter>
     </ClInclude>
     <ClInclude Include="Action.h">
@@ -576,9 +570,6 @@
       <Filter>Source\Object\Object\Indexed</Filter>
     </ClCompile>
     <ClCompile Include="ObjectSource.cpp">
-      <Filter>Source\Object\Object\Source</Filter>
-    </ClCompile>
-    <ClCompile Include="ObjectsSource.cpp">
       <Filter>Source\Object\Object\Source</Filter>
     </ClCompile>
     <ClCompile Include="Action.cpp">

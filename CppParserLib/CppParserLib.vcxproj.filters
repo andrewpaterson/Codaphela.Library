@@ -174,9 +174,6 @@
     <ClCompile Include="Preprocessor_Windows.cpp">
       <Filter>Source\Preprocessor</Filter>
     </ClCompile>
-    <ClCompile Include="PreprocessorAnnotation.cpp">
-      <Filter>Source\Preprocessor</Filter>
-    </ClCompile>
     <ClCompile Include="PreprocessorParser.cpp">
       <Filter>Source\Preprocessor</Filter>
     </ClCompile>
@@ -453,9 +450,6 @@
       <Filter>Source\Preprocessor</Filter>
     </ClInclude>
     <ClInclude Include="Preprocessor_Linux.h">
-      <Filter>Source\Preprocessor</Filter>
-    </ClInclude>
-    <ClInclude Include="PreprocessorAnnotation.h">
       <Filter>Source\Preprocessor</Filter>
     </ClInclude>
     <ClInclude Include="PreprocessorParser.h">
