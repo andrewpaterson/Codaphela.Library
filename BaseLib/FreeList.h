@@ -57,6 +57,10 @@ private:
 	int				miStride;
 	int				miOffset;
 
+protected:
+	int				miElementSize;
+	int				miChunkSize;
+
 public:
 	void		Kill(void);
 
@@ -104,9 +108,6 @@ private:
 	void	RemoveExisiting(SFNode* psNode, M* pvData);
 
 protected:
-	int		miElementSize;
-	int		miChunkSize;
-
 	void	Init(int iElementSize);
 	void	Init(int iChunkSize, int iElementSize);
 	void	Init(int iChunkSize, int iElementSize, int iAlignment);
