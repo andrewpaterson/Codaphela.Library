@@ -25,7 +25,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "BaseLib/AdditionalTypes.h"
 #include "BaseLib/Chars.h"
 #include "BaseLib/Define.h"
-#include "ClassStorage.h"
+#include "CoreLib/TypeNames.h"
 #include "Channels.h"
 
 
@@ -515,7 +515,7 @@ void CChannels::Recalculate(void)
 	int			i;
 	CChannel*	pcChannel;
 	int			iBitSize;
-	int			iSize;
+	int			iByteSize;
 
 	miBitStride = 0;
 	mbOnlyBasicTypes = TRUE;
@@ -523,21 +523,17 @@ void CChannels::Recalculate(void)
 	{
 		pcChannel = masChannelOffsets.Get(i);
 
-		iSize = gcClassStorage.GetSize(pcChannel->eType);
-		if (iSize & BIT_SIZE)
+		iByteSize = gcTypeNames.GetByteSize(pcChannel->eType);
+		iBitSize = gcTypeNames.GetBitSize(pcChannel->eType);
+		if (iByteSize == 0)
 		{
-			iBitSize = iSize & ~BIT_SIZE;
 			mbOnlyBasicTypes = FALSE;
-		}
-		else
-		{
-			iBitSize = iSize*8;
 		}
 
 		pcChannel->miBitSize = iBitSize;
 		if (Is8BitAligned(miBitStride, iBitSize))
 		{
-			pcChannel->miByteSize = iSize;
+			pcChannel->miByteSize = iByteSize;
 			pcChannel->miByteOffset = miBitStride / 8;
 		}
 		else
@@ -1199,7 +1195,7 @@ void CChannels::Dump(int iLineLength)
 	for (i = 0; i < masChannelOffsets.NumElements(); i++)
 	{
 		psChannel = masChannelOffsets.Get(i);
-		szTypeName = gcClassStorage.GetName(psChannel->eType);
+		szTypeName = gcTypeNames.GetPrettyName(psChannel->eType);
 		c.Append("Channel[");
 		c.Append(psChannel->iChannel);
 		c.Append("]: Type[");

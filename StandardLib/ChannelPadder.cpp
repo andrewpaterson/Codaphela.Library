@@ -20,7 +20,7 @@ along with Codaphela CoreLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-#include "ClassStorage.h"
+#include "CoreLib/TypeNames.h"
 #include "ChannelPadder.h"
 
 
@@ -54,7 +54,7 @@ BOOL CChannelPadder::OptimalPadding(void)
 		return FALSE;
 	}
 	eType = mpcExternal->GetLargestPrimitiveType();
-	iMaxSize = gcClassStorage.GetSize(eType);
+	iMaxSize = gcTypeNames.GetByteSize(eType);
 	iPos = 0;
 	iAvail = iMaxSize;
 	pcChannelOffset = mpcExternal->GetChannelOffsets();

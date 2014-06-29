@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "CoreLib/TypeNames.h"
 #include "SingleChannelAccessor.h"
 
 
@@ -66,7 +67,7 @@ void CSingleChannelAccessor::GetConvertTo(int iChannel, EPrimitiveTypes eType, v
 	CChannel*			pcChannel;
 	void*				pvData;
 	int					iIndex;
-	int					iSize;
+	int					iByteSize;
 	int					iBitSize;
 	BOOL				bSub;
 
@@ -82,20 +83,19 @@ void CSingleChannelAccessor::GetConvertTo(int iChannel, EPrimitiveTypes eType, v
 			eType = pcChannel->eType;
 		}
 
-		iSize = gcClassStorage.GetSize(eType);
-		if (iSize & BIT_SIZE)
+		iByteSize = gcTypeNames.GetByteSize(eType);
+		iBitSize = gcTypeNames.GetBitSize(eType);
+		if (iByteSize == 0)
 		{
-			iBitSize = iSize & ~BIT_SIZE;
-			iSize = -1;
+			iByteSize = -1;
 			bSub = TRUE;
 		}
 		else
 		{
-			iBitSize = iSize*8;
 			bSub = FALSE;
 		}
 
-		CChannelAccessor::Init(iSize, iBitSize, eType, pcChannel->miByteOffset, pcChannel->miByteSize, pcChannel->eType, pcChannel->bReverse, pcChannel->miBitSize, pcChannel->miBitOffset, pcChannel->iChannel);
+		CChannelAccessor::Init(iByteSize, iBitSize, eType, pcChannel->miByteOffset, pcChannel->miByteSize, pcChannel->eType, pcChannel->bReverse, pcChannel->miBitSize, pcChannel->miBitOffset, pcChannel->iChannel);
 
 		bSub |= miChannelByteOffset == -1;
 		bSub |= miChannelByteSize == -1;
@@ -122,7 +122,7 @@ void CSingleChannelAccessor::GetCastTo(int iChannel, EPrimitiveTypes eType, void
 	CChannel*			pcChannel;
 	void*				pvData;
 	int					iIndex;
-	int					iSize;
+	int					iByteSize;
 	int					iBitSize;
 	BOOL				bSub;
 
@@ -137,20 +137,19 @@ void CSingleChannelAccessor::GetCastTo(int iChannel, EPrimitiveTypes eType, void
 			eType = pcChannel->eType;
 		}
 
-		iSize = gcClassStorage.GetSize(eType);
-		if (iSize & BIT_SIZE)
+		iByteSize = gcTypeNames.GetByteSize(eType);
+		iBitSize = gcTypeNames.GetBitSize(eType);
+		if (iByteSize ==0)
 		{
-			iBitSize = iSize & ~BIT_SIZE;
-			iSize = -1;
+			iByteSize = -1;
 			bSub = TRUE;
 		}
 		else
 		{
-			iBitSize = iSize*8;
 			bSub = FALSE;
 		}
 
-		CChannelAccessor::Init(iSize, iBitSize, eType, pcChannel->miByteOffset, pcChannel->miByteSize, pcChannel->eType, pcChannel->bReverse, pcChannel->miBitSize, pcChannel->miBitOffset, pcChannel->iChannel);
+		CChannelAccessor::Init(iByteSize, iBitSize, eType, pcChannel->miByteOffset, pcChannel->miByteSize, pcChannel->eType, pcChannel->bReverse, pcChannel->miBitSize, pcChannel->miBitOffset, pcChannel->iChannel);
 
 		bSub |= miChannelByteOffset == -1;
 		bSub |= miChannelByteSize == -1;

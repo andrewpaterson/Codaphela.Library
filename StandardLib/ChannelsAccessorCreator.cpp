@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "CoreLib/TypeNames.h"
 #include "Unknowns.h"
 #include "ChannelsAccessorContiguous.h"
 #include "ChannelsAccessorByteAligned.h"
@@ -185,7 +186,7 @@ BOOL CChannelsAccessorCreator::CreateAccessors(void)
 	int					i;
 	SChannelAccess*		psAccess;
 	CChannelAccessor*	pcAccessor;
-	int					iSize;
+	int					iByteSize;
 	int					iBitSize;
 	EPrimitiveTypes		eAccessType;
 	CChannel*			pcChannel;
@@ -212,18 +213,14 @@ BOOL CChannelsAccessorCreator::CreateAccessors(void)
 			eAccessType = pcChannel->eType;
 		}
 
-		iSize = gcClassStorage.GetSize(eAccessType);
-		if (iSize & BIT_SIZE)
+		iByteSize = gcTypeNames.GetByteSize(eAccessType);
+		iBitSize = gcTypeNames.GetBitSize(eAccessType);
+		if (iByteSize == 0)
 		{
-			iBitSize = iSize & ~BIT_SIZE;
-			iSize = -1;
-		}
-		else
-		{
-			iBitSize = iSize*8;
+			iByteSize = -1;
 		}
 
-		pcAccessor->Init(iSize, iBitSize, eAccessType, pcChannel->miByteOffset, pcChannel->miByteSize, pcChannel->eType, pcChannel->bReverse, pcChannel->miBitSize, pcChannel->miBitOffset, pcChannel->iChannel);
+		pcAccessor->Init(iByteSize, iBitSize, eAccessType, pcChannel->miByteOffset, pcChannel->miByteSize, pcChannel->eType, pcChannel->bReverse, pcChannel->miBitSize, pcChannel->miBitOffset, pcChannel->iChannel);
 	}
 	return TRUE;
 }
