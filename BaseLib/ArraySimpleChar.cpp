@@ -31,7 +31,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //////////////////////////////////////////////////////////////////////////
 void CArraySimpleChar::Init(void)
 {
-	__CArraySimpleChar::Init();
+	CArraySimple<char>::Init();
 }
 
 
@@ -55,7 +55,7 @@ void CArraySimpleChar::Init(char* sz)
 //////////////////////////////////////////////////////////////////////////
 void CArraySimpleChar::Allocate(int iNumElements)
 {
-	__CArraySimpleChar::Allocate(iNumElements);
+	CArraySimple<char>::Allocate(iNumElements);
 }
 
 
@@ -77,7 +77,7 @@ void CArraySimpleChar::Add(char c)
 {
 	char*	ci;
 
-	ci = __CArraySimpleChar::Add();
+	ci = CArraySimple<char>::Add();
 	*ci = c;
 }
 

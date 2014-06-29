@@ -133,6 +133,7 @@
     <ClInclude Include="ObjectSourceChunked.h" />
     <ClInclude Include="ObjectSourceSimple.h" />
     <ClInclude Include="ObjectSourceText.h" />
+    <ClInclude Include="ObjectsSource.h" />
     <ClInclude Include="Parameters.h" />
     <ClInclude Include="PointerContainer.h" />
     <ClInclude Include="SerialisedObject.h" />
@@ -246,6 +247,7 @@
     <ClCompile Include="ObjectSourceChunked.cpp" />
     <ClCompile Include="ObjectSourceSimple.cpp" />
     <ClCompile Include="ObjectSourceText.cpp" />
+    <ClCompile Include="ObjectsSource.cpp" />
     <ClCompile Include="ObjectWriter.cpp" />
     <ClCompile Include="PointerContainer.cpp" />
     <ClCompile Include="SerialisedObject.cpp" />
@@ -302,6 +304,9 @@
     <ClCompile Include="ChannelsAccessorCreator.cpp" />
     <ClCompile Include="SingleChannelAccessor.cpp" />
     <ClCompile Include="StandardHeader.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ObjectsSources.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

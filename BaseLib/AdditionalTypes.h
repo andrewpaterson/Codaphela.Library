@@ -30,9 +30,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 
 //Array of simple int.
-typedef CArraySimple<int> __CArraySimpleInt;
-template class CArraySimple<int>;
-class CArraySimpleInt : public __CArraySimpleInt
+class CArraySimpleInt : public CArraySimple<int>
 {
 public:
 	void	Add(int i);
@@ -44,9 +42,7 @@ public:
 
 
 //Array of array of simple int.
-typedef CArrayTemplate<CArraySimpleInt> __CArrayOfArraySimpleInt;
-template class CArrayTemplate<CArraySimpleInt>;
-class CArrayOfArraySimpleInt : public __CArrayOfArraySimpleInt
+class CArrayOfArraySimpleInt : public CArrayTemplate<CArraySimpleInt>
 {
 public:
 	void				Allocate(int iChunkSize);
@@ -57,8 +53,7 @@ public:
 };
 
 //Array of Array of int.
-typedef CArrayTemplate<CArrayInt>  __CArrayOfArrayInt;
-class CArrayOfArrayInt : public __CArrayOfArrayInt
+class CArrayOfArrayInt : public CArrayTemplate<CArrayInt>
 {
 public:
 	void		Kill(void);
@@ -81,9 +76,7 @@ struct CTypedArrayInt : public CArrayInt
 };
 
 //Array of typed array of int.
-typedef CArrayTemplate<CTypedArrayInt> __CArrayOfTypedArrayInt;
-template class CArrayTemplate<CTypedArrayInt>;
-class CArrayOfTypedArrayInt : public __CArrayOfTypedArrayInt
+class CArrayOfTypedArrayInt : public CArrayTemplate<CTypedArrayInt>
 {
 public:
 	int					miDefaultChunkSize;

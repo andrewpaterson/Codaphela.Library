@@ -27,7 +27,7 @@ Microsoft DirectX is Copyright Microsoft Corporation
 
 
 //It is NEVER a good idea to change the size of the vertex buffer.  It's size should
-//always be set large enough to contain the maximum expected number of verticies.
+//always be set large enough to contain the maximum expected number of vertices.
 class CVertexBufferExtended : public SVertexBuffer
 {
 protected:
@@ -42,17 +42,14 @@ public:
 	void Init(int iD3DVertexType, int iNumVerts, BOOL bDynamic);
 	void Kill(void);
 	BOOL Finalise(void);	//Use this when the vertex buffer is unlikely to be changed again.
-	BOOL AppendVerticies(int iNumVerts, void* psVerts);  //Assumes verts exist and must be copied.
+	BOOL AppendVerticies(int iNumVerts, void* psVerts);  //Assumes vertices exist and must be copied.
 	BOOL AppendVerticies(int iNumVerts, void** pvFirstNewVert, int* iSizeInBytes = NULL);  //Only allocates memory (buffer).
-	BOOL InsertVerticies(int iNumVerts, int iPos, void* psVerts);	//Verts are inserted at pos, not after.
+	BOOL InsertVerticies(int iNumVerts, int iPos, void* psVerts);	//Vertices are inserted at pos, not after.
 	BOOL RemoveVerticies(int iNumVerts);
 };
 
 
-typedef CArraySimple<CVertexBufferExtended>		__CGraphicsArrayVertexBuffers;
-
-
-class CGraphicsVertexBufferArray : public __CGraphicsArrayVertexBuffers
+class CGraphicsVertexBufferArray : public CArraySimple<CVertexBufferExtended>
 {
 public:
 	void Init(void);

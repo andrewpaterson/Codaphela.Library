@@ -31,7 +31,7 @@ void CArraySimpleInt::Add(int i)
 {
 	int*	pi;
 
-	pi = __CArraySimpleInt::Add();
+	pi = CArraySimple<int>::Add();
 	*pi = i;
 }
 
@@ -88,7 +88,7 @@ int CArraySimpleInt::GetValue(int iElementPos)
 //////////////////////////////////////////////////////////////////////////
 void CArraySimpleInt::QuickSort(void)
 {
-	__CArraySimpleInt::QuickSort(&ComparePrimitive<int>);
+	CArraySimple<int>::QuickSort(&ComparePrimitive<int>);
 }
 
 
@@ -98,7 +98,7 @@ void CArraySimpleInt::QuickSort(void)
 //////////////////////////////////////////////////////////////////////////
 void CArrayOfArraySimpleInt::Allocate(int iChunkSize)
 {
-	__CArrayOfArraySimpleInt::Allocate(iChunkSize);
+	CArrayTemplate<CArraySimpleInt>::Allocate(iChunkSize);
 	InitArrays(0, miUsedElements);
 }
 
@@ -109,7 +109,7 @@ void CArrayOfArraySimpleInt::Allocate(int iChunkSize)
 //////////////////////////////////////////////////////////////////////////
 void CArrayOfArraySimpleInt::Allocate(int iChunkSize, int iNumElements)
 {
-	__CArrayOfArraySimpleInt::Allocate(iChunkSize, iNumElements);
+	CArrayTemplate<CArraySimpleInt>::Allocate(iChunkSize, iNumElements);
 	InitArrays(0, miUsedElements);
 }
 
@@ -128,7 +128,7 @@ void CArrayOfArraySimpleInt::Kill(void)
 	{
 		pcArrayInt[i].Kill();
 	}
-	__CArrayOfArraySimpleInt::Kill();
+	CArrayTemplate<CArraySimpleInt>::Kill();
 }
 
 
@@ -157,7 +157,7 @@ CArraySimpleInt* CArrayOfArraySimpleInt::Add(void)
 {
 	CArraySimpleInt*	pcArrayInt;
 
-	pcArrayInt = __CArrayOfArraySimpleInt::Add();
+	pcArrayInt = CArrayTemplate<CArraySimpleInt>::Add();
 	pcArrayInt->Init();
 
 	return pcArrayInt;
@@ -178,7 +178,7 @@ void CArrayOfArrayInt::Kill(void)
 	{
 		pcArrayInt->Kill();
 	}
-	__CArrayOfArrayInt::Kill();
+	CArrayTemplate<CArrayInt>::Kill();
 }
 
 
@@ -190,7 +190,7 @@ CArrayInt* CArrayOfArrayInt::Add(void)
 {
 	CArrayInt*	pcArrayInt;
 
-	pcArrayInt = __CArrayOfArrayInt::Add();
+	pcArrayInt = CArrayTemplate<CArrayInt>::Add();
 	pcArrayInt->Init();
 
 	return pcArrayInt;
@@ -205,7 +205,7 @@ CArrayInt* CArrayOfArrayInt::Add(int iChunkSize)
 {
 	CArrayInt*	pcArrayInt;
 
-	pcArrayInt = __CArrayOfArrayInt::Add();
+	pcArrayInt = CArrayTemplate<CArrayInt>::Add();
 	pcArrayInt->Init(iChunkSize);
 
 	return pcArrayInt;
@@ -300,7 +300,7 @@ int CTypedArrayInt::GetType(void)
 //////////////////////////////////////////////////////////////////////////
 void CArrayOfTypedArrayInt::Init(void)
 {
-	__CArrayOfTypedArrayInt::Init();
+	CArrayTemplate<CTypedArrayInt>::Init();
 	miDefaultChunkSize = 1;
 }
 
@@ -311,7 +311,7 @@ void CArrayOfTypedArrayInt::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CArrayOfTypedArrayInt::Init(int iChunkSize)
 {
-	__CArrayOfTypedArrayInt::Init(iChunkSize);
+	CArrayTemplate<CTypedArrayInt>::Init(iChunkSize);
 	miDefaultChunkSize = iChunkSize;
 }
 
@@ -322,7 +322,7 @@ void CArrayOfTypedArrayInt::Init(int iChunkSize)
 //////////////////////////////////////////////////////////////////////////
 void CArrayOfTypedArrayInt::Init(int iChunkSizeMajor, int iChunkSizeMinor)
 {
-	__CArrayOfTypedArrayInt::Init(iChunkSizeMajor);
+	CArrayTemplate<CTypedArrayInt>::Init(iChunkSizeMajor);
 	miDefaultChunkSize = iChunkSizeMinor;
 }
 
@@ -342,7 +342,7 @@ void CArrayOfTypedArrayInt::Kill(void)
 		pcArrayInt->Kill();
 	}
 	miDefaultChunkSize = 0;
-	__CArrayOfTypedArrayInt::Kill();
+	CArrayTemplate<CTypedArrayInt>::Kill();
 }
 
 
@@ -354,7 +354,7 @@ CTypedArrayInt*	CArrayOfTypedArrayInt::AddArray(int iType)
 {
 	CTypedArrayInt*	pcArrayInt;
 
-	pcArrayInt = __CArrayOfTypedArrayInt::Add();
+	pcArrayInt = CArrayTemplate<CTypedArrayInt>::Add();
 	pcArrayInt->Init(miDefaultChunkSize);
 	pcArrayInt->SetType(iType);
 

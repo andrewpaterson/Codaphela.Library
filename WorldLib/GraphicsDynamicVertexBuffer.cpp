@@ -173,7 +173,7 @@ BOOL CGraphicsDynamicVertexBuffer::Unlock(void)
 //////////////////////////////////////////////////////////////////////////
 void CGraphicsDynamicVertexBufferArray::Init(void)
 {
-	__CArrayGraphicsDynamicVertexBuffers::Init();
+	CArraySimple<CGraphicsDynamicVertexBuffer>::Init();
 }
 
 
@@ -191,7 +191,7 @@ void CGraphicsDynamicVertexBufferArray::Kill(void)
 		psVertexBuffer = Get(i);
 		psVertexBuffer->Kill();
 	}
-	__CArrayGraphicsDynamicVertexBuffers::Kill();
+	CArraySimple<CGraphicsDynamicVertexBuffer>::Kill();
 }
 
 

@@ -26,13 +26,12 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 
 class CInputVirtualDevice;
-typedef CArraySimple<CInputVirtualDevice*>	CArrayInputVirtualDevicePtr;
 class CInputVirtualDeviceCommonality : public CUnknown
 {
 BASE_FUNCTIONS(CInputVirtualDeviceCommonality);
 protected:
 	CInputVirtualDevice*				mpcVirtualDevice;
-	CArrayInputVirtualDevicePtr			mapcSharedDeviceSources;
+	CArraySimple<CInputVirtualDevice*>	mapcSharedDeviceSources;
 
 public:
 	void Init(CInputVirtualDevice* pcVirtualDevice);

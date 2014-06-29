@@ -45,10 +45,7 @@ public:
 };
 
 
-typedef CArraySimple<CGraphicsDynamicVertexBuffer>		__CArrayGraphicsDynamicVertexBuffers;
-
-
-class CGraphicsDynamicVertexBufferArray : public __CArrayGraphicsDynamicVertexBuffers
+class CGraphicsDynamicVertexBufferArray : public CArraySimple<CGraphicsDynamicVertexBuffer>
 {
 public:
 	void Init(void);

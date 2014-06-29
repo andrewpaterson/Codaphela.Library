@@ -26,9 +26,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 
 //Array of simple char.
-typedef CArraySimple<char> __CArraySimpleChar;
-template class CArraySimple<char>;
-class CArraySimpleChar : public __CArraySimpleChar
+class CArraySimpleChar : public CArraySimple<char>
 {
 public:
 	void	Init(void);
