@@ -20,14 +20,14 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __COMPONENT_POINTERS_H__
 #define __COMPONENT_POINTERS_H__
-#include "BaseLib/ArrayPointer.h"
+#include "BaseLib/ArrayTypedPointer.h"
 
 
 class CComponent;
 class CComponentPointers
 {
 public:
-	CArrayPointer	mcComponents;  //This should not be an CArrayPointer.  It's fucking with the debugger.  Make it an CArrayTemplate<CComponent*> rather.
+	CArrayTypedPointer	mcComponents;  //This should not be an CArrayTypedPointer.  It's fucking with the debugger.  Make it an CArrayTemplate<CComponent*> rather.
 
 	void 		Init(void);
 	void		Kill(void);

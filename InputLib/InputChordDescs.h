@@ -22,7 +22,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __INPUT_CHORD_DESCS_H__
 #define __INPUT_CHORD_DESCS_H__
-#include "BaseLib/ArrayPointer.h"
+#include "BaseLib/ArrayTypedPointer.h"
 #include "InputDeviceCopyContext.h"
 #include "InputChordDesc.h"
 
@@ -38,7 +38,7 @@ public:
 	void 				Kill(void);
 
 	CInputChordDesc*	AddChordDesc(char* szActionName);
-	void				GetInputSourceDescs(CArrayPointer* apcDest, CInputDeviceDesc* pcDeviceDesc);
+	void				GetInputSourceDescs(CArrayTypedPointer* apcDest, CInputDeviceDesc* pcDeviceDesc);
 	void				CopyChordDescs(CInputChordDescs* pcSource, CInputDeviceCopyContext* pcContext);
 	CInputChordDesc*	StartChordDescsIteration(SSetIterator* psIter);
 	CInputChordDesc*	IterateChordDescs(SSetIterator* psIter);

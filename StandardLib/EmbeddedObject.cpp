@@ -858,7 +858,7 @@ CStackPointer* CEmbeddedObject::GetFirstStackFrom(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CEmbeddedObject::GetStackFroms(CArrayPointerPtr* papcFroms)
+void CEmbeddedObject::GetStackFroms(CArrayTypedPointerPtr* papcFroms)
 {
 	CStackPointer*	pcStackPointer;
 	CPointer*		pcPointer;

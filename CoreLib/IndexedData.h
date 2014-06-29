@@ -115,14 +115,14 @@ protected:
 
 	BOOL			ClearDescriptorCache(SIndexedCacheDescriptor* psCached);
 	BOOL			EvictFromCache(SIndexedCacheDescriptor* psExisting);
-	BOOL			EvictOverlappingFromCache(CArrayPointer* papsEvictedIndexedCacheDescriptors);
+	BOOL			EvictOverlappingFromCache(CArrayTypedPointer* papsEvictedIndexedCacheDescriptors);
 
 	void			InvalidateData(CIndexedDataDescriptor* pcDescriptor);
 	BOOL			CacheRead(CIndexedDataDescriptor* pcDescriptor);
 	BOOL			CacheWrite(CIndexedDataDescriptor* pcDescriptor, void* pvData, BOOL* pbWritten);
 	BOOL			Write(CIndexedDataDescriptor* pcDescriptor, void* pvData, unsigned int uiTimeStamp);
 
-	BOOL			WriteEvictedData(CArrayPointer* papsIndexedCacheDescriptors);
+	BOOL			WriteEvictedData(CArrayTypedPointer* papsIndexedCacheDescriptors);
 	BOOL			WriteEvictedData(SIndexedCacheDescriptor* psCached);
 	BOOL			WriteEvictedData(CIndexedDataDescriptor* pcDescriptor, SIndexedCacheDescriptor* psCached);
 	BOOL			WriteData(CIndexedDataDescriptor* pcDescriptor, void* pvData);

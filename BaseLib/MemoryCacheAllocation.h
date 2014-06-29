@@ -1,6 +1,6 @@
 #ifndef __MEMORY_CACHE_ALLOCATION_H__
 #define __MEMORY_CACHE_ALLOCATION_H__
-#include "ArrayPointer.h"
+#include "ArrayTypedPointer.h"
 
 
 struct SMemoryCacheDescriptor
@@ -17,7 +17,7 @@ class CMemoryCacheAllocation
 friend class CMemoryCache;
 protected:
 	int							miDataSize;
-	CArrayPointer				mapEvictedCacheDescriptors;
+	CArrayTypedPointer				mapEvictedCacheDescriptors;
 	SMemoryCacheDescriptor*		mpsCacheDesc;
 	unsigned int				miCachedSize;
 	unsigned int				miRemaining;
@@ -30,7 +30,7 @@ public:
 	SMemoryCacheDescriptor*		Get(int iIndex);
 	int							NumElements(void);
 
-	CArrayPointer*				GetEvictedArray(void);  //This only exists because I haven't finished factoring it out.
+	CArrayTypedPointer*				GetEvictedArray(void);  //This only exists because I haven't finished factoring it out.
 };
 
 

@@ -50,7 +50,7 @@ public:
 	void				Kill(void);
 
 	BOOL				ConvertTexture(CGraphicsTexture** ppcGraphicsTexture, D3DFORMAT d3dFormat, CImage* pcImage, BOOL bDiscard, int iWidth, int iHeight, EPrimitiveTypes eType, EChannel eFirst, ...);
-	BOOL				ConvertMeshToGraphicsObject(CGraphicsObject** pcGraphicsObject, CMeshObject** ppcMeshObject, CMesh* pcMesh, CArrayPointer* pcConnectionAndIndex);
+	BOOL				ConvertMeshToGraphicsObject(CGraphicsObject** pcGraphicsObject, CMeshObject** ppcMeshObject, CMesh* pcMesh, CArrayTypedPointer* pcConnectionAndIndex);
 	BOOL				ConvertMaterialToGraphicsMaterial(CGraphicsMaterial** ppcGraphicsMaterial, CGraphicsState** ppcGraphicsState, CMaterial* pcMaterial);
 	BOOL				ConvertSequenceToMovement(CMovement** ppcMovement, CSequence* pcSequence, SMatrix* psMatrix);
 	BOOL				ConvertInstanceToGraphicsInstance(CInstance* pcInstance);

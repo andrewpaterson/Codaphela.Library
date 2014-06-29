@@ -65,7 +65,7 @@ CInputChordDesc* CInputChordDescs::AddChordDesc(char* szActionName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CInputChordDescs::GetInputSourceDescs(CArrayPointer* apcDest, CInputDeviceDesc* pcDeviceDesc)
+void CInputChordDescs::GetInputSourceDescs(CArrayTypedPointer* apcDest, CInputDeviceDesc* pcDeviceDesc)
 {
 	CInputChordDesc*		pcChordDesc;
 	SSetIterator			sIter;

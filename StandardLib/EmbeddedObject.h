@@ -117,7 +117,7 @@ protected:
 	virtual void				RemoveAllHeapFroms(void);
 	virtual void				RemoveAllStackFroms(void);
 			BOOL				PrivateRemoveHeapFrom(CBaseObject* pcFrom);
-	virtual void				GetStackFroms(CArrayPointerPtr* papcFroms);
+	virtual void				GetStackFroms(CArrayTypedPointerPtr* papcFroms);
 	virtual void				GetHeapFroms(CArrayEmbeddedBaseObjectPtr* papcFroms);
 	virtual CStackPointers*		GetStackPointers(void) =0;
 	virtual CBaseObject*		GetClosestFromForCanFindRoot(void);

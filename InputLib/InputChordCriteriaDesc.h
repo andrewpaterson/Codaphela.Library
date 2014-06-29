@@ -22,7 +22,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __INPUT_CHORD_CRITERIA_DESC_H__
 #define __INPUT_CHORD_CRITERIA_DESC_H__
-#include "BaseLib/ArrayPointer.h"
+#include "BaseLib/ArrayTypedPointer.h"
 #include "StandardLib/Unknown.h"
 #include "StandardLib/ArrayType.h"
 #include "InputCategoryGeneric.h"
@@ -52,7 +52,7 @@ protected:
 public:
 	void 							Init(EInputChordCriteriaDescType eType, CInputChordDesc* pcChordDesc);
 	void 							Kill(void);
-	virtual void					GetInputSourceDescs(CArrayPointer* apcDest, CInputDeviceDesc* pcDeviceDesc) =0;
+	virtual void					GetInputSourceDescs(CArrayTypedPointer* apcDest, CInputDeviceDesc* pcDeviceDesc) =0;
 
 	EInputChordCriteriaDescType		GetType(void);
 	CInputChordDesc*				GetChordDesc(void);
@@ -85,7 +85,7 @@ public:
 	void 				Init(CInputCategoryGeneric* pcSource, EInputChordCriteriaDescType eType, CInputChordDesc* pcChordDesc, EInputChordType eChordType);
 	void 				Init(EInputChordCriteriaDescType eType, CInputChordDesc* pcChordDesc);
 	void 				Kill(void);
-	void 				GetInputSourceDescs(CArrayPointer* apcDest, CInputDeviceDesc* pcDeviceDesc);
+	void 				GetInputSourceDescs(CArrayTypedPointer* apcDest, CInputDeviceDesc* pcDeviceDesc);
 	CInputSourceDesc*	GetSourceDesc(void);
 	int					GetDescriptionID(void);
 };
@@ -107,7 +107,7 @@ public:
 	CInputChordActiveDesc*		AddInactive(CInputSourceDesc* pcSourceDesc, int iDescriptionID);
 	CInputChordCollectiveDesc*	AddGroup(void);
 	void						RemoveLast(void);
-	void						GetInputSourceDescs(CArrayPointer* apcDest, CInputDeviceDesc* pcDeviceDesc);
+	void						GetInputSourceDescs(CArrayTypedPointer* apcDest, CInputDeviceDesc* pcDeviceDesc);
 };
 
 

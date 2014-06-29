@@ -177,9 +177,6 @@
     <ClInclude Include="ArrayLong.h">
       <Filter>Source\Data\Array</Filter>
     </ClInclude>
-    <ClInclude Include="ArrayPointer.h">
-      <Filter>Source\Data\Array</Filter>
-    </ClInclude>
     <ClInclude Include="ArrayPrimitiveTemplate.h">
       <Filter>Source\Data\Array</Filter>
     </ClInclude>
@@ -591,6 +588,9 @@
     <ClInclude Include="LogConfig.h">
       <Filter>Source\Error</Filter>
     </ClInclude>
+    <ClInclude Include="ArrayTypedPointer.h">
+      <Filter>Source\Data\Array</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ArrayBit.cpp">
@@ -606,9 +606,6 @@
       <Filter>Source\Data\Array</Filter>
     </ClCompile>
     <ClCompile Include="ArrayLong.cpp">
-      <Filter>Source\Data\Array</Filter>
-    </ClCompile>
-    <ClCompile Include="ArrayPointer.cpp">
       <Filter>Source\Data\Array</Filter>
     </ClCompile>
     <ClCompile Include="ArraySimpleChar.cpp">
@@ -934,6 +931,9 @@
     </ClCompile>
     <ClCompile Include="IndexTreeNode.cpp">
       <Filter>Source\Data\Index</Filter>
+    </ClCompile>
+    <ClCompile Include="ArrayTypedPointer.cpp">
+      <Filter>Source\Data\Array</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -24,7 +24,7 @@ Microsoft DirectX is Copyright Microsoft Corporation
 #define __TRANSFORM_NODE_H_
 #include "BaseLib/ChunkFile.h"
 #include "BaseLib/ArrayTemplate.h"
-#include "BaseLib/ArrayPointer.h"
+#include "BaseLib/ArrayTypedPointer.h"
 #include "CoreLib/ArrayVariable.h"
 #include "BaseLib/GeometricTypes.h"
 #include "StandardLib/StandardHeader.h"

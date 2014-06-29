@@ -26,7 +26,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "BaseLib/Number.h"
 #include "BaseLib/ArrayString.h"
 #include "BaseLib/ArrayInt.h"
-#include "BaseLib/ArrayPointer.h"
+#include "BaseLib/ArrayTypedPointer.h"
 #include "TextParser.h"
 #include "CalcOperator.h"
 #include "CalcBinaryExpression.h"
@@ -51,8 +51,8 @@ public:
 	BOOL		Parentheses(CCalcParentheses** ppcParentheses);
 	BOOL		Value(CCalcConstExpression** ppcConst);
 	BOOL		Identifier(CCalcConstExpression** ppcConst);
-	void		BuildExpression(CCalcExpression** ppcExpression, CArrayPointer* pcArray);
-	int			GetMinPrecedence(CArrayPointer* pcArray);
+	void		BuildExpression(CCalcExpression** ppcExpression, CArrayTypedPointer* pcArray);
+	int			GetMinPrecedence(CArrayTypedPointer* pcArray);
 	void		ResolveAmbiguity(CCalcOperator* pcOperator, BOOL bIsUnary);
 };
 

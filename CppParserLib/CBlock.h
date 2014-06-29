@@ -22,7 +22,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __C_BLOCK_H__
 #include "BaseLib/MemoryStackExtended.h"
 #include "BaseLib/ArrayTemplate.h"
-#include "BaseLib/ArrayPointer.h"
+#include "BaseLib/ArrayTypedPointer.h"
 #include "DefineMap.h"
 #include "CBlockToken.h"
 #include "NamedDefine.h"
@@ -45,7 +45,7 @@ public:
 	void	SetNext(int	iTokenIndex, int iBlockIndex);
 	void*	Allocate(int iSize);
 	BOOL	Equals(CPPToken* pcOther);
-	void	Dump(CArrayPointer* papc);
+	void	Dump(CArrayTypedPointer* papc);
 	void	DumpTokens(void);
 };
 

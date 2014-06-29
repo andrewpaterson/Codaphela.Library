@@ -266,7 +266,7 @@ CInputVirtualDevice* CInputDevice::CreateVariableVirtualDeviceFromThis(CInputAct
 	CInputSourceDesc*		pcSource;
 	CInputDevices*			pcInputDevices;
 	CChars					szTemp;
-	CArrayPointer			apcSourceDescs;
+	CArrayTypedPointer			apcSourceDescs;
 	int						i;
 
 	pcInputDevices = GetInputDevices();

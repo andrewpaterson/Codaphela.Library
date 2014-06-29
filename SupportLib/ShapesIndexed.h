@@ -20,7 +20,7 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __SHAPES_INDEXED_H__
 #define __SHAPES_INDEXED_H__
-#include "BaseLib/ArrayPointer.h"
+#include "BaseLib/ArrayTypedPointer.h"
 #include "BaseLib/ChunkFile.h"
 #include "BaseLib/GeometricTypes.h"
 #include "BaseLib/AdditionalTypes.h"

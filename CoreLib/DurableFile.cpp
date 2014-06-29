@@ -458,7 +458,7 @@ filePos CDurableFile::Write(EFileSeekOrigin eOrigin, filePos iDistance, const vo
 filePos CDurableFile::Write(const void* pvSource, filePos iSize, filePos iCount)
 {
 	SDurableFileCommandWrite*	psCommand;
-	CArrayPointer				apvOverlapping;
+	CArrayTypedPointer				apvOverlapping;
 	BOOL						bAny;
 	void*						pvData;
 	filePos						iByteLength;
@@ -508,7 +508,7 @@ filePos CDurableFile::Write(const void* pvSource, filePos iSize, filePos iCount)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CDurableFile::AmalgamateOverlappingWrites(CArrayPointer* papvOverlapping, const void* pvSource, filePos iPosition, filePos iLength)
+BOOL CDurableFile::AmalgamateOverlappingWrites(CArrayTypedPointer* papvOverlapping, const void* pvSource, filePos iPosition, filePos iLength)
 {
 	filePos						iStart;
 	filePos						iEnd;  //Inclusive;
@@ -603,7 +603,7 @@ filePos CDurableFile::Read(EFileSeekOrigin eOrigin, filePos iDistance, void* pvD
 //////////////////////////////////////////////////////////////////////////
 filePos CDurableFile::Read(void* pvDest, filePos iSize, filePos iCount)
 {
-	CArrayPointer				apvOverlapping;
+	CArrayTypedPointer				apvOverlapping;
 	BOOL						bAny;
 	int							i;
 	BOOL						bHoles;
@@ -767,9 +767,9 @@ int CompareDurableWrite(const void* pv1, const void* pv2)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CDurableFile::FindHoles(CArrayPointer* papvOverlapping, filePos iPosition, filePos iLength)
+BOOL CDurableFile::FindHoles(CArrayTypedPointer* papvOverlapping, filePos iPosition, filePos iLength)
 {
-	CArrayPointer				apvOverlappingSorted;
+	CArrayTypedPointer				apvOverlappingSorted;
 	int							i;
 	SDurableFileCommandWrite*	psWrite;
 	int							eCommand;
@@ -819,7 +819,7 @@ BOOL CDurableFile::FindHoles(CArrayPointer* papvOverlapping, filePos iPosition, 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CDurableFile::FindTouchingWriteCommands(CArrayPointer* papvOverlapping, filePos iPosition, filePos iLength, BOOL bMustOverlap)
+BOOL CDurableFile::FindTouchingWriteCommands(CArrayTypedPointer* papvOverlapping, filePos iPosition, filePos iLength, BOOL bMustOverlap)
 {
 	int							i;
 	SDurableFileCommandWrite*	psWrite;

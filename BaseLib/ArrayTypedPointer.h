@@ -20,8 +20,8 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __ARRAY_POINTER_H__
-#define __ARRAY_POINTER_H__
+#ifndef __ARRAY_TYPED_POINTER_H__
+#define __ARRAY_TYPED_POINTER_H__
 #include "ArrayTemplate.h"
 #include "Define.h"
 
@@ -35,8 +35,8 @@ struct STypedPointer
 };
 
 
-typedef CArrayTemplate<STypedPointer> __CArrayPointer;
-class CArrayPointer : public __CArrayPointer
+typedef CArrayTemplate<STypedPointer> __CArrayTypedPointer;
+class CArrayTypedPointer : public __CArrayTypedPointer
 {
 public:
 	void 	Add(void* pvData, int iType);
@@ -56,5 +56,5 @@ public:
 };
 
 
-#endif // __ARRAY_POINTER_H__
+#endif // __ARRAY_TYPED_POINTER_H__
 

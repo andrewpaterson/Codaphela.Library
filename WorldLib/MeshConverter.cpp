@@ -90,7 +90,7 @@ void CMeshConverter::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMeshConverter::Convert(CGraphicsObject** ppcGraphicsObject, CMeshObject** ppcMeshObject, CMesh* pcMesh, CArrayPointer* pcConnectionAndIndex)
+BOOL CMeshConverter::Convert(CGraphicsObject** ppcGraphicsObject, CMeshObject** ppcMeshObject, CMesh* pcMesh, CArrayTypedPointer* pcConnectionAndIndex)
 {
 	//This assumes mpcMesh is already touched
 

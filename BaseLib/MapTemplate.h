@@ -23,7 +23,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __MAP_TEMPLATE_H__
 #define __MAP_TEMPLATE_H__
 #include <stdlib.h>
-#include "ArrayPointer.h"
+#include "ArrayTypedPointer.h"
 #include "PointerRemapper.h"
 #include "FileReader.h"
 #include "FileWriter.h"
@@ -34,7 +34,7 @@ class __CMapTemplate
 {
 protected:
 	int(*Func)(const void*, const void*);
-	CArrayPointer	mcArray;
+	CArrayTypedPointer	mcArray;
 	int				miKeySize;
 
 public:

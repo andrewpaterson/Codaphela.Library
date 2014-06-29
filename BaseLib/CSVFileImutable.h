@@ -23,7 +23,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __CSV_FILE_IMMUTABLE_H__
 #define __CSV_FILE_IMMUTABLE_H__
 #include "CSVFile.h"
-#include "ArrayPointer.h"
+#include "ArrayTypedPointer.h"
 
 
 struct SCSVRowImmutable
@@ -45,7 +45,7 @@ struct SCSVRowImmutable
 class CCSVFileImmutable : public CCSVFile
 {
 public:
-	CArrayPointer		mapsCSVRows;
+	CArrayTypedPointer		mapsCSVRows;
 
 	void 				Init(char cSeparator);
 	void 				Kill(void);

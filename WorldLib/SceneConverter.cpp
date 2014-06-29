@@ -98,7 +98,7 @@ BOOL CSceneConverter::ConvertTexture(CGraphicsTexture** ppcGraphicsTexture, D3DF
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CSceneConverter::ConvertMeshToGraphicsObject(CGraphicsObject** ppcGraphicsObject, CMeshObject** ppcMeshObject, CMesh* pcMesh, CArrayPointer* pcConnectionAndIndex)
+BOOL CSceneConverter::ConvertMeshToGraphicsObject(CGraphicsObject** ppcGraphicsObject, CMeshObject** ppcMeshObject, CMesh* pcMesh, CArrayTypedPointer* pcConnectionAndIndex)
 {
 	return mcMeshConverter.Convert(ppcGraphicsObject, ppcMeshObject, pcMesh, pcConnectionAndIndex);
 }
@@ -166,7 +166,7 @@ BOOL CSceneConverter::ConvertMeshes(void)
 	CGraphicsObject*	pcGraphicsObject;
 	CMeshObject*		pcMeshObject;
 	CMesh*				pcMesh;
-	CArrayPointer		cConnectionAndIndex;
+	CArrayTypedPointer		cConnectionAndIndex;
 
 	bResult = TRUE;
 	for (iMesh = 0; iMesh < mpcScene->mcMeshTracker.Num(); iMesh++)

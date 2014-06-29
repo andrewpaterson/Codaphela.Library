@@ -1240,7 +1240,7 @@ void CObject::SetFlag(int iFlag, int iFlagValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObject::GetStackFroms(CArrayPointerPtr* papcFroms)
+void CObject::GetStackFroms(CArrayTypedPointerPtr* papcFroms)
 {
 	int				i;
 	int				iNumEmbedded;

@@ -95,7 +95,7 @@
     <ClInclude Include="ArrayInt.h" />
     <ClInclude Include="ArrayInt2D.h" />
     <ClInclude Include="ArrayLong.h" />
-    <ClInclude Include="ArrayPointer.h" />
+    <ClInclude Include="ArrayTypedPointer.h" />
     <ClInclude Include="ArrayPrimitiveTemplate.h" />
     <ClInclude Include="ArraySimple.h" />
     <ClInclude Include="ArraySimpleChar.h" />
@@ -235,7 +235,7 @@
     <ClCompile Include="ArrayInt.cpp" />
     <ClCompile Include="ArrayInt2D.cpp" />
     <ClCompile Include="ArrayLong.cpp" />
-    <ClCompile Include="ArrayPointer.cpp" />
+    <ClCompile Include="ArrayTypedPointer.cpp" />
     <ClCompile Include="ArraySimpleChar.cpp" />
     <ClCompile Include="ArrayString.cpp" />
     <ClCompile Include="ArrayVoidPtr.cpp" />

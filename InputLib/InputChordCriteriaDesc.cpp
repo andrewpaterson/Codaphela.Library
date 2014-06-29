@@ -112,7 +112,7 @@ void CInputChordActiveDesc::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CInputChordActiveDesc::GetInputSourceDescs(CArrayPointer* apcDest, CInputDeviceDesc* pcDeviceDesc)
+void CInputChordActiveDesc::GetInputSourceDescs(CArrayTypedPointer* apcDest, CInputDeviceDesc* pcDeviceDesc)
 {
 	if (meActiveType == ICCDAT_SpecificSource)
 	{
@@ -265,7 +265,7 @@ void CInputChordCollectiveDesc::RemoveLast(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CInputChordCollectiveDesc::GetInputSourceDescs(CArrayPointer* apcDest, CInputDeviceDesc* pcDeviceDesc)
+void CInputChordCollectiveDesc::GetInputSourceDescs(CArrayTypedPointer* apcDest, CInputDeviceDesc* pcDeviceDesc)
 {
 	int							i;
 	CInputChordCriteriaDesc*	pcCriteriaDesc;

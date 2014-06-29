@@ -136,7 +136,7 @@ void CCBlock::SetNext(int iTokenIndex, int iBlockIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCBlock::Dump(CArrayPointer* papc)
+void CCBlock::Dump(CArrayTypedPointer* papc)
 {
 	int		i;
 	char*	sz;

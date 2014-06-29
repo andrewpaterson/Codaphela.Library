@@ -45,19 +45,19 @@ public:
 	int			GetNumWrites(void);
 	filePos		GetWriteSize(int iIndex);
 	int			GetNumCommands(void);
-	BOOL		TestFindHoles(int iWriteIndex, CArrayPointer* papvOverlapping, filePos iPosition, filePos iLength);
+	BOOL		TestFindHoles(int iWriteIndex, CArrayTypedPointer* papvOverlapping, filePos iPosition, filePos iLength);
 
 protected:
-	BOOL					FindTouchingWriteCommands(int iStartIndex, CArrayPointer* papvOverlapping, filePos iPosition, filePos iLength, BOOL bMustOverlap);
+	BOOL					FindTouchingWriteCommands(int iStartIndex, CArrayTypedPointer* papvOverlapping, filePos iPosition, filePos iLength, BOOL bMustOverlap);
 	BOOL					Overlaps(filePos iPosition, filePos iLength, CLogFileCommandWrite* psWrite);
-	BOOL					AmalgamateOverlappingWrites(CArrayPointer* papvOverlapping, const void* pvSource, filePos iPosition, filePos iLength);
-	BOOL					FindHoles(CArrayPointer* papvOverlapping, filePos iPosition, filePos iLength);
+	BOOL					AmalgamateOverlappingWrites(CArrayTypedPointer* papvOverlapping, const void* pvSource, filePos iPosition, filePos iLength);
+	BOOL					FindHoles(CArrayTypedPointer* papvOverlapping, filePos iPosition, filePos iLength);
 	void					UpdateLength(void);
 	filePos					ReadFromBackingFile(void* pvDest, filePos iSize, filePos iCount);
 	filePos					ReadWithNoTouchingWrites(void* pvDest, filePos iSize, filePos iCount);
 	filePos					ReadFirstTouchingWrites(int iWriteIndex, void* pvDest, filePos iSize, filePos iCount);
 	filePos					ReadNextTouchingWrites(int iWriteIndex, void* pvDest, filePos iSize, filePos iCount);
-	void					CopyWritesToRead(CArrayPointer* papvOverlapping, filePos iByteSize, void* pvDest);
+	void					CopyWritesToRead(CArrayTypedPointer* papvOverlapping, filePos iByteSize, void* pvDest);
 	int						FindNextWriteCommand(int iIndex);
 
 	CLogFileCommandOpen*	AddOpenCommand(EFileMode eFileMode);

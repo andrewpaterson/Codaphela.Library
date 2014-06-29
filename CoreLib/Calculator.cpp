@@ -135,7 +135,7 @@ BOOL CCalculator::Expression(CCalcExpression** ppcExpression)
 	BOOL				bOperator;
 	BOOL				bOperand;
 	BOOL				bFirst;
-	CArrayPointer		cArray;
+	CArrayTypedPointer		cArray;
 	CCalcOperator*		pcOperator;
 	CCalcExpression*	pcOperand;
 
@@ -374,7 +374,7 @@ BOOL CCalculator::Parentheses(CCalcParentheses** ppcParentheses)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCalculator::BuildExpression(CCalcExpression** ppcExpression, CArrayPointer* pcArray)
+void CCalculator::BuildExpression(CCalcExpression** ppcExpression, CArrayTypedPointer* pcArray)
 {
 	int						iIndex;
 	CCalcOperator*			pcOperator;
@@ -495,7 +495,7 @@ void CCalculator::BuildExpression(CCalcExpression** ppcExpression, CArrayPointer
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CCalculator::GetMinPrecedence(CArrayPointer* pcArray)
+int CCalculator::GetMinPrecedence(CArrayTypedPointer* pcArray)
 {
 	int					i;
 	CCalcObject*		pcObject;

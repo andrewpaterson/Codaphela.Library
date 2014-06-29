@@ -54,7 +54,7 @@ public:
 	int					NumStackFroms(void);
 	void				SetFlag(int iFlag, int iFlagValue);
 	void				GetHeapFroms(CArrayEmbeddedBaseObjectPtr* papcFroms);
-	void				GetStackFroms(CArrayPointerPtr* papcFroms);
+	void				GetStackFroms(CArrayTypedPointerPtr* papcFroms);
 	CBaseObject*		GetClosestFromToRoot(void);
 	CBaseObject*		GetClosestFromToStack(void);
 	int					NumPointerTos(void);

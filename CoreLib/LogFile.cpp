@@ -273,7 +273,7 @@ CLogFileCommandDelete* CLogFile::AddDeleteCommand(void)
 //////////////////////////////////////////////////////////////////////////
 filePos CLogFile::Write(const void* pvSource, filePos iSize, filePos iCount)
 {
-	CArrayPointer			apvOverlapping;
+	CArrayTypedPointer			apvOverlapping;
 	BOOL					bAny;
 	filePos					iByteLength;
 	CLogFileCommandWrite*	pcWrite;
@@ -361,7 +361,7 @@ CLogFileCommandWrite* CLogFile::AddWriteCommand(filePos iPosition, filePos iByte
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CLogFile::AmalgamateOverlappingWrites(CArrayPointer* papvOverlapping, const void* pvSource, filePos iPosition, filePos iLength)
+BOOL CLogFile::AmalgamateOverlappingWrites(CArrayTypedPointer* papvOverlapping, const void* pvSource, filePos iPosition, filePos iLength)
 {
 	filePos					iStart;
 	filePos					iEnd;  //Inclusive;
@@ -511,7 +511,7 @@ filePos CLogFile::ReadWithNoTouchingWrites(void* pvDest, filePos iSize, filePos 
 //////////////////////////////////////////////////////////////////////////
 filePos CLogFile::ReadFirstTouchingWrites(int iWriteIndex, void* pvDest, filePos iSize, filePos iCount)
 {
-	CArrayPointer	apvOverlapping;
+	CArrayTypedPointer	apvOverlapping;
 	BOOL			bAny;
 	BOOL			bHoles;
 	filePos			iBytesReadFromFile;
@@ -559,7 +559,7 @@ filePos CLogFile::ReadFirstTouchingWrites(int iWriteIndex, void* pvDest, filePos
 //////////////////////////////////////////////////////////////////////////
 filePos CLogFile::ReadNextTouchingWrites(int iWriteIndex, void* pvDest, filePos iSize, filePos iCount)
 {
-	CArrayPointer	apvOverlapping;
+	CArrayTypedPointer	apvOverlapping;
 	BOOL			bAny;
 	filePos			iByteSize;
 
@@ -578,7 +578,7 @@ filePos CLogFile::ReadNextTouchingWrites(int iWriteIndex, void* pvDest, filePos 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CLogFile::CopyWritesToRead(CArrayPointer* papvOverlapping, filePos iByteSize, void* pvDest)
+void CLogFile::CopyWritesToRead(CArrayTypedPointer* papvOverlapping, filePos iByteSize, void* pvDest)
 {
 	int						i;
 	int						iNumWrites;
@@ -723,7 +723,7 @@ int CompareLogFileWrite(const void* pv1, const void* pv2)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CLogFile::TestFindHoles(int iWriteIndex, CArrayPointer* papvOverlapping, filePos iPosition, filePos iLength)
+BOOL CLogFile::TestFindHoles(int iWriteIndex, CArrayTypedPointer* papvOverlapping, filePos iPosition, filePos iLength)
 {
 	BOOL	bAny;
 
@@ -750,9 +750,9 @@ BOOL CLogFile::TestFindHoles(int iWriteIndex, CArrayPointer* papvOverlapping, fi
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CLogFile::FindHoles(CArrayPointer* papvOverlapping, filePos iPosition, filePos iLength)
+BOOL CLogFile::FindHoles(CArrayTypedPointer* papvOverlapping, filePos iPosition, filePos iLength)
 {
-	CArrayPointer				apvOverlappingSorted;
+	CArrayTypedPointer				apvOverlappingSorted;
 	int							i;
 	CLogFileCommandWrite*	psWrite;
 	int							eCommand;
@@ -813,7 +813,7 @@ BOOL CLogFile::FindHoles(CArrayPointer* papvOverlapping, filePos iPosition, file
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CLogFile::FindTouchingWriteCommands(int iStartIndex, CArrayPointer* papvOverlapping, filePos iPosition, filePos iLength, BOOL bMustOverlap)
+BOOL CLogFile::FindTouchingWriteCommands(int iStartIndex, CArrayTypedPointer* papvOverlapping, filePos iPosition, filePos iLength, BOOL bMustOverlap)
 {
 	int						iIndex;
 	CLogFileCommandWrite*	psWrite;

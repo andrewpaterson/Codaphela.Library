@@ -326,7 +326,7 @@ SMemoryCacheDescriptor* CMemoryCache::FindNewFirst(void* pvNew, unsigned int uiN
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMemoryCache::FindOverlapping(void* pvNew, unsigned int uiNewSize, CArrayPointer* papCacheDescriptors)
+void CMemoryCache::FindOverlapping(void* pvNew, unsigned int uiNewSize, CArrayTypedPointer* papCacheDescriptors)
 {
 	SMemoryCacheDescriptor*	psNext;
 
