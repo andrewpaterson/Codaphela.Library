@@ -70,8 +70,8 @@ void CMeshNormals::Kill(void)
 BOOL CMeshNormals::Load(CFileReader* pcFile)
 {
 	ReturnOnFalse(LoadMeshDetail(pcFile));
-	ReturnOnFalse(pcFile->ReadArrayTemplate(&mcNormals));
-	ReturnOnFalse(pcFile->ReadArrayTemplate(&mcFaces));
+	ReturnOnFalse(mcNormals.ReadArrayTemplate(pcFile));
+	ReturnOnFalse(mcFaces.ReadArrayTemplate(pcFile));
 	return TRUE;
 }
 
@@ -83,8 +83,8 @@ BOOL CMeshNormals::Load(CFileReader* pcFile)
 BOOL CMeshNormals::Save(CFileWriter* pcFile)
 {
 	ReturnOnFalse(SaveMeshDetail(pcFile));
-	ReturnOnFalse(pcFile->WriteArrayTemplate(&mcNormals));
-	ReturnOnFalse(pcFile->WriteArrayTemplate(&mcFaces));
+	ReturnOnFalse(mcNormals.WriteArrayTemplate(pcFile));
+	ReturnOnFalse(mcFaces.WriteArrayTemplate(pcFile));
 	return TRUE;
 }
 

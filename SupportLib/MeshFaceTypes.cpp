@@ -162,8 +162,8 @@ void CMeshFaceTypes::Kill(void)
 BOOL CMeshFaceTypes::Load(CFileReader* pcFile)
 {
 	ReturnOnFalse(LoadMeshDetail(pcFile));
-	ReturnOnFalse(pcFile->ReadArrayTemplate(&mcFaces));
-	ReturnOnFalse(pcFile->ReadArrayTemplate(&mcUniqueTypes));
+	ReturnOnFalse(mcFaces.ReadArrayTemplate(pcFile));
+	ReturnOnFalse(mcUniqueTypes.ReadArrayTemplate(pcFile));
 	return TRUE;
 }
 
@@ -175,8 +175,8 @@ BOOL CMeshFaceTypes::Load(CFileReader* pcFile)
 BOOL CMeshFaceTypes::Save(CFileWriter* pcFile)
 {
 	ReturnOnFalse(SaveMeshDetail(pcFile));
-	ReturnOnFalse(pcFile->WriteArrayTemplate(&mcFaces));
-	ReturnOnFalse(pcFile->WriteArrayTemplate(&mcUniqueTypes));
+	ReturnOnFalse(mcFaces.WriteArrayTemplate(pcFile));
+	ReturnOnFalse(mcUniqueTypes.WriteArrayTemplate(pcFile));
 	return TRUE;
 }
 

@@ -185,7 +185,7 @@ void CMeshLeaf::Kill(void)
 BOOL CMeshLeaf::Save(CFileWriter* pcFile)
 {
 	ReturnOnFalse(mcSphere.Save(pcFile));
-	ReturnOnFalse(pcFile->WriteArraySimple(&maiTriangles));
+	ReturnOnFalse(maiTriangles.WriteArraySimple(pcFile));
 	return TRUE;
 }
 
@@ -197,7 +197,7 @@ BOOL CMeshLeaf::Save(CFileWriter* pcFile)
 BOOL CMeshLeaf::Load(CFileReader* pcFile)
 {
 	ReturnOnFalse(mcSphere.Load(pcFile));
-	ReturnOnFalse(pcFile->ReadArraySimple(&maiTriangles));
+	ReturnOnFalse(maiTriangles.ReadArraySimple(pcFile));
 	return TRUE;
 }
 
@@ -241,7 +241,7 @@ BOOL CMeshLeaves::Save(CFileWriter* pcFile)
 	CMeshLeaf*	pcLeaf;
 
 	ReturnOnFalse(SaveMeshDetail(pcFile));
-	ReturnOnFalse(pcFile->WriteArrayTemplateHeader(&mcLeaves));
+	ReturnOnFalse(mcLeaves.WriteArrayTemplateHeader(pcFile));
 	for (i = 0; i < mcLeaves.NumElements(); i++)
 	{
 		pcLeaf = mcLeaves.Get(i);
@@ -261,7 +261,7 @@ BOOL CMeshLeaves::Load(CFileReader* pcFile)
 	CMeshLeaf*	pcLeaf;
 
 	ReturnOnFalse(LoadMeshDetail(pcFile));
-	ReturnOnFalse(pcFile->ReadArrayTemplateHeader(&mcLeaves));
+	ReturnOnFalse(mcLeaves.ReadArrayTemplateHeader(pcFile));
 	for (i = 0; i < mcLeaves.NumElements(); i++)
 	{
 		pcLeaf = mcLeaves.Get(i);

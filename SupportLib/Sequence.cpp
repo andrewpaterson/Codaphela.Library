@@ -122,7 +122,7 @@ CAnimKeyFrame* CSequence::Add(SQuaternion* psRotation, float fTime)
 BOOL CSequence::Load(CObjectDeserialiser* pcFile)
 {
 	ReturnOnFalse(pcFile->ReadInt(&miConnectionIndex));
-	ReturnOnFalse(pcFile->ReadArrayTemplate(&masKeyFrames));
+	ReturnOnFalse(masKeyFrames.ReadArrayTemplate(pcFile));
 	return TRUE;
 }
 
@@ -134,7 +134,7 @@ BOOL CSequence::Load(CObjectDeserialiser* pcFile)
 BOOL CSequence::Save(CObjectSerialiser* pcFile)
 {
 	ReturnOnFalse(pcFile->WriteInt(miConnectionIndex));
-	ReturnOnFalse(pcFile->WriteArrayTemplate(&masKeyFrames));
+	ReturnOnFalse(masKeyFrames.WriteArrayTemplate(pcFile));
 	return TRUE;
 }
 

@@ -73,8 +73,8 @@ int CMeshUVLayer::AddFace(int iUV1, int iUV2, int iUV3)
 //////////////////////////////////////////////////////////////////////////
 BOOL CMeshUVLayer::Load(CFileReader* pcFile)
 {
-	ReturnOnFalse(pcFile->ReadArrayTemplate(&mcUVs));
-	ReturnOnFalse(pcFile->ReadArrayTemplate(&mcFaces));
+	ReturnOnFalse(mcUVs.ReadArrayTemplate(pcFile));
+	ReturnOnFalse(mcFaces.ReadArrayTemplate(pcFile));
 	return TRUE;
 }
 
@@ -85,8 +85,8 @@ BOOL CMeshUVLayer::Load(CFileReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 BOOL CMeshUVLayer::Save(CFileWriter* pcFile)
 {
-	ReturnOnFalse(pcFile->WriteArrayTemplate(&mcUVs));
-	ReturnOnFalse(pcFile->WriteArrayTemplate(&mcFaces));
+	ReturnOnFalse(mcUVs.WriteArrayTemplate(pcFile));
+	ReturnOnFalse(mcFaces.WriteArrayTemplate(pcFile));
 	return TRUE;
 }
 

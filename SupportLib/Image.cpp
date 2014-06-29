@@ -29,7 +29,6 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "BaseLib/PointerFunctions.h"
 #include "BaseLib/NaiveFile.h"
 #include "CoreLib/Operators.h"
-#include "StandardLib/ClassStorage.h"
 #include "StandardLib/Unknowns.h"
 #include "StandardLib/ObjectSerialiser.h"
 #include "StandardLib/ObjectDeserialiser.h"

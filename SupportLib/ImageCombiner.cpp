@@ -22,6 +22,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/Logger.h"
+#include "CoreLib/TypeNames.h"
 #include "StandardLib/Objects.h"
 #include "ImageCombiner.h"
 #include "ImageReader.h"
@@ -263,8 +264,8 @@ void CImageCombiner::UpdateChannels(CArrayChannel* pasSource)
 		if (iIndex != -1)
 		{
 			psDest = masChannels.Get(iIndex);
-			iSourceSize = gcClassStorage.GetSize(psSource->eType);
-			iDestSize = gcClassStorage.GetSize(psDest->eType);
+			iSourceSize = gcTypeNames.GetSize(psSource->eType);
+			iDestSize = gcTypeNames.GetSize(psDest->eType);
 
 			if (iSourceSize > iDestSize)
 			{

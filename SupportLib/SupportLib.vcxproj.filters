@@ -633,6 +633,9 @@
     <ClInclude Include="Triangle.h">
       <Filter>Source\Shapes</Filter>
     </ClInclude>
+    <ClInclude Include="FakeTracker.h">
+      <Filter>Source\Scene</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CopyPaste_Windows.cpp">
@@ -1060,6 +1063,9 @@
     </ClCompile>
     <ClCompile Include="Triangle.cpp">
       <Filter>Source\Shapes</Filter>
+    </ClCompile>
+    <ClCompile Include="FakeTracker.cpp">
+      <Filter>Source\Scene</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

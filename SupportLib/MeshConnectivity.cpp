@@ -278,7 +278,7 @@ BOOL CMeshConnectivity::Load(CFileReader* pcFile)
 
 	ReturnOnFalse(LoadMeshDetail(pcFile));
 
-	if (pcFile->ReadArrayTemplateHeader(&mcCorners) != TRITRUE)
+	if (mcCorners.ReadArrayTemplateHeader(pcFile))
 	{
 		gcUserError.Set("Could not read corners.");
 		return FALSE;
@@ -296,7 +296,7 @@ BOOL CMeshConnectivity::Load(CFileReader* pcFile)
 	}
 
 	//Read in the edges array.
-	if (pcFile->ReadArrayTemplate(&mcEdges) != TRITRUE)
+	if (mcEdges.ReadArrayTemplate(pcFile))
 	{
 		gcUserError.Set("Could not read edges array.");
 		return FALSE;
@@ -304,7 +304,7 @@ BOOL CMeshConnectivity::Load(CFileReader* pcFile)
 
 
 	//Read in the faces array.  
-	if (pcFile->ReadArrayTemplate(&mcFaces) != TRITRUE)
+	if (mcFaces.ReadArrayTemplate(pcFile))
 	{
 		gcUserError.Set("Could not read faces array.");
 		return FALSE;
@@ -325,7 +325,7 @@ BOOL CMeshConnectivity::Save(CFileWriter* pcFile)
 
 	ReturnOnFalse(SaveMeshDetail(pcFile));
 
-	ReturnOnFalse(pcFile->WriteArrayTemplateHeader(&mcCorners));
+	ReturnOnFalse(mcCorners.WriteArrayTemplateHeader(pcFile));
 
 	for (i = 0; i < mcCorners.NumElements(); i++)
 	{
@@ -337,8 +337,8 @@ BOOL CMeshConnectivity::Save(CFileWriter* pcFile)
 		}
 	}
 
-	ReturnOnFalse(pcFile->WriteArrayTemplate(&mcEdges));
-	ReturnOnFalse(pcFile->WriteArrayTemplate(&mcFaces));
+	ReturnOnFalse(mcEdges.WriteArrayTemplate(pcFile));
+	ReturnOnFalse(mcFaces.WriteArrayTemplate(pcFile));
 	return TRUE;
 }
 

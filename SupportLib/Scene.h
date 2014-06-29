@@ -30,12 +30,22 @@ along with Codaphela SceneLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Sequence.h"
 #include "Instance.h"
 #include "Material.h"
+#include "FakeTracker.h"
 
 
 class CScene
 {
 public:
-	int						iUniqueID;
+	int					iUniqueID;
+
+	CFakeTracker			mcConnectionTracker;
+	CFakeTracker			mcMeshTracker;
+	CFakeTracker			mcCameraTracker;
+	CFakeTracker			mcLightTracker;
+	CFakeTracker			mcSequenceTracker;
+	CFakeTracker			mcImageTracker;
+	CFakeTracker			mcMaterialTracker;
+	CFakeTracker			mcInstanceTracker;
 
 	void Init(void);
 	BOOL Load(CFileReader* pcChunkFile);

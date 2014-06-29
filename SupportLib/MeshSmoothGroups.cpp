@@ -57,7 +57,7 @@ void CMeshSmoothGroups::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CMeshSmoothGroups::Load(CFileReader* pcFile)
 {
-	ReturnOnFalse(pcFile->ReadArrayInt(&mcSmoothingGroups));
+	ReturnOnFalse(mcSmoothingGroups.ReadArrayInt(pcFile));
 	return TRUE;
 }
 
@@ -68,7 +68,7 @@ BOOL CMeshSmoothGroups::Load(CFileReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 BOOL CMeshSmoothGroups::Save(CFileWriter* pcFile)
 {
-	return pcFile->WriteArrayInt(&mcSmoothingGroups);
+	return mcSmoothingGroups.WriteArrayInt(pcFile);
 }
 
 

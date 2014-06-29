@@ -63,7 +63,7 @@ void CMeshEdgeVisibility::ReInit(int iFaceChunkSize)
 //////////////////////////////////////////////////////////////////////////
 BOOL CMeshEdgeVisibility::Load(CFileReader* pcFile)
 {
-	ReturnOnFalse(pcFile->ReadArrayTemplate(&mcEdges));
+	ReturnOnFalse(mcEdges.ReadArrayTemplate(pcFile));
 	return TRUE;
 }
 
@@ -74,7 +74,7 @@ BOOL CMeshEdgeVisibility::Load(CFileReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 BOOL CMeshEdgeVisibility::Save(CFileWriter* pcFile)
 {
-	return pcFile->WriteArrayTemplate(&mcEdges);
+	return mcEdges.WriteArrayTemplate(pcFile);
 }
 
 
