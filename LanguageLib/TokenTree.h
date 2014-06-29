@@ -45,10 +45,10 @@ class CTokenTree
 {
 public:
 	CTreeBlock			mcTree;
-	CEnumeratorVoid			mcNodeNames;
-	CEnumeratorVoid			mcKeywords;
-	CEnumeratorVoid			mcIdentifiers;
-	CTokenArray*			mpcCurrentNode;
+	CEnumeratorVoid		mcNodeNames;
+	CEnumeratorVoid		mcKeywords;
+	CEnumeratorVoid		mcIdentifiers;
+	CTokenArray*		mpcCurrentNode;
 
 	void Init(void);
 	void Kill(void);
