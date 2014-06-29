@@ -309,18 +309,6 @@
     <ClInclude Include="SingleChannelAccessor.h">
       <Filter>Source\Channels\Accessor\Single</Filter>
     </ClInclude>
-    <ClInclude Include="AbstractClass.h">
-      <Filter>Source\Class</Filter>
-    </ClInclude>
-    <ClInclude Include="ClassStorage.h">
-      <Filter>Source\Class</Filter>
-    </ClInclude>
-    <ClInclude Include="ConcreteClass.h">
-      <Filter>Source\Class</Filter>
-    </ClInclude>
-    <ClInclude Include="PreClass.h">
-      <Filter>Source\Class</Filter>
-    </ClInclude>
     <ClInclude Include="TrackerTemplate.h">
       <Filter>Source</Filter>
     </ClInclude>
@@ -652,18 +640,6 @@
     </ClCompile>
     <ClCompile Include="SingleChannelAccessor.cpp">
       <Filter>Source\Channels\Accessor\Single</Filter>
-    </ClCompile>
-    <ClCompile Include="AbstractClass.cpp">
-      <Filter>Source\Class</Filter>
-    </ClCompile>
-    <ClCompile Include="ClassStorage.cpp">
-      <Filter>Source\Class</Filter>
-    </ClCompile>
-    <ClCompile Include="ConcreteClass.cpp">
-      <Filter>Source\Class</Filter>
-    </ClCompile>
-    <ClCompile Include="PreClass.cpp">
-      <Filter>Source\Class</Filter>
     </ClCompile>
     <ClCompile Include="StandardHeader.cpp">
       <Filter>Source</Filter>

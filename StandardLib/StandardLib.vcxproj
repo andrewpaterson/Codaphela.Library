@@ -197,10 +197,6 @@
     <ClInclude Include="ChannelsAccessorWorstCase.h" />
     <ClInclude Include="ChannelsAccessorCreator.h" />
     <ClInclude Include="SingleChannelAccessor.h" />
-    <ClInclude Include="AbstractClass.h" />
-    <ClInclude Include="ClassStorage.h" />
-    <ClInclude Include="ConcreteClass.h" />
-    <ClInclude Include="PreClass.h" />
     <ClInclude Include="StandardHeader.h" />
     <ClInclude Include="TrackerTemplate.h" />
   </ItemGroup>
@@ -308,10 +304,6 @@
     <ClCompile Include="ChannelsAccessorWorstCase.cpp" />
     <ClCompile Include="ChannelsAccessorCreator.cpp" />
     <ClCompile Include="SingleChannelAccessor.cpp" />
-    <ClCompile Include="AbstractClass.cpp" />
-    <ClCompile Include="ClassStorage.cpp" />
-    <ClCompile Include="ConcreteClass.cpp" />
-    <ClCompile Include="PreClass.cpp" />
     <ClCompile Include="StandardHeader.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
