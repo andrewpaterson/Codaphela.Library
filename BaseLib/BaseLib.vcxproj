@@ -129,7 +129,6 @@
     <ClInclude Include="Newline.h" />
     <ClInclude Include="StringHelper.h" />
     <ClInclude Include="AdditionalTypes.h" />
-    <ClInclude Include="MapIntArraySimpleInt.h" />
     <ClInclude Include="MapIntInt.h" />
     <ClInclude Include="MapIntTemplate.h" />
     <ClInclude Include="MapPtrPtr.h" />

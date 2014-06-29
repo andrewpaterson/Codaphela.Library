@@ -246,9 +246,6 @@
     <ClInclude Include="AdditionalTypes.h">
       <Filter>Source\Data\Additional</Filter>
     </ClInclude>
-    <ClInclude Include="MapIntArraySimpleInt.h">
-      <Filter>Source\Data\Map</Filter>
-    </ClInclude>
     <ClInclude Include="MapIntInt.h">
       <Filter>Source\Data\Map</Filter>
     </ClInclude>
