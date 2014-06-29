@@ -25,11 +25,14 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "BaseLib/PointerFunctions.h"
 
 
+CTypeNames gcTypeNames;
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTypeNames::AddType(EPrimitiveTypes eType, char* szPrettyName, char* szCppName, char* szPrimitiveName)
+void CTypeNames::AddType(EPrimitiveTypes eType, int iSize, char* szPrettyName, char* szCppName, char* szPrimitiveName)
 {
 	STypeName*	psTypeName;
 	int			iPrettyNameLen;
@@ -40,6 +43,17 @@ void CTypeNames::AddType(EPrimitiveTypes eType, char* szPrettyName, char* szCppN
 	psTypeName = masTypeNames.GrowToAtLeastNumElements(((int)eType)+1, TRUE, 0);
 
 	psTypeName->eType = eType;
+	if (iSize & SIZE_IN_BITS)
+	{
+		psTypeName->iBitSize = iSize & ~SIZE_IN_BITS;
+		psTypeName->iByteSize = 0;
+	}
+	else
+	{
+		psTypeName->iByteSize = iSize;
+		psTypeName->iBitSize = iSize * 8;
+	}
+
 	iPrettyNameLen = (int)strlen(szPrettyName) + 1;
 	iCppNameLen = (int)strlen(szCppName) + 1;
 	iPrimitiveNameLen = (int)strlen(szPrimitiveName) + 1;
@@ -62,34 +76,31 @@ void CTypeNames::AddType(EPrimitiveTypes eType, char* szPrettyName, char* szCppN
 void CTypeNames::Init(void)
 {
 	masTypeNames.Init(30);
-	AddType(PT_Undefined, "Undefined", "", "PT_Undefined");
-	AddType(PT_int,"Int", "int", "PT_int");
-	AddType(PT_short, "Short", "short", "PT_short");
-	AddType(PT_VoidPointer, "Pointer", "void*",	"PT_VoidPointer");
-	AddType(PT_char, "Char",	"char",	"PT_char");
-	AddType(PT_float, "Float", "float", "PT_float");
-	AddType(PT_double, "Double", "double", "PT_double");
-	AddType(PT_uint, "UInt", "unsigned int", "PT_uint");
-	AddType(PT_ushort,"UShort", "unsigned short", "PT_ushort");
-	AddType(PT_uchar, "UChar", "unsigned char", "PT_uchar");
-	AddType(PT_long, "Long", "long long int", "PT_long");
-	AddType(PT_ulong, "ULong", "unsigned long long int", "PT_ulong");
-	AddType(PT_float2, "Float2", "SFloat2", "PT_float2");
-	AddType(PT_float3, "Float3", "SFloat3", "PT_float3");
-	AddType(PT_float4, "Float4", "SFloat4", "PT_float4");
-	AddType(PT_int2, "Int2", "SInt2", "PT_int2");
-	AddType(PT_int3, "Int3", "SInt3", "PT_int3");
-	AddType(PT_int4, "Int4", "SInt4", "PT_int4");
-	AddType(PT_bool, "Bool", "BOOL", "PT_bool");
-	AddType(PT_void, "Void", "void", "PT_void");
-	AddType(PT_String, "String", "CChars", "PT_String");
-	AddType(PT_Number, "Number", "CNumber", "PT_Number");
-	AddType(PT_Date, "Date", "CDate", "PT_Date");
-	AddType(PT_bit, "Bit", "", "PT_bit");
-	AddType(PT_crumb, "Crumb", "", "PT_crumb");
-	AddType(PT_nybble, "Nybble", "", "PT_nybble");
-	AddType(PT_nickle, "Nickle", "", "PT_nickle");
-	AddType(PT_sixbits, "Sixbits", "", "PT_sixbits");
+	AddType(PT_Undefined,	0,					"Undefined",	"",					"PT_Undefined");
+	AddType(PT_int,			INT_BYTE_SIZE,		"Int",			"int",				"PT_int");
+	AddType(PT_short,		SHORT_BYTE_SIZE,	"Short",		"short",			"PT_short");
+	AddType(PT_VoidPointer, sizeof(void*),		"Pointer",		"void*",			"PT_VoidPointer");
+	AddType(PT_char,		CHAR_BYTE_SIZE,		"Char",			"char",				"PT_char");
+	AddType(PT_float,		FLOAT_BYTE_SIZE,	 "Float",		"float",			"PT_float");
+	AddType(PT_double,		DOUBLE_BYTE_SIZE,	"Double",		"double",			"PT_double");
+	AddType(PT_uint,		INT_BYTE_SIZE,		"UInt",			"unsigned int",		"PT_uint");
+	AddType(PT_ushort,		SHORT_BYTE_SIZE,	"UShort",		"unsigned short",	"PT_ushort");
+	AddType(PT_uchar,		CHAR_BYTE_SIZE,		"UChar",		"unsigned char",	"PT_uchar");
+	AddType(PT_long,		LONG_BYTE_SIZE,		"Long",			"long long int",	"PT_long");
+	AddType(PT_ulong,		LONG_BYTE_SIZE,		"ULong",		"unsigned long long int", "PT_ulong");
+	AddType(PT_float2,		FLOAT2_BYTE_SIZE,	"Float2",		"SFloat2",			"PT_float2");
+	AddType(PT_float3,		FLOAT3_BYTE_SIZE,	"Float3",		"SFloat3",			"PT_float3");
+	AddType(PT_float4,		FLOAT4_BYTE_SIZE,	"Float4",		"SFloat4",			"PT_float4");
+	AddType(PT_int2,		INT2_BYTE_SIZE,		"Int2",			"SInt2",			"PT_int2");
+	AddType(PT_int3,		INT3_BYTE_SIZE,		"Int3",			"SInt3",			"PT_int3");
+	AddType(PT_int4,		INT4_BYTE_SIZE,		"Int4",			"SInt4",			"PT_int4");
+	AddType(PT_bool,		BOOL_BYTE_SIZE,		"Bool",			"BOOL",				"PT_bool");
+	AddType(PT_void,		VOID_BYTE_SIZE,		"Void",			"void",				"PT_void");
+	AddType(PT_bit,			BIT_SIZE,			"Bit",			"",					"PT_bit");
+	AddType(PT_crumb,		CRUMB_SIZE,			"Crumb",		"",					"PT_crumb");
+	AddType(PT_nybble,		NYBBLE_SIZE,		"Nybble",		"",					"PT_nybble");
+	AddType(PT_nickle,		NICKLE_SIZE,		"Nickle",		"",					"PT_nickle");
+	AddType(PT_sixbits,		SIXBITS_SIZE,		"Sixbits",		"",					"PT_sixbits");
 
 	mmsziPrettyNames.Init(30, TRUE);
 	mmsziPrettyNames.Put("Int", PT_int);
@@ -111,9 +122,6 @@ void CTypeNames::Init(void)
 	mmsziPrettyNames.Put("Int2", PT_int2);
 	mmsziPrettyNames.Put("Int3", PT_int3);
 	mmsziPrettyNames.Put("Int4", PT_int4);
-	mmsziPrettyNames.Put("String", PT_String);
-	mmsziPrettyNames.Put("Number", PT_Number);
-	mmsziPrettyNames.Put("Date", PT_Date);
 	mmsziPrettyNames.Put("Bit", PT_bit);
 	mmsziPrettyNames.Put("Crumb", PT_crumb);
 	mmsziPrettyNames.Put("Nybble", PT_nybble);
@@ -140,9 +148,6 @@ void CTypeNames::Init(void)
 	mmsziCppNames.Put("SInt2", PT_int2);
 	mmsziCppNames.Put("SInt3", PT_int3);
 	mmsziCppNames.Put("SInt4", PT_int4);
-	mmsziCppNames.Put("CChars", PT_String);
-	mmsziCppNames.Put("CNumber", PT_Number);
-	mmsziCppNames.Put("CDate", PT_Date);
 }
 
 
@@ -259,5 +264,67 @@ EPrimitiveTypes CTypeNames::GetTypeFromCPPName(char* szCppName)
 		return (EPrimitiveTypes)(*piType);
 	}
 	return PT_Undefined;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CTypeNames::GetByteSize(EPrimitiveTypes eType)
+{
+	STypeName*	psTypeName;
+
+	psTypeName = masTypeNames.SafeGet((int)eType);
+	if (psTypeName)
+	{
+		return psTypeName->iByteSize;
+	}
+	else
+	{
+		return NULL;
+	}
+
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CTypeNames::GetBitSize(EPrimitiveTypes eType)
+{
+	STypeName*	psTypeName;
+
+	psTypeName = masTypeNames.SafeGet((int)eType);
+	if (psTypeName)
+	{
+		return psTypeName->iBitSize;
+	}
+	else
+	{
+		return NULL;
+	}
+
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void TypesInit(void)
+{
+	gcTypeNames.Init();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void TypesKill(void)
+{
+	gcTypeNames.Kill();
 }
 

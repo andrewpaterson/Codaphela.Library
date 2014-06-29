@@ -28,6 +28,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 struct STypeName
 {
 	EPrimitiveTypes		eType;
+	int					iByteSize;
+	int					iBitSize;
 	char*				szPrettyName;
 	char*				szCppName;
 	char*				szPrimitiveName;
@@ -40,13 +42,11 @@ typedef CArrayTemplate<STypeName> CArrayTypeNames;
 class CTypeNames
 {
 private:
-	void AddType(EPrimitiveTypes eType, char* szPrettyName, char* szCppName, char* szPrimitiveName);
-
-public:
 	CArrayTypeNames		masTypeNames;
 	CMapStringInt		mmsziPrettyNames;
 	CMapStringInt		mmsziCppNames;
 
+public:
 	void 				Init(void);
 	void 				Kill(void);
 
@@ -55,7 +55,19 @@ public:
 	char* 				GetPrimitiveName(EPrimitiveTypes eType);
 	EPrimitiveTypes		GetTypeFromPrettyName(char* szPrettyName);
 	EPrimitiveTypes		GetTypeFromCPPName(char* szPrettyName);
+	int					GetByteSize(EPrimitiveTypes eType);
+	int					GetBitSize(EPrimitiveTypes eType);
+
+private:
+	void				AddType(EPrimitiveTypes eType, int iSize, char* szPrettyName, char* szCppName, char* szPrimitiveName);
 };
+
+
+extern CTypeNames gcTypeNames;
+
+
+void TypesInit(void);
+void TypesKill(void);
 
 
 #endif // __TYPE_NAMES_H__

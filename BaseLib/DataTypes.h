@@ -64,6 +64,12 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define BOOL_BYTE_SIZE		4
 #define VOID_BYTE_SIZE		0
 
+#define BIT_SIZE			(1 | SIZE_IN_BITS)
+#define CRUMB_SIZE			(2 | SIZE_IN_BITS)
+#define NYBBLE_SIZE			(4 | SIZE_IN_BITS)
+#define NICKLE_SIZE			(5 | SIZE_IN_BITS)
+#define SIXBITS_SIZE		(6 | SIZE_IN_BITS)
+
 
 class CFileReader;
 class CFileWriter;
@@ -74,7 +80,7 @@ enum EPrimitiveTypes
 {
 	PT_Undefined,
 
-	//Standard primitives.
+	//Standard primitives (size in bits).
 	PT_int,  	//32
 	PT_short, 	//16
 	PT_char,	//8
@@ -99,35 +105,24 @@ enum EPrimitiveTypes
 	PT_Number,	//CNumber
 	PT_Date,  //CDate
 
-	//Special primitives.  Cannot be used in structs.
-	PRIMTIVE_OPERATOR_END,  //Date+1
-	PT_bit = PRIMTIVE_OPERATOR_END,		//1
+	//Special primitives.
+	PRIMTIVE_OPERATOR_END,
+	PT_bit,
 	PT_crumb,	//2
 	PT_nybble,	//4
 	PT_nickle,	//5
 	PT_sixbits, //6
-
-	//The WTF primitives...  I think these should be removed.
 	PRIMTIVE_TYPE_END,
-	PT_Block = PRIMTIVE_TYPE_END,  //A block of memory (A fixed length array)
-	PT_Array,  //ArrayTemplate...
-	PT_List,  //LinkListTemplate...
-	PT_Tree,  //TreeTemplate...
-	PT_Enumerator,  //EnumeratorTemplate...
-	PT_Map,  //MapTemplate...
 
 	//Pointers.
 	PT_VoidPointer,  //An arbitrary pointer.
-	PT_TypedPointer,  //A pointer and a type ID.
-	PT_SmartPointer,  //A pointer to a smart instance.
-	PT_CharPointer,  //Helper for C++
 
 	NUM_PRIMITIVE_TYPES,
 	STRUCT_TYPES = 0x40,  //Any type with an ID >= 0x40 is a struct type.
 };
 
 
-#define BIT_SIZE		0x80000000 //If GetSize returns a size with this flag set then the size is in bits, not bytes.
+#define SIZE_IN_BITS		0x80000000 //If GetSize returns a size with this flag set then the size is in bits, not bytes.
 
 
 class SInt2
