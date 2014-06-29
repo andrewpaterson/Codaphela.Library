@@ -75,7 +75,7 @@ class CPosition : public CUnknown
 {
 BASE_FUNCTIONS(CPosition);
 protected:
-	STypedPointer	msType;
+	SIntAndPointer	msType;
 
 public:
 	void 		Init(void);

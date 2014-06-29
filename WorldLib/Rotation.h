@@ -53,7 +53,7 @@ class CRotation : public CUnknown
 {
 BASE_FUNCTIONS(CRotation);
 protected:
-	STypedPointer	msType;
+	SIntAndPointer	msType;
 
 public:
 	void 			Init(void);

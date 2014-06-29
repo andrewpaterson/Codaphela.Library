@@ -45,7 +45,7 @@ public:
 	void	SetNext(int	iTokenIndex, int iBlockIndex);
 	void*	Allocate(int iSize);
 	BOOL	Equals(CPPToken* pcOther);
-	void	Dump(CArrayTypedPointer* papc);
+	void	Dump(CArrayIntAndPointer* papc);
 	void	DumpTokens(void);
 };
 

@@ -63,14 +63,14 @@ protected:
 	int						miNumPositions;
 	char					s[512];
 	CMesh*					mpcMesh;
-	CArrayTypedPointer*			mpcConnectionsAndIndices;
+	CArrayIntAndPointer*			mpcConnectionsAndIndices;
 
 	CArrayInt				maiMatrixIndices;
 
 public:
 	void				Init(CSceneConverter* pcSceneConverter);
 	void 				Kill(void);
-	BOOL				Convert(CGraphicsObject** pcGraphicsObject, CMeshObject** ppcMeshObject, CMesh* pcMesh, CArrayTypedPointer* pcConnectionAndIndex);
+	BOOL				Convert(CGraphicsObject** pcGraphicsObject, CMeshObject** ppcMeshObject, CMesh* pcMesh, CArrayIntAndPointer* pcConnectionAndIndex);
 	SD3DVertexType*		GetVertexFormatForFaceType(SMeshFaceType sFaceType);
 	void				CollectVertexBuffersByFormat(CArrayVertexBufferArrayFormat* pcArray);
 	BOOL				ConvertMesh(void);

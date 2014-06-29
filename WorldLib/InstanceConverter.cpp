@@ -88,7 +88,7 @@ BOOL CInstanceConverter::Convert(CInstance* pcInstance)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CInstanceConverter::ConvertConnectionsAndIndices(CArrayTypedPointer* pcConnectionAndIndex, CArraySimpleInt* pcConnectionIndices)
+void CInstanceConverter::ConvertConnectionsAndIndices(CArrayIntAndPointer* pcConnectionAndIndex, CArraySimpleInt* pcConnectionIndices)
 {
 	int				i;
 	int				iConnectionIndex;
@@ -117,7 +117,7 @@ BOOL CInstanceConverter::ConvertMeshAndLinks(CGraphicsInstance** ppcGraphicsInst
 	CMesh*					pcMesh;
 	CGraphicsInstance*		pcGraphicsInstance;
 	CMeshInstance*			pcMeshInstance;
-	CArrayTypedPointer			cConnectionAndIndex;
+	CArrayIntAndPointer			cConnectionAndIndex;
 	
 	*ppcGraphicsInstance = NULL;
 	*ppcMeshInstance = NULL;
@@ -153,7 +153,7 @@ BOOL CInstanceConverter::ConvertCamera(CCameraInstance** ppcCameraInstance, int 
 {
 	CCamera*			pcCamera;
 	CCameraInstance*	pcCameraInstance;
-	CArrayTypedPointer		cConnectionAndIndex;
+	CArrayIntAndPointer		cConnectionAndIndex;
 	CConnection*		pcConnection;
 	int					iConnectionIndex;
 	SFloat4x4*			psWorldMatrix;
@@ -193,7 +193,7 @@ BOOL CInstanceConverter::ConvertLight(CLightInstance** ppcLightInstance, int iLi
 {
 	CLight*				pcLight;
 	CLightInstance*		pcLightInstance;
-	CArrayTypedPointer		cConnectionAndIndex;
+	CArrayIntAndPointer		cConnectionAndIndex;
 	CConnection*		pcConnection;
 	int					iConnectionIndex;
 	SFloat4x4*			psWorldMatrix;
@@ -247,7 +247,7 @@ BOOL CInstanceConverter::ConvertLight(CLightInstance** ppcLightInstance, int iLi
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CInstanceConverter::ConvertLinkInstance(CMeshInstance* pcMeshInstance, CMeshObject* pcMeshObject, CGraphicsInstance* pcGraphicsInstance, CArrayTypedPointer* pcConnectionsAndIndices)
+BOOL CInstanceConverter::ConvertLinkInstance(CMeshInstance* pcMeshInstance, CMeshObject* pcMeshObject, CGraphicsInstance* pcGraphicsInstance, CArrayIntAndPointer* pcConnectionsAndIndices)
 {
 	int					i;
 	CConnection*		pcConnection;

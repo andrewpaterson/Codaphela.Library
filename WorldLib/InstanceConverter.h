@@ -47,9 +47,9 @@ public:
 	BOOL ConvertMeshAndLinks(CGraphicsInstance** ppcGraphicsInstance, CMeshInstance** ppcMeshInstance, int iMeshIndex, CArraySimpleInt* pcConnectionIndices);
 	BOOL ConvertCamera(CCameraInstance** ppcCameraInstance, int iCameraIndex, CArraySimpleInt* pcConnectionIndices);
 	BOOL ConvertLight(CLightInstance** ppcLightInstance, int iLightIndex, CArraySimpleInt* pcConnectionIndices);
-	BOOL ConvertLinkInstance(CMeshInstance* pcMeshInstance, CMeshObject* pcMeshObject, CGraphicsInstance* pcGraphicsInstance, CArrayTypedPointer* pcConnectionsAndIndices);
+	BOOL ConvertLinkInstance(CMeshInstance* pcMeshInstance, CMeshObject* pcMeshObject, CGraphicsInstance* pcGraphicsInstance, CArrayIntAndPointer* pcConnectionsAndIndices);
 	BOOL ConvertSequence(int iConnectionIndex, SMatrix* psMatrix);
-	void ConvertConnectionsAndIndices(CArrayTypedPointer* pcConnectionAndIndex, CArraySimpleInt* pcConnectionIndices);
+	void ConvertConnectionsAndIndices(CArrayIntAndPointer* pcConnectionAndIndex, CArraySimpleInt* pcConnectionIndices);
 };
 
 

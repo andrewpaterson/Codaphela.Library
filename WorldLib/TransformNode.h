@@ -53,7 +53,7 @@ class CTransformNode : public CUnknown
 {
 BASE_FUNCTIONS(CTransformNode);
 protected:
-	STypedPointer	msType;
+	SIntAndPointer	msType;
 
 public:
 	void 			Init(void);

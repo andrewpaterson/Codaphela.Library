@@ -38,7 +38,7 @@ public:
 	void 				Kill(void);
 
 	CInputChordDesc*	AddChordDesc(char* szActionName);
-	void				GetInputSourceDescs(CArrayTypedPointer* apcDest, CInputDeviceDesc* pcDeviceDesc);
+	void				GetInputSourceDescs(CArrayIntAndPointer* apcDest, CInputDeviceDesc* pcDeviceDesc);
 	void				CopyChordDescs(CInputChordDescs* pcSource, CInputDeviceCopyContext* pcContext);
 	CInputChordDesc*	StartChordDescsIteration(SSetIterator* psIter);
 	CInputChordDesc*	IterateChordDescs(SSetIterator* psIter);

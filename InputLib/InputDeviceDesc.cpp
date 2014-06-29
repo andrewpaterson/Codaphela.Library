@@ -238,7 +238,7 @@ CInputSourceDesc* CInputDeviceDesc::GetSource(char* szFriendlyName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CInputDeviceDesc::GetSources(CArrayTypedPointer* apcDest, CInputCategoryGeneric* pcGeneric)
+void CInputDeviceDesc::GetSources(CArrayIntAndPointer* apcDest, CInputCategoryGeneric* pcGeneric)
 {
 	SSetIterator		sIter;
 	CInputSourceDesc*	pcSourceDesc;
@@ -259,7 +259,7 @@ void CInputDeviceDesc::GetSources(CArrayTypedPointer* apcDest, CInputCategoryGen
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CInputDeviceDesc::GetSources(CArrayTypedPointer* apcDest)
+void CInputDeviceDesc::GetSources(CArrayIntAndPointer* apcDest)
 {
 	SSetIterator		sIter;
 	CInputSourceDesc*	pcSourceDesc;

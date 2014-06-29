@@ -27,7 +27,7 @@ class CComponent;
 class CComponentPointers
 {
 public:
-	CArrayTypedPointer	mcComponents;  //This should not be an CArrayTypedPointer.  It's fucking with the debugger.  Make it an CArrayTemplate<CComponent*> rather.
+	CArrayIntAndPointer	mcComponents;  //This should not be an CArrayIntAndPointer.  It's fucking with the debugger.  Make it an CArrayTemplate<CComponent*> rather.
 
 	void 		Init(void);
 	void		Kill(void);
