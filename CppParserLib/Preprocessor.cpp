@@ -49,7 +49,6 @@ void CPreprocessor::Init(CConfig* pcConfig, CMemoryStackExtended* pcStack)
 	miDefineReuse = 0;
 
 	mcConditionalStack.Init();
-	mcAnnotations.Init(128);
 	mpcCurrentFile = NULL;
 	mcHeadersStack.Init(8);
 
@@ -87,7 +86,6 @@ void CPreprocessor::Kill(void)
 	mcHeadersStack.Kill();
 	mcConditionalStack.Kill();
 	mcHeaderNames.Kill();
-	mcAnnotations.Kill();
 	mcDefines.Kill();
 }
 
@@ -1475,39 +1473,6 @@ void CPreprocessor::AddTokenToArgument(CPPTokenHolder* pcArgument, CPPToken* pcT
 {
 	pcToken = DuplicatePPToken(pcToken, mpcStack);
 	pcArgument->Add(&pcToken);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-BOOL CPreprocessor::ProcessAnnotation(CPreprocessorTokenParser* pcParser)
-{
-	return TRUE;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void CPreprocessor::ProcessAnnotation(CTextParser* pcLineParser, int iSourceLine)
-{
-	//CPreprocessorAnnotation*	pcPreprocessorAnnotation;
-	//char*			szStart;
-	//int				iLen;
-
-	//pcPreprocessorAnnotation = mcAnnotations.Add();
-	//pcPreprocessorAnnotation->Init();
-	//pcPreprocessorAnnotation->msSource.pcSourceFile = mpcCurrentFile;
-	//pcPreprocessorAnnotation->msSource.iLine = iSourceLine;
-	//pcPreprocessorAnnotation->msSource.iColumn = 0;
-	//pcPreprocessorAnnotation->miStartOfLine = mszPost.Length();
-	//szStart = pcLineParser->mszParserPos;
-	//pcLineParser->FindEndOfLine();
-	//iLen = (int)(pcLineParser->mszParserPos - szStart)+1;
-	//pcPreprocessorAnnotation->mszText.Append(szStart, iLen);
 }
 
 

@@ -27,7 +27,6 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "DefineMap.h"
 #include "ConditionalStack.h"
 #include "BaseLib/MapStringString.h"
-#include "PreprocessorAnnotation.h"
 #include "PreprocessorTokeniser.h"
 #include "PPDirective.h"
 #include "PPHolder.h"
@@ -48,7 +47,6 @@ class CPreprocessor
 public:
 	CConditionalStack				mcConditionalStack;
 	CCFile*							mpcCurrentFile;
-	CArrayPreprocessorAnnotation	mcAnnotations;
 	CASCIITree						mcDirectives;
 	CDefineMap						mcDefines;
 	CDefineArguments				mcArguments;
@@ -103,9 +101,7 @@ public:
 	void 				ProcessHashError(CPreprocessorTokenParser* pcParser);
 	BOOL 				ProcessHashPragma(CPreprocessorTokenParser* pcParser);
 	BOOL				ProcessNormalLine(CPreprocessorTokenParser* pcParser);
-	BOOL				ProcessAnnotation(CPreprocessorTokenParser* pcParser);
 
-	void				ProcessAnnotation(CTextParser* pcLineParser, int iSourceLine);
 	BOOL				Evaluate(char* szText);
 
 	BOOL				ProcessIdentifier(CPPTokenHolder* pcDest, CPPText* pcText, CPreprocessorTokenParser* pcParser, BOOL bAllowDefined, int iDepth);
