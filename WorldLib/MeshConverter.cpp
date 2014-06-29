@@ -99,7 +99,7 @@ BOOL CMeshConverter::Convert(CGraphicsObject** ppcGraphicsObject, CMeshObject** 
 	mpcGraphicsObject = NULL;
 	mpcMeshObject = NULL;
 
-	if (mpcSceneConverter->GetMapper()->GetMesh(pcMesh->GetID(), ppcGraphicsObject, ppcMeshObject))
+	if (mpcSceneConverter->GetMapper()->GetMesh(pcMesh->GetOI(), ppcGraphicsObject, ppcMeshObject))
 	{
 		return TRUE;
 	}
@@ -150,7 +150,7 @@ BOOL CMeshConverter::Convert(CGraphicsObject** ppcGraphicsObject, CMeshObject** 
 	//Optimise the vertex and index buffers in the graphics object according to current hardware.
 	OptimiseGraphicsObject();
 
-	mpcSceneConverter->GetMapper()->AddGraphicsObject(pcMesh->GetID(), mpcGraphicsObject, mpcMeshObject);
+	mpcSceneConverter->GetMapper()->AddGraphicsObject(pcMesh->GetOI(), mpcGraphicsObject, mpcMeshObject);
 
 	SafeAssign(ppcGraphicsObject, mpcGraphicsObject);
 	SafeAssign(ppcMeshObject, mpcMeshObject);
@@ -361,7 +361,7 @@ BOOL CMeshConverter::ConvertMaterials(void)
 		{
 			iMaterialIndex = mpcMesh->mcMaterials.mcMaterials.GetValue(i);
 
-			pcMaterial = mpcSceneConverter->GetScene()->mcMaterialTracker.GetWithID(iMaterialIndex);
+			pcMaterial = (CMaterial*)mpcSceneConverter->GetScene()->mcMaterialTracker.GetWithID(iMaterialIndex);
 			bResult = mpcSceneConverter->ConvertMaterialToGraphicsMaterial(&pcGraphicsMaterial, &pcGraphicsState, pcMaterial);
 			if (!bResult)
 			{
@@ -589,7 +589,7 @@ BOOL CMeshConverter::SetGraphicsPrimitive(int iPrimitive, int iMaterialIndex, in
 	if (iMaterialIndex != -1)
 	{
 		iMaterial = mpcMesh->mcMaterials.mcMaterials.GetValue(iMaterialIndex);
-		pcMaterial = mpcSceneConverter->GetScene()->mcMaterialTracker.Get(iMaterial);
+		pcMaterial = (CMaterial*)mpcSceneConverter->GetScene()->mcMaterialTracker.Get(iMaterial);
 		if ((pcMaterial->msProperties.meOpacity == MO_Translucent) || (pcMaterial->msProperties.meOpacity == MO_Transparent))
 		{
 			iFlags |= GRAPH_PRIM_FLAGS_TRANSLUCENT;

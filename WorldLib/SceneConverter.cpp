@@ -146,7 +146,7 @@ BOOL CSceneConverter::ConvertScene(void)
 	bResult = TRUE;
 	for (iInstance = 0; iInstance < mpcScene->mcInstanceTracker.Num(); iInstance++)
 	{
-		if (!ConvertInstanceToGraphicsInstance(mpcScene->mcInstanceTracker.Get(iInstance)))
+		if (!ConvertInstanceToGraphicsInstance((CInstance*)mpcScene->mcInstanceTracker.Get(iInstance)))
 		{
 			bResult = FALSE;
 		}
@@ -171,7 +171,7 @@ BOOL CSceneConverter::ConvertMeshes(void)
 	bResult = TRUE;
 	for (iMesh = 0; iMesh < mpcScene->mcMeshTracker.Num(); iMesh++)
 	{
-		pcMesh = mpcScene->mcMeshTracker.Get(iMesh);
+		pcMesh = (CMesh*)mpcScene->mcMeshTracker.Get(iMesh);
 		if (!ConvertMeshToGraphicsObject(&pcGraphicsObject, &pcMeshObject, pcMesh, &cConnectionAndIndex))
 		{
 			bResult = FALSE;

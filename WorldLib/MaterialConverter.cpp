@@ -67,7 +67,7 @@ BOOL CMaterialConverter::Convert(CGraphicsMaterial** ppcGraphicsMaterial, CGraph
 
 	if (pcMaterial)
 	{
-		if (mpcSceneConverter->GetMapper()->GetMaterial(pcMaterial->GetID(), ppcGraphicsMaterial, ppcGraphicsState))
+		if (mpcSceneConverter->GetMapper()->GetMaterial(pcMaterial->GetOI(), ppcGraphicsMaterial, ppcGraphicsState))
 		{
 			return TRUE;
 		}
@@ -149,7 +149,7 @@ BOOL CMaterialConverter::CompleteConversion(CGraphicsMaterial** ppcGraphicsMater
 	// **** Diffuse (and Opacity) ****
 	if (mpcMaterial->msDiffuse.iImageID != -1)
 	{
-		pcImage = mpcSceneConverter->GetScene()->mcImageTracker.GetWithID(mpcMaterial->msDiffuse.iImageID);
+		pcImage = (CImage*)mpcSceneConverter->GetScene()->mcImageTracker.GetWithID(mpcMaterial->msDiffuse.iImageID);
 		char* szName = pcImage->ClassName();
 		if (pcImage->HasChannels(IMAGE_DIFFUSE_BLUE, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_RED, IMAGE_OPACITY, CHANNEL_ZERO))
 		{
@@ -174,7 +174,7 @@ BOOL CMaterialConverter::CompleteConversion(CGraphicsMaterial** ppcGraphicsMater
 	// **** Specular ****
 	if (mpcMaterial->msSpecular.iImageID != -1)
 	{
-		pcImage = mpcSceneConverter->GetScene()->mcImageTracker.GetWithID(mpcMaterial->msSpecular.iImageID);
+		pcImage = (CImage*)mpcSceneConverter->GetScene()->mcImageTracker.GetWithID(mpcMaterial->msSpecular.iImageID);
 		if (pcImage->HasChannel(IMAGE_SPECULAR))
 		{
 			bResult &= mpcSceneConverter->ConvertTexture(&pcGraphicsTextureSpecular, D3DFMT_L8, pcImage, FALSE, pcImage->miWidth, pcImage->miHeight, PT_uchar,	IMAGE_SPECULAR, CHANNEL_ZERO);
@@ -184,7 +184,7 @@ BOOL CMaterialConverter::CompleteConversion(CGraphicsMaterial** ppcGraphicsMater
 	// **** Diffuse Level ****
 	if (mpcMaterial->msDiffuseLevel.iImageID != -1)
 	{
-		pcImage = mpcSceneConverter->GetScene()->mcImageTracker.GetWithID(mpcMaterial->msDiffuseLevel.iImageID);
+		pcImage = (CImage*)mpcSceneConverter->GetScene()->mcImageTracker.GetWithID(mpcMaterial->msDiffuseLevel.iImageID);
 		if (pcImage->HasChannel(IMAGE_DIFFUSE_GREY))
 		{
 			bResult &= mpcSceneConverter->ConvertTexture(&pcGraphicsTextureDiffuseLevel , D3DFMT_L8, pcImage, FALSE, pcImage->miWidth, pcImage->miHeight, PT_uchar,	IMAGE_DIFFUSE_GREY, CHANNEL_ZERO);
@@ -194,7 +194,7 @@ BOOL CMaterialConverter::CompleteConversion(CGraphicsMaterial** ppcGraphicsMater
 	// **** Illumination ****
 	if (mpcMaterial->msIllumination.iImageID != -1)
 	{
-		pcImage = mpcSceneConverter->GetScene()->mcImageTracker.GetWithID(mpcMaterial->msIllumination.iImageID);
+		pcImage = (CImage*)mpcSceneConverter->GetScene()->mcImageTracker.GetWithID(mpcMaterial->msIllumination.iImageID);
 		if (pcImage->HasChannels(IMAGE_ILLUMINATION_BLUE, IMAGE_ILLUMINATION_GREEN, IMAGE_ILLUMINATION_RED, CHANNEL_ZERO))
 		{
 			bResult &= mpcSceneConverter->ConvertTexture(&pcGraphicsTextureIllumination, D3DFMT_X8R8G8B8, pcImage, FALSE, pcImage->miWidth, pcImage->miHeight, PT_uchar,	IMAGE_ILLUMINATION_BLUE, IMAGE_ILLUMINATION_GREEN, IMAGE_ILLUMINATION_RED, CHANNEL(IP_Illumination, CT_Ignored), CHANNEL_ZERO);
@@ -208,7 +208,7 @@ BOOL CMaterialConverter::CompleteConversion(CGraphicsMaterial** ppcGraphicsMater
 	// **** Opacity ****
 	if (mpcMaterial->msOpacity.iImageID != -1)
 	{
-		pcImage = mpcSceneConverter->GetScene()->mcImageTracker.GetWithID(mpcMaterial->msOpacity.iImageID);
+		pcImage = (CImage*)mpcSceneConverter->GetScene()->mcImageTracker.GetWithID(mpcMaterial->msOpacity.iImageID);
 		if (pcImage->HasChannel(IMAGE_OPACITY))
 		{
 			eOpacity = UpdateOpacity(eOpacity, pcImage);
@@ -219,7 +219,7 @@ BOOL CMaterialConverter::CompleteConversion(CGraphicsMaterial** ppcGraphicsMater
 	// **** Normal Map ****
 	if (mpcMaterial->msBump.iImageID != -1)
 	{
-		pcImage = mpcSceneConverter->GetScene()->mcImageTracker.GetWithID(mpcMaterial->msBump.iImageID);
+		pcImage = (CImage*)mpcSceneConverter->GetScene()->mcImageTracker.GetWithID(mpcMaterial->msBump.iImageID);
 		if (pcImage->HasChannels(IMAGE_NORMAL_Z, IMAGE_NORMAL_Y, IMAGE_NORMAL_X, CHANNEL_ZERO))
 		{
 			bResult &= mpcSceneConverter->ConvertTexture(&pcGraphicsTextureNormal, D3DFMT_X8R8G8B8, pcImage, FALSE, pcImage->miWidth, pcImage->miHeight, PT_uchar,	IMAGE_NORMAL_Z, IMAGE_NORMAL_Y, IMAGE_NORMAL_X, CHANNEL(IP_Normal, CT_Ignored), CHANNEL_ZERO);
@@ -229,7 +229,7 @@ BOOL CMaterialConverter::CompleteConversion(CGraphicsMaterial** ppcGraphicsMater
 	// **** Detail Map ****
 	if (mpcMaterial->msDetail.iImageID != -1)
 	{
-		pcImage = mpcSceneConverter->GetScene()->mcImageTracker.GetWithID(mpcMaterial->msDetail.iImageID);
+		pcImage = (CImage*)mpcSceneConverter->GetScene()->mcImageTracker.GetWithID(mpcMaterial->msDetail.iImageID);
 		if (pcImage->HasChannels(IMAGE_DIFFUSE_BLUE, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_RED, CHANNEL_ZERO))
 		{
 			bResult &= mpcSceneConverter->ConvertTexture(&pcGraphicsTextureDetail, D3DFMT_X8R8G8B8, pcImage, FALSE, pcImage->miWidth, pcImage->miHeight, PT_uchar,	IMAGE_DIFFUSE_BLUE, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_RED, CHANNEL(IP_Diffuse, CT_Ignored), CHANNEL_ZERO);
@@ -243,7 +243,7 @@ BOOL CMaterialConverter::CompleteConversion(CGraphicsMaterial** ppcGraphicsMater
 	// **** Decal ****
 	if (mpcMaterial->msDecal.iImageID != -1)
 	{
-		pcImage = mpcSceneConverter->GetScene()->mcImageTracker.GetWithID(mpcMaterial->msDecal.iImageID);
+		pcImage = (CImage*)mpcSceneConverter->GetScene()->mcImageTracker.GetWithID(mpcMaterial->msDecal.iImageID);
 		if (pcImage->HasChannels(IMAGE_DIFFUSE_BLUE, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_RED, CHANNEL_ZERO))
 		{
 			bResult &= mpcSceneConverter->ConvertTexture(&pcGraphicsTextureDecal, D3DFMT_X8R8G8B8, pcImage, FALSE, pcImage->miWidth, pcImage->miHeight, PT_uchar,	IMAGE_DIFFUSE_BLUE, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_RED, CHANNEL(IP_Diffuse, CT_Ignored), CHANNEL_ZERO);
@@ -261,7 +261,7 @@ BOOL CMaterialConverter::CompleteConversion(CGraphicsMaterial** ppcGraphicsMater
 	// **** Reflection ****
 	if (mpcMaterial->msReflection.iImageID != -1)
 	{
-		pcImage = mpcSceneConverter->GetScene()->mcImageTracker.GetWithID(mpcMaterial->msReflection.iImageID);
+		pcImage = (CImage*)mpcSceneConverter->GetScene()->mcImageTracker.GetWithID(mpcMaterial->msReflection.iImageID);
 		if (pcImage->HasChannels(IMAGE_DIFFUSE_BLUE, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_RED, CHANNEL_ZERO))
 		{
 			bResult &= mpcSceneConverter->ConvertTexture(&pcGraphicsTextureReflection, D3DFMT_X8R8G8B8, pcImage, FALSE, pcImage->miWidth, pcImage->miHeight, PT_uchar,	IMAGE_DIFFUSE_BLUE, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_RED, CHANNEL(IP_Diffuse, CT_Ignored), CHANNEL_ZERO);
@@ -410,7 +410,7 @@ BOOL CMaterialConverter::CompleteConversion(CGraphicsMaterial** ppcGraphicsMater
 	SafeAssign(ppcGraphicsState, pcGraphicsState);
 
 	//Setup the scene
-	mpcSceneConverter->GetMapper()->AddGraphicsMaterial(mpcMaterial->GetID(), pcGraphicsMaterial, pcGraphicsState);
+	mpcSceneConverter->GetMapper()->AddGraphicsMaterial(mpcMaterial->GetOI(), pcGraphicsMaterial, pcGraphicsState);
 	return TRUE;
 }
 

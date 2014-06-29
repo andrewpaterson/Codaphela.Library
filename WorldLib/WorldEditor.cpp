@@ -34,8 +34,6 @@ void CWorldEditor::Init(CSceneConverter* pcSceneConverter)
 	macMeshAdjusters.Init();
 	SetupSelectionColours();
 	SetupMaterials();
-
-	miMeshID = gcClassStorage.GetID("CMesh");
 }
 
 
@@ -143,14 +141,14 @@ BOOL CWorldEditor::AddScene(void)
 	iNumSceneInstances = mpcSceneConverter->GetScene()->mcInstanceTracker.Num();
 	for (i = 0; i < iNumSceneInstances; i++)
 	{
-		pcInstance = mpcSceneConverter->GetScene()->mcInstanceTracker.Get(i);
+		pcInstance = (CInstance*)mpcSceneConverter->GetScene()->mcInstanceTracker.Get(i);
 		if (pcInstance->meType == TT_Mesh)
 		{
 			iMeshIndex = pcInstance->miObjectIndex;
-			pcInstanceInstance = mpcSceneConverter->GetMapper()->macInstances.SafeGet(pcInstance->GetID());
+			pcInstanceInstance = mpcSceneConverter->GetMapper()->macInstances.SafeGet((int)pcInstance->GetOI());
 			if (pcInstanceInstance)
 			{
-				pcMesh = mpcSceneConverter->GetScene()->mcMeshTracker.GetWithID(iMeshIndex);
+				pcMesh = (CMesh*)mpcSceneConverter->GetScene()->mcMeshTracker.GetWithID(iMeshIndex);
 //				AddMeshAdjuster(pcMesh, pcInstanceInstance->pcGraphicsInstance, pcInstanceInstance->pcMeshInstance);
 			}
 		}

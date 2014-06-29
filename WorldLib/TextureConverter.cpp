@@ -71,7 +71,7 @@ BOOL CTextureConverter::Convert(CGraphicsTexture** ppcGraphicsTexture, D3DFORMAT
 	BOOL				bResult;
 
 	cCopier.Init(pImage, pExport);
-	pExport->SetID(pImage->GetID());
+	pExport->SetID(pImage->GetOI());
 	bResult = Convert(ppcGraphicsTexture, d3dFormat, &cCopier, bDiscard);
 	cCopier.Kill();
 	return bResult;
@@ -96,7 +96,7 @@ BOOL CTextureConverter::Convert(CGraphicsTexture** ppcGraphicsTexture, D3DFORMAT
 		return FALSE;
 	}
 
-	if ((mpcSceneConverter) && (mpcSceneConverter->GetMapper()->GetImage(pcCopier->mpcSource->GetID(), eFormat, &pcGraphicsTexture)))
+	if ((mpcSceneConverter) && (mpcSceneConverter->GetMapper()->GetImage(pcCopier->mpcSource->GetOI(), eFormat, &pcGraphicsTexture)))
 	{
 		return TRUE;
 	}
@@ -117,9 +117,9 @@ BOOL CTextureConverter::Convert(CGraphicsTexture** ppcGraphicsTexture, D3DFORMAT
 		pcCopier->mpcDest->SetData(paiPixels);
 		pcCopier->Copy(0, 0);
 
-		if ((mpcSceneConverter) && (pcCopier->mpcDest->GetID() != -1))
+		if ((mpcSceneConverter) && (pcCopier->mpcDest->GetOI() != -1))
 		{
-			mpcSceneConverter->GetMapper()->AddImage(pcCopier->mpcDest->GetID(), eFormat, pcGraphicsTexture);
+			mpcSceneConverter->GetMapper()->AddImage(pcCopier->mpcDest->GetOI(), eFormat, pcGraphicsTexture);
 		}
 
 		gcD3D.UnlockSurface(&sSource);
@@ -154,7 +154,7 @@ BOOL CTextureConverter::Convert(CGraphicsTexture** ppcGraphicsTexture, Ptr<CImag
 	}
 
 	d3dFormat = gcD3D.acMonitor[gcD3D.iCurrMon].iTextureFormat;
-	if ((mpcSceneConverter) && (mpcSceneConverter->GetMapper()->GetImage(pImage->GetID(), d3dFormat, ppcGraphicsTexture)))
+	if ((mpcSceneConverter) && (mpcSceneConverter->GetMapper()->GetImage(pImage->GetOI(), d3dFormat, ppcGraphicsTexture)))
 	{
 		return TRUE;
 	}

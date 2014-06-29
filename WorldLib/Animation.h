@@ -78,7 +78,7 @@ public:
 	void 						Init(int iNumCels);
 	void 						Kill(void);
 	BOOL 						Save(CFileWriter* pcFile);
-	BOOL						LoadSpecific(CFileReader* pcFile, int iChunkNum);
+	BOOL						Load(CFileReader* pcFile);
 	void 						Add(void* pvCel, float fTime, int iNextCel, CelFunc Func = NULL, void* pvData = NULL);
 	void						Copy(CAnimation* pcSource);
 	void* 						Update(void);

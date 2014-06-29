@@ -372,7 +372,7 @@ void CGraphicsVertexBufferArray::RemoveVertexBuffer(int iD3DVertexType)
 	{
 		psVertexBuffer->Kill();
 		
-		iNum = ((int)((size_t)psVertexBuffer) - (int)((size_t)pvArray)) / sizeof(CVertexBufferExtended);
+		iNum = ((int)((size_t)psVertexBuffer) - (int)((size_t)mpvArray)) / sizeof(CVertexBufferExtended);
 		RemoveAt(iNum);  //The order is not preserved which means that anything indexing
 						 //miUsedElements must now index iNum instead.
 		

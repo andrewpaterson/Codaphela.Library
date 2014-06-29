@@ -41,7 +41,6 @@ public:
 	CGraphicsMaterial*					mpCLightInstancelessMaterial;
 	CGraphicsMaterial*					mpcBlendMaterial;
 	float								mfPointSize;
-	int									miMeshID;
 	CSceneConverter*					mpcSceneConverter;
 
 	void 			Init(CSceneConverter* pcSceneConverter);

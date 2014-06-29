@@ -64,13 +64,10 @@ void CAnimation::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CAnimation::Save(CFileWriter* pcFile)
 {
-	ReturnOnFalse(BeginSaveStandardTrackerObject(pcFile));
-
 	ReturnOnFalse(pcFile->WriteBool(mbEnabled));
 	ReturnOnFalse(pcFile->WriteInt(miCurrentCel));
-	ReturnOnFalse(pcFile->WriteArrayTemplate(&maCelIndices));
-
-	return EndSaveStandardTrackerObject(pcFile);	
+	ReturnOnFalse(maCelIndices.WriteArrayTemplate(pcFile));
+	return TRUE;
 }
 
 
@@ -78,17 +75,13 @@ BOOL CAnimation::Save(CFileWriter* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CAnimation::LoadSpecific(CFileReader* pcFile, int iChunkNum)
+BOOL CAnimation::Load(CFileReader* pcFile)
 {
 	Init();
-
-	ReturnOnFalse(BeginLoadStandardTrackerObject(pcFile, iChunkNum));
-
 	ReturnOnFalse(pcFile->ReadBool(&mbEnabled));
 	ReturnOnFalse(pcFile->ReadInt(&miCurrentCel));
-	ReturnOnFalse(pcFile->ReadArrayTemplate(&maCelIndices));
-
-	return EndLoadStandardTrackerObject(pcFile);
+	ReturnOnFalse(maCelIndices.ReadArrayTemplate(pcFile));
+	return TRUE;
 }
 
 

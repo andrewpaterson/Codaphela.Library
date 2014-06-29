@@ -21,6 +21,7 @@ along with Codaphela SceneLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __CONVERSION_MAPPER_H__
 #define __CONVERSION_MAPPER_H__
 #include "BaseLib/ArrayTemplate.h"
+#include "CoreLib/IndexedGeneral.h"
 #include "DirectXLib/Direct3DGlobal.h"
 #include "WorldLib/GraphicsInstance.h"
 #include "WorldLib/GraphicsTexture.h"
@@ -29,7 +30,7 @@ along with Codaphela SceneLib.  If not, see <http://www.gnu.org/licenses/>.
 
 struct SMaterialIDToGraphicsMaterialAndGraphicsState
 {
-	int					iMaterialID;
+	OIndex			iMaterialID;
 	CGraphicsMaterial*	pcGraphicsMaterial;
 	CGraphicsState*		pcGraphicsState;
 };
@@ -37,7 +38,7 @@ struct SMaterialIDToGraphicsMaterialAndGraphicsState
 
 struct SMeshIDToGraphicsObjectAndMeshObject
 {
-	int					iMeshID;
+	OIndex				iMeshID;
 	CGraphicsObject*	pcGraphicsObject;
 	CMeshObject*		pcMeshObject;
 };
@@ -71,7 +72,7 @@ public:
 
 struct SSpecimenIDToGraphicsInstanceAndMeshInstance
 {
-	int					iSpecimenID;
+	OIndex				iSpecimenID;
 	CGraphicsInstance*	pcGraphicsInstance;
 	CMeshInstance*		pcMeshInstance;
 };
@@ -94,14 +95,14 @@ public:
 	void Init(void);
 	void Kill(void);
 
-	void AddGraphicsObject(int iMeshID, CGraphicsObject* pcGraphicsObject, CMeshObject* pcMeshObject);
-	void AddGraphicsMaterial(int iMaterialID, CGraphicsMaterial* pcGraphicsMaterial, CGraphicsState* pcGraphicsState);
-	void AddGraphicsInstance(int iSpecimenID, CGraphicsInstance* pcGraphicsInstance, CMeshInstance* pcMeshInstance);
-	BOOL AddImage(int iImageIndex, D3DFORMAT d3dFormat, CGraphicsTexture* pcGraphicsTexture);
+	void AddGraphicsObject(OIndex iMeshID, CGraphicsObject* pcGraphicsObject, CMeshObject* pcMeshObject);
+	void AddGraphicsMaterial(OIndex iMaterialID, CGraphicsMaterial* pcGraphicsMaterial, CGraphicsState* pcGraphicsState);
+	void AddGraphicsInstance(OIndex iSpecimenID, CGraphicsInstance* pcGraphicsInstance, CMeshInstance* pcMeshInstance);
+	BOOL AddImage(OIndex iImageIndex, D3DFORMAT d3dFormat, CGraphicsTexture* pcGraphicsTexture);
 
-	BOOL GetMaterial(int iMaterialID, CGraphicsMaterial** ppcGraphicsMaterial, CGraphicsState** ppcGraphicsState);
-	BOOL GetMesh(int iMeshID, CGraphicsObject** ppcGraphicsObject, CMeshObject** ppcMeshObject);
-	BOOL GetImage(int iImageIndex, D3DFORMAT d3dFormat, CGraphicsTexture** ppcGraphicsTexture);
+	BOOL GetMaterial(OIndex iMaterialID, CGraphicsMaterial** ppcGraphicsMaterial, CGraphicsState** ppcGraphicsState);
+	BOOL GetMesh(OIndex iMeshID, CGraphicsObject** ppcGraphicsObject, CMeshObject** ppcMeshObject);
+	BOOL GetImage(OIndex iImageIndex, D3DFORMAT d3dFormat, CGraphicsTexture** ppcGraphicsTexture);
 };
 
 

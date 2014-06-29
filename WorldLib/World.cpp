@@ -23,7 +23,7 @@ Microsoft DirectX is Copyright Microsoft Corporation
 //#include <mmsystem.h>
 #include "BaseLib/Logger.h"
 #include "BaseLib/FastFunctions.h"
-#include "CoreLib/TypeConverter.h"
+#include "CoreLib/TypeNames.h"
 #include "CoreLib/TypeConverter.h"
 #include "CoreLib/Operators.h"
 #include "StandardLib/Unknowns.h"
@@ -1010,7 +1010,7 @@ BOOL InitMain(int iAd, D3DDEVTYPE devType, HWND hWndScreen, int dx, int dy, D3DF
 	gcLogger.Add("Main world initialisation...\n");
 	TypeConverterInit();
 	ReturnOnFalse(InitDirectX(iAd, devType, hWndScreen, dx, dy, fmt, bStencil, bExclusive, hWndInput));
-	ClassStorageInit();
+	TypesInit();
 	OperatorsInit();
 	UnknownsInit();
 	gcLogger.Add("Main world initialisation.  Done.\n");
@@ -1027,7 +1027,7 @@ void KillMain(void)
 	gcLogger.Add("Main world destruction...\n");
 	UnknownsKill();
 	OperatorsKill();
-	ClassStorageKill();
+	TypesKill();
 	KillDirectX();
 	TypeConverterKill();
 	gcLogger.Add("Main world destruction.  Done.\n");
