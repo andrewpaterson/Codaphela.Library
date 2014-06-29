@@ -40,7 +40,7 @@ protected:
 public:
 	void	Kill(void);
 	void	KillArray(void);
-	void	Remove(M* psKey);
+	BOOL	Remove(M* psKey);
 	BOOL	GetWithKey(M* psKey, void** ppvData, int* piDataSize);
 	BOOL	GetWithKeyAssumeDuplicates(M* psKey, void** ppvData, int* piDataSize);
 	BOOL	GetWithKeyNextDuplicate(M* psLastKey, int iLastIndex, void** ppvData, int* piDataSize);
@@ -210,7 +210,7 @@ void __CMapTemplate<M>::FreeNode(M* psData)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void __CMapTemplate<M>::Remove(M* psKey)
+BOOL __CMapTemplate<M>::Remove(M* psKey)
 {
 	int	iIndex;
 	M*	ps;
@@ -221,6 +221,11 @@ void __CMapTemplate<M>::Remove(M* psKey)
 		ps = (M*)mcArray.GetPtr(iIndex);
 		FreeNode(ps);
 		mcArray.RemoveAt(iIndex, 1);
+		return TRUE;
+	}
+	else
+	{
+		return FALSE;
 	}
 }
 

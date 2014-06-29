@@ -35,7 +35,7 @@ public:
 	void	GetAtIndex(int iIndex, int** ppiKey, D** ppsData);
 	D*		Put(int iKey);
 	void	Put(int iKey, D* psData);
-	void	Remove(int iKey);
+	BOOL	Remove(int iKey);
 };
 
 
@@ -99,7 +99,7 @@ void CMapIntTemplate<D>::Put(int iKey, D* psData)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class D>
-void CMapIntTemplate<D>::Remove(int iKey)
+BOOL CMapIntTemplate<D>::Remove(int iKey)
 {
 	return CMapTemplate<int, D>::Remove(&iKey);
 }
