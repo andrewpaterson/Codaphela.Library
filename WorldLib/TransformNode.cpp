@@ -78,7 +78,7 @@ void CTransformNodeInterpolator::Update(float fPos)
 //////////////////////////////////////////////////////////////////////////
 void CTransformNode::Init(void)
 {
-	msType.iType = -1;
+	msType.iValue = -1;
 	msType.pvData = NULL;
 }
 
@@ -110,7 +110,7 @@ void* CTransformNode::Set(EMatrixType eType)
 	{
 		msType.pvData = malloc(sizeof(CTransformNodeInterpolator));
 		psLinear = (CTransformNodeInterpolator*)msType.pvData;
-		msType.iType = eType;
+		msType.iValue = eType;
 		psLinear->Init();
 		return psLinear;
 	}
@@ -124,7 +124,7 @@ void* CTransformNode::Set(EMatrixType eType)
 //////////////////////////////////////////////////////////////////////////
 void CTransformNode::Update(float fFractionalTime)
 {
-	switch(msType.iType) 
+	switch(msType.iValue) 
 	{
 	case MT_SphericalLinearMatrix:
 		((CTransformNodeInterpolator*)msType.pvData)->Update(fFractionalTime);
@@ -139,7 +139,7 @@ void CTransformNode::Update(float fFractionalTime)
 //////////////////////////////////////////////////////////////////////////
 SFloat4x4* CTransformNode::GetMatrix(void)
 {
-	switch(msType.iType) 
+	switch(msType.iValue) 
 	{
 	case MT_SphericalLinearMatrix:
 		return &(((CTransformNodeInterpolator*)msType.pvData)->msOutput);
