@@ -95,7 +95,7 @@
     <ClInclude Include="ArrayInt.h" />
     <ClInclude Include="ArrayInt2D.h" />
     <ClInclude Include="ArrayLong.h" />
-    <ClInclude Include="ArrayTypedPointer.h" />
+    <ClInclude Include="ArrayIntAndPointer.h" />
     <ClInclude Include="ArrayPrimitiveTemplate.h" />
     <ClInclude Include="ArraySimple.h" />
     <ClInclude Include="ArraySimpleChar.h" />

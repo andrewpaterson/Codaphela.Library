@@ -588,7 +588,7 @@
     <ClInclude Include="LogConfig.h">
       <Filter>Source\Error</Filter>
     </ClInclude>
-    <ClInclude Include="ArrayTypedPointer.h">
+    <ClInclude Include="ArrayIntAndPointer.h">
       <Filter>Source\Data\Array</Filter>
     </ClInclude>
   </ItemGroup>

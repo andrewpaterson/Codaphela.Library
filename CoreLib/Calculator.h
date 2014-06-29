@@ -26,7 +26,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "BaseLib/Number.h"
 #include "BaseLib/ArrayString.h"
 #include "BaseLib/ArrayInt.h"
-#include "BaseLib/ArrayTypedPointer.h"
+#include "BaseLib/ArrayIntAndPointer.h"
 #include "TextParser.h"
 #include "CalcOperator.h"
 #include "CalcBinaryExpression.h"

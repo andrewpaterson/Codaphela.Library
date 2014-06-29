@@ -20,7 +20,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __COMPONENT_POINTERS_H__
 #define __COMPONENT_POINTERS_H__
-#include "BaseLib/ArrayTypedPointer.h"
+#include "BaseLib/ArrayIntAndPointer.h"
 
 
 class CComponent;

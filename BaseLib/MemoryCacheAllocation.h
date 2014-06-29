@@ -1,6 +1,6 @@
 #ifndef __MEMORY_CACHE_ALLOCATION_H__
 #define __MEMORY_CACHE_ALLOCATION_H__
-#include "ArrayTypedPointer.h"
+#include "ArrayIntAndPointer.h"
 
 
 struct SMemoryCacheDescriptor

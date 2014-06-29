@@ -25,7 +25,7 @@ Microsoft DirectX is Copyright Microsoft Corporation
 #include "BaseLib/ChunkFile.h"
 #include "BaseLib/ArrayTemplate.h"
 #include "BaseLib/GeometricTypes.h"
-#include "BaseLib/ArrayTypedPointer.h"
+#include "BaseLib/ArrayIntAndPointer.h"
 #include "CoreLib/ArrayVariable.h"
 #include "StandardLib/StandardHeader.h"
 #include "DirectXLib/DirectXGlobal.h"

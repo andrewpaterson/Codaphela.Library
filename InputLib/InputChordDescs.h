@@ -22,7 +22,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __INPUT_CHORD_DESCS_H__
 #define __INPUT_CHORD_DESCS_H__
-#include "BaseLib/ArrayTypedPointer.h"
+#include "BaseLib/ArrayIntAndPointer.h"
 #include "InputDeviceCopyContext.h"
 #include "InputChordDesc.h"
 

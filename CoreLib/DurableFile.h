@@ -22,7 +22,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __DURABLE_FILE_H__
 #define __DURABLE_FILE_H__
-#include "BaseLib/ArrayTypedPointer.h"
+#include "BaseLib/ArrayIntAndPointer.h"
 #include "BaseLib/FileMode.h"
 #include "BaseLib/FileIO.h"
 #include "BaseLib/AbstractFile.h"

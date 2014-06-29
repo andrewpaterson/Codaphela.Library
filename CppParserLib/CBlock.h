@@ -22,7 +22,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __C_BLOCK_H__
 #include "BaseLib/MemoryStackExtended.h"
 #include "BaseLib/ArrayTemplate.h"
-#include "BaseLib/ArrayTypedPointer.h"
+#include "BaseLib/ArrayIntAndPointer.h"
 #include "DefineMap.h"
 #include "CBlockToken.h"
 #include "NamedDefine.h"

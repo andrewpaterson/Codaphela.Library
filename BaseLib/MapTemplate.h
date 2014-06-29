@@ -23,7 +23,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __MAP_TEMPLATE_H__
 #define __MAP_TEMPLATE_H__
 #include <stdlib.h>
-#include "ArrayTypedPointer.h"
+#include "ArrayIntAndPointer.h"
 #include "PointerRemapper.h"
 #include "FileReader.h"
 #include "FileWriter.h"

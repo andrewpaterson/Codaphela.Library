@@ -23,7 +23,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __CSV_FILE_IMMUTABLE_H__
 #define __CSV_FILE_IMMUTABLE_H__
 #include "CSVFile.h"
-#include "ArrayTypedPointer.h"
+#include "ArrayIntAndPointer.h"
 
 
 struct SCSVRowImmutable
