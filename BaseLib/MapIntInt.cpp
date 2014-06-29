@@ -27,16 +27,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CMapIntInt::GetWithKey(int iKey)
-{
-	return *(CMapIntTemplate<int>::GetWithKey(iKey));
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
 void CMapIntInt::GetAtIndex(int iIndex, int** ppiKey, int** ppiData)
 {
 	CMapIntTemplate<int>::GetAtIndex(iIndex, ppiKey, ppiData);
