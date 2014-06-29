@@ -439,7 +439,7 @@ BOOL CIndexedData::EvictFromCache(SIndexedCacheDescriptor* psExisting)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedData::EvictOverlappingFromCache(CArrayTypedPointer* papsEvictedIndexedCacheDescriptors)
+BOOL CIndexedData::EvictOverlappingFromCache(CArrayIntAndPointer* papsEvictedIndexedCacheDescriptors)
 {
 	int							i;
 	SIndexedCacheDescriptor*	psDesc;
@@ -562,7 +562,7 @@ BOOL CIndexedData::ClearDescriptorCache(SIndexedCacheDescriptor* psCached)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedData::WriteEvictedData(CArrayTypedPointer* papsEvictedIndexedCacheDescriptors)
+BOOL CIndexedData::WriteEvictedData(CArrayIntAndPointer* papsEvictedIndexedCacheDescriptors)
 {
 	int							i;
 	SIndexedCacheDescriptor*	psCached;

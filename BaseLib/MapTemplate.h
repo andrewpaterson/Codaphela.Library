@@ -34,7 +34,7 @@ class __CMapTemplate
 {
 protected:
 	int(*Func)(const void*, const void*);
-	CArrayTypedPointer	mcArray;
+	CArrayIntAndPointer	mcArray;
 	int				miKeySize;
 
 public:

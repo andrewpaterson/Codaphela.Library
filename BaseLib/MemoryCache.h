@@ -47,7 +47,7 @@ public:
 	void*						QuickAllocate(int iDataSize);
 
 	unsigned int				RemainingAfterLast(void);
-	void						FindOverlapping(void* pvNew, unsigned int uiNewSize, CArrayTypedPointer* papIndexedCacheDescriptors);
+	void						FindOverlapping(void* pvNew, unsigned int uiNewSize, CArrayIntAndPointer* papIndexedCacheDescriptors);
 	SMemoryCacheDescriptor*		FindNewFirst(void* pvNew, unsigned int uiNewSize);
 	BOOL						Overlaps(void* pvNew, unsigned int uiNewSize, SMemoryCacheDescriptor* psExisting);
 	void						Clear(void);

@@ -27,12 +27,12 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayTypedPointer::Add(void* pvData, int iType)
+void CArrayIntAndPointer::Add(void* pvData, int iInt)
 {
-	STypedPointer*	psPtr;
+	SIntAndPointer*	psPtr;
 
-	psPtr = __CArrayTypedPointer::Add();
-	psPtr->iType = iType;
+	psPtr = CArrayTemplate<SIntAndPointer>::Add();
+	psPtr->iValue = iInt;
 	psPtr->pvData = pvData;
 }
 
@@ -41,21 +41,21 @@ void CArrayTypedPointer::Add(void* pvData, int iType)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayTypedPointer::AddIfUnique(void* pvData, int iType)
+void CArrayIntAndPointer::AddIfUnique(void* pvData, int iInt)
 {
-	STypedPointer*	psPtr;
+	SIntAndPointer*	psPtr;
 	int				i;
 
 	for (i = 0; i < miUsedElements; i++)
 	{
-		psPtr = __CArrayTypedPointer::Get(i);
-		if ((psPtr->pvData == pvData) && (psPtr->iType == iType))
+		psPtr = CArrayTemplate<SIntAndPointer>::Get(i);
+		if ((psPtr->pvData == pvData) && (psPtr->iValue == iInt))
 		{
 			return;
 		}
 	}
 	
-	Add(pvData, iType);
+	Add(pvData, iInt);
 }
 
 
@@ -63,15 +63,15 @@ void CArrayTypedPointer::AddIfUnique(void* pvData, int iType)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayTypedPointer::Get(int iElementPos, void** pvData, int* iType)
+BOOL CArrayIntAndPointer::Get(int iElementPos, void** pvData, int* iType)
 {
-	STypedPointer*	psPtr;
+	SIntAndPointer*	psPtr;
 
-	psPtr = __CArrayTypedPointer::SafeGet(iElementPos);
+	psPtr = CArrayTemplate<SIntAndPointer>::SafeGet(iElementPos);
 	if (psPtr)
 	{
 		*pvData = psPtr->pvData;
-		*iType = psPtr->iType;
+		*iType = psPtr->iValue;
 		return TRUE;
 	}
 	else
@@ -85,11 +85,11 @@ BOOL CArrayTypedPointer::Get(int iElementPos, void** pvData, int* iType)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CArrayTypedPointer::GetPtr(int iElementPos)
+void* CArrayIntAndPointer::GetPtr(int iElementPos)
 {
-	STypedPointer*	psPtr;
+	SIntAndPointer*	psPtr;
 
-	psPtr = __CArrayTypedPointer::Get(iElementPos);
+	psPtr = CArrayTemplate<SIntAndPointer>::Get(iElementPos);
 	return psPtr->pvData;
 }
 
@@ -98,7 +98,7 @@ void* CArrayTypedPointer::GetPtr(int iElementPos)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CArrayTypedPointer::SafeGetPtr(int iElementPos)
+void* CArrayIntAndPointer::SafeGetPtr(int iElementPos)
 {
 	if ((iElementPos < 0) || (iElementPos >= miUsedElements))
 	{
@@ -115,12 +115,12 @@ void* CArrayTypedPointer::SafeGetPtr(int iElementPos)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CArrayTypedPointer::GetType(int iElementPos)
+int CArrayIntAndPointer::GetType(int iElementPos)
 {
-	STypedPointer*	psPtr;
+	SIntAndPointer*	psPtr;
 
-	psPtr = __CArrayTypedPointer::Get(iElementPos);
-	return psPtr->iType;
+	psPtr = CArrayTemplate<SIntAndPointer>::Get(iElementPos);
+	return psPtr->iValue;
 }
 
 
@@ -128,7 +128,7 @@ int CArrayTypedPointer::GetType(int iElementPos)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CArrayTypedPointer::SafeGetType(int iElementPos)
+int CArrayIntAndPointer::SafeGetType(int iElementPos)
 {
 	if ((iElementPos < 0) || (iElementPos >= miUsedElements))
 	{
@@ -145,12 +145,12 @@ int CArrayTypedPointer::SafeGetType(int iElementPos)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayTypedPointer::Set(int iElementPos, void* pvData, int iType)
+void CArrayIntAndPointer::Set(int iElementPos, void* pvData, int iInt)
 {
-	STypedPointer*	psTypedPointer;
+	SIntAndPointer*	psTypedPointer;
 
-	psTypedPointer = __CArrayTypedPointer::Get(iElementPos);
-	psTypedPointer->iType = iType;
+	psTypedPointer = CArrayTemplate<SIntAndPointer>::Get(iElementPos);
+	psTypedPointer->iValue = iInt;
 	psTypedPointer->pvData = pvData;
 }
 
@@ -159,11 +159,11 @@ void CArrayTypedPointer::Set(int iElementPos, void* pvData, int iType)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayTypedPointer::Remove(void* pv)
+void CArrayIntAndPointer::Remove(void* pv)
 {
 	int		iIndex;
 
-	iIndex = FindWithKey((STypedPointer*)pv, 0, sizeof(void*));
+	iIndex = FindWithKey((SIntAndPointer*)pv, 0, sizeof(void*));
 	if (iIndex != -1)
 	{
 		RemoveAt(iIndex);
@@ -175,17 +175,17 @@ void CArrayTypedPointer::Remove(void* pv)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CArrayTypedPointer::InsertIntoSorted(int(* Func)(const void*, const void*), void* pvElement, int iType)
+void* CArrayIntAndPointer::InsertIntoSorted(int(* Func)(const void*, const void*), void* pvElement, int iInt)
 {
 	int				iPos;
-	STypedPointer	sTypedPointer;
+	SIntAndPointer	sTypedPointer;
 	BOOL			bExists;
 
 	//This function never overwrites because it does not know how to free an existing object.
 
 	bExists = FindInSorted(pvElement, Func, &iPos);
 
-	sTypedPointer.iType = iType;
+	sTypedPointer.iValue = iInt;
 	sTypedPointer.pvData = pvElement;
 	if (iPos < miUsedElements)
 	{
@@ -193,7 +193,7 @@ void* CArrayTypedPointer::InsertIntoSorted(int(* Func)(const void*, const void*)
 	}
 	else
 	{
-		__CArrayTypedPointer::Add(&sTypedPointer);
+		CArrayTemplate<SIntAndPointer>::Add(&sTypedPointer);
 	}
 
 	if (bExists)
@@ -210,7 +210,7 @@ void* CArrayTypedPointer::InsertIntoSorted(int(* Func)(const void*, const void*)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayTypedPointer::FindInSorted(void* pvElement, int(* Func)(const void*, const void*), int* piIndex)
+BOOL CArrayIntAndPointer::FindInSorted(void* pvElement, int(* Func)(const void*, const void*), int* piIndex)
 {
 	if (miUsedElements == 0)
 	{
@@ -225,7 +225,7 @@ BOOL CArrayTypedPointer::FindInSorted(void* pvElement, int(* Func)(const void*, 
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayTypedPointer::FindInSortedFirstDuplicate(void* pvElement, int(* Func)(const void*, const void*), int* piIndex)
+BOOL CArrayIntAndPointer::FindInSortedFirstDuplicate(void* pvElement, int(* Func)(const void*, const void*), int* piIndex)
 {
 	BOOL	bResult;
 	int		iIndex;
@@ -264,7 +264,7 @@ BOOL CArrayTypedPointer::FindInSortedFirstDuplicate(void* pvElement, int(* Func)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayTypedPointer::BinarySearch(void* pvData, int iLeft, int iRight, int(* Func)(const void*, const void*), int* piIndex)
+BOOL CArrayIntAndPointer::BinarySearch(void* pvData, int iLeft, int iRight, int(* Func)(const void*, const void*), int* piIndex)
 {
 	int		iMiddle;
 	int		iResultMiddle;
@@ -307,7 +307,7 @@ BOOL CArrayTypedPointer::BinarySearch(void* pvData, int iLeft, int iRight, int(*
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayTypedPointer::FindInSortedNextDuplicate(void* pvLastElement, int iLastIndex, int(* Func)(const void*, const void*), int* piIndex)
+BOOL CArrayIntAndPointer::FindInSortedNextDuplicate(void* pvLastElement, int iLastIndex, int(* Func)(const void*, const void*), int* piIndex)
 {
 	int	iIndex;
 	int	iResult;

@@ -422,14 +422,14 @@ D* CMapStringTemplate<D>::LoadNode(CFileReader* pcFile, int iNode)
 {
 	CChars			szKey;
 	D*				psData;
-	STypedPointer*	psType;
+	SIntAndPointer*	psType;
 
 	psType = mcArray.CArrayTemplate::Get(iNode);
 	if (!szKey.ReadString(pcFile))
 	{
 		return NULL;
 	}
-	psType->iType = -1;
+	psType->iValue = -1;
 	psType->pvData = AllocateNode(szKey.Text());
 	szKey.Kill();
 	psData = GetDataForKey((CChars*)psType->pvData);

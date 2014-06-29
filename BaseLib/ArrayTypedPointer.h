@@ -26,29 +26,28 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "Define.h"
 
 
-struct STypedPointer
+struct SIntAndPointer
 {
 	void*	pvData;
-	int		iType;  //Arbitrary type values... no need to be a registered type.
+	int		iValue;  //Arbitrary type values... no need to be a registered type.
 
-	void Init(void* pvData, int iType);
+	void Init(void* pvData, int iValue);
 };
 
 
-typedef CArrayTemplate<STypedPointer> __CArrayTypedPointer;
-class CArrayTypedPointer : public __CArrayTypedPointer
+class CArrayIntAndPointer : public CArrayTemplate<SIntAndPointer>
 {
 public:
-	void 	Add(void* pvData, int iType);
-	void 	AddIfUnique(void* pvData, int iType);
+	void 	Add(void* pvData, int iInt);
+	void 	AddIfUnique(void* pvData, int iInt);
 	BOOL 	Get(int iElementPos, void** pvData, int* iType);
 	void*	GetPtr(int iElementPos);
 	void*	SafeGetPtr(int iElementPos);
 	int		GetType(int iElementPos);
 	int		SafeGetType(int iElementPos);
-	void	Set(int iElementPos, void* pvData, int iType);
+	void	Set(int iElementPos, void* pvData, int iInt);
 	void	Remove(void* pv);
-	void*	InsertIntoSorted(int(* Func)(const void*, const void*), void* pvElement, int iType);
+	void*	InsertIntoSorted(int(* Func)(const void*, const void*), void* pvElement, int iInt);
 	BOOL	FindInSorted(void* pvElement, int(* Func)(const void*, const void*), int* piIndex);
 	BOOL	FindInSortedFirstDuplicate(void* pvElement, int(* Func)(const void*, const void*), int* piIndex);
 	BOOL	FindInSortedNextDuplicate(void* pvLastElement, int iLastIndex, int(* Func)(const void*, const void*), int* piIndex);

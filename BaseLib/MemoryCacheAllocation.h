@@ -17,7 +17,7 @@ class CMemoryCacheAllocation
 friend class CMemoryCache;
 protected:
 	int							miDataSize;
-	CArrayTypedPointer				mapEvictedCacheDescriptors;
+	CArrayIntAndPointer				mapEvictedCacheDescriptors;
 	SMemoryCacheDescriptor*		mpsCacheDesc;
 	unsigned int				miCachedSize;
 	unsigned int				miRemaining;
@@ -30,7 +30,7 @@ public:
 	SMemoryCacheDescriptor*		Get(int iIndex);
 	int							NumElements(void);
 
-	CArrayTypedPointer*				GetEvictedArray(void);  //This only exists because I haven't finished factoring it out.
+	CArrayIntAndPointer*				GetEvictedArray(void);  //This only exists because I haven't finished factoring it out.
 };
 
 

@@ -45,7 +45,7 @@ struct SCSVRowImmutable
 class CCSVFileImmutable : public CCSVFile
 {
 public:
-	CArrayTypedPointer		mapsCSVRows;
+	CArrayIntAndPointer		mapsCSVRows;
 
 	void 				Init(char cSeparator);
 	void 				Kill(void);

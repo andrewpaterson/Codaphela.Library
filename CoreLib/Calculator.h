@@ -51,8 +51,8 @@ public:
 	BOOL		Parentheses(CCalcParentheses** ppcParentheses);
 	BOOL		Value(CCalcConstExpression** ppcConst);
 	BOOL		Identifier(CCalcConstExpression** ppcConst);
-	void		BuildExpression(CCalcExpression** ppcExpression, CArrayTypedPointer* pcArray);
-	int			GetMinPrecedence(CArrayTypedPointer* pcArray);
+	void		BuildExpression(CCalcExpression** ppcExpression, CArrayIntAndPointer* pcArray);
+	int			GetMinPrecedence(CArrayIntAndPointer* pcArray);
 	void		ResolveAmbiguity(CCalcOperator* pcOperator, BOOL bIsUnary);
 };
 

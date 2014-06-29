@@ -94,10 +94,10 @@ public:
 protected:
 	BOOL		CopyBackupToPrimary(void);
 	BOOL		CopyPrimaryToBackup(void);
-	BOOL		FindTouchingWriteCommands(CArrayTypedPointer* papvOverlapping, filePos iPosition, filePos iLength, BOOL bMustOverlap);
+	BOOL		FindTouchingWriteCommands(CArrayIntAndPointer* papvOverlapping, filePos iPosition, filePos iLength, BOOL bMustOverlap);
 	BOOL		Overlaps(filePos iPosition, filePos iLength, SDurableFileCommandWrite* psWrite);
-	BOOL		AmalgamateOverlappingWrites(CArrayTypedPointer* papvOverlapping, const void* pvSource, filePos iPosition, filePos iLength);
-	BOOL		FindHoles(CArrayTypedPointer* papvOverlapping, filePos iPosition, filePos iLength);
+	BOOL		AmalgamateOverlappingWrites(CArrayIntAndPointer* papvOverlapping, const void* pvSource, filePos iPosition, filePos iLength);
+	BOOL		FindHoles(CArrayIntAndPointer* papvOverlapping, filePos iPosition, filePos iLength);
 	void		UpdateLength(void);
 	void		OpenFilesForBegin(void);
 	BOOL		OpenFilesForEnd(CFileBasic* pcFile);
