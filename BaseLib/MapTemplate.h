@@ -55,6 +55,9 @@ public:
 	BOOL	ReadMapHeader(CFileReader* pcFile);
 	BOOL	WriteMapHeader(CFileWriter* pcFile);
 
+	void*	GetDataForKey(M* psKey);
+	M*		GetKeyForData(void* pvData);
+
 protected:
 	void*	Malloc(size_t tSize);
 	void*	Realloc(void* pv, size_t iMemSize);
@@ -62,9 +65,6 @@ protected:
 
 	M*		AllocateNode(int iDataSize);
 	void	FreeNode(M* psKey);
-
-	void*	GetDataForKey(M* psKey);  //Rename these and drop the Privates
-	M*		GetKeyForData(void* pvData);
 };
 
 
@@ -83,7 +83,6 @@ public:
 	D*		Put(M* psKey);
 	void	Put(M* psKey, D* psData);
 
-protected:
 	D*		GetDataForKey(M* psKey);
 };
 
