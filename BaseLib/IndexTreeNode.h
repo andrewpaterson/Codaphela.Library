@@ -11,13 +11,12 @@ protected:
 	CIndexTreeNode*		mpcParent;
 	unsigned char		muiFirstIndex;
 	unsigned char		muiLastIndex;
-	unsigned char		muiUnused;
+	unsigned char		muiDataSize;
 	unsigned char		mbNodesEmpty;
 	CIndexTreeNode*		mapcChildren[1];  //The rest are allocated after the end of the object, up to MAX_UCHAR.
 
 public:
 	void				Init(CIndexTreeNode* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex);
-	void				Init(CIndexTreeNode* pcParent, void* pvObject);
 	void				Init(CIndexTreeNode* pcParent);
 	void				Contain(unsigned char uiIndex);
 	CIndexTreeNode*		Get(unsigned char uiIndex);

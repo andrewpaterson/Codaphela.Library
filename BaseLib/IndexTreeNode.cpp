@@ -13,7 +13,7 @@ void CIndexTreeNode::Init(CIndexTreeNode* pcParent, unsigned char uiFirstIndex, 
 	mpvObject = NULL;
 	muiFirstIndex = uiFirstIndex;
 	muiLastIndex = uiLastIndex;
-	muiUnused = 0xFF;
+	muiDataSize = 0;
 	mbNodesEmpty = FALSE;
 	mpcParent = pcParent;
 
@@ -33,24 +33,13 @@ void CIndexTreeNode::Init(CIndexTreeNode* pcParent, unsigned char uiFirstIndex, 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNode::Init(CIndexTreeNode* pcParent, void* pvObject)
-{
-	Init(pcParent);
-	mpvObject = pvObject;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CIndexTreeNode::Init(CIndexTreeNode* pcParent)
 {
 	mpvObject = NULL;
 	mpcParent = pcParent;
 	muiFirstIndex = 0;
 	muiLastIndex = 0;
-	muiUnused = 0xFF;
+	muiDataSize = 0;
 	mbNodesEmpty = TRUE;
 	mapcChildren[0] = NULL;
 }
