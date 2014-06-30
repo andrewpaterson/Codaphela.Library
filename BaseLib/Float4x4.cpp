@@ -21,6 +21,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
 #include "PointerFunctions.h"
+#include "IntegerHelper.h"
 #include "Numbers.h"
 #include "FloatHelper.h"
 #include "Float2.h"

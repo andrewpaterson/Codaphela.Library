@@ -243,7 +243,7 @@ void CObjects::DumpNames(void)
 	sz.Init("-------------------------- Names -------------------------- \n");
 	sz.Dump();
 	sz.Kill();
-	mcMemory.GetNames()->DumpTree();
+//	mcMemory.GetNames()->DumpTree();
 	sz.Init();
 	sz.Append("------------------------------------------------------------ \n");
 	sz.Dump();

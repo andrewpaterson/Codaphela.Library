@@ -34,17 +34,17 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 void CPreprocessorTokeniser::Init(void)
 {
 	mcDirectives.Init();
-	mcDirectives.Add("ifdef");
-	mcDirectives.Add("ifndef");
-	mcDirectives.Add("endif");
-	mcDirectives.Add("else");
-	mcDirectives.Add("if");
-	mcDirectives.Add("elif");
-	mcDirectives.Add("define");
-	mcDirectives.Add("include");
-	mcDirectives.Add("undef");
-	mcDirectives.Add("error");
-	mcDirectives.Add("pragma");
+	mcDirectives.AddIndex("ifdef");
+	mcDirectives.AddIndex("ifndef");
+	mcDirectives.AddIndex("endif");
+	mcDirectives.AddIndex("else");
+	mcDirectives.AddIndex("if");
+	mcDirectives.AddIndex("elif");
+	mcDirectives.AddIndex("define");
+	mcDirectives.AddIndex("include");
+	mcDirectives.AddIndex("undef");
+	mcDirectives.AddIndex("error");
+	mcDirectives.AddIndex("pragma");
 }
 
 

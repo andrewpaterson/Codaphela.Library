@@ -40,6 +40,10 @@ public:
 	int					RecurseCountListSize(CIndexTreeNode* pcNode);
 	int					GetModifications(void);
 
+	int					NumElements(void);
+	BOOL				Contains(char* pszKey);
+	BOOL				Add(char* pszKey, void* pvObject);
+
 protected:
 	void*				Malloc(size_t tSize);
 	void*				Realloc(void* pv, size_t tSize);

@@ -20,6 +20,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __NAMED_INDEX_OBJECTS_H__
 #define __NAMED_INDEX_OBJECTS_H__
+#include "BaseLib/ASCIITree.h"
 #include "IndexedObjects.h"
 
 

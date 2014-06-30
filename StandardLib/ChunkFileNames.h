@@ -1,5 +1,6 @@
 #ifndef __CHUNK_FILE_NAMES_H__
 #define __CHUNK_FILE_NAMES_H__
+#include "BaseLib/ArrayString.h"
 #include "BaseLib/ChunkFile.h"
 
 

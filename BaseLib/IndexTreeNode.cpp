@@ -14,7 +14,7 @@ void CIndexTreeNode::Init(CIndexTreeNode* pcParent, unsigned char uiFirstIndex, 
 	muiFirstIndex = uiFirstIndex;
 	muiLastIndex = uiLastIndex;
 	muiUnused = 0xFF;
-	muiEmpty = FALSE;
+	mbNodesEmpty = FALSE;
 	mpcParent = pcParent;
 
 	if (muiFirstIndex == muiLastIndex)
@@ -51,7 +51,7 @@ void CIndexTreeNode::Init(CIndexTreeNode* pcParent)
 	muiFirstIndex = 0;
 	muiLastIndex = 0;
 	muiUnused = 0xFF;
-	muiEmpty = TRUE;
+	mbNodesEmpty = TRUE;
 	mapcChildren[0] = NULL;
 }
 
@@ -66,9 +66,9 @@ void CIndexTreeNode::Contain(unsigned char uiIndex)
 	void*			pvDest;
 	size_t			tSize;
 
-	if (muiEmpty == TRUE)
+	if (mbNodesEmpty == TRUE)
 	{
-		muiEmpty = FALSE;
+		mbNodesEmpty = FALSE;
 		muiFirstIndex = uiIndex;
 		muiLastIndex = uiIndex;
 		return;
@@ -190,7 +190,7 @@ BOOL CIndexTreeNode::IsEmpty(void)
 		return FALSE;
 	}
 
-	if (muiEmpty == TRUE)
+	if (mbNodesEmpty == TRUE)
 	{
 		return TRUE;
 	}
@@ -233,7 +233,7 @@ unsigned char CIndexTreeNode::GetLastIndex(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeNode::HasNodes(void)
 {
-	return muiEmpty == FALSE;
+	return mbNodesEmpty == FALSE;
 }
 
 

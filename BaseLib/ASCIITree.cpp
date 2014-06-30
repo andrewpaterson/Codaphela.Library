@@ -57,9 +57,12 @@ void CASCIITree::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CASCIITree::Add(char* szText, char* szLastCharInclusive)
+int CASCIITree::Add(long long int lliID, char* szText, char* szLastCharInclusive)
 {
-	return Add(-1, szText, szLastCharInclusive);
+	int	iResult;
+
+	iResult = AddIndex(lliID, szText, szLastCharInclusive);
+	return iResult != -1;
 }
 
 
@@ -67,7 +70,17 @@ int CASCIITree::Add(char* szText, char* szLastCharInclusive)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CASCIITree::Add(long long int lliID, char* szText, char* szLastCharInclusive)
+int CASCIITree::AddIndex(char* szText, char* szLastCharInclusive)
+{
+	return AddIndex(-1, szText, szLastCharInclusive);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CASCIITree::AddIndex(long long int lliID, char* szText, char* szLastCharInclusive)
 {
 	CASCIINode*		pcNode;
 	CASCIINode*		pcWord;
@@ -139,7 +152,7 @@ int CASCIITree::AddOrGet(long long int iID, char* szText, char* szLastCharInclus
 	iIndex = GetIndex(szText, szLastCharInclusive, TRUE);
 	if (iIndex == -1)
 	{
-		return Add(iID, szText, szLastCharInclusive);
+		return AddIndex(iID, szText, szLastCharInclusive);
 	}
 	else
 	{

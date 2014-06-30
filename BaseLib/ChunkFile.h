@@ -28,7 +28,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "FileIO.h"
 #include "FileBasic.h"
 #include "MapStringInt.h"
-#include "ASCIITree.h"
 #include "ChunkStack.h"
 
 

@@ -67,7 +67,6 @@ public:
 	void			Init(void);
 	void			Kill(void);
 
-	int				Add(char* szText, char* szLastCharInclusive = NULL);
 	int				Add(long long int lliID, char* szText, char* szLastCharInclusive = NULL);
 
 	long long int	Get(char* szText, char* szLastCharInclusive = NULL, BOOL bExact = TRUE);
@@ -92,6 +91,8 @@ public:
 	void			DumpTree(void);
 
 //Unprotected for the CPP Parser Lib
+	int				AddIndex(char* szText, char* szLastCharInclusive = NULL);
+	int				AddIndex(long long int lliID, char* szText, char* szLastCharInclusive = NULL);
 	int				AddOrGet(char* szText, char* szLastCharInclusive);
 	int				AddOrGet(long long int iID, char* szText, char* szLastCharInclusive);
 	int				GetIndex(char* szText, char* szLastCharInclusive = NULL, BOOL bExact = TRUE);

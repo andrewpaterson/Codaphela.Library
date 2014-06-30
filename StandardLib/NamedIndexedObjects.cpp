@@ -111,13 +111,14 @@ BOOL CNamedIndexedObjects::RemoveIndex(OIndex oi)
 //////////////////////////////////////////////////////////////////////////
 BOOL CNamedIndexedObjects::RemoveName(char* szName)
 {
-	BOOL	bResult;
+	//void*	pvObject;
 
 	if ((szName != NULL) && (szName[0] != 0))
 	{
 		//This only removes the name from the names, it does not free the object pointer to.
-		bResult = mcNames.Remove(szName);
-		return bResult;
+		return mcNames.Remove(szName);
+		//pvObject = mcNames.Remove(szName);
+		//return pvObject != NULL;
 	}
 	return TRUE;
 }
@@ -154,17 +155,10 @@ BOOL CNamedIndexedObjects::AddWithIDAndName(CBaseObject* pvObject, OIndex oi, ch
 	CNamedObject*		pcNamed;
 	CNamedHollowObject*	pcNamedHollow;
 	BOOL				bResult;
-	int					iResult;
 
 	if (mcNames.Contains(szName))
 	{
 		gcLogger.Error2(__METHOD__, " Cannot add object named [", szName, "].  It already exists.", NULL);
-		return FALSE;
-	}
-
-	if (!mcNames.IsOnlyValidCharacters(szName))
-	{
-		gcLogger.Error2(__METHOD__, " Cannot add object named [", szName, "].  It's name contains invalid characters.", NULL);
 		return FALSE;
 	}
 
@@ -190,16 +184,7 @@ BOOL CNamedIndexedObjects::AddWithIDAndName(CBaseObject* pvObject, OIndex oi, ch
 
 	if ((szName != NULL) && (szName[0] != 0))
 	{
-		iResult = mcNames.Add(pvObject->GetOI(), szName);
-
-		//This should never happen.  The checks at the top cut it out.
-		if (iResult == -1)
-		{
-			char sz[32];
-
-			gcLogger.Error2(__METHOD__, " Cannot add object named [", szName, "] and index [", IToA(oi, sz, 10), "].  It broke unexpectedly", NULL);
-			bResult = FALSE;
-		}
+		bResult = mcNames.Add(pvObject->GetOI(), szName);
 	}
 	return bResult;
 }
