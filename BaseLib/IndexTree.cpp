@@ -207,7 +207,11 @@ void* CIndexTree::Get(char* pszKey)
 	}
 	else
 	{
-		return pcNode->GetObject();
+		if (pcNode->GetObjectSize() == 0)
+		{
+			return NULL;
+		}
+		return *((void**)pcNode->GetObjectPtr());
 	}
 }
 
@@ -220,7 +224,6 @@ BOOL CIndexTree::Put(void* pvObject, char* pszKey)
 {
 	int					iKeySize;
 	CIndexTreeNode*		pcCurrent;
-	void*				pvOldObject;
 	unsigned char		c;
 
 	if (StrEmpty(pszKey))
@@ -240,8 +243,7 @@ BOOL CIndexTree::Put(void* pvObject, char* pszKey)
 	miModifications++;
 	miSize++;
 	
-	pvOldObject = pcCurrent->GetObject();
-	return pcCurrent->SetObject(pvObject);
+	return pcCurrent->SetObject(&pvObject, sizeof(void*));
 }
 
 
@@ -297,6 +299,7 @@ void* CIndexTree::Remove(char* pszKey)
 	CIndexTreeNode*							pcNode;
 	CArrayEmbedded<CIndexTreeNode*, 64>		apcPath;
 	CIndexTreeNode*							pcCurrent;
+	void*									pvObject;
 
 	if (pszKey == NULL)
 	{
@@ -318,11 +321,12 @@ void* CIndexTree::Remove(char* pszKey)
 		apcPath.Add(&pcCurrent);
 	}
 
-	void* pvObject = (void*) pcCurrent->GetObject();
-	if (pvObject == NULL)
+	if (pcCurrent->GetObjectSize() == 0)
 	{
 		return NULL;
 	}
+
+	pvObject = ((void**) pcCurrent->GetObjectPtr());
 
 	pcCurrent->ClearObject();
 	for (int i = apcPath.NumElements() - 1; i > 0; i--)
@@ -364,7 +368,7 @@ void CIndexTree::RecurseFindAll(CIndexTreeNode* pcNode, CArrayVoidPtr* papvEleme
 
 	if (pcNode != NULL)
 	{
-		void* pvObject = (void*) pcNode->GetObject();
+		void* pvObject = *((void**)pcNode->GetObjectPtr());
 		if (pvObject != NULL)
 		{
 			papvElements->Add(pvObject);
@@ -438,13 +442,14 @@ int CIndexTree::RecurseSize(CIndexTreeNode* pcNode)
 {
 	int					i;
 	CIndexTreeNode*		pcChild;
+	unsigned char		uiSize;
 
 	int count = 0;
 
 	if (pcNode != NULL)
 	{
-		void* pvObject = (void*) pcNode->GetObject();
-		if (pvObject != NULL)
+		uiSize = pcNode->GetObjectSize();
+		if (uiSize != 0)
 		{
 			count++;
 		}
@@ -476,7 +481,7 @@ BOOL CIndexTree::Contains(char* pszKey)
 		return FALSE;
 	}
 
-	return pcNode->GetObject() != NULL;
+	return pcNode->GetObjectSize() != 0;
 }
 
 

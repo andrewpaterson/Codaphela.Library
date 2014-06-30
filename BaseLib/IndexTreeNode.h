@@ -7,23 +7,22 @@
 class CIndexTreeNode
 {
 protected:
-	void*				mpvObject;
 	CIndexTreeNode*		mpcParent;
 	unsigned char		muiFirstIndex;
 	unsigned char		muiLastIndex;
 	unsigned char		muiDataSize;
 	unsigned char		mbNodesEmpty;
-	CIndexTreeNode*		mapcChildren[1];  //The rest are allocated after the end of the object, up to MAX_UCHAR.
 
 public:
 	void				Init(CIndexTreeNode* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex);
 	void				Init(CIndexTreeNode* pcParent);
 	void				Contain(unsigned char uiIndex);
 	CIndexTreeNode*		Get(unsigned char uiIndex);
-	void*				GetObject(void);
+	void*				GetObjectPtr(void);
+	unsigned char		GetObjectSize(void);
 	void				Set(unsigned char uiIndex, CIndexTreeNode* pcNode);
 	void				Clear(unsigned char uiIndex);
-	BOOL				SetObject(void* pvObject);
+	BOOL				SetObject(void* pvObject, unsigned char uiSize);
 	void				ClearObject(void);
 	BOOL				IsEmpty(void);
 	unsigned char		GetFirstIndex(void);
@@ -34,8 +33,10 @@ public:
 	int					GetNumIndexes(void);
 	CIndexTreeNode*		GetNode(int i);
 	CIndexTreeNode*		GetParent(void);
+	CIndexTreeNode**	GetNodes(void);
 	void				RemapChildNodes(CIndexTreeNode* pcOldNode, CIndexTreeNode* pcNewNode);
 	void				SetChildsParent(void);
+	void				SizeObject(unsigned char uiSize);
 };
 
 
