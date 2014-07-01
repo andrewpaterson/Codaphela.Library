@@ -41,16 +41,19 @@ void CIndexTreeNode::Init(CIndexTreeNode* pcParent)
 //////////////////////////////////////////////////////////////////////////
 void CIndexTreeNode::Contain(unsigned char uiIndex)
 {
-	unsigned char	uiOldNumIndexes;
-	void*			pvDest;
-	size_t			tSize;
-	void*			apcChildren;
+	unsigned char		uiOldNumIndexes;
+	void*				pvDest;
+	size_t				tSize;
+	CIndexTreeNode**	apcChildren;
+
+	apcChildren = GetNodes();
 
 	if (mbNodesEmpty == TRUE)
 	{
 		mbNodesEmpty = FALSE;
 		muiFirstIndex = uiIndex;
 		muiLastIndex = uiIndex;
+		apcChildren[0] = NULL;
 		return;
 	}
 
@@ -98,7 +101,7 @@ CIndexTreeNode* CIndexTreeNode::Get(unsigned char uiIndex)
 //////////////////////////////////////////////////////////////////////////
 void* CIndexTreeNode::GetObjectPtr(void)
 {
-	return RemapSinglePointer(this, sizeof(this));
+	return RemapSinglePointer(this, sizeof(CIndexTreeNode));
 }
 
 
@@ -302,7 +305,7 @@ CIndexTreeNode* CIndexTreeNode::GetNode(int i)
 //////////////////////////////////////////////////////////////////////////
 CIndexTreeNode** CIndexTreeNode::GetNodes(void)
 {
-	return (CIndexTreeNode**)RemapSinglePointer(this, sizeof(this) + muiDataSize);
+	return (CIndexTreeNode**)RemapSinglePointer(this, sizeof(CIndexTreeNode) + muiDataSize);
 }
 
 
@@ -370,7 +373,19 @@ void CIndexTreeNode::SetChildsParent(void)
 //////////////////////////////////////////////////////////////////////////
 void CIndexTreeNode::SizeObject(unsigned char uiSize)
 {
-	//Should probably write this.
-	//Move nodes around and shit.
+	size_t				tSize;
+	CIndexTreeNode**	apcChildren;
+	int					iDiff;
+	CIndexTreeNode**	apcMovedChildren;
+
+	apcChildren = GetNodes();
+	tSize = (muiLastIndex - muiFirstIndex + 1) * sizeof(CIndexTreeNode*);
+
+	iDiff = (int)uiSize - (int)muiDataSize;
+
+	apcMovedChildren = (CIndexTreeNode**)RemapSinglePointer(apcChildren, iDiff);
+	memmove(apcMovedChildren, apcChildren, tSize);
+
+	muiDataSize = uiSize;
 }
 
