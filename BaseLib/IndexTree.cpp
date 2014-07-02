@@ -70,8 +70,10 @@ void CIndexTree::Free(void* pv)
 //////////////////////////////////////////////////////////////////////////
 void* CIndexTree::Realloc(void* pv, size_t tSize)
 {
-	pv = realloc(pv, tSize);
-	return pv;
+	void* pvNew;
+
+	pvNew = realloc(pv, tSize);
+	return pvNew;
 }
 
 
@@ -109,28 +111,57 @@ CIndexTreeNode* CIndexTree::AllocateRoot(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTreeNode* CIndexTree::ReallocateNode(CIndexTreeNode* pcNode, unsigned char uiIndex)
+CIndexTreeNode* CIndexTree::ReallocateNodeForIndex(CIndexTreeNode* pcNode, unsigned char uiIndex)
 {
 	CIndexTreeNode*		pcOldNode;
 	CIndexTreeNode*		pcParent;
 	size_t				tNewNodeSize;
-
-	if (!pcNode->HasNodes())
-	{
-		pcNode->Contain(uiIndex);
-		return pcNode;
-	}
 
 	if (pcNode->ContainsIndex(uiIndex))
 	{
 		return pcNode;
 	}
 
-	tNewNodeSize = pcNode->CalculateRequiredNodeSize(uiIndex);
+	if (pcNode->HasNodes())
+	{
+		tNewNodeSize = pcNode->CalculateRequiredNodeSizeForIndex(uiIndex);
+	}
+	else
+	{
+		tNewNodeSize = pcNode->CalculateRequiredNodeSizeForEmpty();
+	}
 
 	pcOldNode = pcNode;
 	pcNode = (CIndexTreeNode*)Realloc(pcNode, tNewNodeSize);
 	pcNode->Contain(uiIndex);
+
+	if (pcOldNode != pcNode)
+	{
+		pcParent = pcNode->GetParent();
+		if (pcParent)
+		{
+			pcParent->RemapChildNodes(pcOldNode, pcNode);
+		}
+	}
+
+	return pcNode;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CIndexTreeNode* CIndexTree::ReallocateNodeForData(CIndexTreeNode* pcNode, unsigned char uiDataSize)
+{
+	CIndexTreeNode*		pcOldNode;
+	CIndexTreeNode*		pcParent;
+	size_t				tNewNodeSize;
+
+	tNewNodeSize = pcNode->CalculateRequiredNodeSizeForData(uiDataSize);
+
+	pcOldNode = pcNode;
+	pcNode = (CIndexTreeNode*)Realloc(pcNode, tNewNodeSize);
 
 	if (pcOldNode != pcNode)
 	{
@@ -225,7 +256,9 @@ BOOL CIndexTree::Put(void* pvObject, char* pszKey)
 {
 	int					iKeySize;
 	CIndexTreeNode*		pcCurrent;
+	CIndexTreeNode*		pcReallocatedCurrent;
 	unsigned char		c;
+	BOOL				bResult;
 
 	if (StrEmpty(pszKey))
 	{
@@ -244,7 +277,13 @@ BOOL CIndexTree::Put(void* pvObject, char* pszKey)
 	miModifications++;
 	miSize++;
 	
-	return pcCurrent->SetObject(&pvObject, sizeof(void*));
+	pcReallocatedCurrent = ReallocateNodeForData(pcCurrent, sizeof(void*));
+	bResult = pcReallocatedCurrent->SetObject(&pvObject, sizeof(void*));
+	if (pcCurrent != pcReallocatedCurrent)
+	{
+		pcReallocatedCurrent->SetChildsParent();
+	}
+	return bResult;
 }
 
 
@@ -273,7 +312,7 @@ CIndexTreeNode* CIndexTree::SetOldWithCurrent(CIndexTreeNode* pcParent, unsigned
 	if (pcCurrent == NULL)
 	{
 		pcNew = AllocateNode(pcParent);
-		pcReallocedParent = ReallocateNode(pcParent, c);
+		pcReallocedParent = ReallocateNodeForIndex(pcParent, c);
 		pcReallocedParent->Set(c, pcNew);
 		if (pcParent != pcReallocedParent)
 		{

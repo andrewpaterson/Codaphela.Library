@@ -42,7 +42,7 @@ void CIndexTreeNode::Init(CIndexTreeNode* pcParent)
 void CIndexTreeNode::Contain(unsigned char uiIndex)
 {
 	unsigned char		uiOldNumIndexes;
-	void*				pvDest;
+	CIndexTreeNode**	pvDest;
 	size_t				tSize;
 	CIndexTreeNode**	apcChildren;
 
@@ -63,15 +63,15 @@ void CIndexTreeNode::Contain(unsigned char uiIndex)
 	if (uiIndex < muiFirstIndex)
 	{
 		tSize = (muiFirstIndex - uiIndex) * sizeof(CIndexTreeNode*);
-		pvDest = RemapSinglePointer(apcChildren, tSize);
-		memcpy(pvDest, apcChildren, uiOldNumIndexes * sizeof(CIndexTreeNode*));
+		pvDest = (CIndexTreeNode**)RemapSinglePointer(apcChildren, tSize);
+		memmove(pvDest, apcChildren, uiOldNumIndexes * sizeof(CIndexTreeNode*));
 		memset(apcChildren, 0, tSize);
 		muiFirstIndex = uiIndex;
 	}
 	else if (uiIndex > muiLastIndex)
 	{
 		tSize = (uiIndex - muiLastIndex) * sizeof(CIndexTreeNode*);
-		pvDest = RemapSinglePointer(apcChildren, uiOldNumIndexes * sizeof(CIndexTreeNode*));
+		pvDest = (CIndexTreeNode**)RemapSinglePointer(apcChildren, uiOldNumIndexes * sizeof(CIndexTreeNode*));
 		memset(pvDest, 0, tSize);
 		muiLastIndex = uiIndex;
 	}
@@ -253,6 +253,11 @@ BOOL CIndexTreeNode::HasNodes(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeNode::ContainsIndex(unsigned char uiIndex)
 {
+	if (mbNodesEmpty)
+	{
+		return FALSE;
+	}
+
 	if ((uiIndex >= muiFirstIndex) && (uiIndex <= muiLastIndex))
 	{
 		return TRUE;
@@ -289,7 +294,7 @@ int CIndexTreeNode::GetAdditionalIndexes(unsigned char uiIndex)
 		uiLastIndex = muiLastIndex;
 	}
 
-	return ((uiLastIndex - uiFirstIndex + 1) - 1);   //+1 because uiLast is inclusive.  -1 because CIndexTreeNode already includes 1.	
+	return (uiLastIndex - uiFirstIndex + 1);   //+1 because uiLast is inclusive.  -1 because CIndexTreeNode already includes 1.	
 }
 
 
@@ -297,15 +302,41 @@ int CIndexTreeNode::GetAdditionalIndexes(unsigned char uiIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size_t CIndexTreeNode::CalculateRequiredNodeSize(unsigned char uiIndex)
+size_t CIndexTreeNode::CalculateRequiredNodeSizeForIndex(unsigned char uiIndex)
 {
-	size_t	tAdditionalSize;
+	size_t	tSize;
 	int		iNewIndices;
 
 	iNewIndices = GetAdditionalIndexes(uiIndex);
-	tAdditionalSize = sizeof(CIndexTreeNode) + muiDataSize + iNewIndices * sizeof(CIndexTreeNode*);
+	tSize = sizeof(CIndexTreeNode) + muiDataSize + iNewIndices * sizeof(CIndexTreeNode*);
 
-	return tAdditionalSize;
+	return tSize;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size_t CIndexTreeNode::CalculateRequiredNodeSizeForEmpty(void)
+{
+	return sizeof(CIndexTreeNode) + muiDataSize + sizeof(CIndexTreeNode*);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size_t CIndexTreeNode::CalculateRequiredNodeSizeForData(unsigned char uiDataSize)
+{
+	size_t	tSize;
+	int		iExistingIndices;
+
+	iExistingIndices = GetNumIndexes();
+	tSize = sizeof(CIndexTreeNode) + uiDataSize + iExistingIndices * sizeof(CIndexTreeNode*);
+
+	return tSize;
 }
 
 

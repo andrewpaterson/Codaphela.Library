@@ -20,7 +20,8 @@ public:
 	void				RecurseKill(CIndexTreeNode* pcNode);
 	CIndexTreeNode*		AllocateRoot(void);
 	CIndexTreeNode*		AllocateNode(CIndexTreeNode* pcParent);
-	CIndexTreeNode*		ReallocateNode(CIndexTreeNode* pcNode, unsigned char uiIndex);
+	CIndexTreeNode*		ReallocateNodeForIndex(CIndexTreeNode* pcNode, unsigned char uiIndex);
+	CIndexTreeNode*		ReallocateNodeForData(CIndexTreeNode* pcNode, unsigned char uiDataSize);
 	void				FreeNode(CIndexTreeNode* pcNode);
 	CIndexTreeNode*		GetIndexNode(char* pszKey);
 	void*				Get(char* pszKey);
