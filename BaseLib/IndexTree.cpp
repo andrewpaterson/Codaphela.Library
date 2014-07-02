@@ -111,9 +111,9 @@ CIndexTreeNode* CIndexTree::AllocateRoot(void)
 //////////////////////////////////////////////////////////////////////////
 CIndexTreeNode* CIndexTree::ReallocateNode(CIndexTreeNode* pcNode, unsigned char uiIndex)
 {
-	int					iAdditionalSize;
 	CIndexTreeNode*		pcOldNode;
 	CIndexTreeNode*		pcParent;
+	size_t				tNewNodeSize;
 
 	if (!pcNode->HasNodes())
 	{
@@ -126,11 +126,10 @@ CIndexTreeNode* CIndexTree::ReallocateNode(CIndexTreeNode* pcNode, unsigned char
 		return pcNode;
 	}
 
-	iAdditionalSize = pcNode->GetAdditionalIndexes(uiIndex);
-	iAdditionalSize = iAdditionalSize * sizeof(CIndexTreeNode*);
+	tNewNodeSize = pcNode->CalculateRequiredNodeSize(uiIndex);
 
 	pcOldNode = pcNode;
-	pcNode = (CIndexTreeNode*)Realloc(pcNode, sizeof(CIndexTreeNode) + iAdditionalSize);
+	pcNode = (CIndexTreeNode*)Realloc(pcNode, tNewNodeSize);
 	pcNode->Contain(uiIndex);
 
 	if (pcOldNode != pcNode)
@@ -194,6 +193,7 @@ CIndexTreeNode* CIndexTree::GetIndexNode(char* pszKey)
 void* CIndexTree::Get(char* pszKey)
 {
 	CIndexTreeNode* pcNode;
+	void*			pv;
 
 	if (StrEmpty(pszKey))
 	{
@@ -211,7 +211,8 @@ void* CIndexTree::Get(char* pszKey)
 		{
 			return NULL;
 		}
-		return *((void**)pcNode->GetObjectPtr());
+		pv = pcNode->GetObjectPtr();
+		return pv;
 	}
 }
 
@@ -365,10 +366,11 @@ void CIndexTree::RecurseFindAll(CIndexTreeNode* pcNode, CArrayVoidPtr* papvEleme
 {
 	int					i;
 	CIndexTreeNode*		pcChild;
+	void*				pvObject;
 
 	if (pcNode != NULL)
 	{
-		void* pvObject = *((void**)pcNode->GetObjectPtr());
+		pvObject = pcNode->GetObjectPtr();
 		if (pvObject != NULL)
 		{
 			papvElements->Add(pvObject);

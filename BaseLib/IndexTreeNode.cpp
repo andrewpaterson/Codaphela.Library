@@ -101,7 +101,14 @@ CIndexTreeNode* CIndexTreeNode::Get(unsigned char uiIndex)
 //////////////////////////////////////////////////////////////////////////
 void* CIndexTreeNode::GetObjectPtr(void)
 {
-	return RemapSinglePointer(this, sizeof(CIndexTreeNode));
+	if (muiDataSize == 0)
+	{
+		return NULL;
+	}
+	else
+	{
+		return RemapSinglePointer(this, sizeof(CIndexTreeNode));
+	}
 }
 
 
@@ -121,9 +128,12 @@ unsigned char CIndexTreeNode::GetObjectSize(void)
 //////////////////////////////////////////////////////////////////////////
 void CIndexTreeNode::Set(unsigned char uiIndex, CIndexTreeNode* pcNode)
 {
+	CIndexTreeNode**	apcChildren;
+
 	if (ContainsIndex(uiIndex))
 	{
-		GetNodes()[uiIndex - muiFirstIndex] = pcNode;
+		apcChildren = GetNodes();
+		apcChildren[uiIndex - muiFirstIndex] = pcNode;
 	}
 }
 
@@ -134,9 +144,12 @@ void CIndexTreeNode::Set(unsigned char uiIndex, CIndexTreeNode* pcNode)
 //////////////////////////////////////////////////////////////////////////
 void CIndexTreeNode::Clear(unsigned char uiIndex)
 {
+	CIndexTreeNode**	apcChildren;
+
 	if (ContainsIndex(uiIndex))
 	{
-		GetNodes()[uiIndex - muiFirstIndex] = NULL;
+		apcChildren = GetNodes();
+		apcChildren[uiIndex - muiFirstIndex] = NULL;
 	}
 }
 
@@ -279,12 +292,33 @@ int CIndexTreeNode::GetAdditionalIndexes(unsigned char uiIndex)
 	return ((uiLastIndex - uiFirstIndex + 1) - 1);   //+1 because uiLast is inclusive.  -1 because CIndexTreeNode already includes 1.	
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size_t CIndexTreeNode::CalculateRequiredNodeSize(unsigned char uiIndex)
+{
+	size_t	tAdditionalSize;
+	int		iNewIndices;
+
+	iNewIndices = GetAdditionalIndexes(uiIndex);
+	tAdditionalSize = sizeof(CIndexTreeNode) + muiDataSize + iNewIndices * sizeof(CIndexTreeNode*);
+
+	return tAdditionalSize;
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
 int CIndexTreeNode::GetNumIndexes(void)
 {
+	if (mbNodesEmpty)
+	{
+		return 0;
+	}
 	return muiLastIndex - muiFirstIndex + 1;
 }
 
@@ -378,13 +412,16 @@ void CIndexTreeNode::SizeObject(unsigned char uiSize)
 	int					iDiff;
 	CIndexTreeNode**	apcMovedChildren;
 
-	apcChildren = GetNodes();
-	tSize = (muiLastIndex - muiFirstIndex + 1) * sizeof(CIndexTreeNode*);
+	if (!mbNodesEmpty)
+	{
+		apcChildren = GetNodes();
+		tSize = (muiLastIndex - muiFirstIndex + 1) * sizeof(CIndexTreeNode*);
 
-	iDiff = (int)uiSize - (int)muiDataSize;
+		iDiff = (int)uiSize - (int)muiDataSize;
 
-	apcMovedChildren = (CIndexTreeNode**)RemapSinglePointer(apcChildren, iDiff);
-	memmove(apcMovedChildren, apcChildren, tSize);
+		apcMovedChildren = (CIndexTreeNode**)RemapSinglePointer(apcChildren, iDiff);
+		memmove(apcMovedChildren, apcChildren, tSize);
+	}
 
 	muiDataSize = uiSize;
 }

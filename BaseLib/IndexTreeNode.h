@@ -37,6 +37,7 @@ public:
 	void				RemapChildNodes(CIndexTreeNode* pcOldNode, CIndexTreeNode* pcNewNode);
 	void				SetChildsParent(void);
 	void				SizeObject(unsigned char uiSize);
+	size_t				CalculateRequiredNodeSize(unsigned char uiIndex);
 };
 
 
