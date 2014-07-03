@@ -292,7 +292,7 @@ BOOL CIndexTree::Put(void* pvObject, unsigned char uiObjectSize, char* pszKey)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTree::Add(char* pszKey, unsigned char uiObjectSize, void* pvObject)
+BOOL CIndexTree::Add(char* pszKey, void* pvObject, unsigned char uiObjectSize)
 {
 	return Put(pvObject, uiObjectSize, pszKey);
 }

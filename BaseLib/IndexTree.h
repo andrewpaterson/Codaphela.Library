@@ -43,7 +43,7 @@ public:
 
 	int					NumElements(void);
 	BOOL				Contains(char* pszKey);
-	BOOL				Add(char* pszKey, unsigned char uiObjectSize, void* pvObject);
+	BOOL				Add(char* pszKey, void* pvObject, unsigned char uiObjectSize);
 
 protected:
 	void*				Malloc(size_t tSize);

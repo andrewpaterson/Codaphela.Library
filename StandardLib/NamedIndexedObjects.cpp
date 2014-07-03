@@ -73,12 +73,12 @@ CBaseObject* CNamedIndexedObjects::Get(OIndex oi)
 //////////////////////////////////////////////////////////////////////////
 CBaseObject* CNamedIndexedObjects::Get(char* szName)
 {
-	OIndex	oi;
+	OIndex*	oi;
 
-	oi = mcNames.Get(szName);
-	if (oi != INVALID_O_INDEX)
+	oi = (OIndex*)mcNames.Get(szName);
+	if (oi)
 	{
-		return Get(oi);
+		return Get(*oi);
 	}
 	else
 	{
@@ -183,7 +183,8 @@ BOOL CNamedIndexedObjects::AddWithIDAndName(CBaseObject* pvObject, OIndex oi, ch
 
 	if ((szName != NULL) && (szName[0] != 0))
 	{
-		bResult = mcNames.Add(pvObject->GetOI(), szName);
+		oi = pvObject->GetOI();
+		bResult = mcNames.Add(szName, &oi, sizeof(OIndex));
 	}
 	return bResult;
 }
