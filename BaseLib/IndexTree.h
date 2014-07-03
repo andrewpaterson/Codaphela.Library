@@ -25,7 +25,7 @@ public:
 	void				FreeNode(CIndexTreeNode* pcNode);
 	CIndexTreeNode*		GetIndexNode(char* pszKey);
 	void*				Get(char* pszKey);
-	BOOL				Put(void* pvObject, char* pszKey);
+	BOOL				Put(void* pvObject, unsigned char uiObjectSize, char* pszKey);
 	void*				Remove(char* pszKey);
 	CIndexTreeNode*		SetOldWithCurrent(CIndexTreeNode* pcParent, unsigned char c);
 	void				FindAll(CArrayVoidPtr* papvElements);
@@ -43,7 +43,7 @@ public:
 
 	int					NumElements(void);
 	BOOL				Contains(char* pszKey);
-	BOOL				Add(char* pszKey, void* pvObject);
+	BOOL				Add(char* pszKey, unsigned char uiObjectSize, void* pvObject);
 
 protected:
 	void*				Malloc(size_t tSize);
