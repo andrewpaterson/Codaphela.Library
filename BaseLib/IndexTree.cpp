@@ -252,6 +252,16 @@ void* CIndexTree::Get(char* pszKey)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL CIndexTree::PutPtr(void* pvPointer, char* pszKey)
+{
+	return Put(&pvPointer, sizeof(void*), pszKey);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL CIndexTree::Put(void* pvObject, unsigned char uiObjectSize, char* pszKey)
 {
 	int					iKeySize;
@@ -278,7 +288,7 @@ BOOL CIndexTree::Put(void* pvObject, unsigned char uiObjectSize, char* pszKey)
 	miSize++;
 	
 	pcReallocatedCurrent = ReallocateNodeForData(pcCurrent, uiObjectSize);
-	bResult = pcReallocatedCurrent->SetObject(&pvObject, uiObjectSize);
+	bResult = pcReallocatedCurrent->SetObject(pvObject, uiObjectSize);
 	if (pcCurrent != pcReallocatedCurrent)
 	{
 		pcReallocatedCurrent->SetChildsParent();

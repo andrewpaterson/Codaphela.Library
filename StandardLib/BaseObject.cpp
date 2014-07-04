@@ -1599,7 +1599,8 @@ void CBaseObject::ValidateEmbeddedConsistency(void)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::ValidateObjectIdentifiers(void)
 {
-	CChars			sz;
+	CChars			szThis;
+	CChars			szOther;
 	CChars			szContainer;
 	CBaseObject*	pcContainer;
 	char*			szName;
@@ -1614,12 +1615,12 @@ void CBaseObject::ValidateObjectIdentifiers(void)
 			szContainer.Init();
 			pcContainer->PrintObject(&szContainer, FALSE);
 
-			sz.Init();
-			PrintObject(&sz, IsEmbedded());
+			szThis.Init();
+			PrintObject(&szThis, IsEmbedded());
 
-			gcLogger.Error2(__METHOD__, " Object {", sz.Text(), "} should have a name as it's embedded in object {", szContainer.Text(), "}.", NULL);
+			gcLogger.Error2(__METHOD__, " Object {", szThis.Text(), "} should have a name as it's embedded in object {", szContainer.Text(), "}.", NULL);
 
-			sz.Kill();
+			szThis.Kill();
 			szContainer.Kill();
 		}
 		else
@@ -1630,12 +1631,22 @@ void CBaseObject::ValidateObjectIdentifiers(void)
 				pcThis = mpcObjectsThisIn->GetFromMemory(szName);
 				if (pcThis != this)
 				{
-					sz.Init();
-					PrintObject(&sz, IsEmbedded());
+					szThis.Init();
+					PrintObject(&szThis, IsEmbedded());
+					szOther.Init();
+					if (pcThis != NULL)
+					{
+						pcThis->PrintObject(&szOther, IsEmbedded());
+					}
+					else
+					{
+						szOther.Append("NULL");
+					}
 
-					gcLogger.Error2(__METHOD__, " Object {", sz.Text(), "} does not match the Named Object in Objects.", NULL);
+					gcLogger.Error2(__METHOD__, " 'this' Object {", szThis.Text(), "} does not match the Named Object {", szOther.Text(), "} in Objects.", NULL);
 
-					sz.Kill();
+					szOther.Kill();
+					szThis.Kill();
 				}
 			}
 		}
@@ -1646,12 +1657,12 @@ void CBaseObject::ValidateObjectIdentifiers(void)
 		pcThis = mpcObjectsThisIn->GetFromMemory(GetOI());
 		if (pcThis != this)
 		{
-			sz.Init();
-			PrintObject(&sz, IsEmbedded());
+			szThis.Init();
+			PrintObject(&szThis, IsEmbedded());
 
-			gcLogger.Error2(__METHOD__, " Object {", sz.Text(), "} does not match the Object in Objects.", NULL);
+			gcLogger.Error2(__METHOD__, " Object {", szThis.Text(), "} does not match the Object in Objects.", NULL);
 
-			sz.Kill();
+			szThis.Kill();
 		}
 	}
 }

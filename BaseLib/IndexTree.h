@@ -26,6 +26,7 @@ public:
 	CIndexTreeNode*		GetIndexNode(char* pszKey);
 	void*				Get(char* pszKey);
 	BOOL				Put(void* pvObject, unsigned char uiObjectSize, char* pszKey);
+	BOOL				PutPtr(void* pvPointer, char* pszKey);
 	void*				Remove(char* pszKey);
 	CIndexTreeNode*		SetOldWithCurrent(CIndexTreeNode* pcParent, unsigned char c);
 	void				FindAll(CArrayVoidPtr* papvElements);
