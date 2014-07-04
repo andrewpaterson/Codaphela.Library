@@ -20,7 +20,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __LINE_PREPROCESSOR_H__
 #define __LINE_PREPROCESSOR_H__
-#include "BaseLib/ASCIITree.h"
+#include "ASCIITree.h"
 #include "PPToken.h"
 #include "PreprocessorParser.h"
 #include "ExternalString.h"

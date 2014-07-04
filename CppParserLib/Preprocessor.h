@@ -22,11 +22,11 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __PREPROCESSOR_H__
 #include "BaseLib/Chars.h"
 #include "BaseLib/MapStringString.h"
-#include "BaseLib/ASCIITree.h"
+#include "BaseLib/MapStringString.h"
 #include "CoreLib/TextParser.h"
 #include "DefineMap.h"
 #include "ConditionalStack.h"
-#include "BaseLib/MapStringString.h"
+#include "ASCIITree.h"
 #include "PreprocessorTokeniser.h"
 #include "PPDirective.h"
 #include "PPHolder.h"

@@ -147,10 +147,6 @@
     <ClInclude Include="MarkupSubstitute.h" />
     <ClInclude Include="MarkupTag.h" />
     <ClInclude Include="MarkupText.h" />
-    <ClInclude Include="ASCIINode.h" />
-    <ClInclude Include="ASCIITree.h" />
-    <ClInclude Include="CharsID.h" />
-    <ClInclude Include="CharsIDArray.h" />
     <ClInclude Include="Float2.h" />
     <ClInclude Include="Float3.h" />
     <ClInclude Include="Float4.h" />
@@ -276,9 +272,6 @@
     <ClCompile Include="MarkupSubstitute.cpp" />
     <ClCompile Include="MarkupTag.cpp" />
     <ClCompile Include="MarkupText.cpp" />
-    <ClCompile Include="ASCIINode.cpp" />
-    <ClCompile Include="ASCIITree.cpp" />
-    <ClCompile Include="CharsIDArray.cpp" />
     <ClCompile Include="Float2.cpp" />
     <ClCompile Include="Float3.cpp" />
     <ClCompile Include="Float4.cpp" />

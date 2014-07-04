@@ -22,7 +22,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __ASCII_NODE_H__
 #define __ASCII_NODE_H__
-#include "Chars.h"
+#include "BaseLib/Chars.h"
 
 //The first 33 ASCII characters are not representable so to save space they are ignored.  127-33 = 94
 #define ASCII_NODE_MAX_CHARS	95

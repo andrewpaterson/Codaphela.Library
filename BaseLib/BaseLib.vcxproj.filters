@@ -46,9 +46,6 @@
     <Filter Include="Source\Data\Markup">
       <UniqueIdentifier>{0ae28629-605d-41d5-9f31-20678a9efd52}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Data\ASCII">
-      <UniqueIdentifier>{5fa05940-5004-442d-987e-2facb4932830}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source\Data\Geometric">
       <UniqueIdentifier>{59e180ea-6000-48b4-a3b6-6783ceae53cd}</UniqueIdentifier>
     </Filter>
@@ -296,18 +293,6 @@
     </ClInclude>
     <ClInclude Include="MarkupText.h">
       <Filter>Source\Data\Markup</Filter>
-    </ClInclude>
-    <ClInclude Include="ASCIINode.h">
-      <Filter>Source\Data\ASCII</Filter>
-    </ClInclude>
-    <ClInclude Include="ASCIITree.h">
-      <Filter>Source\Data\ASCII</Filter>
-    </ClInclude>
-    <ClInclude Include="CharsID.h">
-      <Filter>Source\Data\ASCII</Filter>
-    </ClInclude>
-    <ClInclude Include="CharsIDArray.h">
-      <Filter>Source\Data\ASCII</Filter>
     </ClInclude>
     <ClInclude Include="Float2.h">
       <Filter>Source\Data\Geometric</Filter>
@@ -688,15 +673,6 @@
     </ClCompile>
     <ClCompile Include="MarkupText.cpp">
       <Filter>Source\Data\Markup</Filter>
-    </ClCompile>
-    <ClCompile Include="ASCIINode.cpp">
-      <Filter>Source\Data\ASCII</Filter>
-    </ClCompile>
-    <ClCompile Include="ASCIITree.cpp">
-      <Filter>Source\Data\ASCII</Filter>
-    </ClCompile>
-    <ClCompile Include="CharsIDArray.cpp">
-      <Filter>Source\Data\ASCII</Filter>
     </ClCompile>
     <ClCompile Include="Float2.cpp">
       <Filter>Source\Data\Geometric</Filter>

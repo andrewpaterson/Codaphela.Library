@@ -20,17 +20,38 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __CHARS_INDEX_H__
-#define __CHARS_INDEX_H__
-#include "Chars.h"
+#ifndef __CHARS_INDEX_ARRAY_H__
+#define __CHARS_INDEX_ARRAY_H__
+#include "BaseLib/ArrayTemplate.h"
+#include "CharsID.h"
 
 
-class CCharsID : public CChars
+class CCharsIDArray
 {
 public:
-	long long int mlliID;
+	CArrayTemplate<CCharsID>	mcArray;
+
+	void 		Init(int iChunkSize);
+	void 		Kill(void);
+
+	int			NumElements(void);
+	CCharsID*	Add(CCharsID* pcChars);
+	CCharsID*	Add(char* szString);
+	CCharsID*	Add(void);
+	CCharsID*	Add(char* szString, int iStartInclusive, int iEndExclusive);
+	void 		Remove(CCharsID* pcChars);
+	void 		Remove(char* szString);
+	void 		Remove(int iIndex, BOOL bPreserveOrder = TRUE);
+	CCharsID*	Get(int iIndex);
+	char*		GetText(int iIndex);
+	int			GetIndex(char* szStart, int iLen);
+	void		Copy(CCharsIDArray* pcSource);
+	BOOL		Equals(CCharsIDArray* pcOther);
+	void		Dump(void);
 };
 
 
-#endif // #ifndef __CHARS_INDEX_H__
+
+
+#endif // __CHARS_INDEX_ARRAY_H__
 

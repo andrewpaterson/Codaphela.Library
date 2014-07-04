@@ -78,6 +78,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AbstractSyntaxTree.cpp" />
+    <ClCompile Include="ASCIINode.cpp" />
+    <ClCompile Include="ASCIITree.cpp" />
     <ClCompile Include="ASTAggregate.cpp" />
     <ClCompile Include="ASTArray.cpp" />
     <ClCompile Include="ASTBinaryExpr.cpp" />
@@ -85,6 +87,7 @@
     <ClCompile Include="ASTConstExpr.cpp" />
     <ClCompile Include="ASTExpression.cpp" />
     <ClCompile Include="ASTUnaryExpr.cpp" />
+    <ClCompile Include="CharsIDArray.cpp" />
     <ClCompile Include="TernaryExpr.cpp" />
     <ClCompile Include="ASTAccessSpec.cpp" />
     <ClCompile Include="ASTClassSpec.cpp" />
@@ -169,6 +172,8 @@
   <ItemGroup>
     <ClInclude Include="AbstractSyntaxTree.h" />
     <ClInclude Include="AbstractSyntaxTypes.h" />
+    <ClInclude Include="ASCIINode.h" />
+    <ClInclude Include="ASCIITree.h" />
     <ClInclude Include="ASTAggregate.h" />
     <ClInclude Include="ASTArray.h" />
     <ClInclude Include="ASTCommon.h" />
@@ -177,6 +182,8 @@
     <ClInclude Include="ASTConstExpr.h" />
     <ClInclude Include="ASTExpression.h" />
     <ClInclude Include="ASTUnaryExpr.h" />
+    <ClInclude Include="CharsID.h" />
+    <ClInclude Include="CharsIDArray.h" />
     <ClInclude Include="TernaryExpr.h" />
     <ClInclude Include="SimpleOperator.h" />
     <ClInclude Include="ASTAccessSpec.h" />

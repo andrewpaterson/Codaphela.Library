@@ -67,6 +67,9 @@
     <Filter Include="Source\Tokeniser\Tokens\Helpers">
       <UniqueIdentifier>{c8b85017-0035-4458-91b1-af86384b168e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Preprocessor\ASCII">
+      <UniqueIdentifier>{05bb2b1e-ee7e-4155-babf-44a5f1d6365a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AbstractSyntaxTree.cpp">
@@ -332,6 +335,15 @@
     </ClCompile>
     <ClCompile Include="GeneralToken.cpp">
       <Filter>Source\General</Filter>
+    </ClCompile>
+    <ClCompile Include="ASCIINode.cpp">
+      <Filter>Source\Preprocessor\ASCII</Filter>
+    </ClCompile>
+    <ClCompile Include="ASCIITree.cpp">
+      <Filter>Source\Preprocessor\ASCII</Filter>
+    </ClCompile>
+    <ClCompile Include="CharsIDArray.cpp">
+      <Filter>Source\Preprocessor\ASCII</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -613,6 +625,18 @@
     </ClInclude>
     <ClInclude Include="GeneralToken.h">
       <Filter>Source\General</Filter>
+    </ClInclude>
+    <ClInclude Include="ASCIINode.h">
+      <Filter>Source\Preprocessor\ASCII</Filter>
+    </ClInclude>
+    <ClInclude Include="ASCIITree.h">
+      <Filter>Source\Preprocessor\ASCII</Filter>
+    </ClInclude>
+    <ClInclude Include="CharsID.h">
+      <Filter>Source\Preprocessor\ASCII</Filter>
+    </ClInclude>
+    <ClInclude Include="CharsIDArray.h">
+      <Filter>Source\Preprocessor\ASCII</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

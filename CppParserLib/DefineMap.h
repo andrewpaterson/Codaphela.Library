@@ -20,8 +20,8 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __DEFINE_MAP_H__
 #define __DEFINE_MAP_H__
-#include "BaseLib/ASCIITree.h"
 #include "BaseLib/ArrayTemplate.h"
+#include "ASCIITree.h"
 #include "PPLine.h"
 #include "ExternalString.h"
 
