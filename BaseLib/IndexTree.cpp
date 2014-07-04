@@ -190,22 +190,19 @@ void CIndexTree::FreeNode(CIndexTreeNode* pcNode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTreeNode* CIndexTree::GetIndexNode(char* pszKey)
+CIndexTreeNode* CIndexTree::GetIndexNode(void* pvKey, int iKeySize)
 {
 	CIndexTreeNode* pcCurrent;
-	int				iKeySize;
 
-	if (StrEmpty(pszKey))
+	if ((iKeySize == 0) || (pvKey == NULL))
 	{
 		return NULL;
 	}
 
-	iKeySize = strlen(pszKey);
-
 	pcCurrent = mpcRoot;
 	for (int i = 0; i < iKeySize; i++)
 	{
-		char c = pszKey[i];
+		char c = ((char*)pvKey)[i];
 
 		pcCurrent = pcCurrent->Get(c);
 		if (pcCurrent == NULL)
@@ -221,17 +218,12 @@ CIndexTreeNode* CIndexTree::GetIndexNode(char* pszKey)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CIndexTree::Get(char* pszKey)
+void* CIndexTree::Get(void* pvKey, int iKeySize)
 {
 	CIndexTreeNode* pcNode;
 	void*			pv;
 
-	if (StrEmpty(pszKey))
-	{
-		return NULL;
-	}
-
-	pcNode = GetIndexNode(pszKey);
+	pcNode = GetIndexNode(pvKey, iKeySize);
 	if (pcNode == NULL)
 	{
 		return NULL;
@@ -252,9 +244,45 @@ void* CIndexTree::Get(char* pszKey)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void* CIndexTree::Get(char* pszKey)
+{
+	int					iKeySize;
+
+	if (StrEmpty(pszKey))
+	{
+		return NULL;
+	}
+
+	iKeySize = strlen(pszKey);
+	return Get(pszKey, iKeySize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTree::PutPtr(void* pvPointer, void* pvKey, int iKeySize)
+{
+	return Put(&pvPointer, sizeof(void*), pvKey, iKeySize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL CIndexTree::PutPtr(void* pvPointer, char* pszKey)
 {
-	return Put(&pvPointer, sizeof(void*), pszKey);
+	int iKeySize;
+
+	if (StrEmpty(pszKey))
+	{
+		return FALSE;
+	}
+
+	iKeySize = strlen(pszKey);
+	return Put(&pvPointer, sizeof(void*), pszKey, iKeySize);
 }
 
 
@@ -264,11 +292,7 @@ BOOL CIndexTree::PutPtr(void* pvPointer, char* pszKey)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTree::Put(void* pvObject, unsigned char uiObjectSize, char* pszKey)
 {
-	int					iKeySize;
-	CIndexTreeNode*		pcCurrent;
-	CIndexTreeNode*		pcReallocatedCurrent;
-	unsigned char		c;
-	BOOL				bResult;
+	int iKeySize;
 
 	if (StrEmpty(pszKey))
 	{
@@ -276,11 +300,31 @@ BOOL CIndexTree::Put(void* pvObject, unsigned char uiObjectSize, char* pszKey)
 	}
 
 	iKeySize = strlen(pszKey);
+	return Put(pvObject, uiObjectSize, pszKey, iKeySize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTree::Put(void* pvObject, unsigned char uiObjectSize, void* pvKey, int iKeySize)
+{
+	CIndexTreeNode*		pcCurrent;
+	CIndexTreeNode*		pcReallocatedCurrent;
+	unsigned char		c;
+	BOOL				bResult;
+
+	if (iKeySize == 0)
+	{
+		return FALSE;
+	}
+
 	pcCurrent = mpcRoot;
 
 	for (int i = 0; i < iKeySize; i++)
 	{
-		c = pszKey[i];
+		c = ((char*)pvKey)[i];
 		pcCurrent = SetOldWithCurrent(pcCurrent, c);
 	}
 
@@ -294,17 +338,6 @@ BOOL CIndexTree::Put(void* pvObject, unsigned char uiObjectSize, char* pszKey)
 		pcReallocatedCurrent->SetChildsParent();
 	}
 	return bResult;
-}
-
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CIndexTree::Add(char* pszKey, void* pvObject, unsigned char uiObjectSize)
-{
-	return Put(pvObject, uiObjectSize, pszKey);
 }
 
 
@@ -343,26 +376,43 @@ CIndexTreeNode* CIndexTree::SetOldWithCurrent(CIndexTreeNode* pcParent, unsigned
 //////////////////////////////////////////////////////////////////////////
 void* CIndexTree::Remove(char* pszKey)
 {
+	int iKeySize;
+
+	if (StrEmpty(pszKey))
+	{
+		return FALSE;
+	}
+
+	iKeySize = strlen(pszKey);
+	return Remove(pszKey, iKeySize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void* CIndexTree::Remove(void* pvKey, int iKeySize)
+{
 	char									c;
-	int										iKeySize;
 	CIndexTreeNode*							pcParent;
 	CIndexTreeNode*							pcNode;
 	CArrayEmbedded<CIndexTreeNode*, 64>		apcPath;
 	CIndexTreeNode*							pcCurrent;
 	void*									pvObject;
 
-	if (pszKey == NULL)
+	if ((iKeySize == 0) || (pvKey == NULL))
 	{
 		return NULL;
 	}
 
+
 	apcPath.Init();
-	iKeySize = strlen(pszKey);
 	pcCurrent = mpcRoot;
 	apcPath.Add(&pcCurrent);
 	for (int i = 0; i < iKeySize; i++)
 	{
-		char c = pszKey[i];
+		char c = ((char*)pvKey)[i];
 		pcCurrent = pcCurrent->Get(c);
 		if (pcCurrent == NULL)
 		{
@@ -381,7 +431,7 @@ void* CIndexTree::Remove(char* pszKey)
 	pcCurrent->ClearObject();
 	for (int i = apcPath.NumElements() - 1; i > 0; i--)
 	{
-		c = pszKey[(i - 1)];
+		c = ((char*)pvKey)[(i - 1)];
 		pcNode = *apcPath.Get(i);
 		pcParent = *apcPath.Get(i - 1);
 
@@ -431,16 +481,6 @@ void CIndexTree::RecurseFindAll(CIndexTreeNode* pcNode, CArrayVoidPtr* papvEleme
 			RecurseFindAll(pcChild, papvElements);
 		}
 	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-int CIndexTree::GetSize(void)
-{
-	return NumElements();
 }
 
 
@@ -519,14 +559,11 @@ int CIndexTree::RecurseSize(CIndexTreeNode* pcNode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTree::Contains(char* pszKey)
+BOOL CIndexTree::HasKey(void* pvKey, int iKeySize)
 {
-	if (StrEmpty(pszKey))
-	{
-		return FALSE;
-	}
+	CIndexTreeNode* pcNode;
 
-	CIndexTreeNode* pcNode = GetIndexNode(pszKey);
+	pcNode = GetIndexNode(pvKey, iKeySize);
 	if (pcNode == NULL)
 	{
 		return FALSE;
@@ -542,7 +579,15 @@ BOOL CIndexTree::Contains(char* pszKey)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTree::HasKey(char* pszKey)
 {
-	return Contains(pszKey);
+	int iKeySize;
+
+	if (StrEmpty(pszKey))
+	{
+		return FALSE;
+	}
+
+	iKeySize = strlen(pszKey);
+	return HasKey(pszKey, iKeySize);
 }
 
 

@@ -155,7 +155,7 @@ BOOL CNamedIndexedObjects::AddWithIDAndName(CBaseObject* pvObject, OIndex oi, ch
 	CNamedHollowObject*	pcNamedHollow;
 	BOOL				bResult;
 
-	if (mcNames.Contains(szName))
+	if (mcNames.HasKey(szName))
 	{
 		gcLogger.Error2(__METHOD__, " Cannot add object named [", szName, "].  It already exists.", NULL);
 		return FALSE;
@@ -184,7 +184,7 @@ BOOL CNamedIndexedObjects::AddWithIDAndName(CBaseObject* pvObject, OIndex oi, ch
 	if ((szName != NULL) && (szName[0] != 0))
 	{
 		oi = pvObject->GetOI();
-		bResult = mcNames.Add(szName, &oi, sizeof(OIndex));
+		bResult = mcNames.Put(&oi, sizeof(OIndex), szName);
 	}
 	return bResult;
 }
