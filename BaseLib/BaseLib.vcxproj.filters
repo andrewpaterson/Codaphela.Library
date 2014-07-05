@@ -576,6 +576,9 @@
     <ClInclude Include="ArrayIntAndPointer.h">
       <Filter>Source\Data\Array</Filter>
     </ClInclude>
+    <ClInclude Include="IndexTreeTemplate.h">
+      <Filter>Source\Data\Index</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ArrayBit.cpp">

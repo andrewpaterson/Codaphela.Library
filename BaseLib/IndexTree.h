@@ -19,12 +19,6 @@ public:
 	void				Kill(void);
 	void				RecurseKill(CIndexTreeNode* pcNode);
 
-	CIndexTreeNode*		AllocateRoot(void);
-	CIndexTreeNode*		AllocateNode(CIndexTreeNode* pcParent);
-	CIndexTreeNode*		ReallocateNodeForIndex(CIndexTreeNode* pcNode, unsigned char uiIndex);
-	CIndexTreeNode*		ReallocateNodeForData(CIndexTreeNode* pcNode, unsigned char uiDataSize);
-	void				FreeNode(CIndexTreeNode* pcNode);
-
 	void*				Get(char* pszKey);
 	void*				Get(void* pvKey, int iKeySize);
 
@@ -35,8 +29,8 @@ public:
 	BOOL				PutPtr(void* pvPointer, char* pszKey);
 	BOOL				PutPtr(void* pvPointer, void* pvKey, int iKeySize);
 
-	void*				Remove(char* pszKey);
-	void*				Remove(void* pvKey, int iKeySize);
+	BOOL				Remove(char* pszKey);
+	BOOL				Remove(void* pvKey, int iKeySize);
 
 	BOOL				HasKey(char* pszKey);
 	BOOL				HasKey(void* pvKey, int iKeySize);
@@ -52,6 +46,12 @@ protected:
 	void*				Malloc(size_t tSize);
 	void*				Realloc(void* pv, size_t tSize);
 	void				Free(void* pv);
+
+	CIndexTreeNode*		AllocateRoot(void);
+	CIndexTreeNode*		AllocateNode(CIndexTreeNode* pcParent);
+	CIndexTreeNode*		ReallocateNodeForIndex(CIndexTreeNode* pcNode, unsigned char uiIndex);
+	CIndexTreeNode*		ReallocateNodeForData(CIndexTreeNode* pcNode, unsigned char uiDataSize);
+	void				FreeNode(CIndexTreeNode* pcNode);
 
 	CIndexTreeNode*		SetOldWithCurrent(CIndexTreeNode* pcParent, unsigned char c);
 	void				RecurseFindAll(CIndexTreeNode* pcNode, CArrayVoidPtr* papvElements);

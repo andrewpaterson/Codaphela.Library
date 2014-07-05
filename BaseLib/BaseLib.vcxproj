@@ -107,6 +107,7 @@
     <ClInclude Include="FileSystemGeneral.h" />
     <ClInclude Include="IndexTree.h" />
     <ClInclude Include="IndexTreeNode.h" />
+    <ClInclude Include="IndexTreeTemplate.h" />
     <ClInclude Include="LinkListBlock.h" />
     <ClInclude Include="LinkListTemplate.h" />
     <ClInclude Include="LinkListTemplateFreeList.h" />

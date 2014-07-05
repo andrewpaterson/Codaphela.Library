@@ -374,7 +374,7 @@ CIndexTreeNode* CIndexTree::SetOldWithCurrent(CIndexTreeNode* pcParent, unsigned
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CIndexTree::Remove(char* pszKey)
+BOOL CIndexTree::Remove(char* pszKey)
 {
 	int iKeySize;
 
@@ -392,7 +392,7 @@ void* CIndexTree::Remove(char* pszKey)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CIndexTree::Remove(void* pvKey, int iKeySize)
+BOOL CIndexTree::Remove(void* pvKey, int iKeySize)
 {
 	char									c;
 	CIndexTreeNode*							pcParent;
@@ -403,9 +403,8 @@ void* CIndexTree::Remove(void* pvKey, int iKeySize)
 
 	if ((iKeySize == 0) || (pvKey == NULL))
 	{
-		return NULL;
+		return FALSE;
 	}
-
 
 	apcPath.Init();
 	pcCurrent = mpcRoot;
@@ -416,14 +415,14 @@ void* CIndexTree::Remove(void* pvKey, int iKeySize)
 		pcCurrent = pcCurrent->Get(c);
 		if (pcCurrent == NULL)
 		{
-			return NULL;
+			return FALSE;
 		}
 		apcPath.Add(&pcCurrent);
 	}
 
 	if (pcCurrent->GetObjectSize() == 0)
 	{
-		return NULL;
+		return FALSE;
 	}
 
 	pvObject = ((void**) pcCurrent->GetObjectPtr());
@@ -443,7 +442,7 @@ void* CIndexTree::Remove(void* pvKey, int iKeySize)
 
 	miModifications++;
 	miSize--;
-	return pvObject;
+	return TRUE;
 }
 
 
