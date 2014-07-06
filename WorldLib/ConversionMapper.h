@@ -49,7 +49,7 @@ struct SImageGraphicsTextureFormat
 	CGraphicsTexture*	pcGraphicsTexture;
 	D3DFORMAT			d3dFormat;
 };
-typedef CArraySimple<SImageGraphicsTextureFormat> CArrayImageGraphicsTextureFormat;
+typedef CArrayTemplateMinimal<SImageGraphicsTextureFormat> CArrayImageGraphicsTextureFormat;
 
 
 class CImageGraphicsTexture

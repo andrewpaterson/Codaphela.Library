@@ -23,10 +23,10 @@ Microsoft DirectX is Copyright Microsoft Corporation
 #ifndef __MATRIX_ARRAY_H__
 #define __MATRIX_ARRAY_H__
 #include "DirectXLib/Direct3DGlobal.h"
-#include "BaseLib/ArraySimple.h"
+#include "BaseLib/ArrayTemplateMinimal.h"
 
 
-typedef CArraySimple<SMatrix*>		CArrayPtrMatrices;
+typedef CArrayTemplateMinimal<SMatrix*>		CArrayPtrMatrices;
 
 
 #endif //__MATRIX_ARRAY_H__

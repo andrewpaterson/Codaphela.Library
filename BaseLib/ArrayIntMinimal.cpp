@@ -20,18 +20,18 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-#include "ArraySimpleInt.h"
+#include "ArrayIntMinimal.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArraySimpleInt::Add(int i)
+void CArrayIntMinimal::Add(int i)
 {
 	int*	pi;
 
-	pi = CArraySimple<int>::Add();
+	pi = CArrayTemplateMinimal<int>::Add();
 	*pi = i;
 }
 
@@ -40,7 +40,7 @@ void CArraySimpleInt::Add(int i)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CArraySimpleInt::AddIfUnique(int i)
+int CArrayIntMinimal::AddIfUnique(int i)
 {
 	int iElementNum;
 
@@ -57,7 +57,7 @@ int CArraySimpleInt::AddIfUnique(int i)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CArraySimpleInt::Find(int i)
+int CArrayIntMinimal::Find(int i)
 {
 	int	j;
 
@@ -76,7 +76,7 @@ int CArraySimpleInt::Find(int i)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CArraySimpleInt::GetValue(int iElementPos)
+int CArrayIntMinimal::GetValue(int iElementPos)
 {
 	return *Get(iElementPos);
 }
@@ -86,8 +86,8 @@ int CArraySimpleInt::GetValue(int iElementPos)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArraySimpleInt::QuickSort(void)
+void CArrayIntMinimal::QuickSort(void)
 {
-	CArraySimple<int>::QuickSort(&ComparePrimitive<int>);
+	CArrayTemplateMinimal<int>::QuickSort(&ComparePrimitive<int>);
 }
 

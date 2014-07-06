@@ -25,7 +25,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "ErrorHandler.h"
 #include "Chars.h"
 #include "ArrayBlock.h"
-#include "ArraySimple.h"
+#include "ArrayTemplateMinimal.h"
 
 
 #define MAX_CHAR	((char)0x7f)

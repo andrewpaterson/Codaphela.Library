@@ -1457,7 +1457,7 @@ CArrayPtrMatrices* CGraphicsObject::GetMatricies(void) { return &mapMatricies; }
 CArrayPtrMaterials* CGraphicsObject::GetMaterials(void) { return &mapMaterials; }
 CArrayPtrStates* CGraphicsObject::GetStates(void) { return &mapStates; }
 CArrayPtrViewports* CGraphicsObject::GetViewports(void) { return &mapViewports; }
-CArraySimpleInt* CGraphicsObject::GetPrimitiveIndices(void) { return &maiPrimitives; }
+CArrayIntMinimal* CGraphicsObject::GetPrimitiveIndices(void) { return &maiPrimitives; }
 CArrayFloat4x4* CGraphicsObject::GetAdjMatricies(void) { return &macAdjMatricies; }
 int CGraphicsObject::GetFlags(void) { return miFlags; }
 

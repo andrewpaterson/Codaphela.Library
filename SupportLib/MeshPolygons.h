@@ -21,7 +21,7 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __MESH_POLYGONS_H__
 #define __MESH_POLYGONS_H__
 #include "BaseLib/ChunkFile.h"
-#include "BaseLib/ArraySimpleInt.h"
+#include "BaseLib/ArrayIntMinimal.h"
 #include "BaseLib/ArrayTemplate.h"
 #include "BaseLib/Float3.h"
 #include "MeshDetail.h"
@@ -32,7 +32,7 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 class CMeshPolygon
 {
 public:
-	CArraySimpleInt	maiFaces;  //In polygon
+	CArrayIntMinimal	maiFaces;  //In polygon
 	int				miName;
 
 public:

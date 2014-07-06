@@ -26,7 +26,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "ArrayChar.h"
 #include "DataTypes.h"
 #include "ArrayTemplate.h"
-#include "ArraySimple.h"
+#include "ArrayTemplateMinimal.h"
 #include "ArrayInt.h"
 
 

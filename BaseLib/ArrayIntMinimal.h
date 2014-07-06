@@ -20,26 +20,22 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __ARRAY_SIMPLE_CHAR_H__
-#define __ARRAY_SIMPLE_CHAR_H__
-#include "ArraySimple.h"
+#ifndef __ARRAY_SIMPLE_INT_H__
+#define __ARRAY_SIMPLE_INT_H__
+#include "ArrayTemplateMinimal.h"
+#include "DataTypes.h"
 
 
-//Array of simple char.
-class CArraySimpleChar : public CArraySimple<char>
+class CArrayIntMinimal : public CArrayTemplateMinimal<int>
 {
 public:
-	void	Init(void);
-	void	Init(char* sz);
-	void	Allocate(char* sz);
-	void	Allocate(int iNumElements);
-	void	Add(char c);
-	int		AddIfUnique(char c);
-	int		Find(char c);
-	char	GetValue(int iElementPos);
-	char*	GetArray(void);
+	void	Add(int i);
+	int		AddIfUnique(int i);
+	int		Find(int i);
+	int		GetValue(int iElementPos);
+	void	QuickSort(void);
 };
 
 
-#endif //__ARRAY_SIMPLE_CHAR_H__
+#endif //__ARRAY_SIMPLE_INT_H__
 

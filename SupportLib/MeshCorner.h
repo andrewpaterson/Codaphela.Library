@@ -21,14 +21,14 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __MESH_CORNER_H__
 #define __MESH_CORNER_H__
 #include "BaseLib/ChunkFile.h"
-#include "BaseLib/ArraySimpleInt.h"
+#include "BaseLib/ArrayIntMinimal.h"
 
 
 class CMeshCorner
 {
 public:
-	CArraySimpleInt		aiFace;		//Faces on this corner.
-	CArraySimpleInt		aiEdge;		//Edges on this corner.
+	CArrayIntMinimal		aiFace;		//Faces on this corner.
+	CArrayIntMinimal		aiEdge;		//Edges on this corner.
 
 	void 	Init(void);
 	void 	Kill(void);

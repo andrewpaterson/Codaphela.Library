@@ -20,7 +20,7 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-#include "ArraySimpleChar.h"
+#include "ArrayCharMinimal.h"
 #include "PointerRemapper.h"
 #include "FastFunctions.h"
 
@@ -29,9 +29,9 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArraySimpleChar::Init(void)
+void CArrayCharMinimal::Init(void)
 {
-	CArraySimple<char>::Init();
+	CArrayTemplateMinimal<char>::Init();
 }
 
 
@@ -39,7 +39,7 @@ void CArraySimpleChar::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArraySimpleChar::Init(char* sz)
+void CArrayCharMinimal::Init(char* sz)
 {
 	int	iNumElements;
 
@@ -53,9 +53,9 @@ void CArraySimpleChar::Init(char* sz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArraySimpleChar::Allocate(int iNumElements)
+void CArrayCharMinimal::Allocate(int iNumElements)
 {
-	CArraySimple<char>::Allocate(iNumElements);
+	CArrayTemplateMinimal<char>::Allocate(iNumElements);
 }
 
 
@@ -63,7 +63,7 @@ void CArraySimpleChar::Allocate(int iNumElements)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArraySimpleChar::Allocate(char* sz)
+void CArrayCharMinimal::Allocate(char* sz)
 {
 	Init(sz);
 }
@@ -73,11 +73,11 @@ void CArraySimpleChar::Allocate(char* sz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArraySimpleChar::Add(char c)
+void CArrayCharMinimal::Add(char c)
 {
 	char*	ci;
 
-	ci = CArraySimple<char>::Add();
+	ci = CArrayTemplateMinimal<char>::Add();
 	*ci = c;
 }
 
@@ -86,7 +86,7 @@ void CArraySimpleChar::Add(char c)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CArraySimpleChar::AddIfUnique(char c)
+int CArrayCharMinimal::AddIfUnique(char c)
 {
 	int iElementNum;
 
@@ -103,7 +103,7 @@ int CArraySimpleChar::AddIfUnique(char c)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CArraySimpleChar::Find(char c)
+int CArrayCharMinimal::Find(char c)
 {
 	int	j;
 
@@ -122,7 +122,7 @@ int CArraySimpleChar::Find(char c)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char CArraySimpleChar::GetValue(int iElementPos)
+char CArrayCharMinimal::GetValue(int iElementPos)
 {
 	return *Get(iElementPos);
 }
@@ -132,7 +132,7 @@ char CArraySimpleChar::GetValue(int iElementPos)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CArraySimpleChar::GetArray(void)
+char* CArrayCharMinimal::GetArray(void)
 {
 	return mpvArray;
 }

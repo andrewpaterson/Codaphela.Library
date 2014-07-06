@@ -25,9 +25,9 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/LinkListTemplate.h"
 #include "BaseLib/ArrayInt.h"
 #include "BaseLib/ArrayBlock.h"
-#include "BaseLib/ArraySimple.h"
+#include "BaseLib/ArrayTemplateMinimal.h"
 #include "BaseLib/ChunkFile.h"
-#include "BaseLib/ArraySimpleInt.h"
+#include "BaseLib/ArrayIntMinimal.h"
 #include "StandardLib/NamedObject.h"
 #include "TrackerTypes.h"
 
@@ -39,7 +39,7 @@ public:
 
 	ETrackerType		meType;  //Which Tracker to look this object up in.
 	int					miObjectIndex;
-	CArraySimpleInt		maiConnections;  //Matricies, just one unless the the object is a skinned mesh.
+	CArrayIntMinimal		maiConnections;  //Matricies, just one unless the the object is a skinned mesh.
 	
 	void 	Init(void);
 	void 	KillData(void);

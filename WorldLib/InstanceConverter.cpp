@@ -88,7 +88,7 @@ BOOL CInstanceConverter::Convert(CInstance* pcInstance)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CInstanceConverter::ConvertConnectionsAndIndices(CArrayIntAndPointer* pcConnectionAndIndex, CArraySimpleInt* pcConnectionIndices)
+void CInstanceConverter::ConvertConnectionsAndIndices(CArrayIntAndPointer* pcConnectionAndIndex, CArrayIntMinimal* pcConnectionIndices)
 {
 	int				i;
 	int				iConnectionIndex;
@@ -110,7 +110,7 @@ void CInstanceConverter::ConvertConnectionsAndIndices(CArrayIntAndPointer* pcCon
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CInstanceConverter::ConvertMeshAndLinks(CGraphicsInstance** ppcGraphicsInstance, CMeshInstance** ppcMeshInstance, int iMeshIndex, CArraySimpleInt* pcConnectionIndices)
+BOOL CInstanceConverter::ConvertMeshAndLinks(CGraphicsInstance** ppcGraphicsInstance, CMeshInstance** ppcMeshInstance, int iMeshIndex, CArrayIntMinimal* pcConnectionIndices)
 {
 	CGraphicsObject*		pcGraphicsObject;
 	CMeshObject*			pcMeshObject;
@@ -149,7 +149,7 @@ BOOL CInstanceConverter::ConvertMeshAndLinks(CGraphicsInstance** ppcGraphicsInst
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CInstanceConverter::ConvertCamera(CCameraInstance** ppcCameraInstance, int iCameraIndex, CArraySimpleInt* pcConnectionIndices)
+BOOL CInstanceConverter::ConvertCamera(CCameraInstance** ppcCameraInstance, int iCameraIndex, CArrayIntMinimal* pcConnectionIndices)
 {
 	CCamera*			pcCamera;
 	CCameraInstance*	pcCameraInstance;
@@ -189,7 +189,7 @@ BOOL CInstanceConverter::ConvertCamera(CCameraInstance** ppcCameraInstance, int 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CInstanceConverter::ConvertLight(CLightInstance** ppcLightInstance, int iLightIndex, CArraySimpleInt* pcConnectionIndices)
+BOOL CInstanceConverter::ConvertLight(CLightInstance** ppcLightInstance, int iLightIndex, CArrayIntMinimal* pcConnectionIndices)
 {
 	CLight*				pcLight;
 	CLightInstance*		pcLightInstance;

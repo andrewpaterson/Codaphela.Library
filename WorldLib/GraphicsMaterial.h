@@ -22,7 +22,7 @@ Microsoft DirectX is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __GRAPHICS_MATERIAL_H__
 #define __GRAPHICS_MATERIAL_H__
-#include "BaseLib/ArraySimple.h"
+#include "BaseLib/ArrayTemplateMinimal.h"
 #include "BaseLib/GeometricTypes.h"
 #include "StandardLib/StandardHeader.h"
 #include "SupportLib/ImageColour.h"
@@ -37,7 +37,7 @@ struct SRenderState
 };
 
 
-typedef CArraySimple<SRenderState>	CRenderStateArray;
+typedef CArrayTemplateMinimal<SRenderState>	CRenderStateArray;
 
 
 class CGraphicsTexture;

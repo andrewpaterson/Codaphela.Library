@@ -22,8 +22,8 @@ Microsoft DirectX is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __GRAPHICS_OBJECT_H__
 #define __GRAPHICS_OBJECT_H__
-#include "BaseLib/ArraySimple.h"
-#include "BaseLib/ArraySimpleInt.h"
+#include "BaseLib/ArrayTemplateMinimal.h"
+#include "BaseLib/ArrayIntMinimal.h"
 #include "StandardLib/StandardHeader.h"
 #include "DirectXLib/Direct3DGlobal.h"
 #include "GraphicsPrimitive.h"
@@ -48,10 +48,10 @@ Microsoft DirectX is Copyright Microsoft Corporation
 
 
 typedef CArrayTemplate<CGraphicsPrimitive>	CArrayPrimitives;
-typedef	CArraySimple<CGraphicsMaterial*>	CArrayPtrMaterials;
-typedef CArraySimple<CGraphicsState*>		CArrayPtrStates;
+typedef	CArrayTemplateMinimal<CGraphicsMaterial*>	CArrayPtrMaterials;
+typedef CArrayTemplateMinimal<CGraphicsState*>		CArrayPtrStates;
 typedef CArrayTemplate<SFloat4x4>			CArrayFloat4x4;
-typedef CArraySimple<CViewportInstance*>	CArrayPtrViewports;
+typedef CArrayTemplateMinimal<CViewportInstance*>	CArrayPtrViewports;
 
 
 //Remember each vertex buffer can be used by many primitives.  
@@ -69,7 +69,7 @@ protected:
 	CArrayPtrMaterials					mapMaterials;    		//Pointers to the materials.  Altered by CGraphicsInstance
 	CArrayPtrStates						mapStates;		 		//Pointers to the states.   Altered by CGraphicsInstance
 	CArrayPtrViewports					mapViewports;			//Pointers to the viewports.   Altered by CGraphicsInstance
-	CArraySimpleInt						maiPrimitives;	 		//The primitives to draw and the order to draw them in.
+	CArrayIntMinimal						maiPrimitives;	 		//The primitives to draw and the order to draw them in.
 	CArrayFloat4x4						macAdjMatricies;		//A final matrix with which to multiply the controlling matrix.
 	int									miFlags;		 		//The GRAPH_OBJ_FLAGS for this object.
 	CWorld*								mpcWorld;
@@ -147,7 +147,7 @@ public:
 	CArrayPtrMaterials*		GetMaterials(void);
 	CArrayPtrStates*		GetStates(void);
 	CArrayPtrViewports*		GetViewports(void);
-	CArraySimpleInt*		GetPrimitiveIndices(void);
+	CArrayIntMinimal*		GetPrimitiveIndices(void);
 	CArrayFloat4x4*			GetAdjMatricies(void);
 	int						GetFlags(void);
 

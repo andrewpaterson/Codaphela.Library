@@ -38,7 +38,7 @@ struct SSkinWeight
 int CompareSkinWeight(const void* arg1, const void* arg2);
 
 
-typedef CArraySimple<SSkinWeight>	CArrayVertWeight;
+typedef CArrayTemplateMinimal<SSkinWeight>	CArrayVertWeight;
 
 
 //Each one of these represents one vertex in the mesh.  The sum of each of the vert weights must equal one.

@@ -23,7 +23,7 @@ Microsoft DirectX is Copyright Microsoft Corporation
 #ifndef __GRAPHICS_VERTEX_BUFFER_H__
 #define __GRAPHICS_VERTEX_BUFFER_H__
 #include "DirectXLib/Direct3DGlobal.h"
-#include "BaseLib/ArraySimple.h"
+#include "BaseLib/ArrayTemplateMinimal.h"
 
 
 //It is NEVER a good idea to change the size of the vertex buffer.  It's size should
@@ -49,7 +49,7 @@ public:
 };
 
 
-class CGraphicsVertexBufferArray : public CArraySimple<CVertexBufferExtended>
+class CGraphicsVertexBufferArray : public CArrayTemplateMinimal<CVertexBufferExtended>
 {
 public:
 	void Init(void);

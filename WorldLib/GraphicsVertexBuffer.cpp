@@ -268,7 +268,7 @@ BOOL CVertexBufferExtended::PrivateReleaseAndCopy(void* pvDest)
 //////////////////////////////////////////////////////////////////////////
 void CGraphicsVertexBufferArray::Init(void)
 {
-	CArraySimple<CVertexBufferExtended>::Init();
+	CArrayTemplateMinimal<CVertexBufferExtended>::Init();
 }
 
 
@@ -286,7 +286,7 @@ void CGraphicsVertexBufferArray::Kill(void)
 		psVertexBuffer = Get(i);
 		psVertexBuffer->Kill();
 	}
-	CArraySimple<CVertexBufferExtended>::Kill();
+	CArrayTemplateMinimal<CVertexBufferExtended>::Kill();
 }
 
 

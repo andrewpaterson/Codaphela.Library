@@ -97,8 +97,8 @@
     <ClInclude Include="ArrayLong.h" />
     <ClInclude Include="ArrayIntAndPointer.h" />
     <ClInclude Include="ArrayPrimitiveTemplate.h" />
-    <ClInclude Include="ArraySimple.h" />
-    <ClInclude Include="ArraySimpleChar.h" />
+    <ClInclude Include="ArrayTemplateMinimal.h" />
+    <ClInclude Include="ArrayCharMinimal.h" />
     <ClInclude Include="ArrayString.h" />
     <ClInclude Include="ArrayTemplate.h" />
     <ClInclude Include="ArrayDenseTemplate.h" />
@@ -129,7 +129,7 @@
     <ClInclude Include="CharsHelper.h" />
     <ClInclude Include="Newline.h" />
     <ClInclude Include="StringHelper.h" />
-    <ClInclude Include="ArraySimpleInt.h" />
+    <ClInclude Include="ArrayIntMinimal.h" />
     <ClInclude Include="MapIntInt.h" />
     <ClInclude Include="MapIntTemplate.h" />
     <ClInclude Include="MapPtrPtr.h" />
@@ -232,8 +232,8 @@
     <ClCompile Include="ArrayInt.cpp" />
     <ClCompile Include="ArrayInt2D.cpp" />
     <ClCompile Include="ArrayLong.cpp" />
-    <ClCompile Include="ArrayTypedPointer.cpp" />
-    <ClCompile Include="ArraySimpleChar.cpp" />
+    <ClCompile Include="ArrayIntAndPointer.cpp" />
+    <ClCompile Include="ArrayCharMinimal.cpp" />
     <ClCompile Include="ArrayString.cpp" />
     <ClCompile Include="ArrayVoidPtr.cpp" />
     <ClCompile Include="BaseFileNode.cpp" />
@@ -259,7 +259,7 @@
     <ClCompile Include="CharsHelper.cpp" />
     <ClCompile Include="Newline.cpp" />
     <ClCompile Include="StringHelper.cpp" />
-    <ClCompile Include="ArraySimpleInt.cpp" />
+    <ClCompile Include="ArrayIntMinimal.cpp" />
     <ClCompile Include="MapIntInt.cpp" />
     <ClCompile Include="MapPtrPtr.cpp" />
     <ClCompile Include="MapStringInt.cpp" />

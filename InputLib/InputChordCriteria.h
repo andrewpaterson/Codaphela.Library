@@ -56,7 +56,7 @@ public:
 };
 
 
-typedef CArraySimple<CActionInputChordCriteria> CArrayActionInputChordCriteria;
+typedef CArrayTemplateMinimal<CActionInputChordCriteria> CArrayActionInputChordCriteria;
 
 
 class CActiveInputChordCriteria : public CActionInputChordCriteria

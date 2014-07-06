@@ -22,7 +22,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __CHANNELS_HELPER_H__
 #define __CHANNELS_HELPER_H__
-#include "BaseLib/ArraySimpleChar.h"
+#include "BaseLib/ArrayTemplate.h"
 #include "BaseLib/DataTypes.h"
 
 

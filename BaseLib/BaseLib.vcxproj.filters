@@ -31,9 +31,6 @@
     <Filter Include="Source\Data\String">
       <UniqueIdentifier>{bea213cd-2a49-448f-ade4-5d1eb3293042}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Data\Additional">
-      <UniqueIdentifier>{a59765dd-1bb5-4269-8df6-6e7ec48f23a7}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source\Data\Map">
       <UniqueIdentifier>{c19b3a97-f9e7-44b6-8a7e-d8947c2878bd}</UniqueIdentifier>
     </Filter>
@@ -142,52 +139,34 @@
     <Filter Include="Source\Data\Index">
       <UniqueIdentifier>{8cd85cda-086a-48d1-b7b3-6392d190bd4d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Data\Array\Bit">
+      <UniqueIdentifier>{4e1176d2-6d04-451d-a202-23cd72e4f390}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\Array\Minimal">
+      <UniqueIdentifier>{f65ab9ec-1d22-4e59-b3b1-09a1edc871fa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\Array\Embedded">
+      <UniqueIdentifier>{53041b47-649b-4e72-a17d-51652e7ea39f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\Array\Primitive">
+      <UniqueIdentifier>{6445202a-5105-4aa1-b102-e6737a166fd3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\Array\Basic">
+      <UniqueIdentifier>{c3884b9c-7a91-41df-adb9-7e7ec5507ca4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\Array\Primitive\Specific">
+      <UniqueIdentifier>{8e62ab87-bd86-4e0a-b616-b1ccdd605d85}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\Array\Basic\Specific">
+      <UniqueIdentifier>{83449a31-83b1-4279-b615-edc6e292db70}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\Array\Minimal\Specific">
+      <UniqueIdentifier>{bcb3c77f-e340-4e34-ac4e-f45a13486256}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DataMacro.h">
       <Filter>Source\Data</Filter>
-    </ClInclude>
-    <ClInclude Include="ArrayBit.h">
-      <Filter>Source\Data\Array</Filter>
-    </ClInclude>
-    <ClInclude Include="ArrayBlock.h">
-      <Filter>Source\Data\Array</Filter>
-    </ClInclude>
-    <ClInclude Include="ArrayChar.h">
-      <Filter>Source\Data\Array</Filter>
-    </ClInclude>
-    <ClInclude Include="ArrayDouble.h">
-      <Filter>Source\Data\Array</Filter>
-    </ClInclude>
-    <ClInclude Include="ArrayEmbedded.h">
-      <Filter>Source\Data\Array</Filter>
-    </ClInclude>
-    <ClInclude Include="ArrayFloat.h">
-      <Filter>Source\Data\Array</Filter>
-    </ClInclude>
-    <ClInclude Include="ArrayInt.h">
-      <Filter>Source\Data\Array</Filter>
-    </ClInclude>
-    <ClInclude Include="ArrayInt2D.h">
-      <Filter>Source\Data\Array</Filter>
-    </ClInclude>
-    <ClInclude Include="ArrayLong.h">
-      <Filter>Source\Data\Array</Filter>
-    </ClInclude>
-    <ClInclude Include="ArrayPrimitiveTemplate.h">
-      <Filter>Source\Data\Array</Filter>
-    </ClInclude>
-    <ClInclude Include="ArraySimple.h">
-      <Filter>Source\Data\Array</Filter>
-    </ClInclude>
-    <ClInclude Include="ArraySimpleChar.h">
-      <Filter>Source\Data\Array</Filter>
-    </ClInclude>
-    <ClInclude Include="ArrayString.h">
-      <Filter>Source\Data\Array</Filter>
-    </ClInclude>
-    <ClInclude Include="ArrayTemplate.h">
-      <Filter>Source\Data\Array</Filter>
     </ClInclude>
     <ClInclude Include="ArrayDenseTemplate.h">
       <Filter>Source\Data\Array\Tree</Filter>
@@ -546,9 +525,6 @@
     <ClInclude Include="ChunkFileFile.h">
       <Filter>Source\File\Chunk\File</Filter>
     </ClInclude>
-    <ClInclude Include="ArrayVoidPtr.h">
-      <Filter>Source\Data\Array</Filter>
-    </ClInclude>
     <ClInclude Include="MemoryHeader.h">
       <Filter>Source\Memory\Manager</Filter>
     </ClInclude>
@@ -570,38 +546,62 @@
     <ClInclude Include="LogConfig.h">
       <Filter>Source\Error</Filter>
     </ClInclude>
-    <ClInclude Include="ArrayIntAndPointer.h">
-      <Filter>Source\Data\Array</Filter>
-    </ClInclude>
     <ClInclude Include="IndexTreeTemplate.h">
       <Filter>Source\Data\Index</Filter>
     </ClInclude>
-    <ClInclude Include="ArraySimpleInt.h">
-      <Filter>Source\Data\Additional</Filter>
+    <ClInclude Include="ArrayBit.h">
+      <Filter>Source\Data\Array\Bit</Filter>
+    </ClInclude>
+    <ClInclude Include="ArrayTemplateMinimal.h">
+      <Filter>Source\Data\Array\Minimal</Filter>
+    </ClInclude>
+    <ClInclude Include="ArrayEmbedded.h">
+      <Filter>Source\Data\Array\Embedded</Filter>
+    </ClInclude>
+    <ClInclude Include="ArrayPrimitiveTemplate.h">
+      <Filter>Source\Data\Array\Primitive</Filter>
+    </ClInclude>
+    <ClInclude Include="ArrayVoidPtr.h">
+      <Filter>Source\Data\Array\Basic\Specific</Filter>
+    </ClInclude>
+    <ClInclude Include="ArrayString.h">
+      <Filter>Source\Data\Array\Basic\Specific</Filter>
+    </ClInclude>
+    <ClInclude Include="ArrayIntAndPointer.h">
+      <Filter>Source\Data\Array\Basic\Specific</Filter>
+    </ClInclude>
+    <ClInclude Include="ArrayInt2D.h">
+      <Filter>Source\Data\Array\Basic\Specific</Filter>
+    </ClInclude>
+    <ClInclude Include="ArrayTemplate.h">
+      <Filter>Source\Data\Array\Basic</Filter>
+    </ClInclude>
+    <ClInclude Include="ArrayBlock.h">
+      <Filter>Source\Data\Array\Basic</Filter>
+    </ClInclude>
+    <ClInclude Include="ArrayIntMinimal.h">
+      <Filter>Source\Data\Array\Minimal\Specific</Filter>
+    </ClInclude>
+    <ClInclude Include="ArrayCharMinimal.h">
+      <Filter>Source\Data\Array\Minimal\Specific</Filter>
+    </ClInclude>
+    <ClInclude Include="ArrayLong.h">
+      <Filter>Source\Data\Array\Primitive\Specific</Filter>
+    </ClInclude>
+    <ClInclude Include="ArrayChar.h">
+      <Filter>Source\Data\Array\Primitive\Specific</Filter>
+    </ClInclude>
+    <ClInclude Include="ArrayDouble.h">
+      <Filter>Source\Data\Array\Primitive\Specific</Filter>
+    </ClInclude>
+    <ClInclude Include="ArrayFloat.h">
+      <Filter>Source\Data\Array\Primitive\Specific</Filter>
+    </ClInclude>
+    <ClInclude Include="ArrayInt.h">
+      <Filter>Source\Data\Array\Primitive\Specific</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="ArrayBit.cpp">
-      <Filter>Source\Data\Array</Filter>
-    </ClCompile>
-    <ClCompile Include="ArrayBlock.cpp">
-      <Filter>Source\Data\Array</Filter>
-    </ClCompile>
-    <ClCompile Include="ArrayInt.cpp">
-      <Filter>Source\Data\Array</Filter>
-    </ClCompile>
-    <ClCompile Include="ArrayInt2D.cpp">
-      <Filter>Source\Data\Array</Filter>
-    </ClCompile>
-    <ClCompile Include="ArrayLong.cpp">
-      <Filter>Source\Data\Array</Filter>
-    </ClCompile>
-    <ClCompile Include="ArraySimpleChar.cpp">
-      <Filter>Source\Data\Array</Filter>
-    </ClCompile>
-    <ClCompile Include="ArrayString.cpp">
-      <Filter>Source\Data\Array</Filter>
-    </ClCompile>
     <ClCompile Include="LinkListBlock.cpp">
       <Filter>Source\Data\LinkList</Filter>
     </ClCompile>
@@ -887,9 +887,6 @@
     <ClCompile Include="ChunkFileFile.cpp">
       <Filter>Source\File\Chunk\File</Filter>
     </ClCompile>
-    <ClCompile Include="ArrayVoidPtr.cpp">
-      <Filter>Source\Data\Array</Filter>
-    </ClCompile>
     <ClCompile Include="MemoryHeader.cpp">
       <Filter>Source\Memory\Manager</Filter>
     </ClCompile>
@@ -908,11 +905,35 @@
     <ClCompile Include="IndexTreeNode.cpp">
       <Filter>Source\Data\Index</Filter>
     </ClCompile>
-    <ClCompile Include="ArrayTypedPointer.cpp">
-      <Filter>Source\Data\Array</Filter>
+    <ClCompile Include="ArrayBit.cpp">
+      <Filter>Source\Data\Array\Bit</Filter>
     </ClCompile>
-    <ClCompile Include="ArraySimpleInt.cpp">
-      <Filter>Source\Data\Additional</Filter>
+    <ClCompile Include="ArrayVoidPtr.cpp">
+      <Filter>Source\Data\Array\Basic\Specific</Filter>
+    </ClCompile>
+    <ClCompile Include="ArrayString.cpp">
+      <Filter>Source\Data\Array\Basic\Specific</Filter>
+    </ClCompile>
+    <ClCompile Include="ArrayIntAndPointer.cpp">
+      <Filter>Source\Data\Array\Basic\Specific</Filter>
+    </ClCompile>
+    <ClCompile Include="ArrayInt2D.cpp">
+      <Filter>Source\Data\Array\Basic\Specific</Filter>
+    </ClCompile>
+    <ClCompile Include="ArrayBlock.cpp">
+      <Filter>Source\Data\Array\Basic</Filter>
+    </ClCompile>
+    <ClCompile Include="ArrayCharMinimal.cpp">
+      <Filter>Source\Data\Array\Minimal\Specific</Filter>
+    </ClCompile>
+    <ClCompile Include="ArrayIntMinimal.cpp">
+      <Filter>Source\Data\Array\Minimal\Specific</Filter>
+    </ClCompile>
+    <ClCompile Include="ArrayInt.cpp">
+      <Filter>Source\Data\Array\Primitive\Specific</Filter>
+    </ClCompile>
+    <ClCompile Include="ArrayLong.cpp">
+      <Filter>Source\Data\Array\Primitive\Specific</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

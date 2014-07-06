@@ -23,7 +23,7 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/ArrayIntAndPointer.h"
 #include "BaseLib/ChunkFile.h"
 #include "BaseLib/GeometricTypes.h"
-#include "BaseLib/ArraySimpleInt.h"
+#include "BaseLib/ArrayIntMinimal.h"
 #include "StandardLib/NamedObject.h"
 #include "Sphere.h"
 #include "Triangle.h"
@@ -85,7 +85,7 @@ public:
 class CPolygonIndexed : public CShapeIndexed
 {
 public:
-	CArraySimpleInt		maiPositions;  //It's assumed all these points are in a plane.
+	CArrayIntMinimal		maiPositions;  //It's assumed all these points are in a plane.
 	int					miNormalIndex;
 	BOOL				mbConvex;
 

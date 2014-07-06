@@ -37,8 +37,8 @@ typedef CArrayTemplate<CMeshFace>		CArrayFace;
 struct CCornerEdgesMap
 {
 	//int	iSmallCornerIndex;  //Implied by position in array.
-	CArraySimpleInt		maiLargerCornerIndex;
-	CArraySimpleInt		maiEdgeIndex;  //Same size as maiLargerCornerIndex.  
+	CArrayIntMinimal		maiLargerCornerIndex;
+	CArrayIntMinimal		maiEdgeIndex;  //Same size as maiLargerCornerIndex.  
 
 	void Init(void);
 	void Kill(void);
