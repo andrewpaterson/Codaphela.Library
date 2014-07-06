@@ -54,7 +54,7 @@ SPackFileIteratorPosition* CPackFileIterator::Peek(void)
 //////////////////////////////////////////////////////////////////////////
 void CPackFileIterator::Pop(void)
 {
-	macDepth.Pop();
+	macDepth.CArrayBase::Pop();
 }
 
 

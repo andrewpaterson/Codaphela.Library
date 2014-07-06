@@ -104,7 +104,7 @@ M CArrayPrimitiveTemplate<M>::SafeGetValue(int iElementPos)
 {
 	if ((iElementPos >= 0) && (iElementPos < this->miUsedElements))
 	{
-		return mpvArray[iElementPos];
+		return ((M*)mpvArray)[iElementPos];
 	}
 	return -1;
 }
@@ -117,7 +117,7 @@ M CArrayPrimitiveTemplate<M>::SafeGetValue(int iElementPos)
 template<class M>
 void CArrayPrimitiveTemplate<M>::SetValue(int iElementPos, M iElement)
 {
-	mpvArray[iElementPos] = iElement;
+	((M*)mpvArray)[iElementPos] = iElement;
 }
 
 
@@ -181,7 +181,7 @@ void CArrayPrimitiveTemplate<M>::SetArrayValues(M iValue)
 
 	for (i = 0; i < this->miUsedElements; i++)
 	{
-		this->mpvArray[i] = iValue;
+		((M*)mpvArray)[i] = iValue;
 	}
 }
 
@@ -197,7 +197,7 @@ void CArrayPrimitiveTemplate<M>::SetArrayValues(M iStartValue, M iIncrement)
 
 	for (i = 0; i < this->miUsedElements; i++)
 	{
-		this->mpvArray[i] = iStartValue;
+		((M*)mpvArray)[i] = iStartValue;
 		iStartValue += iIncrement;
 	}
 }
@@ -236,7 +236,7 @@ int CArrayPrimitiveTemplate<M>::Find(M iValue)
 
 	for (i = 0; i < this->miUsedElements; i++)
 	{
-		if (this->mpvArray[i] == iValue)
+		if (((M*)mpvArray)[i] == iValue)
 		{
 			return i;
 		}

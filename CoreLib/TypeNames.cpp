@@ -40,7 +40,7 @@ void CTypeNames::AddType(EPrimitiveTypes eType, int iSize, char* szPrettyName, c
 	int			iPrimitiveNameLen;
 	int			iLen;
 
-	psTypeName = masTypeNames.GrowToAtLeastNumElements(((int)eType)+1, TRUE, 0);
+	psTypeName = (STypeName*)masTypeNames.GrowToAtLeastNumElements(((int)eType)+1, TRUE, 0);
 
 	psTypeName->eType = eType;
 	if (iSize & SIZE_IN_BITS)
