@@ -18,9 +18,10 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela ShapeLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "Triangle.h"
+#include "BaseLib/IntegerHelper.h"
 #include "BaseLib/FloatHelper.h"
 #include "BaseLib/Numbers.h"
+#include "Triangle.h"
 
 
 //////////////////////////////////////////////////////////////////////////

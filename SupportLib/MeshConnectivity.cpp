@@ -21,6 +21,7 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/IntegerHelper.h"
 #include "BaseLib/PointerFunctions.h"
 #include "MeshDefines.h"
 #include "MeshConnectivity.h"

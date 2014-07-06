@@ -111,13 +111,10 @@ BOOL CNamedIndexedObjects::RemoveIndex(OIndex oi)
 //////////////////////////////////////////////////////////////////////////
 BOOL CNamedIndexedObjects::RemoveName(char* szName)
 {
-	void*	pvObject;
-
 	if ((szName != NULL) && (szName[0] != 0))
 	{
 		//This only removes the name from the names, it does not free the object pointer to.
-		pvObject = mcNames.Remove(szName);
-		return pvObject != NULL;
+		return mcNames.Remove(szName);
 	}
 	return TRUE;
 }

@@ -29,7 +29,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #define CALL_LISTENERS_2(listeners, func, param1, param2) for (int iListenerNumber = 0; iListenerNumber < listeners.NumElements(); iListenerNumber++) { (*listeners.Get(iListenerNumber))->func(param1, param2); }
 
 
-typedef CArraySimple<CListener*>	CArrayListenerPtr;
+typedef CArrayTemplate<CListener*>	CArrayListenerPtr;
 typedef void (CListener::*ListenerFunc)(CUnknown*, void*);
 
 

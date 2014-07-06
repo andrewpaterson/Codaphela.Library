@@ -21,10 +21,11 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
-#include "ImageResampler.h"
-#include "Image.h"
+#include "BaseLib/IntegerHelper.h"
 #include "BaseLib/FastFunctions.h"
+#include "Image.h"
 #include "ImageAccessorCreator.h"
+#include "ImageResampler.h"
 
 
 //////////////////////////////////////////////////////////////////////////
