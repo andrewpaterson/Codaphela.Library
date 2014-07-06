@@ -214,7 +214,7 @@ BOOL CConversionMapper::AddImage(OIndex iImageIndex, D3DFORMAT d3dFormat, CGraph
 		return FALSE;
 	}
 
-	pcImageTexture = macTextures.GrowToAtLeastNumElements((int)(iImageIndex+1), TRUE, -1);
+	pcImageTexture = (CImageGraphicsTexture*)macTextures.GrowToAtLeastNumElements((int)(iImageIndex+1), TRUE, -1);
 	if (pcImageTexture->miInitialised == 1)
 	{
 		pcImageTexture->AddGraphicsTexture(pcGraphicsTexture, d3dFormat);

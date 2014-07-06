@@ -265,7 +265,7 @@ CDefine* CDefineMap::AddDefine(CExternalString* pcName)
 	iIndex = mcDefinesTree.AddIndex(pcName->msz, pcName->EndInclusive());
 	if (iIndex != -1)
 	{
-		pcDefine = mcDefinesArray.GrowToAtLeastNumElements(iIndex+1, TRUE, 0);
+		pcDefine = (CDefine*)mcDefinesArray.GrowToAtLeastNumElements(iIndex+1, TRUE, 0);
 		pcDefine->Init(iIndex, muiID, this);
 		muiID++;
 		return pcDefine;
@@ -290,7 +290,7 @@ CDefine* CDefineMap::AddDefine(CExternalString* pcName, CDefine* pcSource)
 		//Other processes will have depended on it.
 		if ((iIndex == pcSource->miIndex) && (muiID == pcSource->muiID))
 		{
-			pcDefine = mcDefinesArray.GrowToAtLeastNumElements(iIndex+1, TRUE, 0);
+			pcDefine = (CDefine*)mcDefinesArray.GrowToAtLeastNumElements(iIndex+1, TRUE, 0);
 
 			//It is safe to just overwrite mcReplacement and mcArguments provided that source isn't killed, just ignored.
 			memcpy(pcDefine, pcSource, sizeof(CDefine));
@@ -320,7 +320,7 @@ CDefine* CDefineMap::AddDefine(char* szName)
 	iIndex = mcDefinesTree.AddIndex(szName);
 	if (iIndex != -1)
 	{
-		pcDefine = mcDefinesArray.GrowToAtLeastNumElements(iIndex+1, TRUE, 0);
+		pcDefine = (CDefine*)mcDefinesArray.GrowToAtLeastNumElements(iIndex+1, TRUE, 0);
 		pcDefine->Init(iIndex, muiID, this);
 		muiID++;
 		return pcDefine;
