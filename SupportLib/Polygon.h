@@ -21,7 +21,7 @@ along with Codaphela ShapeLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __POLYGON_H__
 #define __POLYGON_H__
 #include "Plane.h"
-#include "BaseLib/AdditionalTypes.h"
+#include "BaseLib/ArraySimpleInt.h"
 
 class CTriangle;
 class CPolygon : public CPlane

@@ -23,7 +23,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 ** ------------------------------------------------------------------------ **/
 #ifndef __MESH_LEAVES_H__
 #define __MESH_LEAVES_H__
-#include "BaseLib/AdditionalTypes.h"
+#include "BaseLib/ArraySimpleInt.h"
 #include "MeshDetail.h"
 #include "ShapesIndexed.h"
 

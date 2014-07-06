@@ -55,7 +55,7 @@ public:
 };
 
 
-typedef CArraySimple<CLightInstance*> CArrayPtrLight;
+typedef CArrayTemplate<CLightInstance*> CArrayPtrLight;
 
 
 #endif //__LIGHT_INSTANCE_H__

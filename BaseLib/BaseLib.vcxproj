@@ -129,7 +129,7 @@
     <ClInclude Include="CharsHelper.h" />
     <ClInclude Include="Newline.h" />
     <ClInclude Include="StringHelper.h" />
-    <ClInclude Include="AdditionalTypes.h" />
+    <ClInclude Include="ArraySimpleInt.h" />
     <ClInclude Include="MapIntInt.h" />
     <ClInclude Include="MapIntTemplate.h" />
     <ClInclude Include="MapPtrPtr.h" />
@@ -259,7 +259,7 @@
     <ClCompile Include="CharsHelper.cpp" />
     <ClCompile Include="Newline.cpp" />
     <ClCompile Include="StringHelper.cpp" />
-    <ClCompile Include="AdditionalTypes.cpp" />
+    <ClCompile Include="ArraySimpleInt.cpp" />
     <ClCompile Include="MapIntInt.cpp" />
     <ClCompile Include="MapPtrPtr.cpp" />
     <ClCompile Include="MapStringInt.cpp" />

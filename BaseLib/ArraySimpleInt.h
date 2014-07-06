@@ -20,32 +20,22 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __TEXT_FILE_H__
-#define __TEXT_FILE_H__
-#include "FileBasic.h"
-#include "ArraySimpleInt.h"
-#include "Define.h"
-#include "Chars.h"
+#ifndef __ARRAY_SIMPLE_INT_H__
+#define __ARRAY_SIMPLE_INT_H__
+#include "ArraySimple.h"
+#include "DataTypes.h"
 
 
-class CTextFile
+class CArraySimpleInt : public CArraySimple<int>
 {
 public:
-	CChars		mcText;
-	CChars		mszFileName;
-
-	void	Init(void);
-	void	Kill(void);
-	void	KillExceptBuffer(void);
-    BOOL	Read(char* szFileName);
-	BOOL	Read(CAbstractFile* pcAbstractFile);
-	BOOL	Write(char* szFileName);
-	char*	Text(void);
-	int		Length(void);
-	void	PassifyNewlines(void);
-	void	Dump(void);
+	void	Add(int i);
+	int		AddIfUnique(int i);
+	int		Find(int i);
+	int		GetValue(int iElementPos);
+	void	QuickSort(void);
 };
 
 
-#endif // __TEXT_FILE_H__
+#endif //__ARRAY_SIMPLE_INT_H__
 

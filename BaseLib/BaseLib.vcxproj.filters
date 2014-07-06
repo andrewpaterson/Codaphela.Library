@@ -237,9 +237,6 @@
     <ClInclude Include="StringHelper.h">
       <Filter>Source\Data\String</Filter>
     </ClInclude>
-    <ClInclude Include="AdditionalTypes.h">
-      <Filter>Source\Data\Additional</Filter>
-    </ClInclude>
     <ClInclude Include="MapIntInt.h">
       <Filter>Source\Data\Map</Filter>
     </ClInclude>
@@ -579,6 +576,9 @@
     <ClInclude Include="IndexTreeTemplate.h">
       <Filter>Source\Data\Index</Filter>
     </ClInclude>
+    <ClInclude Include="ArraySimpleInt.h">
+      <Filter>Source\Data\Additional</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ArrayBit.cpp">
@@ -634,9 +634,6 @@
     </ClCompile>
     <ClCompile Include="StringHelper.cpp">
       <Filter>Source\Data\String</Filter>
-    </ClCompile>
-    <ClCompile Include="AdditionalTypes.cpp">
-      <Filter>Source\Data\Additional</Filter>
     </ClCompile>
     <ClCompile Include="MapIntInt.cpp">
       <Filter>Source\Data\Map</Filter>
@@ -913,6 +910,9 @@
     </ClCompile>
     <ClCompile Include="ArrayTypedPointer.cpp">
       <Filter>Source\Data\Array</Filter>
+    </ClCompile>
+    <ClCompile Include="ArraySimpleInt.cpp">
+      <Filter>Source\Data\Additional</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

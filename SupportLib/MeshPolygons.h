@@ -21,8 +21,9 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __MESH_POLYGONS_H__
 #define __MESH_POLYGONS_H__
 #include "BaseLib/ChunkFile.h"
-#include "BaseLib/AdditionalTypes.h"
+#include "BaseLib/ArraySimpleInt.h"
 #include "BaseLib/ArrayTemplate.h"
+#include "BaseLib/Float3.h"
 #include "MeshDetail.h"
 
 

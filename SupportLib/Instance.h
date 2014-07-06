@@ -27,7 +27,7 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/ArrayBlock.h"
 #include "BaseLib/ArraySimple.h"
 #include "BaseLib/ChunkFile.h"
-#include "BaseLib/AdditionalTypes.h"
+#include "BaseLib/ArraySimpleInt.h"
 #include "StandardLib/NamedObject.h"
 #include "TrackerTypes.h"
 

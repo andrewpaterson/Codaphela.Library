@@ -22,7 +22,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/PointerFunctions.h"
 #include "BaseLib/IntegerHelper.h"
-#include "BaseLib/AdditionalTypes.h"
+#include "BaseLib/ArraySimpleInt.h"
 #include "BaseLib/Chars.h"
 #include "BaseLib/Define.h"
 #include "CoreLib/TypeNames.h"
