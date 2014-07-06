@@ -600,6 +600,9 @@
     <ClInclude Include="ArrayInt.h">
       <Filter>Source\Data\Array\Primitive\Specific</Filter>
     </ClInclude>
+    <ClInclude Include="ArrayBase.h">
+      <Filter>Source\Data\Array\Basic</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="LinkListBlock.cpp">
@@ -934,6 +937,9 @@
     </ClCompile>
     <ClCompile Include="ArrayLong.cpp">
       <Filter>Source\Data\Array\Primitive\Specific</Filter>
+    </ClCompile>
+    <ClCompile Include="ArrayBase.cpp">
+      <Filter>Source\Data\Array\Basic</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
