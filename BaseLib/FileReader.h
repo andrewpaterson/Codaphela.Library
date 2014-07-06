@@ -22,25 +22,11 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __FILE_READER_H__
 #define __FILE_READER_H__
-//#include "ArrayTemplate.h"
-//#include "ArrayInt.h"
-//#include "ArrayBlock.h"
-//#include "ArraySimple.h"
-//#include "LinkListTemplate.h"
-//#include "LinkListBlock.h"
-//#include "TreeTemplate.h"
-//#include "TreeBlock.h"
-//#include "EnumeratorTemplate.h"
-//#include "EnumeratorBlock.h"
 #include "ErrorTypes.h"
 #include "AbstractFile.h"
 
 
 #define CheckRead(pvData, iSize) 	if (Read(pvData, iSize, 1) != 1) { return FALSE; }
-//if (!pcFileReader->ReadData(pvData, iSize)) 
-//{ 
-//	return FALSE; 
-//}
 
 
 class CFileReader

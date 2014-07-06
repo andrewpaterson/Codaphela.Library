@@ -22,25 +22,11 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __FILE_WRITER_H__
 #define __FILE_WRITER_H__
-//#include "ArrayTemplate.h"
-//#include "ArrayInt.h"
-//#include "ArrayBlock.h"
-//#include "ArraySimple.h"
-//#include "LinkListTemplate.h"
-//#include "LinkListBlock.h"
-//#include "TreeTemplate.h"
-//#include "TreeBlock.h"
-//#include "EnumeratorTemplate.h"
-//#include "EnumeratorBlock.h"
 #include "ErrorTypes.h"
 #include "AbstractFile.h"
 
 
 #define CheckWrite(pvData, iSize)	if (Write(pvData, iSize, 1) != 1) { return FALSE; }
-//if (!pcFileWriter->WriteData(pvData, iSize)) 
-//{ 
-//	return FALSE; 
-//}
 
 
 class CFileWriter
