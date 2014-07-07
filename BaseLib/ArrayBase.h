@@ -21,11 +21,20 @@ protected:
 	void*	mpvArray;
 
 public:
+	void 	Init(int iElementSize);
+	void 	Init(int iElementSize, int iChunkSize);
 	void 	InitFromHeader(void);
 	void 	Init(SArrayTemplateHeader* psHeader);
 	void	Init(CArrayBase* pcTemplateArray);
-	void 	Kill(void);
+	void 	ReInit(int iChunkSize = 0);
+	void 	Allocate(int iElementSize, int iNumElements);
+	void 	Allocate(int iElementSize, int iChunkSize, int iNumElements);
 	void 	Finalise(void);
+	void	Fake(int iElementSize, void* pvData, int iNum, int iChunkSize = 1);
+	void 	Kill(void);
+
+	void 	SetAllocateSize(int iSize);
+	void	FakeSetUsedElements(int iUsedElements);
 
 	int		NumElements(void);
 	BOOL	IsEmpty(void);

@@ -23,22 +23,14 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __ARRAY_BLOCK_H__
 #define __ARRAY_BLOCK_H__
 #include "DataTypes.h"
-#include "ArrayTemplate.h"
+#include "ArrayBase.h"
 
 
 //This is an where the sizeof the elements are not know at compile time.
 //It is not an array of void*
-class CArrayBlock : public __CArrayTemplate<void>
+class CArrayBlock : public CArrayBase
 {
 public:
-	void	Init(int iSize);
-	void	Init(int iSize, int iChunkSize);
-	void 	Allocate(int iSize, int iChunkSize);
-	void 	Allocate(int iSize, int iChunkSize, int iNumElements);
-	void 	ReInit(void);
-	void	Fake(void* pvData, int iSize, int iNum, int iChunkSize = 1);
-	void	FakeSetUsedElements(int iUsedElements);
-
 	BOOL	WriteArrayUnknown(CFileWriter* pcFileWriter);
 	BOOL	ReadArrayUnknown(CFileReader* pcFileReader);
 };

@@ -26,10 +26,15 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 
 template<class M>
-class __CArrayTemplate : public CArrayBase
+class CArrayTemplate : public CArrayBase
 {
 public:
-	void	Init(__CArrayTemplate<M>* pcTemplateArray);
+	void 	Init(void);
+	void 	Init(int iChunkSize);
+	void	Init(CArrayTemplate<M>* pcTemplateArray);
+	void 	Allocate(int iNumElements);
+	void 	Allocate(int iChunkSize, int iNumElements);
+	void	Fake(M* pvData, int iNum);
 
 	M*		Add(void);
 	M*		Add(M* pvData);
@@ -37,17 +42,18 @@ public:
 	int 	AddIfUnique(M* pData);
 	int 	AddIfUniqueKey(M* pData, int iKeyOffset, int iKeySize);
 
-	BOOL 	Copy(__CArrayTemplate<M>* pcTemplateArray);
+	BOOL 	Copy(CArrayTemplate<M>* pcTemplateArray);
 
 	M*		Get(int iIndex);
 	M*		SafeGet(int iIndex);
 	M*		GetData(void);
 	int		GetIndex(M* pvElement);
 	M*		Tail(void);
+	M&		operator[](int iIndex);
 
-	void	InsertArrayAfterEnd(__CArrayTemplate<M>* pcTemplateArray);
-	void	InsertArrayAt(__CArrayTemplate<M>* pcTemplateArray, int iIndex);
-	void	InsertArrayBeforeStart(__CArrayTemplate<M>* pcTemplateArray);
+	void	InsertArrayAfterEnd(CArrayTemplate<M>* pcTemplateArray);
+	void	InsertArrayAt(CArrayTemplate<M>* pcTemplateArray, int iIndex);
+	void	InsertArrayBeforeStart(CArrayTemplate<M>* pcTemplateArray);
 	M* 		InsertAt(int iIndex);
 	M*	 	InsertAt(M* pvData, int iIndex);
 	void	InsertBlockAfterEnd(M* paElements, int iLength);
@@ -62,7 +68,7 @@ public:
 	M*		Push(void);
 
 	BOOL	Contains(M* pData);
-	BOOL	Equals(__CArrayTemplate<M>* pcTemplateArray);
+	BOOL	Equals(CArrayTemplate<M>* pcTemplateArray);
 	int 	Find(M* pData);
 	BOOL	FindInSorted(M* pData, int(*)(const void*, const void*), int* piIndex);
 	int 	FindWithKey(M* pData, int iKeyOffset, int iKeySize);
@@ -72,26 +78,16 @@ public:
 };
 
 
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
 template<class M>
-class CArrayTemplate : public __CArrayTemplate<M>
+void CArrayTemplate<M>::Init(void)
 {
-public:
-	void 	Init(void);
-	void 	Init(int iChunkSize);
-	void	Init(SArrayTemplateHeader* psHeader);
-	void	Init(__CArrayTemplate<M>* pcTemplateArray);
-
-	void 	Allocate(int iNumElements);
-	void 	Allocate(int iChunkSize, int iNumElements);
-	void	Fake(M* pvData, int iNum);
-	void	FakeSetUsedElements(int iUsedElements);
-	M*		Get(int iIndex);
-	void 	ReInit(int iChunkSize = 0);
-
-	M&		operator[](int iIndex);
-
-	void 	SetAllocateSize(int iSize);
-};
+	CArrayBase::Init(sizeof(M));
+}
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -99,7 +95,40 @@ public:
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void __CArrayTemplate<M>::Init(__CArrayTemplate<M>* pcTemplateArray)
+void CArrayTemplate<M>::Init(int iChunkSize)
+{
+	CArrayBase::Init(sizeof(M), iChunkSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+void CArrayTemplate<M>::Allocate(int iNumElements)
+{
+	CArrayBase::Allocate(sizeof(M), iNumElements);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+void CArrayTemplate<M>::Allocate(int iChunkSize, int iNumElements)
+{
+	CArrayBase::Allocate(sizeof(M), iChunkSize, iNumElements);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+void CArrayTemplate<M>::Init(CArrayTemplate<M>* pcTemplateArray)
 {
 	CArrayBase::Init(pcTemplateArray);
 }
@@ -110,7 +139,7 @@ void __CArrayTemplate<M>::Init(__CArrayTemplate<M>* pcTemplateArray)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M* __CArrayTemplate<M>::SafeGet(int iIndex)
+M* CArrayTemplate<M>::SafeGet(int iIndex)
 {
 	return (M*)CArrayBase::SafeGet(iIndex);
 }
@@ -121,7 +150,7 @@ M* __CArrayTemplate<M>::SafeGet(int iIndex)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-BOOL __CArrayTemplate<M>::SafeSet(int iIndex, M* pvData)
+BOOL CArrayTemplate<M>::SafeSet(int iIndex, M* pvData)
 {
 	return CArrayBase::SafeSet(iIndex, pvData);
 }
@@ -132,7 +161,7 @@ BOOL __CArrayTemplate<M>::SafeSet(int iIndex, M* pvData)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M* __CArrayTemplate<M>::Add(void)
+M* CArrayTemplate<M>::Add(void)
 {
 	return (M*)CArrayBase::Add();
 }
@@ -143,7 +172,7 @@ M* __CArrayTemplate<M>::Add(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M* __CArrayTemplate<M>::AddGetIndex(int* piIndex)
+M* CArrayTemplate<M>::AddGetIndex(int* piIndex)
 {
 	return (M*)CArrayBase::AddGetIndex(piIndex);
 }
@@ -154,7 +183,7 @@ M* __CArrayTemplate<M>::AddGetIndex(int* piIndex)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M* __CArrayTemplate<M>::Add(M* pvData)
+M* CArrayTemplate<M>::Add(M* pvData)
 {
 	return (M*)CArrayBase::Add(pvData);
 }
@@ -165,7 +194,7 @@ M* __CArrayTemplate<M>::Add(M* pvData)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void __CArrayTemplate<M>::Set(int iIndex, M* pvData)
+void CArrayTemplate<M>::Set(int iIndex, M* pvData)
 {
 	return CArrayBase::Set(iIndex, pvData);
 }
@@ -176,7 +205,7 @@ void __CArrayTemplate<M>::Set(int iIndex, M* pvData)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M* __CArrayTemplate<M>::InsertAt(int iIndex)  //The new element will be at iIndex
+M* CArrayTemplate<M>::InsertAt(int iIndex)  //The new element will be at iIndex
 {
 	return (M*)CArrayBase::InsertAt(iIndex);
 }
@@ -187,7 +216,7 @@ M* __CArrayTemplate<M>::InsertAt(int iIndex)  //The new element will be at iInde
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M* __CArrayTemplate<M>::InsertAt(M* pvData, int iIndex)
+M* CArrayTemplate<M>::InsertAt(M* pvData, int iIndex)
 {
 	return (M*)CArrayBase::InsertAt(pvData, iIndex);
 }
@@ -198,7 +227,7 @@ M* __CArrayTemplate<M>::InsertAt(M* pvData, int iIndex)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-BOOL __CArrayTemplate<M>::Copy(__CArrayTemplate* pcTemplateArray)
+BOOL CArrayTemplate<M>::Copy(CArrayTemplate* pcTemplateArray)
 {
 	return CArrayBase::Copy(pcTemplateArray);
 }
@@ -209,7 +238,7 @@ BOOL __CArrayTemplate<M>::Copy(__CArrayTemplate* pcTemplateArray)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void __CArrayTemplate<M>::Push(M* pvElement)
+void CArrayTemplate<M>::Push(M* pvElement)
 {
 	CArrayBase::Push(pvElement);
 }
@@ -220,7 +249,7 @@ void __CArrayTemplate<M>::Push(M* pvElement)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M* __CArrayTemplate<M>::Push(void)
+M* CArrayTemplate<M>::Push(void)
 {
 	return (M*)CArrayBase::Push();
 }
@@ -231,7 +260,7 @@ M* __CArrayTemplate<M>::Push(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void __CArrayTemplate<M>::Pop(M* pvElement)
+void CArrayTemplate<M>::Pop(M* pvElement)
 {
 	CArrayBase::Pop(pvElement);
 }
@@ -241,7 +270,7 @@ void __CArrayTemplate<M>::Pop(M* pvElement)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void __CArrayTemplate<M>::Pop(void)
+void CArrayTemplate<M>::Pop(void)
 {
 	CArrayBase::Pop();
 }
@@ -252,7 +281,7 @@ void __CArrayTemplate<M>::Pop(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M* __CArrayTemplate<M>::Tail(void)
+M* CArrayTemplate<M>::Tail(void)
 {
 	return (M*)CArrayBase::Tail();
 }
@@ -263,7 +292,7 @@ M* __CArrayTemplate<M>::Tail(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-int __CArrayTemplate<M>::AddIfUnique(M* pData)
+int CArrayTemplate<M>::AddIfUnique(M* pData)
 {
 	return CArrayBase::AddIfUnique(pData);
 }
@@ -274,7 +303,7 @@ int __CArrayTemplate<M>::AddIfUnique(M* pData)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-int __CArrayTemplate<M>::Find(M* pData)
+int CArrayTemplate<M>::Find(M* pData)
 {
 	return CArrayBase::Find(pData);
 }
@@ -286,7 +315,7 @@ int __CArrayTemplate<M>::Find(M* pData)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-int __CArrayTemplate<M>::Contains(M* pData)
+int CArrayTemplate<M>::Contains(M* pData)
 {
 	return CArrayBase::Contains(pData);
 }
@@ -297,7 +326,7 @@ int __CArrayTemplate<M>::Contains(M* pData)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-int __CArrayTemplate<M>::AddIfUniqueKey(M* pData, int iKeyOffset, int iKeySize)
+int CArrayTemplate<M>::AddIfUniqueKey(M* pData, int iKeyOffset, int iKeySize)
 {
 	return CArrayBase::AddIfUniqueKey(pData, iKeyOffset, iKeySize);
 }
@@ -308,7 +337,7 @@ int __CArrayTemplate<M>::AddIfUniqueKey(M* pData, int iKeyOffset, int iKeySize)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-int __CArrayTemplate<M>::FindWithKey(M* pData, int iKeyOffset, int iKeySize)
+int CArrayTemplate<M>::FindWithKey(M* pData, int iKeyOffset, int iKeySize)
 {
 	return CArrayBase::FindWithKey(pData, iKeyOffset, iKeySize);
 }
@@ -319,7 +348,7 @@ int __CArrayTemplate<M>::FindWithKey(M* pData, int iKeyOffset, int iKeySize)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-BOOL __CArrayTemplate<M>::Equals(__CArrayTemplate<M>* pcTemplateArray)
+BOOL CArrayTemplate<M>::Equals(CArrayTemplate<M>* pcTemplateArray)
 {
 	return CArrayBase::Equals(pcTemplateArray);
 }
@@ -330,7 +359,7 @@ BOOL __CArrayTemplate<M>::Equals(__CArrayTemplate<M>* pcTemplateArray)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-int __CArrayTemplate<M>::InsertIntoSorted(int(* Func)(const void*, const void*), M* pvElement, BOOL bOverwriteExisting)
+int CArrayTemplate<M>::InsertIntoSorted(int(* Func)(const void*, const void*), M* pvElement, BOOL bOverwriteExisting)
 {
 	return CArrayBase::InsertIntoSorted(Func, pvElement, bOverwriteExisting);
 }
@@ -341,7 +370,7 @@ int __CArrayTemplate<M>::InsertIntoSorted(int(* Func)(const void*, const void*),
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-BOOL __CArrayTemplate<M>::FindInSorted(M* pData, int(* Func)(const void*, const void*), int* piIndex)
+BOOL CArrayTemplate<M>::FindInSorted(M* pData, int(* Func)(const void*, const void*), int* piIndex)
 {
 	return CArrayBase::FindInSorted(pData, Func, piIndex);
 }
@@ -352,7 +381,7 @@ BOOL __CArrayTemplate<M>::FindInSorted(M* pData, int(* Func)(const void*, const 
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void __CArrayTemplate<M>::InsertArrayAfterEnd(__CArrayTemplate<M>* pcTemplateArray)
+void CArrayTemplate<M>::InsertArrayAfterEnd(CArrayTemplate<M>* pcTemplateArray)
 {
 	CArrayBase::InsertArrayAfterEnd(pcTemplateArray);
 }
@@ -363,7 +392,7 @@ void __CArrayTemplate<M>::InsertArrayAfterEnd(__CArrayTemplate<M>* pcTemplateArr
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void __CArrayTemplate<M>::InsertArrayBeforeStart(__CArrayTemplate<M>* pcTemplateArray)
+void CArrayTemplate<M>::InsertArrayBeforeStart(CArrayTemplate<M>* pcTemplateArray)
 {
 	CArrayBase::InsertArrayBeforeStart(pcTemplateArray);
 }
@@ -374,7 +403,7 @@ void __CArrayTemplate<M>::InsertArrayBeforeStart(__CArrayTemplate<M>* pcTemplate
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void __CArrayTemplate<M>::InsertArrayAt(__CArrayTemplate<M>* pcTemplateArray, int iIndex)
+void CArrayTemplate<M>::InsertArrayAt(CArrayTemplate<M>* pcTemplateArray, int iIndex)
 {
 	CArrayBase::InsertArrayAt(pcTemplateArray, iIndex);
 }
@@ -385,7 +414,7 @@ void __CArrayTemplate<M>::InsertArrayAt(__CArrayTemplate<M>* pcTemplateArray, in
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M* __CArrayTemplate<M>::InsertNumElementsAt(int iNumElements, int iIndex)
+M* CArrayTemplate<M>::InsertNumElementsAt(int iNumElements, int iIndex)
 {
 	return (M*)CArrayBase::InsertNumElementsAt(iNumElements, iIndex);
 }
@@ -396,7 +425,7 @@ M* __CArrayTemplate<M>::InsertNumElementsAt(int iNumElements, int iIndex)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void __CArrayTemplate<M>::InsertBlockAfterEnd(M* paElements, int iLength)
+void CArrayTemplate<M>::InsertBlockAfterEnd(M* paElements, int iLength)
 {
 	CArrayBase::InsertBlockAfterEnd(paElements, iLength);
 }
@@ -407,7 +436,7 @@ void __CArrayTemplate<M>::InsertBlockAfterEnd(M* paElements, int iLength)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void __CArrayTemplate<M>::InsertBlockBeforeStart(M* paElements, int iLength)
+void CArrayTemplate<M>::InsertBlockBeforeStart(M* paElements, int iLength)
 {
 	CArrayBase::InsertBlockBeforeStart(paElements, iLength);
 }
@@ -418,7 +447,7 @@ void __CArrayTemplate<M>::InsertBlockBeforeStart(M* paElements, int iLength)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void __CArrayTemplate<M>::InsertBlockAt(M* paElements, int iLength, int iIndex)
+void CArrayTemplate<M>::InsertBlockAt(M* paElements, int iLength, int iIndex)
 {
 	CArrayBase::InsertBlockAt(paElements, iLength, iIndex);
 }
@@ -429,7 +458,7 @@ void __CArrayTemplate<M>::InsertBlockAt(M* paElements, int iLength, int iIndex)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M* __CArrayTemplate<M>::Get(int iIndex)
+M* CArrayTemplate<M>::Get(int iIndex)
 {
 	return (M*)CArrayBase::Get(iIndex);
 }
@@ -440,7 +469,7 @@ M* __CArrayTemplate<M>::Get(int iIndex)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-int __CArrayTemplate<M>::GetIndex(M* pvElement)
+int CArrayTemplate<M>::GetIndex(M* pvElement)
 {
 	return CArrayBase::GetIndex(pvElement);
 }
@@ -451,7 +480,7 @@ int __CArrayTemplate<M>::GetIndex(M* pvElement)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M* __CArrayTemplate<M>::GetData(void)
+M* CArrayTemplate<M>::GetData(void)
 {
 	return (M*)CArrayBase::GetData();
 }
@@ -462,118 +491,9 @@ M* __CArrayTemplate<M>::GetData(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CArrayTemplate<M>::Init(void)
-{
-	this->miElementSize = sizeof(M);
-	this->miNumElements = 0;
-	this->miUsedElements = 0;
-	this->miChunkSize = 1;
-	this->mpvArray = NULL;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class M>
-void CArrayTemplate<M>::Init(SArrayTemplateHeader* psHeader)
-{
-	__CArrayTemplate<M>::Init(psHeader);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class M>
-void CArrayTemplate<M>::Init(int iChunkSize)
-{
-	Init();
-	this->miChunkSize = iChunkSize;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class M>
-void CArrayTemplate<M>::Init(__CArrayTemplate<M>* pcTemplateArray)
-{
-	__CArrayTemplate<M>::Init(pcTemplateArray);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class M>
-void CArrayTemplate<M>::Allocate(int iNumElements)
-{
-	Init(iNumElements);
-	this->GrowByChunk();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class M>
-void CArrayTemplate<M>::Allocate(int iChunkSize, int iNumElements)
-{
-	this->miElementSize = sizeof(M);
-	this->miChunkSize = iChunkSize;
-	this->mpvArray = NULL;
-	this->SetUsedElements(iNumElements);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class M>
-void CArrayTemplate<M>::ReInit(int iChunkSize)
-{
-	this->Kill();
-	if (iChunkSize == 0)
-	{
-		Init(miChunkSize);
-	}
-	else
-	{
-		Init(iChunkSize);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class M>
 void CArrayTemplate<M>::Fake(M* pvData, int iNum)
 {
-	this->mpvArray = pvData;
-	this->miElementSize = sizeof(M);
-	this->miNumElements = iNum;
-	this->miUsedElements = iNum;
-	this->miChunkSize = 1;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class M>
-void CArrayTemplate<M>::FakeSetUsedElements(int iUsedElements)
-{
-	this->miUsedElements = iUsedElements;
+	CArrayBase::Fake(sizeof(M), pvData, iNum);
 }
 
 
@@ -585,28 +505,6 @@ template<class M>
 M& CArrayTemplate<M>::operator[](int iIndex)
 {
 	return ((M*)mpvArray)[iIndex];
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class M>
-M* CArrayTemplate<M>::Get(int iIndex)
-{
-	return &(((M*)mpvArray)[iIndex]);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class M>
-void CArrayTemplate<M>::SetAllocateSize(int iSize)
-{
-	miChunkSize = iSize;
 }
 
 

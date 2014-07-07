@@ -5,9 +5,13 @@
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CArrayBase::Malloc(size_t tSize)
+void CArrayBase::Init(int iElementSize)
 {
-	return malloc(tSize);
+	this->miElementSize = iElementSize;
+	this->miNumElements = 0;
+	this->miUsedElements = 0;
+	this->miChunkSize = 1;
+	this->mpvArray = NULL;
 }
 
 
@@ -15,9 +19,10 @@ void* CArrayBase::Malloc(size_t tSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayBase::Free(void* pv)
+void CArrayBase::Init(int iElementSize, int iChunkSize)
 {
-	free(pv);
+	Init(iElementSize);
+	this->miChunkSize = iChunkSize;
 }
 
 
@@ -25,10 +30,37 @@ void CArrayBase::Free(void* pv)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CArrayBase::Realloc(void* pv, size_t tSize)
+void CArrayBase::Allocate(int iElementSize, int iNumElements)
 {
-	pv = realloc(pv, tSize);
-	return pv;
+	Init(iElementSize, iNumElements);
+	this->GrowByChunk();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CArrayBase::Allocate(int iElementSize, int iChunkSize, int iNumElements)
+{
+	this->miElementSize = iElementSize;
+	this->miChunkSize = iChunkSize;
+	this->mpvArray = NULL;
+	this->SetUsedElements(iNumElements);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CArrayBase::Fake(int iElementSize, void* pvData, int iNum, int iChunkSize)
+{
+	this->mpvArray = pvData;
+	this->miElementSize = iElementSize;
+	this->miNumElements = iNum;
+	this->miUsedElements = iNum;
+	this->miChunkSize = iChunkSize;
 }
 
 
@@ -70,6 +102,55 @@ void CArrayBase::Init(CArrayBase* pcTemplateArray)
 	miNumElements = 0;
 	this->mpvArray = NULL;
 	Copy(pcTemplateArray);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CArrayBase::ReInit(int iChunkSize)
+{
+	Kill();
+	if (iChunkSize == 0)
+	{
+		Init(miChunkSize);
+	}
+	else
+	{
+		Init(iChunkSize);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void* CArrayBase::Malloc(size_t tSize)
+{
+	return malloc(tSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CArrayBase::Free(void* pv)
+{
+	free(pv);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void* CArrayBase::Realloc(void* pv, size_t tSize)
+{
+	pv = realloc(pv, tSize);
+	return pv;
 }
 
 
@@ -1511,5 +1592,25 @@ BOOL CArrayBase::ReadArrayTemplateHeader(CFileReader* pcFileReader)
 
 	Init(&sHeader);
 	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CArrayBase::FakeSetUsedElements(int iUsedElements)
+{
+	miUsedElements = iUsedElements;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CArrayBase::SetAllocateSize(int iSize)
+{
+	miChunkSize = iSize;
 }
 
