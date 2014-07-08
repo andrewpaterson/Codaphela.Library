@@ -22,39 +22,12 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __LINK_LIST_BLOCK_H__
 #define __LINK_LIST_BLOCK_H__
-#include "LinkListTemplate.h"
+#include "LinkedListBase.h"
 #include "DataTypes.h"
 
 
-struct SDUNode
+class CLinkListBlock : public CLinkedListBase
 {
-	int		iSize;
-	SDNode	sDNode;
-};
-
-
-class CLinkListBlock : public __CLinkListTemplate<void>
-{
-public:
-	void	Init(void);
-	void	Kill(void);
-	int		GetNodeType(void* psData);
-	void*	InsertAfterTail(int iDataSize);
-	void*	InsertBeforeHead(int iDataSize);
-	void*	InsertBeforeNode(int iDataSize, void* psPos);
-	void*	InsertAfterNode(int iDataSize, void* psPos); 
-	void*	AllocateDetached(int iDataSize);
-	void	Remove(void* pvData);
-	BOOL	SafeRemove(void* pvData);
-	void	FreeDetached(void* psNodeData);
-
-	int		ByteSize(void);
-
-	BOOL	WriteLinkListBlock(CFileWriter* pcFileWriter);
-	BOOL	ReadLinkListBlock(CFileReader* pcFileReader);
-
-protected:
-	int		GetNodeSize(void* psData);
 };
 
 

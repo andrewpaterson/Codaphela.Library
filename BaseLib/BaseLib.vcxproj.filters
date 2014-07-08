@@ -600,11 +600,11 @@
     <ClInclude Include="ArrayBlock.h">
       <Filter>Source\Data\Array\Basic</Filter>
     </ClInclude>
+    <ClInclude Include="LinkedListBase.h">
+      <Filter>Source\Data\LinkList</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="LinkListBlock.cpp">
-      <Filter>Source\Data\LinkList</Filter>
-    </ClCompile>
     <ClCompile Include="TreeBlock.cpp">
       <Filter>Source\Data\Tree</Filter>
     </ClCompile>
@@ -934,6 +934,9 @@
     </ClCompile>
     <ClCompile Include="ArrayBlock.cpp">
       <Filter>Source\Data\Array\Basic</Filter>
+    </ClCompile>
+    <ClCompile Include="LinkedListBase.cpp">
+      <Filter>Source\Data\LinkList</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

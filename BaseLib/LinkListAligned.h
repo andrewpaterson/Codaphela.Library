@@ -23,6 +23,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __LINK_LIST_ALIGNED_H__
 #define __LINK_LIST_ALIGNED_H__
 #include "LinkListBlock.h"
+#include "LinkListTemplate.h"
 
 
 struct SAlignedData
@@ -38,14 +39,13 @@ struct SAlignedData
 struct SDANode
 {
 	SAlignedData	sAligned;
-	SDNode			sDNode;
+	SLLNode			sDNode;
 };
 
 
-class CLinkListAligned : public __CLinkListTemplate<void>
+class CLinkListAligned : public CLinkedListBase
 {
 public:
-	void		Init(void);
 	void		Kill(void);
 	void*		Add(int iDataSize, int iAlignment);
 	void*		InsertAfterTail(unsigned int iSize, int iAlignment, int iOffset);

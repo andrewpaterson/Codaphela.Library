@@ -24,19 +24,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "IntegerHelper.h"
 
 
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void CLinkListAligned::Init(void)
-{
-	mpsHead = NULL;
-	mpsTail = NULL;
-	miNumElements = 0;
-}
-
-
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -47,11 +34,11 @@ void CLinkListAligned::Kill(void)
 	SDANode*	psNode2;
 	void*		pvData;
 
-	pvData = HeaderGetData<SDNode, void>(mpsHead);  //Yes this is the correct macro.
+	pvData = HeaderGetData<SLLNode, void>(mpsHead);  //Yes this is the correct macro.
 	psNode = DataGetHeader<SDANode, void>(pvData);
 	while (psNode)
 	{
-		pvData = HeaderGetData<SDNode, void>(psNode->sDNode.psNext);  //Yes this is the correct macro.
+		pvData = HeaderGetData<SLLNode, void>(psNode->sDNode.psNext);  //Yes this is the correct macro.
 		psNode2 = DataGetHeader<SDANode, void>(pvData);
 		FreeNode(psNode);
 		psNode = psNode2;
@@ -81,7 +68,7 @@ void* CLinkListAligned::InsertAfterTail(unsigned int iSize, int iAlignment, int 
 	void*			pvData;
 
 	pvData = AllocateDetached(iSize, iAlignment, iOffset);
-	__CLinkListTemplate<void>::InsertDetachedAfterTail(pvData);
+	InsertDetachedAfterTail(pvData);
 	return pvData;
 }
 
@@ -95,7 +82,7 @@ void* CLinkListAligned::InsertBeforeHead(int iSize, int iAlignment, int iOffset)
 	void*			pvData;
 
 	pvData = AllocateDetached(iSize, iAlignment, iOffset);
-	__CLinkListTemplate<void>::InsertDetachedBeforeHead(pvData);
+	InsertDetachedBeforeHead(pvData);
 	return pvData;
 }
 
@@ -109,7 +96,7 @@ void* CLinkListAligned::InsertBeforeNode(void* psPos, int iSize, int iAlignment,
 	void*			pvData;
 
 	pvData = AllocateDetached(iSize, iAlignment, iOffset);
-	__CLinkListTemplate<void>::InsertDetachedBeforeNode(pvData, psPos);
+	InsertDetachedBeforeNode(pvData, psPos);
 	return pvData;
 }
 
@@ -123,7 +110,7 @@ void* CLinkListAligned::InsertAfterNode(void* psPos, int iSize, int iAlignment, 
 	void*			pvData;
 
 	pvData = AllocateDetached(iSize, iAlignment, iOffset);
-	__CLinkListTemplate<void>::InsertDetachedAfterNode(pvData, psPos);
+	InsertDetachedAfterNode(pvData, psPos);
 	return pvData;
 }
 

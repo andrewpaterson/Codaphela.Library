@@ -108,6 +108,7 @@
     <ClInclude Include="IndexTree.h" />
     <ClInclude Include="IndexTreeNode.h" />
     <ClInclude Include="IndexTreeTemplate.h" />
+    <ClInclude Include="LinkedListBase.h" />
     <ClInclude Include="LinkListBlock.h" />
     <ClInclude Include="LinkListTemplate.h" />
     <ClInclude Include="LinkListTemplateFreeList.h" />
@@ -244,7 +245,7 @@
     <ClCompile Include="FileSystemIterator.cpp" />
     <ClCompile Include="IndexTree.cpp" />
     <ClCompile Include="IndexTreeNode.cpp" />
-    <ClCompile Include="LinkListBlock.cpp" />
+    <ClCompile Include="LinkedListBase.cpp" />
     <ClCompile Include="LogString.cpp" />
     <ClCompile Include="MemoryCacheAllocation.cpp" />
     <ClCompile Include="MemoryHeader.cpp" />
