@@ -34,7 +34,7 @@ public:
 	void	Init(CArrayTemplate<M>* pcTemplateArray);
 	void 	Allocate(int iNumElements);
 	void 	Allocate(int iChunkSize, int iNumElements);
-	void	Fake(M* pvData, int iNum);
+	void	Fake(M* pvData, int iNum, int iChunkSize = 1);
 
 	M*		Add(void);
 	M*		Add(M* pvData);
@@ -491,9 +491,9 @@ M* CArrayTemplate<M>::GetData(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CArrayTemplate<M>::Fake(M* pvData, int iNum)
+void CArrayTemplate<M>::Fake(M* pvData, int iNum, int iChunkSize)
 {
-	CArrayBase::Fake(sizeof(M), pvData, iNum);
+	CArrayBase::Fake(sizeof(M), pvData, iNum, iChunkSize);
 }
 
 

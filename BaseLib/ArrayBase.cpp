@@ -58,7 +58,7 @@ void CArrayBase::Fake(int iElementSize, void* pvData, int iNum, int iChunkSize)
 {
 	this->mpvArray = pvData;
 	this->miElementSize = iElementSize;
-	this->miNumElements = iNum;
+	this->miNumElements = iChunkSize;
 	this->miUsedElements = iNum;
 	this->miChunkSize = iChunkSize;
 }
