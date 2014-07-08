@@ -23,7 +23,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __INDEXED_HUGE_H__
 #define __INDEXED_HUGE_H__
 #include "IndexedDataDescriptor.h"
-#include "BaseLib/ArrayBlock.h"
 #include "DurableFile.h"
 #include "BaseLib/Numbers.h"
 

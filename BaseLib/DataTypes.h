@@ -24,7 +24,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define __DATA_TYPES_H__
 #include "ErrorHandler.h"
 #include "Chars.h"
-#include "ArrayBlock.h"
 #include "ArrayTemplateMinimal.h"
 
 

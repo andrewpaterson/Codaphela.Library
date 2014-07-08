@@ -70,7 +70,7 @@ public:
 	void	InsertBlockAt(void* paElements, int iIndex, int iLength);
 	void	InsertBlockBeforeStart(void* paElements, int iLength);
 	int		InsertIntoSorted(int(*)(const void*, const void*), void* pvElement, BOOL bOverwriteExisting);
-	void*		InsertNumElementsAt(int iNumElements, int iIndex);
+	void*	InsertNumElementsAt(int iNumElements, int iIndex);
 
 	void	Pop(void* pvData);
 	void	Pop(void);
@@ -115,6 +115,8 @@ public:
 	BOOL	WriteArrayTemplate(CFileWriter* pcFileWriter);
 	BOOL	ReadArrayTemplateHeader(CFileReader* pcFileReader);
 	BOOL	ReadArrayTemplate(CFileReader* pcFileReader);
+	BOOL	WriteArrayUnknown(CFileWriter* pcFileWriter);
+	BOOL	ReadArrayUnknown(CFileReader* pcFileReader);
 
 protected:
 	void*	Malloc(size_t tSize);

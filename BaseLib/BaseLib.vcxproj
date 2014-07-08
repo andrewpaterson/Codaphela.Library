@@ -88,7 +88,6 @@
     <ClInclude Include="ChunkStack.h" />
     <ClInclude Include="DataMacro.h" />
     <ClInclude Include="ArrayBit.h" />
-    <ClInclude Include="ArrayBlock.h" />
     <ClInclude Include="ArrayChar.h" />
     <ClInclude Include="ArrayDouble.h" />
     <ClInclude Include="ArrayEmbedded.h" />
@@ -230,7 +229,6 @@
   <ItemGroup>
     <ClCompile Include="ArrayBase.cpp" />
     <ClCompile Include="ArrayBit.cpp" />
-    <ClCompile Include="ArrayBlock.cpp" />
     <ClCompile Include="ArrayInt.cpp" />
     <ClCompile Include="ArrayInt2D.cpp" />
     <ClCompile Include="ArrayLong.cpp" />

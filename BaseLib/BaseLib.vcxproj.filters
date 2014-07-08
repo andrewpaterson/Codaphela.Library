@@ -576,9 +576,6 @@
     <ClInclude Include="ArrayTemplate.h">
       <Filter>Source\Data\Array\Basic</Filter>
     </ClInclude>
-    <ClInclude Include="ArrayBlock.h">
-      <Filter>Source\Data\Array\Basic</Filter>
-    </ClInclude>
     <ClInclude Include="ArrayIntMinimal.h">
       <Filter>Source\Data\Array\Minimal\Specific</Filter>
     </ClInclude>
@@ -922,9 +919,6 @@
     </ClCompile>
     <ClCompile Include="ArrayInt2D.cpp">
       <Filter>Source\Data\Array\Basic\Specific</Filter>
-    </ClCompile>
-    <ClCompile Include="ArrayBlock.cpp">
-      <Filter>Source\Data\Array\Basic</Filter>
     </ClCompile>
     <ClCompile Include="ArrayCharMinimal.cpp">
       <Filter>Source\Data\Array\Minimal\Specific</Filter>

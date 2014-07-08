@@ -1599,6 +1599,51 @@ BOOL CArrayBase::ReadArrayTemplateHeader(CFileReader* pcFileReader)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
+BOOL CArrayBase::WriteArrayUnknown(CFileWriter* pcFileWriter)
+{
+	if (!pcFileWriter->WriteData(this, sizeof(CArrayBase))) 
+	{ 
+		return FALSE; 
+	}
+
+	if (NumElements() != 0)
+	{
+		if (!pcFileWriter->WriteData(GetData(), ByteSize())) 
+		{ 
+			return FALSE; 
+		}
+	}
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+BOOL CArrayBase::ReadArrayUnknown(CFileReader* pcFileReader)
+{
+	if (!pcFileReader->ReadData(this, sizeof(CArrayBase))) 
+	{ 
+		return FALSE; 
+	}
+
+	if (NumElements() != 0)
+	{
+		InitFromHeader();
+		if (!pcFileReader->ReadData(GetData(), ByteSize())) 
+		{ 
+			return FALSE; 
+		}
+	}
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
 void CArrayBase::FakeSetUsedElements(int iUsedElements)
 {
 	miUsedElements = iUsedElements;

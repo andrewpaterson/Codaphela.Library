@@ -70,7 +70,7 @@ public:
 	char*					GetFirst(void);
 	char*					GetLast(void);
 	void					Dump(void);
-	void					Dump(CArrayBlock* pavFakeBlock);
+	void					Dump(CArrayBase* pavFakeBlock);
 	filePos					Write(CIndexedFile* pcFile);
 
 private:
