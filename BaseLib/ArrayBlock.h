@@ -21,7 +21,6 @@ protected:
 	void*	mpvArray;
 
 public:
-	void 	Init(int iElementSize);
 	void 	Init(int iElementSize, int iChunkSize);
 	void 	InitFromHeader(void);
 	void 	Init(SArrayTemplateHeader* psHeader);

@@ -5,24 +5,13 @@
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayBlock::Init(int iElementSize)
-{
-	this->miElementSize = iElementSize;
-	this->miNumElements = 0;
-	this->miUsedElements = 0;
-	this->miChunkSize = 1;
-	this->mpvArray = NULL;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
 void CArrayBlock::Init(int iElementSize, int iChunkSize)
 {
-	Init(iElementSize);
-	this->miChunkSize = iChunkSize;
+	mpvArray = NULL;
+	miNumElements = 0;
+	miUsedElements = 0;
+	miElementSize = iElementSize;
+	miChunkSize = iChunkSize;
 }
 
 
@@ -114,11 +103,11 @@ void CArrayBlock::ReInit(int iChunkSize)
 	Kill();
 	if (iChunkSize == 0)
 	{
-		Init(miChunkSize);
+		Init(miElementSize, miChunkSize);
 	}
 	else
 	{
-		Init(iChunkSize);
+		Init(miElementSize, iChunkSize);
 	}
 }
 

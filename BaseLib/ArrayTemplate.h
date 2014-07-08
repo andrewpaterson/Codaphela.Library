@@ -86,7 +86,7 @@ public:
 template<class M>
 void CArrayTemplate<M>::Init(void)
 {
-	CArrayBlock::Init(sizeof(M));
+	CArrayBlock::Init(sizeof(M), 1);
 }
 
 

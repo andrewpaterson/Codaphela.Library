@@ -206,7 +206,7 @@ void CInactiveInputChordCriteria::ToString(CChars* psz)
 //////////////////////////////////////////////////////////////////////////
 void CGroupInputChordCriteria::Init(void)
 {
-	mausBasicActionCriteria.Init(sizeof(UInputChordCriteria));
+	mausBasicActionCriteria.Init(sizeof(UInputChordCriteria), 1);
 	eAction = BAA_Group;
 }
 
@@ -343,7 +343,7 @@ CInactiveInputChordCriteria* CGroupInputChordCriteria::AddInactiveAction(CInputS
 //////////////////////////////////////////////////////////////////////////
 void COrderedInputChordCriteria::Init(void)
 {
-	mausBasicActionCriteria.Init(sizeof(UInputChordCriteria));
+	mausBasicActionCriteria.Init(sizeof(UInputChordCriteria), 1);
 	eAction = BAA_Ordered;
 }
 
