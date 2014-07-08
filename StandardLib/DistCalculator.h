@@ -16,9 +16,9 @@ public:
 	void					Init(void);
 	void					Kill(void);
 
-	CArrayBaseObjectPtr*	Calculate(CBaseObject* pcFromChanged, BOOL bHeapFromChanged);
-	CArrayBaseObjectPtr*	CalculateHeapFromChanged(CBaseObject* pcFromChanged);
-	CArrayBaseObjectPtr*	CalculateStackFromChanged(CBaseObject* pcFromChanged);
+	CArrayBlockObjectPtr*	Calculate(CBaseObject* pcFromChanged, BOOL bHeapFromChanged);
+	CArrayBlockObjectPtr*	CalculateHeapFromChanged(CBaseObject* pcFromChanged);
+	CArrayBlockObjectPtr*	CalculateStackFromChanged(CBaseObject* pcFromChanged);
 	void					ClearTouchedFlags(CDistCalculatorParameters* pcParameters);
 	void					ChangeClearedDistToUnattachedDist(CDistCalculatorParameters* pcParameters);
 };

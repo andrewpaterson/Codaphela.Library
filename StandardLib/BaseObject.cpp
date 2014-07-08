@@ -175,7 +175,7 @@ void CBaseObject::Kill(BOOL bHeapFromChanged)
 	ValidateNotEmbedded(__METHOD__);
 
 	CDistCalculator			cDistCalculator;
-	CArrayBaseObjectPtr*	papcKilled;
+	CArrayBlockObjectPtr*	papcKilled;
 
 	//This method is for the user to forcibly kill an object.
 	//It is not called internally.
@@ -433,7 +433,7 @@ void CBaseObject::TryKill(BOOL bKillIfNoRoot, BOOL bHeapFromChanged)
 	BOOL					bHasHeapPointers;
 	BOOL					bMustKill;
 	CDistCalculator			cDistCalculator;
-	CArrayBaseObjectPtr*	papcKilled;
+	CArrayBlockObjectPtr*	papcKilled;
 	
 	if (IsRoot())
 	{

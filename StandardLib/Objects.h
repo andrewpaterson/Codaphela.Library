@@ -98,7 +98,7 @@ public:
 						Ptr<CRoot>				AddRoot(void);
 						Ptr<CRoot>				GetRoot(void);
 
-						BOOL					Remove(CArrayBaseObjectPtr* papcKilled);
+						BOOL					Remove(CArrayBlockObjectPtr* papcKilled);
 
 						CPointer				Null(void);
 	template<class M>	Ptr<M>					Null(void);
@@ -139,8 +139,8 @@ protected:
 						CBaseObject*			GetFromDatabase(char* szObjectName);
 						CBaseObject*			GetFromSources(char* szObjectName);
 						BOOL					ClearMemory(void);
-						void					KillDontFreeObjects(CArrayBaseObjectPtr* papcObjectPts);
-						void					FreeObjects(CArrayBaseObjectPtr* papcObjectPts);
+						void					KillDontFreeObjects(CArrayBlockObjectPtr* papcObjectPts);
+						void					FreeObjects(CArrayBlockObjectPtr* papcObjectPts);
 						void					RecurseDumpGraph(CChars* psz, CEmbeddedObject* pcObject, int iLevel, BOOL bEmbedded);
 						void					ValidateSceneGraph(void);
 						void					ValidateIndexedObjects(void);

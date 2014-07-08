@@ -597,7 +597,7 @@
     <ClInclude Include="ArrayInt.h">
       <Filter>Source\Data\Array\Primitive\Specific</Filter>
     </ClInclude>
-    <ClInclude Include="ArrayBase.h">
+    <ClInclude Include="ArrayBlock.h">
       <Filter>Source\Data\Array\Basic</Filter>
     </ClInclude>
   </ItemGroup>
@@ -932,7 +932,7 @@
     <ClCompile Include="ArrayLong.cpp">
       <Filter>Source\Data\Array\Primitive\Specific</Filter>
     </ClCompile>
-    <ClCompile Include="ArrayBase.cpp">
+    <ClCompile Include="ArrayBlock.cpp">
       <Filter>Source\Data\Array\Basic</Filter>
     </ClCompile>
   </ItemGroup>

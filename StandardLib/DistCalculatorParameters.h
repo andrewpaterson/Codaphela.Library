@@ -24,7 +24,7 @@ private:
 	CArrayDistToRoot				macExpectedDists;
 	CArrayEmbeddedBaseObjectPtr		mapcDetachedFromRoot;
 
-	CArrayBaseObjectPtr				mapcCompletelyDetached;
+	CArrayBlockObjectPtr				mapcCompletelyDetached;
 
 public:
 	void					Init(void);
@@ -51,7 +51,7 @@ public:
 	CBaseObject*			GetCompletelyDetached(int iIndex);
 	void					RemoveCompletelyDetached(int iIndex);
 	void					CopyRootDetachedToCompletelyDetached(void);
-	CArrayBaseObjectPtr*	GetCompletelyDetachedArray(void);
+	CArrayBlockObjectPtr*	GetCompletelyDetachedArray(void);
 
 	void					AddTouched(CBaseObject* pcObject);
 	int						NumTouched(void);
@@ -60,7 +60,7 @@ public:
 	void					ClearTouchedFlags(void);
 
 	void					PrintArray(CChars* psz, CArrayEmbeddedBaseObjectPtr* pcArray);
-	void					PrintArray(CChars* psz, CArrayBaseObjectPtr* pcArray);
+	void					PrintArray(CChars* psz, CArrayBlockObjectPtr* pcArray);
 	void					PrintArray(CChars* psz, CArrayDistToRoot* pcArray);
 };
 

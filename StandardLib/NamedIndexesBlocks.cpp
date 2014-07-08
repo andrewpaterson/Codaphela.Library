@@ -128,17 +128,17 @@ BOOL CNamedIndexesBlocks::Add(OIndex oi, CChars* szName, BOOL bFailOnExisting)
 	CNamedIndexesBlock*			pcBlock;
 	OIndex						oiExisiting;
 	CNamedIndexesBlock*			pcNotFullBlock;
-	CArrayNamedIndexesBlockPtr	cArrayBasePrts;
+	CArrayNamedIndexesBlockPtr	cArrayBlockPrts;
 
-	cArrayBasePrts.Init(16);
-	GetPotentialContainingBlocks(szName, &cArrayBasePrts);
-	SortBlockPtrsCachedFirst(&cArrayBasePrts);
+	cArrayBlockPrts.Init(16);
+	GetPotentialContainingBlocks(szName, &cArrayBlockPrts);
+	SortBlockPtrsCachedFirst(&cArrayBlockPrts);
 
 	pcNotFullBlock = NULL;
 
-	for (i = 0; i < cArrayBasePrts.NumElements(); i++)
+	for (i = 0; i < cArrayBlockPrts.NumElements(); i++)
 	{
-		pcBlock = *cArrayBasePrts.Get(i);
+		pcBlock = *cArrayBlockPrts.Get(i);
 		if (pcBlock->IsNotCached())
 		{
 			Cache(pcBlock);
@@ -148,7 +148,7 @@ BOOL CNamedIndexesBlocks::Add(OIndex oi, CChars* szName, BOOL bFailOnExisting)
 		if (oiExisiting != INVALID_O_INDEX)
 		{
 			//Already exists;
-			cArrayBasePrts.Kill();
+			cArrayBlockPrts.Kill();
 			return !bFailOnExisting;
 		}
 
@@ -160,7 +160,7 @@ BOOL CNamedIndexesBlocks::Add(OIndex oi, CChars* szName, BOOL bFailOnExisting)
 			}
 		}
 	}
-	cArrayBasePrts.Kill();
+	cArrayBlockPrts.Kill();
 
 	pcNotFullBlock = FindOrCreateAndCacheBlock(pcNotFullBlock);
 	if (pcNotFullBlock)
@@ -232,21 +232,21 @@ OIndex CNamedIndexesBlocks::GetIndex(CChars* szName)
 	CNamedIndexesBlock*			pcBlock;
 	OIndex						oiExisiting;
 	BOOL						bResult;
-	CArrayNamedIndexesBlockPtr	cArrayBasePrts;
+	CArrayNamedIndexesBlockPtr	cArrayBlockPrts;
 
-	cArrayBasePrts.Init(16);
-	GetPotentialContainingBlocks(szName, &cArrayBasePrts);
-	SortBlockPtrsCachedFirst(&cArrayBasePrts);
+	cArrayBlockPrts.Init(16);
+	GetPotentialContainingBlocks(szName, &cArrayBlockPrts);
+	SortBlockPtrsCachedFirst(&cArrayBlockPrts);
 
-	for (i = 0; i < cArrayBasePrts.NumElements(); i++)
+	for (i = 0; i < cArrayBlockPrts.NumElements(); i++)
 	{
-		pcBlock = *cArrayBasePrts.Get(i);
+		pcBlock = *cArrayBlockPrts.Get(i);
 		if (!pcBlock->IsCached())
 		{
 			bResult = Cache(pcBlock);
 			if (!bResult)
 			{
-				cArrayBasePrts.Kill();
+				cArrayBlockPrts.Kill();
 				return INVALID_O_INDEX;
 			}
 		}
@@ -254,12 +254,12 @@ OIndex CNamedIndexesBlocks::GetIndex(CChars* szName)
 		oiExisiting = pcBlock->GetIndex(szName);
 		if (oiExisiting != INVALID_O_INDEX)
 		{
-			cArrayBasePrts.Kill();
+			cArrayBlockPrts.Kill();
 			return oiExisiting;
 		}
 	}
 
-	cArrayBasePrts.Kill();
+	cArrayBlockPrts.Kill();
 	return INVALID_O_INDEX;
 }
 
@@ -273,22 +273,22 @@ BOOL CNamedIndexesBlocks::Remove(CChars* szName)
 	int							i;
 	CNamedIndexesBlock*			pcBlock;
 	BOOL						bResult;
-	CArrayNamedIndexesBlockPtr	cArrayBasePrts;
+	CArrayNamedIndexesBlockPtr	cArrayBlockPrts;
 	int							iIndex;
 
-	cArrayBasePrts.Init(16);
-	GetPotentialContainingBlocks(szName, &cArrayBasePrts);
-	SortBlockPtrsCachedFirst(&cArrayBasePrts);
+	cArrayBlockPrts.Init(16);
+	GetPotentialContainingBlocks(szName, &cArrayBlockPrts);
+	SortBlockPtrsCachedFirst(&cArrayBlockPrts);
 
-	for (i = 0; i < cArrayBasePrts.NumElements(); i++)
+	for (i = 0; i < cArrayBlockPrts.NumElements(); i++)
 	{
-		pcBlock = *cArrayBasePrts.Get(i);
+		pcBlock = *cArrayBlockPrts.Get(i);
 		if (!pcBlock->IsCached())
 		{
 			bResult = Cache(pcBlock);
 			if (!bResult)
 			{
-				cArrayBasePrts.Kill();
+				cArrayBlockPrts.Kill();
 				return INVALID_O_INDEX;
 			}
 		}
@@ -307,11 +307,11 @@ BOOL CNamedIndexesBlocks::Remove(CChars* szName)
 					pcBlock->Dirty();
 				}
 			}
-			cArrayBasePrts.Kill();
+			cArrayBlockPrts.Kill();
 			return TRUE;
 		}
 	}
-	cArrayBasePrts.Kill();
+	cArrayBlockPrts.Kill();
 	return FALSE;
 }
 

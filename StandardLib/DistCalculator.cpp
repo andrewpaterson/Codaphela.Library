@@ -26,7 +26,7 @@ void CDistCalculator::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CArrayBaseObjectPtr* CDistCalculator::Calculate(CBaseObject* pcFromChanged, BOOL bHeapFromChanged)
+CArrayBlockObjectPtr* CDistCalculator::Calculate(CBaseObject* pcFromChanged, BOOL bHeapFromChanged)
 {
 	if (bHeapFromChanged)
 	{
@@ -43,7 +43,7 @@ CArrayBaseObjectPtr* CDistCalculator::Calculate(CBaseObject* pcFromChanged, BOOL
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CArrayBaseObjectPtr* CDistCalculator::CalculateHeapFromChanged(CBaseObject* pcFromChanged)
+CArrayBlockObjectPtr* CDistCalculator::CalculateHeapFromChanged(CBaseObject* pcFromChanged)
 {
 	mcDistToRootCalculator.Calculate(pcFromChanged, &mcParameters);
 
@@ -58,7 +58,7 @@ CArrayBaseObjectPtr* CDistCalculator::CalculateHeapFromChanged(CBaseObject* pcFr
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CArrayBaseObjectPtr* CDistCalculator::CalculateStackFromChanged(CBaseObject* pcFromChanged)
+CArrayBlockObjectPtr* CDistCalculator::CalculateStackFromChanged(CBaseObject* pcFromChanged)
 {
 	if (pcFromChanged->HasStackPointers())
 	{

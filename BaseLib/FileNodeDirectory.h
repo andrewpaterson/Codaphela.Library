@@ -22,7 +22,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __FILE_NODE_DIRECTORY_H__
 #define __FILE_NODE_DIRECTORY_H__
-#include "ArrayBase.h"
+#include "ArrayBlock.h"
 
 
 template <class M> 
@@ -33,7 +33,7 @@ class CFileNodeDirectory
 friend class CPackFiles;
 friend class CFileSystem;
 protected:
-	CArrayBase		maNodeFiles;  //Array of CFileNode.
+	CArrayBlock		maNodeFiles;  //Array of CFileNode.
 
 public:
 	void 			Init(void);

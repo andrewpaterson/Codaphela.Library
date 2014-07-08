@@ -8,7 +8,7 @@ typedef CArrayTemplate<CEmbeddedObject*>	CArrayEmbeddedObjectPtr;
 
 
 class CBaseObject;
-typedef CArrayTemplate<CBaseObject*>		CArrayBaseObjectPtr;
+typedef CArrayTemplate<CBaseObject*>		CArrayBlockObjectPtr;
 typedef CArrayEmbedded<CBaseObject*, 32>	CArrayEmbeddedBaseObjectPtr;
 
 

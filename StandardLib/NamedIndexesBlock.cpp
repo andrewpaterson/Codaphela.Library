@@ -171,7 +171,7 @@ BOOL CNamedIndexesBlock::IsNotCached(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CNamedIndexesBlock::AddUnsafe(OIndex oi, CChars* szName)
 {
-	CArrayBase			avFakeBlock;
+	CArrayBlock			avFakeBlock;
 	CNamedIndexedBlock	sBlock;
 	int					iIndex;
 
@@ -217,7 +217,7 @@ BOOL CNamedIndexesBlock::AddUnsafe(OIndex oi, CChars* szName)
 //////////////////////////////////////////////////////////////////////////
 OIndex CNamedIndexesBlock::GetIndex(CChars* szName)
 {
-	CArrayBase				avFakeBlock;
+	CArrayBlock				avFakeBlock;
 	CNamedIndexedBlock		sBlock;
 	CNamedIndexedBlock*		psBlock;
 	int						iIndex;
@@ -246,7 +246,7 @@ OIndex CNamedIndexesBlock::GetIndex(CChars* szName)
 //////////////////////////////////////////////////////////////////////////
 BOOL CNamedIndexesBlock::Remove(CChars* szName)
 {
-	CArrayBase				avFakeBlock;
+	CArrayBlock				avFakeBlock;
 	CNamedIndexedBlock		sBlock;
 	int						iIndex;
 	CNamedIndexedBlock*		pcBlock;
@@ -449,7 +449,7 @@ CNamedIndexedBlock* CNamedIndexesBlock::GetUnsafe(filePos iIndex)
 //////////////////////////////////////////////////////////////////////////
 void CNamedIndexesBlock::Dump(void)
 {
-	CArrayBase				avFakeBlock;
+	CArrayBlock				avFakeBlock;
 	CChars					szText;
 
 	if (IsCached())
@@ -475,7 +475,7 @@ void CNamedIndexesBlock::Dump(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNamedIndexesBlock::Dump(CArrayBase* pavFakeBlock)
+void CNamedIndexesBlock::Dump(CArrayBlock* pavFakeBlock)
 {
 	int						i;
 	CNamedIndexedBlock*		pvcBlock;

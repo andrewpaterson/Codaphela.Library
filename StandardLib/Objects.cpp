@@ -537,7 +537,7 @@ BOOL CObjects::ClearMemory(void)
 	SIndexesIterator		sIter;
 	OIndex					oi;
 	CBaseObject*			pcBaseObject;
-	CArrayBaseObjectPtr		apcBaseObjects;
+	CArrayBlockObjectPtr		apcBaseObjects;
 	int						iCount;
 
 	apcBaseObjects.Init(CLEAR_MEMORY_CHUNK_SIZE);
@@ -576,7 +576,7 @@ BOOL CObjects::ClearMemory(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjects::KillDontFreeObjects(CArrayBaseObjectPtr* papcObjectPts)
+void CObjects::KillDontFreeObjects(CArrayBlockObjectPtr* papcObjectPts)
 {
 	int				i;
 	CBaseObject*	pcBaseObject;
@@ -595,7 +595,7 @@ void CObjects::KillDontFreeObjects(CArrayBaseObjectPtr* papcObjectPts)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjects::FreeObjects(CArrayBaseObjectPtr* papcObjectPts)
+void CObjects::FreeObjects(CArrayBlockObjectPtr* papcObjectPts)
 {
 	int					i;
 	CBaseObject*		pcBaseObject;
@@ -1036,7 +1036,7 @@ BOOL CObjects::Contains(char* szObjectName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjects::Remove(CArrayBaseObjectPtr* papcKilled)
+BOOL CObjects::Remove(CArrayBlockObjectPtr* papcKilled)
 {
 	int								i;
 	int								iNumElements;

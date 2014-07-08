@@ -84,7 +84,7 @@ public:
 class CGroupInputChordCriteria : public CInputChordCriteria
 {
 public:
-	CArrayBase		mausBasicActionCriteria;  //Array of UInputChordCriteria
+	CArrayBlock		mausBasicActionCriteria;  //Array of UInputChordCriteria
 
 	void Init(void);
 	void Kill(void);
@@ -100,7 +100,7 @@ public:
 class COrderedInputChordCriteria : public CInputChordCriteria
 {
 public:
-	CArrayBase		mausBasicActionCriteria;  //Array of UInputChordCriteria
+	CArrayBlock		mausBasicActionCriteria;  //Array of UInputChordCriteria
 
 	void Init(void);
 	void Kill(void);

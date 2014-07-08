@@ -80,7 +80,7 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="ArrayBase.h" />
+    <ClInclude Include="ArrayBlock.h" />
     <ClInclude Include="ArrayVoidPtr.h" />
     <ClInclude Include="BaseFileNode.h" />
     <ClInclude Include="ChunkFileFile.h" />
@@ -227,7 +227,7 @@
     <ClInclude Include="Aardvark.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="ArrayBase.cpp" />
+    <ClCompile Include="ArrayBlock.cpp" />
     <ClCompile Include="ArrayBit.cpp" />
     <ClCompile Include="ArrayInt.cpp" />
     <ClCompile Include="ArrayInt2D.cpp" />

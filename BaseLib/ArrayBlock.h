@@ -14,7 +14,7 @@ struct SArrayTemplateHeader
 };
 
 
-class CArrayBase : protected SArrayTemplateHeader
+class CArrayBlock : protected SArrayTemplateHeader
 {
 protected:
 	int		miNumElements;
@@ -25,7 +25,7 @@ public:
 	void 	Init(int iElementSize, int iChunkSize);
 	void 	InitFromHeader(void);
 	void 	Init(SArrayTemplateHeader* psHeader);
-	void	Init(CArrayBase* pcTemplateArray);
+	void	Init(CArrayBlock* pcTemplateArray);
 	void 	ReInit(int iChunkSize = 0);
 	void 	Allocate(int iElementSize, int iNumElements);
 	void 	Allocate(int iElementSize, int iChunkSize, int iNumElements);
@@ -51,7 +51,7 @@ public:
 	void	BatchInsertElements(int iFirstIndex, int iNumInBatch, int iNumBatches, int iStrideToNextBatch);
 	void	BatchRemoveElements(int iFirstIndex, int iNumInBatch, int iNumBatches, int iStrideToNextBatch);
 
-	BOOL 	Copy(CArrayBase* pcTemplateArray);
+	BOOL 	Copy(CArrayBlock* pcTemplateArray);
 
 	void*	Get(int iIndex);
 	void*	SafeGet(int iIndex);
@@ -61,9 +61,9 @@ public:
 	int		GetIndex(void* pvElement);
 	void*	Tail(void);
 
-	void	InsertArrayAfterEnd(CArrayBase* pcTemplateArray);
-	void	InsertArrayAt(CArrayBase* pcTemplateArray, int iIndex);
-	void	InsertArrayBeforeStart(CArrayBase* pcTemplateArray);
+	void	InsertArrayAfterEnd(CArrayBlock* pcTemplateArray);
+	void	InsertArrayAt(CArrayBlock* pcTemplateArray, int iIndex);
+	void	InsertArrayBeforeStart(CArrayBlock* pcTemplateArray);
 	void* 	InsertAt(int iIndex);
 	void* 	InsertAt(void* pvData, int iIndex);
 	void	InsertBlockAfterEnd(void* paElements, int iLength);
@@ -88,7 +88,7 @@ public:
 	void	Reverse(void);
 
 	BOOL	Contains(void* pData);
-	BOOL	Equals(CArrayBase* pcTemplateArray);
+	BOOL	Equals(CArrayBlock* pcTemplateArray);
 	int 	Find(void* pData);
 	BOOL	FindInSorted(void* pData, int(*)(const void*, const void*), int* piIndex);
 	int		FindWithIntKey(int iKey);
@@ -124,7 +124,7 @@ protected:
 	void	Free(void* pv);
 
 	BOOL	BinarySearch(void* pData, int iLeft, int iRight, int(*)(const void*, const void*), int* piIndex);
-	void	CopyArrayInto(CArrayBase* pcTemplateArray, int iIndex);
+	void	CopyArrayInto(CArrayBlock* pcTemplateArray, int iIndex);
 	void	CopyBlockInto(void* paElements, int iLength, int iIndex);
 	void	PrivateRemoveAt(int iIndex, BOOL bPreserveOrder, int iDataSize);
 	void	PrivateRemoveRange(int iStartIndex, int iEndIndexExclusive, int bPreserveOrder, int iDataSize);
