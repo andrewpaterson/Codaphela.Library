@@ -1,13 +1,13 @@
 #include "Define.h"
 #include "DataMacro.h"
-#include "LinkedListBase.h"
+#include "LinkedListBlock.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CLinkedListBase::Malloc(size_t tSize)
+void* CLinkedListBlock::Malloc(size_t tSize)
 {
 	return malloc(tSize);
 }
@@ -17,7 +17,7 @@ void* CLinkedListBase::Malloc(size_t tSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CLinkedListBase::Free(void* pv)
+void CLinkedListBlock::Free(void* pv)
 {
 	free(pv);
 }
@@ -27,7 +27,7 @@ void CLinkedListBase::Free(void* pv)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CLinkedListBase::Realloc(void* pv, size_t tSize)
+void* CLinkedListBlock::Realloc(void* pv, size_t tSize)
 {
 	pv = realloc(pv, tSize);
 	return pv;
@@ -38,7 +38,7 @@ void* CLinkedListBase::Realloc(void* pv, size_t tSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CLinkedListBase::Init(void)
+void CLinkedListBlock::Init(void)
 {
 	mpsHead = NULL;
 	mpsTail = NULL;
@@ -50,7 +50,7 @@ void CLinkedListBase::Init(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CLinkedListBase::Kill(void)
+void CLinkedListBlock::Kill(void)
 {
 	SLLNode*	psNode;
 	SLLNode*	psNode2;
@@ -72,7 +72,7 @@ void CLinkedListBase::Kill(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CLinkedListBase::GetHead(void)
+void* CLinkedListBlock::GetHead(void)
 {
 	return HeaderGetData<SLLNode, void>(mpsHead);
 }
@@ -82,7 +82,7 @@ void* CLinkedListBase::GetHead(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CLinkedListBase::GetTail(void)
+void* CLinkedListBlock::GetTail(void)
 {
 	return HeaderGetData<SLLNode, void>(mpsTail);
 }
@@ -92,7 +92,7 @@ void* CLinkedListBase::GetTail(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CLinkedListBase::GetNext(void* pvData)
+void* CLinkedListBlock::GetNext(void* pvData)
 {
 	SLLNode*		psNodeHeader;
 
@@ -109,7 +109,7 @@ void* CLinkedListBase::GetNext(void* pvData)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CLinkedListBase::GetPrev(void* pvData)
+void* CLinkedListBlock::GetPrev(void* pvData)
 {
 	SLLNode*		psNodeHeader;
 
@@ -126,7 +126,7 @@ void* CLinkedListBase::GetPrev(void* pvData)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CLinkedListBase::Get(int iNum)
+void* CLinkedListBlock::Get(int iNum)
 {
 	int	iCount;
 	void*	psData;
@@ -154,7 +154,7 @@ void* CLinkedListBase::Get(int iNum)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CLinkedListBase::InsertDetachedAfterTail(void* psData)
+void CLinkedListBlock::InsertDetachedAfterTail(void* psData)
 {
 	SLLNode*		psNode;
 
@@ -179,7 +179,7 @@ void CLinkedListBase::InsertDetachedAfterTail(void* psData)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CLinkedListBase::InsertDetachedBeforeHead(void* psData)
+void CLinkedListBlock::InsertDetachedBeforeHead(void* psData)
 {
 	SLLNode*		psNode;
 
@@ -204,7 +204,7 @@ void CLinkedListBase::InsertDetachedBeforeHead(void* psData)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CLinkedListBase::InsertDetachedBeforeNode(void* psDataNode, void* psDataPos)
+void CLinkedListBlock::InsertDetachedBeforeNode(void* psDataNode, void* psDataPos)
 {
 	SLLNode*		psPos;
 	SLLNode*		psNode;
@@ -232,7 +232,7 @@ void CLinkedListBase::InsertDetachedBeforeNode(void* psDataNode, void* psDataPos
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CLinkedListBase::InsertDetachedAfterNode(void* psDataNode, void* psData)
+void CLinkedListBlock::InsertDetachedAfterNode(void* psDataNode, void* psData)
 {
 	SLLNode*		psPos;
 	SLLNode*		psNode;
@@ -260,7 +260,7 @@ void CLinkedListBase::InsertDetachedAfterNode(void* psDataNode, void* psData)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CLinkedListBase::RemoveTail(void)
+void CLinkedListBlock::RemoveTail(void)
 {
 	Remove(GetTail());
 }
@@ -270,7 +270,7 @@ void CLinkedListBase::RemoveTail(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CLinkedListBase::Remove(void* psNodeData)
+void CLinkedListBlock::Remove(void* psNodeData)
 {	
 	Detach(psNodeData);
 	FreeDetached(psNodeData);
@@ -281,7 +281,7 @@ void CLinkedListBase::Remove(void* psNodeData)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CLinkedListBase::SafeRemove(void* pvData)
+BOOL CLinkedListBlock::SafeRemove(void* pvData)
 {	
 	if (IsInList(pvData))
 	{
@@ -296,7 +296,7 @@ BOOL CLinkedListBase::SafeRemove(void* pvData)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int	CLinkedListBase::GetNodeSize(void* pvData)
+int	CLinkedListBlock::GetNodeSize(void* pvData)
 {
 	SLLNode*		psNodeHeader;
 
@@ -309,7 +309,7 @@ int	CLinkedListBase::GetNodeSize(void* pvData)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CLinkedListBase::ByteSize(void)
+int CLinkedListBlock::ByteSize(void)
 {
 	int		iSize;
 	void*	pvNode;
@@ -331,7 +331,7 @@ int CLinkedListBase::ByteSize(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CLinkedListBase::InsertAfterTail(int iDataSize)
+void* CLinkedListBlock::InsertAfterTail(int iDataSize)
 {
 	void*			pvData;
 
@@ -345,7 +345,7 @@ void* CLinkedListBase::InsertAfterTail(int iDataSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CLinkedListBase::InsertBeforeHead(int iDataSize)
+void* CLinkedListBlock::InsertBeforeHead(int iDataSize)
 {
 	void*			pvData;
 
@@ -359,7 +359,7 @@ void* CLinkedListBase::InsertBeforeHead(int iDataSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CLinkedListBase::InsertBeforeNode(int iDataSize, void* psPos)
+void* CLinkedListBlock::InsertBeforeNode(int iDataSize, void* psPos)
 {
 	void*			pvData;
 
@@ -373,7 +373,7 @@ void* CLinkedListBase::InsertBeforeNode(int iDataSize, void* psPos)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CLinkedListBase::InsertAfterNode(int iDataSize, void* psPos)
+void* CLinkedListBlock::InsertAfterNode(int iDataSize, void* psPos)
 {
 	void*			pvData;
 
@@ -387,7 +387,7 @@ void* CLinkedListBase::InsertAfterNode(int iDataSize, void* psPos)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CLinkedListBase::Detach(SLLNode* psNodeHeader)
+void CLinkedListBlock::Detach(SLLNode* psNodeHeader)
 {
 	if (psNodeHeader)
 	{
@@ -416,7 +416,7 @@ void CLinkedListBase::Detach(SLLNode* psNodeHeader)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CLinkedListBase::Detach(void* psNodeData)
+void CLinkedListBlock::Detach(void* psNodeData)
 {
 	SLLNode*		psNodeHeader;
 
@@ -429,7 +429,7 @@ void CLinkedListBase::Detach(void* psNodeData)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CLinkedListBase::AllocateDetached(int iDataSize)
+void* CLinkedListBlock::AllocateDetached(int iDataSize)
 {
 	SLLNode*		psNode;
 
@@ -443,7 +443,7 @@ void* CLinkedListBase::AllocateDetached(int iDataSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CLinkedListBase::FreeDetached(void* psNodeData)
+void CLinkedListBlock::FreeDetached(void* psNodeData)
 {
 	SLLNode*		psNodeHeader;
 
@@ -459,7 +459,7 @@ void CLinkedListBase::FreeDetached(void* psNodeData)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CLinkedListBase::Swap(void* psData1, void* psData2)
+void CLinkedListBlock::Swap(void* psData1, void* psData2)
 {
 	SLLNode*		psNode1;
 	SLLNode*		psNode2;
@@ -520,7 +520,7 @@ void CLinkedListBase::Swap(void* psData1, void* psData2)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int	CLinkedListBase::NumElements(void)
+int	CLinkedListBlock::NumElements(void)
 {
 	return miNumElements;
 }
@@ -530,7 +530,7 @@ int	CLinkedListBase::NumElements(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CLinkedListBase::BubbleSort(int(* Func)(const void*, const void*))
+void CLinkedListBlock::BubbleSort(int(* Func)(const void*, const void*))
 {
 	void*		pcCurr;
 	void*		pcNext;
@@ -575,7 +575,7 @@ void CLinkedListBase::BubbleSort(int(* Func)(const void*, const void*))
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CLinkedListBase::InsertDetachedIntoSorted(int(* Func)(const void*, const void*), void* psData)
+void CLinkedListBlock::InsertDetachedIntoSorted(int(* Func)(const void*, const void*), void* psData)
 {
 	void*			pcCurr;
 	int			iResult;
@@ -604,7 +604,7 @@ void CLinkedListBase::InsertDetachedIntoSorted(int(* Func)(const void*, const vo
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CLinkedListBase::IsInList(void* pvData)
+BOOL CLinkedListBlock::IsInList(void* pvData)
 {
 	int iIndex;
 
@@ -617,7 +617,7 @@ BOOL CLinkedListBase::IsInList(void* pvData)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CLinkedListBase::IndexOf(void* pvData)
+int CLinkedListBlock::IndexOf(void* pvData)
 {
 	int iIndex;
 	void*	pvNode;
@@ -641,12 +641,12 @@ int CLinkedListBase::IndexOf(void* pvData)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CLinkedListBase::WriteLinkListBlock(CFileWriter* pcFileWriter)
+BOOL CLinkedListBlock::WriteLinkListBlock(CFileWriter* pcFileWriter)
 {
 	void*			pvData;
 	int				iSize;
 
-	if (!pcFileWriter->WriteData(this, sizeof(CLinkedListBase))) 
+	if (!pcFileWriter->WriteData(this, sizeof(CLinkedListBlock))) 
 	{ 
 		return FALSE; 
 	}
@@ -674,14 +674,14 @@ BOOL CLinkedListBase::WriteLinkListBlock(CFileWriter* pcFileWriter)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CLinkedListBase::ReadLinkListBlock(CFileReader* pcFileReader)
+BOOL CLinkedListBlock::ReadLinkListBlock(CFileReader* pcFileReader)
 {
 	int				iNumElements;
 	int				i;
 	void*			pvData;
 	int				iSize;
 
-	if (!pcFileReader->ReadData(this, sizeof(CLinkedListBase))) 
+	if (!pcFileReader->ReadData(this, sizeof(CLinkedListBlock))) 
 	{ 
 		return FALSE; 
 	}

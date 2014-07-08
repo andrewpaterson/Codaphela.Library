@@ -22,7 +22,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __LINK_LIST_ALIGNED_H__
 #define __LINK_LIST_ALIGNED_H__
-#include "LinkListBlock.h"
+#include "LinkedListBlock.h"
 #include "LinkListTemplate.h"
 
 
@@ -43,7 +43,7 @@ struct SDANode
 };
 
 
-class CLinkListAligned : public CLinkedListBase
+class CLinkListAligned : public CLinkedListBlock
 {
 public:
 	void		Kill(void);

@@ -36,7 +36,7 @@ struct SLLNode
 };
 
 
-class CLinkedListBase
+class CLinkedListBlock
 {
 protected:
 	SLLNode*	mpsHead; 

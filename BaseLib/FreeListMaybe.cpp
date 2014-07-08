@@ -121,7 +121,7 @@ void* CFreeListMaybe::Add(void)
 //////////////////////////////////////////////////////////////////////////
 void* CFreeListMaybe::CreateLinkList(void)
 {
-	mpcLinkList = (CLinkListBlock*)Malloc(sizeof(CLinkListBlock));
+	mpcLinkList = (CLinkedListBlock*)Malloc(sizeof(CLinkedListBlock));
 	mpcLinkList->Init();
 	return mpcLinkList->InsertAfterTail(miElementSize);
 }

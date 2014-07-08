@@ -23,7 +23,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __FREE_LIST_H__
 #define __FREE_LIST_H__
 #include "IntegerHelper.h"
-#include "LinkListBlock.h"
+#include "LinkedListBlock.h"
 #include "DataTypes.h"
 #include "IntegerHelper.h"
 
@@ -50,7 +50,7 @@ template<class M>
 class __CFreeList
 {
 private:
-	CLinkListBlock	mcList;
+	CLinkedListBlock	mcList;
 	SFNode*			mpsUnused;
 	SFNode*			mpsNotFull;
 	int				miAlignment;

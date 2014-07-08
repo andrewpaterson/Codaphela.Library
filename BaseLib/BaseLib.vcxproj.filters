@@ -174,9 +174,6 @@
     <ClInclude Include="ArraySparseTemplate.h">
       <Filter>Source\Data\Array\Tree</Filter>
     </ClInclude>
-    <ClInclude Include="LinkListBlock.h">
-      <Filter>Source\Data\LinkList</Filter>
-    </ClInclude>
     <ClInclude Include="LinkListTemplate.h">
       <Filter>Source\Data\LinkList</Filter>
     </ClInclude>
@@ -600,7 +597,7 @@
     <ClInclude Include="ArrayBlock.h">
       <Filter>Source\Data\Array\Basic</Filter>
     </ClInclude>
-    <ClInclude Include="LinkedListBase.h">
+    <ClInclude Include="LinkedListBlock.h">
       <Filter>Source\Data\LinkList</Filter>
     </ClInclude>
   </ItemGroup>
@@ -935,7 +932,7 @@
     <ClCompile Include="ArrayBlock.cpp">
       <Filter>Source\Data\Array\Basic</Filter>
     </ClCompile>
-    <ClCompile Include="LinkedListBase.cpp">
+    <ClCompile Include="LinkedListBlock.cpp">
       <Filter>Source\Data\LinkList</Filter>
     </ClCompile>
   </ItemGroup>

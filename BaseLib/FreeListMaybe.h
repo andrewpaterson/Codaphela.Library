@@ -33,7 +33,7 @@ class CFreeListMaybe
 {
 protected:
 	CFreeListBlock*		mpcFreeList;
-	CLinkListBlock*		mpcLinkList;
+	CLinkedListBlock*		mpcLinkList;
 	int					miElementSize;
 	int					miChunkSize;
 
