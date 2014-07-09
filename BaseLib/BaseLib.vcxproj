@@ -204,7 +204,7 @@
     <ClInclude Include="FreeList.h" />
     <ClInclude Include="FreeListBlock.h" />
     <ClInclude Include="FreeListMaybe.h" />
-    <ClInclude Include="LinkListAligned.h" />
+    <ClInclude Include="LinkedListBlockAligned.h" />
     <ClInclude Include="MemoryCache.h" />
     <ClInclude Include="MemoryStack.h" />
     <ClInclude Include="MemoryStackExtended.h" />
@@ -324,7 +324,7 @@
     <ClCompile Include="FreeList.cpp" />
     <ClCompile Include="FreeListBlock.cpp" />
     <ClCompile Include="FreeListMaybe.cpp" />
-    <ClCompile Include="LinkListAligned.cpp" />
+    <ClCompile Include="LinkedListBlockAligned.cpp" />
     <ClCompile Include="MemoryCache.cpp" />
     <ClCompile Include="MemoryStack.cpp" />
     <ClCompile Include="MemoryStackExtended.cpp" />

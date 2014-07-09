@@ -480,9 +480,6 @@
     <ClInclude Include="MemoryCache.h">
       <Filter>Source\Memory\Cache</Filter>
     </ClInclude>
-    <ClInclude Include="LinkListAligned.h">
-      <Filter>Source\Data\LinkList</Filter>
-    </ClInclude>
     <ClInclude Include="StackMark.h">
       <Filter>Source\Memory\Stack</Filter>
     </ClInclude>
@@ -598,6 +595,9 @@
       <Filter>Source\Data\LinkList</Filter>
     </ClInclude>
     <ClInclude Include="LinkedListTemplate.h">
+      <Filter>Source\Data\LinkList</Filter>
+    </ClInclude>
+    <ClInclude Include="LinkedListBlockAligned.h">
       <Filter>Source\Data\LinkList</Filter>
     </ClInclude>
   </ItemGroup>
@@ -857,9 +857,6 @@
     <ClCompile Include="MemoryCacheAllocation.cpp">
       <Filter>Source\Memory\Cache</Filter>
     </ClCompile>
-    <ClCompile Include="LinkListAligned.cpp">
-      <Filter>Source\Data\LinkList</Filter>
-    </ClCompile>
     <ClCompile Include="MemoryStack.cpp">
       <Filter>Source\Memory\Stack</Filter>
     </ClCompile>
@@ -933,6 +930,9 @@
       <Filter>Source\Data\Array\Basic</Filter>
     </ClCompile>
     <ClCompile Include="LinkedListBlock.cpp">
+      <Filter>Source\Data\LinkList</Filter>
+    </ClCompile>
+    <ClCompile Include="LinkedListBlockAligned.cpp">
       <Filter>Source\Data\LinkList</Filter>
     </ClCompile>
   </ItemGroup>

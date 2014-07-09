@@ -20,7 +20,7 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-#include "LinkListAligned.h"
+#include "LinkedListBlockAligned.h"
 #include "IntegerHelper.h"
 
 
@@ -28,7 +28,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CLinkListAligned::Kill(void)
+void CLinkedListBlockAligned::Kill(void)
 {
 	SLLANode*	psNode;
 	SLLANode*	psNode2;
@@ -53,7 +53,7 @@ void CLinkListAligned::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CLinkListAligned::FreeNode(SLLANode* psNode)
+void CLinkedListBlockAligned::FreeNode(SLLANode* psNode)
 {
 	Free(psNode->sAligned.pvAlloc);
 }
@@ -63,7 +63,7 @@ void CLinkListAligned::FreeNode(SLLANode* psNode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CLinkListAligned::InsertAfterTail(unsigned int iSize, int iAlignment, int iOffset)
+void* CLinkedListBlockAligned::InsertAfterTail(unsigned int iSize, int iAlignment, int iOffset)
 {
 	void*			pvData;
 
@@ -77,7 +77,7 @@ void* CLinkListAligned::InsertAfterTail(unsigned int iSize, int iAlignment, int 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CLinkListAligned::InsertBeforeHead(int iSize, int iAlignment, int iOffset)
+void* CLinkedListBlockAligned::InsertBeforeHead(int iSize, int iAlignment, int iOffset)
 {
 	void*			pvData;
 
@@ -91,7 +91,7 @@ void* CLinkListAligned::InsertBeforeHead(int iSize, int iAlignment, int iOffset)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CLinkListAligned::InsertBeforeNode(void* psPos, int iSize, int iAlignment, int iOffset)
+void* CLinkedListBlockAligned::InsertBeforeNode(void* psPos, int iSize, int iAlignment, int iOffset)
 {
 	void*			pvData;
 
@@ -105,7 +105,7 @@ void* CLinkListAligned::InsertBeforeNode(void* psPos, int iSize, int iAlignment,
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CLinkListAligned::InsertAfterNode(void* psPos, int iSize, int iAlignment, int iOffset)
+void* CLinkedListBlockAligned::InsertAfterNode(void* psPos, int iSize, int iAlignment, int iOffset)
 {
 	void*			pvData;
 
@@ -119,7 +119,7 @@ void* CLinkListAligned::InsertAfterNode(void* psPos, int iSize, int iAlignment, 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CLinkListAligned::AllocateDetached(int iDataSize, int iAlignment, int iOffset)
+void* CLinkedListBlockAligned::AllocateDetached(int iDataSize, int iAlignment, int iOffset)
 {
 	void*			pvMem;
 	int				iTotalSize;
@@ -143,7 +143,7 @@ void* CLinkListAligned::AllocateDetached(int iDataSize, int iAlignment, int iOff
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CLinkListAligned::Add(int iDataSize, int iAlignment)
+void* CLinkedListBlockAligned::Add(int iDataSize, int iAlignment)
 {
 	return InsertAfterTail(iDataSize, iAlignment, 0);
 }
@@ -153,7 +153,7 @@ void* CLinkListAligned::Add(int iDataSize, int iAlignment)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CLinkListAligned::ByteSize(void)
+int CLinkedListBlockAligned::ByteSize(void)
 {
 	int		iSize;
 	void*	pvNode;
@@ -175,7 +175,7 @@ int CLinkListAligned::ByteSize(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CLinkListAligned::GetNodeSize(void* pvMem)
+int CLinkedListBlockAligned::GetNodeSize(void* pvMem)
 {
 	SLLANode*		psNodeHeader;
 
@@ -188,7 +188,7 @@ int CLinkListAligned::GetNodeSize(void* pvMem)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-SLLANode* CLinkListAligned::CalculateActualStart(void* pvMem, int iAlignment, int iOffset)
+SLLANode* CLinkedListBlockAligned::CalculateActualStart(void* pvMem, int iAlignment, int iOffset)
 {
 	ENGINE_SIZE_T	iStart;
 	ENGINE_SIZE_T	iByteDiff;
@@ -213,7 +213,7 @@ SLLANode* CLinkListAligned::CalculateActualStart(void* pvMem, int iAlignment, in
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SLLANode* CLinkListAligned::GetNode(void* pvMem)
+SLLANode* CLinkedListBlockAligned::GetNode(void* pvMem)
 {
 	return (SLLANode*)(ENGINE_SIZE_T) ((unsigned int)(ENGINE_SIZE_T) pvMem - sizeof(SLLANode));
 }
@@ -223,7 +223,7 @@ SLLANode* CLinkListAligned::GetNode(void* pvMem)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CLinkListAligned::Remove(void* pvData)
+void CLinkedListBlockAligned::Remove(void* pvData)
 {
 	Detach(pvData);
 	FreeDetached(pvData);
@@ -234,7 +234,7 @@ void CLinkListAligned::Remove(void* pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CLinkListAligned::SafeRemove(void* pvData)
+BOOL CLinkedListBlockAligned::SafeRemove(void* pvData)
 {
 	if (IsInList(pvData))
 	{
@@ -249,7 +249,7 @@ BOOL CLinkListAligned::SafeRemove(void* pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CLinkListAligned::FreeDetached(void* pvData)
+void CLinkedListBlockAligned::FreeDetached(void* pvData)
 {
 	SLLANode*		psNodeHeader;
 
@@ -265,7 +265,7 @@ void CLinkListAligned::FreeDetached(void* pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CLinkListAligned::Grow(void* pvData, unsigned int uiNewSize)
+void* CLinkedListBlockAligned::Grow(void* pvData, unsigned int uiNewSize)
 {
 	SLLANode*		psNodeHeader;
 	void*			pvAllocatedEnd;

@@ -43,7 +43,7 @@ struct SLLANode
 };
 
 
-class CLinkListAligned : public CLinkedListBlock
+class CLinkedListBlockAligned : public CLinkedListBlock
 {
 public:
 	void		Kill(void);

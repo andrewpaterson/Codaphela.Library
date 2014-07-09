@@ -660,7 +660,7 @@ int CMemory::ByteSize(void)
 	}
 
 	iSize += mcLargeList.ByteSize();
-	iSize += sizeof(CLinkListAligned);
+	iSize += sizeof(CLinkedListBlockAligned);
 
 	return iSize;
 }

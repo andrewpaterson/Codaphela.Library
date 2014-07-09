@@ -29,7 +29,7 @@ class CMemory
 {
 private:
 	CLinkListFreeListBlock		mcFreeLists;  
-	CLinkListAligned			mcLargeList;
+	CLinkedListBlockAligned			mcLargeList;
 	int							miDefaultAlignment;
 	CArrayFreeListDesc			mcOrder;
 	CArrayFreeListParams		mcParams;

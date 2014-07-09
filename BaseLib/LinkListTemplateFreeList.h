@@ -32,15 +32,14 @@ class CLinkListTemplateFreeList : public CLinkedListTemplate<M>
 protected:	
 	CFreeListBlock	mcFreeList;  //Only Unknown types of freelists can be managed.
 
-	void*	Malloc(size_t tSize);
-	void	Free(void* pv);
-
 public:
 	void	Init(void);
 	void	Init(int iChunkSize);
 	void	Kill(void);
 
-
+protected:	
+	void*	Malloc(size_t tSize);
+	void	Free(void* pv);
 };
 
 
