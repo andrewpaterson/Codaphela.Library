@@ -22,7 +22,7 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __INSTANCE_H__
 #include "BaseLib/DataTypes.h"
 #include "BaseLib/ArrayTemplate.h"
-#include "BaseLib/LinkListTemplate.h"
+#include "BaseLib/LinkedListTemplate.h"
 #include "BaseLib/ArrayInt.h"
 #include "BaseLib/ArrayBlock.h"
 #include "BaseLib/ArrayTemplateMinimal.h"

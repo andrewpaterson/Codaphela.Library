@@ -58,8 +58,8 @@ public:
 	int		ByteSize(void);
 
 	//Crap
-	BOOL	WriteLinkListTemplate(CFileWriter* pcFileWriter);
-	BOOL	ReadLinkListTemplate(CFileReader* pcFileReader);
+	BOOL	WriteLinkedListTemplate(CFileWriter* pcFileWriter);
+	BOOL	ReadLinkedListTemplate(CFileReader* pcFileReader);
 };
 
 
@@ -201,7 +201,7 @@ M* CLinkedListTemplate<M>::Add(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-BOOL CLinkedListTemplate<M>::WriteLinkListTemplate(CFileWriter* pcFileWriter)
+BOOL CLinkedListTemplate<M>::WriteLinkedListTemplate(CFileWriter* pcFileWriter)
 {
 	return CLinkedListBlock::WriteLinkListBlock(pcFileWriter);
 }
@@ -212,7 +212,7 @@ BOOL CLinkedListTemplate<M>::WriteLinkListTemplate(CFileWriter* pcFileWriter)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-BOOL CLinkedListTemplate<M>::ReadLinkListTemplate(CFileReader* pcFileReader)
+BOOL CLinkedListTemplate<M>::ReadLinkedListTemplate(CFileReader* pcFileReader)
 {
 	return CLinkedListBlock::ReadLinkListBlock(pcFileReader);
 }
