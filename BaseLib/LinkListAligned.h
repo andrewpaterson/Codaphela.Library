@@ -36,7 +36,7 @@ struct SAlignedData
 
 
 //Remember there is still space above this node which pvAlloc points to.
-struct SDANode
+struct SLLANode
 {
 	SAlignedData	sAligned;
 	SLLNode			sDNode;
@@ -56,11 +56,11 @@ public:
 	void		Remove(void* pvData);
 	BOOL		SafeRemove(void* pvData);
 	void		FreeDetached(void* psNodeData);
-	void		FreeNode(SDANode* psNode);
+	void		FreeNode(SLLANode* psNode);
 	void*		Grow(void* pvData, unsigned int uiNewSize);
 
-	SDANode*	CalculateActualStart(void* pvMem, int iAlignment, int iOffset);
-	SDANode*	GetNode(void* pvMem);
+	SLLANode*	CalculateActualStart(void* pvMem, int iAlignment, int iOffset);
+	SLLANode*	GetNode(void* pvMem);
 
 	int			ByteSize(void);
 

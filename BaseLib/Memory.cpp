@@ -373,7 +373,7 @@ void* CMemory::Grow(void* pvInitial, unsigned int uiSize)
 	CFreeListBlock*	pcList;
 	SFreeListParams*	psParams;
 	void*				pvNew;
-	SDANode*			psNode;
+	SLLANode*			psNode;
 
 	psAlloc = MEMORY_GET_ALLOCATION(pvInitial);
 	if (psAlloc->uiSize <= (muiFreeListSizeLimit - sizeof(SMemoryAllocation)))
@@ -395,7 +395,7 @@ void* CMemory::Grow(void* pvInitial, unsigned int uiSize)
 	}
 	else
 	{
-		psNode = (SDANode*)RemapSinglePointer(psAlloc, -((int)sizeof(SDANode)));
+		psNode = (SLLANode*)RemapSinglePointer(psAlloc, -((int)sizeof(SLLANode)));
 		if (uiSize <= (muiFreeListSizeLimit - sizeof(SMemoryAllocation)))
 		{
 			pvNew = Add(uiSize, psNode->sAligned.iAlignment, psNode->sAligned.iOffset);

@@ -30,16 +30,16 @@ Microsoft Windows is Copyright Microsoft Corporation
 //////////////////////////////////////////////////////////////////////////
 void CLinkListAligned::Kill(void)
 {
-	SDANode*	psNode;
-	SDANode*	psNode2;
+	SLLANode*	psNode;
+	SLLANode*	psNode2;
 	void*		pvData;
 
 	pvData = HeaderGetData<SLLNode, void>(mpsHead);  //Yes this is the correct macro.
-	psNode = DataGetHeader<SDANode, void>(pvData);
+	psNode = DataGetHeader<SLLANode, void>(pvData);
 	while (psNode)
 	{
 		pvData = HeaderGetData<SLLNode, void>(psNode->sDNode.psNext);  //Yes this is the correct macro.
-		psNode2 = DataGetHeader<SDANode, void>(pvData);
+		psNode2 = DataGetHeader<SLLANode, void>(pvData);
 		FreeNode(psNode);
 		psNode = psNode2;
 	}
@@ -53,7 +53,7 @@ void CLinkListAligned::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CLinkListAligned::FreeNode(SDANode* psNode)
+void CLinkListAligned::FreeNode(SLLANode* psNode)
 {
 	Free(psNode->sAligned.pvAlloc);
 }
@@ -123,10 +123,10 @@ void* CLinkListAligned::AllocateDetached(int iDataSize, int iAlignment, int iOff
 {
 	void*			pvMem;
 	int				iTotalSize;
-	SDANode*		psNode;
+	SLLANode*		psNode;
 
-	iOffset = ::CalculateOffset(iOffset - sizeof(SDANode), iAlignment);
-	iTotalSize = iDataSize + sizeof(SDANode) + iAlignment-1;
+	iOffset = ::CalculateOffset(iOffset - sizeof(SLLANode), iAlignment);
+	iTotalSize = iDataSize + sizeof(SLLANode) + iAlignment-1;
 
 	pvMem = Malloc(iTotalSize);
 	psNode = CalculateActualStart(pvMem, iAlignment, iOffset);
@@ -135,7 +135,7 @@ void* CLinkListAligned::AllocateDetached(int iDataSize, int iAlignment, int iOff
 	psNode->sAligned.iSize = iDataSize;
 	psNode->sAligned.pvAlloc = pvMem;
 
-	return HeaderGetData<SDANode, void>(psNode);
+	return HeaderGetData<SLLANode, void>(psNode);
 }
 
 
@@ -177,10 +177,10 @@ int CLinkListAligned::ByteSize(void)
 //////////////////////////////////////////////////////////////////////////
 int CLinkListAligned::GetNodeSize(void* pvMem)
 {
-	SDANode*		psNodeHeader;
+	SLLANode*		psNodeHeader;
 
-	psNodeHeader = DataGetHeader<SDANode, void>(pvMem);
-	return psNodeHeader->sAligned.iSize + sizeof(SDANode) + psNodeHeader->sAligned.iAlignment-1;;
+	psNodeHeader = DataGetHeader<SLLANode, void>(pvMem);
+	return psNodeHeader->sAligned.iSize + sizeof(SLLANode) + psNodeHeader->sAligned.iAlignment-1;;
 }
 
 
@@ -188,7 +188,7 @@ int CLinkListAligned::GetNodeSize(void* pvMem)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-SDANode* CLinkListAligned::CalculateActualStart(void* pvMem, int iAlignment, int iOffset)
+SLLANode* CLinkListAligned::CalculateActualStart(void* pvMem, int iAlignment, int iOffset)
 {
 	ENGINE_SIZE_T	iStart;
 	ENGINE_SIZE_T	iByteDiff;
@@ -199,12 +199,12 @@ SDANode* CLinkListAligned::CalculateActualStart(void* pvMem, int iAlignment, int
 	iByteDiff = iStart % iAlignment;
 	if (iByteDiff == 0)
 	{
-		return (SDANode*)(ENGINE_SIZE_T)(iStart + iOffset);
+		return (SLLANode*)(ENGINE_SIZE_T)(iStart + iOffset);
 	}
 	else
 	{
 		iActualOffset = (((ENGINE_SIZE_T)iAlignment - iByteDiff) + iOffset) % (ENGINE_SIZE_T)iAlignment;
-		return (SDANode*)(ENGINE_SIZE_T)(iStart + iActualOffset);
+		return (SLLANode*)(ENGINE_SIZE_T)(iStart + iActualOffset);
 	}
 }
 
@@ -213,9 +213,9 @@ SDANode* CLinkListAligned::CalculateActualStart(void* pvMem, int iAlignment, int
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SDANode* CLinkListAligned::GetNode(void* pvMem)
+SLLANode* CLinkListAligned::GetNode(void* pvMem)
 {
-	return (SDANode*)(ENGINE_SIZE_T) ((unsigned int)(ENGINE_SIZE_T) pvMem - sizeof(SDANode));
+	return (SLLANode*)(ENGINE_SIZE_T) ((unsigned int)(ENGINE_SIZE_T) pvMem - sizeof(SLLANode));
 }
 
 
@@ -251,9 +251,9 @@ BOOL CLinkListAligned::SafeRemove(void* pvData)
 //////////////////////////////////////////////////////////////////////////
 void CLinkListAligned::FreeDetached(void* pvData)
 {
-	SDANode*		psNodeHeader;
+	SLLANode*		psNodeHeader;
 
-	psNodeHeader = DataGetHeader<SDANode, void>(pvData);
+	psNodeHeader = DataGetHeader<SLLANode, void>(pvData);
 	if (psNodeHeader)
 	{
 		FreeNode(psNodeHeader);
@@ -267,13 +267,13 @@ void CLinkListAligned::FreeDetached(void* pvData)
 //////////////////////////////////////////////////////////////////////////
 void* CLinkListAligned::Grow(void* pvData, unsigned int uiNewSize)
 {
-	SDANode*		psNodeHeader;
+	SLLANode*		psNodeHeader;
 	void*			pvAllocatedEnd;
 	void*			pvObjectEnd;
 	void*			pvNew;
 	unsigned int	uiSize;
 
-	psNodeHeader = DataGetHeader<SDANode, void>(pvData);
+	psNodeHeader = DataGetHeader<SLLANode, void>(pvData);
 
 	if (uiNewSize == 0)
 	{
@@ -281,7 +281,7 @@ void* CLinkListAligned::Grow(void* pvData, unsigned int uiNewSize)
 		return NULL;
 	}
 
-	pvAllocatedEnd = (void*)(ENGINE_SIZE_T) ((int)(ENGINE_SIZE_T) psNodeHeader->sAligned.pvAlloc + sizeof(SDANode) + psNodeHeader->sAligned.iSize + psNodeHeader->sAligned.iAlignment-1);
+	pvAllocatedEnd = (void*)(ENGINE_SIZE_T) ((int)(ENGINE_SIZE_T) psNodeHeader->sAligned.pvAlloc + sizeof(SLLANode) + psNodeHeader->sAligned.iSize + psNodeHeader->sAligned.iAlignment-1);
 	pvObjectEnd = (void*)(ENGINE_SIZE_T) ((int)(ENGINE_SIZE_T) pvData + uiNewSize);
 
 	if (pvAllocatedEnd >= pvObjectEnd)
