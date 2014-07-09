@@ -66,6 +66,7 @@ public:
 	void	InsertDetachedBeforeHead(void* psNode);
 	void	InsertDetachedBeforeNode(void* psData, void* psPos);
 	void	InsertDetachedAfterNode(void* psData, void* psPos);
+	void	InsertDetachedIntoSorted(int(*)(const void*, const void*), void* psNode);
 
 	void	Detach(SLLNode* psNodeHeader);
 	void	Detach(void* pvData);
@@ -81,16 +82,14 @@ public:
 	BOOL	WriteLinkListBlock(CFileWriter* pcFileWriter);
 	BOOL	ReadLinkListBlock(CFileReader* pcFileReader);
 
-	//Sorting functions.
-	void	Swap(void* psData1, void* psData2);
 	void	BubbleSort(int(*)(const void*, const void*));
-	void	InsertDetachedIntoSorted(int(*)(const void*, const void*), void* psNode);
 
 protected:	
 	void*	Malloc(size_t tSize);
 	void*	Realloc(void* pv, size_t iMemSize);
 	void	Free(void* pv);
 
+	void	Swap(void* psData1, void* psData2);
 	int		GetNodeSize(void* psData);
 };
 
