@@ -110,7 +110,7 @@
     <ClInclude Include="IndexTreeTemplate.h" />
     <ClInclude Include="LinkedListBlock.h" />
     <ClInclude Include="LinkedListTemplate.h" />
-    <ClInclude Include="LinkListTemplateFreeList.h" />
+    <ClInclude Include="LinkedListTemplateFreeList.h" />
     <ClInclude Include="Log.h" />
     <ClInclude Include="LogConfig.h" />
     <ClInclude Include="LogString.h" />

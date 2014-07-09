@@ -174,9 +174,6 @@
     <ClInclude Include="ArraySparseTemplate.h">
       <Filter>Source\Data\Array\Tree</Filter>
     </ClInclude>
-    <ClInclude Include="LinkListTemplateFreeList.h">
-      <Filter>Source\Data\LinkList</Filter>
-    </ClInclude>
     <ClInclude Include="TreeBlock.h">
       <Filter>Source\Data\Tree</Filter>
     </ClInclude>
@@ -598,6 +595,9 @@
       <Filter>Source\Data\LinkList</Filter>
     </ClInclude>
     <ClInclude Include="LinkedListBlockAligned.h">
+      <Filter>Source\Data\LinkList</Filter>
+    </ClInclude>
+    <ClInclude Include="LinkedListTemplateFreeList.h">
       <Filter>Source\Data\LinkList</Filter>
     </ClInclude>
   </ItemGroup>

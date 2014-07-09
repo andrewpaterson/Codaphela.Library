@@ -27,10 +27,10 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 
 template<class M>
-class CLinkListTemplateFreeList : public CLinkedListTemplate<M>
+class CLinkedListTemplateFreeList : public CLinkedListTemplate<M>
 {
 protected:	
-	CFreeListBlock	mcFreeList;  //Only Unknown types of freelists can be managed.
+	CFreeListBlock	mcFreeList;
 
 public:
 	void	Init(void);
@@ -48,7 +48,7 @@ protected:
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template <class M>
-void* CLinkListTemplateFreeList<M>::Malloc(size_t tSize)
+void* CLinkedListTemplateFreeList<M>::Malloc(size_t tSize)
 {
 	if (tSize == mcFreeList.GetElementSize())
 	{
@@ -66,7 +66,7 @@ void* CLinkListTemplateFreeList<M>::Malloc(size_t tSize)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template <class M>
-void CLinkListTemplateFreeList<M>::Free(void* pv)
+void CLinkedListTemplateFreeList<M>::Free(void* pv)
 {
 	mcFreeList.Remove(pv);
 }
@@ -77,7 +77,7 @@ void CLinkListTemplateFreeList<M>::Free(void* pv)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template <class M>
-void CLinkListTemplateFreeList<M>::Init(void)
+void CLinkedListTemplateFreeList<M>::Init(void)
 {
 	mcFreeList.Init(8, sizeof(M));
 	mcFreeList.SetAdditionalSize(sizeof(SDNode));
@@ -90,7 +90,7 @@ void CLinkListTemplateFreeList<M>::Init(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template <class M>
-void CLinkListTemplateFreeList<M>::Init(int iChunkSize)
+void CLinkedListTemplateFreeList<M>::Init(int iChunkSize)
 {
 	mcFreeList.Init(iChunkSize, sizeof(M));
 	mcFreeList.SetAdditionalSize(sizeof(SDNode));
@@ -102,7 +102,7 @@ void CLinkListTemplateFreeList<M>::Init(int iChunkSize)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template <class M>
-void CLinkListTemplateFreeList<M>::Kill(void)
+void CLinkedListTemplateFreeList<M>::Kill(void)
 {
 	mcFreeList.Kill();
 	mpsHead = NULL;

@@ -23,7 +23,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __INPUT_DEVICE_VALUE_H__
 #define __INPUT_DEVICE_VALUE_H__
 #include "BaseLib/ArrayTemplate.h"
-#include "BaseLib/LinkListTemplateFreeList.h"
+#include "BaseLib/LinkedListTemplateFreeList.h"
 #include "BaseLib/Chars.h"
 
 #define INPUT_VALUES_CHUNK_SIZE		4
@@ -58,7 +58,7 @@ public:
 };
 
 
-typedef CLinkListTemplateFreeList<CInputDeviceValue>	CListInputDeviceValue;
+typedef CLinkedListTemplateFreeList<CInputDeviceValue>	CListInputDeviceValue;
 typedef CArrayTemplate<CInputDeviceValue*>	CArrayInputDeviceValuePtr;
 
 
