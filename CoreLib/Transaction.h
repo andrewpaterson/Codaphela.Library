@@ -22,11 +22,11 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __TRANSACTION_H__
 #define __TRANSACTION_H__
-#include "BaseLib/LinkListTemplate.h"
+#include "BaseLib/LinkedListTemplate.h"
 #include "SubTransaction.h"
 
 
-typedef CLinkListTemplate<CSubTransaction> CLinkListSubTransactions;
+typedef CLinkedListTemplate<CSubTransaction> CLinkListSubTransactions;
 
 
 class CTransactionController;

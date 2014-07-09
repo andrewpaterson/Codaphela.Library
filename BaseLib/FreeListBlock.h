@@ -23,7 +23,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __FREE_LIST_BLOCK_H__
 #define __FREE_LIST_BLOCK_H__
 #include "FreeList.h"
-#include "LinkListTemplate.h"
+#include "LinkedListTemplate.h"
 
 
 class CFreeListBlock : public __CFreeList<void>
@@ -36,7 +36,7 @@ public:
 };
 
 
-typedef CLinkListTemplate<CFreeListBlock> CLinkListFreeListBlock;
+typedef CLinkedListTemplate<CFreeListBlock> CLinkListFreeListBlock;
 
 
 #endif // __FREE_LIST_BLOCK_H__

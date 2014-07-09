@@ -22,7 +22,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __ITERABLES_H__
 #include "BaseLib/FreeList.h"
 #include "BaseLib/Chars.h"
-#include "BaseLib/LinkListTemplate.h"
+#include "BaseLib/LinkedListTemplate.h"
 #include "Unknown.h"
 
 
@@ -67,7 +67,7 @@ public:
 };
 
 
-typedef CLinkListTemplate<CIterableList>	CLinkListIterableList;
+typedef CLinkedListTemplate<CIterableList>	CLinkListIterableList;
 
 
 class CIterables

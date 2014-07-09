@@ -22,14 +22,14 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __TRANSACTION_CONTROLLER_H__
 #define __TRANSACTION_CONTROLLER_H__
-#include "BaseLib/LinkListTemplate.h"
+#include "BaseLib/LinkedListTemplate.h"
 #include "BaseLib/Chars.h"
 #include "Transaction.h"
 #include "DurableSet.h"
 #include "IndexedData.h"
 
 
-typedef	CLinkListTemplate<CTransaction>	CListTransactions;
+typedef	CLinkedListTemplate<CTransaction>	CListTransactions;
 
 
 struct SControllerState

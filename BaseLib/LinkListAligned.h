@@ -23,7 +23,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __LINK_LIST_ALIGNED_H__
 #define __LINK_LIST_ALIGNED_H__
 #include "LinkedListBlock.h"
-#include "LinkListTemplate.h"
+#include "LinkedListTemplate.h"
 
 
 struct SAlignedData

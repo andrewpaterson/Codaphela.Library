@@ -22,12 +22,12 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __FREE_LINK_LIST_TEMPLATE__
 #define __FREE_LINK_LIST_TEMPLATE__
-#include "LinkListTemplate.h"
+#include "LinkedListTemplate.h"
 #include "FreeListBlock.h"
 
 
 template<class M>
-class CLinkListTemplateFreeList : public CLinkListTemplate<M>
+class CLinkListTemplateFreeList : public CLinkedListTemplate<M>
 {
 protected:	
 	CFreeListBlock	mcFreeList;  //Only Unknown types of freelists can be managed.
@@ -82,7 +82,7 @@ void CLinkListTemplateFreeList<M>::Init(void)
 {
 	mcFreeList.Init(8, sizeof(M));
 	mcFreeList.SetAdditionalSize(sizeof(SDNode));
-	CLinkListTemplate<M>::Init();
+	CLinkedListTemplate<M>::Init();
 }
 
 
@@ -95,7 +95,7 @@ void CLinkListTemplateFreeList<M>::Init(int iChunkSize)
 {
 	mcFreeList.Init(iChunkSize, sizeof(M));
 	mcFreeList.SetAdditionalSize(sizeof(SDNode));
-	CLinkListTemplate<M>::Init();
+	CLinkedListTemplate<M>::Init();
 }
 
 //////////////////////////////////////////////////////////////////////////

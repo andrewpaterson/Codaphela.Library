@@ -20,8 +20,8 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __TEMPLATE_LIST_H__
-#define __TEMPLATE_LIST_H__
+#ifndef __LINKED_LIST_TEMPLATE_H__
+#define __LINKED_LIST_TEMPLATE_H__
 #include "Define.h"
 #include "DataMacro.h"
 #include "FileIO.h"
@@ -37,7 +37,7 @@ struct SDNode
 
 
 template<class M>
-class CLinkListTemplate : public CLinkedListBlock
+class CLinkedListTemplate : public CLinkedListBlock
 {
 public:
 	M* 		InsertAfterTail(void);
@@ -69,7 +69,7 @@ public:
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M* CLinkListTemplate<M>::GetHead(void)
+M* CLinkedListTemplate<M>::GetHead(void)
 {
 	return (M*)CLinkedListBlock::GetHead();
 }
@@ -80,7 +80,7 @@ M* CLinkListTemplate<M>::GetHead(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M* CLinkListTemplate<M>::GetTail(void)
+M* CLinkedListTemplate<M>::GetTail(void)
 {
 	return (M*)CLinkedListBlock::GetTail();
 }
@@ -91,7 +91,7 @@ M* CLinkListTemplate<M>::GetTail(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M* CLinkListTemplate<M>::GetNext(M* pvData)
+M* CLinkedListTemplate<M>::GetNext(M* pvData)
 {
 	return (M*)CLinkedListBlock::GetNext(pvData);
 }
@@ -102,7 +102,7 @@ M* CLinkListTemplate<M>::GetNext(M* pvData)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M* CLinkListTemplate<M>::GetPrev(M* pvData)
+M* CLinkedListTemplate<M>::GetPrev(M* pvData)
 {
 	return (M*)CLinkedListBlock::GetPrev(pvData);
 }
@@ -113,7 +113,7 @@ M* CLinkListTemplate<M>::GetPrev(M* pvData)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M* CLinkListTemplate<M>::Get(int iNum)
+M* CLinkedListTemplate<M>::Get(int iNum)
 {
 	return (M*)CLinkedListBlock::Get(iNum);
 }
@@ -124,7 +124,7 @@ M* CLinkListTemplate<M>::Get(int iNum)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-BOOL CLinkListTemplate<M>::IsInList(M* pvData)
+BOOL CLinkedListTemplate<M>::IsInList(M* pvData)
 {
 	return CLinkedListBlock::IsInList(pvData);
 }
@@ -135,7 +135,7 @@ BOOL CLinkListTemplate<M>::IsInList(M* pvData)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-int CLinkListTemplate<M>::IndexOf(M* pvData)
+int CLinkedListTemplate<M>::IndexOf(M* pvData)
 {
 	return CLinkedListBlock::IndexOf(pvData);
 }
@@ -146,7 +146,7 @@ int CLinkListTemplate<M>::IndexOf(M* pvData)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M* CLinkListTemplate<M>::InsertAfterTail(void)
+M* CLinkedListTemplate<M>::InsertAfterTail(void)
 {
 	return (M*)CLinkedListBlock::InsertAfterTail(sizeof(M));
 }
@@ -157,7 +157,7 @@ M* CLinkListTemplate<M>::InsertAfterTail(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M* CLinkListTemplate<M>::InsertBeforeHead(void)
+M* CLinkedListTemplate<M>::InsertBeforeHead(void)
 {
 	return (M*)CLinkedListBlock::InsertBeforeHead(sizeof(M));
 }
@@ -168,7 +168,7 @@ M* CLinkListTemplate<M>::InsertBeforeHead(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M* CLinkListTemplate<M>::InsertBeforeNode(M* psPos)
+M* CLinkedListTemplate<M>::InsertBeforeNode(M* psPos)
 {
 	return (M*)CLinkedListBlock::InsertBeforeNode(sizeof(M), psPos);
 }
@@ -179,7 +179,7 @@ M* CLinkListTemplate<M>::InsertBeforeNode(M* psPos)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M* CLinkListTemplate<M>::InsertAfterNode(M* psPos)
+M* CLinkedListTemplate<M>::InsertAfterNode(M* psPos)
 {
 	return (M*)CLinkedListBlock::InsertAfterNode(sizeof(M), psPos);
 }
@@ -190,7 +190,7 @@ M* CLinkListTemplate<M>::InsertAfterNode(M* psPos)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M* CLinkListTemplate<M>::Add(void)
+M* CLinkedListTemplate<M>::Add(void)
 {
 	return (M*)CLinkedListBlock::InsertAfterTail(sizeof(M));
 }
@@ -201,7 +201,7 @@ M* CLinkListTemplate<M>::Add(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-BOOL CLinkListTemplate<M>::WriteLinkListTemplate(CFileWriter* pcFileWriter)
+BOOL CLinkedListTemplate<M>::WriteLinkListTemplate(CFileWriter* pcFileWriter)
 {
 	return CLinkedListBlock::WriteLinkListBlock(pcFileWriter);
 }
@@ -212,11 +212,11 @@ BOOL CLinkListTemplate<M>::WriteLinkListTemplate(CFileWriter* pcFileWriter)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-BOOL CLinkListTemplate<M>::ReadLinkListTemplate(CFileReader* pcFileReader)
+BOOL CLinkedListTemplate<M>::ReadLinkListTemplate(CFileReader* pcFileReader)
 {
 	return CLinkedListBlock::ReadLinkListBlock(pcFileReader);
 }
 
 
-#endif // __TEMPLATE_LIST_H__
+#endif // __LINKED_LIST_TEMPLATE_H__
 

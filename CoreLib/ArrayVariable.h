@@ -26,7 +26,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "BaseLib/FreeListMaybe.h"
 
 
-typedef CLinkListTemplate<CFreeListMaybe> CLinkListFreeListMaybe;
+typedef CLinkedListTemplate<CFreeListMaybe> CLinkListFreeListMaybe;
 
 
 struct SPointerAndSize

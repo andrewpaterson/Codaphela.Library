@@ -25,7 +25,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "Define.h"
 #include "DataTypes.h"
 #include "ArrayInt.h"
-#include "LinkListTemplate.h"
+#include "LinkedListTemplate.h"
 #include "StringHelper.h"
 
 
@@ -39,7 +39,7 @@ struct SEnumeratorIterator
 };
 
 
-typedef CLinkListTemplate<SENode>  CLinkListSENode;
+typedef CLinkedListTemplate<SENode>  CLinkListSENode;
 
 //Do not confuse the enumerator with a map.  The enumerator is designed for fast access based on an integer (which is not an index)
 template<class M>
