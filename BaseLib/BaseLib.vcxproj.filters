@@ -163,6 +163,9 @@
     <Filter Include="Source\Data\Array\Minimal\Specific">
       <UniqueIdentifier>{bcb3c77f-e340-4e34-ac4e-f45a13486256}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Memory\Allocator">
+      <UniqueIdentifier>{2a38947c-d69c-451b-b1ec-226c49cc404e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DataMacro.h">
@@ -600,6 +603,18 @@
     <ClInclude Include="LinkedListTemplateFreeList.h">
       <Filter>Source\Data\LinkList</Filter>
     </ClInclude>
+    <ClInclude Include="Mallocator.h">
+      <Filter>Source\Memory\Allocator</Filter>
+    </ClInclude>
+    <ClInclude Include="SystemAllocator.h">
+      <Filter>Source\Memory\Allocator</Filter>
+    </ClInclude>
+    <ClInclude Include="NullAllocator.h">
+      <Filter>Source\Memory\Allocator</Filter>
+    </ClInclude>
+    <ClInclude Include="FreeListAllocator.h">
+      <Filter>Source\Memory\Freelist</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -934,6 +949,15 @@
     </ClCompile>
     <ClCompile Include="LinkedListBlockAligned.cpp">
       <Filter>Source\Data\LinkList</Filter>
+    </ClCompile>
+    <ClCompile Include="SystemAllocator.cpp">
+      <Filter>Source\Memory\Allocator</Filter>
+    </ClCompile>
+    <ClCompile Include="NullAllocator.cpp">
+      <Filter>Source\Memory\Allocator</Filter>
+    </ClCompile>
+    <ClCompile Include="FreeListAllocator.cpp">
+      <Filter>Source\Memory\Freelist</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

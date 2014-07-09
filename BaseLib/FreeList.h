@@ -51,15 +51,15 @@ class __CFreeList
 {
 private:
 	CLinkedListBlock	mcList;
-	SFNode*			mpsUnused;
-	SFNode*			mpsNotFull;
-	int				miAlignment;
-	int				miStride;
-	int				miOffset;
+	SFNode*				mpsUnused;
+	SFNode*				mpsNotFull;
+	int					miAlignment;
+	int					miStride;
+	int					miOffset;
 
 protected:
-	int				miElementSize;
-	int				miChunkSize;
+	int					miElementSize;
+	int					miChunkSize;
 
 public:
 	void		Kill(void);

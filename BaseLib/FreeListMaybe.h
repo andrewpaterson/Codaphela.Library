@@ -33,7 +33,7 @@ class CFreeListMaybe
 {
 protected:
 	CFreeListBlock*		mpcFreeList;
-	CLinkedListBlock*		mpcLinkList;
+	CLinkedListBlock*	mpcLinkList;
 	int					miElementSize;
 	int					miChunkSize;
 
@@ -41,7 +41,7 @@ public:
 	void	Init(int iElementSize, int iChunkSize = NUM_ELEMENTS_IN_CHUNK);
 	void	Kill(void);
 	void*	Add(void);
-	void*	AddUseFreeList(int iChunkSize = 0);				//Force usage of a freelist if not yet used.
+	void*	AddUseFreeList(int iChunkSize = 0);				//Force usage of a free list if not yet used.
 	void*	AddUseLinkedList(void);  //Just for completeness.
 	void	Remove(void* pvElement);
 	BOOL	SafeRemove(void* pvElement);  //Make sure to only remove elements which we have allocated.
