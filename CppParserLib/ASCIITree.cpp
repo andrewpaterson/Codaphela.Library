@@ -32,9 +32,9 @@ void CASCIITree::Init(void)
 {
 	CASCIINode*	pcRoot;
 
-	mcNodes.Init(32);
+	mcNodes.Init(32, sizeof(CASCIINode));
 
-	pcRoot = mcNodes.Add();
+	pcRoot = (CASCIINode*)mcNodes.Add();
 	pcRoot->Init(NULL, -1);
 	mpcRoot = pcRoot;
 	mcWords.Init(32);
@@ -188,7 +188,7 @@ int CASCIITree::PrivateAdd(CASCIINode* pcNode, int iNode, int iLen, char* szText
 		c = szText[i];
 		c -= ASCII_NODE_START_CHAR;
 
-		pcChild = mcNodes.Add();
+		pcChild = (CASCIINode*)mcNodes.Add();
 		pcChild->Init(pcNode, (int)c);
 		pcNode->mapcChildren[c] = pcChild;
 		pcNode = pcChild;

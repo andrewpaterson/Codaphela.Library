@@ -29,14 +29,14 @@ Microsoft Windows is Copyright Microsoft Corporation
 //////////////////////////////////////////////////////////////////////////
 void CMarkup::Init(void)
 {
-	mcTags.Init(16);
-	mcTexts.Init(8);
-	mcSubDocs.Init(8);
-	mcSubTexts.Init(8);
-	mcRefDocs.Init(8);
-	mcRefTexts.Init(8);
-	mcNamedRefs.Init(8);
-	mcDocs.Init(8);
+	mcTags.Init(16, sizeof(CMarkupTag));
+	mcTexts.Init(8, sizeof(CMarkupText));
+	mcSubDocs.Init(8, sizeof(CMarkupSubDoc));
+	mcSubTexts.Init(8, sizeof(CMarkupSubText));
+	mcRefDocs.Init(8, sizeof(CMarkupRefDoc));
+	mcRefTexts.Init(8, sizeof(CMarkupRefText));
+	mcNamedRefs.Init(8, sizeof(CMarkupNamedRef));
+	mcDocs.Init(8, sizeof(CMarkupDoc));
 
 	mpcDoc = AllocateDoc();
 	mpcDoc->Init(this);
@@ -70,7 +70,7 @@ CMarkupTag* CMarkup::AllocateTag(CMarkupDoc* pcDoc)
 {
 	CMarkupTag*		pcTag;
 
-	pcTag = mcTags.Add();
+	pcTag = (CMarkupTag*)mcTags.Add();
 	pcTag->mpcDoc = pcDoc;
 	return pcTag;
 }
@@ -84,7 +84,7 @@ CMarkupText* CMarkup::AllocateText(CMarkupDoc* pcDoc)
 {
 	CMarkupText*	pcText;
 
-	pcText = mcTexts.Add();
+	pcText = (CMarkupText*)mcTexts.Add();
 	pcText->mpcDoc = pcDoc;
 	return pcText;
 }
@@ -98,7 +98,7 @@ CMarkupSubDoc* CMarkup::AllocateSubDoc(void)
 {
 	CMarkupSubDoc*		pcSubDoc;
 
-	pcSubDoc = mcSubDocs.Add();
+	pcSubDoc = (CMarkupSubDoc*)mcSubDocs.Add();
 	pcSubDoc->mpcMarkup = this;
 	return pcSubDoc;
 }
@@ -112,7 +112,7 @@ CMarkupSubText* CMarkup::AllocateSubText(void)
 {
 	CMarkupSubText*		pcSubText;
 
-	pcSubText = mcSubTexts.Add();
+	pcSubText = (CMarkupSubText*)mcSubTexts.Add();
 	pcSubText->mpcMarkup = this;
 	return pcSubText;
 }
@@ -126,7 +126,7 @@ CMarkupRefDoc* CMarkup::AllocateRefDoc(CMarkupDoc* pcDoc)
 {
 	CMarkupRefDoc*		pcRefDoc;
 
-	pcRefDoc = mcRefDocs.Add();
+	pcRefDoc = (CMarkupRefDoc*)mcRefDocs.Add();
 	pcRefDoc->mpcDoc = pcDoc;
 	return pcRefDoc;
 }
@@ -140,7 +140,7 @@ CMarkupRefText* CMarkup::AllocateRefText(CMarkupDoc* pcDoc)
 {
 	CMarkupRefText*		pcRefText;
 
-	pcRefText = mcRefTexts.Add();
+	pcRefText = (CMarkupRefText*)mcRefTexts.Add();
 	pcRefText->mpcDoc = pcDoc;
 	return pcRefText;
 }
@@ -154,7 +154,7 @@ CMarkupNamedRef* CMarkup::AllocateNamedRef(CMarkupDoc* pcDoc)
 {
 	CMarkupNamedRef*		pcNamedRef;
 
-	pcNamedRef = mcNamedRefs.Add();
+	pcNamedRef = (CMarkupNamedRef*)mcNamedRefs.Add();
 	pcNamedRef->mpcDoc = pcDoc;
 	return pcNamedRef;
 }
@@ -168,7 +168,7 @@ CMarkupDoc* CMarkup::AllocateDoc(void)
 {
 	CMarkupDoc* pcDoc;
 
-	pcDoc = mcDocs.Add();
+	pcDoc = (CMarkupDoc*)mcDocs.Add();
 	return pcDoc;
 }
 
@@ -213,24 +213,24 @@ CMarkupSubstitute* CMarkup::GetSubstitute(char* szName)
 	CMarkupSubDoc*		pcDoc;
 	CMarkupSubText*		pcText;
 
-	pcDoc = mcSubDocs.StartIteration(&sIter);
+	pcDoc = (CMarkupSubDoc*)mcSubDocs.StartIteration(&sIter);
 	while (pcDoc)
 	{
 		if (pcDoc->Is(szName))
 		{
 			return pcDoc;
 		}
-		pcDoc = mcSubDocs.Iterate(&sIter);
+		pcDoc = (CMarkupSubDoc*)mcSubDocs.Iterate(&sIter);
 	}	
 
-	pcText = mcSubTexts.StartIteration(&sIter);
+	pcText = (CMarkupSubText*)mcSubTexts.StartIteration(&sIter);
 	while (pcText)
 	{
 		if (pcText->Is(szName))
 		{
 			return pcText;
 		}
-		pcText = mcSubTexts.Iterate(&sIter);
+		pcText = (CMarkupSubText*)mcSubTexts.Iterate(&sIter);
 	}
 	return NULL;
 }

@@ -79,7 +79,7 @@ void SIndexesIterator::Init(SIndexedLevel* psTop)
 //////////////////////////////////////////////////////////////////////////
 void CIndexes::Init(int iChunkSize)
 {
-	mcLevels.Init(iChunkSize);
+	mcLevels.Init(iChunkSize, sizeof(SIndexedLevel));
 	msTop.Init();
 }
 
@@ -146,7 +146,7 @@ SIndexedLevel* CIndexes::CreateLevels(OIndex oi)
 		psNewLevel = psLevel->apsLevels[ucCurrent];
 		if (!psNewLevel)
 		{
-			psNewLevel = mcLevels.Add();
+			psNewLevel = (SIndexedLevel*)mcLevels.Add();
 			psNewLevel->Init();
 			psLevel->apsLevels[ucCurrent] = psNewLevel;
 		}

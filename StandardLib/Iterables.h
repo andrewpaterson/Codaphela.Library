@@ -26,9 +26,6 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Unknown.h"
 
 
-typedef CFreeList<CUnknown*>	CFreeListUnknownPtr;
-
-
 class CIterableList;
 template<class M>
 class SIteratorTemplate
@@ -50,8 +47,8 @@ public:
 class CIterableList
 {
 public:
-	CFreeListUnknownPtr	mcFreeListPtrs;
-	CChars				mszName;
+	CFreeList	mcFreeListPtrs;
+	CChars		mszName;
 
 	void		Init(char* szName);
 	void		Kill(void);

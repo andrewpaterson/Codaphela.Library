@@ -20,11 +20,11 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __TRANSLATION_UNIT_FILE_ARRAY_H__
 #define __TRANSLATION_UNIT_FILE_ARRAY_H__
-#include "BaseLib/LinkListTemplate.h"
+#include "BaseLib/LinkedListTemplate.h"
 #include "TranslationUnit.h"
 
 
-typedef CLinkListTemplate<CTranslationUnit>	CListTranslationUnit;
+typedef CLinkedListTemplate<CTranslationUnit>	CListTranslationUnit;
 
 
 class CLibrary;

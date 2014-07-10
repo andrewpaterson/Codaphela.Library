@@ -27,7 +27,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CIterableList::Init(char* szName)
 {
-	mcFreeListPtrs.Init(128);
+	mcFreeListPtrs.Init(128, sizeof(CUnknown*));
 	mszName.Init(szName);
 }
 
@@ -64,7 +64,7 @@ BOOL CIterableList::Remove(CUnknown* pcUnknown)
 
 	if (pcUnknown)
 	{
-		ppcUnknown = mcFreeListPtrs.StartIteration(&sIter);
+		ppcUnknown = (CUnknown**)mcFreeListPtrs.StartIteration(&sIter);
 		while (ppcUnknown)
 		{
 			if (pcUnknown == *ppcUnknown)
@@ -72,7 +72,7 @@ BOOL CIterableList::Remove(CUnknown* pcUnknown)
 				mcFreeListPtrs.RemoveDuringIteration(&sIter);
 				return TRUE;
 			}
-			ppcUnknown = mcFreeListPtrs.Iterate(&sIter);
+			ppcUnknown = (CUnknown**)mcFreeListPtrs.Iterate(&sIter);
 		}
 	}
 	return FALSE;
@@ -99,7 +99,7 @@ CUnknown* CIterableList::StartIteration(SIteratorUnknown* psIter)
 	CUnknown**	ppv;
 
 	psIter->pcList = this;
-	ppv = mcFreeListPtrs.StartIteration(&psIter->sIter);
+	ppv = (CUnknown**)mcFreeListPtrs.StartIteration(&psIter->sIter);
 	if (ppv)
 	{
 		return *ppv;
@@ -116,7 +116,7 @@ CUnknown* CIterableList::Iterate(SIteratorUnknown* psIter)
 {
 	CUnknown**	ppv;
 
-	ppv = mcFreeListPtrs.Iterate(&psIter->sIter);
+	ppv = (CUnknown**)mcFreeListPtrs.Iterate(&psIter->sIter);
 	if (ppv)
 	{
 		return *ppv;
@@ -237,7 +237,7 @@ CUnknown* CIterables::Iterate(SIteratorUnknown* psIter)
 
 	if (psIter->pcList)
 	{
-		ppv = psIter->pcList->mcFreeListPtrs.Iterate(&psIter->sIter);
+		ppv = (CUnknown**)psIter->pcList->mcFreeListPtrs.Iterate(&psIter->sIter);
 		if (ppv)
 		{
 			return *ppv;

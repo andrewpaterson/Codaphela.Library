@@ -20,7 +20,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __LIBRARY_H__
 #define __LIBRARY_H__
-#include "BaseLib/LinkListTemplate.h"
+#include "BaseLib/LinkedListTemplate.h"
 #include "Config.h"
 #include "TranslationUnitFileArray.h"
 #include "HeaderNameMap.h"
@@ -53,7 +53,7 @@ public:
 };
 
 
-typedef CLinkListTemplate<CLibrary>	CListLibraries;
+typedef CLinkedListTemplate<CLibrary>	CListLibraries;
 
 
 #endif // __LIBRARY_H__

@@ -39,9 +39,6 @@ struct SIndexedLevel
 };
 
 
-typedef CFreeList<SIndexedLevel>	CFreeListIndexedObjectsLevel;
-
-
 struct SIndexesIterator
 {
 	(SIndexedLevel*)	apsLevels[MAX_INDEXED_LEVEL_DEPTH+1];
@@ -55,8 +52,8 @@ struct SIndexesIterator
 class CIndexes
 {
 protected:
-	CFreeListIndexedObjectsLevel	mcLevels;
-	SIndexedLevel					msTop;
+	CFreeList		mcLevels;
+	SIndexedLevel	msTop;
 
 public:
 	void			Init(int iChunkSize);

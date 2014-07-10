@@ -29,29 +29,29 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "MarkupReference.h"
 
 
-typedef CFreeList<CMarkupTag>		CFreeListMarkupTag;
-typedef CFreeList<CMarkupText>		CFreeListMarkupText;
-typedef CFreeList<CMarkupSubDoc>	CFreeListMarkupSubDoc;
-typedef CFreeList<CMarkupSubText>	CFreeListMarkupSubText;
-typedef CFreeList<CMarkupRefDoc>	CFreeListMarkupRefDoc;
-typedef CFreeList<CMarkupRefText>	CFreeListMarkupRefText;
-typedef CFreeList<CMarkupNamedRef>	CFreeListMarkupNamedRef;
-typedef CFreeList<CMarkupDoc>		CFreeListMarkupDoc;
+//typedef CFreeList<CMarkupTag>		CFreeListMarkupTag;
+//typedef CFreeList<CMarkupText>	CFreeListMarkupText;
+//typedef CFreeList<CMarkupSubDoc>	CFreeListMarkupSubDoc;
+//typedef CFreeList<CMarkupSubText>	CFreeListMarkupSubText;
+//typedef CFreeList<CMarkupRefDoc>	CFreeListMarkupRefDoc;
+//typedef CFreeList<CMarkupRefText>	CFreeListMarkupRefText;
+//typedef CFreeList<CMarkupNamedRef>CFreeListMarkupNamedRef;
+//typedef CFreeList<CMarkupDoc>		CFreeListMarkupDoc;
 
 
 class CMarkup
 {
 public:
-	CFreeListMarkupTag			mcTags;
-	CFreeListMarkupText			mcTexts;
-	CFreeListMarkupSubDoc		mcSubDocs;
-	CFreeListMarkupSubText		mcSubTexts;
-	CFreeListMarkupRefDoc		mcRefDocs;
-	CFreeListMarkupRefText		mcRefTexts;
-	CFreeListMarkupNamedRef		mcNamedRefs;
-	CFreeListMarkupDoc			mcDocs;
+	CFreeList	mcTags;
+	CFreeList	mcTexts;
+	CFreeList	mcSubDocs;
+	CFreeList	mcSubTexts;
+	CFreeList	mcRefDocs;
+	CFreeList	mcRefTexts;
+	CFreeList	mcNamedRefs;
+	CFreeList	mcDocs;
 
-	CMarkupDoc*					mpcDoc;
+	CMarkupDoc*	mpcDoc;
 
 	void				Init(void);
 	void				Kill(void);

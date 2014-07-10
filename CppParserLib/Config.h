@@ -20,7 +20,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __CONIFG_H__
 #define __CONIFG_H__
-#include "BaseLib/LinkListTemplate.h"
+#include "BaseLib/LinkedListTemplate.h"
 #include "BaseLib/ArrayString.h"
 
 
@@ -37,7 +37,7 @@ public:
 };
 
 
-typedef CLinkListTemplate<CConfig>	CListConfigs;
+typedef CLinkedListTemplate<CConfig>	CListConfigs;
 
 
 #endif // __CONIFG_H__

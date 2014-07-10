@@ -28,9 +28,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "CharsIDArray.h"
 
 
-typedef CFreeList<CASCIINode>	CASCIINodes;
-
-
 enum EASCIITreeRemoveStyle
 {
 	ATRS_OnlyEndOfWordMarker,
@@ -59,7 +56,7 @@ struct SASCIITreeIter
 class CASCIITree
 {
 public:
-	CASCIINodes		mcNodes;
+	CFreeList		mcNodes;
 	CASCIINode*		mpcRoot;
 	CCharsIDArray	mcWords;
 	BOOL			mbContainsUnusedWords;

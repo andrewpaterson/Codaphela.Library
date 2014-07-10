@@ -247,6 +247,7 @@
     <ClCompile Include="FileMode.cpp" />
     <ClCompile Include="FileSystemIterator.cpp" />
     <ClCompile Include="FreeListAllocator.cpp" />
+    <ClCompile Include="FreeList.cpp" />
     <ClCompile Include="IndexTree.cpp" />
     <ClCompile Include="IndexTreeNode.cpp" />
     <ClCompile Include="LinkedListBlock.cpp" />
@@ -328,7 +329,6 @@
     <ClCompile Include="FileNodeFileSystem.cpp" />
     <ClCompile Include="FileSystem.cpp" />
     <ClCompile Include="FileCopier.cpp" />
-    <ClCompile Include="FreeList.cpp" />
     <ClCompile Include="FreeListBlock.cpp" />
     <ClCompile Include="FreeListMaybe.cpp" />
     <ClCompile Include="LinkedListBlockAligned.cpp" />

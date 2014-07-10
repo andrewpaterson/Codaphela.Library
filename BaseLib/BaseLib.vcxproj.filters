@@ -857,9 +857,6 @@
     <ClCompile Include="Aardvark.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="FreeList.cpp">
-      <Filter>Source\Memory\Freelist</Filter>
-    </ClCompile>
     <ClCompile Include="FreeListBlock.cpp">
       <Filter>Source\Memory\Freelist</Filter>
     </ClCompile>
@@ -957,6 +954,9 @@
       <Filter>Source\Memory\Allocator</Filter>
     </ClCompile>
     <ClCompile Include="FreeListAllocator.cpp">
+      <Filter>Source\Memory\Freelist</Filter>
+    </ClCompile>
+    <ClCompile Include="FreeList.cpp">
       <Filter>Source\Memory\Freelist</Filter>
     </ClCompile>
   </ItemGroup>

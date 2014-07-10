@@ -26,13 +26,9 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "LinkedListTemplate.h"
 
 
-class CFreeListBlock : public __CFreeList<void>
+class CFreeListBlock : public CFreeList
 {
 public:
-	void Init(int iElementSize);
-	void Init(int iChunkSize, int iElementSize);
-	void Init(int iChunkSize, int iElementSize, int iAlignment);
-	void Init(int iChunkSize, int iElementSize, int iAlignment, int iOffset);
 };
 
 
