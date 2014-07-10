@@ -23,6 +23,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __ARRAY_VARIABLE_H__
 #define __ARRAY_VARIABLE_H__
 #include "BaseLib/ArrayIntAndPointer.h"
+#include "BaseLib/LinkedListTemplate.h"
 #include "BaseLib/FreeListMaybe.h"
 
 

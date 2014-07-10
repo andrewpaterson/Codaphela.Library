@@ -68,7 +68,7 @@ void CMemory::Init(int iDefaultAlignment, BOOL bDefaultFreeListParams)
 //////////////////////////////////////////////////////////////////////////
 void CMemory::Kill(void)
 {
-	CFreeListBlock*	pcFreeList;
+	CFreeList*	pcFreeList;
 
 	pcFreeList = mcFreeLists.GetHead();
 	while (pcFreeList)
@@ -161,12 +161,12 @@ void* CMemory::Add(unsigned int iSize)
 void CMemory::Remove(void* pv)
 {
 	SMemoryAllocation*	psAlloc;
-	CFreeListBlock*		pcList;
+	CFreeList*		pcList;
 
 	psAlloc = MEMORY_GET_ALLOCATION(pv);
 	if (psAlloc->uiSize <= (muiFreeListSizeLimit - sizeof(SMemoryAllocation)))
 	{
-		pcList = (CFreeListBlock*)psAlloc->psFreeListNode->pcList;
+		pcList = (CFreeList*)psAlloc->psFreeListNode->pcList;
 
 		DeallocateInFreeList(pcList, psAlloc);
 	}
@@ -186,7 +186,7 @@ BOOL CMemory::Remove(CArrayVoidPtr* pav)
 	int					i;
 	void*				pv;
 	SMemoryAllocation*	psAlloc;
-	CFreeListBlock*		pcList;
+	CFreeList*		pcList;
 	SFNode*				psNode;
 	int					iNumElements;
 	int					iChunkSize;
@@ -203,7 +203,7 @@ BOOL CMemory::Remove(CArrayVoidPtr* pav)
 		if (psAlloc->uiSize <= (muiFreeListSizeLimit - sizeof(SMemoryAllocation)))
 		{
 			psNode = psAlloc->psFreeListNode;
-			pcList = (CFreeListBlock*)psAlloc->psFreeListNode->pcList;
+			pcList = (CFreeList*)psAlloc->psFreeListNode->pcList;
 			iChunkSize = pcList->GetChunkSize();
 
 			iRemoved = RemoveNode(pav, i, psAlloc, iChunkSize, psNode, pcList);
@@ -238,7 +238,7 @@ BOOL CMemory::Remove(CArrayVoidPtr* pav)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CMemory::RemoveNode(CArrayVoidPtr* pav, int i, SMemoryAllocation* psAlloc, int iChunkSize, SFNode* psNode, CFreeListBlock* pcList)
+int CMemory::RemoveNode(CArrayVoidPtr* pav, int i, SMemoryAllocation* psAlloc, int iChunkSize, SFNode* psNode, CFreeList* pcList)
 {
 	void*				pvLast;
 	SMemoryAllocation*	psPotentialLast;
@@ -283,7 +283,7 @@ int CMemory::RemoveNode(CArrayVoidPtr* pav, int i, SMemoryAllocation* psAlloc, i
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CMemory::RemoveElements(CArrayVoidPtr* pav, int i, int iChunkSize, SFNode* psNode, CFreeListBlock* pcList)
+int CMemory::RemoveElements(CArrayVoidPtr* pav, int i, int iChunkSize, SFNode* psNode, CFreeList* pcList)
 {
 	void*				pv;
 	SMemoryAllocation*	psFirst;
@@ -325,7 +325,7 @@ int CMemory::RemoveElements(CArrayVoidPtr* pav, int i, int iChunkSize, SFNode* p
 //////////////////////////////////////////////////////////////////////////
 void* CMemory::Add(unsigned int uiSize, int iAlignment, int iOffset)
 {
-	CFreeListBlock*	pcFreeList;
+	CFreeList*	pcFreeList;
 	void*				pv;
 
 	if ((mbBreakOnAlloc) && (muiAllocCount == muiBreakAlloc))
@@ -370,7 +370,7 @@ void* CMemory::Add(unsigned int uiSize, int iAlignment, int iOffset)
 void* CMemory::Grow(void* pvInitial, unsigned int uiSize)
 {
 	SMemoryAllocation*	psAlloc;
-	CFreeListBlock*	pcList;
+	CFreeList*	pcList;
 	SFreeListParams*	psParams;
 	void*				pvNew;
 	SLLANode*			psNode;
@@ -386,7 +386,7 @@ void* CMemory::Grow(void* pvInitial, unsigned int uiSize)
 		}
 		else
 		{
-			pcList = (CFreeListBlock*)psAlloc->psFreeListNode->pcList;
+			pcList = (CFreeList*)psAlloc->psFreeListNode->pcList;
 			pvNew = Add(uiSize, pcList->GetAlignment(), pcList->GetOffset());
 			CopyAllocation(pvNew, pvInitial, uiSize, psAlloc->uiSize);
 			DeallocateInFreeList(pcList, psAlloc);
@@ -433,7 +433,7 @@ void CMemory::CopyAllocation(void* pvDest, void* pvSource, unsigned int uiDestSi
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CMemory::AllocateInFreeList(CFreeListBlock* pcFreeList, unsigned int uiElementSize)
+void* CMemory::AllocateInFreeList(CFreeList* pcFreeList, unsigned int uiElementSize)
 {
 	SMemoryAllocation*	psMemoryAllocation;
 	SFNode*				psNode;
@@ -451,7 +451,7 @@ void* CMemory::AllocateInFreeList(CFreeListBlock* pcFreeList, unsigned int uiEle
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMemory::DeallocateInFreeList(CFreeListBlock* pcFreeList, SMemoryAllocation* psAlloc)
+void CMemory::DeallocateInFreeList(CFreeList* pcFreeList, SMemoryAllocation* psAlloc)
 {
 	SFNode*			psFreeListNode;
 
@@ -501,7 +501,7 @@ void CMemory::DeallocateInLargeList(SMemoryAllocation* psAlloc)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CFreeListBlock* CMemory::GetFreeList(unsigned int iElementSize, int iAlignment, int iOffset)
+CFreeList* CMemory::GetFreeList(unsigned int iElementSize, int iAlignment, int iOffset)
 {
 	SFreeListDesc		sDesc;
 	BOOL				bResult;
@@ -530,7 +530,7 @@ CFreeListBlock* CMemory::GetFreeList(unsigned int iElementSize, int iAlignment, 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CFreeListBlock* CMemory::GetFreeList(unsigned int iElementSize)
+CFreeList* CMemory::GetFreeList(unsigned int iElementSize)
 {
 	return GetFreeList(iElementSize, miDefaultAlignment, 0);
 }
@@ -540,13 +540,13 @@ CFreeListBlock* CMemory::GetFreeList(unsigned int iElementSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CFreeListBlock* CMemory::GetOrAddFreeList(unsigned int iElementSize, int iAlignment, int iOffset)
+CFreeList* CMemory::GetOrAddFreeList(unsigned int iElementSize, int iAlignment, int iOffset)
 {
 	SFreeListDesc		sDesc;
 	BOOL				bResult;
 	int					iIndex;
 	SFreeListDesc*		psDesc;
-	CFreeListBlock*		pcList;
+	CFreeList*		pcList;
 	SFreeListParams*	psParams;
 	int					iFinalOffset;
 	int					iStride;
@@ -625,7 +625,7 @@ void CMemory::BreakOnAdd(unsigned int uiAllocCount)
 //////////////////////////////////////////////////////////////////////////
 int CMemory::NumElements(void)
 {
-	CFreeListBlock*		pcBlock;
+	CFreeList*		pcBlock;
 	int					iCount;
 
 	iCount = 0;
@@ -648,14 +648,14 @@ int CMemory::NumElements(void)
 int CMemory::ByteSize(void)
 {
 	int					iSize;
-	CFreeListBlock*		pcFreeList;
+	CFreeList*		pcFreeList;
 
 	iSize = 0;
 	pcFreeList = mcFreeLists.GetHead();
 	while (pcFreeList)
 	{
 		iSize += pcFreeList->ByteSize();
-		iSize += sizeof(CFreeListBlock);
+		iSize += sizeof(CFreeList);
 		pcFreeList = mcFreeLists.GetNext(pcFreeList);
 	}
 
@@ -731,7 +731,7 @@ void* CMemory::Iterate(SMemoryIterator* psIterator)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CFreeListBlock* CMemory::TestGetFreeListsHead(void)
+CFreeList* CMemory::TestGetFreeListsHead(void)
 {
 	return mcFreeLists.GetHead();
 }

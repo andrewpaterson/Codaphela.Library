@@ -206,7 +206,6 @@
     <ClInclude Include="FileSystem.h" />
     <ClInclude Include="FileCopier.h" />
     <ClInclude Include="FreeList.h" />
-    <ClInclude Include="FreeListBlock.h" />
     <ClInclude Include="FreeListMaybe.h" />
     <ClInclude Include="LinkedListBlockAligned.h" />
     <ClInclude Include="MemoryCache.h" />
@@ -329,7 +328,6 @@
     <ClCompile Include="FileNodeFileSystem.cpp" />
     <ClCompile Include="FileSystem.cpp" />
     <ClCompile Include="FileCopier.cpp" />
-    <ClCompile Include="FreeListBlock.cpp" />
     <ClCompile Include="FreeListMaybe.cpp" />
     <ClCompile Include="LinkedListBlockAligned.cpp" />
     <ClCompile Include="MemoryCache.cpp" />

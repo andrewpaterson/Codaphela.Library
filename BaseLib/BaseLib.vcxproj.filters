@@ -471,9 +471,6 @@
     <ClInclude Include="FreeList.h">
       <Filter>Source\Memory\Freelist</Filter>
     </ClInclude>
-    <ClInclude Include="FreeListBlock.h">
-      <Filter>Source\Memory\Freelist</Filter>
-    </ClInclude>
     <ClInclude Include="MemoryCacheAllocation.h">
       <Filter>Source\Memory\Cache</Filter>
     </ClInclude>
@@ -856,9 +853,6 @@
     </ClCompile>
     <ClCompile Include="Aardvark.cpp">
       <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="FreeListBlock.cpp">
-      <Filter>Source\Memory\Freelist</Filter>
     </ClCompile>
     <ClCompile Include="FreeListMaybe.cpp">
       <Filter>Source\Memory\Freelist</Filter>

@@ -57,7 +57,7 @@ typedef CArrayType<CGraphicsInstance>		CGraphicsInstanceList;
 typedef CArrayType<CPosition>				CPositionList;
 typedef CArrayType<CRotation>				CRotationList;
 typedef CArrayType<CTransformNode>			CAnimMatrixList;
-typedef CLinkListTemplateFreeList<SMatrix>	CTransformNodeList;
+typedef CLinkedListTemplateFreeList<SMatrix>	CTransformNodeList;
 
 
 BOOL InitMain(int iAd, D3DDEVTYPE devType, HWND hWndScreen, int dx, int dy, D3DFORMAT fmt, BOOL bStencil, BOOL bExcluseive, HWND hWndInput);

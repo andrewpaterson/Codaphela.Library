@@ -26,9 +26,6 @@ along with Codaphela ShapeLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Polygon.h"
 
 
-typedef CFreeList<SFloat3>	CFreeListNormals;
-
-
 class CExtremeTriangle : public CTriangle
 {
 public:
@@ -41,7 +38,7 @@ public:
 };
 
 
-typedef CFreeList<CExtremeTriangle>			CFreeListExtremeTriangles;
+
 typedef CArrayTemplate<CExtremeTriangle*>	CArrayExtremeTrianglePtr;
 typedef CArrayTemplate<CTriangle*>			CArrayTrianglePtr;
 
@@ -49,19 +46,19 @@ typedef CArrayTemplate<CTriangle*>			CArrayTrianglePtr;
 struct SConvexHullHoleEdge
 {
 	int	iNumEdges;
-	int	aaiEdgeIndices[3][2];  //1 triangle 2 edge indices, ... 3 trianlgles 2 edge indices.
+	int	aaiEdgeIndices[3][2];  //1 triangle 2 edge indices, ... 3 triangles 2 edge indices.
 };
 
 
 class CConvexHullGenerator
 {
 public:
-	CFreeListNormals			mcNormals;
-	CFreeListExtremeTriangles	mcTriangles;
-	SFloat3*					mpsPoints;
-	int							iStride;
-	int							iNumPoints;
-	char*						mszHullName;
+	CFreeList	mcNormals;
+	CFreeList	mcTriangles;
+	SFloat3*	mpsPoints;
+	int			iStride;
+	int			iNumPoints;
+	char*		mszHullName;
 
 	void 					Init(SFloat3* psPoints, int iStride, int iNumPoints, char* szHullName = NULL);
 	void 					Kill(void);
@@ -82,7 +79,7 @@ public:
 	CExtremeTriangle*		FindAdjacentTriangle(CExtremeTriangle* pcTriangle, int iPositionIndex0, int iPositionIndex1);
 	void					RemoveSlivers(void);
 	void					MoveTrianglesPointFrom(int iOldIndex, int iNewIndex);
-	CFreeListNormals*		GetNormals(void);
+	CFreeList*				GetNormals(void);
 	void					DumpTriangleObj(CChars* psz, int iLoop);
 };
 

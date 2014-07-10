@@ -24,7 +24,7 @@ Microsoft DirectX is Copyright Microsoft Corporation
 #define __PARTICLE_SYSTEM_H__
 #include "DirectXLib/Direct3DGlobal.h"
 #include "SupportLib/Sphere.h"
-#include "BaseLib/FreeListBlock.h"
+#include "BaseLib/FreeList.h"
 #include "GraphicsObject.h"
 #include "CameraInstance.h"
 #include "BaseLib/PointerRemapper.h"
@@ -162,7 +162,7 @@ class CParticleSystem : public CUnknown
 BASE_FUNCTIONS(CParticleSystem);
 protected:
 	SParticleType		msParticleType;
-	CFreeListBlock		mcParticles;
+	CFreeList			mcParticles;
 	CGraphicsObject*	mpcGraphicsObject;
 	int					miVertexType;
 	int					miVerticiesPerParticle;

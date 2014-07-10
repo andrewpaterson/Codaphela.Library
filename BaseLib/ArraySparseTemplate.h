@@ -26,7 +26,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "DataMacro.h"
 #include "Define.h"
 #include "FastMemset.h"
-#include "FreeListBlock.h"
+#include "FreeList.h"
 
 
 struct SSparseNode
@@ -47,7 +47,7 @@ template<class M>
 class __CArraySparseTemplate
 {
 private:
-	CFreeListBlock	mcNodes;
+	CFreeList	mcNodes;
 	int				miElementSize;
 	SSparseNode*	mpsRoot;
 

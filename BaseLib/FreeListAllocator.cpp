@@ -5,7 +5,7 @@
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CFreeListAllocator::Init(CFreeListBlock* pcFreeList)
+void CFreeListAllocator::Init(CFreeList* pcFreeList)
 {
 	mpcFreeList = pcFreeList;
 }

@@ -98,8 +98,8 @@ BOOL CExtremeTriangle::NotContains(SFloat3* psPosition)
 //////////////////////////////////////////////////////////////////////////
 void CConvexHullGenerator::Init(SFloat3* psPoints, int iStride, int iNumPoints, char* szHullName)
 {
-	mcNormals.Init(512);
-	mcTriangles.Init(512);
+	mcNormals.Init(512, sizeof(SFloat3));
+	mcTriangles.Init(512, sizeof(CExtremeTriangle));
 	mpsPoints = psPoints;
 	this->iStride = iStride;
 	this->iNumPoints = iNumPoints;
@@ -116,11 +116,11 @@ void CConvexHullGenerator::Kill(void)
 	SFreeListIterator	sIter;
 	CExtremeTriangle*	pcTriangle;
 	
-	pcTriangle = mcTriangles.StartIteration(&sIter);
+	pcTriangle = (CExtremeTriangle*)mcTriangles.StartIteration(&sIter);
 	while (pcTriangle)
 	{
 		pcTriangle->Kill();
-		pcTriangle = mcTriangles.Iterate(&sIter);
+		pcTriangle = (CExtremeTriangle*)mcTriangles.Iterate(&sIter);
 	}
 	
 	mcTriangles.Kill();
@@ -279,7 +279,7 @@ BOOL CConvexHullGenerator::Generate(void)
 		cDeleted.FakeSetUsedElements(0);  //It's sort of safe to do this.
 
 		psPosition = GetPosition(mpsPoints, iStride, iFarIndex);
-		pcTriangle = mcTriangles.StartIteration(&sIter);
+		pcTriangle = (CExtremeTriangle*)mcTriangles.StartIteration(&sIter);
 		while (pcTriangle)
 		{
 			if (pcTriangle->maiVisible.NumElements() > 0)
@@ -289,7 +289,7 @@ BOOL CConvexHullGenerator::Generate(void)
 					cDeleted.Add(&pcTriangle);
 				}
 			}
-			pcTriangle = mcTriangles.Iterate(&sIter);
+			pcTriangle = (CExtremeTriangle*)mcTriangles.Iterate(&sIter);
 		}
 		
 		RemoveDiscontiguousTriangles(pcSelected, &cDeleted, &cFixedDeleted);
@@ -353,7 +353,7 @@ CExtremeTriangle* CConvexHullGenerator::FindAdjacentTriangle(CExtremeTriangle* p
 	SFreeListIterator			sIter;
 	CExtremeTriangle*			pcTriangleOther;
 
-	pcTriangleOther = mcTriangles.StartIteration(&sIter);
+	pcTriangleOther = (CExtremeTriangle*)mcTriangles.StartIteration(&sIter);
 	while (pcTriangleOther)
 	{
 		if (pcTriangleOther != pcTriangle)
@@ -363,7 +363,7 @@ CExtremeTriangle* CConvexHullGenerator::FindAdjacentTriangle(CExtremeTriangle* p
 				return pcTriangleOther;
 			}
 		}
-		pcTriangleOther = mcTriangles.Iterate(&sIter);
+		pcTriangleOther = (CExtremeTriangle*)mcTriangles.Iterate(&sIter);
 	}
 	return NULL;
 }
@@ -386,7 +386,7 @@ void CConvexHullGenerator::RemoveSlivers(void)
 	int							iIndex2;
 	CExtremeTriangle*			pcTriangleToRemove;
 
-	pcTriangle = mcTriangles.StartIteration(&sIter);
+	pcTriangle = (CExtremeTriangle*)mcTriangles.StartIteration(&sIter);
 	while (pcTriangle)
 	{
 		iNumSlivers = pcTriangle->IsSliver(Deg2Rad(1.0f), &ps0, &ps1, &ps2);
@@ -420,7 +420,7 @@ void CConvexHullGenerator::RemoveSlivers(void)
 			//	MoveTrianglesPointFrom(iIndex1, iIndex0);
 			//}			
 		}
-		pcTriangle = mcTriangles.Iterate(&sIter);
+		pcTriangle = (CExtremeTriangle*)mcTriangles.Iterate(&sIter);
 	}
 }
 
@@ -436,7 +436,7 @@ void CConvexHullGenerator::MoveTrianglesPointFrom(int iOldIndex, int iNewIndex)
 	SFloat3*					psNewPosition;
 
 	psNewPosition = GetPosition(mpsPoints, iStride, iNewIndex);
-	pcTriangle = mcTriangles.StartIteration(&sIter);
+	pcTriangle = (CExtremeTriangle*)mcTriangles.StartIteration(&sIter);
 	while (pcTriangle)
 	{
 		if (GetIndex(mpsPoints, iStride, pcTriangle->mpsPosition) == iOldIndex)
@@ -453,7 +453,7 @@ void CConvexHullGenerator::MoveTrianglesPointFrom(int iOldIndex, int iNewIndex)
 		}
 		pcTriangle->Set();  //For a sliver triangle the removed triangle and the filling triangle must have been co-planar.  No need to recalculate the normal.
 		
-		pcTriangle = mcTriangles.Iterate(&sIter);
+		pcTriangle = (CExtremeTriangle*)mcTriangles.Iterate(&sIter);
 	}
 }
 
@@ -462,7 +462,7 @@ void CConvexHullGenerator::MoveTrianglesPointFrom(int iOldIndex, int iNewIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CFreeListNormals* CConvexHullGenerator::GetNormals(void)
+CFreeList* CConvexHullGenerator::GetNormals(void)
 {
 	return &mcNormals;
 }
@@ -513,7 +513,7 @@ BOOL CConvexHullGenerator::RemoveDiscontiguousTriangles(CExtremeTriangle* pcSele
 	memcpy(&cTemp, papcTemp, sizeof(CArrayExtremeTrianglePtr));
 	memcpy(papcTemp, papcTriangles, sizeof(CArrayExtremeTrianglePtr));
 	memcpy(papcTriangles, &cTemp, sizeof(CArrayExtremeTrianglePtr));
-	return bResult;  //True means there were discontiguous triangles.
+	return bResult;  //True means there were dis-contiguous triangles.
 }
 
 
@@ -526,14 +526,14 @@ BOOL CConvexHullGenerator::Contained(SFloat3* psPosition)
 	SFreeListIterator	sIter;
 	CTriangle*			pcTriangle;
 
-	pcTriangle = mcTriangles.StartIteration(&sIter);
+	pcTriangle = (CExtremeTriangle*)mcTriangles.StartIteration(&sIter);
 	while (pcTriangle)
 	{
 		if (!pcTriangle->Contains(psPosition))
 		{
 			return FALSE;
 		}
-		pcTriangle = mcTriangles.Iterate(&sIter);
+		pcTriangle = (CExtremeTriangle*)mcTriangles.Iterate(&sIter);
 	}
 	return TRUE;
 }
@@ -547,14 +547,14 @@ BOOL CConvexHullGenerator::NotContained(SFloat3* psPosition)
 	SFreeListIterator	sIter;
 	CTriangle*			pcTriangle;
 
-	pcTriangle = mcTriangles.StartIteration(&sIter);
+	pcTriangle = (CExtremeTriangle*)mcTriangles.StartIteration(&sIter);
 	while (pcTriangle)
 	{
 		if (pcTriangle->NotContains(psPosition))
 		{
 			return TRUE;
 		}
-		pcTriangle = mcTriangles.Iterate(&sIter);
+		pcTriangle = (CExtremeTriangle*)mcTriangles.Iterate(&sIter);
 	}
 	return FALSE;
 }
@@ -686,9 +686,9 @@ CExtremeTriangle* CConvexHullGenerator::AddTriangle(SFloat3* psPoint1, SFloat3* 
 	SFloat3				sSide1;
 	SFloat3				sSide2;
 
-	psNormal = mcNormals.Add();
+	psNormal = (SFloat3*)mcNormals.Add();
 
-	pcTriangle = mcTriangles.Add();
+	pcTriangle = (CExtremeTriangle*)mcTriangles.Add();
 	pcTriangle->Init(psPoint1, psPoint2, psPoint3, psNormal);
 	pcTriangle->Set(psPoint1, psPoint2, psPoint3);
 	return pcTriangle;
@@ -807,11 +807,11 @@ void CConvexHull::BeginSetFromPoints(CConvexHullGenerator* psConvexHullGenerator
 
 	apcTriangles.Init(psConvexHullGenerator->mcTriangles.NumElements());
 
-	pcTriangle = psConvexHullGenerator->mcTriangles.StartIteration(&sIter);
+	pcTriangle = (CExtremeTriangle*)psConvexHullGenerator->mcTriangles.StartIteration(&sIter);
 	while (pcTriangle)
 	{
 		apcTriangles.Add(&pcTriangle);
-		pcTriangle = psConvexHullGenerator->mcTriangles.Iterate(&sIter);
+		pcTriangle = (CExtremeTriangle*)psConvexHullGenerator->mcTriangles.Iterate(&sIter);
 	}
 
 	ConvertTrianglesToPolygons((CArrayTrianglePtr*)&apcTriangles, &mcPolygons);
@@ -850,7 +850,7 @@ void CConvexHullGenerator::DumpTriangleObj(CChars* psz, int iLoop)
 	psz->Append(iLoop);
 	psz->AppendNewLine();
 
-	pcTriangle = mcTriangles.StartIteration(&sIter);
+	pcTriangle = (CExtremeTriangle*)mcTriangles.StartIteration(&sIter);
 	while (pcTriangle)
 	{
 		psz->Append("f ");
@@ -864,7 +864,7 @@ void CConvexHullGenerator::DumpTriangleObj(CChars* psz, int iLoop)
 		psz->Append(" ");
 		psz->Append(iIndex3);
 		psz->Append("\n");
-		pcTriangle = mcTriangles.Iterate(&sIter);
+		pcTriangle = (CExtremeTriangle*)mcTriangles.Iterate(&sIter);
 	}
 	psz->AppendNewLine();
 }
@@ -883,13 +883,13 @@ void CConvexHull::EndSetFromPoints(SFloat3* psNormals, int iStride, CConvexHullG
 	if (psNormals)
 	{
 		i = 0;
-		psNormal = psConvexHullGenerator->GetNormals()->StartIteration(&sIter);
+		psNormal = (SFloat3*)psConvexHullGenerator->GetNormals()->StartIteration(&sIter);
 		while (psNormal)
 		{
 			*GetNormal(psNormals, iStride, i) = *psNormal;
 
 			i++;
-			psNormal = psConvexHullGenerator->GetNormals()->Iterate(&sIter);
+			psNormal = (SFloat3*)psConvexHullGenerator->GetNormals()->Iterate(&sIter);
 		}
 	}
 

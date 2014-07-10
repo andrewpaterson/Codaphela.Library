@@ -23,7 +23,7 @@ Microsoft DirectX is Copyright Microsoft Corporation
 #ifndef __MESH_OBJECT_H__
 #define __MESH_OBJECT_H__
 #include "VectorArray.h"
-#include "BaseLib/LinkListTemplate.h"
+#include "BaseLib/LinkedListTemplate.h"
 #include "StandardLib/StandardHeader.h"
 #include "DirectXLib/Direct3DGlobal.h"
 
@@ -48,7 +48,7 @@ public:
 	CArrayVector*	GetVerticies(void);
 	CArrayVector*	GetNormals(void);
 };
-typedef CLinkListTemplate<CMeshObjectNode>	CLinkListLinkObjectNode;
+typedef CLinkedListTemplate<CMeshObjectNode>	CLinkListLinkObjectNode;
 
 
 struct SSkinnedLinkObjectNode

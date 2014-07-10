@@ -26,7 +26,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "IndexedFile.h"
 #include "BaseLib/ChunkFile.h"
 #include "BaseLib/Chars.h"
-#include "BaseLib/FreeList.h"
 #include "IndexedDescriptors.h"
 
 

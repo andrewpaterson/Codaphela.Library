@@ -133,7 +133,7 @@ void* CFreeListMaybe::CreateLinkList(void)
 //////////////////////////////////////////////////////////////////////////
 void* CFreeListMaybe::CreateFreeList(void)
 {
-	mpcFreeList = (CFreeListBlock*)Malloc(sizeof(CFreeListBlock));
+	mpcFreeList = (CFreeList*)Malloc(sizeof(CFreeList));
 	mpcFreeList->Init(miChunkSize, miElementSize);
 	return mpcFreeList->Add();
 }

@@ -41,7 +41,7 @@ void SFreeListDesc::Init(unsigned int iStride, int iAlignment, int iOffset)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void SFreeListDesc::Init(CFreeListBlock* pcFreeList, int iStride, int iAlignment, int iOffset)
+void SFreeListDesc::Init(CFreeList* pcFreeList, int iStride, int iAlignment, int iOffset)
 {
 	this->iStride = iStride;
 	this->iAlignment = iAlignment;

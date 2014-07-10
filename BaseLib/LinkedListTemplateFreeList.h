@@ -23,14 +23,14 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __FREE_LINK_LIST_TEMPLATE__
 #define __FREE_LINK_LIST_TEMPLATE__
 #include "LinkedListTemplate.h"
-#include "FreeListBlock.h"
+#include "FreeList.h"
 
 
 template<class M>
 class CLinkedListTemplateFreeList : public CLinkedListTemplate<M>
 {
 protected:	
-	CFreeListBlock	mcFreeList;
+	CFreeList	mcFreeList;
 
 public:
 	void	Init(void);

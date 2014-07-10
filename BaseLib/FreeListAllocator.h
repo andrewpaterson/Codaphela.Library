@@ -1,16 +1,16 @@
 #ifndef __FREE_LIST_ALLOCATOR_H__
 #define __FREE_LIST_ALLOCATOR_H__
 #include "Mallocator.h"
-#include "FreeListBlock.h"
+#include "FreeList.h"
 
 
 class CFreeListAllocator : public CMallocator
 {
 protected:
-	CFreeListBlock*	mpcFreeList;
+	CFreeList*	mpcFreeList;
 
 public:
-	void	Init(CFreeListBlock* pcFreeList);
+	void	Init(CFreeList* pcFreeList);
 
 	void*	Malloc(size_t tSize);
 	void*	Realloc(void* pv, size_t iMemSize);

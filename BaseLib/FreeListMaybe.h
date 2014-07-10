@@ -22,7 +22,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __FREE_LIST_MAYBE_H__
 #define __FREE_LIST_MAYBE_H__
-#include "FreeListBlock.h"
+#include "FreeList.h"
 
 
 #define NUM_ELEMENTS_BEFORE_FREELIST	16
@@ -32,7 +32,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 class CFreeListMaybe
 {
 protected:
-	CFreeListBlock*		mpcFreeList;
+	CFreeList*		mpcFreeList;
 	CLinkedListBlock*	mpcLinkList;
 	int					miElementSize;
 	int					miChunkSize;

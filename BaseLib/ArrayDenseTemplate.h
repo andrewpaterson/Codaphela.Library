@@ -26,7 +26,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "Define.h"
 #include "FastMemset.h"
 #include "FreeList.h"
-#include "FreeListBlock.h"
+#include "FreeList.h"
 #include "PointerFunctions.h"
 
 
@@ -59,8 +59,8 @@ template<class M>
 class __CArrayDenseTemplate
 {
 private:
-	CFreeListBlock	mcDenseNodes;
-	CFreeListBlock	mcElementNodes;
+	CFreeList	mcDenseNodes;
+	CFreeList	mcElementNodes;
 	SDenseNode*		mpsRoot;
 	int				miUsedElements;
 	int				miUsedNodes;

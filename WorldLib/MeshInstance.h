@@ -45,9 +45,9 @@ enum ELinkCacheFlag
 };
 
 
-//To get the complete world transform the matricies must be applied in the following order:
+//To get the complete world transform the matrices must be applied in the following order:
 //  psToZeroSpaceFromSubObjectSpace -> psSubObjectTransform -> psToSubObjectSpaceFromZeroSpace -> mpsWorldSpaceTransform
-//I seem to recal the actual multiplication order is reversed though.
+//I seem to recall the actual multiplication order is reversed though.
 class CMeshInstanceNode
 {
 public:
@@ -69,7 +69,7 @@ public:
 };
 
 
-typedef CLinkListTemplate<CMeshInstanceNode>	CLinkListLinkInstanceNode;
+typedef CLinkedListTemplate<CMeshInstanceNode>	CLinkListLinkInstanceNode;
 
 
 //Remember that a CMeshInstance instance applies only to ONE mesh.  Should you wish to have a hierachical structure (like a man holding a box

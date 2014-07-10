@@ -1,6 +1,6 @@
 #ifndef __MEMORY_HEADER_H__
 #define __MEMORY_HEADER_H__
-#include "FreeListBlock.h"
+#include "FreeList.h"
 #include "PointerRemapper.h"
 #include "ArrayVoidPtr.h"
 #include "LinkedListBlockAligned.h"
@@ -39,20 +39,20 @@ int CompareFreeListParam(const void* arg1, const void* arg2);
 
 struct SFreeListDesc
 {
-	CFreeListBlock*		pcFreeList;
+	CFreeList*		pcFreeList;
 	unsigned int		iStride;
 	int					iAlignment;
 	int					iOffset;
 
 	void Init(unsigned int iStride, int iAlignment, int iOffset);
-	void Init(CFreeListBlock* pcFreeList, int iStride, int iAlignment, int iOffset);
+	void Init(CFreeList* pcFreeList, int iStride, int iAlignment, int iOffset);
 };
 
 
 struct SMemoryIterator
 {
 	SFreeListIterator	sFreeListIterator;
-	CFreeListBlock*		pcFreeList;
+	CFreeList*		pcFreeList;
 };
 
 

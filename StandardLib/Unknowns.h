@@ -66,7 +66,7 @@ public:
 
 	template<class M>	void			AddConstructor(void);
 						int				GetIterableListsHeadNumElements(void);
-						CFreeListBlock*	GetFreeList(unsigned int iElementSize);
+						CFreeList*	GetFreeList(unsigned int iElementSize);
 
 						void			RemoveInKill(CUnknown* pcUnknown);
 						void			RemoveInKill(CArrayUnknownPtr* papcObjectPts);

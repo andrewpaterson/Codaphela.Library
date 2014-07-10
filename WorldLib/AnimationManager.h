@@ -22,15 +22,15 @@ Microsoft DirectX is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __ANIMATION_MANAGER_H__
 #define __ANIMATION_MANAGER_H__
-#include "BaseLib/LinkListTemplateFreeList.h"
+#include "BaseLib/LinkedListTemplateFreeList.h"
 #include "StandardLib/SetType.h"
 #include "Animation.h"
 #include "AnimationInvokeAnimation.h"
 
 
 typedef CSetType<CAnimation>	CAnimationList;
-typedef CLinkListTemplateFreeList<SAnimationInvokeAnimationData>	CLinkListAnimationInvokeAnimationData;
-typedef CLinkListTemplateFreeList<SAnimationHappenOnceData>			CLinkListAnimationHappenOnceData;
+typedef CLinkedListTemplateFreeList<SAnimationInvokeAnimationData>	CLinkListAnimationInvokeAnimationData;
+typedef CLinkedListTemplateFreeList<SAnimationHappenOnceData>			CLinkListAnimationHappenOnceData;
 
 
 class CAnimationManager

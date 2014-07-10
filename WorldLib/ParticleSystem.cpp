@@ -189,7 +189,7 @@ void CParticleSystem::InitVars(void)
 {
 	memset(&msParticleType, -1, sizeof(SParticleType));
 	mfMaxParticleRadius = 0.0f;
-	mcParticles.Init(0);  //Temporarilly make this zero so it is safe to kill.
+	mcParticles.Init(32, 0);  //Temporarily make this zero so it is safe to kill.
 	mcSphere.Init();
 	Float3Zero(&mcSphere.msPosition);
 	mcSphere.mfRadius = 0.0f;

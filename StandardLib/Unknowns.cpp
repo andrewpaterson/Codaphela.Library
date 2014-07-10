@@ -396,7 +396,7 @@ int CUnknowns::NumElements(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CFreeListBlock* CUnknowns::GetFreeList(unsigned int iElementSize)
+CFreeList* CUnknowns::GetFreeList(unsigned int iElementSize)
 {
 	return mcMemory.GetFreeList(iElementSize);
 }
