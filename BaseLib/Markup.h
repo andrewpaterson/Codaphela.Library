@@ -29,14 +29,14 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "MarkupReference.h"
 
 
-typedef CFreeList<CMarkupTag> CFreeListMarkupTag;
-typedef CFreeList<CMarkupText> CFreeListMarkupText;
-typedef CFreeList<CMarkupSubDoc> CFreeListMarkupSubDoc;
-typedef CFreeList<CMarkupSubText> CFreeListMarkupSubText;
-typedef CFreeList<CMarkupRefDoc> CFreeListMarkupRefDoc;
-typedef CFreeList<CMarkupRefText> CFreeListMarkupRefText;
-typedef CFreeList<CMarkupNamedRef> CFreeListMarkupNamedRef;
-typedef CFreeList<CMarkupDoc> CFreeListMarkupDoc;
+typedef CFreeList<CMarkupTag>		CFreeListMarkupTag;
+typedef CFreeList<CMarkupText>		CFreeListMarkupText;
+typedef CFreeList<CMarkupSubDoc>	CFreeListMarkupSubDoc;
+typedef CFreeList<CMarkupSubText>	CFreeListMarkupSubText;
+typedef CFreeList<CMarkupRefDoc>	CFreeListMarkupRefDoc;
+typedef CFreeList<CMarkupRefText>	CFreeListMarkupRefText;
+typedef CFreeList<CMarkupNamedRef>	CFreeListMarkupNamedRef;
+typedef CFreeList<CMarkupDoc>		CFreeListMarkupDoc;
 
 
 class CMarkup

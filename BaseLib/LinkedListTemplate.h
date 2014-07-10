@@ -28,14 +28,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "LinkedListBlock.h"
 
 
-//For the LinkedList.
-struct SDNode
-{
-	SDNode*		psNext;
-	SDNode*		psPrev;
-};
-
-
 template<class M>
 class CLinkedListTemplate : public CLinkedListBlock
 {

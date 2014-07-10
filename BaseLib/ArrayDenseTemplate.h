@@ -55,14 +55,11 @@ struct SDenseNode
 };
 
 
-typedef CFreeList<SDenseNode>	CDenseNodes;
-
-
 template<class M>
 class __CArrayDenseTemplate
 {
 private:
-	CDenseNodes		mcDenseNodes;
+	CFreeListBlock	mcDenseNodes;
 	CFreeListBlock	mcElementNodes;
 	SDenseNode*		mpsRoot;
 	int				miUsedElements;
@@ -93,7 +90,9 @@ public:
 	void			IncreaseLeftCounts(SDenseNode* psNode);
 	void			DecreaseLeftCounts(SDenseNode* psNode);
 	SDenseNode*		TestGetRoot(void);
+	BOOL			TestStructure(void);
 
+protected:
 	void			Search(int iElementPos, SDenseNode** ppsNode, BOOL* pbLeft, BOOL* pbInsertionLeft);
 	SDenseNode*		PrivateAddNode(void);
 	M*				PrivateAddElement(void);
@@ -102,7 +101,6 @@ public:
 	void			Dump(void);
 	void			RecurseDump(int iDepth, SDenseNode* psNode, CChars* psz, BOOL bLeft);
 	void			RecurseDumpElement(int iDepth, M* psElement, CChars* psz, BOOL bLeft);
-	BOOL			TestStructure(void);
 	BOOL			RecurseTestStructure1(SDenseNode* psNode);
 	BOOL			RecurseTestStructure2(SDenseNode* psNode);
 };
@@ -243,7 +241,7 @@ SDenseNode* SDenseNode::GetLeft(void)
 template<class M>
 void __CArrayDenseTemplate<M>::Init(int iNodeChunkSize, int iElementChunkSize, int iElementSize)
 {
-	mcDenseNodes.Init(iNodeChunkSize);
+	mcDenseNodes.Init(iNodeChunkSize, sizeof(SDenseNode));
 	mcElementNodes.Init(iElementChunkSize, iElementSize);
 	mpsRoot = NULL;
 	miUsedElements = 0;
