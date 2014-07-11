@@ -27,12 +27,13 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 class CMemoryStack
 {
-public:
+protected:
 	void*	mpvMemory;
 	int		miMemorySize;
 	int		miUsedMemory;
 	int		miElements;
 
+public:
 	void		Init(int iSize);
 	void*		Allocate(int iSize);  //Same as Init, but immediately allocates memory.
 	void		Clear(void);
@@ -45,6 +46,10 @@ public:
 	SStackMark	Mark(void);
 	void		Rollback(SStackMark* psMark);
 
+	int			GetTotalMemory(void);
+	int			GetUsedMemory(void);
+	int			GetRemainingMemory(void);
+	void*		GetData(void);
 };
 
 

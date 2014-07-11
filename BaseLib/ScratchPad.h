@@ -27,9 +27,10 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 class CScratchPad
 {
-public:
+protected:
 	CMemoryStackExtended	mcScratchPad;
 
+public:
 	void	Init(void);
 	void	Init(int iChunkSize);
 	void	Kill(void);

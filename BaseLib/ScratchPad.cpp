@@ -100,7 +100,7 @@ void CScratchPad::Reset(void)
 //////////////////////////////////////////////////////////////////////////
 int CScratchPad::GetMemorySize(void)
 {
-	return mcScratchPad.GetMemorySize();
+	return mcScratchPad.GetTotalMemory();
 }
 
 
@@ -110,5 +110,5 @@ int CScratchPad::GetMemorySize(void)
 //////////////////////////////////////////////////////////////////////////
 int CScratchPad::GetUsedSize(void)
 {
-	return mcScratchPad.GetUsedSize();
+	return mcScratchPad.GetUsedMemory();
 }

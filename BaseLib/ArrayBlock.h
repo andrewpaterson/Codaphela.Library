@@ -17,8 +17,8 @@ struct SArrayTemplateHeader
 class CArrayBlock : protected SArrayTemplateHeader
 {
 protected:
-	int		miNumElements;
-	void*	mpvArray;
+	int				miNumElements;
+	void*			mpvArray;
 
 public:
 	void 	Init(int iElementSize, int iChunkSize);

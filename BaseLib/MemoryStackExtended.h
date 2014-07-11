@@ -32,7 +32,7 @@ typedef CArrayTemplate<CMemoryStack> CArrayMemoryStacks;
 
 class CMemoryStackExtended
 {
-private:
+protected:
 	CArrayMemoryStacks	mcStacks;
 	int					miChunkSize;
 	int					miElements;
@@ -48,8 +48,8 @@ public:
 	void	Mark(CStackMarkExtended* psMark);
 	void	Rollback(CStackMarkExtended* psMark);
 
-	int		GetMemorySize(void);
-	int		GetUsedSize(void);
+	int		GetTotalMemory(void);
+	int		GetUsedMemory(void);
 };
 
 

@@ -102,7 +102,7 @@ void* CMemoryStackExtended::Add(int iSize)
 	for (i = mcStacks.NumElements()-1; i >= 0; i--)
 	{
 		pcStack = mcStacks.Get(i);
-		iRemaining = pcStack->miMemorySize - pcStack->miUsedMemory;
+		iRemaining = pcStack->GetRemainingMemory();
 		if (iSize <= iRemaining)
 		{
 			miElements++;
@@ -202,7 +202,7 @@ void CMemoryStackExtended::Rollback(CStackMarkExtended* pcMark)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CMemoryStackExtended::GetMemorySize(void)
+int CMemoryStackExtended::GetTotalMemory(void)
 {
 	int				i;
 	CMemoryStack*	pcStack;
@@ -212,7 +212,7 @@ int CMemoryStackExtended::GetMemorySize(void)
 	for (i = 0; i < mcStacks.NumElements(); i++)
 	{
 		pcStack = mcStacks.Get(i);
-		iSize += pcStack->miMemorySize;
+		iSize += pcStack->GetTotalMemory();
 	}
 	return iSize;
 }
@@ -222,7 +222,7 @@ int CMemoryStackExtended::GetMemorySize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CMemoryStackExtended::GetUsedSize(void)
+int CMemoryStackExtended::GetUsedMemory(void)
 {
 	int				i;
 	CMemoryStack*	pcStack;
@@ -232,7 +232,8 @@ int CMemoryStackExtended::GetUsedSize(void)
 	for (i = 0; i < mcStacks.NumElements(); i++)
 	{
 		pcStack = mcStacks.Get(i);
-		iSize += pcStack->miUsedMemory;
+		iSize += pcStack->GetUsedMemory();
 	}
 	return iSize;
 }
+
