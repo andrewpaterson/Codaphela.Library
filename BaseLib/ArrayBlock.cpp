@@ -83,21 +83,6 @@ void CArrayBlock::Init(SArrayTemplateHeader* psHeader)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayBlock::Init(CArrayBlock* pcTemplateArray)
-{
-	miElementSize = pcTemplateArray->miElementSize;
-	miUsedElements = 0;
-	miChunkSize = pcTemplateArray->miChunkSize;
-	miNumElements = 0;
-	this->mpvArray = NULL;
-	Copy(pcTemplateArray);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
 void CArrayBlock::ReInit(int iChunkSize)
 {
 	Kill();

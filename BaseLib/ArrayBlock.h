@@ -3,6 +3,7 @@
 #include "FastMemset.h"
 #include "PointerRemapper.h"
 #include "FastFunctions.h"
+#include "Mallocator.h"
 #include "FileIO.h"
 
 
@@ -19,17 +20,18 @@ class CArrayBlock : protected SArrayTemplateHeader
 protected:
 	int				miNumElements;
 	void*			mpvArray;
+	CMallocator*	mpcMalloc;
 
 public:
 	void 	Init(int iElementSize, int iChunkSize);
 	void 	InitFromHeader(void);
-	void 	Init(SArrayTemplateHeader* psHeader);
-	void	Init(CArrayBlock* pcTemplateArray);
 	void 	ReInit(int iChunkSize = 0);
 	void 	Allocate(int iElementSize, int iNumElements);
 	void 	Allocate(int iElementSize, int iChunkSize, int iNumElements);
+
 	void 	Finalise(void);
 	void	Fake(int iElementSize, void* pvData, int iNum, int iChunkSize = 1);
+
 	void 	Kill(void);
 
 	void 	SetAllocateSize(int iSize);
@@ -121,6 +123,8 @@ protected:
 	void*	Malloc(size_t tSize);
 	void*	Realloc(void* pv, size_t iMemSize);
 	void	Free(void* pv);
+
+	void 	Init(SArrayTemplateHeader* psHeader);
 
 	BOOL	BinarySearch(void* pData, int iLeft, int iRight, int(*)(const void*, const void*), int* piIndex);
 	void	CopyArrayInto(CArrayBlock* pcTemplateArray, int iIndex);
