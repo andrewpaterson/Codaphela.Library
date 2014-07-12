@@ -193,7 +193,7 @@ int CEmbeddedObject::BaseNumPointerTos(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CEmbeddedObject::BaseGetPointerTos(CArrayEmbeddedObjectPtr* papcTos)
+void CEmbeddedObject::BaseGetPointerTos(CArrayTemplateEmbeddedObjectPtr* papcTos)
 {
 }
 
@@ -379,9 +379,9 @@ CBaseObject* CEmbeddedObject::GetHeapFrom(int iFrom)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CEmbeddedObject::GetHeapFroms(CArrayEmbeddedBaseObjectPtr* papcFroms)
+void CEmbeddedObject::GetHeapFroms(CArrayTemplateEmbeddedBaseObjectPtr* papcFroms)
 {
-	papcFroms->Copy((CArrayEmbeddedBaseObjectPtr*)&mapHeapFroms);
+	papcFroms->Copy((CArrayTemplateEmbeddedBaseObjectPtr*)&mapHeapFroms);
 }
 
 

@@ -137,7 +137,7 @@ void CHollowObject::SetPointerTosExpectedDistToRoot(int iDistToRoot)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHollowObject::GetPointerTos(CArrayEmbeddedObjectPtr* papcTos)
+void CHollowObject::GetPointerTos(CArrayTemplateEmbeddedObjectPtr* papcTos)
 {
 }
 

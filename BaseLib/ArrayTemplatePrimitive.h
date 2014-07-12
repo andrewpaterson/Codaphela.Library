@@ -27,7 +27,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 
 template<class M>
-class CArrayPrimitiveTemplate : public CArrayTemplate<M>
+class CArrayTemplatePrimitive : public CArrayTemplate<M>
 {
 public:
 	M 		GetValue(int iElementPos);
@@ -48,7 +48,7 @@ public:
 	BOOL	RemoveFromSorted(M iElement);
 	BOOL	RemoveDuplicatesFromSorted(void);
 	void	MakeUnique(void);
-	void	Intersect(CArrayPrimitiveTemplate<M>* pcArray1, CArrayPrimitiveTemplate<M>* pcArray2);
+	void	Intersect(CArrayTemplatePrimitive<M>* pcArray1, CArrayTemplatePrimitive<M>* pcArray2);
 	BOOL	IsSorted(void);
 	int		FindFinalContiguousInSorted(void);
 };
@@ -78,7 +78,7 @@ int ComparePrimitive(const void* arg1, const void* arg2)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M CArrayPrimitiveTemplate<M>::GetValue(int iElementPos)
+M CArrayTemplatePrimitive<M>::GetValue(int iElementPos)
 {
 	return (*(CArrayTemplate<M>::Get(iElementPos)));
 }
@@ -89,7 +89,7 @@ M CArrayPrimitiveTemplate<M>::GetValue(int iElementPos)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M CArrayPrimitiveTemplate<M>::operator[](int iElementPos)
+M CArrayTemplatePrimitive<M>::operator[](int iElementPos)
 {
 	return (*(CArrayTemplate<M>::Get(iElementPos)));
 }
@@ -100,7 +100,7 @@ M CArrayPrimitiveTemplate<M>::operator[](int iElementPos)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M CArrayPrimitiveTemplate<M>::SafeGetValue(int iElementPos)
+M CArrayTemplatePrimitive<M>::SafeGetValue(int iElementPos)
 {
 	if ((iElementPos >= 0) && (iElementPos < this->miUsedElements))
 	{
@@ -115,7 +115,7 @@ M CArrayPrimitiveTemplate<M>::SafeGetValue(int iElementPos)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CArrayPrimitiveTemplate<M>::SetValue(int iElementPos, M iElement)
+void CArrayTemplatePrimitive<M>::SetValue(int iElementPos, M iElement)
 {
 	((M*)mpvArray)[iElementPos] = iElement;
 }
@@ -126,7 +126,7 @@ void CArrayPrimitiveTemplate<M>::SetValue(int iElementPos, M iElement)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CArrayPrimitiveTemplate<M>::Add(M iElement)
+void CArrayTemplatePrimitive<M>::Add(M iElement)
 {
 	M*	pvTemp;
 
@@ -140,7 +140,7 @@ void CArrayPrimitiveTemplate<M>::Add(M iElement)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CArrayPrimitiveTemplate<M>::InsertAt(M iElement, int iIndex)
+void CArrayTemplatePrimitive<M>::InsertAt(M iElement, int iIndex)
 {
 	M*	pvTemp;
 
@@ -154,7 +154,7 @@ void CArrayPrimitiveTemplate<M>::InsertAt(M iElement, int iIndex)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CArrayPrimitiveTemplate<M>::AddList(M iStop, ...)
+void CArrayTemplatePrimitive<M>::AddList(M iStop, ...)
 {
 	va_list		vaMarker;
 	M			iValue;
@@ -175,7 +175,7 @@ void CArrayPrimitiveTemplate<M>::AddList(M iStop, ...)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CArrayPrimitiveTemplate<M>::SetArrayValues(M iValue)
+void CArrayTemplatePrimitive<M>::SetArrayValues(M iValue)
 {
 	int	i;
 
@@ -191,7 +191,7 @@ void CArrayPrimitiveTemplate<M>::SetArrayValues(M iValue)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CArrayPrimitiveTemplate<M>::SetArrayValues(M iStartValue, M iIncrement)
+void CArrayTemplatePrimitive<M>::SetArrayValues(M iStartValue, M iIncrement)
 {
 	int	i;
 
@@ -208,7 +208,7 @@ void CArrayPrimitiveTemplate<M>::SetArrayValues(M iStartValue, M iIncrement)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CArrayPrimitiveTemplate<M>::QuickSort(void)
+void CArrayTemplatePrimitive<M>::QuickSort(void)
 {
 	CArrayTemplate::QuickSort(&ComparePrimitive<M>);
 }
@@ -219,7 +219,7 @@ void CArrayPrimitiveTemplate<M>::QuickSort(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CArrayPrimitiveTemplate<M>::BubbleSort(void)
+void CArrayTemplatePrimitive<M>::BubbleSort(void)
 {
 	CArrayTemplate::BubbleSort(&ComparePrimitive<M>);
 }
@@ -230,7 +230,7 @@ void CArrayPrimitiveTemplate<M>::BubbleSort(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-int CArrayPrimitiveTemplate<M>::Find(M iValue)
+int CArrayTemplatePrimitive<M>::Find(M iValue)
 {
 	int	i;
 
@@ -250,7 +250,7 @@ int CArrayPrimitiveTemplate<M>::Find(M iValue)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-int CArrayPrimitiveTemplate<M>::AddIfUnique(M iValue)
+int CArrayTemplatePrimitive<M>::AddIfUnique(M iValue)
 {
 	int iPos;
 
@@ -268,7 +268,7 @@ int CArrayPrimitiveTemplate<M>::AddIfUnique(M iValue)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CArrayPrimitiveTemplate<M>::Swap(int iIndex1, int iIndex2)
+void CArrayTemplatePrimitive<M>::Swap(int iIndex1, int iIndex2)
 {
 	M*		piElement1;
 	M*		piElement2;
@@ -287,7 +287,7 @@ void CArrayPrimitiveTemplate<M>::Swap(int iIndex1, int iIndex2)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CArrayPrimitiveTemplate<M>::InsertIntoSorted(M iElement, BOOL bOverwriteExisting)
+void CArrayTemplatePrimitive<M>::InsertIntoSorted(M iElement, BOOL bOverwriteExisting)
 {
 	int		iPos;
 	BOOL	bExists;
@@ -323,7 +323,7 @@ void CArrayPrimitiveTemplate<M>::InsertIntoSorted(M iElement, BOOL bOverwriteExi
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-BOOL CArrayPrimitiveTemplate<M>::RemoveFromSorted(M iElement)
+BOOL CArrayTemplatePrimitive<M>::RemoveFromSorted(M iElement)
 {
 	int		iPos;
 	BOOL	bExists;
@@ -343,7 +343,7 @@ BOOL CArrayPrimitiveTemplate<M>::RemoveFromSorted(M iElement)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-BOOL CArrayPrimitiveTemplate<M>::RemoveDuplicatesFromSorted(void)
+BOOL CArrayTemplatePrimitive<M>::RemoveDuplicatesFromSorted(void)
 {
 	int		i;
 	M		iValue;
@@ -385,7 +385,7 @@ BOOL CArrayPrimitiveTemplate<M>::RemoveDuplicatesFromSorted(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CArrayPrimitiveTemplate<M>::MakeUnique(void)
+void CArrayTemplatePrimitive<M>::MakeUnique(void)
 {
 	QuickSort();
 	RemoveDuplicatesFromSorted();
@@ -397,7 +397,7 @@ void CArrayPrimitiveTemplate<M>::MakeUnique(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CArrayPrimitiveTemplate<M>::Intersect(CArrayPrimitiveTemplate<M>* pcArray1, CArrayPrimitiveTemplate<M>* pcArray2)
+void CArrayTemplatePrimitive<M>::Intersect(CArrayTemplatePrimitive<M>* pcArray1, CArrayTemplatePrimitive<M>* pcArray2)
 {
 	int	i;
 	int	j;
@@ -428,7 +428,7 @@ void CArrayPrimitiveTemplate<M>::Intersect(CArrayPrimitiveTemplate<M>* pcArray1,
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-BOOL CArrayPrimitiveTemplate<M>::IsSorted(void)
+BOOL CArrayTemplatePrimitive<M>::IsSorted(void)
 {
 	int		i;
 	M		iValue;
@@ -457,7 +457,7 @@ BOOL CArrayPrimitiveTemplate<M>::IsSorted(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-int CArrayPrimitiveTemplate<M>::FindFinalContiguousInSorted(void)
+int CArrayTemplatePrimitive<M>::FindFinalContiguousInSorted(void)
 {
 	int		i;
 	M		iValue;

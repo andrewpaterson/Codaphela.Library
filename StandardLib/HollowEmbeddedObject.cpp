@@ -185,7 +185,7 @@ CStackPointers* CHollowEmbeddedObject::GetStackPointers(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHollowEmbeddedObject::GetPointerTos(CArrayEmbeddedObjectPtr* papcTos)
+void CHollowEmbeddedObject::GetPointerTos(CArrayTemplateEmbeddedObjectPtr* papcTos)
 {
 }
 

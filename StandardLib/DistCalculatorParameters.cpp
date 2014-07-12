@@ -314,7 +314,7 @@ CBaseObject* CDistCalculatorParameters::GetTouched(int iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDistCalculatorParameters::PrintArray(CChars* psz, CArrayEmbeddedBaseObjectPtr* pcArray)
+void CDistCalculatorParameters::PrintArray(CChars* psz, CArrayTemplateEmbeddedBaseObjectPtr* pcArray)
 {
 	int				i;
 	int				iNum;

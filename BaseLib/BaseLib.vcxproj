@@ -90,13 +90,13 @@
     <ClInclude Include="ArrayBit.h" />
     <ClInclude Include="ArrayChar.h" />
     <ClInclude Include="ArrayDouble.h" />
-    <ClInclude Include="ArrayEmbedded.h" />
+    <ClInclude Include="ArrayTemplateEmbedded.h" />
     <ClInclude Include="ArrayFloat.h" />
     <ClInclude Include="ArrayInt.h" />
     <ClInclude Include="ArrayInt2D.h" />
     <ClInclude Include="ArrayLong.h" />
     <ClInclude Include="ArrayIntAndPointer.h" />
-    <ClInclude Include="ArrayPrimitiveTemplate.h" />
+    <ClInclude Include="ArrayTemplatePrimitive.h" />
     <ClInclude Include="ArrayTemplateMinimal.h" />
     <ClInclude Include="ArrayCharMinimal.h" />
     <ClInclude Include="ArrayString.h" />

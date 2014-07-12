@@ -2,7 +2,7 @@
 #define __INDEX_TREE_H__
 #include "Chars.h"
 #include "ArrayVoidPtr.h"
-#include "ArrayEmbedded.h"
+#include "ArrayTemplateEmbedded.h"
 #include "IndexTreeNode.h"
 #include "MemoryCache.h"
 

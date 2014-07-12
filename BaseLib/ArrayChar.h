@@ -22,11 +22,11 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __ARRAY_CHAR_H__
 #define __ARRAY_CHAR_H__
-#include "ArrayPrimitiveTemplate.h"
+#include "ArrayTemplatePrimitive.h"
 
 
-typedef CArrayPrimitiveTemplate<char> CArrayChar;
-template class CArrayPrimitiveTemplate<char>;
+typedef CArrayTemplatePrimitive<char> CArrayChar;
+template class CArrayTemplatePrimitive<char>;
 
 
 #endif // __ARRAY_CHAR_H__

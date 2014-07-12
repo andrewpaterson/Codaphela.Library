@@ -543,12 +543,6 @@
     <ClInclude Include="ArrayTemplateMinimal.h">
       <Filter>Source\Data\Array\Minimal</Filter>
     </ClInclude>
-    <ClInclude Include="ArrayEmbedded.h">
-      <Filter>Source\Data\Array\Embedded</Filter>
-    </ClInclude>
-    <ClInclude Include="ArrayPrimitiveTemplate.h">
-      <Filter>Source\Data\Array\Primitive</Filter>
-    </ClInclude>
     <ClInclude Include="ArrayVoidPtr.h">
       <Filter>Source\Data\Array\Basic\Specific</Filter>
     </ClInclude>
@@ -620,6 +614,12 @@
     </ClInclude>
     <ClInclude Include="GlobalMemory.h">
       <Filter>Source\Memory\Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="ArrayTemplateEmbedded.h">
+      <Filter>Source\Data\Array\Embedded</Filter>
+    </ClInclude>
+    <ClInclude Include="ArrayTemplatePrimitive.h">
+      <Filter>Source\Data\Array\Primitive</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

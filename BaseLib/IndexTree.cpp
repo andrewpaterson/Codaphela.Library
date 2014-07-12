@@ -394,12 +394,12 @@ BOOL CIndexTree::Remove(char* pszKey)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTree::Remove(void* pvKey, int iKeySize)
 {
-	char									c;
-	CIndexTreeNode*							pcParent;
-	CIndexTreeNode*							pcNode;
-	CArrayEmbedded<CIndexTreeNode*, 64>		apcPath;
-	CIndexTreeNode*							pcCurrent;
-	void*									pvObject;
+	char											c;
+	CIndexTreeNode*									pcParent;
+	CIndexTreeNode*									pcNode;
+	CArrayTemplateEmbedded<CIndexTreeNode*, 64>		apcPath;
+	CIndexTreeNode*									pcCurrent;
+	void*											pvObject;
 
 	if ((iKeySize == 0) || (pvKey == NULL))
 	{

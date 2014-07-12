@@ -22,10 +22,10 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __INT_ARRAY_H__
 #define __INT_ARRAY_H__
-#include "ArrayPrimitiveTemplate.h"
+#include "ArrayTemplatePrimitive.h"
 
 
-class CArrayInt : public CArrayPrimitiveTemplate<int>
+class CArrayInt : public CArrayTemplatePrimitive<int>
 {
 public:
 	void	AddRemap(int iElementPos, int iRemapNum);

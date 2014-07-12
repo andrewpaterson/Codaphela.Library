@@ -25,7 +25,7 @@ public:
 	CHollowObject*		GetHollowObject(void);
 	CObjects*			GetObjects(void);
 	CStackPointers*		GetStackPointers(void);
-	void				GetPointerTos(CArrayEmbeddedObjectPtr* papcTos);
+	void				GetPointerTos(CArrayTemplateEmbeddedObjectPtr* papcTos);
 	int					NumPointerTos(void);
 	void				ValidateConsistency(void);
 	BOOL				IsInitialised(void);

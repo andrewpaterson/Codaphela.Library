@@ -30,7 +30,7 @@ friend class CPointer;
 BASE_FUNCTIONS(CEmbeddedObject);
 protected:
 	CBaseObject*						mpcEmbedded;  //Object that 'this' is embedded in.
-	CArrayEmbedded<CBaseObject*, 6>		mapHeapFroms;  //Objects on the heap that 'this' is pointed to from.  This is a BaseOject not an EmbeddedObject because HollowEmbeddedObjects cannot point to anything.
+	CArrayTemplateEmbedded<CBaseObject*, 6>		mapHeapFroms;  //Objects on the heap that 'this' is pointed to from.  This is a BaseOject not an EmbeddedObject because HollowEmbeddedObjects cannot point to anything.
 	CStackPointer*						mpcStackFroms;  //Objects on the stack that 'this' is pointed to from.  
 
 public:
@@ -79,8 +79,8 @@ public:
 
 	virtual int					NumPointerTos(void) =0;
 	virtual int					BaseNumPointerTos(void);
-	virtual void				GetPointerTos(CArrayEmbeddedObjectPtr* papcTos) =0;
-	virtual void				BaseGetPointerTos(CArrayEmbeddedObjectPtr* papcTos);
+	virtual void				GetPointerTos(CArrayTemplateEmbeddedObjectPtr* papcTos) =0;
+	virtual void				BaseGetPointerTos(CArrayTemplateEmbeddedObjectPtr* papcTos);
 	virtual void				CollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters);
 	virtual int					CollectDetachedFroms(CDistCalculatorParameters* pcParameters) =0;
 
@@ -118,7 +118,7 @@ protected:
 	virtual void				RemoveAllStackFroms(void);
 			BOOL				PrivateRemoveHeapFrom(CBaseObject* pcFrom);
 	virtual void				GetStackFroms(CArrayTypedPointerPtr* papcFroms);
-	virtual void				GetHeapFroms(CArrayEmbeddedBaseObjectPtr* papcFroms);
+	virtual void				GetHeapFroms(CArrayTemplateEmbeddedBaseObjectPtr* papcFroms);
 	virtual CStackPointers*		GetStackPointers(void) =0;
 	virtual CBaseObject*		GetClosestFromForCanFindRoot(void);
 	virtual void				UpdateAttachedEmbeddedObjectPointerTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist) =0;

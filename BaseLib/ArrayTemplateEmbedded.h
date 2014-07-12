@@ -26,7 +26,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 
 template<class M, int I>
-class CArrayEmbedded : protected SArrayTemplateHeader
+class CArrayTemplateEmbedded : protected SArrayTemplateHeader
 {
 protected:
 	union
@@ -64,7 +64,7 @@ public:
 	BOOL	Remove(M* pvElement, int bPreserveOrder = TRUE);
 	void 	RemoveAt(int iIndex, int bPreserveOrder = TRUE);
 	M*		SafeGet(int iIndex);
-	void	Copy(CArrayEmbedded<M, I>* pcArrayEmbedded);
+	void	Copy(CArrayTemplateEmbedded<M, I>* pcArrayTemplateEmbedded);
 	BOOL	TestInternalConsistency(void);
 	void 	Zero(void);
 };
@@ -75,7 +75,7 @@ public:
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, int I>
-void CArrayEmbedded<M, I>::Init(void)
+void CArrayTemplateEmbedded<M, I>::Init(void)
 {
 	this->miElementSize = sizeof(M);
 	this->miUsedElements = 0;
@@ -88,7 +88,7 @@ void CArrayEmbedded<M, I>::Init(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, int I>
-void CArrayEmbedded<M, I>::Kill(void)
+void CArrayTemplateEmbedded<M, I>::Kill(void)
 {
 	if (IsArray())
 	{
@@ -103,7 +103,7 @@ void CArrayEmbedded<M, I>::Kill(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, int I>
-void CArrayEmbedded<M, I>::ReInit(void)
+void CArrayTemplateEmbedded<M, I>::ReInit(void)
 {
 	Kill();
 	Init();
@@ -115,7 +115,7 @@ void CArrayEmbedded<M, I>::ReInit(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, int I>
-BOOL CArrayEmbedded<M, I>::IsEmbedded(void)
+BOOL CArrayTemplateEmbedded<M, I>::IsEmbedded(void)
 {
 	return miUsedElements <= miChunkSize;
 }
@@ -126,7 +126,7 @@ BOOL CArrayEmbedded<M, I>::IsEmbedded(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, int I>
-BOOL CArrayEmbedded<M, I>::IsArray(void)
+BOOL CArrayTemplateEmbedded<M, I>::IsArray(void)
 {
 	return miUsedElements > miChunkSize;
 }
@@ -137,7 +137,7 @@ BOOL CArrayEmbedded<M, I>::IsArray(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, int I>
-void CArrayEmbedded<M, I>::BecomeArray(int iUsedElements)
+void CArrayTemplateEmbedded<M, I>::BecomeArray(int iUsedElements)
 {
 	M	am[I];
 
@@ -154,7 +154,7 @@ void CArrayEmbedded<M, I>::BecomeArray(int iUsedElements)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, int I>
-void CArrayEmbedded<M, I>::BecomeEmbedded(int iUsedElements)
+void CArrayTemplateEmbedded<M, I>::BecomeEmbedded(int iUsedElements)
 {
 	M	am[I];
 
@@ -171,7 +171,7 @@ void CArrayEmbedded<M, I>::BecomeEmbedded(int iUsedElements)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, int I>
-M* CArrayEmbedded<M, I>::Add(void)
+M* CArrayTemplateEmbedded<M, I>::Add(void)
 {
 	if (IsEmbedded())
 	{
@@ -199,7 +199,7 @@ M* CArrayEmbedded<M, I>::Add(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, int I>
-M* CArrayEmbedded<M, I>::Add(M* pData)
+M* CArrayTemplateEmbedded<M, I>::Add(M* pData)
 {
 	M*	pAdded;
 
@@ -214,7 +214,7 @@ M* CArrayEmbedded<M, I>::Add(M* pData)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, int I>
-int CArrayEmbedded<M, I>::ByteSize(void)
+int CArrayTemplateEmbedded<M, I>::ByteSize(void)
 {
 	if (IsEmbedded())
 	{
@@ -232,7 +232,7 @@ int CArrayEmbedded<M, I>::ByteSize(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, int I>
-int CArrayEmbedded<M, I>::ChunkSize(void)
+int CArrayTemplateEmbedded<M, I>::ChunkSize(void)
 {
 	return miChunkSize;
 }
@@ -243,7 +243,7 @@ int CArrayEmbedded<M, I>::ChunkSize(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, int I>
-M* CArrayEmbedded<M, I>::Get(int iIndex)
+M* CArrayTemplateEmbedded<M, I>::Get(int iIndex)
 {
 	if (IsEmbedded())
 	{
@@ -265,7 +265,7 @@ M* CArrayEmbedded<M, I>::Get(int iIndex)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, int I>
-M* CArrayEmbedded<M, I>::GetData(void)
+M* CArrayTemplateEmbedded<M, I>::GetData(void)
 {
 	if (IsEmbedded())
 	{
@@ -283,7 +283,7 @@ M* CArrayEmbedded<M, I>::GetData(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, int I>
-int CArrayEmbedded<M, I>::GetIndex(M* pvElement)
+int CArrayTemplateEmbedded<M, I>::GetIndex(M* pvElement)
 {
 	int iIndex;
 	int iBase;
@@ -315,7 +315,7 @@ int CArrayEmbedded<M, I>::GetIndex(M* pvElement)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, int I>
-int CArrayEmbedded<M, I>::Find(M* pData)
+int CArrayTemplateEmbedded<M, I>::Find(M* pData)
 {
 	int		i;
 	M*		pIndex;
@@ -337,7 +337,7 @@ int CArrayEmbedded<M, I>::Find(M* pData)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, int I>
-int CArrayEmbedded<M, I>::GrowByNumElements(int iNumElements)
+int CArrayTemplateEmbedded<M, I>::GrowByNumElements(int iNumElements)
 {
 	int	iOldUsedElements;
 
@@ -368,7 +368,7 @@ int CArrayEmbedded<M, I>::GrowByNumElements(int iNumElements)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, int I>
-int CArrayEmbedded<M, I>::GrowToNumElements(int iNumElements)
+int CArrayTemplateEmbedded<M, I>::GrowToNumElements(int iNumElements)
 {
 	int	iOldUsedElements;
 
@@ -407,7 +407,7 @@ int CArrayEmbedded<M, I>::GrowToNumElements(int iNumElements)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, int I>
-M* CArrayEmbedded<M, I>::InsertAt(int iIndex)
+M* CArrayTemplateEmbedded<M, I>::InsertAt(int iIndex)
 {
 	void*	pSource;
 	void*	pDest;
@@ -445,7 +445,7 @@ M* CArrayEmbedded<M, I>::InsertAt(int iIndex)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, int I>
-M* CArrayEmbedded<M, I>::InsertAt(M* pData, int iIndex)
+M* CArrayTemplateEmbedded<M, I>::InsertAt(M* pData, int iIndex)
 {
 	M*	pAdded;
 
@@ -460,7 +460,7 @@ M* CArrayEmbedded<M, I>::InsertAt(M* pData, int iIndex)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, int I>
-BOOL CArrayEmbedded<M, I>::IsEmpty(void)
+BOOL CArrayTemplateEmbedded<M, I>::IsEmpty(void)
 {
 	return miUsedElements == 0;
 }
@@ -471,7 +471,7 @@ BOOL CArrayEmbedded<M, I>::IsEmpty(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, int I>
-BOOL CArrayEmbedded<M, I>::IsNotEmpty(void)
+BOOL CArrayTemplateEmbedded<M, I>::IsNotEmpty(void)
 {
 	return miUsedElements != 0;
 }
@@ -482,7 +482,7 @@ BOOL CArrayEmbedded<M, I>::IsNotEmpty(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, int I>
-int CArrayEmbedded<M, I>::NumElements(void)
+int CArrayTemplateEmbedded<M, I>::NumElements(void)
 {
 	return miUsedElements;
 }
@@ -493,7 +493,7 @@ int CArrayEmbedded<M, I>::NumElements(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, int I>
-BOOL CArrayEmbedded<M, I>::Remove(M* pData, int bPreserveOrder)
+BOOL CArrayTemplateEmbedded<M, I>::Remove(M* pData, int bPreserveOrder)
 {
 	int		iIndex;
 
@@ -515,7 +515,7 @@ BOOL CArrayEmbedded<M, I>::Remove(M* pData, int bPreserveOrder)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, int I>
-void CArrayEmbedded<M, I>::RemoveAt(int iIndex, int bPreserveOrder)
+void CArrayTemplateEmbedded<M, I>::RemoveAt(int iIndex, int bPreserveOrder)
 {
 	void*	pSource;
 	void*	pDest;
@@ -551,7 +551,7 @@ void CArrayEmbedded<M, I>::RemoveAt(int iIndex, int bPreserveOrder)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, int I>
-M* CArrayEmbedded<M, I>::SafeGet(int iIndex)
+M* CArrayTemplateEmbedded<M, I>::SafeGet(int iIndex)
 {
 	return Get(iIndex);
 }
@@ -562,16 +562,16 @@ M* CArrayEmbedded<M, I>::SafeGet(int iIndex)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, int I>
-void CArrayEmbedded<M, I>::Copy(CArrayEmbedded<M, I>* pcArrayEmbedded)
+void CArrayTemplateEmbedded<M, I>::Copy(CArrayTemplateEmbedded<M, I>* pcArrayTemplateEmbedded)
 {
 	int		i;
 	int		iNumElements;
 	M*		pvData;
 
-	iNumElements = pcArrayEmbedded->NumElements();
+	iNumElements = pcArrayTemplateEmbedded->NumElements();
 	for (i = 0; i < iNumElements; i++)
 	{
-		pvData = pcArrayEmbedded->Get(i);
+		pvData = pcArrayTemplateEmbedded->Get(i);
 		Add(pvData);
 	}
 }
@@ -582,7 +582,7 @@ void CArrayEmbedded<M, I>::Copy(CArrayEmbedded<M, I>* pcArrayEmbedded)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, int I>
-BOOL CArrayEmbedded<M, I>::TestInternalConsistency(void)
+BOOL CArrayTemplateEmbedded<M, I>::TestInternalConsistency(void)
 {
 	if (IsEmbedded())
 	{
@@ -612,7 +612,7 @@ BOOL CArrayEmbedded<M, I>::TestInternalConsistency(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, int I>
-void CArrayEmbedded<M, I>::Zero(void)
+void CArrayTemplateEmbedded<M, I>::Zero(void)
 {
 	if (IsEmbedded())
 	{

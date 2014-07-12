@@ -53,8 +53,8 @@ public:
 
 	int						NumPointerTos(void);
 	int						BaseNumPointerTos(void);
-	void					GetPointerTos(CArrayEmbeddedObjectPtr* papcTos);
-	void					BaseGetPointerTos(CArrayEmbeddedObjectPtr* papcTos);
+	void					GetPointerTos(CArrayTemplateEmbeddedObjectPtr* papcTos);
+	void					BaseGetPointerTos(CArrayTemplateEmbeddedObjectPtr* papcTos);
 	BOOL					ContainsPointerTo(CEmbeddedObject* pcEmbedded);
 	void					RemoveAllPointerTosDontKill(void);
 	void					RemoveAllPointerTos(void);

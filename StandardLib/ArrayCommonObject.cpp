@@ -493,7 +493,7 @@ void CArrayCommonObject::SetPointedTosDistToRoot(int iDistToRoot)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayCommonObject::GetPointerTos(CArrayEmbeddedObjectPtr* papcTos)
+void CArrayCommonObject::GetPointerTos(CArrayTemplateEmbeddedObjectPtr* papcTos)
 {
 	CEmbeddedObject*	pcPointedTo;
 	int					i;
@@ -515,7 +515,7 @@ void CArrayCommonObject::GetPointerTos(CArrayEmbeddedObjectPtr* papcTos)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayCommonObject::BaseGetPointerTos(CArrayEmbeddedObjectPtr* papcTos)
+void CArrayCommonObject::BaseGetPointerTos(CArrayTemplateEmbeddedObjectPtr* papcTos)
 {
 	GetPointerTos(papcTos);
 }

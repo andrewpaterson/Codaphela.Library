@@ -20,9 +20,9 @@ typedef CArrayTemplate<SDistToRoot>		CArrayDistToRoot;
 class CDistCalculatorParameters
 {
 private:
-	CArrayEmbeddedBaseObjectPtr		mapcTouched;
+	CArrayTemplateEmbeddedBaseObjectPtr		mapcTouched;
 	CArrayDistToRoot				macExpectedDists;
-	CArrayEmbeddedBaseObjectPtr		mapcDetachedFromRoot;
+	CArrayTemplateEmbeddedBaseObjectPtr		mapcDetachedFromRoot;
 
 	CArrayBlockObjectPtr				mapcCompletelyDetached;
 
@@ -59,7 +59,7 @@ public:
 
 	void					ClearTouchedFlags(void);
 
-	void					PrintArray(CChars* psz, CArrayEmbeddedBaseObjectPtr* pcArray);
+	void					PrintArray(CChars* psz, CArrayTemplateEmbeddedBaseObjectPtr* pcArray);
 	void					PrintArray(CChars* psz, CArrayBlockObjectPtr* pcArray);
 	void					PrintArray(CChars* psz, CArrayDistToRoot* pcArray);
 };

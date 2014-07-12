@@ -39,7 +39,7 @@ public:
 			BOOL				IsCollection(void);
 			BOOL				IsObject(void);
 			void				SetPointerTosExpectedDistToRoot(int iDistToRoot);
-			void				GetPointerTos(CArrayEmbeddedObjectPtr* papcTos);
+			void				GetPointerTos(CArrayTemplateEmbeddedObjectPtr* papcTos);
 			int					NumPointerTos(void);
 			unsigned short int	GetNumEmbedded(void);
 			CEmbeddedObject*	GetEmbeddedObject(unsigned short int iIndex);

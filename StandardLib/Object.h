@@ -33,8 +33,8 @@ friend class CObjectGraphDeserialiser;
 
 BASE_FUNCTIONS(CObject);
 protected:
-	CArrayEmbedded<CPointer*, 5>		mapPointers;  //Pointers in this object.  
-	CArrayEmbedded<CBaseObject*, 3>		mapEmbedded;  //Objects embedded in this object
+	CArrayTemplateEmbedded<CPointer*, 5>		mapPointers;  //Pointers in this object.  
+	CArrayTemplateEmbedded<CBaseObject*, 3>		mapEmbedded;  //Objects embedded in this object
 
 public:
 						CObject();
@@ -53,14 +53,14 @@ public:
 	int					NumHeapFroms(void);
 	int					NumStackFroms(void);
 	void				SetFlag(int iFlag, int iFlagValue);
-	void				GetHeapFroms(CArrayEmbeddedBaseObjectPtr* papcFroms);
+	void				GetHeapFroms(CArrayTemplateEmbeddedBaseObjectPtr* papcFroms);
 	void				GetStackFroms(CArrayTypedPointerPtr* papcFroms);
 	CBaseObject*		GetClosestFromToRoot(void);
 	CBaseObject*		GetClosestFromToStack(void);
 	int					NumPointerTos(void);
 	int					BaseNumPointerTos(void);
-	void				GetPointerTos(CArrayEmbeddedObjectPtr* papcTos);
-	void				BaseGetPointerTos(CArrayEmbeddedObjectPtr* papcTos);
+	void				GetPointerTos(CArrayTemplateEmbeddedObjectPtr* papcTos);
+	void				BaseGetPointerTos(CArrayTemplateEmbeddedObjectPtr* papcTos);
 	BOOL				ContainsPointerTo(CEmbeddedObject* pcEmbedded);
 	void				CollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters);
 	void				BaseCollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters);

@@ -249,7 +249,7 @@ void CBaseObject::CollectValidDistStartingObjectsAndSetClearedToRoot(CBaseObject
 	ValidateNotEmbedded(__METHOD__);
 
 	int								i;
-	CArrayEmbeddedBaseObjectPtr		apcFroms;
+	CArrayTemplateEmbeddedBaseObjectPtr		apcFroms;
 	CBaseObject*					pcFrom;
 	CBaseObject*					pcContainer;
 
@@ -941,7 +941,7 @@ CEmbeddedObject* CBaseObject::TestGetPointerTo(int iToIndex)
 {
 	CEmbeddedObject**			ppTo;
 	CEmbeddedObject*			pTo;
-	CArrayEmbeddedObjectPtr		apcTos;
+	CArrayTemplateEmbeddedObjectPtr		apcTos;
 
 	apcTos.Init(32);
 	GetPointerTos(&apcTos);
@@ -1216,7 +1216,7 @@ void CBaseObject::DumpPointerTos(void)
 	CEmbeddedObject**			ppcToObject;
 	int							iLength;
 	CChars						szLine;
-	CArrayEmbeddedObjectPtr		acTos;
+	CArrayTemplateEmbeddedObjectPtr		acTos;
 	CBaseObject*				pcToObject;
 	int							iTotalTos;
 

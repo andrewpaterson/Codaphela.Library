@@ -305,7 +305,7 @@ void CObjects::DumpGraph(void)
 void CObjects::RecurseDumpGraph(CChars* psz, CEmbeddedObject* pcIncoming, int iLevel, BOOL bEmbedded)
 {
 	CObject*					pcObject;
-	CArrayEmbeddedObjectPtr		apcTos;
+	CArrayTemplateEmbeddedObjectPtr		apcTos;
 	int							i;
 	CEmbeddedObject*			pcToObject;
 	CBaseObject*				pcEmbeddedObject;
@@ -444,7 +444,7 @@ void CObjects::ValidateSceneGraph(void)
 //////////////////////////////////////////////////////////////////////////
 void CObjects::RecurseValidateSceneGraph(CBaseObject* pcBaseObject)
 {
-	CArrayEmbeddedObjectPtr		apcTos;
+	CArrayTemplateEmbeddedObjectPtr		apcTos;
 	int							i;
 	CEmbeddedObject*			pcToObject;
 	CBaseObject*				pcToContainerObject;

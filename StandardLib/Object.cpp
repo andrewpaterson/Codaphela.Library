@@ -471,7 +471,7 @@ CBaseObject* CObject::GetClosestFromToStack(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObject::GetPointerTos(CArrayEmbeddedObjectPtr* papcTos)
+void CObject::GetPointerTos(CArrayTemplateEmbeddedObjectPtr* papcTos)
 {
 	int				i;
 	int				iNumEmbedded;
@@ -592,7 +592,7 @@ int CObject::CollectDetachedFroms(CDistCalculatorParameters* pcParameters)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObject::BaseGetPointerTos(CArrayEmbeddedObjectPtr* papcTos)
+void CObject::BaseGetPointerTos(CArrayTemplateEmbeddedObjectPtr* papcTos)
 {
 	int					iNumPointers;
 	int					i;
@@ -818,7 +818,7 @@ int CObject::RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObject::GetHeapFroms(CArrayEmbeddedBaseObjectPtr* papcFroms)
+void CObject::GetHeapFroms(CArrayTemplateEmbeddedBaseObjectPtr* papcFroms)
 {
 	int				i;
 	int				iNumEmbedded;

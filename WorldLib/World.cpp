@@ -996,16 +996,6 @@ BOOL InitMain(int iAd, D3DDEVTYPE devType, HWND hWndScreen, int dx, int dy, D3DF
 {
 	BOOL	bResult;
 
-	bResult = ValidateFastFunctions();
-	if (!bResult)
-	{
-		if (!gbFastFunctions)
-		{
-			gcUserError.Set("FastFunctionsInit should be the first call in WinMain().");
-		}
-		return FALSE;
-	}
-
 	gcLogger.Init();
 	gcLogger.Add("Main world initialisation...\n");
 	TypeConverterInit();

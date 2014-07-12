@@ -22,10 +22,10 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __LONG_ARRAY_H__
 #define __LONG_ARRAY_H__
-#include "ArrayPrimitiveTemplate.h"
+#include "ArrayTemplatePrimitive.h"
 
 
-class CArrayLong : public CArrayPrimitiveTemplate<long long int>
+class CArrayLong : public CArrayTemplatePrimitive<long long int>
 {
 public:
 	void	Dump(void);
