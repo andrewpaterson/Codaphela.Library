@@ -66,5 +66,5 @@ protected:
 };
 
 
-#endif //__TREE_BLOCK_H__
+#endif // __TREE_BLOCK_H__
 

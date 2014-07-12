@@ -29,5 +29,5 @@ typedef CArrayPrimitiveTemplate<float> CArrayFloat;
 template class CArrayPrimitiveTemplate<float>;
 
 
-#endif //__ARRAY_FLOAT_H__
+#endif // __ARRAY_FLOAT_H__
 

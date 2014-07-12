@@ -52,5 +52,5 @@ protected:
 };
 
 
-#endif //__MAP_STRING_STRING_H__
+#endif // __MAP_STRING_STRING_H__
 

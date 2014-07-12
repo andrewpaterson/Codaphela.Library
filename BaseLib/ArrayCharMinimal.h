@@ -41,5 +41,5 @@ public:
 };
 
 
-#endif //__ARRAY_SIMPLE_CHAR_H__
+#endif // __ARRAY_SIMPLE_CHAR_H__
 

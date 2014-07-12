@@ -105,5 +105,5 @@ void CMapPtrTemplate<D>::Remove(void* pvKey)
 }
 
 
-#endif //__MAP_PTR_TEMPLATE_H__
+#endif // __MAP_PTR_TEMPLATE_H__
 

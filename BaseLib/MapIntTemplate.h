@@ -105,5 +105,5 @@ BOOL CMapIntTemplate<D>::Remove(int iKey)
 }
 
 
-#endif //__MAP_INT_TEMPLATE_H__
+#endif // __MAP_INT_TEMPLATE_H__
 

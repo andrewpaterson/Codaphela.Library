@@ -36,5 +36,5 @@ class CPackedFloat
 
 
 
-#endif //__PACKED_FLOAT_H__
+#endif // __PACKED_FLOAT_H__
 

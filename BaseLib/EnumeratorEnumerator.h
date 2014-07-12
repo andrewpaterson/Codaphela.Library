@@ -44,5 +44,5 @@ public:
 
 
 
-#endif //__ENUMERATOR_ENUMERATOR_H__
+#endif // __ENUMERATOR_ENUMERATOR_H__
 

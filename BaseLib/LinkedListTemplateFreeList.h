@@ -111,5 +111,5 @@ void CLinkedListTemplateFreeList<M>::Kill(void)
 }
 
 
-#endif //__FREE_LINK_LIST_TEMPLATE__
+#endif // __FREE_LINK_LIST_TEMPLATE__
 

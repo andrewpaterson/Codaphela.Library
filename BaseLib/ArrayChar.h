@@ -29,5 +29,5 @@ typedef CArrayPrimitiveTemplate<char> CArrayChar;
 template class CArrayPrimitiveTemplate<char>;
 
 
-#endif //__ARRAY_CHAR_H__
+#endif // __ARRAY_CHAR_H__
 

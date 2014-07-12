@@ -68,5 +68,5 @@ protected:
 };
 
 
-#endif //__CSV_FILE_EDITABLE_H__
+#endif // __CSV_FILE_EDITABLE_H__
 

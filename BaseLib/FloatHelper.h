@@ -51,5 +51,5 @@ BOOL	IsNotANumber(float* pf);
 extern float gfNaN;
 
 
-#endif //__FLOAT_HELPER_H__
+#endif // __FLOAT_HELPER_H__
 

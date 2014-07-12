@@ -62,5 +62,5 @@ public:
 extern CLogger gcLogger;
 
 
-#endif //__LOGGER_H__
+#endif // __LOGGER_H__
 

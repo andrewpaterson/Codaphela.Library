@@ -1135,5 +1135,5 @@ BOOL CEnumeratorTemplate<M>::ReadEnumeratorBlock(CFileReader* pcFileReader)
 }
 
 
-#endif //__TEMPLATE_ENUMERATOR_H__
+#endif // __TEMPLATE_ENUMERATOR_H__
 

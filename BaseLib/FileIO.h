@@ -31,5 +31,5 @@ class CFileIO : public CFileReader, public CFileWriter
 };
 
 
-#endif //__FILE_EXTENDED_H__
+#endif // __FILE_EXTENDED_H__
 

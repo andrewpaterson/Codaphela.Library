@@ -36,4 +36,4 @@ public:
 };
 
 
-#endif //__ENUMERATOR_POINTER_H__
+#endif // __ENUMERATOR_POINTER_H__

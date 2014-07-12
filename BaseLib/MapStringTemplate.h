@@ -437,5 +437,5 @@ D* CMapStringTemplate<D>::LoadNode(CFileReader* pcFile, int iNode)
 }
 
 
-#endif //__MAP_STRING_TEMPLATE_H__
+#endif // __MAP_STRING_TEMPLATE_H__
 
