@@ -34,7 +34,6 @@ extern BOOL gbFastFunctions;
 
 void FastFunctionsInit(void);
 void FastFunctionsKill(void);
-BOOL ValidateFastFunctions(void);
 
 
 void memmove_fast(void* pvDest, void* pvSource, int iByteSize);

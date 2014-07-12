@@ -106,6 +106,7 @@
     <ClInclude Include="FileSystemIterator.h" />
     <ClInclude Include="FileSystemGeneral.h" />
     <ClInclude Include="FreeListAllocator.h" />
+    <ClInclude Include="GlobalMemory.h" />
     <ClInclude Include="IndexTree.h" />
     <ClInclude Include="IndexTreeNode.h" />
     <ClInclude Include="IndexTreeTemplate.h" />
@@ -249,6 +250,7 @@
     <ClCompile Include="FileSystemIterator.cpp" />
     <ClCompile Include="FreeListAllocator.cpp" />
     <ClCompile Include="FreeList.cpp" />
+    <ClCompile Include="GlobalMemory.cpp" />
     <ClCompile Include="IndexTree.cpp" />
     <ClCompile Include="IndexTreeNode.cpp" />
     <ClCompile Include="LinkedListBlock.cpp" />

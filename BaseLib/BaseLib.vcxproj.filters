@@ -618,6 +618,9 @@
     <ClInclude Include="MemoryAllocator.h">
       <Filter>Source\Memory\Manager</Filter>
     </ClInclude>
+    <ClInclude Include="GlobalMemory.h">
+      <Filter>Source\Memory\Manager</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -963,6 +966,9 @@
       <Filter>Source\Memory\Allocator</Filter>
     </ClCompile>
     <ClCompile Include="MemoryAllocator.cpp">
+      <Filter>Source\Memory\Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="GlobalMemory.cpp">
       <Filter>Source\Memory\Manager</Filter>
     </ClCompile>
   </ItemGroup>

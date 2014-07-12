@@ -54,16 +54,6 @@ void FastFunctionsKill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL ValidateFastFunctions(void)
-{
-	return gbFastFunctions;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void memmove_fast(void* pvDest, void* pvSource, int iByteSize)
 {
 	if (pvDest < pvSource)
@@ -75,3 +65,4 @@ void memmove_fast(void* pvDest, void* pvSource, int iByteSize)
 		memcpy_fast_backwards(pvDest, pvSource, iByteSize);
 	}
 }
+
