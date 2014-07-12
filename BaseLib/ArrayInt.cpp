@@ -21,6 +21,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
 #include <stdlib.h>
+#include "DebugOutput.h"
 #include "ArrayInt.h"
 #include "StringHelper.h"
 
@@ -126,20 +127,20 @@ int CArrayInt::FindUnusedInSorted(void)
 //////////////////////////////////////////////////////////////////////////
 void CArrayInt::Dump(void)
 {
-	//int			i;
-	//int			iValue;
-	//char		sz[32];
+	int			i;
+	int			iValue;
+	char		sz[32];
 
 
-	//EngineOutput("[");
-	//for (i = 0; i < miUsedElements; i++)
-	//{
-	//	iValue = GetValue(i);
-	//	IToA(iValue, sz, 10);
-	//	EngineOutput(sz);
-	//	EngineOutput(" ");
-	//}
-	//EngineOutput("]\n");
+	EngineOutput("[");
+	for (i = 0; i < miUsedElements; i++)
+	{
+		iValue = GetValue(i);
+		IToA(iValue, sz, 10);
+		EngineOutput(sz);
+		EngineOutput(" ");
+	}
+	EngineOutput("]\n");
 }
 
 

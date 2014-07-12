@@ -25,10 +25,19 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 #ifdef _MSC_VER
 #include <windows.h>
-
 #define EngineOutput(p)	OutputDebugString(p)
-
 #endif // _MSC_VER
+
+
+#ifdef WIN_GNU_32
+#define EngineOutput(p)	printf(p)
+#endif // WIN_GNU_32
+
+
+#ifdef LINUX_GNU_32
+#define EngineOutput(p)	printf(p)
+#endif // LINUX_GNU_32
+
 
 #endif // __DEBUG_OUTPUT_H__
 
