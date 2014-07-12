@@ -66,7 +66,6 @@ BOOL ValidateFastFunctions(void)
 //////////////////////////////////////////////////////////////////////////
 void memmove_fast(void* pvDest, void* pvSource, int iByteSize)
 {
-	//memmove(pvDest, pvSource, iByteSize);
 	if (pvDest < pvSource)
 	{
 		memcpy_fast(pvDest, pvSource, iByteSize);

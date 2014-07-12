@@ -6,7 +6,7 @@ class CMallocator
 {
 public:
 	virtual void*	Malloc(size_t tSize) =0;
-	virtual void*	Realloc(void* pv, size_t iMemSize) =0;
+	virtual void*	Realloc(void* pv, size_t tSize) =0;
 	virtual void	Free(void* pv) =0;
 };
 

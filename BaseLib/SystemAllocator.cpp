@@ -2,6 +2,9 @@
 #include "SystemAllocator.h"
 
 
+CSystemAllocator	gcSystemAllocator;
+
+
 //////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//

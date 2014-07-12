@@ -11,7 +11,7 @@
 
 struct SMemoryAllocation
 {
-	SFNode*			psFreeListNode;  //This is only valid when in a freelist.
+	SFNode*			psFreeListNode;  //This is only valid when in a free list.
 	unsigned int	uiAllocCount;
 	unsigned int	uiSize;
 	char			szDebug[4];
@@ -20,8 +20,8 @@ struct SMemoryAllocation
 
 struct SFreeListParams
 {
-	unsigned int	iMaxListSize;  //This is the size of the actual element in the freelist including SMemoryAllocation
-	unsigned int	iMinListSize;  //This is the size of the previous element in the freelist including SMemoryAllocation +1.
+	unsigned int	iMaxListSize;  //This is the size of the actual element in the free list including SMemoryAllocation
+	unsigned int	iMinListSize;  //This is the size of the previous element in the free list including SMemoryAllocation +1.
 
 	//These exist for some binary search Compare function stuffs.
 	unsigned int	iMaxElementSize;
@@ -40,9 +40,9 @@ int CompareFreeListParam(const void* arg1, const void* arg2);
 struct SFreeListDesc
 {
 	CFreeList*		pcFreeList;
-	unsigned int		iStride;
-	int					iAlignment;
-	int					iOffset;
+	unsigned int	iStride;
+	int				iAlignment;
+	int				iOffset;
 
 	void Init(unsigned int iStride, int iAlignment, int iOffset);
 	void Init(CFreeList* pcFreeList, int iStride, int iAlignment, int iOffset);
@@ -52,7 +52,7 @@ struct SFreeListDesc
 struct SMemoryIterator
 {
 	SFreeListIterator	sFreeListIterator;
-	CFreeList*		pcFreeList;
+	CFreeList*			pcFreeList;
 };
 
 

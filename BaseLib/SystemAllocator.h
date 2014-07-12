@@ -12,5 +12,8 @@ public:
 };
 
 
+extern CSystemAllocator		gcSystemAllocator;
+
+
 #endif // __SYSTEM_ALLOCATOR_H__
 

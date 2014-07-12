@@ -612,6 +612,12 @@
     <ClInclude Include="FreeListAllocator.h">
       <Filter>Source\Memory\Freelist</Filter>
     </ClInclude>
+    <ClInclude Include="MemoryBlock.h">
+      <Filter>Source\Memory\Allocator</Filter>
+    </ClInclude>
+    <ClInclude Include="MemoryAllocator.h">
+      <Filter>Source\Memory\Manager</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -952,6 +958,12 @@
     </ClCompile>
     <ClCompile Include="FreeList.cpp">
       <Filter>Source\Memory\Freelist</Filter>
+    </ClCompile>
+    <ClCompile Include="MemoryBlock.cpp">
+      <Filter>Source\Memory\Allocator</Filter>
+    </ClCompile>
+    <ClCompile Include="MemoryAllocator.cpp">
+      <Filter>Source\Memory\Manager</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

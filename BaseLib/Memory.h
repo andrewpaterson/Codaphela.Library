@@ -31,7 +31,7 @@ typedef CLinkedListTemplate<CFreeList> CLinkListFreeList;
 class CMemory
 {
 private:
-	CLinkListFreeList		mcFreeLists;  
+	CLinkListFreeList			mcFreeLists;  
 	CLinkedListBlockAligned		mcLargeList;
 	int							miDefaultAlignment;
 	CArrayFreeListDesc			mcOrder;
@@ -49,8 +49,9 @@ public:
 	void*				Add(unsigned int iSize, int iAlignment, int iOffset = 0);
 	void				Remove(void* pv);
 	BOOL				Remove(CArrayVoidPtr* pav);
-	CFreeList*		GetFreeList(unsigned int iElementSize, int iAlignment, int iOffset);
-	CFreeList*		GetFreeList(unsigned int iElementSize);
+	unsigned int		GetSize(void* pv);
+	CFreeList*			GetFreeList(unsigned int iElementSize, int iAlignment, int iOffset);
+	CFreeList*			GetFreeList(unsigned int iElementSize);
 	void*				Grow(void* pvInitial, unsigned int iSize);
 	void				SetDebugName(void* pv, char (*pszDebug)[4]);
 	void				BreakOnAdd(unsigned int uiAllocCount);
@@ -61,7 +62,7 @@ public:
 	void*				StartIteration(SMemoryIterator* psIterator);
 	void*				Iterate(SMemoryIterator* psIterator);
 
-	CFreeList*		TestGetFreeListsHead(void);
+	CFreeList*			TestGetFreeListsHead(void);
 	void*				TestGetLargeListsHead(void);
 
 protected:
@@ -69,7 +70,7 @@ protected:
 	int					RemoveElements(CArrayVoidPtr* pav, int i, int iChunkSize, SFNode* psNode, CFreeList* pcList);
 
 private:
-	CFreeList*		GetOrAddFreeList(unsigned int iElementSize, int iAlignment, int iOffset);
+	CFreeList*			GetOrAddFreeList(unsigned int iElementSize, int iAlignment, int iOffset);
 	SFreeListParams*	GetParamsForSize(unsigned int iElementSize);
 	void				InitFreeListParams(void);
 	void*				AllocateInFreeList(CFreeList* pcFreeList, unsigned int uiElementSize);
@@ -80,6 +81,7 @@ private:
 };
 
 
+//This should be a method.
 #define MEMORY_GET_ALLOCATION(p)	(SMemoryAllocation*)RemapSinglePointer(p, -(int)(sizeof(SMemoryAllocation)))
 
 
