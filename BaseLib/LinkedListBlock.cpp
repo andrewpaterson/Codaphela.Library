@@ -1,5 +1,6 @@
 #include "Define.h"
 #include "DataMacro.h"
+#include "SystemAllocator.h"
 #include "LinkedListBlock.h"
 
 
@@ -9,7 +10,7 @@
 //////////////////////////////////////////////////////////////////////////
 void* CLinkedListBlock::Malloc(size_t tSize)
 {
-	return malloc(tSize);
+	return mpcMalloc->Malloc(tSize);
 }
 
 
@@ -19,7 +20,7 @@ void* CLinkedListBlock::Malloc(size_t tSize)
 //////////////////////////////////////////////////////////////////////////
 void CLinkedListBlock::Free(void* pv)
 {
-	free(pv);
+	mpcMalloc->Free(pv);
 }
 
 
@@ -29,8 +30,7 @@ void CLinkedListBlock::Free(void* pv)
 //////////////////////////////////////////////////////////////////////////
 void* CLinkedListBlock::Realloc(void* pv, size_t tSize)
 {
-	pv = realloc(pv, tSize);
-	return pv;
+	return mpcMalloc->Realloc(pv, tSize);
 }
 
 
@@ -40,6 +40,17 @@ void* CLinkedListBlock::Realloc(void* pv, size_t tSize)
 //////////////////////////////////////////////////////////////////////////
 void CLinkedListBlock::Init(void)
 {
+	Init(&gcSystemAllocator);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CLinkedListBlock::Init(CMallocator* pcMalloc)
+{
+	mpcMalloc = pcMalloc;
 	mpsHead = NULL;
 	mpsTail = NULL;
 	miNumElements = 0;

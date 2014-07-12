@@ -25,6 +25,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "Define.h"
 #include "DataMacro.h"
 #include "FileIO.h"
+#include "Mallocator.h"
 
 
 //For the LinkedList.
@@ -39,12 +40,14 @@ struct SLLNode
 class CLinkedListBlock
 {
 protected:
-	SLLNode*	mpsHead; 
-	SLLNode*	mpsTail;
-	int			miNumElements;
+	SLLNode*		mpsHead; 
+	SLLNode*		mpsTail;
+	int				miNumElements;
+	CMallocator*	mpcMalloc;
 
 public:
 	void	Init(void);
+	void	Init(CMallocator* pcMalloc);
 	void	Kill(void);
 
 	void*	InsertAfterTail(int iDataSize);

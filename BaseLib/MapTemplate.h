@@ -34,8 +34,8 @@ class __CMapTemplate
 {
 protected:
 	int(*Func)(const void*, const void*);
-	CArrayIntAndPointer	mcArray;
-	int				miKeySize;
+	CArrayIntAndPointer		mcArray;  //Int is data size.  Not sure why it's not allocated in-front of the node (like LinkedList).
+	int						miKeySize;
 
 public:
 	void	Kill(void);
