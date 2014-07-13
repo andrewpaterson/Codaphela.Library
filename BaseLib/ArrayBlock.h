@@ -25,10 +25,10 @@ protected:
 public:
 	void 	Init(int iElementSize, int iChunkSize);
 	void 	Init(CMallocator* pcMalloc, int iElementSize, int iChunkSize);
-	void 	InitFromHeader(void);
+	void 	InitFromHeader(CMallocator* pcMalloc);
+	void 	Allocate(CMallocator* pcMalloc, int iElementSize, int iNumElements);
+	void 	Allocate(CMallocator* pcMalloc, int iElementSize, int iChunkSize, int iNumElements);
 	void 	ReInit(int iChunkSize = 0);
-	void 	Allocate(int iElementSize, int iNumElements);
-	void 	Allocate(int iElementSize, int iChunkSize, int iNumElements);
 
 	void 	Finalise(void);
 	void	Fake(int iElementSize, void* pvData, int iNum, int iChunkSize = 1);
@@ -113,10 +113,6 @@ public:
 	int		ChunkSize(void);
 	void	SetUsedElements(int iNumElements);
 
-	BOOL	WriteArrayTemplateHeader(CFileWriter* pcFileWriter);
-	BOOL	WriteArrayTemplate(CFileWriter* pcFileWriter);
-	BOOL	ReadArrayTemplateHeader(CFileReader* pcFileReader);
-	BOOL	ReadArrayTemplate(CFileReader* pcFileReader);
 	BOOL	WriteArrayUnknown(CFileWriter* pcFileWriter);
 	BOOL	ReadArrayUnknown(CFileReader* pcFileReader);
 
@@ -124,8 +120,6 @@ protected:
 	void*	Malloc(size_t tSize);
 	void*	Realloc(void* pv, size_t iMemSize);
 	void	Free(void* pv);
-
-	void 	Init(SArrayTemplateHeader* psHeader);
 
 	BOOL	BinarySearch(void* pData, int iLeft, int iRight, int(*)(const void*, const void*), int* piIndex);
 	void	CopyArrayInto(CArrayBlock* pcTemplateArray, int iIndex);

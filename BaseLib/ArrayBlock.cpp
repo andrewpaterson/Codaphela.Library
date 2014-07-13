@@ -31,38 +31,24 @@ void CArrayBlock::Init(CMallocator* pcMalloc, int iElementSize, int iChunkSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayBlock::Init(SArrayTemplateHeader* psHeader)
+void CArrayBlock::Allocate(CMallocator* pcMalloc, int iElementSize, int iNumElements)
 {
-	miElementSize = psHeader->miElementSize;
-	miUsedElements = psHeader->miUsedElements;
-	miChunkSize = psHeader->miChunkSize;
+	Init(pcMalloc, iElementSize, iNumElements);
+	GrowByChunk();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CArrayBlock::Allocate(CMallocator* pcMalloc, int iElementSize, int iChunkSize, int iNumElements)
+{
+	mpcMalloc = pcMalloc;
+	miElementSize = iElementSize;
+	miChunkSize = iChunkSize;
 	mpvArray = NULL;
-	miNumElements = 0;
-	SetUsedElements(miUsedElements);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void CArrayBlock::Allocate(int iElementSize, int iNumElements)
-{
-	Init(iElementSize, iNumElements);
-	this->GrowByChunk();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void CArrayBlock::Allocate(int iElementSize, int iChunkSize, int iNumElements)
-{
-	this->miElementSize = iElementSize;
-	this->miChunkSize = iChunkSize;
-	this->mpvArray = NULL;
-	this->SetUsedElements(iNumElements);
+	SetUsedElements(iNumElements);
 }
 
 
@@ -72,11 +58,12 @@ void CArrayBlock::Allocate(int iElementSize, int iChunkSize, int iNumElements)
 //////////////////////////////////////////////////////////////////////////
 void CArrayBlock::Fake(int iElementSize, void* pvData, int iNum, int iChunkSize)
 {
-	this->mpvArray = pvData;
-	this->miElementSize = iElementSize;
-	this->miNumElements = iChunkSize;
-	this->miUsedElements = iNum;
-	this->miChunkSize = iChunkSize;
+	mpcMalloc = NULL;
+	mpvArray = pvData;
+	miElementSize = iElementSize;
+	miNumElements = iChunkSize;
+	miUsedElements = iNum;
+	miChunkSize = iChunkSize;
 }
 
 
@@ -84,8 +71,9 @@ void CArrayBlock::Fake(int iElementSize, void* pvData, int iNum, int iChunkSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayBlock::InitFromHeader(void)
+void CArrayBlock::InitFromHeader(CMallocator* pcMalloc)
 {
+	mpcMalloc = pcMalloc;
 	//This function assumes that the value of mpvArray was invalid.
 	mpvArray = (void*)Malloc(miElementSize * miNumElements);
 }
@@ -97,14 +85,17 @@ void CArrayBlock::InitFromHeader(void)
 //////////////////////////////////////////////////////////////////////////
 void CArrayBlock::ReInit(int iChunkSize)
 {
+	CMallocator* pcMalloc;
+
+	pcMalloc = mpcMalloc;
 	Kill();
 	if (iChunkSize == 0)
 	{
-		Init(miElementSize, miChunkSize);
+		Init(pcMalloc, miElementSize, miChunkSize);
 	}
 	else
 	{
-		Init(miElementSize, iChunkSize);
+		Init(pcMalloc, miElementSize, iChunkSize);
 	}
 }
 
@@ -554,6 +545,7 @@ void CArrayBlock::Kill(void)
 		miNumElements = 0;
 		miUsedElements = 0;
 	}
+	mpcMalloc = NULL;
 	mpvArray = NULL;
 }
 
@@ -1505,85 +1497,6 @@ int CArrayBlock::ChunkSize(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayBlock::WriteArrayTemplate(CFileWriter* pcFileWriter)
-{
-	if (!WriteArrayTemplateHeader(pcFileWriter))
-	{
-		return FALSE;
-	}
-
-	if (NumElements() != 0)
-	{
-		if (!pcFileWriter->WriteData(GetData(), ByteSize()))
-		{
-			return FALSE;
-		}
-	}
-	return TRUE;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-BOOL CArrayBlock::WriteArrayTemplateHeader(CFileWriter* pcFileWriter)
-{
-	SArrayTemplateHeader	sHeader;
-
-	GetHeader(&sHeader);
-	if (!pcFileWriter->WriteData(&sHeader, sizeof(SArrayTemplateHeader)))
-	{ 
-		return FALSE; 
-	}
-	return TRUE;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-BOOL CArrayBlock::ReadArrayTemplate(CFileReader* pcFileReader)
-{
-	if (!ReadArrayTemplateHeader(pcFileReader))
-	{
-		return FALSE;
-	}
-
-	if (NumElements() != 0)
-	{
-		if (!pcFileReader->ReadData(GetData(), ByteSize()))
-		{ 
-			return FALSE; 
-		}
-	}
-	return TRUE;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-BOOL CArrayBlock::ReadArrayTemplateHeader(CFileReader* pcFileReader)
-{
-	SArrayTemplateHeader	sHeader;
-
-	if (!pcFileReader->ReadData(&sHeader, sizeof(SArrayTemplateHeader)))
-	{ 
-		return FALSE; 
-	}
-
-	Init(&sHeader);
-	return TRUE;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
 BOOL CArrayBlock::WriteArrayUnknown(CFileWriter* pcFileWriter)
 {
 	if (!pcFileWriter->WriteData(this, sizeof(CArrayBlock))) 
@@ -1615,7 +1528,7 @@ BOOL CArrayBlock::ReadArrayUnknown(CFileReader* pcFileReader)
 
 	if (NumElements() != 0)
 	{
-		InitFromHeader();
+		InitFromHeader(&gcSystemAllocator);
 		if (!pcFileReader->ReadData(GetData(), ByteSize())) 
 		{ 
 			return FALSE; 
