@@ -1,3 +1,4 @@
+#include "SystemAllocator.h"
 #include "ArrayBlock.h"
 
 
@@ -7,11 +8,37 @@
 //////////////////////////////////////////////////////////////////////////
 void CArrayBlock::Init(int iElementSize, int iChunkSize)
 {
+	Init(&gcSystemAllocator, iElementSize, iChunkSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CArrayBlock::Init(CMallocator* pcMalloc, int iElementSize, int iChunkSize)
+{
+	mpcMalloc = pcMalloc;
 	mpvArray = NULL;
 	miNumElements = 0;
 	miUsedElements = 0;
 	miElementSize = iElementSize;
 	miChunkSize = iChunkSize;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CArrayBlock::Init(SArrayTemplateHeader* psHeader)
+{
+	miElementSize = psHeader->miElementSize;
+	miUsedElements = psHeader->miUsedElements;
+	miChunkSize = psHeader->miChunkSize;
+	mpvArray = NULL;
+	miNumElements = 0;
+	SetUsedElements(miUsedElements);
 }
 
 
@@ -68,21 +95,6 @@ void CArrayBlock::InitFromHeader(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayBlock::Init(SArrayTemplateHeader* psHeader)
-{
-	miElementSize = psHeader->miElementSize;
-	miUsedElements = psHeader->miUsedElements;
-	miChunkSize = psHeader->miChunkSize;
-	mpvArray = NULL;
-	miNumElements = 0;
-	SetUsedElements(miUsedElements);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
 void CArrayBlock::ReInit(int iChunkSize)
 {
 	Kill();
@@ -103,7 +115,7 @@ void CArrayBlock::ReInit(int iChunkSize)
 //////////////////////////////////////////////////////////////////////////
 void* CArrayBlock::Malloc(size_t tSize)
 {
-	return malloc(tSize);
+	return mpcMalloc->Malloc(tSize);
 }
 
 
@@ -113,7 +125,7 @@ void* CArrayBlock::Malloc(size_t tSize)
 //////////////////////////////////////////////////////////////////////////
 void CArrayBlock::Free(void* pv)
 {
-	free(pv);
+	mpcMalloc->Free(pv);
 }
 
 
@@ -123,8 +135,7 @@ void CArrayBlock::Free(void* pv)
 //////////////////////////////////////////////////////////////////////////
 void* CArrayBlock::Realloc(void* pv, size_t tSize)
 {
-	pv = realloc(pv, tSize);
-	return pv;
+	return mpcMalloc->Realloc(pv, tSize);
 }
 
 

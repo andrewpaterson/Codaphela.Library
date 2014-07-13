@@ -118,6 +118,7 @@
     <ClInclude Include="LogString.h" />
     <ClInclude Include="Mallocator.h" />
     <ClInclude Include="MemoryAllocator.h" />
+    <ClInclude Include="Mallocators.h" />
     <ClInclude Include="MemoryBlock.h" />
     <ClInclude Include="MemoryCacheAllocation.h" />
     <ClInclude Include="MemoryHeader.h" />
@@ -256,6 +257,7 @@
     <ClCompile Include="LinkedListBlock.cpp" />
     <ClCompile Include="LogString.cpp" />
     <ClCompile Include="MemoryAllocator.cpp" />
+    <ClCompile Include="Mallocators.cpp" />
     <ClCompile Include="MemoryBlock.cpp" />
     <ClCompile Include="MemoryCacheAllocation.cpp" />
     <ClCompile Include="MemoryHeader.cpp" />

@@ -9,6 +9,7 @@ public:
 	void*	Malloc(size_t tSize);
 	void*	Realloc(void* pv, size_t iMemSize);
 	void	Free(void* pv);
+	char*	GetName(void);
 };
 
 

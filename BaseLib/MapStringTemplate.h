@@ -39,7 +39,7 @@ public:
 	D*		GetWithKeyAssumeDuplicates(CChars* psKey);
 	BOOL	GetWithKeyNextDuplicate(CChars* psLastKey, int iLastIndex, D** ppsData);
 	BOOL	GetAtIndex(int iIndex, CChars** ppsKey, D** ppsData);
-	D*		GetData(int iIndex);
+	D*		GetAtIndex(int iIndex);
 
 	D*		Put(CChars* psKey);
 	D*		Put(char* szKey);
@@ -191,7 +191,7 @@ BOOL CMapStringTemplate<D>::GetAtIndex(int iIndex, CChars** ppsKey, D** ppsData)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class D>
-D* CMapStringTemplate<D>::GetData(int iIndex)
+D* CMapStringTemplate<D>::GetAtIndex(int iIndex)
 {
 	CChars*	pcKey;
 	D*		ps;

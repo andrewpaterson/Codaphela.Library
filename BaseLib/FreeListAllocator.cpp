@@ -5,9 +5,10 @@
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CFreeListAllocator::Init(CFreeList* pcFreeList)
+void CFreeListAllocator::Init(CFreeList* pcFreeList, char* szName)
 {
 	mpcFreeList = pcFreeList;
+	mszName = szName;
 }
 
 
@@ -49,5 +50,15 @@ void* CFreeListAllocator::Realloc(void* pv, size_t tSize)
 	}
 
 	return pv;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+char* CFreeListAllocator::GetName(void)
+{
+	return mszName;
 }
 

@@ -5,9 +5,10 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMemoryAllocator::Init(CMemory* pcMemory)
+void CMemoryAllocator::Init(CMemory* pcMemory, char* szName)
 {
 	mpcMemory = pcMemory;
+	mszName = szName;
 }
 
 
@@ -41,5 +42,17 @@ void* CMemoryAllocator::Realloc(void* pv, size_t tSize)
 void CMemoryAllocator::Free(void* pv)
 {
 	mpcMemory->Remove(pv);
+}
+
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+char* CMemoryAllocator::GetName(void)
+{
+	return mszName;
 }
 

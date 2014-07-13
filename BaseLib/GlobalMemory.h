@@ -2,9 +2,11 @@
 #define __GLOBAL_MEMORY_H__
 #include "Memory.h"
 #include "MemoryAllocator.h"
+#include "Mallocators.h"
 
 extern CMemory				gcMemory;
 extern CMemoryAllocator		gcMemoryAllocator;
+extern CMallocators			gcMallocators;
 extern BOOL					gbMemory;
 
 

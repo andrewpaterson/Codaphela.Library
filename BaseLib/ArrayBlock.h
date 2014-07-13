@@ -24,6 +24,7 @@ protected:
 
 public:
 	void 	Init(int iElementSize, int iChunkSize);
+	void 	Init(CMallocator* pcMalloc, int iElementSize, int iChunkSize);
 	void 	InitFromHeader(void);
 	void 	ReInit(int iChunkSize = 0);
 	void 	Allocate(int iElementSize, int iNumElements);

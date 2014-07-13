@@ -621,6 +621,9 @@
     <ClInclude Include="ArrayTemplatePrimitive.h">
       <Filter>Source\Data\Array\Primitive</Filter>
     </ClInclude>
+    <ClInclude Include="Mallocators.h">
+      <Filter>Source\Memory\Manager</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -969,6 +972,9 @@
       <Filter>Source\Memory\Manager</Filter>
     </ClCompile>
     <ClCompile Include="GlobalMemory.cpp">
+      <Filter>Source\Memory\Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="Mallocators.cpp">
       <Filter>Source\Memory\Manager</Filter>
     </ClCompile>
   </ItemGroup>
