@@ -166,6 +166,9 @@
     <Filter Include="Source\Memory\Allocator">
       <UniqueIdentifier>{2a38947c-d69c-451b-b1ec-226c49cc404e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\File\Pack\Util">
+      <UniqueIdentifier>{c2e6673e-b725-44e7-9b03-c07175de8722}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DataMacro.h">
@@ -624,6 +627,9 @@
     <ClInclude Include="Mallocators.h">
       <Filter>Source\Memory\Manager</Filter>
     </ClInclude>
+    <ClInclude Include="PackFilePacker.h">
+      <Filter>Source\File\Pack\Util</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -976,6 +982,9 @@
     </ClCompile>
     <ClCompile Include="Mallocators.cpp">
       <Filter>Source\Memory\Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="PackFilePacker.cpp">
+      <Filter>Source\File\Pack\Util</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

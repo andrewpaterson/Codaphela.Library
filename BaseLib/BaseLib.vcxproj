@@ -124,6 +124,7 @@
     <ClInclude Include="MemoryHeader.h" />
     <ClInclude Include="NullAllocator.h" />
     <ClInclude Include="PackFileIterator.h" />
+    <ClInclude Include="PackFilePacker.h" />
     <ClInclude Include="PackFilesGeneral.h" />
     <ClInclude Include="SystemAllocator.h" />
     <ClInclude Include="TreeBlock.h" />
@@ -263,6 +264,7 @@
     <ClCompile Include="MemoryHeader.cpp" />
     <ClCompile Include="NullAllocator.cpp" />
     <ClCompile Include="PackFileIterator.cpp" />
+    <ClCompile Include="PackFilePacker.cpp" />
     <ClCompile Include="SystemAllocator.cpp" />
     <ClCompile Include="TreeBlock.cpp" />
     <ClCompile Include="EnumeratorBlock.cpp" />

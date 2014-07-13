@@ -119,12 +119,15 @@ void CLogger::Add(char* szText)
 		{
 			EngineOutput(szText);
 		}
-		mpcFile->Open(EFM_ReadWrite_Create);
-		mpcFile->Seek(0, EFSO_END);
 		if (mpcFile)
 		{
-			mpcFile->Write(szText, (int)strlen(szText), 1);
-			mpcFile->Close();
+			mpcFile->Open(EFM_ReadWrite_Create);
+			mpcFile->Seek(0, EFSO_END);
+			if (mpcFile)
+			{
+				mpcFile->Write(szText, (int)strlen(szText), 1);
+				mpcFile->Close();
+			}
 		}
 	}
 }

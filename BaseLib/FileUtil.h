@@ -42,6 +42,7 @@ public:
 	//Disk methods.
 	BOOL    MakeDir(char* szPathName);
 	BOOL    RemoveDir(char* szPathName);
+	BOOL    CopyDir(char* szSource, char* szDest);
 	BOOL    Touch(char* szFileName);
 	BOOL    Delete(char* szFileName);
 	BOOL    Exists(char* szFileName);
