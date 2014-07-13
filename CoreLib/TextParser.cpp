@@ -154,7 +154,7 @@ void STextPosition::Init(void)
 void SParseState::Init(void)
 {
 	sCurrent.Init();
-	asPrev.Init();
+	asPrev.Init(1);
 }
 
 
@@ -1912,7 +1912,7 @@ void CTextParser::Restart(void)
 	miLine = 0;
 	miColumn = 0;
 	masPositions.Kill();
-	masPositions.Init();
+	masPositions.Init(1);
 	PushPosition();
 	TestEnd();
 }

@@ -46,7 +46,7 @@ void CMapStringUnknown::Kill(void)
 	{
 		for (i = 0; i < mcMap.NumElements(); i++)
 		{
-			ppcUnknown = mcMap.GetData(i);
+			ppcUnknown = mcMap.GetAtIndex(i);
 			if (ppcUnknown)
 			{
 				(*ppcUnknown)->Kill();

@@ -113,8 +113,8 @@ public:
 	int		ChunkSize(void);
 	void	SetUsedElements(int iNumElements);
 
-	BOOL	WriteArrayUnknown(CFileWriter* pcFileWriter);
-	BOOL	ReadArrayUnknown(CFileReader* pcFileReader);
+	BOOL	Write(CFileWriter* pcFileWriter);
+	BOOL	Read(CFileReader* pcFileReader);
 
 protected:
 	void*	Malloc(size_t tSize);

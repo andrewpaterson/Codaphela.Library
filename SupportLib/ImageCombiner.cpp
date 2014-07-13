@@ -52,7 +52,7 @@ void CImageCombiner::Init(EImageCombineLayout eLayout, int iWidth, int iHeight, 
 	mcDestCels.KillElements(bKillDestCels);
 	miOutsideEdgeWidth = iOutsideEdgeWidth;
 	miInnerEdgeWidth = iInnerEdgeWidth;
-	masChannels.Init();
+	masChannels.Init(1);
 }
 
 

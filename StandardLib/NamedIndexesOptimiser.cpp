@@ -1,5 +1,6 @@
 #include "BaseLib/DiskFile.h"
 #include "BaseLib/BufferedFile.h"
+#include "BaseLib/SystemAllocator.h"
 #include "CoreLib/IndexedFile.h"
 #include "NamedIndexesBlocks.h"
 #include "NamedIndexes.h"
@@ -376,7 +377,7 @@ BOOL CNamedIndexesOptimiser::AllocateSources(CNamedIndexesBlocks* pcBlocks, CInd
 		return FALSE;
 	}
 
-	macSources.Allocate(iChunks);
+	macSources.Allocate(&gcSystemAllocator, iChunks);
 
 	for (i = 0; i < iChunks; i++)
 	{

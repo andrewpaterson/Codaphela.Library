@@ -20,6 +20,7 @@ along with Codaphela InputLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/SystemAllocator.h"
 #include "InputDeviceState.h"
 #include "InputDevice.h"
 #include "InputDeviceValue.h"
@@ -58,7 +59,7 @@ BOOL CInputDeviceState::Rest(CInputDevice* pcDevice)
 
 	mpcDevice = pcDevice;
 	macSourceStates.Kill();
-	macSourceStates.Allocate(1, pcDevice->GetDesc()->NumInputs());
+	macSourceStates.Allocate(&gcSystemAllocator, pcDevice->GetDesc()->NumInputs());
 	pcSourceDesc = pcDevice->GetDesc()->StartInputsIteration(&sIter);
 	i = 0;
 	while (pcSourceDesc)

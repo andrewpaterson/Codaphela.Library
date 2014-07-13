@@ -419,7 +419,7 @@ int CInputDeviceDesc::GetUnusedID(void)
 		return 0;
 	}
 
-	aiIDs.Init();
+	aiIDs.Init(1);
 	for (i = 0; i < mapcDevices.NumElements(); i++)
 	{
 		pcDevice = *mapcDevices.Get(i);

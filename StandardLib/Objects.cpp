@@ -336,7 +336,7 @@ void CObjects::RecurseDumpGraph(CChars* psz, CEmbeddedObject* pcIncoming, int iL
 	pcBaseObject->miFlags |= OBJECT_FLAGS_DUMPED;
 
 
-	apcTos.Init();
+	apcTos.Init(1);
 	pcBaseObject->BaseGetPointerTos(&apcTos);
 	for (i = 0; i < apcTos.NumElements(); i++)
 	{
@@ -457,7 +457,7 @@ void CObjects::RecurseValidateSceneGraph(CBaseObject* pcBaseObject)
 
 		pcBaseObject->ValidateConsistency();
 
-		apcTos.Init();
+		apcTos.Init(1);
 		pcBaseObject->GetPointerTos(&apcTos);
 		for (i = 0; i < apcTos.NumElements(); i++)
 		{

@@ -1497,9 +1497,15 @@ int CArrayBlock::ChunkSize(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayBlock::WriteArrayUnknown(CFileWriter* pcFileWriter)
+BOOL CArrayBlock::Write(CFileWriter* pcFileWriter)
 {
-	if (!pcFileWriter->WriteData(this, sizeof(CArrayBlock))) 
+	SArrayTemplateHeader	sHeader;
+
+	sHeader.miChunkSize = miChunkSize;
+	sHeader.miElementSize = miElementSize;
+	sHeader.miUsedElements = miUsedElements;
+
+	if (!pcFileWriter->WriteData(&sHeader, sizeof(SArrayTemplateHeader))) 
 	{ 
 		return FALSE; 
 	}
@@ -1519,16 +1525,25 @@ BOOL CArrayBlock::WriteArrayUnknown(CFileWriter* pcFileWriter)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayBlock::ReadArrayUnknown(CFileReader* pcFileReader)
+BOOL CArrayBlock::Read(CFileReader* pcFileReader)
 {
-	if (!pcFileReader->ReadData(this, sizeof(CArrayBlock))) 
+	SArrayTemplateHeader	sHeader;
+
+	if (!pcFileReader->ReadData(&sHeader, sizeof(SArrayTemplateHeader))) 
 	{ 
 		return FALSE; 
 	}
 
-	if (NumElements() != 0)
+	miChunkSize = sHeader.miChunkSize;
+	miElementSize = sHeader.miElementSize;
+	miUsedElements = sHeader.miUsedElements;
+	miNumElements = 0;
+	mpvArray = NULL;
+	mpcMalloc = &gcSystemAllocator;
+
+	if (miUsedElements != 0)
 	{
-		InitFromHeader(&gcSystemAllocator);
+		SetUsedElements(miUsedElements);
 		if (!pcFileReader->ReadData(GetData(), ByteSize())) 
 		{ 
 			return FALSE; 

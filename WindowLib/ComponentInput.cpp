@@ -48,7 +48,7 @@ void CComponentInput::Init(CInput* pcInput, CViewport* pcViewport)
 
 	mlcInputDevices.Init();
 	pcKeyboards = pcInput->GetCategory("Keyboard");
-	apcKeyboards.Init();
+	apcKeyboards.Init(1);
 
 	pcKeyboards->GetDevices(&apcKeyboards, FALSE);
 	for (i = 0; i < apcKeyboards.NumElements(); i++)
@@ -60,7 +60,7 @@ void CComponentInput::Init(CInput* pcInput, CViewport* pcViewport)
 	apcKeyboards.Kill();
 
 	pcMouses = pcInput->GetCategory("Mouse");
-	apcMouses.Init();
+	apcMouses.Init(1);
 
 	pcMouses->GetDevices(&apcMouses, FALSE);
 	for (i = 0; i < apcMouses.NumElements(); i++)

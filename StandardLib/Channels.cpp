@@ -25,6 +25,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "BaseLib/ArrayIntMinimal.h"
 #include "BaseLib/Chars.h"
 #include "BaseLib/Define.h"
+#include "BaseLib/SystemAllocator.h"
 #include "CoreLib/TypeNames.h"
 #include "Channels.h"
 
@@ -35,12 +36,12 @@ Microsoft Windows is Copyright Microsoft Corporation
 //////////////////////////////////////////////////////////////////////////
 void CChannels::Init(void)
 {
-	masChannelOffsets.Init();
+	masChannelOffsets.Init(1);
 	miSize = 0;
 	miByteStride = 0;
 	miBitStride = 0;
 	mbOnlyBasicTypes = TRUE;
-	mabData.Init();
+	mabData.Init(1);
 	mpvUserData = NULL;
 
 	mpsChangingDesc = NULL;
@@ -696,7 +697,7 @@ void CChannels::AllocateData(void)
 
 	iSize = CalculateByteSize(miBitStride, miSize);
 	FreeData();
-	mabData.Allocate(iSize);
+	mabData.Allocate(&gcSystemAllocator, iSize);
 }
 
 
@@ -835,12 +836,12 @@ BOOL CChannels::Load(CFileReader* pcFile)
 {
 	mpsChangingDesc = NULL;
 	mpvUserData = NULL;
-	ReturnOnFalse(masChannelOffsets.ReadArrayTemplate(pcFile));
+	ReturnOnFalse(masChannelOffsets.Read(pcFile));
 	ReturnOnFalse(pcFile->ReadInt(&miSize));
 	ReturnOnFalse(pcFile->ReadInt(&miByteStride));
 	ReturnOnFalse(pcFile->ReadInt(&miBitStride));
 	ReturnOnFalse(pcFile->ReadBool(&mbOnlyBasicTypes));
-	ReturnOnFalse(mabData.ReadArrayTemplate(pcFile));
+	ReturnOnFalse(mabData.Read(pcFile));
 	mpvDataCache = mabData.GetData();
 	return TRUE;
 }
@@ -852,12 +853,12 @@ BOOL CChannels::Load(CFileReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 BOOL CChannels::Save(CFileWriter* pcFile)
 {
-	ReturnOnFalse(masChannelOffsets.WriteArrayTemplate(pcFile));
+	ReturnOnFalse(masChannelOffsets.Write(pcFile));
 	ReturnOnFalse(pcFile->WriteInt(miSize));
 	ReturnOnFalse(pcFile->WriteInt(miByteStride));
 	ReturnOnFalse(pcFile->WriteInt(miBitStride));
 	ReturnOnFalse(pcFile->WriteBool(mbOnlyBasicTypes));
-	ReturnOnFalse(mabData.WriteArrayTemplate(pcFile));
+	ReturnOnFalse(mabData.Write(pcFile));
 	return TRUE;
 }
 
@@ -924,15 +925,15 @@ void CChannels::Clear(void)
 //////////////////////////////////////////////////////////////////////////
 void CChannels::Copy(CChannels* pcData)
 {
-	//This assumes channels is not initiialised.
+	//This assumes channels is not initialised.
 
-	masChannelOffsets.Init();
+	masChannelOffsets.Init(1);
 	masChannelOffsets.Copy(&pcData->masChannelOffsets);
 	miSize = pcData->miSize;
 	miByteStride = pcData->miByteStride;
 	miBitStride = pcData->miBitStride;
 	mbOnlyBasicTypes = pcData->mbOnlyBasicTypes;
-	mabData.Init();
+	mabData.Init(1);
 	mabData.Copy(&pcData->mabData);
 	mpvUserData = pcData->mpvUserData;
 	if (IsUserAllocated())
@@ -1068,7 +1069,7 @@ void CChannels::GetAllChannels(CArrayChannel* pasChannels)
 	CChannel*			psChannelSource;
 	SChannel*			psChannelDest;
 
-	pasChannels->Allocate(masChannelOffsets.NumElements());
+	pasChannels->Allocate(&gcSystemAllocator, masChannelOffsets.NumElements());
 
 	for (j = 0; j < masChannelOffsets.NumElements(); j++)
 	{

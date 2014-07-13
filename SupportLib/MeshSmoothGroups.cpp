@@ -57,7 +57,7 @@ void CMeshSmoothGroups::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CMeshSmoothGroups::Load(CFileReader* pcFile)
 {
-	ReturnOnFalse(mcSmoothingGroups.ReadArrayInt(pcFile));
+	ReturnOnFalse(mcSmoothingGroups.Read(pcFile));
 	return TRUE;
 }
 
@@ -68,7 +68,7 @@ BOOL CMeshSmoothGroups::Load(CFileReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 BOOL CMeshSmoothGroups::Save(CFileWriter* pcFile)
 {
-	return mcSmoothingGroups.WriteArrayInt(pcFile);
+	return mcSmoothingGroups.Write(pcFile);
 }
 
 
@@ -177,7 +177,7 @@ void CMeshSmoothGroups::GenerateSmoothingFromAngles(CMeshEditor* pcMeshEditor)
 
 	fDot = Deg2Dot(mfSharpAngle);
 
-	asNormals.Init();
+	asNormals.Init(1);
 	pcMeshEditor->mcPolygons.GetNormals(&asNormals, &pcMeshEditor->mpcMesh->mcNormals);
 
 	mcSmoothingGroups.SetArrayValues(0);

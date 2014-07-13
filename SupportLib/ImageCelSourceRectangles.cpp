@@ -21,6 +21,7 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/SystemAllocator.h"
 #include "ImageCelSourceRectangles.h"
 
 
@@ -33,7 +34,8 @@ void CImageCelSourceRectangles::Init(CArrayRectangle* pcRectangles, SImageColour
 	CImageCelSource::Init(psTransparentColour, bIgnoreEmpty, bCropTransparentBorders);
 	if (pcRectangles)
 	{
-		mcRectangles.Init(pcRectangles);
+		mcRectangles.Init(&gcSystemAllocator, pcRectangles->NumElements());
+		mcRectangles.Copy(pcRectangles);
 	}
 	else
 	{

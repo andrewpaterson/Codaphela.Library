@@ -20,8 +20,8 @@ along with Codaphela WorldLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft DirectX is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/SystemAllocator.h"
 #include "MeshObject.h"
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -30,8 +30,8 @@ Microsoft DirectX is Copyright Microsoft Corporation
 //////////////////////////////////////////////////////////////////////////
 void CMeshObjectNode::Init(void)
 {
-	mcVerticies.Init();
-	mcNormals.Init();
+	mcVerticies.Init(1);
+	mcNormals.Init(1);
 }
 
 
@@ -41,8 +41,8 @@ void CMeshObjectNode::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CMeshObjectNode::Init(int iNumVerticies, int iNumNormals)
 {
-	mcVerticies.Allocate(iNumVerticies);
-	mcNormals.Allocate(iNumNormals);
+	mcVerticies.Allocate(&gcSystemAllocator, iNumVerticies);
+	mcNormals.Allocate(&gcSystemAllocator, iNumNormals);
 }
 
 
@@ -104,10 +104,10 @@ CArrayVector* CMeshObjectNode::GetNormals(void)
 void CMeshObject::Init(void)
 {
 	mcNodes.Init();
-	mcVerticies.Init();
-	mcNormals.Init();
-	mcSkinnedVertexPtrs.Init();
-	mcSkinnedNormalPtrs.Init();
+	mcVerticies.Init(1);
+	mcNormals.Init(1);
+	mcSkinnedVertexPtrs.Init(1);
+	mcSkinnedNormalPtrs.Init(1);
 }
 
 
@@ -118,8 +118,8 @@ void CMeshObject::Init(void)
 void CMeshObject::Init(int iNumVerticies, int iNumNormals)
 {
 	Init();
-	mcVerticies.Allocate(iNumVerticies);
-	mcNormals.Allocate(iNumNormals);
+	mcVerticies.Allocate(&gcSystemAllocator, iNumVerticies);
+	mcNormals.Allocate(&gcSystemAllocator, iNumNormals);
 }
 
 

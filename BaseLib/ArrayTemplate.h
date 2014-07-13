@@ -29,11 +29,10 @@ template<class M>
 class CArrayTemplate : public CArrayBlock
 {
 public:
-	void 	Init(void);
 	void 	Init(int iChunkSize);
-	void	Init(CArrayTemplate<M>* pcTemplateArray);
-	void 	Allocate(int iNumElements);
-	void 	Allocate(int iChunkSize, int iNumElements);
+	void 	Init(CMallocator* pcMalloc, int iChunkSize);
+	void 	Allocate(CMallocator* pcMalloc, int iNumElements);
+	void 	Allocate(CMallocator* pcMalloc, int iChunkSize, int iNumElements);
 	void	Fake(M* pvData, int iNum, int iChunkSize = 1);
 
 	M*		Add(void);
@@ -84,17 +83,6 @@ public:
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CArrayTemplate<M>::Init(void)
-{
-	CArrayBlock::Init(sizeof(M), 1);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class M>
 void CArrayTemplate<M>::Init(int iChunkSize)
 {
 	CArrayBlock::Init(sizeof(M), iChunkSize);
@@ -106,9 +94,9 @@ void CArrayTemplate<M>::Init(int iChunkSize)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CArrayTemplate<M>::Allocate(int iNumElements)
+void CArrayTemplate<M>::Init(CMallocator* pcMalloc, int iChunkSize)
 {
-	CArrayBlock::Allocate(sizeof(M), iNumElements);
+	CArrayBlock::Init(pcMalloc, sizeof(M), iChunkSize);
 }
 
 
@@ -117,9 +105,9 @@ void CArrayTemplate<M>::Allocate(int iNumElements)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CArrayTemplate<M>::Allocate(int iChunkSize, int iNumElements)
+void CArrayTemplate<M>::Allocate(CMallocator* pcMalloc, int iNumElements)
 {
-	CArrayBlock::Allocate(sizeof(M), iChunkSize, iNumElements);
+	CArrayBlock::Allocate(pcMalloc, sizeof(M), iNumElements);
 }
 
 
@@ -128,9 +116,9 @@ void CArrayTemplate<M>::Allocate(int iChunkSize, int iNumElements)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CArrayTemplate<M>::Init(CArrayTemplate<M>* pcTemplateArray)
+void CArrayTemplate<M>::Allocate(CMallocator* pcMalloc, int iChunkSize, int iNumElements)
 {
-	CArrayBlock::Init(pcTemplateArray);
+	CArrayBlock::Allocate(pcMalloc, sizeof(M), iChunkSize, iNumElements);
 }
 
 

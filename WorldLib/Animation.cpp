@@ -66,7 +66,7 @@ BOOL CAnimation::Save(CFileWriter* pcFile)
 {
 	ReturnOnFalse(pcFile->WriteBool(mbEnabled));
 	ReturnOnFalse(pcFile->WriteInt(miCurrentCel));
-	ReturnOnFalse(maCelIndices.WriteArrayTemplate(pcFile));
+	ReturnOnFalse(maCelIndices.Write(pcFile));
 	return TRUE;
 }
 
@@ -80,7 +80,7 @@ BOOL CAnimation::Load(CFileReader* pcFile)
 	Init();
 	ReturnOnFalse(pcFile->ReadBool(&mbEnabled));
 	ReturnOnFalse(pcFile->ReadInt(&miCurrentCel));
-	ReturnOnFalse(maCelIndices.ReadArrayTemplate(pcFile));
+	ReturnOnFalse(maCelIndices.Read(pcFile));
 	return TRUE;
 }
 

@@ -56,7 +56,7 @@ void CMeshTriangles::Kill(void)
 BOOL CMeshTriangles::Load(CFileReader* pcFile)
 {
 	ReturnOnFalse(LoadMeshDetail(pcFile));
-	ReturnOnFalse(mcTriangles.ReadArrayTemplate(pcFile));
+	ReturnOnFalse(mcTriangles.Read(pcFile));
 	return TRUE;
 }
 
@@ -68,7 +68,7 @@ BOOL CMeshTriangles::Load(CFileReader* pcFile)
 BOOL CMeshTriangles::Save(CFileWriter* pcFile)
 {
 	ReturnOnFalse(SaveMeshDetail(pcFile));
-	ReturnOnFalse(mcTriangles.WriteArrayTemplate(pcFile));
+	ReturnOnFalse(mcTriangles.Write(pcFile));
 	return TRUE;
 }
 

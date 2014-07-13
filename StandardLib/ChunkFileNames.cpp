@@ -8,7 +8,7 @@
 void SChunkFileNameIterator::Init(void)
 {
 	szFullName.Init();
-	aiIndex.Init();
+	aiIndex.Init(1);
 	bDone = FALSE;
 	szValue.Init();
 }

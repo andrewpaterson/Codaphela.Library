@@ -21,6 +21,7 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/SystemAllocator.h"
 #include "ImageCel.h"
 #include "ImageCelSourceSubImages.h"
 
@@ -34,7 +35,8 @@ void CImageCelSourceSubImages::Init(CArraySubImage* pacSubImages, SImageColour* 
 	CImageCelSource::Init(psTransparentColour, bIgnoreEmpty, bCropTransparentBorders);
 	if (pacSubImages)
 	{
-		macSubImages.Init(pacSubImages);
+		macSubImages.Init(&gcSystemAllocator, pacSubImages->NumElements());
+		macSubImages.Copy(pacSubImages);
 	}
 	else
 	{

@@ -45,7 +45,7 @@ void CGraphicsInstance::Init(CWorld* pcWorld)
 	mapMatrices.Init();
 	mapMaterials.Init();
 	mapStates.Init();
-	mapLights.Init();
+	mapLights.Init(1);
 	mpcGraphicsObject = NULL;
 	miFlags = GRAPH_INST_FLAGS_DRAW;
 	mpcWorld = pcWorld;

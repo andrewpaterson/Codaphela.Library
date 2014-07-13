@@ -51,7 +51,7 @@ void SPPHolderMark::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void SPPTPPosition::Init(CArrayPPHolderMark* pacPPHolders)
 {
-	acPPHolders.Init();
+	acPPHolders.Init(1);
 	acPPHolders.Copy(pacPPHolders);
 }
 

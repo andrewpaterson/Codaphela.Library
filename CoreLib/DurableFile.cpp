@@ -776,7 +776,7 @@ BOOL CDurableFile::FindHoles(CArrayIntAndPointer* papvOverlapping, filePos iPosi
 	BOOL						bHoles;
 	filePos						iEnd;
 
-	apvOverlappingSorted.Init();
+	apvOverlappingSorted.Init(1);
 	apvOverlappingSorted.Copy(papvOverlapping);
 	apvOverlappingSorted.QuickSort(CompareDurableWrite);
 

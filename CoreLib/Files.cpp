@@ -110,7 +110,7 @@ BOOL CFiles::AddPackFiles(void)
 	CFileNodeSystemFile*		pcFileNodeSystemFile;
 	BOOL						bResult;
 
-	mcPackFilesArray.Init();
+	mcPackFilesArray.Init(1);
 
 	aFileNodePtrs.Init(8);
 	mcFileSystem.GetFiles(&aFileNodePtrs, mszPackFilesExtension.Text());

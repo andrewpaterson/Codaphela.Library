@@ -120,7 +120,7 @@ BOOL CMeshPolygons::Save(CFileWriter* pcFile)
 		ReturnOnFalse(psPolygon->Save(pcFile));
 	}
 
-	ReturnOnFalse(maiFacesToPolygons.WriteArrayInt(pcFile));
+	ReturnOnFalse(maiFacesToPolygons.Write(pcFile));
 	return TRUE;
 }
 
@@ -143,7 +143,7 @@ BOOL CMeshPolygons::Load(CFileReader* pcFile)
 		ReturnOnFalse(psPolygon->Load(pcFile));
 	}
 
-	ReturnOnFalse(maiFacesToPolygons.ReadArrayInt(pcFile));
+	ReturnOnFalse(maiFacesToPolygons.Read(pcFile));
 	return TRUE;
 }
 
@@ -393,7 +393,7 @@ void CMeshPolygons::GeneratePolygonFromEdgeSelection(CMeshConnectivity* pcConn, 
 
 	pcPolygon = Add(1);
 	iPolygonIndex = mcPolygons.NumElements()-1;
-	aiStack.Init();
+	aiStack.Init(1);
 	aiStack.Push(&iFaceIndex);
 
 	for (;;)

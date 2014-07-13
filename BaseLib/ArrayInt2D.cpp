@@ -30,7 +30,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //////////////////////////////////////////////////////////////////////////
 void CArrayInt2D::Init(void)
 {
-	mcArray.Init();
+	mcArray.Init(1);
 	miWidth = 0;
 	miHeight = 0;
 }

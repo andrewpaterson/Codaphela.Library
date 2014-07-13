@@ -56,7 +56,7 @@ BOOL CMeshVertexArray::Load(CFileReader* pcFile)
 {
 	ReturnOnFalse(msFaceType.Load(pcFile));
 	ReturnOnFalse(mcVertexArray.Load(pcFile));
-	ReturnOnFalse(mcFaceIndicies.ReadArrayTemplate(pcFile));
+	ReturnOnFalse(mcFaceIndicies.Read(pcFile));
 	return TRUE;
 }
 
@@ -69,7 +69,7 @@ BOOL CMeshVertexArray::Save(CFileWriter* pcFile)
 {
 	ReturnOnFalse(msFaceType.Save(pcFile));
 	ReturnOnFalse(mcVertexArray.Save(pcFile));
-	ReturnOnFalse(mcFaceIndicies.WriteArrayTemplate(pcFile));
+	ReturnOnFalse(mcFaceIndicies.Write(pcFile));
 	return TRUE;
 }
 

@@ -64,7 +64,7 @@ void CMeshPositions::ReInit(int iChunkSize)
 BOOL CMeshPositions::Load(CFileReader* pcFile)
 {
 	ReturnOnFalse(LoadMeshDetail(pcFile));
-	ReturnOnFalse(mcPositions.ReadArrayTemplate(pcFile));
+	ReturnOnFalse(mcPositions.Read(pcFile));
 	return TRUE;
 }
 
@@ -76,7 +76,7 @@ BOOL CMeshPositions::Load(CFileReader* pcFile)
 BOOL CMeshPositions::Save(CFileWriter* pcFile)
 {
 	ReturnOnFalse(SaveMeshDetail(pcFile));
-	return mcPositions.WriteArrayTemplate(pcFile);
+	return mcPositions.Write(pcFile);
 }
 
 

@@ -994,8 +994,6 @@ void CWorld::SetRenderStates(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL InitMain(int iAd, D3DDEVTYPE devType, HWND hWndScreen, int dx, int dy, D3DFORMAT fmt, BOOL bStencil, BOOL bExclusive, HWND hWndInput)
 {
-	BOOL	bResult;
-
 	gcLogger.Init();
 	gcLogger.Add("Main world initialisation...\n");
 	TypeConverterInit();

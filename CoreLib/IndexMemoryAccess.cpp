@@ -20,6 +20,7 @@ along with Codaphela CoreLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/SystemAllocator.h"
 #include "IndexDescriptorsFile.h"
 #include "IndexMemoryAccess.h"
 
@@ -161,7 +162,7 @@ void CIndexMemoryAccess::Load(void)
 	iNumDescriptors = (int)mpcDescriptorsFile->NumDescriptors();
 
 	maMemoryArray.Kill();
-	maMemoryArray.Allocate(miChunkSize, iNumDescriptors);
+	maMemoryArray.Allocate(&gcSystemAllocator, miChunkSize, iNumDescriptors);
 
 	mpcDescriptorsFile->Read(maMemoryArray.GetData(), 0, iNumDescriptors);
 }

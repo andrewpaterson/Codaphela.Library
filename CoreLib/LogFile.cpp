@@ -768,7 +768,7 @@ BOOL CLogFile::FindHoles(CArrayIntAndPointer* papvOverlapping, filePos iPosition
 		return FALSE;
 	}
 
-	apvOverlappingSorted.Init();
+	apvOverlappingSorted.Init(1);
 	apvOverlappingSorted.Copy(papvOverlapping);
 	apvOverlappingSorted.QuickSort(CompareLogFileWrite);
 

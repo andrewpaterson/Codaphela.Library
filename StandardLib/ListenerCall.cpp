@@ -53,7 +53,7 @@ void CListenerCall::AddAllowedClassName(char* szName)
 	if (!pcArray)
 	{
 		pcArray = mcListeners.Put(szName);
-		pcArray->Init();
+		pcArray->Init(1);
 	}
 }
 

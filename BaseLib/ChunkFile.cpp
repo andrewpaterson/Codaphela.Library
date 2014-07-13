@@ -243,7 +243,7 @@ BOOL CChunkFile::WriteChunkEnd(int iChunkName)
 
 		if (psElement->bContainsChunks)
 		{
-			ReturnOnFalse(psElement->cChunkIndex.mcChunkIndices.WriteArrayUnknown(this));
+			ReturnOnFalse(psElement->cChunkIndex.mcChunkIndices.Write(this));
 		}
 		psElement->cChunkIndex.Kill();
 		mcChunkStack.Pop();
@@ -330,7 +330,7 @@ BOOL CChunkFile::__PrivateReadChunkBegin(void)
 BOOL CChunkFile::__PrivateReadChunkIndex(filePos iIndexPos, CChunkIndex* pcIndex)
 {
 	CFileBasic::Seek(iIndexPos, EFSO_SET);
-	return pcIndex->mcChunkIndices.ReadArrayUnknown(this);
+	return pcIndex->mcChunkIndices.Read(this);
 }
 
 

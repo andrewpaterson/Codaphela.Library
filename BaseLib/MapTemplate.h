@@ -27,6 +27,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "PointerRemapper.h"
 #include "FileReader.h"
 #include "FileWriter.h"
+#include "BaseLib/SystemAllocator.h"
 
 
 template<class M>
@@ -380,7 +381,7 @@ int __CMapTemplate<M>::NumElements(void)
 template<class M>
 BOOL __CMapTemplate<M>::ReadMapHeader(CFileReader* pcFile)
 {
-	ReturnOnFalse(mcArray.ReadArrayUnknown(pcFile));
+	ReturnOnFalse(mcArray.Read(pcFile));
 	ReturnOnFalse(pcFile->ReadInt(&miKeySize));
 	mcArray.InitFromHeader(&gcSystemAllocator);
 	return TRUE;
@@ -394,7 +395,7 @@ BOOL __CMapTemplate<M>::ReadMapHeader(CFileReader* pcFile)
 template<class M>
 BOOL __CMapTemplate<M>::WriteMapHeader(CFileWriter* pcFile)
 {
-	ReturnOnFalse(mcArray.WriteArrayUnknown(pcFile));
+	ReturnOnFalse(mcArray.Write(pcFile));
 	ReturnOnFalse(pcFile->WriteInt(miKeySize));
 	return TRUE;
 }

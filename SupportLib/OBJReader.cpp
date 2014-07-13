@@ -26,6 +26,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "BaseLib/TextFile.h"
 #include "BaseLib/DiskFile.h"
 #include "BaseLib/FileUtil.h"
+#include "BaseLib/SystemAllocator.h"
 #include "CoreLib/TextParser.h"
 #include "Mesh.h"
 #include "MeshEditor.h"
@@ -292,7 +293,7 @@ BOOL CObjReader::ReadFace(CTextParser* pcTextParser, int iNumCorners, int iNumNo
 
 	bNormals = TRUE;
 	bUVS = TRUE;
-	aiCorners.Allocate(asCorners.NumElements());
+	aiCorners.Allocate(&gcSystemAllocator, asCorners.NumElements());
 	for (i = 0; i < asCorners.NumElements(); i++)
 	{
 		psCorner = asCorners.Get(i);

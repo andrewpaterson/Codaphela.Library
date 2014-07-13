@@ -119,7 +119,7 @@ BOOL CImageCelsSourceXML::ImportCels(CMarkupTag* pcCelsTag, char* szFileName)
 	CFileUtil					cFileUtil;
 	Ptr<CImageCelGroup>			pcGroup;
 
-	acSubImages.Init();
+	acSubImages.Init(1);
 	pcCelTag = pcCelsTag->GetTag("Cel", &sIter);
 	while (pcCelTag)
 	{

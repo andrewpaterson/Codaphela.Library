@@ -44,7 +44,7 @@ int CALLBACK EnumFontsProc(CONST LOGFONT *lplf, CONST TEXTMETRIC *lptm, DWORD dw
 	{
 		pcWinText = (CWinText*)lpData;
 		psWinFont = pcWinText->mcWinFonts.Add();
-		psWinFont->sInstances.Init();
+		psWinFont->sInstances.Init(1);
 		strcpy_s(psWinFont->szName, lplf->lfFaceName);
 	}
 

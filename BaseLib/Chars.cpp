@@ -2178,7 +2178,7 @@ void CChars::PassifyNewlines(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CChars::WriteString(CFileWriter* pcWriter)
 {
-	return mcText.WriteArrayUnknown(pcWriter);
+	return mcText.Write(pcWriter);
 }
 
 
@@ -2188,7 +2188,7 @@ BOOL CChars::WriteString(CFileWriter* pcWriter)
 //////////////////////////////////////////////////////////////////////////
 BOOL CChars::ReadString(CFileReader* pcReader)
 {
-	return mcText.ReadArrayUnknown(pcReader);
+	return mcText.Read(pcReader);
 }
 
 

@@ -29,7 +29,7 @@ void CArrayCBlockSet::Init(CCFile* pcFile)
 {
 	mbRawProcessed = FALSE;
 	mpcFile = pcFile;
-	__CArrayCBlockSet::Init();
+	__CArrayCBlockSet::Init(1);
 }
 
 

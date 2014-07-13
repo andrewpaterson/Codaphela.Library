@@ -1050,7 +1050,7 @@ BOOL CEnumeratorTemplate<M>::WriteEnumeratorBlock(CFileWriter* pcFileWriter)
 		return FALSE; 
 	}
 
-	if (!mcIDArray.WriteArrayUnknown(pcFileWriter))
+	if (!mcIDArray.Write(pcFileWriter))
 	{
 		return FALSE;
 	}
@@ -1097,7 +1097,7 @@ BOOL CEnumeratorTemplate<M>::ReadEnumeratorBlock(CFileReader* pcFileReader)
 		return FALSE; 
 	}
 
-	if (!mcIDArray.ReadArrayUnknown(pcFileReader))
+	if (!mcIDArray.Read(pcFileReader))
 	{
 		return FALSE;
 	}

@@ -297,7 +297,7 @@ BOOL CMeshConnectivity::Load(CFileReader* pcFile)
 	}
 
 	//Read in the edges array.
-	if (mcEdges.ReadArrayTemplate(pcFile))
+	if (mcEdges.Read(pcFile))
 	{
 		gcUserError.Set("Could not read edges array.");
 		return FALSE;
@@ -305,7 +305,7 @@ BOOL CMeshConnectivity::Load(CFileReader* pcFile)
 
 
 	//Read in the faces array.  
-	if (mcFaces.ReadArrayTemplate(pcFile))
+	if (mcFaces.Read(pcFile))
 	{
 		gcUserError.Set("Could not read faces array.");
 		return FALSE;
@@ -338,8 +338,8 @@ BOOL CMeshConnectivity::Save(CFileWriter* pcFile)
 		}
 	}
 
-	ReturnOnFalse(mcEdges.WriteArrayTemplate(pcFile));
-	ReturnOnFalse(mcFaces.WriteArrayTemplate(pcFile));
+	ReturnOnFalse(mcEdges.Write(pcFile));
+	ReturnOnFalse(mcFaces.Write(pcFile));
 	return TRUE;
 }
 

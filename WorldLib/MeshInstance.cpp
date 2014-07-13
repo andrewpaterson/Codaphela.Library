@@ -20,6 +20,7 @@ along with Codaphela WorldLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft DirectX is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/SystemAllocator.h"
 #include "MeshInstance.h"
 #include "World.h"
 
@@ -117,12 +118,12 @@ void CMeshInstance::Init(void)
 	mpsWorldSpaceTransform = NULL;	
 	mpsInverseWorldSpaceTransform = NULL;
 	mcNodes.Init();
-	macVertexPtrCache.Init();
-	macNormalPtrCache.Init();
+	macVertexPtrCache.Init(1);
+	macNormalPtrCache.Init(1);
 	meVertexCaching = LCF_NoCache;
 	meNormalCaching = LCF_NoCache;
-	masVertexCache.Init();
-	masNormalCache.Init();
+	masVertexCache.Init(1);
+	masNormalCache.Init(1);
 }
 
 
@@ -290,7 +291,7 @@ void CMeshInstance::UpdateUnskinnedCaches(void)
 	{
 		if (masVertexCache.NumElements() == 0)
 		{
-			masVertexCache.Allocate(mpcMeshObject->GetVerticies()->NumElements());
+			masVertexCache.Allocate(&gcSystemAllocator, mpcMeshObject->GetVerticies()->NumElements());
 		}
 		Float3TransformCoords(masVertexCache.GetData(), sizeof(SFloat3), mpcMeshObject->GetVerticies()->GetData(), sizeof(SFloat3), &mpsWorldSpaceTransform->sD3DMatrix, mpcMeshObject->GetVerticies()->NumElements());
 	}
@@ -298,7 +299,7 @@ void CMeshInstance::UpdateUnskinnedCaches(void)
 	{
 		if (masNormalCache.NumElements() == 0)
 		{
-			masNormalCache.Allocate(mpcMeshObject->GetNormals()->NumElements());
+			masNormalCache.Allocate(&gcSystemAllocator, mpcMeshObject->GetNormals()->NumElements());
 		}
 		Float3TransformNormals(masNormalCache.GetData(), sizeof(SFloat3), mpcMeshObject->GetNormals()->GetData(), sizeof(SFloat3), &mpsWorldSpaceTransform->sD3DMatrix, mpcMeshObject->GetNormals()->NumElements());
 	}
@@ -394,10 +395,10 @@ void CMeshInstance::SetSkinnedVertexCachePointers(void)
 
 		iNumVerts = mpcMeshObject->GetSkinnedVertexPtrs()->NumElements();
 
-		masVertexCache.Allocate(iNumVerts);
+		masVertexCache.Allocate(&gcSystemAllocator, iNumVerts);
 		masVertexCache.Zero();
 
-		macVertexPtrCache.Allocate(iNumVerts);
+		macVertexPtrCache.Allocate(&gcSystemAllocator, iNumVerts);
 		for (i = 0; i < iNumVerts; i++)
 		{
 			psSkinnedLinkObjectNode = mpcMeshObject->GetSkinnedVertexPtrs()->Get(i);
@@ -430,10 +431,10 @@ void CMeshInstance::SetSkinnedNormalCachePointers(void)
 
 		iNumNormals = mpcMeshObject->GetSkinnedNormalPtrs()->NumElements();
 
-		masNormalCache.Allocate(iNumNormals);
+		masNormalCache.Allocate(&gcSystemAllocator, iNumNormals);
 		masNormalCache.Zero();
 
-		macNormalPtrCache.Allocate(iNumNormals);
+		macNormalPtrCache.Allocate(&gcSystemAllocator, iNumNormals);
 		for (i = 0; i < iNumNormals; i++)
 		{
 			psSkinnedLinkObjectNode = mpcMeshObject->GetSkinnedNormalPtrs()->Get(i);

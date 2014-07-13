@@ -41,8 +41,8 @@ void SChannel::Init(int iChannel, EPrimitiveTypes eType, BOOL bReverse)
 //////////////////////////////////////////////////////////////////////////
 void SChannelsChangingDesc::Init(void)
 {
-	asAddedChannels.Init();
-	asRemovedChannels.Init();
+	asAddedChannels.Init(1);
+	asRemovedChannels.Init(1);
 	iSize = 0;
 	pvUserData = NULL;
 }

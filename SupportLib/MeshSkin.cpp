@@ -197,7 +197,7 @@ BOOL CMeshSkin::Load(CFileReader* pcFile)
 		ReturnOnFalse(psSkinVert->Load(pcFile));
 	}
 
-	ReturnOnFalse(mcInverseSkinMatricies.ReadArrayTemplate(pcFile));
+	ReturnOnFalse(mcInverseSkinMatricies.Read(pcFile));
 	return TRUE;
 }
 
@@ -220,7 +220,7 @@ BOOL CMeshSkin::Save(CFileWriter* pcFile)
 		ReturnOnFalse(psSkinVert->Save(pcFile));
 	}
 
-	ReturnOnFalse(mcInverseSkinMatricies.WriteArrayTemplate(pcFile));
+	ReturnOnFalse(mcInverseSkinMatricies.Write(pcFile));
 	return TRUE;
 }
 

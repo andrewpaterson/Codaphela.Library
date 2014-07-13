@@ -40,7 +40,7 @@ void CIndexedHuge::Init(CDurableFile* pcFile, BOOL bDirtyTesting, CIndexedData* 
 	mpcIndexedData = pcIndexedData;
 	mpvSecondLevel = NULL;
 	mpvThirdLevel = NULL;
-	mapFirstLevel.Init();
+	mapFirstLevel.Init(1);
 
 	ClearCounters();
 	ChangeStrategy(iSecondLevelWidth, iThirdLevelWidth, iNumSecondLevelChunks, iNumThirdLevelChunks);
@@ -115,7 +115,7 @@ BOOL CIndexedHuge::ChangeStrategy(int iSecondLevelWidth, int iThirdLevelWidth, i
 	miLastSecondLevelChunk = -1;
 
 	mapFirstLevel.Kill();
-	mapFirstLevel.Allocate(iNumSecondLevelChunks);
+	mapFirstLevel.Allocate(&gcSystemAllocator, iNumSecondLevelChunks);
 	mapFirstLevel.Zero();
 
 	return TRUE;

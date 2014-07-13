@@ -22,6 +22,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/PointerFunctions.h"
+#include "BaseLib/SystemAllocator.h"
 #include "MeshTypeIndices.h"
 
 
@@ -106,7 +107,7 @@ BOOL CMeshTypeIndices::Generate(CArrayInt* paiFaces, void* pavFaceIndices)
 
 	pcFaceIndicies = mpcVertexArray->GetFaceIndicies();
 	pcFaceIndicies->Kill();
-	pcFaceIndicies->Allocate(iNumFaces); 
+	pcFaceIndicies->Allocate(&gcSystemAllocator, iNumFaces); 
 
 	maVerts.Kill();
 	maVerts.Init(miStride, iNumFaces/3+1);

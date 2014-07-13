@@ -577,7 +577,8 @@ BOOL CTextCharLine::GetBounds(int iX, CRectangle* pcDest)
 void CTextData::Init(CTextParameters* pcDefaultFont)
 {
 	CTextCharLine*	pcLine;
-	mcLines.Init();
+
+	mcLines.Init(1);
 	mpcDefaultFont = pcDefaultFont;
 	pcLine = mcLines.Add();
 	pcLine->Init();
