@@ -71,18 +71,6 @@ void CArrayBlock::Fake(int iElementSize, void* pvData, int iNum, int iChunkSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayBlock::InitFromHeader(CMallocator* pcMalloc)
-{
-	mpcMalloc = pcMalloc;
-	//This function assumes that the value of mpvArray was invalid.
-	mpvArray = (void*)Malloc(miElementSize * miNumElements);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
 void CArrayBlock::ReInit(int iChunkSize)
 {
 	CMallocator* pcMalloc;
@@ -1497,7 +1485,7 @@ int CArrayBlock::ChunkSize(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayBlock::Write(CFileWriter* pcFileWriter)
+BOOL CArrayBlock::WriteHeader(CFileWriter* pcFileWriter)
 {
 	SArrayTemplateHeader	sHeader;
 
@@ -1510,9 +1498,27 @@ BOOL CArrayBlock::Write(CFileWriter* pcFileWriter)
 		return FALSE; 
 	}
 
-	if (NumElements() != 0)
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+BOOL CArrayBlock::Write(CFileWriter* pcFileWriter)
+{
+	BOOL	bResult;
+
+	bResult = WriteHeader(pcFileWriter);
+	if (!bResult)
 	{
-		if (!pcFileWriter->WriteData(GetData(), ByteSize())) 
+		return FALSE;
+	}
+
+	if (miUsedElements != 0)
+	{
+		if (!pcFileWriter->WriteData(mpvArray, ByteSize())) 
 		{ 
 			return FALSE; 
 		}
@@ -1525,7 +1531,7 @@ BOOL CArrayBlock::Write(CFileWriter* pcFileWriter)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayBlock::Read(CFileReader* pcFileReader)
+BOOL CArrayBlock::ReadHeader(CFileReader* pcFileReader)
 {
 	SArrayTemplateHeader	sHeader;
 
@@ -1544,7 +1550,29 @@ BOOL CArrayBlock::Read(CFileReader* pcFileReader)
 	if (miUsedElements != 0)
 	{
 		SetUsedElements(miUsedElements);
-		if (!pcFileReader->ReadData(GetData(), ByteSize())) 
+		return mpvArray != NULL;
+	}
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+BOOL CArrayBlock::Read(CFileReader* pcFileReader)
+{
+	BOOL bResult;
+
+	bResult = ReadHeader(pcFileReader);
+	if (!bResult)
+	{
+		return FALSE;
+	}
+
+	if (miUsedElements != 0)
+	{
+		if (!pcFileReader->ReadData(mpvArray, ByteSize())) 
 		{ 
 			return FALSE; 
 		}

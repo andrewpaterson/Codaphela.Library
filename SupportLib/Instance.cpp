@@ -52,7 +52,7 @@ BOOL CInstance::Load(CObjectDeserialiser* pcFile)
 {
 	ReturnOnFalse(pcFile->ReadInt((int*)&meType));
 	ReturnOnFalse(pcFile->ReadInt((int*)&miObjectIndex));
-	ReturnOnFalse(maiConnections.ReadArraySimple(pcFile));
+	ReturnOnFalse(maiConnections.Read(pcFile));
 	return TRUE;
 }
 
@@ -65,7 +65,7 @@ BOOL CInstance::Save(CObjectSerialiser* pcFile)
 {
 	ReturnOnFalse(pcFile->WriteInt(meType));
 	ReturnOnFalse(pcFile->WriteInt(miObjectIndex));
-	ReturnOnFalse(maiConnections.WriteArraySimple(pcFile));
+	ReturnOnFalse(maiConnections.Write(pcFile));
 	return TRUE;
 }
 

@@ -38,7 +38,6 @@ protected:
 public:
 	void	Init(void);
 	void	Init(int iIgnored);
-	void	InitFromHeader(void);
 	void 	ReInit(void);
 	void	Kill(void);
 	void	Allocate(int iNum);
@@ -79,8 +78,8 @@ public:
 	M*		GetData(void);
 	void	FakeSetUsedElements(int iUsedElements);
 
-	BOOL	WriteArraySimple(CFileWriter* pcFileWriter);
-	BOOL	ReadArraySimple(CFileReader* pcFileReader);
+	BOOL	Write(CFileWriter* pcFileWriter);
+	BOOL	Read(CFileReader* pcFileReader);
 
 protected:
 	void*	Malloc(size_t tSize);
@@ -295,18 +294,6 @@ template<class M>
 int CArrayTemplateMinimal<M>::ByteSize(void)
 {
 	return miUsedElements * sizeof(M);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class M>
-void CArrayTemplateMinimal<M>::InitFromHeader(void)
-{
-	//This function assumes that the value of mpvArray was invalid.
-	mpvArray = (M*)Malloc(miUsedElements * sizeof(M));
 }
 
 
@@ -978,18 +965,16 @@ void* CArrayTemplateMinimal<M>::Realloc(void* pv, size_t tSize)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-BOOL CArrayTemplateMinimal<M>::WriteArraySimple(CFileWriter* pcFileWriter)
+BOOL CArrayTemplateMinimal<M>::Write(CFileWriter* pcFileWriter)
 {
-	int iElementSize;
-
-	iElementSize = sizeof(M);
-	if (!pcFileWriter->WriteData(this, sizeof(CArrayTemplateMinimal<M>)))
+	if (!pcFileWriter->WriteInt(miUsedElements))
 	{ 
 		return FALSE; 
 	}
-	if (NumElements() != 0)
+
+	if (miUsedElements != 0)
 	{
-		if (!pcFileWriter->WriteData(GetData(), ByteSize())) 
+		if (!pcFileWriter->WriteData(mpvArray, ByteSize())) 
 		{ 
 			return FALSE; 
 		}
@@ -1003,16 +988,25 @@ BOOL CArrayTemplateMinimal<M>::WriteArraySimple(CFileWriter* pcFileWriter)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-BOOL CArrayTemplateMinimal<M>::ReadArraySimple(CFileReader* pcFileReader)
+BOOL CArrayTemplateMinimal<M>::Read(CFileReader* pcFileReader)
 {
-	if (!pcFileReader->ReadData(this, sizeof(CArrayTemplateMinimal<M>))) 
-	{ 
+	int		iUsedElements;
+
+	if (!pcFileReader->ReadInt(&iUsedElements))
+	{
 		return FALSE; 
 	}
-	if (NumElements() != 0)
+	mpvArray = NULL;
+	miUsedElements = 0;
+
+	if (iUsedElements != 0)
 	{
-		InitFromHeader();
-		if (!pcFileReader->ReadData(GetData(), ByteSize())) 
+		if (!Reallocate(iUsedElements))
+		{
+			return FALSE;
+		}
+
+		if (!pcFileReader->ReadData(mpvArray, ByteSize())) 
 		{ 
 			return FALSE; 
 		}

@@ -25,7 +25,6 @@ protected:
 public:
 	void 	Init(int iElementSize, int iChunkSize);
 	void 	Init(CMallocator* pcMalloc, int iElementSize, int iChunkSize);
-	void 	InitFromHeader(CMallocator* pcMalloc);
 	void 	Allocate(CMallocator* pcMalloc, int iElementSize, int iNumElements);
 	void 	Allocate(CMallocator* pcMalloc, int iElementSize, int iChunkSize, int iNumElements);
 	void 	ReInit(int iChunkSize = 0);
@@ -113,6 +112,8 @@ public:
 	int		ChunkSize(void);
 	void	SetUsedElements(int iNumElements);
 
+	BOOL	WriteHeader(CFileWriter* pcFileWriter);
+	BOOL	ReadHeader(CFileReader* pcFileReader);
 	BOOL	Write(CFileWriter* pcFileWriter);
 	BOOL	Read(CFileReader* pcFileReader);
 

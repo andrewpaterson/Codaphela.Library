@@ -52,8 +52,8 @@ void CMeshCorner::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CMeshCorner::Save(CFileWriter* pcFile)
 {
-	ReturnOnFalse(aiEdge.WriteArraySimple(pcFile));
-	ReturnOnFalse(aiFace.WriteArraySimple(pcFile));
+	ReturnOnFalse(aiEdge.Write(pcFile));
+	ReturnOnFalse(aiFace.Write(pcFile));
 	return TRUE;
 }
 
@@ -64,8 +64,8 @@ BOOL CMeshCorner::Save(CFileWriter* pcFile)
 //////////////////////////////////////////////////////////////////////////
 BOOL CMeshCorner::Load(CFileReader* pcFile)
 {
-	ReturnOnFalse(aiEdge.ReadArraySimple(pcFile));
-	ReturnOnFalse(aiFace.ReadArraySimple(pcFile));
+	ReturnOnFalse(aiEdge.Read(pcFile));
+	ReturnOnFalse(aiFace.Read(pcFile));
 	return TRUE;
 }
 

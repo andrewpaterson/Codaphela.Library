@@ -77,7 +77,7 @@ void CMeshSkinVert::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CMeshSkinVert::Load(CFileReader* pcFile)
 {
-	ReturnOnFalse(mcWeights.ReadArraySimple(pcFile));
+	ReturnOnFalse(mcWeights.Read(pcFile));
 	return TRUE;
 }
 
@@ -88,7 +88,7 @@ BOOL CMeshSkinVert::Load(CFileReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 BOOL CMeshSkinVert::Save(CFileWriter* pcFile)
 {
-	return mcWeights.WriteArraySimple(pcFile);
+	return mcWeights.Write(pcFile);
 }
 
 
@@ -189,7 +189,7 @@ BOOL CMeshSkin::Load(CFileReader* pcFile)
 	Init();
 
 	ReturnOnFalse(LoadMeshDetail(pcFile));
-	ReturnOnFalse(mcSkinVerts.ReadArrayTemplateHeader(pcFile));
+	ReturnOnFalse(mcSkinVerts.ReadHeader(pcFile));
 
 	for (i = 0; i < mcSkinVerts.NumElements(); i++)
 	{
@@ -212,7 +212,7 @@ BOOL CMeshSkin::Save(CFileWriter* pcFile)
 	int				i;
 
 	ReturnOnFalse(SaveMeshDetail(pcFile));
-	ReturnOnFalse(mcSkinVerts.WriteArrayTemplateHeader(pcFile));
+	ReturnOnFalse(mcSkinVerts.WriteHeader(pcFile));
 
 	for (i = 0; i < mcSkinVerts.NumElements(); i++)
 	{
