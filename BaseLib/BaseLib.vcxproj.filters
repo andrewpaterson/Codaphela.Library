@@ -169,6 +169,9 @@
     <Filter Include="Source\File\Pack\Util">
       <UniqueIdentifier>{c2e6673e-b725-44e7-9b03-c07175de8722}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Data\Array\Sorted">
+      <UniqueIdentifier>{b62cf4e0-ad10-4860-86b3-7f1593b3df9e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DataMacro.h">
@@ -630,6 +633,9 @@
     <ClInclude Include="PackFilePacker.h">
       <Filter>Source\File\Pack\Util</Filter>
     </ClInclude>
+    <ClInclude Include="ArrayBlockSorted.h">
+      <Filter>Source\Data\Array\Sorted</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -985,6 +991,9 @@
     </ClCompile>
     <ClCompile Include="PackFilePacker.cpp">
       <Filter>Source\File\Pack\Util</Filter>
+    </ClCompile>
+    <ClCompile Include="ArrayBlockSorted.cpp">
+      <Filter>Source\Data\Array\Sorted</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
