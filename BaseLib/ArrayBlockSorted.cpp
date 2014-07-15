@@ -314,37 +314,18 @@ BOOL CArrayBlockSorted::Contains(void* pv)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayBlockSorted::ContainedInHoldingArrays(void* pv)
+BOOL CArrayBlockSorted::Remove(void* pv)
 {
-	BOOL			bFound;
-	int				iIndex;
-	CArrayBlock*	paHoldingArray;
-	int				i;
+	BOOL	bRemoved;
 
-	for (i = 0; i < maaHoldingArrays.NumElements(); i++)
+	bRemoved = RemoveFromSortedArray(pv);
+	if (bRemoved)
 	{
-		paHoldingArray = maaHoldingArrays.Get(i);
-		bFound = paHoldingArray->FindInSorted(pv, Func, &iIndex);
-		if (bFound)
-		{
-			return TRUE;
-		}
+		return TRUE;
 	}
-	return FALSE;
-}
 
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CArrayBlockSorted::ContainedInSortedArray(void* pv)
-{
-	int		iIndex;
-	BOOL	bFound;
-
-	bFound = maSortedArray.FindInSorted(pv, Func, &iIndex);
-	return bFound;
+	bRemoved = RemoveFromHoldingArrays(pv);
+	return bRemoved;
 }
 
 
@@ -420,6 +401,50 @@ void* CArrayBlockSorted::GetInSortedArray(void* pv)
 
 	}
 	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CArrayBlockSorted::RemoveFromHoldingArrays(void* pv)
+{
+	BOOL			bFound;
+	int				iIndex;
+	CArrayBlock*	paHoldingArray;
+	int				i;
+
+	for (i = 0; i < maaHoldingArrays.NumElements(); i++)
+	{
+		paHoldingArray = maaHoldingArrays.Get(i);
+		bFound = paHoldingArray->FindInSorted(pv, Func, &iIndex);
+		if (bFound)
+		{
+			paHoldingArray->RemoveAt(iIndex);
+			return TRUE;
+		}
+	}
+	return FALSE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CArrayBlockSorted::RemoveFromSortedArray(void* pv)
+{
+	int		iIndex;
+	BOOL	bFound;
+
+	bFound = maSortedArray.FindInSorted(pv, Func, &iIndex);
+	if (bFound)
+	{
+		maSortedArray.RemoveAt(iIndex);
+		return TRUE;
+	}
+	return FALSE;
 }
 
 

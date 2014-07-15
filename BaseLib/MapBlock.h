@@ -28,6 +28,7 @@ public:
 
 	BOOL				Get(void* pvKey, void** ppvData, int* piDataSize);
 	BOOL				Put(void* psKey, int iKeySize, void* pvData, int iDataSize);
+	BOOL				Remove(void* pvKey);
 
 	int					NumElements(void);
 	CArrayBlockSorted*	GetArray(void);

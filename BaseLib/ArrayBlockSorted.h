@@ -32,6 +32,8 @@ public:
 
 	BOOL	Contains(void* pv);
 
+	BOOL	Remove(void* pv);
+
 	int		NumElements(void);
 	int		GetSortedSize(void);
 	int		GetHoldingSize(void);
@@ -46,10 +48,10 @@ protected:
 	void	SortMerge(CArrayBlock* paMergedArray);
 	void	InsertHoldingIntoSorted(int* paiInsertionIndices, int oldLength, CArrayBlock* paSourceArray);
 	int*	CalculateInsertionIndices(CArrayBlock* paMergedHoldingArrays);
-	BOOL	ContainedInHoldingArrays(void* pv);
-	BOOL	ContainedInSortedArray(void* pv);
 	void*	GetInHoldingArrays(void* pv);
 	void*	GetInSortedArray(void* pv);
+	BOOL	RemoveFromHoldingArrays(void* pv);
+	BOOL	RemoveFromSortedArray(void* pv);
 
 	//  void DribbleMerge(ArrayList<T> mergedArray)
 	//  {

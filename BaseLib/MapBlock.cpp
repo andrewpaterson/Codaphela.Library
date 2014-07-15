@@ -162,6 +162,47 @@ BOOL CMapBlock::Put(void* pvKey, int iKeySize, void* pvData, int iDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL CMapBlock::Remove(void* pvKey)
+{
+	SMNode**	ppsNode;
+	SMNode*		psSourceNode;
+	void*		pvSourceKey;
+	char		ac[1024];
+	SMNode*		psNode;
+
+	if (miLargestKeySize + sizeof(SMNode) >= 1024)
+	{
+		return FALSE;
+	}
+
+	psSourceNode = (SMNode*)ac;
+
+	psSourceNode->pcMapBlock = this;
+	psSourceNode->iDataSize = 0;
+	psSourceNode->iKeySize = 0;
+	pvSourceKey = RemapSinglePointer(ac, sizeof(SMNode));
+	memcpy(pvSourceKey, pvKey, miLargestKeySize);
+
+	ppsNode = (SMNode**)mapArray.Get(&psSourceNode);
+
+	if (!ppsNode)
+	{
+		return FALSE;
+	}
+
+	psNode = *ppsNode;
+	mapArray.Remove(&psNode);
+
+	mpcMalloc->Free(psNode);
+
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 int CMapBlock::NumElements(void)
 {
 	return mapArray.NumElements();
