@@ -172,6 +172,9 @@
     <Filter Include="Source\Data\Array\Sorted">
       <UniqueIdentifier>{b62cf4e0-ad10-4860-86b3-7f1593b3df9e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Data\Map\String">
+      <UniqueIdentifier>{2f70e5dc-7c62-4305-8fe9-1f0757f57293}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DataMacro.h">
@@ -223,18 +226,6 @@
       <Filter>Source\Data\Map</Filter>
     </ClInclude>
     <ClInclude Include="MapPtrPtr.h">
-      <Filter>Source\Data\Map</Filter>
-    </ClInclude>
-    <ClInclude Include="MapPtrTemplate.h">
-      <Filter>Source\Data\Map</Filter>
-    </ClInclude>
-    <ClInclude Include="MapStringInt.h">
-      <Filter>Source\Data\Map</Filter>
-    </ClInclude>
-    <ClInclude Include="MapStringString.h">
-      <Filter>Source\Data\Map</Filter>
-    </ClInclude>
-    <ClInclude Include="MapStringTemplate.h">
       <Filter>Source\Data\Map</Filter>
     </ClInclude>
     <ClInclude Include="MapTemplate.h">
@@ -636,6 +627,18 @@
     <ClInclude Include="ArrayBlockSorted.h">
       <Filter>Source\Data\Array\Sorted</Filter>
     </ClInclude>
+    <ClInclude Include="MapBlock.h">
+      <Filter>Source\Data\Map</Filter>
+    </ClInclude>
+    <ClInclude Include="MapStringTemplate.h">
+      <Filter>Source\Data\Map\String</Filter>
+    </ClInclude>
+    <ClInclude Include="MapStringInt.h">
+      <Filter>Source\Data\Map\String</Filter>
+    </ClInclude>
+    <ClInclude Include="MapStringString.h">
+      <Filter>Source\Data\Map\String</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -672,12 +675,6 @@
       <Filter>Source\Data\Map</Filter>
     </ClCompile>
     <ClCompile Include="MapPtrPtr.cpp">
-      <Filter>Source\Data\Map</Filter>
-    </ClCompile>
-    <ClCompile Include="MapStringInt.cpp">
-      <Filter>Source\Data\Map</Filter>
-    </ClCompile>
-    <ClCompile Include="MapStringString.cpp">
       <Filter>Source\Data\Map</Filter>
     </ClCompile>
     <ClCompile Include="Date.cpp">
@@ -994,6 +991,15 @@
     </ClCompile>
     <ClCompile Include="ArrayBlockSorted.cpp">
       <Filter>Source\Data\Array\Sorted</Filter>
+    </ClCompile>
+    <ClCompile Include="MapStringInt.cpp">
+      <Filter>Source\Data\Map\String</Filter>
+    </ClCompile>
+    <ClCompile Include="MapStringString.cpp">
+      <Filter>Source\Data\Map\String</Filter>
+    </ClCompile>
+    <ClCompile Include="MapBlock.cpp">
+      <Filter>Source\Data\Map</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

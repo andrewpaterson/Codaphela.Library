@@ -1062,12 +1062,14 @@ BOOL CArrayBlock::BinarySearch(void* pData, int iLeft, int iRight, int(* Func)(c
 {
 	int		iMiddle;
 	int		iResultMiddle;
+	void*	pvMiddle;
 
 	iResultMiddle = 0;
 	while (iLeft <= iRight)
 	{
 		iMiddle = (iLeft + iRight) >> 1; //Divide by 2
-		iResultMiddle = Func(pData, Get(iMiddle));
+		pvMiddle = Get(iMiddle);
+		iResultMiddle = Func(pData, pvMiddle);
 		if (iResultMiddle == 0)
 		{
 			*piIndex = iMiddle;

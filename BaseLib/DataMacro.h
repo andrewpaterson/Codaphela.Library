@@ -22,6 +22,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __DATA_MACRO_H__
 #define __DATA_MACRO_H__
+#include "Define.h"
 #include "PointerRemapper.h"
 
 

@@ -20,7 +20,18 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
+#include "PointerFunctions.h"
 #include "MapPtrPtr.h"
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CMapPtrPtr::Init(int iChunkSize)
+{
+	CMapTemplate<void*, void*>::Init(iChunkSize, &ComparePtrPtr);
+};
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -30,7 +41,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 void* CMapPtrPtr::GetWithKey(void* pvKey)
 {
 	void** ppvResult;
-	ppvResult = (CMapPtrTemplate<void*>::GetWithKey(pvKey));
+
+	ppvResult = (CMapTemplate<void*, void*>::GetWithKey(&pvKey));
 	if (ppvResult)
 	{
 		return *ppvResult;
@@ -45,7 +57,7 @@ void* CMapPtrPtr::GetWithKey(void* pvKey)
 //////////////////////////////////////////////////////////////////////////
 void CMapPtrPtr::GetAtIndex(int iIndex, void*** pppvKey, void*** pppvData)
 {
-	CMapPtrTemplate<void*>::GetAtIndex(iIndex, pppvKey, pppvData);
+	CMapTemplate<void*, void*>::GetAtIndex(iIndex, pppvKey, pppvData);
 }
 
 
@@ -53,8 +65,18 @@ void CMapPtrPtr::GetAtIndex(int iIndex, void*** pppvKey, void*** pppvData)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CMapPtrPtr::Put(void* pvKey, void* pvData)
+void CMapPtrPtr::Put(void* pvKey, void*  psData)
 {
-	CMapPtrTemplate<void*>::Put(pvKey, &pvData);
+	return CMapTemplate<void*, void*>::Put(&pvKey, &psData);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+BOOL CMapPtrPtr::Remove(void* pvKey)
+{
+	return CMapTemplate<void*, void*>::Remove(&pvKey);
 }
 

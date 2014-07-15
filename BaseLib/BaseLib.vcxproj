@@ -118,6 +118,7 @@
     <ClInclude Include="LogConfig.h" />
     <ClInclude Include="LogString.h" />
     <ClInclude Include="Mallocator.h" />
+    <ClInclude Include="MapBlock.h" />
     <ClInclude Include="MemoryAllocator.h" />
     <ClInclude Include="Mallocators.h" />
     <ClInclude Include="MemoryBlock.h" />
@@ -143,7 +144,6 @@
     <ClInclude Include="MapIntInt.h" />
     <ClInclude Include="MapIntTemplate.h" />
     <ClInclude Include="MapPtrPtr.h" />
-    <ClInclude Include="MapPtrTemplate.h" />
     <ClInclude Include="MapStringInt.h" />
     <ClInclude Include="MapStringString.h" />
     <ClInclude Include="MapStringTemplate.h" />
@@ -259,6 +259,7 @@
     <ClCompile Include="IndexTreeNode.cpp" />
     <ClCompile Include="LinkedListBlock.cpp" />
     <ClCompile Include="LogString.cpp" />
+    <ClCompile Include="MapBlock.cpp" />
     <ClCompile Include="MemoryAllocator.cpp" />
     <ClCompile Include="Mallocators.cpp" />
     <ClCompile Include="MemoryBlock.cpp" />

@@ -296,11 +296,10 @@ int* CArrayBlockSorted::CalculateInsertionIndices(CArrayBlock* paMergedHoldingAr
 //////////////////////////////////////////////////////////////////////////
 BOOL CArrayBlockSorted::Contains(void* pv)
 {
-	if (ContainedInSortedArray(pv))
-	{
-		return TRUE;
-	}
-	else if (ContainedInHoldingArrays(pv))
+	void* pvFound;
+
+	pvFound = Get(pv);
+	if (pvFound)
 	{
 		return TRUE;
 	}
@@ -346,6 +345,81 @@ BOOL CArrayBlockSorted::ContainedInSortedArray(void* pv)
 
 	bFound = maSortedArray.FindInSorted(pv, Func, &iIndex);
 	return bFound;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void* CArrayBlockSorted::Get(void* pv)
+{
+	void*	pvFound;
+
+	pvFound = GetInSortedArray(pv);
+	if (pvFound)
+	{
+		return pvFound;
+	}
+	else 
+	{
+		pvFound = GetInHoldingArrays(pv);
+		if (pvFound)
+		{
+			return pvFound;
+		}
+		else
+		{
+			return NULL;
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void* CArrayBlockSorted::GetInHoldingArrays(void* pv)
+{
+	BOOL			bFound;
+	int				iIndex;
+	CArrayBlock*	paHoldingArray;
+	int				i;
+	void*			pvData;
+
+	for (i = 0; i < maaHoldingArrays.NumElements(); i++)
+	{
+		paHoldingArray = maaHoldingArrays.Get(i);
+		bFound = paHoldingArray->FindInSorted(pv, Func, &iIndex);
+		if (bFound)
+		{
+			pvData = paHoldingArray->Get(iIndex);
+			return pvData;
+		}
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void* CArrayBlockSorted::GetInSortedArray(void* pv)
+{
+	int		iIndex;
+	BOOL	bFound;
+	void*	pvData;
+
+	bFound = maSortedArray.FindInSorted(pv, Func, &iIndex);
+	if (bFound)
+	{
+		pvData = maSortedArray.Get(iIndex);
+		return pvData;
+
+	}
+	return NULL;
 }
 
 

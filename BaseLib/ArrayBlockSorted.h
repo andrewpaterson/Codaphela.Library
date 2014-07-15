@@ -17,7 +17,7 @@ protected:
 	int					miChunkSize;
 	int					miElementSize;
 	CMallocator*		mpcMallocator;
-	int(*Func)(const void*, const void*);
+	int					(*Func)(const void*, const void*);
 	int*				mapiInsertionIndices;
 
 public:
@@ -25,21 +25,31 @@ public:
 	void	Init(int iElementSize, int iChunkSize, int iHoldingBufferSize, int iHoldingBuffers, int(*Func)(const void*, const void*));
 	void	Init(CMallocator* pcMallocator, int iElementSize, int iChunkSize, int iHoldingBufferSize, int iHoldingBuffers, int(*Func)(const void*, const void*));
 	void	Kill(void);
+
 	BOOL	Add(void* pv);
-	BOOL	AddIntoHoldingArrays(void* pv);
+
+	void*	Get(void* pv);
+
+	BOOL	Contains(void* pv);
+
+	int		NumElements(void);
+	int		GetSortedSize(void);
+	int		GetHoldingSize(void);
+	void*	GetInSorted(int iIndex);
+
 	void	InsertHoldingIntoSorted(void);
+
+protected:
+	BOOL	AddIntoHoldingArrays(void* pv);
 	void	ClearHoldingArrays(void);
 	void	MergeHoldingArrays(CArrayBlock* paMergedArray);
 	void	SortMerge(CArrayBlock* paMergedArray);
 	void	InsertHoldingIntoSorted(int* paiInsertionIndices, int oldLength, CArrayBlock* paSourceArray);
 	int*	CalculateInsertionIndices(CArrayBlock* paMergedHoldingArrays);
-	BOOL	Contains(void* pv);
 	BOOL	ContainedInHoldingArrays(void* pv);
 	BOOL	ContainedInSortedArray(void* pv);
-	int		NumElements(void);
-	int		GetSortedSize(void);
-	int		GetHoldingSize(void);
-	void*	GetInSorted(int iIndex);
+	void*	GetInHoldingArrays(void* pv);
+	void*	GetInSortedArray(void* pv);
 
 	//  void DribbleMerge(ArrayList<T> mergedArray)
 	//  {
