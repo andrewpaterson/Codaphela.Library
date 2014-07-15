@@ -31,9 +31,28 @@ int CompareMNode(const void* arg1, const void* arg2)
 //////////////////////////////////////////////////////////////////////////
 void CMapBlock::Init(CMallocator* pcMalloc, int iChunkSize, int(* Func)(const void*, const void*))
 {
+	int		iHoldingBufferSize;
+	int		iHoldingBuffers;
+
+	if (iChunkSize >= 256)
+	{
+		iHoldingBufferSize = 256;
+		iHoldingBuffers = 4;
+	}
+	if (iChunkSize >= 128)
+	{
+		iHoldingBufferSize = 128;
+		iHoldingBuffers = 2;
+	}
+	else
+	{
+		iHoldingBuffers = 1;
+		iHoldingBufferSize = 32;
+	}
+
 	mpcMalloc = pcMalloc;
 	this->Func = Func;
-	mapArray.Init(pcMalloc, sizeof(void*), iChunkSize, 128, 2, &CompareMNode);
+	mapArray.Init(pcMalloc, sizeof(void*), iChunkSize, iHoldingBufferSize, iHoldingBuffers, &CompareMNode);
 	miLargestKeySize = 0;
 }
 
@@ -45,13 +64,13 @@ void CMapBlock::Init(CMallocator* pcMalloc, int iChunkSize, int(* Func)(const vo
 void CMapBlock::Kill(void)
 {
 	int			i;
-	SMNode*		psNode;
+	SMNode**	ppsNode;
 
 	mapArray.InsertHoldingIntoSorted();
 	for (i = 0; i < mapArray.NumElements(); i++)
 	{
-		psNode = (SMNode*)mapArray.GetInSorted(i);
-		mpcMalloc->Free(psNode);
+		ppsNode = (SMNode**)mapArray.GetInSorted(i);
+		mpcMalloc->Free(*ppsNode);
 	}
 
 	miLargestKeySize = 0;
@@ -66,7 +85,7 @@ void CMapBlock::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CMapBlock::Get(void* pvKey, void** ppvData, int* piDataSize)
 {
-	SMNode*		psNode;
+	SMNode**	ppsNode;
 	void*		pvData;
 	SMNode*		psSourceNode;
 	void*		pvSourceKey;
@@ -86,21 +105,21 @@ BOOL CMapBlock::Get(void* pvKey, void** ppvData, int* piDataSize)
 	pvSourceKey = RemapSinglePointer(ac, sizeof(SMNode));
 	memcpy(pvSourceKey, pvKey, miLargestKeySize);
 
-	psNode = (SMNode*)mapArray.Get(&psSourceNode);
+	ppsNode = (SMNode**)mapArray.Get(&psSourceNode);
 
-	if (!psNode)
+	if (!ppsNode)
 	{
 		*ppvData = NULL;
 		return FALSE;
 	}
 
-	iKeySize = psNode->iKeySize;
-	pvData = RemapSinglePointer(psNode, sizeof(SMNode) + iKeySize);
+	iKeySize = (*ppsNode)->iKeySize;
+	pvData = RemapSinglePointer((*ppsNode), sizeof(SMNode) + iKeySize);
 
 	*ppvData = pvData;
 	if (piDataSize != NULL)
 	{
-		*piDataSize = psNode->iDataSize;
+		*piDataSize = (*ppsNode)->iDataSize;
 	}
 
 	return TRUE;
@@ -146,5 +165,15 @@ BOOL CMapBlock::Put(void* pvKey, int iKeySize, void* pvData, int iDataSize)
 int CMapBlock::NumElements(void)
 {
 	return mapArray.NumElements();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CArrayBlockSorted* CMapBlock::GetArray(void)
+{
+	return &mapArray;
 }
 

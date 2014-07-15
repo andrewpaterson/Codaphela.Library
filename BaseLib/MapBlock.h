@@ -23,13 +23,14 @@ public:
 	int					(*Func)(const void*, const void*);
 
 public:
-	void	Init(CMallocator* pcMalloc, int iChunkSize, int(*Func)(const void*, const void*));
-	void	Kill(void);
+	void				Init(CMallocator* pcMalloc, int iChunkSize, int(*Func)(const void*, const void*));
+	void				Kill(void);
 
-	BOOL	Get(void* pvKey, void** ppvData, int* piDataSize);
-	BOOL	Put(void* psKey, int iKeySize, void* pvData, int iDataSize);
+	BOOL				Get(void* pvKey, void** ppvData, int* piDataSize);
+	BOOL				Put(void* psKey, int iKeySize, void* pvData, int iDataSize);
 
-	int		NumElements(void);
+	int					NumElements(void);
+	CArrayBlockSorted*	GetArray(void);
 };
 
 
