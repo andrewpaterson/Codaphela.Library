@@ -43,13 +43,9 @@ public:
 	void	KillArray(void);
 	BOOL	Remove(M* psKey);
 	BOOL	GetWithKey(M* psKey, void** ppvData, int* piDataSize);
-	BOOL	GetWithKeyAssumeDuplicates(M* psKey, void** ppvData, int* piDataSize);
-	BOOL	GetWithKeyNextDuplicate(M* psLastKey, int iLastIndex, void** ppvData, int* piDataSize);
 	BOOL	GetAtIndex(int iIndex, M** ppsKey, void** ppsData, int* piDataSize);
 	void*	Put(M* psKey, int iDataSize);
 	void	Put(M* psKey, void* pvData, int iDataSize);
-	void*	PutAllowDuplicates(M* psKey, int iDataSize);
-	void	PutAllowDuplicates(M* psKey, void* pvData, int iDataSize);
 	int		GetIndex(M* psKey);
 	void*	GetData(int iNode);
 	int		NumElements(void);
@@ -77,8 +73,6 @@ public:
 	void	Init(int iChunkSize, int(* Func)(const void*, const void*));
 
 	D*		GetWithKey(M* psKey);
-	D*		GetWithKeyAssumeDuplicates(M* psKey);
-	BOOL	GetWithKeyNextDuplicate(M* psLastKey, int iLastIndex, D** ppsData);
 	BOOL	GetAtIndex(int iIndex, M** ppsKey, D** ppsData);
 
 	D*		Put(M* psKey);
@@ -260,31 +254,6 @@ BOOL __CMapTemplate<M>::GetWithKey(M* psSearch, void** ppvData, int* piDataSize)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-BOOL __CMapTemplate<M>::GetWithKeyAssumeDuplicates(M* psSearch, void** ppvData, int* piDataSize)
-{
-	int		i;
-	M*		psKey;
-	BOOL	bResult;
-	int		iSize;
-
-	bResult =  mcArray.FindInSortedFirstDuplicate(psSearch, Func, &i);
-	if (!bResult)
-	{
-		return FALSE;
-	}
-
-	bResult = mcArray.Get(i, (void**)&psKey, &iSize);
-	*ppvData = GetDataForKey(psKey);
-	*piDataSize = iSize;
-	return TRUE;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class M>
 void* __CMapTemplate<M>::Put(M* psSearch, int iDataSize)
 {
 	M*		psKey;
@@ -313,39 +282,6 @@ void* __CMapTemplate<M>::Put(M* psSearch, int iDataSize)
 		pvData = GetDataForKey(psKey);
 		return pvData;
 	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class M>
-void* __CMapTemplate<M>::PutAllowDuplicates(M* psSearch, int iDataSize)
-{
-	M*		psKey;
-	void*	pvData;
-
-
-	psKey = AllocateNode(iDataSize);
-	memcpy(psKey, psSearch, miKeySize);
-	mcArray.InsertIntoSorted(Func, psKey, iDataSize);
-	pvData = GetDataForKey(psKey);
-	return pvData;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class M>
-void __CMapTemplate<M>::PutAllowDuplicates(M* psKey, void* pvData, int iDataSize)
-{
-	void*	ps;
-
-	ps = PutAllowDuplicates(psKey, iDataSize);
-	memcpy(ps, pvData, iDataSize);
 }
 
 
@@ -437,30 +373,6 @@ BOOL __CMapTemplate<M>::GetAtIndex(int iIndex, M** ppsKey, void** ppsData, int* 
 	return TRUE;
 }
 
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class M>
-BOOL __CMapTemplate<M>::GetWithKeyNextDuplicate(M* psLastKey, int iLastIndex, void** ppvData, int* piDataSize)
-{
-	int		i;
-	BOOL	bResult;
-	int		iSize;
-	M*		psKey;
-
-	bResult = mcArray.FindInSortedNextDuplicate(psLastKey, iLastIndex, Func, &i);
-	if (!bResult)
-	{
-		return FALSE;
-	}
-	bResult = mcArray.Get(i, (void**)&psKey, &iSize);
-	*ppvData = GetDataForKey(psKey);
-	*piDataSize = iSize;
-	return TRUE;
-
-}
-
 
 //////////////////////////////////////////////////////////////////////////
 //																		//
@@ -547,42 +459,6 @@ BOOL CMapTemplate<M, D>::GetAtIndex(int iIndex, M** ppsKey, D** ppsData)
 	int	iSize;
 
 	return __CMapTemplate<M>::GetAtIndex(iIndex, ppsKey, (void**)ppsData, &iSize);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class M, class D>
-BOOL CMapTemplate<M, D>::GetWithKeyNextDuplicate(M* psLastKey, int iLastIndex, D** ppsData)
-{
-	int	iSize;
-
-	return __CMapTemplate<M>::GetWithKeyNextDuplicate(psLastKey, iLastIndex, (void**)ppsData, &iSize);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class M, class D>
-D* CMapTemplate<M, D>::GetWithKeyAssumeDuplicates(M* psKey)
-{
-	void*	pvData;
-	int		iSize;
-	BOOL	bResult;
-
-	bResult = __CMapTemplate<M>::GetWithKeyAssumeDuplicates(psKey, &pvData, &iSize);
-	if  (bResult)
-	{
-		return (D*)pvData;
-	}
-	else
-	{
-		return NULL;
-	}
 }
 
 

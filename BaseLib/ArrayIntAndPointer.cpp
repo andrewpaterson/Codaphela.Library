@@ -225,45 +225,6 @@ BOOL CArrayIntAndPointer::FindInSorted(void* pvElement, int(* Func)(const void*,
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayIntAndPointer::FindInSortedFirstDuplicate(void* pvElement, int(* Func)(const void*, const void*), int* piIndex)
-{
-	BOOL	bResult;
-	int		iIndex;
-	int		iResult;
-
-	if (miUsedElements == 0)
-	{
-		*piIndex = 0;
-		return FALSE;
-	}
-	bResult = BinarySearch(pvElement, 0, miUsedElements - 1, Func, piIndex);
-	if (!bResult)
-	{
-		*piIndex = 0;
-		return FALSE;
-	}
-
-	//This searches back up the array for the first occurence of pvElement.
-	iIndex = *piIndex - 1;
-	while (iIndex >= 0)
-	{
-		iResult = Func(pvElement, GetPtr(iIndex));
-		if (iResult != 0)
-		{
-			*piIndex = iIndex+1;
-			return TRUE;
-		}
-		iIndex--;
-	}
-	*piIndex = 0;
-	return TRUE;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
 BOOL CArrayIntAndPointer::BinarySearch(void* pvData, int iLeft, int iRight, int(* Func)(const void*, const void*), int* piIndex)
 {
 	int		iMiddle;
@@ -298,31 +259,6 @@ BOOL CArrayIntAndPointer::BinarySearch(void* pvData, int iLeft, int iRight, int(
 	else
 	{
 		*piIndex = iMiddle;
-	}
-	return FALSE;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-BOOL CArrayIntAndPointer::FindInSortedNextDuplicate(void* pvLastElement, int iLastIndex, int(* Func)(const void*, const void*), int* piIndex)
-{
-	int	iIndex;
-	int	iResult;
-
-	iIndex = iLastIndex+1;
-	if (iIndex >= miUsedElements)
-	{
-		return FALSE;
-	}
-
-	iResult = Func(pvLastElement, GetPtr(iIndex));
-	if (iResult == 0)
-	{
-		*piIndex = iIndex;
-		return TRUE;
 	}
 	return FALSE;
 }

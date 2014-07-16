@@ -49,8 +49,6 @@ public:
 	void	Remove(void* pv);
 	void*	InsertIntoSorted(int(* Func)(const void*, const void*), void* pvElement, int iInt);
 	BOOL	FindInSorted(void* pvElement, int(* Func)(const void*, const void*), int* piIndex);
-	BOOL	FindInSortedFirstDuplicate(void* pvElement, int(* Func)(const void*, const void*), int* piIndex);
-	BOOL	FindInSortedNextDuplicate(void* pvLastElement, int iLastIndex, int(* Func)(const void*, const void*), int* piIndex);
 	BOOL	BinarySearch(void* pvData, int iLeft, int iRight, int(* Func)(const void*, const void*), int* piIndex);
 };
 

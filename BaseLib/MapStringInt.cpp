@@ -57,26 +57,6 @@ BOOL CMapStringInt::GetAtIndex(int iIndex, CChars** ppsKey, int** ppiData)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int* CMapStringInt::GetWithKeyAssumeDuplicates(CChars* psKey)
-{
-	return CMapStringTemplate<int>::GetWithKeyAssumeDuplicates(psKey);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-BOOL CMapStringInt::GetWithKeyNextDuplicate(CChars* psLastKey, int iLastIndex, int** ppiData)
-{
-	return CMapStringTemplate<int>::GetWithKeyNextDuplicate(psLastKey, iLastIndex, ppiData);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
 void CMapStringInt::Put(CChars* psKey, int iData)
 {
 	int*	piData;
@@ -100,27 +80,6 @@ void CMapStringInt::Put(char* szKey, int iData)
 
 	sz.Fake(szKey);
 	Put(&sz, iData);
-}
-
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void CMapStringInt::PutAllowDuplicates(CChars* psKey, int iData)
-{
-	CMapStringTemplate<int>::PutAllowDuplicates(psKey, &iData);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void CMapStringInt::PutAllowDuplicates(char* szKey, int iData)
-{
-	CMapStringTemplate<int>::PutAllowDuplicates(szKey, &iData);
 }
 
 

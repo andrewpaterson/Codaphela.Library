@@ -31,12 +31,8 @@ public:
 	int*	GetWithKey(CChars* psKey);
 	int*	GetWithKey(char* szKey);
 	BOOL	GetAtIndex(int iIndex, CChars** ppsKey, int** ppiData);
-	int*	GetWithKeyAssumeDuplicates(CChars* psKey);
-	BOOL	GetWithKeyNextDuplicate(CChars* psLastKey, int iLastIndex, int** ppiData);
 	void	Put(CChars* psKey, int iData);
 	void	Put(char* szKey, int iData);
-	void	PutAllowDuplicates(CChars* psKey, int iData);
-	void	PutAllowDuplicates(char* szKey, int iData);
 	CChars*	GetWithValue(int iData);
 };
 

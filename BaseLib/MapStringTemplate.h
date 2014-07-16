@@ -36,8 +36,6 @@ public:
 	D*		GetWithKey(CChars* psKey);
 	D*		GetWithKey(char* szKey);
 	D*		GetWithKey(char* psKey, int iLength);
-	D*		GetWithKeyAssumeDuplicates(CChars* psKey);
-	BOOL	GetWithKeyNextDuplicate(CChars* psLastKey, int iLastIndex, D** ppsData);
 	BOOL	GetAtIndex(int iIndex, CChars** ppsKey, D** ppsData);
 	D*		GetAtIndex(int iIndex);
 
@@ -45,10 +43,6 @@ public:
 	D*		Put(char* szKey);
 	void	Put(CChars* psKey, D* psData);
 	void	Put(char* szKey, D* psData);
-	D*		PutAllowDuplicates(char* szKey);
-	D*		PutAllowDuplicates(CChars* psKey);
-	void	PutAllowDuplicates(char* szKey, D* pvData);
-	void	PutAllowDuplicates(CChars* psKey, D* pvData);
 
 	void	Remove(CChars* szKey);
 	void	Remove(char* szKey);
@@ -207,28 +201,6 @@ D* CMapStringTemplate<D>::GetAtIndex(int iIndex)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class D>
-BOOL CMapStringTemplate<D>::GetWithKeyNextDuplicate(CChars* psLastKey, int iLastIndex, D** ppsData)
-{
-	return CMapTemplate<CChars, D>::GetWithKeyNextDuplicate(psLastKey, iLastIndex, ppsData);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class D>
-D* CMapStringTemplate<D>::GetWithKeyAssumeDuplicates(CChars* psSearch)
-{
-	return CMapTemplate<CChars, D>::GetWithKeyAssumeDuplicates(psSearch);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class D>
 D* CMapStringTemplate<D>::Put(CChars* psKey)
 {
 	return Put(psKey->Text());
@@ -293,62 +265,6 @@ void CMapStringTemplate<D>::Put(char* psKey, D* psData)
 	{
 		memcpy(ps, psData, sizeof(D));
 	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class D>
-D* CMapStringTemplate<D>::PutAllowDuplicates(CChars* psKey)
-{
-	return PutAllowDuplicates(psKey->Text());
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class D>
-D* CMapStringTemplate<D>::PutAllowDuplicates(char* szKey)
-{
-	CChars*		ps;
-	D*			psData;
-
-	ps = AllocateNode(szKey);
-	this->mcArray.InsertIntoSorted(this->Func, ps, -1);
-	psData = this->GetDataForKey(ps);
-	return psData;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class D>
-void CMapStringTemplate<D>::PutAllowDuplicates(char* szKey, D* psData)
-{
-	D*	ps;
-
-	ps = PutAllowDuplicates(szKey);
-	memcpy(ps, psData, sizeof(D));
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class D>
-void CMapStringTemplate<D>::PutAllowDuplicates(CChars* psKey, D* psData)
-{
-	D*	ps;
-
-	ps = PutAllowDuplicates(psKey);
-	memcpy(ps, psData, sizeof(D));
 }
 
 
