@@ -39,6 +39,7 @@ public:
 	void	Set(char* szProperty, char* szValue);
 	BOOL	Read(void);
 	BOOL	Write(void);
+	int		NumProperties(void);
 };
 
 

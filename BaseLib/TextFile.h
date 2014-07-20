@@ -35,6 +35,7 @@ public:
 	CChars		mszFileName;
 
 	void	Init(void);
+	void	Init(char* szText);
 	void	Kill(void);
 	void	KillExceptBuffer(void);
     BOOL	Read(char* szFileName);

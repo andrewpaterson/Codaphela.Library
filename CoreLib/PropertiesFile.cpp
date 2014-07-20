@@ -52,7 +52,7 @@ void CPropertiesFile::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 char* CPropertiesFile::Get(char* szProperty)
 {
-	return mcProperties.GetWithKey(szProperty);
+	return mcProperties.Get(szProperty);
 }
 
 
@@ -124,7 +124,7 @@ BOOL CPropertiesFile::Read(void)
 				}
 				if (szProperty.Length() > 0)
 				{
-					mcProperties.Put(&szProperty, &szValue);
+					mcProperties.Put(szProperty.Text(), szValue.Text());
 				}
 			}
 			else
@@ -136,9 +136,10 @@ BOOL CPropertiesFile::Read(void)
 		}
 		else
 		{
-			szProperty.Kill();
-			szValue.Kill();
-			break;
+			if (szProperty.Length() > 0)
+			{
+				mcProperties.Put(szProperty.Text(), "");
+			}
 		}
 		szProperty.Kill();
 		szValue.Kill();
@@ -156,23 +157,27 @@ BOOL CPropertiesFile::Read(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CPropertiesFile::Write(void)
 {
-	CTextFile	cFile;
-	int			i;
-	CChars*		pszProperty;
-	CChars*		pszValue;
+	CTextFile		cFile;
+	char*			szProperty;
+	char*			szValue;
+	SMapIterator	sIter;
+	BOOL			bResult;
 
 	cFile.Init();
 
-	for (i = 0; i < mcProperties.NumElements(); i++)
+	mcProperties.InsertHoldingIntoSorted();
+	bResult = mcProperties.StartIteration(&sIter, (void**)&szProperty, (void**)&szValue);
+	while (bResult)
 	{
-		mcProperties.GetAtIndex(i, &pszProperty, &pszValue);
-		cFile.mcText.Append(pszProperty);
-		if (pszValue->Length() > 0)
+		cFile.mcText.Append(szProperty);
+		
+		if (!StrEmpty(szValue))
 		{
 			cFile.mcText.Append(" = ");
-			cFile.mcText.Append(pszValue);
+			cFile.mcText.Append(szValue);
 		}
 		cFile.mcText.AppendNewLine();
+		bResult = mcProperties.Iterate(&sIter, (void**)&szProperty, (void**)&szValue);
 	}
 
 	if (!cFile.Write(mszName.Text()))
@@ -182,5 +187,15 @@ BOOL CPropertiesFile::Write(void)
 	}
 	cFile.Kill();
 	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CPropertiesFile::NumProperties(void)
+{
+	return mcProperties.NumElements();
 }
 
