@@ -100,7 +100,7 @@ BOOL CMarkupTag::IsEmpty(void)
 //////////////////////////////////////////////////////////////////////////
 char* CMarkupTag::GetAttribute(char* szAttribute)
 {
-	return mcAttributes.GetWithKey(szAttribute);
+	return mcAttributes.Get(szAttribute);
 }
 
 
@@ -446,7 +446,7 @@ CMarkupNamedRef* CMarkupTag::AppendNamedReference(char* szIdentifier)
 //////////////////////////////////////////////////////////////////////////
 BOOL CMarkupTag::AddAttribute(char* szAttribute, char* szValue)
 {
-	if (mcAttributes.GetWithKey(szAttribute))
+	if (mcAttributes.Get(szAttribute))
 	{
 		return FALSE;
 	}
@@ -514,11 +514,13 @@ void CMarkupTag::ToString(CChars* psz)
 int CMarkupTag::ToString(CChars* psz, int iDepth, int iLine)
 {
 	int				i;
-	CChars*			pszAttribute;
-	CChars*			pszValue;
 	CMarkupBase*	pcBase;
 	CChars			szText;
 	BOOL			bPadClosing;
+	char*			szKey;
+	char*			szValue;
+	SMapIterator	sIter;
+	BOOL			bResult;
 
 	miLine = iLine;
 	miColumn = iDepth*2;
@@ -526,15 +528,17 @@ int CMarkupTag::ToString(CChars* psz, int iDepth, int iLine)
 	psz->Append('<');
 	psz->Append(mszName);
 
-	for (i = 0; i < mcAttributes.NumElements(); i++)
+	mcAttributes.InsertHoldingIntoSorted();
+	bResult = mcAttributes.StartIteration(&sIter, (void**)&szKey, (void**)&szValue);
+	while (bResult)
 	{
 		psz->Append(' ');
-		mcAttributes.GetAtIndex(i, &pszAttribute, &pszValue);
-		psz->Append(pszAttribute);
+		psz->Append(szKey);
 		psz->Append('=');
 		psz->Append('"');
-		psz->Append(pszValue);
+		psz->Append(szValue);
 		psz->Append('"');
+		bResult = mcAttributes.Iterate(&sIter, (void**)&szKey, (void**)&szValue);
 	}
 
 	if (macBases.NumElements() == 0)

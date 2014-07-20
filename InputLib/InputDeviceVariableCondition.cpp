@@ -62,12 +62,12 @@ void CInputDeviceVariableCondition::Copy(CInputDeviceVariableCondition* pcSource
 	for (i = 0; i < pcSource->mapConditions.NumElements(); i++)
 	{
 		pcSourceValue = *pcSource->mapConditions.Get(i);
-		pcDestValue = (CInputDeviceVariableValue*)pcContext->mmppVariables.GetWithKey(pcSourceValue);
+		pcDestValue = (CInputDeviceVariableValue*)pcContext->mmppVariables.Get(pcSourceValue);
 		mapConditions.Add(&pcDestValue);
 	}
 	if (pcSource->mpcChord != NULL)
 	{
-		mpcChord = (CInputChord*)pcContext->mmppChords.GetWithKey(pcSource->mpcChord);
+		mpcChord = (CInputChord*)pcContext->mmppChords.Get(pcSource->mpcChord);
 	}
 	else
 	{

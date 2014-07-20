@@ -32,11 +32,11 @@ void CInputDeviceCopyContext::Init(CInputDeviceDesc* pcSourceDeviceDesc, CInputD
 	mpcSourceDeviceDesc = pcSourceDeviceDesc;
 	mpcDestDeviceDesc = pcDestDeviceDesc;
 
-	mmppSources.Init(16);
-	mmppChords.Init(16);
-	mmppValues.Init(16);
-	mmppVariables.Init(16);
-	mmppEvaluators.Init(16);
+	mmppSources.Init(&gcSystemAllocator, 16);
+	mmppChords.Init(&gcSystemAllocator, 16);
+	mmppValues.Init(&gcSystemAllocator, 16);
+	mmppVariables.Init(&gcSystemAllocator, 16);
+	mmppEvaluators.Init(&gcSystemAllocator, 16);
 }
 
 

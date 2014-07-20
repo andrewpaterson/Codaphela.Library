@@ -49,7 +49,7 @@ void CListenerCall::AddAllowedClassName(char* szName)
 {
 	CArrayListenerPtr*	pcArray;
 
-	pcArray = mcListeners.GetWithKey(szName);
+	pcArray = mcListeners.Get(szName);
 	if (!pcArray)
 	{
 		pcArray = mcListeners.Put(szName);
@@ -97,7 +97,7 @@ void CListenerCall::CallListenersName(char* szClassName, void(CListener::*Listen
 	CListener*			pcListener;
 	CArrayListenerPtr*	pcArray;
 
-	pcArray = mcListeners.GetWithKey(szClassName);
+	pcArray = mcListeners.Get(szClassName);
 	if (pcArray)
 	{
 		for (i = 0; i < pcArray->NumElements(); i++)

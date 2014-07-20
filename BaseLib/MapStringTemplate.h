@@ -22,39 +22,17 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __MAP_STRING_TEMPLATE_H__
 #define __MAP_STRING_TEMPLATE_H__
-#include "MapTemplate.h"
-#include "Chars.h"
-#include "FileReader.h"
+#include "MapStringBlock.h"
+
 
 template<class D>
-class CMapStringTemplate : public CMapTemplate<CChars, D>
+class CMapStringTemplate : public CMapStringBlock
 {
 public:
-	void	Init(int iChunkSize, BOOL bCaseSensitive = TRUE);
-	void	Kill(void);
+	D*		Get(char* szKey);
 
-	D*		GetWithKey(CChars* psKey);
-	D*		GetWithKey(char* szKey);
-	D*		GetWithKey(char* psKey, int iLength);
-	BOOL	GetAtIndex(int iIndex, CChars** ppsKey, D** ppsData);
-	D*		GetAtIndex(int iIndex);
-
-	D*		Put(CChars* psKey);
 	D*		Put(char* szKey);
-	void	Put(CChars* psKey, D* psData);
-	void	Put(char* szKey, D* psData);
-
-	void	Remove(CChars* szKey);
-	void	Remove(char* szKey);
-
-	BOOL	IsCaseSensitive(void);
-	void	SetCaseSensitive(BOOL bCaseSensitive);
-
-	D*		LoadNode(CFileReader* pcFile, int iNode);
-
-protected:
-	CChars*	AllocateNode(char* szText);
-	void	FreeNode(CChars* psKey);
+	BOOL	Put(char* szKey, D* psData);
 };
 
 
@@ -63,147 +41,9 @@ protected:
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class D>
-void CMapStringTemplate<D>::Init(int iChunkSize, BOOL bCaseSensitive)
+D* CMapStringTemplate<D>::Get(char* szKey)
 {
-	if (bCaseSensitive)
-	{
-		CMapTemplate<CChars, D>::Init(iChunkSize, CompareChars);
-	}
-	else
-	{
-		CMapTemplate<CChars, D>::Init(iChunkSize, CompareCharsIgnoreCase);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class D>
-void CMapStringTemplate<D>::Kill(void)
-{
-	int			i;
-	CChars*		psData;
-
-	for (i = 0; i < this->mcArray.NumElements(); i++)
-	{
-		psData = (CChars*)this->mcArray.GetPtr(i);
-		FreeNode(psData);
-	}
-
-	this->mcArray.Kill();
-	this->Func = NULL;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class D>
-CChars* CMapStringTemplate<D>::AllocateNode(char* szText)
-{
-	CChars*	sz;
-
-	sz = (CChars*)Malloc(sizeof(CChars) + sizeof(D));
-	sz->Init(szText);
-	return sz;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class D>
-void CMapStringTemplate<D>::FreeNode(CChars* psKey)
-{
-	psKey->Kill();
-	Free(psKey);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class D>
-D* CMapStringTemplate<D>::GetWithKey(char* psKey)
-{
-	CChars	sz;
-
-	sz.Fake(psKey);
-	return CMapTemplate<CChars, D>::GetWithKey(&sz);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class D>
-D* CMapStringTemplate<D>::GetWithKey(char* psKey, int iLength)
-{
-	CChars	sz;
-	char	c;
-	D*		pD;
-
-	c = psKey[iLength];
-	psKey[iLength] = '\0';
-	sz.Fake(psKey);
-	pD = CMapTemplate<CChars, D>::GetWithKey(&sz);
-	psKey[iLength] = c;
-	return pD;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class D>
-D* CMapStringTemplate<D>::GetWithKey(CChars* psSearch)
-{
-	return CMapTemplate<CChars, D>::GetWithKey(psSearch);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class D>
-BOOL CMapStringTemplate<D>::GetAtIndex(int iIndex, CChars** ppsKey, D** ppsData)
-{
-	return CMapTemplate<CChars, D>::GetAtIndex(iIndex, ppsKey, ppsData);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class D>
-D* CMapStringTemplate<D>::GetAtIndex(int iIndex)
-{
-	CChars*	pcKey;
-	D*		ps;
-
-	pcKey = (CChars*)mcArray.GetPtr(iIndex);;
-	ps = GetDataForKey(pcKey);
-	return ps;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class D>
-D* CMapStringTemplate<D>::Put(CChars* psKey)
-{
-	return Put(psKey->Text());
+	return (D*)CMapStringBlock::Get(szKey);
 }
 
 
@@ -214,24 +54,7 @@ D* CMapStringTemplate<D>::Put(CChars* psKey)
 template<class D>
 D* CMapStringTemplate<D>::Put(char* szKey)
 {
-	CChars*		ps;
-	D*			psData;
-	int			iIndex;
-	CChars		szFake;
-
-	szFake.Fake(szKey);
-	iIndex = this->GetIndex(&szFake);
-	if (iIndex != -1)
-	{
-		return NULL;
-	}
-	else
-	{
-		ps = AllocateNode(szKey);
-		this->mcArray.InsertIntoSorted(this->Func, ps, -1);
-		psData = this->GetDataForKey(ps);
-		return psData;
-	}
+	return CMapStringBlock::Put(szKey, sizeof(D));
 }
 
 
@@ -240,116 +63,9 @@ D* CMapStringTemplate<D>::Put(char* szKey)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class D>
-void CMapStringTemplate<D>::Put(CChars* psKey, D* psData)
+BOOL CMapStringTemplate<D>::Put(char* szKey, D* psData)
 {
-	D*	ps;
-
-	ps = Put(psKey);
-	if (ps)
-	{
-		memcpy(ps, psData, sizeof(D));
-	}
-}
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class D>
-void CMapStringTemplate<D>::Put(char* psKey, D* psData)
-{
-	D*	ps;
-
-	ps = Put(psKey);
-	if (ps)
-	{
-		memcpy(ps, psData, sizeof(D));
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class D>
-void CMapStringTemplate<D>::Remove(CChars* szKey)
-{
-	Remove(szKey->Text());
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class D>
-void CMapStringTemplate<D>::Remove(char* szKey)
-{
-	CChars	szFake;
-	CChars*	ps;
-	int		iIndex;
-
-	szFake.Fake(szKey);
-	iIndex = this->GetIndex(&szFake);
-	if (iIndex != -1)
-	{
-		ps = (CChars*)this->mcArray.GetPtr(iIndex);
-		FreeNode(ps);
-		this->mcArray.RemoveAt(iIndex, 1);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class D>
-BOOL CMapStringTemplate<D>::IsCaseSensitive(void)
-{
-	return Func == CompareChars;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class D>
-void CMapStringTemplate<D>::SetCaseSensitive(BOOL bCaseSensitive)
-{
-	if (bCaseSensitive)
-	{
-		Func = CompareChars;
-	}
-	else
-	{
-		Func = CompareCharsIgnoreCase;
-	}
-}
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class D>
-D* CMapStringTemplate<D>::LoadNode(CFileReader* pcFile, int iNode)
-{
-	CChars			szKey;
-	D*				psData;
-	SIntAndPointer*	psType;
-
-	psType = mcArray.CArrayTemplate::Get(iNode);
-	if (!szKey.ReadString(pcFile))
-	{
-		return NULL;
-	}
-	psType->iValue = -1;
-	psType->pvData = AllocateNode(szKey.Text());
-	szKey.Kill();
-	psData = GetDataForKey((CChars*)psType->pvData);
-	return psData;
+	return CMapStringBlock::Put(szKey, psData, sizeof(D));
 }
 
 

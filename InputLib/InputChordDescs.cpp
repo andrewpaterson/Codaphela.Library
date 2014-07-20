@@ -177,7 +177,7 @@ void CInputChordDescs::CopyChordCriteriaDesc(CInputChordCriteriaDesc* pcDest, CI
 		pcSourceActive = (CInputChordActiveDesc*)pcSource;
 		pcDestActive = (CInputChordActiveDesc*)pcDest;
 
-		pcDestChord = (CInputChordDesc*)pcContext->mmppChords.GetWithKey(pcSourceActive->GetChordDesc());
+		pcDestChord = (CInputChordDesc*)pcContext->mmppChords.Get(pcSourceActive->GetChordDesc());
 		switch (pcSourceActive->meActiveType)
 		{
 		case ICCDAT_SpecificSource:

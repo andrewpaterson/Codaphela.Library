@@ -35,7 +35,7 @@ BOOL CMallocators::AddMallocator(CMallocator* pcMallocator)
 	char*	sz;
 
 	sz = pcMallocator->GetName();
-	if (mmszcMallocators.GetWithKey(sz))
+	if (mmszcMallocators.Get(sz))
 	{
 		return FALSE;
 	}

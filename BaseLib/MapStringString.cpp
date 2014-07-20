@@ -27,19 +27,19 @@ Microsoft Windows is Copyright Microsoft Corporation
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CMapStringString::Kill(void)
+BOOL CMapStringString::Put(char* szKey, char* szValue)
 {
-	int			i;
-	CChars*		psKey;
+	int		iStrLen;
+	BOOL	bResult;
 
-	for (i = 0; i < mcArray.NumElements(); i++)
+	if (szValue == NULL)
 	{
-		psKey = (CChars*)mcArray.GetPtr(i);
-		FreeNode(psKey);
+		return FALSE;
 	}
 
-	mcArray.Kill();
-	Func = NULL;
+	iStrLen = strlen(szValue);
+	bResult = CMapStringBlock::Put(szKey, szValue, iStrLen + 1);
+	return bResult;
 }
 
 
@@ -47,138 +47,9 @@ void CMapStringString::Kill(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CChars* CMapStringString::AllocateNode(char* szKey, char* szValue)
+char* CMapStringString::Get(char* szKey)
 {
-	CChars*	sz;
-	CChars* szData;
-
-	sz = (CChars*)Malloc(sizeof(CChars) + sizeof(CChars));
-	sz->Init(szKey);
-
-	szData = GetDataForKey(sz);
-	szData->Init(szValue);
-
-	return sz;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void CMapStringString::FreeNode(CChars* psKey)
-{
-	CChars* szData;
-
-	szData = GetDataForKey(psKey);
-	szData->Kill();
-	psKey->Kill();
-	free(psKey);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void CMapStringString::Put(CChars* psKey, CChars* psValue)
-{
-	Put(psKey->Text(), psValue->Text());
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void CMapStringString::Put(char* psKey, char* psValue)
-{
-	CChars*		ps;
-	CChars*		psData;
-	int			iIndex;
-	CChars		szFake;
-
-	szFake.Fake(psKey);
-	iIndex = GetIndex(&szFake);
-	if (iIndex != -1)
-	{
-		CMapTemplate<CChars, CChars>::GetAtIndex(iIndex, &ps, &psData);
-		psData->Kill();
-		psData->Init(psValue);
-	}
-	else
-	{
-		ps = AllocateNode(psKey, psValue);
-		mcArray.InsertIntoSorted(Func, ps, -1);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-CChars* CMapStringString::GetWithKey(CChars* psKey)
-{
-	return CMapStringTemplate<CChars>::GetWithKey(psKey);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-char* CMapStringString::GetWithKey(char* psKey)
-{
-	CChars*	pszKey;
-
-	pszKey = CMapStringTemplate<CChars>::GetWithKey(psKey);
-	if (pszKey)
-	{
-		return pszKey->Text();
-	}
-	return NULL;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-BOOL CMapStringString::GetAtIndex(int iIndex, CChars** ppsKey, CChars** ppsData)
-{
-	return CMapStringTemplate<CChars>::GetAtIndex(iIndex, ppsKey, ppsData);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void CMapStringString::Remove(CChars* szKey)
-{
-	Remove(szKey->Text());
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void CMapStringString::Remove(char* szKey)
-{
-	CChars		szFake;
-	CChars*		ps;
-	int			iIndex;
-
-	szFake.Fake(szKey);
-	iIndex = GetIndex(&szFake);
-	if (iIndex != -1)
-	{
-		ps = (CChars*)mcArray.GetPtr(iIndex);
-		FreeNode(ps);
-		mcArray.RemoveAt(iIndex, 1);
-	}
+	return (char*)CMapStringBlock::Get(szKey);
 }
 
 
@@ -188,23 +59,25 @@ void CMapStringString::Remove(char* szKey)
 //////////////////////////////////////////////////////////////////////////
 void CMapStringString::Dump(void)
 {
-	int		i;
-	CChars*	psKey;
-	CChars*	psValue;
-	CChars	sz;
+	//Write an iterator, then write this.
 
-	sz.Init(1024);
-	for (i = 0; i < mcArray.NumElements(); i++)
-	{
-		if (GetAtIndex(i, &psKey, &psValue))
-		{
-			sz.Append(psKey->Text());
-			sz.Append(" -> ");
-			sz.Append(psValue->Text());
-			sz.AppendNewLine();
-		}
-	}
-	sz.Dump();
-	sz.Kill();
+	//int		i;
+	//CChars*	psKey;
+	//CChars*	psValue;
+	//CChars	sz;
+
+	//sz.Init(1024);
+	//for (i = 0; i < mcArray.NumElements(); i++)
+	//{
+	//	if (GetAtIndex(i, &psKey, &psValue))
+	//	{
+	//		sz.Append(psKey->Text());
+	//		sz.Append(" -> ");
+	//		sz.Append(psValue->Text());
+	//		sz.AppendNewLine();
+	//	}
+	//}
+	//sz.Dump();
+	//sz.Kill();
 }
 

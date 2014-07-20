@@ -82,7 +82,7 @@ BOOL CListenerCall::AddListener(M* pcListener)
 
 	pcCast = pcListener;
 	szName = cTemp.ClassName();
-	pcArray = mcListeners.GetWithKey(szName);
+	pcArray = mcListeners.Get(szName);
 	if (pcArray)
 	{
 		pcArray->Add(&pcCast);
@@ -109,7 +109,7 @@ void CListenerCall::CallListeners(void(M::*ListenerFunc)(CUnknown*, void*), CUnk
 	CArrayListenerPtr*	pcArray;
 
 	szName = cTemp.ClassName();
-	pcArray = mcListeners.GetWithKey(szName);
+	pcArray = mcListeners.Get(szName);
 	if (pcArray)
 	{
 		for (i = 0; i < pcArray->NumElements(); i++)

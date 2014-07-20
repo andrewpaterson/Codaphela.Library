@@ -30,11 +30,10 @@ template<class D>
 class CMapIntTemplate : public CMapTemplate<int, D>
 {
 public:
-	void	Init(int iChunkSize);
-	D*		GetWithKey(int iKey);
-	void	GetAtIndex(int iIndex, int** ppiKey, D** ppsData);
+	void	Init(CMallocator* pcMalloc, int iChunkSize);
+	D*		Get(int iKey);
 	D*		Put(int iKey);
-	void	Put(int iKey, D* psData);
+	BOOL	Put(int iKey, D* psData);
 	BOOL	Remove(int iKey);
 };
 
@@ -44,9 +43,9 @@ public:
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class D>
-void CMapIntTemplate<D>::Init(int iChunkSize)
+void CMapIntTemplate<D>::Init(CMallocator* pcMalloc, int iChunkSize)
 {
-	CMapTemplate<int, D>::Init(iChunkSize, &CompareInt);
+	CMapTemplate<int, D>::Init(pcMalloc, iChunkSize, &CompareInt);
 };
 
 
@@ -55,20 +54,9 @@ void CMapIntTemplate<D>::Init(int iChunkSize)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class D>
-D* CMapIntTemplate<D>::GetWithKey(int iKey)
+D* CMapIntTemplate<D>::Get(int iKey)
 {
-	return CMapTemplate<int, D>::GetWithKey(&iKey);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class D>
-void CMapIntTemplate<D>::GetAtIndex(int iIndex, int** ppiKey, D** ppsData)
-{
-	CMapTemplate<int, D>::GetAtIndex(iIndex, ppiKey, ppsData);
+	return CMapTemplate<int, D>::Get(&iKey);
 }
 
 
@@ -88,7 +76,7 @@ D* CMapIntTemplate<D>::Put(int iKey)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class D>
-void CMapIntTemplate<D>::Put(int iKey, D* psData)
+BOOL CMapIntTemplate<D>::Put(int iKey, D* psData)
 {
 	return CMapTemplate<int, D>::Put(&iKey, psData);
 }

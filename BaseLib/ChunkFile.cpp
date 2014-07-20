@@ -104,7 +104,7 @@ BOOL CChunkFile::ReadOpen(void)
 	int		iResult;
 
 	mcChunkStack.Init(5);
-	mmsziNames.Init(8, TRUE);
+	mmsziNames.Init(8);
 	msHeader.iChunkNamesPos = -1;
 	miLastName = CFN_Error;
 
@@ -186,7 +186,7 @@ BOOL CChunkFile::WriteChunkEnd(char* szChunkName)
 	int*	piName;
 	int		iName;
 
-	piName = mmsziNames.GetWithKey(szChunkName);
+	piName = mmsziNames.Get(szChunkName);
 	if (!piName)
 	{
 		miLastName++;
@@ -266,23 +266,9 @@ BOOL CChunkFile::WriteChunkEnd(int iChunkName)
 //////////////////////////////////////////////////////////////////////////
 BOOL CChunkFile::WriteChunkNames(void)
 {
-	int			i;
-	CChars*		psz;
-	int*		pi;
-	int			iNum;
-
 	msHeader.iChunkNamesPos = CFileBasic::GetFilePos();
 
-	iNum = mmsziNames.NumElements();
-	ReturnOnFalse(CFileIO::WriteInt(iNum));
-	for (i = 0; i < iNum; i++)
-	{
-		mmsziNames.GetAtIndex(i, &psz, &pi);
-		ReturnOnFalse(psz->WriteString(this));
-		ReturnOnFalse(WriteInt(*pi));
-	}
-	
-	return TRUE;
+	return mmsziNames.Write(this);
 }
 
 
@@ -362,7 +348,7 @@ int CChunkFile::FindFirstChunkWithName(char* szName)
 {
 	int*	piName;
 
-	piName = mmsziNames.GetWithKey(szName);
+	piName = mmsziNames.Get(szName);
 	if (piName)
 	{
 		return FindFirstChunkWithID(*piName);
@@ -546,27 +532,28 @@ BOOL CChunkFile::ReadChunkEnd(int iNumChunksToEnd)
 //////////////////////////////////////////////////////////////////////////
 BOOL CChunkFile::ReadChunkNames(void)
 {
-	int			i;
-	CChars		sz;
-	int			iVal;
-	int			iNum;
-	int			iMax;
+	int*			piVal;
+	int				iMax;
+	BOOL			bResult;
+	SMapIterator	sIter;
 
 	CFileBasic::Seek(msHeader.iChunkNamesPos);
 
-	iMax = CFN_Error;
-	ReturnOnFalse(CFileIO::ReadInt(&iNum));
-	for (i = 0; i < iNum; i++)
+	bResult = mmsziNames.Read(this);
+	if (!bResult)
 	{
-		ReturnOnFalse(sz.ReadString(this));
-		ReturnOnFalse(ReadInt(&iVal));
+		return FALSE;
+	}
 
-		mmsziNames.Put(sz.Text(), iVal);
-		sz.Kill();
-		if (iVal > iMax)
+	iMax = CFN_Error;
+	bResult = mmsziNames.StartIteration(&sIter, NULL, (void**)&piVal);
+	while(bResult)
+	{
+		if (*piVal > iMax)
 		{
-			iMax = iVal;
+			iMax = *piVal;
 		}
+		bResult = mmsziNames.Iterate(&sIter, NULL, (void**)&piVal);
 	}
 	miLastName = iMax;
 	return TRUE;

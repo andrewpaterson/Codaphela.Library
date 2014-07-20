@@ -23,62 +23,21 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __MAP_TEMPLATE_H__
 #define __MAP_TEMPLATE_H__
 #include <stdlib.h>
-#include "ArrayIntAndPointer.h"
+#include "SystemAllocator.h"
+#include "MapBlock.h"
 #include "PointerRemapper.h"
 #include "FileReader.h"
 #include "FileWriter.h"
-#include "BaseLib/SystemAllocator.h"
-
-
-template<class M>
-class __CMapTemplate
-{
-protected:
-	int(*Func)(const void*, const void*);
-	CArrayIntAndPointer		mcArray;  //Int is data size.  Not sure why it's not allocated in-front of the node (like LinkedList).
-	int						miKeySize;
-
-public:
-	void	Kill(void);
-	void	KillArray(void);
-	BOOL	Remove(M* psKey);
-	BOOL	GetWithKey(M* psKey, void** ppvData, int* piDataSize);
-	BOOL	GetAtIndex(int iIndex, M** ppsKey, void** ppsData, int* piDataSize);
-	void*	Put(M* psKey, int iDataSize);
-	void	Put(M* psKey, void* pvData, int iDataSize);
-	int		GetIndex(M* psKey);
-	void*	GetData(int iNode);
-	int		NumElements(void);
-	BOOL	ReadMapHeader(CFileReader* pcFile);
-	BOOL	WriteMapHeader(CFileWriter* pcFile);
-
-	void*	GetDataForKey(M* psKey);
-	M*		GetKeyForData(void* pvData);
-
-protected:
-	void*	Malloc(size_t tSize);
-	void*	Realloc(void* pv, size_t iMemSize);
-	void	Free(void* pv);
-
-	M*		AllocateNode(int iDataSize);
-	void	FreeNode(M* psKey);
-};
 
 
 template<class M, class D>
-class CMapTemplate : public __CMapTemplate<M>
+class CMapTemplate : public CMapBlock
 {
 public:
-	void	Init(int iChunkSize);
-	void	Init(int iChunkSize, int(* Func)(const void*, const void*));
-
-	D*		GetWithKey(M* psKey);
-	BOOL	GetAtIndex(int iIndex, M** ppsKey, D** ppsData);
+	D*		Get(M* psKey);
 
 	D*		Put(M* psKey);
-	void	Put(M* psKey, D* psData);
-
-	D*		GetDataForKey(M* psKey);
+	BOOL	Put(M* psKey, D* psData);
 };
 
 
@@ -86,361 +45,14 @@ public:
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-void* __CMapTemplate<M>::Malloc(size_t tSize)
-{
-	return malloc(tSize);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class M>
-void __CMapTemplate<M>::Free(void* pv)
-{
-	free(pv);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class M>
-void* __CMapTemplate<M>::Realloc(void* pv, size_t tSize)
-{
-	pv = realloc(pv, tSize);
-	return pv;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class M>
-void __CMapTemplate<M>::Kill(void)
-{
-	int		i;
-	M*		psKey;
-
-	for (i = 0; i < mcArray.NumElements(); i++)
-	{
-		psKey = (M*)mcArray.GetPtr(i);
-		FreeNode(psKey);
-	}
-
-	KillArray();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class M>
-void __CMapTemplate<M>::KillArray(void)
-{
-	mcArray.Kill();
-	Func = NULL;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class M>
-void* __CMapTemplate<M>::GetDataForKey(M* psKey)
-{
-	if (psKey == NULL)
-	{
-		return NULL;
-	}
-	return RemapSinglePointer(psKey, miKeySize);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class M>
-M* __CMapTemplate<M>::GetKeyForData(void* pvData)
-{
-	if (pvData == NULL)
-	{
-		return NULL;
-	}
-	return (M*)(RemapSinglePointer(pvData, -miKeySize));
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class M>
-M* __CMapTemplate<M>::AllocateNode(int iDataSize)
-{
-	return (M*)Malloc(miKeySize + iDataSize);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class M>
-void __CMapTemplate<M>::FreeNode(M* psData)
-{
-	Free(psData);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class M>
-BOOL __CMapTemplate<M>::Remove(M* psKey)
-{
-	int	iIndex;
-	M*	ps;
-
-	iIndex = GetIndex(psKey);
-	if (iIndex != -1)
-	{
-		ps = (M*)mcArray.GetPtr(iIndex);
-		FreeNode(ps);
-		mcArray.RemoveAt(iIndex, 1);
-		return TRUE;
-	}
-	else
-	{
-		return FALSE;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class M>
-BOOL __CMapTemplate<M>::GetWithKey(M* psSearch, void** ppvData, int* piDataSize)
-{
-	int		i;
-	M*		psKey;
-	BOOL	bResult;
-	int		iSize;
-
-	bResult =  mcArray.FindInSorted(psSearch, Func, &i);
-	if (!bResult)
-	{
-		return FALSE;
-	}
-	bResult = mcArray.Get(i, (void**)&psKey, &iSize);
-	*ppvData = GetDataForKey(psKey);
-	*piDataSize = iSize;
-	return TRUE;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class M>
-void* __CMapTemplate<M>::Put(M* psSearch, int iDataSize)
-{
-	M*		psKey;
-	void*	pvData;
-	int		iIndex;
-	int		iCurrentSize;
-
-	iIndex = GetIndex(psSearch);
-	if (iIndex != -1)
-	{
-		GetAtIndex(iIndex, &psKey, &pvData, &iCurrentSize);
-		if (iCurrentSize != iDataSize)
-		{
-			FreeNode(psKey);
-			psKey = AllocateNode(iDataSize);
-			mcArray.Set(iIndex, psKey, iDataSize);
-		}
-		pvData = GetDataForKey(psKey);
-		return pvData;
-	}
-	else
-	{
-		psKey = AllocateNode(iDataSize);
-		memcpy(psKey, psSearch, miKeySize);
-		mcArray.InsertIntoSorted(Func, psKey, iDataSize);
-		pvData = GetDataForKey(psKey);
-		return pvData;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class M>
-void __CMapTemplate<M>::Put(M* psSearch, void* pvData, int iDataSize)
-{
-	void*	ps;
-
-	ps = Put(psSearch, iDataSize);
-	memcpy(ps, pvData, iDataSize);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class M>
-int __CMapTemplate<M>::NumElements(void)
-{
-	return mcArray.NumElements();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class M>
-BOOL __CMapTemplate<M>::ReadMapHeader(CFileReader* pcFile)
-{
-	ReturnOnFalse(mcArray.ReadHeader(pcFile));
-	ReturnOnFalse(pcFile->ReadInt(&miKeySize));
-	return TRUE;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class M>
-BOOL __CMapTemplate<M>::WriteMapHeader(CFileWriter* pcFile)
-{
-	ReturnOnFalse(mcArray.WriteHeader(pcFile));
-	ReturnOnFalse(pcFile->WriteInt(miKeySize));
-	return TRUE;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class M>
-BOOL __CMapTemplate<M>::GetAtIndex(int iIndex, M** ppsKey, void** ppsData, int* piDataSize)
-{
-	M*		psKey;
-	void*	psData;
-	int		iSize;
-	BOOL	bResult;
-
-	bResult = mcArray.Get(iIndex, (void**)&psKey, &iSize);
-	if (!bResult)
-	{
-		return FALSE;
-	}
-
-	if (ppsKey)
-	{
-		*ppsKey = psKey;
-	}
-
-	if (ppsData)
-	{
-		psData = GetDataForKey(psKey);
-		*ppsData = psData;
-	}
-
-	if (piDataSize)
-	{
-		*piDataSize = iSize;
-	}
-
-	return TRUE;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class M>
-int __CMapTemplate<M>::GetIndex(M* psKey)
-{
-	int		iPos;
-	BOOL	bResult;
-
-	bResult = mcArray.FindInSorted(psKey, Func, &iPos);
-	if (bResult)
-	{
-		return iPos;
-	}
-	return -1;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
 template<class M, class D>
-D* CMapTemplate<M, D>::GetDataForKey(M* psKey)
-{
-	return (D*) __CMapTemplate<M>::GetDataForKey(psKey);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class M, class D>
-void CMapTemplate<M, D>::Init(int iChunkSize)
-{
-	this->mcArray.Init(iChunkSize);
-	this->Func = NULL;
-	this->miKeySize = sizeof(M);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class M, class D>
-void CMapTemplate<M, D>::Init(int iChunkSize, int(* Func)(const void*, const void*))
-{
-	Init(iChunkSize);
-	this->Func = Func;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class M, class D>
-D* CMapTemplate<M, D>::GetWithKey(M* psKey)
+D* CMapTemplate<M, D>::Get(M* psKey)
 {
 	void*	pvData;
 	int		iSize;
 	BOOL	bResult;
 
-	bResult = __CMapTemplate<M>::GetWithKey(psKey, &pvData, &iSize);
+	bResult = CMapBlock::Get(psKey, &pvData, &iSize);
 	if (bResult)
 	{
 		return (D*)pvData;
@@ -454,22 +66,9 @@ D* CMapTemplate<M, D>::GetWithKey(M* psKey)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, class D>
-BOOL CMapTemplate<M, D>::GetAtIndex(int iIndex, M** ppsKey, D** ppsData)
-{
-	int	iSize;
-
-	return __CMapTemplate<M>::GetAtIndex(iIndex, ppsKey, (void**)ppsData, &iSize);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class M, class D>
 D* CMapTemplate<M, D>::Put(M* psKey)
 {
-	return (D*)__CMapTemplate<M>::Put(psKey, sizeof(D));
+	return (D*)CMapBlock::Put(psKey, sizeof(M), sizeof(D));
 }
 
 
@@ -478,9 +77,9 @@ D* CMapTemplate<M, D>::Put(M* psKey)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, class D>
-void CMapTemplate<M, D>::Put(M* psKey, D* psData)
+BOOL CMapTemplate<M, D>::Put(M* psKey, D* psData)
 {
-	__CMapTemplate<M>::Put(psKey, (void*)psData, sizeof(D));
+	return CMapBlock::Put(psKey, sizeof(M), psData, sizeof(D));
 }
 
 

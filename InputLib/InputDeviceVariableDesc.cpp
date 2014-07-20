@@ -115,7 +115,7 @@ void CInputDeviceVariableDesc::Copy(CInputDeviceVariableDesc* pcSourceDesc, CInp
 		pcDestValue = mlcValues.Add();
 		pcContext->mmppValues.Put(pcSourceValue, pcDestValue);
 
-		pcVariableDesc = (CInputDeviceVariableDesc*)pcContext->mmppVariables.GetWithKey(pcSourceValue->GetVariableDesc());
+		pcVariableDesc = (CInputDeviceVariableDesc*)pcContext->mmppVariables.Get(pcSourceValue->GetVariableDesc());
 		pcDestValue->Init(pcSourceValue->GetName(), pcVariableDesc);
 
 		pcSourceValue = pcSourceDesc->mlcValues.Iterate(&sIter);
@@ -124,7 +124,7 @@ void CInputDeviceVariableDesc::Copy(CInputDeviceVariableDesc* pcSourceDesc, CInp
 	pcSourceValue = pcSourceDesc->mlcValues.StartIteration(&sIter);
 	while (pcSourceValue)
 	{
-		pcDestValue = (CInputDeviceVariableValueDesc*)pcContext->mmppValues.GetWithKey(pcSourceValue);
+		pcDestValue = (CInputDeviceVariableValueDesc*)pcContext->mmppValues.Get(pcSourceValue);
 
 		pcDestValue->Copy(pcSourceValue, pcContext);
 		pcSourceValue = pcSourceDesc->mlcValues.Iterate(&sIter);

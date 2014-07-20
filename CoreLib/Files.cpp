@@ -291,7 +291,7 @@ void CFiles::GetFileNames(CMapStringInt* pcFileNames)
 	pcReturn = StartIteration(&cIter);
 	while (pcReturn)
 	{
-		piValue = pcFileNames->GetWithKey(pcReturn->GetFullName());
+		piValue = pcFileNames->Get(pcReturn->GetFullName());
 		if (!piValue)
 		{
 			iRank = pcReturn->GetFileRank() << 16;

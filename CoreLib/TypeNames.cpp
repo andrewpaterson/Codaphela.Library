@@ -241,7 +241,7 @@ EPrimitiveTypes CTypeNames::GetTypeFromPrettyName(char* szPrettyName)
 {
 	int*	piType;
 
-	piType = mmsziPrettyNames.GetWithKey(szPrettyName);
+	piType = mmsziPrettyNames.Get(szPrettyName);
 	if (piType)
 	{
 		return (EPrimitiveTypes)(*piType);
@@ -258,7 +258,7 @@ EPrimitiveTypes CTypeNames::GetTypeFromCPPName(char* szCppName)
 {
 	int*	piType;
 
-	piType = mmsziCppNames.GetWithKey(szCppName);
+	piType = mmsziCppNames.Get(szCppName);
 	if (piType)
 	{
 		return (EPrimitiveTypes)(*piType);

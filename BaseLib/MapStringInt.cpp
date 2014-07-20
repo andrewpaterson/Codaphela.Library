@@ -27,9 +27,9 @@ Microsoft Windows is Copyright Microsoft Corporation
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int* CMapStringInt::GetWithKey(CChars* psKey)
+int* CMapStringInt::Get(char* szKey)
 {
-	return (CMapStringTemplate<int>::GetWithKey(psKey));
+	return (CMapStringTemplate<int>::Get(szKey));
 }
 
 
@@ -37,73 +37,8 @@ int* CMapStringInt::GetWithKey(CChars* psKey)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int* CMapStringInt::GetWithKey(char* szKey)
+BOOL CMapStringInt::Put(char* szKey, int iData)
 {
-	return (CMapStringTemplate<int>::GetWithKey(szKey));
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-BOOL CMapStringInt::GetAtIndex(int iIndex, CChars** ppsKey, int** ppiData)
-{
-	return CMapStringTemplate<int>::GetAtIndex(iIndex, ppsKey, ppiData);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void CMapStringInt::Put(CChars* psKey, int iData)
-{
-	int*	piData;
-
-	piData = CMapStringTemplate<int>::Put(psKey);
-	if (!piData)
-	{
-		piData = CMapStringTemplate<int>::GetWithKey(psKey);
-	}
-	*piData = iData;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void CMapStringInt::Put(char* szKey, int iData)
-{
-	CChars	sz;
-
-	sz.Fake(szKey);
-	Put(&sz, iData);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-CChars* CMapStringInt::GetWithValue(int iData)
-{
-	int		i;
-	int		iNum;
-	CChars*	pszKey;
-	int*	piValue;
-
-	iNum = NumElements();
-
-	for (i = 0; i < iNum; i++)
-	{
-		GetAtIndex(i, &pszKey, &piValue);
-		if (*piValue == iData)
-		{
-			return pszKey;
-		}
-	}
-	return NULL;
+	return CMapStringTemplate<int>::Put(szKey, &iData);
 }
 

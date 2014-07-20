@@ -140,7 +140,7 @@ BOOL CMapStringUnknown::Put(char* szKey, CUnknown* pcValue)
 		{
 			if (miFlags & MAP_COMMOM_OVERWRITE)
 			{
-				ppcExisting = mcMap.GetWithKey(szKey);
+				ppcExisting = mcMap.Get(szKey);
 				if (miFlags & MAP_COMMOM_KILL_ELEMENT)
 				{
 					(*ppcExisting)->Kill();
@@ -162,7 +162,7 @@ CUnknown* CMapStringUnknown::Get(char* szKey)
 {
 	CUnknown**	ppcValue;
 
-	ppcValue = mcMap.GetWithKey(szKey);
+	ppcValue = mcMap.Get(szKey);
 	if (ppcValue)
 	{
 		return *ppcValue;

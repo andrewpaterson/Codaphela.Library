@@ -28,9 +28,9 @@ Microsoft Windows is Copyright Microsoft Corporation
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CMapPtrPtr::Init(int iChunkSize)
+void CMapPtrPtr::Init(CMallocator* pcMalloc, int iChunkSize)
 {
-	CMapTemplate<void*, void*>::Init(iChunkSize, &ComparePtrPtr);
+	CMapBlock::Init(pcMalloc, iChunkSize, &ComparePtrPtr);
 };
 
 
@@ -38,11 +38,11 @@ void CMapPtrPtr::Init(int iChunkSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CMapPtrPtr::GetWithKey(void* pvKey)
+void* CMapPtrPtr::Get(void* pvKey)
 {
 	void** ppvResult;
 
-	ppvResult = (CMapTemplate<void*, void*>::GetWithKey(&pvKey));
+	ppvResult = CMapTemplate<void*, void*>::Get(&pvKey);
 	if (ppvResult)
 	{
 		return *ppvResult;
@@ -55,17 +55,7 @@ void* CMapPtrPtr::GetWithKey(void* pvKey)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CMapPtrPtr::GetAtIndex(int iIndex, void*** pppvKey, void*** pppvData)
-{
-	CMapTemplate<void*, void*>::GetAtIndex(iIndex, pppvKey, pppvData);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void CMapPtrPtr::Put(void* pvKey, void*  psData)
+BOOL CMapPtrPtr::Put(void* pvKey, void*  psData)
 {
 	return CMapTemplate<void*, void*>::Put(&pvKey, &psData);
 }

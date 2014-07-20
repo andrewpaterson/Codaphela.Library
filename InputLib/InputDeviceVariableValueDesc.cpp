@@ -66,12 +66,12 @@ void CInputDeviceVariableValueDesc::Copy(CInputDeviceVariableValueDesc* pcSource
 		pcSourceConditionDesc = (CInputDeviceVariableValueConditionDesc*)pcSource->mapcConditions.Get(i);
 		if (pcSourceConditionDesc->IsChord())
 		{
-			pcChordDesc = (CInputChordDesc*)pcContext->mmppChords.GetWithKey(((CInputDeviceVariableValueConditionChordDesc*)pcSourceConditionDesc)->mpcChordDesc);
+			pcChordDesc = (CInputChordDesc*)pcContext->mmppChords.Get(((CInputDeviceVariableValueConditionChordDesc*)pcSourceConditionDesc)->mpcChordDesc);
 			AddCondition(pcChordDesc);
 		}
 		else if (pcSourceConditionDesc->IsVariable())
 		{
-			pcValueDesc = (CInputDeviceVariableValueDesc*)pcContext->mmppValues.GetWithKey(((CInputDeviceVariableValueConditionVariableDesc*)pcSourceConditionDesc)->mpcVariableValueDesc);
+			pcValueDesc = (CInputDeviceVariableValueDesc*)pcContext->mmppValues.Get(((CInputDeviceVariableValueConditionVariableDesc*)pcSourceConditionDesc)->mpcVariableValueDesc);
 			AddCondition(pcValueDesc);
 		}
 	}

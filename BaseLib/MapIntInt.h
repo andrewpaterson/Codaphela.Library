@@ -28,7 +28,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 class CMapIntInt : public CMapIntTemplate<int>
 {
 public:
-	void	GetAtIndex(int iIndex, int** ppiKey, int** ppiData);
 	void	Put(int iKey, int iData);
 };
 

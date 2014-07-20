@@ -28,13 +28,13 @@ Microsoft Windows is Copyright Microsoft Corporation
 class CMapPtrPtr : public CMapTemplate<void*, void*>
 {
 public:
-	void	Init(int iChunkSize);
+	void	Init(CMallocator* pcMalloc, int iChunkSize);
 
-	void*	GetWithKey(void* pvKey);
-	void	GetAtIndex(int iIndex, void*** pppvKey, void*** pppvData);
+	void*	Get(void* pvKey);
 
 	void*	Put(void* pvKey);
-	void	Put(void* pvKey, void* psData);
+	BOOL	Put(void* pvKey, void* psData);
+
 	BOOL	Remove(void* pvKey);
 };
 

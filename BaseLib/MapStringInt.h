@@ -28,12 +28,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 class CMapStringInt : public CMapStringTemplate<int>
 {
 public:
-	int*	GetWithKey(CChars* psKey);
-	int*	GetWithKey(char* szKey);
-	BOOL	GetAtIndex(int iIndex, CChars** ppsKey, int** ppiData);
-	void	Put(CChars* psKey, int iData);
-	void	Put(char* szKey, int iData);
-	CChars*	GetWithValue(int iData);
+	int*	Get(char* szKey);
+	BOOL	Put(char* szKey, int iData);
 };
 
 
