@@ -53,6 +53,7 @@ void CMapBlock::Init(CMallocator* pcMalloc, int iChunkSize, int(* Func)(const vo
 	mpcMalloc = pcMalloc;
 	this->Func = Func;
 	mapArray.Init(pcMalloc, sizeof(void*), iChunkSize, iHoldingBufferSize, iHoldingBuffers, &CompareMNode);
+	mapArray.SetOverwrite(TRUE);
 	miLargestKeySize = 0;
 }
 
@@ -78,6 +79,26 @@ void CMapBlock::Kill(void)
 	mpcMalloc = NULL;
 }
 
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void* CMapBlock::Get(void* pvKey)
+{
+	void*	pvData;
+	BOOL	bFound;
+
+	bFound = Get(pvKey, &pvData, NULL);
+	if (bFound)
+	{
+		return pvData;
+	}
+	else
+	{
+		return NULL;
+	}
+}
+
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -91,6 +112,11 @@ BOOL CMapBlock::Get(void* pvKey, void** ppvData, int* piDataSize)
 	void*		pvSourceKey;
 	int			iKeySize;
 	char		ac[1024];
+
+	if (pvKey == NULL)
+	{
+		return FALSE;
+	}
 
 	if (miLargestKeySize + sizeof(SMNode) >= 1024)
 	{

@@ -41,24 +41,9 @@ void CMapStringBlock::Kill(void)
 void* CMapStringBlock::Get(char* szKey)
 {
 	void*	pvData;
-	BOOL	bResult;
 
-	if (szKey)
-	{
-		bResult = CMapBlock::Get(szKey, &pvData, NULL);
-		if (bResult)
-		{
-			return ((void*)pvData);
-		}
-		else
-		{
-			return NULL;
-		}
-	}
-	else
-	{
-		return NULL;
-	}
+	pvData = CMapBlock::Get(szKey);
+	return pvData;
 }
 
 

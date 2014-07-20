@@ -49,15 +49,9 @@ template<class M, class D>
 D* CMapTemplate<M, D>::Get(M* psKey)
 {
 	void*	pvData;
-	int		iSize;
-	BOOL	bResult;
 
-	bResult = CMapBlock::Get(psKey, &pvData, &iSize);
-	if (bResult)
-	{
-		return (D*)pvData;
-	}
-	return NULL;
+	pvData =  CMapBlock::Get(psKey);
+	return (D*)pvData;
 }
 
 
