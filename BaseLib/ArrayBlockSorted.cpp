@@ -337,14 +337,14 @@ void* CArrayBlockSorted::Get(void* pv)
 {
 	void*	pvFound;
 
-	pvFound = GetInSortedArray(pv);
+	pvFound = FindInSortedArray(pv);
 	if (pvFound)
 	{
 		return pvFound;
 	}
 	else 
 	{
-		pvFound = GetInHoldingArrays(pv);
+		pvFound = FindInHoldingArrays(pv);
 		if (pvFound)
 		{
 			return pvFound;
@@ -361,7 +361,7 @@ void* CArrayBlockSorted::Get(void* pv)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CArrayBlockSorted::GetInHoldingArrays(void* pv)
+void* CArrayBlockSorted::FindInHoldingArrays(void* pv)
 {
 	BOOL			bFound;
 	int				iIndex;
@@ -387,7 +387,7 @@ void* CArrayBlockSorted::GetInHoldingArrays(void* pv)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CArrayBlockSorted::GetInSortedArray(void* pv)
+void* CArrayBlockSorted::FindInSortedArray(void* pv)
 {
 	int		iIndex;
 	BOOL	bFound;
@@ -452,6 +452,202 @@ BOOL CArrayBlockSorted::RemoveFromSortedArray(void* pv)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void* CArrayBlockSorted::StartIteration(SArraySortedIterator* psIter)
+{
+	psIter->iArrayBlock = 0;
+	psIter->iIndex = 0;
+
+	if (NumElements() == 0)
+	{
+		return NULL;
+	}
+
+	return GetIterated(psIter);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void* CArrayBlockSorted::Iterate(SArraySortedIterator* psIter)
+{
+	CArrayBlock*	paHoldingArray;
+
+	paHoldingArray = GetArrayBlock(psIter->iArrayBlock);
+	if (paHoldingArray)
+	{
+		psIter->iIndex++;
+		for (;;)
+		{
+			if (psIter->iIndex >= paHoldingArray->NumElements())
+			{
+				psIter->iArrayBlock++;
+				psIter->iIndex = 0;
+			}
+			else
+			{
+				return GetIterated(psIter);
+			}
+
+			paHoldingArray = GetArrayBlock(psIter->iArrayBlock);
+			if (!paHoldingArray)
+			{
+				return NULL;
+			}
+		}
+	}
+	else
+	{
+		return NULL;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void* CArrayBlockSorted::GetIterated(SArraySortedIterator* psIter)
+{
+	CArrayBlock*	paHoldingArray;
+
+	paHoldingArray = GetArrayBlock(psIter->iArrayBlock);
+	if (paHoldingArray)
+	{
+		return paHoldingArray->SafeGet(psIter->iIndex);
+	}
+	else
+	{
+		return NULL;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CArrayBlockSorted::WriteHeader(CFileWriter* pcFileWriter)
+{
+	ReturnOnFalse(pcFileWriter->WriteInt(miHoldingBufferSize));
+	ReturnOnFalse(pcFileWriter->WriteInt(miChunkSize));
+	ReturnOnFalse(pcFileWriter->WriteInt(miElementSize));
+	ReturnOnFalse(pcFileWriter->WriteInt(maaHoldingArrays.NumElements()));
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CArrayBlockSorted::Write(CFileWriter* pcFileWriter)
+{
+	if (!WriteHeader(pcFileWriter))
+	{
+		return FALSE;
+	}
+
+	InsertHoldingIntoSorted();
+	return maSortedArray.Write(pcFileWriter);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CArrayBlockSorted::ReadHeader(CFileReader* pcFileReader, int(*Func)(const void*, const void*))
+{
+	CArrayBlock*	paHoldingArray;
+	int				i;
+	int				iHoldingBufferSize;
+	int				iChunkSize;
+	int				iElementSize;
+	int				iHoldingBuffers;
+
+	mpcMallocator = &gcSystemAllocator;
+	ReturnOnFalse(pcFileReader->ReadInt(&iHoldingBufferSize));
+	ReturnOnFalse(pcFileReader->ReadInt(&iChunkSize));
+	ReturnOnFalse(pcFileReader->ReadInt(&iElementSize));
+	ReturnOnFalse(pcFileReader->ReadInt(&iHoldingBuffers));
+
+	miHoldingBufferSize = iHoldingBufferSize;
+	miChunkSize = iChunkSize;
+	miElementSize = iElementSize;
+	this->Func = Func;
+
+	maaHoldingArrays.Allocate(mpcMallocator, iHoldingBuffers);
+	for (i = 0; i < iHoldingBuffers; i++)
+	{
+		paHoldingArray = maaHoldingArrays.Get(i);
+		paHoldingArray->Init(mpcMallocator, miElementSize, iHoldingBufferSize);
+	}
+
+	mapiInsertionIndices = (int*)mpcMallocator->Malloc(miHoldingBufferSize * iHoldingBuffers * sizeof(int));
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CArrayBlockSorted::Read(CFileReader* pcFileReader, int(*Func)(const void*, const void*))
+{
+	if (!ReadHeader(pcFileReader, Func))
+	{
+		return FALSE;
+	}
+
+	return maSortedArray.Read(pcFileReader);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CArrayBlock* CArrayBlockSorted::GetArrayBlock(int iIndex)
+{
+	CArrayBlock*	paHoldingArray;
+
+	if (maSortedArray.NumElements() > 0)
+	{
+		if (iIndex == 0)
+		{
+			return &maSortedArray;
+		}
+		else
+		{
+			paHoldingArray = maaHoldingArrays.SafeGet(iIndex - 1);
+			return paHoldingArray;
+		}
+	}
+	else
+	{
+		paHoldingArray = maaHoldingArrays.SafeGet(iIndex);
+		return paHoldingArray;
+	}
+}
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CArrayBlock* CArrayBlockSorted::GetSortedArray(void)
+{
+	return &maSortedArray;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 int CArrayBlockSorted::NumElements(void)
 {
 	return GetSortedSize() + GetHoldingSize();
@@ -496,5 +692,23 @@ int CArrayBlockSorted::GetHoldingSize(void)
 void* CArrayBlockSorted::GetInSorted(int iIndex)
 {
 	return maSortedArray.SafeGet(iIndex);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void* CArrayBlockSorted::GetInHolding(int iArray, int iIndex)
+{
+	CArrayBlock*	paHoldingArray;
+
+	paHoldingArray = maaHoldingArrays.SafeGet(iArray);
+	if (!paHoldingArray)
+	{
+		return NULL;
+	}
+	
+	return paHoldingArray->SafeGet(iIndex);
 }
 

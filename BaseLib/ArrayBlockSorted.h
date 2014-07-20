@@ -8,6 +8,13 @@
 typedef CArrayTemplate<CArrayBlock> CArrayArrayBlock;
 
 
+struct SArraySortedIterator
+{
+	int iArrayBlock;
+	int iIndex;
+};
+
+
 class CArrayBlockSorted 
 {
 protected:
@@ -34,24 +41,36 @@ public:
 
 	BOOL	Remove(void* pv);
 
+	void*	StartIteration(SArraySortedIterator* psIter);
+	void*	Iterate(SArraySortedIterator* psIter);
+	void*	GetIterated(SArraySortedIterator* psIter);
+
+	BOOL	WriteHeader(CFileWriter* pcFileWriter);
+	BOOL	Write(CFileWriter* pcFileWriter);
+	BOOL	ReadHeader(CFileReader* pcFileReader, int(*Func)(const void*, const void*));
+	BOOL	Read(CFileReader* pcFileReader, int(*Func)(const void*, const void*));
+
 	int		NumElements(void);
 	int		GetSortedSize(void);
 	int		GetHoldingSize(void);
 	void*	GetInSorted(int iIndex);
+	void*	GetInHolding(int iArray, int iIndex);
 
 	void	InsertHoldingIntoSorted(void);
+	CArrayBlock*	GetSortedArray(void);
 
 protected:
-	BOOL	AddIntoHoldingArrays(void* pv);
-	void	ClearHoldingArrays(void);
-	void	MergeHoldingArrays(CArrayBlock* paMergedArray);
-	void	SortMerge(CArrayBlock* paMergedArray);
-	void	InsertHoldingIntoSorted(int* paiInsertionIndices, int oldLength, CArrayBlock* paSourceArray);
-	int*	CalculateInsertionIndices(CArrayBlock* paMergedHoldingArrays);
-	void*	GetInHoldingArrays(void* pv);
-	void*	GetInSortedArray(void* pv);
-	BOOL	RemoveFromHoldingArrays(void* pv);
-	BOOL	RemoveFromSortedArray(void* pv);
+	BOOL			AddIntoHoldingArrays(void* pv);
+	void			ClearHoldingArrays(void);
+	void			MergeHoldingArrays(CArrayBlock* paMergedArray);
+	void			SortMerge(CArrayBlock* paMergedArray);
+	void			InsertHoldingIntoSorted(int* paiInsertionIndices, int oldLength, CArrayBlock* paSourceArray);
+	int*			CalculateInsertionIndices(CArrayBlock* paMergedHoldingArrays);
+	void*			FindInHoldingArrays(void* pv);
+	void*			FindInSortedArray(void* pv);
+	BOOL			RemoveFromHoldingArrays(void* pv);
+	BOOL			RemoveFromSortedArray(void* pv);
+	CArrayBlock*	GetArrayBlock(int iIndex);
 
 	//  void DribbleMerge(ArrayList<T> mergedArray)
 	//  {
