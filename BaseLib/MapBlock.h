@@ -12,6 +12,14 @@ struct SMNode
 };
 
 
+struct SMapIterator : SArraySortedIterator
+{
+};
+
+
+typedef int(*CompareFunc)(const void*, const void*);
+
+
 class CMapBlock
 {
 protected:
@@ -27,11 +35,21 @@ public:
 	void				Kill(void);
 
 	BOOL				Get(void* pvKey, void** ppvData, int* piDataSize);
+	void*				Put(void* pvKey, int iKeySize, int iDataSize);
 	BOOL				Put(void* psKey, int iKeySize, void* pvData, int iDataSize);
 	BOOL				Remove(void* pvKey);
 
 	int					NumElements(void);
 	CArrayBlockSorted*	GetArray(void);
+
+	BOOL				StartIteration(SMapIterator* psIterator, void** pvKey, void** pvData);
+	BOOL				Iterate(SMapIterator* psIterator, void** pvKey, void** pvData);
+
+	BOOL				Write(CFileWriter* pcFileWriter);
+	BOOL				Read(CFileReader* pcFileReader, int(*Func)(const void*, const void*));
+
+	void				InsertHoldingIntoSorted(void);
+	void				GetInSorted(int iIndex, void** ppvKey, void** ppvData);
 };
 
 
