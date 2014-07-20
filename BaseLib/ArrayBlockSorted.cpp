@@ -35,6 +35,7 @@ void CArrayBlockSorted::Init(CMallocator* pcMallocator, int iElementSize, int iC
 	miChunkSize = iChunkSize;
 	miElementSize = iElementSize;
 	this->Func = Func;
+	mbOverwrite = FALSE;
 
 	maSortedArray.Init(pcMallocator, iElementSize, miChunkSize);
 	maaHoldingArrays.Allocate(pcMallocator, iHoldingBuffers);
@@ -75,18 +76,21 @@ void CArrayBlockSorted::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CArrayBlockSorted::Add(void* pv)
 {
-	if (!Contains(pv))
+	BOOL bUpdateSortedArray;
+	BOOL bAdded;
+
+	if (maaHoldingArrays.NumElements() > 0)
 	{
-		BOOL updateSortedArray = AddIntoHoldingArrays(pv);
-		if (updateSortedArray)
+		bAdded = AddIntoHoldingArrays(pv, &bUpdateSortedArray);
+		if (bUpdateSortedArray)
 		{
 			InsertHoldingIntoSorted();
 		}
-		return TRUE;
+		return bAdded;
 	}
 	else
 	{
-		return FALSE;
+		return InsertIntoArrayBlock(&maSortedArray, pv);
 	}
 }
 
@@ -95,10 +99,9 @@ BOOL CArrayBlockSorted::Add(void* pv)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayBlockSorted::AddIntoHoldingArrays(void* pv)
+BOOL CArrayBlockSorted::AddIntoHoldingArrays(void* pv, BOOL* pbUpdateSortedArray)
 {
-	int				iIndex;
-	BOOL			bFound;
+	BOOL			bAdded;
 	CArrayBlock*	paHoldingArray;
 	int				i;
 
@@ -107,20 +110,58 @@ BOOL CArrayBlockSorted::AddIntoHoldingArrays(void* pv)
 		paHoldingArray = maaHoldingArrays.Get(i);
 		if (paHoldingArray->NumElements() < miHoldingBufferSize)
 		{
-			bFound = paHoldingArray->FindInSorted(pv, Func, &iIndex);
-			paHoldingArray->InsertAt(pv, iIndex);
-
-			if ((paHoldingArray->NumElements() == miHoldingBufferSize) && (i == maaHoldingArrays.NumElements() - 1))
+			bAdded = InsertIntoArrayBlock(paHoldingArray, pv);
+			if (bAdded)
 			{
+				if ((paHoldingArray->NumElements() == miHoldingBufferSize) && (i == maaHoldingArrays.NumElements() - 1))
+				{
+					*pbUpdateSortedArray = TRUE;
+				}
+				else
+				{
+					*pbUpdateSortedArray = FALSE;
+				}
 				return TRUE;
 			}
 			else
 			{
+				*pbUpdateSortedArray = FALSE;
 				return FALSE;
 			}
 		}
 	}
+
 	return FALSE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CArrayBlockSorted::InsertIntoArrayBlock(CArrayBlock* paBlock, void* pv)
+{
+	int				iIndex;
+	BOOL			bFound;
+
+	bFound = paBlock->FindInSorted(pv, Func, &iIndex);
+	if (!bFound)
+	{
+		paBlock->InsertAt(pv, iIndex);
+		return TRUE;
+	}
+	else
+	{
+		if (mbOverwrite)
+		{
+			paBlock->Set(iIndex, pv);
+			return TRUE;
+		}
+		else
+		{
+			return FALSE;
+		}
+	}
 }
 
 
@@ -534,6 +575,7 @@ BOOL CArrayBlockSorted::WriteHeader(CFileWriter* pcFileWriter)
 	ReturnOnFalse(pcFileWriter->WriteInt(miChunkSize));
 	ReturnOnFalse(pcFileWriter->WriteInt(miElementSize));
 	ReturnOnFalse(pcFileWriter->WriteInt(maaHoldingArrays.NumElements()));
+	ReturnOnFalse(pcFileWriter->WriteBool(mbOverwrite));
 	return TRUE;
 }
 
@@ -566,17 +608,20 @@ BOOL CArrayBlockSorted::ReadHeader(CFileReader* pcFileReader, int(*Func)(const v
 	int				iChunkSize;
 	int				iElementSize;
 	int				iHoldingBuffers;
+	BOOL			bOverwrite;
 
 	mpcMallocator = &gcSystemAllocator;
 	ReturnOnFalse(pcFileReader->ReadInt(&iHoldingBufferSize));
 	ReturnOnFalse(pcFileReader->ReadInt(&iChunkSize));
 	ReturnOnFalse(pcFileReader->ReadInt(&iElementSize));
 	ReturnOnFalse(pcFileReader->ReadInt(&iHoldingBuffers));
+	ReturnOnFalse(pcFileReader->ReadBool(&bOverwrite));
 
 	miHoldingBufferSize = iHoldingBufferSize;
 	miChunkSize = iChunkSize;
 	miElementSize = iElementSize;
 	this->Func = Func;
+	mbOverwrite = bOverwrite;
 
 	maaHoldingArrays.Allocate(mpcMallocator, iHoldingBuffers);
 	for (i = 0; i < iHoldingBuffers; i++)
@@ -602,6 +647,16 @@ BOOL CArrayBlockSorted::Read(CFileReader* pcFileReader, int(*Func)(const void*, 
 	}
 
 	return maSortedArray.Read(pcFileReader);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CArrayBlockSorted::SetOverwrite(BOOL bOverwrite)
+{
+	mbOverwrite = bOverwrite;
 }
 
 

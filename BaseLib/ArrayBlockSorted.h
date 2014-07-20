@@ -20,12 +20,14 @@ class CArrayBlockSorted
 protected:
 	CArrayBlock			maSortedArray;
 	CArrayArrayBlock	maaHoldingArrays;
-	int					miHoldingBufferSize;
-	int					miChunkSize;
-	int					miElementSize;
 	CMallocator*		mpcMallocator;
 	int					(*Func)(const void*, const void*);
 	int*				mapiInsertionIndices;
+
+	int					miElementSize;
+	int					miChunkSize;
+	int					miHoldingBufferSize;
+	BOOL				mbOverwrite;
 
 public:
 	void	Init(int iElementSize, int(*Func)(const void*, const void*));
@@ -50,6 +52,8 @@ public:
 	BOOL	ReadHeader(CFileReader* pcFileReader, int(*Func)(const void*, const void*));
 	BOOL	Read(CFileReader* pcFileReader, int(*Func)(const void*, const void*));
 
+	void	SetOverwrite(BOOL bOverwrite);
+
 	int		NumElements(void);
 	int		GetSortedSize(void);
 	int		GetHoldingSize(void);
@@ -60,7 +64,7 @@ public:
 	CArrayBlock*	GetSortedArray(void);
 
 protected:
-	BOOL			AddIntoHoldingArrays(void* pv);
+	BOOL			AddIntoHoldingArrays(void* pv, BOOL* pbUpdateSortedArray);
 	void			ClearHoldingArrays(void);
 	void			MergeHoldingArrays(CArrayBlock* paMergedArray);
 	void			SortMerge(CArrayBlock* paMergedArray);
@@ -71,6 +75,7 @@ protected:
 	BOOL			RemoveFromHoldingArrays(void* pv);
 	BOOL			RemoveFromSortedArray(void* pv);
 	CArrayBlock*	GetArrayBlock(int iIndex);
+	BOOL			InsertIntoArrayBlock(CArrayBlock* paBlock, void* pv);
 
 	//  void DribbleMerge(ArrayList<T> mergedArray)
 	//  {
