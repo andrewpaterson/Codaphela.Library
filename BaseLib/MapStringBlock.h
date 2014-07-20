@@ -32,22 +32,24 @@ Microsoft Windows is Copyright Microsoft Corporation
 class CMapStringBlock : public CMapBlock
 {
 public:
-	void	Init(int iChunkSize, BOOL bCaseSensitive = TRUE);
-	void	Init(CMallocator* pcMallocator, int iChunkSize, BOOL bCaseSensitive = TRUE);
-	void	Kill(void);
+	void		Init(int iChunkSize, BOOL bCaseSensitive = TRUE);
+	void		Init(CMallocator* pcMallocator, int iChunkSize, BOOL bCaseSensitive = TRUE);
+	void		Kill(void);
 
-	void*	Get(char* szKey);
+	void*		Get(char* szKey);
 
-	void*	Put(char* szKey, int iDataSize);
-	BOOL	Put(char* szKey, void* psData, int iDataSize);
+	void*		Put(char* szKey, int iDataSize);
+	BOOL		Put(char* szKey, void* psData, int iDataSize);
 
-	BOOL	Remove(char* szKey);
+	BOOL		Remove(char* szKey);
 
-	BOOL	Write(CFileWriter* pcFileWriter);
-	BOOL	Read(CFileReader* pcFileReader);
+	BOOL		WriteCaseSensitivity(CFileWriter* pcFileWriter);
+	BOOL		Write(CFileWriter* pcFileWriter);
+	CompareFunc	ReadCaseSensitivity(CFileReader* pcFileReader);
+	BOOL		Read(CFileReader* pcFileReader);
 
-	BOOL	IsCaseSensitive(void);
-	void	SetCaseSensitive(BOOL bCaseSensitive);
+	BOOL		IsCaseSensitive(void);
+	void		SetCaseSensitive(BOOL bCaseSensitive);
 
 protected:
 	CompareFunc	CalculateCompareFunc(BOOL bCaseSensitive);

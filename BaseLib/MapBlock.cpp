@@ -187,25 +187,13 @@ void* CMapBlock::Put(void* pvKey, int iKeySize, int iDataSize)
 	void*		pvDestData;
 	BOOL		bResult;
 
-	psNode = (SMNode*)mpcMalloc->Malloc(sizeof(SMNode) + iKeySize + iDataSize);
-	pvDestKey = RemapSinglePointer(psNode, sizeof(SMNode));
-	pvDestData = RemapSinglePointer(pvDestKey, iKeySize);
-
-	if (psNode == NULL)
+	psNode = AllocateNode(iKeySize, iDataSize, &pvDestKey, &pvDestData);
+	if (!psNode)
 	{
 		return NULL;
 	}
 
-	psNode->iDataSize = iDataSize;
-	psNode->iKeySize = iKeySize;
-	psNode->pcMapBlock = this;
-
 	memcpy(pvDestKey, pvKey, iKeySize);
-
-	if (miLargestKeySize < iKeySize)
-	{
-		miLargestKeySize = iKeySize;
-	}
 
 	bResult = mapArray.Add(&psNode);
 	if (bResult)
@@ -335,14 +323,8 @@ BOOL CMapBlock::Iterate(SMapIterator* psIterator, void** ppvKey, void** ppvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMapBlock::Write(CFileWriter* pcFileWriter)
+BOOL CMapBlock::WriteExceptData(CFileWriter* pcFileWriter)
 {
-	int			iNumElements;
-	int			i;
-	SMNode*		psNode;
-	void*		pvKey;
-	void*		pvData;
-
 	InsertHoldingIntoSorted();
 
 	if (!mapArray.WriteHeader(pcFileWriter))
@@ -354,19 +336,6 @@ BOOL CMapBlock::Write(CFileWriter* pcFileWriter)
 	{
 		return FALSE;
 	}
-
-	iNumElements = mapArray.GetSortedSize();
-	for (i = 0; i < iNumElements; i++)
-	{
-		psNode = *((SMNode**)mapArray.GetInSorted(i));
-		pvKey = RemapSinglePointer(psNode, sizeof(SMNode));
-		pvData = RemapSinglePointer(pvKey, psNode->iKeySize);
-
-		ReturnOnFalse(pcFileWriter->WriteInt(psNode->iKeySize));
-		ReturnOnFalse(pcFileWriter->WriteInt(psNode->iDataSize));
-		ReturnOnFalse(pcFileWriter->WriteData(pvKey, psNode->iKeySize));
-		ReturnOnFalse(pcFileWriter->WriteData(pvData, psNode->iDataSize));
-	}
 	return TRUE;
 }
 
@@ -375,17 +344,8 @@ BOOL CMapBlock::Write(CFileWriter* pcFileWriter)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMapBlock::Read(CFileReader* pcFileReader, int(*Func)(const void*, const void*))
+BOOL CMapBlock::ReadExceptData(CFileReader* pcFileReader, int(*Func)(const void*, const void*))
 {
-	int			i;
-	SMNode*		psNode;
-	SMNode**	ppsNode;
-	int			iNumElements;
-	void*		pvKey;
-	void*		pvData;
-	int			iKeySize;
-	int			iDataSize;
-
 	if (!mapArray.ReadHeader(pcFileReader, &CompareMNode))
 	{
 		return FALSE;
@@ -398,34 +358,201 @@ BOOL CMapBlock::Read(CFileReader* pcFileReader, int(*Func)(const void*, const vo
 
 	mpcMalloc = &gcSystemAllocator;
 	this->Func = Func;
-	
-	iNumElements = mapArray.GetSortedSize();
 	miLargestKeySize = 0;
+
+	return TRUE;
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void* CMapBlock::WriteKey(CFileWriter* pcFileWriter, int iIndex, int* piDataSize)
+{
+	void*		pvKey;
+	void*		pvData;
+	SMNode*		psNode;
+
+	psNode = *((SMNode**)mapArray.GetInSorted(iIndex));
+	RemapKeyAndData(psNode, &pvKey, &pvData);
+
+	if (!pcFileWriter->WriteInt(psNode->iKeySize))
+	{
+		return NULL;
+	}
+	if (!pcFileWriter->WriteInt(psNode->iDataSize))
+	{
+		return NULL;
+	}
+	if (!pcFileWriter->WriteData(pvKey, psNode->iKeySize))
+	{
+		return NULL;
+	}
+
+	*piDataSize = psNode->iDataSize;
+	return pvData;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void* CMapBlock::ReadKey(CFileReader* pcFileReader, int iIndex, int* piDataSize)
+{
+	SMNode*		psNode;
+	SMNode**	ppsNode;
+	void*		pvKey;
+	void*		pvData;
+	int			iKeySize;
+	int			iDataSize;
+
+	if (!pcFileReader->ReadInt(&iKeySize))
+	{
+		return NULL;
+	}
+	if (!pcFileReader->ReadInt(&iDataSize))
+	{
+		return NULL;
+	}
+	psNode = AllocateNode(iKeySize, iDataSize, &pvKey, &pvData);
+	if (!psNode)
+	{
+		return NULL;
+	}
+	ppsNode = (SMNode**)mapArray.GetInSorted(iIndex);
+	*ppsNode = psNode;
+
+	if (!pcFileReader->ReadData(pvKey, psNode->iKeySize))
+	{
+		return NULL;
+	}
+
+	*piDataSize = iDataSize;
+	return pvData;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CMapBlock::Write(CFileWriter* pcFileWriter)
+{
+	int			iNumElements;
+	int			i;
+	void*		pvData;
+	int			iDataSize;
+
+	if (!WriteExceptData(pcFileWriter))
+	{
+		return FALSE;
+	}
+
+	iNumElements = mapArray.GetSortedSize();
 	for (i = 0; i < iNumElements; i++)
 	{
-		ReturnOnFalse(pcFileReader->ReadInt(&iKeySize));
-		ReturnOnFalse(pcFileReader->ReadInt(&iDataSize));
-
-		psNode = (SMNode*)mpcMalloc->Malloc(sizeof(SMNode) + iKeySize + iDataSize);
-		psNode->iKeySize = iKeySize;
-		psNode->iDataSize = iDataSize;
-		psNode->pcMapBlock = this;
-
-		pvKey = RemapSinglePointer(psNode, sizeof(SMNode));
-		pvData = RemapSinglePointer(pvKey, psNode->iKeySize);
-
-		ReturnOnFalse(pcFileReader->ReadData(pvKey, psNode->iKeySize));
-		ReturnOnFalse(pcFileReader->ReadData(pvData, psNode->iDataSize));
-
-		if (psNode->iKeySize > miLargestKeySize)
+		pvData = WriteKey(pcFileWriter, i, &iDataSize);
+		if (!pvData)
 		{
-			miLargestKeySize = psNode->iKeySize;
+			return FALSE;
 		}
-
-		ppsNode = (SMNode**)mapArray.GetInSorted(i);
-		*ppsNode = psNode;
+		if (!pcFileWriter->WriteData(pvData, iDataSize))
+		{
+			return FALSE;
+		}
 	}
 	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CMapBlock::Read(CFileReader* pcFileReader, int(*Func)(const void*, const void*))
+{
+	int			i;
+	int			iNumElements;
+	void*		pvData;
+	int			iDataSize;
+
+	if (Func == NULL)
+	{
+		return FALSE;
+	}
+
+	if (!ReadExceptData(pcFileReader, Func))
+	{
+		return FALSE;
+	}
+	
+	iNumElements = mapArray.GetSortedSize();
+	for (i = 0; i < iNumElements; i++)
+	{
+		pvData = ReadKey(pcFileReader, i, &iDataSize);
+		if (!pvData)
+		{
+			return FALSE;
+		}
+		ReturnOnFalse(pcFileReader->ReadData(pvData, iDataSize));
+	}
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+SMNode* CMapBlock::AllocateNode(int iKeySize, int iDataSize, void** ppvKey, void** ppvData)
+{
+	SMNode*	psNode;
+
+	psNode = AllocateNode(iKeySize, iDataSize);
+	if (!psNode)
+	{
+		return NULL;
+	}
+	RemapKeyAndData(psNode, ppvKey, ppvData);
+	if (psNode->iKeySize > miLargestKeySize)
+	{
+		miLargestKeySize = psNode->iKeySize;
+	}
+	return psNode;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+SMNode* CMapBlock::AllocateNode(int iKeySize, int iDataSize)
+{
+	SMNode*	psNode;
+
+	psNode = (SMNode*)mpcMalloc->Malloc(sizeof(SMNode) + iKeySize + iDataSize);
+	if (!psNode)
+	{
+		return NULL;
+	}
+
+	psNode->iKeySize = iKeySize;
+	psNode->iDataSize = iDataSize;
+	psNode->pcMapBlock = this;
+
+	return psNode;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMapBlock::RemapKeyAndData(SMNode* psNode, void** ppvKey, void** ppvData)
+{
+	*ppvKey = RemapSinglePointer(psNode, sizeof(SMNode));
+	*ppvData = RemapSinglePointer(*ppvKey, psNode->iKeySize);
 }
 
 

@@ -39,18 +39,21 @@ void CMapStringUnknown::Init(BOOL bKillElements, BOOL bOverwriteExisting, int iC
 //////////////////////////////////////////////////////////////////////////
 void CMapStringUnknown::Kill(void)
 {
-	int				i;
 	CUnknown**		ppcUnknown;
+	SMapIterator	sIter;
+	char*			szKey;
+	BOOL			bResult;
 
 	if (miFlags & MAP_COMMOM_KILL_ELEMENT)
 	{
-		for (i = 0; i < mcMap.NumElements(); i++)
+		bResult = mcMap.StartIteration(&sIter, (void**)&szKey, (void**)&ppcUnknown);
+		while (bResult)
 		{
-			ppcUnknown = mcMap.GetAtIndex(i);
 			if (ppcUnknown)
 			{
 				(*ppcUnknown)->Kill();
 			}
+			bResult = mcMap.Iterate(&sIter, (void**)&szKey, (void**)&ppcUnknown);
 		}
 	}
 	
@@ -63,25 +66,29 @@ void CMapStringUnknown::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMapStringUnknown::Save(CFileWriter* pcFile)
+BOOL CMapStringUnknown::Save(CFileWriter* pcFileWriter)
 {
 	int			i;
-	CChars*		psz;
 	CUnknown**	ppcUnknown;
-	BOOL		bCaseSensitive;
+	int			iNumElements;
+	void*		pvData;
+	int			iDataSize;
 
-	bCaseSensitive = mcMap.IsCaseSensitive();
+	ReturnOnFalse(pcFileWriter->WriteInt(miFlags));
+	ReturnOnFalse(mcMap.WriteCaseSensitivity(pcFileWriter));
+	ReturnOnFalse(mcMap.WriteExceptData(pcFileWriter));
 
-	ReturnOnFalse(mcMap.WriteMapHeader(pcFile));
-	ReturnOnFalse(pcFile->WriteInt(miFlags));
-	ReturnOnFalse(pcFile->WriteBool(bCaseSensitive));
-
-	for (i = 0; i < mcMap.NumElements(); i++)
+	iNumElements = mcMap.NumElements();
+	for (i = 0; i < iNumElements; i++)
 	{
-		mcMap.GetAtIndex(i, &psz, &ppcUnknown);
-		ReturnOnFalse(psz->WriteString(pcFile));
-		ReturnOnFalse((*ppcUnknown)->SaveHeader(pcFile));
-		ReturnOnFalse((*ppcUnknown)->Save(pcFile));
+		pvData = mcMap.WriteKey(pcFileWriter, i, &iDataSize);
+		if (!pvData)
+		{
+			return FALSE;
+		}
+		ppcUnknown = (CUnknown**)pvData;
+		ReturnOnFalse((*ppcUnknown)->SaveHeader(pcFileWriter));
+		ReturnOnFalse((*ppcUnknown)->Save(pcFileWriter));
 	}
 	return TRUE;
 }
@@ -91,28 +98,38 @@ BOOL CMapStringUnknown::Save(CFileWriter* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMapStringUnknown::Load(CFileReader* pcFile)
+BOOL CMapStringUnknown::Load(CFileReader* pcFileReader)
 {
 	int				i;
 	CUnknown**		ppcUnknown;
-	BOOL			bCaseSensitive;
 	CUnknown*		pcUnknown;
+	int				iNumElements;
+	void*			pvData;
+	int				iDataSize;
+	CompareFunc		CaseFunc;
 
-	ReturnOnFalse(mcMap.ReadMapHeader(pcFile));
-	ReturnOnFalse(pcFile->ReadInt(&miFlags));
-	ReturnOnFalse(pcFile->ReadBool(&bCaseSensitive));
-	
-	mcMap.SetCaseSensitive(bCaseSensitive);
-
-	for (i = 0; i < mcMap.NumElements(); i++)
+	ReturnOnFalse(pcFileReader->ReadInt(&miFlags));
+	CaseFunc = mcMap.ReadCaseSensitivity(pcFileReader);
+	if (!mcMap.ReadExceptData(pcFileReader, CaseFunc))
 	{
-		ppcUnknown = mcMap.LoadNode(pcFile, i);
-		pcUnknown = gcUnknowns.AddFromHeader(pcFile);
+		return FALSE;
+	}
+
+	iNumElements = mcMap.NumElements();
+	for (i = 0; i < iNumElements; i++)
+	{
+		pvData = mcMap.ReadKey(pcFileReader, i, &iDataSize);
+		if (!pvData)
+		{
+			return FALSE;
+		}
+		ppcUnknown = (CUnknown**)pvData;
+		pcUnknown = gcUnknowns.AddFromHeader(pcFileReader);
 		if (!pcUnknown)
 		{
 			return FALSE;
 		}
-		ReturnOnFalse(pcUnknown->Load(pcFile));
+		ReturnOnFalse(pcUnknown->Load(pcFileReader));
 		*ppcUnknown = pcUnknown;
 	}
 	return TRUE;

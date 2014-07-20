@@ -54,7 +54,7 @@ D* CMapStringTemplate<D>::Get(char* szKey)
 template<class D>
 D* CMapStringTemplate<D>::Put(char* szKey)
 {
-	return CMapStringBlock::Put(szKey, sizeof(D));
+	return (D*)CMapStringBlock::Put(szKey, sizeof(D));
 }
 
 

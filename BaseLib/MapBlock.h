@@ -46,11 +46,20 @@ public:
 	BOOL				StartIteration(SMapIterator* psIterator, void** pvKey, void** pvData);
 	BOOL				Iterate(SMapIterator* psIterator, void** pvKey, void** pvData);
 
+	BOOL				WriteExceptData(CFileWriter* pcFileWriter);
+	BOOL				ReadExceptData(CFileReader* pcFileReader, int(*Func)(const void*, const void*));
+	void*				WriteKey(CFileWriter* pcFileWriter, int iIndex, int* piDataSize);
+	void*				ReadKey(CFileReader* pcFileReader, int iIndex, int* piDataSize);
 	BOOL				Write(CFileWriter* pcFileWriter);
 	BOOL				Read(CFileReader* pcFileReader, int(*Func)(const void*, const void*));
 
 	void				InsertHoldingIntoSorted(void);
 	void				GetInSorted(int iIndex, void** ppvKey, void** ppvData);
+	SMNode*				AllocateNode(int iKeySize, int iDataSize, void** ppvKey, void** ppvData);
+
+protected:
+	SMNode*				AllocateNode(int iKeySize, int iDataSize);
+	void				RemapKeyAndData(SMNode* psNode, void** ppvKey, void** ppvData);
 };
 
 

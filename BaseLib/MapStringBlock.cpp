@@ -104,19 +104,45 @@ BOOL CMapStringBlock::Remove(char* szKey)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CMapStringBlock::Write(CFileWriter* pcFileWriter)
+BOOL CMapStringBlock::WriteCaseSensitivity(CFileWriter* pcFileWriter)
 {
-	BOOL	bResult;
 	BOOL	bCaseSensitive;
 
 	bCaseSensitive = IsCaseSensitive();
-	if (!pcFileWriter->WriteBool(bCaseSensitive))
+	return pcFileWriter->WriteBool(bCaseSensitive);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+BOOL CMapStringBlock::Write(CFileWriter* pcFileWriter)
+{
+	BOOL	bResult;
+
+	bResult = WriteCaseSensitivity(pcFileWriter);
+	bResult &= CMapBlock::Write(pcFileWriter);
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+CompareFunc CMapStringBlock::ReadCaseSensitivity(CFileReader* pcFileReader)
+{
+	BOOL			bCaseSensitive;
+	CompareFunc		CaseFunc;
+
+	if (!pcFileReader->ReadBool(&bCaseSensitive))
 	{
-		return FALSE;
+		return NULL;
 	}
 
-	bResult = CMapBlock::Write(pcFileWriter);
-	return bResult;
+	CaseFunc = CalculateCompareFunc(bCaseSensitive);
+	return CaseFunc;
 }
 
 
@@ -126,16 +152,10 @@ BOOL CMapStringBlock::Write(CFileWriter* pcFileWriter)
 //////////////////////////////////////////////////////////////////////////
 BOOL CMapStringBlock::Read(CFileReader* pcFileReader)
 {
-	BOOL			bCaseSensitive;
 	CompareFunc		CaseFunc;
 	BOOL			bResult;
 
-	if (!pcFileReader->ReadBool(&bCaseSensitive))
-	{
-		return FALSE;
-	}
-
-	CaseFunc = CalculateCompareFunc(bCaseSensitive);
+	CaseFunc = ReadCaseSensitivity(pcFileReader);
 	bResult = CMapBlock::Read(pcFileReader, CaseFunc);
 	return bResult;
 }
