@@ -282,7 +282,7 @@ void CChars::Fake(char* sz)
 {
 	if (sz)
 	{
-		mcText.Fake(sz, (int)strlen(sz)+1);
+		mcText.Fake(sz, (int)strlen(sz) + 1);
 	}
 	else
 	{

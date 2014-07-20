@@ -119,6 +119,7 @@
     <ClInclude Include="LogString.h" />
     <ClInclude Include="Mallocator.h" />
     <ClInclude Include="MapBlock.h" />
+    <ClInclude Include="MapStringBlock.h" />
     <ClInclude Include="MemoryAllocator.h" />
     <ClInclude Include="Mallocators.h" />
     <ClInclude Include="MemoryBlock.h" />
@@ -260,6 +261,7 @@
     <ClCompile Include="LinkedListBlock.cpp" />
     <ClCompile Include="LogString.cpp" />
     <ClCompile Include="MapBlock.cpp" />
+    <ClCompile Include="MapStringBlock.cpp" />
     <ClCompile Include="MemoryAllocator.cpp" />
     <ClCompile Include="Mallocators.cpp" />
     <ClCompile Include="MemoryBlock.cpp" />

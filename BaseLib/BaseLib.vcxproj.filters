@@ -639,6 +639,9 @@
     <ClInclude Include="MapStringString.h">
       <Filter>Source\Data\Map\String</Filter>
     </ClInclude>
+    <ClInclude Include="MapStringBlock.h">
+      <Filter>Source\Data\Map\String</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -1000,6 +1003,9 @@
     </ClCompile>
     <ClCompile Include="MapBlock.cpp">
       <Filter>Source\Data\Map</Filter>
+    </ClCompile>
+    <ClCompile Include="MapStringBlock.cpp">
+      <Filter>Source\Data\Map\String</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
