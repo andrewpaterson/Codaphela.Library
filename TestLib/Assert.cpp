@@ -663,6 +663,16 @@ BOOL PrivateAssertMD5(unsigned char* pucExpected, unsigned char* pucActual, int 
 	char szExpected[33];
 	char szActual[33];
 
+	if ((pucActual == NULL) && (pucExpected == NULL))
+	{
+		return Pass();
+	}
+	else if (pucActual == NULL)
+	{
+		ToMD5String(pucExpected, szExpected);
+		return Fail(szExpected, "** NULL **", iLine, szFile);
+	}
+
 	if (memcmp(pucExpected, pucActual, 16) != 0)
 	{
 		ToMD5String(pucExpected, szExpected);
