@@ -35,9 +35,10 @@ typedef void (CListener::*ListenerFunc)(CUnknown*, void*);
 
 class CListenerCall
 {
-public:
+protected:
 	CMapStringTemplate<CArrayListenerPtr>	mcListeners;
 
+public:
 	void			Init(void);
 	void			Kill(void);
 
