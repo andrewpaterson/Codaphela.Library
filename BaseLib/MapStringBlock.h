@@ -32,8 +32,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 class CMapStringBlock : public CMapBlock
 {
 public:
-	void		Init(int iChunkSize, BOOL bCaseSensitive = TRUE);
-	void		Init(CMallocator* pcMallocator, int iChunkSize, BOOL bCaseSensitive = TRUE);
+	void		Init(int iChunkSize, BOOL bCaseSensitive = TRUE, BOOL bOverwrite = TRUE);
+	void		Init(CMallocator* pcMallocator, int iChunkSize, BOOL bCaseSensitive = TRUE, BOOL bOverwrite = TRUE);
 	void		Kill(void);
 
 	void*		Get(char* szKey);

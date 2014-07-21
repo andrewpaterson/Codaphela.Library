@@ -42,3 +42,27 @@ BOOL CMapStringInt::Put(char* szKey, int iData)
 	return CMapStringTemplate<int>::Put(szKey, &iData);
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+char* CMapStringInt::GetWithValue(int iData)
+{
+	SMapIterator	sIter;
+	char*			szKey;
+	int*			piData;
+	BOOL			bResult;
+
+	bResult = StartIteration(&sIter, (void**)&szKey, (void**)&piData);
+	while (bResult)
+	{
+		if (*piData == iData)
+		{
+			return szKey;
+		}
+		bResult = Iterate(&sIter, (void**)&szKey, (void**)&piData);
+	}
+	return NULL;
+}
+

@@ -301,8 +301,9 @@ char* CChunkFileNames::StartNameIteration(SChunkFileNameIterator* psIter)
 char* CChunkFileNames::IterateName(SChunkFileNameIterator* psIter)
 {
 	int		iNumChunks;
-	CChars*	pszName;
+	char*	szName;
 	int*	piIndex;
+	int		iLength;
 
 	if (psIter->bDone)
 	{
@@ -318,10 +319,11 @@ char* CChunkFileNames::IterateName(SChunkFileNameIterator* psIter)
 		psIter->aiIndex.Pop();
 
 		piIndex = psIter->aiIndex.Tail();
-		pszName = PrivateGetChunkName(*piIndex);
+		szName = PrivateGetChunkName(*piIndex);
+		iLength = strlen(szName);
 		psIter->szValue.Kill();
 		psIter->szValue.Init(psIter->szFullName.Text(), 1);
-		psIter->szFullName.RemoveFromEnd(1+pszName->Length());
+		psIter->szFullName.RemoveFromEnd(1 + iLength);
 		(*piIndex)++;
 		return psIter->szValue.Text();
 	}
@@ -340,20 +342,21 @@ char* CChunkFileNames::IterateName(SChunkFileNameIterator* psIter)
 		}
 
 		piIndex = psIter->aiIndex.Tail();
-		pszName = PrivateGetChunkName(*piIndex);
-		psIter->szFullName.RemoveFromEnd(1+pszName->Length());
+		szName = PrivateGetChunkName(*piIndex);
+		iLength = strlen(szName);
+		psIter->szFullName.RemoveFromEnd(1 + iLength);
 		(*piIndex)++;
 		return IterateName(psIter);
 	}
 
-	pszName = PrivateGetChunkName(*piIndex);
-	if (pszName == NULL)
+	szName = PrivateGetChunkName(*piIndex);
+	if (szName == NULL)
 	{
 		return FALSE;
 	}
 
 	psIter->szFullName.Append('/');
-	psIter->szFullName.Append(pszName);
+	psIter->szFullName.Append(szName);
 
 	CChunkFile::ReadChunkBegin(*piIndex);
 	psIter->aiIndex.Add(0);
@@ -365,7 +368,7 @@ char* CChunkFileNames::IterateName(SChunkFileNameIterator* psIter)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CChars* CChunkFileNames::PrivateGetChunkName(int iIndex)
+char* CChunkFileNames::PrivateGetChunkName(int iIndex)
 {
 	int	iName;
 

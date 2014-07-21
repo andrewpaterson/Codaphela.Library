@@ -5,9 +5,9 @@
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CMapStringBlock::Init(int iChunkSize, BOOL bCaseSensitive)
+void CMapStringBlock::Init(int iChunkSize, BOOL bCaseSensitive, BOOL bOverwrite)
 {
-	Init(&gcSystemAllocator, iChunkSize, bCaseSensitive);
+	Init(&gcSystemAllocator, iChunkSize, bCaseSensitive, bOverwrite);
 }
 
 
@@ -15,12 +15,12 @@ void CMapStringBlock::Init(int iChunkSize, BOOL bCaseSensitive)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CMapStringBlock::Init(CMallocator* pcMallocator, int iChunkSize, BOOL bCaseSensitive)
+void CMapStringBlock::Init(CMallocator* pcMallocator, int iChunkSize, BOOL bCaseSensitive, BOOL bOverwrite)
 {
 	CompareFunc	CaseFunc;
 
 	CaseFunc = CalculateCompareFunc(bCaseSensitive);
-	CMapBlock::Init(pcMallocator, iChunkSize, CaseFunc);
+	CMapBlock::Init(pcMallocator, iChunkSize, CaseFunc, bOverwrite);
 }
 
 

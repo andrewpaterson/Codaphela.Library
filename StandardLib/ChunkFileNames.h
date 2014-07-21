@@ -46,7 +46,7 @@ protected:
 	BOOL	WriteUnmatchedChunkEnds(int iMatchingOpen);
 	BOOL	WriteNewUnmatchedChunks(int iMatchingOpen, CArrayString* paszChunkNames);
 
-	CChars*	PrivateGetChunkName(int iIndex);
+	char*	PrivateGetChunkName(int iIndex);
 };
 
 

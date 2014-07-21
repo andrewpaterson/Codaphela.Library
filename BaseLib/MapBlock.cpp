@@ -29,7 +29,7 @@ int CompareMNode(const void* arg1, const void* arg2)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMapBlock::Init(CMallocator* pcMalloc, int iChunkSize, int(* Func)(const void*, const void*))
+void CMapBlock::Init(CMallocator* pcMalloc, int iChunkSize, int(* Func)(const void*, const void*), BOOL bOverwrite)
 {
 	int		iHoldingBufferSize;
 	int		iHoldingBuffers;
@@ -53,7 +53,7 @@ void CMapBlock::Init(CMallocator* pcMalloc, int iChunkSize, int(* Func)(const vo
 	mpcMalloc = pcMalloc;
 	this->Func = Func;
 	mapArray.Init(pcMalloc, sizeof(void*), iChunkSize, iHoldingBufferSize, iHoldingBuffers, &CompareMNode);
-	mapArray.SetOverwrite(TRUE);
+	mapArray.SetOverwrite(bOverwrite);
 	miLargestKeySize = 0;
 }
 

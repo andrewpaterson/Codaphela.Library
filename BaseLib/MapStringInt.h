@@ -30,6 +30,8 @@ class CMapStringInt : public CMapStringTemplate<int>
 public:
 	int*	Get(char* szKey);
 	BOOL	Put(char* szKey, int iData);
+
+	char*	GetWithValue(int iData);
 };
 
 

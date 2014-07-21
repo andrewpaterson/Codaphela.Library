@@ -31,7 +31,7 @@ public:
 	int					(*Func)(const void*, const void*);
 
 public:
-	void				Init(CMallocator* pcMalloc, int iChunkSize, int(*Func)(const void*, const void*));
+	void				Init(CMallocator* pcMalloc, int iChunkSize, int(*Func)(const void*, const void*), BOOL bOverwrite);
 	void				Kill(void);
 
 	BOOL				Get(void* pvKey, void** ppvData, int* piDataSize);

@@ -29,7 +29,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 void CMapStringUnknown::Init(BOOL bKillElements, BOOL bOverwriteExisting, int iChunkSize)
 {
 	CMapCommon::Init(bKillElements, bOverwriteExisting);
-	mcMap.Init(iChunkSize, TRUE);
+	mcMap.Init(iChunkSize, TRUE, FALSE);
 }
 
 

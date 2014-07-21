@@ -30,7 +30,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //////////////////////////////////////////////////////////////////////////
 void CMapPtrPtr::Init(CMallocator* pcMalloc, int iChunkSize)
 {
-	CMapBlock::Init(pcMalloc, iChunkSize, &ComparePtrPtr);
+	CMapBlock::Init(pcMalloc, iChunkSize, &ComparePtrPtr, TRUE);
 };
 
 
