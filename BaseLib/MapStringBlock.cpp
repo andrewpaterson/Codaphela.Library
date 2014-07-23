@@ -51,6 +51,27 @@ void* CMapStringBlock::Get(char* szKey)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
+void* CMapStringBlock::Get(char* szKey, int* piDataSize)
+{
+	void*	pvData;
+	BOOL	bFound;
+
+	bFound = CMapBlock::Get(szKey, &pvData, piDataSize);
+	if (bFound)
+	{
+		return pvData;
+	}
+	else
+	{
+		return NULL;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
 void* CMapStringBlock::Put(char* szKey, int iDataSize)
 {
 	void*	pvData;
@@ -67,7 +88,6 @@ void* CMapStringBlock::Put(char* szKey, int iDataSize)
 		return NULL;
 	}
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////

@@ -18,17 +18,17 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "ConstructorUnknown.h"
-#include "Unknowns.h"
+#include "SystemAllocator.h"
+#include "Constructors.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CConstructorUnknown::Init(void)
+void CConstructors::Init(void)
 {
-	mcConstructorObjects.Init(FALSE, FALSE);
+	mcConstructors.Init(&gcSystemAllocator, 32);
 }
 
 
@@ -36,9 +36,9 @@ void CConstructorUnknown::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CConstructorUnknown::Kill(void)
+void CConstructors::Kill(void)
 {
-	mcConstructorObjects.Kill();
+	mcConstructors.Kill();
 }
 
 
@@ -46,29 +46,21 @@ void CConstructorUnknown::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CConstructorUnknown::AddUnknown(CUnknown* pcUnknown)
+void* CConstructors::Construct(char* szName, CMallocator* pcMalloc)
 {
-	pcUnknown = gcUnknowns.AddExisting(pcUnknown);
-	mcConstructorObjects.Put(pcUnknown->ClassName(), pcUnknown);
-}
+	void*	pcConstructor;
+	int		iSize;
+	void*	pcObject;
 
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CConstructorUnknown::Construct(CUnknown* pcDest, char* szName)
-{
-	CUnknown*	pcConstructor;
-
-	pcConstructor = mcConstructorObjects.Get(szName);
+	pcConstructor = mcConstructors.Get(szName, &iSize);
 	if (!pcConstructor)
 	{
-		return FALSE;
+		return NULL;
 	}
 
-	memcpy(pcDest, pcConstructor, pcConstructor->ClassSize());
-	return TRUE;
+	pcObject = pcMalloc->Malloc(iSize);
+	memcpy(pcObject, pcConstructor, iSize);
+	return pcObject;
 }
 
 
@@ -76,11 +68,8 @@ BOOL CConstructorUnknown::Construct(CUnknown* pcDest, char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CUnknown* CConstructorUnknown::GetUnknown(char* szName)
+int CConstructors::NumConstructors(void)
 {
-	CUnknown*	pcConstructor;
-
-	pcConstructor = mcConstructorObjects.Get(szName);
-	return pcConstructor;
+	return mcConstructors.NumElements();
 }
 

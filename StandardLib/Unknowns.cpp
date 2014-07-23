@@ -19,7 +19,8 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/ArrayVoidPtr.h"
-#include "BaseLib/Log.h"
+#include "BaseLib/MemoryAllocator.h"
+#include "BaseLib/GlobalMemory.h"
 #include "Unknown.h"
 #include "Unknowns.h"
 
@@ -31,12 +32,13 @@ CUnknowns gcUnknowns;
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CUnknowns::Init(char* szName)
+void CUnknowns::Init(char* szName, CConstructors* pcConstructors)
 {
+	mpcConstructors = pcConstructors;
+
 	mcMemory.Init();
 	mcIterables.Init();
 	mszName.Init(szName);
-	mcConstructors.Init();
 }
 
 
@@ -46,7 +48,6 @@ void CUnknowns::Init(char* szName)
 //////////////////////////////////////////////////////////////////////////
 void CUnknowns::Kill(void)
 {
-	mcConstructors.Kill();
 	mszName.Kill();
 	mcIterables.Kill();
 	mcMemory.Kill();
@@ -60,29 +61,16 @@ void CUnknowns::Kill(void)
 CUnknown* CUnknowns::AddExisting(CUnknown* pcExisting)
 {
 	char		szDebug[4];
-	int			iSize;
-	CUnknown*	pcNew;
 	
-	iSize = pcExisting->ClassSize();
-	pcNew = (CUnknown*)mcMemory.Add(iSize);
-	if (pcNew)
-	{
-		memcpy(pcNew, pcExisting, iSize);
+	DebugName(pcExisting, &szDebug);
+	mcMemory.SetDebugName(pcExisting, &szDebug);
 
-		DebugName(pcNew, &szDebug);
-		mcMemory.SetDebugName(pcNew, &szDebug);
-
-		pcNew->SetUnknowns(this);
-		if (pcNew->Iterable())
-		{
-			mcIterables.Add(pcNew);
-		}
-		return pcNew;
-	}
-	else
+	pcExisting->SetUnknowns(this);
+	if (pcExisting->Iterable())
 	{
-		return NULL;
+		mcIterables.Add(pcExisting);
 	}
+	return pcExisting;
 }
 
 
@@ -92,7 +80,8 @@ CUnknown* CUnknowns::AddExisting(CUnknown* pcExisting)
 //////////////////////////////////////////////////////////////////////////
 CUnknown* CUnknowns::Add(char* szClassName)
 {
-	CUnknown*	pcUnknown;
+	CUnknown*			pcUnknown;
+	CMemoryAllocator	cMalloc;
 
 	if ((szClassName == NULL) || (szClassName[0] == 0))
 	{
@@ -100,7 +89,8 @@ CUnknown* CUnknowns::Add(char* szClassName)
 		return NULL;
 	}
 
-	pcUnknown = mcConstructors.GetUnknown(szClassName);
+	cMalloc.Init(&mcMemory, NULL);
+	pcUnknown = (CUnknown*)mpcConstructors->Construct(szClassName, &cMalloc);
 	if (pcUnknown)
 	{
 		pcUnknown = AddExisting(pcUnknown);
@@ -418,7 +408,7 @@ int CUnknowns::GetIterableListsHeadNumElements(void)
 //////////////////////////////////////////////////////////////////////////
 void UnknownsInit(void)
 {
-	 gcUnknowns.Init("Global");
+	gcUnknowns.Init("Global", &gcConstructors);
 }
 
 
@@ -430,5 +420,4 @@ void UnknownsKill(void)
 {
 	gcUnknowns.Kill();
 }
-
 

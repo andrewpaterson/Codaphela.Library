@@ -4,6 +4,7 @@
 CMemory					gcMemory;
 CMemoryAllocator		gcMemoryAllocator;
 CMallocators			gcMallocators;
+CConstructors			gcConstructors;
 BOOL					gbMemory = FALSE;
 
 
@@ -18,6 +19,7 @@ void MemoryInit(void)
 	gbMemory = TRUE;
 
 	gcMallocators.Init();
+	gcConstructors.Init();
 }
 
 
@@ -32,6 +34,7 @@ void MemoryInit(int iDefaultAlignment, BOOL bDefaultFreeListParams)
 	gbMemory = TRUE;
 
 	gcMallocators.Init();
+	gcConstructors.Init();
 }
 
 
@@ -41,6 +44,7 @@ void MemoryInit(int iDefaultAlignment, BOOL bDefaultFreeListParams)
 //////////////////////////////////////////////////////////////////////////
 void MemoryKill(void)
 {
+	gcConstructors.Kill();
 	gcMallocators.Kill();
 
 	gcMemory.Kill();

@@ -37,6 +37,7 @@ public:
 	void		Kill(void);
 
 	void*		Get(char* szKey);
+	void*		Get(char* szKey, int* piDataSize);
 
 	void*		Put(char* szKey, int iDataSize);
 	BOOL		Put(char* szKey, void* psData, int iDataSize);

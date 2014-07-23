@@ -642,6 +642,9 @@
     <ClInclude Include="MapStringBlock.h">
       <Filter>Source\Data\Map\String</Filter>
     </ClInclude>
+    <ClInclude Include="Constructors.h">
+      <Filter>Source\Constructor</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -1006,6 +1009,9 @@
     </ClCompile>
     <ClCompile Include="MapStringBlock.cpp">
       <Filter>Source\Data\Map\String</Filter>
+    </ClCompile>
+    <ClCompile Include="Constructors.cpp">
+      <Filter>Source\Constructor</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

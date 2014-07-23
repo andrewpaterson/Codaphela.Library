@@ -149,7 +149,6 @@
     <ClInclude Include="MapCommon.h" />
     <ClInclude Include="MapStringUnknown.h" />
     <ClInclude Include="ArrayCommonUnknown.h" />
-    <ClInclude Include="ConstructorUnknown.h" />
     <ClInclude Include="Iterables.h" />
     <ClInclude Include="Unknowns.h" />
     <ClInclude Include="BaseObject.h" />
@@ -260,7 +259,6 @@
     <ClCompile Include="MapCommon.cpp" />
     <ClCompile Include="MapStringUnknown.cpp" />
     <ClCompile Include="ArrayCommonUnknown.cpp" />
-    <ClCompile Include="ConstructorUnknown.cpp" />
     <ClCompile Include="Iterables.cpp" />
     <ClCompile Include="Unknowns.cpp" />
     <ClCompile Include="BaseObject.cpp" />

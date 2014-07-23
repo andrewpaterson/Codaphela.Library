@@ -87,6 +87,7 @@
     <ClInclude Include="ChunkFileFile.h" />
     <ClInclude Include="ChunkFileHeader.h" />
     <ClInclude Include="ChunkStack.h" />
+    <ClInclude Include="Constructors.h" />
     <ClInclude Include="DataMacro.h" />
     <ClInclude Include="ArrayBit.h" />
     <ClInclude Include="ArrayChar.h" />
@@ -251,6 +252,7 @@
     <ClCompile Include="ChunkFileFile.cpp" />
     <ClCompile Include="ChunkFileHeader.cpp" />
     <ClCompile Include="ChunkStack.cpp" />
+    <ClCompile Include="Constructors.cpp" />
     <ClCompile Include="FileMode.cpp" />
     <ClCompile Include="FileSystemIterator.cpp" />
     <ClCompile Include="FreeListAllocator.cpp" />

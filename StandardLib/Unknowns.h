@@ -22,9 +22,10 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __UNKNOWNS_H__
 #include "BaseLib/Memory.h"
 #include "BaseLib/ConstructorCall.h"
+#include "BaseLib/Constructors.h"
+#include "BaseLib/Log.h"
 #include "ArrayUnknownPtr.h"
 #include "Iterables.h"
-#include "ConstructorUnknown.h"
 
 
 #define UMalloc(classtype)	((classtype*)gcUnknowns.Add<classtype>());
@@ -32,24 +33,27 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 class CUnknowns
 {
-friend class CConstructorUnknown;
-friend class CMapStringUnknown;
-
 protected:
 	CMemory					mcMemory;
 	CIterables				mcIterables;
 	CChars					mszName;
-	CConstructorUnknown		mcConstructors;
+	CConstructors*			mpcConstructors;
 
 public:
-						void			Init(char* szName);
+						void			Init(char* szName, CConstructors* pcConstructors);
 						void			Kill(void);
+
 						void			Remove(CUnknown* pcUnknown);
+
 	template<class M>	M*				Add(void);
 	template<class M>	M*				AddUnsafe(void);
 	template<class M>	M*				AddUnsafe(int iAdditionalSize);
 						CUnknown*		Add(char* szClassName);
 						CUnknown*		AddFromHeader(CFileReader* pcFile);
+
+
+	template<class M>	void			AddConstructor(void);
+
 						BOOL			LoadUnknown(CFileReader* pcFile, CUnknown** ppcUnknown);
 						BOOL			SaveUnknown(CFileWriter* pcFile, CUnknown* pcUnknown);
 
@@ -64,9 +68,8 @@ public:
 						int				NumElements(void);
 						void			DumpAddDetail(CUnknown* pcUnknown);
 
-	template<class M>	void			AddConstructor(void);
 						int				GetIterableListsHeadNumElements(void);
-						CFreeList*	GetFreeList(unsigned int iElementSize);
+						CFreeList*		GetFreeList(unsigned int iElementSize);
 
 						void			RemoveInKill(CUnknown* pcUnknown);
 						void			RemoveInKill(CArrayUnknownPtr* papcObjectPts);
@@ -103,6 +106,7 @@ M* CUnknowns::Add(void)
 	}
 	else
 	{
+		RemoveInKill(pv);
 		return NULL;
 	}
 }
@@ -194,7 +198,27 @@ void CUnknowns::RemoveDuringIteration(SIteratorTemplate<M>* psIter)
 template<class M>
 void CUnknowns::AddConstructor(void)
 {
-	mcConstructors.Add<M>();
+	char*	szClassName;
+	M* pvM;
+
+	pvM = NewMalloc<M>();
+	if (pvM)
+	{
+		szClassName = pvM->ClassName();
+		if (mpcConstructors)
+		{
+			mpcConstructors->Add<M>(szClassName);
+		}
+		else
+		{
+			gcLogger.Error2(__METHOD__, " Constructors for Unknowns is NULL.", NULL);
+		}
+		free (pvM);
+	}
+	else
+	{
+		gcLogger.Error2(__METHOD__, " Couldn't get class name whilst adding constructor for class.", NULL);
+	}
 }
 
 

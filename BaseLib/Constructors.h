@@ -18,29 +18,26 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __CONSTRUCTOR_UNKNOWN_H__
-#define __CONSTRUCTOR_UNKNOWN_H__
-#include "BaseLib/ConstructorCall.h"
-#include "Unknown.h"
-#include "MapStringUnknown.h"
+#ifndef __CONSTRUCTORS_H__
+#define __CONSTRUCTORS_H__
+#include "ConstructorCall.h"
+#include "MapStringBlock.h"
 
 
-class CConstructorUnknown : public CUnknown
+class CConstructors
 {
-BASE_FUNCTIONS(CConstructorUnknown);
 protected:
-	CMapStringUnknown	mcConstructorObjects;
+	CMapStringBlock		mcConstructors;
 
 public:
-	void		Init(void);
-	void		Kill(void);
-
-	void		AddUnknown(CUnknown* pcUnknown);
-	BOOL		Construct(CUnknown* pcDest, char* szName);
-	CUnknown*	GetUnknown(char* szName);  //The only thing initialised on this returned Unknown is the virtual function table.
+	void	Init(void);
+	void	Kill(void);
 
 	template<class M>
-	void		Add(void);
+	void	Add(char* szConstructorName);
+
+	void*	Construct(char* szName, CMallocator* pcMalloc);
+	int		NumConstructors(void);
 };
 
 
@@ -49,13 +46,17 @@ public:
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CConstructorUnknown::Add(void)
+void CConstructors::Add(char* szConstructorName)
 {
-	M* pvM = NewMalloc<M>();
+	M*		pvM;
+	int		iSize;
 
-	AddUnknown(pvM);
+	iSize = sizeof(M);
+	pvM = (M*)mcConstructors.Put(szConstructorName, iSize);
+	memset(pvM, 0, iSize);
+	new(pvM) M();
 }
 
 
-#endif // __CONSTRUCTOR_UNKNOWN_H__
+#endif // __CONSTRUCTORS_H__
 

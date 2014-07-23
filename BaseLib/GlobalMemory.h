@@ -3,10 +3,13 @@
 #include "Memory.h"
 #include "MemoryAllocator.h"
 #include "Mallocators.h"
+#include "Constructors.h"
+
 
 extern CMemory				gcMemory;
 extern CMemoryAllocator		gcMemoryAllocator;
 extern CMallocators			gcMallocators;
+extern CConstructors		gcConstructors;
 extern BOOL					gbMemory;
 
 

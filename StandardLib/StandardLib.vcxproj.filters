@@ -189,9 +189,6 @@
     <ClInclude Include="ArrayCommonUnknown.h">
       <Filter>Source\Object\Unknown\Collections\Common</Filter>
     </ClInclude>
-    <ClInclude Include="ConstructorUnknown.h">
-      <Filter>Source\Object\Unknown\Allocation</Filter>
-    </ClInclude>
     <ClInclude Include="Iterables.h">
       <Filter>Source\Object\Unknown\Allocation</Filter>
     </ClInclude>
@@ -529,9 +526,6 @@
     </ClCompile>
     <ClCompile Include="ArrayCommonUnknown.cpp">
       <Filter>Source\Object\Unknown\Collections\Common</Filter>
-    </ClCompile>
-    <ClCompile Include="ConstructorUnknown.cpp">
-      <Filter>Source\Object\Unknown\Allocation</Filter>
     </ClCompile>
     <ClCompile Include="Iterables.cpp">
       <Filter>Source\Object\Unknown\Allocation</Filter>
