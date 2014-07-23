@@ -5,10 +5,11 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMemoryAllocator::Init(CMemory* pcMemory, char* szName)
+void CMemoryAllocator::Init(CMemory* pcMemory, char* szName, BOOL bGlobal)
 {
 	mpcMemory = pcMemory;
 	mszName = szName;
+	mbGlobal = bGlobal;
 }
 
 

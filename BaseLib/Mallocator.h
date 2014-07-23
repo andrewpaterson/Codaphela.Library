@@ -1,5 +1,6 @@
 #ifndef __MALLOCATOR_H__
 #define __MALLOCATOR_H__
+#include "Define.h"
 
 
 class CFileReader;
@@ -13,8 +14,8 @@ public:
 
 	virtual char*	GetName(void) =0;
 
-	//virtual BOOL	Read(CFileReader* pcFileReader) =0;
-	//virtual BOOL	Write(CFileWriter* pcFileReader) =0;
+	virtual BOOL	Read(CFileReader* pcFileReader) =0;
+	virtual BOOL	Write(CFileWriter* pcFileReader) =0;
 };
 
 
