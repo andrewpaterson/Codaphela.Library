@@ -14,8 +14,7 @@ public:
 
 	virtual char*	GetName(void) =0;
 
-	virtual BOOL	Read(CFileReader* pcFileReader) =0;
-	virtual BOOL	Write(CFileWriter* pcFileReader) =0;
+	virtual BOOL	IsLocal(void) =0;
 };
 
 

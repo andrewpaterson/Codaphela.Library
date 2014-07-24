@@ -10,10 +10,13 @@ protected:
 	CMapStringTemplate<CMallocator*>	mmszcMallocators;
 
 public:
-	void Init(void);
-	void Kill(void);
+	void			Init(void);
+	void			Kill(void);
 
-	BOOL AddMallocator(CMallocator* pcMallocator);
+	BOOL			AddMallocator(CMallocator* pcMallocator);
+
+	CMallocator*	ReadMallocator(CFileReader* pcFileReader);
+	BOOL			WriteMallocator(CFileWriter* pcFileWriter, CMallocator* pcMallocator);
 };
 
 

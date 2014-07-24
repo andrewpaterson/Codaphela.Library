@@ -1,8 +1,6 @@
 #include "Mallocators.h"
 #include "GlobalMemory.h"
 
-CMemory					gcMemory;
-CMemoryAllocator		gcMemoryAllocator;
 CMallocators			gcMallocators;
 CConstructors			gcConstructors;
 BOOL					gbMemory = FALSE;
@@ -15,7 +13,7 @@ BOOL					gbMemory = FALSE;
 void MemoryInit(void)
 {
 	gcMemory.Init();
-	gcMemoryAllocator.Init(&gcMemory, "CMemoryAllocator", TRUE);
+	gcMemoryAllocator.Init(&gcMemory);
 	gbMemory = TRUE;
 
 	gcMallocators.Init();
@@ -30,7 +28,7 @@ void MemoryInit(void)
 void MemoryInit(int iDefaultAlignment, BOOL bDefaultFreeListParams)
 {
 	gcMemory.Init(iDefaultAlignment, bDefaultFreeListParams);
-	gcMemoryAllocator.Init(&gcMemory, "CMemoryAllocator", TRUE);
+	gcMemoryAllocator.Init(&gcMemory);
 	gbMemory = TRUE;
 
 	gcMallocators.Init();

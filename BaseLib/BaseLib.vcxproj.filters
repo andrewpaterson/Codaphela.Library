@@ -645,6 +645,12 @@
     <ClInclude Include="Constructors.h">
       <Filter>Source\Constructor</Filter>
     </ClInclude>
+    <ClInclude Include="GlobalMemoryAllocator.h">
+      <Filter>Source\Memory\Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="LocalMallocator.h">
+      <Filter>Source\Memory\Allocator</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -1012,6 +1018,12 @@
     </ClCompile>
     <ClCompile Include="Constructors.cpp">
       <Filter>Source\Constructor</Filter>
+    </ClCompile>
+    <ClCompile Include="GlobalMemoryAllocator.cpp">
+      <Filter>Source\Memory\Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="LocalMallocator.cpp">
+      <Filter>Source\Memory\Allocator</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

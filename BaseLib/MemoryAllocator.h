@@ -1,19 +1,16 @@
 #ifndef __MEMORY_ALLOCATOR_H__
 #define __MEMORY_ALLOCATOR_H__
 #include "Memory.h"
-#include "Mallocator.h"
+#include "LocalMallocator.h"
 
 
-
-class CMemoryAllocator : public CMallocator
+class CMemoryAllocator : public CLocalMallocator
 {
 protected:
 	CMemory*	mpcMemory;
-	char*		mszName;
-	BOOL		mbGlobal;
 
 public:
-	void	Init(CMemory* pcMemory, char* szName, BOOL bGlobal = FALSE);
+	void	Init(CMemory* pcMemory);
 
 	void*	Malloc(size_t tSize);
 	void*	Realloc(void* pv, size_t tSize);
@@ -22,7 +19,7 @@ public:
 	char*	GetName(void);
 
 	BOOL	Read(CFileReader* pcFileReader);
-	BOOL	Write(CFileWriter* pcFileReader);
+	BOOL	Write(CFileWriter* pcFileWriter);
 };
 
 

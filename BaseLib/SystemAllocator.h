@@ -12,8 +12,7 @@ public:
 
 	char*	GetName(void);
 
-	BOOL	Read(CFileReader* pcFileReader);
-	BOOL	Write(CFileWriter* pcFileReader);
+	BOOL	IsLocal(void);
 };
 
 
