@@ -13,7 +13,6 @@ BOOL					gbMemory = FALSE;
 void MemoryInit(void)
 {
 	gcMemory.Init();
-	gcMemoryAllocator.Init(&gcMemory);
 	gbMemory = TRUE;
 
 	gcMallocators.Init();
@@ -28,7 +27,6 @@ void MemoryInit(void)
 void MemoryInit(int iDefaultAlignment, BOOL bDefaultFreeListParams)
 {
 	gcMemory.Init(iDefaultAlignment, bDefaultFreeListParams);
-	gcMemoryAllocator.Init(&gcMemory);
 	gbMemory = TRUE;
 
 	gcMallocators.Init();

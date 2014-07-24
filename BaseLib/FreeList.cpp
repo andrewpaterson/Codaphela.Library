@@ -41,10 +41,12 @@ void CFreeList::Init(int iChunkSize, int iElementSize, int iAlignment, int iOffs
 {
 	miChunkSize = iChunkSize;
 	miAlignment = iAlignment;
+	miSuppliedOffset = iOffset;
+	miElementSize = iElementSize;
+
 	mcList.Init();
 	mpsUnused = NULL;
 	mpsNotFull = NULL;
-	miElementSize = iElementSize;
 
 	miOffset = CalculateOffset(iOffset);
 	miStride = CalculateStride();
@@ -237,7 +239,7 @@ BOOL CFreeList::Remove(void* pvData)
 		return FALSE;
 	}
 
-	//Find the chunk in which the element is within this freelist.
+	//Find the chunk in which the element is within this free list.
 	psNode = FindNode(pvData);
 
 	//Check the chunk could be found.
@@ -301,7 +303,7 @@ SFNode* CFreeList::AllocateNew(void)
 	int			iTotalSize;
 	int			iBitArraySize;
 
-	//Find the size of this freelist block.  It is integer aligned.
+	//Find the size of this free list block.  It is integer aligned.
 	//miChunkSize+1 ... -1 to ensure enough space given alignment.
 	iBitArraySize = CalculateBitArraySize();
 
@@ -361,6 +363,19 @@ void CFreeList::Deallocate(SFNode* psNode)
 void CFreeList::RemoveNode(SFNode* psNode)
 {
 	Deallocate(psNode);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CFreeList::GetParams(SFreeListParams2* psParams)
+{
+	psParams->iAlignment = miAlignment;
+	psParams->iChunkSize = miChunkSize;
+	psParams->iElementSize = miElementSize;
+	psParams->iOffset = miSuppliedOffset;
 }
 
 
@@ -524,7 +539,7 @@ BOOL CFreeList::RemoveExisiting(SFNode* psNode, int iPosition)
 //////////////////////////////////////////////////////////////////////////
 void* CFreeList::Get(int iElement)
 {
-	//Unallocated elements in the freelist are not included.
+	//Unallocated elements in the free list are not included.
 	//This is the normal operation.
 
 	int					i;
@@ -756,7 +771,7 @@ SFNode* CFreeList::FindNode(void* pvData, BOOL bIsAllocated)
 //////////////////////////////////////////////////////////////////////////
 int CFreeList::ByteSize(void)
 {
-	//This returns just the size of the allocated memory allocated blocks.  It does not include the freelist 'header' or the link list 'header. 
+	//This returns just the size of the allocated memory allocated blocks.  It does not include the free list 'header' or the link list 'header. 
 	return mcList.ByteSize();
 }
 

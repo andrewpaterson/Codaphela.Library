@@ -6,6 +6,8 @@
 class CLocalMallocator : public CMallocator
 {
 public:
+	virtual void	Kill(void) =0;
+
 			BOOL	IsLocal(void);
 
 	virtual BOOL	Read(CFileReader* pcFileReader) =0;

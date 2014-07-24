@@ -5,9 +5,39 @@
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CFreeListAllocator::Init(CFreeList* pcFreeList)
+void CFreeListAllocator::Init(int iChunkSize, int iElementSize)
 {
-	mpcFreeList = pcFreeList;
+	mcFreeList.Init(iChunkSize, iElementSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CFreeListAllocator::Init(int iChunkSize, int iElementSize, int iAlignment)
+{
+	mcFreeList.Init(iChunkSize, iElementSize, iAlignment);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CFreeListAllocator::Init(int iChunkSize, int iElementSize, int iAlignment, int iOffset)
+{
+	mcFreeList.Init(iChunkSize, iElementSize, iAlignment, iOffset);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CFreeListAllocator::Kill(void)
+{
+	mcFreeList.Kill();
 }
 
 
@@ -17,12 +47,12 @@ void CFreeListAllocator::Init(CFreeList* pcFreeList)
 //////////////////////////////////////////////////////////////////////////
 void* CFreeListAllocator::Malloc(size_t tSize)
 {
-	if (tSize > (size_t)mpcFreeList->GetElementSize())
+	if (tSize > (size_t)mcFreeList.GetElementSize())
 	{
 		return NULL;
 	}
 	
-	return mpcFreeList->Add();
+	return mcFreeList.Add();
 }
 
 
@@ -32,7 +62,7 @@ void* CFreeListAllocator::Malloc(size_t tSize)
 //////////////////////////////////////////////////////////////////////////
 void CFreeListAllocator::Free(void* pv)
 {
-	mpcFreeList->Remove(pv);
+	mcFreeList.Remove(pv);
 }
 
 
@@ -42,9 +72,9 @@ void CFreeListAllocator::Free(void* pv)
 //////////////////////////////////////////////////////////////////////////
 void* CFreeListAllocator::Realloc(void* pv, size_t tSize)
 {
-	if (tSize > (size_t)mpcFreeList->GetElementSize())
+	if (tSize > (size_t)mcFreeList.GetElementSize())
 	{
-		mpcFreeList->Remove(pv);
+		mcFreeList.Remove(pv);
 		return NULL;
 	}
 
@@ -66,9 +96,27 @@ char* CFreeListAllocator::GetName(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
+CFreeList* CFreeListAllocator::GetFreeList(void)
+{
+	return &mcFreeList;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
 BOOL CFreeListAllocator::Read(CFileReader* pcFileReader)
 {
-	return FALSE;
+	SFreeListParams2	sParams;
+
+	if (!pcFileReader->ReadData(&sParams , sizeof(SFreeListParams2)))
+	{
+		return FALSE;
+	}
+
+	mcFreeList.Init(sParams.iChunkSize, sParams.iElementSize, sParams.iAlignment, sParams.iOffset);
+	return TRUE;
 }
 
 
@@ -78,6 +126,14 @@ BOOL CFreeListAllocator::Read(CFileReader* pcFileReader)
 //////////////////////////////////////////////////////////////////////////
 BOOL CFreeListAllocator::Write(CFileWriter* pcFileWriter)
 {
-	return FALSE;
+	SFreeListParams2	sParams;
+
+	mcFreeList.GetParams(&sParams);
+	
+	if (!pcFileWriter->WriteData(&sParams, sizeof(SFreeListParams2)))
+	{
+		return FALSE;
+	}
+	return TRUE;
 }
 

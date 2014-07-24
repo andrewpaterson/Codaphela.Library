@@ -41,8 +41,10 @@ BOOL CMallocators::AddMallocator(CMallocator* pcMallocator)
 	sz = pcMallocator->GetName();
 	if (mmszcMallocators.Get(sz))
 	{
+		gcLogger.Error2("A mallocator named [", sz, "] already exists.", NULL);
 		return FALSE;
 	}
+
 	mmszcMallocators.Put(sz, &pcMallocator);
 	return TRUE;
 }
@@ -54,9 +56,10 @@ BOOL CMallocators::AddMallocator(CMallocator* pcMallocator)
 //////////////////////////////////////////////////////////////////////////
 CMallocator* CMallocators::ReadMallocator(CFileReader* pcFileReader)
 {
-	int				iLength;
-	char			szName[1024];
-	CMallocator**	ppcMallocator;
+	int					iLength;
+	char				szName[1024];
+	CMallocator**		ppcMallocator;
+	CLocalMallocator*	pcLocalMallocator;
 
 	if (!pcFileReader->ReadStringLength(&iLength))
 	{
@@ -82,7 +85,29 @@ CMallocator* CMallocators::ReadMallocator(CFileReader* pcFileReader)
 		return FALSE;
 	}
 
-	return *ppcMallocator;
+	if ((*ppcMallocator)->IsLocal())
+	{
+		pcLocalMallocator = (CLocalMallocator*)(*ppcMallocator);
+		pcLocalMallocator = (CLocalMallocator*)gcConstructors.Construct(pcLocalMallocator->GetName(), &gcSystemAllocator);
+		if (!pcLocalMallocator)
+		{
+			gcLogger.Error2("Could not construct local mallocator [", (*ppcMallocator)->GetName(), "].", NULL);
+			return NULL;
+		}
+		if (!pcLocalMallocator->Read(pcFileReader))
+		{
+			gcLogger.Error2("Could not read local mallocator [", pcLocalMallocator->GetName(), "].", NULL);
+			return NULL;
+		}
+		else
+		{
+			return pcLocalMallocator;
+		}
+	}
+	else
+	{
+		return *ppcMallocator;
+	}
 }
 
 

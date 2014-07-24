@@ -39,6 +39,15 @@ struct SFNode
 };
 
 
+struct SFreeListParams2
+{
+	int		iAlignment;
+	int		iOffset;
+	int		iElementSize;
+	int		iChunkSize;
+};
+
+
 struct SFreeListIterator
 {
 	SFNode*		psCurrent;  //Current FreeList node.
@@ -48,24 +57,23 @@ struct SFreeListIterator
 
 class CFreeList
 {
-private:
+protected:
 	CLinkedListBlock	mcList;
 	SFNode*				mpsUnused;
 	SFNode*				mpsNotFull;
-	int					miAlignment;
-	int					miStride;
 	int					miOffset;
+	int					miStride;
 
-protected:
+	int					miAlignment;
+	int					miSuppliedOffset;
 	int					miElementSize;
 	int					miChunkSize;
 
 public:
-	//void	Init(int iElementSize);
-	void	Init(int iChunkSize, int iElementSize);
-	void	Init(int iChunkSize, int iElementSize, int iAlignment);
-	void	Init(int iChunkSize, int iElementSize, int iAlignment, int iOffset);
-	void	Kill(void);
+	void		Init(int iChunkSize, int iElementSize);
+	void		Init(int iChunkSize, int iElementSize, int iAlignment);
+	void		Init(int iChunkSize, int iElementSize, int iAlignment, int iOffset);
+	void		Kill(void);
 
 	void*		Add(SFNode** ppsNode = NULL);
 	void*		Add(void* pvData);
@@ -93,6 +101,7 @@ public:
 	void*		GetFirstNodeElement(SFNode* psNode);
 	void*		GetLastNodeElement(SFNode* psNode);
 	void		RemoveNode(SFNode* psNode);
+	void		GetParams(SFreeListParams2* psParams);
 
 protected:
 	SFNode* AllocateNew(void);

@@ -7,19 +7,24 @@
 class CFreeListAllocator : public CLocalMallocator
 {
 protected:
-	CFreeList*	mpcFreeList;
+	CFreeList	mcFreeList;
 
 public:
-	void	Init(CFreeList* pcFreeList);
+	void		Init(int iChunkSize, int iElementSize);
+	void		Init(int iChunkSize, int iElementSize, int iAlignment);
+	void		Init(int iChunkSize, int iElementSize, int iAlignment, int iOffset);
+	void		Kill(void);
 
-	void*	Malloc(size_t tSize);
-	void*	Realloc(void* pv, size_t iMemSize);
-	void	Free(void* pv);
+	void*		Malloc(size_t tSize);
+	void*		Realloc(void* pv, size_t iMemSize);
+	void		Free(void* pv);
 
-	char*	GetName(void);
+	CFreeList*	GetFreeList(void);
 
-	BOOL	Read(CFileReader* pcFileReader);
-	BOOL	Write(CFileWriter* pcFileWriter);
+	char*		GetName(void);
+
+	BOOL		Read(CFileReader* pcFileReader);
+	BOOL		Write(CFileWriter* pcFileWriter);
 };
 
 
