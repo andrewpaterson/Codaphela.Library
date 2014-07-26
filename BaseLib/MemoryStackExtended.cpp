@@ -44,10 +44,14 @@ void CMemoryStackExtended::Clear(void)
 	int				i;
 	CMemoryStack*	pcStack;
 	CMemoryStack	cStack;
+	int				iNumStacks;
+	int				iNumElements;
 
-	if (mcStacks.NumElements() > 0)
+	iNumStacks = mcStacks.NumElements();
+	if (iNumStacks > 0)
 	{
-		for (i = 1; i < mcStacks.NumElements(); i++)
+		iNumElements = mcStacks.NumElements();
+		for (i = 1; i < iNumElements; i++)
 		{
 			pcStack = mcStacks.Get(i);
 			pcStack->Kill();
@@ -57,6 +61,7 @@ void CMemoryStackExtended::Clear(void)
 		memcpy(&cStack, pcStack, sizeof(CMemoryStack));
 		mcStacks.Kill();
 		mcStacks.Init(32);
+		cStack.Clear();
 		mcStacks.Add(&cStack);
 	}
 	miElements = 0;
