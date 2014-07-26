@@ -36,7 +36,8 @@ void CUnknowns::Init(char* szName, CConstructors* pcConstructors)
 {
 	mpcConstructors = pcConstructors;
 
-	mcMemory.Init();
+	mcAlloc.Init();
+	mpcMemory = mpcMemory;
 	mcIterables.Init();
 	mszName.Init(szName);
 }
@@ -50,7 +51,8 @@ void CUnknowns::Kill(void)
 {
 	mszName.Kill();
 	mcIterables.Kill();
-	mcMemory.Kill();
+	mcAlloc.Kill();
+	mpcMemory = NULL;
 }
 
 
@@ -63,7 +65,7 @@ CUnknown* CUnknowns::AddExisting(CUnknown* pcExisting)
 	char		szDebug[4];
 	
 	DebugName(pcExisting, &szDebug);
-	mcMemory.SetDebugName(pcExisting, &szDebug);
+	mpcMemory->SetDebugName(pcExisting, &szDebug);
 
 	pcExisting->SetUnknowns(this);
 	if (pcExisting->Iterable())
@@ -81,7 +83,6 @@ CUnknown* CUnknowns::AddExisting(CUnknown* pcExisting)
 CUnknown* CUnknowns::Add(char* szClassName)
 {
 	CUnknown*			pcUnknown;
-	CMemoryAllocator	cMalloc;
 
 	if ((szClassName == NULL) || (szClassName[0] == 0))
 	{
@@ -89,8 +90,7 @@ CUnknown* CUnknowns::Add(char* szClassName)
 		return NULL;
 	}
 
-	cMalloc.Init(&mcMemory, NULL);
-	pcUnknown = (CUnknown*)mpcConstructors->Construct(szClassName, &cMalloc);
+	pcUnknown = (CUnknown*)mpcConstructors->Construct(szClassName, &mcAlloc);
 	if (pcUnknown)
 	{
 		pcUnknown = AddExisting(pcUnknown);
@@ -209,7 +209,7 @@ void CUnknowns::RemoveInKill(CUnknown* pcUnknown)
 	{
 		mcIterables.Remove(pcUnknown);
 	}
-	mcMemory.Remove(pcUnknown);
+	mcAlloc.Free(pcUnknown);
 }
 
 
@@ -237,7 +237,7 @@ void CUnknowns::RemoveInKill(CArrayUnknownPtr* papcObjectPts)
 	pvData = (void**)papcObjectPts->GetData();
 	cArray.Fake(pvData, papcObjectPts->NumElements());
 
-	mcMemory.Remove(&cArray);
+	mcAlloc.Free(&cArray);
 }
 
 
@@ -368,7 +368,7 @@ BOOL CUnknowns::IsFreed(CUnknown* pcUnknown)
 //////////////////////////////////////////////////////////////////////////
 void CUnknowns::BreakOnAdd(unsigned int uiAllocCount)
 {
-	mcMemory.BreakOnAdd(uiAllocCount);
+	mpcMemory->BreakOnAdd(uiAllocCount);
 }
 
 
@@ -378,7 +378,7 @@ void CUnknowns::BreakOnAdd(unsigned int uiAllocCount)
 //////////////////////////////////////////////////////////////////////////
 int CUnknowns::NumElements(void)
 {
-	return mcMemory.NumElements();
+	return mpcMemory->NumElements();
 }
 
 
@@ -388,7 +388,7 @@ int CUnknowns::NumElements(void)
 //////////////////////////////////////////////////////////////////////////
 CFreeList* CUnknowns::GetFreeList(unsigned int iElementSize)
 {
-	return mcMemory.GetFreeList(iElementSize);
+	return mpcMemory->GetFreeList(iElementSize);
 }
 
 

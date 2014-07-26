@@ -132,6 +132,7 @@
     <ClInclude Include="PackFileIterator.h" />
     <ClInclude Include="PackFilePacker.h" />
     <ClInclude Include="PackFilesGeneral.h" />
+    <ClInclude Include="ScratchPadAllocator.h" />
     <ClInclude Include="SystemAllocator.h" />
     <ClInclude Include="TreeBlock.h" />
     <ClInclude Include="TreeTemplate.h" />
@@ -276,6 +277,7 @@
     <ClCompile Include="NullAllocator.cpp" />
     <ClCompile Include="PackFileIterator.cpp" />
     <ClCompile Include="PackFilePacker.cpp" />
+    <ClCompile Include="ScratchPadAllocator.cpp" />
     <ClCompile Include="SystemAllocator.cpp" />
     <ClCompile Include="TreeBlock.cpp" />
     <ClCompile Include="EnumeratorBlock.cpp" />

@@ -129,7 +129,7 @@ CNumber* CNumberControl::Add(short cMaxWholeNumbers, short cMaxDecimals)
 //////////////////////////////////////////////////////////////////////////
 void CNumberControl::Remove(void)
 {
-	mcScratchPad.Remove();
+	mcScratchPad.Pop();
 }
 
 
@@ -139,5 +139,5 @@ void CNumberControl::Remove(void)
 //////////////////////////////////////////////////////////////////////////
 void CNumberControl::Remove(int iNumToRemove)
 {
-	mcScratchPad.Remove(iNumToRemove);
+	mcScratchPad.Pop(iNumToRemove);
 }

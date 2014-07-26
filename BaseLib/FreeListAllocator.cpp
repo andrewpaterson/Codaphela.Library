@@ -110,7 +110,7 @@ BOOL CFreeListAllocator::Read(CFileReader* pcFileReader)
 {
 	SFreeListParams2	sParams;
 
-	if (!pcFileReader->ReadData(&sParams , sizeof(SFreeListParams2)))
+	if (!pcFileReader->ReadData(&sParams, sizeof(SFreeListParams2)))
 	{
 		return FALSE;
 	}

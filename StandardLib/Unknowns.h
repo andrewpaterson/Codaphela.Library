@@ -20,7 +20,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __UNKNOWNS_H__
 #define __UNKNOWNS_H__
-#include "BaseLib/Memory.h"
+#include "BaseLib/MemoryAllocator.h"
 #include "BaseLib/ConstructorCall.h"
 #include "BaseLib/Constructors.h"
 #include "BaseLib/Log.h"
@@ -34,7 +34,8 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 class CUnknowns
 {
 protected:
-	CMemory					mcMemory;
+	CMemoryAllocator		mcAlloc;
+	CMemory*				mpcMemory;
 	CIterables				mcIterables;
 	CChars					mszName;
 	CConstructors*			mpcConstructors;
@@ -135,14 +136,14 @@ M* CUnknowns::AddUnsafe(int iAdditionalSize)
 	int		iSize;
 
 	iSize = sizeof(M);
-	pv = (M*)mcMemory.Add(iSize + iAdditionalSize);
+	pv = (M*)mcAlloc.Malloc(iSize + iAdditionalSize);
 	if (pv)
 	{
 		memset(pv, 0, iSize + iAdditionalSize);
 		new(pv) M();
 
 		DebugName(pv, &szDebug);
-		mcMemory.SetDebugName(pv, &szDebug);
+		mpcMemory->SetDebugName(pv, &szDebug);
 
 		pv->CUnknown::SetUnknowns(this);
 		if (pv->Iterable())

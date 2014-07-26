@@ -5,9 +5,29 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMemoryAllocator::Init(CMemory* pcMemory)
+void CMemoryAllocator::Init(void)
 {
-	mpcMemory = pcMemory;
+	mcMemory.Init();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMemoryAllocator::Init(int iDefaultAlignment, BOOL bDefaultFreeListParams)
+{
+	mcMemory.Init(iDefaultAlignment, bDefaultFreeListParams);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMemoryAllocator::Kill(void)
+{
+	mcMemory.Kill();
 }
 
 
@@ -17,7 +37,7 @@ void CMemoryAllocator::Init(CMemory* pcMemory)
 //////////////////////////////////////////////////////////////////////////
 void* CMemoryAllocator::Malloc(size_t tSize)
 {
-	return mpcMemory->Add((unsigned int)tSize);
+	return mcMemory.Add((unsigned int)tSize);
 }
 
 
@@ -29,7 +49,7 @@ void* CMemoryAllocator::Realloc(void* pv, size_t tSize)
 {
 	void*	pvNew;
 
-	pvNew = mpcMemory->Grow(pv, (unsigned int)tSize);
+	pvNew = mcMemory.Grow(pv, (unsigned int)tSize);
 	return pvNew;
 }
 
@@ -40,7 +60,7 @@ void* CMemoryAllocator::Realloc(void* pv, size_t tSize)
 //////////////////////////////////////////////////////////////////////////
 void CMemoryAllocator::Free(void* pv)
 {
-	mpcMemory->Remove(pv);
+	mcMemory.Remove(pv);
 }
 
 
@@ -71,5 +91,15 @@ BOOL CMemoryAllocator::Read(CFileReader* pcFileReader)
 BOOL CMemoryAllocator::Write(CFileWriter* pcFileWriter)
 {
 	return FALSE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+CMemory* CMemoryAllocator::GetMemory(void)
+{
+	return &mcMemory;
 }
 

@@ -651,6 +651,9 @@
     <ClInclude Include="LocalMallocator.h">
       <Filter>Source\Memory\Allocator</Filter>
     </ClInclude>
+    <ClInclude Include="ScratchPadAllocator.h">
+      <Filter>Source\Memory\ScratchPad</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -1024,6 +1027,9 @@
     </ClCompile>
     <ClCompile Include="LocalMallocator.cpp">
       <Filter>Source\Memory\Allocator</Filter>
+    </ClCompile>
+    <ClCompile Include="ScratchPadAllocator.cpp">
+      <Filter>Source\Memory\ScratchPad</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
