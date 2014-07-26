@@ -71,6 +71,7 @@ public:
 
 						int				GetIterableListsHeadNumElements(void);
 						CFreeList*		GetFreeList(unsigned int iElementSize);
+						CMemory*		GetMemory(void);
 
 						void			RemoveInKill(CUnknown* pcUnknown);
 						void			RemoveInKill(CArrayUnknownPtr* papcObjectPts);

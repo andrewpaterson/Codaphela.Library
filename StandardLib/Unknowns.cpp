@@ -37,7 +37,7 @@ void CUnknowns::Init(char* szName, CConstructors* pcConstructors)
 	mpcConstructors = pcConstructors;
 
 	mcAlloc.Init();
-	mpcMemory = mpcMemory;
+	mpcMemory = mcAlloc.GetMemory();
 	mcIterables.Init();
 	mszName.Init(szName);
 }
@@ -209,7 +209,7 @@ void CUnknowns::RemoveInKill(CUnknown* pcUnknown)
 	{
 		mcIterables.Remove(pcUnknown);
 	}
-	mcAlloc.Free(pcUnknown);
+	mpcMemory->Remove(pcUnknown);
 }
 
 
@@ -237,7 +237,7 @@ void CUnknowns::RemoveInKill(CArrayUnknownPtr* papcObjectPts)
 	pvData = (void**)papcObjectPts->GetData();
 	cArray.Fake(pvData, papcObjectPts->NumElements());
 
-	mcAlloc.Free(&cArray);
+	mpcMemory->Remove(&cArray);
 }
 
 
@@ -389,6 +389,16 @@ int CUnknowns::NumElements(void)
 CFreeList* CUnknowns::GetFreeList(unsigned int iElementSize)
 {
 	return mpcMemory->GetFreeList(iElementSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CMemory* CUnknowns::GetMemory(void)
+{
+	return mpcMemory;
 }
 
 

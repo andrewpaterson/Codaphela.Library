@@ -390,7 +390,7 @@ void CMeshInstance::SetSkinnedVertexCachePointers(void)
 
 	if (mpcMeshObject->IsSkinned())
 	{
-		cMapNodeToScratchPad.Init(&gcSystemAllocator, 16);
+		cMapNodeToScratchPad.Init(&gcSystemAllocator, 16, FALSE);
 		GenerateVertexScratchPadMap(&cMapNodeToScratchPad);
 
 		iNumVerts = mpcMeshObject->GetSkinnedVertexPtrs()->NumElements();
@@ -426,7 +426,7 @@ void CMeshInstance::SetSkinnedNormalCachePointers(void)
 
 	if (mpcMeshObject->IsSkinned())
 	{
-		cMapNodeToScratchPad.Init(&gcSystemAllocator, 16);
+		cMapNodeToScratchPad.Init(&gcSystemAllocator, 16, FALSE);
 		GenerateNormalScratchPadMap(&cMapNodeToScratchPad);
 
 		iNumNormals = mpcMeshObject->GetSkinnedNormalPtrs()->NumElements();
