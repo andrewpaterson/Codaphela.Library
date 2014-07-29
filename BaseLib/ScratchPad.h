@@ -51,8 +51,6 @@ public:
 	void	Kill(void);
 
 	void*	Add(size_t tSize);
-	void	Pop(void);
-	void	Pop(int iNumToRemove);
 	void	Reset(void);
 
 	int		GetMemorySize(void);

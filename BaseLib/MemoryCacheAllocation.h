@@ -17,7 +17,7 @@ class CMemoryCacheAllocation
 friend class CMemoryCache;
 protected:
 	int							miDataSize;
-	CArrayIntAndPointer				mapEvictedCacheDescriptors;
+	CArrayIntAndPointer			mapEvictedCacheDescriptors;
 	SMemoryCacheDescriptor*		mpsCacheDesc;
 	unsigned int				miCachedSize;
 	unsigned int				miRemaining;

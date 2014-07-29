@@ -30,11 +30,11 @@ Microsoft Windows is Copyright Microsoft Corporation
 class CNumberControl
 {
 public:
-	CScratchPad			mcScratchPad;
-	CNumber				mc_pi;
-	CNumber				mc_e;
-	UNumber(1, 255)		mc_pi_lots;
-	UNumber(1, 255)		mc_e_lots;
+	CMemoryStackExtended	mcScratchPad;
+	CNumber					mc_pi;
+	CNumber					mc_e;
+	UNumber(1, 255)			mc_pi_lots;
+	UNumber(1, 255)			mc_e_lots;
 
 	void 		Init(int iScratchPadSize);
 	void 		Kill(void);
