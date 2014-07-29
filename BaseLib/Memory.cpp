@@ -88,7 +88,7 @@ void CMemory::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CMemory::InitFreeListParams(void)
 {
-	SFreeListParams		sParam;
+	SMemoryFreeListParams		sParam;
 
 	mcParams.Init(1);
 	mcParams.Add(sParam.Init(24  , 16  , 32*32));
@@ -131,16 +131,58 @@ void CMemory::InitFreeListParams(void)
 //////////////////////////////////////////////////////////////////////////
 void CMemory::AddParamBlock(unsigned int iFreeListSize, int iPrevSize, int iChunkSize)
 {
-	SFreeListParams		sParam;
+	SMemoryFreeListParams		sParam;
 
 	iFreeListSize += + sizeof(SMemoryAllocation);
 	iPrevSize += + sizeof(SMemoryAllocation);
 
-	mcParams.Add(sParam.Init(iFreeListSize, iPrevSize,    iChunkSize));
+	mcParams.Add(sParam.Init(iFreeListSize, iPrevSize, iChunkSize));
 	if (muiFreeListSizeLimit < iFreeListSize)
 	{
 		muiFreeListSizeLimit = iFreeListSize;
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMemory::AddParamBlock(SMemoryFreeListParams* psParam)
+{
+	mcParams.Add(psParam);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMemory::SetFreeListSizeLimit(unsigned int uiFreeListSizeLimit)
+{
+	muiFreeListSizeLimit = uiFreeListSizeLimit;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMemory::GetParams(SMemoryParams* psParams)
+{
+	psParams->iDefaultAlignment = miDefaultAlignment;
+	psParams->uiFreeListSizeLimit = muiFreeListSizeLimit;
+	psParams->iFreeListParams = mcParams.NumElements();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+SMemoryFreeListParams* CMemory::GetFreeListParams(int iIndex)
+{
+	return mcParams.SafeGet(iIndex);
 }
 
 
@@ -384,14 +426,14 @@ void* CMemory::Grow(void* pvInitial, unsigned int uiSize)
 {
 	SMemoryAllocation*	psAlloc;
 	CFreeList*	pcList;
-	SFreeListParams*	psParams;
+	SMemoryFreeListParams*	psParams;
 	void*				pvNew;
 	SLLANode*			psNode;
 
 	psAlloc = MEMORY_GET_ALLOCATION(pvInitial);
 	if (psAlloc->uiSize <= (muiFreeListSizeLimit - sizeof(SMemoryAllocation)))
 	{
-		psParams = GetParamsForSize(psAlloc->uiSize);
+		psParams = GetFreeListParamsForSize(psAlloc->uiSize);
 		if ((uiSize <= psParams->iMaxElementSize) && (uiSize >= psParams->iMinElementSize))
 		{
 			psAlloc->uiSize = uiSize;
@@ -520,12 +562,12 @@ CFreeList* CMemory::GetFreeList(unsigned int iElementSize, int iAlignment, int i
 	BOOL				bResult;
 	int					iIndex;
 	SFreeListDesc*		psDesc;
-	SFreeListParams*	psParams;
+	SMemoryFreeListParams*	psParams;
 	int					iStride;
 	int					iFinalOffset;
 
 	iFinalOffset = CalculateOffset(iOffset - sizeof(SMemoryAllocation), iAlignment);
-	psParams = GetParamsForSize(iElementSize);
+	psParams = GetFreeListParamsForSize(iElementSize);
 	iStride = CalculateStride(psParams->iMaxElementSize, iAlignment);
 
 	sDesc.Init(iStride, iAlignment, iOffset);
@@ -560,12 +602,12 @@ CFreeList* CMemory::GetOrAddFreeList(unsigned int iElementSize, int iAlignment, 
 	int					iIndex;
 	SFreeListDesc*		psDesc;
 	CFreeList*		pcList;
-	SFreeListParams*	psParams;
+	SMemoryFreeListParams*	psParams;
 	int					iFinalOffset;
 	int					iStride;
 
 	iFinalOffset = CalculateOffset(iOffset - sizeof(SMemoryAllocation), iAlignment);
-	psParams = GetParamsForSize(iElementSize);
+	psParams = GetFreeListParamsForSize(iElementSize);
 	iStride = CalculateStride(psParams->iMaxElementSize, iAlignment);
 
 	sDesc.Init(iStride, iAlignment, iOffset);
@@ -590,14 +632,14 @@ CFreeList* CMemory::GetOrAddFreeList(unsigned int iElementSize, int iAlignment, 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SFreeListParams* CMemory::GetParamsForSize(unsigned int iElementSize)
+SMemoryFreeListParams* CMemory::GetFreeListParamsForSize(unsigned int iElementSize)
 {
 	int					iIndex;
-	SFreeListParams*	psParams;
+	SMemoryFreeListParams*	psParams;
 
 	if ((iElementSize > 0) && (iElementSize <= muiFreeListSizeLimit))
 	{
-		mcParams.FindInSorted((SFreeListParams*)&iElementSize, CompareFreeListParam, &iIndex);
+		mcParams.FindInSorted((SMemoryFreeListParams*)&iElementSize, CompareFreeListParam, &iIndex);
 		psParams = mcParams.Get(iIndex);
 		return psParams;
 	}

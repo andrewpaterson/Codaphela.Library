@@ -28,17 +28,27 @@ Microsoft Windows is Copyright Microsoft Corporation
 typedef CLinkedListTemplate<CFreeList> CLinkListFreeList;
 
 
+struct SMemoryParams
+{
+	int				iDefaultAlignment;
+	unsigned int	uiFreeListSizeLimit;
+	int				iFreeListParams;
+};
+
+
 class CMemory
 {
 private:
 	CLinkListFreeList			mcFreeLists;  
 	CLinkedListBlockAligned		mcLargeList;
-	int							miDefaultAlignment;
 	CArrayFreeListDesc			mcOrder;
+
 	CArrayFreeListParams		mcParams;
+	int							miDefaultAlignment;
+	unsigned int				muiFreeListSizeLimit;
+
 	unsigned int				muiAllocCount;
 	unsigned int				muiBreakAlloc;
-	unsigned int				muiFreeListSizeLimit;
 	BOOL						mbBreakOnAlloc;
 
 public:
@@ -58,6 +68,10 @@ public:
 	int					NumElements(void);
 	int					ByteSize(void);
 	void				AddParamBlock(unsigned int iFreeListSize, int iPrevSize, int iChunkSize);
+	void				AddParamBlock(SMemoryFreeListParams* psParam);
+	void				GetParams(SMemoryParams* psParams);
+	SMemoryFreeListParams*	GetFreeListParams(int iIndex);
+	void				SetFreeListSizeLimit(unsigned int uiFreeListSizeLimit);
 
 	void*				StartIteration(SMemoryIterator* psIterator);
 	void*				Iterate(SMemoryIterator* psIterator);
@@ -71,7 +85,7 @@ protected:
 
 private:
 	CFreeList*			GetOrAddFreeList(unsigned int iElementSize, int iAlignment, int iOffset);
-	SFreeListParams*	GetParamsForSize(unsigned int iElementSize);
+	SMemoryFreeListParams*	GetFreeListParamsForSize(unsigned int iElementSize);
 	void				InitFreeListParams(void);
 	void*				AllocateInFreeList(CFreeList* pcFreeList, unsigned int uiElementSize);
 	void				DeallocateInFreeList(CFreeList* pcFreeList, SMemoryAllocation* psAlloc);

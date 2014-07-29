@@ -18,7 +18,7 @@ struct SMemoryAllocation
 };
 
 
-struct SFreeListParams
+struct SMemoryFreeListParams
 {
 	unsigned int	iMaxListSize;  //This is the size of the actual element in the free list including SMemoryAllocation
 	unsigned int	iMinListSize;  //This is the size of the previous element in the free list including SMemoryAllocation +1.
@@ -29,11 +29,11 @@ struct SFreeListParams
 
 	int				iChunkSize;
 
-	SFreeListParams*	Init(unsigned int iFreeListSize, int iPrevSize, int iChunkSize);
+	SMemoryFreeListParams*	Init(unsigned int iFreeListSize, int iPrevSize, int iChunkSize);
 };
 
 
-typedef CArrayTemplate<SFreeListParams>		CArrayFreeListParams;
+typedef CArrayTemplate<SMemoryFreeListParams>		CArrayFreeListParams;
 int CompareFreeListParam(const void* arg1, const void* arg2);
 
 
