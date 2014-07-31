@@ -57,22 +57,22 @@ void CHeaderFileMap::Kill(void)
 CHeaderFile* CHeaderFileMap::AddFile(char* szAbsoluteFileName, BOOL bSystem)
 {
 	CHeaderFile*		pcHeader;
-	CChars*				pcName;
+	char*				szName;
 	CHeaderFile			cHeader;
 
 	pcHeader = mcFiles.Put(szAbsoluteFileName);
 	if (pcHeader)
 	{
-		pcName = mcFiles.GetKeyForData(pcHeader);
+		szName = mcFiles.GetKeyForData(pcHeader);
 		
-		cHeader.Init(pcName->Text(), bSystem);
+		cHeader.Init(szName, bSystem);
 		memcpy(pcHeader, &cHeader, sizeof(CHeaderFile));  //Initialise virtual function table.
 
 		pcHeader->macBlockSets.mpcFile = pcHeader;
 	}
 	else
 	{
-		pcHeader = mcFiles.GetWithKey(szAbsoluteFileName);
+		pcHeader = mcFiles.Get(szAbsoluteFileName);
 	}
 	return pcHeader;
 }
@@ -84,10 +84,7 @@ CHeaderFile* CHeaderFileMap::AddFile(char* szAbsoluteFileName, BOOL bSystem)
 //////////////////////////////////////////////////////////////////////////
 CHeaderFile* CHeaderFileMap::FindFile(char* szAbsoluteFileName)
 {
-	CChars		szFake;
-
-	szFake.Fake(szAbsoluteFileName);
-	return mcFiles.GetWithKey(&szFake);
+	return mcFiles.Get(szAbsoluteFileName);
 }
 
 
