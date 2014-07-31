@@ -49,6 +49,8 @@ public:
 	CompareFunc	ReadCaseSensitivity(CFileReader* pcFileReader);
 	BOOL		Read(CFileReader* pcFileReader);
 
+	char*		GetKeyForData(void* psData);
+
 	BOOL		IsCaseSensitive(void);
 	void		SetCaseSensitive(BOOL bCaseSensitive);
 

@@ -185,6 +185,35 @@ BOOL CMapStringBlock::Read(CFileReader* pcFileReader)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
+char* CMapStringBlock::GetKeyForData(void* psData)
+{
+	SMapIterator	sIter;
+	void*			pvData;
+	void*			pvKey;
+	BOOL			bResult;
+
+	if (psData == NULL)
+	{
+		return NULL;
+	}
+
+	bResult = StartIteration(&sIter, &pvKey, &pvData);
+	while (bResult)
+	{
+		if (pvData == psData)
+		{
+			return (char*)pvKey;
+		}
+		bResult = Iterate(&sIter, &pvKey, &pvData);
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
 BOOL CMapStringBlock::IsCaseSensitive(void)
 {
 	return Func == (CompareFunc)&strcmp;
