@@ -127,20 +127,19 @@ void CHeaderNameMap::AddFile(char* szFile)
 //////////////////////////////////////////////////////////////////////////
 void CHeaderNameMap::Dump(void)
 {
-	int				i;
-	CHeaderFile**	ppcHeader;
 	CHeaderFile*	pcHeader;
-	CChars*			pszName;
 	CChars			sz;
+	SMapIterator	sIter;
+	BOOL			bResult;
+	char*			szName;
 
 	sz.Init();
-	for (i = 0; i < mcFileNames.NumElements(); i++)
-	{
-		mcFileNames.GetAtIndex(i, &pszName, &ppcHeader);
-		pcHeader = *ppcHeader;
-		
-		sz.Append(pszName->Text());
+	bResult = mcFileNames.StartIteration(&sIter, (void**)&szName, (void**)&pcHeader);
+	while (bResult)
+	{	
+		sz.Append(szName);
 		sz.AppendNewLine();
+		bResult = mcFileNames.Iterate(&sIter, (void**)&szName, (void**)&pcHeader);
 	}
 	sz.Dump();
 	sz.Kill();

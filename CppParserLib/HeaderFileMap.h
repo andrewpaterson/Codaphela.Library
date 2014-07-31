@@ -38,8 +38,8 @@ public:
 
 	CHeaderFile*	AddFile(char* szAbsoluteFileName, BOOL bSystem);
 	CHeaderFile*	FindFile(char* szAbsoluteFileName);
-	int				NumFiles(void);
-	CHeaderFile*	GetFile(int iIndex);
+	CHeaderFile*	StartIteration(SMapIterator* psIter);
+	CHeaderFile*	Iterate(SMapIterator* psIter);
 };
 
 

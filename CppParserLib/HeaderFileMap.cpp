@@ -37,13 +37,15 @@ void CHeaderFileMap::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CHeaderFileMap::Kill(void)
 {
-	int				i;
-	CHeaderFile*	pcHeaderFile;
+	CHeaderFile*	pcHeader;
+	SMapIterator	sIter;
+	BOOL			bResult;
 
-	for (i = 0; i < mcFiles.NumElements(); i++)
+	bResult = mcFiles.StartIteration(&sIter, NULL, (void**)&pcHeader);
+	while (bResult)
 	{
-		mcFiles.GetAtIndex(i, NULL, &pcHeaderFile);
-		pcHeaderFile->Kill();
+		pcHeader->Kill();
+		bResult = mcFiles.Iterate(&sIter, NULL, (void**)&pcHeader);
 	}
 
 	mcFiles.Kill();
@@ -92,9 +94,20 @@ CHeaderFile* CHeaderFileMap::FindFile(char* szAbsoluteFileName)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CHeaderFileMap::NumFiles(void)
+CHeaderFile* CHeaderFileMap::StartIteration(SMapIterator* psIter)
 {
-	return mcFiles.NumElements();
+	CHeaderFile*	pcHeader;
+	BOOL			bResult;
+
+	bResult = mcFiles.StartIteration(psIter, NULL, (void**)&pcHeader);
+	if (bResult)
+	{
+		return pcHeader;
+	}
+	else
+	{
+		return NULL;
+	}
 }
 
 
@@ -102,13 +115,20 @@ int CHeaderFileMap::NumFiles(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CHeaderFile* CHeaderFileMap::GetFile(int iIndex)
+CHeaderFile* CHeaderFileMap::Iterate(SMapIterator* psIter)
 {
-	CChars*			psz;
-	CHeaderFile*	pcHeaderFile;
+	CHeaderFile*	pcHeader;
+	BOOL			bResult;
 
-	mcFiles.GetAtIndex(iIndex, &psz, &pcHeaderFile);
-
-	return pcHeaderFile;
+	bResult = mcFiles.Iterate(psIter, NULL, (void**)&pcHeader);
+	if (bResult)
+	{
+		return pcHeader;
+	}
+	else
+	{
+		return NULL;
+	}
 }
+
 

@@ -277,12 +277,13 @@ void CProject::DumpProcessedCPPFileName(CCFile* pcFile)
 void CProject::ClearPragmaOnceFromAllFiles(void)
 {
 	CHeaderFile*	pcHeader;
-	int				i;
+	SMapIterator	sIter;
 
-	for (i = 0; i < mcIncludeFiles.NumFiles(); i++)
+	pcHeader = mcIncludeFiles.StartIteration(&sIter);
+	while (pcHeader)
 	{
-		pcHeader = mcIncludeFiles.GetFile(i);
-		pcHeader->mbPragmaOnce = FALSE;
+		pcHeader->ClearPragmaOnce();
+		pcHeader = mcIncludeFiles.Iterate(&sIter);
 	}
 }
 

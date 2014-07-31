@@ -35,6 +35,8 @@ public:
 	BOOL IsHeader(void);
 	BOOL IsPragmaOnced(void);
 	BOOL IsSystemFile(void);
+
+	void ClearPragmaOnce(void);
 };
 
 
