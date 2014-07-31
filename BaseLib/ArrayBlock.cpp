@@ -1,4 +1,5 @@
 #include "SystemAllocator.h"
+#include "GlobalMemory.h"
 #include "ArrayBlock.h"
 
 
@@ -1512,6 +1513,11 @@ BOOL CArrayBlock::Write(CFileWriter* pcFileWriter)
 {
 	BOOL	bResult;
 
+	if (!gcMallocators.WriteMallocator(pcFileWriter, mpcMalloc))
+	{
+		return FALSE;
+	}
+
 	bResult = WriteHeader(pcFileWriter);
 	if (!bResult)
 	{
@@ -1533,7 +1539,7 @@ BOOL CArrayBlock::Write(CFileWriter* pcFileWriter)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayBlock::ReadHeader(CFileReader* pcFileReader)
+BOOL CArrayBlock::ReadHeader(CFileReader* pcFileReader, CMallocator* pcMalloc)
 {
 	SArrayTemplateHeader	sHeader;
 
@@ -1547,7 +1553,7 @@ BOOL CArrayBlock::ReadHeader(CFileReader* pcFileReader)
 	miUsedElements = sHeader.miUsedElements;
 	miNumElements = 0;
 	mpvArray = NULL;
-	mpcMalloc = &gcSystemAllocator;
+	mpcMalloc = pcMalloc;
 
 	if (miUsedElements != 0)
 	{
@@ -1564,9 +1570,16 @@ BOOL CArrayBlock::ReadHeader(CFileReader* pcFileReader)
 //////////////////////////////////////////////////////////////////////////
 BOOL CArrayBlock::Read(CFileReader* pcFileReader)
 {
-	BOOL bResult;
+	BOOL			bResult;
+	CMallocator*	pcMalloc;
 
-	bResult = ReadHeader(pcFileReader);
+	pcMalloc = gcMallocators.ReadMallocator(pcFileReader);
+	if (pcMalloc == NULL)
+	{
+		return FALSE;
+	}
+
+	bResult = ReadHeader(pcFileReader, pcMalloc);
 	if (!bResult)
 	{
 		return FALSE;

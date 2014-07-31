@@ -113,7 +113,7 @@ public:
 	void	SetUsedElements(int iNumElements);
 
 	BOOL	WriteHeader(CFileWriter* pcFileWriter);
-	BOOL	ReadHeader(CFileReader* pcFileReader);
+	BOOL	ReadHeader(CFileReader* pcFileReader, CMallocator* pcMalloc);
 	BOOL	Write(CFileWriter* pcFileWriter);
 	BOOL	Read(CFileReader* pcFileReader);
 

@@ -14,6 +14,7 @@ extern BOOL						gbMemory;
 void MemoryInit(void);
 void MemoryInit(int iDefaultAlignment, BOOL bDefaultFreeListParams = TRUE);
 void MemoryKill(void);
+BOOL MemoryValidate(void);
 
 
 #endif // __GLOBAL_MEMORY_H__

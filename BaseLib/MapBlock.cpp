@@ -346,17 +346,20 @@ BOOL CMapBlock::WriteExceptData(CFileWriter* pcFileWriter)
 //////////////////////////////////////////////////////////////////////////
 BOOL CMapBlock::ReadExceptData(CFileReader* pcFileReader, int(*Func)(const void*, const void*))
 {
+	CMallocator*	pcMalloc;
+
+	pcMalloc = &gcSystemAllocator;
 	if (!mapArray.ReadHeader(pcFileReader, &CompareMNode))
 	{
 		return FALSE;
 	}
 
-	if (!mapArray.GetSortedArray()->ReadHeader(pcFileReader))
+	if (!mapArray.GetSortedArray()->ReadHeader(pcFileReader, pcMalloc))
 	{
 		return FALSE;
 	}
 
-	mpcMalloc = &gcSystemAllocator;
+	mpcMalloc = pcMalloc;
 	this->Func = Func;
 	miLargestKeySize = 0;
 

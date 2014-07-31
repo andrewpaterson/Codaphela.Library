@@ -1,5 +1,7 @@
 #include "Mallocators.h"
+#include "Logger.h"
 #include "GlobalMemory.h"
+
 
 CMallocators			gcMallocators;
 CConstructors			gcConstructors;
@@ -45,5 +47,23 @@ void MemoryKill(void)
 
 	gcMemory.Kill();
 	gbMemory = FALSE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL MemoryValidate(void)
+{
+	if (!gbMemory)
+	{
+		gcLogger.Error("Global Memory has not been initialised.");
+		return FALSE;
+	}
+	else
+	{
+		return TRUE;
+	}
 }
 

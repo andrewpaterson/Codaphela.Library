@@ -61,6 +61,11 @@ CMallocator* CMallocators::ReadMallocator(CFileReader* pcFileReader)
 	CMallocator**		ppcMallocator;
 	CLocalMallocator*	pcLocalMallocator;
 
+	if (!MemoryValidate())
+	{
+		return NULL;
+	}
+
 	if (!pcFileReader->ReadStringLength(&iLength))
 	{
 		gcLogger.Error("Could not read mallocator name length.");
@@ -81,7 +86,7 @@ CMallocator* CMallocators::ReadMallocator(CFileReader* pcFileReader)
 	ppcMallocator = mmszcMallocators.Get(szName);
 	if (!ppcMallocator)
 	{
-		gcLogger.Error2("Could not find mallocator named [", szName, "].");
+		gcLogger.Error2("Could not find mallocator named [", szName, "].", NULL);
 		return FALSE;
 	}
 
@@ -118,6 +123,11 @@ CMallocator* CMallocators::ReadMallocator(CFileReader* pcFileReader)
 BOOL CMallocators::WriteMallocator(CFileWriter* pcFileWriter, CMallocator* pcMallocator)
 {
 	CLocalMallocator*	pcLocal;
+
+	if (!MemoryValidate())
+	{
+		return FALSE;
+	}
 
 	if (pcMallocator == NULL)
 	{
