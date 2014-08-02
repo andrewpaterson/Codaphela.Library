@@ -13,9 +13,11 @@ protected:
 	CIndexTreeNode*		mpcRoot;
 	int					miSize;
 	int					miModifications;
+	CMallocator*		mpcMalloc;
 
 public:
 	void				Init(void);
+	void				Init(CMallocator* pcMalloc);
 	void				Kill(void);
 	void				RecurseKill(CIndexTreeNode* pcNode);
 

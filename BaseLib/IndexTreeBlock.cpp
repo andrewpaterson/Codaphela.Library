@@ -1,4 +1,5 @@
 #include "Numbers.h"
+#include "GlobalMemory.h"
 #include "IndexTreeBlock.h"
 
 
@@ -8,6 +9,17 @@
 //////////////////////////////////////////////////////////////////////////
 void CIndexTreeBlock::Init(void)
 {
+	Init(&gcSystemAllocator);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexTreeBlock::Init(CMallocator* pcMalloc)
+{
+	mpcMalloc = pcMalloc;
 	mpcRoot = AllocateRoot();
 	miSize = 0;
 	miModifications = 0;
@@ -50,7 +62,7 @@ void CIndexTreeBlock::RecurseKill(CIndexTreeNode* pcNode)
 //////////////////////////////////////////////////////////////////////////
 void* CIndexTreeBlock::Malloc(size_t tSize)
 {
-	return malloc(tSize);
+	return mpcMalloc->Malloc(tSize);
 }
 
 
@@ -60,7 +72,7 @@ void* CIndexTreeBlock::Malloc(size_t tSize)
 //////////////////////////////////////////////////////////////////////////
 void CIndexTreeBlock::Free(void* pv)
 {
-	free(pv);
+	mpcMalloc->Free(pv);
 }
 
 
@@ -70,10 +82,7 @@ void CIndexTreeBlock::Free(void* pv)
 //////////////////////////////////////////////////////////////////////////
 void* CIndexTreeBlock::Realloc(void* pv, size_t tSize)
 {
-	void* pvNew;
-
-	pvNew = realloc(pv, tSize);
-	return pvNew;
+	return mpcMalloc->Realloc(pv, tSize);
 }
 
 
