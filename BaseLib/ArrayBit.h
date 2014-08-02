@@ -28,7 +28,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 class CArrayBit
 {
 protected:
-	int		miNumBits;
+	int				miNumBits;
+	CMallocator*	mpcMalloc;
 
 	union
 	{
@@ -45,23 +46,31 @@ protected:
 
 public:
 	void	Init(void);
+	void	Init(CMallocator* pcMalloc);
 	void	Kill(void);
 	void	Zero(void);
 	void	ReInit(void);
 	void	GrowBy(int iNumBits);
+
 	BOOL	Get(int iBit);  //return 0 or not 0 (not necessarily 1).
-	void	Set(int iBit, BOOL bBit);  //bBit can only take 1 or 0.
-	void	Add(BOOL bBit);
 	void	Get(void* pvDest, int iDestOffset, int iOffset, int iNumBits);
-	void	Set(int iOffset, void* pvSource, int iSourceOffset, int iNumBits);
+
+	void	Add(BOOL bBit);
 	void	Add(void* pvSource, int iSourceOffset, int iNumBits);
+
+	void	Set(int iBit, BOOL bBit);  //bBit can only take 1 or 0.
+	void	Set(int iOffset, void* pvSource, int iSourceOffset, int iNumBits);
+
 	void	Remove(int iOffset, int iNumBits);
-	BOOL	Load(CFileReader* pcFile);
-	BOOL	Save(CFileWriter* pcFile);
+
+	BOOL	Read(CFileReader* pcFile);
+	BOOL	Write(CFileWriter* pcFile);
+
 	int		NumElements(void);
-	BOOL	Large(void);
 	void*	GetData(void);
 	int		ByteSize(int iNumBits);
+
+	BOOL	IsLarge(void);
 
 protected:
 	void*	Malloc(size_t tSize);
