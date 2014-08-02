@@ -12,6 +12,7 @@ protected:
 	size_t			mtSize;
 
 public:
+	void	Init(void);
 	void	Init(CMallocator* pcMalloc);
 	void	Kill(void);
 	void*	GetMemory(void);

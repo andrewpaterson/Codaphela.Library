@@ -30,12 +30,24 @@ template<class D>
 class CMapIntTemplate : public CMapTemplate<int, D>
 {
 public:
+	void	Init(int iChunkSize, BOOL bOverwrite);
 	void	Init(CMallocator* pcMalloc, int iChunkSize, BOOL bOverwrite);
 	D*		Get(int iKey);
 	D*		Put(int iKey);
 	BOOL	Put(int iKey, D* psData);
 	BOOL	Remove(int iKey);
 };
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class D>
+void CMapIntTemplate<D>::Init(int iChunkSize, BOOL bOverwrite)
+{
+	Init(&gcSystemAllocator, iChunkSize, bOverwrite);
+}
 
 
 //////////////////////////////////////////////////////////////////////////
