@@ -522,9 +522,6 @@
     <ClInclude Include="Log.h">
       <Filter>Source\Error</Filter>
     </ClInclude>
-    <ClInclude Include="IndexTree.h">
-      <Filter>Source\Data\Index</Filter>
-    </ClInclude>
     <ClInclude Include="IndexTreeNode.h">
       <Filter>Source\Data\Index</Filter>
     </ClInclude>
@@ -653,6 +650,9 @@
     </ClInclude>
     <ClInclude Include="ScratchPadAllocator.h">
       <Filter>Source\Memory\ScratchPad</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexTreeBlock.h">
+      <Filter>Source\Data\Index</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -935,9 +935,6 @@
     <ClCompile Include="ChunkStack.cpp">
       <Filter>Source\File\Chunk\File</Filter>
     </ClCompile>
-    <ClCompile Include="IndexTree.cpp">
-      <Filter>Source\Data\Index</Filter>
-    </ClCompile>
     <ClCompile Include="IndexTreeNode.cpp">
       <Filter>Source\Data\Index</Filter>
     </ClCompile>
@@ -1030,6 +1027,9 @@
     </ClCompile>
     <ClCompile Include="ScratchPadAllocator.cpp">
       <Filter>Source\Memory\ScratchPad</Filter>
+    </ClCompile>
+    <ClCompile Include="IndexTreeBlock.cpp">
+      <Filter>Source\Data\Index</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

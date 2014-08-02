@@ -69,9 +69,9 @@ void CMeshSelections::ReInit(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CMeshSelections::Load(CFileReader* pcFile)
 {
-	ReturnOnFalse(mcVerts.Load(pcFile));
-	ReturnOnFalse(mcEdges.Load(pcFile));
-	ReturnOnFalse(mcFaces.Load(pcFile));
+	ReturnOnFalse(mcVerts.Read(pcFile));
+	ReturnOnFalse(mcEdges.Read(pcFile));
+	ReturnOnFalse(mcFaces.Read(pcFile));
 	return TRUE;
 }
 
@@ -82,9 +82,9 @@ BOOL CMeshSelections::Load(CFileReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 BOOL CMeshSelections::Save(CFileWriter* pcFile)
 {
-	ReturnOnFalse(mcVerts.Save(pcFile));
-	ReturnOnFalse(mcEdges.Save(pcFile));
-	ReturnOnFalse(mcFaces.Save(pcFile));
+	ReturnOnFalse(mcVerts.Write(pcFile));
+	ReturnOnFalse(mcEdges.Write(pcFile));
+	ReturnOnFalse(mcFaces.Write(pcFile));
 	return TRUE;
 }
 

@@ -30,7 +30,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 class CNamedIndexedObjects
 {
 protected:
-	CIndexTree			mcNames;
+	CIndexTreeBlock		mcNames;
 	CIndexedObjects		mcIndexedObjects;
 
 public:
