@@ -114,6 +114,8 @@ public:
 
 	BOOL	WriteHeader(CFileWriter* pcFileWriter);
 	BOOL	ReadHeader(CFileReader* pcFileReader, CMallocator* pcMalloc);
+	BOOL	WriteAllocatorAndHeader(CFileWriter* pcFileWriter);
+	BOOL	ReadAllocatorAndHeader(CFileReader* pcFileReader);
 	BOOL	Write(CFileWriter* pcFileWriter);
 	BOOL	Read(CFileReader* pcFileReader);
 

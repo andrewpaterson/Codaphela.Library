@@ -112,7 +112,7 @@ BOOL CMeshPolygons::Save(CFileWriter* pcFile)
 	int				i;
 	CMeshPolygon*	psPolygon;
 
-	ReturnOnFalse(mcPolygons.WriteHeader(pcFile));	
+	ReturnOnFalse(mcPolygons.WriteAllocatorAndHeader(pcFile));	
 
 	for (i = 0; i < mcPolygons.NumElements(); i++)
 	{
@@ -134,7 +134,7 @@ BOOL CMeshPolygons::Load(CFileReader* pcFile)
 	int				i;
 	CMeshPolygon*	psPolygon;
 
-	ReturnOnFalse(mcPolygons.ReadHeader(pcFile));
+	ReturnOnFalse(mcPolygons.ReadAllocatorAndHeader(pcFile));
 
 	for (i = 0; i < mcPolygons.NumElements(); i++)
 	{

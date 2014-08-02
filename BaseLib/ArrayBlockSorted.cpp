@@ -1,3 +1,4 @@
+#include "GlobalMemory.h"
 #include "ArrayBlockSorted.h"
 
 
@@ -30,7 +31,7 @@ void CArrayBlockSorted::Init(CMallocator* pcMallocator, int iElementSize, int iC
 	CArrayBlock*	paHoldingArray;
 	int				i;
 
-	mpcMallocator = pcMallocator;
+	mpcMalloc = pcMallocator;
 	miHoldingBufferSize = iHoldingBufferSize;
 	miChunkSize = iChunkSize;
 	miElementSize = iElementSize;
@@ -45,7 +46,7 @@ void CArrayBlockSorted::Init(CMallocator* pcMallocator, int iElementSize, int iC
 		paHoldingArray->Init(pcMallocator, miElementSize, iHoldingBufferSize);
 	}
 
-	mapiInsertionIndices = (int*)mpcMallocator->Malloc(miHoldingBufferSize * iHoldingBuffers * sizeof(int));
+	mapiInsertionIndices = (int*)mpcMalloc->Malloc(miHoldingBufferSize * iHoldingBuffers * sizeof(int));
 }
 
 
@@ -58,7 +59,7 @@ void CArrayBlockSorted::Kill(void)
 	CArrayBlock*	paHoldingArray;
 	int				i;
 
-	mpcMallocator->Free(mapiInsertionIndices);
+	mpcMalloc->Free(mapiInsertionIndices);
 	for (i = 0; i < maaHoldingArrays.NumElements(); i++)
 	{
 		paHoldingArray = maaHoldingArrays.Get(i);
@@ -66,7 +67,7 @@ void CArrayBlockSorted::Kill(void)
 	}
 	maaHoldingArrays.Kill();
 	maSortedArray.Kill();
-	mpcMallocator = NULL;
+	mpcMalloc = NULL;
 }
 
 
@@ -175,7 +176,7 @@ void CArrayBlockSorted::InsertHoldingIntoSorted(void)
 	int*			paiInsertionIndices;
 	int				oldLength;
 
-	aMergedHoldingArrays.Init(mpcMallocator, miElementSize, miHoldingBufferSize * maaHoldingArrays.NumElements());
+	aMergedHoldingArrays.Init(mpcMalloc, miElementSize, miHoldingBufferSize * maaHoldingArrays.NumElements());
 	MergeHoldingArrays(&aMergedHoldingArrays);
 
 	if (aMergedHoldingArrays.IsNotEmpty())
@@ -586,7 +587,16 @@ BOOL CArrayBlockSorted::WriteHeader(CFileWriter* pcFileWriter)
 //////////////////////////////////////////////////////////////////////////
 BOOL CArrayBlockSorted::Write(CFileWriter* pcFileWriter)
 {
-	if (!WriteHeader(pcFileWriter))
+	BOOL	bResult;
+
+	bResult = gcMallocators.WriteMallocator(pcFileWriter, mpcMalloc);
+	if (!bResult)
+	{
+		return FALSE;
+	}
+
+	bResult = WriteHeader(pcFileWriter);
+	if (!bResult)
 	{
 		return FALSE;
 	}
@@ -600,7 +610,7 @@ BOOL CArrayBlockSorted::Write(CFileWriter* pcFileWriter)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayBlockSorted::ReadHeader(CFileReader* pcFileReader, int(*Func)(const void*, const void*))
+BOOL CArrayBlockSorted::ReadHeader(CMallocator* pcMalloc, CFileReader* pcFileReader, int(*Func)(const void*, const void*))
 {
 	CArrayBlock*	paHoldingArray;
 	int				i;
@@ -610,7 +620,7 @@ BOOL CArrayBlockSorted::ReadHeader(CFileReader* pcFileReader, int(*Func)(const v
 	int				iHoldingBuffers;
 	BOOL			bOverwrite;
 
-	mpcMallocator = &gcSystemAllocator;
+	mpcMalloc = pcMalloc;
 	ReturnOnFalse(pcFileReader->ReadInt(&iHoldingBufferSize));
 	ReturnOnFalse(pcFileReader->ReadInt(&iChunkSize));
 	ReturnOnFalse(pcFileReader->ReadInt(&iElementSize));
@@ -623,14 +633,14 @@ BOOL CArrayBlockSorted::ReadHeader(CFileReader* pcFileReader, int(*Func)(const v
 	this->Func = Func;
 	mbOverwrite = bOverwrite;
 
-	maaHoldingArrays.Allocate(mpcMallocator, iHoldingBuffers);
+	maaHoldingArrays.Allocate(mpcMalloc, iHoldingBuffers);
 	for (i = 0; i < iHoldingBuffers; i++)
 	{
 		paHoldingArray = maaHoldingArrays.Get(i);
-		paHoldingArray->Init(mpcMallocator, miElementSize, iHoldingBufferSize);
+		paHoldingArray->Init(mpcMalloc, miElementSize, iHoldingBufferSize);
 	}
 
-	mapiInsertionIndices = (int*)mpcMallocator->Malloc(miHoldingBufferSize * iHoldingBuffers * sizeof(int));
+	mapiInsertionIndices = (int*)mpcMalloc->Malloc(miHoldingBufferSize * iHoldingBuffers * sizeof(int));
 	return TRUE;
 }
 
@@ -641,7 +651,15 @@ BOOL CArrayBlockSorted::ReadHeader(CFileReader* pcFileReader, int(*Func)(const v
 //////////////////////////////////////////////////////////////////////////
 BOOL CArrayBlockSorted::Read(CFileReader* pcFileReader, int(*Func)(const void*, const void*))
 {
-	if (!ReadHeader(pcFileReader, Func))
+	CMallocator*	pcMalloc;
+
+	pcMalloc = gcMallocators.ReadMallocator(pcFileReader);
+	if (pcMalloc == NULL)
+	{
+		return FALSE;
+	}
+
+	if (!ReadHeader(pcMalloc, pcFileReader, Func))
 	{
 		return FALSE;
 	}

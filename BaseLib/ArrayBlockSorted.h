@@ -20,7 +20,7 @@ class CArrayBlockSorted
 protected:
 	CArrayBlock			maSortedArray;
 	CArrayArrayBlock	maaHoldingArrays;
-	CMallocator*		mpcMallocator;
+	CMallocator*		mpcMalloc;
 	int					(*Func)(const void*, const void*);
 	int*				mapiInsertionIndices;
 
@@ -49,7 +49,7 @@ public:
 
 	BOOL	WriteHeader(CFileWriter* pcFileWriter);
 	BOOL	Write(CFileWriter* pcFileWriter);
-	BOOL	ReadHeader(CFileReader* pcFileReader, int(*Func)(const void*, const void*));
+	BOOL	ReadHeader(CMallocator* pcMalloc, CFileReader* pcFileReader, int(*Func)(const void*, const void*));
 	BOOL	Read(CFileReader* pcFileReader, int(*Func)(const void*, const void*));
 
 	void	SetOverwrite(BOOL bOverwrite);

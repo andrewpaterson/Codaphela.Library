@@ -241,7 +241,7 @@ BOOL CMeshLeaves::Save(CFileWriter* pcFile)
 	CMeshLeaf*	pcLeaf;
 
 	ReturnOnFalse(SaveMeshDetail(pcFile));
-	ReturnOnFalse(mcLeaves.WriteHeader(pcFile));
+	ReturnOnFalse(mcLeaves.WriteAllocatorAndHeader(pcFile));
 	for (i = 0; i < mcLeaves.NumElements(); i++)
 	{
 		pcLeaf = mcLeaves.Get(i);
@@ -261,7 +261,7 @@ BOOL CMeshLeaves::Load(CFileReader* pcFile)
 	CMeshLeaf*	pcLeaf;
 
 	ReturnOnFalse(LoadMeshDetail(pcFile));
-	ReturnOnFalse(mcLeaves.ReadHeader(pcFile));
+	ReturnOnFalse(mcLeaves.ReadAllocatorAndHeader(pcFile));
 	for (i = 0; i < mcLeaves.NumElements(); i++)
 	{
 		pcLeaf = mcLeaves.Get(i);

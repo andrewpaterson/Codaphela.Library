@@ -1509,17 +1509,32 @@ BOOL CArrayBlock::WriteHeader(CFileWriter* pcFileWriter)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayBlock::Write(CFileWriter* pcFileWriter)
+BOOL CArrayBlock::WriteAllocatorAndHeader(CFileWriter* pcFileWriter)
 {
 	BOOL	bResult;
 
-	if (!gcMallocators.WriteMallocator(pcFileWriter, mpcMalloc))
+	bResult = gcMallocators.WriteMallocator(pcFileWriter, mpcMalloc);
+	if (!bResult)
 	{
 		return FALSE;
 	}
 
 	bResult = WriteHeader(pcFileWriter);
 	if (!bResult)
+	{
+		return FALSE;
+	}
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+BOOL CArrayBlock::Write(CFileWriter* pcFileWriter)
+{
+	if (!WriteAllocatorAndHeader(pcFileWriter))
 	{
 		return FALSE;
 	}
@@ -1568,7 +1583,7 @@ BOOL CArrayBlock::ReadHeader(CFileReader* pcFileReader, CMallocator* pcMalloc)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayBlock::Read(CFileReader* pcFileReader)
+BOOL CArrayBlock::ReadAllocatorAndHeader(CFileReader* pcFileReader)
 {
 	BOOL			bResult;
 	CMallocator*	pcMalloc;
@@ -1580,6 +1595,23 @@ BOOL CArrayBlock::Read(CFileReader* pcFileReader)
 	}
 
 	bResult = ReadHeader(pcFileReader, pcMalloc);
+	if (!bResult)
+	{
+		return FALSE;
+	}
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+BOOL CArrayBlock::Read(CFileReader* pcFileReader)
+{
+	BOOL			bResult;
+
+	bResult = ReadAllocatorAndHeader(pcFileReader);
 	if (!bResult)
 	{
 		return FALSE;

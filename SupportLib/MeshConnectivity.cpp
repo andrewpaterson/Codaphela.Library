@@ -279,7 +279,7 @@ BOOL CMeshConnectivity::Load(CFileReader* pcFile)
 
 	ReturnOnFalse(LoadMeshDetail(pcFile));
 
-	if (mcCorners.ReadHeader(pcFile))
+	if (mcCorners.ReadAllocatorAndHeader(pcFile))
 	{
 		gcUserError.Set("Could not read corners.");
 		return FALSE;
@@ -326,7 +326,7 @@ BOOL CMeshConnectivity::Save(CFileWriter* pcFile)
 
 	ReturnOnFalse(SaveMeshDetail(pcFile));
 
-	ReturnOnFalse(mcCorners.WriteHeader(pcFile));
+	ReturnOnFalse(mcCorners.WriteAllocatorAndHeader(pcFile));
 
 	for (i = 0; i < mcCorners.NumElements(); i++)
 	{

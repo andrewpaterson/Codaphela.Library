@@ -189,7 +189,7 @@ BOOL CMeshSkin::Load(CFileReader* pcFile)
 	Init();
 
 	ReturnOnFalse(LoadMeshDetail(pcFile));
-	ReturnOnFalse(mcSkinVerts.ReadHeader(pcFile));
+	ReturnOnFalse(mcSkinVerts.ReadAllocatorAndHeader(pcFile));
 
 	for (i = 0; i < mcSkinVerts.NumElements(); i++)
 	{
@@ -212,7 +212,7 @@ BOOL CMeshSkin::Save(CFileWriter* pcFile)
 	int				i;
 
 	ReturnOnFalse(SaveMeshDetail(pcFile));
-	ReturnOnFalse(mcSkinVerts.WriteHeader(pcFile));
+	ReturnOnFalse(mcSkinVerts.WriteAllocatorAndHeader(pcFile));
 
 	for (i = 0; i < mcSkinVerts.NumElements(); i++)
 	{

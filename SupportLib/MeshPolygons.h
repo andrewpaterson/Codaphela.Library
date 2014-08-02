@@ -33,7 +33,7 @@ class CMeshPolygon
 {
 public:
 	CArrayIntMinimal	maiFaces;  //In polygon
-	int				miName;
+	int					miName;
 
 public:
 	void 		Init(int iName);
@@ -45,7 +45,7 @@ public:
 typedef CArrayTemplate<CMeshPolygon> CArrayMeshPolygon;
 
 
-//Every face in a mesh should be refered to by a polygon (mcPolygons).
+//Every face in a mesh should be referred to by a polygon (mcPolygons).
 //maiFacesToPolygons is the reverse mapping.  Given a face one can get the polygon it's a part of.
 class CMeshEdgeVisibility;
 class CMeshConnectivity;

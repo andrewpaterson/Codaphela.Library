@@ -1,4 +1,5 @@
 #include "DataMacro.h"
+#include "GlobalMemory.h"
 #include "MapBlock.h"
 
 
@@ -335,14 +336,24 @@ BOOL CMapBlock::Iterate(SMapIterator* psIterator, void** ppvKey, void** ppvData)
 //////////////////////////////////////////////////////////////////////////
 BOOL CMapBlock::WriteExceptData(CFileWriter* pcFileWriter)
 {
+	BOOL	bResult;
+
 	InsertHoldingIntoSorted();
 
-	if (!mapArray.WriteHeader(pcFileWriter))
+	bResult = gcMallocators.WriteMallocator(pcFileWriter, mpcMalloc);
+	if (!bResult)
 	{
 		return FALSE;
 	}
 
-	if (!mapArray.GetSortedArray()->WriteHeader(pcFileWriter))
+	bResult = mapArray.WriteHeader(pcFileWriter);
+	if (!bResult)
+	{
+		return FALSE;
+	}
+
+	bResult = mapArray.GetSortedArray()->WriteHeader(pcFileWriter);
+	if (!bResult)
 	{
 		return FALSE;
 	}
@@ -357,14 +368,22 @@ BOOL CMapBlock::WriteExceptData(CFileWriter* pcFileWriter)
 BOOL CMapBlock::ReadExceptData(CFileReader* pcFileReader, int(*Func)(const void*, const void*))
 {
 	CMallocator*	pcMalloc;
+	BOOL			bResult;
 
-	pcMalloc = &gcSystemAllocator;
-	if (!mapArray.ReadHeader(pcFileReader, &CompareMNode))
+	pcMalloc = gcMallocators.ReadMallocator(pcFileReader);
+	if (pcMalloc == NULL)
 	{
 		return FALSE;
 	}
 
-	if (!mapArray.GetSortedArray()->ReadHeader(pcFileReader, pcMalloc))
+	bResult = mapArray.ReadHeader(pcMalloc, pcFileReader, &CompareMNode);
+	if (!bResult)
+	{
+		return FALSE;
+	}
+
+	bResult = mapArray.GetSortedArray()->ReadHeader(pcFileReader, pcMalloc);
+	if (!bResult)
 	{
 		return FALSE;
 	}
@@ -456,8 +475,11 @@ BOOL CMapBlock::Write(CFileWriter* pcFileWriter)
 	int			i;
 	void*		pvData;
 	int			iDataSize;
+	BOOL		bResult;
 
-	if (!WriteExceptData(pcFileWriter))
+
+	bResult = WriteExceptData(pcFileWriter);
+	if (!bResult)
 	{
 		return FALSE;
 	}
@@ -470,7 +492,9 @@ BOOL CMapBlock::Write(CFileWriter* pcFileWriter)
 		{
 			return FALSE;
 		}
-		if (!pcFileWriter->WriteData(pvData, iDataSize))
+
+		bResult = pcFileWriter->WriteData(pvData, iDataSize);
+		if (!bResult)
 		{
 			return FALSE;
 		}
