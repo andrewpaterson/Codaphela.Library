@@ -255,7 +255,7 @@ void* CIndexTreeBlock::Get(void* pvKey, int iKeySize)
 //////////////////////////////////////////////////////////////////////////
 void* CIndexTreeBlock::Get(char* pszKey)
 {
-	int					iKeySize;
+	int		iKeySize;
 
 	if (StrEmpty(pszKey))
 	{

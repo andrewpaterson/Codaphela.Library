@@ -30,6 +30,16 @@ int CompareMNode(const void* arg1, const void* arg2)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CMapBlock::Init(int(* Func)(const void*, const void*), BOOL bOverwrite)
+{
+	Init(&gcSystemAllocator, 128, Func, bOverwrite);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CMapBlock::Init(int iChunkSize, int(* Func)(const void*, const void*), BOOL bOverwrite)
 {
 	Init(&gcSystemAllocator, iChunkSize, Func, bOverwrite);
