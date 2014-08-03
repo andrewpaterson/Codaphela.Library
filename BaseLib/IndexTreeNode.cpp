@@ -150,7 +150,65 @@ void CIndexTreeNode::Clear(unsigned char uiIndex)
 	{
 		apcChildren = GetNodes();
 		apcChildren[uiIndex - muiFirstIndex] = NULL;
+
+		if (uiIndex == muiFirstIndex)
+		{
+			unsigned int uiNextFirstIndex;
+
+			uiNextFirstIndex = FindNextFirstIndex();
+			int xxx = 0;
+		}
+		else if (uiIndex == muiLastIndex)
+		{
+			int xxx = 0;
+		}
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+unsigned char CIndexTreeNode::FindNextFirstIndex(void)
+{
+	int					i;
+	CIndexTreeNode*		pcChild;
+	CIndexTreeNode**	apcChildren;
+
+	apcChildren = GetNodes();
+	for (i = 1; i <= (int)(muiLastIndex - muiFirstIndex); i++)
+	{
+		pcChild = apcChildren[i];
+		if (pcChild != NULL)
+		{
+			return muiFirstIndex + i;
+		}
+	}
+	return muiLastIndex;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+unsigned char CIndexTreeNode::FindPrevLastIndex(void)
+{
+	int					i;
+	CIndexTreeNode*		pcChild;
+	CIndexTreeNode**	apcChildren;
+
+	apcChildren = GetNodes();
+	for (i = (int)(muiLastIndex - muiFirstIndex)-1; i >= 0; i--)
+	{
+		pcChild = apcChildren[i];
+		if (pcChild != NULL)
+		{
+			return muiFirstIndex + i;
+		}
+	}
+	return muiFirstIndex;
 }
 
 

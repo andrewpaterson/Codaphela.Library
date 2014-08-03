@@ -40,6 +40,8 @@ public:
 	size_t				CalculateRequiredNodeSizeForIndex(unsigned char uiIndex);
 	size_t				CalculateRequiredNodeSizeForEmpty(void);
 	size_t				CalculateRequiredNodeSizeForData(unsigned char uiDataSize);
+	unsigned char		FindPrevLastIndex(void);
+	unsigned char		FindNextFirstIndex(void);
 };
 
 
