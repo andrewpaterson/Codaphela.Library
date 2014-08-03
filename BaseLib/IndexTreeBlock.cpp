@@ -446,6 +446,7 @@ BOOL CIndexTreeBlock::Remove(void* pvKey, int iKeySize)
 		if (pcNode->IsEmpty())
 		{
 			pcParent->Clear(c);
+			Free(pcNode);
 		}
 	}
 
