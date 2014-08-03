@@ -654,6 +654,12 @@
     <ClInclude Include="IndexTreeBlock.h">
       <Filter>Source\Data\Index</Filter>
     </ClInclude>
+    <ClInclude Include="TrackingAllocator.h">
+      <Filter>Source\Memory\Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="MapPtrPrimitiveTemplate.h">
+      <Filter>Source\Data\Map</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -1030,6 +1036,9 @@
     </ClCompile>
     <ClCompile Include="IndexTreeBlock.cpp">
       <Filter>Source\Data\Index</Filter>
+    </ClCompile>
+    <ClCompile Include="TrackingAllocator.cpp">
+      <Filter>Source\Memory\Manager</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

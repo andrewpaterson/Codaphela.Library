@@ -122,6 +122,7 @@
     <ClInclude Include="LogString.h" />
     <ClInclude Include="Mallocator.h" />
     <ClInclude Include="MapBlock.h" />
+    <ClInclude Include="MapPtrPrimitiveTemplate.h" />
     <ClInclude Include="MapStringBlock.h" />
     <ClInclude Include="MemoryAllocator.h" />
     <ClInclude Include="Mallocators.h" />
@@ -134,6 +135,7 @@
     <ClInclude Include="PackFilesGeneral.h" />
     <ClInclude Include="ScratchPadAllocator.h" />
     <ClInclude Include="SystemAllocator.h" />
+    <ClInclude Include="TrackingAllocator.h" />
     <ClInclude Include="TreeBlock.h" />
     <ClInclude Include="TreeTemplate.h" />
     <ClInclude Include="EnumeratorBlock.h" />
@@ -279,6 +281,7 @@
     <ClCompile Include="PackFilePacker.cpp" />
     <ClCompile Include="ScratchPadAllocator.cpp" />
     <ClCompile Include="SystemAllocator.cpp" />
+    <ClCompile Include="TrackingAllocator.cpp" />
     <ClCompile Include="TreeBlock.cpp" />
     <ClCompile Include="EnumeratorBlock.cpp" />
     <ClCompile Include="EnumeratorEnumerator.cpp" />
