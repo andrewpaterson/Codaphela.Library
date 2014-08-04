@@ -123,7 +123,6 @@ CIndexTreeNode* CIndexTreeBlock::AllocateRoot(void)
 CIndexTreeNode* CIndexTreeBlock::ReallocateNodeForIndex(CIndexTreeNode* pcNode, unsigned char uiIndex)
 {
 	CIndexTreeNode*		pcOldNode;
-	CIndexTreeNode*		pcParent;
 	size_t				tNewNodeSize;
 
 	if (pcNode->ContainsIndex(uiIndex))
@@ -144,6 +143,20 @@ CIndexTreeNode* CIndexTreeBlock::ReallocateNodeForIndex(CIndexTreeNode* pcNode, 
 	pcNode = (CIndexTreeNode*)Realloc(pcNode, tNewNodeSize);
 	pcNode->Contain(uiIndex);
 
+	RemapChildParents(pcOldNode, pcNode);
+
+	return pcNode;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexTreeBlock::RemapChildParents(CIndexTreeNode* pcOldNode, CIndexTreeNode* pcNode)
+{
+	CIndexTreeNode*		pcParent;
+
 	if (pcOldNode != pcNode)
 	{
 		pcParent = pcNode->GetParent();
@@ -152,8 +165,6 @@ CIndexTreeNode* CIndexTreeBlock::ReallocateNodeForIndex(CIndexTreeNode* pcNode, 
 			pcParent->RemapChildNodes(pcOldNode, pcNode);
 		}
 	}
-
-	return pcNode;
 }
 
 
@@ -405,20 +416,21 @@ BOOL CIndexTreeBlock::Remove(void* pvKey, int iKeySize)
 {
 	char											c;
 	CIndexTreeNode*									pcParent;
+	CIndexTreeNode*									pcOldParent;
 	CIndexTreeNode*									pcNode;
-	CArrayTemplateEmbedded<CIndexTreeNode*, 64>		apcPath;
 	CIndexTreeNode*									pcCurrent;
 	void*											pvObject;
+	BOOL											bResizeNode;
+	size_t											tNewNodeSize;
+	int												i;
 
 	if ((iKeySize == 0) || (pvKey == NULL))
 	{
 		return FALSE;
 	}
 
-	apcPath.Init();
 	pcCurrent = mpcRoot;
-	apcPath.Add(&pcCurrent);
-	for (int i = 0; i < iKeySize; i++)
+	for (i = 0; i < iKeySize; i++)
 	{
 		char c = ((char*)pvKey)[i];
 		pcCurrent = pcCurrent->Get(c);
@@ -426,7 +438,6 @@ BOOL CIndexTreeBlock::Remove(void* pvKey, int iKeySize)
 		{
 			return FALSE;
 		}
-		apcPath.Add(&pcCurrent);
 	}
 
 	if (pcCurrent->GetObjectSize() == 0)
@@ -436,17 +447,37 @@ BOOL CIndexTreeBlock::Remove(void* pvKey, int iKeySize)
 
 	pvObject = ((void**) pcCurrent->GetObjectPtr());
 
+	pcNode = pcCurrent;
+	pcParent = pcNode->GetParent();
 	pcCurrent->ClearObject();
-	for (int i = apcPath.NumElements() - 1; i > 0; i--)
+	for (;;)
 	{
 		c = ((char*)pvKey)[(i - 1)];
-		pcNode = *apcPath.Get(i);
-		pcParent = *apcPath.Get(i - 1);
+		i--;
 
 		if (pcNode->IsEmpty())
 		{
-			pcParent->Clear(c);
+			bResizeNode = pcParent->Clear(c);
+			if (bResizeNode)
+			{
+				tNewNodeSize = pcParent->CalculateRequiredNodeSizeForCurrent();
+				pcOldParent = pcParent;
+				pcParent = (CIndexTreeNode*)Realloc(pcParent, tNewNodeSize);
+				pcParent->SetChildsParent();
+				RemapChildParents(pcOldParent, pcParent);
+			}
 			Free(pcNode);
+		}
+		else
+		{
+			break;
+		}
+
+		pcNode = pcParent;
+		pcParent = pcNode->GetParent();
+		if (!pcParent)
+		{
+			break;;
 		}
 	}
 

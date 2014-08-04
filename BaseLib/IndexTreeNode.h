@@ -18,7 +18,7 @@ public:
 	void				Init(CIndexTreeNode* pcParent);
 
 	void				Contain(unsigned char uiIndex);
-	void				Uncontain(unsigned char uiIndex);
+	BOOL				Uncontain(unsigned char uiIndex);
 	void				SizeObject(unsigned char uiSize);
 
 	CIndexTreeNode*		Get(unsigned char uiIndex);
@@ -26,7 +26,7 @@ public:
 	unsigned char		GetObjectSize(void);
 
 	void				Set(unsigned char uiIndex, CIndexTreeNode* pcNode);
-	void				Clear(unsigned char uiIndex);
+	BOOL				Clear(unsigned char uiIndex);
 	BOOL				SetObject(void* pvObject, unsigned char uiSize);
 	void				ClearObject(void);
 
@@ -51,6 +51,7 @@ public:
 	size_t				CalculateRequiredNodeSizeForIndex(unsigned char uiIndex);
 	size_t				CalculateRequiredNodeSizeForEmpty(void);
 	size_t				CalculateRequiredNodeSizeForData(unsigned char uiDataSize);
+	size_t				CalculateRequiredNodeSizeForCurrent(void);
 };
 
 

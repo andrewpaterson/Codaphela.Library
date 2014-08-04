@@ -62,6 +62,7 @@ protected:
 	int					RecurseCountAllocatedNodes(CIndexTreeNode* pcNode);
 	int					CountListSize(void);
 	int					RecurseCountListSize(CIndexTreeNode* pcNode);
+	void				RemapChildParents(CIndexTreeNode* pcOldNode, CIndexTreeNode* pcNode);
 };
 
 

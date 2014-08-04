@@ -84,7 +84,7 @@ void CIndexTreeNode::Contain(unsigned char uiIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNode::Uncontain(unsigned char uiIndex)
+BOOL CIndexTreeNode::Uncontain(unsigned char uiIndex)
 {
 	unsigned char		uiNextFirstIndex;
 	unsigned char		uiPrevLastIndex;
@@ -95,14 +95,14 @@ void CIndexTreeNode::Uncontain(unsigned char uiIndex)
 
 	if ((uiIndex != muiFirstIndex) && (uiIndex != muiLastIndex))
 	{
-		return;
+		return FALSE;
 	}
 	else if (muiFirstIndex == muiLastIndex)
 	{
 		mbNodesEmpty = TRUE;
 		muiFirstIndex = 0;
 		muiLastIndex = 0;
-		return;
+		return TRUE;
 	}
 
 	apcChildren = GetNodes();
@@ -121,6 +121,7 @@ void CIndexTreeNode::Uncontain(unsigned char uiIndex)
 		uiPrevLastIndex = FindPrevLastIndex();
 		muiLastIndex = uiPrevLastIndex;
 	}
+	return TRUE;
 }
 
 
@@ -188,7 +189,7 @@ void CIndexTreeNode::Set(unsigned char uiIndex, CIndexTreeNode* pcNode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNode::Clear(unsigned char uiIndex)
+BOOL CIndexTreeNode::Clear(unsigned char uiIndex)
 {
 	CIndexTreeNode**	apcChildren;
 
@@ -197,17 +198,11 @@ void CIndexTreeNode::Clear(unsigned char uiIndex)
 		apcChildren = GetNodes();
 		apcChildren[uiIndex - muiFirstIndex] = NULL;
 
-		if (uiIndex == muiFirstIndex)
-		{
-			unsigned int uiNextFirstIndex;
-
-			uiNextFirstIndex = FindNextFirstIndex();
-			int xxx = 0;
-		}
-		else if (uiIndex == muiLastIndex)
-		{
-			int xxx = 0;
-		}
+		return Uncontain(uiIndex);
+	}
+	else
+	{
+		return FALSE;
 	}
 }
 
@@ -438,6 +433,22 @@ size_t CIndexTreeNode::CalculateRequiredNodeSizeForData(unsigned char uiDataSize
 
 	iExistingIndices = GetNumIndexes();
 	tSize = sizeof(CIndexTreeNode) + uiDataSize + iExistingIndices * sizeof(CIndexTreeNode*);
+
+	return tSize;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size_t CIndexTreeNode::CalculateRequiredNodeSizeForCurrent(void)
+{
+	size_t	tSize;
+	int		iExistingIndices;
+
+	iExistingIndices = GetNumIndexes();
+	tSize = sizeof(CIndexTreeNode) + muiDataSize + iExistingIndices * sizeof(CIndexTreeNode*);
 
 	return tSize;
 }
