@@ -16,32 +16,41 @@ protected:
 public:
 	void				Init(CIndexTreeNode* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex);
 	void				Init(CIndexTreeNode* pcParent);
+
 	void				Contain(unsigned char uiIndex);
+	void				Uncontain(unsigned char uiIndex);
+	void				SizeObject(unsigned char uiSize);
+
 	CIndexTreeNode*		Get(unsigned char uiIndex);
 	void*				GetObjectPtr(void);
 	unsigned char		GetObjectSize(void);
+
 	void				Set(unsigned char uiIndex, CIndexTreeNode* pcNode);
 	void				Clear(unsigned char uiIndex);
 	BOOL				SetObject(void* pvObject, unsigned char uiSize);
 	void				ClearObject(void);
+
 	BOOL				IsEmpty(void);
 	unsigned char		GetFirstIndex(void);
 	unsigned char		GetLastIndex(void);
 	BOOL				HasNodes(void);
 	BOOL				ContainsIndex(unsigned char uiIndex);
-	int					GetAdditionalIndexes(unsigned char uiIndex);
+	unsigned char		FindPrevLastIndex(void);
+	unsigned char		FindNextFirstIndex(void);
+
 	int					GetNumIndexes(void);
 	CIndexTreeNode*		GetNode(int i);
 	CIndexTreeNode*		GetParent(void);
 	CIndexTreeNode**	GetNodes(void);
+
+	int					GetAdditionalIndexes(unsigned char uiIndex);
 	void				RemapChildNodes(CIndexTreeNode* pcOldNode, CIndexTreeNode* pcNewNode);
 	void				SetChildsParent(void);
-	void				SizeObject(unsigned char uiSize);
+	int					GetNumIndexes(unsigned char uiFirstIndex, unsigned char uiLastIndex);
+
 	size_t				CalculateRequiredNodeSizeForIndex(unsigned char uiIndex);
 	size_t				CalculateRequiredNodeSizeForEmpty(void);
 	size_t				CalculateRequiredNodeSizeForData(unsigned char uiDataSize);
-	unsigned char		FindPrevLastIndex(void);
-	unsigned char		FindNextFirstIndex(void);
 };
 
 

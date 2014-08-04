@@ -41,6 +41,8 @@ void CIndexTreeNode::Init(CIndexTreeNode* pcParent)
 //////////////////////////////////////////////////////////////////////////
 void CIndexTreeNode::Contain(unsigned char uiIndex)
 {
+	//Contain assumes that the memory this node resides in has already been sized large enough.
+
 	unsigned char		uiOldNumIndexes;
 	CIndexTreeNode**	pvDest;
 	size_t				tSize;
@@ -74,6 +76,50 @@ void CIndexTreeNode::Contain(unsigned char uiIndex)
 		pvDest = (CIndexTreeNode**)RemapSinglePointer(apcChildren, uiOldNumIndexes * sizeof(CIndexTreeNode*));
 		memset(pvDest, 0, tSize);
 		muiLastIndex = uiIndex;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexTreeNode::Uncontain(unsigned char uiIndex)
+{
+	unsigned char		uiNextFirstIndex;
+	unsigned char		uiPrevLastIndex;
+	int					iNewNumIndexes;
+	size_t				tSize;
+	void*				pvSource;
+	CIndexTreeNode**	apcChildren;
+
+	if ((uiIndex != muiFirstIndex) && (uiIndex != muiLastIndex))
+	{
+		return;
+	}
+	else if (muiFirstIndex == muiLastIndex)
+	{
+		mbNodesEmpty = TRUE;
+		muiFirstIndex = 0;
+		muiLastIndex = 0;
+		return;
+	}
+
+	apcChildren = GetNodes();
+
+	if (uiIndex == muiFirstIndex)
+	{
+		uiNextFirstIndex = FindNextFirstIndex();
+		iNewNumIndexes = GetNumIndexes(uiNextFirstIndex, muiLastIndex);
+		tSize = (uiNextFirstIndex - muiFirstIndex) * sizeof(CIndexTreeNode*);
+		pvSource = (CIndexTreeNode**)RemapSinglePointer(apcChildren, tSize);
+		memmove(apcChildren, pvSource, iNewNumIndexes * sizeof(CIndexTreeNode*));
+		muiFirstIndex = uiNextFirstIndex;
+	}
+	else if (uiIndex == muiLastIndex)
+	{
+		uiPrevLastIndex = FindPrevLastIndex();
+		muiLastIndex = uiPrevLastIndex;
 	}
 }
 
@@ -407,7 +453,17 @@ int CIndexTreeNode::GetNumIndexes(void)
 	{
 		return 0;
 	}
-	return muiLastIndex - muiFirstIndex + 1;
+	return GetNumIndexes(muiFirstIndex, muiLastIndex);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CIndexTreeNode::GetNumIndexes(unsigned char uiFirstIndex, unsigned char uiLastIndex)
+{
+	return uiLastIndex - uiFirstIndex + 1;
 }
 
 
