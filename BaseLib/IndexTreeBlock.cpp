@@ -22,7 +22,7 @@ void CIndexTreeBlock::Init(CMallocator* pcMalloc)
 	mpcMalloc = pcMalloc;
 	mpcRoot = AllocateRoot();
 	miSize = 0;
-	miModifications = 0;
+	miLargestKeySize = 0;
 }
 
 
@@ -282,9 +282,9 @@ void* CIndexTreeBlock::Get(char* pszKey)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeBlock::PutPtr(void* pvPointer, void* pvKey, int iKeySize)
+BOOL CIndexTreeBlock::PutPtr(void* pvKey, int iKeySize, void* pvPointer)
 {
-	return Put(&pvPointer, sizeof(void*), pvKey, iKeySize);
+	return Put(pvKey, iKeySize, &pvPointer, sizeof(void*));
 }
 
 
@@ -292,25 +292,7 @@ BOOL CIndexTreeBlock::PutPtr(void* pvPointer, void* pvKey, int iKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeBlock::PutPtr(void* pvPointer, char* pszKey)
-{
-	int iKeySize;
-
-	if (StrEmpty(pszKey))
-	{
-		return FALSE;
-	}
-
-	iKeySize = strlen(pszKey);
-	return Put(&pvPointer, sizeof(void*), pszKey, iKeySize);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeBlock::Put(void* pvObject, unsigned char uiObjectSize, char* pszKey)
+BOOL CIndexTreeBlock::PutPtr(char* pszKey, void* pvPointer)
 {
 	int iKeySize;
 
@@ -320,7 +302,7 @@ BOOL CIndexTreeBlock::Put(void* pvObject, unsigned char uiObjectSize, char* pszK
 	}
 
 	iKeySize = strlen(pszKey);
-	return Put(pvObject, uiObjectSize, pszKey, iKeySize);
+	return Put(pszKey, iKeySize, &pvPointer, sizeof(void*));
 }
 
 
@@ -328,7 +310,25 @@ BOOL CIndexTreeBlock::Put(void* pvObject, unsigned char uiObjectSize, char* pszK
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeBlock::Put(void* pvObject, unsigned char uiObjectSize, void* pvKey, int iKeySize)
+BOOL CIndexTreeBlock::Put(char* pszKey, void* pvObject, unsigned char uiObjectSize)
+{
+	int iKeySize;
+
+	if (StrEmpty(pszKey))
+	{
+		return FALSE;
+	}
+
+	iKeySize = strlen(pszKey);
+	return Put(pszKey, iKeySize, pvObject, uiObjectSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeBlock::Put(void* pvKey, int iKeySize, void* pvObject, unsigned char uiObjectSize)
 {
 	CIndexTreeNode*		pcCurrent;
 	CIndexTreeNode*		pcReallocatedCurrent;
@@ -341,6 +341,10 @@ BOOL CIndexTreeBlock::Put(void* pvObject, unsigned char uiObjectSize, void* pvKe
 	}
 
 	pcCurrent = mpcRoot;
+	if (iKeySize > miLargestKeySize)
+	{
+		miLargestKeySize = iKeySize;
+	}
 
 	for (int i = 0; i < iKeySize; i++)
 	{
@@ -348,7 +352,6 @@ BOOL CIndexTreeBlock::Put(void* pvObject, unsigned char uiObjectSize, void* pvKe
 		pcCurrent = SetOldWithCurrent(pcCurrent, c);
 	}
 
-	miModifications++;
 	miSize++;
 	
 	pcReallocatedCurrent = ReallocateNodeForData(pcCurrent, uiObjectSize);
@@ -481,7 +484,6 @@ BOOL CIndexTreeBlock::Remove(void* pvKey, int iKeySize)
 		}
 	}
 
-	miModifications++;
 	miSize--;
 	return TRUE;
 }
@@ -552,6 +554,17 @@ int CIndexTreeBlock::NumElements(void)
 {
 	return miSize;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CIndexTreeBlock::GetLargestKeySize(void)
+{
+	return miLargestKeySize;
+}
+
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -818,15 +831,5 @@ int CIndexTreeBlock::RecurseCountListSize(CIndexTreeNode* pcNode)
 	{
 		return 0;
 	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-int CIndexTreeBlock::GetModifications(void)
-{
-	return miModifications;
 }
 

@@ -10,8 +10,8 @@ public:
 	M*		Get(char* pszKey);
 	M*		Get(void* pvKey, int iKeySize);
 
-	BOOL	Put(M* pvObject, char* pszKey);
-	BOOL	Put(M* pvObject, void* pvKey, int iKeySize);
+	BOOL	Put(char* pszKey, M* pvObject);
+	BOOL	Put(void* pvKey, int iKeySize, M* pvObject);
 
 	BOOL	Remove(char* pszKey);
 	BOOL	Remove(void* pvKey, int iKeySize);
@@ -45,9 +45,9 @@ M* CIndexTreeTemplate<M>::Get(void* pvKey, int iKeySize)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-BOOL CIndexTreeTemplate<M>::Put(M* pvObject, char* pszKey)
+BOOL CIndexTreeTemplate<M>::Put(char* pszKey, M* pvObject)
 {
-	return CIndexTreeBlock::Put(pvObject, sizeof(M), pszKey);
+	return CIndexTreeBlock::Put(pszKey, pvObject, sizeof(M));
 }
 
 
@@ -56,9 +56,9 @@ BOOL CIndexTreeTemplate<M>::Put(M* pvObject, char* pszKey)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-BOOL CIndexTreeTemplate<M>::Put(M* pvObject, void* pvKey, int iKeySize)
+BOOL CIndexTreeTemplate<M>::Put(void* pvKey, int iKeySize, M* pvObject)
 {
-	return CIndexTreeBlock::Put(pvObject, sizeof(M), pvKey, iKeySize);
+	return CIndexTreeBlock::Put(pvKey, iKeySize, pvObject, sizeof(M));
 }
 
 

@@ -38,6 +38,7 @@ public:
 
 	BOOL				Get(void* pvKey, void** ppvData, int* piDataSize);
 	void*				Get(void* pvKey);
+
 	void*				Put(void* pvKey, int iKeySize, int iDataSize);
 	BOOL				Put(void* psKey, int iKeySize, void* pvData, int iDataSize);
 	BOOL				Remove(void* pvKey);

@@ -20,7 +20,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __NAMED_INDEX_OBJECTS_H__
 #define __NAMED_INDEX_OBJECTS_H__
-#include "BaseLib/IndexTree.h"
+#include "BaseLib/IndexTreeBlock.h"
 #include "IndexedObjects.h"
 
 

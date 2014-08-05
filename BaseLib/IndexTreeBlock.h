@@ -19,8 +19,8 @@ class CIndexTreeBlock
 protected:
 	CIndexTreeNode*		mpcRoot;
 	int					miSize;
-	int					miModifications;
 	CMallocator*		mpcMalloc;
+	int					miLargestKeySize;
 
 public:
 	void				Init(void);
@@ -32,14 +32,15 @@ public:
 	void*				Get(void* pvKey, int iKeySize);
 
 	int					NumElements(void);
+	int					GetLargestKeySize(void);
 
 	BOOL				StartIteration(SIndexTreeIterator* psIterator, void** pvData, int* piDataSize);
 	BOOL				Iterate(SIndexTreeIterator* psIterator, void** pvData, int* piDataSize);
 
-	BOOL				Put(void* pvObject, unsigned char uiObjectSize, char* pszKey);
-	BOOL				Put(void* pvObject, unsigned char uiObjectSize, void* pvKey, int iKeySize);
-	BOOL				PutPtr(void* pvPointer, char* pszKey);
-	BOOL				PutPtr(void* pvPointer, void* pvKey, int iKeySize);
+	BOOL				Put(char* pszKey, void* pvObject, unsigned char uiObjectSize);
+	BOOL				Put(void* pvKey, int iKeySize, void* pvObject, unsigned char uiObjectSize);
+	BOOL				PutPtr(char* pszKey, void* pvPointer);
+	BOOL				PutPtr(void* pvKey, int iKeySize, void* pvPointer);
 
 	BOOL				Remove(char* pszKey);
 	BOOL				Remove(void* pvKey, int iKeySize);
@@ -49,7 +50,6 @@ public:
 
 	void				FindAll(CArrayVoidPtr* papvElements);
 
-	int					GetModifications(void);
 	CIndexTreeNode*		GetIndexNode(void* pvKey, int iKeySize);
 	int					CountAllocatedNodes(void);
 	int					RecurseSize(void);
