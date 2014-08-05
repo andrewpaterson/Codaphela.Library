@@ -257,6 +257,31 @@ unsigned char CIndexTreeNode::FindPrevLastIndex(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+unsigned char CIndexTreeNode::FindIndex(CIndexTreeNode* pcChild)
+{
+	int					i;
+	CIndexTreeNode*		pcChildTest;
+	CIndexTreeNode**	apcChildren;
+
+	apcChildren = GetNodes();
+	for (i = 0; i <= (int)(muiLastIndex - muiFirstIndex); i++)
+	{
+		pcChildTest = apcChildren[i];
+		if (pcChild == pcChildTest)
+		{
+			return i + muiFirstIndex;
+		}
+	}
+
+	//This should never be hit.
+	return 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeNode::SetObject(void* pvObject, unsigned char uiSize)
 {
 	if (muiDataSize == 0)

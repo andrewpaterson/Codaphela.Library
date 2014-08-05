@@ -30,37 +30,37 @@ protected:
 	BOOL				mbOverwrite;
 
 public:
-	void	Init(int iElementSize, int(*Func)(const void*, const void*));
-	void	Init(int iElementSize, int iChunkSize, int iHoldingBufferSize, int iHoldingBuffers, int(*Func)(const void*, const void*));
-	void	Init(CMallocator* pcMallocator, int iElementSize, int iChunkSize, int iHoldingBufferSize, int iHoldingBuffers, int(*Func)(const void*, const void*));
-	void	Kill(void);
+	void			Init(int iElementSize, int(*Func)(const void*, const void*));
+	void			Init(int iElementSize, int iChunkSize, int iHoldingBufferSize, int iHoldingBuffers, int(*Func)(const void*, const void*));
+	void			Init(CMallocator* pcMallocator, int iElementSize, int iChunkSize, int iHoldingBufferSize, int iHoldingBuffers, int(*Func)(const void*, const void*));
+	void			Kill(void);
 
-	BOOL	Add(void* pv);
+	BOOL			Add(void* pv);
 
-	void*	Get(void* pv);
+	void*			Get(void* pv);
 
-	BOOL	Contains(void* pv);
+	BOOL			Contains(void* pv);
 
-	BOOL	Remove(void* pv);
+	BOOL			Remove(void* pv);
 
-	void*	StartIteration(SArraySortedIterator* psIter);
-	void*	Iterate(SArraySortedIterator* psIter);
-	void*	GetIterated(SArraySortedIterator* psIter);
+	void*			StartIteration(SArraySortedIterator* psIter);
+	void*			Iterate(SArraySortedIterator* psIter);
+	void*			GetIterated(SArraySortedIterator* psIter);
 
-	BOOL	WriteHeader(CFileWriter* pcFileWriter);
-	BOOL	Write(CFileWriter* pcFileWriter);
-	BOOL	ReadHeader(CMallocator* pcMalloc, CFileReader* pcFileReader, int(*Func)(const void*, const void*));
-	BOOL	Read(CFileReader* pcFileReader, int(*Func)(const void*, const void*));
+	BOOL			WriteHeader(CFileWriter* pcFileWriter);
+	BOOL			Write(CFileWriter* pcFileWriter);
+	BOOL			ReadHeader(CMallocator* pcMalloc, CFileReader* pcFileReader, int(*Func)(const void*, const void*));
+	BOOL			Read(CFileReader* pcFileReader, int(*Func)(const void*, const void*));
 
-	void	SetOverwrite(BOOL bOverwrite);
+	void			SetOverwrite(BOOL bOverwrite);
 
-	int		NumElements(void);
-	int		GetSortedSize(void);
-	int		GetHoldingSize(void);
-	void*	GetInSorted(int iIndex);
-	void*	GetInHolding(int iArray, int iIndex);
+	int				NumElements(void);
+	int				GetSortedSize(void);
+	int				GetHoldingSize(void);
+	void*			GetInSorted(int iIndex);
+	void*			GetInHolding(int iArray, int iIndex);
 
-	void	InsertHoldingIntoSorted(void);
+	void			InsertHoldingIntoSorted(void);
 	CArrayBlock*	GetSortedArray(void);
 
 protected:
@@ -76,113 +76,6 @@ protected:
 	BOOL			RemoveFromSortedArray(void* pv);
 	CArrayBlock*	GetArrayBlock(int iIndex);
 	BOOL			InsertIntoArrayBlock(CArrayBlock* paBlock, void* pv);
-
-	//  void DribbleMerge(ArrayList<T> mergedArray)
-	//  {
-	//    List<MergeIndex> mergeIndices = createMergeIndices();
-	//
-	//    for (; ; )
-	//    {
-	//      void* pv = getLowestObject(mergeIndices);
-	//      if (pv == null)
-	//      {
-	//        break;
-	//      }
-	//
-	//      mergedArray.add(pv);
-	//    }
-	//  }
-	//
-	//  class MergeIndex
-	//  {
-	//     int iIndex;
-	//     ArrayList<T> paHoldingArray;
-	//
-	//    MergeIndex(ArrayList<T> paHoldingArray)
-	//    {
-	//      this.paHoldingArray = paHoldingArray;
-	//      iIndex = 0;
-	//    }
-	//
-	//     T peek()
-	//    {
-	//      return paHoldingArray->get(iIndex);
-	//    }
-	//
-	//     BOOL pop()
-	//    {
-	//      iIndex++;
-	//
-	//      if (iIndex == paHoldingArray->NumElements())
-	//      {
-	//        return FALSE;
-	//      }
-	//      else
-	//      {
-	//        return TRUE;
-	//      }
-	//    }
-	//  }
-	//
-	//  T getLowestObject(List<MergeIndex> mergeIndices)
-	//  {
-	//    if (mergeIndices.NumElements() == 0)
-	//    {
-	//      return null;
-	//    }
-	//    else if (mergeIndices.NumElements() == 1)
-	//    {
-	//      MergeIndex mergeIndex = mergeIndices.get(0);
-	//      T lowestObject = mergeIndex.peek();
-	//      if (!mergeIndex.pop())
-	//      {
-	//        mergeIndices.clear();
-	//      }
-	//
-	//      return lowestObject;
-	//    }
-	//    else
-	//    {
-	//      int i = 0;
-	//      int lowest = i;
-	//      MergeIndex mergeIndex = mergeIndices.get(i);
-	//      T lowestObject = mergeIndex.peek();
-	//
-	//      for (i = 1; i < mergeIndices.NumElements(); i++)
-	//      {
-	//        mergeIndex = mergeIndices.get(i);
-	//        T testObject = mergeIndex.peek();
-	//        int compare = Func.compare(testObject, lowestObject);
-	//        if (compare < 0)
-	//        {
-	//          lowestObject = testObject;
-	//          lowest = i;
-	//        }
-	//      }
-	//
-	//      mergeIndex = mergeIndices.get(lowest);
-	//      if (!mergeIndex.pop())
-	//      {
-	//        mergeIndices.remove(lowest);
-	//      }
-	//
-	//      return lowestObject;
-	//    }
-	//  }
-	//
-	//  List<MergeIndex> createMergeIndices()
-	//  {
-	//    List<MergeIndex> mergeIndices = new ArrayList<MergeIndex>();
-	//    for (ArrayList<T> paHoldingArray : maaHoldingArrays)
-	//    {
-	//      if (paHoldingArray->NumElements() > 0)
-	//      {
-	//        mergeIndices.add(new MergeIndex(paHoldingArray));
-	//      }
-	//    }
-	//
-	//    return mergeIndices;
-	//  }
 };
 
 

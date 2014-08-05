@@ -528,9 +528,98 @@ void CIndexTreeBlock::RecurseFindAll(CIndexTreeNode* pcNode, CArrayVoidPtr* papv
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeBlock::Write(CFileWriter* pcFileWriter)
+{
+	return FALSE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeBlock::Read(CFileReader* pcFileReader)
+{
+	return FALSE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 int CIndexTreeBlock::NumElements(void)
 {
 	return miSize;
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeBlock::StartIteration(SIndexTreeIterator* psIterator, void** pvData, int* piDataSize)
+{
+	psIterator->pcNode = mpcRoot;
+	psIterator->iIndex = 0;
+
+	if (StepNext(psIterator))
+	{
+		if (pvData)
+		{
+			*pvData = psIterator->pcNode->GetObjectPtr();
+		}
+		if (piDataSize)
+		{
+			*piDataSize = psIterator->pcNode->GetObjectSize();
+		}
+		return TRUE;
+	}
+	else
+	{
+		return FALSE;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeBlock::Iterate(SIndexTreeIterator* psIterator, void** pvData, int* piDataSize)
+{
+	return FALSE;
+}
+
+
+BOOL CIndexTreeBlock::StepNext(SIndexTreeIterator* psIterator)
+{
+	CIndexTreeNode*		pcChild;
+	void*				pvObject;
+	CIndexTreeNode*		pcParent;
+
+	pcChild = psIterator->pcNode->Get(psIterator->iIndex);
+
+	if (pcChild != NULL)
+	{
+		pvObject = pcChild->GetObjectPtr();
+		if (pvObject != NULL)
+		{
+			return TRUE; 
+		}
+
+		psIterator->pcNode = pcChild;
+	}
+	else
+	{
+		psIterator->iIndex++;
+		if (psIterator->iIndex > psIterator->pcNode->GetLastIndex())
+		{
+			pcParent = psIterator->pcNode->GetParent();
+			psIterator->iIndex = pcParent->FindIndex(psIterator->pcNode);
+			psIterator->pcNode = pcParent;
+		}
+	}
+	return FALSE;;
 }
 
 

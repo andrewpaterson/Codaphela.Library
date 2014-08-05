@@ -37,6 +37,7 @@ public:
 	BOOL				ContainsIndex(unsigned char uiIndex);
 	unsigned char		FindPrevLastIndex(void);
 	unsigned char		FindNextFirstIndex(void);
+	unsigned char		FindIndex(CIndexTreeNode* pcChild);
 
 	int					GetNumIndexes(void);
 	CIndexTreeNode*		GetNode(int i);

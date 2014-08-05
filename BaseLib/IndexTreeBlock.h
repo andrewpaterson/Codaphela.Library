@@ -7,6 +7,13 @@
 #include "MemoryCache.h"
 
 
+struct SIndexTreeIterator
+{
+	CIndexTreeNode*		pcNode;
+	int					iIndex;
+};
+
+
 class CIndexTreeBlock
 {
 protected:
@@ -26,6 +33,9 @@ public:
 
 	int					NumElements(void);
 
+	BOOL				StartIteration(SIndexTreeIterator* psIterator, void** pvData, int* piDataSize);
+	BOOL				Iterate(SIndexTreeIterator* psIterator, void** pvData, int* piDataSize);
+
 	BOOL				Put(void* pvObject, unsigned char uiObjectSize, char* pszKey);
 	BOOL				Put(void* pvObject, unsigned char uiObjectSize, void* pvKey, int iKeySize);
 	BOOL				PutPtr(void* pvPointer, char* pszKey);
@@ -43,6 +53,9 @@ public:
 	CIndexTreeNode*		GetIndexNode(void* pvKey, int iKeySize);
 	int					CountAllocatedNodes(void);
 	int					RecurseSize(void);
+
+	BOOL				Write(CFileWriter* pcFileWriter);
+	BOOL				Read(CFileReader* pcFileReader);
 
 protected:
 	void*				Malloc(size_t tSize);
@@ -63,6 +76,8 @@ protected:
 	int					CountListSize(void);
 	int					RecurseCountListSize(CIndexTreeNode* pcNode);
 	void				RemapChildParents(CIndexTreeNode* pcOldNode, CIndexTreeNode* pcNode);
+
+	BOOL				StepNext(SIndexTreeIterator* psIterator);
 };
 
 
