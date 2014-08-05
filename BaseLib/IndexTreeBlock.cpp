@@ -587,7 +587,22 @@ BOOL CIndexTreeBlock::StartIteration(SIndexTreeIterator* psIterator, void** pvDa
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeBlock::Iterate(SIndexTreeIterator* psIterator, void** pvData, int* piDataSize)
 {
-	return FALSE;
+	if (StepNext(psIterator))
+	{
+		if (pvData)
+		{
+			*pvData = psIterator->pcNode->GetObjectPtr();
+		}
+		if (piDataSize)
+		{
+			*piDataSize = psIterator->pcNode->GetObjectSize();
+		}
+		return TRUE;
+	}
+	else
+	{
+		return FALSE;
+	}
 }
 
 
@@ -597,29 +612,43 @@ BOOL CIndexTreeBlock::StepNext(SIndexTreeIterator* psIterator)
 	void*				pvObject;
 	CIndexTreeNode*		pcParent;
 
-	pcChild = psIterator->pcNode->Get(psIterator->iIndex);
-
-	if (pcChild != NULL)
+	for (;;)
 	{
-		pvObject = pcChild->GetObjectPtr();
-		if (pvObject != NULL)
-		{
-			return TRUE; 
-		}
+		pcChild = psIterator->pcNode->Get(psIterator->iIndex);
 
-		psIterator->pcNode = pcChild;
-	}
-	else
-	{
-		psIterator->iIndex++;
-		if (psIterator->iIndex > psIterator->pcNode->GetLastIndex())
+		if (pcChild != NULL)
 		{
-			pcParent = psIterator->pcNode->GetParent();
-			psIterator->iIndex = pcParent->FindIndex(psIterator->pcNode);
-			psIterator->pcNode = pcParent;
+			psIterator->pcNode = pcChild;
+			psIterator->iIndex = pcChild->GetFirstIndex();
+
+			pvObject = pcChild->GetObjectPtr();
+			if (pvObject != NULL)
+			{
+				return TRUE; 
+			}
+		}
+		else
+		{
+			for (;;)
+			{
+				psIterator->iIndex++;
+				if (psIterator->iIndex > psIterator->pcNode->GetLastIndex())
+				{
+					pcParent = psIterator->pcNode->GetParent();
+					if (pcParent == NULL)
+					{
+						return FALSE;
+					}
+					psIterator->iIndex = pcParent->FindIndex(psIterator->pcNode);
+					psIterator->pcNode = pcParent;
+				}
+				else
+				{
+					break;
+				}
+			}
 		}
 	}
-	return FALSE;;
 }
 
 
