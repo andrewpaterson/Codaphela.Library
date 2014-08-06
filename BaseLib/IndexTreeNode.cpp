@@ -287,7 +287,10 @@ BOOL CIndexTreeNode::SetObject(void* pvObject, unsigned char uiSize)
 	if (muiDataSize == 0)
 	{
 		SizeObject(uiSize);
-		memcpy(GetObjectPtr(), pvObject, uiSize);
+		if (pvObject)
+		{
+			memcpy(GetObjectPtr(), pvObject, uiSize);
+		}
 		return TRUE;
 	}
 	else

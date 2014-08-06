@@ -381,6 +381,46 @@ BOOL CIndexTreeBlock::Put(void* pvKey, int iKeySize, void* pvObject, unsigned ch
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void* CIndexTreeBlock::Put(void* pvKey, int iKeySize, unsigned char uiObjectSize)
+{
+	CIndexTreeNode*		pcCurrent;
+	CIndexTreeNode*		pcReallocatedCurrent;
+	unsigned char		c;
+	BOOL				bResult;
+
+	if (iKeySize == 0)
+	{
+		return FALSE;
+	}
+
+	pcCurrent = mpcRoot;
+	if (iKeySize > miLargestKeySize)
+	{
+		miLargestKeySize = iKeySize;
+	}
+
+	for (int i = 0; i < iKeySize; i++)
+	{
+		c = ((char*)pvKey)[i];
+		pcCurrent = SetOldWithCurrent(pcCurrent, c);
+	}
+
+	miSize++;
+
+	pcReallocatedCurrent = ReallocateNodeForData(pcCurrent, uiObjectSize);
+	bResult = pcReallocatedCurrent->SetObject(NULL, uiObjectSize);
+	if (pcCurrent != pcReallocatedCurrent)
+	{
+		pcReallocatedCurrent->SetChildsParent();
+	}
+	return pcReallocatedCurrent->GetObjectPtr();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 CIndexTreeNode* CIndexTreeBlock::SetOldWithCurrent(CIndexTreeNode* pcParent, unsigned char c)
 {
 	CIndexTreeNode* pcNew;
@@ -545,7 +585,60 @@ void CIndexTreeBlock::RecurseFindAll(CIndexTreeNode* pcNode, CArrayVoidPtr* papv
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeBlock::Write(CFileWriter* pcFileWriter)
 {
-	return FALSE;
+	SIndexTreeIterator	sIter;
+	void*				pvData;
+	int					iDataSize;
+	int					iKeySize;
+	BOOL				bResult;
+	char				acKey[1024];
+	int					iCount;
+
+	bResult = gcMallocators.WriteMallocator(pcFileWriter, mpcMalloc);
+	if (!bResult)
+	{
+		return FALSE;
+	}
+
+	if (miLargestKeySize >= 1024)
+	{
+		return FALSE;
+	}
+
+	if (!pcFileWriter->WriteInt(miSize))
+	{
+		return FALSE;
+	}
+	if (!pcFileWriter->WriteInt(miLargestKeySize))
+	{
+		return FALSE;
+	}
+
+	iCount = 0;
+	bResult = StartIteration(&sIter, &pvData, &iDataSize);
+	while (bResult)
+	{
+		iKeySize = GetKey(acKey, pvData, FALSE);
+		if (!pcFileWriter->WriteInt(iKeySize))
+		{
+			return FALSE;
+		}
+		if (!pcFileWriter->WriteInt(iDataSize))
+		{
+			return FALSE;
+		}
+		if (!pcFileWriter->WriteData(acKey, iKeySize))
+		{
+			return FALSE;
+		}
+		if (!pcFileWriter->WriteData(pvData, iDataSize))
+		{
+			return FALSE;
+		}
+
+		bResult = Iterate(&sIter, &pvData, &iDataSize);
+		iCount ++;
+	}
+	return miSize == iCount;
 }
 
 
@@ -555,7 +648,64 @@ BOOL CIndexTreeBlock::Write(CFileWriter* pcFileWriter)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeBlock::Read(CFileReader* pcFileReader)
 {
-	return FALSE;
+	CMallocator*	pcMalloc;
+	int				iCount;
+	int				i;
+	int				iLargestKey;
+	char			acKey[1024];
+	int				iKeySize;
+	int				iDataSize;
+	void*			pvData;
+
+	pcMalloc = gcMallocators.ReadMallocator(pcFileReader);
+	if (pcMalloc == NULL)
+	{
+		return FALSE;
+	}
+
+	Init(pcMalloc);
+
+	if (!pcFileReader->ReadInt(&iCount))
+	{
+		return FALSE;
+	}
+	if (!pcFileReader->ReadInt(&iLargestKey))
+	{
+		return FALSE;
+	}
+
+	if (iLargestKey >= 1024)
+	{
+		return FALSE;
+	}
+
+	for (i = 0; i < iCount; i++)
+	{
+		if (!pcFileReader->ReadInt(&iKeySize))
+		{
+			return FALSE;
+		}
+		if (!pcFileReader->ReadInt(&iDataSize))
+		{
+			return FALSE;
+		}
+		if (!pcFileReader->ReadData(acKey, iKeySize))
+		{
+			return FALSE;
+		}
+		pvData = Put(acKey, iKeySize, iDataSize);
+		if (!pvData)
+		{
+			return FALSE;
+		}
+		if (!pcFileReader->ReadData(pvData, iDataSize))
+		{
+			return FALSE;
+		}
+
+	}
+
+	return TRUE;
 }
 
 
