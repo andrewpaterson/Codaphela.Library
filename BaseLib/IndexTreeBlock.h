@@ -33,6 +33,7 @@ public:
 
 	int					NumElements(void);
 	int					GetLargestKeySize(void);
+	int					GetKey(void* pvKey, void* pvData, BOOL zeroTerminate = FALSE);
 
 	BOOL				StartIteration(SIndexTreeIterator* psIterator, void** pvData, int* piDataSize);
 	BOOL				Iterate(SIndexTreeIterator* psIterator, void** pvData, int* piDataSize);
@@ -76,6 +77,7 @@ protected:
 	int					CountListSize(void);
 	int					RecurseCountListSize(CIndexTreeNode* pcNode);
 	void				RemapChildParents(CIndexTreeNode* pcOldNode, CIndexTreeNode* pcNode);
+	CIndexTreeNode*		GetNodeForData(void* pvData);
 
 	BOOL				StepNext(SIndexTreeIterator* psIterator);
 };

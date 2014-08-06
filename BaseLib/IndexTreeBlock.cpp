@@ -210,6 +210,19 @@ void CIndexTreeBlock::FreeNode(CIndexTreeNode* pcNode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+CIndexTreeNode* CIndexTreeBlock::GetNodeForData(void* pvData)
+{
+	CIndexTreeNode*		psNode;
+
+	psNode = DataGetHeader<CIndexTreeNode, void>(pvData);
+	return psNode;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 CIndexTreeNode* CIndexTreeBlock::GetIndexNode(void* pvKey, int iKeySize)
 {
 	CIndexTreeNode* pcCurrent;
@@ -563,6 +576,44 @@ int CIndexTreeBlock::NumElements(void)
 int CIndexTreeBlock::GetLargestKeySize(void)
 {
 	return miLargestKeySize;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CIndexTreeBlock::GetKey(void* pvKey, void* pvData, BOOL zeroTerminate)
+{
+	CIndexTreeNode*	pcNode;
+	unsigned char*	pucKey;
+	int				iLength;
+	CIndexTreeNode*	pcParent;
+
+	if (pvData == NULL)
+	{
+		return 0;
+	}
+
+	iLength = 0;
+	pucKey = (unsigned char*)pvKey;
+	pcNode = GetNodeForData(pvData);
+	pcParent = pcNode->GetParent();
+
+	while (pcParent != NULL)
+	{
+		pucKey[iLength] = pcParent->FindIndex(pcNode);
+		iLength++;
+		pcNode = pcParent;
+		pcParent = pcNode->GetParent();
+	}
+
+	ReverseBytes(pucKey, iLength);
+	if (zeroTerminate)
+	{
+		pucKey[iLength] = '\0';
+	}
+	return iLength;
 }
 
 

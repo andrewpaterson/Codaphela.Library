@@ -787,6 +787,23 @@ void ReverseEndianness(void* pv, int iSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
+void ReverseBytes(void* pv, int iSize)
+{
+	int		i;
+	int		iHalf;
+	
+	iHalf = iSize / 2;
+	for (i = 0; i < iHalf; i++)
+	{
+		Swap(&(((char*)pv)[i]), &(((char*)pv)[iSize - i - 1]));
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
 int CalculateStride(int iElementSize, int iAlignment)
 {
 	int		iByteDiff;

@@ -69,6 +69,7 @@ short	ReverseShortEndianness(short s);
 int		ReverseIntEndianness(int i);
 long long int ReverseLongEndianness(long long int i);
 void	ReverseEndianness(void* pv, int iSize);
+void	ReverseBytes(void* pv, int iSize);
 int 	CalculateStride(int iElementSize, int iAlignment);
 int 	CalculateOffset(int iOffset, int iAlignment);
 int		IntAbs(int i);
