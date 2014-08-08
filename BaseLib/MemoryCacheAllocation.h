@@ -30,7 +30,7 @@ public:
 	SMemoryCacheDescriptor*		Get(int iIndex);
 	int							NumElements(void);
 
-	CArrayIntAndPointer*				GetEvictedArray(void);  //This only exists because I haven't finished factoring it out.
+	CArrayIntAndPointer*		GetEvictedArray(void);
 };
 
 

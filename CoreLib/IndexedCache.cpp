@@ -72,12 +72,12 @@ BOOL CIndexedCache::PreAllocate(CMemoryCacheAllocation* pcResult)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedCache::Allocate(CIndexedDataDescriptor* pcDesc, CMemoryCacheAllocation* pcResult)
+BOOL CIndexedCache::Allocate(CIndexedDataDescriptor* pcDesc, CMemoryCacheAllocation* pcPreAllocated)
 {
 	void*						pvCache;
 	SIndexedCacheDescriptor*	psCacheDesc;
 
-	pvCache = mcCache.Allocate(pcResult);
+	pvCache = mcCache.Allocate(pcPreAllocated);
 
 	if (!pvCache)
 	{

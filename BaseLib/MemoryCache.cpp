@@ -74,13 +74,13 @@ void CMemoryCache::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMemoryCache::PreAllocate(CMemoryCacheAllocation* pcResult)
+BOOL CMemoryCache::PreAllocate(CMemoryCacheAllocation* pcPreAllocationResult)
 {
 	SMemoryCacheDescriptor*		psCacheDesc;
 	unsigned int				iCachedSize;
 	unsigned int				iRemaining;
 
-	iCachedSize = miDescriptorSize + pcResult->miDataSize;
+	iCachedSize = miDescriptorSize + pcPreAllocationResult->miDataSize;
 	if (iCachedSize > muiCacheSize)
 	{
 		return FALSE;
@@ -98,15 +98,15 @@ BOOL CMemoryCache::PreAllocate(CMemoryCacheAllocation* pcResult)
 			//Cycle back to the beginning of the cache.
 			psCacheDesc = (SMemoryCacheDescriptor*)mpvCache;
 		}
-		FindOverlapping(psCacheDesc, iCachedSize, &pcResult->mapEvictedCacheDescriptors);
+		FindOverlapping(psCacheDesc, iCachedSize, &pcPreAllocationResult->mapEvictedCacheDescriptors);
 	}
 	else
 	{
 		psCacheDesc = (SMemoryCacheDescriptor*)mpvCache;
 	}
-	pcResult->miCachedSize = iCachedSize;
-	pcResult->mpsCacheDesc = psCacheDesc;
-	pcResult->miRemaining = iRemaining;
+	pcPreAllocationResult->miCachedSize = iCachedSize;
+	pcPreAllocationResult->mpsCacheDesc = psCacheDesc;
+	pcPreAllocationResult->miRemaining = iRemaining;
 
 	return TRUE;
 }
@@ -326,7 +326,7 @@ SMemoryCacheDescriptor* CMemoryCache::FindNewFirst(void* pvNew, unsigned int uiN
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMemoryCache::FindOverlapping(void* pvNew, unsigned int uiNewSize, CArrayIntAndPointer* papCacheDescriptors)
+void CMemoryCache::FindOverlapping(void* pvNew, unsigned int uiNewSize, CArrayIntAndPointer* pasOverlappingCacheDescriptors)
 {
 	SMemoryCacheDescriptor*	psNext;
 
@@ -337,7 +337,7 @@ void CMemoryCache::FindOverlapping(void* pvNew, unsigned int uiNewSize, CArrayIn
 		{
 			if (psNext->iFlags & CACHE_DESCRIPTOR_FLAG_VALID)
 			{
-				papCacheDescriptors->Add(psNext, 0);
+				pasOverlappingCacheDescriptors->Add(psNext, 0);
 			}
 			psNext = psNext->psNext;
 			if (psNext == mpsFirst)

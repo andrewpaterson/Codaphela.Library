@@ -42,12 +42,12 @@ public:
 	void						Init(unsigned int iCacheSize, int iDescriptorSize = sizeof(SMemoryCacheDescriptor));
 	void						Kill(void);
 
-	BOOL						PreAllocate(CMemoryCacheAllocation* pcResult);
+	BOOL						PreAllocate(CMemoryCacheAllocation* pcPreAllocationResult);
 	void*						Allocate(CMemoryCacheAllocation* pcPreAllocated);
 	void*						QuickAllocate(int iDataSize);
 
 	unsigned int				RemainingAfterLast(void);
-	void						FindOverlapping(void* pvNew, unsigned int uiNewSize, CArrayIntAndPointer* papIndexedCacheDescriptors);
+	void						FindOverlapping(void* pvNew, unsigned int uiNewSize, CArrayIntAndPointer* pasOverlappingCacheDescriptors);
 	SMemoryCacheDescriptor*		FindNewFirst(void* pvNew, unsigned int uiNewSize);
 	BOOL						Overlaps(void* pvNew, unsigned int uiNewSize, SMemoryCacheDescriptor* psExisting);
 	void						Clear(void);
