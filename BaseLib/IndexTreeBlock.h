@@ -79,6 +79,8 @@ protected:
 	int					RecurseCountListSize(CIndexTreeNode* pcNode);
 	void				RemapChildParents(CIndexTreeNode* pcOldNode, CIndexTreeNode* pcNode);
 	CIndexTreeNode*		GetNodeForData(void* pvData);
+	size_t				SizeofNode(void);
+	size_t				SizeofNodePtr(void);
 
 	BOOL				StepNext(SIndexTreeIterator* psIterator);
 };

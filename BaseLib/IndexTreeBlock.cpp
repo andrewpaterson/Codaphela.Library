@@ -94,7 +94,7 @@ CIndexTreeNode* CIndexTreeBlock::AllocateNode(CIndexTreeNode* pcParent)
 {
 	CIndexTreeNode*	pcNode;
 
-	pcNode = (CIndexTreeNode*)Malloc(sizeof(CIndexTreeNode));
+	pcNode = (CIndexTreeNode*)Malloc(SizeofNode());
 	pcNode->Init(pcParent);
 	return pcNode;
 }
@@ -109,8 +109,8 @@ CIndexTreeNode* CIndexTreeBlock::AllocateRoot(void)
 	CIndexTreeNode*		pcNode;
 	int					iAdditionalSize;
 
-	iAdditionalSize = MAX_UCHAR * sizeof(CIndexTreeNode*);
-	pcNode = (CIndexTreeNode*)Malloc(sizeof(CIndexTreeNode) + iAdditionalSize);
+	iAdditionalSize = MAX_UCHAR * SizeofNodePtr();
+	pcNode = (CIndexTreeNode*)Malloc(SizeofNode() + iAdditionalSize);
 	pcNode->Init(NULL, 0, MAX_UCHAR);
 	return pcNode;
 }
@@ -1032,5 +1032,25 @@ int CIndexTreeBlock::RecurseCountListSize(CIndexTreeNode* pcNode)
 	{
 		return 0;
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size_t CIndexTreeBlock::SizeofNode(void)
+{
+	return sizeof(CIndexTreeNode);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size_t CIndexTreeBlock::SizeofNodePtr(void)
+{
+	return sizeof(CIndexTreeNode*);
 }
 

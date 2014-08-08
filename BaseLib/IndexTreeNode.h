@@ -53,6 +53,9 @@ public:
 	size_t				CalculateRequiredNodeSizeForEmpty(void);
 	size_t				CalculateRequiredNodeSizeForData(unsigned char uiDataSize);
 	size_t				CalculateRequiredNodeSizeForCurrent(void);
+
+	size_t				SizeofNode(void);
+	size_t				SizeofNodePtr(void);
 };
 
 
