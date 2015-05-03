@@ -4,58 +4,58 @@
 #include "DataTypes.h"
 
 
-class CIndexTreeNode
+class CIndexTreeNodeMemory
 {
 protected:
-	CIndexTreeNode*		mpcParent;
-	unsigned char		muiFirstIndex;
-	unsigned char		muiLastIndex;
-	unsigned char		muiDataSize;
-	unsigned char		mbNodesEmpty;
+	CIndexTreeNodeMemory*	mpcParent;
+	unsigned char			muiFirstIndex;
+	unsigned char			muiLastIndex;
+	unsigned char			muiDataSize;
+	unsigned char			mbNodesEmpty;
 
 public:
-	void				Init(CIndexTreeNode* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex);
-	void				Init(CIndexTreeNode* pcParent);
+	void					Init(CIndexTreeNodeMemory* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex);
+	void					Init(CIndexTreeNodeMemory* pcParent);
 
-	void				Contain(unsigned char uiIndex);
-	BOOL				Uncontain(unsigned char uiIndex);
-	void				SizeObject(unsigned char uiSize);
+	void					Contain(unsigned char uiIndex);
+	BOOL					Uncontain(unsigned char uiIndex);
+	void					SizeObject(unsigned char uiSize);
 
-	CIndexTreeNode*		Get(unsigned char uiIndex);
-	void*				GetObjectPtr(void);
-	unsigned char		GetObjectSize(void);
+	CIndexTreeNodeMemory*	Get(unsigned char uiIndex);
+	void*					GetObjectPtr(void);
+	unsigned char			GetObjectSize(void);
 
-	void				Set(unsigned char uiIndex, CIndexTreeNode* pcNode);
-	BOOL				Clear(unsigned char uiIndex);
-	BOOL				SetObject(void* pvObject, unsigned char uiSize);
-	void				ClearObject(void);
+	void					Set(unsigned char uiIndex, CIndexTreeNodeMemory* pcNode);
+	BOOL					Clear(unsigned char uiIndex);
+	BOOL					SetObject(void* pvObject, unsigned char uiSize);
+	void					ClearObject(void);
 
-	BOOL				IsEmpty(void);
-	unsigned char		GetFirstIndex(void);
-	unsigned char		GetLastIndex(void);
-	BOOL				HasNodes(void);
-	BOOL				ContainsIndex(unsigned char uiIndex);
-	unsigned char		FindPrevLastIndex(void);
-	unsigned char		FindNextFirstIndex(void);
-	unsigned char		FindIndex(CIndexTreeNode* pcChild);
+	BOOL					IsEmpty(void);
+	unsigned char			GetFirstIndex(void);
+	unsigned char			GetLastIndex(void);
+	BOOL					HasNodes(void);
+	BOOL					ContainsIndex(unsigned char uiIndex);
+	unsigned char			FindPrevLastIndex(void);
+	unsigned char			FindNextFirstIndex(void);
+	unsigned char			FindIndex(CIndexTreeNodeMemory* pcChild);
 
-	int					GetNumIndexes(void);
-	CIndexTreeNode*		GetNode(int i);
-	CIndexTreeNode*		GetParent(void);
-	CIndexTreeNode**	GetNodes(void);
+	int						GetNumIndexes(void);
+	CIndexTreeNodeMemory*	GetNode(int i);
+	CIndexTreeNodeMemory*	GetParent(void);
+	CIndexTreeNodeMemory**	GetNodes(void);
 
-	int					GetAdditionalIndexes(unsigned char uiIndex);
-	void				RemapChildNodes(CIndexTreeNode* pcOldNode, CIndexTreeNode* pcNewNode);
-	void				SetChildsParent(void);
-	int					GetNumIndexes(unsigned char uiFirstIndex, unsigned char uiLastIndex);
+	int						GetAdditionalIndexes(unsigned char uiIndex);
+	void					RemapChildNodes(CIndexTreeNodeMemory* pcOldNode, CIndexTreeNodeMemory* pcNewNode);
+	void					SetChildsParent(void);
+	int						GetNumIndexes(unsigned char uiFirstIndex, unsigned char uiLastIndex);
 
-	size_t				CalculateRequiredNodeSizeForIndex(unsigned char uiIndex);
-	size_t				CalculateRequiredNodeSizeForEmpty(void);
-	size_t				CalculateRequiredNodeSizeForData(unsigned char uiDataSize);
-	size_t				CalculateRequiredNodeSizeForCurrent(void);
+	size_t					CalculateRequiredNodeSizeForIndex(unsigned char uiIndex);
+	size_t					CalculateRequiredNodeSizeForEmpty(void);
+	size_t					CalculateRequiredNodeSizeForData(unsigned char uiDataSize);
+	size_t					CalculateRequiredNodeSizeForCurrent(void);
 
-	size_t				SizeofNode(void);
-	size_t				SizeofNodePtr(void);
+	size_t					SizeofNode(void);
+	size_t					SizeofNodePtr(void);
 };
 
 

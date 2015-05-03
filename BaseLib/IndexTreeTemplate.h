@@ -4,7 +4,7 @@
 
 
 template<class M>
-class CIndexTreeTemplate : public CIndexTreeBlock
+class CIndexTreeTemplateMemory : public CIndexTreeBlockMemory
 {
 public:
 	M*		Get(char* pszKey);
@@ -23,9 +23,9 @@ public:
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M* CIndexTreeTemplate<M>::Get(char* pszKey)
+M* CIndexTreeTemplateMemory<M>::Get(char* pszKey)
 {
-	return (M*)CIndexTreeBlock::Get(pszKey);
+	return (M*)CIndexTreeBlockMemory::Get(pszKey);
 }
 
 
@@ -34,9 +34,9 @@ M* CIndexTreeTemplate<M>::Get(char* pszKey)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M* CIndexTreeTemplate<M>::Get(void* pvKey, int iKeySize)
+M* CIndexTreeTemplateMemory<M>::Get(void* pvKey, int iKeySize)
 {
-	return (M*)CIndexTreeBlock::Get(pvKey, iKeySize);
+	return (M*)CIndexTreeBlockMemory::Get(pvKey, iKeySize);
 }
 
 
@@ -45,9 +45,9 @@ M* CIndexTreeTemplate<M>::Get(void* pvKey, int iKeySize)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-BOOL CIndexTreeTemplate<M>::Put(char* pszKey, M* pvObject)
+BOOL CIndexTreeTemplateMemory<M>::Put(char* pszKey, M* pvObject)
 {
-	return CIndexTreeBlock::Put(pszKey, pvObject, sizeof(M));
+	return CIndexTreeBlockMemory::Put(pszKey, pvObject, sizeof(M));
 }
 
 
@@ -56,9 +56,9 @@ BOOL CIndexTreeTemplate<M>::Put(char* pszKey, M* pvObject)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-BOOL CIndexTreeTemplate<M>::Put(void* pvKey, int iKeySize, M* pvObject)
+BOOL CIndexTreeTemplateMemory<M>::Put(void* pvKey, int iKeySize, M* pvObject)
 {
-	return CIndexTreeBlock::Put(pvKey, iKeySize, pvObject, sizeof(M));
+	return CIndexTreeBlockMemory::Put(pvKey, iKeySize, pvObject, sizeof(M));
 }
 
 
@@ -67,9 +67,9 @@ BOOL CIndexTreeTemplate<M>::Put(void* pvKey, int iKeySize, M* pvObject)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-BOOL CIndexTreeTemplate<M>::Remove(char* pszKey)
+BOOL CIndexTreeTemplateMemory<M>::Remove(char* pszKey)
 {
-	return CIndexTreeBlock::Remove(pszKey);
+	return CIndexTreeBlockMemory::Remove(pszKey);
 }
 
 
@@ -78,9 +78,9 @@ BOOL CIndexTreeTemplate<M>::Remove(char* pszKey)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-BOOL CIndexTreeTemplate<M>::Remove(void* pvKey, int iKeySize)
+BOOL CIndexTreeTemplateMemory<M>::Remove(void* pvKey, int iKeySize)
 {
-	return CIndexTreeBlock::Remove(pvKey, iKeySize);
+	return CIndexTreeBlockMemory::Remove(pvKey, iKeySize);
 }
 
 

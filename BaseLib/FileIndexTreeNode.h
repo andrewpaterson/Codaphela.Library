@@ -4,7 +4,7 @@
 #include "AbstractFile.h"
 
 
-class CFileIndexTreeNode : public CIndexTreeNode
+class CFileIndexTreeNode : public CIndexTreeNodeMemory
 {
 protected:
 	int			miFileNumber;
