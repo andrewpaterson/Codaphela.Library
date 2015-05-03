@@ -105,7 +105,6 @@
     <ClInclude Include="ArrayTemplate.h" />
     <ClInclude Include="ArrayDenseTemplate.h" />
     <ClInclude Include="ArraySparseTemplate.h" />
-    <ClInclude Include="FileIndexTreeNode.h" />
     <ClInclude Include="FileSystemIterator.h" />
     <ClInclude Include="FileSystemGeneral.h" />
     <ClInclude Include="FreeListAllocator.h" />
@@ -259,7 +258,6 @@
     <ClCompile Include="ChunkFileHeader.cpp" />
     <ClCompile Include="ChunkStack.cpp" />
     <ClCompile Include="Constructors.cpp" />
-    <ClCompile Include="FileIndexTreeNode.cpp" />
     <ClCompile Include="FileMode.cpp" />
     <ClCompile Include="FileSystemIterator.cpp" />
     <ClCompile Include="FreeListAllocator.cpp" />
