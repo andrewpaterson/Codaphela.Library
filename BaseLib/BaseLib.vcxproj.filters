@@ -522,14 +522,8 @@
     <ClInclude Include="Log.h">
       <Filter>Source\Error</Filter>
     </ClInclude>
-    <ClInclude Include="IndexTreeNode.h">
-      <Filter>Source\Data\Index</Filter>
-    </ClInclude>
     <ClInclude Include="LogConfig.h">
       <Filter>Source\Error</Filter>
-    </ClInclude>
-    <ClInclude Include="IndexTreeTemplate.h">
-      <Filter>Source\Data\Index</Filter>
     </ClInclude>
     <ClInclude Include="ArrayBit.h">
       <Filter>Source\Data\Array\Bit</Filter>
@@ -659,6 +653,12 @@
     </ClInclude>
     <ClInclude Include="MapPtrPrimitiveTemplate.h">
       <Filter>Source\Data\Map</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexTreeNodeMemory.h">
+      <Filter>Source\Data\Index</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexTreeTemplateMemory.h">
+      <Filter>Source\Data\Index</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -941,9 +941,6 @@
     <ClCompile Include="ChunkStack.cpp">
       <Filter>Source\File\Chunk\File</Filter>
     </ClCompile>
-    <ClCompile Include="IndexTreeNode.cpp">
-      <Filter>Source\Data\Index</Filter>
-    </ClCompile>
     <ClCompile Include="ArrayBit.cpp">
       <Filter>Source\Data\Array\Bit</Filter>
     </ClCompile>
@@ -1039,6 +1036,9 @@
     </ClCompile>
     <ClCompile Include="TrackingAllocator.cpp">
       <Filter>Source\Memory\Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="IndexTreeNodeMemory.cpp">
+      <Filter>Source\Data\Index</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

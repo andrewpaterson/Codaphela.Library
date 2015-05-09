@@ -3,7 +3,7 @@
 #include "Chars.h"
 #include "ArrayVoidPtr.h"
 #include "ArrayTemplateEmbedded.h"
-#include "IndexTreeNode.h"
+#include "IndexTreeNodeMemory.h"
 #include "MemoryCache.h"
 
 
