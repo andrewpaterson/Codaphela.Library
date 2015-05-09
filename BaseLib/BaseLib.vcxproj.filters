@@ -175,6 +175,9 @@
     <Filter Include="Source\Data\Map\String">
       <UniqueIdentifier>{2f70e5dc-7c62-4305-8fe9-1f0757f57293}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Memory\Temporary">
+      <UniqueIdentifier>{ea1ef655-d694-4fb3-8e7c-fafee33c8e6f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DataMacro.h">
@@ -660,6 +663,9 @@
     <ClInclude Include="IndexTreeTemplateMemory.h">
       <Filter>Source\Data\Index</Filter>
     </ClInclude>
+    <ClInclude Include="TemporaryMemory.h">
+      <Filter>Source\Memory\Temporary</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -1039,6 +1045,9 @@
     </ClCompile>
     <ClCompile Include="IndexTreeNodeMemory.cpp">
       <Filter>Source\Data\Index</Filter>
+    </ClCompile>
+    <ClCompile Include="TemporaryMemory.cpp">
+      <Filter>Source\Memory\Temporary</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -22,6 +22,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __INDEXED_DATA_H__
 #define __INDEXED_DATA_H__
+#include "BaseLib/TemporaryMemory.h"
 #include "BaseLib/MemoryFile.h"
 #include "IndexedConfig.h"
 #include "IndexedCache.h"
@@ -48,8 +49,8 @@ protected:
 	CIndexDescriptorsFile	mcIndicesFile;
 	CIndexSmartAccess		mcIndicesAccess;
 
-	void*					mpvTemp;
-	unsigned int			muiTempSize;
+	CTemporaryMemory		mcTemp;
+
 	BOOL					mbDurable;
 	BOOL					mbCaching;
 	BOOL					mbWriteThrough;

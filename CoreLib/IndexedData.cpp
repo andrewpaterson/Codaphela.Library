@@ -51,8 +51,8 @@ void CIndexedData::Init(CIndexedConfig* pcConfig)
 {
 	mbDurable = pcConfig->mbDurable;
 	mbWriteThrough = pcConfig->mbWriteThrough;
-	mpvTemp = NULL;
-	muiTempSize = 0;
+	
+	mcTemp.Init();
 
 	mcDurableFileControl.Init(pcConfig->mszWorkingDirectory, mbDurable);
 	mcDurableFileControl.MakeDir(pcConfig->mszWorkingDirectory);
@@ -122,7 +122,7 @@ void CIndexedData::KillEnd(void)
 	mcIndicesFile.Kill();
 	mcDataFiles.Kill();
 	mcIndices.Kill();
-	SafeFree(mpvTemp);
+	mcTemp.Kill();
 }
 
 
@@ -757,19 +757,15 @@ BOOL CIndexedData::CompareDiskToMemory(CIndexedDataDescriptor* pcDescriptor, voi
 	//This function tells the disk whether it must update itself because the cached value has changed.
 	//It also timestamps the descriptor of the changed data.
 	unsigned int	uiDataSize;
+	void*			pvTemp;
 
 	if (pcDescriptor->HasFile())
 	{
 		uiDataSize = pcDescriptor->GetDataSize();
-		if (pcDescriptor->GetDataSize() > muiTempSize)
-		{
-			SafeFree(mpvTemp);
-			mpvTemp = malloc(uiDataSize);
-			muiTempSize = uiDataSize;
-		}
+		pvTemp = mcTemp.Size(uiDataSize);
 
-		mcDataFiles.Read(pcDescriptor, mpvTemp);
-		if (memcmp(mpvTemp, pvData, uiDataSize) == 0)
+		mcDataFiles.Read(pcDescriptor, pvTemp);
+		if (memcmp(pvTemp, pvData, uiDataSize) == 0)
 		{
 			return TRUE;
 		}

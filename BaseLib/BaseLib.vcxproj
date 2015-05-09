@@ -135,6 +135,7 @@
     <ClInclude Include="PackFilesGeneral.h" />
     <ClInclude Include="ScratchPadAllocator.h" />
     <ClInclude Include="SystemAllocator.h" />
+    <ClInclude Include="TemporaryMemory.h" />
     <ClInclude Include="TrackingAllocator.h" />
     <ClInclude Include="TreeBlock.h" />
     <ClInclude Include="TreeTemplate.h" />
@@ -281,6 +282,7 @@
     <ClCompile Include="PackFilePacker.cpp" />
     <ClCompile Include="ScratchPadAllocator.cpp" />
     <ClCompile Include="SystemAllocator.cpp" />
+    <ClCompile Include="TemporaryMemory.cpp" />
     <ClCompile Include="TrackingAllocator.cpp" />
     <ClCompile Include="TreeBlock.cpp" />
     <ClCompile Include="EnumeratorBlock.cpp" />
