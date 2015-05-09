@@ -91,4 +91,3 @@ BOOL CIndexedDataFiles::Read(CIndexedDataDescriptor* pcIndexDescriptor, void* pv
 	return pcIndexedFile->Read(pcIndexDescriptor->GetIndexInFile(), pvData);
 }
 
-

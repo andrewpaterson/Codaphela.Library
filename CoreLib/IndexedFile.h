@@ -36,6 +36,7 @@ private:
 
 public:
 	CDurableFile	mcFile;
+
 	int				miDataSize;
 	filePos			miNumDatas;
 	int				miFileNumber;  //There may be more than one file of the same size.

@@ -33,7 +33,9 @@ class CIndexedFiles
 {
 protected:
 	CDurableFileController*		mpcDurableFileControl;
+
 	CArrayIndexedFile			mcFiles;  //These are the data on disk.  Generally one file per data size.
+
 	CChars						mszIndexName;
 	CChars						mszIndexRewrite;
 	CChars						mszExtension;

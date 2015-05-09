@@ -41,8 +41,8 @@ friend class CTransactionController;
 protected:
 	CDurableFileController	mcDurableFileControl;
 
-	CIndexedCache			mcObjectCache;
-	CIndexedDataFiles		mcObjectFiles;
+	CIndexedCache			mcDataCache;
+	CIndexedDataFiles		mcDataFiles;
 
 	CIndexedDescriptors		mcIndices;
 	CIndexDescriptorsFile	mcIndicesFile;

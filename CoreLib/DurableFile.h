@@ -34,7 +34,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 //A non-durable file can never have mbBegun set TRUE.
 //A durable file cannot be written too when mbBegun is NOT set.
-//A durable file can be seeked or read regarless of mbBegun.
+//A durable file can be seek'ed or read regardless of mbBegun.
 
 
 struct SDurableFileCommandWrite
