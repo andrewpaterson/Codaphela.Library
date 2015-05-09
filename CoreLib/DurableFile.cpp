@@ -603,7 +603,7 @@ filePos CDurableFile::Read(EFileSeekOrigin eOrigin, filePos iDistance, void* pvD
 //////////////////////////////////////////////////////////////////////////
 filePos CDurableFile::Read(void* pvDest, filePos iSize, filePos iCount)
 {
-	CArrayIntAndPointer				apvOverlapping;
+	CArrayIntAndPointer			apvOverlapping;
 	BOOL						bAny;
 	int							i;
 	BOOL						bHoles;
@@ -843,6 +843,7 @@ BOOL CDurableFile::FindTouchingWriteCommands(CArrayIntAndPointer* papvOverlappin
 				bInitialised = TRUE;
 			}
 
+			//The index in 'type' is used in the method AmalgamateOverlappingWrites because reasons.
 			papvOverlapping->Add(psWrite, i /* <-- Cheating like Hell */);
 		}
 	}
