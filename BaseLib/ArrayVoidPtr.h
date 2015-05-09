@@ -13,6 +13,8 @@ public:
 	void	Kill(void);
 	void	Add(void* pv);
 	void*	GetPtr(int iIndex);
+	BOOL	Get(int iIndex, void** pv);
+	void**	Get(int iIndex);
 	void	QuickSort(void);
 };
 
