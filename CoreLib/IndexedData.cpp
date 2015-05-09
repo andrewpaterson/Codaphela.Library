@@ -49,12 +49,11 @@ void CIndexedData::Init(char* szWorkingDirectory, unsigned int uiCacheSize, BOOL
 //////////////////////////////////////////////////////////////////////////
 void CIndexedData::Init(CIndexedConfig* pcConfig)
 {
-	mbDurable = pcConfig->mbDurable;
 	mbWriteThrough = pcConfig->mbWriteThrough;
 	
 	mcTemp.Init();
 
-	mcDurableFileControl.Init(pcConfig->mszWorkingDirectory, mbDurable);
+	mcDurableFileControl.Init(pcConfig->mszWorkingDirectory, pcConfig->mbDurable);
 	mcDurableFileControl.MakeDir(pcConfig->mszWorkingDirectory);
 
 	InitIndices(pcConfig);
@@ -84,7 +83,7 @@ void CIndexedData::Kill(void)
 {
 	if (!mbTransient)
 	{
-		if (!mbDurable)
+		if (!mcDurableFileControl.IsDurable())
 		{
 			KillNonTransientNonDurable();
 		}
@@ -225,36 +224,6 @@ unsigned int CIndexedData::Flags(OIndex oi)
 		return cDescriptor.GetUserFlags();
 	}
 	return 0;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CIndexedData::IsCaching(void)
-{
-	return mbCaching;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CIndexedData::IsTransient(void)
-{
-	return mbTransient;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CIndexedData::IsDurable(void)
-{
-	return mbDurable;
 }
 
 
@@ -931,10 +900,7 @@ BOOL CIndexedData::Remove(OIndex oi)
 //////////////////////////////////////////////////////////////////////////
 void CIndexedData::DurableBegin(void)
 {
-	if (mbDurable)
-	{
-		mcDurableFileControl.Begin();
-	}
+	mcDurableFileControl.Begin();
 }
 
 
@@ -944,10 +910,7 @@ void CIndexedData::DurableBegin(void)
 //////////////////////////////////////////////////////////////////////////
 void CIndexedData::DurableEnd(void)
 {
-	if (mbDurable)
-	{
-		mcDurableFileControl.End();
-	}
+	mcDurableFileControl.End();
 }
 
 
@@ -1087,56 +1050,6 @@ OIndex CIndexedData::NumElements(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CIndexedData::TestNumCachedIndexes(void)
-{
-	return (int)mcIndices.NumCachedDatas();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-int CIndexedData::TestIndexedDescriptorsLength(void)
-{
-	return (int)mcIndices.Length();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-int CIndexedData::TestNumIgnoredCacheElements(void)
-{
-	return mcDataCache.NumIgnored();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CIndexAccess* CIndexedData::TestGetIndexAccess(void)
-{
-	return mcIndicesAccess.GetAccess();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CIndexedData::AddFile(CDurableFile* pcFile)
-{
-	mcDurableFileControl.AddFile(pcFile);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 unsigned int CIndexedData::TestGetCachedObjectSize(OIndex oi)
 {
 	SIndexedCacheDescriptor*	psDesc;
@@ -1154,8 +1067,21 @@ unsigned int CIndexedData::TestGetCachedObjectSize(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CDurableFileController* CIndexedData::GetDurableFileControl(void)
-{
-	return &mcDurableFileControl;
-}
+int CIndexedData::TestNumCachedIndexes(void) { return (int)mcIndices.NumCachedDatas(); }
+
+int CIndexedData::TestIndexedDescriptorsLength(void) { return (int)mcIndices.Length(); }
+
+int CIndexedData::TestNumIgnoredCacheElements(void) { return mcDataCache.NumIgnored(); }
+
+CIndexAccess* CIndexedData::TestGetIndexAccess(void) { return mcIndicesAccess.GetAccess(); }
+
+void CIndexedData::AddFile(CDurableFile* pcFile) { mcDurableFileControl.AddFile(pcFile); }
+
+CDurableFileController* CIndexedData::GetDurableFileControl(void) { return &mcDurableFileControl; }
+
+BOOL CIndexedData::IsCaching(void) { return mbCaching; } 
+
+BOOL CIndexedData::IsTransient(void) { return mbTransient; }
+
+BOOL CIndexedData::IsDurable(void) { return mcDurableFileControl.IsDurable(); }
 

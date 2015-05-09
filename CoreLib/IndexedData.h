@@ -51,7 +51,6 @@ protected:
 
 	CTemporaryMemory		mcTemp;
 
-	BOOL					mbDurable;
 	BOOL					mbCaching;
 	BOOL					mbWriteThrough;
 	BOOL					mbTransient;

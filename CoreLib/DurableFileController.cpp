@@ -65,7 +65,14 @@ void CDurableFileController::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CDurableFileController::Begin(void)
 {
-	return mcDurableSet.Begin();
+	if (IsDurable())
+	{
+		return mcDurableSet.Begin();
+	}
+	else
+	{
+		return TRUE;
+	}
 }
 
 
@@ -75,7 +82,14 @@ BOOL CDurableFileController::Begin(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CDurableFileController::End(void)
 {
-	return mcDurableSet.End();
+	if (IsDurable())
+	{
+		return mcDurableSet.End();
+	}
+	else
+	{
+		return TRUE;
+	}
 }
 
 
@@ -117,10 +131,9 @@ BOOL CDurableFileController::RemoveDir(char* szPathName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CDurableFileController::IsBegun(void)
-{
-	return mcDurableSet.HasBegun();
-}
+BOOL CDurableFileController::IsBegun(void) { return mcDurableSet.HasBegun(); }
 
 char* CDurableFileController::GetWorkingDirectory(void) { return mszWorkingDirectory.Text(); }
+
 BOOL CDurableFileController::IsDurable(void) { return mbDurable; }
+

@@ -85,7 +85,7 @@ void CTransactionController::Kill(void)
 		pcTransaction = mcTransactions.GetNext(pcTransaction);
 	}
 
-	if (!mcIndexedData.mbDurable)
+	if (!mcIndexedData.IsDurable())
 	{
 		WriteState();
 	}
@@ -212,7 +212,7 @@ BOOL CTransactionController::CommitTransaction(CTransaction* pcTransaction)
 		}
 	}
 
-	if (mcIndexedData.mbDurable)
+	if (mcIndexedData.IsDurable())
 	{
 		mcIndexedData.mcIndices.UpdateFile();
 		WriteState();
