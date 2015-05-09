@@ -65,7 +65,7 @@ void CDurableFileController::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CDurableFileController::Begin(void)
 {
-	if (IsDurable())
+	if (mbDurable)
 	{
 		return mcDurableSet.Begin();
 	}
@@ -82,7 +82,7 @@ BOOL CDurableFileController::Begin(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CDurableFileController::End(void)
 {
-	if (IsDurable())
+	if (mbDurable)
 	{
 		return mcDurableSet.End();
 	}

@@ -241,3 +241,4 @@ SIndexedCacheDescriptor* CIndexedCache::TestGetDescriptor(OIndex oi)
 	}
 	return NULL;
 }
+

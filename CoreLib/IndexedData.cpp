@@ -461,6 +461,29 @@ BOOL CIndexedData::WriteData(CIndexedDataDescriptor* pcDescriptor, void* pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL CIndexedData::WriteEvictedData(SIndexedCacheDescriptor* psCached)
+{
+	CIndexedDataDescriptor	cDescriptor;
+	BOOL					bResult;
+
+	bResult = mcIndices.Get(&cDescriptor, psCached->oi);
+	if (!bResult)
+	{
+		return FALSE;
+	}
+
+	//We can assume the cache is clear of the data because it has been evicted.
+	cDescriptor.Cache(NULL);
+
+	WriteEvictedData(&cDescriptor, psCached);
+	return mcIndices.Set(&cDescriptor);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL CIndexedData::WriteEvictedData(CIndexedDataDescriptor* pcDescriptor, SIndexedCacheDescriptor* psCached)
 {
 	void*				pvData;
@@ -481,22 +504,22 @@ BOOL CIndexedData::WriteEvictedData(CIndexedDataDescriptor* pcDescriptor, SIndex
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedData::WriteEvictedData(SIndexedCacheDescriptor* psCached)
+BOOL CIndexedData::WriteEvictedData(CArrayIntAndPointer* papsEvictedIndexedCacheDescriptors)
 {
-	CIndexedDataDescriptor	cDescriptor;
-	BOOL				bResult;
+	int							i;
+	SIndexedCacheDescriptor*	psCached;
+	BOOL						bResult;
 
-	bResult = mcIndices.Get(&cDescriptor, psCached->oi);
-	if (!bResult)
+	for (i = 0; i < papsEvictedIndexedCacheDescriptors->NumElements(); i++)
 	{
-		return FALSE;
+		psCached = (SIndexedCacheDescriptor*)papsEvictedIndexedCacheDescriptors->GetPtr(i);
+		bResult = WriteEvictedData(psCached);
+		if (!bResult)
+		{
+			return FALSE;
+		}
 	}
-
-	//We can assume the cache is clear of the data because it has been evicted.
-	cDescriptor.Cache(NULL);
-
-	WriteEvictedData(&cDescriptor, psCached);
-	return mcIndices.Set(&cDescriptor);
+	return TRUE;
 }
 
 
@@ -524,29 +547,6 @@ BOOL CIndexedData::ClearDescriptorCache(SIndexedCacheDescriptor* psCached)
 		return mcIndices.Set(&cDescriptor);
 	}
 	return FALSE;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CIndexedData::WriteEvictedData(CArrayIntAndPointer* papsEvictedIndexedCacheDescriptors)
-{
-	int							i;
-	SIndexedCacheDescriptor*	psCached;
-	BOOL						bResult;
-
-	for (i = 0; i < papsEvictedIndexedCacheDescriptors->NumElements(); i++)
-	{
-		psCached = (SIndexedCacheDescriptor*)papsEvictedIndexedCacheDescriptors->GetPtr(i);
-		bResult = WriteEvictedData(psCached);
-		if (!bResult)
-		{
-			return FALSE;
-		}
-	}
-	return TRUE;
 }
 
 
