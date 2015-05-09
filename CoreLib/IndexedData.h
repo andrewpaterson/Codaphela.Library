@@ -125,7 +125,6 @@ protected:
 	BOOL			WriteEvictedData(CArrayIntAndPointer* papsIndexedCacheDescriptors);
 	BOOL			WriteEvictedData(SIndexedCacheDescriptor* psCached);
 	BOOL			WriteEvictedData(CIndexedDataDescriptor* pcDescriptor, SIndexedCacheDescriptor* psCached);
-	BOOL			WriteData(CIndexedDataDescriptor* pcDescriptor, void* pvData);
 
 	void			AddFile(CDurableFile* pcFile);
 	BOOL			CompareDiskToMemory(CIndexedDataDescriptor* pcDescriptor, void* pvData);

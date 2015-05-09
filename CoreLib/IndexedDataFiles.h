@@ -9,6 +9,7 @@ public:
 	void						Init(CDurableFileController* pcDurableFileControl, char* szExtension);
 	void						Kill(void);
 
+	BOOL						WriteData(CIndexedDataDescriptor* pcDescriptor, void* pvData);
 	BOOL						WriteNew(CIndexedDataDescriptor* pcDescriptor, void* pvData);
 	BOOL						WriteExisting(CIndexedDataDescriptor* pcDescriptor, void* pvData);
 	BOOL						Read(CIndexedDataDescriptor* pcDescriptor, void* pvData);

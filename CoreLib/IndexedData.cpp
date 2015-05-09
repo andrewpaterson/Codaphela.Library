@@ -242,7 +242,8 @@ BOOL CIndexedData::Write(CIndexedDataDescriptor* pcDescriptor, void* pvData, uns
 	{
 		if (!bWritten && mbWriteThrough)
 		{
-			return WriteData(pcDescriptor, pvData);
+			bResult = mcDataFiles.WriteData(pcDescriptor, pvData);
+			return bResult;
 		}
 		else
 		{
@@ -345,7 +346,7 @@ BOOL CIndexedData::CacheWrite(CIndexedDataDescriptor* pcDescriptor, void* pvData
 		else
 		{
 			//There wasn't enough space in the cache... the object is written immediately.
-			bResult = WriteData(pcDescriptor, pvData);
+			bResult = mcDataFiles.WriteData(pcDescriptor, pvData);
 			*pbWritten = TRUE;
 
 			cPreAllocated.Kill();
@@ -355,7 +356,8 @@ BOOL CIndexedData::CacheWrite(CIndexedDataDescriptor* pcDescriptor, void* pvData
 	else
 	{
 		*pbWritten = TRUE;
-		return WriteData(pcDescriptor, pvData);
+		bResult = mcDataFiles.WriteData(pcDescriptor, pvData);
+		return bResult;
 	}
 }
 
@@ -444,23 +446,6 @@ void CIndexedData::InvalidateData(CIndexedDataDescriptor* pcDescriptor)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedData::WriteData(CIndexedDataDescriptor* pcDescriptor, void* pvData)
-{
-	if (pcDescriptor->HasFile())
-	{
-		return mcDataFiles.WriteExisting(pcDescriptor, pvData);
-	}
-	else
-	{
-		return mcDataFiles.WriteNew(pcDescriptor, pvData);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 BOOL CIndexedData::WriteEvictedData(SIndexedCacheDescriptor* psCached)
 {
 	CIndexedDataDescriptor	cDescriptor;
@@ -486,12 +471,14 @@ BOOL CIndexedData::WriteEvictedData(SIndexedCacheDescriptor* psCached)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexedData::WriteEvictedData(CIndexedDataDescriptor* pcDescriptor, SIndexedCacheDescriptor* psCached)
 {
-	void*				pvData;
+	void*	pvData;
+	BOOL	bResult;
 
 	if (psCached->iFlags & CACHE_DESCRIPTOR_FLAG_DIRTY)
 	{
 		pvData = RemapSinglePointer(psCached, sizeof(SIndexedCacheDescriptor));
-		return WriteData(pcDescriptor, pvData);
+		bResult = mcDataFiles.WriteData(pcDescriptor, pvData);
+		return bResult;
 	}
 	else
 	{
@@ -629,7 +616,7 @@ BOOL CIndexedData::SetData(CIndexedDataDescriptor* pcDescriptor, void* pvData, u
 		bUpdated = mcDataCache.Update(pcDescriptor, pvData);
 		if (bUpdated && mbWriteThrough)
 		{
-			bResult = WriteData(pcDescriptor, pvData);
+			bResult = mcDataFiles.WriteData(pcDescriptor, pvData);
 		}
 		else
 		{

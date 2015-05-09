@@ -25,6 +25,23 @@ void CIndexedDataFiles::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL CIndexedDataFiles::WriteData(CIndexedDataDescriptor* pcDescriptor, void* pvData)
+{
+	if (pcDescriptor->HasFile())
+	{
+		return WriteExisting(pcDescriptor, pvData);
+	}
+	else
+	{
+		return WriteNew(pcDescriptor, pvData);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL CIndexedDataFiles::WriteNew(CIndexedDataDescriptor* pcIndexDescriptor, void* pvData)
 {
 	CIndexedFile*	pcIndexedFile;
