@@ -23,7 +23,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __INDEXED_CACHE_H__
 #define __INDEXED_CACHE_H__
 #include "BaseLib/MemoryCache.h"
-#include "IndexedDescriptors.h"
+#include "IndexedDataDescriptor.h"
 
 
 #define CACHE_DESCRIPTOR_FLAG_DIRTY		0x02

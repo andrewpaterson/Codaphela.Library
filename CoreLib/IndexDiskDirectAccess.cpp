@@ -31,6 +31,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 void CIndexDiskDirectAccess::Init(CIndexDescriptorsFile* pcDescriptorsFile)
 {
 	CIndexAccess::Init(pcDescriptorsFile);
+
+	LoadAndBegin();
 }
 
 
@@ -124,8 +126,9 @@ long long int CIndexDiskDirectAccess::Length(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexDiskDirectAccess::Load(void)
+BOOL CIndexDiskDirectAccess::Load(void)
 {
+	return TRUE;
 }
 
 
@@ -133,8 +136,9 @@ void CIndexDiskDirectAccess::Load(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexDiskDirectAccess::Save(void)
+BOOL CIndexDiskDirectAccess::Save(void)
 {
+	return TRUE;
 }
 
 

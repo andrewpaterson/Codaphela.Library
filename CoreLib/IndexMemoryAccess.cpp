@@ -35,6 +35,8 @@ void CIndexMemoryAccess::Init(CIndexDescriptorsFile* pcDescriptorsFile, BOOL bDi
 	mbDirtyTesting = bDirtyTesting;
 	maMemoryArray.Init(iChunkSize);
 	miChunkSize = iChunkSize;
+
+	LoadAndBegin();
 }
 
 
@@ -155,7 +157,7 @@ BOOL CIndexMemoryAccess::Remove(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexMemoryAccess::Load(void)
+BOOL CIndexMemoryAccess::Load(void)
 {
 	int		iNumDescriptors;
 
@@ -165,6 +167,7 @@ void CIndexMemoryAccess::Load(void)
 	maMemoryArray.Allocate(&gcSystemAllocator, miChunkSize, iNumDescriptors);
 
 	mpcDescriptorsFile->Read(maMemoryArray.GetData(), 0, iNumDescriptors);
+	return TRUE;
 }
 
 
@@ -172,9 +175,10 @@ void CIndexMemoryAccess::Load(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexMemoryAccess::Save(void)
+BOOL CIndexMemoryAccess::Save(void)
 {
 	mpcDescriptorsFile->Write(maMemoryArray.GetData(), 0, maMemoryArray.NumElements());
+	return TRUE;
 }
 
 

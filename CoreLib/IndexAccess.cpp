@@ -89,8 +89,72 @@ BOOL CIndexAccess::HasBegun(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CIndexAccess::LoadAndBegin(void)
+{
+	Load();
+	if (HasBegun())
+	{
+		Begin();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL CIndexAccess::RemoveFile(void)
 {
 	return mpcDescriptorsFile->Delete();
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+OIndex CIndexAccess::NumElements(void)
+{
+	OIndex						i;
+	OIndex						iLength;
+	CIndexedDataDescriptor		cCurrent;
+	OIndex						iTotal;
+
+	iTotal = 0;
+	iLength = Length();
+	for (i = 0; i < iLength; i++)
+	{
+		if (Get(&cCurrent, i))
+		{
+			iTotal++;
+		}
+	}
+	return iTotal;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+OIndex CIndexAccess::NumCachedDatas(void)
+{
+	OIndex				i;
+	OIndex				iLength;
+	CIndexedDataDescriptor	cCurrent;
+	OIndex				iTotal;
+
+	iTotal = 0;
+	iLength = Length();
+	for (i = 0; i < iLength; i++)
+	{
+		if (Get(&cCurrent, i))
+		{
+			if (cCurrent.IsCached())
+			{
+				iTotal++;
+			}
+		}
+	}
+	return iTotal;
+}

@@ -45,9 +45,8 @@ protected:
 	CIndexedCache			mcDataCache;
 	CIndexedDataFiles		mcDataFiles;
 
-	CIndexedDescriptors		mcIndices;
+	CIndexSmartAccess		mcIndices;
 	CIndexDescriptorsFile	mcIndicesFile;
-	CIndexSmartAccess		mcIndicesAccess;
 
 	CTemporaryMemory		mcTemp;
 

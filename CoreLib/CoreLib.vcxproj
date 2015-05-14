@@ -98,7 +98,6 @@
     <ClCompile Include="Indexes.cpp" />
     <ClCompile Include="IndexedDataDescriptor.cpp" />
     <ClCompile Include="IndexDescriptorsFile.cpp" />
-    <ClCompile Include="IndexedDescriptors.cpp" />
     <ClCompile Include="IndexAccess.cpp" />
     <ClCompile Include="IndexDiskDirectAccess.cpp" />
     <ClCompile Include="IndexMemoryAccess.cpp" />
@@ -187,7 +186,6 @@
     <ClInclude Include="Indexes.h" />
     <ClInclude Include="IndexedDataDescriptor.h" />
     <ClInclude Include="IndexDescriptorsFile.h" />
-    <ClInclude Include="IndexedDescriptors.h" />
     <ClInclude Include="IndexAccess.h" />
     <ClInclude Include="IndexDiskDirectAccess.h" />
     <ClInclude Include="IndexMemoryAccess.h" />

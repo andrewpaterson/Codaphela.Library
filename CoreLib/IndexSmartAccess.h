@@ -46,8 +46,8 @@ public:
 	BOOL 			Remove(OIndex oi);
 	long long int	Length(void);
 
-	void			Load(void);
-	void			Save(void);
+	BOOL			Load(void);
+	BOOL			Save(void);
 	BOOL			UpdateFile(void);
 	CIndexAccess*	GetAccess(void);
 

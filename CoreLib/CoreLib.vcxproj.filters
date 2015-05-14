@@ -225,9 +225,6 @@
     <ClCompile Include="IndexDescriptorsFile.cpp">
       <Filter>Source\File\Indexed\Descriptors</Filter>
     </ClCompile>
-    <ClCompile Include="IndexedDescriptors.cpp">
-      <Filter>Source\File\Indexed\Descriptors</Filter>
-    </ClCompile>
     <ClCompile Include="IndexAccess.cpp">
       <Filter>Source\File\Indexed\Descriptors\Access</Filter>
     </ClCompile>
@@ -489,9 +486,6 @@
       <Filter>Source\File\Indexed</Filter>
     </ClInclude>
     <ClInclude Include="IndexDescriptorsFile.h">
-      <Filter>Source\File\Indexed\Descriptors</Filter>
-    </ClInclude>
-    <ClInclude Include="IndexedDescriptors.h">
       <Filter>Source\File\Indexed\Descriptors</Filter>
     </ClInclude>
     <ClInclude Include="IndexAccess.h">

@@ -25,7 +25,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "IndexedGeneral.h"
 #include "IndexedDataDescriptor.h"
 #include "DurableFileController.h"
-
+#include "IndexedGeneral.h"
 
 class CIndexDescriptorsFile;
 class CIndexAccess
@@ -43,8 +43,8 @@ public:
 	virtual BOOL 	Remove(OIndex oi) =0;
 	virtual long long int Length(void) =0;
 
-	virtual void 	Load(void) =0;
-	virtual void 	Save(void) =0;
+	virtual BOOL 	Load(void) =0;
+	virtual BOOL 	Save(void) =0;
 	virtual BOOL 	UpdateFile(void) =0;
 
 			BOOL 	RemoveFile(void);
@@ -55,6 +55,11 @@ public:
 
 			void 	Begin(void);
 			BOOL	HasBegun(void);
+
+			void	LoadAndBegin(void);
+
+			OIndex	NumElements(void);
+			OIndex	NumCachedDatas(void);
 };
 
 

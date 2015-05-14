@@ -33,6 +33,7 @@ void CIndexSmartAccess::Init(CIndexDescriptorsFile* pcDescriptorsFile, CIndexedD
 	long long int		iNumDescriptors;
 
 	CIndexAccess::Init(pcDescriptorsFile);
+
 	mpcIndexedData = pcIndexedData;
 	miSecondLevelWidth = iSecondLevelWidth;
 	miThirdLevelWidth = iThirdLevelWidth;
@@ -114,9 +115,9 @@ long long int CIndexSmartAccess::Length(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexSmartAccess::Load(void)
+BOOL CIndexSmartAccess::Load(void)
 {
-	pcAccess->Load();
+	return pcAccess->Load();
 }
 
 
@@ -124,9 +125,9 @@ void CIndexSmartAccess::Load(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexSmartAccess::Save(void)
+BOOL CIndexSmartAccess::Save(void)
 {
-	pcAccess->Save();
+	return pcAccess->Save();
 }
 
 

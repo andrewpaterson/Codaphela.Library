@@ -26,45 +26,44 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "IndexedFile.h"
 #include "BaseLib/ChunkFile.h"
 #include "BaseLib/Chars.h"
-#include "IndexedDescriptors.h"
 
 
 class CIndexedFiles
 {
 protected:
-	CDurableFileController*		mpcDurableFileControl;
+	CDurableFileController*	mpcDurableFileControl;
 
-	CArrayIndexedFile			mcFiles;  //These are the data on disk.  Generally one file per data size.
+	CArrayIndexedFile		mcFiles;  //These are the data on disk.  Generally one file per data size.
 
-	CChars						mszIndexName;
-	CChars						mszIndexRewrite;
-	CChars						mszExtension;
-	CDurableFile				mcDurableFile;
+	CChars					mszIndexName;
+	CChars					mszIndexRewrite;
+	CChars					mszExtension;
+	CDurableFile			mcDurableFile;
 
 public:
-	void						Init(CDurableFileController* pcDurableFileControl, char* szExtension);
-	void						Kill(void);
-	BOOL						Open(void);
-	BOOL						Close(void);
+	void			Init(CDurableFileController* pcDurableFileControl, char* szExtension);
+	void			Kill(void);
+	BOOL			Open(void);
+	BOOL			Close(void);
 
-	BOOL						RemoveFiles(void);
+	BOOL			RemoveFiles(void);
 
-	void						InitIndexedFileDescriptors(void);
-	BOOL						ReadIndexedFileDescriptors(void);
-	BOOL						WriteIndexedFileDescriptors(void);
-	BOOL						DataFileName(char* szFile1, char* szFile2, int iDataSize, int iFileNum);
+	void			InitIndexedFileDescriptors(void);
+	BOOL			ReadIndexedFileDescriptors(void);
+	BOOL			WriteIndexedFileDescriptors(void);
+	BOOL			DataFileName(char* szFile1, char* szFile2, int iDataSize, int iFileNum);
 
-	CIndexedFile* 				GetOrCreateFile(int iDataSize);
-	CIndexedFile* 				GetFile(int iDataSize, int iFileNum);
-	CIndexedFile* 				GetFile(int iFileIndex);
-	int							GetUniqueFileNumber(int iDataSize);
+	CIndexedFile* 	GetOrCreateFile(int iDataSize);
+	CIndexedFile* 	GetFile(int iDataSize, int iFileNum);
+	CIndexedFile* 	GetFile(int iFileIndex);
+	int				GetUniqueFileNumber(int iDataSize);
 
-	OIndex						NumInFile(int iDataSize);
-	int							NumFiles(void);
+	OIndex			NumInFile(int iDataSize);
+	int				NumFiles(void);
 
-	BOOL						IsDurable(void);
+	BOOL			IsDurable(void);
 	
-	void						Dump(void);
+	void			Dump(void);
 };
 
 

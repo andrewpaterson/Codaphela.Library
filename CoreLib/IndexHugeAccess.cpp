@@ -32,6 +32,8 @@ void CIndexHugeAccess::Init(CIndexDescriptorsFile* pcDescriptorsFile, CIndexedDa
 {
 	CIndexAccess::Init(pcDescriptorsFile);
 	mcHugeSupport.Init(pcDescriptorsFile->GetDurableFile(), bDirtyTesting, pcIndexedData, iSecondLevelWidth, iThirdLevelWidth, iNumSecondLevelChunks, iNumThirdLevelChunks);
+
+	LoadAndBegin();
 }
 
 
@@ -89,9 +91,10 @@ BOOL CIndexHugeAccess::Remove(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexHugeAccess::Load(void)
+BOOL CIndexHugeAccess::Load(void)
 {
 	mcHugeSupport.Load();
+	return TRUE;
 }
 
 
@@ -99,9 +102,10 @@ void CIndexHugeAccess::Load(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexHugeAccess::Save(void)
+BOOL CIndexHugeAccess::Save(void)
 {
 	mcHugeSupport.Save();
+	return TRUE;
 }
 
 
