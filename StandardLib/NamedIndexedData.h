@@ -74,3 +74,4 @@ public:
 
 
 #endif // __NAMED_INDEXED_DATA_H__
+
