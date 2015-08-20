@@ -86,5 +86,5 @@ protected:
 };
 
 
-#endif // __INDEX_TREE_BLOCK_H__
+#endif // __INDEX_TREE_BLOCK_MEMORY_H__
 
