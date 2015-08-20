@@ -648,9 +648,6 @@
     <ClInclude Include="ScratchPadAllocator.h">
       <Filter>Source\Memory\ScratchPad</Filter>
     </ClInclude>
-    <ClInclude Include="IndexTreeBlock.h">
-      <Filter>Source\Data\Index</Filter>
-    </ClInclude>
     <ClInclude Include="TrackingAllocator.h">
       <Filter>Source\Memory\Manager</Filter>
     </ClInclude>
@@ -665,6 +662,9 @@
     </ClInclude>
     <ClInclude Include="TemporaryMemory.h">
       <Filter>Source\Memory\Temporary</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexTreeBlockMemory.h">
+      <Filter>Source\Data\Index</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -1037,9 +1037,6 @@
     <ClCompile Include="ScratchPadAllocator.cpp">
       <Filter>Source\Memory\ScratchPad</Filter>
     </ClCompile>
-    <ClCompile Include="IndexTreeBlock.cpp">
-      <Filter>Source\Data\Index</Filter>
-    </ClCompile>
     <ClCompile Include="TrackingAllocator.cpp">
       <Filter>Source\Memory\Manager</Filter>
     </ClCompile>
@@ -1048,6 +1045,9 @@
     </ClCompile>
     <ClCompile Include="TemporaryMemory.cpp">
       <Filter>Source\Memory\Temporary</Filter>
+    </ClCompile>
+    <ClCompile Include="IndexTreeBlockMemory.cpp">
+      <Filter>Source\Data\Index</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

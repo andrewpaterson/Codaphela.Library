@@ -20,7 +20,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __NAMED_INDEX_OBJECTS_H__
 #define __NAMED_INDEX_OBJECTS_H__
-#include "BaseLib/IndexTreeBlock.h"
+#include "BaseLib/IndexTreeBlockMemory.h"
 #include "IndexedObjects.h"
 
 
@@ -30,7 +30,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 class CNamedIndexedObjects
 {
 protected:
-	CIndexTreeBlock		mcNames;
+	CIndexTreeBlockMemory 	mcNames;   //xxx - here, this should be CIndexTreeBlockDisk or something.
 	CIndexedObjects		mcIndexedObjects;
 
 public:

@@ -1,5 +1,5 @@
-#ifndef __INDEX_TREE_BLOCK_H__
-#define __INDEX_TREE_BLOCK_H__
+#ifndef __INDEX_TREE_BLOCK_MEMORY_H__
+#define __INDEX_TREE_BLOCK_MEMORY_H__
 #include "Chars.h"
 #include "ArrayVoidPtr.h"
 #include "ArrayTemplateEmbedded.h"

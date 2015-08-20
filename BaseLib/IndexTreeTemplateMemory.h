@@ -1,6 +1,6 @@
 #ifndef __INDEX_TREE_TEMPLATE_H__
 #define __INDEX_TREE_TEMPLATE_H__
-#include "IndexTreeBlock.h"
+#include "IndexTreeBlockMemory.h"
 
 
 template<class M>
