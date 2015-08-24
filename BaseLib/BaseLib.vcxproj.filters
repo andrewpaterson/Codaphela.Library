@@ -178,6 +178,9 @@
     <Filter Include="Source\Memory\Temporary">
       <UniqueIdentifier>{ea1ef655-d694-4fb3-8e7c-fafee33c8e6f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\File\Index">
+      <UniqueIdentifier>{227cad16-1066-417d-9450-24d0c4001a1c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DataMacro.h">
@@ -666,6 +669,18 @@
     <ClInclude Include="IndexTreeBlockMemory.h">
       <Filter>Source\Data\Index</Filter>
     </ClInclude>
+    <ClInclude Include="IndexTreeBlockFile.h">
+      <Filter>Source\File\Index</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexTreeNodeFile.h">
+      <Filter>Source\File\Index</Filter>
+    </ClInclude>
+    <ClInclude Include="FileIndex.h">
+      <Filter>Source\File\Basic</Filter>
+    </ClInclude>
+    <ClInclude Include="FilePosition.h">
+      <Filter>Source\File\Basic</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -1048,6 +1063,15 @@
     </ClCompile>
     <ClCompile Include="IndexTreeBlockMemory.cpp">
       <Filter>Source\Data\Index</Filter>
+    </ClCompile>
+    <ClCompile Include="IndexTreeBlockFile.cpp">
+      <Filter>Source\File\Index</Filter>
+    </ClCompile>
+    <ClCompile Include="IndexTreeNodeFile.cpp">
+      <Filter>Source\File\Index</Filter>
+    </ClCompile>
+    <ClCompile Include="FileIndex.cpp">
+      <Filter>Source\File\Basic</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

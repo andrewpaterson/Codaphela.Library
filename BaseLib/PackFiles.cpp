@@ -411,9 +411,9 @@ CPackFile* CPackFiles::WriteOpen(char* szFileName)
 CPackFile* CPackFiles::ReadOpen(char* szFileName)
 {
 	CFileNodePackFileNode*	pcFileNode;
-	CPackFile*		pcFile;
-	BOOL			bResult;
-	filePos			iPosition;
+	CPackFile*				pcFile;
+	BOOL					bResult;
+	filePos					iPosition;
 
 	if (meMode == PFM_Read)
 	{

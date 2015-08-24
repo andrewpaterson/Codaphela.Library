@@ -1,5 +1,5 @@
-#ifndef __INDEX_TREE_NODE_H__
-#define __INDEX_TREE_NODE_H__
+#ifndef __INDEX_TREE_NODE_MEMORY_H__
+#define __INDEX_TREE_NODE_MEMORY_H__
 #include "Bool.h"
 #include "DataTypes.h"
 
@@ -59,5 +59,5 @@ public:
 };
 
 
-#endif // __INDEX_TREE_NODE_H__
+#endif // __INDEX_TREE_NODE_MEMORY_H__
 

@@ -24,9 +24,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define __ABSTRACT_FILE_H__
 #include "Define.h"
 #include "FileMode.h"
-
-
-typedef long long int		filePos;
+#include "FilePosition.h"
 
 
 class CAbstractFile
