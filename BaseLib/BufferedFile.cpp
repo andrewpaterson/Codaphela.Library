@@ -199,7 +199,7 @@ filePos CBufferedFile::Write(const void* pvSource, filePos iSize, filePos iCount
 
 	if (meLastOp == BLO_Read)
 	{
-		mpcFile->Seek((filePos)mulliCurrentPos, EFSO_SET);
+		mpcFile->Seek(mulliCurrentPos, EFSO_SET);
 		meLastOp = BLO_Seek;
 	}
 
@@ -295,7 +295,7 @@ BOOL CBufferedFile::Seek(filePos iOffset, EFileSeekOrigin iSeekOrigin)
 //////////////////////////////////////////////////////////////////////////
 filePos CBufferedFile::Tell(void)
 {
-	return (filePos)mulliCurrentPos;
+	return mulliCurrentPos;
 }
 
 
@@ -325,7 +325,7 @@ BOOL CBufferedFile::IsOpen(void)
 //////////////////////////////////////////////////////////////////////////
 filePos CBufferedFile::Size(void)
 {
-	return (filePos)mulliLength;
+	return mulliLength;
 }
 
 
@@ -366,7 +366,7 @@ void CBufferedFile::MatchFilePosToCurrentPos(void)
 {
 	if (mulliFilePos != mulliCurrentPos)
 	{
-		mpcFile->Seek((filePos)mulliCurrentPos, EFSO_SET);
+		mpcFile->Seek(mulliCurrentPos, EFSO_SET);
 		meLastOp = BLO_Seek;
 		mulliFilePos = mulliCurrentPos;
 	}

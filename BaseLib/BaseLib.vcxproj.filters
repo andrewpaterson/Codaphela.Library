@@ -1073,6 +1073,9 @@
     <ClCompile Include="FileIndex.cpp">
       <Filter>Source\File\Basic</Filter>
     </ClCompile>
+    <ClCompile Include="FilePosition.cpp">
+      <Filter>Source\File\Basic</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="gpl.txt">

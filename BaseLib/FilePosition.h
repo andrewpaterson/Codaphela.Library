@@ -5,5 +5,8 @@
 typedef long long int		filePos;
 
 
+filePos strlenFilePos(const char* sz);
+
+
 #endif // __FILE_POSITION_H__
 

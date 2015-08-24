@@ -265,6 +265,7 @@
     <ClCompile Include="Constructors.cpp" />
     <ClCompile Include="FileIndex.cpp" />
     <ClCompile Include="FileMode.cpp" />
+    <ClCompile Include="FilePosition.cpp" />
     <ClCompile Include="FileSystemIterator.cpp" />
     <ClCompile Include="FreeListAllocator.cpp" />
     <ClCompile Include="FreeList.cpp" />
