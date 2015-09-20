@@ -18,3 +18,4 @@ typedef CArrayTemplate<CFileNodePackFileNode*>	CArrayPackFileNodePtrs;
 
 
 #endif // __PACK_FILES_GENERAL_H__
+
