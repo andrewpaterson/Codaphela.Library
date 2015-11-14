@@ -86,6 +86,8 @@
     <ClCompile Include="Files.cpp" />
     <ClCompile Include="IndexedDataFiles.cpp" />
     <ClCompile Include="IndexedGeneral.cpp" />
+    <ClCompile Include="IndexTreeBlockFile.cpp" />
+    <ClCompile Include="IndexTreeNodeFile.cpp" />
     <ClCompile Include="LogFile.cpp" />
     <ClCompile Include="LogFileCommands.cpp" />
     <ClCompile Include="PackFileOffset.cpp" />
@@ -173,6 +175,8 @@
     <ClInclude Include="FileIteratorReturn.h" />
     <ClInclude Include="Files.h" />
     <ClInclude Include="IndexedDataFiles.h" />
+    <ClInclude Include="IndexTreeBlockFile.h" />
+    <ClInclude Include="IndexTreeNodeFile.h" />
     <ClInclude Include="LogFile.h" />
     <ClInclude Include="LogFileCommands.h" />
     <ClInclude Include="PackFileOffset.h" />

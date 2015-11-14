@@ -40,7 +40,8 @@ public:
 	int				miDataSize;
 	filePos			miNumDatas;
 	int				miFileNumber;  //There may be more than one file of the same size.
-	CChars			mszFileName;
+
+	CChars			mszFileName;  //These look redundant.  They could be gotten from mcFile.
 	CChars			mszRewriteName;
 
 	void		Init(CDurableFileController* pcDurableFileControl, int iFileIndex, char* szFileName, char* szRewriteName, int iDataSize, int iFileNum);

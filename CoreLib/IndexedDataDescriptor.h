@@ -25,6 +25,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "BaseLib/ArrayTemplate.h"
 #include "BaseLib/Define.h"
 #include "BaseLib/AbstractFile.h"
+#include "BaseLib/FileIndex.h"
 #include "IndexedGeneral.h"
 
 
@@ -44,8 +45,7 @@ private:
 	unsigned int	muiDataSize;
 	unsigned int	msFlags;  //These include the user flags.
 
-	int				miFileIndex;  //Which file.
-	filePos			miIndexInFile;  //Where in the file.
+	CFileIndex		mcFileIndex;
 
 	void*			mpvCache;  //Null if object is not cached.
 	unsigned int	muiTimeStamp;

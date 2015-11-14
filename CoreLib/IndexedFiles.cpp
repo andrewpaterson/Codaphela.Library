@@ -75,7 +75,7 @@ BOOL CIndexedFiles::Open(void)
 {
 	BOOL	bResult;
 
-	bResult = mcDurableFile.Open();
+	bResult = mcFileDescriptors.Open();
 	if (!bResult)
 	{
 		return FALSE;
@@ -101,7 +101,7 @@ BOOL CIndexedFiles::Close(void)
 		bResult &= pcIndexedFile->Close();
 	}
 
-	bResult &= mcDurableFile.Close();
+	bResult &= mcFileDescriptors.Close();
 	return bResult;
 }
 
@@ -121,8 +121,8 @@ void CIndexedFiles::InitIndexedFileDescriptors(void)
 	mszIndexRewrite.Append("_Files.");
 	mszIndexRewrite.Append(mszExtension);
 
-	mcDurableFile.Init(mpcDurableFileControl->IsDurable(), mszIndexName.Text(), mszIndexRewrite.Text());
-	mpcDurableFileControl->AddFile(&mcDurableFile);
+	mcFileDescriptors.Init(mpcDurableFileControl->IsDurable(), mszIndexName.Text(), mszIndexRewrite.Text());
+	mpcDurableFileControl->AddFile(&mcFileDescriptors);
 }
 
 
@@ -144,7 +144,7 @@ BOOL CIndexedFiles::ReadIndexedFileDescriptors(void)
 
 	mcFiles.Init(1024);
 
-	iFileSize = mcDurableFile.Size();
+	iFileSize = mcFileDescriptors.Size();
 	if (iFileSize == 0)
 	{
 		return TRUE;
@@ -152,7 +152,7 @@ BOOL CIndexedFiles::ReadIndexedFileDescriptors(void)
 
 	iNumFiles = iFileSize / (sizeof(SIndexedFileDescriptor));
 	pasFileDescriptors = (SIndexedFileDescriptor*)malloc((int)iFileSize);
-	iRead = mcDurableFile.ReadFromFile(pasFileDescriptors, sizeof(SIndexedFileDescriptor), iNumFiles);
+	iRead = mcFileDescriptors.ReadFromFile(pasFileDescriptors, sizeof(SIndexedFileDescriptor), iNumFiles);
 	if (iRead != iNumFiles)
 	{
 		return FALSE;
@@ -196,7 +196,7 @@ BOOL CIndexedFiles::WriteIndexedFileDescriptors(void)
 		psFileDescriptor->iFileIndex = pcIndexedFile->GetFileIndex();
 		psFileDescriptor->iFileNum = pcIndexedFile->miFileNumber;
 	}
-	bResult &= mcDurableFile.Write(0, pvFileDescriptors, sizeof(SIndexedFileDescriptor), mcFiles.NumElements());
+	bResult &= mcFileDescriptors.Write(0, pvFileDescriptors, sizeof(SIndexedFileDescriptor), mcFiles.NumElements());
 
 	free(pvFileDescriptors);
 	return bResult;
@@ -262,7 +262,7 @@ BOOL CIndexedFiles::RemoveFiles(void)
 		pcIndexedFile = mcFiles.Get(i);
 		bResult &= pcIndexedFile->mcFile.Delete();
 	}
-	bResult &= mcDurableFile.Delete();
+	bResult &= mcFileDescriptors.Delete();
 	return bResult;
 }
 
@@ -425,7 +425,7 @@ int CIndexedFiles::NumFiles(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexedFiles::IsDurable(void)
 {
-	return mcDurableFile.mbDurable;
+	return mcFileDescriptors.mbDurable;
 }
 
 

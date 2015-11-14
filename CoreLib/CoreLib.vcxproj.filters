@@ -145,9 +145,6 @@
     <Filter Include="Source\File\Indexed\Descriptors\Access\Smart">
       <UniqueIdentifier>{df3a9ecc-b75f-48b4-bc25-f66a0179c0be}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\File\Indexed\Files">
-      <UniqueIdentifier>{45185ce8-e014-4e90-9c10-56373e68ef95}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source\File\Indexed\Cache">
       <UniqueIdentifier>{6fd727bf-8e44-4bb7-b797-65f77c551a47}</UniqueIdentifier>
     </Filter>
@@ -195,6 +192,12 @@
     </Filter>
     <Filter Include="Source\File\Log">
       <UniqueIdentifier>{23d0c315-537b-44fa-96a6-6e3739d877e9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\File\Indexed\Data">
+      <UniqueIdentifier>{45185ce8-e014-4e90-9c10-56373e68ef95}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\File\Indexed\Index">
+      <UniqueIdentifier>{ebd07402-026a-469d-91ab-824a3eccd31c}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -244,10 +247,10 @@
       <Filter>Source\File\Indexed\Descriptors\Access\Smart</Filter>
     </ClCompile>
     <ClCompile Include="IndexedFile.cpp">
-      <Filter>Source\File\Indexed\Files</Filter>
+      <Filter>Source\File\Indexed\Data</Filter>
     </ClCompile>
     <ClCompile Include="IndexedFiles.cpp">
-      <Filter>Source\File\Indexed\Files</Filter>
+      <Filter>Source\File\Indexed\Data</Filter>
     </ClCompile>
     <ClCompile Include="IndexedCache.cpp">
       <Filter>Source\File\Indexed\Cache</Filter>
@@ -436,7 +439,7 @@
       <Filter>Source\File\Files</Filter>
     </ClCompile>
     <ClCompile Include="IndexedDataFiles.cpp">
-      <Filter>Source\File\Indexed\Files</Filter>
+      <Filter>Source\File\Indexed\Data</Filter>
     </ClCompile>
     <ClCompile Include="IndexedDataDescriptor.cpp">
       <Filter>Source\File\Indexed\Descriptors</Filter>
@@ -455,6 +458,12 @@
     </ClCompile>
     <ClCompile Include="IndexedGeneral.cpp">
       <Filter>Source\File\Indexed</Filter>
+    </ClCompile>
+    <ClCompile Include="IndexTreeBlockFile.cpp">
+      <Filter>Source\File\Indexed\Index</Filter>
+    </ClCompile>
+    <ClCompile Include="IndexTreeNodeFile.cpp">
+      <Filter>Source\File\Indexed\Index</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -507,10 +516,10 @@
       <Filter>Source\File\Indexed\Descriptors\Access\Smart</Filter>
     </ClInclude>
     <ClInclude Include="IndexedFile.h">
-      <Filter>Source\File\Indexed\Files</Filter>
+      <Filter>Source\File\Indexed\Data</Filter>
     </ClInclude>
     <ClInclude Include="IndexedFiles.h">
-      <Filter>Source\File\Indexed\Files</Filter>
+      <Filter>Source\File\Indexed\Data</Filter>
     </ClInclude>
     <ClInclude Include="IndexedCache.h">
       <Filter>Source\File\Indexed\Cache</Filter>
@@ -708,7 +717,7 @@
       <Filter>Source\File\Files</Filter>
     </ClInclude>
     <ClInclude Include="IndexedDataFiles.h">
-      <Filter>Source\File\Indexed\Files</Filter>
+      <Filter>Source\File\Indexed\Data</Filter>
     </ClInclude>
     <ClInclude Include="IndexedDataDescriptor.h">
       <Filter>Source\File\Indexed\Descriptors</Filter>
@@ -724,6 +733,12 @@
     </ClInclude>
     <ClInclude Include="LogFileCommands.h">
       <Filter>Source\File\Log</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexTreeBlockFile.h">
+      <Filter>Source\File\Indexed\Index</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexTreeNodeFile.h">
+      <Filter>Source\File\Indexed\Index</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

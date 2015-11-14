@@ -112,9 +112,7 @@
     <ClInclude Include="FreeListAllocator.h" />
     <ClInclude Include="GlobalMemory.h" />
     <ClInclude Include="GlobalMemoryAllocator.h" />
-    <ClInclude Include="IndexTreeBlockFile.h" />
     <ClInclude Include="IndexTreeBlockMemory.h" />
-    <ClInclude Include="IndexTreeNodeFile.h" />
     <ClInclude Include="IndexTreeNodeMemory.h" />
     <ClInclude Include="IndexTreeTemplateMemory.h" />
     <ClInclude Include="LinkedListBlock.h" />
@@ -271,9 +269,7 @@
     <ClCompile Include="FreeList.cpp" />
     <ClCompile Include="GlobalMemory.cpp" />
     <ClCompile Include="GlobalMemoryAllocator.cpp" />
-    <ClCompile Include="IndexTreeBlockFile.cpp" />
     <ClCompile Include="IndexTreeBlockMemory.cpp" />
-    <ClCompile Include="IndexTreeNodeFile.cpp" />
     <ClCompile Include="IndexTreeNodeMemory.cpp" />
     <ClCompile Include="LinkedListBlock.cpp" />
     <ClCompile Include="LocalMallocator.cpp" />

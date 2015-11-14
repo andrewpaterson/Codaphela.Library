@@ -38,7 +38,7 @@ protected:
 	CChars					mszIndexName;
 	CChars					mszIndexRewrite;
 	CChars					mszExtension;
-	CDurableFile			mcDurableFile;
+	CDurableFile			mcFileDescriptors;
 
 public:
 	void			Init(CDurableFileController* pcDurableFileControl, char* szExtension);

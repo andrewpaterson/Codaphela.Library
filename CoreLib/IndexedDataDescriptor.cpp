@@ -36,8 +36,7 @@ void CIndexedDataDescriptor::Init(OIndex oi, unsigned int uiDataSize)
 
 	muiDataSize = uiDataSize;
 
-	miFileIndex = -1;
-	miIndexInFile = -1;
+	mcFileIndex.Init();
 }
 
 
@@ -139,8 +138,9 @@ OIndex CIndexedDataDescriptor::GetIndex(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexedDataDescriptor::HasFile(void)
 {
-	return miFileIndex != -1;
+	return mcFileIndex.HasFile();
 }
+
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -178,8 +178,7 @@ void CIndexedDataDescriptor::TimeStamp(unsigned int uiTimeStamp)
 //////////////////////////////////////////////////////////////////////////
 void CIndexedDataDescriptor::SetIndexes(int iFileIndex, filePos iIndexInFile)
 {
-	miFileIndex = iFileIndex;
-	miIndexInFile = iIndexInFile;
+	mcFileIndex.SetIndex(iFileIndex, iIndexInFile);
 }
 
 
@@ -189,7 +188,7 @@ void CIndexedDataDescriptor::SetIndexes(int iFileIndex, filePos iIndexInFile)
 //////////////////////////////////////////////////////////////////////////
 int CIndexedDataDescriptor::GetFileIndex(void)
 {
-	return miFileIndex;
+	return mcFileIndex.miFile;
 }
 
 
@@ -199,7 +198,7 @@ int CIndexedDataDescriptor::GetFileIndex(void)
 //////////////////////////////////////////////////////////////////////////
 filePos CIndexedDataDescriptor::GetIndexInFile(void)
 {
-	return miIndexInFile;
+	return mcFileIndex.mulliFilePos;
 }
 
 

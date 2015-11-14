@@ -373,6 +373,19 @@ BOOL CIndexTreeNodeMemory::HasNodes(void)
 }
 
 
+unsigned char CIndexTreeNodeMemory::NumNodes(void)
+{
+	if (mbNodesEmpty)
+	{
+		return 0;
+	}
+	else
+	{
+		return muiLastIndex - muiFirstIndex + 1;
+	}
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //

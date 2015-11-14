@@ -9,8 +9,12 @@ public:
 	int			miFile;
 	filePos		mulliFilePos;
 
+	void Init(void);
 	void Init(int iFile, filePos ulliFilePos);
 	void Kill(void);
+
+	BOOL HasFile(void);
+	void SetIndex(int iFile, filePos ulliFilePos);
 };
 
 

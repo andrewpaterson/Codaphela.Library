@@ -9,8 +9,8 @@ class CIndexTreeNodeMemory
 protected:
 	CIndexTreeNodeMemory*	mpcParent;
 	unsigned char			muiFirstIndex;
-	unsigned char			muiLastIndex;
-	unsigned char			muiDataSize;
+	unsigned char			muiLastIndex;  // Inclusive (because 255 is a legitimate last index and 256 can't be represented)
+	unsigned char			muiDataSize;   // Size of object "pointed" to by this node.  The object is small: usually a OIndex, a pointer or a CFileId.
 	unsigned char			mbNodesEmpty;
 
 public:
@@ -34,6 +34,7 @@ public:
 	unsigned char			GetFirstIndex(void);
 	unsigned char			GetLastIndex(void);
 	BOOL					HasNodes(void);
+	unsigned char			NumNodes(void);
 	BOOL					ContainsIndex(unsigned char uiIndex);
 	unsigned char			FindPrevLastIndex(void);
 	unsigned char			FindNextFirstIndex(void);
