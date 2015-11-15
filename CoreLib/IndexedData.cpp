@@ -53,7 +53,7 @@ void CIndexedData::Init(CIndexedConfig* pcConfig)
 	
 	mcTemp.Init();
 
-	mcDurableFileControl.Init(pcConfig->mszWorkingDirectory, pcConfig->mbDurable);
+	mcDurableFileControl.Init(pcConfig->mszWorkingDirectory, pcConfig->mszWorkingDirectory, pcConfig->mbDurable);
 	mcDurableFileControl.MakeDir(pcConfig->mszWorkingDirectory);
 
 	InitIndices(pcConfig);

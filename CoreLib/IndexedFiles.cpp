@@ -40,6 +40,7 @@ void CIndexedFiles::Init(CDurableFileController* pcDurableFileControl, char* szE
 {
 	mpcDurableFileControl = pcDurableFileControl;
 	mszExtension.Init(szExtension);
+	mcFiles.Init(1024);
 
 	InitIndexedFileDescriptors();
 }
@@ -112,11 +113,11 @@ BOOL CIndexedFiles::Close(void)
 //////////////////////////////////////////////////////////////////////////
 void CIndexedFiles::InitIndexedFileDescriptors(void)
 {
-	mszIndexName.Init(mpcDurableFileControl->GetWorkingDirectory());
+	mszIndexName.Init(mpcDurableFileControl->GetDirectory());
 	mszIndexName.Append(FILE_SEPARATOR);
 	mszIndexName.Append("Files.");
 	mszIndexName.Append(mszExtension);
-	mszIndexRewrite.Init(mpcDurableFileControl->GetWorkingDirectory());
+	mszIndexRewrite.Init(mpcDurableFileControl->GetRewriteDirectory());
 	mszIndexRewrite.Append(FILE_SEPARATOR);
 	mszIndexRewrite.Append("_Files.");
 	mszIndexRewrite.Append(mszExtension);
@@ -141,8 +142,6 @@ BOOL CIndexedFiles::ReadIndexedFileDescriptors(void)
 	char						szDataFileName[65536];
 	char						szDataRewriteName[65536];
 	filePos						iRead;
-
-	mcFiles.Init(1024);
 
 	iFileSize = mcFileDescriptors.Size();
 	if (iFileSize == 0)
@@ -212,7 +211,7 @@ BOOL CIndexedFiles::DataFileName(char* szFile1, char* szFile2, int iDataSize, in
 	CChars	szFileName;
 	CChars	szRewriteName;
 
-	szFileName.Init(mpcDurableFileControl->GetWorkingDirectory());
+	szFileName.Init(mpcDurableFileControl->GetDirectory());
 	szFileName.Append(FILE_SEPARATOR);
 	szFileName.Append(iDataSize);
 	szFileName.Append("_");
@@ -220,7 +219,7 @@ BOOL CIndexedFiles::DataFileName(char* szFile1, char* szFile2, int iDataSize, in
 	szFileName.Append(".");
 	szFileName.Append(mszExtension);
 
-	szRewriteName.Init(mpcDurableFileControl->GetWorkingDirectory());
+	szRewriteName.Init(mpcDurableFileControl->GetRewriteDirectory());
 	szRewriteName.Append(FILE_SEPARATOR);
 	szRewriteName.Append("_");
 	szRewriteName.Append(iDataSize);

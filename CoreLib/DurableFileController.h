@@ -31,11 +31,12 @@ class CDurableFileController
 {
 private:
 	CDurableSet		mcDurableSet;
-	CChars			mszWorkingDirectory;
+	CChars			mszDirectory;
+	CChars			mszRewriteDirectory;
 	BOOL			mbDurable;
 
 public:
-	void			Init(char* szWorkingDirectory, BOOL bDurable);
+	BOOL			Init(char* szDirectory, char* szRewriteDirectory, BOOL bDurable);
 	void			Kill(void);
 
 	BOOL			Begin(void);
@@ -47,7 +48,8 @@ public:
 	BOOL			RemoveDir(char* szPathName);
 
 	BOOL			IsBegun(void);
-	char*			GetWorkingDirectory(void);
+	char*			GetDirectory(void);
+	char*			GetRewriteDirectory(void);
 	BOOL			IsDurable(void);
 };
 

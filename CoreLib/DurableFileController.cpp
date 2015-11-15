@@ -20,6 +20,8 @@ along with Codaphela CoreLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/Logger.h"
+#include "BaseLib/LogString.h"
 #include "DurableFileController.h"
 
 
@@ -27,24 +29,42 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDurableFileController::Init(char* szWorkingDirectory, BOOL bDurable)
+BOOL CDurableFileController::Init(char* szDirectory, char* szRewriteDirectory, BOOL bDurable)
 {
 	CChars		szStart;
 	CChars		szRewrite;
 	CFileUtil	cFileUtil;
 
-	mszWorkingDirectory.Init(szWorkingDirectory);
-	szStart.Init(szWorkingDirectory);
-	szRewrite.Init(szWorkingDirectory);
+	if (bDurable && szRewriteDirectory == NULL)
+	{
+		gcLogger.Error2(__METHOD__, "Rewrite directory must be supplied if controller is durable.", NULL);
+		return FALSE;
+	}
 
+	mbDurable = bDurable;
+
+	mszDirectory.Init(szDirectory);
+	szStart.Init(szDirectory);
 	cFileUtil.AppendToPath(&szStart, "Mark1.Write");
+
+	if (szRewriteDirectory && mbDurable)
+	{
+		mszRewriteDirectory.Init(szRewriteDirectory);
+		szRewrite.Init(szRewriteDirectory);
+	}
+	else
+	{
+		mszRewriteDirectory.Init();
+		szRewrite.Init(szDirectory);
+	}
 	cFileUtil.AppendToPath(&szRewrite, "Mark2.Rewrite");
 
 	mcDurableSet.Init(szStart.Text(), szRewrite.Text());
+
 	szRewrite.Kill();
 	szStart.Kill();
 
-	mbDurable = bDurable;
+	return TRUE;
 }
 
 
@@ -55,7 +75,9 @@ void CDurableFileController::Init(char* szWorkingDirectory, BOOL bDurable)
 void CDurableFileController::Kill(void)
 {
 	mcDurableSet.Kill();
-	mszWorkingDirectory.Kill();
+
+	mszRewriteDirectory.Kill();
+	mszDirectory.Kill();
 }
 
 
@@ -133,7 +155,9 @@ BOOL CDurableFileController::RemoveDir(char* szPathName)
 //////////////////////////////////////////////////////////////////////////
 BOOL CDurableFileController::IsBegun(void) { return mcDurableSet.HasBegun(); }
 
-char* CDurableFileController::GetWorkingDirectory(void) { return mszWorkingDirectory.Text(); }
+char* CDurableFileController::GetDirectory(void) { return mszDirectory.Text(); }
+
+char* CDurableFileController::GetRewriteDirectory(void) { return mszRewriteDirectory.Text(); }
 
 BOOL CDurableFileController::IsDurable(void) { return mbDurable; }
 
