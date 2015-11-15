@@ -22,6 +22,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/FileBasic.h"
 #include "BaseLib/FileUtil.h"
+#include "BaseLib/Logger.h"
+#include "BaseLib/LogString.h"
 #include "DurableSet.h"
 
 
@@ -61,6 +63,11 @@ BOOL CDurableSet::Recover(void)
 	BOOL		bMarkRewrite;
 
 	//This assumes begin has NOT been called.
+	if (mbBegun)
+	{
+		gcLogger.Error2(__METHOD__, "Cannot recover after begun.", NULL);
+		return FALSE;
+	}
 
 	bMarkStart = cFileUtil.Exists(mszMarkStart.Text());
 	bMarkRewrite = cFileUtil.Exists(mszMarkRewrite.Text());
@@ -74,8 +81,10 @@ BOOL CDurableSet::Recover(void)
 	//Primary files were written but backup failed.
 	if ((bMarkStart) && (bMarkRewrite))
 	{
+		gcLogger.Info2(__METHOD__, "Primary files were written but backup failed.", NULL);
 		if (!CopyPrimaryToBackup())
 		{
+			gcLogger.Error2(__METHOD__, "Copying primary files to backup failed.", NULL);
 			return FALSE;
 		}
 		MarkFinish();
@@ -85,8 +94,10 @@ BOOL CDurableSet::Recover(void)
 	//Primary files were not written.  Use old backup.
 	if (bMarkStart)
 	{
+		gcLogger.Info2(__METHOD__, "Primary files were not written.  Reverting to backup.", NULL);
 		if (!CopyBackupToPrimary())
 		{
+			gcLogger.Error2(__METHOD__, "Copying backup files to primary failed.", NULL);
 			return FALSE;
 		}
 		MarkFinish();
@@ -96,6 +107,7 @@ BOOL CDurableSet::Recover(void)
 	//Something bad happened
 	if (bMarkRewrite)
 	{
+		gcLogger.Error2(__METHOD__, "Something bad happened.", NULL);
 		return FALSE;
 	}
 	return FALSE;
@@ -287,3 +299,4 @@ BOOL CDurableSet::HasBegun(void)
 {
 	return mbBegun;
 }
+
