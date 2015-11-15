@@ -5,9 +5,9 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedDataFiles::Init(CDurableFileController* pcDurableFileControl, char* szExtension)
+void CIndexedDataFiles::Init(CDurableFileController* pcDurableFileControl, char* szDataExtension, char* szDescricptorName, char* szDescricptorRewrite)
 {
-	CIndexedFiles::Init(pcDurableFileControl, szExtension);
+	CIndexedFiles::Init(pcDurableFileControl, szDataExtension, szDescricptorName, szDescricptorRewrite);
 }
 
 

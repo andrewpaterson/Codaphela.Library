@@ -35,20 +35,21 @@ protected:
 
 	CArrayIndexedFile		mcFiles;  //These are the data on disk.  Generally one file per data size.
 
-	CChars					mszIndexName;
-	CChars					mszIndexRewrite;
-	CChars					mszExtension;
+	CChars					mszDataExtension;
+
+	CChars					mszDescricptorName;  //< --  and This
+	CChars					mszDescricptorRewrite;
 	CDurableFile			mcFileDescriptors;
 
 public:
-	void			Init(CDurableFileController* pcDurableFileControl, char* szExtension);
+	void			Init(CDurableFileController* pcDurableFileControl, char* szDataExtension, char* szDescricptorName, char* szDescricptorRewrite);
 	void			Kill(void);
 	BOOL			Open(void);
 	BOOL			Close(void);
 
 	BOOL			RemoveFiles(void);
 
-	void			InitIndexedFileDescriptors(void);
+	void			InitIndexedFileDescriptors(char* szDescricptorName, char* szDescricptorRewrite);
 	BOOL			ReadIndexedFileDescriptors(void);
 	BOOL			WriteIndexedFileDescriptors(void);
 	BOOL			DataFileName(char* szFile1, char* szFile2, int iDataSize, int iFileNum);

@@ -36,13 +36,13 @@ struct SIndexedFileDescriptor
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedFiles::Init(CDurableFileController* pcDurableFileControl, char* szExtension)
+void CIndexedFiles::Init(CDurableFileController* pcDurableFileControl, char* szDataExtension, char* szDescricptorName, char* szDescricptorRewrite)
 {
 	mpcDurableFileControl = pcDurableFileControl;
-	mszExtension.Init(szExtension);
+	mszDataExtension.Init(szDataExtension);
 	mcFiles.Init(1024);
 
-	InitIndexedFileDescriptors();
+	InitIndexedFileDescriptors(szDescricptorName, szDescricptorRewrite);
 }
 
 
@@ -62,9 +62,9 @@ void CIndexedFiles::Kill(void)
 	}
 	mcFiles.Kill();
 
-	mszExtension.Kill();
-	mszIndexName.Kill();
-	mszIndexRewrite.Kill();
+	mszDataExtension.Kill();
+	mszDescricptorName.Kill();
+	mszDescricptorRewrite.Kill();
 }
 
 
@@ -111,18 +111,16 @@ BOOL CIndexedFiles::Close(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedFiles::InitIndexedFileDescriptors(void)
+void CIndexedFiles::InitIndexedFileDescriptors(char* szDescricptorName, char* szDescricptorRewrite)
 {
-	mszIndexName.Init(mpcDurableFileControl->GetDirectory());
-	mszIndexName.Append(FILE_SEPARATOR);
-	mszIndexName.Append("Files.");
-	mszIndexName.Append(mszExtension);
-	mszIndexRewrite.Init(mpcDurableFileControl->GetRewriteDirectory());
-	mszIndexRewrite.Append(FILE_SEPARATOR);
-	mszIndexRewrite.Append("_Files.");
-	mszIndexRewrite.Append(mszExtension);
+	mszDescricptorName.Init(mpcDurableFileControl->GetDirectory());
+	mszDescricptorName.Append(FILE_SEPARATOR);
+	mszDescricptorName.Append(szDescricptorName);
+	mszDescricptorRewrite.Init(mpcDurableFileControl->GetRewriteDirectory());
+	mszDescricptorRewrite.Append(FILE_SEPARATOR);
+	mszDescricptorRewrite.Append(szDescricptorRewrite);
 
-	mcFileDescriptors.Init(mpcDurableFileControl->IsDurable(), mszIndexName.Text(), mszIndexRewrite.Text());
+	mcFileDescriptors.Init(mpcDurableFileControl->IsDurable(), mszDescricptorName.Text(), mszDescricptorRewrite.Text());
 	mpcDurableFileControl->AddFile(&mcFileDescriptors);
 }
 
@@ -217,7 +215,7 @@ BOOL CIndexedFiles::DataFileName(char* szFile1, char* szFile2, int iDataSize, in
 	szFileName.Append("_");
 	szFileName.Append(iFileNum);
 	szFileName.Append(".");
-	szFileName.Append(mszExtension);
+	szFileName.Append(mszDataExtension);
 
 	szRewriteName.Init(mpcDurableFileControl->GetRewriteDirectory());
 	szRewriteName.Append(FILE_SEPARATOR);
@@ -226,7 +224,7 @@ BOOL CIndexedFiles::DataFileName(char* szFile1, char* szFile2, int iDataSize, in
 	szRewriteName.Append("_");
 	szRewriteName.Append(iFileNum);
 	szRewriteName.Append(".");
-	szRewriteName.Append(mszExtension);
+	szRewriteName.Append(mszDataExtension);
 
 	if (szFileName.Length() < 65536)
 	{

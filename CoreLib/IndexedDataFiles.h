@@ -6,7 +6,7 @@
 class CIndexedDataFiles : public CIndexedFiles
 {
 public:
-	void						Init(CDurableFileController* pcDurableFileControl, char* szExtension);
+	void						Init(CDurableFileController* pcDurableFileControl, char* szDataExtension, char* szDescricptorName, char* szDescricptorRewrite);
 	void						Kill(void);
 
 	BOOL						WriteData(CIndexedDataDescriptor* pcDescriptor, void* pvData);
