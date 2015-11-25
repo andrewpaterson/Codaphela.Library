@@ -438,9 +438,6 @@
     <ClCompile Include="PackFileOffset.cpp">
       <Filter>Source\File\Files</Filter>
     </ClCompile>
-    <ClCompile Include="IndexedDataFiles.cpp">
-      <Filter>Source\File\Indexed\Data</Filter>
-    </ClCompile>
     <ClCompile Include="IndexedDataDescriptor.cpp">
       <Filter>Source\File\Indexed\Descriptors</Filter>
     </ClCompile>
@@ -715,9 +712,6 @@
     </ClInclude>
     <ClInclude Include="PackFileOffset.h">
       <Filter>Source\File\Files</Filter>
-    </ClInclude>
-    <ClInclude Include="IndexedDataFiles.h">
-      <Filter>Source\File\Indexed\Data</Filter>
     </ClInclude>
     <ClInclude Include="IndexedDataDescriptor.h">
       <Filter>Source\File\Indexed\Descriptors</Filter>
