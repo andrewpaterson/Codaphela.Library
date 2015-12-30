@@ -7,7 +7,6 @@
 class CIndexTreeNodeFile : public CIndexTreeNode
 {
 private:
-	CIndexTreeNodeFile*		mpcParent;
 	CFileIndex				mcFileIndex;
 
 public:
