@@ -19,10 +19,8 @@ void CIndexTreeBlockMemory::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CIndexTreeBlockMemory::Init(CMallocator* pcMalloc)
 {
-	mpcMalloc = pcMalloc;
+	CIndexTreeBlock::Init(pcMalloc, sizeof(CIndexTreeNodeMemory), sizeof(CIndexTreeNodeMemory*));
 	mpcRoot = AllocateRoot();
-	miSize = 0;
-	miLargestKeySize = 0;
 }
 
 
@@ -32,6 +30,7 @@ void CIndexTreeBlockMemory::Init(CMallocator* pcMalloc)
 //////////////////////////////////////////////////////////////////////////
 void CIndexTreeBlockMemory::Kill(void)
 {
+	RecurseKill(mpcRoot);
 }
 
 
@@ -39,10 +38,10 @@ void CIndexTreeBlockMemory::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeBlockMemory::RecurseKill(CIndexTreeNodeMemory* pcNode)
+void CIndexTreeBlockMemory::RecurseKill(CIndexTreeNode* pcNode)
 {
 	int					i;
-	CIndexTreeNodeMemory*		pcChild;
+	CIndexTreeNode*		pcChild;
 
 	if (pcNode != NULL)
 	{
@@ -60,29 +59,15 @@ void CIndexTreeBlockMemory::RecurseKill(CIndexTreeNodeMemory* pcNode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CIndexTreeBlockMemory::Malloc(size_t tSize)
+CIndexTreeNodeMemory* CIndexTreeBlockMemory::AllocateRoot(void)
 {
-	return mpcMalloc->Malloc(tSize);
-}
+	CIndexTreeNodeMemory*	pcNode;
+	int						iAdditionalSize;
 
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CIndexTreeBlockMemory::Free(void* pv)
-{
-	mpcMalloc->Free(pv);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void* CIndexTreeBlockMemory::Realloc(void* pv, size_t tSize)
-{
-	return mpcMalloc->Realloc(pv, tSize);
+	iAdditionalSize = MAX_UCHAR * SizeofNodePtr();
+	pcNode = (CIndexTreeNodeMemory*)Malloc(SizeofNode() + iAdditionalSize);
+	pcNode->Init(this, NULL, 0, MAX_UCHAR);
+	return pcNode;
 }
 
 
@@ -95,114 +80,8 @@ CIndexTreeNodeMemory* CIndexTreeBlockMemory::AllocateNode(CIndexTreeNodeMemory* 
 	CIndexTreeNodeMemory*	pcNode;
 
 	pcNode = (CIndexTreeNodeMemory*)Malloc(SizeofNode());
-	pcNode->Init(pcParent);
+	pcNode->Init(this, pcParent);
 	return pcNode;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CIndexTreeNodeMemory* CIndexTreeBlockMemory::AllocateRoot(void)
-{
-	CIndexTreeNodeMemory*		pcNode;
-	int					iAdditionalSize;
-
-	iAdditionalSize = MAX_UCHAR * SizeofNodePtr();
-	pcNode = (CIndexTreeNodeMemory*)Malloc(SizeofNode() + iAdditionalSize);
-	pcNode->Init(NULL, 0, MAX_UCHAR);
-	return pcNode;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CIndexTreeNodeMemory* CIndexTreeBlockMemory::ReallocateNodeForIndex(CIndexTreeNodeMemory* pcNode, unsigned char uiIndex)
-{
-	CIndexTreeNodeMemory*		pcOldNode;
-	size_t				tNewNodeSize;
-
-	if (pcNode->ContainsIndex(uiIndex))
-	{
-		return pcNode;
-	}
-
-	if (pcNode->HasNodes())
-	{
-		tNewNodeSize = pcNode->CalculateRequiredNodeSizeForIndex(uiIndex);
-	}
-	else
-	{
-		tNewNodeSize = pcNode->CalculateRequiredNodeSizeForEmpty();
-	}
-
-	pcOldNode = pcNode;
-	pcNode = (CIndexTreeNodeMemory*)Realloc(pcNode, tNewNodeSize);
-	pcNode->Contain(uiIndex);
-
-	RemapChildParents(pcOldNode, pcNode);
-
-	return pcNode;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CIndexTreeBlockMemory::RemapChildParents(CIndexTreeNodeMemory* pcOldNode, CIndexTreeNodeMemory* pcNode)
-{
-	CIndexTreeNodeMemory*		pcParent;
-
-	if (pcOldNode != pcNode)
-	{
-		pcParent = pcNode->GetParent();
-		if (pcParent)
-		{
-			pcParent->RemapChildNodes(pcOldNode, pcNode);
-		}
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CIndexTreeNodeMemory* CIndexTreeBlockMemory::ReallocateNodeForData(CIndexTreeNodeMemory* pcNode, unsigned char uiDataSize)
-{
-	CIndexTreeNodeMemory*		pcOldNode;
-	CIndexTreeNodeMemory*		pcParent;
-	size_t				tNewNodeSize;
-
-	tNewNodeSize = pcNode->CalculateRequiredNodeSizeForData(uiDataSize);
-
-	pcOldNode = pcNode;
-	pcNode = (CIndexTreeNodeMemory*)Realloc(pcNode, tNewNodeSize);
-
-	if (pcOldNode != pcNode)
-	{
-		pcParent = pcNode->GetParent();
-		if (pcParent)
-		{
-			pcParent->RemapChildNodes(pcOldNode, pcNode);
-		}
-	}
-
-	return pcNode;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CIndexTreeBlockMemory::FreeNode(CIndexTreeNodeMemory* pcNode)
-{
-	Free(pcNode);
 }
 
 
@@ -470,15 +349,15 @@ BOOL CIndexTreeBlockMemory::Remove(char* pszKey)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeBlockMemory::Remove(void* pvKey, int iKeySize)
 {
-	char											c;
-	CIndexTreeNodeMemory*									pcParent;
-	CIndexTreeNodeMemory*									pcOldParent;
-	CIndexTreeNodeMemory*									pcNode;
-	CIndexTreeNodeMemory*									pcCurrent;
-	void*											pvObject;
-	BOOL											bResizeNode;
-	size_t											tNewNodeSize;
-	int												i;
+	char					c;
+	CIndexTreeNodeMemory*	pcParent;
+	CIndexTreeNodeMemory*	pcOldParent;
+	CIndexTreeNodeMemory*	pcNode;
+	CIndexTreeNodeMemory*	pcCurrent;
+	void*					pvObject;
+	BOOL					bResizeNode;
+	size_t					tNewNodeSize;
+	int						i;
 
 	if ((iKeySize == 0) || (pvKey == NULL))
 	{
@@ -504,7 +383,7 @@ BOOL CIndexTreeBlockMemory::Remove(void* pvKey, int iKeySize)
 	pvObject = ((void**) pcCurrent->GetObjectPtr());
 
 	pcNode = pcCurrent;
-	pcParent = pcNode->GetParent();
+	pcParent = (CIndexTreeNodeMemory*)pcNode->GetParent();
 	pcCurrent->ClearObject();
 	for (;;)
 	{
@@ -530,7 +409,7 @@ BOOL CIndexTreeBlockMemory::Remove(void* pvKey, int iKeySize)
 		}
 
 		pcNode = pcParent;
-		pcParent = pcNode->GetParent();
+		pcParent = (CIndexTreeNodeMemory*)pcNode->GetParent();
 		if (!pcParent)
 		{
 			break;;
@@ -556,10 +435,10 @@ void CIndexTreeBlockMemory::FindAll(CArrayVoidPtr* papvElements)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeBlockMemory::RecurseFindAll(CIndexTreeNodeMemory* pcNode, CArrayVoidPtr* papvElements)
+void CIndexTreeBlockMemory::RecurseFindAll(CIndexTreeNode* pcNode, CArrayVoidPtr* papvElements)
 {
 	int					i;
-	CIndexTreeNodeMemory*		pcChild;
+	CIndexTreeNode*		pcChild;
 	void*				pvObject;
 
 	if (pcNode != NULL)
@@ -735,10 +614,10 @@ int CIndexTreeBlockMemory::GetLargestKeySize(void)
 //////////////////////////////////////////////////////////////////////////
 int CIndexTreeBlockMemory::GetKey(void* pvKey, void* pvData, BOOL zeroTerminate)
 {
-	CIndexTreeNodeMemory*	pcNode;
-	unsigned char*	pucKey;
-	int				iLength;
-	CIndexTreeNodeMemory*	pcParent;
+	CIndexTreeNode*		pcNode;
+	unsigned char*		pucKey;
+	int					iLength;
+	CIndexTreeNode*		pcParent;
 
 	if (pvData == NULL)
 	{
@@ -822,9 +701,9 @@ BOOL CIndexTreeBlockMemory::Iterate(SIndexTreeIterator* psIterator, void** pvDat
 
 BOOL CIndexTreeBlockMemory::StepNext(SIndexTreeIterator* psIterator)
 {
-	CIndexTreeNodeMemory*		pcChild;
+	CIndexTreeNode*		pcChild;
 	void*				pvObject;
-	CIndexTreeNodeMemory*		pcParent;
+	CIndexTreeNode*		pcParent;
 
 	for (;;)
 	{
@@ -901,10 +780,10 @@ int CIndexTreeBlockMemory::RecurseSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CIndexTreeBlockMemory::RecurseSize(CIndexTreeNodeMemory* pcNode)
+int CIndexTreeBlockMemory::RecurseSize(CIndexTreeNode* pcNode)
 {
 	int					i;
-	CIndexTreeNodeMemory*		pcChild;
+	CIndexTreeNode*		pcChild;
 	unsigned char		uiSize;
 
 	int count = 0;
@@ -977,10 +856,10 @@ int CIndexTreeBlockMemory::CountAllocatedNodes(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CIndexTreeBlockMemory::RecurseCountAllocatedNodes(CIndexTreeNodeMemory* pcNode)
+int CIndexTreeBlockMemory::RecurseCountAllocatedNodes(CIndexTreeNode* pcNode)
 {
 	int					i;
-	CIndexTreeNodeMemory*		pcChild;
+	CIndexTreeNode*		pcChild;
 
 	if (pcNode != NULL)
 	{
@@ -1032,25 +911,5 @@ int CIndexTreeBlockMemory::RecurseCountListSize(CIndexTreeNodeMemory* pcNode)
 	{
 		return 0;
 	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-size_t CIndexTreeBlockMemory::SizeofNode(void)
-{
-	return sizeof(CIndexTreeNodeMemory);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-size_t CIndexTreeBlockMemory::SizeofNodePtr(void)
-{
-	return sizeof(CIndexTreeNodeMemory*);
 }
 

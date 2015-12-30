@@ -672,6 +672,12 @@
     <ClInclude Include="FilePosition.h">
       <Filter>Source\File\Basic</Filter>
     </ClInclude>
+    <ClInclude Include="IndexTreeBlock.h">
+      <Filter>Source\Data\Index</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexTreeNode.h">
+      <Filter>Source\Data\Index</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -1060,6 +1066,12 @@
     </ClCompile>
     <ClCompile Include="FilePosition.cpp">
       <Filter>Source\File\Basic</Filter>
+    </ClCompile>
+    <ClCompile Include="IndexTreeBlock.cpp">
+      <Filter>Source\Data\Index</Filter>
+    </ClCompile>
+    <ClCompile Include="IndexTreeNode.cpp">
+      <Filter>Source\Data\Index</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

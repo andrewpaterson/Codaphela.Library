@@ -1,23 +1,18 @@
 #ifndef __INDEX_TREE_NODE_FILE_H__
 #define __INDEX_TREE_NODE_FILE_H__
 #include "BaseLib/FileIndex.h"
+#include "BaseLib/IndexTreeNode.h"
 
 
-//
-//  Bytes 0     [muiFirstIndex.....muiLastIndex]       255  
-//  
-
-
-class CIndexTreeNodeFile
+class CIndexTreeNodeFile : public CIndexTreeNode
 {
 private:
 	CIndexTreeNodeFile*		mpcParent;
-	unsigned char			muiFirstIndex;
-	unsigned char			muiLastIndex;
-	unsigned char			muiDataSize;
 	CFileIndex				mcFileIndex;
 
-	 
+public:
+	void					Init(CIndexTreeBlock* pcIndexTree, CIndexTreeNodeFile* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex);
+	void					Init(CIndexTreeBlock* pcIndexTree, CIndexTreeNodeFile* pcParent);
 };
 
 
