@@ -29,6 +29,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 
 #define FILE_BLOCK_SIZE		(1 MB)
+#define MAX_DIRECTORY_LENGTH 65536
 
 
 class CFileUtil

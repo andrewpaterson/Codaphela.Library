@@ -137,8 +137,8 @@ BOOL CIndexedFiles::ReadIndexedFileDescriptors(void)
 	filePos						iNumFiles;
 	SIndexedFileDescriptor*		pasFileDescriptors;
 	CIndexedFile*				pcIndexedFile;
-	char						szDataFileName[65536];
-	char						szDataRewriteName[65536];
+	char						szDataFileName[MAX_DIRECTORY_LENGTH];
+	char						szDataRewriteName[MAX_DIRECTORY_LENGTH];
 	filePos						iRead;
 
 	iFileSize = mcFileDescriptors.Size();
@@ -226,7 +226,7 @@ BOOL CIndexedFiles::DataFileName(char* szFile1, char* szFile2, int iDataSize, in
 	szRewriteName.Append(".");
 	szRewriteName.Append(mszDataExtension);
 
-	if (szFileName.Length() < 65536)
+	if (szFileName.Length() < MAX_DIRECTORY_LENGTH)
 	{
 		strcpy(szFile1, szFileName.Text());
 		szFileName.Kill();
@@ -273,8 +273,8 @@ CIndexedFile* CIndexedFiles::GetOrCreateFile(int iDataSize)
 	int				i;
 	CIndexedFile*	pcIndexedFile;
 	int				iNumFiles;
-	char			szFileName[65536];
-	char			szRewriteName[65536];
+	char			szFileName[MAX_DIRECTORY_LENGTH];
+	char			szRewriteName[MAX_DIRECTORY_LENGTH];
 
 	iNumFiles = 0;
 	for (i = 0; i < mcFiles.NumElements(); i++)

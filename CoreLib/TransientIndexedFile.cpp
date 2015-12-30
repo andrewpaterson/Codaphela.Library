@@ -577,7 +577,7 @@ CTransientIndexedFileDescriptor* CTransientIndexedFile::GetOrCreateFile(int iDat
 	int									i;
 	CTransientIndexedFileDescriptor*	pcFile;
 	int									iNumFiles;
-	char								szFileName[65536];
+	char								szFileName[MAX_DIRECTORY_LENGTH];
 
 	iNumFiles = 0;
 	for (i = 0; i < mcFiles.NumElements(); i++)
@@ -663,7 +663,7 @@ BOOL CTransientIndexedFile::DataFileName(char* szFile1, int iDataSize, int iFile
 	szFileName.Append(iFileNum);
 	szFileName.Append(".DAT");
 
-	if (szFileName.Length() < 65536)
+	if (szFileName.Length() < MAX_DIRECTORY_LENGTH)
 	{
 		strcpy(szFile1, szFileName.Text());
 		szFileName.Kill();

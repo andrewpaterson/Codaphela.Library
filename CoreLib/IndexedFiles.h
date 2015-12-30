@@ -37,7 +37,7 @@ protected:
 
 	CChars					mszDataExtension;
 
-	CChars					mszDescricptorName;  //< --  and This
+	CChars					mszDescricptorName;
 	CChars					mszDescricptorRewrite;
 	CDurableFile			mcFileDescriptors;
 
