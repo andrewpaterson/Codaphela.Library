@@ -5,8 +5,8 @@
 
 struct SIndexTreeIterator
 {
-	CIndexTreeNode*	pcNode;
-	int				iIndex;
+	CIndexTreeNodeMemory*	pcNode;
+	int						iIndex;
 };
 
 
@@ -14,12 +14,12 @@ class CIndexTreeBlockMemory : public CIndexTreeBlock
 {
 protected:
 	CIndexTreeNodeMemory*	mpcRoot;
-
+	int						miSize;
 public:
 	void					Init(void);
 	void					Init(CMallocator* pcMalloc);
 	void					Kill(void);
-	void					RecurseKill(CIndexTreeNode* pcNode);
+	void					RecurseKill(CIndexTreeNodeMemory* pcNode);
 
 	void*					Get(char* pszKey);
 	void*					Get(void* pvKey, int iKeySize);
@@ -31,8 +31,8 @@ public:
 	BOOL					StartIteration(SIndexTreeIterator* psIterator, void** pvData, int* piDataSize);
 	BOOL					Iterate(SIndexTreeIterator* psIterator, void** pvData, int* piDataSize);
 
-	BOOL					Put(char* pszKey, void* pvObject, unsigned char uiObjectSize);
-	BOOL					Put(void* pvKey, int iKeySize, void* pvObject, unsigned char uiObjectSize);
+	void*					Put(char* pszKey, void* pvObject, unsigned char uiObjectSize);
+	void*					Put(void* pvKey, int iKeySize, void* pvObject, unsigned char uiObjectSize);
 	void*					Put(void* pvKey, int iKeySize, unsigned char uiObjectSize);
 	BOOL					PutPtr(char* pszKey, void* pvPointer);
 	BOOL					PutPtr(void* pvKey, int iKeySize, void* pvPointer);
@@ -55,16 +55,20 @@ public:
 protected:
 	CIndexTreeNodeMemory*	AllocateRoot(void);
 	CIndexTreeNodeMemory*	AllocateNode(CIndexTreeNodeMemory* pcParent);
+
 	CIndexTreeNodeMemory*	ReallocateNodeForIndex(CIndexTreeNodeMemory* pcNode, unsigned char uiIndex);
 	CIndexTreeNodeMemory*	ReallocateNodeForData(CIndexTreeNodeMemory* pcNode, unsigned char uiDataSize);
+	void					RemapChildParents(CIndexTreeNodeMemory* pcOldNode, CIndexTreeNodeMemory* pcNode);
+
 
 	CIndexTreeNodeMemory*	SetOldWithCurrent(CIndexTreeNodeMemory* pcParent, unsigned char c);
-	void					RecurseFindAll(CIndexTreeNode* pcNode, CArrayVoidPtr* papvElements);
+	void					RecurseFindAll(CIndexTreeNodeMemory* pcNode, CArrayVoidPtr* papvElements);
 	BOOL					ValidateSize(void);
-	int						RecurseSize(CIndexTreeNode* pcNode);
-	int						RecurseCountAllocatedNodes(CIndexTreeNode* pcNode);
+	int						RecurseSize(CIndexTreeNodeMemory* pcNode);
+	int						RecurseCountAllocatedNodes(CIndexTreeNodeMemory* pcNode);
 	int						CountListSize(void);
 	int						RecurseCountListSize(CIndexTreeNodeMemory* pcNode);
+
 	CIndexTreeNodeMemory*	GetNodeForData(void* pvData);
 
 	BOOL					StepNext(SIndexTreeIterator* psIterator);

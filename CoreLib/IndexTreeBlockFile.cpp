@@ -19,6 +19,8 @@ void CIndexTreeBlockFile::Init(CDurableFileController* pcDurableFileControl, CMa
 {
 	CIndexTreeBlock::Init(pcMalloc, sizeof(CIndexTreeNodeFile), sizeof(CIndexTreeNodeFile*));
 	mpcRoot = AllocateRoot();
+	mpcDurableFileControl = pcDurableFileControl;
+	mcIndexFiles.Init(mpcDurableFileControl, "IDAT", "Index.IDX", "_Index.IDX");
 }
 
 
@@ -28,7 +30,8 @@ void CIndexTreeBlockFile::Init(CDurableFileController* pcDurableFileControl, CMa
 //////////////////////////////////////////////////////////////////////////
 void CIndexTreeBlockFile::Kill(void)
 {
-
+	mcIndexFiles.Kill();
+	mpcDurableFileControl = NULL;
 }
 
 
@@ -113,7 +116,7 @@ void* CIndexTreeBlockFile::Get(void* pvKey, int iKeySize)
 //////////////////////////////////////////////////////////////////////////
 CIndexTreeNodeFile* CIndexTreeBlockFile::GetIndexNode(void* pvKey, int iKeySize)
 {
-	CIndexTreeNode* pcCurrent;
+	CIndexTreeNodeFile* pcCurrent;
 
 	if ((iKeySize == 0) || (pvKey == NULL))
 	{
@@ -131,7 +134,7 @@ CIndexTreeNodeFile* CIndexTreeBlockFile::GetIndexNode(void* pvKey, int iKeySize)
 			return NULL;
 		}
 	}
-	return (CIndexTreeNodeFile*)pcCurrent;
+	return pcCurrent;
 }
 
 
@@ -143,6 +146,7 @@ int CIndexTreeBlockFile::NumElements(void)
 {
 	return 0;
 }
+
 
 //////////////////////////////////////////////////////////////////////////
 //

@@ -10,7 +10,6 @@
 class CIndexTreeBlock
 {
 protected:
-	int				miSize;
 	CMallocator*	mpcMalloc;
 	int				miLargestKeySize;
 
@@ -27,10 +26,6 @@ protected:
 	void*				Malloc(size_t tSize);
 	void*				Realloc(void* pv, size_t tSize);
 	void				Free(void* pv);
-
-	CIndexTreeNode*		ReallocateNodeForIndex(CIndexTreeNode* pcNode, unsigned char uiIndex);
-	CIndexTreeNode*		ReallocateNodeForData(CIndexTreeNode* pcNode, unsigned char uiDataSize);
-	void				RemapChildParents(CIndexTreeNode* pcOldNode, CIndexTreeNode* pcNode);
 
 	void				FreeNode(CIndexTreeNode* pcNode);
 };

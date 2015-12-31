@@ -51,6 +51,5 @@ void CFileIndex::SetIndex(int iFile, filePos ulliFilePos)
 {
 	miFile = iFile;
 	mulliFilePos = ulliFilePos;
-
 }
 

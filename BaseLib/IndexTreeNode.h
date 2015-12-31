@@ -5,8 +5,9 @@
 
 
 //
-//  Bytes 0     [muiFirstIndex ..... muiLastIndex]       255  
-//  
+//  Bytes 0     [muiFirstIndex ..... muiLastIndex]       255
+//
+//  mpcIndexTree, mpcParent, muiFirstIndex, muiLastIndex, muiDataSize, mbNodesEmpty, Object[muiDataSize], Nodes[muiLastIndex-muiFirstIndex+1]
 
 
 class CIndexTreeBlock;
@@ -21,7 +22,8 @@ public:
 	unsigned char			mbNodesEmpty;
 
 public:
-	CIndexTreeNode*			Get(unsigned char uiIndex);
+	void					Init(CIndexTreeBlock* pcIndexTree, CIndexTreeNode* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex);
+	void					Init(CIndexTreeBlock* pcIndexTree, CIndexTreeNode* pcParent);
 
 	BOOL					Clear(unsigned char uiIndex);
 
@@ -32,7 +34,7 @@ public:
 	unsigned char			GetObjectSize(void);
 	void*					GetObjectPtr(void);
 
-	void					RemapChildNodes(CIndexTreeNode* pcOldNode, CIndexTreeNode* pcNewNode);
+	void*					GetNodesMemory(void);
 
 	CIndexTreeNode*			GetParent(void);
 
@@ -46,17 +48,11 @@ public:
 	BOOL					HasNodes(void);
 	unsigned char			NumNodes(void);
 	BOOL					ContainsIndex(unsigned char uiIndex);
-	unsigned char			FindPrevLastIndex(void);
-	unsigned char			FindNextFirstIndex(void);
-	unsigned char			FindIndex(CIndexTreeNode* pcChild);
 
-	CIndexTreeNode*			GetNode(int i);
-	CIndexTreeNode**		GetNodes(void);
-
-	void					SetChildsParent(void);
-
-	void					Contain(unsigned char uiIndex);
-	BOOL					Uncontain(unsigned char uiIndex);
+	void					ClearOnlyNode(unsigned char uiIndex, int iClearValue);
+	void					MoveNodesLeft(unsigned char uiNextFirstIndex);
+	void					MoveNodesRight(unsigned char uiNewFirstIndex, int iClearValue);
+	void					ClearLastNodes(unsigned char uiNewLastIndex, int iClearValue);
 
 	size_t					CalculateRequiredNodeSizeForIndex(unsigned char uiIndex);
 	size_t					CalculateRequiredNodeSizeForEmpty(void);

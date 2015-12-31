@@ -11,8 +11,8 @@ class CIndexTreeBlockFile : public CIndexTreeBlock
 {
 protected:
 	CIndexTreeNodeFile*			mpcRoot;
-	CIndexedFiles				mcFiles;
-	CDurableFileController*		pcDurableFileControl;
+	CIndexedFiles				mcIndexFiles;
+	CDurableFileController*		mpcDurableFileControl;
 
 public:
 	void	Init(CDurableFileController* pcDurableFileControl);
