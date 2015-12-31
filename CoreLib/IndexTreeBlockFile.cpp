@@ -28,6 +28,18 @@ void CIndexTreeBlockFile::Init(CDurableFileController* pcDurableFileControl, CMa
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CIndexTreeBlockFile::FakeInit(void)
+{
+	CIndexTreeBlock::Init(&gcSystemAllocator, sizeof(CIndexTreeNodeFile), sizeof(CIndexTreeNodeFile*));
+	mpcRoot = NULL;
+	mpcDurableFileControl = NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CIndexTreeBlockFile::Kill(void)
 {
 	mcIndexFiles.Kill();

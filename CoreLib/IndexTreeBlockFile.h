@@ -17,6 +17,7 @@ protected:
 public:
 	void	Init(CDurableFileController* pcDurableFileControl);
 	void	Init(CDurableFileController* pcDurableFileControl, CMallocator* pcMalloc);
+	void	FakeInit(void);
 	void	Kill(void);
 
 	void*	Get(char* pszKey);

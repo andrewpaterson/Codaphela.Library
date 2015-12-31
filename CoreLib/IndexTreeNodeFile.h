@@ -2,6 +2,7 @@
 #define __INDEX_TREE_NODE_FILE_H__
 #include "BaseLib/FileIndex.h"
 #include "BaseLib/IndexTreeNode.h"
+#include "IndexTreeChildNode.h"
 
 
 class CIndexTreeNodeFile : public CIndexTreeNode

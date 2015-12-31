@@ -7,7 +7,7 @@
 //////////////////////////////////////////////////////////////////////////
 void CIndexTreeNodeFile::Init(CIndexTreeBlock* pcIndexTree, CIndexTreeNodeFile* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex)
 {
-	CIndexTreeNode::Init(pcIndexTree, pcParent, uiFirstIndex, uiLastIndex);
+	CIndexTreeNode::Init(pcIndexTree, pcParent, uiFirstIndex, uiLastIndex, -1);
 	mcFileIndex.Init();
 }
 

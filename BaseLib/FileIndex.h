@@ -6,8 +6,8 @@
 class CFileIndex
 {
 public:
-	int			miFile;
 	filePos		mulliFilePos;
+	int			miFile;
 
 	void Init(void);
 	void Init(int iFile, filePos ulliFilePos);
