@@ -24,6 +24,19 @@ void CIndexTreeBlockMemory::Init(CMallocator* pcMalloc)
 	miSize = 0;
 }
 
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexTreeBlockMemory::FakeInit(void)
+{
+	//This exists so that TreeNodes can be tested without a full tree.  All they need to do is query the size of their child nodes.
+	//Kill should not be called.
+	CIndexTreeBlock::Init(NULL, sizeof(CIndexTreeNodeMemory), sizeof(CIndexTreeNodeMemory*));
+	mpcRoot = NULL;
+	miSize = 0;
+}
+
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -60,13 +73,24 @@ void CIndexTreeBlockMemory::RecurseKill(CIndexTreeNodeMemory* pcNode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+size_t CIndexTreeBlockMemory::CalculateRootNodeSize(void)
+{
+	int						iAdditionalSize;
+
+	iAdditionalSize = (MAX_UCHAR + 1) * SizeofNodePtr();
+	return SizeofNode() + iAdditionalSize;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 CIndexTreeNodeMemory* CIndexTreeBlockMemory::AllocateRoot(void)
 {
 	CIndexTreeNodeMemory*	pcNode;
-	int						iAdditionalSize;
 
-	iAdditionalSize = MAX_UCHAR * SizeofNodePtr();
-	pcNode = (CIndexTreeNodeMemory*)Malloc(SizeofNode() + iAdditionalSize);
+	pcNode = (CIndexTreeNodeMemory*)Malloc(CalculateRootNodeSize());
 	pcNode->Init(this, NULL, 0, MAX_UCHAR);
 	return pcNode;
 }
@@ -180,7 +204,7 @@ BOOL CIndexTreeBlockMemory::PutPtr(void* pvKey, int iKeySize, void* pvPointer)
 	void* pvResult;
 
 	pvResult = Put(pvKey, iKeySize, &pvPointer, sizeof(void*));
-	return pvPointer == pvResult;
+	return pvResult != NULL;
 }
 
 

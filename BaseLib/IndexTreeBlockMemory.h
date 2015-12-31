@@ -18,6 +18,7 @@ protected:
 public:
 	void					Init(void);
 	void					Init(CMallocator* pcMalloc);
+	void					FakeInit(void);
 	void					Kill(void);
 	void					RecurseKill(CIndexTreeNodeMemory* pcNode);
 
@@ -48,6 +49,7 @@ public:
 	CIndexTreeNodeMemory*	GetIndexNode(void* pvKey, int iKeySize);
 	int						CountAllocatedNodes(void);
 	int						RecurseSize(void);
+	size_t					CalculateRootNodeSize(void);
 
 	BOOL					Write(CFileWriter* pcFileWriter);
 	BOOL					Read(CFileReader* pcFileReader);

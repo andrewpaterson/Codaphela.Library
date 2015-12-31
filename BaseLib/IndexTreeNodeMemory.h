@@ -16,6 +16,7 @@ public:
 
 	CIndexTreeNodeMemory*	GetNode(int i);
 	CIndexTreeNodeMemory**	GetNodes(void);
+	int						NumInitialisedIndexes(void);
 
 	void					Contain(unsigned char uiIndex);
 	BOOL					Uncontain(unsigned char uiIndex);

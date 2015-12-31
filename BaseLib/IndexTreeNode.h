@@ -22,7 +22,7 @@ public:
 	unsigned char			mbNodesEmpty;
 
 public:
-	void					Init(CIndexTreeBlock* pcIndexTree, CIndexTreeNode* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex);
+	void					Init(CIndexTreeBlock* pcIndexTree, CIndexTreeNode* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex, int iClearValue);
 	void					Init(CIndexTreeBlock* pcIndexTree, CIndexTreeNode* pcParent);
 
 	BOOL					Clear(unsigned char uiIndex);
@@ -33,6 +33,7 @@ public:
 
 	unsigned char			GetObjectSize(void);
 	void*					GetObjectPtr(void);
+	BOOL					HasObject(void);
 
 	void*					GetNodesMemory(void);
 

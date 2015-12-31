@@ -10,7 +10,7 @@
 //////////////////////////////////////////////////////////////////////////
 void CIndexTreeNodeMemory::Init(CIndexTreeBlock* pcIndexTree, CIndexTreeNode* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex)
 {
-	CIndexTreeNode::Init(pcIndexTree, pcParent, uiFirstIndex, uiLastIndex);
+	CIndexTreeNode::Init(pcIndexTree, pcParent, uiFirstIndex, uiLastIndex, 0);
 }
 
 
@@ -201,9 +201,6 @@ void CIndexTreeNodeMemory::Contain(unsigned char uiIndex)
 {
 	//Contain assumes that the memory this node resides in has already been sized large enough.
 
-	void*				pvNodes;
-
-	pvNodes = GetNodesMemory();
 	if (mbNodesEmpty == TRUE)
 	{
 		mbNodesEmpty = FALSE;
@@ -278,6 +275,35 @@ void CIndexTreeNodeMemory::SetChildsParent(void)
 	}
 }
 
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CIndexTreeNodeMemory::NumInitialisedIndexes(void)
+{
+	int						i;
+	CIndexTreeNodeMemory*	pcChild;
+	CIndexTreeNodeMemory**	apcChildren;
+	int						iCount;
+
+	if ((mbNodesEmpty == TRUE) && (muiLastIndex == 0) && (muiFirstIndex == 0))
+	{
+		return 0;
+	}
+
+	iCount = 0;
+	apcChildren = GetNodes();
+	for (i = 0; i <= muiLastIndex - muiFirstIndex; i++)
+	{
+		pcChild = apcChildren[i];
+		if (pcChild != NULL)
+		{
+			iCount++;
+		}
+	}
+	return iCount;
+}
+
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -285,33 +311,19 @@ void CIndexTreeNodeMemory::SetChildsParent(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeNodeMemory::ValidateNodesEmpty(void)
 {
-	int						i;
-	CIndexTreeNodeMemory*	pcChild;
-	CIndexTreeNodeMemory**	apcChildren;
-	BOOL					bEmpty;
+	int		iCount;
+	BOOL	bCountEmpty;
 
-	if (mbNodesEmpty == TRUE)
-	{
-		return TRUE;
-	}
+	iCount = NumInitialisedIndexes();
 
-	bEmpty = TRUE;
-	apcChildren = GetNodes();
-	for (i = 0; i <= muiLastIndex - muiFirstIndex; i++)
-	{
-		pcChild = apcChildren[i];
-		if (pcChild != NULL)
-		{
-			bEmpty = FALSE;
-		}
-	}
-	if (mbNodesEmpty == bEmpty)
+	bCountEmpty = iCount == 0;
+	if (mbNodesEmpty == bCountEmpty)
 	{
 		return TRUE;
 	}
 	else
 	{
-		gcLogger.Error2(__METHOD__, "Child nodes marked as empty but not actually empty.", NULL);
+		gcLogger.Error2(__METHOD__, " Child nodes marked as empty but ", IntToString(iCount) ," are allocated.", NULL);
 		return FALSE;
 	}
 }
