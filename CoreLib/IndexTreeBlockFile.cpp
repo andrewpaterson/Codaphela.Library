@@ -75,11 +75,6 @@ void CIndexTreeBlockFile::InitRoot(char* szRootFileName)
 	{
 		mpcRoot = AllocateRoot();
 	}
-	mpcDurableFileControl->Begin();
-
-
-	mpcDurableFileControl->End();
-
 }
 
 

@@ -49,7 +49,7 @@ public:
 	BOOL    Exists(char* szFileName);
 	BOOL    Compare(char* szFileName1, char* szFileName2);
 	BOOL    Copy(char* szSource, char* szDest);
-	int	    Size(char* szFileName);
+	filePos Size(char* szFileName);
 
 	//Path name methods
 	BOOL	IsAbsolutePath(char* szPathName);

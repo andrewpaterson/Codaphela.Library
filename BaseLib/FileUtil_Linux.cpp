@@ -207,7 +207,7 @@ BOOL CFileUtil::Exists(char* szFileName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CFileUtil::Size(char* szFileName)
+filePos CFileUtil::Size(char* szFileName)
 {
     struct stat         sBuffer;
     int                 iStatus;

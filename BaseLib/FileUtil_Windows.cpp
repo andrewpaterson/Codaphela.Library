@@ -234,7 +234,7 @@ BOOL CFileUtil::Exists(char* szFileName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CFileUtil::Size(char* szFileName)
+filePos CFileUtil::Size(char* szFileName)
 {
 	HANDLE		h;
 	filePos		iSize;
