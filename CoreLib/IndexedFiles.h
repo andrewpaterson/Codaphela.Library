@@ -62,7 +62,6 @@ public:
 	OIndex			NumInFile(int iDataSize);
 	int				NumFiles(void);
 
-
 	BOOL			WriteData(CIndexedDataDescriptor* pcDescriptor, void* pvData);
 	BOOL			WriteNew(CIndexedDataDescriptor* pcDescriptor, void* pvData);
 	BOOL			WriteExisting(CIndexedDataDescriptor* pcDescriptor, void* pvData);

@@ -7,6 +7,17 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CIndexTreeNodeFile::Init(CIndexTreeBlock* pcIndexTree, CIndexTreeNodeFile* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex, CFileIndex cFileIndex)
+{
+	CIndexTreeNode::Init(pcIndexTree, pcParent, uiFirstIndex, uiLastIndex, -1);
+	mcFileIndex.Init(cFileIndex.miFile, cFileIndex.mulliFilePos);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CIndexTreeNodeFile::Init(CIndexTreeBlock* pcIndexTree, CIndexTreeNodeFile* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex)
 {
 	CIndexTreeNode::Init(pcIndexTree, pcParent, uiFirstIndex, uiLastIndex, -1);
@@ -40,11 +51,31 @@ void CIndexTreeNodeFile::Init(CIndexTreeBlock* pcIndexTree, CIndexTreeNodeFile* 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTreeNodeFile* CIndexTreeNodeFile::Get(unsigned char uiIndex)
+void CIndexTreeNodeFile::SetFileIndex(int iFile,  filePos ulliFilePos)
+{
+	mcFileIndex.Init(iFile, ulliFilePos);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CFileIndex* CIndexTreeNodeFile::GetFileIndex(void)
+{
+	return &mcFileIndex;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CIndexTreeChildNode* CIndexTreeNodeFile::Get(unsigned char uiIndex)
 {
 	if (ContainsIndex(uiIndex))
 	{
-		return (CIndexTreeNodeFile*)GetNode(uiIndex - muiFirstIndex);
+		return (CIndexTreeChildNode*)GetNode(uiIndex - muiFirstIndex);
 	}
 	else
 	{
@@ -57,14 +88,24 @@ CIndexTreeNodeFile* CIndexTreeNodeFile::Get(unsigned char uiIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNodeFile::Set(unsigned char uiIndex, CIndexTreeNodeFile* pcNode)
+void CIndexTreeNodeFile::Set(unsigned char uiIndex, CFileIndex cFileNode)
 {
-	CIndexTreeNodeFile**	apcChildren;
-
 	if (ContainsIndex(uiIndex))
 	{
-		apcChildren = GetNodes();
-		apcChildren[uiIndex - muiFirstIndex] = pcNode;
+		GetNode(uiIndex - muiFirstIndex)->Init(cFileNode);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexTreeNodeFile::Set(unsigned char uiIndex, CIndexTreeNodeFile* pcNode)
+{
+	if (ContainsIndex(uiIndex))
+	{
+		GetNode(uiIndex - muiFirstIndex)->Init(pcNode);
 	}
 }
 
@@ -75,13 +116,9 @@ void CIndexTreeNodeFile::Set(unsigned char uiIndex, CIndexTreeNodeFile* pcNode)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeNodeFile::Clear(unsigned char uiIndex)
 {
-	CIndexTreeNodeFile**	apcChildren;
-
 	if (ContainsIndex(uiIndex))
 	{
-		apcChildren = GetNodes();
-		apcChildren[uiIndex - muiFirstIndex] = NULL;
-
+		GetNode(uiIndex - muiFirstIndex)->Clear();
 		return Uncontain(uiIndex);
 	}
 	else
@@ -95,9 +132,9 @@ BOOL CIndexTreeNodeFile::Clear(unsigned char uiIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTreeNodeFile* CIndexTreeNodeFile::GetNode(int i)
+CIndexTreeChildNode* CIndexTreeNodeFile::GetNode(int i)
 {
-	return GetNodes()[i];
+	return &(GetNodes()[i]);
 }
 
 
@@ -105,9 +142,9 @@ CIndexTreeNodeFile* CIndexTreeNodeFile::GetNode(int i)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTreeNodeFile** CIndexTreeNodeFile::GetNodes(void)
+CIndexTreeChildNode* CIndexTreeNodeFile::GetNodes(void)
 {
-	return (CIndexTreeNodeFile**)GetNodesMemory();
+	return (CIndexTreeChildNode*)GetNodesMemory();
 }
 
 
@@ -115,20 +152,22 @@ CIndexTreeNodeFile** CIndexTreeNodeFile::GetNodes(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNodeFile::RemapChildNodes(CIndexTreeNodeFile* pcOldNode, CIndexTreeNodeFile* pcNewNode)
+void CIndexTreeNodeFile::RemapChildNodes(CIndexTreeChildNode* pcOldNode, CIndexTreeChildNode* pcNewNode)
 {
+	//Doubtful method works as expected.
+
 	int						i;
 	int						iNumNodes;
-	CIndexTreeNodeFile**	apcChildren;
+	CIndexTreeChildNode*	acChildren;
 
-	apcChildren = GetNodes();
+	acChildren = GetNodes();
 
 	iNumNodes = GetNumIndexes();
 	for (i = 0; i < iNumNodes; i++)
 	{
-		if (apcChildren[i] == pcOldNode)
+		if (&acChildren[i] == pcOldNode)
 		{
-			apcChildren[i] = pcNewNode;
+			acChildren[i] = *pcNewNode;
 		}
 	}
 }
@@ -140,15 +179,17 @@ void CIndexTreeNodeFile::RemapChildNodes(CIndexTreeNodeFile* pcOldNode, CIndexTr
 //////////////////////////////////////////////////////////////////////////
 unsigned char CIndexTreeNodeFile::FindNextFirstIndex(void)
 {
-	int						i;
-	CIndexTreeNodeFile*	pcChild;
-	CIndexTreeNodeFile**	apcChildren;
+	//Doubtful method works as expected.
 
-	apcChildren = GetNodes();
-	for (i = 1; i <= (int)(muiLastIndex - muiFirstIndex); i++)
+	int						i;
+	CIndexTreeChildNode*	pcChild;
+	CIndexTreeChildNode*	acChildren;
+
+	acChildren = GetNodes();
+	for (i = 1; i <= (int)muiLastIndex - (int)muiFirstIndex; i++)
 	{
-		pcChild = apcChildren[i];
-		if (pcChild != NULL)
+		pcChild = &acChildren[i];
+		if (pcChild->IsValid())
 		{
 			return muiFirstIndex + i;
 		}
@@ -163,15 +204,17 @@ unsigned char CIndexTreeNodeFile::FindNextFirstIndex(void)
 //////////////////////////////////////////////////////////////////////////
 unsigned char CIndexTreeNodeFile::FindPrevLastIndex(void)
 {
-	int						i;
-	CIndexTreeNodeFile*	pcChild;
-	CIndexTreeNodeFile**	apcChildren;
+	//Doubtful method works as expected.
 
-	apcChildren = GetNodes();
-	for (i = (int)(muiLastIndex - muiFirstIndex)-1; i >= 0; i--)
+	int						i;
+	CIndexTreeChildNode*	pcChild;
+	CIndexTreeChildNode*	acChildren;
+
+	acChildren = GetNodes();
+	for (i = ((int)muiLastIndex - (int)muiFirstIndex) - 1; i >= 0; i--)
 	{
-		pcChild = apcChildren[i];
-		if (pcChild != NULL)
+		pcChild = &acChildren[i];
+		if (pcChild->IsValid())
 		{
 			return muiFirstIndex + i;
 		}
@@ -184,16 +227,18 @@ unsigned char CIndexTreeNodeFile::FindPrevLastIndex(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-unsigned char CIndexTreeNodeFile::FindIndex(CIndexTreeNodeFile* pcChild)
+unsigned char CIndexTreeNodeFile::FindIndex(CIndexTreeChildNode* pcChild)
 {
-	int						i;
-	CIndexTreeNodeFile*	pcChildTest;
-	CIndexTreeNodeFile**	apcChildren;
+	//Doubtful method works as expected.
 
-	apcChildren = GetNodes();
+	int						i;
+	CIndexTreeChildNode*	pcChildTest;
+	CIndexTreeChildNode*	acChildren;
+
+	acChildren = GetNodes();
 	for (i = 0; i <= (int)(muiLastIndex - muiFirstIndex); i++)
 	{
-		pcChildTest = apcChildren[i];
+		pcChildTest = &acChildren[i];
 		if (pcChild == pcChildTest)
 		{
 			return i + muiFirstIndex;
@@ -271,18 +316,18 @@ void CIndexTreeNodeFile::SetChildsParent(void)
 {
 	int						i;
 	int						iNumNodes;
-	CIndexTreeNodeFile*	pcChild;
-	CIndexTreeNodeFile**	apcChildren;
+	CIndexTreeChildNode*	pcChild;
+	CIndexTreeChildNode*	acChildren;
 
 	iNumNodes = GetNumIndexes();
-	apcChildren = GetNodes();
+	acChildren = GetNodes();
 
 	for (i = 0; i < iNumNodes; i++)
 	{
-		pcChild = apcChildren[i];
-		if (pcChild)
+		pcChild = &acChildren[i];
+		if (pcChild->IsMemory())
 		{
-			pcChild->mpcParent = this;
+			pcChild->u.mpcMemory->mpcParent = this;
 		}
 	}
 }
@@ -294,8 +339,8 @@ void CIndexTreeNodeFile::SetChildsParent(void)
 int CIndexTreeNodeFile::NumInitialisedIndexes(void)
 {
 	int						i;
-	CIndexTreeNodeFile*	pcChild;
-	CIndexTreeNodeFile**	apcChildren;
+	CIndexTreeChildNode*	pcChild;
+	CIndexTreeChildNode*	acChildren;
 	int						iCount;
 
 	if ((mbNodesEmpty == TRUE) && (muiLastIndex == 0) && (muiFirstIndex == 0))
@@ -304,16 +349,143 @@ int CIndexTreeNodeFile::NumInitialisedIndexes(void)
 	}
 
 	iCount = 0;
-	apcChildren = GetNodes();
+	acChildren = GetNodes();
 	for (i = 0; i <= muiLastIndex - muiFirstIndex; i++)
 	{
-		pcChild = apcChildren[i];
-		if (pcChild != NULL)
+		pcChild = &acChildren[i];
+		if (pcChild->IsValid())
 		{
 			iCount++;
 		}
 	}
 	return iCount;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CIndexTreeNodeFile::CalculateBufferSize(void)
+{
+	return sizeof(int) + (4 * sizeof(unsigned char)) + muiDataSize + (GetNumIndexes() * sizeof(CFileIndex));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CIndexTreeNodeFile::WriteToBuffer(void* pvBuffer, int iBufferSize)
+{
+	unsigned char*			pucMemory;
+	int						iPos;
+	int						iNumNodes;
+	CIndexTreeChildNode*	pcChild;
+	CFileIndex				cEmptyIndex;
+	CFileIndex*				pcChildIndex;
+	int						iFileSize;
+
+	iFileSize = CalculateBufferSize();
+	if (iBufferSize < iFileSize)
+	{
+		return 0;
+	}
+
+	pucMemory = (unsigned char*)pvBuffer;
+	iPos = 0;
+
+	*((int*)&pucMemory[iPos]) = iFileSize;  iPos += sizeof(int);
+
+	pucMemory[iPos] = muiFirstIndex;  iPos++;
+	pucMemory[iPos] = muiLastIndex;  iPos++;
+	pucMemory[iPos] = muiDataSize;  iPos++;
+	pucMemory[iPos] = mbNodesEmpty;  iPos++;
+
+	if (HasObject())
+	{
+		//This assumes (obviously) that the object is persistable.  i.e. Not a pointer.
+		memcpy_fast(&pucMemory[iPos], GetObjectPtr(), muiDataSize);
+		iPos += muiDataSize;
+	}
+
+	cEmptyIndex.Init();
+	iNumNodes = GetNumIndexes();
+	for (int i = 0; i < iNumNodes; i++)
+	{
+		pcChild = GetNode(i);
+		if (pcChild->IsFile())
+		{
+			pcChildIndex = &pcChild->u.mcFile;
+		}
+		else if (pcChild->IsMemory())
+		{
+			pcChildIndex = pcChild->u.mpcMemory->GetFileIndex();
+		}
+		else
+		{
+			pcChildIndex = &cEmptyIndex;
+		}
+		*((int*)&pucMemory[iPos]) = pcChildIndex->miFile;  iPos += sizeof(int);
+		*((filePos*)&pucMemory[iPos]) = pcChildIndex->mulliFilePos;  iPos += sizeof(filePos);
+	}
+
+	return iPos;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CIndexTreeNodeFile::Init(CIndexTreeBlock* pcIndexTree, CIndexTreeNodeFile* pcParent, void* pvBuffer, int iBufferSize, CFileIndex cFileIndex)
+{
+	unsigned char*			pucMemory;
+	int						iPos;
+	int						iNumNodes;
+	CIndexTreeChildNode*	pcChild;
+	int						iFileSize;
+	int						iFile;
+	filePos					ulliFilePos;
+
+	pucMemory = (unsigned char*)pvBuffer;
+	iPos = 0;
+
+	iFileSize = *((int*)&pucMemory[iPos]);  iPos += sizeof(int);
+	if (iBufferSize < iFileSize)
+	{
+		return 0;
+	}
+
+	muiFirstIndex = pucMemory[iPos];  iPos++;
+	muiLastIndex = pucMemory[iPos];  iPos++;
+	muiDataSize = pucMemory[iPos];  iPos++;
+	mbNodesEmpty = pucMemory[iPos];  iPos++;
+
+	if (HasObject())
+	{
+		memcpy_fast(GetObjectPtr(), &pucMemory[iPos], muiDataSize);
+		iPos += muiDataSize;
+	}
+
+	iNumNodes = GetNumIndexes();
+	for (int i = 0; i < iNumNodes; i++)
+	{
+		iFile = *((int*)&pucMemory[iPos]);  iPos += sizeof(int);
+		ulliFilePos = *((filePos*)&pucMemory[iPos]);  iPos += sizeof(filePos);
+
+		pcChild = GetNode(i);
+		if (iFile != -1)
+		{
+			pcChild->Init(iFile, ulliFilePos);
+		}
+		else
+		{
+			pcChild->Clear();
+		}
+	}
+
+	return iPos;
 }
 
 

@@ -16,12 +16,12 @@ protected:
 	CChars						mszRootFileName;
 
 public:
-	void	Init(CDurableFileController* pcDurableFileControl, char* szRootFileName);
-	void	Init(CDurableFileController* pcDurableFileControl, char* szRootFileName, CMallocator* pcMalloc);
+	BOOL	Init(CDurableFileController* pcDurableFileControl, char* szRootFileName);
+	BOOL	Init(CDurableFileController* pcDurableFileControl, char* szRootFileName, CMallocator* pcMalloc);
 	void	FakeInit(void);
 	void	Kill(void);
 
-	void	InitRoot(char* szRootFileName);
+	BOOL	InitRoot(char* szRootFileName);
 
 	void*	Get(char* pszKey);
 	void*	Get(void* pvKey, int iKeySize);
@@ -40,6 +40,7 @@ public:
 
 protected:
 	CIndexTreeNodeFile*		AllocateRoot(void);
+	CIndexTreeNodeFile*		AllocateRoot(CFileIndex cFileIndex);
 	CIndexTreeNodeFile*		AllocateNode(CIndexTreeNodeFile* pcParent);
 	size_t					CalculateRootNodeSize(void);
 	CFileIndex				LoadRootFileIndex(char* szRootFileName);

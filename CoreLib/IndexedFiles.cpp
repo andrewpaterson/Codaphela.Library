@@ -345,10 +345,12 @@ CIndexedFile* CIndexedFiles::GetFile(int iFileIndex)
 	{
 		return NULL;
 	}
+
 	if (!pcIndexedFile->IsFileIndex(iFileIndex))
 	{
 		return NULL;
 	}
+
 	return pcIndexedFile;
 }
 
@@ -359,6 +361,8 @@ CIndexedFile* CIndexedFiles::GetFile(int iFileIndex)
 //////////////////////////////////////////////////////////////////////////
 int CIndexedFiles::GetUniqueFileNumber(int iDataSize)
 {
+	//This method is used for testing only.
+
 	int				i;
 	CIndexedFile*	pcIndexedFile;
 	int				iFileNumber;

@@ -23,13 +23,19 @@ public:
 	union
 	{
 		CFileIndex					mcFile;
-		CIndexTreeNodeFile*			mpvMemory;
+		CIndexTreeNodeFile*			mpcMemory;
 		SIndexTreeChildFile			msType;
 	} u;
 
-	BOOL IsValid(void);
-	BOOL IsMemory(void);
-	BOOL IsFile(void);
+	void	Init(CFileIndex cFile);
+	void	Init(CFileIndex* pcFile);
+	void	Init(int iFile, filePos ulliFilePos);
+	void	Init(CIndexTreeNodeFile* pcMemory);
+	void	Clear(void);
+
+	BOOL	IsValid(void);
+	BOOL	IsMemory(void);
+	BOOL	IsFile(void);
 };
 
 

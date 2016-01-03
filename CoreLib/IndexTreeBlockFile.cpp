@@ -2,6 +2,7 @@
 #include "BaseLib/LogString.h"
 #include "BaseLib/FileBasic.h"
 #include "BaseLib/DiskFile.h"
+#include "IndexedFile.h"
 #include "IndexTreeBlockFile.h"
 
 
@@ -9,9 +10,9 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeBlockFile::Init(CDurableFileController* pcDurableFileControl, char* szRootFileName)
+BOOL CIndexTreeBlockFile::Init(CDurableFileController* pcDurableFileControl, char* szRootFileName)
 {
-	Init(pcDurableFileControl, szRootFileName, &gcSystemAllocator);
+	return Init(pcDurableFileControl, szRootFileName, &gcSystemAllocator);
 }
 
 
@@ -19,14 +20,23 @@ void CIndexTreeBlockFile::Init(CDurableFileController* pcDurableFileControl, cha
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeBlockFile::Init(CDurableFileController* pcDurableFileControl, char* szRootFileName, CMallocator* pcMalloc)
+BOOL CIndexTreeBlockFile::Init(CDurableFileController* pcDurableFileControl, char* szRootFileName, CMallocator* pcMalloc)
 {
-	CIndexTreeBlock::Init(pcMalloc, sizeof(CIndexTreeNodeFile), sizeof(SIndexTreeChildFile));
+	//The DurableFileControl must be begun before .Init is called and should be ended afterwards.
 
-	InitRoot(szRootFileName);
+	BOOL	bResult;
+
+	CIndexTreeBlock::Init(pcMalloc, sizeof(CIndexTreeNodeFile), sizeof(SIndexTreeChildFile));
 
 	mpcDurableFileControl = pcDurableFileControl;
 	mcIndexFiles.Init(mpcDurableFileControl, "IDAT", "Index.IDX", "_Index.IDX");
+
+	bResult = InitRoot(szRootFileName);
+	if (!bResult)
+	{
+		return FALSE;
+	}
+	return TRUE;
 }
 
 
@@ -58,10 +68,15 @@ void CIndexTreeBlockFile::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeBlockFile::InitRoot(char* szRootFileName)
+BOOL CIndexTreeBlockFile::InitRoot(char* szRootFileName)
 {
-	BOOL		bRootIndexExists;
-	CFileIndex	cRootFileIndex;
+	BOOL			bRootIndexExists;
+	CFileIndex		cRootFileIndex;
+	CIndexedFile*	pcRootIndexFile;
+	char			pvBuffer[8 KB];
+	int				iNodeSize;
+	BOOL			bResult;
+	filePos			iPosition;
 
 	mszRootFileName.Init(szRootFileName);
 	cRootFileIndex = LoadRootFileIndex(szRootFileName);
@@ -69,11 +84,38 @@ void CIndexTreeBlockFile::InitRoot(char* szRootFileName)
 	bRootIndexExists = cRootFileIndex.HasFile();
 	if (bRootIndexExists)
 	{
-		mpcRoot->Init(this, NULL, cRootFileIndex);
+		//The data size on the root is always zero.
+		mpcRoot = AllocateRoot(cRootFileIndex);
+
+		iNodeSize = mpcRoot->CalculateBufferSize();
+		if (iNodeSize > 8 KB)
+		{
+			return FALSE;
+		}
+
+		pcRootIndexFile = mcIndexFiles.GetOrCreateFile(iNodeSize);  //Dangerous.  Should be a Get.
+		pcRootIndexFile->Read(cRootFileIndex.mulliFilePos, pvBuffer, iNodeSize);
+
+		mpcRoot->Init(this, NULL, pvBuffer, 8 KB, cRootFileIndex);
+
+		return TRUE;
 	}
 	else
 	{
 		mpcRoot = AllocateRoot();
+		bResult = mpcRoot->WriteToBuffer(pvBuffer, 8 KB);
+		if (!bResult)
+		{
+			return FALSE;
+		}
+
+		iNodeSize = mpcRoot->CalculateBufferSize();
+		pcRootIndexFile = mcIndexFiles.GetOrCreateFile(iNodeSize);
+		iPosition = pcRootIndexFile->Write(pvBuffer, iNodeSize);
+
+		mpcRoot->SetFileIndex(pcRootIndexFile->GetFileIndex(), iPosition);
+
+		return TRUE;
 	}
 }
 
@@ -134,6 +176,22 @@ CIndexTreeNodeFile* CIndexTreeBlockFile::AllocateRoot(void)
 	iAdditionalSize = CalculateRootNodeSize();
 	pcNode = (CIndexTreeNodeFile*)Malloc(SizeofNode() + iAdditionalSize);
 	pcNode->Init(this, NULL, 0, MAX_UCHAR);
+	return pcNode;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CIndexTreeNodeFile* CIndexTreeBlockFile::AllocateRoot(CFileIndex cFileIndex)
+{
+	CIndexTreeNodeFile*		pcNode;
+	int						iAdditionalSize;
+
+	iAdditionalSize = CalculateRootNodeSize();
+	pcNode = (CIndexTreeNodeFile*)Malloc(SizeofNode() + iAdditionalSize);
+	pcNode->Init(this, NULL, 0, MAX_UCHAR, cFileIndex);
 	return pcNode;
 }
 
@@ -215,7 +273,8 @@ void* CIndexTreeBlockFile::Get(void* pvKey, int iKeySize)
 //////////////////////////////////////////////////////////////////////////
 CIndexTreeNodeFile* CIndexTreeBlockFile::GetIndexNode(void* pvKey, int iKeySize)
 {
-	CIndexTreeNodeFile* pcCurrent;
+	CIndexTreeNodeFile*		pcCurrent;
+	CIndexTreeChildNode*	pcChild;
 
 	if ((iKeySize == 0) || (pvKey == NULL))
 	{
@@ -227,8 +286,16 @@ CIndexTreeNodeFile* CIndexTreeBlockFile::GetIndexNode(void* pvKey, int iKeySize)
 	{
 		char c = ((char*)pvKey)[i];
 
-		pcCurrent = pcCurrent->Get(c);
-		if (pcCurrent == NULL)
+		pcChild = pcCurrent->Get(c);
+		if (pcChild->IsMemory())
+		{
+			pcCurrent = pcChild->u.mpcMemory;
+		}
+		else if (pcChild->IsFile())
+		{
+			// Load that shit!
+		}
+		else
 		{
 			return NULL;
 		}
