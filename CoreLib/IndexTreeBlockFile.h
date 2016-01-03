@@ -13,12 +13,15 @@ protected:
 	CIndexTreeNodeFile*			mpcRoot;
 	CIndexedFiles				mcIndexFiles;
 	CDurableFileController*		mpcDurableFileControl;
+	CChars						mszRootFileName;
 
 public:
-	void	Init(CDurableFileController* pcDurableFileControl);
-	void	Init(CDurableFileController* pcDurableFileControl, CMallocator* pcMalloc);
+	void	Init(CDurableFileController* pcDurableFileControl, char* szRootFileName);
+	void	Init(CDurableFileController* pcDurableFileControl, char* szRootFileName, CMallocator* pcMalloc);
 	void	FakeInit(void);
 	void	Kill(void);
+
+	void	InitRoot(char* szRootFileName);
 
 	void*	Get(char* pszKey);
 	void*	Get(void* pvKey, int iKeySize);
@@ -38,6 +41,8 @@ public:
 protected:
 	CIndexTreeNodeFile*		AllocateRoot(void);
 	CIndexTreeNodeFile*		AllocateNode(CIndexTreeNodeFile* pcParent);
+	size_t					CalculateRootNodeSize(void);
+	CFileIndex				LoadRootFileIndex(char* szRootFileName);
 
 	CIndexTreeNodeFile*		GetIndexNode(void* pvKey, int iKeySize);
 };

@@ -23,6 +23,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifdef WIN32
 #include <stdio.h>
 #include <windows.h>
+#include "FilePosition.h"
 #include "FileUtil.h"
 #include "StringHelper.h"
 
@@ -236,7 +237,7 @@ BOOL CFileUtil::Exists(char* szFileName)
 int CFileUtil::Size(char* szFileName)
 {
 	HANDLE		h;
-	__int64		iSize;
+	filePos		iSize;
 
 	h = CreateFile(szFileName, STANDARD_RIGHTS_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 	if (h != INVALID_HANDLE_VALUE)

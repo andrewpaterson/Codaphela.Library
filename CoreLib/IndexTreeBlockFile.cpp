@@ -1,3 +1,7 @@
+#include "BaseLib/Logger.h"
+#include "BaseLib/LogString.h"
+#include "BaseLib/FileBasic.h"
+#include "BaseLib/DiskFile.h"
 #include "IndexTreeBlockFile.h"
 
 
@@ -5,9 +9,9 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeBlockFile::Init(CDurableFileController* pcDurableFileControl)
+void CIndexTreeBlockFile::Init(CDurableFileController* pcDurableFileControl, char* szRootFileName)
 {
-	Init(pcDurableFileControl, &gcSystemAllocator);
+	Init(pcDurableFileControl, szRootFileName, &gcSystemAllocator);
 }
 
 
@@ -15,10 +19,12 @@ void CIndexTreeBlockFile::Init(CDurableFileController* pcDurableFileControl)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeBlockFile::Init(CDurableFileController* pcDurableFileControl, CMallocator* pcMalloc)
+void CIndexTreeBlockFile::Init(CDurableFileController* pcDurableFileControl, char* szRootFileName, CMallocator* pcMalloc)
 {
-	CIndexTreeBlock::Init(pcMalloc, sizeof(CIndexTreeNodeFile), sizeof(CIndexTreeNodeFile*));
-	mpcRoot = AllocateRoot();
+	CIndexTreeBlock::Init(pcMalloc, sizeof(CIndexTreeNodeFile), sizeof(SIndexTreeChildFile));
+
+	InitRoot(szRootFileName);
+
 	mpcDurableFileControl = pcDurableFileControl;
 	mcIndexFiles.Init(mpcDurableFileControl, "IDAT", "Index.IDX", "_Index.IDX");
 }
@@ -30,7 +36,7 @@ void CIndexTreeBlockFile::Init(CDurableFileController* pcDurableFileControl, CMa
 //////////////////////////////////////////////////////////////////////////
 void CIndexTreeBlockFile::FakeInit(void)
 {
-	CIndexTreeBlock::Init(&gcSystemAllocator, sizeof(CIndexTreeNodeFile), sizeof(CIndexTreeNodeFile*));
+	CIndexTreeBlock::Init(&gcSystemAllocator, sizeof(CIndexTreeNodeFile), sizeof(SIndexTreeChildFile));
 	mpcRoot = NULL;
 	mpcDurableFileControl = NULL;
 }
@@ -42,10 +48,83 @@ void CIndexTreeBlockFile::FakeInit(void)
 //////////////////////////////////////////////////////////////////////////
 void CIndexTreeBlockFile::Kill(void)
 {
+	mszRootFileName.Kill();
 	mcIndexFiles.Kill();
 	mpcDurableFileControl = NULL;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexTreeBlockFile::InitRoot(char* szRootFileName)
+{
+	BOOL		bRootIndexExists;
+	CFileIndex	cRootFileIndex;
+
+	mszRootFileName.Init(szRootFileName);
+	cRootFileIndex = LoadRootFileIndex(szRootFileName);
+
+	bRootIndexExists = cRootFileIndex.HasFile();
+	if (bRootIndexExists)
+	{
+		mpcRoot->Init(this, NULL, cRootFileIndex);
+	}
+	else
+	{
+		mpcRoot = AllocateRoot();
+	}
+	mpcDurableFileControl->Begin();
+
+
+	mpcDurableFileControl->End();
+
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CFileIndex CIndexTreeBlockFile::LoadRootFileIndex(char* szRootFileName)
+{
+	CFileBasic	cFileBasic;
+	CDiskFile	cDiskFile;
+	CFileUtil	cFileUtil;
+	CFileIndex	cIndex;
+	filePos		iSize;
+
+	iSize = cFileUtil.Size(szRootFileName);
+	if (iSize != -1)
+	{
+		if (iSize == sizeof(CFileIndex))
+		{
+			cDiskFile.Init(szRootFileName);
+			cFileBasic.Init(&cDiskFile);
+
+			cFileBasic.Open(EFM_Read);
+			cFileBasic.Read(&cIndex, 0, sizeof(CFileIndex));
+			cFileBasic.Close();
+
+			cFileBasic.Kill();
+			cDiskFile.Kill();
+
+			return cIndex;
+		}
+		else
+		{
+			gcLogger.Error2("Index Root file size [", LongLongToString(iSize), "] is incorrect.  Should be SizeOf(CFileIndex).", NULL);
+			cIndex.Init();
+			return cIndex;
+		}
+	}
+	else
+	{
+		cIndex.Init();
+		return cIndex;
+	}
+}
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -57,10 +136,23 @@ CIndexTreeNodeFile* CIndexTreeBlockFile::AllocateRoot(void)
 	CIndexTreeNodeFile*		pcNode;
 	int						iAdditionalSize;
 
-	iAdditionalSize = MAX_UCHAR * SizeofNodePtr();
+	iAdditionalSize = CalculateRootNodeSize();
 	pcNode = (CIndexTreeNodeFile*)Malloc(SizeofNode() + iAdditionalSize);
 	pcNode->Init(this, NULL, 0, MAX_UCHAR);
 	return pcNode;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size_t CIndexTreeBlockFile::CalculateRootNodeSize(void)
+{
+	int						iAdditionalSize;
+
+	iAdditionalSize = (MAX_UCHAR + 1) * SizeofNodePtr();
+	return SizeofNode() + iAdditionalSize;
 }
 
 

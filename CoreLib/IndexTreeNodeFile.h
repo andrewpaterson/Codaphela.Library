@@ -12,6 +12,7 @@ private:
 
 public:
 	void					Init(CIndexTreeBlock* pcIndexTree, CIndexTreeNodeFile* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex);
+	void					Init(CIndexTreeBlock* pcIndexTree, CIndexTreeNodeFile* pcParent, CFileIndex cFileIndex);
 	void					Init(CIndexTreeBlock* pcIndexTree, CIndexTreeNodeFile* pcParent);
 
 	CIndexTreeNodeFile*		Get(unsigned char uiIndex);

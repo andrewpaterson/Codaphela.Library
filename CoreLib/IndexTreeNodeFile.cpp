@@ -18,6 +18,17 @@ void CIndexTreeNodeFile::Init(CIndexTreeBlock* pcIndexTree, CIndexTreeNodeFile* 
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CIndexTreeNodeFile::Init(CIndexTreeBlock* pcIndexTree, CIndexTreeNodeFile* pcParent, CFileIndex cFileIndex)
+{
+	CIndexTreeNode::Init(pcIndexTree, pcParent);
+	mcFileIndex.Init(cFileIndex.miFile, cFileIndex.mulliFilePos);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CIndexTreeNodeFile::Init(CIndexTreeBlock* pcIndexTree, CIndexTreeNodeFile* pcParent)
 {
 	CIndexTreeNode::Init(pcIndexTree, pcParent);
