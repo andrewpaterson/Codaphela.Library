@@ -47,8 +47,6 @@ struct SDurableFileCommandWrite
 class CFileBasic;
 class CDurableFile
 {
-friend class CDurableSet;
-
 public:
 	CChars				mszFileName;
 	CChars				mszRewriteName;
@@ -89,11 +87,12 @@ public:
 	filePos		SizeFromFile(void);
 	BOOL		TestIdentical(void);
 
+	BOOL		CopyBackupToPrimary(void);
+	BOOL		CopyPrimaryToBackup(void);
+
 	void		Dump(void);
 
 protected:
-	BOOL		CopyBackupToPrimary(void);
-	BOOL		CopyPrimaryToBackup(void);
 	BOOL		FindTouchingWriteCommands(CArrayIntAndPointer* papvOverlapping, filePos iPosition, filePos iLength, BOOL bMustOverlap);
 	BOOL		Overlaps(filePos iPosition, filePos iLength, SDurableFileCommandWrite* psWrite);
 	BOOL		AmalgamateOverlappingWrites(CArrayIntAndPointer* papvOverlapping, const void* pvSource, filePos iPosition, filePos iLength);
