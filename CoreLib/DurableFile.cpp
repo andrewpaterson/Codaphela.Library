@@ -458,7 +458,7 @@ filePos CDurableFile::Write(EFileSeekOrigin eOrigin, filePos iDistance, const vo
 filePos CDurableFile::Write(const void* pvSource, filePos iSize, filePos iCount)
 {
 	SDurableFileCommandWrite*	psCommand;
-	CArrayIntAndPointer				apvOverlapping;
+	CArrayIntAndPointer			apvOverlapping;
 	BOOL						bAny;
 	void*						pvData;
 	filePos						iByteLength;
@@ -488,7 +488,7 @@ filePos CDurableFile::Write(const void* pvSource, filePos iSize, filePos iCount)
 
 				psCommand->iSize = iByteLength;
 				psCommand->iPosition = miPosition;
-				memcpy_fast(pvData, (void*)pvSource, (int)iByteLength);
+				memcpy(pvData, (void*)pvSource, (int)iByteLength);
 
 				miPosition += iByteLength;
 			}

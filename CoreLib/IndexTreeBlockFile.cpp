@@ -76,7 +76,7 @@ BOOL CIndexTreeBlockFile::InitRoot(char* szRootFileName)
 	char			pvBuffer[8 KB];
 	int				iNodeSize;
 	BOOL			bResult;
-	filePos			iPosition;
+	filePos			iFilePos;
 
 	mszRootFileName.Init(szRootFileName);
 	cRootFileIndex = LoadRootFileIndex(szRootFileName);
@@ -111,9 +111,8 @@ BOOL CIndexTreeBlockFile::InitRoot(char* szRootFileName)
 
 		iNodeSize = mpcRoot->CalculateBufferSize();
 		pcRootIndexFile = mcIndexFiles.GetOrCreateFile(iNodeSize);
-		iPosition = pcRootIndexFile->Write(pvBuffer, iNodeSize);
-
-		mpcRoot->SetFileIndex(pcRootIndexFile->GetFileIndex(), iPosition);
+		iFilePos = pcRootIndexFile->Write(pvBuffer);
+		mpcRoot->SetFileIndex(pcRootIndexFile->GetFileIndex(), iFilePos);
 
 		return TRUE;
 	}

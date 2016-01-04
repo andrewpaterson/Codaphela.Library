@@ -155,7 +155,8 @@ filePos CIndexedFile::Write(void* pvData, filePos iCount)
 	}
 
 	miNumDatas += iCount;
-	return iFilePos / miDataSize;
+
+	return iFilePos;
 }
 
 

@@ -445,6 +445,7 @@ BOOL CIndexedFiles::WriteNew(CIndexedDataDescriptor* pcIndexDescriptor, void* pv
 {
 	CIndexedFile*	pcIndexedFile;
 	filePos			iIndex;
+	filePos			iFilePos;
 	int				iDataSize;
 
 	iDataSize = pcIndexDescriptor->GetDataSize();
@@ -452,7 +453,8 @@ BOOL CIndexedFiles::WriteNew(CIndexedDataDescriptor* pcIndexDescriptor, void* pv
 	{
 		pcIndexedFile = GetOrCreateFile(iDataSize);
 
-		iIndex = pcIndexedFile->Write(pvData);
+		iFilePos = pcIndexedFile->Write(pvData);
+		iIndex = iFilePos / pcIndexedFile->miDataSize;
 		if (iIndex == -1)
 		{
 			return FALSE;
