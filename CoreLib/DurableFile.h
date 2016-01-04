@@ -100,7 +100,9 @@ protected:
 	void		UpdateLength(void);
 	void		OpenFilesForBegin(void);
 	BOOL		OpenFilesForEnd(CFileBasic* pcFile);
-	filePos		PrivateRead(void* pvDest, filePos iSize, filePos iCount);
+	filePos		ReadFromPrimaryFile(void* pvDest, filePos iSize, filePos iCount);
+	filePos		WriteDurable(const void* pvSource, filePos iSize, filePos iCount);
+	filePos		ReadDurable(void* pvDest, filePos iSize, filePos iCount);
 };
 
 

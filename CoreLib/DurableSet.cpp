@@ -24,6 +24,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "BaseLib/FileUtil.h"
 #include "BaseLib/Logger.h"
 #include "BaseLib/LogString.h"
+#include "DurableFile.h"
 #include "DurableSet.h"
 
 
@@ -78,6 +79,7 @@ BOOL CDurableSet::Recover(void)
 		return TestFilesIdentical();
 	}
 	else 
+
 	//Primary files were written but backup failed.
 	if ((bMarkStart) && (bMarkRewrite))
 	{
@@ -91,6 +93,7 @@ BOOL CDurableSet::Recover(void)
 		return TRUE;
 	}
 	else
+
 	//Primary files were not written.  Use old backup.
 	if (bMarkStart)
 	{
@@ -104,6 +107,7 @@ BOOL CDurableSet::Recover(void)
 		return TRUE;
 	}
 	else
+
 	//Something bad happened
 	if (bMarkRewrite)
 	{

@@ -457,43 +457,11 @@ filePos CDurableFile::Write(EFileSeekOrigin eOrigin, filePos iDistance, const vo
 //////////////////////////////////////////////////////////////////////////
 filePos CDurableFile::Write(const void* pvSource, filePos iSize, filePos iCount)
 {
-	SDurableFileCommandWrite*	psCommand;
-	CArrayIntAndPointer			apvOverlapping;
-	BOOL						bAny;
-	void*						pvData;
-	filePos						iByteLength;
-
 	if (mbDurable)
 	{
 		if (mbBegun)
 		{
-			mbTouched = TRUE;
-
-			iByteLength = iSize * iCount;
-			bAny = FindTouchingWriteCommands(&apvOverlapping, miPosition, iByteLength, FALSE);
-			if (bAny)
-			{
-				AmalgamateOverlappingWrites(&apvOverlapping, pvSource, miPosition, iByteLength);
-				apvOverlapping.Kill();
-				miPosition += iByteLength;
-			}
-			else
-			{
-				psCommand = (SDurableFileCommandWrite*)mcWrites.Add(sizeof(SDurableFileCommandWrite) + (int)iByteLength);
-				if (!psCommand)
-				{
-					return 0;
-				}
-				pvData = RemapSinglePointer(psCommand, sizeof(SDurableFileCommandWrite));
-
-				psCommand->iSize = iByteLength;
-				psCommand->iPosition = miPosition;
-				memcpy(pvData, (void*)pvSource, (int)iByteLength);
-
-				miPosition += iByteLength;
-			}
-			UpdateLength();
-			return iCount;
+			return WriteDurable(pvSource, iSize, iCount);
 		}
 		return 0;
 	}
@@ -501,6 +469,48 @@ filePos CDurableFile::Write(const void* pvSource, filePos iSize, filePos iCount)
 	{
 		return mpcPrimaryFile->Write(pvSource, iSize, iCount);
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+filePos CDurableFile::WriteDurable(const void* pvSource, filePos iSize, filePos iCount)
+{
+	SDurableFileCommandWrite*	psCommand;
+	CArrayIntAndPointer			apvOverlapping;
+	BOOL						bAny;
+	void*						pvData;
+	filePos						iByteLength;
+
+	mbTouched = TRUE;
+
+	iByteLength = iSize * iCount;
+	bAny = FindTouchingWriteCommands(&apvOverlapping, miPosition, iByteLength, FALSE);
+	if (bAny)
+	{
+		AmalgamateOverlappingWrites(&apvOverlapping, pvSource, miPosition, iByteLength);
+		apvOverlapping.Kill();
+		miPosition += iByteLength;
+	}
+	else
+	{
+		psCommand = (SDurableFileCommandWrite*)mcWrites.Add(sizeof(SDurableFileCommandWrite) + (int)iByteLength);
+		if (!psCommand)
+		{
+			return 0;
+		}
+		pvData = RemapSinglePointer(psCommand, sizeof(SDurableFileCommandWrite));
+
+		psCommand->iSize = iByteLength;
+		psCommand->iPosition = miPosition;
+		memcpy(pvData, (void*)pvSource, (int)iByteLength);
+
+		miPosition += iByteLength;
+	}
+	UpdateLength();
+	return iCount;
 }
 
 
@@ -603,8 +613,25 @@ filePos CDurableFile::Read(EFileSeekOrigin eOrigin, filePos iDistance, void* pvD
 //////////////////////////////////////////////////////////////////////////
 filePos CDurableFile::Read(void* pvDest, filePos iSize, filePos iCount)
 {
+	if ((mbDurable) && (mbBegun))
+	{
+		return ReadDurable(pvDest, iSize, iCount);
+	}
+	else
+	{
+		return ReadFromFile(pvDest, iSize, iCount);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+filePos CDurableFile::ReadDurable(void* pvDest, filePos iSize, filePos iCount)
+{
 	CArrayIntAndPointer			apvOverlapping;
-	BOOL						bAny;
+	BOOL						bAnyTouchingWriteCommands;
 	int							i;
 	BOOL						bHoles;
 	filePos						iResult;
@@ -619,73 +646,66 @@ filePos CDurableFile::Read(void* pvDest, filePos iSize, filePos iCount)
 	filePos						iBytesReadFromFile;
 	filePos						iByteSize;
 
-	if ((mbDurable) && (mbBegun))
+	//You can test to see what sections actually NEED zero'ing.
+	iByteSize = iSize * iCount;
+	memset_fast(pvDest, 0, (size_t)iByteSize);
+
+	bAnyTouchingWriteCommands = FindTouchingWriteCommands(&apvOverlapping, miPosition, iByteSize, TRUE);
+	if (bAnyTouchingWriteCommands)
 	{
-		//You can test to see what sections actually NEED zero'ing.
-		iByteSize = iSize * iCount;
-		memset_fast(pvDest, 0, (size_t)iByteSize);
-
-		bAny = FindTouchingWriteCommands(&apvOverlapping, miPosition, iByteSize, TRUE);
-		if (bAny)
+		bHoles = FindHoles(&apvOverlapping, miPosition, iByteSize);
+		if (bHoles)
 		{
-			bHoles = FindHoles(&apvOverlapping, miPosition, iByteSize);
-			if (bHoles)
+			iBytesReadFromFile = ReadFromPrimaryFile(pvDest, iSize, iCount);
+		}
+
+		for (i = 0; i < apvOverlapping.NumElements(); i++)
+		{
+			apvOverlapping.Get(i, (void**)&psWrite, &iIndex);
+
+			pvData = RemapSinglePointer(psWrite, sizeof(SDurableFileCommandWrite));
+
+			iLength = psWrite->iSize;
+			if ((psWrite->iPosition + psWrite->iSize) > (miPosition + iByteSize))
 			{
-				iBytesReadFromFile = PrivateRead(pvDest, iSize, iCount);
+				iLength -= (psWrite->iPosition + psWrite->iSize) - (miPosition + iByteSize);
 			}
 
-			for (i = 0; i < apvOverlapping.NumElements(); i++)
+			iSourceOffset = 0;
+			iDestOffset = psWrite->iPosition - miPosition;
+			if (psWrite->iPosition < miPosition)
 			{
-				apvOverlapping.Get(i, (void**)&psWrite, &iIndex);
-
-				pvData = RemapSinglePointer(psWrite, sizeof(SDurableFileCommandWrite));
-
-				iLength = psWrite->iSize;
-				if ((psWrite->iPosition + psWrite->iSize) > (miPosition + iByteSize))
-				{
-					iLength -= (psWrite->iPosition + psWrite->iSize) - (miPosition + iByteSize);
-				}
-
-				iSourceOffset = 0;
-				iDestOffset = psWrite->iPosition - miPosition;
-				if (psWrite->iPosition < miPosition)
-				{
-					iSourceOffset = miPosition - psWrite->iPosition;
-					iDestOffset = 0;
-				}
-
-				iLength -= iSourceOffset;
-
-				pvSource = RemapSinglePointer(pvData, (int)iSourceOffset);
-				pvNewDest = RemapSinglePointer(pvDest, (int)iDestOffset);
-
-				memcpy_fast(pvNewDest, pvSource, (int)iLength);
+				iSourceOffset = miPosition - psWrite->iPosition;
+				iDestOffset = 0;
 			}
-			apvOverlapping.Kill();
 
-			if (miPosition + (iByteSize) > miLength)
-			{
-				iResult = (miLength - miPosition)/iSize;
-				miPosition += iResult*iSize;
-				return iResult;
-			}
-			else
-			{
-				miPosition += iByteSize;
-				return iCount;
-			}
+			iLength -= iSourceOffset;
+
+			pvSource = RemapSinglePointer(pvData, (int)iSourceOffset);
+			pvNewDest = RemapSinglePointer(pvDest, (int)iDestOffset);
+
+			memcpy_fast(pvNewDest, pvSource, (int)iLength);
+		}
+		apvOverlapping.Kill();
+
+		if (miPosition + (iByteSize) > miLength)
+		{
+			iResult = (miLength - miPosition) / iSize;
+			miPosition += iResult*iSize;
+			return iResult;
 		}
 		else
 		{
-			iBytesReadFromFile = PrivateRead(pvDest, iSize, iCount);
-			iResult = iBytesReadFromFile/iSize;
-			miPosition += iResult*iSize;
-			return iResult;
+			miPosition += iByteSize;
+			return iCount;
 		}
 	}
 	else
 	{
-		return ReadFromFile(pvDest, iSize, iCount);
+		iBytesReadFromFile = ReadFromPrimaryFile(pvDest, iSize, iCount);
+		iResult = iBytesReadFromFile/iSize;
+		miPosition += iResult*iSize;
+		return iResult;
 	}
 }
 
@@ -708,7 +728,7 @@ filePos CDurableFile::ReadFromFile(void* pvDest, filePos iSize, filePos iCount)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-filePos CDurableFile::PrivateRead(void* pvDest, filePos iSize, filePos iCount)
+filePos CDurableFile::ReadFromPrimaryFile(void* pvDest, filePos iSize, filePos iCount)
 {
 	BOOL		bResult;
 	filePos		iBytes;
@@ -724,12 +744,21 @@ filePos CDurableFile::PrivateRead(void* pvDest, filePos iSize, filePos iCount)
 		iBytes = miFileLength - miPosition;
 	}
 
-	mpcPrimaryFile->Seek(miPosition, EFSO_SET);
-	bResult = mpcPrimaryFile->ReadData(pvDest, iBytes);
-	if (!bResult)
+	if (mpcPrimaryFile->IsOpen())
+	{
+		mpcPrimaryFile->Seek(miPosition, EFSO_SET);
+		bResult = mpcPrimaryFile->ReadData(pvDest, iBytes);
+		if (!bResult)
+		{
+			return 0;
+		}
+	}
+	else
 	{
 		return 0;
 	}
+
+
 	return iBytes;  //Not the count.
 }
 

@@ -22,10 +22,11 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __DURABLE_SET_H__
 #define __DURABLE_SET_H__
-#include "DurableFile.h"
+#include "BaseLib/ArrayTemplate.h"
 #include "BaseLib/Chars.h"
 
 
+class CDurableFile;
 typedef CArrayTemplate<CDurableFile*>	CArrayDurableFilePtr;
 
 

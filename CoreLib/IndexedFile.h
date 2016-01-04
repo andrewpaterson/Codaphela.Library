@@ -26,6 +26,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "BaseLib/ChunkFile.h"
 #include "BaseLib/Chars.h"
 #include "BaseLib/ArrayTemplate.h"
+#include "DurableFile.h"
 #include "DurableFileController.h"
 
 

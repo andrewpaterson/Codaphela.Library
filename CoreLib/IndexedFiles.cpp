@@ -116,6 +116,7 @@ void CIndexedFiles::InitIndexedFileDescriptors(char* szDescricptorName, char* sz
 	mszDescricptorName.Init(mpcDurableFileControl->GetDirectory());
 	mszDescricptorName.Append(FILE_SEPARATOR);
 	mszDescricptorName.Append(szDescricptorName);
+
 	mszDescricptorRewrite.Init(mpcDurableFileControl->GetRewriteDirectory());
 	mszDescricptorRewrite.Append(FILE_SEPARATOR);
 	mszDescricptorRewrite.Append(szDescricptorRewrite);
