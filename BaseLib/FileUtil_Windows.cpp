@@ -436,10 +436,13 @@ BOOL CFileUtil::FindFiles(char* szInDirectory, BOOL bdirs, char* szInName, char*
 
 		if (bValid)
 		{
-			szTemp.Init(szDirectory);
-			AppendToPath(&szTemp, sFindData.cFileName);
-			paszFiles->Add(szTemp.Text());
-			szTemp.Kill();
+			if (!((strcmp(sFindData.cFileName, ".") == 0) || (strcmp(sFindData.cFileName, "..") == 0)))
+			{
+				szTemp.Init(szDirectory);
+				AppendToPath(&szTemp, sFindData.cFileName);
+				paszFiles->Add(szTemp.Text());
+				szTemp.Kill();
+			}
 		}
 
 		bContinue = FindNextFile(hFindHandle, &sFindData);
