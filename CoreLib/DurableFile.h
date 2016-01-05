@@ -32,9 +32,11 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define COMMAND_CHUNK_SIZE	4096
 
 
+// NONE OF THIS IS TRUE ANYMORE
+//-----------------------------
 //A non-durable file can never have mbBegun set TRUE.
 //A durable file cannot be written too when mbBegun is NOT set.
-//A durable file can be seek'ed or read regardless of mbBegun.
+//A durable file can be seeked or read regardless of mbBegun.
 
 
 struct SDurableFileCommandWrite
@@ -44,24 +46,25 @@ struct SDurableFileCommandWrite
 };
 
 
+class CDurableFileController;
 class CFileBasic;
 class CDurableFile
 {
 public:
-	CChars				mszFileName;
-	CChars				mszRewriteName;
-	CArrayVariable		mcWrites;
-	filePos				miPosition;
-	filePos				miLength;
+	CChars						mszFileName;
+	CChars						mszRewriteName;
+	CArrayVariable				mcWrites;
+	filePos						miPosition;
+	filePos						miLength;  //'-1' file does not exist on disk.  '0' file is zero bytes long on disk.
 
-	filePos				miFileLength;
-	CFileBasic*			mpcPrimaryFile;
-	CFileBasic*			mpcRewriteFile;
-	BOOL				mbBegun;
-	BOOL				mbTouched;
-	BOOL				mbDurable;
+	filePos						miFileLength;
+	CFileBasic*					mpcPrimaryFile;
+	CFileBasic*					mpcRewriteFile;
+	BOOL						mbBegun;
+	BOOL						mbTouched;
+	CDurableFileController*		mpcController;
 
-	void		Init(BOOL bDurable, char* szFileName, char* szRewriteName);
+	void		Init(CDurableFileController* pcController, char* szFileName, char* szRewriteName);
 	BOOL		Kill(void);
 
 	BOOL		Begin(void);
@@ -82,6 +85,7 @@ public:
 	filePos		Tell(void);
 	filePos		Size(void);
 	BOOL		IsEof(void);
+	BOOL		IsDurable(void);
 
 	filePos		ReadFromFile(void* pvDest, filePos iSize, filePos iCount);
 	filePos		SizeFromFile(void);

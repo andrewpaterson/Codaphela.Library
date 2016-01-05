@@ -27,20 +27,20 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "BaseLib/DiskFile.h"
 #include "BaseLib/ConstructorCall.h"
 #include "DurableFile.h"
-#include "DurableSet.h"
+#include "DurableFileController.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDurableFile::Init(BOOL bDurable, char* szFileName, char* szRewriteName)
+void CDurableFile::Init(CDurableFileController* pcController, char* szFileName, char* szRewriteName)
 {
 	CDiskFile*	pcPrimaryDiskFile;
 	CDiskFile*	pcRewriteDiskFile;
 
+	mpcController = pcController;
 	mbBegun = FALSE;
-	mbDurable = bDurable;
 
 	miPosition = 0;
 	miLength = 0;
@@ -109,7 +109,7 @@ BOOL CDurableFile::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CDurableFile::Begin(void)
 {
-	if (mbDurable)
+	if (IsDurable())
 	{
 		if (mbBegun)
 		{
@@ -189,7 +189,7 @@ BOOL CDurableFile::End(void)
 {
 	BOOL	bResult;
 
-	if (mbDurable)
+	if (IsDurable())
 	{
 		if (!mbBegun)
 		{
@@ -235,7 +235,7 @@ BOOL CDurableFile::Rewrite(void)
 {
 	BOOL	bResult;
 
-	if (mbDurable)
+	if (IsDurable())
 	{
 		if (!mbTouched)
 		{
@@ -282,7 +282,7 @@ BOOL CDurableFile::Delete(void)
 	else
 	{
 		Close();
-		if (mbDurable)
+		if (IsDurable())
 		{
 			bResult = cFileUtil.Delete(mszFileName.Text());
 			bResult &= cFileUtil.Delete(mszRewriteName.Text());
@@ -339,7 +339,7 @@ BOOL CDurableFile::Open(void)
 		return FALSE;
 	}
 
-	if (mbDurable)
+	if (IsDurable())
 	{
 		if (mszRewriteName.Empty())
 		{
@@ -405,7 +405,7 @@ BOOL CDurableFile::Close(void)
 //////////////////////////////////////////////////////////////////////////
 void CDurableFile::Seek(EFileSeekOrigin eOrigin, filePos iDistance)
 {
-	if ((mbDurable) && (mbBegun))
+	if ((IsDurable()) && (mbBegun))
 	{
 		if (eOrigin == EFSO_SET)
 		{
@@ -457,7 +457,7 @@ filePos CDurableFile::Write(EFileSeekOrigin eOrigin, filePos iDistance, const vo
 //////////////////////////////////////////////////////////////////////////
 filePos CDurableFile::Write(const void* pvSource, filePos iSize, filePos iCount)
 {
-	if (mbDurable)
+	if (IsDurable())
 	{
 		if (mbBegun)
 		{
@@ -613,7 +613,7 @@ filePos CDurableFile::Read(EFileSeekOrigin eOrigin, filePos iDistance, void* pvD
 //////////////////////////////////////////////////////////////////////////
 filePos CDurableFile::Read(void* pvDest, filePos iSize, filePos iCount)
 {
-	if ((mbDurable) && (mbBegun))
+	if ((IsDurable()) && (mbBegun))
 	{
 		return ReadDurable(pvDest, iSize, iCount);
 	}
@@ -991,6 +991,23 @@ BOOL CDurableFile::IsEof(void)
 	else
 	{
 		return mpcPrimaryFile->IsEndOfFile();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CDurableFile::IsDurable(void)
+{
+	if (mpcController != NULL)
+	{
+		return mpcController->IsDurable();
+	}
+	else
+	{
+		return NULL;
 	}
 }
 

@@ -121,7 +121,7 @@ void CIndexedFiles::InitIndexedFileDescriptors(char* szDescricptorName, char* sz
 	mszDescricptorRewrite.Append(FILE_SEPARATOR);
 	mszDescricptorRewrite.Append(szDescricptorRewrite);
 
-	mcFileDescriptors.Init(mpcDurableFileControl->IsDurable(), mszDescricptorName.Text(), mszDescricptorRewrite.Text());
+	mcFileDescriptors.Init(mpcDurableFileControl, mszDescricptorName.Text(), mszDescricptorRewrite.Text());
 	mpcDurableFileControl->AddFile(&mcFileDescriptors);
 }
 
@@ -517,7 +517,7 @@ BOOL CIndexedFiles::Read(CIndexedDataDescriptor* pcIndexDescriptor, void* pvData
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexedFiles::IsDurable(void)
 {
-	return mcFileDescriptors.mbDurable;
+	return mpcDurableFileControl->IsDurable();
 }
 
 

@@ -161,3 +161,5 @@ char* CDurableFileController::GetRewriteDirectory(void) { return mszRewriteDirec
 
 BOOL CDurableFileController::IsDurable(void) { return mbDurable; }
 
+CDurableSet* CDurableFileController::GetDurableSet(void) { return &mcDurableSet; }
+

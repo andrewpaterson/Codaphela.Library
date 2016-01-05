@@ -45,26 +45,26 @@ public:
 	CChars			mszFileName;  //These look redundant.  They could be gotten from mcFile.
 	CChars			mszRewriteName;
 
-	void		Init(CDurableFileController* pcDurableFileControl, int iFileIndex, char* szFileName, char* szRewriteName, int iDataSize, int iFileNum);
-	void		Kill(void);
-	BOOL		Open(CDurableFileController* pcDurableFileControl);
-	BOOL		Close(void);
-	BOOL		IsFull(void);
-	filePos		Write(void* pvData);
-	BOOL		Write(filePos iIndex, void* pvData);
-	filePos		Write(void* pvData, filePos iCount);
-	BOOL		Write(filePos iIndex, void* pvData, filePos iCount);
-	BOOL		Read(filePos iIndex, void* pvData);
-	BOOL		Read(filePos iIndex, void* pvData, filePos iCount);
+	void			Init(CDurableFileController* pcDurableFileControl, int iFileIndex, char* szFileName, char* szRewriteName, int iDataSize, int iFileNum);
+	void			Kill(void);
+	BOOL			Open(CDurableFileController* pcDurableFileControl);
+	BOOL			Close(void);
+	BOOL			IsFull(void);
+	filePos			Write(void* pvData);
+	BOOL			Write(filePos iIndex, void* pvData);
+	filePos			Write(void* pvData, filePos iCount);
+	BOOL			Write(filePos iIndex, void* pvData, filePos iCount);
+	BOOL			Read(filePos iIndex, void* pvData);
+	BOOL			Read(filePos iIndex, void* pvData, filePos iCount);
 
-	int			GetFileIndex(void);
-	BOOL		IsFileIndex(int iFileIndex);
+	int				GetFileIndex(void);
+	BOOL			IsFileIndex(int iFileIndex);
 
-	CFileBasic*	GetPrimaryFile(void);
-	CFileBasic*	GetBackupFile(void);
-	char*		GetFileName(void);
+	CFileBasic*		GetPrimaryFile(void);
+	CFileBasic*		GetBackupFile(void);
+	char*			GetFileName(void);
 
-	void		Dump(void);
+	void			Dump(void);
 };
 
 

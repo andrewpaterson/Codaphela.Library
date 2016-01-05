@@ -58,7 +58,7 @@ void CTransactionController::InitState(BOOL bDurable)
 	cFileUtil.AppendToPath(&mszStateName, "State.DAT");
 	cFileUtil.AppendToPath(&mszStateRewrite, "_State.DAT");
 
-	mcStateFile.Init(bDurable, mszStateName.Text(), mszStateRewrite.Text());
+	mcStateFile.Init(mcIndexedData.GetDurableFileControl(), mszStateName.Text(), mszStateRewrite.Text());
 	mcStateFile.Open();
 	mcIndexedData.AddFile(&mcStateFile);
 	iRead = mcStateFile.Read(&msState, sizeof(SControllerState), 1);
@@ -255,3 +255,4 @@ char* CTransactionController::GetDirectory(void)
 {
 	return mszDirectory.Text();
 }
+

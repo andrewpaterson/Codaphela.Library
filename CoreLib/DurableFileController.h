@@ -51,6 +51,7 @@ public:
 	char*			GetDirectory(void);
 	char*			GetRewriteDirectory(void);
 	BOOL			IsDurable(void);
+	CDurableSet*	GetDurableSet(void);
 };
 
 
