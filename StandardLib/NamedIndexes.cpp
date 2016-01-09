@@ -30,7 +30,7 @@ void CNamedIndexes::Init(CDurableFileController* pcController, int iCacheSize, i
 {
 	macBlocks.Init(2);
 	mcCache.Init(iCacheSize);
-	mcFiles.Init(pcController, "NAM");
+	mcFiles.Init(pcController, "NAM", "Names.IDX", "_Names.IDX");
 
 	AddBlock(  32,    1,   23, iBlockChunkSize);
 	AddBlock(  64,   23,   55, iBlockChunkSize);

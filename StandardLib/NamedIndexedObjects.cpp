@@ -181,7 +181,8 @@ BOOL CNamedIndexedObjects::AddWithIDAndName(CBaseObject* pvObject, OIndex oi, ch
 	if ((szName != NULL) && (szName[0] != 0))
 	{
 		oi = pvObject->GetOI();
-		bResult = mcNames.Put(szName, &oi, sizeof(OIndex));
+		szName = (char*)mcNames.Put(szName, &oi, sizeof(OIndex));
+		bResult = szName != NULL;
 	}
 	return bResult;
 }

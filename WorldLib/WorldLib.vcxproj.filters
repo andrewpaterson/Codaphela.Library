@@ -13,9 +13,6 @@
     <Filter Include="Source\Graphics\D3D9Fixed">
       <UniqueIdentifier>{948a157f-4601-41d7-bde0-23437af0ec4f}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Graphics\D3D9Fixed\Intermediate">
-      <UniqueIdentifier>{233ca6cc-4605-49f3-a44c-2a554138b37d}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source\Mesh">
       <UniqueIdentifier>{7b3222d2-6a43-43bc-9042-115e52b8a50b}</UniqueIdentifier>
     </Filter>
