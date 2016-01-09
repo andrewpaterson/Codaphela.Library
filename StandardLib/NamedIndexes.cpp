@@ -374,11 +374,11 @@ void* CNamedIndexes::AllocateInCache(size_t iSize)
 		}
 
 		pcFile = GetOrCreateFile(pcBlocks->GetDataSize(), pcBlocks->GetFileNumber());
-		pcBlocks->SetFileNumber(pcFile->miFileNumber);
 		if (!pcFile)
 		{
 			return NULL;
 		}
+		pcBlocks->SetFileNumber(pcFile->miFileNumber);
 
 		bResult = pcNamedIndexes->Uncache(pcFile);
 		if (!bResult)

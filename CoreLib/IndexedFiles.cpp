@@ -276,6 +276,7 @@ CIndexedFile* CIndexedFiles::GetOrCreateFile(int iDataSize)
 	int				iNumFiles;
 	char			szFileName[MAX_DIRECTORY_LENGTH];
 	char			szRewriteName[MAX_DIRECTORY_LENGTH];
+	BOOL			bResult;
 
 	iNumFiles = 0;
 	for (i = 0; i < mcFiles.NumElements(); i++)
@@ -302,9 +303,18 @@ CIndexedFile* CIndexedFiles::GetOrCreateFile(int iDataSize)
 
 	DataFileName(szFileName, szRewriteName, iDataSize, iNumFiles);
 	pcIndexedFile->Init(mpcDurableFileControl, mcFiles.NumElements()-1, szFileName, szRewriteName, iDataSize, iNumFiles);
-	pcIndexedFile->Open(mpcDurableFileControl);
+	bResult = pcIndexedFile->Open(mpcDurableFileControl);
+	if (!bResult)
+	{
+		return NULL;
+	}
 
-	WriteIndexedFileDescriptors();
+	bResult = WriteIndexedFileDescriptors();
+	if (!bResult)
+	{
+		return NULL;
+	}
+
 	return pcIndexedFile;
 }
 
@@ -453,6 +463,10 @@ BOOL CIndexedFiles::WriteNew(CIndexedDataDescriptor* pcIndexDescriptor, void* pv
 	if (iDataSize != 0)
 	{
 		pcIndexedFile = GetOrCreateFile(iDataSize);
+		if (!pcIndexedFile)
+		{
+			return FALSE;
+		}
 
 		iFilePos = pcIndexedFile->Write(pvData);
 		iIndex = iFilePos / pcIndexedFile->miDataSize;
