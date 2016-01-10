@@ -111,9 +111,12 @@ BOOL CIndexTreeBlockFile::InitRoot(char* szRootFileName)
 
 		iNodeSize = mpcRoot->CalculateBufferSize();
 		pcRootIndexFile = mcIndexFiles.GetOrCreateFile(iNodeSize);
+		if (!pcRootIndexFile)
+		{
+			return TRUE;
+		}
 		iFilePos = pcRootIndexFile->Write(pvBuffer);
 		mpcRoot->SetFileIndex(pcRootIndexFile->GetFileIndex(), iFilePos);
-
 		return TRUE;
 	}
 }
