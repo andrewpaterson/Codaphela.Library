@@ -162,7 +162,8 @@ BOOL CDurableFile::OpenPrimaryFile(BOOL bOpenForWrite)
 //////////////////////////////////////////////////////////////////////////
 BOOL CDurableFile::Commit(void)
 {
-	BOOL	bResult;
+	BOOL		bResult;
+	CFileUtil	cFileUtil;
 
 	if (IsDurable())
 	{
@@ -179,9 +180,11 @@ BOOL CDurableFile::Commit(void)
 			return TRUE;
 		}
 
-		bResult = OpenPrimaryForWrite();
+		cFileUtil.TouchDir(mszFileName.Text());
+		bResult = mpcPrimaryFile->Open(EFM_ReadWrite_Create);
 		if (!bResult)
 		{
+			gcLogger.Error2("Could not open durable file [", mszFileName.Text(), "] for writing during commit.", NULL);
 			return FALSE;
 		}
 
@@ -213,7 +216,8 @@ BOOL CDurableFile::Commit(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CDurableFile::Recommit(void)
 {
-	BOOL	bResult;
+	BOOL		bResult;
+	CFileUtil	cFileUtil;
 
 	if (IsDurable())
 	{
@@ -228,6 +232,7 @@ BOOL CDurableFile::Recommit(void)
 			return FALSE;
 		}
 
+		cFileUtil.TouchDir(mszRewriteName.Text());
 		bResult = mpcRewriteFile->Open(EFM_ReadWrite_Create);
 		if (!bResult)
 		{
@@ -354,11 +359,21 @@ BOOL CDurableFile::SeekNonDurable(EFileSeekOrigin eOrigin, filePos iDistance, BO
 //////////////////////////////////////////////////////////////////////////
 BOOL CDurableFile::OpenPrimaryForWrite(void)
 {
-	BOOL	bResult;
+	BOOL		bResult;
+	CFileUtil	cFileUtil;
 	
 	if (meOpenMode == EFM_Unknown)
 	{
-		bResult = mpcPrimaryFile->Open(EFM_ReadWrite);
+		if (IsDurable())
+		{
+			bResult = mpcPrimaryFile->Open(EFM_ReadWrite);
+		}
+		else
+		{
+			cFileUtil.TouchDir(mszFileName.Text());
+			bResult = mpcPrimaryFile->Open(EFM_ReadWrite_Create);
+		}
+
 		if (!bResult)
 		{
 			meOpenMode = EFM_Unknown;
@@ -381,7 +396,7 @@ BOOL CDurableFile::OpenPrimaryForWrite(void)
 		if (!bResult)
 		{
 			meOpenMode = EFM_Unknown;
-			return FALSE;
+			return TRUE;
 		}
 		else
 		{
@@ -421,7 +436,7 @@ BOOL CDurableFile::OpenPrimaryForRead(void)
 		else
 		{
 			meOpenMode = EFM_Unknown;
-			return FALSE;
+			return TRUE;
 		}
 	}
 	else if (meOpenMode == EFM_Read)

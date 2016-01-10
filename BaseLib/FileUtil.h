@@ -45,6 +45,7 @@ public:
 	BOOL    RemoveDir(char* szPathName);
 	BOOL    CopyDir(char* szSource, char* szDest);
 	BOOL    Touch(char* szFileName);
+	BOOL    TouchDir(char* szFileName);
 	BOOL    Delete(char* szFileName);
 	BOOL    Exists(char* szFileName);
 	BOOL    Compare(char* szFileName1, char* szFileName2);
@@ -63,6 +64,7 @@ public:
 
 	void    RemoveExtension(CChars* szPathName);
 	int		FindExtension(char* szPathName);
+	int		FindFirstSeparator(char* szString);
 	int		FindLastSeparator(char* szPathName);
 	void    RemoveFileSeparator(CChars* szPathName);
 	void    AppendToPath(CChars* szPathName, char* szItem);

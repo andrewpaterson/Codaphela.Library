@@ -62,7 +62,7 @@ filePos CIndexedFile::CalculateNumDatas(void)
 	filePos		iFileLength;
 
 	iFileLength = mcFile.Size();
-	if (iFileLength = -1)
+	if (iFileLength == -1)
 	{
 		return -1;
 	}

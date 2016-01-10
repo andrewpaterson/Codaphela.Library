@@ -463,19 +463,34 @@ void CFileUtil::AppendToPath(CChars* szPathName, char* szItem)
 //////////////////////////////////////////////////////////////////////////
 void CFileUtil::RemoveLastFromPath(CChars* szPathName)
 {
-	int		iIndex;
+	int		iLastIndex;
+	int		iFirstIndex;
 
-	iIndex = FindLastSeparator(szPathName->Text());
-	if (iIndex != -1)
+	iLastIndex = FindLastSeparator(szPathName->Text());
+	if (IsAbsolutePath(szPathName->Text()))
 	{
-		szPathName->RemoveEnd(iIndex);
+		iFirstIndex = FindFirstSeparator(szPathName->Text());
+		if (iFirstIndex != iLastIndex)
+		{
+			szPathName->RemoveEnd(iLastIndex);
+		}
+		else
+		{
+			szPathName->RemoveEnd(iLastIndex + 1);
+		}
 	}
 	else
 	{
-		szPathName->Clear();
+		if (iLastIndex != -1)
+		{
+			szPathName->RemoveEnd(iLastIndex);
+		}
+		else
+		{
+			szPathName->Clear();
+		}
 	}
 }
-
 
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -593,6 +608,25 @@ int CFileUtil::FindLastSeparator(char* szString)
 }
 
 
+////////////////////////////////////////////////////////////////////////////////////
+//
+//
+////////////////////////////////////////////////////////////////////////////////////
+int CFileUtil::FindFirstSeparator(char* szString)
+{
+	char*	sz;
+
+	sz = FindChar(szString, FILE_SEPARATOR[0], FALSE);
+	if (sz)
+	{
+		return (int) (ENGINE_SIZE_T) (sz - szString);
+	}
+	else
+	{
+		return -1;
+	}
+}
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -706,5 +740,44 @@ void CFileUtil::MakeNameFromDirectory(CChars* pszName, CChars* pszFileName, CCha
 	}
 	pszName->RemoveFromStart(iToRemove);
 	pszName->Replace(FILE_SEPARATOR[0], '/');
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CFileUtil::TouchDir(char* szFileName)
+{
+	CChars		szPath;
+	char		cDrive;
+
+	szPath.Init(szFileName);
+	RemoveLastFromPath(&szPath);
+	if (szPath.Empty())
+	{
+		return TRUE;
+	}
+
+	CollapsePath(&szPath);
+	
+	if (szPath.Empty())
+	{
+		return TRUE;
+	}
+	if (IsAbsolutePath(szPath.Text()))
+	{
+		cDrive = GetDriveLetter(szPath.Text());
+		if ((cDrive != 0) && (szPath.Length() == 3))
+		{
+			return TRUE;
+		}
+		if (szPath.Length() == 1)
+		{
+			return TRUE;
+		}
+	}
+
+	return MakeDir(szPath.Text());
 }
 
