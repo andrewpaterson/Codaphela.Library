@@ -119,7 +119,7 @@ BOOL CDurableFileController::End(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDurableFileController::AddFile(CDurableFile* pcFile)
+void CDurableFileController::_AddFile(CDurableFile* pcFile)
 {
 	mcDurableSet.Add(pcFile);
 }

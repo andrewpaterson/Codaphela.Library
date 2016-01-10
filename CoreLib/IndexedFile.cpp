@@ -36,7 +36,6 @@ void CIndexedFile::Init(CDurableFileController* pcDurableFileControl, int iFileI
 	miFileNumber = iFileNum;
 
 	mcFile.Init(pcDurableFileControl, mszFileName.Text(), mszRewriteName.Text());
-	pcDurableFileControl->AddFile(&mcFile);
 }
 
 
@@ -229,19 +228,9 @@ BOOL CIndexedFile::Read(filePos iIndex, void* pvData, filePos iCount)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CFileBasic*	CIndexedFile::GetPrimaryFile(void)
+CFileBasic*	CIndexedFile::DumpGetPrimaryFile(void)
 {
-	return mcFile.mpcPrimaryFile;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CFileBasic*	CIndexedFile::GetBackupFile(void)
-{
-	return mcFile.mpcRewriteFile;
+	return mcFile.DumpGetPrimaryFile();
 }
 
 
@@ -257,8 +246,10 @@ void CIndexedFile::Dump(void)
 	filePos		iPos;
 	char		pvData[80];
 	int			iReadSize;
+	CFileBasic*	pcFile;
 
-	iSizeOnDisk = mcFile.SizeFromFile();
+	pcFile = mcFile.DumpGetPrimaryFile();
+	iSizeOnDisk = pcFile->GetFileSize();
 
 	sz.Init();
 	sz.Append("File Descriptor (");
@@ -276,7 +267,7 @@ void CIndexedFile::Dump(void)
 	sz.Append("Datas (A:");
 	sz.Append(miNumDatas);
 	sz.Append(", D:");
-	sz.Append(mcFile.miLength/miDataSize);
+	sz.Append(mcFile.TestGetLength() / miDataSize);
 	sz.Append(", F:");
 	sz.Append(iSizeOnDisk/miDataSize);
 	sz.Append(")\n\n");
@@ -291,15 +282,15 @@ void CIndexedFile::Dump(void)
 	iPos = mcFile.Tell();
 	for (i = 0; i < iSizeOnDisk/miDataSize; i++)
 	{
-		mcFile.Seek(EFSO_SET, i * miDataSize);
-		mcFile.ReadFromFile(pvData, iReadSize, 1);
+		pcFile->Seek(i * miDataSize, EFSO_SET);
+		pcFile->Read(pvData, iReadSize, 1);
 		sz.AppendData(pvData, iReadSize);
 		sz.AppendNewLine();
 	}
 	sz.AppendNewLine();
 
 
-	mcFile.Seek(EFSO_SET, iPos);
+	pcFile->Seek(iPos, EFSO_SET);
 	sz.Dump();
 	sz.Kill();
 

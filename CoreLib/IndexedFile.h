@@ -60,8 +60,7 @@ public:
 	int				GetFileIndex(void);
 	BOOL			IsFileIndex(int iFileIndex);
 
-	CFileBasic*		GetPrimaryFile(void);
-	CFileBasic*		GetBackupFile(void);
+	CFileBasic*		DumpGetPrimaryFile(void);
 	char*			GetFileName(void);
 
 	void			Dump(void);

@@ -60,7 +60,6 @@ void CTransactionController::InitState(BOOL bDurable)
 
 	mcStateFile.Init(mcIndexedData.GetDurableFileControl(), mszStateName.Text(), mszStateRewrite.Text());
 	mcStateFile.Open();
-	mcIndexedData.AddFile(&mcStateFile);
 	iRead = mcStateFile.Read(&msState, sizeof(SControllerState), 1);
 	if (iRead != 1)
 	{

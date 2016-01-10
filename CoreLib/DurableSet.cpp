@@ -76,7 +76,7 @@ BOOL CDurableSet::Recover(void)
 	//If neither then in theory everything is okay.
 	if ((!bMarkStart) && (!bMarkRewrite))
 	{
-		return TestFilesIdentical();
+		return CheckFilesIdentical();
 	}
 	else 
 
@@ -230,7 +230,7 @@ void CDurableSet::MarkFinish(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CDurableSet::TestFilesIdentical(void)
+BOOL CDurableSet::CheckFilesIdentical(void)
 {
 	int				i;
 	CDurableFile*	pcDurable;
@@ -239,7 +239,7 @@ BOOL CDurableSet::TestFilesIdentical(void)
 	for (i = 0; i < mapcFiles.NumElements(); i++)
 	{
 		pcDurable = *mapcFiles.Get(i);
-		bResult = pcDurable->TestIdentical();
+		bResult = pcDurable->CheckIdentical();
 		if (!bResult)
 		{
 			return FALSE;

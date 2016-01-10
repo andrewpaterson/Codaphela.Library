@@ -42,6 +42,8 @@ public:
 	void	Init(char* szMarkStartFile, char* szMarkRewriteFile);
 	void	Kill(void);
 
+	BOOL	HasBegun(void);
+
 	BOOL	Recover(void);
 	BOOL	Begin(void);
 	BOOL	End(void);
@@ -51,8 +53,8 @@ public:
 	void	MarkRewrite(void);
 	void	MarkFinish(void);
 
-	BOOL	HasBegun(void);
-	BOOL	TestFilesIdentical(void);
+private:
+	BOOL	CheckFilesIdentical(void);
 	BOOL	CopyBackupToPrimary(void);
 	BOOL	CopyPrimaryToBackup(void);
 };

@@ -122,7 +122,6 @@ void CIndexedFiles::InitIndexedFileDescriptors(char* szDescricptorName, char* sz
 	mszDescricptorRewrite.Append(szDescricptorRewrite);
 
 	mcFileDescriptors.Init(mpcDurableFileControl, mszDescricptorName.Text(), mszDescricptorRewrite.Text());
-	mpcDurableFileControl->AddFile(&mcFileDescriptors);
 }
 
 
@@ -150,7 +149,10 @@ BOOL CIndexedFiles::ReadIndexedFileDescriptors(void)
 
 	iNumFiles = iFileSize / (sizeof(SIndexedFileDescriptor));
 	pasFileDescriptors = (SIndexedFileDescriptor*)malloc((int)iFileSize);
-	iRead = mcFileDescriptors.ReadFromFile(pasFileDescriptors, sizeof(SIndexedFileDescriptor), iNumFiles);
+
+	//THIS SHOULD ABSOLUTELY NOT BE DIGGING IN THE PRIMARY FILE.  Wrap the initialisation in a durable begin / end and use Read normally.
+	iRead = mcFileDescriptors.DumpGetPrimaryFile()->Read(pasFileDescriptors, sizeof(SIndexedFileDescriptor), iNumFiles);
+
 	if (iRead != iNumFiles)
 	{
 		return FALSE;

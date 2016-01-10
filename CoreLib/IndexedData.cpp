@@ -1060,8 +1060,6 @@ int CIndexedData::TestNumIgnoredCacheElements(void) { return mcDataCache.NumIgno
 
 CIndexAccess* CIndexedData::TestGetIndexAccess(void) { return mcIndices.GetAccess(); }
 
-void CIndexedData::AddFile(CDurableFile* pcFile) { mcDurableFileControl.AddFile(pcFile); }
-
 CDurableFileController* CIndexedData::GetDurableFileControl(void) { return &mcDurableFileControl; }
 
 BOOL CIndexedData::IsCaching(void) { return mbCaching; } 

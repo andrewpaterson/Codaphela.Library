@@ -42,7 +42,7 @@ public:
 	BOOL			Begin(void);
 	BOOL			End(void);
 
-	void			AddFile(CDurableFile* pcFile);
+	void			_AddFile(CDurableFile* pcFile);
 
 	BOOL			MakeDir(char* szPathName);
 	BOOL			RemoveDir(char* szPathName);
