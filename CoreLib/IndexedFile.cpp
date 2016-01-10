@@ -27,7 +27,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedFile::Init(CDurableFileController* pcDurableFileControl, int iFileIndex, char* szFileName, char* szRewriteName, int iDataSize, int iFileNum)
+BOOL CIndexedFile::Init(CDurableFileController* pcDurableFileControl, int iFileIndex, char* szFileName, char* szRewriteName, int iDataSize, int iFileNum)
 {
 	miFileIndex = iFileIndex;
 	mszFileName.Init(szFileName);
@@ -36,6 +36,8 @@ void CIndexedFile::Init(CDurableFileController* pcDurableFileControl, int iFileI
 	miFileNumber = iFileNum;
 
 	mcFile.Init(pcDurableFileControl, mszFileName.Text(), mszRewriteName.Text());
+	miNumDatas = CalculateNumDatas();
+	return miNumDatas >= 0;
 }
 
 
@@ -55,39 +57,17 @@ void CIndexedFile::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedFile::Open(CDurableFileController* pcDurableFileControl)
+filePos CIndexedFile::CalculateNumDatas(void)
 {
-	filePos		iFileLengh;
-	BOOL		bResult;
+	filePos		iFileLength;
 
-	bResult = mcFile.Open();
-	if (!bResult)
+	iFileLength = mcFile.Size();
+	if (iFileLength = -1)
 	{
-		return FALSE;
+		return -1;
 	}
 
-	iFileLengh = mcFile.Size();
-	miNumDatas = (iFileLengh / miDataSize);
-
-	bResult = TRUE;
-	if (pcDurableFileControl->IsBegun())
-	{
-		bResult &= mcFile.Begin();
-	}
-	return bResult;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CIndexedFile::Close(void)
-{
-	BOOL bResult;
-
-	bResult = mcFile.Close();
-	return bResult;
+	return (iFileLength / miDataSize);
 }
 
 

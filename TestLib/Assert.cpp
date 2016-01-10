@@ -754,7 +754,7 @@ BOOL PrivateAssertFile(char* szExpectedFileName, char* szActualFileName, int iLi
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL PrivateAssertFile(char* szExpectedFileName, void* pcMemory, int iLength, int iLine, char* szFile)
+BOOL PrivateAssertFileMemory(char* szExpectedFileName, void* pcMemory, int iLength, int iLine, char* szFile)
 {
 	CFileCompare	cCompare;
 	BOOL			bResult;
@@ -776,6 +776,19 @@ BOOL PrivateAssertFile(char* szExpectedFileName, void* pcMemory, int iLength, in
 	{
 		return Pass();
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL PrivateAssertFileString(char* szExpectedFileName, char* szString, int iLine, char* szFile)
+{
+	int iLength;
+
+	iLength = strlen(szString);
+	return PrivateAssertFileMemory(szExpectedFileName, szString, iLength, iLine, szFile);
 }
 
 

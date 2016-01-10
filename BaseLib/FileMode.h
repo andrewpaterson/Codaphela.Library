@@ -46,7 +46,7 @@ enum EFileSeekOrigin
 {
 	EFSO_SET     = 0,
 	EFSO_CURRENT = 1,
-	EFSO_END     = 2
+	EFSO_END     = 2  //Seeking to the END of file is not standard supported.  Try not to use it.
 };
 
 

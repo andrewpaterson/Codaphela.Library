@@ -41,8 +41,11 @@ public:
 
 	BOOL			Begin(void);
 	BOOL			End(void);
+	BOOL			Recover(void);
 
-	void			_AddFile(CDurableFile* pcFile);
+	void			AddFile(CDurableFile* pcFile);
+	int				NumFiles(void);
+	CDurableFile*	GetFile(int iIndex);
 
 	BOOL			MakeDir(char* szPathName);
 	BOOL			RemoveDir(char* szPathName);

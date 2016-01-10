@@ -19,8 +19,5 @@ public:
 };
 
 
-int CompareVoidPtr(const void* arg1, const void* arg2);
-
-
 #endif // __ARRAY_VOID_POINTER_H__
 

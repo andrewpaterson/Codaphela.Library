@@ -44,8 +44,6 @@ protected:
 public:
 	void			Init(CDurableFileController* pcDurableFileControl, char* szDataExtension, char* szDescricptorName, char* szDescricptorRewrite);
 	void			Kill(void);
-	BOOL			Open(void);
-	BOOL			Close(void);
 
 	BOOL			RemoveFiles(void);
 

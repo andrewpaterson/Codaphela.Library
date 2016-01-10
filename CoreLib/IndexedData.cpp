@@ -58,7 +58,7 @@ void CIndexedData::Init(CIndexedConfig* pcConfig)
 
 	InitIndices(pcConfig);
 	mcDataFiles.Init(&mcDurableFileControl, "DAT", "Files.IDX", "_Files.IDX");
-	mcDataFiles.Open();
+	mcDataFiles.ReadIndexedFileDescriptors();
 
 	if (pcConfig->miObjectsCacheSize != 0)
 	{
@@ -131,7 +131,6 @@ void CIndexedData::KillEnd(void)
 //////////////////////////////////////////////////////////////////////////
 void CIndexedData::KillTransient(void)
 {
-	mcDataFiles.Close();
 	RemoveFiles();
 }
 
@@ -156,8 +155,6 @@ BOOL CIndexedData::CloseFiles(void)
 	BOOL bResult;
 	
 	bResult = mcIndices.Save();
-	bResult &= mcDataFiles.Close();
-	bResult &= mcIndicesFile.Close();
 
 	return bResult;
 }

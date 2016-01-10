@@ -72,45 +72,6 @@ void CIndexedFiles::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedFiles::Open(void)
-{
-	BOOL	bResult;
-
-	bResult = mcFileDescriptors.Open();
-	if (!bResult)
-	{
-		return FALSE;
-	}
-	return ReadIndexedFileDescriptors();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CIndexedFiles::Close(void)
-{
-	int					i;
-	CIndexedFile*		pcIndexedFile;
-	BOOL				bResult;
-
-	bResult = TRUE;
-	for (i = 0; i < mcFiles.NumElements(); i++)
-	{
-		pcIndexedFile = mcFiles.Get(i);
-		bResult &= pcIndexedFile->Close();
-	}
-
-	bResult &= mcFileDescriptors.Close();
-	return bResult;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CIndexedFiles::InitIndexedFileDescriptors(char* szDescricptorName, char* szDescricptorRewrite)
 {
 	mszDescricptorName.Init(mpcDurableFileControl->GetDirectory());
@@ -166,7 +127,6 @@ BOOL CIndexedFiles::ReadIndexedFileDescriptors(void)
 		{
 			pcIndexedFile = mcFiles.Add();
 			pcIndexedFile->Init(mpcDurableFileControl, pasFileDescriptors[i].iFileIndex, szDataFileName, szDataRewriteName, pasFileDescriptors[i].iDataSize, pasFileDescriptors[i].iFileNum);
-			pcIndexedFile->Open(mpcDurableFileControl);
 		}
 	}
 	return bResult;
@@ -304,8 +264,7 @@ CIndexedFile* CIndexedFiles::GetOrCreateFile(int iDataSize)
 	}
 
 	DataFileName(szFileName, szRewriteName, iDataSize, iNumFiles);
-	pcIndexedFile->Init(mpcDurableFileControl, mcFiles.NumElements()-1, szFileName, szRewriteName, iDataSize, iNumFiles);
-	bResult = pcIndexedFile->Open(mpcDurableFileControl);
+	bResult = pcIndexedFile->Init(mpcDurableFileControl, mcFiles.NumElements()-1, szFileName, szRewriteName, iDataSize, iNumFiles);
 	if (!bResult)
 	{
 		return NULL;

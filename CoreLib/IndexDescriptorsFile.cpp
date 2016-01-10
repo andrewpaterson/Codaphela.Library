@@ -33,7 +33,6 @@ void CIndexDescriptorsFile::Init(CDurableFileController* pcDurableFileControl, c
 {
 	mpcDurableFileControl = pcDurableFileControl;
 	mcIndexedDescriptorFile.Init(pcDurableFileControl, szFileName, szRewriteName);
-	mcIndexedDescriptorFile.Open();
 }
 
 
@@ -44,16 +43,6 @@ void CIndexDescriptorsFile::Init(CDurableFileController* pcDurableFileControl, c
 void CIndexDescriptorsFile::Kill(void)
 {
 	mcIndexedDescriptorFile.Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CIndexDescriptorsFile::Close(void)
-{
-	return mcIndexedDescriptorFile.Close();
 }
 
 

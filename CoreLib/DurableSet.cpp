@@ -20,6 +20,7 @@ along with Codaphela CoreLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/PointerFunctions.h"
 #include "BaseLib/FileBasic.h"
 #include "BaseLib/FileUtil.h"
 #include "BaseLib/Logger.h"
@@ -124,18 +125,10 @@ BOOL CDurableSet::Recover(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CDurableSet::Begin(void)
 {
-	int				i;
-	CDurableFile*	pcDurable;
-	BOOL			bResult;
-
-	bResult = TRUE;
 	mbBegun = TRUE;
-	for (i = 0; i < mapcFiles.NumElements(); i++)
-	{
-		pcDurable = *mapcFiles.Get(i);
-		bResult &= pcDurable->Begin();
-	}
-	return bResult;
+	mapcFiles.Kill();
+	mapcFiles.Init(2048);
+	return TRUE;
 }
 
 
@@ -154,7 +147,7 @@ BOOL CDurableSet::End(void)
 	for (i = 0; i < mapcFiles.NumElements(); i++)
 	{
 		pcDurable = *mapcFiles.Get(i);
-		bResult &= pcDurable->End();
+		bResult &= pcDurable->Commit();
 	}
 	ReturnOnFalse(bResult);
 
@@ -163,12 +156,15 @@ BOOL CDurableSet::End(void)
 	for (i = 0; i < mapcFiles.NumElements(); i++)
 	{
 		pcDurable = *mapcFiles.Get(i);
-		bResult &= pcDurable->Rewrite();
+		bResult &= pcDurable->Recommit();
 	}
 	ReturnOnFalse(bResult);
 
 	MarkFinish();
 	mbBegun = FALSE;
+
+	mapcFiles.Kill();
+	mapcFiles.Init(2048);
 	return TRUE;
 }
 
@@ -179,13 +175,42 @@ BOOL CDurableSet::End(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CDurableSet::Add(CDurableFile* pcFile)
 {
-	mapcFiles.Add(&pcFile);
+	int		iIndex;
+	BOOL	bResult;
 
-	if (mbBegun)
+	bResult = mapcFiles.FindInSorted(&pcFile, ComparePtrPtr, &iIndex);
+	if (!bResult)
 	{
-		return pcFile->Begin();
+		mapcFiles.InsertAt(&pcFile, iIndex);
+		return TRUE;
 	}
-	return TRUE;
+	else
+	{
+		return TRUE;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CDurableSet::Num(void)
+{
+	return mapcFiles.NumElements();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CDurableFile* CDurableSet::Get(int iIndex)
+{
+	CDurableFile*	pcDurable;
+
+	pcDurable = *mapcFiles.Get(iIndex);
+	return pcDurable;
 }
 
 

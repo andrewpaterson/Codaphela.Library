@@ -59,7 +59,6 @@ void CTransactionController::InitState(BOOL bDurable)
 	cFileUtil.AppendToPath(&mszStateRewrite, "_State.DAT");
 
 	mcStateFile.Init(mcIndexedData.GetDurableFileControl(), mszStateName.Text(), mszStateRewrite.Text());
-	mcStateFile.Open();
 	iRead = mcStateFile.Read(&msState, sizeof(SControllerState), 1);
 	if (iRead != 1)
 	{
@@ -76,6 +75,8 @@ void CTransactionController::Kill(void)
 {
 	CTransaction*	pcTransaction;
 
+	// mcIndexedData.GetDurableFileControl()->End() must have been called by this point.
+
 	pcTransaction = mcTransactions.GetHead();
 	while (pcTransaction)
 	{
@@ -90,7 +91,6 @@ void CTransactionController::Kill(void)
 	}
 
 	mcIndexedData.Kill();
-	mcStateFile.Close();
 	mcStateFile.Kill();
 
 	mszDirectory.Kill();

@@ -1,28 +1,5 @@
+#include "PointerFunctions.h"
 #include "ArrayVoidPtr.h"
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-int CompareVoidPtr(const void* arg1, const void* arg2)
-{
-	arg1 = *((void**)arg1);
-	arg2 = *((void**)arg2);
-
-	if (arg1 < arg2)
-	{
-		return -1;
-	}
-	else if (arg1 > arg2)
-	{
-		return 1;
-	}
-	else
-	{
-		return 0;
-	}
-}
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -105,6 +82,6 @@ void* CArrayVoidPtr::GetPtr(int iIndex)
 //////////////////////////////////////////////////////////////////////////
 void CArrayVoidPtr::QuickSort(void)
 {
-	__CArrayVoidPtr::QuickSort(&CompareVoidPtr);
+	__CArrayVoidPtr::QuickSort(&ComparePtrPtr);
 }
 

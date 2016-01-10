@@ -53,9 +53,6 @@ public:
 	virtual BOOL 	IsMemory(void);
 	virtual BOOL 	IsDisk(void);
 
-			void 	Begin(void);
-			BOOL	HasBegun(void);
-
 			void	LoadAndBegin(void);
 
 			OIndex	NumElements(void);

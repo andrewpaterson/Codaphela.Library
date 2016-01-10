@@ -39,24 +39,27 @@ private:
 	BOOL					mbBegun;
 
 public:
-	void	Init(char* szMarkStartFile, char* szMarkRewriteFile);
-	void	Kill(void);
+	void			Init(char* szMarkStartFile, char* szMarkRewriteFile);
+	void			Kill(void);
 
-	BOOL	HasBegun(void);
+	BOOL			HasBegun(void);
 
-	BOOL	Recover(void);
-	BOOL	Begin(void);
-	BOOL	End(void);
-	BOOL	Add(CDurableFile* pcFile);
+	BOOL			Recover(void);
+	BOOL			Begin(void);
+	BOOL			End(void);
 
-	void	MarkStart(void);
-	void	MarkRewrite(void);
-	void	MarkFinish(void);
+	BOOL			Add(CDurableFile* pcFile);
+	int				Num(void);
+	CDurableFile*	Get(int iIndex);
+
+	void			MarkStart(void);
+	void			MarkRewrite(void);
+	void			MarkFinish(void);
 
 private:
-	BOOL	CheckFilesIdentical(void);
-	BOOL	CopyBackupToPrimary(void);
-	BOOL	CopyPrimaryToBackup(void);
+	BOOL			CheckFilesIdentical(void);
+	BOOL			CopyBackupToPrimary(void);
+	BOOL			CopyPrimaryToBackup(void);
 };
 
 

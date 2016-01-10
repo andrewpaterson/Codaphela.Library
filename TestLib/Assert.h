@@ -63,7 +63,8 @@ BOOL PrivateAssertNotNull(void* pvActual, int iLine, char* szFile);
 BOOL PrivateAssertNull(void* pvActual, int iLine, char* szFile);
 BOOL PrivateAssertMD5(unsigned char* pucExpected, unsigned char* pucActual, int iLine, char* szFile);
 BOOL PrivateAssertFile(char* szExpectedFileName, char* szActualFileName, int iLine, char* szFile);
-BOOL PrivateAssertFile(char* szExpectedFileName, void* pcMemory, int iLength, int iLine, char* szFile);
+BOOL PrivateAssertFileMemory(char* szExpectedFileName, void* pcMemory, int iLength, int iLine, char* szFile);
+BOOL PrivateAssertFileString(char* szExpectedFileName, char* szString, int iLine, char* szFile);
 
 
 #define TestStatistics()			PrivateTestStatistics(__FILE__)
@@ -93,7 +94,8 @@ BOOL PrivateAssertFile(char* szExpectedFileName, void* pcMemory, int iLength, in
 #define AssertNull(a)				Validate(PrivateAssertNull(a, __LINE__, __FILE__))
 #define AssertMD5(e, a)				Validate(PrivateAssertMD5(e, a, __LINE__, __FILE__))
 #define AssertFile(e, a)			Validate(PrivateAssertFile(e, a, __LINE__, __FILE__))
-#define AssertFileMemory(e, a, l)	Validate(PrivateAssertFile(e, a, l, __LINE__, __FILE__))
+#define AssertFileMemory(e, a, l)	Validate(PrivateAssertFileMemory(e, a, l, __LINE__, __FILE__))
+#define AssertFileString(e, a)		Validate(PrivateAssertFileString(e, a, __LINE__, __FILE__))
 
 
 #endif // __ASSERT_FUNCTIONS_H__

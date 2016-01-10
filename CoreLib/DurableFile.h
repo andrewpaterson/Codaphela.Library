@@ -32,13 +32,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define COMMAND_CHUNK_SIZE	4096
 
 
-// NONE OF THIS IS TRUE ANYMORE
-//-----------------------------
-//A non-durable file can never have mbBegun set TRUE.
-//A durable file cannot be written too when mbBegun is NOT set.
-//A durable file can be seeked or read regardless of mbBegun.
-
-
 struct SDurableFileCommandWrite
 {
 	filePos	iPosition;
@@ -62,31 +55,32 @@ private:
 	CFileBasic*					mpcRewriteFile;
 	
 	EFileMode					meOpenMode;
-	BOOL						mbBegun;  //This means opened now.
-	BOOL						mbTouched;  //This means written now.
+	BOOL						mbOpenedSinceBegin;
 
 	CDurableFileController*		mpcController;
 
 public:
 	void		Init(CDurableFileController* pcController, char* szFileName, char* szRewriteName);
+	void		InitBasic(void);
 	BOOL		Kill(void);
 
-	BOOL		Begin(void);
-	BOOL		End(void);
-	BOOL		Rewrite(void);
+	BOOL		Commit(void);
+	BOOL		Recommit(void);
 
-	BOOL		Open(void);
-	BOOL		Close(void);
+	BOOL		IsDurable(void);
+	BOOL		IsBegun(void);
+	BOOL		IsOpen(void);
+
 	filePos		Write(filePos iDistance, const void* pvSource, filePos iSize, filePos iCount);
 	filePos		Write(EFileSeekOrigin eOrigin, filePos iDistance, const void* pvSource, filePos iSize, filePos iCount);
 	filePos		Write(const void* pvSource, filePos iSize, filePos iCount);
+
 	filePos		Read(filePos iDistance, void* pvDest, filePos iSize, filePos iCount);
 	filePos		Read(EFileSeekOrigin eOrigin, filePos iDistance, void* pvDest, filePos iSize, filePos iCount);
 	filePos		Read(void* pvDest, filePos iSize, filePos iCount);
+
 	filePos		Tell(void);
 	filePos		Size(void);
-	BOOL		IsEof(void);
-	BOOL		IsDurable(void);
 
 	int			GetNumWrites(void);
 	void*		GetWriteData(int iWrite);
@@ -98,35 +92,35 @@ public:
 
 	filePos		TestGetPosition(void);
 	filePos		TestGetLength(void);
+	BOOL		TestGetOpenedSinceBegin(void);
 
 	void		Dump(void);
 	CFileBasic*	DumpGetPrimaryFile(void);
 
 protected:
-	void		Seek(EFileSeekOrigin eOrigin, filePos iDistance);
-
-	filePos		SizeDurable(void);
-	filePos		SizeNonDurable(void);
-
-	void		SeekDurable(EFileSeekOrigin eOrigin, filePos iDistance);
-	void		SeekNonDurable(EFileSeekOrigin eOrigin, filePos iDistance);
+	BOOL		Seek(EFileSeekOrigin eOrigin, filePos iDistance, BOOL bSeekForWrite);
+	BOOL		OpenPrimaryForRead(void);
+	BOOL		OpenPrimaryForWrite(void);
 
 	filePos		ReadDurable(void* pvDest, filePos iSize, filePos iCount);
 	filePos		ReadNonDurable(void* pvDest, filePos iSize, filePos iCount);
-
 	filePos		WriteDurable(const void* pvSource, filePos iSize, filePos iCount);
 	filePos		WriteNonDurable(const void* pvSource, filePos iSize, filePos iCount);
 
-	BOOL		WriteWriteCommands(CFileBasic* pcFile);
+	filePos		SizeDurable(void);
+	filePos		SizeNonDurable(void);
+	BOOL		SeekDurable(EFileSeekOrigin eOrigin, filePos iDistance, BOOL bSeekForWrite);
+	BOOL		SeekNonDurable(EFileSeekOrigin eOrigin, filePos iDistance, BOOL bSeekForWrite);
+
+	BOOL		WriteWriteCommands(CFileBasic* pcFile, char *szFileName);
 
 	BOOL		FindTouchingWriteCommands(CArrayIntAndPointer* papvOverlapping, filePos iPosition, filePos iLength, BOOL bMustOverlap);
 	BOOL		DoesWriteOverlap(SDurableFileCommandWrite* psWrite, filePos iPosition, filePos iLength);
 	BOOL		AmalgamateOverlappingWrites(CArrayIntAndPointer* papvOverlapping, const void* pvSource, filePos iPosition, filePos iLength);
 	BOOL		DoOverlappingWritesContainHoles(CArrayIntAndPointer* papvOverlapping, filePos iPosition, filePos iLength);
 
-	void		OpenFilesForBegin(void);
-	BOOL		OpenFilesForEnd(CFileBasic* pcFile);
-	filePos		ReadFromPrimaryFile(void* pvDest, filePos iSize, filePos iCount);
+	BOOL		OpenPrimaryFile(BOOL bOpenForWrite);
+	filePos		ReadPrimaryFileForDurableRead(void* pvDest, filePos iSize, filePos iCount);
 };
 
 
