@@ -763,18 +763,18 @@ BOOL CFileUtil::TouchDir(char* szFileName)
 	
 	if (szPath.Empty())
 	{
-		return TRUE;
+		return FALSE;
 	}
 	if (IsAbsolutePath(szPath.Text()))
 	{
 		cDrive = GetDriveLetter(szPath.Text());
 		if ((cDrive != 0) && (szPath.Length() == 3))
 		{
-			return TRUE;
+			return FALSE;
 		}
 		if (szPath.Length() == 1)
 		{
-			return TRUE;
+			return FALSE;
 		}
 	}
 
