@@ -112,7 +112,7 @@ BOOL CDurableSet::Recover(void)
 	//Something bad happened
 	if (bMarkRewrite)
 	{
-		gcLogger.Error2(__METHOD__, "Something bad happened.", NULL);
+		gcLogger.Error2(__METHOD__, " Something bad happened.", NULL);
 		return FALSE;
 	}
 	return FALSE;
@@ -125,6 +125,11 @@ BOOL CDurableSet::Recover(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CDurableSet::Begin(void)
 {
+	if (mbBegun)
+	{
+		gcLogger.Error2(__METHOD__, " Cannot begin.  Already begun.", NULL);
+		return FALSE;
+	}
 	mbBegun = TRUE;
 	mapcFiles.Kill();
 	mapcFiles.Init(2048);
@@ -141,6 +146,12 @@ BOOL CDurableSet::End(void)
 	int				i;
 	CDurableFile*	pcDurable;
 	BOOL			bResult;
+
+	if (!mbBegun)
+	{
+		gcLogger.Error2(__METHOD__, " Cannot end.  Not begun.", NULL);
+		return FALSE;
+	}
 
 	bResult = TRUE;
 	MarkStart();

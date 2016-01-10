@@ -153,7 +153,7 @@ CFileIndex CIndexTreeBlockFile::LoadRootFileIndex(char* szRootFileName)
 		}
 		else
 		{
-			gcLogger.Error2("Index Root file size [", LongLongToString(iSize), "] is incorrect.  Should be SizeOf(CFileIndex).", NULL);
+			gcLogger.Error2(__METHOD__, "Index Root file size [", LongLongToString(iSize), "] is incorrect.  Should be SizeOf(CFileIndex).", NULL);
 			cIndex.Init();
 			return cIndex;
 		}

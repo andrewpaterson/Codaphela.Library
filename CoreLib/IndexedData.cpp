@@ -56,9 +56,11 @@ void CIndexedData::Init(CIndexedConfig* pcConfig)
 	mcDurableFileControl.Init(pcConfig->mszWorkingDirectory, pcConfig->mszWorkingDirectory, pcConfig->mbDurable);
 	mcDurableFileControl.MakeDir(pcConfig->mszWorkingDirectory);
 
+	mcDurableFileControl.Begin();
 	InitIndices(pcConfig);
 	mcDataFiles.Init(&mcDurableFileControl, "DAT", "Files.IDX", "_Files.IDX");
 	mcDataFiles.ReadIndexedFileDescriptors();
+	mcDurableFileControl.End();
 
 	if (pcConfig->miObjectsCacheSize != 0)
 	{

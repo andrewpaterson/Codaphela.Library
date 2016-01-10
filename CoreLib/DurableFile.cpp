@@ -21,6 +21,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/Logger.h"
+#include "BaseLib/LogString.h"
 #include "BaseLib/FileBasic.h"
 #include "BaseLib/FileUtil.h"
 #include "BaseLib/PointerRemapper.h"
@@ -134,20 +135,11 @@ BOOL CDurableFile::OpenPrimaryFile(BOOL bOpenForWrite)
 	{
 		mbOpenedSinceBegin = TRUE;
 		mpcController->AddFile(this);
-		if (bFileOpened)
-		{
-			miFileLength = mpcPrimaryFile->GetFileLength();
-			miLength = miFileLength;
-			miPosition = 0;
-			return TRUE;
-		}
-		else
-		{
-			miFileLength = mpcPrimaryFile->GetFileLength();
-			miFileLength = 0;
-			miPosition = 0;
-			return FALSE;
-		}
+
+		miFileLength = mpcPrimaryFile->GetFileLength();
+		miLength = miFileLength;
+		miPosition = 0;
+		return bFileOpened;
 	}
 	else
 	{
@@ -184,7 +176,7 @@ BOOL CDurableFile::Commit(void)
 		bResult = mpcPrimaryFile->Open(EFM_ReadWrite_Create);
 		if (!bResult)
 		{
-			gcLogger.Error2("Could not open durable file [", mszFileName.Text(), "] for writing during commit.", NULL);
+			gcLogger.Error2(__METHOD__, " Could not open durable file [", mszFileName.Text(), "] for writing during commit.", NULL);
 			return FALSE;
 		}
 
@@ -228,7 +220,7 @@ BOOL CDurableFile::Recommit(void)
 
 		if (mpcRewriteFile->IsOpen())
 		{
-			gcLogger.Error2("Did not expect durable file [", mszRewriteName.Text(), "] to be open already.", NULL);
+			gcLogger.Error2(__METHOD__, " Did not expect durable file [", mszRewriteName.Text(), "] to be open already.", NULL);
 			return FALSE;
 		}
 
@@ -236,7 +228,7 @@ BOOL CDurableFile::Recommit(void)
 		bResult = mpcRewriteFile->Open(EFM_ReadWrite_Create);
 		if (!bResult)
 		{
-			gcLogger.Error2("Could not open durable file [", mszRewriteName.Text(), "] for re-write.", NULL);
+			gcLogger.Error2(__METHOD__, " Could not open durable file [", mszRewriteName.Text(), "] for re-write.", NULL);
 			return FALSE;
 		}
 
@@ -477,14 +469,14 @@ filePos CDurableFile::Write(EFileSeekOrigin eOrigin, filePos iDistance, const vo
 
 	if (!IsBegun())
 	{
-		gcLogger.Error2("Cannot write to a CDurableFile [", mszFileName.Text(), "] that is not Begun.", NULL);
+		gcLogger.Error2(__METHOD__, " Cannot write to a CDurableFile [", mszFileName.Text(), "] that is not Begun.", NULL);
 		return 0;
 	}
 
 	bResult = Seek(eOrigin, iDistance, TRUE);
 	if (!bResult)
 	{
-		gcLogger.Error2("Cannot write to a CDurableFile [", mszFileName.Text(), "] that cannot Seek.", NULL);
+		gcLogger.Error2(__METHOD__, " Cannot write to a CDurableFile [", mszFileName.Text(), "] that cannot Seek.", NULL);
 		return 0;
 	}
 
@@ -502,7 +494,7 @@ filePos CDurableFile::Write(const void* pvSource, filePos iSize, filePos iCount)
 
 	if (!IsBegun())
 	{
-		gcLogger.Error2("Cannot write to a CDurableFile [", mszFileName.Text(), "] that is not Begun.", NULL);
+		gcLogger.Error2(__METHOD__, " Cannot write to a CDurableFile [", mszFileName.Text(), "] that is not Begun.", NULL);
 		return 0;
 	}
 
@@ -670,14 +662,18 @@ filePos CDurableFile::Read(EFileSeekOrigin eOrigin, filePos iDistance, void* pvD
 
 	if (!IsBegun())
 	{
-		gcLogger.Error2("Cannot read from CDurableFile [", mszFileName.Text(), "] that is not Begun.", NULL);
+		gcLogger.Error2(__METHOD__, " Cannot read from CDurableFile [", mszFileName.Text(), "] that is not Begun.", NULL);
 		return 0;
 	}
 
 	bResult = Seek(eOrigin, iDistance, FALSE);
 	if (!bResult)
 	{
-		gcLogger.Error2("Cannot read from a CDurableFile [", mszFileName.Text(), "] that cannot Seek.", NULL);
+		if (meOpenMode == EFM_Unknown)
+		{
+			return 0;
+		}
+		gcLogger.Error2(__METHOD__, " Cannot read from a CDurableFile [", mszFileName.Text(), "] that cannot Seek.", NULL);
 		return 0;
 	}
 
@@ -695,7 +691,7 @@ filePos CDurableFile::Read(void* pvDest, filePos iSize, filePos iCount)
 
 	if (!IsBegun())
 	{
-		gcLogger.Error2("Cannot read from CDurableFile [", mszFileName.Text(), "] that is not Begun.", NULL);
+		gcLogger.Error2(__METHOD__, " Cannot read from CDurableFile [", mszFileName.Text(), "] that is not Begun.", NULL);
 		return 0;
 	}
 
@@ -812,7 +808,7 @@ filePos CDurableFile::ReadNonDurable(void* pvDest, filePos iSize, filePos iCount
 	{
 		return mpcPrimaryFile->Read(pvDest, iSize, iCount);
 	}
-	return -1;
+	return 0;
 }
 
 
@@ -839,21 +835,21 @@ filePos CDurableFile::ReadPrimaryFileForDurableRead(void* pvDest, filePos iSize,
 	bResult = OpenPrimaryFile(FALSE);
 	if (!bResult)
 	{
-		gcLogger.Error2("Cannot read from CDurableFile [", mszFileName.Text(), "] that cannot Open.", NULL);
+		gcLogger.Error2(__METHOD__, " Cannot read from CDurableFile [", mszFileName.Text(), "] that cannot Open.", NULL);
 		return 0;
 	}
 
 	bResult =  mpcPrimaryFile->Seek(miPosition, EFSO_SET);
 	if (!bResult)
 	{
-		gcLogger.Error2("Cannot read from CDurableFile [", mszFileName.Text(), "] that cannot Seek.", NULL);
+		gcLogger.Error2(__METHOD__, " Cannot read from CDurableFile [", mszFileName.Text(), "] that cannot Seek.", NULL);
 		return 0;
 	}
 
 	bResult = mpcPrimaryFile->ReadData(pvDest, iBytes);
 	if (!bResult)
 	{
-		gcLogger.Error2("Cannot read from CDurableFile [", mszFileName.Text(), "].  An unknown error occurred.", NULL);
+		gcLogger.Error2(__METHOD__, " Cannot read from CDurableFile [", mszFileName.Text(), "].  An unknown error occurred.", NULL);
 		return 0;
 	}
 
@@ -1020,7 +1016,7 @@ filePos CDurableFile::Tell(void)
 {
 	if (!IsBegun())
 	{
-		gcLogger.Error2("Cannot tell from CDurableFile [", mszFileName.Text(), "] that is not Begun.", NULL);
+		gcLogger.Error2(__METHOD__, "Cannot tell from CDurableFile [", mszFileName.Text(), "] that is not Begun.", NULL);
 		return -1;
 	}
 
@@ -1055,7 +1051,7 @@ filePos CDurableFile::Size(void)
 {
 	if (!IsBegun())
 	{
-		gcLogger.Error2("Cannot size from CDurableFile [", mszFileName.Text(), "] that is not Begun.", NULL);
+		gcLogger.Error2(__METHOD__, "Cannot size from CDurableFile [", mszFileName.Text(), "] that is not Begun.", NULL);
 		return -1;
 	}
 

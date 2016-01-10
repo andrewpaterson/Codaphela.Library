@@ -52,7 +52,7 @@ protected:
 
 	BOOL					mbCaching;
 	BOOL					mbWriteThrough;
-	BOOL					mbTransient;
+	BOOL					mbTransient;  //Remove transient.  WTF was the point?
 
 public:
 	void 			Init(char* szWorkingDirectory, unsigned int uiCacheSize, BOOL bDurable);  //Old style for testing.

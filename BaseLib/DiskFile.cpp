@@ -107,7 +107,7 @@ BOOL CDiskFile::Close(void)
 	iReturn = fclose(mpsFileHandle);
 	if (iReturn == 0)
 	{
-		//File closed safetly.
+		//File closed safely.
 		mpsFileHandle = NULL;
 	}
 	return iReturn == 0;
@@ -144,8 +144,15 @@ filePos CDiskFile::Read(void* pvBuffer, filePos iSize, filePos iCount)
 {
 	filePos		iRead;
 
-	iRead = (filePos)fread(pvBuffer, (size_t)iSize, (size_t)iCount, mpsFileHandle);
-	return iRead;
+	if (IsOpen())
+	{
+		iRead = (filePos)fread(pvBuffer, (size_t)iSize, (size_t)iCount, mpsFileHandle);
+		return iRead;
+	}
+	else
+	{
+		return 0;
+	}
 }
 
 
@@ -157,8 +164,15 @@ BOOL CDiskFile::Seek(filePos iOffset, EFileSeekOrigin iSeekOrigin)
 {
 	int		iResult;
 
-	iResult = fseek(mpsFileHandle, (size_t)iOffset, iSeekOrigin);
-	return iResult == 0;
+	if (IsOpen())
+	{
+		iResult = fseek(mpsFileHandle, (size_t)iOffset, iSeekOrigin);
+		return iResult == 0;
+	}
+	else
+	{
+		return FALSE;
+	}
 }
 
 
@@ -170,8 +184,15 @@ filePos CDiskFile::Write(const void* pvBuffer, filePos iSize, filePos iCount)
 {
 	filePos	iWritten;
 
-	iWritten = (filePos)fwrite(pvBuffer, (size_t)iSize, (size_t)iCount, mpsFileHandle);
-	return iWritten;
+	if (IsOpen())
+	{
+		iWritten = (filePos)fwrite(pvBuffer, (size_t)iSize, (size_t)iCount, mpsFileHandle);
+		return iWritten;
+	}
+	else
+	{
+		return 0;
+	}
 }
 
 
@@ -181,7 +202,14 @@ filePos CDiskFile::Write(const void* pvBuffer, filePos iSize, filePos iCount)
 //////////////////////////////////////////////////////////////////////////
 filePos CDiskFile::Tell(void)
 {
-	return ftell(mpsFileHandle);
+	if (IsOpen())
+	{
+		return ftell(mpsFileHandle);
+	}
+	else
+	{
+		return 0;
+	}
 }
 
 
@@ -191,7 +219,14 @@ filePos CDiskFile::Tell(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CDiskFile::Eof(void)
 {
-	return FixBool(feof(mpsFileHandle));
+	if (IsOpen())
+	{
+		return FixBool(feof(mpsFileHandle));
+	}
+	else
+	{
+		return TRUE;
+	}
 }
 
 
@@ -235,7 +270,14 @@ filePos CDiskFile::Size(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CDiskFile::Flush(void)
 {
-	return fflush(mpsFileHandle) != 0;
+	if (IsOpen())
+	{
+		return fflush(mpsFileHandle) != 0;
+	}
+	else
+	{
+		return TRUE;
+	}
 }
 
 
