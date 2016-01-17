@@ -22,10 +22,16 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #include <stdio.h>
 #include <string.h>
+#include "Define.h"
 #include "IntegerHelper.h"
 #include "ConstructorCall.h"
 #include "MemoryFile.h"
 #define MEMORY_FILE_CHUNK_SIZE	4096
+
+#define MEMORY_FILE_READ_FLAG         0x0001
+#define MEMORY_FILE_WRITE_FLAG        0x0002
+#define MEMORY_FILE_EOF_FLAG          0x0010
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -76,7 +82,7 @@ BOOL CMemoryFile::Open(EFileMode eFileMode)
 	if (IsFileModeWritable(eFileMode))
 	{
 		mbFakeArray = FALSE;
-		iFlags = _IOREAD | _IOWRT;
+		iFlags = MEMORY_FILE_READ_FLAG | MEMORY_FILE_WRITE_FLAG;
 		if (miInitialLength != 0)
 		{
 			cArray.InsertBlockAt((char*)mpvInitialMem, miInitialLength, 0);
@@ -86,7 +92,7 @@ BOOL CMemoryFile::Open(EFileMode eFileMode)
 	else if (IsFileModeReadOnly(eFileMode))
 	{
 		mbFakeArray = TRUE;
-		iFlags = _IOREAD;
+		iFlags = MEMORY_FILE_READ_FLAG;
 		if (miInitialLength != 0)
 		{
 			cArray.ReInit();
@@ -112,11 +118,11 @@ BOOL CMemoryFile::Close(void)
 	if (mbOpen)
 	{
 		mbOpen = FALSE;
-		if (iFlags & _IOWRT)
+		if (iFlags & MEMORY_FILE_WRITE_FLAG)
 		{
 			return TRUE;
 		}
-		if (iFlags & _IOREAD)
+		if (iFlags & MEMORY_FILE_READ_FLAG)
 		{
 			return TRUE;
 		}
@@ -136,7 +142,7 @@ filePos CMemoryFile::Read(void* pvBuffer, filePos iSize, filePos iCount)
 	filePos	iNumCopied;
 	filePos	iOldPos;
 
-	if (iFlags & _IOREAD)
+	if (iFlags & MEMORY_FILE_READ_FLAG)
 	{
 		iOldPos = iPos;
 		iAmountToRead = (int)(iSize * iCount);
@@ -146,7 +152,7 @@ filePos CMemoryFile::Read(void* pvBuffer, filePos iSize, filePos iCount)
 		{
 			iNumCopied = iAmountToCopy / (int)iSize;
 			iAmountToCopy = iNumCopied * iSize;
-			iFlags |= _IOEOF;
+			iFlags |= MEMORY_FILE_EOF_FLAG;
 			iPos = cArray.NumElements();
 		}
 		else
@@ -157,11 +163,11 @@ filePos CMemoryFile::Read(void* pvBuffer, filePos iSize, filePos iCount)
 
 			if (iPos == cArray.NumElements())
 			{
-				iFlags |= _IOEOF;
+				iFlags |= MEMORY_FILE_EOF_FLAG;
 			}
 			else
 			{
-				iFlags &= ~_IOEOF;
+				iFlags &= ~MEMORY_FILE_EOF_FLAG;
 			}
 		}
 		memcpy(pvBuffer, cArray.Get((int)iOldPos), (int)iAmountToCopy);
@@ -201,11 +207,11 @@ BOOL CMemoryFile::Seek(filePos iOffset, EFileSeekOrigin iSeekOrigin)
 
 	if (iPos == cArray.NumElements())
 	{
-		iFlags |= _IOEOF;
+		iFlags |= MEMORY_FILE_EOF_FLAG;
 	}
 	else
 	{
-		iFlags &= ~_IOEOF;
+		iFlags &= ~MEMORY_FILE_EOF_FLAG;
 	}
 	return TRUE;
 }
@@ -220,7 +226,7 @@ filePos CMemoryFile::Write(const void* pvBuffer, filePos iSize, filePos iCount)
 	filePos iAmountToCopy;
 	filePos	iAmountToAdd;
 
-	if (iFlags & _IOWRT)
+	if (iFlags & MEMORY_FILE_WRITE_FLAG)
 	{
 		iAmountToCopy = iSize * iCount;
 		iAmountToAdd = iAmountToCopy - (cArray.NumElements() - iPos);
@@ -238,11 +244,11 @@ filePos CMemoryFile::Write(const void* pvBuffer, filePos iSize, filePos iCount)
 
 		if (iPos == cArray.NumElements())
 		{
-			iFlags |= _IOEOF;
+			iFlags |= MEMORY_FILE_EOF_FLAG;
 		}
 		else
 		{
-			iFlags &= ~_IOEOF;
+			iFlags &= ~MEMORY_FILE_EOF_FLAG;
 		}
 		return iCount;
 	}
@@ -266,7 +272,7 @@ filePos CMemoryFile::Tell(void)
 //////////////////////////////////////////////////////////////////////////
 int CMemoryFile::Eof(void)
 {
-	return FixBool(iFlags & _IOEOF);
+	return FixBool(iFlags & MEMORY_FILE_EOF_FLAG);
 }
 
 

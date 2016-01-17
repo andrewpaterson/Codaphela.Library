@@ -79,13 +79,6 @@ typedef int BOOL;
 #define engine_stricmp(p,q) strcmpi(p,q)
 #define ENGINE_SIZE_T
 //#define MAX_PATH 260
-//#define _IOREAD         0x0001
-//#define _IOWRT          0x0002
-//#define _IOMYBUF        0x0008
-//#define _IOEOF          0x0010
-//#define _IOERR          0x0020
-//#define _IOSTRG         0x0040
-//#define _IORW           0x0080
 #define INT_MAX         0x7fffffff
 #define FILE_SEPARATOR "\\"
 #define OTHER_OS_FILE_SEPARATOR "/"
@@ -108,13 +101,6 @@ typedef int BOOL;
 #define ENGINE_SIZE_T
 #define EngineOutput(p)	printf(p)
 #define MAX_PATH 4096
-#define _IOREAD         0x0001
-#define _IOWRT          0x0002
-#define _IOMYBUF        0x0008
-#define _IOEOF          0x0010
-#define _IOERR          0x0020
-#define _IOSTRG         0x0040
-#define _IORW           0x0080
 #define INT_MAX         0x7fffffff
 #define FILE_SEPARATOR "/"
 #define OTHER_OS_FILE_SEPARATOR "\\"

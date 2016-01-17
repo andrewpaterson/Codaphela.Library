@@ -87,6 +87,7 @@ void CIndexedData::Kill(void)
 	{
 		if (!mcDurableFileControl.IsDurable())
 		{
+			//x
 			KillNonTransientNonDurable();
 		}
 		else
@@ -143,8 +144,10 @@ void CIndexedData::KillTransient(void)
 //////////////////////////////////////////////////////////////////////////
 void CIndexedData::KillNonTransientNonDurable(void)
 {
+	DurableBegin();
 	Flush(TRUE);
 	CloseFiles();
+	DurableEnd();
 }
 
 
