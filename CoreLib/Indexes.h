@@ -32,7 +32,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 struct SIndexedLevel
 {
-	(SIndexedLevel*)	apsLevels[INDEXED_LEVELS_IN_LEVEL];  //Points
+	SIndexedLevel*	apsLevels[INDEXED_LEVELS_IN_LEVEL];  //Points
 
 	void Init(void);
 	BOOL IsEmpty(void);
@@ -41,9 +41,9 @@ struct SIndexedLevel
 
 struct SIndexesIterator
 {
-	(SIndexedLevel*)	apsLevels[MAX_INDEXED_LEVEL_DEPTH+1];
-	int					aiIndex[MAX_INDEXED_LEVEL_DEPTH+1];
-	OIndex				oi;
+	SIndexedLevel*	apsLevels[MAX_INDEXED_LEVEL_DEPTH+1];
+	int				aiIndex[MAX_INDEXED_LEVEL_DEPTH+1];
+	OIndex			oi;
 
 	void Init(SIndexedLevel* psTop);
 };
