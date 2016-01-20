@@ -434,20 +434,28 @@ BOOL CArrayTemplatePrimitive<M>::IsSorted(void)
 	M		iValue;
 	M		iLast;
 
-
-	for (i = 0; i < this->miUsedElements; i++)
+	if (miUsedElements > 1)
 	{
-		iValue = GetValue(i);
-		if (i != 0)
+		iLast = GetValue(0);
+
+		for (i = 1; i < miUsedElements; i++)
 		{
-			if (iValue < iLast)
+			iValue = GetValue(i);
+			if (i != 0)
 			{
-				return FALSE;
+				if (iValue < iLast)
+				{
+					return FALSE;
+				}
 			}
+			iLast = iValue;
 		}
-		iLast = iValue;
+		return TRUE;
 	}
-	return TRUE;
+	else
+	{
+		return TRUE;
+	}
 }
 
 
