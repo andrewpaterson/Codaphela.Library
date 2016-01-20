@@ -24,6 +24,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define __LOGGER_H__
 #include "Define.h"
 #include "LogConfig.h"
+#include "LogString.h"
 
 
 class CAbstractFile;
