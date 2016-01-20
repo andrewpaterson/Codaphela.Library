@@ -1,4 +1,4 @@
-#include "define.h"
+#include "Logger.h"
 #include "SystemAllocator.h"
 
 
@@ -21,7 +21,14 @@ void* CSystemAllocator::Malloc(size_t tSize)
 //////////////////////////////////////////////////////////////////////////
 void CSystemAllocator::Free(void* pv)
 {
-	free(pv);
+	if (pv != NULL)
+	{
+		free(pv);
+	}
+	else
+	{
+		gcLogger.Error2(__METHOD__, "Tried to free NULL pointer.", NULL);
+	}
 }
 
 
@@ -31,7 +38,14 @@ void CSystemAllocator::Free(void* pv)
 //////////////////////////////////////////////////////////////////////////
 void* CSystemAllocator::Realloc(void* pv, size_t tSize)
 {
-	pv = realloc(pv, tSize);
+	if (pv == NULL)
+	{
+		pv = malloc(tSize);
+	}
+	else
+	{ 
+		pv = realloc(pv, tSize);
+	}
 	return pv;
 }
 
