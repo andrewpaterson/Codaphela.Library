@@ -38,7 +38,6 @@ public:
 	// assignment operators
 	SQuaternion& operator += (const SQuaternion&);
 	SQuaternion& operator -= (const SQuaternion&);
-	SQuaternion& operator *= (const SQuaternion&);
 	SQuaternion& operator *= (float);
 	SQuaternion& operator /= (float);
 
@@ -49,7 +48,6 @@ public:
 	// binary operators
 	SQuaternion operator + (const SQuaternion&) const;
 	SQuaternion operator - (const SQuaternion&) const;
-	SQuaternion operator * (const SQuaternion&) const;
 	SQuaternion operator * (float) const;
 	SQuaternion operator / (float) const;
 
@@ -60,8 +58,6 @@ public:
 };
 
 
-void	QuaternionMultiply(SQuaternion* pOut, const SQuaternion* pQ1, const SQuaternion* pQ2);
 
-
-#endif __QUATERNION_H__
+#endif // __QUATERNION_H__
 

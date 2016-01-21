@@ -83,7 +83,7 @@ BOOL CChunkFile::WriteClose(void)
 	((CMD5HashFile*)mpcFile)->ResetHash();
 	ReturnOnFalse(WriteChunkNames());
 	((CMD5HashFile*)mpcFile)->StopHashing();
-	((CMD5HashFile*)mpcFile)->CopyDigestToDest(msHeader.acMD5Hash);
+	((CMD5HashFile*)mpcFile)->CopyDigestToDest(msHeader.macMD5Hash);
 	CFileBasic::Seek(0);
 	ReturnOnFalse(CFileBasic::WriteData(&msHeader, sizeof(CChunkFileHeader)));
 	CFileBasic::Seek(0, EFSO_END);
@@ -105,12 +105,12 @@ BOOL CChunkFile::ReadOpen(void)
 
 	mcChunkStack.Init(5);
 	mmsziNames.Init(8);
-	msHeader.iChunkNamesPos = -1;
+	msHeader.miChunkNamesPos = -1;
 	miLastName = CFN_Error;
 
 	ReturnOnFalse(CFileBasic::Open(EFM_Read));
 	ReturnOnFalse(CFileBasic::Read(&msHeader, sizeof(CChunkFileHeader), 1));
-	if (msHeader.iMagic != CHUNK_HEADER_MAGIC)
+	if (msHeader.miMagic != CHUNK_HEADER_MAGIC)
 	{
 		return FALSE;
 	}
@@ -118,7 +118,7 @@ BOOL CChunkFile::ReadOpen(void)
 	((CMD5HashFile*)mpcFile)->StartHashing();
 	ReturnOnFalse(ReadChunkNames());
 	((CMD5HashFile*)mpcFile)->StopHashing();
-	iResult = memcmp(((CMD5HashFile*)mpcFile)->msMD5Context.digest, msHeader.acMD5Hash, 16);
+	iResult = memcmp(((CMD5HashFile*)mpcFile)->msMD5Context.digest, msHeader.macMD5Hash, 16);
 	if (iResult != 0)
 	{
 		return FALSE;
@@ -220,20 +220,20 @@ BOOL CChunkFile::WriteChunkEnd(int iChunkName)
 	//How can there ever not be an element?
 	if (psElement)
 	{
-		psElement->sHeader.iChunkSize = iFilePos - psElement->iChunkHeaderPos - sizeof(CChunkHeader);
-		psElement->sHeader.iName = iChunkName;
+		psElement->sHeader.miChunkSize = iFilePos - psElement->iChunkHeaderPos - sizeof(CChunkHeader);
+		psElement->sHeader.miName = iChunkName;
 
 		((CMD5HashFile*)mpcFile)->StopHashing();
-		((CMD5HashFile*)mpcFile)->CopyDigestToDest(psElement->sHeader.acMD5Hash);
+		((CMD5HashFile*)mpcFile)->CopyDigestToDest(psElement->sHeader.macMD5Hash);
 		if (psElement->bContainsChunks)
 		{
-			psElement->sHeader.iChunkIndexPos = iFilePos;
+			psElement->sHeader.miChunkIndexPos = iFilePos;
 		}
 
 		if (psParent)
 		{
 			psIndexParent = psParent->cChunkIndex.mcChunkIndices.Add();
-			psIndexParent->Init(psElement->iChunkHeaderPos + sizeof(CChunkHeader), iChunkName, psElement->sHeader.iChunkSize);
+			psIndexParent->Init(psElement->iChunkHeaderPos + sizeof(CChunkHeader), iChunkName, psElement->sHeader.miChunkSize);
 		}
 
 		CFileBasic::Seek(psElement->iChunkHeaderPos, EFSO_SET);
@@ -266,7 +266,7 @@ BOOL CChunkFile::WriteChunkEnd(int iChunkName)
 //////////////////////////////////////////////////////////////////////////
 BOOL CChunkFile::WriteChunkNames(void)
 {
-	msHeader.iChunkNamesPos = CFileBasic::GetFilePos();
+	msHeader.miChunkNamesPos = CFileBasic::GetFilePos();
 
 	return mmsziNames.Write(this);
 }
@@ -286,12 +286,12 @@ BOOL CChunkFile::__PrivateReadChunkBegin(void)
 
 	psElement->cChunkIndex.ReadInit();
 
-	if (psElement->sHeader.iMagic != CHUNK_HEADER_MAGIC)
+	if (psElement->sHeader.miMagic != CHUNK_HEADER_MAGIC)
 	{
 		return FALSE;
 	}
 
-	if (psElement->sHeader.iChunkIndexPos != -1)
+	if (psElement->sHeader.miChunkIndexPos != -1)
 	{
 		psElement->bContainsChunks = 1;
 	}
@@ -301,7 +301,7 @@ BOOL CChunkFile::__PrivateReadChunkBegin(void)
 	}
 	if (psElement->bContainsChunks)
 	{
-		__PrivateReadChunkIndex(psElement->sHeader.iChunkIndexPos, &psElement->cChunkIndex);
+		__PrivateReadChunkIndex(psElement->sHeader.miChunkIndexPos, &psElement->cChunkIndex);
 		CFileBasic::Seek(psElement->iChunkHeaderPos + sizeof(CChunkHeader), EFSO_SET);
 	}
 	((CMD5HashFile*)mpcFile)->StartHashing();
@@ -482,7 +482,7 @@ BOOL CChunkFile::ReadChunkEnd(void)
 	if (psElement)
 	{
 		((CMD5HashFile*)mpcFile)->StopHashing();
-		iResult = memcmp(((CMD5HashFile*)mpcFile)->msMD5Context.digest, psElement->sHeader.acMD5Hash, 16);
+		iResult = memcmp(((CMD5HashFile*)mpcFile)->msMD5Context.digest, psElement->sHeader.macMD5Hash, 16);
 		mbLastHashCheck = TRUE;
 		if (iResult != 0)
 		{
@@ -491,13 +491,13 @@ BOOL CChunkFile::ReadChunkEnd(void)
 
 		if (psElement->bContainsChunks)
 		{
-			iSeekPos = psElement->sHeader.iChunkIndexPos;
+			iSeekPos = psElement->sHeader.miChunkIndexPos;
 			iSeekPos += psElement->cChunkIndex.mcChunkIndices.ByteSize() + sizeof(int)*2 + sizeof(int)*3 + sizeof(void*);
 		}
 		else
 		{
 			iSeekPos = psElement->iChunkHeaderPos;
-			iSeekPos += psElement->sHeader.iChunkSize;
+			iSeekPos += psElement->sHeader.miChunkSize;
 		}
 		CFileBasic::Seek(iSeekPos, EFSO_SET);
 		psElement->cChunkIndex.Kill();
@@ -537,7 +537,7 @@ BOOL CChunkFile::ReadChunkNames(void)
 	BOOL			bResult;
 	SMapIterator	sIter;
 
-	CFileBasic::Seek(msHeader.iChunkNamesPos);
+	CFileBasic::Seek(msHeader.miChunkNamesPos);
 
 	bResult = mmsziNames.Read(this);
 	if (!bResult)
@@ -571,7 +571,7 @@ void* CChunkFile::GetMD5Hash(void)
 	psElement = mcChunkStack.Tail();
 	if (psElement)
 	{
-		return psElement->sHeader.acMD5Hash;
+		return psElement->sHeader.macMD5Hash;
 	}
 	return NULL;
 }
@@ -615,7 +615,7 @@ filePos CChunkFile::ChunkSize(void)
 	psElement = mcChunkStack.Tail();
 	if (psElement)
 	{
-		return psElement->sHeader.iChunkSize;
+		return psElement->sHeader.miChunkSize;
 	}
 	return 0;
 }

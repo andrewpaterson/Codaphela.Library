@@ -8,10 +8,10 @@
 void CChunkFileHeader::WriteInit(int iUserID)
 {
 	memset(this, 0xEE, sizeof(CChunkFileHeader));
-	this->iUserID = iUserID;
-	iChunkNamesPos = -1;
-	memset(acMD5Hash, 0, 16);
-	iMagic = CHUNK_HEADER_MAGIC;
+	miUserID = iUserID;
+	miChunkNamesPos = -1;
+	memset(macMD5Hash, 0, 16);
+	miMagic = CHUNK_HEADER_MAGIC;
 }
 
 
@@ -22,9 +22,9 @@ void CChunkFileHeader::WriteInit(int iUserID)
 void CChunkHeader::WriteInit(void)
 {
 	memset(this, 0xEE, sizeof(CChunkFileHeader));
-	iChunkIndexPos = -1;
-	iChunkSize = 0;
-	iName = -1;
-	memset(acMD5Hash, 0, 16);
-	iMagic = CHUNK_HEADER_MAGIC;
+	miChunkIndexPos = -1;
+	miChunkSize = 0;
+	miName = -1;
+	memset(macMD5Hash, 0, 16);
+	miMagic = CHUNK_HEADER_MAGIC;
 }

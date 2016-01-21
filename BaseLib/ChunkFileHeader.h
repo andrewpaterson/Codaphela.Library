@@ -9,10 +9,10 @@
 class CChunkFileHeader
 {
 public:
-	int			iUserID;
-	filePos		iChunkNamesPos;
-	char		acMD5Hash[16];  //0's if not hashed.
-	int			iMagic;
+	int			miUserID;
+	filePos		miChunkNamesPos;
+	char		macMD5Hash[16];  //0's if not hashed.
+	int			miMagic;
 
 	void		WriteInit(int iUserID);
 };
@@ -21,11 +21,11 @@ public:
 class CChunkHeader
 {
 public:
-	int		iName;
-	filePos	iChunkSize;
-	filePos	iChunkIndexPos;  // -1 if no index.
-	char	acMD5Hash[16];  //0's if not hashed.
-	int		iMagic;
+	int		miName;
+	filePos	miChunkSize;
+	filePos	miChunkIndexPos;  // -1 if no index.
+	char	macMD5Hash[16];  //0's if not hashed.
+	int		miMagic;
 
 	void WriteInit(void);
 };

@@ -3,7 +3,7 @@ void EqualIntShort(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL)
 void EqualIntChar(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL)(*(int*)pvLeft == *(char*)pvRight); }
 void EqualIntFloat(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL)(*(int*)pvLeft == *(float*)pvRight); }
 void EqualIntDouble(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL)(*(int*)pvLeft == *(double*)pvRight); }
-void EqualIntUInt(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL)(*(int*)pvLeft == *(unsigned int*)pvRight); }
+void EqualIntUInt(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL)(*(int*)pvLeft == (int)(*(unsigned int*)pvRight)); }
 void EqualIntUShort(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL)(*(int*)pvLeft == *(unsigned short*)pvRight); }
 void EqualIntUChar(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL)(*(int*)pvLeft == *(unsigned char*)pvRight); }
 void EqualIntLong(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL)(*(int*)pvLeft == *(long long int*)pvRight); }
@@ -13,7 +13,7 @@ void EqualShortShort(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOO
 void EqualShortChar(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL)(*(short*)pvLeft == *(char*)pvRight); }
 void EqualShortFloat(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL)(*(short*)pvLeft == *(float*)pvRight); }
 void EqualShortDouble(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL)(*(short*)pvLeft == *(double*)pvRight); }
-void EqualShortUInt(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL)(*(short*)pvLeft == *(unsigned int*)pvRight); }
+void EqualShortUInt(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL)(*(short*)pvLeft == (short)(*(unsigned int*)pvRight)); }
 void EqualShortUShort(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL)(*(short*)pvLeft == *(unsigned short*)pvRight); }
 void EqualShortUChar(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL)(*(short*)pvLeft == *(unsigned char*)pvRight); }
 void EqualShortLong(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL)(*(short*)pvLeft == *(long long int*)pvRight); }
@@ -23,7 +23,7 @@ void EqualCharShort(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL
 void EqualCharChar(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL)(*(char*)pvLeft == *(char*)pvRight); }
 void EqualCharFloat(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL)(*(char*)pvLeft == *(float*)pvRight); }
 void EqualCharDouble(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL)(*(char*)pvLeft == *(double*)pvRight); }
-void EqualCharUInt(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL)(*(char*)pvLeft == *(unsigned int*)pvRight); }
+void EqualCharUInt(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL)(*(char*)pvLeft == (char)(*(unsigned int*)pvRight)); }
 void EqualCharUShort(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL)(*(char*)pvLeft == *(unsigned short*)pvRight); }
 void EqualCharUChar(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL)(*(char*)pvLeft == *(unsigned char*)pvRight); }
 void EqualCharLong(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL)(*(char*)pvLeft == *(long long int*)pvRight); }
@@ -48,9 +48,9 @@ void EqualDoubleUShort(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (B
 void EqualDoubleUChar(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL)(*(double*)pvLeft == *(unsigned char*)pvRight); }
 void EqualDoubleLong(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL)(*(double*)pvLeft == *(long long int*)pvRight); }
 void EqualDoubleULong(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL)(*(double*)pvLeft == *(unsigned long long int*)pvRight); }
-void EqualUIntInt(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL)(*(unsigned int*)pvLeft == *(int*)pvRight); }
-void EqualUIntShort(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL)(*(unsigned int*)pvLeft == *(short*)pvRight); }
-void EqualUIntChar(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL)(*(unsigned int*)pvLeft == *(char*)pvRight); }
+void EqualUIntInt(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL)(*(unsigned int*)pvLeft == (unsigned int)(*(int*)pvRight)); }
+void EqualUIntShort(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL)(*(unsigned int*)pvLeft == (unsigned int)(*(short*)pvRight)); }
+void EqualUIntChar(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL)(*(unsigned int*)pvLeft == (unsigned int)(*(char*)pvRight)); }
 void EqualUIntFloat(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL)(*(unsigned int*)pvLeft == *(float*)pvRight); }
 void EqualUIntDouble(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL)(*(unsigned int*)pvLeft == *(double*)pvRight); }
 void EqualUIntUInt(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL)(*(unsigned int*)pvLeft == *(unsigned int*)pvRight); }
@@ -87,7 +87,7 @@ void EqualLongUInt(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL)
 void EqualLongUShort(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL)(*(long long int*)pvLeft == *(unsigned short*)pvRight); }
 void EqualLongUChar(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL)(*(long long int*)pvLeft == *(unsigned char*)pvRight); }
 void EqualLongLong(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL)(*(long long int*)pvLeft == *(long long int*)pvRight); }
-void EqualLongULong(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL)(*(long long int*)pvLeft == *(unsigned long long int*)pvRight); }
+void EqualLongULong(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL)(*(long long int*)pvLeft == (long long int)(*(unsigned long long int*)pvRight)); }
 void EqualULongInt(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL)(*(unsigned long long int*)pvLeft == *(int*)pvRight); }
 void EqualULongShort(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL)(*(unsigned long long int*)pvLeft == *(short*)pvRight); }
 void EqualULongChar(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL)(*(unsigned long long int*)pvLeft == *(char*)pvRight); }
@@ -96,5 +96,5 @@ void EqualULongDouble(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BO
 void EqualULongUInt(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL)(*(unsigned long long int*)pvLeft == *(unsigned int*)pvRight); }
 void EqualULongUShort(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL)(*(unsigned long long int*)pvLeft == *(unsigned short*)pvRight); }
 void EqualULongUChar(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL)(*(unsigned long long int*)pvLeft == *(unsigned char*)pvRight); }
-void EqualULongLong(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL)(*(unsigned long long int*)pvLeft == *(long long int*)pvRight); }
+void EqualULongLong(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL)(*(unsigned long long int*)pvLeft == (unsigned long long int)(*(long long int*)pvRight)); }
 void EqualULongULong(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL)(*(unsigned long long int*)pvLeft == *(unsigned long long int*)pvRight); }

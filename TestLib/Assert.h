@@ -33,7 +33,7 @@ along with Codaphela TestLib.  If not, see <http://www.gnu.org/licenses/>.
 
 
 void PrivateBeginTests(char* szFile);
-void PrivateTestStatistics(char* szFile);
+void PrivateTestStatistics();
 int  TestTotalStatistics(void);
 void InitTotalStatistics(void);
 
@@ -67,7 +67,7 @@ BOOL PrivateAssertFileMemory(char* szExpectedFileName, void* pcMemory, int iLeng
 BOOL PrivateAssertFileString(char* szExpectedFileName, char* szString, int iLine, char* szFile);
 
 
-#define TestStatistics()			PrivateTestStatistics(__FILE__)
+#define TestStatistics()			PrivateTestStatistics()
 #define BeginTests()				PrivateBeginTests(__FILE__)
 #define AssertString(e, a)			Validate(PrivateAssertString(e, a, TRUE, __LINE__, __FILE__))
 #define AssertStringCase(e, a, c)	Validate(PrivateAssertString(e, a, c, __LINE__, __FILE__))

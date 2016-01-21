@@ -79,7 +79,7 @@ void PrivateBeginTests(char* szFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void PrivateTestStatistics(char* szFile)
+void PrivateTestStatistics(void)
 {
 	CChars	sz;
 
@@ -599,14 +599,14 @@ BOOL PrivateAssertNumber(char* szExpected, CNumber* pcActual, int iLine, char* s
 	CChars		szActual;
 	CChars		szFake;
 	int			iIndex;
-	int			iDecimals;
+	short		iDecimals;
 	BOOL		bResult;
 
 	szFake.Fake(szExpected);
 	iIndex = szFake.Find(0, '.');
 	if (iIndex != -1)
 	{
-		iDecimals = szFake.Length() - iIndex;
+		iDecimals = (short)(szFake.Length() - iIndex);
 	}
 	else
 	{

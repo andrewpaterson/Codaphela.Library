@@ -840,7 +840,7 @@ int CArrayBlock::GrowToNumElements(int iNumElements)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CArrayBlock::GrowToAtLeastNumElements(int iNumElements, BOOL bClear, int iClear)
+void* CArrayBlock::GrowToAtLeastNumElements(int iNumElements, BOOL bClear, unsigned char iClear)
 {
 	int	iOldUsedElements;
 	void*	pvStart;
@@ -1066,6 +1066,7 @@ BOOL CArrayBlock::BinarySearch(void* pData, int iLeft, int iRight, int(* Func)(c
 	void*	pvMiddle;
 
 	iResultMiddle = 0;
+	iMiddle = 0;
 	while (iLeft <= iRight)
 	{
 		iMiddle = (iLeft + iRight) >> 1; //Divide by 2

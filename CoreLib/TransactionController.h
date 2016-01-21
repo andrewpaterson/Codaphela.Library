@@ -53,7 +53,7 @@ public:
 
 	void 			Init(char* szDirectory, unsigned int uiCacheSize, BOOL bDurable);
 	void 			Kill(void);
-	void			InitState(BOOL bDurable);
+	void			InitState(void);
 
 	CTransaction*	BeginTransaction(BOOL bMicro = FALSE);
 	BOOL			EndTransaction(CTransaction* pcTransaction, BOOL bCommit);

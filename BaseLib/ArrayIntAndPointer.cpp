@@ -232,6 +232,7 @@ BOOL CArrayIntAndPointer::BinarySearch(void* pvData, int iLeft, int iRight, int(
 	void*	pvMiddle;
 
 	iResultMiddle = 0;
+	iMiddle = 0;
 	while (iLeft <= iRight)
 	{
 		iMiddle = (iLeft + iRight) >> 1; //Divide by 2

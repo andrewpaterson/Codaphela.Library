@@ -137,7 +137,8 @@ CMarkupTag* CMarkupTag::GetTag(char* szTagName, int iTagNumber)
 	sIter.iIndex = -1;
 	sIter.mpcCurrent = NULL;
 	sIter.bNamed = TRUE;
-	
+
+	pcTag = NULL;
 	for (i = 0; i <= iTagNumber; i++)
 	{
 		pcTag = GetTagFromIndex(szTagName, &sIter);

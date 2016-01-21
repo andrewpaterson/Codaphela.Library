@@ -203,12 +203,6 @@ void* CFreeList::Add(SFNode** ppsNode)
 			return pvTemp;
 		}
 	}
-
-	if (ppsNode)
-	{
-		*ppsNode = NULL;
-	}
-	return NULL;
 }
 
 

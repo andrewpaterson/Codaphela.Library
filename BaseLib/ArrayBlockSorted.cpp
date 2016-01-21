@@ -35,7 +35,7 @@ void CArrayBlockSorted::Init(CMallocator* pcMallocator, int iElementSize, int iC
 	miHoldingBufferSize = iHoldingBufferSize;
 	miChunkSize = iChunkSize;
 	miElementSize = iElementSize;
-	this->Func = Func;
+	mFunc = Func;
 	mbOverwrite = FALSE;
 
 	maSortedArray.Init(pcMallocator, iElementSize, miChunkSize);
@@ -145,7 +145,7 @@ BOOL CArrayBlockSorted::InsertIntoArrayBlock(CArrayBlock* paBlock, void* pv)
 	int				iIndex;
 	BOOL			bFound;
 
-	bFound = paBlock->FindInSorted(pv, Func, &iIndex);
+	bFound = paBlock->FindInSorted(pv, mFunc, &iIndex);
 	if (!bFound)
 	{
 		paBlock->InsertAt(pv, iIndex);
@@ -250,7 +250,7 @@ void CArrayBlockSorted::SortMerge(CArrayBlock* paMergedArray)
 		paMergedArray->InsertArrayAfterEnd(paHoldingArray);
 	}
 
-	paMergedArray->QuickSort(Func);
+	paMergedArray->QuickSort(mFunc);
 }
 
 
@@ -324,7 +324,7 @@ int* CArrayBlockSorted::CalculateInsertionIndices(CArrayBlock* paMergedHoldingAr
 	for (i = 0; i < paMergedHoldingArrays->NumElements(); i++)
 	{
 		pv = paMergedHoldingArrays->Get(i);
-		bFound = maSortedArray.FindInSorted(pv, Func, &iIndex);
+		bFound = maSortedArray.FindInSorted(pv, mFunc, &iIndex);
 		mapiInsertionIndices[i] = iIndex;
 	}
 
@@ -414,7 +414,7 @@ void* CArrayBlockSorted::FindInHoldingArrays(void* pv)
 	for (i = 0; i < maaHoldingArrays.NumElements(); i++)
 	{
 		paHoldingArray = maaHoldingArrays.Get(i);
-		bFound = paHoldingArray->FindInSorted(pv, Func, &iIndex);
+		bFound = paHoldingArray->FindInSorted(pv, mFunc, &iIndex);
 		if (bFound)
 		{
 			pvData = paHoldingArray->Get(iIndex);
@@ -435,7 +435,7 @@ void* CArrayBlockSorted::FindInSortedArray(void* pv)
 	BOOL	bFound;
 	void*	pvData;
 
-	bFound = maSortedArray.FindInSorted(pv, Func, &iIndex);
+	bFound = maSortedArray.FindInSorted(pv, mFunc, &iIndex);
 	if (bFound)
 	{
 		pvData = maSortedArray.Get(iIndex);
@@ -460,7 +460,7 @@ BOOL CArrayBlockSorted::RemoveFromHoldingArrays(void* pv)
 	for (i = 0; i < maaHoldingArrays.NumElements(); i++)
 	{
 		paHoldingArray = maaHoldingArrays.Get(i);
-		bFound = paHoldingArray->FindInSorted(pv, Func, &iIndex);
+		bFound = paHoldingArray->FindInSorted(pv, mFunc, &iIndex);
 		if (bFound)
 		{
 			paHoldingArray->RemoveAt(iIndex);
@@ -480,7 +480,7 @@ BOOL CArrayBlockSorted::RemoveFromSortedArray(void* pv)
 	int		iIndex;
 	BOOL	bFound;
 
-	bFound = maSortedArray.FindInSorted(pv, Func, &iIndex);
+	bFound = maSortedArray.FindInSorted(pv, mFunc, &iIndex);
 	if (bFound)
 	{
 		maSortedArray.RemoveAt(iIndex);
@@ -630,7 +630,7 @@ BOOL CArrayBlockSorted::ReadHeader(CMallocator* pcMalloc, CFileReader* pcFileRea
 	miHoldingBufferSize = iHoldingBufferSize;
 	miChunkSize = iChunkSize;
 	miElementSize = iElementSize;
-	this->Func = Func;
+	mFunc = Func;
 	mbOverwrite = bOverwrite;
 
 	maaHoldingArrays.Allocate(mpcMalloc, iHoldingBuffers);

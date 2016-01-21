@@ -39,7 +39,7 @@ void CTransactionController::Init(char* szDirectory, unsigned int uiCacheSize, B
 	mszDirectory.Init(szDirectory);
 	mcIndexedData.Init(&cConfig);
 	mcTransactions.Init();
-	InitState(bDurable);
+	InitState();
 }
 
 
@@ -47,7 +47,7 @@ void CTransactionController::Init(char* szDirectory, unsigned int uiCacheSize, B
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTransactionController::InitState(BOOL bDurable)
+void CTransactionController::InitState(void)
 {
 	filePos		iRead;
 	CFileUtil	cFileUtil;

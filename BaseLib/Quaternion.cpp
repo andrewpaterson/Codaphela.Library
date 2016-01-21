@@ -83,17 +83,6 @@ SQuaternion& SQuaternion::operator -= (const SQuaternion& q)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SQuaternion& SQuaternion::operator *= (const SQuaternion& q)
-{
-	QuaternionMultiply(this, this, &q);
-	return *this;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 SQuaternion& SQuaternion::operator *= (float f)
 {
 	x *= f;
@@ -164,18 +153,6 @@ SQuaternion SQuaternion::operator - (const SQuaternion& q) const
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SQuaternion SQuaternion::operator * (const SQuaternion& q) const
-{
-	SQuaternion qT;
-	QuaternionMultiply(&qT, this, &q);
-	return qT;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 SQuaternion SQuaternion::operator * (float f) const
 {
 	return SQuaternion(x * f, y * f, z * f, w * f);
@@ -222,18 +199,3 @@ BOOL SQuaternion::operator != (const SQuaternion& q) const
 	return x != q.x || y != q.y || z != q.z || w != q.w;
 }
 
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void QuaternionMultiply(SQuaternion* pOut, const SQuaternion* pQ1, const SQuaternion* pQ2)
-{
-	exit(1);
-
-	//Let Q1 and Q2 be two quaternions, which are defined, respectively, as (x1, y1, z1, w1) and (x2, y2, z2, w2).
-	//	(Q1 * Q2).w = (w1w2 - x1x2 - y1y2 - z1z2)
-	//	(Q1 * Q2).x = (w1x2 + x1w2 + y1z2 - z1y2)
-	//	(Q1 * Q2).y = (w1y2 - x1z2 + y1w2 + z1x2)
-	//	(Q1 * Q2).z = (w1z2 + x1y2 - y1x2 + z1w2)
-}

@@ -21,7 +21,7 @@ protected:
 	CArrayBlock			maSortedArray;
 	CArrayArrayBlock	maaHoldingArrays;
 	CMallocator*		mpcMalloc;
-	int					(*Func)(const void*, const void*);
+	int					(*mFunc)(const void*, const void*);
 	int*				mapiInsertionIndices;
 
 	int					miElementSize;
