@@ -27,8 +27,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 struct SStackMark
 {
-	int		iUsedMemory;
-	int		iElements;
+	int		miUsedMemory;
+	int		miElements;
 
 	void Init(int iUsedMemory, int iElements);
 };

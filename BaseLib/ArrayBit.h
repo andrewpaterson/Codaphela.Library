@@ -61,8 +61,6 @@ public:
 	void	Set(int iBit, BOOL bBit);  //bBit can only take 1 or 0.
 	void	Set(int iOffset, void* pvSource, int iSourceOffset, int iNumBits);
 
-	void	Remove(int iOffset, int iNumBits);
-
 	BOOL	Read(CFileReader* pcFile);
 	BOOL	Write(CFileWriter* pcFile);
 

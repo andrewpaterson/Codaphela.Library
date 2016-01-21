@@ -52,7 +52,7 @@
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <PrecompiledHeader>
       </PrecompiledHeader>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>Level4</WarningLevel>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <StringPooling>false</StringPooling>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -187,7 +187,6 @@
     <ClInclude Include="Int4.h" />
     <ClInclude Include="Quaternion.h" />
     <ClInclude Include="DebugOutput.h" />
-    <ClInclude Include="Error.h" />
     <ClInclude Include="ErrorHandler.h" />
     <ClInclude Include="ErrorTypes.h" />
     <ClInclude Include="Logger.h" />
@@ -332,7 +331,6 @@
     <ClCompile Include="Int3.cpp" />
     <ClCompile Include="Int4.cpp" />
     <ClCompile Include="Quaternion.cpp" />
-    <ClCompile Include="Error.cpp" />
     <ClCompile Include="ErrorHandler.cpp" />
     <ClCompile Include="ErrorTypes.cpp" />
     <ClCompile Include="Logger.cpp" />

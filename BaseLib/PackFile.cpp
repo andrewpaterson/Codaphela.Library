@@ -61,7 +61,7 @@ BOOL CPackFile::Open(EFileMode eFileMode)
 			return TRUE;
 		}
 	}
-	else if (eFileMode = EFM_Read)
+	else if (eFileMode == EFM_Read)
 	{
 		if (mpcPackFiles->IsReadMode())
 		{
@@ -189,7 +189,7 @@ BOOL CPackFile::Flush(void)
 {
 	if (meMode == EFM_Write_Create)
 	{
-		return mpcPackFiles->Flush(mpsPackFile);
+		return mpcPackFiles->Flush();
 	}
 	return FALSE;
 }

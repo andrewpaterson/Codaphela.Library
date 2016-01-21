@@ -144,13 +144,13 @@ void SFloat4x4::ToString(CChars* psz, BOOL bOneLine, int iWholeNumbers, int iDec
 		iWholeNumbers = LargestInt(i, 4);
 	}
 
-	x.ToString(psz, iWholeNumbers);
+	x.ToString(psz, iWholeNumbers, iDecimals);
 	if (!bOneLine) psz->AppendNewLine();
-	y.ToString(psz, iWholeNumbers);
+	y.ToString(psz, iWholeNumbers, iDecimals);
 	if (!bOneLine) psz->AppendNewLine();
-	z.ToString(psz, iWholeNumbers);
+	z.ToString(psz, iWholeNumbers, iDecimals);
 	if (!bOneLine) psz->AppendNewLine();
-	pos.ToString(psz, iWholeNumbers);
+	pos.ToString(psz, iWholeNumbers, iDecimals);
 	if (!bOneLine) psz->AppendNewLine();
 }
 

@@ -146,8 +146,8 @@ SStackMark CMemoryStack::Mark(void)
 //////////////////////////////////////////////////////////////////////////
 void CMemoryStack::Rollback(SStackMark* psMark)
 {
-	miUsedMemory = psMark->iUsedMemory;
-	miElements = psMark->iElements;
+	miUsedMemory = psMark->miUsedMemory;
+	miElements = psMark->miElements;
 }
 
 

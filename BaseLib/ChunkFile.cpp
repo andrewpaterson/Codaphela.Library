@@ -437,7 +437,7 @@ int CChunkFile::GetChunkName(int iChunkNum)
 			psIndex = psElement->cChunkIndex.mcChunkIndices.SafeGet(iChunkNum);
 			if (psIndex)
 			{
-				return psIndex->iName;
+				return psIndex->miName;
 			}
 		}
 	}
@@ -460,7 +460,7 @@ BOOL CChunkFile::ReadChunkBegin(int iChunkNum)
 		psIndex = psElement->cChunkIndex.mcChunkIndices.SafeGet(iChunkNum);
 		if (psIndex)
 		{
-			CFileBasic::Seek(psIndex->iChunkDataPos - sizeof(CChunkHeader), EFSO_SET);
+			CFileBasic::Seek(psIndex->miChunkDataPos - sizeof(CChunkHeader), EFSO_SET);
 			return __PrivateReadChunkBegin();
 		}
 	}	

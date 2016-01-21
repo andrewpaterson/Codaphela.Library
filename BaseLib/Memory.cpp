@@ -268,7 +268,7 @@ BOOL CMemory::Remove(CArrayVoidPtr* pav)
 			}
 			else
 			{
-				iRemoved = RemoveElements(pav, i, iChunkSize, psNode, pcList);
+				iRemoved = RemoveElements(pav, i, psNode, pcList);
 				if (iRemoved != 0)
 				{
 					i += iRemoved;
@@ -338,7 +338,7 @@ int CMemory::RemoveNode(CArrayVoidPtr* pav, int i, SMemoryAllocation* psAlloc, i
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CMemory::RemoveElements(CArrayVoidPtr* pav, int i, int iChunkSize, SFNode* psNode, CFreeList* pcList)
+int CMemory::RemoveElements(CArrayVoidPtr* pav, int i, SFNode* psNode, CFreeList* pcList)
 {
 	void*				pv;
 	SMemoryAllocation*	psFirst;
@@ -467,7 +467,6 @@ void* CMemory::Grow(void* pvInitial, unsigned int uiSize)
 			return pvNew;
 		}
 	}
-	return NULL;
 }
 
 

@@ -127,7 +127,7 @@ void CIndexTreeNodeMemory::RemapChildNodes(CIndexTreeNodeMemory* pcOldNode, CInd
 //////////////////////////////////////////////////////////////////////////
 unsigned char CIndexTreeNodeMemory::FindNextFirstIndex(void)
 {
-	int						i;
+	unsigned char			i;
 	CIndexTreeNodeMemory*	pcChild;
 	CIndexTreeNodeMemory**	apcChildren;
 
@@ -160,7 +160,7 @@ unsigned char CIndexTreeNodeMemory::FindPrevLastIndex(void)
 		pcChild = apcChildren[i];
 		if (pcChild != NULL)
 		{
-			return muiFirstIndex + i;
+			return muiFirstIndex + (unsigned char)i;
 		}
 	}
 	return muiFirstIndex;
@@ -183,7 +183,7 @@ unsigned char CIndexTreeNodeMemory::FindIndex(CIndexTreeNodeMemory* pcChild)
 		pcChildTest = apcChildren[i];
 		if (pcChild == pcChildTest)
 		{
-			return i + muiFirstIndex;
+			return (unsigned char)i + muiFirstIndex;
 		}
 	}
 

@@ -347,7 +347,7 @@ BOOL CPackFiles::Eof(CPackFileNode* psPackFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPackFiles::Flush(CPackFileNode* psPackFile)
+BOOL CPackFiles::Flush(void)
 {
 	if (meMode == PFM_Write)
 	{

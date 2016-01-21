@@ -31,9 +31,9 @@ void SChunkIndex::Init(filePos iChunkDataPos, int iName, filePos iChunkSize)
 {
 	memset(this, 0xEE, sizeof(SChunkIndex));
 
-	this->iChunkDataPos = iChunkDataPos;
-	this->iName = iName;
-	this->iChunkSize = iChunkSize;
+	miChunkDataPos = iChunkDataPos;
+	miName = iName;
+	miChunkSize = iChunkSize;
 }
 
 
@@ -76,15 +76,15 @@ int CChunkIndex::FindFirstChunkWithName(int iName)
 	int i;
 	int	iTestName;
 
-	iCurrChunkNum = 0;
+	miCurrChunkNum = 0;
 	miSearchName = iName;
 
 	for (i = 0; i < mcChunkIndices.NumElements(); i++)
 	{
-		iTestName = mcChunkIndices.Get(i)->iName;
+		iTestName = mcChunkIndices.Get(i)->miName;
 		if (iTestName == iName)
 		{
-			iCurrChunkNum = i+1;
+			miCurrChunkNum = i+1;
 			return i;
 		}
 	}
@@ -100,11 +100,11 @@ int CChunkIndex::FindNextChunkWithName(void)
 {
 	int i;
 
-	for (i = iCurrChunkNum; i < mcChunkIndices.NumElements(); i++)
+	for (i = miCurrChunkNum; i < mcChunkIndices.NumElements(); i++)
 	{
-		if (mcChunkIndices.Get(i)->iName == miSearchName)
+		if (mcChunkIndices.Get(i)->miName == miSearchName)
 		{
-			iCurrChunkNum = i+1;
+			miCurrChunkNum = i+1;
 			return i;
 		}
 	}
@@ -125,7 +125,7 @@ int CChunkIndex::GetNumChunksWithName(int iName)
 
 	for (i = 0; i < mcChunkIndices.NumElements(); i++)
 	{
-		if (mcChunkIndices.Get(i)->iName == iName)
+		if (mcChunkIndices.Get(i)->miName == iName)
 		{
 			iNumWithName++;
 		}

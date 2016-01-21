@@ -290,6 +290,7 @@ char CFileUtil::GetDriveLetter(char* szPathName)
 	char	c;
 	char	cDrive;
 
+	cDrive = 0;
 	for (i = 0;; i++)
 	{
 		c = szPathName[i];

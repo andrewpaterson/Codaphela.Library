@@ -29,8 +29,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 //////////////////////////////////////////////////////////////////////////
 void SStackMark::Init(int iUsedMemory, int iElements)
 {
-	this->iUsedMemory = iUsedMemory;
-	this->iElements = iElements;
+	miUsedMemory = iUsedMemory;
+	miElements = iElements;
 }
 
 

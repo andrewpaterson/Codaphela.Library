@@ -29,9 +29,9 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 struct SChunkIndex
 {
-	int		iName;
-	filePos	iChunkSize;  //Size of data in this chunk
-	filePos	iChunkDataPos;  //Position of chunk data in file
+	int			miName;
+	filePos		miChunkSize;  //Size of data in this chunk
+	filePos		miChunkDataPos;  //Position of chunk data in file
 
 	void Init(filePos iChunkDataPos, int iName, filePos iChunkSize);
 };
@@ -44,7 +44,7 @@ class CChunkIndex
 {
 protected:
 	int		miSearchName;
-	int		iCurrChunkNum;
+	int		miCurrChunkNum;
 
 public:
 	CChunkIndexArray	mcChunkIndices;

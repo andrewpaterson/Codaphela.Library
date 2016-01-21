@@ -81,7 +81,7 @@ public:
 
 protected:
 	int					RemoveNode(CArrayVoidPtr* pav, int i, SMemoryAllocation* psAlloc, int iChunkSize, SFNode* psNode, CFreeList* pcList);
-	int					RemoveElements(CArrayVoidPtr* pav, int i, int iChunkSize, SFNode* psNode, CFreeList* pcList);
+	int					RemoveElements(CArrayVoidPtr* pav, int i, SFNode* psNode, CFreeList* pcList);
 
 private:
 	CFreeList*			GetOrAddFreeList(unsigned int iElementSize, int iAlignment, int iOffset);

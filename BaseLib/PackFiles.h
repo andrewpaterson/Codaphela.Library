@@ -77,7 +77,7 @@ protected:
 	filePos					Write(CPackFileNode* psPackFile, const void* pvBuffer, filePos iSize, filePos iCount);
 	filePos					Tell(CPackFileNode* psPackFile);
 	BOOL					Eof(CPackFileNode* psPackFile);
-	BOOL					Flush(CPackFileNode* psPackFile);
+	BOOL					Flush(void);
 	CFileNodePackFileNode*	AddFile(char* szFullName);
 	filePos					PrivateRead(CPackFileNode* psPackFile, void* pvBuffer, filePos iSize, filePos iCount);
 	BOOL					PrivateSeek(CPackFileNode* psPackFile, filePos iOffset, int iSeekOrigin);

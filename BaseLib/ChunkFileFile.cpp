@@ -115,6 +115,9 @@ BOOL CChunkFileFile::Seek(filePos iOffset, EFileSeekOrigin iSeekOrigin)
 //////////////////////////////////////////////////////////////////////////
 filePos CChunkFileFile::Write(const void* pvBuffer, filePos iSize, filePos iCount)
 {
+	pvBuffer = pvBuffer;
+	iSize = iSize;
+	iCount = iCount;
 	return 0;
 }
 

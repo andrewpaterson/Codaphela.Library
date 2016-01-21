@@ -213,10 +213,10 @@ void CIndexTreeNode::MoveNodesLeft(unsigned char uiNextFirstIndex)
 //////////////////////////////////////////////////////////////////////////
 void CIndexTreeNode::MoveNodesRight(unsigned char uiNewFirstIndex, int iClearValue)
 {
-	size_t			tSize;
-	void*			pvNodes;
-	void*			pvDest;
-	unsigned char	uiOldNumIndexes;
+	size_t		tSize;
+	void*		pvNodes;
+	void*		pvDest;
+	int			uiOldNumIndexes;
 
 	pvNodes = GetNodesMemory();
 	uiOldNumIndexes = GetNumIndexes();
@@ -235,10 +235,10 @@ void CIndexTreeNode::MoveNodesRight(unsigned char uiNewFirstIndex, int iClearVal
 //////////////////////////////////////////////////////////////////////////
 void CIndexTreeNode::ClearLastNodes(unsigned char uiNewLastIndex, int iClearValue)
 {
-	unsigned char	uiOldNumIndexes;
-	void*			pvDest;
-	size_t			tSize;
-	void*			pvNodes;
+	int			uiOldNumIndexes;
+	void*		pvDest;
+	size_t		tSize;
+	void*		pvNodes;
 
 	pvNodes = GetNodesMemory();
 	uiOldNumIndexes = GetNumIndexes();
@@ -270,7 +270,7 @@ int CIndexTreeNode::GetNumIndexes(void)
 //////////////////////////////////////////////////////////////////////////
 int CIndexTreeNode::GetNumIndexes(unsigned char uiFirstIndex, unsigned char uiLastIndex)
 {
-	return uiLastIndex - uiFirstIndex + 1;
+	return (uiLastIndex - uiFirstIndex) + 1;
 }
 
 
@@ -364,7 +364,7 @@ BOOL CIndexTreeNode::HasObject(void)
 //////////////////////////////////////////////////////////////////////////
 unsigned char CIndexTreeNode::NumNodes(void)
 {
-	return GetNumIndexes();
+	return (unsigned char)GetNumIndexes();
 }
 
 

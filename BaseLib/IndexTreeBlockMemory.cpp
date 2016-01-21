@@ -437,7 +437,7 @@ BOOL CIndexTreeBlockMemory::Remove(void* pvKey, int iKeySize)
 	pcCurrent = mpcRoot;
 	for (i = 0; i < iKeySize; i++)
 	{
-		char c = ((char*)pvKey)[i];
+		c = ((char*)pvKey)[i];
 		pcCurrent = pcCurrent->Get(c);
 		if (pcCurrent == NULL)
 		{
