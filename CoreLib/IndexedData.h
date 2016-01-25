@@ -52,7 +52,6 @@ protected:
 
 	BOOL					mbCaching;
 	BOOL					mbWriteThrough;
-	BOOL					mbTransient;  //Remove transient.  WTF was the point?
 
 public:
 	void 			Init(char* szWorkingDirectory, unsigned int uiCacheSize, BOOL bDurable);  //Old style for testing.
@@ -79,13 +78,11 @@ public:
 
 	BOOL			RemoveFiles(void);
 
-	void			KillNonTransientNonDurable(void);
-	void			KillTransient(void);
+	void			KillNonDurable(void);
 	void			KillEnd(void);
 	BOOL			CloseFiles(void);
 
 	BOOL			IsCaching(void);
-	BOOL			IsTransient(void);
 	BOOL			IsDurable(void);
 	int				NumCached(void);
 	int				NumCached(int iSize);

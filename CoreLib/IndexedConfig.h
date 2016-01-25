@@ -55,11 +55,7 @@ public:
 	//Size of the object cache in bytes.
 	int		miObjectsCacheSize;
 
-	//If transient is set then don't write out cached objects to disk on close and
-	//remove the database files on close.
-	BOOL	mbTransient;
-
-	void	Manual(char* szWorkingDirectory, BOOL bDurable, BOOL bDirtyTesting, BOOL mbWriteThrough, int iIndicesSecondLevelWidth, int iIndicesThirdLevelWidth, int iIndicesNumSecondLevelChunks, int iIndicesNumThirdLevelChunks, int iIndicesMemoryChunkSize, int iObjectsCacheSize, BOOL bTransient);
+	void	Manual(char* szWorkingDirectory, BOOL bDurable, BOOL bDirtyTesting, BOOL mbWriteThrough, int iIndicesSecondLevelWidth, int iIndicesThirdLevelWidth, int iIndicesNumSecondLevelChunks, int iIndicesNumThirdLevelChunks, int iIndicesMemoryChunkSize, int iObjectsCacheSize);
 	void	OptimiseForStreaming(char* szWorkingDirectory);
 	void	OptimiseForGameGraph(char* szWorkingDirectory);
 	void	OptimiseForTransactions(char* szWorkingDirectory);
@@ -69,8 +65,8 @@ public:
 	void	SetWriteThrough(BOOL bWriteThrough);
 	void	DisableObjectCaching(void);
 	void	SetObjectCacheSize(int iObjectsCacheSize);
-	void	SetTransient(BOOL bTransient);
 };
 
 
 #endif // __INDEX_CONFIG_H__
+

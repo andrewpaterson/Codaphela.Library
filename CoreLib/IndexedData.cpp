@@ -72,8 +72,6 @@ void CIndexedData::Init(CIndexedConfig* pcConfig)
 		mcDataCache.Zero();
 		mbCaching = FALSE;
 	}
-
-	mbTransient = pcConfig->mbTransient;
 }
 
 
@@ -83,24 +81,16 @@ void CIndexedData::Init(CIndexedConfig* pcConfig)
 //////////////////////////////////////////////////////////////////////////
 void CIndexedData::Kill(void)
 {
-	if (!mbTransient)
+	if (!mcDurableFileControl.IsDurable())
 	{
-		if (!mcDurableFileControl.IsDurable())
-		{
-			//x
-			KillNonTransientNonDurable();
-		}
-		else
-		{
-			DurableBegin();
-			Uncache();
-			CloseFiles();
-			DurableEnd();
-		}
+		KillNonDurable();
 	}
 	else
 	{
-		KillTransient();
+		DurableBegin();
+		Uncache();
+		CloseFiles();
+		DurableEnd();
 	}
 
 	KillEnd();
@@ -127,22 +117,11 @@ void CIndexedData::KillEnd(void)
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedData::KillTransient(void)
-{
-	RemoveFiles();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CIndexedData::KillNonTransientNonDurable(void)
+void CIndexedData::KillNonDurable(void)
 {
 	DurableBegin();
 	Flush(TRUE);
@@ -1065,8 +1044,6 @@ CIndexAccess* CIndexedData::TestGetIndexAccess(void) { return mcIndices.GetAcces
 CDurableFileController* CIndexedData::GetDurableFileControl(void) { return &mcDurableFileControl; }
 
 BOOL CIndexedData::IsCaching(void) { return mbCaching; } 
-
-BOOL CIndexedData::IsTransient(void) { return mbTransient; }
 
 BOOL CIndexedData::IsDurable(void) { return mcDurableFileControl.IsDurable(); }
 
