@@ -81,14 +81,17 @@ void CIndexedData::Init(CIndexedConfig* pcConfig)
 //////////////////////////////////////////////////////////////////////////
 void CIndexedData::Kill(void)
 {
-	if (!mcDurableFileControl.IsDurable())
+	if (mcDurableFileControl.IsDurable())
 	{
-		KillNonDurable();
+		DurableBegin();
+		Uncache();
+		CloseFiles();
+		DurableEnd();
 	}
 	else
 	{
 		DurableBegin();
-		Uncache();
+		Flush(TRUE);
 		CloseFiles();
 		DurableEnd();
 	}
@@ -114,19 +117,6 @@ void CIndexedData::KillEnd(void)
 	mcIndicesFile.Kill();
 	mcDataFiles.Kill();
 	mcTemp.Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CIndexedData::KillNonDurable(void)
-{
-	DurableBegin();
-	Flush(TRUE);
-	CloseFiles();
-	DurableEnd();
 }
 
 
@@ -439,7 +429,12 @@ BOOL CIndexedData::WriteEvictedData(SIndexedCacheDescriptor* psCached)
 	//We can assume the cache is clear of the data because it has been evicted.
 	cDescriptor.Cache(NULL);
 
-	WriteEvictedData(&cDescriptor, psCached);
+	bResult = WriteEvictedData(&cDescriptor, psCached);
+	if (!bResult)
+	{
+		return FALSE;
+	}
+
 	return mcIndices.Set(&cDescriptor);
 }
 

@@ -78,7 +78,6 @@ public:
 
 	BOOL			RemoveFiles(void);
 
-	void			KillNonDurable(void);
 	void			KillEnd(void);
 	BOOL			CloseFiles(void);
 

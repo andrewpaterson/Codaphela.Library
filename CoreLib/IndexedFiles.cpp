@@ -144,6 +144,7 @@ BOOL CIndexedFiles::WriteIndexedFileDescriptors(void)
 	SIndexedFileDescriptor*		psFileDescriptor;
 	void*						pvFileDescriptors;
 	BOOL						bResult;
+	filePos						iResult;
 
 	pvFileDescriptors = malloc(mcFiles.NumElements() * sizeof(SIndexedFileDescriptor));
 
@@ -156,7 +157,8 @@ BOOL CIndexedFiles::WriteIndexedFileDescriptors(void)
 		psFileDescriptor->iFileIndex = pcIndexedFile->GetFileIndex();
 		psFileDescriptor->iFileNum = pcIndexedFile->miFileNumber;
 	}
-	bResult &= mcFileDescriptors.Write(0, pvFileDescriptors, sizeof(SIndexedFileDescriptor), mcFiles.NumElements());
+	iResult = mcFileDescriptors.Write(0, pvFileDescriptors, sizeof(SIndexedFileDescriptor), mcFiles.NumElements());
+	bResult &= (iResult != 0);
 
 	free(pvFileDescriptors);
 	return bResult;
