@@ -49,8 +49,9 @@ protected:
 	SControllerState			msState;
 
 public:
-	CIndexedData				mcIndexedData;
+	CIndexedData				mcIndexedData;  //This should be protected.
 
+public:
 	void 			Init(char* szDirectory, unsigned int uiCacheSize, BOOL bDurable);
 	void 			Kill(void);
 	void			InitState(void);
@@ -66,6 +67,7 @@ public:
 protected:
 	BOOL	ShouldCommitSucceed(CTransaction* pcTransaction); 
 	BOOL	CommitTransaction(CTransaction* pcTransaction);
+	void	ReadState(void);
 };
 
 

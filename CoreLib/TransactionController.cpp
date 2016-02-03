@@ -40,6 +40,10 @@ void CTransactionController::Init(char* szDirectory, unsigned int uiCacheSize, B
 	mcIndexedData.Init(&cConfig);
 	mcTransactions.Init();
 	InitState();
+
+	mcIndexedData.DurableBegin();
+	ReadState();
+	mcIndexedData.DurableEnd();
 }
 
 
@@ -49,7 +53,6 @@ void CTransactionController::Init(char* szDirectory, unsigned int uiCacheSize, B
 //////////////////////////////////////////////////////////////////////////
 void CTransactionController::InitState(void)
 {
-	filePos		iRead;
 	CFileUtil	cFileUtil;
 
 	mszStateName.Init(mszDirectory);
@@ -59,11 +62,6 @@ void CTransactionController::InitState(void)
 	cFileUtil.AppendToPath(&mszStateRewrite, "_State.DAT");
 
 	mcStateFile.Init(mcIndexedData.GetDurableFileControl(), mszStateName.Text(), mszStateRewrite.Text());
-	iRead = mcStateFile.Read(&msState, sizeof(SControllerState), 1);
-	if (iRead != 1)
-	{
-		msState.muiTimeStamp = 0;
-	}
 }
 
 
@@ -111,6 +109,21 @@ CTransaction* CTransactionController::BeginTransaction(BOOL bMicro)
 	pcTransaction->Init(this, bMicro);
 	pcTransaction->Begin(msState.muiTimeStamp);
 	return pcTransaction;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CTransactionController::ReadState(void)
+{
+	filePos		iRead;
+	iRead = mcStateFile.Read(&msState, sizeof(SControllerState), 1);
+	if (iRead != 1)
+	{
+		msState.muiTimeStamp = 0;
+	}
 }
 
 
