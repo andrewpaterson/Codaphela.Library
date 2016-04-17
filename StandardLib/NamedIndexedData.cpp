@@ -38,27 +38,18 @@ void CNamedIndexedData::Init(CIndexedConfig* pcConfig)
 //////////////////////////////////////////////////////////////////////////
 void CNamedIndexedData::Kill(void)
 {
-	if (!mcData.IsTransient())
+	if (!mcData.IsDurable())
 	{
-		if (!mcData.IsDurable())
-		{
-			mcData.KillNonTransientNonDurable();
-			mcNames.Close();
-		}
-		else
-		{
-			mcData.DurableBegin();
-			mcData.Uncache();
-			mcData.CloseFiles();
-			mcNames.Close();
-			DurableEnd();
-		}
+		mcData.KillNonTransientNonDurable();
+		mcNames.Close();
 	}
 	else
 	{
-		mcData.KillTransient();
+		mcData.DurableBegin();
+		mcData.Uncache();
+		mcData.CloseFiles();
 		mcNames.Close();
-//		mcNames.RemoveFiles();
+		DurableEnd();
 	}
 
 	mcData.KillEnd();

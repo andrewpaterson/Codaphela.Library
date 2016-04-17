@@ -25,7 +25,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #define __MESH_FILE_TYPE_H__
 
 
-typedef enum EMeshType
+enum EMeshType
 {
 	MT_Unknown,
 	MT_OBJ,  // Wavefront 
