@@ -33,3 +33,4 @@ BerkeleyLib/Debug
 BerkeleyLib/ipch
 us.stackdump
 TestLib/TestLib.sdf
+*.suo
