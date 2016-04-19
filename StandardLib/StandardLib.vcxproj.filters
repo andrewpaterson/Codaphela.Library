@@ -70,9 +70,6 @@
     <Filter Include="Source\Timer">
       <UniqueIdentifier>{b1feb13a-7fbb-45ed-ba2d-7a44007b40ed}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Class">
-      <UniqueIdentifier>{7deb8151-6a7e-4ba3-b0c2-8b8e4868fcf4}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source\Channels">
       <UniqueIdentifier>{854cdaec-d2eb-4a41-8e5a-a187d3dc539d}</UniqueIdentifier>
     </Filter>

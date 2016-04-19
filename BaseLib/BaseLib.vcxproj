@@ -392,6 +392,9 @@
     <None Include="gpl.txt" />
     <None Include="lgpl.txt" />
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="LibraryBreakdown.txt" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

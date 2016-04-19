@@ -38,14 +38,14 @@ class CScene
 public:
 	int					iUniqueID;
 
-	CFakeTracker			mcConnectionTracker;
-	CFakeTracker			mcMeshTracker;
-	CFakeTracker			mcCameraTracker;
-	CFakeTracker			mcLightTracker;
-	CFakeTracker			mcSequenceTracker;
-	CFakeTracker			mcImageTracker;
-	CFakeTracker			mcMaterialTracker;
-	CFakeTracker			mcInstanceTracker;
+	CFakeTracker		mcConnectionTracker;
+	CFakeTracker		mcMeshTracker;
+	CFakeTracker		mcCameraTracker;
+	CFakeTracker		mcLightTracker;
+	CFakeTracker		mcSequenceTracker;
+	CFakeTracker		mcImageTracker;
+	CFakeTracker		mcMaterialTracker;
+	CFakeTracker		mcInstanceTracker;
 
 	void Init(void);
 	BOOL Load(CFileReader* pcChunkFile);

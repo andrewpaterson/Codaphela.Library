@@ -25,7 +25,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 
 #define ENGINE_NAME "Codaphela"
-#define ENGINE_VERSION "V7 alpha 2011.08.07"
+#define ENGINE_VERSION "V7 alpha 2016.04.18"
 
 
 #endif // __VERSION_H__

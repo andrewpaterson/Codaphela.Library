@@ -39,7 +39,7 @@ public:
 
 	ETrackerType		meType;  //Which Tracker to look this object up in.
 	int					miObjectIndex;
-	CArrayIntMinimal		maiConnections;  //Matricies, just one unless the the object is a skinned mesh.
+	CArrayIntMinimal	maiConnections;  //Matricies, just one unless the the object is a skinned mesh.
 	
 	void 	Init(void);
 	void 	KillData(void);

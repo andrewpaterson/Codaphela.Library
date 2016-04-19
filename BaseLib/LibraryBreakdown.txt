@@ -1,0 +1,203 @@
+-- BaseLib --
+
+Collections
+  Array
+  Enumerator (Deprecated)
+  Index
+  Map
+  Tree
+  
+Geometric types
+
+Memory Allocation
+
+Document Markup
+
+Basic types
+  String
+  Date
+  Primitive wrappers
+  Boolean
+  Pointer
+
+Logging and Errors
+
+Intrinsics
+
+
+#defines
+  Windows
+
+File Handling
+  Disk, Memory, Buffered
+  Md5 Hashing
+  Chunked
+  Packed
+  Copy, Compare
+  CSV
+
+Math
+
+
+
+-- CoreLib --
+Collections
+  Array
+
+GUIDs
+
+Basic types
+  Primitive conversion
+  Parsing
+  Type information
+
+
+File Handling
+  Durable
+  Directory Iteration
+  Key/Value store
+  Transaction log
+  Properties file
+  Transaction (Wrong place and needs re-write)
+  XML
+
+Function Thunking (Deprecated)
+
+Operators
+  Arithmetic
+  Assignment
+  Bitwise
+  Logical
+  Relational
+
+Text Parsing
+  Math
+  Markup
+  XML
+
+Text Editing
+
+Windows
+  Thread
+  Timer
+  Configuration
+  Window Initialisation
+
+
+
+-- StandardLib --
+Actions and Events
+
+Unmanaged Objects (Unknown)
+  Collections
+    Array
+    Map
+    Set
+
+Managed Objects (Object)
+  Collections
+    Array
+    Set
+  Hollow, Named, Indexed
+  Input/Output
+  
+
+Memory Management
+
+Object Database
+
+Timer
+
+Trackers (Deprecated)
+
+
+
+-- SupportLib --
+Animation
+
+Copy and Paste
+
+Image
+  Channel conversions
+  Image Packer
+  Sub-images, Cels, Groups
+  Combination and division
+  Colour
+  Font
+  Input/Output
+  Modifiers
+    Bump mapping
+	Resampling
+	Recolouring
+  Functions
+    Box
+    Copy
+
+Image Formats
+  PNG
+  TGA
+  RAW (Justin)
+
+Instance (Deprecated?)
+
+Scene Primitives
+  Camera
+  Light
+  Material
+
+Mesh
+  Connectivity
+  Colours, Normals, Skinning, UV coordinates, Materials
+  Input/Output
+  Modifiers
+    Normal generation
+	Polygons
+	Edge visibility
+  Functions
+    Disc
+	Plane
+	Ring
+	Cone
+	Cylinder
+	Tube
+	Sphere
+	Geosphere
+	Box
+	Torus
+  Selection
+    Face, Edge, Vertex
+  Geometry shape
+    Bounding box
+	Convex hull
+	Bounding sphere hierarchy
+
+Scene (Deprecated)
+  Trackers
+
+Shape
+  Box
+  Convex hull
+  Half-space
+  Line
+  Ray
+  Line segment
+  Plane
+  Polygon
+  Sphere
+  Triangle
+
+Tiles
+  Maps
+  Layers
+  XML
+
+-- ImageLib --
+PNG and ZLib sources (Use libraries instead)
+
+-- InputLib --
+
+-- WindowLib -- (Depends on DirectXLib and WorldLib ?!?)
+
+-- WorldLib -- (DirectX specific stuff mushed in with things like Particle System)
+
+-- GameLib -- (Nothing much here yet)
