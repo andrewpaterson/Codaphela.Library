@@ -459,6 +459,59 @@ void CFileUtil::AppendToPath(CChars* szPathName, char* szItem)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CFileUtil::PrependToPath(CChars* szPathName, char* szItem)
+{
+	CChars			szTemp;
+	BOOL			bLeadingSeparator;
+	char			cDriveLetter;
+
+	if (StrEmpty(szItem))
+	{
+		return;
+	}
+
+	cDriveLetter = GetDriveLetter(szPathName->Text());
+
+	if (cDriveLetter != '\0')
+	{
+		szTemp.Init(szPathName->Text(), 2);
+	}
+	else
+	{
+		szTemp.Init(szPathName->Text());
+	}
+
+	bLeadingSeparator = FALSE;
+	if (szTemp.StartsWith(FILE_SEPARATOR))
+	{
+		szTemp.RemoveCharacter(0);
+		bLeadingSeparator = TRUE;
+	}
+
+	szPathName->Clear();
+	if (cDriveLetter != '\0')
+	{
+		szPathName->Append(cDriveLetter);
+		szPathName->Append(':');
+	}
+
+	if (bLeadingSeparator)
+	{
+		szPathName->Append(FILE_SEPARATOR);
+	}
+	
+	szPathName->Append(szItem);
+	szPathName->Append(FILE_SEPARATOR);
+	szPathName->Append(&szTemp);
+	
+	szTemp.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CFileUtil::RemoveLastFromPath(CChars* szPathName)
 {
 	int		iLastIndex;

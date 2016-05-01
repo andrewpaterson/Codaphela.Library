@@ -1341,6 +1341,7 @@ BOOL CChars::SubStringEquals(int iStart, char* szString)
 	int	i;
 	int	j;
 	int	iLen;
+	int iSubLen;
 
 	if (iStart < 0)
 	{
@@ -1348,6 +1349,24 @@ BOOL CChars::SubStringEquals(int iStart, char* szString)
 	}
 
 	iLen = Length();
+	if (iLen == 0)
+	{
+		iSubLen = strlen(szString);
+		if (iSubLen != 0)
+		{
+			return FALSE;
+		}
+		else
+		{
+			return TRUE;
+		}
+	}
+
+	if (iStart >= iLen)
+	{
+		return FALSE;
+	}
+
 	for (i = iStart, j = 0; i < iLen; i++, j++)
 	{
 		if (szString[j] != 0)

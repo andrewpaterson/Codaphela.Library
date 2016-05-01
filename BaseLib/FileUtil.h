@@ -68,6 +68,7 @@ public:
 	int		FindLastSeparator(char* szPathName);
 	void    RemoveFileSeparator(CChars* szPathName);
 	void    AppendToPath(CChars* szPathName, char* szItem);
+	void    PrependToPath(CChars* szPathName, char* szItem);
 	void    RemoveLastFromPath(CChars* szPathName);
 	void	RemovePath(CChars* szPathName);
 	BOOL	IsExtension(char* szFileName, char* szExtension);
