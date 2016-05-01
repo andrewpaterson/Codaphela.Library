@@ -59,7 +59,7 @@ public:
 	CPackFile*				ReadOpen(char* szFileName);
 
 	BOOL					AddFile(CAbstractFile* pcFile, char* szFileName);
-	BOOL					AddDirectory(char* szDirectory);
+	BOOL					AddDirectory(char* szDirectory, char* szPackDirectory = NULL);
 
 	CFileNodePackFileNode*	StartIteration(CPackFileIterator* psIter);
 	CFileNodePackFileNode*	Iterate(CPackFileIterator* psIter);

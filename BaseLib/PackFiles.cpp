@@ -494,7 +494,7 @@ BOOL CPackFiles::AddFile(CAbstractFile* pcFile, char* szFileName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPackFiles::AddDirectory(char* szDirectory)
+BOOL CPackFiles::AddDirectory(char* szDirectory, char* szPackDirectory)
 {
 	CFileUtil		cFileUtil;
 	CArrayString	aszFileNames;
@@ -502,7 +502,7 @@ BOOL CPackFiles::AddDirectory(char* szDirectory)
 	CChars*			pszFileName;
 	CDiskFile		cDiskFile;
 	CChars			szName;
-	CChars			szFakeDirectory;
+	CChars			szNameDirectory;
 	BOOL			bResult;
 	BOOL			bAnyFiles;
 
@@ -515,14 +515,18 @@ BOOL CPackFiles::AddDirectory(char* szDirectory)
 		return FALSE;
 	}
 
-	szFakeDirectory.Fake(szDirectory);
-
+	szNameDirectory.Init(szDirectory);
 	for (i = 0; i < aszFileNames.NumElements(); i++)
 	{
 		pszFileName = aszFileNames.Get(i);
 		cDiskFile.Init(pszFileName->Text());
-		cFileUtil.MakeNameFromDirectory(&szName, pszFileName, &szFakeDirectory);
-		
+		cFileUtil.MakeNameFromDirectory(&szName, pszFileName, &szNameDirectory);
+		if (szPackDirectory)
+		{
+			szName.Insert(0, '/');
+			szName.Insert(0, szPackDirectory);
+		}
+
 		bResult = AddFile(&cDiskFile, szName.Text());
 		szName.Kill();
 		cDiskFile.Kill();

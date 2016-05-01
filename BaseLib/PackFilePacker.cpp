@@ -11,7 +11,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPackFilePacker::Pack(char* szDestPakFile, char* szSourceDirectory)
+BOOL CPackFilePacker::Pack(char* szDestPakFile, char* szSourceDirectory, char* szPackDirectory)
 {
 	CPackFiles	cPackFiles;
 	CDiskFile*	pcDiskFile;
@@ -29,7 +29,7 @@ BOOL CPackFilePacker::Pack(char* szDestPakFile, char* szSourceDirectory)
 	szPackFileName.Kill();
 
 	cPackFiles.Init(pcDiskFile, PFM_Write);
-	bResult = cPackFiles.AddDirectory(szSourceDirectory);
+	bResult = cPackFiles.AddDirectory(szSourceDirectory, szPackDirectory);
 	cPackFiles.Kill();
 
 	bResult = FixBool(bResult);
@@ -165,10 +165,10 @@ BOOL CPackFilePacker::List(char* szSourcePakFile, CChars* pszDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL PackDirectory(char* szDestPakFile, char* szSourceDirectory)
+BOOL PackDirectory(char* szDestPakFile, char* szSourceDirectory, char* szPackDirectory)
 {
 	CPackFilePacker	cPacker;
 
-	return cPacker.Pack(szDestPakFile, szSourceDirectory);
+	return cPacker.Pack(szDestPakFile, szSourceDirectory, szPackDirectory);
 }
 

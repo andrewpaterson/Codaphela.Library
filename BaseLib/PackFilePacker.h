@@ -7,14 +7,14 @@ class CPackFiles;
 class CPackFilePacker
 {
 public:
-	BOOL Pack(char* szDestPakFile, char* szSourceDirectory);
+	BOOL Pack(char* szDestPakFile, char* szSourceDirectory, char* szPackDirectory = NULL);
 	BOOL Unpack(char* szSourcePakFile, char* szDestDirectory);
 	BOOL List(char* szSourcePakFile, CChars* pszDest);
 	void List(CPackFiles* pcPackFiles, CChars* pszDest);
 };
 
 
-BOOL PackDirectory(char* szDestPakFile, char* szSourceDirectory);
+BOOL PackDirectory(char* szDestPakFile, char* szSourceDirectory, char* szPackDirectory);
 
 
 #endif // __PACK_FILE_PACKER_H__
