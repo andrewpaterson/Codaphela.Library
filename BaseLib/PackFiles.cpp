@@ -638,7 +638,7 @@ BOOL CPackFiles::WriteHeader(void)
 {
 	CFileHeader	cFileHeader;
 
-	ReturnOnFalse(cFileHeader.Save(&mcFile, ClassName()));
+	ReturnOnFalse(cFileHeader.Save(&mcFile, PACK_FILE_WRITER, PACK_FILE_VERSION));
 	ReturnOnFalse(mcFile.Write(&miNodes, sizeof(filePos), 1));
 
 	miPosition = mcFile.GetFilePos();
@@ -655,10 +655,7 @@ BOOL CPackFiles::ReadHeader(void)
 {
 	CFileHeader	cFileHeader;
 
-	ReturnOnFalse(cFileHeader.Load(&mcFile));
-	ReturnOnFalse(cFileHeader.IsVersion(ENGINE_VERSION));
-	ReturnOnFalse(cFileHeader.IsType(ClassName()));
-
+	ReturnOnFalse(cFileHeader.Load(&mcFile, PACK_FILE_WRITER, PACK_FILE_VERSION));
 	ReturnOnFalse(mcFile.ReadLong(&miNodes));
 
 	miPosition = mcFile.GetFilePos();

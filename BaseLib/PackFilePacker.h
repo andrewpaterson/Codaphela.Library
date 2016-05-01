@@ -14,5 +14,8 @@ public:
 };
 
 
+BOOL PackDirectory(char* szDestPakFile, char* szSourceDirectory);
+
+
 #endif // __PACK_FILE_PACKER_H__
 

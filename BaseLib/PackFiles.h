@@ -27,6 +27,11 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "PackFilesGeneral.h"
 #include "PackFileIterator.h"
 
+
+#define PACK_FILE_WRITER "PACKED FILE"
+#define PACK_FILE_VERSION "V1.0"
+
+
 class CPackFile;
 class CPackFiles
 {

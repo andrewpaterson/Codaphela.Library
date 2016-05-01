@@ -21,10 +21,12 @@ BOOL CPackFilePacker::Pack(char* szDestPakFile, char* szSourceDirectory)
 
 	szPackFileName.Init(szDestPakFile);
 	cFileUtil.FullPath(&szPackFileName);
-	pcDiskFile = DiskFile(szPackFileName.Text());
-	szPackFileName.Kill();
 
 	cFileUtil.Delete(szPackFileName.Text());
+
+	pcDiskFile = DiskFile(szPackFileName.Text());
+
+	szPackFileName.Kill();
 
 	cPackFiles.Init(pcDiskFile, PFM_Write);
 	bResult = cPackFiles.AddDirectory(szSourceDirectory);
@@ -156,5 +158,17 @@ BOOL CPackFilePacker::List(char* szSourcePakFile, CChars* pszDest)
 		gcLogger.Error("File does not exist.");
 		return FALSE;
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL PackDirectory(char* szDestPakFile, char* szSourceDirectory)
+{
+	CPackFilePacker	cPacker;
+
+	return cPacker.Pack(szDestPakFile, szSourceDirectory);
 }
 

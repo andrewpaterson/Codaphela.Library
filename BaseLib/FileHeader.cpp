@@ -21,7 +21,9 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
 #include <string.h>
+#include "StringHelper.h"
 #include "FileIO.h"
+#include "Logger.h"
 #include "FileHeader.h"
 
 
@@ -29,23 +31,19 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileHeader::Save(CFileWriter* pcWriter, char* szFileType)
+BOOL CFileHeader::Save(CFileWriter* pcWriter, char* szWriterType, char* szWriterVersion)
 {
-	int			iLen;
+	if (!CheckHeaderSize(__METHOD__))
+	{
+		return FALSE;
+	}
 
 	memset(this, 0, sizeof(CFileHeader));
-	strcpy(mszCodaphela, ENGINE_NAME);
-	strcpy(mszEngineVersion, ENGINE_VERSION);
 
-	iLen = (int)strlen(szFileType);
-	if (iLen >= 146)
-	{
-		memcpy(mszFileType, szFileType, 145);
-	}
-	else
-	{
-		memcpy(mszFileType, szFileType, iLen);
-	}
+	StrCpySafe(mszCodaphela, ENGINE_NAME, FILE_HEADER_CODAPHELA_SIZE);
+	StrCpySafe(mszEngineVersion, ENGINE_VERSION, FILE_HEADER_ENGINE_VERSION_SIZE);
+	StrCpySafe(mszWriterType, szWriterType, FILE_HEADER_WRITER_TYPE_SIZE);
+	StrCpySafe(mszWriterVersion, szWriterVersion, FILE_HEADER_WRITER_VERSION_SIZE);
 
 	return pcWriter->WriteData(this, sizeof(CFileHeader));
 }
@@ -55,15 +53,28 @@ BOOL CFileHeader::Save(CFileWriter* pcWriter, char* szFileType)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileHeader::Load(CFileReader* pcReader)
+BOOL CFileHeader::Load(CFileReader* pcReader, char* szExpectedWriterType, char* szExpectedWriterVersion)
 {
-	if (!pcReader->ReadData(this, sizeof(CFileHeader)))
+	if (!CheckHeaderSize(__METHOD__))
 	{
 		return FALSE;
 	}
 
-	if (strcmp(ENGINE_NAME, mszCodaphela) != 0)
+	if (!pcReader->ReadData(this, sizeof(CFileHeader)))
 	{
+		gcLogger.Error2(__METHOD__, " Could not read file header of [", szExpectedWriterType, "] for file version [", szExpectedWriterVersion, "].", NULL);
+		return FALSE;
+	}
+
+	if (!IsWriterVersion(szExpectedWriterVersion))
+	{
+		gcLogger.Error2(__METHOD__, " File version mismatch.  Expected [", szExpectedWriterVersion, "] but read [", mszWriterVersion, "].", NULL);
+		return FALSE;
+	}
+
+	if (!IsWriterType(szExpectedWriterType))
+	{
+		gcLogger.Error2(__METHOD__, " File type mismatch.  Expected [", szExpectedWriterType, "] but read [", mszWriterType, "].", NULL);
 		return FALSE;
 	}
 
@@ -85,9 +96,9 @@ char* CFileHeader::GetEngineVersion(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CFileHeader::GetFileType(void)
+char* CFileHeader::GetWriterVersion(void)
 {
-	return mszFileType;
+	return mszWriterVersion;
 }
 
 
@@ -95,9 +106,9 @@ char* CFileHeader::GetFileType(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileHeader::IsType(char* szFileType)
+char* CFileHeader::GetWriterType(void)
 {
-	return strcmp(mszFileType, szFileType) == 0;
+	return mszWriterType;
 }
 
 
@@ -105,8 +116,46 @@ BOOL CFileHeader::IsType(char* szFileType)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileHeader::IsVersion(char* szEngineVersion)
+BOOL CFileHeader::IsWriterType(char* szWriterType)
+{
+	return strcmp(mszWriterType, szWriterType) == 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CFileHeader::IsEngineVersion(char* szEngineVersion)
 {
 	return strcmp(mszEngineVersion, szEngineVersion) == 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CFileHeader::IsWriterVersion(char* szWriterVersion)
+{
+	return strcmp(mszWriterVersion, szWriterVersion) == 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CFileHeader::CheckHeaderSize(char* szMethod)
+{
+	size_t		tFileHeaderSize;
+
+	tFileHeaderSize = sizeof(CFileHeader);
+	if (tFileHeaderSize != FILE_HEADER_SIZE)
+	{
+		gcLogger.Error2(szMethod, " File header memory size [", IntToString(tFileHeaderSize), "] different to expected size [", IntToString(FILE_HEADER_SIZE), "].", NULL);
+		return FALSE;
+	}
+	return TRUE;
 }
 

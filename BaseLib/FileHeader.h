@@ -26,24 +26,37 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "Bool.h"
 
 
+#define FILE_HEADER_SIZE 256
+#define FILE_HEADER_CODAPHELA_SIZE 10
+#define FILE_HEADER_ENGINE_VERSION_SIZE 30
+#define FILE_HEADER_WRITER_TYPE_SIZE 108
+#define FILE_HEADER_WRITER_VERSION_SIZE 108
+
+
 class CFileWriter;
 class CFileReader;
 class CFileHeader
 {
 protected:
-	char	mszCodaphela[10];
-	char	mszEngineVersion[100];
-	char	mszFileType[146];
+	char	mszCodaphela[FILE_HEADER_CODAPHELA_SIZE];
+	char	mszEngineVersion[FILE_HEADER_ENGINE_VERSION_SIZE];
+	char	mszWriterType[FILE_HEADER_WRITER_TYPE_SIZE];
+	char	mszWriterVersion[FILE_HEADER_WRITER_VERSION_SIZE];
 
 public:
-	BOOL	Save(CFileWriter* pcWriter, char* szFileType);
-	BOOL	Load(CFileReader* pcReader);
+	BOOL	Load(CFileReader* pcReader, char* szExpectedWriterType, char* szExpectedWriterVersion);
+	BOOL	Save(CFileWriter* pcWriter, char* szWriterType, char* szWriterVersion);
 
 	char*	GetEngineVersion(void);
-	char*	GetFileType(void);
+	char*	GetWriterVersion(void);
+	char*	GetWriterType(void);
 
-	BOOL	IsType(char* szFileType);
-	BOOL	IsVersion(char* szEngineVersion);
+	BOOL	IsWriterType(char* szWriterType);
+	BOOL	IsEngineVersion(char* szEngineVersion);
+	BOOL	IsWriterVersion(char* szEngineVersion);
+
+protected:
+	BOOL	CheckHeaderSize(char* szMethod);
 };
 
 
