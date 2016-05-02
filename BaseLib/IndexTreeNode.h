@@ -25,8 +25,6 @@ public:
 	void					Init(CIndexTreeBlock* pcIndexTree, CIndexTreeNode* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex, int iClearValue);
 	void					Init(CIndexTreeBlock* pcIndexTree, CIndexTreeNode* pcParent);
 
-	BOOL					Clear(unsigned char uiIndex);
-
 	void					SizeObject(unsigned char uiSize);
 	BOOL					SetObject(void* pvObject, unsigned char uiSize);
 	void					ClearObject(void);
