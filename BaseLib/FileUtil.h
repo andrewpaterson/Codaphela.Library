@@ -51,6 +51,8 @@ public:
 	BOOL    Compare(char* szFileName1, char* szFileName2);
 	BOOL    Copy(char* szSource, char* szDest);
 	filePos Size(char* szFileName);
+	BOOL    MakeDirs(BOOL bRemoveFirst, char* szPathName, ...);
+	BOOL    RemoveDirs(char* szPathName, ...);
 
 	//Path name methods
 	BOOL	IsAbsolutePath(char* szPathName);

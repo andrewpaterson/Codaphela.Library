@@ -35,6 +35,67 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL CFileUtil::MakeDirs(BOOL bRemoveFirst, char* szPathName, ...)
+{
+	va_list		vaMarker;
+	char*		pc;
+	int			iCount;
+
+	iCount = 0;
+	pc = szPathName;
+
+	va_start(vaMarker, szPathName);
+	while (pc != NULL)
+	{
+		if (bRemoveFirst)
+		{
+			RemoveDir(pc);
+		}
+		if (!MakeDir(pc))
+		{
+			return FALSE;
+		}
+
+		iCount++;
+		pc = va_arg(vaMarker, char*);
+	}
+	va_end(vaMarker);
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CFileUtil::RemoveDirs(char* szPathName, ...)
+{
+	va_list		vaMarker;
+	char*		pc;
+	int			iCount;
+	BOOL		bResult;
+
+	iCount = 0;
+	pc = szPathName;
+
+	bResult = TRUE;
+	va_start(vaMarker, szPathName);
+	while (pc != NULL)
+	{
+		bResult &= RemoveDir(pc);
+
+		iCount++;
+		pc = va_arg(vaMarker, char*);
+	}
+	va_end(vaMarker);
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CFileUtil::FullPath(CChars* szPathName)
 {
 	CChars	szTemp;
