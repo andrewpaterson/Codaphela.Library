@@ -37,16 +37,17 @@ Microsoft Windows is Copyright Microsoft Corporation
 class CIndexedData
 {
 protected:
-	CDurableFileController	mcDurableFileControl;
-
+	//Data
 	CIndexedCache			mcDataCache;
 	CIndexedFiles			mcDataFiles;
 
+	//Index
 	CIndexSmartAccess		mcIndices;
 	CIndexDescriptorsFile	mcIndicesFile;
 
-	CTemporaryMemory		mcTemp;
+	CDurableFileController	mcDurableFileControl;
 
+	CTemporaryMemory		mcTemp;
 	BOOL					mbCaching;
 	BOOL					mbWriteThrough;
 
