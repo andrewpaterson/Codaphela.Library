@@ -5,7 +5,7 @@
 #include "LogFileCommands.h"
 
 
-//This is a write / transaction log.  Not an error logging utility.
+//This is an IO operation write log.  Not an error logging utility.
 class CLogFile : public CAbstractFile
 {
 protected:

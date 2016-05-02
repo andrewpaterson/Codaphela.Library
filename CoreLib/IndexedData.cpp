@@ -840,7 +840,6 @@ BOOL CIndexedData::Remove(OIndex oi)
 	CIndexedDataDescriptor	cDescriptor;
 	BOOL					bResult;
 
-	//This is not correct.  Removed objects must be marked as removed until all transactions are finished.
 	bResult = mcIndices.Get(&cDescriptor, oi);
 	if (bResult)
 	{

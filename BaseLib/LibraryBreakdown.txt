@@ -56,9 +56,8 @@ File Handling
   Durable
   Directory Iteration
   Key/Value store
-  Transaction log
+  IO log
   Properties file
-  Transaction (Wrong place and needs re-write)
   XML
 
 Function Thunking (Deprecated)

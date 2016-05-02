@@ -58,7 +58,6 @@ public:
 	void	Manual(char* szWorkingDirectory, BOOL bDurable, BOOL bDirtyTesting, BOOL mbWriteThrough, int iIndicesSecondLevelWidth, int iIndicesThirdLevelWidth, int iIndicesNumSecondLevelChunks, int iIndicesNumThirdLevelChunks, int iIndicesMemoryChunkSize, int iObjectsCacheSize);
 	void	OptimiseForStreaming(char* szWorkingDirectory);
 	void	OptimiseForGameGraph(char* szWorkingDirectory);
-	void	OptimiseForTransactions(char* szWorkingDirectory);
 
 	void	SetDurable(BOOL bDurable);
 	void	SetDirtyTesting(BOOL bDirtyTesting);

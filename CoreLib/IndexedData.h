@@ -33,12 +33,9 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "DurableFileController.h"
 
 
-//This is the database class (not including transactions).
+//This is the database class.
 class CIndexedData
 {
-friend class CSubTransaction;
-friend class CTransactionController;
-
 protected:
 	CDurableFileController	mcDurableFileControl;
 

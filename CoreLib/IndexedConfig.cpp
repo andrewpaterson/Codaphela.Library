@@ -100,28 +100,6 @@ void CIndexedConfig::OptimiseForGameGraph(char* szWorkingDirectory)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedConfig::OptimiseForTransactions(char* szWorkingDirectory)
-{
-	//This configuration is used where database consistency is important.
-	//Changes are immediately written to disk atomically.
-
-	mszWorkingDirectory = szWorkingDirectory;
-	mbDurable = TRUE;
-	mbDirtyTesting = TRUE;
-	mbWriteThrough = TRUE;
-	miIndicesSecondLevelWidth = 131072;
-	miIndicesThirdLevelWidth = 2048;
-	miIndicesNumSecondLevelChunks = 8; 
-	miIndicesNumThirdLevelChunks = 1024;
-	miIndicesMemoryChunkSize = miIndicesNumThirdLevelChunks * sizeof(CIndexedDataDescriptor);
-	miObjectsCacheSize = 128 MB;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CIndexedConfig::SetDurable(BOOL bDurable)
 {
 	if (bDurable)
