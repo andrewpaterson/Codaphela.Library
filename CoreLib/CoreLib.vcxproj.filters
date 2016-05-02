@@ -151,18 +151,6 @@
     <Filter Include="Source\File\Durable">
       <UniqueIdentifier>{7d8b0c00-56a2-4df6-b5a9-e8bfa88fc084}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\File\Transaction">
-      <UniqueIdentifier>{c9ef382a-95ad-44c4-90c4-7bf003bdb963}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\File\Transaction\Data">
-      <UniqueIdentifier>{f204e015-5e4a-4541-be42-08df76bcf262}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\File\Transaction\Data\TransientFile">
-      <UniqueIdentifier>{69a25bc1-0eb7-45ef-a9dd-568853720d7c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\File\Transaction\Data\IndexedMemory">
-      <UniqueIdentifier>{55eee94f-cfa4-4c70-b55b-a910e26f75b4}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source\File\Properties">
       <UniqueIdentifier>{e911288d-0744-4787-a8ee-8552fefec464}</UniqueIdentifier>
     </Filter>
@@ -263,30 +251,6 @@
     </ClCompile>
     <ClCompile Include="DurableSet.cpp">
       <Filter>Source\File\Durable</Filter>
-    </ClCompile>
-    <ClCompile Include="SubTransaction.cpp">
-      <Filter>Source\File\Transaction</Filter>
-    </ClCompile>
-    <ClCompile Include="Transaction.cpp">
-      <Filter>Source\File\Transaction</Filter>
-    </ClCompile>
-    <ClCompile Include="TransactionController.cpp">
-      <Filter>Source\File\Transaction</Filter>
-    </ClCompile>
-    <ClCompile Include="TransactionIndexedData.cpp">
-      <Filter>Source\File\Transaction\Data</Filter>
-    </ClCompile>
-    <ClCompile Include="ArrayTransientIndexedPointer.cpp">
-      <Filter>Source\File\Transaction\Data\TransientFile</Filter>
-    </ClCompile>
-    <ClCompile Include="TransientIndexedFile.cpp">
-      <Filter>Source\File\Transaction\Data\TransientFile</Filter>
-    </ClCompile>
-    <ClCompile Include="TransientIndexedFileDescriptor.cpp">
-      <Filter>Source\File\Transaction\Data\TransientFile</Filter>
-    </ClCompile>
-    <ClCompile Include="IndexedMemory.cpp">
-      <Filter>Source\File\Transaction\Data\IndexedMemory</Filter>
     </ClCompile>
     <ClCompile Include="PropertiesFile.cpp">
       <Filter>Source\File\Properties</Filter>
@@ -532,30 +496,6 @@
     </ClInclude>
     <ClInclude Include="DurableSet.h">
       <Filter>Source\File\Durable</Filter>
-    </ClInclude>
-    <ClInclude Include="SubTransaction.h">
-      <Filter>Source\File\Transaction</Filter>
-    </ClInclude>
-    <ClInclude Include="Transaction.h">
-      <Filter>Source\File\Transaction</Filter>
-    </ClInclude>
-    <ClInclude Include="TransactionController.h">
-      <Filter>Source\File\Transaction</Filter>
-    </ClInclude>
-    <ClInclude Include="TransactionIndexedData.h">
-      <Filter>Source\File\Transaction\Data</Filter>
-    </ClInclude>
-    <ClInclude Include="ArrayTransientIndexedPointer.h">
-      <Filter>Source\File\Transaction\Data\TransientFile</Filter>
-    </ClInclude>
-    <ClInclude Include="TransientIndexedFile.h">
-      <Filter>Source\File\Transaction\Data\TransientFile</Filter>
-    </ClInclude>
-    <ClInclude Include="TransientIndexedFileDescriptor.h">
-      <Filter>Source\File\Transaction\Data\TransientFile</Filter>
-    </ClInclude>
-    <ClInclude Include="IndexedMemory.h">
-      <Filter>Source\File\Transaction\Data\IndexedMemory</Filter>
     </ClInclude>
     <ClInclude Include="PropertiesFile.h">
       <Filter>Source\File\Properties</Filter>
