@@ -31,12 +31,12 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedData::Init(char* szWorkingDirectory, unsigned int uiCacheSize, BOOL bDurable)
+void CIndexedData::Init(char* szWorkingDirectory, char* szRewriteDirectory, unsigned int uiCacheSize)
 {
 	CIndexedConfig	cConfig;
 
 	cConfig.OptimiseForStreaming(szWorkingDirectory);
-	cConfig.SetDurable(bDurable);
+	cConfig.mszRewriteDirectory = szRewriteDirectory;
 	cConfig.SetObjectCacheSize(uiCacheSize);
 
 	Init(&cConfig);
@@ -53,7 +53,7 @@ void CIndexedData::Init(CIndexedConfig* pcConfig)
 	
 	mcTemp.Init();
 
-	mcDurableFileControl.Init(pcConfig->mszWorkingDirectory, pcConfig->mszWorkingDirectory, pcConfig->mbDurable);
+	mcDurableFileControl.Init(pcConfig->mszWorkingDirectory, pcConfig->mszRewriteDirectory);
 	mcDurableFileControl.MakeDir(pcConfig->mszWorkingDirectory);
 
 	mcDurableFileControl.Begin();

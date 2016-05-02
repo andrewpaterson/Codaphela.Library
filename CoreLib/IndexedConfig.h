@@ -33,7 +33,7 @@ public:
 
 	//Several file operations together are durable if they either all succeed or all fail.
 	//Setting the database to be durable doubles it's size.
-	BOOL	mbDurable;
+	char*	mszRewriteDirectory;
 
 	//Only update the disk if the new object data is different (using memcmp).
 	//This will cause a disk read if the object is not cached.
@@ -55,11 +55,9 @@ public:
 	//Size of the object cache in bytes.
 	int		miObjectsCacheSize;
 
-	void	Manual(char* szWorkingDirectory, BOOL bDurable, BOOL bDirtyTesting, BOOL mbWriteThrough, int iIndicesSecondLevelWidth, int iIndicesThirdLevelWidth, int iIndicesNumSecondLevelChunks, int iIndicesNumThirdLevelChunks, int iIndicesMemoryChunkSize, int iObjectsCacheSize);
+	void	Manual(char* szWorkingDirectory, char* szRewriteDirectory, BOOL bDirtyTesting, BOOL mbWriteThrough, int iIndicesSecondLevelWidth, int iIndicesThirdLevelWidth, int iIndicesNumSecondLevelChunks, int iIndicesNumThirdLevelChunks, int iIndicesMemoryChunkSize, int iObjectsCacheSize);
 	void	OptimiseForStreaming(char* szWorkingDirectory);
-	void	OptimiseForGameGraph(char* szWorkingDirectory);
 
-	void	SetDurable(BOOL bDurable);
 	void	SetDirtyTesting(BOOL bDirtyTesting);
 	void	SetWriteThrough(BOOL bWriteThrough);
 	void	DisableObjectCaching(void);

@@ -52,7 +52,7 @@ protected:
 	BOOL					mbWriteThrough;
 
 public:
-	void 			Init(char* szWorkingDirectory, unsigned int uiCacheSize, BOOL bDurable);  //Old style for testing.
+	void 			Init(char* szWorkingDirectory, char* szRewriteDirectory, unsigned int uiCacheSize);  //Old style for testing.
 	void 			Init(CIndexedConfig* pcConfig);
 	void 			Kill(void);
 

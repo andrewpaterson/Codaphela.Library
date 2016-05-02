@@ -29,19 +29,29 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CDurableFileController::Init(char* szDirectory, char* szRewriteDirectory, BOOL bDurable)
+BOOL CDurableFileController::Init(char* szDirectory, char* szRewriteDirectory)
 {
 	CChars		szStart;
 	CChars		szRewrite;
 	CFileUtil	cFileUtil;
 
-	if (bDurable && szRewriteDirectory == NULL)
+	if (StrEmpty(szDirectory))
 	{
-		gcLogger.Error2(__METHOD__, "Rewrite directory must be supplied if controller is durable.", NULL);
+		gcLogger.Error2(__METHOD__, "Controller directory must be supplied.", NULL);
 		return FALSE;
 	}
 
-	mbDurable = bDurable;
+	mbDurable = FALSE;
+	if (!StrEmpty(szRewriteDirectory))
+	{
+		mbDurable = TRUE;
+	}
+
+	if (mbDurable && (StrICmp(szDirectory, szRewriteDirectory) == 0))
+	{
+		gcLogger.Error2(__METHOD__, "Controller directory and rewrite directory must be different.", NULL);
+		return FALSE;
+	}
 
 	mszDirectory.Init(szDirectory);
 	szStart.Init(szDirectory);

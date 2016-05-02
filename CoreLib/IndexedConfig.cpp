@@ -28,8 +28,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedConfig::Manual(char* szWorkingDirectory, 
-							BOOL bDurable, 
+void CIndexedConfig::Manual(char* szWorkingDirectory,
+							char* szRewriteDirectory,
 							BOOL bDirtyTesting, 
 							BOOL bWriteThrough, 
 							int iIndicesSecondLevelWidth, 
@@ -40,7 +40,7 @@ void CIndexedConfig::Manual(char* szWorkingDirectory,
 							int iObjectsCacheSize)
 {
 	mszWorkingDirectory = szWorkingDirectory;
-	mbDurable = bDurable;
+	mszRewriteDirectory = szRewriteDirectory;
 	mbDirtyTesting = bDirtyTesting;
 	mbWriteThrough = bWriteThrough;
 	miIndicesSecondLevelWidth = iIndicesSecondLevelWidth;
@@ -62,7 +62,7 @@ void CIndexedConfig::OptimiseForStreaming(char* szWorkingDirectory)
 	//Writing and read caching are not important.
 
 	mszWorkingDirectory = szWorkingDirectory;
-	mbDurable = FALSE;
+	mszRewriteDirectory = NULL;
 	mbDirtyTesting = TRUE;
 	mbWriteThrough = FALSE;
 	miIndicesSecondLevelWidth = 131072;
@@ -78,58 +78,9 @@ void CIndexedConfig::OptimiseForStreaming(char* szWorkingDirectory)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedConfig::OptimiseForGameGraph(char* szWorkingDirectory)
-{
-	//This configuration is used where write performance is important.
-	//The database will become corrupt if it is not closed.
-
-	mszWorkingDirectory = szWorkingDirectory;
-	mbDurable = FALSE;
-	mbDirtyTesting = TRUE;
-	mbWriteThrough = FALSE;
-	miIndicesSecondLevelWidth = 131072;
-	miIndicesThirdLevelWidth = 2048;
-	miIndicesNumSecondLevelChunks = 8; 
-	miIndicesNumThirdLevelChunks = 1024;
-	miIndicesMemoryChunkSize = miIndicesNumThirdLevelChunks * sizeof(CIndexedDataDescriptor);
-	miObjectsCacheSize = 128 MB;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CIndexedConfig::SetDurable(BOOL bDurable)
-{
-	if (bDurable)
-	{
-		mbDurable = TRUE;
-		mbDirtyTesting = TRUE;
-		mbWriteThrough = TRUE;
-	}
-	else
-	{
-		mbDurable = FALSE;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CIndexedConfig::SetDirtyTesting(BOOL bDirtyTesting)
 {
-	if (!mbDirtyTesting)
-	{
-		mbDirtyTesting = FALSE;
-		mbDurable = FALSE;
-	}
-	else
-	{
-		mbDirtyTesting = TRUE;
-	}
+	mbDirtyTesting = bDirtyTesting;
 }
 
 
@@ -139,14 +90,7 @@ void CIndexedConfig::SetDirtyTesting(BOOL bDirtyTesting)
 //////////////////////////////////////////////////////////////////////////
 void CIndexedConfig::SetWriteThrough(BOOL bWriteThrough)
 {
-	if (bWriteThrough)
-	{
-		mbWriteThrough = TRUE;
-	}
-	else
-	{
-		mbWriteThrough = FALSE;
-	}
+	mbWriteThrough = bWriteThrough;
 }
 
 
