@@ -1025,7 +1025,7 @@ filePos CDurableFile::Tell(void)
 		return 0;
 	}
 
-	if (mpcController->IsDurable())
+	if (IsDurable())
 	{
 		return miPosition;
 	}
@@ -1060,7 +1060,7 @@ filePos CDurableFile::Size(void)
 		return 0;
 	}
 
-	if (mpcController->IsDurable())
+	if (IsDurable())
 	{
 		return SizeDurable();
 	}

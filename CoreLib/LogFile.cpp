@@ -88,13 +88,9 @@ BOOL CLogFile::Begin(void)
 		if (bMustOpen)
 		{
 			ReturnOnFalse(mpcBackingFile->Open(EFM_Read));
-			miFileLength = mpcBackingFile->Size();
 			mbOpenedBackingFile = TRUE;
 		}
-		else
-		{
-			miFileLength = mpcBackingFile->Size();
-		}
+		miFileLength = mpcBackingFile->Size();
 	}
 	else
 	{
