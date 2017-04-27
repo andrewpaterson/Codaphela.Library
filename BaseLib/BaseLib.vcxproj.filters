@@ -660,19 +660,19 @@
     <ClInclude Include="TemporaryMemory.h">
       <Filter>Source\Memory\Temporary</Filter>
     </ClInclude>
-    <ClInclude Include="IndexTreeBlockMemory.h">
-      <Filter>Source\Data\Index</Filter>
-    </ClInclude>
     <ClInclude Include="FileIndex.h">
       <Filter>Source\File\Basic</Filter>
     </ClInclude>
     <ClInclude Include="FilePosition.h">
       <Filter>Source\File\Basic</Filter>
     </ClInclude>
-    <ClInclude Include="IndexTreeBlock.h">
+    <ClInclude Include="IndexTreeNode.h">
       <Filter>Source\Data\Index</Filter>
     </ClInclude>
-    <ClInclude Include="IndexTreeNode.h">
+    <ClInclude Include="IndexTree.h">
+      <Filter>Source\Data\Index</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexTreeMemory.h">
       <Filter>Source\Data\Index</Filter>
     </ClInclude>
   </ItemGroup>
@@ -1052,19 +1052,19 @@
     <ClCompile Include="TemporaryMemory.cpp">
       <Filter>Source\Memory\Temporary</Filter>
     </ClCompile>
-    <ClCompile Include="IndexTreeBlockMemory.cpp">
-      <Filter>Source\Data\Index</Filter>
-    </ClCompile>
     <ClCompile Include="FileIndex.cpp">
       <Filter>Source\File\Basic</Filter>
     </ClCompile>
     <ClCompile Include="FilePosition.cpp">
       <Filter>Source\File\Basic</Filter>
     </ClCompile>
-    <ClCompile Include="IndexTreeBlock.cpp">
+    <ClCompile Include="IndexTreeNode.cpp">
       <Filter>Source\Data\Index</Filter>
     </ClCompile>
-    <ClCompile Include="IndexTreeNode.cpp">
+    <ClCompile Include="IndexTree.cpp">
+      <Filter>Source\Data\Index</Filter>
+    </ClCompile>
+    <ClCompile Include="IndexTreeMemory.cpp">
       <Filter>Source\Data\Index</Filter>
     </ClCompile>
   </ItemGroup>

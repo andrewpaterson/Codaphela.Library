@@ -1,12 +1,12 @@
 #include "BaseLib/FileUtil.h"
-#include "IndexTreeBlockFileHelper.h"
+#include "IndexTreeHelper.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeBlockFileHelper::Init(char* szWorkingDirectory, char* szPrimary, char* szBackup, char* szRootFileName, BOOL bRemoveWorkingDirectory)
+void CIndexTreeHelper::Init(char* szWorkingDirectory, char* szPrimary, char* szBackup, char* szRootFileName, BOOL bRemoveWorkingDirectory)
 {
 	CFileUtil					cFileUtil;
 
@@ -32,7 +32,7 @@ void CIndexTreeBlockFileHelper::Init(char* szWorkingDirectory, char* szPrimary, 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeBlockFileHelper::Kill(BOOL bRemoveWorkingDirectory)
+void CIndexTreeHelper::Kill(BOOL bRemoveWorkingDirectory)
 {
 	CFileUtil					cFileUtil;
 
@@ -52,7 +52,7 @@ void CIndexTreeBlockFileHelper::Kill(BOOL bRemoveWorkingDirectory)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CIndexTreeBlockFileHelper::GetPrimaryDirectory(void)
+char* CIndexTreeHelper::GetPrimaryDirectory(void)
 {
 	return mszDirectory.Text();
 }
@@ -62,7 +62,7 @@ char* CIndexTreeBlockFileHelper::GetPrimaryDirectory(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CIndexTreeBlockFileHelper::GetBackupDirectory(void)
+char* CIndexTreeHelper::GetBackupDirectory(void)
 {
 	return mszRewriteDirectory.Text();
 }
@@ -72,7 +72,7 @@ char* CIndexTreeBlockFileHelper::GetBackupDirectory(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CIndexTreeBlockFileHelper::GetRootFileName(void)
+char* CIndexTreeHelper::GetRootFileName(void)
 {
 	return mszRootFileName.Text();
 }

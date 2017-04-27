@@ -3,7 +3,7 @@
 #include "BaseLib/Chars.h"
 
 
-class CIndexTreeBlockFileHelper
+class CIndexTreeHelper
 {
 public:
 	CChars	mszWorkingDirectory;

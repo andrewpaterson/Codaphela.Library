@@ -11,11 +11,11 @@ private:
 	CFileIndex				mcFileIndex;
 
 public:
-	void					Init(CIndexTreeBlock* pcIndexTree, CIndexTreeNodeFile* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex, CFileIndex cFileIndex);
-	void					Init(CIndexTreeBlock* pcIndexTree, CIndexTreeNodeFile* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex);
-	void					Init(CIndexTreeBlock* pcIndexTree, CIndexTreeNodeFile* pcParent, CFileIndex cFileIndex);
-	void					Init(CIndexTreeBlock* pcIndexTree, CIndexTreeNodeFile* pcParent);
-	int						Init(CIndexTreeBlock* pcIndexTree, CIndexTreeNodeFile* pcParent, void* pvBuffer, int iBufferSize, CFileIndex cFileIndex);
+	void					Init(CIndexTree* pcIndexTree, CIndexTreeNodeFile* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex, CFileIndex cFileIndex);
+	void					Init(CIndexTree* pcIndexTree, CIndexTreeNodeFile* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex);
+	void					Init(CIndexTree* pcIndexTree, CIndexTreeNodeFile* pcParent, CFileIndex cFileIndex);
+	void					Init(CIndexTree* pcIndexTree, CIndexTreeNodeFile* pcParent);
+	int						Init(CIndexTree* pcIndexTree, CIndexTreeNodeFile* pcParent, void* pvBuffer, int iBufferSize, CFileIndex cFileIndex);
 
 	void					SetFileIndex(int iFile,  filePos ulliFilePos);
 	CFileIndex*				GetFileIndex(void);

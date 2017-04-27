@@ -93,8 +93,8 @@
     <ClCompile Include="FileIteratorReturn.cpp" />
     <ClCompile Include="Files.cpp" />
     <ClCompile Include="IndexedGeneral.cpp" />
-    <ClCompile Include="IndexTreeBlockFile.cpp" />
-    <ClCompile Include="IndexTreeBlockFileHelper.cpp" />
+    <ClCompile Include="IndexTreeFile.cpp" />
+    <ClCompile Include="IndexTreeHelper.cpp" />
     <ClCompile Include="IndexTreeChildNode.cpp" />
     <ClCompile Include="IndexTreeNodeFile.cpp" />
     <ClCompile Include="LogFile.cpp" />
@@ -175,8 +175,8 @@
     <ClInclude Include="FileIterator.h" />
     <ClInclude Include="FileIteratorReturn.h" />
     <ClInclude Include="Files.h" />
-    <ClInclude Include="IndexTreeBlockFile.h" />
-    <ClInclude Include="IndexTreeBlockFileHelper.h" />
+    <ClInclude Include="IndexTreeFile.h" />
+    <ClInclude Include="IndexTreeHelper.h" />
     <ClInclude Include="IndexTreeChildNode.h" />
     <ClInclude Include="IndexTreeNodeFile.h" />
     <ClInclude Include="LogFile.h" />

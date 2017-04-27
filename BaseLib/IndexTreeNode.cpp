@@ -1,4 +1,4 @@
-#include "IndexTreeBlock.h"
+#include "IndexTree.h"
 #include "IndexTreeNode.h"
 
 
@@ -6,7 +6,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNode::Init(CIndexTreeBlock* pcIndexTree, CIndexTreeNode* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex, int iClearValue)
+void CIndexTreeNode::Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex, int iClearValue)
 {
 	size_t tSize;
 
@@ -26,7 +26,7 @@ void CIndexTreeNode::Init(CIndexTreeBlock* pcIndexTree, CIndexTreeNode* pcParent
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNode::Init(CIndexTreeBlock* pcIndexTree, CIndexTreeNode* pcParent)
+void CIndexTreeNode::Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent)
 {
 	mpcIndexTree = pcIndexTree;
 	mpcParent = pcParent;

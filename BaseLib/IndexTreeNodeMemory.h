@@ -6,8 +6,8 @@
 class CIndexTreeNodeMemory : public CIndexTreeNode
 {
 public:
-	void					Init(CIndexTreeBlock* pcIndexTree, CIndexTreeNode* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex);
-	void					Init(CIndexTreeBlock* pcIndexTree, CIndexTreeNode* pcParent);
+	void					Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex);
+	void					Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent);
 
 	CIndexTreeNodeMemory*	Get(unsigned char uiIndex);
 	void					Set(unsigned char uiIndex, CIndexTreeNodeMemory* pcNode);

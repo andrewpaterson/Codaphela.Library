@@ -420,16 +420,16 @@
     <ClCompile Include="IndexedGeneral.cpp">
       <Filter>Source\File\Indexed</Filter>
     </ClCompile>
-    <ClCompile Include="IndexTreeBlockFile.cpp">
-      <Filter>Source\File\Indexed\Index</Filter>
-    </ClCompile>
     <ClCompile Include="IndexTreeNodeFile.cpp">
       <Filter>Source\File\Indexed\Index</Filter>
     </ClCompile>
     <ClCompile Include="IndexTreeChildNode.cpp">
       <Filter>Source\File\Indexed\Index</Filter>
     </ClCompile>
-    <ClCompile Include="IndexTreeBlockFileHelper.cpp">
+    <ClCompile Include="IndexTreeFile.cpp">
+      <Filter>Source\File\Indexed\Index</Filter>
+    </ClCompile>
+    <ClCompile Include="IndexTreeHelper.cpp">
       <Filter>Source\File\Indexed\Index</Filter>
     </ClCompile>
   </ItemGroup>
@@ -674,16 +674,16 @@
     <ClInclude Include="LogFileCommands.h">
       <Filter>Source\File\Log</Filter>
     </ClInclude>
-    <ClInclude Include="IndexTreeBlockFile.h">
-      <Filter>Source\File\Indexed\Index</Filter>
-    </ClInclude>
     <ClInclude Include="IndexTreeNodeFile.h">
       <Filter>Source\File\Indexed\Index</Filter>
     </ClInclude>
     <ClInclude Include="IndexTreeChildNode.h">
       <Filter>Source\File\Indexed\Index</Filter>
     </ClInclude>
-    <ClInclude Include="IndexTreeBlockFileHelper.h">
+    <ClInclude Include="IndexTreeFile.h">
+      <Filter>Source\File\Indexed\Index</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexTreeHelper.h">
       <Filter>Source\File\Indexed\Index</Filter>
     </ClInclude>
   </ItemGroup>

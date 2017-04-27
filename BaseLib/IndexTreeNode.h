@@ -10,11 +10,11 @@
 //  mpcIndexTree, mpcParent, muiFirstIndex, muiLastIndex, muiDataSize, mbNodesEmpty, Object[muiDataSize], Nodes[muiLastIndex-muiFirstIndex+1]
 
 
-class CIndexTreeBlock;
+class CIndexTree;
 class CIndexTreeNode
 {
 public:
-	CIndexTreeBlock*		mpcIndexTree;
+	CIndexTree*		mpcIndexTree;
 	CIndexTreeNode*			mpcParent;
 	unsigned char			muiFirstIndex;
 	unsigned char			muiLastIndex;  // Inclusive (because 255 is a legitimate last index and 256 can't be represented)
@@ -22,8 +22,8 @@ public:
 	unsigned char			mbNodesEmpty;
 
 public:
-	void					Init(CIndexTreeBlock* pcIndexTree, CIndexTreeNode* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex, int iClearValue);
-	void					Init(CIndexTreeBlock* pcIndexTree, CIndexTreeNode* pcParent);
+	void					Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex, int iClearValue);
+	void					Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent);
 
 	void					SizeObject(unsigned char uiSize);
 	BOOL					SetObject(void* pvObject, unsigned char uiSize);
