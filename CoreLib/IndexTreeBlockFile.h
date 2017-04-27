@@ -30,7 +30,7 @@ public:
 
 	BOOL	Put(char* pszKey, void* pvObject, unsigned char uiObjectSize);
 	BOOL	Put(void* pvKey, int iKeySize, void* pvObject, unsigned char uiObjectSize);
-	void*	Put(void* pvKey, int iKeySize, unsigned char uiObjectSize);
+	BOOL	Put(void* pvKey, int iKeySize, unsigned char uiObjectSize);
 
 	BOOL	Remove(char* pszKey);
 	BOOL	Remove(void* pvKey, int iKeySize);
@@ -38,14 +38,20 @@ public:
 	BOOL	HasKey(char* pszKey);
 	BOOL	HasKey(void* pvKey, int iKeySize);
 
+	BOOL	PutPtr(void* pvKey, int iKeySize, void* pvPointer);
+	BOOL	PutPtr(char* pszKey, void* pvPointer);
+	BOOL	PutLong(char* pszKey, int64 lliIndex);
+	BOOL	PutLong(void* pvKey, int iKeySize, int64 lliIndex);
+
+	CIndexTreeNodeFile*		GetIndexNode(void* pvKey, int iKeySize);
+	void					FindAll(CArrayVoidPtr* papvElements);
+
 protected:
 	CIndexTreeNodeFile*		AllocateRoot(void);
 	CIndexTreeNodeFile*		AllocateRoot(CFileIndex cFileIndex);
 	CIndexTreeNodeFile*		AllocateNode(CIndexTreeNodeFile* pcParent);
 	size_t					CalculateRootNodeSize(void);
 	CFileIndex				LoadRootFileIndex(char* szRootFileName);
-
-	CIndexTreeNodeFile*		GetIndexNode(void* pvKey, int iKeySize);
 };
 
 

@@ -340,9 +340,66 @@ BOOL CIndexTreeBlockFile::Put(void* pvKey, int iKeySize, void* pvObject, unsigne
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CIndexTreeBlockFile::Put(void* pvKey, int iKeySize, unsigned char uiObjectSize)
+BOOL CIndexTreeBlockFile::Put(void* pvKey, int iKeySize, unsigned char uiObjectSize)
 {
-	return NULL;
+	return FALSE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeBlockFile::PutPtr(void* pvKey, int iKeySize, void* pvPointer)
+{
+	//Just for testing, writing pointers out to file is... pointless.
+	return Put(pvKey, iKeySize, &pvPointer, sizeof(void*));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeBlockFile::PutPtr(char* pszKey, void* pvPointer)
+{
+	int iKeySize;
+
+	if (StrEmpty(pszKey))
+	{
+		return FALSE;
+	}
+
+	iKeySize = strlen(pszKey);
+	return PutPtr(pszKey, iKeySize, pvPointer);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeBlockFile::PutLong(char* pszKey, int64 lliIndex)
+{
+	int iKeySize;
+
+	if (StrEmpty(pszKey))
+	{
+		return FALSE;
+	}
+
+	iKeySize = strlen(pszKey);
+	return PutLong(pszKey, iKeySize, lliIndex);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeBlockFile::PutLong(void* pvKey, int iKeySize, int64 lliIndex)
+{
+	return Put(pvKey, iKeySize, &lliIndex, sizeof(int64));
 }
 
 
@@ -383,5 +440,14 @@ BOOL CIndexTreeBlockFile::HasKey(char* pszKey)
 BOOL CIndexTreeBlockFile::HasKey(void* pvKey, int iKeySize)
 {
 	return FALSE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexTreeBlockFile::FindAll(CArrayVoidPtr* papvElements)
+{
 }
 

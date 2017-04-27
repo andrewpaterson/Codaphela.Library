@@ -230,6 +230,37 @@ BOOL CIndexTreeBlockMemory::PutPtr(char* pszKey, void* pvPointer)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeBlockMemory::PutLong(char* pszKey, int64 lliIndex)
+{
+	int iKeySize;
+
+	if (StrEmpty(pszKey))
+	{
+		return FALSE;
+	}
+
+	iKeySize = strlen(pszKey);
+	return PutLong(pszKey, iKeySize, lliIndex);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeBlockMemory::PutLong(void* pvKey, int iKeySize, int64 lliIndex)
+{
+	void* pvResult;
+
+	pvResult = Put(pvKey, iKeySize, &lliIndex, sizeof(int64));
+	return pvResult != NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void* CIndexTreeBlockMemory::Put(char* pszKey, void* pvObject, unsigned char uiObjectSize)
 {
 	int iKeySize;

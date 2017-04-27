@@ -1,8 +1,9 @@
 #ifndef __FILE_POSITION_H__
 #define __FILE_POSITION_H__
+#include "PrimitiveTypes.h"
 
 
-typedef long long int		filePos;
+typedef int64		filePos;
 
 
 filePos strlenFilePos(const char* sz);

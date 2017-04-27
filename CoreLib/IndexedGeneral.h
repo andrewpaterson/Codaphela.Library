@@ -22,9 +22,10 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __INDEXED_GENERAL_H__
 #define __INDEXED_GENERAL_H__
+#include "BaseLib/PrimitiveTypes.h"
 
 
-typedef long long int OIndex;
+typedef int64 OIndex;
 
 
 #define INVALID_O_INDEX	((OIndex)-1)
