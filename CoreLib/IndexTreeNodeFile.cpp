@@ -152,22 +152,26 @@ CIndexTreeChildNode* CIndexTreeNodeFile::GetNodes(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNodeFile::RemapChildNodes(CIndexTreeChildNode* pcOldNode, CIndexTreeChildNode* pcNewNode)
+void CIndexTreeNodeFile::RemapChildNodes(CIndexTreeNodeFile* pcOldNode, CIndexTreeNodeFile* pcNewNode)
 {
-	//Doubtful method works as expected.
-
 	int						i;
 	int						iNumNodes;
 	CIndexTreeChildNode*	acChildren;
+	CIndexTreeChildNode*	pcChild;
 
 	acChildren = GetNodes();
 
 	iNumNodes = GetNumIndexes();
 	for (i = 0; i < iNumNodes; i++)
 	{
-		if (&acChildren[i] == pcOldNode)
+		pcChild = &acChildren[i];
+
+		if (pcChild->IsMemory())
 		{
-			acChildren[i] = *pcNewNode;
+			if (pcChild->u.mpcMemory == pcOldNode)
+			{
+				pcChild->u.mpcMemory = pcNewNode;
+			}
 		}
 	}
 }

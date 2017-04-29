@@ -111,12 +111,12 @@ CIndexTreeNode* CIndexTreeNode::GetParent(void)
 size_t CIndexTreeNode::CalculateRequiredNodeSizeForIndex(unsigned char uiIndex)
 {
 	size_t	tSize;
-	int		iNewIndices;
+	int		iRequiredIndices;
 
 	if (HasNodes())
 	{
-		iNewIndices = GetAdditionalIndexes(uiIndex);
-		tSize = SizeofNode() + muiDataSize + iNewIndices * SizeofNodePtr();
+		iRequiredIndices = GetAdditionalIndexes(uiIndex);
+		tSize = SizeofNode() + muiDataSize + iRequiredIndices * SizeofNodePtr();
 
 		return tSize;
 	}

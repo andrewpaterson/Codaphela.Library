@@ -33,7 +33,7 @@ public:
 	void					Contain(unsigned char uiIndex);
 	BOOL					Uncontain(unsigned char uiIndex);
 
-	void					RemapChildNodes(CIndexTreeChildNode* pcOldNode, CIndexTreeChildNode* pcNewNode);
+	void					RemapChildNodes(CIndexTreeNodeFile* pcOldNode, CIndexTreeNodeFile* pcNewNode);
 
 	unsigned char			FindPrevLastIndex(void);
 	unsigned char			FindNextFirstIndex(void);

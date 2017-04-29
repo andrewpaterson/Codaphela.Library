@@ -14,7 +14,7 @@ class CIndexTree;
 class CIndexTreeNode
 {
 public:
-	CIndexTree*		mpcIndexTree;
+	CIndexTree*				mpcIndexTree;
 	CIndexTreeNode*			mpcParent;
 	unsigned char			muiFirstIndex;
 	unsigned char			muiLastIndex;  // Inclusive (because 255 is a legitimate last index and 256 can't be represented)

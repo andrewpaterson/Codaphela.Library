@@ -52,6 +52,11 @@ protected:
 	CIndexTreeNodeFile*		AllocateNode(CIndexTreeNodeFile* pcParent);
 	size_t					CalculateRootNodeSize(void);
 	CFileIndex				LoadRootFileIndex(char* szRootFileName);
+	CIndexTreeNodeFile*		SetOldWithCurrent(CIndexTreeNodeFile* pcParent, unsigned char c);
+	CIndexTreeNodeFile*		ReallocateNodeForIndex(CIndexTreeNodeFile* pcNode, unsigned char uiIndex);
+	CIndexTreeNodeFile*		ReallocateNodeForData(CIndexTreeNodeFile* pcNode, unsigned char uiDataSize);
+	void					RemapChildParents(CIndexTreeNodeFile* pcOldNode, CIndexTreeNodeFile* pcNode);
+	BOOL					LoadChildNode(CIndexTreeChildNode* pcChildNode);
 };
 
 
