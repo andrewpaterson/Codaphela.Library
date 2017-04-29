@@ -33,6 +33,19 @@ int IncrementLogToStringCount(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+char* CharToString(char c)
+{
+	int iCount = IncrementLogToStringCount();
+	gaszLogToStringScratchPad[iCount][0] = c;
+	gaszLogToStringScratchPad[iCount][1] = '\0';
+	return gaszLogToStringScratchPad[iCount];
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 char* IntToString(int i, int iBase)
 {
 	int iCount = IncrementLogToStringCount();
