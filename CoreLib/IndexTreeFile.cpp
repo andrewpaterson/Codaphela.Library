@@ -173,10 +173,10 @@ CFileIndex CIndexTreeFile::LoadRootFileIndex(char* szRootFileName)
 CIndexTreeNodeFile* CIndexTreeFile::AllocateRoot(void)
 {
 	CIndexTreeNodeFile*		pcNode;
-	int						iAdditionalSize;
+	int						iRootNodeSize;
 
-	iAdditionalSize = CalculateRootNodeSize();
-	pcNode = (CIndexTreeNodeFile*)Malloc(SizeofNode() + iAdditionalSize);
+	iRootNodeSize = CalculateRootNodeSize();
+	pcNode = (CIndexTreeNodeFile*)Malloc(iRootNodeSize);
 	pcNode->Init(this, NULL, 0, MAX_UCHAR);
 	return pcNode;
 }
@@ -204,10 +204,10 @@ CIndexTreeNodeFile* CIndexTreeFile::AllocateRoot(CFileIndex cFileIndex)
 //////////////////////////////////////////////////////////////////////////
 size_t CIndexTreeFile::CalculateRootNodeSize(void)
 {
-	int						iAdditionalSize;
+	int						iMaxNodePtrSize;
 
-	iAdditionalSize = (MAX_UCHAR + 1) * SizeofNodePtr();
-	return SizeofNode() + iAdditionalSize;
+	iMaxNodePtrSize = (MAX_UCHAR + 1) * SizeofNodePtr();
+	return SizeofNode() + iMaxNodePtrSize;
 }
 
 
@@ -304,6 +304,11 @@ CIndexTreeNodeFile* CIndexTreeFile::GetIndexNode(void* pvKey, int iKeySize)
 				gcLogger.Error2(__METHOD__, " Could not load child node [", IntToString((int)c), "].", NULL);
 				return NULL;
 			}
+		}
+		else if (pcChild->IsUnallocated())
+		{
+			//Data for key does not exist.
+			return NULL;
 		}
 		else
 		{
@@ -429,6 +434,12 @@ CIndexTreeNodeFile* CIndexTreeFile::SetOldWithCurrent(CIndexTreeNodeFile* pcPare
 				gcLogger.Error2(__METHOD__, " Could not load child node [", IntToString((int)c), "].", NULL);
 				return NULL;
 			}
+		}
+		else if (pcCurrent->IsUnallocated())
+		{
+			pcNew = AllocateNode(pcParent);
+			pcCurrent->Init(pcNew);
+			return pcCurrent->u.mpcMemory;
 		}
 		else
 		{

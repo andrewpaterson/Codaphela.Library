@@ -9,7 +9,7 @@
 //////////////////////////////////////////////////////////////////////////
 void CIndexTreeNodeFile::Init(CIndexTree* pcIndexTree, CIndexTreeNodeFile* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex, CFileIndex cFileIndex)
 {
-	CIndexTreeNode::Init(pcIndexTree, pcParent, uiFirstIndex, uiLastIndex, -1);
+	CIndexTreeNode::Init(pcIndexTree, pcParent, uiFirstIndex, uiLastIndex, INDEX_TREE_FILE_NODE_UNALLOCATED);
 	mcFileIndex.Init(cFileIndex.miFile, cFileIndex.mulliFilePos);
 }
 
@@ -20,7 +20,7 @@ void CIndexTreeNodeFile::Init(CIndexTree* pcIndexTree, CIndexTreeNodeFile* pcPar
 //////////////////////////////////////////////////////////////////////////
 void CIndexTreeNodeFile::Init(CIndexTree* pcIndexTree, CIndexTreeNodeFile* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex)
 {
-	CIndexTreeNode::Init(pcIndexTree, pcParent, uiFirstIndex, uiLastIndex, -1);
+	CIndexTreeNode::Init(pcIndexTree, pcParent, uiFirstIndex, uiLastIndex, INDEX_TREE_FILE_NODE_UNALLOCATED);
 	mcFileIndex.Init();
 }
 

@@ -4,9 +4,9 @@
 #include "BaseLib/FileIndex.h"
 
 
-#define INDEX_TREE_FILE_NODE_UNDEFINED	0x00000000
-#define INDEX_TREE_FILE_NODE_MEMORY		0x01010101
-#define INDEX_TREE_FILE_NODE_FILE		0x02020202
+#define INDEX_TREE_FILE_NODE_UNALLOCATED	0xFFFFFFFF
+#define INDEX_TREE_FILE_NODE_MEMORY			0x01010101
+#define INDEX_TREE_FILE_NODE_FILE			0x02020202
 
 
 struct SIndexTreeChildFile
@@ -36,6 +36,7 @@ public:
 	BOOL	IsValid(void);
 	BOOL	IsMemory(void);
 	BOOL	IsFile(void);
+	BOOL	IsUnallocated(void);
 };
 
 
