@@ -211,7 +211,7 @@ BOOL CIndexedData::Write(CIndexedDataDescriptor* pcDescriptor, void* pvData, uns
 	{
 		if (!bWritten && mbWriteThrough)
 		{
-			bResult = mcDataFiles.WriteData(pcDescriptor, pvData);
+			bResult = mcDataFiles.Write(pcDescriptor, pvData);
 			return bResult;
 		}
 		else
@@ -315,7 +315,7 @@ BOOL CIndexedData::CacheWrite(CIndexedDataDescriptor* pcDescriptor, void* pvData
 		else
 		{
 			//There wasn't enough space in the cache... the object is written immediately.
-			bResult = mcDataFiles.WriteData(pcDescriptor, pvData);
+			bResult = mcDataFiles.Write(pcDescriptor, pvData);
 			*pbWritten = TRUE;
 
 			cPreAllocated.Kill();
@@ -325,7 +325,7 @@ BOOL CIndexedData::CacheWrite(CIndexedDataDescriptor* pcDescriptor, void* pvData
 	else
 	{
 		*pbWritten = TRUE;
-		bResult = mcDataFiles.WriteData(pcDescriptor, pvData);
+		bResult = mcDataFiles.Write(pcDescriptor, pvData);
 		return bResult;
 	}
 }
@@ -451,7 +451,7 @@ BOOL CIndexedData::WriteEvictedData(CIndexedDataDescriptor* pcDescriptor, SIndex
 	if (psCached->iFlags & CACHE_DESCRIPTOR_FLAG_DIRTY)
 	{
 		pvData = RemapSinglePointer(psCached, sizeof(SIndexedCacheDescriptor));
-		bResult = mcDataFiles.WriteData(pcDescriptor, pvData);
+		bResult = mcDataFiles.Write(pcDescriptor, pvData);
 		return bResult;
 	}
 	else
@@ -590,7 +590,7 @@ BOOL CIndexedData::SetData(CIndexedDataDescriptor* pcDescriptor, void* pvData, u
 		bUpdated = mcDataCache.Update(pcDescriptor, pvData);
 		if (bUpdated && mbWriteThrough)
 		{
-			bResult = mcDataFiles.WriteData(pcDescriptor, pvData);
+			bResult = mcDataFiles.Write(pcDescriptor, pvData);
 		}
 		else
 		{

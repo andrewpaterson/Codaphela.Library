@@ -398,7 +398,7 @@ int CIndexedFiles::NumFiles(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedFiles::WriteData(CIndexedDataDescriptor* pcDescriptor, void* pvData)
+BOOL CIndexedFiles::Write(CIndexedDataDescriptor* pcDescriptor, void* pvData)
 {
 	if (pcDescriptor->HasFile())
 	{
