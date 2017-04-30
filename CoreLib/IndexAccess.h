@@ -55,8 +55,8 @@ public:
 
 			void	LoadAndBegin(void);
 
-			OIndex	NumElements(void);
-			OIndex	NumCachedDatas(void);
+			int64	NumElements(void);
+			int64	NumCachedDatas(void);
 };
 
 

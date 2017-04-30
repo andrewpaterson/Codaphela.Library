@@ -365,11 +365,11 @@ int CIndexedFiles::GetUniqueFileNumber(int iDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-OIndex CIndexedFiles::NumInFile(int iDataSize)
+int64 CIndexedFiles::NumInFile(int iDataSize)
 {
 	int				i;
 	CIndexedFile*	pcIndexedFile;
-	OIndex			iTotal;
+	int64			iTotal;
 
 	iTotal = 0;
 	for (i = 0; i < mcFiles.NumElements(); i++)

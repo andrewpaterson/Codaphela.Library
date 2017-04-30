@@ -990,7 +990,7 @@ int CIndexedData::NumFiles(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-OIndex CIndexedData::NumInFile(int iDataSize)
+int64 CIndexedData::NumInFile(int iDataSize)
 {
 	return mcDataFiles.NumInFile(iDataSize);
 }
@@ -1000,7 +1000,7 @@ OIndex CIndexedData::NumInFile(int iDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-OIndex CIndexedData::NumElements(void)
+int64 CIndexedData::NumElements(void)
 {
 	return mcIndices.NumElements();
 }

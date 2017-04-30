@@ -84,8 +84,8 @@ public:
 	int				NumCached(void);
 	int				NumCached(int iSize);
 	int				NumFiles(void);
-	OIndex			NumInFile(int iDataSize);
-	OIndex			NumElements(void);
+	int64			NumInFile(int iDataSize);
+	int64			NumElements(void);
 
 	BOOL			EvictFromCache(CIndexedDataDescriptor* pcDescriptor);
 	BOOL			Uncache(void);

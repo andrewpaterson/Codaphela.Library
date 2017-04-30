@@ -89,12 +89,12 @@ BOOL CIndexAccess::RemoveFile(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-OIndex CIndexAccess::NumElements(void)
+int64 CIndexAccess::NumElements(void)
 {
-	OIndex						i;
-	OIndex						iLength;
+	int64						i;
+	int64						iLength;
 	CIndexedDataDescriptor		cCurrent;
-	OIndex						iTotal;
+	int64						iTotal;
 
 	iTotal = 0;
 	iLength = Length();
@@ -113,12 +113,12 @@ OIndex CIndexAccess::NumElements(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-OIndex CIndexAccess::NumCachedDatas(void)
+int64 CIndexAccess::NumCachedDatas(void)
 {
-	OIndex				i;
-	OIndex				iLength;
+	int64					i;
+	int64					iLength;
 	CIndexedDataDescriptor	cCurrent;
-	OIndex				iTotal;
+	int64					iTotal;
 
 	iTotal = 0;
 	iLength = Length();
