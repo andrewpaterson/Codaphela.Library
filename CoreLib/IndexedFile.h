@@ -51,7 +51,6 @@ public:
 	BOOL			IsFull(void);
 	filePos			Write(void* pvData);
 	BOOL			Write(filePos iIndex, void* pvData);
-	filePos			Write(void* pvData, filePos iCount);
 	BOOL			Write(filePos iIndex, void* pvData, filePos iCount);
 	BOOL			Read(filePos iIndex, void* pvData);
 	BOOL			Read(filePos iIndex, void* pvData, filePos iCount);
@@ -63,6 +62,9 @@ public:
 	char*			GetFileName(void);
 
 	void			Dump(void);
+
+protected:
+	filePos			Write(void* pvData, filePos iCount);
 };
 
 
