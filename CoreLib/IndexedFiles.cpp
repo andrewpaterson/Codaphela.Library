@@ -116,6 +116,7 @@ BOOL CIndexedFiles::ReadIndexedFileDescriptors(void)
 
 	if (iRead != iNumFiles)
 	{
+		free(pasFileDescriptors);
 		return FALSE;
 	}
 
@@ -129,6 +130,7 @@ BOOL CIndexedFiles::ReadIndexedFileDescriptors(void)
 			pcIndexedFile->Init(mpcDurableFileControl, pasFileDescriptors[i].iFileIndex, szDataFileName, szDataRewriteName, pasFileDescriptors[i].iDataSize, pasFileDescriptors[i].iFileNum);
 		}
 	}
+	free(pasFileDescriptors);
 	return bResult;
 }
 
