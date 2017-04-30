@@ -616,7 +616,15 @@ BOOL CIndexTreeFile::Remove(void* pvKey, int iKeySize)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeFile::HasKey(char* pszKey)
 {
-	return FALSE;
+	int iKeySize;
+
+	if (StrEmpty(pszKey))
+	{
+		return FALSE;
+	}
+
+	iKeySize = strlen(pszKey);
+	return HasKey(pszKey, iKeySize);
 }
 
 
@@ -626,7 +634,9 @@ BOOL CIndexTreeFile::HasKey(char* pszKey)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeFile::HasKey(void* pvKey, int iKeySize)
 {
-	return FALSE;
+	CIndexTreeNodeFile* pcNode;
+	pcNode = GetIndexNode(pvKey, iKeySize);
+	return pcNode != NULL;
 }
 
 
@@ -636,5 +646,48 @@ BOOL CIndexTreeFile::HasKey(void* pvKey, int iKeySize)
 //////////////////////////////////////////////////////////////////////////
 void CIndexTreeFile::FindAll(CArrayVoidPtr* papvElements)
 {
+	RecurseFindAll(mpcRoot, papvElements);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexTreeFile::RecurseFindAll(CIndexTreeNodeFile* pcNode, CArrayVoidPtr* papvElements)
+{
+	int						i;
+	CIndexTreeChildNode*	pcChild;
+	void*					pvObject;
+
+	if (pcNode != NULL)
+	{
+		pvObject = pcNode->GetObjectPtr();
+		if (pvObject != NULL)
+		{
+			papvElements->Add(pvObject);
+		}
+
+		for (i = 0; i < pcNode->GetNumIndexes(); i++)
+		{
+			pcChild = pcNode->GetNode(i);
+			if (pcChild->IsMemory())
+			{
+				RecurseFindAll(pcChild->u.mpcMemory, papvElements);
+			}
+			else if (pcChild->IsFile())
+			{
+				if (LoadChildNode(pcChild))
+				{
+					RecurseFindAll(pcChild->u.mpcMemory, papvElements);
+				}
+				else
+				{
+					gcLogger.Error2(__METHOD__, " Could not load child node [", IntToString(i + pcNode->GetFirstIndex()), "].", NULL);
+					return;
+				}
+			}
+		}
+	}
 }
 

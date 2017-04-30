@@ -57,6 +57,7 @@ protected:
 	CIndexTreeNodeFile*		ReallocateNodeForData(CIndexTreeNodeFile* pcNode, unsigned char uiDataSize);
 	void					RemapChildParents(CIndexTreeNodeFile* pcOldNode, CIndexTreeNodeFile* pcNode);
 	BOOL					LoadChildNode(CIndexTreeChildNode* pcChildNode);
+	void					RecurseFindAll(CIndexTreeNodeFile* pcNode, CArrayVoidPtr* papvElements);
 };
 
 
