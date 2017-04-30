@@ -26,6 +26,12 @@ BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, char* sz
 
 	BOOL	bResult;
 
+	if (!pcDurableFileControl->IsBegun())
+	{
+		gcLogger.Error2(__METHOD__, "DurableFileController must be begun before calling Init.", NULL);
+		return FALSE;
+	}
+
 	CIndexTree::Init(pcMalloc, sizeof(CIndexTreeNodeFile), sizeof(CIndexTreeChildNode));
 
 	mpcDurableFileControl = pcDurableFileControl;
