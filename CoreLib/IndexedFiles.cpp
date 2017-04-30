@@ -316,7 +316,7 @@ CIndexedFile* CIndexedFiles::GetFile(int iFileIndex)
 {
 	CIndexedFile*	pcIndexedFile;
 
-	pcIndexedFile = mcFiles.SafeGet(iFileIndex);
+	pcIndexedFile = mcFiles.Get(iFileIndex);
 	if (!pcIndexedFile)
 	{
 		return NULL;

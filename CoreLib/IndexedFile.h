@@ -26,6 +26,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "BaseLib/ChunkFile.h"
 #include "BaseLib/Chars.h"
 #include "BaseLib/ArrayTemplate.h"
+#include "BaseLib/LinkedListTemplateFreeList.h"
 #include "DurableFile.h"
 #include "DurableFileController.h"
 
@@ -49,9 +50,11 @@ public:
 	void			Kill(void);
 	filePos			CalculateNumDatas(void);
 	BOOL			IsFull(void);
+
 	filePos			Write(void* pvData);
 	BOOL			Write(filePos iIndex, void* pvData);
 	BOOL			Write(filePos iIndex, void* pvData, filePos iCount);
+
 	BOOL			Read(filePos iIndex, void* pvData);
 	BOOL			Read(filePos iIndex, void* pvData, filePos iCount);
 
@@ -68,7 +71,7 @@ protected:
 };
 
 
-typedef CArrayTemplate<CIndexedFile> CArrayIndexedFile;
+typedef CLinkedListTemplateFreeList<CIndexedFile> CLinkedListIndexedFile;
 
 
 #endif // __INDEXED_FILE_H__

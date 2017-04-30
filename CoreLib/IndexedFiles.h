@@ -33,8 +33,8 @@ class CIndexedFiles
 protected:
 	CDurableFileController*	mpcDurableFileControl;
 
-	//THIS CAN'T BE AN ARRAY.  When CIndexedFile elements move they will cause the DurableFileController to point to garbage DurableFiles.
-	CArrayIndexedFile		mcFiles;  //These are the data on disk.  Generally one file per data size.
+	//Needs a more performant way of looking up files by index.
+	CLinkedListIndexedFile	mcFiles;  //These are the data on disk.  Generally one file per data size.
 
 	CChars					mszDataExtension;
 

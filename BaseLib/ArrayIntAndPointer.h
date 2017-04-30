@@ -30,8 +30,6 @@ struct SIntAndPointer
 {
 	void*	pvData;
 	int		iValue;  //Arbitrary type values... no need to be a registered type.
-
-	void Init(void* pvData, int iValue);
 };
 
 

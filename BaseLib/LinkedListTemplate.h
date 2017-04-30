@@ -47,8 +47,6 @@ public:
 	int		IndexOf(M* pvData);
 	BOOL	IsInList(M* pvData);
 
-	int		ByteSize(void);
-
 	//Crap
 	BOOL	WriteLinkedListTemplate(CFileWriter* pcFileWriter);
 	BOOL	ReadLinkedListTemplate(CFileReader* pcFileReader);
