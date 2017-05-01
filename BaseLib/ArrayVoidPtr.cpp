@@ -85,3 +85,24 @@ void CArrayVoidPtr::QuickSort(void)
 	__CArrayVoidPtr::QuickSort(&ComparePtrPtr);
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+int CArrayVoidPtr::Find(void* pv)
+{
+	int		i;
+	void**	pvData;
+
+	pvData = GetData();
+	for (i = 0; i < NumElements(); i++)
+	{
+		if (pvData[i] == pv)
+		{
+			return i;
+		}
+	}
+	return -1;
+}
+

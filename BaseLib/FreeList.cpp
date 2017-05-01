@@ -942,17 +942,7 @@ int CFreeList::GetElementStride(void)
 //////////////////////////////////////////////////////////////////////////
 int CFreeList::GetNumAllocatedChunks(void)
 {
-	SFNode*		psNode;
-	int			iCount;
-
-	iCount = 0;
-	psNode = (SFNode*)mcList.GetHead();
-	while (psNode)
-	{
-		iCount++;
-		psNode = (SFNode*)mcList.GetNext(psNode);
-	}
-	return iCount;
+	return mcList.NumElements();
 }
 
 

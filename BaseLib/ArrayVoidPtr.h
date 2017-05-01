@@ -16,6 +16,7 @@ public:
 	BOOL	Get(int iIndex, void** pv);
 	void**	Get(int iIndex);
 	void	QuickSort(void);
+	int		Find(void* pv);
 };
 
 
