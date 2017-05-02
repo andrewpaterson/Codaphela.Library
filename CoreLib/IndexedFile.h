@@ -26,7 +26,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "BaseLib/ChunkFile.h"
 #include "BaseLib/Chars.h"
 #include "BaseLib/ArrayTemplate.h"
-#include "BaseLib/LinkedListTemplateFreeList.h"
+#include "BaseLib/ListTemplate.h"
 #include "DurableFile.h"
 #include "DurableFileController.h"
 
@@ -71,7 +71,7 @@ protected:
 };
 
 
-typedef CLinkedListTemplateFreeList<CIndexedFile> CLinkedListIndexedFile;
+typedef CListTemplate<CIndexedFile> CListIndexedFile;
 
 
 #endif // __INDEXED_FILE_H__

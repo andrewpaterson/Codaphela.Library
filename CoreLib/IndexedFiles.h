@@ -34,7 +34,7 @@ protected:
 	CDurableFileController*	mpcDurableFileControl;
 
 	//Needs a more performant way of looking up files by index.
-	CLinkedListIndexedFile	mcFiles;  //These are the data on disk.  Generally one file per data size.
+	CListIndexedFile		mcFiles;  //These are the data on disk.  Generally one file per data size.
 
 	CChars					mszDataExtension;
 
