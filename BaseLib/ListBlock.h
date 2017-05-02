@@ -37,7 +37,7 @@ public:
 
 	void	Pop(void* pvData);
 	void	Pop(void);
-	void 	Push(void* pvElement);
+	void* 	Push(void* pvElement);
 	void*	Push(void);
 
 	void	Reverse(void);

@@ -263,12 +263,13 @@ void CListBlock::Pop(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CListBlock::Push(void* pvElement)
+void* CListBlock::Push(void* pvElement)
 {
 	void* pv;
 
 	pv = mcFreeList.Add(pvElement);
 	mapIndices.Push(&pv);
+	return pv;
 }
 
 
