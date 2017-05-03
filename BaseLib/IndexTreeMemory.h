@@ -50,6 +50,7 @@ public:
 	BOOL					PutLong(void* pvKey, int iKeySize, int64 lliIndex);
 
 	CIndexTreeNodeMemory*	GetIndexNode(void* pvKey, int iKeySize);
+	CIndexTreeNodeMemory*	GetRoot(void);
 	int						CountAllocatedNodes(void);
 	int						RecurseSize(void);
 	size_t					CalculateRootNodeSize(void);
