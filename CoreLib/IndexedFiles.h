@@ -33,7 +33,6 @@ class CIndexedFiles
 protected:
 	CDurableFileController*	mpcDurableFileControl;
 
-	//Needs a more performant way of looking up files by index.
 	CListIndexedFile		mcFiles;  //These are the data on disk.  Generally one file per data size.
 
 	CChars					mszDataExtension;

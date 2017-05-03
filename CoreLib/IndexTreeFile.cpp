@@ -3,6 +3,7 @@
 #include "BaseLib/FileBasic.h"
 #include "BaseLib/DiskFile.h"
 #include "IndexedFile.h"
+#include "IndexTreeWriter.h"
 #include "IndexTreeFile.h"
 
 
@@ -76,13 +77,12 @@ void CIndexTreeFile::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeFile::InitRoot(char* szRootFileName)
 {
-	BOOL			bRootIndexExists;
-	CFileIndex		cRootFileIndex;
-	CIndexedFile*	pcRootIndexFile;
-	char			pvBuffer[8 KB];
-	int				iNodeSize;
-	int				iWrittenPos;
-	filePos			iFilePos;
+	BOOL				bRootIndexExists;
+	CFileIndex			cRootFileIndex;
+	CIndexedFile*		pcRootIndexFile;
+	char				pvBuffer[8 KB];
+	int					iNodeSize;
+	CIndexTreeWriter	cWriter;
 
 	mszRootFileName.Init(szRootFileName);
 	cRootFileIndex = LoadRootFileIndex(szRootFileName);
@@ -109,23 +109,10 @@ BOOL CIndexTreeFile::InitRoot(char* szRootFileName)
 	else
 	{
 		mpcRoot = AllocateRoot();
-		iWrittenPos = mpcRoot->WriteToBuffer(pvBuffer, 8 KB);
-		if (iWrittenPos <= 0)
-		{
-			return FALSE;
-		}
-
-		iNodeSize = mpcRoot->CalculateBufferSize();
-		pcRootIndexFile = mcIndexFiles.GetOrCreateFile(iNodeSize);
-		if (!pcRootIndexFile)
-		{
-			return TRUE;
-		}
-		iFilePos = pcRootIndexFile->Write(pvBuffer);
-		mpcRoot->SetFileIndex(pcRootIndexFile->GetFileIndex(), iFilePos);
-		return TRUE;
+		return cWriter.Write(mpcRoot, &mcIndexFiles);
 	}
 }
+
 
 
 //////////////////////////////////////////////////////////////////////////

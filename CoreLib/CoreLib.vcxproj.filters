@@ -432,6 +432,9 @@
     <ClCompile Include="IndexTreeHelper.cpp">
       <Filter>Source\File\Indexed\Index</Filter>
     </ClCompile>
+    <ClCompile Include="IndexTreeWriter.cpp">
+      <Filter>Source\File\Indexed\Index</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ArrayVariable.h">
@@ -684,6 +687,9 @@
       <Filter>Source\File\Indexed\Index</Filter>
     </ClInclude>
     <ClInclude Include="IndexTreeHelper.h">
+      <Filter>Source\File\Indexed\Index</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexTreeWriter.h">
       <Filter>Source\File\Indexed\Index</Filter>
     </ClInclude>
   </ItemGroup>
