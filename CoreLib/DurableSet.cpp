@@ -67,7 +67,7 @@ BOOL CDurableSet::Recover(void)
 	//This assumes begin has NOT been called.
 	if (mbBegun)
 	{
-		gcLogger.Error2(__METHOD__, "Cannot recover after begun.", NULL);
+		gcLogger.Error2(__METHOD__, " Cannot recover after begun.", NULL);
 		return FALSE;
 	}
 
@@ -84,10 +84,10 @@ BOOL CDurableSet::Recover(void)
 	//Primary files were written but backup failed.
 	if ((bMarkStart) && (bMarkRewrite))
 	{
-		gcLogger.Info2(__METHOD__, "Primary files were written but backup failed.", NULL);
+		gcLogger.Info2(__METHOD__, " Primary files were written but backup failed.", NULL);
 		if (!CopyPrimaryToBackup())
 		{
-			gcLogger.Error2(__METHOD__, "Copying primary files to backup failed.", NULL);
+			gcLogger.Error2(__METHOD__, " Copying primary files to backup failed.", NULL);
 			return FALSE;
 		}
 		MarkFinish();
@@ -98,10 +98,10 @@ BOOL CDurableSet::Recover(void)
 	//Primary files were not written.  Use old backup.
 	if (bMarkStart)
 	{
-		gcLogger.Info2(__METHOD__, "Primary files were not written.  Reverting to backup.", NULL);
+		gcLogger.Info2(__METHOD__, " Primary files were not written.  Reverting to backup.", NULL);
 		if (!CopyBackupToPrimary())
 		{
-			gcLogger.Error2(__METHOD__, "Copying backup files to primary failed.", NULL);
+			gcLogger.Error2(__METHOD__, " Copying backup files to primary failed.", NULL);
 			return FALSE;
 		}
 		MarkFinish();

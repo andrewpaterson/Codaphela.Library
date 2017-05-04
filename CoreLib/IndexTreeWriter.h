@@ -13,7 +13,7 @@ public:
 	BOOL Write(CIndexTreeNodeFile* pcNode, CIndexedFiles* pcIndexFiles);
 
 protected:
-	void RecurseWrite(CIndexTreeNodeMemory* pcNode, CIndexTreeNodeFile* pcFileNode);
+	void RecurseWrite(CIndexTreeNodeMemory* pcNode, CIndexTreeFile* pcFileTree, CIndexTreeNodeFile* pcFileNode);
 };
 
 #endif //__INDEX_TREE_WRITER_H__

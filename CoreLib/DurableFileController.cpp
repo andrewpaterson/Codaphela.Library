@@ -37,7 +37,7 @@ BOOL CDurableFileController::Init(char* szDirectory, char* szRewriteDirectory)
 
 	if (StrEmpty(szDirectory))
 	{
-		gcLogger.Error2(__METHOD__, "Controller directory must be supplied.", NULL);
+		gcLogger.Error2(__METHOD__, " Controller directory must be supplied.", NULL);
 		return FALSE;
 	}
 
@@ -49,7 +49,7 @@ BOOL CDurableFileController::Init(char* szDirectory, char* szRewriteDirectory)
 
 	if (mbDurable && (StrICmp(szDirectory, szRewriteDirectory) == 0))
 	{
-		gcLogger.Error2(__METHOD__, "Controller directory and rewrite directory must be different.", NULL);
+		gcLogger.Error2(__METHOD__, " Controller directory and rewrite directory must be different.", NULL);
 		return FALSE;
 	}
 

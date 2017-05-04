@@ -22,7 +22,7 @@ public:
 	unsigned char			mbNodesEmpty;
 
 public:
-	void					Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex, int iClearValue);
+	void					Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex, unsigned char uiDataSize, int iClearValue);
 	void					Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent);
 
 	void					SizeObject(unsigned char uiSize);

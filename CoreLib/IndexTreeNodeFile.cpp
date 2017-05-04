@@ -9,8 +9,19 @@
 //////////////////////////////////////////////////////////////////////////
 void CIndexTreeNodeFile::Init(CIndexTree* pcIndexTree, CIndexTreeNodeFile* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex, CFileIndex cFileIndex)
 {
-	CIndexTreeNode::Init(pcIndexTree, pcParent, uiFirstIndex, uiLastIndex, INDEX_TREE_FILE_NODE_UNALLOCATED);
+	CIndexTreeNode::Init(pcIndexTree, pcParent, uiFirstIndex, uiLastIndex, 0, INDEX_TREE_FILE_NODE_UNALLOCATED);
 	mcFileIndex.Init(cFileIndex.miFile, cFileIndex.mulliFilePos);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexTreeNodeFile::Init(CIndexTree* pcIndexTree, CIndexTreeNodeFile* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex, unsigned char uiObjectSize)
+{
+	CIndexTreeNode::Init(pcIndexTree, mpcParent, uiFirstIndex, uiLastIndex, uiObjectSize, INDEX_TREE_FILE_NODE_UNALLOCATED);
+	mcFileIndex.Init();
 }
 
 
@@ -20,7 +31,7 @@ void CIndexTreeNodeFile::Init(CIndexTree* pcIndexTree, CIndexTreeNodeFile* pcPar
 //////////////////////////////////////////////////////////////////////////
 void CIndexTreeNodeFile::Init(CIndexTree* pcIndexTree, CIndexTreeNodeFile* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex)
 {
-	CIndexTreeNode::Init(pcIndexTree, pcParent, uiFirstIndex, uiLastIndex, INDEX_TREE_FILE_NODE_UNALLOCATED);
+	CIndexTreeNode::Init(pcIndexTree, pcParent, uiFirstIndex, uiLastIndex, 0, INDEX_TREE_FILE_NODE_UNALLOCATED);
 	mcFileIndex.Init();
 }
 
@@ -504,14 +515,21 @@ BOOL CIndexTreeNodeFile::ValidateNodesEmpty(void)
 
 	iCount = NumInitialisedIndexes();
 
-	bCountEmpty = iCount == 0;
+	bCountEmpty = (iCount == 0);
 	if (mbNodesEmpty == bCountEmpty)
 	{
 		return TRUE;
 	}
 	else
 	{
-		gcLogger.Error2(__METHOD__, " Child nodes marked as empty but ", IntToString(iCount) ," are allocated.", NULL);
+		if (mbNodesEmpty)
+		{
+			gcLogger.Error2(__METHOD__, " Child nodes marked as empty but ", IntToString(iCount), " are allocated.", NULL);
+		}
+		else
+		{
+			gcLogger.Error2(__METHOD__, " Child nodes marked as not empty but none are allocated.", NULL);
+		}
 		return FALSE;
 	}
 }

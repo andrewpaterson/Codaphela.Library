@@ -24,9 +24,8 @@ BOOL CIndexTreeWriter::Write(CIndexTreeMemory* pcIndexTree, char* szDirectory)
 	
 	cDurableController.Begin();
 	cIndexTreeFile.Init(&cDurableController, cHelper.GetRootFileName(), &gcSystemAllocator);
-
 	
-	RecurseWrite(pcIndexTree->GetRoot(), cIndexTreeFile.GetRoot());
+	RecurseWrite(pcIndexTree->GetRoot(), &cIndexTreeFile, cIndexTreeFile.GetRoot());
 	cDurableController.End();
 
 	cIndexTreeFile.Kill();
@@ -39,30 +38,52 @@ BOOL CIndexTreeWriter::Write(CIndexTreeMemory* pcIndexTree, char* szDirectory)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeWriter::RecurseWrite(CIndexTreeNodeMemory* pcMemoryNode, CIndexTreeNodeFile* pcFileNode)
+void CIndexTreeWriter::RecurseWrite(CIndexTreeNodeMemory* pcMemoryNode, CIndexTreeFile* pcFileTree, CIndexTreeNodeFile* pcFileNode)
 {
 	int						i;
-	CIndexTreeNodeMemory*	pcChild;
+	CIndexTreeNodeMemory*	pcMemoryChild;
+	CIndexTreeNodeFile*		pcFileChild;
 	void*					pvObject;
+	int						iChildFirstIndex;
+	int						iChildLastIndex;
+	int						iChildDataSize;
+
 
 	pvObject = pcMemoryNode->GetObjectPtr();
 	if (pvObject != NULL)
 	{
-		//Has object;
+		pcFileNode->SetObject(pvObject, pcMemoryNode->GetObjectSize());
 	}
 
 	int iFirstIndex;
 	int iLastIndex;
 
-	iFirstIndex = pcMemoryNode->GetFirstIndex();
-	iLastIndex = pcMemoryNode->GetLastIndex();
-	for (i = iFirstIndex; i <= iLastIndex; i++)
+	if (pcMemoryNode->HasNodes())
 	{
-		pcChild = pcMemoryNode->GetNode(i - iFirstIndex);
-		if (pcChild != NULL)
+		iFirstIndex = pcMemoryNode->GetFirstIndex();
+		iLastIndex = pcMemoryNode->GetLastIndex();
+		for (i = iFirstIndex; i <= iLastIndex; i++)
 		{
-//			pcChild->
-//			RecurseWrite(pcChild)
+			pcMemoryChild = pcMemoryNode->GetNode(i - iFirstIndex);
+			if (pcMemoryChild != NULL)
+			{
+				iChildDataSize = pcMemoryChild->GetObjectSize();
+				if (pcMemoryChild->HasNodes())
+				{
+					iChildFirstIndex = pcMemoryChild->GetFirstIndex();
+					iChildLastIndex = pcMemoryChild->GetLastIndex();
+
+					pcFileChild = pcFileTree->SetParentWithExisting(pcFileNode, i, iChildFirstIndex, iChildLastIndex, iChildDataSize);
+
+					RecurseWrite(pcMemoryChild, pcFileTree, pcFileChild);
+				}
+				else
+				{
+					pcFileChild = pcFileTree->SetParentWithExisting(pcFileNode, i, iChildDataSize);
+
+					RecurseWrite(pcMemoryChild, pcFileTree, pcFileChild);
+				}
+			}
 		}
 	}
 }

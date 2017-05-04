@@ -6,14 +6,14 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNode::Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex, int iClearValue)
+void CIndexTreeNode::Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex, unsigned char uiDataSize, int iClearValue)
 {
 	size_t tSize;
 
 	mpcIndexTree = pcIndexTree;
 	muiFirstIndex = uiFirstIndex;
 	muiLastIndex = uiLastIndex;
-	muiDataSize = 0;
+	muiDataSize = uiDataSize;
 	mbNodesEmpty = FALSE;
 	mpcParent = pcParent;
 
@@ -402,7 +402,15 @@ BOOL CIndexTreeNode::SetObject(void* pvObject, unsigned char uiSize)
 		SizeObject(uiSize);
 		if (pvObject)
 		{
-			memcpy(GetObjectPtr(), pvObject, uiSize);
+			memcpy_fast(GetObjectPtr(), pvObject, uiSize);
+		}
+		return TRUE;
+	}
+	else if (muiDataSize == muiDataSize)
+	{
+		if (pvObject)
+		{
+			memcpy_fast(GetObjectPtr(), pvObject, uiSize);
 		}
 		return TRUE;
 	}

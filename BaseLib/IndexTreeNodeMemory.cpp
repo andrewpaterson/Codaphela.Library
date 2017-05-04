@@ -9,7 +9,7 @@
 //////////////////////////////////////////////////////////////////////////
 void CIndexTreeNodeMemory::Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex)
 {
-	CIndexTreeNode::Init(pcIndexTree, pcParent, uiFirstIndex, uiLastIndex, 0);
+	CIndexTreeNode::Init(pcIndexTree, pcParent, uiFirstIndex, uiLastIndex, 0, 0);
 }
 
 
@@ -315,14 +315,21 @@ BOOL CIndexTreeNodeMemory::ValidateNodesEmpty(void)
 
 	iCount = NumInitialisedIndexes();
 
-	bCountEmpty = iCount == 0;
+	bCountEmpty = (iCount == 0);
 	if (mbNodesEmpty == bCountEmpty)
 	{
 		return TRUE;
 	}
 	else
 	{
-		gcLogger.Error2(__METHOD__, " Child nodes marked as empty but ", IntToString(iCount) ," are allocated.", NULL);
+		if (mbNodesEmpty)
+		{
+			gcLogger.Error2(__METHOD__, " Child nodes marked as empty but ", IntToString(iCount), " are allocated.", NULL);
+		}
+		else
+		{
+			gcLogger.Error2(__METHOD__, " Child nodes marked as not empty but none are allocated.", NULL);
+		}
 		return FALSE;
 	}
 }
