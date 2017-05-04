@@ -116,6 +116,7 @@ size_t CIndexTreeNode::CalculateRequiredNodeSizeForIndex(unsigned char uiIndex)
 	if (HasNodes())
 	{
 		iRequiredIndices = GetAdditionalIndexes(uiIndex);
+//		mpcIndexTree->Calc
 		tSize = SizeofNode() + muiDataSize + iRequiredIndices * SizeofNodePtr();
 
 		return tSize;
@@ -133,7 +134,7 @@ size_t CIndexTreeNode::CalculateRequiredNodeSizeForIndex(unsigned char uiIndex)
 //////////////////////////////////////////////////////////////////////////
 size_t CIndexTreeNode::CalculateRequiredNodeSizeForEmpty(void)
 {
-	return SizeofNode() + muiDataSize + SizeofNodePtr();
+	return mpcIndexTree->CalculateNodeSize(1, muiDataSize);
 }
 
 
@@ -147,7 +148,7 @@ size_t CIndexTreeNode::CalculateRequiredNodeSizeForData(unsigned char uiDataSize
 	int		iExistingIndices;
 
 	iExistingIndices = GetNumIndexes();
-	tSize = SizeofNode() + uiDataSize + iExistingIndices * SizeofNodePtr();
+	tSize = mpcIndexTree->CalculateNodeSize(iExistingIndices, uiDataSize);
 
 	return tSize;
 }
@@ -163,7 +164,7 @@ size_t CIndexTreeNode::CalculateRequiredNodeSizeForCurrent(void)
 	int		iExistingIndices;
 
 	iExistingIndices = GetNumIndexes();
-	tSize = SizeofNode() + muiDataSize + iExistingIndices * SizeofNodePtr();
+	tSize = mpcIndexTree->CalculateNodeSize(iExistingIndices, muiDataSize);
 
 	return tSize;
 }

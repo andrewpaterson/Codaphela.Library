@@ -22,6 +22,9 @@ public:
 	size_t				SizeofNode(void);
 	size_t				SizeofNodePtr(void);
 
+	size_t				CalculateRootNodeSize(void);
+	size_t				CalculateNodeSize(int iRequiredIndices, int iDataSize);
+
 protected:
 	void*				Malloc(size_t tSize);
 	void*				Realloc(void* pv, size_t tSize);

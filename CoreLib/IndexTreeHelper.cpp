@@ -16,10 +16,20 @@ void CIndexTreeHelper::Init(char* szWorkingDirectory, char* szPrimary, char* szB
 	}
 
 	mszDirectory.Init(szWorkingDirectory);
-	cFileUtil.AppendToPath(&mszDirectory, szPrimary);
+	if (szPrimary)
+	{
+		cFileUtil.AppendToPath(&mszDirectory, szPrimary);
+	}
 
-	mszRewriteDirectory.Init(szWorkingDirectory);
-	cFileUtil.AppendToPath(&mszRewriteDirectory, szBackup);
+	if (szPrimary && szBackup)
+	{
+		mszRewriteDirectory.Init(szWorkingDirectory);
+		cFileUtil.AppendToPath(&mszRewriteDirectory, szBackup);
+	}
+	else
+	{
+		mszRewriteDirectory.Init();
+	}
 
 	mszRootFileName.Init(szWorkingDirectory);
 	cFileUtil.AppendToPath(&mszRootFileName, szRootFileName);
@@ -64,7 +74,14 @@ char* CIndexTreeHelper::GetPrimaryDirectory(void)
 //////////////////////////////////////////////////////////////////////////
 char* CIndexTreeHelper::GetBackupDirectory(void)
 {
-	return mszRewriteDirectory.Text();
+	if (mszRewriteDirectory.Length() > 0)
+	{
+		return mszRewriteDirectory.Text();
+	}
+	else
+	{
+		return NULL;
+	}
 }
 
 

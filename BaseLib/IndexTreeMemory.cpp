@@ -73,19 +73,6 @@ void CIndexTreeMemory::RecurseKill(CIndexTreeNodeMemory* pcNode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size_t CIndexTreeMemory::CalculateRootNodeSize(void)
-{
-	int						iAdditionalSize;
-
-	iAdditionalSize = (MAX_UCHAR + 1) * SizeofNodePtr();
-	return SizeofNode() + iAdditionalSize;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 CIndexTreeNodeMemory* CIndexTreeMemory::AllocateRoot(void)
 {
 	CIndexTreeNodeMemory*	pcNode;

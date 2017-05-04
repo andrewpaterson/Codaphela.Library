@@ -44,13 +44,13 @@ public:
 	BOOL	PutLong(void* pvKey, int iKeySize, int64 lliIndex);
 
 	CIndexTreeNodeFile*		GetIndexNode(void* pvKey, int iKeySize);
+	CIndexTreeNodeFile*		GetRoot(void);
 	void					FindAll(CArrayVoidPtr* papvElements);
 
 protected:
 	CIndexTreeNodeFile*		AllocateRoot(void);
 	CIndexTreeNodeFile*		AllocateRoot(CFileIndex cFileIndex);
 	CIndexTreeNodeFile*		AllocateNode(CIndexTreeNodeFile* pcParent);
-	size_t					CalculateRootNodeSize(void);
 	CFileIndex				LoadRootFileIndex(char* szRootFileName);
 	CIndexTreeNodeFile*		SetOldWithCurrent(CIndexTreeNodeFile* pcParent, unsigned char c);
 	CIndexTreeNodeFile*		ReallocateNodeForIndex(CIndexTreeNodeFile* pcNode, unsigned char uiIndex);

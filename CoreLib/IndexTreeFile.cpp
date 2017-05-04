@@ -195,19 +195,6 @@ CIndexTreeNodeFile* CIndexTreeFile::AllocateRoot(CFileIndex cFileIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size_t CIndexTreeFile::CalculateRootNodeSize(void)
-{
-	int						iMaxNodePtrSize;
-
-	iMaxNodePtrSize = (MAX_UCHAR + 1) * SizeofNodePtr();
-	return SizeofNode() + iMaxNodePtrSize;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 CIndexTreeNodeFile* CIndexTreeFile::AllocateNode(CIndexTreeNodeFile* pcParent)
 {
 	CIndexTreeNodeFile*	pcNode;
@@ -310,6 +297,16 @@ CIndexTreeNodeFile* CIndexTreeFile::GetIndexNode(void* pvKey, int iKeySize)
 		}
 	}
 	return pcCurrent;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CIndexTreeNodeFile* CIndexTreeFile::GetRoot(void)
+{
+	return mpcRoot;
 }
 
 

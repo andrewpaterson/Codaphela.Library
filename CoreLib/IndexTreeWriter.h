@@ -1,6 +1,7 @@
 #ifndef __INDEX_TREE_WRITER_H__
 #define __INDEX_TREE_WRITER_H__
 #include "BaseLib/IndexTreeMemory.h"
+#include "CoreLib/IndexTreeFile.h"
 #include "IndexTreeNodeFile.h"
 #include "IndexedFiles.h"
 
@@ -12,8 +13,7 @@ public:
 	BOOL Write(CIndexTreeNodeFile* pcNode, CIndexedFiles* pcIndexFiles);
 
 protected:
-	void WriteAll(CIndexTreeMemory* pcIndexTree, CIndexedFiles* pcIndexedFiles);
-	void RecurseWriteAll(CIndexTreeNodeMemory* pcNode, CIndexedFiles* pcIndexedFiles);
+	void RecurseWrite(CIndexTreeNodeMemory* pcNode, CIndexTreeNodeFile* pcFileNode);
 };
 
 #endif //__INDEX_TREE_WRITER_H__

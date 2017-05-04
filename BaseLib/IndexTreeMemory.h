@@ -53,7 +53,6 @@ public:
 	CIndexTreeNodeMemory*	GetRoot(void);
 	int						CountAllocatedNodes(void);
 	int						RecurseSize(void);
-	size_t					CalculateRootNodeSize(void);
 
 	BOOL					Write(CFileWriter* pcFileWriter);
 	BOOL					Read(CFileReader* pcFileReader);

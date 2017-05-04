@@ -1,3 +1,4 @@
+#include "CoreLib/IndexTreeHelper.h"
 #include "IndexedFiles.h"
 #include "IndexTreeWriter.h"
 
@@ -9,40 +10,26 @@
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeWriter::Write(CIndexTreeMemory* pcIndexTree, char* szDirectory)
 {
-	CIndexedFiles			cIndexedFiles;
-	CDurableFileController	cController;
+	CDurableFileController	cDurableController;
 	BOOL					bResult;
+	CIndexTreeFile			cIndexTreeFile;
+	CIndexTreeHelper		cHelper;
 
-	bResult = cController.Init(szDirectory, NULL);
+	cHelper.Init(szDirectory, NULL, NULL, "RootFile.IDX", FALSE);
+	bResult = cDurableController.Init(cHelper.GetPrimaryDirectory(), cHelper.GetBackupDirectory());
 	if (!bResult)
 	{
 		return FALSE;
 	}
+	
+	cDurableController.Begin();
+	cIndexTreeFile.Init(&cDurableController, cHelper.GetRootFileName(), &gcSystemAllocator);
 
-	cIndexedFiles.Init(&cController, "IDAT", "Index.IDX", NULL);
+	
+	RecurseWrite(pcIndexTree->GetRoot(), cIndexTreeFile.GetRoot());
+	cDurableController.End();
 
-	WriteAll(pcIndexTree, &cIndexedFiles);
-	SIndexTreeIterator	sIter;
-	void*				pvData;
-	int					iDataSize;
-	BOOL				bExists;
-	unsigned char		paucKey[8 KB + 1];
-	int					iKeyLength;
-
-	if (pcIndexTree->GetLargestKeySize() > 8 KB)
-	{
-		//Fix this to use a scratch pad.
-		return FALSE;
-	}
-
-	bExists = pcIndexTree->StartIteration(&sIter, &pvData, &iDataSize);
-	while (bExists)
-	{
-		iKeyLength = pcIndexTree->GetKey(paucKey, pvData, TRUE);
-
-
-		bExists = pcIndexTree->Iterate(&sIter, &pvData, &iDataSize);
-	}
+	cIndexTreeFile.Kill();
 
 	return TRUE;
 }
@@ -52,35 +39,30 @@ BOOL CIndexTreeWriter::Write(CIndexTreeMemory* pcIndexTree, char* szDirectory)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeWriter::WriteAll(CIndexTreeMemory* pcIndexTree, CIndexedFiles* pcIndexedFiles)
-{
-	RecurseWriteAll(pcIndexTree->GetRoot(), pcIndexedFiles);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CIndexTreeWriter::RecurseWriteAll(CIndexTreeNodeMemory* pcNode, CIndexedFiles* pcIndexedFiles)
+void CIndexTreeWriter::RecurseWrite(CIndexTreeNodeMemory* pcMemoryNode, CIndexTreeNodeFile* pcFileNode)
 {
 	int						i;
 	CIndexTreeNodeMemory*	pcChild;
 	void*					pvObject;
 
-	if (pcNode != NULL)
+	pvObject = pcMemoryNode->GetObjectPtr();
+	if (pvObject != NULL)
 	{
-		pvObject = pcNode->GetObjectPtr();
-		if (pvObject != NULL)
-		{
-			//Has object;
-		}
+		//Has object;
+	}
 
-		xxx
-		for (i = 0; i < pcNode->GetNumIndexes(); i++)
+	int iFirstIndex;
+	int iLastIndex;
+
+	iFirstIndex = pcMemoryNode->GetFirstIndex();
+	iLastIndex = pcMemoryNode->GetLastIndex();
+	for (i = iFirstIndex; i <= iLastIndex; i++)
+	{
+		pcChild = pcMemoryNode->GetNode(i - iFirstIndex);
+		if (pcChild != NULL)
 		{
-			pcChild = pcNode->GetNode(i);
-			RecurseWriteAll(pcChild, pcIndexedFiles);
+//			pcChild->
+//			RecurseWrite(pcChild)
 		}
 	}
 }
