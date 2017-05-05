@@ -1,8 +1,10 @@
+#include "BaseLib/Logger.h"
+#include "BaseLib/LogString.h"
 #include "CoreLib/IndexTreeHelper.h"
 #include "IndexedFiles.h"
 #include "IndexTreeWriter.h"
 
-
+//This is not a writer only.  It should be possible to use CIndexTreeFile in memory only mode?  How to track edits to CIndexTreeFile.
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -85,6 +87,18 @@ void CIndexTreeWriter::RecurseWrite(CIndexTreeNodeMemory* pcMemoryNode, CIndexTr
 				}
 			}
 		}
+
+		//for (i = iFirstIndex; i <= iLastIndex; i++)
+		//{
+		//	pcMemoryChild = pcMemoryNode->GetNode(i - iFirstIndex);
+		//	if (pcMemoryChild != NULL)
+		//	{
+		//		iChildDataSize = pcMemoryChild->GetObjectSize();
+		//		if (pcMemoryChild->HasNodes())
+		//		{
+		//		}
+		//	}
+		//}
 	}
 }
 
@@ -108,6 +122,12 @@ BOOL CIndexTreeWriter::Write(CIndexTreeNodeFile* pcNode, CIndexedFiles* pcIndexF
 	}
 
 	iNodeSize = pcNode->CalculateBufferSize();
+	if (iWrittenPos != iNodeSize)
+	{
+		gcLogger.Error2(__METHOD__, " Could not write IndexTreeNodeFile.  Expected size [", IntToString(iNodeSize), "] is not equal to written buffer size [", IntToString(iWrittenPos), "].", NULL);
+		return FALSE;
+	}
+
 	pcIndexFile = pcIndexFiles->GetOrCreateFile(iNodeSize);
 	if (!pcIndexFile)
 	{

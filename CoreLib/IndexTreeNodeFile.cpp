@@ -383,7 +383,7 @@ int CIndexTreeNodeFile::NumInitialisedIndexes(void)
 //////////////////////////////////////////////////////////////////////////
 int CIndexTreeNodeFile::CalculateBufferSize(void)
 {
-	return sizeof(int) + (4 * sizeof(unsigned char)) + muiDataSize + (GetNumIndexes() * sizeof(CFileIndex));
+	return sizeof(int) + (4 * sizeof(unsigned char)) + muiDataSize + (GetNumIndexes() * (sizeof(int) + sizeof(filePos)));
 }
 
 
@@ -404,6 +404,7 @@ int CIndexTreeNodeFile::WriteToBuffer(void* pvBuffer, int iBufferSize)
 	iFileSize = CalculateBufferSize();
 	if (iBufferSize < iFileSize)
 	{
+		gcLogger.Error2(__METHOD__, " Could not write IndexTreeNodeFile size [", IntToString(iFileSize), "] to buffer size [", IntToString(iBufferSize), "].  Buffer to small.", NULL);
 		return 0;
 	}
 
@@ -412,10 +413,10 @@ int CIndexTreeNodeFile::WriteToBuffer(void* pvBuffer, int iBufferSize)
 
 	*((int*)&pucMemory[iPos]) = iFileSize;  iPos += sizeof(int);
 
-	pucMemory[iPos] = muiFirstIndex;  iPos++;
-	pucMemory[iPos] = muiLastIndex;  iPos++;
-	pucMemory[iPos] = muiDataSize;  iPos++;
-	pucMemory[iPos] = mbNodesEmpty;  iPos++;
+	pucMemory[iPos] = muiFirstIndex;  iPos += sizeof(unsigned char);
+	pucMemory[iPos] = muiLastIndex;  iPos += sizeof(unsigned char);
+	pucMemory[iPos] = muiDataSize;  iPos += sizeof(unsigned char);
+	pucMemory[iPos] = mbNodesEmpty;  iPos += sizeof(unsigned char);
 
 	if (HasObject())
 	{
