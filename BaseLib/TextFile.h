@@ -42,6 +42,7 @@ public:
 	BOOL	Read(CAbstractFile* pcAbstractFile);
 	BOOL	Write(char* szFileName);
 	char*	Text(void);
+	char*	Text(int iOffset);
 	int		Length(void);
 	void	PassifyNewlines(void);
 	void	Dump(void);
