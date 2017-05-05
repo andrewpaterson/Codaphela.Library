@@ -27,7 +27,7 @@ BOOL CIndexTreeWriter::Write(CIndexTreeMemory* pcIndexTree, char* szDirectory)
 	cIndexTreeFile.Init(&cDurableController, cHelper.GetRootFileName(), &gcSystemAllocator);
 	
 	RecurseAllocate(pcIndexTree->GetRoot(), &cIndexTreeFile, cIndexTreeFile.GetRoot());
-	RecurseWrite(cIndexTreeFile.GetIndexFiles(), cIndexTreeFile.GetRoot());
+	RecurseWrite(&cIndexTreeFile, cIndexTreeFile.GetRoot());
 	cDurableController.End();
 
 	cIndexTreeFile.Kill();
@@ -94,7 +94,7 @@ void CIndexTreeWriter::RecurseAllocate(CIndexTreeNodeMemory* pcMemoryNode, CInde
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeWriter::RecurseWrite(CIndexedFiles* pcIndexFiles, CIndexTreeNodeFile* pcFileNode)
+BOOL CIndexTreeWriter::RecurseWrite(CIndexTreeFile* pcFileTree, CIndexTreeNodeFile* pcFileNode)
 {
 	int						i;
 	CIndexTreeChildNode*	pcFileChild;
@@ -116,7 +116,7 @@ BOOL CIndexTreeWriter::RecurseWrite(CIndexedFiles* pcIndexFiles, CIndexTreeNodeF
 				{
 					pcMemoryChild = pcFileChild->u.mpcMemory;
 
-					bResult = RecurseWrite(pcIndexFiles, pcMemoryChild);
+					bResult = RecurseWrite(pcFileTree, pcMemoryChild);
 					if (!bResult)
 					{
 						return FALSE;
@@ -131,47 +131,11 @@ BOOL CIndexTreeWriter::RecurseWrite(CIndexedFiles* pcIndexFiles, CIndexTreeNodeF
 		}
 	}
 
-	bResult = Write(pcFileNode, pcIndexFiles);
+	bResult = pcFileTree->Write(pcFileNode);
 	if (!bResult)
 	{
 		return FALSE;
 	}
-	return TRUE;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeWriter::Write(CIndexTreeNodeFile* pcNode, CIndexedFiles* pcIndexFiles)
-{
-	int					iWrittenPos;
-	char				pvBuffer[8 KB];
-	int					iNodeSize;
-	CIndexedFile*		pcIndexFile;
-	filePos				iFilePos;
-
-	iWrittenPos = pcNode->WriteToBuffer(pvBuffer, 8 KB);
-	if (iWrittenPos <= 0)
-	{
-		return FALSE;
-	}
-
-	iNodeSize = pcNode->CalculateBufferSize();
-	if (iWrittenPos != iNodeSize)
-	{
-		gcLogger.Error2(__METHOD__, " Could not write IndexTreeNodeFile.  Expected size [", IntToString(iNodeSize), "] is not equal to written buffer size [", IntToString(iWrittenPos), "].", NULL);
-		return FALSE;
-	}
-
-	pcIndexFile = pcIndexFiles->GetOrCreateFile(iNodeSize);
-	if (!pcIndexFile)
-	{
-		return TRUE;
-	}
-	iFilePos = pcIndexFile->Write(pvBuffer);
-	pcNode->SetFileIndex(pcIndexFile->GetFileIndex(), iFilePos);
 	return TRUE;
 }
 

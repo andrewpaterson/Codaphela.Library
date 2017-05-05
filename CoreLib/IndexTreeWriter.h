@@ -10,11 +10,10 @@ class CIndexTreeWriter
 {
 public:
 	BOOL Write(CIndexTreeMemory* pcIndexTree, char* szDirectory);
-	BOOL Write(CIndexTreeNodeFile* pcNode, CIndexedFiles* pcIndexFiles);
 
 protected:
 	void RecurseAllocate(CIndexTreeNodeMemory* pcNode, CIndexTreeFile* pcFileTree, CIndexTreeNodeFile* pcFileNode);
-	BOOL RecurseWrite(CIndexedFiles* pcIndexFiles, CIndexTreeNodeFile* pcFileNode);
+	BOOL RecurseWrite(CIndexTreeFile* pcFileTree, CIndexTreeNodeFile* pcFileNode);
 };
 
 #endif //__INDEX_TREE_WRITER_H__

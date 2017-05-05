@@ -82,7 +82,6 @@ BOOL CIndexTreeFile::InitRoot(char* szRootFileName)
 	CIndexedFile*		pcRootIndexFile;
 	char				pvBuffer[8 KB];
 	int					iNodeSize;
-	CIndexTreeWriter	cWriter;
 
 	mszRootFileName.Init(szRootFileName);
 	cRootFileIndex = LoadRootFileIndex(szRootFileName);
@@ -109,7 +108,7 @@ BOOL CIndexTreeFile::InitRoot(char* szRootFileName)
 	else
 	{
 		mpcRoot = AllocateRoot();
-		return cWriter.Write(mpcRoot, &mcIndexFiles);
+		return Write(mpcRoot);
 	}
 }
 
@@ -766,6 +765,44 @@ void CIndexTreeFile::RecurseFindAll(CIndexTreeNodeFile* pcNode, CArrayVoidPtr* p
 			}
 		}
 	}
+}
+
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeFile::Write(CIndexTreeNodeFile* pcNode)
+{
+	int					iWrittenPos;
+	char				pvBuffer[8 KB];
+	int					iNodeSize;
+	CIndexedFile*		pcIndexFile;
+	filePos				iFilePos;
+
+	iWrittenPos = pcNode->WriteToBuffer(pvBuffer, 8 KB);
+	if (iWrittenPos <= 0)
+	{
+		return FALSE;
+	}
+
+	iNodeSize = pcNode->CalculateBufferSize();
+	if (iWrittenPos != iNodeSize)
+	{
+		gcLogger.Error2(__METHOD__, " Could not write IndexTreeNodeFile.  Expected size [", IntToString(iNodeSize), "] is not equal to written buffer size [", IntToString(iWrittenPos), "].", NULL);
+		return FALSE;
+	}
+
+	pcIndexFile = mcIndexFiles.GetOrCreateFile(iNodeSize);
+	if (!pcIndexFile)
+	{
+		return TRUE;
+	}
+	iFilePos = pcIndexFile->Write(pvBuffer);
+	pcNode->SetFileIndex(pcIndexFile->GetFileIndex(), iFilePos);
+	return TRUE;
 }
 
 

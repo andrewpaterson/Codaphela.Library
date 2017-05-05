@@ -51,6 +51,7 @@ public:
 	CIndexTreeNodeFile*		SetParentWithExisting(CIndexTreeNodeFile* pcParent, unsigned char c, unsigned char uiObjectSize);
 
 	CIndexedFiles*			GetIndexFiles(void);
+	BOOL					Write(CIndexTreeNodeFile* pcNode);
 
 protected:
 	CIndexTreeNodeFile*		AllocateRoot(void);
