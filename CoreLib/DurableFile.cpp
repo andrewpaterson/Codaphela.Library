@@ -50,7 +50,7 @@ void CDurableFile::Init(CDurableFileController* pcController, char* szFileName, 
 	mpcPrimaryFile = NewMalloc<CFileBasic>();
 	mpcRewriteFile = NewMalloc<CFileBasic>();
 
-	if (szFileName)
+	if (!StrEmpty(szFileName))
 	{
 		pcPrimaryDiskFile = DiskFile(szFileName);
 		mpcPrimaryFile->Init(pcPrimaryDiskFile);
@@ -61,7 +61,7 @@ void CDurableFile::Init(CDurableFileController* pcController, char* szFileName, 
 		mszFileName.Init();
 	}
 
-	if (szRewriteName)
+	if (!StrEmpty(szRewriteName))
 	{
 		pcRewriteDiskFile = DiskFile(szRewriteName);
 		mpcRewriteFile->Init(pcRewriteDiskFile);

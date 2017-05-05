@@ -9,6 +9,8 @@
 void CIndexTreeHelper::Init(char* szWorkingDirectory, char* szPrimary, char* szBackup, char* szRootFileName, BOOL bRemoveWorkingDirectory)
 {
 	CFileUtil					cFileUtil;
+	BOOL						bPrimary;
+	BOOL						bBackup;
 
 	if (bRemoveWorkingDirectory)
 	{
@@ -16,12 +18,14 @@ void CIndexTreeHelper::Init(char* szWorkingDirectory, char* szPrimary, char* szB
 	}
 
 	mszDirectory.Init(szWorkingDirectory);
-	if (szPrimary)
+	bPrimary = !StrEmpty(szPrimary);
+	if (bPrimary)
 	{
 		cFileUtil.AppendToPath(&mszDirectory, szPrimary);
 	}
 
-	if (szPrimary && szBackup)
+	bBackup = !StrEmpty(szBackup);
+	if (bPrimary && bBackup)
 	{
 		mszRewriteDirectory.Init(szWorkingDirectory);
 		cFileUtil.AppendToPath(&mszRewriteDirectory, szBackup);

@@ -50,6 +50,8 @@ public:
 	CIndexTreeNodeFile*		SetParentWithExisting(CIndexTreeNodeFile* pcParent, unsigned char c, unsigned char uiFirstIndex, unsigned char uiLastIndex, unsigned char uiObjectSize);
 	CIndexTreeNodeFile*		SetParentWithExisting(CIndexTreeNodeFile* pcParent, unsigned char c, unsigned char uiObjectSize);
 
+	CIndexedFiles*			GetIndexFiles(void);
+
 protected:
 	CIndexTreeNodeFile*		AllocateRoot(void);
 	CIndexTreeNodeFile*		AllocateRoot(CFileIndex cFileIndex);

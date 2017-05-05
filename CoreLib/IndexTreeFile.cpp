@@ -36,7 +36,7 @@ BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, char* sz
 	CIndexTree::Init(pcMalloc, sizeof(CIndexTreeNodeFile), sizeof(CIndexTreeChildNode));
 
 	mpcDurableFileControl = pcDurableFileControl;
-	mcIndexFiles.Init(mpcDurableFileControl, "IDAT", "Index.IDX", "_Index.IDX");
+	mcIndexFiles.Init(mpcDurableFileControl, "IDAT", "Index.IDX", mpcDurableFileControl->IsDurable() ? "_Index.IDX" : NULL);
 
 	bResult = InitRoot(szRootFileName);
 	if (!bResult)
@@ -766,5 +766,15 @@ void CIndexTreeFile::RecurseFindAll(CIndexTreeNodeFile* pcNode, CArrayVoidPtr* p
 			}
 		}
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CIndexedFiles* CIndexTreeFile::GetIndexFiles(void)
+{
+	return &mcIndexFiles;
 }
 

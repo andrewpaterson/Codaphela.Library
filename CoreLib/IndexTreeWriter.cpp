@@ -4,7 +4,6 @@
 #include "IndexedFiles.h"
 #include "IndexTreeWriter.h"
 
-//This is not a writer only.  It should be possible to use CIndexTreeFile in memory only mode?  How to track edits to CIndexTreeFile.
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -27,7 +26,8 @@ BOOL CIndexTreeWriter::Write(CIndexTreeMemory* pcIndexTree, char* szDirectory)
 	cDurableController.Begin();
 	cIndexTreeFile.Init(&cDurableController, cHelper.GetRootFileName(), &gcSystemAllocator);
 	
-	RecurseWrite(pcIndexTree->GetRoot(), &cIndexTreeFile, cIndexTreeFile.GetRoot());
+	RecurseAllocate(pcIndexTree->GetRoot(), &cIndexTreeFile, cIndexTreeFile.GetRoot());
+	RecurseWrite(cIndexTreeFile.GetIndexFiles(), cIndexTreeFile.GetRoot());
 	cDurableController.End();
 
 	cIndexTreeFile.Kill();
@@ -40,7 +40,7 @@ BOOL CIndexTreeWriter::Write(CIndexTreeMemory* pcIndexTree, char* szDirectory)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeWriter::RecurseWrite(CIndexTreeNodeMemory* pcMemoryNode, CIndexTreeFile* pcFileTree, CIndexTreeNodeFile* pcFileNode)
+void CIndexTreeWriter::RecurseAllocate(CIndexTreeNodeMemory* pcMemoryNode, CIndexTreeFile* pcFileTree, CIndexTreeNodeFile* pcFileNode)
 {
 	int						i;
 	CIndexTreeNodeMemory*	pcMemoryChild;
@@ -49,6 +49,8 @@ void CIndexTreeWriter::RecurseWrite(CIndexTreeNodeMemory* pcMemoryNode, CIndexTr
 	int						iChildFirstIndex;
 	int						iChildLastIndex;
 	int						iChildDataSize;
+	int						iFirstIndex;
+	int						iLastIndex;
 
 
 	pvObject = pcMemoryNode->GetObjectPtr();
@@ -56,9 +58,6 @@ void CIndexTreeWriter::RecurseWrite(CIndexTreeNodeMemory* pcMemoryNode, CIndexTr
 	{
 		pcFileNode->SetObject(pvObject, pcMemoryNode->GetObjectSize());
 	}
-
-	int iFirstIndex;
-	int iLastIndex;
 
 	if (pcMemoryNode->HasNodes())
 	{
@@ -77,29 +76,67 @@ void CIndexTreeWriter::RecurseWrite(CIndexTreeNodeMemory* pcMemoryNode, CIndexTr
 
 					pcFileChild = pcFileTree->SetParentWithExisting(pcFileNode, i, iChildFirstIndex, iChildLastIndex, iChildDataSize);
 
-					RecurseWrite(pcMemoryChild, pcFileTree, pcFileChild);
+					RecurseAllocate(pcMemoryChild, pcFileTree, pcFileChild);
 				}
 				else
 				{
 					pcFileChild = pcFileTree->SetParentWithExisting(pcFileNode, i, iChildDataSize);
 
-					RecurseWrite(pcMemoryChild, pcFileTree, pcFileChild);
+					RecurseAllocate(pcMemoryChild, pcFileTree, pcFileChild);
 				}
 			}
 		}
-
-		//for (i = iFirstIndex; i <= iLastIndex; i++)
-		//{
-		//	pcMemoryChild = pcMemoryNode->GetNode(i - iFirstIndex);
-		//	if (pcMemoryChild != NULL)
-		//	{
-		//		iChildDataSize = pcMemoryChild->GetObjectSize();
-		//		if (pcMemoryChild->HasNodes())
-		//		{
-		//		}
-		//	}
-		//}
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeWriter::RecurseWrite(CIndexedFiles* pcIndexFiles, CIndexTreeNodeFile* pcFileNode)
+{
+	int						i;
+	CIndexTreeChildNode*	pcFileChild;
+	int						iFirstIndex;
+	int						iLastIndex;
+	CIndexTreeNodeFile*		pcMemoryChild;
+	BOOL					bResult;
+
+	if (pcFileNode->HasNodes())
+	{
+		iFirstIndex = pcFileNode->GetFirstIndex();
+		iLastIndex = pcFileNode->GetLastIndex();
+		for (i = iFirstIndex; i <= iLastIndex; i++)
+		{
+			pcFileChild = pcFileNode->GetNode(i - iFirstIndex);
+			if (pcFileChild != NULL)
+			{
+				if (pcFileChild->IsMemory())
+				{
+					pcMemoryChild = pcFileChild->u.mpcMemory;
+
+					bResult = RecurseWrite(pcIndexFiles, pcMemoryChild);
+					if (!bResult)
+					{
+						return FALSE;
+					}
+				}
+				else if (pcFileChild->IsFile())
+				{
+					gcLogger.Error2(__METHOD__, " Should not be file bases nodes during memory tree write.", NULL);
+					return FALSE;
+				}
+			}
+		}
+	}
+
+	bResult = Write(pcFileNode, pcIndexFiles);
+	if (!bResult)
+	{
+		return FALSE;
+	}
+	return TRUE;
 }
 
 
