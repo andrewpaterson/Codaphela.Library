@@ -35,14 +35,6 @@ public:
 	//General
 						BOOL	ReadData(void* pvData, filePos iDataSize);
 
-	//Chunking
-						int		FindFirstChunkWithName(char* szName);
-						int		FindFirstChunkWithName(int iName);
-						int		FindNextChunkWithName(void);
-						BOOL	ReadChunkBegin(int iChunkNum);  //ChunkIndex not ChunkName
-						BOOL	ReadChunkEnd(void);
-						BOOL	ReadChunkEnd(int iNumChunksToEnd);
-
 	//Strings.
 						BOOL	ReadStringLength(int* piLength);
 						BOOL	ReadStringChars(char* szString, int iLength);

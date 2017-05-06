@@ -35,11 +35,6 @@ public:
 	//General
 						BOOL	WriteData(void* pvData, filePos iDataSize);
 
-	//Chunking
-						BOOL	WriteChunkBegin(void);
-						BOOL	WriteChunkEnd(char* szChunkName);
-						BOOL	WriteChunkEnd(int iChunkName);
-
 	//Strings.
 						BOOL	WriteString(char* szString);
 
