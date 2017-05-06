@@ -87,3 +87,4 @@ SFloat2* 	Float2Lerp(SFloat2* pOut, const SFloat2* pV1, const SFloat2* pV2, floa
 
 
 #endif // __FLOAT_2_H__
+

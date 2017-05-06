@@ -87,15 +87,17 @@ void* CMemoryStack::Add(int iSize)
 	if (mpvMemory == NULL)
 	{
 		mpvMemory = malloc(miMemorySize);
+		if (mpvMemory == NULL)
+		{
+			return NULL;
+		}
 	}
-	if (mpvMemory == NULL)
-	{
-		return NULL;
-	}
+
 	if ((miUsedMemory + iSize) > miMemorySize)
 	{
 		return NULL;
 	}
+
 	pvCurrent = RemapSinglePointer(mpvMemory, miUsedMemory);
 	miUsedMemory += iSize;
 	miElements++;

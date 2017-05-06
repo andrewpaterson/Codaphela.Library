@@ -2,10 +2,11 @@
 
 Collections
   Array
-  Enumerator (Deprecated)
+  List
   Index
   Map
   Tree
+  Enumerator (Deprecated)
   
 Geometric types
 
