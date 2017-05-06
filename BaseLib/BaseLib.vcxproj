@@ -114,6 +114,7 @@
     <ClInclude Include="ArrayTemplate.h" />
     <ClInclude Include="ArrayDenseTemplate.h" />
     <ClInclude Include="ArraySparseTemplate.h" />
+    <ClInclude Include="EscapeCodes.h" />
     <ClInclude Include="FileIndex.h" />
     <ClInclude Include="FilePosition.h" />
     <ClInclude Include="FileSystemIterator.h" />
@@ -121,6 +122,7 @@
     <ClInclude Include="FreeListAllocator.h" />
     <ClInclude Include="GlobalMemory.h" />
     <ClInclude Include="GlobalMemoryAllocator.h" />
+    <ClInclude Include="GuidClass.h" />
     <ClInclude Include="IndexTree.h" />
     <ClInclude Include="IndexTreeMemory.h" />
     <ClInclude Include="IndexTreeNode.h" />
@@ -152,6 +154,7 @@
     <ClInclude Include="ScratchPadAllocator.h" />
     <ClInclude Include="SystemAllocator.h" />
     <ClInclude Include="TemporaryMemory.h" />
+    <ClInclude Include="TextParser.h" />
     <ClInclude Include="TrackingAllocator.h" />
     <ClInclude Include="TreeBlock.h" />
     <ClInclude Include="TreeTemplate.h" />
@@ -252,6 +255,9 @@
     <ClInclude Include="PointerRemapper.h" />
     <ClInclude Include="Bool.h" />
     <ClInclude Include="Define.h" />
+    <ClInclude Include="TypeConverter.h" />
+    <ClInclude Include="TypeNames.h" />
+    <ClInclude Include="TypeParser.h" />
     <ClInclude Include="Validation.h" />
     <ClInclude Include="Version.h" />
     <ClInclude Include="WindowsHeaders.h" />
@@ -274,6 +280,7 @@
     <ClCompile Include="ChunkFileHeader.cpp" />
     <ClCompile Include="ChunkStack.cpp" />
     <ClCompile Include="Constructors.cpp" />
+    <ClCompile Include="EscapeCodes.cpp" />
     <ClCompile Include="FileIndex.cpp" />
     <ClCompile Include="FileMode.cpp" />
     <ClCompile Include="FilePosition.cpp" />
@@ -282,6 +289,7 @@
     <ClCompile Include="FreeList.cpp" />
     <ClCompile Include="GlobalMemory.cpp" />
     <ClCompile Include="GlobalMemoryAllocator.cpp" />
+    <ClCompile Include="GuidClass.cpp" />
     <ClCompile Include="IndexTree.cpp" />
     <ClCompile Include="IndexTreeMemory.cpp" />
     <ClCompile Include="IndexTreeNode.cpp" />
@@ -304,6 +312,7 @@
     <ClCompile Include="ScratchPadAllocator.cpp" />
     <ClCompile Include="SystemAllocator.cpp" />
     <ClCompile Include="TemporaryMemory.cpp" />
+    <ClCompile Include="TextParser.cpp" />
     <ClCompile Include="TrackingAllocator.cpp" />
     <ClCompile Include="TreeBlock.cpp" />
     <ClCompile Include="EnumeratorBlock.cpp" />
@@ -391,11 +400,15 @@
     <ClCompile Include="FastMemset.cpp" />
     <ClCompile Include="PointerFunctions.cpp" />
     <ClCompile Include="Aardvark.cpp" />
+    <ClCompile Include="TypeConverter.cpp" />
+    <ClCompile Include="TypeNames.cpp" />
+    <ClCompile Include="TypeParser.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="MemoryTodo.txt" />
     <None Include="gpl.txt" />
     <None Include="lgpl.txt" />
+    <None Include="TypeConverter_Mapping.inl" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="LibraryBreakdown.txt" />

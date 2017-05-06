@@ -683,3 +683,4 @@ void CMemoryCache::Dump(void)
 
 SMemoryCacheDescriptor* CMemoryCache::TestGetLast(void) { return mpsLast; }
 SMemoryCacheDescriptor* CMemoryCache::TestGetFirst(void) { return mpsFirst; }
+

@@ -181,6 +181,21 @@
     <Filter Include="Source\Data\List">
       <UniqueIdentifier>{8851766b-4b5a-4c89-951c-c696331bb6a3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Data\Types">
+      <UniqueIdentifier>{da29972c-ae80-4e8e-b2b1-21245555d7ab}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\Types\Converter">
+      <UniqueIdentifier>{a24cd81f-704b-44f7-9399-be277df64656}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Text">
+      <UniqueIdentifier>{14492861-a3f4-4476-8801-853c6fb8e832}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\Guid">
+      <UniqueIdentifier>{58b64903-58b0-4e9b-b0e6-d36dd04097f6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\Types\Parser">
+      <UniqueIdentifier>{7e314b5d-88c3-46d7-bc79-906f10ee1615}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DataMacro.h">
@@ -687,6 +702,24 @@
     <ClInclude Include="ListVariable.h">
       <Filter>Source\Data\List</Filter>
     </ClInclude>
+    <ClInclude Include="TypeConverter.h">
+      <Filter>Source\Data\Types\Converter</Filter>
+    </ClInclude>
+    <ClInclude Include="TypeParser.h">
+      <Filter>Source\Data\Types\Parser</Filter>
+    </ClInclude>
+    <ClInclude Include="TypeNames.h">
+      <Filter>Source\Data\Types</Filter>
+    </ClInclude>
+    <ClInclude Include="GuidClass.h">
+      <Filter>Source\Data\Guid</Filter>
+    </ClInclude>
+    <ClInclude Include="EscapeCodes.h">
+      <Filter>Source\Text</Filter>
+    </ClInclude>
+    <ClInclude Include="TextParser.h">
+      <Filter>Source\Text</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -1085,6 +1118,24 @@
     <ClCompile Include="ListVariable.cpp">
       <Filter>Source\Data\List</Filter>
     </ClCompile>
+    <ClCompile Include="TypeConverter.cpp">
+      <Filter>Source\Data\Types\Converter</Filter>
+    </ClCompile>
+    <ClCompile Include="TypeParser.cpp">
+      <Filter>Source\Data\Types\Parser</Filter>
+    </ClCompile>
+    <ClCompile Include="TypeNames.cpp">
+      <Filter>Source\Data\Types</Filter>
+    </ClCompile>
+    <ClCompile Include="GuidClass.cpp">
+      <Filter>Source\Data\Guid</Filter>
+    </ClCompile>
+    <ClCompile Include="EscapeCodes.cpp">
+      <Filter>Source\Text</Filter>
+    </ClCompile>
+    <ClCompile Include="TextParser.cpp">
+      <Filter>Source\Text</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="gpl.txt">
@@ -1094,6 +1145,9 @@
       <Filter>Source\License</Filter>
     </None>
     <None Include="MemoryTodo.txt" />
+    <None Include="TypeConverter_Mapping.inl">
+      <Filter>Source\Data\Types\Converter</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Text Include="LibraryBreakdown.txt" />

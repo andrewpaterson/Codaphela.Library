@@ -157,21 +157,6 @@
     <Filter Include="Source\File\XML">
       <UniqueIdentifier>{bf4562d1-3213-4442-a9dd-4c86eb2b5085}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Data">
-      <UniqueIdentifier>{50400cc2-9a3f-4613-82e8-508f6a2abdaa}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Data\Types">
-      <UniqueIdentifier>{57bec575-f7b4-403f-890a-1c5fc3c33649}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Data\Types\Converter">
-      <UniqueIdentifier>{b9979ed3-358d-48ac-9f7d-a9b88e0e7d8f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Data\Types\Parser">
-      <UniqueIdentifier>{7ce2b364-4bf5-46a7-9f4f-20ea2a526880}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Data\Guid">
-      <UniqueIdentifier>{85cdde85-144b-46ee-9635-d569d67f61d0}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source\File\Files">
       <UniqueIdentifier>{e7b120aa-72b7-4eb8-b6e6-84ae3ecb8c3c}</UniqueIdentifier>
     </Filter>
@@ -186,18 +171,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="TypeNames.cpp">
-      <Filter>Source\Data\Types</Filter>
-    </ClCompile>
-    <ClCompile Include="TypeConverter.cpp">
-      <Filter>Source\Data\Types\Converter</Filter>
-    </ClCompile>
-    <ClCompile Include="TypeParser.cpp">
-      <Filter>Source\Data\Types\Parser</Filter>
-    </ClCompile>
-    <ClCompile Include="GuidClass.cpp">
-      <Filter>Source\Data\Guid</Filter>
-    </ClCompile>
     <ClCompile Include="IndexedConfig.cpp">
       <Filter>Source\File\Indexed</Filter>
     </ClCompile>
@@ -254,12 +227,6 @@
     </ClCompile>
     <ClCompile Include="FunctionCaller.cpp">
       <Filter>Source\Function</Filter>
-    </ClCompile>
-    <ClCompile Include="EscapeCodes.cpp">
-      <Filter>Source\Text</Filter>
-    </ClCompile>
-    <ClCompile Include="TextParser.cpp">
-      <Filter>Source\Text</Filter>
     </ClCompile>
     <ClCompile Include="Calculator.cpp">
       <Filter>Source\Text\Calculator</Filter>
@@ -431,18 +398,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="TypeNames.h">
-      <Filter>Source\Data\Types</Filter>
-    </ClInclude>
-    <ClInclude Include="TypeConverter.h">
-      <Filter>Source\Data\Types\Converter</Filter>
-    </ClInclude>
-    <ClInclude Include="TypeParser.h">
-      <Filter>Source\Data\Types\Parser</Filter>
-    </ClInclude>
-    <ClInclude Include="GuidClass.h">
-      <Filter>Source\Data\Guid</Filter>
-    </ClInclude>
     <ClInclude Include="IndexedConfig.h">
       <Filter>Source\File\Indexed</Filter>
     </ClInclude>
@@ -502,12 +457,6 @@
     </ClInclude>
     <ClInclude Include="FunctionCaller.h">
       <Filter>Source\Function</Filter>
-    </ClInclude>
-    <ClInclude Include="EscapeCodes.h">
-      <Filter>Source\Text</Filter>
-    </ClInclude>
-    <ClInclude Include="TextParser.h">
-      <Filter>Source\Text</Filter>
     </ClInclude>
     <ClInclude Include="Calculator.h">
       <Filter>Source\Text\Calculator</Filter>
@@ -685,9 +634,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="TypeConverter_Mapping.inl">
-      <Filter>Source\Data\Types\Converter</Filter>
-    </None>
     <None Include="FunctionCaller_C_Call.inl">
       <Filter>Source\Function</Filter>
     </None>

@@ -100,10 +100,6 @@
     <ClCompile Include="LogFile.cpp" />
     <ClCompile Include="LogFileCommands.cpp" />
     <ClCompile Include="PackFileOffset.cpp" />
-    <ClCompile Include="TypeNames.cpp" />
-    <ClCompile Include="TypeConverter.cpp" />
-    <ClCompile Include="TypeParser.cpp" />
-    <ClCompile Include="GuidClass.cpp" />
     <ClCompile Include="IndexedConfig.cpp" />
     <ClCompile Include="IndexedData.cpp" />
     <ClCompile Include="Indexes.cpp" />
@@ -124,8 +120,6 @@
     <ClCompile Include="PropertiesFile.cpp" />
     <ClCompile Include="XMLFile.cpp" />
     <ClCompile Include="FunctionCaller.cpp" />
-    <ClCompile Include="EscapeCodes.cpp" />
-    <ClCompile Include="TextParser.cpp" />
     <ClCompile Include="Calculator.cpp" />
     <ClCompile Include="CalcBinaryExpression.cpp" />
     <ClCompile Include="CalcConstExpression.cpp" />
@@ -182,10 +176,6 @@
     <ClInclude Include="LogFile.h" />
     <ClInclude Include="LogFileCommands.h" />
     <ClInclude Include="PackFileOffset.h" />
-    <ClInclude Include="TypeNames.h" />
-    <ClInclude Include="TypeConverter.h" />
-    <ClInclude Include="TypeParser.h" />
-    <ClInclude Include="GuidClass.h" />
     <ClInclude Include="IndexedConfig.h" />
     <ClInclude Include="IndexedData.h" />
     <ClInclude Include="IndexedGeneral.h" />
@@ -207,8 +197,6 @@
     <ClInclude Include="PropertiesFile.h" />
     <ClInclude Include="XMLFile.h" />
     <ClInclude Include="FunctionCaller.h" />
-    <ClInclude Include="EscapeCodes.h" />
-    <ClInclude Include="TextParser.h" />
     <ClInclude Include="Calculator.h" />
     <ClInclude Include="CalcBinaryExpression.h" />
     <ClInclude Include="CalcConstExpression.h" />
@@ -257,7 +245,6 @@
     <ClInclude Include="OperatorAssignment.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="TypeConverter_Mapping.inl" />
     <None Include="FunctionCaller_C_Call.inl" />
     <None Include="FunctionCaller_ThisCall.inl" />
     <None Include="FunctionCaller_ThisMultiCall.inl" />

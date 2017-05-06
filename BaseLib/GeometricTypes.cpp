@@ -62,3 +62,4 @@ int GetIndex(SFloat3* psPoints, int iStride, SFloat3* psPosition)
 
 	return iIndex;
 }
+

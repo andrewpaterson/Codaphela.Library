@@ -20,30 +20,13 @@ along with Codaphela CoreLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __GUID_CLASS_H__
-#define __GUID_CLASS_H__
-#include "BaseLib/PrimitiveTypes.h"
-#include "BaseLib/Define.h"
-#include "TextParser.h"
+#ifndef __ESCAPE_CODES_H__
+#define __ESCAPE_CODES_H__
 
 
-class CGuidClass
-{
-public:
-	uint32	muiData1;
-	uint16	muiData2; 
-	uint16	muiData3;
-	uint8	maubData4[8];	
-
-	void Init(char8* sz);
-	void Init(uint32 uiData1, uint16 uiData2, uint16 uiData3, int8* paubData4);
-	void Clear(void);
-	BOOL Get32Format(CTextParser* pcParser, uint64 uiValue);
-	BOOL Get8_4_4_4_12Format(CTextParser* pcParser, uint32 uiValue);
-	BOOL Get0xFormat(CTextParser* pcParser, uint32 uiValue);
-	void Append(CChars* psz);
-};
+char GetEscapeCode(char cCurrent);
+int GetEscapeString(char cCurrent, char* szDest);
 
 
-#endif // __GUID_CLASS_H__
+#endif // __ESCAPE_CODES_H__
 

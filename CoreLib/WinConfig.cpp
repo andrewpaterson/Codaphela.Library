@@ -20,8 +20,8 @@ along with Codaphela CoreLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/TextParser.h"
 #include "PropertiesFile.h"
-#include "TextParser.h"
 #include "WinConfig.h"
 
 

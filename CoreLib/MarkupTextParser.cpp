@@ -21,7 +21,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/Log.h"
-#include "TextParser.h"
+#include "BaseLib/TextParser.h"
 #include "MarkupTextParser.h"
 
 
