@@ -39,7 +39,7 @@ public:
 	void	Kill(void);
 	void	KillExceptBuffer(void);
 
-    BOOL	Read(char* szFileName);
+	BOOL	Read(char* szFileName);
 	BOOL	Read(CAbstractFile* pcAbstractFile);
 	BOOL	Write(char* szFileName);
 
