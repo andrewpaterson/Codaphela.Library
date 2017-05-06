@@ -62,9 +62,6 @@ public:
 	void 				Dump(void);
 	int					NumRows(void);
 	SCSVRowEditable*	Get(int iRowNum);
-
-protected:
-	int					ReadLine(char* snz);
 };
 
 
