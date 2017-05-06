@@ -24,7 +24,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "BaseLib/NaiveFile.h"
 #include "BaseLib/TextFile.h"
 #include "BaseLib/FileUtil.h"
-#include "CoreLib/TypeNames.h"
+#include "BaseLib/TypeNames.h"
 #include "RADWriter.h"
 
 

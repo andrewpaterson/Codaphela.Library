@@ -27,7 +27,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "BaseLib/DiskFile.h"
 #include "BaseLib/FileUtil.h"
 #include "BaseLib/SystemAllocator.h"
-#include "CoreLib/TextParser.h"
+#include "BaseLib/TextParser.h"
 #include "Mesh.h"
 #include "MeshEditor.h"
 #include "MeshCornerBuilder.h"

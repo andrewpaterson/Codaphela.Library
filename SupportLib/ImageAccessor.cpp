@@ -23,7 +23,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/IntegerHelper.h"
 #include "BaseLib/PointerFunctions.h"
-#include "CoreLib/TypeConverter.h"
+#include "BaseLib/TypeConverter.h"
 #include "ImageAccessor.h"
 #include "Image.h"
 #include "SubImage.h"

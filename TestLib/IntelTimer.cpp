@@ -64,3 +64,4 @@ void StopIntelTimer(int* piHigh, int* piLow)
 }
 
 #endif // WIN32
+

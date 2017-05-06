@@ -20,7 +20,7 @@ along with Codaphela CoreLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-#include "CoreLib/TypeNames.h"
+#include "BaseLib/TypeNames.h"
 #include "ChannelPadder.h"
 
 

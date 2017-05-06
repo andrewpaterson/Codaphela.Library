@@ -26,7 +26,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "BaseLib/TextFile.h"
 #include "BaseLib/DiskFile.h"
 #include "BaseLib/FileUtil.h"
-#include "CoreLib/TextParser.h"
+#include "BaseLib/TextParser.h"
 #include "Material.h"
 #include "MTLReader.h"
 
