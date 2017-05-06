@@ -35,17 +35,24 @@ public:
 	filePos		miSize;
 
 	void	Init(void);
+	void	Init(void* pvMem, int iSize);
 	void	Kill(void);
+	void	KillExceptBuffer(void);
+
 	BOOL	Read(char* szFileName);
+	BOOL	Read(CAbstractFile* pcAbstractFile);
 	BOOL	Write(char* szFileName);
+
 	void*	Get(void);
+	void*	Get(int iOffset);
 	void	Set(void* pvMem, int iSize);
 	filePos	Size();
+
 	int		Compare(void* pvOther);
 };
 
 
-int CompareFileToMemory(char* szFileName, void* pvMem);
+int CompareFileToMemory(char* szFileName, void* pvMem, int iLength, CChars* psz);
 
 
 #endif // __NAIVE_FILE_H__

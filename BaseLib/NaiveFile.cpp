@@ -41,10 +41,32 @@ void CNaiveFile::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CNaiveFile::Init(void* pvMem, int iSize)
+{
+	Init();
+	Set(pvMem, iSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CNaiveFile::Kill(void)
 {
 	SafeFree(mpvMem);
+	KillExceptBuffer();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CNaiveFile::KillExceptBuffer(void)
+{
 	miSize = 0;
+	mszFileName.Kill();
 }
 
 
@@ -55,16 +77,34 @@ void CNaiveFile::Kill(void)
 BOOL CNaiveFile::Read(char* szFileName)
 {
 	CFileBasic	mcFile;
+	CDiskFile*	pcDiskFile;
 
 	if (szFileName)
 	{
 		mszFileName.Kill();
 		mszFileName.Init(szFileName);
-		mcFile.Init(DiskFile(szFileName));
+		pcDiskFile = DiskFile(szFileName);
+		return Read(pcDiskFile);
+	}
+	return FALSE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CNaiveFile::Read(CAbstractFile* pcAbstractFile)
+{
+	CFileBasic	mcFile;
+
+	if (pcAbstractFile)
+	{
+		mcFile.Init(pcAbstractFile);
 		if (mcFile.Open(EFM_Read))
 		{
 			miSize = mcFile.GetFileSize();
-			
+
 			mpvMem = malloc((int)miSize);
 			mcFile.ReadData(mpvMem, (int)miSize);
 			mcFile.Close();
@@ -111,6 +151,16 @@ BOOL CNaiveFile::Write(char* szFileName)
 void* CNaiveFile::Get(void)
 {
 	return mpvMem;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void* CNaiveFile::Get(int iOffset)
+{
+	return RemapSinglePointer(mpvMem, iOffset);
 }
 
 

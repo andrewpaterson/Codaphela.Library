@@ -31,19 +31,22 @@ Microsoft Windows is Copyright Microsoft Corporation
 class CTextFile
 {
 public:
-	CChars		mcText;
 	CChars		mszFileName;
+	CChars		mcText;
 
 	void	Init(void);
 	void	Init(char* szText);
 	void	Kill(void);
 	void	KillExceptBuffer(void);
+
     BOOL	Read(char* szFileName);
 	BOOL	Read(CAbstractFile* pcAbstractFile);
 	BOOL	Write(char* szFileName);
+
 	char*	Text(void);
 	char*	Text(int iOffset);
 	int		Length(void);
+
 	void	PassifyNewlines(void);
 	void	Dump(void);
 };
