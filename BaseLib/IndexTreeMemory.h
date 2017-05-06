@@ -53,6 +53,7 @@ public:
 	CIndexTreeNodeMemory*	GetRoot(void);
 	int						CountAllocatedNodes(void);
 	int						RecurseSize(void);
+	BOOL					ValidateSize(void);
 
 	BOOL					Write(CFileWriter* pcFileWriter);
 	BOOL					Read(CFileReader* pcFileReader);
@@ -68,7 +69,6 @@ protected:
 
 	CIndexTreeNodeMemory*	SetOldWithCurrent(CIndexTreeNodeMemory* pcParent, unsigned char c);
 	void					RecurseFindAll(CIndexTreeNodeMemory* pcNode, CArrayVoidPtr* papvElements);
-	BOOL					ValidateSize(void);
 	int						RecurseSize(CIndexTreeNodeMemory* pcNode);
 	int						RecurseCountAllocatedNodes(CIndexTreeNodeMemory* pcNode);
 	int						CountListSize(void);
