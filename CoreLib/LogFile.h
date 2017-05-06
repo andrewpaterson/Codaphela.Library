@@ -1,7 +1,7 @@
 #ifndef __LOG_FILE_H__
 #define __LOG_FILE_H__
 #include "BaseLib/AbstractFile.h"
-#include "ArrayVariable.h"
+#include "BaseLib/ListVariable.h"
 #include "LogFileCommands.h"
 
 
@@ -9,7 +9,7 @@
 class CLogFile : public CAbstractFile
 {
 protected:
-	CArrayVariable		macCommands;
+	CListVariable		macCommands;
 	filePos				miPosition;
 	filePos				miLength;
 

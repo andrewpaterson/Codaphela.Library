@@ -26,7 +26,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "BaseLib/FileMode.h"
 #include "BaseLib/FileIO.h"
 #include "BaseLib/AbstractFile.h"
-#include "ArrayVariable.h"
+#include "BaseLib/ListVariable.h"
 
 
 #define COMMAND_CHUNK_SIZE	4096
@@ -46,7 +46,7 @@ class CDurableFile
 private:
 	CChars						mszFileName;
 	CChars						mszRewriteName;
-	CArrayVariable				mcWrites;
+	CListVariable				mcWrites;
 	filePos						miPosition;
 	filePos						miLength;  //'-1' file does not exist on disk.  '0' file is zero bytes long on disk.
 

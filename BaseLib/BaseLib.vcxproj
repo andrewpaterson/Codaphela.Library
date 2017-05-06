@@ -131,6 +131,7 @@
     <ClInclude Include="LinkedListTemplateFreeList.h" />
     <ClInclude Include="ListBlock.h" />
     <ClInclude Include="ListTemplate.h" />
+    <ClInclude Include="ListVariable.h" />
     <ClInclude Include="LocalMallocator.h" />
     <ClInclude Include="Log.h" />
     <ClInclude Include="LogConfig.h" />
@@ -287,6 +288,7 @@
     <ClCompile Include="IndexTreeNodeMemory.cpp" />
     <ClCompile Include="LinkedListBlock.cpp" />
     <ClCompile Include="ListBlock.cpp" />
+    <ClCompile Include="ListVariable.cpp" />
     <ClCompile Include="LocalMallocator.cpp" />
     <ClCompile Include="LogString.cpp" />
     <ClCompile Include="MapBlock.cpp" />

@@ -160,9 +160,6 @@
     <Filter Include="Source\Data">
       <UniqueIdentifier>{50400cc2-9a3f-4613-82e8-508f6a2abdaa}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Data\Array">
-      <UniqueIdentifier>{0456bc65-d368-48b8-97a7-701ddcf24d7e}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source\Data\Types">
       <UniqueIdentifier>{57bec575-f7b4-403f-890a-1c5fc3c33649}</UniqueIdentifier>
     </Filter>
@@ -189,9 +186,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="ArrayVariable.cpp">
-      <Filter>Source\Data\Array</Filter>
-    </ClCompile>
     <ClCompile Include="TypeNames.cpp">
       <Filter>Source\Data\Types</Filter>
     </ClCompile>
@@ -437,9 +431,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ArrayVariable.h">
-      <Filter>Source\Data\Array</Filter>
-    </ClInclude>
     <ClInclude Include="TypeNames.h">
       <Filter>Source\Data\Types</Filter>
     </ClInclude>

@@ -684,6 +684,9 @@
     <ClInclude Include="ListBlock.h">
       <Filter>Source\Data\List</Filter>
     </ClInclude>
+    <ClInclude Include="ListVariable.h">
+      <Filter>Source\Data\List</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -1077,6 +1080,9 @@
       <Filter>Source\Data\Index</Filter>
     </ClCompile>
     <ClCompile Include="ListBlock.cpp">
+      <Filter>Source\Data\List</Filter>
+    </ClCompile>
+    <ClCompile Include="ListVariable.cpp">
       <Filter>Source\Data\List</Filter>
     </ClCompile>
   </ItemGroup>
