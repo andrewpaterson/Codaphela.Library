@@ -396,27 +396,16 @@ BOOL CIndexTreeNode::ContainsIndex(unsigned char uiIndex)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeNode::SetObject(void* pvObject, unsigned char uiSize)
 {
-	if (muiDataSize == 0)
+	if (muiDataSize != uiSize)
 	{
-		SizeObject(uiSize);
-		if (pvObject)
-		{
-			memcpy_fast(GetObjectPtr(), pvObject, uiSize);
-		}
-		return TRUE;
+		ChangeDataSize(uiSize);
 	}
-	else if (muiDataSize == muiDataSize)
+
+	if (pvObject)
 	{
-		if (pvObject)
-		{
-			memcpy_fast(GetObjectPtr(), pvObject, uiSize);
-		}
-		return TRUE;
+		memcpy_fast(GetObjectPtr(), pvObject, uiSize);
 	}
-	else
-	{
-		return FALSE;
-	}
+	return TRUE;
 }
 
 
@@ -426,7 +415,7 @@ BOOL CIndexTreeNode::SetObject(void* pvObject, unsigned char uiSize)
 //////////////////////////////////////////////////////////////////////////
 void CIndexTreeNode::ClearObject(void)
 {
-	SizeObject(0);
+	ChangeDataSize(0);
 }
 
 
@@ -434,7 +423,7 @@ void CIndexTreeNode::ClearObject(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNode::SizeObject(unsigned char uiSize)
+void CIndexTreeNode::ChangeDataSize(unsigned char uiSize)
 {
 	size_t				tSize;
 	void*				apcChildren;
@@ -443,11 +432,10 @@ void CIndexTreeNode::SizeObject(unsigned char uiSize)
 
 	if (!mbNodesEmpty)
 	{
-		apcChildren = GetNodesMemory();
 		tSize = (muiLastIndex - muiFirstIndex + 1) * SizeofNodePtr();
-
 		iDiff = (int)uiSize - (int)muiDataSize;
 
+		apcChildren = GetNodesMemory();
 		apcMovedChildren = RemapSinglePointer(apcChildren, iDiff);
 		memmove(apcMovedChildren, apcChildren, tSize);
 	}

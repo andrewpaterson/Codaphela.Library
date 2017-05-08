@@ -53,6 +53,7 @@ public:
 	CIndexTreeNodeMemory*	GetRoot(void);
 	int						CountAllocatedNodes(void);
 	int						RecurseSize(void);
+	size_t					ByteSize(void);
 
 	BOOL					Write(CFileWriter* pcFileWriter);
 	BOOL					Read(CFileReader* pcFileReader);
@@ -65,7 +66,9 @@ protected:
 	CIndexTreeNodeMemory*	AllocateNode(CIndexTreeNodeMemory* pcParent);
 
 	CIndexTreeNodeMemory*	ReallocateNodeForIndex(CIndexTreeNodeMemory* pcNode, unsigned char uiIndex);
-	CIndexTreeNodeMemory*	ReallocateNodeForData(CIndexTreeNodeMemory* pcNode, unsigned char uiDataSize);
+	CIndexTreeNodeMemory*	ReallocateNodeForLargerData(CIndexTreeNodeMemory* pcNode, unsigned char uiDataSize);
+	CIndexTreeNodeMemory*	ReallocateNodeForSmallerData(CIndexTreeNodeMemory* pcNode, unsigned char uiOriginalSize);
+	CIndexTreeNodeMemory*	ReallocateNodeForData(CIndexTreeNodeMemory* pcNode, size_t tNewNodeSize, size_t tOldNodeSize);
 	void					RemapChildParents(CIndexTreeNodeMemory* pcOldNode, CIndexTreeNodeMemory* pcNode);
 
 
@@ -75,6 +78,7 @@ protected:
 	int						RecurseCountAllocatedNodes(CIndexTreeNodeMemory* pcNode);
 	int						CountListSize(void);
 	int						RecurseCountListSize(CIndexTreeNodeMemory* pcNode);
+	size_t					RecurseByteSize(CIndexTreeNodeMemory* pcNode);
 
 	CIndexTreeNodeMemory*	GetNodeForData(void* pvData);
 
