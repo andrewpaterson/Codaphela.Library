@@ -27,7 +27,7 @@ public:
 
 protected:
 	void*				Malloc(size_t tSize);
-	void*				Realloc(void* pv, size_t tSize);
+	void*				Realloc(void* pv, size_t tNewSize, size_t tExistingSize);
 	void				Free(void* pv);
 
 	void				FreeNode(CIndexTreeNode* pcNode);
