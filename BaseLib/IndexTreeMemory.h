@@ -53,10 +53,12 @@ public:
 	CIndexTreeNodeMemory*	GetRoot(void);
 	int						CountAllocatedNodes(void);
 	int						RecurseSize(void);
-	BOOL					ValidateSize(void);
 
 	BOOL					Write(CFileWriter* pcFileWriter);
 	BOOL					Read(CFileReader* pcFileReader);
+
+	BOOL					ValidateIndexTree(void);
+	BOOL					ValidateSize(void);
 
 protected:
 	CIndexTreeNodeMemory*	AllocateRoot(void);
