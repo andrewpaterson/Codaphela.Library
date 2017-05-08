@@ -116,7 +116,6 @@ size_t CIndexTreeNode::CalculateRequiredNodeSizeForIndex(unsigned char uiIndex)
 	if (HasNodes())
 	{
 		iRequiredIndices = GetAdditionalIndexes(uiIndex);
-//		mpcIndexTree->Calc
 		tSize = SizeofNode() + muiDataSize + iRequiredIndices * SizeofNodePtr();
 
 		return tSize;

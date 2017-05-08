@@ -299,7 +299,10 @@ void* CIndexTreeMemory::Put(void* pvKey, int iKeySize, void* pvObject, unsigned 
 		pcCurrent = SetOldWithCurrent(pcCurrent, c);
 	}
 
-	miSize++;
+	if (!pcCurrent->HasObject())
+	{
+		miSize++;
+	}
 
 	pcReallocatedCurrent = ReallocateNodeForData(pcCurrent, uiObjectSize);
 	bResult = pcReallocatedCurrent->SetObject(pvObject, uiObjectSize);
@@ -338,16 +341,18 @@ CIndexTreeNodeMemory* CIndexTreeMemory::ReallocateNodeForIndex(CIndexTreeNodeMem
 {
 	CIndexTreeNodeMemory*	pcOldNode;
 	size_t					tNewNodeSize;
+	size_t					tOldNodeSize;
 
 	if (pcNode->ContainsIndex(uiIndex))
 	{
 		return pcNode;
 	}
 
+	tOldNodeSize = pcNode->CalculateRequiredNodeSizeForCurrent();
 	tNewNodeSize = pcNode->CalculateRequiredNodeSizeForIndex(uiIndex);
 
 	pcOldNode = pcNode;
-	pcNode = (CIndexTreeNodeMemory*)Realloc(pcNode, tNewNodeSize);
+	pcNode = (CIndexTreeNodeMemory*)Realloc(pcNode, tNewNodeSize, tOldNodeSize);
 	pcNode->Contain(uiIndex);
 
 	RemapChildParents(pcOldNode, pcNode);
@@ -363,11 +368,13 @@ CIndexTreeNodeMemory* CIndexTreeMemory::ReallocateNodeForData(CIndexTreeNodeMemo
 {
 	CIndexTreeNodeMemory*	pcOldNode;
 	size_t					tNewNodeSize;
+	size_t					tOldNodeSize;
 
 	tNewNodeSize = pcNode->CalculateRequiredNodeSizeForData(uiDataSize);
+	tOldNodeSize = pcNode->CalculateRequiredNodeSizeForCurrent();
 
 	pcOldNode = pcNode;
-	pcNode = (CIndexTreeNodeMemory*)Realloc(pcNode, tNewNodeSize);
+	pcNode = (CIndexTreeNodeMemory*)Realloc(pcNode, tNewNodeSize, tOldNodeSize);
 
 	RemapChildParents(pcOldNode, pcNode);
 	return pcNode;
@@ -454,6 +461,7 @@ BOOL CIndexTreeMemory::Remove(void* pvKey, int iKeySize)
 	void*					pvObject;
 	BOOL					bResizeNode;
 	size_t					tNewNodeSize;
+	size_t					tOldNodeSize;
 	int						i;
 
 	if ((iKeySize == 0) || (pvKey == NULL))
@@ -489,12 +497,14 @@ BOOL CIndexTreeMemory::Remove(void* pvKey, int iKeySize)
 
 		if (pcNode->IsEmpty())
 		{
+			tOldNodeSize = pcParent->CalculateRequiredNodeSizeForCurrent();
 			bResizeNode = pcParent->Clear(c);
 			if (bResizeNode)
 			{
 				tNewNodeSize = pcParent->CalculateRequiredNodeSizeForCurrent();
 				pcOldParent = pcParent;
-				pcParent = (CIndexTreeNodeMemory*)Realloc(pcParent, tNewNodeSize);
+
+				pcParent = (CIndexTreeNodeMemory*)Realloc(pcParent, tNewNodeSize, tOldNodeSize);
 				pcParent->SetChildsParent();
 				RemapChildParents(pcOldParent, pcParent);
 			}
