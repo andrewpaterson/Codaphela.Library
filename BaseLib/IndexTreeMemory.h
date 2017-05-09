@@ -32,9 +32,9 @@ public:
 	BOOL					StartIteration(SIndexTreeIterator* psIterator, void** pvData, int* piDataSize);
 	BOOL					Iterate(SIndexTreeIterator* psIterator, void** pvData, int* piDataSize);
 
-	void*					Put(char* pszKey, void* pvObject, unsigned char uiObjectSize);
-	void*					Put(void* pvKey, int iKeySize, void* pvObject, unsigned char uiObjectSize);
-	void*					Put(void* pvKey, int iKeySize, unsigned char uiObjectSize);
+	void*					Put(char* pszKey, void* pvObject, unsigned char uiDataSize);
+	void*					Put(void* pvKey, int iKeySize, void* pvObject, unsigned char uiDataSize);
+	void*					Put(void* pvKey, int iKeySize, unsigned char uiDataSize);
 
 	BOOL					Remove(char* pszKey);
 	BOOL					Remove(void* pvKey, int iKeySize);

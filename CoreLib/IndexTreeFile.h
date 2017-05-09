@@ -28,9 +28,9 @@ public:
 
 	int		NumElements(void);
 
-	BOOL	Put(char* pszKey, void* pvObject, unsigned char uiObjectSize);
-	BOOL	Put(void* pvKey, int iKeySize, void* pvObject, unsigned char uiObjectSize);
-	BOOL	Put(void* pvKey, int iKeySize, unsigned char uiObjectSize);
+	BOOL	Put(char* pszKey, void* pvObject, unsigned char uiDataSize);
+	BOOL	Put(void* pvKey, int iKeySize, void* pvObject, unsigned char uiDataSize);
+	BOOL	Put(void* pvKey, int iKeySize, unsigned char uiDataSize);
 
 	BOOL	Remove(char* pszKey);
 	BOOL	Remove(void* pvKey, int iKeySize);
@@ -47,8 +47,8 @@ public:
 	CIndexTreeNodeFile*		GetRoot(void);
 	void					FindAll(CArrayVoidPtr* papvElements);
 
-	CIndexTreeNodeFile*		SetParentWithExisting(CIndexTreeNodeFile* pcParent, unsigned char c, unsigned char uiFirstIndex, unsigned char uiLastIndex, unsigned char uiObjectSize);
-	CIndexTreeNodeFile*		SetParentWithExisting(CIndexTreeNodeFile* pcParent, unsigned char c, unsigned char uiObjectSize);
+	CIndexTreeNodeFile*		SetParentWithExisting(CIndexTreeNodeFile* pcParent, unsigned char c, unsigned char uiFirstIndex, unsigned char uiLastIndex, unsigned char uiDataSize);
+	CIndexTreeNodeFile*		SetParentWithExisting(CIndexTreeNodeFile* pcParent, unsigned char c, unsigned char uiDataSize);
 
 	CIndexedFiles*			GetIndexFiles(void);
 	BOOL					Write(CIndexTreeNodeFile* pcNode);
@@ -56,12 +56,14 @@ public:
 protected:
 	CIndexTreeNodeFile*		AllocateRoot(void);
 	CIndexTreeNodeFile*		AllocateRoot(CFileIndex cFileIndex);
-	CIndexTreeNodeFile*		AllocateNode(CIndexTreeNodeFile* pcParent, unsigned char uiObjectSize);
-	CIndexTreeNodeFile*		AllocateNode(CIndexTreeNodeFile* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex, unsigned char uiObjectSize);
+	CIndexTreeNodeFile*		AllocateNode(CIndexTreeNodeFile* pcParent, unsigned char uiDataSize);
+	CIndexTreeNodeFile*		AllocateNode(CIndexTreeNodeFile* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex, unsigned char uiDataSize);
 	CFileIndex				LoadRootFileIndex(char* szRootFileName);
 	CIndexTreeNodeFile*		SetOldWithCurrent(CIndexTreeNodeFile* pcParent, unsigned char c);
 	CIndexTreeNodeFile*		ReallocateNodeForIndex(CIndexTreeNodeFile* pcNode, unsigned char uiIndex);
-	CIndexTreeNodeFile*		ReallocateNodeForData(CIndexTreeNodeFile* pcNode, unsigned char uiDataSize);
+	CIndexTreeNodeFile*		ReallocateNodeForLargerData(CIndexTreeNodeFile* pcNode, unsigned char uiDataSize);
+	CIndexTreeNodeFile*		ReallocateNodeForSmallerData(CIndexTreeNodeFile* pcNode, unsigned char uiOriginalSize);
+	CIndexTreeNodeFile*		ReallocateNodeForData(CIndexTreeNodeFile* pcNode, size_t tNewNodeSize, size_t tOldNodeSize);
 	void					RemapChildParents(CIndexTreeNodeFile* pcOldNode, CIndexTreeNodeFile* pcNode);
 	BOOL					LoadChildNode(CIndexTreeChildNode* pcChildNode);
 	void					RecurseFindAll(CIndexTreeNodeFile* pcNode, CArrayVoidPtr* papvElements);

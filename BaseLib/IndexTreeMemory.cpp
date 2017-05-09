@@ -257,7 +257,7 @@ BOOL CIndexTreeMemory::PutLong(void* pvKey, int iKeySize, int64 lliIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CIndexTreeMemory::Put(char* pszKey, void* pvObject, unsigned char uiObjectSize)
+void* CIndexTreeMemory::Put(char* pszKey, void* pvObject, unsigned char uiDataSize)
 {
 	int iKeySize;
 
@@ -267,7 +267,7 @@ void* CIndexTreeMemory::Put(char* pszKey, void* pvObject, unsigned char uiObject
 	}
 
 	iKeySize = strlen(pszKey);
-	return Put(pszKey, iKeySize, pvObject, uiObjectSize);
+	return Put(pszKey, iKeySize, pvObject, uiDataSize);
 }
 
 
@@ -275,7 +275,7 @@ void* CIndexTreeMemory::Put(char* pszKey, void* pvObject, unsigned char uiObject
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CIndexTreeMemory::Put(void* pvKey, int iKeySize, void* pvObject, unsigned char uiObjectSize)
+void* CIndexTreeMemory::Put(void* pvKey, int iKeySize, void* pvObject, unsigned char uiDataSize)
 {
 	CIndexTreeNodeMemory*	pcCurrent;
 	CIndexTreeNodeMemory*	pcReallocatedCurrent;
@@ -306,15 +306,15 @@ void* CIndexTreeMemory::Put(void* pvKey, int iKeySize, void* pvObject, unsigned 
 		miSize++;
 	}
 
-	if (pcCurrent->muiDataSize <= uiObjectSize)
+	if (pcCurrent->muiDataSize <= uiDataSize)
 	{ 
-		pcReallocatedCurrent = ReallocateNodeForLargerData(pcCurrent, uiObjectSize);
-		bResult = pcReallocatedCurrent->SetObject(pvObject, uiObjectSize);
+		pcReallocatedCurrent = ReallocateNodeForLargerData(pcCurrent, uiDataSize);
+		bResult = pcReallocatedCurrent->SetObject(pvObject, uiDataSize);
 	}
 	else
 	{
 		uiOriginalSize = pcCurrent->GetObjectSize();
-		bResult = pcCurrent->SetObject(pvObject, uiObjectSize);
+		bResult = pcCurrent->SetObject(pvObject, uiDataSize);
 		pcReallocatedCurrent = ReallocateNodeForSmallerData(pcCurrent, uiOriginalSize);
 	}
 
@@ -338,9 +338,9 @@ void* CIndexTreeMemory::Put(void* pvKey, int iKeySize, void* pvObject, unsigned 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CIndexTreeMemory::Put(void* pvKey, int iKeySize, unsigned char uiObjectSize)
+void* CIndexTreeMemory::Put(void* pvKey, int iKeySize, unsigned char uiDataSize)
 {
-	return Put(pvKey, iKeySize, NULL, uiObjectSize);
+	return Put(pvKey, iKeySize, NULL, uiDataSize);
 }
 
 
