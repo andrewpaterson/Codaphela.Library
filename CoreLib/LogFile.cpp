@@ -45,7 +45,6 @@ void CLogFile::Init(CAbstractFile* pcBackingFile)
 
 	mbTouched = FALSE;
 	meFileMode = EFM_Unknown;
-	miLastWriteOpenIndex = -1;
 	mbOpenedBackingFile = FALSE;
 
 	macCommands.Init(LOG_FILE_COMMAND_CHUNK_SIZE);
@@ -110,6 +109,11 @@ BOOL CLogFile::Begin(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CLogFile::Commit(void)
 {
+	if (mbOpenedBackingFile)
+	{
+		mpcBackingFile->Close();
+	}
+
 	return Commit(mpcBackingFile);
 }
 
@@ -127,11 +131,6 @@ BOOL CLogFile::Commit(CAbstractFile* pcFile)
 	CLogFileCommandOpen*		psOpen;
 	CLogFileCommandClose*		psClose;
 	CLogFileCommandDelete*		psDelete;
-
-	if (mbOpenedBackingFile)
-	{
-		mpcBackingFile->Close();
-	}
 
 	for (i = 0; i < macCommands.NumElements(); i++)
 	{
@@ -174,15 +173,6 @@ BOOL CLogFile::Open(EFileMode eFileMode)
 		return FALSE;
 	}
 
-	if (IsFileModeWritable(eFileMode))
-	{
-		miLastWriteOpenIndex = macCommands.NumElements()-1;
-	}
-	else
-	{
-		miLastWriteOpenIndex = -1;
-	}
-
 	meFileMode = eFileMode;
 	
 	miPosition = 0;
@@ -220,7 +210,6 @@ BOOL CLogFile::Close(void)
 		return FALSE;
 	}
 
-	miLastWriteOpenIndex = -1;
 	meFileMode = EFM_Unknown;
 	miPosition = 0;
 	return TRUE;
@@ -282,15 +271,7 @@ filePos CLogFile::Write(const void* pvSource, filePos iSize, filePos iCount)
 
 		iByteLength = iSize * iCount;
 
-		if (miLastWriteOpenIndex == -1)
-		{
-			bAny = FALSE;
-		}
-		else
-		{
-			bAny = FindTouchingWriteCommands(miLastWriteOpenIndex + 1, &apvOverlapping, miPosition, iByteLength, FALSE);
-		}
-
+		bAny = FindTouchingWriteCommands(0, &apvOverlapping, miPosition, iByteLength, FALSE);
 		if (bAny)
 		{
 			AmalgamateOverlappingWrites(&apvOverlapping, pvSource, miPosition, iByteLength);
@@ -903,7 +884,7 @@ BOOL CLogFile::FindTouchingWriteCommands(int iStartIndex, CArrayIntAndPointer* p
 	if (!bMustOverlap)
 	{
 		iPosition--;
-		iLength+=2;
+		iLength += 2;
 	}
 
 	for (iIndex = iStartIndex; iIndex < macCommands.NumElements(); iIndex++)
@@ -922,10 +903,6 @@ BOOL CLogFile::FindTouchingWriteCommands(int iStartIndex, CArrayIntAndPointer* p
 
 				papvOverlapping->Add(psWrite, iIndex);
 			}
-		}
-		else
-		{
-			break;
 		}
 	}
 

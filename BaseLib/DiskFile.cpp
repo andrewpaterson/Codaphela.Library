@@ -272,7 +272,7 @@ BOOL CDiskFile::Flush(void)
 {
 	if (IsOpen())
 	{
-		return fflush(mpsFileHandle) != 0;
+		return fflush(mpsFileHandle) == 0;
 	}
 	else
 	{

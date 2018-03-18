@@ -91,9 +91,8 @@ public:
 	BOOL		CopyBackupToPrimary(void);
 	BOOL		CopyPrimaryToBackup(void);
 
-	filePos		TestGetPosition(void);
-	filePos		TestGetLength(void);
 	BOOL		TestGetOpenedSinceBegin(void);
+	BOOL		IsOpen(void);
 
 	void		Dump(void);
 	CFileBasic*	DumpGetPrimaryFile(void);
@@ -104,22 +103,9 @@ protected:
 	BOOL		OpenPrimaryForWrite(void);
 
 	filePos		ReadDurable(void* pvDest, filePos iSize, filePos iCount);
-	filePos		ReadNonDurable(void* pvDest, filePos iSize, filePos iCount);
 	filePos		WriteDurable(const void* pvSource, filePos iSize, filePos iCount);
-	filePos		WriteNonDurable(const void* pvSource, filePos iSize, filePos iCount);
-
-	filePos		SizeDurable(void);
-	filePos		SizeNonDurable(void);
-	BOOL		SeekDurable(EFileSeekOrigin eOrigin, filePos iDistance, BOOL bSeekForWrite);
-	BOOL		SeekNonDurable(EFileSeekOrigin eOrigin, filePos iDistance, BOOL bSeekForWrite);
-
-	BOOL		FindTouchingWriteCommands(CArrayIntAndPointer* papvOverlapping, filePos iPosition, filePos iLength, BOOL bMustOverlap);
-	BOOL		DoesWriteOverlap(SDurableFileCommandWrite* psWrite, filePos iPosition, filePos iLength);
-	BOOL		AmalgamateOverlappingWrites(CArrayIntAndPointer* papvOverlapping, const void* pvSource, filePos iPosition, filePos iLength);
-	BOOL		DoOverlappingWritesContainHoles(CArrayIntAndPointer* papvOverlapping, filePos iPosition, filePos iLength);
 
 	BOOL		OpenPrimaryFile(BOOL bOpenForWrite);
-	filePos		ReadPrimaryFileForDurableRead(void* pvDest, filePos iSize, filePos iCount);
 };
 
 

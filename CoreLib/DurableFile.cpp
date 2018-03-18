@@ -108,6 +108,11 @@ BOOL CDurableFile::OpenPrimaryFile(BOOL bOpenForWrite)
 {
 	BOOL	bFileOpened;
 
+	if (!mbOpenedSinceBegin)
+	{
+		mcLogFile.Begin();
+	}
+
 	if (!bOpenForWrite)
 	{
 		bFileOpened = OpenPrimaryForRead();
@@ -136,48 +141,33 @@ BOOL CDurableFile::Commit(void)
 	BOOL		bResult;
 	CFileUtil	cFileUtil;
 
-	if (IsDurable())
+	if (!IsBegun())
 	{
-		if (!IsBegun())
-		{
-			return FALSE;
-		}
+		return FALSE;
+	}
 
-		if (mcLogFile.GetNumCommands() == 0)
-		{
-			mcLogFile.Close();
-
-			InitBasic();
-			return TRUE;
-		}
-
-		cFileUtil.TouchDir(mszFileName.Text());
-		//bResult = mpcPrimaryFile->Open(EFM_ReadWrite_Create);
-		//if (!bResult)
-		//{
-		//	gcLogger.Error2(__METHOD__, " Could not open durable file [", mszFileName.Text(), "] for writing during commit.", NULL);
-		//	return FALSE;
-		//}
-
-		bResult = mcLogFile.Commit();
-		if (!bResult)
-		{
-			gcLogger.Error2(__METHOD__, " Commit durable file [", mszFileName.Text(), "] failed.", NULL);
-			return FALSE;
-		}
+	if (mcLogFile.GetNumCommands() == 0)
+	{
+		mcLogFile.Close();
 
 		InitBasic();
-		mcPrimaryFile.Flush();
-		mcPrimaryFile.Close();
 		return TRUE;
 	}
-	else
+
+	//TouchDir belongs in log file open.
+	cFileUtil.TouchDir(mszFileName.Text());
+
+	mcPrimaryFile.Close();
+
+	bResult = mcLogFile.Commit();
+	if (!bResult)
 	{
-		InitBasic();
-		mcPrimaryFile.Flush();
-		mcPrimaryFile.Close();
-		return TRUE;
+		gcLogger.Error2(__METHOD__, " Commit durable file [", mszFileName.Text(), "] failed.", NULL);
+		return FALSE;
 	}
+
+	InitBasic();
+	return TRUE;
 }
 
 
@@ -198,13 +188,8 @@ BOOL CDurableFile::Recommit(void)
 			return FALSE;
 		}
 
+		//TouchDir belongs in log file open.
 		cFileUtil.TouchDir(mszRewriteName.Text());
-		//bResult = mcRewriteFile.Open(EFM_ReadWrite_Create);
-		//if (!bResult)
-		//{
-		//	gcLogger.Error2(__METHOD__, " Could not open durable file [", mszRewriteName.Text(), "] for re-write.", NULL);
-		//	return FALSE;
-		//}
 
 		bResult = mcLogFile.Commit(&mcRewriteDiskFile);
 		if (!bResult)
@@ -252,33 +237,6 @@ BOOL CDurableFile::Seek(EFileSeekOrigin eOrigin, filePos iDistance, BOOL bSeekFo
 		return FALSE;
 	}
 
-	if (IsDurable())
-	{
-		return SeekDurable(eOrigin, iDistance, bSeekForWrite);
-	}
-	else
-	{
-		return SeekNonDurable(eOrigin, iDistance, bSeekForWrite);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CDurableFile::SeekDurable(EFileSeekOrigin eOrigin, filePos iDistance, BOOL bSeekForWrite)
-{
-	return mcLogFile.Seek(iDistance, eOrigin);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CDurableFile::SeekNonDurable(EFileSeekOrigin eOrigin, filePos iDistance, BOOL bSeekForWrite)
-{
 	return mcPrimaryFile.Seek(iDistance, eOrigin);
 }
 
@@ -290,19 +248,10 @@ BOOL CDurableFile::SeekNonDurable(EFileSeekOrigin eOrigin, filePos iDistance, BO
 BOOL CDurableFile::OpenPrimaryForWrite(void)
 {
 	BOOL		bResult;
-	CFileUtil	cFileUtil;
 	
 	if (meOpenMode == EFM_Unknown)
 	{
-		if (IsDurable())
-		{
-			bResult = mcPrimaryFile.Open(EFM_ReadWrite_Create);
-		}
-		else
-		{
-			cFileUtil.TouchDir(mszFileName.Text());
-			bResult = mcPrimaryFile.Open(EFM_ReadWrite_Create);
-		}
+		bResult = mcPrimaryFile.Open(EFM_ReadWrite_Create);
 
 		if (!bResult)
 		{
@@ -442,14 +391,7 @@ filePos CDurableFile::Write(const void* pvSource, filePos iSize, filePos iCount)
 		return FALSE;
 	}
 
-	if (IsDurable())
-	{
-		return WriteDurable(pvSource, iSize, iCount);
-	}
-	else
-	{
-		return WriteNonDurable(pvSource, iSize, iCount);
-	}
+	return WriteDurable(pvSource, iSize, iCount);
 }
 
 
@@ -458,16 +400,6 @@ filePos CDurableFile::Write(const void* pvSource, filePos iSize, filePos iCount)
 //
 //////////////////////////////////////////////////////////////////////////
 filePos CDurableFile::WriteDurable(const void* pvSource, filePos iSize, filePos iCount)
-{
-	return mcLogFile.Write(pvSource, iSize, iCount);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-filePos CDurableFile::WriteNonDurable(const void* pvSource, filePos iSize, filePos iCount)
 {
 	return mcPrimaryFile.Write(pvSource, iSize, iCount);
 }
@@ -532,14 +464,7 @@ filePos CDurableFile::Read(void* pvDest, filePos iSize, filePos iCount)
 		return FALSE;
 	}
 
-	if (IsDurable())
-	{
-		return ReadDurable(pvDest, iSize, iCount);
-	}
-	else
-	{
-		return ReadNonDurable(pvDest, iSize, iCount);
-	}
+	return ReadDurable(pvDest, iSize, iCount);
 }
 
 
@@ -549,23 +474,8 @@ filePos CDurableFile::Read(void* pvDest, filePos iSize, filePos iCount)
 //////////////////////////////////////////////////////////////////////////
 filePos CDurableFile::ReadDurable(void* pvDest, filePos iSize, filePos iCount)
 {
-	return mcLogFile.Read(pvDest, iSize, iCount);
+	return mcPrimaryFile.Read(pvDest, iSize, iCount);
 }
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-filePos CDurableFile::ReadNonDurable(void* pvDest, filePos iSize, filePos iCount)
-{
-	if (mcPrimaryFile.IsOpen())
-	{
-		return mcPrimaryFile.Read(pvDest, iSize, iCount);
-	}
-	return 0;
-}
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -580,26 +490,7 @@ filePos CDurableFile::Tell(void)
 		return -1;
 	}
 
-	if (!OpenPrimaryFile(FALSE))
-	{
-		return 0;
-	}
-
-	if (IsDurable())
-	{
-		return mcLogFile.Tell();
-	}
-	else
-	{
-		if (mcPrimaryFile.IsOpen())
-		{
-			return mcPrimaryFile.GetFilePos();
-		}
-		else
-		{
-			return 0;
-		}
-	}
+	return mcPrimaryFile.GetFilePos();
 }
 
 
@@ -615,54 +506,18 @@ filePos CDurableFile::Size(void)
 		return -1;
 	}
 
-	if (!OpenPrimaryFile(FALSE))
+	if (!mbOpenedSinceBegin)
 	{
-		return 0;
-	}
-
-	if (IsDurable())
-	{
-		return SizeDurable();
+		*
+		//		You Don't actually want to have to open the file to find its size.
+		//		You need to test seeking and telling before a read or a write.
+		return mcPrimaryDiskFile.Size();
 	}
 	else
-	{
-		return SizeNonDurable();
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-filePos CDurableFile::SizeDurable(void)
-{
-	return mcLogFile.Size();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-filePos CDurableFile::SizeNonDurable(void)
-{
-	BOOL bResult;
-
-	bResult = OpenPrimaryFile(FALSE);
-	if (!bResult)
-	{
-		return -1;
-	}
-
-	if (mcPrimaryFile.IsOpen())
 	{
 		return mcPrimaryFile.GetFileSize();
 	}
-	else
-	{
-		return 0;
-	}
+
 }
 
 
@@ -704,29 +559,19 @@ BOOL CDurableFile::IsBegun(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-filePos CDurableFile::TestGetPosition(void)
-{
-	return mcLogFile.Tell();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-filePos CDurableFile::TestGetLength(void)
-{
-	return mcLogFile.Size();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 BOOL CDurableFile::TestGetOpenedSinceBegin(void)
 {
 	return mbOpenedSinceBegin;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CDurableFile::IsOpen(void)
+{
+	return mcPrimaryDiskFile.IsOpen();
 }
 
 

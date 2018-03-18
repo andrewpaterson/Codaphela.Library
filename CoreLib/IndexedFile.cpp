@@ -247,7 +247,7 @@ void CIndexedFile::Dump(void)
 	sz.Append("Datas (A:");
 	sz.Append(miNumDatas);
 	sz.Append(", D:");
-	sz.Append(mcFile.TestGetLength() / miDataSize);
+	sz.Append(mcFile.Size() / miDataSize);
 	sz.Append(", F:");
 	sz.Append(iSizeOnDisk/miDataSize);
 	sz.Append(")\n\n");

@@ -156,7 +156,8 @@ BOOL CLogFileCommandClose::Close(CAbstractFile* pcFile)
 {
 	BOOL bResult;
 
-	bResult = pcFile->Close();
+	bResult = pcFile->Flush();
+	bResult &= pcFile->Close();
 	return bResult;
 }
 
