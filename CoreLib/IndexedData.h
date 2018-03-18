@@ -28,9 +28,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "IndexedCache.h"
 #include "IndexedData.h"
 #include "IndexedFiles.h"
-#include "IndexDescriptorsFile.h"
-#include "IndexSmartAccess.h"
 #include "DurableFileController.h"
+#include "IndexedDescriptorsFile.h"
 
 
 //This is the database class.
@@ -42,8 +41,7 @@ protected:
 	CIndexedFiles			mcDataFiles;
 
 	//Index
-	CIndexSmartAccess		mcIndices;
-	CIndexDescriptorsFile	mcIndicesFile;
+	CIndexedDescriptorsFile	mcIndices;
 
 	CDurableFileController	mcDurableFileControl;
 
@@ -91,9 +89,7 @@ public:
 	BOOL			Uncache(void);
 
 	int				TestNumCachedIndexes(void);
-	int				TestIndexedDescriptorsLength(void);
 	int				TestNumIgnoredCacheElements(void);
-	CIndexAccess*	TestGetIndexAccess(void);
 	unsigned int	TestGetCachedObjectSize(OIndex oi);
 	CDurableFileController* GetDurableFileControl(void);
 

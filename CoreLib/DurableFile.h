@@ -25,8 +25,10 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "BaseLib/ArrayIntAndPointer.h"
 #include "BaseLib/FileMode.h"
 #include "BaseLib/FileIO.h"
+#include "BaseLib/DiskFile.h"
 #include "BaseLib/AbstractFile.h"
 #include "BaseLib/ListVariable.h"
+#include "LogFile.h"
 
 
 #define COMMAND_CHUNK_SIZE	4096
@@ -46,30 +48,29 @@ class CDurableFile
 private:
 	CChars						mszFileName;
 	CChars						mszRewriteName;
-	CListVariable				mcWrites;
-	filePos						miPosition;
-	filePos						miLength;  //'-1' file does not exist on disk.  '0' file is zero bytes long on disk.
 
-	filePos						miFileLength;
-	CFileBasic*					mpcPrimaryFile;
-	CFileBasic*					mpcRewriteFile;
+	CFileBasic					mcPrimaryFile;
+	CFileBasic					mcRewriteFile;
 	
-	EFileMode					meOpenMode;
-	BOOL						mbOpenedSinceBegin;
+	CDiskFile					mcPrimaryDiskFile;
+	CDiskFile					mcRewriteDiskFile;
 
 	CDurableFileController*		mpcController;
 
+	CLogFile					mcLogFile;
+	EFileMode					meOpenMode;
+	BOOL						mbOpenedSinceBegin;
+
 public:
 	void		Init(CDurableFileController* pcController, char* szFileName, char* szRewriteName);
-	void		InitBasic(void);
 	BOOL		Kill(void);
+	void		InitBasic(void);
 
 	BOOL		Commit(void);
 	BOOL		Recommit(void);
 
 	BOOL		IsDurable(void);
 	BOOL		IsBegun(void);
-	BOOL		IsOpen(void);
 
 	filePos		Write(filePos iDistance, const void* pvSource, filePos iSize, filePos iCount);
 	filePos		Write(EFileSeekOrigin eOrigin, filePos iDistance, const void* pvSource, filePos iSize, filePos iCount);
@@ -111,8 +112,6 @@ protected:
 	filePos		SizeNonDurable(void);
 	BOOL		SeekDurable(EFileSeekOrigin eOrigin, filePos iDistance, BOOL bSeekForWrite);
 	BOOL		SeekNonDurable(EFileSeekOrigin eOrigin, filePos iDistance, BOOL bSeekForWrite);
-
-	BOOL		WriteWriteCommands(CFileBasic* pcFile, char *szFileName);
 
 	BOOL		FindTouchingWriteCommands(CArrayIntAndPointer* papvOverlapping, filePos iPosition, filePos iLength, BOOL bMustOverlap);
 	BOOL		DoesWriteOverlap(SDurableFileCommandWrite* psWrite, filePos iPosition, filePos iLength);

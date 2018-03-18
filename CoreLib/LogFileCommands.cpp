@@ -113,7 +113,7 @@ BOOL CLogFileCommandWrite::Write(CAbstractFile* pcFile)
 	filePos		iWritten;
 
 	pcFile->Seek(iPosition, EFSO_SET);
-	pvData = RemapSinglePointer(this, sizeof(CLogFileCommandWrite));
+	pvData = GetData();
 
 	iWritten = pcFile->Write(pvData, iSize, 1);
 	if (iWritten != 1)
@@ -125,6 +125,17 @@ BOOL CLogFileCommandWrite::Write(CAbstractFile* pcFile)
 		return TRUE;
 	}
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void* CLogFileCommandWrite::GetData(void)
+{
+	return RemapSinglePointer(this, sizeof(CLogFileCommandWrite));
+}
+
 
 
 //////////////////////////////////////////////////////////////////////////

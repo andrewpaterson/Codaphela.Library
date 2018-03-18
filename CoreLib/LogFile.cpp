@@ -35,6 +35,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 //////////////////////////////////////////////////////////////////////////
 void CLogFile::Init(CAbstractFile* pcBackingFile)
 {
+	CAbstractFile::Init();
+
 	mpcBackingFile = pcBackingFile;
 
 	miPosition = 0;
@@ -472,13 +474,14 @@ filePos CLogFile::Read(void* pvDest, filePos iSize, filePos iCount)
 		if ((miPosition + iByteSize) > miLength)
 		{
 			iResult = (miLength - miPosition) / iSize;
+			miPosition += iResult * iSize;
 		}
 		else
 		{
 			iResult = iCount;
+			miPosition += iByteSize;
 		}
 
-		miPosition += iByteSize;
 		return iResult;
 	}
 	else
@@ -486,6 +489,86 @@ filePos CLogFile::Read(void* pvDest, filePos iSize, filePos iCount)
 		return 0;
 	}
 }
+
+//{
+//	CArrayIntAndPointer			apvOverlapping;
+//	BOOL						bAnyTouchingWriteCommands;
+//	int							i;
+//	BOOL						bHoles;
+//	filePos						iResult;
+//	int							iIndex;
+//	SDurableFileCommandWrite*	psWrite;
+//	void*						pvData;
+//	filePos						iLength;
+//	filePos						iDestOffset;
+//	filePos						iSourceOffset;
+//	void*						pvSource;
+//	void*						pvNewDest;
+//	filePos						iBytesReadFromFile;
+//	filePos						iByteSize;
+//
+//	//You can test to see what sections actually NEED zeroing.
+//	iByteSize = iSize * iCount;
+//	memset_fast(pvDest, 0, (size_t)iByteSize);
+//
+//	bAnyTouchingWriteCommands = FindTouchingWriteCommands(&apvOverlapping, miPosition, iByteSize, TRUE);
+//	if (bAnyTouchingWriteCommands)
+//	{
+//		bHoles = DoOverlappingWritesContainHoles(&apvOverlapping, miPosition, iByteSize);
+//		if (bHoles)
+//		{
+//			iBytesReadFromFile = ReadPrimaryFileForDurableRead(pvDest, iSize, iCount);
+//		}
+//
+//		for (i = 0; i < apvOverlapping.NumElements(); i++)
+//		{
+//			apvOverlapping.Get(i, (void**)&psWrite, &iIndex);
+//
+//			pvData = RemapSinglePointer(psWrite, sizeof(SDurableFileCommandWrite));
+//
+//			iLength = psWrite->iSize;
+//			if ((psWrite->iPosition + psWrite->iSize) >(miPosition + iByteSize))
+//			{
+//				iLength -= (psWrite->iPosition + psWrite->iSize) - (miPosition + iByteSize);
+//			}
+//
+//			iSourceOffset = 0;
+//			iDestOffset = psWrite->iPosition - miPosition;
+//			if (psWrite->iPosition < miPosition)
+//			{
+//				iSourceOffset = miPosition - psWrite->iPosition;
+//				iDestOffset = 0;
+//			}
+//
+//			iLength -= iSourceOffset;
+//
+//			pvSource = RemapSinglePointer(pvData, (int)iSourceOffset);
+//			pvNewDest = RemapSinglePointer(pvDest, (int)iDestOffset);
+//
+//			memcpy_fast(pvNewDest, pvSource, (int)iLength);
+//		}
+//		apvOverlapping.Kill();
+//
+//		if (miPosition + (iByteSize) > miLength)
+//		{
+//			iResult = (miLength - miPosition) / iSize;
+//			miPosition += iResult*iSize;
+//			return iResult;
+//		}
+//		else
+//		{
+//			miPosition += iByteSize;
+//			return iCount;
+//		}
+//	}
+//	else
+//	{
+//		iBytesReadFromFile = ReadPrimaryFileForDurableRead(pvDest, iSize, iCount);
+//		iResult = iBytesReadFromFile / iSize;
+//		miPosition += iBytesReadFromFile;
+//		return iResult;
+//	}
+//}
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1006,6 +1089,33 @@ int CLogFile::GetNumWrites(void)
 		}
 	}
 	return iNumWrites;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CLogFileCommandWrite* CLogFile::GetWriteData(int iWrite)
+{
+	int					i;
+	CLogFileCommand*	psCommand;
+	int					iNumWrites;
+
+	iNumWrites = 0;
+	for (i = 0; i < macCommands.NumElements(); i++)
+	{
+		psCommand = (CLogFileCommand*)macCommands.Get(i);
+		if (psCommand->IsWrite())
+		{
+			if (iNumWrites == iWrite)
+			{
+				return (CLogFileCommandWrite*)psCommand;
+			}
+			iNumWrites++;
+		}
+	}
+	return NULL;
 }
 
 

@@ -130,21 +130,6 @@
     <Filter Include="Source\File\Indexed\Descriptors">
       <UniqueIdentifier>{dc735322-1c4b-4d98-97de-3db67f50513c}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\File\Indexed\Descriptors\Access">
-      <UniqueIdentifier>{87d9a9d5-a2c9-4f73-a84d-b2117f2479b1}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\File\Indexed\Descriptors\Access\DiskDirect">
-      <UniqueIdentifier>{9d70b498-f4c8-4ddf-9825-ca741b92163c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\File\Indexed\Descriptors\Access\Memory">
-      <UniqueIdentifier>{46a119bb-4caa-460f-991e-c375a3c17287}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\File\Indexed\Descriptors\Access\Huge">
-      <UniqueIdentifier>{c1be48af-cb5b-4453-bf3b-695c452a2a56}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\File\Indexed\Descriptors\Access\Smart">
-      <UniqueIdentifier>{df3a9ecc-b75f-48b4-bc25-f66a0179c0be}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source\File\Indexed\Cache">
       <UniqueIdentifier>{6fd727bf-8e44-4bb7-b797-65f77c551a47}</UniqueIdentifier>
     </Filter>
@@ -179,27 +164,6 @@
     </ClCompile>
     <ClCompile Include="Indexes.cpp">
       <Filter>Source\File\Indexed</Filter>
-    </ClCompile>
-    <ClCompile Include="IndexDescriptorsFile.cpp">
-      <Filter>Source\File\Indexed\Descriptors</Filter>
-    </ClCompile>
-    <ClCompile Include="IndexAccess.cpp">
-      <Filter>Source\File\Indexed\Descriptors\Access</Filter>
-    </ClCompile>
-    <ClCompile Include="IndexDiskDirectAccess.cpp">
-      <Filter>Source\File\Indexed\Descriptors\Access\DiskDirect</Filter>
-    </ClCompile>
-    <ClCompile Include="IndexMemoryAccess.cpp">
-      <Filter>Source\File\Indexed\Descriptors\Access\Memory</Filter>
-    </ClCompile>
-    <ClCompile Include="IndexedHuge.cpp">
-      <Filter>Source\File\Indexed\Descriptors\Access\Huge</Filter>
-    </ClCompile>
-    <ClCompile Include="IndexHugeAccess.cpp">
-      <Filter>Source\File\Indexed\Descriptors\Access\Huge</Filter>
-    </ClCompile>
-    <ClCompile Include="IndexSmartAccess.cpp">
-      <Filter>Source\File\Indexed\Descriptors\Access\Smart</Filter>
     </ClCompile>
     <ClCompile Include="IndexedFile.cpp">
       <Filter>Source\File\Indexed\Data</Filter>
@@ -396,6 +360,9 @@
     <ClCompile Include="IndexTreeWriter.cpp">
       <Filter>Source\File\Indexed\Index</Filter>
     </ClCompile>
+    <ClCompile Include="IndexedDescriptorsFile.cpp">
+      <Filter>Source\File\Indexed\Descriptors</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="IndexedConfig.h">
@@ -409,27 +376,6 @@
     </ClInclude>
     <ClInclude Include="Indexes.h">
       <Filter>Source\File\Indexed</Filter>
-    </ClInclude>
-    <ClInclude Include="IndexDescriptorsFile.h">
-      <Filter>Source\File\Indexed\Descriptors</Filter>
-    </ClInclude>
-    <ClInclude Include="IndexAccess.h">
-      <Filter>Source\File\Indexed\Descriptors\Access</Filter>
-    </ClInclude>
-    <ClInclude Include="IndexDiskDirectAccess.h">
-      <Filter>Source\File\Indexed\Descriptors\Access\DiskDirect</Filter>
-    </ClInclude>
-    <ClInclude Include="IndexMemoryAccess.h">
-      <Filter>Source\File\Indexed\Descriptors\Access\Memory</Filter>
-    </ClInclude>
-    <ClInclude Include="IndexedHuge.h">
-      <Filter>Source\File\Indexed\Descriptors\Access\Huge</Filter>
-    </ClInclude>
-    <ClInclude Include="IndexHugeAccess.h">
-      <Filter>Source\File\Indexed\Descriptors\Access\Huge</Filter>
-    </ClInclude>
-    <ClInclude Include="IndexSmartAccess.h">
-      <Filter>Source\File\Indexed\Descriptors\Access\Smart</Filter>
     </ClInclude>
     <ClInclude Include="IndexedFile.h">
       <Filter>Source\File\Indexed\Data</Filter>
@@ -630,6 +576,12 @@
       <Filter>Source\File\Indexed\Index</Filter>
     </ClInclude>
     <ClInclude Include="IndexTreeWriter.h">
+      <Filter>Source\File\Indexed\Index</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexedDescriptorsFile.h">
+      <Filter>Source\File\Indexed\Descriptors</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexTreeTemplateFile.h">
       <Filter>Source\File\Indexed\Index</Filter>
     </ClInclude>
   </ItemGroup>

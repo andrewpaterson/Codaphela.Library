@@ -38,34 +38,26 @@ Microsoft Windows is Copyright Microsoft Corporation
 //////////////////////////////////////////////////////////////////////////
 void CDurableFile::Init(CDurableFileController* pcController, char* szFileName, char* szRewriteName)
 {
-	CDiskFile*	pcPrimaryDiskFile;
-	CDiskFile*	pcRewriteDiskFile;
-
 	mpcController = pcController;
-
 	InitBasic();
-
-	mcWrites.Init(COMMAND_CHUNK_SIZE);
-
-	mpcPrimaryFile = NewMalloc<CFileBasic>();
-	mpcRewriteFile = NewMalloc<CFileBasic>();
 
 	if (!StrEmpty(szFileName))
 	{
-		pcPrimaryDiskFile = DiskFile(szFileName);
-		mpcPrimaryFile->Init(pcPrimaryDiskFile);
-		mszFileName.Init(pcPrimaryDiskFile->mszFileName);
+		mcPrimaryDiskFile.Init(szFileName);
+		mcLogFile.Init(&mcPrimaryDiskFile);
+		mcPrimaryFile.Init(&mcLogFile);
+		mszFileName.Init(mcPrimaryDiskFile.mszFileName);
 	}
 	else
 	{
-		mszFileName.Init();
+		gcLogger.Error2(__METHOD__, " Primary DurableFile file name is NULL.", NULL);
 	}
 
 	if (!StrEmpty(szRewriteName))
 	{
-		pcRewriteDiskFile = DiskFile(szRewriteName);
-		mpcRewriteFile->Init(pcRewriteDiskFile);
-		mszRewriteName.Init(pcRewriteDiskFile->mszFileName);
+		mcRewriteDiskFile.Init(szRewriteName);
+		mcRewriteFile.Init(&mcRewriteDiskFile);
+		mszRewriteName.Init(mcRewriteDiskFile.mszFileName);
 	}
 	else
 	{
@@ -81,9 +73,6 @@ void CDurableFile::Init(CDurableFileController* pcController, char* szFileName, 
 void CDurableFile::InitBasic(void)
 {
 	meOpenMode = EFM_Unknown;
-	miPosition = 0;
-	miLength = 0;
-	miFileLength = 0;
 	mbOpenedSinceBegin = FALSE;
 }
 
@@ -96,19 +85,16 @@ BOOL CDurableFile::Kill(void)
 {
 	BOOL	bAnyOpen;
 
-	bAnyOpen = mpcPrimaryFile->IsOpen();
-	bAnyOpen &= mpcRewriteFile->IsOpen();
+	bAnyOpen = mcPrimaryFile.IsOpen();
+	bAnyOpen |= mcRewriteFile.IsOpen();
 
-	mpcPrimaryFile->Kill();
-	mpcRewriteFile->Kill();
+	mcPrimaryFile.Kill();
+	mcRewriteFile.Kill();
 
-	mcWrites.Kill();
+	mcLogFile.Kill();
 
 	mszFileName.Kill();
 	mszRewriteName.Kill();
-
-	free(mpcPrimaryFile);
-	free(mpcRewriteFile);
 
 	return !bAnyOpen;
 }
@@ -135,16 +121,9 @@ BOOL CDurableFile::OpenPrimaryFile(BOOL bOpenForWrite)
 	{
 		mbOpenedSinceBegin = TRUE;
 		mpcController->AddFile(this);
+	}
 
-		miFileLength = mpcPrimaryFile->GetFileLength();
-		miLength = miFileLength;
-		miPosition = 0;
-		return bFileOpened;
-	}
-	else
-	{
-		return bFileOpened;
-	}
+	return bFileOpened;
 }
 
 
@@ -164,39 +143,39 @@ BOOL CDurableFile::Commit(void)
 			return FALSE;
 		}
 
-		if (mcWrites.NumElements() == 0)
+		if (mcLogFile.GetNumCommands() == 0)
 		{
-			mpcPrimaryFile->Close();
+			mcLogFile.Close();
 
 			InitBasic();
 			return TRUE;
 		}
 
 		cFileUtil.TouchDir(mszFileName.Text());
-		bResult = mpcPrimaryFile->Open(EFM_ReadWrite_Create);
+		//bResult = mpcPrimaryFile->Open(EFM_ReadWrite_Create);
+		//if (!bResult)
+		//{
+		//	gcLogger.Error2(__METHOD__, " Could not open durable file [", mszFileName.Text(), "] for writing during commit.", NULL);
+		//	return FALSE;
+		//}
+
+		bResult = mcLogFile.Commit();
 		if (!bResult)
 		{
-			gcLogger.Error2(__METHOD__, " Could not open durable file [", mszFileName.Text(), "] for writing during commit.", NULL);
+			gcLogger.Error2(__METHOD__, " Commit durable file [", mszFileName.Text(), "] failed.", NULL);
 			return FALSE;
 		}
-
-		bResult = WriteWriteCommands(mpcPrimaryFile, mszFileName.Text());
-		if (!bResult)
-		{
-			return FALSE;
-		}
-
-		mpcPrimaryFile->Flush();
-		mpcPrimaryFile->Close();
 
 		InitBasic();
+		mcPrimaryFile.Flush();
+		mcPrimaryFile.Close();
 		return TRUE;
 	}
 	else
 	{
-		mpcPrimaryFile->Close();
-
 		InitBasic();
+		mcPrimaryFile.Flush();
+		mcPrimaryFile.Close();
 		return TRUE;
 	}
 }
@@ -213,73 +192,45 @@ BOOL CDurableFile::Recommit(void)
 
 	if (IsDurable())
 	{
-		if (mcWrites.NumElements() == 0)
-		{
-			return TRUE;
-		}
-
-		if (mpcRewriteFile->IsOpen())
+		if (mcRewriteFile.IsOpen())
 		{
 			gcLogger.Error2(__METHOD__, " Did not expect durable file [", mszRewriteName.Text(), "] to be open already.", NULL);
 			return FALSE;
 		}
 
 		cFileUtil.TouchDir(mszRewriteName.Text());
-		bResult = mpcRewriteFile->Open(EFM_ReadWrite_Create);
+		//bResult = mcRewriteFile.Open(EFM_ReadWrite_Create);
+		//if (!bResult)
+		//{
+		//	gcLogger.Error2(__METHOD__, " Could not open durable file [", mszRewriteName.Text(), "] for re-write.", NULL);
+		//	return FALSE;
+		//}
+
+		bResult = mcLogFile.Commit(&mcRewriteDiskFile);
 		if (!bResult)
 		{
-			gcLogger.Error2(__METHOD__, " Could not open durable file [", mszRewriteName.Text(), "] for re-write.", NULL);
 			return FALSE;
 		}
 
-		bResult = WriteWriteCommands(mpcRewriteFile, mszRewriteName.Text());
-		if (!bResult)
-		{
-			return FALSE;
-		}
+		//This is dodgy as fuck.  Clear the log file.  Don't kill and reinitialise it.
+		mcLogFile.Kill();
+		mcLogFile.Init(&mcPrimaryDiskFile);
 
-		mpcRewriteFile->Flush();
-		mpcRewriteFile->Close();
-
-		mcWrites.Kill();
-		mcWrites.Init(COMMAND_CHUNK_SIZE);
+		mcRewriteFile.Flush();
+		mcRewriteFile.Close();
 
 		return TRUE;
 	}
 	else
 	{
+		//This is dodgy as fuck.  Clear the log file.  Don't kill and reinitialise it.
+		mcLogFile.Kill();
+		mcLogFile.Init(&mcPrimaryDiskFile);
+
 		return TRUE;
 	}
 }
 
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CDurableFile::WriteWriteCommands(CFileBasic* pcFile, char *szFileName)
-{
-	int							i;
-	void*						pvData;
-	SDurableFileCommandWrite*	psWrite;
-	BOOL						bResult;
-
-	for (i = 0; i < mcWrites.NumElements(); i++)
-	{
-		mcWrites.Get(i, &pvData);
-		psWrite = (SDurableFileCommandWrite*)pvData;
-		pcFile->Seek(psWrite->iPosition, EFSO_SET);
-		pvData = RemapSinglePointer(psWrite, sizeof(SDurableFileCommandWrite));
-
-		bResult = pcFile->WriteData(pvData, psWrite->iSize);
-		if (!bResult)
-		{
-			return FALSE;
-		}
-	}
-
-	return TRUE;
-}
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -318,20 +269,7 @@ BOOL CDurableFile::Seek(EFileSeekOrigin eOrigin, filePos iDistance, BOOL bSeekFo
 //////////////////////////////////////////////////////////////////////////
 BOOL CDurableFile::SeekDurable(EFileSeekOrigin eOrigin, filePos iDistance, BOOL bSeekForWrite)
 {
-	if (eOrigin == EFSO_SET)
-	{
-		miPosition = iDistance;
-	}
-	else if (eOrigin == EFSO_CURRENT)
-	{
-		miPosition += iDistance;
-	}
-	else if (eOrigin == EFSO_END)
-	{
-		miPosition = miLength + iDistance;
-	}
-
-	return TRUE;
+	return mcLogFile.Seek(iDistance, eOrigin);
 }
 
 
@@ -341,7 +279,7 @@ BOOL CDurableFile::SeekDurable(EFileSeekOrigin eOrigin, filePos iDistance, BOOL 
 //////////////////////////////////////////////////////////////////////////
 BOOL CDurableFile::SeekNonDurable(EFileSeekOrigin eOrigin, filePos iDistance, BOOL bSeekForWrite)
 {
-	return mpcPrimaryFile->Seek(iDistance, eOrigin);
+	return mcPrimaryFile.Seek(iDistance, eOrigin);
 }
 
 
@@ -358,12 +296,12 @@ BOOL CDurableFile::OpenPrimaryForWrite(void)
 	{
 		if (IsDurable())
 		{
-			bResult = mpcPrimaryFile->Open(EFM_ReadWrite);
+			bResult = mcPrimaryFile.Open(EFM_ReadWrite_Create);
 		}
 		else
 		{
 			cFileUtil.TouchDir(mszFileName.Text());
-			bResult = mpcPrimaryFile->Open(EFM_ReadWrite_Create);
+			bResult = mcPrimaryFile.Open(EFM_ReadWrite_Create);
 		}
 
 		if (!bResult)
@@ -379,12 +317,12 @@ BOOL CDurableFile::OpenPrimaryForWrite(void)
 	}
 	else if (meOpenMode == EFM_Read)
 	{
-		if (mpcPrimaryFile->IsOpen())
+		if (mcPrimaryFile.IsOpen())
 		{
-			mpcPrimaryFile->Close();
+			mcPrimaryFile.Close();
 		}
 
-		bResult = mpcPrimaryFile->Open(EFM_ReadWrite);
+		bResult = mcPrimaryFile.Open(EFM_ReadWrite);
 		if (!bResult)
 		{
 			meOpenMode = EFM_Unknown;
@@ -419,7 +357,7 @@ BOOL CDurableFile::OpenPrimaryForRead(void)
 
 	if (meOpenMode == EFM_Unknown)
 	{
-		bResult = mpcPrimaryFile->Open(EFM_Read);
+		bResult = mcPrimaryFile.Open(EFM_Read);
 		if (bResult)
 		{
 			meOpenMode = EFM_Read;
@@ -521,42 +459,7 @@ filePos CDurableFile::Write(const void* pvSource, filePos iSize, filePos iCount)
 //////////////////////////////////////////////////////////////////////////
 filePos CDurableFile::WriteDurable(const void* pvSource, filePos iSize, filePos iCount)
 {
-	SDurableFileCommandWrite*	psCommand;
-	CArrayIntAndPointer			apvOverlapping;
-	BOOL						bAny;
-	void*						pvData;
-	filePos						iByteLength;
-
-	iByteLength = iSize * iCount;
-	bAny = FindTouchingWriteCommands(&apvOverlapping, miPosition, iByteLength, FALSE);
-	if (bAny)
-	{
-		AmalgamateOverlappingWrites(&apvOverlapping, pvSource, miPosition, iByteLength);
-		apvOverlapping.Kill();
-		miPosition += iByteLength;
-	}
-	else
-	{
-		psCommand = (SDurableFileCommandWrite*)mcWrites.Add(sizeof(SDurableFileCommandWrite) + (int)iByteLength);
-		if (!psCommand)
-		{
-			return 0;
-		}
-		pvData = RemapSinglePointer(psCommand, sizeof(SDurableFileCommandWrite));
-
-		psCommand->iSize = iByteLength;
-		psCommand->iPosition = miPosition;
-		memcpy(pvData, (void*)pvSource, (int)iByteLength);
-
-		miPosition += iByteLength;
-	}
-	
-	if (miPosition > miLength)
-	{
-		miLength = miPosition;
-	}
-
-	return iCount;
+	return mcLogFile.Write(pvSource, iSize, iCount);
 }
 
 
@@ -566,79 +469,7 @@ filePos CDurableFile::WriteDurable(const void* pvSource, filePos iSize, filePos 
 //////////////////////////////////////////////////////////////////////////
 filePos CDurableFile::WriteNonDurable(const void* pvSource, filePos iSize, filePos iCount)
 {
-	return mpcPrimaryFile->Write(pvSource, iSize, iCount);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CDurableFile::AmalgamateOverlappingWrites(CArrayIntAndPointer* papvOverlapping, const void* pvSource, filePos iPosition, filePos iLength)
-{
-	filePos						iStart;
-	filePos						iEnd;  //Inclusive;
-	int							i;
-	SDurableFileCommandWrite*	psWrite;
-	int							iIndex;
-	filePos						iIndeedSize;
-	SDurableFileCommandWrite*	psCommand;
-	void*						pvData;
-	void*						pvDest;
-	void*						pvNewSource;
-
-	//Find the total size of the write chunk.
-	iStart = iPosition;
-	iEnd = iPosition + iLength - 1;
-	for (i = 0; i < papvOverlapping->NumElements(); i++)
-	{
-		papvOverlapping->Get(i, (void**)&psWrite, &iIndex);
-
-		if (psWrite->iPosition < iStart)
-		{
-			iStart = psWrite->iPosition;
-		}
-
-		if ((psWrite->iPosition + psWrite->iSize - 1) > iEnd)
-		{
-			iEnd = psWrite->iPosition + psWrite->iSize - 1;
-		}
-	}
-
-	iIndeedSize = iEnd - iStart + 1;
-
-	//Allocate enough memory for the new chunk.
-	psCommand = (SDurableFileCommandWrite*)mcWrites.Add(sizeof(SDurableFileCommandWrite) + (int)iIndeedSize);
-	if (!psCommand)
-	{
-		return FALSE;
-	}
-
-	pvData = RemapSinglePointer(psCommand, sizeof(SDurableFileCommandWrite));
-
-	psCommand->iSize = iIndeedSize;
-	psCommand->iPosition = iStart;
-
-	//Copy all the overlapping chunks into the new one.
-	for (i = 0; i < papvOverlapping->NumElements(); i++)
-	{
-		iIndex = papvOverlapping->GetType(i);
-		psWrite = (SDurableFileCommandWrite*)mcWrites.Get(iIndex);
-		pvDest = RemapSinglePointer(pvData, (int)(psWrite->iPosition - iStart));
-		pvNewSource = RemapSinglePointer(psWrite, sizeof(SDurableFileCommandWrite));
-		memcpy_fast(pvDest, pvNewSource, (int)psWrite->iSize);
-	}
-
-	pvDest = RemapSinglePointer(pvData, (int)(iPosition - iStart));
-	memcpy(pvDest, pvSource, (size_t)iLength);
-
-	//Remove all the old overlapping chunks.
-	for (i = papvOverlapping->NumElements()-1; i >= 0; i--)
-	{
-		iIndex = papvOverlapping->GetType(i);
-		mcWrites.RemoveAt(iIndex, TRUE);
-	}
-	return TRUE;
+	return mcPrimaryFile.Write(pvSource, iSize, iCount);
 }
 
 
@@ -718,83 +549,7 @@ filePos CDurableFile::Read(void* pvDest, filePos iSize, filePos iCount)
 //////////////////////////////////////////////////////////////////////////
 filePos CDurableFile::ReadDurable(void* pvDest, filePos iSize, filePos iCount)
 {
-	CArrayIntAndPointer			apvOverlapping;
-	BOOL						bAnyTouchingWriteCommands;
-	int							i;
-	BOOL						bHoles;
-	filePos						iResult;
-	int							iIndex;
-	SDurableFileCommandWrite*	psWrite;
-	void*						pvData;
-	filePos						iLength;
-	filePos						iDestOffset;
-	filePos						iSourceOffset;
-	void*						pvSource;
-	void*						pvNewDest;
-	filePos						iBytesReadFromFile;
-	filePos						iByteSize;
-
-	//You can test to see what sections actually NEED zeroing.
-	iByteSize = iSize * iCount;
-	memset_fast(pvDest, 0, (size_t)iByteSize);
-
-	bAnyTouchingWriteCommands = FindTouchingWriteCommands(&apvOverlapping, miPosition, iByteSize, TRUE);
-	if (bAnyTouchingWriteCommands)
-	{
-		bHoles = DoOverlappingWritesContainHoles(&apvOverlapping, miPosition, iByteSize);
-		if (bHoles)
-		{
-			iBytesReadFromFile = ReadPrimaryFileForDurableRead(pvDest, iSize, iCount);
-		}
-
-		for (i = 0; i < apvOverlapping.NumElements(); i++)
-		{
-			apvOverlapping.Get(i, (void**)&psWrite, &iIndex);
-
-			pvData = RemapSinglePointer(psWrite, sizeof(SDurableFileCommandWrite));
-
-			iLength = psWrite->iSize;
-			if ((psWrite->iPosition + psWrite->iSize) > (miPosition + iByteSize))
-			{
-				iLength -= (psWrite->iPosition + psWrite->iSize) - (miPosition + iByteSize);
-			}
-
-			iSourceOffset = 0;
-			iDestOffset = psWrite->iPosition - miPosition;
-			if (psWrite->iPosition < miPosition)
-			{
-				iSourceOffset = miPosition - psWrite->iPosition;
-				iDestOffset = 0;
-			}
-
-			iLength -= iSourceOffset;
-
-			pvSource = RemapSinglePointer(pvData, (int)iSourceOffset);
-			pvNewDest = RemapSinglePointer(pvDest, (int)iDestOffset);
-
-			memcpy_fast(pvNewDest, pvSource, (int)iLength);
-		}
-		apvOverlapping.Kill();
-
-		if (miPosition + (iByteSize) > miLength)
-		{
-			iResult = (miLength - miPosition) / iSize;
-			miPosition += iResult*iSize;
-			return iResult;
-		}
-		else
-		{
-			miPosition += iByteSize;
-			return iCount;
-		}
-	}
-	else
-	{
-		iBytesReadFromFile = ReadPrimaryFileForDurableRead(pvDest, iSize, iCount);
-		iResult = iBytesReadFromFile/iSize;
-		miPosition += iBytesReadFromFile;
-		return iResult;
-	}
+	return mcLogFile.Read(pvDest, iSize, iCount);
 }
 
 
@@ -804,208 +559,13 @@ filePos CDurableFile::ReadDurable(void* pvDest, filePos iSize, filePos iCount)
 //////////////////////////////////////////////////////////////////////////
 filePos CDurableFile::ReadNonDurable(void* pvDest, filePos iSize, filePos iCount)
 {
-	if (mpcPrimaryFile->IsOpen())
+	if (mcPrimaryFile.IsOpen())
 	{
-		return mpcPrimaryFile->Read(pvDest, iSize, iCount);
+		return mcPrimaryFile.Read(pvDest, iSize, iCount);
 	}
 	return 0;
 }
 
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-filePos CDurableFile::ReadPrimaryFileForDurableRead(void* pvDest, filePos iSize, filePos iCount)
-{
-	BOOL		bResult;
-	filePos		iBytes;
-
-	if (miPosition >= miFileLength)
-	{
-		return 0;
-	}
-
-	iBytes = iSize * iCount;
-	if (iBytes > (miFileLength - miPosition))
-	{
-		iBytes = miFileLength - miPosition;
-	}
-
-	bResult = OpenPrimaryFile(FALSE);
-	if (!bResult)
-	{
-		gcLogger.Error2(__METHOD__, " Cannot read from CDurableFile [", mszFileName.Text(), "] that cannot Open.", NULL);
-		return 0;
-	}
-
-	bResult =  mpcPrimaryFile->Seek(miPosition, EFSO_SET);
-	if (!bResult)
-	{
-		gcLogger.Error2(__METHOD__, " Cannot read from CDurableFile [", mszFileName.Text(), "] that cannot Seek.", NULL);
-		return 0;
-	}
-
-	bResult = mpcPrimaryFile->ReadData(pvDest, iBytes);
-	if (!bResult)
-	{
-		gcLogger.Error2(__METHOD__, " Cannot read from CDurableFile [", mszFileName.Text(), "].  An unknown error occurred.", NULL);
-		return 0;
-	}
-
-	return iBytes;  //Not the count.
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-int CompareDurableWrite(const void* pv1, const void* pv2)
-{
-	SPointerAndSize*			psTypedPointer1;
-	SPointerAndSize*			psTypedPointer2;
-	SDurableFileCommandWrite*	psWrite1;
-	SDurableFileCommandWrite*	psWrite2;
-
-	psTypedPointer1 = (SPointerAndSize*)pv1;
-	psTypedPointer2 = (SPointerAndSize*)pv2;
-
-	psWrite1 = (SDurableFileCommandWrite*)psTypedPointer1->pvData;
-	psWrite2 = (SDurableFileCommandWrite*)psTypedPointer2->pvData;
-
-	if (psWrite1->iPosition < psWrite2->iPosition)
-	{
-		return -1;
-	}
-	if (psWrite1->iPosition > psWrite2->iPosition)
-	{
-		return -1;
-	}
-	return 0;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CDurableFile::DoOverlappingWritesContainHoles(CArrayIntAndPointer* papvOverlapping, filePos iPosition, filePos iLength)
-{
-	CArrayIntAndPointer			apvOverlappingSorted;
-	int							i;
-	SDurableFileCommandWrite*	psWrite;
-	int							eCommand;
-	BOOL						bHoles;
-	filePos						iEnd;
-
-	apvOverlappingSorted.Init(1);
-	apvOverlappingSorted.Copy(papvOverlapping);
-	apvOverlappingSorted.QuickSort(CompareDurableWrite);
-
-	bHoles = FALSE;
-	iEnd = -1;
-	for (i = 0; i < apvOverlappingSorted.NumElements(); i++)
-	{
-		apvOverlappingSorted.Get(i, (void**)&psWrite, &eCommand);
-		if ((i == 0) && (psWrite->iPosition > iPosition))
-		{
-			bHoles = TRUE;
-			break;
-		}
-		else
-		{
-			if (psWrite->iPosition >= (iEnd+1))
-			{
-				bHoles = TRUE;
-				break;
-			}
-		}
-		iEnd = psWrite->iPosition + psWrite->iSize -1;
-		if (iEnd >= (iPosition + iLength-1))
-		{
-			break;
-		}
-	}
-
-	if (iEnd < (iPosition + iLength-1))
-	{
-		bHoles = TRUE;
-	}
-
-	apvOverlappingSorted.Kill();
-	return bHoles;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CDurableFile::FindTouchingWriteCommands(CArrayIntAndPointer* papvOverlapping, filePos iPosition, filePos iLength, BOOL bMustOverlap)
-{
-	int							i;
-	SDurableFileCommandWrite*	psWrite;
-	BOOL						bInitialised;
-
-	bInitialised = FALSE;
-	if (!bMustOverlap)
-	{
-		iPosition--;
-		iLength+=2;
-	}
-
-	for (i = 0; i < mcWrites.NumElements(); i++)
-	{
-		mcWrites.Get(i, (void**)&psWrite);
-		if (DoesWriteOverlap(psWrite, iPosition, iLength))
-		{
-			if (!bInitialised)
-			{
-				papvOverlapping->Init(8);
-				bInitialised = TRUE;
-			}
-
-			//The index in 'type' is used in the method AmalgamateOverlappingWrites because reasons.
-			papvOverlapping->Add(psWrite, i /* <-- Cheating like Hell */);
-		}
-	}
-
-	return bInitialised;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CDurableFile::DoesWriteOverlap(SDurableFileCommandWrite* psWrite, filePos iPosition, filePos iLength)
-{
-	filePos		iNewStart;
-	filePos		iNewEnd;  //Inclusive
-	filePos		iNextStart;
-	filePos		iNextEnd; //Inclusive
-
-	iNewStart = iPosition;
-	iNewEnd = iPosition + iLength - 1;
-
-	iNextStart = psWrite->iPosition;
-	iNextEnd = iNextStart + psWrite->iSize - 1;
-
-	if ((iNewStart <= iNextStart) && (iNewEnd >= iNextStart))
-	{
-		return TRUE;
-	}
-	if ((iNewStart <= iNextEnd) && (iNewEnd >= iNextEnd))
-	{
-		return TRUE;
-	}
-	if ((iNewStart >= iNextStart) && (iNewStart <= iNextEnd))
-	{
-		return TRUE;
-	}
-	return FALSE;
-}
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1027,13 +587,13 @@ filePos CDurableFile::Tell(void)
 
 	if (IsDurable())
 	{
-		return miPosition;
+		return mcLogFile.Tell();
 	}
 	else
 	{
-		if (mpcPrimaryFile->IsOpen())
+		if (mcPrimaryFile.IsOpen())
 		{
-			return mpcPrimaryFile->GetFilePos();
+			return mcPrimaryFile.GetFilePos();
 		}
 		else
 		{
@@ -1077,7 +637,7 @@ filePos CDurableFile::Size(void)
 //////////////////////////////////////////////////////////////////////////
 filePos CDurableFile::SizeDurable(void)
 {
-	return miLength;
+	return mcLogFile.Size();
 }
 
 
@@ -1095,9 +655,9 @@ filePos CDurableFile::SizeNonDurable(void)
 		return -1;
 	}
 
-	if (mpcPrimaryFile->IsOpen())
+	if (mcPrimaryFile.IsOpen())
 	{
-		return mpcPrimaryFile->GetFileSize();
+		return mcPrimaryFile.GetFileSize();
 	}
 	else
 	{
@@ -1144,19 +704,9 @@ BOOL CDurableFile::IsBegun(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CDurableFile::IsOpen(void)
-{
-	return mpcPrimaryFile->IsOpen();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 filePos CDurableFile::TestGetPosition(void)
 {
-	return miPosition;
+	return mcLogFile.Tell();
 }
 
 
@@ -1166,7 +716,7 @@ filePos CDurableFile::TestGetPosition(void)
 //////////////////////////////////////////////////////////////////////////
 filePos CDurableFile::TestGetLength(void)
 {
-	return miLength;
+	return mcLogFile.Size();
 }
 
 
@@ -1186,7 +736,7 @@ BOOL CDurableFile::TestGetOpenedSinceBegin(void)
 //////////////////////////////////////////////////////////////////////////
 int CDurableFile::GetNumWrites(void)
 {
-	return mcWrites.NumElements();
+	return mcLogFile.GetNumWrites();
 }
 
 
@@ -1194,9 +744,9 @@ int CDurableFile::GetNumWrites(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CDurableFile::GetWriteData(int iWrites)
+void* CDurableFile::GetWriteData(int iWrite)
 {
-	return RemapSinglePointer(mcWrites.Get(iWrites), sizeof(SDurableFileCommandWrite));
+	return mcLogFile.GetWriteData(iWrite)->GetData();
 }
 
 
@@ -1293,39 +843,7 @@ BOOL CDurableFile::CopyPrimaryToBackup(void)
 //////////////////////////////////////////////////////////////////////////
 void CDurableFile::Dump(void)
 {
-	CChars						sz;
-	int							i;
-	char*						pvData;
-	SDurableFileCommandWrite*	psWrite;
-	filePos						iLen;
-
-	sz.Init();
-	sz.Append("Durable File (");
-	sz.Append(mszFileName);
-	sz.Append(")\n------------------\n");
-	sz.Append("Commands: ");
-	sz.Append(mcWrites.NumElements());
-	sz.AppendNewLine();
-
-	for (i = 0; i < mcWrites.NumElements(); i++)
-	{
-		mcWrites.Get(i, (void**)&pvData);
-		sz.Append("   ");
-		sz.Append("Write: (");
-		psWrite = (SDurableFileCommandWrite*)pvData;
-		sz.Append(psWrite->iPosition);
-		sz.Append(", ");
-		sz.Append(psWrite->iSize);
-		sz.Append(") ");
-
-		pvData = (char*)RemapSinglePointer(psWrite, sizeof(SDurableFileCommandWrite));
-		iLen = psWrite->iSize;
-		sz.AppendData(pvData, 80);
-		sz.AppendNewLine();
-	}
-	sz.AppendNewLine();
-	sz.Dump();
-	sz.Kill();
+	mcLogFile.Dump();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -1334,7 +852,7 @@ void CDurableFile::Dump(void)
 //////////////////////////////////////////////////////////////////////////
 CFileBasic*	CDurableFile::DumpGetPrimaryFile(void)
 {
-	return mpcPrimaryFile;
+	return &mcPrimaryFile;
 }
 
 

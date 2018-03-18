@@ -130,6 +130,7 @@ BOOL CDurableSet::Begin(void)
 		gcLogger.Error2(__METHOD__, " Cannot begin.  Already begun.", NULL);
 		return FALSE;
 	}
+
 	mbBegun = TRUE;
 	mapcFiles.Kill();
 	mapcFiles.Init(2048);

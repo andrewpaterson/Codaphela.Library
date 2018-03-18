@@ -47,10 +47,11 @@ public:
 	filePos				iPosition;
 	filePos				iSize;
 
-	void Init(filePos iPosition, filePos iSize);
-	void Init(filePos iPosition, void* pvSource, filePos iSize);
+	void	Init(filePos iPosition, filePos iSize);
+	void	Init(filePos iPosition, void* pvSource, filePos iSize);
 
-	BOOL Write(CAbstractFile* pcFile);
+	BOOL	Write(CAbstractFile* pcFile);
+	void*	GetData(void);
 };
 
 

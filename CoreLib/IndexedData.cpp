@@ -114,7 +114,6 @@ void CIndexedData::KillEnd(void)
 	}
 
 	mcIndices.Kill();
-	mcIndicesFile.Kill();
 	mcDataFiles.Kill();
 	mcTemp.Kill();
 }
@@ -164,14 +163,7 @@ void CIndexedData::InitIndices(CIndexedConfig* pcConfig)
 	szRewrite.Append(FILE_SEPARATOR[0]);
 	szRewrite.Append("_Indices.DAT");
 
-	mcIndicesFile.Init(&mcDurableFileControl, szName.Text(), szRewrite.Text());
-	mcIndices        .Init(	&mcIndicesFile, 
-							this, 
-							pcConfig->mbDirtyTesting, 
-							pcConfig->miIndicesSecondLevelWidth, 
-							pcConfig->miIndicesThirdLevelWidth, 
-							pcConfig->miIndicesNumSecondLevelChunks, 
-							pcConfig->miIndicesNumThirdLevelChunks);
+	mcIndices.Init(&mcDurableFileControl, szName.Text(), szRewrite.Text(), pcConfig->mbDirtyTesting);
 
 	szName.Kill();
 	szRewrite.Kill();
@@ -1029,11 +1021,7 @@ unsigned int CIndexedData::TestGetCachedObjectSize(OIndex oi)
 //////////////////////////////////////////////////////////////////////////
 int CIndexedData::TestNumCachedIndexes(void) { return (int)mcIndices.NumCachedDatas(); }
 
-int CIndexedData::TestIndexedDescriptorsLength(void) { return (int)mcIndices.Length(); }
-
 int CIndexedData::TestNumIgnoredCacheElements(void) { return mcDataCache.NumIgnored(); }
-
-CIndexAccess* CIndexedData::TestGetIndexAccess(void) { return mcIndices.GetAccess(); }
 
 CDurableFileController* CIndexedData::GetDurableFileControl(void) { return &mcDurableFileControl; }
 

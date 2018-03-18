@@ -1,10 +1,10 @@
-#ifndef __INDEX_TREE_TEMPLATE_MEMORY_H__
-#define __INDEX_TREE_TEMPLATE_MEMORY_H__
-#include "IndexTreeMemory.h"
+#ifndef __INDEX_TREE_TEMPLATE_FILE_H__
+#define __INDEX_TREE_TEMPLATE_FILE_H__
+#include "IndexTreeFile.h"
 
 
 template<class M>
-class CIndexTreeTemplateMemory : public CIndexTreeMemory
+class CIndexTreeTemplateFile : public CIndexTreeFile
 {
 public:
 	M*		Get(char* pszKey);
@@ -23,9 +23,9 @@ public:
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M* CIndexTreeTemplateMemory<M>::Get(char* pszKey)
+M* CIndexTreeTemplateFile<M>::Get(char* pszKey)
 {
-	return (M*)CIndexTreeMemory::Get(pszKey);
+	return (M*)CIndexTreeFile::Get(pszKey);
 }
 
 
@@ -34,9 +34,9 @@ M* CIndexTreeTemplateMemory<M>::Get(char* pszKey)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M* CIndexTreeTemplateMemory<M>::Get(void* pvKey, int iKeySize)
+M* CIndexTreeTemplateFile<M>::Get(void* pvKey, int iKeySize)
 {
-	return (M*)CIndexTreeMemory::Get(pvKey, iKeySize);
+	return (M*)CIndexTreeFile::Get(pvKey, iKeySize);
 }
 
 
@@ -45,9 +45,9 @@ M* CIndexTreeTemplateMemory<M>::Get(void* pvKey, int iKeySize)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M* CIndexTreeTemplateMemory<M>::Put(char* pszKey, M* pvObject)
+M* CIndexTreeTemplateFile<M>::Put(char* pszKey, M* pvObject)
 {
-	return (M*)CIndexTreeMemory::Put(pszKey, pvObject, sizeof(M));
+	return (M*)CIndexTreeFile::Put(pszKey, pvObject, sizeof(M));
 }
 
 
@@ -56,9 +56,9 @@ M* CIndexTreeTemplateMemory<M>::Put(char* pszKey, M* pvObject)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M* CIndexTreeTemplateMemory<M>::Put(void* pvKey, int iKeySize, M* pvObject)
+M* CIndexTreeTemplateFile<M>::Put(void* pvKey, int iKeySize, M* pvObject)
 {
-	return (M*)CIndexTreeMemory::Put(pvKey, iKeySize, pvObject, sizeof(M));
+	return (M*)CIndexTreeFile::Put(pvKey, iKeySize, pvObject, sizeof(M));
 }
 
 
@@ -67,9 +67,9 @@ M* CIndexTreeTemplateMemory<M>::Put(void* pvKey, int iKeySize, M* pvObject)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-BOOL CIndexTreeTemplateMemory<M>::Remove(char* pszKey)
+BOOL CIndexTreeTemplateFile<M>::Remove(char* pszKey)
 {
-	return CIndexTreeMemory::Remove(pszKey);
+	return CIndexTreeFile::Remove(pszKey);
 }
 
 
@@ -78,11 +78,11 @@ BOOL CIndexTreeTemplateMemory<M>::Remove(char* pszKey)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-BOOL CIndexTreeTemplateMemory<M>::Remove(void* pvKey, int iKeySize)
+BOOL CIndexTreeTemplateFile<M>::Remove(void* pvKey, int iKeySize)
 {
-	return CIndexTreeMemory::Remove(pvKey, iKeySize);
+	return CIndexTreeFile::Remove(pvKey, iKeySize);
 }
 
 
-#endif // __INDEX_TREE_TEMPLATE_MEMORY_H__
+#endif // __INDEX_TREE_TEMPLATE_FILE_H__
 

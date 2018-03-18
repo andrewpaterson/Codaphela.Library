@@ -22,30 +22,32 @@ protected:
 	int					miLastWriteOpenIndex;
 
 public:
-	void		Init(CAbstractFile* pcBackingFile);
-	void		Kill(void);
+	void					Init(CAbstractFile* pcBackingFile);
+	void					Kill(void);
 
-	BOOL		Begin(void);
-	BOOL		Commit(void);
-	BOOL		Commit(CAbstractFile* pcFile);
+	BOOL					Begin(void);
+	BOOL					Commit(void);
 
-	BOOL		Open(EFileMode eFileMode);
-	BOOL		Close(void);
-	filePos		Write(const void* pvSource, filePos iSize, filePos iCount);
-	filePos		Read(void* pvDest, filePos iSize, filePos iCount);
-	filePos		Tell(void);
-	filePos		Size(void);
-	BOOL		Seek(filePos iOffset, EFileSeekOrigin iSeekOrigin);
-	BOOL		Eof(void);
-	BOOL		IsOpen(void);
-	BOOL		Flush(void);
-	BOOL		Delete(void);
+	BOOL					Open(EFileMode eFileMode);
+	BOOL					Close(void);
+	filePos					Write(const void* pvSource, filePos iSize, filePos iCount);
+	filePos					Read(void* pvDest, filePos iSize, filePos iCount);
+	filePos					Tell(void);
+	filePos					Size(void);
+	BOOL					Seek(filePos iOffset, EFileSeekOrigin iSeekOrigin);
+	BOOL					Eof(void);
+	BOOL					IsOpen(void);
+	BOOL					Flush(void);
+	BOOL					Delete(void);
 
-	void		Dump(void);
-	int			GetNumWrites(void);
-	filePos		GetWriteSize(int iIndex);
-	int			GetNumCommands(void);
-	BOOL		TestFindHoles(int iWriteIndex, CArrayIntAndPointer* papvOverlapping, filePos iPosition, filePos iLength);
+	BOOL					Commit(CAbstractFile* pcFile);
+
+	void					Dump(void);
+	int						GetNumWrites(void);
+	filePos					GetWriteSize(int iIndex);
+	int						GetNumCommands(void);
+	CLogFileCommandWrite*	GetWriteData(int iWrite);
+	BOOL					TestFindHoles(int iWriteIndex, CArrayIntAndPointer* papvOverlapping, filePos iPosition, filePos iLength);
 
 protected:
 	BOOL					FindTouchingWriteCommands(int iStartIndex, CArrayIntAndPointer* papvOverlapping, filePos iPosition, filePos iLength, BOOL bMustOverlap);
