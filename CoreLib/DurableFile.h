@@ -93,6 +93,8 @@ public:
 
 	BOOL		TestGetOpenedSinceBegin(void);
 	BOOL		IsOpen(void);
+	char*		GetFileName(void);
+	char*		GetRewriteName(void);
 
 	void		Dump(void);
 	CFileBasic*	DumpGetPrimaryFile(void);

@@ -106,7 +106,7 @@ BOOL CDurableFile::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CDurableFile::OpenPrimaryFile(BOOL bOpenForWrite)
 {
-	BOOL	bFileOpened;
+	BOOL		bFileOpened;
 
 	if (!mbOpenedSinceBegin)
 	{
@@ -166,6 +166,9 @@ BOOL CDurableFile::Commit(void)
 		return FALSE;
 	}
 
+	mcPrimaryFile.Flush();
+//	mcPrimaryFile.Close();
+
 	InitBasic();
 	return TRUE;
 }
@@ -197,21 +200,17 @@ BOOL CDurableFile::Recommit(void)
 			return FALSE;
 		}
 
-		//This is dodgy as fuck.  Clear the log file.  Don't kill and reinitialise it.
-		mcLogFile.Kill();
-		mcLogFile.Init(&mcPrimaryDiskFile);
+		mcLogFile.End();
 
 		mcRewriteFile.Flush();
-		mcRewriteFile.Close();
+//		mcRewriteFile.Close();
 
 		return TRUE;
 	}
 	else
 	{
-		//This is dodgy as fuck.  Clear the log file.  Don't kill and reinitialise it.
-		mcLogFile.Kill();
-		mcLogFile.Init(&mcPrimaryDiskFile);
-
+		mcLogFile.End();
+	
 		return TRUE;
 	}
 }
@@ -500,6 +499,7 @@ filePos CDurableFile::Tell(void)
 //////////////////////////////////////////////////////////////////////////
 filePos CDurableFile::Size(void)
 {
+	filePos ulliSize;
 	if (!IsBegun())
 	{
 		gcLogger.Error2(__METHOD__, " Cannot size from CDurableFile [", mszFileName.Text(), "] that is not Begun.", NULL);
@@ -508,9 +508,19 @@ filePos CDurableFile::Size(void)
 
 	if (!mbOpenedSinceBegin)
 	{
-		*
-		//		You Don't actually want to have to open the file to find its size.
-		//		You need to test seeking and telling before a read or a write.
+		if (!mcPrimaryDiskFile.IsOpen())
+		{
+			if (!mcPrimaryDiskFile.Open(EFM_Read))
+			{
+				return 0;
+			}
+			else
+			{
+				ulliSize = mcPrimaryDiskFile.Size();
+				mcPrimaryDiskFile.Close();
+				return ulliSize;
+			}
+		}
 		return mcPrimaryDiskFile.Size();
 	}
 	else
@@ -728,5 +738,25 @@ char* FindSecondString(char* szFileName)
 		}
 	}
 	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CDurableFile::GetFileName(void)
+{
+	return mszFileName.Text();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CDurableFile::GetRewriteName(void)
+{
+	return mszFileName.Text();
 }
 

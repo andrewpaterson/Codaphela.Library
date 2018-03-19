@@ -27,6 +27,7 @@ public:
 
 	BOOL					Begin(void);
 	BOOL					Commit(void);
+	void					End(void);
 
 	BOOL					Open(EFileMode eFileMode);
 	BOOL					Close(void);

@@ -112,9 +112,27 @@ BOOL CLogFile::Commit(void)
 	if (mbOpenedBackingFile)
 	{
 		mpcBackingFile->Close();
+		mbOpenedBackingFile = FALSE;
 	}
 
 	return Commit(mpcBackingFile);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CLogFile::End(void)
+{
+	miPosition = 0;
+	miLength = 0;
+	miFileLength = 0;
+
+	mbTouched = FALSE;
+	meFileMode = EFM_Unknown;
+
+	macCommands.ReInit();
 }
 
 
@@ -438,7 +456,7 @@ filePos CLogFile::Read(void* pvDest, filePos iSize, filePos iCount)
 		iResult = ReadFirstTouchingWrites(iWriteIndex, pvDest, iSize, iCount);
 		if (iResult != iCount)
 		{
-			return 0;
+			return iResult;
 		}
 
 		iWriteIndex = FindNextWriteCommand(iWriteIndex+1);
@@ -606,7 +624,7 @@ filePos CLogFile::ReadFirstTouchingWrites(int iWriteIndex, void* pvDest, filePos
 			}
 			else
 			{
-				return 0;
+				return iBytesReadFromFile / iSize;
 			}
 		}
 	}
