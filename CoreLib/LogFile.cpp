@@ -175,6 +175,8 @@ BOOL CLogFile::Commit(CAbstractFile* pcFile)
 			ReturnOnFalse(psDelete->Delete(pcFile));
 		}
 	}
+
+	pcFile->Flush();
 	return TRUE;
 }
 

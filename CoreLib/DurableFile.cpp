@@ -166,9 +166,6 @@ BOOL CDurableFile::Commit(void)
 		return FALSE;
 	}
 
-	mcPrimaryFile.Flush();
-//	mcPrimaryFile.Close();
-
 	InitBasic();
 	return TRUE;
 }
@@ -201,16 +198,11 @@ BOOL CDurableFile::Recommit(void)
 		}
 
 		mcLogFile.End();
-
-		mcRewriteFile.Flush();
-//		mcRewriteFile.Close();
-
 		return TRUE;
 	}
 	else
 	{
 		mcLogFile.End();
-	
 		return TRUE;
 	}
 }
