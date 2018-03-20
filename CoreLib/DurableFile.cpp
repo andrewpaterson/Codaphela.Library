@@ -148,8 +148,6 @@ BOOL CDurableFile::Commit(void)
 
 	if (mcLogFile.GetNumCommands() == 0)
 	{
-		mcLogFile.Close();
-
 		InitBasic();
 		return TRUE;
 	}

@@ -20,6 +20,7 @@ along with Codaphela CoreLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/Logger.h"
 #include "BaseLib/FileBasic.h"
 #include "BaseLib/FileUtil.h"
 #include "BaseLib/PointerRemapper.h"
@@ -149,6 +150,7 @@ BOOL CLogFile::Commit(CAbstractFile* pcFile)
 	CLogFileCommandOpen*		psOpen;
 	CLogFileCommandClose*		psClose;
 	CLogFileCommandDelete*		psDelete;
+	BOOL						bResult;
 
 	for (i = 0; i < macCommands.NumElements(); i++)
 	{
@@ -157,22 +159,42 @@ BOOL CLogFile::Commit(CAbstractFile* pcFile)
 		if (psCommand->IsWrite())
 		{
 			psWrite = (CLogFileCommandWrite*)psCommand;
-			ReturnOnFalse(psWrite->Write(pcFile));
+			bResult = psWrite->Write(pcFile);
+			if (!bResult)
+			{
+				gcLogger.Error2(__METHOD__, " Could not execute [Write] command.", NULL);
+				return FALSE;
+			}
 		}
 		else if (psCommand->IsOpen())
 		{
 			psOpen = (CLogFileCommandOpen*)psCommand;
-			ReturnOnFalse(psOpen->Open(pcFile));
+			bResult = psOpen->Open(pcFile);
+			if (!bResult)
+			{
+				gcLogger.Error2(__METHOD__, " Could not execute [Open] command.", NULL);
+				return FALSE;
+			}
 		}
 		else if (psCommand->IsClose())
 		{
 			psClose = (CLogFileCommandClose*)psCommand;
-			ReturnOnFalse(psClose->Close(pcFile));
+			bResult = psClose->Close(pcFile);
+			if (!bResult)
+			{
+				gcLogger.Error2(__METHOD__, " Could not execute [Close] command.", NULL);
+				return FALSE;
+			}
 		}
 		else if (psCommand->IsDelete())
 		{
 			psDelete = (CLogFileCommandDelete*)psCommand;
-			ReturnOnFalse(psDelete->Delete(pcFile));
+			bResult = psDelete->Delete(pcFile);
+			if (!bResult)
+			{
+				gcLogger.Error2(__METHOD__, " Could not execute [Delete] command.", NULL);
+				return FALSE;
+			}
 		}
 	}
 

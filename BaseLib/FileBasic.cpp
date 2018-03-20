@@ -144,8 +144,8 @@ filePos CFileBasic::Read(void* pvDest, filePos iSize, filePos iCount)
 	return mpcFile->Read(pvDest, iSize, iCount);
 }
 
-
 //====================================================================================
+
 //=
 //= Function Name: CFileBasic::Seek
 //=
