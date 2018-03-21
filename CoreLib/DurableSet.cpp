@@ -77,7 +77,7 @@ BOOL CDurableSet::Recover(void)
 	//If neither then in theory everything is okay.
 	if ((!bMarkStart) && (!bMarkRewrite))
 	{
-		return CheckFilesIdentical();
+		return CheckFilesIdentical(TRUE, TRUE);
 	}
 	else 
 
@@ -112,7 +112,7 @@ BOOL CDurableSet::Recover(void)
 	//Something bad happened
 	if (bMarkRewrite)
 	{
-		gcLogger.Error2(__METHOD__, " Something bad happened.", NULL);
+		gcLogger.Error2(__METHOD__, " Rewrite has occurred without write.", NULL);
 		return FALSE;
 	}
 	return FALSE;
@@ -131,9 +131,9 @@ BOOL CDurableSet::Begin(void)
 		return FALSE;
 	}
 
+	CheckWriteStatus(TRUE);
+
 	mbBegun = TRUE;
-	mapcFiles.Kill();
-	mapcFiles.Init(2048);
 	return TRUE;
 }
 
@@ -175,8 +175,86 @@ BOOL CDurableSet::End(void)
 	MarkFinish();
 	mbBegun = FALSE;
 
-	mapcFiles.Kill();
-	mapcFiles.Init(2048);
+	mapcFiles.ReInit();
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CDurableSet::Check(BOOL bThorough)
+{
+	CFileUtil	cFileUtil;
+	BOOL		bMarkStart;
+	BOOL		bMarkRewrite;
+
+	bMarkStart = cFileUtil.Exists(mszMarkStart.Text());
+	bMarkRewrite = cFileUtil.Exists(mszMarkRewrite.Text());
+
+	if ((!bMarkStart) && (!bMarkRewrite))
+	{
+		return CheckFilesIdentical(bThorough, TRUE);
+	}
+
+	return CheckWriteStatus(bMarkStart, bMarkRewrite, TRUE);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CDurableSet::CheckWriteStatus(BOOL bLogError)
+{
+	CFileUtil	cFileUtil;
+	BOOL		bMarkStart;
+	BOOL		bMarkRewrite;
+
+	bMarkStart = cFileUtil.Exists(mszMarkStart.Text());
+	bMarkRewrite = cFileUtil.Exists(mszMarkRewrite.Text());
+
+	return CheckWriteStatus(bMarkStart, bMarkRewrite, FALSE);
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CDurableSet::CheckWriteStatus(BOOL bMarkStart, BOOL bMarkRewrite, BOOL bLogError)
+{
+	if ((!bMarkStart) && (!bMarkRewrite))
+	{
+		return TRUE;
+	}
+	else if ((bMarkStart) && (bMarkRewrite))
+	{
+		if (bLogError)
+		{
+			gcLogger.Error2(__METHOD__, " Primary files were written but backup failed.", NULL);
+		}
+		return FALSE;
+	}
+	else
+
+	if (bMarkStart)
+	{
+		if (bLogError)
+		{
+			gcLogger.Error2(__METHOD__, " Primary files were not written.  Reverting to backup.", NULL);
+		}
+		return FALSE;
+	}
+	else
+	if (bMarkRewrite)
+	{
+		if (bLogError)
+		{
+			gcLogger.Error2(__METHOD__, " Rewrite has occurred without write.", NULL);
+		}
+		return FALSE;
+	}
 	return TRUE;
 }
 
@@ -267,7 +345,7 @@ void CDurableSet::MarkFinish(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CDurableSet::CheckFilesIdentical(void)
+BOOL CDurableSet::CheckFilesIdentical(BOOL bThorough, BOOL bLogError)
 {
 	int				i;
 	CDurableFile*	pcDurable;
@@ -276,7 +354,7 @@ BOOL CDurableSet::CheckFilesIdentical(void)
 	for (i = 0; i < mapcFiles.NumElements(); i++)
 	{
 		pcDurable = *mapcFiles.Get(i);
-		bResult = pcDurable->CheckIdentical();
+		bResult = pcDurable->CheckIdentical(bThorough, bLogError);
 		if (!bResult)
 		{
 			return FALSE;

@@ -108,9 +108,12 @@ BOOL CDurableFile::OpenPrimaryFile(BOOL bOpenForWrite)
 {
 	BOOL		bFileOpened;
 
+	AddFile();
+
 	if (!mbOpenedSinceBegin)
 	{
 		mcLogFile.Begin();
+		mbOpenedSinceBegin = TRUE;
 	}
 
 	if (!bOpenForWrite)
@@ -122,13 +125,18 @@ BOOL CDurableFile::OpenPrimaryFile(BOOL bOpenForWrite)
 		bFileOpened = OpenPrimaryForWrite();
 	}
 
-	if (!mbOpenedSinceBegin)
-	{
-		mbOpenedSinceBegin = TRUE;
-		mpcController->AddFile(this);
-	}
-
 	return bFileOpened;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CDurableFile::AddFile(void)
+{
+	mbAddedToController = TRUE;
+	mpcController->AddFile(this);
 }
 
 
@@ -599,16 +607,22 @@ void* CDurableFile::GetWriteData(int iWrite)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CDurableFile::CheckIdentical(void)
+BOOL CDurableFile::CheckIdentical(BOOL bThorough, BOOL bLogError)
 {
 	CFileUtil	cFileUtil;
+	BOOL		bResult;
 
 	if (IsBegun())
 	{
 		return FALSE;
 	}
 
-	return cFileUtil.Compare(mszFileName.Text(), mszRewriteName.Text());
+	bResult = cFileUtil.Compare(mszFileName.Text(), mszRewriteName.Text());
+	if (bLogError && !bResult)
+	{
+		gcLogger.Error2(__METHOD__, " File mismatch [", mszFileName.Text(), "] and [", mszRewriteName.Text(), "].", NULL);
+	}
+	return bResult;
 }
 
 

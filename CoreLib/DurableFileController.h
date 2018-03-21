@@ -40,8 +40,10 @@ public:
 	void			Kill(void);
 
 	BOOL			Begin(void);
+	BOOL			Begin(CDurableFile* pcFirst, ...);
 	BOOL			End(void);
 	BOOL			Recover(void);
+	BOOL			Check(void);
 
 	void			AddFile(CDurableFile* pcFile);
 	int				NumFiles(void);

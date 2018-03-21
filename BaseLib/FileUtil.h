@@ -38,6 +38,7 @@ private:
     BOOL    RecurseRemoveDir(char* szPathName);
 	BOOL	FindFiles(char* szPathName, BOOL bDirectories, char* szInName, char* szExtension, CArrayString* paszFiles, BOOL bHidden);
 	BOOL	RecurseFindFiles(char* szPathName, char* szInName, char* szExtension, CArrayString* paszFiles, BOOL bHidden);
+	BOOL	Compare(char* szFileName1, char* szFileName2, BOOL bSizeOnly);
 
 public:
 	//Disk methods.
@@ -49,6 +50,8 @@ public:
 	BOOL    Delete(char* szFileName);
 	BOOL    Exists(char* szFileName);
 	BOOL    Compare(char* szFileName1, char* szFileName2);
+	BOOL	CompareSize(char* szFileName1, char* szFileName2);
+
 	BOOL    Copy(char* szSource, char* szDest);
 	filePos Size(char* szFileName);
 	BOOL    MakeDirs(BOOL bRemoveFirst, char* szPathName, ...);

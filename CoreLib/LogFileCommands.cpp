@@ -183,3 +183,4 @@ BOOL CLogFileCommandDelete::Delete(CAbstractFile* pcFile)
 	bResult = pcFile->Delete();
 	return bResult;
 }
+

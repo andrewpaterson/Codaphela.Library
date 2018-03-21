@@ -22,6 +22,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/Logger.h"
 #include "BaseLib/LogString.h"
+#include "DurableFile.h"
 #include "DurableFileController.h"
 
 
@@ -101,6 +102,40 @@ BOOL CDurableFileController::Begin(void)
 }
 
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CDurableFileController::Begin(CDurableFile* pcFirst, ...)
+{
+	va_list			vaMarker;
+	CDurableFile*	pc;
+	int				iCount;
+	BOOL			bResult;
+
+	iCount = 0;
+	pc = pcFirst;
+
+	va_start(vaMarker, pcFirst);
+	while (pc != NULL)
+	{
+		pc->AddFile();
+		iCount++;
+		pc = va_arg(vaMarker, CDurableFile*);
+	}
+	va_end(vaMarker);
+
+	bResult = Check();
+	if (!bResult)
+	{
+		return FALSE;
+	}
+
+	return Begin();
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -118,6 +153,16 @@ BOOL CDurableFileController::End(void)
 BOOL CDurableFileController::Recover(void)
 {
 	return mcDurableSet.Recover();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CDurableFileController::Check(void)
+{
+	return mcDurableSet.Check(TRUE);
 }
 
 

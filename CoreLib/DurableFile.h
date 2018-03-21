@@ -25,6 +25,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "BaseLib/ArrayIntAndPointer.h"
 #include "BaseLib/FileMode.h"
 #include "BaseLib/FileIO.h"
+#include "BaseLib/FileBasic.h"
 #include "BaseLib/DiskFile.h"
 #include "BaseLib/AbstractFile.h"
 #include "BaseLib/ListVariable.h"
@@ -60,6 +61,7 @@ private:
 	CLogFile					mcLogFile;
 	EFileMode					meOpenMode;
 	BOOL						mbOpenedSinceBegin;
+	BOOL						mbAddedToController;
 
 public:
 	void		Init(CDurableFileController* pcController, char* szFileName, char* szRewriteName);
@@ -85,8 +87,9 @@ public:
 
 	int			GetNumWrites(void);
 	void*		GetWriteData(int iWrite);
+	void		AddFile(void);
 
-	BOOL		CheckIdentical(void);
+	BOOL		CheckIdentical(BOOL bThorough, BOOL bLogError);
 	BOOL		Delete(void);
 	BOOL		CopyBackupToPrimary(void);
 	BOOL		CopyPrimaryToBackup(void);

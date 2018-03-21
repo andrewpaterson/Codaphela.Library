@@ -126,12 +126,31 @@ void CFileUtil::FullPath(CChars* szPathName)
 	}
 }
 
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CFileUtil::CompareSize(char* szFileName1, char* szFileName2)
+{
+	return Compare(szFileName1, szFileName2, TRUE);
+}
+
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
 BOOL CFileUtil::Compare(char* szFileName1, char* szFileName2)
+{
+	return Compare(szFileName1, szFileName2, FALSE);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CFileUtil::Compare(char* szFileName1, char* szFileName2, BOOL bSizeOnly)
 {
 	CFileBasic	cPrimary;
 	CFileBasic	cBackup;
@@ -185,6 +204,15 @@ BOOL CFileUtil::Compare(char* szFileName1, char* szFileName2)
 		cPrimary.Close();
 		cPrimary.Kill();
 		return FALSE;
+	}
+
+	if (bSizeOnly)
+	{
+		cBackup.Close();
+		cBackup.Kill();
+		cPrimary.Close();
+		cPrimary.Kill();
+		return TRUE;
 	}
 
 	iNumBlocks = iPrimary / FILE_BLOCK_SIZE;

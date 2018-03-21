@@ -47,6 +47,7 @@ public:
 	BOOL			Recover(void);
 	BOOL			Begin(void);
 	BOOL			End(void);
+	BOOL			Check(BOOL bThorough);
 
 	BOOL			Add(CDurableFile* pcFile);
 	int				Num(void);
@@ -57,7 +58,9 @@ public:
 	void			MarkFinish(void);
 
 private:
-	BOOL			CheckFilesIdentical(void);
+	BOOL			CheckFilesIdentical(BOOL bThorough, BOOL bLogError);
+	BOOL			CheckWriteStatus(BOOL bMarkStart, BOOL bMarkRewrite, BOOL bLogError);
+	BOOL			CheckWriteStatus(BOOL bLogError);
 	BOOL			CopyBackupToPrimary(void);
 	BOOL			CopyPrimaryToBackup(void);
 };
