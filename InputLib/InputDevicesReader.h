@@ -25,7 +25,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "BaseLib/Define.h"
 #include "BaseLib/Chars.h"
 #include "BaseLib/MarkupDoc.h"
-#include "CoreLib/TypeNames.h"
+#include "BaseLib/TypeNames.h"
 #include "InputDeviceDesc.h"
 
 

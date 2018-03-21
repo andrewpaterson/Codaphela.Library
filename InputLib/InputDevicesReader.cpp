@@ -20,8 +20,8 @@ along with Codaphela InputLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/TypeParser.h"
 #include "CoreLib/XMLFile.h"
-#include "CoreLib/TypeParser.h"
 #include "CoreLib/MarkupTextParser.h"
 #include "InputDeviceVariableListener.h"
 #include "InputDeviceVariableValue.h"

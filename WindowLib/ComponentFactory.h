@@ -20,7 +20,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __COMPONENT_FACTORY_H__
 #define __COMPONENT_FACTORY_H__
-#include "BaseLib/ArrayVariable.h"
+#include "BaseLib/ListVariable.h"
 #include "SupportLib/FontList.h"
 #include "BorderParameters.h"
 #include "BlockParameters.h"
@@ -46,7 +46,7 @@ public:
 	CFontList*				mpcFontList;
 	CViewport*				mpcViewport;
 	CComponentInput			mcInput;
-	CArrayVariable			macComponents;
+	CListVariable			macComponents;
 
 	CTextParameters*		mpcSansSerif;
 	CTextParameters*		mpcFixedSys;
