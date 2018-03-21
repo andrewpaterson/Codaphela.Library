@@ -38,6 +38,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //////////////////////////////////////////////////////////////////////////
 void CDurableFile::Init(CDurableFileController* pcController, char* szFileName, char* szRewriteName)
 {
+	mbAddedToController = FALSE;
 	mpcController = pcController;
 	InitBasic();
 

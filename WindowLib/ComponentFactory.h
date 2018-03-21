@@ -20,7 +20,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __COMPONENT_FACTORY_H__
 #define __COMPONENT_FACTORY_H__
-#include "CoreLib/ArrayVariable.h"
+#include "BaseLib/ArrayVariable.h"
 #include "SupportLib/FontList.h"
 #include "BorderParameters.h"
 #include "BlockParameters.h"

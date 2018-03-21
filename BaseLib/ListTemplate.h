@@ -1,9 +1,10 @@
 #ifndef __LIST_TEMPLATE_H__
 #define __LIST_TEMPLATE_H__
+#include "ConstructorCall.h"
 #include "ListBlock.h"
 
 template<class M>
-class CListTemplate : public CListBlock
+class CListTemplate : public CListBlock, public CPostMalloc<M>
 {
 public:
 	void	Init(int iChunkSize);
@@ -32,7 +33,6 @@ public:
 	BOOL	Set(int iIndex, M* pvData);
 	BOOL	SafeSet(int iIndex, M* pvData);
 };
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -86,7 +86,7 @@ void CListTemplate<M>::Kill(void)
 template<class M>
 M* CListTemplate<M>::Add(void)
 {
-	return (M*)CListBlock::Add();
+	return PostMalloc((M*)CListBlock::Add());
 }
 
 
@@ -108,7 +108,7 @@ M* CListTemplate<M>::Add(M* pvData)
 template<class M>
 M* CListTemplate<M>::AddGetIndex(int* piIndex)
 {
-	return (M*)CListBlock::AddGetIndex(piIndex);
+	return PostMalloc((M*)CListBlock::AddGetIndex(piIndex));
 }
 
 
@@ -163,7 +163,7 @@ M* CListTemplate<M>::Tail(void)
 template<class M>
 M* CListTemplate<M>::InsertAt(int iIndex)
 {
-	return (M*)CListBlock::InsertAt(iIndex);
+	return PostMalloc((M*)CListBlock::InsertAt(iIndex));
 }
 
 
@@ -174,7 +174,7 @@ M* CListTemplate<M>::InsertAt(int iIndex)
 template<class M>
 M* CListTemplate<M>::InsertAt(M* pvData, int iIndex)
 {
-	return (M*)CListBlock::InsertAt(pvData, iIndex);
+	return PostMalloc((M*)CListBlock::InsertAt(pvData, iIndex));
 }
 
 

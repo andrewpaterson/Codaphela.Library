@@ -20,8 +20,9 @@ along with Codaphela CoreLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-#include "IndexedFiles.h"
 #include "BaseLib/PointerRemapper.h"
+#include "BaseLib/GlobalMemory.h"
+#include "IndexedFiles.h"
 
 
 struct SIndexedFileDescriptor
@@ -269,6 +270,7 @@ CIndexedFile* CIndexedFiles::GetOrCreateFile(int iDataSize)
 	}
 
 	pcIndexedFile = mcFiles.Add();
+
 	if (!pcIndexedFile)
 	{
 		return NULL;

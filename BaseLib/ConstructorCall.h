@@ -38,5 +38,22 @@ M* NewMalloc(void)
 }
 
 
+template<class M>
+class CPostMalloc
+{
+public:
+	M* PostMalloc(M* pv);
+};
+
+
+template<class M>
+M* CPostMalloc<M>::PostMalloc(M* pv)
+{
+	memset(pv, 0, sizeof(M));
+	new(pv) M();
+	return pv;
+}
+
+
 #endif // __CONSTRUCTOR_CALL_H__
 

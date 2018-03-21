@@ -27,7 +27,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "BaseLib/Define.h"
 #include "BaseLib/ArrayTemplate.h"
 #include "BaseLib/Chars.h"
-#include "CoreLib/GuidClass.h"
+#include "BaseLib/GuidClass.h"
 #include "InputDevices.h"
 #include "InputDeviceValue.h"
 #include "NativeDetail.h"
