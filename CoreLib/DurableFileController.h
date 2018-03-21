@@ -43,6 +43,7 @@ public:
 	BOOL			Begin(CDurableFile* pcFirst, ...);
 	BOOL			End(void);
 	BOOL			Recover(void);
+	BOOL			Recover(CDurableFile* pcFirst, ...);
 	BOOL			Check(void);
 
 	void			AddFile(CDurableFile* pcFile);

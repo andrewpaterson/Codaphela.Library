@@ -160,6 +160,32 @@ BOOL CDurableFileController::Recover(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL CDurableFileController::Recover(CDurableFile* pcFirst, ...)
+{
+	va_list			vaMarker;
+	CDurableFile*	pc;
+	int				iCount;
+
+	iCount = 0;
+	pc = pcFirst;
+
+	va_start(vaMarker, pcFirst);
+	while (pc != NULL)
+	{
+		pc->AddFile();
+		iCount++;
+		pc = va_arg(vaMarker, CDurableFile*);
+	}
+	va_end(vaMarker);
+
+	return Recover();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL CDurableFileController::Check(void)
 {
 	return mcDurableSet.Check(TRUE);
