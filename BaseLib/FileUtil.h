@@ -46,7 +46,7 @@ public:
 	BOOL    RemoveDir(char* szPathName);
 	BOOL    CopyDir(char* szSource, char* szDest);
 	BOOL    Touch(char* szFileName);
-	BOOL    TouchDir(char* szFileName);
+	BOOL    TouchDir(char* szFileName, BOOL bLastIsFileName);
 	BOOL    Delete(char* szFileName);
 	BOOL    Exists(char* szFileName);
 	BOOL    Compare(char* szFileName1, char* szFileName2);

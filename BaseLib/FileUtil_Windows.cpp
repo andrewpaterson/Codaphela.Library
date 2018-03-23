@@ -34,29 +34,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //////////////////////////////////////////////////////////////////////////
 BOOL CFileUtil::MakeDir(char* szPathName)
 {
-	//This MakeDir needs to move to FileUtil.cpp and must call MakeDir.  See also TouchDir.
-	//MakeDir in Windows and MakeDir in Linux must be simplified.
-	CArrayString	aszPathComponents;
-	int				i;
-	CChars			szPartialPath;
-	BOOL			bResult;
-
-	aszPathComponents.Init(8);
-	SplitPath(szPathName, &aszPathComponents);
-	szPartialPath.Init();
-	bResult = FALSE;
-	for (i = 0; i < aszPathComponents.NumElements(); i++)
-	{
-		if (i != 0)
-		{
-			szPartialPath.Append(FILE_SEPARATOR);
-		}
-		szPartialPath.Append(aszPathComponents.Get(i));
-		bResult = CreateDirectory(szPartialPath.Text(), NULL);
-	}
-	aszPathComponents.Kill();
-	szPartialPath.Kill();
-	return bResult;
+	return CreateDirectory(szPathName, NULL);
 }
 
 

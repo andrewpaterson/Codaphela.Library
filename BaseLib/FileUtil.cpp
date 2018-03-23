@@ -51,7 +51,7 @@ BOOL CFileUtil::MakeDirs(BOOL bRemoveFirst, char* szPathName, ...)
 		{
 			RemoveDir(pc);
 		}
-		if (!MakeDir(pc))
+		if (!TouchDir(pc, FALSE))
 		{
 			return FALSE;
 		}
@@ -887,19 +887,32 @@ void CFileUtil::MakeNameFromDirectory(CChars* pszName, CChars* pszFileName, CCha
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileUtil::TouchDir(char* szFileName)
+BOOL CFileUtil::TouchDir(char* szDirectory, BOOL bLastIsFileName)
 {
-	//TouchDir and MakeDir need to be collapsed into one.  See also MakeDir
-	CChars		szPath;
-	char		cDrive;
+	CChars			szPath;
+	char			cDrive;
+	CArrayString	aszPathComponents;
+	int				i;
+	CChars			szPartialPath;
+	BOOL			bResult;
 
-	szPath.Init(szFileName);
+	szPath.Init(szDirectory);
 	CollapsePath(&szPath);
 	
 	if (szPath.Empty())
 	{
 		return FALSE;
 	}
+
+	if (bLastIsFileName)
+	{
+		RemoveLastFromPath(&szPath);
+		if (szPath.Empty())
+		{
+			return FALSE;
+		}
+	}
+
 	if (IsAbsolutePath(szPath.Text()))
 	{
 		cDrive = GetDriveLetter(szPath.Text());
@@ -913,6 +926,21 @@ BOOL CFileUtil::TouchDir(char* szFileName)
 		}
 	}
 
-	return MakeDir(szPath.Text());
+	aszPathComponents.Init(8);
+	SplitPath(szPath.Text(), &aszPathComponents);
+	szPartialPath.Init();
+	bResult = FALSE;
+	for (i = 0; i < aszPathComponents.NumElements(); i++)
+	{
+		if (i != 0)
+		{
+			szPartialPath.Append(FILE_SEPARATOR);
+		}
+		szPartialPath.Append(aszPathComponents.Get(i));
+		bResult = MakeDir(szPartialPath.Text());
+	}
+	aszPathComponents.Kill();
+	szPartialPath.Kill();
+	return bResult;
 }
 

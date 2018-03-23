@@ -73,17 +73,13 @@ BOOL CLogFileCommandOpen::Open(CAbstractFile* pcFile)
 	BOOL		bResult;
 	CFileUtil	cFileUtil;
 	char*		szFileName;
-	CChars		szFileName2;
 
 	if (IsFileModeCreate(eMode))
 	{
 		szFileName = pcFile->GetFileName();
 		if (szFileName)
 		{
-			szFileName2.Init(szFileName);
-			cFileUtil.RemoveLastFromPath(&szFileName2);
-			cFileUtil.TouchDir(szFileName2.Text());
-			szFileName2.Kill();
+			cFileUtil.TouchDir(szFileName, TRUE);
 		}
 	}
 
