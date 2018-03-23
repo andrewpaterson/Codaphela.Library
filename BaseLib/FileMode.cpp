@@ -52,3 +52,15 @@ BOOL IsFileModeReadOnly(EFileMode eFileMode)
 }
 
 
+BOOL IsFileModeCreate(EFileMode eFileMode)
+{
+	if ((eFileMode == EFM_Read_Create) || (eFileMode == EFM_Write_Create) || (eFileMode == EFM_ReadWrite_Create))
+	{
+		return TRUE;
+	}
+	else
+	{
+		return FALSE;
+	}
+}
+

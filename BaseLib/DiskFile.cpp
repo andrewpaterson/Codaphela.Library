@@ -63,26 +63,21 @@ BOOL CDiskFile::Open(EFileMode eMode)
 		Close();
 	}
 
-	if (eMode == EFM_Read)
-	{
-		strcpy(pcMode,"rb");
-	}
-	else if (eMode == EFM_Read_Create)
+	if (IsFileModeCreate(eMode))
 	{
 		Create();
+	}
+
+	if ((eMode == EFM_Read) || (eMode == EFM_Read_Create))
+	{
 		strcpy(pcMode,"rb");
 	}
 	else if (eMode == EFM_Write_Create)
 	{
 		strcpy(pcMode,"wb");
 	}
-	else if (eMode == EFM_ReadWrite)
+	else if ((eMode == EFM_ReadWrite) || (eMode == EFM_ReadWrite_Create))
 	{
-		strcpy(pcMode,"r+b");
-	}
-	else if (eMode == EFM_ReadWrite_Create)
-	{
-		Create();
 		strcpy(pcMode,"r+b");
 	}
 
@@ -295,6 +290,20 @@ BOOL CDiskFile::Delete(void)
 	}
 
 	return cFileUtil.Delete(mszFileName.Text());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CDiskFile::GetFileName(void)
+{
+	if (!mszFileName.Empty())
+	{
+		return mszFileName.Text();
+	}
+	return NULL;
 }
 
 

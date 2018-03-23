@@ -34,6 +34,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 //////////////////////////////////////////////////////////////////////////
 BOOL CFileUtil::MakeDir(char* szPathName)
 {
+	//This MakeDir needs to move to FileUtil.cpp and must call MakeDir.  See also TouchDir.
+	//MakeDir in Windows and MakeDir in Linux must be simplified.
 	CArrayString	aszPathComponents;
 	int				i;
 	CChars			szPartialPath;

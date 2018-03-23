@@ -7,6 +7,7 @@
 //////////////////////////////////////////////////////////////////////////
 void CIndexedDescriptorsFile::Init(CDurableFileController* pcDurableFileController, char* szIndexFileName, char* szIndexBackupName, BOOL bDirtyTesting)
 {
+
 }
 
 

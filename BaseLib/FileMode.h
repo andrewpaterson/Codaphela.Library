@@ -53,6 +53,7 @@ enum EFileSeekOrigin
 BOOL IsFileModeWritable(EFileMode eFileMode);
 BOOL IsFileModeReadable(EFileMode eFileMode);
 BOOL IsFileModeReadOnly(EFileMode eFileMode);
+BOOL IsFileModeCreate(EFileMode eFileMode);
 
 
 #endif // __FILE_MODE_H__

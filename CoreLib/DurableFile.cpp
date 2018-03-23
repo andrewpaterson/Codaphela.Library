@@ -148,7 +148,6 @@ void CDurableFile::AddFile(void)
 BOOL CDurableFile::Commit(void)
 {
 	BOOL		bResult;
-	CFileUtil	cFileUtil;
 
 	if (!IsBegun())
 	{
@@ -160,9 +159,6 @@ BOOL CDurableFile::Commit(void)
 		InitBasic();
 		return TRUE;
 	}
-
-	//TouchDir belongs in log file open.
-	cFileUtil.TouchDir(mszFileName.Text());
 
 	mcPrimaryFile.Close();
 
@@ -185,7 +181,6 @@ BOOL CDurableFile::Commit(void)
 BOOL CDurableFile::Recommit(void)
 {
 	BOOL		bResult;
-	CFileUtil	cFileUtil;
 
 	if (IsDurable())
 	{
@@ -194,9 +189,6 @@ BOOL CDurableFile::Recommit(void)
 			gcLogger.Error2(__METHOD__, " Did not expect durable file [", mszRewriteName.Text(), "] to be open already.", NULL);
 			return FALSE;
 		}
-
-		//TouchDir belongs in log file open.
-		cFileUtil.TouchDir(mszRewriteName.Text());
 
 		bResult = mcLogFile.Commit(&mcRewriteDiskFile);
 		if (!bResult)

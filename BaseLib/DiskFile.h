@@ -49,6 +49,7 @@ public:
 	filePos		Size(void);
 	BOOL		Flush(void);
 	BOOL		Delete(void);
+	char*		GetFileName(void);
 };
 
 

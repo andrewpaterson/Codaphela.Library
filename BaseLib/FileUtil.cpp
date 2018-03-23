@@ -889,16 +889,11 @@ void CFileUtil::MakeNameFromDirectory(CChars* pszName, CChars* pszFileName, CCha
 //////////////////////////////////////////////////////////////////////////
 BOOL CFileUtil::TouchDir(char* szFileName)
 {
+	//TouchDir and MakeDir need to be collapsed into one.  See also MakeDir
 	CChars		szPath;
 	char		cDrive;
 
 	szPath.Init(szFileName);
-	RemoveLastFromPath(&szPath);
-	if (szPath.Empty())
-	{
-		return TRUE;
-	}
-
 	CollapsePath(&szPath);
 	
 	if (szPath.Empty())

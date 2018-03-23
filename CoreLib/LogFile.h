@@ -40,6 +40,7 @@ public:
 	BOOL					IsOpen(void);
 	BOOL					Flush(void);
 	BOOL					Delete(void);
+	char*					GetFileName(void);
 
 	BOOL					Commit(CAbstractFile* pcFile);
 
