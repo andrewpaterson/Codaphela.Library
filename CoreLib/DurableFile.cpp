@@ -381,16 +381,6 @@ filePos CDurableFile::Write(const void* pvSource, filePos iSize, filePos iCount)
 		return FALSE;
 	}
 
-	return WriteDurable(pvSource, iSize, iCount);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-filePos CDurableFile::WriteDurable(const void* pvSource, filePos iSize, filePos iCount)
-{
 	return mcPrimaryFile.Write(pvSource, iSize, iCount);
 }
 
@@ -454,7 +444,7 @@ filePos CDurableFile::Read(void* pvDest, filePos iSize, filePos iCount)
 		return FALSE;
 	}
 
-	return ReadDurable(pvDest, iSize, iCount);
+	return mcPrimaryFile.Read(pvDest, iSize, iCount);
 }
 
 
@@ -462,9 +452,9 @@ filePos CDurableFile::Read(void* pvDest, filePos iSize, filePos iCount)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-filePos CDurableFile::ReadDurable(void* pvDest, filePos iSize, filePos iCount)
+BOOL CDurableFile::Create(void)
 {
-	return mcPrimaryFile.Read(pvDest, iSize, iCount);
+	return OpenPrimaryFile(TRUE);
 }
 
 

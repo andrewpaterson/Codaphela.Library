@@ -98,3 +98,16 @@ char* CIndexTreeHelper::GetRootFileName(void)
 	return mszRootFileName.Text();
 }
 
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexTreeHelper::RemoveWorkingDirectory(void)
+{
+	CFileUtil	cFileUtil;
+
+	cFileUtil.RemoveDir(mszWorkingDirectory.Text());
+}
+

@@ -82,6 +82,8 @@ public:
 	filePos		Read(EFileSeekOrigin eOrigin, filePos iDistance, void* pvDest, filePos iSize, filePos iCount);
 	filePos		Read(void* pvDest, filePos iSize, filePos iCount);
 
+	BOOL		Create(void);
+
 	filePos		Tell(void);
 	filePos		Size(void);
 
@@ -106,9 +108,6 @@ protected:
 	BOOL		Seek(EFileSeekOrigin eOrigin, filePos iDistance, BOOL bSeekForWrite);
 	BOOL		OpenPrimaryForRead(void);
 	BOOL		OpenPrimaryForWrite(void);
-
-	filePos		ReadDurable(void* pvDest, filePos iSize, filePos iCount);
-	filePos		WriteDurable(const void* pvSource, filePos iSize, filePos iCount);
 
 	BOOL		OpenPrimaryFile(BOOL bOpenForWrite);
 };

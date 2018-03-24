@@ -63,6 +63,7 @@ void CIndexedFiles::Kill(void)
 	}
 	mcFiles.Kill();
 
+	mcFileDescriptors.Kill();
 	mszDataExtension.Kill();
 	mszDescricptorName.Kill();
 	mszDescricptorRewrite.Kill();
@@ -75,6 +76,8 @@ void CIndexedFiles::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CIndexedFiles::InitIndexedFileDescriptors(char* szDescricptorName, char* szDescricptorRewrite)
 {
+	mbDescriptorsRead = FALSE;
+
 	mszDescricptorName.Init(mpcDurableFileControl->GetDirectory());
 	mszDescricptorName.Append(FILE_SEPARATOR);
 	mszDescricptorName.Append(szDescricptorName);
@@ -110,17 +113,21 @@ BOOL CIndexedFiles::ReadIndexedFileDescriptors(void)
 	char						szDataRewriteName[MAX_DIRECTORY_LENGTH];
 	filePos						iRead;
 
+	if (!mpcDurableFileControl->IsBegun())
+	{
+		return FALSE;
+	}
+
 	iFileSize = mcFileDescriptors.Size();
 	if (iFileSize == 0)
 	{
-		return TRUE;
+		return mcFileDescriptors.Create();
 	}
 
 	iNumFiles = iFileSize / (sizeof(SIndexedFileDescriptor));
 	pasFileDescriptors = (SIndexedFileDescriptor*)malloc((int)iFileSize);
 
-	//THIS SHOULD ABSOLUTELY NOT BE DIGGING IN THE PRIMARY FILE.  Wrap the initialisation in a durable begin / end and use Read normally.
-	iRead = mcFileDescriptors.DumpGetPrimaryFile()->Read(pasFileDescriptors, sizeof(SIndexedFileDescriptor), iNumFiles);
+	iRead = mcFileDescriptors.Read(pasFileDescriptors, sizeof(SIndexedFileDescriptor), iNumFiles);
 
 	if (iRead != iNumFiles)
 	{
@@ -139,6 +146,7 @@ BOOL CIndexedFiles::ReadIndexedFileDescriptors(void)
 		}
 	}
 	free(pasFileDescriptors);
+	mbDescriptorsRead = TRUE;
 	return bResult;
 }
 

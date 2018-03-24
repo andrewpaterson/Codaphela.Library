@@ -17,6 +17,8 @@ public:
 	char*	GetPrimaryDirectory(void);
 	char*	GetBackupDirectory(void);
 	char*	GetRootFileName(void);
+
+	void	RemoveWorkingDirectory(void);
 };
 
 #endif // __INDEX_TREE_BLOCK_FILE_HELPER_H__
