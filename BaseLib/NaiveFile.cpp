@@ -191,13 +191,22 @@ filePos CNaiveFile::Size()
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CNaiveFile::Compare(void* pvOther)
+int CNaiveFile::Compare(void* pvOther, int iSize)
 {
 	int		iResult;
 	
 	if ((!pvOther && mpvMem) || (pvOther && !mpvMem))
 	{
 		return -1;
+	}
+
+	if (iSize < miSize)
+	{
+		return -1;
+	}
+	if (iSize > miSize)
+	{
+		return 1;
 	}
 
 	iResult = memcmp(mpvMem, pvOther, (int)miSize);
@@ -209,7 +218,7 @@ int CNaiveFile::Compare(void* pvOther)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CompareFileToMemory(char* szFileName, void* pvMem, int iLength, CChars* psz)
+int CompareFileToMemory(char* szFileName, void* pvMem, int iSize)
 {
 	CNaiveFile	cNaiveFile;
 	int			iResult;
@@ -220,7 +229,7 @@ int CompareFileToMemory(char* szFileName, void* pvMem, int iLength, CChars* psz)
 		cNaiveFile.Kill();
 		return -1;
 	}
-	iResult = cNaiveFile.Compare(pvMem);
+	iResult = cNaiveFile.Compare(pvMem, iSize);
 	cNaiveFile.Kill();
 	return iResult;
 }

@@ -48,11 +48,11 @@ public:
 	void	Set(void* pvMem, int iSize);
 	filePos	Size();
 
-	int		Compare(void* pvOther);
+	int		Compare(void* pvOther, int iSize);
 };
 
 
-int CompareFileToMemory(char* szFileName, void* pvMem, int iLength, CChars* psz);
+int CompareFileToMemory(char* szFileName, void* pvMem, int iLength);
 
 
 #endif // __NAIVE_FILE_H__
