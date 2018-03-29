@@ -23,6 +23,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifdef WIN32
 #include <stdio.h>
 #include <windows.h>
+#include <shlwapi.h>
 #include "FilePosition.h"
 #include "FileUtil.h"
 #include "StringHelper.h"
@@ -197,17 +198,8 @@ BOOL CFileUtil::Delete(char* szFileName)
 //////////////////////////////////////////////////////////////////////////
 BOOL CFileUtil::Exists(char* szFileName)
 {
-	HANDLE	h;
-
-	h = CreateFile(szFileName, STANDARD_RIGHTS_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-	if (h != INVALID_HANDLE_VALUE)
-	{
-		CloseHandle(h);
-		return TRUE;
-	}
-	return FALSE;
+	return PathFileExists(szFileName);
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
