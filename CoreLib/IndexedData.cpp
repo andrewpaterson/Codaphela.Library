@@ -982,9 +982,9 @@ int CIndexedData::NumFiles(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int64 CIndexedData::NumInFile(int iDataSize)
+int64 CIndexedData::NumData(int iDataSize)
 {
-	return mcDataFiles.NumInFile(iDataSize);
+	return mcDataFiles.NumData(iDataSize);
 }
 
 

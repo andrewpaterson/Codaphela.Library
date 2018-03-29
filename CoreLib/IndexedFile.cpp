@@ -67,6 +67,12 @@ filePos CIndexedFile::CalculateNumDatas(void)
 		return -1;
 	}
 
+	if (iFileLength % miDataSize != 0)
+	{
+		//Log this error properly.
+		return -1;
+	}
+
 	return (iFileLength / miDataSize);
 }
 

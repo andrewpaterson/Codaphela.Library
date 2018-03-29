@@ -57,7 +57,9 @@ public:
 	CIndexedFile* 	GetFile(int iFileIndex);
 	int				GetUniqueFileNumber(int iDataSize);
 
-	int64			NumInFile(int iDataSize);
+	int64			NumData(void);
+	int64			NumData(int iDataSize);
+	int				NumFiles(int iDataSize);
 	int				NumFiles(void);
 
 	BOOL			Write(CIndexedDataDescriptor* pcDescriptor, void* pvData);

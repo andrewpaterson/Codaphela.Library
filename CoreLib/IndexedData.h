@@ -82,7 +82,7 @@ public:
 	int				NumCached(void);
 	int				NumCached(int iSize);
 	int				NumFiles(void);
-	int64			NumInFile(int iDataSize);
+	int64			NumData(int iDataSize);
 	int64			NumElements(void);
 
 	BOOL			EvictFromCache(CIndexedDataDescriptor* pcDescriptor);

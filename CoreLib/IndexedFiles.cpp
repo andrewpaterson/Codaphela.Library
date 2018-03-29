@@ -118,6 +118,12 @@ BOOL CIndexedFiles::ReadIndexedFileDescriptors(void)
 		return FALSE;
 	}
 
+	if (mcFiles.NumElements() != 0)
+	{
+		//Don't read 
+		return FALSE;
+	}
+
 	iFileSize = mcFileDescriptors.Size();
 	if (iFileSize == 0)
 	{
@@ -255,13 +261,15 @@ CIndexedFile* CIndexedFiles::GetOrCreateFile(int iDataSize)
 {
 	int				i;
 	CIndexedFile*	pcIndexedFile;
-	int				iNumFiles;
+	int				iNumFilesWithSize;
 	char			szFileName[MAX_DIRECTORY_LENGTH];
 	char			szRewriteName[MAX_DIRECTORY_LENGTH];
 	BOOL			bResult;
+	int				iNumFiles;
 
-	iNumFiles = 0;
-	for (i = 0; i < mcFiles.NumElements(); i++)
+	iNumFilesWithSize = 0;
+	iNumFiles = mcFiles.NumElements();
+	for (i = 0; i < iNumFiles; i++)
 	{
 		pcIndexedFile = mcFiles.Get(i);
 		if (pcIndexedFile->miDataSize == iDataSize)
@@ -272,7 +280,7 @@ CIndexedFile* CIndexedFiles::GetOrCreateFile(int iDataSize)
 			}
 			else
 			{
-				iNumFiles++;
+				iNumFilesWithSize++;
 			}
 		}
 	}
@@ -284,8 +292,8 @@ CIndexedFile* CIndexedFiles::GetOrCreateFile(int iDataSize)
 		return NULL;
 	}
 
-	DataFileName(szFileName, szRewriteName, iDataSize, iNumFiles);
-	bResult = pcIndexedFile->Init(mpcDurableFileControl, mcFiles.NumElements()-1, szFileName, szRewriteName, iDataSize, iNumFiles);
+	DataFileName(szFileName, szRewriteName, iDataSize, iNumFilesWithSize);
+	bResult = pcIndexedFile->Init(mpcDurableFileControl, mcFiles.NumElements()-1, szFileName, szRewriteName, iDataSize, iNumFilesWithSize);
 	if (!bResult)
 	{
 		return NULL;
@@ -384,7 +392,27 @@ int CIndexedFiles::GetUniqueFileNumber(int iDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int64 CIndexedFiles::NumInFile(int iDataSize)
+int64 CIndexedFiles::NumData(void)
+{
+	int				i;
+	CIndexedFile*	pcIndexedFile;
+	int64			iTotal;
+
+	iTotal = 0;
+	for (i = 0; i < mcFiles.NumElements(); i++)
+	{
+		pcIndexedFile = mcFiles.Get(i);
+		iTotal += pcIndexedFile->miNumDatas;
+	}
+	return iTotal;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int64 CIndexedFiles::NumData(int iDataSize)
 {
 	int				i;
 	CIndexedFile*	pcIndexedFile;
@@ -397,6 +425,29 @@ int64 CIndexedFiles::NumInFile(int iDataSize)
 		if (pcIndexedFile->miDataSize == iDataSize)
 		{
 			iTotal += pcIndexedFile->miNumDatas;
+		}
+	}
+	return iTotal;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CIndexedFiles::NumFiles(int iDataSize)
+{
+	int				i;
+	CIndexedFile*	pcIndexedFile;
+	int			iTotal;
+
+	iTotal = 0;
+	for (i = 0; i < mcFiles.NumElements(); i++)
+	{
+		pcIndexedFile = mcFiles.Get(i);
+		if (pcIndexedFile->miDataSize == iDataSize)
+		{
+			iTotal ++;
 		}
 	}
 	return iTotal;
