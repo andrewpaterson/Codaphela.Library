@@ -49,6 +49,7 @@ BOOL PrivateAssertIntHex(int iExpected, int iActual, int iLine, char* szFile);
 BOOL PrivateAssertShort(short iExpected, short iActual, int iLine, char* szFile);
 BOOL PrivateAssertShortHex(short iExpected, short iActual, int iLine, char* szFile);
 BOOL PrivateAssertLongLongInt(long long int iExpected, long long int iActual, int iLine, char* szFile);
+BOOL PrivateAssertLongLongIntHex(long long int iExpected, long long int iActual, int iLine, char* szFile);
 BOOL PrivateAssertFloat(float fExpected, float fActual, int iDecimals, int iLine, char* szFile);
 BOOL PrivateAssertFloat3(SFloat3 fExpected, SFloat3* pfActual, int iDecimals, int iLine, char* szFile);
 BOOL PrivateAssertDouble(double fExpected, double fActual, int iDecimals, int iLine, char* szFile);
@@ -81,6 +82,7 @@ BOOL PrivateAssertFileString(char* szExpectedFileName, char* szString, int iLine
 #define AssertShort(e, a)			Validate(PrivateAssertShort(e, a, __LINE__, __FILE__))
 #define AssertShortHex(e, a)		Validate(PrivateAssertShortHex(e, a, __LINE__, __FILE__))
 #define AssertLongLongInt(e, a)		Validate(PrivateAssertLongLongInt(e, a, __LINE__, __FILE__))
+#define AssertLongLongIntHex(e, a)		Validate(PrivateAssertLongLongIntHex(e, a, __LINE__, __FILE__))
 #define AssertFloat(e, a, t)		Validate(PrivateAssertFloat(e, a, t, __LINE__, __FILE__))
 #define AssertFloat3(e, a, t)		Validate(PrivateAssertFloat3(e, a, t, __LINE__, __FILE__))
 #define AssertDouble(e, a, t)		Validate(PrivateAssertDouble(e, a, t, __LINE__, __FILE__))

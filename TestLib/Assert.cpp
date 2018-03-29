@@ -47,6 +47,7 @@ void ToCharString(char c, char* sz);
 void ToIntString(int i, char* sz);
 void ToIntHexString(int i, char* sz);
 void ToLongLongIntString(long long int i, char* sz);
+void ToLongLongIntHexString(long long int i, char* sz);
 void ToFloatString(float f, char* sz, int iDecimals);
 void ToFloat3String(SFloat3* psFloat3, char* sz, int iWholeNumbers, int iDecimals);
 void ToDoubleString(double f, char* sz, int iDecimals);
@@ -320,7 +321,6 @@ BOOL PrivateAssertIntHex(int iExpected, int iActual, int iLine, char* szFile)
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -378,6 +378,29 @@ BOOL PrivateAssertLongLongInt(long long int iExpected, long long int iActual, in
 	{
 		ToLongLongIntString(iExpected, szExpected);
 		ToLongLongIntString(iActual, szActual);
+		return Fail(szExpected, szActual, iLine, szFile);
+	}
+	else
+	{
+		return Pass();
+	}
+}
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL PrivateAssertLongHex(long long int iExpected, long long int iActual, int iLine, char* szFile)
+{
+	char szExpected[32];
+	char szActual[32];
+
+	if (iExpected != iActual)
+	{
+		ToLongLongIntHexString(iExpected, szExpected);
+		ToLongLongIntHexString(iActual, szActual);
 		return Fail(szExpected, szActual, iLine, szFile);
 	}
 	else
@@ -983,6 +1006,19 @@ void ToDoubleString(double f, char* sz, int iDecimals)
 
 	sprintf(szFormatter, "%%.%if", iDecimals);
 	sprintf(sz, szFormatter, f);
+}
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void ToLongLongIntHexString(long long int i, char* sz)
+{
+	IToA(i, &sz[2], 16);
+	sz[0] = '0';
+	sz[1] = 'x';
 }
 
 
