@@ -724,20 +724,30 @@ int CMemory::ByteSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CMemory::StartIteration(SMemoryIterator* psIterator)
+SMemory CMemory::StartIteration(SMemoryIterator* psIterator)
 {
-	void*	pv;
+	void*		pv;
+	SMemory		sResult;
+
+	sResult.Init();
 
 	psIterator->pcFreeList = mcFreeLists.GetHead();
-	pv = psIterator->pcFreeList->StartIteration(&psIterator->sFreeListIterator);
-
-	if (pv == NULL)
+	if (psIterator->pcFreeList != NULL)
 	{
-		return Iterate(psIterator);
+		pv = psIterator->pcFreeList->StartIteration(&psIterator->sFreeListIterator);
+		if (pv == NULL)
+		{
+			return Iterate(psIterator);
+		}
+		else
+		{
+			sResult.Set((SMemoryAllocation*)pv);
+			return sResult;
+		}
 	}
 	else
 	{
-		return RemapSinglePointer(pv, sizeof(SMemoryAllocation));
+		return sResult;
 	}
 }
 
@@ -746,17 +756,19 @@ void* CMemory::StartIteration(SMemoryIterator* psIterator)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CMemory::Iterate(SMemoryIterator* psIterator)
+SMemory CMemory::Iterate(SMemoryIterator* psIterator)
 {
-	void*	pv;
+	void*		pv;
+	SMemory		sResult;
 
+	sResult.Init();
 	pv = psIterator->pcFreeList->Iterate(&psIterator->sFreeListIterator);
 	if (pv == NULL)
 	{
 		psIterator->pcFreeList = mcFreeLists.GetNext(psIterator->pcFreeList);
 		if (psIterator->pcFreeList == NULL)
 		{
-			return NULL;
+			return sResult;
 		}
 		else
 		{
@@ -768,17 +780,61 @@ void* CMemory::Iterate(SMemoryIterator* psIterator)
 			}
 			else
 			{
-				return pv;
+				sResult.Set((SMemoryAllocation*)pv);
+				return sResult;
 			}
 		}
 	}
 	else
 	{
-		return RemapSinglePointer(pv, sizeof(SMemoryAllocation));
+		sResult.Set((SMemoryAllocation*)pv);
+		return sResult;
 	}
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+uint64 CMemory::GetTotalAllocatedMemory(void)
+{
+	SMemoryIterator		sIter;
+	SMemory				sMem;
+	uint64				ulliTotal;
+
+	ulliTotal = 0;
+	sMem = StartIteration(&sIter);
+	while (sMem.bValid)
+	{
+		ulliTotal += sMem.uiSize;
+		sMem = Iterate(&sIter);
+	}
+
+	return ulliTotal;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+uint64 CMemory::GetTotalAllocations(void)
+{
+	SMemoryIterator		sIter;
+	SMemory				sMem;
+	uint64				ulliTotal;
+
+	ulliTotal = 0;
+	sMem = StartIteration(&sIter);
+	while (sMem.bValid)
+	{
+		ulliTotal ++;
+		sMem = Iterate(&sIter);
+	}
+
+	return ulliTotal;
+}
 
 
 //////////////////////////////////////////////////////////////////////////

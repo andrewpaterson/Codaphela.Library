@@ -56,6 +56,18 @@ struct SMemoryIterator
 };
 
 
+struct SMemory
+{
+	BOOL			bValid;
+	void*			pvMem;
+	unsigned int	uiAllocCount;
+	unsigned int	uiSize;
+
+	void Init(void);
+	void Set(SMemoryAllocation* psAllocation);
+};
+
+
 typedef CArrayTemplate<SFreeListDesc>		CArrayFreeListDesc;
 int CompareFreeListDesc(const void* arg1, const void* arg2);
 

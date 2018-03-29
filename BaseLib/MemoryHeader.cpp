@@ -118,3 +118,30 @@ int CompareFreeListParam(const void* arg1, const void* arg2)
 	}
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void SMemory::Init(void)
+{
+	bValid = FALSE;;
+	pvMem = NULL;
+	uiAllocCount = 0;
+	uiSize = 0;
+
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void SMemory::Set(SMemoryAllocation* psAllocation)
+{
+	bValid = TRUE;
+	pvMem = RemapSinglePointer(psAllocation, sizeof(SMemoryAllocation));
+	uiAllocCount = psAllocation->uiAllocCount;
+	uiSize = psAllocation->uiSize;
+}
+

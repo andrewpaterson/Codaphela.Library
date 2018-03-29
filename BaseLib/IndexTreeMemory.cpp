@@ -283,7 +283,6 @@ void* CIndexTreeMemory::Put(void* pvKey, int iKeySize, void* pvObject, unsigned 
 	BOOL					bResult;
 	unsigned char			uiOriginalSize;
 
-
 	if (iKeySize == 0)
 	{
 		return FALSE;

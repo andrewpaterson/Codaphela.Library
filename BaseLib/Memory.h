@@ -73,8 +73,11 @@ public:
 	SMemoryFreeListParams*	GetFreeListParams(int iIndex);
 	void				SetFreeListSizeLimit(unsigned int uiFreeListSizeLimit);
 
-	void*				StartIteration(SMemoryIterator* psIterator);
-	void*				Iterate(SMemoryIterator* psIterator);
+	SMemory				StartIteration(SMemoryIterator* psIterator);
+	SMemory				Iterate(SMemoryIterator* psIterator);
+
+	uint64				GetTotalAllocatedMemory(void);
+	uint64				GetTotalAllocations(void);
 
 	CFreeList*			TestGetFreeListsHead(void);
 	void*				TestGetLargeListsHead(void);

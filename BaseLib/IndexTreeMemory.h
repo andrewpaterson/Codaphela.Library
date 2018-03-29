@@ -51,6 +51,7 @@ public:
 
 	CIndexTreeNodeMemory*	GetIndexNode(void* pvKey, int iKeySize);
 	CIndexTreeNodeMemory*	GetRoot(void);
+	CIndexTreeNodeMemory*	GetNodeForData(void* pvData);
 	int						CountAllocatedNodes(void);
 	int						RecurseSize(void);
 	size_t					ByteSize(void);
@@ -79,8 +80,6 @@ protected:
 	int						CountListSize(void);
 	int						RecurseCountListSize(CIndexTreeNodeMemory* pcNode);
 	size_t					RecurseByteSize(CIndexTreeNodeMemory* pcNode);
-
-	CIndexTreeNodeMemory*	GetNodeForData(void* pvData);
 
 	BOOL					StepNext(SIndexTreeIterator* psIterator);
 };
