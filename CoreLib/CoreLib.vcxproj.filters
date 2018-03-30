@@ -154,6 +154,9 @@
     <Filter Include="Source\File\Indexed\Index">
       <UniqueIdentifier>{ebd07402-026a-469d-91ab-824a3eccd31c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\File\Indexed\Index\Access">
+      <UniqueIdentifier>{08a193f7-2167-4a79-a05b-72c3722a3408}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="IndexedConfig.cpp">
@@ -362,6 +365,15 @@
     </ClCompile>
     <ClCompile Include="IndexedDescriptorsFile.cpp">
       <Filter>Source\File\Indexed\Descriptors</Filter>
+    </ClCompile>
+    <ClCompile Include="IndexTreeMemoryAccess.cpp">
+      <Filter>Source\File\Indexed\Index\Access</Filter>
+    </ClCompile>
+    <ClCompile Include="IndexTreeAccess.cpp">
+      <Filter>Source\File\Indexed\Index\Access</Filter>
+    </ClCompile>
+    <ClCompile Include="IndexTreeFileAccess.cpp">
+      <Filter>Source\File\Indexed\Index\Access</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -583,6 +595,15 @@
     </ClInclude>
     <ClInclude Include="IndexTreeTemplateFile.h">
       <Filter>Source\File\Indexed\Index</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexTreeAccess.h">
+      <Filter>Source\File\Indexed\Index\Access</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexTreeMemoryAccess.h">
+      <Filter>Source\File\Indexed\Index\Access</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexTreeFileAccess.h">
+      <Filter>Source\File\Indexed\Index\Access</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

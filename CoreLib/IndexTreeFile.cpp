@@ -362,8 +362,8 @@ BOOL CIndexTreeFile::Put(char* pszKey, void* pvObject, unsigned char uiDataSize)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeFile::Put(void* pvKey, int iKeySize, void* pvObject, unsigned char uiDataSize)
 {
-	CIndexTreeNodeFile*	pcCurrent;
-	CIndexTreeNodeFile*	pcReallocatedCurrent;
+	CIndexTreeNodeFile*		pcCurrent;
+	CIndexTreeNodeFile*		pcReallocatedCurrent;
 	unsigned char			c;
 	BOOL					bResult;
 	unsigned char			uiOriginalSize;
@@ -654,42 +654,6 @@ BOOL CIndexTreeFile::PutPtr(void* pvKey, int iKeySize, void* pvPointer)
 {
 	//Just for testing, writing pointers out to file is... pointless.
 	return Put(pvKey, iKeySize, &pvPointer, sizeof(void*));
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::PutPtr(char* pszKey, void* pvPointer)
-{
-	int iKeySize;
-
-	if (StrEmpty(pszKey))
-	{
-		return FALSE;
-	}
-
-	iKeySize = strlen(pszKey);
-	return PutPtr(pszKey, iKeySize, pvPointer);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::PutLong(char* pszKey, int64 lliIndex)
-{
-	int iKeySize;
-
-	if (StrEmpty(pszKey))
-	{
-		return FALSE;
-	}
-
-	iKeySize = strlen(pszKey);
-	return PutLong(pszKey, iKeySize, lliIndex);
 }
 
 

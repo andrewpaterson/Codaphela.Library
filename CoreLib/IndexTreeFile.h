@@ -31,17 +31,14 @@ public:
 	BOOL	Put(char* pszKey, void* pvObject, unsigned char uiDataSize);
 	BOOL	Put(void* pvKey, int iKeySize, void* pvObject, unsigned char uiDataSize);
 	BOOL	Put(void* pvKey, int iKeySize, unsigned char uiDataSize);
+	BOOL	PutPtr(void* pvKey, int iKeySize, void* pvPointer);
+	BOOL	PutLong(void* pvKey, int iKeySize, int64 lliIndex);
 
 	BOOL	Remove(char* pszKey);
 	BOOL	Remove(void* pvKey, int iKeySize);
 
 	BOOL	HasKey(char* pszKey);
 	BOOL	HasKey(void* pvKey, int iKeySize);
-
-	BOOL	PutPtr(void* pvKey, int iKeySize, void* pvPointer);
-	BOOL	PutPtr(char* pszKey, void* pvPointer);
-	BOOL	PutLong(char* pszKey, int64 lliIndex);
-	BOOL	PutLong(void* pvKey, int iKeySize, int64 lliIndex);
 
 	CIndexTreeNodeFile*		GetIndexNode(void* pvKey, int iKeySize);
 	CIndexTreeNodeFile*		GetRoot(void);
