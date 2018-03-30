@@ -73,9 +73,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifdef WIN_GNU_32
 #include <stdio.h>
 #include <stdarg.h>
-typedef int BOOL;
-#define FALSE 0
-#define TRUE 1
 #define engine_stricmp(p,q) strcmpi(p,q)
 #define ENGINE_SIZE_T
 //#define MAX_PATH 260
@@ -94,9 +91,6 @@ typedef int BOOL;
 #ifdef LINUX_GNU_32
 #include <stdio.h>
 #include <stdarg.h>
-typedef int BOOL;
-#define FALSE 0
-#define TRUE 1
 #define engine_stricmp(p,q) strcmpi(p,q)
 #define ENGINE_SIZE_T
 #define EngineOutput(p)	printf(p)
