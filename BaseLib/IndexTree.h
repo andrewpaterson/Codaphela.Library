@@ -1,5 +1,5 @@
-#ifndef __INDEX_TREE_BLOCK_H__
-#define __INDEX_TREE_BLOCK_H__
+#ifndef __INDEX_TREE_H__
+#define __INDEX_TREE_H__
 #include "Chars.h"
 #include "ArrayVoidPtr.h"
 #include "ArrayTemplateEmbedded.h"
@@ -34,5 +34,5 @@ protected:
 };
 
 
-#endif // __INDEX_TREE_BLOCK_H__
+#endif // __INDEX_TREE_H__
 

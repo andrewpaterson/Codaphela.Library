@@ -15,6 +15,7 @@ class CIndexTreeMemory : public CIndexTree
 protected:
 	CIndexTreeNodeMemory*	mpcRoot;
 	int						miSize;
+	
 public:
 	void					Init(void);
 	void					Init(CMallocator* pcMalloc);
