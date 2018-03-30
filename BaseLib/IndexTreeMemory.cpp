@@ -536,16 +536,24 @@ BOOL CIndexTreeMemory::Remove(void* pvKey, int iKeySize)
 		if (pcNode->IsEmpty())
 		{
 			tOldNodeSize = pcParent->CalculateRequiredNodeSizeForCurrent();
-			bResizeNode = pcParent->Clear(c);
-			if (bResizeNode)
+			if (pcParent != mpcRoot)
 			{
-				tNewNodeSize = pcParent->CalculateRequiredNodeSizeForCurrent();
-				pcOldParent = pcParent;
+				bResizeNode = pcParent->ClearAndUncontain(c);
+				if (bResizeNode)
+				{
+					tNewNodeSize = pcParent->CalculateRequiredNodeSizeForCurrent();
+					pcOldParent = pcParent;
 
-				pcParent = (CIndexTreeNodeMemory*)Realloc(pcParent, tNewNodeSize, tOldNodeSize);
-				pcParent->SetChildsParent();
-				RemapChildParents(pcOldParent, pcParent);
+					pcParent = (CIndexTreeNodeMemory*)Realloc(pcParent, tNewNodeSize, tOldNodeSize);
+					pcParent->SetChildsParent();
+					RemapChildParents(pcOldParent, pcParent);
+				}
 			}
+			else
+			{
+				pcParent->Clear(c);
+			}
+
 			Free(pcNode);
 		}
 		else
@@ -557,7 +565,7 @@ BOOL CIndexTreeMemory::Remove(void* pvKey, int iKeySize)
 		pcParent = (CIndexTreeNodeMemory*)pcNode->GetParent();
 		if (!pcParent)
 		{
-			break;;
+			break;
 		}
 	}
 

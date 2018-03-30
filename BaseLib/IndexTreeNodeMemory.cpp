@@ -60,7 +60,23 @@ void CIndexTreeNodeMemory::Set(unsigned char uiIndex, CIndexTreeNodeMemory* pcNo
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeNodeMemory::Clear(unsigned char uiIndex)
+void CIndexTreeNodeMemory::Clear(unsigned char uiIndex)
+{
+	CIndexTreeNodeMemory**	apcChildren;
+
+	if (ContainsIndex(uiIndex))
+	{
+		apcChildren = GetNodes();
+		apcChildren[uiIndex - muiFirstIndex] = NULL;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeNodeMemory::ClearAndUncontain(unsigned char uiIndex)
 {
 	CIndexTreeNodeMemory**	apcChildren;
 

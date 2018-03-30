@@ -12,7 +12,8 @@ public:
 	CIndexTreeNodeMemory*	Get(unsigned char uiIndex);
 	void					Set(unsigned char uiIndex, CIndexTreeNodeMemory* pcNode);
 
-	BOOL					Clear(unsigned char uiIndex);
+	void					Clear(unsigned char uiIndex);
+	BOOL					ClearAndUncontain(unsigned char uiIndex);
 
 	CIndexTreeNodeMemory*	GetNode(int i);
 	CIndexTreeNodeMemory**	GetNodes(void);
