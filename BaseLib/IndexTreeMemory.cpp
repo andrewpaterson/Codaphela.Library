@@ -617,7 +617,7 @@ void CIndexTreeMemory::RecurseFindAll(CIndexTreeNodeMemory* pcNode, CArrayVoidPt
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeMemory::Write(CFileWriter* pcFileWriter)
 {
-	SIndexTreeIterator	sIter;
+	SIndexTreeMemoryIterator	sIter;
 	void*				pvData;
 	int					iDataSize;
 	int					iKeySize;
@@ -803,7 +803,7 @@ int CIndexTreeMemory::GetKey(void* pvKey, void* pvData, BOOL zeroTerminate)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeMemory::StartIteration(SIndexTreeIterator* psIterator, void** pvData, int* piDataSize)
+BOOL CIndexTreeMemory::StartIteration(SIndexTreeMemoryIterator* psIterator, void** pvData, int* piDataSize)
 {
 	psIterator->pcNode = mpcRoot;
 	psIterator->iIndex = 0;
@@ -831,7 +831,7 @@ BOOL CIndexTreeMemory::StartIteration(SIndexTreeIterator* psIterator, void** pvD
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeMemory::Iterate(SIndexTreeIterator* psIterator, void** pvData, int* piDataSize)
+BOOL CIndexTreeMemory::Iterate(SIndexTreeMemoryIterator* psIterator, void** pvData, int* piDataSize)
 {
 	if (StepNext(psIterator))
 	{
@@ -856,7 +856,7 @@ BOOL CIndexTreeMemory::Iterate(SIndexTreeIterator* psIterator, void** pvData, in
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeMemory::StepNext(SIndexTreeIterator* psIterator)
+BOOL CIndexTreeMemory::StepNext(SIndexTreeMemoryIterator* psIterator)
 {
 	CIndexTreeNodeMemory*	pcChild;
 	void*					pvObject;

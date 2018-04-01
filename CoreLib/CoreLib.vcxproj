@@ -95,6 +95,7 @@
     <ClCompile Include="IndexedGeneral.cpp" />
     <ClCompile Include="IndexTreeAccess.cpp" />
     <ClCompile Include="IndexTreeFile.cpp" />
+    <ClCompile Include="IndexTreeFile2.cpp" />
     <ClCompile Include="IndexTreeFileAccess.cpp" />
     <ClCompile Include="IndexTreeHelper.cpp" />
     <ClCompile Include="IndexTreeChildNode.cpp" />
@@ -162,6 +163,7 @@
     <ClCompile Include="OperatorAssignment.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="IndexTreeFile2.h" />
     <ClInclude Include="IndexTreeFileAccess.h" />
     <ClInclude Include="IndexTreeMemoryAccess.h" />
     <ClInclude Include="FileIterator.h" />

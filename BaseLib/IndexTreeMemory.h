@@ -3,7 +3,7 @@
 #include "IndexTreeNodeMemory.h"
 #include "IndexTree.h"
 
-struct SIndexTreeIterator
+struct SIndexTreeMemoryIterator
 {
 	CIndexTreeNodeMemory*	pcNode;
 	int						iIndex;
@@ -30,8 +30,8 @@ public:
 	int						GetLargestKeySize(void);
 	int						GetKey(void* pvKey, void* pvData, BOOL zeroTerminate = FALSE);
 
-	BOOL					StartIteration(SIndexTreeIterator* psIterator, void** pvData, int* piDataSize);
-	BOOL					Iterate(SIndexTreeIterator* psIterator, void** pvData, int* piDataSize);
+	BOOL					StartIteration(SIndexTreeMemoryIterator* psIterator, void** pvData, int* piDataSize);
+	BOOL					Iterate(SIndexTreeMemoryIterator* psIterator, void** pvData, int* piDataSize);
 
 	void*					Put(char* pszKey, void* pvObject, unsigned char uiDataSize);
 	void*					Put(void* pvKey, int iKeySize, void* pvObject, unsigned char uiDataSize);
@@ -82,7 +82,7 @@ protected:
 	int						RecurseCountListSize(CIndexTreeNodeMemory* pcNode);
 	size_t					RecurseByteSize(CIndexTreeNodeMemory* pcNode);
 
-	BOOL					StepNext(SIndexTreeIterator* psIterator);
+	BOOL					StepNext(SIndexTreeMemoryIterator* psIterator);
 };
 
 

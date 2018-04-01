@@ -352,7 +352,6 @@ BOOL CIndexTreeFile::Put(char* pszKey, void* pvObject, unsigned char uiDataSize)
 
 	iKeySize = strlen(pszKey);
 	return Put(pszKey, iKeySize, pvObject, uiDataSize);
-
 }
 
 
