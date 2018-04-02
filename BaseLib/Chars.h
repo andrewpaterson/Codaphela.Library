@@ -72,6 +72,7 @@ public:
 	void	Append(char c);
 	void	Append(char c, int iNumber);
 	void	Append(int i);
+	void	Append(int i, int iBase);
 	void	Append(unsigned int ui);
 	void	Append(float f);
 	void	Append(float f, int iNumDecimals);
