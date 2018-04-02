@@ -85,7 +85,6 @@ BOOL CIndexTreeRecursor::GenerateBadKey(void)
 		iPrintable = StrPrintable(macKey.GetData());
 		fPrintable = (float)iPrintable / (float)iKeyLength;
 
-		fPrintable = 0;
 		if (fPrintable >= 0.9f)
 		{
 			mszBadKey.Append(macKey.GetData(), iKeyLength);
@@ -108,7 +107,7 @@ BOOL CIndexTreeRecursor::GenerateBadKey(void)
 					sz.RightAlign('0', 2);
 
 					mszBadKey.Append(sz);
-					if (i != 0)
+					if (i != iKeyLength - 1)
 					{
 						mszBadKey.Append(' ');
 					}
