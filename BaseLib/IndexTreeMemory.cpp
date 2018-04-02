@@ -1022,7 +1022,10 @@ size_t CIndexTreeMemory::RecurseByteSize(CIndexTreeNodeMemory* pcNode)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeMemory::ValidateLimits(void)
 {
-	return RecurseValidateLimits(mpcRoot);
+	CIndexTreeRecursor	cCursor;
+
+	cCursor.Init(FALSE, mpcRoot);
+	return RecurseValidateLimits(&cCursor);
 }
 
 
@@ -1030,7 +1033,7 @@ BOOL CIndexTreeMemory::ValidateLimits(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeMemory::RecurseValidateLimits(CIndexTreeNodeMemory* pcNode)
+BOOL CIndexTreeMemory::RecurseValidateLimits(CIndexTreeRecursor* pcCursor)
 {
 	int						i;
 	CIndexTreeNodeMemory*	pcChild;
@@ -1039,7 +1042,9 @@ BOOL CIndexTreeMemory::RecurseValidateLimits(CIndexTreeNodeMemory* pcNode)
 	BOOL					bResult;
 	CIndexTreeNodeMemory*	pcFirst;
 	CIndexTreeNodeMemory*	pcLast;
+	CIndexTreeNodeMemory*	pcNode;
 
+	pcNode = (CIndexTreeNodeMemory*)pcCursor->GetNode();
 	if (pcNode != NULL)
 	{
 		if (!pcNode->IsEmpty())
@@ -1051,7 +1056,8 @@ BOOL CIndexTreeMemory::RecurseValidateLimits(CIndexTreeNodeMemory* pcNode)
 			{
 				if (!pcNode->ContainsIndex(iFirst))
 				{
-					gcLogger.Error2(__METHOD__, " Node did not contain first index.", NULL);
+					pcCursor->GenerateBad();
+					gcLogger.Error2(__METHOD__, " Node [", pcCursor->GetBadNode(), "] for key [", pcCursor->GetBadKey(), "] did not contain first index [", IntToString(iFirst), "].", NULL);
 					return FALSE;
 				}
 				if (!pcNode->ContainsIndex(iLast))
@@ -1077,15 +1083,18 @@ BOOL CIndexTreeMemory::RecurseValidateLimits(CIndexTreeNodeMemory* pcNode)
 
 			for (i = iFirst; i <= iLast; i++)
 			{
-				pcChild = pcNode->GetNode(i);
-				bResult = RecurseValidateLimits(pcChild);
+				pcChild = pcNode->Get(i);
+				pcCursor->Push(pcChild, i);
+				bResult = RecurseValidateLimits(pcCursor);
 				if (!bResult)
 				{
+					pcCursor->Pop();
 					return FALSE;
 				}
 			}
 		}
 	}
+	pcCursor->Pop();
 	return TRUE;
 }
 

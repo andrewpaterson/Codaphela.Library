@@ -127,6 +127,7 @@
     <ClInclude Include="IndexTreeMemory.h" />
     <ClInclude Include="IndexTreeNode.h" />
     <ClInclude Include="IndexTreeNodeMemory.h" />
+    <ClInclude Include="IndexTreeRecursor.h" />
     <ClInclude Include="IndexTreeTemplateMemory.h" />
     <ClInclude Include="LinkedListBlock.h" />
     <ClInclude Include="LinkedListTemplate.h" />
@@ -294,6 +295,7 @@
     <ClCompile Include="IndexTreeMemory.cpp" />
     <ClCompile Include="IndexTreeNode.cpp" />
     <ClCompile Include="IndexTreeNodeMemory.cpp" />
+    <ClCompile Include="IndexTreeRecursor.cpp" />
     <ClCompile Include="LinkedListBlock.cpp" />
     <ClCompile Include="ListBlock.cpp" />
     <ClCompile Include="ListVariable.cpp" />

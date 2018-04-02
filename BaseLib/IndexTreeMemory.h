@@ -1,6 +1,7 @@
 #ifndef __INDEX_TREE_MEMORY_H__
 #define __INDEX_TREE_MEMORY_H__
 #include "IndexTreeNodeMemory.h"
+#include "IndexTreeRecursor.h"
 #include "IndexTree.h"
 
 
@@ -83,7 +84,7 @@ protected:
 	int						RecurseCountListSize(CIndexTreeNodeMemory* pcNode);
 	size_t					RecurseByteSize(CIndexTreeNodeMemory* pcNode);
 	BOOL					ValidateLimits(void);
-	BOOL					RecurseValidateLimits(CIndexTreeNodeMemory* pcNode);
+	BOOL					RecurseValidateLimits(CIndexTreeRecursor* pcCursor);
 
 	BOOL					StepNext(SIndexTreeMemoryIterator* psIterator);
 };
