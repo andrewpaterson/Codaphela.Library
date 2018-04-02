@@ -1093,7 +1093,7 @@ BOOL CIndexTreeFile::ValidateLimits(void)
 	CIndexTreeRecursor	cCursor;
 	BOOL				bResult;
 
-	cCursor.Init(FALSE, mpcRoot);
+	cCursor.Init(mpcRoot);
 	bResult = RecurseValidateLimits(&cCursor);
 	cCursor.Kill();
 

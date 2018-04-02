@@ -334,17 +334,17 @@ void CIndexTreeNodeFile::Contain(unsigned char uiIndex)
 	if (mbNodesEmpty == TRUE)
 	{
 		mbNodesEmpty = FALSE;
-		ClearOnlyNode(uiIndex, 0);
+		ClearOnlyNode(uiIndex, INDEX_TREE_FILE_NODE_UNALLOCATED);
 		return;
 	}
 
 	if (uiIndex < muiFirstIndex)
 	{
-		MoveNodesRight(uiIndex, 0);
+		MoveNodesRight(uiIndex, INDEX_TREE_FILE_NODE_UNALLOCATED);
 	}
 	else if (uiIndex > muiLastIndex)
 	{
-		ClearLastNodes(uiIndex, 0);
+		ClearLastNodes(uiIndex, INDEX_TREE_FILE_NODE_UNALLOCATED);
 	}
 }
 
@@ -591,5 +591,57 @@ BOOL CIndexTreeNodeFile::ValidateNodesEmpty(void)
 		}
 		return FALSE;
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexTreeNodeFile::Print(CChars* psz, BOOL bHex)
+{
+	int						i;
+	CIndexTreeChildNode*	pcChild;
+	CIndexTreeChildNode*	acChildren;
+
+	CIndexTreeNode::Print(psz, bHex);
+
+	if (((mbNodesEmpty == TRUE) && (muiLastIndex == 0) && (muiFirstIndex == 0)))
+	{
+		return;
+	}
+
+	psz->Append(" ");
+
+	acChildren = GetNodes();
+	for (i = 0; i <= muiLastIndex - muiFirstIndex; i++)
+	{
+		pcChild = &acChildren[i];
+		if (pcChild->IsValid())
+		{
+			psz->Append("x");
+		}
+		else
+		{
+			psz->Append(".");
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexTreeNodeFile::Dump(void)
+{
+	CChars	sz;
+
+	sz.Init();
+
+	Print(&sz, FALSE);
+	sz.AppendNewLine();
+	sz.Dump();
+	sz.Kill();
 }
 

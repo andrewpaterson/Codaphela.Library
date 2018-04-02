@@ -49,6 +49,8 @@ public:
 	int						WriteToBuffer(void* pvBuffer, int iBufferSize);
 
 	BOOL					ValidateNodesEmpty(void);
+	void					Print(CChars* psz, BOOL bHex);
+	void					Dump(void);
 };
 
 
