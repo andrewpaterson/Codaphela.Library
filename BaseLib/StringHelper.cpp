@@ -566,3 +566,36 @@ int StrEmpty(char* szString)
 	}
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int StrPrintable(char* szString)
+{
+	int				i;
+	unsigned char	c;
+	int				iPrintable;
+
+	if (StrEmpty(szString))
+	{
+		return 0;
+	}
+
+	iPrintable = 0;
+	for (i = 0; ; i++)
+	{
+		c = szString[i];
+		if ((c >= 32) && (c <= 126))
+		{
+			iPrintable++;
+		}
+		else if (c == '\0')
+		{
+			break;
+		}
+	}
+
+	return iPrintable;
+}
+

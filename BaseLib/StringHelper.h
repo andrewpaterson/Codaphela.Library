@@ -41,6 +41,7 @@ void	ToUpper(char* szString);
 char	ToLower(char c);
 char	ToUpper(char c);
 int		StrEmpty(char* szString);
+int		StrPrintable(char* szString);
 
 
 #endif // __STRING_HELPER_H__
