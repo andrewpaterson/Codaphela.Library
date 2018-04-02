@@ -2,6 +2,7 @@
 #define __INDEX_TREE_FILE_H__
 #include "BaseLib/Chars.h"
 #include "BaseLib/IndexTree.h"
+#include "BaseLib/IndexTreeRecursor.h"
 #include "DurableFileController.h"
 #include "IndexTreeNodeFile.h"
 #include "IndexedFiles.h"
@@ -91,7 +92,7 @@ protected:
 	int						RecurseCountListSize(CIndexTreeNodeFile* pcNode);
 	size_t					RecurseByteSize(CIndexTreeNodeFile* pcNode);
 	BOOL					ValidateLimits(void);
-	BOOL					RecurseValidateLimits(CIndexTreeNodeFile* pcNode);
+	BOOL					RecurseValidateLimits(CIndexTreeRecursor* pcCursor);
 
 	BOOL					StepNext(SIndexTreeFileIterator* psIterator);
 

@@ -1023,9 +1023,13 @@ size_t CIndexTreeMemory::RecurseByteSize(CIndexTreeNodeMemory* pcNode)
 BOOL CIndexTreeMemory::ValidateLimits(void)
 {
 	CIndexTreeRecursor	cCursor;
+	BOOL				bResult;
 
-	cCursor.Init(FALSE, mpcRoot);
-	return RecurseValidateLimits(&cCursor);
+	cCursor.Init(mpcRoot);
+	bResult = RecurseValidateLimits(&cCursor);
+	cCursor.Kill();
+
+	return bResult;
 }
 
 
@@ -1047,43 +1051,40 @@ BOOL CIndexTreeMemory::RecurseValidateLimits(CIndexTreeRecursor* pcCursor)
 	pcNode = (CIndexTreeNodeMemory*)pcCursor->GetNode();
 	if (pcNode != NULL)
 	{
-		if (!pcNode->IsEmpty())
+		if (pcNode->HasNodes())
 		{
 			iFirst = pcNode->GetFirstIndex();
 			iLast = pcNode->GetLastIndex();
 
 			if (pcNode != mpcRoot)
 			{
-				if (!pcNode->mbNodesEmpty)
+				if (!pcNode->ContainsIndex(iFirst))
 				{
-					if (!pcNode->ContainsIndex(iFirst))
-					{
-						pcCursor->GenerateBad();
-						gcLogger.Error2(__METHOD__, " Node [", pcCursor->GetBadNode(), "] for key [", pcCursor->GetBadKey(), "] did not contain first index [", IntToString(iFirst), "].", NULL);
-						return FALSE;
-					}
-					if (!pcNode->ContainsIndex(iLast))
-					{
-						pcCursor->GenerateBad();
-						gcLogger.Error2(__METHOD__, " Node [", pcCursor->GetBadNode(), "] for key [", pcCursor->GetBadKey(), "] did not contain last index [", IntToString(iLast), "].", NULL);
-						return FALSE;
-					}
+					pcCursor->GenerateBad();
+					gcLogger.Error2(__METHOD__, " Node [", pcCursor->GetBadNode(), "] for key [", pcCursor->GetBadKey(), "] did not contain first index [", IntToString(iFirst), "].", NULL);
+					return FALSE;
+				}
+				if (!pcNode->ContainsIndex(iLast))
+				{
+					pcCursor->GenerateBad();
+					gcLogger.Error2(__METHOD__, " Node [", pcCursor->GetBadNode(), "] for key [", pcCursor->GetBadKey(), "] did not contain last index [", IntToString(iLast), "].", NULL);
+					return FALSE;
+				}
 
-					pcFirst = pcNode->Get(iFirst);
-					if (pcFirst == NULL)
-					{
-						pcCursor->GenerateBad();
-						gcLogger.Error2(__METHOD__, " Node [", pcCursor->GetBadNode(), "] for key [", pcCursor->GetBadKey(), "] first child [", IntToString(iFirst), "] was NULL.", NULL);
-						return FALSE;
-					}
+				pcFirst = pcNode->Get(iFirst);
+				if (pcFirst == NULL)
+				{
+					pcCursor->GenerateBad();
+					gcLogger.Error2(__METHOD__, " Node [", pcCursor->GetBadNode(), "] for key [", pcCursor->GetBadKey(), "] first child [", IntToString(iFirst), "] was NULL.", NULL);
+					return FALSE;
+				}
 
-					pcLast = pcNode->Get(iLast);
-					if (pcLast == NULL)
-					{
-						pcCursor->GenerateBad();
-						gcLogger.Error2(__METHOD__, " Node [", pcCursor->GetBadNode(), "] for key [", pcCursor->GetBadKey(), "] last child [", IntToString(iFirst), "] was NULL.", NULL);
-						return FALSE;
-					}
+				pcLast = pcNode->Get(iLast);
+				if (pcLast == NULL)
+				{
+					pcCursor->GenerateBad();
+					gcLogger.Error2(__METHOD__, " Node [", pcCursor->GetBadNode(), "] for key [", pcCursor->GetBadKey(), "] last child [", IntToString(iFirst), "] was NULL.", NULL);
+					return FALSE;
 				}
 			}
 

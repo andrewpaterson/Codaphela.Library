@@ -443,3 +443,38 @@ void CIndexTreeNode::ChangeDataSize(unsigned char uiSize)
 	muiDataSize = uiSize;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexTreeNode::Print(CChars* psz, BOOL bHex)
+{
+	if (IsEmpty())
+	{
+		psz->Append("Empty");
+	}
+	else
+	{
+		if (!bHex)
+		{
+			psz->Append((int)GetFirstIndex());
+			psz->Append(":");
+			psz->Append((int)GetLastIndex());
+		}
+		else
+		{
+			psz->Append((int)GetFirstIndex(), 16);
+			psz->Append(":");
+			psz->Append((int)GetLastIndex(), 16);
+		}
+	}
+
+	if (GetObjectSize() > 0)
+	{
+		psz->Append(" (");
+		psz->Append((int)GetObjectSize());
+		psz->Append(")");
+	}
+}
+

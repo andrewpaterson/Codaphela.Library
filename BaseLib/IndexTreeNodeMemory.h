@@ -31,6 +31,8 @@ public:
 	void					SetChildsParent(void);
 
 	BOOL					ValidateNodesEmpty(void);
+	void					Print(CChars* psz, BOOL bHex);
+	void					Dump(void);
 };
 
 

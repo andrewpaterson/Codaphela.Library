@@ -342,7 +342,7 @@ CIndexTreeNodeFile* CIndexTreeFile::ReadNode(CIndexTreeNodeFile* pcParent, unsig
 		}
 		else
 		{
-			gcLogger.Error2(__METHOD__, " Child node [", IntToString((int)c), "] is corrupt.", NULL);
+			gcLogger.Error2(__METHOD__, " Child node [", IntToString((int)c), "] is corrupt.  Type is [", pcChild->u.msType.iType, "].", NULL);
 			return NULL;
 		}
 	}
@@ -1090,7 +1090,14 @@ size_t CIndexTreeFile::RecurseByteSize(CIndexTreeNodeFile* pcNode)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeFile::ValidateLimits(void)
 {
-	return RecurseValidateLimits(mpcRoot);
+	CIndexTreeRecursor	cCursor;
+	BOOL				bResult;
+
+	cCursor.Init(FALSE, mpcRoot);
+	bResult = RecurseValidateLimits(&cCursor);
+	cCursor.Kill();
+
+	return bResult;
 }
 
 
@@ -1098,7 +1105,7 @@ BOOL CIndexTreeFile::ValidateLimits(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::RecurseValidateLimits(CIndexTreeNodeFile* pcNode)
+BOOL CIndexTreeFile::RecurseValidateLimits(CIndexTreeRecursor* pcCursor)
 {
 	int						i;
 	CIndexTreeNodeFile*		pcChild;
@@ -1107,49 +1114,62 @@ BOOL CIndexTreeFile::RecurseValidateLimits(CIndexTreeNodeFile* pcNode)
 	BOOL					bResult;
 	CIndexTreeChildNode*	pcFirst;
 	CIndexTreeChildNode*	pcLast;
+	CIndexTreeNodeFile*	pcNode;
 
+	pcNode = (CIndexTreeNodeFile*)pcCursor->GetNode();
 	if (pcNode != NULL)
 	{
-		if (!pcNode->IsEmpty())
+		if (!pcNode->mbNodesEmpty)
 		{
 			iFirst = pcNode->GetFirstIndex();
 			iLast = pcNode->GetLastIndex();
-			if (!pcNode->ContainsIndex(iFirst))
-			{
-				gcLogger.Error2(__METHOD__, " Node did not contain first index.", NULL);
-				return FALSE;
-			}
-			if (!pcNode->ContainsIndex(iLast))
-			{
-				gcLogger.Error2(__METHOD__, " Node did not contain last index.", NULL);
-				return FALSE;
-			}
 
-			pcFirst = pcNode->Get(iFirst);
-			if (!pcFirst->IsValid())
+			if (pcNode != mpcRoot)
 			{
-				gcLogger.Error2(__METHOD__, " First node was not a file or memory node.", NULL);
-				return FALSE;
-			}
+				if (!pcNode->ContainsIndex(iFirst))
+				{
+					pcCursor->GenerateBad();
+					gcLogger.Error2(__METHOD__, " Node [", pcCursor->GetBadNode(), "] for key [", pcCursor->GetBadKey(), "] did not contain first index [", IntToString(iFirst), "].", NULL);
+					return FALSE;
+				}
+				if (!pcNode->ContainsIndex(iLast))
+				{
+					pcCursor->GenerateBad();
+					gcLogger.Error2(__METHOD__, " Node [", pcCursor->GetBadNode(), "] for key [", pcCursor->GetBadKey(), "] did not contain last index [", IntToString(iLast), "].", NULL);
+					return FALSE;
+				}
 
-			pcLast = pcNode->Get(iLast);
-			if (!pcLast->IsValid())
-			{
-				gcLogger.Error2(__METHOD__, " Last node was not a file or memory node.", NULL);
-				return FALSE;
+				pcFirst = pcNode->Get(iFirst);
+				if (pcFirst == NULL)
+				{
+					pcCursor->GenerateBad();
+					gcLogger.Error2(__METHOD__, " Node [", pcCursor->GetBadNode(), "] for key [", pcCursor->GetBadKey(), "] first child [", IntToString(iFirst), "] was not a file or memory node.", NULL);
+					return FALSE;
+				}
+
+				pcLast = pcNode->Get(iLast);
+				if (pcLast == NULL)
+				{
+					pcCursor->GenerateBad();
+					gcLogger.Error2(__METHOD__, " Node [", pcCursor->GetBadNode(), "] for key [", pcCursor->GetBadKey(), "] last child [", IntToString(iFirst), "] was not a file or memory node.", NULL);
+					return FALSE;
+				}
 			}
 
 			for (i = iFirst; i <= iLast; i++)
 			{
 				pcChild = ReadNode(pcNode, i);
-				bResult = RecurseValidateLimits(pcChild);
+				pcCursor->Push(pcChild, i);
+				bResult = RecurseValidateLimits(pcCursor);
 				if (!bResult)
 				{
+					pcCursor->Pop();
 					return FALSE;
 				}
 			}
 		}
 	}
+	pcCursor->Pop();
 	return TRUE;
 }
 

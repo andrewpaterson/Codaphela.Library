@@ -7,14 +7,13 @@ class CIndexTreeRecursor
 {
 private:
 	CArrayChar			macKey;
-	BOOL				mbPrintReversed;
 	CIndexTreeNode*		mpcCurrent;
 
 	CChars				mszBadKey;
 	CChars				mszBadNode;
 
 public:
-	void				Init(BOOL bPrintReversed, CIndexTreeNode* pcRoot);
+	void				Init(CIndexTreeNode* pcRoot);
 	void				Kill(void);
 
 	void				Push(CIndexTreeNode* pcChild, char c);

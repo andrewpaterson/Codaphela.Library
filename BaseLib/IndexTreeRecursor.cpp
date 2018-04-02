@@ -7,10 +7,9 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeRecursor::Init(BOOL bPrintReversed, CIndexTreeNode* pcRoot)
+void CIndexTreeRecursor::Init(CIndexTreeNode* pcRoot)
 {
 	macKey.Init(256);
-	mbPrintReversed = bPrintReversed;
 	mpcCurrent = pcRoot;
 
 	mszBadKey.Init();
@@ -94,48 +93,24 @@ BOOL CIndexTreeRecursor::GenerateBadKey(void)
 		{
 			mszBadKey.Append("0x");
 
-			if (mbPrintReversed)
+			sz.Init();
+
+			for (i = 0; i < iKeyLength; i++)
 			{
-				sz.Init();
+				c = macKey.GetValue(i);
 
-				for (i = iKeyLength - 1; i >= 0; i--)
+				sz.Clear();
+				sz.Append((int)c, 16);
+				sz.RightAlign('0', 2);
+
+				mszBadKey.Append(sz);
+				if (i != iKeyLength-1)
 				{
-					c = macKey.GetValue(i);
-
-					sz.Clear();
-					sz.Append((int)c, 16);
-					sz.RightAlign('0', 2);
-
-					mszBadKey.Append(sz);
-					if (i != iKeyLength - 1)
-					{
-						mszBadKey.Append(' ');
-					}
+					mszBadKey.Append(' ');
 				}
-
-				sz.Kill();
 			}
-			else
-			{
-				sz.Init();
 
-				for (i = 0; i < iKeyLength; i++)
-				{
-					c = macKey.GetValue(i);
-
-					sz.Clear();
-					sz.Append((int)c, 16);
-					sz.RightAlign('0', 2);
-
-					mszBadKey.Append(sz);
-					if (i != iKeyLength-1)
-					{
-						mszBadKey.Append(' ');
-					}
-				}
-
-				sz.Kill();
-			}
+			sz.Kill();
 		}
 		return TRUE;
 	}
@@ -152,32 +127,7 @@ BOOL CIndexTreeRecursor::GenerateBadKey(void)
 //////////////////////////////////////////////////////////////////////////
 void CIndexTreeRecursor::GenerateBadNode(BOOL bHex)
 {
-	if (mpcCurrent->IsEmpty())
-	{
-		mszBadNode.Append("Empty");
-	}
-	else
-	{
-		if (!bHex)
-		{
-			mszBadNode.Append((int)mpcCurrent->GetFirstIndex());
-			mszBadNode.Append(":");
-			mszBadNode.Append((int)mpcCurrent->GetLastIndex());
-		}
-		else
-		{
-			mszBadNode.Append((int)mpcCurrent->GetFirstIndex(), 16);
-			mszBadNode.Append(":");
-			mszBadNode.Append((int)mpcCurrent->GetLastIndex(), 16);
-		}
-	}
-
-	if (mpcCurrent->GetObjectSize() > 0)
-	{
-		mszBadNode.Append(" (");
-		mszBadNode.Append((int)mpcCurrent->GetObjectSize());
-		mszBadNode.Append(")");
-	}
+	mpcCurrent->Print(&mszBadNode, bHex);
 }
 
 

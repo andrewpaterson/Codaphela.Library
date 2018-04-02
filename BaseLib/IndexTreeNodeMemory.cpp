@@ -350,3 +350,55 @@ BOOL CIndexTreeNodeMemory::ValidateNodesEmpty(void)
 	}
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexTreeNodeMemory::Print(CChars* psz, BOOL bHex)
+{
+	int						i;
+	CIndexTreeNodeMemory*	pcChild;
+	CIndexTreeNodeMemory**	apcChildren;
+
+	CIndexTreeNode::Print(psz, bHex);
+
+	if (((mbNodesEmpty == TRUE) && (muiLastIndex == 0) && (muiFirstIndex == 0)))
+	{
+		return;
+	}
+
+	psz->Append(" ");
+
+	apcChildren = GetNodes();
+	for (i = 0; i <= muiLastIndex - muiFirstIndex; i++)
+	{
+		pcChild = apcChildren[i];
+		if (pcChild != NULL)
+		{
+			psz->Append("x");
+		}
+		else
+		{
+			psz->Append(".");
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexTreeNodeMemory::Dump(void)
+{
+	CChars	sz;
+
+	sz.Init();
+
+	Print(&sz, FALSE);
+	sz.AppendNewLine();
+	sz.Dump();
+	sz.Kill();
+}
+

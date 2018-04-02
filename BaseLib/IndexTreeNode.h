@@ -60,6 +60,8 @@ public:
 
 	size_t					SizeofNode(void);
 	size_t					SizeofNodePtr(void);
+
+	void					Print(CChars* psz, BOOL bHex);
 };
 
 
