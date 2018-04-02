@@ -1,7 +1,8 @@
-#ifndef __INDEX_TREE_BLOCK_MEMORY_H__
-#define __INDEX_TREE_BLOCK_MEMORY_H__
+#ifndef __INDEX_TREE_MEMORY_H__
+#define __INDEX_TREE_MEMORY_H__
 #include "IndexTreeNodeMemory.h"
 #include "IndexTree.h"
+
 
 struct SIndexTreeMemoryIterator
 {
@@ -19,38 +20,35 @@ protected:
 public:
 	void					Init(void);
 	void					Init(CMallocator* pcMalloc);
-	void					FakeInit(void);
 	void					Kill(void);
-	void					RecurseKill(CIndexTreeNodeMemory* pcNode);
 
-	void*					Get(char* pszKey);
 	void*					Get(void* pvKey, int iKeySize);
+	void*					Put(void* pvKey, int iKeySize, void* pvObject, unsigned char uiDataSize);
+	BOOL					Remove(void* pvKey, int iKeySize);
+	BOOL					HasKey(void* pvKey, int iKeySize);
+	void					FindAll(CArrayVoidPtr* papvElements);
+	int						GetKey(void* pvKey, void* pvData, BOOL zeroTerminate = FALSE);
 
 	int						NumElements(void);
-	int						GetLargestKeySize(void);
-	int						GetKey(void* pvKey, void* pvData, BOOL zeroTerminate = FALSE);
 
 	BOOL					StartIteration(SIndexTreeMemoryIterator* psIterator, void** pvData, int* piDataSize);
 	BOOL					Iterate(SIndexTreeMemoryIterator* psIterator, void** pvData, int* piDataSize);
 
+	void*					Get(char* pszKey);
+
 	void*					Put(char* pszKey, void* pvObject, unsigned char uiDataSize);
-	void*					Put(void* pvKey, int iKeySize, void* pvObject, unsigned char uiDataSize);
 	void*					Put(void* pvKey, int iKeySize, unsigned char uiDataSize);
-
-	BOOL					Remove(char* pszKey);
-	BOOL					Remove(void* pvKey, int iKeySize);
-
-	BOOL					HasKey(char* pszKey);
-	BOOL					HasKey(void* pvKey, int iKeySize);
-
-	void					FindAll(CArrayVoidPtr* papvElements);
-
 	BOOL					PutPtr(char* pszKey, void* pvPointer);
 	BOOL					PutPtr(void* pvKey, int iKeySize, void* pvPointer);
 	BOOL					PutLong(char* pszKey, int64 lliIndex);
 	BOOL					PutLong(void* pvKey, int iKeySize, int64 lliIndex);
 
-	CIndexTreeNodeMemory*	GetIndexNode(void* pvKey, int iKeySize);
+	BOOL					Remove(char* pszKey);
+
+	BOOL					HasKey(char* pszKey);
+
+	int						GetLargestKeySize(void);
+	CIndexTreeNodeMemory*	GetNode(void* pvKey, int iKeySize);
 	CIndexTreeNodeMemory*	GetRoot(void);
 	CIndexTreeNodeMemory*	GetNodeForData(void* pvData);
 	int						CountAllocatedNodes(void);
@@ -59,6 +57,9 @@ public:
 
 	BOOL					Write(CFileWriter* pcFileWriter);
 	BOOL					Read(CFileReader* pcFileReader);
+
+	void					FakeInit(void);
+	void					RecurseKill(CIndexTreeNodeMemory* pcNode);
 
 	BOOL					ValidateIndexTree(void);
 	BOOL					ValidateSize(void);
@@ -81,10 +82,12 @@ protected:
 	int						CountListSize(void);
 	int						RecurseCountListSize(CIndexTreeNodeMemory* pcNode);
 	size_t					RecurseByteSize(CIndexTreeNodeMemory* pcNode);
+	BOOL					ValidateLimits(void);
+	BOOL					RecurseValidateLimits(CIndexTreeNodeMemory* pcNode);
 
 	BOOL					StepNext(SIndexTreeMemoryIterator* psIterator);
 };
 
 
-#endif // __INDEX_TREE_BLOCK_MEMORY_H__
+#endif // __INDEX_TREE_BLOCK_H__
 

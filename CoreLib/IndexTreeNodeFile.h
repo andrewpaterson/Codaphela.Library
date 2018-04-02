@@ -25,10 +25,12 @@ public:
 	void					Set(unsigned char uiIndex, CIndexTreeNodeFile* pcNode);
 	void					Set(unsigned char uiIndex, CFileIndex cFileNode);
 
-	BOOL					Clear(unsigned char uiIndex);
+	void					Clear(unsigned char uiIndex);
+	BOOL					ClearAndUncontain(unsigned char uiIndex);
 
 	CIndexTreeChildNode*	GetNode(int i);
 	CIndexTreeChildNode*	GetNodes(void);
+	CIndexTreeChildNode*	GetFirstNode(void);
 	int						NumInitialisedIndexes(void);
 
 	void					Contain(unsigned char uiIndex);
@@ -39,6 +41,7 @@ public:
 	unsigned char			FindPrevLastIndex(void);
 	unsigned char			FindNextFirstIndex(void);
 	unsigned char			FindIndex(CIndexTreeChildNode* pcChild);
+	unsigned char			FindIndex(CIndexTreeNodeFile* pcChild);
 
 	void					SetChildsParent(void);
 
