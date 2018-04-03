@@ -423,7 +423,7 @@ int FixBool(void* pv)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL FixBool(BOOL i)
+BOOL FixBool(int i)
 {
 	if (i)
 		return TRUE;
