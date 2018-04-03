@@ -326,7 +326,7 @@ void* CIndexTreeMemory::Put(void* pvKey, int iKeySize, void* pvObject, unsigned 
 		miSize++;
 	}
 
-	if (pcCurrent->muiDataSize <= uiDataSize)
+	if (pcCurrent->GetObjectSize() <= uiDataSize)
 	{ 
 		pcReallocatedCurrent = ReallocateNodeForLargerData(pcCurrent, uiDataSize);
 		bResult = pcReallocatedCurrent->SetObject(pvObject, uiDataSize);

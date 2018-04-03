@@ -491,7 +491,7 @@ BOOL CIndexTreeFile::Put(void* pvKey, int iKeySize, void* pvObject, unsigned cha
 		miSize++;
 	}
 
-	if (pcCurrent->muiDataSize <= uiDataSize)
+	if (pcCurrent->GetObjectSize() <= uiDataSize)
 	{
 		pcReallocatedCurrent = ReallocateNodeForLargerData(pcCurrent, uiDataSize);
 		bResult = pcReallocatedCurrent->SetObject(pvObject, uiDataSize);

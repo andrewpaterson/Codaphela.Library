@@ -17,56 +17,58 @@
 class CIndexTree;
 class CIndexTreeNode
 {
-public:
-	CIndexTree*				mpcIndexTree;
-	CIndexTreeNode*			mpcParent;
-	unsigned char			muiFirstIndex;
-	unsigned char			muiLastIndex;  // Inclusive (because 255 is a legitimate last index and 256 can't be represented)
-	unsigned char			muiDataSize;   // Size of object "pointed" to by this node.  The object is small: usually a OIndex, a pointer or a CFileId.
-	unsigned char			msFlags;
+protected:
+	CIndexTree*			mpcIndexTree;
+	CIndexTreeNode*		mpcParent;
+	unsigned char		muiFirstIndex;
+	unsigned char		muiLastIndex;  // Inclusive (because 255 is a legitimate last index and 256 can't be represented)
+	unsigned char		muiDataSize;   // Size of object "pointed" to by this node.  The object is small: usually a OIndex, a pointer or a CFileId.
+	unsigned char		msFlags;
 
 public:
-	void					Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex, unsigned char uiDataSize, int iClearValue);
-	void					Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent);
+	void			Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex, unsigned char uiDataSize, int iClearValue);
+	void			Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent);
 
-	void					ChangeDataSize(unsigned char uiSize);
-	BOOL					SetObject(void* pvObject, unsigned char uiSize);
-	void					ClearObject(void);
+	void			ChangeDataSize(unsigned char uiSize);
+	BOOL			SetObject(void* pvObject, unsigned char uiSize);
+	void			ClearObject(void);
 
-	unsigned char			GetObjectSize(void);
-	void*					GetObjectPtr(void);
-	BOOL					HasObject(void);
+	unsigned char	GetObjectSize(void);
+	void*			GetObjectPtr(void);
+	BOOL			HasObject(void);
 
-	void*					GetNodesMemory(void);
+	void*			GetNodesMemory(void);
 
-	CIndexTreeNode*			GetParent(void);
+	CIndexTreeNode*	GetParent(void);
 
-	int						GetNumIndexes(void);
-	int						GetNumIndexes(unsigned char uiFirstIndex, unsigned char uiLastIndex);
-	int						GetAdditionalIndexes(unsigned char uiIndex);
+	int				GetNumIndexes(void);
+	int				GetNumIndexes(unsigned char uiFirstIndex, unsigned char uiLastIndex);
+	int				GetAdditionalIndexes(unsigned char uiIndex);
 
-	BOOL					IsEmpty(void);
-	unsigned char			GetFirstIndex(void);
-	unsigned char			GetLastIndex(void);
-	BOOL					HasNodes(void);
-	unsigned char			NumNodes(void);
-	BOOL					ContainsIndex(unsigned char uiIndex);
-	void					SetNodesEmpty(BOOL bEmpty);
+	BOOL			IsEmpty(void);
+	BOOL			IsDirty(void);
+	unsigned char	GetFirstIndex(void);
+	unsigned char	GetLastIndex(void);
+	BOOL			HasNodes(void);
+	unsigned char	NumNodes(void);
+	BOOL			ContainsIndex(unsigned char uiIndex);
+	void			SetNodesEmpty(BOOL bEmpty);
+	void			SetDirty(BOOL bDirty);
 
-	void					ClearOnlyNode(unsigned char uiIndex, int iClearValue);
-	void					MoveNodesLeft(unsigned char uiNextFirstIndex);
-	void					MoveNodesRight(unsigned char uiNewFirstIndex, int iClearValue);
-	void					ClearLastNodes(unsigned char uiNewLastIndex, int iClearValue);
+	void			ClearOnlyNode(unsigned char uiIndex, int iClearValue);
+	void			MoveNodesLeft(unsigned char uiNextFirstIndex);
+	void			MoveNodesRight(unsigned char uiNewFirstIndex, int iClearValue);
+	void			ClearLastNodes(unsigned char uiNewLastIndex, int iClearValue);
 
-	size_t					CalculateRequiredNodeSizeForIndex(unsigned char uiIndex);
-	size_t					CalculateRequiredNodeSizeForEmpty(void);
-	size_t					CalculateRequiredNodeSizeForData(unsigned char uiDataSize);
-	size_t					CalculateRequiredNodeSizeForCurrent(void);
+	size_t			CalculateRequiredNodeSizeForIndex(unsigned char uiIndex);
+	size_t			CalculateRequiredNodeSizeForEmpty(void);
+	size_t			CalculateRequiredNodeSizeForData(unsigned char uiDataSize);
+	size_t			CalculateRequiredNodeSizeForCurrent(void);
 
-	size_t					SizeofNode(void);
-	size_t					SizeofNodePtr(void);
+	size_t			SizeofNode(void);
+	size_t			SizeofNodePtr(void);
 
-	void					Print(CChars* psz, BOOL bHex);
+	void			Print(CChars* psz, BOOL bHex);
 };
 
 

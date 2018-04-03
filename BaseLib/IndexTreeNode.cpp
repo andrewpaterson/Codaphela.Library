@@ -324,6 +324,16 @@ BOOL CIndexTreeNode::IsEmpty(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeNode::IsDirty(void)
+{
+	return FixBool(msFlags & INDEX_TREE_NODE_FLAG_DIRTY);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 unsigned char CIndexTreeNode::GetFirstIndex(void)
 {
 	return muiFirstIndex;
@@ -392,7 +402,6 @@ BOOL CIndexTreeNode::ContainsIndex(unsigned char uiIndex)
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -408,6 +417,25 @@ void CIndexTreeNode::SetNodesEmpty(BOOL bEmpty)
 	else
 	{
 		msFlags &= ~INDEX_TREE_NODE_FLAG_EMPTY;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexTreeNode::SetDirty(BOOL bDirty)
+{
+	//If the value is true then OR it with dest.
+	if (bDirty)
+	{
+		msFlags |= INDEX_TREE_NODE_FLAG_DIRTY;
+	}
+	//If the value is false then negate and and it with dest.
+	else
+	{
+		msFlags &= ~INDEX_TREE_NODE_FLAG_DIRTY;
 	}
 }
 

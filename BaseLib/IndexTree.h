@@ -17,20 +17,20 @@ protected:
 	size_t			mtSizeofNodePtr;
 
 public:
-	void				Init(CMallocator* pcMalloc, size_t tSizeofNode, size_t tSizeofNodePtr);
+	void	Init(CMallocator* pcMalloc, size_t tSizeofNode, size_t tSizeofNodePtr);
 
-	size_t				SizeofNode(void);
-	size_t				SizeofNodePtr(void);
+	size_t	SizeofNode(void);
+	size_t	SizeofNodePtr(void);
 
-	size_t				CalculateRootNodeSize(void);
-	size_t				CalculateNodeSize(int iRequiredIndices, int iDataSize);
+	size_t	CalculateRootNodeSize(void);
+	size_t	CalculateNodeSize(int iRequiredIndices, int iDataSize);
 
 protected:
-	void*				Malloc(size_t tSize);
-	void*				Realloc(void* pv, size_t tNewSize, size_t tExistingSize);
-	void				Free(void* pv);
+	void*	Malloc(size_t tSize);
+	void*	Realloc(void* pv, size_t tNewSize, size_t tExistingSize);
+	void	Free(void* pv);
 
-	void				FreeNode(CIndexTreeNode* pcNode);
+	void	FreeNode(CIndexTreeNode* pcNode);
 };
 
 
