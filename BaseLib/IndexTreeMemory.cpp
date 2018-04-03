@@ -154,10 +154,11 @@ CIndexTreeNodeMemory* CIndexTreeMemory::GetNode(void* pvKey, int iKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CIndexTreeMemory::Get(void* pvKey, int iKeySize)
+void* CIndexTreeMemory::Get(void* pvKey, int iKeySize, unsigned char* puiDataSize)
 {
-	CIndexTreeNodeMemory* pcNode;
-	void*			pv;
+	CIndexTreeNodeMemory*	pcNode;
+	void*					pv;
+	unsigned char			uiDataSize;
 
 	pcNode = GetNode(pvKey, iKeySize);
 	if (pcNode == NULL)
@@ -166,13 +167,30 @@ void* CIndexTreeMemory::Get(void* pvKey, int iKeySize)
 	}
 	else
 	{
-		if (pcNode->GetObjectSize() == 0)
+		uiDataSize = pcNode->GetObjectSize();
+		if (puiDataSize)
+		{
+			*puiDataSize = uiDataSize;
+		}
+
+		if (uiDataSize == 0)
 		{
 			return NULL;
 		}
+
 		pv = pcNode->GetObjectPtr();
 		return pv;
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void* CIndexTreeMemory::Get(void* pvKey, int iKeySize)
+{
+	return Get(pvKey, iKeySize, NULL);
 }
 
 

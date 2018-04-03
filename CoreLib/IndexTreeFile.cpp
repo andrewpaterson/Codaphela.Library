@@ -405,43 +405,37 @@ CIndexTreeNodeFile* CIndexTreeFile::ReadNode(CIndexTreeChildNode* pcChild)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CIndexTreeFile::Get(void* pvKey, int iKeySize)
+BOOL CIndexTreeFile::Get(void* pvKey, int iKeySize, void* pvObject, unsigned char* puiDataSize)
 {
 	CIndexTreeNodeFile* pcNode;
 	void*				pv;
+	unsigned char		uiDataSize;
 
 	pcNode = GetNode(pvKey, iKeySize);
 	if (pcNode == NULL)
 	{
-		return NULL;
+		return FALSE;
 	}
 	else
 	{
-		if (pcNode->GetObjectSize() == 0)
+		uiDataSize = pcNode->GetObjectSize();
+		if (puiDataSize)
 		{
-			return NULL;
+			*puiDataSize = uiDataSize;
 		}
+
+		if (uiDataSize == 0)
+		{
+			return FALSE;
+		}
+
 		pv = pcNode->GetObjectPtr();
-		return pv;
+		if (pvObject)
+		{
+			memcpy(pvObject, pv, uiDataSize);
+		}
+		return TRUE;
 	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void* CIndexTreeFile::Get(char* pszKey)
-{
-	int		iKeySize;
-
-	if (StrEmpty(pszKey))
-	{
-		return NULL;
-	}
-
-	iKeySize = strlen(pszKey);
-	return Get(pszKey, iKeySize);
 }
 
 

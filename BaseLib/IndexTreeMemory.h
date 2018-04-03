@@ -23,7 +23,7 @@ public:
 	void					Init(CMallocator* pcMalloc);
 	void					Kill(void);
 
-	void*					Get(void* pvKey, int iKeySize);
+	void*					Get(void* pvKey, int iKeySize, unsigned char* puiDataSize);
 	void*					Put(void* pvKey, int iKeySize, void* pvObject, unsigned char uiDataSize);
 	BOOL					Remove(void* pvKey, int iKeySize);
 	BOOL					HasKey(void* pvKey, int iKeySize);
@@ -35,6 +35,7 @@ public:
 	BOOL					StartIteration(SIndexTreeMemoryIterator* psIterator, void** pvData, int* piDataSize);
 	BOOL					Iterate(SIndexTreeMemoryIterator* psIterator, void** pvData, int* piDataSize);
 
+	void*					Get(void* pvKey, int iKeySize);
 	void*					Get(char* pszKey);
 
 	void*					Put(char* pszKey, void* pvObject, unsigned char uiDataSize);

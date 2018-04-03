@@ -15,7 +15,7 @@ public:
 
 protected:
 	BOOL	Put(void* pvKey, int iKeySize, void* pvObject, unsigned char uiDataSize);
-	void*	Get(void* pvKey, int iKeySize);
+	BOOL	Get(void* pvKey, int iKeySize, void* pvObject, int* piDataSize);
 	BOOL	Remove(void* pvKey, int iKeySize);
 };
 

@@ -145,17 +145,16 @@ BOOL CIndexTreeAccess::Put(void* pvKey, int iKeySize, unsigned char uiDataSize)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeAccess::GetLongString(int64 lliKey, char* pszDest)
 {
-	void *pvResult;
+	BOOL	bResult;
 
-	pvResult = Get(&lliKey, sizeof(int64));
-	if (pvResult == NULL)
+	bResult = Get(&lliKey, sizeof(int64), pszDest, NULL);
+	if (!bResult)
 	{
 		pszDest[0] = 0;
 		return FALSE;
 	}
 	else
 	{
-		strcpy(pszDest, (char*)pvResult);
 		return TRUE;
 	}
 }

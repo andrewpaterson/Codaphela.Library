@@ -37,9 +37,18 @@ BOOL CIndexTreeFileAccess::Put(void* pvKey, int iKeySize, void* pvObject, unsign
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CIndexTreeFileAccess::Get(void* pvKey, int iKeySize)
+BOOL CIndexTreeFileAccess::Get(void* pvKey, int iKeySize, void* pvObject, int* piDataSize)
 {
-	return mpcTree->Get(pvKey, iKeySize);
+	unsigned char	uiDataSize;
+	BOOL			bResult;
+
+	bResult = mpcTree->Get(pvKey, iKeySize, pvObject, &uiDataSize);
+
+	if (piDataSize)
+	{
+		*piDataSize = uiDataSize;
+	}
+	return bResult;
 }
 
 

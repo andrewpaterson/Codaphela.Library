@@ -40,9 +40,30 @@ BOOL CIndexTreeMemoryAccess::Put(void* pvKey, int iKeySize, void* pvObject, unsi
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CIndexTreeMemoryAccess::Get(void* pvKey, int iKeySize)
+BOOL CIndexTreeMemoryAccess::Get(void* pvKey, int iKeySize, void* pvObject, int* piDataSize)
 {
-	return mpcTree->Get(pvKey, iKeySize);
+	void*			pvResult;
+	unsigned char	uiDataSize;
+
+	pvResult = mpcTree->Get(pvKey, iKeySize, &uiDataSize);
+	
+	if (piDataSize)
+	{
+		*piDataSize = uiDataSize;
+	}
+
+	if (pvResult)
+	{
+		if (pvObject)
+		{
+			memcpy(pvObject, pvResult, uiDataSize);
+		}
+		return TRUE;
+	}
+	else
+	{
+		return FALSE;
+	}
 }
 
 

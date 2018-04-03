@@ -52,6 +52,7 @@ void CGuidClass::Init(char8* sz)
 
 	cParser.Init(sz);
 	tOpenCurly = cParser.GetExactCharacter('{');
+	tOpenRound = TRIERROR;
 	if (tOpenCurly == TRIERROR)
 	{
 		cParser.Kill();
@@ -62,7 +63,6 @@ void CGuidClass::Init(char8* sz)
 	{
 		tOpenRound = cParser.GetExactCharacter('(');
 	}
-
 
 	tResult = cParser.GetHexadecimal(&uiValue, &iLength);
 	if (tResult == TRITRUE)

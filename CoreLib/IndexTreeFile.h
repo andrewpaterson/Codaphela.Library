@@ -29,7 +29,7 @@ public:
 	BOOL					Init(CDurableFileController* pcDurableFileControl, char* szRootFileName, CMallocator* pcMalloc);
 	void					Kill(void);
 
-	void*					Get(void* pvKey, int iKeySize);
+	BOOL					Get(void* pvKey, int iKeySize, void* pvObject, unsigned char* puiDataSize);
 	BOOL					Put(void* pvKey, int iKeySize, void* pvObject, unsigned char uiDataSize);
 	BOOL					Remove(void* pvKey, int iKeySize);
 	BOOL					HasKey(void* pvKey, int iKeySize);
@@ -38,8 +38,6 @@ public:
 
 	BOOL					StartIteration(SIndexTreeFileIterator* psIterator, void** pvData, int* piDataSize);
 	BOOL					Iterate(SIndexTreeFileIterator* psIterator, void** pvData, int* piDataSize);
-
-	void*					Get(char* pszKey);
 
 	BOOL					Put(char* pszKey, void* pvObject, unsigned char uiDataSize);
 	BOOL					Put(void* pvKey, int iKeySize, unsigned char uiDataSize);

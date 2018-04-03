@@ -27,7 +27,7 @@ protected:
 	virtual BOOL	Put(void* pvKey, int iKeySize, void* pvObject, unsigned char uiDataSize) =0;
 			BOOL	Put(void* pvKey, int iKeySize, unsigned char uiDataSize);
 
-	virtual void*	Get(void* pvKey, int iKeySize) =0;
+	virtual BOOL	Get(void* pvKey, int iKeySize, void* pvObject, int* piDataSize) =0;
 
 	virtual BOOL	Remove(void* pvKey, int iKeySize) =0;
 };
