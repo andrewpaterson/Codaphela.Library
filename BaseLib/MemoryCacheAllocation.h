@@ -1,6 +1,6 @@
 #ifndef __MEMORY_CACHE_ALLOCATION_H__
 #define __MEMORY_CACHE_ALLOCATION_H__
-#include "ArrayIntAndPointer.h"
+#include "ArrayVoidPtr.h"
 
 
 struct SMemoryCacheDescriptor
@@ -17,7 +17,7 @@ class CMemoryCacheAllocation
 friend class CMemoryCache;
 protected:
 	int							miDataSize;
-	CArrayIntAndPointer			mapEvictedCacheDescriptors;  //The Int doesn't seem to be used.  You could probably change this to a CArrayVoidPtr.
+	CArrayVoidPtr				mapEvictedCacheDescriptors; 
 	SMemoryCacheDescriptor*		mpsCacheDesc;
 	unsigned int				miCachedSize;
 	unsigned int				miRemaining;
@@ -30,7 +30,7 @@ public:
 	SMemoryCacheDescriptor*		Get(int iIndex);
 	int							NumElements(void);
 
-	CArrayIntAndPointer*		GetEvictedArray(void);
+	CArrayVoidPtr*				GetEvictedArray(void);
 };
 
 

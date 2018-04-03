@@ -60,7 +60,7 @@ int CMemoryCacheAllocation::NumElements(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CArrayIntAndPointer* CMemoryCacheAllocation::GetEvictedArray(void)
+CArrayVoidPtr* CMemoryCacheAllocation::GetEvictedArray(void)
 {
 	return &mapEvictedCacheDescriptors;
 }
