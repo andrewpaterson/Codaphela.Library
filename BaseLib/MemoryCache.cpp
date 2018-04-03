@@ -106,7 +106,6 @@ BOOL CMemoryCache::PreAllocate(CMemoryCacheAllocation* pcPreAllocationResult)
 	}
 	pcPreAllocationResult->miCachedSize = iCachedSize;
 	pcPreAllocationResult->mpsCacheDesc = psCacheDesc;
-	pcPreAllocationResult->miRemaining = iRemaining;
 
 	return TRUE;
 }

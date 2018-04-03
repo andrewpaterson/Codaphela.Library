@@ -20,7 +20,6 @@ protected:
 	CArrayVoidPtr				mapEvictedCacheDescriptors; 
 	SMemoryCacheDescriptor*		mpsCacheDesc;
 	unsigned int				miCachedSize;
-	unsigned int				miRemaining;
 
 public:
 	void						Init(int iDataSize);

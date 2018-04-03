@@ -12,7 +12,6 @@ void CMemoryCacheAllocation::Init(int iDataSize)
 	
 	mpsCacheDesc = NULL;
 	miCachedSize = 0;
-	miRemaining = 0;
 }
 
 
