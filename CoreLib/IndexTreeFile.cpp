@@ -483,7 +483,7 @@ BOOL CIndexTreeFile::Put(void* pvKey, int iKeySize, void* pvObject, unsigned cha
 	for (int i = 0; i < iKeySize; i++)
 	{
 		c = ((char*)pvKey)[i];
-		pcCurrent = SetOldWithCurrent(pcCurrent, c);
+		pcCurrent = AllocateNodeIfUnallocated(pcCurrent, c);
 	}
 
 	if (!pcCurrent->HasObject())
@@ -505,7 +505,7 @@ BOOL CIndexTreeFile::Put(void* pvKey, int iKeySize, void* pvObject, unsigned cha
 
 	if (pcCurrent != pcReallocatedCurrent)
 	{
-		pcReallocatedCurrent->SetChildsParent();
+		pcReallocatedCurrent->SetChildrensParent();
 	}
 
 	if (bResult)
@@ -536,7 +536,7 @@ BOOL CIndexTreeFile::Put(void* pvKey, int iKeySize, unsigned char uiDataSize)
 //////////////////////////////////////////////////////////////////////////
 CIndexTreeNodeFile* CIndexTreeFile::ReallocateNodeForIndex(CIndexTreeNodeFile* pcNode, unsigned char uiIndex)
 {
-	CIndexTreeNodeFile*	pcOldNode;
+	CIndexTreeNodeFile*		pcOldNode;
 	size_t					tNewNodeSize;
 	size_t					tOldNodeSize;
 
@@ -628,21 +628,21 @@ void CIndexTreeFile::RemapChildParents(CIndexTreeNodeFile* pcOldNode, CIndexTree
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTreeNodeFile* CIndexTreeFile::SetOldWithCurrent(CIndexTreeNodeFile* pcParent, unsigned char c)
+CIndexTreeNodeFile* CIndexTreeFile::AllocateNodeIfUnallocated(CIndexTreeNodeFile* pcParent, unsigned char c)
 {
 	CIndexTreeNodeFile*		pcNew;
 	CIndexTreeChildNode*	pcCurrent;
 	CIndexTreeNodeFile*		pcReallocedParent;
 
 	pcCurrent = pcParent->Get(c);
-	if (pcCurrent == NULL)
+	if (pcCurrent == NULL)  //Uncontained.
 	{
 		pcNew = AllocateNode(pcParent, 0);
 		pcReallocedParent = ReallocateNodeForIndex(pcParent, c);
 		pcReallocedParent->Set(c, pcNew);
 		if (pcParent != pcReallocedParent)
 		{
-			pcReallocedParent->SetChildsParent();
+			pcReallocedParent->SetChildrensParent();
 		}
 		return pcNew;
 	}
@@ -753,7 +753,10 @@ BOOL CIndexTreeFile::Remove(void* pvKey, int iKeySize)
 					pcOldParent = pcParent;
 
 					pcParent = (CIndexTreeNodeFile*)Realloc(pcParent, tNewNodeSize, tOldNodeSize);
-					pcParent->SetChildsParent();
+					if (pcOldParent != pcParent)
+					{
+						pcParent->SetChildrensParent();
+					}
 					RemapChildParents(pcOldParent, pcParent);
 				}
 			}

@@ -43,7 +43,7 @@ public:
 	unsigned char			FindIndex(CIndexTreeChildNode* pcChild);
 	unsigned char			FindIndex(CIndexTreeNodeFile* pcChild);
 
-	void					SetChildsParent(void);
+	void					SetChildrensParent(void);
 
 	int						CalculateBufferSize(void);
 	int						WriteToBuffer(void* pvBuffer, int iBufferSize);

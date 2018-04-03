@@ -385,7 +385,7 @@ BOOL CIndexTreeNodeFile::Uncontain(unsigned char uiIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNodeFile::SetChildsParent(void)
+void CIndexTreeNodeFile::SetChildrensParent(void)
 {
 	int						i;
 	int						iNumNodes;

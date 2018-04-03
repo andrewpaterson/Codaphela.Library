@@ -79,7 +79,7 @@ protected:
 	void					RemapChildParents(CIndexTreeNodeFile* pcOldNode, CIndexTreeNodeFile* pcNode);
 
 
-	CIndexTreeNodeFile*		SetOldWithCurrent(CIndexTreeNodeFile* pcParent, unsigned char c);
+	CIndexTreeNodeFile*		AllocateNodeIfUnallocated(CIndexTreeNodeFile* pcParent, unsigned char c);
 	int						RecurseSize(CIndexTreeNodeFile* pcNode);
 	int						RecurseCountAllocatedNodes(CIndexTreeNodeFile* pcNode);
 	int						CountListSize(void);
