@@ -96,10 +96,10 @@ public:
 protected:
 	void 			InitIndices(CIndexedConfig* pcConfig);
 
-	BOOL			SetData(CIndexedDataDescriptor* pcDescriptor, void* pvData, unsigned int uiTimeStamp);
-	BOOL			SetData(CIndexedDataDescriptor* pcDescriptor, void* pvData, unsigned int uiDataSize, unsigned int uiTimeStamp);
+	BOOL			SetData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, void* pvData, unsigned int uiTimeStamp);
+	BOOL			SetData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, void* pvData, unsigned int uiDataSize, unsigned int uiTimeStamp);
 
-	BOOL			GetData(CIndexedDataDescriptor* pcDescriptor, void* pvData);
+	BOOL			GetData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, void* pvData);
 	BOOL			GetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor);
 
 	BOOL			ClearDescriptorCache(SIndexedCacheDescriptor* psCached);
@@ -107,9 +107,9 @@ protected:
 	BOOL			EvictOverlappingFromCache(CArrayIntAndPointer* papsEvictedIndexedCacheDescriptors);
 
 	void			InvalidateData(CIndexedDataDescriptor* pcDescriptor);
-	BOOL			CacheRead(CIndexedDataDescriptor* pcDescriptor);
-	BOOL			CacheWrite(CIndexedDataDescriptor* pcDescriptor, void* pvData, BOOL* pbWritten);
-	BOOL			Write(CIndexedDataDescriptor* pcDescriptor, void* pvData, unsigned int uiTimeStamp);
+	BOOL			CacheRead(OIndex oi, CIndexedDataDescriptor* pcDescriptor);
+	BOOL			CacheWrite(OIndex oi, CIndexedDataDescriptor* pcDescriptor, void* pvData, BOOL* pbWritten);
+	BOOL			Write(OIndex oi, CIndexedDataDescriptor* pcDescriptor, void* pvData, unsigned int uiTimeStamp);
 
 	BOOL			WriteEvictedData(CArrayIntAndPointer* papsIndexedCacheDescriptors);
 	BOOL			WriteEvictedData(SIndexedCacheDescriptor* psCached);

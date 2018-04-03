@@ -192,13 +192,13 @@ unsigned int CIndexedData::Flags(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedData::Write(CIndexedDataDescriptor* pcDescriptor, void* pvData, unsigned int uiTimeStamp)
+BOOL CIndexedData::Write(OIndex oi, CIndexedDataDescriptor* pcDescriptor, void* pvData, unsigned int uiTimeStamp)
 {
 	BOOL	bWritten;
 	BOOL	bResult;
 
 	pcDescriptor->TimeStamp(uiTimeStamp);
-	bResult = CacheWrite(pcDescriptor, pvData, &bWritten);
+	bResult = CacheWrite(oi, pcDescriptor, pvData, &bWritten);
 	if (bResult)
 	{
 		if (!bWritten && mbWriteThrough)
@@ -222,7 +222,7 @@ BOOL CIndexedData::Write(CIndexedDataDescriptor* pcDescriptor, void* pvData, uns
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedData::CacheRead(CIndexedDataDescriptor* pcDescriptor)
+BOOL CIndexedData::CacheRead(OIndex oi, CIndexedDataDescriptor* pcDescriptor)
 {
 	BOOL					bResult;
 	CMemoryCacheAllocation	cPreAllocated;
@@ -239,7 +239,7 @@ BOOL CIndexedData::CacheRead(CIndexedDataDescriptor* pcDescriptor)
 				return FALSE;
 			}
 
-			bResult = mcDataCache.Allocate(pcDescriptor, &cPreAllocated);
+			bResult = mcDataCache.Allocate(oi, pcDescriptor, &cPreAllocated);
 			if (!bResult)
 			{
 				cPreAllocated.Kill();
@@ -273,7 +273,7 @@ BOOL CIndexedData::CacheRead(CIndexedDataDescriptor* pcDescriptor)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedData::CacheWrite(CIndexedDataDescriptor* pcDescriptor, void* pvData, BOOL* pbWritten)
+BOOL CIndexedData::CacheWrite(OIndex oi, CIndexedDataDescriptor* pcDescriptor, void* pvData, BOOL* pbWritten)
 {
 	BOOL					bResult;
 	CMemoryCacheAllocation	cPreAllocated;
@@ -291,7 +291,7 @@ BOOL CIndexedData::CacheWrite(CIndexedDataDescriptor* pcDescriptor, void* pvData
 				return FALSE;
 			}
 
-			bResult = mcDataCache.Allocate(pcDescriptor, &cPreAllocated);
+			bResult = mcDataCache.Allocate(oi, pcDescriptor, &cPreAllocated);
 			if (!bResult)
 			{
 				cPreAllocated.Kill();
@@ -538,9 +538,9 @@ BOOL CIndexedData::Add(OIndex oi, void* pvData, unsigned int iDataSize, unsigned
 	}
 
 	//This init clears the file index.  This means CompareDiskToMemory() will not try and read it to test for changes.
-	cDescriptor.Init(oi, iDataSize);
+	cDescriptor.Init(iDataSize);
 
-	bResult = Write(&cDescriptor, pvData, uiTimeStamp);
+	bResult = Write(oi, &cDescriptor, pvData, uiTimeStamp);
 	mcIndices.Set(&cDescriptor);
 	return bResult;
 }
@@ -558,7 +558,7 @@ BOOL CIndexedData::Set(OIndex oi, void* pvData, unsigned int uiTimeStamp)
 	bResult = GetDescriptor(oi, &cDescriptor);
 	if (bResult)
 	{
-		return SetData(&cDescriptor, pvData, uiTimeStamp);
+		return SetData(oi, &cDescriptor, pvData, uiTimeStamp);
 	}
 	else
 	{
@@ -572,7 +572,7 @@ BOOL CIndexedData::Set(OIndex oi, void* pvData, unsigned int uiTimeStamp)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedData::SetData(CIndexedDataDescriptor* pcDescriptor, void* pvData, unsigned int uiTimeStamp)
+BOOL CIndexedData::SetData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, void* pvData, unsigned int uiTimeStamp)
 {
 	BOOL	bResult;
 	BOOL	bUpdated;
@@ -594,7 +594,7 @@ BOOL CIndexedData::SetData(CIndexedDataDescriptor* pcDescriptor, void* pvData, u
 	}
 	else
 	{
-		bResult = Write(pcDescriptor, pvData, uiTimeStamp);
+		bResult = Write(oi, pcDescriptor, pvData, uiTimeStamp);
 		mcIndices.Set(pcDescriptor);
 		return bResult;
 	}
@@ -613,7 +613,7 @@ BOOL CIndexedData::Set(OIndex oi, void* pvData, unsigned int uiDataSize, unsigne
 	bResult = GetDescriptor(oi, &cDescriptor);
 	if (bResult)
 	{
-		return SetData(&cDescriptor, pvData, uiDataSize, uiTimeStamp);
+		return SetData(oi, &cDescriptor, pvData, uiDataSize, uiTimeStamp);
 	}
 	else
 	{
@@ -627,22 +627,20 @@ BOOL CIndexedData::Set(OIndex oi, void* pvData, unsigned int uiDataSize, unsigne
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedData::SetData(CIndexedDataDescriptor* pcDescriptor, void* pvData, unsigned int uiDataSize, unsigned int uiTimeStamp)
+BOOL CIndexedData::SetData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, void* pvData, unsigned int uiDataSize, unsigned int uiTimeStamp)
 {
 	BOOL	bResult;
-	OIndex	oi;
 
 	if (pcDescriptor->GetDataSize() == uiDataSize)
 	{
-		return SetData(pcDescriptor, pvData, uiTimeStamp);
+		return SetData(oi, pcDescriptor, pvData, uiTimeStamp);
 	}
 	else
 	{
-		oi = pcDescriptor->GetIndex();
 		InvalidateData(pcDescriptor);
-		pcDescriptor->Init(oi, uiDataSize);
+		pcDescriptor->Init(uiDataSize);
 
-		bResult = Write(pcDescriptor, pvData, uiTimeStamp);
+		bResult = Write(oi, pcDescriptor, pvData, uiTimeStamp);
 		mcIndices.Set(pcDescriptor);
 		return bResult;
 	}
@@ -729,7 +727,7 @@ BOOL CIndexedData::Get(OIndex oi, void* pvData)
 		return FALSE;
 	}
 
-	bResult = GetData(&cDescriptor, pvData);
+	bResult = GetData(oi, &cDescriptor, pvData);
 	return bResult;
 }
 
@@ -757,7 +755,7 @@ void* CIndexedData::Get(OIndex oi, int* piDataSize)
 	pvData = malloc((size_t)iDataSize);
 	if (pvData)
 	{
-		bResult = GetData(&cDescriptor, pvData);
+		bResult = GetData(oi, &cDescriptor, pvData);
 		if (bResult)
 		{
 			return pvData;
@@ -776,7 +774,7 @@ void* CIndexedData::Get(OIndex oi, int* piDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedData::GetData(CIndexedDataDescriptor* pcDescriptor, void* pvData)
+BOOL CIndexedData::GetData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, void* pvData)
 {
 	BOOL	bResult;
 
@@ -788,7 +786,7 @@ BOOL CIndexedData::GetData(CIndexedDataDescriptor* pcDescriptor, void* pvData)
 	}
 	else
 	{
-		bResult = CacheRead(pcDescriptor);
+		bResult = CacheRead(oi, pcDescriptor);
 		if (bResult)
 		{
 			if (pcDescriptor->IsCached())

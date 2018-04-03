@@ -40,8 +40,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 class CIndexedDataDescriptor
 {
 private:
-	OIndex			moi;  //OIndex should not be a part of CIndexedDataDescriptor.
-
 	unsigned int	muiDataSize;
 	unsigned int	msFlags;  //These include the user flags.
 
@@ -51,7 +49,7 @@ private:
 	unsigned int	muiTimeStamp;
 
 public:
-	void 			Init(OIndex oi, unsigned int uiDataSize);
+	void 			Init(unsigned int uiDataSize);
 	BOOL 			IsAllocated(void);
 	BOOL 			IsDirty(void);
 	void 			Dirty(BOOL bDirty);
@@ -59,7 +57,6 @@ public:
 	int  			GetUserFlags(void);
 	unsigned int	GetDataSize(void);
 	void			Cache(void* pvCache);
-	OIndex			GetIndex(void);  //OIndex should not be a part of CIndexedDataDescriptor.
 	BOOL			HasFile(void);
 	BOOL			IsCached(void);
 	void*			GetCache(void);

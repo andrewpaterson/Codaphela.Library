@@ -72,7 +72,7 @@ BOOL CIndexedCache::PreAllocate(CMemoryCacheAllocation* pcResult)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedCache::Allocate(CIndexedDataDescriptor* pcDesc, CMemoryCacheAllocation* pcPreAllocated)
+BOOL CIndexedCache::Allocate(OIndex oi, CIndexedDataDescriptor* pcDesc, CMemoryCacheAllocation* pcPreAllocated)
 {
 	void*						pvCache;
 	SIndexedCacheDescriptor*	psCacheDesc;
@@ -87,7 +87,7 @@ BOOL CIndexedCache::Allocate(CIndexedDataDescriptor* pcDesc, CMemoryCacheAllocat
 
 	psCacheDesc = (SIndexedCacheDescriptor*)RemapSinglePointer(pvCache, -(int)(sizeof(SIndexedCacheDescriptor)));
 
-	psCacheDesc->oi = pcDesc->GetIndex();
+	psCacheDesc->oi = oi;
 	if (!pcDesc->HasFile())
 	{
 		psCacheDesc->iFlags |= CACHE_DESCRIPTOR_FLAG_DIRTY;

@@ -28,12 +28,10 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedDataDescriptor::Init(OIndex oi, unsigned int uiDataSize)
+void CIndexedDataDescriptor::Init(unsigned int uiDataSize)
 {
 	//This is memset to zero to ensure unused bytes due to compiler struct alignment are set to zero also.
 	memset(this, 0, sizeof(CIndexedDataDescriptor));
-
-	moi = oi;
 
 	muiDataSize = uiDataSize;
 
@@ -122,15 +120,6 @@ void CIndexedDataDescriptor::Cache(void* pvCache)
 	mpvCache = pvCache;
 }
 
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-OIndex CIndexedDataDescriptor::GetIndex(void)
-{
-	return moi;
-}
 
 
 //////////////////////////////////////////////////////////////////////////
