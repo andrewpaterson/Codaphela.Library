@@ -43,10 +43,6 @@ public:
 
 	BOOL					Put(char* pszKey, void* pvObject, unsigned char uiDataSize);
 	BOOL					Put(void* pvKey, int iKeySize, unsigned char uiDataSize);
-	BOOL					PutPtr(char* pszKey, void* pvPointer);
-	BOOL					PutPtr(void* pvKey, int iKeySize, void* pvPointer);
-	BOOL					PutLong(char* pszKey, int64 lliIndex);
-	BOOL					PutLong(void* pvKey, int iKeySize, int64 lliIndex);
 
 	BOOL					Remove(char* pszKey);
 
