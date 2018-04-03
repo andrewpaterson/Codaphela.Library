@@ -179,7 +179,7 @@ CIndexTreeChildNode* CIndexTreeNodeFile::GetNodes(void)
 //////////////////////////////////////////////////////////////////////////
 CIndexTreeChildNode* CIndexTreeNodeFile::GetFirstNode(void)
 {
-	if (!mbNodesEmpty)
+	if (HasNodes())
 	{
 		return GetNodes();
 	}
@@ -331,9 +331,9 @@ void CIndexTreeNodeFile::Contain(unsigned char uiIndex)
 {
 	//Contain assumes that the memory this node resides in has already been sized large enough.
 
-	if (mbNodesEmpty == TRUE)
+	if (!HasNodes())
 	{
-		mbNodesEmpty = FALSE;
+		SetNodesEmpty(FALSE);
 		ClearOnlyNode(uiIndex, INDEX_TREE_FILE_NODE_UNALLOCATED);
 		return;
 	}
@@ -363,7 +363,7 @@ BOOL CIndexTreeNodeFile::Uncontain(unsigned char uiIndex)
 	}
 	else if (muiFirstIndex == muiLastIndex)
 	{
-		mbNodesEmpty = TRUE;
+		SetNodesEmpty(TRUE);
 		ClearOnlyNode(0, 0);
 		return TRUE;
 	}
@@ -416,7 +416,7 @@ int CIndexTreeNodeFile::NumInitialisedIndexes(void)
 	CIndexTreeChildNode*	acChildren;
 	int						iCount;
 
-	if ((mbNodesEmpty == TRUE) && (muiLastIndex == 0) && (muiFirstIndex == 0))
+	if ((!HasNodes()) && (muiLastIndex == 0) && (muiFirstIndex == 0))
 	{
 		return 0;
 	}
@@ -474,7 +474,7 @@ int CIndexTreeNodeFile::WriteToBuffer(void* pvBuffer, int iBufferSize)
 	pucMemory[iPos] = muiFirstIndex;  iPos += sizeof(unsigned char);
 	pucMemory[iPos] = muiLastIndex;  iPos += sizeof(unsigned char);
 	pucMemory[iPos] = muiDataSize;  iPos += sizeof(unsigned char);
-	pucMemory[iPos] = mbNodesEmpty;  iPos += sizeof(unsigned char);
+	pucMemory[iPos] = msFlags;  iPos += sizeof(unsigned char);
 
 	if (HasObject())
 	{
@@ -534,7 +534,7 @@ int CIndexTreeNodeFile::Init(CIndexTree* pcIndexTree, CIndexTreeNodeFile* pcPare
 	muiFirstIndex = pucMemory[iPos];  iPos++;
 	muiLastIndex = pucMemory[iPos];  iPos++;
 	muiDataSize = pucMemory[iPos];  iPos++;
-	mbNodesEmpty = pucMemory[iPos];  iPos++;
+	msFlags = pucMemory[iPos];  iPos++;
 
 	if (HasObject())
 	{
@@ -571,17 +571,19 @@ BOOL CIndexTreeNodeFile::ValidateNodesEmpty(void)
 {
 	int		iCount;
 	BOOL	bCountEmpty;
+	BOOL	bNodesEmpty;
 
 	iCount = NumInitialisedIndexes();
 
 	bCountEmpty = (iCount == 0);
-	if (mbNodesEmpty == bCountEmpty)
+	bNodesEmpty = !HasNodes();
+	if (bNodesEmpty == bCountEmpty)
 	{
 		return TRUE;
 	}
 	else
 	{
-		if (mbNodesEmpty)
+		if (bNodesEmpty)
 		{
 			gcLogger.Error2(__METHOD__, " Child nodes marked as empty but ", IntToString(iCount), " are allocated.", NULL);
 		}
@@ -606,7 +608,7 @@ void CIndexTreeNodeFile::Print(CChars* psz, BOOL bHex)
 
 	CIndexTreeNode::Print(psz, bHex);
 
-	if (((mbNodesEmpty == TRUE) && (muiLastIndex == 0) && (muiFirstIndex == 0)))
+	if (((!HasNodes()) && (muiLastIndex == 0) && (muiFirstIndex == 0)))
 	{
 		return;
 	}

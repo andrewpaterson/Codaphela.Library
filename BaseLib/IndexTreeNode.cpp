@@ -1,4 +1,5 @@
 #include "IndexTree.h"
+#include "IntegerHelper.h"
 #include "IndexTreeNode.h"
 
 
@@ -14,7 +15,7 @@ void CIndexTreeNode::Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent, uns
 	muiFirstIndex = uiFirstIndex;
 	muiLastIndex = uiLastIndex;
 	muiDataSize = uiDataSize;
-	mbNodesEmpty = FALSE;
+	msFlags = 0;
 	mpcParent = pcParent;
 
 	tSize = (uiLastIndex - uiFirstIndex + 1) * SizeofNodePtr();
@@ -33,7 +34,8 @@ void CIndexTreeNode::Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent)
 	muiFirstIndex = 0;
 	muiLastIndex = 0;
 	muiDataSize = 0;
-	mbNodesEmpty = TRUE;
+	msFlags = 0;
+	SetNodesEmpty(TRUE);
 }
 
 
@@ -256,7 +258,7 @@ void CIndexTreeNode::ClearLastNodes(unsigned char uiNewLastIndex, int iClearValu
 //////////////////////////////////////////////////////////////////////////
 int CIndexTreeNode::GetNumIndexes(void)
 {
-	if (mbNodesEmpty)
+	if (!HasNodes())
 	{
 		return 0;
 	}
@@ -314,7 +316,7 @@ BOOL CIndexTreeNode::IsEmpty(void)
 		return FALSE;
 	}
 
-	return mbNodesEmpty;
+	return !HasNodes();
 }
 
 
@@ -344,7 +346,7 @@ unsigned char CIndexTreeNode::GetLastIndex(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeNode::HasNodes(void)
 {
-	return !mbNodesEmpty;
+	return !FixBool(msFlags & INDEX_TREE_NODE_FLAG_EMPTY);
 }
 
 
@@ -374,7 +376,7 @@ unsigned char CIndexTreeNode::NumNodes(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeNode::ContainsIndex(unsigned char uiIndex)
 {
-	if (mbNodesEmpty)
+	if (!HasNodes())
 	{
 		return FALSE;
 	}
@@ -386,6 +388,26 @@ BOOL CIndexTreeNode::ContainsIndex(unsigned char uiIndex)
 	else
 	{
 		return FALSE;
+	}
+}
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexTreeNode::SetNodesEmpty(BOOL bEmpty)
+{
+	//If the value is true then OR it with dest.
+	if (bEmpty)
+	{
+		msFlags |= INDEX_TREE_NODE_FLAG_EMPTY;
+	}
+	//If the value is false then negate and and it with dest.
+	else
+	{
+		msFlags &= ~INDEX_TREE_NODE_FLAG_EMPTY;
 	}
 }
 
@@ -430,7 +452,7 @@ void CIndexTreeNode::ChangeDataSize(unsigned char uiSize)
 	int					iDiff;
 	void*				apcMovedChildren;
 
-	if (!mbNodesEmpty)
+	if (HasNodes())
 	{
 		tSize = (muiLastIndex - muiFirstIndex + 1) * SizeofNodePtr();
 		iDiff = (int)uiSize - (int)muiDataSize;

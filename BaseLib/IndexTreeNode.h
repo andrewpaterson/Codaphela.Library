@@ -10,6 +10,10 @@
 //  mpcIndexTree, mpcParent, muiFirstIndex, muiLastIndex, muiDataSize, mbNodesEmpty, Object[muiDataSize], Nodes[muiLastIndex-muiFirstIndex+1]
 
 
+#define	INDEX_TREE_NODE_FLAG_DIRTY	0x02
+#define	INDEX_TREE_NODE_FLAG_EMPTY	0x04
+
+
 class CIndexTree;
 class CIndexTreeNode
 {
@@ -19,7 +23,7 @@ public:
 	unsigned char			muiFirstIndex;
 	unsigned char			muiLastIndex;  // Inclusive (because 255 is a legitimate last index and 256 can't be represented)
 	unsigned char			muiDataSize;   // Size of object "pointed" to by this node.  The object is small: usually a OIndex, a pointer or a CFileId.
-	unsigned char			mbNodesEmpty;
+	unsigned char			msFlags;
 
 public:
 	void					Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex, unsigned char uiDataSize, int iClearValue);
@@ -47,6 +51,7 @@ public:
 	BOOL					HasNodes(void);
 	unsigned char			NumNodes(void);
 	BOOL					ContainsIndex(unsigned char uiIndex);
+	void					SetNodesEmpty(BOOL bEmpty);
 
 	void					ClearOnlyNode(unsigned char uiIndex, int iClearValue);
 	void					MoveNodesLeft(unsigned char uiNextFirstIndex);

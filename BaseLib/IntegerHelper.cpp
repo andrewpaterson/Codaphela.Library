@@ -438,7 +438,7 @@ BOOL FixBool(BOOL i)
 //////////////////////////////////////////////////////////////////////////
 void SetFlag(int* piDest, int iFlag, int iFlagValue)
 {
-	//If the value is true then or it with dest.
+	//If the value is true then OR it with dest.
 	if (iFlagValue)
 	{
 		*piDest |= iFlag;

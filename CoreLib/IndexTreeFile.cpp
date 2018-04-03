@@ -1119,7 +1119,7 @@ BOOL CIndexTreeFile::RecurseValidateLimits(CIndexTreeRecursor* pcCursor)
 	pcNode = (CIndexTreeNodeFile*)pcCursor->GetNode();
 	if (pcNode != NULL)
 	{
-		if (!pcNode->mbNodesEmpty)
+		if (pcNode->HasNodes())
 		{
 			iFirst = pcNode->GetFirstIndex();
 			iLast = pcNode->GetLastIndex();

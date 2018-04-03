@@ -216,9 +216,9 @@ void CIndexTreeNodeMemory::Contain(unsigned char uiIndex)
 {
 	//Contain assumes that the memory this node resides in has already been sized large enough.
 
-	if (mbNodesEmpty == TRUE)
+	if (!HasNodes())
 	{
-		mbNodesEmpty = FALSE;
+		SetNodesEmpty(FALSE);
 		ClearOnlyNode(uiIndex, 0);
 		return;
 	}
@@ -248,7 +248,7 @@ BOOL CIndexTreeNodeMemory::Uncontain(unsigned char uiIndex)
 	}
 	else if (muiFirstIndex == muiLastIndex)
 	{
-		mbNodesEmpty = TRUE;
+		SetNodesEmpty(TRUE);
 		ClearOnlyNode(0, 0);
 		return TRUE;
 	}
@@ -290,6 +290,7 @@ void CIndexTreeNodeMemory::SetChildsParent(void)
 	}
 }
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -301,7 +302,7 @@ int CIndexTreeNodeMemory::NumInitialisedIndexes(void)
 	CIndexTreeNodeMemory**	apcChildren;
 	int						iCount;
 
-	if ((mbNodesEmpty == TRUE) && (muiLastIndex == 0) && (muiFirstIndex == 0))
+	if ((!HasNodes()) && (muiLastIndex == 0) && (muiFirstIndex == 0))
 	{
 		return 0;
 	}
@@ -328,17 +329,19 @@ BOOL CIndexTreeNodeMemory::ValidateNodesEmpty(void)
 {
 	int		iCount;
 	BOOL	bCountEmpty;
+	BOOL	bNodesEmpty;
 
 	iCount = NumInitialisedIndexes();
 
 	bCountEmpty = (iCount == 0);
-	if (mbNodesEmpty == bCountEmpty)
+	bNodesEmpty = !HasNodes();
+	if (bNodesEmpty == bCountEmpty)
 	{
 		return TRUE;
 	}
 	else
 	{
-		if (mbNodesEmpty)
+		if (bNodesEmpty)
 		{
 			gcLogger.Error2(__METHOD__, " Child nodes marked as empty but ", IntToString(iCount), " are allocated.", NULL);
 		}
@@ -363,7 +366,7 @@ void CIndexTreeNodeMemory::Print(CChars* psz, BOOL bHex)
 
 	CIndexTreeNode::Print(psz, bHex);
 
-	if (((mbNodesEmpty == TRUE) && (muiLastIndex == 0) && (muiFirstIndex == 0)))
+	if (((!HasNodes()) && (muiLastIndex == 0) && (muiFirstIndex == 0)))
 	{
 		return;
 	}
