@@ -15,3 +15,32 @@ Nice to Have
 .  World must be rewritten!
 .  Memory manager plugged into world.
 .  Object database plugged into world.
+
+Need to be turned into CObjects
+-------------------------------
+Sequence.cpp
+Camera.cpp
+Connection.cpp
+ImageCelGroup.cpp
+Image.cpp
+Light.cpp
+Material.cpp
+Mesh.cpp
+
+Need to be removed
+------------------
+Instance.cpp
+TrackerTypes.h
+Scene.cpp
+
+Conisder these folders (and classes)
+------------------------------------
+Font
+Shapes
+Tiles
+CImageCel
+
+Fix
+---
+TakeControlOfImages
+NamedObjects must allow for nameless versions also.
