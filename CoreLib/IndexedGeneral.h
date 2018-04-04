@@ -33,13 +33,6 @@ typedef int64 OIndex;
 #define FIRST_O_INDEX	((OIndex)1)
 
 
-struct SOIndexIndex
-{
-	OIndex	oi;
-	int		iIndex;
-};
-
-
 char* IndexToString(OIndex oi);
 
 

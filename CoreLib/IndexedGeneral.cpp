@@ -11,3 +11,4 @@ char* IndexToString(OIndex oi)
 {
 	return LongLongToString(oi);
 }
+
