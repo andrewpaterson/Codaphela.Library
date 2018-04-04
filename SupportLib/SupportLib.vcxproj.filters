@@ -1068,7 +1068,4 @@
       <Filter>Source\Scene</Filter>
     </ClCompile>
   </ItemGroup>
-  <ItemGroup>
-    <None Include="Objectification.txt" />
-  </ItemGroup>
 </Project>

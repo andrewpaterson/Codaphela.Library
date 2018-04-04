@@ -22,6 +22,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __HOLLOW_OBJECT_H__
 #include "BaseObject.h"
 
+
 class CHollowObject : public CBaseObject
 {
 BASE_FUNCTIONS(CHollowObject);

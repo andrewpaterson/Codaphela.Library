@@ -45,7 +45,7 @@ private:
 
 	CFileIndex		mcFileIndex;
 
-	void*			mpvCache;  //Null if object is not cached.
+	void*			mpvCache;  //NULL if object is not cached.
 	unsigned int	muiTimeStamp;
 
 public:

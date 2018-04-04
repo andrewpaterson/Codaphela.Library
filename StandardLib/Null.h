@@ -21,3 +21,4 @@ Ptr<M> Null(void)
 
 
 #endif // __NULL_H__
+
