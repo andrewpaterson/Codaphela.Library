@@ -51,6 +51,8 @@ struct SIndexesIterator
 
 //CIndexes and replaces with IndexTreeMemory.  CIndexes is used by CIndexedObjects that maps an OIndex to a CBaseObject*.
 //  NamedIndexes is already a IndexTreeMemory and maps a name to an OIndex.
+
+//Probably this class can be deleted.  Rewrite its tests in terms of IndexTreeMemory.
 class CIndexes
 {
 protected:

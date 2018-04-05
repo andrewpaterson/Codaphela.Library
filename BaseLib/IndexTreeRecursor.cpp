@@ -36,7 +36,7 @@ void CIndexTreeRecursor::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CIndexTreeRecursor::Push(CIndexTreeNode *pcChild, char c)
 {
-	macKey.Push(&c);
+	macKey.Push(c);
 	mpcCurrent = pcChild;
 }
 
