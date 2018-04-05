@@ -284,7 +284,7 @@ void* CListBlock::Push(void* pvElement)
 	void* pv;
 
 	pv = mcFreeList.Add(pvElement);
-	mapIndices.Push(&pv);
+	mapIndices.Push(pv);
 	return pv;
 }
 
@@ -298,7 +298,7 @@ void* CListBlock::Push(void)
 	void* pv;
 
 	pv = mcFreeList.Add();
-	mapIndices.Push(&pv);
+	mapIndices.Push(pv);
 	return pv;
 }
 
