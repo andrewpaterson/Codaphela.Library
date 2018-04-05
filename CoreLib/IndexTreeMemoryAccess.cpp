@@ -43,7 +43,7 @@ BOOL CIndexTreeMemoryAccess::Put(void* pvKey, int iKeySize, void* pvObject, unsi
 BOOL CIndexTreeMemoryAccess::Get(void* pvKey, int iKeySize, void* pvObject, int* piDataSize)
 {
 	void*			pvResult;
-	unsigned char	uiDataSize;
+	unsigned short	uiDataSize;
 
 	pvResult = mpcTree->Get(pvKey, iKeySize, &uiDataSize);
 	

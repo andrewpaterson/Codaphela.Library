@@ -7,7 +7,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNode::Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex, unsigned char uiDataSize, int iClearValue)
+void CIndexTreeNode::Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex, unsigned short uiDataSize, int iClearValue)
 {
 	size_t tSize;
 
@@ -16,6 +16,7 @@ void CIndexTreeNode::Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent, uns
 	muiLastIndex = uiLastIndex;
 	muiDataSize = uiDataSize;
 	msFlags = 0;
+	muiIndexInParent = 0;
 	mpcParent = pcParent;
 
 	tSize = (uiLastIndex - uiFirstIndex + 1) * SizeofNodePtr();
@@ -35,6 +36,7 @@ void CIndexTreeNode::Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent)
 	muiLastIndex = 0;
 	muiDataSize = 0;
 	msFlags = 0;
+	muiIndexInParent = 0;
 	SetNodesEmpty(TRUE);
 }
 
@@ -43,7 +45,7 @@ void CIndexTreeNode::Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-unsigned char CIndexTreeNode::GetObjectSize(void)
+unsigned short CIndexTreeNode::GetObjectSize(void)
 {
 	return muiDataSize;
 }
@@ -143,7 +145,7 @@ size_t CIndexTreeNode::CalculateRequiredNodeSizeForEmpty(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size_t CIndexTreeNode::CalculateRequiredNodeSizeForData(unsigned char uiDataSize)
+size_t CIndexTreeNode::CalculateRequiredNodeSizeForData(unsigned short uiDataSize)
 {
 	size_t	tSize;
 	int		iExistingIndices;
@@ -334,6 +336,37 @@ BOOL CIndexTreeNode::IsDirty(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeNode::IsDelted(void)
+{
+	return FixBool(msFlags & INDEX_TREE_NODE_FLAG_DELETED);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeNode::IsChanged(void)
+{
+	return FixBool(msFlags & (INDEX_TREE_NODE_FLAG_DIRTY | INDEX_TREE_NODE_FLAG_DELETED));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeNode::HasFlags(unsigned char sFlags)
+{
+	//True if any flag matches (including all flags matching).
+	return FixBool(msFlags & sFlags);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 unsigned char CIndexTreeNode::GetFirstIndex(void)
 {
 	return muiFirstIndex;
@@ -444,7 +477,26 @@ void CIndexTreeNode::SetDirty(BOOL bDirty)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeNode::SetObject(void* pvObject, unsigned char uiSize)
+void CIndexTreeNode::SetDeleted(BOOL bDirty)
+{
+	//If the value is true then OR it with dest.
+	if (bDirty)
+	{
+		msFlags |= INDEX_TREE_NODE_FLAG_DIRTY;
+	}
+	//If the value is false then negate and and it with dest.
+	else
+	{
+		msFlags &= ~INDEX_TREE_NODE_FLAG_DIRTY;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeNode::SetObject(void* pvObject, unsigned short uiSize)
 {
 	if (muiDataSize != uiSize)
 	{
@@ -473,7 +525,7 @@ void CIndexTreeNode::ClearObject(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNode::ChangeDataSize(unsigned char uiSize)
+void CIndexTreeNode::ChangeDataSize(unsigned short uiSize)
 {
 	size_t				tSize;
 	void*				apcChildren;

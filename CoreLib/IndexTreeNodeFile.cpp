@@ -18,7 +18,7 @@ void CIndexTreeNodeFile::Init(CIndexTree* pcIndexTree, CIndexTreeNodeFile* pcPar
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNodeFile::Init(CIndexTree* pcIndexTree, CIndexTreeNodeFile* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex, unsigned char uiObjectSize)
+void CIndexTreeNodeFile::Init(CIndexTree* pcIndexTree, CIndexTreeNodeFile* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex, unsigned short uiObjectSize)
 {
 	CIndexTreeNode::Init(pcIndexTree, mpcParent, uiFirstIndex, uiLastIndex, uiObjectSize, INDEX_TREE_FILE_NODE_UNALLOCATED);
 	mcFileIndex.Init();
@@ -441,7 +441,7 @@ int CIndexTreeNodeFile::NumInitialisedIndexes(void)
 //////////////////////////////////////////////////////////////////////////
 int CIndexTreeNodeFile::CalculateBufferSize(void)
 {
-	return sizeof(int) + (4 * sizeof(unsigned char)) + muiDataSize + (GetNumIndexes() * (sizeof(int) + sizeof(filePos)));
+	return sizeof(int) + sizeof(unsigned short) + (4 * sizeof(unsigned char)) + muiDataSize + (GetNumIndexes() * (sizeof(int) + sizeof(filePos)));
 }
 
 
@@ -470,10 +470,11 @@ int CIndexTreeNodeFile::WriteToBuffer(void* pvBuffer, int iBufferSize)
 	iPos = 0;
 
 	*((int*)&pucMemory[iPos]) = iFileSize;  iPos += sizeof(int);
+	*((short*)&pucMemory[iPos]) = muiDataSize;  iPos += sizeof(unsigned short);
 
 	pucMemory[iPos] = muiFirstIndex;  iPos += sizeof(unsigned char);
 	pucMemory[iPos] = muiLastIndex;  iPos += sizeof(unsigned char);
-	pucMemory[iPos] = muiDataSize;  iPos += sizeof(unsigned char);
+	pucMemory[iPos] = muiIndexInParent;  iPos += sizeof(unsigned char);
 	pucMemory[iPos] = msFlags;  iPos += sizeof(unsigned char);
 
 	if (HasObject())

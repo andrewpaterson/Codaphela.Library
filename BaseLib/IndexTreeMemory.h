@@ -23,8 +23,8 @@ public:
 	void					Init(CMallocator* pcMalloc);
 	void					Kill(void);
 
-	void*					Get(void* pvKey, int iKeySize, unsigned char* puiDataSize);
-	void*					Put(void* pvKey, int iKeySize, void* pvObject, unsigned char uiDataSize);
+	void*					Get(void* pvKey, int iKeySize, unsigned short* puiDataSize);
+	void*					Put(void* pvKey, int iKeySize, void* pvObject, unsigned short uiDataSize);
 	BOOL					Remove(void* pvKey, int iKeySize);
 	BOOL					HasKey(void* pvKey, int iKeySize);
 	void					FindAll(CArrayVoidPtr* papvElements);
@@ -38,8 +38,8 @@ public:
 	void*					Get(void* pvKey, int iKeySize);
 	void*					Get(char* pszKey);
 
-	void*					Put(char* pszKey, void* pvObject, unsigned char uiDataSize);
-	void*					Put(void* pvKey, int iKeySize, unsigned char uiDataSize);
+	void*					Put(char* pszKey, void* pvObject, unsigned short uiDataSize);
+	void*					Put(void* pvKey, int iKeySize, unsigned short uiDataSize);
 	BOOL					PutPtr(char* pszKey, void* pvPointer);
 	BOOL					PutPtr(void* pvKey, int iKeySize, void* pvPointer);
 	BOOL					PutLong(char* pszKey, int64 lliIndex);
@@ -71,11 +71,10 @@ protected:
 	CIndexTreeNodeMemory*	AllocateNode(CIndexTreeNodeMemory* pcParent);
 
 	CIndexTreeNodeMemory*	ReallocateNodeForIndex(CIndexTreeNodeMemory* pcNode, unsigned char uiIndex);
-	CIndexTreeNodeMemory*	ReallocateNodeForLargerData(CIndexTreeNodeMemory* pcNode, unsigned char uiDataSize);
-	CIndexTreeNodeMemory*	ReallocateNodeForSmallerData(CIndexTreeNodeMemory* pcNode, unsigned char uiOriginalSize);
+	CIndexTreeNodeMemory*	ReallocateNodeForLargerData(CIndexTreeNodeMemory* pcNode, unsigned short uiDataSize);
+	CIndexTreeNodeMemory*	ReallocateNodeForSmallerData(CIndexTreeNodeMemory* pcNode, unsigned short uiOriginalSize);
 	CIndexTreeNodeMemory*	ReallocateNodeForData(CIndexTreeNodeMemory* pcNode, size_t tNewNodeSize, size_t tOldNodeSize);
 	void					RemapChildParents(CIndexTreeNodeMemory* pcOldNode, CIndexTreeNodeMemory* pcNode);
-
 
 	CIndexTreeNodeMemory*	SetOldWithCurrent(CIndexTreeNodeMemory* pcParent, unsigned char c);
 	void					RecurseFindAll(CIndexTreeNodeMemory* pcNode, CArrayVoidPtr* papvElements);

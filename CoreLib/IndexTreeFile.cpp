@@ -225,7 +225,7 @@ CIndexTreeNodeFile* CIndexTreeFile::AllocateRoot(CFileIndex cFileIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTreeNodeFile* CIndexTreeFile::AllocateNode(CIndexTreeNodeFile* pcParent, unsigned char uiDataSize)
+CIndexTreeNodeFile* CIndexTreeFile::AllocateNode(CIndexTreeNodeFile* pcParent, unsigned short uiDataSize)
 {
 	CIndexTreeNodeFile*	pcNode;
 
@@ -239,7 +239,7 @@ CIndexTreeNodeFile* CIndexTreeFile::AllocateNode(CIndexTreeNodeFile* pcParent, u
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTreeNodeFile* CIndexTreeFile::AllocateNode(CIndexTreeNodeFile* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex, unsigned char uiDataSize)
+CIndexTreeNodeFile* CIndexTreeFile::AllocateNode(CIndexTreeNodeFile* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex, unsigned short uiDataSize)
 {
 	CIndexTreeNodeFile*		pcNode;
 	int						iRequiredIndices;
@@ -405,11 +405,11 @@ CIndexTreeNodeFile* CIndexTreeFile::ReadNode(CIndexTreeChildNode* pcChild)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::Get(void* pvKey, int iKeySize, void* pvObject, unsigned char* puiDataSize)
+BOOL CIndexTreeFile::Get(void* pvKey, int iKeySize, void* pvObject, unsigned short* puiDataSize)
 {
 	CIndexTreeNodeFile* pcNode;
 	void*				pv;
-	unsigned char		uiDataSize;
+	unsigned short		uiDataSize;
 
 	pcNode = GetNode(pvKey, iKeySize);
 	if (pcNode == NULL)
@@ -443,7 +443,7 @@ BOOL CIndexTreeFile::Get(void* pvKey, int iKeySize, void* pvObject, unsigned cha
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::Put(char* pszKey, void* pvObject, unsigned char uiDataSize)
+BOOL CIndexTreeFile::Put(char* pszKey, void* pvObject, unsigned short uiDataSize)
 {
 	int iKeySize;
 
@@ -461,15 +461,20 @@ BOOL CIndexTreeFile::Put(char* pszKey, void* pvObject, unsigned char uiDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::Put(void* pvKey, int iKeySize, void* pvObject, unsigned char uiDataSize)
+BOOL CIndexTreeFile::Put(void* pvKey, int iKeySize, void* pvObject, unsigned short uiDataSize)
 {
 	CIndexTreeNodeFile*	pcCurrent;
 	CIndexTreeNodeFile*	pcReallocatedCurrent;
 	unsigned char			c;
 	BOOL					bResult;
-	unsigned char			uiOriginalSize;
+	unsigned short			uiOriginalSize;
 
 	if (iKeySize == 0)
+	{
+		return FALSE;
+	}
+
+	if ((pvObject == NULL) || (uiDataSize == 0))
 	{
 		return FALSE;
 	}
@@ -484,6 +489,7 @@ BOOL CIndexTreeFile::Put(void* pvKey, int iKeySize, void* pvObject, unsigned cha
 	{
 		c = ((char*)pvKey)[i];
 		pcCurrent = AllocateNodeIfUnallocated(pcCurrent, c);
+		pcCurrent->SetDirty(TRUE);
 	}
 
 	if (!pcCurrent->HasObject())
@@ -523,7 +529,7 @@ BOOL CIndexTreeFile::Put(void* pvKey, int iKeySize, void* pvObject, unsigned cha
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::Put(void* pvKey, int iKeySize, unsigned char uiDataSize)
+BOOL CIndexTreeFile::Put(void* pvKey, int iKeySize, unsigned short uiDataSize)
 {
 	return Put(pvKey, iKeySize, NULL, uiDataSize);
 }
@@ -561,7 +567,7 @@ CIndexTreeNodeFile* CIndexTreeFile::ReallocateNodeForIndex(CIndexTreeNodeFile* p
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTreeNodeFile* CIndexTreeFile::ReallocateNodeForLargerData(CIndexTreeNodeFile* pcNode, unsigned char uiDataSize)
+CIndexTreeNodeFile* CIndexTreeFile::ReallocateNodeForLargerData(CIndexTreeNodeFile* pcNode, unsigned short uiDataSize)
 {
 	size_t					tNewNodeSize;
 	size_t					tOldNodeSize;
@@ -577,7 +583,7 @@ CIndexTreeNodeFile* CIndexTreeFile::ReallocateNodeForLargerData(CIndexTreeNodeFi
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTreeNodeFile* CIndexTreeFile::ReallocateNodeForSmallerData(CIndexTreeNodeFile* pcNode, unsigned char uiOriginalSize)
+CIndexTreeNodeFile* CIndexTreeFile::ReallocateNodeForSmallerData(CIndexTreeNodeFile* pcNode, unsigned short uiOriginalSize)
 {
 	size_t					tNewNodeSize;
 	size_t					tOldNodeSize;
@@ -785,6 +791,92 @@ BOOL CIndexTreeFile::Remove(void* pvKey, int iKeySize)
 }
 
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeFile::Delete(void* pvKey, int iKeySize)
+{
+	CIndexTreeNodeFile*		pcCurrent;
+
+	if ((iKeySize == 0) || (pvKey == NULL))
+	{
+		return FALSE;
+	}
+
+	pcCurrent = GetNode(pvKey, iKeySize);
+	if (pcCurrent == NULL)
+	{
+		return FALSE;
+	}
+
+	if (pcCurrent->GetObjectSize() == 0)
+	{
+		return FALSE;
+	}
+
+	while (pcCurrent != NULL)
+	{
+		pcCurrent->SetDirty(TRUE);
+		pcCurrent = (CIndexTreeNodeFile*)pcCurrent->GetParent();
+	}
+
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexTreeFile::FindWithFlags(CArrayVoidPtr* papNodes, unsigned char uiFlags)
+{
+	CIndexTreeRecursor	cCursor;
+
+	cCursor.Init(mpcRoot);
+	RecurseFindWithFlags(&cCursor, uiFlags, papNodes);
+	cCursor.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexTreeFile::RecurseFindWithFlags(CIndexTreeRecursor* pcCursor, unsigned char uiFlags, CArrayVoidPtr* papNodes)
+{
+	int						i;
+	CIndexTreeNodeFile*		pcChild;
+	unsigned char			iFirst;
+	unsigned char			iLast;
+	CIndexTreeNodeFile*		pcNode;
+
+	pcNode = (CIndexTreeNodeFile*)pcCursor->GetNode();
+	if (pcNode != NULL)
+	{
+		if (pcNode->HasFlags(uiFlags))
+		{
+			papNodes->Add(pcNode);
+		}
+
+		if (pcNode->HasNodes())
+		{
+			iFirst = pcNode->GetFirstIndex();
+			iLast = pcNode->GetLastIndex();
+
+			for (i = iFirst; i <= iLast; i++)
+			{
+				pcChild = ReadNode(pcNode, i);
+				pcCursor->Push(pcChild, i);
+				RecurseFindWithFlags(pcCursor, uiFlags, papNodes);
+			}
+		}
+	}
+	pcCursor->Pop();
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -792,6 +884,34 @@ BOOL CIndexTreeFile::Remove(void* pvKey, int iKeySize)
 int CIndexTreeFile::NumElements(void)
 {
 	return miSize;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexTreeFile::Flush(void)
+{
+	CArrayVoidPtr		apv;
+	int					i;
+	int					iNumNodes;
+	CIndexTreeNodeFile*	pcNode;
+
+	apv.Init(1024);
+	FindWithFlags(&apv, INDEX_TREE_NODE_FLAG_DIRTY | INDEX_TREE_NODE_FLAG_DELETED);
+
+	iNumNodes = apv.NumElements();
+	for (i = 0; i < iNumNodes; i++)
+	{
+		pcNode = (CIndexTreeNodeFile*)apv.GetPtr(i);
+		if (pcNode->IsDelted())
+		{
+			
+		}
+	}
+
+	apv.Kill();
 }
 
 
@@ -1004,7 +1124,7 @@ size_t CIndexTreeFile::RecurseByteSize(CIndexTreeNodeFile* pcNode)
 {
 	int						i;
 	CIndexTreeNodeFile*		pcChild;
-	unsigned char			uiSize;
+	unsigned short			uiSize;
 	size_t					tSize;
 	int						iLastIndex;
 
@@ -1055,7 +1175,7 @@ BOOL CIndexTreeFile::RecurseValidateLimits(CIndexTreeRecursor* pcCursor)
 	BOOL					bResult;
 	CIndexTreeChildNode*	pcFirst;
 	CIndexTreeChildNode*	pcLast;
-	CIndexTreeNodeFile*	pcNode;
+	CIndexTreeNodeFile*		pcNode;
 
 	pcNode = (CIndexTreeNodeFile*)pcCursor->GetNode();
 	if (pcNode != NULL)
