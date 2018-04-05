@@ -637,9 +637,16 @@ void CArrayBlock::Pop(void* pvElement)
 {
 	void*	pvSource;
 
-	pvSource = Get(miUsedElements-1);
-	memcpy(pvElement, pvSource, miElementSize);
-	RemoveTail();
+	if (miUsedElements > 0)
+	{
+		pvSource = Get(miUsedElements - 1);
+		memcpy(pvElement, pvSource, miElementSize);
+		RemoveTail();
+	}
+	else
+	{
+		memset(pvElement, 0, miElementSize);
+	}
 }
 
 

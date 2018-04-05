@@ -4,6 +4,8 @@
 #include "FreeList.h"
 
 
+//Elements in a list are always of the same size.  List elements are indexed from the start of the list.  
+//Elements in a list can be different sizes.  List elements are indexed from the start of the list.  
 class CListBlock
 {
 protected:
@@ -35,8 +37,8 @@ public:
 	void* 	InsertAt(int iIndex);
 	void* 	InsertAt(void* pvData, int iIndex);
 
-	void	Pop(void* pvData);
-	void	Pop(void);
+	BOOL	Pop(void* pvData);
+	BOOL	Pop(void);
 	void* 	Push(void* pvElement);
 	void*	Push(void);
 

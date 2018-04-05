@@ -42,7 +42,7 @@ public:
 	void	Kill(void);
 
 	void*	Add(void);
-	void*	AddUseFreeList(int iChunkSize = 0);				//Force usage of a free list if not yet used.
+	void*	AddUseFreeList(int iChunkSize = 0);  //Force usage of a free list if not yet used.
 	void*	AddUseLinkedList(void);  //Just for completeness.
 
 	void	Remove(void* pvElement);

@@ -51,6 +51,8 @@ public:
 	void	Intersect(CArrayTemplatePrimitive<M>* pcArray1, CArrayTemplatePrimitive<M>* pcArray2);
 	BOOL	IsSorted(void);
 	int		FindFinalContiguousInSorted(void);
+	M		Pop(void);
+	void 	Push(M iElement);
 };
 
 
@@ -484,6 +486,32 @@ int CArrayTemplatePrimitive<M>::FindFinalContiguousInSorted(void)
 		}
 	}
 	return this->miUsedElements-1;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+M CArrayTemplatePrimitive<M>::Pop(void)
+{
+	M	i;
+
+	//Returns zero if empty.
+	CArrayTemplate<M>::Pop(&i);
+	return i;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+void CArrayTemplatePrimitive<M>::Push(M iElement)
+{
+	Add(iElement);
 }
 
 

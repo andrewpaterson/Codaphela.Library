@@ -15,6 +15,13 @@ struct SArrayTemplateHeader
 };
 
 
+//Elements in an array are always of the same size.  Array elements are indexed from the start of the array.
+//A pointer to an array element may become invalid if another element has been since added to or removed from the array.
+//Elements in an array should be looked up by index unless it is known that the array is (temporarily) immutable.
+
+//For constant element pointers take a look at CListBlock.
+
+//For variable sized elements take a look at CListVariable.
 class CArrayBlock : protected SArrayTemplateHeader
 {
 protected:

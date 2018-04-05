@@ -18,6 +18,8 @@ public:
 	void**	Get(int iIndex);
 	void	QuickSort(void);
 	int		Find(void* pv);
+	void 	Push(void* pv);
+	void*	Pop(void);
 };
 
 

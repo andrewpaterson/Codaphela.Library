@@ -236,13 +236,21 @@ void* CListBlock::InsertAt(void* pvData, int iIndex)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CListBlock::Pop(void* pvData)
+BOOL CListBlock::Pop(void* pvData)
 {
 	void* pv;
 
-	mapIndices.Pop(&pv);
-	memcpy(pvData, pv, mcFreeList.GetElementSize());
-	mcFreeList.Remove(pv);
+	pv = mapIndices.Pop();
+	if (pv != NULL)
+	{
+		memcpy(pvData, pv, mcFreeList.GetElementSize());
+		mcFreeList.Remove(pv);
+		return TRUE;
+	}
+	else
+	{
+		return FALSE;
+	}
 }
 
 
@@ -250,12 +258,20 @@ void CListBlock::Pop(void* pvData)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CListBlock::Pop(void)
+BOOL CListBlock::Pop(void)
 {
 	void* pv;
 
-	mapIndices.Pop(&pv);
-	mcFreeList.Remove(pv);
+	pv = mapIndices.Pop();
+	if (pv != NULL)
+	{
+		mcFreeList.Remove(pv);
+		return TRUE;
+	}
+	else
+	{
+		return FALSE;
+	}
 }
 
 

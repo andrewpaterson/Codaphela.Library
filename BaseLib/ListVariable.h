@@ -51,7 +51,7 @@ private:
 
 public:
 	CArrayTypedPointerAndSize	mcArray;
-	CLinkListFreeListMaybe	mcFreeLists;
+	CLinkListFreeListMaybe		mcFreeLists;
 
 	void	Init(void);
 	void	Init(int iChunkSize);
