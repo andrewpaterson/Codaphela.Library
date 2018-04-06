@@ -69,6 +69,7 @@ public:
 protected:
 	CIndexTreeNodeMemory*	AllocateRoot(void);
 	CIndexTreeNodeMemory*	AllocateNode(CIndexTreeNodeMemory* pcParent, unsigned char uiIndexInParent);
+	BOOL					Remove(CIndexTreeNodeMemory* pcCurrent);
 
 	CIndexTreeNodeMemory*	ReallocateNodeForIndex(CIndexTreeNodeMemory* pcNode, unsigned char uiIndex);
 	CIndexTreeNodeMemory*	ReallocateNodeForLargerData(CIndexTreeNodeMemory* pcNode, unsigned short uiDataSize);

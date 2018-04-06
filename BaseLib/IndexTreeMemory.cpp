@@ -512,15 +512,8 @@ BOOL CIndexTreeMemory::Remove(char* pszKey)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeMemory::Remove(void* pvKey, int iKeySize)
 {
-	char					c;
-	CIndexTreeNodeMemory*	pcParent;
-	CIndexTreeNodeMemory*	pcOldParent;
-	CIndexTreeNodeMemory*	pcNode;
+	unsigned char			c;
 	CIndexTreeNodeMemory*	pcCurrent;
-	void*					pvObject;
-	BOOL					bResizeNode;
-	size_t					tNewNodeSize;
-	size_t					tOldNodeSize;
 	int						i;
 
 	if ((iKeySize == 0) || (pvKey == NULL))
@@ -539,6 +532,25 @@ BOOL CIndexTreeMemory::Remove(void* pvKey, int iKeySize)
 		}
 	}
 
+	return Remove(pcCurrent);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeMemory::Remove(CIndexTreeNodeMemory*	pcCurrent)
+{
+	unsigned char			c;
+	CIndexTreeNodeMemory*	pcParent;
+	CIndexTreeNodeMemory*	pcOldParent;
+	CIndexTreeNodeMemory*	pcNode;
+	void*					pvObject;
+	BOOL					bResizeNode;
+	size_t					tNewNodeSize;
+	size_t					tOldNodeSize;
+
 	if (pcCurrent->GetObjectSize() == 0)
 	{
 		return FALSE;
@@ -551,8 +563,7 @@ BOOL CIndexTreeMemory::Remove(void* pvKey, int iKeySize)
 	pcCurrent->ClearObject();
 	for (;;)
 	{
-		c = ((char*)pvKey)[(i - 1)];
-		i--;
+		c = pcNode->GetIndexInParent();
 
 		if (pcNode->IsEmpty())
 		{
@@ -1151,7 +1162,6 @@ BOOL CIndexTreeMemory::RecurseValidateParentIndex(CIndexTreeRecursor* pcCursor)
 	CIndexTreeNodeMemory*	pcNode;
 	int						i;
 	CIndexTreeNodeMemory*	pcChild;
-	CIndexTreeNodeMemory*	pcIndexedChild;
 	BOOL					bResult;
 	CIndexTreeNodeMemory*	pcChildsParent;
 	unsigned char			uiIndexInParent;
@@ -1176,8 +1186,7 @@ BOOL CIndexTreeMemory::RecurseValidateParentIndex(CIndexTreeRecursor* pcCursor)
 					}
 
 					uiIndexInParent = pcChild->GetIndexInParent();
-					pcIndexedChild = pcNode->Get(uiIndexInParent);
-					if (pcIndexedChild != pcChild)
+					if (uiIndexInParent != i)
 					{
 						pcCursor->GenerateBad();
 						gcLogger.Error2(__METHOD__, " Node [", pcCursor->GetBadNode(), "] points to the wrong parent node.", NULL);

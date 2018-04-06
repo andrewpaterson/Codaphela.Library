@@ -709,16 +709,7 @@ BOOL CIndexTreeFile::Remove(char* pszKey)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeFile::Remove(void* pvKey, int iKeySize)
 {
-	char					c;
-	CIndexTreeNodeFile*		pcParent;
-	CIndexTreeNodeFile*		pcOldParent;
-	CIndexTreeNodeFile*		pcNode;
 	CIndexTreeNodeFile*		pcCurrent;
-	void*					pvObject;
-	BOOL					bResizeNode;
-	size_t					tNewNodeSize;
-	size_t					tOldNodeSize;
-	int						i;
 
 	if ((iKeySize == 0) || (pvKey == NULL))
 	{
@@ -731,6 +722,25 @@ BOOL CIndexTreeFile::Remove(void* pvKey, int iKeySize)
 		return FALSE;
 	}
 
+	return Remove(pcCurrent);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeFile::Remove(CIndexTreeNodeFile* pcCurrent)
+{
+	unsigned char			c;
+	CIndexTreeNodeFile*		pcParent;
+	CIndexTreeNodeFile*		pcOldParent;
+	CIndexTreeNodeFile*		pcNode;
+	void*					pvObject;
+	BOOL					bResizeNode;
+	size_t					tNewNodeSize;
+	size_t					tOldNodeSize;
+
 	if (pcCurrent->GetObjectSize() == 0)
 	{
 		return FALSE;
@@ -741,11 +751,9 @@ BOOL CIndexTreeFile::Remove(void* pvKey, int iKeySize)
 	pcNode = pcCurrent;
 	pcParent = (CIndexTreeNodeFile*)pcNode->GetParent();
 	pcCurrent->ClearObject();
-	i = iKeySize;
 	for (;;)
 	{
-		c = ((char*)pvKey)[(i - 1)];
-		i--;
+		c = pcNode->GetIndexInParent();
 
 		if (pcNode->IsEmpty())
 		{
@@ -789,7 +797,6 @@ BOOL CIndexTreeFile::Remove(void* pvKey, int iKeySize)
 	miSize--;
 	return TRUE;
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1062,6 +1069,7 @@ BOOL CIndexTreeFile::ValidateIndexTree(void)
 
 	bResult = ValidateLimits();
 	bResult &= ValidateSize();
+	bResult &= ValidateParentIndex();
 	return bResult;
 }
 
@@ -1222,6 +1230,92 @@ BOOL CIndexTreeFile::RecurseValidateLimits(CIndexTreeRecursor* pcCursor)
 				pcChild = ReadNode(pcNode, i);
 				pcCursor->Push(pcChild, i);
 				bResult = RecurseValidateLimits(pcCursor);
+				if (!bResult)
+				{
+					pcCursor->Pop();
+					return FALSE;
+				}
+			}
+		}
+	}
+	pcCursor->Pop();
+	return TRUE;
+}
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeFile::ValidateParentIndex(void)
+{
+	CIndexTreeRecursor	cCursor;
+	BOOL				bResult;
+
+	cCursor.Init(mpcRoot);
+	bResult = RecurseValidateParentIndex(&cCursor);
+	cCursor.Kill();
+
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeFile::RecurseValidateParentIndex(CIndexTreeRecursor* pcCursor)
+{
+	CIndexTreeNodeFile*		pcNode;
+	int						i;
+	CIndexTreeNodeFile*		pcChild;
+	BOOL					bResult;
+	CIndexTreeNodeFile*		pcChildsParent;
+	unsigned char			uiIndexInParent;
+
+
+	pcNode = (CIndexTreeNodeFile*)pcCursor->GetNode();
+	if (pcNode != NULL)
+	{
+		if (pcNode->HasNodes())
+		{
+			for (i = pcNode->GetFirstIndex(); i <= pcNode->GetLastIndex(); i++)
+			{
+				pcChild = ReadNode(pcNode, i);
+				if (pcChild != NULL)
+				{
+					pcChildsParent = (CIndexTreeNodeFile*)pcChild->GetParent();
+					if (pcChildsParent != pcNode)
+					{
+						pcCursor->GenerateBad();
+						gcLogger.Error2(__METHOD__, " Node [", pcCursor->GetBadNode(), "] points to the wrong parent node.", NULL);
+						return FALSE;
+					}
+
+					uiIndexInParent = pcChild->GetIndexInParent();
+					if (i != uiIndexInParent)
+					{
+						pcCursor->GenerateBad();
+						gcLogger.Error2(__METHOD__, " Node [", pcCursor->GetBadNode(), "] points to the wrong parent node.", NULL);
+						return FALSE;
+					}
+
+					pcCursor->Push(pcChild, i);
+					bResult = RecurseValidateParentIndex(pcCursor);
+					if (!bResult)
+					{
+						pcCursor->Pop();
+						return FALSE;
+					}
+				}
+			}
+
+			for (i = pcNode->GetFirstIndex(); i <= pcNode->GetLastIndex(); i++)
+			{
+				pcChild = ReadNode(pcNode, i);
+				pcCursor->Push(pcChild, i);
+				bResult = RecurseValidateParentIndex(pcCursor);
 				if (!bResult)
 				{
 					pcCursor->Pop();

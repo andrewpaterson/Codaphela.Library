@@ -83,6 +83,8 @@ protected:
 
 
 	CIndexTreeNodeFile*		AllocateNodeIfUnallocated(CIndexTreeNodeFile* pcParent, unsigned char c);
+	BOOL					Remove(CIndexTreeNodeFile* pcCurrent);
+
 	int						RecurseSize(CIndexTreeNodeFile* pcNode);
 	int						RecurseCountAllocatedNodes(CIndexTreeNodeFile* pcNode);
 	int						CountListSize(void);
@@ -91,10 +93,11 @@ protected:
 	BOOL					ValidateLimits(void);
 	BOOL					RecurseValidateLimits(CIndexTreeRecursor* pcCursor);
 	void					RecurseFindWithFlags(CIndexTreeRecursor* pcCursor, unsigned char uiFlags, CArrayVoidPtr* papNodes);
+	BOOL					ValidateParentIndex(void);
+	BOOL					RecurseValidateParentIndex(CIndexTreeRecursor* pcCursor);
 
 	BOOL					StepNext(SIndexTreeFileIterator* psIterator);
 
-	BOOL					Remove(CIndexTreeNodeFile* pcCurrent);
 	BOOL					Read(CIndexTreeChildNode* pcChildNode);
 
 public:
