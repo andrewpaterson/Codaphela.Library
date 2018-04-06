@@ -7,9 +7,9 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNodeMemory::Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex)
+void CIndexTreeNodeMemory::Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex, unsigned char uiIndexInParent)
 {
-	CIndexTreeNode::Init(pcIndexTree, pcParent, uiFirstIndex, uiLastIndex, 0, 0);
+	CIndexTreeNode::Init(pcIndexTree, pcParent, uiFirstIndex, uiLastIndex, 0, 0, uiIndexInParent);
 }
 
 
@@ -17,9 +17,9 @@ void CIndexTreeNodeMemory::Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParen
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNodeMemory::Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent)
+void CIndexTreeNodeMemory::Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent, unsigned char uiIndexInParent)
 {
-	CIndexTreeNode::Init(pcIndexTree, pcParent);
+ 	CIndexTreeNode::Init(pcIndexTree, pcParent, uiIndexInParent);
 }
 
 

@@ -79,7 +79,7 @@ CIndexTreeNodeMemory* CIndexTreeMemory::AllocateRoot(void)
 	CIndexTreeNodeMemory*	pcNode;
 
 	pcNode = (CIndexTreeNodeMemory*)Malloc(CalculateRootNodeSize());
-	pcNode->Init(this, NULL, 0, MAX_UCHAR);
+	pcNode->Init(this, NULL, 0, MAX_UCHAR, 0);
 	return pcNode;
 }
 
@@ -88,12 +88,12 @@ CIndexTreeNodeMemory* CIndexTreeMemory::AllocateRoot(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTreeNodeMemory* CIndexTreeMemory::AllocateNode(CIndexTreeNodeMemory* pcParent)
+CIndexTreeNodeMemory* CIndexTreeMemory::AllocateNode(CIndexTreeNodeMemory* pcParent, unsigned char uiIndexInParent)
 {
 	CIndexTreeNodeMemory*	pcNode;
 
 	pcNode = (CIndexTreeNodeMemory*)Malloc(SizeofNode());
-	pcNode->Init(this, pcParent);
+	pcNode->Init(this, pcParent, uiIndexInParent);
 	return pcNode;
 }
 
@@ -472,7 +472,7 @@ CIndexTreeNodeMemory* CIndexTreeMemory::SetOldWithCurrent(CIndexTreeNodeMemory* 
 	pcCurrent = pcParent->Get(c);
 	if (pcCurrent == NULL)
 	{
-		pcNew = AllocateNode(pcParent);
+		pcNew = AllocateNode(pcParent, c);
 		pcReallocedParent = ReallocateNodeForIndex(pcParent, c);
 		pcReallocedParent->Set(c, pcNew);
 		if (pcParent != pcReallocedParent)
@@ -954,6 +954,7 @@ BOOL CIndexTreeMemory::ValidateIndexTree(void)
 
 	bResult = ValidateLimits();
 	bResult &= ValidateSize();
+	bResult &= ValidateParentIndex();
 	return bResult;
 }
 
@@ -1117,6 +1118,94 @@ BOOL CIndexTreeMemory::RecurseValidateLimits(CIndexTreeRecursor* pcCursor)
 					return FALSE;
 				}
 			}
+		}
+	}
+	pcCursor->Pop();
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeMemory::ValidateParentIndex(void)
+{
+	CIndexTreeRecursor	cCursor;
+	BOOL				bResult;
+
+	cCursor.Init(mpcRoot);
+	bResult = RecurseValidateParentIndex(&cCursor);
+	cCursor.Kill();
+
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeMemory::RecurseValidateParentIndex(CIndexTreeRecursor* pcCursor)
+{
+	CIndexTreeNodeMemory*	pcNode;
+	int						i;
+	CIndexTreeNodeMemory*	pcChild;
+	CIndexTreeNodeMemory*	pcIndexedChild;
+	BOOL					bResult;
+	CIndexTreeNodeMemory*	pcChildsParent;
+	unsigned char			uiIndexInParent;
+
+
+	pcNode = (CIndexTreeNodeMemory*)pcCursor->GetNode();
+	if (pcNode != NULL)
+	{
+		if (pcNode->HasNodes())
+		{
+			for (i = pcNode->GetFirstIndex(); i <= pcNode->GetLastIndex(); i++)
+			{
+				pcChild = pcNode->Get(i);
+				if (pcChild != NULL)
+				{
+					pcChildsParent = (CIndexTreeNodeMemory*)pcChild->GetParent();
+					if (pcChildsParent != pcNode)
+					{
+						pcCursor->GenerateBad();
+						gcLogger.Error2(__METHOD__, " Node [", pcCursor->GetBadNode(), "] points to the wrong parent node.", NULL);
+						return FALSE;
+					}
+
+					uiIndexInParent = pcChild->GetIndexInParent();
+					pcIndexedChild = pcNode->Get(uiIndexInParent);
+					if (pcIndexedChild != pcChild)
+					{
+						pcCursor->GenerateBad();
+						gcLogger.Error2(__METHOD__, " Node [", pcCursor->GetBadNode(), "] points to the wrong parent node.", NULL);
+						return FALSE;
+					}
+
+					pcCursor->Push(pcChild, i);
+					bResult = RecurseValidateParentIndex(pcCursor);
+					if (!bResult)
+					{
+						pcCursor->Pop();
+						return FALSE;
+					}
+				}
+			}
+
+			for (i = pcNode->GetFirstIndex(); i <= pcNode->GetLastIndex(); i++)
+			{
+				pcChild = pcNode->Get(i);
+				pcCursor->Push(pcChild, i);
+				bResult = RecurseValidateParentIndex(pcCursor);
+				if (!bResult)
+				{
+					pcCursor->Pop();
+					return FALSE;
+				}
+			}
+
 		}
 	}
 	pcCursor->Pop();

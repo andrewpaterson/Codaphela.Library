@@ -7,7 +7,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNode::Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex, unsigned short uiDataSize, int iClearValue)
+void CIndexTreeNode::Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex, unsigned short uiDataSize, int iClearValue, unsigned char uiIndexInParent)
 {
 	size_t tSize;
 
@@ -16,7 +16,7 @@ void CIndexTreeNode::Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent, uns
 	muiLastIndex = uiLastIndex;
 	muiDataSize = uiDataSize;
 	msFlags = 0;
-	muiIndexInParent = 0;
+	muiIndexInParent = uiIndexInParent;
 	mpcParent = pcParent;
 
 	tSize = (uiLastIndex - uiFirstIndex + 1) * SizeofNodePtr();
@@ -28,7 +28,7 @@ void CIndexTreeNode::Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent, uns
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNode::Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent)
+void CIndexTreeNode::Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent, unsigned char uiIndexInParent)
 {
 	mpcIndexTree = pcIndexTree;
 	mpcParent = pcParent;
@@ -36,7 +36,7 @@ void CIndexTreeNode::Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent)
 	muiLastIndex = 0;
 	muiDataSize = 0;
 	msFlags = 0;
-	muiIndexInParent = 0;
+	muiIndexInParent = uiIndexInParent;
 	SetNodesEmpty(TRUE);
 }
 
@@ -105,6 +105,16 @@ void* CIndexTreeNode::GetNodesMemory(void)
 CIndexTreeNode* CIndexTreeNode::GetParent(void)
 {
 	return mpcParent;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+unsigned char CIndexTreeNode::GetIndexInParent(void)
+{
+	return muiIndexInParent;
 }
 
 

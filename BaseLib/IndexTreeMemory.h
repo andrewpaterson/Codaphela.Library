@@ -68,7 +68,7 @@ public:
 
 protected:
 	CIndexTreeNodeMemory*	AllocateRoot(void);
-	CIndexTreeNodeMemory*	AllocateNode(CIndexTreeNodeMemory* pcParent);
+	CIndexTreeNodeMemory*	AllocateNode(CIndexTreeNodeMemory* pcParent, unsigned char uiIndexInParent);
 
 	CIndexTreeNodeMemory*	ReallocateNodeForIndex(CIndexTreeNodeMemory* pcNode, unsigned char uiIndex);
 	CIndexTreeNodeMemory*	ReallocateNodeForLargerData(CIndexTreeNodeMemory* pcNode, unsigned short uiDataSize);
@@ -85,6 +85,8 @@ protected:
 	size_t					RecurseByteSize(CIndexTreeNodeMemory* pcNode);
 	BOOL					ValidateLimits(void);
 	BOOL					RecurseValidateLimits(CIndexTreeRecursor* pcCursor);
+	BOOL					ValidateParentIndex(void);
+	BOOL					RecurseValidateParentIndex(CIndexTreeRecursor* pcCursor);
 
 	BOOL					StepNext(SIndexTreeMemoryIterator* psIterator);
 };

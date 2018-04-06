@@ -132,6 +132,31 @@ BOOL CIndexTreeAccess::PutLongData(int64 lliKey, void* pvObject, int iDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeAccess::PutStringString(char* pszKey, char* pszData)
+{
+	int iKeySize;
+	int iDataSize;
+
+	if (StrEmpty(pszKey))
+	{
+		return FALSE;
+	}
+
+	iKeySize = strlen(pszKey);
+	iDataSize = strlen(pszData) + 1;
+	if (iDataSize > MAX_UCHAR)
+	{
+		return FALSE;
+	}
+
+	return Put(pszKey, iKeySize, pszData, iDataSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeAccess::Put(void* pvKey, int iKeySize, unsigned char uiDataSize)
 {
 	mcTemp.Size(uiDataSize);

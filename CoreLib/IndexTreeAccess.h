@@ -18,6 +18,7 @@ public:
 			BOOL	PutLongPtr(int64 lliKey, void* pvPointer);
 			BOOL	PutLongString(int64 lliKey, char* pszData);
 			BOOL	PutLongData(int64 lliKey, void* pvObject, int iDataSize);
+			BOOL	PutStringString(char* pszKey, char* pszData);
 
 			BOOL	GetLongString(int64 lliKey, char* pszDest);
 

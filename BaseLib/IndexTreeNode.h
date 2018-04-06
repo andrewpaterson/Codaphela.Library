@@ -31,8 +31,8 @@ protected:
 	unsigned char		msFlags;
 
 public:
-	void			Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex, unsigned short uiDataSize, int iClearValue);
-	void			Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent);
+	void			Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex, unsigned short uiDataSize, int iClearValue, unsigned char uiIndexInParent);
+	void			Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent, unsigned char uiIndexInParent);
 
 	void			ChangeDataSize(unsigned short uiSize);
 	BOOL			SetObject(void* pvObject, unsigned short uiSize);
@@ -45,6 +45,7 @@ public:
 	void*			GetNodesMemory(void);
 
 	CIndexTreeNode*	GetParent(void);
+	unsigned char	GetIndexInParent(void);
 
 	int				GetNumIndexes(void);
 	int				GetNumIndexes(unsigned char uiFirstIndex, unsigned char uiLastIndex);

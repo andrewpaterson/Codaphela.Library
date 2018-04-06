@@ -15,12 +15,13 @@ private:
 	CFileIndex				mcFileIndex;
 
 public:
-	void					Init(CIndexTree* pcIndexTree, CIndexTreeNodeFile* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex, CFileIndex cFileIndex);
-	void					Init(CIndexTree* pcIndexTree, CIndexTreeNodeFile* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex);
-	void					Init(CIndexTree* pcIndexTree, CIndexTreeNodeFile* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex, unsigned short uiObjectSize);
-	void					Init(CIndexTree* pcIndexTree, CIndexTreeNodeFile* pcParent, CFileIndex cFileIndex);
-	void					Init(CIndexTree* pcIndexTree, CIndexTreeNodeFile* pcParent);
-	int						Init(CIndexTree* pcIndexTree, CIndexTreeNodeFile* pcParent, void* pvBuffer, int iBufferSize, CFileIndex cFileIndex);
+	void					Init(CIndexTree* pcIndexTree, CIndexTreeNodeFile* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex, CFileIndex cFileIndex, unsigned char uiIndexInParent);
+	void					Init(CIndexTree* pcIndexTree, CIndexTreeNodeFile* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex, unsigned char uiIndexInParent);
+	void					Init(CIndexTree* pcIndexTree, CIndexTreeNodeFile* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex, unsigned short uiObjectSize, unsigned char uiIndexInParent);
+	void					Init(CIndexTree* pcIndexTree, CIndexTreeNodeFile* pcParent, CFileIndex cFileIndex, unsigned char uiIndexInParent);
+	void					Init(CIndexTree* pcIndexTree, CIndexTreeNodeFile* pcParent, unsigned char uiIndexInParent);
+
+	int						InitFromBuffer(CIndexTree* pcIndexTree, CIndexTreeNodeFile* pcParent, void* pvBuffer, int iBufferSize, CFileIndex cFileIndex);
 
 	void					SetFileIndex(int iFile,  filePos ulliFilePos);
 	CFileIndex*				GetFileIndex(void);
