@@ -7,11 +7,14 @@
 #include "IndexTreeNode.h"
 
 
+#define MAX_KEY_SIZE (4 KB)
+#define MAX_DATA_SIZE (64 KB)
+
+
 class CIndexTree
 {
 protected:
 	CMallocator*	mpcMalloc;
-	int				miLargestKeySize;
 
 	size_t			mtSizeofNode;
 	size_t			mtSizeofNodePtr;

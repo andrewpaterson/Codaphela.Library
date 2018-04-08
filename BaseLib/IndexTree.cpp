@@ -8,7 +8,6 @@
 void CIndexTree::Init(CMallocator* pcMalloc, size_t tSizeofNode, size_t tSizeofNodePtr)
 {
 	mpcMalloc = pcMalloc;
-	miLargestKeySize = 0;
 	mtSizeofNode = tSizeofNode;
 	mtSizeofNodePtr = tSizeofNodePtr;
 }

@@ -310,10 +310,6 @@ void* CIndexTreeMemory::Put(void* pvKey, int iKeySize, void* pvObject, unsigned 
 	}
 
 	pcCurrent = mpcRoot;
-	if (iKeySize > miLargestKeySize)
-	{
-		miLargestKeySize = iKeySize;
-	}
 
 	for (int i = 0; i < iKeySize; i++)
 	{
@@ -654,7 +650,7 @@ BOOL CIndexTreeMemory::Write(CFileWriter* pcFileWriter)
 	int					iDataSize;
 	int					iKeySize;
 	BOOL				bResult;
-	char				acKey[1024];
+	unsigned char		acKey[MAX_KEY_SIZE];
 	int					iCount;
 
 	bResult = gcMallocators.WriteMallocator(pcFileWriter, mpcMalloc);
@@ -663,16 +659,7 @@ BOOL CIndexTreeMemory::Write(CFileWriter* pcFileWriter)
 		return FALSE;
 	}
 
-	if (miLargestKeySize >= 1024)
-	{
-		return FALSE;
-	}
-
 	if (!pcFileWriter->WriteInt(miSize))
-	{
-		return FALSE;
-	}
-	if (!pcFileWriter->WriteInt(miLargestKeySize))
 	{
 		return FALSE;
 	}
@@ -780,16 +767,6 @@ BOOL CIndexTreeMemory::Read(CFileReader* pcFileReader)
 int CIndexTreeMemory::NumElements(void)
 {
 	return miSize;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-int CIndexTreeMemory::GetLargestKeySize(void)
-{
-	return miLargestKeySize;
 }
 
 
