@@ -183,6 +183,10 @@ BOOL PrivateAssertString(char* szExpected, char* szActual, BOOL bTestCase, int i
 	{
 		return Fail(szExpected, "** NULL **", iLine, szFile);
 	}
+	else if (szExpected == NULL)
+	{
+		return Fail("** NULL **", szActual, iLine, szFile);
+	}
 	else
 	{
 		if (bTestCase)
