@@ -27,7 +27,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "Define.h"
 #include "StringHelper.h"
 #include "FileBasic.h"
-#include "ArrayString.h"
+#include "ArrayChars.h"
 #include "DiskFile.h"
 
 
@@ -391,7 +391,7 @@ void CFileUtil::SplitPath(char* szPathName, CChars* szDestFileName, CChars* szDe
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFileUtil::SplitPath(char* szPathName, CArrayString* paszComponents)
+void CFileUtil::SplitPath(char* szPathName, CArrayChars* paszComponents)
 {
 	CChars	sz;
 	BOOL	bAbsolute;
@@ -427,7 +427,7 @@ void CFileUtil::SplitPath(char* szPathName, CArrayString* paszComponents)
 void CFileUtil::CollapsePath(CChars* szPathName)
 {
 	CChars			szTemp;
-	CArrayString	szNodes;
+	CArrayChars	szNodes;
 	int				i;
 	CChars*			pszNode;
 	CChars*			apCharDirectories[4096];
@@ -771,11 +771,11 @@ int CFileUtil::FindFirstSeparator(char* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileUtil::RecurseFindFiles(char* szDirectory, char* szInName, char* szExtension, CArrayString* paszFiles, BOOL bHidden)
+BOOL CFileUtil::RecurseFindFiles(char* szDirectory, char* szInName, char* szExtension, CArrayChars* paszFiles, BOOL bHidden)
 {
 	CChars*			szDir;
 	int				i;
-	CArrayString	aszDirs;
+	CArrayChars	aszDirs;
 	BOOL			bDirectories;
 	BOOL			bFiles;
 
@@ -801,7 +801,7 @@ BOOL CFileUtil::RecurseFindFiles(char* szDirectory, char* szInName, char* szExte
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFileUtil::FindFilesWithNameContaining(char* szPathName, char* szFileName, CArrayString* paszFiles, BOOL bIncludeSubDirs, BOOL bHidden)
+void CFileUtil::FindFilesWithNameContaining(char* szPathName, char* szFileName, CArrayChars* paszFiles, BOOL bIncludeSubDirs, BOOL bHidden)
 {
 	if (bIncludeSubDirs)
 	{
@@ -818,7 +818,7 @@ void CFileUtil::FindFilesWithNameContaining(char* szPathName, char* szFileName, 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFileUtil::FindFilesWithExtension(char* szPathName, char* szExtension, CArrayString* paszFiles, BOOL bIncludeSubDirs, BOOL bHidden)
+void CFileUtil::FindFilesWithExtension(char* szPathName, char* szExtension, CArrayChars* paszFiles, BOOL bIncludeSubDirs, BOOL bHidden)
 {
 	if (bIncludeSubDirs)
 	{
@@ -835,7 +835,7 @@ void CFileUtil::FindFilesWithExtension(char* szPathName, char* szExtension, CArr
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFileUtil::FindAllDirectories(char* szPathName, CArrayString* paszFiles, BOOL bHidden)
+void CFileUtil::FindAllDirectories(char* szPathName, CArrayChars* paszFiles, BOOL bHidden)
 {
 	FindFiles(szPathName, TRUE, NULL, NULL, paszFiles, bHidden);
 }
@@ -845,7 +845,7 @@ void CFileUtil::FindAllDirectories(char* szPathName, CArrayString* paszFiles, BO
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileUtil::FindAllFiles(char* szPathName, CArrayString* paszFiles, BOOL bIncludeSubDirs, BOOL bHidden)
+BOOL CFileUtil::FindAllFiles(char* szPathName, CArrayChars* paszFiles, BOOL bIncludeSubDirs, BOOL bHidden)
 {
 	if (bIncludeSubDirs)
 	{
@@ -891,7 +891,7 @@ BOOL CFileUtil::TouchDir(char* szDirectory, BOOL bLastIsFileName)
 {
 	CChars			szPath;
 	char			cDrive;
-	CArrayString	aszPathComponents;
+	CArrayChars	aszPathComponents;
 	int				i;
 	CChars			szPartialPath;
 	BOOL			bResult;

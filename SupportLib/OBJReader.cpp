@@ -99,7 +99,7 @@ BOOL CObjReader::Read(void)
 	CEnumeratorVoid		cTypes;
 	int					iType;
 	int					iNumVerts;
-	CArrayString		cLines;
+	CArrayChars		cLines;
 	CChars*				pszLine;
 	int					i;
 	TRISTATE			tResult;

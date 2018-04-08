@@ -52,7 +52,7 @@ void CChunkFileNames::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CChunkFileNames::FindChunkNamesMatching(CArrayString* paszOpenChunkNames, CArrayString* paszChunkNames)
+int CChunkFileNames::FindChunkNamesMatching(CArrayChars* paszOpenChunkNames, CArrayChars* paszChunkNames)
 {
 	int				i;
 	CChars*			pszNewName;
@@ -93,7 +93,7 @@ BOOL CChunkFileNames::WriteUnmatchedChunkEnds(int iMatchingOpen)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChunkFileNames::WriteNewUnmatchedChunks(int iMatchingOpen, CArrayString* paszChunkNames)
+BOOL CChunkFileNames::WriteNewUnmatchedChunks(int iMatchingOpen, CArrayChars* paszChunkNames)
 {
 	int			i;
 	CChars*		pszOpenName;
@@ -113,7 +113,7 @@ BOOL CChunkFileNames::WriteNewUnmatchedChunks(int iMatchingOpen, CArrayString* p
 //////////////////////////////////////////////////////////////////////////
 BOOL CChunkFileNames::WriteChunkBegin(char* szChunkName)
 {
-	CArrayString	aszChunkNames;
+	CArrayChars	aszChunkNames;
 	int				iMatchingOpen;
 
 	aszChunkNames.Init(8);
@@ -187,7 +187,7 @@ BOOL CChunkFileNames::WriteChunkEnd(char* szChunkName)
 //////////////////////////////////////////////////////////////////////////
 BOOL CChunkFileNames::ReadChunkBegin(char* szChunkName)
 {
-	CArrayString	aszChunkNames;
+	CArrayChars	aszChunkNames;
 	int				iDepth;
 	CChars*			pszName;
 	int				iIndex;

@@ -26,13 +26,13 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "FileIO.h"
 #include "ArrayTemplateMinimal.h"
 #include "CSVFile.h"
-#include "ArrayString.h"
+#include "ArrayChars.h"
 
 
 struct SCSVRowEditable
 {
 	int				iFileOffset;
-	CArrayString	aszData;
+	CArrayChars	aszData;
 
 	void 		Init(void);
 	void 		Kill(void);

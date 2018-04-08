@@ -42,6 +42,7 @@ public:
 
 	void					FindKey(CIndexTreeNodeFile* pcNode, CArrayChar* pacKey);
 	void					FindKey(CIndexTreeNodeFile* pcNode, unsigned char* uiKey, int* piKeySize);
+	void					FindKeys(CArrayVoidPtr* apvNodes, CArrayChars* paszKeys);
 
 	BOOL					Put(char* pszKey, void* pvObject, unsigned short uiDataSize);
 	BOOL					Put(void* pvKey, int iKeySize, unsigned short uiDataSize);

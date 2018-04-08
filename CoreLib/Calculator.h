@@ -24,7 +24,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define __CALCULATOR_H__
 #include "BaseLib/Define.h"
 #include "BaseLib/Number.h"
-#include "BaseLib/ArrayString.h"
+#include "BaseLib/ArrayChars.h"
 #include "BaseLib/ArrayInt.h"
 #include "BaseLib/ArrayIntAndPointer.h"
 #include "BaseLib/TextParser.h"
@@ -38,7 +38,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 class CCalculator
 {
 public:
-	CArrayString	mszOperators;
+	CArrayChars	mszOperators;
 	CTextParser		mcParser;
 	CArrayInt		maiPrecedence;
 

@@ -20,17 +20,17 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __ARRAY_STRING_H__
-#define __ARRAY_STRING_H__
+#ifndef __ARRAY_CHARS_H__
+#define __ARRAY_CHARS_H__
 #include "ArrayTemplate.h"
 #include "Chars.h"
 
 
-typedef CArrayTemplate<CChars>		__CArrayString;
-class CArrayString
+typedef CArrayTemplate<CChars>	__CArrayChars;
+class CArrayChars
 {
 public:
-	__CArrayString	mcArray;
+	__CArrayChars	mcArray;
 	BOOL			mbFaked;
 
 	void 		Init(int iChunkSize, BOOL bFake = FALSE);
@@ -57,8 +57,8 @@ public:
 	int			GetIndex(char* szStart);
 	int			FindInSorted(char* szString, BOOL bCaseSensitive = TRUE);
 	int			FindInSorted(CChars* szString, BOOL bCaseSensitive = TRUE);
-	void		Copy(CArrayString* pcSource);
-	BOOL		Equals(CArrayString* pcOther);
+	void		Copy(CArrayChars* pcSource);
+	BOOL		Equals(CArrayChars* pcOther);
 	BOOL		Contains(char* szText);
 	void		QuickSort(BOOL bIgnoreCase = FALSE);
 	void		BubbleSort(BOOL bIgnoreCase = FALSE);
@@ -68,5 +68,5 @@ public:
 };
 
 
-#endif // __ARRAY_STRING_H__
+#endif // __ARRAY_CHARS_H__
 

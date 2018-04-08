@@ -57,7 +57,7 @@ void CFileSystem::Kill(void)
 void CFileSystem::ReadDirectory(void)
 {
 	CFileUtil			cFileUtil;
-	CArrayString		aszFileNames;
+	CArrayChars		aszFileNames;
 	int					i;
 	CChars*				pszFileName;
 	CSystemFileNode*	pcNode;

@@ -22,7 +22,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __KEYBOARD_KEY_LIST_H__
 #define __KEYBOARD_KEY_LIST_H__
-#include "BaseLib/ArrayString.h"
+#include "BaseLib/ArrayChars.h"
 
 struct SWinKey
 {
@@ -38,7 +38,7 @@ typedef CArrayTemplate<SWinKey>	CArrayWinKey;
 class CKeyboardKeyList
 {
 public:
-	CArrayString	maszKeys;
+	CArrayChars		maszKeys;
 	CArrayWinKey	masKeys;
 	int				miCurrent;
 	BOOL			mbFirst;

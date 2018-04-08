@@ -152,7 +152,7 @@ void CImageCelsSource::AddDiskFileSource(char* szFileName, char* szImageName, CI
 void CImageCelsSource::AddDiskFileSources(char* szPathName, char* szFileNameContains, char* szImageName, CImageCelSource* pcCelSource)
 {
 	CFileUtil				cFileUtil;
-	CArrayString			cFileNames;
+	CArrayChars			cFileNames;
 	int						i;
 	CChars*					pszName;
 	CImageSourceDiskFile*	pcDiskFile;

@@ -552,9 +552,6 @@
     <ClInclude Include="ArrayVoidPtr.h">
       <Filter>Source\Data\Array\Basic\Specific</Filter>
     </ClInclude>
-    <ClInclude Include="ArrayString.h">
-      <Filter>Source\Data\Array\Basic\Specific</Filter>
-    </ClInclude>
     <ClInclude Include="ArrayIntAndPointer.h">
       <Filter>Source\Data\Array\Basic\Specific</Filter>
     </ClInclude>
@@ -722,6 +719,9 @@
     </ClInclude>
     <ClInclude Include="IndexTreeRecursor.h">
       <Filter>Source\Data\Index</Filter>
+    </ClInclude>
+    <ClInclude Include="ArrayChars.h">
+      <Filter>Source\Data\Array\Basic\Specific</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -1007,9 +1007,6 @@
     <ClCompile Include="ArrayVoidPtr.cpp">
       <Filter>Source\Data\Array\Basic\Specific</Filter>
     </ClCompile>
-    <ClCompile Include="ArrayString.cpp">
-      <Filter>Source\Data\Array\Basic\Specific</Filter>
-    </ClCompile>
     <ClCompile Include="ArrayIntAndPointer.cpp">
       <Filter>Source\Data\Array\Basic\Specific</Filter>
     </ClCompile>
@@ -1141,6 +1138,9 @@
     </ClCompile>
     <ClCompile Include="IndexTreeRecursor.cpp">
       <Filter>Source\Data\Index</Filter>
+    </ClCompile>
+    <ClCompile Include="ArrayChars.cpp">
+      <Filter>Source\Data\Array\Basic\Specific</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

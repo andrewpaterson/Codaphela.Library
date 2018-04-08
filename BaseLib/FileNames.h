@@ -88,7 +88,7 @@ template <class M>
 CFileNode<M>* CFileNames<M>::GetNode(char* szFullName)
 {
 	CChars			szFake;
-	CArrayString	asNames;
+	CArrayChars	asNames;
 	int				i;
 	char*			szName;
 	CFileNode<M>*	pcCurrent;
@@ -132,7 +132,7 @@ template <class M>
 CFileNode<M>* CFileNames<M>::AddFile(char* szFullName)
 {
 	CChars			szFake;
-	CArrayString	asNames;
+	CArrayChars	asNames;
 	int				i;
 	char*			szName;
 	CFileNode<M>*	pcCurrent;
@@ -186,7 +186,7 @@ template <class M>
 M* CFileNames<M>::GetNearestFile(char* szFullName, CChars* pszRemaining)
 {
 	CChars			szFake;
-	CArrayString	asNames;
+	CArrayChars	asNames;
 	int				i;
 	CFileNode<M>*	pcCurrent;
 	CFileNode<M>*	pcChild;

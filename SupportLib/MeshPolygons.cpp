@@ -393,11 +393,11 @@ void CMeshPolygons::GeneratePolygonFromEdgeSelection(CMeshConnectivity* pcConn, 
 	pcPolygon = Add(1);
 	iPolygonIndex = mcPolygons.NumElements()-1;
 	aiStack.Init(1);
-	aiStack.Push(&iFaceIndex);
+	aiStack.Push(iFaceIndex);
 
 	for (;;)
 	{
-		aiStack.Pop(&iFaceIndex);
+		iFaceIndex = aiStack.Pop();
 		pcPolygon->maiFaces.Add(iFaceIndex);
 		maiFacesToPolygons.SetValue(iFaceIndex, iPolygonIndex);
 

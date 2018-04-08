@@ -25,7 +25,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "Define.h"
 #include "Numbers.h"
 #include "Chars.h"
-#include "ArrayString.h"
+#include "ArrayChars.h"
 
 
 #define FILE_BLOCK_SIZE		(1 MB)
@@ -36,8 +36,8 @@ class CFileUtil
 {
 private:
     BOOL    RecurseRemoveDir(char* szPathName);
-	BOOL	FindFiles(char* szPathName, BOOL bDirectories, char* szInName, char* szExtension, CArrayString* paszFiles, BOOL bHidden);
-	BOOL	RecurseFindFiles(char* szPathName, char* szInName, char* szExtension, CArrayString* paszFiles, BOOL bHidden);
+	BOOL	FindFiles(char* szPathName, BOOL bDirectories, char* szInName, char* szExtension, CArrayChars* paszFiles, BOOL bHidden);
+	BOOL	RecurseFindFiles(char* szPathName, char* szInName, char* szExtension, CArrayChars* paszFiles, BOOL bHidden);
 	BOOL	Compare(char* szFileName1, char* szFileName2, BOOL bSizeOnly);
 
 public:
@@ -65,7 +65,7 @@ public:
 	void	CollapsePath(CChars* szPathName);
 	void	CurrentDirectory(CChars* szDest);
 	void	SplitPath(char* szPathName, CChars* szDestFileName, CChars* szDestDirectory);
-	void	SplitPath(char* szPathName, CArrayString* paszComponents);
+	void	SplitPath(char* szPathName, CArrayChars* paszComponents);
 
 	void    RemoveExtension(CChars* szPathName);
 	int		FindExtension(char* szPathName);
@@ -79,10 +79,10 @@ public:
 	BOOL	IsExtension(char* szFileName, char* szExtension);
 
 	//Finder methods
-	void	FindFilesWithNameContaining(char* szPathName, char* szFileName, CArrayString* paszFiles, BOOL bIncludeSubDirs = FALSE, BOOL bHidden= TRUE);
-	void	FindFilesWithExtension(char* szPathName, char* szExtension, CArrayString* paszFiles, BOOL bIncludeSubDirs = FALSE, BOOL bHidden = TRUE);
-	void	FindAllDirectories(char* szPathName, CArrayString* paszFiles, BOOL bHidden = TRUE);
-	BOOL	FindAllFiles(char* szPathName, CArrayString* paszFiles, BOOL bIncludeSubDirs = FALSE, BOOL bHidden = TRUE);
+	void	FindFilesWithNameContaining(char* szPathName, char* szFileName, CArrayChars* paszFiles, BOOL bIncludeSubDirs = FALSE, BOOL bHidden= TRUE);
+	void	FindFilesWithExtension(char* szPathName, char* szExtension, CArrayChars* paszFiles, BOOL bIncludeSubDirs = FALSE, BOOL bHidden = TRUE);
+	void	FindAllDirectories(char* szPathName, CArrayChars* paszFiles, BOOL bHidden = TRUE);
+	BOOL	FindAllFiles(char* szPathName, CArrayChars* paszFiles, BOOL bIncludeSubDirs = FALSE, BOOL bHidden = TRUE);
 
 	//Miscellaneous methods.  I'm not sure what class this belongs in.
 	void	MakeNameFromDirectory(CChars* pszName, CChars* pszFileName, CChars* pszDirectory);

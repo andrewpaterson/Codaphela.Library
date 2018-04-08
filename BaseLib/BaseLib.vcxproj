@@ -110,7 +110,7 @@
     <ClInclude Include="ArrayTemplatePrimitive.h" />
     <ClInclude Include="ArrayTemplateMinimal.h" />
     <ClInclude Include="ArrayCharMinimal.h" />
-    <ClInclude Include="ArrayString.h" />
+    <ClInclude Include="ArrayChars.h" />
     <ClInclude Include="ArrayTemplate.h" />
     <ClInclude Include="ArrayDenseTemplate.h" />
     <ClInclude Include="ArraySparseTemplate.h" />
@@ -274,7 +274,7 @@
     <ClCompile Include="ArrayLong.cpp" />
     <ClCompile Include="ArrayIntAndPointer.cpp" />
     <ClCompile Include="ArrayCharMinimal.cpp" />
-    <ClCompile Include="ArrayString.cpp" />
+    <ClCompile Include="ArrayChars.cpp" />
     <ClCompile Include="ArrayVoidPtr.cpp" />
     <ClCompile Include="BaseFileNode.cpp" />
     <ClCompile Include="ChunkFileFile.cpp" />

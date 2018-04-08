@@ -26,7 +26,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "DebugOutput.h"
 #include "PointerRemapper.h"
 #include "IntegerHelper.h"
-#include "ArrayString.h"
+#include "ArrayChars.h"
 #include "StringHelper.h"
 #include "Newline.h"
 #include "FileWriter.h"
@@ -1121,7 +1121,7 @@ void CChars::RemoveCharacter(int iPos)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::Split(CArrayString* aszDest, char cSplitter)
+void CChars::Split(CArrayChars* aszDest, char cSplitter)
 {
 	int			iPos;
 	char*		pszPos;
@@ -1152,7 +1152,7 @@ void CChars::Split(CArrayString* aszDest, char cSplitter)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::SplitLines(CArrayString* aszDest)
+void CChars::SplitLines(CArrayChars* aszDest)
 {
 	//This assumes new lines are passified.
 	Split(aszDest, '\n');

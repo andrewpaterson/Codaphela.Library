@@ -20,14 +20,14 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-#include "ArrayString.h"
+#include "ArrayChars.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayString::Init(int iChunkSize, BOOL bFake)
+void CArrayChars::Init(int iChunkSize, BOOL bFake)
 {
 	mcArray.Init(iChunkSize);
 	mbFaked = bFake;
@@ -38,7 +38,7 @@ void CArrayString::Init(int iChunkSize, BOOL bFake)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayString::Kill(void)
+void CArrayChars::Kill(void)
 {
 	int		i;
 	CChars*	pcChars;
@@ -59,7 +59,7 @@ void CArrayString::Kill(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayString::ReInit(void)
+void CArrayChars::ReInit(void)
 {
 	int iChunkSize;
 
@@ -73,7 +73,7 @@ void CArrayString::ReInit(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CChars* CArrayString::Add(CChars cChars)
+CChars* CArrayChars::Add(CChars cChars)
 {
 	CChars*		pcChars2;
 
@@ -94,7 +94,7 @@ CChars* CArrayString::Add(CChars cChars)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CChars* CArrayString::Add(char* szString)
+CChars* CArrayChars::Add(char* szString)
 {
 	CChars*		pcChars2;
 
@@ -115,7 +115,7 @@ CChars* CArrayString::Add(char* szString)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CChars* CArrayString::Add(char* szString, int iStartInclusive, int iEndExclusive)
+CChars* CArrayChars::Add(char* szString, int iStartInclusive, int iEndExclusive)
 {
 	CChars*		pcChars2;
 
@@ -136,7 +136,7 @@ CChars* CArrayString::Add(char* szString, int iStartInclusive, int iEndExclusive
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CChars* CArrayString::Add(char* szText, char* szLastCharInclusive)
+CChars* CArrayChars::Add(char* szText, char* szLastCharInclusive)
 {
 	CChars*		pcChars2;
 
@@ -157,7 +157,7 @@ CChars* CArrayString::Add(char* szText, char* szLastCharInclusive)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CChars* CArrayString::AddIfUnique(char* szString)
+CChars* CArrayChars::AddIfUnique(char* szString)
 {
 	int			i;
 	CChars*		pcExisting;
@@ -185,7 +185,7 @@ CChars* CArrayString::AddIfUnique(char* szString)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CChars* CArrayString::AddIfUnique(CChars cChars)
+CChars* CArrayChars::AddIfUnique(CChars cChars)
 {
 	int			i;
 	CChars*		pcExisting;
@@ -212,7 +212,7 @@ CChars* CArrayString::AddIfUnique(CChars cChars)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CChars* CArrayString::InsertIntoSorted(char* szText, char* szLastCharInclusive)
+CChars* CArrayChars::InsertIntoSorted(char* szText, char* szLastCharInclusive)
 {
 	CChars*		pcChars2;
 	CChars		szTemp;
@@ -244,7 +244,7 @@ CChars* CArrayString::InsertIntoSorted(char* szText, char* szLastCharInclusive)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CChars*	CArrayString::Add(void)
+CChars*	CArrayChars::Add(void)
 {
 	CChars*		pcChars;
 
@@ -265,7 +265,7 @@ CChars*	CArrayString::Add(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayString::Remove(CChars* pcChars)
+void CArrayChars::Remove(CChars* pcChars)
 {
 	Remove(pcChars->Text());
 }
@@ -275,7 +275,7 @@ void CArrayString::Remove(CChars* pcChars)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayString::Remove(char* szString)
+void CArrayChars::Remove(char* szString)
 {
 	int			i;
 	CChars*		pcChars2;
@@ -296,7 +296,7 @@ void CArrayString::Remove(char* szString)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayString::Remove(int iIndex)
+void CArrayChars::Remove(int iIndex)
 {
 	CChars*		pcChars;
 
@@ -310,7 +310,7 @@ void CArrayString::Remove(int iIndex)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CChars* CArrayString::Get(int iIndex)
+CChars* CArrayChars::Get(int iIndex)
 {
 	return mcArray.SafeGet(iIndex);
 }
@@ -320,7 +320,7 @@ CChars* CArrayString::Get(int iIndex)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CChars* CArrayString::Tail(void)
+CChars* CArrayChars::Tail(void)
 {
 	if (NumElements() > 0)
 	{
@@ -337,7 +337,7 @@ CChars* CArrayString::Tail(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-char* CArrayString::GetText(int iIndex)
+char* CArrayChars::GetText(int iIndex)
 {
 	CChars*		pcChars;
 
@@ -354,7 +354,7 @@ char* CArrayString::GetText(int iIndex)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CArrayString::NumElements(void)
+int CArrayChars::NumElements(void)
 {
 	return mcArray.NumElements();
 }
@@ -364,7 +364,7 @@ int CArrayString::NumElements(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CArrayString::GetIndex(char* szStart)
+int CArrayChars::GetIndex(char* szStart)
 {
 	int			i;
 	CChars*		psz;
@@ -385,7 +385,7 @@ int CArrayString::GetIndex(char* szStart)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CArrayString::GetIndex(char* szStart, int iLen)
+int CArrayChars::GetIndex(char* szStart, int iLen)
 {
 	int			i;
 	CChars*		psz;
@@ -406,7 +406,7 @@ int CArrayString::GetIndex(char* szStart, int iLen)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CArrayString::FindInSorted(char* szString, BOOL bCaseSensitive)
+int CArrayChars::FindInSorted(char* szString, BOOL bCaseSensitive)
 {
 	CChars	szFake;
 
@@ -419,7 +419,7 @@ int CArrayString::FindInSorted(char* szString, BOOL bCaseSensitive)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CArrayString::FindInSorted(CChars* szString, BOOL bCaseSensitive)
+int CArrayChars::FindInSorted(CChars* szString, BOOL bCaseSensitive)
 {
 	int(*Func)(const void*, const void*);
 	int		iIndex;
@@ -449,7 +449,7 @@ int CArrayString::FindInSorted(CChars* szString, BOOL bCaseSensitive)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayString::Copy(CArrayString* pcSource)
+void CArrayChars::Copy(CArrayChars* pcSource)
 {
 	int		i;
 	CChars*	psz;
@@ -466,7 +466,7 @@ void CArrayString::Copy(CArrayString* pcSource)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayString::Equals(CArrayString* pcOther)
+BOOL CArrayChars::Equals(CArrayChars* pcOther)
 {
 	int		i;
 	CChars*	pszThis;
@@ -494,7 +494,7 @@ BOOL CArrayString::Equals(CArrayString* pcOther)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayString::Contains(char* szText)
+BOOL CArrayChars::Contains(char* szText)
 {
 	int		iIndex;
 
@@ -511,7 +511,7 @@ BOOL CArrayString::Contains(char* szText)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayString::QuickSort(BOOL bIgnoreCase)
+void CArrayChars::QuickSort(BOOL bIgnoreCase)
 {
 	if (bIgnoreCase)
 	{
@@ -528,7 +528,7 @@ void CArrayString::QuickSort(BOOL bIgnoreCase)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayString::BubbleSort(BOOL bIgnoreCase)
+void CArrayChars::BubbleSort(BOOL bIgnoreCase)
 {
 	if (bIgnoreCase)
 	{
@@ -545,7 +545,7 @@ void CArrayString::BubbleSort(BOOL bIgnoreCase)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayString::Finalise(void)
+void CArrayChars::Finalise(void)
 {
 	mcArray.Finalise();
 }
@@ -555,7 +555,7 @@ void CArrayString::Finalise(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayString::Dump(void)
+void CArrayChars::Dump(void)
 {
 	int			i;
 	CChars*		psz;
@@ -576,7 +576,7 @@ void CArrayString::Dump(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayString::Split(char* szString, char cSplitter)
+BOOL CArrayChars::Split(char* szString, char cSplitter)
 {
 	CChars			szTemp;
 
@@ -597,7 +597,7 @@ BOOL CArrayString::Split(char* szString, char cSplitter)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayString::RemoveTail(void)
+BOOL CArrayChars::RemoveTail(void)
 {
 	if (NumElements() > 0)
 	{

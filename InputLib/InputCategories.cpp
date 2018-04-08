@@ -20,7 +20,7 @@ along with Codaphela InputLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-#include "BaseLib/ArrayString.h"
+#include "BaseLib/ArrayChars.h"
 #include "BaseLib/Logger.h"
 #include "InputCategories.h"
 

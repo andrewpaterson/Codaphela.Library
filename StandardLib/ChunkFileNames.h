@@ -1,6 +1,6 @@
 #ifndef __CHUNK_FILE_NAMES_H__
 #define __CHUNK_FILE_NAMES_H__
-#include "BaseLib/ArrayString.h"
+#include "BaseLib/ArrayChars.h"
 #include "BaseLib/ChunkFile.h"
 
 
@@ -19,7 +19,7 @@ struct SChunkFileNameIterator
 class CChunkFileNames : public CChunkFile
 {
 protected:
-	CArrayString	maszOpenChunkNames;  //All the chunk names not including the last one.
+	CArrayChars	maszOpenChunkNames;  //All the chunk names not including the last one.
 	CChars			mszLastChunkName;  //The last open chunk name.
 
 public:
@@ -42,9 +42,9 @@ protected:
 	BOOL	WriteChunkBegin(void);
 	BOOL	WriteChunkEnd(char* szChunkName);
 
-	int		FindChunkNamesMatching(CArrayString* paszOpenChunkNames, CArrayString* paszChunkNames);
+	int		FindChunkNamesMatching(CArrayChars* paszOpenChunkNames, CArrayChars* paszChunkNames);
 	BOOL	WriteUnmatchedChunkEnds(int iMatchingOpen);
-	BOOL	WriteNewUnmatchedChunks(int iMatchingOpen, CArrayString* paszChunkNames);
+	BOOL	WriteNewUnmatchedChunks(int iMatchingOpen, CArrayChars* paszChunkNames);
 
 	char*	PrivateGetChunkName(int iIndex);
 };

@@ -30,7 +30,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "ArrayInt.h"
 
 
-class CArrayString;
+class CArrayChars;
 
 
 //Fix CChars to not allocate memory for the empty string.
@@ -113,8 +113,8 @@ public:
 	void	Remove(int iStart, int iEnd);
 	void	RemoveEnd(int iIndex);
 	void	RemoveCharacter(int iPos);
-	void	Split(CArrayString* aszDest, char cSplitter);
-	void	SplitLines(CArrayString* aszDest);
+	void	Split(CArrayChars* aszDest, char cSplitter);
+	void	SplitLines(CArrayChars* aszDest);
 	BOOL	Equals(char* szString);
 	BOOL	Equals(CChars szString);
 	BOOL	Equals(char* szString, int iLen);

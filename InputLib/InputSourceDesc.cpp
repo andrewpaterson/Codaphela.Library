@@ -226,7 +226,7 @@ void CInputSourceDesc::ToString(CChars* psz)
 	psz->Append(miStateIndex);
 	psz->AppendNewLine();
 
-	psz->Append(" - CArrayString : mapcGenerics -\n");
+	psz->Append(" - CArrayChars : mapcGenerics -\n");
 	for (i = 0; i < mapcGenerics.NumElements(); i++)
 	{
 	}

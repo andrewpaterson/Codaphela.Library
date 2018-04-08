@@ -23,7 +23,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __INPUT_CATEGORY_H__
 #define __INPUT_CATEGORY_H__
 #include "BaseLib/Chars.h"
-#include "BaseLib/ArrayString.h"
+#include "BaseLib/ArrayChars.h"
 #include "StandardLib/Unknown.h"
 #include "StandardLib/SetType.h"
 #include "InputDevicePointerArray.h"

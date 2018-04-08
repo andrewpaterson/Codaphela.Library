@@ -22,7 +22,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __INPUT_DATA_FORMAT_H__
 #define __INPUT_DATA_FORMAT_H__
-#include "BaseLib/ArrayString.h"
+#include "BaseLib/ArrayChars.h"
 #include "BaseLib/LinkedListTemplate.h"
 #include "StandardLib/Channels.h"
 #include "StandardLib/Unknown.h"
@@ -34,7 +34,7 @@ class CInputDataFormat : public CUnknown
 BASE_FUNCTIONS(CInputDataFormat);
 protected:
 	CChannels			mcExternalChannels;
-	CArrayString		mcChannelNames;
+	CArrayChars		mcChannelNames;
 	BOOL				mbCommon;
 	CChars				mszCommonName;
 

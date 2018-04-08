@@ -24,7 +24,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "FileUtil.h"
 #include "ErrorTypes.h"
 #include "FileHeader.h"
-#include "ArrayString.h"
+#include "ArrayChars.h"
 #include "DiskFile.h"
 #include "FileCopier.h"
 #include "PackFile.h"
@@ -497,7 +497,7 @@ BOOL CPackFiles::AddFile(CAbstractFile* pcFile, char* szFileName)
 BOOL CPackFiles::AddDirectory(char* szDirectory, char* szPackDirectory)
 {
 	CFileUtil		cFileUtil;
-	CArrayString	aszFileNames;
+	CArrayChars	aszFileNames;
 	int				i;
 	CChars*			pszFileName;
 	CDiskFile		cDiskFile;

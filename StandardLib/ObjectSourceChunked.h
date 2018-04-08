@@ -10,7 +10,7 @@ class CObjectSourceChunked : public CObjectSource
 {
 BASE_FUNCTIONS(CObjectSourceChunked);
 protected:
-	CArrayString				mcNames;
+	CArrayChars				mcNames;
 	CChunkFileNames				mcChunkFile;
 	CObjectReaderChunkFile*		mpcReader;
 
