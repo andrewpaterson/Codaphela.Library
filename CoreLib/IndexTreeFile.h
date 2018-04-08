@@ -18,7 +18,6 @@ struct SIndexTreeFileIterator
 class CIndexTreeFile : public CIndexTree
 {
 protected:
-	int							miSize;  //Suspect
 	CIndexTreeNodeFile*			mpcRoot;
 	CIndexedFiles				mcIndexFiles;
 	CDurableFileController*		mpcDurableFileControl;
@@ -41,6 +40,9 @@ public:
 	BOOL					StartIteration(SIndexTreeFileIterator* psIterator, void** pvData, int* piDataSize);
 	BOOL					Iterate(SIndexTreeFileIterator* psIterator, void** pvData, int* piDataSize);
 
+	void					FindKey(CIndexTreeNodeFile* pcNode, CArrayChar* pacKey);
+	void					FindKey(CIndexTreeNodeFile* pcNode, unsigned char* uiKey, int* piKeySize);
+
 	BOOL					Put(char* pszKey, void* pvObject, unsigned short uiDataSize);
 	BOOL					Put(void* pvKey, int iKeySize, unsigned short uiDataSize);
 
@@ -48,14 +50,13 @@ public:
 
 	BOOL					HasKey(char* pszKey);
 
-	int						GetLargestKeySize(void);
 	CIndexTreeNodeFile*		GetNode(void* pvKey, int iKeySize);
 	CIndexTreeNodeFile*		GetRoot(void);
 	CIndexTreeNodeFile*		GetNodeForData(void* pvData);
 	int						CountAllocatedNodes(void);
 	int						RecurseSize(void);
 	size_t					ByteSize(void);
-	void					FindWithFlags(CArrayVoidPtr* papNodes, unsigned char uiFlags);
+	void					FindWithFlags(CArrayVoidPtr* papNodes, unsigned char uiFollowFlags, unsigned char uiAddFlags);
 
 	void					FakeInit(void);
 	void					RecurseKill(CIndexTreeNodeFile* pcNode);
@@ -63,8 +64,8 @@ public:
 	CFileIndex				LoadRootFileIndex(char* szRootFileName);
 
 	BOOL					ValidateIndexTree(void);
-	BOOL					ValidateSize(void);
 	CIndexedFiles*			GetIndexFiles(void);
+	int						NumNodes(void);
 
 protected:
 	CIndexTreeNodeFile*		ReadNode(CIndexTreeNodeFile* pcParent, unsigned char c);
@@ -81,7 +82,6 @@ protected:
 	CIndexTreeNodeFile*		ReallocateNodeForData(CIndexTreeNodeFile* pcNode, size_t tNewNodeSize, size_t tOldNodeSize);
 	void					RemapChildParents(CIndexTreeNodeFile* pcOldNode, CIndexTreeNodeFile* pcNode);
 
-
 	CIndexTreeNodeFile*		AllocateNodeIfUnallocated(CIndexTreeNodeFile* pcParent, unsigned char c);
 	BOOL					Remove(CIndexTreeNodeFile* pcCurrent);
 
@@ -92,11 +92,14 @@ protected:
 	size_t					RecurseByteSize(CIndexTreeNodeFile* pcNode);
 	BOOL					ValidateLimits(void);
 	BOOL					RecurseValidateLimits(CIndexTreeRecursor* pcCursor);
-	void					RecurseFindWithFlags(CIndexTreeRecursor* pcCursor, unsigned char uiFlags, CArrayVoidPtr* papNodes);
+	void					RecurseFindWithFlags(CIndexTreeRecursor* pcCursor, unsigned char uiFollowFlags, unsigned char uiAddFlags, CArrayVoidPtr* papNodes);
 	BOOL					ValidateParentIndex(void);
 	BOOL					RecurseValidateParentIndex(CIndexTreeRecursor* pcCursor);
+	int						RecurseNumNodes(CIndexTreeRecursor* pcCursor);
 
 	BOOL					StepNext(SIndexTreeFileIterator* psIterator);
+
+	void					FindKeyReversed(CIndexTreeNodeFile* pcNode, unsigned char* uiKeyReversed, int* piKeySize);
 
 	BOOL					Read(CIndexTreeChildNode* pcChildNode);
 

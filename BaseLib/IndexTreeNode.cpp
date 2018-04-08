@@ -338,7 +338,7 @@ BOOL CIndexTreeNode::IsEmpty(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeNode::IsDirty(void)
 {
-	return FixBool(msFlags & INDEX_TREE_NODE_FLAG_DIRTY);
+	return FixBool(msFlags & INDEX_TREE_NODE_FLAG_DIRTY_NODE);
 }
 
 
@@ -348,17 +348,7 @@ BOOL CIndexTreeNode::IsDirty(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeNode::IsDelted(void)
 {
-	return FixBool(msFlags & INDEX_TREE_NODE_FLAG_DELETED);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeNode::IsChanged(void)
-{
-	return FixBool(msFlags & (INDEX_TREE_NODE_FLAG_DIRTY | INDEX_TREE_NODE_FLAG_DELETED));
+	return FixBool(msFlags & INDEX_TREE_NODE_FLAG_DELETED_NODE);
 }
 
 
@@ -468,18 +458,9 @@ void CIndexTreeNode::SetNodesEmpty(BOOL bEmpty)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNode::SetDirty(BOOL bDirty)
+void CIndexTreeNode::SetDirtyNode(BOOL bDirty)
 {
-	//If the value is true then OR it with dest.
-	if (bDirty)
-	{
-		msFlags |= INDEX_TREE_NODE_FLAG_DIRTY;
-	}
-	//If the value is false then negate and and it with dest.
-	else
-	{
-		msFlags &= ~INDEX_TREE_NODE_FLAG_DIRTY;
-	}
+	SetFlag(&msFlags, INDEX_TREE_NODE_FLAG_DIRTY_NODE, bDirty);
 }
 
 
@@ -487,18 +468,29 @@ void CIndexTreeNode::SetDirty(BOOL bDirty)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNode::SetDeleted(BOOL bDirty)
+void CIndexTreeNode::SetDeletedNode(BOOL bDeleted)
 {
-	//If the value is true then OR it with dest.
-	if (bDirty)
-	{
-		msFlags |= INDEX_TREE_NODE_FLAG_DIRTY;
-	}
-	//If the value is false then negate and and it with dest.
-	else
-	{
-		msFlags &= ~INDEX_TREE_NODE_FLAG_DIRTY;
-	}
+	SetFlag(&msFlags, INDEX_TREE_NODE_FLAG_DELETED_NODE, bDeleted);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexTreeNode::SetDirtyPath(BOOL bDirty)
+{
+	SetFlag(&msFlags, INDEX_TREE_NODE_FLAG_DIRTY_PATH, bDirty);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexTreeNode::SetDeletedPath(BOOL bDeleted)
+{
+	SetFlag(&msFlags, INDEX_TREE_NODE_FLAG_DELETED_PATH, bDeleted);
 }
 
 

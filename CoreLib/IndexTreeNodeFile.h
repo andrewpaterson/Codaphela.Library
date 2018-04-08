@@ -45,8 +45,6 @@ public:
 
 	unsigned char			FindPrevLastIndex(void);
 	unsigned char			FindNextFirstIndex(void);
-	unsigned char			FindIndex(CIndexTreeChildNode* pcChild);
-	unsigned char			FindIndex(CIndexTreeNodeFile* pcChild);
 
 	void					SetChildrensParent(void);
 

@@ -10,9 +10,11 @@
 //  mpcIndexTree, mpcParent, muiFirstIndex, muiLastIndex, muiDataSize, mbNodesEmpty, Object[muiDataSize], Nodes[muiLastIndex-muiFirstIndex+1]
 
 
-#define	INDEX_TREE_NODE_FLAG_DIRTY		0x02
-#define	INDEX_TREE_NODE_FLAG_EMPTY		0x04
-#define	INDEX_TREE_NODE_FLAG_DELETED	0x08
+#define	INDEX_TREE_NODE_FLAG_DIRTY_NODE		0x02
+#define	INDEX_TREE_NODE_FLAG_EMPTY			0x04
+#define	INDEX_TREE_NODE_FLAG_DELETED_NODE	0x08
+#define	INDEX_TREE_NODE_FLAG_DELETED_PATH	0x10
+#define	INDEX_TREE_NODE_FLAG_DIRTY_PATH		0x20
 
 
 //sizeof(CIndexTreeNode) is 16 bytes but only 14 bytes are used.
@@ -54,7 +56,6 @@ public:
 	BOOL			IsEmpty(void);
 	BOOL			IsDirty(void);
 	BOOL			IsDelted(void);
-	BOOL			IsChanged(void);
 	BOOL			HasFlags(unsigned char sFlags);
 	unsigned char	GetFirstIndex(void);
 	unsigned char	GetLastIndex(void);
@@ -62,8 +63,10 @@ public:
 	unsigned char	NumNodes(void);
 	BOOL			ContainsIndex(unsigned char uiIndex);
 	void			SetNodesEmpty(BOOL bEmpty);
-	void			SetDirty(BOOL bDirty);
-	void			SetDeleted(BOOL bDirty);
+	void			SetDirtyNode(BOOL bDirty);
+	void			SetDeletedNode(BOOL bDirty);
+	void			SetDirtyPath(BOOL bDirty);
+	void			SetDeletedPath(BOOL bDirty);
 
 	void			ClearOnlyNode(unsigned char uiIndex, int iClearValue);
 	void			MoveNodesLeft(unsigned char uiNextFirstIndex);

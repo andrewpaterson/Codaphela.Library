@@ -22,7 +22,8 @@ public:
 
 			BOOL	GetLongString(int64 lliKey, char* pszDest);
 
-			BOOL	RemoveLong(int64 lliKey);
+			BOOL	DeleteLong(int64 lliKey);
+			BOOL	DeleteString(char* pszKey);
 
 protected:
 	virtual BOOL	Put(void* pvKey, int iKeySize, void* pvObject, unsigned char uiDataSize) =0;

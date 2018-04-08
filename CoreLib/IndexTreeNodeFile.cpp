@@ -273,60 +273,6 @@ unsigned char CIndexTreeNodeFile::FindPrevLastIndex(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-unsigned char CIndexTreeNodeFile::FindIndex(CIndexTreeChildNode* pcChild)
-{
-	int						i;
-	CIndexTreeChildNode*	pcChildTest;
-	CIndexTreeChildNode*	acChildren;
-
-	acChildren = GetNodes();
-	for (i = 0; i <= (int)(muiLastIndex - muiFirstIndex); i++)
-	{
-		pcChildTest = &acChildren[i];
-		if (pcChild == pcChildTest)
-		{
-			return i + muiFirstIndex;
-		}
-	}
-
-	//This should never be hit.
-	gcLogger.Error2(__METHOD__, "Could not find child node.", NULL);
-	return 0;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-unsigned char CIndexTreeNodeFile::FindIndex(CIndexTreeNodeFile* pcChild)
-{
-	//This is not a safe method, it assumes the child being sought is in memory.
-
-	int						i;
-	CIndexTreeChildNode*	pcChildTest;
-	CIndexTreeChildNode*	acChildren;
-
-	acChildren = GetNodes();
-	for (i = 0; i <= (int)(muiLastIndex - muiFirstIndex); i++)
-	{
-		pcChildTest = &acChildren[i];
-		if (pcChild == pcChildTest->u.mpcMemory)
-		{
-			return i + muiFirstIndex;
-		}
-	}
-
-	//This should never be hit.
-	gcLogger.Error2(__METHOD__, "Could not find child node.", NULL);
-	return 0;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CIndexTreeNodeFile::Contain(unsigned char uiIndex)
 {
 	//Contain assumes that the memory this node resides in has already been sized large enough.

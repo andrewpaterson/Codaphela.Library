@@ -7,10 +7,11 @@
 class CIndexTreeFileAccess : public CIndexTreeAccess
 {
 private:
-	CIndexTreeFile*	mpcTree;
+	CIndexTreeFile*		mpcTree;
+	BOOL				mbImmediate;
 
 public:
-	void	Init(CIndexTreeFile* pcTree);
+	void	Init(CIndexTreeFile* pcTree, BOOL bImmediate);
 	void	Kill(void);
 
 protected:
