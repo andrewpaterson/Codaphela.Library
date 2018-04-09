@@ -6,6 +6,7 @@ class CListTemplateMinimal
 protected:
 	int		miNumElements;
 	int		miRowLength;  //The number of characters in the string including all terminating zeros.
+	int		miTotalSize;
 
 	int		miUsedElements;
 	int		miUsedLength;
@@ -20,6 +21,7 @@ public:
 	void	Kill(void);
 
 	M*		Get(int iIndex);
+	M*		Get(int iIndex, int* piSize);
 	M*		Add(M* pv, int iSize);
 	int		NumElements(void);
 	int		AllocatedElements(void);
@@ -50,6 +52,7 @@ void CListTemplateMinimal<M>::Init(int iNumElements, int iRowLength)
 	miUsedElements = 0;
 	miUsedLength = 0;
 
+	miTotalSize = TotalSize(iNumElements, iRowLength);
 	maiFieldOffsets[0] = sizeof(CListTemplateMinimal<M>) + miNumElements * sizeof(M*);
 }
 
@@ -73,6 +76,25 @@ void CListTemplateMinimal<M>::Kill(void)
 template<class M>
 M* CListTemplateMinimal<M>::Get(int iIndex)
 {
+	return (M*)RemapSinglePointer(this, maiFieldOffsets[iIndex]);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+M* CListTemplateMinimal<M>::Get(int iIndex, int* piSize)
+{
+	if (iIndex < miNumElements - 1)
+	{
+		*piSize = maiFieldOffsets[iIndex + 1] - maiFieldOffsets[iIndex];
+	}
+	else
+	{
+		*piSize = miTotalSize - maiFieldOffsets[iIndex];
+	}
 	return (M*)RemapSinglePointer(this, maiFieldOffsets[iIndex]);
 }
 

@@ -15,6 +15,17 @@ size_t CListCharsMinimal::TotalSize(int iNumElements, int iRowLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CListCharsMinimal::Init(int iNumElements, int iRowLength)
+{
+	__CListCharsMinimal::Init(iNumElements, iRowLength);
+	miTotalSize = TotalSize(iNumElements, iRowLength);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 int CListCharsMinimal::IndexOf(char* szString)
 {
 	int	i;

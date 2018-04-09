@@ -33,6 +33,8 @@ class CListCharsMinimal : public __CListCharsMinimal
 public:
 	size_t		TotalSize(int iNumElements, int iRowLength);
 
+	void		Init(int iNumElements, int iRowLength);
+	
 	int	 		IndexOf(char* szString);
 
 	void		Add(char* sz);

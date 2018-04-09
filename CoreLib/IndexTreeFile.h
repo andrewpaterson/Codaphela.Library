@@ -36,15 +36,10 @@ public:
 	BOOL					HasKey(void* pvKey, int iKeySize);
 
 	int						NumElements(void);
-	void					Flush(void);
+	BOOL					Flush(void);
 
 	BOOL					StartIteration(SIndexTreeFileIterator* psIterator, void** pvData, int* piDataSize);
 	BOOL					Iterate(SIndexTreeFileIterator* psIterator, void** pvData, int* piDataSize);
-
-	int						FindKeySize(CIndexTreeNodeFile* pcNode);
-	void					FindKey(CIndexTreeNodeFile* pcNode, CArrayChar* pacKey);
-	void					FindKey(CIndexTreeNodeFile* pcNode, unsigned char* uiKey, int* piKeySize);
-	CListCharsMinimal*		FindKeys(CArrayVoidPtr* apvNodes);
 
 	BOOL					Put(char* pszKey, void* pvObject, unsigned short uiDataSize);
 	BOOL					Put(void* pvKey, int iKeySize, unsigned short uiDataSize);
@@ -52,6 +47,9 @@ public:
 	BOOL					Remove(char* pszKey);
 
 	BOOL					HasKey(char* pszKey);
+	int						FindKeySize(CIndexTreeNodeFile* pcNode);
+	void					FindKey(CIndexTreeNodeFile* pcNode, CArrayChar* pacKey);
+	void					FindKey(CIndexTreeNodeFile* pcNode, unsigned char* uiKey, int* piKeySize);
 
 	CIndexTreeNodeFile*		GetNode(void* pvKey, int iKeySize);
 	CIndexTreeNodeFile*		GetRoot(void);
@@ -60,6 +58,9 @@ public:
 	int						RecurseSize(void);
 	size_t					ByteSize(void);
 	void					FindWithFlags(CArrayVoidPtr* papNodes, unsigned char uiFollowFlags, unsigned char uiAddFlags);
+
+	CListTemplateMinimal<char>*	FindKeys(CArrayVoidPtr* apvNodes);
+	CListCharsMinimal*		FindStringKeys(CArrayVoidPtr* apvNodes);
 
 	void					FakeInit(void);
 	void					RecurseKill(CIndexTreeNodeFile* pcNode);
@@ -103,6 +104,7 @@ protected:
 	BOOL					StepNext(SIndexTreeFileIterator* psIterator);
 
 	void					FindKeyReversed(CIndexTreeNodeFile* pcNode, unsigned char* uiKeyReversed, int* piKeySize);
+	int						FindKeysSize(CArrayVoidPtr* apvNodes);
 
 	BOOL					Read(CIndexTreeChildNode* pcChildNode);
 
