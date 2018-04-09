@@ -98,8 +98,8 @@ SCSVRowImmutable* CCSVFileImmutable::AllocateRow(char* szText)
 	int					iNumSeparators;
 	SCSVRowImmutable*	psCSVRow;
 	int					iTotalSize;
-	int					iStringStart;
 	int					i;
+	int		iSize;
 
 	iNumSeparators = 0;
 
@@ -120,15 +120,11 @@ SCSVRowImmutable* CCSVFileImmutable::AllocateRow(char* szText)
 
 	//Allocate the heading size and the first char*, then the rest of the char pointers (iNumSeparators is the number
 	//of fields -1), then allocate the string and lastly the terminating zero.
-	iStringStart = sizeof(SCSVRowImmutable) + iNumSeparators * sizeof(char*);
-	iTotalSize = iStringStart + iLength + 1;
+	psCSVRow = NULL;
+	iTotalSize = psCSVRow->TotalSize(iNumSeparators + 1, iLength);
 	psCSVRow = (SCSVRowImmutable*)malloc(iTotalSize);
-	psCSVRow->Init(iLength + 1, iNumSeparators + 1);
+	psCSVRow->Init(iNumSeparators + 1, iLength);
 
-	char*	sz;
-	int		iSize;
-
-	sz = szText;
 	iSize = 0;
 	for (i = 0;; i++)
 	{
@@ -137,13 +133,13 @@ SCSVRowImmutable* CCSVFileImmutable::AllocateRow(char* szText)
 		//Check for the end of the row.
 		if ((c == 0) || (c == '\n') || (c == '\r'))
 		{
-			psCSVRow->Add(sz, iSize);
+			psCSVRow->Add(&szText[i - iSize], iSize);
 			iSize = 0;
 			break;
 		}
 		else if (c == mcSeparator)
 		{
-			psCSVRow->Add(sz, iSize);
+			psCSVRow->Add(&szText[i - iSize], iSize);
 			iSize = 0;
 			iNumSeparators++;
 		}

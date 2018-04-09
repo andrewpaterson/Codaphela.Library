@@ -702,7 +702,6 @@ BOOL CIndexTreeMemory::Read(CFileReader* pcFileReader)
 	CMallocator*	pcMalloc;
 	int				iCount;
 	int				i;
-	int				iLargestKey;
 	char			acKey[1024];
 	int				iKeySize;
 	int				iDataSize;
@@ -717,15 +716,6 @@ BOOL CIndexTreeMemory::Read(CFileReader* pcFileReader)
 	Init(pcMalloc);
 
 	if (!pcFileReader->ReadInt(&iCount))
-	{
-		return FALSE;
-	}
-	if (!pcFileReader->ReadInt(&iLargestKey))
-	{
-		return FALSE;
-	}
-
-	if (iLargestKey >= 1024)
 	{
 		return FALSE;
 	}
