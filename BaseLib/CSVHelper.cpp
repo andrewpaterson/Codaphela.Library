@@ -58,7 +58,7 @@ int CCSVHelper::GetColumnIndex(char* szName)
 	CChars				sz;
 
 	pcRow = mcFile.Get(0);
-	for (i = 0; i < pcRow->iNumFields; i++)
+	for (i = 0; i < pcRow->NumElements(); i++)
 	{
 		szHeader = pcRow->Get(i);
 		sz.Init(szHeader);

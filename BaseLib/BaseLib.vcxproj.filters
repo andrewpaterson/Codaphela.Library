@@ -196,6 +196,12 @@
     <Filter Include="Source\Data\Types\Parser">
       <UniqueIdentifier>{7e314b5d-88c3-46d7-bc79-906f10ee1615}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Data\List\Minimal">
+      <UniqueIdentifier>{937b36a0-a2c9-43cd-96c2-3f4664ec0db2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\List\Minimal\Specific">
+      <UniqueIdentifier>{40587235-3dae-4501-817f-2ac8ea9e6eaa}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DataMacro.h">
@@ -723,6 +729,12 @@
     <ClInclude Include="ArrayChars.h">
       <Filter>Source\Data\Array\Basic\Specific</Filter>
     </ClInclude>
+    <ClInclude Include="ListTemplateMinimal.h">
+      <Filter>Source\Data\List\Minimal</Filter>
+    </ClInclude>
+    <ClInclude Include="ListCharsMinimal.h">
+      <Filter>Source\Data\List\Minimal\Specific</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -1141,6 +1153,9 @@
     </ClCompile>
     <ClCompile Include="ArrayChars.cpp">
       <Filter>Source\Data\Array\Basic\Specific</Filter>
+    </ClCompile>
+    <ClCompile Include="ListCharsMinimal.cpp">
+      <Filter>Source\Data\List\Minimal\Specific</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -52,49 +52,49 @@ private:
 	BOOL						mbBreakOnAlloc;
 
 public:
-	void				Init(void);
-	void				Init(int iDefaultAlignment, BOOL bDefaultFreeListParams = TRUE);
-	void				Kill(void);
-	void*				Add(unsigned int iSize);
-	void*				Add(unsigned int iSize, int iAlignment, int iOffset = 0);
-	void				Remove(void* pv);
-	BOOL				Remove(CArrayVoidPtr* pav);
-	unsigned int		GetSize(void* pv);
-	CFreeList*			GetFreeList(unsigned int iElementSize, int iAlignment, int iOffset);
-	CFreeList*			GetFreeList(unsigned int iElementSize);
-	void*				Grow(void* pvInitial, unsigned int iSize);
-	void				SetDebugName(void* pv, char (*pszDebug)[4]);
-	void				BreakOnAdd(unsigned int uiAllocCount);
-	int					NumElements(void);
-	int					ByteSize(void);
-	void				AddParamBlock(unsigned int iFreeListSize, int iPrevSize, int iChunkSize);
-	void				AddParamBlock(SMemoryFreeListParams* psParam);
-	void				GetParams(SMemoryParams* psParams);
+	void					Init(void);
+	void					Init(int iDefaultAlignment, BOOL bDefaultFreeListParams = TRUE);
+	void					Kill(void);
+	void*					Add(unsigned int iSize);
+	void*					Add(unsigned int iSize, int iAlignment, int iOffset = 0);
+	void					Remove(void* pv);
+	BOOL					Remove(CArrayVoidPtr* pav);
+	unsigned int			GetSize(void* pv);
+	CFreeList*				GetFreeList(unsigned int iElementSize, int iAlignment, int iOffset);
+	CFreeList*				GetFreeList(unsigned int iElementSize);
+	void*					Grow(void* pvInitial, unsigned int iSize);
+	void					SetDebugName(void* pv, char (*pszDebug)[4]);
+	void					BreakOnAdd(unsigned int uiAllocCount);
+	int						NumElements(void);
+	int						ByteSize(void);
+	void					AddParamBlock(unsigned int iFreeListSize, int iPrevSize, int iChunkSize);
+	void					AddParamBlock(SMemoryFreeListParams* psParam);
+	void					GetParams(SMemoryParams* psParams);
 	SMemoryFreeListParams*	GetFreeListParams(int iIndex);
-	void				SetFreeListSizeLimit(unsigned int uiFreeListSizeLimit);
+	void					SetFreeListSizeLimit(unsigned int uiFreeListSizeLimit);
 
-	SMemory				StartIteration(SMemoryIterator* psIterator);
-	SMemory				Iterate(SMemoryIterator* psIterator);
+	SMemory					StartIteration(SMemoryIterator* psIterator);
+	SMemory					Iterate(SMemoryIterator* psIterator);
 
-	uint64				GetTotalAllocatedMemory(void);
-	uint64				GetTotalAllocations(void);
+	uint64					GetTotalAllocatedMemory(void);
+	uint64					GetTotalAllocations(void);
 
-	CFreeList*			TestGetFreeListsHead(void);
-	void*				TestGetLargeListsHead(void);
+	CFreeList*				TestGetFreeListsHead(void);
+	void*					TestGetLargeListsHead(void);
 
 protected:
-	int					RemoveNode(CArrayVoidPtr* pav, int i, SMemoryAllocation* psAlloc, int iChunkSize, SFNode* psNode, CFreeList* pcList);
-	int					RemoveElements(CArrayVoidPtr* pav, int i, SFNode* psNode, CFreeList* pcList);
+	int						RemoveNode(CArrayVoidPtr* pav, int i, SMemoryAllocation* psAlloc, int iChunkSize, SFNode* psNode, CFreeList* pcList);
+	int						RemoveElements(CArrayVoidPtr* pav, int i, SFNode* psNode, CFreeList* pcList);
 
 private:
-	CFreeList*			GetOrAddFreeList(unsigned int iElementSize, int iAlignment, int iOffset);
+	CFreeList*				GetOrAddFreeList(unsigned int iElementSize, int iAlignment, int iOffset);
 	SMemoryFreeListParams*	GetFreeListParamsForSize(unsigned int iElementSize);
-	void				InitFreeListParams(void);
-	void*				AllocateInFreeList(CFreeList* pcFreeList, unsigned int uiElementSize);
-	void				DeallocateInFreeList(CFreeList* pcFreeList, SMemoryAllocation* psAlloc);
-	void*				AllocateInLargeList(unsigned int uiSize, int iAlignment, int iOffset);
-	void				DeallocateInLargeList(SMemoryAllocation* psAlloc);
-	void				CopyAllocation(void* pvDest, void* pvSource, unsigned int uiDestSize, unsigned int uiSourceSize);
+	void					InitFreeListParams(void);
+	void*					AllocateInFreeList(CFreeList* pcFreeList, unsigned int uiElementSize);
+	void					DeallocateInFreeList(CFreeList* pcFreeList, SMemoryAllocation* psAlloc);
+	void*					AllocateInLargeList(unsigned int uiSize, int iAlignment, int iOffset);
+	void					DeallocateInLargeList(SMemoryAllocation* psAlloc);
+	void					CopyAllocation(void* pvDest, void* pvSource, unsigned int uiDestSize, unsigned int uiSourceSize);
 };
 
 

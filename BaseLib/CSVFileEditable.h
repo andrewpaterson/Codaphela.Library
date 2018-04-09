@@ -32,7 +32,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 struct SCSVRowEditable
 {
 	int				iFileOffset;
-	CArrayChars	aszData;
+	CArrayChars		aszData;
 
 	void 		Init(void);
 	void 		Kill(void);

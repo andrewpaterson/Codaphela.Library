@@ -20,38 +20,25 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __CSV_FILE_IMMUTABLE_H__
-#define __CSV_FILE_IMMUTABLE_H__
-#include "CSVFile.h"
-#include "ArrayIntAndPointer.h"
-#include "ListCharsMinimal.h"
+#ifndef __LIST_CHARS__H__
+#define __LIST_CHARS__H__
+#include "ListTemplateMinimal.h"
+#include "DataTypes.h"
 
 
-struct SCSVRowImmutable : public CListCharsMinimal
-{
-	void 		Dump(void);
-};
-
-
-class CCSVFileImmutable : public CCSVFile
+typedef CListTemplateMinimal<char> __CListCharsMinimal;
+template class CListTemplateMinimal<char>;
+class CListCharsMinimal : public __CListCharsMinimal
 {
 public:
-	CArrayIntAndPointer		mapsCSVRows;
+	size_t		TotalSize(int iNumElements, int iRowLength);
 
-	void 				Init(char cSeparator);
-	void 				Kill(void);
+	int	 		IndexOf(char* szString);
 
-	BOOL 				ReadLine(void);
-	BOOL				ReadLine(char* szString, int iMaxLength);
-	BOOL 				ReadLine(int iFileOffset, SCSVRowImmutable** ppsCSVRow);
-	SCSVRowImmutable*	AllocateRow(char* szText);
-	void				FreeRow(SCSVRowImmutable* psCSVRow);
-	void 				ReadAllLines(void);
-	void 				Dump(void);
-	int					NumRows(void);
-	SCSVRowImmutable*	Get(int iRowNum);
+	void		Add(char* sz);
+	void		Add(char* sz, int iSize);
 };
 
 
-#endif // __CSV_FILE_IMMUTABLE_H__
+#endif // __LIST_CHARS__H__
 

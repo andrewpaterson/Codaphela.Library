@@ -96,6 +96,7 @@
     <ClInclude Include="ChunkFileFile.h" />
     <ClInclude Include="ChunkFileHeader.h" />
     <ClInclude Include="ChunkStack.h" />
+    <ClInclude Include="ListCharsMinimal.h" />
     <ClInclude Include="Constructors.h" />
     <ClInclude Include="DataMacro.h" />
     <ClInclude Include="ArrayBit.h" />
@@ -134,6 +135,7 @@
     <ClInclude Include="LinkedListTemplateFreeList.h" />
     <ClInclude Include="ListBlock.h" />
     <ClInclude Include="ListTemplate.h" />
+    <ClInclude Include="ListTemplateMinimal.h" />
     <ClInclude Include="ListVariable.h" />
     <ClInclude Include="LocalMallocator.h" />
     <ClInclude Include="Log.h" />
@@ -298,6 +300,7 @@
     <ClCompile Include="IndexTreeRecursor.cpp" />
     <ClCompile Include="LinkedListBlock.cpp" />
     <ClCompile Include="ListBlock.cpp" />
+    <ClCompile Include="ListCharsMinimal.cpp" />
     <ClCompile Include="ListVariable.cpp" />
     <ClCompile Include="LocalMallocator.cpp" />
     <ClCompile Include="LogString.cpp" />

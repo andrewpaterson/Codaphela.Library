@@ -38,14 +38,14 @@ void SCSVRowImmutable::Dump(void)
 	char*		pszString;
 
 	szString.Init();
-	for (i = 0; i < iNumFields; i++)
+	for (i = 0; i < miUsedElements; i++)
 	{
-		pszString = aszFields[i];
+		pszString = Get(i);
 		szLeft.Init();
 		szLeft.LeftAlign(pszString, ' ', 15);
 		szString.Append(szLeft);
 		szLeft.Kill();
-		if (i != iNumFields-1)
+		if (i != miUsedElements - 1)
 		{
 			szString.Append("| ");
 		}
@@ -53,39 +53,6 @@ void SCSVRowImmutable::Dump(void)
 	szString.AppendNewLine();
 	szString.Dump();
 	szString.Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-int SCSVRowImmutable::IndexOf(char* szString)
-{
-	int	i;
-
-	for (i = 0; i < iNumFields; i++)
-	{
-		if (strcmp(szString, aszFields[i]) == 0)
-		{
-			return i;
-		}
-	}
-	return -1;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-char* SCSVRowImmutable::Get(int iIndex)
-{
-	if (iIndex < iNumFields)
-	{
-		return aszFields[iIndex];
-	}
-	return NULL;
 }
 
 
@@ -133,11 +100,9 @@ SCSVRowImmutable* CCSVFileImmutable::AllocateRow(char* szText)
 	int					iTotalSize;
 	int					iStringStart;
 	int					i;
-	char*				pszFieldPos;
 
 	iNumSeparators = 0;
 
-	//The complier can optimise this better than you can... leave it alone.
 	for (iLength = 0;; iLength++)
 	{
 		c = szText[iLength];
@@ -158,32 +123,36 @@ SCSVRowImmutable* CCSVFileImmutable::AllocateRow(char* szText)
 	iStringStart = sizeof(SCSVRowImmutable) + iNumSeparators * sizeof(char*);
 	iTotalSize = iStringStart + iLength + 1;
 	psCSVRow = (SCSVRowImmutable*)malloc(iTotalSize);
+	psCSVRow->Init(iLength + 1, iNumSeparators + 1);
 
-	psCSVRow->iNumFields = iNumSeparators+1;
-	psCSVRow->iRowLength = iLength+1;
-	psCSVRow->iTotalSize = iTotalSize;
+	char*	sz;
+	int		iSize;
 
-	pszFieldPos = (char*)RemapSinglePointer(psCSVRow, iStringStart);
-	memcpy(pszFieldPos, szText, iLength);
-	pszFieldPos[iLength] = mcSeparator;
-
-	iNumSeparators = 0;
-	psCSVRow->aszFields[0] = pszFieldPos;
+	sz = szText;
+	iSize = 0;
 	for (i = 0;; i++)
 	{
-		c = pszFieldPos[i];
+		c = szText[i];
 
-		if (c == mcSeparator)
+		//Check for the end of the row.
+		if ((c == 0) || (c == '\n') || (c == '\r'))
 		{
-			pszFieldPos[i] = 0;
+			psCSVRow->Add(sz, iSize);
+			iSize = 0;
+			break;
+		}
+		else if (c == mcSeparator)
+		{
+			psCSVRow->Add(sz, iSize);
+			iSize = 0;
 			iNumSeparators++;
-			if (iNumSeparators == psCSVRow->iNumFields)
-			{
-				break;
-			}
-			psCSVRow->aszFields[iNumSeparators] = &pszFieldPos[i+1];
+		}
+		else
+		{
+			iSize++;
 		}
 	}
+
 	return psCSVRow;
 }
 
