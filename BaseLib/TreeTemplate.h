@@ -159,7 +159,7 @@ void* CTreeTemplate<M>::Malloc(size_t tSize)
 template<class M>
 void CTreeTemplate<M>::Free(void* pv)
 {
-	free(pv);
+	SafeFree(pv);
 }
 
 

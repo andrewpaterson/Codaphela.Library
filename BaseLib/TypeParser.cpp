@@ -21,7 +21,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
 #include "TypeParser.h"
-#include "BaseLib/Numbers.h"
+#include "PointerFunctions.h"
+#include "Numbers.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -87,7 +88,7 @@ void CTypeParser::Kill(void)
 {
 	if (mbFreeParser)
 	{
-		free(mpcParser);
+		SafeFree(mpcParser);
 	}
 	mpcParser = NULL;
 }

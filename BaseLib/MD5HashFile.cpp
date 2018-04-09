@@ -47,12 +47,11 @@ void CMD5HashFile::Init(CAbstractFile*	pcFile)
 //////////////////////////////////////////////////////////////////////////
 void CMD5HashFile::Kill(void)
 {
-	mpcFile->Kill();
 	if (mpcFile->mbBasicFileMustFree)
 	{
-		free(mpcFile);
-		mpcFile = NULL;
+		SafeKill(mpcFile);
 	}
+	mpcFile = NULL;
 }
 
 

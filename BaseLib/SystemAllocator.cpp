@@ -24,6 +24,7 @@ void CSystemAllocator::Free(void* pv)
 	if (pv != NULL)
 	{
 		free(pv);
+		pv = NULL;
 	}
 	else
 	{

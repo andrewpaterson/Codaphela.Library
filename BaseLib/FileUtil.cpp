@@ -229,8 +229,8 @@ BOOL CFileUtil::Compare(char* szFileName1, char* szFileName2, BOOL bSizeOnly)
 		bResult = memcmp(pvPrimary, pvBackup, FILE_BLOCK_SIZE);
 		if (bResult != 0)
 		{
-			free(pvPrimary);
-			free(pvBackup);
+			SafeFree(pvPrimary);
+			SafeFree(pvBackup);
 			cBackup.Close();
 			cBackup.Kill();
 			cPrimary.Close();
@@ -245,8 +245,8 @@ BOOL CFileUtil::Compare(char* szFileName1, char* szFileName2, BOOL bSizeOnly)
 	bResult = memcmp(pvPrimary, pvBackup, (int)iPartialBlock);
 	if (bResult != 0)
 	{
-		free(pvPrimary);
-		free(pvBackup);
+		SafeFree(pvPrimary);
+		SafeFree(pvBackup);
 		cBackup.Close();
 		cBackup.Kill();
 		cPrimary.Close();
@@ -254,8 +254,8 @@ BOOL CFileUtil::Compare(char* szFileName1, char* szFileName2, BOOL bSizeOnly)
 		return FALSE;
 	}
 
-	free(pvPrimary);
-	free(pvBackup);
+	SafeFree(pvPrimary);
+	SafeFree(pvBackup);
 	cBackup.Close();
 	cBackup.Kill();
 	cPrimary.Close();
@@ -312,7 +312,7 @@ BOOL CFileUtil::Copy(char* szSource, char* szDest)
 		cPrimary.ReadData(pvData, FILE_BLOCK_SIZE);
 		if (!cBackup.WriteData(pvData, FILE_BLOCK_SIZE))
 		{
-			free(pvData);
+			SafeFree(pvData);
 			cBackup.Close();
 			cBackup.Kill();
 			cPrimary.Close();
@@ -324,7 +324,7 @@ BOOL CFileUtil::Copy(char* szSource, char* szDest)
 	cPrimary.ReadData(pvData, iPartialBlock);
 	if (!cBackup.WriteData(pvData, iPartialBlock))
 	{
-		free(pvData);
+		SafeFree(pvData);
 		cBackup.Close();
 		cBackup.Kill();
 		cPrimary.Close();
@@ -332,7 +332,7 @@ BOOL CFileUtil::Copy(char* szSource, char* szDest)
 		return FALSE;
 	}
 
-	free(pvData);
+	SafeFree(pvData);
 	cBackup.Close();
 	cBackup.Kill();
 	cPrimary.Close();

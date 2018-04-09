@@ -22,6 +22,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #include "FileBasic.h"
 #include "Numbers.h"
+#include "PointerFunctions.h"
 #include "FileCopier.h"
 
 
@@ -100,7 +101,7 @@ BOOL CFileCopier::Copy(CAbstractFile* pcSource, CAbstractFile* pcDest)
 			cSource.Kill();
 			cDest.Kill();
 
-			free(pvTemp);
+			SafeFree(pvTemp);
 			return FALSE;
 		}
 
@@ -112,7 +113,7 @@ BOOL CFileCopier::Copy(CAbstractFile* pcSource, CAbstractFile* pcDest)
 			cSource.Kill();
 			cDest.Kill();
 
-			free(pvTemp);
+			SafeFree(pvTemp);
 			return FALSE;
 		}
 
@@ -125,7 +126,7 @@ BOOL CFileCopier::Copy(CAbstractFile* pcSource, CAbstractFile* pcDest)
 	cSource.Kill();
 	cDest.Kill();
 
-	free(pvTemp);
+	SafeFree(pvTemp);
 	return TRUE;
 }
 

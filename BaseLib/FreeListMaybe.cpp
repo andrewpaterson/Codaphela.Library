@@ -84,7 +84,7 @@ void* CFreeListMaybe::Realloc(void* pv, size_t tSize)
 //////////////////////////////////////////////////////////////////////////
 void CFreeListMaybe::Free(void* pv)
 {
-	free(pv);
+	SafeFree(pv);
 }
 
 

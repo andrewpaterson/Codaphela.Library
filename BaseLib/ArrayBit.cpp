@@ -310,7 +310,7 @@ void* CArrayBit::Malloc(size_t tSize)
 //////////////////////////////////////////////////////////////////////////
 void CArrayBit::Free(void* pv)
 {
-	free(pv);
+	SafeFree(pv);
 }
 
 

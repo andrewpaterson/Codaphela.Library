@@ -67,12 +67,11 @@ void CBufferedFile::Init(CAbstractFile* pcFile, int iBufferSize)
 void CBufferedFile::Kill(void)
 {
 	SafeFree(mpvMem);
-	mpcFile->Kill();
 	if (mpcFile->mbBasicFileMustFree)
 	{
-		free(mpcFile);
-		mpcFile = NULL;
+		SafeKill(mpcFile);
 	}
+	mpcFile = NULL;
 }
 
 

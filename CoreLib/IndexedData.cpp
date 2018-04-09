@@ -762,7 +762,7 @@ void* CIndexedData::Get(OIndex oi, int* piDataSize)
 		}
 		else
 		{
-			free(pvData);
+			SafeFree(pvData);
 			return NULL;
 		}
 	}

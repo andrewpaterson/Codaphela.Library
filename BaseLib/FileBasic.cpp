@@ -24,6 +24,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "FileBasic.h"
 #include "IntegerHelper.h"
 #include "MemoryFile.h"
+#include "PointerFunctions.h"
 #include "MD5HashFile.h"
 
 
@@ -45,8 +46,7 @@ void CFileBasic::Kill(void)
 {
 	if (mpcFile->mbBasicFileMustFree)
 	{
-		mpcFile->Kill();
-		free(mpcFile);
+		SafeKill(mpcFile);
 	}
 	mpcFile = NULL;
 }

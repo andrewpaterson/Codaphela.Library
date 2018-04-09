@@ -122,7 +122,7 @@ void* __CEnumeratorTemplate<M>::Malloc(size_t tSize)
 template<class M>
 void __CEnumeratorTemplate<M>::Free(void* pv)
 {
-	free(pv);
+	SafeFree(pv);
 }
 
 

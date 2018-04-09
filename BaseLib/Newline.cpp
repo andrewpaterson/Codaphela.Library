@@ -22,6 +22,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #include <stdlib.h>
 #include <string.h>
+#include "PointerFunctions.h"
 #include "Newline.h"
 
 
@@ -130,7 +131,7 @@ int PassifyNewlines(char *szString)
 	}
 
 	memcpy(szString, szNewString, iPos);
-	free(szNewString);
+	SafeFree(szNewString);
 	return iPos-1;
 }
 

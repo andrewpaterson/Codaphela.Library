@@ -21,8 +21,9 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
 #include <stdlib.h>
-#include "MemoryStack.h" 
+#include "PointerFunctions.h"
 #include "PointerRemapper.h"
+#include "MemoryStack.h" 
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -67,11 +68,7 @@ void CMemoryStack::Clear(void)
 //////////////////////////////////////////////////////////////////////////
 void CMemoryStack::Kill(void)
 {
-	if (mpvMemory)
-	{
-		free(mpvMemory);
-		mpvMemory = NULL;
-	}
+	SafeFree(mpvMemory);
 	miMemorySize = 0;
 }
 

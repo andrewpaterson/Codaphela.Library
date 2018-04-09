@@ -62,11 +62,9 @@ void CLogFile::Kill(void)
 
 	if (mpcBackingFile)
 	{
-		mpcBackingFile->Kill();
 		if (mpcBackingFile->mbBasicFileMustFree)
 		{
-			free(mpcBackingFile);
-			mpcBackingFile = NULL;
+			SafeKill(mpcBackingFile);
 		}
 	}
 }

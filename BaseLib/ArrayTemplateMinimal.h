@@ -24,6 +24,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define __ARRAY_TEMPLATE_MINIMAL_H__
 #include "Define.h"
 #include "PointerRemapper.h"
+#include "PointerFunctions.h"
 #include "ErrorHandler.h"
 #include "FileIO.h"
 
@@ -944,7 +945,7 @@ void* CArrayTemplateMinimal<M>::Malloc(size_t tSize)
 template<class M>
 void CArrayTemplateMinimal<M>::Free(void* pv)
 {
-	free(pv);
+	SafeFree(pv);
 }
 
 

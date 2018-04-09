@@ -101,9 +101,9 @@ void CLogger::Kill(void)
 {
 	if (mbFreeFile)
 	{
-		mpcFile->Kill();
-		free(mpcFile);
+		SafeKill(mpcFile);
 	}
+	mpcFile = NULL;
 }
 
 

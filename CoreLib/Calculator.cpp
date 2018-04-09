@@ -235,7 +235,7 @@ BOOL CCalculator::Identifier(CCalcConstExpression** ppcConst)
 	{
 		sz = (char*)malloc(iLength+1);
 		mcParser.GetIdentifier(sz);
-		free(sz);
+		SafeFree(sz);
 		*ppcConst = NewMalloc<CCalcConstExpression>();
 		(*ppcConst)->SetValue(cNumber.Zero());
 		return TRUE;

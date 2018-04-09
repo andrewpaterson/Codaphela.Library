@@ -137,7 +137,7 @@ BOOL CIndexedFiles::ReadIndexedFileDescriptors(void)
 
 	if (iRead != iNumFiles)
 	{
-		free(pasFileDescriptors);
+		SafeFree(pasFileDescriptors);
 		return FALSE;
 	}
 
@@ -151,7 +151,7 @@ BOOL CIndexedFiles::ReadIndexedFileDescriptors(void)
 			pcIndexedFile->Init(mpcDurableFileControl, pasFileDescriptors[i].iFileIndex, szDataFileName, szDataRewriteName, pasFileDescriptors[i].iDataSize, pasFileDescriptors[i].iFileNum);
 		}
 	}
-	free(pasFileDescriptors);
+	SafeFree(pasFileDescriptors);
 	mbDescriptorsRead = TRUE;
 	return bResult;
 }
@@ -184,7 +184,7 @@ BOOL CIndexedFiles::WriteIndexedFileDescriptors(void)
 	iResult = mcFileDescriptors.Write(0, pvFileDescriptors, sizeof(SIndexedFileDescriptor), mcFiles.NumElements());
 	bResult &= (iResult != 0);
 
-	free(pvFileDescriptors);
+	SafeFree(pvFileDescriptors);
 	return bResult;
 }
 
