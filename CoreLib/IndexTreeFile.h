@@ -3,6 +3,7 @@
 #include "BaseLib/Chars.h"
 #include "BaseLib/IndexTree.h"
 #include "BaseLib/IndexTreeRecursor.h"
+#include "BaseLib/ListCharsMinimal.h"
 #include "DurableFileController.h"
 #include "IndexTreeNodeFile.h"
 #include "IndexedFiles.h"
@@ -40,9 +41,10 @@ public:
 	BOOL					StartIteration(SIndexTreeFileIterator* psIterator, void** pvData, int* piDataSize);
 	BOOL					Iterate(SIndexTreeFileIterator* psIterator, void** pvData, int* piDataSize);
 
+	int						FindKeySize(CIndexTreeNodeFile* pcNode);
 	void					FindKey(CIndexTreeNodeFile* pcNode, CArrayChar* pacKey);
 	void					FindKey(CIndexTreeNodeFile* pcNode, unsigned char* uiKey, int* piKeySize);
-	void					FindKeys(CArrayVoidPtr* apvNodes, CArrayChars* paszKeys);
+	CListCharsMinimal*		FindKeys(CArrayVoidPtr* apvNodes);
 
 	BOOL					Put(char* pszKey, void* pvObject, unsigned short uiDataSize);
 	BOOL					Put(void* pvKey, int iKeySize, unsigned short uiDataSize);

@@ -1,14 +1,13 @@
 #include "ListCharsMinimal.h"
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
 size_t CListCharsMinimal::TotalSize(int iNumElements, int iRowLength)
 {
-	return __CListCharsMinimal::TotalSize(iNumElements, iRowLength + 3);
+	return __CListCharsMinimal::TotalSize(iNumElements, iRowLength + iNumElements);
 }
 
 
