@@ -43,9 +43,6 @@ public:
 	filePos			miNumDatas;
 	int				miFileNumber;  //There may be more than one file of the same size.
 
-	CChars			mszFileName;  //These look redundant.  They could be gotten from mcFile.
-	CChars			mszRewriteName;
-
 	BOOL			Init(CDurableFileController* pcDurableFileControl, int iFileIndex, char* szFileName, char* szRewriteName, int iDataSize, int iFileNum);
 	void			Kill(void);
 	filePos			CalculateNumDatas(void);
@@ -58,11 +55,15 @@ public:
 	BOOL			Read(filePos iIndex, void* pvData);
 	BOOL			Read(filePos iIndex, void* pvData, filePos iCount);
 
+	BOOL			Delete(filePos iIndex);
+	BOOL			Delete(filePos iIndex, filePos iCount);
+
 	int				GetFileIndex(void);
 	BOOL			IsFileIndex(int iFileIndex);
 
 	CFileBasic*		DumpGetPrimaryFile(void);
 	char*			GetFileName(void);
+	char*			GetRewriteName(void);
 
 	void			Dump(void);
 

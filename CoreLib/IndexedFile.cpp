@@ -20,6 +20,7 @@ along with Codaphela CoreLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/StackMemory.h"
 #include "IndexedFile.h"
 
 
@@ -30,12 +31,10 @@ Microsoft Windows is Copyright Microsoft Corporation
 BOOL CIndexedFile::Init(CDurableFileController* pcDurableFileControl, int iFileIndex, char* szFileName, char* szRewriteName, int iDataSize, int iFileNum)
 {
 	miFileIndex = iFileIndex;
-	mszFileName.Init(szFileName);
-	mszRewriteName.Init(szRewriteName);
 	miDataSize = iDataSize;
 	miFileNumber = iFileNum;
 
-	mcFile.Init(pcDurableFileControl, mszFileName.Text(), mszRewriteName.Text());
+	mcFile.Init(pcDurableFileControl, szFileName, szRewriteName);
 	miNumDatas = CalculateNumDatas();
 	return miNumDatas >= 0;
 }
@@ -47,9 +46,8 @@ BOOL CIndexedFile::Init(CDurableFileController* pcDurableFileControl, int iFileI
 //////////////////////////////////////////////////////////////////////////
 void CIndexedFile::Kill(void)
 {
+	// mcFile.Kill();  //Shouldn't this be called?
 	miNumDatas = 0;
-	mszFileName.Kill();
-	mszRewriteName.Kill();
 }
 
 
@@ -214,6 +212,59 @@ BOOL CIndexedFile::Read(filePos iIndex, void* pvData, filePos iCount)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL CIndexedFile::Delete(filePos iIndex)
+{
+	return Delete(iIndex, 1);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexedFile::Delete(filePos iIndex, filePos iCount)
+{
+	filePos			iWritten;
+	filePos			iPosition;
+	void*			pvData;
+	CStackMemory	cTemp;
+	size_t			iSize;
+
+	if (iCount == 0)
+	{
+		return FALSE;
+	}
+
+	if (iIndex + iCount > miNumDatas)
+	{
+		iCount = miNumDatas - iIndex;
+		if (iCount <= 0)
+		{
+			return TRUE;
+		}
+	}
+
+	iSize = (size_t)iCount * (size_t)miDataSize;
+	iPosition = iIndex * miDataSize;
+
+	pvData = cTemp.Init(iSize);
+	memset(pvData, -1, iSize);
+	iWritten = mcFile.Write(EFSO_SET, iPosition, pvData, miDataSize, iCount);
+	cTemp.Kill();
+
+	if (iWritten != (filePos)iCount)
+	{
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 CFileBasic*	CIndexedFile::DumpGetPrimaryFile(void)
 {
 	return mcFile.DumpGetPrimaryFile();
@@ -242,10 +293,10 @@ void CIndexedFile::Dump(void)
 	sz.Append(miFileIndex);
 	sz.Append(")\n------------------\n");
 	sz.Append("Primary Name: ");
-	sz.Append(mszFileName);
+	sz.Append(mcFile.GetFileName());
 	sz.AppendNewLine();
 	sz.Append("Rewrite Name: ");
-	sz.Append(mszRewriteName);
+	sz.Append(mcFile.GetRewriteName());
 	sz.AppendNewLine();
 	sz.Append("Durable: ");
 	sz.AppendBool(mcFile.IsDurable());
@@ -290,4 +341,6 @@ void CIndexedFile::Dump(void)
 //////////////////////////////////////////////////////////////////////////
 int CIndexedFile::GetFileIndex(void) { return miFileIndex; }
 BOOL CIndexedFile::IsFileIndex(int iFileIndex) { return miFileIndex == iFileIndex; }
-char* CIndexedFile::GetFileName(void) { return mszFileName.Text(); }
+char* CIndexedFile::GetFileName(void) { return mcFile.GetFileName(); }
+char* CIndexedFile::GetRewriteName(void) { return mcFile.GetRewriteName(); }
+
