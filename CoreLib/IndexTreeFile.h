@@ -112,7 +112,8 @@ protected:
 	int						FindKeysSize(CArrayVoidPtr* apvNodes);
 
 	BOOL					Read(CIndexTreeChildNode* pcChildNode);
-	BOOL					Delete(CIndexTreeNodeFile* pcCurrent);
+	BOOL					Remove2(CIndexTreeNodeFile* pcCurrent);
+	BOOL					FlushDeleted(void);
 
 public:
 	BOOL					Write(CIndexTreeNodeFile* pcNode);

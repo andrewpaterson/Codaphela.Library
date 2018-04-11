@@ -3,6 +3,7 @@
 #include "BaseLib/FileBasic.h"
 #include "BaseLib/DiskFile.h"
 #include "BaseLib/GlobalMemory.h"
+#include "BaseLib/StackMemory.h"
 #include "IndexedFile.h"
 #include "IndexTreeFile.h"
 
@@ -473,6 +474,7 @@ BOOL CIndexTreeFile::Put(char* pszKey, void* pvObject, unsigned short uiDataSize
 BOOL CIndexTreeFile::Put(void* pvKey, int iKeySize, void* pvObject, unsigned short uiDataSize)
 {
 	CIndexTreeNodeFile*		pcCurrent;
+	CIndexTreeNodeFile*		pcNode;
 	CIndexTreeNodeFile*		pcReallocatedCurrent;
 	unsigned char			c;
 	BOOL					bResult;
@@ -494,9 +496,18 @@ BOOL CIndexTreeFile::Put(void* pvKey, int iKeySize, void* pvObject, unsigned sho
 	{
 		c = ((char*)pvKey)[i];
 		pcCurrent = AllocateNodeIfUnallocated(pcCurrent, c);
-		pcCurrent->SetDirtyPath(TRUE);
 	}
-	pcCurrent->SetDirtyNode(TRUE);
+
+	if (!mbWriteThrough)
+	{
+		pcNode = pcCurrent;
+		pcNode->SetDirtyNode(TRUE);
+		while (pcNode != NULL)
+		{
+			pcNode->SetDirtyPath(TRUE);
+			pcNode = (CIndexTreeNodeFile*)pcNode->GetParent();
+		}
+	}
 
 	if (pcCurrent->GetObjectSize() <= uiDataSize)
 	{
@@ -651,6 +662,8 @@ CIndexTreeNodeFile* CIndexTreeFile::AllocateNodeIfUnallocated(CIndexTreeNodeFile
 		{
 			pcReallocedParent->SetChildrensParent();
 		}
+
+		Write(pcReallocedParent);
 		return pcNew;
 	}
 	else
@@ -729,7 +742,7 @@ BOOL CIndexTreeFile::Remove(void* pvKey, int iKeySize)
 	}
 	else
 	{
-		return Delete(pcCurrent);
+		return Remove2(pcCurrent);
 	}
 }
 
@@ -810,7 +823,7 @@ BOOL CIndexTreeFile::Remove(CIndexTreeNodeFile* pcCurrent)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::Delete(CIndexTreeNodeFile* pcCurrent)
+BOOL CIndexTreeFile::Remove2(CIndexTreeNodeFile* pcCurrent)
 {
 	if (pcCurrent->GetObjectSize() == 0)
 	{
@@ -920,6 +933,16 @@ int CIndexTreeFile::NumElements(void)
 //
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeFile::Flush(void)
+{
+	return FlushDeleted();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeFile::FlushDeleted(void)
 {
 	CArrayVoidPtr					apvDeletedNodes;
 	int								i;
@@ -1693,31 +1716,61 @@ int CIndexTreeFile::RecurseCountListSize(CIndexTreeNodeFile* pcNode)
 BOOL CIndexTreeFile::Write(CIndexTreeNodeFile* pcNode)
 {
 	int					iWrittenPos;
-	char				pvBuffer[8 KB];
+	CStackMemory		cTemp;
+	void*				pvBuffer;
 	int					iNodeSize;
-	CIndexedFile*		pcIndexFile;
+	CIndexedFile*		pcNewIndexFile;
+	CIndexedFile*		pcOldIndexFile;
 	filePos				iFilePos;
+	CFileIndex*			pcIndex;
 
-	iWrittenPos = pcNode->WriteToBuffer(pvBuffer, 8 KB);
+	iNodeSize = pcNode->CalculateBufferSize();
+	pvBuffer = cTemp.Init(iNodeSize);
+	iWrittenPos = pcNode->WriteToBuffer(pvBuffer, iNodeSize);
 	if (iWrittenPos <= 0)
 	{
 		return FALSE;
 	}
 
-	iNodeSize = pcNode->CalculateBufferSize();
 	if (iWrittenPos != iNodeSize)
 	{
+		cTemp.Kill();
 		gcLogger.Error2(__METHOD__, " Could not write IndexTreeNodeFile.  Expected size [", IntToString(iNodeSize), "] is not equal to written buffer size [", IntToString(iWrittenPos), "].", NULL);
 		return FALSE;
 	}
 
-	pcIndexFile = mcIndexFiles.GetOrCreateFile(iNodeSize);
-	if (!pcIndexFile)
+	pcIndex = pcNode->GetFileIndex();
+	if (pcIndex->HasFile())
 	{
-		return TRUE;
+		pcOldIndexFile = mcIndexFiles.GetFile(pcIndex->miFile);
 	}
-	iFilePos = pcIndexFile->Write(pvBuffer);
-	pcNode->SetFileIndex(pcIndexFile->GetFileIndex(), iFilePos);
+	else
+	{
+		pcOldIndexFile = NULL;
+	}
+
+	pcNewIndexFile = mcIndexFiles.GetOrCreateFile(iNodeSize);
+	if (!pcNewIndexFile)
+	{
+		cTemp.Kill();
+		return FALSE;
+	}
+
+	if (pcNewIndexFile != pcOldIndexFile)
+	{
+		iFilePos = pcNewIndexFile->Write(pvBuffer);
+		if (pcOldIndexFile != NULL)
+		{
+			mcIndexFiles.Delete(pcNode->GetFileIndex());
+		}
+		pcNode->SetFileIndex(pcNewIndexFile->GetFileIndex(), iFilePos);
+	}
+	else
+	{
+		iFilePos = pcNewIndexFile->Write(pvBuffer);
+		pcNode->SetFileIndex(pcNewIndexFile->GetFileIndex(), iFilePos);
+	}
+	cTemp.Kill();
 	return TRUE;
 }
 
