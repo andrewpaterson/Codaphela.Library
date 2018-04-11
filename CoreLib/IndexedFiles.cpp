@@ -488,7 +488,6 @@ BOOL CIndexedFiles::Write(CIndexedDataDescriptor* pcDescriptor, void* pvData)
 BOOL CIndexedFiles::WriteNew(CIndexedDataDescriptor* pcIndexDescriptor, void* pvData)
 {
 	CIndexedFile*	pcIndexedFile;
-	filePos			iIndex;
 	filePos			iFilePos;
 	int				iDataSize;
 
@@ -502,13 +501,12 @@ BOOL CIndexedFiles::WriteNew(CIndexedDataDescriptor* pcIndexDescriptor, void* pv
 		}
 
 		iFilePos = pcIndexedFile->Write(pvData);
-		iIndex = iFilePos / pcIndexedFile->miDataSize;
-		if (iIndex == -1)
+		if (iFilePos == -1)
 		{
 			return FALSE;
 		}
 
-		pcIndexDescriptor->SetIndexes(pcIndexedFile->GetFileIndex(), iIndex);
+		pcIndexDescriptor->SetIndexes(pcIndexedFile->GetFileIndex(), iFilePos);
 		return TRUE;
 	}
 	else
@@ -555,6 +553,26 @@ BOOL CIndexedFiles::Read(CIndexedDataDescriptor* pcIndexDescriptor, void* pvData
 	}
 
 	return pcIndexedFile->Read(pcIndexDescriptor->GetIndexInFile(), pvData);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexedFiles::Delete(CFileIndex* pcFileIndex)
+{
+	CIndexedFile*	pcIndexedFile;
+	int				iResult;
+
+	pcIndexedFile = GetFile(pcFileIndex->miFile);
+	if (!pcIndexedFile)
+	{
+		return FALSE;
+	}
+
+	iResult = pcIndexedFile->Delete(pcFileIndex->mulliFilePos);
+	return iResult == 1;
 }
 
 

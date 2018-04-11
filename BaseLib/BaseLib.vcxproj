@@ -155,6 +155,7 @@
     <ClInclude Include="PackFilePacker.h" />
     <ClInclude Include="PackFilesGeneral.h" />
     <ClInclude Include="ScratchPadAllocator.h" />
+    <ClInclude Include="StackMemory.h" />
     <ClInclude Include="SystemAllocator.h" />
     <ClInclude Include="TemporaryMemory.h" />
     <ClInclude Include="TextParser.h" />
@@ -315,6 +316,7 @@
     <ClCompile Include="PackFileIterator.cpp" />
     <ClCompile Include="PackFilePacker.cpp" />
     <ClCompile Include="ScratchPadAllocator.cpp" />
+    <ClCompile Include="StackMemory.cpp" />
     <ClCompile Include="SystemAllocator.cpp" />
     <ClCompile Include="TemporaryMemory.cpp" />
     <ClCompile Include="TextParser.cpp" />

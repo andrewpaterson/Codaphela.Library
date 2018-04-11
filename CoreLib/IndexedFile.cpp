@@ -131,6 +131,7 @@ filePos CIndexedFile::Write(void* pvData, filePos iCount)
 	{
 		return -1;
 	}
+
 	iWritten = mcFile.Write(EFSO_END, 0, pvData, miDataSize, iCount);
 	if (iWritten != (filePos)iCount)
 	{
@@ -139,7 +140,7 @@ filePos CIndexedFile::Write(void* pvData, filePos iCount)
 
 	miNumDatas += iCount;
 
-	return iFilePos;
+	return iFilePos / miDataSize;
 }
 
 
@@ -248,7 +249,7 @@ BOOL CIndexedFile::Delete(filePos iIndex, filePos iCount)
 	iPosition = iIndex * miDataSize;
 
 	pvData = cTemp.Init(iSize);
-	memset(pvData, -1, iSize);
+	memset(pvData, 0x55, iSize);
 	iWritten = mcFile.Write(EFSO_SET, iPosition, pvData, miDataSize, iCount);
 	cTemp.Kill();
 

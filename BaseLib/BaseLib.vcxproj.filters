@@ -735,6 +735,9 @@
     <ClInclude Include="ListCharsMinimal.h">
       <Filter>Source\Data\List\Minimal\Specific</Filter>
     </ClInclude>
+    <ClInclude Include="StackMemory.h">
+      <Filter>Source\Memory\Temporary</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -1156,6 +1159,9 @@
     </ClCompile>
     <ClCompile Include="ListCharsMinimal.cpp">
       <Filter>Source\Data\List\Minimal\Specific</Filter>
+    </ClCompile>
+    <ClCompile Include="StackMemory.cpp">
+      <Filter>Source\Memory\Temporary</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
