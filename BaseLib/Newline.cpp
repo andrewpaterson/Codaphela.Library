@@ -107,7 +107,7 @@ int PassifyNewlines(char *szString)
 	int		iLen;
 	int		i;
 	int		iNumCarriageReturns;
-	char*	szNewString;
+	char*	szNewString;  //Should use StackMemory.
 	int		iPos;
 
 	iLen = (int)strlen(szString);
