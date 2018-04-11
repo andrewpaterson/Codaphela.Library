@@ -189,6 +189,25 @@ BOOL CIndexTreeAccess::GetLongString(int64 lliKey, char* pszDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeAccess::GetStringData(char* pszKey, void* pvObject, int* piDataSize)
+{
+	int iKeySize;
+
+	if (StrEmpty(pszKey))
+	{
+		return FALSE;
+	}
+
+	iKeySize = strlen(pszKey);
+
+	return Get(pszKey, iKeySize, pvObject, piDataSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeAccess::DeleteLong(int64 lliKey)
 {
 	return Remove(&lliKey, sizeof(int64));

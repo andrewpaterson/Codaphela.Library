@@ -21,6 +21,7 @@ public:
 			BOOL	PutStringString(char* pszKey, char* pszData);
 
 			BOOL	GetLongString(int64 lliKey, char* pszDest);
+			BOOL	GetStringData(char* pszKey, void* pvObject, int* piDataSize);
 
 			BOOL	DeleteLong(int64 lliKey);
 			BOOL	DeleteString(char* pszKey);
