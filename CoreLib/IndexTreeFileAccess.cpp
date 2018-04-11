@@ -5,11 +5,10 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeFileAccess::Init(CIndexTreeFile* pcTree, BOOL bImmediate)
+void CIndexTreeFileAccess::Init(CIndexTreeFile* pcTree)
 {
 	CIndexTreeAccess::Init();
 	mpcTree = pcTree;
-	mbImmediate = bImmediate;
 }
 
 
@@ -59,13 +58,6 @@ BOOL CIndexTreeFileAccess::Get(void* pvKey, int iKeySize, void* pvObject, int* p
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeFileAccess::Remove(void* pvKey, int iKeySize)
 {
-	if (mbImmediate)
-	{
-		return mpcTree->Remove(pvKey, iKeySize);
-	}
-	else
-	{
-		return mpcTree->Delete(pvKey, iKeySize);
-	}
+	return mpcTree->Remove(pvKey, iKeySize);
 }
 

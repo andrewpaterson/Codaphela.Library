@@ -57,6 +57,7 @@ public:
 	BOOL			IsDirty(void);
 	BOOL			IsDelted(void);
 	BOOL			HasFlags(unsigned char sFlags);
+	void			ClearFlags(unsigned char sFlags);
 	unsigned char	GetFirstIndex(void);
 	unsigned char	GetLastIndex(void);
 	BOOL			HasNodes(void);

@@ -23,20 +23,22 @@ protected:
 	CIndexedFiles				mcIndexFiles;
 	CDurableFileController*		mpcDurableFileControl;
 	CChars						mszRootFileName;
+	BOOL						mbWriteThrough;
 
 public:
 	BOOL					Init(CDurableFileController* pcDurableFileControl, char* szRootFileName);
-	BOOL					Init(CDurableFileController* pcDurableFileControl, char* szRootFileName, CMallocator* pcMalloc);
+	BOOL					Init(CDurableFileController* pcDurableFileControl, char* szRootFileName, BOOL bWriteThrough);
+	BOOL					Init(CDurableFileController* pcDurableFileControl, char* szRootFileName, CMallocator* pcMalloc, BOOL bWriteThrough);
 	void					Kill(void);
 
 	BOOL					Get(void* pvKey, int iKeySize, void* pvObject, unsigned short* puiDataSize);
 	BOOL					Put(void* pvKey, int iKeySize, void* pvObject, unsigned short uiDataSize);
-	BOOL					Delete(void* pvKey, int iKeySize);
 	BOOL					Remove(void* pvKey, int iKeySize);
 	BOOL					HasKey(void* pvKey, int iKeySize);
 
 	int						NumElements(void);
 	BOOL					Flush(void);
+	void					SetWriteThrough(BOOL bWriteThrough);
 
 	BOOL					StartIteration(SIndexTreeFileIterator* psIterator, void** pvData, int* piDataSize);
 	BOOL					Iterate(SIndexTreeFileIterator* psIterator, void** pvData, int* piDataSize);
@@ -58,6 +60,7 @@ public:
 	int						RecurseSize(void);
 	size_t					ByteSize(void);
 	void					FindWithFlags(CArrayVoidPtr* papNodes, unsigned char uiFollowFlags, unsigned char uiAddFlags);
+	void					ClearNodesFlags(CArrayVoidPtr* papNodes, unsigned char uiFlags);
 
 	CListTemplateMinimal<char>*	FindKeys(CArrayVoidPtr* apvNodes);
 	CListCharsMinimal*		FindStringKeys(CArrayVoidPtr* apvNodes);
@@ -100,6 +103,8 @@ protected:
 	BOOL					ValidateParentIndex(void);
 	BOOL					RecurseValidateParentIndex(CIndexTreeRecursor* pcCursor);
 	int						RecurseNumNodes(CIndexTreeRecursor* pcCursor);
+	BOOL					ValidateNoFlushFlags(void);
+	BOOL					RecurseValidateNoFlushFlags(CIndexTreeRecursor* pcCursor);
 
 	BOOL					StepNext(SIndexTreeFileIterator* psIterator);
 
@@ -107,6 +112,7 @@ protected:
 	int						FindKeysSize(CArrayVoidPtr* apvNodes);
 
 	BOOL					Read(CIndexTreeChildNode* pcChildNode);
+	BOOL					Delete(CIndexTreeNodeFile* pcCurrent);
 
 public:
 	BOOL					Write(CIndexTreeNodeFile* pcNode);
