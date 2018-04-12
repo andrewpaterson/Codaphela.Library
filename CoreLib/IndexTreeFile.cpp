@@ -427,7 +427,6 @@ BOOL CIndexTreeFile::Put(char* pszKey, void* pvObject, unsigned short uiDataSize
 BOOL CIndexTreeFile::Put(void* pvKey, int iKeySize, void* pvObject, unsigned short uiDataSize)
 {
 	CIndexTreeNodeFile*		pcCurrent;
-	CIndexTreeNodeFile*		pcNode;
 	CIndexTreeNodeFile*		pcReallocatedCurrent;
 	unsigned char			c;
 	BOOL					bResult;
@@ -449,17 +448,6 @@ BOOL CIndexTreeFile::Put(void* pvKey, int iKeySize, void* pvObject, unsigned sho
 	{
 		c = ((char*)pvKey)[i];
 		pcCurrent = AllocateNodeIfUnallocated(pcCurrent, c);
-	}
-
-	if (!mbWriteThrough)
-	{
-		pcNode = pcCurrent;
-		pcNode->SetDirtyNode(TRUE);
-		while (pcNode != NULL)
-		{
-			pcNode->SetDirtyPath(TRUE);
-			pcNode = (CIndexTreeNodeFile*)pcNode->GetParent();
-		}
 	}
 
 	if (pcCurrent->GetObjectSize() <= uiDataSize)
