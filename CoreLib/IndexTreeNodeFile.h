@@ -12,8 +12,7 @@
 class CIndexTreeNodeFile : public CIndexTreeNode
 {
 private:
-	CFileDataIndex				mcFileIndex;
-	CFileDataIndex				mcOldIndex;
+	CFileDataIndex				mcFileIndex;  //This index is not valid if the node is dirty; the node will need to br rewritten.
 
 public:
 	void					Init(CIndexTree* pcIndexTree, CIndexTreeNodeFile* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex, CFileDataIndex cFileIndex, unsigned char uiIndexInParent);
