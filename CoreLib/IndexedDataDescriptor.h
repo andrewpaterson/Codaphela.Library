@@ -43,7 +43,7 @@ private:
 	unsigned int	muiDataSize;
 	unsigned int	msFlags;  //These include the user flags.
 
-	CFilePosIndex		mcFileIndex;
+	CFilePosIndex	mcFileIndex;
 
 	void*			mpvCache;  //NULL if object is not cached.
 	unsigned int	muiTimeStamp;

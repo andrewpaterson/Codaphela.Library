@@ -3,6 +3,7 @@
 #include "AbstractFile.h"
 
 
+//mulliFilePos is a direct offset into the file from its start in bytes.
 class CFilePosIndex
 {
 public:
@@ -18,6 +19,7 @@ public:
 };
 
 
+//muiIndex is an offset into the file that needs to be multiplied by some data size.
 class CFileDataIndex
 {
 public:

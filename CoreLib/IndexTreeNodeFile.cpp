@@ -7,10 +7,10 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNodeFile::Init(CIndexTree* pcIndexTree, CIndexTreeNodeFile* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex, CFilePosIndex cFileIndex, unsigned char uiIndexInParent)
+void CIndexTreeNodeFile::Init(CIndexTree* pcIndexTree, CIndexTreeNodeFile* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex, CFileDataIndex cFileIndex, unsigned char uiIndexInParent)
 {
 	CIndexTreeNode::Init(pcIndexTree, pcParent, uiFirstIndex, uiLastIndex, 0, INDEX_TREE_FILE_NODE_UNALLOCATED, uiIndexInParent);
-	mcFileIndex.Init(cFileIndex.miFile, cFileIndex.mulliFilePos);
+	mcFileIndex.Init(cFileIndex.miFile, cFileIndex.muiIndex);
 }
 
 
@@ -40,10 +40,10 @@ void CIndexTreeNodeFile::Init(CIndexTree* pcIndexTree, CIndexTreeNodeFile* pcPar
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNodeFile::Init(CIndexTree* pcIndexTree, CIndexTreeNodeFile* pcParent, CFilePosIndex cFileIndex, unsigned char uiIndexInParent)
+void CIndexTreeNodeFile::Init(CIndexTree* pcIndexTree, CIndexTreeNodeFile* pcParent, CFileDataIndex cFileIndex, unsigned char uiIndexInParent)
 {
 	CIndexTreeNode::Init(pcIndexTree, pcParent, uiIndexInParent);
-	mcFileIndex.Init(cFileIndex.miFile, cFileIndex.mulliFilePos);
+	mcFileIndex.Init(cFileIndex.miFile, cFileIndex.muiIndex);
 }
 
 
@@ -62,9 +62,9 @@ void CIndexTreeNodeFile::Init(CIndexTree* pcIndexTree, CIndexTreeNodeFile* pcPar
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNodeFile::SetFileIndex(int iFile,  filePos ulliFilePos)
+void CIndexTreeNodeFile::SetFileIndex(int iFile, unsigned int uiIndex)
 {
-	mcFileIndex.Init(iFile, ulliFilePos);
+	mcFileIndex.Init(iFile, uiIndex);
 }
 
 
@@ -72,7 +72,7 @@ void CIndexTreeNodeFile::SetFileIndex(int iFile,  filePos ulliFilePos)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CFilePosIndex* CIndexTreeNodeFile::GetFileIndex(void)
+CFileDataIndex* CIndexTreeNodeFile::GetFileIndex(void)
 {
 	return &mcFileIndex;
 }
@@ -99,7 +99,7 @@ CIndexTreeChildNode* CIndexTreeNodeFile::Get(unsigned char uiIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNodeFile::Set(unsigned char uiIndex, CFilePosIndex cFileNode)
+void CIndexTreeNodeFile::Set(unsigned char uiIndex, CFileDataIndex cFileNode)
 {
 	if (ContainsIndex(uiIndex))
 	{
@@ -387,7 +387,7 @@ int CIndexTreeNodeFile::NumInitialisedIndexes(void)
 //////////////////////////////////////////////////////////////////////////
 int CIndexTreeNodeFile::CalculateBufferSize(void)
 {
-	return sizeof(int) + sizeof(unsigned short) + (4 * sizeof(unsigned char)) + muiDataSize + (GetNumIndexes() * (sizeof(int) + sizeof(filePos)));
+	return sizeof(int) + sizeof(unsigned short) + (4 * sizeof(unsigned char)) + muiDataSize + (GetNumIndexes() * (sizeof(int) + sizeof(unsigned int)));
 }
 
 
@@ -401,8 +401,8 @@ int CIndexTreeNodeFile::WriteToBuffer(void* pvBuffer, int iBufferSize)
 	int						iPos;
 	int						iNumNodes;
 	CIndexTreeChildNode*	pcChild;
-	CFilePosIndex				cEmptyIndex;
-	CFilePosIndex*				pcChildIndex;
+	CFileDataIndex			cEmptyIndex;
+	CFileDataIndex*			pcChildIndex;
 	int						iFileSize;
 
 	iFileSize = CalculateBufferSize();
@@ -448,7 +448,7 @@ int CIndexTreeNodeFile::WriteToBuffer(void* pvBuffer, int iBufferSize)
 			pcChildIndex = &cEmptyIndex;
 		}
 		*((int*)&pucMemory[iPos]) = pcChildIndex->miFile;  iPos += sizeof(int);
-		*((filePos*)&pucMemory[iPos]) = pcChildIndex->mulliFilePos;  iPos += sizeof(filePos);
+		*((unsigned int*)&pucMemory[iPos]) = pcChildIndex->muiIndex;  iPos += sizeof(unsigned int);
 	}
 
 	return iPos;
@@ -459,7 +459,7 @@ int CIndexTreeNodeFile::WriteToBuffer(void* pvBuffer, int iBufferSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CIndexTreeNodeFile::InitFromBuffer(CIndexTree* pcIndexTree, CIndexTreeNodeFile* pcParent, void* pvBuffer, int iBufferSize, CFilePosIndex cFileIndex)
+int CIndexTreeNodeFile::InitFromBuffer(CIndexTree* pcIndexTree, CIndexTreeNodeFile* pcParent, void* pvBuffer, int iBufferSize, CFileDataIndex cFileIndex)
 {
 	unsigned char*			pucMemory;
 	int						iPos;
@@ -467,7 +467,7 @@ int CIndexTreeNodeFile::InitFromBuffer(CIndexTree* pcIndexTree, CIndexTreeNodeFi
 	CIndexTreeChildNode*	pcChild;
 	int						iFileSize;
 	int						iFile;
-	filePos					ulliFilePos;
+	unsigned int			ulliFilePos;
 
 	pucMemory = (unsigned char*)pvBuffer;
 	iPos = 0;
@@ -495,7 +495,7 @@ int CIndexTreeNodeFile::InitFromBuffer(CIndexTree* pcIndexTree, CIndexTreeNodeFi
 	for (int i = 0; i < iNumNodes; i++)
 	{
 		iFile = *((int*)&pucMemory[iPos]);  iPos += sizeof(int);
-		ulliFilePos = *((filePos*)&pucMemory[iPos]);  iPos += sizeof(filePos);
+		ulliFilePos = *((unsigned int*)&pucMemory[iPos]);  iPos += sizeof(unsigned int);
 
 		pcChild = GetNode(i);
 		if (iFile != -1)

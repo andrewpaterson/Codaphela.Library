@@ -560,7 +560,7 @@ BOOL CIndexedFiles::Read(CIndexedDataDescriptor* pcIndexDescriptor, void* pvData
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedFiles::Delete(CFilePosIndex* pcFileIndex)
+BOOL CIndexedFiles::Delete(CFileDataIndex* pcFileIndex)
 {
 	CIndexedFile*	pcIndexedFile;
 	int				iResult;
@@ -571,7 +571,7 @@ BOOL CIndexedFiles::Delete(CFilePosIndex* pcFileIndex)
 		return FALSE;
 	}
 
-	iResult = pcIndexedFile->Delete(pcFileIndex->mulliFilePos);
+	iResult = pcIndexedFile->Delete(pcFileIndex->muiIndex);
 	return iResult == 1;
 }
 

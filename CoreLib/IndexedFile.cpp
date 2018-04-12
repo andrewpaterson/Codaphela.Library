@@ -93,7 +93,7 @@ BOOL CIndexedFile::IsFull(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-filePos CIndexedFile::Write(void* pvData)
+ unsigned int CIndexedFile::Write(void* pvData)
 {
 	return Write(pvData, 1);
 }
@@ -108,7 +108,7 @@ BOOL CIndexedFile::Write(filePos iIndex, void* pvData)
 	filePos		iResult;
 
 	iResult = Write(iIndex, pvData, 1);
-	return iResult != -1;
+	return iResult != INDEXED_FILE_WRITE_ERROR;
 }
 
 
@@ -116,10 +116,11 @@ BOOL CIndexedFile::Write(filePos iIndex, void* pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-filePos CIndexedFile::Write(void* pvData, filePos iCount)
+unsigned int CIndexedFile::Write(void* pvData, filePos iCount)
 {
 	filePos		iFilePos;
 	filePos		iWritten;
+	filePos		iDataIndex;
 
 	if (iCount == 0)
 	{
@@ -129,18 +130,23 @@ filePos CIndexedFile::Write(void* pvData, filePos iCount)
 	iFilePos = mcFile.Size();
 	if ((iFilePos % miDataSize) != 0)
 	{
-		return -1;
+		return INDEXED_FILE_WRITE_ERROR;
 	}
 
 	iWritten = mcFile.Write(EFSO_END, 0, pvData, miDataSize, iCount);
 	if (iWritten != (filePos)iCount)
 	{
-		return -1;
+		return INDEXED_FILE_WRITE_ERROR;
 	}
 
 	miNumDatas += iCount;
 
-	return iFilePos / miDataSize;
+	iDataIndex = iFilePos / miDataSize;
+	if (iDataIndex < MAX_UINT)
+	{
+		return (unsigned int)iDataIndex;
+	}
+	return INDEXED_FILE_WRITE_ERROR;
 }
 
 

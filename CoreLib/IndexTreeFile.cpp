@@ -119,7 +119,7 @@ void CIndexTreeFile::RecurseKill(CIndexTreeNodeFile* pcNode)
 BOOL CIndexTreeFile::InitRoot(char* szRootFileName)
 {
 	BOOL				bRootIndexExists;
-	CFilePosIndex			cRootFileIndex;
+	CFileDataIndex		cRootFileIndex;
 	CIndexedFile*		pcRootIndexFile;
 	char				pvBuffer[8 KB];
 	int					iNodeSize;
@@ -140,7 +140,7 @@ BOOL CIndexTreeFile::InitRoot(char* szRootFileName)
 		}
 
 		pcRootIndexFile = mcIndexFiles.GetOrCreateFile(iNodeSize);  //Dangerous.  Should be a Get.
-		pcRootIndexFile->Read(cRootFileIndex.mulliFilePos, pvBuffer, iNodeSize);
+		pcRootIndexFile->Read(cRootFileIndex.muiIndex, pvBuffer, iNodeSize);
 
 		mpcRoot->InitFromBuffer(this, NULL, pvBuffer, 8 KB, cRootFileIndex);
 
@@ -159,24 +159,24 @@ BOOL CIndexTreeFile::InitRoot(char* szRootFileName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CFilePosIndex CIndexTreeFile::LoadRootFileIndex(char* szRootFileName)
+CFileDataIndex CIndexTreeFile::LoadRootFileIndex(char* szRootFileName)
 {
 	CFileBasic	cFileBasic;
 	CDiskFile	cDiskFile;
 	CFileUtil	cFileUtil;
-	CFilePosIndex	cIndex;
+	CFileDataIndex	cIndex;
 	filePos		iSize;
 
 	iSize = cFileUtil.Size(szRootFileName);
 	if (iSize != -1)
 	{
-		if (iSize == sizeof(CFilePosIndex))
+		if (iSize == sizeof(CFileDataIndex))
 		{
 			cDiskFile.Init(szRootFileName);
 			cFileBasic.Init(&cDiskFile);
 
 			cFileBasic.Open(EFM_Read);
-			cFileBasic.Read(&cIndex, 0, sizeof(CFilePosIndex));
+			cFileBasic.Read(&cIndex, 0, sizeof(CFileDataIndex));
 			cFileBasic.Close();
 
 			cFileBasic.Kill();
@@ -186,7 +186,7 @@ CFilePosIndex CIndexTreeFile::LoadRootFileIndex(char* szRootFileName)
 		}
 		else
 		{
-			gcLogger.Error2(__METHOD__, " Index Root file size [", LongLongToString(iSize), "] is incorrect.  Should be SizeOf(CFilePosIndex).", NULL);
+			gcLogger.Error2(__METHOD__, " Index Root file size [", LongLongToString(iSize), "] is incorrect.  Should be SizeOf(CFileDataIndex).", NULL);
 			cIndex.Init();
 			return cIndex;
 		}
@@ -219,7 +219,7 @@ CIndexTreeNodeFile* CIndexTreeFile::AllocateRoot(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTreeNodeFile* CIndexTreeFile::AllocateRoot(CFilePosIndex cFileIndex)
+CIndexTreeNodeFile* CIndexTreeFile::AllocateRoot(CFileDataIndex cFileIndex)
 {
 	CIndexTreeNodeFile*		pcNode;
 	int						iAdditionalSize;
@@ -1666,8 +1666,8 @@ BOOL CIndexTreeFile::Write(CIndexTreeNodeFile* pcNode)
 	int					iNodeSize;
 	CIndexedFile*		pcNewIndexFile;
 	CIndexedFile*		pcOldIndexFile;
-	filePos				iFilePos;
-	CFilePosIndex*			pcIndex;
+	unsigned int		uiDataIndex;
+	CFileDataIndex*		pcIndex;
 
 	iNodeSize = pcNode->CalculateBufferSize();
 	pvBuffer = cTemp.Init(iNodeSize);
@@ -1703,17 +1703,17 @@ BOOL CIndexTreeFile::Write(CIndexTreeNodeFile* pcNode)
 
 	if (pcNewIndexFile != pcOldIndexFile)
 	{
-		iFilePos = pcNewIndexFile->Write(pvBuffer);
+		uiDataIndex = pcNewIndexFile->Write(pvBuffer);
 		if (pcOldIndexFile != NULL)
 		{
 			mcIndexFiles.Delete(pcNode->GetFileIndex());
 		}
-		pcNode->SetFileIndex(pcNewIndexFile->GetFileIndex(), iFilePos);
+		pcNode->SetFileIndex(pcNewIndexFile->GetFileIndex(), uiDataIndex);
 	}
 	else
 	{
-		iFilePos = pcNewIndexFile->Write(pvBuffer);
-		pcNode->SetFileIndex(pcNewIndexFile->GetFileIndex(), iFilePos);
+		uiDataIndex = pcNewIndexFile->Write(pvBuffer);
+		pcNode->SetFileIndex(pcNewIndexFile->GetFileIndex(), uiDataIndex);
 	}
 	cTemp.Kill();
 	return TRUE;

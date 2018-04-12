@@ -68,7 +68,7 @@ public:
 	void					FakeInit(void);
 	void					RecurseKill(CIndexTreeNodeFile* pcNode);
 	BOOL					InitRoot(char* szRootFileName);
-	CFilePosIndex				LoadRootFileIndex(char* szRootFileName);
+	CFileDataIndex			LoadRootFileIndex(char* szRootFileName);
 
 	BOOL					ValidateIndexTree(void);
 	CIndexedFiles*			GetIndexFiles(void);
@@ -78,7 +78,7 @@ protected:
 	CIndexTreeNodeFile*		ReadNode(CIndexTreeNodeFile* pcParent, unsigned char c);
 	
 	CIndexTreeNodeFile*		AllocateRoot(void);
-	CIndexTreeNodeFile*		AllocateRoot(CFilePosIndex cFileIndex);
+	CIndexTreeNodeFile*		AllocateRoot(CFileDataIndex cFileIndex);
 	CIndexTreeNodeFile*		AllocateNode(CIndexTreeNodeFile* pcParent, unsigned short uiDataSize, unsigned char uiIndexInParent);
 	CIndexTreeNodeFile*		AllocateNode(CIndexTreeNodeFile* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex, unsigned short uiDataSize, unsigned char uiIndexInParent);
 

@@ -31,6 +31,9 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "DurableFileController.h"
 
 
+#define INDEXED_FILE_WRITE_ERROR ((unsigned int)-1)
+
+
 class CIndexedFile
 {
 private:
@@ -48,7 +51,7 @@ public:
 	filePos			CalculateNumDatas(void);
 	BOOL			IsFull(void);
 
-	filePos			Write(void* pvData);
+	unsigned int	Write(void* pvData);
 	BOOL			Write(filePos iIndex, void* pvData);
 	BOOL			Write(filePos iIndex, void* pvData, filePos iCount);
 
@@ -68,7 +71,7 @@ public:
 	void			Dump(void);
 
 protected:
-	filePos			Write(void* pvData, filePos iCount);
+	unsigned int	Write(void* pvData, filePos iCount);
 };
 
 
