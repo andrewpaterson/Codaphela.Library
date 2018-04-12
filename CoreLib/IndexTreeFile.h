@@ -76,8 +76,7 @@ public:
 
 protected:
 	CIndexTreeNodeFile*		ReadNode(CIndexTreeNodeFile* pcParent, unsigned char c);
-	CIndexTreeNodeFile*		ReadNode(CIndexTreeChildNode* pcChild);
-
+	
 	CIndexTreeNodeFile*		AllocateRoot(void);
 	CIndexTreeNodeFile*		AllocateRoot(CFileIndex cFileIndex);
 	CIndexTreeNodeFile*		AllocateNode(CIndexTreeNodeFile* pcParent, unsigned short uiDataSize, unsigned char uiIndexInParent);

@@ -368,53 +368,6 @@ CIndexTreeNodeFile* CIndexTreeFile::ReadNode(CIndexTreeNodeFile* pcParent, unsig
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTreeNodeFile* CIndexTreeFile::ReadNode(CIndexTreeChildNode* pcChild)
-{
-	CIndexTreeNodeFile*		pcCurrent;
-
-	if (pcChild)
-	{
-		if (pcChild->IsMemory())
-		{
-			pcCurrent = pcChild->u.mpcMemory;
-			return pcCurrent;
-		}
-		else if (pcChild->IsFile())
-		{
-			if (Read(pcChild))
-			{
-				pcCurrent = pcChild->u.mpcMemory;
-				return pcCurrent;
-			}
-			else
-			{
-				gcLogger.Error2(__METHOD__, " Could not load child node.", NULL);
-				return NULL;
-			}
-		}
-		else if (pcChild->IsUnallocated())
-		{
-			//Data for key does not exist.
-			return NULL;
-		}
-		else
-		{
-			gcLogger.Error2(__METHOD__, " Child node is corrupt.", NULL);
-			return NULL;
-		}
-	}
-	else
-	{
-		//Data for key does not exist.
-		return NULL;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeFile::Get(void* pvKey, int iKeySize, void* pvObject, unsigned short* puiDataSize)
 {
 	CIndexTreeNodeFile* pcNode;
@@ -653,17 +606,21 @@ CIndexTreeNodeFile* CIndexTreeFile::AllocateNodeIfUnallocated(CIndexTreeNodeFile
 	CIndexTreeNodeFile*		pcReallocedParent;
 
 	pcCurrent = pcParent->Get(c);
-	if (pcCurrent == NULL)  //Uncontained.
+	if (pcCurrent == NULL)  //Uncontained, off the left or the right of the parent node's indexes.
 	{
-		pcNew = AllocateNode(pcParent, 0, c);
+		//This causes the parent node to be re-allocated as its indexes must be grown.
 		pcReallocedParent = ReallocateNodeForIndex(pcParent, c);
+
+		//The new node must also still be allocated.  Two nodes have been altered (the parent and the new node).
+		pcNew = AllocateNode(pcReallocedParent, 0, c);
 		pcReallocedParent->Set(c, pcNew);
+
+		//If the parent moved in memory then all its children must be corrected.
 		if (pcParent != pcReallocedParent)
 		{
 			pcReallocedParent->SetChildrensParent();
 		}
 
-		Write(pcReallocedParent);
 		return pcNew;
 	}
 	else
