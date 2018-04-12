@@ -104,6 +104,8 @@ protected:
 	int						RecurseNumNodes(CIndexTreeRecursor* pcCursor);
 	BOOL					ValidateNoFlushFlags(void);
 	BOOL					RecurseValidateNoFlushFlags(CIndexTreeRecursor* pcCursor);
+	BOOL					ValidateMagic(void);
+	BOOL					RecurseValidateMagic(CIndexTreeRecursor* pcCursor);
 
 	BOOL					StepNext(SIndexTreeFileIterator* psIterator);
 

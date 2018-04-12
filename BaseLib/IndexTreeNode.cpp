@@ -11,6 +11,7 @@ void CIndexTreeNode::Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent, uns
 {
 	size_t tSize;
 
+	muiMagic = INDEX_TREE_NODE_MAGIC;
 	mpcIndexTree = pcIndexTree;
 	muiFirstIndex = uiFirstIndex;
 	muiLastIndex = uiLastIndex;
@@ -30,6 +31,7 @@ void CIndexTreeNode::Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent, uns
 //////////////////////////////////////////////////////////////////////////
 void CIndexTreeNode::Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent, unsigned char uiIndexInParent)
 {
+	muiMagic = INDEX_TREE_NODE_MAGIC;
 	mpcIndexTree = pcIndexTree;
 	mpcParent = pcParent;
 	muiFirstIndex = 0;
@@ -349,6 +351,16 @@ BOOL CIndexTreeNode::IsDirty(void)
 BOOL CIndexTreeNode::IsDelted(void)
 {
 	return FixBool(msFlags & INDEX_TREE_NODE_FLAG_DELETED_NODE);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeNode::IsMagic(void)
+{
+	return muiMagic == INDEX_TREE_NODE_MAGIC;
 }
 
 

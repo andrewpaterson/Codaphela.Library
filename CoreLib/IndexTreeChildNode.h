@@ -11,7 +11,7 @@
 
 struct SIndexTreeChildFile
 {
-	char	acUnused[12];
+	char	acUnused[8];
 	int		iType;
 };
 

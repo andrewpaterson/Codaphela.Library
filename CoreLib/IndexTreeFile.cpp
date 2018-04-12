@@ -1221,7 +1221,8 @@ BOOL CIndexTreeFile::ValidateIndexTree(void)
 {
 	BOOL bResult;
 
-	bResult = ValidateLimits();
+	bResult = ValidateMagic();
+	bResult &= ValidateLimits();
 	bResult &= ValidateParentIndex();
 	bResult &= ValidateNoFlushFlags();
 	return bResult;
@@ -1443,6 +1444,64 @@ BOOL CIndexTreeFile::RecurseValidateNoFlushFlags(CIndexTreeRecursor* pcCursor)
 				pcChild = ReadNode(pcNode, i);
 				pcCursor->Push(pcChild, i);
 				bResult = RecurseValidateParentIndex(pcCursor);
+				if (!bResult)
+				{
+					pcCursor->Pop();
+					return FALSE;
+				}
+			}
+		}
+	}
+	pcCursor->Pop();
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeFile::ValidateMagic(void)
+{
+	CIndexTreeRecursor	cCursor;
+	BOOL				bResult;
+
+	cCursor.Init(mpcRoot);
+	bResult = RecurseValidateNoFlushFlags(&cCursor);
+	cCursor.Kill();
+
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeFile::RecurseValidateMagic(CIndexTreeRecursor* pcCursor)
+{
+	CIndexTreeNodeFile*		pcNode;
+	int						i;
+	CIndexTreeNodeFile*		pcChild;
+	BOOL					bResult;
+
+	pcNode = (CIndexTreeNodeFile*)pcCursor->GetNode();
+	if (pcNode != NULL)
+	{
+		if (!pcNode->IsMagic())
+		{
+			pcCursor->GenerateBad();
+			gcLogger.Error2(__METHOD__, " Node [", pcCursor->GetBadNode(), "] for key [", pcCursor->GetBadKey(), "] is not magic :(", NULL);
+			return FALSE;
+		}
+
+		if (pcNode->HasNodes())
+		{
+			for (i = pcNode->GetFirstIndex(); i <= pcNode->GetLastIndex(); i++)
+			{
+				pcChild = ReadNode(pcNode, i);
+				pcCursor->Push(pcChild, i);
+				bResult = RecurseValidateMagic(pcCursor);
 				if (!bResult)
 				{
 					pcCursor->Pop();

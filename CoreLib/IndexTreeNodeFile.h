@@ -13,6 +13,7 @@ class CIndexTreeNodeFile : public CIndexTreeNode
 {
 private:
 	CFileDataIndex				mcFileIndex;
+	CFileDataIndex				mcOldIndex;
 
 public:
 	void					Init(CIndexTree* pcIndexTree, CIndexTreeNodeFile* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex, CFileDataIndex cFileIndex, unsigned char uiIndexInParent);
