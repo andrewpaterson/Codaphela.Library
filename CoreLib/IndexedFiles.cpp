@@ -560,7 +560,7 @@ BOOL CIndexedFiles::Read(CIndexedDataDescriptor* pcIndexDescriptor, void* pvData
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedFiles::Delete(CFileIndex* pcFileIndex)
+BOOL CIndexedFiles::Delete(CFilePosIndex* pcFileIndex)
 {
 	CIndexedFile*	pcIndexedFile;
 	int				iResult;

@@ -22,13 +22,13 @@ class CIndexTreeChildNode
 public:
 	union
 	{
-		CFileIndex					mcFile;
+		CFilePosIndex					mcFile;
 		CIndexTreeNodeFile*			mpcMemory;
 		SIndexTreeChildFile			msType;
 	} u;
 
-	void	Init(CFileIndex cFile);
-	void	Init(CFileIndex* pcFile);
+	void	Init(CFilePosIndex cFile);
+	void	Init(CFilePosIndex* pcFile);
 	void	Init(int iFile, filePos ulliFilePos);
 	void	Init(CIndexTreeNodeFile* pcMemory);
 	void	Clear(void);

@@ -3,7 +3,7 @@
 #include "AbstractFile.h"
 
 
-class CFileIndex
+class CFilePosIndex
 {
 public:
 	filePos		mulliFilePos;
@@ -15,6 +15,21 @@ public:
 
 	BOOL HasFile(void);
 	void SetIndex(int iFile, filePos ulliFilePos);
+};
+
+
+class CFileDataIndex
+{
+public:
+	unsigned int	muiIndex;
+	int				miFile;
+
+	void Init(void);
+	void Init(int iFile, unsigned int uiIndex);
+	void Kill(void);
+
+	BOOL HasFile(void);
+	void SetIndex(int iFile, unsigned int uiIndex);
 };
 
 

@@ -5,7 +5,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeChildNode::Init(CFileIndex cFile)
+void CIndexTreeChildNode::Init(CFilePosIndex cFile)
 {
 	u.mcFile.Init(cFile.miFile, cFile.mulliFilePos);
 	u.msType.iType = INDEX_TREE_FILE_NODE_FILE;
@@ -16,7 +16,7 @@ void CIndexTreeChildNode::Init(CFileIndex cFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeChildNode::Init(CFileIndex* pcFile)
+void CIndexTreeChildNode::Init(CFilePosIndex* pcFile)
 {
 	u.mcFile.Init(pcFile->miFile, pcFile->mulliFilePos);
 	u.msType.iType = INDEX_TREE_FILE_NODE_FILE;

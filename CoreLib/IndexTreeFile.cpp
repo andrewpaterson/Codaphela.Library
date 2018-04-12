@@ -119,7 +119,7 @@ void CIndexTreeFile::RecurseKill(CIndexTreeNodeFile* pcNode)
 BOOL CIndexTreeFile::InitRoot(char* szRootFileName)
 {
 	BOOL				bRootIndexExists;
-	CFileIndex			cRootFileIndex;
+	CFilePosIndex			cRootFileIndex;
 	CIndexedFile*		pcRootIndexFile;
 	char				pvBuffer[8 KB];
 	int					iNodeSize;
@@ -159,24 +159,24 @@ BOOL CIndexTreeFile::InitRoot(char* szRootFileName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CFileIndex CIndexTreeFile::LoadRootFileIndex(char* szRootFileName)
+CFilePosIndex CIndexTreeFile::LoadRootFileIndex(char* szRootFileName)
 {
 	CFileBasic	cFileBasic;
 	CDiskFile	cDiskFile;
 	CFileUtil	cFileUtil;
-	CFileIndex	cIndex;
+	CFilePosIndex	cIndex;
 	filePos		iSize;
 
 	iSize = cFileUtil.Size(szRootFileName);
 	if (iSize != -1)
 	{
-		if (iSize == sizeof(CFileIndex))
+		if (iSize == sizeof(CFilePosIndex))
 		{
 			cDiskFile.Init(szRootFileName);
 			cFileBasic.Init(&cDiskFile);
 
 			cFileBasic.Open(EFM_Read);
-			cFileBasic.Read(&cIndex, 0, sizeof(CFileIndex));
+			cFileBasic.Read(&cIndex, 0, sizeof(CFilePosIndex));
 			cFileBasic.Close();
 
 			cFileBasic.Kill();
@@ -186,7 +186,7 @@ CFileIndex CIndexTreeFile::LoadRootFileIndex(char* szRootFileName)
 		}
 		else
 		{
-			gcLogger.Error2(__METHOD__, " Index Root file size [", LongLongToString(iSize), "] is incorrect.  Should be SizeOf(CFileIndex).", NULL);
+			gcLogger.Error2(__METHOD__, " Index Root file size [", LongLongToString(iSize), "] is incorrect.  Should be SizeOf(CFilePosIndex).", NULL);
 			cIndex.Init();
 			return cIndex;
 		}
@@ -219,7 +219,7 @@ CIndexTreeNodeFile* CIndexTreeFile::AllocateRoot(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTreeNodeFile* CIndexTreeFile::AllocateRoot(CFileIndex cFileIndex)
+CIndexTreeNodeFile* CIndexTreeFile::AllocateRoot(CFilePosIndex cFileIndex)
 {
 	CIndexTreeNodeFile*		pcNode;
 	int						iAdditionalSize;
@@ -1667,7 +1667,7 @@ BOOL CIndexTreeFile::Write(CIndexTreeNodeFile* pcNode)
 	CIndexedFile*		pcNewIndexFile;
 	CIndexedFile*		pcOldIndexFile;
 	filePos				iFilePos;
-	CFileIndex*			pcIndex;
+	CFilePosIndex*			pcIndex;
 
 	iNodeSize = pcNode->CalculateBufferSize();
 	pvBuffer = cTemp.Init(iNodeSize);

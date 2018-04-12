@@ -64,7 +64,7 @@ public:
 
 	BOOL			Write(CIndexedDataDescriptor* pcDescriptor, void* pvData);
 	BOOL			Read(CIndexedDataDescriptor* pcDescriptor, void* pvData);
-	BOOL			Delete(CFileIndex* pcFileIndex);
+	BOOL			Delete(CFilePosIndex* pcFileIndex);
 
 	BOOL			IsDurable(void);
 	
