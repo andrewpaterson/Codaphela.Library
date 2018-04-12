@@ -1720,7 +1720,7 @@ int CIndexTreeFile::RecurseCountListSize(CIndexTreeNodeFile* pcNode)
 BOOL CIndexTreeFile::Write(CIndexTreeNodeFile* pcNode)
 {
 	int					iWrittenPos;
-	CStackMemory		cTemp;
+	CStackMemory<>		cTemp;
 	void*				pvBuffer;
 	int					iNodeSize;
 	CIndexedFile*		pcNewIndexFile;

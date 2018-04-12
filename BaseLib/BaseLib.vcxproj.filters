@@ -1160,9 +1160,6 @@
     <ClCompile Include="ListCharsMinimal.cpp">
       <Filter>Source\Data\List\Minimal\Specific</Filter>
     </ClCompile>
-    <ClCompile Include="StackMemory.cpp">
-      <Filter>Source\Memory\Temporary</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="gpl.txt">

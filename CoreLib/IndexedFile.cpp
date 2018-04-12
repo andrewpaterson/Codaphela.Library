@@ -234,7 +234,7 @@ BOOL CIndexedFile::Delete(filePos iIndex, filePos iCount)
 	filePos			iWritten;
 	filePos			iPosition;
 	void*			pvData;
-	CStackMemory	cTemp;
+	CStackMemory<>	cTemp;
 	size_t			iSize;
 
 	if (iCount == 0)
