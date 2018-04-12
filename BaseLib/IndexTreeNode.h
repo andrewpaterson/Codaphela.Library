@@ -16,6 +16,8 @@
 #define	INDEX_TREE_NODE_FLAG_DELETED_PATH	0x10
 #define	INDEX_TREE_NODE_FLAG_DIRTY_PATH		0x20
 
+#define INDEX_TREE_NODE_MAGIC	0x5A37
+
 
 //sizeof(CIndexTreeNode) is 16 bytes but only 14 bytes are used.
 class CIndexTree;
@@ -26,6 +28,9 @@ protected:
 	CIndexTreeNode*		mpcParent;
 
 	unsigned short		muiDataSize;   // Size of object "pointed" to by this node.  The object is small: usually a OIndex, a pointer or a CFileId.
+
+	unsigned short		muiMagic;  //Unused.  Always set to INDEX_TREE_NODE_MAGIC
+
 	unsigned char		muiFirstIndex;
 	unsigned char		muiLastIndex;  // Inclusive (because 255 is a legitimate last index and 256 can't be represented)
 
@@ -56,6 +61,7 @@ public:
 	BOOL			IsEmpty(void);
 	BOOL			IsDirty(void);
 	BOOL			IsDelted(void);
+	BOOL			IsMagic(void);
 	BOOL			HasFlags(unsigned char sFlags);
 	void			ClearFlags(unsigned char sFlags);
 	unsigned char	GetFirstIndex(void);
