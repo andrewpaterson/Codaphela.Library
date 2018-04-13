@@ -104,6 +104,7 @@ void CIndexTreeNodeFile::Set(unsigned char uiIndex, CFileDataIndex cFileNode)
 	if (ContainsIndex(uiIndex))
 	{
 		GetNode(uiIndex - muiFirstIndex)->Init(cFileNode);
+		SetDirtyNode(TRUE);
 	}
 }
 
@@ -117,6 +118,7 @@ void CIndexTreeNodeFile::Set(unsigned char uiIndex, CIndexTreeNodeFile* pcNode)
 	if (ContainsIndex(uiIndex))
 	{
 		GetNode(uiIndex - muiFirstIndex)->Init(pcNode);
+		SetDirtyNode(TRUE);
 	}
 }
 
@@ -130,6 +132,7 @@ void CIndexTreeNodeFile::Clear(unsigned char uiIndex)
 	if (ContainsIndex(uiIndex))
 	{
 		GetNode(uiIndex - muiFirstIndex)->Clear();
+		SetDirtyNode(TRUE);
 	}
 }
 
@@ -143,6 +146,7 @@ BOOL CIndexTreeNodeFile::ClearAndUncontain(unsigned char uiIndex)
 	if (ContainsIndex(uiIndex))
 	{
 		GetNode(uiIndex - muiFirstIndex)->Clear();
+		SetDirtyNode(TRUE);
 
 		return Uncontain(uiIndex);
 	}

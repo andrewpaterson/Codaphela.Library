@@ -204,6 +204,36 @@ BOOL CIndexTreeAccess::GetStringData(char* pszKey, void* pvObject, int* piDataSi
 }
 
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeAccess::GetStringString(char* pszKey, char* pszDest)
+{
+	int		iKeySize;
+	BOOL	bResult;
+
+	if (StrEmpty(pszKey))
+	{
+		return FALSE;
+	}
+
+	iKeySize = strlen(pszKey);
+
+	bResult = Get(pszKey, iKeySize, pszDest, NULL);
+	if (!bResult)
+	{
+		pszDest[0] = 0;
+		return FALSE;
+	}
+	else
+	{
+		return TRUE;
+	}
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //

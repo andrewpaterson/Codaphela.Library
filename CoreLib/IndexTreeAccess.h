@@ -12,16 +12,17 @@ private:
 public:
 			void	Init(void);
 	virtual void	Kill(void);
-			BOOL	PutStringPtr(char* pszKey, void* pvPointer);
-			BOOL	PutStringLong(char* pszKey, int64 lliIndex);
-			BOOL	PutStringData(char* pszKey, void* pvObject, int iDataSize);
 			BOOL	PutLongPtr(int64 lliKey, void* pvPointer);
+			BOOL	PutStringPtr(char* pszKey, void* pvPointer);
 			BOOL	PutLongString(int64 lliKey, char* pszData);
 			BOOL	PutLongData(int64 lliKey, void* pvObject, int iDataSize);
+			BOOL	PutStringData(char* pszKey, void* pvObject, int iDataSize);
+			BOOL	PutStringLong(char* pszKey, int64 lliIndex);
 			BOOL	PutStringString(char* pszKey, char* pszData);
 
 			BOOL	GetLongString(int64 lliKey, char* pszDest);
 			BOOL	GetStringData(char* pszKey, void* pvObject, int* piDataSize);
+			BOOL	GetStringString(char* pszKey, char* pszDest);
 
 			BOOL	DeleteLong(int64 lliKey);
 			BOOL	DeleteString(char* pszKey);

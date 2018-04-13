@@ -88,8 +88,9 @@ protected:
 	CIndexTreeNodeFile*		ReallocateNodeForData(CIndexTreeNodeFile* pcNode, size_t tNewNodeSize, size_t tOldNodeSize);
 	void					RemapChildParents(CIndexTreeNodeFile* pcOldNode, CIndexTreeNodeFile* pcNode);
 
-	CIndexTreeNodeFile*		AllocateNodeIfUnallocated(CIndexTreeNodeFile* pcParent, unsigned char c);
-	BOOL					Remove(CIndexTreeNodeFile* pcCurrent);
+	CIndexTreeNodeFile*		GetChildNodOrAllocate(CIndexTreeNodeFile* pcParent, unsigned char c);
+	BOOL					RemoveWriteThrough(CIndexTreeNodeFile* pcCurrent);
+	BOOL					RemoveWaitForFlush(CIndexTreeNodeFile* pcCurrent);
 
 	int						RecurseSize(CIndexTreeNodeFile* pcNode);
 	int						RecurseCountAllocatedNodes(CIndexTreeNodeFile* pcNode);
@@ -113,11 +114,14 @@ protected:
 	int						FindKeysSize(CArrayVoidPtr* apvNodes);
 
 	BOOL					Read(CIndexTreeChildNode* pcChildNode);
-	BOOL					Remove2(CIndexTreeNodeFile* pcCurrent);
-	BOOL					FlushDeleted(void);
+	BOOL					FlushRemoved(void);
+	BOOL					FlushDirty(void);
+	BOOL					RecurseFlushDirty(CIndexTreeRecursor* pcCursor);
 
 public:
 	BOOL					Write(CIndexTreeNodeFile* pcNode);
+	BOOL					Delete(CIndexTreeNodeFile* pcNode);
+
 	CIndexTreeNodeFile*		SetParentWithExisting(CIndexTreeNodeFile* pcParent, unsigned char c, unsigned char uiFirstIndex, unsigned char uiLastIndex, unsigned char uiDataSize);
 	CIndexTreeNodeFile*		SetParentWithExisting(CIndexTreeNodeFile* pcParent, unsigned char c, unsigned char uiDataSize);
 };

@@ -105,10 +105,7 @@ BOOL CIndexedFile::IsFull(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexedFile::Write(filePos iIndex, void* pvData)
 {
-	filePos		iResult;
-
-	iResult = Write(iIndex, pvData, 1);
-	return iResult != INDEXED_FILE_WRITE_ERROR;
+	return Write(iIndex, pvData, 1);
 }
 
 

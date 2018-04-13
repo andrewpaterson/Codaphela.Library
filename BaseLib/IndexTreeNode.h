@@ -60,6 +60,7 @@ public:
 
 	BOOL			IsEmpty(void);
 	BOOL			IsDirty(void);
+	BOOL			IsPathDirty(void);
 	BOOL			IsDelted(void);
 	BOOL			IsMagic(void);
 	BOOL			HasFlags(unsigned char sFlags);

@@ -348,6 +348,16 @@ BOOL CIndexTreeNode::IsDirty(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeNode::IsPathDirty(void)
+{
+	return FixBool(msFlags & INDEX_TREE_NODE_FLAG_DIRTY_PATH);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeNode::IsDelted(void)
 {
 	return FixBool(msFlags & INDEX_TREE_NODE_FLAG_DELETED_NODE);
@@ -541,6 +551,7 @@ BOOL CIndexTreeNode::SetObject(void* pvObject, unsigned short uiSize)
 void CIndexTreeNode::ClearObject(void)
 {
 	ChangeDataSize(0);
+	SetDirtyNode(TRUE);
 }
 
 
