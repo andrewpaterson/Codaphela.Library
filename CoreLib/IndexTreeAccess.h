@@ -12,6 +12,9 @@ private:
 public:
 			void	Init(void);
 	virtual void	Kill(void);
+
+	virtual BOOL	Flush(void)= 0;
+
 			BOOL	PutLongPtr(int64 lliKey, void* pvPointer);
 			BOOL	PutStringPtr(char* pszKey, void* pvPointer);
 			BOOL	PutLongString(int64 lliKey, char* pszData);
@@ -26,6 +29,7 @@ public:
 
 			BOOL	DeleteLong(int64 lliKey);
 			BOOL	DeleteString(char* pszKey);
+
 
 protected:
 	virtual BOOL	Put(void* pvKey, int iKeySize, void* pvObject, unsigned char uiDataSize) =0;

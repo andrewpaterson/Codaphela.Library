@@ -12,6 +12,7 @@ private:
 public:
 	void	Init(CIndexTreeFile* pcTree);
 	void	Kill(void);
+	BOOL	Flush(void);
 
 protected:
 	BOOL	Put(void* pvKey, int iKeySize, void* pvObject, unsigned char uiDataSize);
