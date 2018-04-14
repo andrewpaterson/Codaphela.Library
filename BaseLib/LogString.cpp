@@ -189,3 +189,24 @@ char* MethodToString(char* szFile, int iLine, char* szFunction)
 	return sz;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* StringToString(char* sz)
+{
+	if (sz != NULL)
+	{
+		return sz;
+	}
+	else
+	{
+		int		iCount = IncrementLogToStringCount();
+		char*	sz = gaszLogToStringScratchPad[iCount];
+
+		sz[0] = 0;
+		return sz;
+	}
+}
+

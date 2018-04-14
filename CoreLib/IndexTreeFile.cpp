@@ -541,7 +541,7 @@ BOOL CIndexTreeFile::Put(void* pvKey, int iKeySize, void* pvObject, unsigned sho
 	for (int i = 0; i < iKeySize; i++)
 	{
 		c = ((char*)pvKey)[i];
-		pcCurrent = GetChildNodOrAllocate(pcCurrent, c);
+		pcCurrent = GetChildNodeOrAllocate(pcCurrent, c);
 	}
 
 	if (pcCurrent->GetObjectSize() <= uiDataSize)
@@ -702,22 +702,22 @@ void CIndexTreeFile::RemapChildParents(CIndexTreeNodeFile* pcOldNode, CIndexTree
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTreeNodeFile* CIndexTreeFile::GetChildNodOrAllocate(CIndexTreeNodeFile* pcParent, unsigned char c)
+CIndexTreeNodeFile* CIndexTreeFile::GetChildNodeOrAllocate(CIndexTreeNodeFile* pcParent, unsigned char uiIndexInParent)
 {
 	CIndexTreeNodeFile*		pcNewFileNode;
 	CIndexTreeChildNode*	pcChildNodeOnParent;
 	CIndexTreeNodeFile*		pcReallocedParent;
 
-	pcChildNodeOnParent = pcParent->Get(c);
+	pcChildNodeOnParent = pcParent->Get(uiIndexInParent);
 	if (pcChildNodeOnParent == NULL)  //Uncontained, off the left or the right of the parent node's indexes.
 	{
 		//This causes the parent node to be re-allocated as its indexes must be grown.
-		pcReallocedParent = ReallocateNodeForIndex(pcParent, c);
+		pcReallocedParent = ReallocateNodeForIndex(pcParent, uiIndexInParent);
 
 		//The new node must also still be allocated.  Two nodes have been altered (the parent and the new node).
-		pcNewFileNode = AllocateNode(pcReallocedParent, 0, c);
+		pcNewFileNode = AllocateNode(pcReallocedParent, 0, uiIndexInParent);
 
-		pcReallocedParent->Set(c, pcNewFileNode);
+		pcReallocedParent->Set(uiIndexInParent, pcNewFileNode);
 
 		//If the parent moved in memory then all its children must be corrected.
 		if (pcParent != pcReallocedParent)
@@ -735,19 +735,19 @@ CIndexTreeNodeFile* CIndexTreeFile::GetChildNodOrAllocate(CIndexTreeNodeFile* pc
 		}
 		else if (pcChildNodeOnParent->IsFile())
 		{
-			if (Read(pcChildNodeOnParent, pcParent, c))
+			if (Read(pcChildNodeOnParent, pcParent, uiIndexInParent))
 			{
 				return pcChildNodeOnParent->u.mpcMemory;
 			}
 			else
 			{
-				gcLogger.Error2(__METHOD__, " Could not load child node [", IntToString((int)c), "].", NULL);
+				gcLogger.Error2(__METHOD__, " Could not load child node [", IntToString((int)uiIndexInParent), "].", NULL);
 				return NULL;
 			}
 		}
 		else if (pcChildNodeOnParent->IsUnallocated())
 		{
-			pcNewFileNode = AllocateNode(pcParent, 0, c);
+			pcNewFileNode = AllocateNode(pcParent, 0, uiIndexInParent);
 
 			pcChildNodeOnParent->Init(pcNewFileNode);
 			pcParent->SetDirtyNode(TRUE);
@@ -756,7 +756,7 @@ CIndexTreeNodeFile* CIndexTreeFile::GetChildNodOrAllocate(CIndexTreeNodeFile* pc
 		}
 		else
 		{
-			gcLogger.Error2(__METHOD__, " Child node [", IntToString((int)c), "] is corrupt.", NULL);
+			gcLogger.Error2(__METHOD__, " Child node [", IntToString((int)uiIndexInParent), "] is corrupt.", NULL);
 			return NULL;
 		}
 	}
@@ -2084,11 +2084,10 @@ BOOL CIndexTreeFile::Read(CIndexTreeChildNode* pcChildNode, CIndexTreeNodeFile* 
 	bResult = pcFile->Read(uiIndex, pvBuffer);
 	if (!bResult)
 	{
-		//gcLogger.Error
+		gcLogger.Error2(__METHOD__, " Could not read tree node in file number [", IntToString(iFile), "] name [", StringToString(pcFile->GetFileName()), "] at index [", IntToString(uiIndex), "].", NULL);
 		return FALSE;
 	}
-
-	
+		
 	pcFileNode = AllocateNode(pcFileNodeParent, uiIndexInParent, pvBuffer, iDataSize);
 	cTemp.Kill();
 

@@ -34,6 +34,7 @@ char* PointerToString(void* pv);
 char* MethodToString(char* szFile, int iLine, char* szFunction);
 char* IntToFlags(int iInt);
 char* ShortToFlags(int siShort);
+char* StringToString(char* sz);
 
 
 #endif // __LOG_TO_STRING_H__
