@@ -38,8 +38,7 @@ BOOL CDurableFileController::Init(char* szDirectory, char* szRewriteDirectory)
 
 	if (StrEmpty(szDirectory))
 	{
-		gcLogger.Error2(__METHOD__, " Controller directory must be supplied.", NULL);
-		return FALSE;
+		return gcLogger.Error2(__METHOD__, " Controller directory must be supplied.", NULL);
 	}
 
 	mbDurable = FALSE;
@@ -50,8 +49,7 @@ BOOL CDurableFileController::Init(char* szDirectory, char* szRewriteDirectory)
 
 	if (mbDurable && (StrICmp(szDirectory, szRewriteDirectory) == 0))
 	{
-		gcLogger.Error2(__METHOD__, " Controller directory and rewrite directory must be different.", NULL);
-		return FALSE;
+		return gcLogger.Error2(__METHOD__, " Controller directory and rewrite directory must be different.", NULL);
 	}
 
 	mszDirectory.Init(szDirectory);
@@ -219,30 +217,6 @@ int CDurableFileController::NumFiles(void)
 CDurableFile* CDurableFileController::GetFile(int iIndex)
 {
 	return mcDurableSet.Get(iIndex);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CDurableFileController::MakeDir(char* szPathName)
-{
-	CFileUtil cFileUtil;
-
-	return cFileUtil.MakeDir(szPathName);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CDurableFileController::RemoveDir(char* szPathName)
-{
-	CFileUtil cFileUtil;
-
-	return cFileUtil.RemoveDir(szPathName);
 }
 
 

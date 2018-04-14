@@ -50,9 +50,6 @@ public:
 	int				NumFiles(void);
 	CDurableFile*	GetFile(int iIndex);
 
-	BOOL			MakeDir(char* szPathName);
-	BOOL			RemoveDir(char* szPathName);
-
 	BOOL			IsBegun(void);
 	char*			GetDirectory(void);
 	char*			GetRewriteDirectory(void);

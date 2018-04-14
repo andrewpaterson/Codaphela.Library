@@ -54,7 +54,6 @@ void CIndexedData::Init(CIndexedConfig* pcConfig)
 	mcTemp.Init();
 
 	mcDurableFileControl.Init(pcConfig->mszWorkingDirectory, pcConfig->mszRewriteDirectory);
-	mcDurableFileControl.MakeDir(pcConfig->mszWorkingDirectory);
 
 	mcDurableFileControl.Begin();
 	InitIndices(pcConfig);
