@@ -134,6 +134,24 @@ void* CListVariable::Add(int iElementSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void* CListVariable::Add(void* pvElement, int iElementSize)
+{
+	void*	pvDest;
+
+	pvDest = Add(iElementSize);
+	if (pvDest)
+	{
+		memcpy(pvDest, pvElement, iElementSize);
+	}
+	
+	return pvDest;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CListVariable::Set(int iIndex, void* pvData, int iElementSize)
 {
 	SPointerAndSize*	psType;

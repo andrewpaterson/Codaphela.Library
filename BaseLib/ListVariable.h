@@ -58,6 +58,7 @@ public:
 	void	ReInit(void);
 	void	Kill(void);
 	void*	Add(int iElementSize);
+	void*	Add(void* pvElement, int iElementSize);
 	BOOL	Get(int iIndex, void** pvData);
 	void*	Get(int iIndex);
 	void	Set(int iIndex, void* pvData, int iElementSize);
