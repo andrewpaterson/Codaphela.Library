@@ -22,13 +22,13 @@ protected:
 	CIndexTreeNodeFile*			mpcRoot;
 	CIndexedFiles				mcIndexFiles;
 	CDurableFileController*		mpcDurableFileControl;
-	CChars						mszRootFileName;
 	BOOL						mbWriteThrough;
+	CDurableFile				mcRootIndex;
 
 public:
-	BOOL					Init(CDurableFileController* pcDurableFileControl, char* szRootFileName);
-	BOOL					Init(CDurableFileController* pcDurableFileControl, char* szRootFileName, BOOL bWriteThrough);
-	BOOL					Init(CDurableFileController* pcDurableFileControl, char* szRootFileName, CMallocator* pcMalloc, BOOL bWriteThrough);
+	BOOL					Init(CDurableFileController* pcDurableFileControl);
+	BOOL					Init(CDurableFileController* pcDurableFileControl, BOOL bWriteThrough);
+	BOOL					Init(CDurableFileController* pcDurableFileControl, CMallocator* pcMalloc, BOOL bWriteThrough);
 	void					Kill(void);
 
 	BOOL					Get(void* pvKey, int iKeySize, void* pvObject, unsigned short* puiDataSize);
@@ -67,14 +67,15 @@ public:
 
 	void					FakeInit(void);
 	void					RecurseKill(CIndexTreeNodeFile* pcNode);
-	BOOL					InitRoot(char* szRootFileName);
-	CFileDataIndex			LoadRootFileIndex(char* szRootFileName);
 
 	BOOL					ValidateIndexTree(void);
 	CIndexedFiles*			GetIndexFiles(void);
 	int						NumNodes(void);
 
 protected:
+	BOOL					InitRoot(void);
+	void					InitRootIndexFile(void);
+
 	CIndexTreeNodeFile*		ReadNode(CIndexTreeNodeFile* pcParent, unsigned char c);
 	
 	CIndexTreeNodeFile*		AllocateRoot(void);
@@ -117,6 +118,10 @@ protected:
 	BOOL					FlushRemoved(void);
 	BOOL					FlushDirty(void);
 	BOOL					RecurseFlushDirty(CIndexTreeRecursor* pcCursor);
+
+	CFileDataIndex			ReadRootFileIndex(void);
+	BOOL					WriteRootFileIndex(CFileDataIndex* pcRootIndex);
+	BOOL					WriteRootFileIndex(BOOL bRootHasIndex, CFileDataIndex* pcRootIndex);
 
 public:
 	BOOL					Write(CIndexTreeNodeFile* pcNode);

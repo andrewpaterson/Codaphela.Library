@@ -5,9 +5,6 @@
 #include "IndexTreeChildNode.h"
 
 
-//sizeof(CIndexTreeNodeFile) is 32 bytes but only 26 bytes are used.
-//sizeof(CFileDataIndex) is 8 bytes but only 8 bytes are used.
-
 //Calculation to get to 32 bytes seems to be sizeof(CIndexTreeNode) 16 bytes + sizeof(CFileDataIndex) 8 bytes.
 class CIndexTreeNodeFile : public CIndexTreeNode
 {

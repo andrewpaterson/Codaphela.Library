@@ -425,7 +425,7 @@ int CIndexTreeNodeFile::WriteToBuffer(void* pvBuffer, int iBufferSize)
 	pucMemory[iPos] = muiFirstIndex;  iPos += sizeof(unsigned char);
 	pucMemory[iPos] = muiLastIndex;  iPos += sizeof(unsigned char);
 	pucMemory[iPos] = muiIndexInParent;  iPos += sizeof(unsigned char);
-	pucMemory[iPos] = msFlags;  iPos += sizeof(unsigned char);
+	pucMemory[iPos] = msFlags & INDEX_TREE_NODE_TRANSIENT_MASK;  iPos += sizeof(unsigned char);
 
 	if (HasObject())
 	{
@@ -538,13 +538,12 @@ BOOL CIndexTreeNodeFile::ValidateNodesEmpty(void)
 	{
 		if (bNodesEmpty)
 		{
-			gcLogger.Error2(__METHOD__, " Child nodes marked as empty but ", IntToString(iCount), " are allocated.", NULL);
+			return gcLogger.Error2(__METHOD__, " Child nodes marked as empty but ", IntToString(iCount), " are allocated.", NULL);
 		}
 		else
 		{
-			gcLogger.Error2(__METHOD__, " Child nodes marked as not empty but none are allocated.", NULL);
+			return gcLogger.Error2(__METHOD__, " Child nodes marked as not empty but none are allocated.", NULL);
 		}
-		return FALSE;
 	}
 }
 
@@ -558,6 +557,7 @@ void CIndexTreeNodeFile::Print(CChars* psz, BOOL bHex)
 	int						i;
 	CIndexTreeChildNode*	pcChild;
 	CIndexTreeChildNode*	acChildren;
+	CIndexTreeNodeFile*		pcMemoryChild;
 
 	CIndexTreeNode::Print(psz, bHex);
 
@@ -574,7 +574,22 @@ void CIndexTreeNodeFile::Print(CChars* psz, BOOL bHex)
 		pcChild = &acChildren[i];
 		if (pcChild->IsValid())
 		{
-			psz->Append("x");
+			if (pcChild->IsMemory())
+			{
+				pcMemoryChild = pcChild->u.mpcMemory;
+				if (pcMemoryChild->GetFileIndex()->HasFile())
+				{
+					psz->Append("X");
+				}
+				else
+				{
+					psz->Append("x");
+				}
+			}
+			else
+			{
+				psz->Append("o");
+			}
 		}
 		else
 		{

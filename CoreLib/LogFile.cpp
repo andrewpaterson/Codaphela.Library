@@ -49,6 +49,7 @@ void CLogFile::Init(CAbstractFile* pcBackingFile)
 	miPosition = 0;
 	miLength = 0;
 	miBackingFileLength = 0;
+	mbBackingFileExists = FALSE;
 
 	mbTouched = FALSE;
 	meFileMode = EFM_Unknown;
@@ -83,19 +84,17 @@ BOOL CLogFile::Begin(void)
 	//This returns whether or not the backing file was opened rather than whether or not Begin failed.  ?!?
 
 	BOOL	bMustOpen;
-	BOOL	bBackingFileExists;
 
 	if (macCommands.NumElements() != 0)
 	{
-		gcLogger.Error2(__METHOD__, " Cannot begin when log file already has outstanding commands.", NULL);
-		return FALSE;
+		return gcLogger.Error2(__METHOD__, " Cannot begin when log file already has outstanding commands.", NULL);
 	}
 
 	bMustOpen = !mpcBackingFile->IsOpen();
 	if (bMustOpen)
 	{
-		bBackingFileExists = mpcBackingFile->Open(EFM_Read);
-		if (bBackingFileExists)
+		mbBackingFileExists = mpcBackingFile->Open(EFM_Read);
+		if (mbBackingFileExists)
 		{
 			mbOpenedBackingFile = TRUE;
 			miBackingFileLength = mpcBackingFile->Size();
@@ -309,16 +308,24 @@ BOOL CLogFile::Commit(CAbstractFile* pcFile)
 //////////////////////////////////////////////////////////////////////////
 BOOL CLogFile::Open(EFileMode eFileMode)
 {
-	if (!AddOpenCommand(eFileMode))
+	if ((mbBackingFileExists) || IsFileModeCreate(eFileMode))
 	{
-		meFileMode = EFM_Unknown;
+		mbBackingFileExists = TRUE;
+		if (!AddOpenCommand(eFileMode))
+		{
+			meFileMode = EFM_Unknown;
+			return FALSE;
+		}
+
+		meFileMode = eFileMode;
+	
+		miPosition = 0;
+		return TRUE;
+	}
+	else
+	{
 		return FALSE;
 	}
-
-	meFileMode = eFileMode;
-	
-	miPosition = 0;
-	return TRUE;
 }
 
 

@@ -6,7 +6,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeHelper::Init(char* szWorkingDirectory, char* szPrimary, char* szBackup, char* szRootFileName, BOOL bRemoveWorkingDirectory)
+void CIndexTreeHelper::Init(char* szWorkingDirectory, char* szPrimary, char* szBackup, BOOL bRemoveWorkingDirectory)
 {
 	CFileUtil					cFileUtil;
 	BOOL						bPrimary;
@@ -35,9 +35,6 @@ void CIndexTreeHelper::Init(char* szWorkingDirectory, char* szPrimary, char* szB
 		mszRewriteDirectory.Init();
 	}
 
-	mszRootFileName.Init(szWorkingDirectory);
-	cFileUtil.AppendToPath(&mszRootFileName, szRootFileName);
-
 	mszWorkingDirectory.Init(szWorkingDirectory);
 }
 
@@ -58,7 +55,6 @@ void CIndexTreeHelper::Kill(BOOL bRemoveWorkingDirectory)
 	mszWorkingDirectory.Kill();
 	mszDirectory.Kill();
 	mszRewriteDirectory.Kill();
-	mszRootFileName.Kill();
 }
 
 
@@ -93,21 +89,10 @@ char* CIndexTreeHelper::GetBackupDirectory(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CIndexTreeHelper::GetRootFileName(void)
-{
-	return mszRootFileName.Text();
-}
-
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CIndexTreeHelper::RemoveWorkingDirectory(void)
+BOOL CIndexTreeHelper::RemoveWorkingDirectory(void)
 {
 	CFileUtil	cFileUtil;
 
-	cFileUtil.RemoveDir(mszWorkingDirectory.Text());
+	return cFileUtil.RemoveDir(mszWorkingDirectory.Text());
 }
 

@@ -21,6 +21,7 @@ protected:
 	BOOL				mbOpenedBackingFile;
 	int					miLastWriteOpenIndex;
 	BOOL				mbBegun;
+	BOOL				mbBackingFileExists;
 
 public:
 	void					Init(CAbstractFile* pcBackingFile);

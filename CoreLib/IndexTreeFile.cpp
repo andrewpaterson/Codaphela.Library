@@ -12,9 +12,9 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, char* szRootFileName)
+BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl)
 {
-	return Init(pcDurableFileControl, szRootFileName, &gcSystemAllocator, TRUE);
+	return Init(pcDurableFileControl, &gcSystemAllocator, TRUE);
 }
 
 
@@ -22,9 +22,9 @@ BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, char* sz
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, char* szRootFileName, BOOL bWriteThrough)
+BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, BOOL bWriteThrough)
 {
-	return Init(pcDurableFileControl, szRootFileName, &gcSystemAllocator, bWriteThrough);
+	return Init(pcDurableFileControl, &gcSystemAllocator, bWriteThrough);
 }
 
 
@@ -32,7 +32,7 @@ BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, char* sz
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, char* szRootFileName, CMallocator* pcMalloc, BOOL bWriteThrough)
+BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, CMallocator* pcMalloc, BOOL bWriteThrough)
 {
 	//The DurableFileControl must be begun before .Init is called and should be ended afterwards.
 
@@ -40,8 +40,7 @@ BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, char* sz
 
 	if (!pcDurableFileControl->IsBegun())
 	{
-		gcLogger.Error2(__METHOD__, " DurableFileController must be begun before calling Init.", NULL);
-		return FALSE;
+		return gcLogger.Error2(__METHOD__, " DurableFileController must be begun before calling Init.", NULL);
 	}
 
 	CIndexTree::Init(pcMalloc, sizeof(CIndexTreeNodeFile), sizeof(CIndexTreeChildNode));
@@ -49,8 +48,13 @@ BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, char* sz
 	mbWriteThrough = bWriteThrough;
 	mpcDurableFileControl = pcDurableFileControl;
 	mcIndexFiles.Init(mpcDurableFileControl, "IDAT", "Index.IDX", mpcDurableFileControl->IsDurable() ? "_Index.IDX" : NULL);
+	bResult = mcIndexFiles.ReadIndexedFileDescriptors();
+	if (!bResult)
+	{
+		return FALSE;
+	}
 
-	bResult = InitRoot(szRootFileName);
+	bResult = InitRoot();
 	if (!bResult)
 	{
 		return FALSE;
@@ -77,7 +81,7 @@ void CIndexTreeFile::FakeInit(void)
 //////////////////////////////////////////////////////////////////////////
 void CIndexTreeFile::Kill(void)
 {
-	mszRootFileName.Kill();
+	mcRootIndex.Kill();
 	mcIndexFiles.Kill();
 	mpcDurableFileControl = NULL;
 	RecurseKill(mpcRoot);
@@ -115,40 +119,53 @@ void CIndexTreeFile::RecurseKill(CIndexTreeNodeFile* pcNode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::InitRoot(char* szRootFileName)
+BOOL CIndexTreeFile::InitRoot(void)
 {
 	BOOL				bRootIndexExists;
 	CFileDataIndex		cRootFileIndex;
 	CIndexedFile*		pcRootIndexFile;
-	char				pvBuffer[8 KB];
+	CStackMemory<>		cTemp;
 	int					iNodeSize;
+	void*				pvBuffer;
+	BOOL				bResult;
 
-	mszRootFileName.Init(szRootFileName);
-	cRootFileIndex = LoadRootFileIndex(szRootFileName);
+	InitRootIndexFile();
+	cRootFileIndex = ReadRootFileIndex();
 
 	bRootIndexExists = cRootFileIndex.HasFile();
 	if (bRootIndexExists)
 	{
+		mcIndexFiles.Dump();
 		//The data size on the root is always zero.
 		mpcRoot = AllocateRoot(cRootFileIndex);
-
 		iNodeSize = mpcRoot->CalculateBufferSize();
-		if (iNodeSize > 8 KB)
+
+		pcRootIndexFile = mcIndexFiles.GetFile(cRootFileIndex.miFile);
+		if (pcRootIndexFile == NULL)
 		{
-			return FALSE;
+			return gcLogger.Error2(__METHOD__, " Could not get root node indexed file [", IntToString(cRootFileIndex.miFile), "]", NULL);
 		}
 
-		pcRootIndexFile = mcIndexFiles.GetOrCreateFile(iNodeSize);  //Dangerous.  Should be a Get.
-		pcRootIndexFile->Read(cRootFileIndex.muiIndex, pvBuffer, iNodeSize);
+		if (iNodeSize != pcRootIndexFile->GetDataSize())
+		{
+			return gcLogger.Error2(__METHOD__, " Root node size [", IntToString(iNodeSize), "] does not match root node indexed file size[", IntToString(pcRootIndexFile->GetDataSize()), "]", NULL);
+		}
 
-		mpcRoot->InitFromBuffer(this, NULL, pvBuffer, 8 KB, cRootFileIndex);
+		pvBuffer = cTemp.Init(iNodeSize);
+		bResult = pcRootIndexFile->Read(cRootFileIndex.muiIndex, pvBuffer, 1);
+		if (!bResult)
+		{
+			return gcLogger.Error2(__METHOD__, " Could not read root node indexed file.", NULL);
+		}
+
+		mpcRoot->InitFromBuffer(this, NULL, pvBuffer, iNodeSize, cRootFileIndex);
+		cTemp.Kill();
 
 		return TRUE;
 	}
 	else
 	{
 		mpcRoot = AllocateRoot();
-		//return Write(mpcRoot);
 		return TRUE;
 	}
 }
@@ -158,43 +175,83 @@ BOOL CIndexTreeFile::InitRoot(char* szRootFileName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CFileDataIndex CIndexTreeFile::LoadRootFileIndex(char* szRootFileName)
+void CIndexTreeFile::InitRootIndexFile(void)
 {
-	CFileBasic	cFileBasic;
-	CDiskFile	cDiskFile;
-	CFileUtil	cFileUtil;
+
+	CChars	szFileName;
+	CChars	szRewriteName;
+
+	szFileName.Init(mpcDurableFileControl->GetDirectory());
+	szFileName.Append(FILE_SEPARATOR);
+	szFileName.Append("Root.IDX");
+
+	szRewriteName.Init(mpcDurableFileControl->GetRewriteDirectory());
+	szRewriteName.Append(FILE_SEPARATOR);
+	szRewriteName.Append("_Root.IDX");
+
+	mcRootIndex.Init(mpcDurableFileControl, szFileName.Text(), szRewriteName.Text());
+
+	szFileName.Kill();
+	szRewriteName.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CFileDataIndex CIndexTreeFile::ReadRootFileIndex(void)
+{
 	CFileDataIndex	cIndex;
-	filePos		iSize;
+	filePos			iSize;
 
-	iSize = cFileUtil.Size(szRootFileName);
-	if (iSize != -1)
+	iSize = mcRootIndex.Read(&cIndex, sizeof(CFileDataIndex), 1);
+	if (iSize == 1)
 	{
-		if (iSize == sizeof(CFileDataIndex))
-		{
-			cDiskFile.Init(szRootFileName);
-			cFileBasic.Init(&cDiskFile);
-
-			cFileBasic.Open(EFM_Read);
-			cFileBasic.Read(&cIndex, 0, sizeof(CFileDataIndex));
-			cFileBasic.Close();
-
-			cFileBasic.Kill();
-			cDiskFile.Kill();
-
-			return cIndex;
-		}
-		else
-		{
-			gcLogger.Error2(__METHOD__, " Index Root file size [", LongLongToString(iSize), "] is incorrect.  Should be SizeOf(CFileDataIndex).", NULL);
-			cIndex.Init();
-			return cIndex;
-		}
+		return cIndex;
+	}
+	else if (iSize > 1)
+	{
+		gcLogger.Error2(__METHOD__, " Index Root file size [", LongLongToString(iSize * sizeof(CFileDataIndex)), "] is incorrect.  Should be SizeOf(CFileDataIndex).", NULL);
+		cIndex.Init();
+		return cIndex;
 	}
 	else
 	{
 		cIndex.Init();
 		return cIndex;
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeFile::WriteRootFileIndex(CFileDataIndex* pcRootIndex)
+{
+	filePos	ulliWritten;
+
+	ulliWritten = mcRootIndex.Write(0, pcRootIndex, sizeof(CFileDataIndex), 1);
+	return ulliWritten == 1;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeFile::WriteRootFileIndex(BOOL bRootHasIndex, CFileDataIndex* pcRootIndex)
+{
+	if (!bRootHasIndex)
+	{
+		if (pcRootIndex->HasFile())
+		{
+			return WriteRootFileIndex(pcRootIndex);
+		}
+		return TRUE;
+	}
+	return TRUE;
 }
 
 
@@ -435,6 +492,7 @@ BOOL CIndexTreeFile::Put(void* pvKey, int iKeySize, void* pvObject, unsigned sho
 	BOOL					bResult;
 	BOOL					bWrite;
 	unsigned short			uiOriginalSize;
+	BOOL					bRootHasIndex;
 
 	if (iKeySize == 0)
 	{
@@ -446,8 +504,8 @@ BOOL CIndexTreeFile::Put(void* pvKey, int iKeySize, void* pvObject, unsigned sho
 		return FALSE;
 	}
 
+	bRootHasIndex = mpcRoot->GetFileIndex()->HasFile();
 	pcCurrent = mpcRoot;
-
 	for (int i = 0; i < iKeySize; i++)
 	{
 		c = ((char*)pvKey)[i];
@@ -498,14 +556,8 @@ BOOL CIndexTreeFile::Put(void* pvKey, int iKeySize, void* pvObject, unsigned sho
 		}
 	}
 
-	if (bResult)
-	{
-		return TRUE;
-	}
-	else
-	{
-		return FALSE;
-	}
+	bResult &= WriteRootFileIndex(bRootHasIndex, mpcRoot->GetFileIndex());
+	return bResult;
 }
 
 
@@ -932,15 +984,19 @@ int CIndexTreeFile::NumElements(void)
 BOOL CIndexTreeFile::Flush(void)
 {
 	BOOL	bResult;
-
+	BOOL	bRootHasIndex;
+	
 	if (mbWriteThrough)
 	{
-		gcLogger.Error2(__METHOD__, " Cannot flush an index tree that is write through.", NULL);
-		return FALSE;
+		return gcLogger.Error2(__METHOD__, " Cannot flush an index tree that is write through.", NULL);
 	}
+
+	bRootHasIndex = mpcRoot->GetFileIndex()->HasFile();
 
 	bResult = FlushRemoved();
 	bResult &= FlushDirty();
+
+	bResult &= WriteRootFileIndex(bRootHasIndex, mpcRoot->GetFileIndex());
 	return bResult;
 }
 
@@ -975,17 +1031,6 @@ BOOL CIndexTreeFile::RecurseFlushDirty(CIndexTreeRecursor* pcCursor)
 	pcNode = (CIndexTreeNodeFile*)pcCursor->GetNode();
 	if ((pcNode != NULL) && pcNode->IsPathDirty())
 	{
-		if (pcNode->IsDirty())
-		{
-			bResult = Write(pcNode);
-			if (!bResult)
-			{
-				pcCursor->Pop();
-				return FALSE;
-			}
-		}
-		pcNode->ClearFlags(INDEX_TREE_NODE_FLAG_DIRTY_PATH | INDEX_TREE_NODE_FLAG_DIRTY_NODE);
-
 		if (pcNode->HasNodes())
 		{
 			for (i = pcNode->GetFirstIndex(); i <= pcNode->GetLastIndex(); i++)
@@ -1000,6 +1045,17 @@ BOOL CIndexTreeFile::RecurseFlushDirty(CIndexTreeRecursor* pcCursor)
 				}
 			}
 		}
+
+		if (pcNode->IsDirty())
+		{
+			bResult = Write(pcNode);
+			if (!bResult)
+			{
+				pcCursor->Pop();
+				return FALSE;
+			}
+		}
+		pcNode->ClearFlags(INDEX_TREE_NODE_FLAG_DIRTY_PATH | INDEX_TREE_NODE_FLAG_DIRTY_NODE);
 	}
 	pcCursor->Pop();
 	return TRUE;
@@ -1479,30 +1535,26 @@ BOOL CIndexTreeFile::RecurseValidateLimits(CIndexTreeRecursor* pcCursor)
 				if (!pcNode->ContainsIndex(iFirst))
 				{
 					pcCursor->GenerateBad();
-					gcLogger.Error2(__METHOD__, " Node [", pcCursor->GetBadNode(), "] for key [", pcCursor->GetBadKey(), "] did not contain first index [", IntToString(iFirst), "].", NULL);
-					return FALSE;
+					return gcLogger.Error2(__METHOD__, " Node [", pcCursor->GetBadNode(), "] for key [", pcCursor->GetBadKey(), "] did not contain first index [", IntToString(iFirst), "].", NULL);
 				}
 				if (!pcNode->ContainsIndex(iLast))
 				{
 					pcCursor->GenerateBad();
-					gcLogger.Error2(__METHOD__, " Node [", pcCursor->GetBadNode(), "] for key [", pcCursor->GetBadKey(), "] did not contain last index [", IntToString(iLast), "].", NULL);
-					return FALSE;
+					return gcLogger.Error2(__METHOD__, " Node [", pcCursor->GetBadNode(), "] for key [", pcCursor->GetBadKey(), "] did not contain last index [", IntToString(iLast), "].", NULL);
 				}
 
 				pcFirst = pcNode->Get(iFirst);
 				if (pcFirst == NULL)
 				{
 					pcCursor->GenerateBad();
-					gcLogger.Error2(__METHOD__, " Node [", pcCursor->GetBadNode(), "] for key [", pcCursor->GetBadKey(), "] first child [", IntToString(iFirst), "] was not a file or memory node.", NULL);
-					return FALSE;
+					return gcLogger.Error2(__METHOD__, " Node [", pcCursor->GetBadNode(), "] for key [", pcCursor->GetBadKey(), "] first child [", IntToString(iFirst), "] was not a file or memory node.", NULL);
 				}
 
 				pcLast = pcNode->Get(iLast);
 				if (pcLast == NULL)
 				{
 					pcCursor->GenerateBad();
-					gcLogger.Error2(__METHOD__, " Node [", pcCursor->GetBadNode(), "] for key [", pcCursor->GetBadKey(), "] last child [", IntToString(iFirst), "] was not a file or memory node.", NULL);
-					return FALSE;
+					return gcLogger.Error2(__METHOD__, " Node [", pcCursor->GetBadNode(), "] for key [", pcCursor->GetBadKey(), "] last child [", IntToString(iFirst), "] was not a file or memory node.", NULL);
 				}
 			}
 
@@ -1559,8 +1611,7 @@ BOOL CIndexTreeFile::RecurseValidateNoFlushFlags(CIndexTreeRecursor* pcCursor)
 							 INDEX_TREE_NODE_FLAG_DIRTY_PATH | INDEX_TREE_NODE_FLAG_DIRTY_NODE))
 		{
 			pcCursor->GenerateBad();
-			gcLogger.Error2(__METHOD__, " Node [", pcCursor->GetBadNode(), "] for key [", pcCursor->GetBadKey(), "] has unexpected flags.", NULL);
-			return FALSE;
+			return gcLogger.Error2(__METHOD__, " Node [", pcCursor->GetBadNode(), "] for key [", pcCursor->GetBadKey(), "] has unexpected flags.", NULL);
 		}
 
 		if (pcNode->HasNodes())
@@ -1617,8 +1668,7 @@ BOOL CIndexTreeFile::RecurseValidateMagic(CIndexTreeRecursor* pcCursor)
 		if (!pcNode->IsMagic())
 		{
 			pcCursor->GenerateBad();
-			gcLogger.Error2(__METHOD__, " Node [", pcCursor->GetBadNode(), "] for key [", pcCursor->GetBadKey(), "] is not magic :(", NULL);
-			return FALSE;
+			return gcLogger.Error2(__METHOD__, " Node [", pcCursor->GetBadNode(), "] for key [", pcCursor->GetBadKey(), "] is not magic :(", NULL);
 		}
 
 		if (pcNode->HasNodes())
@@ -1685,16 +1735,14 @@ BOOL CIndexTreeFile::RecurseValidateParentIndex(CIndexTreeRecursor* pcCursor)
 					if (pcChildsParent != pcNode)
 					{
 						pcCursor->GenerateBad();
-						gcLogger.Error2(__METHOD__, " Node [", pcCursor->GetBadNode(), "] points to the wrong parent node.", NULL);
-						return FALSE;
+						return gcLogger.Error2(__METHOD__, " Node [", pcCursor->GetBadNode(), "] points to the wrong parent node.", NULL);
 					}
 
 					uiIndexInParent = pcChild->GetIndexInParent();
 					if (i != uiIndexInParent)
 					{
 						pcCursor->GenerateBad();
-						gcLogger.Error2(__METHOD__, " Node [", pcCursor->GetBadNode(), "] points to the wrong parent node.", NULL);
-						return FALSE;
+						return gcLogger.Error2(__METHOD__, " Node [", pcCursor->GetBadNode(), "] points to the wrong parent node.", NULL);
 					}
 
 					pcCursor->Push(pcChild, i);
@@ -1865,8 +1913,7 @@ BOOL CIndexTreeFile::Write(CIndexTreeNodeFile* pcNode)
 	if (iWrittenPos != iNodeSize)
 	{
 		cTemp.Kill();
-		gcLogger.Error2(__METHOD__, " Could not write IndexTreeNodeFile.  Expected size [", IntToString(iNodeSize), "] is not equal to written buffer size [", IntToString(iWrittenPos), "].", NULL);
-		return FALSE;
+		return gcLogger.Error2(__METHOD__, " Could not write IndexTreeNodeFile.  Expected size [", IntToString(iNodeSize), "] is not equal to written buffer size [", IntToString(iWrittenPos), "].", NULL);
 	}
 
 	pcIndex = pcNode->GetFileIndex();

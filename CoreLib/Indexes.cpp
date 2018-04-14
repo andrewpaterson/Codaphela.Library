@@ -168,8 +168,7 @@ BOOL CIndexes::Add(OIndex oi, void* pvMemory)
 	psLevel = CreateLevels(oi);
 	if (!psLevel)
 	{
-		gcLogger.Error("CIndexes::Add cannot create Level");
-		return FALSE;
+		return gcLogger.Error("CIndexes::Add cannot create Level");
 	}
 
 	ucCurrent = *((unsigned char*)&oi);

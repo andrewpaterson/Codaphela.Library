@@ -16,7 +16,7 @@ BOOL CIndexTreeWriter::Write(CIndexTreeMemory* pcIndexTree, char* szDirectory)
 	CIndexTreeFile			cIndexTreeFile;
 	CIndexTreeHelper		cHelper;
 
-	cHelper.Init(szDirectory, NULL, NULL, "RootFile.IDX", FALSE);
+	cHelper.Init(szDirectory, NULL, NULL, FALSE);
 	bResult = cDurableController.Init(cHelper.GetPrimaryDirectory(), cHelper.GetBackupDirectory());
 	if (!bResult)
 	{
@@ -24,7 +24,7 @@ BOOL CIndexTreeWriter::Write(CIndexTreeMemory* pcIndexTree, char* szDirectory)
 	}
 	
 	cDurableController.Begin();
-	cIndexTreeFile.Init(&cDurableController, cHelper.GetRootFileName(), &gcSystemAllocator, TRUE);
+	cIndexTreeFile.Init(&cDurableController, &gcSystemAllocator, TRUE);
 	
 	RecurseAllocate(pcIndexTree->GetRoot(), &cIndexTreeFile, cIndexTreeFile.GetRoot());
 	RecurseWrite(&cIndexTreeFile, cIndexTreeFile.GetRoot());
@@ -124,8 +124,7 @@ BOOL CIndexTreeWriter::RecurseWrite(CIndexTreeFile* pcFileTree, CIndexTreeNodeFi
 				}
 				else if (pcFileChild->IsFile())
 				{
-					gcLogger.Error2(__METHOD__, " Should not be file bases nodes during memory tree write.", NULL);
-					return FALSE;
+					return gcLogger.Error2(__METHOD__, " Should not be file bases nodes during memory tree write.", NULL);
 				}
 			}
 		}
