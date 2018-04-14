@@ -36,27 +36,27 @@ protected:
 	SLogConfig		msConfig;
 
 public:
-	void Init(void);
-	void Init(char* szName);
-	void Init(CAbstractFile* pcFile, char* szName);
-	void Kill(void);
-	void Add(char* szText);
-	void Add(char* szErrorLevel, char* szText);
-	void Error(char* szText);
-	void Error2(char* szText, ...);
-	void Warning(char* szText);
-	void Info(char* szText);
-	void Info2(char* szText, ...);
-	void Debug(char* szText);
-	void Debug2(char* szText, ...);
-	void Disable(void);
-	void Enable(void);
-	void SetEngineOutput(BOOL bEngineOut);
-	void SetBreakOnError(BOOL bBreakOnError);
-	void SetBreakOnWarning(BOOL bBreakOnWarning);
-	void SetSilent(void);
-	void SetConfig(SLogConfig* psConfig);
-	void GetConfig(SLogConfig* psConfig);
+	void		Init(void);
+	void		Init(char* szName);
+	void		Init(CAbstractFile* pcFile, char* szName);
+	void		Kill(void);
+	void		Add(char* szText);
+	void		Add(char* szErrorLevel, char* szText);
+	void		Error(char* szText);
+	void		Error2(char* szText, ...);
+	void		Warning(char* szText);
+	void		Info(char* szText);
+	void		Info2(char* szText, ...);
+	void		Debug(char* szText);
+	void		Debug2(char* szText, ...);
+	void		Disable(void);
+	void		Enable(void);
+	void		SetEngineOutput(BOOL bEngineOut);
+	void		SetBreakOnError(BOOL bBreakOnError);
+	void		SetBreakOnWarning(BOOL bBreakOnWarning);
+	SLogConfig	SetSilent(void);
+	void		SetConfig(SLogConfig* psConfig);
+	void		GetConfig(SLogConfig* psConfig);
 };
 
 

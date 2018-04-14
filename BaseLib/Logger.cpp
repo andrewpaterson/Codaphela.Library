@@ -384,12 +384,18 @@ void CLogger::SetBreakOnWarning(BOOL bBreakOnWarning)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CLogger::SetSilent(void)
+SLogConfig CLogger::SetSilent(void)
 {
+	SLogConfig sExisting;
+
+	GetConfig(&sExisting);
+
 	msConfig.bEnabled = TRUE;
 	msConfig.bBreakOnError = FALSE;
 	msConfig.bBreakOnWarning = FALSE;
 	msConfig.bEngineOut = FALSE;
+
+	return sExisting;
 }
 
 
