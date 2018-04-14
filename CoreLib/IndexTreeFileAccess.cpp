@@ -5,10 +5,11 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeFileAccess::Init(CIndexTreeFile* pcTree)
+BOOL CIndexTreeFileAccess::Init(CIndexTreeFile* pcTree)
 {
 	CIndexTreeAccess::Init();
 	mpcTree = pcTree;
+	return TRUE;
 }
 
 
@@ -16,10 +17,10 @@ void CIndexTreeFileAccess::Init(CIndexTreeFile* pcTree)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeFileAccess::Kill(void)
+BOOL CIndexTreeFileAccess::Kill(void)
 {
 	mpcTree = NULL;
-	CIndexTreeAccess::Kill();
+	return CIndexTreeAccess::Kill();
 }
 
 

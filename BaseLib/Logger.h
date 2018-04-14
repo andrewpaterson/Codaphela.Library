@@ -42,9 +42,9 @@ public:
 	void		Kill(void);
 	void		Add(char* szText);
 	void		Add(char* szErrorLevel, char* szText);
-	void		Error(char* szText);
-	void		Error2(char* szText, ...);
-	void		Warning(char* szText);
+	BOOL		Error(char* szText);
+	BOOL		Error2(char* szText, ...);
+	BOOL		Warning(char* szText);
 	void		Info(char* szText);
 	void		Info2(char* szText, ...);
 	void		Debug(char* szText);

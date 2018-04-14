@@ -18,9 +18,10 @@ void CIndexTreeAccess::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeAccess::Kill(void)
+BOOL CIndexTreeAccess::Kill(void)
 {
 	mcTemp.Kill();
+	return TRUE;
 }
 
 

@@ -10,8 +10,8 @@ private:
 	CIndexTreeMemory*	mpcTree;
 
 public:
-	void	Init(CIndexTreeMemory* pcTree);
-	void	Kill(void);
+	BOOL	Init(CIndexTreeMemory* pcTree);
+	BOOL	Kill(void);
 	BOOL	Flush(void);
 
 protected:

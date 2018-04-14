@@ -137,7 +137,7 @@ void CLogger::Add(char* szText)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CLogger::Error(char* szText)
+BOOL CLogger::Error(char* szText)
 {
 	Add("ERROR", szText);
 
@@ -145,6 +145,8 @@ void CLogger::Error(char* szText)
 	{
 		Break();
 	}
+
+	return FALSE;
 }
 
 
@@ -152,7 +154,7 @@ void CLogger::Error(char* szText)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CLogger::Error2(char* szText, ...)
+BOOL CLogger::Error2(char* szText, ...)
 {
 	va_list		vaMarker;
 	char*		sz;
@@ -177,6 +179,8 @@ void CLogger::Error2(char* szText, ...)
 	{
 		Error("");
 	}
+
+	return FALSE;
 }
 
 
@@ -184,7 +188,7 @@ void CLogger::Error2(char* szText, ...)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CLogger::Warning(char* szText)
+BOOL CLogger::Warning(char* szText)
 {
 	Add("WARNING", szText);
 
@@ -192,6 +196,8 @@ void CLogger::Warning(char* szText)
 	{
 		Break();
 	}
+
+	return FALSE;
 }
 
 

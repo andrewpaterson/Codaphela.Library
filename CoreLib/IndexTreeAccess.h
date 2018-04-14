@@ -11,7 +11,7 @@ private:
 
 public:
 			void	Init(void);
-	virtual void	Kill(void);
+	virtual BOOL	Kill(void);
 
 	virtual BOOL	Flush(void)= 0;
 
