@@ -67,6 +67,7 @@ public:
 	CFileBasic*		DumpGetPrimaryFile(void);
 	char*			GetFileName(void);
 	char*			GetRewriteName(void);
+	int				GetDataSize(void);
 
 	void			Dump(void);
 

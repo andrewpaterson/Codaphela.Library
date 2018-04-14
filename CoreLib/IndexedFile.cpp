@@ -347,4 +347,4 @@ int CIndexedFile::GetFileIndex(void) { return miFileIndex; }
 BOOL CIndexedFile::IsFileIndex(int iFileIndex) { return miFileIndex == iFileIndex; }
 char* CIndexedFile::GetFileName(void) { return mcFile.GetFileName(); }
 char* CIndexedFile::GetRewriteName(void) { return mcFile.GetRewriteName(); }
-
+int CIndexedFile::GetDataSize(void) { return miDataSize; }
