@@ -135,7 +135,6 @@ BOOL CIndexTreeFile::InitRoot(void)
 	bRootIndexExists = cRootFileIndex.HasFile();
 	if (bRootIndexExists)
 	{
-		mcIndexFiles.Dump();
 		//The data size on the root is always zero.
 		mpcRoot = AllocateRoot(cRootFileIndex);
 		iNodeSize = mpcRoot->CalculateBufferSize();
@@ -158,7 +157,7 @@ BOOL CIndexTreeFile::InitRoot(void)
 			return gcLogger.Error2(__METHOD__, " Could not read root node indexed file.", NULL);
 		}
 
-		mpcRoot->InitFromBuffer(this, NULL, pvBuffer, iNodeSize, cRootFileIndex);
+		mpcRoot->InitFromBuffer(pvBuffer, iNodeSize);
 		cTemp.Kill();
 
 		return TRUE;
@@ -323,6 +322,39 @@ CIndexTreeNodeFile* CIndexTreeFile::AllocateNode(CIndexTreeNodeFile* pcParent, u
 	return pcNode;
 }
 
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CIndexTreeNodeFile* CIndexTreeFile::AllocateNode(CIndexTreeNodeFile* pcParent, unsigned char uiIndexInParent, void* pvBuffer, int iBufferSize)
+{
+	unsigned char*			pucMemory;
+	int						iPos;
+	int						iNumNodes;
+	unsigned short			uiDataSize;
+	unsigned char			uiFirstIndex;
+	unsigned char			uiLastIndex;
+	CIndexTreeNodeFile*		pcNode;
+	size_t					tSize;
+
+	pucMemory = (unsigned char*)pvBuffer;
+	iPos = sizeof(int);;
+
+	uiDataSize = *((unsigned short*)&pucMemory[iPos]);  iPos += sizeof(unsigned short);
+
+	uiFirstIndex = pucMemory[iPos];  iPos++;
+	uiLastIndex = pucMemory[iPos];  iPos++;
+	iNumNodes = (uiLastIndex - uiFirstIndex) + 1;
+
+	tSize = CalculateNodeSize(iNumNodes, uiDataSize);
+
+	pcNode = (CIndexTreeNodeFile*)Malloc(tSize);
+	pcNode->Init(this, pcParent, uiFirstIndex, uiLastIndex, uiIndexInParent);
+	pcNode->InitFromBuffer(pvBuffer, iBufferSize);
+
+	return pcNode;
+}
+
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -379,12 +411,12 @@ CIndexTreeNodeFile* CIndexTreeFile::GetNode(void* pvKey, int iKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTreeNodeFile* CIndexTreeFile::ReadNode(CIndexTreeNodeFile* pcParent, unsigned char c)
+CIndexTreeNodeFile* CIndexTreeFile::ReadNode(CIndexTreeNodeFile* pcParent, unsigned char uiIndexInParent)
 {
 	CIndexTreeNodeFile*		pcCurrent;
 	CIndexTreeChildNode*	pcChild;
 
-	pcChild = pcParent->Get(c);
+	pcChild = pcParent->Get(uiIndexInParent);
 	if (pcChild)
 	{
 		if (pcChild->IsMemory())
@@ -394,14 +426,14 @@ CIndexTreeNodeFile* CIndexTreeFile::ReadNode(CIndexTreeNodeFile* pcParent, unsig
 		}
 		else if (pcChild->IsFile())
 		{
-			if (Read(pcChild))
+			if (Read(pcChild, pcParent, uiIndexInParent))
 			{
 				pcCurrent = pcChild->u.mpcMemory;
 				return pcCurrent;
 			}
 			else
 			{
-				gcLogger.Error2(__METHOD__, " Could not load child node [", IntToString((int)c), "].", NULL);
+				gcLogger.Error2(__METHOD__, " Could not load child node [", IntToString((int)uiIndexInParent), "].", NULL);
 				return NULL;
 			}
 		}
@@ -412,7 +444,7 @@ CIndexTreeNodeFile* CIndexTreeFile::ReadNode(CIndexTreeNodeFile* pcParent, unsig
 		}
 		else
 		{
-			gcLogger.Error2(__METHOD__, " Child node [", IntToString((int)c), "] is corrupt.  Type is [", pcChild->u.msType.iType, "].", NULL);
+			gcLogger.Error2(__METHOD__, " Child node [", IntToString((int)uiIndexInParent), "] is corrupt.  Type is [", pcChild->u.msType.iType, "].", NULL);
 			return NULL;
 		}
 	}
@@ -703,7 +735,7 @@ CIndexTreeNodeFile* CIndexTreeFile::GetChildNodOrAllocate(CIndexTreeNodeFile* pc
 		}
 		else if (pcChildNodeOnParent->IsFile())
 		{
-			if (Read(pcChildNodeOnParent))
+			if (Read(pcChildNodeOnParent, pcParent, c))
 			{
 				return pcChildNodeOnParent->u.mpcMemory;
 			}
@@ -2031,9 +2063,39 @@ CIndexedFiles* CIndexTreeFile::GetIndexFiles(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::Read(CIndexTreeChildNode* pcChildNode)
+BOOL CIndexTreeFile::Read(CIndexTreeChildNode* pcChildNode, CIndexTreeNodeFile* pcFileNodeParent, unsigned char uiIndexInParent)
 {
-	return FALSE;
+	CIndexedFile*			pcFile;
+	int						iDataSize;
+	CStackMemory<>			cTemp;
+	void*					pvBuffer;
+	BOOL					bResult;
+	CIndexTreeNodeFile*		pcFileNode;
+	int						iFile;
+	unsigned int			uiIndex;
+	
+	iFile = pcChildNode->u.mcFile.miFile;
+	uiIndex = pcChildNode->u.mcFile.muiIndex;
+
+	pcFile = mcIndexFiles.GetFile(iFile);
+	iDataSize = pcFile->GetDataSize();
+
+	pvBuffer = cTemp.Init(iDataSize);
+	bResult = pcFile->Read(uiIndex, pvBuffer);
+	if (!bResult)
+	{
+		//gcLogger.Error
+		return FALSE;
+	}
+
+	
+	pcFileNode = AllocateNode(pcFileNodeParent, uiIndexInParent, pvBuffer, iDataSize);
+	cTemp.Kill();
+
+	pcFileNode->SetFileIndex(iFile, uiIndex);
+	pcChildNode->Init(pcFileNode);
+
+	return TRUE;
 }
 
 

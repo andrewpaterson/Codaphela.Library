@@ -463,7 +463,7 @@ int CIndexTreeNodeFile::WriteToBuffer(void* pvBuffer, int iBufferSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CIndexTreeNodeFile::InitFromBuffer(CIndexTree* pcIndexTree, CIndexTreeNodeFile* pcParent, void* pvBuffer, int iBufferSize, CFileDataIndex cFileIndex)
+int CIndexTreeNodeFile::InitFromBuffer(void* pvBuffer, int iBufferSize)
 {
 	unsigned char*			pucMemory;
 	int						iPos;
@@ -479,6 +479,7 @@ int CIndexTreeNodeFile::InitFromBuffer(CIndexTree* pcIndexTree, CIndexTreeNodeFi
 	iFileSize = *((int*)&pucMemory[iPos]);  iPos += sizeof(int);
 	if (iBufferSize < iFileSize)
 	{
+		gcLogger.Error2(__METHOD__, " Node buffer size [", IntToString(iBufferSize), "] did not match node size in file [", IntToString(iFileSize), "].", NULL);
 		return 0;
 	}
 

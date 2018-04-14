@@ -18,7 +18,7 @@ public:
 	void					Init(CIndexTree* pcIndexTree, CIndexTreeNodeFile* pcParent, CFileDataIndex cFileIndex, unsigned char uiIndexInParent);
 	void					Init(CIndexTree* pcIndexTree, CIndexTreeNodeFile* pcParent, unsigned char uiIndexInParent);
 
-	int						InitFromBuffer(CIndexTree* pcIndexTree, CIndexTreeNodeFile* pcParent, void* pvBuffer, int iBufferSize, CFileDataIndex cFileIndex);
+	int						InitFromBuffer(void* pvBuffer, int iBufferSize);
 
 	void					SetFileIndex(int iFile,  unsigned int uiIndex);
 	CFileDataIndex*			GetFileIndex(void);
