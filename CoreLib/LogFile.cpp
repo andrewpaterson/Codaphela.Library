@@ -139,6 +139,32 @@ void CLogFile::End(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CLogFile::ErrorString(CChars* pszDest, char* szMethod, CLogFileCommand* psCommand, CAbstractFile* pcFile)
+{
+	char*	pszFileName;
+
+	pszDest->Init(szMethod);
+	pszDest->Append(" Could not execute command [");
+	pszDest->Append(psCommand->GetType());
+	pszDest->Append("] on file [");
+
+	pszFileName = pcFile->GetFileName();
+	if (pszFileName)
+	{
+		pszDest->Append(pszFileName);
+	}
+	else
+	{
+		pszDest->Append("Without Name");
+	}
+	pszDest->Append("].");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL CLogFile::Commit(CAbstractFile* pcFile)
 {
 	int							i;
@@ -149,50 +175,40 @@ BOOL CLogFile::Commit(CAbstractFile* pcFile)
 	CLogFileCommandClose*		psClose;
 	CLogFileCommandDelete*		psDelete;
 	BOOL						bResult;
+	CChars						szError;
 
 	for (i = 0; i < macCommands.NumElements(); i++)
 	{
 		macCommands.Get(i, &pvData);
 		psCommand = (CLogFileCommand*)pvData;
+
 		if (psCommand->IsWrite())
 		{
 			psWrite = (CLogFileCommandWrite*)psCommand;
 			bResult = psWrite->Write(pcFile);
-			if (!bResult)
-			{
-				gcLogger.Error2(__METHOD__, " Could not execute [Write] command.", NULL);
-				return FALSE;
-			}
 		}
 		else if (psCommand->IsOpen())
 		{
 			psOpen = (CLogFileCommandOpen*)psCommand;
 			bResult = psOpen->Open(pcFile);
-			if (!bResult)
-			{
-				gcLogger.Error2(__METHOD__, " Could not execute [Open] command.", NULL);
-				return FALSE;
-			}
 		}
 		else if (psCommand->IsClose())
 		{
 			psClose = (CLogFileCommandClose*)psCommand;
 			bResult = psClose->Close(pcFile);
-			if (!bResult)
-			{
-				gcLogger.Error2(__METHOD__, " Could not execute [Close] command.", NULL);
-				return FALSE;
-			}
 		}
 		else if (psCommand->IsDelete())
 		{
 			psDelete = (CLogFileCommandDelete*)psCommand;
 			bResult = psDelete->Delete(pcFile);
-			if (!bResult)
-			{
-				gcLogger.Error2(__METHOD__, " Could not execute [Delete] command.", NULL);
-				return FALSE;
-			}
+		}
+
+		if (!bResult)
+		{
+			ErrorString(&szError, __METHOD__, psCommand, pcFile);
+			gcLogger.Error(szError.Text()); 
+			szError.Kill();
+			return FALSE;
 		}
 	}
 

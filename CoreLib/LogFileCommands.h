@@ -13,6 +13,8 @@ enum ELogFileCommand
 	LFC_Write,
 	LFC_Close,
 	LFC_Delete
+
+//	LFC_Truncate
 };
 
 
@@ -21,12 +23,14 @@ class CLogFileCommand
 public:
 	ELogFileCommand		eCommand;
 
-	void Init(ELogFileCommand eCommand);
+	void	Init(ELogFileCommand eCommand);
 
-	BOOL IsWrite(void);
-	BOOL IsOpen(void);
-	BOOL IsClose(void);
-	BOOL IsDelete(void);
+	BOOL	IsWrite(void);
+	BOOL	IsOpen(void);
+	BOOL	IsClose(void);
+	BOOL	IsDelete(void);
+
+	char*	GetType(void);
 };
 
 

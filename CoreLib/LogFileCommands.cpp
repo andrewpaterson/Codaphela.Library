@@ -57,6 +57,28 @@ BOOL CLogFileCommand::IsDelete(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+char* CLogFileCommand::GetType(void)
+{
+	switch (eCommand)
+	{
+	case LFC_Write:
+		return "Write";
+	case LFC_Open:
+		return "Open";
+	case LFC_Close:
+		return "Close";
+	case LFC_Delete:
+		return "Delete";
+	default:
+		return NULL;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CLogFileCommandOpen::Init(EFileMode eMode)
 {
 	CLogFileCommand::Init(LFC_Open);

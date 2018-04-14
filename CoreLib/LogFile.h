@@ -63,6 +63,7 @@ protected:
 	filePos					ReadNextTouchingWrites(int iWriteIndex, void* pvDest, filePos iSize, filePos iCount);
 	void					CopyWritesToRead(CArrayIntAndPointer* papvOverlapping, filePos iByteSize, void* pvDest);
 	int						FindNextWriteCommand(int iIndex);
+	void					ErrorString(CChars* pszDest, char* szMethod, CLogFileCommand* psCommand, CAbstractFile* pcFile);
 
 	CLogFileCommandOpen*	AddOpenCommand(EFileMode eFileMode);
 	CLogFileCommandWrite*	AddWriteCommand(filePos iPosition, void* pvSource, filePos iByteLength);
