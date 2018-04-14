@@ -67,8 +67,7 @@ BOOL CDurableSet::Recover(void)
 	//This assumes begin has NOT been called.
 	if (mbBegun)
 	{
-		gcLogger.Error2(__METHOD__, " Cannot recover after begun.", NULL);
-		return FALSE;
+		return gcLogger.Error2(__METHOD__, " Cannot recover after begun.", NULL);
 	}
 
 	bMarkStart = cFileUtil.Exists(mszMarkStart.Text());
@@ -87,8 +86,7 @@ BOOL CDurableSet::Recover(void)
 		gcLogger.Info2(__METHOD__, " Primary files were written but backup failed.", NULL);
 		if (!CopyPrimaryToBackup())
 		{
-			gcLogger.Error2(__METHOD__, " Copying primary files to backup failed.", NULL);
-			return FALSE;
+			return gcLogger.Error2(__METHOD__, " Copying primary files to backup failed.", NULL);
 		}
 		MarkFinish();
 		return TRUE;
@@ -101,8 +99,7 @@ BOOL CDurableSet::Recover(void)
 		gcLogger.Info2(__METHOD__, " Primary files were not written.  Reverting to backup.", NULL);
 		if (!CopyBackupToPrimary())
 		{
-			gcLogger.Error2(__METHOD__, " Copying backup files to primary failed.", NULL);
-			return FALSE;
+			return gcLogger.Error2(__METHOD__, " Copying backup files to primary failed.", NULL);
 		}
 		MarkFinish();
 		return TRUE;
@@ -112,8 +109,7 @@ BOOL CDurableSet::Recover(void)
 	//Something bad happened
 	if (bMarkRewrite)
 	{
-		gcLogger.Error2(__METHOD__, " Rewrite has occurred without write.", NULL);
-		return FALSE;
+		return gcLogger.Error2(__METHOD__, " Rewrite has occurred without write.", NULL);
 	}
 	return FALSE;
 }
@@ -127,8 +123,7 @@ BOOL CDurableSet::Begin(void)
 {
 	if (mbBegun)
 	{
-		gcLogger.Error2(__METHOD__, " Cannot begin.  Already begun.", NULL);
-		return FALSE;
+		return gcLogger.Error2(__METHOD__, " Cannot begin.  Already begun.", NULL);
 	}
 
 	CheckWriteStatus(TRUE);
@@ -150,8 +145,7 @@ BOOL CDurableSet::End(void)
 
 	if (!mbBegun)
 	{
-		gcLogger.Error2(__METHOD__, " Cannot end.  Not begun.", NULL);
-		return FALSE;
+		return gcLogger.Error2(__METHOD__, " Cannot end.  Not begun.", NULL);
 	}
 
 	bResult = TRUE;
@@ -232,7 +226,7 @@ BOOL CDurableSet::CheckWriteStatus(BOOL bMarkStart, BOOL bMarkRewrite, BOOL bLog
 	{
 		if (bLogError)
 		{
-			gcLogger.Error2(__METHOD__, " Primary files were written but backup failed.", NULL);
+			return gcLogger.Error2(__METHOD__, " Primary files were written but backup failed.", NULL);
 		}
 		return FALSE;
 	}
@@ -242,7 +236,7 @@ BOOL CDurableSet::CheckWriteStatus(BOOL bMarkStart, BOOL bMarkRewrite, BOOL bLog
 	{
 		if (bLogError)
 		{
-			gcLogger.Error2(__METHOD__, " Primary files were not written.  Reverting to backup.", NULL);
+			return gcLogger.Error2(__METHOD__, " Primary files were not written.  Reverting to backup.", NULL);
 		}
 		return FALSE;
 	}
@@ -251,7 +245,7 @@ BOOL CDurableSet::CheckWriteStatus(BOOL bMarkStart, BOOL bMarkRewrite, BOOL bLog
 	{
 		if (bLogError)
 		{
-			gcLogger.Error2(__METHOD__, " Rewrite has occurred without write.", NULL);
+			return gcLogger.Error2(__METHOD__, " Rewrite has occurred without write.", NULL);
 		}
 		return FALSE;
 	}

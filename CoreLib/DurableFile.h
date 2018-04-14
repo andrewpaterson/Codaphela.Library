@@ -60,7 +60,7 @@ private:
 
 	CLogFile					mcLogFile;
 	EFileMode					meOpenMode;
-	BOOL						mbOpenedSinceBegin;
+	BOOL						mbLogFileBegun;
 	BOOL						mbAddedToController;
 
 public:

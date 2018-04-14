@@ -74,7 +74,7 @@ void CDurableFile::Init(CDurableFileController* pcController, char* szFileName, 
 void CDurableFile::InitBasic(void)
 {
 	meOpenMode = EFM_Unknown;
-	mbOpenedSinceBegin = FALSE;
+	mbLogFileBegun = FALSE;
 }
 
 
@@ -105,39 +105,13 @@ BOOL CDurableFile::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CDurableFile::OpenPrimaryFile(BOOL bOpenForWrite)
-{
-	BOOL		bFileOpened;
-
-	AddFile();
-
-	if (!mbOpenedSinceBegin)
-	{
-		mcLogFile.Begin();
-		mbOpenedSinceBegin = TRUE;
-	}
-
-	if (!bOpenForWrite)
-	{
-		bFileOpened = OpenPrimaryForRead();
-	}
-	else
-	{
-		bFileOpened = OpenPrimaryForWrite();
-	}
-
-	return bFileOpened;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CDurableFile::AddFile(void)
 {
 	mbAddedToController = TRUE;
-	mpcController->AddFile(this);
+	if (mpcController)
+	{
+		mpcController->AddFile(this);
+	}
 }
 
 
@@ -165,8 +139,7 @@ BOOL CDurableFile::Commit(void)
 	bResult = mcLogFile.Commit();
 	if (!bResult)
 	{
-		gcLogger.Error2(__METHOD__, " Commit durable file [", mszFileName.Text(), "] failed.", NULL);
-		return FALSE;
+		return gcLogger.Error2(__METHOD__, " Commit durable file [", mszFileName.Text(), "] failed.", NULL);
 	}
 
 	InitBasic();
@@ -188,6 +161,11 @@ BOOL CDurableFile::Recommit(void)
 		{
 			gcLogger.Error2(__METHOD__, " Did not expect durable file [", mszRewriteName.Text(), "] to be open already.", NULL);
 			return FALSE;
+		}
+
+		if (mcLogFile.GetNumCommands() == 0)
+		{
+			return TRUE;
 		}
 
 		bResult = mcLogFile.Commit(&mcRewriteDiskFile);
@@ -235,13 +213,39 @@ BOOL CDurableFile::Seek(EFileSeekOrigin eOrigin, filePos iDistance, BOOL bSeekFo
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL CDurableFile::OpenPrimaryFile(BOOL bOpenForWrite)
+{
+	AddFile();
+
+	if (!bOpenForWrite)
+	{
+		return OpenPrimaryForRead();
+	}
+	else
+	{
+		return OpenPrimaryForWrite();
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL CDurableFile::OpenPrimaryForWrite(void)
 {
 	BOOL		bResult;
+	BOOL		bFileExists;
 	
+	if (!mbLogFileBegun)
+	{
+		bFileExists = mcLogFile.Begin();
+		mbLogFileBegun = bFileExists;
+	}
+
 	if (meOpenMode == EFM_Unknown)
 	{
 		bResult = mcPrimaryFile.Open(EFM_ReadWrite_Create);
+		mbLogFileBegun = bResult;
 
 		if (!bResult)
 		{
@@ -293,6 +297,22 @@ BOOL CDurableFile::OpenPrimaryForWrite(void)
 BOOL CDurableFile::OpenPrimaryForRead(void)
 {
 	BOOL	bResult;
+	BOOL	bFileExists;
+
+	if (!mbLogFileBegun)
+	{
+		bFileExists = mcLogFile.Begin();
+		if (!bFileExists)
+		{
+			mbLogFileBegun = FALSE;
+			meOpenMode = EFM_Unknown;
+			return FALSE;
+		}
+		else
+		{
+			mbLogFileBegun = TRUE;
+		}
+	}
 
 	if (meOpenMode == EFM_Unknown)
 	{
@@ -305,7 +325,7 @@ BOOL CDurableFile::OpenPrimaryForRead(void)
 		else
 		{
 			meOpenMode = EFM_Unknown;
-			return TRUE;
+			return FALSE;
 		}
 	}
 	else if (meOpenMode == EFM_Read)
@@ -320,8 +340,7 @@ BOOL CDurableFile::OpenPrimaryForRead(void)
 	}
 	else
 	{
-		//File is in a borked mode.  This should never happen.
-		return FALSE;
+		return gcLogger.Error2(__METHOD__, " File is in a borked mode.  This should never happen.", NULL);
 	}
 }
 
@@ -466,7 +485,7 @@ filePos CDurableFile::Tell(void)
 {
 	if (!IsBegun())
 	{
-		gcLogger.Error2(__METHOD__, " Cannot tell from CDurableFile [", mszFileName.Text(), "] that is not Begun.", NULL);
+		 gcLogger.Error2(__METHOD__, " Cannot tell from CDurableFile [", mszFileName.Text(), "] that is not Begun.", NULL);
 		return -1;
 	}
 
@@ -487,7 +506,7 @@ filePos CDurableFile::Size(void)
 		return -1;
 	}
 
-	if (!mbOpenedSinceBegin)
+	if (!mbLogFileBegun)
 	{
 		if (!mcPrimaryDiskFile.IsOpen())
 		{
@@ -541,7 +560,7 @@ BOOL CDurableFile::IsBegun(void)
 	}
 	else
 	{
-		return FALSE;
+		return TRUE;
 	}
 }
 
@@ -552,7 +571,7 @@ BOOL CDurableFile::IsBegun(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CDurableFile::TestGetOpenedSinceBegin(void)
 {
-	return mbOpenedSinceBegin;
+	return mbLogFileBegun;
 }
 
 
@@ -603,7 +622,7 @@ BOOL CDurableFile::CheckIdentical(BOOL bThorough, BOOL bLogError)
 	bResult = cFileUtil.Compare(mszFileName.Text(), mszRewriteName.Text());
 	if (bLogError && !bResult)
 	{
-		gcLogger.Error2(__METHOD__, " File mismatch [", mszFileName.Text(), "] and [", mszRewriteName.Text(), "].", NULL);
+		return gcLogger.Error2(__METHOD__, " File mismatch [", mszFileName.Text(), "] and [", mszRewriteName.Text(), "].", NULL);
 	}
 	return bResult;
 }
