@@ -11,15 +11,16 @@ class CLogFile : public CAbstractFile
 protected:
 	CListVariable		macCommands;
 	filePos				miPosition;
-	filePos				miLength;
+	filePos				miLength;  
 
-	filePos				miFileLength;
+	filePos				miBackingFileLength;
 	CAbstractFile*		mpcBackingFile;
 	BOOL				mbTouched;
 	EFileMode			meFileMode;
 
 	BOOL				mbOpenedBackingFile;
 	int					miLastWriteOpenIndex;
+	BOOL				mbBegun;
 
 public:
 	void					Init(CAbstractFile* pcBackingFile);
@@ -27,7 +28,7 @@ public:
 
 	BOOL					Begin(void);
 	BOOL					Commit(void);
-	void					End(void);
+	BOOL					End(void);
 
 	BOOL					Open(EFileMode eFileMode);
 	BOOL					Close(void);
@@ -63,7 +64,12 @@ protected:
 	filePos					ReadNextTouchingWrites(int iWriteIndex, void* pvDest, filePos iSize, filePos iCount);
 	void					CopyWritesToRead(CArrayIntAndPointer* papvOverlapping, filePos iByteSize, void* pvDest);
 	int						FindNextWriteCommand(int iIndex);
-	void					ErrorString(CChars* pszDest, char* szMethod, CLogFileCommand* psCommand, CAbstractFile* pcFile);
+
+	BOOL					ValidateBegun(char* szMethod, char* szTask, CAbstractFile* pcFile);
+
+	void					GetSafeFileName(CChars* pszDest, CAbstractFile* pcFile);
+	void					ExecuteCommandErrorString(CChars* pszDest, char* szMethod, CLogFileCommand* psCommand, CAbstractFile* pcFile);
+	void					AddCommandErrorString(CChars* pszDest, char* szMethod, CLogFileCommand* psCommand, CAbstractFile* pcFile);
 
 	CLogFileCommandOpen*	AddOpenCommand(EFileMode eFileMode);
 	CLogFileCommandWrite*	AddWriteCommand(filePos iPosition, void* pvSource, filePos iByteLength);

@@ -38,15 +38,22 @@ void CLogFile::Init(CAbstractFile* pcBackingFile)
 {
 	CAbstractFile::Init();
 
+	if (pcBackingFile == NULL)
+	{
+		gcLogger.Error2(__METHOD__, " Log file must have a backing file.", NULL);
+		return;
+	}
+
 	mpcBackingFile = pcBackingFile;
 
 	miPosition = 0;
 	miLength = 0;
-	miFileLength = 0;
+	miBackingFileLength = 0;
 
 	mbTouched = FALSE;
 	meFileMode = EFM_Unknown;
 	mbOpenedBackingFile = FALSE;
+	mbBegun = FALSE;
 
 	macCommands.Init(LOG_FILE_COMMAND_CHUNK_SIZE);
 }
@@ -60,12 +67,9 @@ void CLogFile::Kill(void)
 {
 	macCommands.Kill();
 
-	if (mpcBackingFile)
+	if (mpcBackingFile->mbBasicFileMustFree)
 	{
-		if (mpcBackingFile->mbBasicFileMustFree)
-		{
-			SafeKill(mpcBackingFile);
-		}
+		SafeKill(mpcBackingFile);
 	}
 }
 
@@ -76,29 +80,49 @@ void CLogFile::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CLogFile::Begin(void)
 {
+	//This returns whether or not the backing file was opened rather than whether or not Begin failed.  ?!?
+
 	BOOL	bMustOpen;
+	BOOL	bBackingFileExists;
 
-	macCommands.ReInit();
-
-	miPosition = 0;
-
-	if (mpcBackingFile)
+	if (macCommands.NumElements() != 0)
 	{
-		bMustOpen = !mpcBackingFile->IsOpen();
-		if (bMustOpen)
+		gcLogger.Error2(__METHOD__, " Cannot begin when log file already has outstanding commands.", NULL);
+		return FALSE;
+	}
+
+	bMustOpen = !mpcBackingFile->IsOpen();
+	if (bMustOpen)
+	{
+		bBackingFileExists = mpcBackingFile->Open(EFM_Read);
+		if (bBackingFileExists)
 		{
-			ReturnOnFalse(mpcBackingFile->Open(EFM_Read));
 			mbOpenedBackingFile = TRUE;
+			miBackingFileLength = mpcBackingFile->Size();
+			miLength = miBackingFileLength;
+			mpcBackingFile->Seek(0, EFSO_SET);
+			miPosition = 0;
+			mbBegun = TRUE;
+			return TRUE;
 		}
-		miFileLength = mpcBackingFile->Size();
+		else
+		{
+			miBackingFileLength = 0;
+			miLength = 0;
+			miPosition = 0;
+			mbBegun = TRUE;
+			return TRUE;
+		}
 	}
 	else
 	{
-		mbOpenedBackingFile = FALSE;
-		miFileLength = 0;
+		miBackingFileLength = mpcBackingFile->Size();
+		miLength = miBackingFileLength;
+		mpcBackingFile->Seek(0, EFSO_SET);
+		miPosition = 0;
+		mbBegun = TRUE;
+		return TRUE;
 	}
-	miLength = miFileLength;
-	return TRUE;
 }
 
 
@@ -122,16 +146,20 @@ BOOL CLogFile::Commit(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CLogFile::End(void)
+BOOL CLogFile::End(void)
 {
+	ReturnOnFalse(ValidateBegun(__METHOD__, "end", mpcBackingFile));
+
 	miPosition = 0;
 	miLength = 0;
-	miFileLength = 0;
+	miBackingFileLength = 0;
+	mbBegun = FALSE;
 
 	mbTouched = FALSE;
 	meFileMode = EFM_Unknown;
 
 	macCommands.ReInit();
+	return TRUE;
 }
 
 
@@ -139,14 +167,39 @@ void CLogFile::End(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CLogFile::ErrorString(CChars* pszDest, char* szMethod, CLogFileCommand* psCommand, CAbstractFile* pcFile)
+void CLogFile::ExecuteCommandErrorString(CChars* pszDest, char* szMethod, CLogFileCommand* psCommand, CAbstractFile* pcFile)
 {
-	char*	pszFileName;
-
 	pszDest->Init(szMethod);
 	pszDest->Append(" Could not execute command [");
 	pszDest->Append(psCommand->GetType());
 	pszDest->Append("] on file [");
+	GetSafeFileName(pszDest, pcFile);
+	pszDest->Append("].");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CLogFile::AddCommandErrorString(CChars* pszDest, char* szMethod, CLogFileCommand* psCommand, CAbstractFile* pcFile)
+{
+	pszDest->Init(szMethod);
+	pszDest->Append(" Could not Add command [");
+	pszDest->Append(psCommand->GetType());
+	pszDest->Append("] if not begun on file [");
+	GetSafeFileName(pszDest, pcFile);
+	pszDest->Append("].");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CLogFile::GetSafeFileName(CChars* pszDest, CAbstractFile* pcFile)
+{
+	char*	pszFileName;
 
 	pszFileName = pcFile->GetFileName();
 	if (pszFileName)
@@ -157,7 +210,36 @@ void CLogFile::ErrorString(CChars* pszDest, char* szMethod, CLogFileCommand* psC
 	{
 		pszDest->Append("Without Name");
 	}
-	pszDest->Append("].");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CLogFile::ValidateBegun(char* szMethod, char* szTask, CAbstractFile* pcFile)
+{
+	CChars						szError;
+
+	if (!mbBegun)
+	{
+		szError.Init(szMethod);
+		szError.Append(" Cannot ");
+		szError.Append(szTask);
+		szError.Append(" if not begun.");
+
+		szError.Append("] on file [");
+		GetSafeFileName(&szError, pcFile);
+		szError.Append("].");
+
+		gcLogger.Error(szError.Text());
+		szError.Kill();
+		return FALSE;
+	}
+	else
+	{
+		return TRUE;
+	}
 }
 
 
@@ -176,6 +258,8 @@ BOOL CLogFile::Commit(CAbstractFile* pcFile)
 	CLogFileCommandDelete*		psDelete;
 	BOOL						bResult;
 	CChars						szError;
+
+	ReturnOnFalse(ValidateBegun(__METHOD__, "commit", pcFile));
 
 	for (i = 0; i < macCommands.NumElements(); i++)
 	{
@@ -205,7 +289,7 @@ BOOL CLogFile::Commit(CAbstractFile* pcFile)
 
 		if (!bResult)
 		{
-			ErrorString(&szError, __METHOD__, psCommand, pcFile);
+			ExecuteCommandErrorString(&szError, __METHOD__, psCommand, pcFile);
 			gcLogger.Error(szError.Text()); 
 			szError.Kill();
 			return FALSE;
@@ -213,6 +297,8 @@ BOOL CLogFile::Commit(CAbstractFile* pcFile)
 	}
 
 	pcFile->Flush();
+
+	miBackingFileLength = miLength;
 	return TRUE;
 }
 
@@ -243,14 +329,25 @@ BOOL CLogFile::Open(EFileMode eFileMode)
 CLogFileCommandOpen* CLogFile::AddOpenCommand(EFileMode eFileMode)
 {
 	CLogFileCommandOpen*	psCommand;
+	CChars					szError;
+	CLogFileCommandOpen		sCommand;
 
-	psCommand = (CLogFileCommandOpen*)macCommands.Add(sizeof(CLogFileCommandOpen));
+	sCommand.Init(eFileMode);
+	if (!mbBegun)
+	{
+		AddCommandErrorString(&szError, __METHOD__, &sCommand, mpcBackingFile);
+		gcLogger.Error(szError.Text());
+		szError.Kill();
+		return FALSE;
+	}
+
+
+	psCommand = (CLogFileCommandOpen*)macCommands.Add(&sCommand, sizeof(CLogFileCommandOpen));
 	if (!psCommand)
 	{
 		return NULL;
 	}
 
-	psCommand->Init(eFileMode);
 	return psCommand;
 }
 
@@ -569,7 +666,7 @@ filePos CLogFile::ReadFirstTouchingWrites(int iWriteIndex, void* pvDest, filePos
 	}
 	else
 	{
-		if (miFileLength == 0)
+		if (miBackingFileLength == 0)
 		{
 			return iCount;
 		}
@@ -705,15 +802,15 @@ filePos CLogFile::ReadFromBackingFile(void* pvDest, filePos iSize, filePos iCoun
 	filePos		iByteSize;
 	filePos		iRead;
 
-	if (miPosition >= miFileLength)
+	if (miPosition >= miBackingFileLength)
 	{
 		return 0;
 	}
 
 	iByteSize = iSize * iCount;
-	if (iByteSize > (miFileLength - miPosition))
+	if (iByteSize > (miBackingFileLength - miPosition))
 	{
-		iByteSize = miFileLength - miPosition;
+		iByteSize = miBackingFileLength - miPosition;
 	}
 
 	mpcBackingFile->Seek(miPosition, EFSO_SET);
@@ -1016,7 +1113,7 @@ BOOL CLogFile::Delete(void)
 	}
 
 	macCommands.ReInit();
-	miFileLength = 0;
+	miBackingFileLength = 0;
 	miLength = 0;
 	return AddDeleteCommand() != NULL;
 }
@@ -1028,11 +1125,7 @@ BOOL CLogFile::Delete(void)
 //////////////////////////////////////////////////////////////////////////
 char* CLogFile::GetFileName(void)
 {
-	if (mpcBackingFile)
-	{
-		return mpcBackingFile->GetFileName();
-	}
-	return NULL;
+	return mpcBackingFile->GetFileName();
 }
 
 
