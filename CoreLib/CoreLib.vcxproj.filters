@@ -375,6 +375,9 @@
     <ClCompile Include="IndexTreeFile.cpp">
       <Filter>Source\File\Indexed\Index</Filter>
     </ClCompile>
+    <ClCompile Include="IndexTreeFileDebug.cpp">
+      <Filter>Source\File\Indexed\Index</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="IndexedConfig.h">
@@ -603,6 +606,9 @@
       <Filter>Source\File\Indexed\Index\Access</Filter>
     </ClInclude>
     <ClInclude Include="IndexTreeFile.h">
+      <Filter>Source\File\Indexed\Index</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexTreeFileDebug.h">
       <Filter>Source\File\Indexed\Index</Filter>
     </ClInclude>
   </ItemGroup>

@@ -72,6 +72,7 @@ public:
 	BOOL					ValidateIndexTree(void);
 	CIndexedFiles*			GetIndexFiles(void);
 	int						NumNodes(void);
+	void					Debug(void* pvKey, int iKeySize);
 
 protected:
 	BOOL					InitRoot(void);
@@ -127,6 +128,10 @@ protected:
 	CFileDataIndex			ReadRootFileIndex(void);
 	BOOL					WriteRootFileIndex(CFileDataIndex* pcRootIndex);
 	BOOL					WriteRootFileIndex(BOOL bRootHasIndex, CFileDataIndex* pcRootIndex);
+
+	CIndexTreeNodeFile*		DebugNode(CIndexTreeNodeFile* pcParent, unsigned char uiIndexInParent);
+	void					DebugNode(CIndexTreeNodeFile* pcCurrent);
+	void					DebugNode(int iFile, unsigned int uiIndex, unsigned int uIndexFromParent);
 
 public:
 	BOOL					Write(CIndexTreeNodeFile* pcNode);
