@@ -46,9 +46,10 @@ BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, CMalloca
 
 	CIndexTree::Init(pcMalloc, sizeof(CIndexTreeNodeFile), sizeof(CIndexTreeChildNode));
 
+	mpcRoot = NULL;
 	mbWriteThrough = bWriteThrough;
 	mpcDurableFileControl = pcDurableFileControl;
-	mcIndexFiles.Init(mpcDurableFileControl, "IDAT", "Index.IDX", mpcDurableFileControl->IsDurable() ? "_Index.IDX" : NULL);
+	mcIndexFiles.Init(mpcDurableFileControl, "IDAT", "Index.IDX", "_Index.IDX");
 	bResult = mcIndexFiles.ReadIndexedFileDescriptors();
 	if (!bResult)
 	{

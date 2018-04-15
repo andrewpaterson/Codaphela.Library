@@ -44,7 +44,7 @@ void CFileBasic::Init(CAbstractFile* pcFile)
 //////////////////////////////////////////////////////////////////////////
 void CFileBasic::Kill(void)
 {
-	if (mpcFile->mbBasicFileMustFree)
+	if ((mpcFile != NULL) && (mpcFile->mbBasicFileMustFree))
 	{
 		SafeKill(mpcFile);
 	}
@@ -211,7 +211,14 @@ void CFileBasic::Flush(void)
 //====================================================================================
 BOOL CFileBasic::IsOpen(void)
 {
-	return mpcFile->IsOpen();
+	if (mpcFile != NULL)
+	{
+		return mpcFile->IsOpen();
+	}
+	else
+	{
+		return FALSE;
+	}
 }
 
 
