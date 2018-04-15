@@ -252,7 +252,7 @@ BOOL CIndexedFile::Delete(filePos iIndex, filePos iCount)
 	iPosition = iIndex * miDataSize;
 
 	pvData = cTemp.Init(iSize);
-	memset(pvData, 0x55, iSize);
+	memset(pvData, INDEX_FILE_EMPTY_CHAR, iSize);
 	iWritten = mcFile.Write(EFSO_SET, iPosition, pvData, miDataSize, iCount);
 	cTemp.Kill();
 

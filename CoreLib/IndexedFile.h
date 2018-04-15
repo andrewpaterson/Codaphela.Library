@@ -31,7 +31,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "DurableFileController.h"
 
 
-#define INDEXED_FILE_WRITE_ERROR ((unsigned int)-1)
+#define INDEXED_FILE_WRITE_ERROR	((unsigned int)-1)
+#define INDEX_FILE_EMPTY_CHAR		0x55
 
 
 class CIndexedFile

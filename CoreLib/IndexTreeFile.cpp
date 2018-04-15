@@ -368,6 +368,17 @@ CIndexTreeNodeFile* CIndexTreeFile::GetNodeForData(void* pvData)
 	return psNode;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CIndexedFile* CIndexTreeFile::GetFile(int iFile)
+{
+	return mcIndexFiles.GetFile(iFile);
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -623,6 +634,7 @@ CIndexTreeNodeFile* CIndexTreeFile::ReallocateNodeForIndex(CIndexTreeNodeFile* p
 
 	pcOldNode = pcNode;
 	pcNode = (CIndexTreeNodeFile*)Realloc(pcNode, tNewNodeSize, tOldNodeSize);
+	pcNode->SetDirtyNode(TRUE); 
 	pcNode->Contain(uiIndex);
 
 	RemapChildParents(pcOldNode, pcNode);
@@ -694,6 +706,7 @@ void CIndexTreeFile::RemapChildParents(CIndexTreeNodeFile* pcOldNode, CIndexTree
 		{
 			pcParent->RemapChildNodes(pcOldNode, pcNode);
 		}
+		pcParent->SetDirtyNode(TRUE);
 	}
 }
 
@@ -1439,6 +1452,7 @@ BOOL CIndexTreeFile::ValidateIndexTree(void)
 	bResult &= ValidateLimits();
 	bResult &= ValidateParentIndex();
 	bResult &= ValidateNoFlushFlags();
+	bResult &= ValidateFileIndexes();
 	return bResult;
 }
 
@@ -1653,6 +1667,65 @@ BOOL CIndexTreeFile::RecurseValidateNoFlushFlags(CIndexTreeRecursor* pcCursor)
 				pcChild = ReadNode(pcNode, i);
 				pcCursor->Push(pcChild, i);
 				bResult = RecurseValidateParentIndex(pcCursor);
+				if (!bResult)
+				{
+					pcCursor->Pop();
+					return FALSE;
+				}
+			}
+		}
+	}
+	pcCursor->Pop();
+	return TRUE;
+}
+
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeFile::ValidateFileIndexes(void)
+{
+	CIndexTreeRecursor	cCursor;
+	BOOL				bResult;
+
+	cCursor.Init(mpcRoot);
+	bResult = RecurseValidateFileIndexes(&cCursor);
+	cCursor.Kill();
+
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeFile::RecurseValidateFileIndexes(CIndexTreeRecursor* pcCursor)
+{
+	CIndexTreeNodeFile*		pcNode;
+	int						i;
+	CIndexTreeNodeFile*		pcChild;
+	BOOL					bResult;
+
+	pcNode = (CIndexTreeNodeFile*)pcCursor->GetNode();
+	if (pcNode != NULL)
+	{
+		if (!pcNode->GetFileIndex()->HasFile())
+		{
+			pcCursor->GenerateBad();
+			return gcLogger.Error2(__METHOD__, " Node [", pcCursor->GetBadNode(), "] for key [", pcCursor->GetBadKey(), "] has no file associated.", NULL);
+		}
+
+		if (pcNode->HasNodes())
+		{
+			for (i = pcNode->GetFirstIndex(); i <= pcNode->GetLastIndex(); i++)
+			{
+				pcChild = ReadNode(pcNode, i);
+				pcCursor->Push(pcChild, i);
+				bResult = RecurseValidateFileIndexes(pcCursor);
 				if (!bResult)
 				{
 					pcCursor->Pop();

@@ -56,6 +56,7 @@ public:
 	CIndexTreeNodeFile*		GetNode(void* pvKey, int iKeySize);
 	CIndexTreeNodeFile*		GetRoot(void);
 	CIndexTreeNodeFile*		GetNodeForData(void* pvData);
+	CIndexedFile*			GetFile(int iFile);
 	int						CountAllocatedNodes(void);
 	int						RecurseSize(void);
 	size_t					ByteSize(void);
@@ -100,16 +101,19 @@ protected:
 	int						CountListSize(void);
 	int						RecurseCountListSize(CIndexTreeNodeFile* pcNode);
 	size_t					RecurseByteSize(CIndexTreeNodeFile* pcNode);
+	void					RecurseFindWithFlags(CIndexTreeRecursor* pcCursor, unsigned char uiFollowFlags, unsigned char uiAddFlags, CArrayVoidPtr* papNodes);
+	int						RecurseNumNodes(CIndexTreeRecursor* pcCursor);
+
 	BOOL					ValidateLimits(void);
 	BOOL					RecurseValidateLimits(CIndexTreeRecursor* pcCursor);
-	void					RecurseFindWithFlags(CIndexTreeRecursor* pcCursor, unsigned char uiFollowFlags, unsigned char uiAddFlags, CArrayVoidPtr* papNodes);
 	BOOL					ValidateParentIndex(void);
 	BOOL					RecurseValidateParentIndex(CIndexTreeRecursor* pcCursor);
-	int						RecurseNumNodes(CIndexTreeRecursor* pcCursor);
 	BOOL					ValidateNoFlushFlags(void);
 	BOOL					RecurseValidateNoFlushFlags(CIndexTreeRecursor* pcCursor);
 	BOOL					ValidateMagic(void);
 	BOOL					RecurseValidateMagic(CIndexTreeRecursor* pcCursor);
+	BOOL					ValidateFileIndexes(void);
+	BOOL					RecurseValidateFileIndexes(CIndexTreeRecursor* pcCursor);
 
 	BOOL					StepNext(SIndexTreeFileIterator* psIterator);
 
