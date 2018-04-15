@@ -472,6 +472,9 @@ int CIndexTreeNodeFile::InitFromBuffer(void* pvBuffer, int iBufferSize)
 	int						iFileSize;
 	int						iFile;
 	unsigned int			ulliFilePos;
+	unsigned char			uiFirstIndex;
+	unsigned char			uiLastIndex;
+	unsigned char			uiIndexInParent;
 
 	pucMemory = (unsigned char*)pvBuffer;
 	iPos = 0;
@@ -479,16 +482,21 @@ int CIndexTreeNodeFile::InitFromBuffer(void* pvBuffer, int iBufferSize)
 	iFileSize = *((int*)&pucMemory[iPos]);  iPos += sizeof(int);
 	if (iBufferSize < iFileSize)
 	{
-		gcLogger.Error2(__METHOD__, " Node buffer size [", IntToString(iBufferSize), "] did not match node size in file [", IntToString(iFileSize), "].", NULL);
-		return 0;
+		return gcLogger.Error2(__METHOD__, " Node buffer size [", IntToString(iBufferSize), "] did not match node size in file [", IntToString(iFileSize), "].", NULL);
 	}
 
 	muiDataSize = *((unsigned short*)&pucMemory[iPos]);  iPos += sizeof(unsigned short);
 
-	muiFirstIndex = pucMemory[iPos];  iPos++;
-	muiLastIndex = pucMemory[iPos];  iPos++;
-	muiIndexInParent = pucMemory[iPos];  iPos++;
+	uiFirstIndex = pucMemory[iPos];  iPos++;
+	uiLastIndex = pucMemory[iPos];  iPos++;
+	uiIndexInParent = pucMemory[iPos];  iPos++;
 	msFlags = pucMemory[iPos];  iPos++;
+
+	if ((uiFirstIndex != muiFirstIndex) || (uiLastIndex != muiLastIndex) || (muiIndexInParent != uiIndexInParent))
+	{
+		return gcLogger.Error2(__METHOD__, " Node fields for children  [", IntToString(muiFirstIndex), ", ", IntToString(muiLastIndex), ", ", IntToString(muiIndexInParent),  
+			"] do not match node fields read [", IntToString(uiFirstIndex), ", ", IntToString(uiLastIndex), ", ", IntToString(uiIndexInParent), "].", NULL);
+	}
 
 	if (HasObject())
 	{
