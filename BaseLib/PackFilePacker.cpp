@@ -46,7 +46,7 @@ BOOL CPackFilePacker::Pack(char* szDestPakFile, char* szSourceDirectory, char* s
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPackFilePacker::Unpack(char* szSourcePakFile, char* szDestDirectory)
+BOOL CPackFilePacker::Unpack(char* szSourcePakFile, char* szDestDirectory, BOOL bRemoveDestDir)
 {
 	CPackFiles	cPackFiles;
 	CDiskFile*	pcDiskFile;
@@ -61,22 +61,25 @@ BOOL CPackFilePacker::Unpack(char* szSourcePakFile, char* szDestDirectory)
 
 	if (cFileUtil.Exists(pcDiskFile->mszFileName.Text()))
 	{
-		cFileUtil.RemoveDir(szDestDirectory);
+		if (bRemoveDestDir)
+		{
+			cFileUtil.RemoveDir(szDestDirectory);
+		}
+	
 		cPackFiles.Init(pcDiskFile, PFM_Read);
 		bResult = cPackFiles.Unpack(szDestDirectory);
 		cPackFiles.Kill();
 
-		bResult = FixBool(bResult);
 		if (!bResult)
 		{
-			gcLogger.Error("Failed to unpack.");
+			gcLogger.Error2("Failed to unpack [", szSourcePakFile, "] into [", StringToString(szDestDirectory), "].", NULL);
 			return FALSE;
 		}
 		return TRUE;
 	}
 	else
 	{
-		gcLogger.Error("File does not exist.");
+		gcLogger.Error2("Pak file [", StringToString(szSourcePakFile), "]does not exist.", NULL);
 		return FALSE;
 	}
 }

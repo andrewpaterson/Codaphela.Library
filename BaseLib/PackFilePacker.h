@@ -8,7 +8,7 @@ class CPackFilePacker
 {
 public:
 	BOOL Pack(char* szDestPakFile, char* szSourceDirectory, char* szPackDirectory = NULL);
-	BOOL Unpack(char* szSourcePakFile, char* szDestDirectory);
+	BOOL Unpack(char* szSourcePakFile, char* szDestDirectory, BOOL bRemoveDestDir = FALSE);
 	BOOL List(char* szSourcePakFile, CChars* pszDest);
 	void List(CPackFiles* pcPackFiles, CChars* pszDest);
 };
