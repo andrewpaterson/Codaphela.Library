@@ -670,7 +670,7 @@ void CMemoryCache::Dump(void)
 		sz.AppendHexHiLo(&psCacheDesc->iFlags, 4);
 		sz.Append(") ");
 
-		sz.AppendData2(pvData, iLen, 80);
+		sz.AppendData(pvData, iLen, 80);
 		sz.AppendNewLine();
 		psCacheDesc = Iterate(psCacheDesc);
 	}

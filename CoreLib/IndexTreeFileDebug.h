@@ -20,10 +20,10 @@ struct SIndexTreeDebugNode
 	unsigned char	uiIndexInParent;
 	unsigned char	sFlags;
 
-	void InitFromBuffer(void* pvBuffer, int iBufferSize, int iFile, unsigned int uiIndex);
-	void InitBroken(unsigned char uiIndexInParent);
-	void Print(CChars* sz);
-	void Dump(void);
+	int		InitFromBuffer(void* pvBuffer, int iBufferSize, int iFile, unsigned int uiIndex);
+	void	InitBroken(unsigned char uiIndexInParent);
+	void	Print(CChars* sz);
+	void	Dump(void);
 };
 
 

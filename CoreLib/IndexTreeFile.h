@@ -6,6 +6,7 @@
 #include "BaseLib/ListCharsMinimal.h"
 #include "DurableFileController.h"
 #include "IndexTreeNodeFile.h"
+#include "IndexTreeFileDebug.h"
 #include "IndexedFiles.h"
 
 
@@ -70,9 +71,11 @@ public:
 	void					RecurseKill(CIndexTreeNodeFile* pcNode);
 
 	BOOL					ValidateIndexTree(void);
+	BOOL					ValidateKey(void* pvKey, int iKeySize);
+
 	CIndexedFiles*			GetIndexFiles(void);
 	int						NumNodes(void);
-	void					Debug(void* pvKey, int iKeySize);
+	void					DebugKey(void* pvKey, int iKeySize);
 
 protected:
 	BOOL					InitRoot(void);
@@ -87,13 +90,16 @@ protected:
 	CIndexTreeNodeFile*		AllocateNode(CIndexTreeNodeFile* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex, unsigned short uiDataSize, unsigned char uiIndexInParent);
 	CIndexTreeNodeFile*		AllocateNode(CIndexTreeNodeFile* pcParent, unsigned char uiIndexInParent, void* pvBuffer, int iBufferSize);
 
-	CIndexTreeNodeFile*		ReallocateNodeForIndex(CIndexTreeNodeFile* pcNode, unsigned char uiIndex);
+	CIndexTreeNodeFile*		ReallocateNodeForContainIndex(CIndexTreeNodeFile* pcNode, unsigned char uiIndex);
 	CIndexTreeNodeFile*		ReallocateNodeForLargerData(CIndexTreeNodeFile* pcNode, unsigned short uiDataSize);
 	CIndexTreeNodeFile*		ReallocateNodeForSmallerData(CIndexTreeNodeFile* pcNode, unsigned short uiOriginalSize);
 	CIndexTreeNodeFile*		ReallocateNodeForData(CIndexTreeNodeFile* pcNode, size_t tNewNodeSize, size_t tOldNodeSize);
+	CIndexTreeNodeFile*		ReallocateNodeForUncontainIndex(CIndexTreeNodeFile* pcParent, unsigned char c, size_t tOldNodeSize);
 	void					RemapChildParents(CIndexTreeNodeFile* pcOldNode, CIndexTreeNodeFile* pcNode);
 
 	CIndexTreeNodeFile*		GetChildNodeOrAllocate(CIndexTreeNodeFile* pcParent, unsigned char uiIndexInParent);
+	CIndexTreeNodeFile*		SetNodeObject(CIndexTreeNodeFile* pcCurrent, void* pvObject, unsigned short uiDataSize);
+
 	BOOL					RemoveWriteThrough(CIndexTreeNodeFile* pcCurrent);
 	BOOL					RemoveWaitForFlush(CIndexTreeNodeFile* pcCurrent);
 
@@ -129,9 +135,13 @@ protected:
 	BOOL					WriteRootFileIndex(CFileDataIndex* pcRootIndex);
 	BOOL					WriteRootFileIndex(BOOL bRootHasIndex, CFileDataIndex* pcRootIndex);
 
-	CIndexTreeNodeFile*		DebugNode(CIndexTreeNodeFile* pcParent, unsigned char uiIndexInParent);
-	void					DebugNode(CIndexTreeNodeFile* pcCurrent);
-	void					DebugNode(int iFile, unsigned int uiIndex, unsigned int uIndexFromParent);
+	CIndexTreeNodeFile*		DebugNode(CIndexTreeNodeFile* pcParent, int uiIndexInParent);
+	void					DebugNode(int iFile, unsigned int uiIndex, int uIndexFromParent);
+	void					DebugNodeChildren(CIndexTreeNodeFile* pcCurrent, int uIndexFromParent, CChars* pszMemory, CChars* pszFile);
+	void					DebugNodeChildren(CIndexTreeNodeFile* pcCurrent, int uIndexFromParent);
+	void					ReadDebugNode(SIndexTreeDebugNode* psDebugNode, int iFile, unsigned int uiIndex);
+	void					PrintChildFileIndexes(CIndexTreeNodeFile* pcCurrent, CChars* psz);
+	void					PrintNodeFileIndexes(CIndexTreeNodeFile* pcCurrent, CChars* psz);
 
 public:
 	BOOL					Write(CIndexTreeNodeFile* pcNode);

@@ -93,7 +93,7 @@ public:
 	void	AppendBool(BOOL bValue);
 	void	AppendBool(BOOL bValue, char* szTrue, char* szFalse);
 	void	AppendData(char* szData, int iMaxLength);
-	void	AppendData2(char* szData, int iDataLength, int iMaxLength);
+	void	AppendData(char* szData, int iDataLength, int iMaxLength);
 	void	AppendPointer(void* pv);
 	void	Insert(int iPos, char c);
 	void	Insert(int iPos, char* szString);

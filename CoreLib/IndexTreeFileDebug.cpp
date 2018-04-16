@@ -7,7 +7,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void SIndexTreeDebugNode::InitFromBuffer(void* pvBuffer, int iBufferSize, int iFile, unsigned int uiIndex)
+int SIndexTreeDebugNode::InitFromBuffer(void* pvBuffer, int iBufferSize, int iFile, unsigned int uiIndex)
 {
 	unsigned char*			pucMemory;
 	int						iPos;
@@ -35,7 +35,7 @@ void SIndexTreeDebugNode::InitFromBuffer(void* pvBuffer, int iBufferSize, int iF
 	if (iNumCleared == iBufferSize)
 	{
 		bEmpty = TRUE;
-		return;
+		return -1;
 	}
 
 	iFileSize = *((int*)&pucMemory[iPos]);  iPos += sizeof(int);
@@ -50,6 +50,8 @@ void SIndexTreeDebugNode::InitFromBuffer(void* pvBuffer, int iBufferSize, int iF
 	uiLastIndex = pucMemory[iPos];  iPos++;
 	uiIndexInParent = pucMemory[iPos];  iPos++;
 	sFlags = pucMemory[iPos];  iPos++;
+	iPos += uiDataSize;
+	return iPos;
 }
 
 

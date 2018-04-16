@@ -539,11 +539,9 @@ BOOL CIndexTreeFile::Put(char* pszKey, void* pvObject, unsigned short uiDataSize
 BOOL CIndexTreeFile::Put(void* pvKey, int iKeySize, void* pvObject, unsigned short uiDataSize)
 {
 	CIndexTreeNodeFile*		pcCurrent;
-	CIndexTreeNodeFile*		pcReallocatedCurrent;
 	unsigned char			c;
 	BOOL					bResult;
 	BOOL					bWrite;
-	unsigned short			uiOriginalSize;
 	BOOL					bRootHasIndex;
 
 	if (iKeySize == 0)
@@ -564,23 +562,12 @@ BOOL CIndexTreeFile::Put(void* pvKey, int iKeySize, void* pvObject, unsigned sho
 		pcCurrent = GetChildNodeOrAllocate(pcCurrent, c);
 	}
 
-	if (pcCurrent->GetObjectSize() <= uiDataSize)
+	pcCurrent = SetNodeObject(pcCurrent, pvObject, uiDataSize);
+	if (pcCurrent == NULL)
 	{
-		pcReallocatedCurrent = ReallocateNodeForLargerData(pcCurrent, uiDataSize);
-		bResult = pcReallocatedCurrent->SetObject(pvObject, uiDataSize);
+		return FALSE;
 	}
-	else
-	{
-		uiOriginalSize = pcCurrent->GetObjectSize();
-		bResult = pcCurrent->SetObject(pvObject, uiDataSize);
-		pcReallocatedCurrent = ReallocateNodeForSmallerData(pcCurrent, uiOriginalSize);
-	}
-
-	if (pcCurrent != pcReallocatedCurrent)
-	{
-		pcReallocatedCurrent->SetChildrensParent();
-		pcCurrent = pcReallocatedCurrent;
-	}
+	bResult = TRUE;
 
 	if (mbWriteThrough)
 	{
@@ -627,7 +614,53 @@ BOOL CIndexTreeFile::Put(void* pvKey, int iKeySize, unsigned short uiDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTreeNodeFile* CIndexTreeFile::ReallocateNodeForIndex(CIndexTreeNodeFile* pcNode, unsigned char uiIndex)
+CIndexTreeNodeFile* CIndexTreeFile::SetNodeObject(CIndexTreeNodeFile* pcCurrent, void* pvObject, unsigned short uiDataSize)
+{
+	CIndexTreeNodeFile*		pcReallocatedCurrent;
+	BOOL					bResult;
+	unsigned short			uiOriginalSize;
+
+	if (uiDataSize > pcCurrent->GetObjectSize())
+	{
+		pcReallocatedCurrent = ReallocateNodeForLargerData(pcCurrent, uiDataSize);
+		bResult = pcReallocatedCurrent->SetObject(pvObject, uiDataSize);
+		pcReallocatedCurrent->GetParent()->SetDirtyNode(TRUE);
+	}
+	else if (uiDataSize < pcCurrent->GetObjectSize())
+	{
+		uiOriginalSize = pcCurrent->GetObjectSize();
+		bResult = pcCurrent->SetObject(pvObject, uiDataSize);
+		pcReallocatedCurrent = ReallocateNodeForSmallerData(pcCurrent, uiOriginalSize);
+		pcReallocatedCurrent->GetParent()->SetDirtyNode(TRUE);
+	}
+	else
+	{
+		pcReallocatedCurrent = pcCurrent;
+		bResult = pcReallocatedCurrent->SetObject(pvObject, uiDataSize);
+	}
+	pcReallocatedCurrent->SetDirtyNode(TRUE);
+
+	if (pcCurrent != pcReallocatedCurrent)
+	{
+		pcReallocatedCurrent->SetChildrensParent();
+	}
+
+	if (bResult)
+	{
+		return pcReallocatedCurrent;
+	}
+	else
+	{
+		return NULL;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CIndexTreeNodeFile* CIndexTreeFile::ReallocateNodeForContainIndex(CIndexTreeNodeFile* pcNode, unsigned char uiIndex)
 {
 	CIndexTreeNodeFile*		pcOldNode;
 	size_t					tNewNodeSize;
@@ -643,10 +676,12 @@ CIndexTreeNodeFile* CIndexTreeFile::ReallocateNodeForIndex(CIndexTreeNodeFile* p
 
 	pcOldNode = pcNode;
 	pcNode = (CIndexTreeNodeFile*)Realloc(pcNode, tNewNodeSize, tOldNodeSize);
-	pcNode->SetDirtyNode(TRUE); 
+
 	pcNode->Contain(uiIndex);
+	pcNode->SetDirtyNode(TRUE);
 
 	RemapChildParents(pcOldNode, pcNode);
+	pcNode->GetParent()->SetDirtyNode(TRUE);
 	return pcNode;
 }
 
@@ -693,7 +728,6 @@ CIndexTreeNodeFile* CIndexTreeFile::ReallocateNodeForData(CIndexTreeNodeFile* pc
 
 	pcOldNode = pcNode;
 	pcNode = (CIndexTreeNodeFile*)Realloc(pcNode, tNewNodeSize, tOldNodeSize);
-	pcNode->SetDirtyNode(TRUE);
 
 	RemapChildParents(pcOldNode, pcNode);
 	return pcNode;
@@ -715,7 +749,6 @@ void CIndexTreeFile::RemapChildParents(CIndexTreeNodeFile* pcOldNode, CIndexTree
 		{
 			pcParent->RemapChildNodes(pcOldNode, pcNode);
 		}
-		pcParent->SetDirtyNode(TRUE);
 	}
 }
 
@@ -734,7 +767,7 @@ CIndexTreeNodeFile* CIndexTreeFile::GetChildNodeOrAllocate(CIndexTreeNodeFile* p
 	if (pcChildNodeOnParent == NULL)  //Uncontained, off the left or the right of the parent node's indexes.
 	{
 		//This causes the parent node to be re-allocated as its indexes must be grown.
-		pcReallocedParent = ReallocateNodeForIndex(pcParent, uiIndexInParent);
+		pcReallocedParent = ReallocateNodeForContainIndex(pcParent, uiIndexInParent);
 
 		//The new node must also still be allocated.  Two nodes have been altered (the parent and the new node).
 		pcNewFileNode = AllocateNode(pcReallocedParent, 0, uiIndexInParent);
@@ -841,11 +874,8 @@ BOOL CIndexTreeFile::RemoveWriteThrough(CIndexTreeNodeFile* pcCurrent)
 {
 	unsigned char			c;
 	CIndexTreeNodeFile*		pcParent;
-	CIndexTreeNodeFile*		pcOldParent;
 	CIndexTreeNodeFile*		pcNode;
 	void*					pvObject;
-	BOOL					bResizeNode;
-	size_t					tNewNodeSize;
 	size_t					tOldNodeSize;
 	BOOL					bResult;
 
@@ -874,19 +904,7 @@ BOOL CIndexTreeFile::RemoveWriteThrough(CIndexTreeNodeFile* pcCurrent)
 			}
 			else
 			{
-				bResizeNode = pcParent->ClearAndUncontain(c);
-				if (bResizeNode)
-				{
-					tNewNodeSize = pcParent->CalculateRequiredNodeSizeForCurrent();
-					pcOldParent = pcParent;
-
-					pcParent = (CIndexTreeNodeFile*)Realloc(pcParent, tNewNodeSize, tOldNodeSize);
-					if (pcOldParent != pcParent)
-					{
-						pcParent->SetChildrensParent();
-					}
-					RemapChildParents(pcOldParent, pcParent);
-				}
+				pcParent = ReallocateNodeForUncontainIndex(pcParent, c, tOldNodeSize);
 			}
 
 			bResult = Delete(pcNode);
@@ -920,6 +938,34 @@ BOOL CIndexTreeFile::RemoveWriteThrough(CIndexTreeNodeFile* pcCurrent)
 	return bResult;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CIndexTreeNodeFile* CIndexTreeFile::ReallocateNodeForUncontainIndex(CIndexTreeNodeFile* pcParent, unsigned char c, size_t tOldNodeSize)
+{
+	CIndexTreeNodeFile*		pcOldParent;
+	BOOL					bResizeNode;
+	size_t					tNewNodeSize;
+
+	bResizeNode = pcParent->ClearAndUncontain(c);
+	if (bResizeNode)
+	{
+		tNewNodeSize = pcParent->CalculateRequiredNodeSizeForCurrent();
+		pcOldParent = pcParent;
+
+		pcParent = (CIndexTreeNodeFile*)Realloc(pcParent, tNewNodeSize, tOldNodeSize);
+		if (pcOldParent != pcParent)
+		{
+			pcParent->SetChildrensParent();
+		}
+		RemapChildParents(pcOldParent, pcParent);
+	}
+	pcParent->SetDirtyNode(TRUE);
+
+	return pcParent;
+}
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -2259,7 +2305,63 @@ CIndexTreeNodeFile* CIndexTreeFile::SetParentWithExisting(CIndexTreeNodeFile* pc
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeFile::Debug(void* pvKey, int iKeySize)
+BOOL CIndexTreeFile::ValidateKey(void* pvKey, int iKeySize)
+{
+	CIndexTreeNodeFile*		pcCurrent;
+	unsigned char			c;
+	int						i;
+	CChars					szMemory;
+	CChars					szFile;
+	CChars					szKey;
+
+	pcCurrent = mpcRoot;
+
+	szMemory.Init();
+	szFile.Init();
+	DebugNodeChildren(pcCurrent, -1, &szMemory, &szFile);
+	if (!szMemory.Equals(szFile))
+	{
+		szKey.Init();
+		szKey.AppendData((char*)pvKey, iKeySize, 80);
+		gcLogger.Error2(__METHOD__, " Key [", szKey.Text(), "] memory indexes do not match file indexes at depth [root]:\n", szMemory.Text(), "\n", szFile.Text(), NULL);
+		szKey.Kill();
+		return FALSE;
+	}
+	szMemory.Kill();
+	szFile.Kill();
+
+	for (i = 0; i < iKeySize; i++)
+	{
+		c = ((unsigned char*)pvKey)[i];
+		if (pcCurrent != NULL)
+		{
+			szMemory.Init();
+			szFile.Init();
+			DebugNodeChildren(pcCurrent, c, &szMemory, &szFile);
+			if (!szMemory.Equals(szFile))
+			{
+				szKey.Init();
+				szKey.AppendData((char*)pvKey, iKeySize, 80);
+				gcLogger.Error2(__METHOD__, " Key [", szKey.Text(), "] memory indexes do not match file indexes at depth [", IntToString(i+1) ,"]:\n", szMemory.Text(), "\n", szFile.Text(), NULL);
+				szKey.Kill();
+				return FALSE;
+			}
+			szMemory.Kill();
+			szFile.Kill();
+
+			pcCurrent = ReadNode(pcCurrent, c);
+		}
+	}
+
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexTreeFile::DebugKey(void* pvKey, int iKeySize)
 {
 	CIndexTreeNodeFile*		pcCurrent;
 	unsigned char			c;
@@ -2267,6 +2369,7 @@ void CIndexTreeFile::Debug(void* pvKey, int iKeySize)
 	SIndexTreeDebugNode		sDebugNode;
 
 	pcCurrent = mpcRoot;
+	DebugNodeChildren(pcCurrent, -1);
 	for (i = 0; i < iKeySize; i++)
 	{
 		c = ((unsigned char*)pvKey)[i];
@@ -2287,7 +2390,7 @@ void CIndexTreeFile::Debug(void* pvKey, int iKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTreeNodeFile* CIndexTreeFile::DebugNode(CIndexTreeNodeFile* pcParent, unsigned char uiIndexInParent)
+CIndexTreeNodeFile* CIndexTreeFile::DebugNode(CIndexTreeNodeFile* pcParent, int uiIndexInParent)
 {
 	CIndexTreeNodeFile*		pcCurrent;
 	CIndexTreeChildNode*	pcChild;
@@ -2298,7 +2401,7 @@ CIndexTreeNodeFile* CIndexTreeFile::DebugNode(CIndexTreeNodeFile* pcParent, unsi
 		if (pcChild->IsMemory())
 		{
 			pcCurrent = pcChild->u.mpcMemory;
-			DebugNode(pcCurrent);
+			DebugNodeChildren(pcCurrent, uiIndexInParent);
 			return pcCurrent;
 		}
 		else if (pcChild->IsFile())
@@ -2306,7 +2409,7 @@ CIndexTreeNodeFile* CIndexTreeFile::DebugNode(CIndexTreeNodeFile* pcParent, unsi
 			if (Read(pcChild, pcParent, uiIndexInParent))
 			{
 				pcCurrent = pcChild->u.mpcMemory;
-				DebugNode(pcCurrent);
+				DebugNodeChildren(pcCurrent, uiIndexInParent);
 				return pcCurrent;
 			}
 			else
@@ -2338,33 +2441,29 @@ CIndexTreeNodeFile* CIndexTreeFile::DebugNode(CIndexTreeNodeFile* pcParent, unsi
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeFile::DebugNode(CIndexTreeNodeFile* pcCurrent)
+void CIndexTreeFile::DebugNode(int iFile, unsigned int uiIndex, int uIndexFromParent)
 {
-	CFileDataIndex*			pcIndex;
-	int						iFile;
-	unsigned int			uiIndex;
+	SIndexTreeDebugNode		sDebugNode;
 
-	pcIndex = pcCurrent->GetFileIndex();
+	ReadDebugNode(&sDebugNode, iFile, uiIndex);
 
-	iFile = pcIndex->miFile;
-	uiIndex = pcIndex->muiIndex;
-
-	DebugNode(iFile, uiIndex, pcCurrent->GetIndexInParent());
+	sDebugNode.uiIndexInParent = uIndexFromParent;
+	sDebugNode.Dump();
 }
 
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeFile::DebugNode(int iFile, unsigned int uiIndex, unsigned int uIndexFromParent)
+void CIndexTreeFile::ReadDebugNode(SIndexTreeDebugNode* psDebugNode, int iFile, unsigned int uiIndex)
 {
 	CIndexedFile*			pcFile;
 	int						iDataSize;
 	CStackMemory<>			cTemp;
 	void*					pvBuffer;
 	BOOL					bResult;
-	SIndexTreeDebugNode		sDebugNode;
 
 	pcFile = mcIndexFiles.GetFile(iFile);
 	iDataSize = pcFile->GetDataSize();
@@ -2372,8 +2471,176 @@ void CIndexTreeFile::DebugNode(int iFile, unsigned int uiIndex, unsigned int uIn
 	pvBuffer = cTemp.Init(iDataSize);
 	bResult = pcFile->Read(uiIndex, pvBuffer);
 
-	sDebugNode.InitFromBuffer(pvBuffer, iDataSize, iFile, uiIndex);
-	sDebugNode.uiIndexInParent = uIndexFromParent;
-	sDebugNode.Dump();
+	psDebugNode->InitFromBuffer(pvBuffer, iDataSize, iFile, uiIndex);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void AppendIndexTreeFileNodeDescrition(CChars* psz, int uIndexFromParent)
+{
+	if (uIndexFromParent == -1)
+	{
+		psz->Append("root: ");
+	}
+	else
+	{
+		if ((uIndexFromParent >= 32) && (uIndexFromParent <= 126))
+		{
+			psz->Append(" ");
+			psz->Append((char)uIndexFromParent);
+			psz->Append(" -> ");
+		}
+		else
+		{
+			psz->Append(uIndexFromParent);
+			psz->Append(" -> ");
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexTreeFile::DebugNodeChildren(CIndexTreeNodeFile* pcCurrent, int uIndexFromParent, CChars* pszMemory, CChars* pszFile)
+{
+	AppendIndexTreeFileNodeDescrition(pszMemory, uIndexFromParent);
+	PrintChildFileIndexes(pcCurrent, pszMemory);
+
+	if (pcCurrent->GetFileIndex()->HasFile())
+	{
+		AppendIndexTreeFileNodeDescrition(pszFile, uIndexFromParent);
+		PrintNodeFileIndexes(pcCurrent, pszFile);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexTreeFile::DebugNodeChildren(CIndexTreeNodeFile* pcCurrent, int uIndexFromParent)
+{
+	CChars	sz;
+
+	sz.Init();
+	AppendIndexTreeFileNodeDescrition(&sz, uIndexFromParent);
+	PrintChildFileIndexes(pcCurrent, &sz);
+	sz.AppendNewLine();
+
+	if (pcCurrent->GetFileIndex()->HasFile())
+	{
+		AppendIndexTreeFileNodeDescrition(&sz, uIndexFromParent);
+		PrintNodeFileIndexes(pcCurrent, &sz);
+		sz.AppendNewLine();
+	}
+
+	sz.Dump();
+	sz.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexTreeFile::PrintChildFileIndexes(CIndexTreeNodeFile* pcCurrent, CChars* psz)
+{
+	int						i;
+	CIndexTreeChildNode*	pcChild;
+	CIndexTreeChildNode*	acChildren;
+	CIndexTreeNodeFile*		pcMemoryChild;
+
+	acChildren = pcCurrent->GetNodes();
+	if (pcCurrent->HasNodes())
+	{
+		for (i = 0; i <= pcCurrent->GetLastIndex() - pcCurrent->GetFirstIndex(); i++)
+		{
+			pcChild = &acChildren[i];
+			if (pcChild->IsValid())
+			{
+				if (pcChild->IsMemory())
+				{
+					pcMemoryChild = pcChild->u.mpcMemory;
+					if (pcMemoryChild->GetFileIndex()->HasFile())
+					{
+						psz->Append(pcMemoryChild->GetFileIndex()->miFile);
+						psz->Append(":");
+						psz->Append(pcMemoryChild->GetFileIndex()->muiIndex);
+					}
+					else
+					{
+						psz->Append(".");
+					}
+				}
+				else
+				{
+					psz->Append(pcChild->u.mcFile.miFile);
+					psz->Append(":");
+					psz->Append(pcChild->u.mcFile.muiIndex);
+				}
+			}
+			else
+			{
+				psz->Append(".");
+			}
+			psz->Append(" ");
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexTreeFile::PrintNodeFileIndexes(CIndexTreeNodeFile* pcCurrent, CChars* psz)
+{
+	CIndexedFile*			pcFile;
+	int						iDataSize;
+	CStackMemory<>			cTemp;
+	char*					pucMemory;
+	BOOL					bResult;
+	int						iFile;
+	unsigned int			uiIndex;
+	int						i;
+	SIndexTreeDebugNode		sDebugNode;
+	int						iPos;
+	unsigned int			ulliFilePos;
+
+	iFile = pcCurrent->GetFileIndex()->miFile;
+
+	pcFile = mcIndexFiles.GetFile(iFile);
+	iDataSize = pcFile->GetDataSize();
+	uiIndex = pcCurrent->GetFileIndex()->muiIndex;
+
+	pucMemory = (char*)cTemp.Init(iDataSize);
+	bResult = pcFile->Read(uiIndex, pucMemory);
+
+	iPos = sDebugNode.InitFromBuffer(pucMemory, iDataSize, iFile, uiIndex);
+	if (!(sDebugNode.sFlags & INDEX_TREE_NODE_FLAG_EMPTY))
+	{
+		for (i = 0; i <= sDebugNode.uiLastIndex - sDebugNode.uiFirstIndex; i++)
+		{
+			iFile = *((int*)&pucMemory[iPos]);  iPos += sizeof(int);
+			ulliFilePos = *((unsigned int*)&pucMemory[iPos]);  iPos += sizeof(unsigned int);
+
+			if (iFile != -1)
+			{
+				psz->Append(iFile);
+				psz->Append(":");
+				psz->Append(ulliFilePos);
+			}
+			else
+			{
+				psz->Append(".");
+			}
+			psz->Append(" ");
+		}
+	}
 }
 

@@ -2051,7 +2051,7 @@ void CChars::AppendData(char* szData, int iMaxLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::AppendData2(char* szData, int iDataLength, int iMaxLength)
+void CChars::AppendData(char* szData, int iDataLength, int iMaxLength)
 {
 	int				i;
 	int				iLength;
