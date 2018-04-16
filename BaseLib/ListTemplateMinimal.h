@@ -1,5 +1,7 @@
 #include "Define.h"
 
+
+//The commnets and names in this class are weird because it began life as a CSV file row.
 template <class M>
 class CListTemplateMinimal
 {
@@ -141,3 +143,4 @@ int CListTemplateMinimal<M>::AllocatedElements(void)
 {
 	return miNumElements;
 }
+

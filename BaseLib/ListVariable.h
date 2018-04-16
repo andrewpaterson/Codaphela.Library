@@ -44,15 +44,10 @@ typedef CArrayTemplate<SPointerAndSize> CArrayTypedPointerAndSize;
 class CListVariable
 {
 private:
-	CFreeListMaybe* 	GetFreeListForSize(int iSize);
-	void				PrivateFree(void* pvElement, int iElementSize);
-	void				PrivateFree(SPointerAndSize* psType);
-	void*				PrivateMalloc(int iElementSize);
-
-public:
 	CArrayTypedPointerAndSize	mcArray;
 	CLinkListFreeListMaybe		mcFreeLists;
 
+public:
 	void	Init(void);
 	void	Init(int iChunkSize);
 	void	ReInit(void);
@@ -70,6 +65,12 @@ public:
 	BOOL	FindInSorted(void* pvElement, int(*Func)(const void*, const void*), int* piIndex);
 	void*	InsertAt(int iIndex, int iElementSize);
 	int		InsertIntoSorted(int(*)(const void*, const void*), void* pvElement, BOOL bOverwriteExisting, int iElementSize);
+
+private:
+	CFreeListMaybe* 	GetFreeListForSize(int iSize);
+	void				PrivateFree(void* pvElement, int iElementSize);
+	void				PrivateFree(SPointerAndSize* psType);
+	void*				PrivateMalloc(int iElementSize);
 };
 
 
