@@ -738,6 +738,9 @@
     <ClInclude Include="StackMemory.h">
       <Filter>Source\Memory\Temporary</Filter>
     </ClInclude>
+    <ClInclude Include="MemoryFreeListParams.h">
+      <Filter>Source\Memory\Manager</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -1159,6 +1162,9 @@
     </ClCompile>
     <ClCompile Include="ListCharsMinimal.cpp">
       <Filter>Source\Data\List\Minimal\Specific</Filter>
+    </ClCompile>
+    <ClCompile Include="MemoryFreeListParams.cpp">
+      <Filter>Source\Memory\Manager</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

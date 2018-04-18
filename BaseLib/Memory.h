@@ -23,17 +23,10 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __MEMORY_H__
 #define __MEMORY_H__
 #include "MemoryHeader.h"
+#include "MemoryFreeListParams.h"
 
 
 typedef CLinkedListTemplate<CFreeList> CLinkListFreeList;
-
-
-struct SMemoryParams
-{
-	int				iDefaultAlignment;
-	unsigned int	uiFreeListSizeLimit;
-	int				iFreeListParams;
-};
 
 
 class CMemory
@@ -43,9 +36,8 @@ private:
 	CLinkedListBlockAligned		mcLargeList;
 	CArrayFreeListDesc			mcOrder;
 
-	CArrayFreeListParams		mcParams;
+	CMemoryFreeListParams		mcFreeListParams;
 	int							miDefaultAlignment;
-	unsigned int				muiFreeListSizeLimit;
 
 	unsigned int				muiAllocCount;
 	unsigned int				muiBreakAlloc;
@@ -67,11 +59,9 @@ public:
 	void					BreakOnAdd(unsigned int uiAllocCount);
 	int						NumElements(void);
 	int						ByteSize(void);
-	void					AddParamBlock(unsigned int iFreeListSize, int iPrevSize, int iChunkSize);
-	void					AddParamBlock(SMemoryFreeListParams* psParam);
-	void					GetParams(SMemoryParams* psParams);
-	SMemoryFreeListParams*	GetFreeListParams(int iIndex);
-	void					SetFreeListSizeLimit(unsigned int uiFreeListSizeLimit);
+	//void					GetParams(SMemoryParams* psParams);
+	CMemoryFreeListParams*	GetFreeListParams(void);
+	int						GetDefaultAlignment(void);
 
 	SMemory					StartIteration(SMemoryIterator* psIterator);
 	SMemory					Iterate(SMemoryIterator* psIterator);
@@ -81,6 +71,7 @@ public:
 
 	CFreeList*				TestGetFreeListsHead(void);
 	void*					TestGetLargeListsHead(void);
+	int						NumFreeLists(void);
 
 protected:
 	int						RemoveNode(CArrayVoidPtr* pav, int i, SMemoryAllocation* psAlloc, int iChunkSize, SFNode* psNode, CFreeList* pcList);
@@ -88,8 +79,6 @@ protected:
 
 private:
 	CFreeList*				GetOrAddFreeList(unsigned int iElementSize, int iAlignment, int iOffset);
-	SMemoryFreeListParams*	GetFreeListParamsForSize(unsigned int iElementSize);
-	void					InitFreeListParams(void);
 	void*					AllocateInFreeList(CFreeList* pcFreeList, unsigned int uiElementSize);
 	void					DeallocateInFreeList(CFreeList* pcFreeList, SMemoryAllocation* psAlloc);
 	void*					AllocateInLargeList(unsigned int uiSize, int iAlignment, int iOffset);

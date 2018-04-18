@@ -80,30 +80,18 @@ char* CMemoryAllocator::GetName(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CMemoryAllocator::Read(CFileReader* pcFileReader)
 {
-	SMemoryParams			sParams;
-	SMemoryFreeListParams	sBlockParams;
-	int						i;
+	int						iDefaultAlignment;
+	CMemoryFreeListParams*	pcParams;
 
-	if (!pcFileReader->ReadData(&sParams, sizeof(SMemoryParams)))
+	if (!pcFileReader->ReadInt(&iDefaultAlignment))
 	{
 		return FALSE;
 	}
 
-	mcMemory.Init(sParams.iDefaultAlignment, FALSE);
+	mcMemory.Init(iDefaultAlignment, FALSE);
+	pcParams = mcMemory.GetFreeListParams();
 
-	for (i = 0; i < sParams.iFreeListParams; i++)
-	{
-		if (!pcFileReader->ReadData(&sBlockParams, sizeof(SMemoryFreeListParams)))
-		{
-			return FALSE;
-		}
-
-		mcMemory.AddParamBlock(&sBlockParams);
-	}
-
-	mcMemory.SetFreeListSizeLimit(sParams.uiFreeListSizeLimit);
-
-	return TRUE;
+	return pcParams->Read(pcFileReader);
 }
 
 
@@ -113,27 +101,16 @@ BOOL CMemoryAllocator::Read(CFileReader* pcFileReader)
 //////////////////////////////////////////////////////////////////////////
 BOOL CMemoryAllocator::Write(CFileWriter* pcFileWriter)
 {
-	SMemoryParams			sParams;
-	SMemoryFreeListParams*	psBlockParams;
-	int						i;
+	CMemoryFreeListParams*	pcParams;
 
-	mcMemory.GetParams(&sParams);
-	if (!pcFileWriter->WriteData(&sParams, sizeof(SMemoryParams)))
+	if (!pcFileWriter->WriteInt(mcMemory.GetDefaultAlignment()))
 	{
 		return FALSE;
 	}
 
-	for (i = 0; i < sParams.iFreeListParams; i++)
-	{
-		psBlockParams = mcMemory.GetFreeListParams(i);
-		if (!pcFileWriter->WriteData(psBlockParams, sizeof(SMemoryFreeListParams)))
-		{
-			return FALSE;
-		}
+	pcParams = mcMemory.GetFreeListParams();
 
-	}
-
-	return TRUE;
+	return pcParams->Write(pcFileWriter);
 }
 
 

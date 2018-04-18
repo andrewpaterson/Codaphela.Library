@@ -6,8 +6,6 @@
 #include "LinkedListBlockAligned.h"
 
 
-#define MEMORY_FREE_LIST_SIZE_LIMIT	2048
-
 
 struct SMemoryAllocation
 {
@@ -16,25 +14,6 @@ struct SMemoryAllocation
 	unsigned int	uiSize;
 	char			szDebug[4];
 };
-
-
-struct SMemoryFreeListParams
-{
-	unsigned int	iMaxListSize;  //This is the size of the actual element in the free list including SMemoryAllocation
-	unsigned int	iMinListSize;  //This is the size of the previous element in the free list including SMemoryAllocation +1.
-
-	//These exist for some binary search Compare function stuffs.
-	unsigned int	iMaxElementSize;
-	unsigned int	iMinElementSize;
-
-	int				iChunkSize;
-
-	SMemoryFreeListParams*	Init(unsigned int iFreeListSize, int iPrevSize, int iChunkSize);
-};
-
-
-typedef CArrayTemplate<SMemoryFreeListParams>		CArrayFreeListParams;
-int CompareFreeListParam(const void* arg1, const void* arg2);
 
 
 struct SFreeListDesc

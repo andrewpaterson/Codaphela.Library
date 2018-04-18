@@ -149,6 +149,7 @@
     <ClInclude Include="Mallocators.h" />
     <ClInclude Include="MemoryBlock.h" />
     <ClInclude Include="MemoryCacheAllocation.h" />
+    <ClInclude Include="MemoryFreeListParams.h" />
     <ClInclude Include="MemoryHeader.h" />
     <ClInclude Include="NullAllocator.h" />
     <ClInclude Include="PackFileIterator.h" />
@@ -311,6 +312,7 @@
     <ClCompile Include="Mallocators.cpp" />
     <ClCompile Include="MemoryBlock.cpp" />
     <ClCompile Include="MemoryCacheAllocation.cpp" />
+    <ClCompile Include="MemoryFreeListParams.cpp" />
     <ClCompile Include="MemoryHeader.cpp" />
     <ClCompile Include="NullAllocator.cpp" />
     <ClCompile Include="PackFileIterator.cpp" />
