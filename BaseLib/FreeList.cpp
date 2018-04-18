@@ -364,7 +364,7 @@ void CFreeList::RemoveNode(SFNode* psNode)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CFreeList::GetParams(SFreeListParams2* psParams)
+void CFreeList::GetParams(SFreeListParams* psParams)
 {
 	psParams->iAlignment = miAlignment;
 	psParams->iChunkSize = miChunkSize;

@@ -108,9 +108,9 @@ CFreeList* CFreeListAllocator::GetFreeList(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CFreeListAllocator::Read(CFileReader* pcFileReader)
 {
-	SFreeListParams2	sParams;
+	SFreeListParams	sParams;
 
-	if (!pcFileReader->ReadData(&sParams, sizeof(SFreeListParams2)))
+	if (!pcFileReader->ReadData(&sParams, sizeof(SFreeListParams)))
 	{
 		return FALSE;
 	}
@@ -126,11 +126,11 @@ BOOL CFreeListAllocator::Read(CFileReader* pcFileReader)
 //////////////////////////////////////////////////////////////////////////
 BOOL CFreeListAllocator::Write(CFileWriter* pcFileWriter)
 {
-	SFreeListParams2	sParams;
+	SFreeListParams	sParams;
 
 	mcFreeList.GetParams(&sParams);
 	
-	if (!pcFileWriter->WriteData(&sParams, sizeof(SFreeListParams2)))
+	if (!pcFileWriter->WriteData(&sParams, sizeof(SFreeListParams)))
 	{
 		return FALSE;
 	}

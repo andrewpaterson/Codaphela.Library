@@ -32,7 +32,7 @@ typedef CLinkedListTemplate<CFreeList> CLinkListFreeList;
 class CMemory
 {
 private:
-	CLinkListFreeList			mcFreeLists;  
+	CLinkListFreeList			mcFreeLists;
 	CLinkedListBlockAligned		mcLargeList;
 	CArrayFreeListDesc			mcOrder;
 
@@ -59,7 +59,6 @@ public:
 	void					BreakOnAdd(unsigned int uiAllocCount);
 	int						NumElements(void);
 	int						ByteSize(void);
-	//void					GetParams(SMemoryParams* psParams);
 	CMemoryFreeListParams*	GetFreeListParams(void);
 	int						GetDefaultAlignment(void);
 

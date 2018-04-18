@@ -39,7 +39,7 @@ struct SFNode
 };
 
 
-struct SFreeListParams2
+struct SFreeListParams
 {
 	int		iAlignment;
 	int		iOffset;
@@ -101,7 +101,7 @@ public:
 	void*		GetFirstNodeElement(SFNode* psNode);
 	void*		GetLastNodeElement(SFNode* psNode);
 	void		RemoveNode(SFNode* psNode);
-	void		GetParams(SFreeListParams2* psParams);
+	void		GetParams(SFreeListParams* psParams);
 
 protected:
 	SFNode* AllocateNew(void);
