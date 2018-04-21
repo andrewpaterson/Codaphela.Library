@@ -1055,7 +1055,7 @@ BOOL CEnumeratorTemplate<M>::WriteEnumeratorBlock(CFileWriter* pcFileWriter)
 		return FALSE;
 	}
 
-	if (!mcList.WriteLinkedListTemplate(pcFileWriter))
+	if (!mcList.Write(pcFileWriter))
 	{
 
 		return FALSE;
@@ -1102,7 +1102,7 @@ BOOL CEnumeratorTemplate<M>::ReadEnumeratorBlock(CFileReader* pcFileReader)
 		return FALSE;
 	}
 
-	if (!mcList.ReadLinkedListTemplate(pcFileReader))
+	if (!mcList.Read(pcFileReader))
 	{
 		return FALSE;
 	}

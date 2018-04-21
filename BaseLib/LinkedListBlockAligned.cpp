@@ -45,7 +45,6 @@ void CLinkedListBlockAligned::Kill(void)
 	}
 	mpsHead = NULL;
 	mpsTail = NULL;
-	miNumElements = 0;
 }
 
 

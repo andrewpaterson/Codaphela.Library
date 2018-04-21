@@ -47,9 +47,8 @@ public:
 	int		IndexOf(M* pvData);
 	BOOL	IsInList(M* pvData);
 
-	//Crap
-	BOOL	WriteLinkedListTemplate(CFileWriter* pcFileWriter);
-	BOOL	ReadLinkedListTemplate(CFileReader* pcFileReader);
+	BOOL	Write(CFileWriter* pcFileWriter);
+	BOOL	Read(CFileReader* pcFileReader);
 };
 
 
@@ -191,9 +190,9 @@ M* CLinkedListTemplate<M>::Add(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-BOOL CLinkedListTemplate<M>::WriteLinkedListTemplate(CFileWriter* pcFileWriter)
+BOOL CLinkedListTemplate<M>::Write(CFileWriter* pcFileWriter)
 {
-	return CLinkedListBlock::WriteLinkListBlock(pcFileWriter);
+	return CLinkedListBlock::Write(pcFileWriter);
 }
 
 
@@ -202,9 +201,9 @@ BOOL CLinkedListTemplate<M>::WriteLinkedListTemplate(CFileWriter* pcFileWriter)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-BOOL CLinkedListTemplate<M>::ReadLinkedListTemplate(CFileReader* pcFileReader)
+BOOL CLinkedListTemplate<M>::Read(CFileReader* pcFileReader)
 {
-	return CLinkedListBlock::ReadLinkListBlock(pcFileReader);
+	return CLinkedListBlock::Read(pcFileReader);
 }
 
 

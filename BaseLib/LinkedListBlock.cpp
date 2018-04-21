@@ -1,6 +1,7 @@
 #include "Define.h"
 #include "DataMacro.h"
 #include "SystemAllocator.h"
+#include "GlobalMemory.h"
 #include "LinkedListBlock.h"
 
 
@@ -53,7 +54,6 @@ void CLinkedListBlock::Init(CMallocator* pcMalloc)
 	mpcMalloc = pcMalloc;
 	mpsHead = NULL;
 	mpsTail = NULL;
-	miNumElements = 0;
 }
 
 
@@ -75,7 +75,6 @@ void CLinkedListBlock::Kill(void)
 	}
 	mpsHead = NULL;
 	mpsTail = NULL;
-	miNumElements = 0;
 }
 
 
@@ -182,7 +181,6 @@ void CLinkedListBlock::InsertDetachedAfterTail(void* psData)
 		mpsTail->psNext = psNode;
 	}
 	mpsTail = psNode;
-	miNumElements++;
 }
 
 
@@ -207,7 +205,6 @@ void CLinkedListBlock::InsertDetachedBeforeHead(void* psData)
 		mpsHead->psPrev = psNode;
 	}
 	mpsHead = psNode;
-	miNumElements++;
 }
 
 
@@ -235,7 +232,6 @@ void CLinkedListBlock::InsertDetachedBeforeNode(void* psDataNode, void* psDataPo
 		mpsHead = psNode;
 	}
 	psPos->psPrev = psNode;
-	miNumElements++;
 }
 
 
@@ -263,7 +259,6 @@ void CLinkedListBlock::InsertDetachedAfterNode(void* psDataNode, void* psData)
 		mpsTail = psNode;
 	}
 	psPos->psNext = psNode;
-	miNumElements++;
 }
 
 
@@ -418,7 +413,6 @@ void CLinkedListBlock::Detach(SLLNode* psNodeHeader)
 		{
 			mpsTail = psNodeHeader->psPrev;
 		}
-		miNumElements--;
 	}
 }
 
@@ -472,8 +466,8 @@ void CLinkedListBlock::FreeDetached(void* psNodeData)
 //////////////////////////////////////////////////////////////////////////
 void CLinkedListBlock::Swap(void* psData1, void* psData2)
 {
-	SLLNode*		psNode1;
-	SLLNode*		psNode2;
+	SLLNode*	psNode1;
+	SLLNode*	psNode2;
 	SLLNode		sNodeTemp1;
 	SLLNode		sNodeTemp2;
 
@@ -533,7 +527,17 @@ void CLinkedListBlock::Swap(void* psData1, void* psData2)
 //////////////////////////////////////////////////////////////////////////
 int	CLinkedListBlock::NumElements(void)
 {
-	return miNumElements;
+	int		iCount;
+	void*	pvNode;
+
+	iCount = 0;
+	pvNode = GetHead();
+	while (pvNode)
+	{
+		iCount++;
+		pvNode = GetNext(pvNode);
+	}
+	return iCount;
 }
 
 
@@ -652,27 +656,71 @@ int CLinkedListBlock::IndexOf(void* pvData)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CLinkedListBlock::WriteLinkListBlock(CFileWriter* pcFileWriter)
+BOOL CLinkedListBlock::WriteHeader(CFileWriter* pcFileWriter)
+{
+	SLinkedListBlockDesc	sHeader;
+	int						iNumElements;
+
+	iNumElements = NumElements();
+	sHeader.Init(iNumElements);
+
+	if (!pcFileWriter->WriteData(&sHeader, sizeof(SLinkedListBlockDesc)))
+	{
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+BOOL CLinkedListBlock::WriteAllocatorAndHeader(CFileWriter* pcFileWriter)
+{
+	BOOL	bResult;
+
+	bResult = gcMallocators.WriteMallocator(pcFileWriter, mpcMalloc);
+	if (!bResult)
+	{
+		return FALSE;
+	}
+
+	bResult = WriteHeader(pcFileWriter);
+	if (!bResult)
+	{
+		return FALSE;
+	}
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+BOOL CLinkedListBlock::Write(CFileWriter* pcFileWriter)
 {
 	void*			pvData;
 	int				iSize;
 
-	if (!pcFileWriter->WriteData(this, sizeof(CLinkedListBlock))) 
-	{ 
-		return FALSE; 
+	if (!WriteAllocatorAndHeader(pcFileWriter))
+	{
+		return FALSE;
 	}
 
 	pvData = GetHead();
 	while (pvData)
 	{
 		iSize = GetNodeSize(pvData);
-		if (!pcFileWriter->WriteInt(iSize)) 
-		{ 
-			return FALSE; 
+		if (!pcFileWriter->WriteInt(iSize))
+		{
+			return FALSE;
 		}
-		if (!pcFileWriter->WriteData(pvData, iSize)) 
-		{ 
-			return FALSE; 
+		if (!pcFileWriter->WriteData(pvData, iSize))
+		{
+			return FALSE;
 		}
 
 		pvData = GetNext(pvData);
@@ -685,20 +733,64 @@ BOOL CLinkedListBlock::WriteLinkListBlock(CFileWriter* pcFileWriter)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CLinkedListBlock::ReadLinkListBlock(CFileReader* pcFileReader)
+BOOL CLinkedListBlock::ReadHeader(CFileReader* pcFileReader, CMallocator* pcMalloc, SLinkedListBlockDesc* psDesc)
 {
-	int				iNumElements;
-	int				i;
-	void*			pvData;
-	int				iSize;
-
-	if (!pcFileReader->ReadData(this, sizeof(CLinkedListBlock))) 
-	{ 
-		return FALSE; 
+	if (!pcFileReader->ReadData(psDesc, sizeof(SLinkedListBlockDesc)))
+	{
+		return FALSE;
 	}
 
-	iNumElements = NumElements();
-	Init();
+	mpsHead = NULL;
+	mpsTail = NULL;
+	mpcMalloc = pcMalloc;
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+BOOL CLinkedListBlock::ReadAllocatorAndHeader(CFileReader* pcFileReader, SLinkedListBlockDesc* psDesc)
+{
+	BOOL			bResult;
+	CMallocator*	pcMalloc;
+
+	pcMalloc = gcMallocators.ReadMallocator(pcFileReader);
+	if (pcMalloc == NULL)
+	{
+		return FALSE;
+	}
+
+	bResult = ReadHeader(pcFileReader, pcMalloc, psDesc);
+	if (!bResult)
+	{
+		return FALSE;
+	}
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+BOOL CLinkedListBlock::Read(CFileReader* pcFileReader)
+{
+	int						iNumElements;
+	int						i;
+	void*					pvData;
+	int						iSize;
+	BOOL					bResult;
+	SLinkedListBlockDesc	sDesc;
+
+	bResult = ReadAllocatorAndHeader(pcFileReader, &sDesc);
+	if (!bResult)
+	{
+		return FALSE;
+	}
+
+	iNumElements = sDesc.iNumElements;
 	for (i = 0; i < iNumElements; i++)
 	{
 		if (!pcFileReader->ReadInt(&iSize)) 
@@ -713,5 +805,16 @@ BOOL CLinkedListBlock::ReadLinkListBlock(CFileReader* pcFileReader)
 		}
 	}
 	return TRUE;
+}
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void SLinkedListBlockDesc::Init(int iNumElements)
+{
+	this->iNumElements = iNumElements;
 }
 

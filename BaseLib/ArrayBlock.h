@@ -119,12 +119,11 @@ public:
 	int		ChunkSize(void);
 	void	SetUsedElements(int iNumElements);
 
-	BOOL	WriteHeader(CFileWriter* pcFileWriter);
-	BOOL	ReadHeader(CFileReader* pcFileReader, CMallocator* pcMalloc);
-	BOOL	WriteAllocatorAndHeader(CFileWriter* pcFileWriter);
-	BOOL	ReadAllocatorAndHeader(CFileReader* pcFileReader);
 	BOOL	Write(CFileWriter* pcFileWriter);
 	BOOL	Read(CFileReader* pcFileReader);
+
+	BOOL	WriteHeader(CFileWriter* pcFileWriter);
+	BOOL	ReadHeader(CFileReader* pcFileReader, CMallocator* pcMalloc);
 
 protected:
 	void*	Malloc(size_t tSize);
@@ -138,6 +137,9 @@ protected:
 	void	PrivateRemoveRange(int iStartIndex, int iEndIndexExclusive, int bPreserveOrder, int iDataSize);
 	void	RemoveAtNoDeallocate(int iIndex, BOOL bPreserveOrder, int iDataSize);
 	void 	SetArraySize(int iNumElements);
+
+	BOOL	WriteAllocatorAndHeader(CFileWriter* pcFileWriter);
+	BOOL	ReadAllocatorAndHeader(CFileReader* pcFileReader);
 };
 
 

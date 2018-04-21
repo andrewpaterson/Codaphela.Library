@@ -37,12 +37,19 @@ struct SLLNode
 };
 
 
+struct SLinkedListBlockDesc
+{
+	int		iNumElements;
+
+	void Init(int iNumElements);
+};
+
+
 class CLinkedListBlock
 {
 protected:
 	SLLNode*		mpsHead; 
 	SLLNode*		mpsTail;
-	int				miNumElements;  //Remove this.
 	CMallocator*	mpcMalloc;
 
 public:
@@ -82,8 +89,8 @@ public:
 	int		IndexOf(void* pvData);
 	BOOL	IsInList(void* pvData);
 
-	BOOL	WriteLinkListBlock(CFileWriter* pcFileWriter);
-	BOOL	ReadLinkListBlock(CFileReader* pcFileReader);
+	BOOL	Write(CFileWriter* pcFileWriter);
+	BOOL	Read(CFileReader* pcFileReader);
 
 	void	BubbleSort(int(*)(const void*, const void*));
 
@@ -94,6 +101,11 @@ protected:
 
 	void	Swap(void* psData1, void* psData2);
 	int		GetNodeSize(void* psData);
+
+	BOOL	WriteAllocatorAndHeader(CFileWriter* pcFileWriter);
+	BOOL	ReadAllocatorAndHeader(CFileReader* pcFileReader, SLinkedListBlockDesc* psDesc);
+	BOOL	WriteHeader(CFileWriter* pcFileWriter);
+	BOOL	ReadHeader(CFileReader* pcFileReader, CMallocator* pcMalloc, SLinkedListBlockDesc* psDesc);
 };
 
 
