@@ -16,7 +16,7 @@ struct SMemoryAllocation
 };
 
 
-struct SFreeListDesc
+struct SAlignedFreeListDesc
 {
 	CFreeList*		pcFreeList;
 	unsigned int	iStride;
@@ -47,8 +47,8 @@ struct SMemory
 };
 
 
-typedef CArrayTemplate<SFreeListDesc>		CArrayFreeListDesc;
-int CompareFreeListDesc(const void* arg1, const void* arg2);
+typedef CArrayTemplate<SAlignedFreeListDesc>		CArrayFreeListDesc;
+int CompareAlignedFreeListDesc(const void* arg1, const void* arg2);
 
 
 #endif // __MEMORY_HEADER_H__

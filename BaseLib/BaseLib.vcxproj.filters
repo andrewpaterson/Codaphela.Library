@@ -747,6 +747,9 @@
     <ClInclude Include="IntegerHelper.h">
       <Filter>Source\Math\Primitive</Filter>
     </ClInclude>
+    <ClInclude Include="DataMemory.h">
+      <Filter>Source\Memory\Manager</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -1171,6 +1174,9 @@
     </ClCompile>
     <ClCompile Include="Numbers.cpp">
       <Filter>Source\Math\Primitive</Filter>
+    </ClCompile>
+    <ClCompile Include="DataMemory.cpp">
+      <Filter>Source\Memory\Manager</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -23,6 +23,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __FREE_LIST_MAYBE_H__
 #define __FREE_LIST_MAYBE_H__
 #include "FreeList.h"
+#include "LinkedListTemplate.h"
 
 
 #define NUM_ELEMENTS_BEFORE_FREELIST	16
@@ -58,6 +59,9 @@ protected:
 	void*	CreateLinkList(void);
 	void*	CreateFreeList(void);
 };
+
+
+typedef CLinkedListTemplate<CFreeListMaybe> CLinkListFreeListMaybe;
 
 
 #endif // __FREE_LIST_MAYBE_H__

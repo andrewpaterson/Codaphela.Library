@@ -34,6 +34,7 @@ private:
 
 public:
 	void Init(int iHeaderSize, BOOL bDefaultFreeListParams = TRUE);
+	void Kill(void);
 
 	void					AddParamBlock(unsigned int iFreeListSize, int iPrevSize, int iChunkSize);
 	void					AddParamBlock(SMemoryFreeListParams* psParam);

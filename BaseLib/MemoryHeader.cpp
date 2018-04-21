@@ -6,7 +6,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void SFreeListDesc::Init(unsigned int iStride, int iAlignment, int iOffset)
+void SAlignedFreeListDesc::Init(unsigned int iStride, int iAlignment, int iOffset)
 {
 	this->iStride = iStride;
 	this->iAlignment = iAlignment;
@@ -19,7 +19,7 @@ void SFreeListDesc::Init(unsigned int iStride, int iAlignment, int iOffset)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void SFreeListDesc::Init(CFreeList* pcFreeList, int iStride, int iAlignment, int iOffset)
+void SAlignedFreeListDesc::Init(CFreeList* pcFreeList, int iStride, int iAlignment, int iOffset)
 {
 	this->iStride = iStride;
 	this->iAlignment = iAlignment;
@@ -32,13 +32,13 @@ void SFreeListDesc::Init(CFreeList* pcFreeList, int iStride, int iAlignment, int
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CompareFreeListDesc(const void* arg1, const void* arg2)
+int CompareAlignedFreeListDesc(const void* arg1, const void* arg2)
 {
-	SFreeListDesc*	ps1;
-	SFreeListDesc*	ps2;
+	SAlignedFreeListDesc*	ps1;
+	SAlignedFreeListDesc*	ps2;
 
-	ps1 = (SFreeListDesc*)arg1;
-	ps2 = (SFreeListDesc*)arg2;
+	ps1 = (SAlignedFreeListDesc*)arg1;
+	ps2 = (SAlignedFreeListDesc*)arg2;
 
 	if ((ps1->iStride) < (ps2->iStride))
 	{

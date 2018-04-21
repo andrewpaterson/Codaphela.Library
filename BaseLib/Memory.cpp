@@ -70,6 +70,8 @@ void CMemory::Kill(void)
 	mcFreeLists.Kill();
 
 	mcLargeList.Kill();
+
+	mcFreeListParams.Kill();
 }
 
 
@@ -444,20 +446,18 @@ void CMemory::DeallocateInLargeList(SMemoryAllocation* psAlloc)
 //////////////////////////////////////////////////////////////////////////
 CFreeList* CMemory::GetFreeList(unsigned int iElementSize, int iAlignment, int iOffset)
 {
-	SFreeListDesc			sDesc;
+	SAlignedFreeListDesc	sDesc;
 	BOOL					bResult;
 	int						iIndex;
-	SFreeListDesc*			psDesc;
+	SAlignedFreeListDesc*	psDesc;
 	SMemoryFreeListParams*	psParams;
 	int						iStride;
-	int						iFinalOffset;
 
-	iFinalOffset = CalculateOffset(iOffset - sizeof(SMemoryAllocation), iAlignment);
 	psParams = mcFreeListParams.GetFreeListParamsForSize(iElementSize);
 	iStride = CalculateStride(psParams->iMaxElementSize, iAlignment);
 
 	sDesc.Init(iStride, iAlignment, iOffset);
-	bResult = mcOrder.FindInSorted(&sDesc, CompareFreeListDesc, &iIndex);
+	bResult = mcOrder.FindInSorted(&sDesc, CompareAlignedFreeListDesc, &iIndex);
 	if (bResult)
 	{
 		psDesc = mcOrder.Get(iIndex);
@@ -483,10 +483,10 @@ CFreeList* CMemory::GetFreeList(unsigned int iElementSize)
 //////////////////////////////////////////////////////////////////////////
 CFreeList* CMemory::GetOrAddFreeList(unsigned int iElementSize, int iAlignment, int iOffset)
 {
-	SFreeListDesc			sDesc;
+	SAlignedFreeListDesc	sDesc;
 	BOOL					bResult;
 	int						iIndex;
-	SFreeListDesc*			psDesc;
+	SAlignedFreeListDesc*	psDesc;
 	CFreeList*				pcList;
 	SMemoryFreeListParams*	psParams;
 	int						iFinalOffset;
@@ -497,7 +497,7 @@ CFreeList* CMemory::GetOrAddFreeList(unsigned int iElementSize, int iAlignment, 
 	iStride = CalculateStride(psParams->iMaxElementSize, iAlignment);
 
 	sDesc.Init(iStride, iAlignment, iOffset);
-	bResult = mcOrder.FindInSorted(&sDesc, CompareFreeListDesc, &iIndex);
+	bResult = mcOrder.FindInSorted(&sDesc, CompareAlignedFreeListDesc, &iIndex);
 	if (bResult)
 	{
 		psDesc = mcOrder.Get(iIndex);

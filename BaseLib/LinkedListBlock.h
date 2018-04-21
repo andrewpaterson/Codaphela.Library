@@ -42,7 +42,7 @@ class CLinkedListBlock
 protected:
 	SLLNode*		mpsHead; 
 	SLLNode*		mpsTail;
-	int				miNumElements;
+	int				miNumElements;  //Remove this.
 	CMallocator*	mpcMalloc;
 
 public:

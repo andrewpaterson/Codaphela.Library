@@ -96,6 +96,7 @@
     <ClInclude Include="ChunkFileFile.h" />
     <ClInclude Include="ChunkFileHeader.h" />
     <ClInclude Include="ChunkStack.h" />
+    <ClInclude Include="DataMemory.h" />
     <ClInclude Include="ListCharsMinimal.h" />
     <ClInclude Include="Constructors.h" />
     <ClInclude Include="DataMacro.h" />
@@ -285,6 +286,7 @@
     <ClCompile Include="ChunkFileHeader.cpp" />
     <ClCompile Include="ChunkStack.cpp" />
     <ClCompile Include="Constructors.cpp" />
+    <ClCompile Include="DataMemory.cpp" />
     <ClCompile Include="EscapeCodes.cpp" />
     <ClCompile Include="FileIndex.cpp" />
     <ClCompile Include="FileMode.cpp" />
