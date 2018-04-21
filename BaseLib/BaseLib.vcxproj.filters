@@ -202,6 +202,12 @@
     <Filter Include="Source\Data\List\Minimal\Specific">
       <UniqueIdentifier>{40587235-3dae-4501-817f-2ac8ea9e6eaa}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Math\Primitive">
+      <UniqueIdentifier>{c9fb94a4-c164-48b1-81bc-32288ea11359}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Math\Packed">
+      <UniqueIdentifier>{b2799c0c-14d3-4068-877a-b35cce76a83e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DataMacro.h">
@@ -326,18 +332,6 @@
     </ClInclude>
     <ClInclude Include="Logger.h">
       <Filter>Source\Error</Filter>
-    </ClInclude>
-    <ClInclude Include="FloatHelper.h">
-      <Filter>Source\Math</Filter>
-    </ClInclude>
-    <ClInclude Include="IntegerHelper.h">
-      <Filter>Source\Math</Filter>
-    </ClInclude>
-    <ClInclude Include="Numbers.h">
-      <Filter>Source\Math</Filter>
-    </ClInclude>
-    <ClInclude Include="PackedFloat.h">
-      <Filter>Source\Math</Filter>
     </ClInclude>
     <ClInclude Include="Number.h">
       <Filter>Source\Math\Number</Filter>
@@ -741,6 +735,18 @@
     <ClInclude Include="MemoryFreeListParams.h">
       <Filter>Source\Memory\Manager</Filter>
     </ClInclude>
+    <ClInclude Include="PackedFloat.h">
+      <Filter>Source\Math\Packed</Filter>
+    </ClInclude>
+    <ClInclude Include="Numbers.h">
+      <Filter>Source\Math\Primitive</Filter>
+    </ClInclude>
+    <ClInclude Include="FloatHelper.h">
+      <Filter>Source\Math\Primitive</Filter>
+    </ClInclude>
+    <ClInclude Include="IntegerHelper.h">
+      <Filter>Source\Math\Primitive</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -841,18 +847,6 @@
     </ClCompile>
     <ClCompile Include="Logger.cpp">
       <Filter>Source\Error</Filter>
-    </ClCompile>
-    <ClCompile Include="FloatHelper.cpp">
-      <Filter>Source\Math</Filter>
-    </ClCompile>
-    <ClCompile Include="IntegerHelper.cpp">
-      <Filter>Source\Math</Filter>
-    </ClCompile>
-    <ClCompile Include="Numbers.cpp">
-      <Filter>Source\Math</Filter>
-    </ClCompile>
-    <ClCompile Include="PackedFloat.cpp">
-      <Filter>Source\Math</Filter>
     </ClCompile>
     <ClCompile Include="Number.cpp">
       <Filter>Source\Math\Number</Filter>
@@ -1165,6 +1159,18 @@
     </ClCompile>
     <ClCompile Include="MemoryFreeListParams.cpp">
       <Filter>Source\Memory\Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="PackedFloat.cpp">
+      <Filter>Source\Math\Packed</Filter>
+    </ClCompile>
+    <ClCompile Include="FloatHelper.cpp">
+      <Filter>Source\Math\Primitive</Filter>
+    </ClCompile>
+    <ClCompile Include="IntegerHelper.cpp">
+      <Filter>Source\Math\Primitive</Filter>
+    </ClCompile>
+    <ClCompile Include="Numbers.cpp">
+      <Filter>Source\Math\Primitive</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
