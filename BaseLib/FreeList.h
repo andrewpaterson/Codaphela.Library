@@ -23,7 +23,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __FREE_LIST_BASE_H__
 #define __FREE_LIST_BASE_H__
 #include "IntegerHelper.h"
-#include "LinkedListBlock.h"
+#include "LinkedListTemplate.h"
 #include "DataTypes.h"
 #include "IntegerHelper.h"
 
@@ -119,6 +119,9 @@ protected:
 	BOOL	IsElementInNodeAllocated(SFNode* psNode, int iPosition);
 	void	RemoveExisiting(SFNode* psNode, void* pvData);
 };
+
+
+typedef CLinkedListTemplate<CFreeList> CLinkListFreeList;
 
 
 #endif // __FREE_LIST_BASE_H__

@@ -1,7 +1,7 @@
 #ifndef  __DATA_MEMORY_H__
 #define __DATA_MEMORY_H__
 #include "MemoryFreeListParams.h"
-#include "FreeListMaybe.h"
+#include "FreeList.h"
 
 extern CMemoryFreeListParams gcDataMemoryFreeListParams;
 
@@ -16,7 +16,7 @@ struct SDataMemoryAllocation
 class CDataMemory
 {
 private:
-	CLinkListFreeListMaybe	mcFreeLists;
+	CLinkListFreeList		mcFreeLists;
 
 	CMemoryFreeListParams*	mpcFreeListParams;
 

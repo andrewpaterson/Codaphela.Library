@@ -480,9 +480,6 @@
     <ClInclude Include="Aardvark.h">
       <Filter>Source</Filter>
     </ClInclude>
-    <ClInclude Include="FreeListMaybe.h">
-      <Filter>Source\Memory\Freelist</Filter>
-    </ClInclude>
     <ClInclude Include="FreeList.h">
       <Filter>Source\Memory\Freelist</Filter>
     </ClInclude>
@@ -970,9 +967,6 @@
     </ClCompile>
     <ClCompile Include="Aardvark.cpp">
       <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="FreeListMaybe.cpp">
-      <Filter>Source\Memory\Freelist</Filter>
     </ClCompile>
     <ClCompile Include="MemoryCache.cpp">
       <Filter>Source\Memory\Cache</Filter>

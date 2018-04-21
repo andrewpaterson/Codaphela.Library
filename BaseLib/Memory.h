@@ -26,9 +26,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "MemoryFreeListParams.h"
 
 
-typedef CLinkedListTemplate<CFreeList> CLinkListFreeList;
-
-
 //This is more of a debug memory manager than a replacement for malloc / free.
 //Collections from data can use it as their allocator which makes it easy to tell if memory is being unexpectedly sized / allocated.
 class CMemory

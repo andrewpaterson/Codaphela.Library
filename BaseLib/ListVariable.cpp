@@ -244,7 +244,7 @@ void CListVariable::PrivateFree(SPointerAndSize* psType)
 //////////////////////////////////////////////////////////////////////////
 void CListVariable::PrivateFree(void* pvElement, int iElementSize)
 {
-	CFreeListMaybe*		psFreelist;
+	CFreeList*		psFreelist;
 
 	if (iElementSize != 0)
 	{
@@ -257,7 +257,7 @@ void CListVariable::PrivateFree(void* pvElement, int iElementSize)
 		psFreelist = mcFreeLists.GetHead();
 		while (psFreelist)
 		{
-			if (psFreelist->SafeRemove(pvElement))
+			if (psFreelist->Remove(pvElement))
 			{
 				return;
 			}
@@ -282,9 +282,9 @@ int CListVariable::NumElements(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CFreeListMaybe* CListVariable::GetFreeListForSize(int iSize)
+CFreeList* CListVariable::GetFreeListForSize(int iSize)
 {
-	CFreeListMaybe*		psFreelist;
+	CFreeList*		psFreelist;
 
 	psFreelist = mcFreeLists.GetHead();
 	while (psFreelist)
@@ -305,13 +305,13 @@ CFreeListMaybe* CListVariable::GetFreeListForSize(int iSize)
 //////////////////////////////////////////////////////////////////////////
 void* CListVariable::PrivateMalloc(int iElementSize)
 {
-	CFreeListMaybe* psFreelist;
+	CFreeList* psFreelist;
 
 	psFreelist = GetFreeListForSize(iElementSize);
 	if (psFreelist == NULL)
 	{
 		psFreelist = mcFreeLists.InsertAfterTail();
-		psFreelist->Init(iElementSize);
+		psFreelist->Init(8, iElementSize);
 	}
 	return psFreelist->Add();
 }
