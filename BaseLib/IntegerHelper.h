@@ -43,6 +43,8 @@ int 	GetByte(int iInt, int iPos);
 int 	SetByte(int c, int iPos);
 int 	GetBit(int iBit, void* pvArray);  //return 1 or 0 in char.
 int 	GetBitReverseHiLo(int iBit, void* pvArray);  //return 1 or 0 in char.
+int		CountBits(void* pvBitArray, int iBitLength); 
+int		CountBitsSingly(void* pvBitArray, int iBitLength);  //Slow, for testing.
 void 	SetBit(int iBit, void* pvArray, int bBit);  //bBit can only take 1 or 0.
 void 	SetFlag(int* piDest, int iFlag, int iFlagValue);  //Identically to set bit but only works on 4bytes.
 void 	SetFlag(unsigned int* piDest, int iFlag, int iFlagValue);  //Identically to set bit but only works on 4bytes.

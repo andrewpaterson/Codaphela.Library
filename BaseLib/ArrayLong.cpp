@@ -21,6 +21,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
 #include <stdlib.h>
+#include "DebugOutput.h"
 #include "StringHelper.h"
 #include "ArrayLong.h"
 
@@ -31,18 +32,20 @@ Microsoft Windows is Copyright Microsoft Corporation
 //////////////////////////////////////////////////////////////////////////
 void CArrayLong::Dump(void)
 {
-	//int				i;
-	//long long int	iValue;
-	//char			sz[64];
+	int				i;
+	long long int	iValue;
+	char			sz[32];
 
-	//EngineOutput("[");
-	//for (i = 0; i < miUsedElements; i++)
-	//{
-	//	iValue = GetValue(i);
-	//	IToA(iValue, sz, 10);
-	//	EngineOutput(sz);
-	//	EngineOutput(" ");
-	//}
-	//EngineOutput("]\n");
+
+	EngineOutput("[");
+	for (i = 0; i < miUsedElements; i++)
+	{
+		iValue = GetValue(i);
+		IToA(iValue, sz, 10);
+		EngineOutput(sz);
+		EngineOutput(" ");
+	}
+	EngineOutput("]\n");
+
 }
 

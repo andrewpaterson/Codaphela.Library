@@ -146,6 +146,96 @@ int GetBit(int iBit, void* pvArray)
 
 //////////////////////////////////////////////////////////////////////////
 //
+//  https://en.wikipedia.org/wiki/Hamming_weight
+//
+//  This uses fewer arithmetic operations than any other known  
+//  implementation on machines with slow multiplication.
+//  This algorithm uses 17 arithmetic operations.
+//
+//////////////////////////////////////////////////////////////////////////
+int CountBits_PopCount64(unsigned long long int x)
+{
+	const unsigned long long int m1 = 0x5555555555555555;
+	const unsigned long long int m2 = 0x3333333333333333;
+	const unsigned long long int m4 = 0x0f0f0f0f0f0f0f0f;
+
+	x -= (x >> 1) & m1;             //put count of each 2 bits into those 2 bits
+	x = (x & m2) + ((x >> 2) & m2); //put count of each 4 bits into those 4 bits 
+	x = (x + (x >> 4)) & m4;        //put count of each 8 bits into those 8 bits 
+	x += x >> 8;  //put count of each 16 bits into their lowest 8 bits
+	x += x >> 16;  //put count of each 32 bits into their lowest 8 bits
+	x += x >> 32;  //put count of each 64 bits into their lowest 8 bits
+	return x & 0x7f;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//  https://stackoverflow.com/questions/14780928/count-number-of-bits-in-an-unsigned-integer
+//
+//////////////////////////////////////////////////////////////////////////
+int CountBits_PopCount32(unsigned int i)
+{
+	const unsigned int m1 = 0x55555555;
+	const unsigned int m2 = 0x33333333;
+	const unsigned int m4 = 0x0f0f0f0f;
+
+	i = i - ((i >> 1) & m1);
+	i = (i & m2) + ((i >> 2) & m2);
+	return (((i + (i >> 4)) & m4) * 0x01010101) >> 24;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CountBitsSingly(void* pvBitArray, int iBitLength)
+{
+	int iCount;
+	int	i;
+
+	iCount = 0;
+	for (i = 0; i < iBitLength; i++)
+	{
+		if (GetBit(i, pvBitArray))
+		{
+			iCount++;
+		}
+	}
+	return iCount;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int	CountBits(void* pvBitArray, int iBitLength)
+{
+	if (iBitLength == 32)
+	{
+		return CountBits_PopCount32(*((unsigned int*)pvBitArray));
+	}
+	else if (iBitLength == 64)
+	{
+		return CountBits_PopCount64(*((unsigned long long int*)pvBitArray));
+	}
+	else if (iBitLength == 128)
+	{
+		return CountBits_PopCount64(*((unsigned long long int*)pvBitArray)) + 
+		       CountBits_PopCount64(((unsigned long long int*)pvBitArray)[1]);
+	}
+	else
+	{
+		//Do better here.
+		return CountBitsSingly(pvBitArray, iBitLength);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //	Gets the state of a bit in an array given the bit position.
 //	No bounds checking is done.
 //

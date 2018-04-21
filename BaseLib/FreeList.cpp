@@ -828,9 +828,7 @@ int CFreeList::NumElements(void)
 //////////////////////////////////////////////////////////////////////////
 int CFreeList::NumNodeElements(SFNode* psNode)
 {
-	int			iCount;
 	void*		pvBitArray;
-	int			i;
 
 	if (psNode->bFull)
 	{
@@ -838,16 +836,8 @@ int CFreeList::NumNodeElements(SFNode* psNode)
 	}
 	else
 	{
-		iCount = 0;
 		pvBitArray = GetBitArray(psNode);
-		for (i = 0; i < miChunkSize; i++)
-		{
-			if (GetBit(i, pvBitArray))
-			{
-				iCount++;
-			}
-		}
-		return iCount;
+		return CountBits(pvBitArray, miChunkSize);
 	}
 }
 
