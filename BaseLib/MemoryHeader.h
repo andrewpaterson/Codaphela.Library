@@ -6,20 +6,29 @@
 #include "LinkedListBlockAligned.h"
 
 
-
-struct SMemoryAllocation
+struct SDataMemoryAllocation
 {
-	SFNode*			psFreeListNode;  //This is only valid when in a free list.
-	unsigned int	uiAllocCount;
+	SFNode*			psFreeListNode;
 	unsigned int	uiSize;
+};
+
+
+struct SGeneralMemoryAllocation : public SDataMemoryAllocation
+{
+	unsigned int	uiAllocCount;
 	char			szDebug[4];
 };
 
 
-struct SAlignedFreeListDesc
+struct SFreeListDesc
 {
 	CFreeList*		pcFreeList;
 	unsigned int	iStride;
+};
+
+
+struct SAlignedFreeListDesc : SFreeListDesc
+{
 	int				iAlignment;
 	int				iOffset;
 
@@ -35,6 +44,7 @@ struct SMemoryIterator
 };
 
 
+//Memory Iterator result.
 struct SMemory
 {
 	BOOL			bValid;
@@ -43,11 +53,11 @@ struct SMemory
 	unsigned int	uiSize;
 
 	void Init(void);
-	void Set(SMemoryAllocation* psAllocation);
+	void Set(SGeneralMemoryAllocation* psAllocation);
 };
 
 
-typedef CArrayTemplate<SAlignedFreeListDesc>		CArrayFreeListDesc;
+typedef CArrayTemplate<SAlignedFreeListDesc>	CArrayFreeListAlignedDesc;
 int CompareAlignedFreeListDesc(const void* arg1, const void* arg2);
 
 

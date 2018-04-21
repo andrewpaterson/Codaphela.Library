@@ -808,7 +808,6 @@ BOOL CLinkedListBlock::Read(CFileReader* pcFileReader)
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//

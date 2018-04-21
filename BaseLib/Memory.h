@@ -26,14 +26,14 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "MemoryFreeListParams.h"
 
 
-//This is more of a debug memory manager than a replacement for malloc / free.
+//This memory manager is designed to sit behind multiple collections with similar allocation pattersn.  It's not a replacement for malloc / free.
 //Collections from data can use it as their allocator which makes it easy to tell if memory is being unexpectedly sized / allocated.
 class CMemory
 {
 private:
 	CLinkListFreeList			mcFreeLists;
 	CLinkedListBlockAligned		mcLargeList;
-	CArrayFreeListDesc			mcOrder;
+	CArrayFreeListAlignedDesc	mcOrder;
 
 	CMemoryFreeListParams		mcFreeListParams;
 	int							miDefaultAlignment;
@@ -72,21 +72,21 @@ public:
 	int						NumFreeLists(void);
 
 protected:
-	int						RemoveNode(CArrayVoidPtr* pav, int i, SMemoryAllocation* psAlloc, int iChunkSize, SFNode* psNode, CFreeList* pcList);
+	int						RemoveNode(CArrayVoidPtr* pav, int i, SGeneralMemoryAllocation* psAlloc, int iChunkSize, SFNode* psNode, CFreeList* pcList);
 	int						RemoveElements(CArrayVoidPtr* pav, int i, SFNode* psNode, CFreeList* pcList);
 
 private:
 	CFreeList*				GetOrAddFreeList(unsigned int iElementSize, int iAlignment, int iOffset);
 	void*					AllocateInFreeList(CFreeList* pcFreeList, unsigned int uiElementSize);
-	void					DeallocateInFreeList(CFreeList* pcFreeList, SMemoryAllocation* psAlloc);
+	void					DeallocateInFreeList(CFreeList* pcFreeList, SGeneralMemoryAllocation* psAlloc);
 	void*					AllocateInLargeList(unsigned int uiSize, int iAlignment, int iOffset);
-	void					DeallocateInLargeList(SMemoryAllocation* psAlloc);
+	void					DeallocateInLargeList(SGeneralMemoryAllocation* psAlloc);
 	void					CopyAllocation(void* pvDest, void* pvSource, unsigned int uiDestSize, unsigned int uiSourceSize);
 };
 
 
 //This should be a method.
-#define MEMORY_GET_ALLOCATION(p)	(SMemoryAllocation*)RemapSinglePointer(p, -(int)(sizeof(SMemoryAllocation)))
+#define MEMORY_GET_ALLOCATION(p)	(SGeneralMemoryAllocation*)RemapSinglePointer(p, -(int)(sizeof(SGeneralMemoryAllocation)))
 
 
 #endif // __MEMORY_H__

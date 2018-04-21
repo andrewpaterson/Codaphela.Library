@@ -89,10 +89,10 @@ void SMemory::Init(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void SMemory::Set(SMemoryAllocation* psAllocation)
+void SMemory::Set(SGeneralMemoryAllocation* psAllocation)
 {
 	bValid = TRUE;
-	pvMem = RemapSinglePointer(psAllocation, sizeof(SMemoryAllocation));
+	pvMem = RemapSinglePointer(psAllocation, sizeof(SGeneralMemoryAllocation));
 	uiAllocCount = psAllocation->uiAllocCount;
 	uiSize = psAllocation->uiSize;
 }

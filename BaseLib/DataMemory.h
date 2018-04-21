@@ -1,16 +1,10 @@
 #ifndef  __DATA_MEMORY_H__
 #define __DATA_MEMORY_H__
+#include "MemoryHeader.h"
 #include "MemoryFreeListParams.h"
 #include "FreeList.h"
 
 extern CMemoryFreeListParams gcDataMemoryFreeListParams;
-
-
-struct SDataMemoryAllocation
-{
-	SFNode*			psFreeListNode;
-	unsigned int	uiSize;
-};
 
 
 class CDataMemory
