@@ -90,10 +90,12 @@
   <ItemGroup>
     <ClCompile Include="Assert.cpp" />
     <ClCompile Include="IntelTimer.cpp" />
+    <ClCompile Include="Words.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Assert.h" />
     <ClInclude Include="IntelTimer.h" />
+    <ClInclude Include="Words.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

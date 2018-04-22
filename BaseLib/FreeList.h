@@ -87,6 +87,7 @@ public:
 	void		RemoveDuringIteration(SFreeListIterator* psIterator);
 	BOOL		Contains(void* pvData, BOOL bIsAllocated = TRUE);
 	int			NumElements(void);
+	BOOL		HasElements(void);
 	int			NumNodeElements(SFNode* psNode);
 	void		SetAdditionalSize(int iSize);
 	int			GetElementSize(void);

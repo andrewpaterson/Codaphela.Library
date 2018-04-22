@@ -365,6 +365,24 @@ void CDataMemory::DeallocateInFreeList(CFreeList* pcFreeList, SDataMemoryAllocat
 #endif
 
 	pcFreeList->Remove(psFreeListNode, psAlloc);
+
+	BOOL			bResult;
+	SFreeListDesc	sDesc;
+	int				iIndex;
+	int				iStride;
+
+	if (!pcFreeList->HasElements())
+	{
+		iStride = pcFreeList->GetElementStride() - sizeof(SDataMemoryAllocation);
+		sDesc.Init(iStride);
+		bResult = mcOrder.FindInSorted(&sDesc, CompareFreeListDesc, &iIndex);
+		if (bResult)
+		{
+			mcOrder.RemoveAt(iIndex);
+		}
+		pcFreeList->Kill();
+		mcFreeLists.Remove(pcFreeList);
+	}
 }
 
 
@@ -426,10 +444,10 @@ CFreeList* CDataMemory::GetFreeList(unsigned int iElementSize)
 //////////////////////////////////////////////////////////////////////////
 CFreeList* CDataMemory::GetOrAddFreeList(unsigned int iElementSize)
 {
-	SFreeListDesc	sDesc;
+	SFreeListDesc			sDesc;
 	BOOL					bResult;
 	int						iIndex;
-	SFreeListDesc*	psDesc;
+	SFreeListDesc*			psDesc;
 	CFreeList*				pcList;
 	SMemoryFreeListParams*	psParams;
 	int						iFinalOffset;
@@ -440,7 +458,7 @@ CFreeList* CDataMemory::GetOrAddFreeList(unsigned int iElementSize)
 	iStride = CalculateStride(psParams->iMaxElementSize, DATA_MEMORY_ALIGNMENT);
 
 	sDesc.Init(iStride);
-	bResult = mcOrder.FindInSorted(&sDesc, CompareAlignedFreeListDesc, &iIndex);
+	bResult = mcOrder.FindInSorted(&sDesc, CompareFreeListDesc, &iIndex);
 	if (bResult)
 	{
 		psDesc = mcOrder.Get(iIndex);

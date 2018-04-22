@@ -869,6 +869,29 @@ int CFreeList::NumElements(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
+BOOL CFreeList::HasElements(void)
+{
+	SFNode*		psNode;
+	int			iCount;
+
+	iCount = 0;
+	psNode = (SFNode*)mcList.GetHead();
+	while (psNode)
+	{
+		if (NumNodeElements(psNode) > 0)
+		{
+			return TRUE;
+		}
+		psNode = (SFNode*)mcList.GetNext(psNode);
+	}
+	return FALSE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
 int CFreeList::NumNodeElements(SFNode* psNode)
 {
 	void*		pvBitArray;
