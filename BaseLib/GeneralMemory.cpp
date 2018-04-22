@@ -94,7 +94,7 @@ void CGeneralMemory::Remove(void* pv)
 	SGeneralMemoryAllocation*	psAlloc;
 	CFreeList*					pcList;
 
-	psAlloc = MEMORY_GET_ALLOCATION(pv);
+	psAlloc = GENERAL_MEMORY_GET_ALLOCATION(pv);
 	if (psAlloc->uiSize <= mcFreeListParams.GetMaxFreeListElementSize())
 	{
 		pcList = psAlloc->psFreeListNode->pcList;
@@ -116,7 +116,7 @@ unsigned int CGeneralMemory::GetSize(void* pv)
 {
 	SGeneralMemoryAllocation*	psAlloc;
 
-	psAlloc = MEMORY_GET_ALLOCATION(pv);
+	psAlloc = GENERAL_MEMORY_GET_ALLOCATION(pv);
 	return psAlloc->uiSize;
 }
 
@@ -142,7 +142,7 @@ BOOL CGeneralMemory::Remove(CArrayVoidPtr* pav)
 	while (i < iNumElements)
 	{
 		pv = pav->GetPtr(i);
-		psAlloc = MEMORY_GET_ALLOCATION(pv);
+		psAlloc = GENERAL_MEMORY_GET_ALLOCATION(pv);
 		if (psAlloc->uiSize <= mcFreeListParams.GetMaxFreeListElementSize())
 		{
 			psNode = psAlloc->psFreeListNode;
@@ -207,7 +207,7 @@ int CGeneralMemory::RemoveNode(CArrayVoidPtr* pav, int i, SGeneralMemoryAllocati
 		if (i + iNodeElements - 1 < iNumElements)
 		{
 			pvLast = pav->GetPtr(i + iNodeElements - 1);
-			psPotentialLast = MEMORY_GET_ALLOCATION(pvLast);
+			psPotentialLast = GENERAL_MEMORY_GET_ALLOCATION(pvLast);
 
 			if (psPotentialLast == psLast)
 			{
@@ -241,7 +241,7 @@ int CGeneralMemory::RemoveElements(CArrayVoidPtr* pav, int i, SFNode* psNode, CF
 
 	iCount = 0;
 	pv = pav->GetPtr(i);
-	psAlloc = MEMORY_GET_ALLOCATION(pv);
+	psAlloc = GENERAL_MEMORY_GET_ALLOCATION(pv);
 
 	while (psAlloc <= psLast)
 	{
@@ -254,7 +254,7 @@ int CGeneralMemory::RemoveElements(CArrayVoidPtr* pav, int i, SFNode* psNode, CF
 			break;
 		}
 		pv = pav->GetPtr(i);
-		psAlloc = MEMORY_GET_ALLOCATION(pv);
+		psAlloc = GENERAL_MEMORY_GET_ALLOCATION(pv);
 	}
 
 	return iCount;
@@ -317,7 +317,7 @@ void* CGeneralMemory::Grow(void* pvInitial, unsigned int uiSize)
 	void*						pvNew;
 	SLLANode*					psNode;
 
-	psAlloc = MEMORY_GET_ALLOCATION(pvInitial);
+	psAlloc = GENERAL_MEMORY_GET_ALLOCATION(pvInitial);
 	if (psAlloc->uiSize <= mcFreeListParams.GetMaxFreeListElementSize())
 	{
 		psParams = mcFreeListParams.GetFreeListParamsForSize(psAlloc->uiSize);
@@ -520,7 +520,7 @@ void CGeneralMemory::SetDebugName(void* pv, char (*pszDebug)[4])
 {
 	SGeneralMemoryAllocation*	psAlloc;
 
-	psAlloc = MEMORY_GET_ALLOCATION(pv);
+	psAlloc = GENERAL_MEMORY_GET_ALLOCATION(pv);
 	psAlloc->szDebug[0] = (*pszDebug)[0];
 	psAlloc->szDebug[1] = (*pszDebug)[1];
 	psAlloc->szDebug[2] = (*pszDebug)[2];

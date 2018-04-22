@@ -20,10 +20,9 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __MEMORY_H__
-#define __MEMORY_H__
-#include "MemoryHeader.h"
-#include "MemoryFreeListParams.h"
+#ifndef __GENERAL_MEMORY_H__
+#define __GENERAL_MEMORY_H__
+#include "BaseMemory.h"
 
 
 //CGeneralMemory is designed to sit behind multiple collections with similar allocation patterns. 
@@ -31,7 +30,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //  It It's not a replacement for malloc / free.
 //
 //CGeneralMemory is also useful as a debugging too.  When coupled with collections (from Data) it can be used to tell if their allocations are being unexpectedly sized / allocated.
-class CGeneralMemory
+class CGeneralMemory : public CBaseMemory
 {
 private:
 	CLinkListFreeList			mcFreeLists;
@@ -89,8 +88,8 @@ private:
 
 
 //This should be a method.
-#define MEMORY_GET_ALLOCATION(p)	(SGeneralMemoryAllocation*)RemapSinglePointer(p, -(int)(sizeof(SGeneralMemoryAllocation)))
+#define GENERAL_MEMORY_GET_ALLOCATION(p)	(SGeneralMemoryAllocation*)RemapSinglePointer(p, -(int)(sizeof(SGeneralMemoryAllocation)))
 
 
-#endif // __MEMORY_H__
+#endif // __GENERAL_MEMORY_H__
 

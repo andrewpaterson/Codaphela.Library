@@ -747,6 +747,9 @@
     <ClInclude Include="GeneralMemory.h">
       <Filter>Source\Memory\Manager</Filter>
     </ClInclude>
+    <ClInclude Include="BaseMemory.h">
+      <Filter>Source\Memory\Manager</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -1170,6 +1173,9 @@
       <Filter>Source\Memory\Manager</Filter>
     </ClCompile>
     <ClCompile Include="GeneralMemory.cpp">
+      <Filter>Source\Memory\Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="BaseMemory.cpp">
       <Filter>Source\Memory\Manager</Filter>
     </ClCompile>
   </ItemGroup>

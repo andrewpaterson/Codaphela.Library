@@ -24,9 +24,14 @@ struct SFreeListDesc
 {
 	CFreeList*		pcFreeList;
 	unsigned int	iStride;
+
+	void Init(unsigned int iStride);
+	void Init(CFreeList* pcFreeList, int iStride);
 };
 
 
+//Not using a SAlignedFreeListDesc does not imply the elements in the list are not aligned.
+//Just that they all have the same alignment and offset.
 struct SAlignedFreeListDesc : SFreeListDesc
 {
 	int				iAlignment;
@@ -54,11 +59,15 @@ struct SMemory
 
 	void Init(void);
 	void Set(SGeneralMemoryAllocation* psAllocation);
+	void Set(SDataMemoryAllocation* psAllocation);
 };
 
 
+typedef CArrayTemplateMinimal<SFreeListDesc>			CArrayFreeListDesc;
 typedef CArrayTemplate<SAlignedFreeListDesc>	CArrayFreeListAlignedDesc;
+
 int CompareAlignedFreeListDesc(const void* arg1, const void* arg2);
+int CompareFreeListDesc(const void* arg1, const void* arg2);
 
 
 #endif // __MEMORY_HEADER_H__
