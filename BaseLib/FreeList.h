@@ -36,7 +36,7 @@ struct SFNode
 	CFreeList*	pcList;
 
 	//For testing
-	int*	GetBitArray(void);
+	//int*	GetBitArray(void);
 };
 
 
