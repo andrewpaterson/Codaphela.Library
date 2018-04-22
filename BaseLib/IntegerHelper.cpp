@@ -158,14 +158,12 @@ int CountBits_PopCount64(unsigned long long int x)
 	const unsigned long long int m1 = 0x5555555555555555;
 	const unsigned long long int m2 = 0x3333333333333333;
 	const unsigned long long int m4 = 0x0f0f0f0f0f0f0f0f;
+	const unsigned long long int m5 = 0x0101010101010101;
 
-	x -= (x >> 1) & m1;             //put count of each 2 bits into those 2 bits
+	x = x - ((x >> 1) & m1);          //put count of each 2 bits into those 2 bits
 	x = (x & m2) + ((x >> 2) & m2); //put count of each 4 bits into those 4 bits 
 	x = (x + (x >> 4)) & m4;        //put count of each 8 bits into those 8 bits 
-	x += x >> 8;  //put count of each 16 bits into their lowest 8 bits
-	x += x >> 16;  //put count of each 32 bits into their lowest 8 bits
-	x += x >> 32;  //put count of each 64 bits into their lowest 8 bits
-	return x & 0x7f;
+	return (x * m5) >> 56;
 }
 
 
@@ -182,7 +180,38 @@ int CountBits_PopCount32(unsigned int i)
 
 	i = i - ((i >> 1) & m1);
 	i = (i & m2) + ((i >> 2) & m2);
-	return (((i + (i >> 4)) & m4) * 0x01010101) >> 24;
+	i = ((i + (i >> 4)) & m4);
+	return (i * 0x01010101) >> 24;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CountBits_PopCount16(unsigned short i)
+{
+	const unsigned short m1 = 0x5555;
+	const unsigned short m2 = 0x3333;
+	const unsigned short m4 = 0x0f0f;
+
+	i = i - ((i >> 1) & m1);
+	i = (i & m2) + ((i >> 2) & m2);
+	i = ((i + (i >> 4)) & m4);
+	return (unsigned short)(i * 0x0101) >> 8;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//  https://stackoverflow.com/questions/30688465/how-to-check-the-number-of-set-bits-in-an-8-bit-unsigned-char
+//
+//////////////////////////////////////////////////////////////////////////
+int CountBits_PopCount8(unsigned char b)
+{
+	b = b - ((b >> 1) & 0x55);
+	b = (b & 0x33) + ((b >> 2) & 0x33);
+	return (((b + (b >> 4)) & 0x0F) * 0x01);
 }
 
 
@@ -225,6 +254,14 @@ int	CountBits(void* pvBitArray, int iBitLength)
 	{
 		return CountBits_PopCount64(*((unsigned long long int*)pvBitArray)) + 
 		       CountBits_PopCount64(((unsigned long long int*)pvBitArray)[1]);
+	}
+	else if (iBitLength == 8)
+	{
+		return CountBits_PopCount8(*((unsigned char*)pvBitArray));
+	}
+	else if (iBitLength == 16)
+	{
+		return CountBits_PopCount16(*((unsigned short int*)pvBitArray));
 	}
 	else
 	{
@@ -272,6 +309,8 @@ void SetBit(int iBit, void* pvArray, int bBit)
 //////////////////////////////////////////////////////////////////////////
 int FindFirstSetBit(void* pvArray, int iArraySize)
 {
+	//Use _BitScanForward (MSVC) or __builtin_ffs (GCC) rather.
+
 	int				iIntSize;
 	int				i;
 	int				iRemainder;
@@ -291,6 +330,7 @@ int FindFirstSetBit(void* pvArray, int iArraySize)
 			break;
 		}
 	}
+
 
 	iCharSize = iRemainder / 8;
 	iRemainder = iRemainder % 8;

@@ -26,8 +26,11 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "MemoryFreeListParams.h"
 
 
-//This memory manager is designed to sit behind multiple collections with similar allocation pattersn.  It's not a replacement for malloc / free.
-//Collections from data can use it as their allocator which makes it easy to tell if memory is being unexpectedly sized / allocated.
+//CMemory is designed to sit behind multiple collections with similar allocation patterns. 
+//  It finds it's use mostly in CUnknowns.
+//  It It's not a replacement for malloc / free.
+//
+//CMemory is also useful as a debugging too.  When coupled with collections (from Data) it can be used to tell if their allocations are being unexpectedly sized / allocated.
 class CMemory
 {
 private:

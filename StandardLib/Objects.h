@@ -58,7 +58,7 @@ protected:
 	CNamedIndexedObjects	mcMemory;  //Objects (BaseObject*) allocated in Unknowns referenced by name and OIndex.  
 	CNamedIndexedData		mcDatabase;  //Objects in the database also referenced by string and OIndex.  
 	
-	CObjectsSource			mcSource;
+	CObjectsSource			mcSource;  //An object found on disk will be 'cooked' converter and then placed in memory.
 
 	CIndexGenerator			mcIndexGenerator;
 	BOOL					mbDatabase;

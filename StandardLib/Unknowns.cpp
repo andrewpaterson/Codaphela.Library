@@ -302,7 +302,7 @@ void CUnknowns::DebugName(CUnknown* pcUnknown, char (*pszDebug)[4])
 //////////////////////////////////////////////////////////////////////////
 void CUnknowns::DumpAddDetail(CUnknown* pcUnknown)
 {
-	SMemoryAllocation*	psAlloc;
+	SGeneralMemoryAllocation*	psAlloc;
 	CChars				sz;
 
 	psAlloc = MEMORY_GET_ALLOCATION(pcUnknown);
@@ -340,9 +340,9 @@ void CUnknowns::DumpAddDetail(CUnknown* pcUnknown)
 BOOL CUnknowns::IsFreed(CUnknown* pcUnknown)
 {
 #ifdef _DEBUG
-	SMemoryAllocation*	psAlloc;
-	int					i;
-	int*				piMem;
+	SGeneralMemoryAllocation*	psAlloc;
+	int							i;
+	int*						piMem;
 
 	psAlloc = MEMORY_GET_ALLOCATION(pcUnknown);
 	for (i = 1; i < sizeof(SMemoryAllocation)/4; i++)
