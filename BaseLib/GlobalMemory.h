@@ -1,6 +1,6 @@
 #ifndef __GLOBAL_MEMORY_H__
 #define __GLOBAL_MEMORY_H__
-#include "Memory.h"
+#include "GeneralMemory.h"
 #include "GlobalMemoryAllocator.h"
 #include "Mallocators.h"
 #include "Constructors.h"

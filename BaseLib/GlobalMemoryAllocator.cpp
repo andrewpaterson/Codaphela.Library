@@ -1,7 +1,7 @@
 #include "GlobalMemoryAllocator.h"
 
 
-CMemory					gcMemory;
+CGeneralMemory			gcMemory;
 CGlobalMemoryAllocator	gcMemoryAllocator;
 
 

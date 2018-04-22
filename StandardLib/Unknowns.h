@@ -35,7 +35,7 @@ class CUnknowns
 {
 protected:
 	CMemoryAllocator		mcAlloc;
-	CMemory*				mpcMemory;
+	CGeneralMemory*			mpcMemory;
 	CIterables				mcIterables;
 	CChars					mszName;
 	CConstructors*			mpcConstructors;
@@ -71,7 +71,7 @@ public:
 
 						int				GetIterableListsHeadNumElements(void);
 						CFreeList*		GetFreeList(unsigned int iElementSize);
-						CMemory*		GetMemory(void);
+						CGeneralMemory*	GetMemory(void);
 
 						void			RemoveInKill(CUnknown* pcUnknown);
 						void			RemoveInKill(CArrayUnknownPtr* papcObjectPts);

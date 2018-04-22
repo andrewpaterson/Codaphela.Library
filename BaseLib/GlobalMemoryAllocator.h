@@ -1,7 +1,7 @@
 #ifndef __GLOBAL_MEMORY_ALLOCATOR_H__
 #define __GLOBAL_MEMORY_ALLOCATOR_H__
 #include "MemoryAllocator.h"
-#include "Memory.h"
+#include "GeneralMemory.h"
 
 
 class CGlobalMemoryAllocator : public CMallocator
@@ -17,7 +17,7 @@ public:
 };
 
 
-extern CMemory					gcMemory;
+extern CGeneralMemory			gcMemory;
 extern CGlobalMemoryAllocator	gcMemoryAllocator;
 
 

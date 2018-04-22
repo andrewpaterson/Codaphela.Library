@@ -26,12 +26,12 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "MemoryFreeListParams.h"
 
 
-//CMemory is designed to sit behind multiple collections with similar allocation patterns. 
+//CGeneralMemory is designed to sit behind multiple collections with similar allocation patterns. 
 //  It finds it's use mostly in CUnknowns.
 //  It It's not a replacement for malloc / free.
 //
-//CMemory is also useful as a debugging too.  When coupled with collections (from Data) it can be used to tell if their allocations are being unexpectedly sized / allocated.
-class CMemory
+//CGeneralMemory is also useful as a debugging too.  When coupled with collections (from Data) it can be used to tell if their allocations are being unexpectedly sized / allocated.
+class CGeneralMemory
 {
 private:
 	CLinkListFreeList			mcFreeLists;

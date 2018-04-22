@@ -1,13 +1,13 @@
 #ifndef __MEMORY_ALLOCATOR_H__
 #define __MEMORY_ALLOCATOR_H__
-#include "Memory.h"
+#include "GeneralMemory.h"
 #include "LocalMallocator.h"
 
 
 class CMemoryAllocator : public CLocalMallocator
 {
 protected:
-	CMemory		mcMemory;
+	CGeneralMemory		mcMemory;
 
 public:
 	void		Init(void);
@@ -23,7 +23,7 @@ public:
 	BOOL		Read(CFileReader* pcFileReader);
 	BOOL		Write(CFileWriter* pcFileWriter);
 
-	CMemory*	GetMemory(void);
+	CGeneralMemory*	GetMemory(void);
 };
 
 

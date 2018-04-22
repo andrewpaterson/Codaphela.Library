@@ -22,14 +22,14 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #include "Log.h"
 #include "Validation.h"
-#include "Memory.h"
+#include "GeneralMemory.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMemory::Init(void)
+void CGeneralMemory::Init(void)
 {
 	Init(4);
 }
@@ -39,7 +39,7 @@ void CMemory::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMemory::Init(int iDefaultAlignment, BOOL bDefaultFreeListParams)
+void CGeneralMemory::Init(int iDefaultAlignment, BOOL bDefaultFreeListParams)
 {
 	mcFreeLists.Init();
 	mcLargeList.Init();
@@ -57,7 +57,7 @@ void CMemory::Init(int iDefaultAlignment, BOOL bDefaultFreeListParams)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMemory::Kill(void)
+void CGeneralMemory::Kill(void)
 {
 	CFreeList*	pcFreeList;
 
@@ -79,7 +79,7 @@ void CMemory::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CMemory::Add(unsigned int iSize)
+void* CGeneralMemory::Add(unsigned int iSize)
 {
 	return Add(iSize, miDefaultAlignment);
 }
@@ -89,7 +89,7 @@ void* CMemory::Add(unsigned int iSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMemory::Remove(void* pv)
+void CGeneralMemory::Remove(void* pv)
 {
 	SGeneralMemoryAllocation*	psAlloc;
 	CFreeList*					pcList;
@@ -112,7 +112,7 @@ void CMemory::Remove(void* pv)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-unsigned int CMemory::GetSize(void* pv)
+unsigned int CGeneralMemory::GetSize(void* pv)
 {
 	SGeneralMemoryAllocation*	psAlloc;
 
@@ -125,7 +125,7 @@ unsigned int CMemory::GetSize(void* pv)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMemory::Remove(CArrayVoidPtr* pav)
+BOOL CGeneralMemory::Remove(CArrayVoidPtr* pav)
 {
 	int					i;
 	void*				pv;
@@ -180,7 +180,7 @@ BOOL CMemory::Remove(CArrayVoidPtr* pav)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CMemory::RemoveNode(CArrayVoidPtr* pav, int i, SGeneralMemoryAllocation* psAlloc, SFNode* psNode, CFreeList* pcList)
+int CGeneralMemory::RemoveNode(CArrayVoidPtr* pav, int i, SGeneralMemoryAllocation* psAlloc, SFNode* psNode, CFreeList* pcList)
 {
 	void*				pvLast;
 	SGeneralMemoryAllocation*	psPotentialLast;
@@ -225,7 +225,7 @@ int CMemory::RemoveNode(CArrayVoidPtr* pav, int i, SGeneralMemoryAllocation* psA
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CMemory::RemoveElements(CArrayVoidPtr* pav, int i, SFNode* psNode, CFreeList* pcList)
+int CGeneralMemory::RemoveElements(CArrayVoidPtr* pav, int i, SFNode* psNode, CFreeList* pcList)
 {
 	void*						pv;
 	SGeneralMemoryAllocation*	psFirst;
@@ -265,7 +265,7 @@ int CMemory::RemoveElements(CArrayVoidPtr* pav, int i, SFNode* psNode, CFreeList
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CMemory::Add(unsigned int uiSize, int iAlignment, int iOffset)
+void* CGeneralMemory::Add(unsigned int uiSize, int iAlignment, int iOffset)
 {
 	CFreeList*	pcFreeList;
 	void*				pv;
@@ -274,7 +274,7 @@ void* CMemory::Add(unsigned int uiSize, int iAlignment, int iOffset)
 	{
 		CChars	sz;
 
-		sz.Init("CMemory::Add: muiAllocCount == ");
+		sz.Init("CGeneralMemory::Add: muiAllocCount == ");
 		sz.Append(muiBreakAlloc);
 		sz.AppendNewLine();
 		sz.Dump();
@@ -309,7 +309,7 @@ void* CMemory::Add(unsigned int uiSize, int iAlignment, int iOffset)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CMemory::Grow(void* pvInitial, unsigned int uiSize)
+void* CGeneralMemory::Grow(void* pvInitial, unsigned int uiSize)
 {
 	SGeneralMemoryAllocation*	psAlloc;
 	CFreeList*					pcList;
@@ -361,7 +361,7 @@ void* CMemory::Grow(void* pvInitial, unsigned int uiSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMemory::CopyAllocation(void* pvDest, void* pvSource, unsigned int uiDestSize, unsigned int uiSourceSize)
+void CGeneralMemory::CopyAllocation(void* pvDest, void* pvSource, unsigned int uiDestSize, unsigned int uiSourceSize)
 {
 	unsigned int	uiSize;
 
@@ -374,7 +374,7 @@ void CMemory::CopyAllocation(void* pvDest, void* pvSource, unsigned int uiDestSi
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CMemory::AllocateInFreeList(CFreeList* pcFreeList, unsigned int uiElementSize)
+void* CGeneralMemory::AllocateInFreeList(CFreeList* pcFreeList, unsigned int uiElementSize)
 {
 	SGeneralMemoryAllocation*	psMemoryAllocation;
 	SFNode*						psNode;
@@ -392,7 +392,7 @@ void* CMemory::AllocateInFreeList(CFreeList* pcFreeList, unsigned int uiElementS
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMemory::DeallocateInFreeList(CFreeList* pcFreeList, SGeneralMemoryAllocation* psAlloc)
+void CGeneralMemory::DeallocateInFreeList(CFreeList* pcFreeList, SGeneralMemoryAllocation* psAlloc)
 {
 	SFNode*			psFreeListNode;
 
@@ -415,7 +415,7 @@ void CMemory::DeallocateInFreeList(CFreeList* pcFreeList, SGeneralMemoryAllocati
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CMemory::AllocateInLargeList(unsigned int uiSize, int iAlignment, int iOffset)
+void* CGeneralMemory::AllocateInLargeList(unsigned int uiSize, int iAlignment, int iOffset)
 {
 	SGeneralMemoryAllocation*	psMemoryAllocation;
 
@@ -432,7 +432,7 @@ void* CMemory::AllocateInLargeList(unsigned int uiSize, int iAlignment, int iOff
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMemory::DeallocateInLargeList(SGeneralMemoryAllocation* psAlloc)
+void CGeneralMemory::DeallocateInLargeList(SGeneralMemoryAllocation* psAlloc)
 {
 	mcLargeList.Remove(psAlloc);
 }
@@ -442,7 +442,7 @@ void CMemory::DeallocateInLargeList(SGeneralMemoryAllocation* psAlloc)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CFreeList* CMemory::GetFreeList(unsigned int iElementSize, int iAlignment, int iOffset)
+CFreeList* CGeneralMemory::GetFreeList(unsigned int iElementSize, int iAlignment, int iOffset)
 {
 	SAlignedFreeListDesc	sDesc;
 	BOOL					bResult;
@@ -469,7 +469,7 @@ CFreeList* CMemory::GetFreeList(unsigned int iElementSize, int iAlignment, int i
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CFreeList* CMemory::GetFreeList(unsigned int iElementSize)
+CFreeList* CGeneralMemory::GetFreeList(unsigned int iElementSize)
 {
 	return GetFreeList(iElementSize, miDefaultAlignment, 0);
 }
@@ -479,7 +479,7 @@ CFreeList* CMemory::GetFreeList(unsigned int iElementSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CFreeList* CMemory::GetOrAddFreeList(unsigned int iElementSize, int iAlignment, int iOffset)
+CFreeList* CGeneralMemory::GetOrAddFreeList(unsigned int iElementSize, int iAlignment, int iOffset)
 {
 	SAlignedFreeListDesc	sDesc;
 	BOOL					bResult;
@@ -516,7 +516,7 @@ CFreeList* CMemory::GetOrAddFreeList(unsigned int iElementSize, int iAlignment, 
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CMemory::SetDebugName(void* pv, char (*pszDebug)[4])
+void CGeneralMemory::SetDebugName(void* pv, char (*pszDebug)[4])
 {
 	SGeneralMemoryAllocation*	psAlloc;
 
@@ -532,7 +532,7 @@ void CMemory::SetDebugName(void* pv, char (*pszDebug)[4])
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMemory::BreakOnAdd(unsigned int uiAllocCount)
+void CGeneralMemory::BreakOnAdd(unsigned int uiAllocCount)
 {
 	mbBreakOnAlloc = TRUE;
 	muiBreakAlloc = uiAllocCount;
@@ -543,7 +543,7 @@ void CMemory::BreakOnAdd(unsigned int uiAllocCount)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CMemory::NumElements(void)
+int CGeneralMemory::NumElements(void)
 {
 	CFreeList*		pcBlock;
 	int					iCount;
@@ -565,7 +565,7 @@ int CMemory::NumElements(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CMemory::ByteSize(void)
+int CGeneralMemory::ByteSize(void)
 {
 	int					iSize;
 	CFreeList*		pcFreeList;
@@ -590,7 +590,7 @@ int CMemory::ByteSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SMemory CMemory::StartIteration(SMemoryIterator* psIterator)
+SMemory CGeneralMemory::StartIteration(SMemoryIterator* psIterator)
 {
 	void*		pv;
 	SMemory		sResult;
@@ -622,7 +622,7 @@ SMemory CMemory::StartIteration(SMemoryIterator* psIterator)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SMemory CMemory::Iterate(SMemoryIterator* psIterator)
+SMemory CGeneralMemory::Iterate(SMemoryIterator* psIterator)
 {
 	void*		pv;
 	SMemory		sResult;
@@ -663,7 +663,7 @@ SMemory CMemory::Iterate(SMemoryIterator* psIterator)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint64 CMemory::GetTotalAllocatedMemory(void)
+uint64 CGeneralMemory::GetTotalAllocatedMemory(void)
 {
 	SMemoryIterator		sIter;
 	SMemory				sMem;
@@ -685,7 +685,7 @@ uint64 CMemory::GetTotalAllocatedMemory(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint64 CMemory::GetTotalAllocations(void)
+uint64 CGeneralMemory::GetTotalAllocations(void)
 {
 	SMemoryIterator		sIter;
 	SMemory				sMem;
@@ -707,8 +707,8 @@ uint64 CMemory::GetTotalAllocations(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CFreeList* CMemory::TestGetFreeListsHead(void) { return mcFreeLists.GetHead(); }
-void* CMemory::TestGetLargeListsHead(void) { return mcLargeList.GetHead(); }
-CMemoryFreeListParams* CMemory::GetFreeListParams(void) { return &mcFreeListParams; }
-int CMemory::GetDefaultAlignment(void) { return miDefaultAlignment; }
-int	CMemory::NumFreeLists(void) { return mcFreeLists.NumElements(); }
+CFreeList* CGeneralMemory::TestGetFreeListsHead(void) { return mcFreeLists.GetHead(); }
+void* CGeneralMemory::TestGetLargeListsHead(void) { return mcLargeList.GetHead(); }
+CMemoryFreeListParams* CGeneralMemory::GetFreeListParams(void) { return &mcFreeListParams; }
+int CGeneralMemory::GetDefaultAlignment(void) { return miDefaultAlignment; }
+int	CGeneralMemory::NumFreeLists(void) { return mcFreeLists.NumElements(); }

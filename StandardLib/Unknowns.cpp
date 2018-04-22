@@ -345,7 +345,7 @@ BOOL CUnknowns::IsFreed(CUnknown* pcUnknown)
 	int*						piMem;
 
 	psAlloc = MEMORY_GET_ALLOCATION(pcUnknown);
-	for (i = 1; i < sizeof(SMemoryAllocation)/4; i++)
+	for (i = 1; i < sizeof(SGeneralMemoryAllocation)/4; i++)
 	{
 		piMem = &((int*)psAlloc)[i];
 		if (*piMem != 0xefefefef)
@@ -396,7 +396,7 @@ CFreeList* CUnknowns::GetFreeList(unsigned int iElementSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CMemory* CUnknowns::GetMemory(void)
+CGeneralMemory* CUnknowns::GetMemory(void)
 {
 	return mpcMemory;
 }

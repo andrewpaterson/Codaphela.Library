@@ -435,9 +435,6 @@
     <ClInclude Include="FileCopier.h">
       <Filter>Source\File\Copy</Filter>
     </ClInclude>
-    <ClInclude Include="Memory.h">
-      <Filter>Source\Memory\Manager</Filter>
-    </ClInclude>
     <ClInclude Include="ScratchPad.h">
       <Filter>Source\Memory\ScratchPad</Filter>
     </ClInclude>
@@ -747,6 +744,9 @@
     <ClInclude Include="DataMemory.h">
       <Filter>Source\Memory\Manager</Filter>
     </ClInclude>
+    <ClInclude Include="GeneralMemory.h">
+      <Filter>Source\Memory\Manager</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -940,9 +940,6 @@
     </ClCompile>
     <ClCompile Include="FileCopier.cpp">
       <Filter>Source\File\Copy</Filter>
-    </ClCompile>
-    <ClCompile Include="Memory.cpp">
-      <Filter>Source\Memory\Manager</Filter>
     </ClCompile>
     <ClCompile Include="ScratchPad.cpp">
       <Filter>Source\Memory\ScratchPad</Filter>
@@ -1170,6 +1167,9 @@
       <Filter>Source\Math\Primitive</Filter>
     </ClCompile>
     <ClCompile Include="DataMemory.cpp">
+      <Filter>Source\Memory\Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneralMemory.cpp">
       <Filter>Source\Memory\Manager</Filter>
     </ClCompile>
   </ItemGroup>

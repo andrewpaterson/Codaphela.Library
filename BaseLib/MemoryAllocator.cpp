@@ -118,7 +118,7 @@ BOOL CMemoryAllocator::Write(CFileWriter* pcFileWriter)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CMemory* CMemoryAllocator::GetMemory(void)
+CGeneralMemory* CMemoryAllocator::GetMemory(void)
 {
 	return &mcMemory;
 }

@@ -323,3 +323,4 @@ void* CArrayBit::Realloc(void* pv, size_t tSize)
 	pv = realloc(pv, tSize);
 	return pv;
 }
+
