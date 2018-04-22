@@ -66,8 +66,8 @@ public:
 	int 	Find(M* pData);
 	int 	FindWithKey(M* pData, int iKeyOffset, int iKeySize);
 	int		FindWithIntKey(int iKey, int iKeyOffset);
-	int		FindInSorted(M* pData, int(* Func)(const void*, const void*), int bFindIfNone);
-	int		BinarySearch(M* pData, int iLeft, int iRight, int(* Func)(const void*, const void*), int bFindIfNone);
+	BOOL	FindInSorted(M* pData, int(*)(const void*, const void*), int* piIndex);
+	BOOL	BinarySearch(M* pData, int iLeft, int iRight, int(*Func)(const void*, const void*), int* piIndex);
 	int 	AddIfUnique(M* pData);
 	int 	AddIfUniqueKey(M* pData, int iKeyOffset, int iKeySize);
 	int		GetAdjustedIndex(int iIndex);
@@ -442,17 +442,14 @@ void CArrayTemplateMinimal<M>::InsertIntoSorted(int(* Func)(const void*, const v
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-int CArrayTemplateMinimal<M>::FindInSorted(M* pData, int(* Func)(const void*, const void*), int bFindIfNone)
+BOOL CArrayTemplateMinimal<M>::FindInSorted(M* pData, int(* Func)(const void*, const void*), int* piIndex)
 {
 	if (miUsedElements == 0)
 	{
-		if (bFindIfNone)
-		{
-			return 0;
-		}
-		return -1;
+		*piIndex = 0;
+		return FALSE;
 	}
-	return BinarySearch(pData, 0, miUsedElements - 1, Func, bFindIfNone);
+	return BinarySearch(pData, 0, miUsedElements - 1, Func, piIndex);
 }
 
 
@@ -461,19 +458,22 @@ int CArrayTemplateMinimal<M>::FindInSorted(M* pData, int(* Func)(const void*, co
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-int CArrayTemplateMinimal<M>::BinarySearch(M* pData, int iLeft, int iRight, int(* Func)(const void*, const void*), int bFindIfNone)
+BOOL CArrayTemplateMinimal<M>::BinarySearch(M* pData, int iLeft, int iRight, int(* Func)(const void*, const void*), int* piIndex)
 {
 	int		iMiddle;
 	int		iResultMiddle;
+	M*		pvMiddle;
 
 	iResultMiddle = 0;
 	while (iLeft <= iRight)
 	{
 		iMiddle = (iLeft + iRight) >> 1; //Divide by 2
-		iResultMiddle = Func(pData, Get(iMiddle));
+		pvMiddle = Get(iMiddle);
+		iResultMiddle = Func(pData, pvMiddle);
 		if (iResultMiddle == 0)
 		{
-			return iMiddle;
+			*piIndex = iMiddle;
+			return TRUE;
 		}
 		else if (iResultMiddle < 0)
 		{
@@ -485,15 +485,15 @@ int CArrayTemplateMinimal<M>::BinarySearch(M* pData, int iLeft, int iRight, int(
 		}
 	}
 
-	if (bFindIfNone)
+	if (iResultMiddle > 0)
 	{
-		if (iResultMiddle > 0)
-		{
-			return iMiddle + 1;
-		}
-		return iMiddle;
+		*piIndex = (iMiddle + 1);
 	}
-	return -1;
+	else
+	{
+		*piIndex = iMiddle;
+	}
+	return FALSE;
 }
 
 

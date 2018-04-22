@@ -1073,7 +1073,6 @@ BOOL CArrayBlock::BinarySearch(void* pData, int iLeft, int iRight, int(* Func)(c
 	void*	pvMiddle;
 
 	iResultMiddle = 0;
-	iMiddle = 0;
 	while (iLeft <= iRight)
 	{
 		iMiddle = (iLeft + iRight) >> 1; //Divide by 2
