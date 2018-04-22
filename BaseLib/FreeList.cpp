@@ -17,7 +17,7 @@ void CFreeList::Init(int iChunkSize, int iElementSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CFreeList::Init(int iChunkSize, int iElementSize, int iAlignment)
+void CFreeList::Init(int iChunkSize, int iElementSize, char iAlignment)
 {
 	Init(iChunkSize, iElementSize, iAlignment, 0);
 }
@@ -27,7 +27,7 @@ void CFreeList::Init(int iChunkSize, int iElementSize, int iAlignment)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CFreeList::Init(int iChunkSize, int iElementSize, int iAlignment, unsigned char iOffset)
+void CFreeList::Init(int iChunkSize, int iElementSize, char iAlignment, char iOffset)
 {
 	miChunkSize = iChunkSize;
 	miAlignment = iAlignment;

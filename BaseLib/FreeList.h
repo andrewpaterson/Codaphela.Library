@@ -61,17 +61,17 @@ protected:
 	SFNode*				mpsNotFull;
 	char				miOffset;
 	char				miSuppliedOffset;
+	char				miAlignment;
 
 	int					miStride;
 
-	int					miAlignment;
 	int					miElementSize;
 	int					miChunkSize;
 
 public:
 	void		Init(int iChunkSize, int iElementSize);
-	void		Init(int iChunkSize, int iElementSize, int iAlignment);
-	void		Init(int iChunkSize, int iElementSize, int iAlignment, unsigned char iOffset);
+	void		Init(int iChunkSize, int iElementSize, char iAlignment);
+	void		Init(int iChunkSize, int iElementSize, char iAlignment, char iOffset);
 	void		Kill(void);
 
 	void*		Add(SFNode** ppsNode = NULL);
