@@ -75,7 +75,7 @@ long long int ReverseLongEndianness(long long int i);
 void	ReverseEndianness(void* pv, int iSize);
 void	ReverseBytes(void* pv, int iSize);
 int 	CalculateStride(int iElementSize, int iAlignment);
-int 	CalculateOffset(int iOffset, int iAlignment);
+int 	CalculateOffset(char iOffset, int iAlignment);
 int		IntAbs(int i);
 int		GetPowerOf2SizeDown(int iInt);
 int		GetPowerOf2SizeUp(int iInt);

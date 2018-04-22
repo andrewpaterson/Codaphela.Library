@@ -995,7 +995,7 @@ int CalculateStride(int iElementSize, int iAlignment)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CalculateOffset(int iOffset, int iAlignment)
+int CalculateOffset(char iOffset, int iAlignment)
 {
 	if ((iOffset == -8) && ((iAlignment == 4) || (iAlignment == 8)))
 	{

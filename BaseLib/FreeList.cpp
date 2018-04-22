@@ -27,7 +27,7 @@ void CFreeList::Init(int iChunkSize, int iElementSize, int iAlignment)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CFreeList::Init(int iChunkSize, int iElementSize, int iAlignment, int iOffset)
+void CFreeList::Init(int iChunkSize, int iElementSize, int iAlignment, unsigned char iOffset)
 {
 	miChunkSize = iChunkSize;
 	miAlignment = iAlignment;
@@ -75,7 +75,7 @@ int CFreeList::CalculateStride(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CFreeList::CalculateOffset(int iOffset)
+char CFreeList::CalculateOffset(int iOffset)
 {
 	return ::CalculateOffset(iOffset, miAlignment);
 }
@@ -90,7 +90,7 @@ int CFreeList::CalculateOffset(SFNode* psNode)
 	int					iBitArraySize;
 	int					iStart;
 	int					iByteDiff;
-	unsigned char		iOffset;
+	char				iOffset;
 
 	iBitArraySize = CalculateBitArraySize();
 	iStart = ((int)(ENGINE_SIZE_T) psNode) + sizeof(SFNode) + iBitArraySize;
@@ -930,7 +930,7 @@ int CFreeList::GetNumAllocatedChunks(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CFreeList::GetOffset(void)
+char CFreeList::GetOffset(void)
 {
 	return miOffset;
 }

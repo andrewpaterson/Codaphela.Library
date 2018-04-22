@@ -32,7 +32,7 @@ class CFreeList;
 struct SFNode
 {
 	unsigned char	bFull;
-	unsigned char	iOffset;
+	char			iOffset;
 	CFreeList*		pcList;
 };
 
@@ -40,7 +40,7 @@ struct SFNode
 struct SFreeListParams
 {
 	int		iAlignment;
-	int		iOffset;
+	char	iOffset;
 	int		iElementSize;
 	int		iChunkSize;
 };
@@ -59,18 +59,19 @@ protected:
 	CLinkedListBlock	mcList;
 	SFNode*				mpsUnused;
 	SFNode*				mpsNotFull;
-	unsigned char		miOffset;
+	char				miOffset;
+	char				miSuppliedOffset;
+
 	int					miStride;
 
 	int					miAlignment;
-	int					miSuppliedOffset;
 	int					miElementSize;
 	int					miChunkSize;
 
 public:
 	void		Init(int iChunkSize, int iElementSize);
 	void		Init(int iChunkSize, int iElementSize, int iAlignment);
-	void		Init(int iChunkSize, int iElementSize, int iAlignment, int iOffset);
+	void		Init(int iChunkSize, int iElementSize, int iAlignment, unsigned char iOffset);
 	void		Kill(void);
 
 	void*		Add(SFNode** ppsNode = NULL);
@@ -90,7 +91,7 @@ public:
 	int			GetNumAllocatedChunks(void);
 	SFNode*		GetNode(int iNode);
 	void*		GetElement(SFNode* psNode, int iPosition);
-	int			GetOffset(void);
+	char		GetOffset(void);
 	int			GetAlignment(void);
 	int			GetChunkSize(void);
 	void*		GetBitArray(SFNode* psNode);
@@ -110,7 +111,7 @@ protected:
 	void	FindPrevAllocatedElement(SFreeListIterator* psIterator);
 	BOOL	RemoveExisiting(SFNode* psNode, int iPosition);
 	int		CalculateStride(void);
-	int		CalculateOffset(int iOffset);
+	char	CalculateOffset(int iOffset);
 	int		CalculateBitArraySize(void);
 	int		CalculateOffset(SFNode* psNode);
 	void*	GetElementInNode(SFNode* psNode, int iPosition);
