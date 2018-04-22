@@ -87,10 +87,10 @@ int CFreeList::CalculateOffset(int iOffset)
 //////////////////////////////////////////////////////////////////////////
 int CFreeList::CalculateOffset(SFNode* psNode)
 {
-	int		iBitArraySize;
-	int		iStart;
-	int		iByteDiff;
-	int		iOffset;
+	int					iBitArraySize;
+	int					iStart;
+	int					iByteDiff;
+	unsigned char		iOffset;
 
 	iBitArraySize = CalculateBitArraySize();
 	iStart = ((int)(ENGINE_SIZE_T) psNode) + sizeof(SFNode) + iBitArraySize;

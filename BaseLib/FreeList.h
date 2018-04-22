@@ -31,12 +31,9 @@ Microsoft Windows is Copyright Microsoft Corporation
 class CFreeList;
 struct SFNode
 {
-	BOOL		bFull;
-	int			iOffset;
-	CFreeList*	pcList;
-
-	//For testing
-	//int*	GetBitArray(void);
+	unsigned char	bFull;
+	unsigned char	iOffset;
+	CFreeList*		pcList;
 };
 
 
@@ -62,7 +59,7 @@ protected:
 	CLinkedListBlock	mcList;
 	SFNode*				mpsUnused;
 	SFNode*				mpsNotFull;
-	int					miOffset;
+	unsigned char		miOffset;
 	int					miStride;
 
 	int					miAlignment;
