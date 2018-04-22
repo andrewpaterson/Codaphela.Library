@@ -28,6 +28,9 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "IntegerHelper.h"
 
 
+#define FREE_LIST_MAGIC	0x7b
+
+
 class CFreeList;
 struct SFNode
 {
@@ -59,18 +62,19 @@ protected:
 	CLinkedListBlock	mcList;
 	SFNode*				mpsUnused;
 	SFNode*				mpsNotFull;
+
 	char				miOffset;
 	char				miSuppliedOffset;
 	char				miAlignment;
+	unsigned char		muiMagic;
 
-	int					miStride;
-
-	int					miElementSize;
+	unsigned short		miStride;
+	unsigned short		miElementSize;
 
 public:
-	void		Init(int iElementSize);
-	void		Init(int iElementSize, char iAlignment);
-	void		Init(int iElementSize, char iAlignment, char iOffset);
+	void		Init(unsigned short iElementSize);
+	void		Init(unsigned short iElementSize, char iAlignment);
+	void		Init(unsigned short iElementSize, char iAlignment, char iOffset);
 	void		Kill(void);
 
 	void*		Add(SFNode** ppsNode = NULL);
@@ -101,20 +105,20 @@ public:
 	void		GetParams(SFreeListParams* psParams);
 
 protected:
-	SFNode* AllocateNew(void);
-	void	Deallocate(SFNode* psNode);
-	void*	AllocateExisting(SFNode* psNode, int iPosition);
-	void*	AllocateNewSetFirst(void);
-	void	FindNextAllocatedElement(SFreeListIterator* psIterator);
-	void	FindPrevAllocatedElement(SFreeListIterator* psIterator);
-	BOOL	RemoveExisiting(SFNode* psNode, int iPosition);
-	int		CalculateStride(void);
-	char	CalculateOffset(int iOffset);
-	int		CalculateBitArraySize(unsigned short uiChunkSize);
-	int		CalculateOffset(SFNode* psNode);
-	void*	GetElementInNode(SFNode* psNode, int iPosition);
-	BOOL	IsElementInNodeAllocated(SFNode* psNode, int iPosition);
-	void	RemoveExisiting(SFNode* psNode, void* pvData);
+	SFNode*		AllocateNew(void);
+	void		Deallocate(SFNode* psNode);
+	void*		AllocateExisting(SFNode* psNode, int iPosition);
+	void*		AllocateNewSetFirst(void);
+	void		FindNextAllocatedElement(SFreeListIterator* psIterator);
+	void		FindPrevAllocatedElement(SFreeListIterator* psIterator);
+	BOOL		RemoveExisiting(SFNode* psNode, int iPosition);
+	int			CalculateStride(void);
+	char		CalculateOffset(int iOffset);
+	int			CalculateBitArraySize(unsigned short uiChunkSize);
+	int			CalculateOffset(SFNode* psNode);
+	void*		GetElementInNode(SFNode* psNode, int iPosition);
+	BOOL		IsElementInNodeAllocated(SFNode* psNode, int iPosition);
+	void		RemoveExisiting(SFNode* psNode, void* pvData);
 };
 
 

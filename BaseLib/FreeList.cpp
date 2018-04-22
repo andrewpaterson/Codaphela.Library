@@ -7,7 +7,7 @@
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CFreeList::Init(int iElementSize)
+void CFreeList::Init(unsigned short iElementSize)
 {
 	Init(iElementSize, 4);
 }
@@ -17,7 +17,7 @@ void CFreeList::Init(int iElementSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CFreeList::Init(int iElementSize, char iAlignment)
+void CFreeList::Init(unsigned short iElementSize, char iAlignment)
 {
 	Init(iElementSize, iAlignment, 0);
 }
@@ -27,8 +27,10 @@ void CFreeList::Init(int iElementSize, char iAlignment)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CFreeList::Init(int iElementSize, char iAlignment, char iOffset)
+void CFreeList::Init(unsigned short iElementSize, char iAlignment, char iOffset)
 {
+	muiMagic = FREE_LIST_MAGIC;
+
 	miAlignment = iAlignment;
 	miSuppliedOffset = iOffset;
 	miElementSize = iElementSize;

@@ -66,7 +66,7 @@ private:
 	int				miUsedNodes;
 
 public:
-	void			Init(int iElementSize);
+	void			Init(unsigned short iElementSize);
 	void			Kill(void);
 	M*				Add(void);
 	M*				Add(M* pvData);
@@ -239,7 +239,7 @@ SDenseNode* SDenseNode::GetLeft(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void __CArrayDenseTemplate<M>::Init(int iElementSize)
+void __CArrayDenseTemplate<M>::Init(unsigned short iElementSize)
 {
 	mcDenseNodes.Init(sizeof(SDenseNode));
 	mcElementNodes.Init(iElementSize);
