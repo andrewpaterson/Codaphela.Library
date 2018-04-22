@@ -133,7 +133,6 @@ BOOL CMemory::Remove(CArrayVoidPtr* pav)
 	CFreeList*		pcList;
 	SFNode*				psNode;
 	int					iNumElements;
-	int					iChunkSize;
 	int					iRemoved;
 	
 	pav->QuickSort();
@@ -148,9 +147,8 @@ BOOL CMemory::Remove(CArrayVoidPtr* pav)
 		{
 			psNode = psAlloc->psFreeListNode;
 			pcList = psAlloc->psFreeListNode->pcList;
-			iChunkSize = pcList->GetChunkSize();
 
-			iRemoved = RemoveNode(pav, i, psAlloc, iChunkSize, psNode, pcList);
+			iRemoved = RemoveNode(pav, i, psAlloc, psNode, pcList);
 			if (iRemoved != 0)
 			{
 				i += iRemoved;
@@ -182,7 +180,7 @@ BOOL CMemory::Remove(CArrayVoidPtr* pav)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CMemory::RemoveNode(CArrayVoidPtr* pav, int i, SGeneralMemoryAllocation* psAlloc, int iChunkSize, SFNode* psNode, CFreeList* pcList)
+int CMemory::RemoveNode(CArrayVoidPtr* pav, int i, SGeneralMemoryAllocation* psAlloc, SFNode* psNode, CFreeList* pcList)
 {
 	void*				pvLast;
 	SGeneralMemoryAllocation*	psPotentialLast;
@@ -199,7 +197,7 @@ int CMemory::RemoveNode(CArrayVoidPtr* pav, int i, SGeneralMemoryAllocation* psA
 
 		if (psNode->bFull)
 		{
-			iNodeElements = iChunkSize;
+			iNodeElements = psNode->uiChunkSize;
 		}
 		else
 		{
@@ -506,7 +504,7 @@ CFreeList* CMemory::GetOrAddFreeList(unsigned int iElementSize, int iAlignment, 
 	else
 	{
 		pcList = mcFreeLists.InsertAfterTail();
-		pcList->Init(psParams->iChunkSize, psParams->iMaxListSize, iAlignment);
+		pcList->Init(psParams->iMaxListSize, iAlignment);
 		sDesc.pcFreeList = pcList;
 		mcOrder.InsertAt(&sDesc, iIndex);
 		return pcList;

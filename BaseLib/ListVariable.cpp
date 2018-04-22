@@ -311,7 +311,7 @@ void* CListVariable::PrivateMalloc(int iElementSize)
 	if (psFreelist == NULL)
 	{
 		psFreelist = mcFreeLists.InsertAfterTail();
-		psFreelist->Init(8, iElementSize);
+		psFreelist->Init(iElementSize);
 	}
 	return psFreelist->Add();
 }

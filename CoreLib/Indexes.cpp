@@ -77,9 +77,9 @@ void SIndexesIterator::Init(SIndexedLevel* psTop)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexes::Init(int iChunkSize)
+void CIndexes::Init(void)
 {
-	mcLevels.Init(iChunkSize, sizeof(SIndexedLevel));
+	mcLevels.Init(sizeof(SIndexedLevel));
 	msTop.Init();
 }
 

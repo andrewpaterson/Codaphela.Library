@@ -5,9 +5,9 @@
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CListBlock::Init(int iChunkSize, int iElementSize)
+void CListBlock::Init(int iElementSize)
 {
-	Init(iChunkSize, iElementSize, 4);
+	Init(iElementSize, 4);
 }
 
 
@@ -15,9 +15,9 @@ void CListBlock::Init(int iChunkSize, int iElementSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CListBlock::Init(int iChunkSize, int iElementSize, int iAlignment)
+void CListBlock::Init(int iElementSize, int iAlignment)
 {
-	Init(iChunkSize, iElementSize, iAlignment, 0);
+	Init(iElementSize, iAlignment, 0);
 }
 
 
@@ -25,9 +25,9 @@ void CListBlock::Init(int iChunkSize, int iElementSize, int iAlignment)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CListBlock::Init(int iChunkSize, int iElementSize, int iAlignment, int iOffset)
+void CListBlock::Init(int iElementSize, int iAlignment, int iOffset)
 {
-	mcFreeList.Init(iChunkSize, iElementSize, iAlignment, iOffset);
+	mcFreeList.Init(iElementSize, iAlignment, iOffset);
 	mapIndices.Init();
 }
 

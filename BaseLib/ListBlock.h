@@ -13,9 +13,9 @@ protected:
 	CArrayVoidPtr	mapIndices;
 
 public:
-	void	Init(int iChunkSize, int iElementSize);
-	void	Init(int iChunkSize, int iElementSize, int iAlignment);
-	void	Init(int iChunkSize, int iElementSize, int iAlignment, int iOffset);
+	void	Init(int iElementSize);
+	void	Init(int iElementSize, int iAlignment);
+	void	Init(int iElementSize, int iAlignment, int iOffset);
 	void	Kill(void);
 
 	int		NumElements(void);

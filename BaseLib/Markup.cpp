@@ -29,14 +29,14 @@ Microsoft Windows is Copyright Microsoft Corporation
 //////////////////////////////////////////////////////////////////////////
 void CMarkup::Init(void)
 {
-	mcTags.Init(16, sizeof(CMarkupTag));
-	mcTexts.Init(8, sizeof(CMarkupText));
-	mcSubDocs.Init(8, sizeof(CMarkupSubDoc));
-	mcSubTexts.Init(8, sizeof(CMarkupSubText));
-	mcRefDocs.Init(8, sizeof(CMarkupRefDoc));
-	mcRefTexts.Init(8, sizeof(CMarkupRefText));
-	mcNamedRefs.Init(8, sizeof(CMarkupNamedRef));
-	mcDocs.Init(8, sizeof(CMarkupDoc));
+	mcTags.Init(sizeof(CMarkupTag));
+	mcTexts.Init(sizeof(CMarkupText));
+	mcSubDocs.Init(sizeof(CMarkupSubDoc));
+	mcSubTexts.Init(sizeof(CMarkupSubText));
+	mcRefDocs.Init(sizeof(CMarkupRefDoc));
+	mcRefTexts.Init(sizeof(CMarkupRefText));
+	mcNamedRefs.Init(sizeof(CMarkupNamedRef));
+	mcDocs.Init(sizeof(CMarkupDoc));
 
 	mpcDoc = AllocateDoc();
 	mpcDoc->Init(this);

@@ -47,12 +47,12 @@ template<class M>
 class __CArraySparseTemplate
 {
 private:
-	CFreeList	mcNodes;
+	CFreeList		mcNodes;
 	int				miElementSize;
 	SSparseNode*	mpsRoot;
 
 public:
-	void 			Init(int iChunkSize, int iElementSize);
+	void 			Init(int iElementSize);
 	void 			Kill(void);
 	void			Set(int iElementPos, M* pvData);
 	SSparseNode*	Search(int iElementPos);
@@ -76,7 +76,7 @@ template<class M>
 class CArraySparseTemplate : public __CArraySparseTemplate<M>
 {
 public:
-	void Init(int iChunkSize);
+	void Init(void);
 };
 
 
@@ -106,9 +106,9 @@ SSparseNode** SSparseNode::GetParentPointer(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void __CArraySparseTemplate<M>::Init(int iChunkSize, int iElementSize)
+void __CArraySparseTemplate<M>::Init(int iElementSize)
 {
-	mcNodes.Init(iChunkSize, sizeof(SSparseNode)+iElementSize);
+	mcNodes.Init(sizeof(SSparseNode)+iElementSize);
 	miElementSize = iElementSize;
 	mpsRoot = NULL;
 }
@@ -529,9 +529,9 @@ SSparseNode* __CArraySparseTemplate<M>::TestGetRoot(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CArraySparseTemplate<M>::Init(int iChunkSize)
+void CArraySparseTemplate<M>::Init()
 {
-	__CArraySparseTemplate<M>::Init(iChunkSize, sizeof(M));
+	__CArraySparseTemplate<M>::Init(sizeof(M));
 }
 
 

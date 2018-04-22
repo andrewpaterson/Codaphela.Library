@@ -33,6 +33,7 @@ struct SFNode
 {
 	unsigned char	bFull;
 	char			iOffset;
+	unsigned short  uiChunkSize;
 	CFreeList*		pcList;
 };
 
@@ -42,7 +43,6 @@ struct SFreeListParams
 	int		iAlignment;
 	char	iOffset;
 	int		iElementSize;
-	int		iChunkSize;
 };
 
 
@@ -66,12 +66,11 @@ protected:
 	int					miStride;
 
 	int					miElementSize;
-	int					miChunkSize;
 
 public:
-	void		Init(int iChunkSize, int iElementSize);
-	void		Init(int iChunkSize, int iElementSize, char iAlignment);
-	void		Init(int iChunkSize, int iElementSize, char iAlignment, char iOffset);
+	void		Init(int iElementSize);
+	void		Init(int iElementSize, char iAlignment);
+	void		Init(int iElementSize, char iAlignment, char iOffset);
 	void		Kill(void);
 
 	void*		Add(SFNode** ppsNode = NULL);
@@ -93,7 +92,6 @@ public:
 	void*		GetElement(SFNode* psNode, int iPosition);
 	char		GetOffset(void);
 	int			GetAlignment(void);
-	int			GetChunkSize(void);
 	void*		GetBitArray(SFNode* psNode);
 	SFNode* 	FindNode(void* pvData, BOOL bIsAllocated = TRUE);
 	int			ByteSize(void);
@@ -112,7 +110,7 @@ protected:
 	BOOL	RemoveExisiting(SFNode* psNode, int iPosition);
 	int		CalculateStride(void);
 	char	CalculateOffset(int iOffset);
-	int		CalculateBitArraySize(void);
+	int		CalculateBitArraySize(unsigned short uiChunkSize);
 	int		CalculateOffset(SFNode* psNode);
 	void*	GetElementInNode(SFNode* psNode, int iPosition);
 	BOOL	IsElementInNodeAllocated(SFNode* psNode, int iPosition);

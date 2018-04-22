@@ -75,7 +75,7 @@ public:
 	int						NumFreeLists(void);
 
 protected:
-	int						RemoveNode(CArrayVoidPtr* pav, int i, SGeneralMemoryAllocation* psAlloc, int iChunkSize, SFNode* psNode, CFreeList* pcList);
+	int						RemoveNode(CArrayVoidPtr* pav, int i, SGeneralMemoryAllocation* psAlloc, SFNode* psNode, CFreeList* pcList);
 	int						RemoveElements(CArrayVoidPtr* pav, int i, SFNode* psNode, CFreeList* pcList);
 
 private:

@@ -7,9 +7,9 @@ template<class M>
 class CListTemplate : public CListBlock, public CPostMalloc<M>
 {
 public:
-	void	Init(int iChunkSize);
-	void	Init(int iChunkSize, int iAlignment);
-	void	Init(int iChunkSize, int iAlignment, int iOffset);
+	void	Init(void);
+	void	Init(int iAlignment);
+	void	Init(int iAlignment, int iOffset);
 	void	Kill(void);
 
 	M*		Add(void);
@@ -40,9 +40,9 @@ public:
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CListTemplate<M>::Init(int iChunkSize)
+void CListTemplate<M>::Init(void)
 {
-	CListBlock::Init(iChunkSize, sizeof(M));
+	CListBlock::Init(sizeof(M));
 }
 
 
@@ -51,9 +51,9 @@ void CListTemplate<M>::Init(int iChunkSize)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CListTemplate<M>::Init(int iChunkSize, int iAlignment)
+void CListTemplate<M>::Init(int iAlignment)
 {
-	CListBlock::Init(iChunkSize, sizeof(M), iAlignment);
+	CListBlock::Init(sizeof(M), iAlignment);
 }
 
 
@@ -62,9 +62,9 @@ void CListTemplate<M>::Init(int iChunkSize, int iAlignment)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CListTemplate<M>::Init(int iChunkSize, int iAlignment, int iOffset)
+void CListTemplate<M>::Init(int iAlignment, int iOffset)
 {
-	CListBlock::Init(iChunkSize, sizeof(M), iAlignment, iOffset);
+	CListBlock::Init(sizeof(M), iAlignment, iOffset);
 }
 
 

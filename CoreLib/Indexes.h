@@ -60,7 +60,7 @@ protected:
 	SIndexedLevel	msTop;
 
 public:
-	void			Init(int iChunkSize);
+	void			Init(void);
 	void			Kill(void);
 	void*			Get(OIndex oi);
 	BOOL			Add(OIndex oi, void* pvMemory);

@@ -5,9 +5,9 @@
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CFreeListAllocator::Init(int iChunkSize, int iElementSize)
+void CFreeListAllocator::Init(int iElementSize)
 {
-	mcFreeList.Init(iChunkSize, iElementSize);
+	mcFreeList.Init(iElementSize);
 }
 
 
@@ -15,9 +15,9 @@ void CFreeListAllocator::Init(int iChunkSize, int iElementSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CFreeListAllocator::Init(int iChunkSize, int iElementSize, int iAlignment)
+void CFreeListAllocator::Init(int iElementSize, int iAlignment)
 {
-	mcFreeList.Init(iChunkSize, iElementSize, iAlignment);
+	mcFreeList.Init(iElementSize, iAlignment);
 }
 
 
@@ -25,9 +25,9 @@ void CFreeListAllocator::Init(int iChunkSize, int iElementSize, int iAlignment)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CFreeListAllocator::Init(int iChunkSize, int iElementSize, int iAlignment, int iOffset)
+void CFreeListAllocator::Init(int iElementSize, int iAlignment, int iOffset)
 {
-	mcFreeList.Init(iChunkSize, iElementSize, iAlignment, iOffset);
+	mcFreeList.Init(iElementSize, iAlignment, iOffset);
 }
 
 
@@ -115,7 +115,7 @@ BOOL CFreeListAllocator::Read(CFileReader* pcFileReader)
 		return FALSE;
 	}
 
-	mcFreeList.Init(sParams.iChunkSize, sParams.iElementSize, sParams.iAlignment, sParams.iOffset);
+	mcFreeList.Init(sParams.iElementSize, sParams.iAlignment, sParams.iOffset);
 	return TRUE;
 }
 

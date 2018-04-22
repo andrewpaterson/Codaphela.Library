@@ -7,9 +7,9 @@
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CFreeList::Init(int iChunkSize, int iElementSize)
+void CFreeList::Init(int iElementSize)
 {
-	Init(iChunkSize, iElementSize, 4);
+	Init(iElementSize, 4);
 }
 
 
@@ -17,9 +17,9 @@ void CFreeList::Init(int iChunkSize, int iElementSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CFreeList::Init(int iChunkSize, int iElementSize, char iAlignment)
+void CFreeList::Init(int iElementSize, char iAlignment)
 {
-	Init(iChunkSize, iElementSize, iAlignment, 0);
+	Init(iElementSize, iAlignment, 0);
 }
 
 
@@ -27,9 +27,8 @@ void CFreeList::Init(int iChunkSize, int iElementSize, char iAlignment)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CFreeList::Init(int iChunkSize, int iElementSize, char iAlignment, char iOffset)
+void CFreeList::Init(int iElementSize, char iAlignment, char iOffset)
 {
-	miChunkSize = iChunkSize;
 	miAlignment = iAlignment;
 	miSuppliedOffset = iOffset;
 	miElementSize = iElementSize;
@@ -92,7 +91,7 @@ int CFreeList::CalculateOffset(SFNode* psNode)
 	int					iByteDiff;
 	char				iOffset;
 
-	iBitArraySize = CalculateBitArraySize();
+	iBitArraySize = CalculateBitArraySize(psNode->uiChunkSize);
 	iStart = ((int)(ENGINE_SIZE_T) psNode) + sizeof(SFNode) + iBitArraySize;
 
 	iByteDiff = iStart % miAlignment;
@@ -112,12 +111,12 @@ int CFreeList::CalculateOffset(SFNode* psNode)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CFreeList::CalculateBitArraySize(void)
+int CFreeList::CalculateBitArraySize(unsigned short uiChunkSize)
 {
 	//The bit array size is the number of elements in a chunk divided by 8 (+1).
 
 	//Except this isn't what this does.
-	return (((miChunkSize >> 3) + 4) & 0xfffffffc);
+	return (((uiChunkSize >> 3) + 4) & 0xfffc);
 }
 
 
@@ -168,7 +167,7 @@ void* CFreeList::Add(SFNode** ppsNode)
 		}
 
 		pvBitArray = GetBitArray(psNode);
-		iPosition = FindFirstClearBit(pvBitArray, miChunkSize);
+		iPosition = FindFirstClearBit(pvBitArray, psNode->uiChunkSize);
 
 		if (iPosition == -1)
 		{
@@ -267,7 +266,7 @@ void CFreeList::RemoveExisiting(SFNode* psNode, void* pvData)
 	int			iPos;
 
 	//Find out the position of the element in the chunk.
-	iBitArraySize = CalculateBitArraySize();
+	iBitArraySize = CalculateBitArraySize(psNode->uiChunkSize);
 	iNodeStart = (int)((ENGINE_SIZE_T) psNode) + (iBitArraySize + sizeof(SFNode)) + psNode->iOffset;
 	iDataPos = (int)((ENGINE_SIZE_T) pvData);
 	iPos = (iDataPos - iNodeStart)/miStride;
@@ -281,23 +280,75 @@ void CFreeList::RemoveExisiting(SFNode* psNode, void* pvData)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-SFNode* CFreeList::AllocateNew(void)
+int CalculateNextChunkSize(int iNumBlocks)
 {
-	SFNode*		psNew;
-	int			iTotalSize;
-	int			iBitArraySize;
-
-	//Find the size of this free list block.  It is integer aligned.
-	//miChunkSize+1 ... -1 to ensure enough space given alignment.
-	iBitArraySize = CalculateBitArraySize();
-
-	if (miAlignment != 1)
+	if (iNumBlocks >= 8)
 	{
-		iTotalSize = sizeof(SFNode) + iBitArraySize + (miStride * (miChunkSize+1)) - 1;
+		return 256;
+	}
+	else if (iNumBlocks == 0)
+	{
+		return 8;
+	}
+	else if (iNumBlocks == 1)
+	{
+		return 8;
+	}
+	else if (iNumBlocks == 2)
+	{
+		return 16;
+	}
+	else if (iNumBlocks == 3)
+	{
+		return 32;
+	}
+	else if (iNumBlocks == 4)
+	{
+		return 32;
+	}
+	else if (iNumBlocks == 5)
+	{
+		return 64;
+	}
+	else if (iNumBlocks == 6)
+	{
+		return 96;
+	}
+	else if (iNumBlocks == 7)
+	{
+		return 128;
 	}
 	else
 	{
-		iTotalSize = sizeof(SFNode) + iBitArraySize + (miElementSize * miChunkSize);
+		return -1;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+SFNode* CFreeList::AllocateNew(void)
+{
+	SFNode*			psNew;
+	int				iTotalSize;
+	int				iBitArraySize;
+	int				iChunkSize;
+
+	iChunkSize = CalculateNextChunkSize(mcList.NumElements());
+
+	//Find the size of this free list block.  It is integer aligned.
+	//miChunkSize+1 ... -1 to ensure enough space given alignment.
+	iBitArraySize = CalculateBitArraySize((unsigned short)iChunkSize);
+
+	if (miAlignment != 1)
+	{
+		iTotalSize = sizeof(SFNode) + iBitArraySize + (miStride * (iChunkSize + 1)) - 1;
+	}
+	else
+	{
+		iTotalSize = sizeof(SFNode) + iBitArraySize + (miElementSize * iChunkSize);
 	}
 
 	if (mpsUnused)
@@ -305,6 +356,7 @@ SFNode* CFreeList::AllocateNew(void)
 		psNew = mpsUnused;
 		mcList.InsertDetachedAfterTail(mpsUnused);
 		mpsUnused = NULL;
+		iChunkSize = psNew->uiChunkSize;
 	}
 	else
 	{
@@ -314,6 +366,7 @@ SFNode* CFreeList::AllocateNew(void)
 	mpsNotFull = psNew;
 	psNew->iOffset = CalculateOffset(psNew);
 	psNew->pcList = this;
+	psNew->uiChunkSize = (unsigned short)iChunkSize;
 	return psNew;
 }
 
@@ -357,7 +410,6 @@ void CFreeList::RemoveNode(SFNode* psNode)
 void CFreeList::GetParams(SFreeListParams* psParams)
 {
 	psParams->iAlignment = miAlignment;
-	psParams->iChunkSize = miChunkSize;
 	psParams->iElementSize = miElementSize;
 	psParams->iOffset = miSuppliedOffset;
 }
@@ -415,7 +467,7 @@ void* CFreeList::GetElementInNode(SFNode* psNode, int iPosition)
 	int		iElementOffset;
 	int		iBitArraySize;
 
-	iBitArraySize = CalculateBitArraySize();
+	iBitArraySize = CalculateBitArraySize(psNode->uiChunkSize);
 	iElementOffset = iPosition * miStride;
 	pvData = RemapSinglePointer(psNode, sizeof(SFNode) + iBitArraySize + psNode->iOffset + iElementOffset);
 	return pvData;
@@ -428,7 +480,7 @@ void* CFreeList::GetElementInNode(SFNode* psNode, int iPosition)
 //////////////////////////////////////////////////////////////////////////
 void* CFreeList::GetElement(SFNode* psNode, int iPosition)
 {
-	if ((iPosition < 0) || (iPosition >= miChunkSize))
+	if ((iPosition < 0) || (iPosition >= psNode->uiChunkSize))
 	{
 		return NULL;
 	}
@@ -502,7 +554,7 @@ BOOL CFreeList::RemoveExisiting(SFNode* psNode, int iPosition)
 	mpsNotFull = psNode;
 
 	//Check if any elements are still allocated in this chunk.
-	if (FindFirstSetBit(pvBitArray, miChunkSize) == -1)
+	if (FindFirstSetBit(pvBitArray, psNode->uiChunkSize) == -1)
 	{
 		//If not deallocate the element.
 		Deallocate(psNode);
@@ -646,7 +698,7 @@ void CFreeList::FindNextAllocatedElement(SFreeListIterator* psIterator)
 	{
 		psIterator->iPosition++;
 
-		if (psIterator->iPosition >= miChunkSize)
+		if (psIterator->iPosition >= psIterator->psCurrent->uiChunkSize)
 		{
 			psIterator->iPosition = 0;
 
@@ -688,7 +740,7 @@ void CFreeList::FindPrevAllocatedElement(SFreeListIterator* psIterator)
 				psIterator->iPosition = -1;
 				return;
 			}
-			psIterator->iPosition = miChunkSize-1;
+			psIterator->iPosition = psIterator->psCurrent->uiChunkSize-1;
 			pvBitArray = GetBitArray(psIterator->psCurrent);
 		}
 
@@ -714,14 +766,13 @@ SFNode* CFreeList::FindNode(void* pvData, BOOL bIsAllocated)
 	int				iPos;
 	void*			pvBitArray;
 
-	iBitArraySize = CalculateBitArraySize();
-
 	iDataPos = (int)((ENGINE_SIZE_T) pvData);
 	psNode = (SFNode*)mcList.GetHead();
 	while (psNode)
 	{
+		iBitArraySize = CalculateBitArraySize(psNode->uiChunkSize);
 		iNodeStart = (int)((ENGINE_SIZE_T) psNode) + (iBitArraySize + sizeof(SFNode)) + psNode->iOffset;
-		iNodeEnd = iNodeStart + (miStride * (miChunkSize-1));
+		iNodeEnd = iNodeStart + (miStride * (psNode->uiChunkSize -1));
 		if ((iDataPos >= iNodeStart) && (iDataPos <= iNodeEnd))
 		{
 			//The node is in this block.
@@ -822,12 +873,12 @@ int CFreeList::NumNodeElements(SFNode* psNode)
 
 	if (psNode->bFull)
 	{
-		return miChunkSize;
+		return psNode->uiChunkSize;
 	}
 	else
 	{
 		pvBitArray = GetBitArray(psNode);
-		return CountBits(pvBitArray, miChunkSize);
+		return CountBits(pvBitArray, psNode->uiChunkSize);
 	}
 }
 
@@ -848,13 +899,13 @@ void* CFreeList::GetFirstNodeElement(SFNode* psNode)
 	else
 	{
 		pvBitArray = GetBitArray(psNode);
-		iPosition = FindFirstSetBit(pvBitArray, miChunkSize);
+		iPosition = FindFirstSetBit(pvBitArray, psNode->uiChunkSize);
 		if (iPosition == -1)
 		{
 			return NULL;
 		}
 
-		if ((iPosition < 0) || (iPosition >= miChunkSize))
+		if ((iPosition < 0) || (iPosition >= psNode->uiChunkSize))
 		{
 			return NULL;
 		}
@@ -875,18 +926,18 @@ void* CFreeList::GetLastNodeElement(SFNode* psNode)
 
 	if (psNode->bFull)
 	{
-		return GetElementInNode(psNode, miChunkSize-1);
+		return GetElementInNode(psNode, psNode->uiChunkSize -1);
 	}
 	else
 	{
 		pvBitArray = GetBitArray(psNode);
-		iPosition = FindLastSetBit(pvBitArray, miChunkSize);
+		iPosition = FindLastSetBit(pvBitArray, psNode->uiChunkSize);
 		if (iPosition == -1)
 		{
 			return NULL;
 		}
 
-		if ((iPosition < 0) || (iPosition >= miChunkSize))
+		if ((iPosition < 0) || (iPosition >= psNode->uiChunkSize))
 		{
 			return NULL;
 		}
@@ -945,13 +996,4 @@ int CFreeList::GetAlignment(void)
 	return miAlignment;
 }
 
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-int CFreeList::GetChunkSize(void)
-{
-	return miChunkSize;
-}
 

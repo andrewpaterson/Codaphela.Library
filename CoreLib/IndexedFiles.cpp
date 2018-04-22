@@ -41,7 +41,7 @@ void CIndexedFiles::Init(CDurableFileController* pcDurableFileControl, char* szD
 {
 	mpcDurableFileControl = pcDurableFileControl;
 	mszDataExtension.Init(szDataExtension);
-	mcFiles.Init(1024);
+	mcFiles.Init();
 
 	InitIndexedFileDescriptors(szDescricptorName, szDescricptorRewrite);
 }

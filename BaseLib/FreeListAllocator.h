@@ -10,9 +10,9 @@ protected:
 	CFreeList	mcFreeList;
 
 public:
-	void		Init(int iChunkSize, int iElementSize);
-	void		Init(int iChunkSize, int iElementSize, int iAlignment);
-	void		Init(int iChunkSize, int iElementSize, int iAlignment, int iOffset);
+	void		Init(int iElementSize);
+	void		Init(int iElementSize, int iAlignment);
+	void		Init(int iElementSize, int iAlignment, int iOffset);
 	void		Kill(void);
 
 	void*		Malloc(size_t tSize);

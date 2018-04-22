@@ -59,14 +59,14 @@ template<class M>
 class __CArrayDenseTemplate
 {
 private:
-	CFreeList	mcDenseNodes;
-	CFreeList	mcElementNodes;
+	CFreeList		mcDenseNodes;
+	CFreeList		mcElementNodes;
 	SDenseNode*		mpsRoot;
 	int				miUsedElements;
 	int				miUsedNodes;
 
 public:
-	void			Init(int iNodeChunkSize, int iElementChunkSize, int iElementSize);
+	void			Init(int iElementSize);
 	void			Kill(void);
 	M*				Add(void);
 	M*				Add(M* pvData);
@@ -110,7 +110,7 @@ template<class M>
 class CArrayDenseTemplate : public __CArrayDenseTemplate<M>
 {
 public:
-	void Init(int iNodeChunkSize, int iElementChunkSize);
+	void Init(void);
 };
 
 
@@ -239,10 +239,10 @@ SDenseNode* SDenseNode::GetLeft(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void __CArrayDenseTemplate<M>::Init(int iNodeChunkSize, int iElementChunkSize, int iElementSize)
+void __CArrayDenseTemplate<M>::Init(int iElementSize)
 {
-	mcDenseNodes.Init(iNodeChunkSize, sizeof(SDenseNode));
-	mcElementNodes.Init(iElementChunkSize, iElementSize);
+	mcDenseNodes.Init(sizeof(SDenseNode));
+	mcElementNodes.Init(iElementSize);
 	mpsRoot = NULL;
 	miUsedElements = 0;
 	miUsedNodes = 0;
@@ -1148,9 +1148,9 @@ void __CArrayDenseTemplate<M>::RecurseDumpElement(int iDepth, M* psElement, CCha
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CArrayDenseTemplate<M>::Init(int iNodeChunkSize, int iElementChunkSize)
+void CArrayDenseTemplate<M>::Init(void)
 {
-	__CArrayDenseTemplate<M>::Init(iNodeChunkSize, iElementChunkSize, sizeof(M));
+	__CArrayDenseTemplate<M>::Init(sizeof(M));
 }
 
 
