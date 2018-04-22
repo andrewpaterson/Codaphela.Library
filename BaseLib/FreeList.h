@@ -28,11 +28,12 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "IntegerHelper.h"
 
 
+class CFreeList;
 struct SFNode
 {
-	BOOL	bFull;
-	int		iOffset;
-	void*	pcList;
+	BOOL		bFull;
+	int			iOffset;
+	CFreeList*	pcList;
 
 	//For testing
 	int*	GetBitArray(void);

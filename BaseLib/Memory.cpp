@@ -92,12 +92,12 @@ void* CMemory::Add(unsigned int iSize)
 void CMemory::Remove(void* pv)
 {
 	SGeneralMemoryAllocation*	psAlloc;
-	CFreeList*		pcList;
+	CFreeList*					pcList;
 
 	psAlloc = MEMORY_GET_ALLOCATION(pv);
 	if (psAlloc->uiSize <= mcFreeListParams.GetMaxFreeListElementSize())
 	{
-		pcList = (CFreeList*)psAlloc->psFreeListNode->pcList;
+		pcList = psAlloc->psFreeListNode->pcList;
 
 		DeallocateInFreeList(pcList, psAlloc);
 	}
@@ -147,7 +147,7 @@ BOOL CMemory::Remove(CArrayVoidPtr* pav)
 		if (psAlloc->uiSize <= mcFreeListParams.GetMaxFreeListElementSize())
 		{
 			psNode = psAlloc->psFreeListNode;
-			pcList = (CFreeList*)psAlloc->psFreeListNode->pcList;
+			pcList = psAlloc->psFreeListNode->pcList;
 			iChunkSize = pcList->GetChunkSize();
 
 			iRemoved = RemoveNode(pav, i, psAlloc, iChunkSize, psNode, pcList);
@@ -313,11 +313,11 @@ void* CMemory::Add(unsigned int uiSize, int iAlignment, int iOffset)
 //////////////////////////////////////////////////////////////////////////
 void* CMemory::Grow(void* pvInitial, unsigned int uiSize)
 {
-	SGeneralMemoryAllocation*		psAlloc;
-	CFreeList*				pcList;
-	SMemoryFreeListParams*	psParams;
-	void*					pvNew;
-	SLLANode*				psNode;
+	SGeneralMemoryAllocation*	psAlloc;
+	CFreeList*					pcList;
+	SMemoryFreeListParams*		psParams;
+	void*						pvNew;
+	SLLANode*					psNode;
 
 	psAlloc = MEMORY_GET_ALLOCATION(pvInitial);
 	if (psAlloc->uiSize <= mcFreeListParams.GetMaxFreeListElementSize())
@@ -330,7 +330,7 @@ void* CMemory::Grow(void* pvInitial, unsigned int uiSize)
 		}
 		else
 		{
-			pcList = (CFreeList*)psAlloc->psFreeListNode->pcList;
+			pcList = psAlloc->psFreeListNode->pcList;
 			pvNew = Add(uiSize, pcList->GetAlignment(), pcList->GetOffset());
 			CopyAllocation(pvNew, pvInitial, uiSize, psAlloc->uiSize);
 			DeallocateInFreeList(pcList, psAlloc);

@@ -9,7 +9,7 @@
 //////////////////////////////////////////////////////////////////////////
 int* SFNode::GetBitArray(void)
 {
-	return (int*)(((CFreeList*)pcList)->GetBitArray(this));
+	return (int*)(pcList->GetBitArray(this));
 }
 
 
@@ -427,7 +427,7 @@ void* CFreeList::GetElementInNode(SFNode* psNode, int iPosition)
 
 	iBitArraySize = CalculateBitArraySize();
 	iElementOffset = iPosition * miStride;
-	pvData = (void*)((int)((ENGINE_SIZE_T) psNode) + sizeof(SFNode) + iBitArraySize + psNode->iOffset + iElementOffset);
+	pvData = RemapSinglePointer(psNode, sizeof(SFNode) + iBitArraySize + psNode->iOffset + iElementOffset);
 	return pvData;
 }
 
@@ -475,7 +475,7 @@ void* CFreeList::AllocateNewSetFirst(void)
 //////////////////////////////////////////////////////////////////////////
 void* CFreeList::GetBitArray(SFNode* psNode)
 {
-	return (void*)((int)((ENGINE_SIZE_T) psNode) + sizeof(SFNode));
+	return RemapSinglePointer(psNode, sizeof(SFNode));
 };
 
 
@@ -486,7 +486,7 @@ void* CFreeList::GetBitArray(SFNode* psNode)
 void* CFreeList::AllocateExisting(SFNode*	psNode, int iPosition)
 {
 	void*	pvBitArray;
-	void*		pvData;
+	void*	pvData;
 
 	pvBitArray = GetBitArray(psNode);
 	SetBit(iPosition, pvBitArray, 1);
