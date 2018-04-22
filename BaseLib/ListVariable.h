@@ -24,8 +24,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define __LIST_VARIABLE_H__
 #include "ArrayIntAndPointer.h"
 #include "LinkedListTemplate.h"
-#include "FreeList.h"
-
+#include "DataMemory.h"
 
 
 struct SPointerAndSize
@@ -43,7 +42,7 @@ class CListVariable
 {
 private:
 	CArrayTypedPointerAndSize	mcArray;
-	CLinkListFreeList			mcFreeLists;
+	CDataMemory					mcFreeLists;
 
 public:
 	void	Init(void);
@@ -65,10 +64,8 @@ public:
 	int		InsertIntoSorted(int(*)(const void*, const void*), void* pvElement, BOOL bOverwriteExisting, int iElementSize);
 
 private:
-	CFreeList*		 	GetFreeListForSize(int iSize);
-	void				PrivateFree(void* pvElement, int iElementSize);
-	void				PrivateFree(SPointerAndSize* psType);
-	void*				PrivateMalloc(int iElementSize);
+	void	PrivateFree(SPointerAndSize* psType);
+	void*	PrivateMalloc(int iElementSize);
 };
 
 

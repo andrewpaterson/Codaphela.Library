@@ -61,7 +61,7 @@ void CDataMemory::Kill(void)
 
 	mcLargeList.Kill();
 
-	mpcFreeListParams->Kill();
+	mpcFreeListParams = NULL;
 }
 
 

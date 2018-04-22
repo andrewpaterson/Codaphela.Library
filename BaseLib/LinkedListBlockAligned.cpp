@@ -125,16 +125,23 @@ void* CLinkedListBlockAligned::AllocateDetached(int iDataSize, int iAlignment, i
 	SLLANode*		psNode;
 
 	iOffset = ::CalculateOffset(iOffset - sizeof(SLLANode), iAlignment);
-	iTotalSize = iDataSize + sizeof(SLLANode) + iAlignment-1;
+	iTotalSize = iDataSize + sizeof(SLLANode) + iAlignment - 1;
 
 	pvMem = Malloc(iTotalSize);
-	psNode = CalculateActualStart(pvMem, iAlignment, iOffset);
-	psNode->sAligned.iAlignment = iAlignment;
-	psNode->sAligned.iOffset = iOffset;
-	psNode->sAligned.iSize = iDataSize;
-	psNode->sAligned.pvAlloc = pvMem;
+	if (pvMem != NULL)
+	{
+		psNode = CalculateActualStart(pvMem, iAlignment, iOffset);
+		psNode->sAligned.iAlignment = iAlignment;
+		psNode->sAligned.iOffset = iOffset;
+		psNode->sAligned.iSize = iDataSize;
+		psNode->sAligned.pvAlloc = pvMem;
 
-	return HeaderGetData<SLLANode, void>(psNode);
+		return HeaderGetData<SLLANode, void>(psNode);
+	}
+	else
+	{
+		return NULL;
+	}
 }
 
 
