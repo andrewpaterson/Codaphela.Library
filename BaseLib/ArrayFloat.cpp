@@ -6,17 +6,17 @@
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayFloat::AddList(float iStop, ...)
+void CArrayFloat::AddList(double iStop, ...)
 {
 	va_list		vaMarker;
-	float		iValue;
+	double		iValue;
 
 	va_start(vaMarker, iStop);
-	iValue = va_arg(vaMarker, float);
+	iValue = va_arg(vaMarker, double);
 	while (iValue != iStop)
 	{
-		Add(iValue);
-		iValue = va_arg(vaMarker, float);
+		Add((float)iValue);
+		iValue = va_arg(vaMarker, double);
 	}
 	va_end(vaMarker);
 }
