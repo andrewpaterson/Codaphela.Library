@@ -22,7 +22,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __TYPE_CONVERTER_H__
 #define __TYPE_CONVERTER_H__
-#include "BaseLib/DataTypes.h"
+#include "DataTypes.h"
 
 
 //////////////////////////////////////////////////////////////////////////

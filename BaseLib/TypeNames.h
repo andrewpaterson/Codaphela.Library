@@ -22,7 +22,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __TYPE_NAMES_H__
 #define __TYPE_NAMES_H__
-#include "BaseLib/MapStringInt.h"
+#include "MapStringInt.h"
 
 
 struct STypeName

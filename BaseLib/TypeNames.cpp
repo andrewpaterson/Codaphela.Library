@@ -21,8 +21,9 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
 #include "TypeNames.h"
-#include "BaseLib/PointerRemapper.h"
-#include "BaseLib/PointerFunctions.h"
+#include "PointerRemapper.h"
+#include "PointerFunctions.h"
+#include "DataTypes.h"
 
 
 CTypeNames gcTypeNames;

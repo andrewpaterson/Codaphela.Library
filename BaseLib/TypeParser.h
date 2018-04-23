@@ -22,11 +22,11 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __TYPE_PARSER_H__
 #define __TYPE_PARSER_H__
-#include "BaseLib/DataTypes.h"
-#include "BaseLib/GeometricTypes.h"
-#include "BaseLib/Chars.h"
-#include "BaseLib/Number.h"
-#include "BaseLib/Date.h"
+#include "DataTypes.h"
+#include "GeometricTypes.h"
+#include "Chars.h"
+#include "Number.h"
+#include "Date.h"
 #include "TextParser.h"
 
 
