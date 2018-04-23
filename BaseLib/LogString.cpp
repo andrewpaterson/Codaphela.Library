@@ -166,7 +166,7 @@ char* PointerToString(void* pv)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* MethodToString(char* szFile, int iLine, char* szFunction)
+char* MethodToString(const char* szFile, int iLine, const char* szFunction)
 {
 	int		iCount = IncrementLogToStringCount();
 	char*	sz = gaszLogToStringScratchPad[iCount];

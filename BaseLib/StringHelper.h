@@ -35,13 +35,13 @@ char*	IToA(unsigned long long int ulliValue, char* szResult, int iBase);
 char*   StrRev(char* szString);
 char*   StrRev(char* szString, int iLength);
 char*	FindChar(char* szString, char c, BOOL bReverse = 0);
-void	StrCpySafe(char* szDest, char* szSource, int iDestLength);
+void	StrCpySafe(char* szDest, const char* szSource, int iDestLength);
 void	ToLower(char* szString);
 void	ToUpper(char* szString);
 char	ToLower(char c);
 char	ToUpper(char c);
-int		StrEmpty(char* szString);
-int		StrPrintable(char* szString);
+int		StrEmpty(const char* szString);
+int		StrPrintable(const char* szString);
 
 
 #endif // __STRING_HELPER_H__

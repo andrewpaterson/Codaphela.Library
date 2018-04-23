@@ -37,7 +37,7 @@ private:
 public:
 	void 	Init(void);
 	void 	Kill(void);
-	void 	Set(char* szError);
+	void 	Set(const char* szError);
 	char*	Get(void);
 };
 
