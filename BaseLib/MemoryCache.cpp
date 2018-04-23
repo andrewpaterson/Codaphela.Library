@@ -91,7 +91,7 @@ BOOL CMemoryCache::PreAllocate(CMemoryCacheAllocation* pcPreAllocationResult)
 	{
 		if (iCachedSize <= iRemaining)
 		{
-			psCacheDesc = (SMemoryCacheDescriptor*)RemapSinglePointer(mpsLast, miDescriptorSize + mpsLast->iDataSize);
+			psCacheDesc = (SMemoryCacheDescriptor*)RemapSinglePointer(mpsLast, (int)(miDescriptorSize + mpsLast->iDataSize));
 		}
 		else
 		{
@@ -253,7 +253,7 @@ unsigned int CMemoryCache::RemainingAfterLast(void)
 	}
 	else
 	{
-		iAllocated = ((int)(ENGINE_SIZE_T) mpsLast - (int)(ENGINE_SIZE_T) mpvCache);
+		iAllocated = ((int)(size_t) mpsLast - (int)(size_t) mpvCache);
 		iAllocated += (mpsLast->iDataSize + miDescriptorSize);
 		return muiCacheSize - iAllocated;
 	}
@@ -266,16 +266,16 @@ unsigned int CMemoryCache::RemainingAfterLast(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CMemoryCache::Overlaps(void* pvNew, unsigned int uiNewSize, SMemoryCacheDescriptor* psExisting)
 {
-	unsigned int	uiNewStart;
-	unsigned int	uiNewEnd;  //Inclusive
+	size_t	uiNewStart;
+	size_t	uiNewEnd;  //Inclusive
 
-	unsigned int	uiNextStart;
-	unsigned int	uiNextEnd; //Inclusive
+	size_t	uiNextStart;
+	size_t	uiNextEnd; //Inclusive
 
-	uiNewStart = (unsigned int)(ENGINE_SIZE_T) pvNew;
+	uiNewStart = (size_t) pvNew;
 	uiNewEnd = uiNewStart + uiNewSize - 1;
 
-	uiNextStart = (unsigned int)(ENGINE_SIZE_T) psExisting;
+	uiNextStart = (size_t) psExisting;
 	uiNextEnd = uiNextStart + psExisting->iDataSize + miDescriptorSize - 1;
 
 	if ((uiNewStart <= uiNextStart) && (uiNewEnd >= uiNextStart))

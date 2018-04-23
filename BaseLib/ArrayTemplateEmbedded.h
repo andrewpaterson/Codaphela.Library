@@ -289,8 +289,8 @@ int CArrayTemplateEmbedded<M, I>::GetIndex(M* pvElement)
 	int iBase;
 	int iDifference;
 
-	iBase = (int)(ENGINE_SIZE_T) GetData();
-	iIndex = (int)(ENGINE_SIZE_T) pvElement;
+	iBase = (int)(size_t) GetData();
+	iIndex = (int)(size_t) pvElement;
 	iDifference = iIndex - iBase;
 
 	//Make sure the element is correctly aligned.
