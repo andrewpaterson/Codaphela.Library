@@ -307,7 +307,7 @@ void CFileUtil::CurrentDirectory(CChars* szDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileUtil::FindFiles(char* szInDirectory, BOOL bdirs, char* szInName, char* szExtension, CArrayChars* paszFiles, BOOL bHidden)
+BOOL CFileUtil::FindFiles(char* szInDirectory, BOOL bDirs, char* szInName, char* szExtension, CArrayChars* paszFiles, BOOL bHidden)
 {
 	WIN32_FIND_DATA		sFindData;
 	CChars				szFindName;
@@ -341,7 +341,7 @@ BOOL CFileUtil::FindFiles(char* szInDirectory, BOOL bdirs, char* szInName, char*
 			bValid = TRUE;
 			if (sFindData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
 			{
-				if (bdirs)
+				if (bDirs)
 				{
 					if (szInName != NULL)
 					{
@@ -361,7 +361,7 @@ BOOL CFileUtil::FindFiles(char* szInDirectory, BOOL bdirs, char* szInName, char*
 			}
 			else
 			{
-				if (!bdirs)
+				if (!bDirs)
 				{
 					if (szExtension != NULL)
 					{

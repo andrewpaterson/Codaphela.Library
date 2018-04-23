@@ -38,7 +38,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CFileUtil::CurrentDirectory(CChars* szDest)
+void CFileUtil::CurrentDirectory(CChars* szDest)
 {
 	char	szTemp[MAX_PATH];
 
@@ -74,13 +74,14 @@ BOOL CFileUtil::MakeDir(char* szPathName)
 //////////////////////////////////////////////////////////////////////////
 BOOL CFileUtil::RemoveDir(char* szPathName)
 {
-    char    sz[MAX_PATH];
+    CChars  sz;
+    BOOL    bResult;
 
-    if (FullPath(sz, szPathName, MAX_PATH))
-    {
-        return RecurseRemoveDir(sz);
-    }
-    return FALSE;
+    sz.Init(szPathName);
+    FullPath(&sz);
+    bResult = RecurseRemoveDir(sz.Text());
+    sz.Kill();
+    return bResult;
 }
 
 
@@ -92,15 +93,14 @@ BOOL CFileUtil::RecurseRemoveDir(char* szPathName)
 {
     DIR*                pDIR;
     struct dirent*      pDirEnt;
-	char				szTemp[MAX_PATH];
-	BOOL				bValid;
-	char				szDirectory[MAX_PATH];
+	CChars              szTemp;
+	CChars              szDirectory;
     struct stat         sBuffer;
     int                 iStatus;
     BOOL                bDir;
 
-	strcpy(szDirectory, szPathName);
-	RemoveFileSeparator(szDirectory);
+	szDirectory.Init(szPathName);
+	RemoveFileSeparator(&szDirectory);
 
     pDIR = opendir(szPathName);
 
@@ -112,15 +112,13 @@ BOOL CFileUtil::RecurseRemoveDir(char* szPathName)
     pDirEnt = readdir(pDIR);
     while (pDirEnt != NULL)
     {
-		bValid = TRUE;
-
         if (!((strcmp(pDirEnt->d_name, ".") == 0) || (strcmp(pDirEnt->d_name, "..") == 0)))
         {
-            strcpy(szTemp, szDirectory);
-            strcat(szTemp, FILE_SEPARATOR);
-            strcat(szTemp, pDirEnt->d_name);
+            szTemp.Init(szDirectory);
+            szTemp.Append(FILE_SEPARATOR);
+            szTemp.Append(pDirEnt->d_name);
 
-            iStatus = stat(szTemp, &sBuffer);
+            iStatus = stat(szTemp.Text(), &sBuffer);
             if (iStatus == -1)
             {
                 printf("%s: %s\n", strerror(errno), szTemp);
@@ -129,18 +127,20 @@ BOOL CFileUtil::RecurseRemoveDir(char* szPathName)
             bDir = S_ISDIR(sBuffer.st_mode);
             if (bDir) //Directory
             {
-				RemoveDir(szTemp);
+				RemoveDir(szTemp.Text());
 			}
             else
             {
-                unlink(szTemp);
+                unlink(szTemp.Text());
             }
+            szTemp.Kill();
 		}
 		pDirEnt = readdir(pDIR);
 	}
 
     closedir(pDIR);
-	rmdir(szDirectory);
+	rmdir(szDirectory.Text());
+	szDirectory.Kill();
 	return TRUE;
 }
 
@@ -211,18 +211,16 @@ filePos CFileUtil::Size(char* szFileName)
 {
     struct stat         sBuffer;
     int                 iStatus;
-    char                sz[MAX_PATH];
+    CChars              sz;
 
-    if (FullPath(sz, szFileName, MAX_PATH))
+    sz.Init(szFileName);
+    FullPath(&sz);
+    iStatus = stat(sz.Text(), &sBuffer);
+    if (iStatus == -1)
     {
-        iStatus = stat(sz, &sBuffer);
-        if (iStatus == -1)
-        {
-            return -1;
-        }
-        return sBuffer.st_size;
+        return -1;
     }
-    return -1;
+    return sBuffer.st_size;
 }
 
 
@@ -260,31 +258,31 @@ char CFileUtil::GetDriveLetter(char* szPathName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CFileFinder::FindFiles(char* szInDirectory, BOOL bDirs, char* szInName, char* szExtension)
+BOOL CFileUtil::FindFiles(char* szInDirectory, BOOL bDirs, char* szInName, char* szExtension, CArrayChars* paszFiles, BOOL bHidden)
 {
 	DIR*                pDIR;
 	struct dirent*      pDirEnt;
-	char				szFindName[MAX_PATH];
-	char				szTemp[MAX_PATH];
+	CChars				szFindName;
+    CChars				szTemp;
 	BOOL				bValid;
-	char				szDirectory[MAX_PATH];
-	char				szFile[MAX_PATH];
-	char*				szFileExtension;
+    CChars				szDirectory;
+    CChars				szFile;
+    CChars				szFake;
 	int                 iStatus;
 	struct stat         sBuffer;
-	BOOL                bDir;
+	BOOL                bDirectory;
 	CFileUtil           cFileUtil;
+	int                 iFileExtension;
 
-	if (!cFileUtil.FullPath(szDirectory, szInDirectory, MAX_PATH))
-	{
-		return TRIERROR;
-	}
+	szDirectory.Init(szInDirectory);
+	FullPath(&szDirectory);
 
-	pDIR = opendir(szDirectory);
+	pDIR = opendir(szDirectory.Text());
 
 	if (pDIR == NULL)
 	{
-		return TRITRUE;
+	    szDirectory.Kill();
+		return TRUE;
 	}
 
 	pDirEnt = readdir(pDIR);
@@ -292,72 +290,99 @@ TRISTATE CFileFinder::FindFiles(char* szInDirectory, BOOL bDirs, char* szInName,
 	{
 		bValid = TRUE;
 
-		sprintf(szTemp, "%s%s%s", szDirectory, FILE_SEPARATOR, pDirEnt->d_name);
-		iStatus = stat(szTemp, &sBuffer);
+		szTemp.Init(szDirectory);
+		szTemp.Append(FILE_SEPARATOR);
+        szTemp.Append(pDirEnt->d_name);
+
+		iStatus = stat(szTemp.Text(), &sBuffer);
 		if (iStatus == -1)
 		{
-			printf("%s: %s\n", strerror(errno), szTemp);
-			return TRIERROR;
+			printf("%s: %s\n", strerror(errno), szTemp.Text());
+			szTemp.Kill();
+			szDirectory.Kill();
+			return FALSE;
 		}
-		bDir = S_ISDIR(sBuffer.st_mode);
-		if (bDir) //Directory
+
+        bDirectory = S_ISDIR(sBuffer.st_mode);
+		if (bDirectory)
 		{
-			if (bDirs)
-			{
-				if (szInName != NULL)
-				{
-					strcpy(szFile, pDirEnt->d_name);
-					RemoveExtension(szFile);
-					if (StrIStr(szFile, szInName) == NULL)
-					{
-						bValid = FALSE;
-					}
-				}
-				else
-				{
-					bValid = FALSE;
-				}
+            if (bDirs)
+            {
+                if (szInName != NULL)
+                {
+                    szTemp.Init(pDirEnt->d_name);
+                    RemoveExtension(&szTemp);
+                    if (!szTemp.Contains(szInName))
+                    {
+                        bValid = FALSE;
+                    }
+                    szTemp.Kill();
+                }
+            }
+            else
+            {
+                bValid = FALSE;
 			}
 		}
 		else
 		{
-			if (!bDirs)
-			{
-				if (szExtension != NULL)
-				{
-					szFileExtension = FindExtension(pDirEnt->d_name);
-					szFileExtension++;
-					if (StrICmp(szFileExtension, szExtension) != 0)
-					{
-						bValid = FALSE;
-					}
-				}
-				if (szInName != NULL)
-				{
-					strcpy(szFile, pDirEnt->d_name);
-					RemoveExtension(szFile);
-					if (StrIStr(szFile, szInName) == NULL)
-					{
-						bValid = FALSE;
-					}
-				}
-			}
-			else
-			{
-				bValid = FALSE;
-			}
+            if (!bDirs)
+            {
+                if (szExtension != NULL)
+                {
+                    szFake.Fake(pDirEnt->d_name);
+                    iFileExtension = FindExtension(szFake.Text());
+                    if (iFileExtension != -1)
+                    {
+                        if (!(szFake.SubStringEquals(iFileExtension+1, szExtension)))
+                        {
+                            bValid = FALSE;
+                        }
+                    }
+                    else
+                    {
+                        //If there is no file extension on the current file and the
+                        //extension being looked for is not empty...
+                        if (szExtension[0] != 0)
+                        {
+                            //Then this file is not valid.
+                            bValid = FALSE;
+                        }
+                    }
+                }
+                if (szInName != NULL)
+                {
+                    szTemp.Init(pDirEnt->d_name);
+                    RemoveExtension(&szTemp);
+                    if (!szTemp.ContainsIgnoreCase(szInName))
+                    {
+                        bValid = FALSE;
+                    }
+                    szTemp.Kill();
+                }
+            }
+            else
+            {
+                bValid = FALSE;
+            }
 		}
 
-		if (bValid)
-		{
-			mcFiles.Add(szTemp, 0);
-		}
+        if (bValid)
+        {
+            if (!((strcmp(pDirEnt->d_name, ".") == 0) || (strcmp(pDirEnt->d_name, "..") == 0)))
+            {
+                szTemp.Init(szDirectory);
+                AppendToPath(&szTemp, pDirEnt->d_name);
+                paszFiles->Add(szTemp.Text());
+                szTemp.Kill();
+            }
+        }
 
 		pDirEnt = readdir(pDIR);
 	}
 
 	closedir(pDIR);
-	return TRITRUE;
+	return TRUE;
 }
 
 
