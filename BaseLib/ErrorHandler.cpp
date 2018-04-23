@@ -49,7 +49,7 @@ void CUserError::Kill(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CUserError::Set(char* szError)
+void CUserError::Set(const char* szError)
 {
 	gcLogger.Add("FATAL ERROR: ");
 	gcLogger.Add(szError);

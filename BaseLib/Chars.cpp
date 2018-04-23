@@ -220,7 +220,7 @@ void CChars::InitList(const char* szFirst, ...)
 	Set("");
 
 	va_list		vaMarker;
-	char*		pc;
+	const char*		pc;
 	int			iCount;
 
 	iCount = 0;
@@ -818,9 +818,9 @@ BOOL CChars::Empty(void)
 //////////////////////////////////////////////////////////////////////////
 void CChars::AppendList(const char* szFirst, ...)
 {
-	va_list		vaMarker;
-	char*		pc;
-	int			iCount;
+	va_list			vaMarker;
+	const char*		pc;
+	int				iCount;
 
 	iCount = 0;
 	pc = szFirst;

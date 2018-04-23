@@ -31,7 +31,7 @@ char* CharToString(char c);
 char* IntToString(int i, int iBase = 10);
 char* LongLongToString(long long int lli, int iBase = 10);
 char* PointerToString(void* pv);
-char* MethodToString(char* szFile, int iLine, char* szFunction);
+char* MethodToString(const char* szFile, int iLine, const char* szFunction);
 char* IntToFlags(int iInt);
 char* ShortToFlags(int siShort);
 char* StringToString(char* sz);

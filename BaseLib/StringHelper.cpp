@@ -453,7 +453,7 @@ char* FindChar(char* szString, char c, BOOL bReverse)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void StrCpySafe(char* szDest, char* szSource, int iDestLength)
+void StrCpySafe(char* szDest, const char* szSource, int iDestLength)
 {
 	int iLen;	
 
@@ -550,7 +550,7 @@ char ToUpper(char c)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int StrEmpty(char* szString)
+int StrEmpty(const char* szString)
 {
 	if (szString == NULL)
 	{
@@ -571,7 +571,7 @@ int StrEmpty(char* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int StrPrintable(char* szString)
+int StrPrintable(const char* szString)
 {
 	int				i;
 	unsigned char	c;
