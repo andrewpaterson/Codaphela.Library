@@ -545,7 +545,7 @@ int FindLastSetBit(void* pvArray, int iArraySize)
 //////////////////////////////////////////////////////////////////////////
 int FixBool(void* pv)
 {
-	return FixBool((int)(ENGINE_SIZE_T) pv);
+	return FixBool((int)(size_t) pv);
 }
 
 

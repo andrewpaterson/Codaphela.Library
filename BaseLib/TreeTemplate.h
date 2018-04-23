@@ -854,7 +854,7 @@ int CTreeTemplate<M>::Equals(CTreeTemplate<M>* pcTree, int iKeyOffset, int iKeyS
 		while ((pData1 != NULL) && (pData2 != NULL))
 		{
 			//Check the elements are the same.
-			if (memcmp((M*)((ENGINE_SIZE_T) pData1 + (ENGINE_SIZE_T) iKeyOffset), (M*)((ENGINE_SIZE_T) pData2 + (ENGINE_SIZE_T) iKeyOffset), iKeySize) != 0)
+			if (memcmp((M*)((size_t) pData1 + (size_t) iKeyOffset), (M*)((size_t) pData2 + (size_t) iKeyOffset), iKeySize) != 0)
 			{
 				return 0;
 			}

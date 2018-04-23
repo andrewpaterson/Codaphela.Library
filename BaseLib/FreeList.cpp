@@ -94,7 +94,7 @@ int CFreeList::CalculateOffset(SFNode* psNode)
 	char				iOffset;
 
 	iBitArraySize = CalculateBitArraySize(psNode->uiChunkSize);
-	iStart = ((int)(ENGINE_SIZE_T) psNode) + sizeof(SFNode) + iBitArraySize;
+	iStart = ((int)(size_t) psNode) + sizeof(SFNode) + iBitArraySize;
 
 	iByteDiff = iStart % miAlignment;
 	if (iByteDiff == 0)
@@ -269,8 +269,8 @@ void CFreeList::RemoveExisiting(SFNode* psNode, void* pvData)
 
 	//Find out the position of the element in the chunk.
 	iBitArraySize = CalculateBitArraySize(psNode->uiChunkSize);
-	iNodeStart = (int)((ENGINE_SIZE_T) psNode) + (iBitArraySize + sizeof(SFNode)) + psNode->iOffset;
-	iDataPos = (int)((ENGINE_SIZE_T) pvData);
+	iNodeStart = (int)((size_t) psNode) + (iBitArraySize + sizeof(SFNode)) + psNode->iOffset;
+	iDataPos = (int)((size_t) pvData);
 	iPos = (iDataPos - iNodeStart)/miStride;
 
 	//Remove the element from the chunk.
@@ -768,12 +768,12 @@ SFNode* CFreeList::FindNode(void* pvData, BOOL bIsAllocated)
 	int				iPos;
 	void*			pvBitArray;
 
-	iDataPos = (int)((ENGINE_SIZE_T) pvData);
+	iDataPos = (int)((size_t) pvData);
 	psNode = (SFNode*)mcList.GetHead();
 	while (psNode)
 	{
 		iBitArraySize = CalculateBitArraySize(psNode->uiChunkSize);
-		iNodeStart = (int)((ENGINE_SIZE_T) psNode) + (iBitArraySize + sizeof(SFNode)) + psNode->iOffset;
+		iNodeStart = (int)((size_t) psNode) + (iBitArraySize + sizeof(SFNode)) + psNode->iOffset;
 		iNodeEnd = iNodeStart + (miStride * (psNode->uiChunkSize -1));
 		if ((iDataPos >= iNodeStart) && (iDataPos <= iNodeEnd))
 		{

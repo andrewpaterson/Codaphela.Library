@@ -276,20 +276,14 @@ void memset_fast_16bytes(void* pvDest, unsigned char cVal)
 
 void memset_fast(void* pvDest, unsigned char cVal, size_t iByteSize)
 {
-	return memset_fast(pvDest, cVal, (int)iByteSize);
-}
-
-
-void memset_fast(void* pvDest, unsigned char cVal, int iByteSize)
-{
-	if (iByteSize <= 64)
-	{
-		ga_memset_fast[iByteSize](pvDest, cVal);
-	}
-	else
-	{
-		memset_fast_65bytesUp(pvDest, cVal, iByteSize);
-	}
+    if (iByteSize <= 64)
+    {
+        ga_memset_fast[iByteSize](pvDest, cVal);
+    }
+    else
+    {
+        memset_fast_65bytesUp(pvDest, cVal, (unsigned int)iByteSize);
+    }
 }
 
 
@@ -1187,7 +1181,7 @@ void memset_fast_65bytesUp(void* pvDest, unsigned char cVal, unsigned int iByteS
 	{
 		((int*)pvDest)[i] = iVal;
 	}
-	ga_memset_fast[iChars]((void*)(ENGINE_SIZE_T) ((int)(ENGINE_SIZE_T) pvDest + iDone), cVal);
+	ga_memset_fast[iChars]((void*)(size_t) ((int)(size_t) pvDest + iDone), cVal);
 }
 
 

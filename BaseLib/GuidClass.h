@@ -22,9 +22,10 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __GUID_CLASS_H__
 #define __GUID_CLASS_H__
-#include "BaseLib/PrimitiveTypes.h"
-#include "BaseLib/Define.h"
+#include "PrimitiveTypes.h"
+#include "Define.h"
 #include "TextParser.h"
+#include "Chars.h"
 
 
 class CGuidClass

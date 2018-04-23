@@ -196,21 +196,21 @@ int CLinkedListBlockAligned::GetNodeSize(void* pvMem)
 //////////////////////////////////////////////////////////////////////////
 SLLANode* CLinkedListBlockAligned::CalculateActualStart(void* pvMem, int iAlignment, int iOffset)
 {
-	ENGINE_SIZE_T	iStart;
-	ENGINE_SIZE_T	iByteDiff;
-	ENGINE_SIZE_T	iActualOffset;
+	size_t	iStart;
+	size_t	iByteDiff;
+	size_t	iActualOffset;
 
-	iStart = (ENGINE_SIZE_T)pvMem;
+	iStart = (size_t)pvMem;
 
 	iByteDiff = iStart % iAlignment;
 	if (iByteDiff == 0)
 	{
-		return (SLLANode*)(ENGINE_SIZE_T)(iStart + iOffset);
+		return (SLLANode*)(size_t)(iStart + iOffset);
 	}
 	else
 	{
-		iActualOffset = (((ENGINE_SIZE_T)iAlignment - iByteDiff) + iOffset) % (ENGINE_SIZE_T)iAlignment;
-		return (SLLANode*)(ENGINE_SIZE_T)(iStart + iActualOffset);
+		iActualOffset = (((size_t)iAlignment - iByteDiff) + iOffset) % (size_t)iAlignment;
+		return (SLLANode*)(size_t)(iStart + iActualOffset);
 	}
 }
 
@@ -221,7 +221,7 @@ SLLANode* CLinkedListBlockAligned::CalculateActualStart(void* pvMem, int iAlignm
 //////////////////////////////////////////////////////////////////////////
 SLLANode* CLinkedListBlockAligned::GetNode(void* pvMem)
 {
-	return (SLLANode*)(ENGINE_SIZE_T) ((unsigned int)(ENGINE_SIZE_T) pvMem - sizeof(SLLANode));
+	return (SLLANode*)(size_t) ((unsigned int)(size_t) pvMem - sizeof(SLLANode));
 }
 
 
@@ -287,8 +287,8 @@ void* CLinkedListBlockAligned::Grow(void* pvData, unsigned int uiNewSize)
 		return NULL;
 	}
 
-	pvAllocatedEnd = (void*)(ENGINE_SIZE_T) ((int)(ENGINE_SIZE_T) psNodeHeader->sAligned.pvAlloc + sizeof(SLLANode) + psNodeHeader->sAligned.iSize + psNodeHeader->sAligned.iAlignment-1);
-	pvObjectEnd = (void*)(ENGINE_SIZE_T) ((int)(ENGINE_SIZE_T) pvData + uiNewSize);
+	pvAllocatedEnd = (void*)(size_t) ((int)(size_t) psNodeHeader->sAligned.pvAlloc + sizeof(SLLANode) + psNodeHeader->sAligned.iSize + psNodeHeader->sAligned.iAlignment-1);
+	pvObjectEnd = (void*)(size_t) ((int)(size_t) pvData + uiNewSize);
 
 	if (pvAllocatedEnd >= pvObjectEnd)
 	{
