@@ -92,7 +92,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include <stdlib.h>
 #include <memory.h>
 #include <stddef.h>
-#define EngineOutput(p)	printf("%s", p)
 #define MAX_PATH 4096
 #define INT_MAX         0x7fffffff
 #define FILE_SEPARATOR "/"
