@@ -22,6 +22,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __FILE_NAMES_H__
 #define __FILE_NAMES_H__
+#include "ArrayChars.h"
 #include "FileNode.h"
 
 
@@ -88,7 +89,7 @@ template <class M>
 CFileNode<M>* CFileNames<M>::GetNode(char* szFullName)
 {
 	CChars			szFake;
-	CArrayChars	asNames;
+	CArrayChars		asNames;
 	int				i;
 	char*			szName;
 	CFileNode<M>*	pcCurrent;
