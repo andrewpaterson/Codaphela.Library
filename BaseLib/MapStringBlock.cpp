@@ -1,3 +1,4 @@
+#include <strings.h>
 #include "MapStringBlock.h"
 
 
@@ -242,7 +243,7 @@ CompareFunc CMapStringBlock::CalculateCompareFunc(BOOL bCaseSensitive)
 	}
 	else
 	{
-		return (CompareFunc)&_stricmp;
+		return (CompareFunc)&strcasecmp;
 	}
 }
 

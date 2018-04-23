@@ -22,6 +22,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __DEFINE_H__
 #define __DEFINE_H__
+#include "Bool.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -55,8 +56,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 #include <stdlib.h>
 #include <memory.h>
-#include "Bool.h"
-#define ENGINE_SIZE_T size_t
+
 #define FILE_SEPARATOR "\\"
 #define _FS_ FILE_SEPARATOR
 #define OTHER_OS_FILE_SEPARATOR "/"
@@ -73,8 +73,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifdef WIN_GNU_32
 #include <stdio.h>
 #include <stdarg.h>
-#define engine_stricmp(p,q) strcmpi(p,q)
-#define ENGINE_SIZE_T
 //#define MAX_PATH 260
 #define INT_MAX         0x7fffffff
 #define FILE_SEPARATOR "\\"
@@ -91,9 +89,10 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifdef LINUX_GNU_32
 #include <stdio.h>
 #include <stdarg.h>
-#define engine_stricmp(p,q) strcmpi(p,q)
-#define ENGINE_SIZE_T
-#define EngineOutput(p)	printf(p)
+#include <stdlib.h>
+#include <memory.h>
+#include <stddef.h>
+#define EngineOutput(p)	printf("%s", p)
 #define MAX_PATH 4096
 #define INT_MAX         0x7fffffff
 #define FILE_SEPARATOR "/"
