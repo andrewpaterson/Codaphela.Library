@@ -22,11 +22,11 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __TEXT_PARSER_H__
 #define __TEXT_PARSER_H__
-#include "BaseLib/Define.h"
-#include "BaseLib/ErrorTypes.h"
-#include "BaseLib/EnumeratorTemplate.h"
-#include "BaseLib/Define.h"
-#include "BaseLib/Number.h"
+#include "Define.h"
+#include "ErrorTypes.h"
+#include "EnumeratorTemplate.h"
+#include "Define.h"
+#include "Number.h"
 
 
 struct STextPosition
