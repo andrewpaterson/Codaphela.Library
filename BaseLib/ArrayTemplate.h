@@ -490,7 +490,7 @@ void CArrayTemplate<M>::Fake(M* pvData, int iNum, int iChunkSize)
 template<class M>
 M& CArrayTemplate<M>::operator[](int iIndex)
 {
-	return ((M*)mpvArray)[iIndex];
+	return ((M*)this->mpvArray)[iIndex];
 }
 
 
