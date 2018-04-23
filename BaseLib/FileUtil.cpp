@@ -719,7 +719,7 @@ int CFileUtil::FindExtension(char* szString)
 				return -1;
 			}
 		}
-		return ((int) (ENGINE_SIZE_T) (szExtension - szString));
+		return ((int) (size_t) (szExtension - szString));
 	}
 	else
 	{
@@ -739,7 +739,7 @@ int CFileUtil::FindLastSeparator(char* szString)
 	sz = FindChar(szString, FILE_SEPARATOR[0], TRUE);
 	if (sz)
 	{
-		return (int) (ENGINE_SIZE_T) (sz - szString);
+		return (int) (size_t) (sz - szString);
 	}
 	else
 	{
@@ -759,7 +759,7 @@ int CFileUtil::FindFirstSeparator(char* szString)
 	sz = FindChar(szString, FILE_SEPARATOR[0], FALSE);
 	if (sz)
 	{
-		return (int) (ENGINE_SIZE_T) (sz - szString);
+		return (int) (size_t) (sz - szString);
 	}
 	else
 	{
