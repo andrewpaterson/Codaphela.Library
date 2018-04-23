@@ -145,9 +145,9 @@ void* __CEnumeratorTemplate<M>::Realloc(void* pv, size_t tSize)
 template<class M>
 void __CEnumeratorTemplate<M>::Init(void)
 {
-	mbCaseSensitive = TRUE;
-	mcIDArray.Init(4096);
-	mcList.Init();
+	this->mbCaseSensitive = TRUE;
+	this->mcIDArray.Init(4096);
+	this->mcList.Init();
 }
 
 
@@ -160,7 +160,7 @@ void __CEnumeratorTemplate<M>::Kill(void)
 {
 	SENode*		psNode;
 
-	psNode = mcList.GetHead();
+	psNode = this->mcList.GetHead();
 	while (psNode)
 	{
 		if (psNode->pvData)
@@ -175,11 +175,11 @@ void __CEnumeratorTemplate<M>::Kill(void)
 		{
 			Free(psNode->szName);
 		}
-		psNode = mcList.GetNext(psNode);
+		psNode = this->mcList.GetNext(psNode);
 	}
 
-	mcIDArray.Kill();
-	mcList.Kill();
+	this->mcIDArray.Kill();
+	this->mcList.Kill();
 }
 
 
@@ -302,7 +302,7 @@ int __CEnumeratorTemplate<M>::PrivateAddGetNode(char* szName, M* pvData, int iDa
 	if (psNode == NULL)
 	{
 		iLen = (int)strlen(szName) + 1;
-		psNode = mcList.InsertAfterTail();
+		psNode = this->mcList.InsertAfterTail();
 
 		psNode->iFlags = 0;
 		psNode->iNum = PrivateGetNextID(iNum);
@@ -354,7 +354,7 @@ void __CEnumeratorTemplate<M>::PrivateInsertID(SENode* psNode)
 	int		iID;
 
 	iID = psNode->iNum;
-	mcIDArray.AddRemap(iID, (int)((ENGINE_SIZE_T) psNode));
+	this->mcIDArray.AddRemap(iID, (int)((size_t) psNode));
 }
 
 
@@ -368,7 +368,7 @@ void __CEnumeratorTemplate<M>::PrivateRemoveID(SENode* psNode)
 	int iID;
 
 	iID = psNode->iNum;
-	mcIDArray.RemoveRemap(iID);
+	this->mcIDArray.RemoveRemap(iID);
 }
 
 
@@ -387,7 +387,7 @@ SENode* __CEnumeratorTemplate<M>::PrivateGetWithKey(char* szName, M* pvKey, int 
 	}
 	else
 	{
-		psNode = mcList.GetHead();
+		psNode = this->mcList.GetHead();
 	}
 	while (psNode)
 	{
@@ -395,7 +395,7 @@ SENode* __CEnumeratorTemplate<M>::PrivateGetWithKey(char* szName, M* pvKey, int 
 		{
 			return psNode;
 		}
-		psNode = mcList.GetNext(psNode);
+		psNode = this->mcList.GetNext(psNode);
 	}
 	return NULL;
 }
@@ -416,7 +416,7 @@ SENode* __CEnumeratorTemplate<M>::PrivateGetWithKey(char* szName, int iNameLen, 
 	}
 	else
 	{
-		psNode = mcList.GetHead();
+		psNode = this->mcList.GetHead();
 	}
 	while (psNode)
 	{
@@ -424,7 +424,7 @@ SENode* __CEnumeratorTemplate<M>::PrivateGetWithKey(char* szName, int iNameLen, 
 		{
 			return psNode;
 		}
-		psNode = mcList.GetNext(psNode);
+		psNode = this->mcList.GetNext(psNode);
 	}
 	return NULL;
 }
@@ -439,14 +439,14 @@ int __CEnumeratorTemplate<M>::PrivateGetNextID(int iNum)
 {
 	if (iNum == -1)
 	{
-		return mcIDArray.NumElements();
+		return this->mcIDArray.NumElements();
 	}
 	return iNum;
 
 	//Longer version which might be safer.
 	//int			iNextID;
 	//SENode*		psNode;
-	//psNode = mcList.GetHead();
+	//psNode = this->mcList.GetHead();
 	//iNextID = 0;
 	//while(psNode)
 	//{
@@ -454,7 +454,7 @@ int __CEnumeratorTemplate<M>::PrivateGetNextID(int iNum)
 	//	{
 	//		iNextID = psNode->iNum + 1;
 	//	}
-	//	psNode = mcList.GetNext(psNode);
+	//	psNode = this->mcList.GetNext(psNode);
 	//}
 	//return iNextID;
 }
@@ -494,14 +494,14 @@ int __CEnumeratorTemplate<M>::GetNumMatchingWithKey(char* szName, M* pvKey, int 
 	SENode*		psStart;
 
 	iNum = 0;
-	psStart = mcList.GetHead();
+	psStart = this->mcList.GetHead();
 	for (;;)
 	{
 		psNode = PrivateGetWithKey(szName, pvKey, iKeySize, psStart);
 		if (psNode)
 		{
 			iNum++;
-			psStart = mcList.GetNext(psNode);
+			psStart = this->mcList.GetNext(psNode);
 			if (!psStart)
 			{
 				break;
@@ -528,7 +528,7 @@ int __CEnumeratorTemplate<M>::GetWithKey(char* szName, M* pvKey, int iKeySize, M
 	SENode*		psStart;
 
 	iNum = 0;
-	psStart = mcList.GetHead();
+	psStart = this->mcList.GetHead();
 	for (;;)
 	{
 		psNode = PrivateGetWithKey(szName, pvKey, iKeySize, psStart);
@@ -543,7 +543,7 @@ int __CEnumeratorTemplate<M>::GetWithKey(char* szName, M* pvKey, int iKeySize, M
 				return psNode->iNum;
 			}
 			iNum++;
-			psStart = mcList.GetNext(psNode);
+			psStart = this->mcList.GetNext(psNode);
 			if (!psStart)
 			{
 				break;
@@ -570,7 +570,7 @@ int __CEnumeratorTemplate<M>::GetWithKey(char* szName, int iNameLen, M* pvKey, i
 	SENode*		psStart;
 
 	iNum = 0;
-	psStart = mcList.GetHead();
+	psStart = this->mcList.GetHead();
 	for (;;)
 	{
 		psNode = PrivateGetWithKey(szName, iNameLen, pvKey, iKeySize, psStart);
@@ -585,7 +585,7 @@ int __CEnumeratorTemplate<M>::GetWithKey(char* szName, int iNameLen, M* pvKey, i
 				return psNode->iNum;
 			}
 			iNum++;
-			psStart = mcList.GetNext(psNode);
+			psStart = this->mcList.GetNext(psNode);
 			if (!psStart)
 			{
 				break;
@@ -615,7 +615,7 @@ void __CEnumeratorTemplate<M>::GetWithID(int iID, M** pvData, char** pcName)
 	}
 	else
 	{
-		psNode = (SENode*)(ENGINE_SIZE_T) mcIDArray.SafeGetValue(iID);
+		psNode = (SENode*)(size_t) this->mcIDArray.SafeGetValue(iID);
 		if (psNode == (void*)-1)
 		{
 			psNode = NULL;
@@ -656,7 +656,7 @@ BOOL __CEnumeratorTemplate<M>::PrivateCompare(char* szName, M* pvKey, int iKeySi
 {
 	int		iVal;
 
-	if (mbCaseSensitive)
+	if (this->mbCaseSensitive)
 	{
 		iVal = strcmp(szName, psNode->szName);
 	}
@@ -689,7 +689,7 @@ BOOL __CEnumeratorTemplate<M>::PrivateCompare(char* szName, int iNameLen, M* pvK
 {
 	int		iVal;
 
-	if (mbCaseSensitive)
+	if (this->mbCaseSensitive)
 	{
 		iVal = memcmp(szName, psNode->szName, iNameLen);
 	}
@@ -724,11 +724,11 @@ int __CEnumeratorTemplate<M>::NumElements(void)
 	int			iCount;
 
 	iCount = 0;
-	psNode = mcList.GetHead();
+	psNode = this->mcList.GetHead();
 	while (psNode)
 	{
 		iCount++;
-		psNode = mcList.GetNext(psNode);
+		psNode = this->mcList.GetNext(psNode);
 	}
 	return iCount;
 }
@@ -741,7 +741,7 @@ int __CEnumeratorTemplate<M>::NumElements(void)
 template<class M>
 void __CEnumeratorTemplate<M>::StartIteration(SEnumeratorIterator* psIterator, char** szName, int* piID, M** pvData)
 {
-	psIterator->psNode = mcList.GetHead();
+	psIterator->psNode = this->mcList.GetHead();
 	if (psIterator->psNode)
 	{
 		psIterator->bValid = TRUE;
@@ -772,7 +772,7 @@ void __CEnumeratorTemplate<M>::StartIteration(SEnumeratorIterator* psIterator, c
 template<class M>
 void __CEnumeratorTemplate<M>::Iterate(SEnumeratorIterator* psIterator, char** szName, int* piID, M**pvData)
 {
-	psIterator->psNode = mcList.GetNext(psIterator->psNode);
+	psIterator->psNode = this->mcList.GetNext(psIterator->psNode);
 	if (psIterator->psNode)
 	{
 		psIterator->bValid = TRUE;
@@ -818,7 +818,7 @@ void __CEnumeratorTemplate<M>::PrivateRemove(SENode* psNode)
 			}
 		}
 		PrivateRemoveID(psNode);
-		mcList.Remove(psNode);
+		this->mcList.Remove(psNode);
 	}
 }
 
@@ -832,9 +832,9 @@ void __CEnumeratorTemplate<M>::Remove(int iID)
 {
 	SENode*		psNode;
 
-	if ((iID >= 0) && (iID < mcIDArray.NumElements()))
+	if ((iID >= 0) && (iID < this->mcIDArray.NumElements()))
 	{
-		psNode = (SENode*)(ENGINE_SIZE_T) mcIDArray.GetValue(iID);
+		psNode = (SENode*)(size_t) this->mcIDArray.GetValue(iID);
 		PrivateRemove(psNode);
 	}
 }
@@ -861,7 +861,7 @@ void __CEnumeratorTemplate<M>::Remove(char* szName)
 template<class M>
 void __CEnumeratorTemplate<M>::Swap(SENode* psNode1, SENode* psNode2)
 {
-	mcList.Swap(psNode1, psNode2);
+	this->mcList.Swap(psNode1, psNode2);
 	PrivateInsertID(psNode2);
 	PrivateInsertID(psNode1);
 
@@ -881,7 +881,7 @@ void __CEnumeratorTemplate<M>::SwapUp(char* szName)
 	psNode1 = PrivateGetWithKey(szName, NULL, 0, NULL);
 	if (psNode1)
 	{
-		psNode2 = mcList.GetPrev(psNode1);
+		psNode2 = this->mcList.GetPrev(psNode1);
 		if (psNode2)
 		{
 			Swap(psNode1, psNode2);
@@ -903,7 +903,7 @@ void __CEnumeratorTemplate<M>::SwapDown(char* szName)
 	psNode1 = PrivateGetWithKey(szName, NULL, 0, NULL);
 	if (psNode1)
 	{
-		psNode2 = mcList.GetNext(psNode1);
+		psNode2 = this->mcList.GetNext(psNode1);
 		if (psNode2)
 		{
 			Swap(psNode1, psNode2);
@@ -925,13 +925,13 @@ void __CEnumeratorTemplate<M>::RecreateIDArray(void)
 {
 	SENode*		psNode;
 
-	mcIDArray.SetArrayValues(-1);
+	this->mcIDArray.SetArrayValues(-1);
 
-	psNode = mcList.GetHead();
+	psNode = this->mcList.GetHead();
 	while (psNode)
 	{
 		PrivateInsertID(psNode);
-		psNode = mcList.GetNext(psNode);
+		psNode = this->mcList.GetNext(psNode);
 	}
 }
 
@@ -944,13 +944,13 @@ template<class M>
 void __CEnumeratorTemplate<M>::QuickSort(void)
 {
 
-	if (mbCaseSensitive)
+	if (this->mbCaseSensitive)
 	{
-		mcList.QuickSort(AlphabeticalComparisionCallbackCaseSensitive);
+		this->mcList.QuickSort(AlphabeticalComparisionCallbackCaseSensitive);
 	}
 	else
 	{
-		mcList.QuickSort(AlphabeticalComparisionCallbackCaseInsensitive);
+		this->mcList.QuickSort(AlphabeticalComparisionCallbackCaseInsensitive);
 	}
 	RecreateIDArray();
 }
@@ -964,13 +964,13 @@ void __CEnumeratorTemplate<M>::QuickSort(void)
 template<class M>
 void __CEnumeratorTemplate<M>::BubbleSort(void)
 {
-	if (mbCaseSensitive)
+	if (this->mbCaseSensitive)
 	{
-		mcList.BubbleSort(AlphabeticalComparisionCallbackCaseSensitive);
+		this->mcList.BubbleSort(AlphabeticalComparisionCallbackCaseSensitive);
 	}
 	else
 	{
-		mcList.BubbleSort(AlphabeticalComparisionCallbackCaseInsensitive);
+		this->mcList.BubbleSort(AlphabeticalComparisionCallbackCaseInsensitive);
 	}
 	RecreateIDArray();
 }
@@ -1045,23 +1045,23 @@ BOOL CEnumeratorTemplate<M>::WriteEnumeratorBlock(CFileWriter* pcFileWriter)
 {
 	SENode*		psNode;
 
-	if (!pcFileWriter->WriteData(&mbCaseSensitive, sizeof(BOOL))) 
+	if (!pcFileWriter->WriteData(&this->mbCaseSensitive, sizeof(BOOL))) 
 	{ 
 		return FALSE; 
 	}
 
-	if (!mcIDArray.Write(pcFileWriter))
+	if (!this->mcIDArray.Write(pcFileWriter))
 	{
 		return FALSE;
 	}
 
-	if (!mcList.Write(pcFileWriter))
+	if (!this->mcList.Write(pcFileWriter))
 	{
 
 		return FALSE;
 	}
 
-	psNode = mcList.GetHead();
+	psNode = this->mcList.GetHead();
 	while (psNode)
 	{
 		if (!pcFileWriter->WriteString(psNode->szName))
@@ -1076,7 +1076,7 @@ BOOL CEnumeratorTemplate<M>::WriteEnumeratorBlock(CFileWriter* pcFileWriter)
 				return FALSE;
 			}
 		}
-		psNode = mcList.GetNext(psNode);
+		psNode = this->mcList.GetNext(psNode);
 	}
 	return TRUE;
 }
@@ -1092,22 +1092,22 @@ BOOL CEnumeratorTemplate<M>::ReadEnumeratorBlock(CFileReader* pcFileReader)
 	SENode*		psNode;
 	int			iReadSize;
 
-	if (!pcFileReader->ReadData(&mbCaseSensitive, sizeof(BOOL))) 
+	if (!pcFileReader->ReadData(&this->mbCaseSensitive, sizeof(BOOL))) 
 	{ 
 		return FALSE; 
 	}
 
-	if (!mcIDArray.Read(pcFileReader))
+	if (!this->mcIDArray.Read(pcFileReader))
 	{
 		return FALSE;
 	}
 
-	if (!mcList.Read(pcFileReader))
+	if (!this->mcList.Read(pcFileReader))
 	{
 		return FALSE;
 	}
 
-	psNode = mcList.GetHead();
+	psNode = this->mcList.GetHead();
 	while (psNode)
 	{
 		//Actually this is copied from ReadString because I need the string length first.
@@ -1129,7 +1129,7 @@ BOOL CEnumeratorTemplate<M>::ReadEnumeratorBlock(CFileReader* pcFileReader)
 				return FALSE; 
 			}
 		}
-		psNode = mcList.GetNext(psNode);
+		psNode = this->mcList.GetNext(psNode);
 	}
 	return TRUE;
 }

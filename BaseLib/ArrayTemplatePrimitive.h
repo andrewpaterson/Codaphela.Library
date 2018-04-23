@@ -106,7 +106,7 @@ M CArrayTemplatePrimitive<M>::SafeGetValue(int iElementPos)
 {
 	if ((iElementPos >= 0) && (iElementPos < this->miUsedElements))
 	{
-		return ((M*)mpvArray)[iElementPos];
+		return ((M*)this->mpvArray)[iElementPos];
 	}
 	return -1;
 }
@@ -119,7 +119,7 @@ M CArrayTemplatePrimitive<M>::SafeGetValue(int iElementPos)
 template<class M>
 void CArrayTemplatePrimitive<M>::SetValue(int iElementPos, M iElement)
 {
-	((M*)mpvArray)[iElementPos] = iElement;
+	((M*)this->mpvArray)[iElementPos] = iElement;
 }
 
 
@@ -183,7 +183,7 @@ void CArrayTemplatePrimitive<M>::SetArrayValues(M iValue)
 
 	for (i = 0; i < this->miUsedElements; i++)
 	{
-		((M*)mpvArray)[i] = iValue;
+		((M*)this->mpvArray)[i] = iValue;
 	}
 }
 
@@ -199,7 +199,7 @@ void CArrayTemplatePrimitive<M>::SetArrayValues(M iStartValue, M iIncrement)
 
 	for (i = 0; i < this->miUsedElements; i++)
 	{
-		((M*)mpvArray)[i] = iStartValue;
+		((M*)this->mpvArray)[i] = iStartValue;
 		iStartValue += iIncrement;
 	}
 }
@@ -212,7 +212,7 @@ void CArrayTemplatePrimitive<M>::SetArrayValues(M iStartValue, M iIncrement)
 template<class M>
 void CArrayTemplatePrimitive<M>::QuickSort(void)
 {
-	CArrayTemplate::QuickSort(&ComparePrimitive<M>);
+	CArrayTemplate<M>::QuickSort(&ComparePrimitive<M>);
 }
 
 
@@ -223,7 +223,7 @@ void CArrayTemplatePrimitive<M>::QuickSort(void)
 template<class M>
 void CArrayTemplatePrimitive<M>::BubbleSort(void)
 {
-	CArrayTemplate::BubbleSort(&ComparePrimitive<M>);
+	CArrayTemplate<M>::BubbleSort(&ComparePrimitive<M>);
 }
 
 
@@ -238,7 +238,7 @@ int CArrayTemplatePrimitive<M>::Find(M iValue)
 
 	for (i = 0; i < this->miUsedElements; i++)
 	{
-		if (((M*)mpvArray)[i] == iValue)
+		if (((M*)this->mpvArray)[i] == iValue)
 		{
 			return i;
 		}
@@ -276,8 +276,8 @@ void CArrayTemplatePrimitive<M>::Swap(int iIndex1, int iIndex2)
 	M*		piElement2;
 	M		iTemp;
 
-	piElement1 = Get(iIndex1);
-	piElement2 = Get(iIndex2);
+	piElement1 = this->Get(iIndex1);
+	piElement2 = this->Get(iIndex2);
 	iTemp = (*piElement1);
 	(*piElement1) = (*piElement2);
 	(*piElement2) = iTemp;
@@ -294,7 +294,7 @@ void CArrayTemplatePrimitive<M>::InsertIntoSorted(M iElement, BOOL bOverwriteExi
 	int		iPos;
 	BOOL	bExists;
 
-	bExists = FindInSorted(&iElement, ComparePrimitive<M>, &iPos);
+	bExists = this->FindInSorted(&iElement, ComparePrimitive<M>, &iPos);
 	if (iPos < this->miUsedElements)
 	{
 		if (!bExists)
@@ -330,7 +330,7 @@ BOOL CArrayTemplatePrimitive<M>::RemoveFromSorted(M iElement)
 	int		iPos;
 	BOOL	bExists;
 
-	bExists = FindInSorted(&iElement, ComparePrimitive<M>, &iPos);
+	bExists = this->FindInSorted(&iElement, ComparePrimitive<M>, &iPos);
 	if (bExists)
 	{
 		this->RemoveAt(iPos, TRUE);
@@ -436,11 +436,11 @@ BOOL CArrayTemplatePrimitive<M>::IsSorted(void)
 	M		iValue;
 	M		iLast;
 
-	if (miUsedElements > 1)
+	if (this->miUsedElements > 1)
 	{
 		iLast = GetValue(0);
 
-		for (i = 1; i < miUsedElements; i++)
+		for (i = 1; i < this->miUsedElements; i++)
 		{
 			iValue = GetValue(i);
 			if (i != 0)

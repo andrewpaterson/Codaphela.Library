@@ -268,7 +268,7 @@ BOOL CArrayTemplateMinimal<M>::RemoveAt(int iElementPos, int bPreserveOrder)
 		}
 		else
 		{
-			memmove(pvElement, (M*)((ENGINE_SIZE_T) pvElement + sizeof(M)), sizeof(M) * (iUsedElements - iElementPos));
+			memmove(pvElement, (M*)((size_t) pvElement + sizeof(M)), sizeof(M) * (iUsedElements - iElementPos));
 		}
 	}
 
@@ -341,7 +341,7 @@ M* CArrayTemplateMinimal<M>::SetArraySize(int iNum, int iClearValue)
 
 		if (iOldUsed != -1)
 		{
-			pvClearStart = (void*)((ENGINE_SIZE_T) ((int)((ENGINE_SIZE_T) mpvArray) + (iOldUsed * sizeof(M))));
+			pvClearStart = (void*)((size_t) ((int)((size_t) mpvArray) + (iOldUsed * sizeof(M))));
 			iClearSize = (miUsedElements - iOldUsed) * sizeof(M);
 			memset(pvClearStart, iClearValue, iClearSize);
 			return (M*)pvClearStart;
@@ -510,8 +510,8 @@ M* CArrayTemplateMinimal<M>::InsertAt(int iElementPos)
 	Add();
 
 	//This assumes that iElementPos is within the array (or the last element).
-	ptr = (M*)((ENGINE_SIZE_T) mpvArray + iElementPos * sizeof(M));
-	memmove((M*)((ENGINE_SIZE_T) ptr + sizeof(M)), ptr, sizeof(M) * (miUsedElements - 1 - iElementPos));
+	ptr = (M*)((size_t) mpvArray + iElementPos * sizeof(M));
+	memmove((M*)((size_t) ptr + sizeof(M)), ptr, sizeof(M) * (miUsedElements - 1 - iElementPos));
 	return ptr;
 }
 
@@ -548,7 +548,7 @@ int CArrayTemplateMinimal<M>::Find(M* pData)
 		{
 			return i;
 		}
-		pPos = (M*)((ENGINE_SIZE_T) pPos + sizeof(M));
+		pPos = (M*)((size_t) pPos + sizeof(M));
 	}
 	return -1;
 }
@@ -568,11 +568,11 @@ int CArrayTemplateMinimal<M>::FindWithKey(M* pData, int iKeyOffset, int iKeySize
 
 	for (i = 0; i < miUsedElements; i++)
 	{
-		if (memcmp((M*)((ENGINE_SIZE_T) pPos + iKeyOffset), (M*)((ENGINE_SIZE_T) pData + iKeyOffset), iKeySize) == 0)
+		if (memcmp((M*)((size_t) pPos + iKeyOffset), (M*)((size_t) pData + iKeyOffset), iKeySize) == 0)
 		{
 			return i;
 		}
-		pPos = (M*)((ENGINE_SIZE_T) pPos + sizeof(M));
+		pPos = (M*)((size_t) pPos + sizeof(M));
 	}
 	return -1;
 }
@@ -588,7 +588,7 @@ int	CArrayTemplateMinimal<M>::FindWithIntKey(int iKey, int iKeyOffset)
 	int		i;
 	void*	pPos;
 
-	pPos = (void*)((ENGINE_SIZE_T) ((int)((ENGINE_SIZE_T) mpvArray) + iKeyOffset));
+	pPos = (void*)((size_t) ((int)((size_t) mpvArray) + iKeyOffset));
 	for (i = 0; i < miUsedElements; i++)
 	{
 		if (*((int*)pPos) == iKey)
@@ -664,8 +664,8 @@ int CArrayTemplateMinimal<M>::GetIndex(M* pvElement)
 	int iBase;
 	int iDifference;
 
-	iBase = (int)(ENGINE_SIZE_T) mpvArray;
-	iPosition = (int)(ENGINE_SIZE_T) pvElement;
+	iBase = (int)(size_t) mpvArray;
+	iPosition = (int)(size_t) pvElement;
 	iDifference = iPosition - iBase;
 
 	//Make sure the element is correctly aligned.
@@ -692,10 +692,7 @@ int CArrayTemplateMinimal<M>::GetIndex(M* pvElement)
 template<class M>
 void CArrayTemplateMinimal<M>::Set(int iElementPos, M* pvData)
 {
-	M*	pvTemp;
-
-	pvTemp = Get(iElementPos);
-	memcpy((M*)((ENGINE_SIZE_T) mpvArray + (iElementPos) * sizeof(M)), pvData, sizeof(M));
+	memcpy((M*)((size_t) mpvArray + (iElementPos) * sizeof(M)), pvData, sizeof(M));
 }
 
 
@@ -721,11 +718,11 @@ int CArrayTemplateMinimal<M>::GrowToNumElements(int iNumElements)
 template<class M>
 int CArrayTemplateMinimal<M>::GrowByNumElements(int iNumElements)
 {
-	int	iOldUsedElments;
+	int	iOldUsedElements;
 
-	iOldUsedElments = miUsedElements;
+	iOldUsedElements = miUsedElements;
 	SetArraySize(miUsedElements + iNumElements);
-	return iOldUsedElments;
+	return iOldUsedElements;
 }
 
 
