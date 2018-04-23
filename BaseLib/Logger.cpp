@@ -49,7 +49,7 @@ void CLogger::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CLogger::Init(char* szName)
+void CLogger::Init(const char* szName)
 {
 	CFileUtil cFileUtil;
 
@@ -76,7 +76,7 @@ void CLogger::Init(char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CLogger::Init(CAbstractFile* pcFile, char* szName)
+void CLogger::Init(CAbstractFile* pcFile, const char* szName)
 {
 	char	s[512];
 
@@ -111,7 +111,7 @@ void CLogger::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CLogger::Add(char* szText)
+void CLogger::Add(const char* szText)
 {
 	if (msConfig.bEnabled)
 	{
@@ -137,7 +137,7 @@ void CLogger::Add(char* szText)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CLogger::Error(char* szText)
+BOOL CLogger::Error(const char* szText)
 {
 	Add("ERROR", szText);
 
@@ -154,7 +154,7 @@ BOOL CLogger::Error(char* szText)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CLogger::Error2(char* szText, ...)
+BOOL CLogger::Error2(const char* szText, ...)
 {
 	va_list		vaMarker;
 	char*		sz;
@@ -188,7 +188,7 @@ BOOL CLogger::Error2(char* szText, ...)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CLogger::Warning(char* szText)
+BOOL CLogger::Warning(const char* szText)
 {
 	Add("WARNING", szText);
 
@@ -205,7 +205,7 @@ BOOL CLogger::Warning(char* szText)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CLogger::Info2(char* szText, ...)
+void CLogger::Info2(const char* szText, ...)
 {
 	va_list		vaMarker;
 	char*		sz;
@@ -237,7 +237,7 @@ void CLogger::Info2(char* szText, ...)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CLogger::Info(char* szText)
+void CLogger::Info(const char* szText)
 {
 	Add("INFO", szText);
 }
@@ -247,7 +247,7 @@ void CLogger::Info(char* szText)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CLogger::Debug2(char* szText, ...)
+void CLogger::Debug2(const char* szText, ...)
 {
 	va_list		vaMarker;
 	char*		sz;
@@ -280,7 +280,7 @@ void CLogger::Debug2(char* szText, ...)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CLogger::Debug(char* szText)
+void CLogger::Debug(const char* szText)
 {
 	Add("DEBUG", szText);
 }
@@ -290,7 +290,7 @@ void CLogger::Debug(char* szText)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CLogger::Add(char* szErrorLevel, char* szText)
+void CLogger::Add(const char* szErrorLevel, const char* szText)
 {
 	char	szMessage[16384];
 	int		iLength;
