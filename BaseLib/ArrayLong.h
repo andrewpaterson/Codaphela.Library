@@ -28,6 +28,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 class CArrayLong : public CArrayTemplatePrimitive<long long int>
 {
 public:
+	void 	AddList(long long int iStop, ...);
 	void	Dump(void);
 };
 

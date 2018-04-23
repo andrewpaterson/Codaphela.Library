@@ -25,8 +25,11 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "ArrayTemplatePrimitive.h"
 
 
-typedef CArrayTemplatePrimitive<double> CArrayDouble;
-template class CArrayTemplatePrimitive<double>;
+class CArrayDouble : public CArrayTemplatePrimitive<double>
+{
+public:
+	void 	AddList(double iStop, ...);
+};
 
 
 #endif // __ARRAY_DOUBLE_H__

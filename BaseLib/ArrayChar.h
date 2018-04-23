@@ -25,8 +25,11 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "ArrayTemplatePrimitive.h"
 
 
-typedef CArrayTemplatePrimitive<char> CArrayChar;
-template class CArrayTemplatePrimitive<char>;
+class CArrayChar: public CArrayTemplatePrimitive<char>
+{
+public:
+	void AddList(int iStop, ...);
+};
 
 
 #endif // __ARRAY_CHAR_H__

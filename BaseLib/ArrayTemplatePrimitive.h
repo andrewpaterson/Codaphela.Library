@@ -36,7 +36,6 @@ public:
 	void	SetValue(int iElementPos, M iElement);
 	void 	Add(M iElement);
 	void	InsertAt(M iElement, int iIndex);
-	void	AddList(M iStop, ...);
 	void 	SetArrayValues(M iValue);
 	void	SetArrayValues(M iStart, M iIncrement);
 	void	QuickSort(void);
@@ -148,27 +147,6 @@ void CArrayTemplatePrimitive<M>::InsertAt(M iElement, int iIndex)
 
 	pvTemp = CArrayTemplate<M>::InsertAt(iIndex);
 	*pvTemp = iElement;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class M>
-void CArrayTemplatePrimitive<M>::AddList(M iStop, ...)
-{
-	va_list		vaMarker;
-	M			iValue;
-
-	va_start(vaMarker, iStop);
-	iValue = va_arg(vaMarker, M);
-	while (iValue != iStop)
-	{
-		Add(iValue);
-		iValue = va_arg(vaMarker, M);
-	}
-	va_end(vaMarker);
 }
 
 

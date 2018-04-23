@@ -29,6 +29,7 @@ class CArrayInt : public CArrayTemplatePrimitive<int>
 {
 public:
 	void	AddRemap(int iElementPos, int iRemapNum);
+	void 	AddList(int iStop, ...);
 	void	RemoveRemap(int iElementPos);
 	int		FindUnusedInSorted(void);
 	void	Dump(void);
