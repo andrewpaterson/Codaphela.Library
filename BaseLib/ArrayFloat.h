@@ -28,7 +28,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 class CArrayFloat : public CArrayTemplatePrimitive<float>
 {
 public:
-	void 	AddList(float iStop, ...);
+	void 	AddList(double iStop, ...);
 };
 
 
