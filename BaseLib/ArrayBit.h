@@ -42,7 +42,7 @@ protected:
 		{
 			unsigned int	ui[3];
 		} aSmall;
-	};
+	} u;
 
 public:
 	void	Init(void);
