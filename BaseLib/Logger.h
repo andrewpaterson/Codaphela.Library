@@ -37,18 +37,18 @@ protected:
 
 public:
 	void		Init(void);
-	void		Init(char* szName);
-	void		Init(CAbstractFile* pcFile, char* szName);
+	void		Init(const char* szName);
+	void		Init(CAbstractFile* pcFile, const char* szName);
 	void		Kill(void);
-	void		Add(char* szText);
-	void		Add(char* szErrorLevel, char* szText);
-	BOOL		Error(char* szText);
-	BOOL		Error2(char* szText, ...);
-	BOOL		Warning(char* szText);
-	void		Info(char* szText);
-	void		Info2(char* szText, ...);
-	void		Debug(char* szText);
-	void		Debug2(char* szText, ...);
+	void		Add(const char* szText);
+	void		Add(const char* szErrorLevel, const char* szText);
+	BOOL		Error(const char* szText);
+	BOOL		Error2(const char* szText, ...);
+	BOOL		Warning(const char* szText);
+	void		Info(const char* szText);
+	void		Info2(const char* szText, ...);
+	void		Debug(const char* szText);
+	void		Debug2(const char* szText, ...);
 	void		Disable(void);
 	void		Enable(void);
 	void		SetEngineOutput(BOOL bEngineOut);

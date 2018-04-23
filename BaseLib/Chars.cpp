@@ -115,7 +115,7 @@ void CChars::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::Init(char* sz)
+void CChars::Init(const char* sz)
 {
 	mcText.Init(CHARS_CHUNK_SIZE);
 	if (sz)
@@ -150,7 +150,7 @@ void CChars::Init(CChars sz, int iStartInclusive, int iEndExclusive)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::Init(char* sz, int iStartInclusive, int iEndExclusive)
+void CChars::Init(const char* sz, int iStartInclusive, int iEndExclusive)
 {
 	mcText.Init(CHARS_CHUNK_SIZE);
 	if (iEndExclusive - iStartInclusive > 0)
@@ -169,7 +169,7 @@ void CChars::Init(char* sz, int iStartInclusive, int iEndExclusive)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::Init(char* sz, int iStartInclusive)
+void CChars::Init(const char* sz, int iStartInclusive)
 {
 	mcText.Init(CHARS_CHUNK_SIZE);
 	Set(&sz[iStartInclusive]);
@@ -214,7 +214,7 @@ void CChars::Init(char cPadCharacter, int iNumber)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::InitList(char* szFirst, ...)
+void CChars::InitList(const char* szFirst, ...)
 {
 	mcText.Init(CHARS_CHUNK_SIZE);
 	Set("");
@@ -278,7 +278,7 @@ void CChars::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::Fake(char* sz)
+void CChars::Fake(const char* sz)
 {
 	if (sz)
 	{
@@ -295,9 +295,9 @@ void CChars::Fake(char* sz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::Fake(char* sz, int iStartInclusive, int iEndExclusive)
+void CChars::Fake(const char* sz, int iStartInclusive, int iEndExclusive)
 {
-	char* pcPosition;
+	const char* pcPosition;
 
 	if (iEndExclusive - iStartInclusive > 0)
 	{
@@ -388,7 +388,7 @@ void CChars::SetChar(int iIndex, char c)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::Append(char* sz)
+void CChars::Append(const char* sz)
 {
 	int		iLen;
 	char*	pcPosition;
@@ -406,7 +406,7 @@ void CChars::Append(char* sz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::Append(char* sz, int iLen)
+void CChars::Append(const char* sz, int iLen)
 {
 	char*	pcPosition;
 	char*	pcZero;
@@ -585,7 +585,7 @@ void CChars::Append(double d, int iNumDecimals)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::AppendQuoted(char* sz)
+void CChars::AppendQuoted(const char* sz)
 {
 	Append('"');
 	Append(sz);
@@ -694,7 +694,7 @@ void CChars::AppendBool(BOOL bValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::AppendBool(BOOL bValue, char* szTrue, char* szFalse)
+void CChars::AppendBool(BOOL bValue, const char* szTrue, const char* szFalse)
 {
 	if (bValue)
 	{
@@ -721,7 +721,7 @@ void CChars::Insert(int iPos, char c)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::Insert(int iPos, char* szString)
+void CChars::Insert(int iPos, const char* szString)
 {
 	char*	pcNew;
 	int		iInsertLen;
@@ -816,7 +816,7 @@ BOOL CChars::Empty(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::AppendList(char* szFirst, ...)
+void CChars::AppendList(const char* szFirst, ...)
 {
 	va_list		vaMarker;
 	char*		pc;
@@ -897,7 +897,7 @@ void CChars::Append(char cPadCharacter, int iNumber)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::LeftAlign(char* sz, char cPadCharacter, int iWidth)
+void CChars::LeftAlign(const char* sz, char cPadCharacter, int iWidth)
 {
 	if (sz)
 	{
@@ -918,7 +918,7 @@ void CChars::LeftAlign(char* sz, char cPadCharacter, int iWidth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::RightAlign(char* sz, char cPadCharacter, int iWidth)
+void CChars::RightAlign(const char* sz, char cPadCharacter, int iWidth)
 {
 	if (sz)
 	{
@@ -998,7 +998,7 @@ void CChars::RightAlign(char cPadCharacter, int iWidth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::AppendSubString(char* sz, int iLength)
+void CChars::AppendSubString(const char* sz, int iLength)
 {
 	char*	pcPosition;
 
@@ -1017,7 +1017,7 @@ void CChars::AppendSubString(char* sz, int iLength)
 //////////////////////////////////////////////////////////////////////////
 void CChars::AppendSubString(CChars sz, int iStartInclusive, int iEndExclusive)
 {
-	char* pcPosition;
+	const char* pcPosition;
 
 	pcPosition = (char*)RemapSinglePointer((void*)sz.Text(), iStartInclusive);
 	AppendSubString(pcPosition, iEndExclusive-iStartInclusive);
@@ -1028,9 +1028,9 @@ void CChars::AppendSubString(CChars sz, int iStartInclusive, int iEndExclusive)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::AppendSubString(char* sz, int iStartInclusive, int iEndExclusive)
+void CChars::AppendSubString(const char* sz, int iStartInclusive, int iEndExclusive)
 {
-	char* pcPosition;
+	const char* pcPosition;
 
 	pcPosition = (char*)RemapSinglePointer((void*)sz, iStartInclusive);
 	AppendSubString(pcPosition, iEndExclusive-iStartInclusive);
@@ -1041,7 +1041,7 @@ void CChars::AppendSubString(char* sz, int iStartInclusive, int iEndExclusive)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::AppendSubString(char* szStartInclusive, char* szEndExclusive)
+void CChars::AppendSubString(const char* szStartInclusive, const char* szEndExclusive)
 {
 	AppendSubString(szStartInclusive, (int)(szEndExclusive-szStartInclusive));
 }
@@ -1163,7 +1163,7 @@ void CChars::SplitLines(CArrayChars* aszDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChars::Equals(char* szString)
+BOOL CChars::Equals(const char* szString)
 {
 	if (szString)
 	{
@@ -1182,7 +1182,7 @@ BOOL CChars::Equals(char* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChars::Equals(char* szString, int iLen)
+BOOL CChars::Equals(const char* szString, int iLen)
 {
 	if (iLen == Length())
 	{
@@ -1209,7 +1209,7 @@ BOOL CChars::Equals(CChars szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChars::EqualsIgnoreCase(char* szString)
+BOOL CChars::EqualsIgnoreCase(const char* szString)
 {
 	if (StrICmp(Text(), szString) == 0)
 	{
@@ -1233,7 +1233,7 @@ BOOL CChars::EqualsIgnoreCase(CChars szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChars::Contains(char* szString)
+BOOL CChars::Contains(const char* szString)
 {
 	char*	pc;
 
@@ -1250,7 +1250,7 @@ BOOL CChars::Contains(char* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChars::ContainsIgnoreCase(char* szString)
+BOOL CChars::ContainsIgnoreCase(const char* szString)
 {
 	char*	pc;
 
@@ -1267,7 +1267,7 @@ BOOL CChars::ContainsIgnoreCase(char* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CChars::Occurrences(char* szString)
+int CChars::Occurrences(const char* szString)
 {
 	int		iCount;
 	int		iIndex;
@@ -1289,7 +1289,7 @@ int CChars::Occurrences(char* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChars::StartsWith(char* szString)
+BOOL CChars::StartsWith(const char* szString)
 {
 	if (szString == NULL)
 	{
@@ -1304,7 +1304,7 @@ BOOL CChars::StartsWith(char* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChars::StartsWithIgnoreCase(char* szString)
+BOOL CChars::StartsWithIgnoreCase(const char* szString)
 {
 	if (szString == NULL)
 	{
@@ -1319,7 +1319,7 @@ BOOL CChars::StartsWithIgnoreCase(char* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChars::EndsWith(char* szString)
+BOOL CChars::EndsWith(const char* szString)
 {
 	if (szString == NULL)
 	{
@@ -1334,7 +1334,7 @@ BOOL CChars::EndsWith(char* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChars::EndsWithIgnoreCase(char* szString)
+BOOL CChars::EndsWithIgnoreCase(const char* szString)
 {
 	if (szString == NULL)
 	{
@@ -1349,7 +1349,7 @@ BOOL CChars::EndsWithIgnoreCase(char* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChars::SubStringEquals(int iStart, char* szString)
+BOOL CChars::SubStringEquals(int iStart, const char* szString)
 {
 	int	i;
 	int	j;
@@ -1402,7 +1402,7 @@ BOOL CChars::SubStringEquals(int iStart, char* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChars::SubStringEqualsIgnoreCase(int iStart, char* szString)
+BOOL CChars::SubStringEqualsIgnoreCase(int iStart, const char* szString)
 {
 	int	i;
 	int	j;
@@ -1440,7 +1440,7 @@ BOOL CChars::SubStringEqualsIgnoreCase(int iStart, char* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CChars::FindFromEnd(char* szString)
+int CChars::FindFromEnd(const char* szString)
 {
 	int iOtherLen;
 
@@ -1453,7 +1453,7 @@ int CChars::FindFromEnd(char* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CChars::FindFromEnd(int iIndex, char* szString)
+int CChars::FindFromEnd(int iIndex, const char* szString)
 {
 	int	i;
 
@@ -1503,7 +1503,7 @@ int CChars::FindFromEnd(int iIndex, char c)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CChars::Find(int iIndex, char* szString)
+int CChars::Find(int iIndex, const char* szString)
 {
 	int iOtherLen;
 	int	i;
@@ -1769,7 +1769,7 @@ int CChars::CompareIgnoreCase(CChars* szOther)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CChars::Compare(char* szOther)
+int CChars::Compare(const char* szOther)
 {
 	return strcmp(Text(), szOther);
 }
@@ -1779,7 +1779,7 @@ int CChars::Compare(char* szOther)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CChars::CompareIgnoreCase(char* szOther)
+int CChars::CompareIgnoreCase(const char* szOther)
 {
 	return StrICmp(Text(), szOther);
 }
@@ -1812,7 +1812,7 @@ int CChars::Replace(char cFind, char cReplace)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CChars::Replace(char* szFind, char* szReplace)
+int CChars::Replace(const char* szFind, const char* szReplace)
 {
 	int		iReplaceLen;
 	int		iFindLen;
@@ -1858,7 +1858,7 @@ int CChars::Replace(char* szFind, char* szReplace)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CChars::PrivateReplaceWithEqualLength(char* szFind, char* szReplace, int iFindLen, int iDifference)
+int CChars::PrivateReplaceWithEqualLength(const char* szFind, const char* szReplace, int iFindLen, int iDifference)
 {
 	int		iCount;
 	int		iIndex;
@@ -1878,7 +1878,7 @@ int CChars::PrivateReplaceWithEqualLength(char* szFind, char* szReplace, int iFi
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CChars::PrivateReplaceWithShorter(char* szFind, char* szReplace, int iReplaceLen, int iFindLen, int iDifference)
+int CChars::PrivateReplaceWithShorter(const char* szFind, const char* szReplace, int iReplaceLen, int iFindLen, int iDifference)
 {
 	int		iCount;
 	int		iIndex;
@@ -1945,7 +1945,7 @@ int CChars::PrivateReplaceWithShorter(char* szFind, char* szReplace, int iReplac
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CChars::PrivateReplaceWithLonger(char* szFind, char* szReplace, int iFindLen, int iDifference)
+int CChars::PrivateReplaceWithLonger(const char* szFind, const char* szReplace, int iFindLen, int iDifference)
 {
 	int		iCount;
 	int		iIndex;
@@ -1980,7 +1980,7 @@ int CChars::PrivateReplaceWithLonger(char* szFind, char* szReplace, int iFindLen
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::Overwrite(int iIndex, char* szReplace)
+void CChars::Overwrite(int iIndex, const char* szReplace)
 {
 	int		i;
 	int		j;
@@ -2028,7 +2028,7 @@ void CChars::Clear(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::AppendData(char* szData, int iMaxLength)
+void CChars::AppendData(const char* szData, int iMaxLength)
 {
 	int		i;
 	int		iLength;
@@ -2051,7 +2051,7 @@ void CChars::AppendData(char* szData, int iMaxLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::AppendData(char* szData, int iDataLength, int iMaxLength)
+void CChars::AppendData(const char* szData, int iDataLength, int iMaxLength)
 {
 	int				i;
 	int				iLength;
@@ -2292,7 +2292,7 @@ void CChars::Dump(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::Dump(char* sz)
+void CChars::Dump(const char* sz)
 {
 	CChars	c;
 
