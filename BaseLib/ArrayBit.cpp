@@ -45,9 +45,9 @@ void CArrayBit::Init(CMallocator* pcMalloc)
 {
 	mpcMalloc = pcMalloc;
 	miNumBits = 0;
-	aSmall.ui[0] = 0;
-	aSmall.ui[1] = 0;
-	aSmall.ui[2] = 0;
+	u.aSmall.ui[0] = 0;
+	u.aSmall.ui[1] = 0;
+    u.aSmall.ui[2] = 0;
 }
 
 
@@ -59,7 +59,7 @@ void CArrayBit::Kill(void)
 {
 	if (IsLarge())
 	{
-		Free(aLarge.mpvData);
+		Free(u.aLarge.mpvData);
 	}
 	Init();
 }
@@ -118,13 +118,13 @@ void CArrayBit::GrowBy(int iNumBits)
 	{
 		pvData = Malloc(iNewByteSize);
 		memcpy_fast(pvData, GetData(), iNewByteSize);
-		aLarge.mpvData = pvData;
+        u.aLarge.mpvData = pvData;
 		miNumBits += iNumBits;
 		return;
 	}
 
 	miNumBits += iNumBits;
-	aLarge.mpvData = Realloc(aLarge.mpvData, iNewByteSize);
+    u.aLarge.mpvData = Realloc(u.aLarge.mpvData, iNewByteSize);
 }
 
 
@@ -273,11 +273,11 @@ void* CArrayBit::GetData(void)
 {
 	if (IsLarge())
 	{
-		return aLarge.mpvData;
+		return u.aLarge.mpvData;
 	}
 	else
 	{
-		return aSmall.ui;
+		return u.aSmall.ui;
 	}
 }
 
