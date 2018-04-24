@@ -1,4 +1,6 @@
+#ifdef LINUX_GNU_32
 #include <strings.h>
+#endif // LINUX_GNU_32
 #include "MapStringBlock.h"
 
 
@@ -243,7 +245,13 @@ CompareFunc CMapStringBlock::CalculateCompareFunc(BOOL bCaseSensitive)
 	}
 	else
 	{
+#ifdef _MSC_VER
+		return (CompareFunc)&_stricmp;
+#endif // _MSC_VER		
+
+#ifdef LINUX_GNU_32
 		return (CompareFunc)&strcasecmp;
+#endif // LINUX_GNU_32
 	}
 }
 
