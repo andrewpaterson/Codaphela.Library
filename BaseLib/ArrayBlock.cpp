@@ -1327,7 +1327,7 @@ int CArrayBlock::GetIndex(void* pvElement)
 
 	//Make sure the element lies within the array.
 	iIndex = iDifference / miElementSize;
-	if ((iIndex < 0) || (iIndex >= miUsedElements))
+	if ((iIndex < 0) || (iIndex >= (size_t)miUsedElements))
 	{
 		return -1;
 	}
