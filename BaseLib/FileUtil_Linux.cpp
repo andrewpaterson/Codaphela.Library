@@ -52,7 +52,7 @@ void CFileUtil::CurrentDirectory(CChars* szDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileUtil::MakeDir(char* szPathName)
+BOOL CFileUtil::MakeDir(const char*szPathName)
 {
     int iResult;
 
@@ -72,7 +72,7 @@ BOOL CFileUtil::MakeDir(char* szPathName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileUtil::RemoveDir(char* szPathName)
+BOOL CFileUtil::RemoveDir(const char*szPathName)
 {
     CChars  sz;
     BOOL    bResult;
@@ -89,7 +89,7 @@ BOOL CFileUtil::RemoveDir(char* szPathName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileUtil::RecurseRemoveDir(char* szPathName)
+BOOL CFileUtil::RecurseRemoveDir(const char*szPathName)
 {
     DIR*                pDIR;
     struct dirent*      pDirEnt;
@@ -149,7 +149,7 @@ BOOL CFileUtil::RecurseRemoveDir(char* szPathName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileUtil::Touch(char* szFileName)
+BOOL CFileUtil::Touch(const char*szFileName)
 {
     int     iHandle;
 
@@ -167,7 +167,7 @@ BOOL CFileUtil::Touch(char* szFileName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileUtil::Delete(char* szFileName)
+BOOL CFileUtil::Delete(const char*szFileName)
 {
     int     iResult;
 
@@ -187,7 +187,7 @@ BOOL CFileUtil::Delete(char* szFileName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileUtil::Exists(char* szFileName)
+BOOL CFileUtil::Exists(const char*szFileName)
 {
     int     iHandle;
 
@@ -207,7 +207,7 @@ BOOL CFileUtil::Exists(char* szFileName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-filePos CFileUtil::Size(char* szFileName)
+filePos CFileUtil::Size(const char*szFileName)
 {
     struct stat         sBuffer;
     int                 iStatus;
@@ -228,9 +228,9 @@ filePos CFileUtil::Size(char* szFileName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileUtil::IsAbsolutePath(char* szPathName)
+BOOL CFileUtil::IsAbsolutePath(const char*szPathName)
 {
-	char*   pcPos;
+	const char*  pcPos;
 
 	pcPos = FindChar(szPathName, FILE_SEPARATOR[0]);
 	if (pcPos == szPathName)
@@ -248,7 +248,7 @@ BOOL CFileUtil::IsAbsolutePath(char* szPathName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char CFileUtil::GetDriveLetter(char* szPathName)
+char CFileUtil::GetDriveLetter(const char*szPathName)
 {
 	return 0;
 }
@@ -258,7 +258,7 @@ char CFileUtil::GetDriveLetter(char* szPathName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileUtil::FindFiles(char* szInDirectory, BOOL bDirs, char* szInName, char* szExtension, CArrayChars* paszFiles, BOOL bHidden)
+BOOL CFileUtil::FindFiles(const char*szInDirectory, BOOL bDirs, const char*szInName, const char*szExtension, CArrayChars* paszFiles, BOOL bHidden)
 {
 	DIR*                pDIR;
 	struct dirent*      pDirEnt;

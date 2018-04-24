@@ -59,8 +59,8 @@ public:
 	void	InitList(CChars* szFirst, ...);
 	void	InitLength(int iLength);
 	void	Kill(void);
-	void	Fake(const char* sz);
-	void	Fake(const char* sz, int iStartInclusive, int iEndExclusive);
+	void	Fake(char* sz);
+	void	Fake(char* sz, int iStartInclusive, int iEndExclusive);
 	int		Length(void);
 	void	Set(const char* sz);
 	void	Set(CChars sz);
