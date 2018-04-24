@@ -1034,7 +1034,7 @@ void ToPointerString(void* pv, char* sz)
 {
 	CChars	c;
 
-	IToA((int)(ENGINE_SIZE_T)pv, sz, 16);
+	IToA((int)(size_t)pv, sz, 16);
 	c.Init(sz);
 	c.RightAlign('0', 8);
 	c.Insert(0, "0x");
