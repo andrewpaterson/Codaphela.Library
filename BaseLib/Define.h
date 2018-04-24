@@ -33,26 +33,26 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 #ifdef WIN_GNU_32
 #error WIN32 and WIN_GNU_32 cannot both be defined
-#endif
+#endif // WIN_GNU_32
 #ifdef LINUX_GNU_32
 #error WIN32 and LINUX_GNU_32 cannot both be defined
-#endif
+#endif // LINUX_GNU_32
 
 #ifndef WINVER
 #define WINVER 0x0501
-#endif
+#endif // WINVER
 
 #ifndef _WIN32_WINNT
 #define _WIN32_WINNT 0x0501
-#endif
+#endif // _WIN32_WINNT
 
 #ifndef _WIN32_WINDOWS
 #define _WIN32_WINDOWS 0x0410
-#endif
+#endif // _WIN32_WINDOWS
 
 #ifndef _WIN32_IE
 #define _WIN32_IE 0x0600
-#endif
+#endif // _WIN32_IE
 
 #include <stdlib.h>
 #include <memory.h>
@@ -63,7 +63,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define __ENGINE_FUNCTION__ __FUNCTION__
 #define __ENGINE_PRETTY_FUNCTION__ __FUNCSIG__
 #define __ENGINE_DECORATED_FUNCTION__ __FUNCDNAME__
-#endif // WIN32
+#endif // _MSC_VER
 
 
 //////////////////////////////////////////////////////////////////////////
