@@ -305,7 +305,7 @@ void CUnknowns::DumpAddDetail(CUnknown* pcUnknown)
 	SGeneralMemoryAllocation*	psAlloc;
 	CChars				sz;
 
-	psAlloc = MEMORY_GET_ALLOCATION(pcUnknown);
+	psAlloc = GENERAL_MEMORY_GET_ALLOCATION(pcUnknown);
 	if (!IsFreed(pcUnknown))
 	{
 		sz.Init("Size: ");
@@ -344,7 +344,7 @@ BOOL CUnknowns::IsFreed(CUnknown* pcUnknown)
 	int							i;
 	int*						piMem;
 
-	psAlloc = MEMORY_GET_ALLOCATION(pcUnknown);
+	psAlloc = GENERAL_MEMORY_GET_ALLOCATION(pcUnknown);
 	for (i = 1; i < sizeof(SGeneralMemoryAllocation)/4; i++)
 	{
 		piMem = &((int*)psAlloc)[i];
