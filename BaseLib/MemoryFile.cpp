@@ -51,7 +51,7 @@ void CMemoryFile::Init(void)
 void CMemoryFile::Init(void* pvInitialMem, int iInitialLength)
 {
 	CAbstractFile::Init();
-	cArray.Init(MEMORY_FILE_CHUNK_SIZE);
+	mcArray.Init(MEMORY_FILE_CHUNK_SIZE);
 	mbOpen = FALSE;
 	mpvInitialMem = pvInitialMem;
 	miInitialLength = iInitialLength;
@@ -68,7 +68,7 @@ void CMemoryFile::Kill(void)
 	mbOpen = FALSE;
 	if (!mbFakeArray)
 	{
-		cArray.Kill();
+		mcArray.Kill();
 	}
 }
 
@@ -85,7 +85,7 @@ BOOL CMemoryFile::Open(EFileMode eFileMode)
 		iFlags = MEMORY_FILE_READ_FLAG | MEMORY_FILE_WRITE_FLAG;
 		if (miInitialLength != 0)
 		{
-			cArray.InsertBlockAt((char*)mpvInitialMem, miInitialLength, 0);
+			mcArray.InsertBlockAt((char*)mpvInitialMem, miInitialLength, 0);
 		}
 		iPos = 0;
 	}
@@ -95,8 +95,8 @@ BOOL CMemoryFile::Open(EFileMode eFileMode)
 		iFlags = MEMORY_FILE_READ_FLAG;
 		if (miInitialLength != 0)
 		{
-			cArray.ReInit();
-			cArray.Fake((char*)mpvInitialMem, miInitialLength);
+			mcArray.ReInit();
+			mcArray.Fake((char*)mpvInitialMem, miInitialLength);
 		}
 		iPos = 0;
 	}
@@ -146,14 +146,14 @@ filePos CMemoryFile::Read(void* pvBuffer, filePos iSize, filePos iCount)
 	{
 		iOldPos = iPos;
 		iAmountToRead = (int)(iSize * iCount);
-		iAmountToCopy = (cArray.NumElements() - iPos);
+		iAmountToCopy = (mcArray.NumElements() - iPos);
 
 		if (iAmountToRead > iAmountToCopy)
 		{
 			iNumCopied = iAmountToCopy / (int)iSize;
 			iAmountToCopy = iNumCopied * iSize;
 			iFlags |= MEMORY_FILE_EOF_FLAG;
-			iPos = cArray.NumElements();
+			iPos = mcArray.NumElements();
 		}
 		else
 		{
@@ -161,7 +161,7 @@ filePos CMemoryFile::Read(void* pvBuffer, filePos iSize, filePos iCount)
 			iNumCopied = (int)iCount;
 			iPos += iAmountToCopy;
 
-			if (iPos == cArray.NumElements())
+			if (iPos == mcArray.NumElements())
 			{
 				iFlags |= MEMORY_FILE_EOF_FLAG;
 			}
@@ -170,7 +170,7 @@ filePos CMemoryFile::Read(void* pvBuffer, filePos iSize, filePos iCount)
 				iFlags &= ~MEMORY_FILE_EOF_FLAG;
 			}
 		}
-		memcpy(pvBuffer, cArray.Get((int)iOldPos), (int)iAmountToCopy);
+		memcpy(pvBuffer, mcArray.Get((int)iOldPos), (int)iAmountToCopy);
 		return (int)iNumCopied;
 	}
 	return 0;
@@ -189,23 +189,23 @@ BOOL CMemoryFile::Seek(filePos iOffset, EFileSeekOrigin iSeekOrigin)
 	}
 	else if (iSeekOrigin == EFSO_END)
 	{
-		iPos = cArray.NumElements() + iOffset;
+		iPos = mcArray.NumElements() + iOffset;
 	}
 	else if (iSeekOrigin == EFSO_CURRENT)
 	{
 		iPos += iOffset;
 	}
 
-	if (iPos > cArray.NumElements())
+	if (iPos > mcArray.NumElements())
 	{
-		iPos = cArray.NumElements();  //This is not the same behavior as file...
+		iPos = mcArray.NumElements();  //This is not the same behavior as file...
 	}
 	if (iPos < 0)
 	{
 		iPos = 0;
 	}
 
-	if (iPos == cArray.NumElements())
+	if (iPos == mcArray.NumElements())
 	{
 		iFlags |= MEMORY_FILE_EOF_FLAG;
 	}
@@ -229,20 +229,20 @@ filePos CMemoryFile::Write(const void* pvBuffer, filePos iSize, filePos iCount)
 	if (iFlags & MEMORY_FILE_WRITE_FLAG)
 	{
 		iAmountToCopy = iSize * iCount;
-		iAmountToAdd = iAmountToCopy - (cArray.NumElements() - iPos);
+		iAmountToAdd = iAmountToCopy - (mcArray.NumElements() - iPos);
 		if (iAmountToAdd > 0)
 		{
-			cArray.GrowByNumElements((int)iAmountToAdd);
-			if (cArray.IsEmpty())
+			mcArray.GrowByNumElements((int)iAmountToAdd);
+			if (mcArray.IsEmpty())
 			{
 				return 0;
 			}
 		}
 
-		memcpy(cArray.Get((int)iPos), pvBuffer, (int)iAmountToCopy);
+		memcpy(mcArray.Get((int)iPos), pvBuffer, (int)iAmountToCopy);
 		iPos += iAmountToCopy;
 
-		if (iPos == cArray.NumElements())
+		if (iPos == mcArray.NumElements())
 		{
 			iFlags |= MEMORY_FILE_EOF_FLAG;
 		}
@@ -292,7 +292,7 @@ int CMemoryFile::IsOpen(void)
 //////////////////////////////////////////////////////////////////////////
 filePos CMemoryFile::Size(void)
 {
-	return cArray.NumElements();
+	return mcArray.NumElements();
 }
 
 
@@ -317,7 +317,7 @@ BOOL CMemoryFile::Delete(void)
 		return FALSE;
 	}
 
-	cArray.ReInit();
+	mcArray.ReInit();
 	return TRUE;
 }
 
@@ -338,7 +338,7 @@ char* CMemoryFile::GetFileName(void)
 //////////////////////////////////////////////////////////////////////////
 void* CMemoryFile::GetBufferPointer(void)
 {
-	return (void*)cArray.GetData();
+	return mcArray.GetData();
 }
 
 
@@ -348,7 +348,7 @@ void* CMemoryFile::GetBufferPointer(void)
 //////////////////////////////////////////////////////////////////////////
 int CMemoryFile::GetBufferSize(void)
 {
-	return cArray.NumElements();
+	return mcArray.NumElements();
 }
 
 
@@ -358,8 +358,8 @@ int CMemoryFile::GetBufferSize(void)
 //////////////////////////////////////////////////////////////////////////
 void CMemoryFile::SetBufferPointer(void* pvBuffer)
 {
-	cArray.Fake((char*)pvBuffer, cArray.NumElements());
-	cArray.SetAllocateSize(MEMORY_FILE_CHUNK_SIZE);
+	mcArray.Fake((char*)pvBuffer, mcArray.NumElements());
+	mcArray.SetAllocateSize(MEMORY_FILE_CHUNK_SIZE);
 }
 
 
@@ -369,8 +369,8 @@ void CMemoryFile::SetBufferPointer(void* pvBuffer)
 //////////////////////////////////////////////////////////////////////////
 void CMemoryFile::SetBufferSize(int iBufferSize)
 {
-	cArray.Fake(cArray.GetData(), iBufferSize);
-	cArray.SetAllocateSize(MEMORY_FILE_CHUNK_SIZE);
+	mcArray.Fake(mcArray.GetData(), iBufferSize);
+	mcArray.SetAllocateSize(MEMORY_FILE_CHUNK_SIZE);
 }
 
 
