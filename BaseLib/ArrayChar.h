@@ -28,7 +28,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 class CArrayChar: public CArrayTemplatePrimitive<char>
 {
 public:
-	void Fake(const char* pvData, int iNum, int iChunkSize = 1);
 	void AddList(int iStop, ...);
 };
 
