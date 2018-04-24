@@ -33,7 +33,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileUtil::MakeDir(char* szPathName)
+BOOL CFileUtil::MakeDir(const char*szPathName)
 {
 	return CreateDirectory(szPathName, NULL);
 }
@@ -43,7 +43,7 @@ BOOL CFileUtil::MakeDir(char* szPathName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileUtil::RemoveDir(char* szPathName)
+BOOL CFileUtil::RemoveDir(const char*szPathName)
 {
 	WIN32_FIND_DATA		sFindData;
 	CChars				szFindName;
@@ -98,7 +98,7 @@ BOOL CFileUtil::RemoveDir(char* szPathName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileUtil::CopyDir(char* szSource, char* szDest)
+BOOL CFileUtil::CopyDir(const char*szSource, const char*szDest)
 {
 	WIN32_FIND_DATA		sFindData;
 	CChars				szFindName;
@@ -168,7 +168,7 @@ BOOL CFileUtil::CopyDir(char* szSource, char* szDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileUtil::Touch(char* szFileName)
+BOOL CFileUtil::Touch(const char*szFileName)
 {
 	HANDLE	h;
 
@@ -186,7 +186,7 @@ BOOL CFileUtil::Touch(char* szFileName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileUtil::Delete(char* szFileName)
+BOOL CFileUtil::Delete(const char* szFileName)
 {
 	return DeleteFile(szFileName);
 }
@@ -196,7 +196,7 @@ BOOL CFileUtil::Delete(char* szFileName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileUtil::Exists(char* szFileName)
+BOOL CFileUtil::Exists(const char*szFileName)
 {
 	return PathFileExists(szFileName);
 }
@@ -206,7 +206,7 @@ BOOL CFileUtil::Exists(char* szFileName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-filePos CFileUtil::Size(char* szFileName)
+filePos CFileUtil::Size(const char*szFileName)
 {
 	HANDLE		h;
 	filePos		iSize;
@@ -227,9 +227,9 @@ filePos CFileUtil::Size(char* szFileName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileUtil::IsAbsolutePath(char* szPathName)
+BOOL CFileUtil::IsAbsolutePath(const char*szPathName)
 {
-	char*   szPos;
+	const char*  szPos;
 	char	cDrive;
 
 	szPos = FindChar(szPathName, FILE_SEPARATOR[0]);
@@ -256,7 +256,7 @@ BOOL CFileUtil::IsAbsolutePath(char* szPathName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char CFileUtil::GetDriveLetter(char* szPathName)
+char CFileUtil::GetDriveLetter(const char*szPathName)
 {
 	int		i;
 	char	c;
@@ -307,7 +307,7 @@ void CFileUtil::CurrentDirectory(CChars* szDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileUtil::FindFiles(char* szInDirectory, BOOL bDirs, char* szInName, char* szExtension, CArrayChars* paszFiles, BOOL bHidden)
+BOOL CFileUtil::FindFiles(const char*szInDirectory, BOOL bDirs, const char*szInName, const char*szExtension, CArrayChars* paszFiles, BOOL bHidden)
 {
 	WIN32_FIND_DATA		sFindData;
 	CChars				szFindName;

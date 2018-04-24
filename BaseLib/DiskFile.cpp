@@ -31,7 +31,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDiskFile::Init(char* szFileName)
+void CDiskFile::Init(const char* szFileName)
 {
 	CAbstractFile::Init();
 	mpsFileHandle = NULL;
@@ -311,7 +311,7 @@ char* CDiskFile::GetFileName(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CDiskFile* DiskFile(char* szName)
+CDiskFile* DiskFile(const char* szName)
 {
 	CDiskFile* pcDiskFile;
 

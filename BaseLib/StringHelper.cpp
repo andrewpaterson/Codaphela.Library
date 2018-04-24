@@ -415,7 +415,7 @@ char* StrIStr(char* ps1, const char* ps2)
 //
 //
 ////////////////////////////////////////////////////////////////////////////////////
-char* FindChar(char* szString, char c, BOOL bReverse)
+const char* FindChar(const char* szString, char c, BOOL bReverse)
 {
 	int iLen;
 	int i;

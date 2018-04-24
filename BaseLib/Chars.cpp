@@ -278,7 +278,7 @@ void CChars::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::Fake(const char* sz)
+void CChars::Fake(char* sz)
 {
 	if (sz)
 	{
@@ -295,14 +295,14 @@ void CChars::Fake(const char* sz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::Fake(const char* sz, int iStartInclusive, int iEndExclusive)
+void CChars::Fake(char* sz, int iStartInclusive, int iEndExclusive)
 {
-	const char* pcPosition;
+	char* pcPosition;
 
 	if (iEndExclusive - iStartInclusive > 0)
 	{
 		pcPosition = (char*)RemapSinglePointer(sz, iStartInclusive);
-		mcText.Fake(pcPosition, iEndExclusive-iStartInclusive+1);
+		mcText.Fake(pcPosition, iEndExclusive - iStartInclusive + 1);
 	}
 	else
 	{

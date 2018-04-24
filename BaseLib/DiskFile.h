@@ -34,7 +34,7 @@ public:
 	FILE*			mpsFileHandle;
 	CChars			mszFileName;
 
-	void	Init(char* szName);
+	void	Init(const char* szName);
 	void	Kill(void);
 
 	BOOL		Open(EFileMode eMode);
@@ -54,7 +54,7 @@ public:
 
 
 //Helper function to make creating basic files easier.
-CDiskFile* DiskFile(char* szName);
+CDiskFile* DiskFile(const char* szName);
 
 
 #endif // __DISK_FILE_H__

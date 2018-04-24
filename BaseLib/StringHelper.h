@@ -25,23 +25,23 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "Define.h"
 
 
-int     StrICmp(const char* ps1, const char* ps2);
-char*   StrIStr(char* ps1, const char* ps2);
-int     MemICmp(const void* pv1, const void* pv2, int iLength);
-char*   IToA(int iValue, char* szResult, int iBase);
-char*	IToA(unsigned int iValue, char* szResult, int iBase);
-char*	IToA(long long int lliValue, char* szResult, int iBase);
-char*	IToA(unsigned long long int ulliValue, char* szResult, int iBase);
-char*   StrRev(char* szString);
-char*   StrRev(char* szString, int iLength);
-char*	FindChar(char* szString, char c, BOOL bReverse = 0);
-void	StrCpySafe(char* szDest, const char* szSource, int iDestLength);
-void	ToLower(char* szString);
-void	ToUpper(char* szString);
-char	ToLower(char c);
-char	ToUpper(char c);
-int		StrEmpty(const char* szString);
-int		StrPrintable(const char* szString);
+int			StrICmp(const char* ps1, const char* ps2);
+char*		StrIStr(char* ps1, const char* ps2);
+int			MemICmp(const void* pv1, const void* pv2, int iLength);
+char*		IToA(int iValue, char* szResult, int iBase);
+char*		IToA(unsigned int iValue, char* szResult, int iBase);
+char*		IToA(long long int lliValue, char* szResult, int iBase);
+char*		IToA(unsigned long long int ulliValue, char* szResult, int iBase);
+char*		StrRev(char* szString);
+char*		StrRev(char* szString, int iLength);
+const char*	FindChar(const char* szString, char c, BOOL bReverse = 0);
+void		StrCpySafe(char* szDest, const char* szSource, int iDestLength);
+void		ToLower(char* szString);
+void		ToUpper(char* szString);
+char		ToLower(char c);
+char		ToUpper(char c);
+int			StrEmpty(const char* szString);
+int			StrPrintable(const char* szString);
 
 
 #endif // __STRING_HELPER_H__
