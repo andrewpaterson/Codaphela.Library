@@ -118,7 +118,7 @@ BOOL CMapStringBlock::Put(char* szKey, void* psData, int iDataSize)
 //////////////////////////////////////////////////////////////////////////
 void* CMapStringBlock::Put(const char* szKey, int iDataSize)
 {
-	Put((char*)szKey, iDataSize);
+	return Put((char*)szKey, iDataSize);
 }
 
 
@@ -128,7 +128,7 @@ void* CMapStringBlock::Put(const char* szKey, int iDataSize)
 //////////////////////////////////////////////////////////////////////////
 BOOL CMapStringBlock::Put(const char* szKey, void* psData, int iDataSize)
 {
-	Put((char*)szKey, psData, iDataSize);
+	return Put((char*)szKey, psData, iDataSize);
 }
 
 
