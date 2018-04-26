@@ -55,7 +55,7 @@ void* CSystemAllocator::Realloc(void* pv, size_t tSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-char* CSystemAllocator::GetName(void)
+const char* CSystemAllocator::GetName(void)
 {
 	return "CSystemAllocator";
 }

@@ -33,7 +33,7 @@ CTypeNames gcTypeNames;
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTypeNames::AddType(EPrimitiveTypes eType, int iSize, char* szPrettyName, char* szCppName, char* szPrimitiveName)
+void CTypeNames::AddType(EPrimitiveTypes eType, int iSize, const char* szPrettyName, const char* szCppName, const char* szPrimitiveName)
 {
 	STypeName*	psTypeName;
 	int			iPrettyNameLen;
@@ -178,7 +178,7 @@ void CTypeNames::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CTypeNames::GetPrettyName(EPrimitiveTypes eType)
+const char* CTypeNames::GetPrettyName(EPrimitiveTypes eType)
 {
 	STypeName*	psTypeName;
 
@@ -198,7 +198,7 @@ char* CTypeNames::GetPrettyName(EPrimitiveTypes eType)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CTypeNames::GetCPPName(EPrimitiveTypes eType)
+const char* CTypeNames::GetCPPName(EPrimitiveTypes eType)
 {
 	STypeName*	psTypeName;
 
@@ -218,7 +218,7 @@ char* CTypeNames::GetCPPName(EPrimitiveTypes eType)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CTypeNames::GetPrimitiveName(EPrimitiveTypes eType)
+const char* CTypeNames::GetPrimitiveName(EPrimitiveTypes eType)
 {
 	STypeName*	psTypeName;
 
@@ -238,7 +238,7 @@ char* CTypeNames::GetPrimitiveName(EPrimitiveTypes eType)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EPrimitiveTypes CTypeNames::GetTypeFromPrettyName(char* szPrettyName)
+EPrimitiveTypes CTypeNames::GetTypeFromPrettyName(const char* szPrettyName)
 {
 	int*	piType;
 
@@ -255,7 +255,7 @@ EPrimitiveTypes CTypeNames::GetTypeFromPrettyName(char* szPrettyName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EPrimitiveTypes CTypeNames::GetTypeFromCPPName(char* szCppName)
+EPrimitiveTypes CTypeNames::GetTypeFromCPPName(const char* szCppName)
 {
 	int*	piType;
 
@@ -283,7 +283,7 @@ int CTypeNames::GetByteSize(EPrimitiveTypes eType)
 	}
 	else
 	{
-		return NULL;
+		return 0;
 	}
 
 }
@@ -304,7 +304,7 @@ int CTypeNames::GetBitSize(EPrimitiveTypes eType)
 	}
 	else
 	{
-		return NULL;
+		return 0;
 	}
 
 }

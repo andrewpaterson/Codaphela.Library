@@ -68,7 +68,7 @@ void CMemoryAllocator::Free(void* pv)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-char* CMemoryAllocator::GetName(void)
+const char* CMemoryAllocator::GetName(void)
 {
 	return "CMemoryAllocator";
 }

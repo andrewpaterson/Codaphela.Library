@@ -36,11 +36,13 @@ public:
 	void		Init(CMallocator* pcMallocator, int iChunkSize, BOOL bCaseSensitive = TRUE, BOOL bOverwrite = TRUE);
 	void		Kill(void);
 
-	void*		Get(char* szKey);
-	void*		Get(char* szKey, int* piDataSize);
+	void*		Get(const char* szKey);
+	void*		Get(const char* szKey, int* piDataSize);
 
 	void*		Put(char* szKey, int iDataSize);
 	BOOL		Put(char* szKey, void* psData, int iDataSize);
+	void*		Put(const char* szKey, int iDataSize);
+	BOOL		Put(const char* szKey, void* psData, int iDataSize);
 
 	BOOL		Remove(char* szKey);
 

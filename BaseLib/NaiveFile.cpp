@@ -74,7 +74,7 @@ void CNaiveFile::KillExceptBuffer(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNaiveFile::Read(char* szFileName)
+BOOL CNaiveFile::Read(const char* szFileName)
 {
 	CFileBasic	mcFile;
 	CDiskFile*	pcDiskFile;
@@ -121,7 +121,7 @@ BOOL CNaiveFile::Read(CAbstractFile* pcAbstractFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNaiveFile::Write(char* szFileName)
+BOOL CNaiveFile::Write(const char* szFileName)
 {
 	CFileBasic	mcFile;
 
@@ -218,7 +218,7 @@ int CNaiveFile::Compare(void* pvOther, int iSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CompareFileToMemory(char* szFileName, void* pvMem, int iSize)
+int CompareFileToMemory(const char* szFileName, void* pvMem, int iSize)
 {
 	CNaiveFile	cNaiveFile;
 	int			iResult;

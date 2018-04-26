@@ -36,7 +36,7 @@ public:
 	template<class M>
 	void	Add(char* szConstructorName);
 
-	void*	Construct(char* szName, CMallocator* pcMalloc);
+	void*	Construct(const char* szName, CMallocator* pcMalloc);
 	int		NumConstructors(void);
 };
 

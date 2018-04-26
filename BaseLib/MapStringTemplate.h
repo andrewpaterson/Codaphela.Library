@@ -29,10 +29,12 @@ template<class D>
 class CMapStringTemplate : public CMapStringBlock
 {
 public:
-	D*		Get(char* szKey);
+	D*		Get(const char* szKey);
 
 	D*		Put(char* szKey);
 	BOOL	Put(char* szKey, D* psData);
+	D*		Put(const char* szKey);
+	BOOL	Put(const char* szKey, D* psData);
 };
 
 
@@ -41,7 +43,7 @@ public:
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class D>
-D* CMapStringTemplate<D>::Get(char* szKey)
+D* CMapStringTemplate<D>::Get(const char* szKey)
 {
 	return (D*)CMapStringBlock::Get(szKey);
 }
@@ -64,6 +66,28 @@ D* CMapStringTemplate<D>::Put(char* szKey)
 //////////////////////////////////////////////////////////////////////////
 template<class D>
 BOOL CMapStringTemplate<D>::Put(char* szKey, D* psData)
+{
+	return CMapStringBlock::Put(szKey, psData, sizeof(D));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class D>
+D* CMapStringTemplate<D>::Put(const char* szKey)
+{
+	return (D*)CMapStringBlock::Put(szKey, sizeof(D));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class D>
+BOOL CMapStringTemplate<D>::Put(const char* szKey, D* psData)
 {
 	return CMapStringBlock::Put(szKey, psData, sizeof(D));
 }

@@ -11,18 +11,18 @@ protected:
 	CMapPtrPrimitiveTemplate<size_t>	mmpiSizes;
 
 public:
-	void	Init(CMallocator* pcAlloc);
-	void	Kill(void);
+	void		Init(CMallocator* pcAlloc);
+	void		Kill(void);
 
-	size_t	AllocatedSize(void);
+	size_t		AllocatedSize(void);
 
-	void*	Malloc(size_t tSize);
-	void*	Realloc(void* pv, size_t tSize);
-	void	Free(void* pv);
+	void*		Malloc(size_t tSize);
+	void*		Realloc(void* pv, size_t tSize);
+	void		Free(void* pv);
 
-	char*	GetName(void);
+	const char*	GetName(void);
 
-	BOOL	IsLocal(void);
+	BOOL		IsLocal(void);
 };
 
 

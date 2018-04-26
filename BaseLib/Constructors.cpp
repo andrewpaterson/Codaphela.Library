@@ -46,7 +46,7 @@ void CConstructors::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CConstructors::Construct(char* szName, CMallocator* pcMalloc)
+void* CConstructors::Construct(const char* szName, CMallocator* pcMalloc)
 {
 	void*	pcConstructor;
 	int		iSize;

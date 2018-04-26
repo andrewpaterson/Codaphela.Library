@@ -38,7 +38,7 @@ BOOL CMallocators::AddMallocator(CMallocator* pcMallocator)
 {
 	char*	sz;
 
-	sz = pcMallocator->GetName();
+	sz = (char*)(pcMallocator->GetName());
 	if (mmszcMallocators.Get(sz))
 	{
 		gcLogger.Error2(__METHOD__, " A mallocator named [", sz, "] already exists.", NULL);

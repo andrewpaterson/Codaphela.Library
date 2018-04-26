@@ -44,19 +44,19 @@ protected:
 	char	mszWriterVersion[FILE_HEADER_WRITER_VERSION_SIZE];
 
 public:
-	BOOL	Load(CFileReader* pcReader, char* szExpectedWriterType, char* szExpectedWriterVersion);
-	BOOL	Save(CFileWriter* pcWriter, char* szWriterType, char* szWriterVersion);
+	BOOL	Load(CFileReader* pcReader, const char* szExpectedWriterType, const char* szExpectedWriterVersion);
+	BOOL	Save(CFileWriter* pcWriter, const char* szWriterType, const char* szWriterVersion);
 
 	char*	GetEngineVersion(void);
 	char*	GetWriterVersion(void);
 	char*	GetWriterType(void);
 
-	BOOL	IsWriterType(char* szWriterType);
-	BOOL	IsEngineVersion(char* szEngineVersion);
-	BOOL	IsWriterVersion(char* szEngineVersion);
+	BOOL	IsWriterType(const char* szWriterType);
+	BOOL	IsEngineVersion(const char* szEngineVersion);
+	BOOL	IsWriterVersion(const char* szEngineVersion);
 
 protected:
-	BOOL	CheckHeaderSize(char* szMethod);
+	BOOL	CheckHeaderSize(const char* szMethod);
 };
 
 

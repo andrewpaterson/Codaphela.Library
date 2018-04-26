@@ -41,11 +41,11 @@ void CMapStringBlock::Kill(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CMapStringBlock::Get(char* szKey)
+void* CMapStringBlock::Get(const char* szKey)
 {
 	void*	pvData;
 
-	pvData = CMapBlock::Get(szKey);
+	pvData = CMapBlock::Get((void*)szKey);
 	return pvData;
 }
 
@@ -54,12 +54,12 @@ void* CMapStringBlock::Get(char* szKey)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CMapStringBlock::Get(char* szKey, int* piDataSize)
+void* CMapStringBlock::Get(const char* szKey, int* piDataSize)
 {
 	void*	pvData;
 	BOOL	bFound;
 
-	bFound = CMapBlock::Get(szKey, &pvData, piDataSize);
+	bFound = CMapBlock::Get((void*)szKey, &pvData, piDataSize);
 	if (bFound)
 	{
 		return pvData;
@@ -110,6 +110,25 @@ BOOL CMapStringBlock::Put(char* szKey, void* psData, int iDataSize)
 	{
 		return FALSE;
 	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void* CMapStringBlock::Put(const char* szKey, int iDataSize)
+{
+	Put((char*)szKey, iDataSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+BOOL CMapStringBlock::Put(const char* szKey, void* psData, int iDataSize)
+{
+	Put((char*)szKey, psData, iDataSize);
 }
 
 

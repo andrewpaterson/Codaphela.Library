@@ -1116,7 +1116,7 @@ BOOL CEnumeratorTemplate<M>::ReadEnumeratorBlock(CFileReader* pcFileReader)
 			return FALSE; 
 		}
 
-		AllocateNodeData(psNode, iReadSize);
+		this->AllocateNodeData(psNode, iReadSize);
 		if (!pcFileReader->ReadData(psNode->szName, iReadSize)) 
 		{ 
 			return FALSE; 
