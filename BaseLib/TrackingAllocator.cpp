@@ -95,7 +95,7 @@ void CTrackingAllocator::Free(void* pv)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CTrackingAllocator::GetName(void)
+const char* CTrackingAllocator::GetName(void)
 {
 	return mpcAlloc->GetName();
 }

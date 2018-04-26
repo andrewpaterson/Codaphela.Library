@@ -39,8 +39,8 @@ protected:
 	} u;
 	
 public:
-	void					InitFile(char* szName, CFileNode* pcParent);
-	void					InitDirectory(char* szName, CFileNode* pcParent);
+	void					InitFile(const char* szName, CFileNode* pcParent);
+	void					InitDirectory(const char* szName, CFileNode* pcParent);
 	void					Kill(void);
 
 	CFileNodeDirectory<M>*	Directory(void);
@@ -53,7 +53,7 @@ public:
 //
 //////////////////////////////////////////////////////////////////////////
 template <class M>
-void CFileNode<M>::InitFile(char* szName, CFileNode* pcParent)
+void CFileNode<M>::InitFile(const char* szName, CFileNode* pcParent)
 {
 	Init(szName, FNT_File, pcParent);
 	u.msFile.Init();
@@ -65,7 +65,7 @@ void CFileNode<M>::InitFile(char* szName, CFileNode* pcParent)
 //
 //////////////////////////////////////////////////////////////////////////
 template <class M>
-void CFileNode<M>::InitDirectory(char* szName, CFileNode* pcParent)
+void CFileNode<M>::InitDirectory(const char* szName, CFileNode* pcParent)
 {
 	Init(szName, FNT_Directory, pcParent);
 	meType = FNT_Directory;

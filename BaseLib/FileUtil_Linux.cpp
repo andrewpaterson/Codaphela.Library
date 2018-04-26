@@ -44,7 +44,6 @@ void CFileUtil::CurrentDirectory(CChars* szDest)
 
 	getcwd(szTemp, MAX_PATH);
 	szDest->Append(szTemp);
-	return szDest->Text();
 }
 
 
@@ -121,7 +120,7 @@ BOOL CFileUtil::RecurseRemoveDir(const char*szPathName)
             iStatus = stat(szTemp.Text(), &sBuffer);
             if (iStatus == -1)
             {
-                printf("%s: %s\n", strerror(errno), szTemp);
+                printf("%s: %s\n", strerror(errno), szTemp.Text());
                 return FALSE;
             }
             bDir = S_ISDIR(sBuffer.st_mode);

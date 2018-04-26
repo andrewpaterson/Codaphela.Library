@@ -119,7 +119,7 @@ public:
 	TRISTATE	GetQuotedCharacterSequence(char cOpenQuote, char cCloseQuote, char* szString, int* piLength = NULL, BOOL bPassOnTest = FALSE, BOOL bSkipWhiteSpace = TRUE);  //'Quotes' not included.
 	TRISTATE	GetExactCharacterSequence(char* szSequence);
 	TRISTATE	GetCharacterSequence(char* szSequence, int* piLength = NULL);
-	TRISTATE	GetExactCaseInsensitiveCharacterSequence(char* szSequence);
+	TRISTATE	GetExactCaseInsensitiveCharacterSequence(const char* szSequence);
 
 	TRISTATE	GetDigit(int* pi, int iBase = 10);
 	TRISTATE	GetSign(int* pi);

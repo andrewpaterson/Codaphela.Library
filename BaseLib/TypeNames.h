@@ -50,16 +50,16 @@ public:
 	void 				Init(void);
 	void 				Kill(void);
 
-	char* 				GetPrettyName(EPrimitiveTypes eType);
-	char* 				GetCPPName(EPrimitiveTypes eType);
-	char* 				GetPrimitiveName(EPrimitiveTypes eType);
-	EPrimitiveTypes		GetTypeFromPrettyName(char* szPrettyName);
-	EPrimitiveTypes		GetTypeFromCPPName(char* szPrettyName);
+	const char* 		GetPrettyName(EPrimitiveTypes eType);
+	const char* 		GetCPPName(EPrimitiveTypes eType);
+	const char* 		GetPrimitiveName(EPrimitiveTypes eType);
+	EPrimitiveTypes		GetTypeFromPrettyName(const char* szPrettyName);
+	EPrimitiveTypes		GetTypeFromCPPName(const char* szPrettyName);
 	int					GetByteSize(EPrimitiveTypes eType);
 	int					GetBitSize(EPrimitiveTypes eType);
 
 private:
-	void				AddType(EPrimitiveTypes eType, int iSize, char* szPrettyName, char* szCppName, char* szPrimitiveName);
+	void				AddType(EPrimitiveTypes eType, int iSize, const char* szPrettyName, const char* szCppName, const char* szPrimitiveName);
 };
 
 

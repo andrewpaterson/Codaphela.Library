@@ -787,7 +787,7 @@ TRISTATE CTextParser::GetExactCharacterSequence(char* szSequence)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CTextParser::GetExactCaseInsensitiveCharacterSequence(char* szSequence)
+TRISTATE CTextParser::GetExactCaseInsensitiveCharacterSequence(const char* szSequence)
 {
 	int			iPos;
 	char		c1, c2;

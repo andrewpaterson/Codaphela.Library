@@ -36,7 +36,7 @@ public:
 						BOOL	WriteData(void* pvData, filePos iDataSize);
 
 	//Strings.
-						BOOL	WriteString(char* szString);
+						BOOL	WriteString(const char* szString);
 
 	//Helpers.		
 						BOOL	WriteInt(int i);

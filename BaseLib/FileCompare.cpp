@@ -27,7 +27,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileCompare::Compare(char* szName1, char* szName2, CChars* psz1, CChars* psz2)
+BOOL CFileCompare::Compare(const char* szName1, const char* szName2, CChars* psz1, CChars* psz2)
 {
 	CNaiveFile		cFile1;
 	CNaiveFile		cFile2;
@@ -83,7 +83,7 @@ BOOL CFileCompare::Compare(char* szName1, char* szName2, CChars* psz1, CChars* p
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileCompare::Compare(char* szName1, void* pvMemory, filePos iLength, CChars* psz1, CChars* psz2)
+BOOL CFileCompare::Compare(const char* szName1, void* pvMemory, filePos iLength, CChars* psz1, CChars* psz2)
 {
 	CNaiveFile		cFile1;
 	BOOL			bExists1;
@@ -127,7 +127,7 @@ BOOL CFileCompare::Compare(char* szName1, void* pvMemory, filePos iLength, CChar
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFileCompare::ErrorNames(char* szName1, char* szName2, CChars* psz1, CChars* psz2)
+void CFileCompare::ErrorNames(const char* szName1, const char* szName2, CChars* psz1, CChars* psz2)
 {
 	psz1->Append(szName1);
 	psz2->Append(szName2);
@@ -160,7 +160,7 @@ void CFileCompare::Difference(CChars* psz1, filePos iPosition, char c)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileCompare::Compare(char* szName1, char* szName2, CChars* psz1, CChars* psz2, void* pvMem1, void* pvMem2, filePos iLength1, filePos iLength2)
+BOOL CFileCompare::Compare(const char* szName1, const char* szName2, CChars* psz1, CChars* psz2, void* pvMem1, void* pvMem2, filePos iLength1, filePos iLength2)
 {
 	int				i;
 	unsigned char*	pcMem1;

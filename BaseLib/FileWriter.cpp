@@ -40,7 +40,7 @@ BOOL CFileWriter::WriteData(void* pvData, filePos iDataSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileWriter::WriteString(char* szString)
+BOOL CFileWriter::WriteString(const char* szString)
 {
 	int		iStrLen;
 

@@ -628,7 +628,7 @@ BOOL CPackFiles::EndWrite(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CPackFiles::ClassName(void)
+const char* CPackFiles::ClassName(void)
 {
 	return "CPackFiles";
 }

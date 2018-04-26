@@ -31,7 +31,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileHeader::Save(CFileWriter* pcWriter, char* szWriterType, char* szWriterVersion)
+BOOL CFileHeader::Save(CFileWriter* pcWriter, const char* szWriterType, const char* szWriterVersion)
 {
 	if (!CheckHeaderSize(__METHOD__))
 	{
@@ -53,7 +53,7 @@ BOOL CFileHeader::Save(CFileWriter* pcWriter, char* szWriterType, char* szWriter
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileHeader::Load(CFileReader* pcReader, char* szExpectedWriterType, char* szExpectedWriterVersion)
+BOOL CFileHeader::Load(CFileReader* pcReader, const char* szExpectedWriterType, const char* szExpectedWriterVersion)
 {
 	if (!CheckHeaderSize(__METHOD__))
 	{
@@ -86,7 +86,7 @@ BOOL CFileHeader::Load(CFileReader* pcReader, char* szExpectedWriterType, char* 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CFileHeader::GetEngineVersion(void)
+ char* CFileHeader::GetEngineVersion(void)
 {
 	return mszEngineVersion;
 }
@@ -96,7 +96,7 @@ char* CFileHeader::GetEngineVersion(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CFileHeader::GetWriterVersion(void)
+ char* CFileHeader::GetWriterVersion(void)
 {
 	return mszWriterVersion;
 }
@@ -106,7 +106,7 @@ char* CFileHeader::GetWriterVersion(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CFileHeader::GetWriterType(void)
+ char* CFileHeader::GetWriterType(void)
 {
 	return mszWriterType;
 }
@@ -116,7 +116,7 @@ char* CFileHeader::GetWriterType(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileHeader::IsWriterType(char* szWriterType)
+BOOL CFileHeader::IsWriterType(const char* szWriterType)
 {
 	return strcmp(mszWriterType, szWriterType) == 0;
 }
@@ -126,7 +126,7 @@ BOOL CFileHeader::IsWriterType(char* szWriterType)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileHeader::IsEngineVersion(char* szEngineVersion)
+BOOL CFileHeader::IsEngineVersion(const char* szEngineVersion)
 {
 	return strcmp(mszEngineVersion, szEngineVersion) == 0;
 }
@@ -136,7 +136,7 @@ BOOL CFileHeader::IsEngineVersion(char* szEngineVersion)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileHeader::IsWriterVersion(char* szWriterVersion)
+BOOL CFileHeader::IsWriterVersion(const char* szWriterVersion)
 {
 	return strcmp(mszWriterVersion, szWriterVersion) == 0;
 }
@@ -146,7 +146,7 @@ BOOL CFileHeader::IsWriterVersion(char* szWriterVersion)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileHeader::CheckHeaderSize(char* szMethod)
+BOOL CFileHeader::CheckHeaderSize(const char* szMethod)
 {
 	size_t		tFileHeaderSize;
 

@@ -20,12 +20,12 @@ protected:
 	CBaseFileNode*	mpcParent;
 
 public:
-	void					Init(char* szName, EFileNodeType eType, CBaseFileNode* pcParent);
+	void					Init(const char* szName, EFileNodeType eType, CBaseFileNode* pcParent);
 	void					Kill(void);
 
 	char*					GetName(void);
 	char*					GetFullName(CChars* pszDest);
-	BOOL					Is(char* szName);
+	BOOL					Is(const char* szName);
 	BOOL					IsDirectory(void);
 	BOOL					IsFile(void);
 	CBaseFileNode*			GetParent(void);

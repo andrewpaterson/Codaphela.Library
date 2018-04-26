@@ -87,7 +87,7 @@ protected:
 	filePos					PrivateRead(CPackFileNode* psPackFile, void* pvBuffer, filePos iSize, filePos iCount);
 	BOOL					PrivateSeek(CPackFileNode* psPackFile, filePos iOffset, int iSeekOrigin);
 	BOOL					ChangeReadFiles(CPackFileNode* psPackFile);
-	char*					ClassName(void);
+	const char*				ClassName(void);
 	BOOL					WriteHeader(void);
 	BOOL					ReadHeader(void);
 	BOOL					ReadNodes(void);

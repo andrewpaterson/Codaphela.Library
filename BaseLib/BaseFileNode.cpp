@@ -5,7 +5,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseFileNode::Init(char* szName, EFileNodeType eType, CBaseFileNode* pcParent)
+void CBaseFileNode::Init(const char* szName, EFileNodeType eType, CBaseFileNode* pcParent)
 {
 	meType = eType;
 	mszName.Init(szName);
@@ -28,7 +28,7 @@ void CBaseFileNode::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CBaseFileNode::GetName(void)
+ char* CBaseFileNode::GetName(void)
 {
 	return mszName.Text();
 }
@@ -38,7 +38,7 @@ char* CBaseFileNode::GetName(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CBaseFileNode::GetFullName(CChars* pszDest)
+ char* CBaseFileNode::GetFullName(CChars* pszDest)
 {
 	CBaseFileNode*	pcCurrent;
 	CChars			szName;
@@ -64,7 +64,7 @@ char* CBaseFileNode::GetFullName(CChars* pszDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CBaseFileNode::Is(char* szName)
+BOOL CBaseFileNode::Is(const char* szName)
 {
 	return mszName.Equals(szName);
 }

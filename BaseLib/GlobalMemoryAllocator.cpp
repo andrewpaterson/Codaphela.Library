@@ -9,7 +9,7 @@ CGlobalMemoryAllocator	gcMemoryAllocator;
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CGlobalMemoryAllocator::GetName(void)
+const char* CGlobalMemoryAllocator::GetName(void)
 {
 	return "CGlobalMemoryAllocator";
 }

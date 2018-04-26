@@ -10,21 +10,21 @@ protected:
 	CFreeList	mcFreeList;
 
 public:
-	void		Init(int iElementSize);
-	void		Init(int iElementSize, int iAlignment);
-	void		Init(int iElementSize, int iAlignment, int iOffset);
-	void		Kill(void);
+	void			Init(int iElementSize);
+	void			Init(int iElementSize, int iAlignment);
+	void			Init(int iElementSize, int iAlignment, int iOffset);
+	void			Kill(void);
 
-	void*		Malloc(size_t tSize);
-	void*		Realloc(void* pv, size_t tSize);
-	void		Free(void* pv);
+	void*			Malloc(size_t tSize);
+	void*			Realloc(void* pv, size_t tSize);
+	void			Free(void* pv);
 
-	CFreeList*	GetFreeList(void);
+	CFreeList*		GetFreeList(void);
 
-	char*		GetName(void);
+	const char*		GetName(void);
 
-	BOOL		Read(CFileReader* pcFileReader);
-	BOOL		Write(CFileWriter* pcFileWriter);
+	BOOL			Read(CFileReader* pcFileReader);
+	BOOL			Write(CFileWriter* pcFileWriter);
 };
 
 
