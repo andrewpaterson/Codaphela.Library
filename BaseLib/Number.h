@@ -83,7 +83,7 @@ public:
 	CNumber*	Init(short cMaxWholeNumbers, short cMaxDecimals);
 	CNumber*	Init(int i, short cMaxWholeNumbers, short cMaxDecimals);
 	CNumber*	Init(float ff, short cMaxWholeNumbers, short cMaxDecimals);
-	CNumber*	Init(char* szNumber, short cMaxWholeNumbers, short cMaxDecimals, int iLen = 0);
+	CNumber*	Init(const char* szNumber, short cMaxWholeNumbers, short cMaxDecimals, int iLen = 0);
 	CNumber*	Init(CNumber* pcNumber, short cMaxWholeNumbers, short cMaxDecimals);
 	CNumber*	Zero(short cMaxWholeNumbers, short cMaxDecimals);
 	CNumber*	One(short cMaxWholeNumbers, short cMaxDecimals);

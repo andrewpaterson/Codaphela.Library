@@ -93,7 +93,7 @@ CScratchPad* CScratchPadAllocator::GetScratchPad(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CScratchPadAllocator::GetName(void)
+const char* CScratchPadAllocator::GetName(void)
 {
 	return "CScratchPadAllocator";
 }

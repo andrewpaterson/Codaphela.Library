@@ -223,7 +223,7 @@ CNumber* CNumber::BinaryOne(int iBinaryExponent, short cMaxWholeNumbers, short c
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CNumber* CNumber::Init(char* szNumber, short cMaxWholeNumbers, short cMaxDecimals, int iLen)
+CNumber* CNumber::Init(const char* szNumber, short cMaxWholeNumbers, short cMaxDecimals, int iLen)
 {
 	char	cDigits[64 KB];
 	int		iSign;

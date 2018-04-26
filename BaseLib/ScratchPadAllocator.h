@@ -20,7 +20,7 @@ public:
 
 	CScratchPad*	GetScratchPad(void);
 
-	char*			GetName(void);
+	const char*		GetName(void);
 
 	BOOL			Read(CFileReader* pcFileReader);
 	BOOL			Write(CFileWriter* pcFileWriter);
