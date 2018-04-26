@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 3.10)
 project(common)
 
 set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_FLAGS "-fpermissive")
 
 add_definitions(-DLINUX_GNU_32)
 
