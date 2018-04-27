@@ -50,8 +50,11 @@ public:
 template<class M>
 M* CPostMalloc<M>::PostMalloc(M* pv)
 {
-	memset(pv, 0, sizeof(M));
-	new(pv) M();
+	if (!std::is_trivially_default_constructible<M>())
+	{
+		memset(pv, 0, sizeof(M));
+		new(pv) M();
+	}
 	return pv;
 }
 

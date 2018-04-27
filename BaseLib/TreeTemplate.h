@@ -24,6 +24,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define __TREE_TEMPLATE_H__
 #include "DataTypes.h"
 #include "FreeList.h"
+#include "ConstructorCall.h"
 
 
 //NEVER use this tree, use CTreeTemplateFreeList instead.
@@ -37,7 +38,7 @@ struct STNode
 
 
 template<class M>
-class CTreeTemplate
+class CTreeTemplate : CPostMalloc<M>
 {
 protected:
 	STNode*	mpsRoot;
@@ -98,9 +99,6 @@ public:
 
 	//Tree insertion functions.
 	void	InitTreeFromNode(CTreeTemplate<M>* pcTreeSource, M* psNodeSource);
-void	InsertTreeOnLeftOfChildren(M* psParent, CTreeTemplate<M>* pcTree);
-void	InsertTreeOnRightOfChildren(M* psParent, CTreeTemplate<M>* pcTree);
-void	InsertTreeOnPath(int* aiPos, int iLevel, CTreeTemplate<M>* pcTree);
 
 	//Comparison functions.
 	int		Equals(CTreeTemplate<M>* pcTree);
@@ -135,7 +133,6 @@ protected:
 
 	void	RecursiveFreeNodes(STNode* pNode);
 	void	RecursiveAddNodeForCreate(CTreeTemplate<M>* pcTreeSource, M* pvData1Source, M* pvData2Dest);
-	void	ReplaceLeafWithTree(CTreeTemplate<M>* pcTree, STNode* psNode);
 	STNode*	PrivateFindLeftChild(STNode* psNodeHeader);
 	int		CountElements();
 };
@@ -282,6 +279,10 @@ void CTreeTemplate<M>::InsertDetachedOnRightOfChildren(M* psParent, M* psChild)
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
 template<class M>
 M* CTreeTemplate<M>::InsertOnRightOfChildren(M* psParent)
 {
@@ -293,6 +294,10 @@ M* CTreeTemplate<M>::InsertOnRightOfChildren(M* psParent)
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
 template<class M>
 M* CTreeTemplate<M>::InsertOnRightOfChildren(M* psParent, M* psData)
 {
@@ -337,6 +342,10 @@ void CTreeTemplate<M>::InsertDetachedOnLeftOfChildren(M* psParent, M* psChild)
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
 template<class M>
 M* CTreeTemplate<M>::InsertOnLeftOfChildren(M* psParent)
 {
@@ -348,6 +357,10 @@ M* CTreeTemplate<M>::InsertOnLeftOfChildren(M* psParent)
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
 template<class M>
 M* CTreeTemplate<M>::InsertOnLeftOfChildren(M* psParent, M* psData)
 {
@@ -409,6 +422,10 @@ void CTreeTemplate<M>::InsertDetachedAtChildNum(M* psParent, int iChildNum, M* p
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
 template<class M>
 M* CTreeTemplate<M>::InsertAtChildNum(M* psParent, int iChildNum)
 {
@@ -420,6 +437,10 @@ M* CTreeTemplate<M>::InsertAtChildNum(M* psParent, int iChildNum)
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
 template<class M>
 M* CTreeTemplate<M>::InsertAtChildNum(M* psParent, int iChildNum, M* psData)
 {
@@ -1059,7 +1080,7 @@ M* CTreeTemplate<M>::AllocateDetached(void)
 	STNode*		psNode;
 
 	psNode = (STNode*)Malloc(sizeof(STNode) + sizeof(M));
-	return HeaderGetData<STNode, M>(psNode);
+	return PostMalloc((M*)HeaderGetData<STNode, M>(psNode));
 }
 
 
@@ -1274,47 +1295,6 @@ STNode* CTreeTemplate<M>::PrivateFindLeftChild(STNode* psNodeHeader)
 		psNodeLeft = psNodeLeft->psAcross;
 	}
 	return psNodeLeft;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class M>
-void CTreeTemplate<M>::ReplaceLeafWithTree(CTreeTemplate<M>* pcTree, STNode* psNode)
-{
-}
-
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class M>
-void CTreeTemplate<M>::InsertTreeOnLeftOfChildren(M* psParent, CTreeTemplate<M>* pcTree)
-{
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class M>
-void CTreeTemplate<M>::InsertTreeOnRightOfChildren(M* psParent, CTreeTemplate<M>* pcTree)
-{
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class M>
-void CTreeTemplate<M>::InsertTreeOnPath(int* aiPos, int iLevel, CTreeTemplate<M>* pcTree)
-{
 }
 
 
