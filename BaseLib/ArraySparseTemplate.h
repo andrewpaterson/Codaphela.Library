@@ -54,7 +54,7 @@ private:
 public:
 	void 			Init(unsigned short iElementSize);
 	void 			Kill(void);
-	void			Set(int iElementPos, M* pvData);
+	M*				Set(int iElementPos, M* pvData);
 	SSparseNode*	Search(int iElementPos);
 	M* 				Set(int iElementPos);
 	M*				Get(int iElementPos);
@@ -130,7 +130,7 @@ void __CArraySparseTemplate<M>::Kill(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void __CArraySparseTemplate<M>::Set(int iElementPos, M* pvData)
+M* __CArraySparseTemplate<M>::Set(int iElementPos, M* pvData)
 {
 	M*	psElement;
 

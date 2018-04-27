@@ -3,6 +3,7 @@
 #include "ConstructorCall.h"
 #include "ListBlock.h"
 
+
 template<class M>
 class CListTemplate : public CListBlock, public CPostMalloc<M>
 {
