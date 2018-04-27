@@ -408,6 +408,34 @@ void CGeneralMemory::DeallocateInFreeList(CFreeList* pcFreeList, SGeneralMemoryA
 #endif
 
 	pcFreeList->Remove(psFreeListNode, psAlloc);
+
+	if (!pcFreeList->HasElements())
+	{
+		FreeFreeList(pcFreeList);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CGeneralMemory::FreeFreeList(CFreeList* pcFreeList)
+{
+	BOOL					bResult;
+	SAlignedFreeListDesc	sDesc;
+	int						iIndex;
+	int						iStride;
+
+	iStride = pcFreeList->GetElementStride() - sizeof(SGeneralMemoryAllocation);
+	sDesc.Init(iStride, pcFreeList->GetAlignment(), pcFreeList->GetOffset());
+	bResult = mcOrder.FindInSorted(&sDesc, CompareAlignedFreeListDesc, &iIndex);
+	if (bResult)
+	{
+		mcOrder.RemoveAt(iIndex);
+	}
+	pcFreeList->Kill();
+	mcFreeLists.Remove(pcFreeList);
 }
 
 

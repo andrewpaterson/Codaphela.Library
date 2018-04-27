@@ -366,23 +366,33 @@ void CDataMemory::DeallocateInFreeList(CFreeList* pcFreeList, SDataMemoryAllocat
 
 	pcFreeList->Remove(psFreeListNode, psAlloc);
 
+	if (!pcFreeList->HasElements())
+	{
+		FreeFreeList(pcFreeList);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CDataMemory::FreeFreeList(CFreeList* pcFreeList)
+{
 	BOOL			bResult;
 	SFreeListDesc	sDesc;
 	int				iIndex;
 	int				iStride;
 
-	if (!pcFreeList->HasElements())
+	iStride = pcFreeList->GetElementStride() - sizeof(SDataMemoryAllocation);
+	sDesc.Init(iStride);
+	bResult = mcOrder.FindInSorted(&sDesc, CompareFreeListDesc, &iIndex);
+	if (bResult)
 	{
-		iStride = pcFreeList->GetElementStride() - sizeof(SDataMemoryAllocation);
-		sDesc.Init(iStride);
-		bResult = mcOrder.FindInSorted(&sDesc, CompareFreeListDesc, &iIndex);
-		if (bResult)
-		{
-			mcOrder.RemoveAt(iIndex);
-		}
-		pcFreeList->Kill();
-		mcFreeLists.Remove(pcFreeList);
+		mcOrder.RemoveAt(iIndex);
 	}
+	pcFreeList->Kill();
+	mcFreeLists.Remove(pcFreeList);
 }
 
 

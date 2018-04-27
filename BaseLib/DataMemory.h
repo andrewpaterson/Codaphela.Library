@@ -76,6 +76,7 @@ private:
 	CFreeList*				GetOrAddFreeList(unsigned int iElementSize);
 	void*					AllocateInFreeList(CFreeList* pcFreeList, unsigned int uiElementSize);
 	void					DeallocateInFreeList(CFreeList* pcFreeList, SDataMemoryAllocation* psAlloc);
+	void					FreeFreeList(CFreeList* pcFreeList);
 	void*					AllocateInLargeList(unsigned int uiSize);
 	void					DeallocateInLargeList(SDataMemoryAllocation* psAlloc);
 	void					CopyAllocation(void* pvDest, void* pvSource, unsigned int uiDestSize, unsigned int uiSourceSize);
