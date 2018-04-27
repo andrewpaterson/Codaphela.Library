@@ -38,7 +38,7 @@ int  TestTotalStatistics(void);
 void InitTotalStatistics(void);
 
 BOOL Pass(void);
-BOOL Fail(char* szExpected, char* szActual, int iLine, char* szFile);
+BOOL Fail(const char* szExpected, const char* szActual, int iLine, char* szFile);
 
 
 BOOL PrivateAssertTristate(TRISTATE tExpected, TRISTATE tActual, int iLine, char* szFile);
@@ -49,23 +49,23 @@ BOOL PrivateAssertIntHex(int iExpected, int iActual, int iLine, char* szFile);
 BOOL PrivateAssertShort(short iExpected, short iActual, int iLine, char* szFile);
 BOOL PrivateAssertShortHex(short iExpected, short iActual, int iLine, char* szFile);
 BOOL PrivateAssertLongLongInt(long long int iExpected, long long int iActual, int iLine, char* szFile);
-BOOL PrivateAssertLongLongIntHex(long long int iExpected, long long int iActual, int iLine, char* szFile);
+//BOOL PrivateAssertLongLongIntHex(long long int iExpected, long long int iActual, int iLine, char* szFile);
 BOOL PrivateAssertFloat(float fExpected, float fActual, int iDecimals, int iLine, char* szFile);
 BOOL PrivateAssertFloat3(SFloat3 fExpected, SFloat3* pfActual, int iDecimals, int iLine, char* szFile);
 BOOL PrivateAssertDouble(double fExpected, double fActual, int iDecimals, int iLine, char* szFile);
-BOOL PrivateAssertString(char* szExpected, char* szActual, BOOL bTestCase, int iLine, char* szFile);
+BOOL PrivateAssertString(const char* szExpected, const char* szActual, BOOL bTestCase, int iLine, char* szFile);
 BOOL PrivateAssertMemory(void* pvExpected, void* pvActual, int iSize, int iLine, char* szFile);
 BOOL PrivateAssertZero(void* pvActual, int iSize, int iLine, char* szFile);
 BOOL PrivateAssertNegative(int i, int iLine, char* szFile);
 BOOL PrivateAssertPositive(int i, int iLine, char* szFile);
-BOOL PrivateAssertNumber(char* szExpected, CNumber* pcActual, int iLine, char* szFile);
+BOOL PrivateAssertNumber(const char* szExpected, CNumber* pcActual, int iLine, char* szFile);
 BOOL PrivateAssertPointer(void* pvExpected, void* pvActual, int iLine, char* szFile);
 BOOL PrivateAssertNotNull(void* pvActual, int iLine, char* szFile);
 BOOL PrivateAssertNull(void* pvActual, int iLine, char* szFile);
 BOOL PrivateAssertMD5(unsigned char* pucExpected, unsigned char* pucActual, int iLine, char* szFile);
-BOOL PrivateAssertFile(char* szExpectedFileName, char* szActualFileName, int iLine, char* szFile);
-BOOL PrivateAssertFileMemory(char* szExpectedFileName, void* pcMemory, int iLength, int iLine, char* szFile);
-BOOL PrivateAssertFileString(char* szExpectedFileName, char* szString, int iLine, char* szFile);
+BOOL PrivateAssertFile(const char* szExpectedFileName, char* szActualFileName, int iLine, char* szFile);
+BOOL PrivateAssertFileMemory(const char* szExpectedFileName, void* pcMemory, int iLength, int iLine, char* szFile);
+BOOL PrivateAssertFileString(const char* szExpectedFileName, const char* szString, int iLine, char* szFile);
 
 
 #define TestStatistics()			PrivateTestStatistics()
