@@ -619,7 +619,7 @@ BOOL PrivateAssertPositive(int i, int iLine, char* szFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL PrivateAssertNumber(char* szExpected, CNumber* pcActual, int iLine, char* szFile)
+BOOL PrivateAssertNumber(const char* szExpected, CNumber* pcActual, int iLine, char* szFile)
 {
 	CNumber*	pcExpected;
 	CChars		szExpectedAsChars;
@@ -629,7 +629,7 @@ BOOL PrivateAssertNumber(char* szExpected, CNumber* pcActual, int iLine, char* s
 	short		iDecimals;
 	BOOL		bResult;
 
-	szFake.Fake(szExpected);
+	szFake.Fake((char*)szExpected);
 	iIndex = szFake.Find(0, '.');
 	if (iIndex != -1)
 	{
@@ -810,12 +810,12 @@ BOOL PrivateAssertFileMemory(const char* szExpectedFileName, void* pcMemory, int
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL PrivateAssertFileString(char* szExpectedFileName, char* szString, int iLine, char* szFile)
+BOOL PrivateAssertFileString(const char* szExpectedFileName, const char* szString, int iLine, char* szFile)
 {
 	int iLength;
 
 	iLength = strlen(szString);
-	return PrivateAssertFileMemory(szExpectedFileName, szString, iLength, iLine, szFile);
+	return PrivateAssertFileMemory(szExpectedFileName, (void*)szString, iLength, iLine, szFile);
 }
 
 

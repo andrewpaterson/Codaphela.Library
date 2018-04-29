@@ -1196,7 +1196,7 @@ void CChannels::Dump(int iLineLength)
 	for (i = 0; i < masChannelOffsets.NumElements(); i++)
 	{
 		psChannel = masChannelOffsets.Get(i);
-		szTypeName = gcTypeNames.GetPrettyName(psChannel->eType);
+		szTypeName = (char*)gcTypeNames.GetPrettyName(psChannel->eType);
 		c.Append("Channel[");
 		c.Append(psChannel->iChannel);
 		c.Append("]: Type[");
