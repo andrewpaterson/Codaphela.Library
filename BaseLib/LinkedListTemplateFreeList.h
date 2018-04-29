@@ -97,6 +97,7 @@ void CLinkedListTemplateFreeList<M>::Init(int iChunkSize)
 	CLinkedListTemplate<M>::Init();
 }
 
+
 //////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//
@@ -107,7 +108,6 @@ void CLinkedListTemplateFreeList<M>::Kill(void)
 	mcFreeList.Kill();
 	mpsHead = NULL;
 	mpsTail = NULL;
-	miNumElements = 0;
 }
 
 

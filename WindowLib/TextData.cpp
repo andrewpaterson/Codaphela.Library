@@ -282,7 +282,7 @@ CTextChar* CTextCharLine::Insert(int x, CTextParameters* pcFont, char* szText, i
 
 	if (IsEmpty())
 	{
-		pcNewArray = mcChars.InsertNumElementsAt(iLen, 0);
+		pcNewArray = mcChars.InsertNumAt(iLen, 0);
 	}
 	else
 	{
@@ -291,7 +291,7 @@ CTextChar* CTextCharLine::Insert(int x, CTextParameters* pcFont, char* szText, i
 		{
 			iPos = 0;
 		}
-		pcNewArray = mcChars.InsertNumElementsAt(iLen, iPos);
+		pcNewArray = mcChars.InsertNumAt(iLen, iPos);
 	}
 
 	for (i = 0; i < iLen; i++)
