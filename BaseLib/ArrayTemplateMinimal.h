@@ -45,6 +45,8 @@ public:
 	void	Init(CMallocator* pcMallocator);
 	void	Init(int iIgnored);
 	void	Init(CMallocator* pcMallocator, int iIgnored);
+	void 	Init(CArrayTemplateMinimal<M>* pArray);  //Used to be Copy
+	void 	Init(CMallocator* pcMallocator, CArrayTemplateMinimal<M>* pArray);  //Used to be Copy
 	void 	ReInit(void);
 	void	Kill(void);
 	void	Allocate(int iNum);
@@ -58,7 +60,6 @@ public:
 	int 	AddIfUniqueKey(M* pData, int iKeyOffset, int iKeySize);
 	M* 		AddGetIndex(int* piIndex);
 
-	void 	Copy(CArrayTemplateMinimal<M>* pArray);
 
 	M*		Get(int iElementPos);
 	M*		SafeGet(int iElementPos);
@@ -215,6 +216,33 @@ void CArrayTemplateMinimal<M>::Allocate(CMallocator* pcMallocator, int iNum)
 {
 	Init(pcMallocator);
 	SetArraySize(iNum);
+}
+
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+void CArrayTemplateMinimal<M>::Init(CArrayTemplateMinimal* pArray)
+{
+	Init(&gcSystemAllocator, pArray);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+void CArrayTemplateMinimal<M>::Init(CMallocator* pcMallocator, CArrayTemplateMinimal* pArray)
+{
+	CMallocator*	pcMalloc;
+
+	Allocate(pcMalloc, pArray->NumElements());
+	memcpy(mpvArray, pArray->mpvArray, miUsedElements * sizeof(M));
 }
 
 
@@ -445,19 +473,6 @@ template<class M>
 int CArrayTemplateMinimal<M>::NumElements(void)
 {
 	return miUsedElements;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class M>
-void CArrayTemplateMinimal<M>::Copy(CArrayTemplateMinimal* pArray)
-{
-	Kill();
-	SetArraySize(pArray->NumElements());
-	memcpy(mpvArray, pArray->mpvArray, miUsedElements * sizeof(M));
 }
 
 
