@@ -21,7 +21,7 @@ protected:
 	CArrayBlock			maSortedArray;
 	CArrayArrayBlock	maaHoldingArrays;
 	CMallocator*		mpcMalloc;
-	int					(*mFunc)(const void*, const void*);
+	int					(*mfCompare)(const void*, const void*);
 	int*				mapiInsertionIndices;
 
 	int					miElementSize;
@@ -30,9 +30,9 @@ protected:
 	BOOL				mbOverwrite;
 
 public:
-	void			Init(int iElementSize, int(*Func)(const void*, const void*));
-	void			Init(int iElementSize, int iChunkSize, int iHoldingBufferSize, int iHoldingBuffers, int(*Func)(const void*, const void*));
-	void			Init(CMallocator* pcMallocator, int iElementSize, int iChunkSize, int iHoldingBufferSize, int iHoldingBuffers, int(*Func)(const void*, const void*));
+	void			Init(int iElementSize, int(*fCompare)(const void*, const void*));
+	void			Init(int iElementSize, int iChunkSize, int iHoldingBufferSize, int iHoldingBuffers, int(*fCompare)(const void*, const void*));
+	void			Init(CMallocator* pcMallocator, int iElementSize, int iChunkSize, int iHoldingBufferSize, int iHoldingBuffers, int(*fCompare)(const void*, const void*));
 	void			Kill(void);
 
 	BOOL			Add(void* pv);
