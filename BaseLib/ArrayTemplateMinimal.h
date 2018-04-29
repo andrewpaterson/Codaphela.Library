@@ -29,9 +29,11 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "FileIO.h"
 #include "Mallocator.h"
 #include "SystemAllocator.h"
+#include "ConstructorCall.h"
+
 
 template <class M>
-class CArrayTemplateMinimal
+class CArrayTemplateMinimal : protected CPostMalloc<M>
 {
 protected:
 	int				miUsedElements;
@@ -48,47 +50,62 @@ public:
 	void	Allocate(int iNum);
 	void	Allocate(CMallocator* pcMallocator, int iNum);
 
-	BOOL	SetUsedElements(int iUsedElements);
-	M*		Add(void);
-	void	Add(M* pvData);
-	void	Set(int iElementPos, M* pvData);
-	M*		InsertAt(int iElementPos);
-	void	InsertAt(M* pvData, int iElementPos);
-	void	BatchInsertElements(int iFirstElementPos, int iNumInBatch, int iNumBatches, int iStrideToNextBatch);
-	M*		SafeGet(int iElementPos);
-	M*		Get(int iElementPos);
-	BOOL	RemoveAt(int iElementPos, int bPreserveOrder = 0);
-	BOOL	RemoveTail(void);
-	void	BatchRemoveElements(int iFirstElementPos, int iNumInBatch, int iNumBatches, int iStrideToNextBatch);
-	int		ByteSize(void);
-	BOOL	SetArraySize(int iNum);
-	M*		SetArraySize(int iNum, int iClearValue);
 	int		NumElements(void);
+
+	M*		Add(void);
+	M*		Add(M* pvData);
+	int 	AddIfUnique(M* pData);
+	int 	AddIfUniqueKey(M* pData, int iKeyOffset, int iKeySize);
+	M* 		AddGetIndex(int* piIndex);
+
 	void 	Copy(CArrayTemplateMinimal<M>* pArray);
-	void 	Zero(void);
-	void	Zero(int iStart, int iEnd);
-	void	QuickSort(int(* Func)(const void*, const void*));
-	void	InsertIntoSorted(int(* Func)(const void*, const void*), M* pvElement);
+
+	M*		Get(int iElementPos);
+	M*		SafeGet(int iElementPos);
+	M*		Tail(void);
+	M*		GetData(void);
+	int		GetAdjustedIndex(int iIndex);
+	int		GetIndex(M* pvElement);
+
+	M*		InsertAt(int iElementPos);
+	M*		InsertAt(M* pvData, int iElementPos);
+	M*		InsertNumAt(int iNumElements, int iElementPos);
+	int		InsertIntoSorted(int(*fCompare)(const void*, const void*), M* pvElement, BOOL bOverwriteExisting);
+	void	BatchInsertElements(int iFirstElementPos, int iNumInBatch, int iNumBatches, int iStrideToNextBatch);
+
+	M*		Push(void);
+	M*		PushCopy(void);
+	
+	void	QuickSort(int(*fCompare)(const void*, const void*));
+
 	int 	Find(M* pData);
 	int 	FindWithKey(M* pData, int iKeyOffset, int iKeySize);
 	int		FindWithIntKey(int iKey, int iKeyOffset);
 	BOOL	FindInSorted(M* pData, int(*)(const void*, const void*), int* piIndex);
-	BOOL	BinarySearch(M* pData, int iLeft, int iRight, int(*Func)(const void*, const void*), int* piIndex);
-	int 	AddIfUnique(M* pData);
-	int 	AddIfUniqueKey(M* pData, int iKeyOffset, int iKeySize);
-	int		GetAdjustedIndex(int iIndex);
-	int		GetIndex(M* pvElement);
-	int		GrowToNumElements(int iNumElements);
-	int		GrowByNumElements(int iNumElements);
-	M*		InsertNumAt(int iNumElements, int iElementPos);
-	M*		Tail(void);
-	M*		GetData(void);
-	void	FakeSetUsedElements(int iUsedElements);
+
+	BOOL	RemoveAt(int iElementPos, int bPreserveOrder = 0);
+	BOOL	RemoveTail(void);
+	void	BatchRemoveElements(int iFirstElementPos, int iNumInBatch, int iNumBatches, int iStrideToNextBatch);
+
+	void	Set(int iElementPos, M* pvData);
+
+	int		ByteSize(void);
+	BOOL	SetUsedElements(int iUsedElements);
+
+	void 	Zero(void);
+	void	Zero(int iStart, int iEnd);
 
 	BOOL	Write(CFileWriter* pcFileWriter);
 	BOOL	Read(CFileReader* pcFileReader);
 
 protected:
+	BOOL	SetArraySize(int iNum);
+	M*		SetArraySize(int iNum, int iClearValue);
+	BOOL	BinarySearch(M* pData, int iLeft, int iRight, int(*Func)(const void*, const void*), int* piIndex);
+	int		GrowToNumElements(int iNumElements);
+	int		GrowByNumElements(int iNumElements);
+	void	FakeSetUsedElements(int iUsedElements);
+
 	void*	Malloc(size_t tSize);
 	void*	Realloc(void* pv, size_t iMemSize);
 	void	Free(void* pv);
@@ -132,6 +149,7 @@ template<class M>
 void CArrayTemplateMinimal<M>::Init(int iIgnored)
 {
 	Init();
+	iIgnored = 0;
 }
 
 
@@ -242,7 +260,7 @@ M* CArrayTemplateMinimal<M>::Add(void)
 {
 	if (SetUsedElements(miUsedElements+1))
 	{
-		return &mpvArray[miUsedElements-1];
+		return PostMalloc(&mpvArray[miUsedElements-1]);
 	}
 	else
 	{
@@ -256,14 +274,30 @@ M* CArrayTemplateMinimal<M>::Add(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CArrayTemplateMinimal<M>::Add(M* pvData)
+M* CArrayTemplateMinimal<M>::Add(M* pvData)
 {
 	M* pvTemp;
 
 	pvTemp = Add();
 	memcpy(pvTemp, pvData, sizeof(M));
+	return pvTemp;
 }
 
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+M* CArrayTemplateMinimal<M>::AddGetIndex(int* piIndex)
+{
+	M* pv;
+
+	pv = Add();
+	(*piIndex) = miUsedElements - 1;
+	return pv;
+}
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -459,9 +493,9 @@ void CArrayTemplateMinimal<M>::Zero(int iStart, int iEnd)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CArrayTemplateMinimal<M>::QuickSort(int(* Func)(const void*, const void*))
+void CArrayTemplateMinimal<M>::QuickSort(int(*fCompare)(const void*, const void*))
 {
-	qsort((void*)mpvArray, miUsedElements, sizeof(M), Func);
+	qsort((void*)mpvArray, miUsedElements, sizeof(M), fCompare);
 }
 
 
@@ -470,19 +504,35 @@ void CArrayTemplateMinimal<M>::QuickSort(int(* Func)(const void*, const void*))
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CArrayTemplateMinimal<M>::InsertIntoSorted(int(* Func)(const void*, const void*), M* pvElement)
+int CArrayTemplateMinimal<M>::InsertIntoSorted(int(*fCompare)(const void*, const void*), M* pvElement, BOOL bOverwriteExisting)
 {
-	int	iPos;
+	int		iIndex;
+	BOOL	bExists;
 
-	iPos = FindInSorted(pvElement, Func, 1);
-	if (iPos < miUsedElements)
+	bExists = FindInSorted(pvElement, fCompare, &iIndex);
+	if (iIndex < miUsedElements)
 	{
-		InsertAt(pvElement, iPos);
+		if (!bExists)
+		{
+			InsertAt(pvElement, iIndex);
+		}
+		else
+		{
+			if (bOverwriteExisting)
+			{
+				Set(iIndex, pvElement);
+			}
+			else
+			{
+				InsertAt(pvElement, iIndex);
+			}
+		}
 	}
 	else
 	{
 		Add(pvElement);
 	}
+	return iIndex;
 }
 
 
@@ -553,15 +603,15 @@ BOOL CArrayTemplateMinimal<M>::BinarySearch(M* pData, int iLeft, int iRight, int
 template<class M>
 M* CArrayTemplateMinimal<M>::InsertAt(int iElementPos)
 {
-	M* ptr;
+	M* pv;
 
 	//Grow the array.
 	Add();
 
 	//This assumes that iElementPos is within the array (or the last element).
-	ptr = (M*)((size_t) mpvArray + iElementPos * sizeof(M));
-	memmove((M*)((size_t) ptr + sizeof(M)), ptr, sizeof(M) * (miUsedElements - 1 - iElementPos));
-	return ptr;
+	pv = (M*)((size_t) mpvArray + iElementPos * sizeof(M));
+	memmove((M*)((size_t)pv + sizeof(M)), pv, sizeof(M) * (miUsedElements - 1 - iElementPos));
+	return PostMalloc(pv);
 }
 
 
@@ -570,12 +620,13 @@ M* CArrayTemplateMinimal<M>::InsertAt(int iElementPos)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CArrayTemplateMinimal<M>::InsertAt(M* pvData, int iElementPos)
+M* CArrayTemplateMinimal<M>::InsertAt(M* pvData, int iElementPos)
 {
-	M* ptr;
+	M* pv;
 
-	ptr = InsertAt(iElementPos);
-	memcpy(ptr, pvData, sizeof(M));
+	pv = InsertAt(iElementPos);
+	memcpy(pv, pvData, sizeof(M));
+	return pv;
 }
 
 
@@ -807,7 +858,8 @@ M* CArrayTemplateMinimal<M>::InsertNumAt(int iNumElements, int iElementPos)
 	Free(mpvArray);
 	mpvArray = pvNew;
 
-	return (M*)pvFrom;
+	pvFrom = Get(iElementPos);
+	return PostMalloc(pvFrom, iNumElements, sizeof(M));
 }
 
 
@@ -970,6 +1022,41 @@ void CArrayTemplateMinimal<M>::BatchInsertElements(int iFirstElementPos, int iNu
 			memcpy(RemapSinglePointer(pcFirst, iTotalStride * (i+1) - iStrideToNextBatch), RemapSinglePointer(pcFirst, iStrideToNextBatch * i), iStrideToNextBatch);
 		}
 	}	
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+M* CArrayTemplateMinimal<M>::Push(void)
+{
+	return Add();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+M* CArrayTemplateMinimal<M>::PushCopy(void)
+{
+	M*	pDest;
+	M*	pSource;
+
+	if (miUsedElements >= 1)
+	{
+		pDest = Add();
+		pSource = Get(miUsedElements - 2);
+		memcpy(pDest, pSource, sizeof(M));
+		return pDest;
+	}
+	else
+	{
+		return NULL;
+	}
 }
 
 
