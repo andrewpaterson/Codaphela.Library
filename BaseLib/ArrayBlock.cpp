@@ -1347,7 +1347,7 @@ int CArrayBlock::GetIndex(void* pvElement)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayBlock::BatchRemoveElements(int iFirstIndex, int iNumInBatch, int iNumBatches, int iStrideToNextBatch)
+void CArrayBlock::RemoveBatch(int iFirstIndex, int iNumInBatch, int iNumBatches, int iStrideToNextBatch)
 {
 	int		i;
 	void*		pcFirst;
@@ -1389,7 +1389,7 @@ void CArrayBlock::BatchRemoveElements(int iFirstIndex, int iNumInBatch, int iNum
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayBlock::BatchInsertElements(int iFirstIndex, int iNumInBatch, int iNumBatches, int iStrideToNextBatch)
+void CArrayBlock::InsertBatch(int iFirstIndex, int iNumInBatch, int iNumBatches, int iStrideToNextBatch)
 {
 	int		i;
 	void*	pcFirst;
