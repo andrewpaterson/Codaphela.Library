@@ -74,9 +74,9 @@ public:
 	void	InsertArrayBeforeStart(CArrayBlock* pcTemplateArray);
 	void* 	InsertAt(int iIndex);
 	void* 	InsertAt(void* pvData, int iIndex);
-	void	InsertBlockAfterEnd(void* paElements, int iLength);
-	void	InsertBlockAt(void* paElements, int iIndex, int iLength);
-	void	InsertBlockBeforeStart(void* paElements, int iLength);
+	void*	InsertBlockAfterEnd(void* paElements, int iLength);
+	void*	InsertBlockAt(void* paElements, int iIndex, int iLength);
+	void*	InsertBlockBeforeStart(void* paElements, int iLength);
 	int		InsertIntoSorted(int(*)(const void*, const void*), void* pvElement, BOOL bOverwriteExisting);
 	void*	InsertNumElementsAt(int iNumElements, int iIndex);
 
@@ -84,7 +84,7 @@ public:
 	void	Pop(void);
 	void 	Push(void* pvElement);
 	void*	Push(void);
-	void 	PushCopy(void);
+	void* 	PushCopy(void);
 
 	void	GrowByChunk(void);
 	int		GrowByNumElements(int iNumElements);
@@ -131,8 +131,8 @@ protected:
 	void	Free(void* pv);
 
 	BOOL	BinarySearch(void* pData, int iLeft, int iRight, int(*)(const void*, const void*), int* piIndex);
-	void	CopyArrayInto(CArrayBlock* pcTemplateArray, int iIndex);
-	void	CopyBlockInto(void* paElements, int iLength, int iIndex);
+	void*	CopyArrayInto(CArrayBlock* pcTemplateArray, int iIndex);
+	void*	CopyBlockInto(void* paElements, int iLength, int iIndex);
 	void	PrivateRemoveAt(int iIndex, BOOL bPreserveOrder, int iDataSize);
 	void	PrivateRemoveRange(int iStartIndex, int iEndIndexExclusive, int bPreserveOrder, int iDataSize);
 	void	RemoveAtNoDeallocate(int iIndex, BOOL bPreserveOrder, int iDataSize);

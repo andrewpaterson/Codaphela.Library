@@ -589,20 +589,21 @@ BOOL CArrayBlock::Copy(CArrayBlock* pcTemplateArray)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayBlock::PushCopy(void)
+void* CArrayBlock::PushCopy(void)
 {
 	void*	pDest;
 	void*	pSource;
 
-	pDest = Add();
-	if (miUsedElements == 1)
+	if (miUsedElements >= 1)
 	{
-		memset(pDest, 0, miElementSize);
+		pDest = Add();
+		pSource = Get(miUsedElements-2);
+		memcpy(pDest, pSource, miElementSize);
+		return pDest;
 	}
 	else
 	{
-		pSource = Get(miUsedElements-1);
-		memcpy(pDest, pSource, miElementSize);
+		return NULL;
 	}
 }
 
@@ -1126,9 +1127,13 @@ void CArrayBlock::Reverse(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayBlock::CopyArrayInto(CArrayBlock* pcTemplateArray, int iIndex)
+void* CArrayBlock::CopyArrayInto(CArrayBlock* pcTemplateArray, int iIndex)
 {
-	memcpy(Get(iIndex), pcTemplateArray->mpvArray, miElementSize * pcTemplateArray->miUsedElements);
+	void*	pv;
+
+	pv = Get(iIndex);
+	memcpy(pv, pcTemplateArray->mpvArray, miElementSize * pcTemplateArray->miUsedElements);
+	return pv;
 }
 
 
@@ -1136,9 +1141,13 @@ void CArrayBlock::CopyArrayInto(CArrayBlock* pcTemplateArray, int iIndex)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayBlock::CopyBlockInto(void* paElements, int iLength, int iIndex)
+void* CArrayBlock::CopyBlockInto(void* paElements, int iLength, int iIndex)
 {
-	memcpy(Get(iIndex), paElements, miElementSize * iLength);
+	void*	pv;
+
+	pv = Get(iIndex);
+	memcpy(pv, paElements, miElementSize * iLength);
+	return pv;
 }
 
 
@@ -1201,12 +1210,12 @@ void* CArrayBlock::InsertNumElementsAt(int iNumElements, int iIndex)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayBlock::InsertBlockAfterEnd(void* paElements, int iLength)
+void* CArrayBlock::InsertBlockAfterEnd(void* paElements, int iLength)
 {
 	int		iArrayIndex;
 
 	iArrayIndex = GrowByNumElements(iLength);
-	CopyBlockInto(paElements, iLength, iArrayIndex);
+	return CopyBlockInto(paElements, iLength, iArrayIndex);
 }
 
 
@@ -1214,10 +1223,10 @@ void CArrayBlock::InsertBlockAfterEnd(void* paElements, int iLength)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayBlock::InsertBlockBeforeStart(void* paElements, int iLength)
+void* CArrayBlock::InsertBlockBeforeStart(void* paElements, int iLength)
 {
 	InsertNumElementsAt(iLength, 0);
-	CopyBlockInto(paElements, iLength, 0);
+	return CopyBlockInto(paElements, iLength, 0);
 }
 
 
@@ -1225,10 +1234,10 @@ void CArrayBlock::InsertBlockBeforeStart(void* paElements, int iLength)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayBlock::InsertBlockAt(void* paElements, int iLength, int iIndex)
+void* CArrayBlock::InsertBlockAt(void* paElements, int iLength, int iIndex)
 {
 	InsertNumElementsAt(iLength, iIndex);
-	CopyBlockInto(paElements, iLength, iIndex);
+	return CopyBlockInto(paElements, iLength, iIndex);
 }
 
 
