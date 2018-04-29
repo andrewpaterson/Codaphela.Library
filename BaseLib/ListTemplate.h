@@ -5,7 +5,7 @@
 
 
 template<class M>
-class CListTemplate : public CListBlock, public CPostMalloc<M>
+class CListTemplate : public CListBlock, protected CPostMalloc<M>
 {
 public:
 	void	Init(void);

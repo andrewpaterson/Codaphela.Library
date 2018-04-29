@@ -1184,4 +1184,3 @@ void memset_fast_65bytesUp(void* pvDest, unsigned char cVal, unsigned int iByteS
 	ga_memset_fast[iChars]((void*)(size_t) ((int)(size_t) pvDest + iDone), cVal);
 }
 
-
