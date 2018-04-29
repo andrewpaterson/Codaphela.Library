@@ -71,7 +71,7 @@ public:
 	M*		InsertAt(M* pvData, int iElementPos);
 	M*		InsertNumAt(int iNumElements, int iElementPos);
 	int		InsertIntoSorted(int(*fCompare)(const void*, const void*), M* pvElement, BOOL bOverwriteExisting);
-	void	BatchInsertElements(int iFirstElementPos, int iNumInBatch, int iNumBatches, int iStrideToNextBatch);
+	void	InsertBatch(int iFirstElementPos, int iNumInBatch, int iNumBatches, int iStrideToNextBatch);
 
 	M*		Push(void);
 	M*		PushCopy(void);
@@ -85,7 +85,7 @@ public:
 
 	BOOL	RemoveAt(int iElementPos, int bPreserveOrder = 0);
 	BOOL	RemoveTail(void);
-	void	BatchRemoveElements(int iFirstElementPos, int iNumInBatch, int iNumBatches, int iStrideToNextBatch);
+	void	RemoveBatch(int iFirstElementPos, int iNumInBatch, int iNumBatches, int iStrideToNextBatch);
 
 	void	Set(int iElementPos, M* pvData);
 
@@ -906,7 +906,7 @@ void CArrayTemplateMinimal<M>::FakeSetUsedElements(int iUsedElements)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CArrayTemplateMinimal<M>::BatchRemoveElements(int iFirstElementPos, int iNumInBatch, int iNumBatches, int iStrideToNextBatch)
+void CArrayTemplateMinimal<M>::RemoveBatch(int iFirstElementPos, int iNumInBatch, int iNumBatches, int iStrideToNextBatch)
 {
 	int		i;
 	M*		pcFirst;
@@ -949,7 +949,7 @@ void CArrayTemplateMinimal<M>::BatchRemoveElements(int iFirstElementPos, int iNu
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CArrayTemplateMinimal<M>::BatchInsertElements(int iFirstElementPos, int iNumInBatch, int iNumBatches, int iStrideToNextBatch)
+void CArrayTemplateMinimal<M>::InsertBatch(int iFirstElementPos, int iNumInBatch, int iNumBatches, int iStrideToNextBatch)
 {
 	int		i;
 	M*		pcFirst;

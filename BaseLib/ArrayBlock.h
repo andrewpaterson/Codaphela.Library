@@ -76,7 +76,7 @@ public:
 	void*	InsertBlockBeforeStart(void* paElements, int iLength);
 	int		InsertIntoSorted(int(*fCompare)(const void*, const void*), void* pvElement, BOOL bOverwriteExisting);
 	void*	InsertNumAt(int iNumElements, int iIndex);
-	void	BatchInsertElements(int iFirstIndex, int iNumInBatch, int iNumBatches, int iStrideToNextBatch);
+	void	InsertBatch(int iFirstIndex, int iNumInBatch, int iNumBatches, int iStrideToNextBatch);
 
 	void	Pop(void* pvData);
 	void	Pop(void);
@@ -106,7 +106,7 @@ public:
 	void	RemoveAtNoDeallocate(int iIndex, int bPreserveOrder);
 	void	RemoveRange(int iStartIndex, int iEndIndexExclusive, BOOL bPreserveOrder = TRUE);
 	void 	RemoveTail(void);
-	void	BatchRemoveElements(int iFirstIndex, int iNumInBatch, int iNumBatches, int iStrideToNextBatch);
+	void	RemoveBatch(int iFirstIndex, int iNumInBatch, int iNumBatches, int iStrideToNextBatch);
 
 	void	Set(int iIndex, void* pvData);
 	BOOL	SafeSet(int iIndex, void* pvData);
