@@ -75,7 +75,7 @@ void CComponentFactory::Kill(void)
 
 	for (;;)
 	{
-		i = macComponents.mcArray.NumElements();
+		i = macComponents.NumElements();
 		if (i == 0)
 		{
 			break;
