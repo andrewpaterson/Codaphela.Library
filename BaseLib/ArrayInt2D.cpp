@@ -210,7 +210,7 @@ void CArrayInt2D::InsertColumns(int iColumn, int iCount)
 
 	for (i = miHeight-1; i >= 0; i--)
 	{
-		mcArray.InsertNumElementsAt(iCount, i*miWidth + iColumn);
+		mcArray.InsertNumAt(iCount, i*miWidth + iColumn);
 	}
 	miWidth += iCount;
 }
@@ -222,7 +222,7 @@ void CArrayInt2D::InsertColumns(int iColumn, int iCount)
 //////////////////////////////////////////////////////////////////////////
 void CArrayInt2D::InsertRows(int iRow, int iCount)
 {
-	mcArray.InsertNumElementsAt(iCount * miWidth, iRow * miWidth);
+	mcArray.InsertNumAt(iCount * miWidth, iRow * miWidth);
 	miHeight += iCount;
 }
 
