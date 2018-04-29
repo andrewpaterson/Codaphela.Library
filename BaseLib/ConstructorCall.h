@@ -33,7 +33,7 @@ M* NewMalloc(void)
 
 	pv = (M*)malloc(sizeof(M));
 	memset(pv, 0, sizeof(M));
-	new(pv) M();
+	new(pv) M;
 
 	return pv;
 }
@@ -44,16 +44,55 @@ class CPostMalloc
 {
 public:
 	M* PostMalloc(M* pv);
+	M* PostMalloc(M* pv, int iNumElements, int iStride);
 };
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 template<class M>
 M* CPostMalloc<M>::PostMalloc(M* pv)
 {
 	if (!std::is_trivially_default_constructible<M>())
 	{
 		memset(pv, 0, sizeof(M));
-		new(pv) M();
+		new(pv) M;
+	}
+	return pv;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+M* CPostMalloc<M>::PostMalloc(M* pv, int iNumElements, int iStride)
+{
+	int		i;
+
+	if (!std::is_trivially_default_constructible<M>())
+	{
+		if (iStride == sizeof(M))
+		{
+			memset(pv, 0, sizeof(M) * iNumElements);
+			for (i = 0; i < iNumElements; i++)
+			{
+				new(pv) M;
+				pv = &pv[1];
+			}
+		}
+		else
+		{
+			for (i = 0; i < iNumElements; i++)
+			{
+				memset(pv, 0, sizeof(M));
+				new(pv) M;
+				pv = (M*)RemapSinglePointer(pv, iStride);
+			}
+		}
 	}
 	return pv;
 }
