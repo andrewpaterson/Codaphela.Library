@@ -22,11 +22,12 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __TEMPLATE_ARRAY_H__
 #define __TEMPLATE_ARRAY_H__
+#include "ConstructorCall.h"
 #include "ArrayBlock.h"
 
 
 template<class M>
-class CArrayTemplate : public CArrayBlock
+class CArrayTemplate : public CArrayBlock, public CPostMalloc<M>
 {
 public:
 	void 	Init(int iChunkSize);
@@ -50,14 +51,14 @@ public:
 	M*		Tail(void);
 	M&		operator[](int iIndex);
 
-	void	InsertArrayAfterEnd(CArrayTemplate<M>* pcTemplateArray);
-	void	InsertArrayAt(CArrayTemplate<M>* pcTemplateArray, int iIndex);
-	void	InsertArrayBeforeStart(CArrayTemplate<M>* pcTemplateArray);
+	M*		InsertArrayAfterEnd(CArrayTemplate<M>* pcTemplateArray);
+	M*		InsertArrayAt(CArrayTemplate<M>* pcTemplateArray, int iIndex);
+	M*		InsertArrayBeforeStart(CArrayTemplate<M>* pcTemplateArray);
 	M* 		InsertAt(int iIndex);
 	M*	 	InsertAt(M* pvData, int iIndex);
-	void	InsertBlockAfterEnd(M* paElements, int iLength);
-	void	InsertBlockAt(M* paElements, int iIndex, int iLength);
-	void	InsertBlockBeforeStart(M* paElements, int iLength);
+	M*		InsertBlockAfterEnd(M* paElements, int iLength);
+	M*		InsertBlockAt(M* paElements, int iLength, int iIndex);
+	M*		InsertBlockBeforeStart(M* paElements, int iLength);
 	int		InsertIntoSorted(int(*)(const void*, const void*), M* pvElement, BOOL bOverwriteExisting);
 	M*		InsertNumElementsAt(int iNumElements, int iIndex);
 
@@ -65,6 +66,7 @@ public:
 	void	Pop(void);
 	void 	Push(M* pvElement);
 	M*		Push(void);
+	M*		PushCopy(void);
 
 	BOOL	Contains(M* pData);
 	BOOL	Equals(CArrayTemplate<M>* pcTemplateArray);
@@ -150,7 +152,7 @@ BOOL CArrayTemplate<M>::SafeSet(int iIndex, M* pvData)
 template<class M>
 M* CArrayTemplate<M>::Add(void)
 {
-	return (M*)CArrayBlock::Add();
+	return PostMalloc((M*)CArrayBlock::Add());
 }
 
 
@@ -161,7 +163,7 @@ M* CArrayTemplate<M>::Add(void)
 template<class M>
 M* CArrayTemplate<M>::AddGetIndex(int* piIndex)
 {
-	return (M*)CArrayBlock::AddGetIndex(piIndex);
+	return PostMalloc((M*)CArrayBlock::AddGetIndex(piIndex));
 }
 
 
@@ -194,7 +196,7 @@ void CArrayTemplate<M>::Set(int iIndex, M* pvData)
 template<class M>
 M* CArrayTemplate<M>::InsertAt(int iIndex)  //The new element will be at iIndex
 {
-	return (M*)CArrayBlock::InsertAt(iIndex);
+	return PostMalloc((M*)CArrayBlock::InsertAt(iIndex));
 }
 
 
@@ -238,7 +240,18 @@ void CArrayTemplate<M>::Push(M* pvElement)
 template<class M>
 M* CArrayTemplate<M>::Push(void)
 {
-	return (M*)CArrayBlock::Push();
+	return PostMalloc((M*)CArrayBlock::Push());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+M* CArrayTemplate<M>::PushCopy(void)
+{
+	return (M*)CArrayBlock::PushCopy();
 }
 
 
@@ -251,6 +264,7 @@ void CArrayTemplate<M>::Pop(M* pvElement)
 {
 	CArrayBlock::Pop(pvElement);
 }
+
 
 //////////////////////////////////////////////////////////////////////////
 //																		//
@@ -345,9 +359,9 @@ BOOL CArrayTemplate<M>::Equals(CArrayTemplate<M>* pcTemplateArray)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-int CArrayTemplate<M>::InsertIntoSorted(int(* Func)(const void*, const void*), M* pvElement, BOOL bOverwriteExisting)
+int CArrayTemplate<M>::InsertIntoSorted(int(*fCompare)(const void*, const void*), M* pvElement, BOOL bOverwriteExisting)
 {
-	return CArrayBlock::InsertIntoSorted(Func, pvElement, bOverwriteExisting);
+	return CArrayBlock::InsertIntoSorted(fCompare, pvElement, bOverwriteExisting);
 }
 
 
@@ -367,9 +381,9 @@ BOOL CArrayTemplate<M>::FindInSorted(M* pData, int(* Func)(const void*, const vo
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CArrayTemplate<M>::InsertArrayAfterEnd(CArrayTemplate<M>* pcTemplateArray)
+M* CArrayTemplate<M>::InsertArrayAfterEnd(CArrayTemplate<M>* pcTemplateArray)
 {
-	CArrayBlock::InsertArrayAfterEnd(pcTemplateArray);
+	return (M*)CArrayBlock::InsertArrayAfterEnd(pcTemplateArray);
 }
 
 
@@ -378,9 +392,9 @@ void CArrayTemplate<M>::InsertArrayAfterEnd(CArrayTemplate<M>* pcTemplateArray)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CArrayTemplate<M>::InsertArrayBeforeStart(CArrayTemplate<M>* pcTemplateArray)
+M* CArrayTemplate<M>::InsertArrayBeforeStart(CArrayTemplate<M>* pcTemplateArray)
 {
-	CArrayBlock::InsertArrayBeforeStart(pcTemplateArray);
+	return (M*)CArrayBlock::InsertArrayBeforeStart(pcTemplateArray);
 }
 
 
@@ -389,9 +403,9 @@ void CArrayTemplate<M>::InsertArrayBeforeStart(CArrayTemplate<M>* pcTemplateArra
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CArrayTemplate<M>::InsertArrayAt(CArrayTemplate<M>* pcTemplateArray, int iIndex)
+M* CArrayTemplate<M>::InsertArrayAt(CArrayTemplate<M>* pcTemplateArray, int iIndex)
 {
-	CArrayBlock::InsertArrayAt(pcTemplateArray, iIndex);
+	return (M*)CArrayBlock::InsertArrayAt(pcTemplateArray, iIndex);
 }
 
 
@@ -402,7 +416,7 @@ void CArrayTemplate<M>::InsertArrayAt(CArrayTemplate<M>* pcTemplateArray, int iI
 template<class M>
 M* CArrayTemplate<M>::InsertNumElementsAt(int iNumElements, int iIndex)
 {
-	return (M*)CArrayBlock::InsertNumElementsAt(iNumElements, iIndex);
+	return PostMalloc((M*)CArrayBlock::InsertNumElementsAt(iNumElements, iIndex), iNumElements, miElementSize);
 }
 
 
@@ -411,9 +425,9 @@ M* CArrayTemplate<M>::InsertNumElementsAt(int iNumElements, int iIndex)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CArrayTemplate<M>::InsertBlockAfterEnd(M* paElements, int iLength)
+M* CArrayTemplate<M>::InsertBlockAfterEnd(M* paElements, int iLength)
 {
-	CArrayBlock::InsertBlockAfterEnd(paElements, iLength);
+	return (M*)CArrayBlock::InsertBlockAfterEnd(paElements, iLength);
 }
 
 
@@ -422,9 +436,9 @@ void CArrayTemplate<M>::InsertBlockAfterEnd(M* paElements, int iLength)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CArrayTemplate<M>::InsertBlockBeforeStart(M* paElements, int iLength)
+M* CArrayTemplate<M>::InsertBlockBeforeStart(M* paElements, int iLength)
 {
-	CArrayBlock::InsertBlockBeforeStart(paElements, iLength);
+	return (M*)CArrayBlock::InsertBlockBeforeStart(paElements, iLength);
 }
 
 
@@ -433,9 +447,9 @@ void CArrayTemplate<M>::InsertBlockBeforeStart(M* paElements, int iLength)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CArrayTemplate<M>::InsertBlockAt(M* paElements, int iLength, int iIndex)
+M* CArrayTemplate<M>::InsertBlockAt(M* paElements, int iLength, int iIndex)
 {
-	CArrayBlock::InsertBlockAt(paElements, iLength, iIndex);
+	return (M*)CArrayBlock::InsertBlockAt(paElements, iLength, iIndex);
 }
 
 
