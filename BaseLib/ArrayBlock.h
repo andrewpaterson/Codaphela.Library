@@ -69,16 +69,16 @@ public:
 	int		GetIndex(void* pvElement);
 	void*	Tail(void);
 
-	void	InsertArrayAfterEnd(CArrayBlock* pcTemplateArray);
-	void	InsertArrayAt(CArrayBlock* pcTemplateArray, int iIndex);
-	void	InsertArrayBeforeStart(CArrayBlock* pcTemplateArray);
+	void*	InsertArrayAfterEnd(CArrayBlock* pcTemplateArray);
+	void*	InsertArrayAt(CArrayBlock* pcTemplateArray, int iIndex);
+	void*	InsertArrayBeforeStart(CArrayBlock* pcTemplateArray);
 	void* 	InsertAt(int iIndex);
 	void* 	InsertAt(void* pvData, int iIndex);
 	void*	InsertBlockAfterEnd(void* paElements, int iLength);
 	void*	InsertBlockAt(void* paElements, int iIndex, int iLength);
 	void*	InsertBlockBeforeStart(void* paElements, int iLength);
 	int		InsertIntoSorted(int(*)(const void*, const void*), void* pvElement, BOOL bOverwriteExisting);
-	void*	InsertNumElementsAt(int iNumElements, int iIndex);
+	void*	InsertNumAt(int iNumElements, int iIndex);
 
 	void	Pop(void* pvData);
 	void	Pop(void);

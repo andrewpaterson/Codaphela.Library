@@ -732,7 +732,7 @@ void CChars::Insert(int iPos, const char* szString)
 	}
 	iInsertLen = (int)strlen(szString);
 
-	pcNew = mcText.InsertNumElementsAt(iInsertLen, iPos);
+	pcNew = mcText.InsertNumAt(iInsertLen, iPos);
 	memcpy(pcNew, szString, iInsertLen);
 }
 
@@ -752,7 +752,7 @@ void CChars::Insert(int iPos, CChars* pszString)
 	}
 	iInsertLen = pszString->Length();
 
-	pcNew = mcText.InsertNumElementsAt(iInsertLen, iPos);
+	pcNew = mcText.InsertNumAt(iInsertLen, iPos);
 	memcpy(pcNew, pszString->Text(), iInsertLen);
 }
 

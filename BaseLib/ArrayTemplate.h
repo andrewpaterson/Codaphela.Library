@@ -60,7 +60,7 @@ public:
 	M*		InsertBlockAt(M* paElements, int iLength, int iIndex);
 	M*		InsertBlockBeforeStart(M* paElements, int iLength);
 	int		InsertIntoSorted(int(*)(const void*, const void*), M* pvElement, BOOL bOverwriteExisting);
-	M*		InsertNumElementsAt(int iNumElements, int iIndex);
+	M*		InsertNumAt(int iNumElements, int iIndex);
 
 	void	Pop(M* pvData);
 	void	Pop(void);
@@ -414,9 +414,9 @@ M* CArrayTemplate<M>::InsertArrayAt(CArrayTemplate<M>* pcTemplateArray, int iInd
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M* CArrayTemplate<M>::InsertNumElementsAt(int iNumElements, int iIndex)
+M* CArrayTemplate<M>::InsertNumAt(int iNumElements, int iIndex)
 {
-	return PostMalloc((M*)CArrayBlock::InsertNumElementsAt(iNumElements, iIndex), iNumElements, miElementSize);
+	return PostMalloc((M*)CArrayBlock::InsertNumAt(iNumElements, iIndex), iNumElements, miElementSize);
 }
 
 

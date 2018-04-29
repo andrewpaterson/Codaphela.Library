@@ -74,7 +74,7 @@ public:
 	int		GetIndex(M* pvElement);
 	int		GrowToNumElements(int iNumElements);
 	int		GrowByNumElements(int iNumElements);
-	M*		InsertNumElementsAt(int iNumElements, int iElementPos);
+	M*		InsertNumAt(int iNumElements, int iElementPos);
 	M*		Tail(void);
 	M*		GetData(void);
 	void	FakeSetUsedElements(int iUsedElements);
@@ -731,7 +731,7 @@ int CArrayTemplateMinimal<M>::GrowByNumElements(int iNumElements)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M* CArrayTemplateMinimal<M>::InsertNumElementsAt(int iNumElements, int iElementPos)
+M* CArrayTemplateMinimal<M>::InsertNumAt(int iNumElements, int iElementPos)
 {
 	M*		pvNew;
 	M*		pvFrom;
