@@ -1194,6 +1194,11 @@ void* CArrayBlock::InsertNumAt(int iNumElements, int iIndex)
 	void*	pvTo;
 	int		iNumToMove;
 
+	if (iNumElements <= 0)
+	{
+		return NULL;
+	}
+
 	iNumToMove = miUsedElements - iIndex;
 	GrowByNumElements(iNumElements);
 
