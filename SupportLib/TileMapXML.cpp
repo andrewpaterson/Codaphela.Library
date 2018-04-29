@@ -458,7 +458,7 @@ BOOL CTileMapXML::ImportTiles(CMarkupTag* pcTag, CTileLayer* pcLayer)
 	{
 		psRow = cCSVFile.Get(iRow);
 
-		for (i = 0; i < psRow->iNumFields; i++)
+		for (i = 0; i < psRow->NumElements(); i++)
 		{
 			szCelIndex = psRow->Get(i);
 			cTextParser.Init(szCelIndex);

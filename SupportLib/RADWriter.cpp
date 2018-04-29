@@ -59,7 +59,7 @@ BOOL SaveRAD(Ptr<CImage> pcImage, char *szPathName)
 	{
 		psChannel = pcImage->GetChannels()->GetChannelOffsets()->Get(j);
 
-		szTypeName = cTypeNames.GetPrettyName(psChannel->eType);
+		szTypeName = (char*)cTypeNames.GetPrettyName(psChannel->eType);
 		szText->Append("\t\t");
 		szText->Append(szTypeName);
 		szText->Append("\t");

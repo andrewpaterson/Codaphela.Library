@@ -22,6 +22,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/ArrayInt.h"
+#include "BaseLib/GlobalMemory.h"
 #include "MeshDefines.h"
 #include "MeshConnectivity.h"
 #include "MeshSkin.h"

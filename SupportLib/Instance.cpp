@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/GlobalMemory.h"
 #include "StandardLib/ObjectSerialiser.h"
 #include "StandardLib/ObjectDeserialiser.h"
 #include "Instance.h"

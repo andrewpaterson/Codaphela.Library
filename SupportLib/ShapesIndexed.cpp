@@ -18,9 +18,10 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "ShapesIndexed.h"
 #include "BaseLib/FastFunctions.h"
 #include "BaseLib/PointerRemapper.h"
+#include "BaseLib/GlobalMemory.h"
+#include "ShapesIndexed.h"
 
 
 //////////////////////////////////////////////////////////////////////////

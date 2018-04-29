@@ -57,7 +57,6 @@ BOOL CConnection::Load(CObjectDeserialiser* pcFile)
 	if (!msWorldMatrix.Load(pcFile))
 	{
 		gcUserError.Set("Could not read connection world matrix.");
-		pcFile->ReadChunkEnd();
 		return FALSE;
 	}
 
@@ -65,7 +64,6 @@ BOOL CConnection::Load(CObjectDeserialiser* pcFile)
 	if (!msLocalMatrix.Load(pcFile))
 	{
 		gcUserError.Set("Could not read connection local matrix.");
-		pcFile->ReadChunkEnd();
 		return FALSE;
 	}	
 	

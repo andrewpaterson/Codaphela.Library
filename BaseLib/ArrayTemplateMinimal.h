@@ -71,11 +71,14 @@ public:
 	M*		InsertAt(M* pvData, int iElementPos);
 	M*		InsertNumAt(int iNumElements, int iElementPos);
 	int		InsertIntoSorted(int(*fCompare)(const void*, const void*), M* pvElement, BOOL bOverwriteExisting);
-	void	InsertBatch(int iFirstElementPos, int iNumInBatch, int iNumBatches, int iStrideToNextBatch);
+	void	InsertBatch(int iFirstElementPos, int iNumInBatch, int iNumBatches, int iStrideToNextBatch);  //Test Virtual
 
 	M*		Push(void);
 	M*		PushCopy(void);
-	
+
+	int		GrowToNumElements(int iNumElements);  //Test Virtual and make sure only PostMalloc only called once.
+	int		GrowByNumElements(int iNumElements);  //Test Virtual and make sure only PostMalloc only called once.
+
 	void	QuickSort(int(*fCompare)(const void*, const void*));
 
 	int 	Find(M* pData);
@@ -98,22 +101,20 @@ public:
 	BOOL	Write(CFileWriter* pcFileWriter);
 	BOOL	Read(CFileReader* pcFileReader);
 
+	BOOL	WriteAllocatorAndHeader(CFileWriter* pcFileWriter);
+	BOOL	WriteHeader(CFileWriter* pcFileWriter);
+	BOOL	ReadAllocatorAndHeader(CFileReader* pcFileReader);
+	BOOL	ReadHeader(CFileReader* pcFileReader, CMallocator* pcMalloc);
+
 protected:
 	BOOL	SetArraySize(int iNum);
 	M*		SetArraySize(int iNum, int iClearValue);
 	BOOL	BinarySearch(M* pData, int iLeft, int iRight, int(*Func)(const void*, const void*), int* piIndex);
-	int		GrowToNumElements(int iNumElements);
-	int		GrowByNumElements(int iNumElements);
 	void	FakeSetUsedElements(int iUsedElements);
 
 	void*	Malloc(size_t tSize);
 	void*	Realloc(void* pv, size_t iMemSize);
 	void	Free(void* pv);
-
-	BOOL	ReadAllocatorAndHeader(CFileReader* pcFileReader);
-	BOOL	WriteAllocatorAndHeader(CFileWriter* pcFileWriter);
-	BOOL	WriteHeader(CFileWriter* pcFileWriter);
-	BOOL	ReadHeader(CFileReader* pcFileReader, CMallocator* pcMalloc);
 };
 
 
@@ -940,7 +941,7 @@ void CArrayTemplateMinimal<M>::RemoveBatch(int iFirstElementPos, int iNumInBatch
 		memcpy(pcSource, pcDest, iRemaining);
 	}
 
-	GrowToNumElements(miUsedElements - iNumInBatch * iNumBatches);
+	SetArraySize(miUsedElements - iNumInBatch * iNumBatches);
 }
 
 
