@@ -27,22 +27,28 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "PointerFunctions.h"
 #include "ErrorHandler.h"
 #include "FileIO.h"
-
+#include "Mallocator.h"
+#include "SystemAllocator.h"
 
 template <class M>
 class CArrayTemplateMinimal
 {
 protected:
-	int		miUsedElements;
-	M*		mpvArray;
+	int				miUsedElements;
+	M*				mpvArray;
+	CMallocator*	mpcMalloc;
 
 public:
 	void	Init(void);
+	void	Init(CMallocator* pcMallocator);
 	void	Init(int iIgnored);
+	void	Init(CMallocator* pcMallocator, int iIgnored);
 	void 	ReInit(void);
 	void	Kill(void);
 	void	Allocate(int iNum);
-	BOOL	Reallocate(int iUsedElements);
+	void	Allocate(CMallocator* pcMallocator, int iNum);
+
+	BOOL	SetUsedElements(int iUsedElements);
 	M*		Add(void);
 	void	Add(M* pvData);
 	void	Set(int iElementPos, M* pvData);
@@ -86,6 +92,11 @@ protected:
 	void*	Malloc(size_t tSize);
 	void*	Realloc(void* pv, size_t iMemSize);
 	void	Free(void* pv);
+
+	BOOL	ReadAllocatorAndHeader(CFileReader* pcFileReader);
+	BOOL	WriteAllocatorAndHeader(CFileWriter* pcFileWriter);
+	BOOL	WriteHeader(CFileWriter* pcFileWriter);
+	BOOL	ReadHeader(CFileReader* pcFileReader, CMallocator* pcMalloc);
 };
 
 
@@ -96,8 +107,20 @@ protected:
 template<class M>
 void CArrayTemplateMinimal<M>::Init(void)
 {
+	Init(&gcSystemAllocator);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+void CArrayTemplateMinimal<M>::Init(CMallocator* pcMallocator)
+{
 	miUsedElements = 0;
 	mpvArray = NULL;
+	mpcMalloc = pcMallocator;
 }
 
 
@@ -117,10 +140,25 @@ void CArrayTemplateMinimal<M>::Init(int iIgnored)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
+void CArrayTemplateMinimal<M>::Init(CMallocator* pcMallocator, int iIgnored)
+{
+	Init(pcMallocator);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
 void CArrayTemplateMinimal<M>::ReInit(void)
 {
+	CMallocator*	pcMalloc;
+
+	pcMalloc = mpcMalloc;
 	Kill();
-	Init();
+
+	Init(pcMalloc);
 }
 
 
@@ -133,8 +171,10 @@ void CArrayTemplateMinimal<M>::Kill(void)
 {
 	Free(mpvArray);
 	mpvArray = NULL;
+	mpcMalloc = NULL;
 	miUsedElements = 0;
 }
+
 
 //////////////////////////////////////////////////////////////////////////
 //																		//
@@ -143,7 +183,18 @@ void CArrayTemplateMinimal<M>::Kill(void)
 template<class M>
 void CArrayTemplateMinimal<M>::Allocate(int iNum)
 {
-	Init();
+	Allocate(&gcSystemAllocator, iNum);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+void CArrayTemplateMinimal<M>::Allocate(CMallocator* pcMallocator, int iNum)
+{
+	Init(pcMallocator);
 	SetArraySize(iNum);
 }
 
@@ -153,17 +204,15 @@ void CArrayTemplateMinimal<M>::Allocate(int iNum)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-BOOL CArrayTemplateMinimal<M>::Reallocate(int iUsedElements)
+BOOL CArrayTemplateMinimal<M>::SetUsedElements(int iUsedElements)
 {
 	M*	pvTemp;
 
 	if (iUsedElements == 0)
 	{
-		if (mpvArray != NULL)
-		{
-			Free(mpvArray);
-			mpvArray = NULL;
-		}
+		Free(mpvArray);
+		mpvArray = NULL;
+
 		miUsedElements = 0;
 		return TRUE;
 	}
@@ -191,7 +240,7 @@ BOOL CArrayTemplateMinimal<M>::Reallocate(int iUsedElements)
 template<class M>
 M* CArrayTemplateMinimal<M>::Add(void)
 {
-	if (Reallocate(miUsedElements+1))
+	if (SetUsedElements(miUsedElements+1))
 	{
 		return &mpvArray[miUsedElements-1];
 	}
@@ -272,7 +321,7 @@ BOOL CArrayTemplateMinimal<M>::RemoveAt(int iElementPos, int bPreserveOrder)
 		}
 	}
 
-	return Reallocate(iUsedElements);
+	return SetUsedElements(iUsedElements);
 }
 
 
@@ -307,7 +356,7 @@ BOOL CArrayTemplateMinimal<M>::SetArraySize(int iNum)
 {
 	if (miUsedElements != iNum)
 	{
-		return Reallocate(iNum);
+		return SetUsedElements(iNum);
 	}
 	return TRUE;
 }
@@ -332,7 +381,7 @@ M* CArrayTemplateMinimal<M>::SetArraySize(int iNum, int iClearValue)
 		{
 			iOldUsed = miUsedElements;
 		}
-		bResult = Reallocate(iNum);
+		bResult = SetUsedElements(iNum);
 
 		if (!bResult)
 		{
@@ -931,7 +980,7 @@ void CArrayTemplateMinimal<M>::BatchInsertElements(int iFirstElementPos, int iNu
 template<class M>
 void* CArrayTemplateMinimal<M>::Malloc(size_t tSize)
 {
-	return malloc(tSize);
+	return mpcMalloc->Malloc(tSize);
 }
 
 
@@ -942,7 +991,7 @@ void* CArrayTemplateMinimal<M>::Malloc(size_t tSize)
 template<class M>
 void CArrayTemplateMinimal<M>::Free(void* pv)
 {
-	SafeFree(pv);
+	mpcMalloc->Free(pv);
 }
 
 
@@ -953,8 +1002,49 @@ void CArrayTemplateMinimal<M>::Free(void* pv)
 template<class M>
 void* CArrayTemplateMinimal<M>::Realloc(void* pv, size_t tSize)
 {
-	pv = realloc(pv, tSize);
-	return pv;
+	return mpcMalloc->Realloc(pv, tSize);
+}
+
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+BOOL CArrayTemplateMinimal<M>::WriteHeader(CFileWriter* pcFileWriter)
+{
+	if (!pcFileWriter->WriteInt(miUsedElements))
+	{
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+BOOL CArrayTemplateMinimal<M>::WriteAllocatorAndHeader(CFileWriter* pcFileWriter)
+{
+	BOOL	bResult;
+
+	bResult = gcMallocators.WriteMallocator(pcFileWriter, mpcMalloc);
+	if (!bResult)
+	{
+		return FALSE;
+	}
+
+	bResult = WriteHeader(pcFileWriter);
+	if (!bResult)
+	{
+		return FALSE;
+	}
+	return TRUE;
 }
 
 
@@ -965,9 +1055,9 @@ void* CArrayTemplateMinimal<M>::Realloc(void* pv, size_t tSize)
 template<class M>
 BOOL CArrayTemplateMinimal<M>::Write(CFileWriter* pcFileWriter)
 {
-	if (!pcFileWriter->WriteInt(miUsedElements))
-	{ 
-		return FALSE; 
+	if (!WriteAllocatorAndHeader(pcFileWriter))
+	{
+		return FALSE;
 	}
 
 	if (miUsedElements != 0)
@@ -986,24 +1076,66 @@ BOOL CArrayTemplateMinimal<M>::Write(CFileWriter* pcFileWriter)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-BOOL CArrayTemplateMinimal<M>::Read(CFileReader* pcFileReader)
+BOOL CArrayTemplateMinimal<M>::ReadHeader(CFileReader* pcFileReader, CMallocator* pcMalloc)
 {
 	int		iUsedElements;
 
 	if (!pcFileReader->ReadInt(&iUsedElements))
 	{
-		return FALSE; 
+		return FALSE;
 	}
 	mpvArray = NULL;
 	miUsedElements = 0;
+	mpcMalloc = pcMalloc;
 
-	if (iUsedElements != 0)
+	if (!SetUsedElements(iUsedElements))
 	{
-		if (!Reallocate(iUsedElements))
-		{
-			return FALSE;
-		}
+		return FALSE;
+	}
+	
+	return TRUE;
+}
 
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+BOOL CArrayTemplateMinimal<M>::ReadAllocatorAndHeader(CFileReader* pcFileReader)
+{
+	BOOL			bResult;
+	CMallocator*	pcMalloc;
+
+	pcMalloc = gcMallocators.ReadMallocator(pcFileReader);
+	if (pcMalloc == NULL)
+	{
+		return FALSE;
+	}
+
+	bResult = ReadHeader(pcFileReader, pcMalloc);
+	if (!bResult)
+	{
+		return FALSE;
+	}
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+BOOL CArrayTemplateMinimal<M>::Read(CFileReader* pcFileReader)
+{
+	if (!ReadAllocatorAndHeader(pcFileReader))
+	{
+		return FALSE;
+	}
+
+	if (miUsedElements != 0)
+	{
 		if (!pcFileReader->ReadData(mpvArray, ByteSize())) 
 		{ 
 			return FALSE; 

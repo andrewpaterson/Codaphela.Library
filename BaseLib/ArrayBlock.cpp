@@ -1581,14 +1581,14 @@ BOOL CArrayBlock::ReadHeader(CFileReader* pcFileReader, CMallocator* pcMalloc)
 
 	miChunkSize = sHeader.miChunkSize;
 	miElementSize = sHeader.miElementSize;
-	miUsedElements = sHeader.miUsedElements;
 	miNumElements = 0;
+	miUsedElements = 0;
 	mpvArray = NULL;
 	mpcMalloc = pcMalloc;
 
-	if (miUsedElements != 0)
+	if (sHeader.miUsedElements != 0)
 	{
-		SetUsedElements(miUsedElements);
+		SetUsedElements(sHeader.miUsedElements);
 		return mpvArray != NULL;
 	}
 	return TRUE;
