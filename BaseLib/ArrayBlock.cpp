@@ -221,13 +221,11 @@ void* CArrayBlock::Add(void)
 //////////////////////////////////////////////////////////////////////////
 void* CArrayBlock::AddGetIndex(int* piIndex)
 {
-	miUsedElements++;
-	if (miUsedElements > miNumElements)
-	{
-		SetArraySize(miNumElements+miChunkSize);
-	}
+	void* pv;
+
+	pv = Add();
 	(*piIndex) = miUsedElements - 1;
-	return Tail();
+	return pv;
 }
 
 
@@ -1016,12 +1014,12 @@ void CArrayBlock::BubbleSort(int(* Func)(const void*, const void*))
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CArrayBlock::InsertIntoSorted(int(* Func)(const void*, const void*), void* pvElement, BOOL bOverwriteExisting)
+int CArrayBlock::InsertIntoSorted(int(*fCompare)(const void*, const void*), void* pvElement, BOOL bOverwriteExisting)
 {
 	int		iIndex;
 	BOOL	bExists;
 
-	bExists = FindInSorted(pvElement, Func, &iIndex);
+	bExists = FindInSorted(pvElement, fCompare, &iIndex);
 	if (iIndex < miUsedElements)
 	{
 		if (!bExists)
@@ -1394,10 +1392,10 @@ void CArrayBlock::BatchRemoveElements(int iFirstIndex, int iNumInBatch, int iNum
 void CArrayBlock::BatchInsertElements(int iFirstIndex, int iNumInBatch, int iNumBatches, int iStrideToNextBatch)
 {
 	int		i;
-	void*		pcFirst;
+	void*	pcFirst;
 	int		iTotalStride;
-	void*		pcSource;
-	void*		pcDest;
+	void*	pcSource;
+	void*	pcDest;
 	int		iDestIndex;
 	int		iSourceIndex;
 	int		iOldNumElements;

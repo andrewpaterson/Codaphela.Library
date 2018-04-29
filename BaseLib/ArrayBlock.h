@@ -56,9 +56,6 @@ public:
 	int 	AddIfUnique(void* pData);
 	int 	AddIfUniqueKey(void* pData, int iKeyOffset, int iKeySize);
 
-	void	BatchInsertElements(int iFirstIndex, int iNumInBatch, int iNumBatches, int iStrideToNextBatch);
-	void	BatchRemoveElements(int iFirstIndex, int iNumInBatch, int iNumBatches, int iStrideToNextBatch);
-
 	BOOL 	Copy(CArrayBlock* pcTemplateArray);
 
 	void*	Get(int iIndex);
@@ -77,8 +74,9 @@ public:
 	void*	InsertBlockAfterEnd(void* paElements, int iLength);
 	void*	InsertBlockAt(void* paElements, int iIndex, int iLength);
 	void*	InsertBlockBeforeStart(void* paElements, int iLength);
-	int		InsertIntoSorted(int(*)(const void*, const void*), void* pvElement, BOOL bOverwriteExisting);
+	int		InsertIntoSorted(int(*fCompare)(const void*, const void*), void* pvElement, BOOL bOverwriteExisting);
 	void*	InsertNumAt(int iNumElements, int iIndex);
+	void	BatchInsertElements(int iFirstIndex, int iNumInBatch, int iNumBatches, int iStrideToNextBatch);
 
 	void	Pop(void* pvData);
 	void	Pop(void);
@@ -108,6 +106,7 @@ public:
 	void	RemoveAtNoDeallocate(int iIndex, int bPreserveOrder);
 	void	RemoveRange(int iStartIndex, int iEndIndexExclusive, BOOL bPreserveOrder = TRUE);
 	void 	RemoveTail(void);
+	void	BatchRemoveElements(int iFirstIndex, int iNumInBatch, int iNumBatches, int iStrideToNextBatch);
 
 	void	Set(int iIndex, void* pvData);
 	BOOL	SafeSet(int iIndex, void* pvData);
