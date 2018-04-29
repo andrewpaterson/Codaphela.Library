@@ -1355,10 +1355,10 @@ int CArrayBlock::GetIndex(void* pvElement)
 void CArrayBlock::RemoveBatch(int iFirstIndex, int iNumInBatch, int iNumBatches, int iStrideToNextBatch)
 {
 	int		i;
-	void*		pcFirst;
+	void*	pcFirst;
 	int		iTotalStride;
-	void*		pcSource;
-	void*		pcDest;
+	void*	pcSource;
+	void*	pcDest;
 	int		iDestIndex;
 	int		iSourceIndex;
 	int		iRemaining;

@@ -87,7 +87,7 @@ public:
 
 	BOOL	RemoveAt(int iElementPos, int bPreserveOrder = 0);
 	BOOL	RemoveTail(void);
-	void	RemoveBatch(int iFirstElementPos, int iNumInBatch, int iNumBatches, int iStrideToNextBatch);
+	void	RemoveBatch(int iFirstElementPos, int iNumInBatch, int iNumBatches, int iSkip);
 
 	void	Set(int iElementPos, M* pvData);
 
@@ -924,38 +924,43 @@ void CArrayTemplateMinimal<M>::FakeSetUsedElements(int iUsedElements)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CArrayTemplateMinimal<M>::RemoveBatch(int iFirstElementPos, int iNumInBatch, int iNumBatches, int iStrideToNextBatch)
+void CArrayTemplateMinimal<M>::RemoveBatch(int iFirstElementPos, int iNumInBatch, int iNumBatches, int iSkip)
 {
 	int		i;
 	M*		pcFirst;
 	int		iTotalStride;
 	M*		pcSource;
 	M*		pcDest;
-	int		iDestPos;
-	int		iSourcePos;
+	int		iDest;
+	int		iSource;
 	int		iRemaining;
+	int		iSkipStride;
+	int		iBatchStride;
 
-	iTotalStride = iStrideToNextBatch;
-	iStrideToNextBatch = iStrideToNextBatch - iNumInBatch;
 	pcFirst = Get(iFirstElementPos);
 
+	iTotalStride = (iSkip + iNumInBatch) * sizeof(M);
+	iSkipStride = iSkip * sizeof(M);
+	iBatchStride = iNumInBatch * sizeof(M);
 	for (i = 0; i <= iNumBatches-2; i++)
 	{
-		memcpy(RemapSinglePointer(pcFirst, iStrideToNextBatch * i), RemapSinglePointer(pcFirst, iTotalStride * (i+1) - iStrideToNextBatch), iStrideToNextBatch);
+		pcDest = (M*)RemapSinglePointer(pcFirst, iSkipStride  * i);
+		pcSource = (M*)RemapSinglePointer(pcFirst, iTotalStride * i + iBatchStride);
+		memcpy(pcDest, pcSource, iSkipStride);
 	}
 
 	i = iNumBatches-1;
 
-	iDestPos = iTotalStride * (i+1) - iStrideToNextBatch;
-	iSourcePos = iStrideToNextBatch * i;
-	pcDest = (M*)RemapSinglePointer(pcFirst, iDestPos);
-	pcSource = (M*)RemapSinglePointer(pcFirst, iSourcePos);
+	iDest = (iSkip + iNumInBatch) * (i + 1) - iSkip;
+	iSource = iSkip * i;
+	pcDest = (M*)RemapSinglePointer(pcFirst, iDest * sizeof(M));
+	pcSource = (M*)RemapSinglePointer(pcFirst, iSource * sizeof(M));
 
-	iRemaining = (miUsedElements - iDestPos) - iFirstElementPos;
+	iRemaining = (miUsedElements - iDest) - iFirstElementPos;
 
 	if (iRemaining > 0)
 	{
-		memcpy(pcSource, pcDest, iRemaining);
+		memcpy(pcSource, pcDest, iRemaining * sizeof(M));
 	}
 
 	SetArraySize(miUsedElements - iNumInBatch * iNumBatches);
