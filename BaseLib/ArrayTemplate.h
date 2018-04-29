@@ -27,7 +27,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 
 template<class M>
-class CArrayTemplate : public CArrayBlock, public CPostMalloc<M>
+class CArrayTemplate : public CArrayBlock, protected CPostMalloc<M>
 {
 public:
 	void 	Init(int iChunkSize);

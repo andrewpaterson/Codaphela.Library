@@ -38,7 +38,7 @@ struct STNode
 
 
 template<class M>
-class CTreeTemplate : CPostMalloc<M>
+class CTreeTemplate : protected CPostMalloc<M>
 {
 protected:
 	STNode*	mpsRoot;

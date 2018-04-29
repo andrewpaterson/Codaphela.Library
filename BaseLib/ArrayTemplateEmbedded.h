@@ -23,10 +23,11 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __ARRAY_EMBEDDED_H__
 #define __ARRAY_EMBEDDED_H__
 #include "ArrayTemplate.h"
+#include "ConstructorCall.h"
 
 
 template<class M, int I>
-class CArrayTemplateEmbedded : protected SArrayTemplateHeader
+class CArrayTemplateEmbedded : protected SArrayTemplateHeader, protected CPostMalloc<M>
 {
 protected:
 	union
@@ -40,6 +41,13 @@ protected:
 	BOOL	IsArray(void);
 	void	BecomeArray(int iUsedElements);
 	void	BecomeEmbedded(int iUsedElements);
+
+public:
+	//Appease the constructor gods.
+	CArrayTemplateEmbedded() {}
+	CArrayTemplateEmbedded(CArrayTemplateEmbedded &&) {}
+	CArrayTemplateEmbedded(const CArrayTemplateEmbedded&) = default;
+	CArrayTemplateEmbedded& operator = (const CArrayTemplateEmbedded&) = default;
 
 public:
 	void	Init(void);
@@ -173,24 +181,26 @@ void CArrayTemplateEmbedded<M, I>::BecomeEmbedded(int iUsedElements)
 template<class M, int I>
 M* CArrayTemplateEmbedded<M, I>::Add(void)
 {
+	M*	pv;
 	if (IsEmbedded())
 	{
 		if (miUsedElements+1 > miChunkSize)
 		{
 			BecomeArray(miUsedElements+1);
-			return mcArray.Tail();
+			pv = mcArray.Tail();
 		}
 		else
 		{
 			miUsedElements++;
-			return &mam[miUsedElements-1];
+			pv = &mam[miUsedElements-1];
 		}
 	}
 	else
 	{
 		miUsedElements++;
-		return mcArray.Add();
+		pv = mcArray.Add();
 	}
+	return PostMalloc(pv);
 }
 
 
@@ -411,6 +421,7 @@ M* CArrayTemplateEmbedded<M, I>::InsertAt(int iIndex)
 {
 	void*	pSource;
 	void*	pDest;
+	M*		pv;
 
 	if (IsEmbedded())
 	{
@@ -421,7 +432,7 @@ M* CArrayTemplateEmbedded<M, I>::InsertAt(int iIndex)
 			pSource = mcArray.Get(iIndex);
 			pDest = RemapSinglePointer(pSource, miElementSize);
 			memmove(pDest, pSource, miElementSize * (miUsedElements - 1 - iIndex));
-			return (M*)pSource;
+			pv = (M*)pSource;
 		}
 		else
 		{
@@ -429,14 +440,15 @@ M* CArrayTemplateEmbedded<M, I>::InsertAt(int iIndex)
 			pSource = &mam[iIndex];
 			pDest = RemapSinglePointer(pSource, miElementSize);
 			memmove(pDest, pSource, miElementSize * (miUsedElements - 1 - iIndex));
-			return (M*)pSource;
+			pv = (M*)pSource;
 		}
 	}
 	else
 	{
 		miUsedElements++;
-		return mcArray.InsertAt(iIndex);
+		pv = mcArray.InsertAt(iIndex);
 	}
+	return PostMalloc(pv);
 }
 
 
