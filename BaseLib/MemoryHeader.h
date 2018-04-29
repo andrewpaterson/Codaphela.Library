@@ -63,7 +63,7 @@ struct SMemory
 };
 
 
-typedef CArrayTemplateMinimal<SFreeListDesc>			CArrayFreeListDesc;
+typedef CArrayTemplateMinimal<SFreeListDesc>	CArrayFreeListDesc;
 typedef CArrayTemplate<SAlignedFreeListDesc>	CArrayFreeListAlignedDesc;
 
 int CompareAlignedFreeListDesc(const void* arg1, const void* arg2);

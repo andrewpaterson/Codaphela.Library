@@ -21,15 +21,7 @@ void* CSystemAllocator::Malloc(size_t tSize)
 //////////////////////////////////////////////////////////////////////////
 void CSystemAllocator::Free(void* pv)
 {
-	if (pv != NULL)
-	{
-		free(pv);
-		pv = NULL;
-	}
-	else
-	{
-		gcLogger.Error2(__METHOD__, "Tried to free NULL pointer.", NULL);
-	}
+	free(pv);
 }
 
 
