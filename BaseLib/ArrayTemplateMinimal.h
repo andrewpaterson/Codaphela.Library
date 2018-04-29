@@ -52,6 +52,7 @@ public:
 	void	Allocate(int iNum);
 	void	Allocate(CMallocator* pcMallocator, int iNum);
 
+	int		GrowToNumElements(int iNumElements);  //Test Virtual and make sure only PostMalloc only called once.
 	int		NumElements(void);
 
 	M*		Add(void);
@@ -59,7 +60,7 @@ public:
 	int 	AddIfUnique(M* pData);
 	int 	AddIfUniqueKey(M* pData, int iKeyOffset, int iKeySize);
 	M* 		AddGetIndex(int* piIndex);
-
+	int		AddNum(int iNumElements);
 
 	M*		Get(int iElementPos);
 	M*		SafeGet(int iElementPos);
@@ -70,15 +71,12 @@ public:
 
 	M*		InsertAt(int iElementPos);
 	M*		InsertAt(M* pvData, int iElementPos);
-	M*		InsertNumAt(int iNumElements, int iElementPos);
+	M*		InsertNumAt(int iNumElements, int iIndex);
 	int		InsertIntoSorted(int(*fCompare)(const void*, const void*), M* pvElement, BOOL bOverwriteExisting);
-	void	InsertBatch(int iFirstElementPos, int iNumInBatch, int iNumBatches, int iStrideToNextBatch);  //Test Virtual
+	void	InsertBatch(int iFirstElementPos, int iNumInBatch, int iNumBatches, int iSkip);  //Test Virtual
 
 	M*		Push(void);
 	M*		PushCopy(void);
-
-	int		GrowToNumElements(int iNumElements);  //Test Virtual and make sure only PostMalloc only called once.
-	int		GrowByNumElements(int iNumElements);  //Test Virtual and make sure only PostMalloc only called once.
 
 	void	QuickSort(int(*fCompare)(const void*, const void*));
 
@@ -832,12 +830,26 @@ int CArrayTemplateMinimal<M>::GrowToNumElements(int iNumElements)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-int CArrayTemplateMinimal<M>::GrowByNumElements(int iNumElements)
+int CArrayTemplateMinimal<M>::AddNum(int iNumElements)
 {
-	int	iOldUsedElements;
+	int		iOldUsedElements;
+	M*		pvFrom;
+	BOOL	bResult;
+
+	if (iNumElements < 1)
+	{
+		return -1;
+	}
 
 	iOldUsedElements = miUsedElements;
-	SetArraySize(miUsedElements + iNumElements);
+	bResult = SetArraySize(miUsedElements + iNumElements);
+	if (!bResult)
+	{
+		return -1;
+	}
+
+	pvFrom = Get(iOldUsedElements);
+	PostMalloc(pvFrom, iNumElements, sizeof(M));
 	return iOldUsedElements;
 }
 
@@ -847,9 +859,8 @@ int CArrayTemplateMinimal<M>::GrowByNumElements(int iNumElements)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M* CArrayTemplateMinimal<M>::InsertNumAt(int iNumElements, int iElementPos)
+M* CArrayTemplateMinimal<M>::InsertNumAt(int iNumElements, int iIndex)
 {
-	M*		pvNew;
 	M*		pvFrom;
 	M*		pvTo;
 	int		iNumToMove;
@@ -859,23 +870,14 @@ M* CArrayTemplateMinimal<M>::InsertNumAt(int iNumElements, int iElementPos)
 		return NULL;
 	}
 
-	pvNew = (M*)Malloc((miUsedElements + iNumElements) * sizeof(M));
+	iNumToMove = miUsedElements - iIndex;
+	AddNum(iNumElements);
 
-	if (iElementPos > 0)
-	{
-		memcpy(pvNew, mpvArray, iElementPos * sizeof(M));
-	}
+	pvFrom = Get(iIndex);
+	pvTo = Get(iIndex + iNumElements);
+	memmove(pvTo, pvFrom, iNumToMove * sizeof(M));
 
-	iNumToMove = miUsedElements - iElementPos;
-	pvFrom = Get(iElementPos);
-	pvTo = &pvNew[iElementPos + iNumElements];
-	memcpy(pvTo, pvFrom, iNumToMove * sizeof(M));
-
-	Free(mpvArray);
-	mpvArray = pvNew;
-
-	pvFrom = Get(iElementPos);
-	return PostMalloc(pvFrom, iNumElements, sizeof(M));
+	return pvFrom;
 }
 
 
@@ -965,77 +967,79 @@ void CArrayTemplateMinimal<M>::RemoveBatch(int iFirstElementPos, int iNumInBatch
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CArrayTemplateMinimal<M>::InsertBatch(int iFirstElementPos, int iNumInBatch, int iNumBatches, int iStrideToNextBatch)
+void CArrayTemplateMinimal<M>::InsertBatch(int iFirstElementPos, int iNumInBatch, int iNumBatches, int iSkip)
 {
 	int		i;
 	M*		pcFirst;
 	int		iTotalStride;
 	M*		pcSource;
 	M*		pcDest;
-	int		iDestPos;
-	int		iSourcePos;
+	int		iDest;
+	int		iSource;
 	int		iOldNumElements;
 	int		iRemaining;
+	int		iStride;
 
-	iOldNumElements = GrowByNumElements(iNumInBatch * iNumBatches);
+	iOldNumElements = AddNum(iNumInBatch * iNumBatches);
 
-	iTotalStride = iNumInBatch + iStrideToNextBatch;
 	pcFirst = Get(iFirstElementPos);
 
 	i = iNumBatches-1;
 
-	iDestPos = iTotalStride * (i+1) - iStrideToNextBatch;
-	iSourcePos = iStrideToNextBatch * i;
-	pcDest = (M*)RemapSinglePointer(pcFirst, iDestPos);
-	pcSource = (M*)RemapSinglePointer(pcFirst, iSourcePos);
+	iDest = (iNumInBatch + iSkip) * (i + 1) - iSkip;
+	iSource = iSkip * i;
+	pcDest = (M*)RemapSinglePointer(pcFirst, iDest * sizeof(M));
+	pcSource = (M*)RemapSinglePointer(pcFirst, iSource * sizeof(M));
 
-	iRemaining = (iOldNumElements - iSourcePos) - iFirstElementPos;
+	iRemaining = (iOldNumElements - iSource) - iFirstElementPos;
 
 	if (iRemaining > 0)
 	{
-		memcpy(pcDest, pcSource, iRemaining);
+		memcpy(pcDest, pcSource, iRemaining * sizeof(M));
 	}
 
-	if (iStrideToNextBatch == 1)
+	iStride = iSkip * sizeof(M);
+	iTotalStride = (iNumInBatch + iSkip) * sizeof(M);
+	if (iStride == 1)
 	{
 		for (i = iNumBatches-2; i >= 0; i--)
 		{
-			memcpy_fast_1byte(RemapSinglePointer(pcFirst, iTotalStride * (i+1) - iStrideToNextBatch), RemapSinglePointer(pcFirst, iStrideToNextBatch * i));
+			memcpy_fast_1byte(RemapSinglePointer(pcFirst, iTotalStride * (i+1) - iStride), RemapSinglePointer(pcFirst, iStride * i));
 		}
 	}
-	else if (iStrideToNextBatch == 2)
+	else if (iStride == 2)
 	{
 		for (i = iNumBatches-2; i >= 0; i--)
 		{
-			memcpy_fast_2bytes(RemapSinglePointer(pcFirst, iTotalStride * (i+1) - iStrideToNextBatch), RemapSinglePointer(pcFirst, iStrideToNextBatch * i));
+			memcpy_fast_2bytes(RemapSinglePointer(pcFirst, iTotalStride * (i+1) - iStride), RemapSinglePointer(pcFirst, iStride * i));
 		}
 	}
-	else if (iStrideToNextBatch == 4)
+	else if (iStride == 4)
 	{
 		for (i = iNumBatches-2; i >= 0; i--)
 		{
-			memcpy_fast_4bytes(RemapSinglePointer(pcFirst, iTotalStride * (i+1) - iStrideToNextBatch), RemapSinglePointer(pcFirst, iStrideToNextBatch * i));
+			memcpy_fast_4bytes(RemapSinglePointer(pcFirst, iTotalStride * (i+1) - iStride), RemapSinglePointer(pcFirst, iStride * i));
 		}
 	}
-	else if (iStrideToNextBatch == 8)
+	else if (iStride == 8)
 	{
 		for (i = iNumBatches-2; i >= 0; i--)
 		{
-			memcpy_fast_8bytes(RemapSinglePointer(pcFirst, iTotalStride * (i+1) - iStrideToNextBatch), RemapSinglePointer(pcFirst, iStrideToNextBatch * i));
+			memcpy_fast_8bytes(RemapSinglePointer(pcFirst, iTotalStride * (i+1) - iStride), RemapSinglePointer(pcFirst, iStride * i));
 		}
 	}
-	else if (iStrideToNextBatch == 12)
+	else if (iStride == 12)
 	{
 		for (i = iNumBatches-2; i >= 0; i--)
 		{
-			memcpy_fast_12bytes(RemapSinglePointer(pcFirst, iTotalStride * (i+1) - iStrideToNextBatch), RemapSinglePointer(pcFirst, iStrideToNextBatch * i));
+			memcpy_fast_12bytes(RemapSinglePointer(pcFirst, iTotalStride * (i+1) - iStride), RemapSinglePointer(pcFirst, iStride * i));
 		}
 	}
 	else
 	{
 		for (i = iNumBatches-2; i >= 0; i--)
 		{
-			memcpy(RemapSinglePointer(pcFirst, iTotalStride * (i+1) - iStrideToNextBatch), RemapSinglePointer(pcFirst, iStrideToNextBatch * i), iStrideToNextBatch);
+			memcpy(RemapSinglePointer(pcFirst, iTotalStride * (i+1) - iStride), RemapSinglePointer(pcFirst, iStride * i), iStride);
 		}
 	}	
 }
