@@ -121,7 +121,9 @@ public:
 	BOOL	Write(CFileWriter* pcFileWriter);
 	BOOL	Read(CFileReader* pcFileReader);
 
+	BOOL	WriteAllocatorAndHeader(CFileWriter* pcFileWriter);
 	BOOL	WriteHeader(CFileWriter* pcFileWriter);
+	BOOL	ReadAllocatorAndHeader(CFileReader* pcFileReader);
 	BOOL	ReadHeader(CFileReader* pcFileReader, CMallocator* pcMalloc);
 
 protected:
@@ -136,9 +138,6 @@ protected:
 	void	PrivateRemoveRange(int iStartIndex, int iEndIndexExclusive, int bPreserveOrder, int iDataSize);
 	void	RemoveAtNoDeallocate(int iIndex, BOOL bPreserveOrder, int iDataSize);
 	void 	SetArraySize(int iNumElements);
-
-	BOOL	WriteAllocatorAndHeader(CFileWriter* pcFileWriter);
-	BOOL	ReadAllocatorAndHeader(CFileReader* pcFileReader);
 };
 
 

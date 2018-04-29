@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/GlobalMemory.h"
 #include "MeshConnectivity.h"
 #include "MeshEdgeVisibility.h"
 #include "MeshNormals.h"
@@ -415,7 +416,7 @@ void CMeshPolygons::GeneratePolygonFromEdgeSelection(CMeshConnectivity* pcConn, 
 				{
 					if (maiFacesToPolygons.GetValue(iAdjFaceIndex) == -1)
 					{
-						aiStack.Push(&iAdjFaceIndex);
+						aiStack.Push(iAdjFaceIndex);
 					}
 				}
 			}

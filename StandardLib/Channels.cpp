@@ -418,7 +418,7 @@ BOOL CChannels::EndChange(void)
 					{
 						iOffset = psChannel->miByteOffset;
 						iSize = psChannel->miByteSize;
-						mabData.BatchRemoveElements(iOffset, iSize, miSize, miByteStride);
+						mabData.RemoveBatch(iOffset, iSize, miSize, miByteStride);
 					}
 					else
 					{
@@ -452,7 +452,7 @@ BOOL CChannels::EndChange(void)
 					{
 						iOffset = iOldByteStride;
 						iSize = iAddedBitStride / 8;
-						mabData.BatchInsertElements(iOffset, iSize, miSize, iOldByteStride);
+						mabData.InsertBatch(iOffset, iSize, miSize, iOldByteStride);
 					}
 					else
 					{
