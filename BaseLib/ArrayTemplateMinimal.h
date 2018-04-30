@@ -928,42 +928,46 @@ void CArrayTemplateMinimal<M>::RemoveBatch(int iFirstElementPos, int iNumInBatch
 {
 	int		i;
 	M*		pcFirst;
-	int		iTotalStride;
 	M*		pcSource;
 	M*		pcDest;
 	int		iDest;
 	int		iSource;
 	int		iRemaining;
 	int		iSkipStride;
-	int		iBatchStride;
 
 	pcFirst = Get(iFirstElementPos);
 
-	iTotalStride = (iSkip + iNumInBatch) * sizeof(M);
 	iSkipStride = iSkip * sizeof(M);
-	iBatchStride = iNumInBatch * sizeof(M);
 	for (i = 0; i <= iNumBatches-2; i++)
 	{
-		pcDest = (M*)RemapSinglePointer(pcFirst, iSkipStride  * i);
-		pcSource = (M*)RemapSinglePointer(pcFirst, iTotalStride * i + iBatchStride);
+		iDest = iFirstElementPos + iSkip * i;
+		iSource = iFirstElementPos + (iSkip + iNumInBatch) * i + iNumInBatch;
+
+		pcDest = Get(iDest);
+		pcSource = Get(iSource);
+
 		memcpy(pcDest, pcSource, iSkipStride);
 	}
 
-	i = iNumBatches-1;
-
-	iDest = (iSkip + iNumInBatch) * (i + 1) - iSkip;
-	iSource = iSkip * i;
-	pcDest = (M*)RemapSinglePointer(pcFirst, iDest * sizeof(M));
-	pcSource = (M*)RemapSinglePointer(pcFirst, iSource * sizeof(M));
-
-	iRemaining = (miUsedElements - iDest) - iFirstElementPos;
+	iDest = iFirstElementPos + (iSkip + iNumInBatch) * iNumBatches  - iSkip;
+	iRemaining = miUsedElements - iDest;
 
 	if (iRemaining > 0)
 	{
+		iSource = iFirstElementPos + iSkip * (iNumBatches - 1);
+		pcDest = Get(iDest);
+		pcSource = Get(iSource);
+
 		memcpy(pcSource, pcDest, iRemaining * sizeof(M));
+		iRemaining = 0;
+	}
+	else
+	{
+		iRemaining = -iRemaining;
 	}
 
-	SetArraySize(miUsedElements - iNumInBatch * iNumBatches);
+
+	SetArraySize(miUsedElements - iNumInBatch * iNumBatches + iRemaining);
 }
 
 
