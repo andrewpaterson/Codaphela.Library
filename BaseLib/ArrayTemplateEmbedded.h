@@ -62,7 +62,7 @@ public:
 	M*		Get(int iIndex);
 	M*		GetData(void);
 	int		GetIndex(M* pvElement);
-	int		GrowByNumElements(int iNumElements);
+	int		AddNum(int iNumElements);
 	int		GrowToNumElements(int iNumElements);
 	M* 		InsertAt(int iIndex);
 	M*		InsertAt(M* pData, int iIndex);
@@ -151,7 +151,7 @@ void CArrayTemplateEmbedded<M, I>::BecomeArray(int iUsedElements)
 
 	memcpy(am, mam, miUsedElements*miElementSize);
 	mcArray.Init(miChunkSize);
-	mcArray.GrowByNumElements(iUsedElements);
+	mcArray.AddNum(iUsedElements);
 	memcpy(mcArray.GetData(), am, miUsedElements*miElementSize);
 	miUsedElements = iUsedElements;
 }
@@ -347,7 +347,7 @@ int CArrayTemplateEmbedded<M, I>::Find(M* pData)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, int I>
-int CArrayTemplateEmbedded<M, I>::GrowByNumElements(int iNumElements)
+int CArrayTemplateEmbedded<M, I>::AddNum(int iNumElements)
 {
 	int	iOldUsedElements;
 
@@ -368,7 +368,7 @@ int CArrayTemplateEmbedded<M, I>::GrowByNumElements(int iNumElements)
 	else
 	{
 		miUsedElements += iNumElements;
-		return mcArray.GrowByNumElements(iNumElements);
+		return mcArray.AddNum(iNumElements);
 	}
 }
 

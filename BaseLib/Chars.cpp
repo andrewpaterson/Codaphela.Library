@@ -847,12 +847,12 @@ char* CChars::PrivateGrow(int iNumberOfCharacters)
 
 	if (mcText.NumElements() == 0)
 	{
-		mcText.GrowByNumElements(iNumberOfCharacters+1);  //To include trailing zero.
+		mcText.AddNum(iNumberOfCharacters+1);  //To include trailing zero.
 		return mcText.GetData();
 	}
 	else
 	{
-		iPosition = mcText.GrowByNumElements(iNumberOfCharacters);
+		iPosition = mcText.AddNum(iNumberOfCharacters);
 		pcPosition = (char*)RemapSinglePointer(mcText.GetData(), iPosition-1);
 		return pcPosition;
 	}
@@ -1935,7 +1935,7 @@ int CChars::PrivateReplaceWithShorter(const char* szFind, const char* szReplace,
 			break;
 		}
 	}
-	mcText.GrowByNumElements(iTotalDifference);
+	mcText.AddNum(iTotalDifference);
 	(*mcText.Tail()) = 0;
 	return iCount;
 }
@@ -1960,7 +1960,7 @@ int CChars::PrivateReplaceWithLonger(const char* szFind, const char* szReplace, 
 	}
 
 	iTotalDifference = iDifference * iCount;
-	mcText.GrowByNumElements(iTotalDifference);
+	mcText.AddNum(iTotalDifference);
 	(*mcText.Tail()) = 0;
 
 	iIndex = Length() - (iFindLen + iTotalDifference);

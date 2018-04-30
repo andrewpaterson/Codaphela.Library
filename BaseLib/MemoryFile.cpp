@@ -232,7 +232,7 @@ filePos CMemoryFile::Write(const void* pvBuffer, filePos iSize, filePos iCount)
 		iAmountToAdd = iAmountToCopy - (mcArray.NumElements() - iPos);
 		if (iAmountToAdd > 0)
 		{
-			mcArray.GrowByNumElements((int)iAmountToAdd);
+			mcArray.AddNum((int)iAmountToAdd);
 			if (mcArray.IsEmpty())
 			{
 				return 0;
