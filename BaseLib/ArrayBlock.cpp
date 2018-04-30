@@ -880,7 +880,7 @@ void* CArrayBlock::GrowToAtLeastNumElements(int iNumElements, BOOL bClear, unsig
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CArrayBlock::GrowByNumElements(int iNumElements)
+int CArrayBlock::AddNum(int iNumElements)
 {
 	int	iOldUsedElements;
 
@@ -1157,7 +1157,7 @@ void* CArrayBlock::InsertArrayAfterEnd(CArrayBlock* pcTemplateArray)
 {
 	int		iArrayIndex;
 
-	iArrayIndex = GrowByNumElements(pcTemplateArray->miUsedElements);
+	iArrayIndex = AddNum(pcTemplateArray->miUsedElements);
 	return CopyArrayInto(pcTemplateArray, iArrayIndex);
 }
 
@@ -1200,7 +1200,7 @@ void* CArrayBlock::InsertNumAt(int iNumElements, int iIndex)
 	}
 
 	iNumToMove = miUsedElements - iIndex;
-	GrowByNumElements(iNumElements);
+	AddNum(iNumElements);
 
 	pvFrom = (void*)Get(iIndex);
 	pvTo = (void*)Get(iIndex + iNumElements);
@@ -1217,7 +1217,7 @@ void* CArrayBlock::InsertBlockAfterEnd(void* paElements, int iLength)
 {
 	int		iArrayIndex;
 
-	iArrayIndex = GrowByNumElements(iLength);
+	iArrayIndex = AddNum(iLength);
 	return CopyBlockInto(paElements, iLength, iArrayIndex);
 }
 
@@ -1416,7 +1416,7 @@ void CArrayBlock::InsertBatch(int iFirstElementPos, int iNumInBatch, int iNumBat
 	int		iRemaining;
 	int		iStride;
 
-	iOldNumElements = GrowByNumElements(iNumInBatch * iNumBatches);
+	iOldNumElements = AddNum(iNumInBatch * iNumBatches);
 
 	pcFirst = Get(iFirstElementPos);
 

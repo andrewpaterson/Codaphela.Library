@@ -166,7 +166,7 @@ BOOL CPolygon::AddTriangle(CTriangle* pcTriangle)
 	{
 		//This preserves the orientation of the plane
 		mpsNormal = pcTriangle->mpsNormal;
-		mapsPositions.GrowByNumElements(3);
+		mapsPositions.AddNum(3);
 		ppsPositions = (SFloat3**)mapsPositions.GetData();
 		ppsPositions[0] = pcTriangle->mpsPosition;
 		ppsPositions[1] = pcTriangle->mpsPosition1;

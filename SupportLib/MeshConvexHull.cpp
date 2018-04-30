@@ -98,7 +98,7 @@ void CMeshConvexHull::GenerateConvexHull(CMeshPositions* pcPositions, CMeshNorma
 	cHull.Init();
 	cHull.BeginSetFromPoints(&cGenerator, asPoint, sizeof(SFloat3), pcPositions->mcPositions.NumElements(), NULL);
 
-	iFirstNormal = pcNormals->mcNormals.GrowByNumElements(cGenerator.mcNormals.NumElements());
+	iFirstNormal = pcNormals->mcNormals.AddNum(cGenerator.mcNormals.NumElements());
 	asNormal = pcNormals->mcNormals.Get(iFirstNormal);
 	cHull.EndSetFromPoints(asNormal, sizeof(SFloat3), &cGenerator);
 
