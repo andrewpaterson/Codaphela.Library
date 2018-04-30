@@ -1352,41 +1352,50 @@ int CArrayBlock::GetIndex(void* pvElement)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayBlock::RemoveBatch(int iFirstIndex, int iNumInBatch, int iNumBatches, int iStrideToNextBatch)
+void CArrayBlock::RemoveBatch(int iFirstElementPos, int iNumInBatch, int iNumBatches, int iSkip)
 {
 	int		i;
 	void*	pcFirst;
-	int		iTotalStride;
 	void*	pcSource;
 	void*	pcDest;
-	int		iDestIndex;
-	int		iSourceIndex;
+	int		iDest;
+	int		iSource;
 	int		iRemaining;
+	int		iSkipStride;
 
-	iTotalStride = iStrideToNextBatch;
-	iStrideToNextBatch = iStrideToNextBatch - iNumInBatch;
-	pcFirst = Get(iFirstIndex);
+	pcFirst = Get(iFirstElementPos);
 
-	for (i = 0; i <= iNumBatches-2; i++)
+	iSkipStride = iSkip * miElementSize;
+	for (i = 0; i <= iNumBatches - 2; i++)
 	{
-		memcpy(RemapSinglePointer(pcFirst, iStrideToNextBatch * i), RemapSinglePointer(pcFirst, iTotalStride * (i+1) - iStrideToNextBatch), iStrideToNextBatch);
+		iDest = iFirstElementPos + iSkip * i;
+		iSource = iFirstElementPos + (iSkip + iNumInBatch) * i + iNumInBatch;
+
+		pcDest = Get(iDest);
+		pcSource = Get(iSource);
+
+		memcpy(pcDest, pcSource, iSkipStride);
 	}
 
-	i = iNumBatches-1;
-
-	iDestIndex = iTotalStride * (i+1) - iStrideToNextBatch;
-	iSourceIndex = iStrideToNextBatch * i;
-	pcDest = (void*)RemapSinglePointer(pcFirst, iDestIndex);
-	pcSource = (void*)RemapSinglePointer(pcFirst, iSourceIndex);
-
-	iRemaining = (miUsedElements - iDestIndex) - iFirstIndex;
+	iDest = iFirstElementPos + (iSkip + iNumInBatch) * iNumBatches - iSkip;
+	iRemaining = miUsedElements - iDest;
 
 	if (iRemaining > 0)
 	{
-		memcpy(pcSource, pcDest, iRemaining);
+		iSource = iFirstElementPos + iSkip * (iNumBatches - 1);
+		pcDest = Get(iDest);
+		pcSource = Get(iSource);
+
+		memcpy(pcSource, pcDest, iRemaining * miElementSize);
+		iRemaining = 0;
+	}
+	else
+	{
+		iRemaining = -iRemaining;
 	}
 
-	GrowToNumElements(miUsedElements - iNumInBatch * iNumBatches);
+
+	SetUsedElements(miUsedElements - iNumInBatch * iNumBatches + iRemaining);
 }
 
 
@@ -1394,79 +1403,81 @@ void CArrayBlock::RemoveBatch(int iFirstIndex, int iNumInBatch, int iNumBatches,
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayBlock::InsertBatch(int iFirstIndex, int iNumInBatch, int iNumBatches, int iStrideToNextBatch)
+void CArrayBlock::InsertBatch(int iFirstElementPos, int iNumInBatch, int iNumBatches, int iSkip)
 {
 	int		i;
 	void*	pcFirst;
 	int		iTotalStride;
 	void*	pcSource;
 	void*	pcDest;
-	int		iDestIndex;
-	int		iSourceIndex;
+	int		iDest;
+	int		iSource;
 	int		iOldNumElements;
 	int		iRemaining;
+	int		iStride;
 
 	iOldNumElements = GrowByNumElements(iNumInBatch * iNumBatches);
 
-	iTotalStride = iNumInBatch + iStrideToNextBatch;
-	pcFirst = Get(iFirstIndex);
+	pcFirst = Get(iFirstElementPos);
 
-	i = iNumBatches-1;
+	i = iNumBatches - 1;
 
-	iDestIndex = iTotalStride * (i+1) - iStrideToNextBatch;
-	iSourceIndex = iStrideToNextBatch * i;
-	pcDest = (void*)RemapSinglePointer(pcFirst, iDestIndex);
-	pcSource = (void*)RemapSinglePointer(pcFirst, iSourceIndex);
+	iDest = (iNumInBatch + iSkip) * (i + 1) - iSkip;
+	iSource = iSkip * i;
+	pcDest = RemapSinglePointer(pcFirst, iDest * miElementSize);
+	pcSource = RemapSinglePointer(pcFirst, iSource * miElementSize);
 
-	iRemaining = (iOldNumElements - iSourceIndex) - iFirstIndex;
+	iRemaining = (iOldNumElements - iSource) - iFirstElementPos;
 
 	if (iRemaining > 0)
 	{
-		memcpy(pcDest, pcSource, iRemaining);
+		memcpy(pcDest, pcSource, iRemaining * miElementSize);
 	}
 
-	if (iStrideToNextBatch == 1)
+	iStride = iSkip * miElementSize;
+	iTotalStride = (iNumInBatch + iSkip) * miElementSize;
+	if (iStride == 1)
 	{
-		for (i = iNumBatches-2; i >= 0; i--)
+		for (i = iNumBatches - 2; i >= 0; i--)
 		{
-			memcpy_fast_1byte(RemapSinglePointer(pcFirst, iTotalStride * (i+1) - iStrideToNextBatch), RemapSinglePointer(pcFirst, iStrideToNextBatch * i));
+			memcpy_fast_1byte(RemapSinglePointer(pcFirst, iTotalStride * (i + 1) - iStride), RemapSinglePointer(pcFirst, iStride * i));
 		}
 	}
-	else if (iStrideToNextBatch == 2)
+	else if (iStride == 2)
 	{
-		for (i = iNumBatches-2; i >= 0; i--)
+		for (i = iNumBatches - 2; i >= 0; i--)
 		{
-			memcpy_fast_2bytes(RemapSinglePointer(pcFirst, iTotalStride * (i+1) - iStrideToNextBatch), RemapSinglePointer(pcFirst, iStrideToNextBatch * i));
+			memcpy_fast_2bytes(RemapSinglePointer(pcFirst, iTotalStride * (i + 1) - iStride), RemapSinglePointer(pcFirst, iStride * i));
 		}
 	}
-	else if (iStrideToNextBatch == 4)
+	else if (iStride == 4)
 	{
-		for (i = iNumBatches-2; i >= 0; i--)
+		for (i = iNumBatches - 2; i >= 0; i--)
 		{
-			memcpy_fast_4bytes(RemapSinglePointer(pcFirst, iTotalStride * (i+1) - iStrideToNextBatch), RemapSinglePointer(pcFirst, iStrideToNextBatch * i));
+			memcpy_fast_4bytes(RemapSinglePointer(pcFirst, iTotalStride * (i + 1) - iStride), RemapSinglePointer(pcFirst, iStride * i));
 		}
 	}
-	else if (iStrideToNextBatch == 8)
+	else if (iStride == 8)
 	{
-		for (i = iNumBatches-2; i >= 0; i--)
+		for (i = iNumBatches - 2; i >= 0; i--)
 		{
-			memcpy_fast_8bytes(RemapSinglePointer(pcFirst, iTotalStride * (i+1) - iStrideToNextBatch), RemapSinglePointer(pcFirst, iStrideToNextBatch * i));
+			memcpy_fast_8bytes(RemapSinglePointer(pcFirst, iTotalStride * (i + 1) - iStride), RemapSinglePointer(pcFirst, iStride * i));
 		}
 	}
-	else if (iStrideToNextBatch == 12)
+	else if (iStride == 12)
 	{
-		for (i = iNumBatches-2; i >= 0; i--)
+		for (i = iNumBatches - 2; i >= 0; i--)
 		{
-			memcpy_fast_12bytes(RemapSinglePointer(pcFirst, iTotalStride * (i+1) - iStrideToNextBatch), RemapSinglePointer(pcFirst, iStrideToNextBatch * i));
+			memcpy_fast_12bytes(RemapSinglePointer(pcFirst, iTotalStride * (i + 1) - iStride), RemapSinglePointer(pcFirst, iStride * i));
 		}
 	}
 	else
 	{
-		for (i = iNumBatches-2; i >= 0; i--)
+		for (i = iNumBatches - 2; i >= 0; i--)
 		{
-			memcpy(RemapSinglePointer(pcFirst, iTotalStride * (i+1) - iStrideToNextBatch), RemapSinglePointer(pcFirst, iStrideToNextBatch * i), iStrideToNextBatch);
+			memcpy(RemapSinglePointer(pcFirst, iTotalStride * (i + 1) - iStride), RemapSinglePointer(pcFirst, iStride * i), iStride);
 		}
-	}	
+	}
 }
 
 
