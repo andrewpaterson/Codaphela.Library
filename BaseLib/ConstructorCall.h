@@ -24,6 +24,9 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define __CONSTRUCTOR_CALL_H__
 #include <new> 
 #include <stdlib.h>
+#ifdef LINUX_GNU_32
+#include <type_traits>
+#endif // LINUX_GNU_32
 
 
 template<class M>
@@ -43,8 +46,10 @@ template<class M>
 class CPostMalloc
 {
 public:
-	M* PostMalloc(M* pv);
-	M* PostMalloc(M* pv, int iNumElements, int iStride);
+	M* 		PostMalloc(M* pv);
+	M* 		PostMalloc(M* pv, int iNumElements, int iStride);
+
+	BOOL 	RequiresVirtualFunctionTable(void);
 };
 
 
@@ -57,7 +62,6 @@ M* CPostMalloc<M>::PostMalloc(M* pv)
 {
 	if (!std::is_trivially_default_constructible<M>())
 	{
-		memset(pv, 0, sizeof(M));
 		new(pv) M;
 	}
 	return pv;
@@ -73,28 +77,25 @@ M* CPostMalloc<M>::PostMalloc(M* pv, int iNumElements, int iStride)
 {
 	int		i;
 
-	if (!std::is_trivially_default_constructible<M>())
+	if (RequiresVirtualFunctionTable())
 	{
-		if (iStride == sizeof(M))
+		for (i = 0; i < iNumElements; i++)
 		{
-			memset(pv, 0, sizeof(M) * iNumElements);
-			for (i = 0; i < iNumElements; i++)
-			{
-				new(pv) M;
-				pv = &pv[1];
-			}
-		}
-		else
-		{
-			for (i = 0; i < iNumElements; i++)
-			{
-				memset(pv, 0, sizeof(M));
-				new(pv) M;
-				pv = (M*)RemapSinglePointer(pv, iStride);
-			}
+			new(pv) M;
+			pv = (M*)RemapSinglePointer(pv, iStride);
 		}
 	}
 	return pv;
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+BOOL CPostMalloc<M>::RequiresVirtualFunctionTable(void)
+{
+	return !std::is_trivially_default_constructible<M>();
 }
 
 
