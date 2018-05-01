@@ -293,7 +293,9 @@ BOOL CObjReader::ReadFace(CTextParser* pcTextParser, int iNumCorners, int iNumNo
 
 	bNormals = TRUE;
 	bUVS = TRUE;
-	aiCorners.Allocate(&gcSystemAllocator, asCorners.NumElements());
+
+	aiCorners.Init(asCorners.NumElements());
+	aiCorners.Resize(asCorners.NumElements());
 	for (i = 0; i < asCorners.NumElements(); i++)
 	{
 		psCorner = asCorners.Get(i);

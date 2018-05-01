@@ -9,6 +9,7 @@ class CMapPtrPrimitiveTemplate : public CMapTemplate<void*, D>
 {
 public:
 	void	Init(void);
+	void	Init(int iChunkSize);
 	void	Init(CMallocator* pcMalloc, int iChunkSize);
 
 	D		Get(void* pvKey);
@@ -28,6 +29,17 @@ template<class D>
 void CMapPtrPrimitiveTemplate<D>::Init(void)
 {
 	CMapBlock::Init(&ComparePtrPtr);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class D>
+void CMapPtrPrimitiveTemplate<D>::Init(int iChunkSize)
+{
+	CMapBlock::Init(iChunkSize, &ComparePtrPtr, TRUE);
 }
 
 

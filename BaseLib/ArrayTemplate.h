@@ -32,8 +32,6 @@ class CArrayTemplate : public CArrayBlock, protected CPostMalloc<M>
 public:
 	void 	Init(int iChunkSize);
 	void 	Init(CMallocator* pcMalloc, int iChunkSize);
-	void 	Allocate(CMallocator* pcMalloc, int iNumElements);
-	void 	Allocate(CMallocator* pcMalloc, int iChunkSize, int iNumElements);
 	void	Fake(M* pvData, int iNum, int iChunkSize = 1);
 
 	M*		Add(void);
@@ -98,28 +96,6 @@ template<class M>
 void CArrayTemplate<M>::Init(CMallocator* pcMalloc, int iChunkSize)
 {
 	CArrayBlock::Init(pcMalloc, sizeof(M), iChunkSize);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class M>
-void CArrayTemplate<M>::Allocate(CMallocator* pcMalloc, int iNumElements)
-{
-	CArrayBlock::Allocate(pcMalloc, sizeof(M), iNumElements);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class M>
-void CArrayTemplate<M>::Allocate(CMallocator* pcMalloc, int iChunkSize, int iNumElements)
-{
-	CArrayBlock::Allocate(pcMalloc, sizeof(M), iChunkSize, iNumElements);
 }
 
 

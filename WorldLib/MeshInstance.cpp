@@ -291,7 +291,9 @@ void CMeshInstance::UpdateUnskinnedCaches(void)
 	{
 		if (masVertexCache.NumElements() == 0)
 		{
-			masVertexCache.Allocate(&gcSystemAllocator, mpcMeshObject->GetVerticies()->NumElements());
+			masVertexCache.Kill();
+			masVertexCache.Init(mpcMeshObject->GetVerticies()->NumElements());
+			masVertexCache.Resize(mpcMeshObject->GetVerticies()->NumElements());
 		}
 		Float3TransformCoords(masVertexCache.GetData(), sizeof(SFloat3), mpcMeshObject->GetVerticies()->GetData(), sizeof(SFloat3), &mpsWorldSpaceTransform->sD3DMatrix, mpcMeshObject->GetVerticies()->NumElements());
 	}
@@ -299,7 +301,9 @@ void CMeshInstance::UpdateUnskinnedCaches(void)
 	{
 		if (masNormalCache.NumElements() == 0)
 		{
-			masNormalCache.Allocate(&gcSystemAllocator, mpcMeshObject->GetNormals()->NumElements());
+			masNormalCache.Kill();
+			masNormalCache.Init(mpcMeshObject->GetNormals()->NumElements());
+			masNormalCache.Resize(mpcMeshObject->GetNormals()->NumElements());
 		}
 		Float3TransformNormals(masNormalCache.GetData(), sizeof(SFloat3), mpcMeshObject->GetNormals()->GetData(), sizeof(SFloat3), &mpsWorldSpaceTransform->sD3DMatrix, mpcMeshObject->GetNormals()->NumElements());
 	}
@@ -395,10 +399,12 @@ void CMeshInstance::SetSkinnedVertexCachePointers(void)
 
 		iNumVerts = mpcMeshObject->GetSkinnedVertexPtrs()->NumElements();
 
-		masVertexCache.Allocate(&gcSystemAllocator, iNumVerts);
+		masVertexCache.Init(iNumVerts);
+		masVertexCache.Resize(iNumVerts);
 		masVertexCache.Zero();
 
-		macVertexPtrCache.Allocate(&gcSystemAllocator, iNumVerts);
+		macVertexPtrCache.Init(iNumVerts);
+		macVertexPtrCache.Resize(iNumVerts);
 		for (i = 0; i < iNumVerts; i++)
 		{
 			psSkinnedLinkObjectNode = mpcMeshObject->GetSkinnedVertexPtrs()->Get(i);
@@ -431,10 +437,12 @@ void CMeshInstance::SetSkinnedNormalCachePointers(void)
 
 		iNumNormals = mpcMeshObject->GetSkinnedNormalPtrs()->NumElements();
 
-		masNormalCache.Allocate(&gcSystemAllocator, iNumNormals);
+		masNormalCache.Init(iNumNormals);
+		masNormalCache.Resize(iNumNormals);
 		masNormalCache.Zero();
 
-		macNormalPtrCache.Allocate(&gcSystemAllocator, iNumNormals);
+		macNormalPtrCache.Init(iNumNormals);
+		macNormalPtrCache.Resize(iNumNormals);
 		for (i = 0; i < iNumNormals; i++)
 		{
 			psSkinnedLinkObjectNode = mpcMeshObject->GetSkinnedNormalPtrs()->Get(i);

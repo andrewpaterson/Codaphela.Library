@@ -335,17 +335,17 @@ void CInputChord::CalculatePotentialStart(void)
 	{
 		if (puCriteria->eType.eAction == BAA_Active)
 		{
-			masStartDeviceValue.GrowToNumElements(puCriteria->cActive.Size());
+			masStartDeviceValue.Resize(puCriteria->cActive.Size());
 			puCriteria->cActive.ToArray(&masStartDeviceValue);
 		}
 		else if (puCriteria->eType.eAction == BAA_Inactive)
 		{
-			masStartDeviceValue.GrowToNumElements(puCriteria->cInactive.Size());
+			masStartDeviceValue.Resize(puCriteria->cInactive.Size());
 			puCriteria->cInactive.ToArray(&masStartDeviceValue);
 		}
 		else if (puCriteria->eType.eAction == BAA_Group)
 		{
-			masStartDeviceValue.GrowToNumElements(puCriteria->cGroup.Size());
+			masStartDeviceValue.Resize(puCriteria->cGroup.Size());
 			puCriteria->cGroup.ToArray(&masStartDeviceValue);
 		}
 	}

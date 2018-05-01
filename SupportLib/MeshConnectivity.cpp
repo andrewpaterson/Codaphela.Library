@@ -146,7 +146,7 @@ void CMeshConnectivity::InitCorners(int iNumCorners)
 	CMeshCorner*	psCorner;
 
 	mcCorners.Init(iNumCorners != 0 ? iNumCorners : 1);
-	mcCorners.GrowToNumElements(iNumCorners);
+	mcCorners.Resize(iNumCorners);
 
 	for (i = 0; i < iNumCorners; i++)
 	{

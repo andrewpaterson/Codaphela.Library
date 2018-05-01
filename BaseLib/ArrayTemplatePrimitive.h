@@ -353,7 +353,7 @@ BOOL CArrayTemplatePrimitive<M>::RemoveDuplicatesFromSorted(void)
 
         if (bAnyRemoved)
         {
-            this->GrowToNumElements(iWrite);
+            this->Resize(iWrite);
         }
     }
 	return bAnyRemoved;

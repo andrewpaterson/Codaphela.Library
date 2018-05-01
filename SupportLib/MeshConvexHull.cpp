@@ -113,7 +113,7 @@ void CMeshConvexHull::GenerateConvexHull(CMeshPositions* pcPositions, CMeshNorma
 		pcPolygonIndexed = mcHull.mcPolygons.Get(i);
 
 		iNumVerts = pcPolygon->mapsPositions.NumElements();
-		pcPolygonIndexed->maiPositions.GrowToNumElements(iNumVerts);
+		pcPolygonIndexed->maiPositions.Resize(iNumVerts);
 		for (j = 0; j < iNumVerts; j++)
 		{
 			psPosition = *((SFloat3**)pcPolygon->mapsPositions.Get(j));

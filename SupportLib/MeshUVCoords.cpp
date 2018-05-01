@@ -153,7 +153,7 @@ BOOL CMeshUVCoords::Load(CFileReader* pcFile)
 	ReturnOnFalse(pcFile->ReadInt(&miFaceChunkSize));
 	ReturnOnFalse(pcFile->ReadInt(&iNumLayers));
 
-	mcLayers.GrowToNumElements(iNumLayers);
+	mcLayers.Resize(iNumLayers);
 
 	for (i = 0; i < iNumLayers; i++)
 	{

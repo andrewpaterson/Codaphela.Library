@@ -175,7 +175,7 @@ void CGraphicsObject::Sort(void)
 	//If the number of primitives has changed since last then change the draw order array.
 	if (maiPrimitives.NumElements() != maPrimitives.NumElements())
 	{
-		maiPrimitives.SetArraySize(maPrimitives.NumElements());
+		maiPrimitives.Resize(maPrimitives.NumElements());
 	}
 
 	if (miFlags & GRAPH_OBJ_FLAGS_NO_PRIMITIVE_SORTING)
@@ -807,7 +807,7 @@ CGraphicsPrimitive* CGraphicsObject::AddPrimitives(int iNumToAdd)
 	int						iFirst;
 
 	//This is the equivalent of calling .Init on each CGraphicsPrimitive.
-	iFirst = maPrimitives.GrowByNumElements(iNumToAdd);
+	iFirst = maPrimitives.AddNum(iNumToAdd);
 	for (i = 0; i < iNumToAdd; i++)
 	{
 		maPrimitives.Get(iFirst + i)->Init(mpcWorld);

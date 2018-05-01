@@ -129,9 +129,12 @@ void CGraphicsInstance::UnreverseCullAsNecessary(void)
 //////////////////////////////////////////////////////////////////////////
 void CGraphicsInstance::Set(CGraphicsObject* pcGraphicsObject)
 {
+	mapMaterials.Kill();
+	mapMaterials.Init(pcGraphicsObject->GetMaterials());
 
-	mapMaterials.Copy(pcGraphicsObject->GetMaterials());
-	mapStates.Copy(pcGraphicsObject->GetStates());
+	mapStates.Kill();
+	mapStates.Init(pcGraphicsObject->GetStates());
+
 	mpcGraphicsObject = pcGraphicsObject;
 }
 
@@ -201,7 +204,7 @@ void CGraphicsInstance::Update(void)
 
 	if (iLight != mapLights.NumElements())
 	{
-		mapLights.GrowToNumElements(iLight);
+		mapLights.Resize(iLight);
 	}
 }
 
@@ -220,3 +223,4 @@ CGraphicsObject* CGraphicsInstance::GetGraphicsObject(void)
 {
 	return mpcGraphicsObject;
 }
+

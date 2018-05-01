@@ -377,7 +377,8 @@ BOOL CNamedIndexesOptimiser::AllocateSources(CNamedIndexesBlocks* pcBlocks, CInd
 		return FALSE;
 	}
 
-	macSources.Allocate(&gcSystemAllocator, iChunks);
+	macSources.Init(iChunks);
+	macSources.Resize(iChunks);
 
 	for (i = 0; i < iChunks; i++)
 	{

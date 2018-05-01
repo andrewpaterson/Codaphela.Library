@@ -28,6 +28,16 @@ Microsoft Windows is Copyright Microsoft Corporation
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
+void CMapPtrPtr::Init(int iChunkSize)
+{
+	Init(&gcSystemAllocator, iChunkSize);
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
 void CMapPtrPtr::Init(CMallocator* pcMalloc, int iChunkSize)
 {
 	CMapBlock::Init(pcMalloc, iChunkSize, &ComparePtrPtr, TRUE);

@@ -81,7 +81,7 @@ void* CGraphicsDynamicVertexBuffer::AddVertices(int iMoreVerts)
 {
 	int		iOldLength;
 
-	iOldLength = mcVerts.GrowByNumElements(iMoreVerts);
+	iOldLength = mcVerts.AddNum(iMoreVerts);
 	return mcVerts.Get(iOldLength);
 }
 

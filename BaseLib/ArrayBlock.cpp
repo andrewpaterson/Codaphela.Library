@@ -32,31 +32,6 @@ void CArrayBlock::Init(CMallocator* pcMalloc, int iElementSize, int iChunkSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayBlock::Allocate(CMallocator* pcMalloc, int iElementSize, int iNumElements)
-{
-	Init(pcMalloc, iElementSize, iNumElements);
-	GrowByChunk();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void CArrayBlock::Allocate(CMallocator* pcMalloc, int iElementSize, int iChunkSize, int iNumElements)
-{
-	mpcMalloc = pcMalloc;
-	miElementSize = iElementSize;
-	miChunkSize = iChunkSize;
-	mpvArray = NULL;
-	SetUsedElements(iNumElements);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
 void CArrayBlock::Fake(int iElementSize, void* pvData, int iNum, int iChunkSize)
 {
 	mpcMalloc = NULL;
@@ -832,7 +807,7 @@ int	CArrayBlock::FindWithIntKey(int iKey, int iKeyOffset)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CArrayBlock::GrowToNumElements(int iNumElements)
+int CArrayBlock::Resize(int iNumElements)
 {
 	int	iOldUsedElements;
 
@@ -858,7 +833,7 @@ void* CArrayBlock::GrowToAtLeastNumElements(int iNumElements, BOOL bClear, unsig
 
 	if (miUsedElements < iNumElements)
 	{
-		iOldUsedElements = GrowToNumElements(iNumElements);
+		iOldUsedElements = Resize(iNumElements);
 		if (bClear)
 		{
 			if (iOldUsedElements < iNumElements)

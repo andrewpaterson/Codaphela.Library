@@ -107,7 +107,8 @@ BOOL CMeshTypeIndices::Generate(CArrayInt* paiFaces, void* pavFaceIndices)
 
 	pcFaceIndicies = mpcVertexArray->GetFaceIndicies();
 	pcFaceIndicies->Kill();
-	pcFaceIndicies->Allocate(&gcSystemAllocator, iNumFaces); 
+	pcFaceIndicies->Init(iNumFaces); 
+	pcFaceIndicies->Resize(iNumFaces);
 
 	maVerts.Kill();
 	maVerts.Init(miStride, iNumFaces/3+1);

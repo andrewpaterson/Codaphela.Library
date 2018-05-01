@@ -52,7 +52,7 @@ public:
 	void	Allocate(int iNum);
 	void	Allocate(CMallocator* pcMallocator, int iNum);
 
-	int		GrowToNumElements(int iNumElements);  //Test Virtual and make sure only PostMalloc only called once.
+	int		Resize(int iNumElements);  //Test Virtual and make sure only PostMalloc only called once.
 	int		NumElements(void);
 
 	M*		Add(void);
@@ -93,6 +93,7 @@ public:
 
 	int		ByteSize(void);
 	BOOL	SetUsedElements(int iUsedElements);
+	void	FakeSetUsedElements(int iUsedElements);
 
 	void 	Zero(void);
 	void	Zero(int iStart, int iEnd);
@@ -105,11 +106,11 @@ public:
 	BOOL	ReadAllocatorAndHeader(CFileReader* pcFileReader);
 	BOOL	ReadHeader(CFileReader* pcFileReader, CMallocator* pcMalloc);
 
-protected:
 	BOOL	SetArraySize(int iNum);
 	M*		SetArraySize(int iNum, int iClearValue);
+
+protected:
 	BOOL	BinarySearch(M* pData, int iLeft, int iRight, int(*Func)(const void*, const void*), int* piIndex);
-	void	FakeSetUsedElements(int iUsedElements);
 
 	void*	Malloc(size_t tSize);
 	void*	Realloc(void* pv, size_t iMemSize);
@@ -235,11 +236,10 @@ void CArrayTemplateMinimal<M>::Init(CArrayTemplateMinimal* pArray)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CArrayTemplateMinimal<M>::Init(CMallocator* pcMallocator, CArrayTemplateMinimal* pArray)
+void CArrayTemplateMinimal<M>::Init(CMallocator* pcMalloc, CArrayTemplateMinimal* pArray)
 {
-	CMallocator*	pcMalloc;
-
-	Allocate(pcMalloc, pArray->NumElements());
+	Init(pcMalloc);
+	Resize(pArray->NumElements());
 	memcpy(mpvArray, pArray->mpvArray, miUsedElements * sizeof(M));
 }
 
@@ -815,7 +815,7 @@ void CArrayTemplateMinimal<M>::Set(int iElementPos, M* pvData)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-int CArrayTemplateMinimal<M>::GrowToNumElements(int iNumElements)
+int CArrayTemplateMinimal<M>::Resize(int iNumElements)
 {
 	int	iOldUsedElments;
 

@@ -41,8 +41,11 @@ void CMeshObjectNode::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CMeshObjectNode::Init(int iNumVerticies, int iNumNormals)
 {
-	mcVerticies.Allocate(&gcSystemAllocator, iNumVerticies);
-	mcNormals.Allocate(&gcSystemAllocator, iNumNormals);
+	mcVerticies.Init(&gcSystemAllocator, iNumVerticies);
+	mcVerticies.Resize(iNumVerticies);
+
+	mcNormals.Init(&gcSystemAllocator, iNumNormals);
+	mcNormals.Resize(iNumNormals);
 }
 
 
@@ -117,9 +120,15 @@ void CMeshObject::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CMeshObject::Init(int iNumVerticies, int iNumNormals)
 {
-	Init();
-	mcVerticies.Allocate(&gcSystemAllocator, iNumVerticies);
-	mcNormals.Allocate(&gcSystemAllocator, iNumNormals);
+	mcNodes.Init();
+	mcSkinnedVertexPtrs.Init(1);
+	mcSkinnedNormalPtrs.Init(1);
+
+	mcVerticies.Init(iNumVerticies);
+	mcVerticies.Resize(iNumVerticies);
+
+	mcNormals.Init(iNumNormals);
+	mcNormals.Resize(iNumNormals);
 }
 
 
