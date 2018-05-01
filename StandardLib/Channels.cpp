@@ -466,7 +466,7 @@ BOOL CChannels::EndChange(void)
 			{
 				miSize = mpsChangingDesc->iSize;
 				iSize = CalculateByteSize(miBitStride, miSize);
-				mabData.GrowToNumElements(iSize);
+				mabData.Resize(iSize);
 			}
 		}
 		else  //Using user allocated memory.
@@ -697,7 +697,8 @@ void CChannels::AllocateData(void)
 
 	iSize = CalculateByteSize(miBitStride, miSize);
 	FreeData();
-	mabData.Allocate(&gcSystemAllocator, iSize);
+	mabData.Init(iSize);
+	mabData.Resize(iSize);
 }
 
 
@@ -1069,7 +1070,8 @@ void CChannels::GetAllChannels(CArrayChannel* pasChannels)
 	CChannel*			psChannelSource;
 	SChannel*			psChannelDest;
 
-	pasChannels->Allocate(&gcSystemAllocator, masChannelOffsets.NumElements());
+	pasChannels->Init(masChannelOffsets.NumElements());
+	pasChannels->Resize(masChannelOffsets.NumElements());
 
 	for (j = 0; j < masChannelOffsets.NumElements(); j++)
 	{

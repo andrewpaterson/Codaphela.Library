@@ -32,8 +32,6 @@ protected:
 public:
 	void 	Init(int iElementSize, int iChunkSize);
 	void 	Init(CMallocator* pcMalloc, int iElementSize, int iChunkSize);
-	void 	Allocate(CMallocator* pcMalloc, int iElementSize, int iNumElements);
-	void 	Allocate(CMallocator* pcMalloc, int iElementSize, int iChunkSize, int iNumElements);
 	void 	ReInit(int iChunkSize = 0);
 
 	void 	Finalise(void);
@@ -87,7 +85,7 @@ public:
 	void	GrowByChunk(void);
 	int		AddNum(int iNumElements);
 	void*	GrowToAtLeastNumElements(int iNumElements, BOOL bClear = FALSE, unsigned char  iClear = 0);  //ie:  Don't shrink the array.
-	int		GrowToNumElements(int iNumElements);  //Can shrink the array.  Should probably call this resize.
+	int		Resize(int iNumElements);  //Can shrink the array.  Should probably call this resize.
 
 	void	BubbleSort(int(*)(const void*, const void*));
 	void	QuickSort(int(*)(const void*, const void*));

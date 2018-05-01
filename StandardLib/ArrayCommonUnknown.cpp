@@ -132,7 +132,7 @@ BOOL CArrayCommonUnknown::LoadArrayHeader(CFileReader* pcFile, int* piFlags, int
 	Init(bTypeKnown, FALSE, FALSE, FALSE, FALSE, iChunkSize);
 	miNonNullElements = iNonNullElements;
 
-	mcArray.GrowToNumElements(*piNumElements);
+	mcArray.Resize(*piNumElements);
 	return TRUE;
 }
 

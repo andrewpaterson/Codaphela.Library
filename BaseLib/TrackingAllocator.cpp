@@ -9,7 +9,7 @@
 void CTrackingAllocator::Init(CMallocator* pcAlloc)
 {
 	mpcAlloc = pcAlloc;
-	mmpiSizes.Init(&gcSystemAllocator, 1024);
+	mmpiSizes.Init(1024);
 }
 
 

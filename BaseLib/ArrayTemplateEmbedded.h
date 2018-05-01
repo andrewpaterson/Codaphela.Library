@@ -63,7 +63,7 @@ public:
 	M*		GetData(void);
 	int		GetIndex(M* pvElement);
 	int		AddNum(int iNumElements);
-	int		GrowToNumElements(int iNumElements);
+	int		Resize(int iNumElements);
 	M* 		InsertAt(int iIndex);
 	M*		InsertAt(M* pData, int iIndex);
 	BOOL	IsEmpty(void);
@@ -378,7 +378,7 @@ int CArrayTemplateEmbedded<M, I>::AddNum(int iNumElements)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, int I>
-int CArrayTemplateEmbedded<M, I>::GrowToNumElements(int iNumElements)
+int CArrayTemplateEmbedded<M, I>::Resize(int iNumElements)
 {
 	int	iOldUsedElements;
 
@@ -406,7 +406,7 @@ int CArrayTemplateEmbedded<M, I>::GrowToNumElements(int iNumElements)
 		else
 		{
 			miUsedElements = iNumElements;
-			return mcArray.GrowToNumElements(iNumElements);
+			return mcArray.Resize(iNumElements);
 		}
 	}
 }

@@ -191,7 +191,7 @@ void CMeshFaceTypes::ClearFaceTypes(int iNumFaces, int iChunkSize)
 	SMeshFaceType*	psType;
 
 	mcFaces.ReInit(iChunkSize);
-	mcFaces.GrowToNumElements(iNumFaces);
+	mcFaces.Resize(iNumFaces);
 
 	for (i = 0; i < iNumFaces; i++)
 	{

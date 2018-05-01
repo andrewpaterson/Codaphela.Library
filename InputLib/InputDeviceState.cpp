@@ -59,7 +59,8 @@ BOOL CInputDeviceState::Rest(CInputDevice* pcDevice)
 
 	mpcDevice = pcDevice;
 	macSourceStates.Kill();
-	macSourceStates.Allocate(&gcSystemAllocator, pcDevice->GetDesc()->NumInputs());
+	macSourceStates.Init(&gcSystemAllocator, pcDevice->GetDesc()->NumInputs());
+	macSourceStates.Resize(pcDevice->GetDesc()->NumInputs());
 	pcSourceDesc = pcDevice->GetDesc()->StartInputsIteration(&sIter);
 	i = 0;
 	while (pcSourceDesc)

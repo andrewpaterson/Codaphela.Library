@@ -95,7 +95,7 @@ void CChars::Zero(void)
 void CChars::InitLength(int iLength)
 {
 	mcText.Init(CHARS_CHUNK_SIZE);
-	mcText.GrowToNumElements(iLength+1);
+	mcText.Resize(iLength+1);
 	mcText.SetValue(iLength, '\0');
 }
 
@@ -335,7 +335,7 @@ void CChars::Set(CChars sz)
 	int iLen;
 
 	iLen = sz.Length()+1;
-	mcText.GrowToNumElements(iLen);
+	mcText.Resize(iLen);
 	memcpy(mcText.GetData(), sz.Text(), iLen);
 }
 
@@ -349,7 +349,7 @@ void CChars::Set(CChars* psz)
 	int iLen;
 
 	iLen = psz->Length()+1;
-	mcText.GrowToNumElements(iLen);
+	mcText.Resize(iLen);
 	memcpy(mcText.GetData(), psz->Text(), iLen);
 }
 
@@ -365,7 +365,7 @@ void CChars::Set(const char* sz)
 	if (sz)
 	{
 		iLen = ((int)strlen(sz)) + 1;
-		mcText.GrowToNumElements(iLen);
+		mcText.Resize(iLen);
 		memcpy(mcText.GetData(), sz, iLen);
 	}
 }
@@ -871,7 +871,7 @@ void CChars::PrivateFixLength(void)
 	iLen++;
 	if (iLen != mcText.NumElements())
 	{
-		mcText.GrowToNumElements(iLen);
+		mcText.Resize(iLen);
 	}
 }
 
@@ -1671,7 +1671,7 @@ BOOL CChars::IsWhiteSpace(void)
 void CChars::SetLength(int iLength)
 {
 	//This assumes you'll fill mcText with iLengths count of non-zero characters.
-	mcText.GrowToNumElements(iLength+1);
+	mcText.Resize(iLength+1);
 	mcText.SetValue(iLength, '\0');
 }
 
@@ -2199,7 +2199,7 @@ void CChars::PassifyNewlines(void)
 	iNewLen = ::PassifyNewlines(mcText.GetData());
 	if (iNewLen != -1)
 	{
-		mcText.GrowToNumElements(iNewLen+1);
+		mcText.Resize(iNewLen+1);
 	}
 }
 

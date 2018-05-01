@@ -88,7 +88,7 @@ void CMeshPolygons::ReInit(int iNumfaces)
 	Kill();
 	mcPolygons.Init(iNumfaces/3+1);
 	maiFacesToPolygons.Init(iNumfaces/3+1);
-	maiFacesToPolygons.GrowToNumElements(iNumfaces);
+	maiFacesToPolygons.Resize(iNumfaces);
 	maiFacesToPolygons.SetArrayValues(-1);
 }
 
@@ -182,7 +182,7 @@ CMeshPolygon* CMeshPolygons::GrowToNumPolygons(int iNumPolygons, int iName)
 	int				i;
 	CMeshPolygon*		psPolygon;
 
-	iOldNum = mcPolygons.GrowToNumElements(iNumPolygons);
+	iOldNum = mcPolygons.Resize(iNumPolygons);
 	for (i = iOldNum; i < iNumPolygons; i++)
 	{
 		psPolygon = mcPolygons.Get(i);
@@ -602,7 +602,7 @@ void CMeshPolygons::GetNormals(CArrayFloat3* pasNormals, CMeshNormals* pcNormals
 	SFloat3*		pasNormalsData;
 
 	iNumPolygons = mcPolygons.NumElements();
-	pasNormals->GrowToNumElements(iNumPolygons);
+	pasNormals->Resize(iNumPolygons);
 	pasNormalsData = pasNormals->GetData();
 
 	//Generate polygon normals;
