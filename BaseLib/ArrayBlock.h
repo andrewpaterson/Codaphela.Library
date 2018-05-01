@@ -82,7 +82,6 @@ public:
 	void*	Push(void);
 	void* 	PushCopy(void);
 
-	void	GrowByChunk(void);
 	int		AddNum(int iNumElements);
 	void*	GrowToAtLeastNumElements(int iNumElements, BOOL bClear = FALSE, unsigned char  iClear = 0);  //ie:  Don't shrink the array.
 	int		Resize(int iNumElements);  //Can shrink the array.  Should probably call this resize.
