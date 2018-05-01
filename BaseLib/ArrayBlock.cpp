@@ -539,21 +539,21 @@ void CArrayBlock::Zero(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayBlock::Copy(CArrayBlock* pcTemplateArray)
+BOOL CArrayBlock::Copy(CArrayBlock* pcArray)
 {
 	BOOL	bResult;
 
 	//Assumes the array is initialised.  
 	//Returns whether or not it had to be resized.
 	bResult = FALSE;
-	if ((pcTemplateArray->miNumElements != miNumElements) || (pcTemplateArray->miChunkSize != miChunkSize))
+	if ((pcArray->miNumElements != miNumElements) || (pcArray->miChunkSize != miChunkSize))
 	{
 		bResult = TRUE;
-		miChunkSize = pcTemplateArray->miChunkSize;
-		SetArraySize(pcTemplateArray->miNumElements);
+		miChunkSize = pcArray->miChunkSize;
+		SetArraySize(pcArray->miNumElements);
 	}
-	miUsedElements = pcTemplateArray->miUsedElements;
-	CopyArrayInto(pcTemplateArray, 0);
+	miUsedElements = pcArray->miUsedElements;
+	CopyArrayInto(pcArray, 0);
 	return bResult;
 }
 
@@ -798,11 +798,7 @@ int	CArrayBlock::FindWithIntKey(int iKey, int iKeyOffset)
 //////////////////////////////////////////////////////////////////////////
 int CArrayBlock::Resize(int iNumElements)
 {
-	int	iOldUsedElements;
-
-	iOldUsedElements = miUsedElements;
-	SetUsedElements(iNumElements);
-	return iOldUsedElements;
+	return SetUsedElements(iNumElements);
 }
 
 
@@ -812,7 +808,7 @@ int CArrayBlock::Resize(int iNumElements)
 //////////////////////////////////////////////////////////////////////////
 void* CArrayBlock::GrowToAtLeastNumElements(int iNumElements, BOOL bClear, unsigned char iClear)
 {
-	int	iOldUsedElements;
+	int		iOldUsedElements;
 	void*	pvStart;
 
 	if (iNumElements == 0)
@@ -846,11 +842,7 @@ void* CArrayBlock::GrowToAtLeastNumElements(int iNumElements, BOOL bClear, unsig
 //////////////////////////////////////////////////////////////////////////
 int CArrayBlock::AddNum(int iNumElements)
 {
-	int	iOldUsedElements;
-
-	iOldUsedElements = miUsedElements;
-	SetUsedElements(iNumElements + miUsedElements);
-	return iOldUsedElements;
+	return SetUsedElements(iNumElements + miUsedElements);
 }
 
 
@@ -858,11 +850,13 @@ int CArrayBlock::AddNum(int iNumElements)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayBlock::SetUsedElements(int iUsedElements)
+int CArrayBlock::SetUsedElements(int iUsedElements)
 {
 	int	iNumAllocations;
 	int iNumLeftOvers;
+	int	iOldUsedElements;
 
+	iOldUsedElements = miUsedElements;
 	miUsedElements = iUsedElements;
 
 	//Find how many allocation chunks are needed.
@@ -877,6 +871,8 @@ void CArrayBlock::SetUsedElements(int iUsedElements)
 
 	//Num elements is the number of elements which memory has been allocated for, not the number of used elements.
 	SetArraySize(iNumAllocations * miChunkSize);
+
+	return iOldUsedElements;
 }
 
 

@@ -113,7 +113,7 @@ public:
 
 	int 	ByteSize(void);
 	int		ChunkSize(void);
-	void	SetUsedElements(int iNumElements);
+	int		SetUsedElements(int iNumElements);
 
 	BOOL	Write(CFileWriter* pcFileWriter);
 	BOOL	Read(CFileReader* pcFileReader);
