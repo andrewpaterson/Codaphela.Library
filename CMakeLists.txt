@@ -331,4 +331,9 @@ add_executable(common
         BaseLib/TypeParser.h
         BaseLib/Validation.h
         BaseLib/Version.h
-        BaseLib/WindowsHeaders.h BaseLib/ArrayChar.cpp BaseLib/ArrayFloat.cpp)
+        BaseLib/WindowsHeaders.h
+        BaseLib/ArrayChar.cpp
+        BaseLib/ArrayFloat.cpp
+        BaseLib/ArrayBlockMinimal.cpp
+        BaseLib/ArrayBlockMinimal.h
+        )

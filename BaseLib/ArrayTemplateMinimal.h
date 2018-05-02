@@ -22,23 +22,15 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __ARRAY_TEMPLATE_MINIMAL_H__
 #define __ARRAY_TEMPLATE_MINIMAL_H__
-#include "Define.h"
-#include "PointerRemapper.h"
-#include "PointerFunctions.h"
-#include "ErrorHandler.h"
-#include "FileIO.h"
-#include "Mallocator.h"
-#include "SystemAllocator.h"
 #include "ConstructorCall.h"
+#include "ArrayBlockMinimal.h"
 
 
 template <class M>
-class CArrayTemplateMinimal : protected CPostMalloc<M>
+class CArrayTemplateMinimal : public CArrayBlockMinimal, protected CPostMalloc<M>
 {
 protected:
-	int				miUsedElements;
 	M*				mpvArray;
-	CMallocator*	mpcMalloc;
 
 public:
 	void	Init(void);
@@ -125,7 +117,8 @@ protected:
 template<class M>
 void CArrayTemplateMinimal<M>::Init(void)
 {
-	Init(&gcSystemAllocator);
+	CArrayBlockMinimal::Init();
+	mpvArray = NULL;
 }
 
 
@@ -136,9 +129,8 @@ void CArrayTemplateMinimal<M>::Init(void)
 template<class M>
 void CArrayTemplateMinimal<M>::Init(CMallocator* pcMallocator)
 {
-	miUsedElements = 0;
+	CArrayBlockMinimal::Init(pcMallocator);
 	mpvArray = NULL;
-	mpcMalloc = pcMallocator;
 }
 
 
@@ -149,8 +141,8 @@ void CArrayTemplateMinimal<M>::Init(CMallocator* pcMallocator)
 template<class M>
 void CArrayTemplateMinimal<M>::Init(int iIgnored)
 {
-	Init();
-	iIgnored = 0;
+	CArrayBlockMinimal::Init(iIgnored);
+	mpvArray = NULL;
 }
 
 
@@ -161,7 +153,8 @@ void CArrayTemplateMinimal<M>::Init(int iIgnored)
 template<class M>
 void CArrayTemplateMinimal<M>::Init(CMallocator* pcMallocator, int iIgnored)
 {
-	Init(pcMallocator);
+	CArrayBlockMinimal::Init(pcMallocator, iIgnored);
+	mpvArray = NULL;
 }
 
 
@@ -188,10 +181,9 @@ void CArrayTemplateMinimal<M>::ReInit(void)
 template<class M>
 void CArrayTemplateMinimal<M>::Kill(void)
 {
+	CArrayBlockMinimal::Kill();
 	Free(mpvArray);
 	mpvArray = NULL;
-	mpcMalloc = NULL;
-	miUsedElements = 0;
 }
 
 
@@ -202,7 +194,9 @@ void CArrayTemplateMinimal<M>::Kill(void)
 template<class M>
 void CArrayTemplateMinimal<M>::Allocate(int iNum)
 {
-	Allocate(&gcSystemAllocator, iNum);
+	CArrayBlockMinimal::Init();
+	mpvArray = NULL;
+	SetArraySize(iNum);
 }
 
 
@@ -213,11 +207,10 @@ void CArrayTemplateMinimal<M>::Allocate(int iNum)
 template<class M>
 void CArrayTemplateMinimal<M>::Allocate(CMallocator* pcMallocator, int iNum)
 {
-	Init(pcMallocator);
+	CArrayBlockMinimal::Init(pcMallocator);
+	mpvArray = NULL;
 	SetArraySize(iNum);
 }
-
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -225,9 +218,12 @@ void CArrayTemplateMinimal<M>::Allocate(CMallocator* pcMallocator, int iNum)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CArrayTemplateMinimal<M>::Init(CArrayTemplateMinimal* pArray)
+void CArrayTemplateMinimal<M>::Init(CArrayTemplateMinimal* pvArray)
 {
-	Init(&gcSystemAllocator, pArray);
+	CArrayBlockMinimal::Init();
+	mpvArray = NULL;
+	Resize(pvArray->NumElements());
+	memcpy(mpvArray, pvArray->mpvArray, miUsedElements * sizeof(M));
 }
 
 
@@ -238,7 +234,8 @@ void CArrayTemplateMinimal<M>::Init(CArrayTemplateMinimal* pArray)
 template<class M>
 void CArrayTemplateMinimal<M>::Init(CMallocator* pcMalloc, CArrayTemplateMinimal* pArray)
 {
-	Init(pcMalloc);
+	CArrayBlockMinimal::Init(pcMalloc);
+	mpvArray = NULL;
 	Resize(pArray->NumElements());
 	memcpy(mpvArray, pArray->mpvArray, miUsedElements * sizeof(M));
 }
@@ -287,7 +284,7 @@ M* CArrayTemplateMinimal<M>::Add(void)
 {
 	if (SetUsedElements(miUsedElements+1))
 	{
-		return PostMalloc(&mpvArray[miUsedElements-1]);
+		return this->PostMalloc(&mpvArray[miUsedElements-1]);
 	}
 	else
 	{
@@ -625,7 +622,7 @@ M* CArrayTemplateMinimal<M>::InsertAt(int iElementPos)
 	//This assumes that iElementPos is within the array (or the last element).
 	pv = (M*)((size_t) mpvArray + iElementPos * sizeof(M));
 	memmove((M*)((size_t)pv + sizeof(M)), pv, sizeof(M) * (miUsedElements - 1 - iElementPos));
-	return PostMalloc(pv);
+	return this->PostMalloc(pv);
 }
 
 
@@ -1122,8 +1119,6 @@ void* CArrayTemplateMinimal<M>::Realloc(void* pv, size_t tSize)
 }
 
 
-
-
 //////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//
@@ -1131,12 +1126,7 @@ void* CArrayTemplateMinimal<M>::Realloc(void* pv, size_t tSize)
 template<class M>
 BOOL CArrayTemplateMinimal<M>::WriteHeader(CFileWriter* pcFileWriter)
 {
-	if (!pcFileWriter->WriteInt(miUsedElements))
-	{
-		return FALSE;
-	}
-
-	return TRUE;
+	return CArrayBlockMinimal::WriteHeader(pcFileWriter);
 }
 
 
@@ -1147,20 +1137,7 @@ BOOL CArrayTemplateMinimal<M>::WriteHeader(CFileWriter* pcFileWriter)
 template<class M>
 BOOL CArrayTemplateMinimal<M>::WriteAllocatorAndHeader(CFileWriter* pcFileWriter)
 {
-	BOOL	bResult;
-
-	bResult = gcMallocators.WriteMallocator(pcFileWriter, mpcMalloc);
-	if (!bResult)
-	{
-		return FALSE;
-	}
-
-	bResult = WriteHeader(pcFileWriter);
-	if (!bResult)
-	{
-		return FALSE;
-	}
-	return TRUE;
+	return CArrayBlockMinimal::WriteAllocatorAndHeader(pcFileWriter);
 }
 
 
@@ -1208,7 +1185,7 @@ BOOL CArrayTemplateMinimal<M>::ReadHeader(CFileReader* pcFileReader, CMallocator
 	{
 		return FALSE;
 	}
-	
+
 	return TRUE;
 }
 
@@ -1221,15 +1198,13 @@ template<class M>
 BOOL CArrayTemplateMinimal<M>::ReadAllocatorAndHeader(CFileReader* pcFileReader)
 {
 	BOOL			bResult;
-	CMallocator*	pcMalloc;
 
-	pcMalloc = gcMallocators.ReadMallocator(pcFileReader);
-	if (pcMalloc == NULL)
+	if (!CArrayBlockMinimal::ReadAllocator(pcFileReader))
 	{
 		return FALSE;
 	}
 
-	bResult = ReadHeader(pcFileReader, pcMalloc);
+	bResult = ReadHeader(pcFileReader, mpcMalloc);
 	if (!bResult)
 	{
 		return FALSE;
