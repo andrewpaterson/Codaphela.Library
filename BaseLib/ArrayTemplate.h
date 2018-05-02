@@ -128,7 +128,7 @@ BOOL CArrayTemplate<M>::SafeSet(int iIndex, M* pvData)
 template<class M>
 M* CArrayTemplate<M>::Add(void)
 {
-	return PostMalloc((M*)CArrayBlock::Add());
+	return this->PostMalloc((M*)CArrayBlock::Add());
 }
 
 
@@ -139,7 +139,7 @@ M* CArrayTemplate<M>::Add(void)
 template<class M>
 M* CArrayTemplate<M>::AddGetIndex(int* piIndex)
 {
-	return PostMalloc((M*)CArrayBlock::AddGetIndex(piIndex));
+	return this->PostMalloc((M*)CArrayBlock::AddGetIndex(piIndex));
 }
 
 
@@ -172,7 +172,7 @@ void CArrayTemplate<M>::Set(int iIndex, M* pvData)
 template<class M>
 M* CArrayTemplate<M>::InsertAt(int iIndex)  //The new element will be at iIndex
 {
-	return PostMalloc((M*)CArrayBlock::InsertAt(iIndex));
+	return this->PostMalloc((M*)CArrayBlock::InsertAt(iIndex));
 }
 
 
@@ -216,7 +216,7 @@ void CArrayTemplate<M>::Push(M* pvElement)
 template<class M>
 M* CArrayTemplate<M>::Push(void)
 {
-	return PostMalloc((M*)CArrayBlock::Push());
+	return this->PostMalloc((M*)CArrayBlock::Push());
 }
 
 
@@ -392,7 +392,7 @@ M* CArrayTemplate<M>::InsertArrayAt(CArrayTemplate<M>* pcTemplateArray, int iInd
 template<class M>
 M* CArrayTemplate<M>::InsertNumAt(int iNumElements, int iIndex)
 {
-	return PostMalloc((M*)CArrayBlock::InsertNumAt(iNumElements, iIndex), iNumElements, miElementSize);
+	return this->PostMalloc((M*)CArrayBlock::InsertNumAt(iNumElements, iIndex), iNumElements, miElementSize);
 }
 
 

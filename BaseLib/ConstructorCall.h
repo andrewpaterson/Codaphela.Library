@@ -28,6 +28,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include <type_traits>
 #endif // LINUX_GNU_32
 #include "Bool.h"
+#include "PointerRemapper.h"
 
 
 template<class M>

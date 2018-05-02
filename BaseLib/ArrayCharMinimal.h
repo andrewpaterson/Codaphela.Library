@@ -25,7 +25,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "ArrayTemplateMinimal.h"
 
 
-//Array of simple char.
 class CArrayCharMinimal : public CArrayTemplateMinimal<char>
 {
 public:
