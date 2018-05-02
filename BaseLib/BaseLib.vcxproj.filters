@@ -750,6 +750,9 @@
     <ClInclude Include="BaseMemory.h">
       <Filter>Source\Memory\Manager</Filter>
     </ClInclude>
+    <ClInclude Include="ArrayBlockMinimal.h">
+      <Filter>Source\Data\Array\Minimal</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -1177,6 +1180,9 @@
     </ClCompile>
     <ClCompile Include="BaseMemory.cpp">
       <Filter>Source\Memory\Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="ArrayBlockMinimal.cpp">
+      <Filter>Source\Data\Array\Minimal</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

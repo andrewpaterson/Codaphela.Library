@@ -90,6 +90,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="ArrayBlock.h" />
+    <ClInclude Include="ArrayBlockMinimal.h" />
     <ClInclude Include="ArrayBlockSorted.h" />
     <ClInclude Include="ArrayVoidPtr.h" />
     <ClInclude Include="BaseFileNode.h" />
@@ -273,6 +274,7 @@
   <ItemGroup>
     <ClCompile Include="ArrayBlock.cpp" />
     <ClCompile Include="ArrayBit.cpp" />
+    <ClCompile Include="ArrayBlockMinimal.cpp" />
     <ClCompile Include="ArrayBlockSorted.cpp" />
     <ClCompile Include="ArrayInt.cpp" />
     <ClCompile Include="ArrayInt2D.cpp" />
