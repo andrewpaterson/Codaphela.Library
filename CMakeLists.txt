@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-project(common)
+project(BaseLib)
 
 set(CMAKE_CXX_STANDARD 11)
 
@@ -7,7 +7,7 @@ add_definitions(-DLINUX_GNU_32)
 
 include_directories(BaseLib)
 
-add_executable(common
+add_library(BaseLib
         BaseLib/Aardvark.cpp
         BaseLib/Aardvark.h
         BaseLib/AbstractFile.cpp
