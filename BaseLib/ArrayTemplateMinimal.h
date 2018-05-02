@@ -181,9 +181,9 @@ void CArrayTemplateMinimal<M>::ReInit(void)
 template<class M>
 void CArrayTemplateMinimal<M>::Kill(void)
 {
-	CArrayBlockMinimal::Kill();
 	Free(mpvArray);
 	mpvArray = NULL;
+	CArrayBlockMinimal::Kill();
 }
 
 
