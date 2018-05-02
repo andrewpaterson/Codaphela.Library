@@ -753,6 +753,9 @@
     <ClInclude Include="ArrayBlockMinimal.h">
       <Filter>Source\Data\Array\Minimal</Filter>
     </ClInclude>
+    <ClInclude Include="ArraySizer.h">
+      <Filter>Source\Data\Array</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -1183,6 +1186,9 @@
     </ClCompile>
     <ClCompile Include="ArrayBlockMinimal.cpp">
       <Filter>Source\Data\Array\Minimal</Filter>
+    </ClCompile>
+    <ClCompile Include="ArraySizer.cpp">
+      <Filter>Source\Data\Array</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -92,6 +92,7 @@
     <ClInclude Include="ArrayBlock.h" />
     <ClInclude Include="ArrayBlockMinimal.h" />
     <ClInclude Include="ArrayBlockSorted.h" />
+    <ClInclude Include="ArraySizer.h" />
     <ClInclude Include="ArrayVoidPtr.h" />
     <ClInclude Include="BaseFileNode.h" />
     <ClInclude Include="BaseMemory.h" />
@@ -282,6 +283,7 @@
     <ClCompile Include="ArrayIntAndPointer.cpp" />
     <ClCompile Include="ArrayCharMinimal.cpp" />
     <ClCompile Include="ArrayChars.cpp" />
+    <ClCompile Include="ArraySizer.cpp" />
     <ClCompile Include="ArrayVoidPtr.cpp" />
     <ClCompile Include="BaseFileNode.cpp" />
     <ClCompile Include="BaseMemory.cpp" />
