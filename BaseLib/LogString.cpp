@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include "Chars.h"
 #include "FileUtil.h"
 #include "StringHelper.h"
@@ -51,6 +52,21 @@ char* IntToString(int i, int iBase)
 	int iCount = IncrementLogToStringCount();
 
 	IToA(i, gaszLogToStringScratchPad[iCount], iBase);
+	return gaszLogToStringScratchPad[iCount];
+}
+
+
+char* FloatToString(float f, int iDecimals)
+{
+	char	sz[] = "%.2f";
+	int iCount = IncrementLogToStringCount();
+	if (iDecimals > 9)
+	{
+		iDecimals = 9;
+	}
+
+	sz[2] = '0' + iDecimals;
+	sprintf(gaszLogToStringScratchPad[iCount], sz, f);
 	return gaszLogToStringScratchPad[iCount];
 }
 
