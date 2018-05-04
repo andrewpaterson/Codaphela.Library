@@ -5,106 +5,92 @@
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CalculateArraySized(int iUsedElements)
+int CalculateChunkSize(int iNumElements)
 {
-	if (iUsedElements <= 8)
+	if (iNumElements < 192)
 	{
-		if (iUsedElements <= 4)
+		if (iNumElements < 2)
 		{
-			if (iUsedElements <= 2)
-			{
-				if (iUsedElements <= 1)
-				{
-					return iUsedElements;
-				}
-				return 2;
-			}
+			return 1;
+		}
+		if (iNumElements < 4)
+		{
+			return 2;
+		}
+		if (iNumElements < 8)
+		{
 			return 4;
 		}
-		return 8;
-	}
-	else if (iUsedElements <= 60)
-	{
-		if (iUsedElements <= 40)
+		if (iNumElements < 16)
 		{
-			if (iUsedElements <= 27)
-			{
-				if (iUsedElements <= 18)
-				{
-					if (iUsedElements <= 12)
-					{
-						return 12;
-					}
-					return 18;
-				}
-				return 27;
-			}
-			return 40;
+			return 8;
 		}
-		return 60;
-	}
-	else if (iUsedElements <= 691)
-	{
-		if (iUsedElements <= 461)
+		if (iNumElements < 64)
 		{
-			if (iUsedElements <= 307)
-			{
-				if (iUsedElements <= 201)
-				{
-					if (iUsedElements <= 136)
-					{
-						if (iUsedElements <= 91)
-						{
-							return 91;
-						}
-						return 136;
-					}
-					return 201;
-				}
-				return 307;
-			}
-			return 461;
+			return 16;
 		}
-		return 691;
+		return 32;
 	}
-	else if (iUsedElements <= 7882)
+	else if (iNumElements < 2916)
 	{
-		if (iUsedElements <= 5254)
+		if (iNumElements < 288)
 		{
-			if (iUsedElements <= 3503)
-			{
-				if (iUsedElements <= 2335)
-				{
-					if (iUsedElements <= 1556)
-					{
-						if (iUsedElements <= 1037)
-						{
-							return 91;
-						}
-						return 136;
-					}
-					return 201;
-				}
-				return 307;
-			}
-			return 461;
+			return 48;
 		}
-		return 7882;
+		if (iNumElements < 432)
+		{
+			return 72;
+		}
+		if (iNumElements < 648)
+		{
+			return 108;
+		}
+		if (iNumElements < 972)
+		{
+			return 162;
+		}
+		if (iNumElements < 1458)
+		{
+			return 243;
+		}
+		return 486;
+	}
+	else if (iNumElements < 182250)
+	{
+		if (iNumElements < 4374)
+		{
+			return 729;
+		}
+		if (iNumElements < 8748)
+		{
+			return 1458;
+		}
+		if (iNumElements < 13122)
+		{
+			return 2187;
+		}
+		if (iNumElements < 26244)
+		{
+			return 4374;
+		}
+		if (iNumElements < 39366)
+		{
+			return 6561;
+		}
+		if (iNumElements < 65610)
+		{
+			return 13122;
+		}
+		if (iNumElements < 109350)
+		{
+			return 21870;
+		}
+		return 36450;
+
 	}
 	else
 	{
-		return iUsedElements;
+		return 60750;
 	}
-}
-
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-BOOL ArrayMustBeResizedForAdd(int iNewElements, int iOldElements, int* piNewArraySize)
-{
-	return FALSE;
 }
 

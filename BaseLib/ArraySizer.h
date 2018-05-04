@@ -3,8 +3,7 @@
 #include "Define.h"
 
 
-int CalculateArraySized(int iUsedElements);
-BOOL ArrayMustBeResizedForAdd(int iNewElements, int iOldElements, int* piNewArraySize);
+int CalculateChunkSize(int iNumElements);
 
 
 #endif // __ARRAY_SIZER_H__
