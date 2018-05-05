@@ -4,6 +4,7 @@
 
 
 int CalculateChunkSize(int iNumElements);
+int CalculateArraySize(int iNumElements, int iChunkSize);
 
 
 #endif // __ARRAY_SIZER_H__

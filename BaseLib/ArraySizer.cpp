@@ -94,3 +94,34 @@ int CalculateChunkSize(int iNumElements)
 	}
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+int CalculateArraySize(int iNumElements, int iChunkSize)
+{
+	int	iNewChunkSize;
+	int	iNumAllocations;
+	int iNumLeftOvers;
+	int	iOldUsedElements;
+
+	iNewChunkSize = CalculateChunkSize(iNumElements);
+	if (iNewChunkSize < iChunkSize)
+	{
+		iNewChunkSize = iChunkSize;
+	}
+
+	iOldUsedElements = iNumElements;
+
+	iNumAllocations = iNumElements / iNewChunkSize;
+	iNumLeftOvers = iNumElements % iNewChunkSize;
+
+	if (iNumLeftOvers > 0)
+	{
+		iNumAllocations++;
+	}
+
+	return iNumAllocations * iNewChunkSize;
+}
+
