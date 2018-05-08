@@ -114,6 +114,8 @@ public:
 	int		ChunkSize(void);
 	int		SetUsedElements(int iNumElements);
 
+	int		RemoveAtNoDeallocate(int iIndex);
+
 	BOOL	Write(CFileWriter* pcFileWriter);
 	BOOL	Read(CFileReader* pcFileReader);
 

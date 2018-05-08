@@ -152,6 +152,18 @@ int CArrayBlock::SetUsedElements(int iUsedElements)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
+int CArrayBlock::RemoveAtNoDeallocate(int iIndex)
+{
+	//This is only used by CConvexHullGenerator.RemoveDiscontiguousTriangles/
+	//It should be removed.
+	return RemoveAtNoDeallocate(iIndex, FALSE, miElementSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
 void CArrayBlock::SetArraySize(int iNeededElements)
 {
 	void*	ptr;

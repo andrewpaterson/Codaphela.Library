@@ -486,7 +486,7 @@ BOOL CConvexHullGenerator::RemoveDiscontiguousTriangles(CExtremeTriangle* pcSele
 	papcTemp->Add(&pcSelected);
 
 	iIndex = papcTriangles->FindWithIntKey((int)(size_t)pcSelected, 0);
-	papcTriangles->RemoveAtNoDeallocate(iIndex, FALSE);
+	papcTriangles->RemoveAtNoDeallocate(iIndex);
 
 	for (i = 0; i < papcTemp->NumElements(); i++)
 	{
@@ -496,7 +496,7 @@ BOOL CConvexHullGenerator::RemoveDiscontiguousTriangles(CExtremeTriangle* pcSele
 			pcTriangle2 = *papcTriangles->Get(j);
 			if (TriangleAdjacent(pcTriangle1, pcTriangle2))
 			{
-				papcTriangles->RemoveAtNoDeallocate(j, FALSE);
+				papcTriangles->RemoveAtNoDeallocate(j);
 				j--;
 
 				papcTemp->Add(&pcTriangle2);
