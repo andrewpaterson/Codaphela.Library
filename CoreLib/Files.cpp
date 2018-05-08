@@ -462,3 +462,16 @@ void CFiles::StopIteration(CFileIterator* pcIter)
 	pcIter->Kill();
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CPackFiles* CFiles::GetPackFiles(int iIndex)
+{
+	CPackFileOffset*	pcOffset;
+
+	pcOffset = mcPackFilesArray.Get(iIndex);
+	return &pcOffset->mcPackFiles;
+}
+
