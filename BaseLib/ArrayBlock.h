@@ -100,7 +100,6 @@ public:
 
 	void 	RemoveAt(int iIndex, int bPreserveOrder = TRUE);
 	void	RemoveAt(int* paiIndex, int iNumElements, BOOL bPreserveOrder = TRUE);
-	void	RemoveAtNoDeallocate(int iIndex, int bPreserveOrder);
 	void	RemoveRange(int iStartIndex, int iEndIndexExclusive, BOOL bPreserveOrder = TRUE);
 	void 	RemoveTail(void);
 	void	RemoveBatch(int iFirstIndex, int iNumInBatch, int iNumBatches, int iStrideToNextBatch);
@@ -133,7 +132,7 @@ protected:
 	void*	CopyBlockInto(void* paElements, int iLength, int iIndex);
 	void	PrivateRemoveAt(int iIndex, BOOL bPreserveOrder, int iDataSize);
 	void	PrivateRemoveRange(int iStartIndex, int iEndIndexExclusive, int bPreserveOrder, int iDataSize);
-	void	RemoveAtNoDeallocate(int iIndex, BOOL bPreserveOrder, int iDataSize);
+	int		RemoveAtNoDeallocate(int iIndex, BOOL bPreserveOrder, int iDataSize);
 	void 	SetArraySize(int iNumElements);
 };
 

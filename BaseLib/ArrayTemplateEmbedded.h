@@ -57,7 +57,7 @@ public:
 	M*		Add(void);
 	M*		Add(M* pData);
 	int 	ByteSize(void);
-	int		ChunkSize(void);
+	int		EmbeddedSize(void);
 	int 	Find(M* pvElement);
 	M*		Get(int iIndex);
 	M*		GetData(void);
@@ -242,7 +242,7 @@ int CArrayTemplateEmbedded<M, I>::ByteSize(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, int I>
-int CArrayTemplateEmbedded<M, I>::ChunkSize(void)
+int CArrayTemplateEmbedded<M, I>::EmbeddedSize(void)
 {
 	return miChunkSize;
 }
@@ -603,10 +603,6 @@ BOOL CArrayTemplateEmbedded<M, I>::TestInternalConsistency(void)
 	else
 	{
 		if (miUsedElements != mcArray.NumElements())
-		{
-			return FALSE;
-		}
-		if (miChunkSize != mcArray.ChunkSize())
 		{
 			return FALSE;
 		}
