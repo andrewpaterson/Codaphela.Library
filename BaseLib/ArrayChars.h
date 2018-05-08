@@ -45,6 +45,7 @@ public:
 	CChars*		Add(char* szText, char* szLastCharInclusive);
 	CChars*		AddIfUnique(char* szString);
 	CChars*		AddIfUnique(CChars cChars);
+	void		AddList(char* sz, ...);
 	CChars*		InsertIntoSorted(char* szText, char* szLastCharInclusive);
 	void 		Remove(CChars* pcChars);
 	void 		Remove(char* szString);

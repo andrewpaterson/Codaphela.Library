@@ -1,5 +1,6 @@
 #include "SystemAllocator.h"
 #include "GlobalMemory.h"
+#include "ArraySizer.h"
 #include "ArrayBlock.h"
 
 
@@ -17,14 +18,14 @@ void CArrayBlock::Init(int iElementSize, int iChunkSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayBlock::Init(CMallocator* pcMalloc, int iElementSize, int iChunkSize)
+void CArrayBlock::Init(CMallocator* pcMalloc, int iElementSize, int iChunkSizee)
 {
 	mpcMalloc = pcMalloc;
 	mpvArray = NULL;
 	miNumElements = 0;
 	miUsedElements = 0;
 	miElementSize = iElementSize;
-	miChunkSize = iChunkSize;
+	miChunkSize = 1;
 }
 
 
@@ -39,7 +40,7 @@ void CArrayBlock::Fake(int iElementSize, void* pvData, int iNum, int iChunkSize)
 	miElementSize = iElementSize;
 	miNumElements = iChunkSize;
 	miUsedElements = iNum;
-	miChunkSize = iChunkSize;
+	miChunkSize = 1;
 }
 
 
@@ -53,14 +54,7 @@ void CArrayBlock::ReInit(int iChunkSize)
 
 	pcMalloc = mpcMalloc;
 	Kill();
-	if (iChunkSize == 0)
-	{
-		Init(pcMalloc, miElementSize, miChunkSize);
-	}
-	else
-	{
-		Init(pcMalloc, miElementSize, iChunkSize);
-	}
+	Init(pcMalloc, miElementSize, miChunkSize);  //Put this back.
 }
 
 
@@ -117,6 +111,7 @@ void* CArrayBlock::SafeGet(int iIndex)
 //////////////////////////////////////////////////////////////////////////
 BOOL CArrayBlock::SafeSet(int iIndex, void* pvData)
 {
+	//Fix for virtual in CArrayTemplate
 	int		iOldLength;
 
 	if (iIndex < 0)
@@ -143,34 +138,55 @@ BOOL CArrayBlock::SafeSet(int iIndex, void* pvData)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayBlock::SetArraySize(int iNumElements)
+int CArrayBlock::SetUsedElements(int iUsedElements)
 {
-	void* ptr;
+	int	iOldUsedElements;
 
-	if (iNumElements == 0)
+	iOldUsedElements = miUsedElements;
+	SetArraySize(iUsedElements);
+	return iOldUsedElements;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CArrayBlock::SetArraySize(int iNeededElements)
+{
+	void*	ptr;
+	int		iNumElements;
+	int		iChunkSize;
+
+	if (iNeededElements == 0)
 	{
 		if (mpvArray != NULL)
 		{
 			Free(mpvArray);
 			mpvArray = NULL;
-			miNumElements = 0;
 		}
+		miNumElements = 0;
+		miUsedElements = 0;
 	}
 	else
 	{
+		iChunkSize = CalculateChunkSize(iNeededElements, miChunkSize);
+		iNumElements = CalculateArraySize(iNeededElements, iChunkSize);
+
 		if (miNumElements != iNumElements)
 		{
 			ptr = (void*)Realloc(mpvArray, miElementSize * iNumElements);
 			mpvArray = ptr;
-			if (mpvArray != NULL)
+			if (mpvArray == NULL)
 			{
-				miNumElements = iNumElements;
-			}
-			else
-			{
-				miUsedElements = miNumElements = 0;
+				iNeededElements = 0;
+				iNumElements = 0;
 			}
 		}
+
+		miUsedElements = iNeededElements;
+		miChunkSize = iChunkSize;
+		miNumElements = iNumElements;
 	}
 }
 
@@ -184,7 +200,7 @@ void* CArrayBlock::Add(void)
 	miUsedElements++;
 	if (miUsedElements > miNumElements)
 	{
-		SetArraySize(miNumElements + miChunkSize);
+		SetArraySize(miUsedElements);
 	}
 	return Tail();
 }
@@ -244,7 +260,7 @@ void* CArrayBlock::InsertAt(int iIndex)  //The new element will be at iIndex
 	miUsedElements++;
 	if (miUsedElements > miNumElements)
 	{
-		SetArraySize(miNumElements + miChunkSize);
+		SetArraySize(miUsedElements);
 	}
 	pSource = Get(iIndex);
 	pDest = RemapSinglePointer(pSource, miElementSize);
@@ -276,7 +292,7 @@ void CArrayBlock::PrivateRemoveAt(int iIndex, BOOL bPreserveOrder, int iDataSize
 {
 	if ((iIndex < miUsedElements) && (iIndex >= 0))
 	{
-		RemoveAtNoDeallocate(iIndex, bPreserveOrder, iDataSize);
+		miUsedElements = RemoveAtNoDeallocate(iIndex, bPreserveOrder, iDataSize);
 
 		if (miUsedElements == miNumElements - miChunkSize)
 		{
@@ -290,16 +306,18 @@ void CArrayBlock::PrivateRemoveAt(int iIndex, BOOL bPreserveOrder, int iDataSize
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayBlock::RemoveAtNoDeallocate(int iIndex, BOOL bPreserveOrder, int iDataSize)
+int CArrayBlock::RemoveAtNoDeallocate(int iIndex, BOOL bPreserveOrder, int iDataSize)
 {
 	void*	pSource;
 	void*	pDest;
 	void*	pEnd;
+	int		iUsedElements;
 
-	miUsedElements--;
-	if (iIndex == miUsedElements)
+	iUsedElements = miUsedElements;
+	iUsedElements--;
+	if (iIndex == iUsedElements)
 	{
-		return;
+		return iUsedElements;
 	}
 
 	pSource = RemapSinglePointer(mpvArray, iIndex * iDataSize);
@@ -308,28 +326,15 @@ void CArrayBlock::RemoveAtNoDeallocate(int iIndex, BOOL bPreserveOrder, int iDat
 	{
 		//If the order of elements is to be preserved then move all the elements back one.
 		pDest = (void*)RemapSinglePointer(pSource, iDataSize);
-		memmove_fast(pSource, pDest, iDataSize * (miUsedElements - iIndex));
+		memmove_fast(pSource, pDest, iDataSize * (iUsedElements - iIndex));
 	}
 	else
 	{
 		//If the order is unimportant then just move the last element to the empty.
-		pEnd = (void*)RemapSinglePointer(mpvArray, miUsedElements * iDataSize);
+		pEnd = (void*)RemapSinglePointer(mpvArray, iUsedElements * iDataSize);
 		memcpy_fast(pSource, pEnd, iDataSize);
 	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void CArrayBlock::RemoveAtNoDeallocate(int iIndex, int bPreserveOrder)
-{
-	//Once you've used this function you may not use 'RemoveAt'.
-	if ((iIndex < miUsedElements) && (iIndex >= 0))
-	{
-		RemoveAtNoDeallocate(iIndex, bPreserveOrder, miElementSize);
-	}
+	return iUsedElements;
 }
 
 
@@ -545,14 +550,16 @@ BOOL CArrayBlock::Copy(CArrayBlock* pcArray)
 
 	//Assumes the array is initialised.  
 	//Returns whether or not it had to be resized.
-	bResult = FALSE;
-	if ((pcArray->miNumElements != miNumElements) || (pcArray->miChunkSize != miChunkSize))
+	if (pcArray->miNumElements != miNumElements)
 	{
 		bResult = TRUE;
-		miChunkSize = pcArray->miChunkSize;
-		SetArraySize(pcArray->miNumElements);
+		SetArraySize(pcArray->miUsedElements);
 	}
-	miUsedElements = pcArray->miUsedElements;
+	else
+	{
+		bResult = FALSE;
+		miUsedElements = pcArray->miUsedElements;
+	}
 	CopyArrayInto(pcArray, 0);
 	return bResult;
 }
@@ -843,36 +850,6 @@ void* CArrayBlock::GrowToAtLeastNumElements(int iNumElements, BOOL bClear, unsig
 int CArrayBlock::AddNum(int iNumElements)
 {
 	return SetUsedElements(iNumElements + miUsedElements);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-int CArrayBlock::SetUsedElements(int iUsedElements)
-{
-	int	iNumAllocations;
-	int iNumLeftOvers;
-	int	iOldUsedElements;
-
-	iOldUsedElements = miUsedElements;
-	miUsedElements = iUsedElements;
-
-	//Find how many allocation chunks are needed.
-	iNumAllocations = iUsedElements / miChunkSize;
-	iNumLeftOvers = iUsedElements % miChunkSize;
-
-	//If there are any additional elements then allocate a new chunk for them.
-	if (iNumLeftOvers > 0)
-	{
-		iNumAllocations++;
-	}
-
-	//Num elements is the number of elements which memory has been allocated for, not the number of used elements.
-	SetArraySize(iNumAllocations * miChunkSize);
-
-	return iOldUsedElements;
 }
 
 

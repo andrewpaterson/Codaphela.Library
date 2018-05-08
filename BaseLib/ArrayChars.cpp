@@ -157,6 +157,33 @@ CChars* CArrayChars::Add(char* szText, char* szLastCharInclusive)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
+void CArrayChars::AddList(char* sz, ...)
+{
+	va_list		vaMarker;
+	char*		szValue;
+
+	if (sz == NULL)
+	{
+		return;
+	}
+
+	Add(sz);
+
+	va_start(vaMarker, sz);
+	szValue = va_arg(vaMarker, char*);
+	while (szValue != NULL)
+	{
+		Add(szValue);
+		szValue = va_arg(vaMarker, char*);
+	}
+	va_end(vaMarker);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
 CChars* CArrayChars::AddIfUnique(char* szString)
 {
 	int			i;
