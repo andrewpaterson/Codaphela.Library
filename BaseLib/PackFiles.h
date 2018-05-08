@@ -70,6 +70,7 @@ public:
 
 	BOOL					Unpack(char* szDirectory);
 	void					FixParents(void);
+	char*					GetFileName(void);
 
 protected:
 	BOOL					BeginRead(void);

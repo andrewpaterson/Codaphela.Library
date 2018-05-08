@@ -53,6 +53,8 @@ public:
 	filePos		GetFilePos(void);
 	filePos		GetFileSize(void);  //Same as GetFileLength.
 
+	char*		GetFileName(void);
+
 	//Generally you shouldn't use these.  Use WriteData instead.
 	filePos		Write(const void* pvSource, filePos iSize, filePos iCount);
 	filePos		Read(void* pvDest, filePos iSize, filePos iCount);

@@ -54,6 +54,8 @@ public:
 
 	void					GetFileNames(CMapStringInt* cFileNames);
 
+	CPackFiles*				GetPackFiles(int iIndex);
+
 protected:
 	CDiskFile*				GetSystemFile(char* szFullName);
 	CPackFile*				GetPackFile(char* szFullName);
