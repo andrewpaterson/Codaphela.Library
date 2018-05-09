@@ -159,7 +159,7 @@ void CMeshSelectionConverter::AddSelectedFaces(void)
 	iStartVertex = mpcObject->GetNumberOfVerticesOfType(D3DFVF_CVERTEX);
 	iNumFaces = 0;
 
-	aiSkinIndices.Init(8);
+	aiSkinIndices.Init();
 	for (iFaceNum = 0; iFaceNum < mpcMeshEditor->mcSelections.mcFaces.NumElements(); iFaceNum++)
 	{
 		psFace = mpcMeshEditor->mpcMesh->GetFace(iFaceNum);
@@ -208,7 +208,7 @@ void CMeshSelectionConverter::AddSelectedEdges(void)
 	iStartVertex = mpcObject->GetNumberOfVerticesOfType(D3DFVF_CVERTEX);
 	iNumEdges = 0;
 
-	aiSkinIndices.Init(8);
+	aiSkinIndices.Init();
 	for (iEdgeNum = 0; iEdgeNum < mpcMeshEditor->mcSelections.mcEdges.NumElements(); iEdgeNum++)
 	{
 		bSelected = FixBool(mpcMeshEditor->mcSelections.mcEdges.Get(iEdgeNum));
@@ -318,7 +318,7 @@ void CMeshSelectionConverter::AddSelectedVerts(void)
 	iStartVertex = mpcObject->GetNumberOfVerticesOfType(D3DFVF_CVERTEX);
 	iNumCorners = 0;
 
-	aiSkinIndices.Init(8);
+	aiSkinIndices.Init();
 	for (iCornerNum = 0; iCornerNum < mpcMeshEditor->mcSelections.mcVerts.NumElements(); iCornerNum++)
 	{
 		bSelected = FixBool(mpcMeshEditor->mcSelections.mcVerts.Get(iCornerNum));

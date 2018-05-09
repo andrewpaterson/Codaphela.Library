@@ -30,8 +30,8 @@ Microsoft DirectX is Copyright Microsoft Corporation
 //////////////////////////////////////////////////////////////////////////
 void CMap2D::Init(CGraphicsObject* pcGraphicsObject)
 {
-	macActiveSet.Init(32);
-	macCacheSet.Init(32);
+	macActiveSet.Init();
+	macCacheSet.Init();
 	macActiveSet.KillElements(FALSE);
 	macCacheSet.KillElements(FALSE);
 	mpcGraphicsObject = pcGraphicsObject;

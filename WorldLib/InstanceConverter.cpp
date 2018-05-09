@@ -94,7 +94,7 @@ void CInstanceConverter::ConvertConnectionsAndIndices(CArrayIntAndPointer* pcCon
 	int				iConnectionIndex;
 	CConnection*	pcConnection;
 
-	pcConnectionAndIndex->Init(16);
+	pcConnectionAndIndex->Init();
 
 	//I think you're trying to do some sort of state based ordering here.
 	for (i = 0; i < pcConnectionIndices->NumElements(); i++)

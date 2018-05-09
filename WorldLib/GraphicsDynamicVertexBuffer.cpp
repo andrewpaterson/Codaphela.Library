@@ -46,7 +46,7 @@ void CGraphicsDynamicVertexBuffer::Init(int iD3DVertexType)
 	CVertexBufferExtended::Init();
 	iVertexFormat = iD3DVertexType;
 	iVertexSize = gcD3D.GetVertexFormatSize(iD3DVertexType);
-	mcVerts.Init(iVertexSize, DYNAMIC_VERTEX_BUFFER_CHUNK_SIZE);
+	mcVerts.Init(iVertexSize);
 	
 	//Remember this must still be locked before use.
 }

@@ -40,7 +40,7 @@ void CVertexBufferArrayFormat::Init(SD3DVertexType* psVertexType)
 {
 	mpsVertexType = psVertexType;
 	miNumVerticies = 0;
-	macMeshVertexArrays.Init(8);
+	macMeshVertexArrays.Init();
 	macMeshVertexArrays.KillElements(FALSE);
 }
 
@@ -117,7 +117,7 @@ BOOL CMeshConverter::Convert(CGraphicsObject** ppcGraphicsObject, CMeshObject** 
 		return FALSE;
 	}
 
-	maiMatrixIndices.Init(256);
+	maiMatrixIndices.Init();
 
 	//Create the graphics object for the conversion destination.
 	mpcGraphicsObject = mpcSceneConverter->GetWorld()->CreateGraphicsObject(FALSE);
@@ -395,7 +395,7 @@ void CMeshConverter::CollectVertexBuffersByFormat(CArrayVertexBufferArrayFormat*
 	CVertexBufferArrayFormat*	pcVertexBuffer;
 
 	psCurrent = NULL;
-	pcArray->Init(8);
+	pcArray->Init();
 
 	//mpcMesh->mcFaceTypes.mcUniqueTypes is sorted by vertex type
 	for (i = 0; i < mpcMesh->mcFaceTypes.mcUniqueTypes.NumElements(); i++)

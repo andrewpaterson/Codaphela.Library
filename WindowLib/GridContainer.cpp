@@ -28,8 +28,8 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 void CGridContainer::Init(CViewport* pcViewport)
 {
 	CComponent::Init(pcViewport);
-	macCells.Init(4);
-	maiCellIndices.Init(8);
+	macCells.Init();
+	maiCellIndices.Init();
 }
 
 

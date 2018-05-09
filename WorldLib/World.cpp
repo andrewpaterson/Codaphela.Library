@@ -146,7 +146,7 @@ void CWorld::Draw(void)
 	CArrayBlock			cArrayTranslucent;
 	int					i;
 
-	cArrayTranslucent.Init(sizeof(CGraphicsInstance*), 128);
+	cArrayTranslucent.Init(sizeof(CGraphicsInstance*));
 	for (i = 0; i < mcGraphicsInstanceList.NumElements(); i++)
 	{
 		pcGraphicsInstance = mcGraphicsInstanceList.Get(i);
@@ -756,7 +756,7 @@ CAnimation* CWorld::CreateAnimation(int iCelChunkSize, char* szName)
 {
 	CAnimation*		pcAnimation;
 
-	pcAnimation = mcAnimationManager.Create(iCelChunkSize, szName);
+	pcAnimation = mcAnimationManager.Create(szName);
 	return pcAnimation;
 }
 
