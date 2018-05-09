@@ -48,6 +48,8 @@ private:
 public:
 	void					Init(CMemoryFreeListParams*	pcFreeListParams);
 	void					Kill(void);
+	void					ReInit(void);
+
 	void*					Add(unsigned int iSize);
 	void					Remove(void* pv);
 	BOOL					Remove(CArrayVoidPtr* pav);

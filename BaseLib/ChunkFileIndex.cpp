@@ -43,7 +43,7 @@ void SChunkIndex::Init(filePos iChunkDataPos, int iName, filePos iChunkSize)
 //////////////////////////////////////////////////////////////////////////
 void CChunkIndex::ReadInit(void)
 {
-	mcChunkIndices.Init(CHUNK_INDEX_CHUNK_SIZE);
+	mcChunkIndices.Init();
 }
 
 
@@ -53,7 +53,7 @@ void CChunkIndex::ReadInit(void)
 //////////////////////////////////////////////////////////////////////////
 void CChunkIndex::WriteInit(void)
 {
-	mcChunkIndices.Init(CHUNK_INDEX_CHUNK_SIZE);
+	mcChunkIndices.Init();
 }
 
 

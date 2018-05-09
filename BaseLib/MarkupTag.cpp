@@ -33,7 +33,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 void CMarkupTag::Init(CMarkupTag* pcParent)
 {
 	CMarkupBase::Init(MUT_Tag, pcParent);
-	macBases.Init(16);
+	macBases.Init();
 	mcAttributes.Init(1);
 	mszName.Init();
 	miLine = -1;
@@ -48,7 +48,7 @@ void CMarkupTag::Init(CMarkupTag* pcParent)
 void CMarkupTag::Init(char* szName, CMarkupTag* pcParent)
 {
 	CMarkupBase::Init(MUT_Tag, pcParent);
-	macBases.Init(16);
+	macBases.Init();
 	mcAttributes.Init(1);
 	mszName.Init(szName);
 	miLine = -1;

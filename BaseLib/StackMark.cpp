@@ -41,7 +41,7 @@ void SStackMark::Init(int iUsedMemory, int iElements)
 //////////////////////////////////////////////////////////////////////////
 void CStackMarkExtended::Init(int iElements)
 {
-	mcMarks.Init(4);
+	mcMarks.Init();
 	miElements = iElements;
 }
 

@@ -8,7 +8,7 @@
 void CFileSystemIterator::Init(void)
 {
 	mpcCurrent = NULL;
-	macDepth.Init(8);
+	macDepth.Init();
 }
 
 

@@ -31,7 +31,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 void CMarkupDoc::Init(CMarkup* pcMarkup)
 {
 	mpcRootTag = NULL;
-	macRefs.Init(8);
+	macRefs.Init();
 	mpcMarkup = pcMarkup;
 }
 

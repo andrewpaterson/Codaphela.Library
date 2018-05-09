@@ -63,7 +63,7 @@ void SCSVRowImmutable::Dump(void)
 void CCSVFileImmutable::Init(char cSeparator)
 {
 	CCSVFile::Init(cSeparator);
-	mapsCSVRows.Init(16384);
+	mapsCSVRows.Init();
 }
 
 

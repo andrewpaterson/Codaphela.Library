@@ -65,7 +65,7 @@ void CMemoryFreeListParams::Init(int iHeaderSize, BOOL bDefaultFreeListParams)
 	}
 	else
 	{
-		mcParams.Init(1);
+		mcParams.Init();
 		muiFreeListSizeLimit = 0;
 	}
 }
@@ -90,7 +90,7 @@ void CMemoryFreeListParams::InitFreeListParams(void)
 {
 	SMemoryFreeListParams		sParam;
 
-	mcParams.Init(1);
+	mcParams.Init();
 	mcParams.Add(sParam.Init(24, 16, 32 * 32, miHeaderSize));
 	mcParams.Add(sParam.Init(32, 24, 28 * 32, miHeaderSize));
 	mcParams.Add(sParam.Init(40, 32, 24 * 32, miHeaderSize));

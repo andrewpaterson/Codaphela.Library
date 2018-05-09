@@ -31,7 +31,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //////////////////////////////////////////////////////////////////////////
 void CCalculator::Init(void)
 {
-	mszOperators.Init(22);
+	mszOperators.Init();
 	mszOperators.Add("++");
 	mszOperators.Add("--");
 	mszOperators.Add("==");
@@ -55,7 +55,7 @@ void CCalculator::Init(void)
 	mszOperators.Add(">");
 	mszOperators.Add("~");
 
-	maiPrecedence.Init(22);
+	maiPrecedence.Init();
 	maiPrecedence.Add(0);	// CO_Increment,
 	maiPrecedence.Add(0);	// CO_Decrement,
 	maiPrecedence.Add(6);	// CO_EqualTo,
@@ -139,7 +139,7 @@ BOOL CCalculator::Expression(CCalcExpression** ppcExpression)
 	CCalcOperator*		pcOperator;
 	CCalcExpression*	pcOperand;
 
-	cArray.Init(16);
+	cArray.Init();
 	bFirst = TRUE;
 	for (;;)
 	{

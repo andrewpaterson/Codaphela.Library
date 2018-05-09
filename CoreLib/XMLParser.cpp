@@ -44,7 +44,7 @@ void CXMLParser::Init(CMarkupDoc* pcDoc, CLogger* pcLogger)
 	miDepth = 0;
 	mpcCurrent = NULL;
 	mpcLogger = pcLogger;
-	macEntities.Init(8);
+	macEntities.Init();
 }
 
 
@@ -608,7 +608,7 @@ TRISTATE CXMLParser::ParseText(void)
 	iLine = mcParser.Line();
 	iColumn = mcParser.Column();
 
-	szText.Init(16);
+	szText.Init();
 	tResult = ParseText(&szText);
 	if (tResult == TRITRUE)
 	{

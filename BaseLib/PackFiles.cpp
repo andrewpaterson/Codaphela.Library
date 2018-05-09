@@ -506,7 +506,7 @@ BOOL CPackFiles::AddDirectory(char* szDirectory, char* szPackDirectory)
 	BOOL			bResult;
 	BOOL			bAnyFiles;
 
-	aszFileNames.Init(256);
+	aszFileNames.Init();
 	bAnyFiles = cFileUtil.FindAllFiles(szDirectory, &aszFileNames, TRUE, FALSE);
 
 	if (!bAnyFiles)
@@ -829,7 +829,7 @@ BOOL CPackFiles::WriteUnwrittenNames(void)
 	CChars	szPath;
 	BOOL	bResult;
 
-	szPath.Init(1024);
+	szPath.Init();
 	bResult = RecurseWriteUnwrittenNames(mcNames.GetRoot(), &szPath);
 	szPath.Kill();
 	return bResult;

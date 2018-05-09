@@ -77,7 +77,7 @@ BOOL CTextParser::Init(char* szText, int iTextLen)
 		mbCaseSensitive = TRUE;
 		mbAnnotated = FALSE;
 		mbOutsideText = TRUE;
-		masPositions.Init(32);
+		masPositions.Init();
 		return TRUE;
 	}
 	else if (CountCarriageReturns(szText, iTextLen) == 0)
@@ -91,7 +91,7 @@ BOOL CTextParser::Init(char* szText, int iTextLen)
 		mbCaseSensitive = TRUE;
 		mbAnnotated = FALSE;
 		TestEnd();
-		masPositions.Init(32);
+		masPositions.Init();
 		PushPosition();
 		return TRUE;
 	}
@@ -103,7 +103,7 @@ BOOL CTextParser::Init(char* szText, int iTextLen)
 		mszParserPos = NULL;
 		mszEndOfText = NULL;
 		miTextLen = 0;
-		masPositions.Init(32);
+		masPositions.Init();
 
 		gcLogger.Error("Parsed text contains carriage returns.");
 		return FALSE;
@@ -154,7 +154,7 @@ void STextPosition::Init(void)
 void SParseState::Init(void)
 {
 	sCurrent.Init();
-	asPrev.Init(1);
+	asPrev.Init();
 }
 
 
@@ -1912,7 +1912,7 @@ void CTextParser::Restart(void)
 	miLine = 0;
 	miColumn = 0;
 	masPositions.Kill();
-	masPositions.Init(1);
+	masPositions.Init();
 	PushPosition();
 	TestEnd();
 }

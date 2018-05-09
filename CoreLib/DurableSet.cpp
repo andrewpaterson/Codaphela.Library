@@ -35,7 +35,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //////////////////////////////////////////////////////////////////////////
 void CDurableSet::Init(char* szMarkStartFile, char* szMarkRewriteFile)
 {
-	mapcFiles.Init(2048);
+	mapcFiles.Init();
 	mszMarkStart.Init(szMarkStartFile);
 	mszMarkRewrite.Init(szMarkRewriteFile);
 	mbBegun = FALSE;

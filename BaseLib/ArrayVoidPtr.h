@@ -10,7 +10,6 @@ class CArrayVoidPtr : public __CArrayVoidPtr
 {
 public:
 	void	Init(void);
-	void	Init(int iChunkSize);
 	void	Kill(void);
 	void	Add(void* pv);
 	void*	GetPtr(int iIndex);

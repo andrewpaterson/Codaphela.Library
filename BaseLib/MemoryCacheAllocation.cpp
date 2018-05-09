@@ -7,7 +7,7 @@
 //////////////////////////////////////////////////////////////////////////
 void CMemoryCacheAllocation::Init(int iDataSize)
 {
-	mapEvictedCacheDescriptors.Init(256);
+	mapEvictedCacheDescriptors.Init();
 	miDataSize = iDataSize;
 	
 	mpsCacheDesc = NULL;

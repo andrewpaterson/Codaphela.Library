@@ -146,7 +146,7 @@ template<class M>
 void __CEnumeratorTemplate<M>::Init(void)
 {
 	this->mbCaseSensitive = TRUE;
-	this->mcIDArray.Init(4096);
+	this->mcIDArray.Init();
 	this->mcList.Init();
 }
 

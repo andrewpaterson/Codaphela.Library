@@ -993,7 +993,7 @@ void ToFloat3String(SFloat3* psFloat3, char* sz, int iWholeNumbers, int iDecimal
 {
 	CChars	c;
 
-	c.Init(70);
+	c.Init();
 	psFloat3->ToString(&c, iWholeNumbers, iDecimals);
 	strcpy(sz, c.Text());
 	c.Kill();

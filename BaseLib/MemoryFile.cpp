@@ -26,7 +26,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "IntegerHelper.h"
 #include "ConstructorCall.h"
 #include "MemoryFile.h"
-#define MEMORY_FILE_CHUNK_SIZE	4096
+
 
 #define MEMORY_FILE_READ_FLAG         0x0001
 #define MEMORY_FILE_WRITE_FLAG        0x0002
@@ -51,7 +51,7 @@ void CMemoryFile::Init(void)
 void CMemoryFile::Init(void* pvInitialMem, int iInitialLength)
 {
 	CAbstractFile::Init();
-	mcArray.Init(MEMORY_FILE_CHUNK_SIZE);
+	mcArray.Init();
 	mbOpen = FALSE;
 	mpvInitialMem = pvInitialMem;
 	miInitialLength = iInitialLength;
@@ -359,7 +359,6 @@ int CMemoryFile::GetBufferSize(void)
 void CMemoryFile::SetBufferPointer(void* pvBuffer)
 {
 	mcArray.Fake((char*)pvBuffer, mcArray.NumElements());
-	mcArray.SetAllocateSize(MEMORY_FILE_CHUNK_SIZE);
 }
 
 
@@ -370,7 +369,6 @@ void CMemoryFile::SetBufferPointer(void* pvBuffer)
 void CMemoryFile::SetBufferSize(int iBufferSize)
 {
 	mcArray.Fake(mcArray.GetData(), iBufferSize);
-	mcArray.SetAllocateSize(MEMORY_FILE_CHUNK_SIZE);
 }
 
 

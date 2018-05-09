@@ -34,7 +34,6 @@ public:
 	int			miHeight;
 
 	void	Init(void);
-	void	Init(int iChunkSize);
 	void	Kill(void);
 
 	int		AddColumn(void);

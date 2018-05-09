@@ -30,7 +30,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //////////////////////////////////////////////////////////////////////////
 void CPackFileReadArray::Init(void)
 {
-	maPtrs.Init(8);
+	maPtrs.Init();
 }
 
 

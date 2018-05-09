@@ -56,7 +56,7 @@ void CLogFile::Init(CAbstractFile* pcBackingFile)
 	mbOpenedBackingFile = FALSE;
 	mbBegun = FALSE;
 
-	macCommands.Init(LOG_FILE_COMMAND_CHUNK_SIZE);
+	macCommands.Init();
 }
 
 
@@ -908,7 +908,7 @@ BOOL CLogFile::FindHoles(CArrayIntAndPointer* papvOverlapping, filePos iPosition
 		return FALSE;
 	}
 
-	apvOverlappingSorted.Init(1);
+	apvOverlappingSorted.Init();
 	apvOverlappingSorted.Copy(papvOverlapping);
 	apvOverlappingSorted.QuickSort(CompareLogFileWrite);
 
@@ -977,7 +977,7 @@ BOOL CLogFile::FindTouchingWriteCommands(int iStartIndex, CArrayIntAndPointer* p
 			{
 				if (!bInitialised)
 				{
-					papvOverlapping->Init(8);
+					papvOverlapping->Init();
 					bInitialised = TRUE;
 				}
 

@@ -8,9 +8,9 @@
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayBlock::Init(int iElementSize, int iChunkSize)
+void CArrayBlock::Init(int iElementSize)
 {
-	Init(&gcSystemAllocator, iElementSize, iChunkSize);
+	Init(&gcSystemAllocator, iElementSize);
 }
 
 
@@ -18,7 +18,7 @@ void CArrayBlock::Init(int iElementSize, int iChunkSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayBlock::Init(CMallocator* pcMalloc, int iElementSize, int iChunkSizee)
+void CArrayBlock::Init(CMallocator* pcMalloc, int iElementSize)
 {
 	mpcMalloc = pcMalloc;
 	mpvArray = NULL;
@@ -48,13 +48,17 @@ void CArrayBlock::Fake(int iElementSize, void* pvData, int iNum, int iChunkSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayBlock::ReInit(int iChunkSize)
+void CArrayBlock::ReInit(void)
 {
-	CMallocator* pcMalloc;
+	CMallocator*	pcMalloc;
+	int				iChunkSize;
 
 	pcMalloc = mpcMalloc;
+	iChunkSize = miChunkSize;
 	Kill();
-	Init(pcMalloc, miElementSize, miChunkSize);  //Put this back.
+	Init(pcMalloc, miElementSize);
+	SetAllocateSize(iChunkSize);
+	
 }
 
 
