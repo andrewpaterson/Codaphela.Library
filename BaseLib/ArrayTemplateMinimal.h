@@ -35,8 +35,6 @@ protected:
 public:
 	void	Init(void);
 	void	Init(CMallocator* pcMallocator);
-	void	Init(int iIgnored);
-	void	Init(CMallocator* pcMallocator, int iIgnored);
 	void 	Init(CArrayTemplateMinimal<M>* pArray);  //Used to be Copy
 	void 	Init(CMallocator* pcMallocator, CArrayTemplateMinimal<M>* pArray);  //Used to be Copy
 	void 	ReInit(void);
@@ -130,30 +128,6 @@ template<class M>
 void CArrayTemplateMinimal<M>::Init(CMallocator* pcMallocator)
 {
 	CArrayBlockMinimal::Init(pcMallocator);
-	mpvArray = NULL;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class M>
-void CArrayTemplateMinimal<M>::Init(int iIgnored)
-{
-	CArrayBlockMinimal::Init(iIgnored);
-	mpvArray = NULL;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class M>
-void CArrayTemplateMinimal<M>::Init(CMallocator* pcMallocator, int iIgnored)
-{
-	CArrayBlockMinimal::Init(pcMallocator, iIgnored);
 	mpvArray = NULL;
 }
 
