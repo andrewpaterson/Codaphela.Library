@@ -104,14 +104,14 @@ void CAnimationManager::SetCelInvokeAnimationFunction(CAnimation* pcAnimationInv
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CAnimation* CAnimationManager::Create(int iNumCels, char* szName)
+CAnimation* CAnimationManager::Create(char* szName)
 {
 	CAnimation* pcAnimation;
 
 	pcAnimation = mcList.Add();
 	if (pcAnimation)
 	{
-		pcAnimation->Init(iNumCels);
+		pcAnimation->Init();
 	}
 	return pcAnimation;
 }

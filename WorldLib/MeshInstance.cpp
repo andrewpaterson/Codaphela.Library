@@ -118,12 +118,12 @@ void CMeshInstance::Init(void)
 	mpsWorldSpaceTransform = NULL;	
 	mpsInverseWorldSpaceTransform = NULL;
 	mcNodes.Init();
-	macVertexPtrCache.Init(1);
-	macNormalPtrCache.Init(1);
+	macVertexPtrCache.Init();
+	macNormalPtrCache.Init();
 	meVertexCaching = LCF_NoCache;
 	meNormalCaching = LCF_NoCache;
-	masVertexCache.Init(1);
-	masNormalCache.Init(1);
+	masVertexCache.Init();
+	masNormalCache.Init();
 }
 
 
@@ -292,7 +292,7 @@ void CMeshInstance::UpdateUnskinnedCaches(void)
 		if (masVertexCache.NumElements() == 0)
 		{
 			masVertexCache.Kill();
-			masVertexCache.Init(mpcMeshObject->GetVerticies()->NumElements());
+			masVertexCache.Init();
 			masVertexCache.Resize(mpcMeshObject->GetVerticies()->NumElements());
 		}
 		Float3TransformCoords(masVertexCache.GetData(), sizeof(SFloat3), mpcMeshObject->GetVerticies()->GetData(), sizeof(SFloat3), &mpsWorldSpaceTransform->sD3DMatrix, mpcMeshObject->GetVerticies()->NumElements());
@@ -302,7 +302,7 @@ void CMeshInstance::UpdateUnskinnedCaches(void)
 		if (masNormalCache.NumElements() == 0)
 		{
 			masNormalCache.Kill();
-			masNormalCache.Init(mpcMeshObject->GetNormals()->NumElements());
+			masNormalCache.Init();
 			masNormalCache.Resize(mpcMeshObject->GetNormals()->NumElements());
 		}
 		Float3TransformNormals(masNormalCache.GetData(), sizeof(SFloat3), mpcMeshObject->GetNormals()->GetData(), sizeof(SFloat3), &mpsWorldSpaceTransform->sD3DMatrix, mpcMeshObject->GetNormals()->NumElements());
@@ -399,11 +399,11 @@ void CMeshInstance::SetSkinnedVertexCachePointers(void)
 
 		iNumVerts = mpcMeshObject->GetSkinnedVertexPtrs()->NumElements();
 
-		masVertexCache.Init(iNumVerts);
+		masVertexCache.Init();
 		masVertexCache.Resize(iNumVerts);
 		masVertexCache.Zero();
 
-		macVertexPtrCache.Init(iNumVerts);
+		macVertexPtrCache.Init();
 		macVertexPtrCache.Resize(iNumVerts);
 		for (i = 0; i < iNumVerts; i++)
 		{
@@ -437,11 +437,11 @@ void CMeshInstance::SetSkinnedNormalCachePointers(void)
 
 		iNumNormals = mpcMeshObject->GetSkinnedNormalPtrs()->NumElements();
 
-		masNormalCache.Init(iNumNormals);
+		masNormalCache.Init();
 		masNormalCache.Resize(iNumNormals);
 		masNormalCache.Zero();
 
-		macNormalPtrCache.Init(iNumNormals);
+		macNormalPtrCache.Init();
 		macNormalPtrCache.Resize(iNumNormals);
 		for (i = 0; i < iNumNormals; i++)
 		{

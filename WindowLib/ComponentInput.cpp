@@ -48,7 +48,7 @@ void CComponentInput::Init(CInput* pcInput, CViewport* pcViewport)
 
 	mlcInputDevices.Init();
 	pcKeyboards = pcInput->GetCategory("Keyboard");
-	apcKeyboards.Init(1);
+	apcKeyboards.Init();
 
 	pcKeyboards->GetDevices(&apcKeyboards, FALSE);
 	for (i = 0; i < apcKeyboards.NumElements(); i++)
@@ -60,7 +60,7 @@ void CComponentInput::Init(CInput* pcInput, CViewport* pcViewport)
 	apcKeyboards.Kill();
 
 	pcMouses = pcInput->GetCategory("Mouse");
-	apcMouses.Init(1);
+	apcMouses.Init();
 
 	pcMouses->GetDevices(&apcMouses, FALSE);
 	for (i = 0; i < apcMouses.NumElements(); i++)
@@ -1009,7 +1009,7 @@ void CComponentInput::Cut(void)
 
 	if (HasFocussedComponent())
 	{
-		szDest.Init(20);
+		szDest.Init();
 		GetFocussedComponent()->Cut(&szDest);
 		cCopyPaste.Init();
 		cCopyPaste.CopyText(&szDest);
@@ -1025,7 +1025,7 @@ void CComponentInput::Copy(void)
 
 	if (HasFocussedComponent())
 	{
-		szDest.Init(20);
+		szDest.Init();
 		GetFocussedComponent()->Copy(&szDest);
 		cCopyPaste.Init();
 		cCopyPaste.CopyText(&szDest);
@@ -1041,7 +1041,7 @@ void CComponentInput::Paste(void)
 
 	if (HasFocussedComponent())
 	{
-		szSource.Init(20);
+		szSource.Init();
 		cCopyPaste.Init();
 		cCopyPaste.PasteText(&szSource);
 		GetFocussedComponent()->Paste(szSource.Text());
@@ -1057,7 +1057,7 @@ void CComponentInput::CutLine(void)
 
 	if (HasFocussedComponent())
 	{
-		szDest.Init(20);
+		szDest.Init();
 		GetFocussedComponent()->CutLine(&szDest);
 		cCopyPaste.Init();
 		cCopyPaste.CopyText(&szDest);

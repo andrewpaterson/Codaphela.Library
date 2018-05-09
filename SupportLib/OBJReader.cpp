@@ -122,7 +122,7 @@ BOOL CObjReader::Read(void)
 	}
 
 	cTextFile.PassifyNewlines();
-	cLines.Init(TRUE);
+	cLines.Fake();
 	cTextFile.mcText.SplitLines(&cLines);
 	
 

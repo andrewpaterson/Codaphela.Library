@@ -32,17 +32,7 @@ void CAnimation::Init(void)
 {
 	mfTimeMultiplier = 1.0f;
 	mfCelTime = 0.0f;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CAnimation::Init(int iNumCels)
-{
-	Init();
-	maCelIndices.Init(iNumCels);
+	maCelIndices.Init();
 	mbEnabled = TRUE;
 	miCurrentCel = 0;
 }
@@ -288,7 +278,7 @@ CAnimationIndexCelArray* CAnimation::GetCelIndices(void)
 //////////////////////////////////////////////////////////////////////////
 void CAnimation::Copy(CAnimation* pcSource)
 {
-	Init(pcSource->maCelIndices.NumElements());
+	Init();
 	maCelIndices.Copy(&pcSource->maCelIndices);
 	mbEnabled = pcSource->mbEnabled;
 	miCurrentCel = pcSource->miCurrentCel;

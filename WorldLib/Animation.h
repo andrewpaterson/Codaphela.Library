@@ -75,7 +75,6 @@ protected:
 
 public:
 	void 						Init(void);
-	void 						Init(int iNumCels);
 	void 						Kill(void);
 	BOOL 						Save(CFileWriter* pcFile);
 	BOOL						Load(CFileReader* pcFile);

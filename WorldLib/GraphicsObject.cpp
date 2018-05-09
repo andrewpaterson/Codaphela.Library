@@ -35,13 +35,13 @@ void CGraphicsObject::Init(BOOL bDynamicBuffers, CWorld* pcWorld)
 	memset(&msIndexBuffer, 0, sizeof(SIndexBuffer));
 	msStaticVertexBuffers.Init();
 	msDynamicVertexBuffers.Init();
-	maPrimitives.Init(1);
+	maPrimitives.Init();
 	mapMatricies.Init();
 	mapMaterials.Init();
 	mapStates.Init();
 	mapViewports.Init();
 	maiPrimitives.Init();
-	macAdjMatricies.Init(1);
+	macAdjMatricies.Init();
 	miFlags = 0;
 	mpcWorld = pcWorld;
 
@@ -1444,7 +1444,7 @@ void CGraphicsObject::KillPrimitives(void)
 void CGraphicsObject::RemoveAllPrimitives(void)
 {
 	KillPrimitives();
-	maPrimitives.Init(1);
+	maPrimitives.Init();
 }
 
 

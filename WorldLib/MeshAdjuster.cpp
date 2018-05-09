@@ -74,9 +74,9 @@ void CMeshAdjuster::SetupSelectionColours(void)
 	miColourObjectVertNotSelected = SetM32BitColour(100, 100, 255, 255);
 	miColourBlendPartSelected = SetM32BitColour(255, 40, 40, 127);
 
-	mcEdgeSelectionColours.Init(1);
-	mcVertSelectionColours.Init(1);
-	mcFaceSelectionColours.Init(1);
+	mcEdgeSelectionColours.Init();
+	mcVertSelectionColours.Init();
+	mcFaceSelectionColours.Init();
 }
 
 

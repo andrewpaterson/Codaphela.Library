@@ -116,10 +116,10 @@ void CImageGraphicsTexture::AddGraphicsTexture(CGraphicsTexture* pcGraphicsTextu
 //////////////////////////////////////////////////////////////////////////
 void CConversionMapper::Init(void)
 {
-	macInstances.Init(128);
-	macMeshes.Init(128);
-	macMaterials.Init(128);
-	macTextures.Init(128);
+	macInstances.Init();
+	macMeshes.Init();
+	macMaterials.Init();
+	macTextures.Init();
 }
 
 

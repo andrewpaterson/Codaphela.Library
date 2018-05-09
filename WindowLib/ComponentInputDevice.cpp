@@ -30,10 +30,10 @@ void CComponentInputDevice::InitDevice(CInputVirtualDevice* pcVirtual, CInputDev
 {
 	mpcVirtual = pcVirtual;
 	mpcDevice = pcDevice;
-	masPrintables.Init(4);
-	masCommands.Init(4);
-	masNumKeys.Init(4);
-	masMotions.Init(4);
+	masPrintables.Init();
+	masCommands.Init();
+	masNumKeys.Init();
+	masMotions.Init();
 	mpcComponentInput = pcComponentInput;
 }
 

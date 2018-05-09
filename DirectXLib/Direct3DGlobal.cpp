@@ -171,7 +171,7 @@ BOOL CD3D::Init(D3DDEVTYPE d)
 	mbAlwaysSetViewport = FALSE;
 
 	mbLogCalls = FALSE;
-	mszLog.Init(2048);
+	mszLog.Init();
 	miLogFlushSize = 1;
 
 	meDevType = d;
@@ -201,7 +201,7 @@ BOOL CD3D::Init(D3DDEVTYPE d)
 
 	iCurrMon = -1;
 
-	cD3DVertTypes.Init(16);
+	cD3DVertTypes.Init();
 	RegisterAllFlexibleFormats();
 
 	if (iNumMonitors == 0)

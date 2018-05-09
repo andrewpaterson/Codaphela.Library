@@ -179,7 +179,7 @@ void CWorldEditor::SetupSelectionColours(void)
 {
 	SSelectionColour*	psSelectionColour;
 
-	mcWhiteZeroColours.Init(1);
+	mcWhiteZeroColours.Init();
 	psSelectionColour = mcWhiteZeroColours.Add();
 	psSelectionColour->iSelection = 0;
 	psSelectionColour->iColour = 0xffffffff;

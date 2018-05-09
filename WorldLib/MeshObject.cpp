@@ -30,8 +30,8 @@ Microsoft DirectX is Copyright Microsoft Corporation
 //////////////////////////////////////////////////////////////////////////
 void CMeshObjectNode::Init(void)
 {
-	mcVerticies.Init(1);
-	mcNormals.Init(1);
+	mcVerticies.Init();
+	mcNormals.Init();
 }
 
 
@@ -41,10 +41,10 @@ void CMeshObjectNode::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CMeshObjectNode::Init(int iNumVerticies, int iNumNormals)
 {
-	mcVerticies.Init(&gcSystemAllocator, iNumVerticies);
+	mcVerticies.Init(&gcSystemAllocator);
 	mcVerticies.Resize(iNumVerticies);
 
-	mcNormals.Init(&gcSystemAllocator, iNumNormals);
+	mcNormals.Init(&gcSystemAllocator);
 	mcNormals.Resize(iNumNormals);
 }
 
@@ -107,10 +107,10 @@ CArrayVector* CMeshObjectNode::GetNormals(void)
 void CMeshObject::Init(void)
 {
 	mcNodes.Init();
-	mcVerticies.Init(1);
-	mcNormals.Init(1);
-	mcSkinnedVertexPtrs.Init(1);
-	mcSkinnedNormalPtrs.Init(1);
+	mcVerticies.Init();
+	mcNormals.Init();
+	mcSkinnedVertexPtrs.Init();
+	mcSkinnedNormalPtrs.Init();
 }
 
 
@@ -121,13 +121,13 @@ void CMeshObject::Init(void)
 void CMeshObject::Init(int iNumVerticies, int iNumNormals)
 {
 	mcNodes.Init();
-	mcSkinnedVertexPtrs.Init(1);
-	mcSkinnedNormalPtrs.Init(1);
+	mcSkinnedVertexPtrs.Init();
+	mcSkinnedNormalPtrs.Init();
 
-	mcVerticies.Init(iNumVerticies);
+	mcVerticies.Init();
 	mcVerticies.Resize(iNumVerticies);
 
-	mcNormals.Init(iNumNormals);
+	mcNormals.Init();
 	mcNormals.Resize(iNumNormals);
 }
 

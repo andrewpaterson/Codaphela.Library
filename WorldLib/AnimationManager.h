@@ -45,7 +45,7 @@ public:
 
 	void					SetCelHappenOnceFunction(CAnimation* pcAnimationInvoking, int iInvokingCel, CelFunc Func, float fFractionalTimeToOccur);
 	void					SetCelInvokeAnimationFunction(CAnimation* pcAnimationInvoking, int iInvokingCel, int iFlags, CAnimation* pcAnimationToSet, CAnimation** ppcAnimtionPtrToChange, CelFunc Func, float fFractionalTimeToOccur, float fSpeedMultiplier = 1.0f);
-	CAnimation*				Create(int iNumCels, char* szName = NULL);
+	CAnimation*				Create(char* szName = NULL);
 	void					Release(CAnimation* pcAnimation);
 };
 
