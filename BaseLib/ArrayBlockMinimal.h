@@ -17,8 +17,6 @@ protected:
 public:
 	void Init(void);
 	void Init(CMallocator *pcMallocator);
-	void Init(int iIgnored);
-	void Init(CMallocator *pcMallocator, int iIgnored);
 	void Kill(void);
 
 	BOOL WriteHeader(CFileWriter *pcFileWriter);

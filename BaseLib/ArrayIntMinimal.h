@@ -20,8 +20,8 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __ARRAY_SIMPLE_INT_H__
-#define __ARRAY_SIMPLE_INT_H__
+#ifndef __ARRAY_INT_MINIMAL_H__
+#define __ARRAY_INT_MINIMAL_H__
 #include "ArrayTemplateMinimal.h"
 #include "DataTypes.h"
 
@@ -37,5 +37,5 @@ public:
 };
 
 
-#endif // __ARRAY_SIMPLE_INT_H__
+#endif // __ARRAY_INT_MINIMAL_H__
 

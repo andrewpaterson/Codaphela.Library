@@ -28,7 +28,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 CMemoryFreeListParams gcDataMemoryFreeListParams;
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -37,7 +36,7 @@ void CDataMemory::Init(CMemoryFreeListParams* pcFreeListParams)
 {
 	mcFreeLists.Init();
 	mcLargeList.Init();
-	mcOrder.Init(8);
+	mcOrder.Init();
 
 	mpcFreeListParams = pcFreeListParams;
 }
