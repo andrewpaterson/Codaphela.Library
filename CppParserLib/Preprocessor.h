@@ -23,7 +23,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/Chars.h"
 #include "BaseLib/MapStringString.h"
 #include "BaseLib/MapStringString.h"
-#include "CoreLib/TextParser.h"
+#include "BaseLib/TextParser.h"
 #include "DefineMap.h"
 #include "ConditionalStack.h"
 #include "ASCIITree.h"

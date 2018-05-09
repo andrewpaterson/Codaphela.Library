@@ -209,7 +209,7 @@ void CInputDeviceValues::Dump(void)
 {
 	CChars	sz;
 
-	sz.Init(16);
+	sz.Init();
 	ToString(&sz);
 	sz.Dump();
 	sz.Kill();

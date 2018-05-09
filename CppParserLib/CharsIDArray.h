@@ -31,7 +31,7 @@ class CCharsIDArray
 public:
 	CArrayTemplate<CCharsID>	mcArray;
 
-	void 		Init(int iChunkSize);
+	void 		Init(void);
 	void 		Kill(void);
 
 	int			NumElements(void);

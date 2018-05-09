@@ -177,10 +177,10 @@ void CWinRawInput::Init(CWinInput* pcWinInput)
 	rid[2].usUsage = 0x08;  //Multi axis device
 	rid[2].dwFlags = 0;
 	rid[2].hwndTarget = NULL;
-	masRawEvents.Init(128);
+	masRawEvents.Init();
 	RegisterRawInputDevices(rid, 3, sizeof(RAWINPUTDEVICE));
 
-	masRIDeviceDetail.Init(8);
+	masRIDeviceDetail.Init();
 	ResetDeviceDetails();
 	DumpDetails();
 }

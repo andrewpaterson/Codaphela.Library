@@ -35,7 +35,7 @@ void CInputSourceDesc::Init(CInputDeviceDesc* pcDeviceDesc, EInputSourceType eTy
 	meType = eType;
 	mszFriendlyName.Init(szFriendlyName);
 	mlcValues.Init();
-	mapcGenerics.Init(1);
+	mapcGenerics.Init();
 	mfRestValue = 0.0f;
 	mbHasRestValue = FALSE;
 	mbEmitRestEvent = FALSE;

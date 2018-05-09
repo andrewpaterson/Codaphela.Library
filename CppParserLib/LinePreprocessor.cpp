@@ -18,13 +18,13 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/EscapeCodes.h"
 #include "LinePreprocessor.h"
 #include "GeneralToken.h"
 #include "PPText.h"
 #include "PPTextWithSource.h"
 #include "PPWhiteSpace.h"
 #include "PPHashes.h"
-#include "CoreLib/EscapeCodes.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -379,7 +379,7 @@ CPPText* CLinePreprocessor::AddText(EPreprocessorText eType, char* szStart, char
 	}
 	else
 	{
-		sz.Init(256);
+		sz.Init();
 		ReplaceLineContinuers(&sz, szStart, szEndExclusive);
 		pcTextWithSource = ADD_TOKEN(CPPTextWithSource, mpcTokens, mpcStack->Add(sizeof(CPPTextWithSource)));
 		pcTextWithSource->Init(eType, mpcParser->miLine, mpcParser->miColumn, sz.Text(), sz.Length());
@@ -408,7 +408,7 @@ void CLinePreprocessor::AddDoubleQuotedToken(void)
 		}
 		else
 		{
-			sz.Init(256);
+			sz.Init();
 			ReplaceEscapeCodes(&sz, mszDoubleQuoteStart+1, mpcParser->mszPos-1, '"');
 			pcTextWithSource = ADD_TOKEN(CPPTextWithSource, mpcTokens, mpcStack->Add(sizeof(CPPTextWithSource)));
 			pcTextWithSource->Init(PPT_DoubleQuoted, mpcParser->miLine, mpcParser->miColumn, sz.Text(), sz.Length());
@@ -438,7 +438,7 @@ void CLinePreprocessor::AddSingleQuotedToken(void)
 		}
 		else
 		{
-			sz.Init(256);
+			sz.Init();
 			ReplaceEscapeCodes(&sz, mszSingleQuoteStart+1, mpcParser->mszPos-1, '\'');
 			pcTextWithSource = ADD_TOKEN(CPPTextWithSource, mpcTokens, mpcStack->Add(sizeof(CPPTextWithSource)));
 			pcTextWithSource->Init(PPT_SingleQuoted, mpcParser->miLine, mpcParser->miColumn, sz.Text(), sz.Length());

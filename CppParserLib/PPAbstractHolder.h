@@ -30,7 +30,6 @@ public:
 	CPPTokenHolder	mcTokens;
 
 	void 		Init(int iLine, int iColumn);
-	void 		Init(int iChunkSize, int iLine, int iColumn);
 	void 		Kill(void);
 	BOOL 		IsAbstractHolder(void);
 	void 		Append(CChars* psz);

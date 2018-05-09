@@ -21,14 +21,14 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __CONIFG_H__
 #define __CONIFG_H__
 #include "BaseLib/LinkedListTemplate.h"
-#include "BaseLib/ArrayString.h"
+#include "BaseLib/ArrayChars.h"
 
 
 class CConfig
 {
 public:
 	CChars			mszName;
-	CArrayString	maszDefines;
+	CArrayChars	maszDefines;
 
 	void Init(char* szName);
 	void Kill(void);

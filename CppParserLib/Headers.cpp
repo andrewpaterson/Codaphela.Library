@@ -27,7 +27,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CHeaders::Init(CHeaderFileMap* pcFileMap)
 {
-	mcHeaderNames.Init(16);
+	mcHeaderNames.Init();
 	mpcFileMap = pcFileMap;
 }
 

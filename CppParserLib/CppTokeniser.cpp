@@ -45,7 +45,7 @@ void CTokeniser::Init(void)
 	mcStack.Init(128 KB);
 
 	mcIdentifiers.Init();
-	mcTokens.Init(1024*128);
+	mcTokens.Init();
 
 	mcReservedWords.Init();
 	mcReservedWords.AddIndex("(");
@@ -257,7 +257,7 @@ BOOL CTokeniser::Tokenise(CPPTokenHolder* pcSource)
 	CCTNewLine*	pcNewLine;
 
 	mcTokens.Kill();
-	mcTokens.Init(1024*128);
+	mcTokens.Init();
 
 	bResult = TRUE;
 	mcParser.Init();
@@ -330,7 +330,7 @@ void CTokeniser::PrintTokens(void)
 	BOOL		bPrevNewLine;
 
 	bPrevNewLine = FALSE;
-	sz.Init(2000);
+	sz.Init();
 	for (j = 0; j < mcTokens.NumElements(); j++)
 	{
 		pcToken = *mcTokens.Get(j);
@@ -352,7 +352,7 @@ void CTokeniser::PrintTokens(void)
 		{
 			sz.Dump();
 			sz.Kill();
-			sz.Init(2000);
+			sz.Init();
 		}
 	}
 	sz.Dump();

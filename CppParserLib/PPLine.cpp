@@ -28,7 +28,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CPPLine::Init(int iLine, int iColumn)
 {
-	CPPAbstractHolder::Init(8, iLine, iColumn);
+	CPPAbstractHolder::Init(iLine, iColumn);
 }
 
 

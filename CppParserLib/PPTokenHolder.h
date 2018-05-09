@@ -29,7 +29,7 @@ class CPPTokenHolder
 public:
 	CArrayPPTokens	mcArray;
 
-	void Init(int iChunkSize);
+	void Init(void);
 	void Kill(void);
 	void Append(CChars* psz);
 	void Add(CPPToken** ppcToken);

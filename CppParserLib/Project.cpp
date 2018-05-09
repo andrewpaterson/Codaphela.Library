@@ -321,7 +321,7 @@ void CProject::WritePost(CTranslationUnit* pcTU)
 
 	cDestFile.Init(DiskFile(szPath.Text()));
 	cDestFile.Open(EFM_ReadWrite_Create);
-	sz.Init(65536);
+	sz.Init();
 
 	pcTU->Append(&sz);
 	cDestFile.Write(sz.Text(), sz.Length(), 1);
@@ -340,7 +340,7 @@ void CProject::DumpPost(CTranslationUnit* pcTU)
 {
 	CChars			sz;
 
-	sz.Init(65536);
+	sz.Init();
 
 	pcTU->Append(&sz);
 	sz.Dump();

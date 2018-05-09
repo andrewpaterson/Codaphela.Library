@@ -40,8 +40,8 @@ void CInputDeviceDesc::Init(char* szID, char* szFriendlyName, CInputCategory* pc
 	mlcVariables.Init();
 	mpcCategory = pcCategory;
 	mszComment.Init();
-	macSwitches.Init(4);
-	mapcDevices.Init(1);
+	macSwitches.Init();
+	mapcDevices.Init();
 	mbPhysical = bPhysical;
 	mcVariableChordDescs.Init();
 }
@@ -419,7 +419,7 @@ int CInputDeviceDesc::GetUnusedID(void)
 		return 0;
 	}
 
-	aiIDs.Init(1);
+	aiIDs.Init();
 	for (i = 0; i < mapcDevices.NumElements(); i++)
 	{
 		pcDevice = *mapcDevices.Get(i);

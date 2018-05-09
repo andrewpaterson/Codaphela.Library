@@ -56,7 +56,7 @@ void CHeaderNameMap::Kill(void)
 void CHeaderNameMap::AddFiles(void)
 {
 	CChars					szTemp;
-	CArrayString			aszTemp;
+	CArrayChars			aszTemp;
 	int						i;
 	CChars*					pszFile;
 	int						iIndex;
@@ -64,12 +64,12 @@ void CHeaderNameMap::AddFiles(void)
 	char*					szFile;
 	char*					szExtension;
 	int						iBaseDirLen;
-	CArrayString			aszFileNames;
+	CArrayChars			aszFileNames;
 	CFileUtil				cFileUtil;
 
 	szTemp.Init("*.h;*.inl;*.hpp;*.rh");
 
-	aszTemp.Init(16);
+	aszTemp.Init();
 	szTemp.Split(&aszTemp, ';');
 	iBaseDirLen = mszBaseDirectory.Length();
 
@@ -81,7 +81,7 @@ void CHeaderNameMap::AddFiles(void)
 		iIndex = pszFile->Find(0, ".");
 		szExtension = pszFile->Text(iIndex+1);
 
-		aszFileNames.Init(32);
+		aszFileNames.Init();
 		cFileUtil.FindFilesWithExtension(mszBaseDirectory.Text(), szExtension, &aszFileNames);
 
 		for (j = 0; j < aszFileNames.NumElements(); j++)

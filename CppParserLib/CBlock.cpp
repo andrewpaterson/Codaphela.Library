@@ -29,7 +29,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CCBlock::Init(int iLine, int iColumn)
 {
-	CPPAbstractHolder::Init(8, iLine, iColumn);
+	CPPAbstractHolder::Init(iLine, iColumn);
 }
 
 
@@ -142,7 +142,7 @@ void CCBlock::Dump(CArrayIntAndPointer* papc)
 	char*	sz;
 	CChars	sz2;
 
-	sz2.Init(1024);
+	sz2.Init();
 	for (i = 0; i < papc->NumElements(); i++)
 	{
 		sz = (char*)papc->GetPtr(i);

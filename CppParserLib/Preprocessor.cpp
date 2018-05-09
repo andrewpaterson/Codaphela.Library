@@ -38,7 +38,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CPreprocessor::Init(CConfig* pcConfig, CMemoryStackExtended* pcStack)
 {
-	mcDefines.Init(32);
+	mcDefines.Init();
 	mpcPost = NULL;
 	mpcUnit = NULL;
 	miIncludeDepth = 0;
@@ -50,10 +50,10 @@ void CPreprocessor::Init(CConfig* pcConfig, CMemoryStackExtended* pcStack)
 
 	mcConditionalStack.Init();
 	mpcCurrentFile = NULL;
-	mcHeadersStack.Init(8);
+	mcHeadersStack.Init();
 
 	mpcStack = pcStack;
-	mcHeaderNames.Init(4);
+	mcHeaderNames.Init();
 
 	AddSpecialDefine("__DATE__");
 	AddSpecialDefine("__FILE__");
@@ -904,9 +904,9 @@ SCTokenBlock CPreprocessor::ProcessHashIf(CPreprocessorTokenParser* pcParser, CP
 	CPPTokenHolder	cTokenHolder;
 	CChars			sz;
 
-	cTokenHolder.Init(32);
+	cTokenHolder.Init();
 	ProcessLine(&cTokenHolder, pcParser, TRUE, 0);
-	sz.Init(128);
+	sz.Init();
 	cTokenHolder.Append(&sz);
 	bEvaluated = Evaluate(sz.Text());;
 	mcConditionalStack.PushIf(bEvaluated);
@@ -927,9 +927,9 @@ SCTokenBlock CPreprocessor::ProcessHashElif(CPreprocessorTokenParser* pcParser, 
 	CPPTokenHolder	cTokenHolder;
 	CChars			sz;
 
-	cTokenHolder.Init(32);
+	cTokenHolder.Init();
 	ProcessLine(&cTokenHolder, pcParser, TRUE, 0);
-	sz.Init(128);
+	sz.Init();
 	cTokenHolder.Append(&sz);
 	bEvaluated = Evaluate(sz.Text());;
 	mcConditionalStack.SwapForElseIf(bEvaluated);
@@ -1087,7 +1087,7 @@ BOOL CPreprocessor::ProcessIdentifier(CPPTokenHolder* pcDest, CPPText* pcText, C
 		if (pcDefine->mcReplacement.mcTokens.mcArray.NumElements() > 0)
 		{
 			pcHolder = ADD_TOKEN(CPPHolder, &pcDest->mcArray, mpcStack->Add(sizeof(CPPHolder)));
-			pcHolder->Init(4, -1, -1);
+			pcHolder->Init(-1, -1);
 			ExpandDefined(pcHolder, pcDefine, bAllowDefined, iDepth+1);
 		}
 
@@ -1250,7 +1250,7 @@ BOOL CPreprocessor::ProcessLine(CPPTokenHolder* pcDest, CPreprocessorTokenParser
 		}
 		else if (iHashCount == 1)  //# Quote following.
 		{
-			cHolder.Init(100, -1, -1);
+			cHolder.Init(-1, -1);
 			ExpandTokenIfNecessary(pcToken, &cHolder.mcTokens, pcParser, bAllowDefined, iDepth);
 			pcTemp = QuoteTokens(pcDest, &cHolder);
 			cHolder.Kill();
@@ -1286,7 +1286,7 @@ CPPToken* CPreprocessor::ConcaternateTokens(CPPTokenHolder* pcDest, CPPToken* pc
 		if (((pcLeftText->meType == PPT_Identifier) && (pcRightText->meType == PPT_Identifier))  ||
 			((pcLeftText->meType == PPT_Number) && (pcRightText->meType == PPT_Number)))
 		{
-			szConcaternated.Init(100);
+			szConcaternated.Init();
 			pcLeftText->Append(&szConcaternated);
 			pcRightText->Append(&szConcaternated);
 
@@ -1322,7 +1322,7 @@ CPPToken* CPreprocessor::QuoteTokens(CPPTokenHolder* pcDest, CPPAbstractHolder* 
 	CPPText*				pcQuoted;
 	CPPToken*				pcToken;
 
-	szQuoted.Init(100);
+	szQuoted.Init();
 	szQuoted.Append('"');
 	for (j = 0; j < pcHolder->mcTokens.mcArray.NumElements(); j++)
 	{
@@ -1393,7 +1393,7 @@ BOOL CPreprocessor::FindArguments(CPreprocessorTokenParser* pcParser, CArrayPPTo
 
 	iBracketDepth = 1;
 	pcArgument = pacArguments->Add();
-	pcArgument->Init(10);
+	pcArgument->Init();
 	bReturn = FALSE;
 	for (;;)
 	{
@@ -1444,7 +1444,7 @@ BOOL CPreprocessor::FindArguments(CPreprocessorTokenParser* pcParser, CArrayPPTo
 			{
 				pcParser->SkipWhiteSpace();
 				pcArgument = pacArguments->Add();
-				pcArgument->Init(10);
+				pcArgument->Init();
 				continue;
 			}
 		}
@@ -1627,16 +1627,16 @@ void CPreprocessor::Preprocess(char* szSource, CChars* szDest)
 
 	cTokeniser.Init();
 	cStack.Init(4 KB);
-	cRawTokens.Init(256);
+	cRawTokens.Init();
 	iLen = (int)strlen(szSource);
 	cTokeniser.Tokenise(&cRawTokens, &cStack, szSource, iLen, TRUE, 0, 0);
 	cTokeniser.Kill();
 
-	cProcessedTokens.Init(256);
+	cProcessedTokens.Init();
 	cPreprocessor.Init(NULL, &cStack);
 	cPreprocessor.PreprocessTokens(&cProcessedTokens, &cStack, &cRawTokens, 0, 0);
 
-	szDest->Init(1024);
+	szDest->Init();
 	cProcessedTokens.Append(szDest);
 
 	cProcessedTokens.Kill();

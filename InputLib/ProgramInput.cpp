@@ -29,7 +29,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //////////////////////////////////////////////////////////////////////////
 void CProgramInput::Init(void)
 {
-	macPDeviceDetails.Init(1);
+	macPDeviceDetails.Init();
 	mpcFormat = NULL;
 	mpcCategory = NULL;
 }

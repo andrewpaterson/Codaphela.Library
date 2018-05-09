@@ -28,7 +28,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 void CConfig::Init(char* szName)
 {
 	mszName.Init(szName);
-	maszDefines.Init(16);
+	maszDefines.Init();
 }
 
 
@@ -60,13 +60,13 @@ void CConfig::AddDefine(char* szDefine)
 void CConfig::AddDefines(char* szDefines)
 {
 	CChars			szTemp;
-	CArrayString	aszTemp;
+	CArrayChars	aszTemp;
 	int				i;
 	CChars*			pszDefine;
 
 	szTemp.Init(szDefines);
 
-	aszTemp.Init(16);
+	aszTemp.Init();
 	szTemp.Split(&aszTemp, ';');
 
 	for (i = 0; i < aszTemp.NumElements(); i++)

@@ -20,7 +20,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __PROJECT_H__
 #define __PROJECT_H__
-#include "CoreLib/TextParser.h"
+#include "BaseLib/TextParser.h"
 #include "BaseLib/Chars.h"
 #include "Library.h"
 #include "Preprocessor.h"

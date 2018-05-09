@@ -278,7 +278,7 @@ CInputVirtualDevice* CInputDevice::CreateVariableVirtualDeviceFromThis(CInputAct
 
 	mcVariables.SetChords(pcVirtual->GetChords());
 
-	apcSourceDescs.Init(8);
+	apcSourceDescs.Init();
 	mpcDesc->GetVariableChordDescs()->GetInputSourceDescs(&apcSourceDescs, mpcDesc);
 	for (i = 0; i < apcSourceDescs.NumElements(); i++)
 	{

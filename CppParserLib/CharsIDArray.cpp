@@ -27,9 +27,9 @@ Microsoft Windows is Copyright Microsoft Corporation
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CCharsIDArray::Init(int iChunkSize)
+void CCharsIDArray::Init(void)
 {
-	mcArray.Init(iChunkSize);
+	mcArray.Init();
 }
 
 
@@ -264,7 +264,7 @@ void CCharsIDArray::Dump(void)
 	CCharsID*		psz;
 	CCharsID		sz;
 
-	sz.Init(1024);
+	sz.Init();
 	for (i = 0; i < mcArray.NumElements(); i++)
 	{
 		psz = mcArray.Get(i);
