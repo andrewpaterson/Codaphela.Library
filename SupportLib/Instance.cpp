@@ -30,7 +30,7 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CInstance::Init(void)
 {
-	maiConnections.Init(16);
+	maiConnections.Init();
 	meType = TT_Unknown;
 }
 
