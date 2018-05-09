@@ -44,7 +44,7 @@ void CGeneralMemory::Init(int iDefaultAlignment, BOOL bDefaultFreeListParams)
 	mcFreeLists.Init();
 	mcLargeList.Init();
 	miDefaultAlignment = iDefaultAlignment;
- 	mcOrder.Init(8);
+ 	mcOrder.Init();
 	muiAllocCount = 0;
 	muiBreakAlloc = 0;
 	mbBreakOnAlloc = FALSE;

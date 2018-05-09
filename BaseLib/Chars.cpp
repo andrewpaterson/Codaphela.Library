@@ -35,9 +35,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "Chars.h"
 
 
-#define CHARS_CHUNK_SIZE	8
-
-
 CChars gszEmptyString;
 
 
@@ -94,7 +91,7 @@ void CChars::Zero(void)
 //////////////////////////////////////////////////////////////////////////
 void CChars::InitLength(int iLength)
 {
-	mcText.Init(CHARS_CHUNK_SIZE);
+	mcText.Init();
 	mcText.Resize(iLength+1);
 	mcText.SetValue(iLength, '\0');
 }
@@ -106,7 +103,7 @@ void CChars::InitLength(int iLength)
 //////////////////////////////////////////////////////////////////////////
 void CChars::Init(void)
 {
-	mcText.Init(CHARS_CHUNK_SIZE);
+	mcText.Init();
 	Set("");
 }
 
@@ -117,7 +114,7 @@ void CChars::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CChars::Init(const char* sz)
 {
-	mcText.Init(CHARS_CHUNK_SIZE);
+	mcText.Init();
 	if (sz)
 	{
 		Set(sz);
@@ -134,7 +131,7 @@ void CChars::Init(const char* sz)
 //////////////////////////////////////////////////////////////////////////
 void CChars::Init(CChars sz, int iStartInclusive, int iEndExclusive)
 {
-	mcText.Init(CHARS_CHUNK_SIZE);
+	mcText.Init();
 	if (iEndExclusive - iStartInclusive > 0)
 	{
 		AppendSubString(sz, iStartInclusive, iEndExclusive);
@@ -152,7 +149,7 @@ void CChars::Init(CChars sz, int iStartInclusive, int iEndExclusive)
 //////////////////////////////////////////////////////////////////////////
 void CChars::Init(const char* sz, int iStartInclusive, int iEndExclusive)
 {
-	mcText.Init(CHARS_CHUNK_SIZE);
+	mcText.Init();
 	if (iEndExclusive - iStartInclusive > 0)
 	{
 		AppendSubString(sz, iStartInclusive, iEndExclusive);
@@ -171,7 +168,7 @@ void CChars::Init(const char* sz, int iStartInclusive, int iEndExclusive)
 //////////////////////////////////////////////////////////////////////////
 void CChars::Init(const char* sz, int iStartInclusive)
 {
-	mcText.Init(CHARS_CHUNK_SIZE);
+	mcText.Init();
 	Set(&sz[iStartInclusive]);
 }
 
@@ -182,19 +179,8 @@ void CChars::Init(const char* sz, int iStartInclusive)
 //////////////////////////////////////////////////////////////////////////
 void CChars::Init(CChars sz)
 {
-	mcText.Init(CHARS_CHUNK_SIZE);
+	mcText.Init();
 	mcText.Copy(&(sz.mcText));
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CChars::Init(int iChunkSize)
-{
-	mcText.Init(iChunkSize);
-	Set("");
 }
 
 
@@ -204,7 +190,7 @@ void CChars::Init(int iChunkSize)
 //////////////////////////////////////////////////////////////////////////
 void CChars::Init(char cPadCharacter, int iNumber)
 {
-	mcText.Init(CHARS_CHUNK_SIZE);
+	mcText.Init();
 	Set("");
 	Append(cPadCharacter, iNumber);
 }
@@ -216,7 +202,7 @@ void CChars::Init(char cPadCharacter, int iNumber)
 //////////////////////////////////////////////////////////////////////////
 void CChars::InitList(const char* szFirst, ...)
 {
-	mcText.Init(CHARS_CHUNK_SIZE);
+	mcText.Init();
 	Set("");
 
 	va_list		vaMarker;
@@ -243,7 +229,7 @@ void CChars::InitList(const char* szFirst, ...)
 //////////////////////////////////////////////////////////////////////////
 void CChars::InitList(CChars* szFirst, ...)
 {
-	mcText.Init(CHARS_CHUNK_SIZE);
+	mcText.Init();
 	Set("");
 
 	va_list		vaMarker;

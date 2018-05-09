@@ -38,15 +38,15 @@ void CArrayBlockSorted::Init(CMallocator* pcMallocator, int iElementSize, int iC
 	mfCompare = fCompare;
 	mbOverwrite = FALSE;
 
-	maSortedArray.Init(pcMallocator, iElementSize, miChunkSize);
-	maaHoldingArrays.Init(pcMallocator, iHoldingBuffers);
+	maSortedArray.Init(pcMallocator, iElementSize);
+	maaHoldingArrays.Init(pcMallocator);
 	if (iHoldingBuffers > 0)
 	{
 		maaHoldingArrays.Resize(iHoldingBuffers);
 		for (i = 0; i < iHoldingBuffers; i++)
 		{
 			paHoldingArray = maaHoldingArrays.Get(i);
-			paHoldingArray->Init(pcMallocator, miElementSize, iHoldingBufferSize);
+			paHoldingArray->Init(pcMallocator, miElementSize);
 		}
 		mapiInsertionIndices = (int*)mpcMalloc->Malloc(miHoldingBufferSize * iHoldingBuffers * sizeof(int));
 	}
@@ -183,7 +183,7 @@ void CArrayBlockSorted::InsertHoldingIntoSorted(void)
 	int*			paiInsertionIndices;
 	int				oldLength;
 
-	aMergedHoldingArrays.Init(mpcMalloc, miElementSize, miHoldingBufferSize * maaHoldingArrays.NumElements());
+	aMergedHoldingArrays.Init(mpcMalloc, miElementSize);
 	MergeHoldingArrays(&aMergedHoldingArrays);
 
 	if (aMergedHoldingArrays.IsNotEmpty())
@@ -640,12 +640,12 @@ BOOL CArrayBlockSorted::ReadHeader(CMallocator* pcMalloc, CFileReader* pcFileRea
 	mfCompare = fCompare;
 	mbOverwrite = bOverwrite;
 
-	maaHoldingArrays.Init(mpcMalloc, iHoldingBuffers);
+	maaHoldingArrays.Init(mpcMalloc);
 	maaHoldingArrays.Resize(iHoldingBuffers);
 	for (i = 0; i < iHoldingBuffers; i++)
 	{
 		paHoldingArray = maaHoldingArrays.Get(i);
-		paHoldingArray->Init(mpcMalloc, miElementSize, iHoldingBufferSize);
+		paHoldingArray->Init(mpcMalloc, miElementSize);
 	}
 
 	mapiInsertionIndices = (int*)mpcMalloc->Malloc(miHoldingBufferSize * iHoldingBuffers * sizeof(int));

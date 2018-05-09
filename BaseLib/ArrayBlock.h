@@ -30,9 +30,9 @@ protected:
 	CMallocator*	mpcMalloc;
 
 public:
-	void 	Init(int iElementSize, int iChunkSize);
-	void 	Init(CMallocator* pcMalloc, int iElementSize, int iChunkSize);
-	void 	ReInit(int iChunkSize = 0);
+	void 	Init(int iElementSize);
+	void 	Init(CMallocator* pcMalloc, int iElementSize);
+	void 	ReInit(void);
 
 	void 	Finalise(void);
 	void	Fake(int iElementSize, void* pvData, int iNum, int iChunkSize = 1);

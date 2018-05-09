@@ -61,7 +61,7 @@ BOOL CChunkFile::WriteOpen(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CChunkFile::WriteOpen(int iUserID)
 {
-	mcChunkStack.Init(5);
+	mcChunkStack.Init();
 	mmsziNames.Init(8, TRUE);
 	msHeader.WriteInit(iUserID);
 	miLastName = CFN_Error;
@@ -103,7 +103,7 @@ BOOL CChunkFile::ReadOpen(void)
 {
 	int		iResult;
 
-	mcChunkStack.Init(5);
+	mcChunkStack.Init();
 	mmsziNames.Init(8);
 	msHeader.miChunkNamesPos = -1;
 	miLastName = CFN_Error;

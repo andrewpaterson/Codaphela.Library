@@ -9,7 +9,7 @@
 //////////////////////////////////////////////////////////////////////////
 void CIndexTreeRecursor::Init(CIndexTreeNode* pcRoot)
 {
-	macKey.Init(256);
+	macKey.Init();
 	mpcCurrent = pcRoot;
 
 	mszBadKey.Init();

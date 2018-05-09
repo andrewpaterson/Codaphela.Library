@@ -95,7 +95,7 @@ CFileNode<M>* CFileNames<M>::GetNode(char* szFullName)
 	CFileNode<M>*	pcCurrent;
 	CFileNode<M>*	pcChild;
 
-	asNames.Init(8);
+	asNames.Init();
 	szFake.Fake(szFullName);
 	szFake.Split(&asNames, '/');
 
@@ -141,7 +141,7 @@ CFileNode<M>* CFileNames<M>::AddFile(char* szFullName)
 
 	mbParentsValid = FALSE;
 
-	asNames.Init(8);
+	asNames.Init();
 	szFake.Fake(szFullName);
 	szFake.Split(&asNames, '/');
 
@@ -194,7 +194,7 @@ M* CFileNames<M>::GetNearestFile(char* szFullName, CChars* pszRemaining)
 	int				iRemain;
 	CChars*			szName;
 
-	asNames.Init(8);
+	asNames.Init();
 	szFake.Fake(szFullName);
 	szFake.Split(&asNames, '/');
 

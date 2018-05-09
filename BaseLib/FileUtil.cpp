@@ -446,7 +446,7 @@ void CFileUtil::CollapsePath(CChars* szPathName)
 		szTemp.Init(szPathName->Text());
 	}
 
-	szNodes.Init(1);
+	szNodes.Init();
 	szTemp.Split(&szNodes, FILE_SEPARATOR[0]);
 	szTemp.Kill();
 
@@ -779,7 +779,7 @@ BOOL CFileUtil::RecurseFindFiles(const char* szDirectory, const char* szInName, 
 	BOOL			bDirectories;
 	BOOL			bFiles;
 
-	aszDirs.Init(8);
+	aszDirs.Init();
 	bDirectories = FindFiles(szDirectory, TRUE, NULL, NULL, &aszDirs, bHidden);
 
 	for (i = 0; i < aszDirs.NumElements(); i++)
@@ -926,7 +926,7 @@ BOOL CFileUtil::TouchDir(const char* szDirectory, BOOL bLastIsFileName)
 		}
 	}
 
-	aszPathComponents.Init(8);
+	aszPathComponents.Init();
 	SplitPath(szPath.Text(), &aszPathComponents);
 	szPartialPath.Init();
 	bResult = FALSE;

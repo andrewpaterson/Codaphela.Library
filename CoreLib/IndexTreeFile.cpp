@@ -1177,7 +1177,7 @@ BOOL CIndexTreeFile::FlushRemoved(void)
 	int								iKeySize;
 	unsigned char*					pszKey;
 
-	apvDeletedNodes.Init(1024);
+	apvDeletedNodes.Init();
 	FindWithFlags(&apvDeletedNodes, INDEX_TREE_NODE_FLAG_DELETED_PATH, INDEX_TREE_NODE_FLAG_DELETED_NODE);
 
 	ClearNodesFlags(&apvDeletedNodes, INDEX_TREE_NODE_FLAG_DELETED_PATH | INDEX_TREE_NODE_FLAG_DELETED_NODE);

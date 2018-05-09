@@ -8,7 +8,7 @@
 void CPackFileIterator::Init(void)
 {
 	mpcCurrent = NULL;
-	macDepth.Init(8);
+	macDepth.Init();
 }
 
 

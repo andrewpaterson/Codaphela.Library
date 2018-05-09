@@ -24,7 +24,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define __CHUNK_INDEX_H__
 #include "ArrayTemplate.h"
 #include "AbstractFile.h"
-#define CHUNK_INDEX_CHUNK_SIZE	1024
 
 
 struct SChunkIndex

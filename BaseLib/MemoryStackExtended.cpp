@@ -29,7 +29,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //////////////////////////////////////////////////////////////////////////
 void CMemoryStackExtended::Init(int iChunkSize)
 {
-	mcStacks.Init(32);
+	mcStacks.Init();
 	miElements = 0;
 	miChunkSize = iChunkSize;
 }
@@ -60,7 +60,7 @@ void CMemoryStackExtended::Clear(void)
 		pcStack = mcStacks.Get(0);
 		memcpy(&cStack, pcStack, sizeof(CMemoryStack));
 		mcStacks.Kill();
-		mcStacks.Init(32);
+		mcStacks.Init();
 		cStack.Clear();
 		mcStacks.Add(&cStack);
 	}

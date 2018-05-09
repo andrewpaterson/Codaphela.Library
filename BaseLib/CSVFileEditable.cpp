@@ -29,7 +29,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //////////////////////////////////////////////////////////////////////////
 void SCSVRowEditable::Init(void)
 {
-	aszData.Init(64);
+	aszData.Init();
 	iFileOffset = -1;
 }
 
@@ -122,7 +122,7 @@ CChars* SCSVRowEditable::Get(int iIndex)
 void CCSVFileEditable::Init(char cSeparator)
 {
 	CCSVFile::Init(cSeparator);
-	masCSVRows.Init(32);
+	masCSVRows.Init();
 }
 
 

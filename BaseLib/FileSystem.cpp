@@ -63,7 +63,7 @@ void CFileSystem::ReadDirectory(void)
 	CSystemFileNode*	pcNode;
 	CChars				szName;
 
-	aszFileNames.Init(256);
+	aszFileNames.Init();
 	cFileUtil.FindAllFiles(mszDirectory.Text(), &aszFileNames, TRUE, FALSE);
 
 	for (i = 0; i < aszFileNames.NumElements(); i++)

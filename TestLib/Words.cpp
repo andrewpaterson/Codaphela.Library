@@ -10,7 +10,7 @@ CArrayChars gacArchaicWords;
 //////////////////////////////////////////////////////////////////////////
 void WordsInit(void)
 {
-	gacArchaicWords.Init(8);
+	gacArchaicWords.Init();
 	gacArchaicWords.Add("abroad: out of doors");
 	gacArchaicWords.Add("accouchement: birthing");
 	gacArchaicWords.Add("advertisement: a notice to readers in a book");

@@ -4,8 +4,6 @@
 #include "BaseLib/AbstractFile.h"
 
 
-#define LOG_FILE_COMMAND_CHUNK_SIZE	4096
-
 
 enum ELogFileCommand
 {

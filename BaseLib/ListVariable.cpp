@@ -29,17 +29,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //////////////////////////////////////////////////////////////////////////
 void CListVariable::Init(void)
 {
-	Init(1);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CListVariable::Init(int iChunkSize)
-{
-	mcArray.Init(iChunkSize);
+	mcArray.Init();
 	mcFreeLists.Init(&gcDataMemoryFreeListParams);
 }
 
@@ -50,11 +40,8 @@ void CListVariable::Init(int iChunkSize)
 //////////////////////////////////////////////////////////////////////////
 void CListVariable::ReInit(void)
 {
-	int		iChunkSize;
-
-	iChunkSize = mcArray.ChunkSize();
-	Kill();
-	Init(iChunkSize);
+	mcArray.ReInit();
+	mcFreeLists.ReInit();
 }
 
 

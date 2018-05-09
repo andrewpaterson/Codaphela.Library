@@ -30,7 +30,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //////////////////////////////////////////////////////////////////////////
 void CTextFile::Init(void)
 {
-	mcText.Init(1024);
+	mcText.Init();
 	mszFileName.Init();
 }
 
@@ -41,7 +41,7 @@ void CTextFile::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CTextFile::Init(char* szText)
 {
-	mcText.Init(1024);
+	mcText.Init();
 	mcText.Append(szText);
 	mszFileName.Init();
 }

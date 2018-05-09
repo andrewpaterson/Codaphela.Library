@@ -53,7 +53,6 @@ public:
 	void	Init(const char* sz, int iStartInclusive);
 	void	Init(CChars sz, int iStartInclusive, int iEndExclusive);
 	void	Init(const char* sz, int iStartInclusive, int iEndExclusive);
-	void	Init(int iChunkSize);
 	void	Init(char cPadCharacter, int iNumber);
 	void	InitList(const char* szFirst, ...);
 	void	InitList(CChars* szFirst, ...);

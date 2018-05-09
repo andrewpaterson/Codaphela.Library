@@ -150,7 +150,7 @@ void CArrayTemplateEmbedded<M, I>::BecomeArray(int iUsedElements)
 	M	am[I];
 
 	memcpy(am, mam, miUsedElements*miElementSize);
-	mcArray.Init(miChunkSize);
+	mcArray.Init();
 	mcArray.AddNum(iUsedElements);
 	memcpy(mcArray.GetData(), am, miUsedElements*miElementSize);
 	miUsedElements = iUsedElements;

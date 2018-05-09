@@ -76,7 +76,7 @@ void CTypeNames::AddType(EPrimitiveTypes eType, int iSize, const char* szPrettyN
 //////////////////////////////////////////////////////////////////////////
 void CTypeNames::Init(void)
 {
-	masTypeNames.Init(30);
+	masTypeNames.Init();
 	AddType(PT_Undefined,	0,					"Undefined",	"",					"PT_Undefined");
 	AddType(PT_int,			INT_BYTE_SIZE,		"Int",			"int",				"PT_int");
 	AddType(PT_short,		SHORT_BYTE_SIZE,	"Short",		"short",			"PT_short");
