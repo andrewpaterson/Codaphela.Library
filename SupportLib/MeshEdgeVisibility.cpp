@@ -33,7 +33,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //////////////////////////////////////////////////////////////////////////
 void CMeshEdgeVisibility::Init(void)
 {
-	mcEdges.Init(MESH_EDGES_CHUNK_SIZE);
+	mcEdges.Init();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -51,9 +51,9 @@ void CMeshEdgeVisibility::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshEdgeVisibility::ReInit(int iFaceChunkSize)
+void CMeshEdgeVisibility::ReInit(void)
 {
-	mcEdges.ReInit(iFaceChunkSize);
+	mcEdges.ReInit();
 }
 
 

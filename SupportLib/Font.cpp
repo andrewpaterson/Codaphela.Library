@@ -40,7 +40,7 @@ Ptr<CFont> CFont::Init(char* szName, int iSpaceWidth, int iAscent, int iDescent)
 	miSpace = iSpaceWidth;
 	miAscent = iAscent;
 	miDescent = iDescent;
-	macGlyphs.Init(8);
+	macGlyphs.Init();
 
 	return Ptr<CFont>(this);
 }

@@ -46,7 +46,7 @@ public:
 
 	void	ApplyAll(CMeshEditor* pcMeshEditor);
 
-	void	ReInitConnectivity(int iCornerChunkSize, int iFaceChunkSize);
+	void	ReInitConnectivity(void);
 
 	void	AddPosition(SFloat3* psPosition);
 

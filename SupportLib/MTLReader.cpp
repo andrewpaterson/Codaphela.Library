@@ -97,7 +97,7 @@ BOOL CMTLReader::Read(void)
 	}
 
 	cTextFile.PassifyNewlines();
-	cLines.Init(256, TRUE);
+	cLines.Init(TRUE);
 	cTextFile.mcText.SplitLines(&cLines);
 
 	return TRUE;

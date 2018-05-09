@@ -38,7 +38,7 @@ void CMeshModifier::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshModifier::ReInitConnectivity(int iCornerChunkSize, int iFaceChunkSize)
+void CMeshModifier::ReInitConnectivity(void)
 {
 }
 

@@ -37,7 +37,7 @@ public:
 	CArrayInt	mcFaces;  //mcFaces.NumElements == mpcMesh->mcFaces.NumElements.  The int is an index lookup into the MaterialTracker.
 
 	void 	Init(void);
-	void	ReInit(int iFaceChunkSize);
+	void	ReInit(void);
 	void 	Kill(void);
 	BOOL	Load(CFileReader* pcFile);
 	BOOL	Save(CFileWriter* pcFile);

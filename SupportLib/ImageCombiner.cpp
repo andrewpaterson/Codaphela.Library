@@ -52,7 +52,7 @@ void CImageCombiner::Init(EImageCombineLayout eLayout, int iWidth, int iHeight, 
 	mcDestCels.KillElements(bKillDestCels);
 	miOutsideEdgeWidth = iOutsideEdgeWidth;
 	miInnerEdgeWidth = iInnerEdgeWidth;
-	masChannels.Init(1);
+	masChannels.Init();
 }
 
 
@@ -356,7 +356,7 @@ SInt2 CImageCombiner::Pack(CArrayPackedRectangle* pacPackedRects)
 
 	pcPacker->Pack();
 
-	pacPackedRects->Init(mcSourceCels.NumElements());
+	pacPackedRects->Init();
 	pcPacker->GetPackedRectangles(pacPackedRects);
 	sTextureSize = pcPacker->GetPackedImageSize();
 	pcPacker->Kill();
@@ -469,7 +469,7 @@ void CImageCombiner::Draw(CArrayPackedRectangle* pacPackedRects)
 		{
 			mpcDestImage->GetAllChannels(&aiDestChannels);
 			pcCelSource->GetSourceImage()->GetAllChannels(&aiSourceChannels);
-			aiIntersectChannels.Init(aiDestChannels.NumElements());
+			aiIntersectChannels.Init();
 			aiIntersectChannels.Intersect(&aiDestChannels, &aiSourceChannels);
 			aiDestChannels.Kill();
 			aiSourceChannels.Kill();

@@ -32,7 +32,7 @@ along with Codaphela ShapeLib.  If not, see <http://www.gnu.org/licenses/>.
 void CExtremeTriangle::Init(SFloat3* psPoint1, SFloat3* psPoint2, SFloat3* psPoint3, SFloat3* psNormal)
 {
 	CTriangle::Init(psPoint1, psPoint2, psPoint3, psNormal);
-	maiVisible.Init(512);
+	maiVisible.Init();
 }
 
 
@@ -245,7 +245,7 @@ BOOL CConvexHullGenerator::Generate(void)
 		return FALSE;
 	}
 
-	apcTriangles.Init(2048);
+	apcTriangles.Init();
 
 	if (!FindFirstPairTriangles(&apcTriangles, iMaxXIndex, iMinXIndex, iFarIndex))
 	{
@@ -253,8 +253,8 @@ BOOL CConvexHullGenerator::Generate(void)
 		return FALSE;
 	}
 
-	cDeleted.Init(512);
-	cFixedDeleted.Init(512);
+	cDeleted.Init();
+	cFixedDeleted.Init();
 
 	for (iTriangle = 0; iTriangle < apcTriangles.NumElements(); iTriangle++)
 	{
@@ -770,7 +770,7 @@ int CConvexHullGenerator::FindMinX(float* px)
 //////////////////////////////////////////////////////////////////////////
 void CConvexHull::Init(void)
 {
-	mcPolygons.Init(12);
+	mcPolygons.Init();
 }
 
 
@@ -805,7 +805,7 @@ void CConvexHull::BeginSetFromPoints(CConvexHullGenerator* psConvexHullGenerator
 	psConvexHullGenerator->Init(psPoints, iStride, iNumPoints, szHullName);
 	psConvexHullGenerator->Generate();
 
-	apcTriangles.Init(psConvexHullGenerator->mcTriangles.NumElements());
+	apcTriangles.Init();
 
 	pcTriangle = (CExtremeTriangle*)psConvexHullGenerator->mcTriangles.StartIteration(&sIter);
 	while (pcTriangle)
@@ -979,7 +979,7 @@ void CConvexHull::GetVertices(CArrayBlock* pasPositions, SFloat3* psPoints, int 
 	int			iIndex;
 	SFloat3*	psPosition;
 
-	aiIndices.Init(mcPolygons.NumElements()+1);
+	aiIndices.Init();
 	GetIndices(&aiIndices, psPoints, iStride);
 
 	for (i = 0; i < aiIndices.NumElements(); i++)

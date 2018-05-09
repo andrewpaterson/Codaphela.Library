@@ -45,7 +45,7 @@ public:
 	void 				Init(CMeshEditor* pcMesh);
 	void				Kill(void);
 
-	void				ReInitConnectivity(int iCornerChunkSize = 0, int iFaceChunkSize = 0);
+	void				ReInitConnectivity(void);
 
 	void				SetUVsInUse(BOOL bInUse);
 	void				SetNormalsInUse(BOOL bInUse);

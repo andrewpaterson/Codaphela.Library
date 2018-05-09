@@ -30,7 +30,7 @@ class CArray : public CArrayObject
 {
 BASE_FUNCTIONS(CArray);
 public:
-	Ptr<CArray<M>>	Init(int iChunkSize = ARRAY_COMMOM_CHUNK_SIZE);
+	Ptr<CArray<M>>	Init(void);
 	void			Kill(void);
 
 	void			Add(Ptr<M> pObject);
@@ -48,9 +48,9 @@ public:
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-Ptr<CArray<M>> CArray<M>::Init(int iChunkSize)
+Ptr<CArray<M>> CArray<M>::Init(void)
 {
-	CArrayObject::Init(iChunkSize);
+	CArrayObject::Init();
 	return Ptr<CArray<M>>(this);
 }
 

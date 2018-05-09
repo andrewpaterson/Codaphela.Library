@@ -11,9 +11,9 @@
 //////////////////////////////////////////////////////////////////////////
 void CDependentReadObjects::Init(void)
 {
-	mcReadObjects.Init(128);
-	mcPointers.Init(512);
-	mcIndexRemap.Init(128);
+	mcReadObjects.Init();
+	mcPointers.Init();
+	mcIndexRemap.Init();
 	miGetIndex = 0;
 }
 

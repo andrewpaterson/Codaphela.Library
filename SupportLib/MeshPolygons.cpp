@@ -74,8 +74,8 @@ BOOL CMeshPolygon::Load(CFileReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 void CMeshPolygons::Init(void)
 {
-	mcPolygons.Init(1);  //You'll need to deal with the actual growing in the code.
-	maiFacesToPolygons.Init(1);  //You'll need to deal with the actual growing in the code.
+	mcPolygons.Init(); 
+	maiFacesToPolygons.Init();
 }
 
 
@@ -83,13 +83,10 @@ void CMeshPolygons::Init(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CMeshPolygons::ReInit(int iNumfaces)
+void CMeshPolygons::ReInit(void)
 {
 	Kill();
-	mcPolygons.Init(iNumfaces/3+1);
-	maiFacesToPolygons.Init(iNumfaces/3+1);
-	maiFacesToPolygons.Resize(iNumfaces);
-	maiFacesToPolygons.SetArrayValues(-1);
+	Init();
 }
 
 
@@ -359,7 +356,7 @@ void CMeshPolygons::GeneratePolygonsFromEdgeSelection(CMeshConnectivity* pcConn,
 {
 	int			iFaceIndex;
 
-	ReInit(pcConn->mcFaces.NumElements());
+	ReInit();
 
 	iFaceIndex = 0;
 	for (;;)
@@ -393,7 +390,7 @@ void CMeshPolygons::GeneratePolygonFromEdgeSelection(CMeshConnectivity* pcConn, 
 
 	pcPolygon = Add(1);
 	iPolygonIndex = mcPolygons.NumElements()-1;
-	aiStack.Init(1);
+	aiStack.Init();
 	aiStack.Push(iFaceIndex);
 
 	for (;;)
@@ -577,7 +574,7 @@ int CMeshPolygons::NumUniqueNames(void)
 	CArrayInt	cai;
 	int			iUnique;
 
-	cai.Init(16);
+	cai.Init();
 	GetUniqueNames(&cai);
 	iUnique = cai.NumElements();
 	cai.Kill();

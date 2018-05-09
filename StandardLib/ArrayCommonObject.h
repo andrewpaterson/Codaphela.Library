@@ -33,7 +33,7 @@ protected:
 	BOOL					mbSubRoot;
 
 public:
-	Ptr<CArrayCommonObject>	Init(BOOL bUnique, BOOL bIgnoreNull, BOOL bPreserveOrder, int iChunkSize);
+	Ptr<CArrayCommonObject>	Init(BOOL bUnique, BOOL bIgnoreNull, BOOL bPreserveOrder);
 	void					Class(void);
 	void					Kill(void);
 

@@ -15,7 +15,7 @@ BOOL CObjectSourceChunked::Init(CObjectConverter* pcConverter, CAbstractFile* pc
 	CObjectSource::Init(pcConverter, pcFile, szFileName);
 
 	mcChunkFile.Init(mpcFile);
-	mcNames.Init(8);
+	mcNames.Init();
 
 	ReturnOnFalse(mcChunkFile.ReadOpen());
 	ReturnOnFalse(ReadNames());

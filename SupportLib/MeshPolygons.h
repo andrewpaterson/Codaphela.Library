@@ -59,7 +59,7 @@ public:
 
 	void 			Init(void);
 	void 			Kill(void);
-	void			ReInit(int iNumfaces);
+	void			ReInit(void);
 	BOOL	 		Save(CFileWriter* pcFile);
 	BOOL	 		Load(CFileReader* pcFile);
 	CMeshPolygon*	Get(int iPolygonNum);

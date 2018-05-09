@@ -122,8 +122,8 @@ void CMeshSkinVert::SortSkinWeights(void)
 void CMeshSkin::Init(void)
 {
 	CMeshDetail::Init();
-	mcSkinVerts.Init(MESH_CORNERS_CHUNK_SIZE);
-	mcInverseSkinMatricies.Init(8);
+	mcSkinVerts.Init();
+	mcInverseSkinMatricies.Init();
 }
 
 
@@ -161,19 +161,11 @@ void CMeshSkin::KillSkinVerts(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshSkin::ReInit(int iCornerChunkSize)
+void CMeshSkin::ReInit(void)
 {
-	int		iOldSize;
-
-	iOldSize = mcSkinVerts.ChunkSize();
 	KillSkinVerts();
 
-	if (iCornerChunkSize == 0)
-	{
-		iCornerChunkSize = iOldSize;
-	}
-
-	mcSkinVerts.Init(iCornerChunkSize);
+	mcSkinVerts.Init();
 	mcInverseSkinMatricies.ReInit();
 }
 
@@ -272,7 +264,7 @@ int CMeshSkin::GetFaceMatrixCount(int iVert1, int iVert2, int iVert3)
 	CArrayInt		aiMatricies;
 	int				iNumMatricies;
 
-	aiMatricies.Init(16);
+	aiMatricies.Init();
 
 	pcVert = mcSkinVerts.Get(iVert1);
 	PrivateAddMatricies(pcVert, &aiMatricies);

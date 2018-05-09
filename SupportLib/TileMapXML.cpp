@@ -436,7 +436,7 @@ BOOL CTileMapXML::ImportTiles(CMarkupTag* pcTag, CTileLayer* pcLayer)
 	CChars				szError;
 	CTile*				pcTile;
 
-	szCSV.Init(128);
+	szCSV.Init();
 	pcTag->GetText(&szCSV);
 	if (szCSV.Empty())
 	{

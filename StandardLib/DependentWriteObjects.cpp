@@ -28,7 +28,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CDependentWriteObjects::Init(void)
 {
-	mcObjects.Init(128);
+	mcObjects.Init();
 	miGetIndex = 0;
 }
 

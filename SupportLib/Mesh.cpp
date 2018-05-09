@@ -249,16 +249,16 @@ CMeshFace* CMesh::GetFace(int iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMesh::ReInitConnectivity(int iCornerChunkSize, int iFaceChunkSize)
+void CMesh::ReInitConnectivity(void)
 {
-	mcConnectivity.ReInit(iCornerChunkSize, iFaceChunkSize);
-	mcPositions.ReInit(iCornerChunkSize);
+	mcConnectivity.ReInit();
+	mcPositions.ReInit();
 
-	mcNormals.ReInit(iCornerChunkSize, iFaceChunkSize);
-	mcUVs.ReInit(iCornerChunkSize, iFaceChunkSize);
-	mcSkin.ReInit(iCornerChunkSize);
-	mcMaterials.ReInit(iFaceChunkSize);
-	mcColours.ReInit(iCornerChunkSize, iFaceChunkSize);
+	mcNormals.ReInit();
+	mcUVs.ReInit();
+	mcSkin.ReInit();
+	mcMaterials.ReInit();
+	mcColours.ReInit();
 }
 
 

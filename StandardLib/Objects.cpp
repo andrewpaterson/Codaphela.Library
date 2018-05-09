@@ -338,7 +338,7 @@ void CObjects::RecurseDumpGraph(CChars* psz, CEmbeddedObject* pcIncoming, int iL
 	pcBaseObject->miFlags |= OBJECT_FLAGS_DUMPED;
 
 
-	apcTos.Init(1);
+	apcTos.Init();
 	pcBaseObject->BaseGetPointerTos(&apcTos);
 	for (i = 0; i < apcTos.NumElements(); i++)
 	{
@@ -459,7 +459,7 @@ void CObjects::RecurseValidateSceneGraph(CBaseObject* pcBaseObject)
 
 		pcBaseObject->ValidateConsistency();
 
-		apcTos.Init(1);
+		apcTos.Init();
 		pcBaseObject->GetPointerTos(&apcTos);
 		for (i = 0; i < apcTos.NumElements(); i++)
 		{
@@ -542,7 +542,7 @@ BOOL CObjects::ClearMemory(void)
 	CArrayBlockObjectPtr		apcBaseObjects;
 	int						iCount;
 
-	apcBaseObjects.Init(CLEAR_MEMORY_CHUNK_SIZE);
+	apcBaseObjects.Init();
 	oi = StartMemoryIteration(&sIter);
 
 	iCount = 0;

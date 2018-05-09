@@ -38,7 +38,7 @@ public:
 	CArrayChar	mcEdges;  //mcEdges.NumElements == mpcMesh->mcEdges.NumElements
 
 	void 	Init(void);
-	void	ReInit(int iFaceChunkSize);
+	void	ReInit(void);
 	void 	Kill(void);
 	BOOL	Load(CFileReader* pcFile);
 	BOOL	Save(CFileWriter* pcFile);

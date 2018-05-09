@@ -32,7 +32,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CNamedIndexesBlocks::Init(int iBlockSize, int iMinNameLength, int iMaxNameLength, int iBlockChunkSize, CNamedIndexes* pcNamedIndexes)
 {
-	macBlocks.Init(1);
+	macBlocks.Init();
 	miBlockWidth = iBlockSize;
 	miMinNameLength = iMinNameLength;
 	miMaxNameLength = iMaxNameLength;
@@ -130,7 +130,7 @@ BOOL CNamedIndexesBlocks::Add(OIndex oi, CChars* szName, BOOL bFailOnExisting)
 	CNamedIndexesBlock*			pcNotFullBlock;
 	CArrayNamedIndexesBlockPtr	cArrayBlockPrts;
 
-	cArrayBlockPrts.Init(16);
+	cArrayBlockPrts.Init();
 	GetPotentialContainingBlocks(szName, &cArrayBlockPrts);
 	SortBlockPtrsCachedFirst(&cArrayBlockPrts);
 
@@ -234,7 +234,7 @@ OIndex CNamedIndexesBlocks::GetIndex(CChars* szName)
 	BOOL						bResult;
 	CArrayNamedIndexesBlockPtr	cArrayBlockPrts;
 
-	cArrayBlockPrts.Init(16);
+	cArrayBlockPrts.Init();
 	GetPotentialContainingBlocks(szName, &cArrayBlockPrts);
 	SortBlockPtrsCachedFirst(&cArrayBlockPrts);
 
@@ -276,7 +276,7 @@ BOOL CNamedIndexesBlocks::Remove(CChars* szName)
 	CArrayNamedIndexesBlockPtr	cArrayBlockPrts;
 	int							iIndex;
 
-	cArrayBlockPrts.Init(16);
+	cArrayBlockPrts.Init();
 	GetPotentialContainingBlocks(szName, &cArrayBlockPrts);
 	SortBlockPtrsCachedFirst(&cArrayBlockPrts);
 

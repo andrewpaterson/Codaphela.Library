@@ -41,7 +41,7 @@ void CCopyPaste::Init(void)
 	if (!gbCopyPasteInitialised)
 	{
 		//Remember these globals are a hack.
-		gszCopyPasteBuffer.Init(20);
+		gszCopyPasteBuffer.Init();
 		gbCopyPasteInitialised = TRUE;
 	}
 }

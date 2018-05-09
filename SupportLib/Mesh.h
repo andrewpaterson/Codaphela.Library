@@ -74,7 +74,7 @@ public:
 	CMeshEdge*		GetEdge(int iIndex);
 	CMeshFace*		GetFace(int iIndex);
 
-	void			ReInitConnectivity(int iCornerChunkSize, int iFaceChunkSize);
+	void			ReInitConnectivity(void);
 
 	void 			AddCorner(float x, float y, float z);
 	void			AddCorner(SFloat3* psPosition);

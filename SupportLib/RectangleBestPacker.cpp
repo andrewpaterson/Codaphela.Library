@@ -33,10 +33,10 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //////////////////////////////////////////////////////////////////////////
 void CRectangleBestPacker::Init(int iOutsideEdgeWidth, int iInnerEdgeWidth)
 {
-	masSourceRectangles.Init(32);
+	masSourceRectangles.Init();
 	miOutsideEdgeWidth = iOutsideEdgeWidth;
 	miInnerEdgeWidth = iInnerEdgeWidth;
-	macPackAttempts.Init(8);
+	macPackAttempts.Init();
 	miSourceArea = 0;
 }
 

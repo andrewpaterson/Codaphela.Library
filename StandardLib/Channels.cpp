@@ -36,12 +36,12 @@ Microsoft Windows is Copyright Microsoft Corporation
 //////////////////////////////////////////////////////////////////////////
 void CChannels::Init(void)
 {
-	masChannelOffsets.Init(1);
+	masChannelOffsets.Init();
 	miSize = 0;
 	miByteStride = 0;
 	miBitStride = 0;
 	mbOnlyBasicTypes = TRUE;
-	mabData.Init(1);
+	mabData.Init();
 	mpvUserData = NULL;
 
 	mpsChangingDesc = NULL;
@@ -697,7 +697,7 @@ void CChannels::AllocateData(void)
 
 	iSize = CalculateByteSize(miBitStride, miSize);
 	FreeData();
-	mabData.Init(iSize);
+	mabData.Init();
 	mabData.Resize(iSize);
 }
 
@@ -928,13 +928,13 @@ void CChannels::Copy(CChannels* pcData)
 {
 	//This assumes channels is not initialised.
 
-	masChannelOffsets.Init(1);
+	masChannelOffsets.Init();
 	masChannelOffsets.Copy(&pcData->masChannelOffsets);
 	miSize = pcData->miSize;
 	miByteStride = pcData->miByteStride;
 	miBitStride = pcData->miBitStride;
 	mbOnlyBasicTypes = pcData->mbOnlyBasicTypes;
-	mabData.Init(1);
+	mabData.Init();
 	mabData.Copy(&pcData->mabData);
 	mpvUserData = pcData->mpvUserData;
 	if (IsUserAllocated())
@@ -1050,7 +1050,7 @@ void CChannels::GetAllChannels(CArrayInt* paiChannels)
 	int					j;
 	CChannel*			psChannel;
 
-	paiChannels->Init(masChannelOffsets.NumElements());
+	paiChannels->Init();
 
 	for (j = 0; j < masChannelOffsets.NumElements(); j++)
 	{
@@ -1070,7 +1070,7 @@ void CChannels::GetAllChannels(CArrayChannel* pasChannels)
 	CChannel*			psChannelSource;
 	SChannel*			psChannelDest;
 
-	pasChannels->Init(masChannelOffsets.NumElements());
+	pasChannels->Init();
 	pasChannels->Resize(masChannelOffsets.NumElements());
 
 	for (j = 0; j < masChannelOffsets.NumElements(); j++)
@@ -1120,7 +1120,7 @@ void CChannels::GetAllPrimitiveTypes(CArrayInt* paiPrimitiveTypes)
 	int					j;
 	CChannel*			psChannel;
 
-	paiPrimitiveTypes->Init(4);
+	paiPrimitiveTypes->Init();
 	for (j = 0; j < masChannelOffsets.NumElements(); j++)
 	{
 		psChannel = masChannelOffsets.Get(j);
@@ -1138,7 +1138,7 @@ void CChannels::GetChannelsForType(EPrimitiveTypes eType, CArrayInt* paiChannels
 	int					j;
 	CChannel*			psChannel;
 
-	paiChannels->Init(4);
+	paiChannels->Init();
 
 	for (j = 0; j < masChannelOffsets.NumElements(); j++)
 	{

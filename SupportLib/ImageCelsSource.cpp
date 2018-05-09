@@ -170,7 +170,7 @@ void CImageCelsSource::AddDiskFileSources(char* szPathName, char* szFileNameCont
 		return;
 	}
 
-	cFileNames.Init(32);
+	cFileNames.Init();
 	cFileUtil.FindFilesWithNameContaining(szPathName, szFileNameContains, &cFileNames, FALSE);
 
 	for (i = 0; i < cFileNames.NumElements(); i++)

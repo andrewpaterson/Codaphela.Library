@@ -30,7 +30,7 @@ class CSetObject : public CArrayCommonObject
 {
 BASE_FUNCTIONS(CSetObject);
 public:
-						Ptr<CSetObject> Init(int iChunkSize = ARRAY_COMMOM_CHUNK_SIZE);
+						Ptr<CSetObject> Init(void);
 
 						CPointer		Get(int iIndex);
 

@@ -29,8 +29,8 @@ class CSetType : public CSetUnknown
 {
 BASE_FUNCTIONS(CSetType);
 public:
-	void 	Init(int iChunkSize = ARRAY_COMMOM_CHUNK_SIZE);
-	void 	Init(CUnknowns* pcUnknownsAllocatingFrom, int iChunkSize = ARRAY_COMMOM_CHUNK_SIZE);
+	void 	Init(void);
+	void 	Init(CUnknowns* pcUnknownsAllocatingFrom);
 	void 	Kill(void);
 
 	void	Add(M* pcUnknown);
@@ -56,9 +56,9 @@ protected:
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CSetType<M>::Init(int iChunkSize)
+void CSetType<M>::Init(void)
 {
-	CSetUnknown::Init(iChunkSize);
+	CSetUnknown::Init();
 	TypeKnown(TRUE);
 }
 
@@ -68,7 +68,7 @@ void CSetType<M>::Init(int iChunkSize)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CSetType<M>::Init(CUnknowns* pcUnknownsAllocatingFrom, int iChunkSize)
+void CSetType<M>::Init(CUnknowns* pcUnknownsAllocatingFrom)
 {
 	CSetUnknown::Init(pcUnknownsAllocatingFrom, iChunkSize);
 	TypeKnown(TRUE);

@@ -36,8 +36,8 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 void CChannelsAccessorCreator::Init(CChannels* pcChannels)
 {
 	mpcChannels = pcChannels;
-	masAccess.Init(4);
-	macAccessor.Init(4);
+	masAccess.Init();
+	macAccessor.Init();
 }
 
 
@@ -197,7 +197,7 @@ BOOL CChannelsAccessorCreator::CreateAccessors(void)
 		return FALSE;
 	}
 
-	macAccessor.Init(masAccess.NumElements());  //Safe to call init again if no elements have been added.
+	macAccessor.Init();  //Safe to call init again if no elements have been added.
 
 	for (i = 0; i < masAccess.NumElements(); i++)
 	{
