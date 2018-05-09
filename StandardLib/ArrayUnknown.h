@@ -27,7 +27,7 @@ class CArrayUnknown : public CArrayCommonUnknown
 {
 BASE_FUNCTIONS(CArrayUnknown);
 public:
-	void 		Init(int iChunkSize = ARRAY_COMMOM_CHUNK_SIZE);
+	void 		Init(void);
 	void 		Kill(void);
 
 	template<class M>

@@ -33,7 +33,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //////////////////////////////////////////////////////////////////////////
 void CImageFiller::Init(void* pvBorderColour, CImageAccessor* pcSource, CImage* pcDestImage)
 {
-	mcStack.Init(128);
+	mcStack.Init();
 	mpvBorderColour = pvBorderColour;
 	mpcDestImage = pcDestImage;
 	mpcSourceAccessor = pcSource;

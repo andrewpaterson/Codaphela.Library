@@ -138,8 +138,8 @@ int SMeshFaceType::GetMaterial(void)
 void CMeshFaceTypes::Init(void)
 {
 	CMeshDetail::Init();
-	mcFaces.Init(MESH_FACES_CHUNK_SIZE);
-	mcUniqueTypes.Init(8);
+	mcFaces.Init();
+	mcUniqueTypes.Init();
 }
 
 
@@ -185,12 +185,12 @@ BOOL CMeshFaceTypes::Save(CFileWriter* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshFaceTypes::ClearFaceTypes(int iNumFaces, int iChunkSize)
+void CMeshFaceTypes::ClearFaceTypes(int iNumFaces)
 {
 	int				i;
 	SMeshFaceType*	psType;
 
-	mcFaces.ReInit(iChunkSize);
+	mcFaces.ReInit();
 	mcFaces.Resize(iNumFaces);
 
 	for (i = 0; i < iNumFaces; i++)
@@ -421,7 +421,7 @@ void CMeshFaceTypes::GenerateUniques(void)
 //////////////////////////////////////////////////////////////////////////
 void CMeshFaceTypes::Touch(CMesh* pcMesh)
 {
-	ClearFaceTypes(pcMesh->NumFaces(), pcMesh->FaceChunkSize());
+	ClearFaceTypes(pcMesh->NumFaces());
 
 	GenerateFromNormals(&pcMesh->mcNormals);
 	GenerateFromColours(&pcMesh->mcColours);

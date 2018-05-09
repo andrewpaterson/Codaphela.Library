@@ -98,7 +98,6 @@ BOOL CObjReader::Read(void)
 	CTextFile			cTextFile;
 	CEnumeratorVoid		cTypes;
 	int					iType;
-	int					iNumVerts;
 	CArrayChars		cLines;
 	CChars*				pszLine;
 	int					i;
@@ -123,14 +122,12 @@ BOOL CObjReader::Read(void)
 	}
 
 	cTextFile.PassifyNewlines();
-	cLines.Init(256, TRUE);
+	cLines.Init(TRUE);
 	cTextFile.mcText.SplitLines(&cLines);
 	
 
-	iNumVerts = cTextFile.mcText.Occurrences("v ");
-
 	//The Mesh/MeshEditor must already be initialised.
-	mcWrapper.ReInitConnectivity(iNumVerts, iNumVerts/3 + 1);
+	mcWrapper.ReInitConnectivity();
 
 	for (i = 0; i < cLines.NumElements(); i++)
 	{
@@ -256,7 +253,7 @@ BOOL CObjReader::ReadFace(CTextParser* pcTextParser, int iNumCorners, int iNumNo
 	CMFRet					r;
 	int						aiCornerIndices[6];
 
-	asCorners.Init(8);
+	asCorners.Init();
 	while (TRUE)
 	{
 		tResult = pcTextParser->GetInteger(&iCorner);
@@ -294,7 +291,7 @@ BOOL CObjReader::ReadFace(CTextParser* pcTextParser, int iNumCorners, int iNumNo
 	bNormals = TRUE;
 	bUVS = TRUE;
 
-	aiCorners.Init(asCorners.NumElements());
+	aiCorners.Init();
 	aiCorners.Resize(asCorners.NumElements());
 	for (i = 0; i < asCorners.NumElements(); i++)
 	{

@@ -72,7 +72,7 @@ public:
 	CArrayFloat4x4		mcInverseSkinMatricies;  //Matricies to bring the object spaces verts to local matrix space.
 
 	void 	Init(void);
-	void	ReInit(int iCornerChunkSize);
+	void	ReInit(void);
 	void 	Kill(void);
 	void	KillSkinVerts(void);
 	BOOL	Load(CFileReader* pcFile);

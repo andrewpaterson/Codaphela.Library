@@ -34,12 +34,12 @@ void CImageCelSourceRectangles::Init(CArrayRectangle* pcRectangles, SImageColour
 	CImageCelSource::Init(psTransparentColour, bIgnoreEmpty, bCropTransparentBorders);
 	if (pcRectangles)
 	{
-		mcRectangles.Init(&gcSystemAllocator, pcRectangles->NumElements());
+		mcRectangles.Init(&gcSystemAllocator);
 		mcRectangles.Copy(pcRectangles);
 	}
 	else
 	{
-		mcRectangles.Init(8);
+		mcRectangles.Init();
 	}
 }
 

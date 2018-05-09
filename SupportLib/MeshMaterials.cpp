@@ -32,18 +32,18 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 void CMeshMaterials::Init(void)
 {
 	CMeshDetail::Init();
-	mcMaterials.Init(8);
-	mcFaces.Init(MESH_FACES_CHUNK_SIZE);
+	mcMaterials.Init();
+	mcFaces.Init();
 }
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshMaterials::ReInit(int iFaceChunkSize)
+void CMeshMaterials::ReInit(void)
 {
 	mcMaterials.ReInit();
-	mcFaces.ReInit(iFaceChunkSize);
+	mcFaces.ReInit();
 }
 
 

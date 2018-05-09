@@ -50,5 +50,5 @@ void CMeshSourceModifier::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CMeshSourceModifier::ReInitConnectivity(CMeshEditor* pcMeshEditor)
 {
-	pcMeshEditor->ReInitConnectivity(ExpectedCornerChunkSize(), ExpectedFaceChunkSize());
+	pcMeshEditor->ReInitConnectivity();
 }

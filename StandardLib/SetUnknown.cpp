@@ -26,9 +26,9 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CSetUnknown::Init(int iChunkSize)
+void CSetUnknown::Init(void)
 {
-	CArrayCommonUnknown::Init(FALSE, TRUE, FALSE, TRUE, FALSE, iChunkSize);
+	CArrayCommonUnknown::Init(FALSE, TRUE, FALSE, TRUE, FALSE);
 }
 
 

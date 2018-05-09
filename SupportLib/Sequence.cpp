@@ -29,7 +29,7 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CSequence::Init(void)
 {
-	masKeyFrames.Init(128);
+	masKeyFrames.Init();
 	miConnectionIndex = -1;
 }
 

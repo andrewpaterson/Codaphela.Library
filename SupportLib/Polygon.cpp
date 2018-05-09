@@ -28,7 +28,7 @@ along with Codaphela ShapeLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CPolygon::Init(void)
 {
-	mapsPositions.Init(sizeof(SFloat3*), 1);
+	mapsPositions.Init(sizeof(SFloat3*));
 	mbConvex = TRUE;
 	mpsNormal = NULL;
 }
@@ -234,7 +234,7 @@ BOOL CPolygon::UnionPosition(SFloat3* psPosition)
 					return TRUE;
 				}
 
-				cIndices.Init(4);
+				cIndices.Init();
 				FindIndicesOfVisibleHalfSpaces(psPosition, &cIndices);
 				if (cIndices.NumElements() == 0)
 				{

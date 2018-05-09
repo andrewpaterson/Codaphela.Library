@@ -64,15 +64,15 @@ void CMeshEditorWrapper::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshEditorWrapper::ReInitConnectivity(int iCornerChunkSize, int iFaceChunkSize)
+void CMeshEditorWrapper::ReInitConnectivity(void)
 {
 	if (mpcEditor)
 	{
-		mpcEditor->ReInitConnectivity(iCornerChunkSize, iFaceChunkSize);
+		mpcEditor->ReInitConnectivity();
 	}
 	else
 	{
-		mpcMesh->ReInitConnectivity(iCornerChunkSize, iFaceChunkSize);
+		mpcMesh->ReInitConnectivity();
 	}
 }
 

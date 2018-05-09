@@ -943,7 +943,7 @@ CEmbeddedObject* CBaseObject::TestGetPointerTo(int iToIndex)
 	CEmbeddedObject*			pTo;
 	CArrayTemplateEmbeddedObjectPtr		apcTos;
 
-	apcTos.Init(32);
+	apcTos.Init();
 	GetPointerTos(&apcTos);
 	ppTo = apcTos.SafeGet(iToIndex);
 	if (ppTo)
@@ -1246,7 +1246,7 @@ void CBaseObject::DumpPointerTos(void)
 	for (i = 0; i < iNumEmbedded; i++)
 	{
 		pcEmbedded = GetEmbeddedObject(i);
-		acTos.Init(1);
+		acTos.Init();
 		pcEmbedded->BaseGetPointerTos(&acTos);
 		iNumTos = acTos.NumElements();
 		sz.Append("Embedded ");

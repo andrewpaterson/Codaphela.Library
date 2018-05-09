@@ -30,11 +30,6 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 #define MAX_UNOVERLAPPING_SMOOTHING_GROUPS	32
 
-#define MESH_FACES_CHUNK_SIZE	1000
-#define MESH_EDGES_CHUNK_SIZE	1000
-#define MESH_CORNERS_CHUNK_SIZE	1000
-#define MESH_LEAVES_CHUNK_SIZE	500
-
 
 #endif // __MESH_DEFINES_H__
 

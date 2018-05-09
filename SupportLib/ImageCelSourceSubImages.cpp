@@ -35,12 +35,12 @@ void CImageCelSourceSubImages::Init(CArraySubImage* pacSubImages, SImageColour* 
 	CImageCelSource::Init(psTransparentColour, bIgnoreEmpty, bCropTransparentBorders);
 	if (pacSubImages)
 	{
-		macSubImages.Init(&gcSystemAllocator, pacSubImages->NumElements());
+		macSubImages.Init(&gcSystemAllocator);
 		macSubImages.Copy(pacSubImages);
 	}
 	else
 	{
-		macSubImages.Init(8);
+		macSubImages.Init();
 	}
 }
 
@@ -67,7 +67,7 @@ void CImageCelSourceSubImages::Divide(CImage* pcImage, CArrayUnknown* pcDestImag
 	CSubImage*		pcSubImage;
 	CImageCel*		pcCel;
 
-	acRects.Init(macSubImages.NumElements());
+	acRects.Init();
 	for (i = 0; i < macSubImages.NumElements(); i++)
 	{
 		pcSubImage = macSubImages.Get(i);

@@ -32,9 +32,6 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #define ARRAY_COMMOM_TYPE_KNOWN		0x0020
 
 
-#define ARRAY_COMMOM_CHUNK_SIZE	16
-
-
 struct SSetIterator
 {
 	int		iIndex;
@@ -65,7 +62,7 @@ private:
 	void				PrivateKill(void);
 
 public:
-	void 				Init(BOOL bTypeKnown, BOOL bKillElements, BOOL bUnique, BOOL bIgnoreNull, BOOL bPreserveOrder, int iChunkSize);
+	void 				Init(BOOL bTypeKnown, BOOL bKillElements, BOOL bUnique, BOOL bIgnoreNull, BOOL bPreserveOrder);
 	void 				Kill(void);
 	void 				ReInit(void);
 	BOOL				Save(CFileWriter* pcFile);

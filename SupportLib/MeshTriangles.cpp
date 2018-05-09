@@ -34,7 +34,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 void CMeshTriangles::Init(void)
 {
 	CMeshDetail::Init();
-	mcTriangles.Init(MESH_FACES_CHUNK_SIZE);
+	mcTriangles.Init();
 }
 
 
@@ -89,7 +89,7 @@ void CMeshTriangles::GenerateTriangles(CMeshConnectivity* pcConn, CMeshNormals* 
 	iNumFaces = pcConn->mcFaces.NumElements();
 
 	mcTriangles.Kill();
-	mcTriangles.Init(pcConn->mcFaces.ChunkSize());
+	mcTriangles.Init();
 	mcTriangles.SetUsedElements(iNumFaces);
 
 	for (i = 0; i < iNumFaces; i++)

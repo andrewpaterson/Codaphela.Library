@@ -62,7 +62,7 @@ public:
 	int		NumVisibleEdges(char cEdge);
 	int		NumPolygons(void);
 
-	void	ReInitConnectivity(int iCornerChunkSize = 0, int iFaceChunkSize = 0);
+	void	ReInitConnectivity(void);
 
 	//These are the only methods that editors/modifers may use to alter mesh connectivity or positions.
 	void 	AddCorner(float x, float y, float z);

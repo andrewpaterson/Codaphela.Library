@@ -32,7 +32,7 @@ void CMeshVertexArray::Init(SMeshFaceType sFaceType)
 {
 	msFaceType = sFaceType;
 	mcVertexArray.Init();
-	mcFaceIndicies.Init(24);
+	mcFaceIndicies.Init();
 	Change();
 }
 

@@ -273,7 +273,7 @@ BOOL CPolygonIndexed::Load(CFileReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 void CConvexHullIndexed::Init(void)
 {
-	mcPolygons.Init(4);
+	mcPolygons.Init();
 }
 
 
@@ -286,7 +286,7 @@ void CConvexHullIndexed::Init(int iNumPolygons)
 	int					i;
 	CPolygonIndexed*	pcPolygon;
 
-	mcPolygons.Init(1);
+	mcPolygons.Init();
 	mcPolygons.SetUsedElements(iNumPolygons);
 
 	for (i = 0; i < iNumPolygons; i++)

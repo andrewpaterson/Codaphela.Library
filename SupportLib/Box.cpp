@@ -250,12 +250,12 @@ BOOL CBox::SetFromPointsUsingBestFit(SFloat3* psPoints, int iStride, int iNumPoi
 		cConvexHull.BeginSetFromPoints(&cGenerator, psPoints, iStride, iNumPoints, NULL);
 		cConvexHull.EndSetFromPoints(NULL, 0, &cGenerator);
 		
-		asPositions.Init(sizeof(SFloat3), cConvexHull.mcPolygons.NumElements()+1);
+		asPositions.Init(sizeof(SFloat3));
 		cConvexHull.GetVertices(&asPositions, psPoints, iStride);  	//We now have only the extremal points.  Ie: those that lie on the hull.
 	}
 	else
 	{
-		asPositions.Init(sizeof(SFloat3), iNumPoints);
+		asPositions.Init(sizeof(SFloat3));
 		CopyPoints(&asPositions, psPoints, iStride, iNumPoints);
 	}
 

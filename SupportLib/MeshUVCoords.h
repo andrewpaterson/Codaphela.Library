@@ -43,7 +43,7 @@ public:
 	CArrayFloat2		mcUVs;
 	CArrayMeshFaceUV	mcFaces;  //mcFaces.NumElements == mpcMesh->mcFaces.NumElements
 	
-	void	Init(int iUVChunkSize, int iFaceChunkSize);
+	void	Init(void);
 	void 	Kill(void);
 	BOOL	Load(CFileReader* pcFile);
 	BOOL	Save(CFileWriter* pcFile);
@@ -60,11 +60,9 @@ class CMeshUVCoords : public CMeshDetail
 BASE_FUNCTIONS(CMeshUVCoords)
 public:
 	CArrayMeshUVLayer	mcLayers;
-	int					miUVChunkSize;
-	int					miFaceChunkSize;
 
 	void			Init(void);
-	void			ReInit(int iCornerChunkSize, int iFaceChunkSize);
+	void			ReInit(void);
 	void			Kill(void);
 	BOOL			Load(CFileReader* pcFile);
 	BOOL			Save(CFileWriter* pcFile);

@@ -63,7 +63,7 @@ int ComparePackedLine(const void* pv1, const void* pv2)
 void CPackedLine::Init(CPackAttempt* pcPackAttempt)
 {
 	mpcPackAttempt = pcPackAttempt;
-	macRectangles.Init(16);
+	macRectangles.Init();
 	miHeight = 0;
 	miWidth = 0;
 	miy = -1;

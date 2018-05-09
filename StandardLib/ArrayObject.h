@@ -29,7 +29,7 @@ class CArrayObject : public CArrayCommonObject
 {
 BASE_FUNCTIONS(CArrayObject);
 public:
-	Ptr<CArrayObject>	Init(int iChunkSize = ARRAY_COMMOM_CHUNK_SIZE);
+	Ptr<CArrayObject>	Init(void);
 
 	void				Add(CPointer& pObject);
 	void				AddAll(Ptr<CArrayObject> pcArray);

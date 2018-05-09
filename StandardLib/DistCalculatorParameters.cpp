@@ -8,9 +8,9 @@
 //////////////////////////////////////////////////////////////////////////
 void CDistCalculatorParameters::Init(void)
 {
-	macExpectedDists.Init(1);
+	macExpectedDists.Init();
 	mapcDetachedFromRoot.Init();
-	mapcCompletelyDetached.Init(32);
+	mapcCompletelyDetached.Init();
 	mapcTouched.Init();
 }
 

@@ -35,8 +35,8 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 void CMeshNormals::Init(void)
 {
 	CMeshDetail::Init();
-	mcNormals.Init(MESH_CORNERS_CHUNK_SIZE);  //Give or take.
-	mcFaces.Init(MESH_FACES_CHUNK_SIZE);
+	mcNormals.Init();
+	mcFaces.Init();
 }
 
 
@@ -44,10 +44,10 @@ void CMeshNormals::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshNormals::ReInit(int iCornerChunkSize, int iFaceChunkSize)
+void CMeshNormals::ReInit(void)
 {
-	mcNormals.ReInit(iCornerChunkSize);
-	mcFaces.ReInit(iFaceChunkSize);
+	mcNormals.ReInit();
+	mcFaces.ReInit();
 }
 
 
@@ -106,10 +106,10 @@ void CMeshNormals::GenerateFlatFaceNormals(CMeshPositions* pcPositions, CMeshCon
 		iNumFaces = pcConn->mcFaces.NumElements();
 
 		mcFaces.Kill();
-		mcFaces.Init(pcConn->mcFaces.ChunkSize());
+		mcFaces.Init();
 
 		mcNormals.Kill();
-		mcNormals.Init(pcConn->mcCorners.ChunkSize());
+		mcNormals.Init();
 
 		for (iFaceNum = 0; iFaceNum < iNumFaces; iFaceNum++)
 		{

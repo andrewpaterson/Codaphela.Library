@@ -88,7 +88,7 @@ int CMeshModifierStack::NumEditors(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshModifierStack::ReInitConnectivity(int iCornerChunkSize, int iFaceChunkSize)
+void CMeshModifierStack::ReInitConnectivity(void)
 {
 	int					i;
 	CMeshModifier*	pcEditor;
@@ -98,7 +98,7 @@ void CMeshModifierStack::ReInitConnectivity(int iCornerChunkSize, int iFaceChunk
 		for (i = miCurrent+1; i < macEditors.NumElements(); i++)
 		{
 			pcEditor = (CMeshModifier*)macEditors.Get(i);
-			pcEditor->ReInitConnectivity(iCornerChunkSize, iFaceChunkSize);
+			pcEditor->ReInitConnectivity();
 		}
 	}
 }

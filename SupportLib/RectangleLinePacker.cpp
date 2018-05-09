@@ -32,7 +32,7 @@ void CRectangleLinePacker::Init(BOOL bLeftToRight, BOOL bPow2, int iOutsideEdgeW
 {
 	miOutsideEdgeWidth = iOutsideEdgeWidth;
 	miInnerEdgeWidth = iInnerEdgeWidth;
-	macRectangles.Init(32);
+	macRectangles.Init();
 	mbLeftToRight = bLeftToRight;
 	miSize.Init(-1, -1);
 	mbPow2 = bPow2;

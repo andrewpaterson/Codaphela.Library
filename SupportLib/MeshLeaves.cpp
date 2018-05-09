@@ -210,7 +210,7 @@ BOOL CMeshLeaf::Load(CFileReader* pcFile)
 void CMeshLeaves::Init(void)
 {
 	CMeshDetail::Init();
-	mcLeaves.Init(MESH_LEAVES_CHUNK_SIZE);
+	mcLeaves.Init();
 }
 
 
@@ -302,7 +302,7 @@ void CMeshLeaves::PrivateAddLeafSphere(int iFaceNum, CMeshConnectivity* pcConn, 
 	psSphere = &pasSpheres[iFaceNum];
 	fLargerVolume = pasSpheres[iFaceNum].cRelativeVolume.fVolume;
 
-	asTempVerts.Init(sizeof(SFloat3), 12);
+	asTempVerts.Init(sizeof(SFloat3));
 	for (j = 0; j < NUM_FACE_EDGES; j++)
 	{
 		if (sAdjFaces.aiFace[j] != -1)
@@ -443,7 +443,7 @@ void CMeshLeaves::GenerateLeafSpheres(CMeshConnectivity* pcConn, CMeshPositions*
 		}
 	}
 
-	mcLeaves.Init(pcConn->mcFaces.NumElements()/3+1);
+	mcLeaves.Init();
 	for (i = 0; i < iNumFaces; i++)
 	{
 		psVolume = &asSpheres[i].cRelativeVolume;

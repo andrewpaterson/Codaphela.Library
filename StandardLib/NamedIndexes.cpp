@@ -28,7 +28,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CNamedIndexes::Init(CDurableFileController* pcController, int iCacheSize, int iBlockChunkSize)
 {
-	macBlocks.Init(2);
+	macBlocks.Init();
 	mcCache.Init(iCacheSize);
 	mcFiles.Init(pcController, "NAM", "Names.IDX", "_Names.IDX");
 

@@ -36,7 +36,7 @@ public:
 
 	virtual void	Apply(CMeshEditor* pcMeshEditor) =0;
 
-	virtual void	ReInitConnectivity(int iCornerChunkSize, int iFaceChunkSize);
+	virtual void	ReInitConnectivity(void);
 
 	virtual void 	AddPosition(float x, float y, float z);
 	virtual void	AddPosition(SFloat3* psPosition);

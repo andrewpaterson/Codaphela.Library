@@ -34,9 +34,9 @@ BASE_FUNCTIONS(CMeshPositions);
 public:
 	CArrayFloat3	mcPositions;
 
-	void 	Init(int iChunkSize = MESH_CORNERS_CHUNK_SIZE);
+	void 	Init(void);
 	void 	Kill(void);
-	void 	ReInit(int iChunkSize = 0);
+	void 	ReInit(void);
 	BOOL	Load(CFileReader* pcFile);
 	BOOL	Save(CFileWriter* pcFile);
 

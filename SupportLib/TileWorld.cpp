@@ -37,8 +37,8 @@ void CTileWorld::Init(void)
 	CTileBoolean*	pcNullBooleanTile;
 	CTileType*		pcBooleanType;
 
-	macMaps.Init(1);
-	macTileTypes.Init(2);
+	macMaps.Init();
+	macTileTypes.Init();
 
 	macImages.Init();
 	macGroups.Init();

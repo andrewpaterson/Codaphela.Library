@@ -30,7 +30,7 @@ class CSet : public CSetObject
 {
 	BASE_FUNCTIONS(CSet);
 public:
-	Ptr<CSet<M>>	Init(int iChunkSize = ARRAY_COMMOM_CHUNK_SIZE);
+	Ptr<CSet<M>>	Init(void);
 	void 			Kill(void);
 
 	void			Add(Ptr<M> pObject);
@@ -50,9 +50,9 @@ public:
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-Ptr<CSet<M>> CSet<M>::Init(int iChunkSize)
+Ptr<CSet<M>> CSet<M>::Init(void)
 {
-	CSetObject::Init(iChunkSize);
+	CSetObject::Init();
 	return Ptr<CSet<M>>(this);
 }
 

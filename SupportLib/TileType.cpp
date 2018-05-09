@@ -31,7 +31,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //////////////////////////////////////////////////////////////////////////
 void CTileType::Init(char*szTypeName)
 {
-	macTiles.Init(8);
+	macTiles.Init();
 	mszTypeName.Init(szTypeName);
 }
 

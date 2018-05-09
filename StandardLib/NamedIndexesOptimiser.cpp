@@ -13,7 +13,7 @@
 //////////////////////////////////////////////////////////////////////////
 void CNamedIndexesOptimiser::Init(CNamedIndexes* pcNamedIndexes)
 {
-	macSources.Init(512);
+	macSources.Init();
 	mpcFiles = pcNamedIndexes->GetFiles();
 	mpacBlocks = pcNamedIndexes->GetBlocks();
 }
@@ -116,7 +116,7 @@ BOOL CNamedIndexesOptimiser::CloseFiles(BOOL bCopy)
 			pcIndexedFile = GetFile(pcBlocks->GetDataSize(), pcBlocks->GetFileNumber());
 			if (pcIndexedFile)
 			{
-				bResult = CopyFile(pcIndexedFile->mszRewriteName.Text(), pcIndexedFile->GetFileName());
+				bResult = CopyFile(pcIndexedFile->GetRewriteName(), pcIndexedFile->GetFileName());
 				if (!bResult)
 				{
 					return FALSE;
@@ -377,7 +377,7 @@ BOOL CNamedIndexesOptimiser::AllocateSources(CNamedIndexesBlocks* pcBlocks, CInd
 		return FALSE;
 	}
 
-	macSources.Init(iChunks);
+	macSources.Init();
 	macSources.Resize(iChunks);
 
 	for (i = 0; i < iChunks; i++)

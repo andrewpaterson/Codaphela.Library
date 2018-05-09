@@ -33,7 +33,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //////////////////////////////////////////////////////////////////////////
 void CMeshSmoothGroups::Init(int iAddGroup)
 {
-	mcSmoothingGroups.Init(MESH_FACES_CHUNK_SIZE);
+	mcSmoothingGroups.Init();
 	miAddGroup = iAddGroup;
 	meGenerationStyle = SGS_None;
 	mfSharpAngle = 22.5f;
@@ -121,7 +121,7 @@ void CMeshSmoothGroups::GenerateSmoothingFromNames(CMeshEditor* pcMeshEditor)
 
 	iNumPolygons = pcMeshEditor->mcPolygons.mcPolygons.NumElements();
 
-	aiUniqueNames.Init(16);
+	aiUniqueNames.Init();
 	pcMeshEditor->mcPolygons.GetUniqueNames(&aiUniqueNames);
 
 	if (aiUniqueNames.NumElements() >= 32)
@@ -177,7 +177,7 @@ void CMeshSmoothGroups::GenerateSmoothingFromAngles(CMeshEditor* pcMeshEditor)
 
 	fDot = Deg2Dot(mfSharpAngle);
 
-	asNormals.Init(1);
+	asNormals.Init();
 	pcMeshEditor->mcPolygons.GetNormals(&asNormals, &pcMeshEditor->mpcMesh->mcNormals);
 
 	mcSmoothingGroups.SetArrayValues(0);
@@ -187,7 +187,7 @@ void CMeshSmoothGroups::GenerateSmoothingFromAngles(CMeshEditor* pcMeshEditor)
 	{
 		psThisNormal = asNormals.Get(i);
 		pcPolygon = pcMeshEditor->mcPolygons.Get(i);
-		aiAdjPolys.Init(8);
+		aiAdjPolys.Init();
 		pcMeshEditor->mcPolygons.GetAdjacentPolygons(pcMeshEditor->mpcMesh->GetConnectivity(), i, &aiAdjPolys);
 
 		for (j = 0; j < aiAdjPolys.NumElements(); j++)
@@ -401,9 +401,9 @@ void CMeshSmoothGroups::GenerateNormals(CMesh* pcMesh)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshSmoothGroups::ReInitConnectivity(int iCornerChunkSize, int iFaceChunkSize)
+void CMeshSmoothGroups::ReInitConnectivity(void)
 {
-	mcSmoothingGroups.ReInit(iFaceChunkSize);
+	mcSmoothingGroups.ReInit();
 }
 
 

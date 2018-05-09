@@ -30,10 +30,10 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshUVLayer::Init(int iUVChunkSize, int iFaceChunkSize)
+void CMeshUVLayer::Init(void)
 {
-	mcUVs.Init(iUVChunkSize);
-	mcFaces.Init(iFaceChunkSize);
+	mcUVs.Init();
+	mcFaces.Init();
 }
 
 
@@ -98,9 +98,7 @@ BOOL CMeshUVLayer::Save(CFileWriter* pcFile)
 void CMeshUVCoords::Init(void)
 {
 	CMeshDetail::Init();
-	mcLayers.Init(1);
-	miUVChunkSize = MESH_CORNERS_CHUNK_SIZE;
-	miFaceChunkSize = MESH_FACES_CHUNK_SIZE;
+	mcLayers.Init();
 }
 
 
@@ -108,12 +106,10 @@ void CMeshUVCoords::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshUVCoords::ReInit(int iCornerChunkSize, int iFaceChunkSize)
+void CMeshUVCoords::ReInit(void)
 {
-	miUVChunkSize = iCornerChunkSize;
-	miFaceChunkSize = iFaceChunkSize;
 	mcLayers.Kill();
-	mcLayers.Init(1);
+	mcLayers.Init();
 }
 
 
@@ -149,8 +145,6 @@ BOOL CMeshUVCoords::Load(CFileReader* pcFile)
 	Init();
 
 	ReturnOnFalse(LoadMeshDetail(pcFile));
-	ReturnOnFalse(pcFile->ReadInt(&miUVChunkSize));
-	ReturnOnFalse(pcFile->ReadInt(&miFaceChunkSize));
 	ReturnOnFalse(pcFile->ReadInt(&iNumLayers));
 
 	mcLayers.Resize(iNumLayers);
@@ -174,8 +168,6 @@ BOOL CMeshUVCoords::Save(CFileWriter* pcFile)
 	int				i;
 
 	ReturnOnFalse(SaveMeshDetail(pcFile));
-	ReturnOnFalse(pcFile->WriteInt(miUVChunkSize));
-	ReturnOnFalse(pcFile->WriteInt(miFaceChunkSize));
 	ReturnOnFalse(pcFile->WriteInt(mcLayers.NumElements()));
 
 	for (i = 0; i < mcLayers.NumElements(); i++)
@@ -199,7 +191,7 @@ int CMeshUVCoords::AddLayer(CMeshConnectivity* pcConn)
 	if (mbInUse)
 	{
 		pcUVLayer = mcLayers.Add();
-		pcUVLayer->Init(miUVChunkSize, miFaceChunkSize);
+		pcUVLayer->Init();
 
 		for (i = 0; i < pcConn->mcFaces.NumElements(); i++)
 		{

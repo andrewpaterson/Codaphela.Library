@@ -170,15 +170,15 @@ int CMeshEditor::NumVisibleEdges(char cEdge)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshEditor::ReInitConnectivity(int iCornerChunkSize, int iFaceChunkSize)
+void CMeshEditor::ReInitConnectivity(void)
 {
-	mpcMesh->ReInitConnectivity(iCornerChunkSize, iFaceChunkSize);
+	mpcMesh->ReInitConnectivity();
 	
 	mcSelections.ReInit();
-	mcEdgeVisibility.ReInit(iFaceChunkSize);
-	mcPolygons.ReInit(iCornerChunkSize);
+	mcEdgeVisibility.ReInit();
+	mcPolygons.ReInit();
 
-	mcModifiers.ReInitConnectivity(iCornerChunkSize, iFaceChunkSize);
+	mcModifiers.ReInitConnectivity();
 }
 
 

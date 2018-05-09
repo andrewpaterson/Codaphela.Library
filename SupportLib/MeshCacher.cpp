@@ -33,7 +33,7 @@ void CMeshCacher::Init(CMesh* pcMesh)
 {
 	//This assumes the mesh has been touched.
 	mpcMesh = pcMesh;
-	mcTypeIndices.Init(4);
+	mcTypeIndices.Init();
 }
 
 
@@ -124,7 +124,7 @@ BOOL CMeshCacher::Index(void)
 
 	for (i = 0; i < iUniqueFaceTypes; i++)
 	{
-		aiFaces.Init(mpcMesh->NumFaces());  //Just reserve enough memory assuming all faces are the same type.
+		aiFaces.Init();
 		psFaceType = mpcMesh->mcFaceTypes.mcUniqueTypes.Get(i);
 		mpcMesh->mcFaceTypes.GetFacesForType(psFaceType, &aiFaces);
 

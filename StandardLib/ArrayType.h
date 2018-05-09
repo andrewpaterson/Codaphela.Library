@@ -29,8 +29,8 @@ class CArrayType : public CArrayUnknown
 {
 BASE_FUNCTIONS(CArrayType);
 public:
-	void 	Init(int iChunkSize = ARRAY_COMMOM_CHUNK_SIZE);
-	void 	Init(CUnknowns* pcUnknownsAllocatingFrom, int iChunkSize = ARRAY_COMMOM_CHUNK_SIZE);
+	void 	Init(void);
+	void 	Init(CUnknowns* pcUnknownsAllocatingFrom);
 	void 	Kill(void);
 
 	void	Add(M* pcUnknown);
@@ -59,9 +59,9 @@ protected:
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CArrayType<M>::Init(int iChunkSize)
+void CArrayType<M>::Init(void)
 {
-	CArrayUnknown::Init(iChunkSize);
+	CArrayUnknown::Init();
 	TypeKnown(TRUE);
 }
 
@@ -71,7 +71,7 @@ void CArrayType<M>::Init(int iChunkSize)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CArrayType<M>::Init(CUnknowns* pcUnknownsAllocatingFrom, int iChunkSize)
+void CArrayType<M>::Init(CUnknowns* pcUnknownsAllocatingFrom)
 {
 	CArrayUnknown::Init(pcUnknownsAllocatingFrom, iChunkSize);
 }

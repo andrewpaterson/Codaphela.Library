@@ -47,7 +47,7 @@ void CMeshTypeIndices::Init(CMeshVertexArray* pcVertexArray, int iStride, int iN
 {
 	mpcVertexArray = pcVertexArray;
 	miStride = iStride;
-	maVerts.Init(iStride, 1);
+	maVerts.Init(iStride);
 
 	//miPositionOffset = 0;  //Always.
 	//All of the offsets are indexed as integer arrays but passed in as bytes.
@@ -107,11 +107,11 @@ BOOL CMeshTypeIndices::Generate(CArrayInt* paiFaces, void* pavFaceIndices)
 
 	pcFaceIndicies = mpcVertexArray->GetFaceIndicies();
 	pcFaceIndicies->Kill();
-	pcFaceIndicies->Init(iNumFaces); 
+	pcFaceIndicies->Init(); 
 	pcFaceIndicies->Resize(iNumFaces);
 
 	maVerts.Kill();
-	maVerts.Init(miStride, iNumFaces/3+1);
+	maVerts.Init(miStride);
 
 	for (i = 0; i < iNumFaces; i++)
 	{

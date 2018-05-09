@@ -57,7 +57,7 @@ public:
 
 	void	Apply(CMeshEditor* pcMeshEditor);
 
-	void	ReInitConnectivity(int iCornerChunkSize, int iFaceChunkSize);
+	void	ReInitConnectivity(void);
 
 	void	AddFace(int iCorner1, int iCorner2, int iCorner3);
 

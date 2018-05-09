@@ -53,15 +53,15 @@ void CCornerEdgesMap::Kill(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CMeshConnectivity::Init(int iCornersChunkSize, int iFacesChunkSize)
+void CMeshConnectivity::Init(void)
 {
 	CMeshDetail::Init(TRUE);
 
-	mcCorners.Init(iCornersChunkSize);
-	mcEdges.Init(iFacesChunkSize);  //This assumes a closed surface.
-	mcFaces.Init(iFacesChunkSize);
+	mcCorners.Init();
+	mcEdges.Init();  //This assumes a closed surface.
+	mcFaces.Init();
 
-	mcCornerEdgesMap.Init(iCornersChunkSize);
+	mcCornerEdgesMap.Init();
 }
 
 
@@ -83,17 +83,17 @@ void CMeshConnectivity::Kill(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CMeshConnectivity::ReInit(int iCornersChunkSize, int iFacesChunkSize)
+void CMeshConnectivity::ReInit(void)
 {
 	KillCornerEdgesMap();
 	KillCorners();
 
-	mcCorners.Init(iCornersChunkSize);
-	mcCorners.ReInit(iCornersChunkSize);
-	mcEdges.ReInit(iFacesChunkSize);
-	mcFaces.ReInit(iFacesChunkSize);
+	mcCorners.Init();
+	mcCorners.ReInit();
+	mcEdges.ReInit();
+	mcFaces.ReInit();
 
-	mcCornerEdgesMap.Init(iCornersChunkSize);
+	mcCornerEdgesMap.Init();
 }
 
 
@@ -145,7 +145,7 @@ void CMeshConnectivity::InitCorners(int iNumCorners)
 	int				i;
 	CMeshCorner*	psCorner;
 
-	mcCorners.Init(iNumCorners != 0 ? iNumCorners : 1);
+	mcCorners.Init();
 	mcCorners.Resize(iNumCorners);
 
 	for (i = 0; i < iNumCorners; i++)
@@ -395,10 +395,10 @@ int CMeshConnectivity::GenerateEdgeConnectivity(void)
 	int					iNumEdges;
 
 	mcEdges.Kill();
-	mcEdges.Init(mcFaces.NumElements()/9+1);
+	mcEdges.Init();
 
 	KillCornerEdgesMap();
-	mcCornerEdgesMap.Init(mcCorners.ChunkSize());
+	mcCornerEdgesMap.Init();
 
 	iNumCorners = mcCorners.NumElements();
 

@@ -8,7 +8,7 @@
 void SChunkFileNameIterator::Init(void)
 {
 	szFullName.Init();
-	aiIndex.Init(1);
+	aiIndex.Init();
 	bDone = FALSE;
 	szValue.Init();
 }
@@ -33,7 +33,7 @@ void SChunkFileNameIterator::Kill(void)
 void CChunkFileNames::Init(CAbstractFile* pcFile)
 {
 	CChunkFile::Init(pcFile);
-	maszOpenChunkNames.Init(8);
+	maszOpenChunkNames.Init();
 }
 
 
@@ -116,7 +116,7 @@ BOOL CChunkFileNames::WriteChunkBegin(char* szChunkName)
 	CArrayChars	aszChunkNames;
 	int				iMatchingOpen;
 
-	aszChunkNames.Init(8);
+	aszChunkNames.Init();
 	aszChunkNames.Split(szChunkName, '/');
 	mszLastChunkName.Init(aszChunkNames.Tail()->Text());
 	aszChunkNames.RemoveTail();
@@ -200,7 +200,7 @@ BOOL CChunkFileNames::ReadChunkBegin(char* szChunkName)
 		return FALSE;
 	}
 
-	aszChunkNames.Init(8);
+	aszChunkNames.Init();
 	aszChunkNames.Split(szChunkName, '/');
 
 	iLength = aszChunkNames.NumElements();

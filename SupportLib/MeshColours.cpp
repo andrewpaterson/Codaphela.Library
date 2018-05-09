@@ -32,8 +32,8 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 void CMeshColours::Init(void)
 {
 	CMeshDetail::Init();
-	mcColours.Init(MESH_CORNERS_CHUNK_SIZE);
-	mcFaces.Init(MESH_FACES_CHUNK_SIZE);
+	mcColours.Init();
+	mcFaces.Init();
 }
 
 
@@ -41,10 +41,10 @@ void CMeshColours::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshColours::ReInit(int iCornerChunkSize, int iFaceChunkSize)
+void CMeshColours::ReInit(void)
 {
-	mcColours.ReInit(iCornerChunkSize);
-	mcFaces.ReInit(iFaceChunkSize);
+	mcColours.ReInit();
+	mcFaces.ReInit();
 }
 
 

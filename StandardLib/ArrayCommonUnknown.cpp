@@ -27,9 +27,9 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayCommonUnknown::Init(BOOL bTypeKnown, BOOL bKillElements, BOOL bUnique, BOOL bIgnoreNull, BOOL bPreserveOrder, int iChunkSize)
+void CArrayCommonUnknown::Init(BOOL bTypeKnown, BOOL bKillElements, BOOL bUnique, BOOL bIgnoreNull, BOOL bPreserveOrder)
 {
-	mcArray.Init(iChunkSize);
+	mcArray.Init();
 	miFlags = 0;
 	SetFlag(&miFlags, ARRAY_COMMOM_KILL_ELEMENT, bKillElements);
 	SetFlag(&miFlags, ARRAY_COMMOM_UNIQUE_ONLY, bUnique);
@@ -129,7 +129,8 @@ BOOL CArrayCommonUnknown::LoadArrayHeader(CFileReader* pcFile, int* piFlags, int
 	bTypeKnown = FixBool(*piFlags & ARRAY_COMMOM_TYPE_KNOWN);
 
 	//These are all set to false because the flags will be fixed later.
-	Init(bTypeKnown, FALSE, FALSE, FALSE, FALSE, iChunkSize);
+	Init(bTypeKnown, FALSE, FALSE, FALSE, FALSE);
+	mcArray.SetAllocateSize(iChunkSize);
 	miNonNullElements = iNonNullElements;
 
 	mcArray.Resize(*piNumElements);

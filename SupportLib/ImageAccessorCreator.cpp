@@ -183,7 +183,7 @@ void CImageAccessorCreator::AddAccess(CImageColour* pcColour)
 {
 	CArrayInt	aiChannels;
 
-	aiChannels.Init(4);
+	aiChannels.Init();
 	pcColour->GetChannels(&aiChannels);
 	AddAccess(&aiChannels, PT_Undefined);
 	aiChannels.Kill();
@@ -198,7 +198,7 @@ void CImageAccessorCreator::AddAccessFromIntersectionOf(CArrayInt* paiChannels1,
 {
 	CArrayInt	aiIntersection;
 
-	aiIntersection.Init(paiChannels1->NumElements());
+	aiIntersection.Init();
 	aiIntersection.Intersect(paiChannels1, paiChannels2);
 	AddAccess(&aiIntersection);
 	aiIntersection.Kill();

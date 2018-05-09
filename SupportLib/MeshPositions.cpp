@@ -29,10 +29,10 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshPositions::Init(int iChunkSize)
+void CMeshPositions::Init(void)
 {
 	CMeshDetail::Init(TRUE);
-	mcPositions.Init(iChunkSize);
+	mcPositions.Init();
 }
 
 
@@ -51,9 +51,9 @@ void CMeshPositions::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshPositions::ReInit(int iChunkSize)
+void CMeshPositions::ReInit(void)
 {
-	mcPositions.ReInit(iChunkSize);
+	mcPositions.ReInit();
 }
 
 

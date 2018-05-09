@@ -28,9 +28,9 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CArrayCommonObject> CArrayCommonObject::Init(BOOL bUnique, BOOL bIgnoreNull, BOOL bPreserveOrder, int iChunkSize)
+Ptr<CArrayCommonObject> CArrayCommonObject::Init(BOOL bUnique, BOOL bIgnoreNull, BOOL bPreserveOrder)
 {
-	mcArray.Init(FALSE, FALSE, bUnique, bIgnoreNull, bPreserveOrder, iChunkSize);
+	mcArray.Init(FALSE, FALSE, bUnique, bIgnoreNull, bPreserveOrder);
 	mbSubRoot = FALSE;
 	CCollection::Init();
 	return this;

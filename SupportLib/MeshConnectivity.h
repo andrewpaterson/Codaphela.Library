@@ -58,9 +58,9 @@ public:
 
 	CArrayCornerEdgesMap	mcCornerEdgesMap;
 
-	void 			Init(int iCornersChunkSize = MESH_CORNERS_CHUNK_SIZE, int iFacesChunkSize = MESH_FACES_CHUNK_SIZE);
+	void 			Init(void);
 	void 			Kill(void);
-	void 			ReInit(int iCornersChunkSize = 0, int iFacesChunkSize = 0);
+	void 			ReInit(void);
 	BOOL			Load(CFileReader* pcFile);
 	BOOL			Save(CFileWriter* pcFile);
 

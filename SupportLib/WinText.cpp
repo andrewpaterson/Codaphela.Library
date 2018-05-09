@@ -44,7 +44,7 @@ int CALLBACK EnumFontsProc(CONST LOGFONT *lplf, CONST TEXTMETRIC *lptm, DWORD dw
 	{
 		pcWinText = (CWinText*)lpData;
 		psWinFont = pcWinText->mcWinFonts.Add();
-		psWinFont->sInstances.Init(1);
+		psWinFont->sInstances.Init();
 		strcpy_s(psWinFont->szName, lplf->lfFaceName);
 	}
 
@@ -60,7 +60,7 @@ void CWinText::Init(HWND hWnd)
 {
 	HDC		hDC;
 
-	mcWinFonts.Init(10);
+	mcWinFonts.Init();
 
 	hDC = GetDC(hWnd);
 	EnumFonts(hDC, NULL, EnumFontsProc, (LPARAM)this);
@@ -297,7 +297,7 @@ void CWinText::GetSourceRectangles(CArrayRectangle* pacRectangles, CChars* pszLe
 	szSingle[1] = 0;
 	iWidth = 0;
 	sSize.cx = 0;
-	pacRectangles->Init(10);
+	pacRectangles->Init();
 	for (i = 0; i < pszLetters->Length(); i++)
 	{
 		szSingle[0] = pszLetters->GetChar(i);

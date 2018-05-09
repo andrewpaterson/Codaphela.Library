@@ -82,7 +82,7 @@ public:
 	BOOL	Save(CFileWriter* pcFile);
 	void	Touch(CMesh* pcMesh);
 
-	void	ClearFaceTypes(int iNumFaces, int iChunkSize);
+	void	ClearFaceTypes(int iNumFaces);
 	void	GenerateFromNormals(CMeshNormals* pcNormals);
 	void	GenerateFromSkin(CMesh* pcMesh);
 	void	GenerateFromUVCoords(CMeshUVCoords* pcUVs);

@@ -44,7 +44,7 @@ public:
 	CArrayMeshFaceColours	mcFaces;  //mcFaces.NumElements == mpcMesh->mcFaces.NumElements.
 
 	void 	Init(void);
-	void	ReInit(int iCornerChunkSize, int iFaceChunkSize);
+	void	ReInit(void);
 	void 	Kill(void);
 	BOOL	Load(CFileReader* pcFile);
 	BOOL	Save(CFileWriter* pcFile);

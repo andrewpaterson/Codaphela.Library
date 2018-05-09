@@ -79,14 +79,14 @@ int ComparePackAttempt(const void* pv1, const void* pv2)
 //////////////////////////////////////////////////////////////////////////
 void CPackAttempt::Init(CRectangleBestPacker* pcRectanglePacker, int iMaxWidth)
 {
-	macLines.Init(8);
+	macLines.Init();
 	mpcRectanglePacker = pcRectanglePacker;
 	miWidth = 0;
 	miHeight = 0;
 	miArea = 0;
 	mbValid = FALSE;
 	miMaxWidth = iMaxWidth;
-	macRectangles.Init(pcRectanglePacker->GetSourceRectangles()->NumElements());
+	macRectangles.Init();
 	AddRectanglesFromPacker();
 }
 
