@@ -34,7 +34,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //////////////////////////////////////////////////////////////////////////
 void CInputDeviceVariableCondition::Init(void)
 {
-	mapConditions.Init(2);
+	mapConditions.Init();
 	mpcChord = NULL;
 }
 

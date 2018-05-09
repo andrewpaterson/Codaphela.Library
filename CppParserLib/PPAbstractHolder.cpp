@@ -28,18 +28,8 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CPPAbstractHolder::Init(int iLine, int iColumn)
 {
-	//Ignored
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CPPAbstractHolder::Init(int iChunkSize, int iLine, int iColumn)
-{
 	Set(iLine, iColumn);
-	mcTokens.Init(iChunkSize);
+	mcTokens.Init();
 }
 
 
@@ -85,7 +75,7 @@ void CPPAbstractHolder::Copy(CPPAbstractHolder* pcCast, CMemoryStackExtended* pc
 	int			i;
 	CPPToken*	pcToken;
 
-	Init(pcCast->mcTokens.mcArray.ChunkSize(), pcCast->miLine, pcCast->miColumn);
+	Init(pcCast->miLine, pcCast->miColumn);
 
 	for (i = 0; i < pcCast->mcTokens.mcArray.NumElements(); i++)
 	{
@@ -123,7 +113,7 @@ void CPPAbstractHolder::Dump(void)
 {
 	CChars	sz;
 
-	sz.Init(1024);
+	sz.Init();
 	Append(&sz);
 	sz.AppendNewLine();
 	sz.Dump();

@@ -32,7 +32,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //////////////////////////////////////////////////////////////////////////
 void CInputDeviceState::Init(void)
 {
-	macSourceStates.Init(4);
+	macSourceStates.Init();
 }
 
 
@@ -59,7 +59,7 @@ BOOL CInputDeviceState::Rest(CInputDevice* pcDevice)
 
 	mpcDevice = pcDevice;
 	macSourceStates.Kill();
-	macSourceStates.Init(&gcSystemAllocator, pcDevice->GetDesc()->NumInputs());
+	macSourceStates.Init();
 	macSourceStates.Resize(pcDevice->GetDesc()->NumInputs());
 	pcSourceDesc = pcDevice->GetDesc()->StartInputsIteration(&sIter);
 	i = 0;

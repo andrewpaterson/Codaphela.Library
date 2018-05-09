@@ -21,7 +21,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __C_P_P_TOKENISER_H__
 #define __C_P_P_TOKENISER_H__
 #include "BaseLib/ArrayTemplate.h"
-#include "CoreLib/TextParser.h"
+#include "BaseLib/TextParser.h"
 #include "ASCIITree.h"
 #include "CppTokens.h"
 #include "CppToken.h"

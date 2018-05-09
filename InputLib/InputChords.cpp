@@ -36,7 +36,7 @@ void CInputChords::Init(void)
 {
 	mlcChords.Init();
 	mscEvaluators.Init();
-	macHistory.Init(MAX_INPUT_HISTORY_EVENTS);
+	macHistory.Init();
 	muiEvictionAge = 300;  // Milliseconds.
 }
 

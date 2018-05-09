@@ -34,7 +34,7 @@ void CInputDataFormat::Init(void)
 	mcExternalChannels.Init();
 	mcExternalChannels.BeginChange();
 	mcExternalChannels.SetData((void*)1);
-	mcChannelNames.Init(1);
+	mcChannelNames.Init();
 	mbCommon = FALSE;
 	mszCommonName.Zero();
 }
@@ -49,7 +49,7 @@ void CInputDataFormat::Init(char* szCommonName)
 	mcExternalChannels.Init();
 	mcExternalChannels.BeginChange();
 	mcExternalChannels.SetData((void*)1);
-	mcChannelNames.Init(1);
+	mcChannelNames.Init();
 	mbCommon = TRUE;
 	mszCommonName.Init(szCommonName);
 }

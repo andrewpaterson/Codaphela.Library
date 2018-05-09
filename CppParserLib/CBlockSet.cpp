@@ -29,8 +29,8 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CCBlockSet::Init(CCFile* pcFile, int iLine, int iBlock, BOOL bTextBlocks)
 {
-	mcRawTokens.Init(8);
-	mapcBlocks.Init(8);
+	mcRawTokens.Init();
+	mapcBlocks.Init();
 	mpcStack = &pcFile->mcStack;
 	mpcFile = pcFile;
 	miColumn = 0;
@@ -164,7 +164,7 @@ void CCBlockSet::DumpRawTokens(void)
 	int				iLast;
 
 	iLast = 0;
-	sz.Init(1024);
+	sz.Init();
 	if (mbTextBlocks)
 	{
 		sz.Append("/* ------- text ");

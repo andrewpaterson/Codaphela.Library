@@ -32,7 +32,7 @@ class CNamedDefine
 {
 public:
 	CPPLine			mcReplacement;
-	CArrayString	mcArguments;
+	CArrayChars	mcArguments;
 	int				miFlags;
 	CChars			mszName;
 

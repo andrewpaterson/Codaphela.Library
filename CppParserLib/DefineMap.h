@@ -37,7 +37,7 @@ class CDefine
 public:
 	int				miIndex;  //Index back into the ASCIITree (for the name).
 	CPPLine			mcReplacement;
-	CArrayString	mcArguments;  //This is unnecessary but useful for reference.
+	CArrayChars	mcArguments;  //This is unnecessary but useful for reference.
 	unsigned int	muiID;  //If a token is undef'd and redef'd it's muiID will change.
 	CDefineMap*		mpcDefineMap;
 	int				miFlags;
@@ -68,7 +68,7 @@ public:
 	CASCIITree		mcDefinesTree;
 	unsigned int	muiID;
 
-	void 		Init(int iChunkSize);
+	void 		Init(void);
 	void 		Kill(void);
 	CDefine*	AddDefine(CExternalString* pcName);
 	CDefine*	AddDefine(char* szName);

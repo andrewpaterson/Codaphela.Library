@@ -33,7 +33,7 @@ void CDefine::Init(int iIndex, int uiID, CDefineMap* pcDefineMap)
 	memcpy(&mcReplacement, &cLine, sizeof(CPPLine));
 
 	mcReplacement.Init(-1, -1);
-	mcArguments.Init(2);
+	mcArguments.Init();
 	miIndex = iIndex;
 	miFlags = ((pcDefineMap == NULL) ? 0: DEFINE_FLAGS_IN_MAP);
 	muiID = uiID;
@@ -225,9 +225,9 @@ void CDefine::Dump(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDefineMap::Init(int iChunkSize)
+void CDefineMap::Init(void)
 {
-	mcDefinesArray.Init(iChunkSize);
+	mcDefinesArray.Init();
 	mcDefinesTree.Init();
 	muiID = 0;
 }

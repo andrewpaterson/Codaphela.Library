@@ -27,10 +27,21 @@ Microsoft Windows is Copyright Microsoft Corporation
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayChars::Init(BOOL bFake)
+void CArrayChars::Init(void)
 {
 	mcArray.Init();
-	mbFaked = bFake;
+	mbFaked = FALSE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CArrayChars::Fake(void)
+{
+	mcArray.Init();
+	mbFaked = TRUE;
 }
 
 

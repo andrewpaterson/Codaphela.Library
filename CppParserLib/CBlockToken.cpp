@@ -53,7 +53,7 @@ void SCTokenBlock::Dump(void)
 {
 	CChars sz;
 
-	sz.Init(64);
+	sz.Init();
 	Append(&sz);
 	sz.Dump();
 	sz.Kill();

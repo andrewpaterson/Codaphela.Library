@@ -135,7 +135,7 @@ void CDirectInput::Init(CWinInput* pcWinInput)
 		return;
 	}
 
-	masDIJoystickDetail.Init(1);
+	masDIJoystickDetail.Init();
 	ResetDetails();
 	CreateDevices();
 

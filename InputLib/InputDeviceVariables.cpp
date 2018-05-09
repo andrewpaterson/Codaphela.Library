@@ -224,7 +224,7 @@ void CInputDeviceVariables::VariableAction(CInputChord* pcChord)
 		return;
 	}
 
-	apcVariableValues.Init(4);
+	apcVariableValues.Init();
 	pcVariable = mlcVariables.StartIteration(&sIter);
 	while (pcVariable)
 	{

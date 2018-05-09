@@ -39,9 +39,9 @@ void CInputVirtualDevice::Init(char* szName)
 	mcListeners.Init();
 	mcListeners.AddAllowedClass<CInputListener>();
 	mcListeners.AddListener((CInputListener*)&mcChords);
-	mapcInputValues.Init(4);
+	mapcInputValues.Init();
 	mcChords.Init();
-	mapcDevices.Init(1);
+	mapcDevices.Init();
 	mbEnabled = FALSE;
 	mbUnstoppable = FALSE;
 }

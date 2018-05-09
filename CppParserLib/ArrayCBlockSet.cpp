@@ -29,19 +29,7 @@ void CArrayCBlockSet::Init(CCFile* pcFile)
 {
 	mbRawProcessed = FALSE;
 	mpcFile = pcFile;
-	__CArrayCBlockSet::Init(1);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CArrayCBlockSet::Init(CCFile* pcFile, int iChunkSize)
-{
-	mbRawProcessed = FALSE;
-	mpcFile = pcFile;
-	__CArrayCBlockSet::Init(iChunkSize);
+	__CArrayCBlockSet::Init();
 }
 
 

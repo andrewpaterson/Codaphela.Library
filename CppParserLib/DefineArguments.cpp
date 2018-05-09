@@ -27,7 +27,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CDefineArguments::Init(void)
 {
-	mcDefineToArguments.Init(4);
+	mcDefineToArguments.Init();
 }
 
 
@@ -89,7 +89,7 @@ SDefineArgument* CDefineArguments::Add(int iDefine)
 	{
 		psDefineArg = mcDefineToArguments.Add();
 	}
-	psDefineArg->mcArguments.Init(20);
+	psDefineArg->mcArguments.Init();
 	psDefineArg->iDefine = iDefine;
 	return psDefineArg;
 }

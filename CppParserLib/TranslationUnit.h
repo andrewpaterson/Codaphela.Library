@@ -45,7 +45,7 @@ public:
 	STULog*		mpcLogs;
 	CLibrary*	mpcLibrary;
 
-	void	Init(int iChunkSize, char* szFullName, CLibrary* pcLibrary, BOOL bLogIncludes, BOOL bLogBlocks);
+	void	Init(char* szFullName, CLibrary* pcLibrary, BOOL bLogIncludes, BOOL bLogBlocks);
 	void	Kill(void);
 	void	Append(CChars* psz);
 	BOOL	IsTranslationUnit(void);

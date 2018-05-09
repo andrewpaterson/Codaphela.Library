@@ -22,7 +22,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __ASCII_TREE_H__
 #define __ASCII_TREE_H__
-#include "BaseLib/ArrayString.h"
+#include "BaseLib/ArrayChars.h"
 #include "BaseLib/FreeList.h"
 #include "ASCIINode.h"
 #include "CharsIDArray.h"

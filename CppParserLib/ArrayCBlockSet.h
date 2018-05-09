@@ -34,7 +34,6 @@ public:
 	CCFile*		mpcFile;
 
 	void 		Init(CCFile* pcFile);
-	void 		Init(CCFile* pcFile, int iChunkSize);
 	void		RawProcessed(void);
 	BOOL		IsRawProcessed(void);
 	CCBlockSet* Add(int iLine, BOOL bTextBlocks);

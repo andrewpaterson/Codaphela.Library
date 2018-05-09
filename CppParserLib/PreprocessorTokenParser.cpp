@@ -51,7 +51,7 @@ void SPPHolderMark::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void SPPTPPosition::Init(CArrayPPHolderMark* pacPPHolders)
 {
-	acPPHolders.Init(1);
+	acPPHolders.Init();
 	acPPHolders.Copy(pacPPHolders);
 }
 
@@ -71,9 +71,9 @@ void SPPTPPosition::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CPreprocessorTokenParser::Init(void)
 {
-	macPPHolderMark.Init(16);
+	macPPHolderMark.Init();
 	mpsCurrent = NULL;
-	macStack.Init(16);
+	macStack.Init();
 }
 
 
@@ -83,10 +83,10 @@ void CPreprocessorTokenParser::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CPreprocessorTokenParser::Init(CPPAbstractHolder* pcLine)
 {
-	macPPHolderMark.Init(16);
+	macPPHolderMark.Init();
 	mpsCurrent = NULL;
 	MarkDown(pcLine);
-	macStack.Init(16);
+	macStack.Init();
 }
 
 

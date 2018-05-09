@@ -52,8 +52,8 @@ void CProgramDeviceDetail::Init(char* szID, char* szFriendlyName)
 {
 	mszID.Init(szID);
 	mszFriendlyName.Init(szFriendlyName);
-	macValues.Init(1);
-	macSources.Init(8);
+	macValues.Init();
+	macSources.Init();
 }
 
 

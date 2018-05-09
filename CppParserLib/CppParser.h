@@ -20,8 +20,8 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __C_P_P_PARSER_H__
 #define __C_P_P_PARSER_H__
-#include "CoreLib/TextParser.h"
-#include "BaseLib/ArrayString.h"
+#include "BaseLib/TextParser.h"
+#include "BaseLib/ArrayChars.h"
 #include "CppReturn.h"
 #include "ASTSimpleSpec.h"
 #include "ASTAccessSpec.h"
@@ -38,13 +38,13 @@ class CCppParser
 public:
 	CAbstractSyntaxTree	mcAST;
 	CTextParser			mcParser;
-	CArrayString		mszSimpleTypes;
-	CArrayString		mszSimpleModifiers;
-	CArrayString		mszAccessSpecifiers;
-	CArrayString		mszSimpleOperators;
-	CArrayString		mszReservedWords;
+	CArrayChars		mszSimpleTypes;
+	CArrayChars		mszSimpleModifiers;
+	CArrayChars		mszAccessSpecifiers;
+	CArrayChars		mszSimpleOperators;
+	CArrayChars		mszReservedWords;
 	char				mszScratchPad[MAX_IDENTIFIER];
-	CArrayString		maszCallStack;
+	CArrayChars		maszCallStack;
 
 	void 		Init(void);
 	void 		Kill(void);

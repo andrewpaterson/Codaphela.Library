@@ -26,9 +26,9 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPPTokenHolder::Init(int iChunkSize)
+void CPPTokenHolder::Init(void)
 {
-	mcArray.Init(iChunkSize);
+	mcArray.Init();
 }
 
 

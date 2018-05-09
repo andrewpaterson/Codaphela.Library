@@ -27,7 +27,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CConditionalStack::Init(void)
 {
-	mcStack.Init(3);
+	mcStack.Init();
 	mbParsing = TRUE;
 }
 

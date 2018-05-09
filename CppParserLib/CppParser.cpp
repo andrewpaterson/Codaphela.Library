@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/TextParser.h"
 #include "CppParser.h"
-#include "CoreLib/TextParser.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -32,7 +32,7 @@ void CCppParser::Init(void)
 	mcParser.Init();
 
 	//Remember to keep this list synchronised with ESimpleTypes
-	mszSimpleTypes.Init(12);
+	mszSimpleTypes.Init();
 	mszSimpleTypes.Add("int");
 	mszSimpleTypes.Add("long");
 	mszSimpleTypes.Add("short");
@@ -49,7 +49,7 @@ void CCppParser::Init(void)
 		gcUserError.Set("Simple specifiers is out of synch!");
 	}
 
-	mszSimpleModifiers.Init(12);
+	mszSimpleModifiers.Init();
 	mszSimpleModifiers.Add("const");
 	mszSimpleModifiers.Add("volatile");
 	mszSimpleModifiers.Add("static");
@@ -62,12 +62,12 @@ void CCppParser::Init(void)
 		gcUserError.Set("Simple specifiers is out of synch!");
 	}
 
-	mszAccessSpecifiers.Init(4);
+	mszAccessSpecifiers.Init();
 	mszAccessSpecifiers.Add("public");
 	mszAccessSpecifiers.Add("protected");
 	mszAccessSpecifiers.Add("private");
 
-	mszSimpleOperators.Init(42);
+	mszSimpleOperators.Init();
 	mszSimpleOperators.Add("<<=");
 	mszSimpleOperators.Add(">>=");
 	mszSimpleOperators.Add("++");
@@ -178,7 +178,7 @@ A	, 			Comma.  This operator can just fuck-off already!
 
 */
 
-	mszReservedWords.Init(73);
+	mszReservedWords.Init();
 	mszReservedWords.Add("constauto");
 	mszReservedWords.Add("double");
 	mszReservedWords.Add("float");
@@ -252,7 +252,7 @@ A	, 			Comma.  This operator can just fuck-off already!
 	mszReservedWords.Add("or");
 	mszReservedWords.Add("xor");
 
-	maszCallStack.Init(100);
+	maszCallStack.Init();
 }
 
 

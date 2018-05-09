@@ -27,8 +27,8 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void STULog::Init(BOOL bLogInlucdes, BOOL bLogBlocks)
 {
-	szIncludesLog.Init(1024);
-	szBlocksLog.Init(1024);
+	szIncludesLog.Init();
+	szBlocksLog.Init();
 	this->bLogInlucdes = bLogInlucdes;
 	this->bLogBlocks = bLogBlocks;
 }
@@ -49,10 +49,10 @@ void STULog::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTranslationUnit::Init(int iChunkSize, char* szFullName, CLibrary* pcLibrary, BOOL bLogIncludes, BOOL bLogBlocks)
+void CTranslationUnit::Init(char* szFullName, CLibrary* pcLibrary, BOOL bLogIncludes, BOOL bLogBlocks)
 {
 	CCFile::Init(szFullName);
-	mcTokens.Init(iChunkSize, 0, 0);
+	mcTokens.Init(0, 0);
 	mpcLibrary = pcLibrary;
 
 	if (bLogBlocks || bLogIncludes)

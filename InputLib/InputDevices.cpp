@@ -380,7 +380,7 @@ BOOL CInputDevices::CreateVirtualDevices(CArrayInputDeviceVirtualDevice* pacCrea
 			return FALSE;
 		}
 
-		apDevices.Init(8);
+		apDevices.Init();
 		GetDevicesForDeviceDesc(&apDevices, pcDeviceDesc);
 
 		if (apDevices.NumElements() == 0)

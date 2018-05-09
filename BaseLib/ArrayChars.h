@@ -33,7 +33,8 @@ public:
 	__CArrayChars	mcArray;
 	BOOL			mbFaked;
 
-	void 		Init(BOOL bFake = FALSE);
+	void 		Init(void);
+	void 		Fake(void);
 	void 		ReInit(void);
 	void 		Kill(void);
 

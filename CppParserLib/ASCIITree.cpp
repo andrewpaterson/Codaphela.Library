@@ -32,12 +32,12 @@ void CASCIITree::Init(void)
 {
 	CASCIINode*	pcRoot;
 
-	mcNodes.Init(32, sizeof(CASCIINode));
+	mcNodes.Init(sizeof(CASCIINode));
 
 	pcRoot = (CASCIINode*)mcNodes.Add();
 	pcRoot->Init(NULL, -1);
 	mpcRoot = pcRoot;
-	mcWords.Init(32);
+	mcWords.Init();
 	mbContainsUnusedWords = FALSE;
 }
 
@@ -616,7 +616,7 @@ void CASCIITree::GetBetween(CArrayInt* pcArrayInt, char* szTextZeroTerminatedFir
 		iLetterSecond = ASCII_NODE_MAX_CHARS;
 	}
 
-	cStack.Init(32);
+	cStack.Init();
 	psPos = StackTo(&cStack, pcNodeFirst, iNodeFirst, szTextZeroTerminatedFirst);
 
 	PrivateGetBetween(pcArrayInt, psPos, &cStack, pcNodeFirst, pcNodeSecond, iLetterFirst, iLetterSecond);
@@ -665,7 +665,7 @@ void CASCIITree::GetBetween(CArrayInt* pcArrayInt, char* szTextFirst, char* szTe
 		iLetterSecond = ASCII_NODE_MAX_CHARS;
 	}
 
-	cStack.Init(32);
+	cStack.Init();
 	psPos = StackTo(&cStack, pcNodeFirst, iNodeFirst, szTextFirst);
 
 	PrivateGetBetween(pcArrayInt, psPos, &cStack, pcNodeFirst, pcNodeSecond, iLetterFirst, iLetterSecond);
@@ -903,7 +903,7 @@ void CASCIITree::Dump(CArrayInt* pcArrayInt)
 	CChars		sz2;
 	CCharsID*	psz;
 
-	sz2.Init(1024);
+	sz2.Init();
 	for (i = 0; i < pcArrayInt->NumElements(); i++)
 	{
 		iIndex = pcArrayInt->GetValue(i);
@@ -929,7 +929,7 @@ void CASCIITree::DumpTree(void)
 {
 	CArrayInt		aiBetween;
 
-	aiBetween.Init(1024);
+	aiBetween.Init();
 	GetBetween(&aiBetween, NULL, NULL);
 	Dump(&aiBetween);
 	aiBetween.Kill();

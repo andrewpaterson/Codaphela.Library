@@ -28,7 +28,6 @@ class CPPHolder : public CPPAbstractHolder
 public:
 	TOKEN_CONSTRUCT(CPPHolder);
 	void 		Init(int iLine, int iColumn);
-	void 		Init(int iChunkSize, int iLine, int iColumn);
 	void 		Kill(void);
 	void 		Copy(CPPToken* pcSource, CMemoryStackExtended* pcStack);
 	BOOL		Equals(CPPToken* pcOther);

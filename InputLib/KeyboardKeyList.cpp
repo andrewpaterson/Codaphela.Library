@@ -29,8 +29,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 //////////////////////////////////////////////////////////////////////////
 void CKeyboardKeyList::Init(void)
 {
-	maszKeys.Init(8);
-	masKeys.Init(8);
+	maszKeys.Init();
+	masKeys.Init();
 
 	maszKeys.Add("Play/Pause");
 	maszKeys.Add("Volume Down");
