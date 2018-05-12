@@ -12,24 +12,20 @@
 BOOL CIndexTreeWriter::Write(CIndexTreeMemory* pcIndexTree, char* szDirectory)
 {
 	CDurableFileController	cDurableController;
-	BOOL					bResult;
 	CIndexTreeFile			cIndexTreeFile;
 	CIndexTreeHelper		cHelper;
 
 	cHelper.Init(szDirectory, NULL, NULL, FALSE);
-	bResult = cDurableController.Init(cHelper.GetPrimaryDirectory(), cHelper.GetBackupDirectory());
-	if (!bResult)
-	{
-		return FALSE;
-	}
-	
-	cDurableController.Begin();
-	cIndexTreeFile.Init(&cDurableController, &gcSystemAllocator, TRUE);
+	ReturnOnFalse(cDurableController.Init(cHelper.GetPrimaryDirectory(), cHelper.GetBackupDirectory()));
+	ReturnOnFalse(cDurableController.Begin());
+
+	ReturnOnFalse(cIndexTreeFile.Init(&cDurableController));
 	
 	RecurseAllocate(pcIndexTree->GetRoot(), &cIndexTreeFile, cIndexTreeFile.GetRoot());
 	RecurseWrite(&cIndexTreeFile, cIndexTreeFile.GetRoot());
-	cDurableController.End();
-
+	
+	ReturnOnFalse(cDurableController.End());
+	cDurableController.Kill();
 	cIndexTreeFile.Kill();
 
 	return TRUE;
