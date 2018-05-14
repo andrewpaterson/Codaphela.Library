@@ -62,7 +62,8 @@ void CDurableFile::Init(CDurableFileController* pcController, char* szFileName, 
 	}
 	else
 	{
-		mszRewriteName.Init();
+		memset(&mszRewriteName, 0, sizeof(CChars));
+		memset(&mcRewriteFile, 0, sizeof(CFileBasic));
 	}
 }
 
@@ -87,15 +88,17 @@ BOOL CDurableFile::Kill(void)
 	BOOL	bAnyOpen;
 
 	bAnyOpen = mcPrimaryFile.IsOpen();
-	bAnyOpen |= mcRewriteFile.IsOpen();
-
 	mcPrimaryFile.Kill();
-	mcRewriteFile.Kill();
+	mszFileName.Kill();
+
+	if (IsDurable())
+	{
+		bAnyOpen |= mcRewriteFile.IsOpen();
+		mcRewriteFile.Kill();
+		mszRewriteName.Kill();
+	}
 
 	mcLogFile.Kill();
-
-	mszFileName.Kill();
-	mszRewriteName.Kill();
 
 	return !bAnyOpen;
 }

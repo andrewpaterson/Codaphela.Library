@@ -27,7 +27,7 @@ BOOL CIndexTreeWriter::Write(CIndexTreeMemory* pcIndexTree, char* szDirectory)
 	ReturnOnFalse(cDurableController.End());
 	cDurableController.Kill();
 	cIndexTreeFile.Kill();
-
+	cHelper.Kill(TRUE);
 	return TRUE;
 }
 
