@@ -7,25 +7,24 @@ template<class M>
 class CIndexTreeTemplateFile : public CIndexTreeFile
 {
 public:
-	M*		Get(char* pszKey);
-	M*		Get(void* pvKey, int iKeySize);
+	BOOL	Get(void* pvKey, int iKeySize, M* pvObject);
 
-	M*		Put(char* pszKey, M* pvObject);
-	M*		Put(void* pvKey, int iKeySize, M* pvObject);
+	BOOL	Put(void* pvKey, int iKeySize, M* pvObject);
 
-	BOOL	Remove(char* pszKey);
 	BOOL	Remove(void* pvKey, int iKeySize);
 };
 
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M* CIndexTreeTemplateFile<M>::Get(char* pszKey)
+BOOL CIndexTreeTemplateFile<M>::Get(void* pvKey, int iKeySize, M* pvObject)
 {
-	return (M*)CIndexTreeFile::Get(pszKey);
+
+	return CIndexTreeFile::Get(pvKey, iKeySize, pvObject, NULL);
 }
 
 
@@ -34,42 +33,9 @@ M* CIndexTreeTemplateFile<M>::Get(char* pszKey)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M* CIndexTreeTemplateFile<M>::Get(void* pvKey, int iKeySize)
+BOOL CIndexTreeTemplateFile<M>::Put(void* pvKey, int iKeySize, M* pvObject)
 {
-	return (M*)CIndexTreeFile::Get(pvKey, iKeySize);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-template<class M>
-M* CIndexTreeTemplateFile<M>::Put(char* pszKey, M* pvObject)
-{
-	return (M*)CIndexTreeFile::Put(pszKey, pvObject, sizeof(M));
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-template<class M>
-M* CIndexTreeTemplateFile<M>::Put(void* pvKey, int iKeySize, M* pvObject)
-{
-	return (M*)CIndexTreeFile::Put(pvKey, iKeySize, pvObject, sizeof(M));
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-template<class M>
-BOOL CIndexTreeTemplateFile<M>::Remove(char* pszKey)
-{
-	return CIndexTreeFile::Remove(pszKey);
+	return CIndexTreeFile::Put(pvKey, iKeySize, pvObject, sizeof(M));
 }
 
 

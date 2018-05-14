@@ -126,22 +126,8 @@ BOOL CIndexedData::CloseFiles(void)
 {
 	BOOL bResult;
 	
-	bResult = mcIndices.Save();
+	bResult = mcIndices.Close();
 
-	return bResult;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CIndexedData::RemoveFiles(void)
-{
-	BOOL	bResult;
-	
-	bResult = mcDataFiles.RemoveFiles();
-	bResult &= mcIndices.RemoveFile();
 	return bResult;
 }
 
@@ -152,20 +138,7 @@ BOOL CIndexedData::RemoveFiles(void)
 //////////////////////////////////////////////////////////////////////////
 void CIndexedData::InitIndices(CIndexedConfig* pcConfig)
 {
-	CChars			szName;
-	CChars			szRewrite;
-
-	szName.Init(pcConfig->mszWorkingDirectory);
-	szName.Append(FILE_SEPARATOR[0]);
-	szName.Append("Indices.DAT");
-	szRewrite.Init(pcConfig->mszWorkingDirectory);
-	szRewrite.Append(FILE_SEPARATOR[0]);
-	szRewrite.Append("_Indices.DAT");
-
-	mcIndices.Init(&mcDurableFileControl, szName.Text(), szRewrite.Text(), pcConfig->mbDirtyTesting);
-
-	szName.Kill();
-	szRewrite.Kill();
+	mcIndices.Init(&mcDurableFileControl, pcConfig->mbDirtyTesting);
 }
 
 
@@ -361,7 +334,7 @@ BOOL CIndexedData::EvictFromCache(SIndexedCacheDescriptor* psExisting)
 	}
 
 	cDescriptor.Cache(NULL);
-	bResult = mcIndices.Set(&cDescriptor);
+	bResult = mcIndices.Set(&cDescriptor, psExisting->oi);
 	return bResult;
 }
 
@@ -426,7 +399,7 @@ BOOL CIndexedData::WriteEvictedData(SIndexedCacheDescriptor* psCached)
 		return FALSE;
 	}
 
-	return mcIndices.Set(&cDescriptor);
+	return mcIndices.Set(&cDescriptor, psCached->oi);
 }
 
 
@@ -496,7 +469,7 @@ BOOL CIndexedData::ClearDescriptorCache(SIndexedCacheDescriptor* psCached)
 	//These can never ever be unequal.  But just in case...
 	if (cDescriptor.GetDataSize() == psCached->iDataSize)
 	{
-		return mcIndices.Set(&cDescriptor);
+		return mcIndices.Set(&cDescriptor, psCached->oi);
 	}
 	return FALSE;
 }
@@ -540,7 +513,7 @@ BOOL CIndexedData::Add(OIndex oi, void* pvData, unsigned int iDataSize, unsigned
 	cDescriptor.Init(iDataSize);
 
 	bResult = Write(oi, &cDescriptor, pvData, uiTimeStamp);
-	mcIndices.Set(&cDescriptor);
+	mcIndices.Set(&cDescriptor, oi);
 	return bResult;
 }
 
@@ -588,13 +561,13 @@ BOOL CIndexedData::SetData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, void
 			bResult = TRUE;
 		}
 		pcDescriptor->TimeStamp(uiTimeStamp);
-		mcIndices.Set(pcDescriptor);
+		mcIndices.Set(pcDescriptor, oi);
 		return bResult;
 	}
 	else
 	{
 		bResult = Write(oi, pcDescriptor, pvData, uiTimeStamp);
-		mcIndices.Set(pcDescriptor);
+		mcIndices.Set(pcDescriptor, oi);
 		return bResult;
 	}
 }
@@ -640,7 +613,7 @@ BOOL CIndexedData::SetData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, void
 		pcDescriptor->Init(uiDataSize);
 
 		bResult = Write(oi, pcDescriptor, pvData, uiTimeStamp);
-		mcIndices.Set(pcDescriptor);
+		mcIndices.Set(pcDescriptor, oi);
 		return bResult;
 	}
 }
@@ -791,7 +764,7 @@ BOOL CIndexedData::GetData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, void
 			if (pcDescriptor->IsCached())
 			{
 				memcpy_fast(pvData, pcDescriptor->GetCache(), pcDescriptor->GetDataSize());
-				return mcIndices.Set(pcDescriptor);
+				return mcIndices.Set(pcDescriptor, oi);
 			}
 			else
 			{

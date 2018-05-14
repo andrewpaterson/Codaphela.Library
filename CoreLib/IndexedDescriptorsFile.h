@@ -1,5 +1,6 @@
 #ifndef __INDEX_DESCRIPTORS_FILE_H__
 #define __INDEX_DESCRIPTORS_FILE_H__
+#include "BaseLib/PrimitiveTypes.h"
 #include "IndexTreeTemplateFile.h"
 #include "IndexedDataDescriptor.h"
 
@@ -10,13 +11,12 @@ protected:
 	CIndexTreeTemplateFile<CIndexedDataDescriptor>	mcIndexTree;
 
 public:
-	void	Init(CDurableFileController* pcDurableFileController, char* szIndexFileName, char* szIndexBackupName, BOOL bDirtyTesting);
+	void	Init(CDurableFileController* pcDurableFileController, BOOL bDirtyTesting);
 	void	Kill(void);
-	BOOL	Save(void);
-	BOOL	RemoveFile(void);
+	BOOL	Close(void);
 	BOOL	Remove(OIndex oi);
 	BOOL	Get(CIndexedDataDescriptor* pcDescriptor, OIndex oi);
-	BOOL	Set(CIndexedDataDescriptor* pcDescriptor);
+	BOOL	Set(CIndexedDataDescriptor* pcDescriptor, OIndex oi);
 	int64	NumElements(void);
 	int		NumCachedDatas(void);
 };
