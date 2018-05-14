@@ -5,9 +5,9 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedDescriptorsFile::Init(CDurableFileController* pcDurableFileController, char* szIndexFileName, char* szIndexBackupName, BOOL bDirtyTesting)
+void CIndexedDescriptorsFile::Init(CDurableFileController* pcDurableFileController, BOOL bDirtyTesting)
 {
-
+	mcIndexTree.Init(pcDurableFileController);
 }
 
 
@@ -17,7 +17,7 @@ void CIndexedDescriptorsFile::Init(CDurableFileController* pcDurableFileControll
 //////////////////////////////////////////////////////////////////////////
 void CIndexedDescriptorsFile::Kill(void)
 {
-
+	mcIndexTree.Kill();
 }
 
 
@@ -25,20 +25,9 @@ void CIndexedDescriptorsFile::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedDescriptorsFile::Save(void)
+BOOL CIndexedDescriptorsFile::Close(void)
 {
-	return FALSE;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CIndexedDescriptorsFile::RemoveFile(void)
-{
-	return FALSE;
-
+	return TRUE;
 }
 
 
@@ -48,7 +37,7 @@ BOOL CIndexedDescriptorsFile::RemoveFile(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexedDescriptorsFile::Remove(OIndex oi)
 {
-	return FALSE;
+	return mcIndexTree.Remove(&oi, sizeof(OIndex));
 }
 
 
@@ -58,7 +47,7 @@ BOOL CIndexedDescriptorsFile::Remove(OIndex oi)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexedDescriptorsFile::Get(CIndexedDataDescriptor* pcDescriptor, OIndex oi)
 {
-	return FALSE;
+	return mcIndexTree.Get(&oi, sizeof(OIndex), pcDescriptor);
 }
 
 
@@ -66,9 +55,9 @@ BOOL CIndexedDescriptorsFile::Get(CIndexedDataDescriptor* pcDescriptor, OIndex o
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedDescriptorsFile::Set(CIndexedDataDescriptor* pcDescriptor)
+BOOL CIndexedDescriptorsFile::Set(CIndexedDataDescriptor* pcDescriptor, OIndex oi)
 {
-	return FALSE;
+	return mcIndexTree.Put(&oi, sizeof(oi), pcDescriptor);
 }
 
 

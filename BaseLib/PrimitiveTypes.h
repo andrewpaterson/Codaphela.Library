@@ -25,7 +25,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "Bool.h"
 
 
-#if (WIN32 || LINUX_GNU_32 || WIN_GNU_32)
 typedef unsigned char			int8;
 typedef unsigned char			uint8;
 typedef int						int32;
@@ -39,7 +38,6 @@ typedef unsigned int			uint32;
 typedef unsigned short			uint16;
 typedef long long int			int64;
 typedef unsigned long long int	uint64;
-#endif // (WIN32 || LINUX_GNU_32 || WIN_GNU_32)
 
 
 #endif // __PRIMITIVE_TYPES_H__

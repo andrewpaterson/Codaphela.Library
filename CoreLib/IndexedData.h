@@ -72,8 +72,6 @@ public:
 	void			DurableBegin(void);
 	void			DurableEnd(void);
 
-	BOOL			RemoveFiles(void);
-
 	void			KillEnd(void);
 	BOOL			CloseFiles(void);
 
