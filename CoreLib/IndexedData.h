@@ -73,7 +73,6 @@ public:
 	void			DurableEnd(void);
 
 	void			KillEnd(void);
-	BOOL			CloseFiles(void);
 
 	BOOL			IsCaching(void);
 	BOOL			IsDurable(void);

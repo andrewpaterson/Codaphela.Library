@@ -84,14 +84,12 @@ void CIndexedData::Kill(void)
 	{
 		DurableBegin();
 		Uncache();
-		CloseFiles();
 		DurableEnd();
 	}
 	else
 	{
 		DurableBegin();
 		Flush(TRUE);
-		CloseFiles();
 		DurableEnd();
 	}
 
@@ -115,20 +113,6 @@ void CIndexedData::KillEnd(void)
 	mcIndices.Kill();
 	mcDataFiles.Kill();
 	mcTemp.Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CIndexedData::CloseFiles(void)
-{
-	BOOL bResult;
-	
-	bResult = mcIndices.Close();
-
-	return bResult;
 }
 
 
