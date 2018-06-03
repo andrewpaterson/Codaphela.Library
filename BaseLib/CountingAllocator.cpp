@@ -9,7 +9,8 @@
 void CCountingAllocator::Init(CMallocator* pcAlloc)
 {
 	mpcAlloc = pcAlloc;
-	mtSize = 0;
+	mtUserSize = 0;
+	mtSystemSize = 0;
 }
 
 
@@ -19,7 +20,8 @@ void CCountingAllocator::Init(CMallocator* pcAlloc)
 //////////////////////////////////////////////////////////////////////////
 void CCountingAllocator::Kill(void)
 {
-	mtSize = 0;
+	mtUserSize = 0;
+	mtSystemSize = 0;
 	mpcAlloc = NULL;
 }
 
@@ -28,9 +30,19 @@ void CCountingAllocator::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size_t CCountingAllocator::AllocatedSize(void)
+size_t CCountingAllocator::AllocatedUserSize(void)
 {
-	return mtSize;
+	return mtUserSize;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size_t CCountingAllocator::AllocatedSystemSize(void)
+{
+	return mtSystemSize;
 }
 
 
@@ -44,21 +56,25 @@ void* CCountingAllocator::Malloc(size_t tSize)
 	void*						pv;
 	size_t						tOffset;
 	size_t						tAllocSize;
+	size_t						tSystemSize;
 	
 	tOffset = mpcAlloc->SizeOffset();
 	if (tOffset == 0)
 	{
 		tAllocSize = tSize + sizeof(SCountingMemoryAllocation);
+		tSystemSize = tAllocSize;
 	}
 	else
 	{
 		tAllocSize = tSize;
+		tSystemSize = tSize + tOffset;
 	}
 
 	pv = mpcAlloc->Malloc(tAllocSize);
 	if (pv)
 	{
-		mtSize += tSize;
+		mtUserSize += tSize;
+		mtSystemSize += tSystemSize;
 
 		if (tOffset == 0)
 		{
@@ -81,15 +97,18 @@ void* CCountingAllocator::Realloc(void* pv, size_t tSize)
 	SCountingMemoryAllocation*	ps;
 	size_t						tOffset;
 	size_t						tAllocSize;
+	size_t						tSystemSize;
 
 	tOffset = mpcAlloc->SizeOffset();
 	if (tOffset == 0)
 	{
 		tAllocSize = tSize + sizeof(SCountingMemoryAllocation);
+		tSystemSize = tAllocSize;
 	}
 	else
 	{
 		tAllocSize = tSize;
+		tSystemSize = tSize + tOffset;
 	}
 
 	if (pv)
@@ -97,12 +116,15 @@ void* CCountingAllocator::Realloc(void* pv, size_t tSize)
 		if (tOffset == 0)
 		{
 			ps = DataGetHeader<SCountingMemoryAllocation, void>(pv);
+			mtUserSize -= ps->tSize;
+			mtSystemSize -= (ps->tSize + sizeof(SCountingMemoryAllocation));
 		}
 		else
 		{
 			ps = (SCountingMemoryAllocation*)RemapSinglePointer(pv, -(int)(tOffset));
+			mtUserSize -= ps->tSize;
+			mtSystemSize -= (ps->tSize + tOffset);
 		}
-		mtSize -= ps->tSize;
 	}
 
 	if (tOffset == 0)
@@ -110,7 +132,9 @@ void* CCountingAllocator::Realloc(void* pv, size_t tSize)
 		ps = (SCountingMemoryAllocation*)mpcAlloc->Realloc(DataGetHeader<SCountingMemoryAllocation, void>(pv), tAllocSize);
 		if (ps)
 		{
-			mtSize += tSize;
+			mtUserSize += tSize;
+			mtSystemSize += tSystemSize;
+
 			ps->tSize = tSize;
 			return HeaderGetData<SCountingMemoryAllocation, void>(ps);
 		}
@@ -121,7 +145,8 @@ void* CCountingAllocator::Realloc(void* pv, size_t tSize)
 		pv = mpcAlloc->Realloc(pv, tAllocSize);
 		if (pv)
 		{
-			mtSize += tSize;
+			mtUserSize += tSize;
+			mtSystemSize += tSystemSize;
 		}
 		return pv;
 	}
@@ -143,14 +168,16 @@ void CCountingAllocator::Free(void* pv)
 		if (tOffset == 0)
 		{
 			ps = DataGetHeader<SCountingMemoryAllocation, void>(pv);
-			mtSize -= ps->tSize;
+			mtUserSize -= ps->tSize;
+			mtSystemSize -= (ps->tSize + sizeof(SCountingMemoryAllocation));
 			mpcAlloc->Free(ps);
 
 		}
 		else
 		{
 			ps = (SCountingMemoryAllocation*)RemapSinglePointer(pv, -(int)(tOffset));
-			mtSize -= ps->tSize;
+			mtUserSize -= ps->tSize;
+			mtSystemSize -= (ps->tSize + tOffset);
 			mpcAlloc->Free(pv);
 		}
 	}
