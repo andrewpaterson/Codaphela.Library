@@ -53,8 +53,8 @@ public:
 	void*	Add(size_t tSize);
 	void	Reset(void);
 
-	int		GetMemorySize(void);
-	int		GetUsedSize(void);
+	size_t	GetMemorySize(void);
+	size_t	GetUsedSize(void);
 
 	void	GetParams(SScratchPadParams* psParams);
 };
