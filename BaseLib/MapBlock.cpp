@@ -32,7 +32,7 @@ int CompareMNode(const void* arg1, const void* arg2)
 //////////////////////////////////////////////////////////////////////////
 void CMapBlock::Init(int(* Func)(const void*, const void*), BOOL bOverwrite)
 {
-	Init(&gcSystemAllocator, 128, Func, bOverwrite);
+	Init(&gcSystemAllocator, Func, bOverwrite);
 }
 
 
@@ -40,40 +40,17 @@ void CMapBlock::Init(int(* Func)(const void*, const void*), BOOL bOverwrite)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMapBlock::Init(int iChunkSize, int(* Func)(const void*, const void*), BOOL bOverwrite)
-{
-	Init(&gcSystemAllocator, iChunkSize, Func, bOverwrite);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CMapBlock::Init(CMallocator* pcMalloc, int iChunkSize, int(* Func)(const void*, const void*), BOOL bOverwrite)
+void CMapBlock::Init(CMallocator* pcMalloc, int(* Func)(const void*, const void*), BOOL bOverwrite)
 {
 	int		iHoldingBufferSize;
 	int		iHoldingBuffers;
 
-	if (iChunkSize >= 256)
-	{
-		iHoldingBufferSize = 256;
-		iHoldingBuffers = 4;
-	}
-	if (iChunkSize >= 128)
-	{
-		iHoldingBufferSize = 128;
-		iHoldingBuffers = 2;
-	}
-	else
-	{
-		iHoldingBuffers = 1;
-		iHoldingBufferSize = 32;
-	}
+	iHoldingBufferSize = 256;
+	iHoldingBuffers = 4;
 
 	mpcMalloc = pcMalloc;
 	this->Func = Func;
-	mapArray.Init(pcMalloc, sizeof(void*), iChunkSize, iHoldingBufferSize, iHoldingBuffers, &CompareMNode);
+	mapArray.Init(pcMalloc, sizeof(void*), iHoldingBufferSize, iHoldingBuffers, &CompareMNode);
 	mapArray.SetOverwrite(bOverwrite);
 	miLargestKeySize = 0;
 }

@@ -8,7 +8,7 @@
 //////////////////////////////////////////////////////////////////////////
 void CArrayBlockSorted::Init(int iElementSize, int(*fCompare)(const void*, const void*))
 {
-	Init(&gcSystemAllocator, iElementSize, 1024, 256, 4, fCompare);
+	Init(&gcSystemAllocator, iElementSize, 256, 4, fCompare);
 }
 
 
@@ -16,9 +16,9 @@ void CArrayBlockSorted::Init(int iElementSize, int(*fCompare)(const void*, const
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayBlockSorted::Init(int iElementSize, int iChunkSize, int iHoldingBufferSize, int iHoldingBuffers, int(*fCompare)(const void*, const void*))
+void CArrayBlockSorted::Init(int iElementSize, int iHoldingBufferSize, int iHoldingBuffers, int(*fCompare)(const void*, const void*))
 {
-	Init(&gcSystemAllocator, iElementSize, iChunkSize, iHoldingBufferSize, iHoldingBuffers, fCompare);
+	Init(&gcSystemAllocator, iElementSize, iHoldingBufferSize, iHoldingBuffers, fCompare);
 }
 
 
@@ -26,14 +26,13 @@ void CArrayBlockSorted::Init(int iElementSize, int iChunkSize, int iHoldingBuffe
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayBlockSorted::Init(CMallocator* pcMallocator, int iElementSize, int iChunkSize, int iHoldingBufferSize, int iHoldingBuffers, int(*fCompare)(const void*, const void*))
+void CArrayBlockSorted::Init(CMallocator* pcMallocator, int iElementSize, int iHoldingBufferSize, int iHoldingBuffers, int(*fCompare)(const void*, const void*))
 {
 	CArrayBlock*	paHoldingArray;
 	int				i;
 
 	mpcMalloc = pcMallocator;
 	miHoldingBufferSize = iHoldingBufferSize;
-	miChunkSize = iChunkSize;
 	miElementSize = iElementSize;
 	mfCompare = fCompare;
 	mbOverwrite = FALSE;
@@ -580,7 +579,6 @@ void* CArrayBlockSorted::GetIterated(SArraySortedIterator* psIter)
 BOOL CArrayBlockSorted::WriteHeader(CFileWriter* pcFileWriter)
 {
 	ReturnOnFalse(pcFileWriter->WriteInt(miHoldingBufferSize));
-	ReturnOnFalse(pcFileWriter->WriteInt(miChunkSize));
 	ReturnOnFalse(pcFileWriter->WriteInt(miElementSize));
 	ReturnOnFalse(pcFileWriter->WriteInt(maaHoldingArrays.NumElements()));
 	ReturnOnFalse(pcFileWriter->WriteBool(mbOverwrite));
@@ -622,20 +620,17 @@ BOOL CArrayBlockSorted::ReadHeader(CMallocator* pcMalloc, CFileReader* pcFileRea
 	CArrayBlock*	paHoldingArray;
 	int				i;
 	int				iHoldingBufferSize;
-	int				iChunkSize;
 	int				iElementSize;
 	int				iHoldingBuffers;
 	BOOL			bOverwrite;
 
 	mpcMalloc = pcMalloc;
 	ReturnOnFalse(pcFileReader->ReadInt(&iHoldingBufferSize));
-	ReturnOnFalse(pcFileReader->ReadInt(&iChunkSize));
 	ReturnOnFalse(pcFileReader->ReadInt(&iElementSize));
 	ReturnOnFalse(pcFileReader->ReadInt(&iHoldingBuffers));
 	ReturnOnFalse(pcFileReader->ReadBool(&bOverwrite));
 
 	miHoldingBufferSize = iHoldingBufferSize;
-	miChunkSize = iChunkSize;
 	miElementSize = iElementSize;
 	mfCompare = fCompare;
 	mbOverwrite = bOverwrite;

@@ -28,8 +28,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 class CMapPtrPtr : public CMapTemplate<void*, void*>
 {
 public:
-	void	Init(int iChunkSize);
-	void	Init(CMallocator* pcMalloc, int iChunkSize);
+	void	Init(void);
+	void	Init(CMallocator* pcMalloc);
 
 	void*	Get(void* pvKey);
 

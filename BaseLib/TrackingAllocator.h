@@ -8,13 +8,13 @@ class CTrackingAllocator : public CMallocator
 {
 protected:
 	CMallocator*						mpcAlloc;
-	CMapPtrPrimitiveTemplate<size_t>	mmpiSizes;
+	CArrayBlockSorted					mapv;
 
 public:
 	void		Init(CMallocator* pcAlloc);
 	void		Kill(void);
 
-	size_t		AllocatedSize(void);
+	int			AllocatedCount(void);
 
 	void*		Malloc(size_t tSize);
 	void*		Realloc(void* pv, size_t tSize);
