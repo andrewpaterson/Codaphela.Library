@@ -1,14 +1,15 @@
-#include "TrackingAllocator.h"
+#include "DataMacro.h"
+#include "CountingAllocator.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTrackingAllocator::Init(CMallocator* pcAlloc)
+void CCountingAllocator::Init(CMallocator* pcAlloc)
 {
 	mpcAlloc = pcAlloc;
-	mmpiSizes.Init(1024);
+	mtSize = 0;
 }
 
 
@@ -16,9 +17,9 @@ void CTrackingAllocator::Init(CMallocator* pcAlloc)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTrackingAllocator::Kill(void)
+void CCountingAllocator::Kill(void)
 {
-	mmpiSizes.Kill();
+	mtSize = 0;
 	mpcAlloc = NULL;
 }
 
@@ -27,21 +28,29 @@ void CTrackingAllocator::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size_t CTrackingAllocator::AllocatedSize(void)
+size_t CCountingAllocator::AllocatedSize(void)
 {
-	size_t			tTotal;
-	SMapIterator	sIter;
-	BOOL			bResult;
-	size_t*			ptCurrent;
+	return mtSize;
+}
 
-	tTotal = 0;
-	bResult = mmpiSizes.StartIteration(&sIter, NULL, (void**)&ptCurrent);
-	while (bResult)
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void* CCountingAllocator::Malloc(size_t tSize)
+{
+	SCountingMemoryAllocation*	ps;
+	
+	ps = (SCountingMemoryAllocation*)mpcAlloc->Malloc(tSize + sizeof(SCountingMemoryAllocation));
+	if (ps)
 	{
-		tTotal += (*ptCurrent);
-		bResult = mmpiSizes.Iterate(&sIter, NULL, (void**)&ptCurrent);
+		mtSize += tSize;
+		ps->tSize = tSize;
+		return HeaderGetData<SCountingMemoryAllocation, void>(ps);
 	}
-	return tTotal;
+
+	return ps;
 }
 
 
@@ -49,33 +58,25 @@ size_t CTrackingAllocator::AllocatedSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CTrackingAllocator::Malloc(size_t tSize)
+void* CCountingAllocator::Realloc(void* pv, size_t tSize)
 {
-	void*	pv;
+	SCountingMemoryAllocation*	ps;
 
-	pv = mpcAlloc->Malloc(tSize);
-	mmpiSizes.Put(pv, tSize);
-
-	return pv;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void* CTrackingAllocator::Realloc(void* pv, size_t tSize)
-{
-	void*	pvNew;
-
-	pvNew = mpcAlloc->Realloc(pv, tSize);
-	if (pvNew != pv)
+	if (pv)
 	{
-		mmpiSizes.Remove(pv);
+		ps = DataGetHeader<SCountingMemoryAllocation, void>(pv);
+		mtSize -= ps->tSize;
 	}
-	mmpiSizes.Put(pvNew, tSize);
 
-	return pvNew;
+	ps = (SCountingMemoryAllocation*)mpcAlloc->Realloc(DataGetHeader<SCountingMemoryAllocation, void>(pv), tSize + sizeof(SCountingMemoryAllocation));
+	if (ps)
+	{
+		mtSize += tSize;
+		ps->tSize = tSize;
+		return HeaderGetData<SCountingMemoryAllocation, void>(ps);
+	}
+
+	return ps;
 }
 
 
@@ -83,10 +84,16 @@ void* CTrackingAllocator::Realloc(void* pv, size_t tSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTrackingAllocator::Free(void* pv)
+void CCountingAllocator::Free(void* pv)
 {
-	mpcAlloc->Free(pv);
-	mmpiSizes.Remove(pv);
+	SCountingMemoryAllocation*	ps;
+
+	if (pv)
+	{
+		ps = DataGetHeader<SCountingMemoryAllocation, void>(pv);
+		mtSize -= ps->tSize;
+		mpcAlloc->Free(ps);
+	}
 }
 
 
@@ -94,7 +101,7 @@ void CTrackingAllocator::Free(void* pv)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-const char* CTrackingAllocator::GetName(void)
+const char* CCountingAllocator::GetName(void)
 {
 	return mpcAlloc->GetName();
 }
@@ -104,7 +111,7 @@ const char* CTrackingAllocator::GetName(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CTrackingAllocator::IsLocal(void)
+BOOL CCountingAllocator::IsLocal(void)
 {
 	return mpcAlloc->IsLocal();
 }
@@ -114,8 +121,8 @@ BOOL CTrackingAllocator::IsLocal(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size_t CTrackingAllocator::SizeOffset(void)
+size_t CCountingAllocator::SizeOffset(void)
 {
-	return 0;
+	return sizeof(SCountingMemoryAllocation);
 }
 

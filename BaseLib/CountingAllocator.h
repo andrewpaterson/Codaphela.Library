@@ -1,14 +1,20 @@
-#ifndef __TRACKING_ALLOCATOR_H__
-#define __TRACKING_ALLOCATOR_H__
+#ifndef __COUNTING_ALLOCATOR_H__
+#define __COUNTING_ALLOCATOR_H__
 #include "Mallocator.h"
-#include "MapPtrPrimitiveTemplate.h"
+#include "PrimitiveTypes.h"
 
 
-class CTrackingAllocator : public CMallocator
+struct SCountingMemoryAllocation
+{
+	size_t			tSize;
+};
+
+
+class CCountingAllocator : public CMallocator
 {
 protected:
-	CMallocator*						mpcAlloc;
-	CMapPtrPrimitiveTemplate<size_t>	mmpiSizes;
+	CMallocator*	mpcAlloc;
+	size_t			mtSize;
 
 public:
 	void		Init(CMallocator* pcAlloc);
@@ -27,5 +33,5 @@ public:
 };
 
 
-#endif // __TRACKING_ALLOCATOR_H__
+#endif // __COUNTING_ALLOCATOR_H__
 

@@ -30,22 +30,20 @@ Microsoft Windows is Copyright Microsoft Corporation
 class CIndexedFiles
 {
 protected:
-	CDurableFileController*	mpcDurableFileControl;
+	CDurableFileController*		mpcDurableFileControl;
 
-	CListIndexedFile		mcFiles;  //These are the data on disk.  Generally one file per data size.
+	CListIndexedFile			mcFiles;  //These are the data on disk.  Generally one file per data size.
 
-	CChars					mszDataExtension;
+	CChars						mszDataExtension;
 
-	CChars					mszDescricptorName;
-	CChars					mszDescricptorRewrite;
-	CDurableFile			mcFileDescriptors;
-	BOOL					mbDescriptorsRead;
+	CChars						mszDescricptorName;
+	CChars						mszDescricptorRewrite;
+	CDurableFile				mcFileDescriptors;
+	BOOL						mbDescriptorsRead;
 
 public:
 	void			Init(CDurableFileController* pcDurableFileControl, char* szDataExtension, char* szDescricptorName, char* szDescricptorRewrite);
 	void			Kill(void);
-
-	BOOL			RemoveFiles(void);
 
 	void			InitIndexedFileDescriptors(char* szDescricptorName, char* szDescricptorRewrite);
 	BOOL			ReadIndexedFileDescriptors(void);

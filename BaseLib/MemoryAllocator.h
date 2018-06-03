@@ -24,6 +24,8 @@ public:
 	BOOL			Write(CFileWriter* pcFileWriter);
 
 	CGeneralMemory*	GetMemory(void);
+	size_t			SizeOffset(void);
+
 };
 
 

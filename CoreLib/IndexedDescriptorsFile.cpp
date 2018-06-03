@@ -57,7 +57,7 @@ BOOL CIndexedDescriptorsFile::Set(CIndexedDataDescriptor* pcDescriptor, OIndex o
 //////////////////////////////////////////////////////////////////////////
 int64 CIndexedDescriptorsFile::NumElements(void)
 {
-	return 0;
+	return mcIndexTree.NumElements();
 }
 
 
@@ -67,6 +67,6 @@ int64 CIndexedDescriptorsFile::NumElements(void)
 //////////////////////////////////////////////////////////////////////////
 int CIndexedDescriptorsFile::NumCachedDatas(void)
 {
-	return 0;
+	return mcIndexTree.NumElements();
 }
 
