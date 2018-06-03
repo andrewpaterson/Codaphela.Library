@@ -25,6 +25,8 @@ public:
 
 	BOOL			Read(CFileReader* pcFileReader);
 	BOOL			Write(CFileWriter* pcFileWriter);
+
+	size_t			SizeOffset(void);
 };
 
 

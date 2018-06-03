@@ -28,7 +28,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 struct SSPNode
 {
 public:
-	unsigned int	iSize;
+	size_t			iSize;
 	BOOL			bUsed;
 };
 

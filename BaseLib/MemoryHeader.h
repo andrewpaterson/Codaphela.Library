@@ -8,8 +8,8 @@
 
 struct SDataMemoryAllocation
 {
+	size_t			uiSize;
 	SFNode*			psFreeListNode;
-	unsigned int	uiSize;
 };
 
 

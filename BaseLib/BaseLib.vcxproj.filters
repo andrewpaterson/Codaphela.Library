@@ -756,6 +756,9 @@
     <ClInclude Include="ArraySizer.h">
       <Filter>Source\Data\Array</Filter>
     </ClInclude>
+    <ClInclude Include="CountingAllocator.h">
+      <Filter>Source\Memory\Manager</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -1189,6 +1192,9 @@
     </ClCompile>
     <ClCompile Include="ArraySizer.cpp">
       <Filter>Source\Data\Array</Filter>
+    </ClCompile>
+    <ClCompile Include="CountingAllocator.cpp">
+      <Filter>Source\Memory\Manager</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

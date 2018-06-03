@@ -14,6 +14,7 @@ public:
 	const char*	GetName(void);
 
 	BOOL		IsLocal(void);
+	size_t		SizeOffset(void);
 };
 
 
