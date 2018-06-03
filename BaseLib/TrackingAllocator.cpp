@@ -104,6 +104,6 @@ BOOL CTrackingAllocator::IsLocal(void)
 //////////////////////////////////////////////////////////////////////////
 size_t CTrackingAllocator::SizeOffset(void)
 {
-	return 0;
+	return mpcAlloc->SizeOffset();
 }
 
