@@ -183,6 +183,16 @@ BOOL CCountingAllocator::IsLocal(void)
 //////////////////////////////////////////////////////////////////////////
 size_t CCountingAllocator::SizeOffset(void)
 {
-	return sizeof(SCountingMemoryAllocation);
+	size_t	tOffset;
+
+	tOffset = mpcAlloc->SizeOffset();
+	if (tOffset == 0)
+	{
+		return sizeof(SCountingMemoryAllocation);
+	}
+	else
+	{
+		return tOffset;
+	}
 }
 
