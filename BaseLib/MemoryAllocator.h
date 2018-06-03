@@ -25,7 +25,6 @@ public:
 
 	CGeneralMemory*	GetMemory(void);
 	size_t			SizeOffset(void);
-
 };
 
 

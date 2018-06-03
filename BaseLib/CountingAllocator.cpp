@@ -41,16 +41,34 @@ size_t CCountingAllocator::AllocatedSize(void)
 void* CCountingAllocator::Malloc(size_t tSize)
 {
 	SCountingMemoryAllocation*	ps;
+	void*						pv;
+	size_t						tOffset;
+	size_t						tAllocSize;
 	
-	ps = (SCountingMemoryAllocation*)mpcAlloc->Malloc(tSize + sizeof(SCountingMemoryAllocation));
-	if (ps)
+	tOffset = mpcAlloc->SizeOffset();
+	if (tOffset == 0)
 	{
-		mtSize += tSize;
-		ps->tSize = tSize;
-		return HeaderGetData<SCountingMemoryAllocation, void>(ps);
+		tAllocSize = tSize + sizeof(SCountingMemoryAllocation);
+	}
+	else
+	{
+		tAllocSize = tSize;
 	}
 
-	return ps;
+	pv = mpcAlloc->Malloc(tAllocSize);
+	if (pv)
+	{
+		mtSize += tSize;
+
+		if (tOffset == 0)
+		{
+			ps = (SCountingMemoryAllocation*)pv;
+			ps->tSize = tSize;
+			return HeaderGetData<SCountingMemoryAllocation, void>(ps);
+		}
+	}
+
+	return pv;
 }
 
 
@@ -61,22 +79,52 @@ void* CCountingAllocator::Malloc(size_t tSize)
 void* CCountingAllocator::Realloc(void* pv, size_t tSize)
 {
 	SCountingMemoryAllocation*	ps;
+	size_t						tOffset;
+	size_t						tAllocSize;
+
+	tOffset = mpcAlloc->SizeOffset();
+	if (tOffset == 0)
+	{
+		tAllocSize = tSize + sizeof(SCountingMemoryAllocation);
+	}
+	else
+	{
+		tAllocSize = tSize;
+	}
 
 	if (pv)
 	{
-		ps = DataGetHeader<SCountingMemoryAllocation, void>(pv);
+		if (tOffset == 0)
+		{
+			ps = DataGetHeader<SCountingMemoryAllocation, void>(pv);
+		}
+		else
+		{
+			ps = (SCountingMemoryAllocation*)RemapSinglePointer(pv, -(int)(tOffset));
+		}
 		mtSize -= ps->tSize;
 	}
 
-	ps = (SCountingMemoryAllocation*)mpcAlloc->Realloc(DataGetHeader<SCountingMemoryAllocation, void>(pv), tSize + sizeof(SCountingMemoryAllocation));
-	if (ps)
+	if (tOffset == 0)
 	{
-		mtSize += tSize;
-		ps->tSize = tSize;
-		return HeaderGetData<SCountingMemoryAllocation, void>(ps);
+		ps = (SCountingMemoryAllocation*)mpcAlloc->Realloc(DataGetHeader<SCountingMemoryAllocation, void>(pv), tAllocSize);
+		if (ps)
+		{
+			mtSize += tSize;
+			ps->tSize = tSize;
+			return HeaderGetData<SCountingMemoryAllocation, void>(ps);
+		}
+		return ps;
 	}
-
-	return ps;
+	else
+	{
+		pv = mpcAlloc->Realloc(pv, tAllocSize);
+		if (pv)
+		{
+			mtSize += tSize;
+		}
+		return pv;
+	}
 }
 
 
@@ -87,12 +135,24 @@ void* CCountingAllocator::Realloc(void* pv, size_t tSize)
 void CCountingAllocator::Free(void* pv)
 {
 	SCountingMemoryAllocation*	ps;
+	size_t						tOffset;
 
+	tOffset = mpcAlloc->SizeOffset();
 	if (pv)
 	{
-		ps = DataGetHeader<SCountingMemoryAllocation, void>(pv);
-		mtSize -= ps->tSize;
-		mpcAlloc->Free(ps);
+		if (tOffset == 0)
+		{
+			ps = DataGetHeader<SCountingMemoryAllocation, void>(pv);
+			mtSize -= ps->tSize;
+			mpcAlloc->Free(ps);
+
+		}
+		else
+		{
+			ps = (SCountingMemoryAllocation*)RemapSinglePointer(pv, -(int)(tOffset));
+			mtSize -= ps->tSize;
+			mpcAlloc->Free(pv);
+		}
 	}
 }
 
