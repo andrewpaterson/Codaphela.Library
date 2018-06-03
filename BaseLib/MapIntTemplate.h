@@ -30,8 +30,8 @@ template<class D>
 class CMapIntTemplate : public CMapTemplate<int, D>
 {
 public:
-	void	Init(int iChunkSize, BOOL bOverwrite);
-	void	Init(CMallocator* pcMalloc, int iChunkSize, BOOL bOverwrite);
+	void	Init(BOOL bOverwrite);
+	void	Init(CMallocator* pcMalloc, BOOL bOverwrite);
 	D*		Get(int iKey);
 	D*		Put(int iKey);
 	BOOL	Put(int iKey, D* psData);
@@ -44,9 +44,9 @@ public:
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class D>
-void CMapIntTemplate<D>::Init(int iChunkSize, BOOL bOverwrite)
+void CMapIntTemplate<D>::Init(BOOL bOverwrite)
 {
-	Init(&gcSystemAllocator, iChunkSize, bOverwrite);
+	Init(&gcSystemAllocator, bOverwrite);
 }
 
 
@@ -55,9 +55,9 @@ void CMapIntTemplate<D>::Init(int iChunkSize, BOOL bOverwrite)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class D>
-void CMapIntTemplate<D>::Init(CMallocator* pcMalloc, int iChunkSize, BOOL bOverwrite)
+void CMapIntTemplate<D>::Init(CMallocator* pcMalloc, BOOL bOverwrite)
 {
-	CMapTemplate<int, D>::Init(pcMalloc, iChunkSize, &CompareInt, bOverwrite);
+	CMapTemplate<int, D>::Init(pcMalloc, &CompareInt, bOverwrite);
 };
 
 

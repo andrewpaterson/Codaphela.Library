@@ -25,14 +25,13 @@ protected:
 	int*				mapiInsertionIndices;
 
 	int					miElementSize;
-	int					miChunkSize;
 	int					miHoldingBufferSize;
 	BOOL				mbOverwrite;
 
 public:
 	void			Init(int iElementSize, int(*fCompare)(const void*, const void*));
-	void			Init(int iElementSize, int iChunkSize, int iHoldingBufferSize, int iHoldingBuffers, int(*fCompare)(const void*, const void*));
-	void			Init(CMallocator* pcMallocator, int iElementSize, int iChunkSize, int iHoldingBufferSize, int iHoldingBuffers, int(*fCompare)(const void*, const void*));
+	void			Init(int iElementSize, int iHoldingBufferSize, int iHoldingBuffers, int(*fCompare)(const void*, const void*));
+	void			Init(CMallocator* pcMallocator, int iElementSize, int iHoldingBufferSize, int iHoldingBuffers, int(*fCompare)(const void*, const void*));
 	void			Kill(void);
 
 	BOOL			Add(void* pv);

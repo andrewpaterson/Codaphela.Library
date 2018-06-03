@@ -8,7 +8,7 @@
 void CTrackingAllocator::Init(CMallocator* pcAlloc)
 {
 	mpcAlloc = pcAlloc;
-	mmpiSizes.Init(1024);
+	mapv.Init(sizeof(void*), &ComparePtrPtr);
 }
 
 
@@ -18,7 +18,7 @@ void CTrackingAllocator::Init(CMallocator* pcAlloc)
 //////////////////////////////////////////////////////////////////////////
 void CTrackingAllocator::Kill(void)
 {
-	mmpiSizes.Kill();
+	mapv.Kill();
 	mpcAlloc = NULL;
 }
 
@@ -27,21 +27,9 @@ void CTrackingAllocator::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size_t CTrackingAllocator::AllocatedSize(void)
+int CTrackingAllocator::AllocatedCount(void)
 {
-	size_t			tTotal;
-	SMapIterator	sIter;
-	BOOL			bResult;
-	size_t*			ptCurrent;
-
-	tTotal = 0;
-	bResult = mmpiSizes.StartIteration(&sIter, NULL, (void**)&ptCurrent);
-	while (bResult)
-	{
-		tTotal += (*ptCurrent);
-		bResult = mmpiSizes.Iterate(&sIter, NULL, (void**)&ptCurrent);
-	}
-	return tTotal;
+	return mapv.NumElements();
 }
 
 
@@ -54,7 +42,7 @@ void* CTrackingAllocator::Malloc(size_t tSize)
 	void*	pv;
 
 	pv = mpcAlloc->Malloc(tSize);
-	mmpiSizes.Put(pv, tSize);
+	mapv.Add(&pv);
 
 	return pv;
 }
@@ -71,9 +59,9 @@ void* CTrackingAllocator::Realloc(void* pv, size_t tSize)
 	pvNew = mpcAlloc->Realloc(pv, tSize);
 	if (pvNew != pv)
 	{
-		mmpiSizes.Remove(pv);
+		mapv.Remove(&pv);
 	}
-	mmpiSizes.Put(pvNew, tSize);
+	mapv.Add(&pvNew);
 
 	return pvNew;
 }
@@ -86,7 +74,7 @@ void* CTrackingAllocator::Realloc(void* pv, size_t tSize)
 void CTrackingAllocator::Free(void* pv)
 {
 	mpcAlloc->Free(pv);
-	mmpiSizes.Remove(pv);
+	mapv.Remove(&pv);
 }
 
 
