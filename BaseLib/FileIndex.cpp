@@ -107,3 +107,14 @@ void CFileDataIndex::SetIndex(int iFile, unsigned int uiIndex)
 	muiIndex = uiIndex;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CFileDataIndex::SetIndex(CFileDataIndex* pcSource)
+{
+	miFile = pcSource->miFile;
+	muiIndex = pcSource->muiIndex;
+}
+

@@ -622,12 +622,18 @@ SMemory CGeneralMemory::StartIteration(SMemoryIterator* psIterator)
 {
 	void*		pv;
 	SMemory		sResult;
+	void*		pvLargeHead;
 
 	sResult.Init();
 
 	psIterator->pcFreeList = mcFreeLists.GetHead();
+	pvLargeHead = mcLargeList.GetHead();
+	
 	if (psIterator->pcFreeList != NULL)
 	{
+		psIterator->bInFreeLists = TRUE;
+		psIterator->pvLarge = NULL;
+
 		pv = psIterator->pcFreeList->StartIteration(&psIterator->sFreeListIterator);
 		if (pv == NULL)
 		{
@@ -638,6 +644,15 @@ SMemory CGeneralMemory::StartIteration(SMemoryIterator* psIterator)
 			sResult.Set((SGeneralMemoryAllocation*)pv);
 			return sResult;
 		}
+	}
+	else if (pvLargeHead != NULL)
+	{
+		psIterator->bInFreeLists = FALSE;
+		psIterator->pcFreeList = NULL;
+
+		psIterator->pvLarge = pvLargeHead;
+		sResult.Set((SGeneralMemoryAllocation*)pvLargeHead);
+		return sResult;
 	}
 	else
 	{
@@ -656,33 +671,63 @@ SMemory CGeneralMemory::Iterate(SMemoryIterator* psIterator)
 	SMemory		sResult;
 
 	sResult.Init();
-	pv = psIterator->pcFreeList->Iterate(&psIterator->sFreeListIterator);
-	if (pv == NULL)
+	if (psIterator->bInFreeLists)
 	{
-		psIterator->pcFreeList = mcFreeLists.GetNext(psIterator->pcFreeList);
-		if (psIterator->pcFreeList == NULL)
+		pv = psIterator->pcFreeList->Iterate(&psIterator->sFreeListIterator);
+		if (pv == NULL)
 		{
-			return sResult;
-		}
-		else
-		{
-			pv = psIterator->pcFreeList->StartIteration(&psIterator->sFreeListIterator);
-
-			if (pv == NULL)
+			psIterator->pcFreeList = mcFreeLists.GetNext(psIterator->pcFreeList);
+			if (psIterator->pcFreeList == NULL)
 			{
-				return Iterate(psIterator);
+				pv = mcLargeList.GetHead();
+				if (pv != NULL)
+				{
+					psIterator->bInFreeLists = FALSE;
+					psIterator->pcFreeList = NULL;
+
+					psIterator->pvLarge = pv;
+					sResult.Set((SGeneralMemoryAllocation*)pv);
+					return sResult;
+				}
+				else
+				{
+					return sResult;
+				}
 			}
 			else
 			{
-				sResult.Set((SGeneralMemoryAllocation*)pv);
-				return sResult;
+				pv = psIterator->pcFreeList->StartIteration(&psIterator->sFreeListIterator);
+
+				if (pv == NULL)
+				{
+					return Iterate(psIterator);
+				}
+				else
+				{
+					sResult.Set((SGeneralMemoryAllocation*)pv);
+					return sResult;
+				}
 			}
+		}
+		else
+		{
+			sResult.Set((SGeneralMemoryAllocation*)pv);
+			return sResult;
 		}
 	}
 	else
 	{
-		sResult.Set((SGeneralMemoryAllocation*)pv);
-		return sResult;
+		pv = mcLargeList.GetNext(psIterator->pvLarge);
+		if (pv)
+		{
+			psIterator->pvLarge = pv;
+			sResult.Set((SGeneralMemoryAllocation*)pv);
+			return sResult;
+		}
+		else
+		{
+			return sResult;
+		}
 	}
 }
 
