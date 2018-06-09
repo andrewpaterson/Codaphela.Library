@@ -32,6 +32,7 @@ public:
 
 	BOOL HasFile(void);
 	void SetIndex(int iFile, unsigned int uiIndex);
+	void SetIndex(CFileDataIndex* pcSource);
 };
 
 

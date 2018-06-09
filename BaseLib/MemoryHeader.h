@@ -44,8 +44,12 @@ struct SAlignedFreeListDesc : SFreeListDesc
 
 struct SMemoryIterator
 {
+	BOOL				bInFreeLists;
+
 	SFreeListIterator	sFreeListIterator;
 	CFreeList*			pcFreeList;
+
+	void*				pvLarge;
 };
 
 
