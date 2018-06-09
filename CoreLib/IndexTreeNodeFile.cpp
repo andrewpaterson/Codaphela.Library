@@ -562,6 +562,91 @@ BOOL CIndexTreeNodeFile::ValidateNodesEmpty(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeNodeFile::HasOnlyFileNodes(void)
+{
+	int						iNumNodes;
+	int						i;
+	CIndexTreeChildNode*	pcChild;
+
+	iNumNodes = GetNumIndexes();
+	for (i = 0; i < iNumNodes; i++)
+	{
+		pcChild = GetNode(i);
+		if (!(pcChild->IsFile() || pcChild->IsUnallocated()))
+		{
+			return FALSE;
+		}
+	}
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeNodeFile::HasFile(void)
+{
+	return mcFileIndex.HasFile();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeNodeFile::ConvertToFileNode(CIndexTreeNodeFile* pcNode)
+{
+	unsigned char			c;
+	CIndexTreeChildNode*	pcChild;
+
+	c = pcNode->GetIndexInParent();
+	pcChild = Get(c);
+	if (pcChild->IsMemory())
+	{
+		if (pcNode->HasFile())
+		{
+			if (pcNode->IsDirty() || pcNode->IsPathDirty())
+			{
+				gcLogger.Error2(__METHOD__, " Cannot convert to file node, node is dirty.", NULL);
+				return FALSE;
+			}
+			else if (pcNode->IsDelted())
+			{
+				gcLogger.Error2(__METHOD__, " Cannot convert to file node, node has been deleted.", NULL);
+				return FALSE;
+			}
+
+			pcChild->Init(pcNode->GetFileIndex());
+			return TRUE;
+		}
+		else
+		{
+			gcLogger.Error2(__METHOD__, " Cannot convert to file node, node has not been written.", NULL);
+			return FALSE;
+		}
+	}
+	else if (pcChild->IsFile())
+	{
+		return TRUE;
+	}
+	else if (pcChild->IsUnallocated())
+	{
+		gcLogger.Error2(__METHOD__, " Cannot convert to file node, node is not allocated.", NULL);
+		return FALSE;
+	}
+	else
+	{
+		gcLogger.Error2(__METHOD__, " Cannot convert to file node, node is corrupt.", NULL);
+		return FALSE;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CIndexTreeNodeFile::Print(CChars* psz, BOOL bHex)
 {
 	int						i;

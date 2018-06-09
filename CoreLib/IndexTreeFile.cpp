@@ -874,6 +874,24 @@ BOOL CIndexTreeFile::Remove(char* pszKey)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeFile::Evict(char* pszKey)
+{
+	int iKeySize;
+
+	if (StrEmpty(pszKey))
+	{
+		return FALSE;
+	}
+
+	iKeySize = strlen(pszKey);
+	return Evict(pszKey, iKeySize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeFile::Remove(void* pvKey, int iKeySize)
 {
 	CIndexTreeNodeFile*		pcCurrent;
@@ -1021,6 +1039,84 @@ BOOL CIndexTreeFile::RemoveWaitForFlush(CIndexTreeNodeFile* pcCurrent)
 	}
 
 	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeFile::Evict(void* pvKey, int iKeySize)
+{
+	CIndexTreeNodeFile*		pcCurrent;
+
+	if ((iKeySize == 0) || (pvKey == NULL))
+	{
+		return FALSE;
+	}
+
+	//Should be GetNodeOnlyIfInMemory or something.
+	pcCurrent = GetNode(pvKey, iKeySize);
+	if (pcCurrent == NULL)
+	{
+		return FALSE;
+	}
+
+	return Evict(pcCurrent);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeFile::Evict(CIndexTreeNodeFile* pcCurrent)
+{
+	CIndexTreeNodeFile*		pcParent;
+	CIndexTreeNodeFile*		pcNode;
+	BOOL					bOnlyFileNodes;
+	int						iCount;
+	BOOL					bResult;
+
+	pcNode = pcCurrent;
+
+	iCount = 0;
+	pcParent = (CIndexTreeNodeFile*)pcNode->GetParent();
+	for (;;)
+	{
+		bOnlyFileNodes = pcNode->HasOnlyFileNodes();
+		if (!bOnlyFileNodes)
+		{
+			return iCount != 0;
+		}
+
+		iCount++;
+		if (pcNode->IsDirty())
+		{
+			pcNode->SetDirtyNode(FALSE);
+			bResult = Write(pcNode);
+
+			if (!bResult)
+			{
+				return FALSE;
+			}
+		}
+
+		bResult = pcParent->ConvertToFileNode(pcNode);
+		Free(pcNode);
+
+		if (!bResult)
+		{
+			return FALSE;
+		}
+
+		pcNode = pcParent;
+		pcParent = (CIndexTreeNodeFile*)pcNode->GetParent();
+		if (!pcParent)
+		{
+			return TRUE;
+		}
+	}
 }
 
 

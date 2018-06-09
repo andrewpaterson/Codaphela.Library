@@ -50,6 +50,8 @@ public:
 	BOOL					Put(void* pvKey, int iKeySize, unsigned short uiDataSize);
 
 	BOOL					Remove(char* pszKey);
+	BOOL					Evict(void* pvKey, int iKeySize);
+	BOOL					Evict(char* pszKey);
 
 	BOOL					HasKey(char* pszKey);
 	int						FindKeySize(CIndexTreeNodeFile* pcNode);
@@ -110,6 +112,7 @@ protected:
 
 	BOOL					RemoveWriteThrough(CIndexTreeNodeFile* pcCurrent);
 	BOOL					RemoveWaitForFlush(CIndexTreeNodeFile* pcCurrent);
+	BOOL					Evict(CIndexTreeNodeFile* pcCurrent);
 
 	int						RecurseSize(CIndexTreeNodeFile* pcNode);
 	int						RecurseMemorySize(CIndexTreeNodeFile* pcNode);
