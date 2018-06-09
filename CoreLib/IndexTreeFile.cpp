@@ -44,7 +44,8 @@ BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, CMalloca
 		return gcLogger.Error2(__METHOD__, " DurableFileController must be begun before calling Init.", NULL);
 	}
 
-	CIndexTree::Init(pcMalloc, sizeof(CIndexTreeNodeFile), sizeof(CIndexTreeChildNode));
+	mcMalloc.Init(pcMalloc);
+	CIndexTree::Init(&mcMalloc, sizeof(CIndexTreeNodeFile), sizeof(CIndexTreeChildNode));
 
 	mpcRoot = NULL;
 	mbWriteThrough = bWriteThrough;
@@ -475,6 +476,39 @@ CIndexTreeNodeFile* CIndexTreeFile::ReadNode(CIndexTreeNodeFile* pcParent, unsig
 	}
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CIndexTreeNodeFile* CIndexTreeFile::ReadMemoryNode(CIndexTreeNodeFile* pcParent, unsigned char uiIndexInParent)
+{
+	CIndexTreeNodeFile*		pcCurrent;
+	CIndexTreeChildNode*	pcChild;
+
+	pcChild = pcParent->Get(uiIndexInParent);
+	if (pcChild)
+	{
+		if (pcChild->IsMemory())
+		{
+			pcCurrent = pcChild->u.mpcMemory;
+			return pcCurrent;
+		}
+		else if (pcChild->IsFile() || pcChild->IsUnallocated())
+		{
+			return NULL;
+		}
+		else
+		{
+			gcLogger.Error2(__METHOD__, " Child node [", IntToString((int)uiIndexInParent), "] is corrupt.  Type is [", pcChild->u.msType.iType, "].", NULL);
+			return NULL;
+		}
+	}
+	else
+	{
+		return NULL;
+	}
+}
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -1071,9 +1105,39 @@ void CIndexTreeFile::ClearNodesFlags(CArrayVoidPtr* papNodes, unsigned char uiFl
 //
 //
 //////////////////////////////////////////////////////////////////////////
+size_t CIndexTreeFile::GetUserMemorySize(void)
+{
+	return mcMalloc.AllocatedUserSize();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size_t CIndexTreeFile::GetSystemMemorySize(void)
+{
+	return mcMalloc.AllocatedSystemSize();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 int CIndexTreeFile::NumElements(void)
 {
 	return RecurseSize();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CIndexTreeFile::NumMemoryElements(void)
+{
+	return RecurseMemorySize(mpcRoot);
 }
 
 
@@ -1546,6 +1610,36 @@ int CIndexTreeFile::RecurseSize(CIndexTreeNodeFile* pcNode)
 		{
 			pcChild = ReadNode(pcNode, i);
 			count += RecurseSize(pcChild);
+		}
+	}
+	return count;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CIndexTreeFile::RecurseMemorySize(CIndexTreeNodeFile* pcNode)
+{
+	int						i;
+	CIndexTreeNodeFile*		pcChild;
+	int						iLastIndex;
+
+	int count = 0;
+
+	if (pcNode != NULL)
+	{
+		if (pcNode->HasObject() && !pcNode->IsDelted())
+		{
+			count++;
+		}
+
+		iLastIndex = pcNode->GetLastIndex();
+		for (i = pcNode->GetFirstIndex(); i <= iLastIndex; i++)
+		{
+			pcChild = ReadMemoryNode(pcNode, i);
+			count += RecurseMemorySize(pcChild);
 		}
 	}
 	return count;
@@ -2169,6 +2263,55 @@ int CIndexTreeFile::RecurseNumNodes(CIndexTreeRecursor* pcCursor)
 				pcChild = ReadNode(pcNode, i);
 				pcCursor->Push(pcChild, i);
 				iCount += RecurseNumNodes(pcCursor);
+			}
+		}
+	}
+	pcCursor->Pop();
+	return iCount;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CIndexTreeFile::NumMemoryNodes(void)
+{
+	CIndexTreeRecursor	cCursor;
+	BOOL				bResult;
+
+	cCursor.Init(mpcRoot);
+	bResult = RecurseNumMemoryNodes(&cCursor);
+	cCursor.Kill();
+
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CIndexTreeFile::RecurseNumMemoryNodes(CIndexTreeRecursor* pcCursor)
+{
+	CIndexTreeNodeFile*		pcNode;
+	int						i;
+	CIndexTreeNodeFile*		pcChild;
+	int						iCount;
+
+	iCount = 0;
+	pcNode = (CIndexTreeNodeFile*)pcCursor->GetNode();
+	if (pcNode != NULL)
+	{
+		iCount++;
+
+		if (pcNode->HasNodes())
+		{
+			for (i = pcNode->GetFirstIndex(); i <= pcNode->GetLastIndex(); i++)
+			{
+				pcChild = ReadMemoryNode(pcNode, i);
+				pcCursor->Push(pcChild, i);
+				iCount += RecurseNumMemoryNodes(pcCursor);
 			}
 		}
 	}

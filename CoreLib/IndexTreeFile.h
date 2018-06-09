@@ -4,6 +4,7 @@
 #include "BaseLib/IndexTree.h"
 #include "BaseLib/IndexTreeRecursor.h"
 #include "BaseLib/ListCharsMinimal.h"
+#include "BaseLib/CountingAllocator.h"
 #include "DurableFileController.h"
 #include "IndexTreeNodeFile.h"
 #include "IndexTreeFileDebug.h"
@@ -25,6 +26,7 @@ protected:
 	CDurableFileController*		mpcDurableFileControl;
 	BOOL						mbWriteThrough;
 	CDurableFile				mcRootIndex;
+	CCountingAllocator			mcMalloc;
 
 public:
 	BOOL					Init(CDurableFileController* pcDurableFileControl);
@@ -63,6 +65,8 @@ public:
 	size_t					ByteSize(void);
 	void					FindWithFlags(CArrayVoidPtr* papNodes, unsigned char uiFollowFlags, unsigned char uiAddFlags);
 	void					ClearNodesFlags(CArrayVoidPtr* papNodes, unsigned char uiFlags);
+	size_t					GetUserMemorySize(void);
+	size_t					GetSystemMemorySize(void);
 
 	CListTemplateMinimal<char>*	FindKeys(CArrayVoidPtr* apvNodes);
 	CListCharsMinimal*		FindStringKeys(CArrayVoidPtr* apvNodes);
@@ -75,6 +79,8 @@ public:
 
 	CIndexedFiles*			GetIndexFiles(void);
 	int						NumNodes(void);
+	int						NumMemoryNodes(void);
+	int						NumMemoryElements(void);
 	void					DebugKey(void* pvKey, int iKeySize);
 
 protected:
@@ -83,6 +89,8 @@ protected:
 
 	CIndexTreeNodeFile*		ReadNode(CIndexTreeNodeFile* pcParent, unsigned char c);
 	BOOL					Read(CIndexTreeChildNode* pcChildNode, CIndexTreeNodeFile* pcFileNodeParent, unsigned char uiIndexInParent);
+	CIndexTreeNodeFile*		ReadMemoryNode(CIndexTreeNodeFile* pcParent, unsigned char c);
+
 
 	CIndexTreeNodeFile*		AllocateRoot(void);
 	CIndexTreeNodeFile*		AllocateRoot(CFileDataIndex cFileIndex);
@@ -104,12 +112,14 @@ protected:
 	BOOL					RemoveWaitForFlush(CIndexTreeNodeFile* pcCurrent);
 
 	int						RecurseSize(CIndexTreeNodeFile* pcNode);
+	int						RecurseMemorySize(CIndexTreeNodeFile* pcNode);
 	int						RecurseCountAllocatedNodes(CIndexTreeNodeFile* pcNode);
 	int						CountListSize(void);
 	int						RecurseCountListSize(CIndexTreeNodeFile* pcNode);
 	size_t					RecurseByteSize(CIndexTreeNodeFile* pcNode);
 	void					RecurseFindWithFlags(CIndexTreeRecursor* pcCursor, unsigned char uiFollowFlags, unsigned char uiAddFlags, CArrayVoidPtr* papNodes);
 	int						RecurseNumNodes(CIndexTreeRecursor* pcCursor);
+	int						RecurseNumMemoryNodes(CIndexTreeRecursor* pcCursor);
 
 	BOOL					ValidateLimits(void);
 	BOOL					RecurseValidateLimits(CIndexTreeRecursor* pcCursor);
