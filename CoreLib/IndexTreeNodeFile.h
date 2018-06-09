@@ -48,6 +48,10 @@ public:
 	int						CalculateBufferSize(void);
 	int						WriteToBuffer(void* pvBuffer, int iBufferSize);
 
+	BOOL					HasFile(void);
+	BOOL					HasOnlyFileNodes(void);
+	BOOL					ConvertToFileNode(CIndexTreeNodeFile* pcNode);
+
 	BOOL					ValidateNodesEmpty(void);
 	void					Print(CChars* psz, BOOL bHex);
 	void					Dump(void);
