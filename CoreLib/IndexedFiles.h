@@ -54,6 +54,7 @@ public:
 	CIndexedFile* 	GetFile(int iDataSize, int iFileNum);
 	CIndexedFile* 	GetFile(int iFileIndex);
 	int				GetUniqueFileNumber(int iDataSize);
+	void			GetFiles(CArrayIndexedFilePtr* pac);
 
 	int64			NumData(void);
 	int64			NumData(int iDataSize);

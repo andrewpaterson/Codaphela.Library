@@ -26,6 +26,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "BaseLib/ChunkFile.h"
 #include "BaseLib/Chars.h"
 #include "BaseLib/ArrayTemplate.h"
+#include "BaseLib/ArrayBit.h"
 #include "BaseLib/ListTemplate.h"
 #include "DurableFile.h"
 #include "DurableFileController.h"
@@ -69,6 +70,8 @@ public:
 	char*			GetFileName(void);
 	char*			GetRewriteName(void);
 	int				GetDataSize(void);
+	filePos			NumDatas(void);
+	int				GetUsedDataIndices(CArrayBit* pab);
 
 	void			Dump(void);
 
@@ -78,6 +81,7 @@ protected:
 
 
 typedef CListTemplate<CIndexedFile> CListIndexedFile;
+typedef CArrayTemplate<CIndexedFile*> CArrayIndexedFilePtr;
 
 
 #endif // __INDEXED_FILE_H__

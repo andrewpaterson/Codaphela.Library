@@ -343,8 +343,50 @@ void CIndexedFile::Dump(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+int CIndexedFile::GetUsedDataIndices(CArrayBit* pab)
+{
+	CStackMemory<>	cCompare;
+	CStackMemory<>	cData;
+	void*			pvCompare;
+	int				i;
+	void*			pv;
+	BOOL			bUsed;
+	int				iUsed;
+
+	pvCompare = cCompare.Init(miDataSize);
+	memset(pvCompare, INDEX_FILE_EMPTY_CHAR, miDataSize);
+
+	iUsed = 0;
+	pv = cData.Init(miDataSize);
+	for (i = 0; i < miNumDatas; i++)
+	{
+		if (!Read(i, pv))
+		{
+			return -1;
+		}
+
+		bUsed = memcmp(pv, pvCompare, miDataSize) != 0;
+		pab->Add(bUsed);
+
+		if (bUsed)
+		{
+			iUsed++;
+		}
+	}
+	cData.Kill();
+	cCompare.Kill();
+
+	return iUsed;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 int CIndexedFile::GetFileIndex(void) { return miFileIndex; }
 BOOL CIndexedFile::IsFileIndex(int iFileIndex) { return miFileIndex == iFileIndex; }
 char* CIndexedFile::GetFileName(void) { return mcFile.GetFileName(); }
 char* CIndexedFile::GetRewriteName(void) { return mcFile.GetRewriteName(); }
 int CIndexedFile::GetDataSize(void) { return miDataSize; }
+filePos CIndexedFile::NumDatas(void) { return miNumDatas; }

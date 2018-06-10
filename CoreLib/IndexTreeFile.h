@@ -115,7 +115,7 @@ protected:
 	BOOL					RemoveWriteThrough(CIndexTreeNodeFile* pcCurrent);
 	BOOL					RemoveWaitForFlush(CIndexTreeNodeFile* pcCurrent);
 	BOOL					Evict(CIndexTreeNodeFile* pcCurrent);
-	BOOL					Flush(CIndexTreeNodeFile* pcCurrent);
+	BOOL					Flush(CIndexTreeNodeFile** ppcCurrent);
 	BOOL					CanFlush(CIndexTreeNodeFile* pcNode);
 
 	int						RecurseSize(CIndexTreeNodeFile* pcNode);
@@ -167,6 +167,8 @@ public:
 
 	CIndexTreeNodeFile*		SetParentWithExisting(CIndexTreeNodeFile* pcParent, unsigned char c, unsigned char uiFirstIndex, unsigned char uiLastIndex, unsigned char uiDataSize);
 	CIndexTreeNodeFile*		SetParentWithExisting(CIndexTreeNodeFile* pcParent, unsigned char c, unsigned char uiDataSize);
+
+	void					GetFiles(CArrayIndexedFilePtr* pac);
 };
 
 
