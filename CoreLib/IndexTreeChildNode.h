@@ -9,22 +9,15 @@
 #define INDEX_TREE_FILE_NODE_FILE			0x02020202
 
 
-struct SIndexTreeChildFile
-{
-	char	acUnused[8];
-	int		iType;
-};
-
-
 class CIndexTreeNodeFile;
 class CIndexTreeChildNode
 {
 public:
+	int		iType;
 	union
 	{
 		CFileDataIndex				mcFile;
 		CIndexTreeNodeFile*			mpcMemory;
-		SIndexTreeChildFile			msType;
 	} u;
 
 	void	Init(CFileDataIndex cFile);

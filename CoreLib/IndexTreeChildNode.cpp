@@ -8,7 +8,7 @@
 void CIndexTreeChildNode::Init(CFileDataIndex cFile)
 {
 	u.mcFile.Init(cFile.miFile, cFile.muiIndex);
-	u.msType.iType = INDEX_TREE_FILE_NODE_FILE;
+	iType = INDEX_TREE_FILE_NODE_FILE;
 }
 
 
@@ -19,7 +19,7 @@ void CIndexTreeChildNode::Init(CFileDataIndex cFile)
 void CIndexTreeChildNode::Init(CFileDataIndex* pcFile)
 {
 	u.mcFile.Init(pcFile->miFile, pcFile->muiIndex);
-	u.msType.iType = INDEX_TREE_FILE_NODE_FILE;
+	iType = INDEX_TREE_FILE_NODE_FILE;
 }
 
 
@@ -30,7 +30,7 @@ void CIndexTreeChildNode::Init(CFileDataIndex* pcFile)
 void CIndexTreeChildNode::Init(int iFile, unsigned int uiIndex)
 {
 	u.mcFile.Init(iFile, uiIndex);
-	u.msType.iType = INDEX_TREE_FILE_NODE_FILE;
+	iType = INDEX_TREE_FILE_NODE_FILE;
 }
 
 
@@ -41,7 +41,7 @@ void CIndexTreeChildNode::Init(int iFile, unsigned int uiIndex)
 void CIndexTreeChildNode::Init(CIndexTreeNodeFile* pcMemory)
 {
 	u.mpcMemory = pcMemory;
-	u.msType.iType = INDEX_TREE_FILE_NODE_MEMORY;
+	iType = INDEX_TREE_FILE_NODE_MEMORY;
 }
 
 
@@ -61,7 +61,7 @@ void CIndexTreeChildNode::Clear(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeChildNode::IsValid(void)
 {
-	return (u.msType.iType == INDEX_TREE_FILE_NODE_MEMORY) || (u.msType.iType == INDEX_TREE_FILE_NODE_FILE);
+	return (iType == INDEX_TREE_FILE_NODE_MEMORY) || (iType == INDEX_TREE_FILE_NODE_FILE);
 }
 
 
@@ -71,7 +71,7 @@ BOOL CIndexTreeChildNode::IsValid(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeChildNode::IsMemory(void)
 {
-	return (u.msType.iType == INDEX_TREE_FILE_NODE_MEMORY);
+	return (iType == INDEX_TREE_FILE_NODE_MEMORY);
 }
 
 
@@ -81,7 +81,7 @@ BOOL CIndexTreeChildNode::IsMemory(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeChildNode::IsUnallocated(void)
 {
-	return (u.msType.iType == INDEX_TREE_FILE_NODE_UNALLOCATED);
+	return (iType == INDEX_TREE_FILE_NODE_UNALLOCATED);
 }
 
 
@@ -91,6 +91,6 @@ BOOL CIndexTreeChildNode::IsUnallocated(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeChildNode::IsFile(void)
 {
-	return (u.msType.iType == INDEX_TREE_FILE_NODE_FILE);
+	return (iType == INDEX_TREE_FILE_NODE_FILE);
 }
 
