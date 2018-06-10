@@ -371,6 +371,25 @@ int CIndexedFiles::GetUniqueFileNumber(int iDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CIndexedFiles::GetFiles(CArrayIndexedFilePtr* papc)
+{
+	//This method is used for testing only.
+
+	int				i;
+	CIndexedFile*	pcIndexedFile;
+
+	for (i = 0; i < mcFiles.NumElements(); i++)
+	{
+		pcIndexedFile = mcFiles.Get(i);
+		papc->Add(&pcIndexedFile);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 int64 CIndexedFiles::NumData(void)
 {
 	int				i;

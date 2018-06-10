@@ -4,7 +4,7 @@
 #include "Numbers.h"
 
 
-template<int I = 8 KB>
+template<int I = 4 KB>
 class CStackMemory
 {
 private:
