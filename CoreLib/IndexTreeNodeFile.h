@@ -50,6 +50,7 @@ public:
 
 	BOOL					HasFile(void);
 	BOOL					HasOnlyFileNodes(void);
+	BOOL					HasNodesWithFlags(unsigned char uiFlags);
 	BOOL					ConvertToFileNode(CIndexTreeNodeFile* pcNode);
 
 	BOOL					ValidateNodesEmpty(void);

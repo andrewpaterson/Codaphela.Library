@@ -205,7 +205,6 @@ BOOL CIndexTreeAccess::GetStringData(char* pszKey, void* pvObject, int* piDataSi
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -232,6 +231,16 @@ BOOL CIndexTreeAccess::GetStringString(char* pszKey, char* pszDest)
 	{
 		return TRUE;
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeAccess::ContainsString(char* pszKey)
+{
+	return GetStringData(pszKey, NULL, NULL);
 }
 
 

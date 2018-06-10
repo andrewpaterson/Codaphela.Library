@@ -27,9 +27,10 @@ public:
 			BOOL	GetStringData(char* pszKey, void* pvObject, int* piDataSize);
 			BOOL	GetStringString(char* pszKey, char* pszDest);
 
+			BOOL	ContainsString(char* pszKey);
+
 			BOOL	DeleteLong(int64 lliKey);
 			BOOL	DeleteString(char* pszKey);
-
 
 protected:
 	virtual BOOL	Put(void* pvKey, int iKeySize, void* pvObject, unsigned char uiDataSize) =0;
