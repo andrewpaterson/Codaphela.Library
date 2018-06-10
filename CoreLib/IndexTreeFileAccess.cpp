@@ -30,7 +30,14 @@ BOOL CIndexTreeFileAccess::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeFileAccess::Flush(void)
 {
-	return mpcTree->Flush();
+	if (!mpcTree->IsWriteThrough())
+	{
+		return mpcTree->Flush();
+	}
+	else
+	{
+		return TRUE;
+	}
 }
 
 

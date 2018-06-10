@@ -69,6 +69,7 @@ public:
 	void					ClearNodesFlags(CArrayVoidPtr* papNodes, unsigned char uiFlags);
 	size_t					GetUserMemorySize(void);
 	size_t					GetSystemMemorySize(void);
+	BOOL					IsWriteThrough(void);
 
 	CListTemplateMinimal<char>*	FindKeys(CArrayVoidPtr* apvNodes);
 	CListCharsMinimal*		FindStringKeys(CArrayVoidPtr* apvNodes);
@@ -107,12 +108,15 @@ protected:
 	CIndexTreeNodeFile*		ReallocateNodeForUncontainIndex(CIndexTreeNodeFile* pcParent, unsigned char c, size_t tOldNodeSize);
 	void					RemapChildParents(CIndexTreeNodeFile* pcOldNode, CIndexTreeNodeFile* pcNode);
 
+	CIndexTreeNodeFile*		GetMemoryNode(void* pvKey, int iKeySize);
 	CIndexTreeNodeFile*		GetChildNodeOrAllocate(CIndexTreeNodeFile* pcParent, unsigned char uiIndexInParent);
 	CIndexTreeNodeFile*		SetNodeObject(CIndexTreeNodeFile* pcCurrent, void* pvObject, unsigned short uiDataSize);
 
 	BOOL					RemoveWriteThrough(CIndexTreeNodeFile* pcCurrent);
 	BOOL					RemoveWaitForFlush(CIndexTreeNodeFile* pcCurrent);
 	BOOL					Evict(CIndexTreeNodeFile* pcCurrent);
+	BOOL					Flush(CIndexTreeNodeFile* pcCurrent);
+	BOOL					CanFlush(CIndexTreeNodeFile* pcNode);
 
 	int						RecurseSize(CIndexTreeNodeFile* pcNode);
 	int						RecurseMemorySize(CIndexTreeNodeFile* pcNode);
@@ -128,8 +132,8 @@ protected:
 	BOOL					RecurseValidateLimits(CIndexTreeRecursor* pcCursor);
 	BOOL					ValidateParentIndex(void);
 	BOOL					RecurseValidateParentIndex(CIndexTreeRecursor* pcCursor);
-	BOOL					ValidateNoFlushFlags(void);
-	BOOL					RecurseValidateNoFlushFlags(CIndexTreeRecursor* pcCursor);
+	BOOL					ValidateTransientFlags(void);
+	BOOL					RecurseValidateTransientFlags(CIndexTreeRecursor* pcCursor);
 	BOOL					ValidateMagic(void);
 	BOOL					RecurseValidateMagic(CIndexTreeRecursor* pcCursor);
 	BOOL					ValidateFileIndexes(void);
@@ -143,6 +147,7 @@ protected:
 	BOOL					FlushRemoved(void);
 	BOOL					FlushDirty(void);
 	BOOL					RecurseFlushDirty(CIndexTreeRecursor* pcCursor);
+	BOOL					WriteBackPath(CIndexTreeNodeFile* pcNode);
 
 	CFileDataIndex			ReadRootFileIndex(void);
 	BOOL					WriteRootFileIndex(CFileDataIndex* pcRootIndex);

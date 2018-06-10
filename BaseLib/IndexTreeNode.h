@@ -16,7 +16,8 @@
 #define	INDEX_TREE_NODE_FLAG_DELETED_PATH	0x10
 #define	INDEX_TREE_NODE_FLAG_DIRTY_PATH		0x20
 
-#define INDEX_TREE_NODE_TRANSIENT_MASK		(~((unsigned char)(INDEX_TREE_NODE_FLAG_DIRTY_PATH | INDEX_TREE_NODE_FLAG_DELETED_PATH | INDEX_TREE_NODE_FLAG_DELETED_NODE | INDEX_TREE_NODE_FLAG_DIRTY_NODE)))
+#define INDEX_TREE_NODE_TRANSIENT_FLAGS			((unsigned char)(INDEX_TREE_NODE_FLAG_DIRTY_PATH | INDEX_TREE_NODE_FLAG_DELETED_PATH | INDEX_TREE_NODE_FLAG_DELETED_NODE | INDEX_TREE_NODE_FLAG_DIRTY_NODE))
+#define INDEX_TREE_NODE_TRANSIENT_FLAGS_MASK		(~INDEX_TREE_NODE_TRANSIENT_FLAGS)
 
 #define INDEX_TREE_NODE_MAGIC	0x5A37
 
@@ -55,6 +56,8 @@ public:
 
 	CIndexTreeNode*	GetParent(void);
 	unsigned char	GetIndexInParent(void);
+	unsigned char	GetFlags(void);
+	unsigned char	GetTransientFlags(void);
 
 	int				GetNumIndexes(void);
 	int				GetNumIndexes(unsigned char uiFirstIndex, unsigned char uiLastIndex);
@@ -63,8 +66,10 @@ public:
 	BOOL			IsEmpty(void);
 	BOOL			IsDirty(void);
 	BOOL			IsPathDirty(void);
-	BOOL			IsDelted(void);
+	BOOL			IsDeleted(void);
+	BOOL			IsPathDeleted(void);
 	BOOL			IsMagic(void);
+
 	BOOL			HasFlags(unsigned char sFlags);
 	void			ClearFlags(unsigned char sFlags);
 	unsigned char	GetFirstIndex(void);

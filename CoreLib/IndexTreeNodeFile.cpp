@@ -425,7 +425,7 @@ int CIndexTreeNodeFile::WriteToBuffer(void* pvBuffer, int iBufferSize)
 	pucMemory[iPos] = muiFirstIndex;  iPos += sizeof(unsigned char);
 	pucMemory[iPos] = muiLastIndex;  iPos += sizeof(unsigned char);
 	pucMemory[iPos] = muiIndexInParent;  iPos += sizeof(unsigned char);
-	pucMemory[iPos] = msFlags & INDEX_TREE_NODE_TRANSIENT_MASK;  iPos += sizeof(unsigned char);
+	pucMemory[iPos] = msFlags & INDEX_TREE_NODE_TRANSIENT_FLAGS_MASK;  iPos += sizeof(unsigned char);
 
 	if (HasObject())
 	{
@@ -585,6 +585,32 @@ BOOL CIndexTreeNodeFile::HasOnlyFileNodes(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeNodeFile::HasNodesWithFlags(unsigned char uiFlags)
+{
+	int						iNumNodes;
+	int						i;
+	CIndexTreeChildNode*	pcChild;
+
+	iNumNodes = GetNumIndexes();
+	for (i = 0; i < iNumNodes; i++)
+	{
+		pcChild = GetNode(i);
+		if (pcChild->IsMemory())
+		{
+			if (pcChild->u.mpcMemory->HasFlags(uiFlags))
+			{
+				return TRUE;
+			}
+		}
+	}
+	return FALSE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeNodeFile::HasFile(void)
 {
 	return mcFileIndex.HasFile();
@@ -606,14 +632,14 @@ BOOL CIndexTreeNodeFile::ConvertToFileNode(CIndexTreeNodeFile* pcNode)
 	{
 		if (pcNode->HasFile())
 		{
-			if (pcNode->IsDirty() || pcNode->IsPathDirty())
+			if (pcNode->IsDirty())
 			{
-				gcLogger.Error2(__METHOD__, " Cannot convert to file node, node is dirty.", NULL);
+				gcLogger.Error2(__METHOD__, " Cannot convert memory node to file node, node is dirty.", NULL);
 				return FALSE;
 			}
-			else if (pcNode->IsDelted())
+			else if (pcNode->IsDeleted())
 			{
-				gcLogger.Error2(__METHOD__, " Cannot convert to file node, node has been deleted.", NULL);
+				gcLogger.Error2(__METHOD__, " Cannot convert memory node to file node, node is deleted.", NULL);
 				return FALSE;
 			}
 
@@ -622,7 +648,7 @@ BOOL CIndexTreeNodeFile::ConvertToFileNode(CIndexTreeNodeFile* pcNode)
 		}
 		else
 		{
-			gcLogger.Error2(__METHOD__, " Cannot convert to file node, node has not been written.", NULL);
+			gcLogger.Error2(__METHOD__, " Cannot convert memory node to file node, node has not been written.", NULL);
 			return FALSE;
 		}
 	}
@@ -632,7 +658,7 @@ BOOL CIndexTreeNodeFile::ConvertToFileNode(CIndexTreeNodeFile* pcNode)
 	}
 	else if (pcChild->IsUnallocated())
 	{
-		gcLogger.Error2(__METHOD__, " Cannot convert to file node, node is not allocated.", NULL);
+		gcLogger.Error2(__METHOD__, " Cannot convert memory node to file node, node is not allocated.", NULL);
 		return FALSE;
 	}
 	else
