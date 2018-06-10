@@ -494,7 +494,7 @@ CIndexTreeNodeFile* CIndexTreeFile::ReadNode(CIndexTreeNodeFile* pcParent, unsig
 		}
 		else
 		{
-			gcLogger.Error2(__METHOD__, " Child node [", IntToString((int)uiIndexInParent), "] is corrupt.  Type is [", pcChild->u.msType.iType, "].", NULL);
+			gcLogger.Error2(__METHOD__, " Child node [", IntToString((int)uiIndexInParent), "] is corrupt.  Type is [", pcChild->iType, "].", NULL);
 			return NULL;
 		}
 	}
@@ -529,7 +529,7 @@ CIndexTreeNodeFile* CIndexTreeFile::ReadMemoryNode(CIndexTreeNodeFile* pcParent,
 		}
 		else
 		{
-			gcLogger.Error2(__METHOD__, " Child node [", IntToString((int)uiIndexInParent), "] is corrupt.  Type is [", pcChild->u.msType.iType, "].", NULL);
+			gcLogger.Error2(__METHOD__, " Child node [", IntToString((int)uiIndexInParent), "] is corrupt.  Type is [", pcChild->iType, "].", NULL);
 			return NULL;
 		}
 	}
@@ -2815,7 +2815,7 @@ CIndexTreeNodeFile* CIndexTreeFile::DebugNode(CIndexTreeNodeFile* pcParent, int 
 		}
 		else
 		{
-			gcLogger.Error2(__METHOD__, " Child node [", IntToString((int)uiIndexInParent), "] is corrupt.  Type is [", pcChild->u.msType.iType, "].", NULL);
+			gcLogger.Error2(__METHOD__, " Child node [", IntToString((int)uiIndexInParent), "] is corrupt.  Type is [", pcChild->iType, "].", NULL);
 			return NULL;
 		}
 	}
