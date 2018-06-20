@@ -2730,7 +2730,6 @@ BOOL CIndexTreeFile::ValidateKey(void* pvKey, int iKeySize)
 
 	szMemory.Init();
 	szFile.Init();
-	DebugNodeChildren(pcCurrent, -1, &szMemory, &szFile);
 	if (!szMemory.Equals(szFile))
 	{
 		szKey.Init();
@@ -2749,7 +2748,6 @@ BOOL CIndexTreeFile::ValidateKey(void* pvKey, int iKeySize)
 		{
 			szMemory.Init();
 			szFile.Init();
-			DebugNodeChildren(pcCurrent, c, &szMemory, &szFile);
 			if (!szMemory.Equals(szFile))
 			{
 				szKey.Init();
@@ -2773,7 +2771,7 @@ BOOL CIndexTreeFile::ValidateKey(void* pvKey, int iKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeFile::DebugKey(void* pvKey, int iKeySize)
+void CIndexTreeFile::DebugKey(void* pvKey, int iKeySize, BOOL bSkipRoot)
 {
 	CIndexTreeNodeFile*		pcCurrent;
 	unsigned char			c;
@@ -2781,7 +2779,12 @@ void CIndexTreeFile::DebugKey(void* pvKey, int iKeySize)
 	SIndexTreeDebugNode		sDebugNode;
 
 	pcCurrent = mpcRoot;
-	DebugNodeChildren(pcCurrent, -1);
+
+	if (!bSkipRoot)
+	{
+		DebugNodeChildren(pcCurrent, -1);
+	}
+
 	for (i = 0; i < iKeySize; i++)
 	{
 		c = ((unsigned char*)pvKey)[i];
@@ -2918,43 +2921,59 @@ void AppendIndexTreeFileNodeDescrition(CChars* psz, int uIndexFromParent)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeFile::DebugNodeChildren(CIndexTreeNodeFile* pcCurrent, int uIndexFromParent, CChars* pszMemory, CChars* pszFile)
-{
-	AppendIndexTreeFileNodeDescrition(pszMemory, uIndexFromParent);
-	PrintChildFileIndexes(pcCurrent, pszMemory);
-
-	if (pcCurrent->GetFileIndex()->HasFile())
-	{
-		AppendIndexTreeFileNodeDescrition(pszFile, uIndexFromParent);
-		PrintNodeFileIndexes(pcCurrent, pszFile);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CIndexTreeFile::DebugNodeChildren(CIndexTreeNodeFile* pcCurrent, int uIndexFromParent)
 {
+	CChars	szFile;
+	CChars	szMemory;
 	CChars	sz;
 
-	sz.Init();
-	sz.Append("Memory: ");
-	AppendIndexTreeFileNodeDescrition(&sz, uIndexFromParent);
-	PrintChildFileIndexes(pcCurrent, &sz);
-	sz.AppendNewLine();
+	szMemory.Init();
+	AppendIndexTreeFileNodeDescrition(&szMemory, uIndexFromParent);
+	PrintChildFileIndexes(pcCurrent, &szMemory);
 
 	if (pcCurrent->GetFileIndex()->HasFile())
 	{
-		sz.Append("  File: ");
-		AppendIndexTreeFileNodeDescrition(&sz, uIndexFromParent);
-		PrintNodeFileIndexes(pcCurrent, &sz);
+		szFile.Init();
+		AppendIndexTreeFileNodeDescrition(&szFile, uIndexFromParent);
+		PrintNodeFileIndexes(pcCurrent, &szFile);
+
+		if (szMemory.Equals(szFile))
+		{
+			sz.Init();
+			sz.Append("   Both: ");
+			sz.Append(szMemory);
+			sz.AppendNewLine();
+			sz.Dump();
+			sz.Kill();
+		}
+		else
+		{
+			sz.Init();
+			sz.Append("+Memory: ");
+			sz.Append(szMemory);
+			sz.AppendNewLine();
+
+			sz.Append("-  File: ");
+			sz.Append(szFile);
+			sz.AppendNewLine();
+
+			sz.Dump();
+			sz.Kill();
+		}
+
+		szFile.Kill();
+	}
+	else
+	{
+		sz.Init();
+		sz.Append(" Memory: ");
+		sz.Append(szMemory);
 		sz.AppendNewLine();
+		sz.Dump();
+		sz.Kill();
 	}
 
-	sz.Dump();
-	sz.Kill();
+	szMemory.Kill();
 }
 
 
@@ -3066,9 +3085,20 @@ void CIndexTreeFile::PrintNodeFileIndexes(CIndexTreeNodeFile* pcCurrent, CChars*
 void CIndexTreeFile::Dump(void)
 {
 	CIndexTreeRecursor	cCursor;
+	CChars				sz;
 
 	cCursor.Init(mpcRoot);
+
+	sz.Init();
+	sz.Append("= [IndexTreeFile] ");
+	sz.Append('=', mpcRoot->GetNumIndexes() * 2);
+	sz.AppendNewLine();
+	sz.Dump();
+	sz.Kill();
+
+	DebugNodeChildren(mpcRoot, -1);
 	RecurseDump(&cCursor);
+
 	cCursor.Kill();
 }
 
@@ -3101,7 +3131,8 @@ void CIndexTreeFile::RecurseDump(CIndexTreeRecursor* pcCursor)
 			szKey.Append("] -------------\n");
 			szKey.Dump();
 			szKey.Kill();
-			DebugKey(pvKey, iKeySize);
+
+			DebugKey(pvKey, iKeySize, TRUE);
 			cStack.Kill();
 		}
 
