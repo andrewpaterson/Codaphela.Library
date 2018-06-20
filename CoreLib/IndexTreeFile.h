@@ -70,6 +70,8 @@ public:
 	size_t					GetUserMemorySize(void);
 	size_t					GetSystemMemorySize(void);
 	BOOL					IsWriteThrough(void);
+	int						GetNodeKeySize(CIndexTreeNodeFile* pcNode);
+	BOOL					GetNodeKey(CIndexTreeNodeFile* pcNode, unsigned char* pvDestKey, int iDestSize);
 
 	CListTemplateMinimal<char>*	FindKeys(CArrayVoidPtr* apvNodes);
 	CListCharsMinimal*		FindStringKeys(CArrayVoidPtr* apvNodes);
@@ -85,6 +87,7 @@ public:
 	int						NumMemoryNodes(void);
 	int						NumMemoryElements(void);
 	void					DebugKey(void* pvKey, int iKeySize);
+	void					Dump(void);
 
 protected:
 	BOOL					InitRoot(void);
@@ -160,6 +163,8 @@ protected:
 	void					ReadDebugNode(SIndexTreeDebugNode* psDebugNode, int iFile, unsigned int uiIndex);
 	void					PrintChildFileIndexes(CIndexTreeNodeFile* pcCurrent, CChars* psz);
 	void					PrintNodeFileIndexes(CIndexTreeNodeFile* pcCurrent, CChars* psz);
+
+	void					RecurseDump(CIndexTreeRecursor* pcCursor);
 
 public:
 	BOOL					Write(CIndexTreeNodeFile* pcNode);
