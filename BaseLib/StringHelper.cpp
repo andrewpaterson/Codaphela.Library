@@ -599,3 +599,27 @@ int StrPrintable(const char* szString)
 	return iPrintable;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int StrPrintable(const char* szString, int iLength)
+{
+	int				i;
+	unsigned char	c;
+	int				iPrintable;
+
+	iPrintable = 0;
+	for (i = 0; i < iLength; i++)
+	{
+		c = szString[i];
+		if ((c >= 32) && (c <= 126))
+		{
+			iPrintable++;
+		}
+	}
+
+	return iPrintable;
+}
+

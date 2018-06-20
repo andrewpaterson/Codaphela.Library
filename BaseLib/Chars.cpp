@@ -254,6 +254,19 @@ void CChars::InitList(CChars* szFirst, ...)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL CChars::InitData2(const char* szData, int iDataLength)
+{
+	mcText.Init();
+	Set("");
+
+	return AppendData2(szData, iDataLength);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CChars::Kill(void)
 {
 	mcText.Kill();
@@ -2086,13 +2099,7 @@ void CChars::AppendData(const char* szData, int iDataLength, int iMaxLength)
 			}
 			bLastReadable = FALSE;
 		}
-		else if ((c < 32) || (c > 126))
-		{
-			bLastReadable = FALSE;
-			Append(" 0x");
-			AppendHexHiLo(&c, 1);
-		}
-		else
+		else if ((c >= 32) && (c <= 126))
 		{
 			if (!bLastReadable)
 			{
@@ -2101,12 +2108,65 @@ void CChars::AppendData(const char* szData, int iDataLength, int iMaxLength)
 			bLastReadable = TRUE;
 			Append((char)c);
 		}
+		else
+		{
+			bLastReadable = FALSE;
+			Append(" 0x");
+			AppendHexHiLo(&c, 1);
+		}
 	}
 
 	if (iDataLength > iMaxLength)
 	{
 		Append("...");
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CChars::AppendData2(const char* szData, int iDataLength)
+{
+	int				i;
+	int				iPrintable;
+	unsigned char	c;
+	float			fPrintable;
+	CChars			sz;
+
+	iPrintable = StrPrintable(szData, iDataLength);
+	fPrintable = (float)iPrintable / (float)iDataLength;
+
+	if (fPrintable >= 0.9f)
+	{
+		Append(szData, iDataLength);
+		return FALSE;
+	}
+	else
+	{
+		Append("0x");
+
+		sz.Init();
+
+		for (i = 0; i < iDataLength; i++)
+		{
+			c = szData[i];
+
+			sz.Clear();
+			sz.Append((int)c, 16);
+			sz.RightAlign('0', 2);
+
+			Append(sz);
+			if (i != iDataLength - 1)
+			{
+				Append(' ');
+			}
+		}
+
+		sz.Kill();
+	}
+	return TRUE;
 }
 
 
