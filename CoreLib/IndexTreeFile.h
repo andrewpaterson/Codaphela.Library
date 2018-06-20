@@ -86,7 +86,7 @@ public:
 	int						NumNodes(void);
 	int						NumMemoryNodes(void);
 	int						NumMemoryElements(void);
-	void					DebugKey(void* pvKey, int iKeySize);
+	void					DebugKey(void* pvKey, int iKeySize, BOOL bSkipRoot);
 	void					Dump(void);
 
 protected:
@@ -158,7 +158,6 @@ protected:
 
 	CIndexTreeNodeFile*		DebugNode(CIndexTreeNodeFile* pcParent, int uiIndexInParent);
 	void					DebugNode(int iFile, unsigned int uiIndex, int uIndexFromParent);
-	void					DebugNodeChildren(CIndexTreeNodeFile* pcCurrent, int uIndexFromParent, CChars* pszMemory, CChars* pszFile);
 	void					DebugNodeChildren(CIndexTreeNodeFile* pcCurrent, int uIndexFromParent);
 	void					ReadDebugNode(SIndexTreeDebugNode* psDebugNode, int iFile, unsigned int uiIndex);
 	void					PrintChildFileIndexes(CIndexTreeNodeFile* pcCurrent, CChars* psz);
