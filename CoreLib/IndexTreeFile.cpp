@@ -2940,12 +2940,14 @@ void CIndexTreeFile::DebugNodeChildren(CIndexTreeNodeFile* pcCurrent, int uIndex
 	CChars	sz;
 
 	sz.Init();
+	sz.Append("Memory: ");
 	AppendIndexTreeFileNodeDescrition(&sz, uIndexFromParent);
 	PrintChildFileIndexes(pcCurrent, &sz);
 	sz.AppendNewLine();
 
 	if (pcCurrent->GetFileIndex()->HasFile())
 	{
+		sz.Append("  File: ");
 		AppendIndexTreeFileNodeDescrition(&sz, uIndexFromParent);
 		PrintNodeFileIndexes(pcCurrent, &sz);
 		sz.AppendNewLine();
@@ -3054,5 +3056,108 @@ void CIndexTreeFile::PrintNodeFileIndexes(CIndexTreeNodeFile* pcCurrent, CChars*
 			psz->Append(" ");
 		}
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexTreeFile::Dump(void)
+{
+	CIndexTreeRecursor	cCursor;
+
+	cCursor.Init(mpcRoot);
+	RecurseDump(&cCursor);
+	cCursor.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexTreeFile::RecurseDump(CIndexTreeRecursor* pcCursor)
+{
+	CIndexTreeNodeFile*		pcNode;
+	int						i;
+	int						iKeySize;
+	CIndexTreeNodeFile*		pcChild;
+	CStackMemory<32>		cStack;
+	unsigned char*			pvKey;
+
+	pcNode = (CIndexTreeNodeFile*)pcCursor->GetNode();
+	if (pcNode != NULL)
+	{
+		if (pcNode->HasObject())
+		{
+			iKeySize = GetNodeKeySize(pcNode);
+			pvKey = (unsigned char*)cStack.Init(iKeySize);
+			GetNodeKey(pcNode, pvKey, iKeySize);
+			DebugKey(pvKey, iKeySize);
+			cStack.Kill();
+		}
+
+		if (pcNode->HasNodes())
+		{
+			for (i = pcNode->GetFirstIndex(); i <= pcNode->GetLastIndex(); i++)
+			{
+				pcChild = ReadMemoryNode(pcNode, i);
+				pcCursor->Push(pcChild, i);
+				RecurseDump(pcCursor);
+			}
+		}
+	}
+	pcCursor->Pop();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CIndexTreeFile::GetNodeKeySize(CIndexTreeNodeFile* pcNode)
+{
+	int		iKeySize;
+
+	iKeySize = 0;
+	while (pcNode)
+	{
+		iKeySize++;
+		pcNode = (CIndexTreeNodeFile*)pcNode->GetParent();
+	}
+	return iKeySize-1;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeFile::GetNodeKey(CIndexTreeNodeFile* pcNode, unsigned char* pvDestKey, int iDestSize)
+{
+	int				iKeySize;
+
+	iKeySize = 0;
+	while (pcNode && pcNode != mpcRoot)
+	{
+		if (iKeySize >= iDestSize)
+		{
+			return FALSE;
+		}
+
+		pvDestKey[iKeySize] = pcNode->GetIndexInParent();
+		iKeySize++;
+
+		pcNode = (CIndexTreeNodeFile*)pcNode->GetParent();
+	}
+
+	ReverseBytes(pvDestKey, iKeySize);
+	if (iKeySize < iDestSize)
+	{
+		pvDestKey[iKeySize] = 0;
+	}
+
+	return TRUE;
 }
 
