@@ -42,6 +42,7 @@ char		ToLower(char c);
 char		ToUpper(char c);
 int			StrEmpty(const char* szString);
 int			StrPrintable(const char* szString);
+int			StrPrintable(const char* szString, int iLength);
 
 
 #endif // __STRING_HELPER_H__

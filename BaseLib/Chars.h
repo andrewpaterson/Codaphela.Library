@@ -57,6 +57,7 @@ public:
 	void	InitList(const char* szFirst, ...);
 	void	InitList(CChars* szFirst, ...);
 	void	InitLength(int iLength);
+	BOOL	InitData2(const char* szData, int iDataLength);
 	void	Kill(void);
 	void	Fake(char* sz);
 	void	Fake(char* sz, int iStartInclusive, int iEndExclusive);
@@ -93,6 +94,7 @@ public:
 	void	AppendBool(BOOL bValue, const char* szTrue, const char* szFalse);
 	void	AppendData(const char* szData, int iMaxLength);
 	void	AppendData(const char* szData, int iDataLength, int iMaxLength);
+	BOOL	AppendData2(const char* szData, int iDataLength);
 	void	AppendPointer(void* pv);
 	void	Insert(int iPos, char c);
 	void	Insert(int iPos, const char* szString);

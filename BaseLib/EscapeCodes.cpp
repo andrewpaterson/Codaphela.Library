@@ -96,7 +96,7 @@ int GetEscapeString(char cCurrent, char* szDest)
 		return 1;
 	}
 
-	if ((cCurrent >= 32) && (cCurrent <= 127))
+	if ((cCurrent >= 32) && (cCurrent <= 126))
 	{
 		szDest[0] = cCurrent;
 		szDest[1] = '\0';
@@ -160,6 +160,12 @@ int GetEscapeString(char cCurrent, char* szDest)
 			strcpy(szDest, "\\v");
 			return 1;
 		}
+	}
+
+	if (cCurrent == 127)
+	{
+		strcpy(szDest, "\\x7F");
+		return 1;
 	}
 	return 0;
 }

@@ -3085,6 +3085,7 @@ void CIndexTreeFile::RecurseDump(CIndexTreeRecursor* pcCursor)
 	CIndexTreeNodeFile*		pcChild;
 	CStackMemory<32>		cStack;
 	unsigned char*			pvKey;
+	CChars					szKey;
 
 	pcNode = (CIndexTreeNodeFile*)pcCursor->GetNode();
 	if (pcNode != NULL)
@@ -3094,6 +3095,12 @@ void CIndexTreeFile::RecurseDump(CIndexTreeRecursor* pcCursor)
 			iKeySize = GetNodeKeySize(pcNode);
 			pvKey = (unsigned char*)cStack.Init(iKeySize);
 			GetNodeKey(pcNode, pvKey, iKeySize);
+
+			szKey.Init("Key: ------------- [");
+			szKey.AppendData2((const char*)pvKey, iKeySize);
+			szKey.Append("] -------------\n");
+			szKey.Dump();
+			szKey.Kill();
 			DebugKey(pvKey, iKeySize);
 			cStack.Kill();
 		}

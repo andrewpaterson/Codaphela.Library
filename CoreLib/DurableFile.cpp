@@ -724,36 +724,6 @@ CFileBasic*	CDurableFile::DumpGetPrimaryFile(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* FindSecondString(char* szFileName)
-{
-	int		        iLen;
-	int		        i;
-	unsigned char*	szSecondStart;
-
-	iLen = (int)strlen(szFileName);
-	szSecondStart = (unsigned char*)RemapSinglePointer(szFileName, iLen+1);
-	for (i = 0; i < 32768; i++)
-	{
-		if (i >= 1)
-		{
-			if (szSecondStart[i] == 0)
-			{
-				return (char*)szSecondStart;
-			}
-		}
-		if ((szSecondStart[i] < 32) || (szSecondStart[i] >= 128))
-		{
-			return NULL;
-		}
-	}
-	return NULL;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 char* CDurableFile::GetFileName(void)
 {
 	return mszFileName.Text();
