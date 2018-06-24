@@ -585,7 +585,7 @@ BOOL CIndexTreeNodeFile::HasOnlyFileNodes(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeNodeFile::HasNodesWithFlags(unsigned char uiFlags)
+BOOL CIndexTreeNodeFile::HasChildWithFlags(unsigned char uiFlags)
 {
 	int						iNumNodes;
 	int						i;

@@ -604,7 +604,6 @@ BOOL CIndexTreeFile::Put(void* pvKey, int iKeySize, void* pvObject, unsigned sho
 	CIndexTreeNodeFile*		pcCurrent;
 	unsigned char			c;
 	BOOL					bResult;
-	BOOL					bWrite;
 	BOOL					bRootHasIndex;
 
 	if (iKeySize == 0)
@@ -630,36 +629,41 @@ BOOL CIndexTreeFile::Put(void* pvKey, int iKeySize, void* pvObject, unsigned sho
 	{
 		return FALSE;
 	}
-	bResult = TRUE;
-
+	
 	if (mbWriteThrough)
 	{
-		while (pcCurrent != NULL)
-		{
-			if (pcCurrent->IsDirty())
-			{
-				pcCurrent->SetDirtyNode(FALSE);
-				bWrite = Write(pcCurrent);
-				if (!bWrite)
-				{
-					bResult = FALSE;
-					break;
-				}
-			}
-			pcCurrent = (CIndexTreeNodeFile*)pcCurrent->GetParent();
-		}
+		bResult = WriteBackPath(pcCurrent);
 	}
 	else
 	{
-		while (pcCurrent != NULL)
+		bResult = SetDirtyPath(pcCurrent);
+	}
+
+	bResult &= WriteRootFileIndex(bRootHasIndex, mpcRoot->GetFileIndex());
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeFile::SetDirtyPath(CIndexTreeNodeFile* pcCurrent)
+{
+	if (mbWriteThrough)
+	{
+		return gcLogger.Error2(__METHOD__, " Cannot SetDirtyPath on an index tree that is write through.", NULL);
+	}
+
+	if (pcCurrent->IsDirty())
+	{
+		while ((pcCurrent) && (!pcCurrent->IsPathDirty()))
 		{
 			pcCurrent->SetDirtyPath(TRUE);
 			pcCurrent = (CIndexTreeNodeFile*)pcCurrent->GetParent();
 		}
 	}
-
-	bResult &= WriteRootFileIndex(bRootHasIndex, mpcRoot->GetFileIndex());
-	return bResult;
+	return TRUE;
 }
 
 
@@ -924,6 +928,7 @@ BOOL CIndexTreeFile::Evict(char* pszKey)
 BOOL CIndexTreeFile::Remove(void* pvKey, int iKeySize)
 {
 	CIndexTreeNodeFile*		pcCurrent;
+	CIndexTreeNodeFile*		pcDirty;
 
 	if ((iKeySize == 0) || (pvKey == NULL))
 	{
@@ -938,7 +943,15 @@ BOOL CIndexTreeFile::Remove(void* pvKey, int iKeySize)
 
 	if (mbWriteThrough)
 	{
-		return RemoveWriteThrough(pcCurrent);
+		pcDirty = RemoveWriteThrough(pcCurrent);
+		if (pcDirty)
+		{
+			return WriteBackPath(pcDirty);
+		}
+		else
+		{
+			return FALSE;
+		}
 	}
 	else
 	{
@@ -951,7 +964,7 @@ BOOL CIndexTreeFile::Remove(void* pvKey, int iKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::RemoveWriteThrough(CIndexTreeNodeFile* pcCurrent)
+CIndexTreeNodeFile* CIndexTreeFile::RemoveWriteThrough(CIndexTreeNodeFile* pcCurrent)
 {
 	unsigned char			c;
 	CIndexTreeNodeFile*		pcParent;
@@ -970,22 +983,22 @@ BOOL CIndexTreeFile::RemoveWriteThrough(CIndexTreeNodeFile* pcCurrent)
 	pvObject = ((void**)pcCurrent->GetObjectPtr());
 	pcNode = pcCurrent;
 
-	pcParent = (CIndexTreeNodeFile*)pcNode->GetParent();
-	pcNode->ClearObject();
-	for (;;)
+	pcNode->ClearObject();  //Sets node dirty.
+	while (pcNode)
 	{
+		pcParent = (CIndexTreeNodeFile*)pcNode->GetParent();
 		c = pcNode->GetIndexInParent();
 
 		if (pcNode->IsEmpty())
 		{
 			tOldNodeSize = pcParent->CalculateRequiredNodeSizeForCurrent();
-			if (pcParent == mpcRoot)
+			if (pcParent != mpcRoot)
 			{
-				pcParent->Clear(c);
+				pcParent = ReallocateNodeForUncontainIndex(pcParent, c, tOldNodeSize);  //Sets parent dirty.
 			}
 			else
 			{
-				pcParent = ReallocateNodeForUncontainIndex(pcParent, c, tOldNodeSize);
+				pcParent->Clear(c);  //Sets parent dirty.
 			}
 
 			bResult = Delete(pcNode);
@@ -993,31 +1006,18 @@ BOOL CIndexTreeFile::RemoveWriteThrough(CIndexTreeNodeFile* pcCurrent)
 
 			if (!bResult)
 			{
-				//Failed.
-				break;
+				return NULL;
 			}
 		}
 		else
 		{
-			pcNode->SetDirtyNode(FALSE);
-			bResult = Write(pcNode);
-			break;
+			return pcNode;
 		}
 
 		pcNode = pcParent;
-		pcParent = (CIndexTreeNodeFile*)pcNode->GetParent();
-		if (!pcParent)
-		{
-			if (pcNode->IsDirty())
-			{
-				pcNode->SetDirtyNode(FALSE);
-				bResult = Write(pcNode);
-			}
-			break;
-		}
 	}
 
-	return bResult;
+	return pcNode;
 }
 
 
@@ -1025,28 +1025,28 @@ BOOL CIndexTreeFile::RemoveWriteThrough(CIndexTreeNodeFile* pcCurrent)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTreeNodeFile* CIndexTreeFile::ReallocateNodeForUncontainIndex(CIndexTreeNodeFile* pcParent, unsigned char c, size_t tOldNodeSize)
+CIndexTreeNodeFile* CIndexTreeFile::ReallocateNodeForUncontainIndex(CIndexTreeNodeFile* pcNode, unsigned char c, size_t tOldNodeSize)
 {
-	CIndexTreeNodeFile*		pcOldParent;
+	CIndexTreeNodeFile*		pcOldNode;
 	BOOL					bResizeNode;
 	size_t					tNewNodeSize;
 
-	bResizeNode = pcParent->ClearAndUncontain(c);
+	bResizeNode = pcNode->ClearAndUncontain(c);
 	if (bResizeNode)
 	{
-		tNewNodeSize = pcParent->CalculateRequiredNodeSizeForCurrent();
-		pcOldParent = pcParent;
+		tNewNodeSize = pcNode->CalculateRequiredNodeSizeForCurrent();
+		pcOldNode = pcNode;
 
-		pcParent = (CIndexTreeNodeFile*)Realloc(pcParent, tNewNodeSize, tOldNodeSize);
-		if (pcOldParent != pcParent)
+		pcNode = (CIndexTreeNodeFile*)Realloc(pcNode, tNewNodeSize, tOldNodeSize);
+		if (pcOldNode != pcNode)
 		{
-			pcParent->SetChildrensParent();
+			pcNode->SetChildrensParent();
 		}
-		RemapChildParents(pcOldParent, pcParent);
+		RemapChildParents(pcOldNode, pcNode);
 	}
-	pcParent->SetDirtyNode(TRUE);
+	pcNode->SetDirtyNode(TRUE);
 
-	return pcParent;
+	return pcNode;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -1165,6 +1165,9 @@ BOOL CIndexTreeFile::Flush(CIndexTreeNodeFile** ppcCurrent)
 	BOOL				bResult;
 	BOOL				bRootHasIndex;
 	CIndexTreeNodeFile* pcCurrent;
+	CIndexTreeNodeFile* pcDirty;
+	BOOL				bDeleted;
+	BOOL				bDirty;
 
 	pcCurrent = *ppcCurrent;
 	if (mbWriteThrough)
@@ -1178,12 +1181,27 @@ BOOL CIndexTreeFile::Flush(CIndexTreeNodeFile** ppcCurrent)
 		return FALSE;
 	}
 
-	if (pcCurrent->IsDeleted())
+	bDeleted = pcCurrent->IsDeleted();
+	bDirty = pcCurrent->IsDirty();
+	if (bDeleted && bDirty)
+	{
+		return gcLogger.Error2(__METHOD__, " Cannot flush a node that is both deleted and dirty.", NULL);
+	}
+	else if (bDeleted)
 	{
 		*ppcCurrent = NULL;
-		return RemoveWriteThrough(pcCurrent);
+		pcDirty = RemoveWriteThrough(pcCurrent);
+		if (pcDirty)
+		{
+			bResult =  SetDirtyPath(pcDirty);
+			return bResult;
+		}
+		else
+		{
+			return FALSE;
+		}
 	}
-	else if (pcCurrent->IsDirty())
+	else if (bDirty)
 	{
 		bRootHasIndex = mpcRoot->GetFileIndex()->HasFile();
 		bResult = WriteBackPath(pcCurrent);
@@ -1472,6 +1490,7 @@ BOOL CIndexTreeFile::FlushRemoved(void)
 	int								i;
 	int								iNumNodes;
 	CIndexTreeNodeFile*				pcNode;
+	CIndexTreeNodeFile*				pcDirty;
 	BOOL							bResult;
 	CListTemplateMinimal<char>*		paszKeys;
 	int								iKeySize;
@@ -1491,7 +1510,15 @@ BOOL CIndexTreeFile::FlushRemoved(void)
 		pcNode = GetNode(pszKey, iKeySize);
 		if (!pcNode->IsDirty())
 		{
-			bResult |= RemoveWriteThrough(pcNode);
+			pcDirty = RemoveWriteThrough(pcNode);
+			if (pcDirty)
+			{
+				SetDirtyPath(pcDirty );
+			}
+			else
+			{
+				bResult = FALSE;
+			}
 		}
 	}
 
@@ -2445,22 +2472,49 @@ BOOL CIndexTreeFile::Write(CIndexTreeNodeFile* pcNode)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeFile::WriteBackPath(CIndexTreeNodeFile* pcNode)
 {
-	while (pcNode)
+	BOOL	bWrite;
+
+	if (mbWriteThrough)
 	{
-		if (pcNode->IsDirty())
+		while (pcNode)
 		{
-			if (!pcNode->HasNodesWithFlags(INDEX_TREE_NODE_FLAG_DIRTY_NODE))
+			if (pcNode->IsDirty())
 			{
 				pcNode->SetDirtyNode(FALSE);
-				if (!Write(pcNode))
+				bWrite = Write(pcNode);
+				if (!bWrite)
 				{
 					return FALSE;
 				}
 			}
+			else
+			{
+				return TRUE;
+			}
+			pcNode = (CIndexTreeNodeFile*)pcNode->GetParent();
 		}
-		pcNode = (CIndexTreeNodeFile*)pcNode->GetParent();
+		return TRUE;
 	}
-	return TRUE;
+	else
+	{
+		while (pcNode)
+		{
+			if (pcNode->IsDirty())
+			{
+				if (!pcNode->HasChildWithFlags(INDEX_TREE_NODE_FLAG_DIRTY_NODE))
+				{
+					pcNode->SetDirtyNode(FALSE);
+					bWrite = Write(pcNode);
+					if (!bWrite)
+					{
+						return FALSE;
+					}
+				}
+			}
+			pcNode = (CIndexTreeNodeFile*)pcNode->GetParent();
+		}
+		return TRUE;
+	}
 }
 
 

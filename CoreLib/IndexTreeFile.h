@@ -108,14 +108,14 @@ protected:
 	CIndexTreeNodeFile*		ReallocateNodeForLargerData(CIndexTreeNodeFile* pcNode, unsigned short uiDataSize);
 	CIndexTreeNodeFile*		ReallocateNodeForSmallerData(CIndexTreeNodeFile* pcNode, unsigned short uiOriginalSize);
 	CIndexTreeNodeFile*		ReallocateNodeForData(CIndexTreeNodeFile* pcNode, size_t tNewNodeSize, size_t tOldNodeSize);
-	CIndexTreeNodeFile*		ReallocateNodeForUncontainIndex(CIndexTreeNodeFile* pcParent, unsigned char c, size_t tOldNodeSize);
+	CIndexTreeNodeFile*		ReallocateNodeForUncontainIndex(CIndexTreeNodeFile* pcNode, unsigned char c, size_t tOldNodeSize);
 	void					RemapChildParents(CIndexTreeNodeFile* pcOldNode, CIndexTreeNodeFile* pcNode);
 
 	CIndexTreeNodeFile*		GetMemoryNode(void* pvKey, int iKeySize);
 	CIndexTreeNodeFile*		GetChildNodeOrAllocate(CIndexTreeNodeFile* pcParent, unsigned char uiIndexInParent);
 	CIndexTreeNodeFile*		SetNodeObject(CIndexTreeNodeFile* pcCurrent, void* pvObject, unsigned short uiDataSize);
 
-	BOOL					RemoveWriteThrough(CIndexTreeNodeFile* pcCurrent);
+	CIndexTreeNodeFile*		RemoveWriteThrough(CIndexTreeNodeFile* pcCurrent);
 	BOOL					RemoveWaitForFlush(CIndexTreeNodeFile* pcCurrent);
 	BOOL					Evict(CIndexTreeNodeFile* pcCurrent);
 	BOOL					Flush(CIndexTreeNodeFile** ppcCurrent);
@@ -151,6 +151,7 @@ protected:
 	BOOL					FlushDirty(void);
 	BOOL					RecurseFlushDirty(CIndexTreeRecursor* pcCursor);
 	BOOL					WriteBackPath(CIndexTreeNodeFile* pcNode);
+	BOOL					SetDirtyPath(CIndexTreeNodeFile* pcCurrent);
 
 	CFileDataIndex			ReadRootFileIndex(void);
 	BOOL					WriteRootFileIndex(CFileDataIndex* pcRootIndex);
