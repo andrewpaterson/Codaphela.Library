@@ -52,6 +52,7 @@ public:
 	BOOL					Remove(char* pszKey);
 	BOOL					Evict(void* pvKey, int iKeySize);
 	BOOL					Evict(char* pszKey);
+	BOOL					ValidateKey(char* pszKey);
 
 	BOOL					HasKey(char* pszKey);
 	int						FindKeySize(CIndexTreeNodeFile* pcNode);
