@@ -118,3 +118,13 @@ void CFileDataIndex::SetIndex(CFileDataIndex* pcSource)
 	muiIndex = pcSource->muiIndex;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CFileDataIndex::Equals(CFileDataIndex* pcOther)
+{
+	return pcOther->miFile == miFile && pcOther->muiIndex == muiIndex;
+}
+

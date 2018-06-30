@@ -925,6 +925,24 @@ BOOL CIndexTreeFile::Evict(char* pszKey)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeFile::ValidateKey(char* pszKey)
+{
+	int iKeySize;
+
+	if (StrEmpty(pszKey))
+	{
+		return FALSE;
+	}
+
+	iKeySize = strlen(pszKey);
+	return ValidateKey(pszKey, iKeySize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeFile::Remove(void* pvKey, int iKeySize)
 {
 	CIndexTreeNodeFile*		pcCurrent;
@@ -1041,8 +1059,12 @@ CIndexTreeNodeFile* CIndexTreeFile::ReallocateNodeForUncontainIndex(CIndexTreeNo
 		if (pcOldNode != pcNode)
 		{
 			pcNode->SetChildrensParent();
+			RemapChildParents(pcOldNode, pcNode);
 		}
-		RemapChildParents(pcOldNode, pcNode);
+		if (tNewNodeSize != tOldNodeSize)
+		{
+			pcNode->GetParent()->SetDirtyNode(TRUE);
+		}
 	}
 	pcNode->SetDirtyNode(TRUE);
 
@@ -1127,9 +1149,10 @@ BOOL CIndexTreeFile::Evict(CIndexTreeNodeFile* pcCurrent)
 	pcNode = pcCurrent;
 
 	iCount = 0;
-	pcParent = (CIndexTreeNodeFile*)pcNode->GetParent();
-	for (;;)
+	while (pcNode != mpcRoot)
 	{
+		pcParent = (CIndexTreeNodeFile*)pcNode->GetParent();
+
 		bOnlyFileNodes = pcNode->HasOnlyFileNodes();
 		if (!bOnlyFileNodes)
 		{
@@ -1147,12 +1170,8 @@ BOOL CIndexTreeFile::Evict(CIndexTreeNodeFile* pcCurrent)
 		}
 
 		pcNode = pcParent;
-		pcParent = (CIndexTreeNodeFile*)pcNode->GetParent();
-		if (!pcParent)
-		{
-			return TRUE;
-		}
 	}
+	return TRUE;
 }
 
 
@@ -1193,7 +1212,8 @@ BOOL CIndexTreeFile::Flush(CIndexTreeNodeFile** ppcCurrent)
 		pcDirty = RemoveWriteThrough(pcCurrent);
 		if (pcDirty)
 		{
-			bResult =  SetDirtyPath(pcDirty);
+			bResult = SetDirtyPath(pcDirty);
+			WriteBackPath(pcDirty);
 			return bResult;
 		}
 		else
@@ -2472,49 +2492,62 @@ BOOL CIndexTreeFile::Write(CIndexTreeNodeFile* pcNode)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeFile::WriteBackPath(CIndexTreeNodeFile* pcNode)
 {
-	BOOL	bWrite;
+	BOOL				bWrite;
+	CIndexTreeNodeFile* pcParent;
+	CFileDataIndex		cOldIndex;
+	CFileDataIndex*		pcNewIndex;
 
-	if (mbWriteThrough)
-	{
+	//if (mbWriteThrough)
+	//{
 		while (pcNode)
 		{
+			pcParent = (CIndexTreeNodeFile*)pcNode->GetParent();
 			if (pcNode->IsDirty())
 			{
 				pcNode->SetDirtyNode(FALSE);
+
+				cOldIndex = *pcNode->GetFileIndex();
+
 				bWrite = Write(pcNode);
 				if (!bWrite)
 				{
 					return FALSE;
+				}
+
+				pcNewIndex = pcNode->GetFileIndex();
+				if (!cOldIndex.Equals(pcNewIndex))
+				{
+					if (pcParent)
+					{
+						pcParent->SetDirtyNode(TRUE);
+					}
 				}
 			}
 			else
 			{
 				return TRUE;
 			}
-			pcNode = (CIndexTreeNodeFile*)pcNode->GetParent();
+			pcNode = pcParent;
 		}
 		return TRUE;
-	}
-	else
-	{
-		while (pcNode)
-		{
-			if (pcNode->IsDirty())
-			{
-				if (!pcNode->HasChildWithFlags(INDEX_TREE_NODE_FLAG_DIRTY_NODE))
-				{
-					pcNode->SetDirtyNode(FALSE);
-					bWrite = Write(pcNode);
-					if (!bWrite)
-					{
-						return FALSE;
-					}
-				}
-			}
-			pcNode = (CIndexTreeNodeFile*)pcNode->GetParent();
-		}
-		return TRUE;
-	}
+	//}
+	//else
+	//{
+	//	while (pcNode)
+	//	{
+	//		if (pcNode->IsDirty())
+	//		{
+	//			pcNode->SetDirtyNode(FALSE);
+	//			bWrite = Write(pcNode);
+	//			if (!bWrite)
+	//			{
+	//				return FALSE;
+	//			}
+	//		}
+	//		pcNode = (CIndexTreeNodeFile*)pcNode->GetParent();
+	//	}
+	//	return TRUE;
+	//}
 }
 
 
