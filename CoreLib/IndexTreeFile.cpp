@@ -41,7 +41,7 @@ BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, CMalloca
 
 	if (!pcDurableFileControl->IsBegun())
 	{
-		return gcLogger.Error2(__METHOD__, " DurableFileController must be begun before calling Init.", NULL);
+		return gcLogger.Error2(__METHOD__, " DurableFileController.Begin must be called before Init.", NULL);
 	}
 
 	mcMalloc.Init(pcMalloc);
@@ -82,12 +82,24 @@ void CIndexTreeFile::FakeInit(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeFile::Kill(void)
+BOOL CIndexTreeFile::Kill(void)
 {
+	if (mpcDurableFileControl->IsBegun())
+	{
+		return gcLogger.Error2(__METHOD__, " DurableFileController.End must called before Kill.", NULL);
+	}
+
+	if (!IsFlushed())
+	{
+		return gcLogger.Error2(__METHOD__, " Flush must called before Kill.", NULL);
+	}
+
 	mcRootIndex.Kill();
 	mcIndexFiles.Kill();
 	mpcDurableFileControl = NULL;
 	RecurseKill(mpcRoot);
+
+	return TRUE;
 }
 
 
@@ -632,7 +644,7 @@ BOOL CIndexTreeFile::Put(void* pvKey, int iKeySize, void* pvObject, unsigned sho
 	
 	if (mbWriteThrough)
 	{
-		bResult = WriteBackPath(pcCurrent);
+		bResult = WriteBackPathWriteThrough(pcCurrent);
 	}
 	else
 	{
@@ -964,7 +976,7 @@ BOOL CIndexTreeFile::Remove(void* pvKey, int iKeySize)
 		pcDirty = RemoveWriteThrough(pcCurrent);
 		if (pcDirty)
 		{
-			return WriteBackPath(pcDirty);
+			return WriteBackPathWriteThrough(pcDirty);
 		}
 		else
 		{
@@ -1194,7 +1206,7 @@ BOOL CIndexTreeFile::Flush(CIndexTreeNodeFile** ppcCurrent)
 		return gcLogger.Error2(__METHOD__, " Cannot flush an index tree that is write through.", NULL);
 	}
 
-	bResult = CanFlush(pcCurrent);
+	bResult = CanFlush(pcCurrent);  //This is CanEvict not CanFlush.  Fix it.
 	if (!bResult)
 	{
 		return FALSE;
@@ -1213,7 +1225,7 @@ BOOL CIndexTreeFile::Flush(CIndexTreeNodeFile** ppcCurrent)
 		if (pcDirty)
 		{
 			bResult = SetDirtyPath(pcDirty);
-			WriteBackPath(pcDirty);
+			WriteBackPathCaching(pcDirty);
 			return bResult;
 		}
 		else
@@ -1224,7 +1236,7 @@ BOOL CIndexTreeFile::Flush(CIndexTreeNodeFile** ppcCurrent)
 	else if (bDirty)
 	{
 		bRootHasIndex = mpcRoot->GetFileIndex()->HasFile();
-		bResult = WriteBackPath(pcCurrent);
+		bResult = WriteBackPathCaching(pcCurrent);
 		bResult &= WriteRootFileIndex(bRootHasIndex, mpcRoot->GetFileIndex());
 		return bResult;
 	}
@@ -1242,15 +1254,13 @@ BOOL CIndexTreeFile::Flush(CIndexTreeNodeFile** ppcCurrent)
 BOOL CIndexTreeFile::CanFlush(CIndexTreeNodeFile* pcNode)
 {
 	int						iFirst;
-	int						iLast;
 	int						i;
 	CIndexTreeChildNode*	pcChild;
 
 	iFirst = pcNode->GetFirstIndex();
-	iLast = pcNode->GetLastIndex();
-
-	for (i = iFirst; i <= iLast; i++)
+	for (i = 0; i < pcNode->GetNumIndexes(); i++)
 	{
+
 		pcChild = pcNode->GetNode(i);
 		if (pcChild->IsMemory())
 		{
@@ -1258,27 +1268,27 @@ BOOL CIndexTreeFile::CanFlush(CIndexTreeNodeFile* pcNode)
 			{
 				if (pcNode->IsDirty())
 				{
-					gcLogger.Error2(__METHOD__, " Cannot flush node, child node [", IntToString(i), " is dirty.", NULL);
+					gcLogger.Error2(__METHOD__, " Cannot flush node, child node [", IntToString(i + iFirst), "] is dirty.", NULL);
 					return FALSE;
 				}
 				if (pcNode->IsPathDirty())
 				{
-					gcLogger.Error2(__METHOD__, " Cannot flush node, child path [", IntToString(i), " is dirty.", NULL);
+					gcLogger.Error2(__METHOD__, " Cannot flush node, child path [", IntToString(i + iFirst), "] is dirty.", NULL);
 					return FALSE;
 				}
 				else if (pcNode->IsDeleted())
 				{
-					gcLogger.Error2(__METHOD__, " Cannot flush node, child node [", IntToString(i), " is deleted.", NULL);
+					gcLogger.Error2(__METHOD__, " Cannot flush node, child node [", IntToString(i + iFirst), "] is deleted.", NULL);
 					return FALSE;
 				}
 				else if (pcNode->IsPathDeleted())
 				{
-					gcLogger.Error2(__METHOD__, " Cannot flush node, child path [", IntToString(i), " is deleted.", NULL);
+					gcLogger.Error2(__METHOD__, " Cannot flush node, child path [", IntToString(i + iFirst), " is deleted.", NULL);
 					return FALSE;
 				}
 				else
 				{
-					gcLogger.Error2(__METHOD__, " Cannot flush node, child node [", IntToString(i), " has unexpected transient flag.", NULL);
+					gcLogger.Error2(__METHOD__, " Cannot flush node, child node [", IntToString(i + iFirst), " has unexpected transient flag.", NULL);
 					return FALSE;
 				}
 			}
@@ -1533,7 +1543,7 @@ BOOL CIndexTreeFile::FlushRemoved(void)
 			pcDirty = RemoveWriteThrough(pcNode);
 			if (pcDirty)
 			{
-				SetDirtyPath(pcDirty );
+				SetDirtyPath(pcDirty);
 			}
 			else
 			{
@@ -1547,6 +1557,71 @@ BOOL CIndexTreeFile::FlushRemoved(void)
 
 	return bResult;
 }
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeFile::IsFlushed(void)
+{
+	CIndexTreeRecursor	cCursor;
+	BOOL				bResult;
+
+	if (!mbWriteThrough)
+	{
+		cCursor.Init(mpcRoot);
+		bResult = RecurseIsFlushed(&cCursor);
+		cCursor.Kill();
+
+		return bResult;
+	}
+	else
+	{
+		return TRUE;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeFile::RecurseIsFlushed(CIndexTreeRecursor* pcCursor)
+{
+	CIndexTreeNodeFile*		pcNode;
+	int						i;
+	CIndexTreeNodeFile*		pcChild;
+	BOOL					bResult;
+	unsigned char			uiTransientFlags;
+
+	pcNode = (CIndexTreeNodeFile*)pcCursor->GetNode();
+	if (pcNode != NULL)
+	{
+		uiTransientFlags = pcNode->GetTransientFlags();
+		if (pcNode->HasFlags(INDEX_TREE_NODE_TRANSIENT_FLAGS))
+		{
+			return FALSE;
+		}
+
+		if (pcNode->HasNodes())
+		{
+			for (i = pcNode->GetFirstIndex(); i <= pcNode->GetLastIndex(); i++)
+			{
+				pcChild = ReadMemoryNode(pcNode, i);
+				pcCursor->Push(pcChild, i);
+				bResult = RecurseIsFlushed(pcCursor);
+				if (!bResult)
+				{
+					pcCursor->Pop();
+					return FALSE;
+				}
+			}
+		}
+	}
+	pcCursor->Pop();
+	return TRUE;
+}
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -2082,6 +2157,7 @@ BOOL CIndexTreeFile::RecurseValidateTransientFlags(CIndexTreeRecursor* pcCursor)
 	CIndexTreeNodeFile*		pcChild;
 	BOOL					bResult;
 	unsigned char			uiTransientFlags;
+	CChars					sz;
 
 	pcNode = (CIndexTreeNodeFile*)pcCursor->GetNode();
 	if (pcNode != NULL)
@@ -2089,8 +2165,11 @@ BOOL CIndexTreeFile::RecurseValidateTransientFlags(CIndexTreeRecursor* pcCursor)
 		uiTransientFlags = pcNode->GetTransientFlags();
 		if (pcNode->HasFlags(INDEX_TREE_NODE_TRANSIENT_FLAGS))
 		{
+			sz.Init();
 			pcCursor->GenerateBad();
-			return gcLogger.Error2(__METHOD__, " Node [", pcCursor->GetBadNode(), "] for key [", pcCursor->GetBadKey(), "] has unexpected flags.", NULL);
+			gcLogger.Error2(__METHOD__, " Node [", pcCursor->GetBadNode(), "] for key [", pcCursor->GetBadKey(), "] has unexpected flags [", pcNode->GetFlagsString(&sz),"].", NULL);
+			sz.Kill();
+			return FALSE;
 		}
 
 		if (pcNode->HasNodes())
@@ -2486,68 +2565,98 @@ BOOL CIndexTreeFile::Write(CIndexTreeNodeFile* pcNode)
 	return TRUE;
 }
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::WriteBackPath(CIndexTreeNodeFile* pcNode)
+BOOL CIndexTreeFile::WriteBackPathWriteThrough(CIndexTreeNodeFile* pcNode)
 {
 	BOOL				bWrite;
 	CIndexTreeNodeFile* pcParent;
 	CFileDataIndex		cOldIndex;
 	CFileDataIndex*		pcNewIndex;
 
-	//if (mbWriteThrough)
-	//{
-		while (pcNode)
+	while (pcNode)
+	{
+		pcParent = (CIndexTreeNodeFile*)pcNode->GetParent();
+		if (pcNode->IsDirty())
 		{
-			pcParent = (CIndexTreeNodeFile*)pcNode->GetParent();
-			if (pcNode->IsDirty())
+			pcNode->SetDirtyNode(FALSE);
+
+			cOldIndex = *pcNode->GetFileIndex();
+
+			bWrite = Write(pcNode);
+			if (!bWrite)
 			{
-				pcNode->SetDirtyNode(FALSE);
+				return FALSE;
+			}
 
-				cOldIndex = *pcNode->GetFileIndex();
-
-				bWrite = Write(pcNode);
-				if (!bWrite)
+			pcNewIndex = pcNode->GetFileIndex();
+			if (!cOldIndex.Equals(pcNewIndex))
+			{
+				if (pcParent)
 				{
-					return FALSE;
-				}
-
-				pcNewIndex = pcNode->GetFileIndex();
-				if (!cOldIndex.Equals(pcNewIndex))
-				{
-					if (pcParent)
-					{
-						pcParent->SetDirtyNode(TRUE);
-					}
+					pcParent->SetDirtyNode(TRUE);
 				}
 			}
-			else
-			{
-				return TRUE;
-			}
-			pcNode = pcParent;
 		}
-		return TRUE;
-	//}
-	//else
-	//{
-	//	while (pcNode)
-	//	{
-	//		if (pcNode->IsDirty())
-	//		{
-	//			pcNode->SetDirtyNode(FALSE);
-	//			bWrite = Write(pcNode);
-	//			if (!bWrite)
-	//			{
-	//				return FALSE;
-	//			}
-	//		}
-	//		pcNode = (CIndexTreeNodeFile*)pcNode->GetParent();
-	//	}
-	//	return TRUE;
-	//}
+		else
+		{
+			return TRUE;
+		}
+		pcNode = pcParent;
+	}
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeFile::WriteBackPathCaching(CIndexTreeNodeFile* pcNode)
+{
+	BOOL				bWrite;
+	CIndexTreeNodeFile* pcParent;
+	CFileDataIndex		cOldIndex;
+	CFileDataIndex*		pcNewIndex;
+
+	while (pcNode)
+	{
+		pcParent = (CIndexTreeNodeFile*)pcNode->GetParent();
+		if (pcNode->IsDirty())
+		{
+			pcNode->SetDirtyNode(FALSE);
+			//if (!pcNode->HasChildWithFlags(INDEX_TREE_NODE_FLAG_DIRTY_PATH))
+			//{
+			//	pcNode->SetDirtyPath(FALSE);
+			//}
+
+			cOldIndex = *pcNode->GetFileIndex();
+
+			bWrite = Write(pcNode);
+			if (!bWrite)
+			{
+				return FALSE;
+			}
+
+			pcNewIndex = pcNode->GetFileIndex();
+			if (!cOldIndex.Equals(pcNewIndex))
+			{
+				if (pcParent)
+				{
+					pcParent->SetDirtyNode(TRUE);
+				}
+			}
+		}
+		else
+		{
+			return TRUE;
+		}
+		pcNode = pcParent;
+	}
+	return TRUE;
 }
 
 
