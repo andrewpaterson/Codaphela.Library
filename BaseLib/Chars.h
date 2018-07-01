@@ -96,6 +96,7 @@ public:
 	void	AppendData(const char* szData, int iDataLength, int iMaxLength);
 	BOOL	AppendData2(const char* szData, int iDataLength);
 	void	AppendPointer(void* pv);
+	BOOL	AppendFlag(unsigned int msFlags, unsigned int uiFlag, char* szFlagName, BOOL bAppendComma = FALSE);
 	void	Insert(int iPos, char c);
 	void	Insert(int iPos, const char* szString);
 	void	Insert(int iPos, CChars* pszString);

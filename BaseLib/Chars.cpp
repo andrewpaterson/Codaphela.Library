@@ -2185,6 +2185,25 @@ void CChars::AppendPointer(void* pv)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL CChars::AppendFlag(unsigned int msFlags, unsigned int uiFlag, char* szFlagName, BOOL bAppendComma)
+{
+	if (msFlags & uiFlag)
+	{
+		if (bAppendComma)
+		{
+			Append(", ");
+		}
+		Append(szFlagName);
+		return TRUE;
+	}
+	return FALSE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 int CChars::CountNewLines(void)
 {
 	return ::CountNewLines(mcText.GetData(), mcText.NumElements());
