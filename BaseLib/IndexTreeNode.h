@@ -92,6 +92,7 @@ public:
 	size_t			SizeofNodePtr(void);
 
 	void			Print(CChars* psz, BOOL bHex);
+	char*			GetFlagsString(CChars* psz);
 
 	size_t			CalculateRequiredNodeSizeForIndex(unsigned char uiIndex);
 	size_t			CalculateRequiredNodeSizeForEmpty(void);
