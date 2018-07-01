@@ -32,7 +32,7 @@ public:
 	BOOL					Init(CDurableFileController* pcDurableFileControl);
 	BOOL					Init(CDurableFileController* pcDurableFileControl, BOOL bWriteThrough);
 	BOOL					Init(CDurableFileController* pcDurableFileControl, CMallocator* pcMalloc, BOOL bWriteThrough);
-	void					Kill(void);
+	BOOL					Kill(void);
 
 	BOOL					Get(void* pvKey, int iKeySize, void* pvObject, unsigned short* puiDataSize);
 	BOOL					Put(void* pvKey, int iKeySize, void* pvObject, unsigned short uiDataSize);
@@ -53,6 +53,7 @@ public:
 	BOOL					Evict(void* pvKey, int iKeySize);
 	BOOL					Evict(char* pszKey);
 	BOOL					ValidateKey(char* pszKey);
+	BOOL					IsFlushed(void);
 
 	BOOL					HasKey(char* pszKey);
 	int						FindKeySize(CIndexTreeNodeFile* pcNode);
@@ -151,8 +152,10 @@ protected:
 	BOOL					FlushRemoved(void);
 	BOOL					FlushDirty(void);
 	BOOL					RecurseFlushDirty(CIndexTreeRecursor* pcCursor);
-	BOOL					WriteBackPath(CIndexTreeNodeFile* pcNode);
+	BOOL					WriteBackPathWriteThrough(CIndexTreeNodeFile* pcNode);
+	BOOL					WriteBackPathCaching(CIndexTreeNodeFile* pcNode);
 	BOOL					SetDirtyPath(CIndexTreeNodeFile* pcCurrent);
+	BOOL					RecurseIsFlushed(CIndexTreeRecursor* pcCursor);
 
 	CFileDataIndex			ReadRootFileIndex(void);
 	BOOL					WriteRootFileIndex(CFileDataIndex* pcRootIndex);
