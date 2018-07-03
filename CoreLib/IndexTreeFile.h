@@ -81,7 +81,8 @@ public:
 	void					FakeInit(void);
 	void					RecurseKill(CIndexTreeNodeFile* pcNode);
 
-	BOOL					ValidateIndexTree(void);
+	BOOL					ValidateIndexTree(void); 
+	BOOL					ValidateIndexTree(BOOL bReadNodes);
 	BOOL					ValidateKey(void* pvKey, int iKeySize);
 
 	CIndexedFiles*			GetIndexFiles(void);
@@ -96,6 +97,7 @@ protected:
 	void					InitRootIndexFile(void);
 
 	CIndexTreeNodeFile*		ReadNode(CIndexTreeNodeFile* pcParent, unsigned char c);
+	CIndexTreeNodeFile*		ReadNode(CIndexTreeNodeFile* pcParent, unsigned char c, BOOL bReadNode);
 	BOOL					Read(CIndexTreeChildNode* pcChildNode, CIndexTreeNodeFile* pcFileNodeParent, unsigned char uiIndexInParent);
 	CIndexTreeNodeFile*		ReadMemoryNode(CIndexTreeNodeFile* pcParent, unsigned char c);
 
@@ -121,7 +123,7 @@ protected:
 	BOOL					RemoveWaitForFlush(CIndexTreeNodeFile* pcCurrent);
 	BOOL					Evict(CIndexTreeNodeFile* pcCurrent);
 	BOOL					Flush(CIndexTreeNodeFile** ppcCurrent);
-	BOOL					CanFlush(CIndexTreeNodeFile* pcNode);
+	BOOL					CanEvict(CIndexTreeNodeFile* pcNode);
 
 	int						RecurseSize(CIndexTreeNodeFile* pcNode);
 	int						RecurseMemorySize(CIndexTreeNodeFile* pcNode);
@@ -133,16 +135,16 @@ protected:
 	int						RecurseNumNodes(CIndexTreeRecursor* pcCursor);
 	int						RecurseNumMemoryNodes(CIndexTreeRecursor* pcCursor);
 
-	BOOL					ValidateLimits(void);
-	BOOL					RecurseValidateLimits(CIndexTreeRecursor* pcCursor);
-	BOOL					ValidateParentIndex(void);
-	BOOL					RecurseValidateParentIndex(CIndexTreeRecursor* pcCursor);
-	BOOL					ValidateTransientFlags(void);
-	BOOL					RecurseValidateTransientFlags(CIndexTreeRecursor* pcCursor);
-	BOOL					ValidateMagic(void);
-	BOOL					RecurseValidateMagic(CIndexTreeRecursor* pcCursor);
-	BOOL					ValidateFileIndexes(void);
-	BOOL					RecurseValidateFileIndexes(CIndexTreeRecursor* pcCursor);
+	BOOL					ValidateLimits(BOOL bReadNodes);
+	BOOL					RecurseValidateLimits(CIndexTreeRecursor* pcCursor, BOOL bReadNodes);
+	BOOL					ValidateParentIndex(BOOL bReadNodes);
+	BOOL					RecurseValidateParentIndex(CIndexTreeRecursor* pcCursor, BOOL bReadNodes);
+	BOOL					ValidateTransientFlags(BOOL bReadNodes);
+	BOOL					RecurseValidateTransientFlags(CIndexTreeRecursor* pcCursor, BOOL bReadNodes);
+	BOOL					ValidateMagic(BOOL bReadNodes);
+	BOOL					RecurseValidateMagic(CIndexTreeRecursor* pcCursor, BOOL bReadNodes);
+	BOOL					ValidateFileIndexes(BOOL bReadNodes);
+	BOOL					RecurseValidateFileIndexes(CIndexTreeRecursor* pcCursor, BOOL bReadNodes);
 
 	BOOL					StepNext(SIndexTreeFileIterator* psIterator);
 
