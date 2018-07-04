@@ -1143,14 +1143,14 @@ BOOL CIndexTreeFile::Evict(void* pvKey, int iKeySize)
 		return FALSE;
 	}
 
+	bResult = CanEvict(pcCurrent);
+	if (!bResult)
+	{
+		return FALSE;
+	}
+
 	if (!mbWriteThrough)
 	{
-		bResult = CanEvict(pcCurrent);
-		if (!bResult)
-		{
-			return FALSE;
-		}
-
 		bResult = Flush(&pcCurrent);
 		if (!bResult)
 		{
@@ -1248,6 +1248,7 @@ BOOL CIndexTreeFile::Flush(CIndexTreeNodeFile** ppcCurrent)
 		{
 			bResult = SetDirtyPath(pcDirty);
 			WriteBackPathCaching(pcDirty);
+			ClearDeletedPath(pcDirty);
 			return bResult;
 		}
 		else
@@ -1274,6 +1275,24 @@ BOOL CIndexTreeFile::Flush(CIndexTreeNodeFile** ppcCurrent)
 //
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeFile::CanEvict(CIndexTreeNodeFile* pcNode)
+{
+	if (!pcNode->HasOnlyFileNodes())
+	{
+		gcLogger.Error2(__METHOD__, " Cannot evict node with children.", NULL);
+		return FALSE;
+	}
+	else
+	{
+		return TRUE;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeFile::CanFlush(CIndexTreeNodeFile* pcNode)
 {
 	int						iFirst;
 	int						i;
@@ -2695,6 +2714,32 @@ BOOL CIndexTreeFile::WriteBackPathCaching(CIndexTreeNodeFile* pcNode)
 		if (!pcNode->HasChildWithFlags(INDEX_TREE_NODE_FLAG_DIRTY_PATH))
 		{
 			pcNode->SetDirtyPath(FALSE);
+		}
+		else
+		{
+			break;
+		}
+
+		pcNode = pcParent;
+	}
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeFile::ClearDeletedPath(CIndexTreeNodeFile* pcNode)
+{
+	CIndexTreeNodeFile* pcParent;
+
+	while (pcNode)
+	{
+		pcParent = (CIndexTreeNodeFile*)pcNode->GetParent();
+		if (!pcNode->HasChildWithFlags(INDEX_TREE_NODE_FLAG_DELETED_PATH))
+		{
+			pcNode->SetDeletedPath(FALSE);
 		}
 		else
 		{
