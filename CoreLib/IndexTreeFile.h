@@ -124,6 +124,7 @@ protected:
 	BOOL					Evict(CIndexTreeNodeFile* pcCurrent);
 	BOOL					Flush(CIndexTreeNodeFile** ppcCurrent);
 	BOOL					CanEvict(CIndexTreeNodeFile* pcNode);
+	BOOL					CanFlush(CIndexTreeNodeFile* pcNode);
 
 	int						RecurseSize(CIndexTreeNodeFile* pcNode);
 	int						RecurseMemorySize(CIndexTreeNodeFile* pcNode);
@@ -158,6 +159,7 @@ protected:
 	BOOL					WriteBackPathCaching(CIndexTreeNodeFile* pcNode);
 	BOOL					SetDirtyPath(CIndexTreeNodeFile* pcCurrent);
 	BOOL					RecurseIsFlushed(CIndexTreeRecursor* pcCursor);
+	BOOL					ClearDeletedPath(CIndexTreeNodeFile* pcNode);
 
 	CFileDataIndex			ReadRootFileIndex(void);
 	BOOL					WriteRootFileIndex(CFileDataIndex* pcRootIndex);
