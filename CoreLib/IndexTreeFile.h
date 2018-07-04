@@ -50,8 +50,13 @@ public:
 	BOOL					Put(void* pvKey, int iKeySize, unsigned short uiDataSize);
 
 	BOOL					Remove(char* pszKey);
+
 	BOOL					Evict(void* pvKey, int iKeySize);
 	BOOL					Evict(char* pszKey);
+
+	BOOL					Flush(void* pvKey, int iKeySize);
+	BOOL					Flush(char* pszKey);
+
 	BOOL					ValidateKey(char* pszKey);
 	BOOL					IsFlushed(void);
 

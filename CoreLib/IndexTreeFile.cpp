@@ -954,6 +954,50 @@ BOOL CIndexTreeFile::Evict(char* pszKey)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeFile::Flush(char* pszKey)
+{
+	int iKeySize;
+
+	if (StrEmpty(pszKey))
+	{
+		return FALSE;
+	}
+
+	iKeySize = strlen(pszKey);
+	return Flush(pszKey, iKeySize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeFile::Flush(void* pvKey, int iKeySize)
+{
+	CIndexTreeNodeFile*	pcNode;
+	BOOL				bResult;
+
+	pcNode = GetMemoryNode(pvKey, iKeySize);
+	if (!pcNode)
+	{
+		return FALSE;
+	}
+	else
+	{
+		bResult = FALSE;
+		if (CanFlush(pcNode))
+		{
+			bResult = Flush(&pcNode);
+		}
+		return bResult;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeFile::ValidateKey(char* pszKey)
 {
 	int iKeySize;
@@ -1298,6 +1342,11 @@ BOOL CIndexTreeFile::CanFlush(CIndexTreeNodeFile* pcNode)
 	int						i;
 	CIndexTreeChildNode*	pcChild;
 
+	if (mbWriteThrough)
+	{
+		return gcLogger.Error2(__METHOD__, " Cannot flush an index tree that is write through.", NULL);
+	}
+
 	iFirst = pcNode->GetFirstIndex();
 	for (i = 0; i < pcNode->GetNumIndexes(); i++)
 	{
@@ -1309,28 +1358,23 @@ BOOL CIndexTreeFile::CanFlush(CIndexTreeNodeFile* pcNode)
 			{
 				if (pcNode->IsDirty())
 				{
-					gcLogger.Error2(__METHOD__, " Cannot flush node, child node [", IntToString(i + iFirst), "] is dirty.", NULL);
-					return FALSE;
+					return gcLogger.Error2(__METHOD__, " Cannot flush node, child node [", IntToString(i + iFirst), "] is dirty.", NULL);
 				}
 				if (pcNode->IsPathDirty())
 				{
-					gcLogger.Error2(__METHOD__, " Cannot flush node, child path [", IntToString(i + iFirst), "] is dirty.", NULL);
-					return FALSE;
+					return gcLogger.Error2(__METHOD__, " Cannot flush node, child path [", IntToString(i + iFirst), "] is dirty.", NULL);
 				}
 				else if (pcNode->IsDeleted())
 				{
-					gcLogger.Error2(__METHOD__, " Cannot flush node, child node [", IntToString(i + iFirst), "] is deleted.", NULL);
-					return FALSE;
+					return gcLogger.Error2(__METHOD__, " Cannot flush node, child node [", IntToString(i + iFirst), "] is deleted.", NULL);
 				}
 				else if (pcNode->IsPathDeleted())
 				{
-					gcLogger.Error2(__METHOD__, " Cannot flush node, child path [", IntToString(i + iFirst), " is deleted.", NULL);
-					return FALSE;
+					return gcLogger.Error2(__METHOD__, " Cannot flush node, child path [", IntToString(i + iFirst), " is deleted.", NULL);
 				}
 				else
 				{
-					gcLogger.Error2(__METHOD__, " Cannot flush node, child node [", IntToString(i + iFirst), " has unexpected transient flag.", NULL);
-					return FALSE;
+					return gcLogger.Error2(__METHOD__, " Cannot flush node, child node [", IntToString(i + iFirst), " has unexpected transient flag.", NULL);
 				}
 			}
 		}
