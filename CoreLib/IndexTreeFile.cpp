@@ -1341,6 +1341,7 @@ BOOL CIndexTreeFile::CanFlush(CIndexTreeNodeFile* pcNode)
 	int						iFirst;
 	int						i;
 	CIndexTreeChildNode*	pcChild;
+	CChars					szFlags;
 
 	if (mbWriteThrough)
 	{
@@ -1356,26 +1357,11 @@ BOOL CIndexTreeFile::CanFlush(CIndexTreeNodeFile* pcNode)
 		{
 			if (pcNode->HasFlags(INDEX_TREE_NODE_TRANSIENT_FLAGS))
 			{
-				if (pcNode->IsDirty())
-				{
-					return gcLogger.Error2(__METHOD__, " Cannot flush node, child node [", IntToString(i + iFirst), "] is dirty.", NULL);
-				}
-				if (pcNode->IsPathDirty())
-				{
-					return gcLogger.Error2(__METHOD__, " Cannot flush node, child path [", IntToString(i + iFirst), "] is dirty.", NULL);
-				}
-				else if (pcNode->IsDeleted())
-				{
-					return gcLogger.Error2(__METHOD__, " Cannot flush node, child node [", IntToString(i + iFirst), "] is deleted.", NULL);
-				}
-				else if (pcNode->IsPathDeleted())
-				{
-					return gcLogger.Error2(__METHOD__, " Cannot flush node, child path [", IntToString(i + iFirst), " is deleted.", NULL);
-				}
-				else
-				{
-					return gcLogger.Error2(__METHOD__, " Cannot flush node, child node [", IntToString(i + iFirst), " has unexpected transient flag.", NULL);
-				}
+				szFlags.Init();
+				pcNode->GetFlagsString(&szFlags);
+				gcLogger.Error2(__METHOD__, " Cannot flush node with child node [", IntToString(i + iFirst), "] with flags [", szFlags.Text(), "].", NULL);
+				szFlags.Kill();
+				return FALSE;
 			}
 		}
 	}
