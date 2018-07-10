@@ -97,6 +97,7 @@
     <ClCompile Include="IndexTreeFile.cpp" />
     <ClCompile Include="IndexTreeFileAccess.cpp" />
     <ClCompile Include="IndexTreeFileDebug.cpp" />
+    <ClCompile Include="IndexTreeFileEvicting.cpp" />
     <ClCompile Include="IndexTreeHelper.cpp" />
     <ClCompile Include="IndexTreeChildNode.cpp" />
     <ClCompile Include="IndexTreeMemoryAccess.cpp" />
@@ -166,6 +167,7 @@
     <ClInclude Include="IndexTreeFile.h" />
     <ClInclude Include="IndexTreeFileAccess.h" />
     <ClInclude Include="IndexTreeFileDebug.h" />
+    <ClInclude Include="IndexTreeFileEvicting.h" />
     <ClInclude Include="IndexTreeMemoryAccess.h" />
     <ClInclude Include="FileIterator.h" />
     <ClInclude Include="FileIteratorReturn.h" />
