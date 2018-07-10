@@ -41,6 +41,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #define ORoot()						(gcObjects.AddRoot())
 #define ONull						(Null())
 
+//#define ONRef(name)  gcObjects.AllocateNamedHollow();  //TODO: Sometimes you need to refer to an object that is already in the database without allocating a new one.
 
 #define  LOG_OBJECT_ALLOCATION(pcObject) LogObjectAllocation(pcObject, __ENGINE_PRETTY_FUNCTION__)
 #define  LOG_OBJECT_DESTRUCTION(pcObject) LogObjectDestruction(pcObject, __ENGINE_PRETTY_FUNCTION__)
@@ -223,7 +224,7 @@ Ptr<M> CObjects::Add(void)
 	}
 
 	LOG_OBJECT_ALLOCATION(pvObject);
-	AddWithID(pvObject, mcIndexGenerator.PopIndex());
+	AddWithID(pvObject, mcIndexGenerator.PopIndex());  //TODO: The OID should be assigned when saved, not when allocated.
 
 	//No PointTo because we don't know the embedding object until assignment.
 	pObject.AssignObject(pvObject);

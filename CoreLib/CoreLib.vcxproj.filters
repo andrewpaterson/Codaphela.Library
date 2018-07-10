@@ -157,6 +157,9 @@
     <Filter Include="Source\File\Indexed\Index\Access">
       <UniqueIdentifier>{08a193f7-2167-4a79-a05b-72c3722a3408}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\File\Indexed\Index\Evicting">
+      <UniqueIdentifier>{6d51dfc8-4ff3-40a7-8784-61de189f10ae}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="IndexedConfig.cpp">
@@ -377,6 +380,9 @@
     </ClCompile>
     <ClCompile Include="IndexTreeFileDebug.cpp">
       <Filter>Source\File\Indexed\Index</Filter>
+    </ClCompile>
+    <ClCompile Include="IndexTreeFileEvicting.cpp">
+      <Filter>Source\File\Indexed\Index\Evicting</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -610,6 +616,9 @@
     </ClInclude>
     <ClInclude Include="IndexTreeFileDebug.h">
       <Filter>Source\File\Indexed\Index</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexTreeFileEvicting.h">
+      <Filter>Source\File\Indexed\Index\Evicting</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

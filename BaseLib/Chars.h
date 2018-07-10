@@ -35,7 +35,6 @@ class CArrayChars;
 
 //Fix CChars to not allocate memory for the empty string.
 //CChars must be based on something other than CArrayChar.
-//Currently mallocs every 8 characters.
 
 
 class CChars

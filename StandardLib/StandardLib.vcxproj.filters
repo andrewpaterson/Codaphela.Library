@@ -471,9 +471,6 @@
     <ClInclude Include="EmbeddedObject.h">
       <Filter>Source\Object\Object</Filter>
     </ClInclude>
-    <ClInclude Include="HollowEmbeddedObject.h">
-      <Filter>Source\Object\Object</Filter>
-    </ClInclude>
     <ClInclude Include="PointerContainer.h">
       <Filter>Source\Data\Pointer</Filter>
     </ClInclude>
@@ -503,6 +500,9 @@
     </ClInclude>
     <ClInclude Include="ObjectsSource.h">
       <Filter>Source\Object\Object\Source</Filter>
+    </ClInclude>
+    <ClInclude Include="HollowEmbeddedObject.h">
+      <Filter>Source\Object\Object\Hollow</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -785,9 +785,6 @@
     <ClCompile Include="EmbeddedObject.cpp">
       <Filter>Source\Object\Object</Filter>
     </ClCompile>
-    <ClCompile Include="HollowEmbeddedObject.cpp">
-      <Filter>Source\Object\Object</Filter>
-    </ClCompile>
     <ClCompile Include="PointerContainer.cpp">
       <Filter>Source\Data\Pointer</Filter>
     </ClCompile>
@@ -814,6 +811,9 @@
     </ClCompile>
     <ClCompile Include="ObjectsSource.cpp">
       <Filter>Source\Object\Object\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="HollowEmbeddedObject.cpp">
+      <Filter>Source\Object\Object\Hollow</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

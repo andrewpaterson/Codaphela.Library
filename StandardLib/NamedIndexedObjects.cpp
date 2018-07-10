@@ -128,7 +128,6 @@ BOOL CNamedIndexedObjects::AddWithID(CBaseObject* pvObject, OIndex oi)
 {
 	BOOL	bResult;
 
-	
 	bResult = mcIndexedObjects.Add(oi, pvObject);
 	if (bResult)
 	{
