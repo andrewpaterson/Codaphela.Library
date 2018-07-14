@@ -1,11 +1,11 @@
-#include "IndexTreeFileAccess.h"
+#include "IndexTreeEvictingAccess.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFileAccess::Init(CIndexTreeFile* pcTree)
+BOOL CIndexTreeEvictingAccess::Init(CIndexTreeEvicting* pcTree)
 {
 	CIndexTreeAccess::Init();
 	mpcTree = pcTree;
@@ -17,7 +17,7 @@ BOOL CIndexTreeFileAccess::Init(CIndexTreeFile* pcTree)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFileAccess::Kill(void)
+BOOL CIndexTreeEvictingAccess::Kill(void)
 {
 	mpcTree = NULL;
 	return CIndexTreeAccess::Kill();
@@ -28,7 +28,7 @@ BOOL CIndexTreeFileAccess::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFileAccess::Flush(void)
+BOOL CIndexTreeEvictingAccess::Flush(void)
 {
 	if (!mpcTree->IsWriteThrough())
 	{
@@ -45,7 +45,7 @@ BOOL CIndexTreeFileAccess::Flush(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFileAccess::Put(void* pvKey, int iKeySize, void* pvObject, unsigned char uiDataSize)
+BOOL CIndexTreeEvictingAccess::Put(void* pvKey, int iKeySize, void* pvObject, unsigned char uiDataSize)
 {
 	return mpcTree->Put(pvKey, iKeySize, pvObject, uiDataSize);
 }
@@ -55,7 +55,7 @@ BOOL CIndexTreeFileAccess::Put(void* pvKey, int iKeySize, void* pvObject, unsign
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFileAccess::Get(void* pvKey, int iKeySize, void* pvObject, int* piDataSize)
+BOOL CIndexTreeEvictingAccess::Get(void* pvKey, int iKeySize, void* pvObject, int* piDataSize)
 {
 	unsigned short	uiDataSize;
 	BOOL			bResult;
@@ -74,17 +74,18 @@ BOOL CIndexTreeFileAccess::Get(void* pvKey, int iKeySize, void* pvObject, int* p
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFileAccess::Remove(void* pvKey, int iKeySize)
+BOOL CIndexTreeEvictingAccess::Remove(void* pvKey, int iKeySize)
 {
 	return mpcTree->Remove(pvKey, iKeySize);
 }
 
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-unsigned short CIndexTreeFileAccess::DataSize(void* pvKey, int iKeySize)
+unsigned short CIndexTreeEvictingAccess::DataSize(void* pvKey, int iKeySize)
 {
 	return mpcTree->ObjectSize(pvKey, iKeySize);
 }

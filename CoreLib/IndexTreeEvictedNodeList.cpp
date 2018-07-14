@@ -1,14 +1,36 @@
-#include "IndexTreeFileAccess.h"
+#include "IndexTreeEvictedNodeList.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFileAccess::Init(CIndexTreeFile* pcTree)
+void CIndexTreeEvictedNodeList::Init(void)
 {
-	CIndexTreeAccess::Init();
-	mpcTree = pcTree;
+	mcKeys.Init();
+	mcDatas.Init();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexTreeEvictedNodeList::Kill(void)
+{
+	mcDatas.Kill();
+	mcKeys.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeEvictedNodeList::NodeEvicted(CIndexTreeFile* pcIndexTree, unsigned char* pvKey, int iKeySize, void* pvData, int iDataSize)
+{
+	mcKeys.Add(pvKey, iKeySize + 1);
+	mcDatas.Add(pvData, iDataSize);
 	return TRUE;
 }
 
@@ -17,10 +39,9 @@ BOOL CIndexTreeFileAccess::Init(CIndexTreeFile* pcTree)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFileAccess::Kill(void)
+int CIndexTreeEvictedNodeList::NumElements(void)
 {
-	mpcTree = NULL;
-	return CIndexTreeAccess::Kill();
+	return mcKeys.NumElements();
 }
 
 
@@ -28,16 +49,13 @@ BOOL CIndexTreeFileAccess::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFileAccess::Flush(void)
+unsigned char* CIndexTreeEvictedNodeList::GetKey(int iIndex, int* piKeySize)
 {
-	if (!mpcTree->IsWriteThrough())
+	if (piKeySize)
 	{
-		return mpcTree->Flush();
+		*piKeySize = mcKeys.GetSize(iIndex);
 	}
-	else
-	{
-		return TRUE;
-	}
+	return (unsigned char*)mcKeys.Get(iIndex);
 }
 
 
@@ -45,28 +63,13 @@ BOOL CIndexTreeFileAccess::Flush(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFileAccess::Put(void* pvKey, int iKeySize, void* pvObject, unsigned char uiDataSize)
+void* CIndexTreeEvictedNodeList::GetData(int iIndex, int* piDataSize)
 {
-	return mpcTree->Put(pvKey, iKeySize, pvObject, uiDataSize);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFileAccess::Get(void* pvKey, int iKeySize, void* pvObject, int* piDataSize)
-{
-	unsigned short	uiDataSize;
-	BOOL			bResult;
-
-	bResult = mpcTree->Get(pvKey, iKeySize, pvObject, &uiDataSize);
-
 	if (piDataSize)
 	{
-		*piDataSize = uiDataSize;
+		*piDataSize = mcDatas.GetSize(iIndex);
 	}
-	return bResult;
+	return mcDatas.Get(iIndex);
 }
 
 
@@ -74,18 +77,9 @@ BOOL CIndexTreeFileAccess::Get(void* pvKey, int iKeySize, void* pvObject, int* p
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFileAccess::Remove(void* pvKey, int iKeySize)
+void CIndexTreeEvictedNodeList::Clear(void)
 {
-	return mpcTree->Remove(pvKey, iKeySize);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-unsigned short CIndexTreeFileAccess::DataSize(void* pvKey, int iKeySize)
-{
-	return mpcTree->ObjectSize(pvKey, iKeySize);
+	mcKeys.ReInit();
+	mcDatas.ReInit();
 }
 

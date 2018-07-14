@@ -87,3 +87,24 @@ BOOL CIndexTreeMemoryAccess::Remove(void* pvKey, int iKeySize)
 	return mpcTree->Remove(pvKey, iKeySize);
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+unsigned short CIndexTreeMemoryAccess::DataSize(void* pvKey, int iKeySize)
+{
+	unsigned short	uiDataSize;
+	void*			pvData;
+
+	pvData = mpcTree->Get(pvKey, iKeySize, &uiDataSize);
+	if (pvData)
+	{
+		return uiDataSize;
+	}
+	else
+	{
+		return 0;
+	}
+}
+

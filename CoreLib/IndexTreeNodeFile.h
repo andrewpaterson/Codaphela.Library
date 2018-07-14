@@ -33,7 +33,8 @@ public:
 	CIndexTreeChildNode*	GetNode(int i);
 	CIndexTreeChildNode*	GetNodes(void);
 	CIndexTreeChildNode*	GetFirstNode(void);
-	int						NumInitialisedIndexes(void);
+	int						NumValidIndexes(void);
+	int						NumMemoryIndexes(void);
 
 	void					Contain(unsigned char uiIndex);
 	BOOL					Uncontain(unsigned char uiIndex);
@@ -52,6 +53,8 @@ public:
 	BOOL					HasOnlyFileNodes(void);
 	BOOL					HasChildWithFlags(unsigned char uiFlags);
 	BOOL					ConvertToFileNode(CIndexTreeNodeFile* pcNode);
+
+	CIndexTreeNodeFile*		GetValidMemoryNode(int iIndex);
 
 	BOOL					ValidateNodesEmpty(void);
 	void					Print(CChars* psz, BOOL bHex);

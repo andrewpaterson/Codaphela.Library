@@ -1,0 +1,19 @@
+#ifndef __STD_RANDOM_H__
+#define __STD_RANDOM_H__
+#include <random>
+
+
+class CRandom
+{
+private:
+	std::mt19937	mcRNG;
+
+public:
+	void	Init(int iSeed);
+		
+	int		Next(int iMin, int iMax);
+};
+
+
+#endif // __STD_RANDOM_H__
+

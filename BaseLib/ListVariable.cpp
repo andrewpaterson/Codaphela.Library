@@ -79,7 +79,34 @@ void* CListVariable::Get(int iIndex)
 	SPointerAndSize*	ps;
 
 	ps = mcArray.SafeGet(iIndex);
-	return ps->pvData;
+	if (ps)
+	{
+		return ps->pvData;
+	}
+	else
+	{
+		return NULL;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CListVariable::GetSize(int iIndex)
+{
+	SPointerAndSize*	ps;
+
+	ps = mcArray.SafeGet(iIndex);
+	if (ps)
+	{
+		return ps->iSize;
+	}
+	else
+	{
+		return 0;
+	}
 }
 
 

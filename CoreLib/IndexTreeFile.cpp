@@ -115,7 +115,7 @@ void CIndexTreeFile::RecurseKill(CIndexTreeNodeFile* pcNode)
 
 	if (pcNode != NULL)
 	{
-		for (i = 0; i < pcNode->GetNumIndexes(); i++)
+		for (i = 0; i < pcNode->NumIndexes(); i++)
 		{
 			pcChild = pcNode->GetNode(i);
 			if (pcChild->IsMemory())
@@ -328,7 +328,7 @@ CIndexTreeNodeFile* CIndexTreeFile::AllocateNode(CIndexTreeNodeFile* pcParent, u
 	size_t					tSize;
 
 	pcNode = NULL;
-	iRequiredIndices = pcNode->GetNumIndexes(uiFirstIndex, uiLastIndex);
+	iRequiredIndices = pcNode->NumIndexes(uiFirstIndex, uiLastIndex);
 	tSize = CalculateNodeSize(iRequiredIndices, uiDataSize);
 	pcNode = (CIndexTreeNodeFile*)Malloc(tSize);
 	pcNode->Init(this, pcParent, uiFirstIndex, uiLastIndex, uiDataSize, uiIndexInParent);
@@ -585,7 +585,7 @@ BOOL CIndexTreeFile::Get(void* pvKey, int iKeySize, void* pvObject, unsigned sho
 	}
 	else
 	{
-		uiDataSize = pcNode->GetObjectSize();
+		uiDataSize = pcNode->ObjectSize();
 		if ((uiDataSize == 0) || (pcNode->IsDeleted() && !pcNode->IsDirty()))
 		{
 			return FALSE;
@@ -716,15 +716,15 @@ CIndexTreeNodeFile* CIndexTreeFile::SetNodeObject(CIndexTreeNodeFile* pcCurrent,
 	BOOL					bResult;
 	unsigned short			uiOriginalSize;
 
-	if (uiDataSize > pcCurrent->GetObjectSize())
+	if (uiDataSize > pcCurrent->ObjectSize())
 	{
 		pcReallocatedCurrent = ReallocateNodeForLargerData(pcCurrent, uiDataSize);
 		bResult = pcReallocatedCurrent->SetObject(pvObject, uiDataSize);
 		pcReallocatedCurrent->GetParent()->SetDirtyNode(TRUE);
 	}
-	else if (uiDataSize < pcCurrent->GetObjectSize())
+	else if (uiDataSize < pcCurrent->ObjectSize())
 	{
-		uiOriginalSize = pcCurrent->GetObjectSize();
+		uiOriginalSize = pcCurrent->ObjectSize();
 		bResult = pcCurrent->SetObject(pvObject, uiDataSize);
 		pcReallocatedCurrent = ReallocateNodeForSmallerData(pcCurrent, uiOriginalSize);
 		pcReallocatedCurrent->GetParent()->SetDirtyNode(TRUE);
@@ -1064,7 +1064,7 @@ CIndexTreeNodeFile* CIndexTreeFile::RemoveWriteThrough(CIndexTreeNodeFile* pcCur
 	size_t					tOldNodeSize;
 	BOOL					bResult;
 
-	if (pcCurrent->GetObjectSize() == 0)
+	if (pcCurrent->ObjectSize() == 0)
 	{
 		return FALSE;
 	}
@@ -1150,7 +1150,7 @@ CIndexTreeNodeFile* CIndexTreeFile::ReallocateNodeForUncontainIndex(CIndexTreeNo
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeFile::RemoveWaitForFlush(CIndexTreeNodeFile* pcCurrent)
 {
-	if (pcCurrent->GetObjectSize() == 0)
+	if (pcCurrent->ObjectSize() == 0)
 	{
 		return FALSE;
 	}
@@ -1174,7 +1174,6 @@ BOOL CIndexTreeFile::RemoveWaitForFlush(CIndexTreeNodeFile* pcCurrent)
 BOOL CIndexTreeFile::Evict(void* pvKey, int iKeySize)
 {
 	CIndexTreeNodeFile*		pcCurrent;
-	BOOL					bResult;
 
 	if ((iKeySize == 0) || (pvKey == NULL))
 	{
@@ -1187,7 +1186,19 @@ BOOL CIndexTreeFile::Evict(void* pvKey, int iKeySize)
 		return FALSE;
 	}
 
-	bResult = CanEvict(pcCurrent);
+	return Evict(pcCurrent);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeFile::Evict(CIndexTreeNodeFile* pcNode)
+{
+	BOOL					bResult;
+
+	bResult = CanEvict(pcNode);
 	if (!bResult)
 	{
 		return FALSE;
@@ -1195,16 +1206,16 @@ BOOL CIndexTreeFile::Evict(void* pvKey, int iKeySize)
 
 	if (!mbWriteThrough)
 	{
-		bResult = Flush(&pcCurrent);
+		bResult = Flush(&pcNode);
 		if (!bResult)
 		{
 			return FALSE;
 		}
 	}
 
-	if (pcCurrent)
+	if (pcNode)
 	{
-		return Evict(pcCurrent);
+		return EvictNode(pcNode);
 	}
 	else
 	{
@@ -1217,7 +1228,7 @@ BOOL CIndexTreeFile::Evict(void* pvKey, int iKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::Evict(CIndexTreeNodeFile* pcCurrent)
+BOOL CIndexTreeFile::EvictNode(CIndexTreeNodeFile* pcCurrent)
 {
 	CIndexTreeNodeFile*		pcParent;
 	CIndexTreeNodeFile*		pcNode;
@@ -1349,7 +1360,7 @@ BOOL CIndexTreeFile::CanFlush(CIndexTreeNodeFile* pcNode)
 	}
 
 	iFirst = pcNode->GetFirstIndex();
-	for (i = 0; i < pcNode->GetNumIndexes(); i++)
+	for (i = 0; i < pcNode->NumIndexes(); i++)
 	{
 
 		pcChild = pcNode->GetNode(i);
@@ -1722,7 +1733,7 @@ BOOL CIndexTreeFile::StartIteration(SIndexTreeFileIterator* psIterator, void** p
 		}
 		if (piDataSize)
 		{
-			*piDataSize = psIterator->pcNode->GetObjectSize();
+			*piDataSize = psIterator->pcNode->ObjectSize();
 		}
 		return TRUE;
 	}
@@ -1747,7 +1758,7 @@ BOOL CIndexTreeFile::Iterate(SIndexTreeFileIterator* psIterator, void** pvData, 
 		}
 		if (piDataSize)
 		{
-			*piDataSize = psIterator->pcNode->GetObjectSize();
+			*piDataSize = psIterator->pcNode->ObjectSize();
 		}
 		return TRUE;
 	}
@@ -1764,6 +1775,7 @@ BOOL CIndexTreeFile::Iterate(SIndexTreeFileIterator* psIterator, void** pvData, 
 //////////////////////////////////////////////////////////////////////////
 int CIndexTreeFile::FindKeySize(CIndexTreeNodeFile* pcNode)
 {
+	//What is the difference between this and GetNodeKeySize
 	int				iKeySize;
 	CIndexTreeNode*	pcCurrent;
 
@@ -2111,7 +2123,7 @@ size_t CIndexTreeFile::RecurseByteSize(CIndexTreeNodeFile* pcNode)
 	if (pcNode != NULL)
 	{
 		tSize += pcNode->CalculateRequiredNodeSizeForCurrent();
-		uiSize = pcNode->GetObjectSize();
+		uiSize = pcNode->ObjectSize();
 
 		iLastIndex = pcNode->GetLastIndex();
 		for (i = pcNode->GetFirstIndex(); i <= iLastIndex; i++)
@@ -2483,7 +2495,7 @@ BOOL CIndexTreeFile::HasKey(void* pvKey, int iKeySize)
 		return FALSE;
 	}
 
-	return pcNode->GetObjectSize() != 0;
+	return pcNode->ObjectSize() != 0;
 }
 
 
@@ -2502,6 +2514,24 @@ BOOL CIndexTreeFile::HasKey(char* pszKey)
 
 	iKeySize = strlen(pszKey);
 	return HasKey(pszKey, iKeySize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+unsigned short CIndexTreeFile::ObjectSize(void* pvKey, int iKeySize)
+{
+	CIndexTreeNodeFile* pcNode;
+
+	pcNode = GetNode(pvKey, iKeySize);
+	if (pcNode == NULL)
+	{
+		return 0;
+	}
+
+	return pcNode->ObjectSize();
 }
 
 
@@ -2567,7 +2597,7 @@ int CIndexTreeFile::RecurseCountListSize(CIndexTreeNodeFile* pcNode)
 
 	if (pcNode != NULL)
 	{
-		count = pcNode->GetNumIndexes();
+		count = pcNode->NumIndexes();
 		iLastIndex = pcNode->GetLastIndex();
 		for (i = pcNode->GetFirstIndex(); i <= iLastIndex; i++)
 		{
@@ -3409,7 +3439,7 @@ void CIndexTreeFile::Dump(void)
 
 	sz.Init();
 	sz.Append("= [IndexTreeFile] ");
-	sz.Append('=', mpcRoot->GetNumIndexes() * 2);
+	sz.Append('=', mpcRoot->NumIndexes() * 2);
 	sz.AppendNewLine();
 	sz.Dump();
 	sz.Kill();
@@ -3474,6 +3504,7 @@ void CIndexTreeFile::RecurseDump(CIndexTreeRecursor* pcCursor)
 //////////////////////////////////////////////////////////////////////////
 int CIndexTreeFile::GetNodeKeySize(CIndexTreeNodeFile* pcNode)
 {
+	//What is the difference between this and FindKeySize
 	int		iKeySize;
 
 	iKeySize = 0;

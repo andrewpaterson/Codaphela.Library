@@ -126,7 +126,7 @@ void CIndexTreeNodeMemory::RemapChildNodes(CIndexTreeNodeMemory* pcOldNode, CInd
 
 	apcChildren = GetNodes();
 
-	iNumNodes = GetNumIndexes();
+	iNumNodes = NumIndexes();
 	for (i = 0; i < iNumNodes; i++)
 	{
 		if (apcChildren[i] == pcOldNode)
@@ -277,7 +277,7 @@ void CIndexTreeNodeMemory::SetChildsParent(void)
 	CIndexTreeNodeMemory*	pcChild;
 	CIndexTreeNodeMemory**	apcChildren;
 
-	iNumNodes = GetNumIndexes();
+	iNumNodes = NumIndexes();
 	apcChildren = GetNodes();
 
 	for (i = 0; i < iNumNodes; i++)
@@ -295,7 +295,7 @@ void CIndexTreeNodeMemory::SetChildsParent(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CIndexTreeNodeMemory::NumInitialisedIndexes(void)
+int CIndexTreeNodeMemory::NumValidIndexes(void)
 {
 	int						i;
 	CIndexTreeNodeMemory*	pcChild;
@@ -331,7 +331,7 @@ BOOL CIndexTreeNodeMemory::ValidateNodesEmpty(void)
 	BOOL	bCountEmpty;
 	BOOL	bNodesEmpty;
 
-	iCount = NumInitialisedIndexes();
+	iCount = NumValidIndexes();
 
 	bCountEmpty = (iCount == 0);
 	bNodesEmpty = !HasNodes();
