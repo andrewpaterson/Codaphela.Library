@@ -61,6 +61,7 @@ public:
 	BOOL	FindInSorted(void* pvElement, int(*Func)(const void*, const void*), int* piIndex);
 	void*	InsertAt(int iIndex, int iElementSize);
 	int		InsertIntoSorted(int(*)(const void*, const void*), void* pvElement, BOOL bOverwriteExisting, int iElementSize);
+	int		GetSize(int iIndex);
 
 private:
 	void	PrivateFree(SPointerAndSize* psType);

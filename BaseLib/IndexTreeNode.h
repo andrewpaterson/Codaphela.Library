@@ -48,7 +48,7 @@ public:
 	BOOL			SetObject(void* pvObject, unsigned short uiSize);
 	void			ClearObject(void);
 
-	unsigned short	GetObjectSize(void);
+	unsigned short	ObjectSize(void);
 	void*			GetObjectPtr(void);
 	BOOL			HasObject(void);
 
@@ -59,8 +59,8 @@ public:
 	unsigned char	GetFlags(void);
 	unsigned char	GetTransientFlags(void);
 
-	int				GetNumIndexes(void);
-	int				GetNumIndexes(unsigned char uiFirstIndex, unsigned char uiLastIndex);
+	int				NumIndexes(void);
+	int				NumIndexes(unsigned char uiFirstIndex, unsigned char uiLastIndex);
 	int				GetAdditionalIndexes(unsigned char uiIndex);
 
 	BOOL			IsEmpty(void);

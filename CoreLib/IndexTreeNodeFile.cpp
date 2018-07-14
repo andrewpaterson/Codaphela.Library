@@ -207,7 +207,7 @@ void CIndexTreeNodeFile::RemapChildNodes(CIndexTreeNodeFile* pcOldNode, CIndexTr
 
 	acChildren = GetNodes();
 
-	iNumNodes = GetNumIndexes();
+	iNumNodes = NumIndexes();
 	for (i = 0; i < iNumNodes; i++)
 	{
 		pcChild = &acChildren[i];
@@ -342,7 +342,7 @@ void CIndexTreeNodeFile::SetChildrensParent(void)
 	CIndexTreeChildNode*	pcChild;
 	CIndexTreeChildNode*	acChildren;
 
-	iNumNodes = GetNumIndexes();
+	iNumNodes = NumIndexes();
 	acChildren = GetNodes();
 
 	for (i = 0; i < iNumNodes; i++)
@@ -355,16 +355,18 @@ void CIndexTreeNodeFile::SetChildrensParent(void)
 	}
 }
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CIndexTreeNodeFile::NumInitialisedIndexes(void)
+int CIndexTreeNodeFile::NumValidIndexes(void)
 {
 	int						i;
 	CIndexTreeChildNode*	pcChild;
 	CIndexTreeChildNode*	acChildren;
 	int						iCount;
+	int						iLength;
 
 	if ((!HasNodes()) && (muiLastIndex == 0) && (muiFirstIndex == 0))
 	{
@@ -373,7 +375,8 @@ int CIndexTreeNodeFile::NumInitialisedIndexes(void)
 
 	iCount = 0;
 	acChildren = GetNodes();
-	for (i = 0; i <= muiLastIndex - muiFirstIndex; i++)
+	iLength = muiLastIndex - muiFirstIndex;
+	for (i = 0; i <= iLength; i++)
 	{
 		pcChild = &acChildren[i];
 		if (pcChild->IsValid())
@@ -389,9 +392,77 @@ int CIndexTreeNodeFile::NumInitialisedIndexes(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+int CIndexTreeNodeFile::NumMemoryIndexes(void)
+{
+	int						i;
+	CIndexTreeChildNode*	pcChild;
+	CIndexTreeChildNode*	acChildren;
+	int						iCount;
+	int						iLength;
+
+	if ((!HasNodes()) && (muiLastIndex == 0) && (muiFirstIndex == 0))
+	{
+		return 0;
+	}
+
+	iCount = 0;
+	acChildren = GetNodes();
+	iLength = muiLastIndex - muiFirstIndex;
+	for (i = 0; i <= iLength; i++)
+	{
+		pcChild = &acChildren[i];
+		if (pcChild->IsMemory())
+		{
+			iCount++;
+		}
+	}
+	return iCount;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CIndexTreeNodeFile* CIndexTreeNodeFile::GetValidMemoryNode(int iIndex)
+{
+	int						i;
+	CIndexTreeChildNode*	pcChild;
+	CIndexTreeChildNode*	acChildren;
+	int						iCount;
+	int						iLength;
+
+	if ((!HasNodes()) && (muiLastIndex == 0) && (muiFirstIndex == 0))
+	{
+		return NULL;
+	}
+
+	iCount = 0;
+	acChildren = GetNodes();
+	iLength = muiLastIndex - muiFirstIndex;
+	for (i = 0; i <= iLength; i++)
+	{
+		pcChild = &acChildren[i];
+		if (pcChild->IsMemory())
+		{
+			if (iCount == iIndex)
+			{
+				return pcChild->u.mpcMemory;
+			}
+			iCount++;
+		}
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 int CIndexTreeNodeFile::CalculateBufferSize(void)
 {
-	return sizeof(int) + sizeof(unsigned short) + (4 * sizeof(unsigned char)) + muiDataSize + (GetNumIndexes() * (sizeof(int) + sizeof(unsigned int)));
+	return sizeof(int) + sizeof(unsigned short) + (4 * sizeof(unsigned char)) + muiDataSize + (NumIndexes() * (sizeof(int) + sizeof(unsigned int)));
 }
 
 
@@ -435,7 +506,7 @@ int CIndexTreeNodeFile::WriteToBuffer(void* pvBuffer, int iBufferSize)
 	}
 
 	cEmptyIndex.Init();
-	iNumNodes = GetNumIndexes();
+	iNumNodes = NumIndexes();
 	for (int i = 0; i < iNumNodes; i++)
 	{
 		pcChild = GetNode(i);
@@ -505,7 +576,7 @@ int CIndexTreeNodeFile::InitFromBuffer(void* pvBuffer, int iBufferSize)
 		iPos += muiDataSize;
 	}
 
-	iNumNodes = GetNumIndexes();
+	iNumNodes = NumIndexes();
 	for (int i = 0; i < iNumNodes; i++)
 	{
 		iFile = *((int*)&pucMemory[iPos]);  iPos += sizeof(int);
@@ -536,7 +607,7 @@ BOOL CIndexTreeNodeFile::ValidateNodesEmpty(void)
 	BOOL	bCountEmpty;
 	BOOL	bNodesEmpty;
 
-	iCount = NumInitialisedIndexes();
+	iCount = NumValidIndexes();
 
 	bCountEmpty = (iCount == 0);
 	bNodesEmpty = !HasNodes();
@@ -568,7 +639,7 @@ BOOL CIndexTreeNodeFile::HasOnlyFileNodes(void)
 	int						i;
 	CIndexTreeChildNode*	pcChild;
 
-	iNumNodes = GetNumIndexes();
+	iNumNodes = NumIndexes();
 	for (i = 0; i < iNumNodes; i++)
 	{
 		pcChild = GetNode(i);
@@ -591,7 +662,7 @@ BOOL CIndexTreeNodeFile::HasChildWithFlags(unsigned char uiFlags)
 	int						i;
 	CIndexTreeChildNode*	pcChild;
 
-	iNumNodes = GetNumIndexes();
+	iNumNodes = NumIndexes();
 	for (i = 0; i < iNumNodes; i++)
 	{
 		pcChild = GetNode(i);

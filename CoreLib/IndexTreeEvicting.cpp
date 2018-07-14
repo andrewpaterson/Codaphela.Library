@@ -1,0 +1,309 @@
+#include "BaseLib/StackMemory.h"
+#include "IndexTreeEvicting.h"
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeEvicting::Init(CDurableFileController* pcDurableFileControl, size_t uiCutoff, CIndexTreeEvictionCallback* pcEvictionCallback)
+{
+	return Init(pcDurableFileControl, uiCutoff, pcEvictionCallback, &gcSystemAllocator, TRUE);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeEvicting::Init(CDurableFileController* pcDurableFileControl, size_t uiCutoff, CIndexTreeEvictionCallback* pcEvictionCallback, BOOL bWriteThrough)
+{
+	return Init(pcDurableFileControl, uiCutoff, pcEvictionCallback, &gcSystemAllocator, bWriteThrough);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeEvicting::Init(CDurableFileController* pcDurableFileControl, size_t uiCutoff, CIndexTreeEvictionCallback* pcEvictionCallback, CMallocator* pcMalloc, BOOL bWriteThrough)
+{
+	mcRandom.Init(67);
+
+	mpcEvictionCallback = pcEvictionCallback;
+	muiCutoff = uiCutoff;
+	return mcIndexTree.Init(pcDurableFileControl, pcMalloc, bWriteThrough);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeEvicting::Kill(void)
+{
+	BOOL bResult;
+
+	bResult = mcIndexTree.Kill();
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeEvicting::Get(void* pvKey, int iKeySize, void* pvObject, unsigned short* puiDataSize)
+{
+	BOOL	bResult;
+
+	bResult = mcIndexTree.Get(pvKey, iKeySize, pvObject, puiDataSize);
+	PotentiallyEvict(pvKey, iKeySize);
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeEvicting::Put(void* pvKey, int iKeySize, void* pvObject, unsigned short uiDataSize)
+{
+	BOOL	bResult;
+
+	bResult = mcIndexTree.Put(pvKey, iKeySize, pvObject, uiDataSize);
+	PotentiallyEvict(pvKey, iKeySize);
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeEvicting::Remove(void* pvKey, int iKeySize)
+{
+	BOOL	bResult;
+
+	bResult = mcIndexTree.Remove(pvKey, iKeySize);
+	PotentiallyEvict(pvKey, iKeySize);
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeEvicting::HasKey(void* pvKey, int iKeySize)
+{
+	BOOL	bResult;
+
+	bResult = mcIndexTree.HasKey(pvKey, iKeySize);
+	PotentiallyEvict(pvKey, iKeySize);
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+unsigned short CIndexTreeEvicting::ObjectSize(void* pvKey, int iKeySize)
+{
+	unsigned short	uiSize;
+
+	uiSize = mcIndexTree.ObjectSize(pvKey, iKeySize);
+	PotentiallyEvict(pvKey, iKeySize);
+	return uiSize;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexTreeEvicting::PotentiallyEvict(void* pvKey, int iKeySize)
+{
+	size_t				uiLastSize;
+	size_t				uiSize;
+	CIndexTreeNodeFile*	pcDontEvict;
+	int					i;
+
+	mcIndexTree.GetNode(pvKey, iKeySize);
+	uiLastSize = 0;
+	pcDontEvict = mcIndexTree.GetMemoryNode(pvKey, iKeySize);
+
+	for (;;)
+	{
+		uiSize = mcIndexTree.GetSystemMemorySize();
+		if ((uiSize <= muiCutoff) || (uiSize == uiLastSize))
+		{
+			return;
+		}
+
+		for (i = 0; i < 5; i++)
+		{
+			if (EvictRandomNode(pcDontEvict))
+			{
+				break;
+			}
+		}
+		uiLastSize = uiSize;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeEvicting::EvictRandomNode(CIndexTreeNodeFile* pcDontEvict)
+{
+	CIndexTreeNodeFile*	pcNode;
+	int					iNumIndexes;
+	int					iIndex;
+	BOOL				bEvict;
+	int					iKeyDepth;
+
+	pcNode = mcIndexTree.GetRoot();
+	iKeyDepth = 0;
+	for (;;)
+	{
+		iNumIndexes = pcNode->NumValidIndexes();
+		if (iNumIndexes > 1)
+		{
+			iIndex = mcRandom.Next(0, iNumIndexes-1);
+
+			pcNode = pcNode->GetValidMemoryNode(iIndex);
+		}
+		else if (iNumIndexes == 1)
+		{
+			pcNode = pcNode->GetValidMemoryNode(0);
+		}
+		else
+		{
+			if (pcNode != pcDontEvict)
+			{
+				if (pcNode->HasObject())
+				{
+					bEvict = EvictNodeCallback(pcNode);
+				}
+				else
+				{
+					bEvict = TRUE;
+				}
+
+				if (bEvict)
+				{
+					mcIndexTree.Evict(pcNode);
+				}
+				return TRUE;
+			}
+			else
+			{
+				return FALSE;
+			}
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeEvicting::EvictNodeCallback(CIndexTreeNodeFile* pcNode)
+{
+	CStackMemory<>		cStack;
+	unsigned char*		pvMem;
+	int					iKeySize;
+
+	iKeySize = mcIndexTree.GetNodeKeySize(pcNode);
+	pvMem = (unsigned char*)cStack.Init(iKeySize + 1);
+	mcIndexTree.GetNodeKey(pcNode, pvMem, iKeySize + 1);
+	pvMem[iKeySize] = 0;
+
+	return mpcEvictionCallback->NodeEvicted(&mcIndexTree, pvMem, iKeySize, pcNode->GetObjectPtr(), pcNode->ObjectSize());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeEvicting::IsWriteThrough(void)
+{
+	return mcIndexTree.IsWriteThrough();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeEvicting::Flush(void)
+{
+	return mcIndexTree.Flush();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CIndexedFiles* CIndexTreeEvicting::GetIndexFiles(void)
+{
+	return mcIndexTree.GetIndexFiles();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CIndexTreeEvicting::NumNodes(void)
+{
+	return mcIndexTree.NumNodes();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CIndexTreeEvicting::NumMemoryNodes(void)
+{
+	return mcIndexTree.NumMemoryNodes();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CIndexTreeEvicting::NumMemoryElements(void)
+{
+	return mcIndexTree.NumMemoryElements();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexTreeEvicting::DebugKey(void* pvKey, int iKeySize, BOOL bSkipRoot)
+{
+	return mcIndexTree.DebugKey(pvKey, iKeySize, bSkipRoot);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexTreeEvicting::Dump(void)
+{
+	return mcIndexTree.Dump();
+}
+

@@ -52,7 +52,7 @@ void CIndexTreeWriter::RecurseAllocate(CIndexTreeNodeMemory* pcMemoryNode, CInde
 	pvObject = pcMemoryNode->GetObjectPtr();
 	if (pvObject != NULL)
 	{
-		pcFileNode->SetObject(pvObject, pcMemoryNode->GetObjectSize());
+		pcFileNode->SetObject(pvObject, pcMemoryNode->ObjectSize());
 	}
 
 	if (pcMemoryNode->HasNodes())
@@ -64,7 +64,7 @@ void CIndexTreeWriter::RecurseAllocate(CIndexTreeNodeMemory* pcMemoryNode, CInde
 			pcMemoryChild = pcMemoryNode->GetNode(i - iFirstIndex);
 			if (pcMemoryChild != NULL)
 			{
-				iChildDataSize = pcMemoryChild->GetObjectSize();
+				iChildDataSize = pcMemoryChild->ObjectSize();
 				if (pcMemoryChild->HasNodes())
 				{
 					iChildFirstIndex = pcMemoryChild->GetFirstIndex();

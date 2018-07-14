@@ -208,6 +208,9 @@
     <Filter Include="Source\Math\Packed">
       <UniqueIdentifier>{b2799c0c-14d3-4068-877a-b35cce76a83e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Math\Random">
+      <UniqueIdentifier>{56de7461-47e8-4032-bef0-2e4ff47edfd7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DataMacro.h">
@@ -759,6 +762,9 @@
     <ClInclude Include="CountingAllocator.h">
       <Filter>Source\Memory\Manager</Filter>
     </ClInclude>
+    <ClInclude Include="StdRandom.h">
+      <Filter>Source\Math\Random</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -1195,6 +1201,9 @@
     </ClCompile>
     <ClCompile Include="CountingAllocator.cpp">
       <Filter>Source\Memory\Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="StdRandom.cpp">
+      <Filter>Source\Math\Random</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

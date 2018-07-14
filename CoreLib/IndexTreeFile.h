@@ -38,6 +38,7 @@ public:
 	BOOL					Put(void* pvKey, int iKeySize, void* pvObject, unsigned short uiDataSize);
 	BOOL					Remove(void* pvKey, int iKeySize);
 	BOOL					HasKey(void* pvKey, int iKeySize);
+	unsigned short			ObjectSize(void* pvKey, int iKeySize);
 
 	int						NumElements(void);
 	BOOL					Flush(void);
@@ -53,6 +54,7 @@ public:
 
 	BOOL					Evict(void* pvKey, int iKeySize);
 	BOOL					Evict(char* pszKey);
+	BOOL					Evict(CIndexTreeNodeFile* pcNode);
 
 	BOOL					Flush(void* pvKey, int iKeySize);
 	BOOL					Flush(char* pszKey);
@@ -65,8 +67,9 @@ public:
 	void					FindKey(CIndexTreeNodeFile* pcNode, CArrayChar* pacKey);
 	void					FindKey(CIndexTreeNodeFile* pcNode, unsigned char* uiKey, int* piKeySize);
 
-	CIndexTreeNodeFile*		GetNode(void* pvKey, int iKeySize);
 	CIndexTreeNodeFile*		GetRoot(void);
+	CIndexTreeNodeFile*		GetNode(void* pvKey, int iKeySize);
+	CIndexTreeNodeFile*		GetMemoryNode(void* pvKey, int iKeySize); 
 	CIndexTreeNodeFile*		GetNodeForData(void* pvData);
 	CIndexedFile*			GetFile(int iFile);
 	int						CountAllocatedNodes(void);
@@ -120,13 +123,12 @@ protected:
 	CIndexTreeNodeFile*		ReallocateNodeForUncontainIndex(CIndexTreeNodeFile* pcNode, unsigned char c, size_t tOldNodeSize);
 	void					RemapChildParents(CIndexTreeNodeFile* pcOldNode, CIndexTreeNodeFile* pcNode);
 
-	CIndexTreeNodeFile*		GetMemoryNode(void* pvKey, int iKeySize);
 	CIndexTreeNodeFile*		GetChildNodeOrAllocate(CIndexTreeNodeFile* pcParent, unsigned char uiIndexInParent);
 	CIndexTreeNodeFile*		SetNodeObject(CIndexTreeNodeFile* pcCurrent, void* pvObject, unsigned short uiDataSize);
 
 	CIndexTreeNodeFile*		RemoveWriteThrough(CIndexTreeNodeFile* pcCurrent);
 	BOOL					RemoveWaitForFlush(CIndexTreeNodeFile* pcCurrent);
-	BOOL					Evict(CIndexTreeNodeFile* pcCurrent);
+	BOOL					EvictNode(CIndexTreeNodeFile* pcCurrent);
 	BOOL					Flush(CIndexTreeNodeFile** ppcCurrent);
 	BOOL					CanEvict(CIndexTreeNodeFile* pcNode);
 	BOOL					CanFlush(CIndexTreeNodeFile* pcNode);

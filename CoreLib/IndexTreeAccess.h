@@ -20,12 +20,15 @@ public:
 			BOOL	PutLongString(int64 lliKey, char* pszData);
 			BOOL	PutLongData(int64 lliKey, void* pvObject, int iDataSize);
 			BOOL	PutStringData(char* pszKey, void* pvObject, int iDataSize);
+			BOOL	PutStringInt(char* pszKey, int iIndex);
 			BOOL	PutStringLong(char* pszKey, int64 lliIndex);
 			BOOL	PutStringString(char* pszKey, char* pszData);
 
 			BOOL	GetLongString(int64 lliKey, char* pszDest);
 			BOOL	GetStringData(char* pszKey, void* pvObject, int* piDataSize);
 			BOOL	GetStringString(char* pszKey, char* pszDest);
+			int		GetStringInt(char* pszKey);
+			int64	GetStringLong(char* pszKey);
 
 			BOOL	ContainsString(char* pszKey);
 
@@ -37,6 +40,7 @@ protected:
 			BOOL	Put(void* pvKey, int iKeySize, unsigned char uiDataSize);
 
 	virtual BOOL	Get(void* pvKey, int iKeySize, void* pvObject, int* piDataSize) =0;
+	virtual unsigned short	DataSize(void* pvKey, int iKeySize) =0;
 
 	virtual BOOL	Remove(void* pvKey, int iKeySize) =0;
 };

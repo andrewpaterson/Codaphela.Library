@@ -381,7 +381,13 @@
     <ClCompile Include="IndexTreeFileDebug.cpp">
       <Filter>Source\File\Indexed\Index</Filter>
     </ClCompile>
-    <ClCompile Include="IndexTreeFileEvicting.cpp">
+    <ClCompile Include="IndexTreeEvictingAccess.cpp">
+      <Filter>Source\File\Indexed\Index\Access</Filter>
+    </ClCompile>
+    <ClCompile Include="IndexTreeEvictedNodeList.cpp">
+      <Filter>Source\File\Indexed\Index\Evicting</Filter>
+    </ClCompile>
+    <ClCompile Include="IndexTreeEvicting.cpp">
       <Filter>Source\File\Indexed\Index\Evicting</Filter>
     </ClCompile>
   </ItemGroup>
@@ -617,7 +623,16 @@
     <ClInclude Include="IndexTreeFileDebug.h">
       <Filter>Source\File\Indexed\Index</Filter>
     </ClInclude>
-    <ClInclude Include="IndexTreeFileEvicting.h">
+    <ClInclude Include="IndexTreeEvictingAccess.h">
+      <Filter>Source\File\Indexed\Index\Access</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexTreeEvictionCallback.h">
+      <Filter>Source\File\Indexed\Index\Evicting</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexTreeEvictedNodeList.h">
+      <Filter>Source\File\Indexed\Index\Evicting</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexTreeEvicting.h">
       <Filter>Source\File\Indexed\Index\Evicting</Filter>
     </ClInclude>
   </ItemGroup>
