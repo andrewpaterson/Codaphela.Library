@@ -1,8 +1,8 @@
 #ifndef __INDEX_TREE_EVICTING_H__
 #define __INDEX_TREE_EVICTING_H__
-#include "BaseLib/StdRandom.h"
 #include "FunctionCaller.h"
 #include "IndexTreeEvictionCallback.h"
+#include "IndexTreeEvictionStrategy.h"
 #include "IndexTreeFile.h"
 
 
@@ -18,12 +18,12 @@ private:
 	size_t							muiCutoff;
 
 	CIndexTreeEvictionCallback*		mpcEvictionCallback;
-	CRandom							mcRandom;
+	CIndexTreeEvictionStrategy*		mpcEvictionStrategy;
 	
 public:
-	BOOL					Init(CDurableFileController* pcDurableFileControl, size_t uiCutoff, CIndexTreeEvictionCallback* pcEvictionCallback);
-	BOOL					Init(CDurableFileController* pcDurableFileControl, size_t uiCutoff, CIndexTreeEvictionCallback* pcEvictionCallback, BOOL bWriteThrough);
-	BOOL					Init(CDurableFileController* pcDurableFileControl, size_t uiCutoff, CIndexTreeEvictionCallback* pcEvictionCallback, CMallocator* pcMalloc, BOOL bWriteThrough);
+	BOOL					Init(CDurableFileController* pcDurableFileControl, size_t uiCutoff, CIndexTreeEvictionCallback* pcEvictionCallback, CIndexTreeEvictionStrategy* pcEvictionStrategy);
+	BOOL					Init(CDurableFileController* pcDurableFileControl, size_t uiCutoff, CIndexTreeEvictionCallback* pcEvictionCallback, CIndexTreeEvictionStrategy* pcEvictionStrategy, BOOL bWriteThrough);
+	BOOL					Init(CDurableFileController* pcDurableFileControl, size_t uiCutoff, CIndexTreeEvictionCallback* pcEvictionCallback, CIndexTreeEvictionStrategy* pcEvictionStrategy, CMallocator* pcMalloc, BOOL bWriteThrough);
 
 	BOOL					Kill(void);
 
@@ -43,10 +43,12 @@ public:
 	void					DebugKey(void* pvKey, int iKeySize, BOOL bSkipRoot);
 	void					Dump(void);
 
+	BOOL					EvictNodeCallback(CIndexTreeNodeFile* pcNode);
+	CIndexTreeNodeFile*		GetRoot(void);
+	BOOL					Evict(CIndexTreeNodeFile* pcNode);
+
 protected:
 	void					PotentiallyEvict(void* pvKey, int iKeySize);
-	BOOL					EvictRandomNode(CIndexTreeNodeFile* pcDontEvict);
-	BOOL					EvictNodeCallback(CIndexTreeNodeFile* pcNode);
 };
 
 

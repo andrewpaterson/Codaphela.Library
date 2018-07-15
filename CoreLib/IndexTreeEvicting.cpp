@@ -6,9 +6,9 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeEvicting::Init(CDurableFileController* pcDurableFileControl, size_t uiCutoff, CIndexTreeEvictionCallback* pcEvictionCallback)
+BOOL CIndexTreeEvicting::Init(CDurableFileController* pcDurableFileControl, size_t uiCutoff, CIndexTreeEvictionCallback* pcEvictionCallback, CIndexTreeEvictionStrategy* pcEvictionStrategy)
 {
-	return Init(pcDurableFileControl, uiCutoff, pcEvictionCallback, &gcSystemAllocator, TRUE);
+	return Init(pcDurableFileControl, uiCutoff, pcEvictionCallback, pcEvictionStrategy, &gcSystemAllocator, TRUE);
 }
 
 
@@ -16,9 +16,9 @@ BOOL CIndexTreeEvicting::Init(CDurableFileController* pcDurableFileControl, size
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeEvicting::Init(CDurableFileController* pcDurableFileControl, size_t uiCutoff, CIndexTreeEvictionCallback* pcEvictionCallback, BOOL bWriteThrough)
+BOOL CIndexTreeEvicting::Init(CDurableFileController* pcDurableFileControl, size_t uiCutoff, CIndexTreeEvictionCallback* pcEvictionCallback, CIndexTreeEvictionStrategy* pcEvictionStrategy, BOOL bWriteThrough)
 {
-	return Init(pcDurableFileControl, uiCutoff, pcEvictionCallback, &gcSystemAllocator, bWriteThrough);
+	return Init(pcDurableFileControl, uiCutoff, pcEvictionCallback, pcEvictionStrategy, &gcSystemAllocator, bWriteThrough);
 }
 
 
@@ -26,13 +26,16 @@ BOOL CIndexTreeEvicting::Init(CDurableFileController* pcDurableFileControl, size
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeEvicting::Init(CDurableFileController* pcDurableFileControl, size_t uiCutoff, CIndexTreeEvictionCallback* pcEvictionCallback, CMallocator* pcMalloc, BOOL bWriteThrough)
+BOOL CIndexTreeEvicting::Init(CDurableFileController* pcDurableFileControl, size_t uiCutoff, CIndexTreeEvictionCallback* pcEvictionCallback, CIndexTreeEvictionStrategy* pcEvictionStrategy, CMallocator* pcMalloc, BOOL bWriteThrough)
 {
-	mcRandom.Init(67);
-
+	BOOL	bResult;
+	mpcEvictionStrategy = pcEvictionStrategy;
 	mpcEvictionCallback = pcEvictionCallback;
 	muiCutoff = uiCutoff;
-	return mcIndexTree.Init(pcDurableFileControl, pcMalloc, bWriteThrough);
+
+	bResult = mcIndexTree.Init(pcDurableFileControl, pcMalloc, bWriteThrough);
+	mpcEvictionStrategy->SetIndexTree(this);
+	return bResult;
 }
 
 
@@ -128,7 +131,6 @@ void CIndexTreeEvicting::PotentiallyEvict(void* pvKey, int iKeySize)
 	size_t				uiLastSize;
 	size_t				uiSize;
 	CIndexTreeNodeFile*	pcDontEvict;
-	int					i;
 
 	mcIndexTree.GetNode(pvKey, iKeySize);
 	uiLastSize = 0;
@@ -142,69 +144,8 @@ void CIndexTreeEvicting::PotentiallyEvict(void* pvKey, int iKeySize)
 			return;
 		}
 
-		for (i = 0; i < 5; i++)
-		{
-			if (EvictRandomNode(pcDontEvict))
-			{
-				break;
-			}
-		}
+		mpcEvictionStrategy->Run(pcDontEvict);
 		uiLastSize = uiSize;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeEvicting::EvictRandomNode(CIndexTreeNodeFile* pcDontEvict)
-{
-	CIndexTreeNodeFile*	pcNode;
-	int					iNumIndexes;
-	int					iIndex;
-	BOOL				bEvict;
-	int					iKeyDepth;
-
-	pcNode = mcIndexTree.GetRoot();
-	iKeyDepth = 0;
-	for (;;)
-	{
-		iNumIndexes = pcNode->NumValidIndexes();
-		if (iNumIndexes > 1)
-		{
-			iIndex = mcRandom.Next(0, iNumIndexes-1);
-
-			pcNode = pcNode->GetValidMemoryNode(iIndex);
-		}
-		else if (iNumIndexes == 1)
-		{
-			pcNode = pcNode->GetValidMemoryNode(0);
-		}
-		else
-		{
-			if (pcNode != pcDontEvict)
-			{
-				if (pcNode->HasObject())
-				{
-					bEvict = EvictNodeCallback(pcNode);
-				}
-				else
-				{
-					bEvict = TRUE;
-				}
-
-				if (bEvict)
-				{
-					mcIndexTree.Evict(pcNode);
-				}
-				return TRUE;
-			}
-			else
-			{
-				return FALSE;
-			}
-		}
 	}
 }
 
@@ -305,5 +246,25 @@ void CIndexTreeEvicting::DebugKey(void* pvKey, int iKeySize, BOOL bSkipRoot)
 void CIndexTreeEvicting::Dump(void)
 {
 	return mcIndexTree.Dump();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CIndexTreeNodeFile* CIndexTreeEvicting::GetRoot(void)
+{
+	return mcIndexTree.GetRoot();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeEvicting::Evict(CIndexTreeNodeFile* pcNode)
+{
+	return mcIndexTree.Evict(pcNode);
 }
 
