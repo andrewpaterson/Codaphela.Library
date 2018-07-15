@@ -46,7 +46,6 @@ private:
 	CFilePosIndex	mcFileIndex;
 
 	void*			mpvCache;  //NULL if object is not cached.
-	unsigned int	muiTimeStamp;
 
 public:
 	void 			Init(unsigned int uiDataSize);
@@ -60,11 +59,9 @@ public:
 	BOOL			HasFile(void);
 	BOOL			IsCached(void);
 	void*			GetCache(void);
-	void			TimeStamp(unsigned int uiTimeStamp);
 	void			SetIndexes(int iFileIndex, filePos iIndexInFile);
 	int				GetFileIndex(void);
 	filePos			GetIndexInFile(void);
-	unsigned int	GetTimeStamp(void);
 };
 
 typedef CArrayTemplate<CIndexedDataDescriptor> CArrayIndexDescriptor;

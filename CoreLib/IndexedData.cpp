@@ -153,7 +153,6 @@ BOOL CIndexedData::Write(OIndex oi, CIndexedDataDescriptor* pcDescriptor, void* 
 	BOOL	bWritten;
 	BOOL	bResult;
 
-	pcDescriptor->TimeStamp(uiTimeStamp);
 	bResult = CacheWrite(oi, pcDescriptor, pvData, &bWritten);
 	if (bResult)
 	{
@@ -544,7 +543,6 @@ BOOL CIndexedData::SetData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, void
 		{
 			bResult = TRUE;
 		}
-		pcDescriptor->TimeStamp(uiTimeStamp);
 		mcIndices.Set(pcDescriptor, oi);
 		return bResult;
 	}
