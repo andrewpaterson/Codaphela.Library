@@ -25,8 +25,6 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #define MAP_COMMOM_KILL_ELEMENT	0x0001
 #define MAP_COMMOM_OVERWRITE	0x0002
 
-#define MAP_COMMOM_CHUNK_SIZE	16
-
 
 class CMapCommon : public CUnknown
 {

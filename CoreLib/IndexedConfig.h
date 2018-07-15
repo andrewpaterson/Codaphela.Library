@@ -42,20 +42,13 @@ public:
 	//Immediately write the object data to disk, even if the object is cached.
 	BOOL	mbWriteThrough;
 
-	//For the indices caching settings, See the IndexedHuge.h file
-	int		miIndicesSecondLevelWidth;
-	int		miIndicesThirdLevelWidth;
-	int		miIndicesNumSecondLevelChunks; 
-	int		miIndicesNumThirdLevelChunks;
-
 	//If the smart index access has not switched to huge access yet, then the memory
 	//access allocates chunks in the size below.
-	int		miIndicesMemoryChunkSize;
 
 	//Size of the object cache in bytes.
 	int		miObjectsCacheSize;
 
-	void	Manual(char* szWorkingDirectory, char* szRewriteDirectory, BOOL bDirtyTesting, BOOL mbWriteThrough, int iIndicesSecondLevelWidth, int iIndicesThirdLevelWidth, int iIndicesNumSecondLevelChunks, int iIndicesNumThirdLevelChunks, int iIndicesMemoryChunkSize, int iObjectsCacheSize);
+	void	Manual(char* szWorkingDirectory, char* szRewriteDirectory, BOOL bDirtyTesting, BOOL bWriteThrough, int iObjectsCacheSize);
 	void	OptimiseForStreaming(char* szWorkingDirectory);
 
 	void	SetDirtyTesting(BOOL bDirtyTesting);

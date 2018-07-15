@@ -56,7 +56,7 @@ void CIndexedData::Init(CIndexedConfig* pcConfig)
 	mcDurableFileControl.Init(pcConfig->mszWorkingDirectory, pcConfig->mszRewriteDirectory);
 
 	mcDurableFileControl.Begin();
-	InitIndices(pcConfig);
+	InitIndices(pcConfig->mbDirtyTesting);
 	mcDataFiles.Init(&mcDurableFileControl, "DAT", "Files.IDX", "_Files.IDX");
 	mcDataFiles.ReadIndexedFileDescriptors();
 	mcDurableFileControl.End();
@@ -120,9 +120,9 @@ void CIndexedData::KillEnd(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedData::InitIndices(CIndexedConfig* pcConfig)
+void CIndexedData::InitIndices(BOOL bDirtyTesting)
 {
-	mcIndices.Init(&mcDurableFileControl, pcConfig->mbDirtyTesting);
+	mcIndices.Init(&mcDurableFileControl, bDirtyTesting);
 }
 
 

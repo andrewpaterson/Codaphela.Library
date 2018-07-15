@@ -91,7 +91,7 @@ public:
 	CDurableFileController* GetDurableFileControl(void);
 
 protected:
-	void 			InitIndices(CIndexedConfig* pcConfig);
+	void 			InitIndices(BOOL bDirtyTesting);
 
 	BOOL			SetData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, void* pvData, unsigned int uiTimeStamp);
 	BOOL			SetData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, void* pvData, unsigned int uiDataSize, unsigned int uiTimeStamp);

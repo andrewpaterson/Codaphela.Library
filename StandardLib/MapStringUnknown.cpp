@@ -26,10 +26,10 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMapStringUnknown::Init(BOOL bKillElements, BOOL bOverwriteExisting, int iChunkSize)
+void CMapStringUnknown::Init(BOOL bKillElements, BOOL bOverwriteExisting)
 {
 	CMapCommon::Init(bKillElements, bOverwriteExisting);
-	mcMap.Init(iChunkSize, TRUE, FALSE);
+	mcMap.Init(TRUE, FALSE);
 }
 
 
