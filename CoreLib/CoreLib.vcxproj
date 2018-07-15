@@ -95,6 +95,8 @@
     <ClCompile Include="IndexedGeneral.cpp" />
     <ClCompile Include="IndexTreeAccess.cpp" />
     <ClCompile Include="IndexTreeEvictedNodeList.cpp" />
+    <ClCompile Include="IndexTreeEvictionStrategy.cpp" />
+    <ClCompile Include="IndexTreeEvictionStrategyRandom.cpp" />
     <ClCompile Include="IndexTreeFile.cpp" />
     <ClCompile Include="IndexTreeFileAccess.cpp" />
     <ClCompile Include="IndexTreeFileDebug.cpp" />
@@ -168,6 +170,8 @@
   <ItemGroup>
     <ClInclude Include="IndexTreeEvictedNodeList.h" />
     <ClInclude Include="IndexTreeEvictionCallback.h" />
+    <ClInclude Include="IndexTreeEvictionStrategy.h" />
+    <ClInclude Include="IndexTreeEvictionStrategyRandom.h" />
     <ClInclude Include="IndexTreeFile.h" />
     <ClInclude Include="IndexTreeFileAccess.h" />
     <ClInclude Include="IndexTreeFileDebug.h" />
