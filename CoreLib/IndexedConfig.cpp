@@ -28,26 +28,12 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedConfig::Manual(char* szWorkingDirectory,
-							char* szRewriteDirectory,
-							BOOL bDirtyTesting, 
-							BOOL bWriteThrough, 
-							int iIndicesSecondLevelWidth, 
-							int iIndicesThirdLevelWidth, 
-							int iIndicesNumSecondLevelChunks, 
-							int iIndicesNumThirdLevelChunks, 
-							int iIndicesMemoryChunkSize, 
-							int iObjectsCacheSize)
+void CIndexedConfig::Manual(char* szWorkingDirectory, char* szRewriteDirectory, BOOL bDirtyTesting, BOOL bWriteThrough, int iObjectsCacheSize)
 {
 	mszWorkingDirectory = szWorkingDirectory;
 	mszRewriteDirectory = szRewriteDirectory;
 	mbDirtyTesting = bDirtyTesting;
 	mbWriteThrough = bWriteThrough;
-	miIndicesSecondLevelWidth = iIndicesSecondLevelWidth;
-	miIndicesThirdLevelWidth = iIndicesThirdLevelWidth;
-	miIndicesNumSecondLevelChunks = iIndicesNumSecondLevelChunks; 
-	miIndicesNumThirdLevelChunks = iIndicesNumThirdLevelChunks;
-	miIndicesMemoryChunkSize = iIndicesMemoryChunkSize;
 	miObjectsCacheSize = iObjectsCacheSize;
 }
 
@@ -65,11 +51,6 @@ void CIndexedConfig::OptimiseForStreaming(char* szWorkingDirectory)
 	mszRewriteDirectory = NULL;
 	mbDirtyTesting = TRUE;
 	mbWriteThrough = FALSE;
-	miIndicesSecondLevelWidth = 131072;
-	miIndicesThirdLevelWidth = 2048;
-	miIndicesNumSecondLevelChunks = 8; 
-	miIndicesNumThirdLevelChunks = 1024;
-	miIndicesMemoryChunkSize = miIndicesNumThirdLevelChunks * sizeof(CIndexedDataDescriptor);
 	miObjectsCacheSize = 0;
 }
 

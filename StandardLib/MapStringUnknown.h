@@ -31,7 +31,7 @@ private:
 	CMapStringTemplate<CUnknown*>	mcMap;
 
 public:
-	void		Init(BOOL bKillElements = TRUE, BOOL bOverwriteExisting = TRUE, int iChunkSize = MAP_COMMOM_CHUNK_SIZE);
+	void		Init(BOOL bKillElements = TRUE, BOOL bOverwriteExisting = TRUE);
 	void		Kill(void);
 	BOOL		Save(CFileWriter* pcFile);
 	BOOL		Load(CFileReader* pcFile);
