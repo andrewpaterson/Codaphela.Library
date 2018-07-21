@@ -47,7 +47,7 @@ void CMemoryCache::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMemoryCache::Init(unsigned int uiCacheSize, int iDescriptorSize)
+void CMemoryCache::Init(size_t uiCacheSize, int iDescriptorSize)
 {
 	miDescriptorSize = iDescriptorSize;
 	muiCacheSize = uiCacheSize;
@@ -77,8 +77,8 @@ void CMemoryCache::Kill(void)
 BOOL CMemoryCache::PreAllocate(CMemoryCacheAllocation* pcPreAllocationResult)
 {
 	SMemoryCacheDescriptor*		psCacheDesc;
-	unsigned int				iCachedSize;
-	unsigned int				iRemaining;
+	size_t						iCachedSize;
+	size_t						iRemaining;
 
 	iCachedSize = miDescriptorSize + pcPreAllocationResult->miDataSize;
 	if (iCachedSize > muiCacheSize)
@@ -243,9 +243,9 @@ void* CMemoryCache::QuickAllocate(int iDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-unsigned int CMemoryCache::RemainingAfterLast(void)
+size_t CMemoryCache::RemainingAfterLast(void)
 {
-	unsigned int		iAllocated;
+	size_t		iAllocated;
 
 	if (IsEmpty())
 	{
@@ -264,7 +264,7 @@ unsigned int CMemoryCache::RemainingAfterLast(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMemoryCache::Overlaps(void* pvNew, unsigned int uiNewSize, SMemoryCacheDescriptor* psExisting)
+BOOL CMemoryCache::Overlaps(void* pvNew, size_t uiNewSize, SMemoryCacheDescriptor* psExisting)
 {
 	size_t	uiNewStart;
 	size_t	uiNewEnd;  //Inclusive
@@ -298,7 +298,7 @@ BOOL CMemoryCache::Overlaps(void* pvNew, unsigned int uiNewSize, SMemoryCacheDes
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SMemoryCacheDescriptor* CMemoryCache::FindNewFirst(void* pvNew, unsigned int uiNewSize)
+SMemoryCacheDescriptor* CMemoryCache::FindNewFirst(void* pvNew, size_t uiNewSize)
 {
 	SMemoryCacheDescriptor*	psNext;
 
@@ -325,7 +325,7 @@ SMemoryCacheDescriptor* CMemoryCache::FindNewFirst(void* pvNew, unsigned int uiN
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMemoryCache::FindOverlapping(void* pvNew, unsigned int uiNewSize, CArrayVoidPtr* pasOverlappingCacheDescriptors)
+void CMemoryCache::FindOverlapping(void* pvNew, size_t uiNewSize, CArrayVoidPtr* pasOverlappingCacheDescriptors)
 {
 	SMemoryCacheDescriptor*	psNext;
 

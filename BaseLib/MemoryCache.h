@@ -33,23 +33,23 @@ class CMemoryCache
 private:
 	int							miDescriptorSize;
 	void*						mpvCache;
-	unsigned int				muiCacheSize;
+	size_t						muiCacheSize;
 	SMemoryCacheDescriptor*		mpsLast;
 	SMemoryCacheDescriptor*		mpsFirst;
 
 public:
 	void						Init(void);
-	void						Init(unsigned int iCacheSize, int iDescriptorSize = sizeof(SMemoryCacheDescriptor));
+	void						Init(size_t iCacheSize, int iDescriptorSize = sizeof(SMemoryCacheDescriptor));
 	void						Kill(void);
 
 	BOOL						PreAllocate(CMemoryCacheAllocation* pcPreAllocationResult);
 	void*						Allocate(CMemoryCacheAllocation* pcPreAllocated);
 	void*						QuickAllocate(int iDataSize);
 
-	unsigned int				RemainingAfterLast(void);
-	void						FindOverlapping(void* pvNew, unsigned int uiNewSize, CArrayVoidPtr* pasOverlappingCacheDescriptors);
-	SMemoryCacheDescriptor*		FindNewFirst(void* pvNew, unsigned int uiNewSize);
-	BOOL						Overlaps(void* pvNew, unsigned int uiNewSize, SMemoryCacheDescriptor* psExisting);
+	size_t						RemainingAfterLast(void);
+	void						FindOverlapping(void* pvNew, size_t uiNewSize, CArrayVoidPtr* pasOverlappingCacheDescriptors);
+	SMemoryCacheDescriptor*		FindNewFirst(void* pvNew, size_t uiNewSize);
+	BOOL						Overlaps(void* pvNew, size_t uiNewSize, SMemoryCacheDescriptor* psExisting);
 	void						Clear(void);
 	void						Invalidate(SMemoryCacheDescriptor* psCacheDesc);
 
