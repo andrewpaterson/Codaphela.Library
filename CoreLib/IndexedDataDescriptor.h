@@ -31,11 +31,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 #define INDEXED_DESCRIPTOR_DIRTY	0x80000000
 
-//Find out what the difference between IsAllocated is and INDEXED_DESCRIPTOR_REMOVED.
-#define INDEXED_DESCRIPTOR_REMOVED	0x40000000
-
-#define INDEXED_DESCRIPTOR_MASK		0xc0000000
-
 
 class CIndexedDataDescriptor
 {
