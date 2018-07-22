@@ -238,7 +238,7 @@ void memcpy_fast_16bytes(void* pvDest, void* pvSource)
 }
 
 
-void memcpy_fast(void* pvDest, void* pvSource, unsigned int uiByteSize)
+void memcpy_fast(void* pvDest, void* pvSource, size_t uiByteSize)
 {
 	if (uiByteSize <= 64)
 	{
@@ -644,7 +644,7 @@ void memcpy_fast_64bytes(void* pvDest, void* pvSource)
 }
 
 
-void memcpy_large(void* pvDest, void* pvSource, unsigned int uiByteSize)
+void memcpy_large(void* pvDest, void* pvSource, size_t uiByteSize)
 {
 	memcpy(pvDest, pvSource, uiByteSize);
 }

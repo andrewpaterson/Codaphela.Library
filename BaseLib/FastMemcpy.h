@@ -15,7 +15,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU Lesser General Public License for more details.
 
 You should have received a copy of the GNU Lesser General Public License
-along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
+along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licensessize_t
 
 Microsoft Windows is Copyright Microsoft Corporation
 
@@ -29,8 +29,8 @@ typedef void (*memcpy_fast_func)(void*, void*);
 extern memcpy_fast_func ga_memcpy_fast[65];
 
 
-void memcpy_fast(void* pvDest, void* pvSource, unsigned int uiByteSize);
-void memcpy_large(void* pvDest, void* pvSource, unsigned int uiByteSize);
+void memcpy_fast(void* pvDest, void* pvSource, size_t uiByteSize);
+void memcpy_large(void* pvDest, void* pvSource, size_t uiByteSize);
 void InitMemcpyFast(void);
 
 void memcpy_fast_0bytes(void* pvDest, void* pvSource);  //For completeness...
