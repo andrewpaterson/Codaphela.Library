@@ -153,12 +153,12 @@ int GetBit(int iBit, void* pvArray)
 //  This algorithm uses 17 arithmetic operations.
 //
 //////////////////////////////////////////////////////////////////////////
-int CountBits_PopCount64(unsigned long long int x)
+int CountBits_PopCount64(uint64 x)
 {
-	const unsigned long long int m1 = 0x5555555555555555;
-	const unsigned long long int m2 = 0x3333333333333333;
-	const unsigned long long int m4 = 0x0f0f0f0f0f0f0f0f;
-	const unsigned long long int m5 = 0x0101010101010101;
+	const uint64 m1 = 0x5555555555555555;
+	const uint64 m2 = 0x3333333333333333;
+	const uint64 m4 = 0x0f0f0f0f0f0f0f0f;
+	const uint64 m5 = 0x0101010101010101;
 
 	x = x - ((x >> 1) & m1);          //put count of each 2 bits into those 2 bits
 	x = (x & m2) + ((x >> 2) & m2); //put count of each 4 bits into those 4 bits 
@@ -248,12 +248,12 @@ int	CountBits(void* pvBitArray, int iBitLength)
 	}
 	else if (iBitLength == 64)
 	{
-		return CountBits_PopCount64(*((unsigned long long int*)pvBitArray));
+		return CountBits_PopCount64(*((uint64*)pvBitArray));
 	}
 	else if (iBitLength == 128)
 	{
-		return CountBits_PopCount64(*((unsigned long long int*)pvBitArray)) + 
-		       CountBits_PopCount64(((unsigned long long int*)pvBitArray)[1]);
+		return CountBits_PopCount64(*((uint64*)pvBitArray)) + 
+		       CountBits_PopCount64(((uint64*)pvBitArray)[1]);
 	}
 	else if (iBitLength == 8)
 	{
@@ -798,6 +798,24 @@ int CompareInt(const void* arg1, const void* arg2)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
+int CompareLong(const void* arg1, const void* arg2)
+{
+	if ((*((int64*)arg1)) < (*((int64*)arg2)))
+	{
+		return -1;
+	}
+	if ((*((int64*)arg1)) > (*((int64*)arg2)))
+	{
+		return 1;
+	}
+	return 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
 char GetCrumb(int iCrumb, void* pvArray)
 {
 	int iBytePos;
@@ -920,7 +938,7 @@ int ReverseIntEndianness(int i)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-long long int ReverseLongEndianness(long long int i)
+int64 ReverseLongEndianness(int64 i)
 {
 	Swap(((char*)&i + 0), ((char*)&i) + 7);
 	Swap(((char*)&i + 1), ((char*)&i) + 6);
@@ -946,7 +964,7 @@ void ReverseEndianness(void* pv, int iSize)
 	}
 	if (iSize == 8)
 	{
-		*(long long int*)pv = ReverseLongEndianness(*(long long int*)pv);
+		*(int64*)pv = ReverseLongEndianness(*(int64*)pv);
 	}
 }
 

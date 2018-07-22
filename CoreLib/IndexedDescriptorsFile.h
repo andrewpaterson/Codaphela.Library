@@ -13,9 +13,12 @@ protected:
 public:
 	void	Init(CDurableFileController* pcDurableFileController, BOOL bDirtyTesting);
 	void	Kill(void);
+
 	BOOL	Remove(OIndex oi);
 	BOOL	Get(CIndexedDataDescriptor* pcDescriptor, OIndex oi);
 	BOOL	Set(CIndexedDataDescriptor* pcDescriptor, OIndex oi);
+	BOOL	Flush(void);
+
 	int64	NumElements(void);
 	int		NumCachedDatas(void);
 };

@@ -109,6 +109,7 @@ BOOL CIndexedFilesCache::Flush(BOOL bClearCache)
 	SIndexedCacheDescriptor*	psCached;
 	BOOL						bAnyFailed;
 	BOOL						bResult;
+	CIndexedDataDescriptor		cDesc;
 
 	if (mbCaching)
 	{
@@ -121,6 +122,14 @@ BOOL CIndexedFilesCache::Flush(BOOL bClearCache)
 			{
 				bAnyFailed = TRUE;
 			}
+
+			if (bClearCache && !bAnyFailed)
+			{
+				mpcEvictionCallback->GetDescriptor(psCached->oi, &cDesc);
+				cDesc.Cache(NULL);
+				mpcEvictionCallback->SetDescriptor(psCached->oi, &cDesc);
+			}
+
 			psCached = mcDataCache.Iterate(psCached);
 		}
 		if (bClearCache && !bAnyFailed)
@@ -132,39 +141,6 @@ BOOL CIndexedFilesCache::Flush(BOOL bClearCache)
 	else
 	{
 		return TRUE;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CIndexedFilesCache::Uncache(void)
-{
-	SIndexedCacheDescriptor*	psCached;
-	BOOL						bAnyFailed;
-	BOOL						bResult;
-
-	if (mbCaching)
-	{
-		bAnyFailed = FALSE;
-		psCached = mcDataCache.StartIteration();
-		while (psCached)
-		{
-			bResult = ClearDescriptorCache(psCached);
-			if (!bResult)
-			{
-				bAnyFailed = TRUE;
-			}
-			psCached = mcDataCache.Iterate(psCached);
-		}
-		mcDataCache.Clear();
-		return bAnyFailed;
-	}
-	else
-	{
-		return FALSE;
 	}
 }
 
@@ -261,7 +237,7 @@ void CIndexedFilesCache::InvalidateData(CIndexedDataDescriptor* pcDescriptor)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedFilesCache::SetData(CIndexedDataDescriptor* pcDescriptor, void* pvData, OIndex oi, unsigned int uiTimeStamp)
+BOOL CIndexedFilesCache::SetData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, void* pvData, unsigned int uiTimeStamp)
 {
 	BOOL	bWritten;
 	BOOL	bResult;
@@ -322,7 +298,7 @@ BOOL CIndexedFilesCache::CacheRead(OIndex oi, CIndexedDataDescriptor* pcDescript
 			}
 
 			//This needs to be a callback.
-			mpcEvictionCallback->EvictDescriptors(cPreAllocated.GetEvictedArray());
+			mpcEvictionCallback->DescriptorsEvicted(cPreAllocated.GetEvictedArray());
 			cPreAllocated.Kill();
 			return TRUE;
 		}
@@ -369,7 +345,7 @@ BOOL CIndexedFilesCache::CacheWrite(OIndex oi, CIndexedDataDescriptor* pcDescrip
 
 			memcpy_fast(pcDescriptor->GetCache(), pvData, pcDescriptor->GetDataSize());
 
-			mpcEvictionCallback->EvictDescriptors(cPreAllocated.GetEvictedArray());
+			mpcEvictionCallback->DescriptorsEvicted(cPreAllocated.GetEvictedArray());
 			cPreAllocated.Kill();
 			return TRUE;
 		}

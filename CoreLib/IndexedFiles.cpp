@@ -518,15 +518,15 @@ BOOL CIndexedFiles::WriteNew(CIndexedDataDescriptor* pcIndexDescriptor, void* pv
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedFiles::WriteExisting(CIndexedDataDescriptor* pcIndexDescriptor, void* pvData)
+BOOL CIndexedFiles::WriteExisting(CIndexedDataDescriptor* pcDescriptor, void* pvData)
 {
 	CIndexedFile*	pcIndexedFile;
 	filePos			iResult;
 
-	pcIndexedFile = GetFile(pcIndexDescriptor->GetFileIndex());
+	pcIndexedFile = GetFile(pcDescriptor->GetFileIndex());
 	if (pcIndexedFile)
 	{
-		iResult = pcIndexedFile->Write(pcIndexDescriptor->GetIndexInFile(), pvData);
+		iResult = pcIndexedFile->Write(pcDescriptor->GetIndexInFile(), pvData);
 		return iResult == 1;
 	}
 	else

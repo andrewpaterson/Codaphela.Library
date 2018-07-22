@@ -94,7 +94,7 @@ protected:
 	BOOL			SetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor);
 
 	BOOL			EvictFromCache(OIndex oi);
-	BOOL			EvictDescriptors(CArrayVoidPtr* papsEvictedIndexedCacheDescriptors);
+	BOOL			DescriptorsEvicted(CArrayVoidPtr* papsEvictedIndexedCacheDescriptors);
 };
 
 

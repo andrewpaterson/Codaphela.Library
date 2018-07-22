@@ -28,11 +28,11 @@ protected:
 	int					miLargestKeySize;
 
 public:
-	int					(*Func)(const void*, const void*);
+	int					(*KeyCompareFunc)(const void*, const void*);
 
 public:
-	void				Init(int(*Func)(const void*, const void*), BOOL bOverwrite = TRUE);
-	void				Init(CMallocator* pcMalloc, int(*Func)(const void*, const void*), BOOL bOverwrite);
+	void				Init(int(*KeyCompareFunc)(const void*, const void*), BOOL bOverwrite = TRUE);
+	void				Init(CMallocator* pcMalloc, int(*KeyCompareFunc)(const void*, const void*), BOOL bOverwrite);
 	void				Kill(void);
 
 	BOOL				Get(void* pvKey, void** ppvData, int* piDataSize);
@@ -49,11 +49,11 @@ public:
 	BOOL				Iterate(SMapIterator* psIterator, void** pvKey, void** pvData);
 
 	BOOL				WriteExceptData(CFileWriter* pcFileWriter);
-	BOOL				ReadExceptData(CFileReader* pcFileReader, int(*Func)(const void*, const void*));
+	BOOL				ReadExceptData(CFileReader* pcFileReader, int(*KeyCompareFunc)(const void*, const void*));
 	void*				WriteKey(CFileWriter* pcFileWriter, int iIndex, int* piDataSize);
 	void*				ReadKey(CFileReader* pcFileReader, int iIndex, int* piDataSize);
 	BOOL				Write(CFileWriter* pcFileWriter);
-	BOOL				Read(CFileReader* pcFileReader, int(*Func)(const void*, const void*));
+	BOOL				Read(CFileReader* pcFileReader, int(*KeyCompareFunc)(const void*, const void*));
 
 	void				InsertHoldingIntoSorted(void);
 	void				GetInSorted(int iIndex, void** ppvKey, void** ppvData);

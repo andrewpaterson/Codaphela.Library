@@ -23,6 +23,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __INTEGER_HELPER_H__
 #define __INTEGER_HELPER_H__
 #include "Define.h"
+#include "PrimitiveTypes.h"
+
 
 #ifdef MAXINT
 #undef MAXINT
@@ -65,13 +67,14 @@ int		FindFirstByte(char* pcCharArray, char cSearch, int iMaxLength);
 int		GetHighNybble(char c);
 int		GetLowNybble(char c);
 int 	CompareInt(const void* arg1, const void* arg2);
+int 	CompareLong(const void* arg1, const void* arg2);
 char 	GetCrumb(int iCrumb, void* pvArray);  //return 11, 10, 01 or 00 in char.
 char 	GetNybble(int iNybble, void* pvArray);
 void 	CopyBits(void* pvDest, int iDestOffset, void* pvSource, int iSourceOffset, int iNumBits, int bClear);  //Setting clear will make all unused bits zero.
 void 	CopyBitsReverseHiLo(void* pvDest, int iDestOffset, void* pvSource, int iSourceOffset, int iNumBits, int bClear);  //Setting clear will make all unused bits zero.
 short	ReverseShortEndianness(short s);
 int		ReverseIntEndianness(int i);
-long long int ReverseLongEndianness(long long int i);
+int64	ReverseLongEndianness(int64 i);
 void	ReverseEndianness(void* pv, int iSize);
 void	ReverseBytes(void* pv, int iSize);
 int 	CalculateStride(int iElementSize, int iAlignment);
