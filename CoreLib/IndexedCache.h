@@ -41,7 +41,7 @@ protected:
 	CMemoryCache				mcCache;
 
 public:
-	void						Init(unsigned int iCacheSize);
+	void						Init(size_t iCacheSize);
 	void						Zero(void);
 	void						Kill(void);
 

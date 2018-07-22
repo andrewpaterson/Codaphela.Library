@@ -92,6 +92,7 @@
     <ClCompile Include="FileIteratorReturn.cpp" />
     <ClCompile Include="Files.cpp" />
     <ClCompile Include="IndexedDescriptorsFile.cpp" />
+    <ClCompile Include="IndexedFilesCache.cpp" />
     <ClCompile Include="IndexedGeneral.cpp" />
     <ClCompile Include="IndexTreeAccess.cpp" />
     <ClCompile Include="IndexTreeEvictedNodeList.cpp" />
@@ -168,6 +169,8 @@
     <ClCompile Include="OperatorAssignment.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="IndexedFilesEvictionCallback.h" />
+    <ClInclude Include="IndexedFilesCache.h" />
     <ClInclude Include="IndexTreeEvictedNodeList.h" />
     <ClInclude Include="IndexTreeEvictionCallback.h" />
     <ClInclude Include="IndexTreeEvictionStrategy.h" />

@@ -396,6 +396,9 @@
     <ClCompile Include="IndexTreeEvictionStrategyRandom.cpp">
       <Filter>Source\File\Indexed\Index\Evicting</Filter>
     </ClCompile>
+    <ClCompile Include="IndexedFilesCache.cpp">
+      <Filter>Source\File\Indexed\Cache</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="IndexedConfig.h">
@@ -646,6 +649,12 @@
     </ClInclude>
     <ClInclude Include="IndexTreeEvictionStrategyRandom.h">
       <Filter>Source\File\Indexed\Index\Evicting</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexedFilesCache.h">
+      <Filter>Source\File\Indexed\Cache</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexedFilesEvictionCallback.h">
+      <Filter>Source\File\Indexed\Cache</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

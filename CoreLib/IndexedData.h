@@ -25,28 +25,23 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "BaseLib/TemporaryMemory.h"
 #include "BaseLib/MemoryFile.h"
 #include "IndexedConfig.h"
-#include "IndexedCache.h"
-#include "IndexedData.h"
-#include "IndexedFiles.h"
+#include "IndexedFilesCache.h"
 #include "DurableFileController.h"
+#include "IndexedFilesEvictionCallback.h"
 #include "IndexedDescriptorsFile.h"
 
 
 //This is the database class.
-class CIndexedData
+class CIndexedData : public CIndexedFilesEvictionCallback
 {
 protected:
 	//Data
-	CIndexedCache			mcDataCache;
-	CIndexedFiles			mcDataFiles;
+	CIndexedFilesCache		mcData;
 
 	//Index
 	CIndexedDescriptorsFile	mcIndices;
 
 	CDurableFileController	mcDurableFileControl;
-
-	CTemporaryMemory		mcTemp;
-	BOOL					mbCaching;
 	BOOL					mbWriteThrough;
 
 public:
@@ -83,7 +78,6 @@ public:
 	int64			NumElements(void);
 
 	BOOL			EvictFromCache(CIndexedDataDescriptor* pcDescriptor);
-	BOOL			Uncache(void);
 
 	int				TestNumCachedIndexes(void);
 	int				TestNumIgnoredCacheElements(void);
@@ -96,23 +90,11 @@ protected:
 	BOOL			SetData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, void* pvData, unsigned int uiTimeStamp);
 	BOOL			SetData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, void* pvData, unsigned int uiDataSize, unsigned int uiTimeStamp);
 
-	BOOL			GetData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, void* pvData);
 	BOOL			GetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor);
+	BOOL			SetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor);
 
-	BOOL			ClearDescriptorCache(SIndexedCacheDescriptor* psCached);
-	BOOL			EvictFromCache(SIndexedCacheDescriptor* psExisting);
+	BOOL			EvictFromCacheS(OIndex oi);
 	BOOL			EvictOverlappingFromCache(CArrayVoidPtr* papsEvictedIndexedCacheDescriptors);
-
-	void			InvalidateData(CIndexedDataDescriptor* pcDescriptor);
-	BOOL			CacheRead(OIndex oi, CIndexedDataDescriptor* pcDescriptor);
-	BOOL			CacheWrite(OIndex oi, CIndexedDataDescriptor* pcDescriptor, void* pvData, BOOL* pbWritten);
-	BOOL			Write(OIndex oi, CIndexedDataDescriptor* pcDescriptor, void* pvData, unsigned int uiTimeStamp);
-
-	BOOL			WriteEvictedData(CArrayVoidPtr* papsIndexedCacheDescriptors);
-	BOOL			WriteEvictedData(SIndexedCacheDescriptor* psCached);
-	BOOL			WriteEvictedData(CIndexedDataDescriptor* pcDescriptor, SIndexedCacheDescriptor* psCached);
-
-	BOOL			CompareDiskToMemory(CIndexedDataDescriptor* pcDescriptor, void* pvData);
 };
 
 

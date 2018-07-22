@@ -32,7 +32,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedCache::Init(unsigned int uiCacheSize)
+void CIndexedCache::Init(size_t uiCacheSize)
 {
 	mcCache.Init(uiCacheSize, sizeof(SIndexedCacheDescriptor));
 }
@@ -174,7 +174,7 @@ BOOL CIndexedCache::Update(CIndexedDataDescriptor* pcDesc, void* pvData)
 {
 	SIndexedCacheDescriptor*	psCacheIndex;
 	void*						pvCache;
-	unsigned int				iDataSize;
+	size_t						iDataSize;
 	int							iResult;
 
 	//Assumes that the test to make sure this is in the cache has already been done.
