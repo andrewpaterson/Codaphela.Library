@@ -141,7 +141,7 @@ BOOL CIndexedData::EvictFromCache(CIndexedDataDescriptor* pcDescriptor)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedData::EvictFromCacheS(OIndex oi)
+BOOL CIndexedData::EvictFromCache(OIndex oi)
 {
 	CIndexedDataDescriptor	cDescriptor;
 	BOOL					bResult;
@@ -162,7 +162,7 @@ BOOL CIndexedData::EvictFromCacheS(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedData::EvictOverlappingFromCache(CArrayVoidPtr* papsEvictedIndexedCacheDescriptors)
+BOOL CIndexedData::EvictDescriptors(CArrayVoidPtr* papsEvictedIndexedCacheDescriptors)
 {
 	int							i;
 	SIndexedCacheDescriptor*	psDesc;
@@ -174,7 +174,7 @@ BOOL CIndexedData::EvictOverlappingFromCache(CArrayVoidPtr* papsEvictedIndexedCa
 		psDesc = (SIndexedCacheDescriptor*)papsEvictedIndexedCacheDescriptors->GetPtr(i);
 		if (psDesc != NULL)
 		{
-			bResult &= EvictFromCacheS(psDesc->oi);
+			bResult &= EvictFromCache(psDesc->oi);
 		}
 	}
 	return bResult;

@@ -7,7 +7,7 @@
 class CIndexedFilesEvictionCallback
 {
 public:
-	virtual BOOL EvictOverlappingFromCache(CArrayVoidPtr* papsEvictedIndexedCacheDescriptors) =0;
+	virtual BOOL EvictDescriptors(CArrayVoidPtr* papsEvictedIndexedCacheDescriptors) =0;
 	virtual BOOL GetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor) =0;
 	virtual BOOL SetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor) =0;
 };

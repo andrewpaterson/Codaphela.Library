@@ -322,7 +322,7 @@ BOOL CIndexedFilesCache::CacheRead(OIndex oi, CIndexedDataDescriptor* pcDescript
 			}
 
 			//This needs to be a callback.
-			mpcEvictionCallback->EvictOverlappingFromCache(cPreAllocated.GetEvictedArray());
+			mpcEvictionCallback->EvictDescriptors(cPreAllocated.GetEvictedArray());
 			cPreAllocated.Kill();
 			return TRUE;
 		}
@@ -369,7 +369,7 @@ BOOL CIndexedFilesCache::CacheWrite(OIndex oi, CIndexedDataDescriptor* pcDescrip
 
 			memcpy_fast(pcDescriptor->GetCache(), pvData, pcDescriptor->GetDataSize());
 
-			mpcEvictionCallback->EvictOverlappingFromCache(cPreAllocated.GetEvictedArray());
+			mpcEvictionCallback->EvictDescriptors(cPreAllocated.GetEvictedArray());
 			cPreAllocated.Kill();
 			return TRUE;
 		}

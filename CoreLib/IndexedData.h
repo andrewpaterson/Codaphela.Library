@@ -93,8 +93,8 @@ protected:
 	BOOL			GetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor);
 	BOOL			SetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor);
 
-	BOOL			EvictFromCacheS(OIndex oi);
-	BOOL			EvictOverlappingFromCache(CArrayVoidPtr* papsEvictedIndexedCacheDescriptors);
+	BOOL			EvictFromCache(OIndex oi);
+	BOOL			EvictDescriptors(CArrayVoidPtr* papsEvictedIndexedCacheDescriptors);
 };
 
 
