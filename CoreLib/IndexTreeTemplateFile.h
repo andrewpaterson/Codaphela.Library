@@ -23,7 +23,6 @@ public:
 template<class M>
 BOOL CIndexTreeTemplateFile<M>::Get(void* pvKey, int iKeySize, M* pvObject)
 {
-
 	return CIndexTreeFile::Get(pvKey, iKeySize, pvObject, NULL);
 }
 

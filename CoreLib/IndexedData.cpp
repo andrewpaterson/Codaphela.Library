@@ -71,7 +71,7 @@ void CIndexedData::Kill(void)
 	if (mcDurableFileControl.IsDurable())
 	{
 		DurableBegin();
-		mcData.Uncache();
+		mcData.Flush(FALSE);
 		DurableEnd();
 	}
 	else
@@ -162,14 +162,16 @@ BOOL CIndexedData::EvictFromCache(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedData::EvictDescriptors(CArrayVoidPtr* papsEvictedIndexedCacheDescriptors)
+BOOL CIndexedData::DescriptorsEvicted(CArrayVoidPtr* papsEvictedIndexedCacheDescriptors)
 {
 	int							i;
 	SIndexedCacheDescriptor*	psDesc;
 	BOOL						bResult;
+	int							iNumElements;
 
 	bResult = TRUE;
-	for (i = 0; i < papsEvictedIndexedCacheDescriptors->NumElements(); i++)
+	iNumElements = papsEvictedIndexedCacheDescriptors->NumElements();
+	for (i = 0; i < iNumElements; i++)
 	{
 		psDesc = (SIndexedCacheDescriptor*)papsEvictedIndexedCacheDescriptors->GetPtr(i);
 		if (psDesc != NULL)
@@ -218,7 +220,7 @@ BOOL CIndexedData::Add(OIndex oi, void* pvData, unsigned int iDataSize, unsigned
 	//This init clears the file index.  This means CompareDiskToMemory() will not try and read it to test for changes.
 	cDescriptor.Init(iDataSize);
 
-	bResult = mcData.SetData(&cDescriptor, pvData, oi, uiTimeStamp);
+	bResult = mcData.SetData(oi, &cDescriptor, pvData, uiTimeStamp);
 	mcIndices.Set(&cDescriptor, oi);
 	return bResult;
 }
@@ -262,7 +264,7 @@ BOOL CIndexedData::SetData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, void
 	}
 	else
 	{
-		bResult = mcData.SetData(pcDescriptor, pvData, oi, uiTimeStamp);
+		bResult = mcData.SetData(oi, pcDescriptor, pvData, uiTimeStamp);
 		mcIndices.Set(pcDescriptor, oi);
 		return bResult;
 	}
@@ -308,7 +310,7 @@ BOOL CIndexedData::SetData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, void
 		mcData.InvalidateData(pcDescriptor);
 		pcDescriptor->Init(uiDataSize);
 
-		bResult = mcData.SetData(pcDescriptor, pvData, oi, uiTimeStamp);
+		bResult = mcData.SetData(oi, pcDescriptor, pvData, uiTimeStamp);
 		mcIndices.Set(pcDescriptor, oi);
 		return bResult;
 	}
@@ -477,7 +479,10 @@ void CIndexedData::DurableEnd(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexedData::Flush(BOOL bClearCache)
 {
-	return mcData.Flush(bClearCache);
+	BOOL bRresult;
+	bRresult = mcIndices.Flush();
+	bRresult &= mcData.Flush(bClearCache);
+	return bRresult;
 }
 
 

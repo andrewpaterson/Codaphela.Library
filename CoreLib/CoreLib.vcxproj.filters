@@ -399,6 +399,9 @@
     <ClCompile Include="IndexedFilesCache.cpp">
       <Filter>Source\File\Indexed\Cache</Filter>
     </ClCompile>
+    <ClCompile Include="IndexedFilesEvictedDescriptorList.cpp">
+      <Filter>Source\File\Indexed\Cache</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="IndexedConfig.h">
@@ -654,6 +657,9 @@
       <Filter>Source\File\Indexed\Cache</Filter>
     </ClInclude>
     <ClInclude Include="IndexedFilesEvictionCallback.h">
+      <Filter>Source\File\Indexed\Cache</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexedFilesEvictedDescriptorList.h">
       <Filter>Source\File\Indexed\Cache</Filter>
     </ClInclude>
   </ItemGroup>

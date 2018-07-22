@@ -238,7 +238,7 @@ char* CMapStringBlock::GetKeyForData(void* psData)
 //////////////////////////////////////////////////////////////////////////
 BOOL CMapStringBlock::IsCaseSensitive(void)
 {
-	return Func == (CompareFunc)&strcmp;
+	return KeyCompareFunc == (CompareFunc)&strcmp;
 }
 
 
@@ -248,7 +248,7 @@ BOOL CMapStringBlock::IsCaseSensitive(void)
 //////////////////////////////////////////////////////////////////////////
 void CMapStringBlock::SetCaseSensitive(BOOL bCaseSensitive)
 {
-	Func = CalculateCompareFunc(bCaseSensitive);
+	KeyCompareFunc = CalculateCompareFunc(bCaseSensitive);
 }
 
 

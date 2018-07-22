@@ -22,11 +22,9 @@ public:
 	void			Kill(void);
 
 	BOOL			GetData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, void* pvData);
-	BOOL			SetData(CIndexedDataDescriptor* pcDescriptor, void* pvData);
-	BOOL			SetData(CIndexedDataDescriptor* pcDescriptor, void* pvData, OIndex oi, unsigned int uiTimeStamp);
+	BOOL			SetData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, void* pvData, unsigned int uiTimeStamp);
 
 	BOOL			Flush(BOOL bClearCache);
-	BOOL			Uncache(void);
 	BOOL			IsCaching(void);
 
 	int				NumCached(void);
@@ -36,6 +34,8 @@ public:
 
 	void			InvalidateData(CIndexedDataDescriptor* pcDescriptor);
 	BOOL			EvictFromCache(CIndexedDataDescriptor* pcDescriptor);
+
+	BOOL			SetData(CIndexedDataDescriptor* pcDescriptor, void* pvData);
 
 	unsigned int	TestGetCachedObjectSize(OIndex oi);
 	int				TestNumIgnoredCacheElements(void);
