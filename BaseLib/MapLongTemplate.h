@@ -20,14 +20,15 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __MAP_INT_TEMPLATE_H__
-#define __MAP_INT_TEMPLATE_H__
+#ifndef __MAP_LONG_TEMPLATE_H__
+#define __MAP_LONG_TEMPLATE_H__
+#include "PrimitiveTypes.h"
 #include "MapPrimitiveTemplate.h"
 #include "IntegerHelper.h"
 
 
 template<class D>
-class CMapIntTemplate : public CMapPrimitiveTemplate<int, D>
+class CMapLongTemplate : public CMapPrimitiveTemplate<int64, D>
 {
 public:
 	void	Init(BOOL bOverwrite);
@@ -40,7 +41,7 @@ public:
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class D>
-void CMapIntTemplate<D>::Init(BOOL bOverwrite)
+void CMapLongTemplate<D>::Init(BOOL bOverwrite)
 {
 	Init(&gcSystemAllocator, bOverwrite);
 }
@@ -51,11 +52,11 @@ void CMapIntTemplate<D>::Init(BOOL bOverwrite)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class D>
-void CMapIntTemplate<D>::Init(CMallocator* pcMalloc, BOOL bOverwrite)
+void CMapLongTemplate<D>::Init(CMallocator* pcMalloc, BOOL bOverwrite)
 {
-	CMapTemplate<int, D>::Init(pcMalloc, &CompareInt, bOverwrite);
+	CMapTemplate<int64, D>::Init(pcMalloc, &CompareLong, bOverwrite);
 };
 
 
-#endif // __MAP_INT_TEMPLATE_H__
+#endif // __MAP_LONG_TEMPLATE_H__
 

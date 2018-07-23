@@ -1,6 +1,6 @@
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
-Copyright (c) 2012 Andrew Paterson
+Copyright (c) 2009 Andrew Paterson
 
 This file is part of The Codaphela Project: Codaphela BaseLib
 
@@ -20,15 +20,17 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-#include "MapIntInt.h"
+#ifndef __MAP_LONG_LONG_H__
+#define __MAP_LONG_LONG_H__
+#include "MapLongTemplate.h"
 
 
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void CMapIntInt::Put(int iKey, int iData)
+class CMapLongLong : public CMapLongTemplate<int64>
 {
-	CMapIntTemplate<int>::Put(iKey, &iData);
-}
+public:
+	void	Put(int64 iKey, int64 iData);
+};
+
+
+#endif // __MAP_LONG_LONG_H__
 

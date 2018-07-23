@@ -1,6 +1,6 @@
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
-Copyright (c) 2009 Andrew Paterson
+Copyright (c) 2012 Andrew Paterson
 
 This file is part of The Codaphela Project: Codaphela BaseLib
 
@@ -20,42 +20,15 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __MAP_INT_TEMPLATE_H__
-#define __MAP_INT_TEMPLATE_H__
-#include "MapPrimitiveTemplate.h"
-#include "IntegerHelper.h"
-
-
-template<class D>
-class CMapIntTemplate : public CMapPrimitiveTemplate<int, D>
-{
-public:
-	void	Init(BOOL bOverwrite);
-	void	Init(CMallocator* pcMalloc, BOOL bOverwrite);
-};
+#include "MapLongLong.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class D>
-void CMapIntTemplate<D>::Init(BOOL bOverwrite)
+void CMapLongLong::Put(int64 iKey, int64 iData)
 {
-	Init(&gcSystemAllocator, bOverwrite);
+	CMapLongTemplate<int64>::Put(iKey, &iData);
 }
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class D>
-void CMapIntTemplate<D>::Init(CMallocator* pcMalloc, BOOL bOverwrite)
-{
-	CMapTemplate<int, D>::Init(pcMalloc, &CompareInt, bOverwrite);
-};
-
-
-#endif // __MAP_INT_TEMPLATE_H__
 

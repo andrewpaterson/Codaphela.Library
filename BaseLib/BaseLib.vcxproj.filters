@@ -771,6 +771,12 @@
     <ClInclude Include="MapPrimitiveTemplate.h">
       <Filter>Source\Data\Map\Primitive</Filter>
     </ClInclude>
+    <ClInclude Include="MapLongTemplate.h">
+      <Filter>Source\Data\Map\Primitive</Filter>
+    </ClInclude>
+    <ClInclude Include="MapLongLong.h">
+      <Filter>Source\Data\Map\Primitive</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -1209,6 +1215,9 @@
       <Filter>Source\Math\Random</Filter>
     </ClCompile>
     <ClCompile Include="MapIntInt.cpp">
+      <Filter>Source\Data\Map\Primitive</Filter>
+    </ClCompile>
+    <ClCompile Include="MapLongLong.cpp">
       <Filter>Source\Data\Map\Primitive</Filter>
     </ClCompile>
   </ItemGroup>
