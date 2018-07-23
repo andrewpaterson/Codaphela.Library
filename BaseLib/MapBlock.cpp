@@ -21,7 +21,7 @@ int CompareMNode(const void* arg1, const void* arg2)
 	pvKey1 = HeaderGetData<SMNode, void>(*ppNode1);
 	pvKey2 = HeaderGetData<SMNode, void>(*ppNode2);
 
-	iResult = (*ppNode1)->pcMapBlock->KeyCompareFunc(pvKey1, pvKey2);
+	iResult = (*ppNode1)->pcMapBlock->fKeyCompare(pvKey1, pvKey2);
 	return iResult;
 }
 
@@ -30,9 +30,9 @@ int CompareMNode(const void* arg1, const void* arg2)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMapBlock::Init(int(*KeyCompareFunc)(const void*, const void*), BOOL bOverwrite)
+void CMapBlock::Init(int(*fKeyCompare)(const void*, const void*), BOOL bOverwrite)
 {
-	Init(&gcSystemAllocator, KeyCompareFunc, bOverwrite);
+	Init(&gcSystemAllocator, fKeyCompare, bOverwrite);
 }
 
 
@@ -40,7 +40,7 @@ void CMapBlock::Init(int(*KeyCompareFunc)(const void*, const void*), BOOL bOverw
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMapBlock::Init(CMallocator* pcMalloc, int(*KeyCompareFunc)(const void*, const void*), BOOL bOverwrite)
+void CMapBlock::Init(CMallocator* pcMalloc, int(*fKeyCompare)(const void*, const void*), BOOL bOverwrite)
 {
 	int		iHoldingBufferSize;
 	int		iHoldingBuffers;
@@ -49,7 +49,7 @@ void CMapBlock::Init(CMallocator* pcMalloc, int(*KeyCompareFunc)(const void*, co
 	iHoldingBuffers = 4;
 
 	mpcMalloc = pcMalloc;
-	this->KeyCompareFunc = KeyCompareFunc;
+	this->fKeyCompare = fKeyCompare;
 	mapArray.Init(pcMalloc, sizeof(void*), iHoldingBufferSize, iHoldingBuffers, &CompareMNode);
 	mapArray.SetOverwrite(bOverwrite);
 	miLargestKeySize = 0;
@@ -352,7 +352,7 @@ BOOL CMapBlock::WriteExceptData(CFileWriter* pcFileWriter)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMapBlock::ReadExceptData(CFileReader* pcFileReader, int(*FunKeyCompareFuncc)(const void*, const void*))
+BOOL CMapBlock::ReadExceptData(CFileReader* pcFileReader, int(*fKeyCompare)(const void*, const void*))
 {
 	CMallocator*	pcMalloc;
 	BOOL			bResult;
@@ -376,7 +376,7 @@ BOOL CMapBlock::ReadExceptData(CFileReader* pcFileReader, int(*FunKeyCompareFunc
 	}
 
 	mpcMalloc = pcMalloc;
-	this->KeyCompareFunc = KeyCompareFunc;
+	this->fKeyCompare = fKeyCompare;
 	miLargestKeySize = 0;
 
 	return TRUE;
@@ -494,19 +494,19 @@ BOOL CMapBlock::Write(CFileWriter* pcFileWriter)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMapBlock::Read(CFileReader* pcFileReader, int(*KeyCompareFunc)(const void*, const void*))
+BOOL CMapBlock::Read(CFileReader* pcFileReader, int(*fKeyCompare)(const void*, const void*))
 {
 	int			i;
 	int			iNumElements;
 	void*		pvData;
 	int			iDataSize;
 
-	if (KeyCompareFunc == NULL)
+	if (fKeyCompare == NULL)
 	{
 		return FALSE;
 	}
 
-	if (!ReadExceptData(pcFileReader, KeyCompareFunc))
+	if (!ReadExceptData(pcFileReader, fKeyCompare))
 	{
 		return FALSE;
 	}
