@@ -31,3 +31,4 @@ void CMapIntInt::Put(int iKey, int iData)
 {
 	CMapIntTemplate<int>::Put(iKey, &iData);
 }
+

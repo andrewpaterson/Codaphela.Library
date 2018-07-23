@@ -32,10 +32,6 @@ class CMapIntTemplate : public CMapPrimitiveTemplate<int, D>
 public:
 	void	Init(BOOL bOverwrite);
 	void	Init(CMallocator* pcMalloc, BOOL bOverwrite);
-	D*		Get(int iKey);
-	D*		Put(int iKey);
-	BOOL	Put(int iKey, D* psData);
-	BOOL	Remove(int iKey);
 };
 
 
@@ -59,50 +55,6 @@ void CMapIntTemplate<D>::Init(CMallocator* pcMalloc, BOOL bOverwrite)
 {
 	CMapTemplate<int, D>::Init(pcMalloc, &CompareInt, bOverwrite);
 };
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class D>
-D* CMapIntTemplate<D>::Get(int iKey)
-{
-	return CMapTemplate<int, D>::Get(&iKey);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class D>
-D* CMapIntTemplate<D>::Put(int iKey)
-{
-	return CMapTemplate<int, D>::Put(&iKey);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class D>
-BOOL CMapIntTemplate<D>::Put(int iKey, D* psData)
-{
-	return CMapTemplate<int, D>::Put(&iKey, psData);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class D>
-BOOL CMapIntTemplate<D>::Remove(int iKey)
-{
-	return CMapTemplate<int, D>::Remove(&iKey);
-}
 
 
 #endif // __MAP_INT_TEMPLATE_H__
