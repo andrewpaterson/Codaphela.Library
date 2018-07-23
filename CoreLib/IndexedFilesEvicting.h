@@ -1,12 +1,12 @@
-#ifndef __INDEXED_FILES_CACHE_H__
-#define __INDEXED_FILES_CACHE_H__
+#ifndef __INDEXED_FILES_EVICTING_H__
+#define __INDEXED_FILES_EVICTING_H__
 #include "DurableFileController.h"
 #include "IndexedFiles.h"
 #include "IndexedCache.h"
 
 
 class CIndexedFilesEvictionCallback;
-class CIndexedFilesCache
+class CIndexedFilesEvicting
 {
 protected:
 	CIndexedCache					mcDataCache;
@@ -53,5 +53,5 @@ protected:
 };
 
 
-#endif //__INDEXED_FILES_CACHE_H__
+#endif //__INDEXED_FILES_EVICTING_H__
 

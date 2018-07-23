@@ -25,7 +25,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "BaseLib/TemporaryMemory.h"
 #include "BaseLib/MemoryFile.h"
 #include "IndexedConfig.h"
-#include "IndexedFilesCache.h"
+#include "IndexedFilesEvicting.h"
 #include "DurableFileController.h"
 #include "IndexedFilesEvictionCallback.h"
 #include "IndexedDescriptorsFile.h"
@@ -36,7 +36,7 @@ class CIndexedData : public CIndexedFilesEvictionCallback
 {
 protected:
 	//Data
-	CIndexedFilesCache		mcData;
+	CIndexedFilesEvicting		mcData;
 
 	//Index
 	CIndexedDescriptorsFile	mcIndices;

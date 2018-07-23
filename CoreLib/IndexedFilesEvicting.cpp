@@ -1,14 +1,14 @@
 #include "BaseLib/MemoryCacheAllocation.h"
 #include "BaseLib/StackMemory.h"
 #include "IndexedFilesEvictionCallback.h"
-#include "IndexedFilesCache.h"
+#include "IndexedFilesEvicting.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedFilesCache::Init(CDurableFileController* pcDurableFileControl, char* szDataExtension, char* szDescricptorName, char* szDescricptorRewrite, size_t iCacheSize, BOOL bWriteThrough, CIndexedFilesEvictionCallback* pcEvictionCallback)
+void CIndexedFilesEvicting::Init(CDurableFileController* pcDurableFileControl, char* szDataExtension, char* szDescricptorName, char* szDescricptorRewrite, size_t iCacheSize, BOOL bWriteThrough, CIndexedFilesEvictionCallback* pcEvictionCallback)
 {
 	mbWriteThrough = bWriteThrough;
 	mpcEvictionCallback = pcEvictionCallback;
@@ -33,7 +33,7 @@ void CIndexedFilesCache::Init(CDurableFileController* pcDurableFileControl, char
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedFilesCache::Kill(void)
+void CIndexedFilesEvicting::Kill(void)
 {
 	if (mbCaching)
 	{
@@ -47,7 +47,7 @@ void CIndexedFilesCache::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedFilesCache::GetData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, void* pvData)
+BOOL CIndexedFilesEvicting::GetData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, void* pvData)
 {
 	BOOL	bResult;
 
@@ -84,7 +84,7 @@ BOOL CIndexedFilesCache::GetData(OIndex oi, CIndexedDataDescriptor* pcDescriptor
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedFilesCache::SetData(CIndexedDataDescriptor* pcDescriptor, void * pvData)
+BOOL CIndexedFilesEvicting::SetData(CIndexedDataDescriptor* pcDescriptor, void * pvData)
 {
 	BOOL	bUpdated;
 
@@ -104,7 +104,7 @@ BOOL CIndexedFilesCache::SetData(CIndexedDataDescriptor* pcDescriptor, void * pv
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedFilesCache::Flush(BOOL bClearCache)
+BOOL CIndexedFilesEvicting::Flush(BOOL bClearCache)
 {
 	SIndexedCacheDescriptor*	psCached;
 	BOOL						bAnyFailed;
@@ -149,7 +149,7 @@ BOOL CIndexedFilesCache::Flush(BOOL bClearCache)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CIndexedFilesCache::NumCached(void)
+int CIndexedFilesEvicting::NumCached(void)
 {
 	if (mbCaching)
 	{
@@ -165,7 +165,7 @@ int CIndexedFilesCache::NumCached(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CIndexedFilesCache::NumCached(int iSize)
+int CIndexedFilesEvicting::NumCached(int iSize)
 {
 	if (mbCaching)
 	{
@@ -182,7 +182,7 @@ int CIndexedFilesCache::NumCached(int iSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CIndexedFilesCache::NumFiles(void)
+int CIndexedFilesEvicting::NumFiles(void)
 {
 	return mcDataFiles.NumFiles();
 }
@@ -192,7 +192,7 @@ int CIndexedFilesCache::NumFiles(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int64 CIndexedFilesCache::NumData(int iDataSize)
+int64 CIndexedFilesEvicting::NumData(int iDataSize)
 {
 	return mcDataFiles.NumData(iDataSize);
 }
@@ -202,7 +202,7 @@ int64 CIndexedFilesCache::NumData(int iDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedFilesCache::WriteEvictedData(CIndexedDataDescriptor* pcDescriptor, SIndexedCacheDescriptor* psCached)
+BOOL CIndexedFilesEvicting::WriteEvictedData(CIndexedDataDescriptor* pcDescriptor, SIndexedCacheDescriptor* psCached)
 {
 	void*	pvData;
 	BOOL	bResult;
@@ -224,7 +224,7 @@ BOOL CIndexedFilesCache::WriteEvictedData(CIndexedDataDescriptor* pcDescriptor, 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedFilesCache::InvalidateData(CIndexedDataDescriptor* pcDescriptor)
+void CIndexedFilesEvicting::InvalidateData(CIndexedDataDescriptor* pcDescriptor)
 {
 	if (mbCaching)
 	{
@@ -237,7 +237,7 @@ void CIndexedFilesCache::InvalidateData(CIndexedDataDescriptor* pcDescriptor)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedFilesCache::SetData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, void* pvData, unsigned int uiTimeStamp)
+BOOL CIndexedFilesEvicting::SetData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, void* pvData, unsigned int uiTimeStamp)
 {
 	BOOL	bWritten;
 	BOOL	bResult;
@@ -266,7 +266,7 @@ BOOL CIndexedFilesCache::SetData(OIndex oi, CIndexedDataDescriptor* pcDescriptor
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedFilesCache::CacheRead(OIndex oi, CIndexedDataDescriptor* pcDescriptor)
+BOOL CIndexedFilesEvicting::CacheRead(OIndex oi, CIndexedDataDescriptor* pcDescriptor)
 {
 	BOOL					bResult;
 	CMemoryCacheAllocation	cPreAllocated;
@@ -318,7 +318,7 @@ BOOL CIndexedFilesCache::CacheRead(OIndex oi, CIndexedDataDescriptor* pcDescript
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedFilesCache::CacheWrite(OIndex oi, CIndexedDataDescriptor* pcDescriptor, void* pvData, BOOL* pbWritten)
+BOOL CIndexedFilesEvicting::CacheWrite(OIndex oi, CIndexedDataDescriptor* pcDescriptor, void* pvData, BOOL* pbWritten)
 {
 	BOOL					bResult;
 	CMemoryCacheAllocation	cPreAllocated;
@@ -372,7 +372,7 @@ BOOL CIndexedFilesCache::CacheWrite(OIndex oi, CIndexedDataDescriptor* pcDescrip
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedFilesCache::EvictFromCache(CIndexedDataDescriptor* pcDescriptor)
+BOOL CIndexedFilesEvicting::EvictFromCache(CIndexedDataDescriptor* pcDescriptor)
 {
 	SIndexedCacheDescriptor*	psExisting;
 	BOOL						bResult;
@@ -397,7 +397,7 @@ BOOL CIndexedFilesCache::EvictFromCache(CIndexedDataDescriptor* pcDescriptor)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedFilesCache::WriteEvictedData(SIndexedCacheDescriptor* psCached)
+BOOL CIndexedFilesEvicting::WriteEvictedData(SIndexedCacheDescriptor* psCached)
 {
 	CIndexedDataDescriptor	cDescriptor;
 	BOOL					bResult;
@@ -425,7 +425,7 @@ BOOL CIndexedFilesCache::WriteEvictedData(SIndexedCacheDescriptor* psCached)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedFilesCache::WriteEvictedData(CArrayVoidPtr* papsEvictedIndexedCacheDescriptors)
+BOOL CIndexedFilesEvicting::WriteEvictedData(CArrayVoidPtr* papsEvictedIndexedCacheDescriptors)
 {
 	int							i;
 	SIndexedCacheDescriptor*	psCached;
@@ -448,7 +448,7 @@ BOOL CIndexedFilesCache::WriteEvictedData(CArrayVoidPtr* papsEvictedIndexedCache
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedFilesCache::CompareDiskToMemory(CIndexedDataDescriptor* pcDescriptor, void* pvData)
+BOOL CIndexedFilesEvicting::CompareDiskToMemory(CIndexedDataDescriptor* pcDescriptor, void* pvData)
 {
 	//This function tells the disk whether it must update itself because the cached value has changed.
 	//It also timestamps the descriptor of the changed data.
@@ -478,7 +478,7 @@ BOOL CIndexedFilesCache::CompareDiskToMemory(CIndexedDataDescriptor* pcDescripto
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedFilesCache::ClearDescriptorCache(SIndexedCacheDescriptor* psCached)
+BOOL CIndexedFilesEvicting::ClearDescriptorCache(SIndexedCacheDescriptor* psCached)
 {
 	CIndexedDataDescriptor		cDescriptor;
 	BOOL						bResult;
@@ -506,7 +506,7 @@ BOOL CIndexedFilesCache::ClearDescriptorCache(SIndexedCacheDescriptor* psCached)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-unsigned int CIndexedFilesCache::TestGetCachedObjectSize(OIndex oi)
+unsigned int CIndexedFilesEvicting::TestGetCachedObjectSize(OIndex oi)
 {
 	SIndexedCacheDescriptor*	psDesc;
 
@@ -522,6 +522,6 @@ unsigned int CIndexedFilesCache::TestGetCachedObjectSize(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CIndexedFilesCache::TestNumIgnoredCacheElements(void) { return mcDataCache.NumIgnored(); }
-BOOL CIndexedFilesCache::IsCaching(void) { return mbCaching; }
+int CIndexedFilesEvicting::TestNumIgnoredCacheElements(void) { return mcDataCache.NumIgnored(); }
+BOOL CIndexedFilesEvicting::IsCaching(void) { return mbCaching; }
 
