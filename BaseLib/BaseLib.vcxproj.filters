@@ -211,6 +211,9 @@
     <Filter Include="Source\Math\Random">
       <UniqueIdentifier>{56de7461-47e8-4032-bef0-2e4ff47edfd7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Data\Map\Primitive">
+      <UniqueIdentifier>{c57d1158-7981-4514-905a-5cadf907a3c0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DataMacro.h">
@@ -254,12 +257,6 @@
     </ClInclude>
     <ClInclude Include="StringHelper.h">
       <Filter>Source\Data\String</Filter>
-    </ClInclude>
-    <ClInclude Include="MapIntInt.h">
-      <Filter>Source\Data\Map</Filter>
-    </ClInclude>
-    <ClInclude Include="MapIntTemplate.h">
-      <Filter>Source\Data\Map</Filter>
     </ClInclude>
     <ClInclude Include="MapPtrPtr.h">
       <Filter>Source\Data\Map</Filter>
@@ -765,6 +762,15 @@
     <ClInclude Include="StdRandom.h">
       <Filter>Source\Math\Random</Filter>
     </ClInclude>
+    <ClInclude Include="MapIntTemplate.h">
+      <Filter>Source\Data\Map\Primitive</Filter>
+    </ClInclude>
+    <ClInclude Include="MapIntInt.h">
+      <Filter>Source\Data\Map\Primitive</Filter>
+    </ClInclude>
+    <ClInclude Include="MapPrimitiveTemplate.h">
+      <Filter>Source\Data\Map\Primitive</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -796,9 +802,6 @@
     </ClCompile>
     <ClCompile Include="StringHelper.cpp">
       <Filter>Source\Data\String</Filter>
-    </ClCompile>
-    <ClCompile Include="MapIntInt.cpp">
-      <Filter>Source\Data\Map</Filter>
     </ClCompile>
     <ClCompile Include="MapPtrPtr.cpp">
       <Filter>Source\Data\Map</Filter>
@@ -1204,6 +1207,9 @@
     </ClCompile>
     <ClCompile Include="StdRandom.cpp">
       <Filter>Source\Math\Random</Filter>
+    </ClCompile>
+    <ClCompile Include="MapIntInt.cpp">
+      <Filter>Source\Data\Map\Primitive</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

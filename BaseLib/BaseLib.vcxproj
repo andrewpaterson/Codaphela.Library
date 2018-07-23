@@ -148,6 +148,7 @@
     <ClInclude Include="LogString.h" />
     <ClInclude Include="Mallocator.h" />
     <ClInclude Include="MapBlock.h" />
+    <ClInclude Include="MapPrimitiveTemplate.h" />
     <ClInclude Include="MapPtrPrimitiveTemplate.h" />
     <ClInclude Include="MapStringBlock.h" />
     <ClInclude Include="MemoryAllocator.h" />

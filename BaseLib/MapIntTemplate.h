@@ -22,12 +22,12 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __MAP_INT_TEMPLATE_H__
 #define __MAP_INT_TEMPLATE_H__
-#include "MapTemplate.h"
+#include "MapPrimitiveTemplate.h"
 #include "IntegerHelper.h"
 
 
 template<class D>
-class CMapIntTemplate : public CMapTemplate<int, D>
+class CMapIntTemplate : public CMapPrimitiveTemplate<int, D>
 {
 public:
 	void	Init(BOOL bOverwrite);
