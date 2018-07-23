@@ -20,22 +20,21 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __MAP_INT_TEMPLATE_H__
-#define __MAP_INT_TEMPLATE_H__
-#include "MapPrimitiveTemplate.h"
-#include "IntegerHelper.h"
+#ifndef __MAP_PRIMITIVE_TEMPLATE_H__
+#define __MAP_PRIMITIVE_TEMPLATE_H__
+#include "MapTemplate.h"
 
 
-template<class D>
-class CMapIntTemplate : public CMapPrimitiveTemplate<int, D>
+template<class M, class D>
+class CMapPrimitiveTemplate : public CMapTemplate<M , D>
 {
 public:
 	void	Init(BOOL bOverwrite);
 	void	Init(CMallocator* pcMalloc, BOOL bOverwrite);
-	D*		Get(int iKey);
-	D*		Put(int iKey);
-	BOOL	Put(int iKey, D* psData);
-	BOOL	Remove(int iKey);
+	D*		Get(M iKey);
+	D*		Put(M iKey);
+	BOOL	Put(M iKey, D* psData);
+	BOOL	Remove(M iKey);
 };
 
 
@@ -43,8 +42,8 @@ public:
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class D>
-void CMapIntTemplate<D>::Init(BOOL bOverwrite)
+template<class M, class D>
+void CMapPrimitiveTemplate<M, D>::Init(BOOL bOverwrite)
 {
 	Init(&gcSystemAllocator, bOverwrite);
 }
@@ -54,10 +53,10 @@ void CMapIntTemplate<D>::Init(BOOL bOverwrite)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class D>
-void CMapIntTemplate<D>::Init(CMallocator* pcMalloc, BOOL bOverwrite)
+template<class M, class D>
+void CMapPrimitiveTemplate<M, D>::Init(CMallocator* pcMalloc, BOOL bOverwrite)
 {
-	CMapTemplate<int, D>::Init(pcMalloc, &CompareInt, bOverwrite);
+	CMapTemplate<M, D>::Init(pcMalloc, &CompareInt, bOverwrite);
 };
 
 
@@ -65,10 +64,10 @@ void CMapIntTemplate<D>::Init(CMallocator* pcMalloc, BOOL bOverwrite)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class D>
-D* CMapIntTemplate<D>::Get(int iKey)
+template<class M, class D>
+D* CMapPrimitiveTemplate<M, D>::Get(M iKey)
 {
-	return CMapTemplate<int, D>::Get(&iKey);
+	return CMapTemplate<M, D>::Get(&iKey);
 }
 
 
@@ -76,10 +75,10 @@ D* CMapIntTemplate<D>::Get(int iKey)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class D>
-D* CMapIntTemplate<D>::Put(int iKey)
+template<class M, class D>
+D* CMapPrimitiveTemplate<M, D>::Put(M iKey)
 {
-	return CMapTemplate<int, D>::Put(&iKey);
+	return CMapTemplate<M, D>::Put(&iKey);
 }
 
 
@@ -87,10 +86,10 @@ D* CMapIntTemplate<D>::Put(int iKey)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class D>
-BOOL CMapIntTemplate<D>::Put(int iKey, D* psData)
+template<class M, class D>
+BOOL CMapPrimitiveTemplate<M, D>::Put(M iKey, D* psData)
 {
-	return CMapTemplate<int, D>::Put(&iKey, psData);
+	return CMapTemplate<M, D>::Put(&iKey, psData);
 }
 
 
@@ -98,12 +97,12 @@ BOOL CMapIntTemplate<D>::Put(int iKey, D* psData)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class D>
-BOOL CMapIntTemplate<D>::Remove(int iKey)
+template<class M, class D>
+BOOL CMapPrimitiveTemplate<M, D>::Remove(M iKey)
 {
-	return CMapTemplate<int, D>::Remove(&iKey);
+	return CMapTemplate<M, D>::Remove(&iKey);
 }
 
 
-#endif // __MAP_INT_TEMPLATE_H__
+#endif // __MAP_PRIMITIVE_TEMPLATE_H__
 
