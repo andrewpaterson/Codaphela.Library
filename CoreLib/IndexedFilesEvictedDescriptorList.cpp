@@ -9,7 +9,7 @@
 void CIndexedFilesEvictedDescriptorList::Init(void)
 {
 	mcDatas.Init();
-	mcDescriptors.Init(CompareLong);
+	mcDescriptors.Init(TRUE);
 }
 
 
@@ -32,7 +32,7 @@ CIndexedDataDescriptor*	CIndexedFilesEvictedDescriptorList::AddDescriptor(OIndex
 {
 	CIndexedDataDescriptor*	pcResult;
 
-	pcResult = mcDescriptors.Put(&oi);
+	pcResult = mcDescriptors.Put(oi);
 	pcResult->Init(uiDataSize);
 	return pcResult;
 }
@@ -71,7 +71,7 @@ BOOL CIndexedFilesEvictedDescriptorList::GetDescriptor(OIndex oi, CIndexedDataDe
 {
 	CIndexedDataDescriptor* pcResult;
 
-	pcResult = mcDescriptors.Get(&oi);
+	pcResult = mcDescriptors.Get(oi);
 	if (pcResult)
 	{
 		if (pcDescriptor)
@@ -93,6 +93,6 @@ BOOL CIndexedFilesEvictedDescriptorList::GetDescriptor(OIndex oi, CIndexedDataDe
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexedFilesEvictedDescriptorList::SetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor)
 {
-	return mcDescriptors.Put(&oi, pcDescriptor);
+	return mcDescriptors.Put(oi, pcDescriptor);
 }
 

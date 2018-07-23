@@ -1,7 +1,7 @@
 #ifndef __INDEXED_FILES_EVICTED_DESCRIPTOR_LIST_H__
 #define __INDEXED_FILES_EVICTED_DESCRIPTOR_LIST_H__
 #include "BaseLib/ListVariable.h"
-#include "BaseLib/MapTemplate.h"
+#include "BaseLib/MapLongTemplate.h"
 #include "IndexedFilesEvictionCallback.h"
 
 
@@ -9,7 +9,7 @@ class CIndexedFilesEvictedDescriptorList : public CIndexedFilesEvictionCallback
 {
 protected:
 	CListVariable									mcDatas;
-	CMapTemplate<OIndex, CIndexedDataDescriptor>	mcDescriptors;
+	CMapLongTemplate<CIndexedDataDescriptor>	mcDescriptors;
 
 public:
 	void					Init(void);
