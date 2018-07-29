@@ -46,15 +46,15 @@ public:
 	//access allocates chunks in the size below.
 
 	//Size of the object cache in bytes.
-	int		miObjectsCacheSize;
+	size_t		miObjectsCacheSize;
 
-	void	Manual(char* szWorkingDirectory, char* szRewriteDirectory, BOOL bDirtyTesting, BOOL bWriteThrough, int iObjectsCacheSize);
+	void	Manual(char* szWorkingDirectory, char* szRewriteDirectory, BOOL bDirtyTesting, BOOL bWriteThrough, size_t iObjectsCacheSize);
 	void	OptimiseForStreaming(char* szWorkingDirectory);
 
 	void	SetDirtyTesting(BOOL bDirtyTesting);
 	void	SetWriteThrough(BOOL bWriteThrough);
 	void	DisableObjectCaching(void);
-	void	SetObjectCacheSize(int iObjectsCacheSize);
+	void	SetObjectCacheSize(size_t iObjectsCacheSize);
 };
 
 

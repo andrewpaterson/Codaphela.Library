@@ -43,8 +43,7 @@ struct SDurableFileCommandWrite
 
 
 class CDurableFileController;
-class CFileBasic;
-class CDurableFile
+class CDurableFile : public CFileIO
 {
 private:
 	CChars						mszFileName;
@@ -83,6 +82,7 @@ public:
 	filePos		Read(void* pvDest, filePos iSize, filePos iCount);
 
 	BOOL		Create(void);
+	BOOL		Exists(void);
 
 	filePos		Tell(void);
 	filePos		Size(void);

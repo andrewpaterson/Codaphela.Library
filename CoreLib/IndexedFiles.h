@@ -36,10 +36,7 @@ protected:
 
 	CChars						mszDataExtension;
 
-	CChars						mszDescricptorName;
-	CChars						mszDescricptorRewrite;
 	CDurableFile				mcFileDescriptors;
-	BOOL						mbDescriptorsRead;
 
 public:
 	void			Init(CDurableFileController* pcDurableFileControl, char* szDataExtension, char* szDescricptorName, char* szDescricptorRewrite);

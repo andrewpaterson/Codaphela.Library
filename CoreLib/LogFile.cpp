@@ -81,8 +81,6 @@ void CLogFile::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CLogFile::Begin(void)
 {
-	//This returns whether or not the backing file was opened rather than whether or not Begin failed.  ?!?
-
 	BOOL	bMustOpen;
 
 	if (macCommands.NumElements() != 0)

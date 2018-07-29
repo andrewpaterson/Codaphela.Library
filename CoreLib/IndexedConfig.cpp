@@ -28,7 +28,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedConfig::Manual(char* szWorkingDirectory, char* szRewriteDirectory, BOOL bDirtyTesting, BOOL bWriteThrough, int iObjectsCacheSize)
+void CIndexedConfig::Manual(char* szWorkingDirectory, char* szRewriteDirectory, BOOL bDirtyTesting, BOOL bWriteThrough, size_t iObjectsCacheSize)
 {
 	mszWorkingDirectory = szWorkingDirectory;
 	mszRewriteDirectory = szRewriteDirectory;
@@ -89,7 +89,7 @@ void CIndexedConfig::DisableObjectCaching(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedConfig::SetObjectCacheSize(int iObjectsCacheSize)
+void CIndexedConfig::SetObjectCacheSize(size_t iObjectsCacheSize)
 {
 	miObjectsCacheSize = iObjectsCacheSize;
 }
