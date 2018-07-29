@@ -46,6 +46,7 @@ public:
 	BOOL			Recover(CDurableFile* pcFirst, ...);
 	BOOL			Check(void);
 
+	void			InitFile(CDurableFile* pcFile, char* szDescricptorName, char* szDescricptorRewrite);
 	void			AddFile(CDurableFile* pcFile);
 	int				NumFiles(void);
 	CDurableFile*	GetFile(int iIndex);

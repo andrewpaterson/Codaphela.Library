@@ -33,6 +33,8 @@ class CMapLongTemplate : public CMapPrimitiveTemplate<int64, D>
 public:
 	void	Init(BOOL bOverwrite);
 	void	Init(CMallocator* pcMalloc, BOOL bOverwrite);
+
+	BOOL	Read(CFileReader* pcFileReader);
 };
 
 
@@ -57,6 +59,16 @@ void CMapLongTemplate<D>::Init(CMallocator* pcMalloc, BOOL bOverwrite)
 	CMapTemplate<int64, D>::Init(pcMalloc, &CompareLong, bOverwrite);
 };
 
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class D>
+BOOL CMapLongTemplate<D>::Read(CFileReader* pcFileReader)
+{
+	return CMapTemplate<int64, D>::Read(pcFileReader, &CompareLong);
+}
 
 #endif // __MAP_LONG_TEMPLATE_H__
 

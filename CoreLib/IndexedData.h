@@ -25,75 +25,43 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "BaseLib/TemporaryMemory.h"
 #include "BaseLib/MemoryFile.h"
 #include "IndexedConfig.h"
-#include "IndexedFilesEvicting.h"
 #include "DurableFileController.h"
 #include "IndexedFilesEvictionCallback.h"
+#include "IndexedDataCommon.h"
 #include "IndexedDescriptorsFile.h"
 
 
 //This is the database class.
-class CIndexedData : public CIndexedFilesEvictionCallback
+class CIndexedData : public CIndexedDataCommon, public CIndexedFilesEvictionCallback
 {
 protected:
-	//Data
-	CIndexedFilesEvicting		mcData;
-
-	//Index
 	CIndexedDescriptorsFile	mcIndices;
 
 	CDurableFileController	mcDurableFileControl;
-	BOOL					mbWriteThrough;
 
 public:
 	void 			Init(char* szWorkingDirectory, char* szRewriteDirectory, unsigned int uiCacheSize);  //Old style for testing.
-	void 			Init(CIndexedConfig* pcConfig);
-	void 			Kill(void);
-
-	BOOL			Add(OIndex oi, void* pvData, unsigned int uiDataSize, unsigned int uiTimeStamp);
-	BOOL			Set(OIndex oi, void* pvData, unsigned int uiTimeStamp);
-	BOOL			Set(OIndex oi, void* pvData, unsigned int uiDataSize, unsigned int uiTimeStamp);
-	BOOL			SetOrAdd(OIndex oi, void* pvData, unsigned int uiDataSize, unsigned int uiTimeStamp);
-
-	unsigned int	Size(OIndex oi);
-	unsigned int	Flags(OIndex oi);
-	BOOL			Get(OIndex oi, void* pvData);
-	void*			Get(OIndex oi, int* piDataSize);
-
-	BOOL			Contains(OIndex oi);
-
-	BOOL			Remove(OIndex oi);
+	BOOL 			Kill(void);
 
 	BOOL			Flush(BOOL bClearCache);
-	void			DurableBegin(void);
-	void			DurableEnd(void);
 
-	void			KillEnd(void);
-
-	BOOL			IsCaching(void);
+	BOOL			DurableBegin(void);
+	BOOL			DurableEnd(void);
 	BOOL			IsDurable(void);
-	int				NumCached(void);
-	int				NumCached(int iSize);
-	int				NumFiles(void);
-	int64			NumData(int iDataSize);
 	int64			NumElements(void);
 
 	BOOL			EvictFromCache(CIndexedDataDescriptor* pcDescriptor);
 
 	int				TestNumCachedIndexes(void);
-	int				TestNumIgnoredCacheElements(void);
-	unsigned int	TestGetCachedObjectSize(OIndex oi);
 	CDurableFileController* GetDurableFileControl(void);
 
 protected:
-	void 			InitIndices(BOOL bDirtyTesting);
-
-	BOOL			SetData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, void* pvData, unsigned int uiTimeStamp);
-	BOOL			SetData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, void* pvData, unsigned int uiDataSize, unsigned int uiTimeStamp);
+	void 			InitIndices(CDurableFileController* pcDurableFileControl, BOOL bDirtyTesting);
 
 	BOOL			GetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor);
 	BOOL			SetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor);
+	BOOL			RemoveDescriptor(OIndex oi);
 
-	BOOL			EvictFromCache(OIndex oi);
 	BOOL			DescriptorsEvicted(CArrayVoidPtr* papsEvictedIndexedCacheDescriptors);
 };
 

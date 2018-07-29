@@ -91,6 +91,7 @@
     <ClCompile Include="FileIterator.cpp" />
     <ClCompile Include="FileIteratorReturn.cpp" />
     <ClCompile Include="Files.cpp" />
+    <ClCompile Include="IndexedDataCommon.cpp" />
     <ClCompile Include="IndexedFilesEvictedDescriptorList.cpp" />
     <ClCompile Include="IndexedDescriptorsFile.cpp" />
     <ClCompile Include="IndexedFilesEvicting.cpp" />
@@ -170,6 +171,7 @@
     <ClCompile Include="OperatorAssignment.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="IndexedDataCommon.h" />
     <ClInclude Include="IndexedFilesEvictedDescriptorList.h" />
     <ClInclude Include="IndexedFilesEvictionCallback.h" />
     <ClInclude Include="IndexedFilesEvicting.h" />

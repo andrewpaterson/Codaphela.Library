@@ -65,8 +65,6 @@ void CIndexedFiles::Kill(void)
 
 	mcFileDescriptors.Kill();
 	mszDataExtension.Kill();
-	mszDescricptorName.Kill();
-	mszDescricptorRewrite.Kill();
 }
 
 
@@ -76,24 +74,7 @@ void CIndexedFiles::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CIndexedFiles::InitIndexedFileDescriptors(char* szDescricptorName, char* szDescricptorRewrite)
 {
-	mbDescriptorsRead = FALSE;
-
-	mszDescricptorName.Init(mpcDurableFileControl->GetDirectory());
-	mszDescricptorName.Append(FILE_SEPARATOR);
-	mszDescricptorName.Append(szDescricptorName);
-
-	if (IsDurable())
-	{
-		mszDescricptorRewrite.Init(mpcDurableFileControl->GetRewriteDirectory());
-		mszDescricptorRewrite.Append(FILE_SEPARATOR);
-		mszDescricptorRewrite.Append(szDescricptorRewrite);
-	}
-	else
-	{
-		mszDescricptorRewrite.Init();
-	}
-
-	mcFileDescriptors.Init(mpcDurableFileControl, mszDescricptorName.Text(), mszDescricptorRewrite.Text());
+	mpcDurableFileControl->InitFile(&mcFileDescriptors, szDescricptorName, szDescricptorRewrite);
 }
 
 
@@ -152,7 +133,6 @@ BOOL CIndexedFiles::ReadIndexedFileDescriptors(void)
 		}
 	}
 	SafeFree(pasFileDescriptors);
-	mbDescriptorsRead = TRUE;
 	return bResult;
 }
 

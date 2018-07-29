@@ -13,7 +13,7 @@ void CIndexedFilesEvicting::Init(CDurableFileController* pcDurableFileControl, c
 	mbWriteThrough = bWriteThrough;
 	mpcEvictionCallback = pcEvictionCallback;
 
-	mcDataFiles.Init(pcDurableFileControl, "DAT", "Files.IDX", "_Files.IDX");
+	mcDataFiles.Init(pcDurableFileControl, szDataExtension, szDescricptorName, szDescricptorRewrite);
 	mcDataFiles.ReadIndexedFileDescriptors();
 
 	if (iCacheSize != 0)
@@ -142,6 +142,31 @@ BOOL CIndexedFilesEvicting::Flush(BOOL bClearCache)
 	{
 		return TRUE;
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexedFilesEvicting::IsFlushed(void)
+{
+	SIndexedCacheDescriptor*	psCached;
+	BOOL						bAnyFailed;
+
+	if (mbCaching)
+	{
+		bAnyFailed = FALSE;
+		psCached = mcDataCache.StartIteration();
+		while (psCached)
+		{
+			if (psCached->iFlags & CACHE_DESCRIPTOR_FLAG_DIRTY)
+			{
+				return FALSE;
+			}
+		}
+	}
+	return TRUE;
 }
 
 

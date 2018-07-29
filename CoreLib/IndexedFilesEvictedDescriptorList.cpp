@@ -6,10 +6,19 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedFilesEvictedDescriptorList::Init(void)
+void CIndexedFilesEvictedDescriptorList::Init(CDurableFileController* pcDurableFileControl, char* szDataExtension, char* szDescricptorName, char* szDescricptorRewrite, size_t iCacheSize, BOOL bWriteThrough)
 {
-	mcDatas.Init();
-	mcDescriptors.Init(TRUE);
+	CIndexedConfig	cConfig;
+
+	cConfig.OptimiseForStreaming("");
+	cConfig.mszRewriteDirectory = "";
+	cConfig.SetObjectCacheSize(iCacheSize);
+
+	mcData.Init(pcDurableFileControl, szDataExtension, szDescricptorName, szDescricptorRewrite, iCacheSize, bWriteThrough, this);
+
+	mcEvicted.Init();
+
+	CIndexedDataCommon::Init(&cConfig, pcDurableFileControl, this);
 }
 
 
@@ -17,10 +26,22 @@ void CIndexedFilesEvictedDescriptorList::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedFilesEvictedDescriptorList::Kill(void)
+BOOL CIndexedFilesEvictedDescriptorList::Kill(void)
 {
+	if (!mcData.IsFlushed())
+	{
+		return FALSE;
+	}
+	if (!mbDescriptorsWritten)
+	{
+		return FALSE;
+	}
+
+	mcData.Kill();
+
 	mcDescriptors.Kill();
-	mcDatas.Kill();
+	mcEvicted.Kill();
+	return TRUE;
 }
 
 
@@ -28,13 +49,37 @@ void CIndexedFilesEvictedDescriptorList::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexedDataDescriptor*	CIndexedFilesEvictedDescriptorList::AddDescriptor(OIndex oi, unsigned int uiDataSize)
+void CIndexedFilesEvictedDescriptorList::InitIndices(CDurableFileController* pcDurableFileControl, BOOL bDirtyTesting)
 {
-	CIndexedDataDescriptor*	pcResult;
+	mcDescriptors.Init(TRUE);
+	mbDescriptorsWritten = TRUE;
+	pcDurableFileControl->InitFile(&mcDescriptorsFile, "Descriptors.IDX", "_Descriptors.IDX");
 
-	pcResult = mcDescriptors.Put(oi);
-	pcResult->Init(uiDataSize);
-	return pcResult;
+	if (mcDescriptorsFile.Exists())
+	{
+		mcDescriptors.Read(&mcDescriptorsFile);
+		NullCachedDescriptors();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexedFilesEvictedDescriptorList::NullCachedDescriptors(void)
+{
+	SMapIterator			sIter;
+	OIndex*					poi;
+	CIndexedDataDescriptor*	pcDesc;
+	BOOL					bExists;
+	
+	bExists = mcDescriptors.StartIteration(&sIter, (void**)&poi, (void**)&pcDesc);
+	while (bExists)
+	{
+		pcDesc->Cache(NULL);
+		bExists = mcDescriptors.Iterate(&sIter, (void**)&poi, (void**)&pcDesc);
+	}
 }
 
 
@@ -56,7 +101,7 @@ BOOL CIndexedFilesEvictedDescriptorList::DescriptorsEvicted(CArrayVoidPtr* papsE
 		if (psDesc != NULL)
 		{
 			pvData = RemapSinglePointer(psDesc, sizeof(SIndexedCacheDescriptor));
-			mcDatas.Add(pvData, psDesc->iDataSize);
+			mcEvicted.Add(pvData, psDesc->iDataSize);
 		}
 	}
 	return TRUE;
@@ -93,6 +138,57 @@ BOOL CIndexedFilesEvictedDescriptorList::GetDescriptor(OIndex oi, CIndexedDataDe
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexedFilesEvictedDescriptorList::SetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor)
 {
+	mbDescriptorsWritten = FALSE;
 	return mcDescriptors.Put(oi, pcDescriptor);
+}
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexedFilesEvictedDescriptorList::RemoveDescriptor(OIndex oi)
+{
+	mbDescriptorsWritten = FALSE;
+	return mcDescriptors.Remove(oi);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexedFilesEvictedDescriptorList::Flush(BOOL bClearCache)
+{
+	BOOL		bResult;
+
+	bResult = mcData.Flush(bClearCache);
+	if (!mbDescriptorsWritten)
+	{
+		bResult &= mcDescriptors.Write(&mcDescriptorsFile);
+		mbDescriptorsWritten = TRUE;
+	}
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int64 CIndexedFilesEvictedDescriptorList::NumElements(void)
+{
+	return mcDescriptors.NumElements();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexedFilesEvictedDescriptorList::TestGetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor)
+{
+	return GetDescriptor(oi, pcDescriptor);
 }
 

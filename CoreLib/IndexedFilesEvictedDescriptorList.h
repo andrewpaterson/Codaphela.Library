@@ -3,23 +3,38 @@
 #include "BaseLib/ListVariable.h"
 #include "BaseLib/MapLongTemplate.h"
 #include "IndexedFilesEvictionCallback.h"
+#include "IndexedDataCommon.h"
+#include "IndexedFilesEvicting.h"
 
 
-class CIndexedFilesEvictedDescriptorList : public CIndexedFilesEvictionCallback
+class CIndexedFilesEvictedDescriptorList : public CIndexedDataCommon, public CIndexedFilesEvictionCallback
 {
 protected:
-	CListVariable									mcDatas;
+	CListVariable								mcEvicted;
+
 	CMapLongTemplate<CIndexedDataDescriptor>	mcDescriptors;
+	BOOL										mbDescriptorsWritten;
+	CDurableFile								mcDescriptorsFile;
+	CIndexedFilesEvicting						mcData;
 
 public:
-	void					Init(void);
-	void					Kill(void);
+	void	Init(CDurableFileController* pcDurableFileControl, char* szDataExtension, char* szDescricptorName, char* szDescricptorRewrite, size_t iCacheSize, BOOL bWriteThrough);
+	BOOL	Kill(void);
 
-	CIndexedDataDescriptor*	AddDescriptor(OIndex oi, unsigned int uiDataSize);
+	BOOL	DescriptorsEvicted(CArrayVoidPtr* papsEvictedIndexedCacheDescriptors);
+	BOOL	Flush(BOOL bClearCache);
 
-	BOOL					DescriptorsEvicted(CArrayVoidPtr* papsEvictedIndexedCacheDescriptors);
-	BOOL					GetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor);
-	BOOL					SetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor);
+	int64	NumElements(void);
+
+	BOOL	TestGetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor);
+
+protected:
+	void	InitIndices(CDurableFileController* pcDurableFileControl, BOOL bDirtyTesting);
+	void	NullCachedDescriptors(void);
+
+	BOOL	GetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor);
+	BOOL	SetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor);
+	BOOL	RemoveDescriptor(OIndex oi);
 };
 
 

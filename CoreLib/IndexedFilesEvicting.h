@@ -25,6 +25,7 @@ public:
 	BOOL			SetData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, void* pvData, unsigned int uiTimeStamp);
 
 	BOOL			Flush(BOOL bClearCache);
+	BOOL			IsFlushed(void);
 	BOOL			IsCaching(void);
 
 	int				NumCached(void);

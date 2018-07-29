@@ -194,6 +194,33 @@ BOOL CDurableFileController::Check(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CDurableFileController::InitFile(CDurableFile* pcFile, char* szDescricptorName, char* szDescricptorRewrite)
+{
+	CChars		szName;
+	CChars		szRewrite;
+
+	szName.Init(GetDirectory());
+	szName.Append(FILE_SEPARATOR);
+	szName.Append(szDescricptorName);
+
+	if (IsDurable())
+	{
+		szRewrite.Init(GetRewriteDirectory());
+		szRewrite.Append(FILE_SEPARATOR);
+		szRewrite.Append(szDescricptorRewrite);
+	}
+	else
+	{
+		szRewrite.Init();
+	}
+
+	pcFile->Init(this, szName.Text(), szRewrite.Text());
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CDurableFileController::AddFile(CDurableFile* pcFile)
 {
 	mcDurableSet.Add(pcFile);
