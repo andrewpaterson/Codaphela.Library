@@ -27,6 +27,7 @@ protected:
 	CArrayBlockSorted	mapArray;
 	CMallocator*		mpcMalloc;
 	int					miLargestKeySize;
+	BOOL				mbOverwrite;
 
 public:
 	int					(*fKeyCompare)(const void*, const void*);

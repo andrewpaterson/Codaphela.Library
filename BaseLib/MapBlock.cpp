@@ -52,8 +52,8 @@ void CMapBlock::Init(CMallocator* pcMalloc, int(*fKeyCompare)(const void*, const
 	mpcMalloc = pcMalloc;
 	this->fKeyCompare = fKeyCompare;
 	mapArray.Init(pcMalloc, sizeof(void*), iHoldingBufferSize, iHoldingBuffers, &CompareMNode);
-	mapArray.SetOverwrite(bOverwrite);
 	miLargestKeySize = 0;
+	mbOverwrite = bOverwrite;
 }
 
 
@@ -185,10 +185,22 @@ void* CMapBlock::Put(void* pvKey, int iKeySize, int iDataSize)
 	void*			pvDestKey;
 	void*			pvDestData;
 	BOOL			bResult;
-	void*			pvData;
-	//CStackMemory<>	cStack;
+	void*			pvExistingData;
 
-	//cStack.Init(
+	if (mbOverwrite)
+	{
+		//It's safe to call remove if the key does not exist.
+		Remove(pvKey);
+	}
+	else
+	{
+		pvExistingData = Get(pvKey);
+		if (pvExistingData)
+		{
+			return FALSE;
+		}
+	}
+
 	psNode = AllocateNode(iKeySize, iDataSize, &pvDestKey, &pvDestData);
 	if (!psNode)
 	{
@@ -198,8 +210,6 @@ void* CMapBlock::Put(void* pvKey, int iKeySize, int iDataSize)
 	memcpy(pvDestKey, pvKey, iKeySize);
 
 	bResult = mapArray.Add(&psNode);
-	pvData = mapArray.Get(&psNode);
-	//XXX // mpcMalloc->Free(psNode);
 	if (bResult)
 	{
 		return pvDestData;
