@@ -87,14 +87,16 @@ BOOL CMemoryFile::Open(EFileMode eFileMode)
 		{
 			mcArray.InsertBlockAt((char*)mpvInitialMem, miInitialLength, 0);
 		}
+		mpvInitialMem = NULL;
+		miInitialLength = 0;
 		iPos = 0;
 	}
 	else if (IsFileModeReadOnly(eFileMode))
 	{
-		mbFakeArray = TRUE;
 		iFlags = MEMORY_FILE_READ_FLAG;
 		if (miInitialLength != 0)
 		{
+			mbFakeArray = TRUE;
 			mcArray.ReInit();
 			mcArray.Fake((char*)mpvInitialMem, miInitialLength);
 		}
