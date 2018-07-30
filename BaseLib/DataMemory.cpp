@@ -50,6 +50,8 @@ void CDataMemory::Kill(void)
 {
 	CFreeList*	pcFreeList;
 
+	mcOrder.Kill();
+
 	pcFreeList = mcFreeLists.GetHead();
 	while (pcFreeList)
 	{
