@@ -1,5 +1,6 @@
 #include "DataMacro.h"
 #include "GlobalMemory.h"
+#include "StackMemory.h"
 #include "MapBlock.h"
 
 
@@ -180,11 +181,14 @@ BOOL CMapBlock::Put(void* pvKey, int iKeySize, void* pvData, int iDataSize)
 //////////////////////////////////////////////////////////////////////////
 void* CMapBlock::Put(void* pvKey, int iKeySize, int iDataSize)
 {
-	SMNode*		psNode;
-	void*		pvDestKey;
-	void*		pvDestData;
-	BOOL		bResult;
+	SMNode*			psNode;
+	void*			pvDestKey;
+	void*			pvDestData;
+	BOOL			bResult;
+	void*			pvData;
+	//CStackMemory<>	cStack;
 
+	//cStack.Init(
 	psNode = AllocateNode(iKeySize, iDataSize, &pvDestKey, &pvDestData);
 	if (!psNode)
 	{
@@ -194,6 +198,8 @@ void* CMapBlock::Put(void* pvKey, int iKeySize, int iDataSize)
 	memcpy(pvDestKey, pvKey, iKeySize);
 
 	bResult = mapArray.Add(&psNode);
+	pvData = mapArray.Get(&psNode);
+	//XXX // mpcMalloc->Free(psNode);
 	if (bResult)
 	{
 		return pvDestData;
@@ -533,28 +539,6 @@ SMNode* CMapBlock::AllocateNode(int iKeySize, int iDataSize, void** ppvKey, void
 {
 	SMNode*	psNode;
 
-	psNode = AllocateNode(iKeySize, iDataSize);
-	if (!psNode)
-	{
-		return NULL;
-	}
-	RemapKeyAndData(psNode, ppvKey, ppvData);
-	if (psNode->iKeySize > miLargestKeySize)
-	{
-		miLargestKeySize = psNode->iKeySize;
-	}
-	return psNode;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-SMNode* CMapBlock::AllocateNode(int iKeySize, int iDataSize)
-{
-	SMNode*	psNode;
-
 	psNode = (SMNode*)mpcMalloc->Malloc(sizeof(SMNode) + iKeySize + iDataSize);
 	if (!psNode)
 	{
@@ -565,6 +549,11 @@ SMNode* CMapBlock::AllocateNode(int iKeySize, int iDataSize)
 	psNode->iDataSize = iDataSize;
 	psNode->pcMapBlock = this;
 
+	RemapKeyAndData(psNode, ppvKey, ppvData);
+	if (psNode->iKeySize > miLargestKeySize)
+	{
+		miLargestKeySize = psNode->iKeySize;
+	}
 	return psNode;
 }
 
