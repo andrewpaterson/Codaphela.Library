@@ -162,8 +162,9 @@ int TestTotalStatistics(void)
 
 		gcLogger.Add(sz.Text());
 
-		sz.Kill();
 	}
+	sz.Kill();
+
 	gcLogger.Kill();
 	return giTotalTestsFailed;
 }
