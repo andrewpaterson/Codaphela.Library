@@ -198,8 +198,10 @@ BOOL CCSVFileEditable::ReadLine(int iFileOffset, SCSVRowEditable* psCSVRow)
 	if (bResult)
 	{
 		cString.Split(&psCSVRow->aszData, mcSeparator);
+		cString.Kill();
 		return TRUE;
 	}
+	cString.Kill();
 	return FALSE;
 }
 
