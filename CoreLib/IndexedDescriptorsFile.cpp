@@ -55,6 +55,26 @@ BOOL CIndexedDescriptorsFile::Set(CIndexedDataDescriptor* pcDescriptor, OIndex o
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL CIndexedDescriptorsFile::SetCache(void* pvCache, OIndex oi)
+{
+	CIndexTreeNode*			pcNode;
+	CIndexedDataDescriptor*	pcDescriptor;
+
+	pcNode = mcIndexTree.GetMemoryNode(&oi, sizeof(oi));
+	if (pcNode)
+	{
+		pcDescriptor = (CIndexedDataDescriptor*)pcNode->GetObjectPtr();
+		pcDescriptor->Cache(pvCache);
+		return TRUE;
+	}
+	return FALSE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 int64 CIndexedDescriptorsFile::NumElements(void)
 {
 	return mcIndexTree.NumElements();

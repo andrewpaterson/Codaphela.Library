@@ -15,11 +15,14 @@ protected:
 	CMapLongTemplate<CIndexedDataDescriptor>	mcDescriptors;
 	BOOL										mbDescriptorsWritten;
 	CDurableFile								mcDescriptorsFile;
-	CIndexedFilesEvicting						mcData;
 
 public:
 	void	Init(CDurableFileController* pcDurableFileControl, char* szDataExtension, char* szDescricptorName, char* szDescricptorRewrite, size_t iCacheSize, BOOL bWriteThrough);
 	BOOL	Kill(void);
+
+	int		NumEvicted(void);
+	void*	GetEvicted(int iIndex);
+	void	ClearEvicted(void);
 
 	BOOL	DescriptorsEvicted(CArrayVoidPtr* papsEvictedIndexedCacheDescriptors);
 	BOOL	Flush(BOOL bClearCache);
@@ -34,6 +37,7 @@ protected:
 
 	BOOL	GetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor);
 	BOOL	SetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor);
+	BOOL	UpdateDescriptorCache(OIndex oi, void* pvCache);
 	BOOL	RemoveDescriptor(OIndex oi);
 };
 

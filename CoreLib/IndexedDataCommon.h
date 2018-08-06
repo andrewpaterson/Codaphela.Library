@@ -49,13 +49,13 @@ protected:
 
 	virtual BOOL			GetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor) =0;
 	virtual BOOL			SetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor) =0;
+	virtual BOOL			UpdateDescriptorCache(OIndex oi, void* pvCache) =0;
 	virtual BOOL			RemoveDescriptor(OIndex oi) =0;
 
 	virtual void			InitIndices(CDurableFileController* pcDurableFileControl, BOOL bDirtyTesting) =0;
 
 	virtual BOOL			Flush(BOOL bClearCache) =0;
 
-			BOOL			EvictedFromCache(OIndex oi);
 			BOOL			DescriptorsEvicted(CArrayVoidPtr* papsEvictedIndexedCacheDescriptors);
 };
 

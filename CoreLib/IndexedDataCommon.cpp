@@ -157,29 +157,6 @@ BOOL CIndexedDataCommon::SetOrAdd(OIndex oi, void* pvData, unsigned int uiDataSi
 }
 
 
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CIndexedDataCommon::EvictedFromCache(OIndex oi)
-{
-	CIndexedDataDescriptor	cDescriptor;
-	BOOL					bResult;
-
-	bResult = GetDescriptor(oi, &cDescriptor);
-	if (!bResult)
-	{
-		return FALSE;
-	}
-
-	cDescriptor.Cache(NULL);
-	bResult = SetDescriptor(oi, &cDescriptor);
-	return bResult;
-}
-
-
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -198,7 +175,7 @@ BOOL CIndexedDataCommon::DescriptorsEvicted(CArrayVoidPtr* papsEvictedIndexedCac
 		psDesc = (SIndexedCacheDescriptor*)papsEvictedIndexedCacheDescriptors->GetPtr(i);
 		if (psDesc != NULL)
 		{
-			bResult &= EvictedFromCache(psDesc->oi);
+			bResult &= UpdateDescriptorCache(psDesc->oi, NULL);
 		}
 	}
 	return bResult;

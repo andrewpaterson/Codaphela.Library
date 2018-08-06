@@ -65,7 +65,7 @@ BOOL CIndexedFilesEvicting::GetData(OIndex oi, CIndexedDataDescriptor* pcDescrip
 			if (pcDescriptor->IsCached())
 			{
 				memcpy_fast(pvData, pcDescriptor->GetCache(), pcDescriptor->GetDataSize());
-				return mpcEvictionCallback->SetDescriptor(oi, pcDescriptor);
+				return mpcEvictionCallback->UpdateDescriptorCache(oi, pcDescriptor->GetCache());
 			}
 			else
 			{
@@ -109,7 +109,6 @@ BOOL CIndexedFilesEvicting::Flush(BOOL bClearCache)
 	SIndexedCacheDescriptor*	psCached;
 	BOOL						bAnyFailed;
 	BOOL						bResult;
-	CIndexedDataDescriptor		cDesc;
 
 	if (mbCaching)
 	{
@@ -121,13 +120,6 @@ BOOL CIndexedFilesEvicting::Flush(BOOL bClearCache)
 			if (!bResult)
 			{
 				bAnyFailed = TRUE;
-			}
-
-			if (bClearCache && !bAnyFailed)
-			{
-				mpcEvictionCallback->GetDescriptor(psCached->oi, &cDesc);
-				cDesc.Cache(NULL);
-				mpcEvictionCallback->SetDescriptor(psCached->oi, &cDesc);
 			}
 
 			psCached = mcDataCache.Iterate(psCached);
@@ -164,6 +156,7 @@ BOOL CIndexedFilesEvicting::IsFlushed(void)
 			{
 				return FALSE;
 			}
+			psCached = mcDataCache.Iterate(psCached);
 		}
 	}
 	return TRUE;
@@ -308,6 +301,7 @@ BOOL CIndexedFilesEvicting::CacheRead(OIndex oi, CIndexedDataDescriptor* pcDescr
 				return FALSE;
 			}
 
+			//pcDescriptor cache updated here.
 			bResult = mcDataCache.Allocate(oi, pcDescriptor, &cPreAllocated);
 			if (!bResult)
 			{
@@ -322,7 +316,6 @@ BOOL CIndexedFilesEvicting::CacheRead(OIndex oi, CIndexedDataDescriptor* pcDescr
 				return FALSE;
 			}
 
-			//This needs to be a callback.
 			mpcEvictionCallback->DescriptorsEvicted(cPreAllocated.GetEvictedArray());
 			cPreAllocated.Kill();
 			return TRUE;
@@ -505,24 +498,7 @@ BOOL CIndexedFilesEvicting::CompareDiskToMemory(CIndexedDataDescriptor* pcDescri
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexedFilesEvicting::ClearDescriptorCache(SIndexedCacheDescriptor* psCached)
 {
-	CIndexedDataDescriptor		cDescriptor;
-	BOOL						bResult;
-
-	bResult = mpcEvictionCallback->GetDescriptor(psCached->oi, &cDescriptor);
-	if (!bResult)
-	{
-		return FALSE;
-	}
-
-	//We can assume the cache is clear of the data because it has been evicted.
-	cDescriptor.Cache(NULL);
-
-	//These can never ever be unequal.  But just in case...
-	if (cDescriptor.GetDataSize() == psCached->iDataSize)
-	{
-		return mpcEvictionCallback->SetDescriptor(psCached->oi, &cDescriptor);
-	}
-	return FALSE;
+	return mpcEvictionCallback->UpdateDescriptorCache(psCached->oi, NULL);
 }
 
 
