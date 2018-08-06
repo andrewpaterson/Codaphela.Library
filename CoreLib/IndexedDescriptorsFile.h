@@ -17,6 +17,7 @@ public:
 	BOOL	Remove(OIndex oi);
 	BOOL	Get(CIndexedDataDescriptor* pcDescriptor, OIndex oi);
 	BOOL	Set(CIndexedDataDescriptor* pcDescriptor, OIndex oi);
+	BOOL	SetCache(void* pvCache, OIndex oi);
 	BOOL	Flush(void);
 
 	int64	NumElements(void);
