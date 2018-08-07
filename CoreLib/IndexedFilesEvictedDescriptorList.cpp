@@ -234,6 +234,35 @@ int64 CIndexedFilesEvictedDescriptorList::NumElements(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL CIndexedFilesEvictedDescriptorList::IsDirty(OIndex oi)
+{
+	CIndexedDataDescriptor*		pcKeyDescriptor;
+	SIndexedCacheDescriptor*	psDataDescriptor;
+
+	pcKeyDescriptor = mcDescriptors.Get(oi);
+	if (pcKeyDescriptor)
+	{
+		if (pcKeyDescriptor->IsDirty())
+		{
+			return TRUE;
+		}
+		else if (pcKeyDescriptor->GetCache())
+		{
+			psDataDescriptor = (SIndexedCacheDescriptor*)RemapSinglePointer(pcKeyDescriptor->GetCache(), -(int)(sizeof(SIndexedCacheDescriptor)));
+			if (psDataDescriptor->iFlags & CACHE_DESCRIPTOR_FLAG_DIRTY)
+			{
+				return TRUE;
+			}
+		}
+	}
+	return FALSE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL CIndexedFilesEvictedDescriptorList::TestGetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor)
 {
 	return GetDescriptor(oi, pcDescriptor);

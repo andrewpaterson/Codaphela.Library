@@ -40,6 +40,8 @@ public:
 
 			BOOL			Remove(OIndex oi);
 
+	virtual BOOL			IsDirty(OIndex oi) =0;
+
 			int				TestNumIgnoredCacheElements(void);
 			unsigned int	TestGetCachedObjectSize(OIndex oi);
 

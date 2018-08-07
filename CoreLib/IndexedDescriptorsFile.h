@@ -22,6 +22,8 @@ public:
 
 	int64	NumElements(void);
 	int		NumCachedDatas(void);
+
+	BOOL	GetIfInMemory(CIndexedDataDescriptor* pcDescriptor, OIndex oi);
 };
 
 
