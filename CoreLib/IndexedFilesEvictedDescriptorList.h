@@ -28,6 +28,7 @@ public:
 	BOOL	Flush(BOOL bClearCache);
 
 	int64	NumElements(void);
+	BOOL	IsDirty(OIndex oi);
 
 	BOOL	TestGetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor);
 

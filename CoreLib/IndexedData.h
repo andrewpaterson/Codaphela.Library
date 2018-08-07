@@ -49,6 +49,7 @@ public:
 	BOOL			DurableEnd(void);
 	BOOL			IsDurable(void);
 	int64			NumElements(void);
+	BOOL			IsDirty(OIndex oi);
 
 	BOOL			EvictFromCache(CIndexedDataDescriptor* pcDescriptor);
 

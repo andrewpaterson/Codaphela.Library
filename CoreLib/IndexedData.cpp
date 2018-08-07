@@ -158,6 +158,38 @@ int64 CIndexedData::NumElements(void)
 }
 
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexedData::IsDirty(OIndex oi)
+{
+	CIndexedDataDescriptor		cKeyDescriptor;
+	SIndexedCacheDescriptor*	psDataDescriptor;
+	BOOL						bInMemory;
+
+	bInMemory = mcIndices.GetIfInMemory(&cKeyDescriptor, oi);
+	if (bInMemory)
+	{
+		if (cKeyDescriptor.IsDirty())
+		{
+			return TRUE;
+		}
+		else if (cKeyDescriptor.GetCache())
+		{
+			psDataDescriptor = (SIndexedCacheDescriptor*)RemapSinglePointer(cKeyDescriptor.GetCache(), -(int)(sizeof(SIndexedCacheDescriptor)));
+			if (psDataDescriptor->iFlags & CACHE_DESCRIPTOR_FLAG_DIRTY)
+			{
+				return TRUE;
+			}
+		}
+	}
+	return FALSE;
+}
+
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //

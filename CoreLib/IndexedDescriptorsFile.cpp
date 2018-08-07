@@ -47,7 +47,7 @@ BOOL CIndexedDescriptorsFile::Get(CIndexedDataDescriptor* pcDescriptor, OIndex o
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexedDescriptorsFile::Set(CIndexedDataDescriptor* pcDescriptor, OIndex oi)
 {
-	return mcIndexTree.Put(&oi, sizeof(oi), pcDescriptor);
+	return mcIndexTree.Put(&oi, sizeof(OIndex), pcDescriptor);
 }
 
 
@@ -60,7 +60,7 @@ BOOL CIndexedDescriptorsFile::SetCache(void* pvCache, OIndex oi)
 	CIndexTreeNode*			pcNode;
 	CIndexedDataDescriptor*	pcDescriptor;
 
-	pcNode = mcIndexTree.GetMemoryNode(&oi, sizeof(oi));
+	pcNode = mcIndexTree.GetMemoryNode(&oi, sizeof(OIndex));
 	if (pcNode)
 	{
 		pcDescriptor = (CIndexedDataDescriptor*)pcNode->GetObjectPtr();
@@ -91,7 +91,6 @@ int CIndexedDescriptorsFile::NumCachedDatas(void)
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -99,5 +98,28 @@ int CIndexedDescriptorsFile::NumCachedDatas(void)
 BOOL CIndexedDescriptorsFile::Flush(void)
 {
 	return mcIndexTree.Flush();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexedDescriptorsFile::GetIfInMemory(CIndexedDataDescriptor* pcDescriptor, OIndex oi)
+{
+	CIndexTreeNodeFile*		pcNode;
+	CIndexedDataDescriptor*	pcReturn;
+
+	pcNode = mcIndexTree.GetMemoryNode(&oi, sizeof(OIndex));
+	if (pcNode)
+	{
+		pcReturn = (CIndexedDataDescriptor*)pcNode->GetObjectPtr();
+		if (pcDescriptor)
+		{
+			memcpy(pcDescriptor, pcReturn, sizeof(CIndexedDataDescriptor));
+		}
+		return TRUE;
+	}
+	return FALSE;
 }
 
