@@ -34,7 +34,6 @@ public:
 	int64			NumData(int iDataSize);
 
 	void			InvalidateData(CIndexedDataDescriptor* pcDescriptor);
-	BOOL			EvictFromCache(CIndexedDataDescriptor* pcDescriptor);
 
 	BOOL			SetData(CIndexedDataDescriptor* pcDescriptor, void* pvData);
 
@@ -45,7 +44,6 @@ protected:
 	BOOL			CacheRead(OIndex oi, CIndexedDataDescriptor* pcDescriptor);
 	BOOL			CacheWrite(OIndex oi, CIndexedDataDescriptor* pcDescriptor, void* pvData, BOOL* pbWritten);
 
-	BOOL			WriteEvictedData(CIndexedDataDescriptor* pcDescriptor, SIndexedCacheDescriptor* psCached);
 	BOOL			WriteEvictedData(SIndexedCacheDescriptor* psCached);
 	BOOL			WriteEvictedData(CArrayVoidPtr* papsIndexedCacheDescriptors);
 

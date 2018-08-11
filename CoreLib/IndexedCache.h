@@ -59,7 +59,10 @@ public:
 	int							NumCached(int iSize);
 	int							NumIgnored(void);
 
+	int							GetIndexCacheDescritorSize(void);
+
 	SIndexedCacheDescriptor*	TestGetDescriptor(OIndex oi);
+	void						Dump(void);
 };
 
 

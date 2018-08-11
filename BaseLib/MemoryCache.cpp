@@ -105,7 +105,7 @@ BOOL CMemoryCache::PreAllocate(CMemoryCacheAllocation* pcPreAllocationResult)
 		psCacheDesc = (SMemoryCacheDescriptor*)mpvCache;
 	}
 	pcPreAllocationResult->miCachedSize = iCachedSize;
-	pcPreAllocationResult->mpsCacheDesc = psCacheDesc;
+	pcPreAllocationResult->mpsCacheDesc = psCacheDesc;  
 
 	return TRUE;
 }
@@ -128,15 +128,16 @@ void* CMemoryCache::Allocate(CMemoryCacheAllocation* pcPreAllocated)
 		return NULL;
 	}
 
+	psCacheDesc = pcPreAllocated->mpsCacheDesc;
+
 	if (pcPreAllocated->HasOverlaps())
 	{
-		psCacheDesc = pcPreAllocated->mpsCacheDesc;
-
 		psLastOverlap = (SMemoryCacheDescriptor*)(pcPreAllocated->mapEvictedCacheDescriptors.GetPtr(pcPreAllocated->mapEvictedCacheDescriptors.NumElements() -1));
 		psFirstOverlap = (SMemoryCacheDescriptor*)(pcPreAllocated->mapEvictedCacheDescriptors.GetPtr(0));
 		
 		if (psLastOverlap == mpsLast)
 		{
+			//Shouldn't reassign psCacheDesc here.
 			psCacheDesc = OneAllocation();  //If the last overlapping cache descriptor points to the last cache descriptor in the cache then everything is being evicted.
 		}
 		else
@@ -156,12 +157,11 @@ void* CMemoryCache::Allocate(CMemoryCacheAllocation* pcPreAllocated)
 	{
 		if (IsEmpty())
 		{
+			//Shouldn't reassign psCacheDesc here.
 			psCacheDesc = OneAllocation();
 		}
 		else
 		{
-			psCacheDesc = pcPreAllocated->mpsCacheDesc;
-			
 			mpsLast->psNext = psCacheDesc;
 			mpsFirst->psPrev = psCacheDesc;
 
@@ -223,7 +223,7 @@ void* CMemoryCache::QuickAllocate(int iDataSize)
 
 	//Evicted data is just trashed.
 
-	cPreAllocation.Init(iDataSize);
+	cPreAllocation.Init(iDataSize, miDescriptorSize);
 
 	bResult = PreAllocate(&cPreAllocation);
 	if (!bResult)

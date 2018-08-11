@@ -30,10 +30,13 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 class CMemoryCache
 {
-private:
+public:
 	int							miDescriptorSize;
+
+private:
 	void*						mpvCache;
 	size_t						muiCacheSize;
+
 	SMemoryCacheDescriptor*		mpsLast;
 	SMemoryCacheDescriptor*		mpsFirst;
 

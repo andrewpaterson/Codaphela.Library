@@ -88,16 +88,6 @@ void CIndexedData::InitIndices(CDurableFileController* pcDurableFileControl, BOO
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedData::EvictFromCache(CIndexedDataDescriptor* pcDescriptor)
-{
-	return mcData.EvictFromCache(pcDescriptor);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 BOOL CIndexedData::GetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor)
 {
 	return mcIndices.Get(pcDescriptor, oi);
