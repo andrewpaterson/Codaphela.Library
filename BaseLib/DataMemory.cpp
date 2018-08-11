@@ -481,6 +481,10 @@ CFreeList* CDataMemory::GetOrAddFreeList(unsigned int iElementSize)
 
 	iFinalOffset = CalculateOffset(0 - ((char)sizeof(SDataMemoryAllocation)), DATA_MEMORY_ALIGNMENT);
 	psParams = mpcFreeListParams->GetFreeListParamsForSize(iElementSize);
+	if (psParams == NULL)
+	{
+		gcLogger.Error2(__METHOD__, " No free list parameter for element size [", IntToString(iElementSize), "].  Available parameter options [", IntToString(mpcFreeListParams->NumParams()), "] (should be more than 0)." , NULL);
+	}
 	iStride = CalculateStride(psParams->iMaxElementSize, DATA_MEMORY_ALIGNMENT);
 
 	sDesc.Init(iStride);
