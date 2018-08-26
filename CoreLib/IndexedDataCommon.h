@@ -13,7 +13,6 @@ protected:
 	BOOL					mbWriteThrough;
 
 public:
-			void			Init(CIndexedConfig* pcConfig, CDurableFileController* pcDurableFileControl, CIndexedFilesEvictionCallback* pcEvictionCallback);
 	virtual BOOL			Kill(void) =0;
 
 			BOOL			IsCaching(void);
@@ -26,7 +25,6 @@ public:
 			BOOL			SetOrAdd(OIndex oi, void* pvData, unsigned int uiDataSize, unsigned int uiTimeStamp);
 
 			unsigned int	Size(OIndex oi);
-			unsigned int	Flags(OIndex oi);
 			BOOL			Get(OIndex oi, void* pvData);
 			BOOL			Get(OIndex oi, unsigned int* puiDataSize, void* pvData, unsigned int uiMaxSize);
 
@@ -46,15 +44,10 @@ public:
 			unsigned int	TestGetCachedObjectSize(OIndex oi);
 
 protected:
-			BOOL			SetData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, void* pvData, unsigned int uiTimeStamp);
-			BOOL			SetData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, void* pvData, unsigned int uiDataSize, unsigned int uiTimeStamp);
-
 	virtual BOOL			GetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor) =0;
 	virtual BOOL			SetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor) =0;
 	virtual BOOL			UpdateDescriptorCache(OIndex oi, void* pvCache) =0;
 	virtual BOOL			RemoveDescriptor(OIndex oi) =0;
-
-	virtual void			InitIndices(CDurableFileController* pcDurableFileControl, BOOL bDirtyTesting) =0;
 
 	virtual BOOL			Flush(BOOL bClearCache) =0;
 

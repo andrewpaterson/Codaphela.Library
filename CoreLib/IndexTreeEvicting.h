@@ -36,15 +36,18 @@ public:
 	BOOL					IsWriteThrough(void);
 	BOOL					Flush(void);
 
+	int						NumElements(void);
+	int						NumMemoryElements(void);
+
 	CIndexedFiles*			GetIndexFiles(void);
 	int						NumNodes(void);
 	int						NumMemoryNodes(void);
-	int						NumMemoryElements(void);
 	void					DebugKey(void* pvKey, int iKeySize, BOOL bSkipRoot);
 	void					Dump(void);
 
 	BOOL					EvictNodeCallback(CIndexTreeNodeFile* pcNode);
 	CIndexTreeNodeFile*		GetRoot(void);
+	CIndexTreeNodeFile*		GetMemoryNode(void* pvKey, int iKeySize);
 	BOOL					Evict(CIndexTreeNodeFile* pcNode);
 
 protected:

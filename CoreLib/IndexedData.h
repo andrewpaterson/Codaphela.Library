@@ -40,7 +40,7 @@ protected:
 	CDurableFileController	mcDurableFileControl;
 
 public:
-	void 			Init(char* szWorkingDirectory, char* szRewriteDirectory, unsigned int uiCacheSize);  //Old style for testing.
+	void 			Init(char* szWorkingDirectory, char* szRewriteDirectory, size_t uiDataCacheSize, size_t uiIndexCacheSize);
 	BOOL 			Kill(void);
 
 	BOOL			Flush(BOOL bClearCache);
@@ -55,7 +55,7 @@ public:
 	CDurableFileController* GetDurableFileControl(void);
 
 protected:
-	void 			InitIndices(CDurableFileController* pcDurableFileControl, BOOL bDirtyTesting);
+	void 			InitIndices(CDurableFileController* pcDurableFileControl, BOOL bDirtyTesting, size_t uiCutoff, BOOL bWriteThrough);
 
 	BOOL			GetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor);
 	BOOL			SetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor);

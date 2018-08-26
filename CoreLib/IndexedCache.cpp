@@ -72,7 +72,7 @@ BOOL CIndexedCache::PreAllocate(CMemoryCacheAllocation* pcResult)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedCache::Allocate(OIndex oi, CIndexedDataDescriptor* pcDesc, CMemoryCacheAllocation* pcPreAllocated)
+BOOL CIndexedCache::Allocate(OIndex oi, CIndexedDataDescriptor* pcDescriptor, CMemoryCacheAllocation* pcPreAllocated)
 {
 	void*						pvCache;
 	SIndexedCacheDescriptor*	psCacheDesc;
@@ -81,22 +81,16 @@ BOOL CIndexedCache::Allocate(OIndex oi, CIndexedDataDescriptor* pcDesc, CMemoryC
 
 	if (!pvCache)
 	{
-		pcDesc->Cache(NULL);
+		pcDescriptor->Cache(NULL);
 		return FALSE;
 	}
 
-	psCacheDesc = (SIndexedCacheDescriptor*)RemapSinglePointer(pvCache, -(int)(sizeof(SIndexedCacheDescriptor)));
-
+	
+	psCacheDesc = GetHeader(pvCache);
 	psCacheDesc->oi = oi;
-	if (!pcDesc->HasFile())
-	{
-		psCacheDesc->iFlags |= CACHE_DESCRIPTOR_FLAG_DIRTY;
-	}
 
-	//CIndexedDataDescriptor (pcDesc) adjusted here.
-	pcDesc->Cache(pvCache);
-
-	return TRUE;
+	pcDescriptor->Cache(pvCache);
+	return pcDescriptor->GetDataSize() == psCacheDesc->iDataSize;
 }
 
 
@@ -133,6 +127,19 @@ void CIndexedCache::Invalidate(CIndexedDataDescriptor* pcDesc)
 void CIndexedCache::Invalidate(SIndexedCacheDescriptor* psCacheDesc)
 {
 	mcCache.Invalidate(psCacheDesc);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexedCache::SetDirty(void* pvCache)
+{
+	SIndexedCacheDescriptor* psCacheDesc;
+
+	psCacheDesc = GetHeader(pvCache);
+	psCacheDesc->iFlags |= CACHE_DESCRIPTOR_FLAG_DIRTY;
 }
 
 
@@ -177,6 +184,8 @@ BOOL CIndexedCache::Update(CIndexedDataDescriptor* pcDesc, void* pvData)
 	size_t						iDataSize;
 	int							iResult;
 
+	//THIS METHOD NEEDS TO BE RETHOUGHT.
+
 	//Assumes that the test to make sure this is in the cache has already been done.
 	pvCache = pcDesc->GetCache();
 	iDataSize = pcDesc->GetDataSize();
@@ -198,7 +207,7 @@ BOOL CIndexedCache::Update(CIndexedDataDescriptor* pcDesc, void* pvData)
 //////////////////////////////////////////////////////////////////////////
 SIndexedCacheDescriptor* CIndexedCache::GetHeader(void* pvData)
 {
-	return (SIndexedCacheDescriptor*)RemapSinglePointer(pvData, -((int)sizeof(SIndexedCacheDescriptor)));
+	return (SIndexedCacheDescriptor*)RemapSinglePointer(pvData, -mcCache.miDescriptorSize);
 }
 
 
@@ -229,6 +238,16 @@ SIndexedCacheDescriptor* CIndexedCache::Iterate(SIndexedCacheDescriptor* psCurre
 int CIndexedCache::GetIndexCacheDescritorSize(void)
 {
 	return mcCache.miDescriptorSize;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size_t CIndexedCache::GetCacheSize(void)
+{
+	return mcCache.GetCacheSize();
 }
 
 

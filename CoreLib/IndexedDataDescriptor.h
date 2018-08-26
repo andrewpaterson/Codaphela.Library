@@ -29,14 +29,10 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "IndexedGeneral.h"
 
 
-#define INDEXED_DESCRIPTOR_DIRTY	0x80000000
-
-
 class CIndexedDataDescriptor
 {
 private:
 	unsigned int	muiDataSize;
-	unsigned int	msFlags;  //These include the user flags.
 
 	CFilePosIndex	mcFileIndex;
 
@@ -45,18 +41,18 @@ private:
 public:
 	void 			Init(unsigned int uiDataSize);
 	BOOL 			IsAllocated(void);
-	BOOL 			IsDirty(void);
-	void 			Dirty(BOOL bDirty);
-	BOOL 			SetUserFlags(int iFlags);
-	int  			GetUserFlags(void);
 	unsigned int	GetDataSize(void);
+	void			SetDataSize(unsigned int uiDataSize);
 	void			Cache(void* pvCache);
 	BOOL			HasFile(void);
 	BOOL			IsCached(void);
 	void*			GetCache(void);
 	void			SetIndexes(int iFileIndex, filePos iIndexInFile);
 	int				GetFileIndex(void);
-	filePos			GetIndexInFile(void);
+
+	filePos			GetPositionInFile(void);
+	unsigned int	GetDataIndexInFile(void);
+	BOOL			Update(CIndexedDataDescriptor* pcNew);
 };
 
 typedef CArrayTemplate<CIndexedDataDescriptor> CArrayIndexDescriptor;

@@ -31,17 +31,25 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedData::Init(char* szWorkingDirectory, char* szRewriteDirectory, unsigned int uiCacheSize)
+void CIndexedData::Init(char* szWorkingDirectory, char* szRewriteDirectory, size_t uiDataCacheSize, size_t uiIndexCacheSize)
 {
 	CIndexedConfig	cConfig;
 
 	cConfig.OptimiseForStreaming(szWorkingDirectory);
 	cConfig.mszRewriteDirectory = szRewriteDirectory;
-	cConfig.SetObjectCacheSize(uiCacheSize);
+	cConfig.SetDataCacheSize(uiDataCacheSize);
+	cConfig.SetIndexCacheSize(uiIndexCacheSize);
 
 	mcDurableFileControl.Init(cConfig.mszWorkingDirectory, cConfig.mszRewriteDirectory);
 
-	CIndexedDataCommon::Init(&cConfig, &mcDurableFileControl, this);
+	mbWriteThrough = cConfig.mbWriteThrough;
+
+	mcDurableFileControl.Begin();
+
+	InitIndices(&mcDurableFileControl, cConfig.mbDirtyTesting, uiIndexCacheSize, cConfig.mbWriteThrough);
+	mcData.Init(&mcDurableFileControl, "DAT", "Files.IDX", "_Files.IDX", cConfig.miDataCacheSize, cConfig.mbWriteThrough, this);
+
+	mcDurableFileControl.End();
 }
 
 
@@ -78,9 +86,9 @@ BOOL CIndexedData::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedData::InitIndices(CDurableFileController* pcDurableFileControl, BOOL bDirtyTesting)
+void CIndexedData::InitIndices(CDurableFileController* pcDurableFileControl, BOOL bDirtyTesting, size_t uiCutoff, BOOL bWriteThrough)
 {
-	mcIndices.Init(pcDurableFileControl, bDirtyTesting);
+	mcIndices.Init(this, pcDurableFileControl, bDirtyTesting, uiCutoff, bWriteThrough);
 }
 
 
@@ -162,11 +170,7 @@ BOOL CIndexedData::IsDirty(OIndex oi)
 	bInMemory = mcIndices.GetIfInMemory(&cKeyDescriptor, oi);
 	if (bInMemory)
 	{
-		if (cKeyDescriptor.IsDirty())
-		{
-			return TRUE;
-		}
-		else if (cKeyDescriptor.GetCache())
+		if (cKeyDescriptor.GetCache())
 		{
 			psDataDescriptor = (SIndexedCacheDescriptor*)RemapSinglePointer(cKeyDescriptor.GetCache(), -(int)(sizeof(SIndexedCacheDescriptor)));
 			if (psDataDescriptor->iFlags & CACHE_DESCRIPTOR_FLAG_DIRTY)

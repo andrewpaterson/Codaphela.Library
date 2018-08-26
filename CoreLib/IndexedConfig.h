@@ -45,16 +45,17 @@ public:
 	//If the smart index access has not switched to huge access yet, then the memory
 	//access allocates chunks in the size below.
 
-	//Size of the object cache in bytes.
-	size_t		miObjectsCacheSize;
+	//Size of the Index and Data caches in bytes.
+	size_t		miDataCacheSize;
+	size_t		miIndexCacheSize;
 
-	void	Manual(char* szWorkingDirectory, char* szRewriteDirectory, BOOL bDirtyTesting, BOOL bWriteThrough, size_t iObjectsCacheSize);
+	void	Manual(char* szWorkingDirectory, char* szRewriteDirectory, BOOL bDirtyTesting, BOOL bWriteThrough, size_t iDataCacheSize, size_t iIndexCacheSize);
 	void	OptimiseForStreaming(char* szWorkingDirectory);
 
 	void	SetDirtyTesting(BOOL bDirtyTesting);
 	void	SetWriteThrough(BOOL bWriteThrough);
-	void	DisableObjectCaching(void);
-	void	SetObjectCacheSize(size_t iObjectsCacheSize);
+	void	SetDataCacheSize(size_t iDataCacheSize);
+	void	SetIndexCacheSize(size_t iIndexCacheSize);
 };
 
 

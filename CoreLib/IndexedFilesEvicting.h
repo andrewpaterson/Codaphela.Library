@@ -22,7 +22,7 @@ public:
 	void			Kill(void);
 
 	BOOL			GetData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, void* pvData);
-	BOOL			SetData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, void* pvData, unsigned int uiTimeStamp);
+	BOOL			SetData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, void* pvData, unsigned int uiDataSize, unsigned int uiTimeStamp);
 
 	BOOL			Flush(BOOL bClearCache);
 	BOOL			IsFlushed(void);
@@ -33,18 +33,17 @@ public:
 	int				NumFiles(void);
 	int64			NumData(int iDataSize);
 
-	void			InvalidateData(CIndexedDataDescriptor* pcDescriptor);
+	unsigned int	GetCachedDataSize(CIndexedDataDescriptor* pcDescriptor);
 
-	BOOL			SetData(CIndexedDataDescriptor* pcDescriptor, void* pvData);
+	void			InvalidateData(CIndexedDataDescriptor* pcDescriptor);
 
 	unsigned int	TestGetCachedObjectSize(OIndex oi);
 	int				TestNumIgnoredCacheElements(void);
 
 protected:
-	BOOL			CacheRead(OIndex oi, CIndexedDataDescriptor* pcDescriptor);
-	BOOL			CacheWrite(OIndex oi, CIndexedDataDescriptor* pcDescriptor, void* pvData, BOOL* pbWritten);
+	BOOL			CacheAllocate(OIndex oi, CIndexedDataDescriptor* pcDescriptor);
 
-	BOOL			WriteEvictedData(SIndexedCacheDescriptor* psCached);
+	BOOL			WriteEvictedData(SIndexedCacheDescriptor* psCached, BOOL bClearCache);
 	BOOL			WriteEvictedData(CArrayVoidPtr* papsIndexedCacheDescriptors);
 
 	BOOL			CompareDiskToMemory(CIndexedDataDescriptor* pcDescriptor, void* pvData);
