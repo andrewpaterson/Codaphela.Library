@@ -1,3 +1,5 @@
+#include "BaseLib/Logger.h"
+#include "IndexedDataCommon.h"
 #include "IndexedDescriptorsFile.h"
 
 
@@ -5,9 +7,10 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedDescriptorsFile::Init(CDurableFileController* pcDurableFileController, BOOL bDirtyTesting)
+void CIndexedDescriptorsFile::Init(CIndexedDataCommon* pcIndexedData, CDurableFileController* pcDurableFileController, BOOL bDirtyTesting, size_t uiCutoff, BOOL bWriteThrough)
 {
-	mcIndexTree.Init(pcDurableFileController);
+	mpcIndexedData = pcIndexedData;
+	mcIndexTree.Init(pcDurableFileController, uiCutoff, this, &mcEvictionStrategy, bWriteThrough);
 }
 
 
@@ -87,7 +90,7 @@ int64 CIndexedDescriptorsFile::NumElements(void)
 //////////////////////////////////////////////////////////////////////////
 int CIndexedDescriptorsFile::NumCachedDatas(void)
 {
-	return mcIndexTree.NumElements();
+	return mcIndexTree.NumMemoryElements();
 }
 
 
@@ -121,5 +124,24 @@ BOOL CIndexedDescriptorsFile::GetIfInMemory(CIndexedDataDescriptor* pcDescriptor
 		return TRUE;
 	}
 	return FALSE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexedDescriptorsFile::NodeEvicted(CIndexTreeFile* pcIndexTree, unsigned char* pvKey, int iKeySize, void* pvData, int iDataSize)
+{
+	OIndex	oi;
+
+	if (iKeySize != sizeof(OIndex))
+	{
+		return gcLogger.Error2("Key evicted was not an OIndex.", NULL);
+	}
+
+	oi = *((OIndex*)pvKey);
+	//mpcIndexedData->KeyEvicted(oi);
+	return TRUE;
 }
 

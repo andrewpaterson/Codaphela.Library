@@ -53,61 +53,19 @@ BOOL CIndexedDataDescriptor::IsAllocated(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedDataDescriptor::IsDirty(void)
-{
-	return msFlags & INDEXED_DESCRIPTOR_DIRTY;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CIndexedDataDescriptor::Dirty(BOOL bDirty)
-{
-	if (bDirty)
-	{
-		msFlags |= INDEXED_DESCRIPTOR_DIRTY;
-	}
-	else
-	{
-		msFlags &= ~INDEXED_DESCRIPTOR_DIRTY;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CIndexedDataDescriptor::SetUserFlags(int iFlags)
-{
-	if (iFlags & INDEXED_DESCRIPTOR_DIRTY)
-	{
-		return FALSE;
-	}
-	msFlags = (msFlags & INDEXED_DESCRIPTOR_DIRTY) | iFlags;
-	return TRUE;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-int CIndexedDataDescriptor::GetUserFlags(void)
-{
-	return msFlags & ~INDEXED_DESCRIPTOR_DIRTY;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 unsigned int CIndexedDataDescriptor::GetDataSize(void)
 {
 	return muiDataSize;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexedDataDescriptor::SetDataSize(unsigned int uiDataSize)
+{
+	muiDataSize = uiDataSize;
 }
 
 
@@ -119,7 +77,6 @@ void CIndexedDataDescriptor::Cache(void* pvCache)
 {
 	mpvCache = pvCache;
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -176,9 +133,48 @@ int CIndexedDataDescriptor::GetFileIndex(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-filePos CIndexedDataDescriptor::GetIndexInFile(void)
+filePos CIndexedDataDescriptor::GetPositionInFile(void)
 {
 	return mcFileIndex.mulliFilePos;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+unsigned int CIndexedDataDescriptor::GetDataIndexInFile(void)
+{
+	return (unsigned int)(mcFileIndex.mulliFilePos / muiDataSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexedDataDescriptor::Update(CIndexedDataDescriptor* pcNew)
+{
+	BOOL	bUpdated;
+
+	bUpdated = FALSE;
+	if (pcNew->mcFileIndex.miFile != mcFileIndex.miFile)
+	{
+		mcFileIndex.miFile = pcNew->mcFileIndex.miFile;
+		bUpdated = TRUE;
+	}
+	if (pcNew->mcFileIndex.mulliFilePos != mcFileIndex.mulliFilePos)
+	{
+		mcFileIndex.mulliFilePos = pcNew->mcFileIndex.mulliFilePos;
+		bUpdated = TRUE;
+	}
+	if (pcNew->muiDataSize != muiDataSize)
+	{
+		muiDataSize = pcNew->muiDataSize;
+		bUpdated = TRUE;
+	}
+
+	mpvCache = pcNew->GetCache();
+	return bUpdated;
+}
 

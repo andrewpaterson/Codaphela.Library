@@ -668,6 +668,9 @@
     <ClInclude Include="IndexedDataCommon.h">
       <Filter>Source\File\Indexed</Filter>
     </ClInclude>
+    <ClInclude Include="IndexTreeTemplateEvicting.h">
+      <Filter>Source\File\Indexed\Index\Evicting</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="FunctionCaller_C_Call.inl">

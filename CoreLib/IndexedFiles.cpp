@@ -506,7 +506,7 @@ BOOL CIndexedFiles::WriteExisting(CIndexedDataDescriptor* pcDescriptor, void* pv
 	pcIndexedFile = GetFile(pcDescriptor->GetFileIndex());
 	if (pcIndexedFile)
 	{
-		iResult = pcIndexedFile->Write(pcDescriptor->GetIndexInFile(), pvData);
+		iResult = pcIndexedFile->Write(pcDescriptor->GetPositionInFile(), pvData);
 		return iResult == 1;
 	}
 	else
@@ -530,7 +530,7 @@ BOOL CIndexedFiles::Read(CIndexedDataDescriptor* pcIndexDescriptor, void* pvData
 		return FALSE;
 	}
 
-	return pcIndexedFile->Read(pcIndexDescriptor->GetIndexInFile(), pvData);
+	return pcIndexedFile->Read(pcIndexDescriptor->GetPositionInFile(), pvData);
 }
 
 

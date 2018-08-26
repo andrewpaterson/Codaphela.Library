@@ -51,6 +51,7 @@ public:
 	void						Invalidate(CIndexedDataDescriptor* pcDesc);
 	void						Invalidate(SIndexedCacheDescriptor* psCacheDesc);
 	BOOL						Update(CIndexedDataDescriptor* pcDesc, void* pvData);
+	void						SetDirty(void* pvCache);
 
 	SIndexedCacheDescriptor*	GetHeader(void* pvData);
 	SIndexedCacheDescriptor*	StartIteration(void);
@@ -60,6 +61,7 @@ public:
 	int							NumIgnored(void);
 
 	int							GetIndexCacheDescritorSize(void);
+	size_t						GetCacheSize(void);
 
 	SIndexedCacheDescriptor*	TestGetDescriptor(OIndex oi);
 	void						Dump(void);

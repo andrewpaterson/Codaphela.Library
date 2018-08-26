@@ -28,13 +28,14 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedConfig::Manual(char* szWorkingDirectory, char* szRewriteDirectory, BOOL bDirtyTesting, BOOL bWriteThrough, size_t iObjectsCacheSize)
+void CIndexedConfig::Manual(char* szWorkingDirectory, char* szRewriteDirectory, BOOL bDirtyTesting, BOOL bWriteThrough, size_t iDataCacheSize, size_t iIndexCacheSize)
 {
 	mszWorkingDirectory = szWorkingDirectory;
 	mszRewriteDirectory = szRewriteDirectory;
 	mbDirtyTesting = bDirtyTesting;
 	mbWriteThrough = bWriteThrough;
-	miObjectsCacheSize = iObjectsCacheSize;
+	miDataCacheSize = iDataCacheSize;
+	miIndexCacheSize = iIndexCacheSize;
 }
 
 
@@ -51,7 +52,8 @@ void CIndexedConfig::OptimiseForStreaming(char* szWorkingDirectory)
 	mszRewriteDirectory = NULL;
 	mbDirtyTesting = TRUE;
 	mbWriteThrough = FALSE;
-	miObjectsCacheSize = 0;
+	miDataCacheSize = 0;
+	miIndexCacheSize = 0;
 }
 
 
@@ -79,9 +81,9 @@ void CIndexedConfig::SetWriteThrough(BOOL bWriteThrough)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedConfig::DisableObjectCaching(void)
+void CIndexedConfig::SetDataCacheSize(size_t iObjectsCacheSize)
 {
-	miObjectsCacheSize = 0;
+	miDataCacheSize = iObjectsCacheSize;
 }
 
 
@@ -89,8 +91,7 @@ void CIndexedConfig::DisableObjectCaching(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedConfig::SetObjectCacheSize(size_t iObjectsCacheSize)
+void CIndexedConfig::SetIndexCacheSize(size_t iIndexCacheSize)
 {
-	miObjectsCacheSize = iObjectsCacheSize;
-}
 
+}

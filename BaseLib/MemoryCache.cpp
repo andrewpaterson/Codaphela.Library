@@ -137,7 +137,7 @@ void* CMemoryCache::Allocate(CMemoryCacheAllocation* pcPreAllocated)
 		
 		if (psLastOverlap == mpsLast)
 		{
-			//Shouldn't reassign psCacheDesc here.
+			//@todo - Shouldn't reassign psCacheDesc here.
 			psCacheDesc = OneAllocation();  //If the last overlapping cache descriptor points to the last cache descriptor in the cache then everything is being evicted.
 		}
 		else
@@ -157,7 +157,7 @@ void* CMemoryCache::Allocate(CMemoryCacheAllocation* pcPreAllocated)
 	{
 		if (IsEmpty())
 		{
-			//Shouldn't reassign psCacheDesc here.
+			//@todo - Shouldn't reassign psCacheDesc here.
 			psCacheDesc = OneAllocation();
 		}
 		else
@@ -175,6 +175,7 @@ void* CMemoryCache::Allocate(CMemoryCacheAllocation* pcPreAllocated)
 	psCacheDesc->iDataSize = pcPreAllocated->miDataSize;
 	psCacheDesc->iFlags = CACHE_DESCRIPTOR_FLAG_VALID;
 
+	//@todo - Should return psCacheDesc here.
 	pvCache = RemapSinglePointer(psCacheDesc, miDescriptorSize);
 	return pvCache;
 }
@@ -236,6 +237,16 @@ void* CMemoryCache::QuickAllocate(int iDataSize)
 	cPreAllocation.Kill();
 
 	return pvResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size_t CMemoryCache::GetCacheSize(void)
+{
+	return muiCacheSize;
 }
 
 

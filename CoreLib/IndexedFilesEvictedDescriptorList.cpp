@@ -6,19 +6,16 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedFilesEvictedDescriptorList::Init(CDurableFileController* pcDurableFileControl, char* szDataExtension, char* szDescricptorName, char* szDescricptorRewrite, size_t iCacheSize, BOOL bWriteThrough)
+void CIndexedFilesEvictedDescriptorList::Init(CDurableFileController* pcDurableFileControl, char* szDataExtension, char* szDescricptorName, char* szDescricptorRewrite, size_t iDataCacheSize, BOOL bWriteThrough)
 {
-	CIndexedConfig	cConfig;
-
-	cConfig.OptimiseForStreaming("");
-	cConfig.mszRewriteDirectory = "";
-	cConfig.SetObjectCacheSize(iCacheSize);
-
-	mcData.Init(pcDurableFileControl, szDataExtension, szDescricptorName, szDescricptorRewrite, iCacheSize, bWriteThrough, this);
-
 	mcEvicted.Init();
 
-	CIndexedDataCommon::Init(&cConfig, pcDurableFileControl, this);
+	pcDurableFileControl->Begin();
+
+	InitIndices(pcDurableFileControl, TRUE);
+	mcData.Init(pcDurableFileControl, "DAT", "Files.IDX", "_Files.IDX", iDataCacheSize, bWriteThrough, this);
+
+	pcDurableFileControl->End();
 }
 
 
@@ -168,8 +165,24 @@ BOOL CIndexedFilesEvictedDescriptorList::GetDescriptor(OIndex oi, CIndexedDataDe
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexedFilesEvictedDescriptorList::SetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor)
 {
-	mbDescriptorsWritten = FALSE;
-	return mcDescriptors.Put(oi, pcDescriptor);
+	CIndexedDataDescriptor* pcExistingDescriptor;
+	BOOL					bUpdated;
+
+	pcExistingDescriptor = mcDescriptors.Get(oi);
+	if (!pcExistingDescriptor)
+	{
+		mbDescriptorsWritten = FALSE;
+		return mcDescriptors.Put(oi, pcDescriptor);
+	}
+	else
+	{
+		bUpdated = pcExistingDescriptor->Update(pcDescriptor);
+		if (bUpdated)
+		{
+			mbDescriptorsWritten = FALSE;
+		}
+		return TRUE;
+	}
 }
 
 
@@ -242,11 +255,7 @@ BOOL CIndexedFilesEvictedDescriptorList::IsDirty(OIndex oi)
 	pcKeyDescriptor = mcDescriptors.Get(oi);
 	if (pcKeyDescriptor)
 	{
-		if (pcKeyDescriptor->IsDirty())
-		{
-			return TRUE;
-		}
-		else if (pcKeyDescriptor->GetCache())
+		if (pcKeyDescriptor->GetCache())
 		{
 			psDataDescriptor = (SIndexedCacheDescriptor*)RemapSinglePointer(pcKeyDescriptor->GetCache(), -(int)(sizeof(SIndexedCacheDescriptor)));
 			if (psDataDescriptor->iFlags & CACHE_DESCRIPTOR_FLAG_DIRTY)

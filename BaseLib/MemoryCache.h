@@ -49,6 +49,8 @@ public:
 	void*						Allocate(CMemoryCacheAllocation* pcPreAllocated);
 	void*						QuickAllocate(int iDataSize);
 
+	size_t						GetCacheSize(void);
+
 	size_t						RemainingAfterLast(void);
 	void						FindOverlapping(void* pvNew, size_t uiNewSize, CArrayVoidPtr* pasOverlappingCacheDescriptors);
 	SMemoryCacheDescriptor*		FindNewFirst(void* pvNew, size_t uiNewSize);
