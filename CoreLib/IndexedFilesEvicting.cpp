@@ -272,18 +272,17 @@ BOOL CIndexedFilesEvicting::SetData(OIndex oi, CIndexedDataDescriptor* pcDescrip
 				pvCache = pcDescriptor->GetCache();
 
 				memcpy_fast(pvCache, pvData, pcDescriptor->GetDataSize());
-				mpcEvictionCallback->SetDescriptor(oi, pcDescriptor);
-
 				if (mbWriteThrough)
 				{
 					bResult = mcDataFiles.Write(pcDescriptor, pvData);
-					return bResult;
 				}
 				else
 				{
 					mcDataCache.SetDirty(pvCache);
-					return TRUE;
+					bResult = TRUE;
 				}
+				bResult |= mpcEvictionCallback->SetDescriptor(oi, pcDescriptor);
+				return bResult;
 			}
 			else
 			{
@@ -299,8 +298,6 @@ BOOL CIndexedFilesEvicting::SetData(OIndex oi, CIndexedDataDescriptor* pcDescrip
 					pvCache = pcDescriptor->GetCache();
 
 					memcpy_fast(pvCache, pvData, pcDescriptor->GetDataSize());
-					mpcEvictionCallback->SetDescriptor(oi, pcDescriptor);
-
 					if (mbWriteThrough)
 					{
 						bResult = mcDataFiles.Write(pcDescriptor, pvData);
@@ -309,8 +306,10 @@ BOOL CIndexedFilesEvicting::SetData(OIndex oi, CIndexedDataDescriptor* pcDescrip
 					else
 					{
 						mcDataCache.SetDirty(pvCache);
-						return TRUE;
+						bResult = TRUE;
 					}
+					bResult |= mpcEvictionCallback->SetDescriptor(oi, pcDescriptor);
+					return bResult;
 				}
 				else
 				{
@@ -325,17 +324,17 @@ BOOL CIndexedFilesEvicting::SetData(OIndex oi, CIndexedDataDescriptor* pcDescrip
 					pvCache = pcDescriptor->GetCache();
 
 					memcpy_fast(pvCache, pvData, pcDescriptor->GetDataSize());
-					mpcEvictionCallback->SetDescriptor(oi, pcDescriptor);
 					if (mbWriteThrough)
 					{
 						bResult = mcDataFiles.Write(pcDescriptor, pvData);
-						return bResult;
 					}
 					else
 					{
 						mcDataCache.SetDirty(pvCache);
-						return TRUE;
+						bResult = TRUE;
 					}
+					bResult |= mpcEvictionCallback->SetDescriptor(oi, pcDescriptor);
+					return bResult;
 				}
 			}
 		}
@@ -348,17 +347,17 @@ BOOL CIndexedFilesEvicting::SetData(OIndex oi, CIndexedDataDescriptor* pcDescrip
 				{
 					//Descriptor size same as Set size.
 					memcpy_fast(pvCache, pvData, uiDataSize);
-
 					if (mbWriteThrough)
 					{
 						bResult = mcDataFiles.Write(pcDescriptor, pvData);
-						return bResult;
 					}
 					else
 					{
 						mcDataCache.SetDirty(pvCache);
-						return TRUE;
+						bResult = TRUE;
 					}
+					bResult |= mpcEvictionCallback->SetDescriptor(oi, pcDescriptor);
+					return bResult;
 				}
 				else
 				{
@@ -378,13 +377,14 @@ BOOL CIndexedFilesEvicting::SetData(OIndex oi, CIndexedDataDescriptor* pcDescrip
 					if (mbWriteThrough)
 					{
 						bResult = mcDataFiles.Write(pcDescriptor, pvData);
-						return bResult;
 					}
 					else
 					{
 						mcDataCache.SetDirty(pvCache);
-						return TRUE;
+						bResult = TRUE;
 					}
+					bResult |= mpcEvictionCallback->SetDescriptor(oi, pcDescriptor);
+					return bResult;
 				}
 			}
 			else
@@ -398,13 +398,14 @@ BOOL CIndexedFilesEvicting::SetData(OIndex oi, CIndexedDataDescriptor* pcDescrip
 					if (mbWriteThrough)
 					{
 						bResult = mcDataFiles.Write(pcDescriptor, pvData);
-						return bResult;
 					}
 					else
 					{
 						mcDataCache.SetDirty(pvCache);
-						return TRUE;
+						bResult = TRUE;
 					}
+					bResult |= mpcEvictionCallback->SetDescriptor(oi, pcDescriptor);
+					return bResult;
 				}
 				else
 				{
@@ -423,14 +424,15 @@ BOOL CIndexedFilesEvicting::SetData(OIndex oi, CIndexedDataDescriptor* pcDescrip
 
 					if (mbWriteThrough)
 					{
-						bResult |= mcDataFiles.Write(pcDescriptor, pvData);
-						return bResult;
+						bResult = mcDataFiles.Write(pcDescriptor, pvData);
 					}
 					else
 					{
 						mcDataCache.SetDirty(pvCache);
-						return TRUE;
+						bResult = TRUE;
 					}
+					bResult |= mpcEvictionCallback->SetDescriptor(oi, pcDescriptor);
+					return bResult;
 				}
 			}
 		}
