@@ -301,7 +301,6 @@ BOOL CIndexedFilesEvicting::SetData(OIndex oi, CIndexedDataDescriptor* pcDescrip
 					if (mbWriteThrough)
 					{
 						bResult = mcDataFiles.Write(pcDescriptor, pvData);
-						return bResult;
 					}
 					else
 					{
