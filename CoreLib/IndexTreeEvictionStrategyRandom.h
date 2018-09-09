@@ -13,7 +13,7 @@ public:
 	void Init(void);
 	void Kill(void);
 
-	void Run(CIndexTreeNodeFile* pcDontEvict);
+	BOOL Run(CIndexTreeNodeFile* pcDontEvict);
 
 protected:
 	BOOL EvictRandomNode(CIndexTreeNodeFile* pcDontEvict);
