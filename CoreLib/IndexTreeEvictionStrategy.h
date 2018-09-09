@@ -11,7 +11,7 @@ protected:
 
 public:
 			void SetIndexTree(CIndexTreeEvicting* pcIndexTree);
-	virtual void Run(CIndexTreeNodeFile* pcDontEvict) =0;
+	virtual BOOL Run(CIndexTreeNodeFile* pcDontEvict) =0;
 };
 
 

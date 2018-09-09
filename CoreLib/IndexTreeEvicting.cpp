@@ -1,3 +1,4 @@
+#include "BaseLib/Logger.h"
 #include "BaseLib/StackMemory.h"
 #include "IndexTreeEvicting.h"
 
@@ -131,6 +132,8 @@ void CIndexTreeEvicting::PotentiallyEvict(void* pvKey, int iKeySize)
 	size_t				uiLastSize;
 	size_t				uiSize;
 	CIndexTreeNodeFile*	pcDontEvict;
+	BOOL				bResult;
+	CChars				sz;
 
 	mcIndexTree.GetNode(pvKey, iKeySize);
 	uiLastSize = 0;
@@ -144,8 +147,16 @@ void CIndexTreeEvicting::PotentiallyEvict(void* pvKey, int iKeySize)
 			return;
 		}
 
-		mpcEvictionStrategy->Run(pcDontEvict);
+		bResult = mpcEvictionStrategy->Run(pcDontEvict);
 		uiLastSize = uiSize;
+		if (!bResult)
+		{
+			sz.Init();
+			sz.AppendData2((const char*)pvKey, iKeySize);
+			gcLogger.Error2(__METHOD__, " Could evict key [", sz.Text(), "].", NULL);
+			sz.Kill();
+			return;
+		}
 	}
 }
 

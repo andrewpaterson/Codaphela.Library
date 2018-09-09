@@ -26,7 +26,7 @@ void CIndexTreeEvictionStrategyRandom::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeEvictionStrategyRandom::Run(CIndexTreeNodeFile* pcDontEvict)
+BOOL CIndexTreeEvictionStrategyRandom::Run(CIndexTreeNodeFile* pcDontEvict)
 {
 	int i;
 
@@ -34,9 +34,10 @@ void CIndexTreeEvictionStrategyRandom::Run(CIndexTreeNodeFile* pcDontEvict)
 	{
 		if (EvictRandomNode(pcDontEvict))
 		{
-			break;
+			return TRUE;
 		}
 	}
+	return FALSE;
 }
 
 
@@ -56,6 +57,12 @@ BOOL CIndexTreeEvictionStrategyRandom::EvictRandomNode(CIndexTreeNodeFile* pcDon
 	iKeyDepth = 0;
 	for (;;)
 	{
+		if (pcNode == NULL)
+		{
+			//Nothing left to evict.
+			return FALSE;
+		}
+
 		iNumIndexes = pcNode->NumValidIndexes();
 		if (iNumIndexes > 1)
 		{
