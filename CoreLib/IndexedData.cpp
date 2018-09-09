@@ -31,7 +31,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedData::Init(char* szWorkingDirectory, char* szRewriteDirectory, size_t uiDataCacheSize, size_t uiIndexCacheSize)
+void CIndexedData::Init(char* szWorkingDirectory, char* szRewriteDirectory, size_t uiDataCacheSize, size_t uiIndexCacheSize, BOOL bWriteThrough)
 {
 	CIndexedConfig	cConfig;
 
@@ -39,6 +39,7 @@ void CIndexedData::Init(char* szWorkingDirectory, char* szRewriteDirectory, size
 	cConfig.mszRewriteDirectory = szRewriteDirectory;
 	cConfig.SetDataCacheSize(uiDataCacheSize);
 	cConfig.SetIndexCacheSize(uiIndexCacheSize);
+	cConfig.SetWriteThrough(bWriteThrough);
 
 	mcDurableFileControl.Init(cConfig.mszWorkingDirectory, cConfig.mszRewriteDirectory);
 
@@ -140,9 +141,13 @@ BOOL CIndexedData::Flush(BOOL bClearCache)
 {
 	BOOL bRresult;
 
-	bRresult = mcIndices.Flush();
-	bRresult &= mcData.Flush(bClearCache);
-	return bRresult;
+	if (!mbWriteThrough)
+	{
+		bRresult = mcIndices.Flush();
+		bRresult &= mcData.Flush(bClearCache);
+		return bRresult;
+	}
+	return TRUE;
 }
 
 

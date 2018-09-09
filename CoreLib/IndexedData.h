@@ -40,7 +40,7 @@ protected:
 	CDurableFileController	mcDurableFileControl;
 
 public:
-	void 			Init(char* szWorkingDirectory, char* szRewriteDirectory, size_t uiDataCacheSize, size_t uiIndexCacheSize);
+	void 			Init(char* szWorkingDirectory, char* szRewriteDirectory, size_t uiDataCacheSize, size_t uiIndexCacheSize, BOOL bWriteThrough);
 	BOOL 			Kill(void);
 
 	BOOL			Flush(BOOL bClearCache);
