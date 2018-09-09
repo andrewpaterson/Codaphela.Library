@@ -108,8 +108,7 @@ protected:
 	CIndexTreeNodeFile*		ReadNode(CIndexTreeNodeFile* pcParent, unsigned char c, BOOL bReadNode);
 	BOOL					Read(CIndexTreeChildNode* pcChildNode, CIndexTreeNodeFile* pcFileNodeParent, unsigned char uiIndexInParent);
 	CIndexTreeNodeFile*		ReadMemoryNode(CIndexTreeNodeFile* pcParent, unsigned char c);
-
-
+	
 	CIndexTreeNodeFile*		AllocateRoot(void);
 	CIndexTreeNodeFile*		AllocateRoot(CFileDataIndex cFileIndex);
 	CIndexTreeNodeFile*		AllocateNode(CIndexTreeNodeFile* pcParent, unsigned short uiDataSize, unsigned char uiIndexInParent);
