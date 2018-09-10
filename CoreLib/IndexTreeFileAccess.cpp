@@ -47,7 +47,7 @@ BOOL CIndexTreeFileAccess::Flush(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeFileAccess::Put(void* pvKey, int iKeySize, void* pvObject, unsigned char uiDataSize)
 {
-	return mpcTree->Put(pvKey, iKeySize, pvObject, uiDataSize);
+	return mpcTree->Put(pvKey, iKeySize, pvObject, uiDataSize, uiDataSize);
 }
 
 
