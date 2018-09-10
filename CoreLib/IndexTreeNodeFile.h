@@ -42,6 +42,7 @@ public:
 	BOOL					Uncontain(unsigned char uiIndex);
 
 	void					RemapChildNodes(CIndexTreeNodeFile* pcOldNode, CIndexTreeNodeFile* pcNewNode);
+	BOOL					SetObject(void* pvObject, unsigned short uiSize, unsigned short uiFileSize);
 
 	unsigned char			FindPrevLastIndex(void);
 	unsigned char			FindNextFirstIndex(void);

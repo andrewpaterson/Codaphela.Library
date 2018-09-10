@@ -71,11 +71,11 @@ BOOL CIndexTreeEvicting::Get(void* pvKey, int iKeySize, void* pvObject, unsigned
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeEvicting::Put(void* pvKey, int iKeySize, void* pvObject, unsigned short uiDataSize)
+BOOL CIndexTreeEvicting::Put(void* pvKey, int iKeySize, void* pvObject, unsigned short uiDataSize, unsigned short uiFileSize)
 {
 	BOOL	bResult;
 
-	bResult = mcIndexTree.Put(pvKey, iKeySize, pvObject, uiDataSize);
+	bResult = mcIndexTree.Put(pvKey, iKeySize, pvObject, uiDataSize, uiFileSize);
 	PotentiallyEvict(pvKey, iKeySize);
 	return bResult;
 }

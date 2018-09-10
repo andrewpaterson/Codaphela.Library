@@ -7,13 +7,16 @@
 #include "IndexTreeEvictionStrategyRandom.h"
 
 
+typedef CIndexTreeTemplateEvicting<CIndexedDataDescriptor, SIndexedDataDescriptor> CIndexTreeDataDescriptors;
+
+
 class CIndexedDataCommon;
 class CIndexedDescriptorsFile : public CIndexTreeEvictionCallback
 {
 protected:
-	CIndexTreeTemplateEvicting<CIndexedDataDescriptor>	mcIndexTree;
-	CIndexTreeEvictionStrategyRandom					mcEvictionStrategy;
-	CIndexedDataCommon*									mpcIndexedData;
+	CIndexTreeDataDescriptors			mcIndexTree;
+	CIndexTreeEvictionStrategyRandom	mcEvictionStrategy;
+	CIndexedDataCommon*					mpcIndexedData;
 
 public:
 	void	Init(CIndexedDataCommon* pcIndexedData, CDurableFileController* pcDurableFileController, BOOL bDirtyTesting, size_t uiCutoff, BOOL bWriteThrough);

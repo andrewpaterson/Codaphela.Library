@@ -612,15 +612,7 @@ BOOL CIndexTreeFile::Get(void* pvKey, int iKeySize, void* pvObject, unsigned sho
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeFile::Put(char* pszKey, void* pvObject, unsigned short uiDataSize)
 {
-	int iKeySize;
-
-	if (StrEmpty(pszKey))
-	{
-		return FALSE;
-	}
-
-	iKeySize = strlen(pszKey);
-	return Put(pszKey, iKeySize, pvObject, uiDataSize);
+	return Put(pszKey, pvObject, uiDataSize, uiDataSize);
 }
 
 
@@ -629,6 +621,38 @@ BOOL CIndexTreeFile::Put(char* pszKey, void* pvObject, unsigned short uiDataSize
 //
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeFile::Put(void* pvKey, int iKeySize, void* pvObject, unsigned short uiDataSize)
+{
+	return Put(pvKey, iKeySize, pvObject, uiDataSize, uiDataSize);
+}
+
+BOOL CIndexTreeFile::Put(void* pvKey, int iKeySize, unsigned short uiDataSize)
+{
+	return Put(pvKey, iKeySize, uiDataSize, uiDataSize);
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeFile::Put(char* pszKey, void* pvObject, unsigned short uiDataSize, unsigned short uiFileSize)
+{
+	int iKeySize;
+
+	if (StrEmpty(pszKey))
+	{
+		return FALSE;
+	}
+
+	iKeySize = strlen(pszKey);
+	return Put(pszKey, iKeySize, pvObject, uiDataSize, uiFileSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeFile::Put(void* pvKey, int iKeySize, void* pvObject, unsigned short uiDataSize, unsigned short uiFileSize)
 {
 	CIndexTreeNodeFile*		pcCurrent;
 	unsigned char			c;
@@ -653,7 +677,7 @@ BOOL CIndexTreeFile::Put(void* pvKey, int iKeySize, void* pvObject, unsigned sho
 		pcCurrent = GetChildNodeOrAllocate(pcCurrent, c);
 	}
 
-	pcCurrent = SetNodeObject(pcCurrent, pvObject, uiDataSize);
+	pcCurrent = SetNodeObject(pcCurrent, pvObject, uiDataSize, uiDataSize);
 	if (pcCurrent == NULL)
 	{
 		return FALSE;
@@ -700,9 +724,9 @@ BOOL CIndexTreeFile::SetDirtyPath(CIndexTreeNodeFile* pcCurrent)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::Put(void* pvKey, int iKeySize, unsigned short uiDataSize)
+BOOL CIndexTreeFile::Put(void* pvKey, int iKeySize, unsigned short uiDataSize, unsigned short uiFileSize)
 {
-	return Put(pvKey, iKeySize, NULL, uiDataSize);
+	return Put(pvKey, iKeySize, NULL, uiDataSize, uiFileSize);
 }
 
 
@@ -710,7 +734,7 @@ BOOL CIndexTreeFile::Put(void* pvKey, int iKeySize, unsigned short uiDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTreeNodeFile* CIndexTreeFile::SetNodeObject(CIndexTreeNodeFile* pcCurrent, void* pvObject, unsigned short uiDataSize)
+CIndexTreeNodeFile* CIndexTreeFile::SetNodeObject(CIndexTreeNodeFile* pcCurrent, void* pvObject, unsigned short uiDataSize, unsigned short uiFileSize)
 {
 	CIndexTreeNodeFile*		pcReallocatedCurrent;
 	BOOL					bResult;
@@ -719,20 +743,20 @@ CIndexTreeNodeFile* CIndexTreeFile::SetNodeObject(CIndexTreeNodeFile* pcCurrent,
 	if (uiDataSize > pcCurrent->ObjectSize())
 	{
 		pcReallocatedCurrent = ReallocateNodeForLargerData(pcCurrent, uiDataSize);
-		bResult = pcReallocatedCurrent->SetObject(pvObject, uiDataSize);
+		bResult = pcReallocatedCurrent->SetObject(pvObject, uiDataSize, uiFileSize);
 		pcReallocatedCurrent->GetParent()->SetDirtyNode(TRUE);
 	}
 	else if (uiDataSize < pcCurrent->ObjectSize())
 	{
 		uiOriginalSize = pcCurrent->ObjectSize();
-		bResult = pcCurrent->SetObject(pvObject, uiDataSize);
+		bResult = pcCurrent->SetObject(pvObject, uiDataSize, uiFileSize);
 		pcReallocatedCurrent = ReallocateNodeForSmallerData(pcCurrent, uiOriginalSize);
 		pcReallocatedCurrent->GetParent()->SetDirtyNode(TRUE);
 	}
 	else
 	{
 		pcReallocatedCurrent = pcCurrent;
-		bResult = pcReallocatedCurrent->SetObject(pvObject, uiDataSize);
+		bResult = pcReallocatedCurrent->SetObject(pvObject, uiDataSize, uiDataSize);
 	}
 	pcReallocatedCurrent->SetDirtyNode(TRUE);
 
