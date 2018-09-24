@@ -27,6 +27,7 @@ protected:
 	BOOL						mbWriteThrough;
 	CDurableFile				mcRootIndex;
 	CCountingAllocator			mcMalloc;
+	CIndexTreeFileCallback*		mpcWriterCallback;
 
 public:
 	BOOL					Init(CDurableFileController* pcDurableFileControl);
@@ -113,7 +114,7 @@ protected:
 	CIndexTreeNodeFile*		AllocateRoot(CFileDataIndex cFileIndex);
 	CIndexTreeNodeFile*		AllocateNode(CIndexTreeNodeFile* pcParent, unsigned short uiDataSize, unsigned char uiIndexInParent);
 	CIndexTreeNodeFile*		AllocateNode(CIndexTreeNodeFile* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex, unsigned short uiDataSize, unsigned char uiIndexInParent);
-	CIndexTreeNodeFile*		AllocateNode(CIndexTreeNodeFile* pcParent, unsigned char uiIndexInParent, void* pvBuffer, int iBufferSize);
+	CIndexTreeNodeFile*		AllocateNode(CIndexTreeNodeFile* pcParent, unsigned char uiIndexInParent, void* pvBuffer, int iMaxBufferSize);
 
 	CIndexTreeNodeFile*		ReallocateNodeForContainIndex(CIndexTreeNodeFile* pcNode, unsigned char uiIndex);
 	CIndexTreeNodeFile*		ReallocateNodeForLargerData(CIndexTreeNodeFile* pcNode, unsigned short uiDataSize);

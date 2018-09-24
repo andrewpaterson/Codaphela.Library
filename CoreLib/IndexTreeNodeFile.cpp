@@ -460,9 +460,9 @@ CIndexTreeNodeFile* CIndexTreeNodeFile::GetValidMemoryNode(int iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CIndexTreeNodeFile::CalculateBufferSize(void)
+int CIndexTreeNodeFile::CalculateFileSize(CIndexTreeFileCallback* pcCallback)
 {
-	return sizeof(int) + sizeof(unsigned short) + (4 * sizeof(unsigned char)) + muiDataSize + (NumIndexes() * (sizeof(int) + sizeof(unsigned int)));
+	return sizeof(int) + sizeof(unsigned short) + (4 * sizeof(unsigned char)) + pcCallback->DataBufferSize(muiDataSize) + (NumIndexes() * (sizeof(int) + sizeof(unsigned int)));
 }
 
 
@@ -470,7 +470,7 @@ int CIndexTreeNodeFile::CalculateBufferSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CIndexTreeNodeFile::WriteToBuffer(void* pvBuffer, int iBufferSize)
+int CIndexTreeNodeFile::WriteToBuffer(void* pvBuffer, int iBufferSize, CIndexTreeFileCallback* pcCallback)
 {
 	unsigned char*			pucMemory;
 	int						iPos;
@@ -479,8 +479,10 @@ int CIndexTreeNodeFile::WriteToBuffer(void* pvBuffer, int iBufferSize)
 	CFileDataIndex			cEmptyIndex;
 	CFileDataIndex*			pcChildIndex;
 	int						iFileSize;
+	void*					pvDataBuffer;
+	void*					pvSourceData;
 
-	iFileSize = CalculateBufferSize();
+	iFileSize = CalculateFileSize(pcCallback);
 	if (iBufferSize < iFileSize)
 	{
 		gcLogger.Error2(__METHOD__, " Could not write IndexTreeNodeFile size [", IntToString(iFileSize), "] to buffer size [", IntToString(iBufferSize), "].  Buffer to small.", NULL);
@@ -498,10 +500,11 @@ int CIndexTreeNodeFile::WriteToBuffer(void* pvBuffer, int iBufferSize)
 	pucMemory[iPos] = muiIndexInParent;  iPos += sizeof(unsigned char);
 	pucMemory[iPos] = msFlags & INDEX_TREE_NODE_TRANSIENT_FLAGS_MASK;  iPos += sizeof(unsigned char);
 
-	if (HasObject())
+	pvSourceData = GetObjectPtr();
+	if (pvSourceData != NULL)
 	{
-		//This assumes (obviously) that the object is persistable.  i.e. Not a pointer.
-		memcpy_fast(&pucMemory[iPos], GetObjectPtr(), muiDataSize);
+		pvDataBuffer = &pucMemory[iPos];
+		pcCallback->WriteData(pvDataBuffer, pvSourceData, iFileSize, muiDataSize);
 		iPos += muiDataSize;
 	}
 
@@ -534,7 +537,7 @@ int CIndexTreeNodeFile::WriteToBuffer(void* pvBuffer, int iBufferSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CIndexTreeNodeFile::InitFromBuffer(void* pvBuffer, int iBufferSize)
+int CIndexTreeNodeFile::InitFromBuffer(void* pvBuffer, int iMaxBufferSize, CIndexTreeFileCallback* pcCallback)
 {
 	unsigned char*			pucMemory;
 	int						iPos;
@@ -546,14 +549,15 @@ int CIndexTreeNodeFile::InitFromBuffer(void* pvBuffer, int iBufferSize)
 	unsigned char			uiFirstIndex;
 	unsigned char			uiLastIndex;
 	unsigned char			uiIndexInParent;
+	void*					pvDest;
 
 	pucMemory = (unsigned char*)pvBuffer;
 	iPos = 0;
 
 	iFileSize = *((int*)&pucMemory[iPos]);  iPos += sizeof(int);
-	if (iBufferSize < iFileSize)
+	if (iMaxBufferSize < iFileSize)
 	{
-		gcLogger.Error2(__METHOD__, " Node buffer size [", IntToString(iBufferSize), "] did not match node size in file [", IntToString(iFileSize), "].", NULL);
+		gcLogger.Error2(__METHOD__, " Node buffer size [", IntToString(iMaxBufferSize), "] did not match node size in file [", IntToString(iFileSize), "].", NULL);
 		return 0;
 	}
 
@@ -570,9 +574,10 @@ int CIndexTreeNodeFile::InitFromBuffer(void* pvBuffer, int iBufferSize)
 		return 0;
 	}
 
-	if (HasObject())
+	pvDest = GetObjectPtr();
+	if (pvDest != NULL)
 	{
-		memcpy_fast(GetObjectPtr(), &pucMemory[iPos], muiDataSize);
+		pcCallback->ReadData(pvDest, &pucMemory[iPos], muiDataSize, iFileSize);
 		iPos += muiDataSize;
 	}
 

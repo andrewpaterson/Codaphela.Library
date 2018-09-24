@@ -160,6 +160,9 @@
     <Filter Include="Source\File\Indexed\Index\Evicting">
       <UniqueIdentifier>{6d51dfc8-4ff3-40a7-8784-61de189f10ae}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\File\Indexed\Index\Access\DataWriter">
+      <UniqueIdentifier>{b526c97b-a94e-4797-aff7-68d70875a764}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="IndexedConfig.cpp">
@@ -404,6 +407,9 @@
     </ClCompile>
     <ClCompile Include="IndexedDataCommon.cpp">
       <Filter>Source\File\Indexed</Filter>
+    </ClCompile>
+    <ClCompile Include="IndexTreeFileDefaultCallback.cpp">
+      <Filter>Source\File\Indexed\Index\Access\DataWriter</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -670,6 +676,12 @@
     </ClInclude>
     <ClInclude Include="IndexTreeTemplateEvicting.h">
       <Filter>Source\File\Indexed\Index\Evicting</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexTreeFileCallback.h">
+      <Filter>Source\File\Indexed\Index\Access\DataWriter</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexTreeFileDefaultCallback.h">
+      <Filter>Source\File\Indexed\Index\Access\DataWriter</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

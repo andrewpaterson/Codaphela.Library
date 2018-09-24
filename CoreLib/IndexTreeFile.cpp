@@ -6,6 +6,7 @@
 #include "BaseLib/StackMemory.h"
 #include "IndexedFile.h"
 #include "IndexTreeFileDebug.h"
+#include "IndexTreeFileDefaultCallback.h"
 #include "IndexTreeFile.h"
 
 
@@ -47,6 +48,7 @@ BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, CMalloca
 	mcMalloc.Init(pcMalloc);
 	CIndexTree::Init(&mcMalloc, sizeof(CIndexTreeNodeFile), sizeof(CIndexTreeChildNode));
 
+	mpcWriterCallback = &gcIndexTreeFileDefaultCallback;
 	mpcRoot = NULL;
 	mbWriteThrough = bWriteThrough;
 	mpcDurableFileControl = pcDurableFileControl;
@@ -152,7 +154,7 @@ BOOL CIndexTreeFile::InitRoot(void)
 	{
 		//The data size on the root is always zero.
 		mpcRoot = AllocateRoot(cRootFileIndex);
-		iNodeSize = mpcRoot->CalculateBufferSize();
+		iNodeSize = mpcRoot->CalculateFileSize(mpcWriterCallback);
 
 		pcRootIndexFile = mcIndexFiles.GetFile(cRootFileIndex.miFile);
 		if (pcRootIndexFile == NULL)
@@ -172,7 +174,7 @@ BOOL CIndexTreeFile::InitRoot(void)
 			return gcLogger.Error2(__METHOD__, " Could not read root node indexed file.", NULL);
 		}
 
-		mpcRoot->InitFromBuffer(pvBuffer, iNodeSize);
+		mpcRoot->InitFromBuffer(pvBuffer, iNodeSize, mpcWriterCallback);
 		cTemp.Kill();
 
 		return TRUE;
@@ -341,7 +343,7 @@ CIndexTreeNodeFile* CIndexTreeFile::AllocateNode(CIndexTreeNodeFile* pcParent, u
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTreeNodeFile* CIndexTreeFile::AllocateNode(CIndexTreeNodeFile* pcParent, unsigned char uiIndexInParent, void* pvBuffer, int iBufferSize)
+CIndexTreeNodeFile* CIndexTreeFile::AllocateNode(CIndexTreeNodeFile* pcParent, unsigned char uiIndexInParent, void* pvBuffer, int iMaxBufferSize)
 {
 	unsigned char*			pucMemory;
 	int						iPos;
@@ -352,10 +354,11 @@ CIndexTreeNodeFile* CIndexTreeFile::AllocateNode(CIndexTreeNodeFile* pcParent, u
 	CIndexTreeNodeFile*		pcNode;
 	size_t					tSize;
 	int						iBufferRead;
+	int						iFileSize;
 
 	pucMemory = (unsigned char*)pvBuffer;
-	iPos = sizeof(int);;
-
+	iPos = 0;
+	iFileSize = *((int*)&pucMemory[iPos]);  iPos += sizeof(int);
 	uiDataSize = *((unsigned short*)&pucMemory[iPos]);  iPos += sizeof(unsigned short);
 
 	uiFirstIndex = pucMemory[iPos];  iPos++;
@@ -366,7 +369,7 @@ CIndexTreeNodeFile* CIndexTreeFile::AllocateNode(CIndexTreeNodeFile* pcParent, u
 
 	pcNode = (CIndexTreeNodeFile*)Malloc(tSize);
 	pcNode->Init(this, pcParent, uiFirstIndex, uiLastIndex, uiIndexInParent);
-	iBufferRead = pcNode->InitFromBuffer(pvBuffer, iBufferSize);
+	iBufferRead = pcNode->InitFromBuffer(pvBuffer, iMaxBufferSize, mpcWriterCallback);
 	if (iBufferRead > 0)
 	{
 		return pcNode;
@@ -2622,24 +2625,24 @@ BOOL CIndexTreeFile::Write(CIndexTreeNodeFile* pcNode)
 	int					iWrittenPos;
 	CStackMemory<>		cTemp;
 	void*				pvBuffer;
-	int					iNodeSize;
+	int					iFileSize;
 	CIndexedFile*		pcNewIndexFile;
 	CIndexedFile*		pcOldIndexFile;
 	unsigned int		uiDataIndex;
 	CFileDataIndex*		pcIndex;
 
-	iNodeSize = pcNode->CalculateBufferSize();
-	pvBuffer = cTemp.Init(iNodeSize);
-	iWrittenPos = pcNode->WriteToBuffer(pvBuffer, iNodeSize);
+	iFileSize = pcNode->CalculateFileSize(mpcWriterCallback);
+	pvBuffer = cTemp.Init(iFileSize);
+	iWrittenPos = pcNode->WriteToBuffer(pvBuffer, iFileSize, mpcWriterCallback);
 	if (iWrittenPos <= 0)
 	{
 		return FALSE;
 	}
 
-	if (iWrittenPos != iNodeSize)
+	if (iWrittenPos != iFileSize)
 	{
 		cTemp.Kill();
-		return gcLogger.Error2(__METHOD__, " Could not write IndexTreeNodeFile.  Expected size [", IntToString(iNodeSize), "] is not equal to written buffer size [", IntToString(iWrittenPos), "].", NULL);
+		return gcLogger.Error2(__METHOD__, " Could not write IndexTreeNodeFile.  Expected size [", IntToString(iFileSize), "] is not equal to written buffer size [", IntToString(iWrittenPos), "].", NULL);
 	}
 
 	pcIndex = pcNode->GetFileIndex();
@@ -2652,7 +2655,7 @@ BOOL CIndexTreeFile::Write(CIndexTreeNodeFile* pcNode)
 		pcOldIndexFile = NULL;
 	}
 
-	pcNewIndexFile = mcIndexFiles.GetOrCreateFile(iNodeSize);
+	pcNewIndexFile = mcIndexFiles.GetOrCreateFile(iFileSize);
 	if (!pcNewIndexFile)
 	{
 		cTemp.Kill();
@@ -2954,7 +2957,7 @@ CIndexedFiles* CIndexTreeFile::GetIndexFiles(void)
 BOOL CIndexTreeFile::Read(CIndexTreeChildNode* pcChildNode, CIndexTreeNodeFile* pcFileNodeParent, unsigned char uiIndexInParent)
 {
 	CIndexedFile*			pcFile;
-	int						iDataSize;
+	int						iMaxBufferSize;
 	CStackMemory<>			cTemp;
 	void*					pvBuffer;
 	BOOL					bResult;
@@ -2966,9 +2969,9 @@ BOOL CIndexTreeFile::Read(CIndexTreeChildNode* pcChildNode, CIndexTreeNodeFile* 
 	uiIndex = pcChildNode->u.mcFile.muiIndex;
 
 	pcFile = mcIndexFiles.GetFile(iFile);
-	iDataSize = pcFile->GetDataSize();
+	iMaxBufferSize = pcFile->GetDataSize();
 
-	pvBuffer = cTemp.Init(iDataSize);
+	pvBuffer = cTemp.Init(iMaxBufferSize);
 	bResult = pcFile->Read(uiIndex, pvBuffer);
 	if (!bResult)
 	{
@@ -2976,7 +2979,7 @@ BOOL CIndexTreeFile::Read(CIndexTreeChildNode* pcChildNode, CIndexTreeNodeFile* 
 		return FALSE;
 	}
 		
-	pcFileNode = AllocateNode(pcFileNodeParent, uiIndexInParent, pvBuffer, iDataSize);
+	pcFileNode = AllocateNode(pcFileNodeParent, uiIndexInParent, pvBuffer, iMaxBufferSize);
 	cTemp.Kill();
 
 	if (pcFileNode)
