@@ -11,8 +11,6 @@ class CIndexTreeNodeFile : public CIndexTreeNode
 private:
 	CFileDataIndex				mcFileIndex;  //This index is not valid if the node is dirty; the node will need to br rewritten.
 
-	unsigned short				muiFileDataSize;  //This can be set smaller then muiDataSize.  The difference will be filled with zeros.
-
 public:
 	void					Init(CIndexTree* pcIndexTree, CIndexTreeNodeFile* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex, CFileDataIndex cFileIndex, unsigned char uiIndexInParent);
 	void					Init(CIndexTree* pcIndexTree, CIndexTreeNodeFile* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex, unsigned char uiIndexInParent);
@@ -42,7 +40,6 @@ public:
 	BOOL					Uncontain(unsigned char uiIndex);
 
 	void					RemapChildNodes(CIndexTreeNodeFile* pcOldNode, CIndexTreeNodeFile* pcNewNode);
-	BOOL					SetObject(void* pvObject, unsigned short uiSize, unsigned short uiFileSize);
 
 	unsigned char			FindPrevLastIndex(void);
 	unsigned char			FindNextFirstIndex(void);

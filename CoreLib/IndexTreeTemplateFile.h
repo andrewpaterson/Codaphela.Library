@@ -3,7 +3,7 @@
 #include "IndexTreeFile.h"
 
 
-template<class M, class D>
+template<class M>
 class CIndexTreeTemplateFile : public CIndexTreeFile
 {
 public:
@@ -20,8 +20,8 @@ public:
 //
 //
 //////////////////////////////////////////////////////////////////////////
-template<class M, class D>
-BOOL CIndexTreeTemplateFile<M, D>::Get(void* pvKey, int iKeySize, M* pvObject)
+template<class M>
+BOOL CIndexTreeTemplateFile<M>::Get(void* pvKey, int iKeySize, M* pvObject)
 {
 	return CIndexTreeFile::Get(pvKey, iKeySize, pvObject, NULL);
 }
@@ -31,10 +31,10 @@ BOOL CIndexTreeTemplateFile<M, D>::Get(void* pvKey, int iKeySize, M* pvObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-template<class M, class D>
-BOOL CIndexTreeTemplateFile<M, D>::Put(void* pvKey, int iKeySize, M* pvObject)
+template<class M>
+BOOL CIndexTreeTemplateFile<M>::Put(void* pvKey, int iKeySize, M* pvObject)
 {
-	return CIndexTreeFile::Put(pvKey, iKeySize, pvObject, sizeof(M), sizeof(D));
+	return CIndexTreeFile::Put(pvKey, iKeySize, pvObject, sizeof(M));
 }
 
 
@@ -42,8 +42,8 @@ BOOL CIndexTreeTemplateFile<M, D>::Put(void* pvKey, int iKeySize, M* pvObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-template<class M, class D>
-BOOL CIndexTreeTemplateFile<M, D>::Remove(void* pvKey, int iKeySize)
+template<class M>
+BOOL CIndexTreeTemplateFile<M>::Remove(void* pvKey, int iKeySize)
 {
 	return CIndexTreeFile::Remove(pvKey, iKeySize);
 }

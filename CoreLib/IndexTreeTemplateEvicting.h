@@ -3,7 +3,7 @@
 #include "IndexTreeEvicting.h"
 
 
-template<class M, class D>
+template<class M>
 class CIndexTreeTemplateEvicting : public CIndexTreeEvicting
 {
 public:
@@ -20,8 +20,8 @@ public:
 //
 //
 //////////////////////////////////////////////////////////////////////////
-template<class M, class D>
-BOOL CIndexTreeTemplateEvicting<M, D>::Get(void* pvKey, int iKeySize, M* pvObject)
+template<class M>
+BOOL CIndexTreeTemplateEvicting<M>::Get(void* pvKey, int iKeySize, M* pvObject)
 {
 	return CIndexTreeEvicting::Get(pvKey, iKeySize, pvObject, NULL);
 }
@@ -31,10 +31,10 @@ BOOL CIndexTreeTemplateEvicting<M, D>::Get(void* pvKey, int iKeySize, M* pvObjec
 //
 //
 //////////////////////////////////////////////////////////////////////////
-template<class M, class D>
-BOOL CIndexTreeTemplateEvicting<M, D>::Put(void* pvKey, int iKeySize, M* pvObject)
+template<class M>
+BOOL CIndexTreeTemplateEvicting<M>::Put(void* pvKey, int iKeySize, M* pvObject)
 {
-	return CIndexTreeEvicting::Put(pvKey, iKeySize, pvObject, sizeof(M), sizeof(D));
+	return CIndexTreeEvicting::Put(pvKey, iKeySize, pvObject, sizeof(M));
 }
 
 
@@ -42,8 +42,8 @@ BOOL CIndexTreeTemplateEvicting<M, D>::Put(void* pvKey, int iKeySize, M* pvObjec
 //
 //
 //////////////////////////////////////////////////////////////////////////
-template<class M, class D>
-BOOL CIndexTreeTemplateEvicting<M, D>::Remove(void* pvKey, int iKeySize)
+template<class M>
+BOOL CIndexTreeTemplateEvicting<M>::Remove(void* pvKey, int iKeySize)
 {
 	return CIndexTreeEvicting::Remove(pvKey, iKeySize);
 }
