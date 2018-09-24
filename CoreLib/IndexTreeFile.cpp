@@ -16,7 +16,7 @@
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl)
 {
-	return Init(pcDurableFileControl, &gcSystemAllocator, TRUE);
+	return Init(pcDurableFileControl, &gcIndexTreeFileDefaultCallback, &gcSystemAllocator, TRUE);
 }
 
 
@@ -26,7 +26,7 @@ BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, BOOL bWriteThrough)
 {
-	return Init(pcDurableFileControl, &gcSystemAllocator, bWriteThrough);
+	return Init(pcDurableFileControl, &gcIndexTreeFileDefaultCallback, &gcSystemAllocator, bWriteThrough);
 }
 
 
@@ -35,6 +35,16 @@ BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, BOOL bWr
 //
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, CMallocator* pcMalloc, BOOL bWriteThrough)
+{
+	return Init(pcDurableFileControl, &gcIndexTreeFileDefaultCallback, pcMalloc, bWriteThrough);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, CIndexTreeFileCallback* pcWriterCallback, CMallocator* pcMalloc, BOOL bWriteThrough)
 {
 	//The DurableFileControl must be begun before .Init is called and should be ended afterwards.
 
@@ -48,7 +58,7 @@ BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, CMalloca
 	mcMalloc.Init(pcMalloc);
 	CIndexTree::Init(&mcMalloc, sizeof(CIndexTreeNodeFile), sizeof(CIndexTreeChildNode));
 
-	mpcWriterCallback = &gcIndexTreeFileDefaultCallback;
+	mpcWriterCallback = pcWriterCallback;
 	mpcRoot = NULL;
 	mbWriteThrough = bWriteThrough;
 	mpcDurableFileControl = pcDurableFileControl;
@@ -154,7 +164,7 @@ BOOL CIndexTreeFile::InitRoot(void)
 	{
 		//The data size on the root is always zero.
 		mpcRoot = AllocateRoot(cRootFileIndex);
-		iNodeSize = mpcRoot->CalculateFileSize(mpcWriterCallback);
+		iNodeSize = mpcRoot->CalculateNodeSize() + mpcRoot->CalculateDataBufferSize(mpcWriterCallback);
 
 		pcRootIndexFile = mcIndexFiles.GetFile(cRootFileIndex.miFile);
 		if (pcRootIndexFile == NULL)
@@ -355,10 +365,12 @@ CIndexTreeNodeFile* CIndexTreeFile::AllocateNode(CIndexTreeNodeFile* pcParent, u
 	size_t					tSize;
 	int						iBufferRead;
 	int						iFileSize;
+	int						iFileDataSize;
 
 	pucMemory = (unsigned char*)pvBuffer;
 	iPos = 0;
 	iFileSize = *((int*)&pucMemory[iPos]);  iPos += sizeof(int);
+	iFileDataSize = *((int*)&pucMemory[iPos]);  iPos += sizeof(int);
 	uiDataSize = *((unsigned short*)&pucMemory[iPos]);  iPos += sizeof(unsigned short);
 
 	uiFirstIndex = pucMemory[iPos];  iPos++;
@@ -2630,8 +2642,10 @@ BOOL CIndexTreeFile::Write(CIndexTreeNodeFile* pcNode)
 	CIndexedFile*		pcOldIndexFile;
 	unsigned int		uiDataIndex;
 	CFileDataIndex*		pcIndex;
+	int					iFileDataSize;
 
-	iFileSize = pcNode->CalculateFileSize(mpcWriterCallback);
+	iFileDataSize = pcNode->CalculateDataBufferSize(mpcWriterCallback);
+	iFileSize = pcNode->CalculateNodeSize() + iFileDataSize;
 	pvBuffer = cTemp.Init(iFileSize);
 	iWrittenPos = pcNode->WriteToBuffer(pvBuffer, iFileSize, mpcWriterCallback);
 	if (iWrittenPos <= 0)

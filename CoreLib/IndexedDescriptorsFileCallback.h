@@ -1,9 +1,9 @@
-#ifndef __INDEX_TREE_FILE_DEFAULT_CALLBACK_H__
-#define __INDEX_TREE_FILE_DEFAULT_CALLBACK_H__
+#ifndef __INDEXED_DESCRIPTORS_FILE_CALLBACK_H__
+#define __INDEXED_DESCRIPTORS_FILE_CALLBACK_H__
 #include "IndexTreeFileCallback.h"
 
 
-class CIndexTreeFileDefaultCallback : public CIndexTreeFileCallback
+class CIndexedDescriptorsFileCallback : public CIndexTreeFileCallback
 {
 public:
 	unsigned short	DataBufferSize(unsigned short uiSourceSize);
@@ -12,8 +12,5 @@ public:
 };
 
 
-extern CIndexTreeFileDefaultCallback gcIndexTreeFileDefaultCallback;
-
-
-#endif // __INDEX_TREE_FILE_DEFAULT_CALLBACK_H__
+#endif // __INDEXED_DESCRIPTORS_FILE_CALLBACK_H__
 

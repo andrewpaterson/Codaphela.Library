@@ -1,5 +1,5 @@
-#include "IndexTreeFileDefaultCallback.h"
 #include "BaseLib/FastMemcpy.h"
+#include "IndexTreeFileDefaultCallback.h"
 
 
 CIndexTreeFileDefaultCallback gcIndexTreeFileDefaultCallback;
@@ -19,10 +19,17 @@ unsigned short CIndexTreeFileDefaultCallback::DataBufferSize(unsigned short uiSo
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFileDefaultCallback::WriteData(void* pvDataBuffer, void* pvSource, int iFileSize, unsigned short uiSourceSize)
+BOOL CIndexTreeFileDefaultCallback::WriteData(void* pvDataBuffer, void* pvSource, int iFileDataSize, unsigned short uiSourceDataSize)
 {
-		memcpy_fast(pvDataBuffer, pvSource, uiSourceSize);
+	if (iFileDataSize == uiSourceDataSize)
+	{
+		memcpy_fast(pvDataBuffer, pvSource, uiSourceDataSize);
 		return TRUE;
+	}
+	else
+	{
+		return FALSE;
+	}
 }
 
 
@@ -30,9 +37,16 @@ BOOL CIndexTreeFileDefaultCallback::WriteData(void* pvDataBuffer, void* pvSource
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFileDefaultCallback::ReadData(void* pvDest, void* pvDataBuffer, unsigned short uiDestSize, int iFileSize)
+BOOL CIndexTreeFileDefaultCallback::ReadData(void* pvDest, void* pvDataBuffer, unsigned short uiDestDataSize, int iFileDataSize)
 {
-		memcpy_fast(pvDest, pvDataBuffer, uiDestSize);
+	if (uiDestDataSize == iFileDataSize)
+	{
+		memcpy_fast(pvDest, pvDataBuffer, uiDestDataSize);
 		return TRUE;
+	}
+	else
+	{
+		return FALSE;
+	}
 }
 
