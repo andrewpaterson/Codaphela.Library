@@ -7,9 +7,9 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeEvicting::Init(CDurableFileController* pcDurableFileControl, size_t uiCutoff, CIndexTreeEvictionCallback* pcEvictionCallback, CIndexTreeEvictionStrategy* pcEvictionStrategy)
+BOOL CIndexTreeEvicting::Init(CDurableFileController* pcDurableFileControl, size_t uiCutoff, CIndexTreeEvictionCallback* pcEvictionCallback, CIndexTreeEvictionStrategy* pcEvictionStrategy, CIndexTreeFileCallback* pcWriterCallback)
 {
-	return Init(pcDurableFileControl, uiCutoff, pcEvictionCallback, pcEvictionStrategy, &gcSystemAllocator, TRUE);
+	return Init(pcDurableFileControl, uiCutoff, pcEvictionCallback, pcEvictionStrategy, pcWriterCallback, &gcSystemAllocator, TRUE);
 }
 
 
@@ -17,9 +17,9 @@ BOOL CIndexTreeEvicting::Init(CDurableFileController* pcDurableFileControl, size
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeEvicting::Init(CDurableFileController* pcDurableFileControl, size_t uiCutoff, CIndexTreeEvictionCallback* pcEvictionCallback, CIndexTreeEvictionStrategy* pcEvictionStrategy, BOOL bWriteThrough)
+BOOL CIndexTreeEvicting::Init(CDurableFileController* pcDurableFileControl, size_t uiCutoff, CIndexTreeEvictionCallback* pcEvictionCallback, CIndexTreeEvictionStrategy* pcEvictionStrategy, CIndexTreeFileCallback* pcWriterCallback, BOOL bWriteThrough)
 {
-	return Init(pcDurableFileControl, uiCutoff, pcEvictionCallback, pcEvictionStrategy, &gcSystemAllocator, bWriteThrough);
+	return Init(pcDurableFileControl, uiCutoff, pcEvictionCallback, pcEvictionStrategy, pcWriterCallback, &gcSystemAllocator, bWriteThrough);
 }
 
 
@@ -27,14 +27,14 @@ BOOL CIndexTreeEvicting::Init(CDurableFileController* pcDurableFileControl, size
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeEvicting::Init(CDurableFileController* pcDurableFileControl, size_t uiCutoff, CIndexTreeEvictionCallback* pcEvictionCallback, CIndexTreeEvictionStrategy* pcEvictionStrategy, CMallocator* pcMalloc, BOOL bWriteThrough)
+BOOL CIndexTreeEvicting::Init(CDurableFileController* pcDurableFileControl, size_t uiCutoff, CIndexTreeEvictionCallback* pcEvictionCallback, CIndexTreeEvictionStrategy* pcEvictionStrategy, CIndexTreeFileCallback* pcWriterCallback, CMallocator* pcMalloc, BOOL bWriteThrough)
 {
 	BOOL	bResult;
 	mpcEvictionStrategy = pcEvictionStrategy;
 	mpcEvictionCallback = pcEvictionCallback;
 	muiCutoff = uiCutoff;
 
-	bResult = mcIndexTree.Init(pcDurableFileControl, pcMalloc, bWriteThrough);
+	bResult = mcIndexTree.Init(pcDurableFileControl, pcWriterCallback, pcMalloc, bWriteThrough);
 	mpcEvictionStrategy->SetIndexTree(this);
 	return bResult;
 }
@@ -153,7 +153,7 @@ void CIndexTreeEvicting::PotentiallyEvict(void* pvKey, int iKeySize)
 		{
 			sz.Init();
 			sz.AppendData2((const char*)pvKey, iKeySize);
-			gcLogger.Error2(__METHOD__, " Could evict key [", sz.Text(), "].", NULL);
+			gcLogger.Error2(__METHOD__, " Could not evict key [", sz.Text(), "].", NULL);
 			sz.Kill();
 			return;
 		}

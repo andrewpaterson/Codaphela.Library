@@ -5,6 +5,7 @@
 #include "IndexTreeEvictionCallback.h"
 #include "IndexedDataDescriptor.h"
 #include "IndexTreeEvictionStrategyRandom.h"
+#include "IndexedDescriptorsFileCallback.h"
 
 
 class CIndexedDataCommon;
@@ -14,6 +15,7 @@ protected:
 	CIndexTreeTemplateEvicting<CIndexedDataDescriptor>	mcIndexTree;
 	CIndexTreeEvictionStrategyRandom					mcEvictionStrategy;
 	CIndexedDataCommon*									mpcIndexedData;
+	CIndexedDescriptorsFileCallback						mcDescriptorsCallback;
 
 public:
 	void	Init(CIndexedDataCommon* pcIndexedData, CDurableFileController* pcDurableFileController, BOOL bDirtyTesting, size_t uiCutoff, BOOL bWriteThrough);

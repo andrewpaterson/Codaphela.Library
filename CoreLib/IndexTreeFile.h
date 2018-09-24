@@ -33,6 +33,7 @@ public:
 	BOOL					Init(CDurableFileController* pcDurableFileControl);
 	BOOL					Init(CDurableFileController* pcDurableFileControl, BOOL bWriteThrough);
 	BOOL					Init(CDurableFileController* pcDurableFileControl, CMallocator* pcMalloc, BOOL bWriteThrough);
+	BOOL					Init(CDurableFileController* pcDurableFileControl, CIndexTreeFileCallback* pcWriterCallback, CMallocator* pcMalloc, BOOL bWriteThrough);
 	BOOL					Kill(void);
 
 	BOOL					Get(void* pvKey, int iKeySize, void* pvObject, unsigned short* puiDataSize);

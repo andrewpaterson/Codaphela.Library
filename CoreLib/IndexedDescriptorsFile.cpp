@@ -10,7 +10,7 @@
 void CIndexedDescriptorsFile::Init(CIndexedDataCommon* pcIndexedData, CDurableFileController* pcDurableFileController, BOOL bDirtyTesting, size_t uiCutoff, BOOL bWriteThrough)
 {
 	mpcIndexedData = pcIndexedData;
-	mcIndexTree.Init(pcDurableFileController, uiCutoff, this, &mcEvictionStrategy, bWriteThrough);
+	mcIndexTree.Init(pcDurableFileController, uiCutoff, this, &mcEvictionStrategy, &mcDescriptorsCallback,  bWriteThrough);
 }
 
 

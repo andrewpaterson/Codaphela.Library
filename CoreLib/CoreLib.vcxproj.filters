@@ -411,6 +411,9 @@
     <ClCompile Include="IndexTreeFileDefaultCallback.cpp">
       <Filter>Source\File\Indexed\Index\Access\DataWriter</Filter>
     </ClCompile>
+    <ClCompile Include="IndexedDescriptorsFileCallback.cpp">
+      <Filter>Source\File\Indexed\Descriptors</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="IndexedConfig.h">
@@ -682,6 +685,9 @@
     </ClInclude>
     <ClInclude Include="IndexTreeFileDefaultCallback.h">
       <Filter>Source\File\Indexed\Index\Access\DataWriter</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexedDescriptorsFileCallback.h">
+      <Filter>Source\File\Indexed\Descriptors</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
