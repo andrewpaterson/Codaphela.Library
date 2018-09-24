@@ -227,17 +227,6 @@ void CIndexTreeNodeFile::RemapChildNodes(CIndexTreeNodeFile* pcOldNode, CIndexTr
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeNodeFile::SetObject(void* pvObject, unsigned short uiSize, unsigned short uiFileSize)
-{
-	muiFileDataSize = uiFileSize;
-	return CIndexTreeNode::SetObject(pvObject, uiSize);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 unsigned char CIndexTreeNodeFile::FindNextFirstIndex(void)
 {
 	//Doubtful method works as expected.

@@ -35,7 +35,7 @@ public:
 	BOOL					Kill(void);
 
 	BOOL					Get(void* pvKey, int iKeySize, void* pvObject, unsigned short* puiDataSize);
-	BOOL					Put(void* pvKey, int iKeySize, void* pvObject, unsigned short uiDataSize, unsigned short uiFileSize);
+	BOOL					Put(void* pvKey, int iKeySize, void* pvObject, unsigned short uiDataSize);
 	BOOL					Remove(void* pvKey, int iKeySize);
 	BOOL					HasKey(void* pvKey, int iKeySize);
 	unsigned short			ObjectSize(void* pvKey, int iKeySize);
@@ -49,9 +49,6 @@ public:
 
 	BOOL					Put(char* pszKey, void* pvObject, unsigned short uiDataSize);
 	BOOL					Put(void* pvKey, int iKeySize, unsigned short uiDataSize);
-	BOOL					Put(char* pszKey, void* pvObject, unsigned short uiDataSize, unsigned short uiFileSize);
-	BOOL					Put(void* pvKey, int iKeySize, unsigned short uiDataSize, unsigned short uiFileSize);
-	BOOL					Put(void* pvKey, int iKeySize, void* pvObject, unsigned short uiDataSize);
 
 	BOOL					Remove(char* pszKey);
 
@@ -126,7 +123,7 @@ protected:
 	void					RemapChildParents(CIndexTreeNodeFile* pcOldNode, CIndexTreeNodeFile* pcNode);
 
 	CIndexTreeNodeFile*		GetChildNodeOrAllocate(CIndexTreeNodeFile* pcParent, unsigned char uiIndexInParent);
-	CIndexTreeNodeFile*		SetNodeObject(CIndexTreeNodeFile* pcCurrent, void* pvObject, unsigned short uiDataSize, unsigned short uiFileSize);
+	CIndexTreeNodeFile*		SetNodeObject(CIndexTreeNodeFile* pcCurrent, void* pvObject, unsigned short uiDataSize);
 
 	CIndexTreeNodeFile*		RemoveWriteThrough(CIndexTreeNodeFile* pcCurrent);
 	BOOL					RemoveWaitForFlush(CIndexTreeNodeFile* pcCurrent);
