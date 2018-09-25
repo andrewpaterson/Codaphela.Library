@@ -153,7 +153,7 @@ void CIndexTreeEvicting::PotentiallyEvict(void* pvKey, int iKeySize)
 		{
 			sz.Init();
 			sz.AppendData2((const char*)pvKey, iKeySize);
-			gcLogger.Error2(__METHOD__, " Could not evict key [", sz.Text(), "].", NULL);
+			gcLogger.Error2(__METHOD__, " Could not evict key [", sz.Text(), "].  Tree size [", IntToString(uiSize), "] could not be reduced below cache size [", IntToString(muiCutoff), "].", NULL);
 			sz.Kill();
 			return;
 		}
