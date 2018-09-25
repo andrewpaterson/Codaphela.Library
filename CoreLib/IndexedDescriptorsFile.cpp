@@ -141,7 +141,6 @@ BOOL CIndexedDescriptorsFile::NodeEvicted(CIndexTreeFile* pcIndexTree, unsigned 
 	}
 
 	oi = *((OIndex*)pvKey);
-	//mpcIndexedData->KeyEvicted(oi);
-	return TRUE;
+	return mpcIndexedData->KeyEvicted(oi, (CIndexedDataDescriptor*)pvData);
 }
 

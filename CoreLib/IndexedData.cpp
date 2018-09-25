@@ -161,7 +161,6 @@ int64 CIndexedData::NumElements(void)
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -216,6 +215,16 @@ BOOL CIndexedData::DurableEnd(void)
 BOOL CIndexedData::DescriptorsEvicted(CArrayVoidPtr* papsEvictedIndexedCacheDescriptors)
 {
 	return CIndexedDataCommon::DescriptorsEvicted(papsEvictedIndexedCacheDescriptors);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexedData::KeyEvicted(OIndex oi, CIndexedDataDescriptor* pcDescriptor)
+{
+	return mcData.Evict(oi, pcDescriptor);
 }
 
 
