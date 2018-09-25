@@ -456,29 +456,62 @@ BOOL CIndexedFilesEvicting::CacheAllocate(OIndex oi, CIndexedDataDescriptor* pcD
 	cPreAllocated.Init(pcDescriptor->GetDataSize(), mcDataCache.GetIndexCacheDescritorSize());
 	if (mcDataCache.PreAllocate(&cPreAllocated))  //PreAllocate ensures there will be enough space in the cache.
 	{
-		bResult = WriteEvictedData(cPreAllocated.GetEvictedArray());
-		if (!bResult)
+		bResult = DescriptorsEvicted(cPreAllocated.GetEvictedArray());
+		if (bResult)
 		{
-			cPreAllocated.Kill();
-			return FALSE;
+			//pcDescriptor cache and size updated in .Allocate.
+			bResult = mcDataCache.Allocate(oi, pcDescriptor, &cPreAllocated);
 		}
-
-		mpcEvictionCallback->DescriptorsEvicted(cPreAllocated.GetEvictedArray());
-
-		//pcDescriptor cache and size updated in .Allocate.
-		bResult = mcDataCache.Allocate(oi, pcDescriptor, &cPreAllocated);
 		cPreAllocated.Kill();
-		if (!bResult)
-		{
-			return FALSE;
-		}
-
-		return TRUE;
+		return bResult;
 	}
 	else
 	{
 		cPreAllocated.Kill();
 		return FALSE;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexedFilesEvicting::DescriptorsEvicted(CArrayVoidPtr* paEvictedCacheDescriptors)
+{
+	BOOL	bResult;
+
+	bResult = WriteEvictedData(paEvictedCacheDescriptors);
+	if (!bResult)
+	{
+		return FALSE;
+	}
+
+	mpcEvictionCallback->DescriptorsEvicted(paEvictedCacheDescriptors);
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexedFilesEvicting::Evict(OIndex oi, CIndexedDataDescriptor* pcDescriptor)
+{
+	void*						pvData;
+	SIndexedCacheDescriptor*	psDescriptor;
+	BOOL						bResult;
+
+	pvData = pcDescriptor->GetCache();
+	if (pvData)
+	{
+		psDescriptor = mcDataCache.GetHeader(pvData);
+		bResult = WriteEvictedData(psDescriptor, TRUE);  //This might cause a stack overflow as it tries to evict 'oi' again.
+		return bResult;
+	}
+	else
+	{
+		return TRUE;
 	}
 }
 

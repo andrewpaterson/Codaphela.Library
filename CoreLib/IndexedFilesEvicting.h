@@ -35,6 +35,7 @@ public:
 
 	unsigned int	GetCachedDataSize(CIndexedDataDescriptor* pcDescriptor);
 
+	BOOL			Evict(OIndex oi, CIndexedDataDescriptor* pcDescriptor);  //Find a better name.  Maybe
 	void			InvalidateData(CIndexedDataDescriptor* pcDescriptor);
 
 	unsigned int	TestGetCachedObjectSize(OIndex oi);
@@ -42,6 +43,7 @@ public:
 
 protected:
 	BOOL			CacheAllocate(OIndex oi, CIndexedDataDescriptor* pcDescriptor);
+	BOOL			DescriptorsEvicted(CArrayVoidPtr* paEvictedCacheDescriptors);
 
 	BOOL			WriteEvictedData(SIndexedCacheDescriptor* psCached, BOOL bClearCache);
 	BOOL			WriteEvictedData(CArrayVoidPtr* papsIndexedCacheDescriptors);
