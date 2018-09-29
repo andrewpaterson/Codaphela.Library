@@ -30,6 +30,8 @@ public:
 	int64	NumElements(void);
 	BOOL	IsDirty(OIndex oi);
 
+	BOOL	KeyEvicted(OIndex oi, CIndexedDataDescriptor* pcDescriptor);
+
 	BOOL	TestGetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor);
 
 protected:
