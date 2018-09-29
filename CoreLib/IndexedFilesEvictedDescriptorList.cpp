@@ -272,6 +272,17 @@ BOOL CIndexedFilesEvictedDescriptorList::IsDirty(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL CIndexedFilesEvictedDescriptorList::KeyEvicted(OIndex oi, CIndexedDataDescriptor* pcDescriptor)
+{
+	//DescriptorsEvicted
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL CIndexedFilesEvictedDescriptorList::TestGetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor)
 {
 	return GetDescriptor(oi, pcDescriptor);
