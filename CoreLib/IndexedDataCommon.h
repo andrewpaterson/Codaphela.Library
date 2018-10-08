@@ -31,8 +31,8 @@ public:
 			BOOL			Contains(OIndex oi);
 
 	virtual int64			NumElements(void) =0;
-			int				NumCached(void);
-			int				NumCached(int iSize);
+			int				NumDataCached(void);
+			int				NumDataCached(int iSize);
 			int				NumFiles(void);
 			int64			NumData(unsigned int uiDataSize);
 
@@ -47,7 +47,7 @@ public:
 
 protected:
 	virtual BOOL			GetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor) =0;
-	virtual BOOL			SetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor) =0;
+	virtual BOOL			SetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor, BOOL bNoEviction = FALSE) =0;
 	virtual BOOL			UpdateDescriptorCache(OIndex oi, void* pvCache) =0;
 	virtual BOOL			RemoveDescriptor(OIndex oi) =0;
 

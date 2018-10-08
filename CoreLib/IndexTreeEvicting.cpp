@@ -85,6 +85,19 @@ BOOL CIndexTreeEvicting::Put(void* pvKey, int iKeySize, void* pvObject, unsigned
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeEvicting::PutWithoutEviction(void* pvKey, int iKeySize, void* pvObject, unsigned short uiDataSize)
+{
+	BOOL	bResult;
+
+	bResult = mcIndexTree.Put(pvKey, iKeySize, pvObject, uiDataSize);
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeEvicting::Remove(void* pvKey, int iKeySize)
 {
 	BOOL	bResult;
@@ -170,13 +183,17 @@ BOOL CIndexTreeEvicting::EvictNodeCallback(CIndexTreeNodeFile* pcNode)
 	CStackMemory<>		cStack;
 	unsigned char*		pvMem;
 	int					iKeySize;
+	BOOL				bResult;
 
 	iKeySize = mcIndexTree.GetNodeKeySize(pcNode);
 	pvMem = (unsigned char*)cStack.Init(iKeySize + 1);
 	mcIndexTree.GetNodeKey(pcNode, pvMem, iKeySize + 1);
 	pvMem[iKeySize] = 0;
 
-	return mpcEvictionCallback->NodeEvicted(&mcIndexTree, pvMem, iKeySize, pcNode->GetObjectPtr(), pcNode->ObjectSize());
+	bResult = mpcEvictionCallback->NodeEvicted(&mcIndexTree, pvMem, iKeySize, pcNode->GetObjectPtr(), pcNode->ObjectSize());
+	
+	cStack.Kill();
+	return bResult;
 }
 
 
@@ -297,5 +314,15 @@ CIndexTreeNodeFile* CIndexTreeEvicting::GetMemoryNode(void* pvKey, int iKeySize)
 BOOL CIndexTreeEvicting::Evict(CIndexTreeNodeFile* pcNode)
 {
 	return mcIndexTree.Evict(pcNode);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size_t CIndexTreeEvicting::GetSystemMemorySize()
+{
+	return mcIndexTree.GetSystemMemorySize();
 }
 

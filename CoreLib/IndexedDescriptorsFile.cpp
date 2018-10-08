@@ -58,6 +58,23 @@ BOOL CIndexedDescriptorsFile::Set(CIndexedDataDescriptor* pcDescriptor, OIndex o
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL CIndexedDescriptorsFile::Set(CIndexedDataDescriptor* pcDescriptor, OIndex oi, BOOL bNoEviction)
+{
+	if (!bNoEviction)
+	{
+		return mcIndexTree.Put(&oi, sizeof(OIndex), pcDescriptor);
+	}
+	else
+	{
+		return mcIndexTree.PutWithoutEviction(&oi, sizeof(OIndex), pcDescriptor);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL CIndexedDescriptorsFile::SetCache(void* pvCache, OIndex oi)
 {
 	CIndexTreeNode*			pcNode;
@@ -142,5 +159,15 @@ BOOL CIndexedDescriptorsFile::NodeEvicted(CIndexTreeFile* pcIndexTree, unsigned 
 
 	oi = *((OIndex*)pvKey);
 	return mpcIndexedData->KeyEvicted(oi, (CIndexedDataDescriptor*)pvData);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size_t CIndexedDescriptorsFile::GetSystemMemorySize(void)
+{
+	return mcIndexTree.GetSystemMemorySize();
 }
 

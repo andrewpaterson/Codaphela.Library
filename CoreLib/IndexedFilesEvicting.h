@@ -47,6 +47,7 @@ protected:
 
 	BOOL			WriteEvictedData(SIndexedCacheDescriptor* psCached, BOOL bClearCache);
 	BOOL			WriteEvictedData(CArrayVoidPtr* papsIndexedCacheDescriptors);
+	BOOL			WriteEvictedData(CIndexedDataDescriptor* pcDescriptor, BOOL bClearCache);
 
 	BOOL			CompareDiskToMemory(CIndexedDataDescriptor* pcDescriptor, void* pvData);
 	BOOL			ClearDescriptorCache(SIndexedCacheDescriptor* psCached);

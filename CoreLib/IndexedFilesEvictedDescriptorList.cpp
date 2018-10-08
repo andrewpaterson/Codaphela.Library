@@ -163,7 +163,7 @@ BOOL CIndexedFilesEvictedDescriptorList::GetDescriptor(OIndex oi, CIndexedDataDe
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedFilesEvictedDescriptorList::SetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor)
+BOOL CIndexedFilesEvictedDescriptorList::SetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor, BOOL bNoEviction)
 {
 	CIndexedDataDescriptor* pcExistingDescriptor;
 	BOOL					bUpdated;

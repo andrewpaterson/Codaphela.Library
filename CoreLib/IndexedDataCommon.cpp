@@ -229,7 +229,7 @@ BOOL CIndexedDataCommon::Remove(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CIndexedDataCommon::NumCached(void)
+int CIndexedDataCommon::NumDataCached(void)
  {
 	return mcData.NumCached();
 }
@@ -239,7 +239,7 @@ int CIndexedDataCommon::NumCached(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CIndexedDataCommon::NumCached(int iSize)
+int CIndexedDataCommon::NumDataCached(int iSize)
 {
 	return mcData.NumCached(iSize);
 }
