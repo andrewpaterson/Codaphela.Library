@@ -12,6 +12,8 @@ public:
 	BOOL	Put(void* pvKey, int iKeySize, M* pvObject);
 
 	BOOL	Remove(void* pvKey, int iKeySize);
+
+	BOOL	PutWithoutEviction(void* pvKey, int iKeySize, M* pvObject);
 };
 
 
@@ -35,6 +37,16 @@ template<class M>
 BOOL CIndexTreeTemplateEvicting<M>::Put(void* pvKey, int iKeySize, M* pvObject)
 {
 	return CIndexTreeEvicting::Put(pvKey, iKeySize, pvObject, sizeof(M));
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+BOOL CIndexTreeTemplateEvicting<M>::PutWithoutEviction(void* pvKey, int iKeySize, M* pvObject)
+{
+	return CIndexTreeEvicting::PutWithoutEviction(pvKey, iKeySize, pvObject, sizeof(M));
 }
 
 

@@ -39,7 +39,7 @@ protected:
 	void	NullCachedDescriptors(void);
 
 	BOOL	GetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor);
-	BOOL	SetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor);
+	BOOL	SetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor, BOOL bNoEviction = FALSE);
 	BOOL	UpdateDescriptorCache(OIndex oi, void* pvCache);
 	BOOL	RemoveDescriptor(OIndex oi);
 };

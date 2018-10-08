@@ -24,6 +24,7 @@ public:
 	BOOL	Remove(OIndex oi);
 	BOOL	Get(CIndexedDataDescriptor* pcDescriptor, OIndex oi);
 	BOOL	Set(CIndexedDataDescriptor* pcDescriptor, OIndex oi);
+	BOOL	Set(CIndexedDataDescriptor* pcDescriptor, OIndex oi, BOOL bNoEviction);
 	BOOL	SetCache(void* pvCache, OIndex oi);
 	BOOL	Flush(void);
 
@@ -33,6 +34,8 @@ public:
 	BOOL	GetIfInMemory(CIndexedDataDescriptor* pcDescriptor, OIndex oi);
 
 	BOOL	NodeEvicted(CIndexTreeFile* pcIndexTree, unsigned char* pvKey, int iKeySize, void* pvData, int iDataSize);
+
+	size_t	GetSystemMemorySize(void);
 };
 
 

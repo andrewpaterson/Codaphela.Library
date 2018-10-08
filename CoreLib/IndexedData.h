@@ -55,12 +55,13 @@ public:
 
 	int				TestNumCachedIndexes(void);
 	CDurableFileController* GetDurableFileControl(void);
+	size_t			GetIndiciesSystemMemorySize(void);
 
 protected:
 	void 			InitIndices(CDurableFileController* pcDurableFileControl, BOOL bDirtyTesting, size_t uiCutoff, BOOL bWriteThrough);
 
 	BOOL			GetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor);
-	BOOL			SetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor);
+	BOOL			SetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor, BOOL bNoEviction = FALSE);
 	BOOL			UpdateDescriptorCache(OIndex oi, void* pvCache);
 	BOOL			RemoveDescriptor(OIndex oi);
 

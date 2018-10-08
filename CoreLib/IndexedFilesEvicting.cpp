@@ -499,18 +499,54 @@ BOOL CIndexedFilesEvicting::DescriptorsEvicted(CArrayVoidPtr* paEvictedCacheDesc
 BOOL CIndexedFilesEvicting::Evict(OIndex oi, CIndexedDataDescriptor* pcDescriptor)
 {
 	void*						pvData;
-	SIndexedCacheDescriptor*	psDescriptor;
 	BOOL						bResult;
 
 	pvData = pcDescriptor->GetCache();
 	if (pvData)
 	{
-		psDescriptor = mcDataCache.GetHeader(pvData);
-		bResult = WriteEvictedData(psDescriptor, TRUE);  //This might cause a stack overflow as it tries to evict 'oi' again.
+		bResult = WriteEvictedData(pcDescriptor, TRUE);  //This might cause a stack overflow as it tries to evict 'oi' again.
 		return bResult;
 	}
 	else
 	{
+		return TRUE;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexedFilesEvicting::WriteEvictedData(CIndexedDataDescriptor* pcDescriptor, BOOL bClearCache)
+{
+	BOOL						bResult;
+	void*						pvData;
+	SIndexedCacheDescriptor*	psDescriptor;
+
+	pvData = pcDescriptor->GetCache();
+	psDescriptor = mcDataCache.GetHeader(pvData);
+	if (psDescriptor->iFlags & CACHE_DESCRIPTOR_FLAG_DIRTY)
+	{
+		if (bClearCache)
+		{
+			pcDescriptor->Cache(NULL);
+		}
+		psDescriptor->iFlags &= ~CACHE_DESCRIPTOR_FLAG_DIRTY;
+		bResult = mcDataFiles.Write(pcDescriptor, pvData);  //Be careful of this write.  It doesn't work if the data size has changed.
+		if (!bResult)
+		{
+			return FALSE;
+		}
+
+		return mpcEvictionCallback->SetDescriptor(psDescriptor->oi, pcDescriptor, TRUE);
+	}
+	else
+	{
+		if (bClearCache)
+		{
+			return mpcEvictionCallback->UpdateDescriptorCache(psDescriptor->oi, NULL);
+		}
 		return TRUE;
 	}
 }
