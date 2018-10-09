@@ -20,13 +20,14 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-#include "MemoryCache.h"
+#include "DataMacro.h"
 #include "PointerFunctions.h"
 #include "PointerRemapper.h"
 #include "FastMemcpy.h"
 #include "FastMemcmp.h"
 #include "FastMemset.h"
 #include "Chars.h"
+#include "MemoryCache.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -38,8 +39,8 @@ void CMemoryCache::Init(void)
 	miDescriptorSize = 0;
 	muiCacheSize = 0;
 	mpvCache = NULL;
-	mpsLast = NULL;
-	mpsFirst = NULL;
+	mpsTail = NULL;
+	mpsHead = NULL;
 }
 
 
@@ -64,8 +65,8 @@ void CMemoryCache::Init(size_t uiCacheSize, int iDescriptorSize)
 void CMemoryCache::Kill(void)
 {
 	SafeFree(mpvCache);
-	mpsLast = NULL;
-	mpsFirst = NULL;
+	mpsTail = NULL;
+	mpsHead = NULL;
 	muiCacheSize = 0;
 }
 
@@ -91,7 +92,7 @@ BOOL CMemoryCache::PreAllocate(CMemoryCacheAllocation* pcPreAllocationResult)
 	{
 		if (iCachedSize <= iRemaining)
 		{
-			psCacheDesc = (SMemoryCacheDescriptor*)RemapSinglePointer(mpsLast, (int)(miDescriptorSize + mpsLast->iDataSize));
+			psCacheDesc = (SMemoryCacheDescriptor*)RemapSinglePointer(mpsTail, (int)(miDescriptorSize + mpsTail->iDataSize));
 		}
 		else
 		{
@@ -135,7 +136,7 @@ void* CMemoryCache::Allocate(CMemoryCacheAllocation* pcPreAllocated)
 		psLastOverlap = (SMemoryCacheDescriptor*)(pcPreAllocated->mapEvictedCacheDescriptors.GetPtr(pcPreAllocated->mapEvictedCacheDescriptors.NumElements() -1));
 		psFirstOverlap = (SMemoryCacheDescriptor*)(pcPreAllocated->mapEvictedCacheDescriptors.GetPtr(0));
 		
-		if (psLastOverlap == mpsLast)
+		if (psLastOverlap == mpsTail)
 		{
 			//@todo - Shouldn't reassign psCacheDesc here.
 			psCacheDesc = OneAllocation();  //If the last overlapping cache descriptor points to the last cache descriptor in the cache then everything is being evicted.
@@ -145,12 +146,12 @@ void* CMemoryCache::Allocate(CMemoryCacheAllocation* pcPreAllocated)
 			psFirstPrev = GetPrev(psFirstOverlap);
 			psFirstPrev->psNext = psCacheDesc;
 
-			mpsLast = psCacheDesc;
-			mpsFirst = GetNext(psLastOverlap);
-			mpsFirst->psPrev = mpsLast;
+			mpsTail = psCacheDesc;
+			mpsHead = GetNext(psLastOverlap);
+			mpsHead->psPrev = mpsTail;
 
-			mpsLast->psNext = mpsFirst;
-			mpsLast->psPrev = psFirstPrev;
+			mpsTail->psNext = mpsHead;
+			mpsTail->psPrev = psFirstPrev;
 		}
 	}
 	else
@@ -162,13 +163,13 @@ void* CMemoryCache::Allocate(CMemoryCacheAllocation* pcPreAllocated)
 		}
 		else
 		{
-			mpsLast->psNext = psCacheDesc;
-			mpsFirst->psPrev = psCacheDesc;
+			mpsTail->psNext = psCacheDesc;
+			mpsHead->psPrev = psCacheDesc;
 
-			psCacheDesc->psNext = mpsFirst;
-			psCacheDesc->psPrev = mpsLast;
+			psCacheDesc->psNext = mpsHead;
+			psCacheDesc->psPrev = mpsTail;
 
-			mpsLast = psCacheDesc;
+			mpsTail = psCacheDesc;
 		}
 	}
 
@@ -192,8 +193,8 @@ SMemoryCacheDescriptor* CMemoryCache::OneAllocation(void)
 
 	psCacheDesc = (SMemoryCacheDescriptor*)mpvCache;
 
-	mpsLast = psCacheDesc;
-	mpsFirst = psCacheDesc;
+	mpsTail = psCacheDesc;
+	mpsHead = psCacheDesc;
 
 	psCacheDesc->psNext = psCacheDesc;
 	psCacheDesc->psPrev = psCacheDesc;
@@ -244,6 +245,47 @@ void* CMemoryCache::QuickAllocate(int iDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CMemoryCache::Deallocate(void* pvData)
+{
+	SMemoryCacheDescriptor*	psDescriptor;
+
+	if (pvData)
+	{
+		psDescriptor = DataGetHeader<SMemoryCacheDescriptor, void>(pvData);
+		if ((psDescriptor == mpsHead) && (psDescriptor == mpsTail))
+		{
+			Zero();
+			return;
+		}
+
+		if (psDescriptor != mpsHead) 
+		{
+			psDescriptor->psPrev->psNext = psDescriptor->psNext;
+		}
+		else
+		{
+			psDescriptor->psPrev->psNext = psDescriptor->psNext;
+			mpsHead = psDescriptor->psNext;
+		}
+
+		if (psDescriptor != mpsTail)
+		{
+			psDescriptor->psNext->psPrev = psDescriptor->psPrev;
+		}
+		else
+		{
+			psDescriptor->psNext->psPrev = psDescriptor->psPrev;
+			mpsTail = psDescriptor->psPrev;
+		}
+	}
+
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 size_t CMemoryCache::GetCacheSize(void)
 {
 	return muiCacheSize;
@@ -284,8 +326,8 @@ size_t CMemoryCache::RemainingAfterLast(void)
 	}
 	else
 	{
-		iAllocated = ((int)(size_t) mpsLast - (int)(size_t) mpvCache);
-		iAllocated += (mpsLast->iDataSize + miDescriptorSize);
+		iAllocated = ((int)(size_t) mpsTail - (int)(size_t) mpvCache);
+		iAllocated += (mpsTail->iDataSize + miDescriptorSize);
 		return muiCacheSize - iAllocated;
 	}
 }
@@ -333,13 +375,13 @@ SMemoryCacheDescriptor* CMemoryCache::FindNewFirst(void* pvNew, size_t uiNewSize
 {
 	SMemoryCacheDescriptor*	psNext;
 
-	psNext = mpsFirst;
+	psNext = mpsHead;
 	for (;;)
 	{
 		if (Overlaps(pvNew, uiNewSize, psNext))
 		{
 			psNext = psNext->psNext;
-			if (psNext == mpsFirst)
+			if (psNext == mpsHead)
 			{
 				return psNext;
 			}
@@ -360,7 +402,7 @@ void CMemoryCache::FindOverlapping(void* pvNew, size_t uiNewSize, CArrayVoidPtr*
 {
 	SMemoryCacheDescriptor*	psNext;
 
-	psNext = mpsFirst;
+	psNext = mpsHead;
 	for (;;)
 	{
 		if (Overlaps(pvNew, uiNewSize, psNext))
@@ -370,7 +412,7 @@ void CMemoryCache::FindOverlapping(void* pvNew, size_t uiNewSize, CArrayVoidPtr*
 				pasOverlappingCacheDescriptors->Add(psNext);
 			}
 			psNext = psNext->psNext;
-			if (psNext == mpsFirst)
+			if (psNext == mpsHead)
 			{
 				return;
 			}
@@ -389,8 +431,8 @@ void CMemoryCache::FindOverlapping(void* pvNew, size_t uiNewSize, CArrayVoidPtr*
 //////////////////////////////////////////////////////////////////////////
 void CMemoryCache::Clear(void)
 {
-	mpsLast = NULL;
-	mpsFirst = NULL;
+	mpsTail = NULL;
+	mpsHead = NULL;
 	memset_fast(mpvCache, 0, muiCacheSize);
 }
 
@@ -411,14 +453,14 @@ void CMemoryCache::Invalidate(SMemoryCacheDescriptor* psCacheDesc)
 //////////////////////////////////////////////////////////////////////////
 SMemoryCacheDescriptor* CMemoryCache::GetFirst(void)
 {
-	if (mpsFirst)
+	if (mpsHead)
 	{
-		if (!(mpsFirst->iFlags & CACHE_DESCRIPTOR_FLAG_VALID))
+		if (!(mpsHead->iFlags & CACHE_DESCRIPTOR_FLAG_VALID))
 		{
-			return GetNext(mpsFirst);
+			return GetNext(mpsHead);
 		}
 	}
-	return mpsFirst;
+	return mpsHead;
 }
 
 
@@ -496,14 +538,14 @@ SMemoryCacheDescriptor* CMemoryCache::GetPrev(SMemoryCacheDescriptor* psCurrent)
 //////////////////////////////////////////////////////////////////////////
 SMemoryCacheDescriptor* CMemoryCache::GetLast(void)
 {
-	if (mpsLast)
+	if (mpsTail)
 	{
-		if (!(mpsLast->iFlags & CACHE_DESCRIPTOR_FLAG_VALID))
+		if (!(mpsTail->iFlags & CACHE_DESCRIPTOR_FLAG_VALID))
 		{
-			return GetNext(mpsLast);
+			return GetNext(mpsTail);
 		}
 	}
-	return mpsLast;
+	return mpsTail;
 }
 
 
@@ -570,7 +612,7 @@ int CMemoryCache::NumIgnored(void)
 	int							iNum;
 
 	iNum = 0;
-	psCacheDesc = mpsFirst;
+	psCacheDesc = mpsHead;
 	while (psCacheDesc)
 	{
 		if (!(psCacheDesc->iFlags & CACHE_DESCRIPTOR_FLAG_VALID))
@@ -578,7 +620,7 @@ int CMemoryCache::NumIgnored(void)
 			iNum++;
 		}
 		psCacheDesc = psCacheDesc->psNext;
-		if (psCacheDesc == mpsFirst)
+		if (psCacheDesc == mpsHead)
 		{
 			psCacheDesc = NULL;
 		}
@@ -593,7 +635,7 @@ int CMemoryCache::NumIgnored(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CMemoryCache::IsEmpty(void)
 {
-	return mpsLast == NULL;
+	return mpsTail == NULL;
 }
 
 
@@ -605,13 +647,13 @@ SMemoryCacheDescriptor* CMemoryCache::StartIteration(void)
 {
 	if (!IsEmpty())
 	{
-		if (mpsFirst->iFlags & CACHE_DESCRIPTOR_FLAG_VALID)
+		if (mpsHead->iFlags & CACHE_DESCRIPTOR_FLAG_VALID)
 		{
-			return mpsFirst;
+			return mpsHead;
 		}
 		else
 		{
-			return Iterate(mpsFirst);
+			return Iterate(mpsHead);
 		}
 	}
 	else
@@ -635,7 +677,7 @@ SMemoryCacheDescriptor* CMemoryCache::Iterate(SMemoryCacheDescriptor* psCurrent)
 	psCurrent = psCurrent->psNext;
 	for (;;)
 	{
-		if (mpsFirst == psCurrent)
+		if (psCurrent == mpsHead)
 		{
 			return NULL;
 		}
@@ -661,8 +703,8 @@ void CMemoryCache::Zero(void)
 	//Trashes whole cache.
 
 	memset_fast(mpvCache, 0, muiCacheSize);
-	mpsLast = NULL;
-	mpsFirst = NULL;
+	mpsTail = NULL;
+	mpsHead = NULL;
 }
 
 
@@ -711,6 +753,6 @@ void CMemoryCache::Dump(void)
 }
 
 
-SMemoryCacheDescriptor* CMemoryCache::TestGetLast(void) { return mpsLast; }
-SMemoryCacheDescriptor* CMemoryCache::TestGetFirst(void) { return mpsFirst; }
+SMemoryCacheDescriptor* CMemoryCache::TestGetLast(void) { return mpsTail; }
+SMemoryCacheDescriptor* CMemoryCache::TestGetFirst(void) { return mpsHead; }
 

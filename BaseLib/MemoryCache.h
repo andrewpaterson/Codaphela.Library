@@ -28,6 +28,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define CACHE_DESCRIPTOR_FLAG_VALID		0x01
 
 
+//Memory cache should be built on the link part of LinkListBlock.
+//CACHE_DESCRIPTOR_FLAG_VALID is never set FALSE
 class CMemoryCache
 {
 public:
@@ -37,8 +39,8 @@ private:
 	void*						mpvCache;
 	size_t						muiCacheSize;
 
-	SMemoryCacheDescriptor*		mpsLast;
-	SMemoryCacheDescriptor*		mpsFirst;
+	SMemoryCacheDescriptor*		mpsTail;
+	SMemoryCacheDescriptor*		mpsHead;
 
 public:
 	void						Init(void);
@@ -48,6 +50,8 @@ public:
 	BOOL						PreAllocate(CMemoryCacheAllocation* pcPreAllocationResult);
 	void*						Allocate(CMemoryCacheAllocation* pcPreAllocated);
 	void*						QuickAllocate(int iDataSize);
+
+	void						Deallocate(void* pvData);
 
 	size_t						GetCacheSize(void);
 	size_t						GetAllocatedSize(void);

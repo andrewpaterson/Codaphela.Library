@@ -48,7 +48,7 @@ struct SLinkedListBlockDesc
 class CLinkedListBlock
 {
 protected:
-	SLLNode*		mpsHead; 
+	SLLNode*		mpsHead;
 	SLLNode*		mpsTail;
 	CMallocator*	mpcMalloc;
 
