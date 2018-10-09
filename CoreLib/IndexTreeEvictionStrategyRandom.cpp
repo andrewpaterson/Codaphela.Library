@@ -50,7 +50,6 @@ BOOL CIndexTreeEvictionStrategyRandom::EvictRandomNode(CIndexTreeNodeFile* pcDon
 	CIndexTreeNodeFile*		pcNode;
 	int						iNumIndexes;
 	int						iIndex;
-	BOOL					bEvict;
 	int						iKeyDepth;
 
 	pcNode = mpcIndexTree->GetRoot();
@@ -78,20 +77,7 @@ BOOL CIndexTreeEvictionStrategyRandom::EvictRandomNode(CIndexTreeNodeFile* pcDon
 		{
 			if (pcNode != pcDontEvict)
 			{
-				if (pcNode->HasObject())
-				{
-					bEvict = mpcIndexTree->EvictNodeCallback(pcNode);
-				}
-				else
-				{
-					bEvict = TRUE;
-				}
-
-				if (bEvict)
-				{
-					mpcIndexTree->Evict(pcNode);
-				}
-				return TRUE;
+				return mpcIndexTree->Evict(pcNode);
 			}
 			else
 			{

@@ -148,6 +148,16 @@ BOOL CIndexedDescriptorsFile::GetIfInMemory(CIndexedDataDescriptor* pcDescriptor
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL CIndexedDescriptorsFile::Evict(OIndex oi)
+{
+	return mcIndexTree.Evict(&oi, sizeof(OIndex));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL CIndexedDescriptorsFile::NodeEvicted(CIndexTreeFile* pcIndexTree, unsigned char* pvKey, int iKeySize, void* pvData, int iDataSize)
 {
 	OIndex	oi;

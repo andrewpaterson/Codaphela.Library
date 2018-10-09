@@ -222,6 +222,16 @@ BOOL CIndexedData::DescriptorsEvicted(CArrayVoidPtr* papsEvictedIndexedCacheDesc
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL CIndexedData::EvictKey(OIndex oi)
+{
+	return mcIndices.Evict(oi);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL CIndexedData::KeyEvicted(OIndex oi, CIndexedDataDescriptor* pcDescriptor)
 {
 	return mcData.Evict(oi, pcDescriptor);
@@ -232,8 +242,9 @@ BOOL CIndexedData::KeyEvicted(OIndex oi, CIndexedDataDescriptor* pcDescriptor)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CIndexedData::TestNumCachedIndexes(void) { return (int)mcIndices.NumCachedDatas(); }
+int CIndexedData::NumIndicesCached(void) { return (int)mcIndices.NumCachedDatas(); }
 CDurableFileController* CIndexedData::GetDurableFileControl(void) { return &mcDurableFileControl; }
 BOOL CIndexedData::IsDurable(void) { return mcDurableFileControl.IsDurable(); }
 size_t CIndexedData::GetIndiciesSystemMemorySize(void) { return mcIndices.GetSystemMemorySize(); }
+size_t CIndexedData::GetDataSystemMemorySize(void) { return mcData.GetSystemMemorySize(); }
 

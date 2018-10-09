@@ -254,6 +254,26 @@ size_t CMemoryCache::GetCacheSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+size_t CMemoryCache::GetAllocatedSize(void)
+{
+	SMemoryCacheDescriptor*	psIter;
+	size_t					tSize;
+		
+	tSize = 0;
+	psIter = StartIteration();
+	while (psIter)
+	{
+		tSize += psIter->iDataSize + sizeof(SMemoryCacheDescriptor);
+		psIter = Iterate(psIter);
+	}
+	return tSize;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 size_t CMemoryCache::RemainingAfterLast(void)
 {
 	size_t		iAllocated;

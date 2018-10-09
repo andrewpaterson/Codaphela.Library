@@ -31,9 +31,10 @@ public:
 	int64	NumElements(void);
 	int		NumCachedDatas(void);
 
-	BOOL	GetIfInMemory(CIndexedDataDescriptor* pcDescriptor, OIndex oi);
-
+	BOOL	Evict(OIndex oi);
 	BOOL	NodeEvicted(CIndexTreeFile* pcIndexTree, unsigned char* pvKey, int iKeySize, void* pvData, int iDataSize);
+
+	BOOL	GetIfInMemory(CIndexedDataDescriptor* pcDescriptor, OIndex oi);
 
 	size_t	GetSystemMemorySize(void);
 };

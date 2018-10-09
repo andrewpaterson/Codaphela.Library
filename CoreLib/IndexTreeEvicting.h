@@ -44,6 +44,7 @@ public:
 	int						NumMemoryNodes(void);
 	void					DebugKey(void* pvKey, int iKeySize, BOOL bSkipRoot);
 	void					Dump(void);
+	BOOL					Evict(void* pvKey, int iKeySize);
 
 	BOOL					EvictNodeCallback(CIndexTreeNodeFile* pcNode);
 	CIndexTreeNodeFile*		GetRoot(void);
