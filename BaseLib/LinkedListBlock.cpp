@@ -405,6 +405,7 @@ void CLinkedListBlock::Detach(SLLNode* psNodeHeader)
 		{
 			mpsHead = psNodeHeader->psNext;
 		}
+
 		if (psNodeHeader->psNext)
 		{
 			psNodeHeader->psNext->psPrev = psNodeHeader->psPrev;
