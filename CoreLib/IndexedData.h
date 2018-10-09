@@ -51,11 +51,13 @@ public:
 	int64			NumElements(void);
 	BOOL			IsDirty(OIndex oi);
 
+	BOOL			EvictKey(OIndex oi);
 	BOOL			KeyEvicted(OIndex oi, CIndexedDataDescriptor* pcDescriptor);
 
-	int				TestNumCachedIndexes(void);
+	int				NumIndicesCached(void);
 	CDurableFileController* GetDurableFileControl(void);
 	size_t			GetIndiciesSystemMemorySize(void);
+	size_t			GetDataSystemMemorySize(void);
 
 protected:
 	void 			InitIndices(CDurableFileController* pcDurableFileControl, BOOL bDirtyTesting, size_t uiCutoff, BOOL bWriteThrough);

@@ -178,6 +178,26 @@ void CIndexTreeEvicting::PotentiallyEvict(void* pvKey, int iKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeEvicting::Evict(void* pvKey, int iKeySize)
+{
+	CIndexTreeNodeFile* pcNode;
+
+	pcNode = mcIndexTree.GetMemoryNode(pvKey, iKeySize);
+	if (pcNode)
+	{
+		return Evict(pcNode);
+	}
+	else
+	{
+		return FALSE;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeEvicting::EvictNodeCallback(CIndexTreeNodeFile* pcNode)
 {
 	CStackMemory<>		cStack;
@@ -313,7 +333,25 @@ CIndexTreeNodeFile* CIndexTreeEvicting::GetMemoryNode(void* pvKey, int iKeySize)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeEvicting::Evict(CIndexTreeNodeFile* pcNode)
 {
-	return mcIndexTree.Evict(pcNode);
+	BOOL bEvict;
+
+	if (pcNode->HasObject())
+	{
+		bEvict = EvictNodeCallback(pcNode);
+	}
+	else
+	{
+		bEvict = TRUE;
+	}
+
+	if (bEvict)
+	{
+		return mcIndexTree.Evict(pcNode);
+	}
+	else
+	{
+		return FALSE;  //If the node couldn't be evicted shouldn't this return FALSE?
+	}
 }
 
 

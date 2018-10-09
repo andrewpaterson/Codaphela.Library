@@ -38,6 +38,8 @@ public:
 	BOOL			Evict(OIndex oi, CIndexedDataDescriptor* pcDescriptor);  //Find a better name.  Maybe
 	void			InvalidateData(CIndexedDataDescriptor* pcDescriptor);
 
+	size_t			GetSystemMemorySize(void);
+
 	unsigned int	TestGetCachedObjectSize(OIndex oi);
 	int				TestNumIgnoredCacheElements(void);
 

@@ -62,6 +62,7 @@ public:
 
 	int							GetIndexCacheDescritorSize(void);
 	size_t						GetCacheSize(void);
+	size_t						GetAllocatedSize(void);
 
 	SIndexedCacheDescriptor*	TestGetDescriptor(OIndex oi);
 	void						Dump(void);
