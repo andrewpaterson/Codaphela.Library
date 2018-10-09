@@ -110,12 +110,12 @@ void CIndexedCache::Clear(void)
 //////////////////////////////////////////////////////////////////////////
 void CIndexedCache::Invalidate(CIndexedDataDescriptor* pcDesc)
 {
-	SIndexedCacheDescriptor*	psCacheDesc;
+	SIndexedCacheDescriptor*	psDescriptor;
 
 	if (pcDesc->IsCached())
 	{
-		psCacheDesc = GetHeader(pcDesc->GetCache());
-		Invalidate(psCacheDesc);
+		psDescriptor = GetHeader(pcDesc->GetCache());
+		mcCache.Deallocate(psDescriptor);
 	}
 }
 
@@ -124,9 +124,9 @@ void CIndexedCache::Invalidate(CIndexedDataDescriptor* pcDesc)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedCache::Invalidate(SIndexedCacheDescriptor* psCacheDesc)
+void CIndexedCache::Deallocate(SIndexedCacheDescriptor* psDescriptor)
 {
-	mcCache.Invalidate(psCacheDesc);
+	mcCache.Deallocate(psDescriptor);
 }
 
 
@@ -160,16 +160,6 @@ int CIndexedCache::NumCached(void)
 int CIndexedCache::NumCached(int iSize)
 {
 	return mcCache.NumCached(iSize);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-int CIndexedCache::NumIgnored(void)
-{
-	return mcCache.NumIgnored();
 }
 
 

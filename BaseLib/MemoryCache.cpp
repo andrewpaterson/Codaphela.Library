@@ -174,7 +174,6 @@ void* CMemoryCache::Allocate(CMemoryCacheAllocation* pcPreAllocated)
 	}
 
 	psCacheDesc->iDataSize = pcPreAllocated->miDataSize;
-	psCacheDesc->iFlags = CACHE_DESCRIPTOR_FLAG_VALID;
 
 	//@todo - Should return psCacheDesc here.
 	pvCache = RemapSinglePointer(psCacheDesc, miDescriptorSize);
@@ -252,33 +251,42 @@ void CMemoryCache::Deallocate(void* pvData)
 	if (pvData)
 	{
 		psDescriptor = DataGetHeader<SMemoryCacheDescriptor, void>(pvData);
-		if ((psDescriptor == mpsHead) && (psDescriptor == mpsTail))
-		{
-			Zero();
-			return;
-		}
+		Deallocate(psDescriptor);
+	}
+}
 
-		if (psDescriptor != mpsHead) 
-		{
-			psDescriptor->psPrev->psNext = psDescriptor->psNext;
-		}
-		else
-		{
-			psDescriptor->psPrev->psNext = psDescriptor->psNext;
-			mpsHead = psDescriptor->psNext;
-		}
 
-		if (psDescriptor != mpsTail)
-		{
-			psDescriptor->psNext->psPrev = psDescriptor->psPrev;
-		}
-		else
-		{
-			psDescriptor->psNext->psPrev = psDescriptor->psPrev;
-			mpsTail = psDescriptor->psPrev;
-		}
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMemoryCache::Deallocate(SMemoryCacheDescriptor* psDescriptor)
+{
+	if ((psDescriptor == mpsHead) && (psDescriptor == mpsTail))
+	{
+		Zero();
+		return;
 	}
 
+	if (psDescriptor != mpsHead)
+	{
+		psDescriptor->psPrev->psNext = psDescriptor->psNext;
+	}
+	else
+	{
+		psDescriptor->psPrev->psNext = psDescriptor->psNext;
+		mpsHead = psDescriptor->psNext;
+	}
+
+	if (psDescriptor != mpsTail)
+	{
+		psDescriptor->psNext->psPrev = psDescriptor->psPrev;
+	}
+	else
+	{
+		psDescriptor->psNext->psPrev = psDescriptor->psPrev;
+		mpsTail = psDescriptor->psPrev;
+	}
 }
 
 
@@ -407,10 +415,7 @@ void CMemoryCache::FindOverlapping(void* pvNew, size_t uiNewSize, CArrayVoidPtr*
 	{
 		if (Overlaps(pvNew, uiNewSize, psNext))
 		{
-			if (psNext->iFlags & CACHE_DESCRIPTOR_FLAG_VALID)
-			{
-				pasOverlappingCacheDescriptors->Add(psNext);
-			}
+			pasOverlappingCacheDescriptors->Add(psNext);
 			psNext = psNext->psNext;
 			if (psNext == mpsHead)
 			{
@@ -441,25 +446,8 @@ void CMemoryCache::Clear(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMemoryCache::Invalidate(SMemoryCacheDescriptor* psCacheDesc)
-{
-	psCacheDesc->iFlags = 0;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 SMemoryCacheDescriptor* CMemoryCache::GetFirst(void)
 {
-	if (mpsHead)
-	{
-		if (!(mpsHead->iFlags & CACHE_DESCRIPTOR_FLAG_VALID))
-		{
-			return GetNext(mpsHead);
-		}
-	}
 	return mpsHead;
 }
 
@@ -470,31 +458,14 @@ SMemoryCacheDescriptor* CMemoryCache::GetFirst(void)
 //////////////////////////////////////////////////////////////////////////
 SMemoryCacheDescriptor* CMemoryCache::GetNext(SMemoryCacheDescriptor* psCurrent)
 {
-	SMemoryCacheDescriptor* psInitial;
-
 	if (!psCurrent)
 	{
 		return NULL;
 	}
 
-	psInitial = psCurrent;
 	psCurrent = psCurrent->psNext;
 
-	for (;;)
-	{
-		if ((psCurrent == psInitial) && !(psCurrent->iFlags & CACHE_DESCRIPTOR_FLAG_VALID))
-		{
-			return NULL;
-		}
-		if (!(psCurrent->iFlags & CACHE_DESCRIPTOR_FLAG_VALID))
-		{
-			psCurrent = psCurrent->psNext;
-		}
-		else
-		{
-			return psCurrent;
-		}
-	}
+	return psCurrent;
 }
 
 
@@ -504,31 +475,14 @@ SMemoryCacheDescriptor* CMemoryCache::GetNext(SMemoryCacheDescriptor* psCurrent)
 //////////////////////////////////////////////////////////////////////////
 SMemoryCacheDescriptor* CMemoryCache::GetPrev(SMemoryCacheDescriptor* psCurrent)
 {
-	SMemoryCacheDescriptor* psInitial;
-
 	if (!psCurrent)
 	{
 		return NULL;
 	}
 
-	psInitial = psCurrent;
 	psCurrent = psCurrent->psPrev;
 
-	for (;;)
-	{
-		if (psCurrent == psInitial)
-		{
-			return NULL;
-		}
-		if ((psCurrent == psInitial) && !(psCurrent->iFlags & CACHE_DESCRIPTOR_FLAG_VALID))
-		{
-			psCurrent = psCurrent->psPrev;
-		}
-		else
-		{
-			return psCurrent;
-		}
-	}
+	return psCurrent;
 }
 
 
@@ -538,13 +492,6 @@ SMemoryCacheDescriptor* CMemoryCache::GetPrev(SMemoryCacheDescriptor* psCurrent)
 //////////////////////////////////////////////////////////////////////////
 SMemoryCacheDescriptor* CMemoryCache::GetLast(void)
 {
-	if (mpsTail)
-	{
-		if (!(mpsTail->iFlags & CACHE_DESCRIPTOR_FLAG_VALID))
-		{
-			return GetNext(mpsTail);
-		}
-	}
 	return mpsTail;
 }
 
@@ -606,33 +553,6 @@ int CMemoryCache::NumCached(int iSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CMemoryCache::NumIgnored(void)
-{
-	SMemoryCacheDescriptor*		psCacheDesc;
-	int							iNum;
-
-	iNum = 0;
-	psCacheDesc = mpsHead;
-	while (psCacheDesc)
-	{
-		if (!(psCacheDesc->iFlags & CACHE_DESCRIPTOR_FLAG_VALID))
-		{
-			iNum++;
-		}
-		psCacheDesc = psCacheDesc->psNext;
-		if (psCacheDesc == mpsHead)
-		{
-			psCacheDesc = NULL;
-		}
-	}
-	return iNum;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 BOOL CMemoryCache::IsEmpty(void)
 {
 	return mpsTail == NULL;
@@ -645,21 +565,7 @@ BOOL CMemoryCache::IsEmpty(void)
 //////////////////////////////////////////////////////////////////////////
 SMemoryCacheDescriptor* CMemoryCache::StartIteration(void)
 {
-	if (!IsEmpty())
-	{
-		if (mpsHead->iFlags & CACHE_DESCRIPTOR_FLAG_VALID)
-		{
-			return mpsHead;
-		}
-		else
-		{
-			return Iterate(mpsHead);
-		}
-	}
-	else
-	{
-		return NULL;
-	}
+	return mpsHead;
 }
 
 
@@ -675,23 +581,12 @@ SMemoryCacheDescriptor* CMemoryCache::Iterate(SMemoryCacheDescriptor* psCurrent)
 	}
 
 	psCurrent = psCurrent->psNext;
-	for (;;)
+	if (psCurrent != mpsHead)
 	{
-		if (psCurrent == mpsHead)
-		{
-			return NULL;
-		}
-		if (!(psCurrent->iFlags & CACHE_DESCRIPTOR_FLAG_VALID))
-		{
-			psCurrent = psCurrent->psNext;
-		}
-		else
-		{
-			return psCurrent;
-		}
+		return psCurrent;
 	}
+	return NULL;
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -723,8 +618,6 @@ void CMemoryCache::Dump(void)
 
 	sz.Append("Data Cache (");
 	sz.Append(NumCached());
-	sz.Append(":");
-	sz.Append(NumIgnored());
 	sz.Append(")\n---------------\n");
 
 	psCacheDesc = StartIteration();
@@ -739,8 +632,6 @@ void CMemoryCache::Dump(void)
 		sz.AppendHexHiLo(&psCacheDesc, 4);
 		sz.Append(" Nx:");
 		sz.AppendHexHiLo(&psCacheDesc->psNext, 4);
-		sz.Append(" Fl:");
-		sz.AppendHexHiLo(&psCacheDesc->iFlags, 4);
 		sz.Append(") ");
 
 		sz.AppendData(pvData, iLen, 80);

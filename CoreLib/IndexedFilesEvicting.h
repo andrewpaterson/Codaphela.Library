@@ -41,7 +41,6 @@ public:
 	size_t			GetSystemMemorySize(void);
 
 	unsigned int	TestGetCachedObjectSize(OIndex oi);
-	int				TestNumIgnoredCacheElements(void);
 
 protected:
 	BOOL			CacheAllocate(OIndex oi, CIndexedDataDescriptor* pcDescriptor);

@@ -31,6 +31,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 struct SIndexedCacheDescriptor : public SMemoryCacheDescriptor
 {
+	unsigned int				iFlags;
 	OIndex						oi;
 };
 
@@ -49,7 +50,7 @@ public:
 	BOOL						Allocate(OIndex oi, CIndexedDataDescriptor* pcDesc, CMemoryCacheAllocation* pcResult);
 	void						Clear(void);
 	void						Invalidate(CIndexedDataDescriptor* pcDesc);
-	void						Invalidate(SIndexedCacheDescriptor* psCacheDesc);
+	void						Deallocate(SIndexedCacheDescriptor* psDescriptor);
 	BOOL						Update(CIndexedDataDescriptor* pcDesc, void* pvData);
 	void						SetDirty(void* pvCache);
 
@@ -58,7 +59,6 @@ public:
 	SIndexedCacheDescriptor*	Iterate(SIndexedCacheDescriptor* psCurrent);
 	int							NumCached(void);
 	int							NumCached(int iSize);
-	int							NumIgnored(void);
 
 	int							GetIndexCacheDescritorSize(void);
 	size_t						GetCacheSize(void);

@@ -97,8 +97,6 @@ void CMemoryCacheAllocation::Dump(void)
 		sz.AppendHexHiLo(&psCacheDesc, 4);
 		sz.Append(" Nx:");
 		sz.AppendHexHiLo(&psCacheDesc->psNext, 4);
-		sz.Append(" Fl:");
-		sz.AppendHexHiLo(&psCacheDesc->iFlags, 4);
 		sz.Append(") ");
 
 		sz.AppendData(pvData, iLen, 80);

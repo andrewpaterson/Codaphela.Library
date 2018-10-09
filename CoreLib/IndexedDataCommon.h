@@ -42,7 +42,6 @@ public:
 
 	virtual BOOL			KeyEvicted(OIndex oi, CIndexedDataDescriptor* pcDescriptor) =0;
 
-			int				TestNumIgnoredCacheElements(void);
 			unsigned int	TestGetCachedObjectSize(OIndex oi);
 
 protected:

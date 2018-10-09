@@ -270,6 +270,5 @@ int64 CIndexedDataCommon::NumData(unsigned int uiDataSize)
 //
 //////////////////////////////////////////////////////////////////////////
 unsigned int CIndexedDataCommon::TestGetCachedObjectSize(OIndex oi) { return  mcData.TestGetCachedObjectSize(oi); }
-int CIndexedDataCommon::TestNumIgnoredCacheElements(void) { return mcData.TestNumIgnoredCacheElements(); }
 BOOL CIndexedDataCommon::IsCaching(void) { return mcData.IsCaching(); }
 
