@@ -8,7 +8,6 @@ struct SMemoryCacheDescriptor
 	SMemoryCacheDescriptor*		psNext;
 	SMemoryCacheDescriptor*		psPrev;
 	unsigned int				iDataSize;  //Not including the sizeof this.
-	unsigned int				iFlags;
 };
 
 

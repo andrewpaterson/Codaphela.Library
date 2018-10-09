@@ -500,11 +500,16 @@ BOOL CIndexedFilesEvicting::Evict(OIndex oi, CIndexedDataDescriptor* pcDescripto
 {
 	void*						pvData;
 	BOOL						bResult;
+	SIndexedCacheDescriptor*	psDescriptor;
 
 	pvData = pcDescriptor->GetCache();
 	if (pvData)
 	{
-		bResult = WriteEvictedData(pcDescriptor, TRUE);  //This might cause a stack overflow as it tries to evict 'oi' again.
+		pvData = pcDescriptor->GetCache();
+		psDescriptor = mcDataCache.GetHeader(pvData);
+
+		bResult = WriteEvictedData(pcDescriptor, FALSE);
+		mcDataCache.Deallocate(psDescriptor);
 		return bResult;
 	}
 	else
@@ -711,6 +716,5 @@ size_t CIndexedFilesEvicting::GetSystemMemorySize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CIndexedFilesEvicting::TestNumIgnoredCacheElements(void) { return mcDataCache.NumIgnored(); }
 BOOL CIndexedFilesEvicting::IsCaching(void) { return mbCaching; }
 

@@ -204,13 +204,17 @@ BOOL CIndexTreeEvicting::EvictNodeCallback(CIndexTreeNodeFile* pcNode)
 	unsigned char*		pvMem;
 	int					iKeySize;
 	BOOL				bResult;
+	void*				pvData;
+	unsigned short		uiDataSize;
 
 	iKeySize = mcIndexTree.GetNodeKeySize(pcNode);
 	pvMem = (unsigned char*)cStack.Init(iKeySize + 1);
 	mcIndexTree.GetNodeKey(pcNode, pvMem, iKeySize + 1);
 	pvMem[iKeySize] = 0;
+	pvData = pcNode->GetObjectPtr();
+	uiDataSize = pcNode->ObjectSize();
 
-	bResult = mpcEvictionCallback->NodeEvicted(&mcIndexTree, pvMem, iKeySize, pcNode->GetObjectPtr(), pcNode->ObjectSize());
+	bResult = mpcEvictionCallback->NodeEvicted(&mcIndexTree, pvMem, iKeySize, pvData, uiDataSize);
 	
 	cStack.Kill();
 	return bResult;
