@@ -137,14 +137,14 @@ BOOL CIndexedData::RemoveDescriptor(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedData::Flush(BOOL bClearCache)
+BOOL CIndexedData::Flush(BOOL bClearDataCache)
 {
 	BOOL bRresult;
 
 	if (!mbWriteThrough)
 	{
 		bRresult = mcIndices.Flush();
-		bRresult &= mcData.Flush(bClearCache);
+		bRresult &= mcData.Flush(bClearDataCache);
 		return bRresult;
 	}
 	return TRUE;

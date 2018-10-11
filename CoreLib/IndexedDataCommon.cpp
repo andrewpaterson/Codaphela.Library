@@ -172,19 +172,29 @@ BOOL CIndexedDataCommon::Get(OIndex oi, unsigned int* puiDataSize, void* pvData,
 	uiDataSize = cDescriptor.GetDataSize();
 	SafeAssign(puiDataSize, (int)uiDataSize);
 
-	if (pvData && uiMaxSize >= uiDataSize)
+	if (pvData)
 	{
-		bResult = mcData.GetData(oi, &cDescriptor, pvData);
-		if (bResult)
+		if ((uiMaxSize >= uiDataSize) || (uiMaxSize == 0))
 		{
-			return TRUE;
+			bResult = mcData.GetData(oi, &cDescriptor, pvData);
+			if (bResult)
+			{
+				return TRUE;
+			}
+			else
+			{
+				return FALSE;
+			}
 		}
 		else
 		{
 			return FALSE;
 		}
 	}
-	return TRUE;
+	else
+	{
+		return TRUE;
+	}
 }
 
 

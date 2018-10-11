@@ -10,39 +10,38 @@ private:
 	CTemporaryMemory		mcTemp;
 
 public:
-			void	Init(void);
-	virtual BOOL	Kill(void);
+			void			Init(void);
+	virtual BOOL			Kill(void);
 
-	virtual BOOL	Flush(void)= 0;
+	virtual BOOL			Flush(void)= 0;
 
-			BOOL	PutLongPtr(int64 lliKey, void* pvPointer);
-			BOOL	PutStringPtr(char* pszKey, void* pvPointer);
-			BOOL	PutLongString(int64 lliKey, char* pszData);
-			BOOL	PutLongData(int64 lliKey, void* pvObject, int iDataSize);
-			BOOL	PutStringData(char* pszKey, void* pvObject, int iDataSize);
-			BOOL	PutStringInt(char* pszKey, int iIndex);
-			BOOL	PutStringLong(char* pszKey, int64 lliIndex);
-			BOOL	PutStringString(char* pszKey, char* pszData);
+			BOOL			PutLongPtr(int64 lliKey, void* pvPointer);
+			BOOL			PutLongString(int64 lliKey, char* pszData);
+			BOOL			PutLongData(int64 lliKey, void* pvObject, unsigned int uiDataSize);
+			BOOL			PutStringPtr(char* pszKey, void* pvPointer);
+			BOOL			PutStringData(char* pszKey, void* pvObject, unsigned int uiDataSize);
+			BOOL			PutStringInt(char* pszKey, int iIndex);
+			BOOL			PutStringLong(char* pszKey, int64 lliIndex);
+			BOOL			PutStringString(char* pszKey, char* pszData);
 
-			BOOL	GetLongString(int64 lliKey, char* pszDest);
-			BOOL	GetStringData(char* pszKey, void* pvObject, int* piDataSize);
-			BOOL	GetStringString(char* pszKey, char* pszDest);
-			int		GetStringInt(char* pszKey);
-			int64	GetStringLong(char* pszKey);
+			BOOL			GetLongString(int64 lliKey, char* pszDest);
+			BOOL			GetStringData(char* pszKey, void* pvObject, unsigned int* puiDataSize);
+			BOOL			GetStringString(char* pszKey, char* pszDest);
+			int				GetStringInt(char* pszKey);
+			int64			GetStringLong(char* pszKey);
 
-			BOOL	ContainsString(char* pszKey);
+			BOOL			ContainsString(char* pszKey);
 
-			BOOL	DeleteLong(int64 lliKey);
-			BOOL	DeleteString(char* pszKey);
+			BOOL			DeleteLong(int64 lliKey);
+			BOOL			DeleteString(char* pszKey);
 
 protected:
-	virtual BOOL	Put(void* pvKey, int iKeySize, void* pvObject, unsigned char uiDataSize) =0;
-			BOOL	Put(void* pvKey, int iKeySize, unsigned char uiDataSize);
+			BOOL			Put(void* pvKey, int iKeySize, unsigned int uiDataSize);
 
-	virtual BOOL	Get(void* pvKey, int iKeySize, void* pvObject, int* piDataSize) =0;
-	virtual unsigned short	DataSize(void* pvKey, int iKeySize) =0;
-
-	virtual BOOL	Remove(void* pvKey, int iKeySize) =0;
+	virtual BOOL			Put(void* pvKey, int iKeySize, void* pvObject, unsigned int uiDataSize) =0;
+	virtual BOOL			Get(void* pvKey, int iKeySize, void* pvObject, unsigned int* puiDataSize) =0;
+	virtual unsigned int	DataSize(void* pvKey, int iKeySize) =0;
+	virtual BOOL			Remove(void* pvKey, int iKeySize) =0;
 };
 
 
