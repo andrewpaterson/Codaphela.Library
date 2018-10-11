@@ -59,6 +59,8 @@ public:
 	size_t			GetIndiciesSystemMemorySize(void);
 	size_t			GetDataSystemMemorySize(void);
 
+	void			DumpIndex(void);
+
 protected:
 	void 			InitIndices(CDurableFileController* pcDurableFileControl, BOOL bDirtyTesting, size_t uiCutoff, BOOL bWriteThrough);
 
