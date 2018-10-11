@@ -37,6 +37,8 @@ public:
 	BOOL	GetIfInMemory(CIndexedDataDescriptor* pcDescriptor, OIndex oi);
 
 	size_t	GetSystemMemorySize(void);
+
+	void	Dump(void);
 };
 
 

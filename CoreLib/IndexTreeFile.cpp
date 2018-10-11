@@ -2679,6 +2679,11 @@ BOOL CIndexTreeFile::Write(CIndexTreeNodeFile* pcNode)
 	if (pcNewIndexFile != pcOldIndexFile)
 	{
 		uiDataIndex = pcNewIndexFile->Write(pvBuffer);
+		if (uiDataIndex == INDEXED_FILE_WRITE_ERROR)
+		{
+			cTemp.Kill();
+			return FALSE;
+		}
 		if (pcOldIndexFile != NULL)
 		{
 			mcIndexFiles.Delete(pcNode->GetFileIndex());
@@ -3440,6 +3445,8 @@ void CIndexTreeFile::PrintNodeFileIndexes(CIndexTreeNodeFile* pcCurrent, CChars*
 			psz->Append(" ");
 		}
 	}
+
+	cTemp.Kill();
 }
 
 

@@ -242,6 +242,16 @@ BOOL CIndexedData::KeyEvicted(OIndex oi, CIndexedDataDescriptor* pcDescriptor)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CIndexedData::DumpIndex(void)
+{
+	mcIndices.Dump();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 int CIndexedData::NumIndicesCached(void) { return (int)mcIndices.NumCachedDatas(); }
 CDurableFileController* CIndexedData::GetDurableFileControl(void) { return &mcDurableFileControl; }
 BOOL CIndexedData::IsDurable(void) { return mcDurableFileControl.IsDurable(); }
