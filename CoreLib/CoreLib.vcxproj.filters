@@ -414,6 +414,9 @@
     <ClCompile Include="IndexedDescriptorsFileCallback.cpp">
       <Filter>Source\File\Indexed\Descriptors</Filter>
     </ClCompile>
+    <ClCompile Include="IndexedDataAccess.cpp">
+      <Filter>Source\File\Indexed</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="IndexedConfig.h">
@@ -688,6 +691,9 @@
     </ClInclude>
     <ClInclude Include="IndexedDescriptorsFileCallback.h">
       <Filter>Source\File\Indexed\Descriptors</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexedDataAccess.h">
+      <Filter>Source\File\Indexed</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

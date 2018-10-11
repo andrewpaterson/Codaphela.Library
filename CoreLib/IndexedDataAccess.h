@@ -1,27 +1,25 @@
-#ifndef __INDEX_TREE_FILE_ACCESS_H__
-#define __INDEX_TREE_FILE_ACCESS_H__
-#include "IndexTreeFile.h"
+#ifndef __INDEXED_DATA_ACCESS_H__
+#define __INDEXED_DATA_ACCESS_H__
 #include "IndexTreeAccess.h"
+#include "IndexedData.h"
 
-
-class CIndexTreeFileAccess : public CIndexTreeAccess
+class CIndexedDataAccess : public CIndexTreeAccess
 {
-private:
-	CIndexTreeFile*		mpcTree;
+protected:
+	CIndexedData*	mpcIndexData;
 
 public:
-	BOOL			Init(CIndexTreeFile* pcTree);
+	BOOL			Init(CIndexedData* pcIndexData);
 	BOOL			Kill(void);
 	BOOL			Flush(void);
 
 protected:
 	BOOL			Put(void* pvKey, int iKeySize, void* pvObject, unsigned int uiDataSize);
 	BOOL			Get(void* pvKey, int iKeySize, void* pvObject, unsigned int* puiDataSize);
-	BOOL			Remove(void* pvKey, int iKeySize);
 	unsigned int	DataSize(void* pvKey, int iKeySize);
+	BOOL			Remove(void* pvKey, int iKeySize);
 };
 
 
-#endif // __INDEX_TREE_FILE_ACCESS_H__
-
+#endif // __INDEXED_DATA_ACCESS_H__
 

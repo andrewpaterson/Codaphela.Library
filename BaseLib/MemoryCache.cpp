@@ -264,7 +264,8 @@ void CMemoryCache::Deallocate(SMemoryCacheDescriptor* psDescriptor)
 {
 	if ((psDescriptor == mpsHead) && (psDescriptor == mpsTail))
 	{
-		Zero();
+		mpsHead = NULL;
+		mpsTail = NULL;
 		return;
 	}
 

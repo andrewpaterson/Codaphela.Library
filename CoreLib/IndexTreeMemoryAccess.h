@@ -15,10 +15,10 @@ public:
 	BOOL	Flush(void);
 
 protected:
-	BOOL			Put(void* pvKey, int iKeySize, void* pvObject, unsigned char uiDataSize);
-	BOOL			Get(void* pvKey, int iKeySize, void* pvObject, int* piDataSize);
+	BOOL			Put(void* pvKey, int iKeySize, void* pvObject, unsigned int uiDataSize);
+	BOOL			Get(void* pvKey, int iKeySize, void* pvObject, unsigned int* puiDataSize);
 	BOOL			Remove(void* pvKey, int iKeySize);
-	unsigned short	DataSize(void* pvKey, int iKeySize);
+	unsigned int	DataSize(void* pvKey, int iKeySize);
 };
 
 
