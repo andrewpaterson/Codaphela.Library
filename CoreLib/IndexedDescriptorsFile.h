@@ -6,6 +6,7 @@
 #include "IndexedDataDescriptor.h"
 #include "IndexTreeEvictionStrategyRandom.h"
 #include "IndexedDescriptorsFileCallback.h"
+#include "IndexTreeEvictionCallbackWrapper.h"
 
 
 class CIndexedDataCommon;
@@ -16,9 +17,11 @@ protected:
 	CIndexTreeEvictionStrategyRandom					mcEvictionStrategy;
 	CIndexedDataCommon*									mpcIndexedData;
 	CIndexedDescriptorsFileCallback						mcDescriptorsCallback;
+	CIndexTreeEvictionCallbackWrapper					mcIndexTreeEvictionCallbackWrapper;
 
 public:
 	void	Init(CIndexedDataCommon* pcIndexedData, CDurableFileController* pcDurableFileController, BOOL bDirtyTesting, size_t uiCutoff, BOOL bWriteThrough);
+	void	Init(CIndexedDataCommon* pcIndexedData, CDurableFileController* pcDurableFileController, BOOL bDirtyTesting, size_t uiCutoff, BOOL bWriteThrough, CIndexTreeEvictionCallback* pcIndexEvictionUserCallback);
 	void	Kill(void);
 
 	BOOL	Remove(OIndex oi);

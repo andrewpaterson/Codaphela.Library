@@ -363,7 +363,7 @@ BOOL CIndexTreeEvicting::Evict(CIndexTreeNodeFile* pcNode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size_t CIndexTreeEvicting::GetSystemMemorySize()
+size_t CIndexTreeEvicting::GetSystemMemorySize(void)
 {
 	return mcIndexTree.GetSystemMemorySize();
 }

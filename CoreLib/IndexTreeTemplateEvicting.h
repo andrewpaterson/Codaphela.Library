@@ -39,6 +39,7 @@ BOOL CIndexTreeTemplateEvicting<M>::Put(void* pvKey, int iKeySize, M* pvObject)
 	return CIndexTreeEvicting::Put(pvKey, iKeySize, pvObject, sizeof(M));
 }
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 //

@@ -417,6 +417,9 @@
     <ClCompile Include="IndexedDataAccess.cpp">
       <Filter>Source\File\Indexed</Filter>
     </ClCompile>
+    <ClCompile Include="IndexTreeEvictionCallbackWrapper.cpp">
+      <Filter>Source\File\Indexed\Index\Evicting</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="IndexedConfig.h">
@@ -694,6 +697,9 @@
     </ClInclude>
     <ClInclude Include="IndexedDataAccess.h">
       <Filter>Source\File\Indexed</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexTreeEvictionCallbackWrapper.h">
+      <Filter>Source\File\Indexed\Index\Evicting</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

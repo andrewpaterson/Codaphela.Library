@@ -35,12 +35,13 @@ Microsoft Windows is Copyright Microsoft Corporation
 class CIndexedData : public CIndexedDataCommon, public CIndexedFilesEvictionCallback
 {
 protected:
-	CIndexedDescriptorsFile	mcIndices;
+	CIndexedDescriptorsFile		mcIndices;
 
-	CDurableFileController	mcDurableFileControl;
+	CDurableFileController		mcDurableFileControl;
 
 public:
 	void 			Init(char* szWorkingDirectory, char* szRewriteDirectory, size_t uiDataCacheSize, size_t uiIndexCacheSize, BOOL bWriteThrough);
+	void 			Init(char* szWorkingDirectory, char* szRewriteDirectory, size_t uiDataCacheSize, size_t uiIndexCacheSize, BOOL bWriteThrough, CIndexTreeEvictionCallback* pcIndexEvictionUserCallback);
 	BOOL 			Kill(void);
 
 	BOOL			Flush(BOOL bClearDataCache);
@@ -62,7 +63,7 @@ public:
 	void			DumpIndex(void);
 
 protected:
-	void 			InitIndices(CDurableFileController* pcDurableFileControl, BOOL bDirtyTesting, size_t uiCutoff, BOOL bWriteThrough);
+	void 			InitIndices(CDurableFileController* pcDurableFileControl, BOOL bDirtyTesting, size_t uiCutoff, BOOL bWriteThrough, CIndexTreeEvictionCallback* pcIndexEvictionUserCallback);
 
 	BOOL			GetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor);
 	BOOL			SetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor, BOOL bNoEviction = FALSE);
