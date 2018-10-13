@@ -33,6 +33,16 @@ Microsoft Windows is Copyright Microsoft Corporation
 //////////////////////////////////////////////////////////////////////////
 void CIndexedData::Init(char* szWorkingDirectory, char* szRewriteDirectory, size_t uiDataCacheSize, size_t uiIndexCacheSize, BOOL bWriteThrough)
 {
+	Init(szWorkingDirectory, szRewriteDirectory, uiDataCacheSize, uiIndexCacheSize, bWriteThrough, NULL);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexedData::Init(char* szWorkingDirectory, char* szRewriteDirectory, size_t uiDataCacheSize, size_t uiIndexCacheSize, BOOL bWriteThrough, CIndexTreeEvictionCallback* pcIndexEvictionUserCallback)
+{
 	CIndexedConfig	cConfig;
 
 	cConfig.OptimiseForStreaming(szWorkingDirectory);
@@ -47,7 +57,7 @@ void CIndexedData::Init(char* szWorkingDirectory, char* szRewriteDirectory, size
 
 	mcDurableFileControl.Begin();
 
-	InitIndices(&mcDurableFileControl, cConfig.mbDirtyTesting, uiIndexCacheSize, cConfig.mbWriteThrough);
+	InitIndices(&mcDurableFileControl, cConfig.mbDirtyTesting, uiIndexCacheSize, cConfig.mbWriteThrough, pcIndexEvictionUserCallback);
 	mcData.Init(&mcDurableFileControl, "DAT", "Files.IDX", "_Files.IDX", cConfig.miDataCacheSize, cConfig.mbWriteThrough, this);
 
 	mcDurableFileControl.End();
@@ -87,9 +97,9 @@ BOOL CIndexedData::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedData::InitIndices(CDurableFileController* pcDurableFileControl, BOOL bDirtyTesting, size_t uiCutoff, BOOL bWriteThrough)
+void CIndexedData::InitIndices(CDurableFileController* pcDurableFileControl, BOOL bDirtyTesting, size_t uiCutoff, BOOL bWriteThrough, CIndexTreeEvictionCallback* pcIndexEvictionUserCallback)
 {
-	mcIndices.Init(this, pcDurableFileControl, bDirtyTesting, uiCutoff, bWriteThrough);
+	mcIndices.Init(this, pcDurableFileControl, bDirtyTesting, uiCutoff, bWriteThrough, pcIndexEvictionUserCallback);
 }
 
 

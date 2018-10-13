@@ -101,7 +101,8 @@ BOOL CIndexedFilesEvicting::Flush(BOOL bClearCache)
 		psCached = mcDataCache.StartIteration();
 		while (psCached)
 		{
-			bResult = WriteEvictedData(psCached, bClearCache);
+			//WriteEvictedData called here.
+			bResult = WriteEvictedData(psCached, bClearCache);  
 			if (!bResult)
 			{
 				bAnyFailed = TRUE;
@@ -481,6 +482,7 @@ BOOL CIndexedFilesEvicting::DescriptorsEvicted(CArrayVoidPtr* paEvictedCacheDesc
 {
 	BOOL	bResult;
 
+	//WriteEvictedData called here.
 	bResult = WriteEvictedData(paEvictedCacheDescriptors);
 	if (!bResult)
 	{
@@ -613,6 +615,7 @@ BOOL CIndexedFilesEvicting::WriteEvictedData(CArrayVoidPtr* papsEvictedIndexedCa
 	for (i = 0; i < papsEvictedIndexedCacheDescriptors->NumElements(); i++)
 	{
 		psCached = (SIndexedCacheDescriptor*)papsEvictedIndexedCacheDescriptors->GetPtr(i);
+		//WriteEvictedData called here.
 		bResult = WriteEvictedData(psCached, TRUE);
 		if (!bResult)
 		{

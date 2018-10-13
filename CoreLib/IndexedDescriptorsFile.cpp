@@ -9,8 +9,30 @@
 //////////////////////////////////////////////////////////////////////////
 void CIndexedDescriptorsFile::Init(CIndexedDataCommon* pcIndexedData, CDurableFileController* pcDurableFileController, BOOL bDirtyTesting, size_t uiCutoff, BOOL bWriteThrough)
 {
+	Init(mpcIndexedData, pcDurableFileController, bDirtyTesting, uiCutoff, bWriteThrough, NULL);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexedDescriptorsFile::Init(CIndexedDataCommon* pcIndexedData, CDurableFileController* pcDurableFileController, BOOL bDirtyTesting, size_t uiCutoff, BOOL bWriteThrough, CIndexTreeEvictionCallback* pcIndexEvictionUserCallback)
+{
+	CIndexTreeEvictionCallback*	pcCallback;
+
 	mpcIndexedData = pcIndexedData;
-	mcIndexTree.Init(pcDurableFileController, uiCutoff, this, &mcEvictionStrategy, &mcDescriptorsCallback,  bWriteThrough);
+	if (pcIndexEvictionUserCallback)
+	{
+		mcIndexTreeEvictionCallbackWrapper.Init(pcIndexEvictionUserCallback, this);
+		pcCallback = &mcIndexTreeEvictionCallbackWrapper;
+	}
+	else
+	{
+		mcIndexTreeEvictionCallbackWrapper.Init(NULL, NULL);
+		pcCallback = this;
+	}
+	mcIndexTree.Init(pcDurableFileController, uiCutoff, pcCallback, &mcEvictionStrategy, &mcDescriptorsCallback,  bWriteThrough);
 }
 
 
