@@ -65,7 +65,7 @@ public:
 protected:
 	void 			InitIndices(CDurableFileController* pcDurableFileControl, BOOL bDirtyTesting, size_t uiCutoff, BOOL bWriteThrough, CIndexTreeEvictionCallback* pcIndexEvictionUserCallback);
 
-	BOOL			GetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor);
+	BOOL			GetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor, BOOL bNoEviction = FALSE);
 	BOOL			SetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor, BOOL bNoEviction = FALSE);
 	BOOL			UpdateDescriptorCache(OIndex oi, void* pvCache);
 	BOOL			RemoveDescriptor(OIndex oi);

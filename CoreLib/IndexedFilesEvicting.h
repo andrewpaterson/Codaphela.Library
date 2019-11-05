@@ -46,7 +46,7 @@ protected:
 	BOOL			CacheAllocate(OIndex oi, CIndexedDataDescriptor* pcDescriptor);
 	BOOL			DescriptorsEvicted(CArrayVoidPtr* paEvictedCacheDescriptors);
 
-	BOOL			WriteEvictedData(SIndexedCacheDescriptor* psCached, BOOL bClearCache);
+	BOOL			WriteEvictedData(SIndexedCacheDescriptor* psCached, BOOL bClearCache, BOOL bNoEviction);
 	BOOL			WriteEvictedData(CArrayVoidPtr* papsIndexedCacheDescriptors);
 	BOOL			WriteEvictedData(CIndexedDataDescriptor* pcDescriptor, BOOL bClearCache);
 

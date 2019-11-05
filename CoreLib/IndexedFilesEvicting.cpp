@@ -102,7 +102,7 @@ BOOL CIndexedFilesEvicting::Flush(BOOL bClearCache)
 		while (psCached)
 		{
 			//WriteEvictedData called here.
-			bResult = WriteEvictedData(psCached, bClearCache);  
+			bResult = WriteEvictedData(psCached, bClearCache, TRUE);  
 			if (!bResult)
 			{
 				bAnyFailed = TRUE;
@@ -563,7 +563,7 @@ BOOL CIndexedFilesEvicting::WriteEvictedData(CIndexedDataDescriptor* pcDescripto
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedFilesEvicting::WriteEvictedData(SIndexedCacheDescriptor* psCached, BOOL bClearCache)
+BOOL CIndexedFilesEvicting::WriteEvictedData(SIndexedCacheDescriptor* psCached, BOOL bClearCache, BOOL bNoEviction)
 {
 	CIndexedDataDescriptor	cDescriptor;
 	BOOL					bResult;
@@ -571,7 +571,7 @@ BOOL CIndexedFilesEvicting::WriteEvictedData(SIndexedCacheDescriptor* psCached, 
 
 	if (psCached->iFlags & CACHE_DESCRIPTOR_FLAG_DIRTY)
 	{
-		bResult = mpcEvictionCallback->GetDescriptor(psCached->oi, &cDescriptor);
+		bResult = mpcEvictionCallback->GetDescriptor(psCached->oi, &cDescriptor, bNoEviction);
 		if (!bResult)
 		{
 			return FALSE;
@@ -589,7 +589,7 @@ BOOL CIndexedFilesEvicting::WriteEvictedData(SIndexedCacheDescriptor* psCached, 
 			return FALSE;
 		}
 
-		return mpcEvictionCallback->SetDescriptor(psCached->oi, &cDescriptor);
+		return mpcEvictionCallback->SetDescriptor(psCached->oi, &cDescriptor, bNoEviction);
 	}
 	else
 	{
@@ -616,7 +616,7 @@ BOOL CIndexedFilesEvicting::WriteEvictedData(CArrayVoidPtr* papsEvictedIndexedCa
 	{
 		psCached = (SIndexedCacheDescriptor*)papsEvictedIndexedCacheDescriptors->GetPtr(i);
 		//WriteEvictedData called here.
-		bResult = WriteEvictedData(psCached, TRUE);
+		bResult = WriteEvictedData(psCached, TRUE, FALSE);
 		if (!bResult)
 		{
 			return FALSE;

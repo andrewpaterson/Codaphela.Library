@@ -45,7 +45,7 @@ public:
 			unsigned int	TestGetCachedObjectSize(OIndex oi);
 
 protected:
-	virtual BOOL			GetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor) =0;
+	virtual BOOL			GetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor, BOOL bNoEviction = FALSE) =0;
 	virtual BOOL			SetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor, BOOL bNoEviction = FALSE) =0;
 	virtual BOOL			UpdateDescriptorCache(OIndex oi, void* pvCache) =0;
 	virtual BOOL			RemoveDescriptor(OIndex oi) =0;

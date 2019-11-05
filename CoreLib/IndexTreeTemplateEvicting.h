@@ -8,14 +8,14 @@ class CIndexTreeTemplateEvicting : public CIndexTreeEvicting
 {
 public:
 	BOOL	Get(void* pvKey, int iKeySize, M* pvObject);
+	BOOL	GetWithoutEviction(void* pvKey, int iKeySize, M* pvObject);
 
 	BOOL	Put(void* pvKey, int iKeySize, M* pvObject);
+	BOOL	PutWithoutEviction(void* pvKey, int iKeySize, M* pvObject);
 
 	BOOL	Remove(void* pvKey, int iKeySize);
 
-	BOOL	PutWithoutEviction(void* pvKey, int iKeySize, M* pvObject);
 };
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -26,6 +26,17 @@ template<class M>
 BOOL CIndexTreeTemplateEvicting<M>::Get(void* pvKey, int iKeySize, M* pvObject)
 {
 	return CIndexTreeEvicting::Get(pvKey, iKeySize, pvObject, NULL);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+BOOL CIndexTreeTemplateEvicting<M>::GetWithoutEviction(void* pvKey, int iKeySize, M* pvObject)
+{
+	return CIndexTreeEvicting::GetWithoutEviction(pvKey, iKeySize, pvObject, NULL);
 }
 
 
