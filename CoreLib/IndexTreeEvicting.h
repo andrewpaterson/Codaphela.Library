@@ -6,7 +6,6 @@
 #include "IndexTreeFile.h"
 
 
-
 class CIndexTreeEvicting;
 typedef void(CIndexTreeEvicting::*NodeEvicted)(CIndexTreeNodeFile* pcNode);
 
@@ -55,6 +54,7 @@ public:
 
 protected:
 	void					PotentiallyEvict(void* pvKey, int iKeySize);
+	BOOL					GetWithoutEviction(void* pvKey, int iKeySize, void* pvObject, unsigned short* puiDataSize);
 	BOOL					PutWithoutEviction(void* pvKey, int iKeySize, void* pvObject, unsigned short uiDataSize);
 };
 

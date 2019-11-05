@@ -107,9 +107,9 @@ void CIndexedData::InitIndices(CDurableFileController* pcDurableFileControl, BOO
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedData::GetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor)
+BOOL CIndexedData::GetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor, BOOL bNoEviction)
 {
-	return mcIndices.Get(pcDescriptor, oi);
+	return mcIndices.Get(pcDescriptor, oi, bNoEviction);
 }
 
 

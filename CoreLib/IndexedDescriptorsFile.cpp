@@ -70,6 +70,23 @@ BOOL CIndexedDescriptorsFile::Get(CIndexedDataDescriptor* pcDescriptor, OIndex o
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL CIndexedDescriptorsFile::Get(CIndexedDataDescriptor* pcDescriptor, OIndex oi, BOOL bNoEviction)
+{
+	if (!bNoEviction)
+	{
+		return mcIndexTree.Get(&oi, sizeof(OIndex), pcDescriptor);
+	}
+	else
+	{
+		return mcIndexTree.GetWithoutEviction(&oi, sizeof(OIndex), pcDescriptor);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL CIndexedDescriptorsFile::Set(CIndexedDataDescriptor* pcDescriptor, OIndex oi)
 {
 	return mcIndexTree.Put(&oi, sizeof(OIndex), pcDescriptor);

@@ -139,7 +139,7 @@ BOOL CIndexedFilesEvictedDescriptorList::DescriptorsEvicted(CArrayVoidPtr* papsE
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedFilesEvictedDescriptorList::GetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor)
+BOOL CIndexedFilesEvictedDescriptorList::GetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor, BOOL bNoEviction)
 {
 	CIndexedDataDescriptor* pcResult;
 

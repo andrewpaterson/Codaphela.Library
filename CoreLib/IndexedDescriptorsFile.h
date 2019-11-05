@@ -26,6 +26,7 @@ public:
 
 	BOOL	Remove(OIndex oi);
 	BOOL	Get(CIndexedDataDescriptor* pcDescriptor, OIndex oi);
+	BOOL	Get(CIndexedDataDescriptor* pcDescriptor, OIndex oi, BOOL bNoEviction);
 	BOOL	Set(CIndexedDataDescriptor* pcDescriptor, OIndex oi);
 	BOOL	Set(CIndexedDataDescriptor* pcDescriptor, OIndex oi, BOOL bNoEviction);
 	BOOL	SetCache(void* pvCache, OIndex oi);

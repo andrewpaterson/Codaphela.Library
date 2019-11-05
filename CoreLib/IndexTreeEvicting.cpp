@@ -1,5 +1,6 @@
 #include "BaseLib/Logger.h"
 #include "BaseLib/StackMemory.h"
+#include "BaseLib/DebugOutput.h"
 #include "IndexTreeEvicting.h"
 
 
@@ -63,6 +64,19 @@ BOOL CIndexTreeEvicting::Get(void* pvKey, int iKeySize, void* pvObject, unsigned
 
 	bResult = mcIndexTree.Get(pvKey, iKeySize, pvObject, puiDataSize);
 	PotentiallyEvict(pvKey, iKeySize);
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeEvicting::GetWithoutEviction(void* pvKey, int iKeySize, void* pvObject, unsigned short* puiDataSize)
+{
+	BOOL	bResult;
+
+	bResult = mcIndexTree.Get(pvKey, iKeySize, pvObject, puiDataSize);
 	return bResult;
 }
 
@@ -338,6 +352,9 @@ CIndexTreeNodeFile* CIndexTreeEvicting::GetMemoryNode(void* pvKey, int iKeySize)
 BOOL CIndexTreeEvicting::Evict(CIndexTreeNodeFile* pcNode)
 {
 	BOOL bEvict;
+
+	EngineOutput("Evict: ");
+	pcNode->Dump();
 
 	if (pcNode->HasObject())
 	{

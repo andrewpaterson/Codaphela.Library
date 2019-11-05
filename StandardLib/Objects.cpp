@@ -121,7 +121,6 @@ void CObjects::Init(CUnknowns* pcUnknownsAllocatingFrom, CStackPointers* pcStack
 	CIndexedConfig	cConfig;
 
 	cConfig.OptimiseForStreaming(szWorkingDirectory);
-	cConfig.SetObjectCacheSize(128 MB);
 
 	Init(pcUnknownsAllocatingFrom, pcStackPointers, &cConfig);
 }
