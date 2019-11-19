@@ -60,11 +60,15 @@ BOOL CIndexTreeEvicting::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeEvicting::Get(void* pvKey, int iKeySize, void* pvObject, unsigned short* puiDataSize)
 {
-	BOOL	bResult;
+	BOOL	bFound;
+	int		iEvicted;
 
-	bResult = mcIndexTree.Get(pvKey, iKeySize, pvObject, puiDataSize);
-	PotentiallyEvict(pvKey, iKeySize);
-	return bResult;
+	bFound = mcIndexTree.Get(pvKey, iKeySize, pvObject, puiDataSize);
+	if (bFound)
+	{
+		iEvicted = PotentiallyEvict(pvKey, iKeySize);
+	}
+	return bFound;
 }
 
 
@@ -88,9 +92,10 @@ BOOL CIndexTreeEvicting::GetWithoutEviction(void* pvKey, int iKeySize, void* pvO
 BOOL CIndexTreeEvicting::Put(void* pvKey, int iKeySize, void* pvObject, unsigned short uiDataSize)
 {
 	BOOL	bResult;
+	int		iEvicted;
 
 	bResult = mcIndexTree.Put(pvKey, iKeySize, pvObject, uiDataSize);
-	PotentiallyEvict(pvKey, iKeySize);
+	iEvicted = PotentiallyEvict(pvKey, iKeySize);
 	return bResult;
 }
 
@@ -114,11 +119,15 @@ BOOL CIndexTreeEvicting::PutWithoutEviction(void* pvKey, int iKeySize, void* pvO
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeEvicting::Remove(void* pvKey, int iKeySize)
 {
-	BOOL	bResult;
+	BOOL	bFound;
+	int		iEvicted;
 
-	bResult = mcIndexTree.Remove(pvKey, iKeySize);
-	PotentiallyEvict(pvKey, iKeySize);
-	return bResult;
+	bFound = mcIndexTree.Remove(pvKey, iKeySize);
+	if (bFound)
+	{
+		iEvicted = PotentiallyEvict(pvKey, iKeySize);
+	}
+	return bFound;
 }
 
 
@@ -128,11 +137,15 @@ BOOL CIndexTreeEvicting::Remove(void* pvKey, int iKeySize)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeEvicting::HasKey(void* pvKey, int iKeySize)
 {
-	BOOL	bResult;
+	BOOL	bFound;
+	BOOL	bAnyEvicted;
 
-	bResult = mcIndexTree.HasKey(pvKey, iKeySize);
-	PotentiallyEvict(pvKey, iKeySize);
-	return bResult;
+	bFound = mcIndexTree.HasKey(pvKey, iKeySize);
+	if (bFound)
+	{
+		bAnyEvicted = PotentiallyEvict(pvKey, iKeySize);
+	}
+	return bFound;
 }
 
 
@@ -143,9 +156,10 @@ BOOL CIndexTreeEvicting::HasKey(void* pvKey, int iKeySize)
 unsigned short CIndexTreeEvicting::ObjectSize(void* pvKey, int iKeySize)
 {
 	unsigned short	uiSize;
+	int				iEvicted;
 
 	uiSize = mcIndexTree.ObjectSize(pvKey, iKeySize);
-	PotentiallyEvict(pvKey, iKeySize);
+	iEvicted = PotentiallyEvict(pvKey, iKeySize);
 	return uiSize;
 }
 
@@ -154,24 +168,26 @@ unsigned short CIndexTreeEvicting::ObjectSize(void* pvKey, int iKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeEvicting::PotentiallyEvict(void* pvKey, int iKeySize)
+int CIndexTreeEvicting::PotentiallyEvict(void* pvKey, int iKeySize)
 {
 	size_t				uiLastSize;
 	size_t				uiSize;
 	CIndexTreeNodeFile*	pcDontEvict;
 	BOOL				bResult;
 	CChars				sz;
+	int					iEvicted;
 
 	mcIndexTree.GetNode(pvKey, iKeySize);
 	uiLastSize = 0;
 	pcDontEvict = mcIndexTree.GetMemoryNode(pvKey, iKeySize);
+	iEvicted = 0;
 
 	for (;;)
 	{
 		uiSize = mcIndexTree.GetSystemMemorySize();
 		if ((uiSize <= muiCutoff) || (uiSize == uiLastSize))
 		{
-			return;
+			return iEvicted;
 		}
 
 		bResult = mpcEvictionStrategy->Run(pcDontEvict);
@@ -182,8 +198,10 @@ void CIndexTreeEvicting::PotentiallyEvict(void* pvKey, int iKeySize)
 			sz.AppendData2((const char*)pvKey, iKeySize);
 			gcLogger.Error2(__METHOD__, " Could not evict key [", sz.Text(), "].  Tree size [", IntToString(uiSize), "] could not be reduced below cache size [", IntToString(muiCutoff), "].", NULL);
 			sz.Kill();
-			return;
+			return iEvicted;
 		}
+
+		iEvicted++;
 	}
 }
 

@@ -1,4 +1,4 @@
-#include "BaseLib/Logger.h"
+﻿#include "BaseLib/Logger.h"
 #include "BaseLib/LogString.h"
 #include "BaseLib/FileBasic.h"
 #include "BaseLib/DiskFile.h"
@@ -3274,12 +3274,20 @@ void AppendIndexTreeFileNodeDescrition(CChars* psz, int uIndexFromParent)
 	{
 		if ((uIndexFromParent >= 32) && (uIndexFromParent <= 126))
 		{
-			psz->Append(" ");
+			psz->Append("  ");
 			psz->Append((char)uIndexFromParent);
 			psz->Append(" -> ");
 		}
 		else
 		{
+			if (uIndexFromParent < 10)
+			{
+				psz->Append("  ");
+			}
+			else if (uIndexFromParent < 100)
+			{
+				psz->Append(" ");
+			}
 			psz->Append(uIndexFromParent);
 			psz->Append(" -> ");
 		}
@@ -3377,7 +3385,7 @@ void CIndexTreeFile::PrintChildFileIndexes(CIndexTreeNodeFile* pcCurrent, CChars
 					}
 					else
 					{
-						psz->Append(".");
+						psz->Append("o");
 					}
 				}
 				else
