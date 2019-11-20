@@ -371,9 +371,6 @@ BOOL CIndexTreeEvicting::Evict(CIndexTreeNodeFile* pcNode)
 {
 	BOOL bEvict;
 
-	EngineOutput("Evict: ");
-	pcNode->Dump();
-
 	if (pcNode->HasObject())
 	{
 		bEvict = EvictNodeCallback(pcNode);
