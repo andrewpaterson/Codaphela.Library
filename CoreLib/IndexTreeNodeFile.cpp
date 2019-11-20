@@ -1,3 +1,4 @@
+#include "BaseLib/IntegerHelper.h"
 #include "BaseLib/Logger.h"
 #include "BaseLib/LogString.h"
 #include "IndexTreeNodeFile.h"
@@ -695,6 +696,20 @@ BOOL CIndexTreeNodeFile::HasChildWithFlags(unsigned char uiFlags)
 		}
 	}
 	return FALSE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexTreeNodeFile::ClearDirtyNodeWithPath(void)
+{
+	SetFlag(&msFlags, INDEX_TREE_NODE_FLAG_DIRTY_NODE, FALSE);
+	if (!HasChildWithFlags(INDEX_TREE_NODE_FLAG_DIRTY_PATH))
+	{
+		SetDirtyPath(FALSE);
+	}
 }
 
 

@@ -1591,15 +1591,13 @@ BOOL CIndexTreeFile::RecurseFlushDirty(CIndexTreeRecursor* pcCursor)
 			}
 		}
 
-		if (pcNode->IsDirty())
+		bResult = WriteBackPathCaching(pcNode);
+		if (!bResult)
 		{
-			bResult = Write(pcNode);
-			if (!bResult)
-			{
-				pcCursor->Pop();
-				return FALSE;
-			}
+			pcCursor->Pop();
+			return FALSE;
 		}
+
 		pcNode->ClearFlags(INDEX_TREE_NODE_FLAG_DIRTY_PATH | INDEX_TREE_NODE_FLAG_DIRTY_NODE);
 	}
 	pcCursor->Pop();
@@ -2736,10 +2734,11 @@ BOOL CIndexTreeFile::WriteBackPathWriteThrough(CIndexTreeNodeFile* pcNode)
 		}
 		else
 		{
-			return TRUE;
+			break;
 		}
 		pcNode = pcParent;
 	}
+
 	return TRUE;
 }
 
@@ -2760,11 +2759,7 @@ BOOL CIndexTreeFile::WriteBackPathCaching(CIndexTreeNodeFile* pcNode)
 		pcParent = (CIndexTreeNodeFile*)pcNode->GetParent();
 		if (pcNode->IsDirty())
 		{
-			pcNode->SetDirtyNode(FALSE);
-			if (!pcNode->HasChildWithFlags(INDEX_TREE_NODE_FLAG_DIRTY_PATH))
-			{
-				pcNode->SetDirtyPath(FALSE);
-			}
+			pcNode->ClearDirtyNodeWithPath();
 
 			cOldIndex = *pcNode->GetFileIndex();
 
@@ -2789,6 +2784,18 @@ BOOL CIndexTreeFile::WriteBackPathCaching(CIndexTreeNodeFile* pcNode)
 		}
 		pcNode = pcParent;
 	}
+
+	return ClearDirtyPath(pcNode);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeFile::ClearDirtyPath(CIndexTreeNodeFile* pcNode)
+{
+	CIndexTreeNodeFile* pcParent;
 
 	while (pcNode)
 	{

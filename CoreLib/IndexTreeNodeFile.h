@@ -46,6 +46,7 @@ public:
 	unsigned char			FindNextFirstIndex(void);
 
 	void					SetChildrensParent(void);
+	void					ClearDirtyNodeWithPath(void);
 
 	int						CalculateNodeSize(void);
 	int						CalculateDataBufferSize(CIndexTreeFileCallback* pcCallback);

@@ -168,6 +168,7 @@ protected:
 	BOOL					SetDirtyPath(CIndexTreeNodeFile* pcCurrent);
 	BOOL					RecurseIsFlushed(CIndexTreeRecursor* pcCursor);
 	BOOL					ClearDeletedPath(CIndexTreeNodeFile* pcNode);
+	BOOL					ClearDirtyPath(CIndexTreeNodeFile* pcNode);
 
 	CFileDataIndex			ReadRootFileIndex(void);
 	BOOL					WriteRootFileIndex(CFileDataIndex* pcRootIndex);

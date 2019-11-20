@@ -403,3 +403,13 @@ size_t CIndexTreeEvicting::GetSystemMemorySize(void)
 	return mcIndexTree.GetSystemMemorySize();
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+unsigned char CIndexTreeEvicting::GetRootFlags(void)
+{
+	return mcIndexTree.GetRoot()->GetFlags();
+}
+
