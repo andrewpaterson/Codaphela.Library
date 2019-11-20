@@ -59,6 +59,7 @@ public:
 	CDurableFileController* GetDurableFileControl(void);
 	size_t			GetIndiciesSystemMemorySize(void);
 	size_t			GetDataSystemMemorySize(void);
+	unsigned char	GetRootFlags(void);
 
 	void			DumpIndex(void);
 

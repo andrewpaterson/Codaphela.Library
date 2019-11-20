@@ -267,4 +267,5 @@ CDurableFileController* CIndexedData::GetDurableFileControl(void) { return &mcDu
 BOOL CIndexedData::IsDurable(void) { return mcDurableFileControl.IsDurable(); }
 size_t CIndexedData::GetIndiciesSystemMemorySize(void) { return mcIndices.GetSystemMemorySize(); }
 size_t CIndexedData::GetDataSystemMemorySize(void) { return mcData.GetSystemMemorySize(); }
+unsigned char CIndexedData::GetRootFlags(void) { return mcIndices.GetRootFlags();  }
 

@@ -51,6 +51,7 @@ public:
 	BOOL					Evict(CIndexTreeNodeFile* pcNode);
 
 	size_t					GetSystemMemorySize(void);
+	unsigned char			GetRootFlags(void);
 
 protected:
 	int						PotentiallyEvict(void* pvKey, int iKeySize);
