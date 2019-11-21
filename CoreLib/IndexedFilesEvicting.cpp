@@ -101,7 +101,6 @@ BOOL CIndexedFilesEvicting::Flush(BOOL bClearCache)
 		psCached = mcDataCache.StartIteration();
 		while (psCached)
 		{
-			//WriteEvictedData called here.
 			bResult = WriteEvictedData(psCached, bClearCache, TRUE);  
 			if (!bResult)
 			{
@@ -478,18 +477,23 @@ BOOL CIndexedFilesEvicting::CacheAllocate(OIndex oi, CIndexedDataDescriptor* pcD
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedFilesEvicting::DescriptorsEvicted(CArrayVoidPtr* paEvictedCacheDescriptors)
+BOOL CIndexedFilesEvicting::DescriptorsEvicted(CArrayVoidPtr* papsEvictedIndexedCacheDescriptors)
 {
-	BOOL	bResult;
+	BOOL						bResult;
+	int							i;
+	SIndexedCacheDescriptor*	psCached;
 
-	//WriteEvictedData called here.
-	bResult = WriteEvictedData(paEvictedCacheDescriptors);
-	if (!bResult)
+	for (i = 0; i < papsEvictedIndexedCacheDescriptors->NumElements(); i++)
 	{
-		return FALSE;
+		psCached = (SIndexedCacheDescriptor*)papsEvictedIndexedCacheDescriptors->GetPtr(i);
+		bResult = WriteEvictedData(psCached, TRUE, FALSE);
+		if (!bResult)
+		{
+			return FALSE;
+		}
 	}
 
-	mpcEvictionCallback->DescriptorsEvicted(paEvictedCacheDescriptors);
+	mpcEvictionCallback->DescriptorsEvicted(papsEvictedIndexedCacheDescriptors);
 	return TRUE;
 }
 
@@ -529,67 +533,24 @@ BOOL CIndexedFilesEvicting::WriteEvictedData(CIndexedDataDescriptor* pcDescripto
 {
 	BOOL						bResult;
 	void*						pvData;
-	SIndexedCacheDescriptor*	psDescriptor;
+	SIndexedCacheDescriptor*	psCached;
 
 	pvData = pcDescriptor->GetCache();
-	psDescriptor = mcDataCache.GetHeader(pvData);
-	if (psDescriptor->iFlags & CACHE_DESCRIPTOR_FLAG_DIRTY)
+	psCached = mcDataCache.GetHeader(pvData);
+	if (psCached->iFlags & CACHE_DESCRIPTOR_FLAG_DIRTY)
 	{
 		if (bClearCache)
 		{
 			pcDescriptor->Cache(NULL);
 		}
-		psDescriptor->iFlags &= ~CACHE_DESCRIPTOR_FLAG_DIRTY;
+		psCached->iFlags &= ~CACHE_DESCRIPTOR_FLAG_DIRTY;
 		bResult = mcDataFiles.Write(pcDescriptor, pvData);  //Be careful of this write.  It doesn't work if the data size has changed.
 		if (!bResult)
 		{
 			return FALSE;
 		}
 
-		return mpcEvictionCallback->SetDescriptor(psDescriptor->oi, pcDescriptor, TRUE);
-	}
-	else
-	{
-		if (bClearCache)
-		{
-			return mpcEvictionCallback->UpdateDescriptorCache(psDescriptor->oi, NULL);
-		}
-		return TRUE;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CIndexedFilesEvicting::WriteEvictedData(SIndexedCacheDescriptor* psCached, BOOL bClearCache, BOOL bNoEviction)
-{
-	CIndexedDataDescriptor	cDescriptor;
-	BOOL					bResult;
-	void*					pvData;
-
-	if (psCached->iFlags & CACHE_DESCRIPTOR_FLAG_DIRTY)
-	{
-		bResult = mpcEvictionCallback->GetDescriptor(psCached->oi, &cDescriptor, bNoEviction);
-		if (!bResult)
-		{
-			return FALSE;
-		}
-
-		if (bClearCache)
-		{
-			cDescriptor.Cache(NULL);
-		}
-		psCached->iFlags &= ~CACHE_DESCRIPTOR_FLAG_DIRTY;
-		pvData = RemapSinglePointer(psCached, sizeof(SIndexedCacheDescriptor));
-		bResult = mcDataFiles.Write(&cDescriptor, pvData);  //Be careful of this write.  It doesn't work if the data size has changed.
-		if (!bResult)
-		{
-			return FALSE;
-		}
-
-		return mpcEvictionCallback->SetDescriptor(psCached->oi, &cDescriptor, bNoEviction);
+		return mpcEvictionCallback->SetDescriptor(psCached->oi, pcDescriptor, TRUE);
 	}
 	else
 	{
@@ -606,23 +567,42 @@ BOOL CIndexedFilesEvicting::WriteEvictedData(SIndexedCacheDescriptor* psCached, 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedFilesEvicting::WriteEvictedData(CArrayVoidPtr* papsEvictedIndexedCacheDescriptors)
+BOOL CIndexedFilesEvicting::WriteEvictedData(SIndexedCacheDescriptor* psCached, BOOL bClearCache, BOOL bNoEviction)
 {
-	int							i;
-	SIndexedCacheDescriptor*	psCached;
-	BOOL						bResult;
+	CIndexedDataDescriptor	cDescriptor;
+	BOOL					bResult;
+	void*					pvData;
 
-	for (i = 0; i < papsEvictedIndexedCacheDescriptors->NumElements(); i++)
+	pvData = RemapSinglePointer(psCached, sizeof(SIndexedCacheDescriptor));
+	if (psCached->iFlags & CACHE_DESCRIPTOR_FLAG_DIRTY)
 	{
-		psCached = (SIndexedCacheDescriptor*)papsEvictedIndexedCacheDescriptors->GetPtr(i);
-		//WriteEvictedData called here.
-		bResult = WriteEvictedData(psCached, TRUE, FALSE);
+		bResult = mpcEvictionCallback->GetDescriptor(psCached->oi, &cDescriptor, bNoEviction);
 		if (!bResult)
 		{
 			return FALSE;
 		}
+
+		if (bClearCache)
+		{
+			cDescriptor.Cache(NULL);
+		}
+		psCached->iFlags &= ~CACHE_DESCRIPTOR_FLAG_DIRTY;
+		bResult = mcDataFiles.Write(&cDescriptor, pvData);  //Be careful of this write.  It doesn't work if the data size has changed.
+		if (!bResult)
+		{
+			return FALSE;
+		}
+
+		return mpcEvictionCallback->SetDescriptor(psCached->oi, &cDescriptor, bNoEviction);
 	}
-	return TRUE;
+	else
+	{
+		if (bClearCache)
+		{
+			return mpcEvictionCallback->UpdateDescriptorCache(psCached->oi, NULL);
+		}
+		return TRUE;
+	}
 }
 
 

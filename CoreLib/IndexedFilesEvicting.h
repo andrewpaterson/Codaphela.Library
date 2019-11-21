@@ -44,10 +44,9 @@ public:
 
 protected:
 	BOOL			CacheAllocate(OIndex oi, CIndexedDataDescriptor* pcDescriptor);
-	BOOL			DescriptorsEvicted(CArrayVoidPtr* paEvictedCacheDescriptors);
+	BOOL			DescriptorsEvicted(CArrayVoidPtr* papsEvictedIndexedCacheDescriptors);
 
 	BOOL			WriteEvictedData(SIndexedCacheDescriptor* psCached, BOOL bClearCache, BOOL bNoEviction);
-	BOOL			WriteEvictedData(CArrayVoidPtr* papsIndexedCacheDescriptors);
 	BOOL			WriteEvictedData(CIndexedDataDescriptor* pcDescriptor, BOOL bClearCache);
 
 	BOOL			CompareDiskToMemory(CIndexedDataDescriptor* pcDescriptor, void* pvData);
