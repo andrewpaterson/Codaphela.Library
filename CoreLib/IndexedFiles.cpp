@@ -506,6 +506,10 @@ BOOL CIndexedFiles::WriteExisting(CIndexedDataDescriptor* pcDescriptor, void* pv
 	pcIndexedFile = GetFile(pcDescriptor->GetFileIndex());
 	if (pcIndexedFile)
 	{
+		if (pcDescriptor->GetDataSize() != pcIndexedFile->miDataSize)
+		{
+			return FALSE;
+		}
 		iResult = pcIndexedFile->Write(pcDescriptor->GetPositionInFile(), pvData);
 		return iResult == 1;
 	}
