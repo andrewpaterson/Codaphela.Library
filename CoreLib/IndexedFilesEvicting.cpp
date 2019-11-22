@@ -314,7 +314,7 @@ BOOL CIndexedFilesEvicting::SetData(OIndex oi, CIndexedDataDescriptor* pcDescrip
 				{
 					//Descriptor size different to Set size.
 					pcDescriptor->SetDataSize(uiDataSize);
-					InvalidateData(pcDescriptor);
+					InvalidateData(pcDescriptor);  //No, don't invalidate data here.  Wait for flush.
 					bResult = CacheAllocate(oi, pcDescriptor);
 					if (!bResult)
 					{
