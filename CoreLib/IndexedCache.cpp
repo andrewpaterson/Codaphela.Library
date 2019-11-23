@@ -167,7 +167,7 @@ int CIndexedCache::NumCached(int iSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedCache::Update(CIndexedDataDescriptor* pcDesc, void* pvData)
+BOOL CIndexedCache::Update(CIndexedDataDescriptor* pcDescriptor, void* pvData)
 {
 	SIndexedCacheDescriptor*	psCacheIndex;
 	void*						pvCache;
@@ -177,8 +177,8 @@ BOOL CIndexedCache::Update(CIndexedDataDescriptor* pcDesc, void* pvData)
 	//THIS METHOD NEEDS TO BE RETHOUGHT.
 
 	//Assumes that the test to make sure this is in the cache has already been done.
-	pvCache = pcDesc->GetCache();
-	iDataSize = pcDesc->GetDataSize();
+	pvCache = pcDescriptor->GetCache();
+	iDataSize = pcDescriptor->GetDataSize();
 	psCacheIndex = GetHeader(pvCache);
 	iResult = memcmp(pvCache, pvData, iDataSize);
 	if (iResult != 0)
