@@ -157,9 +157,9 @@ BOOL CIndexedFiles::WriteIndexedFileDescriptors(void)
 	{
 		pcIndexedFile = mcFiles.Get(i);
 		psFileDescriptor = (SIndexedFileDescriptor*)RemapSinglePointer(pvFileDescriptors, sizeof(SIndexedFileDescriptor) * i);
-		psFileDescriptor->iDataSize = pcIndexedFile->miDataSize;
+		psFileDescriptor->iDataSize = pcIndexedFile->GetDataSize();
 		psFileDescriptor->iFileIndex = pcIndexedFile->GetFileIndex();
-		psFileDescriptor->iFileNum = pcIndexedFile->miFileNumber;
+		psFileDescriptor->iFileNum = pcIndexedFile->GetFileNumber();
 	}
 	iResult = mcFileDescriptors.Write(0, pvFileDescriptors, sizeof(SIndexedFileDescriptor), mcFiles.NumElements());
 	bResult &= (iResult != 0);
@@ -231,7 +231,7 @@ CIndexedFile* CIndexedFiles::GetOrCreateFile(int iDataSize)
 	for (i = 0; i < iNumFiles; i++)
 	{
 		pcIndexedFile = mcFiles.Get(i);
-		if (pcIndexedFile->miDataSize == iDataSize)
+		if (pcIndexedFile->GetDataSize() == iDataSize)
 		{
 			if (!pcIndexedFile->IsFull())
 			{
@@ -280,9 +280,9 @@ CIndexedFile* CIndexedFiles::GetFile(int iDataSize, int iFileNum)
 	for (i = 0; i < mcFiles.NumElements(); i++)
 	{
 		pcIndexedFile = mcFiles.Get(i);
-		if (pcIndexedFile->miDataSize == iDataSize)
+		if (pcIndexedFile->GetDataSize() == iDataSize)
 		{
-			if (pcIndexedFile->miFileNumber == iFileNum)
+			if (pcIndexedFile->GetFileNumber() == iFileNum)
 			{
 				return pcIndexedFile;
 			}
@@ -331,7 +331,7 @@ int CIndexedFiles::GetUniqueFileNumber(int iDataSize)
 	for (i = 0; i < mcFiles.NumElements(); i++)
 	{
 		pcIndexedFile = mcFiles.Get(i);
-		if (pcIndexedFile->miDataSize == iDataSize)
+		if (pcIndexedFile->GetDataSize() == iDataSize)
 		{
 			if (iFileNumber != -1)
 			{
@@ -339,7 +339,7 @@ int CIndexedFiles::GetUniqueFileNumber(int iDataSize)
 			}
 			else
 			{
-				iFileNumber = pcIndexedFile->miFileNumber;
+				iFileNumber = pcIndexedFile->GetFileNumber();
 			}
 		}
 	}
@@ -380,7 +380,7 @@ int64 CIndexedFiles::NumData(void)
 	for (i = 0; i < mcFiles.NumElements(); i++)
 	{
 		pcIndexedFile = mcFiles.Get(i);
-		iTotal += pcIndexedFile->miNumDatas;
+		iTotal += pcIndexedFile->NumDatas();
 	}
 	return iTotal;
 }
@@ -400,9 +400,9 @@ int64 CIndexedFiles::NumData(int iDataSize)
 	for (i = 0; i < mcFiles.NumElements(); i++)
 	{
 		pcIndexedFile = mcFiles.Get(i);
-		if (pcIndexedFile->miDataSize == iDataSize)
+		if (pcIndexedFile->GetDataSize() == iDataSize)
 		{
-			iTotal += pcIndexedFile->miNumDatas;
+			iTotal += pcIndexedFile->NumDatas();
 		}
 	}
 	return iTotal;
@@ -423,7 +423,7 @@ int CIndexedFiles::NumFiles(int iDataSize)
 	for (i = 0; i < mcFiles.NumElements(); i++)
 	{
 		pcIndexedFile = mcFiles.Get(i);
-		if (pcIndexedFile->miDataSize == iDataSize)
+		if (pcIndexedFile->GetDataSize() == iDataSize)
 		{
 			iTotal ++;
 		}
@@ -506,7 +506,7 @@ BOOL CIndexedFiles::WriteExisting(CIndexedDataDescriptor* pcDescriptor, void* pv
 	pcIndexedFile = GetFile(pcDescriptor->GetFileIndex());
 	if (pcIndexedFile)
 	{
-		if (pcDescriptor->GetDataSize() != pcIndexedFile->miDataSize)
+		if (pcDescriptor->GetDataSize() != pcIndexedFile->GetDataSize())
 		{
 			return FALSE;
 		}

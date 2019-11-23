@@ -41,13 +41,14 @@ class CIndexedFile
 private:
 	int				miFileIndex;  //This is the index of the file in the CIndexedFiles.mcFiles array.
 
-public:
+protected:
 	CDurableFile	mcFile;
 
 	int				miDataSize;
 	filePos			miNumDatas;
 	int				miFileNumber;  //There may be more than one file of the same size.
 
+public:
 	BOOL			Init(CDurableFileController* pcDurableFileControl, int iFileIndex, char* szFileName, char* szRewriteName, int iDataSize, int iFileNum);
 	void			Kill(void);
 	filePos			CalculateNumDatas(void);
@@ -68,11 +69,13 @@ public:
 
 	CFileBasic*		DumpGetPrimaryFile(void);
 	char*			GetFileName(void);
+	int				GetFileNumber(void);
 	char*			GetRewriteName(void);
 	int				GetDataSize(void);
 	filePos			NumDatas(void);
 	int				GetUsedDataIndices(CArrayBit* pab);
 
+	filePos			GetFileSize(void);
 	void			Dump(void);
 
 protected:
