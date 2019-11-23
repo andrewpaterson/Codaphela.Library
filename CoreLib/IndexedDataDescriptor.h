@@ -31,17 +31,18 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 struct SIndexedDataDescriptor
 {
-protected:
+public:
 	unsigned int	muiDataSize;
 
 	CFilePosIndex	mcFileIndex;
 };
 
 
-class CIndexedDataDescriptor : public SIndexedDataDescriptor
+class CIndexedDataDescriptor
 {
 private:
-	void*			mpvCache;  //NULL if object is not cached.
+	SIndexedDataDescriptor	msDescriptor;
+	void*					mpvCache;  //NULL if object is not cached.
 
 public:
 	void 			Init(unsigned int uiDataSize);
