@@ -98,14 +98,14 @@ void CIndexedFilesEvictedDescriptorList::NullCachedDescriptors(void)
 {
 	SMapIterator			sIter;
 	OIndex*					poi;
-	CIndexedDataDescriptor*	pcDesc;
+	CIndexedDataDescriptor*	pcDescriptor;
 	BOOL					bExists;
 	
-	bExists = mcDescriptors.StartIteration(&sIter, (void**)&poi, (void**)&pcDesc);
+	bExists = mcDescriptors.StartIteration(&sIter, (void**)&poi, (void**)&pcDescriptor);
 	while (bExists)
 	{
-		pcDesc->Cache(NULL);
-		bExists = mcDescriptors.Iterate(&sIter, (void**)&poi, (void**)&pcDesc);
+		pcDescriptor->Cache(NULL);
+		bExists = mcDescriptors.Iterate(&sIter, (void**)&poi, (void**)&pcDescriptor);
 	}
 }
 

@@ -108,13 +108,13 @@ void CIndexedCache::Clear(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedCache::Invalidate(CIndexedDataDescriptor* pcDesc)
+void CIndexedCache::Invalidate(CIndexedDataDescriptor* pcDescriptor)
 {
 	SIndexedCacheDescriptor*	psDescriptor;
 
-	if (pcDesc->IsCached())
+	if (pcDescriptor->IsCached())
 	{
-		psDescriptor = GetHeader(pcDesc->GetCache());
+		psDescriptor = GetHeader(pcDescriptor->GetCache());
 		mcCache.Deallocate(psDescriptor);
 	}
 }

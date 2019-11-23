@@ -27,6 +27,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "IndexedFile.h"
 #include "IndexedDataDescriptor.h"
 
+
 class CIndexedFiles
 {
 protected:
