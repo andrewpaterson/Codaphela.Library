@@ -385,8 +385,10 @@ int CIndexedFile::GetUsedDataIndices(CArrayBit* pab)
 //
 //////////////////////////////////////////////////////////////////////////
 int CIndexedFile::GetFileIndex(void) { return miFileIndex; }
+int CIndexedFile::GetFileNumber(void) { return miFileNumber; }
 BOOL CIndexedFile::IsFileIndex(int iFileIndex) { return miFileIndex == iFileIndex; }
 char* CIndexedFile::GetFileName(void) { return mcFile.GetFileName(); }
 char* CIndexedFile::GetRewriteName(void) { return mcFile.GetRewriteName(); }
 int CIndexedFile::GetDataSize(void) { return miDataSize; }
 filePos CIndexedFile::NumDatas(void) { return miNumDatas; }
+filePos	CIndexedFile::GetFileSize(void) { return mcFile.Size(); };
