@@ -495,7 +495,8 @@ int CIndexTreeNodeFile::WriteToBuffer(void* pvBuffer, int iBufferSize, CIndexTre
 	int						iFileDataSize;
 
 	iFileDataSize = CalculateDataBufferSize(pcCallback);
-	iFileSize = CalculateNodeSize() + iFileDataSize;
+	iFileSize = CalculateNodeSize();
+	iFileSize += iFileDataSize;
 	if (iBufferSize < iFileSize)
 	{
 		gcLogger.Error2(__METHOD__, " Could not write IndexTreeNodeFile size [", IntToString(iFileSize), "] to buffer size [", IntToString(iBufferSize), "].  Buffer to small.", NULL);
