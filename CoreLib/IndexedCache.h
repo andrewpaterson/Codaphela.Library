@@ -52,7 +52,6 @@ public:
 	void						Clear(void);
 	void						Invalidate(void* pcCache);
 	void						Deallocate(SIndexedCacheDescriptor* psDescriptor);
-	BOOL						Update(CIndexedDataDescriptor* pcDescriptor, void* pvData);
 	void						SetDirty(void* pvCache);
 
 	SIndexedCacheDescriptor*	GetHeader(void* pvData);

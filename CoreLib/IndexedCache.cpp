@@ -176,34 +176,6 @@ int CIndexedCache::NumCached(int iSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedCache::Update(CIndexedDataDescriptor* pcDescriptor, void* pvData)
-{
-	SIndexedCacheDescriptor*	psCacheIndex;
-	void*						pvCache;
-	size_t						iDataSize;
-	int							iResult;
-
-	//THIS METHOD NEEDS TO BE RETHOUGHT.
-
-	//Assumes that the test to make sure this is in the cache has already been done.
-	pvCache = pcDescriptor->GetCache();
-	iDataSize = pcDescriptor->GetDataSize();
-	psCacheIndex = GetHeader(pvCache);
-	iResult = memcmp(pvCache, pvData, iDataSize);
-	if (iResult != 0)
-	{
-		memcpy_fast(pvCache, pvData, iDataSize);
-		psCacheIndex->iFlags |= CACHE_DESCRIPTOR_FLAG_DIRTY;
-		return TRUE;
-	}
-	return FALSE;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 SIndexedCacheDescriptor* CIndexedCache::GetHeader(void* pvData)
 {
 	return (SIndexedCacheDescriptor*)RemapSinglePointer(pvData, -mcCache.miDescriptorSize);
