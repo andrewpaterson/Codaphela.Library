@@ -47,6 +47,9 @@ private:
 
 public:
 	void 			Init(unsigned int uiDataSize);
+	void 			Init(unsigned int uiDataSize, CFilePosIndex* pcFilePosIndex);
+	void 			Init(unsigned int uiDataSize, void* pvCache);
+	void 			Init(unsigned int uiDataSize, CFilePosIndex* pcFilePosIndex, void* pvCache);
 
 	unsigned int	GetDataSize(void);
 	void			SetDataSize(unsigned int uiDataSize);
@@ -59,6 +62,8 @@ public:
 
 	filePos			GetPositionInFile(void);
 	unsigned int	GetDataIndexInFile(void);
+	void			GetFileDataIndex(CFileDataIndex* pcFileDataIndex);
+	CFilePosIndex*	GetFilePosIndex(void);
 	BOOL			Update(CIndexedDataDescriptor* pcNew);
 };
 

@@ -91,6 +91,7 @@
     <ClCompile Include="FileIterator.cpp" />
     <ClCompile Include="FileIteratorReturn.cpp" />
     <ClCompile Include="Files.cpp" />
+    <ClCompile Include="IndexedCacheResult.cpp" />
     <ClCompile Include="IndexedDataAccess.cpp" />
     <ClCompile Include="IndexedDataCommon.cpp" />
     <ClCompile Include="IndexedDescriptorsFileCallback.cpp" />
@@ -175,6 +176,7 @@
     <ClCompile Include="OperatorAssignment.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="IndexedCacheResult.h" />
     <ClInclude Include="IndexedDataAccess.h" />
     <ClInclude Include="IndexedDataCommon.h" />
     <ClInclude Include="IndexedDescriptorsFileCallback.h" />

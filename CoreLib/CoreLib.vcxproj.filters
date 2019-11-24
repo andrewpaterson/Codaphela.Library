@@ -420,6 +420,9 @@
     <ClCompile Include="IndexTreeEvictionCallbackWrapper.cpp">
       <Filter>Source\File\Indexed\Index\Evicting</Filter>
     </ClCompile>
+    <ClCompile Include="IndexedCacheResult.cpp">
+      <Filter>Source\File\Indexed\Cache</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="IndexedConfig.h">
@@ -700,6 +703,9 @@
     </ClInclude>
     <ClInclude Include="IndexTreeEvictionCallbackWrapper.h">
       <Filter>Source\File\Indexed\Index\Evicting</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexedCacheResult.h">
+      <Filter>Source\File\Indexed\Cache</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

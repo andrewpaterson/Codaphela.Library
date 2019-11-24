@@ -2,6 +2,7 @@
 #define __INDEXED_FILES_EVICTING_H__
 #include "DurableFileController.h"
 #include "IndexedFiles.h"
+#include "IndexedCacheResult.h"
 #include "IndexedCache.h"
 
 
@@ -43,14 +44,14 @@ public:
 	unsigned int	TestGetCachedObjectSize(OIndex oi);
 
 protected:
-	BOOL			CacheAllocate(OIndex oi, CIndexedDataDescriptor* pcDescriptor);
-	BOOL			DescriptorsEvicted(CArrayVoidPtr* papsEvictedIndexedCacheDescriptors);
+	CIndexedCacheResult	CacheAllocate(OIndex oi, unsigned uiDataSize);
+	BOOL				DescriptorsEvicted(CArrayVoidPtr* papsEvictedIndexedCacheDescriptors);
 
-	BOOL			WriteEvictedData(SIndexedCacheDescriptor* psCached, BOOL bClearCache, BOOL bNoEviction);
-	BOOL			WriteEvictedData(CIndexedDataDescriptor* pcDescriptor, BOOL bClearCache);
+	BOOL				WriteEvictedData(SIndexedCacheDescriptor* psCached, BOOL bClearCache, BOOL bNoEviction);
+	BOOL				WriteEvictedData(CIndexedDataDescriptor* pcDescriptor, BOOL bClearCache);
 
-	BOOL			CompareDiskToMemory(CIndexedDataDescriptor* pcDescriptor, void* pvData);
-	BOOL			ClearDescriptorCache(SIndexedCacheDescriptor* psCached);
+	BOOL				CompareDiskToMemory(CIndexedDataDescriptor* pcDescriptor, void* pvData);
+	BOOL				ClearDescriptorCache(SIndexedCacheDescriptor* psCached);
 };
 
 
