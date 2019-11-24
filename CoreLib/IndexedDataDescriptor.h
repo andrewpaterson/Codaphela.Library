@@ -33,7 +33,7 @@ struct SIndexedFileDataDescriptor
 {
 public:
 	unsigned int	muiDataSize;
-	CFilePosIndex	mcIndex;
+	CFilePosIndex	mcFileIndex;
 };
 
 
@@ -41,10 +41,13 @@ class CIndexedDataDescriptor
 {
 private:
 	SIndexedFileDataDescriptor	msFileDescriptor;
+
 	void*						mpvCache;  //NULL if object is not cached.
+	unsigned int				muiCacheDataSize;
 
 public:
 	void 			Init(unsigned int uiDataSize);
+
 	unsigned int	GetDataSize(void);
 	void			SetDataSize(unsigned int uiDataSize);
 	void			Cache(void* pvCache);
