@@ -11,7 +11,7 @@ unsigned short CIndexedDescriptorsFileCallback::DataBufferSize(unsigned short ui
 {
 	if (uiSourceSize != 0)
 	{
-		return sizeof(SIndexedDataDescriptor);
+		return sizeof(SIndexedFileDataDescriptor);
 	}
 	else
 	{
