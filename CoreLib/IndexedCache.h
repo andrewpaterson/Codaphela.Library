@@ -24,6 +24,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define __INDEXED_CACHE_H__
 #include "BaseLib/MemoryCache.h"
 #include "IndexedDataDescriptor.h"
+#include "IndexedCacheResult.h"
 
 
 #define CACHE_DESCRIPTOR_FLAG_DIRTY		0x02
@@ -47,9 +48,9 @@ public:
 	void						Kill(void);
 
 	BOOL						PreAllocate(CMemoryCacheAllocation* pcResult);
-	BOOL						Allocate(OIndex oi, CIndexedDataDescriptor* pcDescriptor, CMemoryCacheAllocation* pcResult);
+	CIndexedCacheResult			Allocate(OIndex oi, unsigned uiDataSize, CMemoryCacheAllocation* pcResult);
 	void						Clear(void);
-	void						Invalidate(CIndexedDataDescriptor* pcDescriptor);
+	void						Invalidate(void* pcCache);
 	void						Deallocate(SIndexedCacheDescriptor* psDescriptor);
 	BOOL						Update(CIndexedDataDescriptor* pcDescriptor, void* pvData);
 	void						SetDirty(void* pvCache);

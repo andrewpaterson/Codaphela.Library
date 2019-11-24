@@ -72,25 +72,34 @@ BOOL CIndexedCache::PreAllocate(CMemoryCacheAllocation* pcResult)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedCache::Allocate(OIndex oi, CIndexedDataDescriptor* pcDescriptor, CMemoryCacheAllocation* pcPreAllocated)
+CIndexedCacheResult CIndexedCache::Allocate(OIndex oi, unsigned uiDataSize, CMemoryCacheAllocation* pcPreAllocated)
 {
 	void*						pvCache;
 	SIndexedCacheDescriptor*	psCacheDesc;
+	CIndexedCacheResult			cResult;
 
 	pvCache = mcCache.Allocate(pcPreAllocated);
 
 	if (!pvCache)
 	{
-		pcDescriptor->Cache(NULL);
-		return FALSE;
+		cResult.Fail();
+		return cResult;
 	}
 
 	
 	psCacheDesc = GetHeader(pvCache);
 	psCacheDesc->oi = oi;
 
-	pcDescriptor->Cache(pvCache);
-	return pcDescriptor->GetDataSize() == psCacheDesc->iDataSize;
+	if (uiDataSize == psCacheDesc->iDataSize)
+	{
+		cResult.Succeed(pvCache);
+		return cResult;
+	}
+	else
+	{
+		cResult.Fail();
+		return cResult;
+	}
 }
 
 
@@ -108,13 +117,13 @@ void CIndexedCache::Clear(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedCache::Invalidate(CIndexedDataDescriptor* pcDescriptor)
+void CIndexedCache::Invalidate(void* pcCache)
 {
 	SIndexedCacheDescriptor*	psDescriptor;
 
-	if (pcDescriptor->IsCached())
+	if (pcCache)
 	{
-		psDescriptor = GetHeader(pcDescriptor->GetCache());
+		psDescriptor = GetHeader(pcCache);
 		mcCache.Deallocate(psDescriptor);
 	}
 }
