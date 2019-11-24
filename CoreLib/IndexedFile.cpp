@@ -28,10 +28,10 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedFile::Init(CDurableFileController* pcDurableFileControl, int iFileIndex, char* szFileName, char* szRewriteName, int iDataSize, int iFileNum)
+BOOL CIndexedFile::Init(CDurableFileController* pcDurableFileControl, int iFileIndex, char* szFileName, char* szRewriteName, unsigned int uiDataSize, int iFileNum)
 {
 	miFileIndex = iFileIndex;
-	miDataSize = iDataSize;
+	muiDataSize = uiDataSize;
 	miFileNumber = iFileNum;
 
 	mcFile.Init(pcDurableFileControl, szFileName, szRewriteName);
@@ -65,13 +65,13 @@ filePos CIndexedFile::CalculateNumDatas(void)
 		return -1;
 	}
 
-	if (iFileLength % miDataSize != 0)
+	if (iFileLength % muiDataSize != 0)
 	{
 		//Log this error properly.
 		return -1;
 	}
 
-	return (iFileLength / miDataSize);
+	return (iFileLength / muiDataSize);
 }
 
 
@@ -125,12 +125,12 @@ unsigned int CIndexedFile::Write(void* pvData, filePos iCount)
 	}
 
 	iFilePos = mcFile.Size();
-	if ((iFilePos % miDataSize) != 0)
+	if ((iFilePos % muiDataSize) != 0)
 	{
 		return INDEXED_FILE_WRITE_ERROR;
 	}
 
-	iWritten = mcFile.Write(EFSO_END, 0, pvData, miDataSize, iCount);
+	iWritten = mcFile.Write(EFSO_END, 0, pvData, muiDataSize, iCount);
 	if (iWritten != (filePos)iCount)
 	{
 		return INDEXED_FILE_WRITE_ERROR;
@@ -138,7 +138,7 @@ unsigned int CIndexedFile::Write(void* pvData, filePos iCount)
 
 	miNumDatas += iCount;
 
-	iDataIndex = iFilePos / miDataSize;
+	iDataIndex = iFilePos / muiDataSize;
 	if (iDataIndex < MAX_UINT)
 	{
 		return (unsigned int)iDataIndex;
@@ -162,8 +162,8 @@ BOOL CIndexedFile::Write(filePos iIndex, void* pvData, filePos iCount)
 		return FALSE;
 	}
 
-	iPosition = iIndex * miDataSize;
-	iWritten = mcFile.Write(EFSO_SET, iPosition, pvData, miDataSize, iCount);
+	iPosition = iIndex * muiDataSize;
+	iWritten = mcFile.Write(EFSO_SET, iPosition, pvData, muiDataSize, iCount);
 	if (iWritten != (filePos)iCount)
 	{
 		return FALSE;
@@ -172,7 +172,7 @@ BOOL CIndexedFile::Write(filePos iIndex, void* pvData, filePos iCount)
 	if (iIndex + iCount > miNumDatas)
 	{
 		iFileLengh = mcFile.Size();
-		miNumDatas = iFileLengh / miDataSize;
+		miNumDatas = iFileLengh / muiDataSize;
 	}
 	return TRUE;
 }
@@ -206,8 +206,8 @@ BOOL CIndexedFile::Read(filePos iIndex, void* pvData, filePos iCount)
 		return FALSE;
 	}
 
-	iPosition = iIndex * miDataSize;
-	iRead = mcFile.Read(EFSO_SET, iPosition, pvData, miDataSize, iCount);
+	iPosition = iIndex * muiDataSize;
+	iRead = mcFile.Read(EFSO_SET, iPosition, pvData, muiDataSize, iCount);
 	return iRead == iCount;
 }
 
@@ -248,12 +248,12 @@ BOOL CIndexedFile::Delete(filePos iIndex, filePos iCount)
 		}
 	}
 
-	iSize = (size_t)iCount * (size_t)miDataSize;
-	iPosition = iIndex * miDataSize;
+	iSize = (size_t)iCount * (size_t)muiDataSize;
+	iPosition = iIndex * muiDataSize;
 
 	pvData = cTemp.Init(iSize);
 	memset(pvData, INDEX_FILE_EMPTY_CHAR, iSize);
-	iWritten = mcFile.Write(EFSO_SET, iPosition, pvData, miDataSize, iCount);
+	iWritten = mcFile.Write(EFSO_SET, iPosition, pvData, muiDataSize, iCount);
 	cTemp.Kill();
 
 	if (iWritten != (filePos)iCount)
@@ -281,13 +281,13 @@ CFileBasic*	CIndexedFile::DumpGetPrimaryFile(void)
 //////////////////////////////////////////////////////////////////////////
 void CIndexedFile::Dump(void)
 {
-	CChars		sz;
-	int			i;
-	filePos		iSizeOnDisk;
-	filePos		iPos;
-	char		pvData[80];
-	int			iReadSize;
-	CFileBasic*	pcFile;
+	CChars			sz;
+	int				i;
+	filePos			iSizeOnDisk;
+	filePos			iPos;
+	char			pvData[80];
+	unsigned int	iReadSize;
+	CFileBasic*		pcFile;
 
 	pcFile = mcFile.DumpGetPrimaryFile();
 	iSizeOnDisk = pcFile->GetFileSize();
@@ -308,22 +308,22 @@ void CIndexedFile::Dump(void)
 	sz.Append("Datas (A:");
 	sz.Append(miNumDatas);
 	sz.Append(", D:");
-	sz.Append(mcFile.Size() / miDataSize);
+	sz.Append(mcFile.Size() / muiDataSize);
 	sz.Append(", F:");
-	sz.Append(iSizeOnDisk/miDataSize);
+	sz.Append(iSizeOnDisk/muiDataSize);
 	sz.Append(")\n\n");
 	sz.Append("Data on Disk\n------------\n");
 
 	iReadSize = 80;
-	if (miDataSize < iReadSize)
+	if (muiDataSize < iReadSize)
 	{
-		iReadSize = miDataSize;
+		iReadSize = muiDataSize;
 	}
 
 	iPos = mcFile.Tell();
-	for (i = 0; i < iSizeOnDisk/miDataSize; i++)
+	for (i = 0; i < iSizeOnDisk/muiDataSize; i++)
 	{
-		pcFile->Seek(i * miDataSize, EFSO_SET);
+		pcFile->Seek(i * muiDataSize, EFSO_SET);
 		pcFile->Read(pvData, iReadSize, 1);
 		sz.AppendData(pvData, iReadSize);
 		sz.AppendNewLine();
@@ -353,11 +353,11 @@ int CIndexedFile::GetUsedDataIndices(CArrayBit* pab)
 	BOOL			bUsed;
 	int				iUsed;
 
-	pvCompare = cCompare.Init(miDataSize);
-	memset(pvCompare, INDEX_FILE_EMPTY_CHAR, miDataSize);
+	pvCompare = cCompare.Init(muiDataSize);
+	memset(pvCompare, INDEX_FILE_EMPTY_CHAR, muiDataSize);
 
 	iUsed = 0;
-	pv = cData.Init(miDataSize);
+	pv = cData.Init(muiDataSize);
 	for (i = 0; i < miNumDatas; i++)
 	{
 		if (!Read(i, pv))
@@ -365,7 +365,7 @@ int CIndexedFile::GetUsedDataIndices(CArrayBit* pab)
 			return -1;
 		}
 
-		bUsed = memcmp(pv, pvCompare, miDataSize) != 0;
+		bUsed = memcmp(pv, pvCompare, muiDataSize) != 0;
 		pab->Add(bUsed);
 
 		if (bUsed)
@@ -389,7 +389,7 @@ int CIndexedFile::GetFileNumber(void) { return miFileNumber; }
 BOOL CIndexedFile::IsFileIndex(int iFileIndex) { return miFileIndex == iFileIndex; }
 char* CIndexedFile::GetFileName(void) { return mcFile.GetFileName(); }
 char* CIndexedFile::GetRewriteName(void) { return mcFile.GetRewriteName(); }
-int CIndexedFile::GetDataSize(void) { return miDataSize; }
+unsigned int CIndexedFile::GetDataSize(void) { return muiDataSize; }
 filePos	CIndexedFile::NumDatas(void) { return miNumDatas; }
 filePos	CIndexedFile::GetFileSize(void) { return mcFile.Size(); };
 

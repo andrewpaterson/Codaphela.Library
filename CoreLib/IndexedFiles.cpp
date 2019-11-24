@@ -216,7 +216,7 @@ BOOL CIndexedFiles::DataFileName(char* szFile1, char* szFile2, int iDataSize, in
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexedFile* CIndexedFiles::GetOrCreateFile(int iDataSize)
+CIndexedFile* CIndexedFiles::GetOrCreateFile(unsigned int uiDataSize)
 {
 	int				i;
 	CIndexedFile*	pcIndexedFile;
@@ -231,7 +231,7 @@ CIndexedFile* CIndexedFiles::GetOrCreateFile(int iDataSize)
 	for (i = 0; i < iNumFiles; i++)
 	{
 		pcIndexedFile = mcFiles.Get(i);
-		if (pcIndexedFile->GetDataSize() == iDataSize)
+		if (pcIndexedFile->GetDataSize() == uiDataSize)
 		{
 			if (!pcIndexedFile->IsFull())
 			{
@@ -251,8 +251,8 @@ CIndexedFile* CIndexedFiles::GetOrCreateFile(int iDataSize)
 		return NULL;
 	}
 
-	DataFileName(szFileName, szRewriteName, iDataSize, iNumFilesWithSize);
-	bResult = pcIndexedFile->Init(mpcDurableFileControl, mcFiles.NumElements()-1, szFileName, szRewriteName, iDataSize, iNumFilesWithSize);
+	DataFileName(szFileName, szRewriteName, uiDataSize, iNumFilesWithSize);
+	bResult = pcIndexedFile->Init(mpcDurableFileControl, mcFiles.NumElements()-1, szFileName, szRewriteName, uiDataSize, iNumFilesWithSize);
 	if (!bResult)
 	{
 		return NULL;
@@ -272,7 +272,7 @@ CIndexedFile* CIndexedFiles::GetOrCreateFile(int iDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexedFile* CIndexedFiles::GetFile(int iDataSize, int iFileNum)
+CIndexedFile* CIndexedFiles::GetFile(unsigned int uiDataSize, int iFileNum)
 {
 	int				i;
 	CIndexedFile*	pcIndexedFile;
@@ -280,7 +280,7 @@ CIndexedFile* CIndexedFiles::GetFile(int iDataSize, int iFileNum)
 	for (i = 0; i < mcFiles.NumElements(); i++)
 	{
 		pcIndexedFile = mcFiles.Get(i);
-		if (pcIndexedFile->GetDataSize() == iDataSize)
+		if (pcIndexedFile->GetDataSize() == uiDataSize)
 		{
 			if (pcIndexedFile->GetFileNumber() == iFileNum)
 			{
@@ -468,13 +468,25 @@ int CIndexedFiles::NumFiles(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexedFiles::Write(CIndexedDataDescriptor* pcDescriptor, void* pvData)
 {
+	CFileDataIndex	cDataIndex;
+
 	if (pcDescriptor->HasFile())
 	{
-		return WriteExisting(pcDescriptor, pvData);
+		pcDescriptor->GetFileDataIndex(&cDataIndex);
+		return WriteExisting(&cDataIndex, pvData, pcDescriptor->GetDataSize());
 	}
 	else
 	{
-		return WriteNew(pcDescriptor, pvData);
+		cDataIndex = WriteNew(pvData, pcDescriptor->GetDataSize());
+		if (cDataIndex.HasFile())
+		{
+			pcDescriptor->SetIndexes(cDataIndex.miFile, cDataIndex.muiIndex);
+			return TRUE;
+		}
+		else
+		{
+			return FALSE;
+		}
 	}
 }
 
@@ -483,33 +495,35 @@ BOOL CIndexedFiles::Write(CIndexedDataDescriptor* pcDescriptor, void* pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedFiles::WriteNew(CIndexedDataDescriptor* pcIndexDescriptor, void* pvData)
+CFileDataIndex CIndexedFiles::WriteNew(void* pvData, unsigned int uiDataSize)
 {
 	CIndexedFile*	pcIndexedFile;
-	filePos			iFilePos;
-	int				iDataSize;
+	unsigned int	uiDataIndex;
+	CFileDataIndex	cDataIndex;
 
-	iDataSize = pcIndexDescriptor->GetDataSize();
-	if (iDataSize != 0)
+	if (uiDataSize != 0)
 	{
-		pcIndexedFile = GetOrCreateFile(iDataSize);
+		pcIndexedFile = GetOrCreateFile(uiDataSize);
 		if (!pcIndexedFile)
 		{
-			return FALSE;
+			cDataIndex.Init();
+			return cDataIndex;
 		}
 
-		iFilePos = pcIndexedFile->Write(pvData);
-		if (iFilePos == -1)
+		uiDataIndex = pcIndexedFile->Write(pvData);
+		if (uiDataIndex == INDEXED_FILE_WRITE_ERROR)
 		{
-			return FALSE;
+			cDataIndex.Init();
+			return cDataIndex;
 		}
 
-		pcIndexDescriptor->SetIndexes(pcIndexedFile->GetFileIndex(), iFilePos);
-		return TRUE;
+		cDataIndex.Init(pcIndexedFile->GetFileIndex(), uiDataIndex);
+		return cDataIndex;
 	}
 	else
 	{
-		return FALSE;
+		cDataIndex.Init();
+		return cDataIndex;
 	}
 }
 
@@ -518,20 +532,20 @@ BOOL CIndexedFiles::WriteNew(CIndexedDataDescriptor* pcIndexDescriptor, void* pv
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedFiles::WriteExisting(CIndexedDataDescriptor* pcDescriptor, void* pvData)
+BOOL CIndexedFiles::WriteExisting(CFileDataIndex* pcDataIndex, void* pvData, unsigned int uiDataSize)
 {
 	CIndexedFile*	pcIndexedFile;
-	filePos			iResult;
+	BOOL			bResult;
 
-	pcIndexedFile = GetFile(pcDescriptor->GetFileIndex());
+	pcIndexedFile = GetFile(pcDataIndex->miFile);
 	if (pcIndexedFile)
 	{
-		if (pcDescriptor->GetDataSize() != pcIndexedFile->GetDataSize())
+		if (uiDataSize != pcIndexedFile->GetDataSize())
 		{
 			return FALSE;
 		}
-		iResult = pcIndexedFile->Write(pcDescriptor->GetPositionInFile(), pvData);
-		return iResult == 1;
+		bResult = pcIndexedFile->Write(pcDataIndex->muiIndex, pvData);
+		return bResult;
 	}
 	else
 	{
@@ -544,17 +558,17 @@ BOOL CIndexedFiles::WriteExisting(CIndexedDataDescriptor* pcDescriptor, void* pv
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedFiles::Read(CFileDataIndex* pcFileIndex, void* pvData)
+BOOL CIndexedFiles::Read(CFileDataIndex* pcDataIndex, void* pvData)
 {
 	CIndexedFile*	pcIndexedFile;
 
-	pcIndexedFile = GetFile(pcFileIndex->miFile);
+	pcIndexedFile = GetFile(pcDataIndex->miFile);
 	if (!pcIndexedFile)
 	{
 		return FALSE;
 	}
 
-	return pcIndexedFile->Read(pcFileIndex->muiIndex, pvData);
+	return pcIndexedFile->Read(pcDataIndex->muiIndex, pvData);
 }
 
 
@@ -562,18 +576,18 @@ BOOL CIndexedFiles::Read(CFileDataIndex* pcFileIndex, void* pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedFiles::Delete(CFileDataIndex* pcFileIndex)
+BOOL CIndexedFiles::Delete(CFileDataIndex* pcDataIndex)
 {
 	CIndexedFile*	pcIndexedFile;
 	int				iResult;
 
-	pcIndexedFile = GetFile(pcFileIndex->miFile);
+	pcIndexedFile = GetFile(pcDataIndex->miFile);
 	if (!pcIndexedFile)
 	{
 		return FALSE;
 	}
 
-	iResult = pcIndexedFile->Delete(pcFileIndex->muiIndex);
+	iResult = pcIndexedFile->Delete(pcDataIndex->muiIndex);
 	return iResult == 1;
 }
 

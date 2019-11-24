@@ -48,8 +48,8 @@ public:
 	BOOL			WriteIndexedFileDescriptors(void);
 	BOOL			DataFileName(char* szFile1, char* szFile2, int iDataSize, int iFileNum);
 
-	CIndexedFile* 	GetOrCreateFile(int iDataSize);
-	CIndexedFile* 	GetFile(int iDataSize, int iFileNum);
+	CIndexedFile* 	GetOrCreateFile(unsigned int uiDataSize);
+	CIndexedFile* 	GetFile(unsigned int uiDataSize, int iFileNum);
 	CIndexedFile* 	GetFile(int iFileIndex);
 	int				GetUniqueFileNumber(int iDataSize);
 	void			GetFiles(CArrayIndexedFilePtr* pac);
@@ -61,16 +61,16 @@ public:
 	int				NumFiles(void);
 
 	BOOL			Write(CIndexedDataDescriptor* pcDescriptor, void* pvData);
-	BOOL			Read(CFileDataIndex* pcFileIndex, void* pvData);
-	BOOL			Delete(CFileDataIndex* pcFileIndex);
+	BOOL			Read(CFileDataIndex* pcDataIndex, void* pvData);
+	BOOL			Delete(CFileDataIndex* pcDataIndex);
 
 	BOOL			IsDurable(void);
 	
 	void			Dump(void);
 
 protected:
-	BOOL			WriteNew(CIndexedDataDescriptor* pcDescriptor, void* pvData);
-	BOOL			WriteExisting(CIndexedDataDescriptor* pcDescriptor, void* pvData);
+	CFileDataIndex	WriteNew(void* pvData, unsigned uiDataSize);
+	BOOL			WriteExisting(CFileDataIndex* pcDataIndex, void* pvData, unsigned uiDataSize);
 };
 
 
