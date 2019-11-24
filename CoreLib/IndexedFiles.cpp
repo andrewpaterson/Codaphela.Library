@@ -370,6 +370,26 @@ void CIndexedFiles::GetFiles(CArrayIndexedFilePtr* papc)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+unsigned int CIndexedFiles::GetFileDataSize(int iFileIndex)
+{
+	CIndexedFile*	pcFile;
+
+	pcFile = GetFile(iFileIndex);
+	if (pcFile)
+	{
+		return pcFile->GetDataSize();
+	}
+	else
+	{
+		return 0;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 int64 CIndexedFiles::NumData(void)
 {
 	int				i;
@@ -524,17 +544,17 @@ BOOL CIndexedFiles::WriteExisting(CIndexedDataDescriptor* pcDescriptor, void* pv
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedFiles::Read(CIndexedDataDescriptor* pcIndexDescriptor, void* pvData)
+BOOL CIndexedFiles::Read(CFileDataIndex* pcFileIndex, void* pvData)
 {
 	CIndexedFile*	pcIndexedFile;
 
-	pcIndexedFile = GetFile(pcIndexDescriptor->GetFileIndex());
+	pcIndexedFile = GetFile(pcFileIndex->miFile);
 	if (!pcIndexedFile)
 	{
 		return FALSE;
 	}
 
-	return pcIndexedFile->Read(pcIndexDescriptor->GetPositionInFile(), pvData);
+	return pcIndexedFile->Read(pcFileIndex->muiIndex, pvData);
 }
 
 

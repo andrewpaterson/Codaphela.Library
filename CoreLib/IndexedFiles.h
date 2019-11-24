@@ -53,6 +53,7 @@ public:
 	CIndexedFile* 	GetFile(int iFileIndex);
 	int				GetUniqueFileNumber(int iDataSize);
 	void			GetFiles(CArrayIndexedFilePtr* pac);
+	unsigned int	GetFileDataSize(int iFileIndex);
 
 	int64			NumData(void);
 	int64			NumData(int iDataSize);
@@ -60,7 +61,7 @@ public:
 	int				NumFiles(void);
 
 	BOOL			Write(CIndexedDataDescriptor* pcDescriptor, void* pvData);
-	BOOL			Read(CIndexedDataDescriptor* pcDescriptor, void* pvData);
+	BOOL			Read(CFileDataIndex* pcFileIndex, void* pvData);
 	BOOL			Delete(CFileDataIndex* pcFileIndex);
 
 	BOOL			IsDurable(void);

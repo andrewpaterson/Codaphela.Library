@@ -159,7 +159,7 @@ void CIndexTreeFile::RecurseKill(CIndexTreeNodeFile* pcNode)
 BOOL CIndexTreeFile::InitRoot(void)
 {
 	BOOL				bRootIndexExists;
-	CFileDataIndex		cRootFileIndex;
+	CFileDataIndex		cRootDataIndex;
 	CIndexedFile*		pcRootIndexFile;
 	CStackMemory<>		cTemp;
 	int					iNodeSize;
@@ -167,19 +167,19 @@ BOOL CIndexTreeFile::InitRoot(void)
 	BOOL				bResult;
 
 	InitRootIndexFile();
-	cRootFileIndex = ReadRootFileIndex();
+	cRootDataIndex = ReadRootFileIndex();
 
-	bRootIndexExists = cRootFileIndex.HasFile();
+	bRootIndexExists = cRootDataIndex.HasFile();
 	if (bRootIndexExists)
 	{
 		//The data size on the root is always zero.
-		mpcRoot = AllocateRoot(cRootFileIndex);
+		mpcRoot = AllocateRoot(cRootDataIndex);
 		iNodeSize = mpcRoot->CalculateNodeSize() + mpcRoot->CalculateDataBufferSize(mpcDataCallback);
 
-		pcRootIndexFile = mcIndexFiles.GetFile(cRootFileIndex.miFile);
+		pcRootIndexFile = mcIndexFiles.GetFile(cRootDataIndex.miFile);
 		if (pcRootIndexFile == NULL)
 		{
-			return gcLogger.Error2(__METHOD__, " Could not get root node indexed file [", IntToString(cRootFileIndex.miFile), "]", NULL);
+			return gcLogger.Error2(__METHOD__, " Could not get root node indexed file [", IntToString(cRootDataIndex.miFile), "]", NULL);
 		}
 
 		if (iNodeSize != pcRootIndexFile->GetDataSize())
@@ -188,7 +188,7 @@ BOOL CIndexTreeFile::InitRoot(void)
 		}
 
 		pvBuffer = cTemp.Init(iNodeSize);
-		bResult = pcRootIndexFile->Read(cRootFileIndex.muiIndex, pvBuffer, 1);
+		bResult = pcRootIndexFile->Read(cRootDataIndex.muiIndex, pvBuffer, 1);
 		if (!bResult)
 		{
 			return gcLogger.Error2(__METHOD__, " Could not read root node indexed file.", NULL);

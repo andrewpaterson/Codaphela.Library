@@ -53,6 +53,7 @@ BOOL CIndexedFilesEvicting::GetData(OIndex oi, CIndexedDataDescriptor* pcExistin
 	void*					pvCache;
 	CIndexedCacheResult		cResult;
 	unsigned int			uiDataSize;
+	CFileDataIndex			cDataIndex;
 
 	//The descriptor has always been set prior to calling this.
 	uiDataSize = pcExistingDescriptor->GetDataSize();
@@ -73,7 +74,8 @@ BOOL CIndexedFilesEvicting::GetData(OIndex oi, CIndexedDataDescriptor* pcExistin
 			if (cResult.IsCached())
 			{
 				pvCache = cResult.GetCache();
-				bResult = mcDataFiles.Read(pcExistingDescriptor, pvCache);
+				pcExistingDescriptor->GetFileDataIndex(&cDataIndex);
+				bResult = mcDataFiles.Read(&cDataIndex, pvCache);
 				if (bResult)
 				{
 					memcpy_fast(pvData, pvCache, uiDataSize);
@@ -92,7 +94,8 @@ BOOL CIndexedFilesEvicting::GetData(OIndex oi, CIndexedDataDescriptor* pcExistin
 		}
 		else
 		{
-			return mcDataFiles.Read(pcExistingDescriptor, pvData);
+			pcExistingDescriptor->GetFileDataIndex(&cDataIndex);
+			return mcDataFiles.Read(&cDataIndex, pvData);
 		}
 	}
 }
@@ -642,13 +645,15 @@ BOOL CIndexedFilesEvicting::CompareDiskToMemory(CIndexedDataDescriptor* pcDescri
 	void*				pvTemp;
 	CStackMemory<>		cStack;
 	BOOL				bResult;
+	CFileDataIndex		cDataIndex;
 
 	if (pcDescriptor->HasFile())
 	{
 		uiDataSize = pcDescriptor->GetDataSize();
 		pvTemp = cStack.Init(uiDataSize);
 
-		mcDataFiles.Read(pcDescriptor, pvTemp);
+		pcDescriptor->GetFileDataIndex(&cDataIndex);
+		mcDataFiles.Read(&cDataIndex, pvTemp);
 		bResult = memcmp(pvTemp, pvData, uiDataSize) == 0;
 		cStack.Kill();
 		return bResult;
