@@ -52,7 +52,6 @@ public:
 	void 			Init(unsigned int uiDataSize, CFilePosIndex* pcFilePosIndex, void* pvCache);
 
 	unsigned int	GetDataSize(void);
-	void			SetDataSize(unsigned int uiDataSize);
 	void			Cache(void* pvCache);
 	BOOL			HasFile(void);
 	BOOL			IsCached(void);

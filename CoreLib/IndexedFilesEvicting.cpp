@@ -385,7 +385,6 @@ BOOL CIndexedFilesEvicting::SetData(OIndex oi, CIndexedDataDescriptor* pcDescrip
 				else
 				{
 					//Descriptor size different to Set size.  Cached data.  File not written.
-					pcDescriptor->SetDataSize(uiDataSize);
 					cCacheResult = CacheAllocate(oi, uiDataSize);
 					if (!cCacheResult.IsCached())
 					{
@@ -536,7 +535,6 @@ BOOL CIndexedFilesEvicting::Evict(OIndex oi, CIndexedDataDescriptor* pcDescripto
 	pvData = pcDescriptor->GetCache();
 	if (pvData)
 	{
-		pvData = pcDescriptor->GetCache();
 		psDescriptor = mcDataCache.GetHeader(pvData);
 
 		bResult = WriteEvictedData(pcDescriptor, FALSE);
