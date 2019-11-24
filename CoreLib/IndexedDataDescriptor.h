@@ -29,24 +29,22 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "IndexedGeneral.h"
 
 
-struct SIndexedDataDescriptor
+struct SIndexedFileDataDescriptor
 {
 public:
 	unsigned int	muiDataSize;
-
-	CFilePosIndex	mcFileIndex;
+	CFilePosIndex	mcIndex;
 };
 
 
 class CIndexedDataDescriptor
 {
 private:
-	SIndexedDataDescriptor	msDescriptor;
-	void*					mpvCache;  //NULL if object is not cached.
+	SIndexedFileDataDescriptor	msFileDescriptor;
+	void*						mpvCache;  //NULL if object is not cached.
 
 public:
 	void 			Init(unsigned int uiDataSize);
-	BOOL 			IsAllocated(void);
 	unsigned int	GetDataSize(void);
 	void			SetDataSize(unsigned int uiDataSize);
 	void			Cache(void* pvCache);

@@ -33,19 +33,9 @@ void CIndexedDataDescriptor::Init(unsigned int uiDataSize)
 	//This is memset to zero to ensure unused bytes due to compiler struct alignment are set to zero also.
 	memset(this, 0, sizeof(CIndexedDataDescriptor));
 
-	msDescriptor.muiDataSize = uiDataSize;
+	msFileDescriptor.muiDataSize = uiDataSize;
 
-	msDescriptor.mcFileIndex.Init();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CIndexedDataDescriptor::IsAllocated(void)
-{
-	return msDescriptor.muiDataSize != 0;
+	msFileDescriptor.mcFileIndex.Init();
 }
 
 
@@ -55,7 +45,7 @@ BOOL CIndexedDataDescriptor::IsAllocated(void)
 //////////////////////////////////////////////////////////////////////////
 unsigned int CIndexedDataDescriptor::GetDataSize(void)
 {
-	return msDescriptor.muiDataSize;
+	return msFileDescriptor.muiDataSize;
 }
 
 
@@ -65,7 +55,7 @@ unsigned int CIndexedDataDescriptor::GetDataSize(void)
 //////////////////////////////////////////////////////////////////////////
 void CIndexedDataDescriptor::SetDataSize(unsigned int uiDataSize)
 {
-	msDescriptor.muiDataSize = uiDataSize;
+	msFileDescriptor.muiDataSize = uiDataSize;
 }
 
 
@@ -85,7 +75,7 @@ void CIndexedDataDescriptor::Cache(void* pvCache)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexedDataDescriptor::HasFile(void)
 {
-	return msDescriptor.mcFileIndex.HasFile();
+	return msFileDescriptor.mcFileIndex.HasFile();
 }
 
 
@@ -115,7 +105,7 @@ void* CIndexedDataDescriptor::GetCache(void)
 //////////////////////////////////////////////////////////////////////////
 void CIndexedDataDescriptor::SetIndexes(int iFileIndex, filePos iIndexInFile)
 {
-	msDescriptor.mcFileIndex.SetIndex(iFileIndex, iIndexInFile);
+	msFileDescriptor.mcFileIndex.SetIndex(iFileIndex, iIndexInFile);
 }
 
 
@@ -125,7 +115,7 @@ void CIndexedDataDescriptor::SetIndexes(int iFileIndex, filePos iIndexInFile)
 //////////////////////////////////////////////////////////////////////////
 int CIndexedDataDescriptor::GetFileIndex(void)
 {
-	return msDescriptor.mcFileIndex.miFile;
+	return msFileDescriptor.mcFileIndex.miFile;
 }
 
 
@@ -135,7 +125,7 @@ int CIndexedDataDescriptor::GetFileIndex(void)
 //////////////////////////////////////////////////////////////////////////
 filePos CIndexedDataDescriptor::GetPositionInFile(void)
 {
-	return msDescriptor.mcFileIndex.mulliFilePos;
+	return msFileDescriptor.mcFileIndex.mulliFilePos;
 }
 
 
@@ -145,7 +135,7 @@ filePos CIndexedDataDescriptor::GetPositionInFile(void)
 //////////////////////////////////////////////////////////////////////////
 unsigned int CIndexedDataDescriptor::GetDataIndexInFile(void)
 {
-	return (unsigned int)(msDescriptor.mcFileIndex.mulliFilePos / msDescriptor.muiDataSize);
+	return (unsigned int)(msFileDescriptor.mcFileIndex.mulliFilePos / msFileDescriptor.muiDataSize);
 }
 
 
@@ -158,19 +148,19 @@ BOOL CIndexedDataDescriptor::Update(CIndexedDataDescriptor* pcNew)
 	BOOL	bUpdated;
 
 	bUpdated = FALSE;
-	if (pcNew->msDescriptor.mcFileIndex.miFile != msDescriptor.mcFileIndex.miFile)
+	if (pcNew->msFileDescriptor.mcFileIndex.miFile != msFileDescriptor.mcFileIndex.miFile)
 	{
-		msDescriptor.mcFileIndex.miFile = pcNew->msDescriptor.mcFileIndex.miFile;
+		msFileDescriptor.mcFileIndex.miFile = pcNew->msFileDescriptor.mcFileIndex.miFile;
 		bUpdated = TRUE;
 	}
-	if (pcNew->msDescriptor.mcFileIndex.mulliFilePos != msDescriptor.mcFileIndex.mulliFilePos)
+	if (pcNew->msFileDescriptor.mcFileIndex.mulliFilePos != msFileDescriptor.mcFileIndex.mulliFilePos)
 	{
-		msDescriptor.mcFileIndex.mulliFilePos = pcNew->msDescriptor.mcFileIndex.mulliFilePos;
+		msFileDescriptor.mcFileIndex.mulliFilePos = pcNew->msFileDescriptor.mcFileIndex.mulliFilePos;
 		bUpdated = TRUE;
 	}
-	if (pcNew->msDescriptor.muiDataSize != msDescriptor.muiDataSize)
+	if (pcNew->msFileDescriptor.muiDataSize != msFileDescriptor.muiDataSize)
 	{
-		msDescriptor.muiDataSize = pcNew->msDescriptor.muiDataSize;
+		msFileDescriptor.muiDataSize = pcNew->msFileDescriptor.muiDataSize;
 		bUpdated = TRUE;
 	}
 

@@ -390,5 +390,6 @@ BOOL CIndexedFile::IsFileIndex(int iFileIndex) { return miFileIndex == iFileInde
 char* CIndexedFile::GetFileName(void) { return mcFile.GetFileName(); }
 char* CIndexedFile::GetRewriteName(void) { return mcFile.GetRewriteName(); }
 int CIndexedFile::GetDataSize(void) { return miDataSize; }
-filePos CIndexedFile::NumDatas(void) { return miNumDatas; }
+filePos	CIndexedFile::NumDatas(void) { return miNumDatas; }
 filePos	CIndexedFile::GetFileSize(void) { return mcFile.Size(); };
+
