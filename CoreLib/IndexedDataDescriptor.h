@@ -46,11 +46,13 @@ private:
 	unsigned int				muiCacheDataSize;
 
 public:
-	void 			Init(unsigned int uiDataSize);
+	void 			Init2(unsigned int uiDataSize);
 	void 			Init(unsigned int uiDataSize, CFilePosIndex* pcFilePosIndex);
 	void 			Init(unsigned int uiDataSize, void* pvCache);
 	void 			Init(unsigned int uiDataSize, CFilePosIndex* pcFilePosIndex, void* pvCache);
 
+	unsigned int	GetFileDataSize(void);
+	unsigned int	GetCacheDataSize(void);
 	unsigned int	GetDataSize(void);
 	void			Cache(void* pvCache);
 	BOOL			HasFile(void);
@@ -60,8 +62,7 @@ public:
 	int				GetFileIndex(void);
 
 	filePos			GetPositionInFile(void);
-	unsigned int	GetDataIndexInFile(void);
-	void			GetFileDataIndex(CFileDataIndex* pcFileDataIndex);
+	CFileDataIndex	GetFileDataIndex(void);
 	CFilePosIndex*	GetFilePosIndex(void);
 	BOOL			Update(CIndexedDataDescriptor* pcNew);
 };

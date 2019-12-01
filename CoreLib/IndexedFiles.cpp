@@ -20,6 +20,8 @@ along with Codaphela CoreLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/Logger.h"
+#include "BaseLib/LogString.h"
 #include "BaseLib/PointerRemapper.h"
 #include "BaseLib/GlobalMemory.h"
 #include "IndexedFiles.h"
@@ -93,6 +95,7 @@ BOOL CIndexedFiles::ReadIndexedFileDescriptors(void)
 	char						szDataFileName[MAX_DIRECTORY_LENGTH];
 	char						szDataRewriteName[MAX_DIRECTORY_LENGTH];
 	filePos						iRead;
+	int							iRemainder;
 
 	if (!mpcDurableFileControl->IsBegun())
 	{
@@ -108,10 +111,17 @@ BOOL CIndexedFiles::ReadIndexedFileDescriptors(void)
 	iFileSize = mcFileDescriptors.Size();
 	if (iFileSize == 0)
 	{
-		return mcFileDescriptors.Create();
+		bResult = mcFileDescriptors.Create();
+		return bResult;
 	}
 
 	iNumFiles = iFileSize / (sizeof(SIndexedFileDescriptor));
+	iRemainder = iFileSize % (sizeof(SIndexedFileDescriptor));
+	if (iRemainder != 0)
+	{
+		return FALSE;
+	}
+
 	pasFileDescriptors = (SIndexedFileDescriptor*)malloc((int)iFileSize);
 
 	iRead = mcFileDescriptors.Read(pasFileDescriptors, sizeof(SIndexedFileDescriptor), iNumFiles);
@@ -466,35 +476,6 @@ int CIndexedFiles::NumFiles(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedFiles::Write(CIndexedDataDescriptor* pcDescriptor, void* pvData)
-{
-	CFileDataIndex	cDataIndex;
-
-	if (pcDescriptor->HasFile())
-	{
-		pcDescriptor->GetFileDataIndex(&cDataIndex);
-		return WriteExisting(&cDataIndex, pvData, pcDescriptor->GetDataSize());
-	}
-	else
-	{
-		cDataIndex = WriteNew(pvData, pcDescriptor->GetDataSize());
-		if (cDataIndex.HasFile())
-		{
-			pcDescriptor->SetIndexes(cDataIndex.miFile, cDataIndex.muiIndex);
-			return TRUE;
-		}
-		else
-		{
-			return FALSE;
-		}
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 CFileDataIndex CIndexedFiles::WriteNew(void* pvData, unsigned int uiDataSize)
 {
 	CIndexedFile*	pcIndexedFile;
@@ -542,7 +523,7 @@ BOOL CIndexedFiles::WriteExisting(CFileDataIndex* pcDataIndex, void* pvData, uns
 	{
 		if (uiDataSize != pcIndexedFile->GetDataSize())
 		{
-			return FALSE;
+			return gcLogger.Error2(__METHOD__, " Cannot write an existing index file data sized [", IntToString(pcIndexedFile->GetDataSize()), "] with a different size [", IntToString(uiDataSize), "].", NULL);
 		}
 		bResult = pcIndexedFile->Write(pcDataIndex->muiIndex, pvData);
 		return bResult;

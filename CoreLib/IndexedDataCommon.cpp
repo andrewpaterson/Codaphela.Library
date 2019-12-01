@@ -19,8 +19,7 @@ BOOL CIndexedDataCommon::Add(OIndex oi, void* pvData, unsigned int uiDataSize, u
 	}
 
 	//This init clears the file index.  This means CompareDiskToMemory() will not try and read it to test for changes.
-	cDescriptor.Init(0);
-	return mcData.SetData(oi, &cDescriptor, pvData, uiDataSize, uiTimeStamp);
+	return mcData.SetData(oi, NULL, pvData, uiDataSize, uiTimeStamp);
 }
 
 
@@ -36,7 +35,7 @@ BOOL CIndexedDataCommon::Set(OIndex oi, void* pvData, unsigned int uiTimeStamp)
 	bResult = GetDescriptor(oi, &cDescriptor);
 	if (bResult)
 	{
-		return mcData.SetData(oi, &cDescriptor, pvData, cDescriptor.GetDataSize(), uiTimeStamp);
+		return mcData.SetData(oi, &cDescriptor, pvData, cDescriptor.GetCacheDataSize(), uiTimeStamp);
 	}
 	else
 	{
@@ -84,8 +83,7 @@ BOOL CIndexedDataCommon::SetOrAdd(OIndex oi, void* pvData, unsigned int uiDataSi
 	}
 	else
 	{
-		cDescriptor.Init(uiDataSize);
-		return mcData.SetData(oi, &cDescriptor, pvData, uiDataSize, uiTimeStamp);
+		return mcData.SetData(oi, NULL, pvData, uiDataSize, uiTimeStamp);
 	}
 }
 
@@ -126,7 +124,7 @@ unsigned int CIndexedDataCommon::Size(OIndex oi)
 	bResult = GetDescriptor(oi, &cDescriptor);
 	if (bResult)
 	{
-		return cDescriptor.GetDataSize();
+		return cDescriptor.GetCacheDataSize();
 	}
 	return 0;
 }
