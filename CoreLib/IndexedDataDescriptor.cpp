@@ -28,16 +28,16 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedDataDescriptor::Init(unsigned int uiDataSize)
+void CIndexedDataDescriptor::Init2(unsigned int uiDataSize)
 {
 	//This is memset to zero to ensure unused bytes due to compiler struct alignment are set to zero also.
 	memset(this, 0, sizeof(CIndexedDataDescriptor));
 
 	msFileDescriptor.muiDataSize = uiDataSize;
-
 	msFileDescriptor.mcFileIndex.Init();
 
 	mpvCache = NULL;
+	muiCacheDataSize = 0;
 }
 
 
@@ -51,10 +51,10 @@ void CIndexedDataDescriptor::Init(unsigned int uiDataSize, CFilePosIndex* pcFile
 	memset(this, 0, sizeof(CIndexedDataDescriptor));
 
 	msFileDescriptor.muiDataSize = uiDataSize;
-
 	msFileDescriptor.mcFileIndex.Init(pcFilePosIndex->miFile, pcFilePosIndex->mulliFilePos);
 
 	mpvCache = NULL;
+	muiCacheDataSize = 0;
 }
 
 
@@ -67,11 +67,11 @@ void CIndexedDataDescriptor::Init(unsigned int uiDataSize, void* pvCache)
 	//This is memset to zero to ensure unused bytes due to compiler struct alignment are set to zero also.
 	memset(this, 0, sizeof(CIndexedDataDescriptor));
 
-	msFileDescriptor.muiDataSize = uiDataSize;
-
+	msFileDescriptor.muiDataSize = 0;
 	msFileDescriptor.mcFileIndex.Init();
 
 	mpvCache = pvCache;
+	muiCacheDataSize = uiDataSize;
 }
 
 
@@ -84,11 +84,38 @@ void CIndexedDataDescriptor::Init(unsigned int uiDataSize, CFilePosIndex* pcFile
 	//This is memset to zero to ensure unused bytes due to compiler struct alignment are set to zero also.
 	memset(this, 0, sizeof(CIndexedDataDescriptor));
 
-	msFileDescriptor.muiDataSize = uiDataSize;
-
+	if (pcFilePosIndex->HasFile())
+	{
+		msFileDescriptor.muiDataSize = uiDataSize;
+	}
+	else
+	{
+		msFileDescriptor.muiDataSize = 0;
+	}
 	msFileDescriptor.mcFileIndex.Init(pcFilePosIndex->miFile, pcFilePosIndex->mulliFilePos);
 
 	mpvCache = pvCache;
+	muiCacheDataSize = uiDataSize;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+unsigned int CIndexedDataDescriptor::GetFileDataSize(void)
+{
+	return msFileDescriptor.muiDataSize;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+unsigned int CIndexedDataDescriptor::GetCacheDataSize(void)
+{
+	return muiCacheDataSize;
 }
 
 
@@ -98,7 +125,18 @@ void CIndexedDataDescriptor::Init(unsigned int uiDataSize, CFilePosIndex* pcFile
 //////////////////////////////////////////////////////////////////////////
 unsigned int CIndexedDataDescriptor::GetDataSize(void)
 {
-	return msFileDescriptor.muiDataSize;
+	if (mpvCache != NULL)
+	{
+		return muiCacheDataSize;
+	}
+	else if (HasFile())
+	{
+		return msFileDescriptor.muiDataSize;
+	}
+	else
+	{
+		return 0;
+	}
 }
 
 
@@ -156,16 +194,6 @@ void CIndexedDataDescriptor::SetIndexes(int iFileIndex, filePos iIndexInFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-unsigned int CIndexedDataDescriptor::GetDataIndexInFile(void)
-{
-	return (unsigned int)(msFileDescriptor.mcFileIndex.mulliFilePos / msFileDescriptor.muiDataSize);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 BOOL CIndexedDataDescriptor::Update(CIndexedDataDescriptor* pcNew)
 {
 	BOOL	bUpdated;
@@ -196,9 +224,12 @@ BOOL CIndexedDataDescriptor::Update(CIndexedDataDescriptor* pcNew)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedDataDescriptor::GetFileDataIndex(CFileDataIndex* pcFileDataIndex)
+CFileDataIndex CIndexedDataDescriptor::GetFileDataIndex(void)
 {
-	pcFileDataIndex->Init(GetFileIndex(), GetDataIndexInFile());
+	CFileDataIndex	cDataIndex;
+
+	cDataIndex = msFileDescriptor.mcFileIndex.ToFileDataIndex(msFileDescriptor.muiDataSize);
+	return cDataIndex;
 }
 
 

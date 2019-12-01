@@ -4,18 +4,22 @@
 
 
 //mulliFilePos is a direct offset into the file from its start in bytes.
+class CFileDataIndex;
 class CFilePosIndex
 {
 public:
-	filePos		mulliFilePos;
-	int			miFile;
+	filePos			mulliFilePos;
+	int				miFile;
 
-	void Init(void);
-	void Init(int iFile, filePos ulliFilePos);
-	void Kill(void);
+public:
+	void			Init(void);
+	void			Init(int iFile, filePos ulliFilePos);
+	void			Kill(void);
 
-	BOOL HasFile(void);
-	void SetIndex(int iFile, filePos ulliFilePos);
+	BOOL			HasFile(void);
+	void			SetIndex(int iFile, filePos ulliFilePos);
+
+	CFileDataIndex	ToFileDataIndex(unsigned int muiDataSize);
 };
 
 
@@ -26,6 +30,7 @@ public:
 	unsigned int	muiIndex;
 	int				miFile;
 
+public:
 	void Init(void);
 	void Init(int iFile, unsigned int uiIndex);
 	void Kill(void);
@@ -35,6 +40,8 @@ public:
 	void SetIndex(CFileDataIndex* pcSource);
 
 	BOOL Equals(CFileDataIndex* pcOther);
+
+	CFilePosIndex	ToFilePosIndex(unsigned int muiDataSize);
 };
 
 

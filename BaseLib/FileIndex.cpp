@@ -1,3 +1,5 @@
+#include "BaseLib/Logger.h"
+#include "BaseLib/LogString.h"
 #include "FileIndex.h"
 
 
@@ -51,6 +53,40 @@ void CFilePosIndex::SetIndex(int iFile, filePos ulliFilePos)
 {
 	miFile = iFile;
 	mulliFilePos = ulliFilePos;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CFileDataIndex CFilePosIndex::ToFileDataIndex(unsigned int muiDataSize)
+{
+	filePos			iIndex;
+	filePos			iRemainder;
+	CFileDataIndex	cFileDataIndex;
+	
+	if (HasFile())
+	{
+		iIndex = mulliFilePos / muiDataSize;
+		iRemainder = mulliFilePos % muiDataSize;
+		if (iRemainder == 0)
+		{
+			cFileDataIndex.Init(miFile, (unsigned int)iIndex);
+			return cFileDataIndex;
+		}
+		else
+		{
+			gcLogger.Error2(__METHOD__, " Cannot convert a FilePosIndex [", IntToString(miFile), ", ", LongLongToString(mulliFilePos), "] to a FileDataIndex.  It is not a multiple of Data Size [", IntToString(muiDataSize), "].", NULL);
+			cFileDataIndex.Init();
+			return cFileDataIndex;
+		}
+	}
+	else
+	{
+		cFileDataIndex.Init();
+		return cFileDataIndex;
+	}
 }
 
 
@@ -126,5 +162,26 @@ void CFileDataIndex::SetIndex(CFileDataIndex* pcSource)
 BOOL CFileDataIndex::Equals(CFileDataIndex* pcOther)
 {
 	return pcOther->miFile == miFile && pcOther->muiIndex == muiIndex;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CFilePosIndex CFileDataIndex::ToFilePosIndex(unsigned int muiDataSize)
+{
+	CFilePosIndex	cPosIndex;
+
+	if (HasFile())
+	{
+		cPosIndex.Init(miFile, ((filePos)muiIndex) * muiDataSize);
+		return cPosIndex;
+	}
+	else
+	{
+		cPosIndex.Init();
+		return cPosIndex;
+	}
 }
 

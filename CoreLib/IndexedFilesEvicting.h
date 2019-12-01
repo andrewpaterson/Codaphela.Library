@@ -44,9 +44,11 @@ public:
 	unsigned int	TestGetCachedObjectSize(OIndex oi);
 
 protected:
+	void*				SetCacheData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, void* pvData, unsigned int uiDataSize);
 	CIndexedCacheResult	CacheAllocate(OIndex oi, unsigned uiDataSize);
 	BOOL				DescriptorsEvicted(CArrayVoidPtr* papsEvictedIndexedCacheDescriptors);
 
+	CFilePosIndex		WriteThroughData(CIndexedDataDescriptor* pcDescriptor, void* pvData, unsigned int uiDataSize);
 	BOOL				WriteEvictedData(SIndexedCacheDescriptor* psCached, BOOL bClearCache, BOOL bNoEviction);
 	BOOL				WriteEvictedData(CIndexedDataDescriptor* pcDescriptor, BOOL bClearCache);
 

@@ -60,17 +60,14 @@ public:
 	int				NumFiles(int iDataSize);
 	int				NumFiles(void);
 
-	BOOL			Write(CIndexedDataDescriptor* pcDescriptor, void* pvData);
 	BOOL			Read(CFileDataIndex* pcDataIndex, void* pvData);
 	BOOL			Delete(CFileDataIndex* pcDataIndex);
+	CFileDataIndex	WriteNew(void* pvData, unsigned uiDataSize);
+	BOOL			WriteExisting(CFileDataIndex* pcDataIndex, void* pvData, unsigned uiDataSize);
 
 	BOOL			IsDurable(void);
 	
 	void			Dump(void);
-
-protected:
-	CFileDataIndex	WriteNew(void* pvData, unsigned uiDataSize);
-	BOOL			WriteExisting(CFileDataIndex* pcDataIndex, void* pvData, unsigned uiDataSize);
 };
 
 
