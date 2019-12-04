@@ -114,7 +114,7 @@ BOOL CIndexedDescriptorsFile::Set(CIndexedDataDescriptor* pcDescriptor, OIndex o
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedDescriptorsFile::SetCache(void* pvCache, OIndex oi)
+BOOL CIndexedDescriptorsFile::SetCache(void* pvCache, unsigned int uiDataSize, OIndex oi)
 {
 	CIndexTreeNode*			pcNode;
 	CIndexedDataDescriptor*	pcDescriptor;
@@ -123,7 +123,7 @@ BOOL CIndexedDescriptorsFile::SetCache(void* pvCache, OIndex oi)
 	if (pcNode)
 	{
 		pcDescriptor = (CIndexedDataDescriptor*)pcNode->GetObjectPtr();
-		pcDescriptor->Cache(pvCache);
+		pcDescriptor->Cache(pvCache, uiDataSize);
 		return TRUE;
 	}
 	return FALSE;
@@ -207,7 +207,7 @@ BOOL CIndexedDescriptorsFile::NodeEvicted(CIndexTreeFile* pcIndexTree, unsigned 
 	}
 
 	oi = *((OIndex*)pvKey);
-	return mpcIndexedData->KeyEvicted(oi, (CIndexedDataDescriptor*)pvData);
+	return mpcIndexedData->EvictData(oi, (CIndexedDataDescriptor*)pvData);
 }
 
 

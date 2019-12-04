@@ -53,7 +53,7 @@ public:
 	BOOL			IsDirty(OIndex oi);
 
 	BOOL			EvictKey(OIndex oi);
-	BOOL			KeyEvicted(OIndex oi, CIndexedDataDescriptor* pcDescriptor);
+	BOOL			EvictData(OIndex oi, CIndexedDataDescriptor* pcDescriptor);
 
 	int				NumIndicesCached(void);
 	CDurableFileController* GetDurableFileControl(void);
@@ -68,7 +68,7 @@ protected:
 
 	BOOL			GetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor, BOOL bNoEviction = FALSE);
 	BOOL			SetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor, BOOL bNoEviction = FALSE);
-	BOOL			UpdateDescriptorCache(OIndex oi, void* pvCache);
+	BOOL			UpdateDescriptorCache(OIndex oi, void* pvCache, unsigned int uiDataSize);
 	BOOL			RemoveDescriptor(OIndex oi);
 
 	BOOL			DescriptorsEvicted(CArrayVoidPtr* papsEvictedIndexedCacheDescriptors);

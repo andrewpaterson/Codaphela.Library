@@ -105,7 +105,7 @@ BOOL CIndexedDataCommon::DescriptorsEvicted(CArrayVoidPtr* papsEvictedIndexedCac
 		psDesc = (SIndexedCacheDescriptor*)papsEvictedIndexedCacheDescriptors->GetPtr(i);
 		if (psDesc != NULL)
 		{
-			bResult &= UpdateDescriptorCache(psDesc->oi, NULL);
+			bResult &= UpdateDescriptorCache(psDesc->oi, NULL, 0);
 		}
 	}
 	return bResult;
@@ -124,7 +124,7 @@ unsigned int CIndexedDataCommon::Size(OIndex oi)
 	bResult = GetDescriptor(oi, &cDescriptor);
 	if (bResult)
 	{
-		return cDescriptor.GetCacheDataSize();
+		return cDescriptor.GetDataSize();
 	}
 	return 0;
 }

@@ -104,7 +104,7 @@ void CIndexedFilesEvictedDescriptorList::NullCachedDescriptors(void)
 	bExists = mcDescriptors.StartIteration(&sIter, (void**)&poi, (void**)&pcDescriptor);
 	while (bExists)
 	{
-		pcDescriptor->Cache(NULL);
+		pcDescriptor->ClearCache();
 		bExists = mcDescriptors.Iterate(&sIter, (void**)&poi, (void**)&pcDescriptor);
 	}
 }
@@ -190,14 +190,14 @@ BOOL CIndexedFilesEvictedDescriptorList::SetDescriptor(OIndex oi, CIndexedDataDe
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedFilesEvictedDescriptorList::UpdateDescriptorCache(OIndex oi, void* pvCache)
+BOOL CIndexedFilesEvictedDescriptorList::UpdateDescriptorCache(OIndex oi, void* pvCache, unsigned int uiDataSize)
 {
 	CIndexedDataDescriptor* pcDescriptor;
 
 	pcDescriptor = mcDescriptors.Get(oi);
 	if (pcDescriptor)
 	{
-		pcDescriptor->Cache(pvCache);
+		pcDescriptor->Cache(pvCache, uiDataSize);
 		return TRUE;
 	}
 	return FALSE;
@@ -272,7 +272,7 @@ BOOL CIndexedFilesEvictedDescriptorList::IsDirty(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedFilesEvictedDescriptorList::KeyEvicted(OIndex oi, CIndexedDataDescriptor* pcDescriptor)
+BOOL CIndexedFilesEvictedDescriptorList::EvictData(OIndex oi, CIndexedDataDescriptor* pcDescriptor)
 {
 	//DescriptorsEvicted
 	return TRUE;

@@ -29,7 +29,7 @@ public:
 	BOOL			Get(CIndexedDataDescriptor* pcDescriptor, OIndex oi, BOOL bNoEviction);
 	BOOL			Set(CIndexedDataDescriptor* pcDescriptor, OIndex oi);
 	BOOL			Set(CIndexedDataDescriptor* pcDescriptor, OIndex oi, BOOL bNoEviction);
-	BOOL			SetCache(void* pvCache, OIndex oi);
+	BOOL			SetCache(void* pvCache, unsigned int uiDataSize, OIndex oi);
 	BOOL			Flush(void);
 
 	int64			NumElements(void);
