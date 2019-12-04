@@ -40,14 +40,14 @@ public:
 
 	virtual BOOL			IsDirty(OIndex oi) =0;
 
-	virtual BOOL			KeyEvicted(OIndex oi, CIndexedDataDescriptor* pcDescriptor) =0;
+	virtual BOOL			EvictData(OIndex oi, CIndexedDataDescriptor* pcDescriptor) =0;
 
 			unsigned int	TestGetCachedObjectSize(OIndex oi);
 
 protected:
 	virtual BOOL			GetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor, BOOL bNoEviction = FALSE) =0;
 	virtual BOOL			SetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor, BOOL bNoEviction = FALSE) =0;
-	virtual BOOL			UpdateDescriptorCache(OIndex oi, void* pvCache) =0;
+	virtual BOOL			UpdateDescriptorCache(OIndex oi, void* pvCache, unsigned int uiDataSize) =0;
 	virtual BOOL			RemoveDescriptor(OIndex oi) =0;
 
 	virtual BOOL			Flush(BOOL bClearCache) =0;

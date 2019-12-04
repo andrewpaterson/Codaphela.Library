@@ -30,7 +30,7 @@ public:
 	int64	NumElements(void);
 	BOOL	IsDirty(OIndex oi);
 
-	BOOL	KeyEvicted(OIndex oi, CIndexedDataDescriptor* pcDescriptor);
+	BOOL	EvictData(OIndex oi, CIndexedDataDescriptor* pcDescriptor);
 
 	BOOL	TestGetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor);
 
@@ -40,7 +40,7 @@ protected:
 
 	BOOL	GetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor, BOOL bNoEviction = FALSE);
 	BOOL	SetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor, BOOL bNoEviction = FALSE);
-	BOOL	UpdateDescriptorCache(OIndex oi, void* pvCache);
+	BOOL	UpdateDescriptorCache(OIndex oi, void* pvCache, unsigned int uiDataSize);
 	BOOL	RemoveDescriptor(OIndex oi);
 };
 

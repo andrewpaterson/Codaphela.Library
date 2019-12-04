@@ -28,28 +28,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedDataDescriptor::Init2(unsigned int uiDataSize)
-{
-	//This is memset to zero to ensure unused bytes due to compiler struct alignment are set to zero also.
-	memset(this, 0, sizeof(CIndexedDataDescriptor));
-
-	msFileDescriptor.muiDataSize = uiDataSize;
-	msFileDescriptor.mcFileIndex.Init();
-
-	mpvCache = NULL;
-	muiCacheDataSize = 0;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CIndexedDataDescriptor::Init(unsigned int uiDataSize, CFilePosIndex* pcFilePosIndex)
 {
-	//This is memset to zero to ensure unused bytes due to compiler struct alignment are set to zero also.
-	memset(this, 0, sizeof(CIndexedDataDescriptor));
-
 	msFileDescriptor.muiDataSize = uiDataSize;
 	msFileDescriptor.mcFileIndex.Init(pcFilePosIndex->miFile, pcFilePosIndex->mulliFilePos);
 
@@ -64,9 +44,6 @@ void CIndexedDataDescriptor::Init(unsigned int uiDataSize, CFilePosIndex* pcFile
 //////////////////////////////////////////////////////////////////////////
 void CIndexedDataDescriptor::Init(unsigned int uiDataSize, void* pvCache)
 {
-	//This is memset to zero to ensure unused bytes due to compiler struct alignment are set to zero also.
-	memset(this, 0, sizeof(CIndexedDataDescriptor));
-
 	msFileDescriptor.muiDataSize = 0;
 	msFileDescriptor.mcFileIndex.Init();
 
@@ -81,9 +58,6 @@ void CIndexedDataDescriptor::Init(unsigned int uiDataSize, void* pvCache)
 //////////////////////////////////////////////////////////////////////////
 void CIndexedDataDescriptor::Init(unsigned int uiDataSize, CFilePosIndex* pcFilePosIndex, void* pvCache)
 {
-	//This is memset to zero to ensure unused bytes due to compiler struct alignment are set to zero also.
-	memset(this, 0, sizeof(CIndexedDataDescriptor));
-
 	if (pcFilePosIndex->HasFile())
 	{
 		msFileDescriptor.muiDataSize = uiDataSize;
@@ -95,7 +69,14 @@ void CIndexedDataDescriptor::Init(unsigned int uiDataSize, CFilePosIndex* pcFile
 	msFileDescriptor.mcFileIndex.Init(pcFilePosIndex->miFile, pcFilePosIndex->mulliFilePos);
 
 	mpvCache = pvCache;
-	muiCacheDataSize = uiDataSize;
+	if (mpvCache != NULL)
+	{
+		muiCacheDataSize = uiDataSize;
+	}
+	else
+	{
+		muiCacheDataSize = 0;
+	}
 }
 
 
@@ -144,9 +125,21 @@ unsigned int CIndexedDataDescriptor::GetDataSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedDataDescriptor::Cache(void* pvCache)
+void CIndexedDataDescriptor::Cache(void* pvCache, unsigned int uiDataSize)
 {
 	mpvCache = pvCache;
+	muiCacheDataSize = uiDataSize;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexedDataDescriptor::ClearCache(void)
+{
+	mpvCache = NULL;
+	muiCacheDataSize = 0;
 }
 
 

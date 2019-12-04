@@ -45,12 +45,13 @@ public:
 
 protected:
 	void*				SetCacheData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, void* pvData, unsigned int uiDataSize);
-	CIndexedCacheResult	CacheAllocate(OIndex oi, unsigned uiDataSize);
+	CIndexedCacheResult	CacheAllocate(OIndex oi, unsigned int uiDataSize);
 	BOOL				DescriptorsEvicted(CArrayVoidPtr* papsEvictedIndexedCacheDescriptors);
 
 	CFilePosIndex		WriteThroughData(CIndexedDataDescriptor* pcDescriptor, void* pvData, unsigned int uiDataSize);
 	BOOL				WriteEvictedData(SIndexedCacheDescriptor* psCached, BOOL bClearCache, BOOL bNoEviction);
 	BOOL				WriteEvictedData(CIndexedDataDescriptor* pcDescriptor, BOOL bClearCache);
+	BOOL				WriteEvictedData2(CIndexedDataDescriptor* pcDescriptor, OIndex oi, void* pvData, BOOL bClearCache, BOOL bNoEviction);
 
 	BOOL				CompareDiskToMemory(CIndexedDataDescriptor* pcDescriptor, void* pvData);
 	BOOL				ClearDescriptorCache(SIndexedCacheDescriptor* psCached);

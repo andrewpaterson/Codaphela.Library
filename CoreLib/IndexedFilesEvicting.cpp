@@ -80,7 +80,7 @@ BOOL CIndexedFilesEvicting::GetData(OIndex oi, CIndexedDataDescriptor* pcExistin
 				if (bResult)
 				{
 					memcpy_fast(pvData, pvCache, uiDataSize);
-					mpcEvictionCallback->UpdateDescriptorCache(oi, pvCache);
+					mpcEvictionCallback->UpdateDescriptorCache(oi, pvCache, uiDataSize);
 					return TRUE;
 				}
 				else
@@ -376,7 +376,6 @@ void* CIndexedFilesEvicting::SetCacheData(OIndex oi, CIndexedDataDescriptor* pcD
 //////////////////////////////////////////////////////////////////////////
 CFilePosIndex CIndexedFilesEvicting::WriteThroughData(CIndexedDataDescriptor* pcDescriptor, void* pvData, unsigned int uiDataSize)
 {
-	BOOL					bResult;
 	CFileDataIndex			cDataIndex;
 	CFileDataIndex			cNewDataIndex;
 	CFilePosIndex			cPosIndex;
@@ -385,7 +384,6 @@ CFilePosIndex CIndexedFilesEvicting::WriteThroughData(CIndexedDataDescriptor* pc
 	{
 		//File not written.
 		cDataIndex = mcDataFiles.WriteNew(pvData, uiDataSize);
-		bResult = cDataIndex.HasFile();
 		cPosIndex = cDataIndex.ToFilePosIndex(uiDataSize);
 		return cPosIndex;
 	}
@@ -396,7 +394,6 @@ CFilePosIndex CIndexedFilesEvicting::WriteThroughData(CIndexedDataDescriptor* pc
 		{
 			//Descriptor size same as Set size.   File exists.
 			cDataIndex = pcDescriptor->GetFileDataIndex();
-			bResult = mcDataFiles.WriteExisting(&cDataIndex, pvData, uiDataSize);
 			cPosIndex = cDataIndex.ToFilePosIndex(uiDataSize);
 			return cPosIndex;
 		}
@@ -405,9 +402,8 @@ CFilePosIndex CIndexedFilesEvicting::WriteThroughData(CIndexedDataDescriptor* pc
 			//Descriptor size different to Set size.  File exists.
 			cDataIndex = pcDescriptor->GetFileDataIndex();
 			cNewDataIndex = mcDataFiles.WriteNew(pvData, uiDataSize);
-			bResult = cNewDataIndex.HasFile();
 			cPosIndex = cNewDataIndex.ToFilePosIndex(uiDataSize);
-			bResult = mcDataFiles.Delete(&cDataIndex);
+			mcDataFiles.Delete(&cDataIndex);
 			return cPosIndex;
 		}
 	}
@@ -503,32 +499,21 @@ BOOL CIndexedFilesEvicting::WriteEvictedData(CIndexedDataDescriptor* pcDescripto
 {
 	void*						pvData;
 	SIndexedCacheDescriptor*	psCached;
-	CFilePosIndex				cFilePosIndex;
+	BOOL						bResult;
 	
 	pvData = pcDescriptor->GetCache();
 	psCached = mcDataCache.GetHeader(pvData);
 	if (psCached->iFlags & CACHE_DESCRIPTOR_FLAG_DIRTY)
 	{
-		if (bClearCache)
-		{
-			//Should probably invalidate the cache here.
-			pcDescriptor->Cache(NULL);
-		}
+		bResult = WriteEvictedData2(pcDescriptor, psCached->oi, pvData, bClearCache, TRUE);
 		psCached->iFlags &= ~CACHE_DESCRIPTOR_FLAG_DIRTY;
-
-		cFilePosIndex = WriteThroughData(pcDescriptor, pvData, pcDescriptor->GetCacheDataSize());
-		if (!cFilePosIndex.HasFile())
-		{
-			return FALSE;
-		}
-
-		return mpcEvictionCallback->SetDescriptor(psCached->oi, pcDescriptor, TRUE);
+		return bResult;
 	}
 	else
 	{
 		if (bClearCache)
 		{
-			return mpcEvictionCallback->UpdateDescriptorCache(psCached->oi, NULL);
+			return mpcEvictionCallback->UpdateDescriptorCache(psCached->oi, NULL, 0);
 		}
 		return TRUE;
 	}
@@ -544,7 +529,6 @@ BOOL CIndexedFilesEvicting::WriteEvictedData(SIndexedCacheDescriptor* psCached, 
 	CIndexedDataDescriptor	cDescriptor;
 	BOOL					bResult;
 	void*					pvData;
-	CFilePosIndex			cFilePosIndex;
 
 	pvData = RemapSinglePointer(psCached, sizeof(SIndexedCacheDescriptor));
 	if (psCached->iFlags & CACHE_DESCRIPTOR_FLAG_DIRTY)
@@ -555,29 +539,49 @@ BOOL CIndexedFilesEvicting::WriteEvictedData(SIndexedCacheDescriptor* psCached, 
 			return FALSE;
 		}
 
-		if (bClearCache)
-		{
-			cDescriptor.Cache(NULL);
-		}
+		bResult = WriteEvictedData2(&cDescriptor, psCached->oi, pvData, bClearCache, bNoEviction);
 		psCached->iFlags &= ~CACHE_DESCRIPTOR_FLAG_DIRTY;
+		return bResult;
 
-		cFilePosIndex = WriteThroughData(&cDescriptor, pvData, cDescriptor.GetCacheDataSize());
-		if (!cFilePosIndex.HasFile())
-		{
-			return FALSE;
-		}
-
-		return mpcEvictionCallback->SetDescriptor(psCached->oi, &cDescriptor, bNoEviction);
 	}
 	else
 	{
 		if (bClearCache)
 		{
-			return mpcEvictionCallback->UpdateDescriptorCache(psCached->oi, NULL);
+			return mpcEvictionCallback->UpdateDescriptorCache(psCached->oi, NULL, 0);
 		}
 		return TRUE;
 	}
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexedFilesEvicting::WriteEvictedData2(CIndexedDataDescriptor* pcDescriptor, OIndex oi, void* pvData, BOOL bClearCache, BOOL bNoEviction)
+{
+	CFilePosIndex			cFilePosIndex;
+	CIndexedDataDescriptor	cResultDescriptor;
+	unsigned int			uiDataSize;
+
+	uiDataSize = pcDescriptor->GetCacheDataSize();
+	if (bClearCache)
+	{
+		//mcDataCache.Invalidate(pcDescriptor->GetCache());
+		pcDescriptor->ClearCache();
+	}
+
+	cFilePosIndex = WriteThroughData(pcDescriptor, pvData, uiDataSize);
+	if (!cFilePosIndex.HasFile())
+	{
+		return FALSE;
+	}
+
+	cResultDescriptor.Init(uiDataSize, &cFilePosIndex, pcDescriptor->GetCache());
+	return mpcEvictionCallback->SetDescriptor(oi, &cResultDescriptor, bNoEviction);
+}
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -618,7 +622,7 @@ BOOL CIndexedFilesEvicting::CompareDiskToMemory(CIndexedDataDescriptor* pcDescri
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexedFilesEvicting::ClearDescriptorCache(SIndexedCacheDescriptor* psCached)
 {
-	return mpcEvictionCallback->UpdateDescriptorCache(psCached->oi, NULL);
+	return mpcEvictionCallback->UpdateDescriptorCache(psCached->oi, NULL, 0);
 }
 
 

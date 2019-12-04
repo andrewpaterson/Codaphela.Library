@@ -127,9 +127,9 @@ BOOL CIndexedData::SetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedData::UpdateDescriptorCache(OIndex oi, void* pvCache)
+BOOL CIndexedData::UpdateDescriptorCache(OIndex oi, void* pvCache, unsigned int uiDataSize)
 {
-	return mcIndices.SetCache(pvCache, oi);
+	return mcIndices.SetCache(pvCache, uiDataSize, oi);
 }
 
 
@@ -242,7 +242,7 @@ BOOL CIndexedData::EvictKey(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedData::KeyEvicted(OIndex oi, CIndexedDataDescriptor* pcDescriptor)
+BOOL CIndexedData::EvictData(OIndex oi, CIndexedDataDescriptor* pcDescriptor)
 {
 	return mcData.Evict(oi, pcDescriptor);
 }

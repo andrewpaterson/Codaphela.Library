@@ -46,7 +46,6 @@ private:
 	unsigned int				muiCacheDataSize;
 
 public:
-	void 			Init2(unsigned int uiDataSize);
 	void 			Init(unsigned int uiDataSize, CFilePosIndex* pcFilePosIndex);
 	void 			Init(unsigned int uiDataSize, void* pvCache);
 	void 			Init(unsigned int uiDataSize, CFilePosIndex* pcFilePosIndex, void* pvCache);
@@ -54,7 +53,8 @@ public:
 	unsigned int	GetFileDataSize(void);
 	unsigned int	GetCacheDataSize(void);
 	unsigned int	GetDataSize(void);
-	void			Cache(void* pvCache);
+	void			Cache(void* pvCache, unsigned int uiDataSize);
+	void			ClearCache(void);
 	BOOL			HasFile(void);
 	BOOL			IsCached(void);
 	void*			GetCache(void);
