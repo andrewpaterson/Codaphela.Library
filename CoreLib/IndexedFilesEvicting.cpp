@@ -69,7 +69,7 @@ BOOL CIndexedFilesEvicting::GetData(OIndex oi, CIndexedDataDescriptor* pcExistin
 	{
 		//Data not in cache.
 		uiDataSize = pcExistingDescriptor->GetFileDataSize();
-		if (mbCaching && uiDataSize <= mcDataCache.GetCacheSize())
+		if (mbCaching && mcDataCache.CanCache(uiDataSize))
 		{
 			cResult = CacheAllocate(oi, uiDataSize);
 			if (cResult.IsCached())
@@ -275,7 +275,7 @@ BOOL CIndexedFilesEvicting::SetData(OIndex oi, CIndexedDataDescriptor* pcDescrip
 	CFilePosIndex			cPosIndex;
 	unsigned int			uiFileDataSize;
 	
-	if (mbCaching && uiDataSize <= mcDataCache.GetCacheSize())
+	if (mbCaching && mcDataCache.CanCache(uiDataSize))
 	{
 		pvNewCache = SetCacheData(oi, pcDescriptor, pvData, uiDataSize);
 		bResult = pvNewCache != NULL;
@@ -288,7 +288,10 @@ BOOL CIndexedFilesEvicting::SetData(OIndex oi, CIndexedDataDescriptor* pcDescrip
 		}
 		else
 		{
-			mcDataCache.SetDirty(pvNewCache);
+			if (pvNewCache != NULL)
+			{
+				mcDataCache.SetDirty(pvNewCache);
+			}
 
 			if (pcDescriptor != NULL)
 			{
@@ -304,7 +307,10 @@ BOOL CIndexedFilesEvicting::SetData(OIndex oi, CIndexedDataDescriptor* pcDescrip
 	}
 	else
 	{
-		mcDataCache.Invalidate(pcDescriptor->GetCache());
+		if (pcDescriptor != NULL)
+		{
+			mcDataCache.Invalidate(pcDescriptor->GetCache());
+		}
 		pvNewCache = NULL;
 
 		cPosIndex = WriteThroughData(pcDescriptor, pvData, uiDataSize);
