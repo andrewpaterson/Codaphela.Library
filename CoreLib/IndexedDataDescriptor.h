@@ -48,7 +48,7 @@ private:
 public:
 	void 			Init(unsigned int uiDataSize, CFilePosIndex* pcFilePosIndex);
 	void 			Init(unsigned int uiDataSize, void* pvCache);
-	void 			Init(unsigned int uiDataSize, CFilePosIndex* pcFilePosIndex, void* pvCache);
+	void 			Init(unsigned int uiFileDataSize, CFilePosIndex* pcFilePosIndex, unsigned int uiCacheDataSize, void* pvCache);
 
 	unsigned int	GetFileDataSize(void);
 	unsigned int	GetCacheDataSize(void);

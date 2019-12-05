@@ -56,11 +56,11 @@ void CIndexedDataDescriptor::Init(unsigned int uiDataSize, void* pvCache)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedDataDescriptor::Init(unsigned int uiDataSize, CFilePosIndex* pcFilePosIndex, void* pvCache)
+void CIndexedDataDescriptor::Init(unsigned int uiFileDataSize, CFilePosIndex* pcFilePosIndex, unsigned int uiCacheDataSize, void* pvCache)
 {
 	if (pcFilePosIndex->HasFile())
 	{
-		msFileDescriptor.muiDataSize = uiDataSize;
+		msFileDescriptor.muiDataSize = uiFileDataSize;
 	}
 	else
 	{
@@ -68,15 +68,15 @@ void CIndexedDataDescriptor::Init(unsigned int uiDataSize, CFilePosIndex* pcFile
 	}
 	msFileDescriptor.mcFileIndex.Init(pcFilePosIndex->miFile, pcFilePosIndex->mulliFilePos);
 
-	mpvCache = pvCache;
 	if (mpvCache != NULL)
 	{
-		muiCacheDataSize = uiDataSize;
+		muiCacheDataSize = uiCacheDataSize;
 	}
 	else
 	{
 		muiCacheDataSize = 0;
 	}
+	mpvCache = pvCache;
 }
 
 
