@@ -52,6 +52,7 @@ public:
 
 	size_t						GetCacheSize(void);
 	size_t						GetAllocatedSize(void);
+	BOOL						CanCache(unsigned int uiDataSize);
 
 	size_t						RemainingAfterLast(void);
 	void						FindOverlapping(void* pvNew, size_t uiNewSize, CArrayVoidPtr* pasOverlappingCacheDescriptors);
