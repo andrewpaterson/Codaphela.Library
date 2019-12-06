@@ -9,11 +9,9 @@ class CIndexTreeEvictedNodeList : public CIndexTreeEvictionCallback
 private:
 	CListVariable				mcKeys;
 	CListVariable				mcDatas;
-	CIndexTreeEvictionCallback*	mpcNext;
 
 public:
 	void			Init(void);
-	void			Init(CIndexTreeEvictionCallback* pcNext);
 	void			Kill(void);
 
 	BOOL			NodeEvicted(CIndexTreeFile* pcIndexTree, unsigned char* pvKey, int iKeySize, void* pvData, int iDataSize);
