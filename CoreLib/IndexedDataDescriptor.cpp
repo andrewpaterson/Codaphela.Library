@@ -209,6 +209,7 @@ BOOL CIndexedDataDescriptor::Update(CIndexedDataDescriptor* pcNew)
 	}
 
 	mpvCache = pcNew->GetCache();
+	muiCacheDataSize = pcNew->muiCacheDataSize;
 	return bUpdated;
 }
 

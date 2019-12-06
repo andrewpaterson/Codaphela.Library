@@ -6,6 +6,14 @@
 #include "IndexedCache.h"
 
 
+enum EClearCache
+{
+	CC_No,
+	CC_Yes,
+	CC_YesDontInvalidate
+};
+
+
 class CIndexedFilesEvictionCallback;
 class CIndexedFilesEvicting
 {
@@ -49,9 +57,9 @@ protected:
 	BOOL				DescriptorsEvicted(CArrayVoidPtr* papsEvictedIndexedCacheDescriptors);
 
 	CFilePosIndex		WriteThroughData(CIndexedDataDescriptor* pcDescriptor, void* pvData, unsigned int uiDataSize);
-	BOOL				WriteEvictedData(SIndexedCacheDescriptor* psCached, BOOL bClearCache, BOOL bNoEviction);
-	BOOL				WriteEvictedData(CIndexedDataDescriptor* pcDescriptor, BOOL bClearCache);
-	BOOL				WriteEvictedData(CIndexedDataDescriptor* pcDescriptor, OIndex oi, void* pvData, BOOL bClearCache, BOOL bNoEviction);
+	BOOL				WriteEvictedData(SIndexedCacheDescriptor* psCached, EClearCache eClearCache, BOOL bNoEviction);
+	BOOL				WriteEvictedData(CIndexedDataDescriptor* pcDescriptor, EClearCache eClearCache);
+	BOOL				WriteEvictedData(CIndexedDataDescriptor* pcDescriptor, OIndex oi, void* pvData, EClearCache eClearCache, BOOL bNoEviction);
 
 	BOOL				CompareDiskToMemory(CIndexedDataDescriptor* pcDescriptor, void* pvData);
 	BOOL				ClearDescriptorCache(SIndexedCacheDescriptor* psCached);

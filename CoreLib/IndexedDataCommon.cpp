@@ -35,7 +35,7 @@ BOOL CIndexedDataCommon::Set(OIndex oi, void* pvData, unsigned int uiTimeStamp)
 	bResult = GetDescriptor(oi, &cDescriptor);
 	if (bResult)
 	{
-		return mcData.SetData(oi, &cDescriptor, pvData, cDescriptor.GetCacheDataSize(), uiTimeStamp);
+		return mcData.SetData(oi, &cDescriptor, pvData, cDescriptor.GetDataSize(), uiTimeStamp);
 	}
 	else
 	{
