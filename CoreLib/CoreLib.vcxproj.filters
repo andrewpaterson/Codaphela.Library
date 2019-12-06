@@ -387,9 +387,6 @@
     <ClCompile Include="IndexTreeEvictingAccess.cpp">
       <Filter>Source\File\Indexed\Index\Access</Filter>
     </ClCompile>
-    <ClCompile Include="IndexTreeEvictedNodeList.cpp">
-      <Filter>Source\File\Indexed\Index\Evicting</Filter>
-    </ClCompile>
     <ClCompile Include="IndexTreeEvicting.cpp">
       <Filter>Source\File\Indexed\Index\Evicting</Filter>
     </ClCompile>
@@ -417,11 +414,14 @@
     <ClCompile Include="IndexedDataAccess.cpp">
       <Filter>Source\File\Indexed</Filter>
     </ClCompile>
-    <ClCompile Include="IndexTreeEvictionCallbackWrapper.cpp">
-      <Filter>Source\File\Indexed\Index\Evicting</Filter>
-    </ClCompile>
     <ClCompile Include="IndexedCacheResult.cpp">
       <Filter>Source\File\Indexed\Cache</Filter>
+    </ClCompile>
+    <ClCompile Include="EvictionCallbackWrapper.cpp">
+      <Filter>Source\File\Indexed\Index\Evicting</Filter>
+    </ClCompile>
+    <ClCompile Include="EvictedList.cpp">
+      <Filter>Source\File\Indexed\Index\Evicting</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -659,12 +659,6 @@
     <ClInclude Include="IndexTreeEvictingAccess.h">
       <Filter>Source\File\Indexed\Index\Access</Filter>
     </ClInclude>
-    <ClInclude Include="IndexTreeEvictionCallback.h">
-      <Filter>Source\File\Indexed\Index\Evicting</Filter>
-    </ClInclude>
-    <ClInclude Include="IndexTreeEvictedNodeList.h">
-      <Filter>Source\File\Indexed\Index\Evicting</Filter>
-    </ClInclude>
     <ClInclude Include="IndexTreeEvicting.h">
       <Filter>Source\File\Indexed\Index\Evicting</Filter>
     </ClInclude>
@@ -701,11 +695,17 @@
     <ClInclude Include="IndexedDataAccess.h">
       <Filter>Source\File\Indexed</Filter>
     </ClInclude>
-    <ClInclude Include="IndexTreeEvictionCallbackWrapper.h">
-      <Filter>Source\File\Indexed\Index\Evicting</Filter>
-    </ClInclude>
     <ClInclude Include="IndexedCacheResult.h">
       <Filter>Source\File\Indexed\Cache</Filter>
+    </ClInclude>
+    <ClInclude Include="EvictionCallback.h">
+      <Filter>Source\File\Indexed\Index\Evicting</Filter>
+    </ClInclude>
+    <ClInclude Include="EvictionCallbackWrapper.h">
+      <Filter>Source\File\Indexed\Index\Evicting</Filter>
+    </ClInclude>
+    <ClInclude Include="EvictedList.h">
+      <Filter>Source\File\Indexed\Index\Evicting</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

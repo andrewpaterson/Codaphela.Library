@@ -41,7 +41,7 @@ void CIndexedData::Init(char* szWorkingDirectory, char* szRewriteDirectory, size
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedData::Init(char* szWorkingDirectory, char* szRewriteDirectory, size_t uiDataCacheSize, size_t uiIndexCacheSize, BOOL bWriteThrough, CIndexTreeEvictionCallback* pcIndexEvictionUserCallback)
+void CIndexedData::Init(char* szWorkingDirectory, char* szRewriteDirectory, size_t uiDataCacheSize, size_t uiIndexCacheSize, BOOL bWriteThrough, CEvictionCallback* pcIndexEvictionUserCallback)
 {
 	CIndexedConfig	cConfig;
 
@@ -97,7 +97,7 @@ BOOL CIndexedData::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedData::InitIndices(CDurableFileController* pcDurableFileControl, BOOL bDirtyTesting, size_t uiCutoff, BOOL bWriteThrough, CIndexTreeEvictionCallback* pcIndexEvictionUserCallback)
+void CIndexedData::InitIndices(CDurableFileController* pcDurableFileControl, BOOL bDirtyTesting, size_t uiCutoff, BOOL bWriteThrough, CEvictionCallback* pcIndexEvictionUserCallback)
 {
 	mcIndices.Init(this, pcDurableFileControl, bDirtyTesting, uiCutoff, bWriteThrough, pcIndexEvictionUserCallback);
 }

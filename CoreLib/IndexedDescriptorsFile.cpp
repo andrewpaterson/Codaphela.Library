@@ -17,19 +17,19 @@ void CIndexedDescriptorsFile::Init(CIndexedDataCommon* pcIndexedData, CDurableFi
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedDescriptorsFile::Init(CIndexedDataCommon* pcIndexedData, CDurableFileController* pcDurableFileController, BOOL bDirtyTesting, size_t uiCutoff, BOOL bWriteThrough, CIndexTreeEvictionCallback* pcIndexEvictionUserCallback)
+void CIndexedDescriptorsFile::Init(CIndexedDataCommon* pcIndexedData, CDurableFileController* pcDurableFileController, BOOL bDirtyTesting, size_t uiCutoff, BOOL bWriteThrough, CEvictionCallback* pcEvictionCallback)
 {
-	CIndexTreeEvictionCallback*	pcCallback;
+	CEvictionCallback*	pcCallback;
 
 	mpcIndexedData = pcIndexedData;
-	if (pcIndexEvictionUserCallback)
+	if (pcEvictionCallback)
 	{
-		mcIndexTreeEvictionCallbackWrapper.Init(pcIndexEvictionUserCallback, this);
-		pcCallback = &mcIndexTreeEvictionCallbackWrapper;
+		mcEvictionCallback.Init(pcEvictionCallback, this);
+		pcCallback = &mcEvictionCallback;
 	}
 	else
 	{
-		mcIndexTreeEvictionCallbackWrapper.Init(NULL, NULL);
+		mcEvictionCallback.Init(NULL, NULL);
 		pcCallback = this;
 	}
 	mcIndexTree.Init(pcDurableFileController, uiCutoff, pcCallback, &mcEvictionStrategy, &mcDescriptorsCallback,  bWriteThrough);
@@ -197,7 +197,7 @@ BOOL CIndexedDescriptorsFile::Evict(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedDescriptorsFile::NodeEvicted(CIndexTreeFile* pcIndexTree, unsigned char* pvKey, int iKeySize, void* pvData, int iDataSize)
+BOOL CIndexedDescriptorsFile::NodeEvicted(unsigned char* pvKey, int iKeySize, void* pvData, int iDataSize)
 {
 	OIndex	oi;
 
