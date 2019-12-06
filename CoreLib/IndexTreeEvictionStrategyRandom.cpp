@@ -77,7 +77,7 @@ BOOL CIndexTreeEvictionStrategyRandom::EvictRandomNode(CIndexTreeNodeFile* pcDon
 		{
 			if (pcNode != pcDontEvict)
 			{
-				return mpcIndexTree->Evict(pcNode);
+				return mpcIndexTree->EvictNode(pcNode);
 			}
 			else
 			{

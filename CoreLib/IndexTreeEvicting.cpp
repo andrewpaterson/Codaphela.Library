@@ -217,7 +217,7 @@ BOOL CIndexTreeEvicting::Evict(void* pvKey, int iKeySize)
 	pcNode = mcIndexTree.GetMemoryNode(pvKey, iKeySize);
 	if (pcNode)
 	{
-		return Evict(pcNode);
+		return EvictNode(pcNode);
 	}
 	else
 	{
@@ -230,7 +230,7 @@ BOOL CIndexTreeEvicting::Evict(void* pvKey, int iKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeEvicting::EvictNodeCallback(CIndexTreeNodeFile* pcNode)
+BOOL CIndexTreeEvicting::EvictNodeWithObject(CIndexTreeNodeFile* pcNode)
 {
 	CStackMemory<>		cStack;
 	unsigned char*		pvMem;
@@ -367,13 +367,13 @@ CIndexTreeNodeFile* CIndexTreeEvicting::GetMemoryNode(void* pvKey, int iKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeEvicting::Evict(CIndexTreeNodeFile* pcNode)
+BOOL CIndexTreeEvicting::EvictNode(CIndexTreeNodeFile* pcNode)
 {
 	BOOL bEvict;
 
 	if (pcNode->HasObject())
 	{
-		bEvict = EvictNodeCallback(pcNode);
+		bEvict = EvictNodeWithObject(pcNode);
 	}
 	else
 	{

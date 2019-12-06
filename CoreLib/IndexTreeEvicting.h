@@ -45,10 +45,10 @@ public:
 	void					Dump(void);
 	BOOL					Evict(void* pvKey, int iKeySize);
 
-	BOOL					EvictNodeCallback(CIndexTreeNodeFile* pcNode);
+	BOOL					EvictNodeWithObject(CIndexTreeNodeFile* pcNode);
 	CIndexTreeNodeFile*		GetRoot(void);
 	CIndexTreeNodeFile*		GetMemoryNode(void* pvKey, int iKeySize);
-	BOOL					Evict(CIndexTreeNodeFile* pcNode);
+	BOOL					EvictNode(CIndexTreeNodeFile* pcNode);
 
 	size_t					GetSystemMemorySize(void);
 	unsigned char			GetRootFlags(void);
