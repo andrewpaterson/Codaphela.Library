@@ -1,11 +1,11 @@
-#include "IndexTreeEvictedNodeList.h"
+#include "EvictedList.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeEvictedNodeList::Init(void)
+void CEvictedList::Init(void)
 {
 	mcKeys.Init();
 	mcDatas.Init();
@@ -16,7 +16,7 @@ void CIndexTreeEvictedNodeList::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeEvictedNodeList::Kill(void)
+void CEvictedList::Kill(void)
 {
 	mcDatas.Kill();
 	mcKeys.Kill();
@@ -27,7 +27,7 @@ void CIndexTreeEvictedNodeList::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeEvictedNodeList::NodeEvicted(CIndexTreeFile* pcIndexTree, unsigned char* pvKey, int iKeySize, void* pvData, int iDataSize)
+BOOL CEvictedList::NodeEvicted(unsigned char* pvKey, int iKeySize, void* pvData, int iDataSize)
 {
 	mcKeys.Add(pvKey, iKeySize + 1);
 	mcDatas.Add(pvData, iDataSize);
@@ -39,7 +39,7 @@ BOOL CIndexTreeEvictedNodeList::NodeEvicted(CIndexTreeFile* pcIndexTree, unsigne
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CIndexTreeEvictedNodeList::NumElements(void)
+int CEvictedList::NumElements(void)
 {
 	return mcKeys.NumElements();
 }
@@ -49,7 +49,7 @@ int CIndexTreeEvictedNodeList::NumElements(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-unsigned char* CIndexTreeEvictedNodeList::GetKey(int iIndex, int* piKeySize)
+void* CEvictedList::GetKey(int iIndex, int* piKeySize)
 {
 	if (piKeySize)
 	{
@@ -63,7 +63,7 @@ unsigned char* CIndexTreeEvictedNodeList::GetKey(int iIndex, int* piKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CIndexTreeEvictedNodeList::GetData(int iIndex, int* piDataSize)
+void* CEvictedList::GetData(int iIndex, int* piDataSize)
 {
 	if (piDataSize)
 	{
@@ -77,7 +77,7 @@ void* CIndexTreeEvictedNodeList::GetData(int iIndex, int* piDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeEvictedNodeList::Clear(void)
+void CEvictedList::Clear(void)
 {
 	mcKeys.ReInit();
 	mcDatas.ReInit();

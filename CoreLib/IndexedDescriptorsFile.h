@@ -2,26 +2,26 @@
 #define __INDEX_DESCRIPTORS_FILE_H__
 #include "BaseLib/PrimitiveTypes.h"
 #include "IndexTreeTemplateEvicting.h"
-#include "IndexTreeEvictionCallback.h"
+#include "EvictionCallback.h"
 #include "IndexedDataDescriptor.h"
 #include "IndexTreeEvictionStrategyRandom.h"
 #include "IndexedDescriptorsFileCallback.h"
-#include "IndexTreeEvictionCallbackWrapper.h"
+#include "EvictionCallbackWrapper.h"
 
 
 class CIndexedDataCommon;
-class CIndexedDescriptorsFile : public CIndexTreeEvictionCallback
+class CIndexedDescriptorsFile : public CEvictionCallback
 {
 protected:
 	CIndexTreeTemplateEvicting<CIndexedDataDescriptor>	mcIndexTree;
 	CIndexTreeEvictionStrategyRandom					mcEvictionStrategy;
 	CIndexedDataCommon*									mpcIndexedData;
 	CIndexedDescriptorsFileCallback						mcDescriptorsCallback;
-	CIndexTreeEvictionCallbackWrapper					mcIndexTreeEvictionCallbackWrapper;
+	CEvictionCallbackWrapper							mcEvictionCallback;
 
 public:
 	void			Init(CIndexedDataCommon* pcIndexedData, CDurableFileController* pcDurableFileController, BOOL bDirtyTesting, size_t uiCutoff, BOOL bWriteThrough);
-	void			Init(CIndexedDataCommon* pcIndexedData, CDurableFileController* pcDurableFileController, BOOL bDirtyTesting, size_t uiCutoff, BOOL bWriteThrough, CIndexTreeEvictionCallback* pcIndexEvictionUserCallback);
+	void			Init(CIndexedDataCommon* pcIndexedData, CDurableFileController* pcDurableFileController, BOOL bDirtyTesting, size_t uiCutoff, BOOL bWriteThrough, CEvictionCallback* pcEvictionCallback);
 	void			Kill(void);
 
 	BOOL			Remove(OIndex oi);
@@ -36,7 +36,7 @@ public:
 	int				NumCachedDatas(void);
 
 	BOOL			Evict(OIndex oi);
-	BOOL			NodeEvicted(CIndexTreeFile* pcIndexTree, unsigned char* pvKey, int iKeySize, void* pvData, int iDataSize);
+	BOOL			NodeEvicted(unsigned char* pvKey, int iKeySize, void* pvData, int iDataSize);
 
 	BOOL			GetIfInMemory(CIndexedDataDescriptor* pcDescriptor, OIndex oi);
 
