@@ -20,8 +20,6 @@ void CIndexedFilesEvictedDescriptorList::Init(CDurableFileController* pcDurableF
 {
 	CIndexedDataCommon::Init(pcEvictionUserCallback);
 
-	mcEvicted.Init();
-
 	mbWriteThrough = bWriteThrough;
 
 	pcDurableFileControl->Begin();
@@ -51,40 +49,8 @@ BOOL CIndexedFilesEvictedDescriptorList::Kill(void)
 	mcData.Kill();
 
 	mcDescriptors.Kill();
-	mcEvicted.Kill();
 	return TRUE;
 }
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-int CIndexedFilesEvictedDescriptorList::NumEvicted(void)
-{
-	return mcEvicted.NumElements();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void* CIndexedFilesEvictedDescriptorList::GetEvicted(int iIndex)
-{
-	return mcEvicted.Get(iIndex);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CIndexedFilesEvictedDescriptorList::ClearEvicted(void)
-{
-	mcEvicted.ReInit();
-}
-
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -132,20 +98,22 @@ BOOL CIndexedFilesEvictedDescriptorList::DescriptorsEvicted(CArrayVoidPtr* papsE
 {
 	int							i;
 	SIndexedCacheDescriptor*	psDesc;
+	BOOL						bResult;
 	int							iNumElements;
-	void*						pvData;
+	void*						pvCache;
 
+	bResult = TRUE;
 	iNumElements = papsEvictedIndexedCacheDescriptors->NumElements();
 	for (i = 0; i < iNumElements; i++)
 	{
 		psDesc = (SIndexedCacheDescriptor*)papsEvictedIndexedCacheDescriptors->GetPtr(i);
 		if (psDesc != NULL)
 		{
-			pvData = RemapSinglePointer(psDesc, sizeof(SIndexedCacheDescriptor));
-			mcEvicted.Add(pvData, psDesc->iDataSize);
+			pvCache = mcData.GetCachedData(psDesc);
+			bResult &= mpcEvictionCallback->NodeEvicted(&psDesc->oi, sizeof(OIndex), pvCache, psDesc->iDataSize);
 		}
 	}
-	return TRUE;
+	return bResult;
 }
 
 

@@ -139,7 +139,7 @@ BOOL CIndexedDataCommon::DescriptorsEvicted(CArrayVoidPtr* papsEvictedIndexedCac
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexedDataCommon::NodeEvicted(void* pvKey, int iKeySize, void* pvData, int iDataSize)
 {
-	BOOL						bResult;
+	BOOL	bResult;
 
 	bResult = UpdateDescriptorCache((*(OIndex*)pvKey) , NULL, 0);
 	return bResult;
