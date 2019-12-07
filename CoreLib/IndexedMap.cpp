@@ -1,12 +1,12 @@
 #include "IndexedCache.h"
-#include "IndexedFilesEvictedDescriptorList.h"
+#include "IndexedMap.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedFilesEvictedDescriptorList::Init(CDurableFileController* pcDurableFileControl, char* szDataExtension, char* szDescricptorName, char* szDescricptorRewrite, size_t iDataCacheSize, BOOL bWriteThrough)
+void CIndexedMap::Init(CDurableFileController* pcDurableFileControl, char* szDataExtension, char* szDescricptorName, char* szDescricptorRewrite, size_t iDataCacheSize, BOOL bWriteThrough)
 {
 	Init(pcDurableFileControl, szDataExtension, szDescricptorName, szDescricptorRewrite, iDataCacheSize, bWriteThrough, NULL);
 }
@@ -16,7 +16,7 @@ void CIndexedFilesEvictedDescriptorList::Init(CDurableFileController* pcDurableF
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedFilesEvictedDescriptorList::Init(CDurableFileController* pcDurableFileControl, char* szDataExtension, char* szDescricptorName, char* szDescricptorRewrite, size_t iDataCacheSize, BOOL bWriteThrough, CEvictionCallback* pcEvictionUserCallback)
+void CIndexedMap::Init(CDurableFileController* pcDurableFileControl, char* szDataExtension, char* szDescricptorName, char* szDescricptorRewrite, size_t iDataCacheSize, BOOL bWriteThrough, CEvictionCallback* pcEvictionUserCallback)
 {
 	CIndexedDataCommon::Init(pcEvictionUserCallback);
 
@@ -35,7 +35,7 @@ void CIndexedFilesEvictedDescriptorList::Init(CDurableFileController* pcDurableF
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedFilesEvictedDescriptorList::Kill(void)
+BOOL CIndexedMap::Kill(void)
 {
 	if (!mcData.IsFlushed())
 	{
@@ -56,7 +56,7 @@ BOOL CIndexedFilesEvictedDescriptorList::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedFilesEvictedDescriptorList::InitIndices(CDurableFileController* pcDurableFileControl, BOOL bDirtyTesting)
+void CIndexedMap::InitIndices(CDurableFileController* pcDurableFileControl, BOOL bDirtyTesting)
 {
 	mcDescriptors.Init(TRUE);
 	mbDescriptorsWritten = TRUE;
@@ -74,7 +74,7 @@ void CIndexedFilesEvictedDescriptorList::InitIndices(CDurableFileController* pcD
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedFilesEvictedDescriptorList::NullCachedDescriptors(void)
+void CIndexedMap::NullCachedDescriptors(void)
 {
 	SMapIterator			sIter;
 	OIndex*					poi;
@@ -94,7 +94,7 @@ void CIndexedFilesEvictedDescriptorList::NullCachedDescriptors(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedFilesEvictedDescriptorList::DescriptorsEvicted(CArrayVoidPtr* papsEvictedIndexedCacheDescriptors)
+BOOL CIndexedMap::DescriptorsEvicted(CArrayVoidPtr* papsEvictedIndexedCacheDescriptors)
 {
 	int							i;
 	SIndexedCacheDescriptor*	psDesc;
@@ -121,7 +121,7 @@ BOOL CIndexedFilesEvictedDescriptorList::DescriptorsEvicted(CArrayVoidPtr* papsE
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedFilesEvictedDescriptorList::GetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor, BOOL bNoEviction)
+BOOL CIndexedMap::GetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor, BOOL bNoEviction)
 {
 	CIndexedDataDescriptor* pcResult;
 
@@ -145,7 +145,7 @@ BOOL CIndexedFilesEvictedDescriptorList::GetDescriptor(OIndex oi, CIndexedDataDe
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedFilesEvictedDescriptorList::SetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor, BOOL bNoEviction)
+BOOL CIndexedMap::SetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor, BOOL bNoEviction)
 {
 	CIndexedDataDescriptor* pcExistingDescriptor;
 	BOOL					bUpdated;
@@ -172,7 +172,7 @@ BOOL CIndexedFilesEvictedDescriptorList::SetDescriptor(OIndex oi, CIndexedDataDe
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedFilesEvictedDescriptorList::UpdateDescriptorCache(OIndex oi, void* pvCache, unsigned int uiDataSize)
+BOOL CIndexedMap::UpdateDescriptorCache(OIndex oi, void* pvCache, unsigned int uiDataSize)
 {
 	CIndexedDataDescriptor* pcDescriptor;
 
@@ -190,7 +190,7 @@ BOOL CIndexedFilesEvictedDescriptorList::UpdateDescriptorCache(OIndex oi, void* 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedFilesEvictedDescriptorList::RemoveDescriptor(OIndex oi)
+BOOL CIndexedMap::RemoveDescriptor(OIndex oi)
 {
 	mbDescriptorsWritten = FALSE;
 	return mcDescriptors.Remove(oi);
@@ -201,7 +201,7 @@ BOOL CIndexedFilesEvictedDescriptorList::RemoveDescriptor(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedFilesEvictedDescriptorList::Flush(BOOL bClearCache)
+BOOL CIndexedMap::Flush(BOOL bClearCache)
 {
 	BOOL		bResult;
 
@@ -219,7 +219,7 @@ BOOL CIndexedFilesEvictedDescriptorList::Flush(BOOL bClearCache)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int64 CIndexedFilesEvictedDescriptorList::NumElements(void)
+int64 CIndexedMap::NumElements(void)
 {
 	return mcDescriptors.NumElements();
 }
@@ -229,7 +229,7 @@ int64 CIndexedFilesEvictedDescriptorList::NumElements(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedFilesEvictedDescriptorList::IsDirty(OIndex oi)
+BOOL CIndexedMap::IsDirty(OIndex oi)
 {
 	CIndexedDataDescriptor*		pcKeyDescriptor;
 	SIndexedCacheDescriptor*	psDataDescriptor;
@@ -254,7 +254,7 @@ BOOL CIndexedFilesEvictedDescriptorList::IsDirty(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedFilesEvictedDescriptorList::EvictData(OIndex oi, CIndexedDataDescriptor* pcDescriptor)
+BOOL CIndexedMap::EvictData(OIndex oi, CIndexedDataDescriptor* pcDescriptor)
 {
 	return TRUE;
 }
@@ -264,7 +264,7 @@ BOOL CIndexedFilesEvictedDescriptorList::EvictData(OIndex oi, CIndexedDataDescri
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedFilesEvictedDescriptorList::TestGetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor)
+BOOL CIndexedMap::TestGetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor)
 {
 	return GetDescriptor(oi, pcDescriptor);
 }
