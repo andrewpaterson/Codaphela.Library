@@ -4,15 +4,20 @@
 #include "IndexedDataDescriptor.h"
 #include "IndexedConfig.h"
 #include "IndexedFilesEvicting.h"
+#include "EvictionCallback.h"
+#include "EvictionCallbackWrapper.h"
 
-
-class CIndexedDataCommon
+class CIndexedDataCommon : public CEvictionCallback
 {
 protected:
-	CIndexedFilesEvicting	mcData;
-	BOOL					mbWriteThrough;
+	CIndexedFilesEvicting		mcData;
+	BOOL						mbWriteThrough;
+	CEvictionCallback*			mpcEvictionCallback;
+
+	CEvictionCallbackWrapper	mcEvictionCallbackWrapper;
 
 public:
+			void			Init(CEvictionCallback* pcEvictionCallback);
 	virtual BOOL			Kill(void) =0;
 
 			BOOL			IsCaching(void);
@@ -41,6 +46,7 @@ public:
 	virtual BOOL			IsDirty(OIndex oi) =0;
 
 	virtual BOOL			EvictData(OIndex oi, CIndexedDataDescriptor* pcDescriptor) =0;
+			BOOL			NodeEvicted(void* pvKey, int iKeySize, void* pvData, int iDataSize);
 
 			unsigned int	TestGetCachedObjectSize(OIndex oi);
 

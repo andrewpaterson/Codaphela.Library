@@ -18,6 +18,7 @@ protected:
 
 public:
 	void	Init(CDurableFileController* pcDurableFileControl, char* szDataExtension, char* szDescricptorName, char* szDescricptorRewrite, size_t iCacheSize, BOOL bWriteThrough);
+	void	Init(CDurableFileController* pcDurableFileControl, char* szDataExtension, char* szDescricptorName, char* szDescricptorRewrite, size_t iCacheSize, BOOL bWriteThrough, CEvictionCallback* pcEvictionUserCallback);
 	BOOL	Kill(void);
 
 	int		NumEvicted(void);
@@ -47,3 +48,4 @@ protected:
 
 #endif // __INDEXED_FILES_EVICTED_DESCRIPTOR_LIST_H__
 
+//bResult = mpcEvictionCallback->NodeEvicted(pvMem, iKeySize, pvData, uiDataSize);

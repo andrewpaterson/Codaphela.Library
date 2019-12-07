@@ -33,7 +33,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //////////////////////////////////////////////////////////////////////////
 void CIndexedData::Init(char* szWorkingDirectory, char* szRewriteDirectory, size_t uiDataCacheSize, size_t uiIndexCacheSize, BOOL bWriteThrough)
 {
-	Init(szWorkingDirectory, szRewriteDirectory, uiDataCacheSize, uiIndexCacheSize, bWriteThrough, NULL);
+	Init(szWorkingDirectory, szRewriteDirectory, uiDataCacheSize, uiIndexCacheSize, bWriteThrough, NULL, NULL);
 }
 
 
@@ -41,9 +41,11 @@ void CIndexedData::Init(char* szWorkingDirectory, char* szRewriteDirectory, size
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedData::Init(char* szWorkingDirectory, char* szRewriteDirectory, size_t uiDataCacheSize, size_t uiIndexCacheSize, BOOL bWriteThrough, CEvictionCallback* pcIndexEvictionUserCallback)
+void CIndexedData::Init(char* szWorkingDirectory, char* szRewriteDirectory, size_t uiDataCacheSize, size_t uiIndexCacheSize, BOOL bWriteThrough, CEvictionCallback* pcIndexEvictionUserCallback, CEvictionCallback* pcEvictionUserCallback)
 {
 	CIndexedConfig	cConfig;
+
+	CIndexedDataCommon::Init(pcEvictionUserCallback);
 
 	cConfig.OptimiseForStreaming(szWorkingDirectory);
 	cConfig.mszRewriteDirectory = szRewriteDirectory;
@@ -224,7 +226,11 @@ BOOL CIndexedData::DurableEnd(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexedData::DescriptorsEvicted(CArrayVoidPtr* papsEvictedIndexedCacheDescriptors)
 {
-	return CIndexedDataCommon::DescriptorsEvicted(papsEvictedIndexedCacheDescriptors);
+	if (papsEvictedIndexedCacheDescriptors->NumElements() > 0)
+	{
+		return CIndexedDataCommon::DescriptorsEvicted(papsEvictedIndexedCacheDescriptors);
+	}
+	return TRUE;
 }
 
 
