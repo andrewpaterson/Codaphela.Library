@@ -10,8 +10,6 @@
 class CIndexedFilesEvictedDescriptorList : public CIndexedDataCommon, public CIndexedFilesEvictionCallback
 {
 protected:
-	CListVariable								mcEvicted;
-
 	CMapLongTemplate<CIndexedDataDescriptor>	mcDescriptors;
 	BOOL										mbDescriptorsWritten;
 	CDurableFile								mcDescriptorsFile;
@@ -20,10 +18,6 @@ public:
 	void	Init(CDurableFileController* pcDurableFileControl, char* szDataExtension, char* szDescricptorName, char* szDescricptorRewrite, size_t iCacheSize, BOOL bWriteThrough);
 	void	Init(CDurableFileController* pcDurableFileControl, char* szDataExtension, char* szDescricptorName, char* szDescricptorRewrite, size_t iCacheSize, BOOL bWriteThrough, CEvictionCallback* pcEvictionUserCallback);
 	BOOL	Kill(void);
-
-	int		NumEvicted(void);
-	void*	GetEvicted(int iIndex);
-	void	ClearEvicted(void);
 
 	BOOL	DescriptorsEvicted(CArrayVoidPtr* papsEvictedIndexedCacheDescriptors);
 	BOOL	Flush(BOOL bClearCache);
@@ -48,4 +42,3 @@ protected:
 
 #endif // __INDEXED_FILES_EVICTED_DESCRIPTOR_LIST_H__
 
-//bResult = mpcEvictionCallback->NodeEvicted(pvMem, iKeySize, pvData, uiDataSize);
