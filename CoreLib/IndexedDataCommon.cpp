@@ -6,6 +6,25 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CIndexedDataCommon::Init(CEvictionCallback* pcEvictionCallback)
+{
+	if (pcEvictionCallback)
+	{
+		mcEvictionCallbackWrapper.Init(pcEvictionCallback, this);
+		mpcEvictionCallback = &mcEvictionCallbackWrapper;
+	}
+	else
+	{
+		mcEvictionCallbackWrapper.Init(NULL, NULL);
+		mpcEvictionCallback = this;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL CIndexedDataCommon::Add(OIndex oi, void* pvData, unsigned int uiDataSize, unsigned int uiTimeStamp)
 {
 	CIndexedDataDescriptor	cDescriptor;
@@ -97,6 +116,7 @@ BOOL CIndexedDataCommon::DescriptorsEvicted(CArrayVoidPtr* papsEvictedIndexedCac
 	SIndexedCacheDescriptor*	psDesc;
 	BOOL						bResult;
 	int							iNumElements;
+	void*						pvCache;
 
 	bResult = TRUE;
 	iNumElements = papsEvictedIndexedCacheDescriptors->NumElements();
@@ -105,9 +125,23 @@ BOOL CIndexedDataCommon::DescriptorsEvicted(CArrayVoidPtr* papsEvictedIndexedCac
 		psDesc = (SIndexedCacheDescriptor*)papsEvictedIndexedCacheDescriptors->GetPtr(i);
 		if (psDesc != NULL)
 		{
-			bResult &= UpdateDescriptorCache(psDesc->oi, NULL, 0);
+			pvCache = mcData.GetCachedData(psDesc);
+			bResult &= mpcEvictionCallback->NodeEvicted(&psDesc->oi, sizeof(OIndex), pvCache, psDesc->iDataSize);
 		}
 	}
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexedDataCommon::NodeEvicted(void* pvKey, int iKeySize, void* pvData, int iDataSize)
+{
+	BOOL						bResult;
+
+	bResult = UpdateDescriptorCache((*(OIndex*)pvKey) , NULL, 0);
 	return bResult;
 }
 

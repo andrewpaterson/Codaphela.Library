@@ -17,7 +17,8 @@ protected:
 	CIndexTreeEvictionStrategyRandom					mcEvictionStrategy;
 	CIndexedDataCommon*									mpcIndexedData;
 	CIndexedDescriptorsFileCallback						mcDescriptorsCallback;
-	CEvictionCallbackWrapper							mcEvictionCallback;
+
+	CEvictionCallbackWrapper							mcEvictionCallbackWrapper;
 
 public:
 	void			Init(CIndexedDataCommon* pcIndexedData, CDurableFileController* pcDurableFileController, BOOL bDirtyTesting, size_t uiCutoff, BOOL bWriteThrough);
@@ -36,7 +37,7 @@ public:
 	int				NumCachedDatas(void);
 
 	BOOL			Evict(OIndex oi);
-	BOOL			NodeEvicted(unsigned char* pvKey, int iKeySize, void* pvData, int iDataSize);
+	BOOL			NodeEvicted(void* pvKey, int iKeySize, void* pvData, int iDataSize);
 
 	BOOL			GetIfInMemory(CIndexedDataDescriptor* pcDescriptor, OIndex oi);
 

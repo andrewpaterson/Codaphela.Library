@@ -16,7 +16,7 @@ private:
 	CIndexTreeFile					mcIndexTree;
 	size_t							muiCutoff;
 
-	CEvictionCallback*		mpcEvictionCallback;
+	CEvictionCallback*				mpcEvictionCallback;
 	CIndexTreeEvictionStrategy*		mpcEvictionStrategy;
 	
 public:

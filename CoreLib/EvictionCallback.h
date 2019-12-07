@@ -7,7 +7,7 @@ class CIndexTreeFile;
 class CEvictionCallback
 {
 public:
-	virtual BOOL NodeEvicted(unsigned char* pvKey, int iKeySize, void* pvData, int iDataSize) =0;
+	virtual BOOL NodeEvicted(void* pvKey, int iKeySize, void* pvData, int iDataSize) =0;
 };
 
 

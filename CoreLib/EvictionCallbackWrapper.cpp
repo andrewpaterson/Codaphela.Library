@@ -16,7 +16,7 @@ void CEvictionCallbackWrapper::Init(CEvictionCallback* pcCallback1, CEvictionCal
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CEvictionCallbackWrapper::NodeEvicted(unsigned char* pvKey, int iKeySize, void* pvData, int iDataSize)
+BOOL CEvictionCallbackWrapper::NodeEvicted(void* pvKey, int iKeySize, void* pvData, int iDataSize)
 {
 	BOOL	bResult;
 	

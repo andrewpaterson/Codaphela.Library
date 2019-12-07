@@ -8,7 +8,21 @@
 //////////////////////////////////////////////////////////////////////////
 void CIndexedFilesEvictedDescriptorList::Init(CDurableFileController* pcDurableFileControl, char* szDataExtension, char* szDescricptorName, char* szDescricptorRewrite, size_t iDataCacheSize, BOOL bWriteThrough)
 {
+	Init(pcDurableFileControl, szDataExtension, szDescricptorName, szDescricptorRewrite, iDataCacheSize, bWriteThrough, NULL);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexedFilesEvictedDescriptorList::Init(CDurableFileController* pcDurableFileControl, char* szDataExtension, char* szDescricptorName, char* szDescricptorRewrite, size_t iDataCacheSize, BOOL bWriteThrough, CEvictionCallback* pcEvictionUserCallback)
+{
+	CIndexedDataCommon::Init(pcEvictionUserCallback);
+
 	mcEvicted.Init();
+
+	mbWriteThrough = bWriteThrough;
 
 	pcDurableFileControl->Begin();
 

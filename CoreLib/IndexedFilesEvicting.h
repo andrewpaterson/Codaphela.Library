@@ -43,8 +43,9 @@ public:
 	int64			NumData(int iDataSize);
 
 	unsigned int	GetCachedDataSize(CIndexedDataDescriptor* pcDescriptor);
+	void*			GetCachedData(SIndexedCacheDescriptor* psDescriptor);
 
-	BOOL			Evict(OIndex oi, CIndexedDataDescriptor* pcDescriptor);  //Find a better name.  Maybe
+	BOOL			Evict(OIndex oi, CIndexedDataDescriptor* pcDescriptor);
 	void			InvalidateData(CIndexedDataDescriptor* pcDescriptor);
 
 	size_t			GetSystemMemorySize(void);

@@ -12,7 +12,7 @@ protected:
 public:
 	void Init(CEvictionCallback* pcCallback1, CEvictionCallback* pcCallback2);
 
-	BOOL NodeEvicted(unsigned char* pvKey, int iKeySize, void* pvData, int iDataSize);
+	BOOL NodeEvicted(void* pvKey, int iKeySize, void* pvData, int iDataSize);
 };
 
 

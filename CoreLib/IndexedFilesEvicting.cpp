@@ -685,6 +685,20 @@ unsigned int CIndexedFilesEvicting::GetCachedDataSize(CIndexedDataDescriptor* pc
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void* CIndexedFilesEvicting::GetCachedData(SIndexedCacheDescriptor* psDescriptor)
+{
+	if (psDescriptor != NULL)
+	{
+		return RemapSinglePointer(psDescriptor, mcDataCache.GetIndexCacheDescritorSize());
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 unsigned int CIndexedFilesEvicting::TestGetCachedObjectSize(OIndex oi)
 {
 	SIndexedCacheDescriptor*	psDescriptor;

@@ -24,12 +24,12 @@ void CIndexedDescriptorsFile::Init(CIndexedDataCommon* pcIndexedData, CDurableFi
 	mpcIndexedData = pcIndexedData;
 	if (pcEvictionCallback)
 	{
-		mcEvictionCallback.Init(pcEvictionCallback, this);
-		pcCallback = &mcEvictionCallback;
+		mcEvictionCallbackWrapper.Init(pcEvictionCallback, this);
+		pcCallback = &mcEvictionCallbackWrapper;
 	}
 	else
 	{
-		mcEvictionCallback.Init(NULL, NULL);
+		mcEvictionCallbackWrapper.Init(NULL, NULL);
 		pcCallback = this;
 	}
 	mcIndexTree.Init(pcDurableFileController, uiCutoff, pcCallback, &mcEvictionStrategy, &mcDescriptorsCallback,  bWriteThrough);
@@ -197,7 +197,7 @@ BOOL CIndexedDescriptorsFile::Evict(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedDescriptorsFile::NodeEvicted(unsigned char* pvKey, int iKeySize, void* pvData, int iDataSize)
+BOOL CIndexedDescriptorsFile::NodeEvicted(void* pvKey, int iKeySize, void* pvData, int iDataSize)
 {
 	OIndex	oi;
 
