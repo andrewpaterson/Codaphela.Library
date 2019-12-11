@@ -635,24 +635,6 @@ BOOL CIndexTreeFile::Get(void* pvKey, int iKeySize, void* pvObject, unsigned sho
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::Put(char* pszKey, void* pvObject, unsigned short uiDataSize)
-{
-	int iKeySize;
-
-	if (StrEmpty(pszKey))
-	{
-		return FALSE;
-	}
-
-	iKeySize = strlen(pszKey);
-	return Put(pszKey, iKeySize, pvObject, uiDataSize);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeFile::Put(void* pvKey, int iKeySize, void* pvObject, unsigned short uiDataSize)
 {
 	CIndexTreeNodeFile*		pcCurrent;
@@ -725,20 +707,10 @@ BOOL CIndexTreeFile::SetDirtyPath(CIndexTreeNodeFile* pcCurrent)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::Put(void* pvKey, int iKeySize, unsigned short uiDataSize)
-{
-	return Put(pvKey, iKeySize, NULL, uiDataSize);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 CIndexTreeNodeFile* CIndexTreeFile::SetNodeObject(CIndexTreeNodeFile* pcCurrent, void* pvObject, unsigned short uiDataSize)
 {
 	CIndexTreeNodeFile*		pcReallocatedCurrent;
-	BOOL					bResult;
+	BOOL					bResult;o
 	unsigned short			uiOriginalSize;
 
 	if (uiDataSize > pcCurrent->ObjectSize())
