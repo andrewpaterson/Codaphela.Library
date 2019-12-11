@@ -50,9 +50,6 @@ public:
 	BOOL					StartIteration(SIndexTreeFileIterator* psIterator, void** pvData, int* piDataSize);
 	BOOL					Iterate(SIndexTreeFileIterator* psIterator, void** pvData, int* piDataSize);
 
-	BOOL					Put(char* pszKey, void* pvObject, unsigned short uiDataSize);
-	BOOL					Put(void* pvKey, int iKeySize, unsigned short uiDataSize);
-
 	BOOL					Remove(char* pszKey);
 
 	BOOL					Evict(void* pvKey, int iKeySize);
