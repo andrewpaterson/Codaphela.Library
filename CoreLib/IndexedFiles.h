@@ -62,8 +62,8 @@ public:
 
 	BOOL			Read(CFileDataIndex* pcDataIndex, void* pvData);
 	BOOL			Delete(CFileDataIndex* pcDataIndex);
-	CFileDataIndex	WriteNew(void* pvData, unsigned uiDataSize);
-	BOOL			WriteExisting(CFileDataIndex* pcDataIndex, void* pvData, unsigned uiDataSize);
+	CFileDataIndex	WriteNew(void* pvData, unsigned int uiDataSize);
+	BOOL			WriteExisting(CFileDataIndex* pcDataIndex, void* pvData, unsigned int uiDataSize);
 
 	BOOL			IsDurable(void);
 	
