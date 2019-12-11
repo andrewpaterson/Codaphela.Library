@@ -710,7 +710,7 @@ BOOL CIndexTreeFile::SetDirtyPath(CIndexTreeNodeFile* pcCurrent)
 CIndexTreeNodeFile* CIndexTreeFile::SetNodeObject(CIndexTreeNodeFile* pcCurrent, void* pvObject, unsigned short uiDataSize)
 {
 	CIndexTreeNodeFile*		pcReallocatedCurrent;
-	BOOL					bResult;o
+	BOOL					bResult;
 	unsigned short			uiOriginalSize;
 
 	if (uiDataSize > pcCurrent->ObjectSize())
