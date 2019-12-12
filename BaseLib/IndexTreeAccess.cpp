@@ -1,6 +1,6 @@
 #include <string.h>
-#include "BaseLib/StringHelper.h"
-#include "BaseLib/DataTypes.h"
+#include "StringHelper.h"
+#include "DataTypes.h"
 #include "IndexTreeAccess.h"
 
 

@@ -1,8 +1,8 @@
 #ifndef __INDEX_TREE_ACCESS_H__
 #define __INDEX_TREE_ACCESS_H__
-#include "BaseLib/Define.h"
-#include "BaseLib/PrimitiveTypes.h"
-#include "BaseLib/TemporaryMemory.h"
+#include "Define.h"
+#include "PrimitiveTypes.h"
+#include "TemporaryMemory.h"
 
 class CIndexTreeAccess
 {
