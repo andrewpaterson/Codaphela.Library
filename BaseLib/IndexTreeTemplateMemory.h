@@ -10,7 +10,7 @@ public:
 	M*		Get(char* pszKey);
 	M*		Get(void* pvKey, int iKeySize);
 
-	M*		Put(char* pszKey, M* pvObject);
+	//M*		Put(char* pszKey, M* pvObject);
 	M*		Put(void* pvKey, int iKeySize, M* pvObject);
 
 	BOOL	Remove(char* pszKey);
@@ -44,11 +44,11 @@ M* CIndexTreeTemplateMemory<M>::Get(void* pvKey, int iKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-M* CIndexTreeTemplateMemory<M>::Put(char* pszKey, M* pvObject)
-{
-	return (M*)CIndexTreeMemory::Put(pszKey, pvObject, sizeof(M));
-}
+//template<class M>
+//M* CIndexTreeTemplateMemory<M>::Put(char* pszKey, M* pvObject)
+//{
+//	return (M*)CIndexTreeMemory::Put(pszKey, pvObject, sizeof(M));
+//}
 
 
 //////////////////////////////////////////////////////////////////////////

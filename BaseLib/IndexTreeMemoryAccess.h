@@ -1,6 +1,6 @@
 #ifndef __INDEX_TREE_MEMORY_ACCESS_H__
 #define __INDEX_TREE_MEMORY_ACCESS_H__
-#include "BaseLib/IndexTreeMemory.h"
+#include "IndexTreeMemory.h"
 #include "IndexTreeAccess.h"
 
 

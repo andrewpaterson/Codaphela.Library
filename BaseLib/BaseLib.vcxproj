@@ -101,6 +101,8 @@
     <ClInclude Include="ChunkStack.h" />
     <ClInclude Include="CountingAllocator.h" />
     <ClInclude Include="DataMemory.h" />
+    <ClInclude Include="IndexTreeAccess.h" />
+    <ClInclude Include="IndexTreeMemoryAccess.h" />
     <ClInclude Include="ListCharsMinimal.h" />
     <ClInclude Include="Constructors.h" />
     <ClInclude Include="DataMacro.h" />
@@ -309,7 +311,9 @@
     <ClCompile Include="GlobalMemoryAllocator.cpp" />
     <ClCompile Include="GuidClass.cpp" />
     <ClCompile Include="IndexTree.cpp" />
+    <ClCompile Include="IndexTreeAccess.cpp" />
     <ClCompile Include="IndexTreeMemory.cpp" />
+    <ClCompile Include="IndexTreeMemoryAccess.cpp" />
     <ClCompile Include="IndexTreeNode.cpp" />
     <ClCompile Include="IndexTreeNodeMemory.cpp" />
     <ClCompile Include="IndexTreeRecursor.cpp" />

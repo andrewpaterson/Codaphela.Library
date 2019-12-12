@@ -1,6 +1,6 @@
 #ifndef __INDEXED_DATA_ACCESS_H__
 #define __INDEXED_DATA_ACCESS_H__
-#include "IndexTreeAccess.h"
+#include "BaseLib/IndexTreeAccess.h"
 #include "IndexedData.h"
 
 class CIndexedDataAccess : public CIndexTreeAccess

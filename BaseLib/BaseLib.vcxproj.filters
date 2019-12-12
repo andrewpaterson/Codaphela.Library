@@ -214,6 +214,9 @@
     <Filter Include="Source\Data\Map\Primitive">
       <UniqueIdentifier>{c57d1158-7981-4514-905a-5cadf907a3c0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Data\Index\Access">
+      <UniqueIdentifier>{4b512cee-ea10-4e58-ae83-fb564f68aefb}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DataMacro.h">
@@ -777,6 +780,12 @@
     <ClInclude Include="MapLongLong.h">
       <Filter>Source\Data\Map\Primitive</Filter>
     </ClInclude>
+    <ClInclude Include="IndexTreeAccess.h">
+      <Filter>Source\Data\Index\Access</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexTreeMemoryAccess.h">
+      <Filter>Source\Data\Index\Access</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -1219,6 +1228,12 @@
     </ClCompile>
     <ClCompile Include="MapLongLong.cpp">
       <Filter>Source\Data\Map\Primitive</Filter>
+    </ClCompile>
+    <ClCompile Include="IndexTreeAccess.cpp">
+      <Filter>Source\Data\Index\Access</Filter>
+    </ClCompile>
+    <ClCompile Include="IndexTreeMemoryAccess.cpp">
+      <Filter>Source\Data\Index\Access</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

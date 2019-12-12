@@ -35,18 +35,11 @@ public:
 	BOOL					StartIteration(SIndexTreeMemoryIterator* psIterator, void** pvData, int* piDataSize);
 	BOOL					Iterate(SIndexTreeMemoryIterator* psIterator, void** pvData, int* piDataSize);
 
+	//These methods should all be moved to IndexTreeMemoryAccess.
 	void*					Get(void* pvKey, int iKeySize);
 	void*					Get(char* pszKey);
-
-	void*					Put(char* pszKey, void* pvObject, unsigned short uiDataSize);
 	void*					Put(void* pvKey, int iKeySize, unsigned short uiDataSize);
-	BOOL					PutPtr(char* pszKey, void* pvPointer);
-	BOOL					PutPtr(void* pvKey, int iKeySize, void* pvPointer);
-	BOOL					PutLong(char* pszKey, int64 lliIndex);
-	BOOL					PutLong(void* pvKey, int iKeySize, int64 lliIndex);
-
 	BOOL					Remove(char* pszKey);
-
 	BOOL					HasKey(char* pszKey);
 
 	CIndexTreeNodeMemory*	GetNode(void* pvKey, int iKeySize);
