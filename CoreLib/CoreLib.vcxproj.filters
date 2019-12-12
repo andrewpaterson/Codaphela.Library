@@ -369,12 +369,6 @@
     <ClCompile Include="IndexedDescriptorsFile.cpp">
       <Filter>Source\File\Indexed\Descriptors</Filter>
     </ClCompile>
-    <ClCompile Include="IndexTreeMemoryAccess.cpp">
-      <Filter>Source\File\Indexed\Index\Access</Filter>
-    </ClCompile>
-    <ClCompile Include="IndexTreeAccess.cpp">
-      <Filter>Source\File\Indexed\Index\Access</Filter>
-    </ClCompile>
     <ClCompile Include="IndexTreeFileAccess.cpp">
       <Filter>Source\File\Indexed\Index\Access</Filter>
     </ClCompile>
@@ -640,12 +634,6 @@
     </ClInclude>
     <ClInclude Include="IndexTreeTemplateFile.h">
       <Filter>Source\File\Indexed\Index</Filter>
-    </ClInclude>
-    <ClInclude Include="IndexTreeAccess.h">
-      <Filter>Source\File\Indexed\Index\Access</Filter>
-    </ClInclude>
-    <ClInclude Include="IndexTreeMemoryAccess.h">
-      <Filter>Source\File\Indexed\Index\Access</Filter>
     </ClInclude>
     <ClInclude Include="IndexTreeFileAccess.h">
       <Filter>Source\File\Indexed\Index\Access</Filter>

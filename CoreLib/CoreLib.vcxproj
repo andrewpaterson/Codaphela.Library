@@ -99,7 +99,6 @@
     <ClCompile Include="IndexedDescriptorsFile.cpp" />
     <ClCompile Include="IndexedFilesEvicting.cpp" />
     <ClCompile Include="IndexedGeneral.cpp" />
-    <ClCompile Include="IndexTreeAccess.cpp" />
     <ClCompile Include="EvictedList.cpp" />
     <ClCompile Include="EvictionCallbackWrapper.cpp" />
     <ClCompile Include="IndexTreeEvictionStrategy.cpp" />
@@ -112,7 +111,6 @@
     <ClCompile Include="IndexTreeFileDefaultCallback.cpp" />
     <ClCompile Include="IndexTreeHelper.cpp" />
     <ClCompile Include="IndexTreeChildNode.cpp" />
-    <ClCompile Include="IndexTreeMemoryAccess.cpp" />
     <ClCompile Include="IndexTreeNodeFile.cpp" />
     <ClCompile Include="IndexTreeWriter.cpp" />
     <ClCompile Include="LogFile.cpp" />
@@ -194,12 +192,10 @@
     <ClInclude Include="IndexTreeEvicting.h" />
     <ClInclude Include="IndexTreeEvictingAccess.h" />
     <ClInclude Include="IndexTreeFileDefaultCallback.h" />
-    <ClInclude Include="IndexTreeMemoryAccess.h" />
     <ClInclude Include="FileIterator.h" />
     <ClInclude Include="FileIteratorReturn.h" />
     <ClInclude Include="Files.h" />
     <ClInclude Include="IndexedDescriptorsFile.h" />
-    <ClInclude Include="IndexTreeAccess.h" />
     <ClInclude Include="IndexTreeHelper.h" />
     <ClInclude Include="IndexTreeChildNode.h" />
     <ClInclude Include="IndexTreeFileCallback.h" />
