@@ -188,6 +188,16 @@ BOOL CIndexTreeAccess::Put(void* pvKey, int iKeySize, unsigned int uiDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeAccess::PutKeyData(void* pvKey, int iKeySize, void* pvObject, unsigned int uiDataSize)
+{
+	return Put(pvKey, iKeySize, pvObject, uiDataSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeAccess::GetLongString(int64 lliKey, char* pszDest)
 {
 	BOOL	bResult;
