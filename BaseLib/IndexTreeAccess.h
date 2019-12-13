@@ -24,14 +24,18 @@ public:
 			BOOL			PutStringLong(char* pszKey, int64 lliIndex);
 			BOOL			PutStringString(char* pszKey, char* pszData);
 			BOOL			PutKeyData(void* pvKey, int iKeySize, void* pvObject, unsigned int uiDataSize);
+			BOOL			PutKeyString(void* pvKey, int iKeySize, char* pszData);
 
-			BOOL			GetLongString(int64 lliKey, char* pszDest);
-			BOOL			GetStringData(char* pszKey, void* pvObject, unsigned int* puiDataSize);
-			BOOL			GetStringString(char* pszKey, char* pszDest);
+			char*			GetLongString(int64 lliKey, char* pszDest);
+			BOOL			GetStringData(char* pszKey, void* pvObject, unsigned int* puiDataSize = NULL);
+			char*			GetStringString(char* pszKey, char* pszDest);
 			int				GetStringInt(char* pszKey);
 			int64			GetStringLong(char* pszKey);
+			void*			GetStringPtr(char* pszKey);
+			BOOL			GetKeyData(void* pvKey, int iKeySize, void* pvObject, unsigned int* puiDataSize);
+			char*			GetKeyString(void* pvKey, int iKeySize, char* pszDest);
 
-			BOOL			ContainsString(char* pszKey);
+			BOOL			HasString(char* pszKey);
 
 			BOOL			DeleteLong(int64 lliKey);
 			BOOL			DeleteString(char* pszKey);

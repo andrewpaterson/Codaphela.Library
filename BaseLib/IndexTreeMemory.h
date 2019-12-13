@@ -36,8 +36,6 @@ public:
 	BOOL					Iterate(SIndexTreeMemoryIterator* psIterator, void** pvData, int* piDataSize);
 
 	//These methods should all be moved to IndexTreeMemoryAccess.
-	void*					Get(void* pvKey, int iKeySize);
-	void*					Get(char* pszKey);
 	void*					Put(void* pvKey, int iKeySize, unsigned short uiDataSize);
 	BOOL					Remove(char* pszKey);
 	BOOL					HasKey(char* pszKey);
