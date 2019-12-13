@@ -9,7 +9,6 @@ class CIndexTreeTemplateMemory : public CIndexTreeMemory
 public:
 	M*		Put(void* pvKey, int iKeySize, M* pvObject);
 
-	BOOL	Remove(char* pszKey);
 	BOOL	Remove(void* pvKey, int iKeySize);
 };
 
@@ -22,17 +21,6 @@ template<class M>
 M* CIndexTreeTemplateMemory<M>::Put(void* pvKey, int iKeySize, M* pvObject)
 {
 	return (M*)CIndexTreeMemory::Put(pvKey, iKeySize, pvObject, sizeof(M));
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-template<class M>
-BOOL CIndexTreeTemplateMemory<M>::Remove(char* pszKey)
-{
-	return CIndexTreeMemory::Remove(pszKey);
 }
 
 
