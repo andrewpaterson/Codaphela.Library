@@ -246,17 +246,6 @@ void* CIndexTreeMemory::Put(void* pvKey, int iKeySize, void* pvObject, unsigned 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CIndexTreeMemory::Put(void* pvKey, int iKeySize, unsigned short uiDataSize)
-{
-	return Put(pvKey, iKeySize, NULL, uiDataSize);
-}
-
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 CIndexTreeNodeMemory* CIndexTreeMemory::ReallocateNodeForIndex(CIndexTreeNodeMemory* pcNode, unsigned char uiIndex)
 {
 	CIndexTreeNodeMemory*	pcOldNode;
@@ -608,7 +597,7 @@ BOOL CIndexTreeMemory::Read(CFileReader* pcFileReader)
 		{
 			return FALSE;
 		}
-		pvData = Put(acKey, iKeySize, iDataSize);
+		pvData = Put(acKey, iKeySize, NULL, iDataSize);
 		if (!pvData)
 		{
 			return FALSE;
