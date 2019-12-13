@@ -1103,24 +1103,6 @@ BOOL CIndexTreeMemory::HasKey(void* pvKey, int iKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeMemory::HasKey(char* pszKey)
-{
-	int iKeySize;
-
-	if (StrEmpty(pszKey))
-	{
-		return FALSE;
-	}
-
-	iKeySize = strlen(pszKey);
-	return HasKey(pszKey, iKeySize);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 int CIndexTreeMemory::CountAllocatedNodes(void)
 {
 	return RecurseCountAllocatedNodes(mpcRoot);

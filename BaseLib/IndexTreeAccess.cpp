@@ -394,7 +394,16 @@ int64 CIndexTreeAccess::GetStringLong(char* pszKey)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeAccess::HasString(char* pszKey)
 {
-	return GetStringData(pszKey, NULL, NULL);
+	int iKeySize;
+
+	if (StrEmpty(pszKey))
+	{
+		return FALSE;
+	}
+
+	iKeySize = strlen(pszKey);
+
+	return Has(pszKey, iKeySize);
 }
 
 
