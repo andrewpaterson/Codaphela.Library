@@ -40,6 +40,7 @@ public:
 
 			BOOL			DeleteLong(int64 lliKey);
 			BOOL			DeleteString(char* pszKey);
+			BOOL			DeleteKey(void* pvKey, int iKeySize);
 
 protected:
 	virtual BOOL			Put(void* pvKey, int iKeySize, void* pvObject, unsigned int uiDataSize) =0;
