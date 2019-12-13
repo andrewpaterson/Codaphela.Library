@@ -23,6 +23,7 @@ public:
 			BOOL			PutStringInt(char* pszKey, int iIndex);
 			BOOL			PutStringLong(char* pszKey, int64 lliIndex);
 			BOOL			PutStringString(char* pszKey, char* pszData);
+			BOOL			PutKeyData(void* pvKey, int iKeySize, void* pvObject, unsigned int uiDataSize);
 
 			BOOL			GetLongString(int64 lliKey, char* pszDest);
 			BOOL			GetStringData(char* pszKey, void* pvObject, unsigned int* puiDataSize);
