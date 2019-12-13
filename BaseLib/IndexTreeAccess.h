@@ -36,6 +36,7 @@ public:
 			char*			GetKeyString(void* pvKey, int iKeySize, char* pszDest);
 
 			BOOL			HasString(char* pszKey);
+			BOOL			HasKey(void* pvKey, int iKeySize);
 
 			BOOL			DeleteLong(int64 lliKey);
 			BOOL			DeleteString(char* pszKey);
@@ -45,6 +46,7 @@ protected:
 	virtual BOOL			Get(void* pvKey, int iKeySize, void* pvObject, unsigned int* puiDataSize) =0;
 	virtual unsigned int	DataSize(void* pvKey, int iKeySize) =0;
 	virtual BOOL			Remove(void* pvKey, int iKeySize) =0;
+	virtual BOOL			Has(void* pvKey, int iKeySize) =0;
 };
 
 

@@ -38,7 +38,6 @@ public:
 	//These methods should all be moved to IndexTreeMemoryAccess.
 	void*					Put(void* pvKey, int iKeySize, unsigned short uiDataSize);
 	BOOL					Remove(char* pszKey);
-	BOOL					HasKey(char* pszKey);
 
 	CIndexTreeNodeMemory*	GetNode(void* pvKey, int iKeySize);
 	CIndexTreeNodeMemory*	GetRoot(void);
