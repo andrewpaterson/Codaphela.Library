@@ -177,17 +177,6 @@ BOOL CIndexTreeAccess::PutStringString(char* pszKey, char* pszData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeAccess::Put(void* pvKey, int iKeySize, unsigned int uiDataSize)
-{
-	mcTemp.Size(uiDataSize);
-	return Put(pvKey, iKeySize, NULL, uiDataSize);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeAccess::PutKeyData(void* pvKey, int iKeySize, void* pvObject, unsigned int uiDataSize)
 {
 	return Put(pvKey, iKeySize, pvObject, uiDataSize);

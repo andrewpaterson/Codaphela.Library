@@ -37,8 +37,6 @@ public:
 			BOOL			DeleteString(char* pszKey);
 
 protected:
-			BOOL			Put(void* pvKey, int iKeySize, unsigned int uiDataSize);
-
 	virtual BOOL			Put(void* pvKey, int iKeySize, void* pvObject, unsigned int uiDataSize) =0;
 	virtual BOOL			Get(void* pvKey, int iKeySize, void* pvObject, unsigned int* puiDataSize) =0;
 	virtual unsigned int	DataSize(void* pvKey, int iKeySize) =0;
