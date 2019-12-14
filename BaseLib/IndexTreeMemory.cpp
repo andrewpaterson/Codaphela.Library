@@ -195,6 +195,7 @@ void* CIndexTreeMemory::Put(void* pvKey, int iKeySize, void* pvObject, unsigned 
 	unsigned char			c;
 	BOOL					bResult;
 	unsigned short			uiOriginalSize;
+	int						i;
 
 	if (iKeySize == 0)
 	{
@@ -203,7 +204,7 @@ void* CIndexTreeMemory::Put(void* pvKey, int iKeySize, void* pvObject, unsigned 
 
 	pcCurrent = mpcRoot;
 
-	for (int i = 0; i < iKeySize; i++)
+	for (i = 0; i < iKeySize; i++)
 	{
 		c = ((char*)pvKey)[i];
 		pcCurrent = SetOldWithCurrent(pcCurrent, c);
