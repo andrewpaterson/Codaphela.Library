@@ -62,7 +62,7 @@ BOOL CIndexedDescriptorsFile::Remove(OIndex oi)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexedDescriptorsFile::Get(CIndexedDataDescriptor* pcDescriptor, OIndex oi)
 {
-	return mcIndexTree.Get(&oi, sizeof(OIndex), pcDescriptor);
+	return mcIndexTree.Get(&oi, sizeof(OIndex), pcDescriptor, NULL);
 }
 
 
@@ -74,11 +74,11 @@ BOOL CIndexedDescriptorsFile::Get(CIndexedDataDescriptor* pcDescriptor, OIndex o
 {
 	if (!bNoEviction)
 	{
-		return mcIndexTree.Get(&oi, sizeof(OIndex), pcDescriptor);
+		return mcIndexTree.Get(&oi, sizeof(OIndex), pcDescriptor, NULL);
 	}
 	else
 	{
-		return mcIndexTree.GetWithoutEviction(&oi, sizeof(OIndex), pcDescriptor);
+		return mcIndexTree.GetWithoutEviction(&oi, sizeof(OIndex), pcDescriptor, NULL);
 	}
 }
 
@@ -89,7 +89,7 @@ BOOL CIndexedDescriptorsFile::Get(CIndexedDataDescriptor* pcDescriptor, OIndex o
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexedDescriptorsFile::Set(CIndexedDataDescriptor* pcDescriptor, OIndex oi)
 {
-	return mcIndexTree.Put(&oi, sizeof(OIndex), pcDescriptor);
+	return mcIndexTree.Put(&oi, sizeof(OIndex), pcDescriptor, sizeof(CIndexedDataDescriptor));
 }
 
 
@@ -101,11 +101,11 @@ BOOL CIndexedDescriptorsFile::Set(CIndexedDataDescriptor* pcDescriptor, OIndex o
 {
 	if (!bNoEviction)
 	{
-		return mcIndexTree.Put(&oi, sizeof(OIndex), pcDescriptor);
+		return mcIndexTree.Put(&oi, sizeof(OIndex), pcDescriptor, sizeof(CIndexedDataDescriptor));
 	}
 	else
 	{
-		return mcIndexTree.PutWithoutEviction(&oi, sizeof(OIndex), pcDescriptor);
+		return mcIndexTree.PutWithoutEviction(&oi, sizeof(OIndex), pcDescriptor, sizeof(CIndexedDataDescriptor));
 	}
 }
 

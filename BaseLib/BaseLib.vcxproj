@@ -136,7 +136,6 @@
     <ClInclude Include="IndexTreeNode.h" />
     <ClInclude Include="IndexTreeNodeMemory.h" />
     <ClInclude Include="IndexTreeRecursor.h" />
-    <ClInclude Include="IndexTreeTemplateMemory.h" />
     <ClInclude Include="LinkedListBlock.h" />
     <ClInclude Include="LinkedListTemplate.h" />
     <ClInclude Include="LinkedListTemplateFreeList.h" />

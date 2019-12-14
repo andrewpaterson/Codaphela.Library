@@ -666,9 +666,6 @@
     <ClInclude Include="IndexTreeNodeMemory.h">
       <Filter>Source\Data\Index</Filter>
     </ClInclude>
-    <ClInclude Include="IndexTreeTemplateMemory.h">
-      <Filter>Source\Data\Index</Filter>
-    </ClInclude>
     <ClInclude Include="TemporaryMemory.h">
       <Filter>Source\Memory\Temporary</Filter>
     </ClInclude>

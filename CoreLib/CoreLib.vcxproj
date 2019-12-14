@@ -200,8 +200,6 @@
     <ClInclude Include="IndexTreeChildNode.h" />
     <ClInclude Include="IndexTreeFileCallback.h" />
     <ClInclude Include="IndexTreeNodeFile.h" />
-    <ClInclude Include="IndexTreeTemplateEvicting.h" />
-    <ClInclude Include="IndexTreeTemplateFile.h" />
     <ClInclude Include="IndexTreeWriter.h" />
     <ClInclude Include="LogFile.h" />
     <ClInclude Include="LogFileCommands.h" />
