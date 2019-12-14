@@ -122,3 +122,22 @@ BOOL CIndexedDataAccess::Remove(void* pvKey, int iKeySize)
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexedDataAccess::Has(void* pvKey, int iKeySize)
+{
+	OIndex	oi;
+
+	if (iKeySize == sizeof(OIndex))
+	{
+		oi = *((OIndex*)pvKey);
+		return mpcIndexData->Contains(oi);
+	}
+	else
+	{
+		return FALSE;
+	}
+}
+

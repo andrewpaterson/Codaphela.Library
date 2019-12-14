@@ -18,6 +18,7 @@ protected:
 	BOOL			Get(void* pvKey, int iKeySize, void* pvObject, unsigned int* puiDataSize);
 	unsigned int	DataSize(void* pvKey, int iKeySize);
 	BOOL			Remove(void* pvKey, int iKeySize);
+	BOOL			Has(void* pvKey, int iKeySize);
 };
 
 

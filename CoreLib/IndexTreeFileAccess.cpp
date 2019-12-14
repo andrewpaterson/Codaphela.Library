@@ -89,3 +89,13 @@ unsigned int CIndexTreeFileAccess::DataSize(void* pvKey, int iKeySize)
 	return mpcTree->ObjectSize(pvKey, iKeySize);
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeFileAccess::Has(void* pvKey, int iKeySize)
+{
+	return mpcTree->HasKey(pvKey, iKeySize);
+}
+
