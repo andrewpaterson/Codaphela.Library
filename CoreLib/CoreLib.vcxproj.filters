@@ -632,9 +632,6 @@
     <ClInclude Include="IndexedDescriptorsFile.h">
       <Filter>Source\File\Indexed\Descriptors</Filter>
     </ClInclude>
-    <ClInclude Include="IndexTreeTemplateFile.h">
-      <Filter>Source\File\Indexed\Index</Filter>
-    </ClInclude>
     <ClInclude Include="IndexTreeFileAccess.h">
       <Filter>Source\File\Indexed\Index\Access</Filter>
     </ClInclude>
@@ -664,9 +661,6 @@
     </ClInclude>
     <ClInclude Include="IndexedDataCommon.h">
       <Filter>Source\File\Indexed</Filter>
-    </ClInclude>
-    <ClInclude Include="IndexTreeTemplateEvicting.h">
-      <Filter>Source\File\Indexed\Index\Evicting</Filter>
     </ClInclude>
     <ClInclude Include="IndexTreeFileCallback.h">
       <Filter>Source\File\Indexed\Index\Access\DataWriter</Filter>

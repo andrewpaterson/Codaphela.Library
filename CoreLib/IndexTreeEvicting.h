@@ -53,7 +53,6 @@ public:
 	size_t					GetSystemMemorySize(void);
 	unsigned char			GetRootFlags(void);
 
-protected:
 	int						PotentiallyEvict(void* pvKey, int iKeySize);
 	BOOL					GetWithoutEviction(void* pvKey, int iKeySize, void* pvObject, unsigned short* puiDataSize);
 	BOOL					PutWithoutEviction(void* pvKey, int iKeySize, void* pvObject, unsigned short uiDataSize);

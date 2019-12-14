@@ -1,7 +1,7 @@
 #ifndef __INDEX_DESCRIPTORS_FILE_H__
 #define __INDEX_DESCRIPTORS_FILE_H__
 #include "BaseLib/PrimitiveTypes.h"
-#include "IndexTreeTemplateEvicting.h"
+#include "IndexTreeEvicting.h"
 #include "EvictionCallback.h"
 #include "IndexedDataDescriptor.h"
 #include "IndexTreeEvictionStrategyRandom.h"
@@ -13,7 +13,7 @@ class CIndexedDataCommon;
 class CIndexedDescriptorsFile : public CEvictionCallback
 {
 protected:
-	CIndexTreeTemplateEvicting<CIndexedDataDescriptor>	mcIndexTree;
+	CIndexTreeEvicting									mcIndexTree;
 	CIndexTreeEvictionStrategyRandom					mcEvictionStrategy;
 	CIndexedDataCommon*									mpcIndexedData;
 	CIndexedDescriptorsFileCallback						mcDescriptorsCallback;
