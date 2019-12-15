@@ -31,9 +31,9 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedData::Init(char* szWorkingDirectory, char* szRewriteDirectory, size_t uiDataCacheSize, size_t uiIndexCacheSize, BOOL bWriteThrough)
+void CIndexedData::Init(char* szWorkingDirectory, char* szRewriteDirectory, size_t uiDataCacheSize, size_t uiIndexCacheSize, EIndexWriteThrough eWriteThrough)
 {
-	Init(szWorkingDirectory, szRewriteDirectory, uiDataCacheSize, uiIndexCacheSize, bWriteThrough, NULL, NULL);
+	Init(szWorkingDirectory, szRewriteDirectory, uiDataCacheSize, uiIndexCacheSize, eWriteThrough, NULL, NULL);
 }
 
 
@@ -41,7 +41,7 @@ void CIndexedData::Init(char* szWorkingDirectory, char* szRewriteDirectory, size
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedData::Init(char* szWorkingDirectory, char* szRewriteDirectory, size_t uiDataCacheSize, size_t uiIndexCacheSize, BOOL bWriteThrough, CEvictionCallback* pcIndexEvictionUserCallback, CEvictionCallback* pcEvictionUserCallback)
+void CIndexedData::Init(char* szWorkingDirectory, char* szRewriteDirectory, size_t uiDataCacheSize, size_t uiIndexCacheSize, EIndexWriteThrough eWriteThrough, CEvictionCallback* pcIndexEvictionUserCallback, CEvictionCallback* pcEvictionUserCallback)
 {
 	CIndexedConfig	cConfig;
 
@@ -51,16 +51,16 @@ void CIndexedData::Init(char* szWorkingDirectory, char* szRewriteDirectory, size
 	cConfig.mszRewriteDirectory = szRewriteDirectory;
 	cConfig.SetDataCacheSize(uiDataCacheSize);
 	cConfig.SetIndexCacheSize(uiIndexCacheSize);
-	cConfig.SetWriteThrough(bWriteThrough);
+	cConfig.SetWriteThrough(eWriteThrough);
 
 	mcDurableFileControl.Init(cConfig.mszWorkingDirectory, cConfig.mszRewriteDirectory);
 
-	mbWriteThrough = cConfig.mbWriteThrough;
+	meWriteThrough = cConfig.meWriteThrough;
 
 	mcDurableFileControl.Begin();
 
-	InitIndices(&mcDurableFileControl, cConfig.mbDirtyTesting, uiIndexCacheSize, cConfig.mbWriteThrough, pcIndexEvictionUserCallback);
-	mcData.Init(&mcDurableFileControl, "DAT", "Files.IDX", "_Files.IDX", cConfig.miDataCacheSize, cConfig.mbWriteThrough, this);
+	InitIndices(&mcDurableFileControl, cConfig.mbDirtyTesting, uiIndexCacheSize, cConfig.meWriteThrough, pcIndexEvictionUserCallback);
+	mcData.Init(&mcDurableFileControl, "DAT", "Files.IDX", "_Files.IDX", cConfig.miDataCacheSize, cConfig.meWriteThrough, this);
 
 	mcDurableFileControl.End();
 }
@@ -99,9 +99,9 @@ BOOL CIndexedData::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedData::InitIndices(CDurableFileController* pcDurableFileControl, BOOL bDirtyTesting, size_t uiCutoff, BOOL bWriteThrough, CEvictionCallback* pcIndexEvictionUserCallback)
+void CIndexedData::InitIndices(CDurableFileController* pcDurableFileControl, BOOL bDirtyTesting, size_t uiCutoff, EIndexWriteThrough eWriteThrough, CEvictionCallback* pcIndexEvictionUserCallback)
 {
-	mcIndices.Init(this, pcDurableFileControl, bDirtyTesting, uiCutoff, bWriteThrough, pcIndexEvictionUserCallback);
+	mcIndices.Init(this, pcDurableFileControl, bDirtyTesting, uiCutoff, eWriteThrough, pcIndexEvictionUserCallback);
 }
 
 
@@ -153,7 +153,7 @@ BOOL CIndexedData::Flush(BOOL bClearDataCache)
 {
 	BOOL bRresult;
 
-	if (!mbWriteThrough)
+	if (!meWriteThrough)
 	{
 		bRresult = mcIndices.Flush();
 		bRresult &= mcData.Flush(bClearDataCache);

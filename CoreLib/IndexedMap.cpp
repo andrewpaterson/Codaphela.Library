@@ -6,9 +6,9 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedMap::Init(CDurableFileController* pcDurableFileControl, char* szDataExtension, char* szDescricptorName, char* szDescricptorRewrite, size_t iDataCacheSize, BOOL bWriteThrough)
+void CIndexedMap::Init(CDurableFileController* pcDurableFileControl, char* szDataExtension, char* szDescricptorName, char* szDescricptorRewrite, size_t iDataCacheSize, EIndexWriteThrough eWriteThrough)
 {
-	Init(pcDurableFileControl, szDataExtension, szDescricptorName, szDescricptorRewrite, iDataCacheSize, bWriteThrough, NULL);
+	Init(pcDurableFileControl, szDataExtension, szDescricptorName, szDescricptorRewrite, iDataCacheSize, eWriteThrough, NULL);
 }
 
 
@@ -16,16 +16,16 @@ void CIndexedMap::Init(CDurableFileController* pcDurableFileControl, char* szDat
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedMap::Init(CDurableFileController* pcDurableFileControl, char* szDataExtension, char* szDescricptorName, char* szDescricptorRewrite, size_t iDataCacheSize, BOOL bWriteThrough, CEvictionCallback* pcEvictionUserCallback)
+void CIndexedMap::Init(CDurableFileController* pcDurableFileControl, char* szDataExtension, char* szDescricptorName, char* szDescricptorRewrite, size_t iDataCacheSize, EIndexWriteThrough eWriteThrough, CEvictionCallback* pcEvictionUserCallback)
 {
 	CIndexedDataCommon::Init(pcEvictionUserCallback);
 
-	mbWriteThrough = bWriteThrough;
+	meWriteThrough = eWriteThrough;
 
 	pcDurableFileControl->Begin();
 
 	InitIndices(pcDurableFileControl, TRUE);
-	mcData.Init(pcDurableFileControl, "DAT", "Files.IDX", "_Files.IDX", iDataCacheSize, bWriteThrough, this);
+	mcData.Init(pcDurableFileControl, "DAT", "Files.IDX", "_Files.IDX", iDataCacheSize, eWriteThrough, this);
 
 	pcDurableFileControl->End();
 }

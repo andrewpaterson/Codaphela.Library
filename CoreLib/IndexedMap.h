@@ -15,8 +15,8 @@ protected:
 	CDurableFile								mcDescriptorsFile;
 
 public:
-	void	Init(CDurableFileController* pcDurableFileControl, char* szDataExtension, char* szDescricptorName, char* szDescricptorRewrite, size_t iCacheSize, BOOL bWriteThrough);
-	void	Init(CDurableFileController* pcDurableFileControl, char* szDataExtension, char* szDescricptorName, char* szDescricptorRewrite, size_t iCacheSize, BOOL bWriteThrough, CEvictionCallback* pcEvictionUserCallback);
+	void	Init(CDurableFileController* pcDurableFileControl, char* szDataExtension, char* szDescricptorName, char* szDescricptorRewrite, size_t iCacheSize, EIndexWriteThrough eWriteThrough);
+	void	Init(CDurableFileController* pcDurableFileControl, char* szDataExtension, char* szDescricptorName, char* szDescricptorRewrite, size_t iCacheSize, EIndexWriteThrough eWriteThrough, CEvictionCallback* pcEvictionUserCallback);
 	BOOL	Kill(void);
 
 	BOOL	DescriptorsEvicted(CArrayVoidPtr* papsEvictedIndexedCacheDescriptors);

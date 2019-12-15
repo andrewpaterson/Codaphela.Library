@@ -689,6 +689,9 @@
     <ClInclude Include="IndexedMap.h">
       <Filter>Source\File\Indexed</Filter>
     </ClInclude>
+    <ClInclude Include="IndexWriteThrough.h">
+      <Filter>Source\File\Indexed\Index</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="FunctionCaller_C_Call.inl">

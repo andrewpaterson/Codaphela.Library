@@ -28,12 +28,12 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedConfig::Manual(char* szWorkingDirectory, char* szRewriteDirectory, BOOL bDirtyTesting, BOOL bWriteThrough, size_t iDataCacheSize, size_t iIndexCacheSize)
+void CIndexedConfig::Manual(char* szWorkingDirectory, char* szRewriteDirectory, BOOL bDirtyTesting, EIndexWriteThrough eWriteThrough, size_t iDataCacheSize, size_t iIndexCacheSize)
 {
 	mszWorkingDirectory = szWorkingDirectory;
 	mszRewriteDirectory = szRewriteDirectory;
 	mbDirtyTesting = bDirtyTesting;
-	mbWriteThrough = bWriteThrough;
+	meWriteThrough = eWriteThrough;
 	miDataCacheSize = iDataCacheSize;
 	miIndexCacheSize = iIndexCacheSize;
 }
@@ -51,7 +51,7 @@ void CIndexedConfig::OptimiseForStreaming(char* szWorkingDirectory)
 	mszWorkingDirectory = szWorkingDirectory;
 	mszRewriteDirectory = NULL;
 	mbDirtyTesting = TRUE;
-	mbWriteThrough = FALSE;
+	meWriteThrough = IWT_No;
 	miDataCacheSize = 0;
 	miIndexCacheSize = 0;
 }
@@ -71,9 +71,9 @@ void CIndexedConfig::SetDirtyTesting(BOOL bDirtyTesting)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedConfig::SetWriteThrough(BOOL bWriteThrough)
+void CIndexedConfig::SetWriteThrough(EIndexWriteThrough eWriteThrough)
 {
-	mbWriteThrough = bWriteThrough;
+	meWriteThrough = eWriteThrough;
 }
 
 

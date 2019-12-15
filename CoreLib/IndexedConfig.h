@@ -23,7 +23,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __INDEX_CONFIG_H__
 #define __INDEX_CONFIG_H__
 #include "BaseLib/Chars.h"
-
+#include "IndexWriteThrough.h"
 
 class CIndexedConfig
 {
@@ -40,7 +40,7 @@ public:
 	BOOL	mbDirtyTesting;
 
 	//Immediately write the object data to disk, even if the object is cached.
-	BOOL	mbWriteThrough;
+	EIndexWriteThrough	meWriteThrough;
 
 	//If the smart index access has not switched to huge access yet, then the memory
 	//access allocates chunks in the size below.
@@ -49,11 +49,11 @@ public:
 	size_t		miDataCacheSize;
 	size_t		miIndexCacheSize;
 
-	void	Manual(char* szWorkingDirectory, char* szRewriteDirectory, BOOL bDirtyTesting, BOOL bWriteThrough, size_t iDataCacheSize, size_t iIndexCacheSize);
+	void	Manual(char* szWorkingDirectory, char* szRewriteDirectory, BOOL bDirtyTesting, EIndexWriteThrough eWriteThrough, size_t iDataCacheSize, size_t iIndexCacheSize);
 	void	OptimiseForStreaming(char* szWorkingDirectory);
 
 	void	SetDirtyTesting(BOOL bDirtyTesting);
-	void	SetWriteThrough(BOOL bWriteThrough);
+	void	SetWriteThrough(EIndexWriteThrough eWriteThrough);
 	void	SetDataCacheSize(size_t iDataCacheSize);
 	void	SetIndexCacheSize(size_t iIndexCacheSize);
 };
