@@ -16,7 +16,7 @@
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl)
 {
-	return Init(pcDurableFileControl, &gcIndexTreeFileDefaultCallback, &gcSystemAllocator, TRUE);
+	return Init(pcDurableFileControl, &gcIndexTreeFileDefaultCallback, &gcSystemAllocator, IWT_Yes);
 }
 
 
@@ -24,9 +24,9 @@ BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, BOOL bWriteThrough)
+BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, EIndexWriteThrough eWriteThrough)
 {
-	return Init(pcDurableFileControl, &gcIndexTreeFileDefaultCallback, &gcSystemAllocator, bWriteThrough);
+	return Init(pcDurableFileControl, &gcIndexTreeFileDefaultCallback, &gcSystemAllocator, eWriteThrough);
 }
 
 
@@ -34,9 +34,9 @@ BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, BOOL bWr
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, CMallocator* pcMalloc, BOOL bWriteThrough)
+BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, CMallocator* pcMalloc, EIndexWriteThrough eWriteThrough)
 {
-	return Init(pcDurableFileControl, &gcIndexTreeFileDefaultCallback, pcMalloc, bWriteThrough);
+	return Init(pcDurableFileControl, &gcIndexTreeFileDefaultCallback, pcMalloc, eWriteThrough);
 }
 
 
@@ -44,9 +44,9 @@ BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, CMalloca
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, CIndexTreeFileCallback* pcWriterCallback, BOOL bWriteThrough)
+BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, CIndexTreeFileCallback* pcWriterCallback, EIndexWriteThrough eWriteThrough)
 {
-	return Init(pcDurableFileControl, pcWriterCallback, &gcSystemAllocator, bWriteThrough);
+	return Init(pcDurableFileControl, pcWriterCallback, &gcSystemAllocator, eWriteThrough);
 }
 
 
@@ -54,7 +54,7 @@ BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, CIndexTr
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, CIndexTreeFileCallback* pcWriterCallback, CMallocator* pcMalloc, BOOL bWriteThrough)
+BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, CIndexTreeFileCallback* pcWriterCallback, CMallocator* pcMalloc, EIndexWriteThrough eWriteThrough)
 {
 	//The DurableFileControl must be begun before .Init is called and should be ended afterwards.
 
@@ -70,7 +70,7 @@ BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, CIndexTr
 
 	mpcDataCallback = pcWriterCallback;
 	mpcRoot = NULL;
-	mbWriteThrough = bWriteThrough;
+	meWriteThrough = eWriteThrough;
 	mpcDurableFileControl = pcDurableFileControl;
 	mcIndexFiles.Init(mpcDurableFileControl, "IDAT", "Index.IDX", "_Index.IDX");
 	bResult = mcIndexFiles.ReadIndexedFileDescriptors();
@@ -666,7 +666,7 @@ BOOL CIndexTreeFile::Put(void* pvKey, int iKeySize, void* pvObject, unsigned sho
 		return FALSE;
 	}
 	
-	if (mbWriteThrough)
+	if (meWriteThrough)
 	{
 		bResult = WriteBackPathWriteThrough(pcCurrent);
 	}
@@ -686,7 +686,7 @@ BOOL CIndexTreeFile::Put(void* pvKey, int iKeySize, void* pvObject, unsigned sho
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeFile::SetDirtyPath(CIndexTreeNodeFile* pcCurrent)
 {
-	if (mbWriteThrough)
+	if (meWriteThrough)
 	{
 		return gcLogger.Error2(__METHOD__, " Cannot SetDirtyPath on an index tree that is write through.", NULL);
 	}
@@ -1029,7 +1029,7 @@ BOOL CIndexTreeFile::Remove(void* pvKey, int iKeySize)
 		return FALSE;
 	}
 
-	if (mbWriteThrough)
+	if (meWriteThrough)
 	{
 		pcDirty = RemoveWriteThrough(pcCurrent);
 		if (pcDirty)
@@ -1201,7 +1201,7 @@ BOOL CIndexTreeFile::Evict(CIndexTreeNodeFile* pcNode)
 		return FALSE;
 	}
 
-	if (!mbWriteThrough)
+	if (!meWriteThrough)
 	{
 		bResult = Flush(&pcNode);
 		if (!bResult)
@@ -1281,7 +1281,7 @@ BOOL CIndexTreeFile::Flush(CIndexTreeNodeFile** ppcCurrent)
 	BOOL				bDirty;
 
 	pcCurrent = *ppcCurrent;
-	if (mbWriteThrough)
+	if (meWriteThrough)
 	{
 		return gcLogger.Error2(__METHOD__, " Cannot flush an index tree that is write through.", NULL);
 	}
@@ -1351,7 +1351,7 @@ BOOL CIndexTreeFile::CanFlush(CIndexTreeNodeFile* pcNode)
 	CIndexTreeChildNode*	pcChild;
 	CChars					szFlags;
 
-	if (mbWriteThrough)
+	if (meWriteThrough)
 	{
 		return gcLogger.Error2(__METHOD__, " Cannot flush an index tree that is write through.", NULL);
 	}
@@ -1480,7 +1480,7 @@ size_t CIndexTreeFile::GetSystemMemorySize(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeFile::IsWriteThrough(void)
 {
-	return mbWriteThrough;
+	return meWriteThrough;
 }
 
 
@@ -1513,7 +1513,7 @@ BOOL CIndexTreeFile::Flush(void)
 	BOOL	bResult;
 	BOOL	bRootHasIndex;
 	
-	if (mbWriteThrough)
+	if (meWriteThrough)
 	{
 		return gcLogger.Error2(__METHOD__, " Cannot flush an index tree that is write through.", NULL);
 	}
@@ -1644,7 +1644,7 @@ BOOL CIndexTreeFile::IsFlushed(void)
 	CIndexTreeRecursor	cCursor;
 	BOOL				bResult;
 
-	if (!mbWriteThrough)
+	if (!meWriteThrough)
 	{
 		cCursor.Init(mpcRoot);
 		bResult = RecurseIsFlushed(&cCursor);
@@ -1705,9 +1705,9 @@ BOOL CIndexTreeFile::RecurseIsFlushed(CIndexTreeRecursor* pcCursor)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeFile::SetWriteThrough(BOOL bWriteThrough)
+void CIndexTreeFile::SetWriteThrough(EIndexWriteThrough eWriteThrough)
 {
-	mbWriteThrough = bWriteThrough;
+	meWriteThrough = eWriteThrough;
 }
 
 

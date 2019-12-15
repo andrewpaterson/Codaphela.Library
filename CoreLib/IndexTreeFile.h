@@ -9,7 +9,7 @@
 #include "IndexTreeNodeFile.h"
 #include "IndexTreeFileDebug.h"
 #include "IndexedFiles.h"
-
+#include "IndexWriteThrough.h"
 
 struct SIndexTreeFileIterator
 {
@@ -24,17 +24,17 @@ protected:
 	CIndexTreeNodeFile*			mpcRoot;
 	CIndexedFiles				mcIndexFiles;
 	CDurableFileController*		mpcDurableFileControl;
-	BOOL						mbWriteThrough;
+	EIndexWriteThrough			meWriteThrough;
 	CDurableFile				mcRootIndex;
 	CCountingAllocator			mcMalloc;
 	CIndexTreeFileCallback*		mpcDataCallback;
 
 public:
 	BOOL					Init(CDurableFileController* pcDurableFileControl);
-	BOOL					Init(CDurableFileController* pcDurableFileControl, BOOL bWriteThrough);
-	BOOL					Init(CDurableFileController* pcDurableFileControl, CMallocator* pcMalloc, BOOL bWriteThrough);
-	BOOL					Init(CDurableFileController* pcDurableFileControl, CIndexTreeFileCallback* pcWriterCallback, BOOL bWriteThrough);
-	BOOL					Init(CDurableFileController* pcDurableFileControl, CIndexTreeFileCallback* pcWriterCallback, CMallocator* pcMalloc, BOOL bWriteThrough);
+	BOOL					Init(CDurableFileController* pcDurableFileControl, EIndexWriteThrough eWriteThrough);
+	BOOL					Init(CDurableFileController* pcDurableFileControl, CMallocator* pcMalloc, EIndexWriteThrough eWriteThrough);
+	BOOL					Init(CDurableFileController* pcDurableFileControl, CIndexTreeFileCallback* pcWriterCallback, EIndexWriteThrough eWriteThrough);
+	BOOL					Init(CDurableFileController* pcDurableFileControl, CIndexTreeFileCallback* pcWriterCallback, CMallocator* pcMalloc, EIndexWriteThrough eWriteThrough);
 	BOOL					Kill(void);
 
 	BOOL					Get(void* pvKey, int iKeySize, void* pvObject, unsigned short* puiDataSize);
@@ -45,7 +45,7 @@ public:
 
 	int						NumElements(void);
 	BOOL					Flush(void);
-	void					SetWriteThrough(BOOL bWriteThrough);
+	void					SetWriteThrough(EIndexWriteThrough eWriteThrough);
 
 	BOOL					StartIteration(SIndexTreeFileIterator* psIterator, void** pvData, int* piDataSize);
 	BOOL					Iterate(SIndexTreeFileIterator* psIterator, void** pvData, int* piDataSize);

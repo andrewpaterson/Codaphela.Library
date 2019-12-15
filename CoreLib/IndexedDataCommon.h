@@ -11,7 +11,7 @@ class CIndexedDataCommon : public CEvictionCallback
 {
 protected:
 	CIndexedFilesEvicting		mcData;
-	BOOL						mbWriteThrough;
+	EIndexWriteThrough			meWriteThrough;
 	CEvictionCallback*			mpcEvictionCallback;
 
 	CEvictionCallbackWrapper	mcEvictionCallbackWrapper;

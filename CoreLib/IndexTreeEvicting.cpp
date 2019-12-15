@@ -10,7 +10,7 @@
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeEvicting::Init(CDurableFileController* pcDurableFileControl, size_t uiCutoff, CEvictionCallback* pcEvictionCallback, CIndexTreeEvictionStrategy* pcEvictionStrategy, CIndexTreeFileCallback* pcWriterCallback)
 {
-	return Init(pcDurableFileControl, uiCutoff, pcEvictionCallback, pcEvictionStrategy, pcWriterCallback, &gcSystemAllocator, TRUE);
+	return Init(pcDurableFileControl, uiCutoff, pcEvictionCallback, pcEvictionStrategy, pcWriterCallback, &gcSystemAllocator, IWT_Yes);
 }
 
 
@@ -18,9 +18,9 @@ BOOL CIndexTreeEvicting::Init(CDurableFileController* pcDurableFileControl, size
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeEvicting::Init(CDurableFileController* pcDurableFileControl, size_t uiCutoff, CEvictionCallback* pcEvictionCallback, CIndexTreeEvictionStrategy* pcEvictionStrategy, CIndexTreeFileCallback* pcWriterCallback, BOOL bWriteThrough)
+BOOL CIndexTreeEvicting::Init(CDurableFileController* pcDurableFileControl, size_t uiCutoff, CEvictionCallback* pcEvictionCallback, CIndexTreeEvictionStrategy* pcEvictionStrategy, CIndexTreeFileCallback* pcWriterCallback, EIndexWriteThrough eWriteThrough)
 {
-	return Init(pcDurableFileControl, uiCutoff, pcEvictionCallback, pcEvictionStrategy, pcWriterCallback, &gcSystemAllocator, bWriteThrough);
+	return Init(pcDurableFileControl, uiCutoff, pcEvictionCallback, pcEvictionStrategy, pcWriterCallback, &gcSystemAllocator, eWriteThrough);
 }
 
 
@@ -28,14 +28,14 @@ BOOL CIndexTreeEvicting::Init(CDurableFileController* pcDurableFileControl, size
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeEvicting::Init(CDurableFileController* pcDurableFileControl, size_t uiCutoff, CEvictionCallback* pcEvictionCallback, CIndexTreeEvictionStrategy* pcEvictionStrategy, CIndexTreeFileCallback* pcWriterCallback, CMallocator* pcMalloc, BOOL bWriteThrough)
+BOOL CIndexTreeEvicting::Init(CDurableFileController* pcDurableFileControl, size_t uiCutoff, CEvictionCallback* pcEvictionCallback, CIndexTreeEvictionStrategy* pcEvictionStrategy, CIndexTreeFileCallback* pcWriterCallback, CMallocator* pcMalloc, EIndexWriteThrough eWriteThrough)
 {
 	BOOL	bResult;
 	mpcEvictionStrategy = pcEvictionStrategy;
 	mpcEvictionCallback = pcEvictionCallback;
 	muiCutoff = uiCutoff;
 
-	bResult = mcIndexTree.Init(pcDurableFileControl, pcWriterCallback, pcMalloc, bWriteThrough);
+	bResult = mcIndexTree.Init(pcDurableFileControl, pcWriterCallback, pcMalloc, eWriteThrough);
 	mpcEvictionStrategy->SetIndexTree(this);
 	return bResult;
 }

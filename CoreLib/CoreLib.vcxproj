@@ -201,6 +201,7 @@
     <ClInclude Include="IndexTreeFileCallback.h" />
     <ClInclude Include="IndexTreeNodeFile.h" />
     <ClInclude Include="IndexTreeWriter.h" />
+    <ClInclude Include="IndexWriteThrough.h" />
     <ClInclude Include="LogFile.h" />
     <ClInclude Include="LogFileCommands.h" />
     <ClInclude Include="PackFileOffset.h" />
