@@ -129,6 +129,7 @@ CIndexTreeNodeMemory* CIndexTreeMemory::GetNode(void* pvKey, int iKeySize)
 	CIndexTreeNodeMemory*	pcCurrent;
 	int						i;
 	unsigned char			c;
+	BOOL					bExecute;
 
 	if ((iKeySize == 0) || (pvKey == NULL))
 	{
@@ -136,7 +137,8 @@ CIndexTreeNodeMemory* CIndexTreeMemory::GetNode(void* pvKey, int iKeySize)
 	}
 
 	pcCurrent = mpcRoot;
-	for (i = 0; i < iKeySize; i++)
+	bExecute = StartKey(&i, iKeySize);
+	while (bExecute)
 	{
 		c = ((unsigned char*)pvKey)[i];
 
@@ -145,6 +147,7 @@ CIndexTreeNodeMemory* CIndexTreeMemory::GetNode(void* pvKey, int iKeySize)
 		{
 			return NULL;
 		}
+		bExecute = LoopKey(&i, iKeySize);
 	}
 	return pcCurrent;
 }
@@ -196,6 +199,7 @@ void* CIndexTreeMemory::Put(void* pvKey, int iKeySize, void* pvObject, unsigned 
 	BOOL					bResult;
 	unsigned short			uiOriginalSize;
 	int						i;
+	BOOL					bExecute;
 
 	if (iKeySize == 0)
 	{
@@ -204,10 +208,12 @@ void* CIndexTreeMemory::Put(void* pvKey, int iKeySize, void* pvObject, unsigned 
 
 	pcCurrent = mpcRoot;
 
-	for (i = 0; i < iKeySize; i++)
+	bExecute = StartKey(&i, iKeySize);
+	while (bExecute)
 	{
 		c = ((char*)pvKey)[i];
 		pcCurrent = SetOldWithCurrent(pcCurrent, c);
+		bExecute = LoopKey(&i, iKeySize);
 	}
 
 	if (!pcCurrent->HasObject())
@@ -375,6 +381,7 @@ BOOL CIndexTreeMemory::Remove(void* pvKey, int iKeySize)
 	unsigned char			c;
 	CIndexTreeNodeMemory*	pcCurrent;
 	int						i;
+	BOOL					bExecute;
 
 	if ((iKeySize == 0) || (pvKey == NULL))
 	{
@@ -382,7 +389,8 @@ BOOL CIndexTreeMemory::Remove(void* pvKey, int iKeySize)
 	}
 
 	pcCurrent = mpcRoot;
-	for (i = 0; i < iKeySize; i++)
+	bExecute = StartKey(&i, iKeySize);
+	while (bExecute)
 	{
 		c = ((char*)pvKey)[i];
 		pcCurrent = pcCurrent->Get(c);
@@ -390,6 +398,7 @@ BOOL CIndexTreeMemory::Remove(void* pvKey, int iKeySize)
 		{
 			return FALSE;
 		}
+		bExecute = LoopKey(&i, iKeySize);
 	}
 
 	return Remove(pcCurrent);
