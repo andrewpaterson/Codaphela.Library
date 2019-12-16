@@ -19,8 +19,8 @@ protected:
 	int						miSize;
 	
 public:
-	void					Init(void);
-	void					Init(CMallocator* pcMalloc);
+	void					Init(EIndexKeyReverse eKeyReverse = IKR_No);
+	void					Init(CMallocator* pcMalloc, EIndexKeyReverse eKeyReverse);
 	void					Kill(void);
 
 	void*					Get(void* pvKey, int iKeySize, unsigned short* puiDataSize);
@@ -43,9 +43,9 @@ public:
 	size_t					ByteSize(void);
 
 	BOOL					Write(CFileWriter* pcFileWriter);
-	BOOL					Read(CFileReader* pcFileReader);
+	BOOL					Read(CFileReader* pcFileReader, EIndexKeyReverse eKeyReverse);
 
-	void					FakeInit(void);
+	void					FakeInit(EIndexKeyReverse eKeyReverse);
 	void					RecurseKill(CIndexTreeNodeMemory* pcNode);
 
 	BOOL					ValidateIndexTree(void);

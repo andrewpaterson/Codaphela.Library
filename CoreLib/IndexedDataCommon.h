@@ -2,9 +2,9 @@
 #define __INDEXED_DATA_COMMON_H__
 #include "IndexedGeneral.h"
 #include "IndexedDataDescriptor.h"
-#include "IndexedConfig.h"
 #include "IndexedFilesEvicting.h"
 #include "EvictionCallback.h"
+#include "IndexWriteThrough.h"
 #include "EvictionCallbackWrapper.h"
 
 class CIndexedDataCommon : public CEvictionCallback

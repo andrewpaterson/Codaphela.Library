@@ -14,9 +14,9 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl)
+BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, EIndexKeyReverse eKeyReverse)
 {
-	return Init(pcDurableFileControl, &gcIndexTreeFileDefaultCallback, &gcSystemAllocator, IWT_Yes);
+	return Init(pcDurableFileControl, &gcIndexTreeFileDefaultCallback, &gcSystemAllocator, IWT_Yes, eKeyReverse);
 }
 
 
@@ -24,9 +24,9 @@ BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, EIndexWriteThrough eWriteThrough)
+BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse)
 {
-	return Init(pcDurableFileControl, &gcIndexTreeFileDefaultCallback, &gcSystemAllocator, eWriteThrough);
+	return Init(pcDurableFileControl, &gcIndexTreeFileDefaultCallback, &gcSystemAllocator, eWriteThrough, eKeyReverse);
 }
 
 
@@ -34,9 +34,9 @@ BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, EIndexWr
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, CMallocator* pcMalloc, EIndexWriteThrough eWriteThrough)
+BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, CMallocator* pcMalloc, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse)
 {
-	return Init(pcDurableFileControl, &gcIndexTreeFileDefaultCallback, pcMalloc, eWriteThrough);
+	return Init(pcDurableFileControl, &gcIndexTreeFileDefaultCallback, pcMalloc, eWriteThrough, eKeyReverse);
 }
 
 
@@ -44,9 +44,9 @@ BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, CMalloca
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, CIndexTreeFileCallback* pcWriterCallback, EIndexWriteThrough eWriteThrough)
+BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, CIndexTreeFileCallback* pcWriterCallback, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse)
 {
-	return Init(pcDurableFileControl, pcWriterCallback, &gcSystemAllocator, eWriteThrough);
+	return Init(pcDurableFileControl, pcWriterCallback, &gcSystemAllocator, eWriteThrough, eKeyReverse);
 }
 
 
@@ -54,7 +54,7 @@ BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, CIndexTr
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, CIndexTreeFileCallback* pcWriterCallback, CMallocator* pcMalloc, EIndexWriteThrough eWriteThrough)
+BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, CIndexTreeFileCallback* pcWriterCallback, CMallocator* pcMalloc, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse)
 {
 	//The DurableFileControl must be begun before .Init is called and should be ended afterwards.
 
@@ -66,7 +66,7 @@ BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, CIndexTr
 	}
 
 	mcMalloc.Init(pcMalloc);
-	CIndexTree::Init(&mcMalloc, sizeof(CIndexTreeNodeFile), sizeof(CIndexTreeChildNode));
+	CIndexTree::Init(&mcMalloc, eKeyReverse, sizeof(CIndexTreeNodeFile), sizeof(CIndexTreeChildNode));
 
 	mpcDataCallback = pcWriterCallback;
 	mpcRoot = NULL;
@@ -92,9 +92,9 @@ BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, CIndexTr
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeFile::FakeInit(void)
+void CIndexTreeFile::FakeInit(EIndexKeyReverse eKeyReverse)
 {
-	CIndexTree::Init(&gcSystemAllocator, sizeof(CIndexTreeNodeFile), sizeof(CIndexTreeChildNode));
+	CIndexTree::Init(&gcSystemAllocator, eKeyReverse, sizeof(CIndexTreeNodeFile), sizeof(CIndexTreeChildNode));
 	mpcRoot = NULL;
 	mpcDurableFileControl = NULL;
 }

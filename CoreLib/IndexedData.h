@@ -24,7 +24,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define __INDEXED_DATA_H__
 #include "BaseLib/TemporaryMemory.h"
 #include "BaseLib/MemoryFile.h"
-#include "IndexedConfig.h"
 #include "DurableFileController.h"
 #include "IndexedFilesEvictionCallback.h"
 #include "IndexedDataCommon.h"

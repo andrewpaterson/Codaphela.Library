@@ -5,9 +5,10 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTree::Init(CMallocator* pcMalloc, size_t tSizeofNode, size_t tSizeofNodePtr)
+void CIndexTree::Init(CMallocator* pcMalloc, EIndexKeyReverse eKeyReverse, size_t tSizeofNode, size_t tSizeofNodePtr)
 {
 	mpcMalloc = pcMalloc;
+	meReverseKey = eKeyReverse;
 	mtSizeofNode = tSizeofNode;
 	mtSizeofNodePtr = tSizeofNodePtr;
 }
@@ -97,5 +98,15 @@ size_t CIndexTree::CalculateRootNodeSize(void)
 size_t CIndexTree::CalculateNodeSize(int iRequiredIndices, int iDataSize)
 {
 	return SizeofNode() + iDataSize + iRequiredIndices * SizeofNodePtr();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+EIndexKeyReverse CIndexTree::ReverseKeys(void)
+{
+	return meReverseKey;
 }
 

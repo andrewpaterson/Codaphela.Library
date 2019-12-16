@@ -43,24 +43,16 @@ void CIndexedData::Init(char* szWorkingDirectory, char* szRewriteDirectory, size
 //////////////////////////////////////////////////////////////////////////
 void CIndexedData::Init(char* szWorkingDirectory, char* szRewriteDirectory, size_t uiDataCacheSize, size_t uiIndexCacheSize, EIndexWriteThrough eWriteThrough, CEvictionCallback* pcIndexEvictionUserCallback, CEvictionCallback* pcEvictionUserCallback)
 {
-	CIndexedConfig	cConfig;
-
 	CIndexedDataCommon::Init(pcEvictionUserCallback);
 
-	cConfig.OptimiseForStreaming(szWorkingDirectory);
-	cConfig.mszRewriteDirectory = szRewriteDirectory;
-	cConfig.SetDataCacheSize(uiDataCacheSize);
-	cConfig.SetIndexCacheSize(uiIndexCacheSize);
-	cConfig.SetWriteThrough(eWriteThrough);
+	mcDurableFileControl.Init(szWorkingDirectory, szRewriteDirectory);
 
-	mcDurableFileControl.Init(cConfig.mszWorkingDirectory, cConfig.mszRewriteDirectory);
-
-	meWriteThrough = cConfig.meWriteThrough;
+	meWriteThrough = eWriteThrough;
 
 	mcDurableFileControl.Begin();
 
-	InitIndices(&mcDurableFileControl, cConfig.mbDirtyTesting, uiIndexCacheSize, cConfig.meWriteThrough, pcIndexEvictionUserCallback);
-	mcData.Init(&mcDurableFileControl, "DAT", "Files.IDX", "_Files.IDX", cConfig.miDataCacheSize, cConfig.meWriteThrough, this);
+	InitIndices(&mcDurableFileControl, TRUE, uiIndexCacheSize, eWriteThrough, pcIndexEvictionUserCallback);
+	mcData.Init(&mcDurableFileControl, "DAT", "Files.IDX", "_Files.IDX", uiDataCacheSize, eWriteThrough, this);
 
 	mcDurableFileControl.End();
 }
@@ -101,7 +93,7 @@ BOOL CIndexedData::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CIndexedData::InitIndices(CDurableFileController* pcDurableFileControl, BOOL bDirtyTesting, size_t uiCutoff, EIndexWriteThrough eWriteThrough, CEvictionCallback* pcIndexEvictionUserCallback)
 {
-	mcIndices.Init(this, pcDurableFileControl, bDirtyTesting, uiCutoff, eWriteThrough, pcIndexEvictionUserCallback);
+	mcIndices.Init(this, pcDurableFileControl, bDirtyTesting, uiCutoff, eWriteThrough, IKR_Yes, pcIndexEvictionUserCallback);
 }
 
 

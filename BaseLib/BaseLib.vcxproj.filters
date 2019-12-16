@@ -783,6 +783,9 @@
     <ClInclude Include="IndexTreeMemoryAccess.h">
       <Filter>Source\Data\Index\Access</Filter>
     </ClInclude>
+    <ClInclude Include="IndexKeyReverse.h">
+      <Filter>Source\Data\Index</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">

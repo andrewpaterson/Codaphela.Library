@@ -101,6 +101,7 @@
     <ClInclude Include="ChunkStack.h" />
     <ClInclude Include="CountingAllocator.h" />
     <ClInclude Include="DataMemory.h" />
+    <ClInclude Include="IndexKeyReverse.h" />
     <ClInclude Include="IndexTreeAccess.h" />
     <ClInclude Include="IndexTreeMemoryAccess.h" />
     <ClInclude Include="ListCharsMinimal.h" />
