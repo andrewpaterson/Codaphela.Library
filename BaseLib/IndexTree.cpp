@@ -110,3 +110,41 @@ EIndexKeyReverse CIndexTree::ReverseKeys(void)
 	return meReverseKey;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTree::StartKey(int* pi, int iKeysSize)
+{
+	if (meReverseKey == IKR_No)
+	{
+		*pi = 0;
+		return *pi < iKeysSize;
+	}
+	else
+	{
+		*pi = iKeysSize - 1;
+		return *pi >= 0;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTree::LoopKey(int* pi, int iKeysSize)
+{
+	if (meReverseKey == IKR_No)
+	{
+		(*pi)++;
+		return *pi < iKeysSize;
+	}
+	else
+	{
+		(*pi)--;
+		return *pi >= 0;
+	}
+}
+

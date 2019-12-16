@@ -37,6 +37,9 @@ protected:
 	void				Free(void* pv);
 
 	void				FreeNode(CIndexTreeNode* pcNode);
+
+	BOOL				StartKey(int* pi, int iKeysSize);
+	BOOL				LoopKey(int* pi, int iKeysSize);
 };
 
 

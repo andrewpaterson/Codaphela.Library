@@ -445,6 +445,7 @@ CIndexTreeNodeFile* CIndexTreeFile::GetNode(void* pvKey, int iKeySize)
 	CIndexTreeNodeFile*		pcCurrent;
 	unsigned char			c;
 	int						i;
+	BOOL					bExecute;
 
 	if ((iKeySize == 0) || (pvKey == NULL))
 	{
@@ -452,7 +453,8 @@ CIndexTreeNodeFile* CIndexTreeFile::GetNode(void* pvKey, int iKeySize)
 	}
 
 	pcCurrent = mpcRoot;
-	for (i = 0; i < iKeySize; i++)
+	bExecute = StartKey(&i, iKeySize);
+	while (bExecute)
 	{
 		c = ((unsigned char*)pvKey)[i];
 		pcCurrent = ReadNode(pcCurrent, c);
@@ -460,7 +462,9 @@ CIndexTreeNodeFile* CIndexTreeFile::GetNode(void* pvKey, int iKeySize)
 		{
 			return NULL;
 		}
+		bExecute = LoopKey(&i, iKeySize);
 	}
+
 	return pcCurrent;
 }
 
@@ -474,6 +478,7 @@ CIndexTreeNodeFile* CIndexTreeFile::GetMemoryNode(void* pvKey, int iKeySize)
 	CIndexTreeNodeFile*		pcCurrent;
 	unsigned char			c;
 	int						i;
+	BOOL					bExecute;
 
 	if ((iKeySize == 0) || (pvKey == NULL))
 	{
@@ -481,7 +486,8 @@ CIndexTreeNodeFile* CIndexTreeFile::GetMemoryNode(void* pvKey, int iKeySize)
 	}
 
 	pcCurrent = mpcRoot;
-	for (i = 0; i < iKeySize; i++)
+	bExecute = StartKey(&i, iKeySize);
+	while (bExecute)
 	{
 		c = ((unsigned char*)pvKey)[i];
 		pcCurrent = ReadMemoryNode(pcCurrent, c);
@@ -489,6 +495,7 @@ CIndexTreeNodeFile* CIndexTreeFile::GetMemoryNode(void* pvKey, int iKeySize)
 		{
 			return NULL;
 		}
+		bExecute = LoopKey(&i, iKeySize);
 	}
 	return pcCurrent;
 }
@@ -641,6 +648,8 @@ BOOL CIndexTreeFile::Put(void* pvKey, int iKeySize, void* pvObject, unsigned sho
 	unsigned char			c;
 	BOOL					bResult;
 	BOOL					bRootHasIndex;
+	BOOL					bExecute;
+	int						i;
 
 	if (iKeySize == 0)
 	{
@@ -654,10 +663,12 @@ BOOL CIndexTreeFile::Put(void* pvKey, int iKeySize, void* pvObject, unsigned sho
 
 	bRootHasIndex = mpcRoot->GetFileIndex()->HasFile();
 	pcCurrent = mpcRoot;
-	for (int i = 0; i < iKeySize; i++)
+	bExecute = StartKey(&i, iKeySize);
+	while (bExecute)
 	{
 		c = ((char*)pvKey)[i];
 		pcCurrent = GetChildNodeOrAllocate(pcCurrent, c);
+		bExecute = LoopKey(&i, iKeySize);
 	}
 
 	pcCurrent = SetNodeObject(pcCurrent, pvObject, uiDataSize);
@@ -3086,6 +3097,7 @@ BOOL CIndexTreeFile::ValidateKey(void* pvKey, int iKeySize)
 	CChars					szMemory;
 	CChars					szFile;
 	CChars					szKey;
+	BOOL					bExecute;
 
 	pcCurrent = mpcRoot;
 
@@ -3102,7 +3114,8 @@ BOOL CIndexTreeFile::ValidateKey(void* pvKey, int iKeySize)
 	szMemory.Kill();
 	szFile.Kill();
 
-	for (i = 0; i < iKeySize; i++)
+	bExecute = StartKey(&i, iKeySize);
+	while (bExecute)
 	{
 		c = ((unsigned char*)pvKey)[i];
 		if (pcCurrent != NULL)
@@ -3122,6 +3135,7 @@ BOOL CIndexTreeFile::ValidateKey(void* pvKey, int iKeySize)
 
 			pcCurrent = ReadNode(pcCurrent, c);
 		}
+		bExecute = LoopKey(&i, iKeySize);
 	}
 
 	return TRUE;
@@ -3138,6 +3152,7 @@ void CIndexTreeFile::DebugKey(void* pvKey, int iKeySize, BOOL bSkipRoot)
 	unsigned char			c;
 	int						i;
 	SIndexTreeDebugNode		sDebugNode;
+	BOOL					bExecute;
 
 	pcCurrent = mpcRoot;
 
@@ -3146,7 +3161,8 @@ void CIndexTreeFile::DebugKey(void* pvKey, int iKeySize, BOOL bSkipRoot)
 		DebugNodeChildren(pcCurrent, -1);
 	}
 
-	for (i = 0; i < iKeySize; i++)
+	bExecute = StartKey(&i, iKeySize);
+	while (bExecute)
 	{
 		c = ((unsigned char*)pvKey)[i];
 		if (pcCurrent != NULL)
@@ -3158,6 +3174,7 @@ void CIndexTreeFile::DebugKey(void* pvKey, int iKeySize, BOOL bSkipRoot)
 			sDebugNode.InitBroken(c);
 			sDebugNode.Dump();
 		}
+		bExecute = LoopKey(&i, iKeySize);
 	}
 }
 
