@@ -8,9 +8,9 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeMemory::Init(void)
+void CIndexTreeMemory::Init(EIndexKeyReverse eKeyReverse)
 {
-	Init(&gcSystemAllocator);
+	Init(&gcSystemAllocator, eKeyReverse);
 }
 
 
@@ -18,9 +18,9 @@ void CIndexTreeMemory::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeMemory::Init(CMallocator* pcMalloc)
+void CIndexTreeMemory::Init(CMallocator* pcMalloc, EIndexKeyReverse eKeyReverse)
 {
-	CIndexTree::Init(pcMalloc, sizeof(CIndexTreeNodeMemory), sizeof(CIndexTreeNodeMemory*));
+	CIndexTree::Init(pcMalloc, eKeyReverse, sizeof(CIndexTreeNodeMemory), sizeof(CIndexTreeNodeMemory*));
 	mpcRoot = AllocateRoot();
 	miSize = 0;
 }
@@ -29,11 +29,11 @@ void CIndexTreeMemory::Init(CMallocator* pcMalloc)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeMemory::FakeInit(void)
+void CIndexTreeMemory::FakeInit(EIndexKeyReverse eKeyReverse)
 {
 	//This exists so that TreeNodes can be tested without a full tree.  All they need to do is query the size of their child nodes.
 	//Kill should not be called.
-	CIndexTree::Init(NULL, sizeof(CIndexTreeNodeMemory), sizeof(CIndexTreeNodeMemory*));
+	CIndexTree::Init(NULL, eKeyReverse, sizeof(CIndexTreeNodeMemory), sizeof(CIndexTreeNodeMemory*));
 	mpcRoot = NULL;
 	miSize = 0;
 }
@@ -561,7 +561,7 @@ BOOL CIndexTreeMemory::Write(CFileWriter* pcFileWriter)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeMemory::Read(CFileReader* pcFileReader)
+BOOL CIndexTreeMemory::Read(CFileReader* pcFileReader, EIndexKeyReverse eKeyReverse)
 {
 	CMallocator*	pcMalloc;
 	int				iCount;
@@ -577,7 +577,7 @@ BOOL CIndexTreeMemory::Read(CFileReader* pcFileReader)
 		return FALSE;
 	}
 
-	Init(pcMalloc);
+	Init(pcMalloc, eKeyReverse);
 
 	if (!pcFileReader->ReadInt(&iCount))
 	{

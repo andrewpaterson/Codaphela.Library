@@ -5,6 +5,7 @@
 #include "BaseLib/IndexTreeRecursor.h"
 #include "BaseLib/ListCharsMinimal.h"
 #include "BaseLib/CountingAllocator.h"
+#include "BaseLib/IndexKeyReverse.h"
 #include "DurableFileController.h"
 #include "IndexTreeNodeFile.h"
 #include "IndexTreeFileDebug.h"
@@ -30,11 +31,11 @@ protected:
 	CIndexTreeFileCallback*		mpcDataCallback;
 
 public:
-	BOOL					Init(CDurableFileController* pcDurableFileControl);
-	BOOL					Init(CDurableFileController* pcDurableFileControl, EIndexWriteThrough eWriteThrough);
-	BOOL					Init(CDurableFileController* pcDurableFileControl, CMallocator* pcMalloc, EIndexWriteThrough eWriteThrough);
-	BOOL					Init(CDurableFileController* pcDurableFileControl, CIndexTreeFileCallback* pcWriterCallback, EIndexWriteThrough eWriteThrough);
-	BOOL					Init(CDurableFileController* pcDurableFileControl, CIndexTreeFileCallback* pcWriterCallback, CMallocator* pcMalloc, EIndexWriteThrough eWriteThrough);
+	BOOL					Init(CDurableFileController* pcDurableFileControl, EIndexKeyReverse eKeyReverse = IKR_No);
+	BOOL					Init(CDurableFileController* pcDurableFileControl, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse);
+	BOOL					Init(CDurableFileController* pcDurableFileControl, CMallocator* pcMalloc, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse);
+	BOOL					Init(CDurableFileController* pcDurableFileControl, CIndexTreeFileCallback* pcWriterCallback, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse);
+	BOOL					Init(CDurableFileController* pcDurableFileControl, CIndexTreeFileCallback* pcWriterCallback, CMallocator* pcMalloc, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse);
 	BOOL					Kill(void);
 
 	BOOL					Get(void* pvKey, int iKeySize, void* pvObject, unsigned short* puiDataSize);
@@ -86,7 +87,7 @@ public:
 	CListTemplateMinimal<char>*	FindKeys(CArrayVoidPtr* apvNodes);
 	CListCharsMinimal*		FindStringKeys(CArrayVoidPtr* apvNodes);
 
-	void					FakeInit(void);
+	void					FakeInit(EIndexKeyReverse eKeyReverse = IKR_No);
 	void					RecurseKill(CIndexTreeNodeFile* pcNode);
 
 	BOOL					ValidateIndexTree(void); 

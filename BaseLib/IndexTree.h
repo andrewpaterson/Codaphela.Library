@@ -5,6 +5,7 @@
 #include "ArrayTemplateEmbedded.h"
 #include "MemoryCache.h"
 #include "IndexTreeNode.h"
+#include "IndexKeyReverse.h"
 
 
 #define MAX_KEY_SIZE (4 KB)
@@ -14,26 +15,28 @@
 class CIndexTree
 {
 protected:
-	CMallocator*	mpcMalloc;
+	CMallocator*		mpcMalloc;
 
-	size_t			mtSizeofNode;
-	size_t			mtSizeofNodePtr;
+	EIndexKeyReverse	meReverseKey;
+	size_t				mtSizeofNode;
+	size_t				mtSizeofNodePtr;
 
 public:
-	void	Init(CMallocator* pcMalloc, size_t tSizeofNode, size_t tSizeofNodePtr);
+	void				Init(CMallocator* pcMalloc, EIndexKeyReverse eKeyReverse, size_t tSizeofNode, size_t tSizeofNodePtr);
 
-	size_t	SizeofNode(void);
-	size_t	SizeofNodePtr(void);
+	size_t				SizeofNode(void);
+	size_t				SizeofNodePtr(void);
+	EIndexKeyReverse	ReverseKeys(void);
 
-	size_t	CalculateRootNodeSize(void);
-	size_t	CalculateNodeSize(int iRequiredIndices, int iDataSize);
+	size_t				CalculateRootNodeSize(void);
+	size_t				CalculateNodeSize(int iRequiredIndices, int iDataSize);
 
 protected:
-	void*	Malloc(size_t tSize);
-	void*	Realloc(void* pv, size_t tNewSize, size_t tExistingSize);
-	void	Free(void* pv);
+	void*				Malloc(size_t tSize);
+	void*				Realloc(void* pv, size_t tNewSize, size_t tExistingSize);
+	void				Free(void* pv);
 
-	void	FreeNode(CIndexTreeNode* pcNode);
+	void				FreeNode(CIndexTreeNode* pcNode);
 };
 
 

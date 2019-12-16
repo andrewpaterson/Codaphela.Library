@@ -7,9 +7,9 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedDescriptorsFile::Init(CIndexedDataCommon* pcIndexedData, CDurableFileController* pcDurableFileController, BOOL bDirtyTesting, size_t uiCutoff, EIndexWriteThrough eWriteThrough)
+void CIndexedDescriptorsFile::Init(CIndexedDataCommon* pcIndexedData, CDurableFileController* pcDurableFileController, BOOL bDirtyTesting, size_t uiCutoff, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse)
 {
-	Init(mpcIndexedData, pcDurableFileController, bDirtyTesting, uiCutoff, eWriteThrough, NULL);
+	Init(mpcIndexedData, pcDurableFileController, bDirtyTesting, uiCutoff, eWriteThrough, eKeyReverse, NULL);
 }
 
 
@@ -17,7 +17,7 @@ void CIndexedDescriptorsFile::Init(CIndexedDataCommon* pcIndexedData, CDurableFi
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedDescriptorsFile::Init(CIndexedDataCommon* pcIndexedData, CDurableFileController* pcDurableFileController, BOOL bDirtyTesting, size_t uiCutoff, EIndexWriteThrough eWriteThrough, CEvictionCallback* pcEvictionCallback)
+void CIndexedDescriptorsFile::Init(CIndexedDataCommon* pcIndexedData, CDurableFileController* pcDurableFileController, BOOL bDirtyTesting, size_t uiCutoff, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse, CEvictionCallback* pcEvictionCallback)
 {
 	CEvictionCallback*	pcCallback;
 
@@ -32,7 +32,7 @@ void CIndexedDescriptorsFile::Init(CIndexedDataCommon* pcIndexedData, CDurableFi
 		mcEvictionCallbackWrapper.Init(NULL, NULL);
 		pcCallback = this;
 	}
-	mcIndexTree.Init(pcDurableFileController, uiCutoff, pcCallback, &mcEvictionStrategy, &mcDescriptorsCallback,  eWriteThrough);
+	mcIndexTree.Init(pcDurableFileController, uiCutoff, pcCallback, &mcEvictionStrategy, &mcDescriptorsCallback, eWriteThrough, eKeyReverse);
 }
 
 

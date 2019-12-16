@@ -20,9 +20,9 @@ private:
 	CIndexTreeEvictionStrategy*		mpcEvictionStrategy;
 	
 public:
-	BOOL					Init(CDurableFileController* pcDurableFileControl, size_t uiCutoff, CEvictionCallback* pcEvictionCallback, CIndexTreeEvictionStrategy* pcEvictionStrategy, CIndexTreeFileCallback* pcWriterCallback);
-	BOOL					Init(CDurableFileController* pcDurableFileControl, size_t uiCutoff, CEvictionCallback* pcEvictionCallback, CIndexTreeEvictionStrategy* pcEvictionStrategy, CIndexTreeFileCallback* pcWriterCallback, EIndexWriteThrough eWriteThrough);
-	BOOL					Init(CDurableFileController* pcDurableFileControl, size_t uiCutoff, CEvictionCallback* pcEvictionCallback, CIndexTreeEvictionStrategy* pcEvictionStrategy, CIndexTreeFileCallback* pcWriterCallback, CMallocator* pcMalloc, EIndexWriteThrough eWriteThrough);
+	BOOL					Init(CDurableFileController* pcDurableFileControl, size_t uiCutoff, CEvictionCallback* pcEvictionCallback, CIndexTreeEvictionStrategy* pcEvictionStrategy, CIndexTreeFileCallback* pcWriterCallback, EIndexKeyReverse eKeyReverse);
+	BOOL					Init(CDurableFileController* pcDurableFileControl, size_t uiCutoff, CEvictionCallback* pcEvictionCallback, CIndexTreeEvictionStrategy* pcEvictionStrategy, CIndexTreeFileCallback* pcWriterCallback, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse);
+	BOOL					Init(CDurableFileController* pcDurableFileControl, size_t uiCutoff, CEvictionCallback* pcEvictionCallback, CIndexTreeEvictionStrategy* pcEvictionStrategy, CIndexTreeFileCallback* pcWriterCallback, CMallocator* pcMalloc, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse);
 
 	BOOL					Kill(void);
 
