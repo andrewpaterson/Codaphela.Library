@@ -31,9 +31,9 @@ Microsoft Windows is Copyright Microsoft Corporation
 //For the LinkedList.
 struct SLLNode
 {
-	unsigned int	uiSize;
 	SLLNode*		psNext;
 	SLLNode*		psPrev;
+	unsigned int	uiSize;
 };
 
 
