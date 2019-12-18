@@ -81,7 +81,7 @@ BOOL CMemoryCache::PreAllocate(CMemoryCacheAllocation* pcPreAllocationResult)
 	size_t						iCachedSize;
 	size_t						iRemaining;
 
-	iCachedSize = miDescriptorSize + pcPreAllocationResult->miDataSize;
+	iCachedSize = miDescriptorSize + pcPreAllocationResult->muiSize;
 	if (iCachedSize > muiCacheSize)
 	{
 		return FALSE;
@@ -92,7 +92,7 @@ BOOL CMemoryCache::PreAllocate(CMemoryCacheAllocation* pcPreAllocationResult)
 	{
 		if (iCachedSize <= iRemaining)
 		{
-			psDescriptor = (SMemoryCacheDescriptor*)RemapSinglePointer(mpsTail, (int)(miDescriptorSize + mpsTail->iDataSize));
+			psDescriptor = (SMemoryCacheDescriptor*)RemapSinglePointer(mpsTail, (int)(miDescriptorSize + mpsTail->uiSize));
 		}
 		else
 		{
@@ -172,7 +172,7 @@ SMemoryCacheDescriptor* CMemoryCache::Allocate(CMemoryCacheAllocation* pcPreAllo
 		}
 	}
 
-	psDescriptor->iDataSize = pcPreAllocated->miDataSize;
+	psDescriptor->uiSize = pcPreAllocated->muiSize;
 	return psDescriptor;
 }
 
@@ -312,7 +312,7 @@ size_t CMemoryCache::GetAllocatedSize(void)
 	psIter = StartIteration();
 	while (psIter)
 	{
-		tSize += psIter->iDataSize + sizeof(SMemoryCacheDescriptor);
+		tSize += psIter->uiSize + sizeof(SMemoryCacheDescriptor);
 		psIter = Iterate(psIter);
 	}
 	return tSize;
@@ -344,7 +344,7 @@ size_t CMemoryCache::RemainingAfterLast(void)
 	else
 	{
 		iAllocated = ((int)(size_t) mpsTail - (int)(size_t) mpvCache);
-		iAllocated += (mpsTail->iDataSize + miDescriptorSize);
+		iAllocated += (mpsTail->uiSize + miDescriptorSize);
 		return muiCacheSize - iAllocated;
 	}
 }
@@ -366,7 +366,7 @@ BOOL CMemoryCache::Overlaps(void* pvNew, size_t uiNewSize, SMemoryCacheDescripto
 	uiNewEnd = uiNewStart + uiNewSize - 1;
 
 	uiNextStart = (size_t) psExisting;
-	uiNextEnd = uiNextStart + psExisting->iDataSize + miDescriptorSize - 1;
+	uiNextEnd = uiNextStart + psExisting->uiSize + miDescriptorSize - 1;
 
 	if ((uiNewStart <= uiNextStart) && (uiNewEnd >= uiNextStart))
 	{
@@ -548,7 +548,7 @@ int CMemoryCache::NumCached(int iSize)
 	psDescriptor = StartIteration();
 	while (psDescriptor)
 	{
-		if (psDescriptor->iDataSize == iSize)
+		if (psDescriptor->uiSize == iSize)
 		{
 			iNum++;
 		}
@@ -633,7 +633,7 @@ void CMemoryCache::Dump(void)
 	while (psDescriptor)
 	{
 		pvData = (char*)RemapSinglePointer(psDescriptor, miDescriptorSize);
-		iLen = psDescriptor->iDataSize;
+		iLen = psDescriptor->uiSize;
 
 		sz.Append("(Ln:");
 		sz.AppendHexHiLo(&iLen, 4);

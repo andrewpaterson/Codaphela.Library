@@ -6,10 +6,10 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMemoryCacheAllocation::Init(int iDataSize, int iDescriptorSize)
+void CMemoryCacheAllocation::Init(int uiSize, int iDescriptorSize)
 {
 	mapEvictedCacheDescriptors.Init();
-	miDataSize = iDataSize;
+	muiSize = uiSize;
 	miDescriptorSize = iDescriptorSize;
 	
 	mpsDescriptor = NULL;
@@ -89,7 +89,7 @@ void CMemoryCacheAllocation::Dump(void)
 	{
 		psCacheDesc = Get(i);
 		pvData = (char*)RemapSinglePointer(psCacheDesc, miDescriptorSize);
-		iLen = psCacheDesc->iDataSize;
+		iLen = psCacheDesc->uiSize;
 
 		sz.Append("(Ln:");
 		sz.AppendHexHiLo(&iLen, 4);
