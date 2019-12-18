@@ -7,7 +7,7 @@ struct SMemoryCacheDescriptor
 {
 	SMemoryCacheDescriptor*		psNext;
 	SMemoryCacheDescriptor*		psPrev;
-	unsigned int				iDataSize;  //Not including the sizeof this.
+	unsigned int				uiSize;  //Not including the sizeof this.
 };
 
 
@@ -15,14 +15,14 @@ class CMemoryCacheAllocation
 {
 friend class CMemoryCache;
 protected:
-	int							miDataSize;
+	unsigned int				muiSize;
 	int							miDescriptorSize;
 	CArrayVoidPtr				mapEvictedCacheDescriptors; 
 	SMemoryCacheDescriptor*		mpsDescriptor;
 	unsigned int				miCachedSize;
 
 public:
-	void						Init(int iDataSize, int iDescriptorSize);
+	void						Init(int uiSize, int iDescriptorSize);
 	void						Kill(void);
 
 	BOOL						HasOverlaps(void);
