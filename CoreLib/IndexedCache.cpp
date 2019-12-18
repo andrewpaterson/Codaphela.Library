@@ -89,7 +89,7 @@ CIndexedCacheResult CIndexedCache::Allocate(OIndex oi, unsigned uiDataSize, CMem
 	psCacheDesc->oi = oi;
 	psCacheDesc->iFlags = 0;
 
-	if (uiDataSize == psCacheDesc->iDataSize)
+	if (uiDataSize == psCacheDesc->uiSize)
 	{
 		pvCache = GetCache(psCacheDesc);
 		cResult.Succeed(pvCache);

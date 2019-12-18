@@ -110,7 +110,7 @@ BOOL CIndexedMap::DescriptorsEvicted(CArrayVoidPtr* papsEvictedIndexedCacheDescr
 		if (psDesc != NULL)
 		{
 			pvCache = mcData.GetCachedData(psDesc);
-			bResult &= mpcEvictionCallback->NodeEvicted(&psDesc->oi, sizeof(OIndex), pvCache, psDesc->iDataSize);
+			bResult &= mpcEvictionCallback->NodeEvicted(&psDesc->oi, sizeof(OIndex), pvCache, psDesc->uiSize);
 		}
 	}
 	return bResult;
