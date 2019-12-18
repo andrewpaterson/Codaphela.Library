@@ -18,7 +18,7 @@ protected:
 	int							miDataSize;
 	int							miDescriptorSize;
 	CArrayVoidPtr				mapEvictedCacheDescriptors; 
-	SMemoryCacheDescriptor*		mpsCacheDesc;
+	SMemoryCacheDescriptor*		mpsDescriptor;
 	unsigned int				miCachedSize;
 
 public:

@@ -53,6 +53,7 @@ public:
 	void						Invalidate(void* pcCache);
 	void						Deallocate(SIndexedCacheDescriptor* psDescriptor);
 	void						SetDirty(void* pvCache);
+	void*						GetCache(SIndexedCacheDescriptor* psDescriptor);
 
 	SIndexedCacheDescriptor*	GetHeader(void* pvData);
 	SIndexedCacheDescriptor*	StartIteration(void);
