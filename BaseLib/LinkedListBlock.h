@@ -31,9 +31,9 @@ Microsoft Windows is Copyright Microsoft Corporation
 //For the LinkedList.
 struct SLLNode
 {
-	int			iSize;
-	SLLNode*	psNext;
-	SLLNode*	psPrev;
+	unsigned int	uiSize;
+	SLLNode*		psNext;
+	SLLNode*		psPrev;
 };
 
 
@@ -57,11 +57,11 @@ public:
 	void	Init(CMallocator* pcMalloc);
 	void	Kill(void);
 
-	void*	InsertAfterTail(int iDataSize);
-	void*	InsertBeforeHead(int iDataSize);
-	void*	InsertBeforeNode(int iDataSize, void* psPos);
-	void*	InsertAfterNode(int iDataSize, void* psPos); 
-	void*	AllocateDetached(int iDataSize);
+	void*	InsertAfterTail(unsigned int uiDataSize);
+	void*	InsertBeforeHead(unsigned int uiDataSize);
+	void*	InsertBeforeNode(unsigned int uiDataSize, void* psPos);
+	void*	InsertAfterNode(unsigned int uiDataSize, void* psPos); 
+	void*	AllocateDetached(unsigned int uiDataSize);
 
 	void* 	GetHead(void);
 	void* 	GetTail(void);
@@ -95,17 +95,17 @@ public:
 	void	BubbleSort(int(*)(const void*, const void*));
 
 protected:	
-	void*	Malloc(size_t tSize);
-	void*	Realloc(void* pv, size_t iMemSize);
-	void	Free(void* pv);
+	void*			Malloc(size_t tSize);
+	void*			Realloc(void* pv, size_t iMemSize);
+	void			Free(void* pv);
 
-	void	Swap(void* psData1, void* psData2);
-	int		GetNodeSize(void* psData);
+	void			Swap(void* psData1, void* psData2);
+	unsigned int	GetNodeSize(void* psData);
 
-	BOOL	WriteAllocatorAndHeader(CFileWriter* pcFileWriter);
-	BOOL	ReadAllocatorAndHeader(CFileReader* pcFileReader, SLinkedListBlockDesc* psDesc);
-	BOOL	WriteHeader(CFileWriter* pcFileWriter);
-	BOOL	ReadHeader(CFileReader* pcFileReader, CMallocator* pcMalloc, SLinkedListBlockDesc* psDesc);
+	BOOL			WriteAllocatorAndHeader(CFileWriter* pcFileWriter);
+	BOOL			ReadAllocatorAndHeader(CFileReader* pcFileReader, SLinkedListBlockDesc* psDesc);
+	BOOL			WriteHeader(CFileWriter* pcFileWriter);
+	BOOL			ReadHeader(CFileReader* pcFileReader, CMallocator* pcMalloc, SLinkedListBlockDesc* psDesc);
 };
 
 

@@ -302,12 +302,12 @@ BOOL CLinkedListBlock::SafeRemove(void* pvData)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int	CLinkedListBlock::GetNodeSize(void* pvData)
+unsigned int CLinkedListBlock::GetNodeSize(void* pvData)
 {
 	SLLNode*		psNodeHeader;
 
 	psNodeHeader = DataGetHeader<SLLNode, void>(pvData);
-	return psNodeHeader->iSize + sizeof(SLLNode);
+	return psNodeHeader->uiSize + sizeof(SLLNode);
 }
 
 
@@ -337,11 +337,11 @@ int CLinkedListBlock::ByteSize(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CLinkedListBlock::InsertAfterTail(int iDataSize)
+void* CLinkedListBlock::InsertAfterTail(unsigned int uiDataSize)
 {
 	void*			pvData;
 
-	pvData = AllocateDetached(iDataSize);
+	pvData = AllocateDetached(uiDataSize);
 	InsertDetachedAfterTail(pvData);
 	return pvData;
 }
@@ -351,11 +351,11 @@ void* CLinkedListBlock::InsertAfterTail(int iDataSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CLinkedListBlock::InsertBeforeHead(int iDataSize)
+void* CLinkedListBlock::InsertBeforeHead(unsigned int uiDataSize)
 {
 	void*			pvData;
 
-	pvData = AllocateDetached(iDataSize);
+	pvData = AllocateDetached(uiDataSize);
 	InsertDetachedBeforeHead(pvData);
 	return pvData;
 }
@@ -365,11 +365,11 @@ void* CLinkedListBlock::InsertBeforeHead(int iDataSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CLinkedListBlock::InsertBeforeNode(int iDataSize, void* psPos)
+void* CLinkedListBlock::InsertBeforeNode(unsigned int uiDataSize, void* psPos)
 {
 	void*			pvData;
 
-	pvData = AllocateDetached(iDataSize);
+	pvData = AllocateDetached(uiDataSize);
 	InsertDetachedBeforeNode(pvData, psPos);
 	return pvData;
 }
@@ -379,11 +379,11 @@ void* CLinkedListBlock::InsertBeforeNode(int iDataSize, void* psPos)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CLinkedListBlock::InsertAfterNode(int iDataSize, void* psPos)
+void* CLinkedListBlock::InsertAfterNode(unsigned int uiDataSize, void* psPos)
 {
 	void*			pvData;
 
-	pvData = AllocateDetached(iDataSize);
+	pvData = AllocateDetached(uiDataSize);
 	InsertDetachedAfterNode(pvData, psPos);
 	return pvData;
 }
@@ -435,12 +435,12 @@ void CLinkedListBlock::Detach(void* psNodeData)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CLinkedListBlock::AllocateDetached(int iDataSize)
+void* CLinkedListBlock::AllocateDetached(unsigned int uiDataSize)
 {
 	SLLNode*		psNode;
 
-	psNode = (SLLNode*)Malloc(sizeof(SLLNode) + iDataSize);
-	psNode->iSize = iDataSize;
+	psNode = (SLLNode*)Malloc(sizeof(SLLNode) + uiDataSize);
+	psNode->uiSize = uiDataSize;
 	return HeaderGetData<SLLNode, void>(psNode);
 }
 
