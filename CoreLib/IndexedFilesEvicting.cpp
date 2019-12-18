@@ -672,7 +672,7 @@ unsigned int CIndexedFilesEvicting::GetCachedDataSize(CIndexedDataDescriptor* pc
 	if (pvData)
 	{
 		psDescriptor = mcDataCache.GetHeader(pvData);
-		return psDescriptor->iDataSize;
+		return psDescriptor->uiSize;
 	}
 	else
 	{
@@ -706,7 +706,7 @@ unsigned int CIndexedFilesEvicting::TestGetCachedObjectSize(OIndex oi)
 	psDescriptor = mcDataCache.TestGetDescriptor(oi);
 	if (psDescriptor)
 	{
-		return sizeof(SIndexedCacheDescriptor) + psDescriptor->iDataSize;
+		return sizeof(SIndexedCacheDescriptor) + psDescriptor->uiSize;
 	}
 	return 0;
 }
