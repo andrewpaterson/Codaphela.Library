@@ -44,7 +44,7 @@ public:
 	void						Kill(void);
 
 	BOOL						PreAllocate(CMemoryCacheAllocation* pcPreAllocationResult);
-	void*						Allocate(CMemoryCacheAllocation* pcPreAllocated);
+	SMemoryCacheDescriptor*		Allocate(CMemoryCacheAllocation* pcPreAllocated);
 	void*						QuickAllocate(int iDataSize);
 
 	void						Deallocate(void* pvData);

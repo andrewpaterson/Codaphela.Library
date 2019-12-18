@@ -12,7 +12,7 @@ void CMemoryCacheAllocation::Init(int iDataSize, int iDescriptorSize)
 	miDataSize = iDataSize;
 	miDescriptorSize = iDescriptorSize;
 	
-	mpsCacheDesc = NULL;
+	mpsDescriptor = NULL;
 	miCachedSize = 0;
 }
 
