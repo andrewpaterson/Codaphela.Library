@@ -4,6 +4,7 @@
 #include "IndexedFiles.h"
 #include "IndexedCacheResult.h"
 #include "IndexedCache.h"
+#include "IndexWriteThrough.h"
 
 
 enum EClearCache
@@ -22,12 +23,12 @@ protected:
 	CIndexedFiles					mcDataFiles;
 
 	BOOL							mbCaching;
-	BOOL							mbWriteThrough;
+	EIndexWriteThrough				meWriteThrough;
 
 	CIndexedFilesEvictionCallback*	mpcEvictionCallback;
 
 public:
-	void			Init(CDurableFileController* pcDurableFileControl, char* szDataExtension, char* szDescricptorName, char* szDescricptorRewrite, size_t iCacheSize, BOOL bWriteThrough, CIndexedFilesEvictionCallback* pcEvictionCallback);
+	void			Init(CDurableFileController* pcDurableFileControl, char* szDataExtension, char* szDescricptorName, char* szDescricptorRewrite, size_t iCacheSize, EIndexWriteThrough eWriteThrough, CIndexedFilesEvictionCallback* pcEvictionCallback);
 	void			Kill(void);
 
 	BOOL			GetData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, void* pvData);
