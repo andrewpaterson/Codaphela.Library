@@ -14,8 +14,6 @@ protected:
 	EIndexWriteThrough			meWriteThrough;
 	CEvictionCallback*			mpcEvictionCallback;
 
-	CEvictionCallbackWrapper	mcEvictionCallbackWrapper;
-
 public:
 			void			Init(CEvictionCallback* pcEvictionCallback);
 	virtual BOOL			Kill(void) =0;
