@@ -56,10 +56,10 @@ protected:
 	BOOL					mbInitialised;
 	CUnknowns*				mpcUnknownsAllocatingFrom;
 
-	CNamedIndexedObjects	mcMemory;  //Objects (BaseObject*) allocated in Unknowns referenced by name and OIndex.  
-	CNamedIndexedData		mcDatabase;  //Objects in the database also referenced by string and OIndex.  
+	CNamedIndexedObjects	mcMemory;		//Objects (BaseObject*) allocated in Unknowns referenced by name and OIndex.  
+	CNamedIndexedData		mcDatabase;		//Objects in the database also referenced by string and OIndex.  
 	
-	CObjectsSource			mcSource;  //An object found on disk will be 'cooked' converter and then placed in memory.
+	CObjectsSource			mcSource;		//An object found on disk will be converted (cooked) and then placed in memory.
 
 	CIndexGenerator			mcIndexGenerator;
 	BOOL					mbDatabase;
@@ -71,7 +71,6 @@ protected:
 public:
 												CObjects();
 						void					Init(CUnknowns* pcUnknownsAllocatingFrom, CStackPointers* pcStackPointers, char* szWorkingDirectory);
-						void					Init(CUnknowns* pcUnknownsAllocatingFrom, CStackPointers* pcStackPointers, CIndexedConfig* pcConfig);
 						void					Kill(void);
 						void					DumpIndex(void);
 						void					DumpNames(void);
