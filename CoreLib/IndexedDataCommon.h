@@ -7,7 +7,7 @@
 #include "IndexWriteThrough.h"
 #include "EvictionCallbackWrapper.h"
 
-class CIndexedDataCommon : public CEvictionCallback
+class CIndexedDataCommon 
 {
 protected:
 	CIndexedFilesEvicting		mcData;
@@ -44,7 +44,6 @@ public:
 	virtual BOOL			IsDirty(OIndex oi) =0;
 
 	virtual BOOL			EvictData(OIndex oi, CIndexedDataDescriptor* pcDescriptor) =0;
-			BOOL			NodeEvicted(void* pvKey, int iKeySize, void* pvData, int iDataSize);
 
 			unsigned int	TestGetCachedObjectSize(OIndex oi);
 
