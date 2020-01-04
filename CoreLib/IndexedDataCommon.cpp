@@ -8,16 +8,7 @@
 //////////////////////////////////////////////////////////////////////////
 void CIndexedDataCommon::Init(CEvictionCallback* pcEvictionCallback)
 {
-	if (pcEvictionCallback)
-	{
-		mcEvictionCallbackWrapper.Init(pcEvictionCallback, this);
-		mpcEvictionCallback = &mcEvictionCallbackWrapper;
-	}
-	else
-	{
-		mcEvictionCallbackWrapper.Init(NULL, NULL);
-		mpcEvictionCallback = this;
-	}
+	mpcEvictionCallback = pcEvictionCallback;
 }
 
 
@@ -126,7 +117,12 @@ BOOL CIndexedDataCommon::DescriptorsEvicted(CArrayVoidPtr* papsEvictedIndexedCac
 		if (psDesc != NULL)
 		{
 			pvCache = mcData.GetCachedData(psDesc);
-			bResult &= mpcEvictionCallback->NodeEvicted(&psDesc->oi, sizeof(OIndex), pvCache, psDesc->uiSize);
+
+			bResult &= NodeEvicted(&psDesc->oi, sizeof(OIndex), pvCache, psDesc->uiSize);
+			if (mpcEvictionCallback)
+			{
+				bResult &= mpcEvictionCallback->NodeEvicted(&psDesc->oi, sizeof(OIndex), pvCache, psDesc->uiSize);
+			}
 		}
 	}
 	return bResult;
