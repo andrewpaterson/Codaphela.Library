@@ -163,6 +163,9 @@
     <Filter Include="Source\File\Indexed\Index\Access\DataWriter">
       <UniqueIdentifier>{b526c97b-a94e-4797-aff7-68d70875a764}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\File\Indexed\Config">
+      <UniqueIdentifier>{e749a498-c30c-4a87-9167-7780f30d48e2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="IndexedData.cpp">
@@ -413,6 +416,12 @@
     </ClCompile>
     <ClCompile Include="IndexedMap.cpp">
       <Filter>Source\File\Indexed</Filter>
+    </ClCompile>
+    <ClCompile Include="SimpleIndexConfig.cpp">
+      <Filter>Source\File\Indexed\Config</Filter>
+    </ClCompile>
+    <ClCompile Include="IndexConfig.cpp">
+      <Filter>Source\File\Indexed\Config</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -685,6 +694,12 @@
     </ClInclude>
     <ClInclude Include="IndexWriteThrough.h">
       <Filter>Source\File\Indexed\Index</Filter>
+    </ClInclude>
+    <ClInclude Include="SimpleIndexConfig.h">
+      <Filter>Source\File\Indexed\Config</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexConfig.h">
+      <Filter>Source\File\Indexed\Config</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

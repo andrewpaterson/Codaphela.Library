@@ -34,7 +34,7 @@ protected:
 	CNamedIndexes	mcNames;
 
 public:
-	void 			Init(CIndexedConfig* pcConfig);
+	void 			Init(char* szWorkingDirectory, char* szRewriteDirectory, size_t uiDataCacheSize, size_t uiIndexCacheSize, EIndexWriteThrough eWriteThrough);
 	void 			Kill(void);
 	BOOL			Close(void);
 

@@ -25,9 +25,9 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNamedIndexedData::Init(CIndexedConfig* pcConfig)
+void CNamedIndexedData::Init(char* szWorkingDirectory, char* szRewriteDirectory, size_t uiDataCacheSize, size_t uiIndexCacheSize, EIndexWriteThrough eWriteThrough)
 {
-	mcData.Init(pcConfig);
+	mcData.Init(szWorkingDirectory, szRewriteDirectory, uiDataCacheSize, uiIndexCacheSize, eWriteThrough);
 	mcNames.Init(mcData.GetDurableFileControl(), 10 MB, 256);
 }
 
@@ -38,22 +38,7 @@ void CNamedIndexedData::Init(CIndexedConfig* pcConfig)
 //////////////////////////////////////////////////////////////////////////
 void CNamedIndexedData::Kill(void)
 {
-	if (!mcData.IsDurable())
-	{
-		mcData.KillNonTransientNonDurable();
-		mcNames.Close();
-	}
-	else
-	{
-		mcData.DurableBegin();
-		mcData.Uncache();
-		mcData.CloseFiles();
-		mcNames.Close();
-		DurableEnd();
-	}
-
-	mcData.KillEnd();
-	mcNames.Kill();
+	mcData.Kill();
 }
 
 

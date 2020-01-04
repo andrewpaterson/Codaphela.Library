@@ -31,30 +31,19 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedData::Init(char* szWorkingDirectory, char* szRewriteDirectory, size_t uiDataCacheSize, size_t uiIndexCacheSize, EIndexWriteThrough eWriteThrough)
+void CIndexedData::Init(CIndexConfig* pcConfig)
 {
-	Init(szWorkingDirectory, szRewriteDirectory, uiDataCacheSize, uiIndexCacheSize, eWriteThrough, NULL, NULL);
-}
+	CIndexedDataCommon::Init(pcConfig->GetEvictionUserCallback());
 
+	meWriteThrough = pcConfig->GetWriteThrough();
 
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CIndexedData::Init(char* szWorkingDirectory, char* szRewriteDirectory, size_t uiDataCacheSize, size_t uiIndexCacheSize, EIndexWriteThrough eWriteThrough, CEvictionCallback* pcIndexEvictionUserCallback, CEvictionCallback* pcEvictionUserCallback)
-{
-	CIndexedDataCommon::Init(pcEvictionUserCallback);
+	mpcDurableFileControl = pcConfig->GetDurableFileControl();
+	mpcDurableFileControl->Begin();
 
-	mcDurableFileControl.Init(szWorkingDirectory, szRewriteDirectory);
+	InitIndices(mpcDurableFileControl, TRUE, pcConfig->GetIndexCacheSize(), meWriteThrough, pcConfig->GetIndexEvictionUserCallback());
+	mcData.Init(mpcDurableFileControl, "DAT", "Files.IDX", "_Files.IDX", pcConfig->GetDataCacheSize(), meWriteThrough, this);
 
-	meWriteThrough = eWriteThrough;
-
-	mcDurableFileControl.Begin();
-
-	InitIndices(&mcDurableFileControl, TRUE, uiIndexCacheSize, eWriteThrough, pcIndexEvictionUserCallback);
-	mcData.Init(&mcDurableFileControl, "DAT", "Files.IDX", "_Files.IDX", uiDataCacheSize, eWriteThrough, this);
-
-	mcDurableFileControl.End();
+	mpcDurableFileControl->End();
 }
 
 
@@ -64,20 +53,20 @@ void CIndexedData::Init(char* szWorkingDirectory, char* szRewriteDirectory, size
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexedData::Kill(void)
 {
-	if (mcDurableFileControl.IsDurable())
+	if (mpcDurableFileControl->IsDurable())
 	{
-		mcDurableFileControl.Begin();
+		mpcDurableFileControl->Begin();
 		mcData.Flush(FALSE);
-		mcDurableFileControl.End();
+		mpcDurableFileControl->End();
 	}
 	else
 	{
-		mcDurableFileControl.Begin();
+		mpcDurableFileControl->Begin();
 		Flush(TRUE);
-		mcDurableFileControl.End();
+		mpcDurableFileControl->End();
 	}
 
-	mcDurableFileControl.Kill();
+	mpcDurableFileControl = NULL;
 
 	mcData.Kill();
 
@@ -198,7 +187,7 @@ BOOL CIndexedData::IsDirty(OIndex oi)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexedData::DurableBegin(void)
 {
-	return mcDurableFileControl.Begin();
+	return mpcDurableFileControl->Begin();
 }
 
 
@@ -208,7 +197,7 @@ BOOL CIndexedData::DurableBegin(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexedData::DurableEnd(void)
 {
-	return mcDurableFileControl.End();
+	return mpcDurableFileControl->End();
 }
 
 
@@ -261,8 +250,8 @@ void CIndexedData::DumpIndex(void)
 //
 //////////////////////////////////////////////////////////////////////////
 int CIndexedData::NumIndicesCached(void) { return (int)mcIndices.NumCachedDatas(); }
-CDurableFileController* CIndexedData::GetDurableFileControl(void) { return &mcDurableFileControl; }
-BOOL CIndexedData::IsDurable(void) { return mcDurableFileControl.IsDurable(); }
+CDurableFileController* CIndexedData::GetDurableFileControl(void) { return mpcDurableFileControl; }
+BOOL CIndexedData::IsDurable(void) { return mpcDurableFileControl->IsDurable(); }
 size_t CIndexedData::GetIndiciesSystemMemorySize(void) { return mcIndices.GetSystemMemorySize(); }
 size_t CIndexedData::GetDataSystemMemorySize(void) { return mcData.GetSystemMemorySize(); }
 unsigned char CIndexedData::GetRootFlags(void) { return mcIndices.GetRootFlags();  }

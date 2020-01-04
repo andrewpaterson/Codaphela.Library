@@ -28,6 +28,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "IndexedFilesEvictionCallback.h"
 #include "IndexedDataCommon.h"
 #include "IndexedDescriptorsFile.h"
+#include "SimpleIndexConfig.h"
 
 
 //This is the database class.
@@ -36,11 +37,10 @@ class CIndexedData : public CIndexedDataCommon, public CIndexedFilesEvictionCall
 protected:
 	CIndexedDescriptorsFile		mcIndices;
 
-	CDurableFileController		mcDurableFileControl;
+	CDurableFileController*		mpcDurableFileControl;
 
 public:
-	void 			Init(char* szWorkingDirectory, char* szRewriteDirectory, size_t uiDataCacheSize, size_t uiIndexCacheSize, EIndexWriteThrough eWriteThrough);
-	void 			Init(char* szWorkingDirectory, char* szRewriteDirectory, size_t uiDataCacheSize, size_t uiIndexCacheSize, EIndexWriteThrough eWriteThrough, CEvictionCallback* pcIndexEvictionUserCallback, CEvictionCallback* pcEvictionUserCallback);
+	void 			Init(CIndexConfig* pcConfig);
 	BOOL 			Kill(void);
 
 	BOOL			Flush(BOOL bClearDataCache);
