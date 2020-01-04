@@ -118,26 +118,13 @@ BOOL CIndexedDataCommon::DescriptorsEvicted(CArrayVoidPtr* papsEvictedIndexedCac
 		{
 			pvCache = mcData.GetCachedData(psDesc);
 
-			bResult &= NodeEvicted(&psDesc->oi, sizeof(OIndex), pvCache, psDesc->uiSize);
+			bResult &= UpdateDescriptorCache(psDesc->oi, NULL, 0);
 			if (mpcEvictionCallback)
 			{
 				bResult &= mpcEvictionCallback->NodeEvicted(&psDesc->oi, sizeof(OIndex), pvCache, psDesc->uiSize);
 			}
 		}
 	}
-	return bResult;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CIndexedDataCommon::NodeEvicted(void* pvKey, int iKeySize, void* pvData, int iDataSize)
-{
-	BOOL	bResult;
-
-	bResult = UpdateDescriptorCache((*(OIndex*)pvKey) , NULL, 0);
 	return bResult;
 }
 
