@@ -10,9 +10,9 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedFilesEvicting::Init(CDurableFileController* pcDurableFileControl, char* szDataExtension, char* szDescricptorName, char* szDescricptorRewrite, size_t iCacheSize, BOOL bWriteThrough, CIndexedFilesEvictionCallback* pcEvictionCallback)
+void CIndexedFilesEvicting::Init(CDurableFileController* pcDurableFileControl, char* szDataExtension, char* szDescricptorName, char* szDescricptorRewrite, size_t iCacheSize, EIndexWriteThrough eWriteThrough, CIndexedFilesEvictionCallback* pcEvictionCallback)
 {
-	mbWriteThrough = bWriteThrough;
+	meWriteThrough = eWriteThrough;
 	mpcEvictionCallback = pcEvictionCallback;
 
 	mcDataFiles.Init(pcDurableFileControl, szDataExtension, szDescricptorName, szDescricptorRewrite);
@@ -242,7 +242,7 @@ void CIndexedFilesEvicting::InvalidateData(CIndexedDataDescriptor* pcDescriptor)
 	cDataIndex = pcDescriptor->GetFileDataIndex();
 	if (mbCaching)
 	{
-		if (mbWriteThrough)
+		if (meWriteThrough == IWT_Yes)
 		{
 			mcDataCache.Invalidate(pcDescriptor);
 			mcDataFiles.Delete(&cDataIndex);
@@ -292,7 +292,7 @@ BOOL CIndexedFilesEvicting::SetData(OIndex oi, CIndexedDataDescriptor* pcDescrip
 		pvNewCache = SetCacheData(oi, pcDescriptor, pvData, uiDataSize);
 		bResult = pvNewCache != NULL;
 
-		if (mbWriteThrough)
+		if (meWriteThrough == IWT_Yes)
 		{
 			cPosIndex = WriteThroughData(pcDescriptor, pvData, uiDataSize);
 			uiFileDataSize = uiDataSize;
