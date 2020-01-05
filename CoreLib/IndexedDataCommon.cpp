@@ -6,7 +6,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedDataCommon::Init(CEvictionCallback* pcEvictionCallback)
+void CIndexedDataCommon::Init(CIndexedEvictionCallback* pcEvictionCallback)
 {
 	mpcEvictionCallback = pcEvictionCallback;
 }
@@ -121,7 +121,7 @@ BOOL CIndexedDataCommon::DescriptorsEvicted(CArrayVoidPtr* papsEvictedIndexedCac
 			bResult &= UpdateDescriptorCache(psDesc->oi, NULL, 0);
 			if (mpcEvictionCallback)
 			{
-				bResult &= mpcEvictionCallback->NodeEvicted(&psDesc->oi, sizeof(OIndex), pvCache, psDesc->uiSize);
+				bResult &= mpcEvictionCallback->IndexEvicted(psDesc->oi, pvCache, psDesc->uiSize);
 			}
 		}
 	}

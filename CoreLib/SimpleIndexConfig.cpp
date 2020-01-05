@@ -15,7 +15,7 @@ void CSimpleIndexConfig::Init(char* szWorkingDirectory, char* szRewriteDirectory
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CSimpleIndexConfig::Init(char* szWorkingDirectory, char* szRewriteDirectory, size_t uiDataCacheSize, size_t uiIndexCacheSize, EIndexWriteThrough eWriteThrough, CEvictionCallback* pcIndexEvictionUserCallback, CEvictionCallback* pcEvictionUserCallback)
+void CSimpleIndexConfig::Init(char* szWorkingDirectory, char* szRewriteDirectory, size_t uiDataCacheSize, size_t uiIndexCacheSize, EIndexWriteThrough eWriteThrough, CEvictionCallback* pcIndexEvictionUserCallback, CIndexedEvictionCallback* pcEvictionUserCallback)
 {
 	mcDurableFileController.Init(szWorkingDirectory, szRewriteDirectory);
 
@@ -92,7 +92,7 @@ CEvictionCallback* CSimpleIndexConfig::GetIndexEvictionUserCallback(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CEvictionCallback* CSimpleIndexConfig::GetEvictionUserCallback(void)
+CIndexedEvictionCallback* CSimpleIndexConfig::GetEvictionUserCallback(void)
 {
 	return mpcEvictionUserCallback;
 }

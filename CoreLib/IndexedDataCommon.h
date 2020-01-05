@@ -5,17 +5,17 @@
 #include "IndexedFilesEvicting.h"
 #include "EvictionCallback.h"
 #include "IndexWriteThrough.h"
-#include "EvictionCallbackWrapper.h"
+#include "IndexedEvictionCallback.h"
 
 class CIndexedDataCommon 
 {
 protected:
-	CIndexedFilesEvicting		mcData;
-	EIndexWriteThrough			meWriteThrough;
-	CEvictionCallback*			mpcEvictionCallback;
+	CIndexedFilesEvicting				mcData;
+	EIndexWriteThrough					meWriteThrough;
+	CIndexedEvictionCallback*	mpcEvictionCallback;
 
 public:
-			void			Init(CEvictionCallback* pcEvictionCallback);
+			void			Init(CIndexedEvictionCallback* pcEvictionCallback);
 	virtual BOOL			Kill(void) =0;
 
 			BOOL			IsCaching(void);

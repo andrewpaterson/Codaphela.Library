@@ -16,7 +16,7 @@ void CIndexedMap::Init(CDurableFileController* pcDurableFileControl, char* szDat
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedMap::Init(CDurableFileController* pcDurableFileControl, char* szDataExtension, char* szDescricptorName, char* szDescricptorRewrite, size_t iDataCacheSize, EIndexWriteThrough eWriteThrough, CEvictionCallback* pcEvictionUserCallback)
+void CIndexedMap::Init(CDurableFileController* pcDurableFileControl, char* szDataExtension, char* szDescricptorName, char* szDescricptorRewrite, size_t iDataCacheSize, EIndexWriteThrough eWriteThrough, CIndexedEvictionCallback* pcEvictionUserCallback)
 {
 	CIndexedDataCommon::Init(pcEvictionUserCallback);
 
@@ -110,7 +110,7 @@ BOOL CIndexedMap::DescriptorsEvicted(CArrayVoidPtr* papsEvictedIndexedCacheDescr
 		if (psDesc != NULL)
 		{
 			pvCache = mcData.GetCachedData(psDesc);
-			bResult &= mpcEvictionCallback->NodeEvicted(&psDesc->oi, sizeof(OIndex), pvCache, psDesc->uiSize);
+			bResult &= mpcEvictionCallback->IndexEvicted(psDesc->oi, pvCache, psDesc->uiSize);
 		}
 	}
 	return bResult;
