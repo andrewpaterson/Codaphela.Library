@@ -29,7 +29,7 @@ void CIndexedEvictedList::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexedEvictedList::IndexEvicted(OIndex oi, void* pvData, int iDataSize)
 {
-	mcKeys.Add((int)oi);
+	mcKeys.Add(oi);
 	mcDatas.Add(pvData, iDataSize);
 	return TRUE;
 }

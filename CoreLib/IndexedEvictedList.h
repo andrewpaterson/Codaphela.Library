@@ -1,6 +1,6 @@
 #ifndef __INDEXED_EVICTED_LIST_H__
 #define __INDEXED_EVICTED_LIST_H__
-#include "BaseLib/ArrayInt.h"
+#include "BaseLib/ArrayLong.h"
 #include "BaseLib/ListVariable.h"
 #include "IndexedEvictionCallback.h"
 
@@ -8,7 +8,7 @@
 class CIndexedEvictedList : public CIndexedEvictionCallback
 {
 private:
-	CArrayInt		mcKeys;
+	CArrayLong		mcKeys;
 	CListVariable	mcDatas;
 
 public:
