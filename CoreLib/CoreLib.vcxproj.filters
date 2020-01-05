@@ -166,6 +166,12 @@
     <Filter Include="Source\File\Indexed\Config">
       <UniqueIdentifier>{e749a498-c30c-4a87-9167-7780f30d48e2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\File\Indexed\Named">
+      <UniqueIdentifier>{5efc9ef9-7a71-4fce-a53f-3f35aa00afc7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\File\Indexed\Named\Config">
+      <UniqueIdentifier>{7a4b082c-98d2-4a24-a9d0-6ae918e2b2e9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="IndexedData.cpp">
@@ -425,6 +431,15 @@
     </ClCompile>
     <ClCompile Include="IndexedEvictedList.cpp">
       <Filter>Source\File\Indexed\Index\Evicting</Filter>
+    </ClCompile>
+    <ClCompile Include="NamedIndexedData.cpp">
+      <Filter>Source\File\Indexed\Named</Filter>
+    </ClCompile>
+    <ClCompile Include="NamedIndexes.cpp">
+      <Filter>Source\File\Indexed\Named</Filter>
+    </ClCompile>
+    <ClCompile Include="NamedIndexConfig.cpp">
+      <Filter>Source\File\Indexed\Named\Config</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -709,6 +724,15 @@
     </ClInclude>
     <ClInclude Include="IndexedEvictedList.h">
       <Filter>Source\File\Indexed\Index\Evicting</Filter>
+    </ClInclude>
+    <ClInclude Include="NamedIndexedData.h">
+      <Filter>Source\File\Indexed\Named</Filter>
+    </ClInclude>
+    <ClInclude Include="NamedIndexes.h">
+      <Filter>Source\File\Indexed\Named</Filter>
+    </ClInclude>
+    <ClInclude Include="NamedIndexConfig.h">
+      <Filter>Source\File\Indexed\Named\Config</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

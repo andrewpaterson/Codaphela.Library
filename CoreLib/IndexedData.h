@@ -31,7 +31,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "SimpleIndexConfig.h"
 
 
-//This is the database class.
+//This is the Indexed database class.
 class CIndexedData : public CIndexedDataCommon, public CIndexedFilesEvictionCallback
 {
 protected:

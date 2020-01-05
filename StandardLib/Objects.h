@@ -71,6 +71,7 @@ protected:
 public:
 												CObjects();
 						void					Init(CUnknowns* pcUnknownsAllocatingFrom, CStackPointers* pcStackPointers, char* szWorkingDirectory);
+						void					Init(CUnknowns* pcUnknownsAllocatingFrom, CStackPointers* pcStackPointers, CNamedIndexConfig* pcConfig);
 						void					Kill(void);
 						void					DumpIndex(void);
 						void					DumpNames(void);
@@ -157,7 +158,7 @@ extern CObjects gcObjects;
 
 void ObjectsInit(void);
 void ObjectsInit(char* szWorkingDirectory);
-void ObjectsInit(CIndexedConfig* pcConfig);
+void ObjectsInit(CNamedIndexConfig* pcConfig);
 void ObjectsKill(void);
 
 void LogObjectAllocation(CBaseObject* pcObject, char* szMethod);

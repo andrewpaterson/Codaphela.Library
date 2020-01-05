@@ -117,6 +117,9 @@
     <ClCompile Include="IndexTreeWriter.cpp" />
     <ClCompile Include="LogFile.cpp" />
     <ClCompile Include="LogFileCommands.cpp" />
+    <ClCompile Include="NamedIndexConfig.cpp" />
+    <ClCompile Include="NamedIndexedData.cpp" />
+    <ClCompile Include="NamedIndexes.cpp" />
     <ClCompile Include="PackFileOffset.cpp" />
     <ClCompile Include="IndexedData.cpp" />
     <ClCompile Include="Indexes.cpp" />
@@ -209,6 +212,9 @@
     <ClInclude Include="IndexWriteThrough.h" />
     <ClInclude Include="LogFile.h" />
     <ClInclude Include="LogFileCommands.h" />
+    <ClInclude Include="NamedIndexConfig.h" />
+    <ClInclude Include="NamedIndexedData.h" />
+    <ClInclude Include="NamedIndexes.h" />
     <ClInclude Include="PackFileOffset.h" />
     <ClInclude Include="IndexedData.h" />
     <ClInclude Include="IndexedGeneral.h" />
