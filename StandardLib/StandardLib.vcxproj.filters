@@ -91,18 +91,6 @@
     <Filter Include="Source\File">
       <UniqueIdentifier>{72a7554e-c380-4f0f-9f6c-7eb5201c4e61}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\File\Indexed">
-      <UniqueIdentifier>{80fcd037-5325-4e70-9b9b-e4842a8354e5}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\File\Indexed\Named">
-      <UniqueIdentifier>{209b2169-aef9-41ce-a876-9195be37c2c5}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\File\Indexed\Named\Optimiser">
-      <UniqueIdentifier>{910ad880-7b09-4c0e-b376-944b77369368}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\File\Indexed\Named\Loader">
-      <UniqueIdentifier>{d1acf4da-2149-4fbc-94ca-c649d8d89265}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source\Object\Object\Source\Text">
       <UniqueIdentifier>{c2e3cc07-a997-441d-9324-ea44c92d1e4f}</UniqueIdentifier>
     </Filter>
@@ -305,33 +293,6 @@
     </ClInclude>
     <ClInclude Include="NamedIndexedObjects.h">
       <Filter>Source\Object\Object\Indexed</Filter>
-    </ClInclude>
-    <ClInclude Include="NamedIndexedData.h">
-      <Filter>Source\File\Indexed</Filter>
-    </ClInclude>
-    <ClInclude Include="NamedIndexes.h">
-      <Filter>Source\File\Indexed\Named</Filter>
-    </ClInclude>
-    <ClInclude Include="NamedIndexesBlocks.h">
-      <Filter>Source\File\Indexed\Named</Filter>
-    </ClInclude>
-    <ClInclude Include="NamedIndexesBlock.h">
-      <Filter>Source\File\Indexed\Named</Filter>
-    </ClInclude>
-    <ClInclude Include="NamedIndexedBlock.h">
-      <Filter>Source\File\Indexed\Named</Filter>
-    </ClInclude>
-    <ClInclude Include="NamedIndexesFileDumper.h">
-      <Filter>Source\File\Indexed\Named</Filter>
-    </ClInclude>
-    <ClInclude Include="NamedIndexesOptimiser.h">
-      <Filter>Source\File\Indexed\Named\Optimiser</Filter>
-    </ClInclude>
-    <ClInclude Include="NamedIndexesBlocksLoader.h">
-      <Filter>Source\File\Indexed\Named\Loader</Filter>
-    </ClInclude>
-    <ClInclude Include="NamedIndexedSorterSource.h">
-      <Filter>Source\File\Indexed\Named\Optimiser</Filter>
     </ClInclude>
     <ClInclude Include="String.h">
       <Filter>Source\Data\String</Filter>
@@ -631,33 +592,6 @@
     </ClCompile>
     <ClCompile Include="NamedIndexedObjects.cpp">
       <Filter>Source\Object\Object\Indexed</Filter>
-    </ClCompile>
-    <ClCompile Include="NamedIndexedData.cpp">
-      <Filter>Source\File\Indexed</Filter>
-    </ClCompile>
-    <ClCompile Include="NamedIndexes.cpp">
-      <Filter>Source\File\Indexed\Named</Filter>
-    </ClCompile>
-    <ClCompile Include="NamedIndexesBlocks.cpp">
-      <Filter>Source\File\Indexed\Named</Filter>
-    </ClCompile>
-    <ClCompile Include="NamedIndexesBlock.cpp">
-      <Filter>Source\File\Indexed\Named</Filter>
-    </ClCompile>
-    <ClCompile Include="NamedIndexedBlock.cpp">
-      <Filter>Source\File\Indexed\Named</Filter>
-    </ClCompile>
-    <ClCompile Include="NamedIndexesFileDumper.cpp">
-      <Filter>Source\File\Indexed\Named</Filter>
-    </ClCompile>
-    <ClCompile Include="NamedIndexesOptimiser.cpp">
-      <Filter>Source\File\Indexed\Named\Optimiser</Filter>
-    </ClCompile>
-    <ClCompile Include="NamedIndexesBlocksLoader.cpp">
-      <Filter>Source\File\Indexed\Named\Loader</Filter>
-    </ClCompile>
-    <ClCompile Include="NamedIndexedSorterSource.cpp">
-      <Filter>Source\File\Indexed\Named\Optimiser</Filter>
     </ClCompile>
     <ClCompile Include="String.cpp">
       <Filter>Source\Data\String</Filter>

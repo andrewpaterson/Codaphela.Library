@@ -23,8 +23,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __NAMED_INDEXED_DATA_H__
 #define __NAMED_INDEXED_DATA_H__
 #include "CoreLib/IndexedData.h"
+#include "NamedIndexConfig.h"
 #include "NamedIndexes.h"
-#include "BaseObject.h"
 
 
 class CNamedIndexedData
@@ -34,9 +34,8 @@ protected:
 	CNamedIndexes	mcNames;
 
 public:
-	void 			Init(char* szWorkingDirectory, char* szRewriteDirectory, size_t uiDataCacheSize, size_t uiIndexCacheSize, EIndexWriteThrough eWriteThrough);
+	void 			Init(CNamedIndexConfig* pcConfig);
 	void 			Kill(void);
-	BOOL			Close(void);
 
 	BOOL			Add(OIndex oi, void* pvData, unsigned int uiDataSize, unsigned int uiTimeStamp);
 	BOOL			Add(OIndex oi, CChars* szName, void* pvData, unsigned int uiDataSize, unsigned int uiTimeStamp);
@@ -49,11 +48,13 @@ public:
 	BOOL			SetOrAdd(OIndex oi, char* szName, void* pvData, unsigned int uiDataSize, unsigned int uiTimeStamp);
 
 	unsigned int	Size(OIndex oi);
-	unsigned int	Flags(OIndex oi);
-	OIndex			GetIndex(CChars* szName);
+
 	BOOL			Get(OIndex oi, void* pvData);
-	void*			Get(OIndex oi);
-	void*			Get(char* szName);
+	BOOL			Get(OIndex oi, unsigned int* puiDataSize, void* pvData, unsigned int uiMaxSize);
+	BOOL			Get(char* szName, void* pvData);
+	BOOL			Get(char* szName, unsigned int* puiDataSize, void* pvData, unsigned int uiMaxSize);
+
+	OIndex			GetIndex(char* szName);
 
 	BOOL			Contains(OIndex oi);
 	BOOL			Contains(char* szName);
@@ -65,9 +66,7 @@ public:
 	void			DurableBegin(void);
 	void			DurableEnd(void);
 
-	long long int	NumObjects(void);
-	int				NumCached(void);
-	int				NumCached(int iSize);
+	long long int	NumIndicies(void);
 	long long int	NumNames(void);
 	BOOL			IsCaching(void);
 };

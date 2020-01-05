@@ -118,9 +118,12 @@ CObjects::CObjects()
 //////////////////////////////////////////////////////////////////////////
 void CObjects::Init(CUnknowns* pcUnknownsAllocatingFrom, CStackPointers* pcStackPointers, char* szWorkingDirectory)
 {
-	CIndexedConfig	cConfig;
+	CNamedIndexConfig	cConfig;
+	CSimpleIndexConfig	cIndexConfig;
+	CSimpleIndexConfig	cNamedConfig;
 
-	cConfig.OptimiseForStreaming(szWorkingDirectory);
+
+	cConfig.Init(&cIndexConfig, &cNamedConfig, TRUE);
 
 	Init(pcUnknownsAllocatingFrom, pcStackPointers, &cConfig);
 }
@@ -130,13 +133,13 @@ void CObjects::Init(CUnknowns* pcUnknownsAllocatingFrom, CStackPointers* pcStack
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjects::Init(CUnknowns* pcUnknownsAllocatingFrom, CStackPointers* pcStackPointers, CIndexedConfig* pcConfig)
+void CObjects::Init(CUnknowns* pcUnknownsAllocatingFrom, CStackPointers* pcStackPointers, CNamedIndexConfig* pcConfig)
 {
 	mpcUnknownsAllocatingFrom = pcUnknownsAllocatingFrom;
 	mpcStackPointers = pcStackPointers;
 	mcIndexGenerator.Init();
 
-	if (pcConfig->mszWorkingDirectory)
+	if (pcConfig->HasDatabaseConfig())
 	{
 		mcDatabase.Init(pcConfig);
 		mbDatabase = TRUE;
@@ -1425,7 +1428,7 @@ void ObjectsInit(char* szWorkingDirectory)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void ObjectsInit(CIndexedConfig* pcConfig)
+void ObjectsInit(CNamedIndexConfig* pcConfig)
 {
 	UnknownsInit();
 	gcStackPointers.Init(2048);

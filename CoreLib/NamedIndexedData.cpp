@@ -25,10 +25,10 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNamedIndexedData::Init(char* szWorkingDirectory, char* szRewriteDirectory, size_t uiDataCacheSize, size_t uiIndexCacheSize, EIndexWriteThrough eWriteThrough)
+void CNamedIndexedData::Init(CNamedIndexConfig* pcConfig)
 {
-	mcData.Init(szWorkingDirectory, szRewriteDirectory, uiDataCacheSize, uiIndexCacheSize, eWriteThrough);
-	mcNames.Init(mcData.GetDurableFileControl(), 10 MB, 256);
+	mcData.Init(pcConfig->GetIndexConfig());
+	//mcNames.Init(pcConfig->GetNamedConfig());
 }
 
 
@@ -38,21 +38,8 @@ void CNamedIndexedData::Init(char* szWorkingDirectory, char* szRewriteDirectory,
 //////////////////////////////////////////////////////////////////////////
 void CNamedIndexedData::Kill(void)
 {
+	mcNames.Kill();
 	mcData.Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CNamedIndexedData::Close(void)
-{
-
-	//xxx
-	////Need to put more thought into Durable Files and Closing.
-	mcData.CloseFiles();
-	return TRUE;
 }
 
 
@@ -143,26 +130,6 @@ unsigned int CNamedIndexedData::Size(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-unsigned int CNamedIndexedData::Flags(OIndex oi)
-{
-	return mcData.Flags(oi);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-OIndex CNamedIndexedData::GetIndex(CChars* szName)
-{
-	return mcNames.GetIndex(szName);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 BOOL CNamedIndexedData::Get(OIndex oi, void* pvData)
 {
 	return mcData.Get(oi, pvData);
@@ -173,12 +140,9 @@ BOOL CNamedIndexedData::Get(OIndex oi, void* pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CNamedIndexedData::Get(OIndex oi)
+BOOL CNamedIndexedData::Get(OIndex oi, unsigned int* puiDataSize, void* pvData, unsigned int uiMaxSize)
 {
-	void*	pvData;
-
-	pvData = mcData.Get(oi, (int*)NULL);
-	return pvData;
+	return mcData.Get(oi, puiDataSize, pvData, uiMaxSize);
 }
 
 
@@ -186,18 +150,50 @@ void* CNamedIndexedData::Get(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CNamedIndexedData::Get(char* szName)
+BOOL CNamedIndexedData::Get(char* szName, void* pvData)
 {
 	OIndex	oi;
-	void*	pvData;
+	BOOL	bResult;
 
 	oi = mcNames.GetIndex(szName);
 	if (oi != INVALID_O_INDEX)
 	{
-		pvData = mcData.Get(oi, (int*)NULL);
-		return pvData;
+		bResult = mcData.Get(oi, pvData);
+		return bResult;
 	}
-	return NULL;
+	return FALSE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CNamedIndexedData::Get(char* szName, unsigned int* puiDataSize, void* pvData, unsigned int uiMaxSize)
+{
+	OIndex	oi;
+	BOOL	bResult;
+
+	oi = mcNames.GetIndex(szName);
+	if (oi != INVALID_O_INDEX)
+	{
+		bResult = mcData.Get(oi, puiDataSize, pvData, uiMaxSize);
+		return bResult;
+	}
+	return FALSE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+OIndex CNamedIndexedData::GetIndex(char* szName)
+{
+	OIndex	oi;
+
+	oi = mcNames.GetIndex(szName);
+	return oi;
 }
 
 
@@ -268,7 +264,7 @@ BOOL CNamedIndexedData::Flush(BOOL bClearCache)
 {
 	BOOL	bResult;
 
-	bResult = mcNames.Flush();
+	bResult = mcNames.Flush(bClearCache);
 	bResult &= mcData.Flush(bClearCache);
 	return bResult;
 }
@@ -298,7 +294,7 @@ void CNamedIndexedData::DurableEnd(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-long long int CNamedIndexedData::NumObjects(void)
+long long int CNamedIndexedData::NumIndicies(void)
 {
 	return mcData.NumElements();	
 }
@@ -308,29 +304,9 @@ long long int CNamedIndexedData::NumObjects(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CNamedIndexedData::NumCached(void)
-{
-	return mcData.NumCached();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-int CNamedIndexedData::NumCached(int iSize)
-{
-	return mcData.NumCached(iSize);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 long long int CNamedIndexedData::NumNames(void)
 {
-	return mcNames.NumNames();
+	return mcNames.NumElements();
 }
 
 
