@@ -2,27 +2,25 @@
 #define __INDEX_DESCRIPTORS_FILE_H__
 #include "BaseLib/PrimitiveTypes.h"
 #include "IndexTreeEvicting.h"
-#include "EvictionCallback.h"
+#include "IndexTreeEvictionCallback.h"
 #include "IndexedDataDescriptor.h"
 #include "IndexTreeEvictionStrategyRandom.h"
-#include "IndexedDescriptorsFileCallback.h"
 #include "EvictionCallbackWrapper.h"
 
 
 class CIndexedDataCommon;
-class CIndexedDescriptorsFile : public CEvictionCallback
+class CIndexedDescriptorsFile : public CIndexTreeEvictionCallback, public CIndexTreeFileCallback
 {
 protected:
 	CIndexTreeEvicting									mcIndexTree;
 	CIndexTreeEvictionStrategyRandom					mcEvictionStrategy;
 	CIndexedDataCommon*									mpcIndexedData;
-	CIndexedDescriptorsFileCallback						mcDescriptorsCallback;
 
 	CEvictionCallbackWrapper							mcEvictionCallbackWrapper;
 
 public:
 	void			Init(CIndexedDataCommon* pcIndexedData, CDurableFileController* pcDurableFileController, BOOL bDirtyTesting, size_t uiCutoff, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse);
-	void			Init(CIndexedDataCommon* pcIndexedData, CDurableFileController* pcDurableFileController, BOOL bDirtyTesting, size_t uiCutoff, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse, CEvictionCallback* pcEvictionCallback);
+	void			Init(CIndexedDataCommon* pcIndexedData, CDurableFileController* pcDurableFileController, BOOL bDirtyTesting, size_t uiCutoff, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse, CIndexTreeEvictionCallback* pcEvictionCallback);
 	void			Kill(void);
 
 	BOOL			Remove(OIndex oi);
@@ -38,6 +36,10 @@ public:
 
 	BOOL			Evict(OIndex oi);
 	BOOL			NodeEvicted(void* pvKey, int iKeySize, void* pvData, int iDataSize);
+
+	unsigned short	DataBufferSize(unsigned short uiSourceSize);
+	BOOL			WriteData(void* pvDataBuffer, void* pvSource, int iFileDataSize, unsigned short uiSourceDataSize);
+	BOOL			ReadData(void* pvDest, void* pvDataBuffer, unsigned short uiDestDataSize, int iFileDataSize);
 
 	BOOL			GetIfInMemory(CIndexedDataDescriptor* pcDescriptor, OIndex oi);
 

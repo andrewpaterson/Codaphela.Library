@@ -264,7 +264,7 @@ BOOL CNamedIndexedData::Flush(BOOL bClearCache)
 {
 	BOOL	bResult;
 
-	bResult = mcNames.Flush(bClearCache);
+	bResult = mcNames.Flush();
 	bResult &= mcData.Flush(bClearCache);
 	return bResult;
 }

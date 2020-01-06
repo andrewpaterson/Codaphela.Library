@@ -405,9 +405,6 @@
     <ClCompile Include="IndexTreeFileDefaultCallback.cpp">
       <Filter>Source\File\Indexed\Index\Access\DataWriter</Filter>
     </ClCompile>
-    <ClCompile Include="IndexedDescriptorsFileCallback.cpp">
-      <Filter>Source\File\Indexed\Descriptors</Filter>
-    </ClCompile>
     <ClCompile Include="IndexedDataAccess.cpp">
       <Filter>Source\File\Indexed</Filter>
     </ClCompile>
@@ -689,17 +686,11 @@
     <ClInclude Include="IndexTreeFileDefaultCallback.h">
       <Filter>Source\File\Indexed\Index\Access\DataWriter</Filter>
     </ClInclude>
-    <ClInclude Include="IndexedDescriptorsFileCallback.h">
-      <Filter>Source\File\Indexed\Descriptors</Filter>
-    </ClInclude>
     <ClInclude Include="IndexedDataAccess.h">
       <Filter>Source\File\Indexed</Filter>
     </ClInclude>
     <ClInclude Include="IndexedCacheResult.h">
       <Filter>Source\File\Indexed\Cache</Filter>
-    </ClInclude>
-    <ClInclude Include="EvictionCallback.h">
-      <Filter>Source\File\Indexed\Index\Evicting</Filter>
     </ClInclude>
     <ClInclude Include="EvictionCallbackWrapper.h">
       <Filter>Source\File\Indexed\Index\Evicting</Filter>
@@ -733,6 +724,9 @@
     </ClInclude>
     <ClInclude Include="NamedIndexConfig.h">
       <Filter>Source\File\Indexed\Named\Config</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexTreeEvictionCallback.h">
+      <Filter>Source\File\Indexed\Index\Evicting</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

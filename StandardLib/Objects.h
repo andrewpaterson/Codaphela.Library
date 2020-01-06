@@ -21,7 +21,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __OBJECTS_H__
 #define __OBJECTS_H__
 #include "CoreLib/IndexedGeneral.h"
-#include "NamedIndexedData.h"
+#include "CoreLib/NamedIndexedData.h"
 #include "NamedIndexedObjects.h"
 #include "Unknowns.h"
 #include "Null.h"
