@@ -38,8 +38,8 @@ protected:
 	EIndexWriteThrough						meWriteThrough;
 	
 public:
-	void			Init(CDurableFileController* pcDurableFileController, BOOL bDirtyTesting, size_t uiCutoff, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse);
-	void			Init(CDurableFileController* pcDurableFileController, BOOL bDirtyTesting, size_t uiCutoff, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse, CIndexTreeEvictionCallback* pcEvictionCallback);
+	void			Init(CDurableFileController* pcDurableFileController, size_t uiCutoff, EIndexWriteThrough eWriteThrough);
+	void			Init(CDurableFileController* pcDurableFileController, size_t uiCutoff, EIndexWriteThrough eWriteThrough, CIndexTreeEvictionCallback* pcEvictionCallback);
 	BOOL			Kill(void);
 
 	BOOL			Add(OIndex oi, char* szName, BOOL bFailOnExisting = TRUE);

@@ -26,9 +26,9 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNamedIndexes::Init(CDurableFileController* pcDurableFileController, BOOL bDirtyTesting, size_t uiCutoff, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse)
+void CNamedIndexes::Init(CDurableFileController* pcDurableFileController, size_t uiCutoff, EIndexWriteThrough eWriteThrough)
 {
-	Init(pcDurableFileController, bDirtyTesting, uiCutoff, eWriteThrough, eKeyReverse, NULL);
+	Init(pcDurableFileController, uiCutoff, eWriteThrough, NULL);
 }
 
 
@@ -36,9 +36,9 @@ void CNamedIndexes::Init(CDurableFileController* pcDurableFileController, BOOL b
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNamedIndexes::Init(CDurableFileController* pcDurableFileController, BOOL bDirtyTesting, size_t uiCutoff, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse, CIndexTreeEvictionCallback* pcEvictionCallback)
+void CNamedIndexes::Init(CDurableFileController* pcDurableFileController, size_t uiCutoff, EIndexWriteThrough eWriteThrough, CIndexTreeEvictionCallback* pcEvictionCallback)
 {
-	mcIndexTree.Init(pcDurableFileController, uiCutoff, pcEvictionCallback, &mcEvictionStrategy, this, eWriteThrough, eKeyReverse);
+	mcIndexTree.Init(pcDurableFileController, uiCutoff, pcEvictionCallback, &mcEvictionStrategy, this, eWriteThrough, IKR_No);
 }
 
 
