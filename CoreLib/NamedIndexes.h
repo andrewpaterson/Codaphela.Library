@@ -30,7 +30,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "CoreLib/IndexConfig.h"
 
 
-class CNamedIndexes : public CEvictionCallback
+class CNamedIndexes : public CIndexTreeEvictionCallback, public CIndexTreeFileCallback
 {
 protected:
 	CIndexTreeEvicting						mcIndexTree;
@@ -39,7 +39,7 @@ protected:
 	
 public:
 	void			Init(CDurableFileController* pcDurableFileController, BOOL bDirtyTesting, size_t uiCutoff, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse);
-	void			Init(CDurableFileController* pcDurableFileController, BOOL bDirtyTesting, size_t uiCutoff, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse, CEvictionCallback* pcEvictionCallback);
+	void			Init(CDurableFileController* pcDurableFileController, BOOL bDirtyTesting, size_t uiCutoff, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse, CIndexTreeEvictionCallback* pcEvictionCallback);
 	BOOL			Kill(void);
 
 	BOOL			Add(OIndex oi, char* szName, BOOL bFailOnExisting = TRUE);
@@ -52,6 +52,11 @@ public:
 	BOOL			Flush(void);
 
 	BOOL			NodeEvicted(void* pvKey, int iKeySize, void* pvData, int iDataSize);
+
+	unsigned short	DataBufferSize(unsigned short uiSourceSize);
+	BOOL			WriteData(void* pvDataBuffer, void* pvSource, int iFileDataSize, unsigned short uiSourceDataSize);
+	BOOL			ReadData(void* pvDest, void* pvDataBuffer, unsigned short uiDestDataSize, int iFileDataSize);
+
 };
 
 

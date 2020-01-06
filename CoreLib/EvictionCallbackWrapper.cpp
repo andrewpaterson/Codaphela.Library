@@ -5,7 +5,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CEvictionCallbackWrapper::Init(CEvictionCallback* pcCallback1, CEvictionCallback* pcCallback2)
+void CEvictionCallbackWrapper::Init(CIndexTreeEvictionCallback* pcCallback1, CIndexTreeEvictionCallback* pcCallback2)
 {
 	mpcCallback1 = pcCallback1;
 	mpcCallback2 = pcCallback2;

@@ -3,7 +3,7 @@
 #include "IndexedGeneral.h"
 #include "IndexedDataDescriptor.h"
 #include "IndexedFilesEvicting.h"
-#include "EvictionCallback.h"
+#include "IndexTreeEvictionCallback.h"
 #include "IndexWriteThrough.h"
 #include "IndexedEvictionCallback.h"
 

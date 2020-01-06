@@ -36,22 +36,9 @@ void CNamedIndexes::Init(CDurableFileController* pcDurableFileController, BOOL b
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNamedIndexes::Init(CDurableFileController* pcDurableFileController, BOOL bDirtyTesting, size_t uiCutoff, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse, CEvictionCallback* pcEvictionCallback)
+void CNamedIndexes::Init(CDurableFileController* pcDurableFileController, BOOL bDirtyTesting, size_t uiCutoff, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse, CIndexTreeEvictionCallback* pcEvictionCallback)
 {
-	//CNamedIndexesEvictionCallback not a CEvictionCallback.
-	CEvictionCallback*	pcCallback;
-
-	if (pcEvictionCallback)
-	{
-		mcEvictionCallbackWrapper.Init(pcEvictionCallback, this);
-		pcCallback = &mcEvictionCallbackWrapper;
-	}
-	else
-	{
-		mcEvictionCallbackWrapper.Init(NULL, NULL);
-		pcCallback = this;
-	}
-	mcIndexTree.Init(pcDurableFileController, uiCutoff, pcCallback, &mcEvictionStrategy, &mcDescriptorsCallback, eWriteThrough, eKeyReverse);
+	mcIndexTree.Init(pcDurableFileController, uiCutoff, pcEvictionCallback, &mcEvictionStrategy, this, eWriteThrough, eKeyReverse);
 }
 
 
@@ -61,7 +48,7 @@ void CNamedIndexes::Init(CDurableFileController* pcDurableFileController, BOOL b
 //////////////////////////////////////////////////////////////////////////
 BOOL CNamedIndexes::Kill(void)
 {
-	mcIndexTree.Kill();
+	return mcIndexTree.Kill();
 }
 
 
@@ -85,6 +72,7 @@ BOOL CNamedIndexes::NodeEvicted(void* pvKey, int iKeySize, void* pvData, int iDa
 //////////////////////////////////////////////////////////////////////////
 BOOL CNamedIndexes::Add(OIndex oi, char* szName, BOOL bFailOnExisting)
 {
+	return FALSE;
 }
 
 
@@ -94,6 +82,7 @@ BOOL CNamedIndexes::Add(OIndex oi, char* szName, BOOL bFailOnExisting)
 //////////////////////////////////////////////////////////////////////////
 BOOL CNamedIndexes::Add(OIndex oi, CChars* szName, BOOL bFailOnExisting)
 {
+	return FALSE;
 }
 
 
@@ -103,6 +92,8 @@ BOOL CNamedIndexes::Add(OIndex oi, CChars* szName, BOOL bFailOnExisting)
 //////////////////////////////////////////////////////////////////////////
 OIndex CNamedIndexes::GetIndex(char* szName)
 {
+	return INVALID_O_INDEX;
+
 }
 
 
@@ -112,6 +103,7 @@ OIndex CNamedIndexes::GetIndex(char* szName)
 //////////////////////////////////////////////////////////////////////////
 OIndex CNamedIndexes::GetIndex(CChars* szName)
 {
+	return INVALID_O_INDEX;
 }
 
 
@@ -121,6 +113,7 @@ OIndex CNamedIndexes::GetIndex(CChars* szName)
 //////////////////////////////////////////////////////////////////////////
 BOOL CNamedIndexes::Remove(char* szName)
 {
+	return FALSE;
 }
 
 
@@ -130,6 +123,7 @@ BOOL CNamedIndexes::Remove(char* szName)
 //////////////////////////////////////////////////////////////////////////
 BOOL CNamedIndexes::Remove(CChars* szName)
 {
+	return FALSE;
 }
 
 
@@ -139,6 +133,7 @@ BOOL CNamedIndexes::Remove(CChars* szName)
 //////////////////////////////////////////////////////////////////////////
 filePos CNamedIndexes::NumElements(void)
 {
+	return 0;
 }
 
 
@@ -148,5 +143,6 @@ filePos CNamedIndexes::NumElements(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CNamedIndexes::Flush(void) 
 {
+	return FALSE;
 }
 

@@ -80,7 +80,7 @@ BOOL CIndexedData::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedData::InitIndices(CDurableFileController* pcDurableFileControl, BOOL bDirtyTesting, size_t uiCutoff, EIndexWriteThrough eWriteThrough, CEvictionCallback* pcIndexEvictionUserCallback)
+void CIndexedData::InitIndices(CDurableFileController* pcDurableFileControl, BOOL bDirtyTesting, size_t uiCutoff, EIndexWriteThrough eWriteThrough, CIndexTreeEvictionCallback* pcIndexEvictionUserCallback)
 {
 	mcIndices.Init(this, pcDurableFileControl, bDirtyTesting, uiCutoff, eWriteThrough, IKR_Yes, pcIndexEvictionUserCallback);
 }

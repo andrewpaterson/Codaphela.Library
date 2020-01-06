@@ -17,9 +17,9 @@ void CIndexedDescriptorsFile::Init(CIndexedDataCommon* pcIndexedData, CDurableFi
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedDescriptorsFile::Init(CIndexedDataCommon* pcIndexedData, CDurableFileController* pcDurableFileController, BOOL bDirtyTesting, size_t uiCutoff, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse, CEvictionCallback* pcEvictionCallback)
+void CIndexedDescriptorsFile::Init(CIndexedDataCommon* pcIndexedData, CDurableFileController* pcDurableFileController, BOOL bDirtyTesting, size_t uiCutoff, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse, CIndexTreeEvictionCallback* pcEvictionCallback)
 {
-	CEvictionCallback*	pcCallback;
+	CIndexTreeEvictionCallback*	pcCallback;
 
 	mpcIndexedData = pcIndexedData;
 	if (pcEvictionCallback)
@@ -32,7 +32,7 @@ void CIndexedDescriptorsFile::Init(CIndexedDataCommon* pcIndexedData, CDurableFi
 		mcEvictionCallbackWrapper.Init(NULL, NULL);
 		pcCallback = this;
 	}
-	mcIndexTree.Init(pcDurableFileController, uiCutoff, pcCallback, &mcEvictionStrategy, &mcDescriptorsCallback, eWriteThrough, eKeyReverse);
+	mcIndexTree.Init(pcDurableFileController, uiCutoff, pcCallback, &mcEvictionStrategy, this, eWriteThrough, eKeyReverse);
 }
 
 
@@ -238,5 +238,46 @@ unsigned char CIndexedDescriptorsFile::GetRootFlags(void)
 void CIndexedDescriptorsFile::Dump(void)
 {
 	mcIndexTree.Dump();
+}
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+unsigned short CIndexedDescriptorsFile::DataBufferSize(unsigned short uiSourceSize)
+{
+	if (uiSourceSize != 0)
+	{
+		return sizeof(SIndexedFileDataDescriptor);
+	}
+	else
+	{
+		return 0;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexedDescriptorsFile::WriteData(void* pvDataBuffer, void* pvSource, int iFileDataSize, unsigned short uiSourceDataSize)
+{
+	memcpy_fast(pvDataBuffer, pvSource, iFileDataSize);
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexedDescriptorsFile::ReadData(void* pvDest, void* pvDataBuffer, unsigned short uiDestDataSize, int iFileDataSize)
+{
+	memset_fast(pvDest, 0, uiDestDataSize);
+	memcpy_fast(pvDest, pvDataBuffer, iFileDataSize);
+	return TRUE;
 }
 

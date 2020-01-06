@@ -1,16 +1,16 @@
 #ifndef __EVICTION_CALLBACK_WRAPPER_H__
 #define __EVICTION_CALLBACK_WRAPPER_H__
-#include "EvictionCallback.h"
+#include "IndexTreeEvictionCallback.h"
 
 
-class CEvictionCallbackWrapper : public CEvictionCallback
+class CEvictionCallbackWrapper : public CIndexTreeEvictionCallback
 {
 protected:
-	CEvictionCallback*		mpcCallback1;
-	CEvictionCallback*		mpcCallback2;
+	CIndexTreeEvictionCallback*		mpcCallback1;
+	CIndexTreeEvictionCallback*		mpcCallback2;
 
 public:
-	void Init(CEvictionCallback* pcCallback1, CEvictionCallback* pcCallback2);
+	void Init(CIndexTreeEvictionCallback* pcCallback1, CIndexTreeEvictionCallback* pcCallback2);
 
 	BOOL NodeEvicted(void* pvKey, int iKeySize, void* pvData, int iDataSize);
 };
