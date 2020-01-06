@@ -16,12 +16,12 @@ void CEvictionCallbackWrapper::Init(CIndexTreeEvictionCallback* pcCallback1, CIn
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CEvictionCallbackWrapper::NodeEvicted(void* pvKey, int iKeySize, void* pvData, int iDataSize)
+BOOL CEvictionCallbackWrapper::IndexTreeNodeEvicted(void* pvKey, int iKeySize, void* pvData, int iDataSize)
 {
 	BOOL	bResult;
 	
-	bResult = mpcCallback1->NodeEvicted(pvKey, iKeySize, pvData, iDataSize);
-	bResult &= mpcCallback2->NodeEvicted(pvKey, iKeySize, pvData, iDataSize);
+	bResult = mpcCallback1->IndexTreeNodeEvicted(pvKey, iKeySize, pvData, iDataSize);
+	bResult &= mpcCallback2->IndexTreeNodeEvicted(pvKey, iKeySize, pvData, iDataSize);
 	return bResult;
 }
 
