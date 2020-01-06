@@ -246,7 +246,7 @@ void CIndexedDescriptorsFile::Dump(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-unsigned short CIndexedDescriptorsFile::DataBufferSize(unsigned short uiSourceSize)
+unsigned short CIndexedDescriptorsFile::IndexTreeDataSize(unsigned short uiSourceSize)
 {
 	if (uiSourceSize != 0)
 	{
@@ -263,7 +263,7 @@ unsigned short CIndexedDescriptorsFile::DataBufferSize(unsigned short uiSourceSi
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedDescriptorsFile::WriteData(void* pvDataBuffer, void* pvSource, int iFileDataSize, unsigned short uiSourceDataSize)
+BOOL CIndexedDescriptorsFile::IndexTreeWriteData(void* pvDataBuffer, void* pvSource, int iFileDataSize, unsigned short uiSourceDataSize)
 {
 	memcpy_fast(pvDataBuffer, pvSource, iFileDataSize);
 	return TRUE;
@@ -274,7 +274,7 @@ BOOL CIndexedDescriptorsFile::WriteData(void* pvDataBuffer, void* pvSource, int 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedDescriptorsFile::ReadData(void* pvDest, void* pvDataBuffer, unsigned short uiDestDataSize, int iFileDataSize)
+BOOL CIndexedDescriptorsFile::IndexTreeReadData(void* pvDest, void* pvDataBuffer, unsigned short uiDestDataSize, int iFileDataSize)
 {
 	memset_fast(pvDest, 0, uiDestDataSize);
 	memcpy_fast(pvDest, pvDataBuffer, iFileDataSize);

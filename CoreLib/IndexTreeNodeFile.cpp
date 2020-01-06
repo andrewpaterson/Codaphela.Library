@@ -473,7 +473,7 @@ int CIndexTreeNodeFile::CalculateNodeSize(void)
 //////////////////////////////////////////////////////////////////////////
 int CIndexTreeNodeFile::CalculateDataBufferSize(CIndexTreeFileCallback* pcCallback)
 {
-	return pcCallback->DataBufferSize(muiDataSize);
+	return pcCallback->IndexTreeDataSize(muiDataSize);
 }
 
 
@@ -519,7 +519,7 @@ int CIndexTreeNodeFile::WriteToBuffer(void* pvBuffer, int iBufferSize, CIndexTre
 	if (pvSourceData != NULL)
 	{
 		pvDataBuffer = &pucMemory[iPos];
-		pcCallback->WriteData(pvDataBuffer, pvSourceData, iFileDataSize, muiDataSize);
+		pcCallback->IndexTreeWriteData(pvDataBuffer, pvSourceData, iFileDataSize, muiDataSize);
 		iPos += iFileDataSize;
 	}
 
@@ -594,7 +594,7 @@ int CIndexTreeNodeFile::InitFromBuffer(void* pvBuffer, int iMaxBufferSize, CInde
 	pvDest = GetObjectPtr();
 	if (pvDest != NULL)
 	{
-		pcCallback->ReadData(pvDest, &pucMemory[iPos], muiDataSize, iFileDataSize);
+		pcCallback->IndexTreeReadData(pvDest, &pucMemory[iPos], muiDataSize, iFileDataSize);
 		iPos += iFileDataSize;
 	}
 

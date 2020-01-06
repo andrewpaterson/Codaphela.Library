@@ -37,9 +37,9 @@ public:
 	BOOL			Evict(OIndex oi);
 	BOOL			IndexTreeNodeEvicted(void* pvKey, int iKeySize, void* pvData, int iDataSize);
 
-	unsigned short	DataBufferSize(unsigned short uiSourceSize);
-	BOOL			WriteData(void* pvDataBuffer, void* pvSource, int iFileDataSize, unsigned short uiSourceDataSize);
-	BOOL			ReadData(void* pvDest, void* pvDataBuffer, unsigned short uiDestDataSize, int iFileDataSize);
+	unsigned short	IndexTreeDataSize(unsigned short uiSourceSize);
+	BOOL			IndexTreeWriteData(void* pvDataBuffer, void* pvSource, int iFileDataSize, unsigned short uiSourceDataSize);
+	BOOL			IndexTreeReadData(void* pvDest, void* pvDataBuffer, unsigned short uiDestDataSize, int iFileDataSize);
 
 	BOOL			GetIfInMemory(CIndexedDataDescriptor* pcDescriptor, OIndex oi);
 
