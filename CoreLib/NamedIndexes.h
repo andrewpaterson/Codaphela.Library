@@ -51,7 +51,7 @@ public:
 	filePos			NumElements(void);
 	BOOL			Flush(void);
 
-	BOOL			NodeEvicted(void* pvKey, int iKeySize, void* pvData, int iDataSize);
+	BOOL			IndexTreeNodeEvicted(void* pvKey, int iKeySize, void* pvData, int iDataSize);
 
 	unsigned short	DataBufferSize(unsigned short uiSourceSize);
 	BOOL			WriteData(void* pvDataBuffer, void* pvSource, int iFileDataSize, unsigned short uiSourceDataSize);

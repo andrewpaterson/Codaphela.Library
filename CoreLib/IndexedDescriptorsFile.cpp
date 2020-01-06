@@ -197,7 +197,7 @@ BOOL CIndexedDescriptorsFile::Evict(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedDescriptorsFile::NodeEvicted(void* pvKey, int iKeySize, void* pvData, int iDataSize)
+BOOL CIndexedDescriptorsFile::IndexTreeNodeEvicted(void* pvKey, int iKeySize, void* pvData, int iDataSize)
 {
 	OIndex	oi;
 

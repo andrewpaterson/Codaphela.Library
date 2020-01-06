@@ -56,7 +56,7 @@ BOOL CNamedIndexes::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNamedIndexes::NodeEvicted(void* pvKey, int iKeySize, void* pvData, int iDataSize)
+BOOL CNamedIndexes::IndexTreeNodeEvicted(void* pvKey, int iKeySize, void* pvData, int iDataSize)
 {
 	if (iDataSize != sizeof(OIndex))
 	{
