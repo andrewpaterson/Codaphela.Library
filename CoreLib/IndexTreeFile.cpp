@@ -677,7 +677,7 @@ BOOL CIndexTreeFile::Put(void* pvKey, int iKeySize, void* pvObject, unsigned sho
 		return FALSE;
 	}
 	
-	if (meWriteThrough)
+	if (meWriteThrough == IWT_Yes)
 	{
 		bResult = WriteBackPathWriteThrough(pcCurrent);
 	}
@@ -697,7 +697,7 @@ BOOL CIndexTreeFile::Put(void* pvKey, int iKeySize, void* pvObject, unsigned sho
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeFile::SetDirtyPath(CIndexTreeNodeFile* pcCurrent)
 {
-	if (meWriteThrough)
+	if (meWriteThrough == IWT_Yes)
 	{
 		return gcLogger.Error2(__METHOD__, " Cannot SetDirtyPath on an index tree that is write through.", NULL);
 	}
@@ -926,24 +926,6 @@ CIndexTreeNodeFile* CIndexTreeFile::GetChildNodeOrAllocate(CIndexTreeNodeFile* p
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::Remove(char* pszKey)
-{
-	int iKeySize;
-
-	if (StrEmpty(pszKey))
-	{
-		return FALSE;
-	}
-
-	iKeySize = strlen(pszKey);
-	return Remove(pszKey, iKeySize);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeFile::Evict(char* pszKey)
 {
 	int iKeySize;
@@ -1040,7 +1022,7 @@ BOOL CIndexTreeFile::Remove(void* pvKey, int iKeySize)
 		return FALSE;
 	}
 
-	if (meWriteThrough)
+	if (meWriteThrough == IWT_Yes)
 	{
 		pcDirty = RemoveWriteThrough(pcCurrent);
 		if (pcDirty)
@@ -1292,7 +1274,7 @@ BOOL CIndexTreeFile::Flush(CIndexTreeNodeFile** ppcCurrent)
 	BOOL				bDirty;
 
 	pcCurrent = *ppcCurrent;
-	if (meWriteThrough)
+	if (meWriteThrough == IWT_Yes)
 	{
 		return gcLogger.Error2(__METHOD__, " Cannot flush an index tree that is write through.", NULL);
 	}
@@ -1362,7 +1344,7 @@ BOOL CIndexTreeFile::CanFlush(CIndexTreeNodeFile* pcNode)
 	CIndexTreeChildNode*	pcChild;
 	CChars					szFlags;
 
-	if (meWriteThrough)
+	if (meWriteThrough == IWT_Yes)
 	{
 		return gcLogger.Error2(__METHOD__, " Cannot flush an index tree that is write through.", NULL);
 	}
@@ -1524,7 +1506,7 @@ BOOL CIndexTreeFile::Flush(void)
 	BOOL	bResult;
 	BOOL	bRootHasIndex;
 	
-	if (meWriteThrough)
+	if (meWriteThrough == IWT_Yes)
 	{
 		return gcLogger.Error2(__METHOD__, " Cannot flush an index tree that is write through.", NULL);
 	}
