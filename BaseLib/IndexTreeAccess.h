@@ -36,7 +36,6 @@ public:
 			char*			GetKeyString(void* pvKey, int iKeySize, char* pszDest);
 
 			BOOL			HasString(char* pszKey);
-			BOOL			HasKey(void* pvKey, int iKeySize);
 
 			BOOL			DeleteLong(int64 lliKey);
 			BOOL			DeleteString(char* pszKey);

@@ -75,16 +75,20 @@ BOOL CNamedIndexes::Add(OIndex oi, char* szName, BOOL bFailOnExisting)
 	int		iKeySize;
 	BOOL	bExists;
 
-	iKeySize = strlen(szName);
-	if (bFailOnExisting)
+	if (szName)
 	{
-		bExists = mcIndexTree.HasKey(szName, iKeySize);
-		if (bExists)
+		iKeySize = strlen(szName);
+		if (bFailOnExisting)
 		{
-			return FALSE;
+			bExists = mcIndexTree.HasKey(szName, iKeySize);
+			if (bExists)
+			{
+				return FALSE;
+			}
 		}
+		return mcIndexTree.Put(szName, iKeySize, &oi, sizeof(OIndex));
 	}
-	return mcIndexTree.Put(szName, iKeySize, &oi, sizeof(OIndex));
+	return FALSE;
 }
 
 
@@ -118,12 +122,14 @@ OIndex CNamedIndexes::GetIndex(char* szName)
 	OIndex	iResult;
 	BOOL	bExists;
 
-	iKeySize = strlen(szName);
-
-	bExists = mcIndexTree.Get(szName, iKeySize, &iResult, NULL);
-	if (bExists)
+	if (szName)
 	{
-		return iResult;
+		iKeySize = strlen(szName);
+		bExists = mcIndexTree.Get(szName, iKeySize, &iResult, NULL);
+		if (bExists)
+		{
+			return iResult;
+		}
 	}
 	return INVALID_O_INDEX;
 
@@ -156,8 +162,12 @@ BOOL CNamedIndexes::Remove(char* szName)
 {
 	int iKeySize;
 
-	iKeySize = strlen(szName);
-	return mcIndexTree.Remove(szName, iKeySize);
+	if (szName)
+	{
+		iKeySize = strlen(szName);
+		return mcIndexTree.Remove(szName, iKeySize);
+	}
+	return FALSE;
 }
 
 
