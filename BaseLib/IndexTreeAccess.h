@@ -41,12 +41,17 @@ public:
 			BOOL			DeleteString(char* pszKey);
 			BOOL			DeleteKey(void* pvKey, int iKeySize);
 
+			BOOL			FlushLong(int64 lliKey);
+			BOOL			FlushString(char* pszKey);
+			BOOL			FlushKey(void* pvKey, int iKeySize);
+
 protected:
 	virtual BOOL			Put(void* pvKey, int iKeySize, void* pvObject, unsigned int uiDataSize) =0;
 	virtual BOOL			Get(void* pvKey, int iKeySize, void* pvObject, unsigned int* puiDataSize) =0;
 	virtual unsigned int	DataSize(void* pvKey, int iKeySize) =0;
 	virtual BOOL			Remove(void* pvKey, int iKeySize) =0;
 	virtual BOOL			Has(void* pvKey, int iKeySize) =0;
+	virtual BOOL			Flush(void* pvKey, int iKeySize) =0;
 };
 
 

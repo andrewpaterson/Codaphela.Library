@@ -44,6 +44,7 @@ public:
 	void					DebugKey(void* pvKey, int iKeySize, BOOL bSkipRoot);
 	void					Dump(void);
 	BOOL					Evict(void* pvKey, int iKeySize);
+	BOOL					Flush(void* pvKey, int iKeySize);
 
 	BOOL					EvictNodeWithObject(CIndexTreeNodeFile* pcNode);
 	CIndexTreeNodeFile*		GetRoot(void);

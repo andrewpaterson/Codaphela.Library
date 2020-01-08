@@ -141,3 +141,23 @@ BOOL CIndexedDataAccess::Has(void* pvKey, int iKeySize)
 	}
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexedDataAccess::Flush(void* pvKey, int iKeySize)
+{
+	OIndex	oi;
+
+	if (iKeySize == sizeof(OIndex))
+	{
+		oi = *((OIndex*)pvKey);
+		return mpcIndexData->FlushKey(oi);
+	}
+	else
+	{
+		return FALSE;
+	}
+}
+

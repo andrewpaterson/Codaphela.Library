@@ -35,6 +35,7 @@ public:
 	int				NumCachedDatas(void);
 
 	BOOL			Evict(OIndex oi);
+	BOOL			Flush(OIndex oi);
 
 	BOOL			IndexTreeNodeEvicted(void* pvKey, int iKeySize, void* pvData, int iDataSize);
 

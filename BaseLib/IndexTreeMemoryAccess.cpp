@@ -115,3 +115,17 @@ unsigned int CIndexTreeMemoryAccess::DataSize(void* pvKey, int iKeySize)
 	}
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeMemoryAccess::Flush(void* pvKey, int iKeySize)
+{
+	if (Has(pvKey, iKeySize))
+	{
+		return TRUE;
+	}
+	return FALSE;
+}
+
