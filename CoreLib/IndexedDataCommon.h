@@ -10,8 +10,8 @@
 class CIndexedDataCommon 
 {
 protected:
-	CIndexedFilesEvicting				mcData;
-	EIndexWriteThrough					meWriteThrough;
+	CIndexedFilesEvicting		mcData;
+	EIndexWriteThrough			meWriteThrough;
 	CIndexedEvictionCallback*	mpcEvictionCallback;
 
 public:

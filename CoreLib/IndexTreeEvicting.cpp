@@ -36,7 +36,10 @@ BOOL CIndexTreeEvicting::Init(CDurableFileController* pcDurableFileControl, size
 	muiCutoff = uiCutoff;
 
 	bResult = mcIndexTree.Init(pcDurableFileControl, pcWriterCallback, pcMalloc, eWriteThrough, eKeyReverse);
+	if (mpcEvictionStrategy)
+	{
 	mpcEvictionStrategy->SetIndexTree(this);
+	}
 	return bResult;
 }
 
@@ -182,26 +185,45 @@ int CIndexTreeEvicting::PotentiallyEvict(void* pvKey, int iKeySize)
 	pcDontEvict = mcIndexTree.GetMemoryNode(pvKey, iKeySize);
 	iEvicted = 0;
 
-	for (;;)
+	if (mpcEvictionStrategy)
+	{
+		for (;;)
+		{
+			uiSize = mcIndexTree.GetSystemMemorySize();
+			if ((uiSize <= muiCutoff) || (uiSize == uiLastSize))
+			{
+				return iEvicted;
+			}
+
+			bResult = mpcEvictionStrategy->Run(pcDontEvict);
+			uiLastSize = uiSize;
+			if (!bResult)
+			{
+				sz.Init();
+				sz.AppendData2((const char*)pvKey, iKeySize);
+				gcLogger.Error2(__METHOD__, " Could not evict key [", sz.Text(), "].  Tree size [", IntToString(uiSize), "] could not be reduced below cache size [", IntToString(muiCutoff), "].", NULL);
+				sz.Kill();
+				return iEvicted;
+			}
+
+			iEvicted++;
+		}
+	}
+	else
 	{
 		uiSize = mcIndexTree.GetSystemMemorySize();
-		if ((uiSize <= muiCutoff) || (uiSize == uiLastSize))
+		if (uiSize <= muiCutoff)
 		{
-			return iEvicted;
+			return 0;
 		}
-
-		bResult = mpcEvictionStrategy->Run(pcDontEvict);
-		uiLastSize = uiSize;
-		if (!bResult)
+		else
 		{
 			sz.Init();
 			sz.AppendData2((const char*)pvKey, iKeySize);
 			gcLogger.Error2(__METHOD__, " Could not evict key [", sz.Text(), "].  Tree size [", IntToString(uiSize), "] could not be reduced below cache size [", IntToString(muiCutoff), "].", NULL);
 			sz.Kill();
-			return iEvicted;
+			return 0;
 		}
-
-		iEvicted++;
 	}
 }
 
@@ -239,17 +261,33 @@ BOOL CIndexTreeEvicting::EvictNodeWithObject(CIndexTreeNodeFile* pcNode)
 	void*				pvData;
 	unsigned short		uiDataSize;
 
-	iKeySize = mcIndexTree.GetNodeKeySize(pcNode);
-	pvMem = (unsigned char*)cStack.Init(iKeySize + 1);
-	mcIndexTree.GetNodeKey(pcNode, pvMem, iKeySize + 1);
-	pvMem[iKeySize] = 0;
-	pvData = pcNode->GetObjectPtr();
-	uiDataSize = pcNode->ObjectSize();
+	if (mpcEvictionCallback)
+	{
+		iKeySize = mcIndexTree.GetNodeKeySize(pcNode);
+		pvMem = (unsigned char*)cStack.Init(iKeySize + 1);
+		mcIndexTree.GetNodeKey(pcNode, pvMem, iKeySize + 1);
+		pvMem[iKeySize] = 0;
+		pvData = pcNode->GetObjectPtr();
+		uiDataSize = pcNode->ObjectSize();
 
-	bResult = mpcEvictionCallback->IndexTreeNodeEvicted(pvMem, iKeySize, pvData, uiDataSize);
-	
-	cStack.Kill();
-	return bResult;
+		bResult = mpcEvictionCallback->IndexTreeNodeEvicted(pvMem, iKeySize, pvData, uiDataSize);
+
+		cStack.Kill();
+		return bResult;
+	}
+	else
+	{
+		return TRUE;
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeEvicting::Flush(void* pvKey, int iKeySize)
+{
+	return mcIndexTree.Flush(pvKey, iKeySize);
 }
 
 

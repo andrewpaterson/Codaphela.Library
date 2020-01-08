@@ -54,6 +54,8 @@ public:
 	BOOL			EvictKey(OIndex oi);
 	BOOL			EvictData(OIndex oi, CIndexedDataDescriptor* pcDescriptor);
 
+	BOOL			FlushKey(OIndex oi);
+
 	int				NumIndicesCached(void);
 	CDurableFileController* GetDurableFileControl(void);
 	size_t			GetIndiciesSystemMemorySize(void);

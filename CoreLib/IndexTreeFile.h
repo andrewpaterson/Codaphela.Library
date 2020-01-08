@@ -51,14 +51,11 @@ public:
 	BOOL					StartIteration(SIndexTreeFileIterator* psIterator, void** pvData, int* piDataSize);
 	BOOL					Iterate(SIndexTreeFileIterator* psIterator, void** pvData, int* piDataSize);
 
-	//BOOL					Remove(char* pszKey);
-
 	BOOL					Evict(void* pvKey, int iKeySize);
 	BOOL					Evict(char* pszKey);
 	BOOL					Evict(CIndexTreeNodeFile* pcNode);
 
 	BOOL					Flush(void* pvKey, int iKeySize);
-	BOOL					Flush(char* pszKey);
 
 	BOOL					ValidateKey(char* pszKey);
 	BOOL					IsFlushed(void);

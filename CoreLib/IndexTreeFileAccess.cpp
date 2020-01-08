@@ -99,3 +99,13 @@ BOOL CIndexTreeFileAccess::Has(void* pvKey, int iKeySize)
 	return mpcTree->HasKey(pvKey, iKeySize);
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeFileAccess::Flush(void* pvKey, int iKeySize)
+{
+	return mpcTree->Flush(pvKey, iKeySize);
+}
+

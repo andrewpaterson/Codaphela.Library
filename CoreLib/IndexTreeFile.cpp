@@ -671,7 +671,7 @@ BOOL CIndexTreeFile::Put(void* pvKey, int iKeySize, void* pvObject, unsigned sho
 		bExecute = LoopKey(&i, iKeySize);
 	}
 
-	pcCurrent = SetNodeObject(pcCurrent, pvObject, uiDataSize);
+	pcCurrent = SetNodeObject(pcCurrent, pvObject, uiDataSize);  //Set the node (and potentially the node's parent) dirty.
 	if (pcCurrent == NULL)
 	{
 		return FALSE;
@@ -944,24 +944,6 @@ BOOL CIndexTreeFile::Evict(char* pszKey)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::Flush(char* pszKey)
-{
-	int iKeySize;
-
-	if (StrEmpty(pszKey))
-	{
-		return FALSE;
-	}
-
-	iKeySize = strlen(pszKey);
-	return Flush(pszKey, iKeySize);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeFile::Flush(void* pvKey, int iKeySize)
 {
 	CIndexTreeNodeFile*	pcNode;
@@ -1141,6 +1123,11 @@ CIndexTreeNodeFile* CIndexTreeFile::ReallocateNodeForUncontainIndex(CIndexTreeNo
 BOOL CIndexTreeFile::RemoveWaitForFlush(CIndexTreeNodeFile* pcCurrent)
 {
 	if (pcCurrent->ObjectSize() == 0)
+	{
+		return FALSE;
+	}
+
+	if (pcCurrent->IsDeleted())
 	{
 		return FALSE;
 	}
