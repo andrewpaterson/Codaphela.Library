@@ -365,9 +365,9 @@ int CIndexTreeEvicting::NumMemoryElements(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeEvicting::DebugKey(void* pvKey, int iKeySize, BOOL bSkipRoot)
+void CIndexTreeEvicting::DebugKey(CChars* pszDest, void* pvKey, int iKeySize, BOOL bSkipRoot)
 {
-	return mcIndexTree.DebugKey(pvKey, iKeySize, bSkipRoot);
+	return mcIndexTree.DebugKey(pszDest, pvKey, iKeySize, bSkipRoot);
 }
 
 
@@ -377,7 +377,22 @@ void CIndexTreeEvicting::DebugKey(void* pvKey, int iKeySize, BOOL bSkipRoot)
 //////////////////////////////////////////////////////////////////////////
 void CIndexTreeEvicting::Dump(void)
 {
-	return mcIndexTree.Dump();
+	CChars				sz;
+
+	sz.Init();
+	Print(&sz);
+	sz.Dump();
+	sz.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexTreeEvicting::Print(CChars* pszDest)
+{
+	mcIndexTree.Print(pszDest);
 }
 
 
