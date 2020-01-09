@@ -95,8 +95,9 @@ public:
 	int						NumNodes(void);
 	int						NumMemoryNodes(void);
 	int						NumMemoryElements(void);
-	void					DebugKey(void* pvKey, int iKeySize, BOOL bSkipRoot);
+	void					DebugKey(CChars* pszDest, void* pvKey, int iKeySize, BOOL bSkipRoot);
 	void					Dump(void);
+	void					Print(CChars* pszDest);
 
 protected:
 	BOOL					InitRoot(void);
@@ -169,14 +170,14 @@ protected:
 	BOOL					WriteRootFileIndex(CFileDataIndex* pcRootIndex);
 	BOOL					WriteRootFileIndex(BOOL bRootHasIndex, CFileDataIndex* pcRootIndex);
 
-	CIndexTreeNodeFile*		DebugNode(CIndexTreeNodeFile* pcParent, int uiIndexInParent);
-	void					DebugNode(int iFile, unsigned int uiIndex, int uIndexFromParent);
-	void					DebugNodeChildren(CIndexTreeNodeFile* pcCurrent, int uIndexFromParent);
+	CIndexTreeNodeFile*		DebugNode(CChars* pszDest, CIndexTreeNodeFile* pcParent, int uiIndexInParent);
+	void					DebugNode(CChars* pszDest, int iFile, unsigned int uiIndex, int uIndexFromParent);
+	void					DebugNodeChildren(CChars* pszDest, CIndexTreeNodeFile* pcCurrent, int uIndexFromParent);
 	void					ReadDebugNode(SIndexTreeDebugNode* psDebugNode, int iFile, unsigned int uiIndex);
 	void					PrintChildFileIndexes(CIndexTreeNodeFile* pcCurrent, CChars* psz);
 	void					PrintNodeFileIndexes(CIndexTreeNodeFile* pcCurrent, CChars* psz);
 
-	void					RecurseDump(CIndexTreeRecursor* pcCursor);
+	void					RecurseDump(CChars* pszDest, CIndexTreeRecursor* pcCursor);
 
 public:
 	BOOL					Write(CIndexTreeNodeFile* pcNode);

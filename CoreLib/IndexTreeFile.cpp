@@ -3074,7 +3074,7 @@ BOOL CIndexTreeFile::ValidateKey(void* pvKey, int iKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeFile::DebugKey(void* pvKey, int iKeySize, BOOL bSkipRoot)
+void CIndexTreeFile::DebugKey(CChars* pszDest, void* pvKey, int iKeySize, BOOL bSkipRoot)
 {
 	CIndexTreeNodeFile*		pcCurrent;
 	unsigned char			c;
@@ -3086,7 +3086,7 @@ void CIndexTreeFile::DebugKey(void* pvKey, int iKeySize, BOOL bSkipRoot)
 
 	if (!bSkipRoot)
 	{
-		DebugNodeChildren(pcCurrent, -1);
+		DebugNodeChildren(pszDest, pcCurrent, -1);
 	}
 
 	bExecute = StartKey(&i, iKeySize);
@@ -3095,7 +3095,7 @@ void CIndexTreeFile::DebugKey(void* pvKey, int iKeySize, BOOL bSkipRoot)
 		c = ((unsigned char*)pvKey)[i];
 		if (pcCurrent != NULL)
 		{
-			pcCurrent = DebugNode(pcCurrent, c);
+			pcCurrent = DebugNode(pszDest, pcCurrent, c);
 		}
 		else
 		{
@@ -3111,7 +3111,7 @@ void CIndexTreeFile::DebugKey(void* pvKey, int iKeySize, BOOL bSkipRoot)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTreeNodeFile* CIndexTreeFile::DebugNode(CIndexTreeNodeFile* pcParent, int uiIndexInParent)
+CIndexTreeNodeFile* CIndexTreeFile::DebugNode(CChars* pszDest, CIndexTreeNodeFile* pcParent, int uiIndexInParent)
 {
 	CIndexTreeNodeFile*		pcCurrent;
 	CIndexTreeChildNode*	pcChild;
@@ -3122,7 +3122,7 @@ CIndexTreeNodeFile* CIndexTreeFile::DebugNode(CIndexTreeNodeFile* pcParent, int 
 		if (pcChild->IsMemory())
 		{
 			pcCurrent = pcChild->u.mpcMemory;
-			DebugNodeChildren(pcCurrent, uiIndexInParent);
+			DebugNodeChildren(pszDest, pcCurrent, uiIndexInParent);
 			return pcCurrent;
 		}
 		else if (pcChild->IsFile())
@@ -3130,12 +3130,12 @@ CIndexTreeNodeFile* CIndexTreeFile::DebugNode(CIndexTreeNodeFile* pcParent, int 
 			if (Read(pcChild, pcParent, uiIndexInParent))
 			{
 				pcCurrent = pcChild->u.mpcMemory;
-				DebugNodeChildren(pcCurrent, uiIndexInParent);
+				DebugNodeChildren(pszDest, pcCurrent, uiIndexInParent);
 				return pcCurrent;
 			}
 			else
 			{
-				DebugNode(pcChild->u.mcFile.miFile, pcChild->u.mcFile.muiIndex, uiIndexInParent);
+				DebugNode(pszDest, pcChild->u.mcFile.miFile, pcChild->u.mcFile.muiIndex, uiIndexInParent);
 				return NULL;
 			}
 		}
@@ -3162,14 +3162,15 @@ CIndexTreeNodeFile* CIndexTreeFile::DebugNode(CIndexTreeNodeFile* pcParent, int 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeFile::DebugNode(int iFile, unsigned int uiIndex, int uIndexFromParent)
+void CIndexTreeFile::DebugNode(CChars* pszDest, int iFile, unsigned int uiIndex, int uIndexFromParent)
 {
 	SIndexTreeDebugNode		sDebugNode;
 
 	ReadDebugNode(&sDebugNode, iFile, uiIndex);
 
 	sDebugNode.uiIndexInParent = uIndexFromParent;
-	sDebugNode.Dump();
+	sDebugNode.Print(pszDest);
+	pszDest->AppendNewLine();
 }
 
 
@@ -3253,7 +3254,7 @@ void AppendIndexTreeFileNodeDescrition(CChars* psz, CIndexTreeNodeFile* pcCurren
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeFile::DebugNodeChildren(CIndexTreeNodeFile* pcCurrent, int uIndexFromParent)
+void CIndexTreeFile::DebugNodeChildren(CChars* pszDest, CIndexTreeNodeFile* pcCurrent, int uIndexFromParent)
 {
 	CChars	szFile;
 	CChars	szMemory;
@@ -3274,8 +3275,7 @@ void CIndexTreeFile::DebugNodeChildren(CIndexTreeNodeFile* pcCurrent, int uIndex
 			sz.Init();
 			sz.Append("   Both: ");
 			sz.Append(szMemory);
-			sz.AppendNewLine();
-			sz.Dump();
+			pszDest->AppendNewLine(sz);
 			sz.Kill();
 		}
 		else
@@ -3289,7 +3289,7 @@ void CIndexTreeFile::DebugNodeChildren(CIndexTreeNodeFile* pcCurrent, int uIndex
 			sz.Append(szFile);
 			sz.AppendNewLine();
 
-			sz.Dump();
+			pszDest->Append(sz);
 			sz.Kill();
 		}
 
@@ -3300,8 +3300,7 @@ void CIndexTreeFile::DebugNodeChildren(CIndexTreeNodeFile* pcCurrent, int uIndex
 		sz.Init();
 		sz.Append(" Memory: ");
 		sz.Append(szMemory);
-		sz.AppendNewLine();
-		sz.Dump();
+		pszDest->AppendNewLine(sz);
 		sz.Kill();
 	}
 
@@ -3419,6 +3418,21 @@ void CIndexTreeFile::PrintNodeFileIndexes(CIndexTreeNodeFile* pcCurrent, CChars*
 //////////////////////////////////////////////////////////////////////////
 void CIndexTreeFile::Dump(void)
 {
+	CChars				sz;
+
+	sz.Init();
+	Print(&sz);
+	sz.Dump();
+	sz.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexTreeFile::Print(CChars* pszDest)
+{
 	CIndexTreeRecursor	cCursor;
 	CChars				sz;
 
@@ -3428,11 +3442,11 @@ void CIndexTreeFile::Dump(void)
 	sz.Append("= [IndexTreeFile]  ");
 	sz.Append('=', mpcRoot->NumIndexes() * 2 - 1);
 	sz.AppendNewLine();
-	sz.Dump();
+	pszDest->AppendNewLine(sz);
 	sz.Kill();
 
-	DebugNodeChildren(mpcRoot, -1);
-	RecurseDump(&cCursor);
+	DebugNodeChildren(pszDest, mpcRoot, -1);
+	RecurseDump(pszDest, &cCursor);
 
 	cCursor.Kill();
 }
@@ -3442,7 +3456,7 @@ void CIndexTreeFile::Dump(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeFile::RecurseDump(CIndexTreeRecursor* pcCursor)
+void CIndexTreeFile::RecurseDump(CChars* pszDest, CIndexTreeRecursor* pcCursor)
 {
 	CIndexTreeNodeFile*		pcNode;
 	int						i;
@@ -3463,11 +3477,11 @@ void CIndexTreeFile::RecurseDump(CIndexTreeRecursor* pcCursor)
 
 			szKey.Init("Key: ------------- [");
 			szKey.AppendData2((const char*)pvKey, iKeySize);
-			szKey.Append("] -------------\n");
-			szKey.Dump();
+			szKey.Append("] -------------");
+			pszDest->AppendNewLine(szKey);
 			szKey.Kill();
 
-			DebugKey(pvKey, iKeySize, TRUE);
+			DebugKey(pszDest, pvKey, iKeySize, TRUE);
 			cStack.Kill();
 		}
 
@@ -3477,7 +3491,7 @@ void CIndexTreeFile::RecurseDump(CIndexTreeRecursor* pcCursor)
 			{
 				pcChild = ReadMemoryNode(pcNode, i);
 				pcCursor->Push(pcChild, i);
-				RecurseDump(pcCursor);
+				RecurseDump(pszDest, pcCursor);
 			}
 		}
 	}

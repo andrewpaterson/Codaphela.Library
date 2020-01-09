@@ -83,6 +83,7 @@ public:
 	void	AppendQuoted(char c);
 	void	AppendQuoted(const char* sz);
 	void	AppendNewLine(void);
+	void	AppendNewLine(CChars sz);
 	void	AppendHexHiLo(void* pv, int iNumBytes);
 	void	AppendHexLoHi(void* pv, int iNumBytes);
 	void	AppendSubString(const char* sz, int iLength);
