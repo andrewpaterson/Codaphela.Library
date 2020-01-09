@@ -60,24 +60,5 @@ char* CMapStringString::Get(char* szKey)
 void CMapStringString::Dump(void)
 {
 	//Write an iterator, then write this.
-
-	//int		i;
-	//CChars*	psKey;
-	//CChars*	psValue;
-	//CChars	sz;
-
-	//sz.Init(1024);
-	//for (i = 0; i < mcArray.NumElements(); i++)
-	//{
-	//	if (GetAtIndex(i, &psKey, &psValue))
-	//	{
-	//		sz.Append(psKey->Text());
-	//		sz.Append(" -> ");
-	//		sz.Append(psValue->Text());
-	//		sz.AppendNewLine();
-	//	}
-	//}
-	//sz.Dump();
-	//sz.Kill();
 }
 

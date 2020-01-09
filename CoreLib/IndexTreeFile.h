@@ -128,7 +128,6 @@ protected:
 	BOOL					EvictNode(CIndexTreeNodeFile* pcCurrent);
 	BOOL					Flush(CIndexTreeNodeFile** ppcCurrent);
 	BOOL					CanEvict(CIndexTreeNodeFile* pcNode);
-	BOOL					CanFlush(CIndexTreeNodeFile* pcNode);
 
 	int						RecurseSize(CIndexTreeNodeFile* pcNode);
 	int						RecurseMemorySize(CIndexTreeNodeFile* pcNode);
@@ -156,7 +155,7 @@ protected:
 	void					FindKeyReversed(CIndexTreeNodeFile* pcNode, unsigned char* uiKeyReversed, int* piKeySize);
 	int						FindKeysSize(CArrayVoidPtr* apvNodes);
 
-	BOOL					FlushRemoved(void);
+	BOOL					FlushDeleted(void);
 	BOOL					FlushDirty(void);
 	BOOL					RecurseFlushDirty(CIndexTreeRecursor* pcCursor);
 	BOOL					WriteBackPathWriteThrough(CIndexTreeNodeFile* pcNode);
