@@ -956,11 +956,7 @@ BOOL CIndexTreeFile::Flush(void* pvKey, int iKeySize)
 	}
 	else
 	{
-		bResult = FALSE;
-		if (CanFlush(pcNode))
-		{
-			bResult = Flush(&pcNode);
-		}
+		bResult = Flush(&pcNode);
 		return bResult;
 	}
 }
@@ -1324,42 +1320,6 @@ BOOL CIndexTreeFile::CanEvict(CIndexTreeNodeFile* pcNode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::CanFlush(CIndexTreeNodeFile* pcNode)
-{
-	int						iFirst;
-	int						i;
-	CIndexTreeChildNode*	pcChild;
-	CChars					szFlags;
-
-	if (meWriteThrough == IWT_Yes)
-	{
-		return gcLogger.Error2(__METHOD__, " Cannot flush an index tree that is write through.", NULL);
-	}
-
-	iFirst = pcNode->GetFirstIndex();
-	for (i = 0; i < pcNode->NumIndexes(); i++)
-	{
-		pcChild = pcNode->GetNode(i);
-		if (pcChild->IsMemory())
-		{
-			if (pcNode->HasFlags(INDEX_TREE_NODE_TRANSIENT_FLAGS))
-			{
-				szFlags.Init();
-				pcNode->GetFlagsString(&szFlags);
-				gcLogger.Error2(__METHOD__, " Cannot flush node with child node [", IntToString(i + iFirst), "] with transient flags [", szFlags.Text(), "].", NULL);
-				szFlags.Kill();
-				return FALSE;
-			}
-		}
-	}
-	return TRUE;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CIndexTreeFile::FindWithFlags(CArrayVoidPtr* papNodes, unsigned char uiFollowFlags, unsigned char uiAddFlags)
 {
 	CIndexTreeRecursor	cCursor;
@@ -1499,7 +1459,7 @@ BOOL CIndexTreeFile::Flush(void)
 
 	bRootHasIndex = mpcRoot->GetFileIndex()->HasFile();
 
-	bResult = FlushRemoved();
+	bResult = FlushDeleted();
 	bResult &= FlushDirty();
 
 	bResult &= WriteRootFileIndex(bRootHasIndex, mpcRoot->GetFileIndex());
@@ -1570,7 +1530,7 @@ BOOL CIndexTreeFile::RecurseFlushDirty(CIndexTreeRecursor* pcCursor)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::FlushRemoved(void)
+BOOL CIndexTreeFile::FlushDeleted(void)
 {
 	CArrayVoidPtr					apvDeletedNodes;
 	int								i;
@@ -3240,11 +3200,15 @@ void CIndexTreeFile::ReadDebugNode(SIndexTreeDebugNode* psDebugNode, int iFile, 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void AppendIndexTreeFileNodeDescrition(CChars* psz, int uIndexFromParent)
+void AppendIndexTreeFileNodeDescrition(CChars* psz, CIndexTreeNodeFile* pcCurrent, int uIndexFromParent)
 {
+	char	szArrow[] = " -> ";
+	BOOL	bHasChildren;
+	BOOL	bHasObject;
+
 	if (uIndexFromParent == -1)
 	{
-		psz->Append("root: ");
+		psz->Append("  root -> ");
 	}
 	else
 	{
@@ -3252,7 +3216,6 @@ void AppendIndexTreeFileNodeDescrition(CChars* psz, int uIndexFromParent)
 		{
 			psz->Append("  ");
 			psz->Append((char)uIndexFromParent);
-			psz->Append(" -> ");
 		}
 		else
 		{
@@ -3265,7 +3228,22 @@ void AppendIndexTreeFileNodeDescrition(CChars* psz, int uIndexFromParent)
 				psz->Append(" ");
 			}
 			psz->Append(uIndexFromParent);
-			psz->Append(" -> ");
+		}
+
+		bHasObject = pcCurrent->HasObject();
+		if (bHasObject)
+		{
+			psz->Append("(X)");
+		}
+		else
+		{
+			psz->Append("   ");
+		}
+
+		bHasChildren = pcCurrent->HasNodes();
+		if (bHasChildren)
+		{
+			psz->Append(szArrow);
 		}
 	}
 }
@@ -3282,13 +3260,13 @@ void CIndexTreeFile::DebugNodeChildren(CIndexTreeNodeFile* pcCurrent, int uIndex
 	CChars	sz;
 
 	szMemory.Init();
-	AppendIndexTreeFileNodeDescrition(&szMemory, uIndexFromParent);
+	AppendIndexTreeFileNodeDescrition(&szMemory, pcCurrent, uIndexFromParent);
 	PrintChildFileIndexes(pcCurrent, &szMemory);
 
 	if (pcCurrent->GetFileIndex()->HasFile())
 	{
 		szFile.Init();
-		AppendIndexTreeFileNodeDescrition(&szFile, uIndexFromParent);
+		AppendIndexTreeFileNodeDescrition(&szFile, pcCurrent, uIndexFromParent);
 		PrintNodeFileIndexes(pcCurrent, &szFile);
 
 		if (szMemory.Equals(szFile))
@@ -3343,6 +3321,7 @@ void CIndexTreeFile::PrintChildFileIndexes(CIndexTreeNodeFile* pcCurrent, CChars
 	CIndexTreeNodeFile*		pcMemoryChild;
 
 	acChildren = pcCurrent->GetNodes();
+
 	if (pcCurrent->HasNodes())
 	{
 		for (i = 0; i <= pcCurrent->GetLastIndex() - pcCurrent->GetFirstIndex(); i++)
@@ -3446,8 +3425,8 @@ void CIndexTreeFile::Dump(void)
 	cCursor.Init(mpcRoot);
 
 	sz.Init();
-	sz.Append("= [IndexTreeFile] ");
-	sz.Append('=', mpcRoot->NumIndexes() * 2);
+	sz.Append("= [IndexTreeFile]  ");
+	sz.Append('=', mpcRoot->NumIndexes() * 2 - 1);
 	sz.AppendNewLine();
 	sz.Dump();
 	sz.Kill();
