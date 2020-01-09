@@ -654,11 +654,10 @@ char* CIndexTreeNode::GetFlagsString(CChars* psz)
 {
 	BOOL	bAppendComma;
 
-	bAppendComma = psz->AppendFlag(msFlags, INDEX_TREE_NODE_FLAG_DIRTY_NODE, "INDEX_TREE_NODE_FLAG_DIRTY_NODE");
-	bAppendComma |= psz->AppendFlag(msFlags, INDEX_TREE_NODE_FLAG_DIRTY_PATH, "INDEX_TREE_NODE_FLAG_DIRTY_PATH", bAppendComma);
-	bAppendComma |= psz->AppendFlag(msFlags, INDEX_TREE_NODE_FLAG_DELETED_NODE, "INDEX_TREE_NODE_FLAG_DELETED_NODE", bAppendComma);
-	bAppendComma |= psz->AppendFlag(msFlags, INDEX_TREE_NODE_FLAG_DELETED_PATH, "INDEX_TREE_NODE_FLAG_DELETED_PATH", bAppendComma);
-	bAppendComma |= psz->AppendFlag(msFlags, INDEX_TREE_NODE_FLAG_DIRTY_NODE, "INDEX_TREE_NODE_FLAG_DIRTY_NODE", bAppendComma);
+	bAppendComma = psz->AppendFlag(msFlags, INDEX_TREE_NODE_FLAG_DIRTY_NODE, "DIRTY_NODE");
+	bAppendComma |= psz->AppendFlag(msFlags, INDEX_TREE_NODE_FLAG_DIRTY_PATH, "DIRTY_PATH", bAppendComma);
+	bAppendComma |= psz->AppendFlag(msFlags, INDEX_TREE_NODE_FLAG_DELETED_NODE, "DELETED_NODE", bAppendComma);
+	bAppendComma |= psz->AppendFlag(msFlags, INDEX_TREE_NODE_FLAG_DELETED_PATH, "DELETED_PATH", bAppendComma);
 	return psz->Text();
 }
 

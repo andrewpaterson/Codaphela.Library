@@ -1339,7 +1339,6 @@ BOOL CIndexTreeFile::CanFlush(CIndexTreeNodeFile* pcNode)
 	iFirst = pcNode->GetFirstIndex();
 	for (i = 0; i < pcNode->NumIndexes(); i++)
 	{
-
 		pcChild = pcNode->GetNode(i);
 		if (pcChild->IsMemory())
 		{
@@ -1347,7 +1346,7 @@ BOOL CIndexTreeFile::CanFlush(CIndexTreeNodeFile* pcNode)
 			{
 				szFlags.Init();
 				pcNode->GetFlagsString(&szFlags);
-				gcLogger.Error2(__METHOD__, " Cannot flush node with child node [", IntToString(i + iFirst), "] with flags [", szFlags.Text(), "].", NULL);
+				gcLogger.Error2(__METHOD__, " Cannot flush node with child node [", IntToString(i + iFirst), "] with transient flags [", szFlags.Text(), "].", NULL);
 				szFlags.Kill();
 				return FALSE;
 			}
