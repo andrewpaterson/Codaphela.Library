@@ -3441,7 +3441,6 @@ void CIndexTreeFile::Print(CChars* pszDest)
 	sz.Init();
 	sz.Append("= [IndexTreeFile]  ");
 	sz.Append('=', mpcRoot->NumIndexes() * 2 - 1);
-	sz.AppendNewLine();
 	pszDest->AppendNewLine(sz);
 	sz.Kill();
 
