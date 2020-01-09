@@ -2284,6 +2284,44 @@ void CChars::PassifyNewlines(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CChars::MakeCPlusPlus(void)
+{
+	int		iIndex;
+	BOOL	bStartOfLine;
+	char	c;
+
+	bStartOfLine = TRUE;
+	iIndex = 0;
+	for (;;)
+	{
+		if (bStartOfLine)
+		{
+			Insert(iIndex, '"');
+			iIndex++;
+			bStartOfLine = FALSE;
+		}
+
+		if (iIndex >= Length())
+		{
+			Insert(iIndex, '"');
+			break;
+		}
+		c = GetChar(iIndex);
+		if (c == '\n')
+		{
+			Insert(iIndex, "\\n\"");
+			iIndex += 3;
+			bStartOfLine = TRUE;
+		}
+		iIndex++;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL CChars::WriteString(CFileWriter* pcWriter)
 {
 	return mcText.Write(pcWriter);

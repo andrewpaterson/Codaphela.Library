@@ -165,6 +165,7 @@ public:
 
 	//Suspicious... should probably be in a helper class or something.
 	void	PassifyNewlines(void);
+	void	MakeCPlusPlus(void);
 
 	void	Dump(void);
 	static void Dump(const char* sz);

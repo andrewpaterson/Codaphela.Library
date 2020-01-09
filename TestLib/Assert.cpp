@@ -20,6 +20,7 @@ along with Codaphela TestLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include <Time.h>
 #include "BaseLib/Chars.h"
+#include "BaseLib/ArrayChars.h"
 #include "BaseLib/FileBasic.h"
 #include "BaseLib/Define.h"
 #include "BaseLib/Log.h"
@@ -213,6 +214,86 @@ BOOL PrivateAssertString(const char* szExpected, const char* szActual, BOOL bTes
 			}
 		}
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* GetNextLine(int* piIndex, CArrayChars* pac)
+{
+	CChars*	pc;
+
+	for (;;)
+	{
+		if (*piIndex >= pac->NumElements())
+		{
+			return NULL;
+		}
+		else
+		{
+			pc = pac->Get(*piIndex);
+			pc->StripWhiteSpace();
+			(*piIndex)++;
+			if (!pc->Empty())
+			{
+				return pc->Text();
+			}
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL PrivateAssertStringApproximate(const char* szExpected, const char* szActual, BOOL bTestCase, int iLine, char* szFile)
+{
+	CChars			cExpected;
+	CArrayChars		acExpected;
+	CChars			cActual;
+	CArrayChars		acActual;
+	int				iExpected;
+	int				iActual;
+	char*			szExpectedLine;
+	char*			szActualLine;
+	BOOL			bResult;
+
+	cExpected.Init(szExpected);
+	cExpected.PassifyNewlines();
+	acExpected.Init();
+	cExpected.SplitLines(&acExpected);
+	cExpected.Kill();
+
+	cActual.Init(szActual);
+	cActual.PassifyNewlines();
+	acActual.Init();
+	cActual.SplitLines(&acActual);
+	cActual.Kill();
+
+	iExpected = 0;
+	iActual = 0;
+	for (; ;)
+	{
+		szActualLine = GetNextLine(&iActual, &acActual);
+		szExpectedLine = GetNextLine(&iExpected, &acExpected);
+		if ((szActualLine == NULL) && (szExpectedLine == NULL))
+		{
+			break;
+		}
+		bResult = PrivateAssertString(szExpectedLine, szActualLine, bTestCase, iLine, szFile);
+		if (!bResult)
+		{
+			break;
+		}
+	}
+
+	acExpected.Kill();
+	acActual.Kill();
+
+	return bResult;
 }
 
 
