@@ -336,6 +336,40 @@ char* CIndexTreeAccess::GetStringString(char* pszKey, char* pszDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+CChars CIndexTreeAccess::GetStringString(char* pszKey)
+{
+	int				iKeySize;
+	BOOL			bResult;
+	CChars			sz;
+	unsigned int	uiDataSize;
+
+	if (StrEmpty(pszKey))
+	{
+		sz.Init();
+		return sz;
+	}
+
+	iKeySize = strlen(pszKey);
+
+	uiDataSize = DataSize(pszKey, iKeySize);
+	if (uiDataSize != 0)
+	{
+		sz.InitLength(uiDataSize);
+		bResult = Get(pszKey, iKeySize, sz.Text(), NULL);
+		return sz;
+	}
+	else
+	{
+		sz.Init();
+		return sz;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 int CIndexTreeAccess::GetStringInt(char* pszKey)
 {
 	int				iKeySize;
@@ -480,5 +514,43 @@ BOOL CIndexTreeAccess::FlushString(char* pszKey)
 BOOL CIndexTreeAccess::FlushKey(void* pvKey, int iKeySize)
 {
 	return Flush(pvKey, iKeySize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+unsigned int CIndexTreeAccess::DataSizeLong(int64 lliKey)
+{
+	return DataSize(&lliKey, sizeof(int64));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+unsigned int CIndexTreeAccess::DataSizeString(char* pszKey)
+{
+	int		iKeySize;
+
+	if (StrEmpty(pszKey))
+	{
+		return FALSE;
+	}
+
+	iKeySize = strlen(pszKey);
+	return DataSize(pszKey, iKeySize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+unsigned int CIndexTreeAccess::DataSizeKey(void* pvKey, int iKeySize)
+{
+	return DataSize(pvKey, iKeySize);
 }
 

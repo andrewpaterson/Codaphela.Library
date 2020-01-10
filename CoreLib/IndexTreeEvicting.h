@@ -33,6 +33,7 @@ public:
 	unsigned short			ObjectSize(void* pvKey, int iKeySize);
 
 	BOOL					IsWriteThrough(void);
+	BOOL					IsFlushed(void);
 	BOOL					Flush(void);
 
 	int						NumElements(void);
