@@ -2310,10 +2310,18 @@ void CChars::MakeCPlusPlus(void)
 		if (c == '\n')
 		{
 			Insert(iIndex, "\\n\"");
-			iIndex += 3;
+			iIndex += 4;
 			bStartOfLine = TRUE;
+			if (iIndex >= Length())
+			{
+				RemoveCharacter(iIndex - 1);
+				break;
+			}
 		}
-		iIndex++;
+		else
+		{
+			iIndex++;
+		}
 	}
 }
 
