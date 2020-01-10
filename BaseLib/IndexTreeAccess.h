@@ -1,6 +1,7 @@
 #ifndef __INDEX_TREE_ACCESS_H__
 #define __INDEX_TREE_ACCESS_H__
 #include "Define.h"
+#include "Chars.h"
 #include "PrimitiveTypes.h"
 #include "TemporaryMemory.h"
 
@@ -29,6 +30,7 @@ public:
 			char*			GetLongString(int64 lliKey, char* pszDest);
 			BOOL			GetStringData(char* pszKey, void* pvObject, unsigned int* puiDataSize = NULL);
 			char*			GetStringString(char* pszKey, char* pszDest);
+			CChars			GetStringString(char* pszKey);
 			int				GetStringInt(char* pszKey);
 			int64			GetStringLong(char* pszKey);
 			void*			GetStringPtr(char* pszKey);
@@ -40,6 +42,10 @@ public:
 			BOOL			DeleteLong(int64 lliKey);
 			BOOL			DeleteString(char* pszKey);
 			BOOL			DeleteKey(void* pvKey, int iKeySize);
+
+			unsigned int	DataSizeLong(int64 lliKey);
+			unsigned int	DataSizeString(char* pszKey);
+			unsigned int	DataSizeKey(void* pvKey, int iKeySize);
 
 			BOOL			FlushLong(int64 lliKey);
 			BOOL			FlushString(char* pszKey);
