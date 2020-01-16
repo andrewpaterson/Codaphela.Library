@@ -63,4 +63,3 @@ protected:
 
 #endif // __INDEX_TREE_ACCESS_H__
 
-

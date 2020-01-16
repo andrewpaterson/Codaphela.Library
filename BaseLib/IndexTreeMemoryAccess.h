@@ -26,4 +26,3 @@ protected:
 
 #endif // __INDEX_TREE_MEMORY_ACCESS_H__
 
-
