@@ -50,6 +50,7 @@ public:
 
 	int						CalculateNodeSize(void);
 	int						CalculateDataBufferSize(CIndexTreeFileCallback* pcCallback);
+	int						CalculateFileSize(CIndexTreeFileCallback* pcCallback);
 	int						WriteToBuffer(void* pvBuffer, int iBufferSize, CIndexTreeFileCallback* pcCallback);
 
 	BOOL					HasFile(void);

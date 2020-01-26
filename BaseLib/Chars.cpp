@@ -1247,6 +1247,11 @@ BOOL CChars::Contains(const char* szString)
 {
 	char*	pc;
 
+	if (!szString) 
+	{
+		return FALSE;
+	}
+
 	pc = strstr(Text(), szString);
 	if (pc)
 	{

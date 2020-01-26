@@ -57,11 +57,13 @@ public:
 	char*		GetText(int iIndex);
 	int			GetIndex(char* szStart, int iLen);
 	int			GetIndex(char* szStart);
+	int			GetSubStringIndex(char* szStart);
 	int			FindInSorted(char* szString, BOOL bCaseSensitive = TRUE);
 	int			FindInSorted(CChars* szString, BOOL bCaseSensitive = TRUE);
 	void		Copy(CArrayChars* pcSource);
 	BOOL		Equals(CArrayChars* pcOther);
 	BOOL		Contains(char* szText);
+	BOOL		ContainsSubString(char* szText);
 	void		QuickSort(BOOL bIgnoreCase = FALSE);
 	void		BubbleSort(BOOL bIgnoreCase = FALSE);
 	BOOL		Split(char* szString, char cSplitter);
