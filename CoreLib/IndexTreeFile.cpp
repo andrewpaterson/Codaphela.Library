@@ -162,7 +162,7 @@ BOOL CIndexTreeFile::InitRoot(void)
 	CFileDataIndex		cRootDataIndex;
 	CIndexedFile*		pcRootIndexFile;
 	CStackMemory<>		cTemp;
-	int					iNodeSize;
+	int					iFileSize;
 	void*				pvBuffer;
 	BOOL				bResult;
 
@@ -174,7 +174,7 @@ BOOL CIndexTreeFile::InitRoot(void)
 	{
 		//The data size on the root is always zero.
 		mpcRoot = AllocateRoot(cRootDataIndex);
-		iNodeSize = mpcRoot->CalculateNodeSize() + mpcRoot->CalculateDataBufferSize(mpcDataCallback);
+		iFileSize = mpcRoot->CalculateFileSize(mpcDataCallback);
 
 		pcRootIndexFile = mcIndexFiles.GetFile(cRootDataIndex.miFile);
 		if (pcRootIndexFile == NULL)
@@ -182,19 +182,19 @@ BOOL CIndexTreeFile::InitRoot(void)
 			return gcLogger.Error2(__METHOD__, " Could not get root node indexed file [", IntToString(cRootDataIndex.miFile), "]", NULL);
 		}
 
-		if (iNodeSize != pcRootIndexFile->GetDataSize())
+		if (iFileSize != pcRootIndexFile->GetDataSize())
 		{
-			return gcLogger.Error2(__METHOD__, " Root node size [", IntToString(iNodeSize), "] does not match root node indexed file size[", IntToString(pcRootIndexFile->GetDataSize()), "]", NULL);
+			return gcLogger.Error2(__METHOD__, " Root node size [", IntToString(iFileSize), "] does not match root node indexed file size[", IntToString(pcRootIndexFile->GetDataSize()), "]", NULL);
 		}
 
-		pvBuffer = cTemp.Init(iNodeSize);
+		pvBuffer = cTemp.Init(iFileSize);
 		bResult = pcRootIndexFile->Read(cRootDataIndex.muiIndex, pvBuffer, 1);
 		if (!bResult)
 		{
 			return gcLogger.Error2(__METHOD__, " Could not read root node indexed file.", NULL);
 		}
 
-		mpcRoot->InitFromBuffer(pvBuffer, iNodeSize, mpcDataCallback);
+		mpcRoot->InitFromBuffer(pvBuffer, iFileSize, mpcDataCallback);
 		cTemp.Kill();
 
 		return TRUE;
@@ -2561,11 +2561,8 @@ BOOL CIndexTreeFile::Write(CIndexTreeNodeFile* pcNode)
 	CIndexedFile*		pcOldIndexFile;
 	unsigned int		uiDataIndex;
 	CFileDataIndex*		pcIndex;
-	int					iFileDataSize;
 
-	iFileDataSize = pcNode->CalculateDataBufferSize(mpcDataCallback);
-	iFileSize = pcNode->CalculateNodeSize();
-	iFileSize += iFileDataSize;
+	iFileSize = pcNode->CalculateFileSize(mpcDataCallback);
 
 	pvBuffer = cTemp.Init(iFileSize);
 	iWrittenPos = pcNode->WriteToBuffer(pvBuffer, iFileSize, mpcDataCallback);

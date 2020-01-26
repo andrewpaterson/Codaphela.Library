@@ -481,6 +481,16 @@ int CIndexTreeNodeFile::CalculateDataBufferSize(CIndexTreeFileCallback* pcCallba
 //
 //
 //////////////////////////////////////////////////////////////////////////
+int CIndexTreeNodeFile::CalculateFileSize(CIndexTreeFileCallback* pcCallback)
+{
+	return CalculateNodeSize() + CalculateDataBufferSize(pcCallback);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 int CIndexTreeNodeFile::WriteToBuffer(void* pvBuffer, int iBufferSize, CIndexTreeFileCallback* pcCallback)
 {
 	unsigned char*			pucMemory;
@@ -493,10 +503,11 @@ int CIndexTreeNodeFile::WriteToBuffer(void* pvBuffer, int iBufferSize, CIndexTre
 	void*					pvDataBuffer;
 	void*					pvSourceData;
 	int						iFileDataSize;
+	int						iNodeSize;
 
 	iFileDataSize = CalculateDataBufferSize(pcCallback);
-	iFileSize = CalculateNodeSize();
-	iFileSize += iFileDataSize;
+	iNodeSize = CalculateNodeSize();
+	iFileSize = iFileDataSize + iNodeSize;
 	if (iBufferSize < iFileSize)
 	{
 		gcLogger.Error2(__METHOD__, " Could not write IndexTreeNodeFile size [", IntToString(iFileSize), "] to buffer size [", IntToString(iBufferSize), "].  Buffer to small.", NULL);

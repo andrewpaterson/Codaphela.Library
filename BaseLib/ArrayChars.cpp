@@ -416,6 +416,29 @@ int CArrayChars::GetIndex(char* szStart)
 }
 
 
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+int CArrayChars::GetSubStringIndex(char* szStart)
+{
+	int			i;
+	CChars*		psz;
+
+	for (i = 0; i < mcArray.NumElements(); i++)
+	{
+		psz = mcArray.Get(i);
+		if (psz->Contains(szStart))
+		{
+			return i;
+		}
+	}
+	return -1;
+}
+
+
+
 //////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//
@@ -534,6 +557,23 @@ BOOL CArrayChars::Contains(char* szText)
 	int		iIndex;
 
 	iIndex = GetIndex(szText);
+	if (iIndex != -1)
+	{
+		return TRUE;
+	}
+	return FALSE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+BOOL CArrayChars::ContainsSubString(char* szText)
+{
+	int		iIndex;
+
+	iIndex = GetSubStringIndex(szText);
 	if (iIndex != -1)
 	{
 		return TRUE;
