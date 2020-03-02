@@ -38,7 +38,7 @@ BOOL CIndexTreeEvicting::Init(CDurableFileController* pcDurableFileControl, size
 	bResult = mcIndexTree.Init(pcDurableFileControl, pcWriterCallback, pcMalloc, eWriteThrough, eKeyReverse);
 	if (mpcEvictionStrategy)
 	{
-	mpcEvictionStrategy->SetIndexTree(this);
+		mpcEvictionStrategy->SetIndexTree(this);
 	}
 	return bResult;
 }
