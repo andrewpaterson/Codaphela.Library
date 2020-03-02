@@ -347,8 +347,8 @@ BOOL PrivateAssertBool(BOOL bExpected, BOOL bActual, int iLine, char* szFile)
 //////////////////////////////////////////////////////////////////////////
 BOOL PrivateAssertChar(char cExpected, char cActual, int iLine, char* szFile)
 {
-	char szExpected[2];
-	char szActual[2];
+	char szExpected[5];
+	char szActual[5];
 
 	if (cExpected != cActual)
 	{
@@ -1015,17 +1015,6 @@ void ToBoolString(BOOL b, char* sz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void ToCharString(char c, char* sz)
-{
-	sz[0] = c;
-	sz[1] = 0;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void ToIntString(int i, char* sz)
 {
 	IToA(i, sz, 10);
@@ -1041,6 +1030,25 @@ void ToIntHexString(int i, char* sz)
 	IToA(i, &sz[2], 16);
 	sz[0] = '0';
 	sz[1] = 'x';
+}
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void ToCharString(char c, char* sz)
+{
+	if ((c >= 0 && c <= 31) || (c == 127) || ((unsigned char)c >= 128 && (unsigned char)c <= 159))
+	{
+		ToIntHexString(c, sz);
+	}
+	else
+	{
+		sz[0] = c;
+		sz[1] = 0;
+	}
 }
 
 
