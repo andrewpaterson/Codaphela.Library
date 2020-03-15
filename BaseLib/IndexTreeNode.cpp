@@ -57,7 +57,7 @@ unsigned short CIndexTreeNode::GetDataSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CIndexTreeNode::GetObjectPtr(void)
+void* CIndexTreeNode::GetDataPtr(void)
 {
 	if (muiDataSize == 0)
 	{
@@ -569,7 +569,7 @@ BOOL CIndexTreeNode::SetData(void* pvData, unsigned short uiDataSize)
 
 	if (pvData)
 	{
-		memcpy_fast(GetObjectPtr(), pvData, uiDataSize);
+		memcpy_fast(GetDataPtr(), pvData, uiDataSize);
 	}
 	return TRUE;
 }

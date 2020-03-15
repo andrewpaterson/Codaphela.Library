@@ -49,7 +49,7 @@ public:
 	void			ClearData(void);
 
 	unsigned short	GetDataSize(void);
-	void*			GetObjectPtr(void);
+	void*			GetDataPtr(void);
 	BOOL			HasObject(void);
 
 	void*			GetNodesMemory(void);

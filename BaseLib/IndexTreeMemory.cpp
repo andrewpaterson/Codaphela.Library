@@ -181,7 +181,7 @@ void* CIndexTreeMemory::Get(void* pvKey, int iKeySize, unsigned short* puiDataSi
 			return NULL;
 		}
 
-		pv = pcNode->GetObjectPtr();
+		pv = pcNode->GetDataPtr();
 		return pv;
 	}
 }
@@ -240,7 +240,7 @@ void* CIndexTreeMemory::Put(void* pvKey, int iKeySize, void* pvObject, unsigned 
 
 	if (bResult)
 	{
-		return pcReallocatedCurrent->GetObjectPtr();
+		return pcReallocatedCurrent->GetDataPtr();
 	}
 	else
 	{
@@ -425,7 +425,7 @@ BOOL CIndexTreeMemory::Remove(CIndexTreeNodeMemory*	pcCurrent)
 		return FALSE;
 	}
 
-	pvObject = ((void**) pcCurrent->GetObjectPtr());
+	pvObject = ((void**) pcCurrent->GetDataPtr());
 
 	pcNode = pcCurrent;
 	pcParent = (CIndexTreeNodeMemory*)pcNode->GetParent();
@@ -497,7 +497,7 @@ void CIndexTreeMemory::RecurseFindAll(CIndexTreeNodeMemory* pcNode, CArrayVoidPt
 
 	if (pcNode != NULL)
 	{
-		pvObject = pcNode->GetObjectPtr();
+		pvObject = pcNode->GetDataPtr();
 		if (pvObject != NULL)
 		{
 			papvElements->Add(pvObject);
@@ -684,7 +684,7 @@ BOOL CIndexTreeMemory::StartIteration(SIndexTreeMemoryIterator* psIterator, void
 	{
 		if (pvData)
 		{
-			*pvData = psIterator->pcNode->GetObjectPtr();
+			*pvData = psIterator->pcNode->GetDataPtr();
 		}
 		if (piDataSize)
 		{
@@ -709,7 +709,7 @@ BOOL CIndexTreeMemory::Iterate(SIndexTreeMemoryIterator* psIterator, void** pvDa
 	{
 		if (pvData)
 		{
-			*pvData = psIterator->pcNode->GetObjectPtr();
+			*pvData = psIterator->pcNode->GetDataPtr();
 		}
 		if (piDataSize)
 		{
@@ -743,7 +743,7 @@ BOOL CIndexTreeMemory::StepNext(SIndexTreeMemoryIterator* psIterator)
 			psIterator->pcNode = pcChild;
 			psIterator->iIndex = pcChild->GetFirstIndex();
 
-			pvObject = pcChild->GetObjectPtr();
+			pvObject = pcChild->GetDataPtr();
 			if (pvObject != NULL)
 			{
 				return TRUE; 

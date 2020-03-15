@@ -49,7 +49,7 @@ void CIndexTreeWriter::RecurseAllocate(CIndexTreeNodeMemory* pcMemoryNode, CInde
 	int						iLastIndex;
 
 
-	pvObject = pcMemoryNode->GetObjectPtr();
+	pvObject = pcMemoryNode->GetDataPtr();
 	if (pvObject != NULL)
 	{
 		pcFileNode->SetData(pvObject, pcMemoryNode->GetDataSize());
