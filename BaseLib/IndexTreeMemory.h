@@ -38,7 +38,7 @@ public:
 	CIndexTreeNodeMemory*	GetNode(void* pvKey, int iKeySize);
 	CIndexTreeNodeMemory*	GetRoot(void);
 	CIndexTreeNodeMemory*	GetNodeForData(void* pvData);
-	int						CountAllocatedNodes(void);
+	int						NumAllocatedNodes(void);
 	int						RecurseSize(void);
 	size_t					ByteSize(void);
 
@@ -65,7 +65,7 @@ protected:
 	CIndexTreeNodeMemory*	SetOldWithCurrent(CIndexTreeNodeMemory* pcParent, unsigned char c);
 	void					RecurseFindAll(CIndexTreeNodeMemory* pcNode, CArrayVoidPtr* papvElements);
 	int						RecurseSize(CIndexTreeNodeMemory* pcNode);
-	int						RecurseCountAllocatedNodes(CIndexTreeNodeMemory* pcNode);
+	int						RecurseNumNodes(CIndexTreeNodeMemory* pcNode);
 	int						CountListSize(void);
 	int						RecurseCountListSize(CIndexTreeNodeMemory* pcNode);
 	size_t					RecurseByteSize(CIndexTreeNodeMemory* pcNode);

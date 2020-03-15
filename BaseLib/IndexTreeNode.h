@@ -75,7 +75,7 @@ public:
 	unsigned char	GetFirstIndex(void);
 	unsigned char	GetLastIndex(void);
 	BOOL			HasNodes(void);
-	unsigned char	NumNodes(void);
+	unsigned char	NumAllocatedNodes(void);
 	BOOL			ContainsIndex(unsigned char uiIndex);
 	void			SetNodesEmpty(BOOL bEmpty);
 	void			SetDirtyNode(BOOL bDirty);

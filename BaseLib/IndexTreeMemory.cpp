@@ -1084,9 +1084,9 @@ BOOL CIndexTreeMemory::HasKey(void* pvKey, int iKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CIndexTreeMemory::CountAllocatedNodes(void)
+int CIndexTreeMemory::NumAllocatedNodes(void)
 {
-	return RecurseCountAllocatedNodes(mpcRoot);
+	return RecurseNumNodes(mpcRoot);
 }
 
 
@@ -1094,7 +1094,7 @@ int CIndexTreeMemory::CountAllocatedNodes(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CIndexTreeMemory::RecurseCountAllocatedNodes(CIndexTreeNodeMemory* pcNode)
+int CIndexTreeMemory::RecurseNumNodes(CIndexTreeNodeMemory* pcNode)
 {
 	int						i;
 	CIndexTreeNodeMemory*	pcChild;
@@ -1105,7 +1105,7 @@ int CIndexTreeMemory::RecurseCountAllocatedNodes(CIndexTreeNodeMemory* pcNode)
 		for (i = 0; i < pcNode->NumIndexes(); i++)
 		{
 			pcChild = pcNode->GetNode(i);
-			count += RecurseCountAllocatedNodes(pcChild);
+			count += RecurseNumNodes(pcChild);
 		}
 		return count;
 	}

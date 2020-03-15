@@ -469,7 +469,7 @@ BOOL CIndexTreeNode::HasObject(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-unsigned char CIndexTreeNode::NumNodes(void)
+unsigned char CIndexTreeNode::NumAllocatedNodes(void)
 {
 	return (unsigned char)NumIndexes();
 }

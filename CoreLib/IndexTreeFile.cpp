@@ -1429,7 +1429,7 @@ BOOL CIndexTreeFile::IsWriteThrough(void)
 //////////////////////////////////////////////////////////////////////////
 int CIndexTreeFile::NumElements(void)
 {
-	return RecurseSize();
+	return RecurseNumElements(mpcRoot);
 }
 
 
@@ -1439,7 +1439,7 @@ int CIndexTreeFile::NumElements(void)
 //////////////////////////////////////////////////////////////////////////
 int CIndexTreeFile::NumMemoryElements(void)
 {
-	return RecurseMemorySize(mpcRoot);
+	return RecurseNumMemoryElements(mpcRoot);
 }
 
 
@@ -1970,17 +1970,7 @@ BOOL CIndexTreeFile::ValidateIndexTree(BOOL bReadNodes)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CIndexTreeFile::RecurseSize(void)
-{
-	return RecurseSize(mpcRoot);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-int CIndexTreeFile::RecurseSize(CIndexTreeNodeFile* pcNode)
+int CIndexTreeFile::RecurseNumElements(CIndexTreeNodeFile* pcNode)
 {
 	int						i;
 	CIndexTreeNodeFile*		pcChild;
@@ -1999,7 +1989,7 @@ int CIndexTreeFile::RecurseSize(CIndexTreeNodeFile* pcNode)
 		for (i = pcNode->GetFirstIndex(); i <= iLastIndex; i++)
 		{
 			pcChild = ReadNode(pcNode, i);
-			count += RecurseSize(pcChild);
+			count += RecurseNumElements(pcChild);
 		}
 	}
 	return count;
@@ -2010,7 +2000,7 @@ int CIndexTreeFile::RecurseSize(CIndexTreeNodeFile* pcNode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CIndexTreeFile::RecurseMemorySize(CIndexTreeNodeFile* pcNode)
+int CIndexTreeFile::RecurseNumMemoryElements(CIndexTreeNodeFile* pcNode)
 {
 	int						i;
 	CIndexTreeNodeFile*		pcChild;
@@ -2029,7 +2019,7 @@ int CIndexTreeFile::RecurseMemorySize(CIndexTreeNodeFile* pcNode)
 		for (i = pcNode->GetFirstIndex(); i <= iLastIndex; i++)
 		{
 			pcChild = ReadMemoryNode(pcNode, i);
-			count += RecurseMemorySize(pcChild);
+			count += RecurseNumMemoryElements(pcChild);
 		}
 	}
 	return count;
@@ -2471,45 +2461,6 @@ unsigned short CIndexTreeFile::GetDataSize(void* pvKey, int iKeySize)
 	}
 
 	return pcNode->GetDataSize();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-int CIndexTreeFile::CountAllocatedNodes(void)
-{
-	return RecurseCountAllocatedNodes(mpcRoot);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-int CIndexTreeFile::RecurseCountAllocatedNodes(CIndexTreeNodeFile* pcNode)
-{
-	int						i;
-	CIndexTreeNodeFile*		pcChild;
-	int						count;
-	int						iLastIndex;
-
-	if (pcNode != NULL)
-	{
-		count = 1;
-		iLastIndex = pcNode->GetLastIndex();
-		for (i = pcNode->GetFirstIndex(); i <= iLastIndex; i++)
-		{
-			pcChild = ReadNode(pcNode, i);
-			count += RecurseCountAllocatedNodes(pcChild);
-		}
-		return count;
-	}
-	else
-	{
-		return 0;
-	}
 }
 
 
