@@ -170,7 +170,7 @@ void* CIndexTreeMemory::Get(void* pvKey, int iKeySize, unsigned short* puiDataSi
 	}
 	else
 	{
-		uiDataSize = pcNode->ObjectSize();
+		uiDataSize = pcNode->GetDataSize();
 		if (puiDataSize)
 		{
 			*puiDataSize = uiDataSize;
@@ -221,14 +221,14 @@ void* CIndexTreeMemory::Put(void* pvKey, int iKeySize, void* pvObject, unsigned 
 		miSize++;
 	}
 
-	if (pcCurrent->ObjectSize() <= uiDataSize)
+	if (pcCurrent->GetDataSize() <= uiDataSize)
 	{ 
 		pcReallocatedCurrent = ReallocateNodeForLargerData(pcCurrent, uiDataSize);
 		bResult = pcReallocatedCurrent->SetObject(pvObject, uiDataSize);
 	}
 	else
 	{
-		uiOriginalSize = pcCurrent->ObjectSize();
+		uiOriginalSize = pcCurrent->GetDataSize();
 		bResult = pcCurrent->SetObject(pvObject, uiDataSize);
 		pcReallocatedCurrent = ReallocateNodeForSmallerData(pcCurrent, uiOriginalSize);
 	}
@@ -420,7 +420,7 @@ BOOL CIndexTreeMemory::Remove(CIndexTreeNodeMemory*	pcCurrent)
 	size_t					tNewNodeSize;
 	size_t					tOldNodeSize;
 
-	if (pcCurrent->ObjectSize() == 0)
+	if (pcCurrent->GetDataSize() == 0)
 	{
 		return FALSE;
 	}
@@ -688,7 +688,7 @@ BOOL CIndexTreeMemory::StartIteration(SIndexTreeMemoryIterator* psIterator, void
 		}
 		if (piDataSize)
 		{
-			*piDataSize = psIterator->pcNode->ObjectSize();
+			*piDataSize = psIterator->pcNode->GetDataSize();
 		}
 		return TRUE;
 	}
@@ -713,7 +713,7 @@ BOOL CIndexTreeMemory::Iterate(SIndexTreeMemoryIterator* psIterator, void** pvDa
 		}
 		if (piDataSize)
 		{
-			*piDataSize = psIterator->pcNode->ObjectSize();
+			*piDataSize = psIterator->pcNode->GetDataSize();
 		}
 		return TRUE;
 	}
@@ -873,7 +873,7 @@ size_t CIndexTreeMemory::RecurseByteSize(CIndexTreeNodeMemory* pcNode)
 	if (pcNode != NULL)
 	{
 		tSize += pcNode->CalculateRequiredNodeSizeForCurrent();
-		uiSize = pcNode->ObjectSize();
+		uiSize = pcNode->GetDataSize();
 
 		for (i = 0; i < pcNode->NumIndexes(); i++)
 		{
@@ -1076,7 +1076,7 @@ BOOL CIndexTreeMemory::HasKey(void* pvKey, int iKeySize)
 		return FALSE;
 	}
 
-	return pcNode->ObjectSize() != 0;
+	return pcNode->GetDataSize() != 0;
 }
 
 

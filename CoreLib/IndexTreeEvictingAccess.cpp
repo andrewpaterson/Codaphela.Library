@@ -125,7 +125,7 @@ BOOL CIndexTreeEvictingAccess::Remove(void* pvKey, int iKeySize)
 //////////////////////////////////////////////////////////////////////////
 unsigned int CIndexTreeEvictingAccess::DataSize(void* pvKey, int iKeySize)
 {
-	return mpcTree->ObjectSize(pvKey, iKeySize);
+	return mpcTree->GetDataSize(pvKey, iKeySize);
 }
 
 

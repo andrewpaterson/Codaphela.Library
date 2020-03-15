@@ -48,7 +48,7 @@ public:
 	BOOL			SetObject(void* pvObject, unsigned short uiSize);
 	void			ClearObject(void);
 
-	unsigned short	ObjectSize(void);
+	unsigned short	GetDataSize(void);
 	void*			GetObjectPtr(void);
 	BOOL			HasObject(void);
 

@@ -47,7 +47,7 @@ void CIndexTreeNode::Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent, uns
 //
 //
 //////////////////////////////////////////////////////////////////////////
-unsigned short CIndexTreeNode::ObjectSize(void)
+unsigned short CIndexTreeNode::GetDataSize(void)
 {
 	return muiDataSize;
 }
@@ -637,10 +637,10 @@ void CIndexTreeNode::Print(CChars* psz, BOOL bHex)
 		}
 	}
 
-	if (ObjectSize() > 0)
+	if (GetDataSize() > 0)
 	{
 		psz->Append(" (");
-		psz->Append((int)ObjectSize());
+		psz->Append((int)GetDataSize());
 		psz->Append(")");
 	}
 }
