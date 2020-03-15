@@ -224,12 +224,12 @@ void* CIndexTreeMemory::Put(void* pvKey, int iKeySize, void* pvObject, unsigned 
 	if (pcCurrent->GetDataSize() <= uiDataSize)
 	{ 
 		pcReallocatedCurrent = ReallocateNodeForLargerData(pcCurrent, uiDataSize);
-		bResult = pcReallocatedCurrent->SetObject(pvObject, uiDataSize);
+		bResult = pcReallocatedCurrent->SetData(pvObject, uiDataSize);
 	}
 	else
 	{
 		uiOriginalSize = pcCurrent->GetDataSize();
-		bResult = pcCurrent->SetObject(pvObject, uiDataSize);
+		bResult = pcCurrent->SetData(pvObject, uiDataSize);
 		pcReallocatedCurrent = ReallocateNodeForSmallerData(pcCurrent, uiOriginalSize);
 	}
 
@@ -429,7 +429,7 @@ BOOL CIndexTreeMemory::Remove(CIndexTreeNodeMemory*	pcCurrent)
 
 	pcNode = pcCurrent;
 	pcParent = (CIndexTreeNodeMemory*)pcNode->GetParent();
-	pcCurrent->ClearObject();
+	pcCurrent->ClearData();
 	for (;;)
 	{
 		c = pcNode->GetIndexInParent();

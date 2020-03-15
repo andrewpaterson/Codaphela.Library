@@ -45,8 +45,8 @@ public:
 	void			Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent, unsigned char uiIndexInParent);
 
 	void			ChangeDataSize(unsigned short uiSize);
-	BOOL			SetObject(void* pvObject, unsigned short uiSize);
-	void			ClearObject(void);
+	BOOL			SetData(void* pvObject, unsigned short uiSize);
+	void			ClearData(void);
 
 	unsigned short	GetDataSize(void);
 	void*			GetObjectPtr(void);

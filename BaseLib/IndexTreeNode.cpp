@@ -560,16 +560,16 @@ void CIndexTreeNode::SetDeletedPath(BOOL bDeleted)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeNode::SetObject(void* pvObject, unsigned short uiSize)
+BOOL CIndexTreeNode::SetData(void* pvData, unsigned short uiDataSize)
 {
-	if (muiDataSize != uiSize)
+	if (muiDataSize != uiDataSize)
 	{
-		ChangeDataSize(uiSize);
+		ChangeDataSize(uiDataSize);
 	}
 
-	if (pvObject)
+	if (pvData)
 	{
-		memcpy_fast(GetObjectPtr(), pvObject, uiSize);
+		memcpy_fast(GetObjectPtr(), pvData, uiDataSize);
 	}
 	return TRUE;
 }
@@ -579,7 +579,7 @@ BOOL CIndexTreeNode::SetObject(void* pvObject, unsigned short uiSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNode::ClearObject(void)
+void CIndexTreeNode::ClearData(void)
 {
 	ChangeDataSize(0);
 	SetDirtyNode(TRUE);
