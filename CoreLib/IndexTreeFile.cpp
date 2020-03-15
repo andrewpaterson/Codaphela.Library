@@ -1568,7 +1568,8 @@ BOOL CIndexTreeFile::FlushDeleted(void)
 		}
 		else
 		{
-			pcNode->GetFileDataSize();
+			gcLogger.Debug2("Cannot flush a deleted node that is also dirty.", NULL);
+			
 		}
 	}
 
@@ -1577,6 +1578,7 @@ BOOL CIndexTreeFile::FlushDeleted(void)
 
 	return bResult;
 }
+
 
 //////////////////////////////////////////////////////////////////////////
 //

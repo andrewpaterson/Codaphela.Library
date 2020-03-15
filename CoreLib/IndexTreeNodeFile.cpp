@@ -12,7 +12,6 @@ void CIndexTreeNodeFile::Init(CIndexTree* pcIndexTree, CIndexTreeNodeFile* pcPar
 {
 	CIndexTreeNode::Init(pcIndexTree, pcParent, uiFirstIndex, uiLastIndex, 0, INDEX_TREE_FILE_NODE_UNALLOCATED, uiIndexInParent);
 	mcFileIndex.Init(cFileIndex.miFile, cFileIndex.muiIndex);
-	muiFileDataSize = 0;
 }
 
 
@@ -24,7 +23,6 @@ void CIndexTreeNodeFile::Init(CIndexTree* pcIndexTree, CIndexTreeNodeFile* pcPar
 {
 	CIndexTreeNode::Init(pcIndexTree, mpcParent, uiFirstIndex, uiLastIndex, uiDataSize, INDEX_TREE_FILE_NODE_UNALLOCATED, uiIndexInParent);
 	mcFileIndex.Init();
-	muiFileDataSize = uiDataSize;
 }
 
 
@@ -36,7 +34,6 @@ void CIndexTreeNodeFile::Init(CIndexTree* pcIndexTree, CIndexTreeNodeFile* pcPar
 {
 	CIndexTreeNode::Init(pcIndexTree, pcParent, uiFirstIndex, uiLastIndex, 0, INDEX_TREE_FILE_NODE_UNALLOCATED, uiIndexInParent);
 	mcFileIndex.Init();
-	muiFileDataSize = 0;
 }
 
 
@@ -48,7 +45,6 @@ void CIndexTreeNodeFile::Init(CIndexTree* pcIndexTree, CIndexTreeNodeFile* pcPar
 {
 	CIndexTreeNode::Init(pcIndexTree, pcParent, uiIndexInParent);
 	mcFileIndex.Init(cFileIndex.miFile, cFileIndex.muiIndex);
-	muiFileDataSize = 0;
 }
 
 
@@ -60,7 +56,6 @@ void CIndexTreeNodeFile::Init(CIndexTree* pcIndexTree, CIndexTreeNodeFile* pcPar
 {
 	CIndexTreeNode::Init(pcIndexTree, pcParent, uiIndexInParent);
 	mcFileIndex.Init();
-	muiFileDataSize = 0;
 }
 
 
@@ -859,12 +854,4 @@ void CIndexTreeNodeFile::Dump(void)
 	sz.Kill();
 }
 
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-unsigned short CIndexTreeNodeFile::GetFileDataSize(void)
-{
-	return muiFileDataSize;
-}
 
