@@ -6,16 +6,19 @@
 #include "IndexTreeChildNode.h"
 
 
-//Calculation to get to 32 bytes seems to be sizeof(CIndexTreeNode) 16 bytes + sizeof(CFileDataIndex) 8 bytes.
+//Calculation to get to 32 bytes seems to be sizeof(CIndexTreeNode) 16 bytes + sizeof(CFileDataIndex) 8 bytes + sizeof(unsigned short) 2 bytes.
 class CIndexTreeNodeFile : public CIndexTreeNode
 {
 private:
 	CFileDataIndex			mcFileIndex;  //This index is not valid if the node is dirty; the node will need to br rewritten.
+	unsigned short			muiFileDataSize;  //This is the size of the node in the file (if it exists).  If the node is dirty then muiDataSize contains the current size.
+
+	unsigned char			maucPadding[4];  //Padding.
 
 public:
 	void					Init(CIndexTree* pcIndexTree, CIndexTreeNodeFile* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex, CFileDataIndex cFileIndex, unsigned char uiIndexInParent);
 	void					Init(CIndexTree* pcIndexTree, CIndexTreeNodeFile* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex, unsigned char uiIndexInParent);
-	void					Init(CIndexTree* pcIndexTree, CIndexTreeNodeFile* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex, unsigned short uiObjectSize, unsigned char uiIndexInParent);
+	void					Init(CIndexTree* pcIndexTree, CIndexTreeNodeFile* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex, unsigned short uiDataSize, unsigned char uiIndexInParent);
 	void					Init(CIndexTree* pcIndexTree, CIndexTreeNodeFile* pcParent, CFileDataIndex cFileIndex, unsigned char uiIndexInParent);
 	void					Init(CIndexTree* pcIndexTree, CIndexTreeNodeFile* pcParent, unsigned char uiIndexInParent);
 
@@ -25,7 +28,7 @@ public:
 	CFileDataIndex*			GetFileIndex(void);
 
 	CIndexTreeChildNode*	Get(unsigned char uiIndex);
-	void					Set(unsigned char uiIndex, CIndexTreeNodeFile* pcNode);
+	void									Set(unsigned char uiIndex, CIndexTreeNodeFile* pcNode);
 	void					Set(unsigned char uiIndex, CFileDataIndex cFileNode);
 
 	void					Clear(unsigned char uiIndex);
@@ -36,6 +39,8 @@ public:
 	CIndexTreeChildNode*	GetFirstNode(void);
 	int						NumValidIndexes(void);
 	int						NumMemoryIndexes(void);
+
+	unsigned short			GetFileDataSize(void);
 
 	void					Contain(unsigned char uiIndex);
 	BOOL					Uncontain(unsigned char uiIndex);

@@ -32,7 +32,7 @@ protected:
 
 	unsigned short		muiDataSize;   // Size of object "pointed" to by this node.  The object is small: usually a OIndex, a pointer or a CFileId.
 
-	unsigned short		muiMagic;  //Unused.  Always set to INDEX_TREE_NODE_MAGIC
+	unsigned short		muiMagic;  //Always set to INDEX_TREE_NODE_MAGIC
 
 	unsigned char		muiFirstIndex;
 	unsigned char		muiLastIndex;  // Inclusive (because 255 is a legitimate last index and 256 can't be represented)
