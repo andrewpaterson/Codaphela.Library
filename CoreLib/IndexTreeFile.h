@@ -70,8 +70,6 @@ public:
 	CIndexTreeNodeFile*		GetMemoryNode(void* pvKey, int iKeySize); 
 	CIndexTreeNodeFile*		GetNodeForData(void* pvData);
 	CIndexedFile*			GetFile(int iFile);
-	int						CountAllocatedNodes(void);
-	int						RecurseSize(void);
 	size_t					ByteSize(void);
 	void					FindWithFlags(CArrayVoidPtr* papNodes, unsigned char uiFollowFlags, unsigned char uiAddFlags);
 	void					ClearNodesFlags(CArrayVoidPtr* papNodes, unsigned char uiFlags);
@@ -130,9 +128,8 @@ protected:
 	BOOL					Flush(CIndexTreeNodeFile** ppcCurrent);
 	BOOL					CanEvict(CIndexTreeNodeFile* pcNode);
 
-	int						RecurseSize(CIndexTreeNodeFile* pcNode);
-	int						RecurseMemorySize(CIndexTreeNodeFile* pcNode);
-	int						RecurseCountAllocatedNodes(CIndexTreeNodeFile* pcNode);
+	int						RecurseNumElements(CIndexTreeNodeFile* pcNode);
+	int						RecurseNumMemoryElements(CIndexTreeNodeFile* pcNode);
 	int						CountListSize(void);
 	int						RecurseCountListSize(CIndexTreeNodeFile* pcNode);
 	size_t					RecurseByteSize(CIndexTreeNodeFile* pcNode);
