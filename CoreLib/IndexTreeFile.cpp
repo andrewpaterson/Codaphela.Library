@@ -671,6 +671,7 @@ BOOL CIndexTreeFile::Put(void* pvKey, int iKeySize, void* pvData, unsigned short
 		bExecute = LoopKey(&i, iKeySize);
 	}
 
+	xxx;
 	pcCurrent = SetNodeObject(pcCurrent, pvData, uiDataSize);  //Set the node (and potentially the node's parent) dirty.
 	if (pcCurrent == NULL)
 	{
@@ -718,6 +719,28 @@ BOOL CIndexTreeFile::SetDirtyPath(CIndexTreeNodeFile* pcCurrent)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeFile::SetDeletedPath(CIndexTreeNodeFile* pcCurrent)
+{
+	if (meWriteThrough == IWT_Yes)
+	{
+		return gcLogger.Error2(__METHOD__, " Cannot SetDeletedPath on an index tree that is write through.", NULL);
+	}
+
+	if (pcCurrent->IsDeleted())
+	{
+		while ((pcCurrent) && (!pcCurrent->IsPathDeleted()))
+		{
+			pcCurrent->SetDeletedPath(TRUE);
+			pcCurrent = (CIndexTreeNodeFile*)pcCurrent->GetParent();
+		}
+	}
+	return TRUE;
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 CIndexTreeNodeFile* CIndexTreeFile::SetNodeObject(CIndexTreeNodeFile* pcCurrent, void* pvData, unsigned short uiDataSize)
 {
 	CIndexTreeNodeFile*		pcReallocatedCurrent;
@@ -742,7 +765,12 @@ CIndexTreeNodeFile* CIndexTreeFile::SetNodeObject(CIndexTreeNodeFile* pcCurrent,
 		pcReallocatedCurrent = pcCurrent;
 		bResult = pcReallocatedCurrent->SetData(pvData, uiDataSize);
 	}
-	pcReallocatedCurrent->SetDirtyNode(TRUE);
+
+	xxx;
+	if (!DirtySetPaths(pcReallocatedCurrent))
+	{
+		return FALSE;
+	}
 
 	if (pcCurrent != pcReallocatedCurrent)
 	{
@@ -1112,6 +1140,7 @@ CIndexTreeNodeFile* CIndexTreeFile::ReallocateNodeForUncontainIndex(CIndexTreeNo
 	return pcNode;
 }
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -1128,13 +1157,48 @@ BOOL CIndexTreeFile::RemoveWaitForFlush(CIndexTreeNodeFile* pcCurrent)
 		return FALSE;
 	}
 
-	pcCurrent->SetDeletedNode(TRUE);
-	pcCurrent->SetDirtyNode(FALSE);
-	while (pcCurrent != NULL)
+	return RemoveSetPaths(pcCurrent);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeFile::RemoveSetPaths(CIndexTreeNodeFile* pcCurrent)
+{
+	if (!ClearDirtyPath(pcCurrent))
 	{
-		pcCurrent->SetDeletedPath(TRUE);
-		pcCurrent = (CIndexTreeNodeFile*)pcCurrent->GetParent();
+		return FALSE;
 	}
+	pcCurrent->SetDirtyNode(FALSE);
+
+	if (!SetDeletedPath(pcCurrent))
+	{
+		return FALSE;
+	}
+	pcCurrent->SetDeletedNode(TRUE);
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeFile::DirtySetPaths(CIndexTreeNodeFile* pcCurrent)
+{
+	if (!ClearDeletedPath(pcCurrent))
+	{
+		return FALSE;
+	}
+	pcCurrent->SetDeletedNode(FALSE);
+
+	if (!SetDirtyPath(pcCurrent))
+	{
+		return FALSE;
+	}
+	pcCurrent->SetDirtyNode(TRUE);
 
 	return TRUE;
 }

@@ -159,9 +159,12 @@ protected:
 	BOOL					WriteBackPathWriteThrough(CIndexTreeNodeFile* pcNode);
 	BOOL					WriteBackPathCaching(CIndexTreeNodeFile* pcNode);
 	BOOL					SetDirtyPath(CIndexTreeNodeFile* pcCurrent);
-	BOOL					RecurseIsFlushed(CIndexTreeRecursor* pcCursor);
+	BOOL					SetDeletedPath(CIndexTreeNodeFile* pcCurrent);
 	BOOL					ClearDeletedPath(CIndexTreeNodeFile* pcNode);
 	BOOL					ClearDirtyPath(CIndexTreeNodeFile* pcNode);
+	BOOL					RemoveSetPaths(CIndexTreeNodeFile* pcCurrent);
+	BOOL					DirtySetPaths(CIndexTreeNodeFile* pcCurrent);
+	BOOL					RecurseIsFlushed(CIndexTreeRecursor* pcCursor);
 
 	CFileDataIndex			ReadRootFileIndex(void);
 	BOOL					WriteRootFileIndex(CFileDataIndex* pcRootIndex);
