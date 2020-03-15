@@ -86,7 +86,7 @@ BOOL CIndexTreeFileAccess::Remove(void* pvKey, int iKeySize)
 //////////////////////////////////////////////////////////////////////////
 unsigned int CIndexTreeFileAccess::DataSize(void* pvKey, int iKeySize)
 {
-	return mpcTree->ObjectSize(pvKey, iKeySize);
+	return mpcTree->GetDataSize(pvKey, iKeySize);
 }
 
 

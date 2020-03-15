@@ -156,12 +156,12 @@ BOOL CIndexTreeEvicting::HasKey(void* pvKey, int iKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-unsigned short CIndexTreeEvicting::ObjectSize(void* pvKey, int iKeySize)
+unsigned short CIndexTreeEvicting::GetDataSize(void* pvKey, int iKeySize)
 {
 	unsigned short	uiSize;
 	int				iEvicted;
 
-	uiSize = mcIndexTree.ObjectSize(pvKey, iKeySize);
+	uiSize = mcIndexTree.GetDataSize(pvKey, iKeySize);
 	iEvicted = PotentiallyEvict(pvKey, iKeySize);
 	return uiSize;
 }
@@ -268,7 +268,7 @@ BOOL CIndexTreeEvicting::EvictNodeWithObject(CIndexTreeNodeFile* pcNode)
 		mcIndexTree.GetNodeKey(pcNode, pvMem, iKeySize + 1);
 		pvMem[iKeySize] = 0;
 		pvData = pcNode->GetObjectPtr();
-		uiDataSize = pcNode->ObjectSize();
+		uiDataSize = pcNode->GetDataSize();
 
 		bResult = mpcEvictionCallback->IndexTreeNodeEvicted(pvMem, iKeySize, pvData, uiDataSize);
 
