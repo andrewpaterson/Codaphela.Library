@@ -122,7 +122,7 @@ BOOL CIndexedDescriptorsFile::SetCache(void* pvCache, unsigned int uiDataSize, O
 	pcNode = mcIndexTree.GetMemoryNode(&oi, sizeof(OIndex));
 	if (pcNode)
 	{
-		pcDescriptor = (CIndexedDataDescriptor*)pcNode->GetObjectPtr();
+		pcDescriptor = (CIndexedDataDescriptor*)pcNode->GetDataPtr();
 		pcDescriptor->Cache(pvCache, uiDataSize);
 		return TRUE;
 	}
@@ -172,7 +172,7 @@ BOOL CIndexedDescriptorsFile::GetIfInMemory(CIndexedDataDescriptor* pcDescriptor
 	pcNode = mcIndexTree.GetMemoryNode(&oi, sizeof(OIndex));
 	if (pcNode)
 	{
-		pcReturn = (CIndexedDataDescriptor*)pcNode->GetObjectPtr();
+		pcReturn = (CIndexedDataDescriptor*)pcNode->GetDataPtr();
 		if (pcDescriptor)
 		{
 			memcpy(pcDescriptor, pcReturn, sizeof(CIndexedDataDescriptor));

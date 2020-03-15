@@ -531,7 +531,7 @@ int CIndexTreeNodeFile::WriteToBuffer(void* pvBuffer, int iBufferSize, CIndexTre
 	pucMemory[iPos] = muiIndexInParent;  iPos += sizeof(unsigned char);
 	pucMemory[iPos] = msFlags & INDEX_TREE_NODE_TRANSIENT_FLAGS_MASK;  iPos += sizeof(unsigned char);
 
-	pvSourceData = GetObjectPtr();
+	pvSourceData = GetDataPtr();
 	if (pvSourceData != NULL)
 	{
 		pvDataBuffer = &pucMemory[iPos];
@@ -607,7 +607,7 @@ int CIndexTreeNodeFile::InitFromBuffer(void* pvBuffer, int iMaxBufferSize, CInde
 		return 0;
 	}
 
-	pvDest = GetObjectPtr();
+	pvDest = GetDataPtr();
 	if (pvDest != NULL)
 	{
 		pcCallback->IndexTreeReadData(pvDest, &pucMemory[iPos], muiDataSize, iFileDataSize);
