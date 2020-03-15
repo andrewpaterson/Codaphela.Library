@@ -727,20 +727,20 @@ CIndexTreeNodeFile* CIndexTreeFile::SetNodeObject(CIndexTreeNodeFile* pcCurrent,
 	if (uiDataSize > pcCurrent->GetDataSize())
 	{
 		pcReallocatedCurrent = ReallocateNodeForLargerData(pcCurrent, uiDataSize);
-		bResult = pcReallocatedCurrent->SetObject(pvObject, uiDataSize);
+		bResult = pcReallocatedCurrent->SetData(pvObject, uiDataSize);
 		pcReallocatedCurrent->GetParent()->SetDirtyNode(TRUE);
 	}
 	else if (uiDataSize < pcCurrent->GetDataSize())
 	{
 		uiOriginalSize = pcCurrent->GetDataSize();
-		bResult = pcCurrent->SetObject(pvObject, uiDataSize);
+		bResult = pcCurrent->SetData(pvObject, uiDataSize);
 		pcReallocatedCurrent = ReallocateNodeForSmallerData(pcCurrent, uiOriginalSize);
 		pcReallocatedCurrent->GetParent()->SetDirtyNode(TRUE);
 	}
 	else
 	{
 		pcReallocatedCurrent = pcCurrent;
-		bResult = pcReallocatedCurrent->SetObject(pvObject, uiDataSize);
+		bResult = pcReallocatedCurrent->SetData(pvObject, uiDataSize);
 	}
 	pcReallocatedCurrent->SetDirtyNode(TRUE);
 
@@ -1042,7 +1042,7 @@ CIndexTreeNodeFile* CIndexTreeFile::RemoveWriteThrough(CIndexTreeNodeFile* pcCur
 	pvObject = ((void**)pcCurrent->GetObjectPtr());
 	pcNode = pcCurrent;
 
-	pcNode->ClearObject();  //Sets node dirty.
+	pcNode->ClearData();  //Sets node dirty.
 	while (pcNode)
 	{
 		pcParent = (CIndexTreeNodeFile*)pcNode->GetParent();
@@ -1568,6 +1568,7 @@ BOOL CIndexTreeFile::FlushDeleted(void)
 		}
 		else
 		{
+			//xxx;
 			pcNode->GetFileDataSize();
 		}
 	}
