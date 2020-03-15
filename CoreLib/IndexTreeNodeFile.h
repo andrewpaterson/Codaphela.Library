@@ -11,9 +11,6 @@ class CIndexTreeNodeFile : public CIndexTreeNode
 {
 private:
 	CFileDataIndex			mcFileIndex;  //This index is not valid if the node is dirty; the node will need to br rewritten.
-	unsigned short			muiFileDataSize;  //This is the size of the node in the file (if it exists).  If the node is dirty then muiDataSize contains the current size.
-
-	unsigned char			maucPadding[4];  //Padding.
 
 public:
 	void					Init(CIndexTree* pcIndexTree, CIndexTreeNodeFile* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex, CFileDataIndex cFileIndex, unsigned char uiIndexInParent);
