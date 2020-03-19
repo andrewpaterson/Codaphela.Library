@@ -560,7 +560,7 @@ void CIndexTreeNode::SetDeletedPath(BOOL bDeleted)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeNode::SetData(void* pvData, unsigned short uiDataSize)
+void CIndexTreeNode::SetData(void* pvData, unsigned short uiDataSize)
 {
 	if (muiDataSize != uiDataSize)
 	{
@@ -571,7 +571,6 @@ BOOL CIndexTreeNode::SetData(void* pvData, unsigned short uiDataSize)
 	{
 		memcpy_fast(GetDataPtr(), pvData, uiDataSize);
 	}
-	return TRUE;
 }
 
 
