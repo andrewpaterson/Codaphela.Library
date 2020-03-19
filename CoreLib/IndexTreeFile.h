@@ -119,8 +119,9 @@ protected:
 	CIndexTreeNodeFile*		ReallocateNodeForUncontainIndex(CIndexTreeNodeFile* pcNode, unsigned char c, size_t tOldNodeSize);
 	void					RemapChildParents(CIndexTreeNodeFile* pcOldNode, CIndexTreeNodeFile* pcNode);
 
-	CIndexTreeNodeFile*		GetChildNodeOrAllocate(CIndexTreeNodeFile* pcParent, unsigned char uiIndexInParent);
+	CIndexTreeNodeFile*		GetOrAllocateChildNode(CIndexTreeNodeFile* pcParent, unsigned char uiIndexInParent);
 	CIndexTreeNodeFile*		SetNodeData(CIndexTreeNodeFile* pcCurrent, void* pvObject, unsigned short uiDataSize);
+	CIndexTreeNodeFile*		GetOrAllocateKey(void* pvKey, int iKeySize);
 
 	CIndexTreeNodeFile*		RemoveWriteThrough(CIndexTreeNodeFile* pcCurrent);
 	BOOL					RemoveWaitForFlush(CIndexTreeNodeFile* pcCurrent);
