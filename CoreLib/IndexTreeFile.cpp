@@ -666,11 +666,7 @@ BOOL CIndexTreeFile::Put(void* pvKey, int iKeySize, void* pvData, unsigned short
 	{
 		return FALSE;
 	}
-	bResult = DirtySetPaths(pcCurrent);
-	if (!bResult)
-	{
-		return FALSE;
-	}
+
 
 	if (meWriteThrough == IWT_Yes)
 	{
@@ -678,7 +674,11 @@ BOOL CIndexTreeFile::Put(void* pvKey, int iKeySize, void* pvData, unsigned short
 	}
 	else
 	{
-		bResult = SetDirtyPath(pcCurrent);
+		bResult = DirtySetPaths(pcCurrent);
+		if (!bResult)
+		{
+			return FALSE;
+		}
 	}
 
 	bResult = WriteRootFileIndex(bRootHasIndex, mpcRoot->GetFileIndex());
@@ -1046,7 +1046,7 @@ BOOL CIndexTreeFile::Remove(void* pvKey, int iKeySize)
 	if (meWriteThrough == IWT_Yes)
 	{
 		pcDirty = RemoveWriteThrough(pcCurrent);
-		if (pcDirty)
+		if (pcDirty != NULL)
 		{
 			return WriteBackPathWriteThrough(pcDirty);
 		}
@@ -1648,7 +1648,6 @@ BOOL CIndexTreeFile::FlushDeleted(void)
 		else
 		{
 			gcLogger.Debug2("Cannot flush a deleted node that is also dirty.", NULL);
-			
 		}
 	}
 
@@ -2269,7 +2268,7 @@ BOOL CIndexTreeFile::RecurseValidateTransientFlags(CIndexTreeRecursor* pcCursor,
 		{
 			sz.Init();
 			pcCursor->GenerateBad();
-			gcLogger.Error2(__METHOD__, " Node [", pcCursor->GetBadNode(), "] for key [", pcCursor->GetBadKey(), "] has unexpected flags [", pcNode->GetFlagsString(&sz),"].", NULL);
+			gcLogger.Error2(__METHOD__, " Node [", pcCursor->GetBadNode(), "] for key [", pcCursor->GetBadKey(), "] has unexpected TRANSIENT_FLAGS [", pcNode->GetFlagsString(&sz),"].", NULL);
 			sz.Kill();
 			return FALSE;
 		}
