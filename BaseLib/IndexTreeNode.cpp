@@ -581,7 +581,6 @@ void CIndexTreeNode::SetData(void* pvData, unsigned short uiDataSize)
 void CIndexTreeNode::ClearData(void)
 {
 	ChangeDataSize(0);
-	SetDirtyNode(TRUE);
 }
 
 
