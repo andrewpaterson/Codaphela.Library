@@ -37,8 +37,6 @@ public:
 	int						NumValidIndexes(void);
 	int						NumMemoryIndexes(void);
 
-	unsigned short			GetFileDataSize(void);
-
 	void					Contain(unsigned char uiIndex);
 	BOOL					Uncontain(unsigned char uiIndex);
 

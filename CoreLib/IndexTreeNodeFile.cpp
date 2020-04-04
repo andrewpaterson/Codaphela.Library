@@ -717,7 +717,7 @@ BOOL CIndexTreeNodeFile::HasChildWithFlags(unsigned char uiFlags)
 //////////////////////////////////////////////////////////////////////////
 void CIndexTreeNodeFile::ClearDirtyNodeWithPath(void)
 {
-	SetFlag(&msFlags, INDEX_TREE_NODE_FLAG_DIRTY_NODE, FALSE);
+	SetDirtyNode(FALSE);
 	if (!HasChildWithFlags(INDEX_TREE_NODE_FLAG_DIRTY_PATH))
 	{
 		SetDirtyPath(FALSE);

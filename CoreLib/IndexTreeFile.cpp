@@ -787,11 +787,13 @@ BOOL CIndexTreeFile::SetDeletedPath(CIndexTreeNodeFile* pcCurrent)
 
 	if (pcCurrent->IsDeleted())
 	{
-		while ((pcCurrent) && (!pcCurrent->IsPathDeleted()))
-		{
-			pcCurrent->SetDeletedPath(TRUE);
-			pcCurrent = (CIndexTreeNodeFile*)pcCurrent->GetParent();
-		}
+		return gcLogger.Error2(__METHOD__, " Cannot SetDeletedPath on an index tree file node that is already deleted.", NULL);
+	}
+
+	while ((pcCurrent) && (!pcCurrent->IsPathDeleted()))
+	{
+		pcCurrent->SetDeletedPath(TRUE);
+		pcCurrent = (CIndexTreeNodeFile*)pcCurrent->GetParent();
 	}
 	return TRUE;
 }
