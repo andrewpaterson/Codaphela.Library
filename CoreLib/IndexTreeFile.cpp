@@ -1087,7 +1087,8 @@ CIndexTreeNodeFile* CIndexTreeFile::RemoveWriteThrough(CIndexTreeNodeFile* pcCur
 	pvData = ((void**)pcCurrent->GetDataPtr());
 	pcNode = pcCurrent;
 
-	pcNode->ClearData();  //Sets node dirty.
+	pcNode->ClearData();
+	pcNode->SetDirtyNode(TRUE);
 	while (pcNode)
 	{
 		pcParent = (CIndexTreeNodeFile*)pcNode->GetParent();
