@@ -327,7 +327,7 @@ CIndexTreeNodeFile* CIndexTreeFile::AllocateRoot(CFileDataIndex cFileIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTreeNodeFile* CIndexTreeFile::AllocateNode(CIndexTreeNodeFile* pcParent, unsigned short uiDataSize, unsigned char uiIndexInParent)
+CIndexTreeNodeFile* CIndexTreeFile::AllocateNodeSingle(CIndexTreeNodeFile* pcParent, unsigned char uiIndexInParent, unsigned short uiDataSize)
 {
 	CIndexTreeNodeFile*	pcNode;
 
@@ -343,7 +343,7 @@ CIndexTreeNodeFile* CIndexTreeFile::AllocateNode(CIndexTreeNodeFile* pcParent, u
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTreeNodeFile* CIndexTreeFile::AllocateNode(CIndexTreeNodeFile* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex, unsigned short uiDataSize, unsigned char uiIndexInParent)
+CIndexTreeNodeFile* CIndexTreeFile::AllocateNodeRange(CIndexTreeNodeFile* pcParent, unsigned char uiIndexInParent, unsigned char uiFirstIndex, unsigned char uiLastIndex, unsigned short uiDataSize)
 {
 	CIndexTreeNodeFile*		pcNode;
 	int						iRequiredIndices;
@@ -363,7 +363,7 @@ CIndexTreeNodeFile* CIndexTreeFile::AllocateNode(CIndexTreeNodeFile* pcParent, u
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTreeNodeFile* CIndexTreeFile::AllocateNode(CIndexTreeNodeFile* pcParent, unsigned char uiIndexInParent, void* pvBuffer, int iMaxBufferSize)
+CIndexTreeNodeFile* CIndexTreeFile::AllocateNodeFromBuffer(CIndexTreeNodeFile* pcParent, unsigned char uiIndexInParent, void* pvBuffer, int iMaxBufferSize)
 {
 	unsigned char*			pucMemory;
 	int						iPos;
@@ -919,7 +919,7 @@ CIndexTreeNodeFile* CIndexTreeFile::GetOrAllocateChildNode(CIndexTreeNodeFile* p
 		pcReallocedParent = ReallocateNodeForContainIndex(pcParent, uiIndexInParent);
 
 		//The new node must also still be allocated.  Two nodes have been altered (the parent and the new node).
-		pcNewFileNode = AllocateNode(pcReallocedParent, 0, uiIndexInParent);
+		pcNewFileNode = AllocateNodeSingle(pcReallocedParent, uiIndexInParent, 0);
 
 		pcReallocedParent->Set(uiIndexInParent, pcNewFileNode);
 
@@ -951,7 +951,7 @@ CIndexTreeNodeFile* CIndexTreeFile::GetOrAllocateChildNode(CIndexTreeNodeFile* p
 		}
 		else if (pcChildNodeOnParent->IsUnallocated())
 		{
-			pcNewFileNode = AllocateNode(pcParent, 0, uiIndexInParent);
+			pcNewFileNode = AllocateNodeSingle(pcParent, uiIndexInParent, 0);
 
 			pcChildNodeOnParent->Init(pcNewFileNode);
 			pcParent->SetDirtyNode(TRUE);
@@ -2963,7 +2963,7 @@ BOOL CIndexTreeFile::Read(CIndexTreeChildNode* pcChildNode, CIndexTreeNodeFile* 
 		return FALSE;
 	}
 		
-	pcFileNode = AllocateNode(pcFileNodeParent, uiIndexInParent, pvBuffer, iMaxBufferSize);
+	pcFileNode = AllocateNodeFromBuffer(pcFileNodeParent, uiIndexInParent, pvBuffer, iMaxBufferSize);
 	cTemp.Kill();
 
 	if (pcFileNode)
@@ -2983,31 +2983,31 @@ BOOL CIndexTreeFile::Read(CIndexTreeChildNode* pcChildNode, CIndexTreeNodeFile* 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTreeNodeFile* CIndexTreeFile::SetParentWithExisting(CIndexTreeNodeFile* pcParent, unsigned char c, unsigned char uiFirstIndex, unsigned char uiLastIndex, unsigned char uiDataSize)
+CIndexTreeNodeFile* CIndexTreeFile::SetParentWithExisting(CIndexTreeNodeFile* pcParent, unsigned char uiIndexInParent, unsigned char uiFirstIndex, unsigned char uiLastIndex, unsigned char uiDataSize)
 {
 	//Used by the IndexTreeWriter.
 	CIndexTreeChildNode*	pcCurrent;
 	CIndexTreeNodeFile*		pcNew;
 
-	pcCurrent = pcParent->Get(c);
+	pcCurrent = pcParent->Get(uiIndexInParent);
 	if (pcCurrent == NULL)
 	{
-		pcNew = AllocateNode(pcParent, uiFirstIndex, uiLastIndex, uiDataSize, c);
-		pcParent->Set(c, pcNew);
+		pcNew = AllocateNodeRange(pcParent, uiIndexInParent, uiFirstIndex, uiLastIndex, uiDataSize);
+		pcParent->Set(uiIndexInParent, pcNew);
 		return pcNew;
 	}
 	else
 	{
 		if (pcCurrent->IsUnallocated())
 		{
-			pcNew = AllocateNode(pcParent, uiFirstIndex, uiLastIndex, uiDataSize, c);
-			pcParent->Set(c, pcNew);
+			pcNew = AllocateNodeRange(pcParent, uiIndexInParent, uiFirstIndex, uiLastIndex, uiDataSize);
+			pcParent->Set(uiIndexInParent, pcNew);
 			return pcNew;
 
 		}
 		else
 		{
-			gcLogger.Error2(__METHOD__, " Set [", CharToString(c), "].  Should only ever be called with NULL or Unallocated nodes.", NULL);
+			gcLogger.Error2(__METHOD__, " Set [", CharToString(uiIndexInParent), "].  Should only ever be called with NULL or Unallocated nodes.", NULL);
 			return NULL;
 		}
 	}
@@ -3018,30 +3018,30 @@ CIndexTreeNodeFile* CIndexTreeFile::SetParentWithExisting(CIndexTreeNodeFile* pc
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTreeNodeFile* CIndexTreeFile::SetParentWithExisting(CIndexTreeNodeFile* pcParent, unsigned char c, unsigned char uiDataSize)
+CIndexTreeNodeFile* CIndexTreeFile::SetParentWithExisting(CIndexTreeNodeFile* pcParent, unsigned char uiIndexInParent, unsigned char uiDataSize)
 {
 	//Used by the IndexTreeWriter.
 	CIndexTreeChildNode*	pcCurrent;
 	CIndexTreeNodeFile*		pcNew;
 
-	pcCurrent = pcParent->Get(c);
+	pcCurrent = pcParent->Get(uiIndexInParent);
 	if (pcCurrent == NULL)
 	{
-		pcNew = AllocateNode(pcParent, uiDataSize, c);
-		pcParent->Set(c, pcNew);
+		pcNew = AllocateNodeSingle(pcParent, uiIndexInParent, uiDataSize);
+		pcParent->Set(uiIndexInParent, pcNew);
 		return pcNew;
 	}
 	else
 	{
 		if (pcCurrent->IsUnallocated())
 		{
-			pcNew = AllocateNode(pcParent, uiDataSize, c);
-			pcParent->Set(c, pcNew);
+			pcNew = AllocateNodeSingle(pcParent, uiIndexInParent, uiDataSize);
+			pcParent->Set(uiIndexInParent, pcNew);
 			return pcNew;
 		}
 		else
 		{
-			gcLogger.Error2(__METHOD__, " Set [", CharToString(c), "].  Should only ever be called with NULL or Unallocated nodes.", NULL);
+			gcLogger.Error2(__METHOD__, " Set [", CharToString(uiIndexInParent), "].  Should only ever be called with NULL or Unallocated nodes.", NULL);
 			return NULL;
 		}
 	}
