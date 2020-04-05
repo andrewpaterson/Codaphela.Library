@@ -21,6 +21,7 @@ protected:
 	BOOL			Has(void* pvKey, int iKeySize);
 	unsigned int	DataSize(void* pvKey, int iKeySize);
 	BOOL			Flush(void* pvKey, int iKeySize);
+	BOOL			Evict(void* pvKey, int iKeySize);
 };
 
 
