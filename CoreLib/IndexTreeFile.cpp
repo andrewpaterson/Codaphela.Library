@@ -336,8 +336,6 @@ CIndexTreeNodeFile* CIndexTreeFile::AllocateNodeSingle(CIndexTreeNodeFile* pcPar
 	tSize = CalculateNodeSize(0, uiDataSize);
 	pcNode = (CIndexTreeNodeFile*)Malloc(tSize);
 	pcNode->Init(this, pcParent, uiIndexInParent);
-	pcNode->SetDirtyNode(TRUE);
-
 	return pcNode;
 }
 
@@ -357,8 +355,6 @@ CIndexTreeNodeFile* CIndexTreeFile::AllocateNodeRange(CIndexTreeNodeFile* pcPare
 	tSize = CalculateNodeSize(iRequiredIndices, uiDataSize);
 	pcNode = (CIndexTreeNodeFile*)Malloc(tSize);
 	pcNode->Init(this, pcParent, uiFirstIndex, uiLastIndex, uiDataSize, uiIndexInParent);
-	pcNode->SetDirtyNode(TRUE);
-
 	return pcNode;
 }
 
@@ -914,6 +910,7 @@ CIndexTreeNodeFile* CIndexTreeFile::GetOrAllocateChildNode(CIndexTreeNodeFile* p
 	CIndexTreeNodeFile*		pcNewFileNode;
 	CIndexTreeChildNode*	pcChildNodeOnParent;
 	CIndexTreeNodeFile*		pcReallocedParent;
+	BOOL					bDirty;
 
 	pcChildNodeOnParent = pcParent->Get(uiIndexInParent);
 	if (pcChildNodeOnParent == NULL)  //Uncontained, off the left or the right of the parent node's indexes.
@@ -923,8 +920,13 @@ CIndexTreeNodeFile* CIndexTreeFile::GetOrAllocateChildNode(CIndexTreeNodeFile* p
 
 		//The new node must also still be allocated.  Two nodes have been altered (the parent and the new node).
 		pcNewFileNode = AllocateNodeSingle(pcReallocedParent, uiIndexInParent, 0);
+		pcNewFileNode->SetDirtyNode(TRUE);
 
-		pcReallocedParent->Set(uiIndexInParent, pcNewFileNode);
+		bDirty = pcReallocedParent->SetMemory(uiIndexInParent, pcNewFileNode);
+		if (bDirty)
+		{
+			pcReallocedParent->SetDirtyNode(TRUE);
+		}
 
 		//If the parent moved in memory then all its children must be corrected.
 		if (pcParent != pcReallocedParent)
@@ -955,6 +957,7 @@ CIndexTreeNodeFile* CIndexTreeFile::GetOrAllocateChildNode(CIndexTreeNodeFile* p
 		else if (pcChildNodeOnParent->IsUnallocated())
 		{
 			pcNewFileNode = AllocateNodeSingle(pcParent, uiIndexInParent, 0);
+			pcNewFileNode->SetDirtyNode(TRUE);
 
 			pcChildNodeOnParent->Init(pcNewFileNode);
 			pcParent->SetDirtyNode(TRUE);
@@ -1061,6 +1064,7 @@ CIndexTreeNodeFile* CIndexTreeFile::RemoveWriteThrough(CIndexTreeNodeFile* pcCur
 	void*					pvData;
 	size_t					tOldNodeSize;
 	BOOL					bResult;
+	BOOL					bDirty;
 
 	if (pcCurrent->GetDataSize() == 0)
 	{
@@ -1088,7 +1092,11 @@ CIndexTreeNodeFile* CIndexTreeFile::RemoveWriteThrough(CIndexTreeNodeFile* pcCur
 			}
 			else
 			{
-				pcParent->Clear(c);  //Sets parent dirty.
+				bDirty = pcParent->ClearIndex(c);
+				if (bDirty)
+				{
+					pcParent->SetDirtyNode(TRUE);
+				}
 			}
 
 			bResult = Delete(pcNode);
@@ -1121,7 +1129,7 @@ CIndexTreeNodeFile* CIndexTreeFile::ReallocateNodeForUncontainIndex(CIndexTreeNo
 	BOOL					bResizeNode;
 	size_t					tNewNodeSize;
 
-	bResizeNode = pcNode->ClearAndUncontain(c);
+	bResizeNode = pcNode->ClearIndexAndUncontain(c);
 	if (bResizeNode)
 	{
 		tNewNodeSize = pcNode->CalculateRequiredNodeSizeForCurrent();
@@ -2703,6 +2711,7 @@ BOOL CIndexTreeFile::WriteBackPathCaching(CIndexTreeNodeFile* pcNode)
 		if (pcNode->IsDirty())
 		{
 			pcNode->SetDirtyNode(FALSE);
+
 			if (!pcNode->HasChildWithFlags(INDEX_TREE_NODE_FLAG_DIRTY_PATH))
 			{
 				pcNode->SetDirtyPath(FALSE);
@@ -2976,14 +2985,21 @@ CIndexTreeNodeFile* CIndexTreeFile::ParentPut(CIndexTreeNodeFile* pcParent, unsi
 {
 	//Used by the IndexTreeWriter.
 	CIndexTreeChildNode*	pcCurrent;
-	CIndexTreeNodeFile*		pcNew;
+	CIndexTreeNodeFile*		pcNewFileNode;
+	BOOL					bDirty;
 
 	pcCurrent = pcParent->Get(uiIndexInParent);
 	if ((pcCurrent == NULL) || pcCurrent->IsUnallocated())
 	{
-		pcNew = AllocateNodeRange(pcParent, uiIndexInParent, uiFirstIndex, uiLastIndex, uiDataSize);
-		pcParent->Set(uiIndexInParent, pcNew);
-		return pcNew;
+		pcNewFileNode = AllocateNodeRange(pcParent, uiIndexInParent, uiFirstIndex, uiLastIndex, uiDataSize);
+		pcNewFileNode->SetDirtyNode(TRUE);
+
+		bDirty = pcParent->SetMemory(uiIndexInParent, pcNewFileNode);
+		if (bDirty)
+		{
+			pcParent->SetDirtyNode(TRUE);
+		}
+		return pcNewFileNode;
 	}
 	else
 	{
@@ -3001,14 +3017,21 @@ CIndexTreeNodeFile* CIndexTreeFile::ParentPut(CIndexTreeNodeFile* pcParent, unsi
 {
 	//Used by the IndexTreeWriter.
 	CIndexTreeChildNode*	pcCurrent;
-	CIndexTreeNodeFile*		pcNew;
+	CIndexTreeNodeFile*		pcNewFileNode;
+	BOOL					bDirty;
 
 	pcCurrent = pcParent->Get(uiIndexInParent);
 	if ((pcCurrent == NULL) || pcCurrent->IsUnallocated())
 	{
-		pcNew = AllocateNodeSingle(pcParent, uiIndexInParent, uiDataSize);
-		pcParent->Set(uiIndexInParent, pcNew);
-		return pcNew;
+		pcNewFileNode = AllocateNodeSingle(pcParent, uiIndexInParent, uiDataSize);
+		pcNewFileNode->SetDirtyNode(TRUE);
+
+		bDirty = pcParent->SetMemory(uiIndexInParent, pcNewFileNode);
+		if (bDirty)
+		{
+			pcParent->SetDirtyNode(TRUE);
+		}
+		return pcNewFileNode;
 	}
 	else
 	{
