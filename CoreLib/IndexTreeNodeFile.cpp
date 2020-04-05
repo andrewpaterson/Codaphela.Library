@@ -715,20 +715,6 @@ BOOL CIndexTreeNodeFile::HasChildWithFlags(unsigned char uiFlags)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNodeFile::ClearDirtyNodeWithPath(void)
-{
-	SetDirtyNode(FALSE);
-	if (!HasChildWithFlags(INDEX_TREE_NODE_FLAG_DIRTY_PATH))
-	{
-		SetDirtyPath(FALSE);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeNodeFile::HasFile(void)
 {
 	return mcFileIndex.HasFile();

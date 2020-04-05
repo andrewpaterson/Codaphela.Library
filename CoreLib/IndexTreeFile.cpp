@@ -329,9 +329,12 @@ CIndexTreeNodeFile* CIndexTreeFile::AllocateRoot(CFileDataIndex cFileIndex)
 //////////////////////////////////////////////////////////////////////////
 CIndexTreeNodeFile* CIndexTreeFile::AllocateNodeSingle(CIndexTreeNodeFile* pcParent, unsigned char uiIndexInParent, unsigned short uiDataSize)
 {
-	CIndexTreeNodeFile*	pcNode;
+	CIndexTreeNodeFile*		pcNode;
+	size_t					tSize;
 
-	pcNode = (CIndexTreeNodeFile*)Malloc(SizeofNode() + uiDataSize);
+	pcNode = NULL;
+	tSize = CalculateNodeSize(0, uiDataSize);
+	pcNode = (CIndexTreeNodeFile*)Malloc(tSize);
 	pcNode->Init(this, pcParent, uiIndexInParent);
 	pcNode->SetDirtyNode(TRUE);
 
@@ -2717,7 +2720,11 @@ BOOL CIndexTreeFile::WriteBackPathCaching(CIndexTreeNodeFile* pcNode)
 		pcParent = (CIndexTreeNodeFile*)pcNode->GetParent();
 		if (pcNode->IsDirty())
 		{
-			pcNode->ClearDirtyNodeWithPath();
+			pcNode->SetDirtyNode(FALSE);
+			if (!pcNode->HasChildWithFlags(INDEX_TREE_NODE_FLAG_DIRTY_PATH))
+			{
+				pcNode->SetDirtyPath(FALSE);
+			}
 
 			cOldIndex = *pcNode->GetFileIndex();
 
@@ -2983,14 +2990,14 @@ BOOL CIndexTreeFile::Read(CIndexTreeChildNode* pcChildNode, CIndexTreeNodeFile* 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTreeNodeFile* CIndexTreeFile::SetParentWithExisting(CIndexTreeNodeFile* pcParent, unsigned char uiIndexInParent, unsigned char uiFirstIndex, unsigned char uiLastIndex, unsigned char uiDataSize)
+CIndexTreeNodeFile* CIndexTreeFile::ParentPut(CIndexTreeNodeFile* pcParent, unsigned char uiIndexInParent, unsigned char uiDataSize, unsigned char uiFirstIndex, unsigned char uiLastIndex)
 {
 	//Used by the IndexTreeWriter.
 	CIndexTreeChildNode*	pcCurrent;
 	CIndexTreeNodeFile*		pcNew;
 
 	pcCurrent = pcParent->Get(uiIndexInParent);
-	if (pcCurrent == NULL)
+	if ((pcCurrent == NULL) || pcCurrent->IsUnallocated())
 	{
 		pcNew = AllocateNodeRange(pcParent, uiIndexInParent, uiFirstIndex, uiLastIndex, uiDataSize);
 		pcParent->Set(uiIndexInParent, pcNew);
@@ -2998,18 +3005,8 @@ CIndexTreeNodeFile* CIndexTreeFile::SetParentWithExisting(CIndexTreeNodeFile* pc
 	}
 	else
 	{
-		if (pcCurrent->IsUnallocated())
-		{
-			pcNew = AllocateNodeRange(pcParent, uiIndexInParent, uiFirstIndex, uiLastIndex, uiDataSize);
-			pcParent->Set(uiIndexInParent, pcNew);
-			return pcNew;
-
-		}
-		else
-		{
-			gcLogger.Error2(__METHOD__, " Set [", CharToString(uiIndexInParent), "].  Should only ever be called with NULL or Unallocated nodes.", NULL);
-			return NULL;
-		}
+		gcLogger.Error2(__METHOD__, " Set [", CharToString(uiIndexInParent), "].  Should only ever be called with NULL or Unallocated nodes.", NULL);
+		return NULL;
 	}
 }
 
@@ -3018,14 +3015,14 @@ CIndexTreeNodeFile* CIndexTreeFile::SetParentWithExisting(CIndexTreeNodeFile* pc
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTreeNodeFile* CIndexTreeFile::SetParentWithExisting(CIndexTreeNodeFile* pcParent, unsigned char uiIndexInParent, unsigned char uiDataSize)
+CIndexTreeNodeFile* CIndexTreeFile::ParentPut(CIndexTreeNodeFile* pcParent, unsigned char uiIndexInParent, unsigned char uiDataSize)
 {
 	//Used by the IndexTreeWriter.
 	CIndexTreeChildNode*	pcCurrent;
 	CIndexTreeNodeFile*		pcNew;
 
 	pcCurrent = pcParent->Get(uiIndexInParent);
-	if (pcCurrent == NULL)
+	if ((pcCurrent == NULL) || pcCurrent->IsUnallocated())
 	{
 		pcNew = AllocateNodeSingle(pcParent, uiIndexInParent, uiDataSize);
 		pcParent->Set(uiIndexInParent, pcNew);
@@ -3033,17 +3030,8 @@ CIndexTreeNodeFile* CIndexTreeFile::SetParentWithExisting(CIndexTreeNodeFile* pc
 	}
 	else
 	{
-		if (pcCurrent->IsUnallocated())
-		{
-			pcNew = AllocateNodeSingle(pcParent, uiIndexInParent, uiDataSize);
-			pcParent->Set(uiIndexInParent, pcNew);
-			return pcNew;
-		}
-		else
-		{
-			gcLogger.Error2(__METHOD__, " Set [", CharToString(uiIndexInParent), "].  Should only ever be called with NULL or Unallocated nodes.", NULL);
-			return NULL;
-		}
+		gcLogger.Error2(__METHOD__, " Set [", CharToString(uiIndexInParent), "].  Should only ever be called with NULL or Unallocated nodes.", NULL);
+		return NULL;
 	}
 }
 
