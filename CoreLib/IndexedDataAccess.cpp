@@ -161,3 +161,23 @@ BOOL CIndexedDataAccess::Flush(void* pvKey, int iKeySize)
 	}
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexedDataAccess::Evict(void* pvKey, int iKeySize)
+{
+	OIndex	oi;
+
+	if (iKeySize == sizeof(OIndex))
+	{
+		oi = *((OIndex*)pvKey);
+		return mpcIndexData->EvictKey(oi);
+	}
+	else
+	{
+		return FALSE;
+	}
+}
+

@@ -109,3 +109,13 @@ BOOL CIndexTreeFileAccess::Flush(void* pvKey, int iKeySize)
 	return mpcTree->Flush(pvKey, iKeySize);
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeFileAccess::Evict(void* pvKey, int iKeySize)
+{
+	return mpcTree->Evict(pvKey, iKeySize);
+}
+

@@ -5,6 +5,7 @@
 #include "PrimitiveTypes.h"
 #include "TemporaryMemory.h"
 
+
 class CIndexTreeAccess
 {
 private:
@@ -51,6 +52,10 @@ public:
 			BOOL			FlushString(char* pszKey);
 			BOOL			FlushKey(void* pvKey, int iKeySize);
 
+			BOOL			EvictLong(int64 lliKey);
+			BOOL			EvictString(char* pszKey);
+			BOOL			EvictKey(void* pvKey, int iKeySize);
+
 protected:
 	virtual BOOL			Put(void* pvKey, int iKeySize, void* pvObject, unsigned int uiDataSize) =0;
 	virtual BOOL			Get(void* pvKey, int iKeySize, void* pvObject, unsigned int* puiDataSize) =0;
@@ -58,6 +63,7 @@ protected:
 	virtual BOOL			Remove(void* pvKey, int iKeySize) =0;
 	virtual BOOL			Has(void* pvKey, int iKeySize) =0;
 	virtual BOOL			Flush(void* pvKey, int iKeySize) =0;
+	virtual BOOL			Evict(void* pvKey, int iKeySize) = 0;
 };
 
 

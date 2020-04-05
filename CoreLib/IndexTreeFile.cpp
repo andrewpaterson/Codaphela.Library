@@ -974,24 +974,6 @@ CIndexTreeNodeFile* CIndexTreeFile::GetOrAllocateChildNode(CIndexTreeNodeFile* p
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::Evict(char* pszKey)
-{
-	int iKeySize;
-
-	if (StrEmpty(pszKey))
-	{
-		return FALSE;
-	}
-
-	iKeySize = strlen(pszKey);
-	return Evict(pszKey, iKeySize);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeFile::Flush(void* pvKey, int iKeySize)
 {
 	CIndexTreeNodeFile*	pcNode;
