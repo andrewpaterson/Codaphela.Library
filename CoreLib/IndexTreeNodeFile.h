@@ -10,7 +10,7 @@
 class CIndexTreeNodeFile : public CIndexTreeNode
 {
 private:
-	CFileDataIndex			mcFileIndex;  //This index is not valid if the node is dirty; the node will need to br rewritten.
+	CFileDataIndex			mcFileIndex;  //This index is not valid if the node is dirty; the node will need to be rewritten.
 
 public:
 	void					Init(CIndexTree* pcIndexTree, CIndexTreeNodeFile* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex, CFileDataIndex cFileIndex, unsigned char uiIndexInParent);
@@ -25,11 +25,11 @@ public:
 	CFileDataIndex*			GetFileIndex(void);
 
 	CIndexTreeChildNode*	Get(unsigned char uiIndex);
-	void									Set(unsigned char uiIndex, CIndexTreeNodeFile* pcNode);
-	void					Set(unsigned char uiIndex, CFileDataIndex cFileNode);
+	BOOL					SetFile(unsigned char uiIndex, CFileDataIndex cFileNode);
+	BOOL					SetMemory(unsigned char uiIndex, CIndexTreeNodeFile* pcNode);
 
-	void					Clear(unsigned char uiIndex);
-	BOOL					ClearAndUncontain(unsigned char uiIndex);
+	BOOL					ClearIndex(unsigned char uiIndex);
+	BOOL					ClearIndexAndUncontain(unsigned char uiIndex);
 
 	CIndexTreeChildNode*	GetNode(int i);
 	CIndexTreeChildNode*	GetNodes(void);
