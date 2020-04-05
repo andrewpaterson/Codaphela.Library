@@ -181,11 +181,12 @@ protected:
 	void					RecurseDump(CChars* pszDest, CIndexTreeRecursor* pcCursor);
 
 public:
+	CIndexTreeNodeFile*		ParentPut(CIndexTreeNodeFile* pcParent, unsigned char uiIndexInParent, unsigned char uiDataSize, unsigned char uiFirstIndex, unsigned char uiLastIndex);
+	CIndexTreeNodeFile*		ParentPut(CIndexTreeNodeFile* pcParent, unsigned char uiIndexInParent, unsigned char uiDataSize);
+
 	BOOL					Write(CIndexTreeNodeFile* pcNode);
 	BOOL					Delete(CIndexTreeNodeFile* pcNode);
 
-	CIndexTreeNodeFile*		SetParentWithExisting(CIndexTreeNodeFile* pcParent, unsigned char uiIndexInParent, unsigned char uiFirstIndex, unsigned char uiLastIndex, unsigned char uiDataSize);
-	CIndexTreeNodeFile*		SetParentWithExisting(CIndexTreeNodeFile* pcParent, unsigned char uiIndexInParent, unsigned char uiDataSize);
 
 	void					GetFiles(CArrayIndexedFilePtr* pac);
 };

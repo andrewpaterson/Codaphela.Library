@@ -9,7 +9,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeWriter::Write(CIndexTreeMemory* pcIndexTree, char* szDirectory)
+BOOL CIndexTreeWriter::Write(CIndexTreeMemory* pcIndexTreeMemory, char* szDirectory)
 {
 	CDurableFileController	cDurableController;
 	CIndexTreeFile			cIndexTreeFile;
@@ -19,9 +19,9 @@ BOOL CIndexTreeWriter::Write(CIndexTreeMemory* pcIndexTree, char* szDirectory)
 	ReturnOnFalse(cDurableController.Init(cHelper.GetPrimaryDirectory(), cHelper.GetBackupDirectory()));
 	ReturnOnFalse(cDurableController.Begin());
 
-	ReturnOnFalse(cIndexTreeFile.Init(&cDurableController, pcIndexTree->ReverseKeys()));
+	ReturnOnFalse(cIndexTreeFile.Init(&cDurableController, pcIndexTreeMemory->ReverseKeys()));
 	
-	RecurseAllocate(pcIndexTree->GetRoot(), &cIndexTreeFile, cIndexTreeFile.GetRoot());
+	RecurseAllocate(pcIndexTreeMemory->GetRoot(), &cIndexTreeFile, cIndexTreeFile.GetRoot());
 	RecurseWrite(&cIndexTreeFile, cIndexTreeFile.GetRoot());
 	
 	ReturnOnFalse(cDurableController.End());
@@ -48,7 +48,6 @@ void CIndexTreeWriter::RecurseAllocate(CIndexTreeNodeMemory* pcMemoryNode, CInde
 	int						iFirstIndex;
 	int						iLastIndex;
 
-
 	pvObject = pcMemoryNode->GetDataPtr();
 	if (pvObject != NULL)
 	{
@@ -70,13 +69,13 @@ void CIndexTreeWriter::RecurseAllocate(CIndexTreeNodeMemory* pcMemoryNode, CInde
 					iChildFirstIndex = pcMemoryChild->GetFirstIndex();
 					iChildLastIndex = pcMemoryChild->GetLastIndex();
 
-					pcFileChild = pcFileTree->SetParentWithExisting(pcFileNode, i, iChildFirstIndex, iChildLastIndex, iChildDataSize);
+					pcFileChild = pcFileTree->ParentPut(pcFileNode, i, iChildDataSize, iChildFirstIndex, iChildLastIndex);
 
 					RecurseAllocate(pcMemoryChild, pcFileTree, pcFileChild);
 				}
 				else
 				{
-					pcFileChild = pcFileTree->SetParentWithExisting(pcFileNode, i, iChildDataSize);
+					pcFileChild = pcFileTree->ParentPut(pcFileNode, i, iChildDataSize);
 
 					RecurseAllocate(pcMemoryChild, pcFileTree, pcFileChild);
 				}
