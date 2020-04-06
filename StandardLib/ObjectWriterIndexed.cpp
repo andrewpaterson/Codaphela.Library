@@ -1,4 +1,4 @@
-#include "NamedIndexedData.h"
+#include "CoreLib/NamedIndexedData.h"
 #include "SerialisedObject.h"
 #include "ObjectWriterIndexed.h"
 
