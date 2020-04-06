@@ -2503,7 +2503,14 @@ BOOL CIndexTreeFile::HasKey(void* pvKey, int iKeySize)
 		return FALSE;
 	}
 
-	return pcNode->GetDataSize() != 0;
+	if (pcNode->GetDataSize() != 0)
+	{
+		return !pcNode->IsDeleted();
+	}
+	else
+	{
+		return FALSE;
+	}
 }
 
 
