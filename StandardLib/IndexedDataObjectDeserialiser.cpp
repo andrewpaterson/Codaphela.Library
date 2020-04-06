@@ -1,5 +1,6 @@
 #include "BaseLib/Log.h"
 #include "BaseLib/ErrorTypes.h"
+#include "BaseLib/StackMemory.h"
 #include "SerialisedObject.h"
 #include "ObjectDeserialiser.h"
 #include "Objects.h"
@@ -41,9 +42,33 @@ void CIndexedDataObjectDeserialiser::Kill(void)
 CBaseObject* CIndexedDataObjectDeserialiser::Read(OIndex oi)
 {
 	CSerialisedObject*		pcSerialised;
+	unsigned int			uiDataSize;
+	CStackMemory<>			cTemp;
+	BOOL					bExists;
+	CBaseObject*			pcBaseObject;
 
-	pcSerialised = (CSerialisedObject*)mpcDatabase->Get(oi);
-	return ReadSerialised(pcSerialised);
+	pcSerialised = (CSerialisedObject*)cTemp.Init();
+
+	bExists = mpcDatabase->Get(oi, &uiDataSize, pcSerialised, cTemp.GetStackSize());
+	if (bExists)
+	{
+		if (uiDataSize <= (unsigned int)cTemp.GetStackSize())
+		{
+			return ReadSerialised(pcSerialised);
+		}
+		else
+		{
+			pcSerialised = (CSerialisedObject*)cTemp.Init(uiDataSize);
+			mpcDatabase->Get(oi, pcSerialised);
+			pcBaseObject = ReadSerialised(pcSerialised);
+			cTemp.Kill();
+			return pcBaseObject;
+		}
+	}
+	else
+	{
+		return NULL;
+	}
 }
 
 
@@ -53,12 +78,29 @@ CBaseObject* CIndexedDataObjectDeserialiser::Read(OIndex oi)
 //////////////////////////////////////////////////////////////////////////
 CBaseObject* CIndexedDataObjectDeserialiser::Read(char* szObjectName)
 {
-	CSerialisedObject*		pcSerialised;
+	CSerialisedObject* pcSerialised;
+	unsigned int			uiDataSize;
+	CStackMemory<>			cTemp;
+	BOOL					bExists;
+	CBaseObject* pcBaseObject;
 
-	pcSerialised = (CSerialisedObject*)mpcDatabase->Get(szObjectName);
-	if (pcSerialised)
+	pcSerialised = (CSerialisedObject*)cTemp.Init();
+
+	bExists = mpcDatabase->Get(szObjectName, &uiDataSize, pcSerialised, cTemp.GetStackSize());
+	if (bExists)
 	{
-		return ReadSerialised(pcSerialised);
+		if (uiDataSize <= (unsigned int)cTemp.GetStackSize())
+		{
+			return ReadSerialised(pcSerialised);
+		}
+		else
+		{
+			pcSerialised = (CSerialisedObject*)cTemp.Init(uiDataSize);
+			mpcDatabase->Get(szObjectName, pcSerialised);
+			pcBaseObject = ReadSerialised(pcSerialised);
+			cTemp.Kill();
+			return pcBaseObject;
+		}
 	}
 	else
 	{
