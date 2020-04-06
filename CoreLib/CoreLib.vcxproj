@@ -63,9 +63,7 @@
       <TreatWarningAsError>true</TreatWarningAsError>
       <BrowseInformation>true</BrowseInformation>
     </ClCompile>
-    <Lib>
-      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
-    </Lib>
+    <Lib />
     <Bscmake>
       <PreserveSbr>true</PreserveSbr>
     </Bscmake>
