@@ -698,14 +698,12 @@ CIndexTreeNodeFile* CIndexTreeFile::SetNodeData(CIndexTreeNodeFile* pcCurrent, v
 	{
 		pcReallocatedCurrent = ReallocateNodeForLargerData(pcCurrent, uiDataSize);
 		pcReallocatedCurrent->SetData(pvData, uiDataSize);
-		//pcReallocatedCurrent->GetParent()->SetDirtyNode(TRUE);
 	}
 	else if (uiDataSize < pcCurrent->GetDataSize())
 	{
 		uiOriginalSize = pcCurrent->GetDataSize();
 		pcCurrent->SetData(pvData, uiDataSize);
 		pcReallocatedCurrent = ReallocateNodeForSmallerData(pcCurrent, uiOriginalSize);
-		//pcReallocatedCurrent->GetParent()->SetDirtyNode(TRUE);
 	}
 	else
 	{
@@ -824,7 +822,6 @@ CIndexTreeNodeFile* CIndexTreeFile::ReallocateNodeForContainIndex(CIndexTreeNode
 	pcNode->SetDirtyNode(TRUE);
 
 	RemapChildParents(pcOldNode, pcNode);
-	//pcNode->GetParent()->SetDirtyNode(TRUE);
 	return pcNode;
 }
 
@@ -1141,10 +1138,6 @@ CIndexTreeNodeFile* CIndexTreeFile::ReallocateNodeForUncontainIndex(CIndexTreeNo
 		{
 			pcNode->SetChildrensParent();
 			RemapChildParents(pcOldNode, pcNode);
-		}
-		if (tNewNodeSize != tOldNodeSize)
-		{
-			//pcNode->GetParent()->SetDirtyNode(TRUE);
 		}
 	}
 	pcNode->SetDirtyNode(TRUE);
