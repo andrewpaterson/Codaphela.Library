@@ -12,6 +12,7 @@
 #include "IndexedFiles.h"
 #include "IndexWriteThrough.h"
 
+
 struct SIndexTreeFileIterator
 {
 	CIndexTreeNodeFile*		pcNode;
