@@ -83,9 +83,9 @@ BOOL CIndexTreeEvictingAccess::Flush(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeEvictingAccess::Put(void* pvKey, int iKeySize, void* pvObject, unsigned int uiDataSize)
+BOOL CIndexTreeEvictingAccess::Put(void* pvKey, int iKeySize, void* pvData, unsigned int uiDataSize)
 {
-	return mpcTree->Put(pvKey, iKeySize, pvObject, uiDataSize);
+	return mpcTree->Put(pvKey, iKeySize, pvData, uiDataSize);
 }
 
 
@@ -93,12 +93,12 @@ BOOL CIndexTreeEvictingAccess::Put(void* pvKey, int iKeySize, void* pvObject, un
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeEvictingAccess::Get(void* pvKey, int iKeySize, void* pvObject, unsigned int* puiDataSize)
+BOOL CIndexTreeEvictingAccess::Get(void* pvKey, int iKeySize, void* pvData, unsigned int* puiDataSize)
 {
 	unsigned short	uiDataSize;
 	BOOL			bResult;
 
-	bResult = mpcTree->Get(pvKey, iKeySize, pvObject, &uiDataSize);
+	bResult = mpcTree->Get(pvKey, iKeySize, pvData, &uiDataSize);
 
 	if (puiDataSize)
 	{
