@@ -19,23 +19,23 @@ public:
 
 			BOOL			PutLongPtr(int64 lliKey, void* pvPointer);
 			BOOL			PutLongString(int64 lliKey, char* pszData);
-			BOOL			PutLongData(int64 lliKey, void* pvObject, unsigned int uiDataSize);
+			BOOL			PutLongData(int64 lliKey, void* pvData, unsigned int uiDataSize);
 			BOOL			PutStringPtr(char* pszKey, void* pvPointer);
-			BOOL			PutStringData(char* pszKey, void* pvObject, unsigned int uiDataSize);
+			BOOL			PutStringData(char* pszKey, void* pvData, unsigned int uiDataSize);
 			BOOL			PutStringInt(char* pszKey, int iIndex);
 			BOOL			PutStringLong(char* pszKey, int64 lliIndex);
 			BOOL			PutStringString(char* pszKey, char* pszData);
-			BOOL			PutKeyData(void* pvKey, int iKeySize, void* pvObject, unsigned int uiDataSize);
+			BOOL			PutKeyData(void* pvKey, int iKeySize, void* pvData, unsigned int uiDataSize);
 			BOOL			PutKeyString(void* pvKey, int iKeySize, char* pszData);
 
 			char*			GetLongString(int64 lliKey, char* pszDest);
-			BOOL			GetStringData(char* pszKey, void* pvObject, unsigned int* puiDataSize = NULL);
+			BOOL			GetStringData(char* pszKey, void* pvData, unsigned int* puiDataSize = NULL);
 			char*			GetStringString(char* pszKey, char* pszDest);
 			CChars			GetStringString(char* pszKey);
 			int				GetStringInt(char* pszKey);
 			int64			GetStringLong(char* pszKey);
 			void*			GetStringPtr(char* pszKey);
-			BOOL			GetKeyData(void* pvKey, int iKeySize, void* pvObject, unsigned int* puiDataSize);
+			BOOL			GetKeyData(void* pvKey, int iKeySize, void* pvData, unsigned int* puiDataSize);
 			char*			GetKeyString(void* pvKey, int iKeySize, char* pszDest);
 
 			BOOL			HasString(char* pszKey);
@@ -57,8 +57,8 @@ public:
 			BOOL			EvictKey(void* pvKey, int iKeySize);
 
 protected:
-	virtual BOOL			Put(void* pvKey, int iKeySize, void* pvObject, unsigned int uiDataSize) =0;
-	virtual BOOL			Get(void* pvKey, int iKeySize, void* pvObject, unsigned int* puiDataSize) =0;
+	virtual BOOL			Put(void* pvKey, int iKeySize, void* pvData, unsigned int uiDataSize) =0;
+	virtual BOOL			Get(void* pvKey, int iKeySize, void* pvData, unsigned int* puiDataSize) =0;
 	virtual unsigned int	DataSize(void* pvKey, int iKeySize) =0;
 	virtual BOOL			Remove(void* pvKey, int iKeySize) =0;
 	virtual BOOL			Has(void* pvKey, int iKeySize) =0;

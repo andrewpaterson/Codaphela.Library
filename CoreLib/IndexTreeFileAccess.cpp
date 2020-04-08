@@ -45,9 +45,9 @@ BOOL CIndexTreeFileAccess::Flush(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFileAccess::Put(void* pvKey, int iKeySize, void* pvObject, unsigned int uiDataSize)
+BOOL CIndexTreeFileAccess::Put(void* pvKey, int iKeySize, void* pvData, unsigned int uiDataSize)
 {
-	return mpcTree->Put(pvKey, iKeySize, pvObject, uiDataSize);
+	return mpcTree->Put(pvKey, iKeySize, pvData, uiDataSize);
 }
 
 
@@ -55,12 +55,12 @@ BOOL CIndexTreeFileAccess::Put(void* pvKey, int iKeySize, void* pvObject, unsign
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFileAccess::Get(void* pvKey, int iKeySize, void* pvObject, unsigned int* puiDataSize)
+BOOL CIndexTreeFileAccess::Get(void* pvKey, int iKeySize, void* pvData, unsigned int* puiDataSize)
 {
 	unsigned short	uiDataSize;
 	BOOL			bResult;
 
-	bResult = mpcTree->Get(pvKey, iKeySize, pvObject, &uiDataSize);
+	bResult = mpcTree->Get(pvKey, iKeySize, pvData, &uiDataSize);
 
 	if (puiDataSize)
 	{
