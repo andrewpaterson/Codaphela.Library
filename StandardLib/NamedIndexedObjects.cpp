@@ -19,6 +19,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/Log.h"
+#include "BaseLib/IndexTreeMemoryAccess.h"
 #include "NamedIndexedObjects.h"
 #include "NamedObject.h"
 #include "NamedHollowObject.h"
@@ -73,12 +74,16 @@ CBaseObject* CNamedIndexedObjects::Get(OIndex oi)
 //////////////////////////////////////////////////////////////////////////
 CBaseObject* CNamedIndexedObjects::Get(char* szName)
 {
-	OIndex*	oi;
+	OIndex					oi;
+	CIndexTreeMemoryAccess	cAccess;
+	BOOL					bExists;
 
-	oi = (OIndex*)mcNames.Get(szName);
-	if (oi)
+	cAccess.Init(&mcNames);
+	bExists = cAccess.GetStringData(szName, &oi);
+	cAccess.Kill();
+	if (bExists)
 	{
-		return Get(*oi);
+		return Get(oi);
 	}
 	else
 	{
@@ -111,12 +116,14 @@ BOOL CNamedIndexedObjects::RemoveIndex(OIndex oi)
 //////////////////////////////////////////////////////////////////////////
 BOOL CNamedIndexedObjects::RemoveName(char* szName)
 {
-	if ((szName != NULL) && (szName[0] != 0))
-	{
-		//This only removes the name from the names, it does not free the object pointer to.
-		return mcNames.Remove(szName);
-	}
-	return TRUE;
+	CIndexTreeMemoryAccess	cAccess;
+	BOOL					bResult;
+
+	//This only removes the name from the names, it does not free the object pointer to.
+	cAccess.Init(&mcNames);
+	bResult = cAccess.DeleteString(szName);
+	cAccess.Kill();
+	return bResult;
 }
 
 
@@ -147,12 +154,18 @@ BOOL CNamedIndexedObjects::AddWithID(CBaseObject* pvObject, OIndex oi)
 //////////////////////////////////////////////////////////////////////////
 BOOL CNamedIndexedObjects::AddWithIDAndName(CBaseObject* pvObject, OIndex oi, char* szName)
 {
-	CNamedObject*		pcNamed;
-	CNamedHollowObject*	pcNamedHollow;
-	BOOL				bResult;
+	CNamedObject*			pcNamed;
+	CNamedHollowObject*		pcNamedHollow;
+	BOOL					bResult;
+	CIndexTreeMemoryAccess	cAccess;
+	BOOL					bHasObject;
 
-	if (mcNames.HasKey(szName))
+	cAccess.Init(&mcNames);
+	bHasObject = cAccess.HasString(szName);
+	cAccess.Kill();
+	if (bHasObject)
 	{
+		
 		gcLogger.Error2(__METHOD__, " Cannot add object named [", szName, "].  It already exists.", NULL);
 		return FALSE;
 	}
@@ -179,9 +192,11 @@ BOOL CNamedIndexedObjects::AddWithIDAndName(CBaseObject* pvObject, OIndex oi, ch
 
 	if ((szName != NULL) && (szName[0] != 0))
 	{
+		cAccess.Init(&mcNames);
 		oi = pvObject->GetOI();
-		szName = (char*)mcNames.Put(szName, &oi, sizeof(OIndex));
+		szName = (char*)cAccess.PutStringLong(szName, oi);
 		bResult = szName != NULL;
+		cAccess.Kill();
 	}
 	return bResult;
 }

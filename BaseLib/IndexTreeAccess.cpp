@@ -407,7 +407,7 @@ int64 CIndexTreeAccess::GetStringLong(char* pszKey)
 
 	if (StrEmpty(pszKey))
 	{
-		return FALSE;
+		return 0;
 	}
 
 	iKeySize = strlen(pszKey);
