@@ -23,8 +23,8 @@ public:
 	void					Init(CMallocator* pcMalloc, EIndexKeyReverse eKeyReverse);
 	void					Kill(void);
 
-	void*					Get(void* pvKey, int iKeySize, unsigned short* puiDataSize);
-	void*					Put(void* pvKey, int iKeySize, void* pvObject, unsigned short uiDataSize);
+	void*					Get(void* pvKey, int iKeySize, int* piDataSize);
+	void*					Put(void* pvKey, int iKeySize, void* pvObject, int iDataSize);
 	BOOL					Remove(void* pvKey, int iKeySize);
 	BOOL					HasKey(void* pvKey, int iKeySize);
 	void					FindAll(CArrayVoidPtr* papvElements);
