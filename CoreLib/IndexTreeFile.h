@@ -39,8 +39,8 @@ public:
 	BOOL					Init(CDurableFileController* pcDurableFileControl, CIndexTreeFileCallback* pcWriterCallback, CMallocator* pcMalloc, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse);
 	BOOL					Kill(void);
 
-	BOOL					Get(void* pvKey, int iKeySize, void* pvObject, unsigned short* puiDataSize);
-	BOOL					Put(void* pvKey, int iKeySize, void* pvObject, unsigned short uiDataSize);
+	BOOL					Get(void* pvKey, int iKeySize, void* pvObject, int* piDataSize);
+	BOOL					Put(void* pvKey, int iKeySize, void* pvObject, int iDataSize);
 	BOOL					Remove(void* pvKey, int iKeySize);
 	BOOL					HasKey(void* pvKey, int iKeySize);
 	unsigned short			GetDataSize(void* pvKey, int iKeySize);

@@ -9,7 +9,7 @@
 
 
 #define MAX_KEY_SIZE (4 KB)
-#define MAX_DATA_SIZE (64 KB)
+#define MAX_DATA_SIZE (4 KB)
 
 
 class CIndexTree

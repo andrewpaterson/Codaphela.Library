@@ -38,11 +38,11 @@ BOOL CIndexTreeMemoryAccess::Flush(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeMemoryAccess::Put(void* pvKey, int iKeySize, void* pvData, unsigned int uiDataSize)
+BOOL CIndexTreeMemoryAccess::Put(void* pvKey, int iKeySize, void* pvData, int iDataSize)
 {
 	void* pvResult;
 
-	pvResult = mpcTree->Put(pvKey, iKeySize, pvData, uiDataSize);
+	pvResult = mpcTree->Put(pvKey, iKeySize, pvData, iDataSize);
 	return pvResult != NULL;
 }
 
@@ -51,20 +51,20 @@ BOOL CIndexTreeMemoryAccess::Put(void* pvKey, int iKeySize, void* pvData, unsign
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeMemoryAccess::Get(void* pvKey, int iKeySize, void* pvData, unsigned int* puiDataSize)
+BOOL CIndexTreeMemoryAccess::Get(void* pvKey, int iKeySize, void* pvData, int* piDataSize)
 {
 	void*			pvResult;
-	unsigned short	uiDataSize;
+	int				iDataSize;
 
-	pvResult = mpcTree->Get(pvKey, iKeySize, &uiDataSize);
+	pvResult = mpcTree->Get(pvKey, iKeySize, &iDataSize);
 	
-	SafeAssign(puiDataSize, uiDataSize);
+	SafeAssign(piDataSize, iDataSize);
 
 	if (pvResult)
 	{
 		if (pvData)
 		{
-			memcpy(pvData, pvResult, uiDataSize);
+			memcpy(pvData, pvResult, iDataSize);
 		}
 		return TRUE;
 	}
@@ -99,15 +99,15 @@ BOOL CIndexTreeMemoryAccess::Has(void* pvKey, int iKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-unsigned int CIndexTreeMemoryAccess::DataSize(void* pvKey, int iKeySize)
+int CIndexTreeMemoryAccess::DataSize(void* pvKey, int iKeySize)
 {
-	unsigned short	uiDataSize;
-	void*			pvData;
+	int		iDataSize;
+	void*	pvData;
 
-	pvData = mpcTree->Get(pvKey, iKeySize, &uiDataSize);
+	pvData = mpcTree->Get(pvKey, iKeySize, &iDataSize);
 	if (pvData)
 	{
-		return uiDataSize;
+		return iDataSize;
 	}
 	else
 	{

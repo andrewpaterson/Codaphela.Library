@@ -604,7 +604,7 @@ CIndexTreeNodeFile* CIndexTreeFile::ReadMemoryNode(CIndexTreeNodeFile* pcParent,
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::Get(void* pvKey, int iKeySize, void* pvData, unsigned short* puiDataSize)
+BOOL CIndexTreeFile::Get(void* pvKey, int iKeySize, void* pvData, int* piDataSize)
 {
 	CIndexTreeNodeFile* pcNode;
 	void*				pv;
@@ -623,10 +623,7 @@ BOOL CIndexTreeFile::Get(void* pvKey, int iKeySize, void* pvData, unsigned short
 			return FALSE;
 		}
 
-		if (puiDataSize)
-		{
-			*puiDataSize = uiDataSize;
-		}
+		SafeAssign(piDataSize, uiDataSize);
 
 		pv = pcNode->GetDataPtr();
 		if (pvData)
@@ -642,21 +639,30 @@ BOOL CIndexTreeFile::Get(void* pvKey, int iKeySize, void* pvData, unsigned short
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::Put(void* pvKey, int iKeySize, void* pvData, unsigned short uiDataSize)
+BOOL CIndexTreeFile::Put(void* pvKey, int iKeySize, void* pvData, int iDataSize)
 {
 	CIndexTreeNodeFile*		pcCurrent;
 	BOOL					bResult;
 	BOOL					bRootHasIndex;
+	unsigned short			uiDataSize;
 
-	if (iKeySize == 0)
+	if ((iKeySize <= 0) || (iKeySize > MAX_KEY_SIZE))
 	{
-		return FALSE;
+		gcLogger.Error2("Key size [", IntToString(iKeySize), "] must be positive and <= [", IntToString(MAX_KEY_SIZE), "].", NULL);
+		return NULL;
+	}
+	if ((iDataSize <= 0) || (iDataSize > MAX_DATA_SIZE))
+	{
+		gcLogger.Error2("Data size [", IntToString(iDataSize), "] must be positive and <= [", IntToString(MAX_DATA_SIZE), "].", NULL);
+		return NULL;
+	}
+	if (pvData == NULL)
+	{
+		gcLogger.Error2("Data must not be [NULL].", NULL);
+		return NULL;
 	}
 
-	if ((pvData == NULL) || (uiDataSize == 0))
-	{
-		return FALSE;
-	}
+	uiDataSize = (unsigned short)iDataSize;
 
 	bRootHasIndex = mpcRoot->GetFileIndex()->HasFile();
 	pcCurrent = GetOrAllocateKey(pvKey, iKeySize);

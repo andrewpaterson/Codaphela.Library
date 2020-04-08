@@ -9,61 +9,61 @@
 class CIndexTreeAccess
 {
 private:
-	CTemporaryMemory		mcTemp;
+	CTemporaryMemory	mcTemp;
 
 public:
-			void			Init(void);
-	virtual BOOL			Kill(void);
+			void	Init(void);
+	virtual BOOL	Kill(void);
 
-	virtual BOOL			Flush(void)= 0;
+	virtual BOOL	Flush(void)= 0;
 
-			BOOL			PutLongPtr(int64 lliKey, void* pvPointer);
-			BOOL			PutLongString(int64 lliKey, char* pszData);
-			BOOL			PutLongData(int64 lliKey, void* pvData, unsigned int uiDataSize);
-			BOOL			PutStringPtr(char* pszKey, void* pvPointer);
-			BOOL			PutStringData(char* pszKey, void* pvData, unsigned int uiDataSize);
-			BOOL			PutStringInt(char* pszKey, int iIndex);
-			BOOL			PutStringLong(char* pszKey, int64 lliIndex);
-			BOOL			PutStringString(char* pszKey, char* pszData);
-			BOOL			PutKeyData(void* pvKey, int iKeySize, void* pvData, unsigned int uiDataSize);
-			BOOL			PutKeyString(void* pvKey, int iKeySize, char* pszData);
+			BOOL	PutLongPtr(int64 lliKey, void* pvPointer);
+			BOOL	PutLongString(int64 lliKey, char* pszData);
+			BOOL	PutLongData(int64 lliKey, void* pvData, int iDataSize);
+			BOOL	PutStringPtr(char* pszKey, void* pvPointer);
+			BOOL	PutStringData(char* pszKey, void* pvData, int iDataSize);
+			BOOL	PutStringInt(char* pszKey, int iIndex);
+			BOOL	PutStringLong(char* pszKey, int64 lliIndex);
+			BOOL	PutStringString(char* pszKey, char* pszData);
+			BOOL	PutKeyData(void* pvKey, int iKeySize, void* pvData, int iDataSize);
+			BOOL	PutKeyString(void* pvKey, int iKeySize, char* pszData);
 
-			char*			GetLongString(int64 lliKey, char* pszDest);
-			BOOL			GetStringData(char* pszKey, void* pvData, unsigned int* puiDataSize = NULL);
-			char*			GetStringString(char* pszKey, char* pszDest);
-			CChars			GetStringString(char* pszKey);
-			int				GetStringInt(char* pszKey);
-			int64			GetStringLong(char* pszKey);
-			void*			GetStringPtr(char* pszKey);
-			BOOL			GetKeyData(void* pvKey, int iKeySize, void* pvData, unsigned int* puiDataSize);
-			char*			GetKeyString(void* pvKey, int iKeySize, char* pszDest);
+			char*	GetLongString(int64 lliKey, char* pszDest);
+			BOOL	GetStringData(char* pszKey, void* pvData, int* piDataSize = NULL);
+			char*	GetStringString(char* pszKey, char* pszDest);
+			CChars	GetStringString(char* pszKey);
+			int		GetStringInt(char* pszKey);
+			int64	GetStringLong(char* pszKey);
+			void*	GetStringPtr(char* pszKey);
+			BOOL	GetKeyData(void* pvKey, int iKeySize, void* pvData, int* piDataSize);
+			char*	GetKeyString(void* pvKey, int iKeySize, char* pszDest);
 
-			BOOL			HasString(char* pszKey);
+			BOOL	HasString(char* pszKey);
 
-			BOOL			DeleteLong(int64 lliKey);
-			BOOL			DeleteString(char* pszKey);
-			BOOL			DeleteKey(void* pvKey, int iKeySize);
+			BOOL	DeleteLong(int64 lliKey);
+			BOOL	DeleteString(char* pszKey);
+			BOOL	DeleteKey(void* pvKey, int iKeySize);
 
-			unsigned int	DataSizeLong(int64 lliKey);
-			unsigned int	DataSizeString(char* pszKey);
-			unsigned int	DataSizeKey(void* pvKey, int iKeySize);
+			int		DataSizeLong(int64 lliKey);
+			int		DataSizeString(char* pszKey);
+			int		DataSizeKey(void* pvKey, int iKeySize);
 
-			BOOL			FlushLong(int64 lliKey);
-			BOOL			FlushString(char* pszKey);
-			BOOL			FlushKey(void* pvKey, int iKeySize);
+			BOOL	FlushLong(int64 lliKey);
+			BOOL	FlushString(char* pszKey);
+			BOOL	FlushKey(void* pvKey, int iKeySize);
 
-			BOOL			EvictLong(int64 lliKey);
-			BOOL			EvictString(char* pszKey);
-			BOOL			EvictKey(void* pvKey, int iKeySize);
+			BOOL	EvictLong(int64 lliKey);
+			BOOL	EvictString(char* pszKey);
+			BOOL	EvictKey(void* pvKey, int iKeySize);
 
 protected:
-	virtual BOOL			Put(void* pvKey, int iKeySize, void* pvData, unsigned int uiDataSize) =0;
-	virtual BOOL			Get(void* pvKey, int iKeySize, void* pvData, unsigned int* puiDataSize) =0;
-	virtual unsigned int	DataSize(void* pvKey, int iKeySize) =0;
-	virtual BOOL			Remove(void* pvKey, int iKeySize) =0;
-	virtual BOOL			Has(void* pvKey, int iKeySize) =0;
-	virtual BOOL			Flush(void* pvKey, int iKeySize) =0;
-	virtual BOOL			Evict(void* pvKey, int iKeySize) = 0;
+	virtual BOOL	Put(void* pvKey, int iKeySize, void* pvData, int iDataSize) =0;
+	virtual BOOL	Get(void* pvKey, int iKeySize, void* pvData, int* piDataSize) =0;
+	virtual int		DataSize(void* pvKey, int iKeySize) =0;
+	virtual BOOL	Remove(void* pvKey, int iKeySize) =0;
+	virtual BOOL	Has(void* pvKey, int iKeySize) =0;
+	virtual BOOL	Flush(void* pvKey, int iKeySize) =0;
+	virtual BOOL	Evict(void* pvKey, int iKeySize) = 0;
 };
 
 

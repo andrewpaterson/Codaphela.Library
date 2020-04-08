@@ -157,7 +157,7 @@ CIndexTreeNodeMemory* CIndexTreeMemory::GetNode(void* pvKey, int iKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CIndexTreeMemory::Get(void* pvKey, int iKeySize, unsigned short* puiDataSize)
+void* CIndexTreeMemory::Get(void* pvKey, int iKeySize, int* piDataSize)
 {
 	CIndexTreeNodeMemory*	pcNode;
 	void*					pv;
@@ -171,10 +171,7 @@ void* CIndexTreeMemory::Get(void* pvKey, int iKeySize, unsigned short* puiDataSi
 	else
 	{
 		uiDataSize = pcNode->GetDataSize();
-		if (puiDataSize)
-		{
-			*puiDataSize = uiDataSize;
-		}
+		SafeAssign(piDataSize, uiDataSize);
 
 		if (uiDataSize == 0)
 		{
@@ -191,7 +188,7 @@ void* CIndexTreeMemory::Get(void* pvKey, int iKeySize, unsigned short* puiDataSi
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CIndexTreeMemory::Put(void* pvKey, int iKeySize, void* pvData, unsigned short uiDataSize)
+void* CIndexTreeMemory::Put(void* pvKey, int iKeySize, void* pvData, int iDataSize)
 {
 	CIndexTreeNodeMemory*	pcCurrent;
 	CIndexTreeNodeMemory*	pcReallocatedCurrent;
@@ -199,12 +196,20 @@ void* CIndexTreeMemory::Put(void* pvKey, int iKeySize, void* pvData, unsigned sh
 	unsigned short			uiOriginalSize;
 	int						i;
 	BOOL					bExecute;
+	unsigned short			uiDataSize;
 
-	if (iKeySize == 0)
+	if ((iKeySize <= 0) || (iKeySize > MAX_KEY_SIZE))
 	{
-		return FALSE;
+		gcLogger.Error2("Key size [", IntToString(iKeySize), "] must be positive and <= [", IntToString(MAX_KEY_SIZE), "].", NULL);
+		return NULL;
+	}
+	if ((iDataSize <= 0) || (iDataSize > MAX_DATA_SIZE))
+	{
+		gcLogger.Error2("Data size [", IntToString(iDataSize), "] must be positive and <= [", IntToString(MAX_DATA_SIZE), "].", NULL);
+		return NULL;
 	}
 
+	uiDataSize = (unsigned short)iDataSize;
 	pcCurrent = mpcRoot;
 
 	bExecute = StartKey(&i, iKeySize);
