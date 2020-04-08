@@ -599,6 +599,7 @@ CIndexTreeNodeFile* CIndexTreeFile::ReadMemoryNode(CIndexTreeNodeFile* pcParent,
 	}
 }
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -665,7 +666,6 @@ BOOL CIndexTreeFile::Put(void* pvKey, int iKeySize, void* pvData, unsigned short
 	{
 		return FALSE;
 	}
-
 
 	if (meWriteThrough == IWT_Yes)
 	{

@@ -14,10 +14,6 @@ public:
 	BOOL			Kill(void);
 	BOOL			Flush(void);
 
-	BOOL			EvictLong(int64 lliKey);
-	BOOL			EvictString(char* pszKey);
-	BOOL			EvictKey(void* pvKey, int iKeySize);
-
 protected:
 	BOOL			Put(void* pvKey, int iKeySize, void* pvData, unsigned int uiDataSize);
 	BOOL			Get(void* pvKey, int iKeySize, void* pvData, unsigned int* puiDataSize);
