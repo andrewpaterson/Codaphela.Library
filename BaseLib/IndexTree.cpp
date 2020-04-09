@@ -1,3 +1,4 @@
+#include "Logger.h"
 #include "IndexTree.h"
 
 
@@ -5,14 +6,31 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTree::Init(CMallocator* pcMalloc, EIndexKeyReverse eKeyReverse, size_t tSizeofNode, size_t tSizeofNodePtr, int iMaxDataSize, int	iMaxKeySize)
+BOOL CIndexTree::Init(CMallocator* pcMalloc, EIndexKeyReverse eKeyReverse, size_t tSizeofNode, size_t tSizeofNodePtr, int iMaxDataSize, int	iMaxKeySize)
 {
+	BOOL bResult;
+
 	mpcMalloc = pcMalloc;
 	meReverseKey = eKeyReverse;
 	mtSizeofNode = tSizeofNode;
 	mtSizeofNodePtr = tSizeofNodePtr;
+	bResult = TRUE;
+	if ((iMaxKeySize <= 0) || (iMaxKeySize > MAX_KEY_SIZE))
+	{
+		gcLogger.Error2(__METHOD__, "Max Key size [", IntToString(iMaxKeySize), "] must be positive and <= [", MAX_KEY_SIZE, "].", NULL);
+		iMaxKeySize = MAX_KEY_SIZE;
+		bResult = FALSE;
+	}
+	if ((iMaxDataSize <= 0) || (iMaxDataSize > MAX_DATA_SIZE))
+	{
+		gcLogger.Error2(__METHOD__, "Data size [", IntToString(iMaxDataSize), "] must be positive and <= [", IntToString(MAX_DATA_SIZE), "].", NULL);
+		iMaxDataSize = MAX_DATA_SIZE;
+		bResult = FALSE;
+	}
 	miMaxDataSize = iMaxDataSize;
 	miMaxKeySize = iMaxKeySize;
+
+	return bResult;
 }
 
 
