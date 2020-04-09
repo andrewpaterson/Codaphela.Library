@@ -8,9 +8,19 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CIndexTreeMemory::Init(void)
+{
+	Init(&gcSystemAllocator, IKR_No, MAX_DATA_SIZE, MAX_KEY_SIZE);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CIndexTreeMemory::Init(EIndexKeyReverse eKeyReverse)
 {
-	Init(&gcSystemAllocator, eKeyReverse);
+	Init(&gcSystemAllocator, eKeyReverse, MAX_DATA_SIZE, MAX_KEY_SIZE);
 }
 
 
@@ -20,7 +30,16 @@ void CIndexTreeMemory::Init(EIndexKeyReverse eKeyReverse)
 //////////////////////////////////////////////////////////////////////////
 void CIndexTreeMemory::Init(CMallocator* pcMalloc, EIndexKeyReverse eKeyReverse)
 {
-	CIndexTree::Init(pcMalloc, eKeyReverse, sizeof(CIndexTreeNodeMemory), sizeof(CIndexTreeNodeMemory*));
+	Init(pcMalloc, eKeyReverse, MAX_DATA_SIZE, MAX_KEY_SIZE);
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexTreeMemory::Init(CMallocator* pcMalloc, EIndexKeyReverse eKeyReverse, int iMaxDataSize, int	iMaxKeySize)
+{
+	CIndexTree::Init(pcMalloc, eKeyReverse, sizeof(CIndexTreeNodeMemory), sizeof(CIndexTreeNodeMemory*), iMaxDataSize, iMaxKeySize);
 	mpcRoot = AllocateRoot();
 	miSize = 0;
 }
@@ -33,7 +52,7 @@ void CIndexTreeMemory::FakeInit(EIndexKeyReverse eKeyReverse)
 {
 	//This exists so that TreeNodes can be tested without a full tree.  All they need to do is query the size of their child nodes.
 	//Kill should not be called.
-	CIndexTree::Init(NULL, eKeyReverse, sizeof(CIndexTreeNodeMemory), sizeof(CIndexTreeNodeMemory*));
+	CIndexTree::Init(NULL, eKeyReverse, sizeof(CIndexTreeNodeMemory), sizeof(CIndexTreeNodeMemory*), MAX_DATA_SIZE, MAX_KEY_SIZE);
 	mpcRoot = NULL;
 	miSize = 0;
 }
@@ -198,14 +217,14 @@ void* CIndexTreeMemory::Put(void* pvKey, int iKeySize, void* pvData, int iDataSi
 	BOOL					bExecute;
 	unsigned short			uiDataSize;
 
-	if ((iKeySize <= 0) || (iKeySize > MAX_KEY_SIZE))
+	if ((iKeySize <= 0) || (iKeySize > miMaxKeySize))
 	{
-		gcLogger.Error2("Key size [", IntToString(iKeySize), "] must be positive and <= [", IntToString(MAX_KEY_SIZE), "].", NULL);
+		gcLogger.Error2(__METHOD__, "Key size [", IntToString(iKeySize), "] must be positive and <= [", IntToString(miMaxKeySize), "].", NULL);
 		return NULL;
 	}
-	if ((iDataSize <= 0) || (iDataSize > MAX_DATA_SIZE))
+	if ((iDataSize <= 0) || (iDataSize > miMaxDataSize))
 	{
-		gcLogger.Error2("Data size [", IntToString(iDataSize), "] must be positive and <= [", IntToString(MAX_DATA_SIZE), "].", NULL);
+		gcLogger.Error2(__METHOD__, "Data size [", IntToString(iDataSize), "] must be positive and <= [", IntToString(miMaxDataSize), "].", NULL);
 		return NULL;
 	}
 

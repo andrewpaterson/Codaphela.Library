@@ -19,8 +19,10 @@ protected:
 	int						miSize;
 	
 public:
-	void					Init(EIndexKeyReverse eKeyReverse = IKR_No);
+	void					Init(void);
+	void					Init(EIndexKeyReverse eKeyReverse);
 	void					Init(CMallocator* pcMalloc, EIndexKeyReverse eKeyReverse);
+	void					Init(CMallocator* pcMalloc, EIndexKeyReverse eKeyReverse, int iMaxDataSize, int	iMaxKeySize);
 	void					Kill(void);
 
 	void*					Get(void* pvKey, int iKeySize, int* piDataSize);
