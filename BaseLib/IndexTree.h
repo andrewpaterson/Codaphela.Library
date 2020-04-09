@@ -25,7 +25,7 @@ protected:
 	int					miMaxKeySize;
 
 public:
-	void				Init(CMallocator* pcMalloc, EIndexKeyReverse eKeyReverse, size_t tSizeofNode, size_t tSizeofNodePtr, int iMaxDataSize, int iMaxKeySize);
+	BOOL				Init(CMallocator* pcMalloc, EIndexKeyReverse eKeyReverse, size_t tSizeofNode, size_t tSizeofNodePtr, int iMaxDataSize, int iMaxKeySize);
 
 	size_t				SizeofNode(void);
 	size_t				SizeofNodePtr(void);
