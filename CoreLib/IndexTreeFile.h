@@ -32,11 +32,15 @@ protected:
 	CIndexTreeFileCallback*		mpcDataCallback;
 
 public:
-	BOOL					Init(CDurableFileController* pcDurableFileControl, EIndexKeyReverse eKeyReverse = IKR_No);
+	BOOL					Init(void);
+	BOOL					Init(CDurableFileController* pcDurableFileControl);
+	BOOL					Init(CDurableFileController* pcDurableFileControl, int iMaxDataSize, int iMaxKeySize);
+	BOOL					Init(CDurableFileController* pcDurableFileControl, EIndexKeyReverse eKeyReverse);
 	BOOL					Init(CDurableFileController* pcDurableFileControl, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse);
 	BOOL					Init(CDurableFileController* pcDurableFileControl, CMallocator* pcMalloc, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse);
 	BOOL					Init(CDurableFileController* pcDurableFileControl, CIndexTreeFileCallback* pcWriterCallback, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse);
 	BOOL					Init(CDurableFileController* pcDurableFileControl, CIndexTreeFileCallback* pcWriterCallback, CMallocator* pcMalloc, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse);
+	BOOL					Init(CDurableFileController* pcDurableFileControl, CIndexTreeFileCallback* pcWriterCallback, CMallocator* pcMalloc, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse, int iMaxDataSize, int iMaxKeySize);
 	BOOL					Kill(void);
 
 	BOOL					Get(void* pvKey, int iKeySize, void* pvObject, int* piDataSize);

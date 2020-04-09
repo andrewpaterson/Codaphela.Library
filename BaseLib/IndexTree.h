@@ -1,6 +1,7 @@
 #ifndef __INDEX_TREE_H__
 #define __INDEX_TREE_H__
 #include "Chars.h"
+#include "Numbers.h"
 #include "ArrayVoidPtr.h"
 #include "ArrayTemplateEmbedded.h"
 #include "MemoryCache.h"
@@ -9,7 +10,7 @@
 
 
 #define MAX_KEY_SIZE (4 KB)
-#define MAX_DATA_SIZE (4 KB)
+#define MAX_DATA_SIZE (64 KB)
 
 
 class CIndexTree
@@ -20,9 +21,11 @@ protected:
 	EIndexKeyReverse	meReverseKey;
 	size_t				mtSizeofNode;
 	size_t				mtSizeofNodePtr;
+	int					miMaxDataSize;
+	int					miMaxKeySize;
 
 public:
-	void				Init(CMallocator* pcMalloc, EIndexKeyReverse eKeyReverse, size_t tSizeofNode, size_t tSizeofNodePtr);
+	void				Init(CMallocator* pcMalloc, EIndexKeyReverse eKeyReverse, size_t tSizeofNode, size_t tSizeofNodePtr, int iMaxDataSize, int iMaxKeySize);
 
 	size_t				SizeofNode(void);
 	size_t				SizeofNodePtr(void);

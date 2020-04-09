@@ -14,6 +14,36 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeFile::Init(void)
+{
+	return Init(NULL, &gcIndexTreeFileDefaultCallback, &gcSystemAllocator, IWT_Yes, IKR_No);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl)
+{
+	return Init(pcDurableFileControl, &gcIndexTreeFileDefaultCallback, &gcSystemAllocator, IWT_Yes, IKR_No);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, int iMaxDataSize, int iMaxKeySize)
+{
+	return Init(pcDurableFileControl, &gcIndexTreeFileDefaultCallback, &gcSystemAllocator, IWT_Yes, IKR_No, iMaxDataSize, iMaxKeySize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, EIndexKeyReverse eKeyReverse)
 {
 	return Init(pcDurableFileControl, &gcIndexTreeFileDefaultCallback, &gcSystemAllocator, IWT_Yes, eKeyReverse);
@@ -56,8 +86,16 @@ BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, CIndexTr
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, CIndexTreeFileCallback* pcWriterCallback, CMallocator* pcMalloc, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse)
 {
-	//The DurableFileControl must be begun before .Init is called and should be ended afterwards.
+	return Init(pcDurableFileControl, pcWriterCallback, pcMalloc, eWriteThrough, eKeyReverse, MAX_DATA_SIZE, MAX_KEY_SIZE);
+}
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, CIndexTreeFileCallback* pcWriterCallback, CMallocator* pcMalloc, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse, int iMaxDataSize, int iMaxKeySize)
+{
 	BOOL	bResult;
 
 	if (!pcDurableFileControl->IsBegun())
@@ -66,7 +104,7 @@ BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, CIndexTr
 	}
 
 	mcMalloc.Init(pcMalloc);
-	CIndexTree::Init(&mcMalloc, eKeyReverse, sizeof(CIndexTreeNodeFile), sizeof(CIndexTreeChildNode));
+	CIndexTree::Init(&mcMalloc, eKeyReverse, sizeof(CIndexTreeNodeFile), sizeof(CIndexTreeChildNode), iMaxDataSize, iMaxKeySize);
 
 	mpcDataCallback = pcWriterCallback;
 	mpcRoot = NULL;
@@ -94,7 +132,7 @@ BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, CIndexTr
 //////////////////////////////////////////////////////////////////////////
 void CIndexTreeFile::FakeInit(EIndexKeyReverse eKeyReverse)
 {
-	CIndexTree::Init(&gcSystemAllocator, eKeyReverse, sizeof(CIndexTreeNodeFile), sizeof(CIndexTreeChildNode));
+	CIndexTree::Init(&gcSystemAllocator, eKeyReverse, sizeof(CIndexTreeNodeFile), sizeof(CIndexTreeChildNode), MAX_DATA_SIZE, MAX_KEY_SIZE);
 	mpcRoot = NULL;
 	mpcDurableFileControl = NULL;
 }
@@ -646,19 +684,14 @@ BOOL CIndexTreeFile::Put(void* pvKey, int iKeySize, void* pvData, int iDataSize)
 	BOOL					bRootHasIndex;
 	unsigned short			uiDataSize;
 
-	if ((iKeySize <= 0) || (iKeySize > MAX_KEY_SIZE))
+	if ((iKeySize <= 0) || (iKeySize > miMaxKeySize))
 	{
-		gcLogger.Error2("Key size [", IntToString(iKeySize), "] must be positive and <= [", IntToString(MAX_KEY_SIZE), "].", NULL);
+		gcLogger.Error2(__METHOD__, "Key size [", IntToString(iKeySize), "] must be positive and <= [", IntToString(miMaxKeySize), "].", NULL);
 		return NULL;
 	}
-	if ((iDataSize <= 0) || (iDataSize > MAX_DATA_SIZE))
+	if ((iDataSize <= 0) || (iDataSize > miMaxDataSize))
 	{
-		gcLogger.Error2("Data size [", IntToString(iDataSize), "] must be positive and <= [", IntToString(MAX_DATA_SIZE), "].", NULL);
-		return NULL;
-	}
-	if (pvData == NULL)
-	{
-		gcLogger.Error2("Data must not be [NULL].", NULL);
+		gcLogger.Error2(__METHOD__, "Data size [", IntToString(iDataSize), "] must be positive and <= [", IntToString(miMaxDataSize), "].", NULL);
 		return NULL;
 	}
 

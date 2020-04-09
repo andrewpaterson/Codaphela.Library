@@ -60,7 +60,7 @@ BOOL CNamedIndexes::IndexTreeNodeEvicted(void* pvKey, int iKeySize, void* pvData
 {
 	if (iDataSize != sizeof(OIndex))
 	{
-		return gcLogger.Error2("Data evicted was not an OIndex.", NULL);
+		return gcLogger.Error2(__METHOD__, "Data evicted was not an OIndex.", NULL);
 	}
 	return TRUE;
 }

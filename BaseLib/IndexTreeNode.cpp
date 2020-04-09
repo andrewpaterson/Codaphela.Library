@@ -571,6 +571,10 @@ void CIndexTreeNode::SetData(void* pvData, unsigned short uiDataSize)
 	{
 		memcpy_fast(GetDataPtr(), pvData, uiDataSize);
 	}
+	else
+	{
+		memset_fast(GetDataPtr(), 0, uiDataSize);
+	}
 }
 
 
