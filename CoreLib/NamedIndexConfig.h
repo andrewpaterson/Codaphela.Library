@@ -1,22 +1,22 @@
 #ifndef __NAMED_INDEX_CONFIG_H__
 #define __NAMED_INDEX_CONFIG_H__
-#include "CoreLib/IndexConfig.h"
+#include "IndexedDataConfig.h"
 
 
 class CNamedIndexConfig
 {
 protected:
-	CIndexConfig*	mpcIndexConfig;
-	CIndexConfig*	mpcNamedConfig;
-	BOOL			mbKillConfigs;
+	CIndexedDataConfig*		mpcIndexConfig;
+	CIndexedDataConfig*		mpcNamedConfig;
+	BOOL					mbKillConfigs;
 
 public:
-	void			Init(CIndexConfig* pcIndexConfig, CIndexConfig* pcNamedConfig, BOOL bKillConfigs = TRUE);
-	void			Kill(void);
+	void					Init(CIndexedDataConfig* pcIndexConfig, CIndexedDataConfig* pcNamedConfig, BOOL bKillConfigs = TRUE);
+	void					Kill(void);
 
-	BOOL			HasDatabaseConfig(void);
-	CIndexConfig*	GetIndexConfig(void);
-	CIndexConfig*	GetNamedConfig(void);
+	BOOL					HasDatabaseConfig(void);
+	CIndexedDataConfig*		GetIndexConfig(void);
+	CIndexedDataConfig*		GetNamedConfig(void);
 };
 
 #endif // __NAMED_INDEX_CONFIG_H__

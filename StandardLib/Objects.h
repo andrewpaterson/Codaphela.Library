@@ -57,7 +57,7 @@ protected:
 	CUnknowns*				mpcUnknownsAllocatingFrom;
 
 	CNamedIndexedObjects	mcMemory;		//Objects (BaseObject*) allocated in Unknowns referenced by name and OIndex.  
-	CNamedIndexedData		mcDatabase;		//Objects in the database also referenced by string and OIndex.  
+	CNamedIndexedData		mcDatabase;		//Objects in the database also referenced by String and OIndex.  
 	
 	CObjectsSource			mcSource;		//An object found on disk will be converted (cooked) and then placed in memory.
 

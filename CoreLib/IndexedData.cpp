@@ -31,7 +31,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedData::Init(CIndexConfig* pcConfig)
+void CIndexedData::Init(CIndexedDataConfig* pcConfig)
 {
 	CIndexedDataCommon::Init(pcConfig->GetEvictionUserCallback());
 

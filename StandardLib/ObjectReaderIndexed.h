@@ -35,8 +35,8 @@ public:
 	void				Init(CNamedIndexedData* pcIndexedData);
 	void				Kill(void);
 
-	CSerialisedObject*	Read(OIndex oi);
-	CSerialisedObject*	Read(char* szObjectName);
+	CSerialisedObject*	Read(OIndex oi, void* pvBuffer);
+	CSerialisedObject*	Read(char* szObjectName, void* pvBuffer);
 };
 
 

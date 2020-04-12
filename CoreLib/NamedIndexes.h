@@ -22,12 +22,12 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __NAMED_INDEXES_H__
 #include "BaseLib/Define.h"
 #include "BaseLib/MemoryCache.h"
-#include "CoreLib/DurableFileController.h"
-#include "CoreLib/IndexedFiles.h"
-#include "CoreLib/IndexTreeEvicting.h"
-#include "CoreLib/IndexTreeEvictionStrategyRandom.h"
-#include "CoreLib/EvictionCallbackWrapper.h"
-#include "CoreLib/IndexConfig.h"
+#include "DurableFileController.h"
+#include "IndexedFiles.h"
+#include "IndexTreeEvicting.h"
+#include "IndexTreeEvictionStrategyRandom.h"
+#include "EvictionCallbackWrapper.h"
+#include "IndexedDataConfig.h"
 
 
 class CNamedIndexes : public CIndexTreeEvictionCallback, public CIndexTreeFileCallback
