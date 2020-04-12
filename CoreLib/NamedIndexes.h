@@ -42,8 +42,8 @@ public:
 	void			Init(CDurableFileController* pcDurableFileController, size_t uiCutoff, EIndexWriteThrough eWriteThrough, CIndexTreeEvictionCallback* pcEvictionCallback);
 	BOOL			Kill(void);
 
-	BOOL			Add(OIndex oi, char* szName, BOOL bFailOnExisting = TRUE);
-	BOOL			Add(OIndex oi, CChars* szName, BOOL bFailOnExisting = TRUE);
+	BOOL			Put(char* szName, OIndex oi, BOOL bFailOnExisting = TRUE);
+	BOOL			Put(CChars* szName, OIndex oi, BOOL bFailOnExisting = TRUE);
 	OIndex			GetIndex(char* szName);
 	OIndex			GetIndex(CChars* szName);
 	BOOL			Remove(char* szName);
