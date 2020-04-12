@@ -55,8 +55,8 @@ public:
 	void			GetFiles(CArrayIndexedFilePtr* pac);
 	unsigned int	GetFileDataSize(int iFileIndex);
 
-	int64			NumData(void);
-	int64			NumData(int iDataSize);
+	int64			NumDatas(void);
+	int64			NumDatas(int iDataSize);
 	int				NumFiles(int iDataSize);
 	int				NumFiles(void);
 

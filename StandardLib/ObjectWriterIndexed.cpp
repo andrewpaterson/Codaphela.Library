@@ -36,11 +36,11 @@ BOOL CObjectWriterIndexed::Write(CSerialisedObject* pcSerialised)
 	oi = pcSerialised->GetIndex();
 	if (pcSerialised->IsNamed())
 	{
-		bResult = mpcIndexedData->SetOrAdd(oi, pcSerialised->GetName(), pcSerialised, pcSerialised->GetLength(), muiTimeStamp);
+		bResult = mpcIndexedData->Put(oi, pcSerialised->GetName(), pcSerialised, pcSerialised->GetLength(), muiTimeStamp);
 	}
 	else if (pcSerialised->IsIndexed())
 	{
-		bResult = mpcIndexedData->SetOrAdd(oi, pcSerialised, pcSerialised->GetLength(), muiTimeStamp);
+		bResult = mpcIndexedData->Put(oi, pcSerialised, pcSerialised->GetLength(), muiTimeStamp);
 	}
 	else
 	{

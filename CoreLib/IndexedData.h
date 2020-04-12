@@ -31,7 +31,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "IndexedDataConfig.h"
 
 
-//This is the Indexed database class.
 class CIndexedData : public CIndexedDataCommon, public CIndexedFilesEvictionCallback
 {
 protected:
@@ -48,7 +47,8 @@ public:
 	BOOL			DurableBegin(void);
 	BOOL			DurableEnd(void);
 	BOOL			IsDurable(void);
-	int64			NumElements(void);
+
+	int64			NumIndicies(void);
 	BOOL			IsDirty(OIndex oi);
 
 	BOOL			EvictKey(OIndex oi);
@@ -56,7 +56,7 @@ public:
 
 	BOOL			FlushKey(OIndex oi);
 
-	int				NumIndicesCached(void);
+	int				NumElementsCached(void);
 	CDurableFileController* GetDurableFileControl(void);
 	size_t			GetIndiciesSystemMemorySize(void);
 	size_t			GetDataSystemMemorySize(void);

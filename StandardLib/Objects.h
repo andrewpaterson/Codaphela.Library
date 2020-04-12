@@ -71,7 +71,7 @@ protected:
 public:
 												CObjects();
 						void					Init(CUnknowns* pcUnknownsAllocatingFrom, CStackPointers* pcStackPointers, char* szWorkingDirectory);
-						void					Init(CUnknowns* pcUnknownsAllocatingFrom, CStackPointers* pcStackPointers, CNamedIndexConfig* pcConfig);
+						void					Init(CUnknowns* pcUnknownsAllocatingFrom, CStackPointers* pcStackPointers, CNamedIndexedDataConfig* pcConfig);
 						void					Kill(void);
 						void					DumpIndex(void);
 						void					DumpNames(void);
@@ -85,7 +85,6 @@ public:
 						BOOL					Flush(BOOL bClearMemory, BOOL bClearCache);
 						BOOL					Save(CBaseObject* pcObject);
 						BOOL					ForceSave(CBaseObject* pcObject);
-						BOOL					Close(void);
 
 						CPointer				Get(OIndex oi);
 						CPointer				Get(char* szObjectName);
@@ -104,12 +103,12 @@ public:
 						CPointer				Null(void);
 	template<class M>	Ptr<M>					Null(void);
 
-						long long int			NumMemoryIndexes(void);
+						int64					NumMemoryIndexes(void);
 						int						NumMemoryNames(void);
-						long long int			NumDatabaseObjects(void);
-						int						NumDatabaseObjectsCached(void);
-						int						NumDatabaseObjectsCached(int iSize);
-						long long int			NumDatabaseNames(void);
+						int64					NumIndicies(void);
+						int64					NumIndiciesCached(void);
+						int64					NumIndiciesCached(int iSize);
+						int64					NumDatabaseNames(void);
 						CIndexGenerator*		GetIndexGenerator(void);
 						CNamedIndexedObjects*	GetMemory(void);
 
@@ -158,7 +157,7 @@ extern CObjects gcObjects;
 
 void ObjectsInit(void);
 void ObjectsInit(char* szWorkingDirectory);
-void ObjectsInit(CNamedIndexConfig* pcConfig);
+void ObjectsInit(CNamedIndexedDataConfig* pcConfig);
 void ObjectsKill(void);
 
 void LogObjectAllocation(CBaseObject* pcObject, char* szMethod);

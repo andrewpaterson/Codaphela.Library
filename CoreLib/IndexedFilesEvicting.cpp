@@ -224,9 +224,19 @@ int CIndexedFilesEvicting::NumFiles(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int64 CIndexedFilesEvicting::NumData(int iDataSize)
+int64 CIndexedFilesEvicting::NumDatas(void)
 {
-	return mcDataFiles.NumData(iDataSize);
+	return mcDataFiles.NumDatas();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int64 CIndexedFilesEvicting::NumDatas(int iDataSize)
+{
+	return mcDataFiles.NumDatas(iDataSize);
 }
 
 

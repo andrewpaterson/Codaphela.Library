@@ -148,7 +148,7 @@ BOOL CIndexedData::Flush(BOOL bClearDataCache)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int64 CIndexedData::NumElements(void)
+int64 CIndexedData::NumIndicies(void)
 {
 	return mcIndices.NumElements();
 }
@@ -259,7 +259,7 @@ void CIndexedData::DumpIndex(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CIndexedData::NumIndicesCached(void) { return (int)mcIndices.NumCachedDatas(); }
+int CIndexedData::NumElementsCached(void) { return (int)mcIndices.NumIndiciesCached(); }
 CDurableFileController* CIndexedData::GetDurableFileControl(void) { return mpcDurableFileControl; }
 BOOL CIndexedData::IsDurable(void) { return mpcDurableFileControl->IsDurable(); }
 size_t CIndexedData::GetIndiciesSystemMemorySize(void) { return mcIndices.GetSystemMemorySize(); }

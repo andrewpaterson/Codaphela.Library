@@ -22,7 +22,7 @@ public:
 	BOOL	DescriptorsEvicted(CArrayVoidPtr* papsEvictedIndexedCacheDescriptors);
 	BOOL	Flush(BOOL bClearCache);
 
-	int64	NumElements(void);
+	int64	NumIndicies(void);
 	BOOL	IsDirty(OIndex oi);
 
 	BOOL	EvictData(OIndex oi, CIndexedDataDescriptor* pcDescriptor);

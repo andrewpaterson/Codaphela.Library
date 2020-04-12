@@ -219,7 +219,7 @@ BOOL CIndexedMap::Flush(BOOL bClearCache)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int64 CIndexedMap::NumElements(void)
+int64 CIndexedMap::NumIndicies(void)
 {
 	return mcDescriptors.NumElements();
 }
