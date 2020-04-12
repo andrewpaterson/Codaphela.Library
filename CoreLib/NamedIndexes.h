@@ -44,8 +44,8 @@ public:
 
 	BOOL			Put(char* szName, OIndex oi, BOOL bFailOnExisting = TRUE);
 	BOOL			Put(CChars* szName, OIndex oi, BOOL bFailOnExisting = TRUE);
-	OIndex			GetIndex(char* szName);
-	OIndex			GetIndex(CChars* szName);
+	OIndex			Get(char* szName);
+	OIndex			Get(CChars* szName);
 	BOOL			Remove(char* szName);
 	BOOL			Remove(CChars* szName);
 	filePos			NumElements(void);

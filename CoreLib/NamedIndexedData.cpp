@@ -155,7 +155,7 @@ BOOL CNamedIndexedData::Get(char* szName, void* pvData)
 	OIndex	oi;
 	BOOL	bResult;
 
-	oi = mcNames.GetIndex(szName);
+	oi = mcNames.Get(szName);
 	if (oi != INVALID_O_INDEX)
 	{
 		bResult = mcData.Get(oi, pvData);
@@ -174,7 +174,7 @@ BOOL CNamedIndexedData::Get(char* szName, unsigned int* puiDataSize, void* pvDat
 	OIndex	oi;
 	BOOL	bResult;
 
-	oi = mcNames.GetIndex(szName);
+	oi = mcNames.Get(szName);
 	if (oi != INVALID_O_INDEX)
 	{
 		bResult = mcData.Get(oi, puiDataSize, pvData, uiMaxSize);
@@ -192,7 +192,7 @@ OIndex CNamedIndexedData::GetIndex(char* szName)
 {
 	OIndex	oi;
 
-	oi = mcNames.GetIndex(szName);
+	oi = mcNames.Get(szName);
 	return oi;
 }
 
@@ -215,7 +215,7 @@ BOOL CNamedIndexedData::Contains(char* szName)
 {
 	OIndex	oi;
 
-	oi = mcNames.GetIndex(szName);
+	oi = mcNames.Get(szName);
 	if (oi != INVALID_O_INDEX)
 	{
 		//You might need to get the descriptor and make sure its not NULL.
@@ -233,7 +233,7 @@ BOOL CNamedIndexedData::Remove(CChars* szName)
 {
 	OIndex oi;
 
-	oi = mcNames.GetIndex(szName);
+	oi = mcNames.Get(szName);
 	if (oi != INVALID_O_INDEX)
 	{
 		ReturnOnFalse(mcNames.Remove(szName));
