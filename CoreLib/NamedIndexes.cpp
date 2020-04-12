@@ -26,19 +26,9 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNamedIndexes::Init(CDurableFileController* pcDurableFileController, size_t uiCutoff, EIndexWriteThrough eWriteThrough)
+void CNamedIndexes::Init(CNamedIndexesConfig* pcConfig)
 {
-	Init(pcDurableFileController, uiCutoff, eWriteThrough, NULL);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CNamedIndexes::Init(CDurableFileController* pcDurableFileController, size_t uiCutoff, EIndexWriteThrough eWriteThrough, CIndexTreeEvictionCallback* pcEvictionCallback)
-{
-	mcIndexTree.Init(pcDurableFileController, uiCutoff, pcEvictionCallback, &mcEvictionStrategy, this, eWriteThrough, IKR_No);
+	mcIndexTree.Init(pcConfig->GetDurableFileControl(), pcConfig->GetCutoff(), pcConfig->GetIndexTreeEvictionCallback(), pcConfig->GetEvictionStrategy(), this, pcConfig->GetWriteThrough(), IKR_No);
 }
 
 

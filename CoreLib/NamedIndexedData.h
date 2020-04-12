@@ -23,7 +23,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __NAMED_INDEXED_DATA_H__
 #define __NAMED_INDEXED_DATA_H__
 #include "CoreLib/IndexedData.h"
-#include "NamedIndexConfig.h"
+#include "NamedIndexedDataConfig.h"
 #include "NamedIndexes.h"
 
 
@@ -34,7 +34,7 @@ protected:
 	CNamedIndexes	mcNames;
 
 public:
-	void 			Init(CNamedIndexConfig* pcConfig);
+	void 			Init(CNamedIndexedDataConfig* pcConfig);
 	void 			Kill(void);
 
 	BOOL			Add(OIndex oi, void* pvData, unsigned int uiDataSize, unsigned int uiTimeStamp);

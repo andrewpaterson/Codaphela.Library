@@ -423,20 +423,26 @@
     <ClCompile Include="IndexedEvictedList.cpp">
       <Filter>Source\File\Indexed\Index\Evicting</Filter>
     </ClCompile>
-    <ClCompile Include="NamedIndexedData.cpp">
-      <Filter>Source\File\Indexed\Named</Filter>
-    </ClCompile>
     <ClCompile Include="NamedIndexes.cpp">
       <Filter>Source\File\Indexed\Named</Filter>
-    </ClCompile>
-    <ClCompile Include="NamedIndexConfig.cpp">
-      <Filter>Source\File\Indexed\Named\Config</Filter>
     </ClCompile>
     <ClCompile Include="IndexedDataConfig.cpp">
       <Filter>Source\File\Indexed\Config</Filter>
     </ClCompile>
     <ClCompile Include="ValueIndexedDataConfig.cpp">
       <Filter>Source\File\Indexed\Config</Filter>
+    </ClCompile>
+    <ClCompile Include="NamedIndexedData.cpp">
+      <Filter>Source\File\Indexed\Named</Filter>
+    </ClCompile>
+    <ClCompile Include="NamedIndexedDataConfig.cpp">
+      <Filter>Source\File\Indexed\Named\Config</Filter>
+    </ClCompile>
+    <ClCompile Include="NamedIndexesConfig.cpp">
+      <Filter>Source\File\Indexed\Named\Config</Filter>
+    </ClCompile>
+    <ClCompile Include="ValueNamedIndexesConfig.cpp">
+      <Filter>Source\File\Indexed\Named\Config</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -710,14 +716,8 @@
     <ClInclude Include="IndexedEvictedList.h">
       <Filter>Source\File\Indexed\Index\Evicting</Filter>
     </ClInclude>
-    <ClInclude Include="NamedIndexedData.h">
-      <Filter>Source\File\Indexed\Named</Filter>
-    </ClInclude>
     <ClInclude Include="NamedIndexes.h">
       <Filter>Source\File\Indexed\Named</Filter>
-    </ClInclude>
-    <ClInclude Include="NamedIndexConfig.h">
-      <Filter>Source\File\Indexed\Named\Config</Filter>
     </ClInclude>
     <ClInclude Include="IndexTreeEvictionCallback.h">
       <Filter>Source\File\Indexed\Index\Evicting</Filter>
@@ -727,6 +727,18 @@
     </ClInclude>
     <ClInclude Include="ValueIndexedDataConfig.h">
       <Filter>Source\File\Indexed\Config</Filter>
+    </ClInclude>
+    <ClInclude Include="NamedIndexedData.h">
+      <Filter>Source\File\Indexed\Named</Filter>
+    </ClInclude>
+    <ClInclude Include="NamedIndexedDataConfig.h">
+      <Filter>Source\File\Indexed\Named\Config</Filter>
+    </ClInclude>
+    <ClInclude Include="NamedIndexesConfig.h">
+      <Filter>Source\File\Indexed\Named\Config</Filter>
+    </ClInclude>
+    <ClInclude Include="ValueNamedIndexesConfig.h">
+      <Filter>Source\File\Indexed\Named\Config</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

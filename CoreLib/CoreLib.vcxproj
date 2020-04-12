@@ -118,9 +118,10 @@
     <ClCompile Include="IndexTreeWriter.cpp" />
     <ClCompile Include="LogFile.cpp" />
     <ClCompile Include="LogFileCommands.cpp" />
-    <ClCompile Include="NamedIndexConfig.cpp" />
+    <ClCompile Include="NamedIndexedDataConfig.cpp" />
     <ClCompile Include="NamedIndexedData.cpp" />
     <ClCompile Include="NamedIndexes.cpp" />
+    <ClCompile Include="NamedIndexesConfig.cpp" />
     <ClCompile Include="PackFileOffset.cpp" />
     <ClCompile Include="IndexedData.cpp" />
     <ClCompile Include="Indexes.cpp" />
@@ -133,6 +134,7 @@
     <ClCompile Include="DurableSet.cpp" />
     <ClCompile Include="PropertiesFile.cpp" />
     <ClCompile Include="ValueIndexedDataConfig.cpp" />
+    <ClCompile Include="ValueNamedIndexesConfig.cpp" />
     <ClCompile Include="XMLFile.cpp" />
     <ClCompile Include="FunctionCaller.cpp" />
     <ClCompile Include="Calculator.cpp" />
@@ -180,6 +182,7 @@
     <ClCompile Include="OperatorAssignment.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="NamedIndexesConfig.h" />
     <ClInclude Include="IndexedCacheResult.h" />
     <ClInclude Include="IndexedDataConfig.h" />
     <ClInclude Include="IndexedDataAccess.h" />
@@ -212,7 +215,7 @@
     <ClInclude Include="IndexWriteThrough.h" />
     <ClInclude Include="LogFile.h" />
     <ClInclude Include="LogFileCommands.h" />
-    <ClInclude Include="NamedIndexConfig.h" />
+    <ClInclude Include="NamedIndexedDataConfig.h" />
     <ClInclude Include="NamedIndexedData.h" />
     <ClInclude Include="NamedIndexes.h" />
     <ClInclude Include="PackFileOffset.h" />
@@ -228,6 +231,7 @@
     <ClInclude Include="DurableSet.h" />
     <ClInclude Include="PropertiesFile.h" />
     <ClInclude Include="ValueIndexedDataConfig.h" />
+    <ClInclude Include="ValueNamedIndexesConfig.h" />
     <ClInclude Include="XMLFile.h" />
     <ClInclude Include="FunctionCaller.h" />
     <ClInclude Include="Calculator.h" />

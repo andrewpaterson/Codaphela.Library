@@ -1,11 +1,11 @@
-#include "NamedIndexConfig.h"
+#include "NamedIndexedDataConfig.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNamedIndexConfig::Init(CIndexedDataConfig* pcIndexConfig, CIndexedDataConfig* pcNamedConfig, BOOL bKillConfigs)
+void CNamedIndexedDataConfig::Init(CIndexedDataConfig* pcIndexConfig, CNamedIndexesConfig* pcNamedConfig, BOOL bKillConfigs)
 {
 	mpcIndexConfig = pcIndexConfig;
 	mpcNamedConfig = pcNamedConfig;
@@ -17,7 +17,7 @@ void CNamedIndexConfig::Init(CIndexedDataConfig* pcIndexConfig, CIndexedDataConf
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNamedIndexConfig::Kill(void)
+void CNamedIndexedDataConfig::Kill(void)
 {
 	if (mbKillConfigs)
 	{
@@ -33,7 +33,7 @@ void CNamedIndexConfig::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNamedIndexConfig::HasDatabaseConfig(void)
+BOOL CNamedIndexedDataConfig::HasDatabaseConfig(void)
 {
 	return (mpcIndexConfig != NULL) && (mpcNamedConfig != NULL);
 }
@@ -43,7 +43,7 @@ BOOL CNamedIndexConfig::HasDatabaseConfig(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexedDataConfig* CNamedIndexConfig::GetIndexConfig(void)
+CIndexedDataConfig* CNamedIndexedDataConfig::GetIndexConfig(void)
 {
 	return mpcIndexConfig;
 }
@@ -53,7 +53,7 @@ CIndexedDataConfig* CNamedIndexConfig::GetIndexConfig(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexedDataConfig* CNamedIndexConfig::GetNamedConfig(void)
+CNamedIndexesConfig* CNamedIndexedDataConfig::GetNamedConfig(void)
 {
 	return mpcNamedConfig;
 }

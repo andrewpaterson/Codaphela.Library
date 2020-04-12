@@ -2,6 +2,7 @@
 #define __INDEX_TREE_EVICTION_CALLBACK_H__
 #include "BaseLib/Bool.h"
 
+
 class CIndexTreeEvictionCallback
 {
 public:
