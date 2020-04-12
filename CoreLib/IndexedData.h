@@ -28,7 +28,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "IndexedFilesEvictionCallback.h"
 #include "IndexedDataCommon.h"
 #include "IndexedDescriptorsFile.h"
-#include "SimpleIndexConfig.h"
+#include "IndexedDataConfig.h"
 
 
 //This is the Indexed database class.

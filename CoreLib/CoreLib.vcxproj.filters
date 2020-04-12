@@ -420,9 +420,6 @@
     <ClCompile Include="IndexedMap.cpp">
       <Filter>Source\File\Indexed</Filter>
     </ClCompile>
-    <ClCompile Include="SimpleIndexConfig.cpp">
-      <Filter>Source\File\Indexed\Config</Filter>
-    </ClCompile>
     <ClCompile Include="IndexedEvictedList.cpp">
       <Filter>Source\File\Indexed\Index\Evicting</Filter>
     </ClCompile>
@@ -436,6 +433,9 @@
       <Filter>Source\File\Indexed\Named\Config</Filter>
     </ClCompile>
     <ClCompile Include="IndexedDataConfig.cpp">
+      <Filter>Source\File\Indexed\Config</Filter>
+    </ClCompile>
+    <ClCompile Include="ValueIndexedDataConfig.cpp">
       <Filter>Source\File\Indexed\Config</Filter>
     </ClCompile>
   </ItemGroup>
@@ -704,9 +704,6 @@
     <ClInclude Include="IndexWriteThrough.h">
       <Filter>Source\File\Indexed\Index</Filter>
     </ClInclude>
-    <ClInclude Include="SimpleIndexConfig.h">
-      <Filter>Source\File\Indexed\Config</Filter>
-    </ClInclude>
     <ClInclude Include="IndexedEvictionCallback.h">
       <Filter>Source\File\Indexed\Index\Evicting</Filter>
     </ClInclude>
@@ -726,6 +723,9 @@
       <Filter>Source\File\Indexed\Index\Evicting</Filter>
     </ClInclude>
     <ClInclude Include="IndexedDataConfig.h">
+      <Filter>Source\File\Indexed\Config</Filter>
+    </ClInclude>
+    <ClInclude Include="ValueIndexedDataConfig.h">
       <Filter>Source\File\Indexed\Config</Filter>
     </ClInclude>
   </ItemGroup>

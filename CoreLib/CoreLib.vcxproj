@@ -132,7 +132,7 @@
     <ClCompile Include="DurableFileController.cpp" />
     <ClCompile Include="DurableSet.cpp" />
     <ClCompile Include="PropertiesFile.cpp" />
-    <ClCompile Include="SimpleIndexConfig.cpp" />
+    <ClCompile Include="ValueIndexedDataConfig.cpp" />
     <ClCompile Include="XMLFile.cpp" />
     <ClCompile Include="FunctionCaller.cpp" />
     <ClCompile Include="Calculator.cpp" />
@@ -227,7 +227,7 @@
     <ClInclude Include="DurableFileController.h" />
     <ClInclude Include="DurableSet.h" />
     <ClInclude Include="PropertiesFile.h" />
-    <ClInclude Include="SimpleIndexConfig.h" />
+    <ClInclude Include="ValueIndexedDataConfig.h" />
     <ClInclude Include="XMLFile.h" />
     <ClInclude Include="FunctionCaller.h" />
     <ClInclude Include="Calculator.h" />

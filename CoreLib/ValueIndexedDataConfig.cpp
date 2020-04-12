@@ -1,11 +1,11 @@
-#include "SimpleIndexConfig.h"
+#include "ValueIndexedDataConfig.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CSimpleIndexConfig::Init(char* szWorkingDirectory, char* szRewriteDirectory, size_t uiDataCacheSize, size_t uiIndexCacheSize, EIndexWriteThrough eWriteThrough)
+void CValueIndexedDataConfig::Init(char* szWorkingDirectory, char* szRewriteDirectory, size_t uiDataCacheSize, size_t uiIndexCacheSize, EIndexWriteThrough eWriteThrough)
 {
 	Init(szWorkingDirectory, szRewriteDirectory, uiDataCacheSize, uiIndexCacheSize, eWriteThrough, NULL, NULL);
 }
@@ -15,7 +15,7 @@ void CSimpleIndexConfig::Init(char* szWorkingDirectory, char* szRewriteDirectory
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CSimpleIndexConfig::Init(char* szWorkingDirectory, char* szRewriteDirectory, size_t uiDataCacheSize, size_t uiIndexCacheSize, EIndexWriteThrough eWriteThrough, CIndexTreeEvictionCallback* pcIndexEvictionUserCallback, CIndexedEvictionCallback* pcEvictionUserCallback)
+void CValueIndexedDataConfig::Init(char* szWorkingDirectory, char* szRewriteDirectory, size_t uiDataCacheSize, size_t uiIndexCacheSize, EIndexWriteThrough eWriteThrough, CIndexTreeEvictionCallback* pcIndexEvictionUserCallback, CIndexedEvictionCallback* pcEvictionUserCallback)
 {
 	mcDurableFileController.Init(szWorkingDirectory, szRewriteDirectory);
 
@@ -31,7 +31,7 @@ void CSimpleIndexConfig::Init(char* szWorkingDirectory, char* szRewriteDirectory
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CSimpleIndexConfig::Kill(void)
+void CValueIndexedDataConfig::Kill(void)
 {
 	mcDurableFileController.Kill();
 	CIndexedDataConfig::Kill();
@@ -42,7 +42,7 @@ void CSimpleIndexConfig::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CDurableFileController* CSimpleIndexConfig::GetDurableFileControl(void)
+CDurableFileController* CValueIndexedDataConfig::GetDurableFileControl(void)
 {
 	return &mcDurableFileController;
 }
@@ -52,7 +52,7 @@ CDurableFileController* CSimpleIndexConfig::GetDurableFileControl(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size_t CSimpleIndexConfig::GetDataCacheSize(void)
+size_t CValueIndexedDataConfig::GetDataCacheSize(void)
 {
 	return muiDataCacheSize;
 }
@@ -62,7 +62,7 @@ size_t CSimpleIndexConfig::GetDataCacheSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size_t CSimpleIndexConfig::GetIndexCacheSize(void)
+size_t CValueIndexedDataConfig::GetIndexCacheSize(void)
 {
 	return muiIndexCacheSize;
 }
@@ -72,7 +72,7 @@ size_t CSimpleIndexConfig::GetIndexCacheSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EIndexWriteThrough CSimpleIndexConfig::GetWriteThrough(void)
+EIndexWriteThrough CValueIndexedDataConfig::GetWriteThrough(void)
 {
 	return meWriteThrough;
 }
@@ -82,7 +82,7 @@ EIndexWriteThrough CSimpleIndexConfig::GetWriteThrough(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTreeEvictionCallback* CSimpleIndexConfig::GetIndexEvictionUserCallback(void)
+CIndexTreeEvictionCallback* CValueIndexedDataConfig::GetIndexEvictionUserCallback(void)
 {
 	return mpcIndexEvictionUserCallback;
 }
@@ -92,7 +92,7 @@ CIndexTreeEvictionCallback* CSimpleIndexConfig::GetIndexEvictionUserCallback(voi
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexedEvictionCallback* CSimpleIndexConfig::GetEvictionUserCallback(void)
+CIndexedEvictionCallback* CValueIndexedDataConfig::GetEvictionUserCallback(void)
 {
 	return mpcEvictionUserCallback;
 }
