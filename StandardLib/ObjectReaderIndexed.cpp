@@ -28,15 +28,15 @@ void CObjectReaderIndexed::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CSerialisedObject* CObjectReaderIndexed::Read(OIndex oi)
+CSerialisedObject* CObjectReaderIndexed::Read(OIndex oi, void* pvBuffer)
 {
-	void*					pvData;
 	CSerialisedObject*		pcSerialised;
+	BOOL					bExists;
 
-	pvData = mpcIndexedData->Get(oi);
-	if (pvData)
+	bExists = mpcIndexedData->Get(oi, pvBuffer);
+	if (bExists)
 	{
-		pcSerialised = (CSerialisedObject*)pvData;
+		pcSerialised = (CSerialisedObject*)pvBuffer;
 		return pcSerialised;
 	}
 	else
@@ -50,15 +50,15 @@ CSerialisedObject* CObjectReaderIndexed::Read(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CSerialisedObject* CObjectReaderIndexed::Read(char* szObjectName)
+CSerialisedObject* CObjectReaderIndexed::Read(char* szObjectName, void* pvBuffer)
 {
-	void*					pvData;
 	CSerialisedObject*		pcSerialised;
+	BOOL					bExists;
 
-	pvData = mpcIndexedData->Get(szObjectName);
-	if (pvData)
+	bExists = mpcIndexedData->Get(szObjectName, pvBuffer);
+	if (bExists)
 	{
-		pcSerialised = (CSerialisedObject*)pvData;
+		pcSerialised = (CSerialisedObject*)pvBuffer;
 		return pcSerialised;
 	}
 	else

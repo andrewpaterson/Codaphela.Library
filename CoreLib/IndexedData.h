@@ -40,7 +40,7 @@ protected:
 	CDurableFileController*		mpcDurableFileControl;
 
 public:
-	void 			Init(CIndexConfig* pcConfig);
+	void 			Init(CIndexedDataConfig* pcConfig);
 	BOOL 			Kill(void);
 
 	BOOL			Flush(BOOL bClearDataCache);

@@ -34,7 +34,7 @@ void CSimpleIndexConfig::Init(char* szWorkingDirectory, char* szRewriteDirectory
 void CSimpleIndexConfig::Kill(void)
 {
 	mcDurableFileController.Kill();
-	CIndexConfig::Kill();
+	CIndexedDataConfig::Kill();
 }
 
 

@@ -1,15 +1,15 @@
-#ifndef __INDEX_CONFIG_H__
-#define __INDEX_CONFIG_H__
+#ifndef __INDEXED_DATA_CONFIG_H__
+#define __INDEXED_DATA_CONFIG_H__
 #include "IndexWriteThrough.h"
 #include "DurableFileController.h"
 #include "IndexTreeEvictionCallback.h"
 #include "IndexedEvictionCallback.h"
 
 
-class CIndexConfig
+class CIndexedDataConfig
 {
 public:
-	virtual void					Kill(void);
+	virtual void							Kill(void);
 
 	virtual CDurableFileController*			GetDurableFileControl(void) =0;
 	virtual size_t							GetDataCacheSize(void) =0;
@@ -20,5 +20,5 @@ public:
 };
 
 
-#endif // __INDEXED_CONFIG_H__
+#endif // __INDEXED_DATA_CONFIG_H__
 
