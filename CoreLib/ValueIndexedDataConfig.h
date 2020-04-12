@@ -1,9 +1,9 @@
-#ifndef __SIMPLE_INDEX_CONFIG_H__
-#define __SIMPLE_INDEX_CONFIG_H__
+#ifndef __VALUE_INDEXED_DATA_CONFIG_H__
+#define __VALUE_INDEXED_DATA_CONFIG_H__
 #include "IndexedDataConfig.h"
 
 
-class CSimpleIndexConfig : public CIndexedDataConfig
+class CValueIndexedDataConfig : public CIndexedDataConfig
 {
 protected:
 	CDurableFileController			mcDurableFileController;
@@ -27,5 +27,5 @@ public:
 };
 
 
-#endif // __SIMPLE_INDEX_CONFIG_H__
+#endif // __VALUE_INDEXED_DATA_CONFIG_H__
 
