@@ -116,7 +116,7 @@ BOOL CNamedIndexes::Put(CChars* szName, OIndex oi, BOOL bFailOnExisting)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-OIndex CNamedIndexes::GetIndex(char* szName)
+OIndex CNamedIndexes::Get(char* szName)
 {
 	int		iKeySize;
 	OIndex	iResult;
@@ -140,7 +140,7 @@ OIndex CNamedIndexes::GetIndex(char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-OIndex CNamedIndexes::GetIndex(CChars* szName)
+OIndex CNamedIndexes::Get(CChars* szName)
 {
 	OIndex	iResult;
 	BOOL	bExists;
