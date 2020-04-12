@@ -1,3 +1,4 @@
+#include "BaseLib/Logger.h"
 #include "IndexedCache.h"
 #include "IndexedDataCommon.h"
 
@@ -81,7 +82,7 @@ BOOL CIndexedDataCommon::Set(OIndex oi, void* pvData, unsigned int uiDataSize, u
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedDataCommon::SetOrAdd(OIndex oi, void* pvData, unsigned int uiDataSize, unsigned int uiTimeStamp)
+BOOL CIndexedDataCommon::Put(OIndex oi, void* pvData, unsigned int uiDataSize, unsigned int uiTimeStamp)
 {
 	BOOL					bExists;
 	CIndexedDataDescriptor	cDescriptor;

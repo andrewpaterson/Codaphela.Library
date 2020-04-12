@@ -45,7 +45,7 @@ BOOL CIndexedDataAccess::Put(void* pvKey, int iKeySize, void* pvData, int iDataS
 	if (iKeySize == sizeof(OIndex))
 	{
 		oi = *((OIndex*)pvKey);
-		return mpcIndexData->SetOrAdd(oi, pvData, iDataSize, 0);
+		return mpcIndexData->Put(oi, pvData, iDataSize, 0);
 	}
 	else
 	{
