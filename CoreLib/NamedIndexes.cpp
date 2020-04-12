@@ -70,7 +70,7 @@ BOOL CNamedIndexes::IndexTreeNodeEvicted(void* pvKey, int iKeySize, void* pvData
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNamedIndexes::Add(OIndex oi, char* szName, BOOL bFailOnExisting)
+BOOL CNamedIndexes::Put(char* szName, OIndex oi, BOOL bFailOnExisting)
 {
 	int		iKeySize;
 	BOOL	bExists;
@@ -96,7 +96,7 @@ BOOL CNamedIndexes::Add(OIndex oi, char* szName, BOOL bFailOnExisting)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNamedIndexes::Add(OIndex oi, CChars* szName, BOOL bFailOnExisting)
+BOOL CNamedIndexes::Put(CChars* szName, OIndex oi, BOOL bFailOnExisting)
 {
 	BOOL	bExists;
 
