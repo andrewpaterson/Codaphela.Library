@@ -99,6 +99,7 @@ BOOL CIndexedFiles::ReadIndexedFileDescriptors(void)
 
 	if (!mpcDurableFileControl->IsBegun())
 	{
+		gcLogger.Error2(__METHOD__, " Cannot read descriptors if the Durable Controller is not begun.", NULL);
 		return FALSE;
 	}
 
