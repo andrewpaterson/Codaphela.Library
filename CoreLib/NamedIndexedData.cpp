@@ -294,7 +294,7 @@ void CNamedIndexedData::DurableEnd(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int64 CNamedIndexedData::NumIndicies(void)
+int64 CNamedIndexedData::NumIndices(void)
 {
 	return mcData.NumElements();	
 }
@@ -304,9 +304,9 @@ int64 CNamedIndexedData::NumIndicies(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int64 CNamedIndexedData::NumIndiciesCached(void)
+int64 CNamedIndexedData::NumIndicesCached(void)
 {
-	return mcData.NumElementsCached();
+	return mcData.NumIndicesCached();
 }
 
 
@@ -314,9 +314,9 @@ int64 CNamedIndexedData::NumIndiciesCached(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int64 CNamedIndexedData::NumIndiciesCached(int iSize)
+int64 CNamedIndexedData::NumIndicesCached(int iSize)
 {
-	return mcData.NumElementsCached();
+	return mcData.NumIndicesCached();
 }
 
 //////////////////////////////////////////////////////////////////////////

@@ -32,8 +32,8 @@ public:
 	BOOL			Flush(void);
 
 	int64			NumElements(void);
-	int64			NumIndicies(void);
-	int				NumIndiciesCached(void);
+	int64			NumIndices(void);
+	int				NumIndicesCached(void);
 	int64			NumDatas(void);
 
 	BOOL			Evict(OIndex oi);
