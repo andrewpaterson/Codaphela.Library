@@ -33,11 +33,14 @@ public:
 
 			BOOL			Contains(OIndex oi);
 
-	virtual int64			NumElements(void) =0;
+			int64			NumElements(void);
+
+	virtual int64			NumIndicies(void) =0;
+			int64			NumDatas(void);
 			int				NumDataCached(void);
 			int				NumDataCached(int iSize);
 			int				NumFiles(void);
-			int64			NumData(unsigned int uiDataSize);
+			int64			NumDatas(unsigned int uiDataSize);
 
 			BOOL			Remove(OIndex oi);
 

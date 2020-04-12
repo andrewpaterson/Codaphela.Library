@@ -66,8 +66,10 @@ public:
 	void			DurableBegin(void);
 	void			DurableEnd(void);
 
-	long long int	NumIndicies(void);
-	long long int	NumNames(void);
+	int64			NumIndicies(void);
+	int64			NumIndiciesCached(void);
+	int64			NumIndiciesCached(int iSize);
+	int64			NumNames(void);
 	BOOL			IsCaching(void);
 };
 

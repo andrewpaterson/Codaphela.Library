@@ -22,6 +22,8 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/GlobalMemory.h"
 #include "BaseLib/DebugOutput.h"
 #include "BaseLib/Log.h"
+#include "CoreLib/ValueIndexedDataConfig.h"
+#include "CoreLib/ValueNamedIndexesConfig.h"
 #include "BaseObject.h"
 #include "NamedObject.h"
 #include "ObjectSingleSerialiser.h"
@@ -118,10 +120,9 @@ CObjects::CObjects()
 //////////////////////////////////////////////////////////////////////////
 void CObjects::Init(CUnknowns* pcUnknownsAllocatingFrom, CStackPointers* pcStackPointers, char* szWorkingDirectory)
 {
-	CNamedIndexConfig	cConfig;
-	CSimpleIndexConfig	cIndexConfig;
-	CSimpleIndexConfig	cNamedConfig;
-
+	CNamedIndexedDataConfig		cConfig;
+	CValueIndexedDataConfig		cIndexConfig;
+	CValueNamedIndexesConfig	cNamedConfig;
 
 	cConfig.Init(&cIndexConfig, &cNamedConfig, TRUE);
 
@@ -133,7 +134,7 @@ void CObjects::Init(CUnknowns* pcUnknownsAllocatingFrom, CStackPointers* pcStack
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjects::Init(CUnknowns* pcUnknownsAllocatingFrom, CStackPointers* pcStackPointers, CNamedIndexConfig* pcConfig)
+void CObjects::Init(CUnknowns* pcUnknownsAllocatingFrom, CStackPointers* pcStackPointers, CNamedIndexedDataConfig* pcConfig)
 {
 	mpcUnknownsAllocatingFrom = pcUnknownsAllocatingFrom;
 	mpcStackPointers = pcStackPointers;
@@ -471,25 +472,6 @@ void CObjects::RecurseValidateSceneGraph(CBaseObject* pcBaseObject)
 		}
 
 		apcTos.Kill();
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CObjects::Close(void)
-{
-	if (mbDatabase)
-	{
-		//xxx
-		////Need to put more thought into Durable Files and Closing.
-		return mcDatabase.Close();
-	}
-	else
-	{
-		return TRUE;
 	}
 }
 
@@ -1099,7 +1081,7 @@ CPointer CObjects::Null(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-long long int CObjects::NumMemoryIndexes(void)
+int64 CObjects::NumMemoryIndexes(void)
 {
 	return mcMemory.NumIndexed();
 }
@@ -1119,13 +1101,11 @@ int CObjects::NumMemoryNames(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-long long int CObjects::NumDatabaseObjects(void)
+int64 CObjects::NumIndicies(void)
 {
 	if (mbDatabase)
 	{
-		//This is a very slow method.  
-		//It loads every descriptor from 0 to the LastOI and checks if it points to an object.
-		return mcDatabase.NumObjects();
+		return mcDatabase.NumIndicies();
 	}
 	else
 	{
@@ -1138,11 +1118,11 @@ long long int CObjects::NumDatabaseObjects(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CObjects::NumDatabaseObjectsCached(int iSize)
+int64 CObjects::NumIndiciesCached(int iSize)
 {
 	if (mbDatabase)
 	{
-		return mcDatabase.NumCached(iSize);
+		return mcDatabase.NumIndiciesCached(iSize);
 	}
 	else
 	{
@@ -1155,11 +1135,11 @@ int CObjects::NumDatabaseObjectsCached(int iSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CObjects::NumDatabaseObjectsCached(void)
+int64 CObjects::NumIndiciesCached(void)
 {
 	if (mbDatabase)
 	{
-		return mcDatabase.NumCached();
+		return mcDatabase.NumIndiciesCached();
 	}
 	else
 	{
@@ -1172,7 +1152,7 @@ int CObjects::NumDatabaseObjectsCached(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-long long int CObjects::NumDatabaseNames(void)
+int64 CObjects::NumDatabaseNames(void)
 {
 	if (mbDatabase)
 	{
@@ -1428,7 +1408,7 @@ void ObjectsInit(char* szWorkingDirectory)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void ObjectsInit(CNamedIndexConfig* pcConfig)
+void ObjectsInit(CNamedIndexedDataConfig* pcConfig)
 {
 	UnknownsInit();
 	gcStackPointers.Init(2048);

@@ -41,7 +41,8 @@ public:
 	int				NumCached(void);
 	int				NumCached(int iSize);
 	int				NumFiles(void);
-	int64			NumData(int iDataSize);
+	int64			NumDatas(void);
+	int64			NumDatas(int iDataSize);
 
 	unsigned int	GetCachedDataSize(CIndexedDataDescriptor* pcDescriptor);
 	void*			GetCachedData(SIndexedCacheDescriptor* psDescriptor);

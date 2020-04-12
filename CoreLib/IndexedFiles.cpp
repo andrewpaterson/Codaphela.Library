@@ -400,7 +400,7 @@ unsigned int CIndexedFiles::GetFileDataSize(int iFileIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int64 CIndexedFiles::NumData(void)
+int64 CIndexedFiles::NumDatas(void)
 {
 	int				i;
 	CIndexedFile*	pcIndexedFile;
@@ -420,7 +420,7 @@ int64 CIndexedFiles::NumData(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int64 CIndexedFiles::NumData(int iDataSize)
+int64 CIndexedFiles::NumDatas(int iDataSize)
 {
 	int				i;
 	CIndexedFile*	pcIndexedFile;
