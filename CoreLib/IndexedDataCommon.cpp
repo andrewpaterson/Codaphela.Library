@@ -231,7 +231,7 @@ BOOL CIndexedDataCommon::Contains(OIndex oi)
 //////////////////////////////////////////////////////////////////////////
 int64 CIndexedDataCommon::NumElements(void)
 {
-	return NumIndicies();
+	return NumIndices();
 }
 
 

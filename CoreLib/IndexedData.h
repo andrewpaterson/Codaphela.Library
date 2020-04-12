@@ -48,15 +48,15 @@ public:
 	BOOL			DurableEnd(void);
 	BOOL			IsDurable(void);
 
-	int64			NumIndicies(void);
-	BOOL			IsDirty(OIndex oi);
+	int64			NumIndices(void);
+	int64			NumIndicesCached(void);
 
+	BOOL			IsDirty(OIndex oi);
 	BOOL			EvictKey(OIndex oi);
 	BOOL			EvictData(OIndex oi, CIndexedDataDescriptor* pcDescriptor);
 
 	BOOL			FlushKey(OIndex oi);
 
-	int				NumElementsCached(void);
 	CDurableFileController* GetDurableFileControl(void);
 	size_t			GetIndiciesSystemMemorySize(void);
 	size_t			GetDataSystemMemorySize(void);

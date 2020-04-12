@@ -137,7 +137,7 @@ BOOL CIndexedDescriptorsFile::SetCache(void* pvCache, unsigned int uiDataSize, O
 //////////////////////////////////////////////////////////////////////////
 int64 CIndexedDescriptorsFile::NumElements(void)
 {
-	return NumIndicies();
+	return NumIndices();
 }
 
 
@@ -145,7 +145,7 @@ int64 CIndexedDescriptorsFile::NumElements(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int64 CIndexedDescriptorsFile::NumIndicies(void)
+int64 CIndexedDescriptorsFile::NumIndices(void)
 {
 	return mcIndexTree.NumElements();
 }
@@ -155,7 +155,7 @@ int64 CIndexedDescriptorsFile::NumIndicies(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CIndexedDescriptorsFile::NumIndiciesCached(void)
+int CIndexedDescriptorsFile::NumIndicesCached(void)
 {
 	return mcIndexTree.NumMemoryElements();
 }

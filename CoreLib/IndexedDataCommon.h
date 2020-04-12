@@ -35,7 +35,8 @@ public:
 
 			int64			NumElements(void);
 
-	virtual int64			NumIndicies(void) =0;
+	virtual int64			NumIndices(void) =0;
+	virtual int64			NumIndicesCached(void) =0;
 			int64			NumDatas(void);
 			int				NumDataCached(void);
 			int				NumDataCached(int iSize);
