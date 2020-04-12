@@ -25,7 +25,7 @@ BOOL CIndexedDataCommon::Add(OIndex oi, void* pvData, unsigned int uiDataSize, u
 	bResult = GetDescriptor(oi, &cDescriptor);
 	if (bResult)
 	{
-		return gcLogger.Error2(__METHOD__, "Cannot Add index [", LongLongToString(oi), "].  It already exists.");
+		return gcLogger.Error2(__METHOD__, "Cannot Add index [", LongLongToString(oi), "].  It already exists.", NULL);
 	}
 
 	//This init clears the file index.  This means CompareDiskToMemory() will not try and read it to test for changes.
@@ -49,7 +49,7 @@ BOOL CIndexedDataCommon::Set(OIndex oi, void* pvData, unsigned int uiTimeStamp)
 	}
 	else
 	{
-		return gcLogger.Error2(__METHOD__, "Cannot Set index [", LongLongToString(oi), "].  It does not exist.");
+		return gcLogger.Error2(__METHOD__, "Cannot Set index [", LongLongToString(oi), "].  It does not exist.", NULL);
 	}
 }
 
@@ -70,7 +70,7 @@ BOOL CIndexedDataCommon::Set(OIndex oi, void* pvData, unsigned int uiDataSize, u
 	}
 	else
 	{
-		return gcLogger.Error2(__METHOD__, "Cannot Set index [", LongLongToString(oi), "].  It does not exist.");
+		return gcLogger.Error2(__METHOD__, "Cannot Set index [", LongLongToString(oi), "].  It does not exist.", NULL);
 	}
 }
 
