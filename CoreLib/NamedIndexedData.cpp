@@ -90,7 +90,7 @@ BOOL CNamedIndexedData::Set(OIndex oi, void* pvData, unsigned int uiDataSize, un
 //////////////////////////////////////////////////////////////////////////
 BOOL CNamedIndexedData::SetOrAdd(OIndex oi, void* pvData, unsigned int uiDataSize, unsigned int uiTimeStamp)
 {
-	return mcData.SetOrAdd(oi, pvData, uiDataSize, uiTimeStamp);
+	return mcData.Put(oi, pvData, uiDataSize, uiTimeStamp);
 }
 
 
@@ -101,7 +101,7 @@ BOOL CNamedIndexedData::SetOrAdd(OIndex oi, void* pvData, unsigned int uiDataSiz
 BOOL CNamedIndexedData::SetOrAdd(OIndex oi, CChars* szName, void* pvData, unsigned int uiDataSize, unsigned int uiTimeStamp)
 {
 	ReturnOnFalse(mcNames.Put(szName, oi, FALSE));
-	return mcData.SetOrAdd(oi, pvData, uiDataSize, uiTimeStamp);
+	return mcData.Put(oi, pvData, uiDataSize, uiTimeStamp);
 }
 
 
@@ -112,7 +112,7 @@ BOOL CNamedIndexedData::SetOrAdd(OIndex oi, CChars* szName, void* pvData, unsign
 BOOL CNamedIndexedData::SetOrAdd(OIndex oi, char* szName, void* pvData, unsigned int uiDataSize, unsigned int uiTimeStamp)
 {
 	ReturnOnFalse(mcNames.Put(szName, oi, FALSE));
-	return mcData.SetOrAdd(oi, pvData, uiDataSize, uiTimeStamp);
+	return mcData.Put(oi, pvData, uiDataSize, uiTimeStamp);
 }
 
 
