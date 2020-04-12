@@ -25,10 +25,10 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNamedIndexedData::Init(CNamedIndexConfig* pcConfig)
+void CNamedIndexedData::Init(CNamedIndexedDataConfig* pcConfig)
 {
 	mcData.Init(pcConfig->GetIndexConfig());
-	//mcNames.Init(pcConfig->GetNamedConfig());
+	mcNames.Init(pcConfig->GetNamedConfig());
 }
 
 

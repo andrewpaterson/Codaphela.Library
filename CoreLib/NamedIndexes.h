@@ -27,19 +27,16 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "IndexTreeEvicting.h"
 #include "IndexTreeEvictionStrategyRandom.h"
 #include "EvictionCallbackWrapper.h"
-#include "IndexedDataConfig.h"
+#include "NamedIndexesConfig.h"
 
 
 class CNamedIndexes : public CIndexTreeEvictionCallback, public CIndexTreeFileCallback
 {
 protected:
 	CIndexTreeEvicting						mcIndexTree;
-	CIndexTreeEvictionStrategyRandom		mcEvictionStrategy;
-	EIndexWriteThrough						meWriteThrough;
 	
 public:
-	void			Init(CDurableFileController* pcDurableFileController, size_t uiCutoff, EIndexWriteThrough eWriteThrough);
-	void			Init(CDurableFileController* pcDurableFileController, size_t uiCutoff, EIndexWriteThrough eWriteThrough, CIndexTreeEvictionCallback* pcEvictionCallback);
+	void			Init(CNamedIndexesConfig* pcConfig);
 	BOOL			Kill(void);
 
 	BOOL			Put(char* szName, OIndex oi, BOOL bFailOnExisting = TRUE);
