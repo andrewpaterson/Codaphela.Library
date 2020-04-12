@@ -59,7 +59,7 @@ BOOL CNamedIndexedData::Add(OIndex oi, void* pvData, unsigned int uiDataSize, un
 //////////////////////////////////////////////////////////////////////////
 BOOL CNamedIndexedData::Add(OIndex oi, CChars* szName, void* pvData, unsigned int uiDataSize, unsigned int uiTimeStamp)
 {
-	ReturnOnFalse(mcNames.Put(szName, oi));
+	ReturnOnFalse(mcNames.Add(szName, oi));
 	return mcData.Add(oi, pvData, uiDataSize, uiTimeStamp);
 }
 
@@ -100,7 +100,7 @@ BOOL CNamedIndexedData::Put(OIndex oi, void* pvData, unsigned int uiDataSize, un
 //////////////////////////////////////////////////////////////////////////
 BOOL CNamedIndexedData::Put(OIndex oi, CChars* szName, void* pvData, unsigned int uiDataSize, unsigned int uiTimeStamp)
 {
-	ReturnOnFalse(mcNames.Put(szName, oi, FALSE));
+	ReturnOnFalse(mcNames.Put(szName, oi));
 	return mcData.Put(oi, pvData, uiDataSize, uiTimeStamp);
 }
 
@@ -111,7 +111,7 @@ BOOL CNamedIndexedData::Put(OIndex oi, CChars* szName, void* pvData, unsigned in
 //////////////////////////////////////////////////////////////////////////
 BOOL CNamedIndexedData::Put(OIndex oi, char* szName, void* pvData, unsigned int uiDataSize, unsigned int uiTimeStamp)
 {
-	ReturnOnFalse(mcNames.Put(szName, oi, FALSE));
+	ReturnOnFalse(mcNames.Put(szName, oi));
 	return mcData.Put(oi, pvData, uiDataSize, uiTimeStamp);
 }
 

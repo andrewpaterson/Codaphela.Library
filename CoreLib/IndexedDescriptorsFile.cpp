@@ -234,7 +234,7 @@ BOOL CIndexedDescriptorsFile::IndexTreeNodeEvicted(void* pvKey, int iKeySize, vo
 
 	if (iKeySize != sizeof(OIndex))
 	{
-		return gcLogger.Error2(__METHOD__, "Key evicted was not an OIndex.", NULL);
+		return gcLogger.Error2(__METHOD__, " Key evicted was not an OIndex.", NULL);
 	}
 
 	oi = *((OIndex*)pvKey);
