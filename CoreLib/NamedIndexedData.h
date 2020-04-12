@@ -43,9 +43,9 @@ public:
 	BOOL			Set(OIndex oi, void* pvData, unsigned int uiTimeStamp);
 	BOOL			Set(OIndex oi, void* pvData, unsigned int uiDataSize, unsigned int uiTimeStamp);
 
-	BOOL			SetOrAdd(OIndex oi, void* pvData, unsigned int uiDataSize, unsigned int uiTimeStamp);
-	BOOL			SetOrAdd(OIndex oi, CChars* szName, void* pvData, unsigned int uiDataSize, unsigned int uiTimeStamp);
-	BOOL			SetOrAdd(OIndex oi, char* szName, void* pvData, unsigned int uiDataSize, unsigned int uiTimeStamp);
+	BOOL			Put(OIndex oi, void* pvData, unsigned int uiDataSize, unsigned int uiTimeStamp);
+	BOOL			Put(OIndex oi, CChars* szName, void* pvData, unsigned int uiDataSize, unsigned int uiTimeStamp);
+	BOOL			Put(OIndex oi, char* szName, void* pvData, unsigned int uiDataSize, unsigned int uiTimeStamp);
 
 	unsigned int	Size(OIndex oi);
 
