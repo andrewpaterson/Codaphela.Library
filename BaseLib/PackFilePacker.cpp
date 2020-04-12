@@ -72,14 +72,14 @@ BOOL CPackFilePacker::Unpack(char* szSourcePakFile, char* szDestDirectory, BOOL 
 
 		if (!bResult)
 		{
-			gcLogger.Error2(__METHOD__, "Failed to unpack [", szSourcePakFile, "] into [", StringToString(szDestDirectory), "].", NULL);
+			gcLogger.Error2(__METHOD__, " Failed to unpack [", szSourcePakFile, "] into [", StringToString(szDestDirectory), "].", NULL);
 			return FALSE;
 		}
 		return TRUE;
 	}
 	else
 	{
-		gcLogger.Error2(__METHOD__, "Pak file [", StringToString(szSourcePakFile), "]does not exist.", NULL);
+		gcLogger.Error2(__METHOD__, " Pak file [", StringToString(szSourcePakFile), "]does not exist.", NULL);
 		return FALSE;
 	}
 }

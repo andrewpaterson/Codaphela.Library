@@ -33,18 +33,27 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 class CNamedIndexes : public CIndexTreeEvictionCallback, public CIndexTreeFileCallback
 {
 protected:
-	CIndexTreeEvicting						mcIndexTree;
+	CIndexTreeEvicting	mcIndexTree;
 	
 public:
 	void			Init(CNamedIndexesConfig* pcConfig);
 	BOOL			Kill(void);
 
-	BOOL			Put(char* szName, OIndex oi, BOOL bFailOnExisting = TRUE);
-	BOOL			Put(CChars* szName, OIndex oi, BOOL bFailOnExisting = TRUE);
+	BOOL			Add(char* szName, OIndex oi);
+	BOOL			Add(CChars* szName, OIndex oi);
+
+	BOOL			Set(char* szName, OIndex oi);
+	BOOL			Set(CChars* szName, OIndex oi);
+
+	BOOL			Put(char* szName, OIndex oi);
+	BOOL			Put(CChars* szName, OIndex oi);
+
 	OIndex			Get(char* szName);
 	OIndex			Get(CChars* szName);
+
 	BOOL			Remove(char* szName);
 	BOOL			Remove(CChars* szName);
+
 	filePos			NumElements(void);
 	BOOL			Flush(void);
 

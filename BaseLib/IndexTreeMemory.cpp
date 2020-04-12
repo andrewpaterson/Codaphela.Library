@@ -219,12 +219,12 @@ void* CIndexTreeMemory::Put(void* pvKey, int iKeySize, void* pvData, int iDataSi
 
 	if ((iKeySize <= 0) || (iKeySize > miMaxKeySize))
 	{
-		gcLogger.Error2(__METHOD__, "Key size [", IntToString(iKeySize), "] must be positive and <= [", IntToString(miMaxKeySize), "].", NULL);
+		gcLogger.Error2(__METHOD__, " Key size [", IntToString(iKeySize), "] must be positive and <= [", IntToString(miMaxKeySize), "].", NULL);
 		return NULL;
 	}
 	if ((iDataSize <= 0) || (iDataSize > miMaxDataSize))
 	{
-		gcLogger.Error2(__METHOD__, "Data size [", IntToString(iDataSize), "] must be positive and <= [", IntToString(miMaxDataSize), "].", NULL);
+		gcLogger.Error2(__METHOD__, " Data size [", IntToString(iDataSize), "] must be positive and <= [", IntToString(miMaxDataSize), "].", NULL);
 		return NULL;
 	}
 
