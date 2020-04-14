@@ -39,13 +39,14 @@ struct SIndexedFileDescriptor
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedFiles::Init(CDurableFileController* pcDurableFileControl, char* szDataExtension, char* szDescricptorName, char* szDescricptorRewrite)
+void CIndexedFiles::Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, char* szDataExtension, char* szDescriptorName, char* szDescriptorRewrite)
 {
 	mpcDurableFileControl = pcDurableFileControl;
 	mszDataExtension.Init(szDataExtension);
+	mszSubDirectory.Init(szSubDirectory);
 	mcFiles.Init();
 
-	InitIndexedFileDescriptors(szDescricptorName, szDescricptorRewrite);
+	InitIndexedFileDescriptors(szDescriptorName, szDescriptorRewrite);
 }
 
 
@@ -66,6 +67,7 @@ void CIndexedFiles::Kill(void)
 	mcFiles.Kill();
 
 	mcFileDescriptors.Kill();
+	mszSubDirectory.Kill();
 	mszDataExtension.Kill();
 }
 
@@ -74,9 +76,9 @@ void CIndexedFiles::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedFiles::InitIndexedFileDescriptors(char* szDescricptorName, char* szDescricptorRewrite)
+void CIndexedFiles::InitIndexedFileDescriptors(char* szDescriptorName, char* szDescriptorRewrite)
 {
-	mpcDurableFileControl->InitFile(&mcFileDescriptors, szDescricptorName, szDescricptorRewrite);
+	mpcDurableFileControl->InitFile(&mcFileDescriptors, szDescriptorName, szDescriptorRewrite);
 }
 
 
@@ -105,7 +107,7 @@ BOOL CIndexedFiles::ReadIndexedFileDescriptors(void)
 
 	if (mcFiles.NumElements() != 0)
 	{
-		//Don't read 
+		//Don't read.  Should probably throw an error.
 		return FALSE;
 	}
 
@@ -186,10 +188,13 @@ BOOL CIndexedFiles::WriteIndexedFileDescriptors(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexedFiles::DataFileName(char* szFile1, char* szFile2, int iDataSize, int iFileNum)
 {
-	CChars	szFileName;
-	CChars	szRewriteName;
+	CChars		szFileName;
+	CChars		szRewriteName;
+	CFileUtil	cFileUtil;
 
 	szFileName.Init(mpcDurableFileControl->GetDirectory());
+	cFileUtil.AppendToPath(&szFileName, mszSubDirectory.Text());
+
 	szFileName.Append(FILE_SEPARATOR);
 	szFileName.Append(iDataSize);
 	szFileName.Append("_");

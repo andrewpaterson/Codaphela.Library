@@ -5,9 +5,9 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CValueNamedIndexesConfig::Init(CDurableFileController* pcDurableFileController, size_t uiCutoff, CIndexTreeEvictionStrategy* pcEvictionStrategy, EIndexWriteThrough eWriteThrough)
+void CValueNamedIndexesConfig::Init(CDurableFileController* pcDurableFileController, char* szSubDirectory, size_t uiCutoff, CIndexTreeEvictionStrategy* pcEvictionStrategy, EIndexWriteThrough eWriteThrough)
 {
-	Init(pcDurableFileController, uiCutoff, pcEvictionStrategy, eWriteThrough, NULL);
+	Init(pcDurableFileController, szSubDirectory, uiCutoff, pcEvictionStrategy, eWriteThrough, NULL);
 }
 
 
@@ -15,13 +15,14 @@ void CValueNamedIndexesConfig::Init(CDurableFileController* pcDurableFileControl
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CValueNamedIndexesConfig::Init(CDurableFileController* pcDurableFileController, size_t uiCutoff, CIndexTreeEvictionStrategy* pcEvictionStrategy, EIndexWriteThrough eWriteThrough, CIndexTreeEvictionCallback* pcEvictionCallback)
+void CValueNamedIndexesConfig::Init(CDurableFileController* pcDurableFileController, char* szSubDirectory, size_t uiCutoff, CIndexTreeEvictionStrategy* pcEvictionStrategy, EIndexWriteThrough eWriteThrough, CIndexTreeEvictionCallback* pcEvictionCallback)
 {
 	mpcDurableFileController = pcDurableFileController;
 	muiCutoff = uiCutoff;
 	mpcEvictionStrategy = pcEvictionStrategy;
 	meWriteThrough = eWriteThrough;
 	mpEvictionCallback = pcEvictionCallback;
+	mszSubDirectory = szSubDirectory;
 }
 
 
@@ -84,4 +85,13 @@ CIndexTreeEvictionCallback* CValueNamedIndexesConfig::GetIndexTreeEvictionCallba
 	return mpEvictionCallback;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CValueNamedIndexesConfig::GetSubDirectory(void)
+{
+	return mszSubDirectory;
+}
 

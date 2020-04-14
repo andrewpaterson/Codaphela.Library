@@ -19,8 +19,8 @@ protected:
 	CEvictionCallbackWrapper							mcEvictionCallbackWrapper;
 
 public:
-	void			Init(CIndexedDataCommon* pcIndexedData, CDurableFileController* pcDurableFileController, size_t uiCutoff, EIndexWriteThrough eWriteThrough);
-	void			Init(CIndexedDataCommon* pcIndexedData, CDurableFileController* pcDurableFileController, size_t uiCutoff, EIndexWriteThrough eWriteThrough, CIndexTreeEvictionCallback* pcEvictionCallback);
+	void			Init(CIndexedDataCommon* pcIndexedData, CDurableFileController* pcDurableFileController, char* szSubDirectory, size_t uiCutoff, EIndexWriteThrough eWriteThrough);
+	void			Init(CIndexedDataCommon* pcIndexedData, CDurableFileController* pcDurableFileController, char* szSubDirectory, size_t uiCutoff, EIndexWriteThrough eWriteThrough, CIndexTreeEvictionCallback* pcEvictionCallback);
 	void			Kill(void);
 
 	BOOL			Remove(OIndex oi);

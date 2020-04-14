@@ -44,8 +44,6 @@ public:
 
 	BOOL			Flush(BOOL bClearDataCache);
 
-	BOOL			DurableBegin(void);
-	BOOL			DurableEnd(void);
 	BOOL			IsDurable(void);
 
 	int64			NumIndices(void);
@@ -65,7 +63,7 @@ public:
 	void			DumpIndex(void);
 
 protected:
-	void 			InitIndices(CDurableFileController* pcDurableFileControl, size_t uiCutoff, EIndexWriteThrough eWriteThrough, CIndexTreeEvictionCallback* pcIndexEvictionUserCallback);
+	void 			InitIndices(CDurableFileController* pcDurableFileControl, char* szSubDirectory, size_t uiCutoff, EIndexWriteThrough eWriteThrough, CIndexTreeEvictionCallback* pcIndexEvictionUserCallback);
 
 	BOOL			GetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor, BOOL bNoEviction = FALSE);
 	BOOL			SetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor, BOOL bNoEviction = FALSE);

@@ -38,12 +38,9 @@ void CIndexedData::Init(CIndexedDataConfig* pcConfig)
 	meWriteThrough = pcConfig->GetWriteThrough();
 
 	mpcDurableFileControl = pcConfig->GetDurableFileControl();
-	mpcDurableFileControl->Begin();
 
-	InitIndices(mpcDurableFileControl, pcConfig->GetIndexCacheSize(), meWriteThrough, pcConfig->GetIndexEvictionUserCallback());
-	mcData.Init(mpcDurableFileControl, "DAT", "Files.IDX", "_Files.IDX", pcConfig->GetDataCacheSize(), meWriteThrough, this);
-
-	mpcDurableFileControl->End();
+	InitIndices(mpcDurableFileControl, pcConfig->GetSubdirectory(), pcConfig->GetIndexCacheSize(), meWriteThrough, pcConfig->GetIndexEvictionUserCallback());
+	mcData.Init(mpcDurableFileControl, pcConfig->GetSubdirectory(), "DAT", "Files.IDX", "_Files.IDX", pcConfig->GetDataCacheSize(), meWriteThrough, this);
 }
 
 
@@ -80,9 +77,9 @@ BOOL CIndexedData::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedData::InitIndices(CDurableFileController* pcDurableFileControl, size_t uiCutoff, EIndexWriteThrough eWriteThrough, CIndexTreeEvictionCallback* pcIndexEvictionUserCallback)
+void CIndexedData::InitIndices(CDurableFileController* pcDurableFileControl, char* szSubDirectory, size_t uiCutoff, EIndexWriteThrough eWriteThrough, CIndexTreeEvictionCallback* pcIndexEvictionUserCallback)
 {
-	mcIndices.Init(this, pcDurableFileControl, uiCutoff, eWriteThrough, pcIndexEvictionUserCallback);
+	mcIndices.Init(this, pcDurableFileControl, szSubDirectory, uiCutoff, eWriteThrough, pcIndexEvictionUserCallback);
 }
 
 
@@ -177,27 +174,6 @@ BOOL CIndexedData::IsDirty(OIndex oi)
 		}
 	}
 	return FALSE;
-}
-
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CIndexedData::DurableBegin(void)
-{
-	return mpcDurableFileControl->Begin();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CIndexedData::DurableEnd(void)
-{
-	return mpcDurableFileControl->End();
 }
 
 

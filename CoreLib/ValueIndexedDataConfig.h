@@ -6,19 +6,21 @@
 class CValueIndexedDataConfig : public CIndexedDataConfig
 {
 protected:
-	CDurableFileController			mcDurableFileController;
+	CDurableFileController*			mpcDurableFileController;
 	size_t							muiDataCacheSize;
 	size_t							muiIndexCacheSize;
 	EIndexWriteThrough				meWriteThrough;
 	CIndexTreeEvictionCallback*		mpcIndexEvictionUserCallback;
 	CIndexedEvictionCallback*		mpcEvictionUserCallback;
+	char*							mszSubDirectory;
 
 public:
-	void 							Init(char* szWorkingDirectory, char* szRewriteDirectory, size_t uiDataCacheSize, size_t uiIndexCacheSize, EIndexWriteThrough eWriteThrough);
-	void 							Init(char* szWorkingDirectory, char* szRewriteDirectory, size_t uiDataCacheSize, size_t uiIndexCacheSize, EIndexWriteThrough eWriteThrough, CIndexTreeEvictionCallback* pcIndexEvictionUserCallback, CIndexedEvictionCallback* pcEvictionUserCallback);
+	void 							Init(CDurableFileController* pcDurableFileController, char* szSubDirectory, size_t uiDataCacheSize, size_t uiIndexCacheSize, EIndexWriteThrough eWriteThrough);
+	void 							Init(CDurableFileController* pcDurableFileController, char* szSubDirectory, size_t uiDataCacheSize, size_t uiIndexCacheSize, EIndexWriteThrough eWriteThrough, CIndexTreeEvictionCallback* pcIndexEvictionUserCallback, CIndexedEvictionCallback* pcEvictionUserCallback);
 	void							Kill(void);
 
 	CDurableFileController*			GetDurableFileControl(void);
+	char*							GetSubdirectory(void);
 	size_t							GetDataCacheSize(void);
 	size_t							GetIndexCacheSize(void);
 	EIndexWriteThrough				GetWriteThrough(void);

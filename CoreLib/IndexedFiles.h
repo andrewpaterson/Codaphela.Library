@@ -36,14 +36,15 @@ protected:
 	CListIndexedFile			mcFiles;  //These are the data on disk.  Generally one file per data size.
 
 	CChars						mszDataExtension;
+	CChars						mszSubDirectory;
 
 	CDurableFile				mcFileDescriptors;
 
 public:
-	void			Init(CDurableFileController* pcDurableFileControl, char* szDataExtension, char* szDescricptorName, char* szDescricptorRewrite);
+	void			Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, char* szDataExtension, char* szDescriptorName, char* szDescriptorRewrite);
 	void			Kill(void);
 
-	void			InitIndexedFileDescriptors(char* szDescricptorName, char* szDescricptorRewrite);
+	void			InitIndexedFileDescriptors(char* szDescriptorName, char* szDescriptorRewrite);
 	BOOL			ReadIndexedFileDescriptors(void);
 	BOOL			WriteIndexedFileDescriptors(void);
 	BOOL			DataFileName(char* szFile1, char* szFile2, int iDataSize, int iFileNum);

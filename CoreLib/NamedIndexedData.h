@@ -63,8 +63,6 @@ public:
 	BOOL			Remove(OIndex oi);
 
 	BOOL			Flush(BOOL bClearCache);
-	void			DurableBegin(void);
-	void			DurableEnd(void);
 
 	int64			NumIndices(void);
 	int64			NumIndicesCached(void);

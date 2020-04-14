@@ -10,12 +10,12 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedFilesEvicting::Init(CDurableFileController* pcDurableFileControl, char* szDataExtension, char* szDescricptorName, char* szDescricptorRewrite, size_t iCacheSize, EIndexWriteThrough eWriteThrough, CIndexedFilesEvictionCallback* pcEvictionCallback)
+void CIndexedFilesEvicting::Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, char* szDataExtension, char* szDescriptorName, char* szDescriptorRewrite, size_t iCacheSize, EIndexWriteThrough eWriteThrough, CIndexedFilesEvictionCallback* pcEvictionCallback)
 {
 	meWriteThrough = eWriteThrough;
 	mpcEvictionCallback = pcEvictionCallback;
 
-	mcDataFiles.Init(pcDurableFileControl, szDataExtension, szDescricptorName, szDescricptorRewrite);
+	mcDataFiles.Init(pcDurableFileControl, szSubDirectory, szDataExtension, szDescriptorName, szDescriptorRewrite);
 	mcDataFiles.ReadIndexedFileDescriptors();
 
 	if (iCacheSize != 0)
@@ -192,6 +192,7 @@ int CIndexedFilesEvicting::NumCached(void)
 		return 0;
 	}
 }
+
 
 //////////////////////////////////////////////////////////////////////////
 //
