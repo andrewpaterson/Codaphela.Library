@@ -12,10 +12,11 @@ protected:
 	CIndexTreeEvictionStrategy*		mpcEvictionStrategy;
 	EIndexWriteThrough				meWriteThrough;
 	CIndexTreeEvictionCallback*		mpEvictionCallback;
+	char*							mszSubDirectory;
 
 public:
-	void							Init(CDurableFileController* pcDurableFileController, size_t uiCutoff, CIndexTreeEvictionStrategy* pcEvictionStrategy, EIndexWriteThrough eWriteThrough);
-	void							Init(CDurableFileController* pcDurableFileController, size_t uiCutoff, CIndexTreeEvictionStrategy* pcEvictionStrategy, EIndexWriteThrough eWriteThrough, CIndexTreeEvictionCallback* pcEvictionCallback);
+	void							Init(CDurableFileController* pcDurableFileController, char* szSubDirectory, size_t uiCutoff, CIndexTreeEvictionStrategy* pcEvictionStrategy, EIndexWriteThrough eWriteThrough);
+	void							Init(CDurableFileController* pcDurableFileController, char* szSubDirectory, size_t uiCutoff, CIndexTreeEvictionStrategy* pcEvictionStrategy, EIndexWriteThrough eWriteThrough, CIndexTreeEvictionCallback* pcEvictionCallback);
 
 	void							Kill(void);
 
@@ -24,6 +25,7 @@ public:
 	CIndexTreeEvictionStrategy*		GetEvictionStrategy(void);
 	EIndexWriteThrough				GetWriteThrough(void);
 	CIndexTreeEvictionCallback*		GetIndexTreeEvictionCallback(void);
+	char*							GetSubDirectory(void);
 };
 
 

@@ -5,9 +5,9 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CValueIndexedDataConfig::Init(char* szWorkingDirectory, char* szRewriteDirectory, size_t uiDataCacheSize, size_t uiIndexCacheSize, EIndexWriteThrough eWriteThrough)
+void CValueIndexedDataConfig::Init(CDurableFileController* pcDurableFileController, char* szSubDirectory, size_t uiDataCacheSize, size_t uiIndexCacheSize, EIndexWriteThrough eWriteThrough)
 {
-	Init(szWorkingDirectory, szRewriteDirectory, uiDataCacheSize, uiIndexCacheSize, eWriteThrough, NULL, NULL);
+	Init(pcDurableFileController, szSubDirectory, uiDataCacheSize, uiIndexCacheSize, eWriteThrough, NULL, NULL);
 }
 
 
@@ -15,9 +15,10 @@ void CValueIndexedDataConfig::Init(char* szWorkingDirectory, char* szRewriteDire
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CValueIndexedDataConfig::Init(char* szWorkingDirectory, char* szRewriteDirectory, size_t uiDataCacheSize, size_t uiIndexCacheSize, EIndexWriteThrough eWriteThrough, CIndexTreeEvictionCallback* pcIndexEvictionUserCallback, CIndexedEvictionCallback* pcEvictionUserCallback)
+void CValueIndexedDataConfig::Init(CDurableFileController* pcDurableFileController, char* szSubDirectory, size_t uiDataCacheSize, size_t uiIndexCacheSize, EIndexWriteThrough eWriteThrough, CIndexTreeEvictionCallback* pcIndexEvictionUserCallback, CIndexedEvictionCallback* pcEvictionUserCallback)
 {
-	mcDurableFileController.Init(szWorkingDirectory, szRewriteDirectory);
+	mpcDurableFileController = pcDurableFileController;
+	mszSubDirectory = szSubDirectory;
 
 	muiDataCacheSize = uiDataCacheSize;
 	muiIndexCacheSize = uiIndexCacheSize;
@@ -33,7 +34,6 @@ void CValueIndexedDataConfig::Init(char* szWorkingDirectory, char* szRewriteDire
 //////////////////////////////////////////////////////////////////////////
 void CValueIndexedDataConfig::Kill(void)
 {
-	mcDurableFileController.Kill();
 	CIndexedDataConfig::Kill();
 }
 
@@ -44,7 +44,17 @@ void CValueIndexedDataConfig::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 CDurableFileController* CValueIndexedDataConfig::GetDurableFileControl(void)
 {
-	return &mcDurableFileController;
+	return mpcDurableFileController;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CValueIndexedDataConfig::GetSubdirectory(void)
+{
+	return mszSubDirectory;
 }
 
 

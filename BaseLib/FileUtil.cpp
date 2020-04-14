@@ -535,11 +535,16 @@ void CFileUtil::RemoveFileSeparator(CChars* szPathName)
 //////////////////////////////////////////////////////////////////////////
 void CFileUtil::AppendToPath(CChars* szPathName, const char* szItem)
 {
+	if (StrEmpty(szItem))
+	{
+		return;
+	}
+	
 	if (!szPathName->EndsWith(FILE_SEPARATOR))
 	{
 		szPathName->Append(FILE_SEPARATOR);
 	}
-	
+
 	szPathName->Append(szItem);
 }
 
