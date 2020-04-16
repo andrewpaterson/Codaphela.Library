@@ -110,7 +110,6 @@ public:
 
 protected:
 	BOOL					InitRoot(void);
-	void					InitRootIndexFile(void);
 	void					RecurseKill(CIndexTreeNodeFile* pcNode);
 
 	CIndexTreeNodeFile*		ReadNode(CIndexTreeNodeFile* pcParent, unsigned char c);

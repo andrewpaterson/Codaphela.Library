@@ -182,9 +182,8 @@ BOOL CIndexedFiles::DataFileName(char* szFile1, char* szFile2, int iDataSize, in
 	CChars		szRewriteName;
 	CFileUtil	cFileUtil;
 
-	szFileName.Init(mpcDurableFileControl->GetDirectory());
+	szFileName.Init();
 	cFileUtil.AppendToPath(&szFileName, mszSubDirectory.Text());
-
 	szFileName.Append(FILE_SEPARATOR);
 	szFileName.Append(iDataSize);
 	szFileName.Append("_");
@@ -192,7 +191,8 @@ BOOL CIndexedFiles::DataFileName(char* szFile1, char* szFile2, int iDataSize, in
 	szFileName.Append(".");
 	szFileName.Append(mszDataExtension);
 
-	szRewriteName.Init(mpcDurableFileControl->GetRewriteDirectory());
+	szRewriteName.Init();
+	cFileUtil.AppendToPath(&szRewriteName, mszSubDirectory.Text());
 	szRewriteName.Append(FILE_SEPARATOR);
 	szRewriteName.Append("_");
 	szRewriteName.Append(iDataSize);
