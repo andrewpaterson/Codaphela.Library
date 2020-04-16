@@ -190,69 +190,6 @@ BOOL CDurableFileController::Check(void)
 }
 
 
-////////////////////////////////////////////////////////////////////////////
-////
-////
-////////////////////////////////////////////////////////////////////////////
-//void CDurableFileController::InitFile(CDurableFile* pcFile, char* szDescriptorName, char* szDescriptorRewrite)
-//{
-//	CChars		szName;
-//	CChars		szRewrite;
-//
-//	//You should use file util here.
-//	szName.Init(GetDirectory());
-//	szName.Append(FILE_SEPARATOR);
-//	szName.Append(szDescriptorName);
-//
-//	if (IsDurable())
-//	{
-//		szRewrite.Init(GetRewriteDirectory());
-//		szRewrite.Append(FILE_SEPARATOR);
-//		szRewrite.Append(szDescriptorRewrite);
-//	}
-//	else
-//	{
-//		szRewrite.Init();
-//	}
-//
-//	pcFile->Init(this, szName.Text(), szRewrite.Text());
-//}
-//
-//
-////////////////////////////////////////////////////////////////////////////
-////
-////
-////////////////////////////////////////////////////////////////////////////
-//void CDurableFileController::InitFile(CDurableFile* pcFile, char* szSubdirectory, char* szDescriptorName, char* szDescriptorRewrite)
-//{
-//	CChars		szName;
-//	CChars		szRewrite;
-//	CFileUtil	cFileUtil;
-//
-//	//You should use file util here.
-//	szName.Init(GetDirectory());
-//	cFileUtil.AppendToPath(&szName, GetDirectory());
-//	cFileUtil.AppendToPath(&szName, szSubdirectory);
-//	cFileUtil.AppendToPath(&szName, szDescriptorName);
-//
-//	if (IsDurable())
-//	{
-//		szRewrite.Init(GetRewriteDirectory());
-//		cFileUtil.AppendToPath(&szName, GetDirectory());
-//		cFileUtil.AppendToPath(&szName, szSubdirectory);
-//		cFileUtil.AppendToPath(&szName, szDescriptorRewrite);
-//	}
-//	else
-//	{
-//		szRewrite.Init();
-//	}
-//
-//	pcFile->Init(this, szName.Text(), szRewrite.Text());
-//	szName.Kill();
-//	szRewrite.Kill();
-//}
-
-
 //////////////////////////////////////////////////////////////////////////
 //
 //
