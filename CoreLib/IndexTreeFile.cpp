@@ -204,7 +204,7 @@ BOOL CIndexTreeFile::InitRoot(void)
 	void*				pvBuffer;
 	BOOL				bResult;
 
-	InitRootIndexFile();
+	mcRootIndex.Init(mpcDurableFileControl, "Root.IDX", "_Root.IDX");
 	cRootDataIndex = ReadRootFileIndex();
 
 	bRootIndexExists = cRootDataIndex.HasFile();
@@ -242,31 +242,6 @@ BOOL CIndexTreeFile::InitRoot(void)
 		mpcRoot = AllocateRoot();
 		return TRUE;
 	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CIndexTreeFile::InitRootIndexFile(void)
-{
-
-	CChars	szFileName;
-	CChars	szRewriteName;
-
-	szFileName.Init(mpcDurableFileControl->GetDirectory());
-	szFileName.Append(FILE_SEPARATOR);
-	szFileName.Append("Root.IDX");
-
-	szRewriteName.Init(mpcDurableFileControl->GetRewriteDirectory());
-	szRewriteName.Append(FILE_SEPARATOR);
-	szRewriteName.Append("_Root.IDX");
-
-	mcRootIndex.Init(mpcDurableFileControl, szFileName.Text(), szRewriteName.Text());
-
-	szFileName.Kill();
-	szRewriteName.Kill();
 }
 
 
