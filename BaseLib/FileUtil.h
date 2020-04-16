@@ -77,6 +77,7 @@ public:
 	void    RemoveLastFromPath(CChars* szPathName);
 	void	RemovePath(CChars* szPathName);
 	BOOL	IsExtension(const char* szFileName, const char* szExtension);
+	BOOL	IsRootDirectory(const char* szPathName);
 
 	//Finder methods
 	void	FindFilesWithNameContaining(const char* szPathName, const char* szFileName, CArrayChars* paszFiles, BOOL bIncludeSubDirs = FALSE, BOOL bHidden= TRUE);
