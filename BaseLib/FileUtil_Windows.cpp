@@ -24,6 +24,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include <stdio.h>
 #include <windows.h>
 #include <shlwapi.h>
+#include "Logger.h"
 #include "FilePosition.h"
 #include "FileUtil.h"
 #include "StringHelper.h"
@@ -54,8 +55,13 @@ BOOL CFileUtil::RemoveDir(const char* szPathName)
 	CChars				szDirectory;
 	BOOL				bDeleted;
 
+	if (IsRootDirectory(szPathName))
+	{
+		return gcLogger.Error2(__METHOD__, " Aborting RemoveDir.  Tried to delete root directory.", NULL);
+	}
+
 	szDirectory.Init(szPathName);
-	RemoveFileSeparator(&szDirectory);
+	RemoveLastSeparator(&szDirectory);
 
 	szFindName.Init(szPathName);
 	AppendToPath(&szFindName, "*.*");
@@ -111,9 +117,9 @@ BOOL CFileUtil::CopyDir(const char* szSource, const char* szDest)
 	CChars				szDestDirectory;
 
 	szSourceDirectory.Init(szSource);
-	RemoveFileSeparator(&szSourceDirectory);
+	RemoveLastSeparator(&szSourceDirectory);
 	szDestDirectory.Init(szDest);
-	RemoveFileSeparator(&szDestDirectory);
+	RemoveLastSeparator(&szDestDirectory);
 
 	szFindName.Init(szSource);
 	AppendToPath(&szFindName, "*.*");

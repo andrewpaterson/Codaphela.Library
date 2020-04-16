@@ -34,12 +34,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 class CFileUtil
 {
-private:
-    BOOL    RecurseRemoveDir(const char* szPathName);
-	BOOL	FindFiles(const char* szPathName, BOOL bDirectories, const char* szInName, const char* szExtension, CArrayChars* paszFiles, BOOL bHidden);
-	BOOL	RecurseFindFiles(const char* szPathName, const char* szInName, const char* szExtension, CArrayChars* paszFiles, BOOL bHidden);
-	BOOL	Compare(const char* szFileName1, const char* szFileName2, BOOL bSizeOnly);
-
 public:
 	//Disk methods.
 	BOOL    MakeDir(const char* szPathName);
@@ -60,7 +54,6 @@ public:
 	//Path name methods
 	BOOL	IsAbsolutePath(const char* szPathName);
 	void	FullPath(CChars* szPathName);
-	void	FixSeparators(CChars* szPathName);
 	char	GetDriveLetter(const char* szPathName);
 	void	CollapsePath(CChars* szPathName);
 	void	CurrentDirectory(CChars* szDest);
@@ -69,9 +62,6 @@ public:
 
 	void    RemoveExtension(CChars* szPathName);
 	int		FindExtension(const char* szPathName);
-	int		FindFirstSeparator(const char* szString);
-	int		FindLastSeparator(const char* szPathName);
-	void    RemoveFileSeparator(CChars* szPathName);
 	void    AppendToPath(CChars* szPathName, const char* szItem);
 	void    PrependToPath(CChars* szPathName, const char* szItem);
 	void    RemoveLastFromPath(CChars* szPathName);
@@ -87,6 +77,17 @@ public:
 
 	//Miscellaneous methods.  I'm not sure what class this belongs in.
 	void	MakeNameFromDirectory(CChars* pszName, CChars* pszFileName, CChars* pszDirectory);
+
+private:
+	BOOL    RecurseRemoveDir(const char* szPathName);
+	BOOL	FindFiles(const char* szPathName, BOOL bDirectories, const char* szInName, const char* szExtension, CArrayChars* paszFiles, BOOL bHidden);
+	BOOL	RecurseFindFiles(const char* szPathName, const char* szInName, const char* szExtension, CArrayChars* paszFiles, BOOL bHidden);
+	BOOL	Compare(const char* szFileName1, const char* szFileName2, BOOL bSizeOnly);
+
+	int		FindFirstSeparator(const char* szString);
+	int		FindLastSeparator(const char* szPathName);
+	void    RemoveLastSeparator(CChars* szPathName);
+	void	FixSeparators(CChars* szPathName);
 };
 
 
