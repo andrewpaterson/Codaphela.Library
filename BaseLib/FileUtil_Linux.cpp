@@ -76,6 +76,11 @@ BOOL CFileUtil::RemoveDir(const char*szPathName)
     CChars  sz;
     BOOL    bResult;
 
+    if (IsRootDirectory(szPathName))
+    {
+        return gcLogger.Error2(__METHOD__, " Aborting RemoveDir.  Tried to delete root directory.", NULL);
+    }
+
     sz.Init(szPathName);
     FullPath(&sz);
     bResult = RecurseRemoveDir(sz.Text());
@@ -99,7 +104,7 @@ BOOL CFileUtil::RecurseRemoveDir(const char*szPathName)
     BOOL                bDir;
 
 	szDirectory.Init(szPathName);
-	RemoveFileSeparator(&szDirectory);
+	RemoveLastSeparator(&szDirectory);
 
     pDIR = opendir(szPathName);
 

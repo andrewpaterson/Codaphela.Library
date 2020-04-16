@@ -116,13 +116,13 @@ void CFileUtil::FullPath(CChars* szPathName)
 			szTemp.Kill();
 			FixSeparators(szPathName);
 			CollapsePath(szPathName);
-			RemoveFileSeparator(szPathName);
+			RemoveLastSeparator(szPathName);
 		}
 	}
 	else
 	{
 		CurrentDirectory(szPathName);
-		RemoveFileSeparator(szPathName);
+		RemoveLastSeparator(szPathName);
 	}
 }
 
@@ -555,11 +555,10 @@ void CFileUtil::CollapsePath(CChars* szPathName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFileUtil::RemoveFileSeparator(CChars* szPathName)
+void CFileUtil::RemoveLastSeparator(CChars* szPathName)
 {
 	if (szPathName->EndsWith(FILE_SEPARATOR))
 	{
-		//Assumes file separator is one char long.
 		szPathName->RemoveFromEnd(1);
 	}
 }
