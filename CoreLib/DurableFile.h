@@ -63,9 +63,10 @@ private:
 	BOOL						mbAddedToController;
 
 public:
-	void		Init(CDurableFileController* pcController, char* szFileName, char* szRewriteName);
+	BOOL		Init(CDurableFileController* pcController, char* szFileName, char* szRewriteName);
 	BOOL		Kill(void);
 	void		InitBasic(void);
+	void		InitError(void);
 
 	BOOL		Commit(void);
 	BOOL		Recommit(void);

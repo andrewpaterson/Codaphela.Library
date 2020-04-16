@@ -60,7 +60,7 @@ void CIndexedMap::InitIndices(CDurableFileController* pcDurableFileControl, BOOL
 {
 	mcDescriptors.Init(TRUE);
 	mbDescriptorsWritten = TRUE;
-	pcDurableFileControl->InitFile(&mcDescriptorsFile, "Descriptors.IDX", "_Descriptors.IDX");
+	mcDescriptorsFile.Init(pcDurableFileControl, "Descriptors.IDX", "_Descriptors.IDX");
 
 	if (mcDescriptorsFile.Exists())
 	{

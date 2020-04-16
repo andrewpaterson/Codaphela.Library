@@ -46,7 +46,7 @@ void CIndexedFiles::Init(CDurableFileController* pcDurableFileControl, char* szS
 	mszSubDirectory.Init(szSubDirectory);
 	mcFiles.Init();
 
-	InitIndexedFileDescriptors(szDescriptorName, szDescriptorRewrite);
+	mcFileDescriptors.Init(mpcDurableFileControl, szDescriptorName, szDescriptorRewrite);
 }
 
 
@@ -69,16 +69,6 @@ void CIndexedFiles::Kill(void)
 	mcFileDescriptors.Kill();
 	mszSubDirectory.Kill();
 	mszDataExtension.Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CIndexedFiles::InitIndexedFileDescriptors(char* szDescriptorName, char* szDescriptorRewrite)
-{
-	mpcDurableFileControl->InitFile(&mcFileDescriptors, szDescriptorName, szDescriptorRewrite);
 }
 
 

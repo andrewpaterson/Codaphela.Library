@@ -34,8 +34,9 @@ public:
 	FILE*			mpsFileHandle;
 	CChars			mszFileName;
 
-	void	Init(const char* szName);
-	void	Kill(void);
+	void		Init(const char* szFileName);
+	void		Init(CChars szFileName);
+	void		Kill(void);
 
 	BOOL		Open(EFileMode eMode);
 	BOOL		Close(void);
