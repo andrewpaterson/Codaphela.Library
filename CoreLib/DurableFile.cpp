@@ -36,35 +36,63 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDurableFile::Init(CDurableFileController* pcController, char* szFileName, char* szRewriteName)
+BOOL CDurableFile::Init(CDurableFileController* pcController, char* szFileName, char* szRewriteName)
 {
+	CChars		szPath;
+	CFileUtil	cFileUtil;
+		
 	mbAddedToController = FALSE;
 	mpcController = pcController;
 	InitBasic();
 
-	if (!StrEmpty(szFileName))
+	if (StrEmpty(szFileName))
 	{
-		mcPrimaryDiskFile.Init(szFileName);
-		mcLogFile.Init(&mcPrimaryDiskFile);
-		mcPrimaryFile.Init(&mcLogFile);
-		mszFileName.Init(mcPrimaryDiskFile.mszFileName);
-	}
-	else
-	{
-		gcLogger.Error2(__METHOD__, " Primary DurableFile file name is NULL.", NULL);
+		InitError();
+		return gcLogger.Error2(__METHOD__, " Primary DurableFile file name may not be [NULL].", NULL);
 	}
 
-	if (!StrEmpty(szRewriteName))
+	if (pcController == NULL)
 	{
-		mcRewriteDiskFile.Init(szRewriteName);
+		InitError();
+		return gcLogger.Error2(__METHOD__, " DurableFileController may not be [NULL].", NULL);
+	}
+
+	szPath.Init(pcController->GetDirectory());
+	cFileUtil.AppendToPath(&szPath, szFileName);
+
+	mszFileName.Init(szPath);
+	mcPrimaryDiskFile.Init(szPath);
+	mcLogFile.Init(&mcPrimaryDiskFile);
+	mcPrimaryFile.Init(&mcLogFile);
+
+	szPath.Kill();
+
+	if (IsDurable())
+	{
+		szPath.Init(pcController->GetRewriteDirectory());
+
+		if (!StrEmpty(szRewriteName))
+		{
+			cFileUtil.AppendToPath(&szPath, szRewriteName);
+		}
+		else
+		{
+			cFileUtil.AppendToPath(&szPath, szFileName);
+		}
+		mszRewriteName.Init(szPath);
+		mcRewriteDiskFile.Init(szPath);
 		mcRewriteFile.Init(&mcRewriteDiskFile);
-		mszRewriteName.Init(mcRewriteDiskFile.mszFileName);
+
+		szPath.Kill();
 	}
 	else
 	{
-		memset(&mszRewriteName, 0, sizeof(CChars));
-		memset(&mcRewriteFile, 0, sizeof(CFileBasic));
+		mszRewriteName.Init(NULL);
+		mcRewriteDiskFile.Init(NULL);
+		mcRewriteFile.Init(&mcRewriteDiskFile);
 	}
+
+	return TRUE;
 }
 
 
@@ -83,20 +111,40 @@ void CDurableFile::InitBasic(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CDurableFile::InitError(void)
+{
+	mszFileName.Init(NULL);
+	mcPrimaryDiskFile.Init(NULL);
+	mcLogFile.Init(&mcPrimaryDiskFile);
+	mcPrimaryFile.Init(&mcLogFile);
+
+	mszRewriteName.Init(NULL);
+	mcRewriteDiskFile.Init(NULL);
+	mcRewriteFile.Init(&mcRewriteDiskFile);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL CDurableFile::Kill(void)
 {
 	BOOL	bAnyOpen;
 
 	bAnyOpen = mcPrimaryFile.IsOpen();
 	mcPrimaryFile.Kill();
+	mcPrimaryDiskFile.Kill();
 	mszFileName.Kill();
 
 	if (IsDurable())
 	{
 		bAnyOpen |= mcRewriteFile.IsOpen();
-		mcRewriteFile.Kill();
-		mszRewriteName.Kill();
 	}
+
+	mcRewriteFile.Kill();
+	mcRewriteDiskFile.Kill();
+	mszRewriteName.Kill();
 
 	mcLogFile.Kill();
 

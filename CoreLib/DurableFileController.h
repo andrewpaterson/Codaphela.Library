@@ -46,8 +46,6 @@ public:
 	BOOL			Recover(CDurableFile* pcFirst, ...);
 	BOOL			Check(void);
 
-	void			InitFile(CDurableFile* pcFile, char* szDescriptorName, char* szDescriptorRewrite);
-	void			InitFile(CDurableFile* pcFile, char* szSubdirectory, char* szDescriptorName, char* szDescriptorRewrite);
 	void			AddFile(CDurableFile* pcFile);
 	int				NumFiles(void);
 	CDurableFile*	GetFile(int iIndex);

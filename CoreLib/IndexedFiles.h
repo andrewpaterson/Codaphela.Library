@@ -44,7 +44,6 @@ public:
 	void			Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, char* szDataExtension, char* szDescriptorName, char* szDescriptorRewrite);
 	void			Kill(void);
 
-	void			InitIndexedFileDescriptors(char* szDescriptorName, char* szDescriptorRewrite);
 	BOOL			ReadIndexedFileDescriptors(void);
 	BOOL			WriteIndexedFileDescriptors(void);
 	BOOL			DataFileName(char* szFile1, char* szFile2, int iDataSize, int iFileNum);
