@@ -126,6 +126,37 @@ void CFileUtil::FullPath(CChars* szPathName)
 	}
 }
 
+
+
+////////////////////////////////////////////////////////////////////////////////////
+//
+//
+////////////////////////////////////////////////////////////////////////////////////
+BOOL CFileUtil::IsRootDirectory(const char* szPathName)
+{
+	CChars	sz;
+	int		iCount;
+	int		iEnd;
+
+	sz.Init(szPathName);
+	FullPath(&sz);
+	CollapsePath(&sz);
+	iCount = sz.Count(FILE_SEPARATOR[0]);
+	if (iCount == 1)
+	{
+		iEnd = sz.FindFromEnd(FILE_SEPARATOR[0]);
+		if (iEnd == sz.Length()-1)
+		{
+			sz.Kill();
+			return TRUE;
+		}
+	}
+	sz.Kill();
+
+	return FALSE;
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -427,13 +458,18 @@ void CFileUtil::SplitPath(const char* szPathName, CArrayChars* paszComponents)
 void CFileUtil::CollapsePath(CChars* szPathName)
 {
 	CChars			szTemp;
-	CArrayChars	szNodes;
+	CArrayChars		szNodes;
 	int				i;
 	CChars*			pszNode;
 	CChars*			apCharDirectories[4096];
 	int				iPos;
 	BOOL			bLeadingSeparator;
 	char			cDriveLetter;
+
+	if (szPathName->Empty())
+	{
+		return;
+	}
 
 	cDriveLetter = GetDriveLetter(szPathName->Text());
 
@@ -681,6 +717,7 @@ void CFileUtil::RemovePath(CChars* szPathName)
 
 	szPathName->RemoveFromStart(iIndex+1);
 }
+
 
 ////////////////////////////////////////////////////////////////////////////////////
 //

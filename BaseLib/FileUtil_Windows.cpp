@@ -43,7 +43,7 @@ BOOL CFileUtil::MakeDir(const char*szPathName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileUtil::RemoveDir(const char*szPathName)
+BOOL CFileUtil::RemoveDir(const char* szPathName)
 {
 	WIN32_FIND_DATA		sFindData;
 	CChars				szFindName;
@@ -98,7 +98,7 @@ BOOL CFileUtil::RemoveDir(const char*szPathName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileUtil::CopyDir(const char*szSource, const char*szDest)
+BOOL CFileUtil::CopyDir(const char* szSource, const char* szDest)
 {
 	WIN32_FIND_DATA		sFindData;
 	CChars				szFindName;
@@ -168,7 +168,7 @@ BOOL CFileUtil::CopyDir(const char*szSource, const char*szDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileUtil::Touch(const char*szFileName)
+BOOL CFileUtil::Touch(const char* szFileName)
 {
 	HANDLE	h;
 
@@ -227,10 +227,10 @@ filePos CFileUtil::Size(const char*szFileName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileUtil::IsAbsolutePath(const char*szPathName)
+BOOL CFileUtil::IsAbsolutePath(const char* szPathName)
 {
-	const char*  szPos;
-	char	cDrive;
+	const char*	szPos;
+	char		cDrive;
 
 	szPos = FindChar(szPathName, FILE_SEPARATOR[0]);
 	if (szPos == szPathName)
@@ -256,7 +256,7 @@ BOOL CFileUtil::IsAbsolutePath(const char*szPathName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char CFileUtil::GetDriveLetter(const char*szPathName)
+char CFileUtil::GetDriveLetter(const char* szPathName)
 {
 	int		i;
 	char	c;
@@ -286,7 +286,6 @@ char CFileUtil::GetDriveLetter(const char*szPathName)
 		cDrive = c;
 	}
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
