@@ -50,26 +50,15 @@ void CIndexedData::Init(CIndexedDataConfig* pcConfig)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexedData::Kill(void)
 {
-	if (mpcDurableFileControl->IsDurable())
-	{
-		mpcDurableFileControl->Begin();
-		mcData.Flush(FALSE);
-		mpcDurableFileControl->End();
-	}
-	else
-	{
-		mpcDurableFileControl->Begin();
-		Flush(TRUE);
-		mpcDurableFileControl->End();
-	}
+	BOOL bResult;
 
 	mpcDurableFileControl = NULL;
 
-	mcData.Kill();
+	bResult = mcData.Kill();
 
-	mcIndices.Kill();
+	bResult &= mcIndices.Kill();
 
-	return TRUE;
+	return bResult;;
 }
 
 
@@ -127,19 +116,44 @@ BOOL CIndexedData::RemoveDescriptor(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL CIndexedData::Flush(void)
+{
+	return Flush(FALSE);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL CIndexedData::Flush(BOOL bClearDataCache)
 {
 	BOOL bRresult;
 
-	if (!meWriteThrough)
+	if (meWriteThrough == IWT_No)
 	{
-		bRresult = mcIndices.Flush();
 		bRresult &= mcData.Flush(bClearDataCache);
+		bRresult = mcIndices.Flush();
 		return bRresult;
 	}
 	return TRUE;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexedData::IsFlushed(void)
+{
+	BOOL bIndicesFlushed;
+	BOOL bDataFlushed;
+
+	bIndicesFlushed = mcIndices.IsFlushed();
+	bDataFlushed = mcData.IsFlushed();
+
+	return bIndicesFlushed && bDataFlushed;
+}
 
 //////////////////////////////////////////////////////////////////////////
 //
