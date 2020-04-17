@@ -40,9 +40,12 @@ void CIndexedDescriptorsFile::Init(CIndexedDataCommon* pcIndexedData, CDurableFi
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedDescriptorsFile::Kill(void)
+BOOL CIndexedDescriptorsFile::Kill(void)
 {
-	mcIndexTree.Kill();
+	BOOL bResult;
+
+	bResult = mcIndexTree.Kill();
+	return bResult;
 }
 
 
@@ -178,6 +181,16 @@ int64 CIndexedDescriptorsFile::NumDatas(void)
 BOOL CIndexedDescriptorsFile::Flush(void)
 {
 	return mcIndexTree.Flush();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexedDescriptorsFile::IsFlushed(void)
+{
+	return mcIndexTree.IsFlushed();
 }
 
 

@@ -35,13 +35,18 @@ void CIndexedFilesEvicting::Init(CDurableFileController* pcDurableFileControl, c
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedFilesEvicting::Kill(void)
+BOOL CIndexedFilesEvicting::Kill(void)
 {
 	if (mbCaching)
 	{
+		if (!IsFlushed())
+		{
+			return gcLogger.Error2(__METHOD__, " Flush must called before Kill.", NULL);
+		}
 		mcDataCache.Kill();
 	}
 	mcDataFiles.Kill();
+	return TRUE;
 }
 
 

@@ -21,7 +21,7 @@ protected:
 public:
 	void			Init(CIndexedDataCommon* pcIndexedData, CDurableFileController* pcDurableFileController, char* szSubDirectory, size_t uiCutoff, EIndexWriteThrough eWriteThrough);
 	void			Init(CIndexedDataCommon* pcIndexedData, CDurableFileController* pcDurableFileController, char* szSubDirectory, size_t uiCutoff, EIndexWriteThrough eWriteThrough, CIndexTreeEvictionCallback* pcEvictionCallback);
-	void			Kill(void);
+	BOOL			Kill(void);
 
 	BOOL			Remove(OIndex oi);
 	BOOL			Get(CIndexedDataDescriptor* pcDescriptor, OIndex oi);
@@ -35,6 +35,7 @@ public:
 	int64			NumIndices(void);
 	int				NumIndicesCached(void);
 	int64			NumDatas(void);
+	BOOL			IsFlushed(void);
 
 	BOOL			Evict(OIndex oi);
 	BOOL			Flush(OIndex oi);
