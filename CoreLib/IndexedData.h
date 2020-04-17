@@ -42,6 +42,7 @@ public:
 	void 			Init(CIndexedDataConfig* pcConfig);
 	BOOL 			Kill(void);
 
+	BOOL			Flush(void);
 	BOOL			Flush(BOOL bClearDataCache);
 
 	BOOL			IsDurable(void);
