@@ -45,6 +45,7 @@ public:
 	BOOL			Flush(BOOL bClearDataCache);
 
 	BOOL			IsDurable(void);
+	BOOL			IsFlushed(void);
 
 	int64			NumIndices(void);
 	int64			NumIndicesCached(void);

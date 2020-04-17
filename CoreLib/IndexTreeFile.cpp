@@ -1260,7 +1260,7 @@ BOOL CIndexTreeFile::Evict(CIndexTreeNodeFile* pcNode)
 		return FALSE;
 	}
 
-	if (!meWriteThrough)
+	if (meWriteThrough == IWT_No)
 	{
 		bResult = Flush(&pcNode);
 		if (!bResult)
@@ -1674,7 +1674,7 @@ BOOL CIndexTreeFile::IsFlushed(void)
 	CIndexTreeRecursor	cCursor;
 	BOOL				bResult;
 
-	if (!meWriteThrough)
+	if (meWriteThrough == IWT_No)
 	{
 		cCursor.Init(mpcRoot);
 		bResult = RecurseIsFlushed(&cCursor);

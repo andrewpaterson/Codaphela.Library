@@ -42,7 +42,7 @@ protected:
 
 public:
 	void			Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, char* szDataExtension, char* szDescriptorName, char* szDescriptorRewrite);
-	void			Kill(void);
+	BOOL			Kill(void);
 
 	BOOL			ReadIndexedFileDescriptors(void);
 	BOOL			WriteIndexedFileDescriptors(void);

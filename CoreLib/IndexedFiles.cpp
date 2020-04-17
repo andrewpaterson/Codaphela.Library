@@ -54,10 +54,15 @@ void CIndexedFiles::Init(CDurableFileController* pcDurableFileControl, char* szS
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedFiles::Kill(void)
+BOOL CIndexedFiles::Kill(void)
 {
-	int				i;
+	int				i; 
 	CIndexedFile*	pcIndexedFile;
+
+	if (mpcDurableFileControl->IsBegun())
+	{
+		return gcLogger.Error2(__METHOD__, " DurableFileController.End must called before Kill.", NULL);
+	}
 
 	for (i = 0; i < mcFiles.NumElements(); i++)
 	{
@@ -69,6 +74,7 @@ void CIndexedFiles::Kill(void)
 	mcFileDescriptors.Kill();
 	mszSubDirectory.Kill();
 	mszDataExtension.Kill();
+	return TRUE;
 }
 
 
