@@ -786,6 +786,9 @@
     <ClInclude Include="IndexKeyReverse.h">
       <Filter>Source\Data\Index</Filter>
     </ClInclude>
+    <ClInclude Include="FilePathBuilder.h">
+      <Filter>Source\File\Utils</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -1234,6 +1237,9 @@
     </ClCompile>
     <ClCompile Include="IndexTreeMemoryAccess.cpp">
       <Filter>Source\Data\Index\Access</Filter>
+    </ClCompile>
+    <ClCompile Include="FilePathBuilder.cpp">
+      <Filter>Source\File\Utils</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

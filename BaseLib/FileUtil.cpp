@@ -575,7 +575,7 @@ void CFileUtil::AppendToPath(CChars* szPathName, const char* szItem)
 		return;
 	}
 	
-	if (!szPathName->EndsWith(FILE_SEPARATOR))
+	if ((!szPathName->Empty()) && (!szPathName->EndsWith(FILE_SEPARATOR)))
 	{
 		szPathName->Append(FILE_SEPARATOR);
 	}
