@@ -24,6 +24,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "BaseLib/LogString.h"
 #include "BaseLib/PointerRemapper.h"
 #include "BaseLib/GlobalMemory.h"
+#include "BaseLib/FilePathBuilder.h"
 #include "IndexedFiles.h"
 
 
@@ -41,12 +42,16 @@ struct SIndexedFileDescriptor
 //////////////////////////////////////////////////////////////////////////
 void CIndexedFiles::Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, char* szDataExtension, char* szDescriptorName, char* szDescriptorRewrite)
 {
+	CFilePathBuilder	szPathName;
+	CFilePathBuilder	szPathRewrite;
+
 	mpcDurableFileControl = pcDurableFileControl;
 	mszDataExtension.Init(szDataExtension);
 	mszSubDirectory.Init(szSubDirectory);
 	mcFiles.Init();
 
-	mcFileDescriptors.Init(mpcDurableFileControl, szDescriptorName, szDescriptorRewrite);
+	mcFileDescriptors.Init(mpcDurableFileControl, szPathName.Build(szSubDirectory, szDescriptorName, NULL), szPathRewrite.Build(szSubDirectory, szDescriptorRewrite, NULL));
+	szPathName.Kill(); szPathRewrite.Kill();
 }
 
 
@@ -187,25 +192,26 @@ BOOL CIndexedFiles::DataFileName(char* szFile1, char* szFile2, int iDataSize, in
 	CChars		szFileName;
 	CChars		szRewriteName;
 	CFileUtil	cFileUtil;
+	CChars		sz;
+
+	sz.Init();
+	sz.Append(iDataSize);
+	sz.Append("_");
+	sz.Append(iFileNum);
+	sz.Append(".");
+	sz.Append(mszDataExtension);
 
 	szFileName.Init();
 	cFileUtil.AppendToPath(&szFileName, mszSubDirectory.Text());
-	szFileName.Append(FILE_SEPARATOR);
-	szFileName.Append(iDataSize);
-	szFileName.Append("_");
-	szFileName.Append(iFileNum);
-	szFileName.Append(".");
-	szFileName.Append(mszDataExtension);
+	cFileUtil.AppendToPath(&szFileName, sz.Text());
+
+	sz.Insert(0, '_');
 
 	szRewriteName.Init();
 	cFileUtil.AppendToPath(&szRewriteName, mszSubDirectory.Text());
-	szRewriteName.Append(FILE_SEPARATOR);
-	szRewriteName.Append("_");
-	szRewriteName.Append(iDataSize);
-	szRewriteName.Append("_");
-	szRewriteName.Append(iFileNum);
-	szRewriteName.Append(".");
-	szRewriteName.Append(mszDataExtension);
+	cFileUtil.AppendToPath(&szRewriteName, sz.Text());
+
+	sz.Kill();
 
 	if (szFileName.Length() < MAX_DIRECTORY_LENGTH)
 	{

@@ -105,6 +105,7 @@
     <ClInclude Include="ChunkStack.h" />
     <ClInclude Include="CountingAllocator.h" />
     <ClInclude Include="DataMemory.h" />
+    <ClInclude Include="FilePathBuilder.h" />
     <ClInclude Include="IndexKeyReverse.h" />
     <ClInclude Include="IndexTreeAccess.h" />
     <ClInclude Include="IndexTreeMemoryAccess.h" />
@@ -307,6 +308,7 @@
     <ClCompile Include="EscapeCodes.cpp" />
     <ClCompile Include="FileIndex.cpp" />
     <ClCompile Include="FileMode.cpp" />
+    <ClCompile Include="FilePathBuilder.cpp" />
     <ClCompile Include="FilePosition.cpp" />
     <ClCompile Include="FileSystemIterator.cpp" />
     <ClCompile Include="FreeListAllocator.cpp" />
