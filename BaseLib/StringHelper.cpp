@@ -26,6 +26,9 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "StringHelper.h"
 
 
+char	gszEmptyString[] = "";
+
+
 ////////////////////////////////////////////////////////////////////////////////////
 //
 //
@@ -621,5 +624,22 @@ int StrPrintable(const char* szString, int iLength)
 	}
 
 	return iPrintable;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* NullToEmpty(const char* szString)
+{
+	if (szString == NULL)
+	{
+		return gszEmptyString;
+	}
+	else
+	{
+		return (char*)szString;
+	}
 }
 

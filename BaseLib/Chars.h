@@ -181,7 +181,7 @@ protected:
 };
 
 
-extern CChars	gszEmptyString;
+extern CChars	gszEmptyChars;
 
 
 void InitEmptyString(void);

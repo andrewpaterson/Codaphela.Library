@@ -42,16 +42,16 @@ struct SIndexedFileDescriptor
 //////////////////////////////////////////////////////////////////////////
 void CIndexedFiles::Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, char* szDataExtension, char* szDescriptorName, char* szDescriptorRewrite)
 {
-	CFilePathBuilder	szPathName;
-	CFilePathBuilder	szPathRewrite;
+	CFilePathBuilder	cPathName;
+	CFilePathBuilder	cPathRewrite;
 
 	mpcDurableFileControl = pcDurableFileControl;
 	mszDataExtension.Init(szDataExtension);
 	mszSubDirectory.Init(szSubDirectory);
 	mcFiles.Init();
 
-	mcFileDescriptors.Init(mpcDurableFileControl, szPathName.Build(szSubDirectory, szDescriptorName, NULL), szPathRewrite.Build(szSubDirectory, szDescriptorRewrite, NULL));
-	szPathName.Kill(); szPathRewrite.Kill();
+	mcFileDescriptors.Init(mpcDurableFileControl, cPathName.Build(NullToEmpty(szSubDirectory), szDescriptorName, NULL), cPathRewrite.Build(szSubDirectory, szDescriptorRewrite, NULL));
+	cPathName.Kill(); cPathRewrite.Kill();
 }
 
 
