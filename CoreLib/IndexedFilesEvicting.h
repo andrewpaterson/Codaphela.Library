@@ -32,7 +32,7 @@ public:
 	BOOL			Kill(void);
 
 	BOOL			GetData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, void* pvData);
-	BOOL			SetData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, void* pvData, unsigned int uiDataSize, unsigned int uiTimeStamp);
+	BOOL			SetData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, void* pvData, unsigned int uiDataSize);
 
 	BOOL			Flush(BOOL bClearCache);
 	BOOL			IsFlushed(void);

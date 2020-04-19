@@ -47,9 +47,9 @@ void CNamedIndexedData::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNamedIndexedData::Add(OIndex oi, void* pvData, unsigned int uiDataSize, unsigned int uiTimeStamp)
+BOOL CNamedIndexedData::Add(OIndex oi, void* pvData, unsigned int uiDataSize)
 {
-	return mcData.Add(oi, pvData, uiDataSize, uiTimeStamp);
+	return mcData.Add(oi, pvData, uiDataSize);
 }
 
 
@@ -57,10 +57,10 @@ BOOL CNamedIndexedData::Add(OIndex oi, void* pvData, unsigned int uiDataSize, un
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNamedIndexedData::Add(OIndex oi, char* szName, void* pvData, unsigned int uiDataSize, unsigned int uiTimeStamp)
+BOOL CNamedIndexedData::Add(OIndex oi, char* szName, void* pvData, unsigned int uiDataSize)
 {
 	ReturnOnFalse(mcNames.Add(szName, oi));
-	return mcData.Add(oi, pvData, uiDataSize, uiTimeStamp);
+	return mcData.Add(oi, pvData, uiDataSize);
 }
 
 
@@ -68,10 +68,10 @@ BOOL CNamedIndexedData::Add(OIndex oi, char* szName, void* pvData, unsigned int 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNamedIndexedData::Add(OIndex oi, CChars* szName, void* pvData, unsigned int uiDataSize, unsigned int uiTimeStamp)
+BOOL CNamedIndexedData::Add(OIndex oi, CChars* szName, void* pvData, unsigned int uiDataSize)
 {
 	ReturnOnFalse(mcNames.Add(szName, oi));
-	return mcData.Add(oi, pvData, uiDataSize, uiTimeStamp);
+	return mcData.Add(oi, pvData, uiDataSize);
 }
 
 
@@ -79,9 +79,9 @@ BOOL CNamedIndexedData::Add(OIndex oi, CChars* szName, void* pvData, unsigned in
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNamedIndexedData::Set(OIndex oi, void* pvData, unsigned int uiTimeStamp)
+BOOL CNamedIndexedData::Set(OIndex oi, void* pvData)
 {
-	return mcData.Set(oi, pvData, uiTimeStamp);
+	return mcData.Set(oi, pvData);
 }
 
 
@@ -89,9 +89,9 @@ BOOL CNamedIndexedData::Set(OIndex oi, void* pvData, unsigned int uiTimeStamp)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNamedIndexedData::Set(OIndex oi, void* pvData, unsigned int uiDataSize, unsigned int uiTimeStamp)
+BOOL CNamedIndexedData::Set(OIndex oi, void* pvData, unsigned int uiDataSize)
 {
-	return mcData.Set(oi, pvData, uiDataSize, uiTimeStamp);
+	return mcData.Set(oi, pvData, uiDataSize);
 }
 
 
@@ -99,9 +99,9 @@ BOOL CNamedIndexedData::Set(OIndex oi, void* pvData, unsigned int uiDataSize, un
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNamedIndexedData::Put(OIndex oi, void* pvData, unsigned int uiDataSize, unsigned int uiTimeStamp)
+BOOL CNamedIndexedData::Put(OIndex oi, void* pvData, unsigned int uiDataSize)
 {
-	return mcData.Put(oi, pvData, uiDataSize, uiTimeStamp);
+	return mcData.Put(oi, pvData, uiDataSize);
 }
 
 
@@ -109,21 +109,21 @@ BOOL CNamedIndexedData::Put(OIndex oi, void* pvData, unsigned int uiDataSize, un
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNamedIndexedData::Put(OIndex oi, CChars* szName, void* pvData, unsigned int uiDataSize, unsigned int uiTimeStamp)
-{
-	ReturnOnFalse(mcNames.Put(szName, oi));
-	return mcData.Put(oi, pvData, uiDataSize, uiTimeStamp);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CNamedIndexedData::Put(OIndex oi, char* szName, void* pvData, unsigned int uiDataSize, unsigned int uiTimeStamp)
+BOOL CNamedIndexedData::Put(OIndex oi, CChars* szName, void* pvData, unsigned int uiDataSize)
 {
 	ReturnOnFalse(mcNames.Put(szName, oi));
-	return mcData.Put(oi, pvData, uiDataSize, uiTimeStamp);
+	return mcData.Put(oi, pvData, uiDataSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CNamedIndexedData::Put(OIndex oi, char* szName, void* pvData, unsigned int uiDataSize)
+{
+	ReturnOnFalse(mcNames.Put(szName, oi));
+	return mcData.Put(oi, pvData, uiDataSize);
 }
 
 

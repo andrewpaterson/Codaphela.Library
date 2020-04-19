@@ -17,7 +17,7 @@ void CIndexedDataCommon::Init(CIndexedEvictionCallback* pcEvictionCallback)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedDataCommon::Add(OIndex oi, void* pvData, unsigned int uiDataSize, unsigned int uiTimeStamp)
+BOOL CIndexedDataCommon::Add(OIndex oi, void* pvData, unsigned int uiDataSize)
 {
 	CIndexedDataDescriptor	cDescriptor;
 	BOOL					bResult;
@@ -29,7 +29,7 @@ BOOL CIndexedDataCommon::Add(OIndex oi, void* pvData, unsigned int uiDataSize, u
 	}
 
 	//This init clears the file index.  This means CompareDiskToMemory() will not try and read it to test for changes.
-	return mcData.SetData(oi, NULL, pvData, uiDataSize, uiTimeStamp);
+	return mcData.SetData(oi, NULL, pvData, uiDataSize);
 }
 
 
@@ -37,7 +37,7 @@ BOOL CIndexedDataCommon::Add(OIndex oi, void* pvData, unsigned int uiDataSize, u
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedDataCommon::Set(OIndex oi, void* pvData, unsigned int uiTimeStamp)
+BOOL CIndexedDataCommon::Set(OIndex oi, void* pvData)
 {
 	CIndexedDataDescriptor	cDescriptor;
 	BOOL					bResult;
@@ -45,7 +45,7 @@ BOOL CIndexedDataCommon::Set(OIndex oi, void* pvData, unsigned int uiTimeStamp)
 	bResult = GetDescriptor(oi, &cDescriptor);
 	if (bResult)
 	{
-		return mcData.SetData(oi, &cDescriptor, pvData, cDescriptor.GetDataSize(), uiTimeStamp);
+		return mcData.SetData(oi, &cDescriptor, pvData, cDescriptor.GetDataSize());
 	}
 	else
 	{
@@ -58,7 +58,7 @@ BOOL CIndexedDataCommon::Set(OIndex oi, void* pvData, unsigned int uiTimeStamp)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedDataCommon::Set(OIndex oi, void* pvData, unsigned int uiDataSize, unsigned int uiTimeStamp)
+BOOL CIndexedDataCommon::Set(OIndex oi, void* pvData, unsigned int uiDataSize)
 {
 	CIndexedDataDescriptor	cDescriptor;
 	BOOL					bResult;
@@ -66,7 +66,7 @@ BOOL CIndexedDataCommon::Set(OIndex oi, void* pvData, unsigned int uiDataSize, u
 	bResult = GetDescriptor(oi, &cDescriptor);
 	if (bResult)
 	{
-		return mcData.SetData(oi, &cDescriptor, pvData, uiDataSize, uiTimeStamp);
+		return mcData.SetData(oi, &cDescriptor, pvData, uiDataSize);
 	}
 	else
 	{
@@ -79,7 +79,7 @@ BOOL CIndexedDataCommon::Set(OIndex oi, void* pvData, unsigned int uiDataSize, u
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedDataCommon::Put(OIndex oi, void* pvData, unsigned int uiDataSize, unsigned int uiTimeStamp)
+BOOL CIndexedDataCommon::Put(OIndex oi, void* pvData, unsigned int uiDataSize)
 {
 	BOOL					bExists;
 	CIndexedDataDescriptor	cDescriptor;
@@ -87,11 +87,11 @@ BOOL CIndexedDataCommon::Put(OIndex oi, void* pvData, unsigned int uiDataSize, u
 	bExists = GetDescriptor(oi, &cDescriptor);
 	if (bExists)
 	{
-		return mcData.SetData(oi, &cDescriptor, pvData, uiDataSize, uiTimeStamp);
+		return mcData.SetData(oi, &cDescriptor, pvData, uiDataSize);
 	}
 	else
 	{
-		return mcData.SetData(oi, NULL, pvData, uiDataSize, uiTimeStamp);
+		return mcData.SetData(oi, NULL, pvData, uiDataSize);
 	}
 }
 
