@@ -57,6 +57,17 @@ BOOL CNamedIndexedData::Add(OIndex oi, void* pvData, unsigned int uiDataSize, un
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL CNamedIndexedData::Add(OIndex oi, char* szName, void* pvData, unsigned int uiDataSize, unsigned int uiTimeStamp)
+{
+	ReturnOnFalse(mcNames.Add(szName, oi));
+	return mcData.Add(oi, pvData, uiDataSize, uiTimeStamp);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL CNamedIndexedData::Add(OIndex oi, CChars* szName, void* pvData, unsigned int uiDataSize, unsigned int uiTimeStamp)
 {
 	ReturnOnFalse(mcNames.Add(szName, oi));
