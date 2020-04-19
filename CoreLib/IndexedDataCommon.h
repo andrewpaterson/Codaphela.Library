@@ -20,12 +20,12 @@ public:
 
 			BOOL			IsCaching(void);
 	
-			BOOL			Add(OIndex oi, void* pvData, unsigned int uiDataSize, unsigned int uiTimeStamp);
+			BOOL			Add(OIndex oi, void* pvData, unsigned int uiDataSize);
 
-			BOOL			Set(OIndex oi, void* pvData, unsigned int uiTimeStamp);
-			BOOL			Set(OIndex oi, void* pvData, unsigned int uiDataSize, unsigned int uiTimeStamp);
+			BOOL			Set(OIndex oi, void* pvData);
+			BOOL			Set(OIndex oi, void* pvData, unsigned int uiDataSize);
 
-			BOOL			Put(OIndex oi, void* pvData, unsigned int uiDataSize, unsigned int uiTimeStamp);
+			BOOL			Put(OIndex oi, void* pvData, unsigned int uiDataSize);
 
 			unsigned int	Size(OIndex oi);
 			BOOL			Get(OIndex oi, void* pvData);
