@@ -38,6 +38,7 @@ public:
 	void 			Kill(void);
 
 	BOOL			Add(OIndex oi, void* pvData, unsigned int uiDataSize, unsigned int uiTimeStamp);
+	BOOL			Add(OIndex oi, char* szName, void* pvData, unsigned int uiDataSize, unsigned int uiTimeStamp);
 	BOOL			Add(OIndex oi, CChars* szName, void* pvData, unsigned int uiDataSize, unsigned int uiTimeStamp);
 
 	BOOL			Set(OIndex oi, void* pvData, unsigned int uiTimeStamp);
