@@ -35,11 +35,11 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "Chars.h"
 
 
-CChars gszEmptyString;
+CChars gszEmptyChars;
 
 
-void InitEmptyString(void) { gszEmptyString.Init(); }
-void KillEmptyString(void) { gszEmptyString.Kill(); }
+void InitEmptyString(void) { gszEmptyChars.Init(); }
+void KillEmptyString(void) { gszEmptyChars.Kill(); }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -285,7 +285,7 @@ void CChars::Fake(char* sz)
 	}
 	else
 	{
-		mcText.Fake(gszEmptyString.Text(), 1);
+		mcText.Fake(gszEmptyChars.Text(), 1);
 	}
 }
 
@@ -305,7 +305,7 @@ void CChars::Fake(char* sz, int iStartInclusive, int iEndExclusive)
 	}
 	else
 	{
-		mcText.Fake(gszEmptyString.Text(), 1);
+		mcText.Fake(gszEmptyChars.Text(), 1);
 	}
 }
 

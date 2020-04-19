@@ -4,6 +4,7 @@
 #include "BaseLib/DiskFile.h"
 #include "BaseLib/GlobalMemory.h"
 #include "BaseLib/StackMemory.h"
+#include "BaseLib/FilePathBuilder.h"
 #include "IndexedFile.h"
 #include "IndexTreeFileDebug.h"
 #include "IndexTreeFileDefaultCallback.h"
@@ -117,7 +118,7 @@ BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, char* sz
 		return FALSE;
 	}
 
-	bResult = InitRoot();
+	bResult = InitRoot(szSubDirectory);
 	if (!bResult)
 	{
 		return FALSE;
@@ -194,7 +195,7 @@ void CIndexTreeFile::RecurseKill(CIndexTreeNodeFile* pcNode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::InitRoot(void)
+BOOL CIndexTreeFile::InitRoot(char* szSubDirectory)
 {
 	BOOL				bRootIndexExists;
 	CFileDataIndex		cRootDataIndex;
@@ -203,8 +204,11 @@ BOOL CIndexTreeFile::InitRoot(void)
 	int					iFileSize;
 	void*				pvBuffer;
 	BOOL				bResult;
+	CFilePathBuilder	cWrite;
+	CFilePathBuilder	cRewrite;
 
-	mcRootIndex.Init(mpcDurableFileControl, "Root.IDX", "_Root.IDX");
+	mcRootIndex.Init(mpcDurableFileControl, cWrite.Build(NullToEmpty(szSubDirectory), "Root.IDX", NULL), cRewrite.Build(NullToEmpty(szSubDirectory), "_Root.IDX", NULL));
+	cWrite.Kill(); cRewrite.Kill();
 	cRootDataIndex = ReadRootFileIndex();
 
 	bRootIndexExists = cRootDataIndex.HasFile();

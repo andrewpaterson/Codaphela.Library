@@ -109,7 +109,7 @@ public:
 	void					FakeInit(EIndexKeyReverse eKeyReverse = IKR_No);
 
 protected:
-	BOOL					InitRoot(void);
+	BOOL					InitRoot(char* szSubDirectory);
 	void					RecurseKill(CIndexTreeNodeFile* pcNode);
 
 	CIndexTreeNodeFile*		ReadNode(CIndexTreeNodeFile* pcParent, unsigned char c);
