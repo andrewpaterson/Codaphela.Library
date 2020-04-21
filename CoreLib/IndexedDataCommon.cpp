@@ -95,6 +95,7 @@ BOOL CIndexedDataCommon::Put(OIndex oi, void* pvData, unsigned int uiDataSize)
 	}
 }
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -145,12 +146,11 @@ unsigned int CIndexedDataCommon::Size(OIndex oi)
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedDataCommon::Get(OIndex oi, void* pvData)
+BOOL CIndexedDataCommon::Get(OIndex oi, void* pvData, unsigned int uiMaxSize)
 {
 	CIndexedDataDescriptor	cDescriptor;
 	BOOL					bResult;
@@ -161,7 +161,7 @@ BOOL CIndexedDataCommon::Get(OIndex oi, void* pvData)
 		return FALSE;
 	}
 
-	bResult = mcData.GetData(oi, &cDescriptor, pvData);
+	bResult = mcData.GetData(oi, &cDescriptor, pvData, uiMaxSize);
 	return bResult;
 }
 
@@ -179,6 +179,7 @@ BOOL CIndexedDataCommon::Get(OIndex oi, unsigned int* puiDataSize, void* pvData,
 	bResult = GetDescriptor(oi, &cDescriptor);
 	if (!bResult)
 	{
+		SafeAssign(puiDataSize, 0);
 		return FALSE;
 	}
 
@@ -187,17 +188,10 @@ BOOL CIndexedDataCommon::Get(OIndex oi, unsigned int* puiDataSize, void* pvData,
 
 	if (pvData)
 	{
-		if ((uiMaxSize >= uiDataSize) || (uiMaxSize == 0))
+		bResult = mcData.GetData(oi, &cDescriptor, pvData, uiMaxSize);
+		if (bResult)
 		{
-			bResult = mcData.GetData(oi, &cDescriptor, pvData);
-			if (bResult)
-			{
-				return TRUE;
-			}
-			else
-			{
-				return FALSE;
-			}
+			return TRUE;
 		}
 		else
 		{

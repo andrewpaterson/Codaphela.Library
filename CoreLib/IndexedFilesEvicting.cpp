@@ -54,7 +54,7 @@ BOOL CIndexedFilesEvicting::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedFilesEvicting::GetData(OIndex oi, CIndexedDataDescriptor* pcExistingDescriptor, void* pvData)
+BOOL CIndexedFilesEvicting::GetData(OIndex oi, CIndexedDataDescriptor* pcExistingDescriptor, void* pvData, unsigned int uiMaxDataSize)
 {
 	BOOL					bResult;
 	void*					pvCache;
@@ -69,7 +69,7 @@ BOOL CIndexedFilesEvicting::GetData(OIndex oi, CIndexedDataDescriptor* pcExistin
 	{
 		//Data already in cache so just copy it into pvData.  Assume pvData is large enough.
 		uiDataSize = pcExistingDescriptor->GetCacheDataSize();
-		memcpy_fast(pvData, pvCache, uiDataSize);
+		memcpy_fast(pvData, pvCache, MinDataSize(uiDataSize, uiMaxDataSize));
 		return TRUE;
 	}
 	else
@@ -86,7 +86,7 @@ BOOL CIndexedFilesEvicting::GetData(OIndex oi, CIndexedDataDescriptor* pcExistin
 				bResult = mcDataFiles.Read(&cDataIndex, pvCache);
 				if (bResult)
 				{
-					memcpy_fast(pvData, pvCache, uiDataSize);
+					memcpy_fast(pvData, pvCache, MinDataSize(uiDataSize, uiMaxDataSize));
 					mpcEvictionCallback->UpdateDescriptorCache(oi, pvCache, uiDataSize);
 					return TRUE;
 				}
@@ -105,6 +105,27 @@ BOOL CIndexedFilesEvicting::GetData(OIndex oi, CIndexedDataDescriptor* pcExistin
 			cDataIndex = pcExistingDescriptor->GetFileDataIndex();
 			return mcDataFiles.Read(&cDataIndex, pvData);
 		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+unsigned int CIndexedFilesEvicting::MinDataSize(unsigned int uiDataSize, unsigned int uiMaxDataSize)
+{
+	if (uiMaxDataSize == 0)
+	{
+		return uiDataSize;
+	}
+	else if (uiMaxDataSize > uiDataSize)
+	{
+		return uiDataSize;
+	}
+	else
+	{
+		return uiMaxDataSize;
 	}
 }
 

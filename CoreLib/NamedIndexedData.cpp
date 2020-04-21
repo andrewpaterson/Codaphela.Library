@@ -18,7 +18,9 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "CoreLib/NamedIndexedData.h"
+#include "BaseLib/StackMemory.h"
+#include "NamedIndexedHeader.h"
+#include "NamedIndexedData.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -49,7 +51,7 @@ void CNamedIndexedData::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CNamedIndexedData::Add(OIndex oi, void* pvData, unsigned int uiDataSize)
 {
-	return mcData.Add(oi, pvData, uiDataSize);
+	return Add(oi, NULL, 0, pvData, uiDataSize);
 }
 
 
@@ -59,8 +61,17 @@ BOOL CNamedIndexedData::Add(OIndex oi, void* pvData, unsigned int uiDataSize)
 //////////////////////////////////////////////////////////////////////////
 BOOL CNamedIndexedData::Add(OIndex oi, char* szName, void* pvData, unsigned int uiDataSize)
 {
-	ReturnOnFalse(mcNames.Add(szName, oi));
-	return mcData.Add(oi, pvData, uiDataSize);
+	int	iNameLength;
+
+	if (szName != NULL)
+	{
+		iNameLength = strlen(szName);
+		return Add(oi, szName, iNameLength, pvData, uiDataSize);
+	}
+	else
+	{
+		return Add(oi, NULL, 0, pvData, uiDataSize);
+	}
 }
 
 
@@ -70,8 +81,45 @@ BOOL CNamedIndexedData::Add(OIndex oi, char* szName, void* pvData, unsigned int 
 //////////////////////////////////////////////////////////////////////////
 BOOL CNamedIndexedData::Add(OIndex oi, CChars* szName, void* pvData, unsigned int uiDataSize)
 {
-	ReturnOnFalse(mcNames.Add(szName, oi));
-	return mcData.Add(oi, pvData, uiDataSize);
+	if (szName != NULL)
+	{
+		return Add(oi, szName->Text(), szName->Length(), pvData, uiDataSize);
+	}
+	else
+	{
+		return Add(oi, NULL, 0, pvData, uiDataSize);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CNamedIndexedData::Add(OIndex oi, char* szName, int iNameLength, void* pvData, unsigned int uiDataSize)
+{
+	CStackMemory<>			cStack;
+	CNamedIndexedHeader*	pcHeader;
+	size_t					sSize;
+
+	if (szName != NULL)
+	{
+		mcNames.Add(szName, iNameLength, oi);
+
+		sSize = NamedIndexedHeaderSize(iNameLength, uiDataSize);
+		pcHeader = (CNamedIndexedHeader*)cStack.Init(sSize);
+		pcHeader->Init(szName, iNameLength, pvData, uiDataSize);
+
+		return mcData.Add(oi, pcHeader, sSize);
+	}
+	else
+	{
+		sSize = NamedIndexedHeaderSize(uiDataSize);
+		pcHeader = (CNamedIndexedHeader*)cStack.Init(sSize);
+		pcHeader->Init(pvData, uiDataSize);
+
+		return mcData.Add(oi, pcHeader, sSize);
+	}
 }
 
 
@@ -81,6 +129,12 @@ BOOL CNamedIndexedData::Add(OIndex oi, CChars* szName, void* pvData, unsigned in
 //////////////////////////////////////////////////////////////////////////
 BOOL CNamedIndexedData::Set(OIndex oi, void* pvData)
 {
+	unsigned int			uiDataSize;
+	CStackMemory<>			cStack;
+	CNamedIndexedHeader*	pcHeader;
+
+	pcHeader = (CNamedIndexedHeader * )cStack.Init();
+	mcData.Get(oi, &uiDataSize, pcHeader, cStack.GetStackSize());
 	return mcData.Set(oi, pvData);
 }
 
@@ -133,7 +187,16 @@ BOOL CNamedIndexedData::Put(OIndex oi, char* szName, void* pvData, unsigned int 
 //////////////////////////////////////////////////////////////////////////
 unsigned int CNamedIndexedData::Size(OIndex oi)
 {
-	return mcData.Size(oi);
+	unsigned int			uiDataSize;
+	BOOL					bResult;
+	CNamedIndexedHeader		cNamedIndexedHeader;
+
+	bResult = mcData.Get(oi, &uiDataSize, &cNamedIndexedHeader, sizeof(CNamedIndexedHeader));
+	if (bResult)
+	{
+		return uiDataSize - cNamedIndexedHeader.GetHeaderSize();
+	}
+	return 0;
 }
 
 
@@ -143,7 +206,7 @@ unsigned int CNamedIndexedData::Size(OIndex oi)
 //////////////////////////////////////////////////////////////////////////
 BOOL CNamedIndexedData::Get(OIndex oi, void* pvData)
 {
-	return mcData.Get(oi, pvData);
+	return Get(oi, NULL, pvData, 0);
 }
 
 
@@ -151,9 +214,43 @@ BOOL CNamedIndexedData::Get(OIndex oi, void* pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNamedIndexedData::Get(OIndex oi, unsigned int* puiDataSize, void* pvData, unsigned int uiMaxSize)
+BOOL CNamedIndexedData::Get(OIndex oi, unsigned int* puiDataSize, void* pvData, unsigned int uiMaxDataSize)
 {
-	return mcData.Get(oi, puiDataSize, pvData, uiMaxSize);
+	CStackMemory<>			cStack;
+	unsigned int			uiDataSize;
+	BOOL					bResult;
+	CNamedIndexedHeader*	pcNamedIndexedHeader;
+	int						iNameLength;
+	void*					pvHeaderData;
+
+	pcNamedIndexedHeader = (CNamedIndexedHeader*)cStack.Init();
+	bResult = mcData.Get(oi, &uiDataSize, pcNamedIndexedHeader, cStack.GetStackSize());
+	if (bResult)
+	{
+		iNameLength = pcNamedIndexedHeader->GetNameLength();
+		if (uiDataSize > (unsigned int)cStack.GetStackSize())
+		{
+			cStack.Kill();
+			pcNamedIndexedHeader = (CNamedIndexedHeader*)cStack.Init(uiDataSize);
+			bResult = mcData.Get(oi, &uiDataSize, pcNamedIndexedHeader, uiDataSize);
+			if (!bResult)
+			{
+				cStack.Kill();
+				return FALSE;
+			}
+		}
+		pvHeaderData = pcNamedIndexedHeader->GetData();
+ 		memcpy_fast(pvData, pvHeaderData, MinDataSize(uiDataSize, uiMaxDataSize));
+		cStack.Kill();
+		return TRUE;
+	}
+	else
+	{
+		cStack.Kill();
+		return FALSE;
+	}
+
+	return mcData.Get(oi, puiDataSize, pvData, uiMaxDataSize);
 }
 
 
@@ -169,7 +266,7 @@ BOOL CNamedIndexedData::Get(char* szName, void* pvData)
 	oi = mcNames.Get(szName);
 	if (oi != INVALID_O_INDEX)
 	{
-		bResult = mcData.Get(oi, pvData);
+		bResult = Get(oi, NULL, pvData, 0);
 		return bResult;
 	}
 	return FALSE;
@@ -180,18 +277,110 @@ BOOL CNamedIndexedData::Get(char* szName, void* pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNamedIndexedData::Get(char* szName, unsigned int* puiDataSize, void* pvData, unsigned int uiMaxSize)
+BOOL CNamedIndexedData::Get(char* szName, unsigned int* puiDataSize, void* pvData, unsigned int uiMaxDataSize)
 {
-	OIndex	oi;
-	BOOL	bResult;
+	OIndex		oi;
+	BOOL		bResult;
 
 	oi = mcNames.Get(szName);
 	if (oi != INVALID_O_INDEX)
 	{
-		bResult = mcData.Get(oi, puiDataSize, pvData, uiMaxSize);
+		bResult = Get(oi, puiDataSize, pvData, uiMaxDataSize);
 		return bResult;
 	}
 	return FALSE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CNamedIndexedData::GetName(OIndex oi, CChars* szName)
+{
+	CStackMemory<>			cStack;
+	unsigned int			uiDataSize;
+	BOOL					bResult;
+	CNamedIndexedHeader*	pcNamedIndexedHeader;
+	
+	pcNamedIndexedHeader = (CNamedIndexedHeader*)cStack.Init();
+	bResult = mcData.Get(oi, &uiDataSize, pcNamedIndexedHeader, cStack.GetStackSize());
+	if (bResult)
+	{
+		szName->Append(pcNamedIndexedHeader->GetName(), pcNamedIndexedHeader->GetNameLength());
+		cStack.Kill();
+		return TRUE;
+	}
+	else
+	{
+		cStack.Kill();
+		return FALSE;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CNamedIndexedData::GetName(OIndex oi, char* szName, unsigned int* puiNameLength, unsigned int uiMaxNameLength)
+{
+	CStackMemory<>			cStack;
+	unsigned int			uiDataSize;
+	BOOL					bResult;
+	CNamedIndexedHeader*	pcNamedIndexedHeader;
+	int						iNameLength;
+	char*					szSourceName;
+
+	pcNamedIndexedHeader = (CNamedIndexedHeader*)cStack.Init();
+	bResult = mcData.Get(oi, &uiDataSize, pcNamedIndexedHeader, cStack.GetStackSize());
+	if (bResult)
+	{
+		szSourceName = pcNamedIndexedHeader->GetName();
+		iNameLength = pcNamedIndexedHeader->GetNameLength();
+		strcpy_s(szName, uiMaxNameLength, szSourceName);
+		SafeAssign(puiNameLength, iNameLength);
+		cStack.Kill();
+		return TRUE;
+	}
+	else
+	{
+		SafeAssign(puiNameLength, 0);
+		szName[0] = '\0';
+		cStack.Kill();
+		return FALSE;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+unsigned int CNamedIndexedData::MinNameSize(unsigned int uiNameSize, unsigned int uiMaxNameSize)
+{
+	return MinDataSize(uiNameSize, uiMaxNameSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+unsigned int CNamedIndexedData::MinDataSize(unsigned int uiDataSize, unsigned int uiMaxDataSize)
+{
+	if (uiMaxDataSize == 0)
+	{
+		return uiDataSize;
+	}
+	else if (uiMaxDataSize > uiDataSize)
+	{
+		return uiDataSize;
+	}
+	else
+	{
+		return uiMaxDataSize;
+	}
 }
 
 
@@ -200,6 +389,19 @@ BOOL CNamedIndexedData::Get(char* szName, unsigned int* puiDataSize, void* pvDat
 //
 //////////////////////////////////////////////////////////////////////////
 OIndex CNamedIndexedData::GetIndex(char* szName)
+{
+	OIndex	oi;
+
+	oi = mcNames.Get(szName);
+	return oi;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+OIndex CNamedIndexedData::GetIndex(CChars* szName)
 {
 	OIndex	oi;
 
