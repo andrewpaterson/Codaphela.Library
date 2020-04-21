@@ -28,7 +28,7 @@ public:
 			BOOL			Put(OIndex oi, void* pvData, unsigned int uiDataSize);
 
 			unsigned int	Size(OIndex oi);
-			BOOL			Get(OIndex oi, void* pvData);
+			BOOL			Get(OIndex oi, void* pvData, unsigned int uiMaxSize = 0);
 			BOOL			Get(OIndex oi, unsigned int* puiDataSize, void* pvData, unsigned int uiMaxSize);
 
 			BOOL			Contains(OIndex oi);

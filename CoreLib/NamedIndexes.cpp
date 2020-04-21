@@ -63,21 +63,15 @@ BOOL CNamedIndexes::IndexTreeNodeEvicted(void* pvKey, int iKeySize, void* pvData
 BOOL CNamedIndexes::Add(char* szName, OIndex oi)
 {
 	int		iKeySize;
-	BOOL	bExists;
 
-	if (!StrEmpty(szName))
+	if (szName != NULL)
 	{
 		iKeySize = strlen(szName);
-		bExists = mcIndexTree.HasKey(szName, iKeySize);
-		if (bExists)
-		{
-			return gcLogger.Error2(__METHOD__, "Cannot Add Name[", szName, "] and index[", LongLongToString(oi), "].  It already exists.", NULL);
-		}
-		return mcIndexTree.Put(szName, iKeySize, &oi, sizeof(OIndex));
+		return Add(szName, iKeySize, oi);
 	}
 	else
 	{
-		return gcLogger.Error2(__METHOD__, " Cannot Add index [", LongLongToString(oi), "] with empty name.", NULL);;
+		return Add(NULL, 0, oi);
 	}
 }
 
@@ -88,16 +82,33 @@ BOOL CNamedIndexes::Add(char* szName, OIndex oi)
 //////////////////////////////////////////////////////////////////////////
 BOOL CNamedIndexes::Add(CChars* szName, OIndex oi)
 {
+	if (szName != NULL)
+	{
+		return Add(szName->Text(), szName->Length(), oi);
+	}
+	else
+	{
+		return Add(NULL, 0, oi);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CNamedIndexes::Add(char* szName, int iNameLength, OIndex oi)
+{
 	BOOL	bExists;
 
-	if ((szName != NULL) && (!szName->Empty()))
+	if ((iNameLength != 0) && (szName != NULL))
 	{
-		bExists = mcIndexTree.HasKey(szName->Text(), szName->Length());
+		bExists = mcIndexTree.HasKey(szName, iNameLength);
 		if (bExists)
 		{
-			return gcLogger.Error2(__METHOD__, "Cannot Add Name[", szName->Text(), "] and index[", LongLongToString(oi), "].  It already exists.", NULL);
+			return gcLogger.Error2(__METHOD__, "Cannot Add Name[", szName, "] and index[", LongLongToString(oi), "].  It already exists.", NULL);
 		}
-		return mcIndexTree.Put(szName->Text(), szName->Length(), &oi, sizeof(OIndex));
+		return mcIndexTree.Put(szName, iNameLength, &oi, sizeof(OIndex));
 	}
 	else
 	{

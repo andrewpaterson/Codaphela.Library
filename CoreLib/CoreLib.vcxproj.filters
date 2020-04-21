@@ -444,6 +444,9 @@
     <ClCompile Include="ValueNamedIndexesConfig.cpp">
       <Filter>Source\File\Indexed\Named\Config</Filter>
     </ClCompile>
+    <ClCompile Include="NamedIndexedHeader.cpp">
+      <Filter>Source\File\Indexed\Named</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="IndexedData.h">
@@ -739,6 +742,9 @@
     </ClInclude>
     <ClInclude Include="ValueNamedIndexesConfig.h">
       <Filter>Source\File\Indexed\Named\Config</Filter>
+    </ClInclude>
+    <ClInclude Include="NamedIndexedHeader.h">
+      <Filter>Source\File\Indexed\Named</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

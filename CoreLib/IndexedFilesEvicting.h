@@ -31,7 +31,7 @@ public:
 	void			Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, char* szDataExtension, char* szDescriptorName, char* szDescriptorRewrite, size_t iCacheSize, EIndexWriteThrough eWriteThrough, CIndexedFilesEvictionCallback* pcEvictionCallback);
 	BOOL			Kill(void);
 
-	BOOL			GetData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, void* pvData);
+	BOOL			GetData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, void* pvData, unsigned int uiMaxDataSize);
 	BOOL			SetData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, void* pvData, unsigned int uiDataSize);
 
 	BOOL			Flush(BOOL bClearCache);
@@ -66,6 +66,7 @@ protected:
 
 	BOOL				CompareDiskToMemory(CIndexedDataDescriptor* pcDescriptor, void* pvData);
 	BOOL				ClearDescriptorCache(SIndexedCacheDescriptor* psCached);
+	unsigned int		MinDataSize(unsigned int uiDataSize, unsigned int uiMaxDataSize);
 };
 
 

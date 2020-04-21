@@ -45,17 +45,20 @@ public:
 	BOOL			Set(OIndex oi, void* pvData, unsigned int uiDataSize);
 
 	BOOL			Put(OIndex oi, void* pvData, unsigned int uiDataSize);
-	BOOL			Put(OIndex oi, CChars* szName, void* pvData, unsigned int uiDataSize);
 	BOOL			Put(OIndex oi, char* szName, void* pvData, unsigned int uiDataSize);
+	BOOL			Put(OIndex oi, CChars* szName, void* pvData, unsigned int uiDataSize);
 
 	unsigned int	Size(OIndex oi);
 
 	BOOL			Get(OIndex oi, void* pvData);
-	BOOL			Get(OIndex oi, unsigned int* puiDataSize, void* pvData, unsigned int uiMaxSize);
+	BOOL			Get(OIndex oi, unsigned int* puiDataSize, void* pvData, unsigned int uiMaxDataSize);
 	BOOL			Get(char* szName, void* pvData);
-	BOOL			Get(char* szName, unsigned int* puiDataSize, void* pvData, unsigned int uiMaxSize);
+	BOOL			Get(char* szName, unsigned int* puiDataSize, void* pvData, unsigned int uiMaxDataSize);
 
+	BOOL			GetName(OIndex oi, CChars* szName);
+	BOOL			GetName(OIndex oi, char* szName, unsigned int* puiNameLength, unsigned int uiMaxNameLength);
 	OIndex			GetIndex(char* szName);
+	OIndex			GetIndex(CChars* szName);
 
 	BOOL			Contains(OIndex oi);
 	BOOL			Contains(char* szName);
@@ -70,6 +73,11 @@ public:
 	int64			NumIndicesCached(int iSize);
 	int64			NumNames(void);
 	BOOL			IsCaching(void);
+
+private:
+	BOOL			Add(OIndex oi, char* szName, int iNameLength, void* pvData, unsigned int uiDataSize);
+	unsigned int	MinNameSize(unsigned int uiNameSize, unsigned int uiMaxNameSize);
+	unsigned int	MinDataSize(unsigned int uiDataSize, unsigned int uiMaxDataSize);
 };
 
 

@@ -120,6 +120,7 @@
     <ClCompile Include="LogFileCommands.cpp" />
     <ClCompile Include="NamedIndexedDataConfig.cpp" />
     <ClCompile Include="NamedIndexedData.cpp" />
+    <ClCompile Include="NamedIndexedHeader.cpp" />
     <ClCompile Include="NamedIndexes.cpp" />
     <ClCompile Include="NamedIndexesConfig.cpp" />
     <ClCompile Include="PackFileOffset.cpp" />
@@ -182,6 +183,7 @@
     <ClCompile Include="OperatorAssignment.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="NamedIndexedHeader.h" />
     <ClInclude Include="NamedIndexesConfig.h" />
     <ClInclude Include="IndexedCacheResult.h" />
     <ClInclude Include="IndexedDataConfig.h" />

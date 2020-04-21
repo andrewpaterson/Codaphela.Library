@@ -41,6 +41,7 @@ public:
 
 	BOOL			Add(char* szName, OIndex oi);
 	BOOL			Add(CChars* szName, OIndex oi);
+	BOOL			Add(char* szName, int iNameLength, OIndex oi);
 
 	BOOL			Set(char* szName, OIndex oi);
 	BOOL			Set(CChars* szName, OIndex oi);
