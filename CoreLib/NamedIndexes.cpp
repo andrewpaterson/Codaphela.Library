@@ -214,7 +214,7 @@ OIndex CNamedIndexes::Get(char* szName)
 	OIndex	iResult;
 	BOOL	bExists;
 
-	if (szName)
+	if (!StrEmpty(szName))
 	{
 		iKeySize = strlen(szName);
 		bExists = mcIndexTree.Get(szName, iKeySize, &iResult, NULL);
@@ -237,10 +237,13 @@ OIndex CNamedIndexes::Get(CChars* szName)
 	OIndex	iResult;
 	BOOL	bExists;
 
-	bExists = mcIndexTree.Get(szName->Text(), szName->Length(), &iResult, NULL);
-	if (bExists)
+	if ((szName != NULL) && !szName->Empty())
 	{
-		return iResult;
+		bExists = mcIndexTree.Get(szName->Text(), szName->Length(), &iResult, NULL);
+		if (bExists)
+		{
+			return iResult;
+		}
 	}
 	return INVALID_O_INDEX;
 }

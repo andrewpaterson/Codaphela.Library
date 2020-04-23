@@ -43,6 +43,10 @@ public:
 
 	BOOL			Set(OIndex oi, void* pvData);
 	BOOL			Set(OIndex oi, void* pvData, unsigned int uiDataSize);
+	BOOL			Set(char* szName, void* pvData);
+	BOOL			Set(char* szName, void* pvData, unsigned int uiDataSize);
+	BOOL			Set(CChars* szName, void* pvData);
+	BOOL			Set(CChars* szName, void* pvData, unsigned int uiDataSize);
 
 	BOOL			Put(OIndex oi, void* pvData, unsigned int uiDataSize);
 	BOOL			Put(OIndex oi, char* szName, void* pvData, unsigned int uiDataSize);
@@ -76,6 +80,7 @@ public:
 
 private:
 	BOOL			Add(OIndex oi, char* szName, int iNameLength, void* pvData, unsigned int uiDataSize);
+	BOOL			Set(OIndex oi, char* szName, int iNameLength, void* pvData, unsigned int uiDataSize);
 	unsigned int	MinNameSize(unsigned int uiNameSize, unsigned int uiMaxNameSize);
 	unsigned int	MinDataSize(unsigned int uiDataSize, unsigned int uiMaxDataSize);
 };
