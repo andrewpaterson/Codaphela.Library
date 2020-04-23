@@ -12,14 +12,21 @@ void CNamedIndexedHeader::Init(char* szName, int iNameLength, void* pvData, unsi
 	char* szDestName;
 	void* szDestData;
 
-	miNameLength = iNameLength;
+	if (iNameLength > 0)
+	{
+		miNameLength = iNameLength;
 
-	szDestName = GetName();
-	memcpy_fast(szDestName, szName, iNameLength);
-	szDestName[iNameLength] = '\0';
+		szDestName = GetName();
+		memcpy_fast(szDestName, szName, iNameLength);
+		szDestName[iNameLength] = '\0';
 
-	szDestData = GetData();
-	memcpy_fast(szDestData, pvData, uiDataSize);
+		szDestData = GetData();
+		memcpy_fast(szDestData, pvData, uiDataSize);
+	}
+	else
+	{
+		Init(pvData, uiDataSize);
+	}
 }
 
 
@@ -98,7 +105,14 @@ int CNamedIndexedHeader::GetHeaderSize(void)
 //////////////////////////////////////////////////////////////////////////
 size_t NamedIndexedHeaderSize(int iNameLength, unsigned int uiDataSize)
 {
-	return sizeof(CNamedIndexedHeader) + iNameLength + sizeof(char) + uiDataSize;
+	if (iNameLength > 0)
+	{
+		return sizeof(CNamedIndexedHeader) + iNameLength + sizeof(char) + uiDataSize;
+	}
+	else
+	{
+		return NamedIndexedHeaderSize(uiDataSize);
+	}
 }
 
 
