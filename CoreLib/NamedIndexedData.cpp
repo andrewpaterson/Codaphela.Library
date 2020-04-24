@@ -106,6 +106,11 @@ BOOL CNamedIndexedData::Add(OIndex oi, char* szName, int iNameLength, void* pvDa
 
 	if (szName != NULL)
 	{
+		if ((pvData == NULL) || (uiDataSize == 0))
+		{
+			return gcLogger.Error2(__METHOD__, " Cannot add Name [", szName, "] with Index [", IndexToString(oi), "] with empty data.", NULL);
+		}
+
 		bResult = mcNames.Add(szName, iNameLength, oi);
 		if (!bResult)
 		{
@@ -123,6 +128,11 @@ BOOL CNamedIndexedData::Add(OIndex oi, char* szName, int iNameLength, void* pvDa
 	}
 	else
 	{
+		if ((pvData == NULL) || (uiDataSize == 0))
+		{
+			return gcLogger.Error2(__METHOD__, " Cannot add Index [", IndexToString(oi), "] with empty data.", NULL);
+		}
+
 		sSize = NamedIndexedHeaderSize(uiDataSize);
 		pcHeader = (CNamedIndexedHeader*)cStack.Init(sSize);
 		pcHeader->Init(pvData, uiDataSize);
