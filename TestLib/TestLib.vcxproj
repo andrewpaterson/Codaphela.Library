@@ -62,6 +62,7 @@
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <BrowseInformation>true</BrowseInformation>
+      <OpenMPSupport>true</OpenMPSupport>
     </ClCompile>
     <Bscmake>
       <PreserveSbr>true</PreserveSbr>
