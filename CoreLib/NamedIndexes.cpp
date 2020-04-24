@@ -103,16 +103,21 @@ BOOL CNamedIndexes::Add(char* szName, int iNameLength, OIndex oi)
 
 	if ((iNameLength != 0) && (szName != NULL))
 	{
+		if (!IsValidIndex(oi))
+		{
+			return gcLogger.Error2(__METHOD__, " Cannot Add Name [", szName, "] with index [", IndexToString(oi), "].", NULL);
+		}
+
 		bExists = mcIndexTree.HasKey(szName, iNameLength);
 		if (bExists)
 		{
-			return gcLogger.Error2(__METHOD__, "Cannot Add Name[", szName, "] and index[", LongLongToString(oi), "].  It already exists.", NULL);
+			return gcLogger.Error2(__METHOD__, " Cannot Add Name [", szName, "] and index [", IndexToString(oi), "].  It already exists.", NULL);
 		}
 		return mcIndexTree.Put(szName, iNameLength, &oi, sizeof(OIndex));
 	}
 	else
 	{
-		return gcLogger.Error2(__METHOD__, " Cannot Add index [", LongLongToString(oi), "] with empty name.", NULL);;
+		return gcLogger.Error2(__METHOD__, " Cannot Add index [", IndexToString(oi), "] with empty name.", NULL);;
 	}
 }
 
@@ -132,13 +137,13 @@ BOOL CNamedIndexes::Set(char* szName, OIndex oi)
 		bExists = mcIndexTree.HasKey(szName, iKeySize);
 		if (bExists)
 		{
-			return gcLogger.Error2(__METHOD__, " Cannot Set Name [", szName, "] and index [", LongLongToString(oi), "].  The Name does not exist.", NULL);
+			return gcLogger.Error2(__METHOD__, " Cannot Set Name [", szName, "] and index [", IndexToString(oi), "].  The Name does not exist.", NULL);
 		}
 		return mcIndexTree.Put(szName, iKeySize, &oi, sizeof(OIndex));
 	}
 	else
 	{
-		return gcLogger.Error2(__METHOD__, " Cannot Set index [", LongLongToString(oi), "] with empty name.", NULL);;
+		return gcLogger.Error2(__METHOD__, " Cannot Set index [", IndexToString(oi), "] with empty name.", NULL);;
 	}
 }
 
@@ -156,13 +161,13 @@ BOOL CNamedIndexes::Set(CChars* szName, OIndex oi)
 		bExists = mcIndexTree.HasKey(szName->Text(), szName->Length());
 		if (!bExists)
 		{
-			return gcLogger.Error2(__METHOD__, " Cannot Set Name [", szName->Text(), "] and index [", LongLongToString(oi), "].  The Name does not exist.", NULL);
+			return gcLogger.Error2(__METHOD__, " Cannot Set Name [", szName->Text(), "] and index [", IndexToString(oi), "].  The Name does not exist.", NULL);
 		}
 		return mcIndexTree.Put(szName->Text(), szName->Length(), &oi, sizeof(OIndex));
 	}
 	else
 	{
-		return gcLogger.Error2(__METHOD__, " Cannot Set index [", LongLongToString(oi), "] with empty name.", NULL);;
+		return gcLogger.Error2(__METHOD__, " Cannot Set index [", IndexToString(oi), "] with empty name.", NULL);;
 	}
 }
 
@@ -182,7 +187,7 @@ BOOL CNamedIndexes::Put(char* szName, OIndex oi)
 	}
 	else
 	{
-		return gcLogger.Error2(__METHOD__, " Cannot Put index [", LongLongToString(oi), "] with empty name.", NULL);;
+		return gcLogger.Error2(__METHOD__, " Cannot Put index [", IndexToString(oi), "] with empty name.", NULL);;
 	}
 }
 
@@ -199,7 +204,7 @@ BOOL CNamedIndexes::Put(CChars* szName, OIndex oi)
 	}
 	else
 	{
-		return gcLogger.Error2(__METHOD__, " Cannot Put index [", LongLongToString(oi), "] with empty name.", NULL);;
+		return gcLogger.Error2(__METHOD__, " Cannot Put index [", IndexToString(oi), "] with empty name.", NULL);;
 	}
 }
 

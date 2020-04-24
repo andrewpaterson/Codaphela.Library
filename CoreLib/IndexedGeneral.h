@@ -32,8 +32,8 @@ typedef int64 OIndex;
 #define NULL_O_INDEX	((OIndex)0)
 #define FIRST_O_INDEX	((OIndex)1)
 
-
-char* IndexToString(OIndex oi);
+BOOL	IsValidIndex(OIndex oi);
+char*	IndexToString(OIndex oi);
 
 
 #endif // __INDEXED_GENERAL_H__

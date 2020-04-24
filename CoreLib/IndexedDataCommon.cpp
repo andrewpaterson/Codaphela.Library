@@ -22,10 +22,15 @@ BOOL CIndexedDataCommon::Add(OIndex oi, void* pvData, unsigned int uiDataSize)
 	CIndexedDataDescriptor	cDescriptor;
 	BOOL					bResult;
 
+	if (!IsValidIndex(oi))
+	{
+		return gcLogger.Error2(__METHOD__, " Cannot Add Index [", IndexToString(oi), "].", NULL);
+	}
+
 	bResult = GetDescriptor(oi, &cDescriptor);
 	if (bResult)
 	{
-		return gcLogger.Error2(__METHOD__, "Cannot Add index [", LongLongToString(oi), "].  It already exists.", NULL);
+		return gcLogger.Error2(__METHOD__, " Cannot Add Index [", IndexToString(oi), "].  It already exists.", NULL);
 	}
 
 	//This init clears the file index.  This means CompareDiskToMemory() will not try and read it to test for changes.
@@ -42,6 +47,11 @@ BOOL CIndexedDataCommon::Set(OIndex oi, void* pvData)
 	CIndexedDataDescriptor	cDescriptor;
 	BOOL					bResult;
 
+	if (!IsValidIndex(oi))
+	{
+		return gcLogger.Error2(__METHOD__, " Cannot Set Index [", IndexToString(oi), "].", NULL);
+	}
+
 	bResult = GetDescriptor(oi, &cDescriptor);
 	if (bResult)
 	{
@@ -49,7 +59,7 @@ BOOL CIndexedDataCommon::Set(OIndex oi, void* pvData)
 	}
 	else
 	{
-		return gcLogger.Error2(__METHOD__, "Cannot Set index [", LongLongToString(oi), "].  It does not exist.", NULL);
+		return gcLogger.Error2(__METHOD__, " Cannot Set Index [", IndexToString(oi), "].  It does not exist.", NULL);
 	}
 }
 
@@ -63,6 +73,11 @@ BOOL CIndexedDataCommon::Set(OIndex oi, void* pvData, unsigned int uiDataSize)
 	CIndexedDataDescriptor	cDescriptor;
 	BOOL					bResult;
 
+	if (!IsValidIndex(oi))
+	{
+		return gcLogger.Error2(__METHOD__, " Cannot Set Index [", IndexToString(oi), "].", NULL);
+	}
+
 	bResult = GetDescriptor(oi, &cDescriptor);
 	if (bResult)
 	{
@@ -70,7 +85,7 @@ BOOL CIndexedDataCommon::Set(OIndex oi, void* pvData, unsigned int uiDataSize)
 	}
 	else
 	{
-		return gcLogger.Error2(__METHOD__, "Cannot Set index [", LongLongToString(oi), "].  It does not exist.", NULL);
+		return gcLogger.Error2(__METHOD__, " Cannot Set Index [", IndexToString(oi), "].  It does not exist.", NULL);
 	}
 }
 
@@ -83,6 +98,11 @@ BOOL CIndexedDataCommon::Put(OIndex oi, void* pvData, unsigned int uiDataSize)
 {
 	BOOL					bExists;
 	CIndexedDataDescriptor	cDescriptor;
+
+	if (!IsValidIndex(oi))
+	{
+		return gcLogger.Error2(__METHOD__, " Cannot Put Index [", IndexToString(oi), "].", NULL);
+	}
 
 	bExists = GetDescriptor(oi, &cDescriptor);
 	if (bExists)
@@ -137,6 +157,11 @@ unsigned int CIndexedDataCommon::Size(OIndex oi)
 	BOOL						bResult;
 	CIndexedDataDescriptor		cDescriptor;
 
+	if (!IsValidIndex(oi))
+	{
+		return gcLogger.Error2(__METHOD__, " Cannot get Size of Index [", IndexToString(oi), "].", NULL);
+	}
+
 	bResult = GetDescriptor(oi, &cDescriptor);
 	if (bResult)
 	{
@@ -154,6 +179,11 @@ BOOL CIndexedDataCommon::Get(OIndex oi, void* pvData, unsigned int uiMaxSize)
 {
 	CIndexedDataDescriptor	cDescriptor;
 	BOOL					bResult;
+
+	if (!IsValidIndex(oi))
+	{
+		return gcLogger.Error2(__METHOD__, " Cannot Get Index [", IndexToString(oi), "].", NULL);
+	}
 
 	bResult = GetDescriptor(oi, &cDescriptor);
 	if (!bResult)
@@ -175,6 +205,11 @@ BOOL CIndexedDataCommon::Get(OIndex oi, unsigned int* puiDataSize, void* pvData,
 	CIndexedDataDescriptor	cDescriptor;
 	BOOL					bResult;
 	unsigned int			uiDataSize;
+
+	if (!IsValidIndex(oi))
+	{
+		return gcLogger.Error2(__METHOD__, " Cannot Get Index [", IndexToString(oi), "].", NULL);
+	}
 
 	bResult = GetDescriptor(oi, &cDescriptor);
 	if (!bResult)
@@ -237,6 +272,11 @@ BOOL CIndexedDataCommon::Remove(OIndex oi)
 {
 	CIndexedDataDescriptor	cDescriptor;
 	BOOL					bResult;
+
+	if (!IsValidIndex(oi))
+	{
+		return gcLogger.Error2(__METHOD__, " Cannot Remove Index [", IndexToString(oi), "].", NULL);
+	}
 
 	bResult = GetDescriptor(oi, &cDescriptor);
 	if (bResult)

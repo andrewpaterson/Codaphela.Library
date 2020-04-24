@@ -629,7 +629,7 @@ BOOL CIndexedFilesEvicting::WriteEvictedData(CIndexedDataDescriptor* pcDescripto
 	uiDataSize = pcDescriptor->GetCacheDataSize();
 	if (uiDataSize == 0)
 	{
-		return gcLogger.Error2(__METHOD__, " Cannot write evicted data with index [", LongLongToString(oi), "] with [0] size.", NULL);
+		return gcLogger.Error2(__METHOD__, " Cannot write evicted data with index [", IndexToString(oi), "] with [0] size.", NULL);
 	}
 
 	if (eClearCache == CC_Yes)
