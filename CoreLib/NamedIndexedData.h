@@ -52,12 +52,12 @@ public:
 	BOOL			Put(OIndex oi, char* szName, void* pvData, unsigned int uiDataSize);
 	BOOL			Put(OIndex oi, CChars* szName, void* pvData, unsigned int uiDataSize);
 
-	unsigned int	Size(OIndex oi);
-
 	BOOL			Get(OIndex oi, void* pvData);
 	BOOL			Get(OIndex oi, unsigned int* puiDataSize, void* pvData, unsigned int uiMaxDataSize);
 	BOOL			Get(char* szName, void* pvData);
 	BOOL			Get(char* szName, unsigned int* puiDataSize, void* pvData, unsigned int uiMaxDataSize);
+	BOOL			Get(CChars* szName, void* pvData);
+	BOOL			Get(CChars* szName, unsigned int* puiDataSize, void* pvData, unsigned int uiMaxDataSize);
 
 	BOOL			GetName(OIndex oi, CChars* szName);
 	BOOL			GetName(OIndex oi, char* szName, unsigned int* puiNameLength, unsigned int uiMaxNameLength);
@@ -69,6 +69,7 @@ public:
 
 	BOOL			Remove(CChars* szName);
 	BOOL			Remove(OIndex oi);
+	unsigned int	Size(OIndex oi);
 
 	BOOL			Flush(BOOL bClearCache);
 
@@ -81,6 +82,8 @@ public:
 private:
 	BOOL			Add(OIndex oi, char* szName, int iNameLength, void* pvData, unsigned int uiDataSize);
 	BOOL			Set(OIndex oi, char* szName, int iNameLength, void* pvData, unsigned int uiDataSize);
+	BOOL			Put(OIndex oi, char* szName, int iNameLength, void* pvData, unsigned int uiDataSize);
+
 	unsigned int	MinNameSize(unsigned int uiNameSize, unsigned int uiMaxNameSize);
 	unsigned int	MinDataSize(unsigned int uiDataSize, unsigned int uiMaxDataSize);
 };
