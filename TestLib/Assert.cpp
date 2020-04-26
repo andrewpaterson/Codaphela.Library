@@ -1058,7 +1058,7 @@ void ToCharString(char c, char* sz)
 //////////////////////////////////////////////////////////////////////////
 void ToLongLongIntString(long long int i, char* sz)
 {
-    IToA((int)i, sz, 10);
+    IToA((long long int)i, sz, 10);
 }
 
 

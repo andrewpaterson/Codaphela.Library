@@ -258,29 +258,46 @@ BOOL CNamedIndexedData::Set(OIndex oi, char* szName, int iNameLength, void* pvDa
 {
 	BOOL					bResult;
 	CStackMemory<>			cStackSet;
+	CStackMemory<>			cStackGet;
 	CNamedIndexedHeader*	pcHeaderSet;
 	size_t					sSize;
-	CNamedIndexedHeader		cHeaderGet;
+	CNamedIndexedHeader*	pcHeaderGet;
 	unsigned int			uiOldDataSize;
+	int						iOldNameLength;
 
 	if (oi != INVALID_O_INDEX)
 	{
-		bResult = mcData.Get(oi, &uiOldDataSize, &cHeaderGet, sizeof(CNamedIndexedHeader));
+		pcHeaderGet = (CNamedIndexedHeader*)cStackGet.Init();
+		bResult = mcData.Get(oi, &uiOldDataSize, pcHeaderGet, cStackGet.GetStackSize());
 		if (bResult)
 		{
 			if (uiDataSize == 0)
 			{
-				uiDataSize = uiOldDataSize;
+				uiDataSize = uiOldDataSize - pcHeaderGet->GetHeaderSize();
+			}
+			iOldNameLength = pcHeaderGet->GetNameLength();
+			if (iNameLength == 0)
+			{
+				iNameLength = iOldNameLength;
+				szName = pcHeaderGet->GetName();
+			}
+			else
+			{
+				if (iNameLength != iOldNameLength)
+				{
+					cStackGet.Kill();
+					return gcLogger.Error2(__METHOD__, " Old Name [", pcHeaderGet->GetName() ,"] may not be different to set Name [", szName,"].", NULL);
+				}
 			}
 			sSize = NamedIndexedHeaderSize(iNameLength, uiDataSize);
 			pcHeaderSet = (CNamedIndexedHeader*)cStackSet.Init(sSize);
 			pcHeaderSet->Init(szName, iNameLength, pvData, uiDataSize);
 
-			bResult = mcData.Set(oi, pvData, uiDataSize);
+			bResult = mcData.Set(oi, pcHeaderSet, sSize);
 
+			cStackGet.Kill();
 			cStackSet.Kill();
 			return bResult;
-
 		}
 		else
 		{
