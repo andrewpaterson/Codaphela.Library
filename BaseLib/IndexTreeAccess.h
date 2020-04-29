@@ -29,6 +29,7 @@ public:
 			BOOL	PutKeyString(void* pvKey, int iKeySize, char* pszData);
 
 			char*	GetLongString(int64 lliKey, char* pszDest);
+			BOOL	GetLongData(int64 lliKey, void* pvData, int* piDataSize = NULL);
 			BOOL	GetStringData(char* pszKey, void* pvData, int* piDataSize = NULL);
 			char*	GetStringString(char* pszKey, char* pszDest);
 			CChars	GetStringString(char* pszKey);
@@ -38,7 +39,9 @@ public:
 			BOOL	GetKeyData(void* pvKey, int iKeySize, void* pvData, int* piDataSize);
 			char*	GetKeyString(void* pvKey, int iKeySize, char* pszDest);
 
+			BOOL	HasLong(int64 lliKey);
 			BOOL	HasString(char* pszKey);
+			BOOL	HasKey(void* pvKey, int iKeySize);
 
 			BOOL	DeleteLong(int64 lliKey);
 			BOOL	DeleteString(char* pszKey);
