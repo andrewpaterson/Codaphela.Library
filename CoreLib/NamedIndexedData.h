@@ -66,9 +66,11 @@ public:
 
 	BOOL			Contains(OIndex oi);
 	BOOL			Contains(char* szName);
+	BOOL			Contains(CChars* szName);
 
-	BOOL			Remove(CChars* szName);
 	BOOL			Remove(OIndex oi);
+	BOOL			Remove(char* szName);
+	BOOL			Remove(CChars* szName);
 	unsigned int	Size(OIndex oi);
 
 	BOOL			Flush(BOOL bClearCache);

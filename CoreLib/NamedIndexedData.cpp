@@ -380,7 +380,7 @@ BOOL CNamedIndexedData::Put(OIndex oi, char* szName, int iNameLength, void* pvDa
 	{
 		if (oiExisting != oi)
 		{
-			gcLogger.Error2(__METHOD__, " Put Index [", IndexToString(oi), "] not equal to existing index [", LongLongToString(oiExisting), "] for name [", szName, "].", NULL);
+			gcLogger.Error2(__METHOD__, " Put Index [", IndexToString(oi), "] not equal to existing index [", IndexToString(oiExisting), "] for name [", szName, "].", NULL);
 			return FALSE;
 		}
 		return Set(oi, pvData, uiDataSize);
@@ -699,20 +699,65 @@ BOOL CNamedIndexedData::Contains(char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL CNamedIndexedData::Contains(CChars* szName)
+{
+	OIndex	oi;
+
+	oi = mcNames.Get(szName);
+	if (oi != INVALID_O_INDEX)
+	{
+		//You might need to get the descriptor and make sure its not NULL.
+		return TRUE;
+	}
+	return FALSE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL CNamedIndexedData::Remove(CChars* szName)
 {
 	OIndex oi;
 
 	oi = mcNames.Get(szName);
-	if (oi != INVALID_O_INDEX)
+	if (IsValidIndex(oi))
 	{
-		ReturnOnFalse(mcNames.Remove(szName));
+		if (!mcNames.Remove(szName))
+		{
+			return FALSE;
+		}
+		return mcData.Remove(oi);
 	}
 	else
 	{
 		return FALSE;
 	}
-	return mcData.Remove(oi);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CNamedIndexedData::Remove(char* szName)
+{
+	OIndex oi;
+
+	oi = mcNames.Get(szName);
+	if (IsValidIndex(oi))
+	{
+		if (!mcNames.Remove(szName))
+		{
+			return FALSE;
+		}
+		return mcData.Remove(oi);
+	}
+	else
+	{
+		return FALSE;
+	}
 }
 
 
@@ -722,7 +767,32 @@ BOOL CNamedIndexedData::Remove(CChars* szName)
 //////////////////////////////////////////////////////////////////////////
 BOOL CNamedIndexedData::Remove(OIndex oi)
 {
-	return mcData.Remove(oi);
+	CStackMemory<>			cStack;
+	unsigned int			uiDataSize;
+	BOOL					bResult;
+	CNamedIndexedHeader*	pcHeader;
+	int						iNameLength;
+	char*					szName;
+
+	pcHeader = (CNamedIndexedHeader*)cStack.Init();
+	bResult = mcData.Get(oi, &uiDataSize, pcHeader, cStack.GetStackSize());
+	if (bResult)
+	{
+		szName = pcHeader->GetName();
+		iNameLength = pcHeader->GetNameLength();
+		if (!mcNames.Remove(szName))
+		{
+			cStack.Kill();
+			return FALSE;
+		}
+		cStack.Kill();
+		return mcData.Remove(oi);
+	}
+	else
+	{
+		cStack.Kill();
+		return FALSE;
+	}
 }
 
 
