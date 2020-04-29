@@ -3149,8 +3149,10 @@ void CIndexTreeFile::DebugKey(CChars* pszDest, void* pvKey, int iKeySize, BOOL b
 		}
 		else
 		{
+			pszDest->Append("Broken Node: ");
 			sDebugNode.InitBroken(c);
-			sDebugNode.Dump();
+			sDebugNode.Print(pszDest);
+			pszDest->AppendNewLine();
 		}
 		bExecute = LoopKey(&i, iKeySize);
 	}
