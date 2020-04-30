@@ -109,6 +109,20 @@ char* CIndexTreeRecursor::GetBadKey(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CIndexTreeRecursor::GetKey(char* pc, int* piKeySize)
+{
+	int	iKeySize;
+
+	iKeySize = macKey.NumElements();
+	memcpy_fast(pc, macKey.GetData(), iKeySize);
+	SafeAssign(piKeySize, iKeySize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 char* CIndexTreeRecursor::GetBadNode(void)
 {
 	return mszBadNode.Text();

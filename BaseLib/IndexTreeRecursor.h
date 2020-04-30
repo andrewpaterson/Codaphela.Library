@@ -3,6 +3,7 @@
 #include "ArrayChar.h"
 #include "IndexTreeNode.h"
 
+
 class CIndexTreeRecursor
 {
 private:
@@ -24,6 +25,8 @@ public:
 	CIndexTreeNode*		GetNode(void);
 	char*				GetBadKey(void);
 	char*				GetBadNode(void);
+
+	void				GetKey(char* pc, int* piKeySize);
 
 protected:
 	BOOL				GenerateBadKey(void);
