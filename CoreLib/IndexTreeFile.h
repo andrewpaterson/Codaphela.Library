@@ -161,6 +161,8 @@ protected:
 	BOOL					RecurseValidateMagic(CIndexTreeRecursor* pcCursor, BOOL bReadNodes);
 	BOOL					ValidateFileIndexes(BOOL bReadNodes);
 	BOOL					RecurseValidateFileIndexes(CIndexTreeRecursor* pcCursor, BOOL bReadNodes);
+	BOOL					ValidateKeys(BOOL bReadNodes);
+	BOOL					RecurseValidateKeys(CIndexTreeRecursor* pcCursor, BOOL bReadNodes);
 
 	BOOL					StepNext(SIndexTreeFileIterator* psIterator);
 

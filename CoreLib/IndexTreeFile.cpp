@@ -2052,7 +2052,77 @@ BOOL CIndexTreeFile::ValidateIndexTree(BOOL bReadNodes)
 	bResult &= ValidateParentIndex(bReadNodes);
 	bResult &= ValidateTransientFlags(bReadNodes);
 	bResult &= ValidateFileIndexes(bReadNodes);
+	bResult &= ValidateKeys(bReadNodes);
 	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeFile::ValidateKeys(BOOL bReadNodes)
+{
+	CIndexTreeRecursor	cCursor;
+	BOOL				bResult;
+
+	cCursor.Init(mpcRoot);
+	bResult = RecurseValidateKeys(&cCursor, bReadNodes);
+	cCursor.Kill();
+
+	return bResult;
+}
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeFile::RecurseValidateKeys(CIndexTreeRecursor* pcCursor, BOOL bReadNodes)
+{
+	CIndexTreeNodeFile*		pcNode;
+	int						i;
+	CIndexTreeNodeFile*		pcChild;
+	BOOL					bResult;
+	CStackMemory<>			cStack;
+	char*					pcKey;
+	int						iKeySize;
+	int						iDataSize;
+
+	pcNode = (CIndexTreeNodeFile*)pcCursor->GetNode();
+	if (pcNode != NULL)
+	{
+		if (pcNode->HasObject())
+		{
+			pcKey = (char*)cStack.Init();
+			pcCursor->GetKey(pcKey, &iKeySize);
+
+			bResult = Get(pcKey, iKeySize, NULL, &iDataSize);
+			if (!bResult)
+			{
+				pcCursor->GenerateBad();
+				return gcLogger.Error2(__METHOD__, " Key [", pcCursor->GetBadKey(), "] did not reference a Node.", NULL);
+			}
+		}
+
+		if (pcNode->HasNodes())
+		{
+			for (i = pcNode->GetFirstIndex(); i <= pcNode->GetLastIndex(); i++)
+			{
+				pcChild = ReadNode(pcNode, i, bReadNodes);
+				pcCursor->Push(pcChild, i);
+				bResult = RecurseValidateKeys(pcCursor, bReadNodes);
+				if (!bResult)
+				{
+					pcCursor->Pop();
+					return FALSE;
+				}
+			}
+		}
+	}
+	pcCursor->Pop();
+	return TRUE;
 }
 
 
