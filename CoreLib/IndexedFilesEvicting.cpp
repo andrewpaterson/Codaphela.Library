@@ -281,7 +281,7 @@ void CIndexedFilesEvicting::InvalidateData(CIndexedDataDescriptor* pcDescriptor)
 	{
 		if (meWriteThrough == IWT_Yes)
 		{
-			mcDataCache.Invalidate(pcDescriptor);
+			mcDataCache.Invalidate(pcDescriptor->GetCache());
 			mcDataFiles.Delete(&cDataIndex);
 		}
 		else
@@ -289,7 +289,7 @@ void CIndexedFilesEvicting::InvalidateData(CIndexedDataDescriptor* pcDescriptor)
 			pvCache = pcDescriptor->GetCache();
 			if (pvCache)
 			{
-				mcDataCache.Invalidate(pcDescriptor);
+				mcDataCache.Invalidate(pcDescriptor->GetCache());
 				mcDataFiles.Delete(&cDataIndex);
 			}
 			else
