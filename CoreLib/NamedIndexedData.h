@@ -73,6 +73,7 @@ public:
 	BOOL			Remove(CChars* szName);
 	unsigned int	Size(OIndex oi);
 
+	BOOL			Flush(void);
 	BOOL			Flush(BOOL bClearCache);
 
 	int64			NumIndices(void);
