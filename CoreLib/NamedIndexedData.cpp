@@ -780,10 +780,13 @@ BOOL CNamedIndexedData::Remove(OIndex oi)
 	{
 		szName = pcHeader->GetName();
 		iNameLength = pcHeader->GetNameLength();
-		if (!mcNames.Remove(szName))
+		if (iNameLength != 0)
 		{
-			cStack.Kill();
-			return FALSE;
+			if (!mcNames.Remove(szName))
+			{
+				cStack.Kill();
+				return FALSE;
+			}
 		}
 		cStack.Kill();
 		return mcData.Remove(oi);
