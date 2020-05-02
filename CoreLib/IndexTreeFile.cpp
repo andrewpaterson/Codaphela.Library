@@ -1934,6 +1934,10 @@ CListTemplateMinimal<char>* CIndexTreeFile::FindKeys(CArrayVoidPtr* apvNodes)
 		pcNode = (CIndexTreeNodeFile*)apvNodes->GetPtr(i);
 		FindKey(pcNode, szKey, &iKeySize);
 
+		if (meReverseKey)
+		{
+			StrRev((char*)&szKey[0], iKeySize);
+		}
 		paszKeyNames->Add((char*)&szKey[0], iKeySize);
 	}
 
@@ -2097,6 +2101,11 @@ BOOL CIndexTreeFile::RecurseValidateKeys(CIndexTreeRecursor* pcCursor, BOOL bRea
 		{
 			pcKey = (char*)cStack.Init();
 			pcCursor->GetKey(pcKey, &iKeySize);
+
+			if (meReverseKey)
+			{
+				StrRev(pcKey, iKeySize);
+			}
 
 			bResult = Get(pcKey, iKeySize, NULL, &iDataSize);
 			if (!bResult)
