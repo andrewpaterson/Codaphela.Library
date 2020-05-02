@@ -105,9 +105,9 @@ public:
 
 						int64					NumMemoryIndexes(void);
 						int						NumMemoryNames(void);
-						int64					NumIndicies(void);
-						int64					NumIndiciesCached(void);
-						int64					NumIndiciesCached(int iSize);
+						int64					NumIndices(void);
+						int64					NumIndicesCached(void);
+						int64					NumIndicesCached(int iSize);
 						int64					NumDatabaseNames(void);
 						CIndexGenerator*		GetIndexGenerator(void);
 						CNamedIndexedObjects*	GetMemory(void);

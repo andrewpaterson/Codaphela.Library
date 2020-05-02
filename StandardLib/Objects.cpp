@@ -1101,11 +1101,11 @@ int CObjects::NumMemoryNames(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int64 CObjects::NumIndicies(void)
+int64 CObjects::NumIndices(void)
 {
 	if (mbDatabase)
 	{
-		return mcDatabase.NumIndicies();
+		return mcDatabase.NumIndices();
 	}
 	else
 	{
@@ -1118,11 +1118,11 @@ int64 CObjects::NumIndicies(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int64 CObjects::NumIndiciesCached(int iSize)
+int64 CObjects::NumIndicesCached(int iSize)
 {
 	if (mbDatabase)
 	{
-		return mcDatabase.NumIndiciesCached(iSize);
+		return mcDatabase.NumIndicesCached(iSize);
 	}
 	else
 	{
@@ -1135,11 +1135,11 @@ int64 CObjects::NumIndiciesCached(int iSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int64 CObjects::NumIndiciesCached(void)
+int64 CObjects::NumIndicesCached(void)
 {
 	if (mbDatabase)
 	{
-		return mcDatabase.NumIndiciesCached();
+		return mcDatabase.NumIndicesCached();
 	}
 	else
 	{

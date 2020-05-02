@@ -36,6 +36,7 @@ private:
 	BOOL			mbDurable;
 
 public:
+	BOOL			Init(char* szDirectory);
 	BOOL			Init(char* szDirectory, char* szRewriteDirectory);
 	void			Kill(void);
 
