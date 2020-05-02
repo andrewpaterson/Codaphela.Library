@@ -41,8 +41,8 @@ protected:
 
 	void				FreeNode(CIndexTreeNode* pcNode);
 
-	BOOL				StartKey(int* pi, int iKeysSize);
-	BOOL				LoopKey(int* pi, int iKeysSize);
+	BOOL				StartKey(int* pi, int iKeySize);
+	BOOL				LoopKey(int* pi, int iKeySize);
 };
 
 

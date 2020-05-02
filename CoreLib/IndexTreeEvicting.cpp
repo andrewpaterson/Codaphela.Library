@@ -375,9 +375,9 @@ int CIndexTreeEvicting::NumMemoryElements(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeEvicting::DebugKey(CChars* pszDest, void* pvKey, int iKeySize, BOOL bSkipRoot, BOOL bShowFlags)
+void CIndexTreeEvicting::DebugKey(CChars* pszDest, void* pvKey, int iKeySize, BOOL bSkipRoot, BOOL bShowFlags, BOOL bKeyAlreadyReversed)
 {
-	return mcIndexTree.DebugKey(pszDest, pvKey, iKeySize, bSkipRoot, bShowFlags);
+	return mcIndexTree.DebugKey(pszDest, pvKey, iKeySize, bSkipRoot, bShowFlags, bKeyAlreadyReversed);
 }
 
 
