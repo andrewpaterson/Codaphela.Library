@@ -3194,7 +3194,7 @@ BOOL CIndexTreeFile::ValidateKey(void* pvKey, int iKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeFile::DebugKey(CChars* pszDest, void* pvKey, int iKeySize, BOOL bSkipRoot, BOOL bShowFlags)
+void CIndexTreeFile::DebugKey(CChars* pszDest, void* pvKey, int iKeySize, BOOL bSkipRoot, BOOL bShowFlags, BOOL bKeyAlreadyReversed)
 {
 	CIndexTreeNodeFile*		pcCurrent;
 	unsigned char			c;
@@ -3209,7 +3209,17 @@ void CIndexTreeFile::DebugKey(CChars* pszDest, void* pvKey, int iKeySize, BOOL b
 		DebugNodeChildren(pszDest, pcCurrent, -1, bShowFlags);
 	}
 
-	bExecute = StartKey(&i, iKeySize);
+	if (bKeyAlreadyReversed)
+	{
+		i = 0;
+		bExecute = i < iKeySize;
+
+	}
+	else
+	{
+		bExecute = StartKey(&i, iKeySize);
+	}
+
 	while (bExecute)
 	{
 		c = ((unsigned char*)pvKey)[i];
@@ -3224,7 +3234,17 @@ void CIndexTreeFile::DebugKey(CChars* pszDest, void* pvKey, int iKeySize, BOOL b
 			sDebugNode.Print(pszDest);
 			pszDest->AppendNewLine();
 		}
-		bExecute = LoopKey(&i, iKeySize);
+
+		if (bKeyAlreadyReversed)
+		{
+			i++;
+			bExecute = i < iKeySize;
+
+		}
+		else
+		{
+			bExecute = LoopKey(&i, iKeySize);
+		}
 	}
 }
 
@@ -3618,7 +3638,7 @@ void CIndexTreeFile::RecurseDump(CChars* pszDest, CIndexTreeRecursor* pcCursor, 
 			pszDest->AppendNewLine(szKey);
 			szKey.Kill();
 
-			DebugKey(pszDest, pvKey, iKeySize, TRUE, bShowFlags);
+			DebugKey(pszDest, pvKey, iKeySize, TRUE, bShowFlags, TRUE);
 			cStack.Kill();
 		}
 
