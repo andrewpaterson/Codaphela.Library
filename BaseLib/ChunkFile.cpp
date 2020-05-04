@@ -67,9 +67,22 @@ BOOL CChunkFile::WriteOpen(int iUserID)
 	miLastName = CFN_Error;
 
 	ReturnOnFalse(CFileBasic::Open(EFM_Write_Create));
-	ReturnOnFalse(CFileBasic::Write(&msHeader, sizeof(CChunkFileHeader), 1));
+	ReturnOnFalse(WriteBasic(&msHeader, sizeof(CChunkFileHeader)));
 
 	return WriteChunkBegin();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+BOOL CChunkFile::WriteBasic(const void* pvSource, filePos iSize)
+{
+	filePos		iFilePos;
+
+	iFilePos = CFileBasic::Write(pvSource, iSize, 1);
+	return iFilePos == 1;
 }
 
 
@@ -170,7 +183,7 @@ BOOL CChunkFile::WriteChunkBegin(void)
 
 	psElement = mcChunkStack.Push();
 	psElement->Init(iFilePos);
-	ReturnOnFalse(CFileBasic::Write(&psElement->sHeader, sizeof(CChunkHeader), 1));  //This write is ignored from a hashing point of view.
+	ReturnOnFalse(WriteBasic(&psElement->sHeader, sizeof(CChunkHeader)));  //This write is ignored from a hashing point of view.
 
 	((CMD5HashFile*)mpcFile)->StartHashing(); //Reset the files current MD5 hash for the new chunk.
 	return TRUE;
@@ -237,7 +250,7 @@ BOOL CChunkFile::WriteChunkEnd(int iChunkName)
 		}
 
 		CFileBasic::Seek(psElement->iChunkHeaderPos, EFSO_SET);
-		ReturnOnFalse(CFileBasic::Write(&psElement->sHeader, sizeof(CChunkHeader), 1));
+		ReturnOnFalse(WriteBasic(&psElement->sHeader, sizeof(CChunkHeader)));
 
 		CFileBasic::Seek(0, EFSO_END);
 

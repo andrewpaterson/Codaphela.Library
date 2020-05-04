@@ -77,6 +77,7 @@ protected:
 	BOOL	ReadChunkNames(void);
 	BOOL	WriteChunkNames(void);
 	BOOL	WriteChunkEnd(int iChunkName);
+	BOOL	WriteBasic(const void* pvSource, filePos iSize);
 	int		GetChunkName(int iChunkNum);
 };
 

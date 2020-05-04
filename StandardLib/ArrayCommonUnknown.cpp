@@ -44,6 +44,23 @@ void CArrayCommonUnknown::Init(BOOL bTypeKnown, BOOL bKillElements, BOOL bUnique
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CArrayCommonUnknown::Init(BOOL bTypeKnown, BOOL bKillElements, BOOL bUnique, BOOL bIgnoreNull, BOOL bPreserveOrder, int iChunkSize)
+{
+	mcArray.Init(&gcSystemAllocator, iChunkSize);
+	miFlags = 0;
+	SetFlag(&miFlags, ARRAY_COMMOM_KILL_ELEMENT, bKillElements);
+	SetFlag(&miFlags, ARRAY_COMMOM_UNIQUE_ONLY, bUnique);
+	SetFlag(&miFlags, ARRAY_COMMOM_IGNORE_NULL, bIgnoreNull);
+	SetFlag(&miFlags, ARRAY_COMMOM_PRESERVE_ORDER, bPreserveOrder);
+	SetFlag(&miFlags, ARRAY_COMMOM_TYPE_KNOWN, bTypeKnown);
+	miNonNullElements = 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CArrayCommonUnknown::Kill(void)
 {
 	PrivateKill();
@@ -204,6 +221,16 @@ void CArrayCommonUnknown::PostLoad(int iFlags)
 	{
 		Sort();
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CArrayCommonUnknown::SetChunkSize(int iChunkSize)
+{
+	mcArray.SetChunkSize(iChunkSize);
 }
 
 
@@ -510,7 +537,7 @@ void CArrayCommonUnknown::CleanNullsIfNecessary(void)
 
 	if (miFlags & ARRAY_COMMOM_IGNORE_NULL)
 	{
-		if (mcArray.NumElements() - miNonNullElements >= mcArray.ChunkSize()*3)
+		if (mcArray.NumElements() - miNonNullElements >= mcArray.ChunkSize() * 3)
 		{
 			for (iLastNotNull = mcArray.NumElements()-1; iLastNotNull >= 0; iLastNotNull--)
 			{
