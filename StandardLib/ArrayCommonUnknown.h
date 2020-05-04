@@ -63,6 +63,7 @@ private:
 
 public:
 	void 				Init(BOOL bTypeKnown, BOOL bKillElements, BOOL bUnique, BOOL bIgnoreNull, BOOL bPreserveOrder);
+	void				Init(BOOL bTypeKnown, BOOL bKillElements, BOOL bUnique, BOOL bIgnoreNull, BOOL bPreserveOrder, int iChunkSize);
 	void 				Kill(void);
 	void 				ReInit(void);
 	BOOL				Save(CFileWriter* pcFile);
@@ -104,6 +105,7 @@ public:
 	BOOL				LoadArrayHeader(CFileReader* pcFile, int* piFlags, int* piNumElements);
 	BOOL				SaveArrayHeader(CFileWriter* pcFile);
 	void				PostLoad(int iFlags);
+	void				SetChunkSize(int iChunkSize);
 
 protected:
 	virtual BOOL	LoadElement(CFileReader* pcFile, CUnknown** ppcUnknown);

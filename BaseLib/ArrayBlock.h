@@ -32,6 +32,7 @@ protected:
 public:
 	void 	Init(int iElementSize);
 	void 	Init(CMallocator* pcMalloc, int iElementSize);
+	void	Init(CMallocator* pcMalloc, int iElementSize, int iChunkSize);
 	void 	ReInit(void);
 
 	void 	Finalise(void);
@@ -115,6 +116,7 @@ public:
 	int		SetUsedElements(int iNumElements);
 
 	int		RemoveAtNoDeallocate(int iIndex);
+	BOOL	SetChunkSize(int iChunkSize);
 
 	BOOL	Write(CFileWriter* pcFileWriter);
 	BOOL	Read(CFileReader* pcFileReader);

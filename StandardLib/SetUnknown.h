@@ -28,6 +28,7 @@ class CSetUnknown : public CArrayCommonUnknown
 BASE_FUNCTIONS(CSetUnknown);
 public:
 	void 		Init(void);
+	void 		Init(int iChunkSize);
 	void 		Kill(void);
 
 	template<class M>

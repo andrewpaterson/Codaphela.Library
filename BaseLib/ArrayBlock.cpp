@@ -20,12 +20,22 @@ void CArrayBlock::Init(int iElementSize)
 //////////////////////////////////////////////////////////////////////////
 void CArrayBlock::Init(CMallocator* pcMalloc, int iElementSize)
 {
+	Init(pcMalloc, iElementSize, 1);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CArrayBlock::Init(CMallocator* pcMalloc, int iElementSize, int iChunkSize)
+{
 	mpcMalloc = pcMalloc;
 	mpvArray = NULL;
 	miNumElements = 0;
 	miUsedElements = 0;
 	miElementSize = iElementSize;
-	miChunkSize = 1;
+	miChunkSize = iChunkSize;
 }
 
 
@@ -161,6 +171,39 @@ int CArrayBlock::RemoveAtNoDeallocate(int iIndex)
 	//This is only used by CConvexHullGenerator.RemoveDiscontiguousTriangles/
 	//It should be removed.
 	return RemoveAtNoDeallocate(iIndex, FALSE, miElementSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+BOOL CArrayBlock::SetChunkSize(int iChunkSize)
+{
+	if (iChunkSize < miChunkSize)
+	{
+		if (miChunkSize % iChunkSize == 0)
+		{
+			miChunkSize = iChunkSize;
+			return TRUE;
+		}
+		else
+		{
+			return FALSE;
+		}
+	}
+	else
+	{
+		if (iChunkSize % miChunkSize == 0)
+		{
+			miChunkSize = iChunkSize;
+			return TRUE;
+		}
+		else
+		{
+			return FALSE;
+		}
+	}
 }
 
 
