@@ -39,7 +39,7 @@ protected:
 	CDurableFileController*		mpcDurableFileControl;
 
 public:
-	void 			Init(CIndexedDataConfig* pcConfig);
+	void 			Init(CDurableFileController* pcController, CIndexedDataConfig* pcConfig);
 	BOOL 			Kill(void);
 
 	BOOL			Flush(void);

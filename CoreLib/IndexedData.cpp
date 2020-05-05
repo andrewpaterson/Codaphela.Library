@@ -31,13 +31,13 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedData::Init(CIndexedDataConfig* pcConfig)
+void CIndexedData::Init(CDurableFileController* pcController, CIndexedDataConfig* pcConfig)
 {
 	CIndexedDataCommon::Init(pcConfig->GetEvictionUserCallback());
 
 	meWriteThrough = pcConfig->GetWriteThrough();
 
-	mpcDurableFileControl = pcConfig->GetDurableFileControl();
+	mpcDurableFileControl = pcController;
 
 	InitIndices(mpcDurableFileControl, pcConfig->GetSubdirectory(), pcConfig->GetIndexCacheSize(), meWriteThrough, pcConfig->GetIndexEvictionUserCallback());
 	mcData.Init(mpcDurableFileControl, pcConfig->GetSubdirectory(), "DAT", "Files.IDX", "_Files.IDX", pcConfig->GetDataCacheSize(), meWriteThrough, this);

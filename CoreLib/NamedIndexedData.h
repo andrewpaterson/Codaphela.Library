@@ -34,7 +34,7 @@ protected:
 	CNamedIndexes	mcNames;
 
 public:
-	void 			Init(CNamedIndexedDataConfig* pcConfig);
+	void 			Init(CDurableFileController* pcController, CNamedIndexedDataConfig* pcConfig);
 	void 			Kill(void);
 
 	BOOL			Add(OIndex oi, void* pvData, unsigned int uiDataSize);

@@ -26,9 +26,9 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNamedIndexes::Init(CNamedIndexesConfig* pcConfig)
+void CNamedIndexes::Init(CDurableFileController* pcController, CNamedIndexesConfig* pcConfig)
 {
-	mcIndexTree.Init(pcConfig->GetDurableFileControl(), pcConfig->GetSubDirectory(), pcConfig->GetCutoff(), pcConfig->GetIndexTreeEvictionCallback(), pcConfig->GetEvictionStrategy(), this, pcConfig->GetWriteThrough(), IKR_No);
+	mcIndexTree.Init(pcController, pcConfig->GetSubDirectory(), pcConfig->GetCutoff(), pcConfig->GetIndexTreeEvictionCallback(), pcConfig->GetEvictionStrategy(), this, pcConfig->GetWriteThrough(), IKR_No);
 }
 
 

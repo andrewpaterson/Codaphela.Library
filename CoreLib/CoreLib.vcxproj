@@ -91,6 +91,7 @@
     <Lib />
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="CodaBase.cpp" />
     <ClCompile Include="FileIterator.cpp" />
     <ClCompile Include="FileIteratorReturn.cpp" />
     <ClCompile Include="Files.cpp" />
@@ -184,6 +185,7 @@
     <ClCompile Include="OperatorAssignment.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CodaBase.h" />
     <ClInclude Include="NamedIndexedHeader.h" />
     <ClInclude Include="NamedIndexesConfig.h" />
     <ClInclude Include="IndexedCacheResult.h" />

@@ -36,7 +36,7 @@ protected:
 	CIndexTreeEvicting	mcIndexTree;
 	
 public:
-	void			Init(CNamedIndexesConfig* pcConfig);
+	void			Init(CDurableFileController* pcController, CNamedIndexesConfig* pcConfig);
 	BOOL			Kill(void);
 
 	BOOL			Add(char* szName, OIndex oi);

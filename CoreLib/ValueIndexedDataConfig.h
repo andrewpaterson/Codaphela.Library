@@ -6,7 +6,6 @@
 class CValueIndexedDataConfig : public CIndexedDataConfig
 {
 protected:
-	CDurableFileController*			mpcDurableFileController;
 	size_t							muiDataCacheSize;
 	size_t							muiIndexCacheSize;
 	EIndexWriteThrough				meWriteThrough;
@@ -15,11 +14,10 @@ protected:
 	char*							mszSubDirectory;
 
 public:
-	void 							Init(CDurableFileController* pcDurableFileController, char* szSubDirectory, size_t uiDataCacheSize, size_t uiIndexCacheSize, EIndexWriteThrough eWriteThrough);
-	void 							Init(CDurableFileController* pcDurableFileController, char* szSubDirectory, size_t uiDataCacheSize, size_t uiIndexCacheSize, EIndexWriteThrough eWriteThrough, CIndexTreeEvictionCallback* pcIndexEvictionUserCallback, CIndexedEvictionCallback* pcEvictionUserCallback);
+	void 							Init(char* szSubDirectory, size_t uiDataCacheSize, size_t uiIndexCacheSize, EIndexWriteThrough eWriteThrough);
+	void 							Init(char* szSubDirectory, size_t uiDataCacheSize, size_t uiIndexCacheSize, EIndexWriteThrough eWriteThrough, CIndexTreeEvictionCallback* pcIndexEvictionUserCallback, CIndexedEvictionCallback* pcEvictionUserCallback);
 	void							Kill(void);
 
-	CDurableFileController*			GetDurableFileControl(void);
 	char*							GetSubdirectory(void);
 	size_t							GetDataCacheSize(void);
 	size_t							GetIndexCacheSize(void);
