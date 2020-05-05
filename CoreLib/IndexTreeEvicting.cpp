@@ -31,6 +31,7 @@ BOOL CIndexTreeEvicting::Init(CDurableFileController* pcDurableFileControl, char
 BOOL CIndexTreeEvicting::Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, size_t uiCutoff, CIndexTreeEvictionCallback* pcEvictionCallback, CIndexTreeEvictionStrategy* pcEvictionStrategy, CIndexTreeFileCallback* pcWriterCallback, CMallocator* pcMalloc, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse)
 {
 	BOOL	bResult;
+
 	mpcEvictionStrategy = pcEvictionStrategy;
 	mpcEvictionCallback = pcEvictionCallback;
 	muiCutoff = uiCutoff;

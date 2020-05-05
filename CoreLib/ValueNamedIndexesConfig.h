@@ -7,19 +7,19 @@
 class CValueNamedIndexesConfig : public CNamedIndexesConfig
 {
 protected:
-	size_t							muiCutoff;
+	size_t							muiIndexCacheSize;
 	CIndexTreeEvictionStrategy*		mpcEvictionStrategy;
 	EIndexWriteThrough				meWriteThrough;
 	CIndexTreeEvictionCallback*		mpEvictionCallback;
 	char*							mszSubDirectory;
 
 public:
-	void							Init(char* szSubDirectory, size_t uiCutoff, CIndexTreeEvictionStrategy* pcEvictionStrategy, EIndexWriteThrough eWriteThrough);
-	void							Init(char* szSubDirectory, size_t uiCutoff, CIndexTreeEvictionStrategy* pcEvictionStrategy, EIndexWriteThrough eWriteThrough, CIndexTreeEvictionCallback* pcEvictionCallback);
+	void							Init(char* szSubDirectory, size_t uiIndexCacheSize, CIndexTreeEvictionStrategy* pcEvictionStrategy, EIndexWriteThrough eWriteThrough);
+	void							Init(char* szSubDirectory, size_t uiIndexCacheSize, CIndexTreeEvictionStrategy* pcEvictionStrategy, EIndexWriteThrough eWriteThrough, CIndexTreeEvictionCallback* pcEvictionCallback);
 
 	void							Kill(void);
 
-	size_t							GetCutoff(void);
+	size_t							GetIndexCacheSize(void);
 	CIndexTreeEvictionStrategy*		GetEvictionStrategy(void);
 	EIndexWriteThrough				GetWriteThrough(void);
 	CIndexTreeEvictionCallback*		GetIndexTreeEvictionCallback(void);

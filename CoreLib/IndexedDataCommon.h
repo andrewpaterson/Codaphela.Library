@@ -7,6 +7,7 @@
 #include "IndexWriteThrough.h"
 #include "IndexedEvictionCallback.h"
 
+
 class CIndexedDataCommon 
 {
 protected:

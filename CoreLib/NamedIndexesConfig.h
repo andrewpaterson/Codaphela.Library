@@ -11,7 +11,7 @@ class CNamedIndexesConfig
 public:
 	virtual void							Kill(void);
 
-	virtual size_t							GetCutoff(void) =0;
+	virtual size_t							GetIndexCacheSize(void) =0;
 	virtual CIndexTreeEvictionStrategy*		GetEvictionStrategy() =0;
 	virtual EIndexWriteThrough				GetWriteThrough(void) =0;
 	virtual CIndexTreeEvictionCallback*		GetIndexTreeEvictionCallback(void) =0;
