@@ -39,7 +39,7 @@ void CIndexedData::Init(CDurableFileController* pcController, CIndexedDataConfig
 
 	mpcDurableFileControl = pcController;
 
-	InitIndices(mpcDurableFileControl, pcConfig->GetSubdirectory(), pcConfig->GetIndexCacheSize(), meWriteThrough, pcConfig->GetIndexEvictionUserCallback());
+	mcIndices.Init(this, mpcDurableFileControl, pcConfig->GetSubdirectory(), pcConfig->GetIndexCacheSize(), meWriteThrough, pcConfig->GetIndexEvictionUserCallback());
 	mcData.Init(mpcDurableFileControl, pcConfig->GetSubdirectory(), "DAT", "Files.IDX", "_Files.IDX", pcConfig->GetDataCacheSize(), meWriteThrough, this);
 }
 
@@ -59,16 +59,6 @@ BOOL CIndexedData::Kill(void)
 	bResult &= mcIndices.Kill();
 
 	return bResult;;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CIndexedData::InitIndices(CDurableFileController* pcDurableFileControl, char* szSubDirectory, size_t uiCutoff, EIndexWriteThrough eWriteThrough, CIndexTreeEvictionCallback* pcIndexEvictionUserCallback)
-{
-	mcIndices.Init(this, pcDurableFileControl, szSubDirectory, uiCutoff, eWriteThrough, pcIndexEvictionUserCallback);
 }
 
 
