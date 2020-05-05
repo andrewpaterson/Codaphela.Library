@@ -11,7 +11,6 @@ class CIndexedDataConfig
 public:
 	virtual void							Kill(void);
 
-	virtual CDurableFileController*			GetDurableFileControl(void) =0;
 	virtual char*							GetSubdirectory(void) =0;
 	virtual size_t							GetDataCacheSize(void) =0;
 	virtual size_t							GetIndexCacheSize(void) =0;

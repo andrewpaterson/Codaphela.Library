@@ -124,6 +124,7 @@ void CObjects::Init(CUnknowns* pcUnknownsAllocatingFrom, CStackPointers* pcStack
 	CValueIndexedDataConfig		cIndexConfig;
 	CValueNamedIndexesConfig	cNamedConfig;
 
+	cIndexConfig.Init()
 	cConfig.Init(&cIndexConfig, &cNamedConfig, TRUE);
 
 	Init(pcUnknownsAllocatingFrom, pcStackPointers, &cConfig);

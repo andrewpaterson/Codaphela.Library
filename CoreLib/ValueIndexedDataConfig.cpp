@@ -5,9 +5,9 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CValueIndexedDataConfig::Init(CDurableFileController* pcDurableFileController, char* szSubDirectory, size_t uiDataCacheSize, size_t uiIndexCacheSize, EIndexWriteThrough eWriteThrough)
+void CValueIndexedDataConfig::Init(char* szSubDirectory, size_t uiDataCacheSize, size_t uiIndexCacheSize, EIndexWriteThrough eWriteThrough)
 {
-	Init(pcDurableFileController, szSubDirectory, uiDataCacheSize, uiIndexCacheSize, eWriteThrough, NULL, NULL);
+	Init(szSubDirectory, uiDataCacheSize, uiIndexCacheSize, eWriteThrough, NULL, NULL);
 }
 
 
@@ -15,9 +15,8 @@ void CValueIndexedDataConfig::Init(CDurableFileController* pcDurableFileControll
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CValueIndexedDataConfig::Init(CDurableFileController* pcDurableFileController, char* szSubDirectory, size_t uiDataCacheSize, size_t uiIndexCacheSize, EIndexWriteThrough eWriteThrough, CIndexTreeEvictionCallback* pcIndexEvictionUserCallback, CIndexedEvictionCallback* pcEvictionUserCallback)
+void CValueIndexedDataConfig::Init(char* szSubDirectory, size_t uiDataCacheSize, size_t uiIndexCacheSize, EIndexWriteThrough eWriteThrough, CIndexTreeEvictionCallback* pcIndexEvictionUserCallback, CIndexedEvictionCallback* pcEvictionUserCallback)
 {
-	mpcDurableFileController = pcDurableFileController;
 	mszSubDirectory = szSubDirectory;
 
 	muiDataCacheSize = uiDataCacheSize;
@@ -35,16 +34,6 @@ void CValueIndexedDataConfig::Init(CDurableFileController* pcDurableFileControll
 void CValueIndexedDataConfig::Kill(void)
 {
 	CIndexedDataConfig::Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CDurableFileController* CValueIndexedDataConfig::GetDurableFileControl(void)
-{
-	return mpcDurableFileController;
 }
 
 

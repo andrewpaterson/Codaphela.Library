@@ -40,7 +40,7 @@ public:
 	BOOL    RemoveDir(const char* szPathName);
 	BOOL    CopyDir(const char* szSource, const char* szDest);
 	BOOL    Touch(const char* szFileName);
-	BOOL    TouchDir(const char* szFileName, BOOL bLastIsFileName);
+	BOOL    TouchDir(const char* szFileName, BOOL bLastIsFileName = FALSE);  //MakeDir -P
 	BOOL    Delete(const char* szFileName);
 	BOOL    Exists(const char* szFileName);
 	BOOL    Compare(const char* szFileName1, const char* szFileName2);

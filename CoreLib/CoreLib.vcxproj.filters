@@ -172,6 +172,9 @@
     <Filter Include="Source\File\Indexed\Named\Config">
       <UniqueIdentifier>{7a4b082c-98d2-4a24-a9d0-6ae918e2b2e9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Coda">
+      <UniqueIdentifier>{eabb5af7-d0b9-46c6-b47c-e66924f3845f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="IndexedData.cpp">
@@ -446,6 +449,9 @@
     </ClCompile>
     <ClCompile Include="NamedIndexedHeader.cpp">
       <Filter>Source\File\Indexed\Named</Filter>
+    </ClCompile>
+    <ClCompile Include="CodaBase.cpp">
+      <Filter>Source\Coda</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -745,6 +751,9 @@
     </ClInclude>
     <ClInclude Include="NamedIndexedHeader.h">
       <Filter>Source\File\Indexed\Named</Filter>
+    </ClInclude>
+    <ClInclude Include="CodaBase.h">
+      <Filter>Source\Coda</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
