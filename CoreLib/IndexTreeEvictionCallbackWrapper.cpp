@@ -1,11 +1,11 @@
-#include "EvictionCallbackWrapper.h"
+#include "IndexTreeEvictionCallbackWrapper.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CEvictionCallbackWrapper::Init(CIndexTreeEvictionCallback* pcCallback1, CIndexTreeEvictionCallback* pcCallback2)
+void CIndexTreeEvictionCallbackWrapper::Init(CIndexTreeEvictionCallback* pcCallback1, CIndexTreeEvictionCallback* pcCallback2)
 {
 	mpcCallback1 = pcCallback1;
 	mpcCallback2 = pcCallback2;
@@ -16,7 +16,7 @@ void CEvictionCallbackWrapper::Init(CIndexTreeEvictionCallback* pcCallback1, CIn
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CEvictionCallbackWrapper::IndexTreeNodeEvicted(void* pvKey, int iKeySize, void* pvData, int iDataSize)
+BOOL CIndexTreeEvictionCallbackWrapper::IndexTreeNodeEvicted(void* pvKey, int iKeySize, void* pvData, int iDataSize)
 {
 	BOOL	bResult;
 	

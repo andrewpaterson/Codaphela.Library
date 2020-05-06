@@ -7,7 +7,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedDataCommon::Init(CIndexedEvictionCallback* pcEvictionCallback)
+void CIndexedDataCommon::Init(CIndexedDataEvictionCallback* pcEvictionCallback)
 {
 	mpcEvictionCallback = pcEvictionCallback;
 }

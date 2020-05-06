@@ -16,7 +16,7 @@ void CIndexedMap::Init(CDurableFileController* pcDurableFileControl, char* szSub
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedMap::Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, char* szDataExtension, char* szDescriptorName, char* szDescriptorRewrite, size_t iDataCacheSize, EIndexWriteThrough eWriteThrough, CIndexedEvictionCallback* pcEvictionUserCallback)
+void CIndexedMap::Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, char* szDataExtension, char* szDescriptorName, char* szDescriptorRewrite, size_t iDataCacheSize, EIndexWriteThrough eWriteThrough, CIndexedDataEvictionCallback* pcEvictionUserCallback)
 {
 	CIndexedDataCommon::Init(pcEvictionUserCallback);
 

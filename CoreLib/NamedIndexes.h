@@ -26,7 +26,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "IndexedFiles.h"
 #include "IndexTreeEvicting.h"
 #include "IndexTreeEvictionStrategyRandom.h"
-#include "EvictionCallbackWrapper.h"
+#include "IndexTreeEvictionCallbackWrapper.h"
 #include "NamedIndexesConfig.h"
 
 
