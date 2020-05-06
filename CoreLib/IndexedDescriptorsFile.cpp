@@ -7,24 +7,14 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedDescriptorsFile::Init(CIndexedDataCommon* pcIndexedData, CDurableFileController* pcDurableFileController, char* szSubDirectory, size_t uiIndexCacheSize, EIndexWriteThrough eWriteThrough)
-{
-	Init(mpcIndexedData, pcDurableFileController, szSubDirectory, uiIndexCacheSize, eWriteThrough, NULL);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CIndexedDescriptorsFile::Init(CIndexedDataCommon* pcIndexedData, CDurableFileController* pcDurableFileController, char* szSubDirectory, size_t uiIndexCacheSize, EIndexWriteThrough eWriteThrough, CIndexTreeEvictionCallback* pcEvictionCallback)
+void CIndexedDescriptorsFile::Init(CIndexedDataCommon* pcIndexedData, CDurableFileController* pcDurableFileController, CIndexedDescriptorsFileConfig* pcConfig)
 {
 	CIndexTreeEvictionCallback*	pcCallback;
 
 	mpcIndexedData = pcIndexedData;
-	if (pcEvictionCallback)
+	if (pcConfig->GetIndexTreeEvictionCallback())
 	{
-		mcEvictionCallbackWrapper.Init(pcEvictionCallback, this);
+		mcEvictionCallbackWrapper.Init(pcConfig->GetIndexTreeEvictionCallback(), this);
 		pcCallback = &mcEvictionCallbackWrapper;
 	}
 	else
@@ -32,7 +22,7 @@ void CIndexedDescriptorsFile::Init(CIndexedDataCommon* pcIndexedData, CDurableFi
 		mcEvictionCallbackWrapper.Init(NULL, NULL);
 		pcCallback = this;
 	}
-	mcIndexTree.Init(pcDurableFileController, szSubDirectory, uiIndexCacheSize, pcCallback, &mcEvictionStrategy, this, eWriteThrough, IKR_Yes);
+	mcIndexTree.Init(pcDurableFileController, pcConfig->GetSubdirectory(), pcConfig->GetIndexCacheSize(), pcCallback, pcConfig->GetEvictionStrategy(), this, pcConfig->GetWriteThrough(), IKR_Yes);
 }
 
 

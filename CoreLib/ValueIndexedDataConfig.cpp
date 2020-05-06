@@ -15,15 +15,15 @@ void CValueIndexedDataConfig::Init(char* szSubDirectory, size_t uiDataCacheSize,
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CValueIndexedDataConfig::Init(char* szSubDirectory, size_t uiDataCacheSize, size_t uiIndexCacheSize, EIndexWriteThrough eWriteThrough, CIndexTreeEvictionCallback* pcIndexEvictionUserCallback, CIndexedEvictionCallback* pcEvictionUserCallback)
+void CValueIndexedDataConfig::Init(char* szSubDirectory, size_t uiDataCacheSize, size_t uiIndexCacheSize, EIndexWriteThrough eWriteThrough, CIndexTreeEvictionCallback* pcIndexTreeEvictionUserCallback, CIndexedDataEvictionCallback* pcIndexedDataEvictionUserCallback)
 {
 	mszSubDirectory = szSubDirectory;
 
 	muiDataCacheSize = uiDataCacheSize;
 	muiIndexCacheSize = uiIndexCacheSize;
 	meWriteThrough = eWriteThrough;
-	mpcIndexEvictionUserCallback = pcIndexEvictionUserCallback;
-	mpcEvictionUserCallback = pcEvictionUserCallback;
+	mpcIndexTreeEvictionUserCallback = pcIndexTreeEvictionUserCallback;
+	mpcIndexedDataEvictionUserCallback = pcIndexedDataEvictionUserCallback;
 }
 
 
@@ -81,9 +81,9 @@ EIndexWriteThrough CValueIndexedDataConfig::GetWriteThrough(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTreeEvictionCallback* CValueIndexedDataConfig::GetIndexEvictionUserCallback(void)
+CIndexTreeEvictionCallback* CValueIndexedDataConfig::GetIndexTreeEvictionUserCallback(void)
 {
-	return mpcIndexEvictionUserCallback;
+	return mpcIndexTreeEvictionUserCallback;
 }
 
 
@@ -91,8 +91,8 @@ CIndexTreeEvictionCallback* CValueIndexedDataConfig::GetIndexEvictionUserCallbac
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexedEvictionCallback* CValueIndexedDataConfig::GetEvictionUserCallback(void)
+CIndexedDataEvictionCallback* CValueIndexedDataConfig::GetIndexedDataEvictionUserCallback(void)
 {
-	return mpcEvictionUserCallback;
+	return mpcIndexedDataEvictionUserCallback;
 }
 

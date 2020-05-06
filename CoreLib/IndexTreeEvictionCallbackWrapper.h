@@ -1,9 +1,9 @@
-#ifndef __EVICTION_CALLBACK_WRAPPER_H__
-#define __EVICTION_CALLBACK_WRAPPER_H__
+#ifndef __INDEX_TREE_EVICTION_CALLBACK_WRAPPER_H__
+#define __INDEX_TREE_EVICTION_CALLBACK_WRAPPER_H__
 #include "IndexTreeEvictionCallback.h"
 
 
-class CEvictionCallbackWrapper : public CIndexTreeEvictionCallback
+class CIndexTreeEvictionCallbackWrapper : public CIndexTreeEvictionCallback
 {
 protected:
 	CIndexTreeEvictionCallback*		mpcCallback1;
