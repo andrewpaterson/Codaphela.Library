@@ -45,7 +45,7 @@ void CCodaBase::Init(CDurableFileController* pcController, size_t uiDataCacheSiz
 	pcIndexConfig = NewMalloc<CValueIndexedDataConfig>();
 	pcNamedConfig = NewMalloc<CValueNamedIndexesConfig>();
 
-	pcIndexConfig->Init("IndexData", uiDataCacheSize, uiIndexCacheSize, IWT_No);
+	pcIndexConfig->Init("IndexData", uiDataCacheSize, uiIndexCacheSize, IWT_No, pcIndexEvictionStrategy);
 	pcNamedConfig->Init("Names", uiNamedCacheSize, pcNamedEvictionStrategy, IWT_No);
 
 	mcConfig.Init(pcIndexConfig, pcNamedConfig, FALSE);

@@ -99,7 +99,6 @@
     <ClCompile Include="IndexedCacheResult.cpp" />
     <ClCompile Include="IndexedDataAccess.cpp" />
     <ClCompile Include="IndexedDataCommon.cpp" />
-    <ClCompile Include="IndexedDescriptorsFileConfig.cpp" />
     <ClCompile Include="IndexedEvictedList.cpp" />
     <ClCompile Include="IndexedMap.cpp" />
     <ClCompile Include="IndexedDescriptorsFile.cpp" />
@@ -138,7 +137,6 @@
     <ClCompile Include="DurableSet.cpp" />
     <ClCompile Include="PropertiesFile.cpp" />
     <ClCompile Include="ValueIndexedDataConfig.cpp" />
-    <ClCompile Include="ValueIndexedDescriptorsFileConfig.cpp" />
     <ClCompile Include="ValueNamedIndexesConfig.cpp" />
     <ClCompile Include="XMLFile.cpp" />
     <ClCompile Include="FunctionCaller.cpp" />
@@ -188,21 +186,20 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CodaBase.h" />
-    <ClInclude Include="IndexedDescriptorsFileConfig.h" />
+    <ClInclude Include="IndexTreeEvictionCallbackWrapper.h" />
     <ClInclude Include="NamedIndexedHeader.h" />
     <ClInclude Include="NamedIndexesConfig.h" />
     <ClInclude Include="IndexedCacheResult.h" />
     <ClInclude Include="IndexedDataConfig.h" />
     <ClInclude Include="IndexedDataAccess.h" />
     <ClInclude Include="IndexedDataCommon.h" />
-    <ClInclude Include="IndexedDataEvictionCallback.h" />
+    <ClInclude Include="IndexedEvictionCallback.h" />
     <ClInclude Include="IndexedEvictedList.h" />
     <ClInclude Include="IndexedMap.h" />
     <ClInclude Include="IndexedFilesEvictionCallback.h" />
     <ClInclude Include="IndexedFilesEvicting.h" />
     <ClInclude Include="EvictedList.h" />
     <ClInclude Include="IndexTreeEvictionCallback.h" />
-    <ClInclude Include="IndexTreeEvictionCallbackWrapper.h" />
     <ClInclude Include="IndexTreeEvictionStrategy.h" />
     <ClInclude Include="IndexTreeEvictionStrategyRandom.h" />
     <ClInclude Include="IndexTreeFile.h" />
@@ -239,7 +236,6 @@
     <ClInclude Include="DurableSet.h" />
     <ClInclude Include="PropertiesFile.h" />
     <ClInclude Include="ValueIndexedDataConfig.h" />
-    <ClInclude Include="ValueIndexedDescriptorsFileConfig.h" />
     <ClInclude Include="ValueNamedIndexesConfig.h" />
     <ClInclude Include="XMLFile.h" />
     <ClInclude Include="FunctionCaller.h" />

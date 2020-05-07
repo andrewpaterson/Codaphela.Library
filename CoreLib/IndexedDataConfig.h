@@ -15,8 +15,8 @@ public:
 	virtual size_t							GetDataCacheSize(void) =0;
 	virtual size_t							GetIndexCacheSize(void) =0;
 	virtual EIndexWriteThrough				GetWriteThrough(void) =0;
-	virtual CIndexTreeEvictionCallback*		GetIndexTreeEvictionUserCallback(void) =0;
-	virtual CIndexedDataEvictionCallback*	GetIndexedDataEvictionUserCallback(void) =0;
+	virtual CIndexTreeEvictionCallback*		GetIndexEvictionUserCallback(void) =0;
+	virtual CIndexedDataEvictionCallback*		GetEvictionUserCallback(void) =0;
 };
 
 
