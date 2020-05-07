@@ -15,7 +15,7 @@ private:
 	size_t							muiIndexCacheSize;
 	EIndexWriteThrough				meWriteThrough;
 	CIndexTreeEvictionStrategy*		mpcEvictionStrategy;
-	CIndexedDataEvictionCallback*		mpcIndexedDataEvictionUserCallback;
+	CIndexedDataEvictionCallback*	mpcIndexedDataEvictionUserCallback;
 	CIndexTreeEvictionCallback*		mpcIndexTreeEvictionCallback;
 
 public:

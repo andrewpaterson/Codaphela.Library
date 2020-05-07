@@ -175,9 +175,6 @@
     <Filter Include="Source\Coda">
       <UniqueIdentifier>{eabb5af7-d0b9-46c6-b47c-e66924f3845f}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\File\Indexed\Descriptors\Config">
-      <UniqueIdentifier>{b1e2d9b3-46ec-4b11-b4b4-4766ee6d11e4}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="IndexedData.cpp">
@@ -453,14 +450,8 @@
     <ClCompile Include="CodaBase.cpp">
       <Filter>Source\Coda</Filter>
     </ClCompile>
-    <ClCompile Include="IndexedDescriptorsFileConfig.cpp">
-      <Filter>Source\File\Indexed\Descriptors\Config</Filter>
-    </ClCompile>
-    <ClCompile Include="ValueIndexedDescriptorsFileConfig.cpp">
-      <Filter>Source\File\Indexed\Descriptors\Config</Filter>
-    </ClCompile>
     <ClCompile Include="IndexTreeEvictionCallbackWrapper.cpp">
-      <Filter>Source\File\Indexed\Index\Evicting</Filter>
+      <Filter>Source\File\Indexed\Index</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -725,6 +716,9 @@
     <ClInclude Include="IndexWriteThrough.h">
       <Filter>Source\File\Indexed\Index</Filter>
     </ClInclude>
+    <ClInclude Include="IndexedEvictionCallback.h">
+      <Filter>Source\File\Indexed\Index\Evicting</Filter>
+    </ClInclude>
     <ClInclude Include="IndexedEvictedList.h">
       <Filter>Source\File\Indexed\Index\Evicting</Filter>
     </ClInclude>
@@ -758,17 +752,8 @@
     <ClInclude Include="CodaBase.h">
       <Filter>Source\Coda</Filter>
     </ClInclude>
-    <ClInclude Include="IndexedDescriptorsFileConfig.h">
-      <Filter>Source\File\Indexed\Descriptors\Config</Filter>
-    </ClInclude>
-    <ClInclude Include="ValueIndexedDescriptorsFileConfig.h">
-      <Filter>Source\File\Indexed\Descriptors\Config</Filter>
-    </ClInclude>
     <ClInclude Include="IndexTreeEvictionCallbackWrapper.h">
-      <Filter>Source\File\Indexed\Index\Evicting</Filter>
-    </ClInclude>
-    <ClInclude Include="IndexedDataEvictionCallback.h">
-      <Filter>Source\File\Indexed\Index\Evicting</Filter>
+      <Filter>Source\File\Indexed\Index</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
