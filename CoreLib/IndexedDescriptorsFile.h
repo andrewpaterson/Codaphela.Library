@@ -4,23 +4,25 @@
 #include "IndexTreeEvicting.h"
 #include "IndexTreeEvictionCallback.h"
 #include "IndexedDataDescriptor.h"
-#include "IndexTreeEvictionStrategyRandom.h"
+#include "IndexTreeEvictionStrategy.h"
 #include "IndexTreeEvictionCallbackWrapper.h"
+
+#include "IndexTreeEvictionStrategyRandom.h"
 
 
 class CIndexedDataCommon;
 class CIndexedDescriptorsFile : public CIndexTreeEvictionCallback, public CIndexTreeFileCallback
 {
 protected:
-	CIndexTreeEvicting									mcIndexTree;
-	CIndexTreeEvictionStrategyRandom					mcEvictionStrategy;
-	CIndexedDataCommon*									mpcIndexedData;
+	CIndexTreeEvicting					mcIndexTree;
+	CIndexTreeEvictionStrategyRandom	mcRandom;
+	CIndexedDataCommon*					mpcIndexedData;
 
-	CIndexTreeEvictionCallbackWrapper					mcEvictionCallbackWrapper;
+	CIndexTreeEvictionCallbackWrapper	mcEvictionCallbackWrapper;
 
 public:
-	void			Init(CIndexedDataCommon* pcIndexedData, CDurableFileController* pcDurableFileController, char* szSubDirectory, size_t uiIndexCacheSize, EIndexWriteThrough eWriteThrough);
-	void			Init(CIndexedDataCommon* pcIndexedData, CDurableFileController* pcDurableFileController, char* szSubDirectory, size_t uiIndexCacheSize, EIndexWriteThrough eWriteThrough, CIndexTreeEvictionCallback* pcEvictionCallback);
+	void			Init(CIndexedDataCommon* pcIndexedData, CDurableFileController* pcDurableFileController, char* szSubDirectory, size_t uiIndexCacheSize, EIndexWriteThrough eWriteThrough, CIndexTreeEvictionStrategy* pcEvictionStrategy);
+	void			Init(CIndexedDataCommon* pcIndexedData, CDurableFileController* pcDurableFileController, char* szSubDirectory, size_t uiIndexCacheSize, EIndexWriteThrough eWriteThrough, CIndexTreeEvictionStrategy* pcEvictionStrategy, CIndexTreeEvictionCallback* pcEvictionCallback);
 	BOOL			Kill(void);
 
 	BOOL			Remove(OIndex oi);

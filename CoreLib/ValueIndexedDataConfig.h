@@ -11,12 +11,13 @@ protected:
 	size_t							muiIndexCacheSize;
 	EIndexWriteThrough				meWriteThrough;
 	CIndexTreeEvictionCallback*		mpcIndexEvictionUserCallback;
-	CIndexedDataEvictionCallback*		mpcEvictionUserCallback;
+	CIndexedDataEvictionCallback*	mpcEvictionUserCallback;
 	char*							mszSubDirectory;
+	CIndexTreeEvictionStrategy*		mpcEvictionStrategy;
 
 public:
-	void 							Init(char* szSubDirectory, size_t uiDataCacheSize, size_t uiIndexCacheSize, EIndexWriteThrough eWriteThrough, CIndexTreeEvictionStrategy* pcIndexTreeEvictionStrategy);
-	void 							Init(char* szSubDirectory, size_t uiDataCacheSize, size_t uiIndexCacheSize, EIndexWriteThrough eWriteThrough, CIndexTreeEvictionStrategy* pcIndexTreeEvictionStrategy, CIndexTreeEvictionCallback* pcIndexEvictionUserCallback, CIndexedDataEvictionCallback* pcEvictionUserCallback);
+	void 							Init(char* szSubDirectory, size_t uiDataCacheSize, size_t uiIndexCacheSize, EIndexWriteThrough eWriteThrough, CIndexTreeEvictionStrategy* pcEvictionStrategy);
+	void 							Init(char* szSubDirectory, size_t uiDataCacheSize, size_t uiIndexCacheSize, EIndexWriteThrough eWriteThrough, CIndexTreeEvictionStrategy* pcEvictionStrategy, CIndexTreeEvictionCallback* pcIndexEvictionUserCallback, CIndexedDataEvictionCallback* pcEvictionUserCallback);
 	void							Kill(void);
 
 	char*							GetSubdirectory(void);
@@ -24,7 +25,8 @@ public:
 	size_t							GetIndexCacheSize(void);
 	EIndexWriteThrough				GetWriteThrough(void);
 	CIndexTreeEvictionCallback*		GetIndexEvictionUserCallback(void);
-	CIndexedDataEvictionCallback*		GetEvictionUserCallback(void);
+	CIndexedDataEvictionCallback*	GetEvictionUserCallback(void);
+	CIndexTreeEvictionStrategy*		GetEvictionStrategy(void);
 };
 
 

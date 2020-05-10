@@ -4,6 +4,7 @@
 #include "DurableFileController.h"
 #include "IndexTreeEvictionCallback.h"
 #include "IndexedDataEvictionCallback.h"
+#include "IndexTreeEvictionStrategy.h"
 
 
 class CIndexedDataConfig
@@ -16,7 +17,8 @@ public:
 	virtual size_t							GetIndexCacheSize(void) =0;
 	virtual EIndexWriteThrough				GetWriteThrough(void) =0;
 	virtual CIndexTreeEvictionCallback*		GetIndexEvictionUserCallback(void) =0;
-	virtual CIndexedDataEvictionCallback*		GetEvictionUserCallback(void) =0;
+	virtual CIndexedDataEvictionCallback*	GetEvictionUserCallback(void) =0;
+	virtual CIndexTreeEvictionStrategy*		GetEvictionStrategy(void) =0;
 };
 
 
