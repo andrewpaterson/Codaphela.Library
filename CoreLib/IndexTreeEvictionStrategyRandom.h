@@ -11,6 +11,7 @@ protected:
 
 public:
 	void Init(void);
+	void Init(int iSeed);
 	void Kill(void);
 
 	BOOL Run(CIndexTreeNodeFile* pcDontEvict);

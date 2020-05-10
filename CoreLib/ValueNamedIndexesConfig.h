@@ -8,19 +8,20 @@ class CValueNamedIndexesConfig : public CNamedIndexesConfig
 {
 protected:
 	size_t							muiIndexCacheSize;
-	CIndexTreeEvictionStrategy*		mpcEvictionStrategy;
+	CIndexTreeEvictionStrategy*		mpcNamedEvictionStrategy;
+	CIndexTreeEvictionStrategy*		mpcIndexEvictionStrategy;
 	EIndexWriteThrough				meWriteThrough;
 	CIndexTreeEvictionCallback*		mpEvictionCallback;
 	char*							mszSubDirectory;
 
 public:
-	void							Init(char* szSubDirectory, size_t uiIndexCacheSize, CIndexTreeEvictionStrategy* pcEvictionStrategy, EIndexWriteThrough eWriteThrough);
-	void							Init(char* szSubDirectory, size_t uiIndexCacheSize, CIndexTreeEvictionStrategy* pcEvictionStrategy, EIndexWriteThrough eWriteThrough, CIndexTreeEvictionCallback* pcEvictionCallback);
+	void							Init(char* szSubDirectory, size_t uiIndexCacheSize, CIndexTreeEvictionStrategy* pcNamedEvictionStrategy, EIndexWriteThrough eWriteThrough);
+	void							Init(char* szSubDirectory, size_t uiIndexCacheSize, CIndexTreeEvictionStrategy* pcNamedEvictionStrategy, EIndexWriteThrough eWriteThrough, CIndexTreeEvictionCallback* pcEvictionCallback);
 
 	void							Kill(void);
 
 	size_t							GetIndexCacheSize(void);
-	CIndexTreeEvictionStrategy*		GetEvictionStrategy(void);
+	CIndexTreeEvictionStrategy* GetEvictionStrategy(void);
 	EIndexWriteThrough				GetWriteThrough(void);
 	CIndexTreeEvictionCallback*		GetIndexTreeEvictionCallback(void);
 	char*							GetSubDirectory(void);

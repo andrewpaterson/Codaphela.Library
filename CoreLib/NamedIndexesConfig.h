@@ -12,7 +12,7 @@ public:
 	virtual void							Kill(void);
 
 	virtual size_t							GetIndexCacheSize(void) =0;
-	virtual CIndexTreeEvictionStrategy*		GetEvictionStrategy() =0;
+	virtual CIndexTreeEvictionStrategy* GetEvictionStrategy() =0;
 	virtual EIndexWriteThrough				GetWriteThrough(void) =0;
 	virtual CIndexTreeEvictionCallback*		GetIndexTreeEvictionCallback(void) =0;
 	virtual char*							GetSubDirectory(void) =0;

@@ -8,7 +8,18 @@
 //////////////////////////////////////////////////////////////////////////
 void CIndexTreeEvictionStrategyRandom::Init(void)
 {
-	mcRandom.Init(67);
+	Init(67);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexTreeEvictionStrategyRandom::Init(int iSeed)
+{
+	CIndexTreeEvictionStrategy::Init();
+	mcRandom.Init(iSeed);
 }
 
 
@@ -19,6 +30,7 @@ void CIndexTreeEvictionStrategyRandom::Init(void)
 void CIndexTreeEvictionStrategyRandom::Kill(void)
 {
 	mcRandom.Kill();
+	mpcIndexTree = NULL;
 }
 
 
