@@ -7,9 +7,9 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedDataCommon::Init(CIndexedDataEvictionCallback* pcEvictionCallback)
+void CIndexedDataCommon::Init(CIndexedDataEvictionCallback* pcIndexedDataEvictionCallback)
 {
-	mpcEvictionCallback = pcEvictionCallback;
+	mpcIndexedDataEvictionCallback = pcIndexedDataEvictionCallback;
 }
 
 
@@ -27,7 +27,7 @@ BOOL CIndexedDataCommon::Add(OIndex oi, void* pvData, unsigned int uiDataSize)
 		return gcLogger.Error2(__METHOD__, " Cannot Add Index [", IndexToString(oi), "].", NULL);
 	}
 
-	bResult = GetDescriptor(oi, &cDescriptor);
+	bResult = GetDescriptor(oi, &cDescriptor, TRUE);
 	if (bResult)
 	{
 		return gcLogger.Error2(__METHOD__, " Cannot Add Index [", IndexToString(oi), "].  It already exists.", NULL);
@@ -113,38 +113,6 @@ BOOL CIndexedDataCommon::Put(OIndex oi, void* pvData, unsigned int uiDataSize)
 	{
 		return mcData.SetData(oi, NULL, pvData, uiDataSize);
 	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CIndexedDataCommon::DescriptorsEvicted(CArrayVoidPtr* papsEvictedIndexedCacheDescriptors)
-{
-	int							i;
-	SIndexedCacheDescriptor*	psDesc;
-	BOOL						bResult;
-	int							iNumElements;
-	void*						pvCache;
-
-	bResult = TRUE;
-	iNumElements = papsEvictedIndexedCacheDescriptors->NumElements();
-	for (i = 0; i < iNumElements; i++)
-	{
-		psDesc = (SIndexedCacheDescriptor*)papsEvictedIndexedCacheDescriptors->GetPtr(i);
-		if (psDesc != NULL)
-		{
-			pvCache = mcData.GetCachedData(psDesc);
-
-			bResult &= UpdateDescriptorCache(psDesc->oi, NULL, 0);
-			if (mpcEvictionCallback)
-			{
-				bResult &= mpcEvictionCallback->IndexEvicted(psDesc->oi, pvCache, psDesc->uiSize);
-			}
-		}
-	}
-	return bResult;
 }
 
 

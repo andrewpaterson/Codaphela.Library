@@ -70,7 +70,7 @@ protected:
 	BOOL			UpdateDescriptorCache(OIndex oi, void* pvCache, unsigned int uiDataSize);
 	BOOL			RemoveDescriptor(OIndex oi);
 
-	BOOL			DescriptorsEvicted(CArrayVoidPtr* papsEvictedIndexedCacheDescriptors);
+	BOOL			DescriptorEvicted(OIndex oi, void* pvCache, unsigned int uiDataSize);
 };
 
 

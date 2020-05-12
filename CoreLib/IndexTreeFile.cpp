@@ -3706,7 +3706,12 @@ BOOL CIndexTreeFile::GetNodeKey(CIndexTreeNodeFile* pcNode, unsigned char* pvDes
 		pcNode = (CIndexTreeNodeFile*)pcNode->GetParent();
 	}
 
-	ReverseBytes(pvDestKey, iKeySize);
+	if (meReverseKey == IKR_No)
+	{
+		//The key is already reversed by revese node traversal.
+		ReverseBytes(pvDestKey, iKeySize);
+	}
+
 	if (iKeySize < iDestSize)
 	{
 		pvDestKey[iKeySize] = 0;

@@ -185,13 +185,20 @@ BOOL CIndexedData::IsDirty(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedData::DescriptorsEvicted(CArrayVoidPtr* papsEvictedIndexedCacheDescriptors)
+BOOL CIndexedData::DescriptorEvicted(OIndex oi, void* pvCache, unsigned int uiDataSize)
 {
-	if (papsEvictedIndexedCacheDescriptors->NumElements() > 0)
+	BOOL						bResult;
+
+	if (mpcIndexedDataEvictionCallback)
 	{
-		return CIndexedDataCommon::DescriptorsEvicted(papsEvictedIndexedCacheDescriptors);
+		bResult = UpdateDescriptorCache(oi, NULL, 0);
+		bResult &= mpcIndexedDataEvictionCallback->IndexEvicted(oi, pvCache, uiDataSize);
+		return bResult;
 	}
-	return TRUE;
+	else
+	{
+		return TRUE;
+	}
 }
 
 

@@ -57,12 +57,12 @@ public:
 protected:
 	void*				SetCacheData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, void* pvData, unsigned int uiDataSize);
 	CIndexedCacheResult	CacheAllocate(OIndex oi, unsigned int uiDataSize);
-	BOOL				DescriptorsEvicted(CArrayVoidPtr* papsEvictedIndexedCacheDescriptors);
+	BOOL				EvictPreAllocatedDescriptors(CArrayVoidPtr* papsEvictedIndexedCacheDescriptors);
 
 	CFilePosIndex		WriteThroughData(CIndexedDataDescriptor* pcDescriptor, void* pvData, unsigned int uiDataSize);
-	BOOL				WriteEvictedData(SIndexedCacheDescriptor* psCached, EClearCache eClearCache, BOOL bNoEviction);
-	BOOL				WriteEvictedData(CIndexedDataDescriptor* pcDescriptor, EClearCache eClearCache);
-	BOOL				WriteEvictedData(CIndexedDataDescriptor* pcDescriptor, OIndex oi, void* pvData, EClearCache eClearCache, BOOL bNoEviction);
+	BOOL				WriteEvictedData1b(SIndexedCacheDescriptor* psCached, EClearCache eClearCache, BOOL bNoEviction);
+	BOOL				EvictWriteData(CIndexedDataDescriptor* pcDescriptor, EClearCache eClearCache);
+	BOOL				WriteEvictedData2(CIndexedDataDescriptor* pcDescriptor, OIndex oi, void* pvData, EClearCache eClearCache, BOOL bNoEviction);
 
 	BOOL				CompareDiskToMemory(CIndexedDataDescriptor* pcDescriptor, void* pvData);
 	BOOL				ClearDescriptorCache(SIndexedCacheDescriptor* psCached);

@@ -15,7 +15,6 @@ class CIndexedDescriptorsFile : public CIndexTreeEvictionCallback, public CIndex
 {
 protected:
 	CIndexTreeEvicting					mcIndexTree;
-	CIndexTreeEvictionStrategyRandom	mcRandom;
 	CIndexedDataCommon*					mpcIndexedData;
 
 	CIndexTreeEvictionCallbackWrapper	mcEvictionCallbackWrapper;

@@ -13,10 +13,10 @@ class CIndexedDataCommon
 protected:
 	CIndexedFilesEvicting			mcData;
 	EIndexWriteThrough				meWriteThrough;
-	CIndexedDataEvictionCallback*	mpcEvictionCallback;
+	CIndexedDataEvictionCallback*	mpcIndexedDataEvictionCallback;
 
 public:
-			void			Init(CIndexedDataEvictionCallback* pcEvictionCallback);
+			void			Init(CIndexedDataEvictionCallback* pcIndexedDataEvictionCallback);
 	virtual BOOL			Kill(void) =0;
 
 			BOOL			IsCaching(void);
@@ -59,8 +59,6 @@ protected:
 	virtual BOOL			RemoveDescriptor(OIndex oi) =0;
 
 	virtual BOOL			Flush(BOOL bClearCache) =0;
-
-			BOOL			DescriptorsEvicted(CArrayVoidPtr* papsEvictedIndexedCacheDescriptors);
 };
 
 
