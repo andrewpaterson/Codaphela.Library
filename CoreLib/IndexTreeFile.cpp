@@ -3222,7 +3222,6 @@ void CIndexTreeFile::DebugKey(CChars* pszDest, void* pvKey, int iKeySize, BOOL b
 	{
 		i = 0;
 		bExecute = i < iKeySize;
-
 	}
 	else
 	{
@@ -3248,7 +3247,6 @@ void CIndexTreeFile::DebugKey(CChars* pszDest, void* pvKey, int iKeySize, BOOL b
 		{
 			i++;
 			bExecute = i < iKeySize;
-
 		}
 		else
 		{
@@ -3647,7 +3645,7 @@ void CIndexTreeFile::RecurseDump(CChars* pszDest, CIndexTreeRecursor* pcCursor, 
 			pszDest->AppendNewLine(szKey);
 			szKey.Kill();
 
-			DebugKey(pszDest, pvKey, iKeySize, TRUE, bShowFlags, TRUE);
+			DebugKey(pszDest, pvKey, iKeySize, TRUE, bShowFlags, FALSE);
 			cStack.Kill();
 		}
 
