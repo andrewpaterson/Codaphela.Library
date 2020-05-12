@@ -1,11 +1,11 @@
-#ifndef __INDEXED_EVICTED_LIST_H__
-#define __INDEXED_EVICTED_LIST_H__
+#ifndef __INDEXED_DATA_EVICTED_LIST_H__
+#define __INDEXED_DATA_EVICTED_LIST_H__
 #include "BaseLib/ArrayLong.h"
 #include "BaseLib/ListVariable.h"
 #include "IndexedDataEvictionCallback.h"
 
 
-class CIndexedEvictedList : public CIndexedDataEvictionCallback
+class CIndexedDataEvictedList : public CIndexedDataEvictionCallback
 {
 private:
 	CArrayLong		mcKeys;
@@ -25,5 +25,5 @@ public:
 };
 
 
-#endif // __INDEXED_EVICTED_LIST_H__
+#endif // __INDEXED_DATA_EVICTED_LIST_H__
 
