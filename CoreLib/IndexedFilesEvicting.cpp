@@ -140,6 +140,7 @@ BOOL CIndexedFilesEvicting::Flush(BOOL bClearCache)
 	BOOL						bAnyFailed;
 	BOOL						bResult;
 	EClearCache					eClearCache;
+	void*						pvData;
 
 	if (mbCaching)
 	{
@@ -156,8 +157,13 @@ BOOL CIndexedFilesEvicting::Flush(BOOL bClearCache)
 		psCached = mcDataCache.StartIteration();
 		while (psCached)
 		{
-			bResult = WriteEvictedData(psCached, eClearCache, TRUE);
-			if (!bResult)
+			bResult = WriteEvictedData1b(psCached, eClearCache, TRUE);
+			if (bResult)
+			{
+				pvData = RemapSinglePointer(psCached, sizeof(SIndexedCacheDescriptor));
+				mpcEvictionCallback->DescriptorEvicted(psCached->oi, pvData, psCached->uiSize);
+			}
+			else
 			{
 				bAnyFailed = TRUE;
 			}
@@ -168,6 +174,7 @@ BOOL CIndexedFilesEvicting::Flush(BOOL bClearCache)
 		{
 			mcDataCache.Clear();
 		}
+
 		return !bAnyFailed;
 	}
 	else
@@ -484,7 +491,7 @@ CIndexedCacheResult CIndexedFilesEvicting::CacheAllocate(OIndex oi, unsigned int
 	cPreAllocated.Init(uiDataSize, mcDataCache.GetIndexCacheDescritorSize());
 	if (mcDataCache.PreAllocate(&cPreAllocated))  //PreAllocate ensures there will be enough space in the cache.
 	{
-		bResult = DescriptorsEvicted(cPreAllocated.GetEvictedArray());
+		bResult = EvictPreAllocatedDescriptors(cPreAllocated.GetEvictedArray());
 		if (bResult)
 		{
 			cResult = mcDataCache.Allocate(oi, uiDataSize, &cPreAllocated);
@@ -505,23 +512,36 @@ CIndexedCacheResult CIndexedFilesEvicting::CacheAllocate(OIndex oi, unsigned int
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedFilesEvicting::DescriptorsEvicted(CArrayVoidPtr* papsEvictedIndexedCacheDescriptors)
+BOOL CIndexedFilesEvicting::EvictPreAllocatedDescriptors(CArrayVoidPtr* papsEvictedIndexedCacheDescriptors)
 {
 	BOOL						bResult;
 	int							i;
 	SIndexedCacheDescriptor*	psCached;
+	void*						pvData;
 
 	for (i = 0; i < papsEvictedIndexedCacheDescriptors->NumElements(); i++)
 	{
 		psCached = (SIndexedCacheDescriptor*)papsEvictedIndexedCacheDescriptors->GetPtr(i);
-		bResult = WriteEvictedData(psCached, CC_Yes, FALSE);
+		bResult = WriteEvictedData1b(psCached, CC_Yes, FALSE);
 		if (!bResult)
 		{
 			return FALSE;
 		}
 	}
 
-	mpcEvictionCallback->DescriptorsEvicted(papsEvictedIndexedCacheDescriptors);
+	for (i = 0; i < papsEvictedIndexedCacheDescriptors->NumElements(); i++)
+	{
+		psCached = (SIndexedCacheDescriptor*)papsEvictedIndexedCacheDescriptors->GetPtr(i);
+		if (psCached != NULL)
+		{
+			pvData = mcDataCache.GetCache(psCached);
+			bResult = mpcEvictionCallback->DescriptorEvicted(psCached->oi, pvData, psCached->uiSize);
+			if (!bResult)
+			{
+				return FALSE;
+			}
+		}
+	}
 	return TRUE;
 }
 
@@ -532,12 +552,20 @@ BOOL CIndexedFilesEvicting::DescriptorsEvicted(CArrayVoidPtr* papsEvictedIndexed
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexedFilesEvicting::Evict(OIndex oi, CIndexedDataDescriptor* pcDescriptor)
 {
-	void*						pvData;
+	void*			pvData;
+	BOOL			bResult;
+	unsigned int	uiDataSize;
 
 	pvData = pcDescriptor->GetCache();
 	if (pvData)
 	{
-		return WriteEvictedData(pcDescriptor, CC_Yes);
+		uiDataSize = pcDescriptor->GetDataSize();
+		bResult = EvictWriteData(pcDescriptor, CC_Yes);
+		if (bResult)
+		{
+			bResult &= mpcEvictionCallback->DescriptorEvicted(oi, pvData, uiDataSize);
+		}
+		return bResult;
 	}
 	else
 	{
@@ -550,7 +578,7 @@ BOOL CIndexedFilesEvicting::Evict(OIndex oi, CIndexedDataDescriptor* pcDescripto
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedFilesEvicting::WriteEvictedData(CIndexedDataDescriptor* pcDescriptor, EClearCache eClearCache)
+BOOL CIndexedFilesEvicting::EvictWriteData(CIndexedDataDescriptor* pcDescriptor, EClearCache eClearCache)
 {
 	void*						pvData;
 	SIndexedCacheDescriptor*	psCached;
@@ -560,7 +588,7 @@ BOOL CIndexedFilesEvicting::WriteEvictedData(CIndexedDataDescriptor* pcDescripto
 	psCached = mcDataCache.GetHeader(pvData);
 	if (psCached->iFlags & CACHE_DESCRIPTOR_FLAG_DIRTY)
 	{
-		bResult = WriteEvictedData(pcDescriptor, psCached->oi, pvData, eClearCache, TRUE);
+		bResult = WriteEvictedData2(pcDescriptor, psCached->oi, pvData, eClearCache, TRUE);
 		psCached->iFlags &= ~CACHE_DESCRIPTOR_FLAG_DIRTY;
 		return bResult;
 	}
@@ -585,7 +613,7 @@ BOOL CIndexedFilesEvicting::WriteEvictedData(CIndexedDataDescriptor* pcDescripto
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedFilesEvicting::WriteEvictedData(SIndexedCacheDescriptor* psCached, EClearCache eClearCache, BOOL bNoEviction)
+BOOL CIndexedFilesEvicting::WriteEvictedData1b(SIndexedCacheDescriptor* psCached, EClearCache eClearCache, BOOL bNoEviction)
 {
 	CIndexedDataDescriptor	cDescriptor;
 	BOOL					bResult;
@@ -600,10 +628,9 @@ BOOL CIndexedFilesEvicting::WriteEvictedData(SIndexedCacheDescriptor* psCached, 
 			return FALSE;
 		}
 
-		bResult = WriteEvictedData(&cDescriptor, psCached->oi, pvData, eClearCache, bNoEviction);
+		bResult = WriteEvictedData2(&cDescriptor, psCached->oi, pvData, eClearCache, bNoEviction);
 		psCached->iFlags &= ~CACHE_DESCRIPTOR_FLAG_DIRTY;
 		return bResult;
-
 	}
 	else
 	{
@@ -620,7 +647,7 @@ BOOL CIndexedFilesEvicting::WriteEvictedData(SIndexedCacheDescriptor* psCached, 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedFilesEvicting::WriteEvictedData(CIndexedDataDescriptor* pcDescriptor, OIndex oi, void* pvData, EClearCache eClearCache, BOOL bNoEviction)
+BOOL CIndexedFilesEvicting::WriteEvictedData2(CIndexedDataDescriptor* pcDescriptor, OIndex oi, void* pvData, EClearCache eClearCache, BOOL bNoEviction)
 {
 	CFilePosIndex			cFilePosIndex;
 	CIndexedDataDescriptor	cResultDescriptor;
@@ -651,7 +678,6 @@ BOOL CIndexedFilesEvicting::WriteEvictedData(CIndexedDataDescriptor* pcDescripto
 	cResultDescriptor.Init(uiDataSize, &cFilePosIndex, pcDescriptor->GetCacheDataSize(), pcDescriptor->GetCache());
 	return mpcEvictionCallback->SetDescriptor(oi, &cResultDescriptor, bNoEviction);
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////

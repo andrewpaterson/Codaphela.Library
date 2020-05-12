@@ -94,26 +94,16 @@ void CIndexedMap::NullCachedDescriptors(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedMap::DescriptorsEvicted(CArrayVoidPtr* papsEvictedIndexedCacheDescriptors)
+BOOL CIndexedMap::DescriptorEvicted(OIndex oi, void* pvCache, unsigned int uiDataSize)
 {
-	int							i;
-	SIndexedCacheDescriptor*	psDesc;
-	BOOL						bResult;
-	int							iNumElements;
-	void*						pvCache;
-
-	bResult = TRUE;
-	iNumElements = papsEvictedIndexedCacheDescriptors->NumElements();
-	for (i = 0; i < iNumElements; i++)
+	if (mpcIndexedDataEvictionCallback)
 	{
-		psDesc = (SIndexedCacheDescriptor*)papsEvictedIndexedCacheDescriptors->GetPtr(i);
-		if (psDesc != NULL)
-		{
-			pvCache = mcData.GetCachedData(psDesc);
-			bResult &= mpcEvictionCallback->IndexEvicted(psDesc->oi, pvCache, psDesc->uiSize);
-		}
+		return mpcIndexedDataEvictionCallback->IndexEvicted(oi, pvCache, uiDataSize);
 	}
-	return bResult;
+	else
+	{
+		return TRUE;
+	}
 }
 
 

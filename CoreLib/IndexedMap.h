@@ -19,7 +19,7 @@ public:
 	void	Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, char* szDataExtension, char* szDescriptorName, char* szDescriptorRewrite, size_t iCacheSize, EIndexWriteThrough eWriteThrough, CIndexedDataEvictionCallback* pcEvictionUserCallback);
 	BOOL	Kill(void);
 
-	BOOL	DescriptorsEvicted(CArrayVoidPtr* papsEvictedIndexedCacheDescriptors);
+	BOOL	DescriptorEvicted(OIndex oi, void* pvCache, unsigned int uiDataSize);
 	BOOL	Flush(BOOL bClearCache);
 
 	int64	NumIndices(void);

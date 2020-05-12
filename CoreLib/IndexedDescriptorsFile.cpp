@@ -32,8 +32,7 @@ void CIndexedDescriptorsFile::Init(CIndexedDataCommon* pcIndexedData, CDurableFi
 		mcEvictionCallbackWrapper.Init(NULL, NULL);
 		pcCallback = this;
 	}
-	mcRandom.SetIndexTree(NULL);
-	mcIndexTree.Init(pcDurableFileController, szSubDirectory, uiIndexCacheSize, pcCallback, &mcRandom, this, eWriteThrough, IKR_Yes);
+	mcIndexTree.Init(pcDurableFileController, szSubDirectory, uiIndexCacheSize, pcCallback, pcEvictionStrategy, this, eWriteThrough, IKR_Yes);
 }
 
 
