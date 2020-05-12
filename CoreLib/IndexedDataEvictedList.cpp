@@ -1,11 +1,11 @@
-#include "IndexedEvictedList.h"
+#include "IndexedDataEvictedList.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedEvictedList::Init(void)
+void CIndexedDataEvictedList::Init(void)
 {
 	mcKeys.Init();
 	mcDatas.Init();
@@ -16,7 +16,7 @@ void CIndexedEvictedList::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedEvictedList::Kill(void)
+void CIndexedDataEvictedList::Kill(void)
 {
 	mcDatas.Kill();
 	mcKeys.Kill();
@@ -27,7 +27,7 @@ void CIndexedEvictedList::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedEvictedList::IndexEvicted(OIndex oi, void* pvData, int iDataSize)
+BOOL CIndexedDataEvictedList::IndexEvicted(OIndex oi, void* pvData, int iDataSize)
 {
 	mcKeys.Add(oi);
 	mcDatas.Add(pvData, iDataSize);
@@ -39,7 +39,7 @@ BOOL CIndexedEvictedList::IndexEvicted(OIndex oi, void* pvData, int iDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CIndexedEvictedList::NumElements(void)
+int CIndexedDataEvictedList::NumElements(void)
 {
 	return mcKeys.NumElements();
 }
@@ -49,7 +49,7 @@ int CIndexedEvictedList::NumElements(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-OIndex CIndexedEvictedList::GetKey(int iIndex)
+OIndex CIndexedDataEvictedList::GetKey(int iIndex)
 {
 	return mcKeys.GetValue(iIndex);
 }
@@ -59,7 +59,7 @@ OIndex CIndexedEvictedList::GetKey(int iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CIndexedEvictedList::GetData(int iIndex, int* piDataSize)
+void* CIndexedDataEvictedList::GetData(int iIndex, int* piDataSize)
 {
 	if (piDataSize)
 	{
@@ -73,7 +73,7 @@ void* CIndexedEvictedList::GetData(int iIndex, int* piDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedEvictedList::Clear(void)
+void CIndexedDataEvictedList::Clear(void)
 {
 	mcKeys.ReInit();
 	mcDatas.ReInit();

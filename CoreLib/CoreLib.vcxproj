@@ -99,7 +99,7 @@
     <ClCompile Include="IndexedCacheResult.cpp" />
     <ClCompile Include="IndexedDataAccess.cpp" />
     <ClCompile Include="IndexedDataCommon.cpp" />
-    <ClCompile Include="IndexedEvictedList.cpp" />
+    <ClCompile Include="IndexedDataEvictedList.cpp" />
     <ClCompile Include="IndexedMap.cpp" />
     <ClCompile Include="IndexedDescriptorsFile.cpp" />
     <ClCompile Include="IndexedFilesEvicting.cpp" />
@@ -194,7 +194,7 @@
     <ClInclude Include="IndexedDataAccess.h" />
     <ClInclude Include="IndexedDataCommon.h" />
     <ClInclude Include="IndexedEvictionCallback.h" />
-    <ClInclude Include="IndexedEvictedList.h" />
+    <ClInclude Include="IndexedDataEvictedList.h" />
     <ClInclude Include="IndexedMap.h" />
     <ClInclude Include="IndexedFilesEvictionCallback.h" />
     <ClInclude Include="IndexedFilesEvicting.h" />

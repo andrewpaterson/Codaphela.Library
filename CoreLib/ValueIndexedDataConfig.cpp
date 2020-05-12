@@ -15,15 +15,15 @@ void CValueIndexedDataConfig::Init(char* szSubDirectory, size_t uiDataCacheSize,
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CValueIndexedDataConfig::Init(char* szSubDirectory, size_t uiDataCacheSize, size_t uiIndexCacheSize, EIndexWriteThrough eWriteThrough, CIndexTreeEvictionStrategy* pcEvictionStrategy, CIndexTreeEvictionCallback* pcIndexEvictionUserCallback, CIndexedDataEvictionCallback* pcEvictionUserCallback)
+void CValueIndexedDataConfig::Init(char* szSubDirectory, size_t uiDataCacheSize, size_t uiIndexCacheSize, EIndexWriteThrough eWriteThrough, CIndexTreeEvictionStrategy* pcEvictionStrategy, CIndexTreeEvictionCallback* pcIndexTreeEvictionUserCallback, CIndexedDataEvictionCallback* pcIndexedDataEvictionUserCallback)
 {
 	mszSubDirectory = szSubDirectory;
 
 	muiDataCacheSize = uiDataCacheSize;
 	muiIndexCacheSize = uiIndexCacheSize;
 	meWriteThrough = eWriteThrough;
-	mpcIndexEvictionUserCallback = pcIndexEvictionUserCallback;
-	mpcEvictionUserCallback = pcEvictionUserCallback;
+	mpcIndexTreeEvictionUserCallback = pcIndexTreeEvictionUserCallback;
+	mpcIndexedDataEvictionUserCallback = pcIndexedDataEvictionUserCallback;
 	mpcEvictionStrategy = pcEvictionStrategy;
 }
 
@@ -82,9 +82,9 @@ EIndexWriteThrough CValueIndexedDataConfig::GetWriteThrough(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTreeEvictionCallback* CValueIndexedDataConfig::GetIndexEvictionUserCallback(void)
+CIndexTreeEvictionCallback* CValueIndexedDataConfig::GetIndexTreeEvictionUserCallback(void)
 {
-	return mpcIndexEvictionUserCallback;
+	return mpcIndexTreeEvictionUserCallback;
 }
 
 
@@ -92,9 +92,9 @@ CIndexTreeEvictionCallback* CValueIndexedDataConfig::GetIndexEvictionUserCallbac
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexedDataEvictionCallback* CValueIndexedDataConfig::GetEvictionUserCallback(void)
+CIndexedDataEvictionCallback* CValueIndexedDataConfig::GetIndexedDataEvictionUserCallback(void)
 {
-	return mpcEvictionUserCallback;
+	return mpcIndexedDataEvictionUserCallback;
 }
 
 
