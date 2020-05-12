@@ -464,6 +464,8 @@ BOOL PrivateAssertLongLongInt(long long int iExpected, long long int iActual, in
 	{
 		ToLongLongIntString(iExpected, szExpected);
 		ToLongLongIntString(iActual, szActual);
+		strcat(szExpected, "LL");
+		strcat(szActual, "LL");
 		return Fail((const char*)szExpected, (const char*)szActual, iLine, szFile);
 	}
 	else
@@ -487,6 +489,8 @@ BOOL PrivateAssertLongHex(long long int iExpected, long long int iActual, int iL
 	{
 		ToLongLongIntHexString(iExpected, szExpected);
 		ToLongLongIntHexString(iActual, szActual);
+		strcat(szExpected, "LL");
+		strcat(szActual, "LL");
 		return Fail((const char*)szExpected, (const char*)szActual, iLine, szFile);
 	}
 	else
@@ -1058,7 +1062,7 @@ void ToCharString(char c, char* sz)
 //////////////////////////////////////////////////////////////////////////
 void ToLongLongIntString(long long int i, char* sz)
 {
-    IToA((long long int)i, sz, 10);
+    IToA(i, sz, 10);
 }
 
 

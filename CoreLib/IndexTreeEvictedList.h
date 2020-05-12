@@ -1,10 +1,10 @@
-#ifndef __EVICTED_LIST__
-#define __EVICTED_LIST__
+#ifndef __INDEX_TREE_EVICTED_LIST_H__
+#define __INDEX_TREE_EVICTED_LIST_H__
 #include "BaseLib/ListVariable.h"
 #include "IndexTreeEvictionCallback.h"
 
 
-class CEvictedList : public CIndexTreeEvictionCallback
+class CIndexTreeEvictedList : public CIndexTreeEvictionCallback
 {
 private:
 	CListVariable	mcKeys;
@@ -23,5 +23,5 @@ public:
 };
 
 
-#endif // __EVICTED_LIST__
+#endif // __INDEX_TREE_EVICTED_LIST_H__
 
