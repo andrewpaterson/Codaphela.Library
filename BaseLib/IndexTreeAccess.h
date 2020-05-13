@@ -18,26 +18,28 @@ public:
 	virtual BOOL	Flush(void)= 0;
 
 			BOOL	PutLongPtr(int64 lliKey, void* pvPointer);
+			BOOL	PutLongInt(int64 lliKey, int iData);
 			BOOL	PutLongString(int64 lliKey, char* pszData);
 			BOOL	PutLongData(int64 lliKey, void* pvData, int iDataSize);
 			BOOL	PutStringPtr(char* pszKey, void* pvPointer);
 			BOOL	PutStringData(char* pszKey, void* pvData, int iDataSize);
-			BOOL	PutStringInt(char* pszKey, int iIndex);
-			BOOL	PutStringLong(char* pszKey, int64 lliIndex);
+			BOOL	PutStringInt(char* pszKey, int iData);
+			BOOL	PutStringLong(char* pszKey, int64 lliData);
 			BOOL	PutStringString(char* pszKey, char* pszData);
 			BOOL	PutKeyData(void* pvKey, int iKeySize, void* pvData, int iDataSize);
 			BOOL	PutKeyString(void* pvKey, int iKeySize, char* pszData);
 
 			char*	GetLongString(int64 lliKey, char* pszDest);
+			int		GetLongInt(int64 lliKey, int iNUllValue = -1);
 			BOOL	GetLongData(int64 lliKey, void* pvData, int* piDataSize = NULL);
 			BOOL	GetStringData(char* pszKey, void* pvData, int* piDataSize = NULL);
 			char*	GetStringString(char* pszKey, char* pszDest);
 			CChars	GetStringString(char* pszKey);
-			int		GetStringInt(char* pszKey);
-			int64	GetStringLong(char* pszKey);
+			int		GetStringInt(char* pszKey, int iNUllValue = -1);
+			int64	GetStringLong(char* pszKey, int64 iNUllValue = -1LL);
 			void*	GetStringPtr(char* pszKey);
-			BOOL	GetKeyData(void* pvKey, int iKeySize, void* pvData, int* piDataSize);
 			char*	GetKeyString(void* pvKey, int iKeySize, char* pszDest);
+			BOOL	GetKeyData(void* pvKey, int iKeySize, void* pvData, int* piDataSize);
 
 			BOOL	HasLong(int64 lliKey);
 			BOOL	HasString(char* pszKey);

@@ -472,7 +472,7 @@ CIndexTreeNodeFile* CIndexTreeNodeFile::GetValidMemoryNode(int iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CIndexTreeNodeFile::CalculateNodeSize(void)
+size_t CIndexTreeNodeFile::CalculateNodeSize(void)
 {
 	return (2 * sizeof(int)) + sizeof(unsigned short) + (4 * sizeof(unsigned char)) + (NumIndexes() * (sizeof(int) + sizeof(unsigned int)));
 }
@@ -482,7 +482,7 @@ int CIndexTreeNodeFile::CalculateNodeSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CIndexTreeNodeFile::CalculateDataBufferSize(CIndexTreeFileCallback* pcCallback)
+size_t CIndexTreeNodeFile::CalculateDataBufferSize(CIndexTreeFileCallback* pcCallback)
 {
 	return pcCallback->IndexTreeDataSize(muiDataSize);
 }
@@ -492,7 +492,7 @@ int CIndexTreeNodeFile::CalculateDataBufferSize(CIndexTreeFileCallback* pcCallba
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CIndexTreeNodeFile::CalculateFileSize(CIndexTreeFileCallback* pcCallback)
+size_t CIndexTreeNodeFile::CalculateFileSize(CIndexTreeFileCallback* pcCallback)
 {
 	return CalculateNodeSize() + CalculateDataBufferSize(pcCallback);
 }
