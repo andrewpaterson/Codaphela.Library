@@ -298,6 +298,11 @@ CIndexTreeNodeMemory* CIndexTreeMemory::ReallocateNodeForIndex(CIndexTreeNodeMem
 	pcNode->Contain(uiIndex);
 
 	RemapChildParents(pcOldNode, pcNode);
+	if (pcOldNode != pcNode)
+	{
+		pcNode->SetChildsParent();
+	}
+
 	return pcNode;
 }
 
@@ -388,13 +393,9 @@ CIndexTreeNodeMemory* CIndexTreeMemory::SetOldWithCurrent(CIndexTreeNodeMemory* 
 	pcCurrent = pcParent->Get(c);
 	if (pcCurrent == NULL)
 	{
-		pcNew = AllocateNode(pcParent, c);
 		pcReallocedParent = ReallocateNodeForIndex(pcParent, c);
+		pcNew = AllocateNode(pcReallocedParent, c);
 		pcReallocedParent->Set(c, pcNew);
-		if (pcParent != pcReallocedParent)
-		{
-			pcReallocedParent->SetChildsParent();
-		}
 		return pcNew;
 	}
 	else
