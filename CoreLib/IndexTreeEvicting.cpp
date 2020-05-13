@@ -446,7 +446,7 @@ BOOL CIndexTreeEvicting::EvictNode(CIndexTreeNodeFile* pcNode)
 {
 	BOOL bEvict;
 
-	if (pcNode->HasObject())
+	if (pcNode->HasData())
 	{
 		bEvict = EvictNodeWithObject(pcNode);
 	}

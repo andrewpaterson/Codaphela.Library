@@ -239,7 +239,7 @@ void* CIndexTreeMemory::Put(void* pvKey, int iKeySize, void* pvData, int iDataSi
 		bExecute = LoopKey(&i, iKeySize);
 	}
 
-	if (!pcCurrent->HasObject())
+	if (!pcCurrent->HasData())
 	{
 		miSize++;
 	}
@@ -865,7 +865,7 @@ int CIndexTreeMemory::RecurseSize(CIndexTreeNodeMemory* pcNode)
 
 	if (pcNode != NULL)
 	{
-		if (pcNode->HasObject())
+		if (pcNode->HasData())
 		{
 			count++;
 		}
