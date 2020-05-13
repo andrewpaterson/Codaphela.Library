@@ -50,7 +50,7 @@ public:
 
 	unsigned short	GetDataSize(void);
 	void*			GetDataPtr(void);
-	BOOL			HasObject(void);
+	BOOL			HasData(void);
 
 	void*			GetNodesMemory(void);
 

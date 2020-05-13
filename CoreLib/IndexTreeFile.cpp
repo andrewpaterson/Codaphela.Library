@@ -1321,7 +1321,7 @@ BOOL CIndexTreeFile::EvictNode(CIndexTreeNodeFile* pcCurrent)
 
 		pcNode = pcParent;
 
-		if (pcNode->HasObject())
+		if (pcNode->HasData())
 		{
 			break;
 		}
@@ -2097,7 +2097,7 @@ BOOL CIndexTreeFile::RecurseValidateKeys(CIndexTreeRecursor* pcCursor, BOOL bRea
 	pcNode = (CIndexTreeNodeFile*)pcCursor->GetNode();
 	if (pcNode != NULL)
 	{
-		if (pcNode->HasObject())
+		if (pcNode->HasData())
 		{
 			pcKey = (char*)cStack.Init();
 			pcCursor->GetKey(pcKey, &iKeySize);
@@ -2149,7 +2149,7 @@ int CIndexTreeFile::RecurseNumElements(CIndexTreeNodeFile* pcNode)
 
 	if (pcNode != NULL)
 	{
-		if (pcNode->HasObject() && !pcNode->IsDeleted())
+		if (pcNode->HasData() && !pcNode->IsDeleted())
 		{
 			count++;
 		}
@@ -2179,7 +2179,7 @@ int CIndexTreeFile::RecurseNumMemoryElements(CIndexTreeNodeFile* pcNode)
 
 	if (pcNode != NULL)
 	{
-		if (pcNode->HasObject() && !pcNode->IsDeleted())
+		if (pcNode->HasData() && !pcNode->IsDeleted())
 		{
 			count++;
 		}
@@ -3380,7 +3380,7 @@ void AppendIndexTreeFileNodeDescrition(CChars* psz, CIndexTreeNodeFile* pcCurren
 			psz->Append(uIndexFromParent);
 		}
 
-		bHasObject = pcCurrent->HasObject();
+		bHasObject = pcCurrent->HasData();
 		if (bHasObject)
 		{
 			psz->Append("(X)");
@@ -3633,7 +3633,7 @@ void CIndexTreeFile::RecurseDump(CChars* pszDest, CIndexTreeRecursor* pcCursor, 
 	pcNode = (CIndexTreeNodeFile*)pcCursor->GetNode();
 	if (pcNode != NULL)
 	{
-		if (pcNode->HasObject())
+		if (pcNode->HasData())
 		{
 			iKeySize = GetNodeKeySize(pcNode);
 			pvKey = (unsigned char*)cStack.Init(iKeySize);

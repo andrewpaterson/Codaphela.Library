@@ -459,7 +459,7 @@ BOOL CIndexTreeNode::HasNodes(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeNode::HasObject(void)
+BOOL CIndexTreeNode::HasData(void)
 {
 	return muiDataSize != 0;
 }
