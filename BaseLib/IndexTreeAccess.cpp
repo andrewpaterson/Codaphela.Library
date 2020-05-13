@@ -114,6 +114,16 @@ BOOL CIndexTreeAccess::PutLongPtr(int64 lliKey, void* pvPointer)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeAccess::PutLongInt(int64 lliKey, int iData)
+{
+	return Put(&lliKey, sizeof(int64), &iData, sizeof(int));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeAccess::PutLongString(int64 lliKey, char* pszData)
 {
 	int iDataSize;
@@ -199,6 +209,36 @@ char* CIndexTreeAccess::GetLongString(int64 lliKey, char* pszDest)
 	else
 	{
 		return pszDest;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CIndexTreeAccess::GetLongInt(int64 lliKey, int iNUllValue)
+{
+	int				iKeySize;
+	BOOL			bResult;
+	int				i;
+	unsigned short	uiDataSize;
+
+	iKeySize = sizeof(int64);
+	uiDataSize = DataSize(&lliKey, iKeySize);
+	if (uiDataSize != sizeof(int))
+	{
+		return iNUllValue;
+	}
+
+	bResult = Get(&lliKey, iKeySize, &i, NULL);
+	if (bResult)
+	{
+		return i;
+	}
+	else
+	{
+		return iNUllValue;
 	}
 }
 
@@ -356,7 +396,7 @@ CChars CIndexTreeAccess::GetStringString(char* pszKey)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CIndexTreeAccess::GetStringInt(char* pszKey)
+int CIndexTreeAccess::GetStringInt(char* pszKey, int iNUllValue)
 {
 	int				iKeySize;
 	BOOL			bResult;
@@ -365,18 +405,25 @@ int CIndexTreeAccess::GetStringInt(char* pszKey)
 
 	if (StrEmpty(pszKey))
 	{
-		return FALSE;
+		return iNUllValue;
 	}
 
 	iKeySize = strlen(pszKey);
-
 	uiDataSize = DataSize(pszKey, iKeySize);
 	if (uiDataSize != sizeof(int))
 	{
-		return 0;
+		return iNUllValue;
 	}
+
 	bResult = Get(pszKey, iKeySize, &i, NULL);
-	return i;
+	if (bResult)
+	{
+		return i;
+	}
+	else
+	{
+		return iNUllValue;
+	}
 }
 
 
@@ -384,7 +431,7 @@ int CIndexTreeAccess::GetStringInt(char* pszKey)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int64 CIndexTreeAccess::GetStringLong(char* pszKey)
+int64 CIndexTreeAccess::GetStringLong(char* pszKey, int64 iNUllValue)
 {
 	int				iKeySize;
 	BOOL			bResult;
@@ -393,18 +440,24 @@ int64 CIndexTreeAccess::GetStringLong(char* pszKey)
 
 	if (StrEmpty(pszKey))
 	{
-		return 0;
+		return iNUllValue;
 	}
 
 	iKeySize = strlen(pszKey);
-
 	uiDataSize = DataSize(pszKey, iKeySize);
 	if (uiDataSize != sizeof(int64))
 	{
-		return 0;
+		return iNUllValue;
 	}
 	bResult = Get(pszKey, iKeySize, &lli, NULL);
-	return lli;
+	if (bResult)
+	{
+		return lli;
+	}
+	else
+	{
+		return iNUllValue;
+	}
 }
 
 

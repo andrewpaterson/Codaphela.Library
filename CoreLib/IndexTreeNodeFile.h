@@ -47,9 +47,9 @@ public:
 
 	void					SetChildrensParent(void);
 
-	int						CalculateNodeSize(void);
-	int						CalculateDataBufferSize(CIndexTreeFileCallback* pcCallback);
-	int						CalculateFileSize(CIndexTreeFileCallback* pcCallback);
+	size_t					CalculateNodeSize(void);
+	size_t					CalculateDataBufferSize(CIndexTreeFileCallback* pcCallback);
+	size_t					CalculateFileSize(CIndexTreeFileCallback* pcCallback);
 	int						WriteToBuffer(void* pvBuffer, int iBufferSize, CIndexTreeFileCallback* pcCallback);
 
 	BOOL					HasFile(void);
