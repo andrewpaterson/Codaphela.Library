@@ -215,7 +215,6 @@ unsigned char CIndexTreeNodeMemory::FindIndex(CIndexTreeNodeMemory* pcChild)
 void CIndexTreeNodeMemory::Contain(unsigned char uiIndex)
 {
 	//Contain assumes that the memory this node resides in has already been sized large enough.
-
 	if (!HasNodes())
 	{
 		SetNodesEmpty(FALSE);
