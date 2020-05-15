@@ -290,7 +290,7 @@ void* CDataMemory::Grow(void* pvInitial, unsigned int uiSize)
 	CFreeList*				pcList;
 	SMemoryFreeListParams*	psParams;
 	void*					pvNew;
-	SLLANode*				psNode;
+	SLLAlignedNode*			psNode;
 
 	psAlloc = DATA_MEMORY_GET_ALLOCATION(pvInitial);
 	if (psAlloc->uiSize <= mpcFreeListParams->GetMaxFreeListElementSize())
@@ -312,7 +312,7 @@ void* CDataMemory::Grow(void* pvInitial, unsigned int uiSize)
 	}
 	else
 	{
-		psNode = (SLLANode*)RemapSinglePointer(psAlloc, -((int)sizeof(SLLANode)));
+		psNode = (SLLAlignedNode*)RemapSinglePointer(psAlloc, -((int)sizeof(SLLAlignedNode)));
 		if (uiSize <= mpcFreeListParams->GetMaxFreeListElementSize())
 		{
 			pvNew = Add(uiSize);

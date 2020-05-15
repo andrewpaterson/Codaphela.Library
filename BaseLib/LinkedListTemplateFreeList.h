@@ -80,7 +80,7 @@ template <class M>
 void CLinkedListTemplateFreeList<M>::Init(void)
 {
 	mcFreeList.Init(8, sizeof(M));
-	mcFreeList.SetAdditionalSize(sizeof(SLLNode));
+	mcFreeList.SetAdditionalSize(sizeof(SLLBlockNode));
 	CLinkedListTemplate<M>::Init();
 }
 
@@ -93,7 +93,7 @@ template <class M>
 void CLinkedListTemplateFreeList<M>::Init(int iChunkSize)
 {
 	mcFreeList.Init(iChunkSize, sizeof(M));
-	mcFreeList.SetAdditionalSize(sizeof(SLLNode));
+	mcFreeList.SetAdditionalSize(sizeof(SLLBlockNode));
 	CLinkedListTemplate<M>::Init();
 }
 

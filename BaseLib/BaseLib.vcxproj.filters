@@ -19,9 +19,6 @@
     <Filter Include="Source\Data\Array\Tree">
       <UniqueIdentifier>{8e1f12d3-fcd6-46c9-9ce9-aad10fa666ac}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Data\LinkList">
-      <UniqueIdentifier>{fa3dfb29-19bd-41e1-8e9e-400f402430f7}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source\Data\Tree">
       <UniqueIdentifier>{4cd9ae6e-01e1-4483-a044-dd7486b0ac0b}</UniqueIdentifier>
     </Filter>
@@ -216,6 +213,9 @@
     </Filter>
     <Filter Include="Source\Data\Index\Access">
       <UniqueIdentifier>{4b512cee-ea10-4e58-ae83-fb564f68aefb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\LinkedList">
+      <UniqueIdentifier>{fa3dfb29-19bd-41e1-8e9e-400f402430f7}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -583,16 +583,16 @@
       <Filter>Source\Data\Array\Basic</Filter>
     </ClInclude>
     <ClInclude Include="LinkedListBlock.h">
-      <Filter>Source\Data\LinkList</Filter>
+      <Filter>Source\Data\LinkedList</Filter>
     </ClInclude>
     <ClInclude Include="LinkedListTemplate.h">
-      <Filter>Source\Data\LinkList</Filter>
+      <Filter>Source\Data\LinkedList</Filter>
     </ClInclude>
     <ClInclude Include="LinkedListBlockAligned.h">
-      <Filter>Source\Data\LinkList</Filter>
+      <Filter>Source\Data\LinkedList</Filter>
     </ClInclude>
     <ClInclude Include="LinkedListTemplateFreeList.h">
-      <Filter>Source\Data\LinkList</Filter>
+      <Filter>Source\Data\LinkedList</Filter>
     </ClInclude>
     <ClInclude Include="Mallocator.h">
       <Filter>Source\Memory\Allocator</Filter>
@@ -788,6 +788,9 @@
     </ClInclude>
     <ClInclude Include="FilePathBuilder.h">
       <Filter>Source\File\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="LinkedList.h">
+      <Filter>Source\Data\LinkedList</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -1074,10 +1077,10 @@
       <Filter>Source\Data\Array\Basic</Filter>
     </ClCompile>
     <ClCompile Include="LinkedListBlock.cpp">
-      <Filter>Source\Data\LinkList</Filter>
+      <Filter>Source\Data\LinkedList</Filter>
     </ClCompile>
     <ClCompile Include="LinkedListBlockAligned.cpp">
-      <Filter>Source\Data\LinkList</Filter>
+      <Filter>Source\Data\LinkedList</Filter>
     </ClCompile>
     <ClCompile Include="SystemAllocator.cpp">
       <Filter>Source\Memory\Allocator</Filter>
@@ -1240,6 +1243,9 @@
     </ClCompile>
     <ClCompile Include="FilePathBuilder.cpp">
       <Filter>Source\File\Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="LinkedList.cpp">
+      <Filter>Source\Data\LinkedList</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

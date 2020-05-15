@@ -20,19 +20,16 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __TEMPLATE_BASE_H__
-#define __TEMPLATE_BASE_H__
-#include "Define.h"
+#ifndef __LINKED_LIST_BLOCK_H__
+#define __LINKED_LIST_BLOCK_H__
 #include "DataMacro.h"
 #include "FileIO.h"
 #include "Mallocator.h"
+#include "LinkedList.h"
 
 
-//For the LinkedList.
-struct SLLNode
+struct SLLBlockNode : public SLLNode
 {
-	SLLNode*		psNext;
-	SLLNode*		psPrev;
 	unsigned int	uiSize;
 };
 
@@ -48,8 +45,7 @@ struct SLinkedListBlockDesc
 class CLinkedListBlock
 {
 protected:
-	SLLNode*		mpsHead;
-	SLLNode*		mpsTail;
+	CLinkedList		mcList;
 	CMallocator*	mpcMalloc;
 
 public:
@@ -76,9 +72,8 @@ public:
 	void	InsertDetachedBeforeHead(void* psNode);
 	void	InsertDetachedBeforeNode(void* psData, void* psPos);
 	void	InsertDetachedAfterNode(void* psData, void* psPos);
-	void	InsertDetachedIntoSorted(int(*)(const void*, const void*), void* psNode);
 
-	void	Detach(SLLNode* psNodeHeader);
+	void	Detach(SLLBlockNode* psNodeHeader);
 	void	Detach(void* pvData);
 
 	void	FreeDetached(void* pvData);
@@ -92,7 +87,8 @@ public:
 	BOOL	Write(CFileWriter* pcFileWriter);
 	BOOL	Read(CFileReader* pcFileReader);
 
-	void	BubbleSort(int(*)(const void*, const void*));
+	void	BubbleSort(int(*Func)(const void*, const void*));
+	void	InsertDetachedIntoSorted(int(*)(const void*, const void*), void* pvData);
 
 protected:	
 	void*			Malloc(size_t tSize);
@@ -101,6 +97,8 @@ protected:
 
 	void			Swap(void* psData1, void* psData2);
 	unsigned int	GetNodeSize(void* psData);
+	void*			NodeGetData(SLLNode* psNode);
+	SLLBlockNode*	DataGetNode(void* pvData);
 
 	BOOL			WriteAllocatorAndHeader(CFileWriter* pcFileWriter);
 	BOOL			ReadAllocatorAndHeader(CFileReader* pcFileReader, SLinkedListBlockDesc* psDesc);
@@ -109,5 +107,5 @@ protected:
 };
 
 
-#endif // __TEMPLATE_BASE_H__
+#endif // __LINKED_LIST_BLOCK_H__
 
