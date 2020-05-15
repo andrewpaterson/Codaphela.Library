@@ -442,7 +442,7 @@ void CLinkedList::InsertIntoSorted(int(*Func)(const void*, const void*), SLLNode
 		iResult = Func(pvNext, pvCurrent);
 		if (iResult < 0)
 		{
-			InsertBeforeNode(psNode, psCurrent);
+			InsertBeforeNode(psCurrent, psNode);
 			break;
 		}
 		psCurrent = GetNext(psCurrent);
