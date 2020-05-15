@@ -110,6 +110,7 @@
     <ClInclude Include="IndexKeyReverse.h" />
     <ClInclude Include="IndexTreeAccess.h" />
     <ClInclude Include="IndexTreeMemoryAccess.h" />
+    <ClInclude Include="LinkedList.h" />
     <ClInclude Include="ListCharsMinimal.h" />
     <ClInclude Include="Constructors.h" />
     <ClInclude Include="DataMacro.h" />
@@ -324,6 +325,7 @@
     <ClCompile Include="IndexTreeNode.cpp" />
     <ClCompile Include="IndexTreeNodeMemory.cpp" />
     <ClCompile Include="IndexTreeRecursor.cpp" />
+    <ClCompile Include="LinkedList.cpp" />
     <ClCompile Include="LinkedListBlock.cpp" />
     <ClCompile Include="ListBlock.cpp" />
     <ClCompile Include="ListCharsMinimal.cpp" />

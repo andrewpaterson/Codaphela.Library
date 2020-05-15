@@ -68,6 +68,8 @@ int		GetHighNybble(char c);
 int		GetLowNybble(char c);
 int 	CompareInt(const void* arg1, const void* arg2);
 int 	CompareLong(const void* arg1, const void* arg2);
+int		CompareIntReverse(const void* arg1, const void* arg2);
+int		CompareLongReverse(const void* arg1, const void* arg2);
 char 	GetCrumb(int iCrumb, void* pvArray);  //return 11, 10, 01 or 00 in char.
 char 	GetNybble(int iNybble, void* pvArray);
 void 	CopyBits(void* pvDest, int iDestOffset, void* pvSource, int iSourceOffset, int iNumBits, int bClear);  //Setting clear will make all unused bits zero.

@@ -36,36 +36,36 @@ struct SAlignedData
 
 
 //Remember there is still space above this node which pvAlloc points to.
-struct SLLANode
+struct SLLAlignedNode
 {
 	SAlignedData	sAligned;
-	SLLNode			sDNode;
+	SLLBlockNode	sDNode;
 };
 
 
 class CLinkedListBlockAligned : public CLinkedListBlock
 {
 public:
-	void		Kill(void);
-	void*		Add(int iDataSize, int iAlignment);
-	void*		InsertAfterTail(unsigned int iSize, int iAlignment, int iOffset);
-	void*		InsertBeforeHead(int iDataSize, int iAlignment, int iOffset);
-	void*		InsertBeforeNode(void* psPos, int iDataSize, int iAlignment, int iOffset);
-	void*		InsertAfterNode(void* psPos, int iDataSize, int iAlignment, int iOffset); 
-	void*		AllocateDetached(int iDataSize, int iAlignment, int iOffset);
-	void		Remove(void* pvData);
-	BOOL		SafeRemove(void* pvData);
-	void		FreeDetached(void* psNodeData);
-	void		FreeNode(SLLANode* psNode);
-	void*		Grow(void* pvData, unsigned int uiNewSize);
+	void			Kill(void);
+	void*			Add(int iDataSize, int iAlignment);
+	void*			InsertAfterTail(unsigned int iSize, int iAlignment, int iOffset);
+	void*			InsertBeforeHead(int iDataSize, int iAlignment, int iOffset);
+	void*			InsertBeforeNode(void* psPos, int iDataSize, int iAlignment, int iOffset);
+	void*			InsertAfterNode(void* psPos, int iDataSize, int iAlignment, int iOffset); 
+	void*			AllocateDetached(int iDataSize, int iAlignment, int iOffset);
+	void			Remove(void* pvData);
+	BOOL			SafeRemove(void* pvData);
+	void			FreeDetached(void* psNodeData);
+	void			FreeNode(SLLAlignedNode* psNode);
+	void*			Grow(void* pvData, unsigned int uiNewSize);
 
-	SLLANode*	CalculateActualStart(void* pvMem, int iAlignment, int iOffset);
-	SLLANode*	GetNode(void* pvMem);
+	SLLAlignedNode*	CalculateActualStart(void* pvMem, int iAlignment, int iOffset);
+	SLLAlignedNode*	GetNode(void* pvMem);
 
-	int			ByteSize(void);
+	int				ByteSize(void);
 
-protected:
-	int			GetNodeSize(void* pvMem);
+protected:	
+	int				GetNodeSize(void* pvMem);
 };
 
 

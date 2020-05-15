@@ -30,21 +30,20 @@ Microsoft Windows is Copyright Microsoft Corporation
 //////////////////////////////////////////////////////////////////////////
 void CLinkedListBlockAligned::Kill(void)
 {
-	SLLANode*	psNode;
-	SLLANode*	psNode2;
-	void*		pvData;
+	SLLAlignedNode*		psNode;
+	SLLAlignedNode*		psNode2;
+	void*				pvData;
 
-	pvData = HeaderGetData<SLLNode, void>(mpsHead);  //Yes this is the correct macro.
-	psNode = DataGetHeader<SLLANode, void>(pvData);
+	pvData = HeaderGetData<SLLBlockNode, void>((SLLBlockNode*)mcList.GetHead());  //Yes this is the correct macro.
+	psNode = DataGetHeader<SLLAlignedNode, void>(pvData);
 	while (psNode)
 	{
-		pvData = HeaderGetData<SLLNode, void>(psNode->sDNode.psNext);  //Yes this is the correct macro.
-		psNode2 = DataGetHeader<SLLANode, void>(pvData);
+		pvData = HeaderGetData<SLLBlockNode, void>((SLLBlockNode*)psNode->sDNode.psNext);  //Yes this is the correct macro.
+		psNode2 = DataGetHeader<SLLAlignedNode, void>(pvData);
 		FreeNode(psNode);
 		psNode = psNode2;
 	}
-	mpsHead = NULL;
-	mpsTail = NULL;
+	mcList.Kill();
 }
 
 
@@ -52,7 +51,7 @@ void CLinkedListBlockAligned::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CLinkedListBlockAligned::FreeNode(SLLANode* psNode)
+void CLinkedListBlockAligned::FreeNode(SLLAlignedNode* psNode)
 {
 	Free(psNode->sAligned.pvAlloc);
 }
@@ -64,7 +63,7 @@ void CLinkedListBlockAligned::FreeNode(SLLANode* psNode)
 //////////////////////////////////////////////////////////////////////////
 void* CLinkedListBlockAligned::InsertAfterTail(unsigned int iSize, int iAlignment, int iOffset)
 {
-	void*			pvData;
+	void*	pvData;
 
 	pvData = AllocateDetached(iSize, iAlignment, iOffset);
 	InsertDetachedAfterTail(pvData);
@@ -78,7 +77,7 @@ void* CLinkedListBlockAligned::InsertAfterTail(unsigned int iSize, int iAlignmen
 //////////////////////////////////////////////////////////////////////////
 void* CLinkedListBlockAligned::InsertBeforeHead(int iSize, int iAlignment, int iOffset)
 {
-	void*			pvData;
+	void*	pvData;
 
 	pvData = AllocateDetached(iSize, iAlignment, iOffset);
 	InsertDetachedBeforeHead(pvData);
@@ -92,7 +91,7 @@ void* CLinkedListBlockAligned::InsertBeforeHead(int iSize, int iAlignment, int i
 //////////////////////////////////////////////////////////////////////////
 void* CLinkedListBlockAligned::InsertBeforeNode(void* psPos, int iSize, int iAlignment, int iOffset)
 {
-	void*			pvData;
+	void*	pvData;
 
 	pvData = AllocateDetached(iSize, iAlignment, iOffset);
 	InsertDetachedBeforeNode(pvData, psPos);
@@ -106,7 +105,7 @@ void* CLinkedListBlockAligned::InsertBeforeNode(void* psPos, int iSize, int iAli
 //////////////////////////////////////////////////////////////////////////
 void* CLinkedListBlockAligned::InsertAfterNode(void* psPos, int iSize, int iAlignment, int iOffset)
 {
-	void*			pvData;
+	void*	pvData;
 
 	pvData = AllocateDetached(iSize, iAlignment, iOffset);
 	InsertDetachedAfterNode(pvData, psPos);
@@ -120,12 +119,12 @@ void* CLinkedListBlockAligned::InsertAfterNode(void* psPos, int iSize, int iAlig
 //////////////////////////////////////////////////////////////////////////
 void* CLinkedListBlockAligned::AllocateDetached(int iDataSize, int iAlignment, int iOffset)
 {
-	void*			pvMem;
-	int				iTotalSize;
-	SLLANode*		psNode;
+	void*				pvMem;
+	int					iTotalSize;
+	SLLAlignedNode*		psNode;
 
-	iOffset = ::CalculateOffset(iOffset - sizeof(SLLANode), iAlignment);
-	iTotalSize = iDataSize + sizeof(SLLANode) + iAlignment - 1;
+	iOffset = ::CalculateOffset(iOffset - sizeof(SLLAlignedNode), iAlignment);
+	iTotalSize = iDataSize + sizeof(SLLAlignedNode) + iAlignment - 1;
 
 	pvMem = Malloc(iTotalSize);
 	if (pvMem != NULL)
@@ -136,7 +135,7 @@ void* CLinkedListBlockAligned::AllocateDetached(int iDataSize, int iAlignment, i
 		psNode->sAligned.iSize = iDataSize;
 		psNode->sAligned.pvAlloc = pvMem;
 
-		return HeaderGetData<SLLANode, void>(psNode);
+		return HeaderGetData<SLLAlignedNode, void>(psNode);
 	}
 	else
 	{
@@ -183,10 +182,10 @@ int CLinkedListBlockAligned::ByteSize(void)
 //////////////////////////////////////////////////////////////////////////
 int CLinkedListBlockAligned::GetNodeSize(void* pvMem)
 {
-	SLLANode*		psNodeHeader;
+	SLLAlignedNode*		psNodeHeader;
 
-	psNodeHeader = DataGetHeader<SLLANode, void>(pvMem);
-	return psNodeHeader->sAligned.iSize + sizeof(SLLANode) + psNodeHeader->sAligned.iAlignment-1;;
+	psNodeHeader = DataGetHeader<SLLAlignedNode, void>(pvMem);
+	return psNodeHeader->sAligned.iSize + sizeof(SLLAlignedNode) + psNodeHeader->sAligned.iAlignment-1;;
 }
 
 
@@ -194,7 +193,7 @@ int CLinkedListBlockAligned::GetNodeSize(void* pvMem)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-SLLANode* CLinkedListBlockAligned::CalculateActualStart(void* pvMem, int iAlignment, int iOffset)
+SLLAlignedNode* CLinkedListBlockAligned::CalculateActualStart(void* pvMem, int iAlignment, int iOffset)
 {
 	size_t	iStart;
 	size_t	iByteDiff;
@@ -205,12 +204,12 @@ SLLANode* CLinkedListBlockAligned::CalculateActualStart(void* pvMem, int iAlignm
 	iByteDiff = iStart % iAlignment;
 	if (iByteDiff == 0)
 	{
-		return (SLLANode*)(size_t)(iStart + iOffset);
+		return (SLLAlignedNode*)(size_t)(iStart + iOffset);
 	}
 	else
 	{
 		iActualOffset = (((size_t)iAlignment - iByteDiff) + iOffset) % (size_t)iAlignment;
-		return (SLLANode*)(size_t)(iStart + iActualOffset);
+		return (SLLAlignedNode*)(size_t)(iStart + iActualOffset);
 	}
 }
 
@@ -219,9 +218,9 @@ SLLANode* CLinkedListBlockAligned::CalculateActualStart(void* pvMem, int iAlignm
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SLLANode* CLinkedListBlockAligned::GetNode(void* pvMem)
+SLLAlignedNode* CLinkedListBlockAligned::GetNode(void* pvMem)
 {
-	return (SLLANode*)(size_t) ((unsigned int)(size_t) pvMem - sizeof(SLLANode));
+	return (SLLAlignedNode*)(size_t) ((unsigned int)(size_t) pvMem - sizeof(SLLAlignedNode));
 }
 
 
@@ -257,9 +256,9 @@ BOOL CLinkedListBlockAligned::SafeRemove(void* pvData)
 //////////////////////////////////////////////////////////////////////////
 void CLinkedListBlockAligned::FreeDetached(void* pvData)
 {
-	SLLANode*		psNodeHeader;
+	SLLAlignedNode*		psNodeHeader;
 
-	psNodeHeader = DataGetHeader<SLLANode, void>(pvData);
+	psNodeHeader = DataGetHeader<SLLAlignedNode, void>(pvData);
 	if (psNodeHeader)
 	{
 		FreeNode(psNodeHeader);
@@ -273,13 +272,13 @@ void CLinkedListBlockAligned::FreeDetached(void* pvData)
 //////////////////////////////////////////////////////////////////////////
 void* CLinkedListBlockAligned::Grow(void* pvData, unsigned int uiNewSize)
 {
-	SLLANode*		psNodeHeader;
-	void*			pvAllocatedEnd;
-	void*			pvObjectEnd;
-	void*			pvNew;
-	unsigned int	uiSize;
+	SLLAlignedNode*		psNodeHeader;
+	void*				pvAllocatedEnd;
+	void*				pvObjectEnd;
+	void*				pvNew;
+	unsigned int		uiSize;
 
-	psNodeHeader = DataGetHeader<SLLANode, void>(pvData);
+	psNodeHeader = DataGetHeader<SLLAlignedNode, void>(pvData);
 
 	if (uiNewSize == 0)
 	{
@@ -287,7 +286,7 @@ void* CLinkedListBlockAligned::Grow(void* pvData, unsigned int uiNewSize)
 		return NULL;
 	}
 
-	pvAllocatedEnd = (void*)(size_t) ((int)(size_t) psNodeHeader->sAligned.pvAlloc + sizeof(SLLANode) + psNodeHeader->sAligned.iSize + psNodeHeader->sAligned.iAlignment-1);
+	pvAllocatedEnd = (void*)(size_t) ((int)(size_t) psNodeHeader->sAligned.pvAlloc + sizeof(SLLAlignedNode) + psNodeHeader->sAligned.iSize + psNodeHeader->sAligned.iAlignment-1);
 	pvObjectEnd = (void*)(size_t) ((int)(size_t) pvData + uiNewSize);
 
 	if (pvAllocatedEnd >= pvObjectEnd)
