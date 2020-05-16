@@ -131,13 +131,13 @@ BOOL CMallocators::WriteMallocator(CFileWriter* pcFileWriter, CMallocator* pcMal
 
 	if (pcMallocator == NULL)
 	{
-		gcLogger.Error("Could not write NULL mallocator.");
+		gcLogger.Error2(__METHOD__, " Could not write NULL mallocator.", NULL);
 		return FALSE;
 	}
 
 	if (!pcFileWriter->WriteString(pcMallocator->GetName()))
 	{
-		gcLogger.Error("Could not write mallocator name.");
+		gcLogger.Error2(__METHOD__, " Could not write mallocator name [", pcMallocator->GetName(), "].", NULL);
 		return FALSE;
 	}
 
