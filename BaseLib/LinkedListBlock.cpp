@@ -39,19 +39,6 @@ void CLinkedListBlock::Kill(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CLinkedListBlock::Get(int iNum)
-{
-	SLLBlockNode* psNodeHeader;
-
-	psNodeHeader = (SLLBlockNode*)mcList.Get(iNum);
-	return HeaderGetData<SLLBlockNode, void>(psNodeHeader);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
 unsigned int CLinkedListBlock::GetNodeSize(void* pvData)
 {
 	SLLBlockNode*		psNodeHeader;
@@ -167,49 +154,12 @@ SLLBlockNode* CLinkedListBlock::DataGetNode(void* pvData)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CLinkedListBlock::BubbleSort(int(*Func)(const void*, const void*))
-{
-	mcList.BubbleSort(Func, sizeof(SLLBlockNode));
-}
-
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
 void CLinkedListBlock::InsertDetachedAfterTail(void* pvData)
 {
 	SLLBlockNode* psNode;
 
 	psNode = DataGetNode(pvData);
 	CBaseLinkedListBlock::InsertDetachedAfterTail(psNode);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void CLinkedListBlock::InsertDetachedIntoSorted(int(* Func)(const void*, const void*), void* pvData)
-{
-	SLLBlockNode*	psNode;
-
-	psNode = DataGetNode(pvData);
-	mcList.InsertIntoSorted(Func, psNode, sizeof(SLLBlockNode));
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-int CLinkedListBlock::IndexOf(void* pvData)
-{
-	SLLBlockNode*	psNode;
-
-	psNode = DataGetNode(pvData);
-	return mcList.IndexOf(psNode);
 }
 
 

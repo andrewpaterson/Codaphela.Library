@@ -34,26 +34,21 @@ struct SLLBlockNode : public SLLNode
 class CLinkedListBlock : public CBaseLinkedListBlock
 {
 public:
-	void	Init(void);
-	void	Init(CMallocator* pcMalloc);
-	void	Kill(void);
+	void			Init(void);
+	void			Init(CMallocator* pcMalloc);
+	void			Kill(void);
 
-	void*	InsertAfterTail(unsigned int uiDataSize);
-	void*	InsertBeforeHead(unsigned int uiDataSize);
-	void*	InsertBeforeNode(unsigned int uiDataSize, void* psPos);
-	void*	InsertAfterNode(unsigned int uiDataSize, void* psPos); 
+	void*			InsertAfterTail(unsigned int uiDataSize);
+	void*			InsertBeforeHead(unsigned int uiDataSize);
+	void*			InsertBeforeNode(unsigned int uiDataSize, void* psPos);
+	void*			InsertAfterNode(unsigned int uiDataSize, void* psPos); 
 
-	int		ByteSize(void);
+	int				ByteSize(void);
 
-	void*	Get(int iNum);
-	int		IndexOf(void* pvData);
+	BOOL			Write(CFileWriter* pcFileWriter);
+	BOOL			Read(CFileReader* pcFileReader);
 
-	BOOL	Write(CFileWriter* pcFileWriter);
-	BOOL	Read(CFileReader* pcFileReader);
-
-	void	BubbleSort(int(*Func)(const void*, const void*));
-	void	InsertDetachedIntoSorted(int(*)(const void*, const void*), void* pvData);
-	void	InsertDetachedAfterTail(void* pvData);
+	void			InsertDetachedAfterTail(void* pvData);
 
 protected:	
 	unsigned int	GetNodeSize(void* psData);
