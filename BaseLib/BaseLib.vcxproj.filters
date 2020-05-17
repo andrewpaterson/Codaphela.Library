@@ -792,6 +792,9 @@
     <ClInclude Include="LinkedList.h">
       <Filter>Source\Data\LinkedList</Filter>
     </ClInclude>
+    <ClInclude Include="BaseLinkedListBlock.h">
+      <Filter>Source\Data\LinkedList</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -1245,6 +1248,9 @@
       <Filter>Source\File\Utils</Filter>
     </ClCompile>
     <ClCompile Include="LinkedList.cpp">
+      <Filter>Source\Data\LinkedList</Filter>
+    </ClCompile>
+    <ClCompile Include="BaseLinkedListBlock.cpp">
       <Filter>Source\Data\LinkedList</Filter>
     </ClCompile>
   </ItemGroup>

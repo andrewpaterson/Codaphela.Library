@@ -63,11 +63,10 @@ void CLinkedListBlockAligned::FreeNode(SLLAlignedNode* psNode)
 //////////////////////////////////////////////////////////////////////////
 void* CLinkedListBlockAligned::InsertAfterTail(unsigned int iSize, int iAlignment, int iOffset)
 {
-	void*	pvData;
+	SLLAlignedNode*	psNode;
 
-	pvData = AllocateDetached(iSize, iAlignment, iOffset);
-	InsertDetachedAfterTail(pvData);
-	return pvData;
+	psNode = AllocateDetached(iSize, iAlignment, iOffset);
+	return CBaseLinkedListBlock::InsertDetachedAfterTail(&psNode->sDNode);
 }
 
 
@@ -77,11 +76,10 @@ void* CLinkedListBlockAligned::InsertAfterTail(unsigned int iSize, int iAlignmen
 //////////////////////////////////////////////////////////////////////////
 void* CLinkedListBlockAligned::InsertBeforeHead(int iSize, int iAlignment, int iOffset)
 {
-	void*	pvData;
+	SLLAlignedNode* psNode;
 
-	pvData = AllocateDetached(iSize, iAlignment, iOffset);
-	InsertDetachedBeforeHead(pvData);
-	return pvData;
+	psNode = AllocateDetached(iSize, iAlignment, iOffset);
+	return CBaseLinkedListBlock::InsertDetachedBeforeHead(&psNode->sDNode);
 }
 
 
@@ -91,11 +89,12 @@ void* CLinkedListBlockAligned::InsertBeforeHead(int iSize, int iAlignment, int i
 //////////////////////////////////////////////////////////////////////////
 void* CLinkedListBlockAligned::InsertBeforeNode(void* psPos, int iSize, int iAlignment, int iOffset)
 {
-	void*	pvData;
+	SLLAlignedNode* psNode;
+	SLLAlignedNode* psNodePos;
 
-	pvData = AllocateDetached(iSize, iAlignment, iOffset);
-	InsertDetachedBeforeNode(pvData, psPos);
-	return pvData;
+	psNode = AllocateDetached(iSize, iAlignment, iOffset);
+	psNodePos = DataGetHeader<SLLAlignedNode, void>(psPos);
+	return CBaseLinkedListBlock::InsertDetachedBeforeNode(&psNode->sDNode, &psNodePos->sDNode);
 }
 
 
@@ -105,11 +104,12 @@ void* CLinkedListBlockAligned::InsertBeforeNode(void* psPos, int iSize, int iAli
 //////////////////////////////////////////////////////////////////////////
 void* CLinkedListBlockAligned::InsertAfterNode(void* psPos, int iSize, int iAlignment, int iOffset)
 {
-	void*	pvData;
+	SLLAlignedNode* psNode;
+	SLLAlignedNode* psNodePos;
 
-	pvData = AllocateDetached(iSize, iAlignment, iOffset);
-	InsertDetachedAfterNode(pvData, psPos);
-	return pvData;
+	psNode = AllocateDetached(iSize, iAlignment, iOffset);
+	psNodePos = DataGetHeader<SLLAlignedNode, void>(psPos);
+	return CBaseLinkedListBlock::InsertDetachedAfterNode(&psNode->sDNode, &psNodePos->sDNode);
 }
 
 
@@ -117,7 +117,7 @@ void* CLinkedListBlockAligned::InsertAfterNode(void* psPos, int iSize, int iAlig
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CLinkedListBlockAligned::AllocateDetached(int iDataSize, int iAlignment, int iOffset)
+SLLAlignedNode* CLinkedListBlockAligned::AllocateDetached(int iDataSize, int iAlignment, int iOffset)
 {
 	void*				pvMem;
 	int					iTotalSize;
@@ -135,7 +135,7 @@ void* CLinkedListBlockAligned::AllocateDetached(int iDataSize, int iAlignment, i
 		psNode->sAligned.iSize = iDataSize;
 		psNode->sAligned.pvAlloc = pvMem;
 
-		return HeaderGetData<SLLAlignedNode, void>(psNode);
+		return psNode;
 	}
 	else
 	{
@@ -185,7 +185,7 @@ int CLinkedListBlockAligned::GetNodeSize(void* pvMem)
 	SLLAlignedNode*		psNodeHeader;
 
 	psNodeHeader = DataGetHeader<SLLAlignedNode, void>(pvMem);
-	return psNodeHeader->sAligned.iSize + sizeof(SLLAlignedNode) + psNodeHeader->sAligned.iAlignment-1;;
+	return psNodeHeader->sAligned.iSize + sizeof(SLLAlignedNode) + psNodeHeader->sAligned.iAlignment-1;
 }
 
 

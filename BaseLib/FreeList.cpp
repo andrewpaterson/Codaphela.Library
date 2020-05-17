@@ -356,6 +356,7 @@ SFNode* CFreeList::AllocateNew(void)
 	if (mpsUnused)
 	{
 		psNew = mpsUnused;
+		
 		mcList.InsertDetachedAfterTail(mpsUnused);
 		mpsUnused = NULL;
 		iChunkSize = psNew->uiChunkSize;

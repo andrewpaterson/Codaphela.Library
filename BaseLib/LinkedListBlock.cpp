@@ -9,36 +9,6 @@
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CLinkedListBlock::Malloc(size_t tSize)
-{
-	return mpcMalloc->Malloc(tSize);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void CLinkedListBlock::Free(void* pv)
-{
-	mpcMalloc->Free(pv);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void* CLinkedListBlock::Realloc(void* pv, size_t tSize)
-{
-	return mpcMalloc->Realloc(pv, tSize);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
 void CLinkedListBlock::Init(void)
 {
 	Init(&gcSystemAllocator);
@@ -51,8 +21,7 @@ void CLinkedListBlock::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CLinkedListBlock::Init(CMallocator* pcMalloc)
 {
-	mpcMalloc = pcMalloc;
-	mcList.Init();
+	CBaseLinkedListBlock::Init(pcMalloc, sizeof(SLLBlockNode));
 }
 
 
@@ -62,73 +31,7 @@ void CLinkedListBlock::Init(CMallocator* pcMalloc)
 //////////////////////////////////////////////////////////////////////////
 void CLinkedListBlock::Kill(void)
 {
-	SLLNode*	psNode;
-	SLLNode*	psNode2;
-
-	psNode = mcList.GetHead();
-	while (psNode)
-	{
-		psNode2 = mcList.GetNext(psNode);
-		Free(psNode);
-		psNode = psNode2;
-	}
-	mcList.Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void* CLinkedListBlock::GetHead(void)
-{
-	return NodeGetData(mcList.GetHead());
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void* CLinkedListBlock::GetTail(void)
-{
-	return NodeGetData(mcList.GetTail());
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void* CLinkedListBlock::GetNext(void* pvData)
-{
-	SLLBlockNode*	psNode;
-
-	psNode = DataGetNode(pvData);
-	psNode = (SLLBlockNode*)mcList.GetNext(psNode);
-	if (psNode)
-	{
-		return NodeGetData(psNode);
-	}
-	return NULL;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void* CLinkedListBlock::GetPrev(void* pvData)
-{
-	SLLBlockNode*		psNode;
-
-	psNode = DataGetNode(pvData);
-	psNode = (SLLBlockNode*)mcList.GetPrev(psNode);
-	if (psNode)
-	{
-		return NodeGetData(psNode);
-	}
-	return NULL;
+	CBaseLinkedListBlock::Kill();
 }
 
 
@@ -149,126 +52,12 @@ void* CLinkedListBlock::Get(int iNum)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CLinkedListBlock::InsertDetachedAfterTail(void* psData)
-{
-	SLLBlockNode*		psNode;
-
-	psNode = DataGetNode(psData);
-	mcList.InsertAfterTail(psNode);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void CLinkedListBlock::InsertDetachedBeforeHead(void* psData)
-{
-	SLLBlockNode*		psNode;
-
-	psNode = DataGetNode(psData);
-	mcList.InsertBeforeHead(psNode);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void CLinkedListBlock::InsertDetachedBeforeNode(void* psDataNode, void* psDataPos)
-{
-	SLLBlockNode*		psPos;
-	SLLBlockNode*		psNode;
-
-	psNode = DataGetNode(psDataNode);
-	psPos = DataGetNode(psDataPos);
-
-	mcList.InsertAfterNode(psPos, psNode);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void CLinkedListBlock::InsertDetachedAfterNode(void* psDataNode, void* psData)
-{
-	SLLBlockNode*		psPos;
-	SLLBlockNode*		psNode;
-
-	psNode = DataGetNode(psDataNode);
-	psPos = DataGetNode(psData);
-
-	mcList.InsertAfterNode(psPos, psNode);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void CLinkedListBlock::RemoveTail(void)
-{
-	Remove(GetTail());
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void CLinkedListBlock::Remove(void* psNodeData)
-{	
-	Detach(psNodeData);
-	FreeDetached(psNodeData);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-BOOL CLinkedListBlock::SafeRemove(void* pvData)
-{	
-	if (IsInList(pvData))
-	{
-		Remove(pvData);
-		return TRUE;
-	}
-	return FALSE;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
 unsigned int CLinkedListBlock::GetNodeSize(void* pvData)
 {
 	SLLBlockNode*		psNodeHeader;
 
-	psNodeHeader = DataGetNode(pvData);
-	return psNodeHeader->uiSize + sizeof(SLLBlockNode);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void* CLinkedListBlock::NodeGetData(SLLNode* psNode)
-{
-	return HeaderGetData<SLLBlockNode, void>((SLLBlockNode*)psNode);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-SLLBlockNode* CLinkedListBlock::DataGetNode(void* pvData)
-{
-	return DataGetHeader<SLLBlockNode, void>(pvData);
+	psNodeHeader = (SLLBlockNode*)DataGetNode(pvData);
+	return psNodeHeader->uiSize + muiNodeSize;
 }
 
 
@@ -300,11 +89,10 @@ int CLinkedListBlock::ByteSize(void)
 //////////////////////////////////////////////////////////////////////////
 void* CLinkedListBlock::InsertAfterTail(unsigned int uiDataSize)
 {
-	void*			pvData;
+	SLLBlockNode*	psNode;
 
-	pvData = AllocateDetached(uiDataSize);
-	InsertDetachedAfterTail(pvData);
-	return pvData;
+	psNode = AllocateDetached(uiDataSize);
+	return CBaseLinkedListBlock::InsertDetachedAfterTail(psNode);
 }
 
 
@@ -314,11 +102,10 @@ void* CLinkedListBlock::InsertAfterTail(unsigned int uiDataSize)
 //////////////////////////////////////////////////////////////////////////
 void* CLinkedListBlock::InsertBeforeHead(unsigned int uiDataSize)
 {
-	void*			pvData;
+	SLLBlockNode* psNode;
 
-	pvData = AllocateDetached(uiDataSize);
-	InsertDetachedBeforeHead(pvData);
-	return pvData;
+	psNode = AllocateDetached(uiDataSize);
+	return CBaseLinkedListBlock::InsertDetachedBeforeHead(psNode);
 }
 
 
@@ -328,11 +115,12 @@ void* CLinkedListBlock::InsertBeforeHead(unsigned int uiDataSize)
 //////////////////////////////////////////////////////////////////////////
 void* CLinkedListBlock::InsertBeforeNode(unsigned int uiDataSize, void* psPos)
 {
-	void*			pvData;
+	SLLBlockNode* psNode;
+	SLLBlockNode* psNodePos;
 
-	pvData = AllocateDetached(uiDataSize);
-	InsertDetachedBeforeNode(pvData, psPos);
-	return pvData;
+	psNodePos = DataGetNode(psPos);
+	psNode = AllocateDetached(uiDataSize);
+	return CBaseLinkedListBlock::InsertDetachedBeforeNode(psNode, psNodePos);
 }
 
 
@@ -342,11 +130,12 @@ void* CLinkedListBlock::InsertBeforeNode(unsigned int uiDataSize, void* psPos)
 //////////////////////////////////////////////////////////////////////////
 void* CLinkedListBlock::InsertAfterNode(unsigned int uiDataSize, void* psPos)
 {
-	void*			pvData;
+	SLLBlockNode* psNode;
+	SLLBlockNode* psNodePos;
 
-	pvData = AllocateDetached(uiDataSize);
-	InsertDetachedAfterNode(pvData, psPos);
-	return pvData;
+	psNodePos = DataGetNode(psPos);
+	psNode = AllocateDetached(uiDataSize);
+	return CBaseLinkedListBlock::InsertDetachedAfterNode(psNode, psNodePos);
 }
 
 
@@ -354,38 +143,13 @@ void* CLinkedListBlock::InsertAfterNode(unsigned int uiDataSize, void* psPos)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CLinkedListBlock::Detach(SLLBlockNode* psNodeHeader)
-{
-	mcList.Remove(psNodeHeader);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void CLinkedListBlock::Detach(void* psNodeData)
-{
-	SLLBlockNode*		psNodeHeader;
-
-	psNodeHeader = DataGetNode(psNodeData);
-	mcList.Remove(psNodeHeader);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void* CLinkedListBlock::AllocateDetached(unsigned int uiDataSize)
+SLLBlockNode* CLinkedListBlock::AllocateDetached(unsigned int uiDataSize)
 {
 	SLLBlockNode*		psNode;
 
-	psNode = (SLLBlockNode*)Malloc(sizeof(SLLBlockNode) + uiDataSize);
+	psNode = (SLLBlockNode*)CBaseLinkedListBlock::AllocateDetached(uiDataSize);
 	psNode->uiSize = uiDataSize;
-	psNode->psNext = NULL;
-	psNode->psPrev = NULL;
-	return NodeGetData(psNode);
+	return psNode;
 }
 
 
@@ -393,51 +157,9 @@ void* CLinkedListBlock::AllocateDetached(unsigned int uiDataSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CLinkedListBlock::FreeDetached(void* psNodeData)
+SLLBlockNode* CLinkedListBlock::DataGetNode(void* pvData)
 {
-	SLLBlockNode*		psNodeHeader;
-
-	psNodeHeader = DataGetNode(psNodeData);
-	if (psNodeHeader)
-	{
-		Free(psNodeHeader);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void CLinkedListBlock::Swap(void* psData1, void* psData2)
-{
-	SLLBlockNode*	psNode1;
-	SLLBlockNode*	psNode2;
-
-	psNode1 = DataGetNode(psData1);
-	psNode2 = DataGetNode(psData2);
-
-	mcList.Swap(psNode1, psNode2);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-int	CLinkedListBlock::NumElements(void)
-{
-	int		iCount;
-	void*	pvNode;
-
-	iCount = 0;
-	pvNode = GetHead();
-	while (pvNode)
-	{
-		iCount++;
-		pvNode = GetNext(pvNode);
-	}
-	return iCount;
+	return (SLLBlockNode*)CBaseLinkedListBlock::DataGetNode(pvData);
 }
 
 
@@ -451,6 +173,20 @@ void CLinkedListBlock::BubbleSort(int(*Func)(const void*, const void*))
 }
 
 
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CLinkedListBlock::InsertDetachedAfterTail(void* pvData)
+{
+	SLLBlockNode* psNode;
+
+	psNode = DataGetNode(pvData);
+	CBaseLinkedListBlock::InsertDetachedAfterTail(psNode);
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//
@@ -461,19 +197,6 @@ void CLinkedListBlock::InsertDetachedIntoSorted(int(* Func)(const void*, const v
 
 	psNode = DataGetNode(pvData);
 	mcList.InsertIntoSorted(Func, psNode, sizeof(SLLBlockNode));
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-BOOL CLinkedListBlock::IsInList(void* pvData)
-{
-	SLLBlockNode* psNode;
-
-	psNode = DataGetNode(pvData);
-	return mcList.IsInList(psNode);
 }
 
 
@@ -500,7 +223,7 @@ BOOL CLinkedListBlock::WriteHeader(CFileWriter* pcFileWriter)
 	int						iNumElements;
 
 	iNumElements = NumElements();
-	sHeader.Init(iNumElements);
+	sHeader.Init(iNumElements, muiNodeSize);
 
 	if (!pcFileWriter->WriteData(&sHeader, sizeof(SLinkedListBlockDesc)))
 	{
@@ -571,15 +294,17 @@ BOOL CLinkedListBlock::Write(CFileWriter* pcFileWriter)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CLinkedListBlock::ReadHeader(CFileReader* pcFileReader, CMallocator* pcMalloc, SLinkedListBlockDesc* psDesc)
+BOOL CLinkedListBlock::ReadHeader(CFileReader* pcFileReader, CMallocator* pcMalloc, int* piNumElements)
 {
-	if (!pcFileReader->ReadData(psDesc, sizeof(SLinkedListBlockDesc)))
+	SLinkedListBlockDesc	sDesc;
+
+	if (!pcFileReader->ReadData(&sDesc, sizeof(SLinkedListBlockDesc)))
 	{
 		return FALSE;
 	}
 
-	mcList.Init();
-	mpcMalloc = pcMalloc;
+	CBaseLinkedListBlock::Init(pcMalloc, sDesc.uiNodeSize);
+	*piNumElements = sDesc.iNumElements;
 	return TRUE;
 }
 
@@ -588,7 +313,7 @@ BOOL CLinkedListBlock::ReadHeader(CFileReader* pcFileReader, CMallocator* pcMall
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CLinkedListBlock::ReadAllocatorAndHeader(CFileReader* pcFileReader, SLinkedListBlockDesc* psDesc)
+BOOL CLinkedListBlock::ReadAllocatorAndHeader(CFileReader* pcFileReader, int* piNumElements)
 {
 	BOOL			bResult;
 	CMallocator*	pcMalloc;
@@ -599,7 +324,7 @@ BOOL CLinkedListBlock::ReadAllocatorAndHeader(CFileReader* pcFileReader, SLinked
 		return FALSE;
 	}
 
-	bResult = ReadHeader(pcFileReader, pcMalloc, psDesc);
+	bResult = ReadHeader(pcFileReader, pcMalloc, piNumElements);
 	if (!bResult)
 	{
 		return FALSE;
@@ -619,15 +344,13 @@ BOOL CLinkedListBlock::Read(CFileReader* pcFileReader)
 	void*					pvData;
 	int						iSize;
 	BOOL					bResult;
-	SLinkedListBlockDesc	sDesc;
 
-	bResult = ReadAllocatorAndHeader(pcFileReader, &sDesc);
+	bResult = ReadAllocatorAndHeader(pcFileReader, &iNumElements);
 	if (!bResult)
 	{
 		return FALSE;
 	}
 
-	iNumElements = sDesc.iNumElements;
 	for (i = 0; i < iNumElements; i++)
 	{
 		if (!pcFileReader->ReadInt(&iSize)) 
@@ -642,15 +365,5 @@ BOOL CLinkedListBlock::Read(CFileReader* pcFileReader)
 		}
 	}
 	return TRUE;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void SLinkedListBlockDesc::Init(int iNumElements)
-{
-	this->iNumElements = iNumElements;
 }
 

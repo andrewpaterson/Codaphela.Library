@@ -100,6 +100,7 @@
     <ClInclude Include="ArraySizer.h" />
     <ClInclude Include="ArrayVoidPtr.h" />
     <ClInclude Include="BaseFileNode.h" />
+    <ClInclude Include="BaseLinkedListBlock.h" />
     <ClInclude Include="BaseMemory.h" />
     <ClInclude Include="ChunkFileFile.h" />
     <ClInclude Include="ChunkFileHeader.h" />
@@ -300,6 +301,7 @@
     <ClCompile Include="ArraySizer.cpp" />
     <ClCompile Include="ArrayVoidPtr.cpp" />
     <ClCompile Include="BaseFileNode.cpp" />
+    <ClCompile Include="BaseLinkedListBlock.cpp" />
     <ClCompile Include="BaseMemory.cpp" />
     <ClCompile Include="ChunkFileFile.cpp" />
     <ClCompile Include="ChunkFileHeader.cpp" />

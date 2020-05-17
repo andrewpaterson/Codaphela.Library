@@ -52,7 +52,7 @@ public:
 	void*			InsertBeforeHead(int iDataSize, int iAlignment, int iOffset);
 	void*			InsertBeforeNode(void* psPos, int iDataSize, int iAlignment, int iOffset);
 	void*			InsertAfterNode(void* psPos, int iDataSize, int iAlignment, int iOffset); 
-	void*			AllocateDetached(int iDataSize, int iAlignment, int iOffset);
+	SLLAlignedNode*	AllocateDetached(int iDataSize, int iAlignment, int iOffset);
 	void			Remove(void* pvData);
 	BOOL			SafeRemove(void* pvData);
 	void			FreeDetached(void* psNodeData);
