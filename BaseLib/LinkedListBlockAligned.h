@@ -49,13 +49,14 @@ struct SAlignedDataDesc
 struct SLLAlignedNode
 {
 	SAlignedData	sAligned;
-	SLLBlockNode	sDNode;
+	SLLNode			sNode;
 };
 
 
-class CLinkedListBlockAligned : public CLinkedListBlock
+class CLinkedListBlockAligned : public CBaseLinkedListBlock
 {
 public:
+	void			Init(void);
 	void			Kill(void);
 	void*			Add(unsigned int uiSize, int iAlignment);
 	void*			InsertAfterTail(unsigned int iSize, int iAlignment, int iOffset);

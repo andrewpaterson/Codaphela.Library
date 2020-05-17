@@ -30,17 +30,27 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CLinkedListBlockAligned::Init(void)
+{
+	CBaseLinkedListBlock::Init(sizeof(SLLNode));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CLinkedListBlockAligned::Kill(void)
 {
 	SLLAlignedNode*		psNode;
 	SLLAlignedNode*		psNode2;
 	void*				pvData;
 
-	pvData = HeaderGetData<SLLBlockNode, void>((SLLBlockNode*)mcList.GetHead());  //Yes this is the correct macro.
+	pvData = HeaderGetData<SLLNode, void>((SLLNode*)mcList.GetHead());  //Yes this is the correct macro.
 	psNode = DataGetHeader<SLLAlignedNode, void>(pvData);
 	while (psNode)
 	{
-		pvData = HeaderGetData<SLLBlockNode, void>((SLLBlockNode*)psNode->sDNode.psNext);  //Yes this is the correct macro.
+		pvData = HeaderGetData<SLLNode, void>((SLLNode*)psNode->sNode.psNext);  //Yes this is the correct macro.
 		psNode2 = DataGetHeader<SLLAlignedNode, void>(pvData);
 		FreeNode(psNode);
 		psNode = psNode2;
@@ -68,7 +78,7 @@ void* CLinkedListBlockAligned::InsertAfterTail(unsigned int uiSize, int iAlignme
 	SLLAlignedNode*	psNode;
 
 	psNode = AllocateDetached(uiSize, iAlignment, iOffset);
-	return CBaseLinkedListBlock::InsertDetachedAfterTail(&psNode->sDNode);
+	return CBaseLinkedListBlock::InsertDetachedAfterTail(&psNode->sNode);
 }
 
 
@@ -81,7 +91,7 @@ void* CLinkedListBlockAligned::InsertBeforeHead(unsigned int uiSize, int iAlignm
 	SLLAlignedNode* psNode;
 
 	psNode = AllocateDetached(uiSize, iAlignment, iOffset);
-	return CBaseLinkedListBlock::InsertDetachedBeforeHead(&psNode->sDNode);
+	return CBaseLinkedListBlock::InsertDetachedBeforeHead(&psNode->sNode);
 }
 
 
@@ -96,7 +106,7 @@ void* CLinkedListBlockAligned::InsertBeforeNode(void* psPos, unsigned int uiSize
 
 	psNode = AllocateDetached(uiSize, iAlignment, iOffset);
 	psNodePos = DataGetHeader<SLLAlignedNode, void>(psPos);
-	return CBaseLinkedListBlock::InsertDetachedBeforeNode(&psNode->sDNode, &psNodePos->sDNode);
+	return CBaseLinkedListBlock::InsertDetachedBeforeNode(&psNode->sNode, &psNodePos->sNode);
 }
 
 
@@ -111,7 +121,7 @@ void* CLinkedListBlockAligned::InsertAfterNode(void* psPos, unsigned int uiSize,
 
 	psNode = AllocateDetached(uiSize, iAlignment, iOffset);
 	psNodePos = DataGetHeader<SLLAlignedNode, void>(psPos);
-	return CBaseLinkedListBlock::InsertDetachedAfterNode(&psNode->sDNode, &psNodePos->sDNode);
+	return CBaseLinkedListBlock::InsertDetachedAfterNode(&psNode->sNode, &psNodePos->sNode);
 }
 
 
