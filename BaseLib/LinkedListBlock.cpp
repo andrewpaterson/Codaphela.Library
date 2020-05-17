@@ -213,13 +213,27 @@ BOOL CLinkedListBlock::WriteAllocatorAndHeader(CFileWriter* pcFileWriter)
 //////////////////////////////////////////////////////////////////////////
 BOOL CLinkedListBlock::Write(CFileWriter* pcFileWriter)
 {
-	void*			pvData;
-	int				iSize;
+	BOOL	bResult;
 
-	if (!WriteAllocatorAndHeader(pcFileWriter))
+	bResult = WriteAllocatorAndHeader(pcFileWriter);
+	if (!bResult)
 	{
 		return FALSE;
 	}
+
+	bResult = WriteData(pcFileWriter);
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+BOOL CLinkedListBlock::WriteData(CFileWriter* pcFileWriter)
+{
+	void*	pvData;
+	int		iSize;
 
 	pvData = GetHead();
 	while (pvData)
@@ -289,11 +303,8 @@ BOOL CLinkedListBlock::ReadAllocatorAndHeader(CFileReader* pcFileReader, int* pi
 //////////////////////////////////////////////////////////////////////////
 BOOL CLinkedListBlock::Read(CFileReader* pcFileReader)
 {
-	int						iNumElements;
-	int						i;
-	void*					pvData;
-	int						iSize;
-	BOOL					bResult;
+	int		iNumElements;
+	BOOL	bResult;
 
 	bResult = ReadAllocatorAndHeader(pcFileReader, &iNumElements);
 	if (!bResult)
@@ -301,19 +312,45 @@ BOOL CLinkedListBlock::Read(CFileReader* pcFileReader)
 		return FALSE;
 	}
 
+	bResult = ReadData(pcFileReader, iNumElements);
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+BOOL CLinkedListBlock::ReadData(CFileReader* pcFileReader, int iNumElements)
+{
+	int		i;
+	void*	pvData;
+	int		iSize;
+
 	for (i = 0; i < iNumElements; i++)
 	{
-		if (!pcFileReader->ReadInt(&iSize)) 
-		{ 
-			return FALSE; 
+		if (!pcFileReader->ReadInt(&iSize))
+		{
+			return FALSE;
 		}
 
 		pvData = InsertAfterTail(iSize);
-		if (!pcFileReader->ReadData(pvData, iSize)) 
-		{ 
-			return FALSE; 
+		if (!pcFileReader->ReadData(pvData, iSize))
+		{
+			return FALSE;
 		}
 	}
 	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void SLinkedListBlockDesc::Init(int iNumElements, unsigned int uiNodeSize)
+{
+	this->iNumElements = iNumElements;
+	this->uiNodeSize = uiNodeSize;
 }
 

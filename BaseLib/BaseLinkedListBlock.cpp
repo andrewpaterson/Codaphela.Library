@@ -438,14 +438,3 @@ int CBaseLinkedListBlock::IndexOf(void* pvData)
 	return mcList.IndexOf(psNode);
 }
 
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void SLinkedListBlockDesc::Init(int iNumElements, unsigned int uiNodeSize)
-{
-	this->iNumElements = iNumElements;
-	this->uiNodeSize = uiNodeSize;
-}
-

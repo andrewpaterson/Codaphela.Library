@@ -25,6 +25,15 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "BaseLinkedListBlock.h"
 
 
+struct SLinkedListBlockDesc
+{
+	int				iNumElements;
+	unsigned int	uiNodeSize;
+
+	void Init(int iNumElements, unsigned int uiNodeSize);
+};
+
+
 struct SLLBlockNode : public SLLNode
 {
 	unsigned int	uiSize;
@@ -56,9 +65,11 @@ protected:
 	SLLBlockNode*	DataGetNode(void *pvData);
 
 	BOOL			WriteAllocatorAndHeader(CFileWriter* pcFileWriter);
-	BOOL			ReadAllocatorAndHeader(CFileReader* pcFileReader, int* piNumElements);
 	BOOL			WriteHeader(CFileWriter* pcFileWriter);
+	BOOL			WriteData(CFileWriter* pcFileWriter);
+	BOOL			ReadAllocatorAndHeader(CFileReader* pcFileReader, int* piNumElements);
 	BOOL			ReadHeader(CFileReader* pcFileReader, CMallocator* pcMalloc, int* piNumElements);
+	BOOL			ReadData(CFileReader* pcFileReader, int iNumElements);
 };
 
 
