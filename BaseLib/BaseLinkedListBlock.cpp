@@ -63,8 +63,8 @@ void CBaseLinkedListBlock::Init(size_t uiNodeSize)
 //////////////////////////////////////////////////////////////////////////
 void CBaseLinkedListBlock::Kill(void)
 {
-	SLLNode* psNode;
-	SLLNode* psNode2;
+	SLLNode*	psNode;
+	SLLNode*	psNode2;
 
 	psNode = mcList.GetHead();
 	while (psNode)
@@ -103,7 +103,7 @@ void* CBaseLinkedListBlock::GetTail(void)
 //////////////////////////////////////////////////////////////////////////
 void* CBaseLinkedListBlock::GetNext(void* pvData)
 {
-	SLLNode* psNode;
+	SLLNode*	psNode;
 
 	psNode = DataGetNode(pvData);
 	psNode = mcList.GetNext(psNode);
@@ -121,7 +121,7 @@ void* CBaseLinkedListBlock::GetNext(void* pvData)
 //////////////////////////////////////////////////////////////////////////
 void* CBaseLinkedListBlock::GetPrev(void* pvData)
 {
-	SLLNode* psNode;
+	SLLNode*	psNode;
 
 	psNode = DataGetNode(pvData);
 	psNode = mcList.GetPrev(psNode);
@@ -139,10 +139,10 @@ void* CBaseLinkedListBlock::GetPrev(void* pvData)
 //////////////////////////////////////////////////////////////////////////
 void* CBaseLinkedListBlock::Get(int iNum)
 {
-	SLLNode* psNodeHeader;
+	SLLNode*	psNode;
 
-	psNodeHeader = (SLLNode*)mcList.Get(iNum);
-	return HeaderGetData<SLLNode, void>(psNodeHeader);
+	psNode = mcList.Get(iNum);
+	return NodeGetData(psNode);
 }
 
 
@@ -326,10 +326,10 @@ void CBaseLinkedListBlock::Detach(SLLNode* psNodeHeader)
 //////////////////////////////////////////////////////////////////////////
 void CBaseLinkedListBlock::Detach(void* psNodeData)
 {
-	SLLNode* psNodeHeader;
+	SLLNode* psNode;
 
-	psNodeHeader = DataGetNode(psNodeData);
-	mcList.Remove(psNodeHeader);
+	psNode = DataGetNode(psNodeData);
+	mcList.Remove(psNode);
 }
 
 
@@ -386,17 +386,7 @@ void CBaseLinkedListBlock::Swap(void* psData1, void* psData2)
 //////////////////////////////////////////////////////////////////////////
 int	CBaseLinkedListBlock::NumElements(void)
 {
-	int		iCount;
-	void* pvNode;
-
-	iCount = 0;
-	pvNode = GetHead();
-	while (pvNode)
-	{
-		iCount++;
-		pvNode = GetNext(pvNode);
-	}
-	return iCount;
+	return mcList.NumElements();
 }
 
 
@@ -406,7 +396,7 @@ int	CBaseLinkedListBlock::NumElements(void)
 //////////////////////////////////////////////////////////////////////////
 void CBaseLinkedListBlock::BubbleSort(int(*Func)(const void*, const void*))
 {
-	mcList.BubbleSort(Func, sizeof(SLLNode));
+	mcList.BubbleSort(Func, muiNodeSize);
 }
 
 
@@ -419,7 +409,7 @@ void CBaseLinkedListBlock::InsertDetachedIntoSorted(int(*Func)(const void*, cons
 	SLLNode* psNode;
 
 	psNode = DataGetNode(pvData);
-	mcList.InsertIntoSorted(Func, psNode, sizeof(SLLNode));
+	mcList.InsertIntoSorted(Func, psNode, muiNodeSize);
 }
 
 
