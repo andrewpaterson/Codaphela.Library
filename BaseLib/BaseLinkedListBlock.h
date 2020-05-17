@@ -28,6 +28,15 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "LinkedList.h"
 
 
+struct SLinkedListBlockDesc
+{
+	int				iNumElements;
+	unsigned int	uiNodeSize;
+
+	void Init(int iNumElements, unsigned int uiNodeSize);
+};
+
+
 class CBaseLinkedListBlock
 {
 protected:
@@ -82,6 +91,9 @@ protected:
 	void		Swap(void* psData1, void* psData2);
 	void*		NodeGetData(SLLNode* psNode);
 	SLLNode*	DataGetNode(void* pvData);
+
+	BOOL		WriteHeader(CFileWriter* pcFileWriter);
+	BOOL		ReadHeader(CFileReader* pcFileReader, CMallocator* pcMalloc, int* piNumElements);
 };
 
 

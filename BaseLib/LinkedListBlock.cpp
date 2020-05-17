@@ -167,27 +167,6 @@ void CLinkedListBlock::InsertDetachedAfterTail(void* pvData)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CLinkedListBlock::WriteHeader(CFileWriter* pcFileWriter)
-{
-	SLinkedListBlockDesc	sHeader;
-	int						iNumElements;
-
-	iNumElements = NumElements();
-	sHeader.Init(iNumElements, muiNodeSize);
-
-	if (!pcFileWriter->WriteData(&sHeader, sizeof(SLinkedListBlockDesc)))
-	{
-		return FALSE;
-	}
-
-	return TRUE;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
 BOOL CLinkedListBlock::Write(CFileWriter* pcFileWriter)
 {
 	BOOL	bResult;
@@ -233,25 +212,6 @@ BOOL CLinkedListBlock::WriteData(CFileWriter* pcFileWriter)
 
 		pvData = GetNext(pvData);
 	}
-	return TRUE;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-BOOL CLinkedListBlock::ReadHeader(CFileReader* pcFileReader, CMallocator* pcMalloc, int* piNumElements)
-{
-	SLinkedListBlockDesc	sDesc;
-
-	if (!pcFileReader->ReadData(&sDesc, sizeof(SLinkedListBlockDesc)))
-	{
-		return FALSE;
-	}
-
-	CBaseLinkedListBlock::Init(pcMalloc, sDesc.uiNodeSize);
-	*piNumElements = sDesc.iNumElements;
 	return TRUE;
 }
 
@@ -307,16 +267,5 @@ BOOL CLinkedListBlock::ReadData(CFileReader* pcFileReader, int iNumElements)
 		}
 	}
 	return TRUE;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void SLinkedListBlockDesc::Init(int iNumElements, unsigned int uiNodeSize)
-{
-	this->iNumElements = iNumElements;
-	this->uiNodeSize = uiNodeSize;
 }
 
