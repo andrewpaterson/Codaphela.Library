@@ -147,6 +147,8 @@ SLLAlignedNode* CLinkedListBlockAligned::AllocateDetached(unsigned int uiSize, i
 		psNode->sAligned.iOffset = iOffset;
 		psNode->sAligned.uiSize = uiSize;
 		psNode->sAligned.pvAlloc = pvMem;
+		psNode->sNode.psNext = NULL;
+		psNode->sNode.psPrev = NULL;
 
 		return psNode;
 	}
