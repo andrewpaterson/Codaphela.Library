@@ -64,10 +64,8 @@ protected:
 	SLLBlockNode*	AllocateDetached(unsigned int uiDataSize);
 	SLLBlockNode*	DataGetNode(void *pvData);
 
-	BOOL			WriteAllocatorAndHeader(CFileWriter* pcFileWriter);
 	BOOL			WriteHeader(CFileWriter* pcFileWriter);
 	BOOL			WriteData(CFileWriter* pcFileWriter);
-	BOOL			ReadAllocatorAndHeader(CFileReader* pcFileReader, int* piNumElements);
 	BOOL			ReadHeader(CFileReader* pcFileReader, CMallocator* pcMalloc, int* piNumElements);
 	BOOL			ReadData(CFileReader* pcFileReader, int iNumElements);
 };
