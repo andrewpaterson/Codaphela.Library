@@ -28,10 +28,20 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 struct SAlignedData
 {
-	unsigned int	iSize;
+	unsigned int	uiSize;
 	void*			pvAlloc;  //This is the original allocation pointer.
 	int				iAlignment;
 	int				iOffset;
+};
+
+
+struct SAlignedDataDesc
+{
+	unsigned int	uiSize;
+	int				iAlignment;
+	int				iOffset;
+
+	void	Init(unsigned int uiSize, int iAlignment, int iOffset);
 };
 
 
@@ -47,17 +57,20 @@ class CLinkedListBlockAligned : public CLinkedListBlock
 {
 public:
 	void			Kill(void);
-	void*			Add(int iDataSize, int iAlignment);
+	void*			Add(unsigned int uiSize, int iAlignment);
 	void*			InsertAfterTail(unsigned int iSize, int iAlignment, int iOffset);
-	void*			InsertBeforeHead(int iDataSize, int iAlignment, int iOffset);
-	void*			InsertBeforeNode(void* psPos, int iDataSize, int iAlignment, int iOffset);
-	void*			InsertAfterNode(void* psPos, int iDataSize, int iAlignment, int iOffset); 
-	SLLAlignedNode*	AllocateDetached(int iDataSize, int iAlignment, int iOffset);
+	void*			InsertBeforeHead(unsigned int uiSize, int iAlignment, int iOffset);
+	void*			InsertBeforeNode(void* psPos, unsigned int uiSize, int iAlignment, int iOffset);
+	void*			InsertAfterNode(void* psPos, unsigned int uiSize, int iAlignment, int iOffset); 
+	SLLAlignedNode*	AllocateDetached(unsigned int uiSize, int iAlignment, int iOffset);
 	void			Remove(void* pvData);
 	BOOL			SafeRemove(void* pvData);
 	void			FreeDetached(void* psNodeData);
 	void			FreeNode(SLLAlignedNode* psNode);
 	void*			Grow(void* pvData, unsigned int uiNewSize);
+
+	BOOL			Write(CFileWriter* pcFileWriter);
+	BOOL			Read(CFileReader* pcFileReader);
 
 	SLLAlignedNode*	CalculateActualStart(void* pvMem, int iAlignment, int iOffset);
 	SLLAlignedNode*	GetNode(void* pvMem);
@@ -66,6 +79,9 @@ public:
 
 protected:	
 	int				GetNodeSize(void* pvMem);
+
+	BOOL			WriteData(CFileWriter* pcFileWriter);
+	BOOL			ReadData(CFileReader* pcFileReader, int iNumElements);
 };
 
 
