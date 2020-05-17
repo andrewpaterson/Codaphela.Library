@@ -22,10 +22,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __LINKED_LIST_BLOCK_H__
 #define __LINKED_LIST_BLOCK_H__
-#include "DataMacro.h"
-#include "FileIO.h"
-#include "Mallocator.h"
-#include "LinkedList.h"
+#include "BaseLinkedListBlock.h"
 
 
 struct SLLBlockNode : public SLLNode
@@ -34,20 +31,8 @@ struct SLLBlockNode : public SLLNode
 };
 
 
-struct SLinkedListBlockDesc
+class CLinkedListBlock : public CBaseLinkedListBlock
 {
-	int		iNumElements;
-
-	void Init(int iNumElements);
-};
-
-
-class CLinkedListBlock
-{
-protected:
-	CLinkedList		mcList;
-	CMallocator*	mpcMalloc;
-
 public:
 	void	Init(void);
 	void	Init(CMallocator* pcMalloc);
@@ -57,53 +42,28 @@ public:
 	void*	InsertBeforeHead(unsigned int uiDataSize);
 	void*	InsertBeforeNode(unsigned int uiDataSize, void* psPos);
 	void*	InsertAfterNode(unsigned int uiDataSize, void* psPos); 
-	void*	AllocateDetached(unsigned int uiDataSize);
 
-	void* 	GetHead(void);
-	void* 	GetTail(void);
-	void* 	GetNext(void* pvData);
-	void* 	GetPrev(void* pvData);
-
-	void	RemoveTail(void);
-	void	Remove(void* pvData);
-	BOOL	SafeRemove(void* pvData);
-
-	void	InsertDetachedAfterTail(void* psNode);
-	void	InsertDetachedBeforeHead(void* psNode);
-	void	InsertDetachedBeforeNode(void* psData, void* psPos);
-	void	InsertDetachedAfterNode(void* psData, void* psPos);
-
-	void	Detach(SLLBlockNode* psNodeHeader);
-	void	Detach(void* pvData);
-
-	void	FreeDetached(void* pvData);
-	int		NumElements(void);
 	int		ByteSize(void);
 
 	void*	Get(int iNum);
 	int		IndexOf(void* pvData);
-	BOOL	IsInList(void* pvData);
 
 	BOOL	Write(CFileWriter* pcFileWriter);
 	BOOL	Read(CFileReader* pcFileReader);
 
 	void	BubbleSort(int(*Func)(const void*, const void*));
 	void	InsertDetachedIntoSorted(int(*)(const void*, const void*), void* pvData);
+	void	InsertDetachedAfterTail(void* pvData);
 
 protected:	
-	void*			Malloc(size_t tSize);
-	void*			Realloc(void* pv, size_t iMemSize);
-	void			Free(void* pv);
-
-	void			Swap(void* psData1, void* psData2);
 	unsigned int	GetNodeSize(void* psData);
-	void*			NodeGetData(SLLNode* psNode);
-	SLLBlockNode*	DataGetNode(void* pvData);
+	SLLBlockNode*	AllocateDetached(unsigned int uiDataSize);
+	SLLBlockNode*	DataGetNode(void *pvData);
 
 	BOOL			WriteAllocatorAndHeader(CFileWriter* pcFileWriter);
-	BOOL			ReadAllocatorAndHeader(CFileReader* pcFileReader, SLinkedListBlockDesc* psDesc);
+	BOOL			ReadAllocatorAndHeader(CFileReader* pcFileReader, int* piNumElements);
 	BOOL			WriteHeader(CFileWriter* pcFileWriter);
-	BOOL			ReadHeader(CFileReader* pcFileReader, CMallocator* pcMalloc, SLinkedListBlockDesc* psDesc);
+	BOOL			ReadHeader(CFileReader* pcFileReader, CMallocator* pcMalloc, int* piNumElements);
 };
 
 
