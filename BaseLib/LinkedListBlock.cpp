@@ -188,7 +188,7 @@ BOOL CLinkedListBlock::WriteHeader(CFileWriter* pcFileWriter)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CLinkedListBlock::WriteAllocatorAndHeader(CFileWriter* pcFileWriter)
+BOOL CLinkedListBlock::Write(CFileWriter* pcFileWriter)
 {
 	BOOL	bResult;
 
@@ -199,23 +199,6 @@ BOOL CLinkedListBlock::WriteAllocatorAndHeader(CFileWriter* pcFileWriter)
 	}
 
 	bResult = WriteHeader(pcFileWriter);
-	if (!bResult)
-	{
-		return FALSE;
-	}
-	return TRUE;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-BOOL CLinkedListBlock::Write(CFileWriter* pcFileWriter)
-{
-	BOOL	bResult;
-
-	bResult = WriteAllocatorAndHeader(pcFileWriter);
 	if (!bResult)
 	{
 		return FALSE;
@@ -277,8 +260,9 @@ BOOL CLinkedListBlock::ReadHeader(CFileReader* pcFileReader, CMallocator* pcMall
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CLinkedListBlock::ReadAllocatorAndHeader(CFileReader* pcFileReader, int* piNumElements)
+BOOL CLinkedListBlock::Read(CFileReader* pcFileReader)
 {
+	int				iNumElements;
 	BOOL			bResult;
 	CMallocator*	pcMalloc;
 
@@ -288,25 +272,7 @@ BOOL CLinkedListBlock::ReadAllocatorAndHeader(CFileReader* pcFileReader, int* pi
 		return FALSE;
 	}
 
-	bResult = ReadHeader(pcFileReader, pcMalloc, piNumElements);
-	if (!bResult)
-	{
-		return FALSE;
-	}
-	return TRUE;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-BOOL CLinkedListBlock::Read(CFileReader* pcFileReader)
-{
-	int		iNumElements;
-	BOOL	bResult;
-
-	bResult = ReadAllocatorAndHeader(pcFileReader, &iNumElements);
+	bResult = ReadHeader(pcFileReader, pcMalloc, &iNumElements);
 	if (!bResult)
 	{
 		return FALSE;
