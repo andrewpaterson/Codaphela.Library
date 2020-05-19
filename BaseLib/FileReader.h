@@ -42,7 +42,9 @@ public:
 
 	//Helpers.		
 						BOOL	ReadInt(int* pi);
+						BOOL	ReadInt(unsigned int* pi);
 						BOOL	ReadLong(long long int* plli);
+						BOOL	ReadLong(unsigned long long int* plli);
 						BOOL	ReadFloat(float* pf);
 						BOOL	ReadDouble(double* pf);
 						BOOL	ReadChar(char* pc);

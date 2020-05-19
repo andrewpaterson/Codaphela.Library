@@ -66,6 +66,17 @@ BOOL CFileWriter::WriteInt(int i)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
+BOOL CFileWriter::WriteInt(unsigned int ui)
+{
+	CheckWrite(&ui, sizeof(unsigned int));
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
 BOOL CFileWriter::WriteFloat(float f)
 {
 	CheckWrite(&f, sizeof(float));
@@ -145,6 +156,17 @@ BOOL CFileWriter::WriteShort(unsigned short int i)
 BOOL CFileWriter::WriteLong(long long int i)
 {
 	CheckWrite(&i, sizeof(long long int));
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+BOOL CFileWriter::WriteLong(unsigned long long int ulli)
+{
+	CheckWrite(&ulli, sizeof(unsigned long long int));
 	return TRUE;
 }
 

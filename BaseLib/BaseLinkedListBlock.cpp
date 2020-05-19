@@ -443,49 +443,21 @@ int CBaseLinkedListBlock::IndexOf(void* pvData)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CBaseLinkedListBlock::WriteHeader(CFileWriter* pcFileWriter)
-{
-	SLinkedListBlockDesc	sHeader;
-	int						iNumElements;
-
-	iNumElements = NumElements();
-	sHeader.Init(iNumElements, muiNodeSize);
-
-	if (!pcFileWriter->WriteData(&sHeader, sizeof(SLinkedListBlockDesc)))
-	{
-		return FALSE;
-	}
-
-	return TRUE;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-BOOL CBaseLinkedListBlock::ReadHeader(CFileReader* pcFileReader, CMallocator* pcMalloc, int* piNumElements)
-{
-	SLinkedListBlockDesc	sDesc;
-
-	if (!pcFileReader->ReadData(&sDesc, sizeof(SLinkedListBlockDesc)))
-	{
-		return FALSE;
-	}
-
-	CBaseLinkedListBlock::Init(pcMalloc, sDesc.uiNodeSize);
-	*piNumElements = sDesc.iNumElements;
-	return TRUE;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
 void SLinkedListBlockDesc::Init(int iNumElements, unsigned int uiNodeSize)
 {
 	this->iNumElements = iNumElements;
 	this->uiNodeSize = uiNodeSize;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void SLinkedListTemplateDesc::Init(int iNumElements, unsigned int uiNodeSize, unsigned int uiDataSize)
+{
+	this->iNumElements = iNumElements;
+	this->uiNodeSize = uiNodeSize;
+	this->uiDataSize = uiDataSize;
 }
 

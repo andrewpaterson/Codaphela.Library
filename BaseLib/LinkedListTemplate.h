@@ -22,34 +22,85 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __LINKED_LIST_TEMPLATE_H__
 #define __LINKED_LIST_TEMPLATE_H__
-#include "Define.h"
-#include "DataMacro.h"
-#include "FileIO.h"
-#include "LinkedListBlock.h"
+#include "BaseLinkedListBlock.h"
+#include "SystemAllocator.h"
 
 
 template<class M>
-class CLinkedListTemplate : public CLinkedListBlock
+class CLinkedListTemplate : public CBaseLinkedListBlock
 {
+private:
+	unsigned int	muiDataSize;
+
 public:
-	M* 		InsertAfterTail(void);
-	M* 		InsertBeforeHead(void);
-	M*		InsertBeforeNode(M* psPos);
-	M*		InsertAfterNode(M* psPos);
-	M*		Add(void);
+	void			Init(void);
+	void			Init(CMallocator* pcMalloc);
+	void			Kill(void);
 
-	M* 		GetHead(void);
-	M* 		GetTail(void);
-	M* 		GetNext(M* pvData);
-	M* 		GetPrev(M* pvData);
-	M*		Get(int iNum);
+	M*				InsertAfterTail(void);
+	M*				InsertBeforeHead(void);
+	M*				InsertBeforeNode(M* psPos);
+	M*				InsertAfterNode(M* psPos); 
+	M*				Add(void);
 
-	int		IndexOf(M* pvData);
-	BOOL	IsInList(M* pvData);
+	M*				GetHead(void);
+	M*				GetTail(void);
+	M*				GetNext(M* pvData);
+	M*				GetPrev(M* pvData);
 
-	BOOL	Write(CFileWriter* pcFileWriter);
-	BOOL	Read(CFileReader* pcFileReader);
+	void			Remove(M* pvData);
+	BOOL			SafeRemove(M* pvData);
+
+	int				ByteSize(void);
+
+	BOOL			Write(CFileWriter* pcFileWriter);
+	BOOL			Read(CFileReader* pcFileReader);
+
+	void			InsertDetachedAfterTail(M* pvData);
+
+protected:	
+	SLLNode*		AllocateDetached(void);
+	SLLNode*		DataGetNode(M* pvData);
+
+	BOOL			WriteHeader(CFileWriter* pcFileWriter);
+	BOOL			WriteData(CFileWriter* pcFileWriter);
+	BOOL			ReadHeader(CFileReader* pcFileReader, CMallocator* pcMalloc, int* piNumElements);
+	BOOL			ReadData(CFileReader* pcFileReader, int iNumElements);
 };
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+void CLinkedListTemplate<M>::Init(void)
+{
+	Init(&gcSystemAllocator);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+void CLinkedListTemplate<M>::Init(CMallocator* pcMalloc)
+{
+	CBaseLinkedListBlock::Init(pcMalloc, sizeof(SLLNode));
+	muiDataSize = sizeof(M);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+void CLinkedListTemplate<M>::Kill(void)
+{
+	CBaseLinkedListBlock::Kill();
+}
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -59,7 +110,7 @@ public:
 template<class M>
 M* CLinkedListTemplate<M>::GetHead(void)
 {
-	return (M*)CLinkedListBlock::GetHead();
+	return (M*)CBaseLinkedListBlock::GetHead();
 }
 
 
@@ -70,7 +121,7 @@ M* CLinkedListTemplate<M>::GetHead(void)
 template<class M>
 M* CLinkedListTemplate<M>::GetTail(void)
 {
-	return (M*)CLinkedListBlock::GetTail();
+	return (M*)CBaseLinkedListBlock::GetTail();
 }
 
 
@@ -81,7 +132,7 @@ M* CLinkedListTemplate<M>::GetTail(void)
 template<class M>
 M* CLinkedListTemplate<M>::GetNext(M* pvData)
 {
-	return (M*)CLinkedListBlock::GetNext(pvData);
+	return (M*)CBaseLinkedListBlock::GetNext(pvData);
 }
 
 
@@ -92,7 +143,17 @@ M* CLinkedListTemplate<M>::GetNext(M* pvData)
 template<class M>
 M* CLinkedListTemplate<M>::GetPrev(M* pvData)
 {
-	return (M*)CLinkedListBlock::GetPrev(pvData);
+	return (M*)CBaseLinkedListBlock::GetPrev(pvData);
+}
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+void CLinkedListTemplate<M>::Remove(M* pvData)
+{
+	CBaseLinkedListBlock::Remove(pvData);
 }
 
 
@@ -101,9 +162,9 @@ M* CLinkedListTemplate<M>::GetPrev(M* pvData)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M* CLinkedListTemplate<M>::Get(int iNum)
+BOOL CLinkedListTemplate<M>::SafeRemove(M* pvData)
 {
-	return (M*)CLinkedListBlock::Get(iNum);
+	return (M*)CBaseLinkedListBlock::SafeRemove(pvData);
 }
 
 
@@ -112,20 +173,21 @@ M* CLinkedListTemplate<M>::Get(int iNum)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-BOOL CLinkedListTemplate<M>::IsInList(M* pvData)
+int CLinkedListTemplate<M>::ByteSize(void)
 {
-	return CLinkedListBlock::IsInList(pvData);
-}
+	int		iSize;
+	M*	pvNode;
 
+	iSize = 0;
 
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class M>
-int CLinkedListTemplate<M>::IndexOf(M* pvData)
-{
-	return CLinkedListBlock::IndexOf(pvData);
+	pvNode = GetHead();
+	while (pvNode)
+	{
+		iSize += GetNodeSize(pvNode);
+		pvNode = GetNext(pvNode);
+	}
+
+	return iSize;
 }
 
 
@@ -136,40 +198,10 @@ int CLinkedListTemplate<M>::IndexOf(M* pvData)
 template<class M>
 M* CLinkedListTemplate<M>::InsertAfterTail(void)
 {
-	return (M*)CLinkedListBlock::InsertAfterTail(sizeof(M));
-}
+	SLLNode*	psNode;
 
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class M>
-M* CLinkedListTemplate<M>::InsertBeforeHead(void)
-{
-	return (M*)CLinkedListBlock::InsertBeforeHead(sizeof(M));
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class M>
-M* CLinkedListTemplate<M>::InsertBeforeNode(M* psPos)
-{
-	return (M*)CLinkedListBlock::InsertBeforeNode(sizeof(M), psPos);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class M>
-M* CLinkedListTemplate<M>::InsertAfterNode(M* psPos)
-{
-	return (M*)CLinkedListBlock::InsertAfterNode(sizeof(M), psPos);
+	psNode = AllocateDetached();
+	return (M*)CBaseLinkedListBlock::InsertDetachedAfterTail(psNode);
 }
 
 
@@ -180,7 +212,89 @@ M* CLinkedListTemplate<M>::InsertAfterNode(M* psPos)
 template<class M>
 M* CLinkedListTemplate<M>::Add(void)
 {
-	return (M*)CLinkedListBlock::InsertAfterTail(sizeof(M));
+	return InsertAfterTail();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+M* CLinkedListTemplate<M>::InsertBeforeHead(void)
+{
+	SLLNode* psNode;
+
+	psNode = AllocateDetached();
+	return (M*)CBaseLinkedListBlock::InsertDetachedBeforeHead(psNode);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+M* CLinkedListTemplate<M>::InsertBeforeNode(M* psPos)
+{
+	SLLNode* psNode;
+	SLLNode* psNodePos;
+
+	psNodePos = DataGetNode(psPos);
+	psNode = AllocateDetached();
+	return (M*)CBaseLinkedListBlock::InsertDetachedBeforeNode(psNode, psNodePos);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+M* CLinkedListTemplate<M>::InsertAfterNode(M* psPos)
+{
+	SLLNode* psNode;
+	SLLNode* psNodePos;
+
+	psNodePos = DataGetNode(psPos);
+	psNode = AllocateDetached();
+	return (M*)CBaseLinkedListBlock::InsertDetachedAfterNode(psNode, psNodePos);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+SLLNode* CLinkedListTemplate<M>::AllocateDetached(void)
+{
+	return CBaseLinkedListBlock::AllocateDetached(muiDataSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+SLLNode* CLinkedListTemplate<M>::DataGetNode(M* pvData)
+{
+	return (SLLNode*)CBaseLinkedListBlock::DataGetNode(pvData);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+void CLinkedListTemplate<M>::InsertDetachedAfterTail(M* pvData)
+{
+	SLLNode* psNode;
+
+	psNode = DataGetNode(pvData);
+	CBaseLinkedListBlock::InsertDetachedAfterTail(psNode);
 }
 
 
@@ -191,7 +305,67 @@ M* CLinkedListTemplate<M>::Add(void)
 template<class M>
 BOOL CLinkedListTemplate<M>::Write(CFileWriter* pcFileWriter)
 {
-	return CLinkedListBlock::Write(pcFileWriter);
+	BOOL	bResult;
+
+	bResult = gcMallocators.WriteMallocator(pcFileWriter, mpcMalloc);
+	if (!bResult)
+	{
+		return FALSE;
+	}
+
+	bResult = WriteHeader(pcFileWriter);
+	if (!bResult)
+	{
+		return FALSE;
+	}
+
+	bResult = WriteData(pcFileWriter);
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+BOOL CLinkedListTemplate<M>::WriteHeader(CFileWriter* pcFileWriter)
+{
+	SLinkedListTemplateDesc	sHeader;
+	int						iNumElements;
+
+	iNumElements = NumElements();
+	sHeader.Init(iNumElements, muiNodeSize, muiDataSize);
+
+	if (!pcFileWriter->WriteData(&sHeader, sizeof(SLinkedListTemplateDesc)))
+	{
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+BOOL CLinkedListTemplate<M>::WriteData(CFileWriter* pcFileWriter)
+{
+	M*		pvData;
+
+	pvData = GetHead();
+	while (pvData)
+	{
+		if (!pcFileWriter->WriteData(pvData, muiDataSize))
+		{
+			return FALSE;
+		}
+
+		pvData = GetNext(pvData);
+	}
+	return TRUE;
 }
 
 
@@ -202,7 +376,75 @@ BOOL CLinkedListTemplate<M>::Write(CFileWriter* pcFileWriter)
 template<class M>
 BOOL CLinkedListTemplate<M>::Read(CFileReader* pcFileReader)
 {
-	return CLinkedListBlock::Read(pcFileReader);
+	int				iNumElements;
+	BOOL			bResult;
+	CMallocator*	pcMalloc;
+
+	pcMalloc = gcMallocators.ReadMallocator(pcFileReader);
+	if (pcMalloc == NULL)
+	{
+		return FALSE;
+	}
+
+	bResult = ReadHeader(pcFileReader, pcMalloc, &iNumElements);
+	if (!bResult)
+	{
+		return FALSE;
+	}
+
+	bResult = ReadData(pcFileReader, iNumElements);
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+BOOL CLinkedListTemplate<M>::ReadHeader(CFileReader* pcFileReader, CMallocator* pcMalloc, int* piNumElements)
+{
+	SLinkedListTemplateDesc	sDesc;
+
+	if (!pcFileReader->ReadData(&sDesc, sizeof(SLinkedListTemplateDesc)))
+	{
+		return FALSE;
+	}
+
+	if (sizeof(SLLNode) != sDesc.uiNodeSize)
+	{
+		return FALSE;
+	}
+	if (sizeof(M) != sDesc.uiDataSize)
+	{
+		return FALSE;
+	}
+
+	Init(pcMalloc);
+	*piNumElements = sDesc.iNumElements;
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+BOOL CLinkedListTemplate<M>::ReadData(CFileReader* pcFileReader, int iNumElements)
+{
+	int				i;
+	M*				pvData;
+
+	for (i = 0; i < iNumElements; i++)
+	{
+		pvData = InsertAfterTail();
+		if (!pcFileReader->ReadData(pvData, muiDataSize))
+		{
+			return FALSE;
+		}
+	}
+	return TRUE;
 }
 
 

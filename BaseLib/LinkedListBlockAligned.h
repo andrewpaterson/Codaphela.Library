@@ -59,11 +59,13 @@ public:
 	void			Init(void);
 	void			Init(CMallocator* pcMalloc);
 	void			Kill(void);
-	void*			Add(unsigned int uiSize, int iAlignment);
+
 	void*			InsertAfterTail(unsigned int iSize, int iAlignment, int iOffset);
 	void*			InsertBeforeHead(unsigned int uiSize, int iAlignment, int iOffset);
 	void*			InsertBeforeNode(void* psPos, unsigned int uiSize, int iAlignment, int iOffset);
 	void*			InsertAfterNode(void* psPos, unsigned int uiSize, int iAlignment, int iOffset); 
+	void*			Add(unsigned int uiSize, int iAlignment);
+
 	SLLAlignedNode*	AllocateDetached(unsigned int uiSize, int iAlignment, int iOffset);
 	void			Remove(void* pvData);
 	BOOL			SafeRemove(void* pvData);
@@ -82,7 +84,9 @@ public:
 protected:	
 	int				GetNodeSize(void* pvMem);
 
+	BOOL			WriteHeader(CFileWriter* pcFileWriter);
 	BOOL			WriteData(CFileWriter* pcFileWriter);
+	BOOL			ReadHeader(CFileReader* pcFileReader, CMallocator* pcMalloc, int* piNumElements);
 	BOOL			ReadData(CFileReader* pcFileReader, int iNumElements);
 };
 

@@ -40,7 +40,9 @@ public:
 
 	//Helpers.		
 						BOOL	WriteInt(int i);
+						BOOL	WriteInt(unsigned int i);
 						BOOL	WriteLong(long long int i);
+						BOOL	WriteLong(unsigned long long int i);
 						BOOL	WriteFloat(float f);
 						BOOL	WriteDouble(double f);
 						BOOL	WriteChar(char c);
