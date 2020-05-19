@@ -220,7 +220,6 @@ void* CMemoryCache::QuickAllocate(int iDataSize)
 	SMemoryCacheDescriptor*	psDescriptor;
 
 	//Evicted data is just trashed.
-
 	cPreAllocation.Init(iDataSize, miDescriptorSize);
 
 	bResult = PreAllocate(&cPreAllocation);
@@ -343,7 +342,7 @@ size_t CMemoryCache::RemainingAfterLast(void)
 	}
 	else
 	{
-		iAllocated = ((int)(size_t) mpsTail - (int)(size_t) mpvCache);
+		iAllocated = ((int)(size_t)mpsTail - (int)(size_t)mpvCache);
 		iAllocated += (mpsTail->uiSize + miDescriptorSize);
 		return muiCacheSize - iAllocated;
 	}
@@ -381,33 +380,6 @@ BOOL CMemoryCache::Overlaps(void* pvNew, size_t uiNewSize, SMemoryCacheDescripto
 		return TRUE;
 	}
 	return FALSE;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-SMemoryCacheDescriptor* CMemoryCache::FindNewFirst(void* pvNew, size_t uiNewSize)
-{
-	SMemoryCacheDescriptor*	psNext;
-
-	psNext = mpsHead;
-	for (;;)
-	{
-		if (Overlaps(pvNew, uiNewSize, psNext))
-		{
-			psNext = psNext->psNext;
-			if (psNext == mpsHead)
-			{
-				return psNext;
-			}
-		}
-		else
-		{
-			return psNext;
-		}
-	}
 }
 
 
