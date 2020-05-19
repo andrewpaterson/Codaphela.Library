@@ -56,7 +56,6 @@ public:
 
 	size_t						RemainingAfterLast(void);
 	void						FindOverlapping(void* pvNew, size_t uiNewSize, CArrayVoidPtr* pasOverlappingCacheDescriptors);
-	SMemoryCacheDescriptor*		FindNewFirst(void* pvNew, size_t uiNewSize);
 	BOOL						Overlaps(void* pvNew, size_t uiNewSize, SMemoryCacheDescriptor* psExisting);
 	void						Clear(void);
 
