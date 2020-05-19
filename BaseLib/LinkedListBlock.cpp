@@ -76,10 +76,20 @@ int CLinkedListBlock::ByteSize(void)
 //////////////////////////////////////////////////////////////////////////
 void* CLinkedListBlock::InsertAfterTail(unsigned int uiDataSize)
 {
-	SLLBlockNode*	psNode;
+	SLLBlockNode* psNode;
 
 	psNode = AllocateDetached(uiDataSize);
 	return CBaseLinkedListBlock::InsertDetachedAfterTail(psNode);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void* CLinkedListBlock::Add(unsigned int uiDataSize)
+{
+	return InsertAfterTail(uiDataSize);
 }
 
 
@@ -192,6 +202,27 @@ BOOL CLinkedListBlock::Write(CFileWriter* pcFileWriter)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
+BOOL CLinkedListBlock::WriteHeader(CFileWriter* pcFileWriter)
+{
+	SLinkedListBlockDesc	sHeader;
+	int						iNumElements;
+
+	iNumElements = NumElements();
+	sHeader.Init(iNumElements, muiNodeSize);
+
+	if (!pcFileWriter->WriteData(&sHeader, sizeof(SLinkedListBlockDesc)))
+	{
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
 BOOL CLinkedListBlock::WriteData(CFileWriter* pcFileWriter)
 {
 	void*	pvData;
@@ -240,6 +271,30 @@ BOOL CLinkedListBlock::Read(CFileReader* pcFileReader)
 
 	bResult = ReadData(pcFileReader, iNumElements);
 	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+BOOL CLinkedListBlock::ReadHeader(CFileReader* pcFileReader, CMallocator* pcMalloc, int* piNumElements)
+{
+	SLinkedListBlockDesc	sDesc;
+
+	if (!pcFileReader->ReadData(&sDesc, sizeof(SLinkedListBlockDesc)))
+	{
+		return FALSE;
+	}
+
+	if (sizeof(SLLBlockNode) != sDesc.uiNodeSize)
+	{
+		return FALSE;
+	}
+
+	Init(pcMalloc);
+	*piNumElements = sDesc.iNumElements;
+	return TRUE;
 }
 
 

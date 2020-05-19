@@ -23,6 +23,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __FREE_LIST_BASE_H__
 #define __FREE_LIST_BASE_H__
 #include "IntegerHelper.h"
+#include "LinkedListBlock.h"
 #include "LinkedListTemplate.h"
 #include "DataTypes.h"
 #include "IntegerHelper.h"

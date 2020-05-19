@@ -591,9 +591,6 @@
     <ClInclude Include="LinkedListBlockAligned.h">
       <Filter>Source\Data\LinkedList</Filter>
     </ClInclude>
-    <ClInclude Include="LinkedListTemplateFreeList.h">
-      <Filter>Source\Data\LinkedList</Filter>
-    </ClInclude>
     <ClInclude Include="Mallocator.h">
       <Filter>Source\Memory\Allocator</Filter>
     </ClInclude>

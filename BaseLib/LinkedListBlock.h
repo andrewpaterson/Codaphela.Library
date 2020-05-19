@@ -42,6 +42,7 @@ public:
 	void*			InsertBeforeHead(unsigned int uiDataSize);
 	void*			InsertBeforeNode(unsigned int uiDataSize, void* psPos);
 	void*			InsertAfterNode(unsigned int uiDataSize, void* psPos); 
+	void*			Add(unsigned int uiDataSize);
 
 	int				ByteSize(void);
 
@@ -55,7 +56,9 @@ protected:
 	SLLBlockNode*	AllocateDetached(unsigned int uiDataSize);
 	SLLBlockNode*	DataGetNode(void *pvData);
 
+	BOOL			WriteHeader(CFileWriter* pcFileWriter);
 	BOOL			WriteData(CFileWriter* pcFileWriter);
+	BOOL			ReadHeader(CFileReader* pcFileReader, CMallocator* pcMalloc, int* piNumElements);
 	BOOL			ReadData(CFileReader* pcFileReader, int iNumElements);
 };
 

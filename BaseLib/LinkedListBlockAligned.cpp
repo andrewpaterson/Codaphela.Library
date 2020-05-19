@@ -366,6 +366,27 @@ BOOL CLinkedListBlockAligned::Write(CFileWriter* pcFileWriter)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
+BOOL CLinkedListBlockAligned::WriteHeader(CFileWriter* pcFileWriter)
+{
+	SLinkedListBlockDesc	sHeader;
+	int						iNumElements;
+
+	iNumElements = NumElements();
+	sHeader.Init(iNumElements, muiNodeSize);
+
+	if (!pcFileWriter->WriteData(&sHeader, sizeof(SLinkedListBlockDesc)))
+	{
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
 BOOL CLinkedListBlockAligned::WriteData(CFileWriter* pcFileWriter)
 {
 	void*				pvData;
@@ -421,6 +442,30 @@ BOOL CLinkedListBlockAligned::Read(CFileReader* pcFileReader)
 
 	bResult = ReadData(pcFileReader, iNumElements);
 	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+BOOL CLinkedListBlockAligned::ReadHeader(CFileReader* pcFileReader, CMallocator* pcMalloc, int* piNumElements)
+{
+	SLinkedListBlockDesc	sDesc;
+
+	if (!pcFileReader->ReadData(&sDesc, sizeof(SLinkedListBlockDesc)))
+	{
+		return FALSE;
+	}
+
+	if (sizeof(SLLNode) != sDesc.uiNodeSize)
+	{
+		return FALSE;
+	}
+
+	Init(pcMalloc);
+	*piNumElements = sDesc.iNumElements;
+	return TRUE;
 }
 
 
