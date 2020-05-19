@@ -62,6 +62,33 @@ BOOL CFileReader::ReadStringChars(char* szString, int iLength)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
+BOOL CFileReader::ReadString(char* szString, int iMaxLength)
+{
+	int		iLength;
+
+	if (!ReadStringLength(&iLength))
+	{
+		return FALSE;
+	}
+
+	if (iLength > iMaxLength - 1)
+	{
+		iLength = iMaxLength - 1;
+	}
+
+	if (!ReadStringChars(szString, iLength))
+	{
+		return FALSE;
+	}
+	szString[iLength] = 0;
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
 BOOL CFileReader::ReadInt(int* pi)
 {
 	CheckRead(pi, sizeof(int));

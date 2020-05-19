@@ -57,6 +57,7 @@ class CLinkedListBlockAligned : public CBaseLinkedListBlock
 {
 public:
 	void			Init(void);
+	void			Init(CMallocator* pcMalloc);
 	void			Kill(void);
 	void*			Add(unsigned int uiSize, int iAlignment);
 	void*			InsertAfterTail(unsigned int iSize, int iAlignment, int iOffset);

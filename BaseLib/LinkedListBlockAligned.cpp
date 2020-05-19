@@ -40,6 +40,16 @@ void CLinkedListBlockAligned::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CLinkedListBlockAligned::Init(CMallocator* pcMalloc)
+{
+	CBaseLinkedListBlock::Init(pcMalloc, sizeof(SLLNode));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CLinkedListBlockAligned::Kill(void)
 {
 	SLLAlignedNode*		psNode;
@@ -235,7 +245,14 @@ SLLAlignedNode* CLinkedListBlockAligned::CalculateActualStart(void* pvMem, int i
 //////////////////////////////////////////////////////////////////////////
 SLLAlignedNode* CLinkedListBlockAligned::GetNode(void* pvMem)
 {
-	return (SLLAlignedNode*)(size_t) ((unsigned int)(size_t) pvMem - sizeof(SLLAlignedNode));
+	if (pvMem)
+	{
+		return (SLLAlignedNode*)(size_t)((unsigned int)(size_t)pvMem - sizeof(SLLAlignedNode));
+	}
+	else
+	{
+		return NULL;
+	}
 }
 
 

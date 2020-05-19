@@ -38,6 +38,7 @@ public:
 	//Strings.
 						BOOL	ReadStringLength(int* piLength);
 						BOOL	ReadStringChars(char* szString, int iLength);
+						BOOL	ReadString(char* szString, int iMaxLength);
 
 	//Helpers.		
 						BOOL	ReadInt(int* pi);
