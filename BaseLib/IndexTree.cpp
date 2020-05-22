@@ -6,13 +6,14 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTree::Init(CMallocator* pcMalloc, EIndexKeyReverse eKeyReverse, size_t tSizeofNode, size_t tSizeofNodePtr, int iMaxDataSize, int	iMaxKeySize)
+BOOL CIndexTree::Init(CMallocator* pcMalloc, EIndexKeyReverse eKeyReverse, size_t tSizeofNode, size_t tSizeofDataNode, size_t tSizeofNodePtr, int iMaxDataSize, int	iMaxKeySize)
 {
 	BOOL bResult;
 
 	mpcMalloc = pcMalloc;
 	meReverseKey = eKeyReverse;
 	mtSizeofNode = tSizeofNode;
+	mtSizeofDataNode = tSizeofDataNode;
 	mtSizeofNodePtr = tSizeofNodePtr;
 	bResult = TRUE;
 	if ((iMaxKeySize <= 0) || (iMaxKeySize > MAX_KEY_SIZE))
@@ -85,6 +86,16 @@ size_t CIndexTree::SizeofNode(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+size_t CIndexTree::SizeofDataNode(void)
+{
+	return mtSizeofDataNode;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 size_t CIndexTree::SizeofNodePtr(void)
 {
 	return mtSizeofNodePtr;
@@ -117,7 +128,14 @@ size_t CIndexTree::CalculateRootNodeSize(void)
 //////////////////////////////////////////////////////////////////////////
 size_t CIndexTree::CalculateNodeSize(int iRequiredIndices, int iDataSize)
 {
-	return SizeofNode() + iDataSize + iRequiredIndices * SizeofNodePtr();
+	if (iDataSize == 0)
+	{
+		return SizeofNode() + iRequiredIndices * SizeofNodePtr();
+	}
+	else
+	{
+		return SizeofDataNode() + iDataSize + iRequiredIndices * SizeofNodePtr();
+	}
 }
 
 

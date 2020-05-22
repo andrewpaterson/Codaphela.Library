@@ -110,6 +110,7 @@
     <ClInclude Include="FilePathBuilder.h" />
     <ClInclude Include="IndexKeyReverse.h" />
     <ClInclude Include="IndexTreeAccess.h" />
+    <ClInclude Include="IndexTreeDataNode.h" />
     <ClInclude Include="IndexTreeMemoryAccess.h" />
     <ClInclude Include="LinkedList.h" />
     <ClInclude Include="ListCharsMinimal.h" />
@@ -321,6 +322,7 @@
     <ClCompile Include="GuidClass.cpp" />
     <ClCompile Include="IndexTree.cpp" />
     <ClCompile Include="IndexTreeAccess.cpp" />
+    <ClCompile Include="IndexTreeDataNode.cpp" />
     <ClCompile Include="IndexTreeMemory.cpp" />
     <ClCompile Include="IndexTreeMemoryAccess.cpp" />
     <ClCompile Include="IndexTreeNode.cpp" />
