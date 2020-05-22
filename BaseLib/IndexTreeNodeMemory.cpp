@@ -120,20 +120,6 @@ CIndexTreeNodeMemory** CIndexTreeNodeMemory::GetNodes(void)
 //////////////////////////////////////////////////////////////////////////
 void CIndexTreeNodeMemory::RemapChildNodes(CIndexTreeNodeMemory* pcOldNode, CIndexTreeNodeMemory* pcNewNode)
 {
-	//int						i;
-	//int						iNumNodes;
-	//CIndexTreeNodeMemory**	apcChildren;
-
-	//apcChildren = GetNodes();
-	//iNumNodes = NumIndexes();
-	//for (i = 0; i < iNumNodes; i++)
-	//{
-	//	if (apcChildren[i] == pcOldNode)
-	//	{
-	//		apcChildren[i] = pcNewNode;
-	//	}
-	//}
-
 	CIndexTreeNodeMemory**	apcChildren;
 	unsigned char			uiIndex;
 
