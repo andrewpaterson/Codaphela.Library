@@ -15,13 +15,18 @@ void CIndexTreeNode::Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent, uns
 	mpcIndexTree = pcIndexTree;
 	muiFirstIndex = uiFirstIndex;
 	muiLastIndex = uiLastIndex;
-	muiDataSize = uiDataSize;
 	msFlags = 0;
 	muiIndexInParent = uiIndexInParent;
 	mpcParent = pcParent;
 
 	tSize = (uiLastIndex - uiFirstIndex + 1) * SizeofNodePtr();
 	memset(GetNodesMemory(), iClearValue, tSize);
+
+	if (uiDataSize != 0)
+	{
+		SetData(TRUE);
+		GetNodeData()->Init(uiDataSize);
+	}
 }
 
 
@@ -36,7 +41,6 @@ void CIndexTreeNode::Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent, uns
 	mpcParent = pcParent;
 	muiFirstIndex = 0;
 	muiLastIndex = 0;
-	muiDataSize = 0;
 	msFlags = 0;
 	muiIndexInParent = uiIndexInParent;
 	SetNodesEmpty(TRUE);
@@ -49,7 +53,14 @@ void CIndexTreeNode::Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent, uns
 //////////////////////////////////////////////////////////////////////////
 unsigned short CIndexTreeNode::GetDataSize(void)
 {
-	return muiDataSize;
+	if (!HasData())
+	{
+		return 0;
+	}
+	else
+	{
+		return GetNodeData()->GetDataSize();
+	}
 }
 
 
@@ -59,13 +70,30 @@ unsigned short CIndexTreeNode::GetDataSize(void)
 //////////////////////////////////////////////////////////////////////////
 void* CIndexTreeNode::GetDataPtr(void)
 {
-	if (muiDataSize == 0)
+	if (!HasData())
 	{
 		return NULL;
 	}
 	else
 	{
-		return RemapSinglePointer(this, SizeofNode());
+		return RemapSinglePointer(this, mpcIndexTree->SizeofDataNode());
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CIndexTreeDataNode* CIndexTreeNode::GetNodeData(void)
+{
+	if (!HasData())
+	{
+		return NULL;
+	}
+	else
+	{
+		return (CIndexTreeDataNode*)RemapSinglePointer(this, mpcIndexTree->SizeofNode());
 	}
 }
 
@@ -76,7 +104,31 @@ void* CIndexTreeNode::GetDataPtr(void)
 //////////////////////////////////////////////////////////////////////////
 size_t CIndexTreeNode::SizeofNode(void)
 {
-	return mpcIndexTree->SizeofNode();
+	if (HasData())
+	{
+		return mpcIndexTree->SizeofDataNode();
+	}
+	else
+	{
+		return mpcIndexTree->SizeofNode();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size_t CIndexTreeNode::SizeofNodeAndData(void)
+{
+	if (HasData())
+	{
+		return mpcIndexTree->SizeofDataNode() + GetNodeData()->GetDataSize();
+	}
+	else
+	{
+		return mpcIndexTree->SizeofNode();
+	}
 }
 
 
@@ -96,7 +148,14 @@ size_t CIndexTreeNode::SizeofNodePtr(void)
 //////////////////////////////////////////////////////////////////////////
 void* CIndexTreeNode::GetNodesMemory(void)
 {
-	return RemapSinglePointer(this, SizeofNode() + muiDataSize);
+	if (HasNodes())
+	{
+		return RemapSinglePointer(this, SizeofNodeAndData());
+	}
+	else
+	{
+		return NULL;
+	}
 }
 
 
@@ -152,24 +211,14 @@ size_t CIndexTreeNode::CalculateRequiredNodeSizeForIndex(unsigned char uiIndex)
 	if (HasNodes())
 	{
 		iRequiredIndices = GetAdditionalIndexes(uiIndex);
-		tSize = SizeofNode() + muiDataSize + iRequiredIndices * SizeofNodePtr();
-
+		tSize = SizeofNodeAndData() + iRequiredIndices * SizeofNodePtr();
 		return tSize;
 	}
 	else
 	{
-		return CalculateRequiredNodeSizeForEmpty();
+		tSize = mpcIndexTree->CalculateNodeSize(1, GetDataSize());
+		return tSize;
 	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-size_t CIndexTreeNode::CalculateRequiredNodeSizeForEmpty(void)
-{
-	return mpcIndexTree->CalculateNodeSize(1, muiDataSize);
 }
 
 
@@ -199,7 +248,7 @@ size_t CIndexTreeNode::CalculateRequiredNodeSizeForCurrent(void)
 	int		iExistingIndices;
 
 	iExistingIndices = NumIndexes();
-	tSize = mpcIndexTree->CalculateNodeSize(iExistingIndices, muiDataSize);
+	tSize = mpcIndexTree->CalculateNodeSize(iExistingIndices, GetDataSize());
 
 	return tSize;
 }
@@ -345,7 +394,7 @@ int CIndexTreeNode::GetAdditionalIndexes(unsigned char uiIndex)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeNode::IsEmpty(void)
 {
-	if (muiDataSize != 0)
+	if (HasData())
 	{
 		return FALSE;
 	}
@@ -451,7 +500,7 @@ unsigned char CIndexTreeNode::GetLastIndex(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeNode::HasNodes(void)
 {
-	return !FixBool(msFlags & INDEX_TREE_NODE_FLAG_EMPTY);
+	return !FixBool(msFlags & INDEX_TREE_NODE_FLAG_NODES_EMPTY);
 }
 
 
@@ -461,7 +510,17 @@ BOOL CIndexTreeNode::HasNodes(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeNode::HasData(void)
 {
-	return muiDataSize != 0;
+	return FixBool(msFlags & INDEX_TREE_NODE_FLAG_DATA);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexTreeNode::SetData(BOOL bHasData)
+{
+	return SetFlag(&msFlags, INDEX_TREE_NODE_FLAG_DATA, bHasData);
 }
 
 
@@ -506,12 +565,12 @@ void CIndexTreeNode::SetNodesEmpty(BOOL bEmpty)
 	//If the value is true then OR it with dest.
 	if (bEmpty)
 	{
-		msFlags |= INDEX_TREE_NODE_FLAG_EMPTY;
+		msFlags |= INDEX_TREE_NODE_FLAG_NODES_EMPTY;
 	}
 	//If the value is false then negate and and it with dest.
 	else
 	{
-		msFlags &= ~INDEX_TREE_NODE_FLAG_EMPTY;
+		msFlags &= ~INDEX_TREE_NODE_FLAG_NODES_EMPTY;
 	}
 }
 
@@ -562,29 +621,22 @@ void CIndexTreeNode::SetDeletedPath(BOOL bDeleted)
 //////////////////////////////////////////////////////////////////////////
 void CIndexTreeNode::SetData(void* pvData, unsigned short uiDataSize)
 {
-	if (muiDataSize != uiDataSize)
+	if (GetDataSize() != uiDataSize)
 	{
 		ChangeDataSize(uiDataSize);
 	}
 
-	if (pvData)
+	if (uiDataSize > 0)
 	{
-		memcpy_fast(GetDataPtr(), pvData, uiDataSize);
+		if (pvData)
+		{
+			memcpy_fast(GetDataPtr(), pvData, uiDataSize);
+		}
+		else
+		{
+			memset_fast(GetDataPtr(), 0, uiDataSize);
+		}
 	}
-	else
-	{
-		memset_fast(GetDataPtr(), 0, uiDataSize);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CIndexTreeNode::ClearData(void)
-{
-	ChangeDataSize(0);
 }
 
 
@@ -594,22 +646,70 @@ void CIndexTreeNode::ClearData(void)
 //////////////////////////////////////////////////////////////////////////
 void CIndexTreeNode::ChangeDataSize(unsigned short uiSize)
 {
-	size_t				tSize;
+	size_t				tIndexSize;
 	void*				apcChildren;
-	int					iDiff;
+	int					iDataSizeDiff;
 	void*				apcMovedChildren;
+	BOOL				bHasData;
+	int					iOldDataSize;
 
-	if (HasNodes())
+	bHasData = HasData();
+	iOldDataSize = GetDataSize();
+	if (uiSize != 0)
 	{
-		tSize = (muiLastIndex - muiFirstIndex + 1) * SizeofNodePtr();
-		iDiff = (int)uiSize - (int)muiDataSize;
+		if (bHasData)
+		{
+			//Had data and will have data.
+			if (HasNodes())
+			{
+				tIndexSize = (muiLastIndex - muiFirstIndex + 1) * SizeofNodePtr();
+				iDataSizeDiff = (int)uiSize - iOldDataSize;
 
-		apcChildren = GetNodesMemory();
-		apcMovedChildren = RemapSinglePointer(apcChildren, iDiff);
-		memmove(apcMovedChildren, apcChildren, tSize);
+				apcChildren = GetNodesMemory();
+				apcMovedChildren = RemapSinglePointer(apcChildren, iDataSizeDiff);
+				memmove(apcMovedChildren, apcChildren, tIndexSize);
+			}
+			GetNodeData()->SetDataSize(uiSize);
+		}
+		else
+		{
+			//Had NO data and will have data.
+			if (HasNodes())
+			{
+				tIndexSize = (muiLastIndex - muiFirstIndex + 1) * SizeofNodePtr();
+				iDataSizeDiff = (int)uiSize + (mpcIndexTree->SizeofDataNode() - mpcIndexTree->SizeofNode());
+
+				apcChildren = GetNodesMemory();
+				apcMovedChildren = RemapSinglePointer(apcChildren, iDataSizeDiff);
+				memmove(apcMovedChildren, apcChildren, tIndexSize);
+			}
+			SetData(TRUE);
+			GetNodeData()->Init(uiSize);
+		}
+	}
+	else // uiSize == 0
+	{
+		if (bHasData)
+		{
+			//Had data and will NOT have data.
+			apcChildren = GetNodesMemory();
+			GetNodeData()->Kill();
+			if (HasNodes())
+			{
+				tIndexSize = (muiLastIndex - muiFirstIndex + 1) * SizeofNodePtr();
+				iDataSizeDiff = -((int)(iOldDataSize + (mpcIndexTree->SizeofDataNode() - mpcIndexTree->SizeofNode())));
+
+				apcMovedChildren = RemapSinglePointer(apcChildren, iDataSizeDiff);
+				memmove(apcMovedChildren, apcChildren, tIndexSize);
+			}
+			SetData(FALSE);
+		}
+		else
+		{
+			//Had NO data and will NOT have data.
+		}
 	}
 
-	muiDataSize = uiSize;
 }
 
 
@@ -660,6 +760,8 @@ char* CIndexTreeNode::GetFlagsString(CChars* psz)
 	bAppendComma |= psz->AppendFlag(msFlags, INDEX_TREE_NODE_FLAG_DIRTY_PATH, "DIRTY_PATH", bAppendComma);
 	bAppendComma |= psz->AppendFlag(msFlags, INDEX_TREE_NODE_FLAG_DELETED_NODE, "DELETED_NODE", bAppendComma);
 	bAppendComma |= psz->AppendFlag(msFlags, INDEX_TREE_NODE_FLAG_DELETED_PATH, "DELETED_PATH", bAppendComma);
+	bAppendComma |= psz->AppendFlag(msFlags, INDEX_TREE_NODE_FLAG_NODES_EMPTY, "NODES_EMPTY", bAppendComma);
+	bAppendComma |= psz->AppendFlag(msFlags, INDEX_TREE_NODE_FLAG_DATA, "DATA", bAppendComma);
 	return psz->Text();
 }
 

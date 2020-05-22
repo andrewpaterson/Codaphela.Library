@@ -2,7 +2,7 @@
 #define __INDEX_TREE_NODE_H__
 #include "Bool.h"
 #include "DataTypes.h"
-
+#include "IndexTreeDataNode.h"
 
 //
 //  Bytes 0     [muiFirstIndex ..... muiLastIndex]       255
@@ -11,10 +11,11 @@
 
 
 #define	INDEX_TREE_NODE_FLAG_DIRTY_NODE		0x02
-#define	INDEX_TREE_NODE_FLAG_EMPTY			0x04
+#define	INDEX_TREE_NODE_FLAG_NODES_EMPTY	0x04
 #define	INDEX_TREE_NODE_FLAG_DELETED_NODE	0x08
 #define	INDEX_TREE_NODE_FLAG_DELETED_PATH	0x10
 #define	INDEX_TREE_NODE_FLAG_DIRTY_PATH		0x20
+#define	INDEX_TREE_NODE_FLAG_DATA			0x40
 
 #define INDEX_TREE_NODE_TRANSIENT_FLAGS			((unsigned char)(INDEX_TREE_NODE_FLAG_DIRTY_PATH | INDEX_TREE_NODE_FLAG_DELETED_PATH | INDEX_TREE_NODE_FLAG_DELETED_NODE | INDEX_TREE_NODE_FLAG_DIRTY_NODE))
 #define INDEX_TREE_NODE_TRANSIENT_FLAGS_MASK		(~INDEX_TREE_NODE_TRANSIENT_FLAGS)
@@ -30,8 +31,6 @@ protected:
 	CIndexTree*			mpcIndexTree;
 	CIndexTreeNode*		mpcParent;
 
-	unsigned short		muiDataSize;   // Size of object "pointed" to by this node.  The object is small: usually a OIndex, a pointer or a CFileId.
-
 	unsigned short		muiMagic;  //Always set to INDEX_TREE_NODE_MAGIC
 
 	unsigned char		muiFirstIndex;
@@ -41,63 +40,66 @@ protected:
 	unsigned char		msFlags;
 
 public:
-	void			Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex, unsigned short uiDataSize, int iClearValue, unsigned char uiIndexInParent);
-	void			Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent, unsigned char uiIndexInParent);
+	void				Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex, unsigned short uiDataSize, int iClearValue, unsigned char uiIndexInParent);
+	void				Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent, unsigned char uiIndexInParent);
 
-	void			ChangeDataSize(unsigned short uiSize);
-	void			SetData(void* pvObject, unsigned short uiSize);
-	void			ClearData(void);
+	void				SetData(void* pvObject, unsigned short uiSize);
 
-	unsigned short	GetDataSize(void);
-	void*			GetDataPtr(void);
-	BOOL			HasData(void);
+	unsigned short		GetDataSize(void);
+	CIndexTreeDataNode* GetNodeData(void);
+	void*				GetDataPtr(void);
+	BOOL				HasData(void);
+	void				SetData(BOOL bHasData);
 
-	void*			GetNodesMemory(void);
+	void*				GetNodesMemory(void);
 
-	CIndexTreeNode*	GetParent(void);
-	unsigned char	GetIndexInParent(void);
-	unsigned char	GetFlags(void);
-	unsigned char	GetTransientFlags(void);
+	CIndexTreeNode*		GetParent(void);
+	unsigned char		GetIndexInParent(void);
+	unsigned char		GetFlags(void);
+	unsigned char		GetTransientFlags(void);
 
-	int				NumIndexes(void);
-	int				NumIndexes(unsigned char uiFirstIndex, unsigned char uiLastIndex);
-	int				GetAdditionalIndexes(unsigned char uiIndex);
+	int					NumIndexes(void);
+	int					NumIndexes(unsigned char uiFirstIndex, unsigned char uiLastIndex);
+	int					GetAdditionalIndexes(unsigned char uiIndex);
 
-	BOOL			IsEmpty(void);
-	BOOL			IsDirty(void);
-	BOOL			IsPathDirty(void);
-	BOOL			IsDeleted(void);
-	BOOL			IsPathDeleted(void);
-	BOOL			IsMagic(void);
+	BOOL				IsEmpty(void);
+	BOOL				IsDirty(void);
+	BOOL				IsPathDirty(void);
+	BOOL				IsDeleted(void);
+	BOOL				IsPathDeleted(void);
+	BOOL				IsMagic(void);
 
-	BOOL			HasFlags(unsigned char sFlags);
-	void			ClearFlags(unsigned char sFlags);
-	unsigned char	GetFirstIndex(void);
-	unsigned char	GetLastIndex(void);
-	BOOL			HasNodes(void);
-	unsigned char	NumAllocatedNodes(void);
-	BOOL			ContainsIndex(unsigned char uiIndex);
-	void			SetNodesEmpty(BOOL bEmpty);
-	void			SetDirtyNode(BOOL bDirty);
-	void			SetDeletedNode(BOOL bDirty);
-	void			SetDirtyPath(BOOL bDirty);
-	void			SetDeletedPath(BOOL bDirty);
+	BOOL				HasFlags(unsigned char sFlags);
+	void				ClearFlags(unsigned char sFlags);
+	unsigned char		GetFirstIndex(void);
+	unsigned char		GetLastIndex(void);
+	BOOL				HasNodes(void);
+	unsigned char		NumAllocatedNodes(void);
+	BOOL				ContainsIndex(unsigned char uiIndex);
+	void				SetNodesEmpty(BOOL bEmpty);
+	void				SetDirtyNode(BOOL bDirty);
+	void				SetDeletedNode(BOOL bDirty);
+	void				SetDirtyPath(BOOL bDirty);
+	void				SetDeletedPath(BOOL bDirty);
 
-	void			ClearOnlyNode(unsigned char uiIndex, int iClearValue);
-	void			MoveNodesLeft(unsigned char uiNextFirstIndex);
-	void			MoveNodesRight(unsigned char uiNewFirstIndex, int iClearValue);
-	void			ClearLastNodes(unsigned char uiNewLastIndex, int iClearValue);
+	void				ClearOnlyNode(unsigned char uiIndex, int iClearValue);
+	void				MoveNodesLeft(unsigned char uiNextFirstIndex);
+	void				MoveNodesRight(unsigned char uiNewFirstIndex, int iClearValue);
+	void				ClearLastNodes(unsigned char uiNewLastIndex, int iClearValue);
 
-	size_t			SizeofNode(void);
-	size_t			SizeofNodePtr(void);
+	size_t				SizeofNodeAndData(void);  //Rename to SizeofNode.
+	size_t				SizeofNode(void);  //Remove this.
+	size_t				SizeofNodePtr(void);
 
-	void			Print(CChars* psz, BOOL bHex);
-	char*			GetFlagsString(CChars* psz);
+	void				Print(CChars* psz, BOOL bHex);
+	char*				GetFlagsString(CChars* psz);
 
-	size_t			CalculateRequiredNodeSizeForIndex(unsigned char uiIndex);
-	size_t			CalculateRequiredNodeSizeForEmpty(void);
-	size_t			CalculateRequiredNodeSizeForData(unsigned short uiDataSize);
-	size_t			CalculateRequiredNodeSizeForCurrent(void);
+	size_t				CalculateRequiredNodeSizeForIndex(unsigned char uiIndex);
+	size_t				CalculateRequiredNodeSizeForData(unsigned short uiDataSize);
+	size_t				CalculateRequiredNodeSizeForCurrent(void);
+
+protected:
+	void				ChangeDataSize(unsigned short uiSize);
 };
 
 

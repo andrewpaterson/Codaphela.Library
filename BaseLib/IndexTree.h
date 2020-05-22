@@ -21,13 +21,15 @@ protected:
 	EIndexKeyReverse	meReverseKey;
 	size_t				mtSizeofNode;
 	size_t				mtSizeofNodePtr;
+	size_t				mtSizeofDataNode;
 	int					miMaxDataSize;
 	int					miMaxKeySize;
 
 public:
-	BOOL				Init(CMallocator* pcMalloc, EIndexKeyReverse eKeyReverse, size_t tSizeofNode, size_t tSizeofNodePtr, int iMaxDataSize, int iMaxKeySize);
+	BOOL				Init(CMallocator* pcMalloc, EIndexKeyReverse eKeyReverse, size_t tSizeofNode, size_t tSizeofDataNode, size_t tSizeofNodePtr, int iMaxDataSize, int iMaxKeySize);
 
 	size_t				SizeofNode(void);
+	size_t				SizeofDataNode(void);
 	size_t				SizeofNodePtr(void);
 	EIndexKeyReverse	ReverseKeys(void);
 

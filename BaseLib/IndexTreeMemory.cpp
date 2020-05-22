@@ -39,7 +39,7 @@ void CIndexTreeMemory::Init(CMallocator* pcMalloc, EIndexKeyReverse eKeyReverse)
 //////////////////////////////////////////////////////////////////////////
 void CIndexTreeMemory::Init(CMallocator* pcMalloc, EIndexKeyReverse eKeyReverse, int iMaxDataSize, int	iMaxKeySize)
 {
-	CIndexTree::Init(pcMalloc, eKeyReverse, sizeof(CIndexTreeNodeMemory), sizeof(CIndexTreeNodeMemory*), iMaxDataSize, iMaxKeySize);
+	CIndexTree::Init(pcMalloc, eKeyReverse, sizeof(CIndexTreeNodeMemory), sizeof(CIndexTreeNodeMemory) + sizeof(CIndexTreeDataNode), sizeof(CIndexTreeNodeMemory*), iMaxDataSize, iMaxKeySize);
 	mpcRoot = AllocateRoot();
 	miSize = 0;
 }
@@ -52,7 +52,7 @@ void CIndexTreeMemory::FakeInit(EIndexKeyReverse eKeyReverse)
 {
 	//This exists so that TreeNodes can be tested without a full tree.  All they need to do is query the size of their child nodes.
 	//Kill should not be called.
-	CIndexTree::Init(NULL, eKeyReverse, sizeof(CIndexTreeNodeMemory), sizeof(CIndexTreeNodeMemory*), MAX_DATA_SIZE, MAX_KEY_SIZE);
+	CIndexTree::Init(NULL, eKeyReverse, sizeof(CIndexTreeNodeMemory), sizeof(CIndexTreeNodeMemory) + sizeof(CIndexTreeDataNode), sizeof(CIndexTreeNodeMemory*), MAX_DATA_SIZE, MAX_KEY_SIZE);
 	mpcRoot = NULL;
 	miSize = 0;
 }
@@ -125,7 +125,7 @@ CIndexTreeNodeMemory* CIndexTreeMemory::GetNodeForData(void* pvData)
 {
 	CIndexTreeNodeMemory*		psNode;
 
-	psNode = DataGetHeader<CIndexTreeNodeMemory, void>(pvData);
+	psNode = (CIndexTreeNodeMemory*)RemapSinglePointer(pvData, -((int)mtSizeofDataNode));
 	return psNode;
 }
 
@@ -212,10 +212,10 @@ void* CIndexTreeMemory::Put(void* pvKey, int iKeySize, void* pvData, int iDataSi
 	CIndexTreeNodeMemory*	pcCurrent;
 	CIndexTreeNodeMemory*	pcReallocatedCurrent;
 	unsigned char			c;
-	unsigned short			uiOriginalSize;
 	int						i;
 	BOOL					bExecute;
 	unsigned short			uiDataSize;
+	unsigned short			uiOldDataSize;
 
 	if ((iKeySize <= 0) || (iKeySize > miMaxKeySize))
 	{
@@ -244,16 +244,14 @@ void* CIndexTreeMemory::Put(void* pvKey, int iKeySize, void* pvData, int iDataSi
 		miSize++;
 	}
 
-	if (uiDataSize > pcCurrent->GetDataSize())
+	uiOldDataSize = pcCurrent->GetDataSize();
+	if (uiDataSize > uiOldDataSize)
 	{ 
-		pcReallocatedCurrent = ReallocateNodeForLargerData(pcCurrent, uiDataSize);
-		pcReallocatedCurrent->SetData(pvData, uiDataSize);
+		pcReallocatedCurrent = ReallocateNodeForLargerData(pcCurrent, pvData, uiDataSize);
 	}
-	else if (uiDataSize < pcCurrent->GetDataSize())
+	else if (uiDataSize < uiOldDataSize)
 	{
-		uiOriginalSize = pcCurrent->GetDataSize();
-		pcCurrent->SetData(pvData, uiDataSize);
-		pcReallocatedCurrent = ReallocateNodeForSmallerData(pcCurrent, uiOriginalSize);
+		pcReallocatedCurrent = ReallocateNodeForSmallerData(pcCurrent, pvData, uiDataSize);
 	}
 	else
 	{
@@ -264,11 +262,6 @@ void* CIndexTreeMemory::Put(void* pvKey, int iKeySize, void* pvData, int iDataSi
 	if (pcReallocatedCurrent == NULL)
 	{
 		return NULL;
-	}
-	//The new / old data sizes being different does not imply that the node will have been reallocated.  Always best to check.
-	if (pcCurrent != pcReallocatedCurrent)
-	{
-		pcReallocatedCurrent->SetChildsParent();
 	}
 
 	return pcReallocatedCurrent->GetDataPtr();
@@ -295,15 +288,22 @@ CIndexTreeNodeMemory* CIndexTreeMemory::ReallocateNodeForIndex(CIndexTreeNodeMem
 
 	pcOldNode = pcNode;
 	pcNode = (CIndexTreeNodeMemory*)Realloc(pcNode, tNewNodeSize, tOldNodeSize);
-	pcNode->Contain(uiIndex);
-
-	RemapChildParents(pcOldNode, pcNode);
-	if (pcOldNode != pcNode)
+	if (pcNode)
 	{
-		pcNode->SetChildsParent();
-	}
+		pcNode->Contain(uiIndex);
 
-	return pcNode;
+		RemapChildParents(pcOldNode, pcNode);
+		if (pcOldNode != pcNode)
+		{
+			pcNode->SetChildsParent();
+		}
+
+		return pcNode;
+	}
+	else
+	{
+		return NULL;
+	}
 }
 
 
@@ -311,15 +311,32 @@ CIndexTreeNodeMemory* CIndexTreeMemory::ReallocateNodeForIndex(CIndexTreeNodeMem
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTreeNodeMemory* CIndexTreeMemory::ReallocateNodeForLargerData(CIndexTreeNodeMemory* pcNode, unsigned short uiDataSize)
+CIndexTreeNodeMemory* CIndexTreeMemory::ReallocateNodeForLargerData(CIndexTreeNodeMemory* pcNode, void* pvData, unsigned short uiDataSize)
 {
 	size_t					tNewNodeSize;
 	size_t					tOldNodeSize;
+	CIndexTreeNodeMemory*	pcOldNode;
 
 	tOldNodeSize = pcNode->CalculateRequiredNodeSizeForCurrent();
 	tNewNodeSize = pcNode->CalculateRequiredNodeSizeForData(uiDataSize);
 
-	return ReallocateNodeForData(pcNode, tNewNodeSize, tOldNodeSize);
+	pcOldNode = pcNode;
+	pcNode = (CIndexTreeNodeMemory*)Realloc(pcNode, tNewNodeSize, tOldNodeSize);
+	if (pcNode)
+	{
+		pcNode->SetData(pvData, uiDataSize);
+
+		RemapChildParents(pcOldNode, pcNode);
+		if (pcOldNode != pcNode)
+		{
+			pcNode->SetChildsParent();
+		}
+		return pcNode;
+	}
+	else
+	{
+		return NULL;
+	}
 }
 
 
@@ -327,15 +344,34 @@ CIndexTreeNodeMemory* CIndexTreeMemory::ReallocateNodeForLargerData(CIndexTreeNo
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTreeNodeMemory* CIndexTreeMemory::ReallocateNodeForSmallerData(CIndexTreeNodeMemory* pcNode, unsigned short uiOriginalSize)
+CIndexTreeNodeMemory* CIndexTreeMemory::ReallocateNodeForSmallerData(CIndexTreeNodeMemory* pcNode, void* pvData, unsigned short uiDataSize)
 {
 	size_t					tNewNodeSize;
 	size_t					tOldNodeSize;
+	CIndexTreeNodeMemory*	pcOldNode;
+	unsigned short			uiOriginalSize;
+
+	uiOriginalSize = pcNode->GetDataSize();
+	pcNode->SetData(pvData, uiDataSize);
 
 	tOldNodeSize = pcNode->CalculateRequiredNodeSizeForData(uiOriginalSize);
 	tNewNodeSize = pcNode->CalculateRequiredNodeSizeForCurrent();
+	pcOldNode = pcNode;
+	pcNode = (CIndexTreeNodeMemory*)Realloc(pcNode, tNewNodeSize, tOldNodeSize);
 
-	return ReallocateNodeForData(pcNode, tNewNodeSize, tOldNodeSize);
+	if (pcNode)
+	{
+		RemapChildParents(pcOldNode, pcNode);
+		if (pcOldNode != pcNode)
+		{
+			pcNode->SetChildsParent();
+		}
+		return pcNode;
+	}
+	else
+	{
+		return NULL;
+	}
 }
 
 
@@ -343,15 +379,19 @@ CIndexTreeNodeMemory* CIndexTreeMemory::ReallocateNodeForSmallerData(CIndexTreeN
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTreeNodeMemory* CIndexTreeMemory::ReallocateNodeForData(CIndexTreeNodeMemory* pcNode, size_t tNewNodeSize, size_t tOldNodeSize)
+CIndexTreeNodeMemory* CIndexTreeMemory::ReallocateNodeForRemove(CIndexTreeNodeMemory* pcNode, size_t tNewNodeSize, size_t tOldNodeSize)
 {
-	CIndexTreeNodeMemory*	pcOldNode;
+	CIndexTreeNodeMemory* pcOldNode;
 
 	pcOldNode = pcNode;
 	pcNode = (CIndexTreeNodeMemory*)Realloc(pcNode, tNewNodeSize, tOldNodeSize);
 	if (pcNode)
 	{
 		RemapChildParents(pcOldNode, pcNode);
+		if (pcOldNode != pcNode)
+		{
+			pcNode->SetChildsParent();
+		}
 		return pcNode;
 	}
 	else
@@ -446,41 +486,36 @@ BOOL CIndexTreeMemory::Remove(CIndexTreeNodeMemory*	pcCurrent)
 {
 	unsigned char			c;
 	CIndexTreeNodeMemory*	pcParent;
-	CIndexTreeNodeMemory*	pcOldParent;
 	CIndexTreeNodeMemory*	pcNode;
-	void*					pvData;
 	BOOL					bResizeNode;
 	size_t					tNewNodeSize;
 	size_t					tOldNodeSize;
+	unsigned short			uiOldDataSize;
 
-	if (pcCurrent->GetDataSize() == 0)
+	uiOldDataSize = pcCurrent->GetDataSize();
+	if (uiOldDataSize == 0)
 	{
 		return FALSE;
 	}
 
-	pvData = ((void**) pcCurrent->GetDataPtr());
+	pcNode = ReallocateNodeForSmallerData(pcCurrent, NULL, 0);
 
-	pcNode = pcCurrent;
 	pcParent = (CIndexTreeNodeMemory*)pcNode->GetParent();
-	pcCurrent->ClearData();
 	for (;;)
 	{
 		c = pcNode->GetIndexInParent();
 
 		if (pcNode->IsEmpty())
 		{
-			tOldNodeSize = pcParent->CalculateRequiredNodeSizeForCurrent();
 			if (pcParent != mpcRoot)
 			{
 				bResizeNode = pcParent->ClearAndUncontain(c);
 				if (bResizeNode)
 				{
+					tOldNodeSize = pcParent->CalculateRequiredNodeSizeForCurrent();
 					tNewNodeSize = pcParent->CalculateRequiredNodeSizeForCurrent();
-					pcOldParent = pcParent;
 
-					pcParent = (CIndexTreeNodeMemory*)Realloc(pcParent, tNewNodeSize, tOldNodeSize);
-					pcParent->SetChildsParent();
-					RemapChildParents(pcOldParent, pcParent);
+					ReallocateNodeForRemove(pcParent, tNewNodeSize, tOldNodeSize);
 				}
 			}
 			else

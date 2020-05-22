@@ -125,7 +125,6 @@ void CIndexTreeNodeMemory::RemapChildNodes(CIndexTreeNodeMemory* pcOldNode, CInd
 	CIndexTreeNodeMemory**	apcChildren;
 
 	apcChildren = GetNodes();
-
 	iNumNodes = NumIndexes();
 	for (i = 0; i < iNumNodes; i++)
 	{
@@ -134,6 +133,11 @@ void CIndexTreeNodeMemory::RemapChildNodes(CIndexTreeNodeMemory* pcOldNode, CInd
 			apcChildren[i] = pcNewNode;
 		}
 	}
+
+	//CIndexTreeNodeMemory** apcChildren;
+
+	//apcChildren = GetNodes();
+	//apcChildren[pcNewNode->muiIndexInParent] = pcNewNode;
 }
 
 
@@ -245,10 +249,12 @@ BOOL CIndexTreeNodeMemory::Uncontain(unsigned char uiIndex)
 	{
 		return FALSE;
 	}
-	else if (muiFirstIndex == muiLastIndex)
+
+	if (muiFirstIndex == muiLastIndex)
 	{
 		SetNodesEmpty(TRUE);
-		ClearOnlyNode(0, 0);
+		muiFirstIndex = 0;
+		muiLastIndex = 0;
 		return TRUE;
 	}
 
@@ -256,12 +262,16 @@ BOOL CIndexTreeNodeMemory::Uncontain(unsigned char uiIndex)
 	{
 		uiNextFirstIndex = FindNextFirstIndex();
 		MoveNodesLeft(uiNextFirstIndex);
+		return TRUE;
 	}
-	else if (uiIndex == muiLastIndex)
+	
+	if (uiIndex == muiLastIndex)
 	{
 		muiLastIndex = FindPrevLastIndex();
+		return TRUE;
 	}
-	return TRUE;
+
+	return FALSE;
 }
 
 
