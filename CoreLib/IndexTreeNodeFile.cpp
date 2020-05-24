@@ -518,6 +518,7 @@ int CIndexTreeNodeFile::WriteToBuffer(void* pvBuffer, int iBufferSize, CIndexTre
 	void*					pvSourceData;
 	int						iFileDataSize;
 	int						iNodeSize;
+	unsigned short			uiDataSize;
 
 	iFileDataSize = CalculateDataBufferSize(pcCallback);
 	iNodeSize = CalculateNodeSize();
@@ -530,10 +531,11 @@ int CIndexTreeNodeFile::WriteToBuffer(void* pvBuffer, int iBufferSize, CIndexTre
 
 	pucMemory = (unsigned char*)pvBuffer;
 	iPos = 0;
+	uiDataSize = GetDataSize();
 
 	*((int*)&pucMemory[iPos]) = iFileSize;  iPos += sizeof(int);
 	*((int*)&pucMemory[iPos]) = iFileDataSize;  iPos += sizeof(int);
-	*((short*)&pucMemory[iPos]) = muiDataSize;  iPos += sizeof(unsigned short);
+	*((short*)&pucMemory[iPos]) = uiDataSize;  iPos += sizeof(unsigned short);
 
 	pucMemory[iPos] = muiFirstIndex;  iPos += sizeof(unsigned char);
 	pucMemory[iPos] = muiLastIndex;  iPos += sizeof(unsigned char);
@@ -544,7 +546,7 @@ int CIndexTreeNodeFile::WriteToBuffer(void* pvBuffer, int iBufferSize, CIndexTre
 	if (pvSourceData != NULL)
 	{
 		pvDataBuffer = &pucMemory[iPos];
-		pcCallback->IndexTreeWriteData(pvDataBuffer, pvSourceData, iFileDataSize, muiDataSize);
+		pcCallback->IndexTreeWriteData(pvDataBuffer, pvSourceData, iFileDataSize, uiDataSize);
 		iPos += iFileDataSize;
 	}
 
@@ -591,6 +593,7 @@ int CIndexTreeNodeFile::InitFromBuffer(void* pvBuffer, int iMaxBufferSize, CInde
 	unsigned char			uiIndexInParent;
 	void*					pvDest;
 	int						iFileDataSize;
+	unsigned short			uiDataSize;
 
 	pucMemory = (unsigned char*)pvBuffer;
 	iPos = 0;
@@ -603,7 +606,7 @@ int CIndexTreeNodeFile::InitFromBuffer(void* pvBuffer, int iMaxBufferSize, CInde
 	}
 
 	iFileDataSize = *((int*)&pucMemory[iPos]);  iPos += sizeof(int);
-	muiDataSize = *((unsigned short*)&pucMemory[iPos]);  iPos += sizeof(unsigned short);
+	uiDataSize = *((unsigned short*)&pucMemory[iPos]);  iPos += sizeof(unsigned short);
 
 	uiFirstIndex = pucMemory[iPos];  iPos++;
 	uiLastIndex = pucMemory[iPos];  iPos++;
@@ -619,7 +622,7 @@ int CIndexTreeNodeFile::InitFromBuffer(void* pvBuffer, int iMaxBufferSize, CInde
 	pvDest = GetDataPtr();
 	if (pvDest != NULL)
 	{
-		pcCallback->IndexTreeReadData(pvDest, &pucMemory[iPos], muiDataSize, iFileDataSize);
+		pcCallback->IndexTreeReadData(pvDest, &pucMemory[iPos], uiDataSize, iFileDataSize);
 		iPos += iFileDataSize;
 	}
 
