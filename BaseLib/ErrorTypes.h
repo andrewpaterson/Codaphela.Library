@@ -53,6 +53,7 @@ extern TRISTATE	gTriState;
 #define ReturnOnFalse(p)				if (p == TRIFALSE) { return TRIFALSE; }
 #define ReturnOnTrue(p)					if (p == TRITRUE)  { return TRITRUE; }
 #define ReturnErrorOnFalse(p)			if (p == TRIFALSE) { return TRIERROR; }
+#define ReturnNullOnFalse(p)			if (p == TRIFALSE) { return NULL; }
 #define ReturnFalseOnError(p)			if (p == TRIERROR) { return TRIFALSE; }
 #define ReturnFalseOnErrorAndFalse(p)	TTV(__LINE__) = p;  if ((TTV(__LINE__) == TRIERROR) || (TTV(__LINE__) == TRIFALSE)) { return TRIFALSE; }
 #define ReturnErrorOnErrorAndFalse(p)	TTV(__LINE__) = p;  if ((TTV(__LINE__) == TRIERROR) || (TTV(__LINE__) == TRIFALSE)) { return TRIERROR; }
@@ -64,7 +65,7 @@ extern TRISTATE	gTriState;
 TRISTATE Negate(TRISTATE tristate);
 TRISTATE Fix(TRISTATE tristate);
 
-//Not specifically TRISTATE related but errors none the less.
+//Not specifically TRISTATE related but errors nonetheless.
 #define ReturnZeroOnZero(p)				if (p == 0)  { return 0; }
 #define ReturnMinusOneOnMinusOne(p)		if (p == -1)  { return -1; }
 

@@ -116,6 +116,26 @@ void CIndexTree::FreeNode(CIndexTreeNode* pcNode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL CIndexTree::ValidatePut(int iKeySize, int iDataSize)
+{
+	if ((iKeySize <= 0) || (iKeySize > miMaxKeySize))
+	{
+		gcLogger.Error2(__METHOD__, "Key size [", IntToString(iKeySize), "] must be positive and <= [", IntToString(miMaxKeySize), "].", NULL);
+		return FALSE;
+	}
+	if ((iDataSize <= 0) || (iDataSize > miMaxDataSize))
+	{
+		gcLogger.Error2(__METHOD__, "Data size [", IntToString(iDataSize), "] must be positive and <= [", IntToString(miMaxDataSize), "].", NULL);
+		return FALSE;
+	}
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 size_t CIndexTree::CalculateRootNodeSize(void)
 {
 	return CalculateNodeSize(MAX_UCHAR + 1, 0);

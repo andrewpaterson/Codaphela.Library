@@ -267,7 +267,7 @@ BOOL CIndexTreeNodeMemory::Uncontain(unsigned char uiIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNodeMemory::SetChildsParent(void)
+void CIndexTreeNodeMemory::SetChildrensParent(void)
 {
 	int						i;
 	int						iNumNodes;

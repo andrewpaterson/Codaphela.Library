@@ -63,9 +63,12 @@ protected:
 	CIndexTreeNodeMemory*	ReallocateNodeForSmallerData(CIndexTreeNodeMemory* pcNode, void* pvData, unsigned short uiDataSize);
 	CIndexTreeNodeMemory*	ReallocateNodeForRemove(CIndexTreeNodeMemory* pcNode, size_t tNewNodeSize, size_t tOldNodeSize);
 
+	CIndexTreeNodeMemory*	GetOrAllocateKey(void* pvKey, int iKeySize);
+	CIndexTreeNodeMemory*	SetNodeData(CIndexTreeNodeMemory* pcCurrent, void* pvData, unsigned short uiDataSize);
+
 	void					RemapChildParents(CIndexTreeNodeMemory* pcOldNode, CIndexTreeNodeMemory* pcNode);
 
-	CIndexTreeNodeMemory*	SetOldWithCurrent(CIndexTreeNodeMemory* pcParent, unsigned char c);
+	CIndexTreeNodeMemory*	SetOldWithCurrent(CIndexTreeNodeMemory* pcParent, unsigned char uiIndexInParent);
 	void					RecurseFindAll(CIndexTreeNodeMemory* pcNode, CArrayVoidPtr* papvElements);
 	int						RecurseSize(CIndexTreeNodeMemory* pcNode);
 	int						RecurseNumNodes(CIndexTreeNodeMemory* pcNode);

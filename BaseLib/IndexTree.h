@@ -41,6 +41,8 @@ protected:
 	void*				Realloc(void* pv, size_t tNewSize, size_t tExistingSize);
 	void				Free(void* pv);
 
+	BOOL				ValidatePut(int iKeySize, int iDataSize);
+
 	void				FreeNode(CIndexTreeNode* pcNode);
 
 	BOOL				StartKey(int* pi, int iKeySize);

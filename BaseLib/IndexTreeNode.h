@@ -44,6 +44,7 @@ public:
 	void				Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent, unsigned char uiIndexInParent);
 
 	void				SetData(void* pvObject, unsigned short uiSize);
+	void				RemoveData(void);
 
 	unsigned short		GetDataSize(void);
 	CIndexTreeDataNode* GetNodeData(void);
