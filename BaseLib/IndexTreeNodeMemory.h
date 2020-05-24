@@ -29,7 +29,7 @@ public:
 	unsigned char			FindNextFirstIndex(void);
 	unsigned char			FindIndex(CIndexTreeNodeMemory* pcChild);
 
-	void					SetChildsParent(void);
+	void					SetChildrensParent(void);
 
 	BOOL					ValidateNodesEmpty(void);
 	void					Print(CChars* psz, BOOL bHex);

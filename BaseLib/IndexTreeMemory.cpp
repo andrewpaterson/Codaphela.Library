@@ -210,27 +210,40 @@ void* CIndexTreeMemory::Get(void* pvKey, int iKeySize, int* piDataSize)
 void* CIndexTreeMemory::Put(void* pvKey, int iKeySize, void* pvData, int iDataSize)
 {
 	CIndexTreeNodeMemory*	pcCurrent;
-	CIndexTreeNodeMemory*	pcReallocatedCurrent;
-	unsigned char			c;
-	int						i;
-	BOOL					bExecute;
 	unsigned short			uiDataSize;
-	unsigned short			uiOldDataSize;
 
-	if ((iKeySize <= 0) || (iKeySize > miMaxKeySize))
-	{
-		gcLogger.Error2(__METHOD__, " Key size [", IntToString(iKeySize), "] must be positive and <= [", IntToString(miMaxKeySize), "].", NULL);
-		return NULL;
-	}
-	if ((iDataSize <= 0) || (iDataSize > miMaxDataSize))
-	{
-		gcLogger.Error2(__METHOD__, " Data size [", IntToString(iDataSize), "] must be positive and <= [", IntToString(miMaxDataSize), "].", NULL);
-		return NULL;
-	}
+	ReturnNullOnFalse(ValidatePut(iKeySize, iDataSize));
 
 	uiDataSize = (unsigned short)iDataSize;
-	pcCurrent = mpcRoot;
 
+	pcCurrent = GetOrAllocateKey(pvKey, iKeySize);
+
+	if (!pcCurrent->HasData())
+	{
+		miSize++;
+	}
+
+	pcCurrent = SetNodeData(pcCurrent, pvData, uiDataSize);
+	if (pcCurrent == NULL)
+	{
+		return NULL;
+	}
+	return pcCurrent->GetDataPtr();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CIndexTreeNodeMemory* CIndexTreeMemory::GetOrAllocateKey(void* pvKey, int iKeySize)
+{
+	CIndexTreeNodeMemory*	pcCurrent;
+	unsigned char			c;
+	BOOL					bExecute;
+	int						i;
+
+	pcCurrent = mpcRoot;
 	bExecute = StartKey(&i, iKeySize);
 	while (bExecute)
 	{
@@ -238,15 +251,21 @@ void* CIndexTreeMemory::Put(void* pvKey, int iKeySize, void* pvData, int iDataSi
 		pcCurrent = SetOldWithCurrent(pcCurrent, c);
 		bExecute = LoopKey(&i, iKeySize);
 	}
+	return pcCurrent;
+}
 
-	if (!pcCurrent->HasData())
-	{
-		miSize++;
-	}
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CIndexTreeNodeMemory* CIndexTreeMemory::SetNodeData(CIndexTreeNodeMemory* pcCurrent, void* pvData, unsigned short uiDataSize)
+{
+	CIndexTreeNodeMemory*	pcReallocatedCurrent;
+	unsigned short			uiOldDataSize;
 
 	uiOldDataSize = pcCurrent->GetDataSize();
 	if (uiDataSize > uiOldDataSize)
-	{ 
+	{
 		pcReallocatedCurrent = ReallocateNodeForLargerData(pcCurrent, pvData, uiDataSize);
 	}
 	else if (uiDataSize < uiOldDataSize)
@@ -264,7 +283,7 @@ void* CIndexTreeMemory::Put(void* pvKey, int iKeySize, void* pvData, int iDataSi
 		return NULL;
 	}
 
-	return pcReallocatedCurrent->GetDataPtr();
+	return pcReallocatedCurrent;
 }
 
 
@@ -399,7 +418,7 @@ void CIndexTreeMemory::RemapChildParents(CIndexTreeNodeMemory* pcOldNode, CIndex
 		{
 			pcParent->RemapChildNodes(pcOldNode, pcNode);
 		}
-		pcNode->SetChildsParent();
+		pcNode->SetChildrensParent();
 	}
 }
 
@@ -408,23 +427,23 @@ void CIndexTreeMemory::RemapChildParents(CIndexTreeNodeMemory* pcOldNode, CIndex
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTreeNodeMemory* CIndexTreeMemory::SetOldWithCurrent(CIndexTreeNodeMemory* pcParent, unsigned char c)
+CIndexTreeNodeMemory* CIndexTreeMemory::SetOldWithCurrent(CIndexTreeNodeMemory* pcParent, unsigned char uiIndexInParent)
 {
 	CIndexTreeNodeMemory* pcNew;
-	CIndexTreeNodeMemory* pcCurrent;
+	CIndexTreeNodeMemory* pcChildNodeOnParent;
 	CIndexTreeNodeMemory* pcReallocedParent;
 
-	pcCurrent = pcParent->Get(c);
-	if (pcCurrent == NULL)
+	pcChildNodeOnParent = pcParent->Get(uiIndexInParent);
+	if (pcChildNodeOnParent == NULL)
 	{
-		pcReallocedParent = ReallocateNodeForIndex(pcParent, c);
-		pcNew = AllocateNode(pcReallocedParent, c);
-		pcReallocedParent->Set(c, pcNew);
+		pcReallocedParent = ReallocateNodeForIndex(pcParent, uiIndexInParent);
+		pcNew = AllocateNode(pcReallocedParent, uiIndexInParent);
+		pcReallocedParent->Set(uiIndexInParent, pcNew);
 		return pcNew;
 	}
 	else
 	{
-		return pcCurrent;
+		return pcChildNodeOnParent;
 	}
 }
 

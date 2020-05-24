@@ -484,7 +484,10 @@ size_t CIndexTreeNodeFile::CalculateNodeSize(void)
 //////////////////////////////////////////////////////////////////////////
 size_t CIndexTreeNodeFile::CalculateDataBufferSize(CIndexTreeFileCallback* pcCallback)
 {
-	return pcCallback->IndexTreeDataSize(muiDataSize);
+	unsigned short uiDataSize;
+
+	uiDataSize = GetDataSize();
+	return pcCallback->IndexTreeDataSize(uiDataSize);
 }
 
 
