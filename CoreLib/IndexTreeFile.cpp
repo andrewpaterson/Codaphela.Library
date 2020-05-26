@@ -406,7 +406,15 @@ CIndexTreeNodeFile* CIndexTreeFile::AllocateNodeFromBuffer(CIndexTreeNodeFile* p
 	tSize = CalculateNodeSize(iNumNodes, uiDataSize);
 
 	pcNode = (CIndexTreeNodeFile*)Malloc(tSize);
-	pcNode->Init(this, pcParent, uiFirstIndex, uiLastIndex, uiIndexInParent);
+	if (uiDataSize == 0)
+	{
+		pcNode->Init(this, pcParent, uiFirstIndex, uiLastIndex, uiIndexInParent);
+	}
+	else
+	{
+		pcNode->Init(this, pcParent, uiFirstIndex, uiLastIndex, uiDataSize, uiIndexInParent);
+	}
+	
 	iBufferRead = pcNode->InitFromBuffer(pvBuffer, iMaxBufferSize, mpcDataCallback);
 	if (iBufferRead > 0)
 	{
@@ -821,7 +829,7 @@ CIndexTreeNodeFile* CIndexTreeFile::ReallocateNodeForContainIndex(CIndexTreeNode
 	pcOldNode = pcNode;
 	pcNode = (CIndexTreeNodeFile*)Realloc(pcNode, tNewNodeSize, tOldNodeSize);
 
-	pcNode->Contain(uiIndex);
+	pcNode->Contain(uiIndex, INDEX_TREE_FILE_NODE_UNALLOCATED);
 	pcNode->SetDirtyNode(TRUE);
 
 	RemapChildParents(pcOldNode, pcNode);
@@ -1069,8 +1077,6 @@ CIndexTreeNodeFile* CIndexTreeFile::RemoveWriteThrough(CIndexTreeNodeFile* pcCur
 	unsigned char			c;
 	CIndexTreeNodeFile*		pcParent;
 	CIndexTreeNodeFile*		pcNode;
-	void*					pvData;
-	size_t					tOldNodeSize;
 	BOOL					bResult;
 	BOOL					bDirty;
 
@@ -1081,10 +1087,8 @@ CIndexTreeNodeFile* CIndexTreeFile::RemoveWriteThrough(CIndexTreeNodeFile* pcCur
 
 	bResult = TRUE;
 
-	pvData = ((void**)pcCurrent->GetDataPtr());
-	pcNode = pcCurrent;
+	pcNode = ReallocateNodeForSmallerData(pcCurrent, NULL, 0);
 
-	pcNode->RemoveData();
 	pcNode->SetDirtyNode(TRUE);
 	while (pcNode)
 	{
@@ -1093,10 +1097,9 @@ CIndexTreeNodeFile* CIndexTreeFile::RemoveWriteThrough(CIndexTreeNodeFile* pcCur
 
 		if (pcNode->IsEmpty())
 		{
-			tOldNodeSize = pcParent->CalculateRequiredNodeSizeForCurrent();
 			if (pcParent != mpcRoot)
 			{
-				pcParent = ReallocateNodeForUncontainIndex(pcParent, c, tOldNodeSize);  //Sets parent dirty.
+				pcParent = ReallocateNodeForUncontainIndex(pcParent, c);  //Sets parent dirty.
 			}
 			else
 			{
@@ -1131,24 +1134,22 @@ CIndexTreeNodeFile* CIndexTreeFile::RemoveWriteThrough(CIndexTreeNodeFile* pcCur
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTreeNodeFile* CIndexTreeFile::ReallocateNodeForUncontainIndex(CIndexTreeNodeFile* pcNode, unsigned char c, size_t tOldNodeSize)
+CIndexTreeNodeFile* CIndexTreeFile::ReallocateNodeForUncontainIndex(CIndexTreeNodeFile* pcNode, unsigned char c)
 {
 	CIndexTreeNodeFile*		pcOldNode;
 	BOOL					bResizeNode;
 	size_t					tNewNodeSize;
+	size_t					tOldNodeSize;
 
 	bResizeNode = pcNode->ClearIndexAndUncontain(c);
 	if (bResizeNode)
 	{
+		tOldNodeSize = pcNode->CalculateRequiredNodeSizeForCurrent();
 		tNewNodeSize = pcNode->CalculateRequiredNodeSizeForCurrent();
 		pcOldNode = pcNode;
 
 		pcNode = (CIndexTreeNodeFile*)Realloc(pcNode, tNewNodeSize, tOldNodeSize);
-		if (pcOldNode != pcNode)
-		{
-			pcNode->SetChildrensParent();
-			RemapChildParents(pcOldNode, pcNode);
-		}
+		RemapChildParents(pcOldNode, pcNode);
 	}
 	pcNode->SetDirtyNode(TRUE);
 

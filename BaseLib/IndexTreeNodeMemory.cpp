@@ -60,7 +60,7 @@ void CIndexTreeNodeMemory::Set(unsigned char uiIndex, CIndexTreeNodeMemory* pcNo
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNodeMemory::Clear(unsigned char uiIndex)
+void CIndexTreeNodeMemory::ClearIndex(unsigned char uiIndex)
 {
 	CIndexTreeNodeMemory**	apcChildren;
 
@@ -168,7 +168,7 @@ unsigned char CIndexTreeNodeMemory::FindPrevLastIndex(void)
 		pcChild = apcChildren[i];
 		if (pcChild != NULL)
 		{
-			return muiFirstIndex + (unsigned char)i;
+			return muiFirstIndex + i;
 		}
 	}
 	return muiFirstIndex;
@@ -197,31 +197,6 @@ unsigned char CIndexTreeNodeMemory::FindIndex(CIndexTreeNodeMemory* pcChild)
 
 	//This should never be hit.
 	return 0;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CIndexTreeNodeMemory::Contain(unsigned char uiIndex)
-{
-	//Contain assumes that the memory this node resides in has already been sized large enough.
-	if (!HasNodes())
-	{
-		SetNodesEmpty(FALSE);
-		ClearOnlyNode(uiIndex, 0);
-		return;
-	}
-
-	if (uiIndex < muiFirstIndex)
-	{
-		MoveNodesRight(uiIndex, 0);
-	}
-	else if (uiIndex > muiLastIndex)
-	{
-		ClearLastNodes(uiIndex, 0);
-	}
 }
 
 

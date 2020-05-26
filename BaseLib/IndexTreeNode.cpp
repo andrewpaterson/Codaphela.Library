@@ -19,14 +19,13 @@ void CIndexTreeNode::Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent, uns
 	muiIndexInParent = uiIndexInParent;
 	mpcParent = pcParent;
 
-	tSize = (uiLastIndex - uiFirstIndex + 1) * SizeofNodePtr();
-	memset(GetNodesMemory(), iClearValue, tSize);
-
 	if (uiDataSize != 0)
 	{
 		SetData(TRUE);
 		GetNodeData()->Init(uiDataSize);
 	}
+	tSize = (uiLastIndex - uiFirstIndex + 1) * SizeofNodePtr();
+	memset(GetNodesMemory(), iClearValue, tSize);
 }
 
 
@@ -251,6 +250,32 @@ size_t CIndexTreeNode::CalculateRequiredNodeSizeForCurrent(void)
 	tSize = mpcIndexTree->CalculateNodeSize(iExistingIndices, GetDataSize());
 
 	return tSize;
+}
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexTreeNode::Contain(unsigned char uiIndex, int iClearValue)
+{
+	//Contain assumes that the memory this node resides in has already been sized large enough.
+	if (!HasNodes())
+	{
+		SetNodesEmpty(FALSE);
+		ClearOnlyNode(uiIndex, iClearValue);
+		return;
+	}
+
+	if (uiIndex < muiFirstIndex)
+	{
+		MoveNodesRight(uiIndex, iClearValue);
+	}
+	else if (uiIndex > muiLastIndex)
+	{
+		ClearLastNodes(uiIndex, iClearValue);
+	}
 }
 
 
@@ -644,19 +669,6 @@ void CIndexTreeNode::SetData(void* pvData, unsigned short uiDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNode::RemoveData(void)
-{
-	if (GetDataSize() > 0)
-	{
-		ChangeDataSize(0);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CIndexTreeNode::ChangeDataSize(unsigned short uiSize)
 {
 	size_t				tIndexSize;
@@ -773,8 +785,8 @@ char* CIndexTreeNode::GetFlagsString(CChars* psz)
 	bAppendComma |= psz->AppendFlag(msFlags, INDEX_TREE_NODE_FLAG_DIRTY_PATH, "DIRTY_PATH", bAppendComma);
 	bAppendComma |= psz->AppendFlag(msFlags, INDEX_TREE_NODE_FLAG_DELETED_NODE, "DELETED_NODE", bAppendComma);
 	bAppendComma |= psz->AppendFlag(msFlags, INDEX_TREE_NODE_FLAG_DELETED_PATH, "DELETED_PATH", bAppendComma);
+	bAppendComma |= psz->AppendFlag(msFlags, INDEX_TREE_NODE_FLAG_DATA, "HAS_DATA", bAppendComma);
 	bAppendComma |= psz->AppendFlag(msFlags, INDEX_TREE_NODE_FLAG_NODES_EMPTY, "NODES_EMPTY", bAppendComma);
-	bAppendComma |= psz->AppendFlag(msFlags, INDEX_TREE_NODE_FLAG_DATA, "DATA", bAppendComma);
 	return psz->Text();
 }
 

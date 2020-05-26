@@ -21,7 +21,7 @@ public:
 
 	int						InitFromBuffer(void* pvBuffer, int iMaxBufferSize, CIndexTreeFileCallback* pcCallback);
 
-	void					SetFileIndex(int iFile,  unsigned int uiIndex);
+	void					SetFileIndex(int iFile, unsigned int uiIndex);
 	CFileDataIndex*			GetFileIndex(void);
 
 	CIndexTreeChildNode*	Get(unsigned char uiIndex);
@@ -36,9 +36,6 @@ public:
 	CIndexTreeChildNode*	GetFirstNode(void);
 	int						NumValidIndexes(void);
 	int						NumMemoryIndexes(void);
-
-	void					Contain(unsigned char uiIndex);
-	BOOL					Uncontain(unsigned char uiIndex);
 
 	void					RemapChildNodes(CIndexTreeNodeFile* pcOldNode, CIndexTreeNodeFile* pcNewNode);
 
@@ -62,6 +59,9 @@ public:
 	BOOL					ValidateNodesEmpty(void);
 	void					Print(CChars* psz, BOOL bHex);
 	void					Dump(void);
+
+protected:
+	BOOL					Uncontain(unsigned char uiIndex);
 };
 
 

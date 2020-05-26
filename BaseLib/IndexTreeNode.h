@@ -44,7 +44,6 @@ public:
 	void				Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent, unsigned char uiIndexInParent);
 
 	void				SetData(void* pvObject, unsigned short uiSize);
-	void				RemoveData(void);
 
 	unsigned short		GetDataSize(void);
 	CIndexTreeDataNode* GetNodeData(void);
@@ -83,6 +82,7 @@ public:
 	void				SetDirtyPath(BOOL bDirty);
 	void				SetDeletedPath(BOOL bDirty);
 
+	void				Contain(unsigned char uiIndex, int iClearValue);
 	void				ClearOnlyNode(unsigned char uiIndex, int iClearValue);
 	void				MoveNodesLeft(unsigned char uiNextFirstIndex);
 	void				MoveNodesRight(unsigned char uiNewFirstIndex, int iClearValue);
