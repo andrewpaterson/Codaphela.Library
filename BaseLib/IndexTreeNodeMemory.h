@@ -12,16 +12,13 @@ public:
 	CIndexTreeNodeMemory*	Get(unsigned char uiIndex);
 	void					Set(unsigned char uiIndex, CIndexTreeNodeMemory* pcNode);
 
-	void					Clear(unsigned char uiIndex);
+	void					ClearIndex(unsigned char uiIndex);
 	BOOL					ClearAndUncontain(unsigned char uiIndex);
 
 	CIndexTreeNodeMemory*	GetNode(int i);
 	CIndexTreeNodeMemory**	GetNodes(void);
 	int						NumValidIndexes(void);
 	CIndexTreeNodeMemory*	GetParent(void);
-
-	void					Contain(unsigned char uiIndex);
-	BOOL					Uncontain(unsigned char uiIndex);
 
 	void					RemapChildNodes(CIndexTreeNodeMemory* pcOldNode, CIndexTreeNodeMemory* pcNewNode);
 
@@ -34,6 +31,9 @@ public:
 	BOOL					ValidateNodesEmpty(void);
 	void					Print(CChars* psz, BOOL bHex);
 	void					Dump(void);
+
+protected:
+	BOOL					Uncontain(unsigned char uiIndex);
 };
 
 

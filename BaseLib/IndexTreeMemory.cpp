@@ -309,7 +309,7 @@ CIndexTreeNodeMemory* CIndexTreeMemory::ReallocateNodeForIndex(CIndexTreeNodeMem
 	pcNode = (CIndexTreeNodeMemory*)Realloc(pcNode, tNewNodeSize, tOldNodeSize);
 	if (pcNode)
 	{
-		pcNode->Contain(uiIndex);
+		pcNode->Contain(uiIndex, 0);
 
 		RemapChildParents(pcOldNode, pcNode);
 		return pcNode;
@@ -523,7 +523,7 @@ BOOL CIndexTreeMemory::Remove(CIndexTreeNodeMemory*	pcCurrent)
 			}
 			else
 			{
-				pcParent->Clear(c);
+				pcParent->ClearIndex(c);
 			}
 
 			Free(pcNode);

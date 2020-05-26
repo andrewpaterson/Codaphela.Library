@@ -64,6 +64,7 @@ void CIndexTreeWriter::RecurseAllocate(CIndexTreeNodeMemory* pcMemoryNode, CInde
 			if (pcMemoryChild != NULL)
 			{
 				iChildDataSize = pcMemoryChild->GetDataSize();
+
 				if (pcMemoryChild->HasNodes())
 				{
 					iChildFirstIndex = pcMemoryChild->GetFirstIndex();

@@ -21,7 +21,7 @@ void CIndexTreeNodeFile::Init(CIndexTree* pcIndexTree, CIndexTreeNodeFile* pcPar
 //////////////////////////////////////////////////////////////////////////
 void CIndexTreeNodeFile::Init(CIndexTree* pcIndexTree, CIndexTreeNodeFile* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex, unsigned short uiDataSize, unsigned char uiIndexInParent)
 {
-	CIndexTreeNode::Init(pcIndexTree, mpcParent, uiFirstIndex, uiLastIndex, uiDataSize, INDEX_TREE_FILE_NODE_UNALLOCATED, uiIndexInParent);
+	CIndexTreeNode::Init(pcIndexTree, pcParent, uiFirstIndex, uiLastIndex, uiDataSize, INDEX_TREE_FILE_NODE_UNALLOCATED, uiIndexInParent);
 	mcFileIndex.Init();
 }
 
@@ -241,8 +241,6 @@ void CIndexTreeNodeFile::RemapChildNodes(CIndexTreeNodeFile* pcOldNode, CIndexTr
 //////////////////////////////////////////////////////////////////////////
 unsigned char CIndexTreeNodeFile::FindNextFirstIndex(void)
 {
-	//Doubtful method works as expected.
-
 	int						i;
 	CIndexTreeChildNode*	pcChild;
 	CIndexTreeChildNode*	acChildren;
@@ -266,8 +264,6 @@ unsigned char CIndexTreeNodeFile::FindNextFirstIndex(void)
 //////////////////////////////////////////////////////////////////////////
 unsigned char CIndexTreeNodeFile::FindPrevLastIndex(void)
 {
-	//Doubtful method works as expected.
-
 	int						i;
 	CIndexTreeChildNode*	pcChild;
 	CIndexTreeChildNode*	acChildren;
@@ -289,32 +285,6 @@ unsigned char CIndexTreeNodeFile::FindPrevLastIndex(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNodeFile::Contain(unsigned char uiIndex)
-{
-	//Contain assumes that the memory this node resides in has already been sized large enough.
-
-	if (!HasNodes())
-	{
-		SetNodesEmpty(FALSE);
-		ClearOnlyNode(uiIndex, INDEX_TREE_FILE_NODE_UNALLOCATED);
-		return;
-	}
-
-	if (uiIndex < muiFirstIndex)
-	{
-		MoveNodesRight(uiIndex, INDEX_TREE_FILE_NODE_UNALLOCATED);
-	}
-	else if (uiIndex > muiLastIndex)
-	{
-		ClearLastNodes(uiIndex, INDEX_TREE_FILE_NODE_UNALLOCATED);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeNodeFile::Uncontain(unsigned char uiIndex)
 {
 	unsigned char	uiNextFirstIndex;
@@ -323,10 +293,12 @@ BOOL CIndexTreeNodeFile::Uncontain(unsigned char uiIndex)
 	{
 		return FALSE;
 	}
-	else if (muiFirstIndex == muiLastIndex)
+
+	if (muiFirstIndex == muiLastIndex)
 	{
 		SetNodesEmpty(TRUE);
-		ClearOnlyNode(0, 0);
+		muiFirstIndex = 0;
+		muiLastIndex = 0;
 		return TRUE;
 	}
 
@@ -334,13 +306,18 @@ BOOL CIndexTreeNodeFile::Uncontain(unsigned char uiIndex)
 	{
 		uiNextFirstIndex = FindNextFirstIndex();
 		MoveNodesLeft(uiNextFirstIndex);
+		return TRUE;
 	}
-	else if (uiIndex == muiLastIndex)
+
+	if (uiIndex == muiLastIndex)
 	{
 		muiLastIndex = FindPrevLastIndex();
+		return TRUE;
 	}
-	return TRUE;
+
+	return FALSE;
 }
+
 
 
 //////////////////////////////////////////////////////////////////////////
