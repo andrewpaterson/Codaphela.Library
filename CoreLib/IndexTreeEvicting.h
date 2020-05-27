@@ -42,9 +42,9 @@ public:
 	CIndexedFiles*			GetIndexFiles(void);
 	int						NumNodes(void);
 	int						NumMemoryNodes(void);
-	void					DebugKey(CChars* pszDest, void* pvKey, int iKeySize, BOOL bSkipRoot, BOOL bShowFlags, BOOL bKeyAlreadyReversed);
+	void					DebugKey(CChars* pszDest, void* pvKey, int iKeySize, BOOL bSkipRoot, BOOL bShowFlags, BOOL bShowSize, BOOL bKeyAlreadyReversed);
 	void					Dump(void);
-	void					Print(CChars* pszDest, BOOL bShowFlags);
+	void					Print(CChars* pszDest, BOOL bShowFlags, BOOL bShowSize);
 
 	BOOL					Evict(void* pvKey, int iKeySize);
 	BOOL					Flush(void* pvKey, int iKeySize);

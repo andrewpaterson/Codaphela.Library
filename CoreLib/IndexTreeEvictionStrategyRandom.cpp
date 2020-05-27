@@ -74,7 +74,7 @@ BOOL CIndexTreeEvictionStrategyRandom::EvictRandomNode(CIndexTreeNodeFile* pcDon
 			return FALSE;
 		}
 
-		iNumIndexes = pcNode->NumValidIndexes();
+		iNumIndexes = pcNode->NumValidMemoryIndexes();
 		if (iNumIndexes > 1)
 		{
 			iIndex = mcRandom.Next(0, iNumIndexes - 1);
