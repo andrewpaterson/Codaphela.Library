@@ -381,7 +381,7 @@ int CIndexTreeNodeFile::NumValidIndexes(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CIndexTreeNodeFile::NumMemoryIndexes(void)
+int CIndexTreeNodeFile::NumValidMemoryIndexes(void)
 {
 	int						i;
 	CIndexTreeChildNode*	pcChild;

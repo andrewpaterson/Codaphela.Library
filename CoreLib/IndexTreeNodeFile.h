@@ -35,7 +35,7 @@ public:
 	CIndexTreeChildNode*	GetNodes(void);
 	CIndexTreeChildNode*	GetFirstNode(void);
 	int						NumValidIndexes(void);
-	int						NumMemoryIndexes(void);
+	int						NumValidMemoryIndexes(void);
 
 	void					RemapChildNodes(CIndexTreeNodeFile* pcOldNode, CIndexTreeNodeFile* pcNewNode);
 
