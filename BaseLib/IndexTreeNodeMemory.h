@@ -21,6 +21,7 @@ public:
 	CIndexTreeNodeMemory*	GetParent(void);
 
 	void					RemapChildNodes(CIndexTreeNodeMemory* pcOldNode, CIndexTreeNodeMemory* pcNewNode);
+	void					Contain(unsigned char uiIndex);
 
 	unsigned char			FindPrevLastIndex(void);
 	unsigned char			FindNextFirstIndex(void);
@@ -32,7 +33,6 @@ public:
 	void					Print(CChars* psz, BOOL bHex);
 	void					Dump(void);
 
-protected:
 	BOOL					Uncontain(unsigned char uiIndex);
 };
 
