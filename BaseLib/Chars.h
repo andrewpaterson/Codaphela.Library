@@ -137,6 +137,7 @@ public:
 	int		FindFromEnd(int iIndex, char c);
 	int		Find(int iPos, const char* szString);
 	int		Find(int iPos, char c);
+	int		Find(char c);
 	int		FindDigit(int iStartIndex);
 	char	GetChar(int iIndex);
 	void	SetChar(int iPos, char c);
