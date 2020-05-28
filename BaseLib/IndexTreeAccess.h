@@ -35,8 +35,8 @@ public:
 			BOOL	GetStringData(char* pszKey, void* pvData, int* piDataSize = NULL);
 			char*	GetStringString(char* pszKey, char* pszDest);
 			CChars	GetStringString(char* pszKey);
-			int		GetStringInt(char* pszKey, int iNUllValue = -1);
-			int64	GetStringLong(char* pszKey, int64 iNUllValue = -1LL);
+			int		GetStringInt(char* pszKey, int iNullValue = -1);
+			int64	GetStringLong(char* pszKey, int64 iNullValue = -1LL);
 			void*	GetStringPtr(char* pszKey);
 			char*	GetKeyString(void* pvKey, int iKeySize, char* pszDest);
 			BOOL	GetKeyData(void* pvKey, int iKeySize, void* pvData, int* piDataSize);

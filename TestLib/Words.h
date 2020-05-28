@@ -3,8 +3,14 @@
 #include "BaseLib/ArrayChars.h"
 
 
-extern CArrayChars gacArchaicWords;
+extern CArrayChars gaszArchaicWords;
+extern CArrayChars gaszArchaicDefinitions;
+extern CArrayChars gaszCommonWords;
 
+
+void GetArchaicDefinitions(CArrayChars* pasz);
+void GetArchaicWords(CArrayChars* pasz);
+void GetCommonWords(CArrayChars* pasz);
 
 void WordsInit(void);
 void WordsKill(void);
