@@ -1,6 +1,7 @@
 #include "BaseLib/Logger.h"
 #include "BaseLib/StackMemory.h"
 #include "BaseLib/DebugOutput.h"
+#include "IndexTreeFileDefaultCallback.h"
 #include "IndexTreeEvicting.h"
 
 
@@ -34,9 +35,16 @@ BOOL CIndexTreeEvicting::Init(CDurableFileController* pcDurableFileControl, char
 
 	mpcEvictionStrategy = pcEvictionStrategy;
 	mpcIndexTreeEvictionCallback = pcIndexTreeEvictionCallback;
+
+	if (pcWriterCallback == NULL)
+	{
+		pcWriterCallback = &gcIndexTreeFileDefaultCallback;
+	}
+
 	muiCutoff = uiCutoff;
 
 	bResult = mcIndexTree.Init(pcDurableFileControl, szSubDirectory, pcWriterCallback, pcMalloc, eWriteThrough, eKeyReverse);
+
 	if (mpcEvictionStrategy)
 	{
 		mpcEvictionStrategy->SetIndexTree(this);
