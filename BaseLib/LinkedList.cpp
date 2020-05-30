@@ -28,23 +28,23 @@ void CLinkedList::Kill(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CLinkedList::InsertAfterTail(SLLNode* psNewNode)
+void CLinkedList::InsertAfterTail(SLLNode* psNode)
 {
-	SLLNode* psNode;
-
-	psNode = psNewNode;
-	psNode->psNext = NULL;
-	psNode->psPrev = mpsTail;
-
-	if (mpsHead == NULL)
+	if (psNode)
 	{
-		mpsHead = psNode;
+		psNode->psNext = NULL;
+		psNode->psPrev = mpsTail;
+
+		if (mpsHead == NULL)
+		{
+			mpsHead = psNode;
+		}
+		else
+		{
+			mpsTail->psNext = psNode;
+		}
+		mpsTail = psNode;
 	}
-	else
-	{
-		mpsTail->psNext = psNode;
-	}
-	mpsTail = psNode;
 }
 
 
@@ -52,23 +52,23 @@ void CLinkedList::InsertAfterTail(SLLNode* psNewNode)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CLinkedList::InsertBeforeHead(SLLNode* psNewNode)
+void CLinkedList::InsertBeforeHead(SLLNode* psNode)
 {
-	SLLNode* psNode;
-
-	psNode = psNewNode;
-	psNode->psNext = mpsHead;
-	psNode->psPrev = NULL;
-
-	if (mpsTail == NULL)
+	if (psNode)
 	{
-		mpsTail = psNode;
+		psNode->psNext = mpsHead;
+		psNode->psPrev = NULL;
+
+		if (mpsTail == NULL)
+		{
+			mpsTail = psNode;
+		}
+		else
+		{
+			mpsHead->psPrev = psNode;
+		}
+		mpsHead = psNode;
 	}
-	else
-	{
-		mpsHead->psPrev = psNode;
-	}
-	mpsHead = psNode;
 }
 
 
@@ -81,7 +81,7 @@ void CLinkedList::InsertBeforeNode(SLLNode* psExistingNode, SLLNode* psNewNode)
 	SLLNode* psPos;
 	SLLNode* psNode;
 
-	if (psExistingNode == NULL)
+	if ((psExistingNode == NULL) || (psNewNode == NULL))
 	{
 		return;
 	}
@@ -113,7 +113,7 @@ void CLinkedList::InsertAfterNode(SLLNode* psExistingNode, SLLNode* psNewNode)
 	SLLNode* psPos;
 	SLLNode* psNode;
 
-	if (psExistingNode == NULL)
+	if ((psExistingNode == NULL) || (psNewNode == NULL))
 	{
 		return;
 	}
@@ -227,6 +227,28 @@ BOOL CLinkedList::SafeRemove(SLLNode* psNode)
 		return TRUE;
 	}
 	return FALSE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CLinkedList::MoveToHead(SLLNode* psNode)
+{
+	Remove(psNode);
+	InsertBeforeHead(psNode);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CLinkedList::MoveToTTail(SLLNode* psNode)
+{
+	Remove(psNode);
+	InsertAfterTail(psNode);
 }
 
 
