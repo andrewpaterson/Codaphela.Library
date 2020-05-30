@@ -34,6 +34,9 @@ public:
 	void		Remove(SLLNode* psNode);
 	BOOL		SafeRemove(SLLNode* psNode);
 
+	void		MoveToHead(SLLNode* psNode);
+	void		MoveToTTail(SLLNode* psNode);
+
 	int			NumElements(void);
 
 	SLLNode*	Get(int iNum);

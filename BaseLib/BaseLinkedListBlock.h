@@ -73,6 +73,9 @@ public:
 	void		Remove(void* pvData);
 	BOOL		SafeRemove(void* pvData);
 
+	void		MoveToHead(void* pvData);
+	void		MoveToTTail(void* pvData);
+
 	void*		InsertDetachedAfterTail(SLLNode* psNode);
 	void*		InsertDetachedBeforeHead(SLLNode* psNode);
 	void*		InsertDetachedBeforeNode(SLLNode* psData, SLLNode* psPos);
