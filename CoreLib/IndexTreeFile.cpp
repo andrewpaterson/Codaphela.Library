@@ -832,7 +832,7 @@ CIndexTreeNodeFile* CIndexTreeFile::ReallocateNodeForContainIndex(CIndexTreeNode
 	pcNode->Contain(uiIndex, INDEX_TREE_FILE_NODE_UNALLOCATED);
 	pcNode->SetDirtyNode(TRUE);
 
-	RemapChildParents(pcOldNode, pcNode);
+	RemapNodePointers(pcOldNode, pcNode);
 	return pcNode;
 }
 
@@ -856,7 +856,7 @@ CIndexTreeNodeFile* CIndexTreeFile::ReallocateNodeForLargerData(CIndexTreeNodeFi
 	{
 		pcNode->SetData(pvData, uiDataSize);
 
-		RemapChildParents(pcOldNode, pcNode);
+		RemapNodePointers(pcOldNode, pcNode);
 		return pcNode;
 	}
 	else
@@ -887,7 +887,7 @@ CIndexTreeNodeFile* CIndexTreeFile::ReallocateNodeForSmallerData(CIndexTreeNodeF
 	pcNode = (CIndexTreeNodeFile*)Realloc(pcNode, tNewNodeSize, tOldNodeSize);
 	if (pcNode)
 	{
-		RemapChildParents(pcOldNode, pcNode);
+		RemapNodePointers(pcOldNode, pcNode);
 		return pcNode;
 	}
 	else
@@ -901,7 +901,7 @@ CIndexTreeNodeFile* CIndexTreeFile::ReallocateNodeForSmallerData(CIndexTreeNodeF
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeFile::RemapChildParents(CIndexTreeNodeFile* pcOldNode, CIndexTreeNodeFile* pcNode)
+void CIndexTreeFile::RemapNodePointers(CIndexTreeNodeFile* pcOldNode, CIndexTreeNodeFile* pcNode)
 {
 	CIndexTreeNodeFile*		pcParent;
 
@@ -1149,7 +1149,7 @@ CIndexTreeNodeFile* CIndexTreeFile::ReallocateNodeForUncontainIndex(CIndexTreeNo
 		pcOldNode = pcNode;
 
 		pcNode = (CIndexTreeNodeFile*)Realloc(pcNode, tNewNodeSize, tOldNodeSize);
-		RemapChildParents(pcOldNode, pcNode);
+		RemapNodePointers(pcOldNode, pcNode);
 	}
 	pcNode->SetDirtyNode(TRUE);
 
