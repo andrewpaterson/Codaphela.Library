@@ -6,8 +6,8 @@
 class CIndexTreeDataNode
 {
 protected:
-	SLLNode				msListNode;
-	unsigned short		muiDataSize;   // Size of object "pointed" to by this node.  The object is small: usually a OIndex, a pointer or a CFileId.
+	SLLNode			msListNode;
+	unsigned short	muiDataSize;   // Size of object "pointed" to by this node.  The object is small: usually a OIndex, a pointer or a CFileId.
 
 public:
 	void			Init(unsigned short uiDataSize);
@@ -15,6 +15,8 @@ public:
 
 	unsigned short	GetDataSize(void);
 	void			SetDataSize(unsigned short uiDataSize);
+	SLLNode*		GetListNode(void);
+	void			RemapListNode(void);
 };
 
 
