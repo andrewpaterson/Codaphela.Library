@@ -212,25 +212,16 @@ CIndexTreeChildNode* CIndexTreeNodeFile::GetFirstNode(void)
 //////////////////////////////////////////////////////////////////////////
 void CIndexTreeNodeFile::RemapChildNodes(CIndexTreeNodeFile* pcOldNode, CIndexTreeNodeFile* pcNewNode)
 {
-	int						i;
-	int						iNumNodes;
 	CIndexTreeChildNode*	acChildren;
 	CIndexTreeChildNode*	pcChild;
+	unsigned char			uiIndex;
 
 	acChildren = GetNodes();
-
-	iNumNodes = NumIndexes();
-	for (i = 0; i < iNumNodes; i++)
+	uiIndex = pcNewNode->muiIndexInParent - muiFirstIndex;
+	pcChild = &acChildren[uiIndex];
+	if (pcChild->IsMemory())
 	{
-		pcChild = &acChildren[i];
-
-		if (pcChild->IsMemory())
-		{
-			if (pcChild->u.mpcMemory == pcOldNode)
-			{
-				pcChild->u.mpcMemory = pcNewNode;
-			}
-		}
+		pcChild->u.mpcMemory = pcNewNode;
 	}
 }
 

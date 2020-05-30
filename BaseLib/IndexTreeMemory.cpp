@@ -311,7 +311,7 @@ CIndexTreeNodeMemory* CIndexTreeMemory::ReallocateNodeForIndex(CIndexTreeNodeMem
 	{
 		pcNode->Contain(uiIndex);
 
-		RemapChildParents(pcOldNode, pcNode);
+		RemapNodePointers(pcOldNode, pcNode);
 		return pcNode;
 	}
 	else
@@ -340,7 +340,7 @@ CIndexTreeNodeMemory* CIndexTreeMemory::ReallocateNodeForLargerData(CIndexTreeNo
 	{
 		pcNode->SetData(pvData, uiDataSize);
 
-		RemapChildParents(pcOldNode, pcNode);
+		RemapNodePointers(pcOldNode, pcNode);
 		return pcNode;
 	}
 	else
@@ -368,10 +368,9 @@ CIndexTreeNodeMemory* CIndexTreeMemory::ReallocateNodeForSmallerData(CIndexTreeN
 	tNewNodeSize = pcNode->CalculateRequiredNodeSizeForCurrent();
 	pcOldNode = pcNode;
 	pcNode = (CIndexTreeNodeMemory*)Realloc(pcNode, tNewNodeSize, tOldNodeSize);
-
 	if (pcNode)
 	{
-		RemapChildParents(pcOldNode, pcNode);
+		RemapNodePointers(pcOldNode, pcNode);
 		return pcNode;
 	}
 	else
@@ -393,7 +392,7 @@ CIndexTreeNodeMemory* CIndexTreeMemory::ReallocateNodeForRemove(CIndexTreeNodeMe
 	pcNode = (CIndexTreeNodeMemory*)Realloc(pcNode, tNewNodeSize, tOldNodeSize);
 	if (pcNode)
 	{
-		RemapChildParents(pcOldNode, pcNode);
+		RemapNodePointers(pcOldNode, pcNode);
 		return pcNode;
 	}
 	else
@@ -407,7 +406,7 @@ CIndexTreeNodeMemory* CIndexTreeMemory::ReallocateNodeForRemove(CIndexTreeNodeMe
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeMemory::RemapChildParents(CIndexTreeNodeMemory* pcOldNode, CIndexTreeNodeMemory* pcNode)
+void CIndexTreeMemory::RemapNodePointers(CIndexTreeNodeMemory* pcOldNode, CIndexTreeNodeMemory* pcNode)
 {
 	CIndexTreeNodeMemory*		pcParent;
 
