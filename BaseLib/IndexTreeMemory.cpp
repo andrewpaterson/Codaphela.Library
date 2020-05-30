@@ -418,6 +418,8 @@ void CIndexTreeMemory::RemapNodePointers(CIndexTreeNodeMemory* pcOldNode, CIndex
 			pcParent->RemapChildNodes(pcOldNode, pcNode);
 		}
 		pcNode->SetChildrensParent();
+
+		pcNode->RemapDataLinks(pcOldNode, pcNode);
 	}
 }
 

@@ -133,6 +133,22 @@ void CIndexTreeNodeMemory::RemapChildNodes(CIndexTreeNodeMemory* pcOldNode, CInd
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CIndexTreeNodeMemory::RemapDataLinks(CIndexTreeNodeMemory* pcOldNode, CIndexTreeNodeMemory* pcNewNode)
+{
+	CIndexTreeDataNode*		pcDataNode;
+
+	pcDataNode = GetNodeData();
+	if (pcDataNode)
+	{
+		pcDataNode->RemapListNode();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CIndexTreeNodeMemory::Contain(unsigned char uiIndex)
 {
 	CIndexTreeNode::Contain(uiIndex, 0);

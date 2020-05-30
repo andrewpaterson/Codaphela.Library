@@ -21,6 +21,7 @@ public:
 	CIndexTreeNodeMemory*	GetParent(void);
 
 	void					RemapChildNodes(CIndexTreeNodeMemory* pcOldNode, CIndexTreeNodeMemory* pcNewNode);
+	void					RemapDataLinks(CIndexTreeNodeMemory* pcOldNode, CIndexTreeNodeMemory* pcNewNode);
 	void					Contain(unsigned char uiIndex);
 
 	unsigned char			FindPrevLastIndex(void);
