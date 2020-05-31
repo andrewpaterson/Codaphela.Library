@@ -160,7 +160,7 @@ BOOL CIndexTreeFile::Kill(void)
 	mpcDurableFileControl = NULL;
 	RecurseKill(mpcRoot);
 
-	return TRUE;
+	return CIndexTree::Kill();
 }
 
 

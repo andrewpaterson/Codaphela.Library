@@ -7,6 +7,7 @@
 #include "MemoryCache.h"
 #include "IndexTreeNode.h"
 #include "IndexKeyReverse.h"
+#include "IndexTreeDataOrderer.h"
 
 
 #define MAX_KEY_SIZE (4 KB)
@@ -16,37 +17,49 @@
 class CIndexTree
 {
 protected:
-	CMallocator*		mpcMalloc;
+	CMallocator*			mpcMalloc;
 
-	EIndexKeyReverse	meReverseKey;
-	size_t				mtSizeofNode;
-	size_t				mtSizeofNodePtr;
-	size_t				mtSizeofDataNode;
-	int					miMaxDataSize;
-	int					miMaxKeySize;
+	EIndexKeyReverse		meReverseKey;
+	size_t					mtSizeofNode;
+	size_t					mtSizeofNodePtr;
+	size_t					mtSizeofDataNode;
+	int						miMaxDataSize;
+	int						miMaxKeySize;
+
+	CIndexTreeDataOrderer*	mpcDataOrderer;
 
 public:
-	BOOL				Init(CMallocator* pcMalloc, EIndexKeyReverse eKeyReverse, size_t tSizeofNode, size_t tSizeofDataNode, size_t tSizeofNodePtr, int iMaxDataSize, int iMaxKeySize);
+			BOOL				Init(CMallocator* pcMalloc, EIndexKeyReverse eKeyReverse, size_t tSizeofNode, size_t tSizeofDataNode, size_t tSizeofNodePtr, int iMaxDataSize, int iMaxKeySize, CIndexTreeDataOrderer* pcDataOrderer = NULL);
+	virtual BOOL				Kill(void);
 
-	size_t				SizeofNode(void);
-	size_t				SizeofDataNode(void);
-	size_t				SizeofNodePtr(void);
-	EIndexKeyReverse	ReverseKeys(void);
+	virtual BOOL				Remove(void* pvKey, int iKeySize) =0;
+	virtual BOOL				HasKey(void* pvKey, int iKeySize) =0;
 
-	size_t				CalculateRootNodeSize(void);
-	size_t				CalculateNodeSize(int iRequiredIndices, int iDataSize);
+
+			size_t				SizeofNode(void);
+			size_t				SizeofDataNode(void);
+			size_t				SizeofNodePtr(void);
+			EIndexKeyReverse	ReverseKeys(void);
+
+			size_t				CalculateRootNodeSize(void);
+			size_t				CalculateNodeSize(int iRequiredIndices, int iDataSize);
 
 protected:
-	void*				Malloc(size_t tSize);
-	void*				Realloc(void* pv, size_t tNewSize, size_t tExistingSize);
-	void				Free(void* pv);
+			void*				Malloc(size_t tSize);
+			void*				Realloc(void* pv, size_t tNewSize, size_t tExistingSize);
+			void				Free(void* pv);
 
-	BOOL				ValidatePut(int iKeySize, int iDataSize);
+			BOOL				ValidatePut(int iKeySize, int iDataSize);
 
-	void				FreeNode(CIndexTreeNode* pcNode);
+			void				GetReorderData(CIndexTreeNode* pcNode);
+			void				PutReorderData(CIndexTreeNode* pcNode);
+			void				RemoveReorderData(CIndexTreeNode* pcNode);
+			void				HasKeyReorderData(CIndexTreeNode* pcNode);
 
-	BOOL				StartKey(int* pi, int iKeySize);
-	BOOL				LoopKey(int* pi, int iKeySize);
+			void				FreeNode(CIndexTreeNode* pcNode);
+
+			BOOL				StartKey(int* pi, int iKeySize);
+			BOOL				LoopKey(int* pi, int iKeySize);
 };
 
 

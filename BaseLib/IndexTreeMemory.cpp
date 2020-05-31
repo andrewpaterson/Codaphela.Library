@@ -62,9 +62,10 @@ void CIndexTreeMemory::FakeInit(EIndexKeyReverse eKeyReverse)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeMemory::Kill(void)
+BOOL CIndexTreeMemory::Kill(void)
 {
 	RecurseKill(mpcRoot);
+	return CIndexTree::Kill();
 }
 
 
@@ -189,16 +190,20 @@ void* CIndexTreeMemory::Get(void* pvKey, int iKeySize, int* piDataSize)
 	}
 	else
 	{
-		uiDataSize = pcNode->GetDataSize();
-		SafeAssign(piDataSize, uiDataSize);
-
-		if (uiDataSize == 0)
+		if (pcNode->HasData())
 		{
+			GetReorderData(pcNode);
+
+			uiDataSize = pcNode->GetDataSize();
+			SafeAssign(piDataSize, uiDataSize);
+			pv = pcNode->GetDataPtr();
+			return pv;
+		}
+		else
+		{
+			SafeAssign(piDataSize, 0);
 			return NULL;
 		}
-
-		pv = pcNode->GetDataPtr();
-		return pv;
 	}
 }
 
@@ -228,6 +233,9 @@ void* CIndexTreeMemory::Put(void* pvKey, int iKeySize, void* pvData, int iDataSi
 	{
 		return NULL;
 	}
+
+	PutReorderData(pcCurrent);
+
 	return pcCurrent->GetDataPtr();
 }
 
@@ -724,8 +732,10 @@ int CIndexTreeMemory::GetKey(void* pvKey, void* pvData, BOOL zeroTerminate)
 	iLength = 0;
 	pucKey = (unsigned char*)pvKey;
 	pcNode = GetNodeForData(pvData);
-	pcParent = (CIndexTreeNodeMemory*)pcNode->GetParent();
 
+	GetReorderData(pcNode);
+
+	pcParent = (CIndexTreeNodeMemory*)pcNode->GetParent();
 	while (pcParent != NULL)
 	{
 		pucKey[iLength] = pcParent->FindIndex(pcNode);
@@ -1148,7 +1158,15 @@ BOOL CIndexTreeMemory::HasKey(void* pvKey, int iKeySize)
 		return FALSE;
 	}
 
-	return pcNode->GetDataSize() != 0;
+	if (pcNode->HasData())
+	{
+		HasKeyReorderData(pcNode);
+		return TRUE;
+	}
+	else
+	{
+		return FALSE;
+	}
 }
 
 
