@@ -39,19 +39,16 @@ public:
 	BOOL					StartIteration(SIndexTreeMemoryIterator* psIterator, void** pvData, int* piDataSize);
 	BOOL					Iterate(SIndexTreeMemoryIterator* psIterator, void** pvData, int* piDataSize);
 
-public:
-	int						NumAllocatedNodes(void);
-	int						RecurseSize(void);
 	size_t					ByteSize(void);
 
 	BOOL					Write(CFileWriter* pcFileWriter);
 	BOOL					Read(CFileReader* pcFileReader, EIndexKeyReverse eKeyReverse);
 
-	void					FakeInit(EIndexKeyReverse eKeyReverse);
-
 	BOOL					ValidateIndexTree(void);
 
 protected:
+	void					FakeInit(EIndexKeyReverse eKeyReverse);
+
 	CIndexTreeNodeMemory*	GetNode(void* pvKey, int iKeySize);
 	CIndexTreeNodeMemory*	GetRoot(void);
 	CIndexTreeNodeMemory*	GetNodeForData(void* pvData);
@@ -84,9 +81,12 @@ protected:
 	BOOL					ValidateParentIndex(void);
 	BOOL					RecurseValidateParentIndex(CIndexTreeRecursor* pcCursor);
 
+	int						NumAllocatedNodes(void);
+
 	BOOL					StepNext(SIndexTreeMemoryIterator* psIterator);
 
 	BOOL					ValidateSize(void);
+	int						RecurseSize(void);
 };
 
 
