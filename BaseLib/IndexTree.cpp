@@ -6,7 +6,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTree::Init(CMallocator* pcMalloc, EIndexKeyReverse eKeyReverse, size_t tSizeofNode, size_t tSizeofDataNode, size_t tSizeofNodePtr, int iMaxDataSize, int	iMaxKeySize)
+BOOL CIndexTree::Init(CMallocator* pcMalloc, EIndexKeyReverse eKeyReverse, size_t tSizeofNode, size_t tSizeofDataNode, size_t tSizeofNodePtr, int iMaxDataSize, int	iMaxKeySize, CIndexTreeDataOrderer* pcDataOrderer)
 {
 	BOOL bResult;
 
@@ -31,7 +31,24 @@ BOOL CIndexTree::Init(CMallocator* pcMalloc, EIndexKeyReverse eKeyReverse, size_
 	miMaxDataSize = iMaxDataSize;
 	miMaxKeySize = iMaxKeySize;
 
+	mpcDataOrderer = pcDataOrderer;
+
 	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTree::Kill(void)
+{
+	if (mpcDataOrderer)
+	{
+		mpcDataOrderer->Kill();
+	}
+
+	return TRUE;
 }
 
 
@@ -129,6 +146,58 @@ BOOL CIndexTree::ValidatePut(int iKeySize, int iDataSize)
 		return FALSE;
 	}
 	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexTree::GetReorderData(CIndexTreeNode* pcNode)
+{
+	if (mpcDataOrderer)
+	{
+		mpcDataOrderer->Get(pcNode->GetNodeData());
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexTree::PutReorderData(CIndexTreeNode* pcNode)
+{
+	if (mpcDataOrderer)
+	{
+		mpcDataOrderer->Put(pcNode->GetNodeData());
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexTree::RemoveReorderData(CIndexTreeNode* pcNode)
+{
+	if (mpcDataOrderer)
+	{
+		mpcDataOrderer->Remove(pcNode->GetNodeData());
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexTree::HasKeyReorderData(CIndexTreeNode* pcNode)
+{
+	if (mpcDataOrderer)
+	{
+		mpcDataOrderer->HasKey(pcNode->GetNodeData());
+	}
 }
 
 

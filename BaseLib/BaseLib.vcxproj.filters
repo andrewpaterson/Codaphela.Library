@@ -795,6 +795,9 @@
     <ClInclude Include="IndexTreeDataNode.h">
       <Filter>Source\Data\Index</Filter>
     </ClInclude>
+    <ClInclude Include="IndexTreeDataOrderer.h">
+      <Filter>Source\Data\Index</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -1254,6 +1257,9 @@
       <Filter>Source\Data\LinkedList</Filter>
     </ClCompile>
     <ClCompile Include="IndexTreeDataNode.cpp">
+      <Filter>Source\Data\Index</Filter>
+    </ClCompile>
+    <ClCompile Include="IndexTreeDataOrderer.cpp">
       <Filter>Source\Data\Index</Filter>
     </ClCompile>
   </ItemGroup>

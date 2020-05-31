@@ -14,6 +14,7 @@ struct SIndexTreeMemoryIterator
 
 class CIndexTreeMemory : public CIndexTree
 {
+friend class CIndexTreeWriter;
 protected:
 	CIndexTreeNodeMemory*	mpcRoot;
 	int						miSize;
@@ -23,12 +24,13 @@ public:
 	void					Init(EIndexKeyReverse eKeyReverse);
 	void					Init(CMallocator* pcMalloc, EIndexKeyReverse eKeyReverse);
 	void					Init(CMallocator* pcMalloc, EIndexKeyReverse eKeyReverse, int iMaxDataSize, int	iMaxKeySize);
-	void					Kill(void);
+	BOOL					Kill(void);
 
 	void*					Get(void* pvKey, int iKeySize, int* piDataSize);
 	void*					Put(void* pvKey, int iKeySize, void* pvObject, int iDataSize);
 	BOOL					Remove(void* pvKey, int iKeySize);
 	BOOL					HasKey(void* pvKey, int iKeySize);
+
 	void					FindAll(CArrayVoidPtr* papvElements);
 	int						GetKey(void* pvKey, void* pvData, BOOL zeroTerminate = FALSE);
 
@@ -37,9 +39,7 @@ public:
 	BOOL					StartIteration(SIndexTreeMemoryIterator* psIterator, void** pvData, int* piDataSize);
 	BOOL					Iterate(SIndexTreeMemoryIterator* psIterator, void** pvData, int* piDataSize);
 
-	CIndexTreeNodeMemory*	GetNode(void* pvKey, int iKeySize);
-	CIndexTreeNodeMemory*	GetRoot(void);
-	CIndexTreeNodeMemory*	GetNodeForData(void* pvData);
+public:
 	int						NumAllocatedNodes(void);
 	int						RecurseSize(void);
 	size_t					ByteSize(void);
@@ -48,12 +48,16 @@ public:
 	BOOL					Read(CFileReader* pcFileReader, EIndexKeyReverse eKeyReverse);
 
 	void					FakeInit(EIndexKeyReverse eKeyReverse);
-	void					RecurseKill(CIndexTreeNodeMemory* pcNode);
 
 	BOOL					ValidateIndexTree(void);
-	BOOL					ValidateSize(void);
 
 protected:
+	CIndexTreeNodeMemory*	GetNode(void* pvKey, int iKeySize);
+	CIndexTreeNodeMemory*	GetRoot(void);
+	CIndexTreeNodeMemory*	GetNodeForData(void* pvData);
+
+	void					RecurseKill(CIndexTreeNodeMemory* pcNode);
+
 	CIndexTreeNodeMemory*	AllocateRoot(void);
 	CIndexTreeNodeMemory*	AllocateNode(CIndexTreeNodeMemory* pcParent, unsigned char uiIndexInParent);
 	BOOL					Remove(CIndexTreeNodeMemory* pcCurrent);
@@ -81,6 +85,8 @@ protected:
 	BOOL					RecurseValidateParentIndex(CIndexTreeRecursor* pcCursor);
 
 	BOOL					StepNext(SIndexTreeMemoryIterator* psIterator);
+
+	BOOL					ValidateSize(void);
 };
 
 
