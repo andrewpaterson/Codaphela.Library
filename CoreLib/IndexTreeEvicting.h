@@ -43,15 +43,17 @@ public:
 	BOOL					IsFlushed(void);
 
 	int						NumElements(void);
-	int						NumMemoryElements(void);
 
-	void					Dump(void);
 	void					Print(CChars* pszDest, BOOL bShowFlags, BOOL bShowSize);
+	void					Dump(void);
 
 protected:
 	CIndexedFiles*			GetIndexFiles(void);
+
 	int						NumNodes(void);
 	int						NumMemoryNodes(void);
+	int						NumMemoryElements(void);
+
 	void					DebugKey(CChars* pszDest, void* pvKey, int iKeySize, BOOL bSkipRoot, BOOL bShowFlags, BOOL bShowSize, BOOL bKeyAlreadyReversed);
 
 	BOOL					EvictNodeWithObject(CIndexTreeNodeFile* pcNode);
