@@ -61,15 +61,13 @@ public:
 	BOOL					Flush(void* pvKey, int iKeySize);
 
 	BOOL					IsFlushed(void);
+	BOOL					ValidateIndexTree(void);
 
 	int						NumElements(void);
-
 	BOOL					IsWriteThrough(void);
 
-	BOOL					ValidateIndexTree(void); 
-
-	void					Dump(void);
 	void					Print(CChars* pszDest, BOOL bShowFlags, BOOL bShowSize);
+	void					Dump(void);
 
 protected:
 	BOOL					Evict(CIndexTreeNodeFile* pcNode);

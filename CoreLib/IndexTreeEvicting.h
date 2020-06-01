@@ -12,6 +12,8 @@ typedef void(CIndexTreeEvicting::*NodeEvicted)(CIndexTreeNodeFile* pcNode);
 
 class CIndexTreeEvicting
 {
+friend class CIndexedDescriptorsFile;
+friend class CIndexTreeEvictionStrategyRandom;
 private:
 	CIndexTreeFile					mcIndexTree;
 	size_t							muiCutoff;
@@ -32,22 +34,25 @@ public:
 	BOOL					HasKey(void* pvKey, int iKeySize);
 	unsigned short			GetDataSize(void* pvKey, int iKeySize);
 
+	BOOL					Evict(void* pvKey, int iKeySize);
+	BOOL					Flush(void* pvKey, int iKeySize);
+
+	BOOL					Flush(void);
+
 	BOOL					IsWriteThrough(void);
 	BOOL					IsFlushed(void);
-	BOOL					Flush(void);
 
 	int						NumElements(void);
 	int						NumMemoryElements(void);
 
+	void					Dump(void);
+	void					Print(CChars* pszDest, BOOL bShowFlags, BOOL bShowSize);
+
+protected:
 	CIndexedFiles*			GetIndexFiles(void);
 	int						NumNodes(void);
 	int						NumMemoryNodes(void);
 	void					DebugKey(CChars* pszDest, void* pvKey, int iKeySize, BOOL bSkipRoot, BOOL bShowFlags, BOOL bShowSize, BOOL bKeyAlreadyReversed);
-	void					Dump(void);
-	void					Print(CChars* pszDest, BOOL bShowFlags, BOOL bShowSize);
-
-	BOOL					Evict(void* pvKey, int iKeySize);
-	BOOL					Flush(void* pvKey, int iKeySize);
 
 	BOOL					EvictNodeWithObject(CIndexTreeNodeFile* pcNode);
 	CIndexTreeNodeFile*		GetRoot(void);
