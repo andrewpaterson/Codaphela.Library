@@ -22,6 +22,7 @@ struct SIndexTreeFileIterator
 
 class CIndexTreeFile : public CIndexTree
 {
+friend class CIndexTreeEvicting;
 protected:
 	CIndexTreeNodeFile*			mpcRoot;
 	CIndexedFiles				mcIndexFiles;
@@ -92,7 +93,10 @@ public:
 	BOOL					Write(CIndexTreeNodeFile* pcNode);
 	BOOL					Delete(CIndexTreeNodeFile* pcNode);
 
-//Methods for testing only.
+	void					Dump(void);
+	void					Print(CChars* pszDest, BOOL bShowFlags, BOOL bShowSize);
+
+protected:
 	size_t					ByteSize(void);
 	size_t					GetUserMemorySize(void);
 	size_t					GetSystemMemorySize(void);
@@ -103,12 +107,11 @@ public:
 	int						NumNodes(void);
 	int						NumMemoryNodes(void);
 	int						NumMemoryElements(void);
+	void					FakeInit(EIndexKeyReverse eKeyReverse);
+
 	void					DebugKey(CChars* pszDest, void* pvKey, int iKeySize, BOOL bSkipRoot, BOOL bShowFlags, BOOL bShowSize, BOOL bKeyAlreadyReversed);
-	void					Dump(void);
-	void					Print(CChars* pszDest, BOOL bShowFlags, BOOL bShowSize);
 	void					PrintChildren(CChars* pszDest, BOOL bShowFlags, BOOL bShowSize);
 
-	void					FakeInit(EIndexKeyReverse eKeyReverse = IKR_No);
 
 protected:
 	BOOL					InitRoot(char* szSubDirectory);
