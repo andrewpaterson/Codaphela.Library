@@ -23,6 +23,7 @@ struct SIndexTreeFileIterator
 class CIndexTreeFile : public CIndexTree
 {
 friend class CIndexTreeEvicting;
+friend class CIndexTreeWriter;
 protected:
 	CIndexTreeNodeFile*			mpcRoot;
 	CIndexedFiles				mcIndexFiles;
@@ -51,28 +52,32 @@ public:
 
 	unsigned short			GetDataSize(void* pvKey, int iKeySize);
 
-	CIndexTreeNodeFile*		ParentPut(CIndexTreeNodeFile* pcParent, unsigned char uiIndexInParent, unsigned char uiDataSize, unsigned char uiFirstIndex, unsigned char uiLastIndex);
-	CIndexTreeNodeFile*		ParentPut(CIndexTreeNodeFile* pcParent, unsigned char uiIndexInParent, unsigned char uiDataSize);
-
 	BOOL					Flush(void);
-	void					SetWriteThrough(EIndexWriteThrough eWriteThrough);
 
 	BOOL					StartIteration(SIndexTreeFileIterator* psIterator, void** pvData, int* piDataSize);
 	BOOL					Iterate(SIndexTreeFileIterator* psIterator, void** pvData, int* piDataSize);
 
 	BOOL					Evict(void* pvKey, int iKeySize);
-	BOOL					Evict(CIndexTreeNodeFile* pcNode);
-
 	BOOL					Flush(void* pvKey, int iKeySize);
 
-	BOOL					ValidateKey(char* pszKey);
 	BOOL					IsFlushed(void);
 
 	int						NumElements(void);
-	BOOL					HasKey(char* pszKey);
-	int						FindKeySize(CIndexTreeNodeFile* pcNode);
-	void					FindKey(CIndexTreeNodeFile* pcNode, CArrayChar* pacKey);
-	void					FindKey(CIndexTreeNodeFile* pcNode, unsigned char* uiKey, int* piKeySize);
+
+	BOOL					IsWriteThrough(void);
+
+	BOOL					ValidateIndexTree(void); 
+
+	void					Dump(void);
+	void					Print(CChars* pszDest, BOOL bShowFlags, BOOL bShowSize);
+
+protected:
+	BOOL					Evict(CIndexTreeNodeFile* pcNode);
+
+	void					SetWriteThrough(EIndexWriteThrough eWriteThrough);
+
+	CIndexTreeNodeFile*		ParentPut(CIndexTreeNodeFile* pcParent, unsigned char uiIndexInParent, unsigned char uiDataSize, unsigned char uiFirstIndex, unsigned char uiLastIndex);
+	CIndexTreeNodeFile*		ParentPut(CIndexTreeNodeFile* pcParent, unsigned char uiIndexInParent, unsigned char uiDataSize);
 
 	CIndexTreeNodeFile*		GetRoot(void);
 	CIndexTreeNodeFile*		GetNode(void* pvKey, int iKeySize);
@@ -81,22 +86,16 @@ public:
 	int						GetNodeKeySize(CIndexTreeNodeFile* pcNode);
 	BOOL					GetNodeKey(CIndexTreeNodeFile* pcNode, unsigned char* pvDestKey, int iDestSize);
 
-	BOOL					IsWriteThrough(void);
-
+	void					FindKey(CIndexTreeNodeFile* pcNode, CArrayChar* pacKey);
+	void					FindKey(CIndexTreeNodeFile* pcNode, unsigned char* uiKey, int* piKeySize);
+	int						FindKeySize(CIndexTreeNodeFile* pcNode);
 	CListTemplateMinimal<char>*	FindKeys(CArrayVoidPtr* apvNodes);
 	CListCharsMinimal*		FindStringKeys(CArrayVoidPtr* apvNodes);
 
-	BOOL					ValidateIndexTree(void); 
 	BOOL					ValidateIndexTree(BOOL bReadNodes);
 	BOOL					ValidateKey(void* pvKey, int iKeySize);
+	BOOL					ValidateKey(char* pszKey);
 
-	BOOL					Write(CIndexTreeNodeFile* pcNode);
-	BOOL					Delete(CIndexTreeNodeFile* pcNode);
-
-	void					Dump(void);
-	void					Print(CChars* pszDest, BOOL bShowFlags, BOOL bShowSize);
-
-protected:
 	size_t					ByteSize(void);
 	size_t					GetUserMemorySize(void);
 	size_t					GetSystemMemorySize(void);
@@ -112,8 +111,6 @@ protected:
 	void					DebugKey(CChars* pszDest, void* pvKey, int iKeySize, BOOL bSkipRoot, BOOL bShowFlags, BOOL bShowSize, BOOL bKeyAlreadyReversed);
 	void					PrintChildren(CChars* pszDest, BOOL bShowFlags, BOOL bShowSize);
 
-
-protected:
 	BOOL					InitRoot(char* szSubDirectory);
 	void					RecurseKill(CIndexTreeNodeFile* pcNode);
 
@@ -122,6 +119,9 @@ protected:
 	BOOL					Read(CIndexTreeChildNode* pcChildNode, CIndexTreeNodeFile* pcFileNodeParent, unsigned char uiIndexInParent);
 	CIndexTreeNodeFile*		ReadMemoryNode(CIndexTreeNodeFile* pcParent, unsigned char c);
 	
+	BOOL					Write(CIndexTreeNodeFile* pcNode);
+	BOOL					Delete(CIndexTreeNodeFile* pcNode);
+
 	CIndexTreeNodeFile*		AllocateRoot(void);
 	CIndexTreeNodeFile*		AllocateRoot(CFileDataIndex cFileIndex);
 	CIndexTreeNodeFile*		AllocateNodeSingle(CIndexTreeNodeFile* pcParent, unsigned char uiIndexInParent, unsigned short uiDataSize);

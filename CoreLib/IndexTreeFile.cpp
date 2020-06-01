@@ -2601,24 +2601,6 @@ BOOL CIndexTreeFile::HasKey(void* pvKey, int iKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::HasKey(char* pszKey)
-{
-	int iKeySize;
-
-	if (StrEmpty(pszKey))
-	{
-		return FALSE;
-	}
-
-	iKeySize = strlen(pszKey);
-	return HasKey(pszKey, iKeySize);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 unsigned short CIndexTreeFile::GetDataSize(void* pvKey, int iKeySize)
 {
 	CIndexTreeNodeFile* pcNode;
