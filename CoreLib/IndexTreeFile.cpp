@@ -105,7 +105,7 @@ BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, char* sz
 	}
 
 	mcMalloc.Init(pcMalloc);
-	CIndexTree::Init(&mcMalloc, eKeyReverse, sizeof(CIndexTreeNodeFile), sizeof(CIndexTreeNodeFile) + sizeof(CIndexTreeDataNode), sizeof(CIndexTreeChildNode), iMaxDataSize, iMaxKeySize);
+	CIndexTree::Init(&mcMalloc, eKeyReverse, sizeof(CIndexTreeNodeFile), sizeof(CIndexTreeNodeFile) + sizeof(CIndexTreeDataNode), sizeof(CIndexTreeChildNode), iMaxDataSize, iMaxKeySize, NULL);
 
 	mpcDataCallback = pcWriterCallback;
 	mpcRoot = NULL;

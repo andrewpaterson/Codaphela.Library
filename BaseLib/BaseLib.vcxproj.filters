@@ -19,9 +19,6 @@
     <Filter Include="Source\Data\Array\Tree">
       <UniqueIdentifier>{8e1f12d3-fcd6-46c9-9ce9-aad10fa666ac}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Data\Tree">
-      <UniqueIdentifier>{4cd9ae6e-01e1-4483-a044-dd7486b0ac0b}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source\Data\Enumerator">
       <UniqueIdentifier>{dc315a44-4b20-40c0-ab75-efeb24af625a}</UniqueIdentifier>
     </Filter>
@@ -220,6 +217,9 @@
     <Filter Include="Source\Data\Index\DataOrder">
       <UniqueIdentifier>{39b692d9-ae69-4184-8af8-ecac75dfa2c2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Data\Types\Tree">
+      <UniqueIdentifier>{4cd9ae6e-01e1-4483-a044-dd7486b0ac0b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DataMacro.h">
@@ -232,10 +232,10 @@
       <Filter>Source\Data\Array\Tree</Filter>
     </ClInclude>
     <ClInclude Include="TreeBlock.h">
-      <Filter>Source\Data\Tree</Filter>
+      <Filter>Source\Data\Types\Tree</Filter>
     </ClInclude>
     <ClInclude Include="TreeTemplate.h">
-      <Filter>Source\Data\Tree</Filter>
+      <Filter>Source\Data\Types\Tree</Filter>
     </ClInclude>
     <ClInclude Include="EnumeratorBlock.h">
       <Filter>Source\Data\Enumerator</Filter>
@@ -807,7 +807,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
-      <Filter>Source\Data\Tree</Filter>
+      <Filter>Source\Data\Types\Tree</Filter>
     </ClCompile>
     <ClCompile Include="EnumeratorBlock.cpp">
       <Filter>Source\Data\Enumerator</Filter>
