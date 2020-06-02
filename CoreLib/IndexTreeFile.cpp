@@ -131,18 +131,6 @@ BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, char* sz
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeFile::FakeInit(EIndexKeyReverse eKeyReverse)
-{
-	CIndexTree::Init(&gcSystemAllocator, eKeyReverse, sizeof(CIndexTreeNodeFile), sizeof(CIndexTreeNodeFile) + sizeof(CIndexTreeDataNode), sizeof(CIndexTreeChildNode), MAX_DATA_SIZE, MAX_KEY_SIZE);
-	mpcRoot = NULL;
-	mpcDurableFileControl = NULL;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeFile::Kill(void)
 {
 	if (mpcDurableFileControl->IsBegun())
