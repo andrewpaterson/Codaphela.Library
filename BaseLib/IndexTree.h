@@ -16,6 +16,7 @@
 
 class CIndexTree
 {
+friend class CIndexTreeDataOrderer;
 protected:
 	CMallocator*			mpcMalloc;
 
@@ -29,7 +30,7 @@ protected:
 	CIndexTreeDataOrderer*	mpcDataOrderer;
 
 public:
-			BOOL				Init(CMallocator* pcMalloc, EIndexKeyReverse eKeyReverse, size_t tSizeofNode, size_t tSizeofDataNode, size_t tSizeofNodePtr, int iMaxDataSize, int iMaxKeySize, CIndexTreeDataOrderer* pcDataOrderer = NULL);
+			BOOL				Init(CMallocator* pcMalloc, EIndexKeyReverse eKeyReverse, size_t tSizeofNode, size_t tSizeofDataNode, size_t tSizeofNodePtr, int iMaxDataSize, int iMaxKeySize, CIndexTreeDataOrderer* pcDataOrderer);
 	virtual BOOL				Kill(void);
 
 	virtual BOOL				Remove(void* pvKey, int iKeySize) =0;
@@ -51,6 +52,7 @@ protected:
 
 			BOOL				ValidatePut(int iKeySize, int iDataSize);
 
+			void				InsertReorderData(CIndexTreeNode* pcNode);
 			void				GetReorderData(CIndexTreeNode* pcNode);
 			void				PutReorderData(CIndexTreeNode* pcNode);
 			void				RemoveReorderData(CIndexTreeNode* pcNode);
@@ -60,6 +62,11 @@ protected:
 
 			BOOL				StartKey(int* pi, int iKeySize);
 			BOOL				LoopKey(int* pi, int iKeySize);
+
+			CIndexTreeNode*		GetNodeForDataNode(CIndexTreeDataNode* pcDataNode);
+			CIndexTreeNode*		GetNodeForData(void* pvData);
+			void*				GetDataForDataNode(CIndexTreeDataNode* pcDataNode);
+			void*				GetDataForNode(CIndexTreeNode* pcNode);
 };
 
 

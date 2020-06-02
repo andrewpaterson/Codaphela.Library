@@ -18,6 +18,16 @@ void CIndexTreeMemory::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CIndexTreeMemory::Init(EIndexKeyReverse eKeyReverse, CIndexTreeDataOrderer* pcDataOrderer)
+{
+	Init(&gcSystemAllocator, eKeyReverse, MAX_DATA_SIZE, MAX_KEY_SIZE, pcDataOrderer);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CIndexTreeMemory::Init(EIndexKeyReverse eKeyReverse)
 {
 	Init(&gcSystemAllocator, eKeyReverse, MAX_DATA_SIZE, MAX_KEY_SIZE);
@@ -39,7 +49,17 @@ void CIndexTreeMemory::Init(CMallocator* pcMalloc, EIndexKeyReverse eKeyReverse)
 //////////////////////////////////////////////////////////////////////////
 void CIndexTreeMemory::Init(CMallocator* pcMalloc, EIndexKeyReverse eKeyReverse, int iMaxDataSize, int	iMaxKeySize)
 {
-	CIndexTree::Init(pcMalloc, eKeyReverse, sizeof(CIndexTreeNodeMemory), sizeof(CIndexTreeNodeMemory) + sizeof(CIndexTreeDataNode), sizeof(CIndexTreeNodeMemory*), iMaxDataSize, iMaxKeySize);
+	Init(pcMalloc, eKeyReverse, iMaxDataSize, iMaxKeySize, NULL);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexTreeMemory::Init(CMallocator* pcMalloc, EIndexKeyReverse eKeyReverse, int iMaxDataSize, int	iMaxKeySize, CIndexTreeDataOrderer* pcDataOrderer)
+{
+	CIndexTree::Init(pcMalloc, eKeyReverse, sizeof(CIndexTreeNodeMemory), sizeof(CIndexTreeNodeMemory) + sizeof(CIndexTreeDataNode), sizeof(CIndexTreeNodeMemory*), iMaxDataSize, iMaxKeySize, pcDataOrderer);
 	mpcRoot = AllocateRoot();
 	miSize = 0;
 }
@@ -111,11 +131,9 @@ CIndexTreeNodeMemory* CIndexTreeMemory::AllocateNode(CIndexTreeNodeMemory* pcPar
 //////////////////////////////////////////////////////////////////////////
 CIndexTreeNodeMemory* CIndexTreeMemory::GetNodeForData(void* pvData)
 {
-	CIndexTreeNodeMemory*		psNode;
-
-	psNode = (CIndexTreeNodeMemory*)RemapSinglePointer(pvData, -((int)mtSizeofDataNode));
-	return psNode;
+	return (CIndexTreeNodeMemory*)CIndexTree::GetNodeForData(pvData);
 }
+
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -203,6 +221,7 @@ void* CIndexTreeMemory::Put(void* pvKey, int iKeySize, void* pvData, int iDataSi
 {
 	CIndexTreeNodeMemory*	pcCurrent;
 	unsigned short			uiDataSize;
+	BOOL					bNewNode;
 
 	ReturnNullOnFalse(ValidatePut(iKeySize, iDataSize));
 
@@ -215,12 +234,22 @@ void* CIndexTreeMemory::Put(void* pvKey, int iKeySize, void* pvData, int iDataSi
 		miSize++;
 	}
 
+	bNewNode = FALSE;
+	if (!pcCurrent->HasData())
+	{
+		bNewNode = TRUE;
+	}
+
 	pcCurrent = SetNodeData(pcCurrent, pvData, uiDataSize);
 	if (pcCurrent == NULL)
 	{
 		return NULL;
 	}
 
+	if (bNewNode)
+	{
+		InsertReorderData(pcCurrent);
+	}
 	PutReorderData(pcCurrent);
 
 	return pcCurrent->GetDataPtr();
@@ -497,6 +526,8 @@ BOOL CIndexTreeMemory::Remove(CIndexTreeNodeMemory*	pcCurrent)
 		return FALSE;
 	}
 
+	RemoveReorderData(pcCurrent);
+
 	pcNode = ReallocateNodeForSmallerData(pcCurrent, NULL, 0);
 
 	pcParent = (CIndexTreeNodeMemory*)pcNode->GetParent();
@@ -759,6 +790,9 @@ BOOL CIndexTreeMemory::StartIteration(SIndexTreeMemoryIterator* psIterator, void
 		{
 			*piDataSize = psIterator->pcNode->GetDataSize();
 		}
+
+		GetReorderData(psIterator->pcNode);
+
 		return TRUE;
 	}
 	else
@@ -784,6 +818,9 @@ BOOL CIndexTreeMemory::Iterate(SIndexTreeMemoryIterator* psIterator, void** pvDa
 		{
 			*piDataSize = psIterator->pcNode->GetDataSize();
 		}
+
+		GetReorderData(psIterator->pcNode);
+
 		return TRUE;
 	}
 	else
@@ -1148,6 +1185,7 @@ BOOL CIndexTreeMemory::HasKey(void* pvKey, int iKeySize)
 	if (pcNode->HasData())
 	{
 		HasKeyReorderData(pcNode);
+
 		return TRUE;
 	}
 	else
