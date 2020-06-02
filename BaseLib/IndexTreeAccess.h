@@ -24,6 +24,7 @@ public:
 			BOOL	PutLongData(int64 lliKey, void* pvData, int iDataSize);
 			BOOL	PutStringPtr(char* pszKey, void* pvPointer);
 			BOOL	PutStringData(char* pszKey, void* pvData, int iDataSize);
+			BOOL	PutStringChar(char* pszKey, char cData);
 			BOOL	PutStringInt(char* pszKey, int iData);
 			BOOL	PutStringLong(char* pszKey, int64 lliData);
 			BOOL	PutStringString(char* pszKey, char* pszData);
@@ -36,6 +37,7 @@ public:
 			BOOL	GetStringData(char* pszKey, void* pvData, int* piDataSize = NULL);
 			char*	GetStringString(char* pszKey, char* pszDest);
 			CChars	GetStringString(char* pszKey);
+			char	GetStringChar(char* pszKey, char iNullValue = -1);
 			int		GetStringInt(char* pszKey, int iNullValue = -1);
 			int64	GetStringLong(char* pszKey, int64 iNullValue = -1LL);
 			void*	GetStringPtr(char* pszKey);

@@ -22,8 +22,10 @@ protected:
 public:
 	void					Init(void);
 	void					Init(EIndexKeyReverse eKeyReverse);
+	void					Init(EIndexKeyReverse eKeyReverse, CIndexTreeDataOrderer* pcDataOrderer);
 	void					Init(CMallocator* pcMalloc, EIndexKeyReverse eKeyReverse);
 	void					Init(CMallocator* pcMalloc, EIndexKeyReverse eKeyReverse, int iMaxDataSize, int	iMaxKeySize);
+	void					Init(CMallocator* pcMalloc, EIndexKeyReverse eKeyReverse, int iMaxDataSize, int	iMaxKeySize, CIndexTreeDataOrderer* pcDataOrderer);
 	BOOL					Kill(void);
 
 	void*					Get(void* pvKey, int iKeySize, int* piDataSize);
@@ -36,8 +38,8 @@ public:
 
 	int						NumElements(void);
 
-	BOOL					StartIteration(SIndexTreeMemoryIterator* psIterator, void** pvData, int* piDataSize);
-	BOOL					Iterate(SIndexTreeMemoryIterator* psIterator, void** pvData, int* piDataSize);
+	BOOL					StartIteration(SIndexTreeMemoryIterator* psIterator, void** ppvData, int* piDataSize);
+	BOOL					Iterate(SIndexTreeMemoryIterator* psIterator, void** ppvData, int* piDataSize);
 
 	size_t					ByteSize(void);
 

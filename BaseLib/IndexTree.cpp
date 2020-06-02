@@ -32,6 +32,10 @@ BOOL CIndexTree::Init(CMallocator* pcMalloc, EIndexKeyReverse eKeyReverse, size_
 	miMaxKeySize = iMaxKeySize;
 
 	mpcDataOrderer = pcDataOrderer;
+	if (mpcDataOrderer)
+	{
+		mpcDataOrderer->SetIndexTree(this);
+	}
 
 	return bResult;
 }
@@ -146,6 +150,19 @@ BOOL CIndexTree::ValidatePut(int iKeySize, int iDataSize)
 		return FALSE;
 	}
 	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexTree::InsertReorderData(CIndexTreeNode* pcNode)
+{
+	if (mpcDataOrderer)
+	{
+		mpcDataOrderer->New(pcNode->GetNodeData());
+	}
 }
 
 
@@ -273,5 +290,45 @@ BOOL CIndexTree::LoopKey(int* pi, int iKeySize)
 		(*pi)--;
 		return *pi >= 0;
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CIndexTreeNode* CIndexTree::GetNodeForDataNode(CIndexTreeDataNode* pcDataNode)
+{
+	return (CIndexTreeNode*)RemapSinglePointer(pcDataNode, -((int)mtSizeofNode));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CIndexTreeNode* CIndexTree::GetNodeForData(void* pvData)
+{
+	return (CIndexTreeNode*)RemapSinglePointer(pvData, -((int)mtSizeofDataNode));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void* CIndexTree::GetDataForDataNode(CIndexTreeDataNode* pcDataNode)
+{
+	return RemapSinglePointer(pcDataNode, (mtSizeofDataNode - mtSizeofNode));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void* CIndexTree::GetDataForNode(CIndexTreeNode* pcNode)
+{
+	return RemapSinglePointer(pcNode, mtSizeofDataNode);
 }
 

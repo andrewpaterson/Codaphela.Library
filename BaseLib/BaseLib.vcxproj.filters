@@ -217,6 +217,9 @@
     <Filter Include="Source\Data\LinkedList">
       <UniqueIdentifier>{fa3dfb29-19bd-41e1-8e9e-400f402430f7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Data\Index\DataOrder">
+      <UniqueIdentifier>{39b692d9-ae69-4184-8af8-ecac75dfa2c2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DataMacro.h">
@@ -796,7 +799,10 @@
       <Filter>Source\Data\Index</Filter>
     </ClInclude>
     <ClInclude Include="IndexTreeDataOrderer.h">
-      <Filter>Source\Data\Index</Filter>
+      <Filter>Source\Data\Index\DataOrder</Filter>
+    </ClInclude>
+    <ClInclude Include="AccessDataOrderer.h">
+      <Filter>Source\Data\Index\DataOrder</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -1260,7 +1266,10 @@
       <Filter>Source\Data\Index</Filter>
     </ClCompile>
     <ClCompile Include="IndexTreeDataOrderer.cpp">
-      <Filter>Source\Data\Index</Filter>
+      <Filter>Source\Data\Index\DataOrder</Filter>
+    </ClCompile>
+    <ClCompile Include="AccessDataOrderer.cpp">
+      <Filter>Source\Data\Index\DataOrder</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

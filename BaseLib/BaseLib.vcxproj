@@ -94,6 +94,7 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="AccessDataOrderer.h" />
     <ClInclude Include="ArrayBlock.h" />
     <ClInclude Include="ArrayBlockMinimal.h" />
     <ClInclude Include="ArrayBlockSorted.h" />
@@ -289,6 +290,7 @@
     <ClInclude Include="Aardvark.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="AccessDataOrderer.cpp" />
     <ClCompile Include="ArrayBlock.cpp" />
     <ClCompile Include="ArrayBit.cpp" />
     <ClCompile Include="ArrayBlockMinimal.cpp" />
