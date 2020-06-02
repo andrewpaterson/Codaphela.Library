@@ -47,8 +47,6 @@ public:
 	BOOL					ValidateIndexTree(void);
 
 protected:
-	void					FakeInit(EIndexKeyReverse eKeyReverse);
-
 	CIndexTreeNodeMemory*	GetNode(void* pvKey, int iKeySize);
 	CIndexTreeNodeMemory*	GetRoot(void);
 	CIndexTreeNodeMemory*	GetNodeForData(void* pvData);

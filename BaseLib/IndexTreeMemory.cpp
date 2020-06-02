@@ -44,19 +44,6 @@ void CIndexTreeMemory::Init(CMallocator* pcMalloc, EIndexKeyReverse eKeyReverse,
 	miSize = 0;
 }
 
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CIndexTreeMemory::FakeInit(EIndexKeyReverse eKeyReverse)
-{
-	//This exists so that TreeNodes can be tested without a full tree.  All they need to do is query the size of their child nodes.
-	//Kill should not be called.
-	CIndexTree::Init(NULL, eKeyReverse, sizeof(CIndexTreeNodeMemory), sizeof(CIndexTreeNodeMemory) + sizeof(CIndexTreeDataNode), sizeof(CIndexTreeNodeMemory*), MAX_DATA_SIZE, MAX_KEY_SIZE);
-	mpcRoot = NULL;
-	miSize = 0;
-}
-
 
 //////////////////////////////////////////////////////////////////////////
 //

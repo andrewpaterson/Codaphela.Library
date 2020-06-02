@@ -104,7 +104,6 @@ protected:
 	int						NumNodes(void);
 	int						NumMemoryNodes(void);
 	int						NumMemoryElements(void);
-	void					FakeInit(EIndexKeyReverse eKeyReverse);
 
 	void					DebugKey(CChars* pszDest, void* pvKey, int iKeySize, BOOL bSkipRoot, BOOL bShowFlags, BOOL bShowSize, BOOL bKeyAlreadyReversed);
 	void					PrintChildren(CChars* pszDest, BOOL bShowFlags, BOOL bShowSize);
