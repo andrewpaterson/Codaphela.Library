@@ -20,8 +20,15 @@ public:
 
 			BOOL	PutLongPtr(int64 lliKey, void* pvPointer);
 			BOOL	PutLongInt(int64 lliKey, int iData);
+			BOOL	PutLongChar(int64 lliKey, char cData);
 			BOOL	PutLongString(int64 lliKey, char* pszData);
 			BOOL	PutLongData(int64 lliKey, void* pvData, int iDataSize);
+			BOOL	PutIntPtr(int iKey, void* pvPointer);
+			BOOL	PutIntInt(int iKey, int iData);
+			BOOL	PutIntLong(int iKey, int64 lliData);
+			BOOL	PutIntChar(int iKey, char cData);
+			BOOL	PutIntString(int iKey, char* pszData);
+			BOOL	PutIntData(int iKey, void* pvData, int iDataSize);
 			BOOL	PutStringPtr(char* pszKey, void* pvPointer);
 			BOOL	PutStringData(char* pszKey, void* pvData, int iDataSize);
 			BOOL	PutStringChar(char* pszKey, char cData);
@@ -29,6 +36,7 @@ public:
 			BOOL	PutStringLong(char* pszKey, int64 lliData);
 			BOOL	PutStringString(char* pszKey, char* pszData);
 			BOOL	PutKeyData(void* pvKey, int iKeySize, void* pvData, int iDataSize);
+			BOOL	PutKeyInt(void* pvKey, int iKeySize, int iData);
 			BOOL	PutKeyString(void* pvKey, int iKeySize, char* pszData);
 
 			char*	GetLongString(int64 lliKey, char* pszDest);
@@ -45,6 +53,7 @@ public:
 			BOOL	GetKeyData(void* pvKey, int iKeySize, void* pvData, int* piDataSize);
 
 			BOOL	HasLong(int64 lliKey);
+			BOOL	HasInt(int iKey);
 			BOOL	HasString(char* pszKey);
 			BOOL	HasKey(void* pvKey, int iKeySize);
 
