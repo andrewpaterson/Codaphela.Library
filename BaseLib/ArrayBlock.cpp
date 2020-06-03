@@ -1319,28 +1319,28 @@ int CArrayBlock::GetAdjustedIndex(int iIndex)
 //////////////////////////////////////////////////////////////////////////
 int CArrayBlock::GetIndex(void* pvElement)
 {
-	size_t iIndex;
-	size_t iBase;
-	size_t iDifference;
+	size_t tIndex;
+	size_t tBase;
+	size_t tDifference;
 
-	iBase = (size_t) mpvArray;
-	iIndex = (size_t) pvElement;
-	iDifference = iIndex - iBase;
+	tBase = (size_t) mpvArray;
+	tIndex = (size_t) pvElement;
+	tDifference = tIndex - tBase;
 
 	//Make sure the element is correctly aligned.
-	if (iDifference % miElementSize != 0)
+	if (tDifference % miElementSize != 0)
 	{
 		return -1;
 	}
 
 	//Make sure the element lies within the array.
-	iIndex = iDifference / miElementSize;
-	if ((iIndex < 0) || (iIndex >= (size_t)miUsedElements))
+	tIndex = tDifference / miElementSize;
+	if ((tIndex < 0) || (tIndex >= (size_t)miUsedElements))
 	{
 		return -1;
 	}
 
-	return (int)iIndex;
+	return (int)tIndex;
 }
 
 

@@ -295,28 +295,28 @@ M* CArrayTemplateEmbedded<M, I>::GetData(void)
 template<class M, int I>
 int CArrayTemplateEmbedded<M, I>::GetIndex(M* pvElement)
 {
-	int iIndex;
-	int iBase;
-	int iDifference;
+	int tIndex;
+	int tBase;
+	int tDifference;
 
-	iBase = (int)(size_t) GetData();
-	iIndex = (int)(size_t) pvElement;
-	iDifference = iIndex - iBase;
+	tBase = (int)(size_t) GetData();
+	tIndex = (int)(size_t) pvElement;
+	tDifference = tIndex - tBase;
 
 	//Make sure the element is correctly aligned.
-	if (iDifference % miElementSize != 0)
+	if (tDifference % miElementSize != 0)
 	{
 		return -1;
 	}
 
 	//Make sure the element lies within the array.
-	iIndex = iDifference / miElementSize;
-	if ((iIndex < 0) || (iIndex >= miUsedElements))
+	tIndex = tDifference / miElementSize;
+	if ((tIndex < 0) || (tIndex >= miUsedElements))
 	{
 		return -1;
 	}
 
-	return iIndex;
+	return tIndex;
 }
 
 

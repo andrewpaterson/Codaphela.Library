@@ -443,7 +443,10 @@ void CIndexTreeMemory::RemapNodePointers(CIndexTreeNodeMemory* pcOldNode, CIndex
 		}
 		pcNode->SetChildrensParent();
 
-		pcNode->RemapDataLinks(pcOldNode, pcNode);
+		if (mpcDataOrderer)
+		{
+			pcNode->RemapDataLinks(pcOldNode, pcNode);
+		}
 	}
 }
 

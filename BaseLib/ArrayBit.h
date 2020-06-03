@@ -72,7 +72,7 @@ public:
 
 protected:
 	void*	Malloc(size_t tSize);
-	void*	Realloc(void* pv, size_t iMemSize);
+	void*	Realloc(void* pv, size_t tSize);
 	void	Free(void* pv);
 };
 
