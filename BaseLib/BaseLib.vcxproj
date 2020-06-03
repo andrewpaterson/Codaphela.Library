@@ -107,6 +107,7 @@
     <ClInclude Include="ChunkFileHeader.h" />
     <ClInclude Include="ChunkStack.h" />
     <ClInclude Include="CountingAllocator.h" />
+    <ClInclude Include="CreationDataOrderer.h" />
     <ClInclude Include="DataMemory.h" />
     <ClInclude Include="FilePathBuilder.h" />
     <ClInclude Include="IndexKeyReverse.h" />
@@ -171,6 +172,7 @@
     <ClInclude Include="MemoryCacheAllocation.h" />
     <ClInclude Include="MemoryFreeListParams.h" />
     <ClInclude Include="MemoryHeader.h" />
+    <ClInclude Include="ModificationDataOrderer.h" />
     <ClInclude Include="NullAllocator.h" />
     <ClInclude Include="PackFileIterator.h" />
     <ClInclude Include="PackFilePacker.h" />
@@ -311,6 +313,7 @@
     <ClCompile Include="ChunkStack.cpp" />
     <ClCompile Include="Constructors.cpp" />
     <ClCompile Include="CountingAllocator.cpp" />
+    <ClCompile Include="CreationDataOrderer.cpp" />
     <ClCompile Include="DataMemory.cpp" />
     <ClCompile Include="EscapeCodes.cpp" />
     <ClCompile Include="FileIndex.cpp" />
@@ -348,6 +351,7 @@
     <ClCompile Include="MemoryCacheAllocation.cpp" />
     <ClCompile Include="MemoryFreeListParams.cpp" />
     <ClCompile Include="MemoryHeader.cpp" />
+    <ClCompile Include="ModificationDataOrderer.cpp" />
     <ClCompile Include="NullAllocator.cpp" />
     <ClCompile Include="PackFileIterator.cpp" />
     <ClCompile Include="PackFilePacker.cpp" />
