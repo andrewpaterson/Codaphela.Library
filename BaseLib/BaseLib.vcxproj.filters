@@ -804,6 +804,12 @@
     <ClInclude Include="AccessDataOrderer.h">
       <Filter>Source\Data\Index\DataOrder</Filter>
     </ClInclude>
+    <ClInclude Include="CreationDataOrderer.h">
+      <Filter>Source\Data\Index\DataOrder</Filter>
+    </ClInclude>
+    <ClInclude Include="ModificationDataOrderer.h">
+      <Filter>Source\Data\Index\DataOrder</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -1269,6 +1275,12 @@
       <Filter>Source\Data\Index\DataOrder</Filter>
     </ClCompile>
     <ClCompile Include="AccessDataOrderer.cpp">
+      <Filter>Source\Data\Index\DataOrder</Filter>
+    </ClCompile>
+    <ClCompile Include="CreationDataOrderer.cpp">
+      <Filter>Source\Data\Index\DataOrder</Filter>
+    </ClCompile>
+    <ClCompile Include="ModificationDataOrderer.cpp">
       <Filter>Source\Data\Index\DataOrder</Filter>
     </ClCompile>
   </ItemGroup>

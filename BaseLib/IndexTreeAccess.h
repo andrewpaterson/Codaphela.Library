@@ -41,7 +41,14 @@ public:
 
 			char*	GetLongString(int64 lliKey, char* pszDest);
 			int		GetLongInt(int64 lliKey, int iNUllValue = -1);
+			int64	GetLongLong(int64 lliKey, int64 lliNUllValue = -1);
+			char	GetLongChar(int64 lliKey, char cNUllValue = -1);
 			BOOL	GetLongData(int64 lliKey, void* pvData, int* piDataSize = NULL);
+			char*	GetIntString(int iKey, char* pszDest);
+			int		GetIntInt(int iKey, int iNUllValue = -1);
+			int64	GetIntLong(int iKey, int64 iNullValue = -1LL);
+			char	GetIntChar(int iKey, char cNUllValue = -1);
+			BOOL	GetIntData(int iKey, void* pvData, int* piDataSize = NULL);
 			BOOL	GetStringData(char* pszKey, void* pvData, int* piDataSize = NULL);
 			char*	GetStringString(char* pszKey, char* pszDest);
 			CChars	GetStringString(char* pszKey);
