@@ -51,7 +51,6 @@ public:
 	BOOL					Put(void* pvKey, int iKeySize, void* pvObject, int iDataSize);
 	BOOL					Remove(void* pvKey, int iKeySize);
 	BOOL					HasKey(void* pvKey, int iKeySize);
-
 	unsigned short			GetDataSize(void* pvKey, int iKeySize);
 
 	BOOL					Flush(void);

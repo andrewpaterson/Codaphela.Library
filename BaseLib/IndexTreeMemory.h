@@ -32,6 +32,7 @@ public:
 	void*					Put(void* pvKey, int iKeySize, void* pvObject, int iDataSize);
 	BOOL					Remove(void* pvKey, int iKeySize);
 	BOOL					HasKey(void* pvKey, int iKeySize);
+	unsigned short			GetDataSize(void* pvKey, int iKeySize);
 
 	void					FindAll(CArrayVoidPtr* papvElements);
 	int						GetKey(void* pvKey, void* pvData, BOOL zeroTerminate = FALSE);
