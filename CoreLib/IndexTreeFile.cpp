@@ -1218,11 +1218,11 @@ BOOL CIndexTreeFile::RemoveWaitForFlush(CIndexTreeNodeFile* pcCurrent)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeFile::RemoveSetPaths(CIndexTreeNodeFile* pcCurrent)
 {
+	pcCurrent->SetDirtyNode(FALSE);
 	if (!ClearDirtyPath(pcCurrent))
 	{
 		return FALSE;
 	}
-	pcCurrent->SetDirtyNode(FALSE);
 
 	if (!SetDeletedPath(pcCurrent))
 	{
@@ -1239,11 +1239,11 @@ BOOL CIndexTreeFile::RemoveSetPaths(CIndexTreeNodeFile* pcCurrent)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeFile::DirtySetPaths(CIndexTreeNodeFile* pcCurrent)
 {
+	pcCurrent->SetDeletedNode(FALSE);
 	if (!ClearDeletedPath(pcCurrent))
 	{
 		return FALSE;
 	}
-	pcCurrent->SetDeletedNode(FALSE);
 
 	if (!SetDirtyPath(pcCurrent))
 	{
@@ -2676,6 +2676,12 @@ unsigned short CIndexTreeFile::GetDataSize(void* pvKey, int iKeySize)
 	{
 		return 0;
 	}
+	else if (!pcNode->HasData())
+	{
+		return 0;
+	}
+
+	GetReorderData(pcNode);
 
 	return pcNode->GetDataSize();
 }
@@ -2878,12 +2884,12 @@ BOOL CIndexTreeFile::WriteBackPathCaching(CIndexTreeNodeFile* pcNode)
 		}
 		else
 		{
-			break;
+			return ClearDirtyPath(pcNode);
 		}
 		pcNode = pcParent;
 	}
 
-	return ClearDirtyPath(pcNode);
+	return TRUE;
 }
 
 
@@ -2894,11 +2900,23 @@ BOOL CIndexTreeFile::WriteBackPathCaching(CIndexTreeNodeFile* pcNode)
 BOOL CIndexTreeFile::ClearDirtyPath(CIndexTreeNodeFile* pcNode)
 {
 	CIndexTreeNodeFile* pcParent;
+	BOOL				bChildWithDirtyPath;
+	BOOL				bDirtyNode;
+	BOOL				bDirtyPath;
+
+	bDirtyPath = pcNode->IsPathDirty();
+	if (!bDirtyPath)
+	{
+		return TRUE;
+	}
 
 	while (pcNode)
 	{
 		pcParent = (CIndexTreeNodeFile*)pcNode->GetParent();
-		if (!pcNode->HasChildWithFlags(INDEX_TREE_NODE_FLAG_DIRTY_PATH))
+
+		bChildWithDirtyPath = pcNode->HasChildWithFlags(INDEX_TREE_NODE_FLAG_DIRTY_PATH);
+		bDirtyNode = pcNode->IsDirty();
+		if (!bChildWithDirtyPath && !bDirtyNode)
 		{
 			pcNode->SetDirtyPath(FALSE);
 		}
@@ -2920,11 +2938,23 @@ BOOL CIndexTreeFile::ClearDirtyPath(CIndexTreeNodeFile* pcNode)
 BOOL CIndexTreeFile::ClearDeletedPath(CIndexTreeNodeFile* pcNode)
 {
 	CIndexTreeNodeFile* pcParent;
+	BOOL				bChildWithDeletedPath;
+	BOOL				bDeletedNode;
+	BOOL				bDeletedPath;
+
+	bDeletedPath = pcNode->IsPathDeleted();
+	if (!bDeletedPath)
+	{
+		return TRUE;
+	}
 
 	while (pcNode)
 	{
 		pcParent = (CIndexTreeNodeFile*)pcNode->GetParent();
-		if (!pcNode->HasChildWithFlags(INDEX_TREE_NODE_FLAG_DELETED_PATH))
+
+		bChildWithDeletedPath = pcNode->HasChildWithFlags(INDEX_TREE_NODE_FLAG_DELETED_PATH);
+		bDeletedNode = pcNode->IsDeleted();
+		if (!bChildWithDeletedPath && !bDeletedNode)
 		{
 			pcNode->SetDeletedPath(FALSE);
 		}
@@ -3110,6 +3140,12 @@ BOOL CIndexTreeFile::Read(CIndexTreeChildNode* pcChildNode, CIndexTreeNodeFile* 
 	{
 		pcFileNode->SetFileIndex(iFile, uiIndex);
 		pcChildNode->Init(pcFileNode);
+
+		if (pcFileNode->GetDataSize() > 0)
+		{
+			InsertReorderData(pcFileNode);
+		}
+
 		return TRUE;
 	}
 	else

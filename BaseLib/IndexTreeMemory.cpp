@@ -1202,6 +1202,25 @@ BOOL CIndexTreeMemory::HasKey(void* pvKey, int iKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+unsigned short CIndexTreeMemory::GetDataSize(void* pvKey, int iKeySize)
+{
+	CIndexTreeNodeMemory* pcNode;
+
+	pcNode = GetNode(pvKey, iKeySize);
+	if (pcNode == NULL)
+	{
+		return FALSE;
+	}
+
+	GetReorderData(pcNode);
+
+	return pcNode->GetDataSize();
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 int CIndexTreeMemory::NumAllocatedNodes(void)
 {
 	return RecurseNumNodes(mpcRoot);

@@ -77,6 +77,7 @@ public:
 			BOOL	FlushKey(void* pvKey, int iKeySize);
 
 			BOOL	EvictLong(int64 lliKey);
+			BOOL	EvictInt(int iKey);
 			BOOL	EvictString(char* pszKey);
 			BOOL	EvictKey(void* pvKey, int iKeySize);
 
