@@ -1,6 +1,7 @@
 #include "BaseLib/IntegerHelper.h"
 #include "BaseLib/Logger.h"
 #include "BaseLib/LogString.h"
+#include "IndexTreeFile.h"
 #include "IndexTreeNodeFile.h"
 
 
@@ -714,6 +715,7 @@ BOOL CIndexTreeNodeFile::ConvertToFileNode(CIndexTreeNodeFile* pcNode)
 {
 	unsigned char			c;
 	CIndexTreeChildNode*	pcNodeReference;
+	char					szKey[MAX_KEY_SIZE];
 
 	c = pcNode->GetIndexInParent();
 	pcNodeReference = Get(c);
@@ -728,7 +730,8 @@ BOOL CIndexTreeNodeFile::ConvertToFileNode(CIndexTreeNodeFile* pcNode)
 			}
 			else if (pcNode->IsDeleted())
 			{
-				gcLogger.Error2(__METHOD__, " Cannot convert memory node to file node, node is deleted.", NULL);
+				((CIndexTreeFile*)mpcIndexTree)->GetNodeKey(pcNode, szKey, MAX_KEY_SIZE);
+				gcLogger.Error2(__METHOD__, " Cannot convert memory node with key [", szKey, "] to file node, node is deleted.", szKey, NULL);
 				return FALSE;
 			}
 
@@ -737,7 +740,8 @@ BOOL CIndexTreeNodeFile::ConvertToFileNode(CIndexTreeNodeFile* pcNode)
 		}
 		else
 		{
-			gcLogger.Error2(__METHOD__, " Cannot convert memory node to file node, node has not been written.", NULL);
+			((CIndexTreeFile*)mpcIndexTree)->GetNodeKey(pcNode, szKey, MAX_KEY_SIZE);
+			gcLogger.Error2(__METHOD__, " Cannot convert memory node with key [", szKey, "] to file node, node has not been written.", szKey, NULL);
 			return FALSE;
 		}
 	}
@@ -747,7 +751,8 @@ BOOL CIndexTreeNodeFile::ConvertToFileNode(CIndexTreeNodeFile* pcNode)
 	}
 	else if (pcNodeReference->IsUnallocated())
 	{
-		gcLogger.Error2(__METHOD__, " Cannot convert memory node to file node, node is not allocated.", NULL);
+		((CIndexTreeFile*)mpcIndexTree)->GetNodeKey(pcNode, szKey, MAX_KEY_SIZE);
+		gcLogger.Error2(__METHOD__, " Cannot convert memory node with key [", szKey, "] to file node, node is not allocated.", NULL);
 		return FALSE;
 	}
 	else

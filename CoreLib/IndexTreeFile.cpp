@@ -1909,10 +1909,6 @@ CListTemplateMinimal<char>* CIndexTreeFile::GetNodesKeys(CArrayVoidPtr* apvNodes
 		pcNode = (CIndexTreeNodeFile*)apvNodes->GetPtr(i);
 		iKeySize = GetNodeKey(pcNode, szKey, MAX_KEY_SIZE);
 
-		//if (meReverseKey)
-		//{
-		//	StrRev((char*)&szKey[0], iKeySize);
-		//}
 		paszKeyNames->Add((char*)&szKey[0], iKeySize);
 	}
 
@@ -3704,7 +3700,7 @@ void CIndexTreeFile::RecurseDump(CChars* pszDest, CIndexTreeRecursor* pcCursor, 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CIndexTreeFile::GetNodeKeySize(CIndexTreeNodeFile* pcNode)
+int CIndexTreeFile::GetNodeKeySize(CIndexTreeNode* pcNode)
 {
 	int				iKeySize;
 
@@ -3712,7 +3708,7 @@ int CIndexTreeFile::GetNodeKeySize(CIndexTreeNodeFile* pcNode)
 	while (pcNode != mpcRoot)
 	{
 		iKeySize++;
-		pcNode = (CIndexTreeNodeFile*)pcNode->GetParent();
+		pcNode = pcNode->GetParent();
 	}
 	return iKeySize;
 }
@@ -3722,7 +3718,7 @@ int CIndexTreeFile::GetNodeKeySize(CIndexTreeNodeFile* pcNode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CIndexTreeFile::GetNodeKey(CIndexTreeNodeFile* pcNode, char* pvDestKey, int iDestKeySize)
+int CIndexTreeFile::GetNodeKey(CIndexTreeNode* pcNode, char* pvDestKey, int iDestKeySize)
 {
 	int				iKeySize;
 	int				iLength;

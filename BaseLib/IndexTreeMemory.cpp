@@ -759,7 +759,25 @@ int CIndexTreeMemory::GetKey(void* pvData, char* pvDestKey, int iDestKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CIndexTreeMemory::GetNodeKey(CIndexTreeNodeMemory* pcNode, char* pvDestKey, int iDestKeySize)
+int CIndexTreeMemory::GetNodeKeySize(CIndexTreeNode* pcNode)
+{
+	int				iKeySize;
+
+	iKeySize = 0;
+	while (pcNode != mpcRoot)
+	{
+		iKeySize++;
+		pcNode = pcNode->GetParent();
+	}
+	return iKeySize;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CIndexTreeMemory::GetNodeKey(CIndexTreeNode* pcNode, char* pvDestKey, int iDestKeySize)
 {
 	int				iKeySize;
 	int				iLength;
