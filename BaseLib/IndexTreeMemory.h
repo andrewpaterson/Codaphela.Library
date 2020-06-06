@@ -49,6 +49,8 @@ public:
 
 	BOOL					ValidateIndexTree(void);
 
+	void					Dump(void);
+
 protected:
 	CIndexTreeNodeMemory*	GetNode(void* pvKey, int iKeySize);
 	CIndexTreeNodeMemory*	GetRoot(void);
