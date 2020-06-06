@@ -45,6 +45,8 @@ public:
 			size_t				CalculateRootNodeSize(void);
 			size_t				CalculateNodeSize(int iRequiredIndices, int iDataSize);
 
+	virtual void				Dump(void) =0;
+
 protected:
 			void*				Malloc(size_t tSize);
 			void*				Realloc(void* pv, size_t tNewSize, size_t tExistingSize);

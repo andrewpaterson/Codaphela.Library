@@ -1284,7 +1284,7 @@ BOOL CIndexTreeFile::Evict(void* pvKey, int iKeySize)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeFile::Evict(CIndexTreeNodeFile* pcNode)
 {
-	BOOL					bResult;
+	BOOL	bResult;
 
 	bResult = CanEvict(pcNode);
 	if (!bResult)
@@ -1354,7 +1354,7 @@ BOOL CIndexTreeFile::EvictNode(CIndexTreeNodeFile* pcCurrent)
 
 		pcNode = pcParent;
 
-		if (HasData(pcNode))
+		if (pcNode->HasData())  //Not HasData(pcNode).
 		{
 			break;
 		}
