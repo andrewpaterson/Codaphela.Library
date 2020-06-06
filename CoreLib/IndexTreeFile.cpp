@@ -1671,7 +1671,7 @@ BOOL CIndexTreeFile::FlushDeleted(void)
 	ClearNodesFlags(&apvDeletedNodes, INDEX_TREE_NODE_FLAG_DELETED_PATH | INDEX_TREE_NODE_FLAG_DELETED_NODE);
 
 	bResult = TRUE;
-	paszKeys = FindKeys(&apvDeletedNodes);
+	paszKeys = GetNodesKeys(&apvDeletedNodes);
 	iNumNodes = paszKeys->NumElements();
 	for (i = 0; i < iNumNodes; i++)
 	{
@@ -1841,90 +1841,26 @@ BOOL CIndexTreeFile::Iterate(SIndexTreeFileIterator* psIterator, void** pvData, 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CIndexTreeFile::FindKeySize(CIndexTreeNodeFile* pcNode)
+void CIndexTreeFile::GetNodeKey(CIndexTreeNodeFile* pcNode, CArrayChar* pacKey)
 {
-	//What is the difference between this and GetNodeKeySize
-	int				iKeySize;
-	CIndexTreeNode*	pcCurrent;
+	char	acKey[MAX_KEY_SIZE];
+	int		iKeySize;
+	int		i;
 
-	iKeySize = 0;
-	pcCurrent = pcNode;
-	while (pcCurrent != mpcRoot)
+	iKeySize = GetNodeKey(pcNode, acKey, MAX_KEY_SIZE);
+
+	for (i = 0; i < iKeySize; i++)
 	{
-		iKeySize++;
-		pcCurrent = pcCurrent->GetParent();
+		pacKey->Add(acKey[i]);
 	}
-	return iKeySize;
+
 }
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeFile::FindKey(CIndexTreeNodeFile* pcNode, CArrayChar* pacKey)
-{
-	unsigned char	uiKeyReversed[MAX_KEY_SIZE];
-	int				iKeySize;
-	int				i;
-
-	if (pcNode != NULL)
-	{
-		FindKeyReversed(pcNode, &uiKeyReversed[0], &iKeySize);
-
-		for (i = iKeySize - 1; i >= 0; i--)
-		{
-			pacKey->Add(uiKeyReversed[i]);
-		}
-	}
-}
-
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CIndexTreeFile::FindKey(CIndexTreeNodeFile* pcNode, unsigned char* uiKey, int* piKeySize)
-{
-	if (pcNode != NULL)
-	{
-		FindKeyReversed(pcNode, uiKey, piKeySize);
-		ReverseBytes(uiKey, *piKeySize);
-	}
-	else
-	{
-		piKeySize = 0;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CIndexTreeFile::FindKeyReversed(CIndexTreeNodeFile* pcNode, unsigned char* uiKeyReversed, int* piKeySize)
-{
-	int				iKeySize;
-	CIndexTreeNode*	pcCurrent;
-
-	iKeySize = 0;
-	pcCurrent = pcNode;
-	while (pcCurrent != mpcRoot)
-	{
-		uiKeyReversed[iKeySize] = pcCurrent->GetIndexInParent();
-		iKeySize++;
-		pcCurrent = pcCurrent->GetParent();
-	}
-	*piKeySize = iKeySize;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-int CIndexTreeFile::FindKeysSize(CArrayVoidPtr* apvNodes)
+int CIndexTreeFile::GetNodeKeysSize(CArrayVoidPtr* apvNodes)
 {
 	int								i;
 	CIndexTreeNodeFile*				pcNode;
@@ -1937,7 +1873,7 @@ int CIndexTreeFile::FindKeysSize(CArrayVoidPtr* apvNodes)
 	for (i = 0; i < iNumKeys; i++)
 	{
 		pcNode = (CIndexTreeNodeFile*)apvNodes->GetPtr(i);
-		iKeySize = FindKeySize(pcNode);
+		iKeySize = GetNodeKeySize(pcNode);
 		iKeysSize += iKeySize;
 	}
 
@@ -1949,11 +1885,11 @@ int CIndexTreeFile::FindKeysSize(CArrayVoidPtr* apvNodes)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CListTemplateMinimal<char>* CIndexTreeFile::FindKeys(CArrayVoidPtr* apvNodes)
+CListTemplateMinimal<char>* CIndexTreeFile::GetNodesKeys(CArrayVoidPtr* apvNodes)
 {
 	int								i;
 	CIndexTreeNodeFile*				pcNode;
-	unsigned char					szKey[MAX_KEY_SIZE];
+	char							szKey[MAX_KEY_SIZE];
 	int								iKeySize;
 	int								iNumKeys;
 	int								iTotalSize;
@@ -1961,7 +1897,7 @@ CListTemplateMinimal<char>* CIndexTreeFile::FindKeys(CArrayVoidPtr* apvNodes)
 	CListTemplateMinimal<char>*		paszKeyNames;
 
 	iNumKeys = apvNodes->NumElements();
-	iKeysSize = FindKeysSize(apvNodes);
+	iKeysSize = GetNodeKeysSize(apvNodes);
 
 	paszKeyNames = NULL;
 	iTotalSize = paszKeyNames->TotalSize(iNumKeys, iKeysSize);
@@ -1971,12 +1907,12 @@ CListTemplateMinimal<char>* CIndexTreeFile::FindKeys(CArrayVoidPtr* apvNodes)
 	for (i = 0; i < iNumKeys; i++)
 	{
 		pcNode = (CIndexTreeNodeFile*)apvNodes->GetPtr(i);
-		FindKey(pcNode, szKey, &iKeySize);
+		iKeySize = GetNodeKey(pcNode, szKey, MAX_KEY_SIZE);
 
-		if (meReverseKey)
-		{
-			StrRev((char*)&szKey[0], iKeySize);
-		}
+		//if (meReverseKey)
+		//{
+		//	StrRev((char*)&szKey[0], iKeySize);
+		//}
 		paszKeyNames->Add((char*)&szKey[0], iKeySize);
 	}
 
@@ -1988,11 +1924,11 @@ CListTemplateMinimal<char>* CIndexTreeFile::FindKeys(CArrayVoidPtr* apvNodes)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CListCharsMinimal* CIndexTreeFile::FindStringKeys(CArrayVoidPtr* apvNodes)
+CListCharsMinimal* CIndexTreeFile::GetNodesStringKeys(CArrayVoidPtr* apvNodes)
 {
 	int						i;
 	CIndexTreeNodeFile*		pcNode;
-	unsigned char			szKey[MAX_KEY_SIZE];
+	char					szKey[MAX_KEY_SIZE];
 	int						iKeySize;
 	int						iNumKeys;
 	int						iTotalSize;
@@ -2000,7 +1936,7 @@ CListCharsMinimal* CIndexTreeFile::FindStringKeys(CArrayVoidPtr* apvNodes)
 	CListCharsMinimal*		paszKeyNames;
 
 	iNumKeys = apvNodes->NumElements();
-	iKeysSize = FindKeysSize(apvNodes);
+	iKeysSize = GetNodeKeysSize(apvNodes);
 
 	paszKeyNames = NULL;
 	iTotalSize = paszKeyNames->TotalSize(iNumKeys, iKeysSize);
@@ -2010,7 +1946,7 @@ CListCharsMinimal* CIndexTreeFile::FindStringKeys(CArrayVoidPtr* apvNodes)
 	for (i = 0; i < iNumKeys; i++)
 	{
 		pcNode = (CIndexTreeNodeFile*)apvNodes->GetPtr(i);
-		FindKey(pcNode, szKey, &iKeySize);
+		iKeySize = GetNodeKey(pcNode, szKey, MAX_KEY_SIZE);
 
 		paszKeyNames->Add((char*)&szKey[0], iKeySize);
 	}
@@ -3728,7 +3664,7 @@ void CIndexTreeFile::RecurseDump(CChars* pszDest, CIndexTreeRecursor* pcCursor, 
 	int						iKeySize;
 	CIndexTreeNodeFile*		pcChild;
 	CStackMemory<32>		cStack;
-	unsigned char*			pvKey;
+	char		*			pvKey;
 	CChars					szKey;
 
 	pcNode = (CIndexTreeNodeFile*)pcCursor->GetNode();
@@ -3737,7 +3673,7 @@ void CIndexTreeFile::RecurseDump(CChars* pszDest, CIndexTreeRecursor* pcCursor, 
 		if (pcNode->HasData())
 		{
 			iKeySize = GetNodeKeySize(pcNode);
-			pvKey = (unsigned char*)cStack.Init(iKeySize);
+			pvKey = (char*)cStack.Init(iKeySize);
 			GetNodeKey(pcNode, pvKey, iKeySize);
 
 			szKey.Init("Key: ------------- [");
@@ -3770,16 +3706,15 @@ void CIndexTreeFile::RecurseDump(CChars* pszDest, CIndexTreeRecursor* pcCursor, 
 //////////////////////////////////////////////////////////////////////////
 int CIndexTreeFile::GetNodeKeySize(CIndexTreeNodeFile* pcNode)
 {
-	//What is the difference between this and FindKeySize
-	int		iKeySize;
+	int				iKeySize;
 
 	iKeySize = 0;
-	while (pcNode)
+	while (pcNode != mpcRoot)
 	{
 		iKeySize++;
 		pcNode = (CIndexTreeNodeFile*)pcNode->GetParent();
 	}
-	return iKeySize-1;
+	return iKeySize;
 }
 
 
@@ -3787,35 +3722,40 @@ int CIndexTreeFile::GetNodeKeySize(CIndexTreeNodeFile* pcNode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::GetNodeKey(CIndexTreeNodeFile* pcNode, unsigned char* pvDestKey, int iDestSize)
+int CIndexTreeFile::GetNodeKey(CIndexTreeNodeFile* pcNode, char* pvDestKey, int iDestKeySize)
 {
 	int				iKeySize;
+	int				iLength;
+
+	if (pcNode == NULL)
+	{
+		return 0;
+	}
 
 	iKeySize = 0;
-	while (pcNode && pcNode != mpcRoot)
+	iLength = 0;
+	while (pcNode != mpcRoot)
 	{
-		if (iKeySize >= iDestSize)
+		if (iKeySize < iDestKeySize)
 		{
-			return FALSE;
+			pvDestKey[iLength] = pcNode->GetIndexInParent();
+			iLength++;
 		}
-
-		pvDestKey[iKeySize] = pcNode->GetIndexInParent();
 		iKeySize++;
-
 		pcNode = (CIndexTreeNodeFile*)pcNode->GetParent();
 	}
 
 	if (meReverseKey == IKR_No)
 	{
 		//The key is already reversed by revese node traversal.
-		ReverseBytes(pvDestKey, iKeySize);
+		ReverseBytes(pvDestKey, iLength);
 	}
 
-	if (iKeySize < iDestSize)
+	if (iKeySize < iDestKeySize)
 	{
 		pvDestKey[iKeySize] = 0;
 	}
 
-	return TRUE;
+	return iKeySize;
 }
 

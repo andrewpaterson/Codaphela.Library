@@ -35,7 +35,7 @@ public:
 	unsigned short			GetDataSize(void* pvKey, int iKeySize);
 
 	void					FindAll(CArrayVoidPtr* papvElements);
-	int						GetKey(void* pvKey, void* pvData, BOOL zeroTerminate = FALSE);
+	int						GetKey(void* pvData, char* pvDestKey, int iDestKeySize);
 
 	int						NumElements(void);
 
@@ -53,6 +53,7 @@ protected:
 	CIndexTreeNodeMemory*	GetNode(void* pvKey, int iKeySize);
 	CIndexTreeNodeMemory*	GetRoot(void);
 	CIndexTreeNodeMemory*	GetNodeForData(void* pvData);
+	int						GetNodeKey(CIndexTreeNodeMemory* pcNode, char* pvDestKey, int iDestKeySize);
 
 	void					RecurseKill(CIndexTreeNodeMemory* pcNode);
 

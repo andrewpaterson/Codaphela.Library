@@ -624,7 +624,7 @@ BOOL CIndexTreeMemory::Write(CFileWriter* pcFileWriter)
 	int					iDataSize;
 	int					iKeySize;
 	BOOL				bResult;
-	unsigned char		acKey[MAX_KEY_SIZE];
+	char				acKey[MAX_KEY_SIZE];
 	int					iCount;
 
 	bResult = gcMallocators.WriteMallocator(pcFileWriter, mpcMalloc);
@@ -642,7 +642,7 @@ BOOL CIndexTreeMemory::Write(CFileWriter* pcFileWriter)
 	bResult = StartIteration(&sIter, &pvData, &iDataSize);
 	while (bResult)
 	{
-		iKeySize = GetKey(acKey, pvData, FALSE);
+		iKeySize = GetKey(pvData, acKey, MAX_KEY_SIZE);
 		if (!pcFileWriter->WriteInt(iKeySize))
 		{
 			return FALSE;
@@ -738,39 +738,62 @@ int CIndexTreeMemory::NumElements(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CIndexTreeMemory::GetKey(void* pvKey, void* pvData, BOOL zeroTerminate)
+int CIndexTreeMemory::GetKey(void* pvData, char* pvDestKey, int iDestKeySize)
 {
 	CIndexTreeNodeMemory*	pcNode;
-	unsigned char*			pucKey;
-	int						iLength;
-	CIndexTreeNodeMemory*	pcParent;
 
 	if (pvData == NULL)
 	{
 		return 0;
 	}
 
-	iLength = 0;
-	pucKey = (unsigned char*)pvKey;
 	pcNode = GetNodeForData(pvData);
 
 	GetReorderData(pcNode);
 
-	pcParent = (CIndexTreeNodeMemory*)pcNode->GetParent();
-	while (pcParent != NULL)
+	return GetNodeKey(pcNode, pvDestKey, iDestKeySize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CIndexTreeMemory::GetNodeKey(CIndexTreeNodeMemory* pcNode, char* pvDestKey, int iDestKeySize)
+{
+	int				iKeySize;
+	int				iLength;
+
+	if (pcNode == NULL)
 	{
-		pucKey[iLength] = pcParent->FindIndex(pcNode);
-		iLength++;
-		pcNode = pcParent;
-		pcParent = (CIndexTreeNodeMemory*)pcNode->GetParent();
+		return 0;
 	}
 
-	ReverseBytes(pucKey, iLength);
-	if (zeroTerminate)
+	iKeySize = 0;
+	iLength = 0;
+	while (pcNode && pcNode != mpcRoot)
 	{
-		pucKey[iLength] = '\0';
+		if (iKeySize < iDestKeySize)
+		{
+			pvDestKey[iKeySize] = pcNode->GetIndexInParent();
+			iLength++;
+		}
+		iKeySize++;
+		pcNode = (CIndexTreeNodeMemory*)pcNode->GetParent();
 	}
-	return iLength;
+
+	if (meReverseKey == IKR_No)
+	{
+		//The key is already reversed by revese node traversal.
+		ReverseBytes(pvDestKey, iLength);
+	}
+
+	if (iKeySize < iDestKeySize)
+	{
+		pvDestKey[iKeySize] = 0;
+	}
+
+	return iKeySize;
 }
 
 

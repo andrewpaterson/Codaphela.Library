@@ -264,7 +264,7 @@ BOOL CIndexTreeEvicting::Evict(void* pvKey, int iKeySize)
 BOOL CIndexTreeEvicting::EvictNodeWithObject(CIndexTreeNodeFile* pcNode)
 {
 	CStackMemory<>		cStack;
-	unsigned char*		pvMem;
+	char*				pvMem;
 	int					iKeySize;
 	BOOL				bResult;
 	void*				pvData;
@@ -273,7 +273,7 @@ BOOL CIndexTreeEvicting::EvictNodeWithObject(CIndexTreeNodeFile* pcNode)
 	if (mpcIndexTreeEvictionCallback)
 	{
 		iKeySize = mcIndexTree.GetNodeKeySize(pcNode);
-		pvMem = (unsigned char*)cStack.Init(iKeySize + 1);
+		pvMem = (char*)cStack.Init(iKeySize + 1);
 		mcIndexTree.GetNodeKey(pcNode, pvMem, iKeySize + 1);
 		pvMem[iKeySize] = 0;
 		pvData = pcNode->GetDataPtr();
