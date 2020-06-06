@@ -713,11 +713,11 @@ BOOL CIndexTreeNodeFile::HasFile(void)
 BOOL CIndexTreeNodeFile::ConvertToFileNode(CIndexTreeNodeFile* pcNode)
 {
 	unsigned char			c;
-	CIndexTreeChildNode*	pcChild;
+	CIndexTreeChildNode*	pcNodeReference;
 
 	c = pcNode->GetIndexInParent();
-	pcChild = Get(c);
-	if (pcChild->IsMemory())
+	pcNodeReference = Get(c);
+	if (pcNodeReference->IsMemory())
 	{
 		if (pcNode->HasFile())
 		{
@@ -732,7 +732,7 @@ BOOL CIndexTreeNodeFile::ConvertToFileNode(CIndexTreeNodeFile* pcNode)
 				return FALSE;
 			}
 
-			pcChild->Init(pcNode->GetFileIndex());
+			pcNodeReference->Init(pcNode->GetFileIndex());
 			return TRUE;
 		}
 		else
@@ -741,11 +741,11 @@ BOOL CIndexTreeNodeFile::ConvertToFileNode(CIndexTreeNodeFile* pcNode)
 			return FALSE;
 		}
 	}
-	else if (pcChild->IsFile())
+	else if (pcNodeReference->IsFile())
 	{
 		return TRUE;
 	}
-	else if (pcChild->IsUnallocated())
+	else if (pcNodeReference->IsUnallocated())
 	{
 		gcLogger.Error2(__METHOD__, " Cannot convert memory node to file node, node is not allocated.", NULL);
 		return FALSE;

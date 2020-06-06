@@ -83,13 +83,11 @@ protected:
 	CIndexTreeNodeFile*		GetMemoryNode(void* pvKey, int iKeySize);
 	CIndexTreeNodeFile*		GetNodeForData(void* pvData);
 	int						GetNodeKeySize(CIndexTreeNodeFile* pcNode);
-	BOOL					GetNodeKey(CIndexTreeNodeFile* pcNode, unsigned char* pvDestKey, int iDestSize);
+	int						GetNodeKey(CIndexTreeNodeFile* pcNode, char* pvDestKey, int iDestKeySize);
 
-	void					FindKey(CIndexTreeNodeFile* pcNode, CArrayChar* pacKey);
-	void					FindKey(CIndexTreeNodeFile* pcNode, unsigned char* uiKey, int* piKeySize);
-	int						FindKeySize(CIndexTreeNodeFile* pcNode);
-	CListTemplateMinimal<char>*	FindKeys(CArrayVoidPtr* apvNodes);
-	CListCharsMinimal*		FindStringKeys(CArrayVoidPtr* apvNodes);
+	void					GetNodeKey(CIndexTreeNodeFile* pcNode, CArrayChar* pacKey);
+	CListTemplateMinimal<char>* GetNodesKeys(CArrayVoidPtr* apvNodes);
+	CListCharsMinimal*		GetNodesStringKeys(CArrayVoidPtr* apvNodes);
 
 	BOOL					ValidateIndexTree(BOOL bReadNodes);
 	BOOL					ValidateKey(void* pvKey, int iKeySize);
@@ -169,8 +167,7 @@ protected:
 
 	BOOL					StepNext(SIndexTreeFileIterator* psIterator);
 
-	void					FindKeyReversed(CIndexTreeNodeFile* pcNode, unsigned char* uiKeyReversed, int* piKeySize);
-	int						FindKeysSize(CArrayVoidPtr* apvNodes);
+	int						GetNodeKeysSize(CArrayVoidPtr* apvNodes);
 
 	BOOL					FlushDeleted(void);
 	BOOL					FlushDirty(void);
