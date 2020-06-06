@@ -67,6 +67,9 @@ protected:
 			CIndexTreeNode*		GetNodeForData(void* pvData);
 			void*				GetDataForDataNode(CIndexTreeDataNode* pcDataNode);
 			void*				GetDataForNode(CIndexTreeNode* pcNode);
+
+	virtual	int					GetNodeKey(CIndexTreeNode* pcNode, char* pvDestKey, int iDestKeySize) =0;
+	virtual	int					GetNodeKeySize(CIndexTreeNode* pcNode) =0;
 };
 
 

@@ -24,6 +24,7 @@ class CIndexTreeFile : public CIndexTree
 {
 friend class CIndexTreeEvicting;
 friend class CIndexTreeWriter;
+friend class CIndexTreeNodeFile;
 protected:
 	CIndexTreeNodeFile*			mpcRoot;
 	CIndexedFiles				mcIndexFiles;
@@ -82,8 +83,8 @@ protected:
 	CIndexTreeNodeFile*		GetNode(void* pvKey, int iKeySize);
 	CIndexTreeNodeFile*		GetMemoryNode(void* pvKey, int iKeySize);
 	CIndexTreeNodeFile*		GetNodeForData(void* pvData);
-	int						GetNodeKeySize(CIndexTreeNodeFile* pcNode);
-	int						GetNodeKey(CIndexTreeNodeFile* pcNode, char* pvDestKey, int iDestKeySize);
+	int						GetNodeKeySize(CIndexTreeNode* pcNode);
+	int						GetNodeKey(CIndexTreeNode* pcNode, char* pvDestKey, int iDestKeySize);
 
 	void					GetNodeKey(CIndexTreeNodeFile* pcNode, CArrayChar* pacKey);
 	CListTemplateMinimal<char>* GetNodesKeys(CArrayVoidPtr* apvNodes);

@@ -332,3 +332,4 @@ void* CIndexTree::GetDataForNode(CIndexTreeNode* pcNode)
 	return RemapSinglePointer(pcNode, mtSizeofDataNode);
 }
 
+

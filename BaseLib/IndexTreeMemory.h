@@ -53,7 +53,8 @@ protected:
 	CIndexTreeNodeMemory*	GetNode(void* pvKey, int iKeySize);
 	CIndexTreeNodeMemory*	GetRoot(void);
 	CIndexTreeNodeMemory*	GetNodeForData(void* pvData);
-	int						GetNodeKey(CIndexTreeNodeMemory* pcNode, char* pvDestKey, int iDestKeySize);
+	int						GetNodeKey(CIndexTreeNode* pcNode, char* pvDestKey, int iDestKeySize);
+	int						GetNodeKeySize(CIndexTreeNode* pcNode);
 
 	void					RecurseKill(CIndexTreeNodeMemory* pcNode);
 
