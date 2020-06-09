@@ -1286,6 +1286,7 @@ BOOL CIndexTreeFile::Evict(CIndexTreeNodeFile* pcNode)
 {
 	BOOL	bResult;
 
+	pcNode->ValidateParent();
 	bResult = CanEvict(pcNode);
 	if (!bResult)
 	{
@@ -2472,6 +2473,16 @@ BOOL CIndexTreeFile::RecurseValidateMagic(CIndexTreeRecursor* pcCursor, BOOL bRe
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeFile::ValidateParentIndex(void)
+{
+	return ValidateParentIndex(TRUE);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeFile::ValidateParentIndex(BOOL bReadNodes)
 {
 	CIndexTreeRecursor	cCursor;
@@ -2497,18 +2508,30 @@ BOOL CIndexTreeFile::RecurseValidateParentIndex(CIndexTreeRecursor* pcCursor, BO
 	BOOL					bResult;
 	CIndexTreeNodeFile*		pcChildsParent;
 	unsigned char			uiIndexInParent;
+	CIndexTreeNodeFile*		pcShouldBeThis;
+	CIndexTreeChildNode*	pcShouldBeChild;
+	int						iFirstIndex;
+	int						iLastIndex;
 
 	pcNode = (CIndexTreeNodeFile*)pcCursor->GetNode();
 	if (pcNode != NULL)
 	{
 		if (pcNode->HasNodes())
 		{
-			for (i = pcNode->GetFirstIndex(); i <= pcNode->GetLastIndex(); i++)
+			iFirstIndex = pcNode->GetFirstIndex();
+			iLastIndex = pcNode->GetLastIndex();
+			for (i = iFirstIndex; i <= iLastIndex; i++)
 			{
 				pcChild = ReadNode(pcNode, i, bReadNodes);
 				if (pcChild != NULL)
 				{
 					pcChildsParent = (CIndexTreeNodeFile*)pcChild->GetParent();
+					if (pcChildsParent == NULL)
+					{
+						pcCursor->GenerateBad();
+						return gcLogger.Error2(__METHOD__, " Node [", pcCursor->GetBadNode(), "] parent should not be NULL.", NULL);
+					}
+
 					if (pcChildsParent != pcNode)
 					{
 						pcCursor->GenerateBad();
@@ -2519,7 +2542,28 @@ BOOL CIndexTreeFile::RecurseValidateParentIndex(CIndexTreeRecursor* pcCursor, BO
 					if (i != uiIndexInParent)
 					{
 						pcCursor->GenerateBad();
-						return gcLogger.Error2(__METHOD__, " Node [", pcCursor->GetBadNode(), "] points to the wrong parent node.", NULL);
+						return gcLogger.Error2(__METHOD__, " Node [", pcCursor->GetBadNode(), "] parent index [", IntToString(uiIndexInParent), "] is different points to the index in the parent [", IntToString(i), "].", NULL);
+					}
+
+					pcShouldBeChild = (((CIndexTreeNodeFile*)pcNode)->GetNode(uiIndexInParent - iFirstIndex));
+					if (pcShouldBeChild->IsMemory())
+					{
+						pcShouldBeThis = pcShouldBeChild->u.mpcMemory;
+						if (pcShouldBeThis != pcChild)
+						{
+							pcCursor->GenerateBad();
+							return gcLogger.Error2(__METHOD__, " This node is not the same as the parents child node for key [", pcCursor->GetBadNode(), "].", NULL);
+						}
+					}
+					else if (pcShouldBeChild->IsFile())
+					{
+						pcCursor->GenerateBad();
+						return gcLogger.Error2(__METHOD__, " This node is a file node on the parents child node for key [", pcCursor->GetBadNode(), "].", NULL);
+					}
+					else
+					{
+						pcCursor->GenerateBad();
+						return gcLogger.Error2(__METHOD__, " This node is corrupt on the parents child node for key [", pcCursor->GetBadNode(), "].", NULL);
 					}
 
 					pcCursor->Push(pcChild, i);

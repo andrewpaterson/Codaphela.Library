@@ -64,6 +64,7 @@ public:
 
 	BOOL					IsFlushed(void);
 	BOOL					ValidateIndexTree(void);
+	BOOL					ValidateParentIndex(void);
 
 	int						NumElements(void);
 	BOOL					IsWriteThrough(void);
