@@ -94,18 +94,18 @@ BOOL CIndexTreeWriter::RecurseWrite(CIndexTreeFile* pcFileTree, CIndexTreeNodeFi
 {
 	int						i;
 	CIndexTreeChildNode*	pcFileChild;
-	int						iFirstIndex;
-	int						iLastIndex;
 	CIndexTreeNodeFile*		pcMemoryChild;
 	BOOL					bResult;
+	CIndexTreeChildNode*	apcChildren;
+	int						iNumNodes;
 
 	if (pcFileNode->HasNodes())
 	{
-		iFirstIndex = pcFileNode->GetFirstIndex();
-		iLastIndex = pcFileNode->GetLastIndex();
-		for (i = iFirstIndex; i <= iLastIndex; i++)
+		iNumNodes = pcFileNode->NumIndexes();
+		apcChildren = pcFileNode->GetNodes();
+		for (i = 0; i < iNumNodes; i++)
 		{
-			pcFileChild = pcFileNode->GetNode(i - iFirstIndex);
+			pcFileChild = &apcChildren[i];
 			if (pcFileChild != NULL)
 			{
 				if (pcFileChild->IsMemory())
