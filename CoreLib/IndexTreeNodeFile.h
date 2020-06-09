@@ -57,6 +57,7 @@ public:
 	CIndexTreeNodeFile*		GetValidMemoryNode(int iIndex);
 
 	BOOL					ValidateNodesEmpty(void);
+	BOOL					ValidateParent(void);
 	void					Print(CChars* psz, BOOL bHex);
 	void					Dump(void);
 

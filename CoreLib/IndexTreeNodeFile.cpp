@@ -652,6 +652,43 @@ BOOL CIndexTreeNodeFile::ValidateNodesEmpty(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeNodeFile::ValidateParent(void)
+{
+	CIndexTreeNodeFile*		pcShouldBeThis;
+	CIndexTreeChildNode*	pcShouldBeChild;
+	char					szKey[MAX_KEY_SIZE];
+	int						iFirstIndex;
+
+	if (mpcParent == NULL)
+	{
+		return gcLogger.Error2(__METHOD__, " This node's parent should not be NULL.", NULL);
+	}
+
+	iFirstIndex = mpcParent->GetFirstIndex();
+	pcShouldBeChild = ((CIndexTreeNodeFile*)mpcParent)->GetNode(muiIndexInParent - iFirstIndex);
+	if (pcShouldBeChild->IsMemory())
+	{
+		pcShouldBeThis = pcShouldBeChild->u.mpcMemory;
+		if (pcShouldBeThis != this)
+		{
+			((CIndexTreeFile*)mpcIndexTree)->GetNodeKey(this, szKey, MAX_KEY_SIZE);
+			return gcLogger.Error2(__METHOD__, " This node is not the same as the parents child node for key [", szKey, "].", NULL);
+		}
+	}
+	else
+	{
+		((CIndexTreeFile*)mpcIndexTree)->GetNodeKey(this, szKey, MAX_KEY_SIZE);
+		return gcLogger.Error2(__METHOD__, " This node is not a memory node on the parents child node for key [", szKey, "].", NULL);
+	}
+
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeNodeFile::HasOnlyFileNodes(void)
 {
 	int						iNumNodes;
@@ -717,6 +754,8 @@ BOOL CIndexTreeNodeFile::ConvertToFileNode(CIndexTreeNodeFile* pcNode)
 	CIndexTreeChildNode*	pcNodeReference;
 	char					szKey[MAX_KEY_SIZE];
 
+	pcNode->ValidateParent();
+
 	c = pcNode->GetIndexInParent();
 	pcNodeReference = Get(c);
 	if (pcNodeReference->IsMemory())
@@ -731,7 +770,7 @@ BOOL CIndexTreeNodeFile::ConvertToFileNode(CIndexTreeNodeFile* pcNode)
 			else if (pcNode->IsDeleted())
 			{
 				((CIndexTreeFile*)mpcIndexTree)->GetNodeKey(pcNode, szKey, MAX_KEY_SIZE);
-				gcLogger.Error2(__METHOD__, " Cannot convert memory node with key [", szKey, "] to file node, node is deleted.", szKey, NULL);
+				gcLogger.Error2(__METHOD__, " Cannot convert memory node with key [", szKey, "] to file node, node is deleted.", NULL);
 				return FALSE;
 			}
 
@@ -741,7 +780,7 @@ BOOL CIndexTreeNodeFile::ConvertToFileNode(CIndexTreeNodeFile* pcNode)
 		else
 		{
 			((CIndexTreeFile*)mpcIndexTree)->GetNodeKey(pcNode, szKey, MAX_KEY_SIZE);
-			gcLogger.Error2(__METHOD__, " Cannot convert memory node with key [", szKey, "] to file node, node has not been written.", szKey, NULL);
+			gcLogger.Error2(__METHOD__, " Cannot convert memory node with key [", szKey, "] to file node, node has not been written.", NULL);
 			return FALSE;
 		}
 	}
