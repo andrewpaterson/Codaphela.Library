@@ -70,7 +70,7 @@ void CIndexTreeRecursor::GenerateBad(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeRecursor::GenerateBadKey(void)
 {
-	int				iKeyLength;
+	int		iKeyLength;
 
 	iKeyLength = macKey.NumElements();
 	if (iKeyLength > 0)
