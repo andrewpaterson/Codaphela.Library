@@ -488,6 +488,7 @@ int CIndexTreeNodeFile::WriteToBuffer(void* pvBuffer, int iBufferSize, CIndexTre
 	int						iFileDataSize;
 	int						iNodeSize;
 	unsigned short			uiDataSize;
+	CIndexTreeChildNode*	apcChildren;
 
 	iFileDataSize = CalculateDataBufferSize(pcCallback);
 	iNodeSize = CalculateNodeSize();
@@ -520,10 +521,11 @@ int CIndexTreeNodeFile::WriteToBuffer(void* pvBuffer, int iBufferSize, CIndexTre
 	}
 
 	cEmptyIndex.Init();
+	apcChildren = GetNodes();
 	iNumNodes = NumIndexes();
 	for (int i = 0; i < iNumNodes; i++)
 	{
-		pcChild = GetNode(i);
+		pcChild = &apcChildren[i];
 		if (pcChild->IsFile())
 		{
 			pcChildIndex = &pcChild->u.mcFile;
@@ -563,6 +565,7 @@ int CIndexTreeNodeFile::InitFromBuffer(void* pvBuffer, int iMaxBufferSize, CInde
 	void*					pvDest;
 	int						iFileDataSize;
 	unsigned short			uiDataSize;
+	CIndexTreeChildNode*	apcChildren;
 
 	pucMemory = (unsigned char*)pvBuffer;
 	iPos = 0;
@@ -596,12 +599,13 @@ int CIndexTreeNodeFile::InitFromBuffer(void* pvBuffer, int iMaxBufferSize, CInde
 	}
 
 	iNumNodes = NumIndexes();
+	apcChildren = GetNodes();
 	for (int i = 0; i < iNumNodes; i++)
 	{
 		iFile = *((int*)&pucMemory[iPos]);  iPos += sizeof(int);
 		ulliFilePos = *((unsigned int*)&pucMemory[iPos]);  iPos += sizeof(unsigned int);
 
-		pcChild = GetNode(i);
+		pcChild = &apcChildren[i];
 		if (iFile != -1)
 		{
 			pcChild->Init(iFile, ulliFilePos);
@@ -694,11 +698,13 @@ BOOL CIndexTreeNodeFile::HasOnlyFileNodes(void)
 	int						iNumNodes;
 	int						i;
 	CIndexTreeChildNode*	pcChild;
+	CIndexTreeChildNode*	apcChildren;
 
 	iNumNodes = NumIndexes();
+	apcChildren = GetNodes();
 	for (i = 0; i < iNumNodes; i++)
 	{
-		pcChild = GetNode(i);
+		pcChild = &apcChildren[i];
 		if (!(pcChild->IsFile() || pcChild->IsUnallocated()))
 		{
 			return FALSE;
@@ -717,11 +723,13 @@ BOOL CIndexTreeNodeFile::HasChildWithFlags(unsigned char uiFlags)
 	int						iNumNodes;
 	int						i;
 	CIndexTreeChildNode*	pcChild;
+	CIndexTreeChildNode*	apcChildren;
 
 	iNumNodes = NumIndexes();
+	apcChildren = GetNodes();
 	for (i = 0; i < iNumNodes; i++)
 	{
-		pcChild = GetNode(i);
+		pcChild = &apcChildren[i];
 		if (pcChild->IsMemory())
 		{
 			if (pcChild->u.mpcMemory->HasFlags(uiFlags))

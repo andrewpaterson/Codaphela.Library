@@ -180,12 +180,16 @@ void CIndexTreeFile::RecurseKill(CIndexTreeNodeFile* pcNode)
 	int						i;
 	CIndexTreeChildNode*	pcChild;
 	CIndexTreeNodeFile*		pcChildNode;
+	CIndexTreeChildNode*	apcChildren;
+	int						iNumNodes;
 
 	if (pcNode != NULL)
 	{
-		for (i = 0; i < pcNode->NumIndexes(); i++)
+		iNumNodes = pcNode->NumIndexes();
+		apcChildren = pcNode->GetNodes();
+		for (i = 0; i < iNumNodes; i++)
 		{
-			pcChild = pcNode->GetNode(i);
+			pcChild = &apcChildren[i];
 			if (pcChild->IsMemory())
 			{
 				//Save if dirty.
@@ -2544,7 +2548,7 @@ BOOL CIndexTreeFile::RecurseValidateParentIndex(CIndexTreeRecursor* pcCursor, BO
 						pcCursor->GenerateBad();
 						return gcLogger.Error2(__METHOD__, " Node [", pcCursor->GetBadNode(), "] parent index [", IntToString(uiIndexInParent), "] is different points to the index in the parent [", IntToString(i), "].", NULL);
 					}
-
+					
 					pcShouldBeChild = (((CIndexTreeNodeFile*)pcNode)->GetNode(uiIndexInParent - iFirstIndex));
 					if (pcShouldBeChild->IsMemory())
 					{
