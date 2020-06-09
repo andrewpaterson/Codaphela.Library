@@ -88,7 +88,7 @@ CIndexTreeChildNode* CIndexTreeNodeFile::Get(unsigned char uiIndex)
 {
 	if (ContainsIndex(uiIndex))
 	{
-		return (CIndexTreeChildNode*)GetNode(uiIndex - muiFirstIndex);
+		return (CIndexTreeChildNode*)GetNode(uiIndex);
 	}
 	else
 	{
@@ -105,7 +105,7 @@ BOOL CIndexTreeNodeFile::SetFile(unsigned char uiIndex, CFileDataIndex cFileNode
 {
 	if (ContainsIndex(uiIndex))
 	{
-		GetNode(uiIndex - muiFirstIndex)->Init(cFileNode);
+		GetNode(uiIndex)->Init(cFileNode);
 		return TRUE;
 	}
 	else
@@ -123,7 +123,7 @@ BOOL CIndexTreeNodeFile::SetMemory(unsigned char uiIndex, CIndexTreeNodeFile* pc
 {
 	if (ContainsIndex(uiIndex))
 	{
-		GetNode(uiIndex - muiFirstIndex)->Init(pcNode);
+		GetNode(uiIndex)->Init(pcNode);
 		return TRUE;
 	}
 	else
@@ -141,7 +141,7 @@ BOOL CIndexTreeNodeFile::ClearIndex(unsigned char uiIndex)
 {
 	if (ContainsIndex(uiIndex))
 	{
-		GetNode(uiIndex - muiFirstIndex)->Clear();
+		GetNode(uiIndex)->Clear();
 		return TRUE;
 	}
 	else
@@ -159,7 +159,7 @@ BOOL CIndexTreeNodeFile::ClearIndexAndUncontain(unsigned char uiIndex)
 {
 	if (ContainsIndex(uiIndex))
 	{
-		GetNode(uiIndex - muiFirstIndex)->Clear();
+		GetNode(uiIndex)->Clear();
 
 		return Uncontain(uiIndex);
 	}
@@ -176,7 +176,7 @@ BOOL CIndexTreeNodeFile::ClearIndexAndUncontain(unsigned char uiIndex)
 //////////////////////////////////////////////////////////////////////////
 CIndexTreeChildNode* CIndexTreeNodeFile::GetNode(int i)
 {
-	return &(GetNodes()[i]);
+	return &(GetNodes()[i - muiFirstIndex]);
 }
 
 
@@ -669,7 +669,7 @@ BOOL CIndexTreeNodeFile::ValidateParent(void)
 	}
 
 	iFirstIndex = mpcParent->GetFirstIndex();
-	pcShouldBeChild = ((CIndexTreeNodeFile*)mpcParent)->GetNode(muiIndexInParent - iFirstIndex);
+	pcShouldBeChild = ((CIndexTreeNodeFile*)mpcParent)->GetNode(muiIndexInParent);
 	if (pcShouldBeChild->IsMemory())
 	{
 		pcShouldBeThis = pcShouldBeChild->u.mpcMemory;
