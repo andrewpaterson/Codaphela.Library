@@ -1,4 +1,5 @@
 #include "Logger.h"
+#include "StackMemory.h"
 #include "IndexTree.h"
 
 
@@ -333,3 +334,21 @@ void* CIndexTree::GetDataForNode(CIndexTreeNode* pcNode)
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexTree::GetNodeKey(CIndexTreeNode* pcNode, CArrayChar* pacKey)
+{
+	int				iNodeSize;
+	CStackMemory<>	cTemp;
+	char*			szKey;
+
+	iNodeSize = GetNodeKeySize(pcNode);
+	szKey = (char*)cTemp.Init(iNodeSize);
+	GetNodeKey(pcNode, szKey, iNodeSize);
+
+	pacKey->Add(szKey, iNodeSize);
+
+	cTemp.Kill();
+}

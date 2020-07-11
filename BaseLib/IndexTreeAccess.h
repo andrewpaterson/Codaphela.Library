@@ -17,6 +17,7 @@ public:
 
 	virtual BOOL	Flush(void)= 0;
 	virtual int64	NumElements(void) =0;
+	virtual BOOL	ValidateIndex(void) =0;
 
 			BOOL	PutLongPtr(int64 lliKey, void* pvPointer);
 			BOOL	PutLongInt(int64 lliKey, int iData);

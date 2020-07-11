@@ -45,6 +45,7 @@ public:
 			size_t				CalculateRootNodeSize(void);
 			size_t				CalculateNodeSize(int iRequiredIndices, int iDataSize);
 
+			void				GetNodeKey(CIndexTreeNode* pcNode, CArrayChar* pacKey);
 	virtual void				Dump(void) =0;
 
 protected:

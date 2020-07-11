@@ -14,6 +14,7 @@ public:
 	BOOL	Kill(void);
 	BOOL	Flush(void);
 	int64	NumElements(void);
+	BOOL	ValidateIndex(void);
 
 protected:
 	BOOL	Put(void* pvKey, int iKeySize, void* pvData, int iDataSize);

@@ -63,6 +63,7 @@ public:
 	unsigned char	GetRootFlags(void);
 
 	void			DumpIndex(void);
+	BOOL			ValidateIndex(void);
 
 protected:
 	BOOL			GetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor, BOOL bNoEviction = FALSE);

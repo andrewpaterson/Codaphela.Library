@@ -9,19 +9,20 @@ protected:
 	CIndexedData*	mpcIndexData;
 
 public:
-	BOOL		Init(CIndexedData* pcIndexData);
-	BOOL		Kill(void);
-	BOOL		Flush(void);
-	int64		NumElements(void);
+	BOOL	Init(CIndexedData* pcIndexData);
+	BOOL	Kill(void);
+	BOOL	Flush(void);
+	int64	NumElements(void);
+	BOOL	ValidateIndex(void);
 
 protected:
-	BOOL		Put(void* pvKey, int iKeySize, void* pvData, int iDataSize);
-	BOOL		Get(void* pvKey, int iKeySize, void* pvData, int* piDataSize);
-	int			DataSize(void* pvKey, int iKeySize);
-	BOOL		Remove(void* pvKey, int iKeySize);
-	BOOL		Has(void* pvKey, int iKeySize);
-	BOOL		Flush(void* pvKey, int iKeySize);
-	BOOL		Evict(void* pvKey, int iKeySize);
+	BOOL	Put(void* pvKey, int iKeySize, void* pvData, int iDataSize);
+	BOOL	Get(void* pvKey, int iKeySize, void* pvData, int* piDataSize);
+	int		DataSize(void* pvKey, int iKeySize);
+	BOOL	Remove(void* pvKey, int iKeySize);
+	BOOL	Has(void* pvKey, int iKeySize);
+	BOOL	Flush(void* pvKey, int iKeySize);
+	BOOL	Evict(void* pvKey, int iKeySize);
 };
 
 

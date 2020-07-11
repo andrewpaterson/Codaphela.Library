@@ -1380,6 +1380,7 @@ BOOL CIndexTreeFile::Flush(CIndexTreeNodeFile** ppcCurrent)
 	CIndexTreeNodeFile* pcDirty;
 	BOOL				bDeleted;
 	BOOL				bDirty;
+	BOOL				bHasNodes;
 
 	pcCurrent = *ppcCurrent;
 	if (meWriteThrough == IWT_Yes)
@@ -1396,6 +1397,7 @@ BOOL CIndexTreeFile::Flush(CIndexTreeNodeFile** ppcCurrent)
 	else if (bDeleted)
 	{
 		*ppcCurrent = NULL;
+		bHasNodes = pcCurrent->HasNodes();
 		pcDirty = RemoveWriteThrough(pcCurrent);
 		if (pcDirty)
 		{
@@ -1841,25 +1843,6 @@ BOOL CIndexTreeFile::Iterate(SIndexTreeFileIterator* psIterator, void** pvData, 
 	}
 }
 
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CIndexTreeFile::GetNodeKey(CIndexTreeNodeFile* pcNode, CArrayChar* pacKey)
-{
-	char	acKey[MAX_KEY_SIZE];
-	int		iKeySize;
-	int		i;
-
-	iKeySize = GetNodeKey(pcNode, acKey, MAX_KEY_SIZE);
-
-	for (i = 0; i < iKeySize; i++)
-	{
-		pacKey->Add(acKey[i]);
-	}
-
-}
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -2712,14 +2695,17 @@ int CIndexTreeFile::RecurseCountListSize(CIndexTreeNodeFile* pcNode)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeFile::Write(CIndexTreeNodeFile* pcNode)
 {
-	int					iWrittenPos;
-	CStackMemory<>		cTemp;
-	void*				pvBuffer;
-	int					iFileSize;
-	CIndexedFile*		pcNewIndexFile;
-	CIndexedFile*		pcOldIndexFile;
-	unsigned int		uiDataIndex;
-	CFileDataIndex*		pcIndex;
+	int						iWrittenPos;
+	CStackMemory<>			cTemp;
+	void*					pvBuffer;
+	int						iFileSize;
+	CIndexedFile*			pcNewIndexFile;
+	CIndexedFile*			pcOldIndexFile;
+	unsigned int			uiDataIndex;
+	CFileDataIndex*			pcIndex;
+	CChars					sz;
+	CArrayChar				ac;
+	CIndexTreeNodeDebug		cNodeDebug;
 
 	iFileSize = pcNode->CalculateFileSize(mpcDataCallback);
 

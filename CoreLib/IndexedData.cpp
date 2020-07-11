@@ -246,6 +246,16 @@ void CIndexedData::DumpIndex(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL CIndexedData::ValidateIndex(void)
+{
+	return mcIndices.ValidateIndex();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 int64 CIndexedData::NumIndicesCached(void) { return mcIndices.NumIndicesCached(); }
 CDurableFileController* CIndexedData::GetDurableFileControl(void) { return mpcDurableFileControl; }
 BOOL CIndexedData::IsDurable(void) { return mpcDurableFileControl->IsDurable(); }

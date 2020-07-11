@@ -87,7 +87,6 @@ protected:
 	int						GetNodeKeySize(CIndexTreeNode* pcNode);
 	int						GetNodeKey(CIndexTreeNode* pcNode, char* pvDestKey, int iDestKeySize);
 
-	void					GetNodeKey(CIndexTreeNodeFile* pcNode, CArrayChar* pacKey);
 	CListTemplateMinimal<char>* GetNodesKeys(CArrayVoidPtr* apvNodes);
 	CListCharsMinimal*		GetNodesStringKeys(CArrayVoidPtr* apvNodes);
 

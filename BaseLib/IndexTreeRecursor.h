@@ -1,17 +1,14 @@
 #ifndef __INDEX_TREE_RECURSOR_H__
 #define __INDEX_TREE_RECURSOR_H__
 #include "ArrayChar.h"
-#include "IndexTreeNode.h"
+#include "IndexTreeNodeDebug.h"
 
 
-class CIndexTreeRecursor
+class CIndexTreeRecursor : public CIndexTreeNodeDebug
 {
-private:
+protected:
 	CArrayChar			macKey;
 	CIndexTreeNode*		mpcCurrent;
-
-	CChars				mszBadKey;
-	CChars				mszBadNode;
 
 public:
 	void				Init(CIndexTreeNode* pcRoot);
@@ -23,14 +20,8 @@ public:
 	void				GenerateBad(void);
 
 	CIndexTreeNode*		GetNode(void);
-	char*				GetBadKey(void);
-	char*				GetBadNode(void);
 
 	void				GetKey(char* pc, int* piKeySize);
-
-protected:
-	BOOL				GenerateBadKey(void);
-	void				GenerateBadNode(BOOL bHex);
 };
 
 
