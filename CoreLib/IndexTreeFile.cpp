@@ -640,6 +640,27 @@ CIndexTreeNodeFile* CIndexTreeFile::ReadMemoryNode(CIndexTreeNodeFile* pcParent,
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeFile::HasMemoryNodes(CIndexTreeNodeFile* pcNode)
+{
+	int						i;
+	CIndexTreeNodeFile*		pcChild;
+
+	for (i = pcNode->GetFirstIndex(); i <= pcNode->GetLastIndex(); i++)
+	{
+		pcChild = ReadMemoryNode(pcNode, i);
+		if (pcChild != NULL)
+		{
+			return TRUE;
+		}
+	}
+	return FALSE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeFile::Get(void* pvKey, int iKeySize, void* pvData, int* piDataSize)
 {
 	CIndexTreeNodeFile* pcNode;
@@ -3693,11 +3714,17 @@ void CIndexTreeFile::RecurseDump(CChars* pszDest, CIndexTreeRecursor* pcCursor, 
 	CStackMemory<32>		cStack;
 	char		*			pvKey;
 	CChars					szKey;
+	BOOL					bHasNodes;
+	BOOL					bHasData;
+	BOOL					bHasMemoryNodes;
 
 	pcNode = (CIndexTreeNodeFile*)pcCursor->GetNode();
 	if (pcNode != NULL)
 	{
-		if (pcNode->HasData())
+		bHasMemoryNodes = HasMemoryNodes(pcNode);
+		bHasNodes = pcNode->HasNodes();
+		bHasData = pcNode->HasData();
+		if (bHasData || !bHasMemoryNodes)
 		{
 			iKeySize = GetNodeKeySize(pcNode);
 			pvKey = (char*)cStack.Init(iKeySize);
@@ -3713,7 +3740,7 @@ void CIndexTreeFile::RecurseDump(CChars* pszDest, CIndexTreeRecursor* pcCursor, 
 			cStack.Kill();
 		}
 
-		if (pcNode->HasNodes())
+		if (bHasNodes)
 		{
 			for (i = pcNode->GetFirstIndex(); i <= pcNode->GetLastIndex(); i++)
 			{
