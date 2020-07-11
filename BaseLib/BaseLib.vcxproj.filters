@@ -810,6 +810,9 @@
     <ClInclude Include="ModificationDataOrderer.h">
       <Filter>Source\Data\Index\DataOrder</Filter>
     </ClInclude>
+    <ClInclude Include="IndexTreeNodeDebug.h">
+      <Filter>Source\Data\Index</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -1282,6 +1285,9 @@
     </ClCompile>
     <ClCompile Include="ModificationDataOrderer.cpp">
       <Filter>Source\Data\Index\DataOrder</Filter>
+    </ClCompile>
+    <ClCompile Include="IndexTreeNodeDebug.cpp">
+      <Filter>Source\Data\Index</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

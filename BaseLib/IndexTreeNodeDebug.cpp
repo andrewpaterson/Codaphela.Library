@@ -1,18 +1,12 @@
-#include "Chars.h"
-#include "LogString.h"
-#include "IndexTreeRecursor.h"
+#include "IndexTreeNodeDebug.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeRecursor::Init(CIndexTreeNode* pcRoot)
+void CIndexTreeNodeDebug::Init(void)
 {
-	CIndexTreeNodeDebug::Init();
-	macKey.Init();
-	mpcCurrent = pcRoot;
-
 	mszBadKey.Init();
 	mszBadNode.Init();
 }
@@ -22,12 +16,10 @@ void CIndexTreeRecursor::Init(CIndexTreeNode* pcRoot)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeRecursor::Kill(void)
+void CIndexTreeNodeDebug::Kill(void)
 {
 	mszBadNode.Kill();
 	mszBadKey.Kill();
-
-	macKey.Kill();
 }
 
 
@@ -35,10 +27,9 @@ void CIndexTreeRecursor::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeRecursor::Push(CIndexTreeNode *pcChild, char c)
+void CIndexTreeNodeDebug::GenerateBadNode(CIndexTreeNode* pcCurrent, BOOL bHex)
 {
-	macKey.Push(c);
-	mpcCurrent = pcChild;
+	pcCurrent->Print(&mszBadNode, bHex);
 }
 
 
@@ -46,9 +37,20 @@ void CIndexTreeRecursor::Push(CIndexTreeNode *pcChild, char c)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeRecursor::Pop(void)
+BOOL CIndexTreeNodeDebug::GenerateBadKey(CArrayChar* acKey)
 {
-	macKey.Pop();
+	int		iKeyLength;
+
+	iKeyLength = acKey->NumElements();
+	if (iKeyLength > 0)
+	{
+		mszBadKey.Kill();
+		return mszBadKey.InitData2(acKey->GetData(), iKeyLength);
+	}
+	else
+	{
+		return TRUE;
+	}
 }
 
 
@@ -56,9 +58,9 @@ void CIndexTreeRecursor::Pop(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeRecursor::GenerateBad(void)
+char* CIndexTreeNodeDebug::GetBadKey(void)
 {
-	CIndexTreeNodeDebug::GenerateBad(mpcCurrent, &macKey);
+	return mszBadKey.Text();
 }
 
 
@@ -66,13 +68,9 @@ void CIndexTreeRecursor::GenerateBad(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeRecursor::GetKey(char* pc, int* piKeySize)
+char* CIndexTreeNodeDebug::GetBadNode(void)
 {
-	int	iKeySize;
-
-	iKeySize = macKey.NumElements();
-	memcpy_fast(pc, macKey.GetData(), iKeySize);
-	SafeAssign(piKeySize, iKeySize);
+	return mszBadNode.Text();
 }
 
 
@@ -80,5 +78,11 @@ void CIndexTreeRecursor::GetKey(char* pc, int* piKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTreeNode* CIndexTreeRecursor::GetNode(void) {	return mpcCurrent; }
+void CIndexTreeNodeDebug::GenerateBad(CIndexTreeNode* pcCurrent, CArrayChar* acKey)
+{
+	BOOL	bHex;
+
+	bHex = GenerateBadKey(acKey);
+	GenerateBadNode(pcCurrent, bHex);
+}
 

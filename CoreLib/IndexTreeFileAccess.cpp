@@ -55,6 +55,23 @@ int64	CIndexTreeFileAccess::NumElements(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeFileAccess::ValidateIndex(void)
+{
+	if (mpcTree->IsFlushed())
+	{
+		return mpcTree->ValidateIndexTree();
+	}
+	else
+	{
+		return TRUE;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeFileAccess::Put(void* pvKey, int iKeySize, void* pvData, int iDataSize)
 {
 	return mpcTree->Put(pvKey, iKeySize, pvData, iDataSize);

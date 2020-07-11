@@ -55,6 +55,24 @@ int64 CIndexTreeEvictingAccess::NumElements(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeEvictingAccess::ValidateIndex(void)
+{
+	if (mpcTree->IsFlushed())
+	{
+		return mpcTree->ValidateIndexTree();
+	}
+	else
+	{
+		return TRUE;
+	}
+
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeEvictingAccess::Put(void* pvKey, int iKeySize, void* pvData, int iDataSize)
 {
 	return mpcTree->Put(pvKey, iKeySize, pvData, iDataSize);

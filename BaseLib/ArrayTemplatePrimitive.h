@@ -35,6 +35,7 @@ public:
 	M 		operator[](int iElementPos);
 	void	SetValue(int iElementPos, M iElement);
 	void 	Add(M iElement);
+	void 	Add(M* paElements, int iNumElements);
 	void	InsertAt(M iElement, int iIndex);
 	void 	SetArrayValues(M iValue);
 	void	SetArrayValues(M iStart, M iIncrement);
@@ -133,6 +134,24 @@ void CArrayTemplatePrimitive<M>::Add(M iElement)
 
 	pvTemp = CArrayTemplate<M>::Add();
 	*pvTemp = iElement;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+void CArrayTemplatePrimitive<M>::Add(M* paElements, int iNumElements)
+{
+	int		i;
+	M*		pvTemp;
+
+	for (i = 0; i < iNumElements; i++)
+	{
+		pvTemp = CArrayTemplate<M>::Add();
+		*pvTemp = paElements[i];
+	}
 }
 
 

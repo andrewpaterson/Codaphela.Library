@@ -53,6 +53,7 @@ public:
 	unsigned char	GetRootFlags(void);
 
 	void			Dump(void);
+	BOOL			ValidateIndex(void);
 };
 
 
