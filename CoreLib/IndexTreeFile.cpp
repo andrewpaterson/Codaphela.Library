@@ -2703,9 +2703,6 @@ BOOL CIndexTreeFile::Write(CIndexTreeNodeFile* pcNode)
 	CIndexedFile*			pcOldIndexFile;
 	unsigned int			uiDataIndex;
 	CFileDataIndex*			pcIndex;
-	CChars					sz;
-	CArrayChar				ac;
-	CIndexTreeNodeDebug		cNodeDebug;
 
 	iFileSize = pcNode->CalculateFileSize(mpcDataCallback);
 

@@ -344,11 +344,14 @@ void CIndexTree::GetNodeKey(CIndexTreeNode* pcNode, CArrayChar* pacKey)
 	CStackMemory<>	cTemp;
 	char*			szKey;
 
-	iNodeSize = GetNodeKeySize(pcNode);
-	szKey = (char*)cTemp.Init(iNodeSize);
-	GetNodeKey(pcNode, szKey, iNodeSize);
+	if (pcNode != NULL)
+	{
+		iNodeSize = GetNodeKeySize(pcNode);
+		szKey = (char*)cTemp.Init(iNodeSize);
+		GetNodeKey(pcNode, szKey, iNodeSize);
 
-	pacKey->Add(szKey, iNodeSize);
+		pacKey->Add(szKey, iNodeSize);
 
-	cTemp.Kill();
+		cTemp.Kill();
+	}
 }
