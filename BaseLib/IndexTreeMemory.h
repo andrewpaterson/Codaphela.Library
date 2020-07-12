@@ -15,6 +15,7 @@ struct SIndexTreeMemoryIterator
 class CIndexTreeMemory : public CIndexTree
 {
 friend class CIndexTreeWriter;
+friend class CIndexTreeMemoryIterator;
 protected:
 	CIndexTreeNodeMemory*	mpcRoot;
 	int						miSize;
@@ -92,6 +93,9 @@ protected:
 
 	BOOL					ValidateSize(void);
 	int						RecurseSize(void);
+
+	BOOL					StartIteration(SIndexTreeMemoryIterator* psIterator, void* pvKey, int* piKeySize, void* pvData, int* piDataSize);
+	BOOL					Iterate(SIndexTreeMemoryIterator* psIterator, void* pvKey, int* piKeySize, void* pvData, int* piDataSize);
 };
 
 

@@ -23,7 +23,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __FILE_HEADER_H__
 #define __FILE_HEADER_H__
 #include "Version.h"
-#include "Bool.h"
+#include "Define.h"
 
 
 #define FILE_HEADER_SIZE 256
