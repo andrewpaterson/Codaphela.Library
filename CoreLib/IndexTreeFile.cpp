@@ -1811,7 +1811,7 @@ void CIndexTreeFile::SetWriteThrough(EIndexWriteThrough eWriteThrough)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::StartIteration(SIndexTreeFileIterator* psIterator, void** pvData, int* piDataSize)
+BOOL CIndexTreeFile::StartUnsafeIteration(SIndexTreeFileIterator* psIterator, void** pvData, int* piDataSize)
 {
 	psIterator->pcNode = mpcRoot;
 	psIterator->iIndex = mpcRoot->GetFirstIndex();
@@ -1842,7 +1842,7 @@ BOOL CIndexTreeFile::StartIteration(SIndexTreeFileIterator* psIterator, void** p
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::Iterate(SIndexTreeFileIterator* psIterator, void** pvData, int* piDataSize)
+BOOL CIndexTreeFile::UnsafeIterate(SIndexTreeFileIterator* psIterator, void** pvData, int* piDataSize)
 {
 	if (StepNext(psIterator))
 	{
