@@ -639,7 +639,7 @@ BOOL CIndexTreeMemory::Write(CFileWriter* pcFileWriter)
 	}
 
 	iCount = 0;
-	bResult = StartIteration(&sIter, &pvData, &iDataSize);
+	bResult = StartUnsafeIteration(&sIter, &pvData, &iDataSize);
 	while (bResult)
 	{
 		iKeySize = GetKey(pvData, acKey, MAX_KEY_SIZE);
@@ -660,7 +660,7 @@ BOOL CIndexTreeMemory::Write(CFileWriter* pcFileWriter)
 			return FALSE;
 		}
 
-		bResult = Iterate(&sIter, &pvData, &iDataSize);
+		bResult = UnsafeIterate(&sIter, &pvData, &iDataSize);
 		iCount ++;
 	}
 	return miSize == iCount;
@@ -819,7 +819,7 @@ int CIndexTreeMemory::GetNodeKey(CIndexTreeNode* pcNode, char* pvDestKey, int iD
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeMemory::StartIteration(SIndexTreeMemoryIterator* psIterator, void** pvData, int* piDataSize)
+BOOL CIndexTreeMemory::StartUnsafeIteration(SIndexTreeMemoryIterator* psIterator, void** pvData, int* piDataSize)
 {
 	psIterator->pcNode = mpcRoot;
 	psIterator->iIndex = mpcRoot->GetFirstIndex();
@@ -850,7 +850,7 @@ BOOL CIndexTreeMemory::StartIteration(SIndexTreeMemoryIterator* psIterator, void
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeMemory::Iterate(SIndexTreeMemoryIterator* psIterator, void** pvData, int* piDataSize)
+BOOL CIndexTreeMemory::UnsafeIterate(SIndexTreeMemoryIterator* psIterator, void** pvData, int* piDataSize)
 {
 	if (StepNext(psIterator))
 	{
