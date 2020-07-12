@@ -19,7 +19,7 @@ BOOL CIndexTree::Init(CMallocator* pcMalloc, EIndexKeyReverse eKeyReverse, size_
 	bResult = TRUE;
 	if ((iMaxKeySize <= 0) || (iMaxKeySize > MAX_KEY_SIZE))
 	{
-		gcLogger.Error2(__METHOD__, " Max Key size [", IntToString(iMaxKeySize), "] must be positive and <= [", MAX_KEY_SIZE, "].", NULL);
+		gcLogger.Error2(__METHOD__, " Max Key size [", IntToString(iMaxKeySize), "] must be positive and <= [", IntToString(MAX_KEY_SIZE), "].", NULL);
 		iMaxKeySize = MAX_KEY_SIZE;
 		bResult = FALSE;
 	}

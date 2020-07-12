@@ -1,4 +1,5 @@
 #include "IndexTreeFileAccess.h"
+#include "IndexTreeFileIterator.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -141,5 +142,30 @@ BOOL CIndexTreeFileAccess::Flush(void* pvKey, int iKeySize)
 BOOL CIndexTreeFileAccess::Evict(void* pvKey, int iKeySize)
 {
 	return mpcTree->Evict(pvKey, iKeySize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CIndexTreeIterator* CIndexTreeFileAccess::CreateIterator(void)
+{
+	CIndexTreeFileIterator* pcIter;
+
+	pcIter = NewMalloc<CIndexTreeFileIterator>();
+	pcIter->Init(mpcTree);
+
+	return pcIter;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexTreeFileAccess::FreeIterator(CIndexTreeIterator* pcIter)
+{
+	SafeKill(pcIter);
 }
 
