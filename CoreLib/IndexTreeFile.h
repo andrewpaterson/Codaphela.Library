@@ -56,8 +56,8 @@ public:
 
 	BOOL					Flush(void);
 
-	BOOL					StartIteration(SIndexTreeFileIterator* psIterator, void** pvData, int* piDataSize);
-	BOOL					Iterate(SIndexTreeFileIterator* psIterator, void** pvData, int* piDataSize);
+	BOOL					StartUnsafeIteration(SIndexTreeFileIterator* psIterator, void** pvData, int* piDataSize);
+	BOOL					UnsafeIterate(SIndexTreeFileIterator* psIterator, void** pvData, int* piDataSize);
 
 	BOOL					Evict(void* pvKey, int iKeySize);
 	BOOL					Flush(void* pvKey, int iKeySize);
