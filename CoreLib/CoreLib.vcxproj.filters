@@ -453,6 +453,9 @@
     <ClCompile Include="IndexTreeEvictedList.cpp">
       <Filter>Source\File\Indexed\Index\Evicting</Filter>
     </ClCompile>
+    <ClCompile Include="IndexTreeFileIterator.cpp">
+      <Filter>Source\File\Indexed\Index</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="IndexedData.h">
@@ -754,6 +757,9 @@
     </ClInclude>
     <ClInclude Include="IndexTreeEvictedList.h">
       <Filter>Source\File\Indexed\Index\Evicting</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexTreeFileIterator.h">
+      <Filter>Source\File\Indexed\Index</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

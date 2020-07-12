@@ -90,12 +90,11 @@ protected:
 	int						NumAllocatedNodes(void);
 
 	BOOL					StepNext(SIndexTreeMemoryIterator* psIterator);
+	BOOL					StartIteration(SIndexTreeMemoryIterator* psIterator, void* pvKey, int* piKeySize, void* pvData, int* piDataSize);
+	BOOL					Iterate(SIndexTreeMemoryIterator* psIterator, void* pvKey, int* piKeySize, void* pvData, int* piDataSize);
 
 	BOOL					ValidateSize(void);
 	int						RecurseSize(void);
-
-	BOOL					StartIteration(SIndexTreeMemoryIterator* psIterator, void* pvKey, int* piKeySize, void* pvData, int* piDataSize);
-	BOOL					Iterate(SIndexTreeMemoryIterator* psIterator, void* pvKey, int* piKeySize, void* pvData, int* piDataSize);
 };
 
 

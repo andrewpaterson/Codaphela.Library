@@ -1811,21 +1811,29 @@ void CIndexTreeFile::SetWriteThrough(EIndexWriteThrough eWriteThrough)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::StartUnsafeIteration(SIndexTreeFileIterator* psIterator, void** pvData, int* piDataSize)
+BOOL CIndexTreeFile::StartIteration(SIndexTreeFileIterator* psIterator, void* pvKey, int* piKeySize, void* pvData, int* piDataSize)
 {
 	psIterator->pcNode = mpcRoot;
 	psIterator->iIndex = mpcRoot->GetFirstIndex();
 
+	return Iterate(psIterator, pvKey, piKeySize, pvData, piDataSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeFile::Iterate(SIndexTreeFileIterator* psIterator, void* pvKey, int* piKeySize, void* pvData, int* piDataSize)
+{
+	int		iKeySize;
+
 	if (StepNext(psIterator))
 	{
-		if (pvData)
-		{
-			*pvData = psIterator->pcNode->GetDataPtr();
-		}
-		if (piDataSize)
-		{
-			*piDataSize = psIterator->pcNode->GetDataSize();
-		}
+		*piDataSize = psIterator->pcNode->GetDataSize();
+		memcmp_fast(pvData, psIterator->pcNode->GetDataPtr(), *piDataSize);
+		iKeySize = GetNodeKey(psIterator->pcNode, (char*)pvKey, MAX_KEY_SIZE);
+		*piKeySize = iKeySize;
 
 		GetReorderData(psIterator->pcNode);
 
@@ -1835,6 +1843,19 @@ BOOL CIndexTreeFile::StartUnsafeIteration(SIndexTreeFileIterator* psIterator, vo
 	{
 		return FALSE;
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeFile::StartUnsafeIteration(SIndexTreeFileIterator* psIterator, void** pvData, int* piDataSize)
+{
+	psIterator->pcNode = mpcRoot;
+	psIterator->iIndex = mpcRoot->GetFirstIndex();
+
+	return UnsafeIterate(psIterator, pvData, piDataSize);
 }
 
 

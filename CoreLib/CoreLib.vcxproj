@@ -114,6 +114,7 @@
     <ClCompile Include="IndexTreeEvicting.cpp" />
     <ClCompile Include="IndexTreeEvictingAccess.cpp" />
     <ClCompile Include="IndexTreeFileDefaultCallback.cpp" />
+    <ClCompile Include="IndexTreeFileIterator.cpp" />
     <ClCompile Include="IndexTreeHelper.cpp" />
     <ClCompile Include="IndexTreeChildNode.cpp" />
     <ClCompile Include="IndexTreeNodeFile.cpp" />
@@ -187,6 +188,7 @@
   <ItemGroup>
     <ClInclude Include="CodaBase.h" />
     <ClInclude Include="IndexTreeEvictionCallbackWrapper.h" />
+    <ClInclude Include="IndexTreeFileIterator.h" />
     <ClInclude Include="NamedIndexedHeader.h" />
     <ClInclude Include="NamedIndexesConfig.h" />
     <ClInclude Include="IndexedCacheResult.h" />

@@ -21,16 +21,12 @@ struct SIndexTreeFileIterator
 };
 
 
-class CIndexTreeFileIterator : public SIndexTreeFileIterator, CIndexTreeIterator
-{
-};
-
-
 class CIndexTreeFile : public CIndexTree
 {
 friend class CIndexTreeEvicting;
 friend class CIndexTreeWriter;
 friend class CIndexTreeNodeFile;
+friend class CIndexTreeFileIterator;
 protected:
 	CIndexTreeNodeFile*			mpcRoot;
 	CIndexedFiles				mcIndexFiles;
@@ -64,9 +60,6 @@ public:
 
 	BOOL					StartUnsafeIteration(SIndexTreeFileIterator* psIterator, void** pvData, int* piDataSize);
 	BOOL					UnsafeIterate(SIndexTreeFileIterator* psIterator, void** pvData, int* piDataSize);
-
-	BOOL					StartIteration(SIndexTreeFileIterator* psIterator, void** pvData, int* piDataSize);
-	BOOL					Iterate(SIndexTreeFileIterator* psIterator, void** pvData, int* piDataSize);
 
 	BOOL					Evict(void* pvKey, int iKeySize);
 	BOOL					Flush(void* pvKey, int iKeySize);
@@ -177,6 +170,8 @@ protected:
 	BOOL					RecurseValidateKeys(CIndexTreeRecursor* pcCursor, BOOL bReadNodes);
 
 	BOOL					StepNext(SIndexTreeFileIterator* psIterator);
+	BOOL					StartIteration(SIndexTreeFileIterator* psIterator, void* pvKey, int* piKeySize, void* pvData, int* piDataSize);
+	BOOL					Iterate(SIndexTreeFileIterator* psIterator, void* pvKey, int* piKeySize, void* pvData, int* piDataSize);
 
 	int						GetNodeKeysSize(CArrayVoidPtr* apvNodes);
 
