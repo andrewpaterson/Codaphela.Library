@@ -2644,7 +2644,6 @@ BOOL CIndexTreeFile::HasData(CIndexTreeNodeFile* pcNode)
 	{
 		return TRUE;
 	}
-
 }
 
 
