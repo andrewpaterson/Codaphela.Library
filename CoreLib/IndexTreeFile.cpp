@@ -1420,11 +1420,12 @@ BOOL CIndexTreeFile::Flush(CIndexTreeNodeFile** ppcCurrent)
 		*ppcCurrent = NULL;
 		bHasNodes = pcCurrent->HasNodes();
 		pcDirty = RemoveWriteThrough(pcCurrent);
-		if (pcDirty)
+		if (pcDirty != NULL)
 		{
-			bResult = SetDirtyPath(pcDirty);
-			WriteBackPathCaching(pcDirty);
-			ClearDeletedPath(pcDirty);
+			pcDirty->SetDeletedNode(FALSE);
+			bResult = ClearDeletedPath(pcDirty);
+			bResult &= SetDirtyPath(pcDirty);
+			bResult &= WriteBackPathCaching(pcDirty);
 			return bResult;
 		}
 		else
@@ -1708,7 +1709,7 @@ BOOL CIndexTreeFile::FlushDeleted(void)
 		if (!pcNode->IsDirty())
 		{
 			pcDirty = RemoveWriteThrough(pcNode);
-			if (pcDirty)
+			if (pcDirty != NULL)
 			{
 				SetDirtyPath(pcDirty);
 			}
