@@ -813,6 +813,12 @@
     <ClInclude Include="IndexTreeNodeDebug.h">
       <Filter>Source\Data\Index</Filter>
     </ClInclude>
+    <ClInclude Include="IndexTreeMemoryIterator.h">
+      <Filter>Source\Data\Index</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexTreeIterator.h">
+      <Filter>Source\Data\Index</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -1287,6 +1293,12 @@
       <Filter>Source\Data\Index\DataOrder</Filter>
     </ClCompile>
     <ClCompile Include="IndexTreeNodeDebug.cpp">
+      <Filter>Source\Data\Index</Filter>
+    </ClCompile>
+    <ClCompile Include="IndexTreeMemoryIterator.cpp">
+      <Filter>Source\Data\Index</Filter>
+    </ClCompile>
+    <ClCompile Include="IndexTreeIterator.cpp">
       <Filter>Source\Data\Index</Filter>
     </ClCompile>
   </ItemGroup>

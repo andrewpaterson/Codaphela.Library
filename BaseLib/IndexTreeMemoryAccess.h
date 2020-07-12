@@ -2,7 +2,7 @@
 #define __INDEX_TREE_MEMORY_ACCESS_H__
 #include "IndexTreeMemory.h"
 #include "IndexTreeAccess.h"
-
+#include "IndexTreeIterator.h"
 
 class CIndexTreeMemoryAccess : public CIndexTreeAccess
 {
@@ -10,11 +10,14 @@ private:
 	CIndexTreeMemory*	mpcTree;
 
 public:
-	BOOL	Init(CIndexTreeMemory* pcTree);
-	BOOL	Kill(void);
-	BOOL	Flush(void);
-	int64	NumElements(void);
-	BOOL	ValidateIndex(void);
+	BOOL				Init(CIndexTreeMemory* pcTree);
+	BOOL				Kill(void);
+	BOOL				Flush(void);
+	int64				NumElements(void);
+	BOOL				ValidateIndex(void);
+
+	CIndexTreeIterator* CreateIterator(void);
+	void				FreeIterator(CIndexTreeIterator* pcIter);
 
 protected:
 	BOOL	Put(void* pvKey, int iKeySize, void* pvData, int iDataSize);

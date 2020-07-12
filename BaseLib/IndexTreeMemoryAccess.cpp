@@ -1,4 +1,5 @@
 #include "IndexTreeMemoryAccess.h"
+#include "IndexTreeMemoryIterator.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -157,5 +158,30 @@ BOOL CIndexTreeMemoryAccess::Flush(void* pvKey, int iKeySize)
 BOOL CIndexTreeMemoryAccess::Evict(void* pvKey, int iKeySize)
 {
 	return FALSE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CIndexTreeIterator* CIndexTreeMemoryAccess::CreateIterator(void)
+{
+	CIndexTreeMemoryIterator*	pcIter;
+
+	pcIter = NewMalloc<CIndexTreeMemoryIterator>();
+	pcIter->Init(mpcTree);
+
+	return pcIter;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexTreeMemoryAccess::FreeIterator(CIndexTreeIterator* pcIter)
+{
+	SafeKill(pcIter);
 }
 

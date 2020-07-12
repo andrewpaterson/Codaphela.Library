@@ -483,6 +483,9 @@ void GetArchaicWords(CArrayChars* pasz)
 //////////////////////////////////////////////////////////////////////////
 void GetCommonWords(CArrayChars* pasz)
 {
+	int		i;
+	char*	sz;
+
 	pasz->Add("a");
 	pasz->Add("ability");
 	pasz->Add("able");
@@ -1025,6 +1028,7 @@ void GetCommonWords(CArrayChars* pasz)
 	pasz->Add("must");
 	pasz->Add("my");
 	pasz->Add("myself");
+	pasz->Add("n't");
 	pasz->Add("name");
 	pasz->Add("nation");
 	pasz->Add("national");
@@ -1051,7 +1055,6 @@ void GetCommonWords(CArrayChars* pasz)
 	pasz->Add("nothing");
 	pasz->Add("notice");
 	pasz->Add("now");
-	pasz->Add("n't");
 	pasz->Add("number");
 	pasz->Add("occur");
 	pasz->Add("of");
@@ -1483,8 +1486,13 @@ void GetCommonWords(CArrayChars* pasz)
 	pasz->Add("young");
 	pasz->Add("your");
 	pasz->Add("yourself");
-}
 
+	for (i = 0; i < pasz->NumElements(); i++)
+	{
+		sz = pasz->Get(i)->Text();
+		ToLower(sz);
+	}
+}
 
 
 //////////////////////////////////////////////////////////////////////////

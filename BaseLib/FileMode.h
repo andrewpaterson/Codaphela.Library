@@ -22,7 +22,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __FILE_MODE_H__
 #define __FILE_MODE_H__
-#include "Bool.h"
+#include "Define.h"
 
 
 //---------------------------------

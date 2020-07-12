@@ -819,21 +819,29 @@ int CIndexTreeMemory::GetNodeKey(CIndexTreeNode* pcNode, char* pvDestKey, int iD
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeMemory::StartUnsafeIteration(SIndexTreeMemoryIterator* psIterator, void** pvData, int* piDataSize)
+BOOL CIndexTreeMemory::StartIteration(SIndexTreeMemoryIterator* psIterator, void* pvKey, int* piKeySize, void* pvData, int* piDataSize)
 {
 	psIterator->pcNode = mpcRoot;
 	psIterator->iIndex = mpcRoot->GetFirstIndex();
 
+	return Iterate(psIterator, pvKey, piKeySize, pvData, piDataSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeMemory::Iterate(SIndexTreeMemoryIterator* psIterator, void* pvKey, int* piKeySize, void* pvData, int* piDataSize)
+{
+	int		iKeySize;
+
 	if (StepNext(psIterator))
 	{
-		if (pvData)
-		{
-			*pvData = psIterator->pcNode->GetDataPtr();
-		}
-		if (piDataSize)
-		{
-			*piDataSize = psIterator->pcNode->GetDataSize();
-		}
+		*piDataSize = psIterator->pcNode->GetDataSize();
+		memcmp_fast(pvData, psIterator->pcNode->GetDataPtr(), *piDataSize);
+		iKeySize = GetNodeKey(psIterator->pcNode, (char*)pvKey, MAX_KEY_SIZE);
+		*piKeySize = iKeySize;
 
 		GetReorderData(psIterator->pcNode);
 
@@ -850,13 +858,26 @@ BOOL CIndexTreeMemory::StartUnsafeIteration(SIndexTreeMemoryIterator* psIterator
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeMemory::UnsafeIterate(SIndexTreeMemoryIterator* psIterator, void** pvData, int* piDataSize)
+BOOL CIndexTreeMemory::StartUnsafeIteration(SIndexTreeMemoryIterator* psIterator, void** ppvData, int* piDataSize)
+{
+	psIterator->pcNode = mpcRoot;
+	psIterator->iIndex = mpcRoot->GetFirstIndex();
+
+	return UnsafeIterate(psIterator, ppvData, piDataSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeMemory::UnsafeIterate(SIndexTreeMemoryIterator* psIterator, void** ppvData, int* piDataSize)
 {
 	if (StepNext(psIterator))
 	{
-		if (pvData)
+		if (ppvData)
 		{
-			*pvData = psIterator->pcNode->GetDataPtr();
+			*ppvData = psIterator->pcNode->GetDataPtr();
 		}
 		if (piDataSize)
 		{

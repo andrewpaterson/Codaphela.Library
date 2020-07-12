@@ -6,6 +6,7 @@
 #include "BaseLib/ListCharsMinimal.h"
 #include "BaseLib/CountingAllocator.h"
 #include "BaseLib/IndexKeyReverse.h"
+#include "BaseLib/IndexTreeIterator.h"
 #include "DurableFileController.h"
 #include "IndexTreeNodeFile.h"
 #include "IndexTreeFileDebug.h"
@@ -17,6 +18,11 @@ struct SIndexTreeFileIterator
 {
 	CIndexTreeNodeFile*		pcNode;
 	int						iIndex;
+};
+
+
+class CIndexTreeFileIterator : public SIndexTreeFileIterator, CIndexTreeIterator
+{
 };
 
 
@@ -58,6 +64,9 @@ public:
 
 	BOOL					StartUnsafeIteration(SIndexTreeFileIterator* psIterator, void** pvData, int* piDataSize);
 	BOOL					UnsafeIterate(SIndexTreeFileIterator* psIterator, void** pvData, int* piDataSize);
+
+	BOOL					StartIteration(SIndexTreeFileIterator* psIterator, void** pvData, int* piDataSize);
+	BOOL					Iterate(SIndexTreeFileIterator* psIterator, void** pvData, int* piDataSize);
 
 	BOOL					Evict(void* pvKey, int iKeySize);
 	BOOL					Flush(void* pvKey, int iKeySize);

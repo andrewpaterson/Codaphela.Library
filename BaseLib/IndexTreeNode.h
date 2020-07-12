@@ -1,6 +1,6 @@
 #ifndef __INDEX_TREE_NODE_H__
 #define __INDEX_TREE_NODE_H__
-#include "Bool.h"
+#include "Define.h"
 #include "DataTypes.h"
 #include "IndexTreeDataNode.h"
 
