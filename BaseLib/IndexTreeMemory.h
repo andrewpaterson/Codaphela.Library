@@ -39,8 +39,8 @@ public:
 
 	int						NumElements(void);
 
-	BOOL					StartIteration(SIndexTreeMemoryIterator* psIterator, void** ppvData, int* piDataSize);
-	BOOL					Iterate(SIndexTreeMemoryIterator* psIterator, void** ppvData, int* piDataSize);
+	BOOL					StartUnsafeIteration(SIndexTreeMemoryIterator* psIterator, void** ppvData, int* piDataSize);
+	BOOL					UnsafeIterate(SIndexTreeMemoryIterator* psIterator, void** ppvData, int* piDataSize);
 
 	size_t					ByteSize(void);
 
