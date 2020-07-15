@@ -1850,12 +1850,12 @@ BOOL CIndexTreeFile::Iterate(SIndexTreeFileIterator* psIterator, void* pvKey, in
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::StartUnsafeIteration(SIndexTreeFileIterator* psIterator, void** pvData, int* piDataSize)
+BOOL CIndexTreeFile::StartUnsafeIteration(SIndexTreeFileIterator* psIterator, char* pvKey, int* piKeySize, void** ppvData, int* piDataSize)
 {
 	psIterator->pcNode = mpcRoot;
 	psIterator->iIndex = mpcRoot->GetFirstIndex();
 
-	return UnsafeIterate(psIterator, pvData, piDataSize);
+	return UnsafeIterate(psIterator, pvKey, piKeySize, ppvData, piDataSize);
 }
 
 
@@ -1863,17 +1863,34 @@ BOOL CIndexTreeFile::StartUnsafeIteration(SIndexTreeFileIterator* psIterator, vo
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::UnsafeIterate(SIndexTreeFileIterator* psIterator, void** pvData, int* piDataSize)
+BOOL CIndexTreeFile::UnsafeIterate(SIndexTreeFileIterator* psIterator, char* pvKey, int* piKeySize, void** pvData, int* piDataSize)
 {
+	void*	pvDataTemp;
+	int		iKeySize;
+
 	if (StepNext(psIterator))
 	{
+		pvDataTemp = psIterator->pcNode->GetDataPtr();
 		if (pvData)
 		{
-			*pvData = psIterator->pcNode->GetDataPtr();
+
+			*pvData = pvDataTemp;
 		}
 		if (piDataSize)
 		{
 			*piDataSize = psIterator->pcNode->GetDataSize();
+		}
+		if (pvKey) 
+		{
+			iKeySize = GetNodeKey(psIterator->pcNode, pvKey, MAX_KEY_SIZE);
+			if (piKeySize)
+			{
+				*piKeySize = iKeySize;
+			}
+		}
+		else if (piKeySize)
+		{
+			*piKeySize = GetNodeKeySize(psIterator->pcNode);
 		}
 
 		GetReorderData(psIterator->pcNode);
@@ -1884,6 +1901,26 @@ BOOL CIndexTreeFile::UnsafeIterate(SIndexTreeFileIterator* psIterator, void** pv
 	{
 		return FALSE;
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeFile::StartUnsafeIteration(SIndexTreeFileIterator* psIterator, void** ppvData, int* piDataSize)
+{
+	return StartUnsafeIteration(psIterator, NULL, NULL, ppvData, piDataSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeFile::UnsafeIterate(SIndexTreeFileIterator* psIterator, void** ppvData, int* piDataSize)
+{
+	return UnsafeIterate(psIterator, NULL, NULL, ppvData, piDataSize);
 }
 
 
