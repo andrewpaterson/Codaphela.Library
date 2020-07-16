@@ -38,6 +38,25 @@ void CArrayChars::Init(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
+void CArrayChars::Init(CArrayChars* pasz)
+{
+	int		i;
+	CChars* psz;
+
+	Init();
+
+	for (i = 0; i < pasz->NumElements(); i++)
+	{
+		psz = pasz->Get(i);
+		Add(psz);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
 void CArrayChars::Fake(void)
 {
 	mcArray.Init();
@@ -93,6 +112,27 @@ CChars* CArrayChars::Add(CChars cChars)
 	else
 	{
 		pcChars2->Fake(cChars.Text());
+	}
+	return pcChars2;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+CChars* CArrayChars::Add(CChars* pcChars)
+{
+	CChars* pcChars2;
+
+	pcChars2 = mcArray.Add();
+	if (!mbFaked)
+	{
+		pcChars2->Init(pcChars);
+	}
+	else
+	{
+		pcChars2->Fake(pcChars->Text());
 	}
 	return pcChars2;
 }
@@ -279,6 +319,30 @@ CChars* CArrayChars::InsertIntoSorted(char* szText, char* szLastCharInclusive)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
+CChars* CArrayChars::InsertIntoSorted(CChars* psz)
+{
+	CChars*		pcChars2;
+	BOOL		bResult;
+	int			iIndex;
+
+	bResult = mcArray.FindInSorted(psz, CompareChars, &iIndex);
+	if (bResult)
+	{
+		return mcArray.Get(iIndex);
+	}
+	else
+	{
+		pcChars2 = mcArray.InsertAt(iIndex);
+		pcChars2->Init(psz);
+		return pcChars2;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
 CChars*	CArrayChars::Add(void)
 {
 	CChars*		pcChars;
@@ -415,6 +479,26 @@ int CArrayChars::GetIndex(char* szStart)
 	return -1;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+int CArrayChars::GetIndex(CChars* psz)
+{
+	int			i;
+	CChars*		pszOther;
+
+	for (i = 0; i < mcArray.NumElements(); i++)
+	{
+		pszOther = mcArray.Get(i);
+		if (pszOther->Equals(psz))
+		{
+			return i;
+		}
+	}
+	return -1;
+}
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -569,6 +653,23 @@ BOOL CArrayChars::Contains(char* szText)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
+BOOL CArrayChars::Contains(CChars* psz)
+{
+	int		iIndex;
+
+	iIndex = GetIndex(psz);
+	if (iIndex != -1)
+	{
+		return TRUE;
+	}
+	return FALSE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
 BOOL CArrayChars::ContainsSubString(char* szText)
 {
 	int		iIndex;
@@ -586,15 +687,15 @@ BOOL CArrayChars::ContainsSubString(char* szText)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayChars::QuickSort(BOOL bIgnoreCase)
+void CArrayChars::QuickSort(BOOL bCaseSensitive)
 {
-	if (bIgnoreCase)
+	if (bCaseSensitive)
 	{
-		mcArray.QuickSort(&CompareCharsIgnoreCase);
+		mcArray.QuickSort(&CompareChars);
 	}
 	else
 	{
-		mcArray.QuickSort(&CompareChars);
+		mcArray.QuickSort(&CompareCharsIgnoreCase);
 	}
 }
 
@@ -603,15 +704,15 @@ void CArrayChars::QuickSort(BOOL bIgnoreCase)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayChars::BubbleSort(BOOL bIgnoreCase)
+void CArrayChars::BubbleSort(BOOL bCaseSensitive)
 {
-	if (bIgnoreCase)
+	if (bCaseSensitive)
 	{
-		mcArray.BubbleSort(&CompareCharsIgnoreCase);
+		mcArray.BubbleSort(&CompareChars);
 	}
 	else
 	{
-		mcArray.BubbleSort(&CompareChars);
+		mcArray.BubbleSort(&CompareCharsIgnoreCase);
 	}
 }
 

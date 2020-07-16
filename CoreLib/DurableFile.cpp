@@ -87,7 +87,7 @@ BOOL CDurableFile::Init(CDurableFileController* pcController, char* szFileName, 
 	}
 	else
 	{
-		mszRewriteName.Init(NULL);
+		mszRewriteName.Init();
 		mcRewriteDiskFile.Init(NULL);
 		mcRewriteFile.Init(&mcRewriteDiskFile);
 	}
@@ -113,12 +113,12 @@ void CDurableFile::InitBasic(void)
 //////////////////////////////////////////////////////////////////////////
 void CDurableFile::InitError(void)
 {
-	mszFileName.Init(NULL);
+	mszFileName.Init();
 	mcPrimaryDiskFile.Init(NULL);
 	mcLogFile.Init(&mcPrimaryDiskFile);
 	mcPrimaryFile.Init(&mcLogFile);
 
-	mszRewriteName.Init(NULL);
+	mszRewriteName.Init();
 	mcRewriteDiskFile.Init(NULL);
 	mcRewriteFile.Init(&mcRewriteDiskFile);
 }

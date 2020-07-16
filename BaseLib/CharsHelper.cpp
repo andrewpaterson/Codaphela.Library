@@ -29,7 +29,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void GenerateRandomNumbersCharList(int iNum)
+void CCharsHelper::GenerateRandomNumbersCharList(int iNum)
 {
 	int		i;
 	int		r;
@@ -56,7 +56,7 @@ void GenerateRandomNumbersCharList(int iNum)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void GenerateBitStream(unsigned char* ucBytes, int iByteCount)
+void CCharsHelper::GenerateBitStream(unsigned char* ucBytes, int iByteCount)
 {
 	BOOL	b;
 	CChars	sz;
@@ -81,5 +81,42 @@ void GenerateBitStream(unsigned char* ucBytes, int iByteCount)
 	sz.AppendNewLine();
 	sz.Dump();
 	sz.Kill();
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCharsHelper::Intersect(CArrayChars* paszDest, CArrayChars* paszLeft, CArrayChars* paszRight)
+{
+	CArrayChars*	paszIterate;
+	CArrayChars		aszSorted;
+	int				i;
+	int				iNumElements;
+	CChars*			psz;
+	int				iIndex;
+
+	if (paszLeft->NumElements() > paszRight->NumElements())
+	{
+		aszSorted.Init(paszLeft);
+		paszIterate = paszRight;
+	}
+	else
+	{
+		aszSorted.Init(paszRight);
+		paszIterate = paszLeft;
+	}
+	aszSorted.QuickSort();
+
+	iNumElements = paszIterate->NumElements();
+	for (i = 0; i < iNumElements; i++)
+	{
+		psz = paszIterate->Get(i);
+		iIndex = aszSorted.FindInSorted(psz);
+		if (iIndex != -1)
+		{
+			paszDest->InsertIntoSorted(psz);
+		}
+	}
 }
 

@@ -49,6 +49,7 @@ public:
 	void	Init(void);
 	void	Init(const char* sz);
 	void	Init(CChars sz);
+	void	Init(CChars* psz);
 	void	Init(const char* sz, int iStartInclusive);
 	void	Init(CChars sz, int iStartInclusive, int iEndExclusive);
 	void	Init(const char* sz, int iStartInclusive, int iEndExclusive);
@@ -120,6 +121,7 @@ public:
 	BOOL	Equals(const char* szString);
 	BOOL	Equals(CChars szString);
 	BOOL	Equals(const char* szString, int iLen);
+	BOOL	Equals(CChars* pszString);
 	BOOL	EqualsIgnoreCase(const char* szString);
 	BOOL	EqualsIgnoreCase(CChars szString);
 	BOOL	Contains(const char* szString);

@@ -14,6 +14,7 @@ class CIndexTreeEvicting
 {
 friend class CIndexedDescriptorsFile;
 friend class CIndexTreeEvictionStrategyRandom;
+friend class CIndexTreeEvictingAccess;
 private:
 	CIndexTreeFile					mcIndexTree;
 	size_t							muiCutoff;
@@ -50,6 +51,7 @@ public:
 
 protected:
 	CIndexedFiles*			GetIndexFiles(void);
+	CIndexTreeFile*			GetIndexTree(void);
 
 	int						NumNodes(void);
 	int						NumMemoryNodes(void);

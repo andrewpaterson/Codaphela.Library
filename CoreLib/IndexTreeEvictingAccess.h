@@ -10,11 +10,14 @@ private:
 	CIndexTreeEvicting*		mpcTree;
 
 public:
-	BOOL	Init(CIndexTreeEvicting* pcTree);
-	BOOL	Kill(void);
-	BOOL	Flush(void);
-	int64	NumElements(void);
-	BOOL	ValidateIndex(void);
+	BOOL				Init(CIndexTreeEvicting* pcTree);
+	BOOL				Kill(void);
+	BOOL				Flush(void);
+	int64				NumElements(void);
+	BOOL				ValidateIndex(void);
+
+	CIndexTreeIterator* CreateIterator(void);
+	void				FreeIterator(CIndexTreeIterator* pcIter);
 
 protected:
 	BOOL	Put(void* pvKey, int iKeySize, void* pvData, int iDataSize);
