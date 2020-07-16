@@ -4,6 +4,7 @@
 #include "Chars.h"
 #include "PrimitiveTypes.h"
 #include "TemporaryMemory.h"
+#include "IndexTreeIterator.h"
 
 
 class CIndexTreeAccess
@@ -81,6 +82,10 @@ public:
 			BOOL	EvictInt(int iKey);
 			BOOL	EvictString(char* pszKey);
 			BOOL	EvictKey(void* pvKey, int iKeySize);
+
+public:
+	virtual	CIndexTreeIterator* CreateIterator(void) =0;
+	virtual	void				FreeIterator(CIndexTreeIterator* pcIter) = 0;
 
 protected:
 	virtual BOOL	Put(void* pvKey, int iKeySize, void* pvData, int iDataSize) =0;

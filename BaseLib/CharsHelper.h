@@ -23,11 +23,17 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __CHARS_HELPER_H__
 #define __CHARS_HELPER_H__
 #include "Chars.h"
+#include "ArrayChars.h"
 //This file contains any useful function that are CChars related but don't really fit anywhere.
 
 
-void GenerateRandomNumbersCharList(int iNum);
-void GenerateBitStream(unsigned char* ucBytes, int iByteCount);
+class CCharsHelper
+{
+public:
+	static void GenerateRandomNumbersCharList(int iNum);
+	static void GenerateBitStream(unsigned char* ucBytes, int iByteCount);
+	static void Intersect(CArrayChars* paszDest, CArrayChars* paszLeft, CArrayChars* paszRight);
+};
 
 
 #endif // __CHARS_HELPER_H__

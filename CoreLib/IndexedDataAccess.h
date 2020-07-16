@@ -9,11 +9,14 @@ protected:
 	CIndexedData*	mpcIndexData;
 
 public:
-	BOOL	Init(CIndexedData* pcIndexData);
-	BOOL	Kill(void);
-	BOOL	Flush(void);
-	int64	NumElements(void);
-	BOOL	ValidateIndex(void);
+	BOOL				Init(CIndexedData* pcIndexData);
+	BOOL				Kill(void);
+	BOOL				Flush(void);
+	int64				NumElements(void);
+	BOOL				ValidateIndex(void);
+
+	CIndexTreeIterator* CreateIterator(void);
+	void				FreeIterator(CIndexTreeIterator* pcIter);
 
 protected:
 	BOOL	Put(void* pvKey, int iKeySize, void* pvData, int iDataSize);
