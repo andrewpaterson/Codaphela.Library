@@ -33,6 +33,7 @@ public:
 	static void GenerateRandomNumbersCharList(int iNum);
 	static void GenerateBitStream(unsigned char* ucBytes, int iByteCount);
 	static void Intersect(CArrayChars* paszDest, CArrayChars* paszLeft, CArrayChars* paszRight);
+	static void InverseIntersect(CArrayChars* paszDest, CArrayChars* paszLeft, CArrayChars* paszRight);
 };
 
 

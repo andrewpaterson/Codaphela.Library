@@ -14,6 +14,7 @@ public:
 	BOOL				Flush(void);
 	int64				NumElements(void);
 	BOOL				ValidateIndex(void);
+	void				Dump(void);
 
 	CIndexTreeIterator* CreateIterator(void);
 	void				FreeIterator(CIndexTreeIterator* pcIter);

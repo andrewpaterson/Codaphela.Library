@@ -22,6 +22,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __STRING_HELPER_H__
 #define __STRING_HELPER_H__
+#include <string.h>
 #include "Define.h"
 
 

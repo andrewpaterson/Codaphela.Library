@@ -175,6 +175,9 @@
     <Filter Include="Source\Coda">
       <UniqueIdentifier>{eabb5af7-d0b9-46c6-b47c-e66924f3845f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\File\Indexed\Index\Evicting\Key">
+      <UniqueIdentifier>{cb5f8142-25a0-492a-bb1c-978e441f0ea7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="IndexedData.cpp">
@@ -455,6 +458,12 @@
     </ClCompile>
     <ClCompile Include="IndexTreeFileIterator.cpp">
       <Filter>Source\File\Indexed\Index</Filter>
+    </ClCompile>
+    <ClCompile Include="IndexTreeKeyEvictedCallback.cpp">
+      <Filter>Source\File\Indexed\Index\Evicting</Filter>
+    </ClCompile>
+    <ClCompile Include="KeyEvictedCountingCallback.cpp">
+      <Filter>Source\File\Indexed\Index\Evicting\Key</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -760,6 +769,12 @@
     </ClInclude>
     <ClInclude Include="IndexTreeFileIterator.h">
       <Filter>Source\File\Indexed\Index</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexTreeKeyEvictedCallback.h">
+      <Filter>Source\File\Indexed\Index\Evicting</Filter>
+    </ClInclude>
+    <ClInclude Include="KeyEvictedCountingCallback.h">
+      <Filter>Source\File\Indexed\Index\Evicting\Key</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
