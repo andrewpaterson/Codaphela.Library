@@ -2026,7 +2026,6 @@ CListCharsMinimal* CIndexTreeFile::GetNodesStringKeys(CArrayVoidPtr* apvNodes)
 BOOL CIndexTreeFile::StepNext(SIndexTreeFileIterator* psIterator)
 {
 	CIndexTreeNodeFile*		pcChildNode;
-	void*					pvData;
 	CIndexTreeNodeFile*		pcParent;
 	int						iCount;
 
@@ -2040,8 +2039,7 @@ BOOL CIndexTreeFile::StepNext(SIndexTreeFileIterator* psIterator)
 			psIterator->pcNode = pcChildNode;
 			psIterator->iIndex = pcChildNode->GetFirstIndex();
 
-			pvData = pcChildNode->GetDataPtr();
-			if (pvData != NULL)
+			if (HasData(pcChildNode))
 			{
 				return TRUE;
 			}

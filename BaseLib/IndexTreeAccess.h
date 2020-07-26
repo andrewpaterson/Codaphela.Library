@@ -19,6 +19,7 @@ public:
 	virtual BOOL	Flush(void)= 0;
 	virtual int64	NumElements(void) =0;
 	virtual BOOL	ValidateIndex(void) =0;
+	virtual void	Dump(void) =0;
 
 			BOOL	PutLongPtr(int64 lliKey, void* pvPointer);
 			BOOL	PutLongInt(int64 lliKey, int iData);
@@ -85,7 +86,7 @@ public:
 
 public:
 	virtual	CIndexTreeIterator* CreateIterator(void) =0;
-	virtual	void				FreeIterator(CIndexTreeIterator* pcIter) = 0;
+	virtual	void				FreeIterator(CIndexTreeIterator* pcIter) =0;
 
 protected:
 	virtual BOOL	Put(void* pvKey, int iKeySize, void* pvData, int iDataSize) =0;
@@ -94,7 +95,7 @@ protected:
 	virtual BOOL	Remove(void* pvKey, int iKeySize) =0;
 	virtual BOOL	Has(void* pvKey, int iKeySize) =0;
 	virtual BOOL	Flush(void* pvKey, int iKeySize) =0;
-	virtual BOOL	Evict(void* pvKey, int iKeySize) = 0;
+	virtual BOOL	Evict(void* pvKey, int iKeySize) =0;
 };
 
 
