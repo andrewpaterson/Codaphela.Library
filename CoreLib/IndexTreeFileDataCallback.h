@@ -4,7 +4,7 @@
 
 
 //xxx //Rename this to CIndexTreeFileDataCallback
-class CIndexTreeFileCallback
+class CIndexTreeFileDataCallback
 {
 public:
 	virtual unsigned short	IndexTreeDataSize(unsigned short uiSourceSize) =0;

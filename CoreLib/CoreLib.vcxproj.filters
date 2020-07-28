@@ -411,9 +411,6 @@
     <ClCompile Include="IndexedDataCommon.cpp">
       <Filter>Source\File\Indexed</Filter>
     </ClCompile>
-    <ClCompile Include="IndexTreeFileDefaultCallback.cpp">
-      <Filter>Source\File\Indexed\Index\DataWriter</Filter>
-    </ClCompile>
     <ClCompile Include="IndexedDataAccess.cpp">
       <Filter>Source\File\Indexed</Filter>
     </ClCompile>
@@ -470,6 +467,9 @@
     </ClCompile>
     <ClCompile Include="IndexTreeEvictingKeyDiagnosticCallback.cpp">
       <Filter>Source\File\Indexed\Index\Evicting\Key</Filter>
+    </ClCompile>
+    <ClCompile Include="IndexTreeFileDefaultDataCallback.cpp">
+      <Filter>Source\File\Indexed\Index\DataWriter</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -713,12 +713,6 @@
     <ClInclude Include="IndexedDataCommon.h">
       <Filter>Source\File\Indexed</Filter>
     </ClInclude>
-    <ClInclude Include="IndexTreeFileCallback.h">
-      <Filter>Source\File\Indexed\Index\DataWriter</Filter>
-    </ClInclude>
-    <ClInclude Include="IndexTreeFileDefaultCallback.h">
-      <Filter>Source\File\Indexed\Index\DataWriter</Filter>
-    </ClInclude>
     <ClInclude Include="IndexedDataAccess.h">
       <Filter>Source\File\Indexed</Filter>
     </ClInclude>
@@ -784,6 +778,12 @@
     </ClInclude>
     <ClInclude Include="IndexTreeEvictingKeyDiagnosticCallback.h">
       <Filter>Source\File\Indexed\Index\Evicting\Key</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexTreeFileDataCallback.h">
+      <Filter>Source\File\Indexed\Index\DataWriter</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexTreeFileDefaultDataCallback.h">
+      <Filter>Source\File\Indexed\Index\DataWriter</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

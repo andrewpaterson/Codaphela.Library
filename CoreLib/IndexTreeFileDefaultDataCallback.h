@@ -1,9 +1,9 @@
 #ifndef __INDEX_TREE_FILE_DEFAULT_CALLBACK_H__
 #define __INDEX_TREE_FILE_DEFAULT_CALLBACK_H__
-#include "IndexTreeFileCallback.h"
+#include "IndexTreeFileDataCallback.h"
 
 
-class CIndexTreeFileDefaultCallback : public CIndexTreeFileCallback
+class CIndexTreeFileDefaultDataCallback : public CIndexTreeFileDataCallback
 {
 public:
 	unsigned short	IndexTreeDataSize(unsigned short uiSourceSize);
@@ -12,7 +12,7 @@ public:
 };
 
 
-extern CIndexTreeFileDefaultCallback gcIndexTreeFileDefaultCallback;
+extern CIndexTreeFileDefaultDataCallback gcIndexTreeFileDefaultCallback;
 
 
 #endif // __INDEX_TREE_FILE_DEFAULT_CALLBACK_H__

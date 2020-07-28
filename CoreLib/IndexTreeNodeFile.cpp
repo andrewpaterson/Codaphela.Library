@@ -451,7 +451,7 @@ size_t CIndexTreeNodeFile::CalculateNodeSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size_t CIndexTreeNodeFile::CalculateDataBufferSize(CIndexTreeFileCallback* pcCallback)
+size_t CIndexTreeNodeFile::CalculateDataBufferSize(CIndexTreeFileDataCallback* pcCallback)
 {
 	unsigned short uiDataSize;
 
@@ -464,7 +464,7 @@ size_t CIndexTreeNodeFile::CalculateDataBufferSize(CIndexTreeFileCallback* pcCal
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size_t CIndexTreeNodeFile::CalculateFileSize(CIndexTreeFileCallback* pcCallback)
+size_t CIndexTreeNodeFile::CalculateFileSize(CIndexTreeFileDataCallback* pcCallback)
 {
 	return CalculateNodeSize() + CalculateDataBufferSize(pcCallback);
 }
@@ -474,7 +474,7 @@ size_t CIndexTreeNodeFile::CalculateFileSize(CIndexTreeFileCallback* pcCallback)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CIndexTreeNodeFile::WriteToBuffer(void* pvBuffer, int iBufferSize, CIndexTreeFileCallback* pcCallback)
+int CIndexTreeNodeFile::WriteToBuffer(void* pvBuffer, int iBufferSize, CIndexTreeFileDataCallback* pcCallback)
 {
 	unsigned char*			pucMemory;
 	int						iPos;
@@ -550,7 +550,7 @@ int CIndexTreeNodeFile::WriteToBuffer(void* pvBuffer, int iBufferSize, CIndexTre
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CIndexTreeNodeFile::InitFromBuffer(void* pvBuffer, int iMaxBufferSize, CIndexTreeFileCallback* pcCallback)
+int CIndexTreeNodeFile::InitFromBuffer(void* pvBuffer, int iMaxBufferSize, CIndexTreeFileDataCallback* pcCallback)
 {
 	unsigned char*			pucMemory;
 	int						iPos;
