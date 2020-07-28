@@ -248,7 +248,7 @@ BOOL CIndexTreeEvicting::Evict(void* pvKey, int iKeySize)
 	pcNode = mcIndexTree.GetMemoryNode(pvKey, iKeySize);
 	if (pcNode)
 	{
-		return EvictNode(pcNode);
+		return EvictNode(pcNode, pvKey, iKeySize);
 	}
 	else
 	{
@@ -325,6 +325,16 @@ BOOL CIndexTreeEvicting::IsWriteThrough(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CIndexTreeEvicting::SetDiagnosticCallback(CIndexTreeFileKeyDiagnosticCallback* pcCallback)
+{
+	return mcIndexTree.SetDiagnosticCallback(pcCallback);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeEvicting::Flush(void)
 {
 	return mcIndexTree.Flush();
@@ -348,6 +358,16 @@ BOOL CIndexTreeEvicting::IsFlushed(void)
 BOOL CIndexTreeEvicting::ValidateIndexTree(void)
 {
 	return mcIndexTree.ValidateIndexTree();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeEvicting::HasDiagnosticCallback(void)
+{
+	return mcIndexTree.HasDiagnosticCallback();
 }
 
 
@@ -487,7 +507,7 @@ CIndexTreeNodeFile* CIndexTreeEvicting::GetMemoryNode(void* pvKey, int iKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeEvicting::EvictNode(CIndexTreeNodeFile* pcNode)
+BOOL CIndexTreeEvicting::EvictNode(CIndexTreeNodeFile* pcNode, void* pvKey, int iKeySize)
 {
 	BOOL bEvict;
 
@@ -502,12 +522,22 @@ BOOL CIndexTreeEvicting::EvictNode(CIndexTreeNodeFile* pcNode)
 
 	if (bEvict)
 	{
-		return mcIndexTree.Evict(pcNode);
+		return mcIndexTree.Evict(pcNode, pvKey, iKeySize);
 	}
 	else
 	{
-		return FALSE;  //If the node couldn't be evicted shouldn't this return FALSE?
+		return FALSE;
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CIndexTreeEvicting::GetNodeKey(CIndexTreeNodeFile* pcNode, char* pvDestKey, int iDestKeySize)
+{
+	return mcIndexTree.GetNodeKey(pcNode, pvDestKey, iDestKeySize);
 }
 
 

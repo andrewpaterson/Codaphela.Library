@@ -40,9 +40,12 @@ public:
 
 	BOOL					Flush(void);
 
+	void					SetDiagnosticCallback(CIndexTreeFileKeyDiagnosticCallback* pcCallback);
+
 	BOOL					IsWriteThrough(void);
 	BOOL					IsFlushed(void);
 	BOOL					ValidateIndexTree(void);
+	BOOL					HasDiagnosticCallback(void);
 
 	int						NumElements(void);
 
@@ -62,7 +65,8 @@ protected:
 	BOOL					EvictNodeWithObject(CIndexTreeNodeFile* pcNode);
 	CIndexTreeNodeFile*		GetRoot(void);
 	CIndexTreeNodeFile*		GetMemoryNode(void* pvKey, int iKeySize);
-	BOOL					EvictNode(CIndexTreeNodeFile* pcNode);
+	BOOL					EvictNode(CIndexTreeNodeFile* pcNode, void* pvKey, int iKeySize);
+	int						GetNodeKey(CIndexTreeNodeFile* pcNode, char* pvDestKey, int iDestKeySize);
 
 	size_t					GetSystemMemorySize(void);
 	unsigned char			GetRootFlags(void);

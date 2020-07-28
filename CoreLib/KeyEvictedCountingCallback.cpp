@@ -7,7 +7,7 @@
 //////////////////////////////////////////////////////////////////////////
 void CKeyEvictedCoutingCallback::Init(char* szKey)
 {
-	CIndexTreeEvictingKeyDiagnosticCallback::Init(szKey);
+	CIndexTreeFileKeyDiagnosticCallback::Init(szKey);
 	miCount = 0;
 }
 
@@ -18,7 +18,7 @@ void CKeyEvictedCoutingCallback::Init(char* szKey)
 //////////////////////////////////////////////////////////////////////////
 void CKeyEvictedCoutingCallback::Init(void* pvKey, int iKeyLength)
 {
-	CIndexTreeEvictingKeyDiagnosticCallback::Init(pvKey, iKeyLength);
+	CIndexTreeFileKeyDiagnosticCallback::Init(pvKey, iKeyLength);
 	miCount = 0;
 }
 
@@ -30,7 +30,7 @@ void CKeyEvictedCoutingCallback::Init(void* pvKey, int iKeyLength)
 void CKeyEvictedCoutingCallback::Kill(void)
 {
 	miCount = 0;
-	CIndexTreeEvictingKeyDiagnosticCallback::Kill();
+	CIndexTreeFileKeyDiagnosticCallback::Kill();
 }
 
 
@@ -38,8 +38,11 @@ void CKeyEvictedCoutingCallback::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CKeyEvictedCoutingCallback::Evicted(void* pvKey, int iKeySize, void* pvData, int iDataSize)
+void CKeyEvictedCoutingCallback::Evict(void* pvKey, int iKeySize, void* pvData, int iDataSize)
 {
-	miCount++;
+	if (Matches(pvKey, iKeySize))
+	{
+		miCount++;
+	}
 }
 

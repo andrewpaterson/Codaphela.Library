@@ -22,6 +22,7 @@ public:
 	CIndexTreeNode*		GetNode(void);
 
 	void				GetKey(char* pc, int* piKeySize);
+	int					GetKeySize(void);
 };
 
 
