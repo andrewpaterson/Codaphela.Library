@@ -29,7 +29,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "NamedIndexesConfig.h"
 
 
-class CNamedIndexes : public CIndexTreeEvictionCallback, public CIndexTreeFileCallback
+class CNamedIndexes : public CIndexTreeEvictionCallback, public CIndexTreeFileDataCallback
 {
 protected:
 	CIndexTreeEvicting	mcIndexTree;

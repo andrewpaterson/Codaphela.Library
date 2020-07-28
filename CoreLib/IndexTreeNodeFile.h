@@ -2,7 +2,7 @@
 #define __INDEX_TREE_NODE_FILE_H__
 #include "BaseLib/FileIndex.h"
 #include "BaseLib/IndexTreeNode.h"
-#include "IndexTreeFileCallback.h"
+#include "IndexTreeFileDataCallback.h"
 #include "IndexTreeChildNode.h"
 
 
@@ -19,7 +19,7 @@ public:
 	void					Init(CIndexTree* pcIndexTree, CIndexTreeNodeFile* pcParent, CFileDataIndex cFileIndex, unsigned char uiIndexInParent);
 	void					Init(CIndexTree* pcIndexTree, CIndexTreeNodeFile* pcParent, unsigned char uiIndexInParent);
 
-	int						InitFromBuffer(void* pvBuffer, int iMaxBufferSize, CIndexTreeFileCallback* pcCallback);
+	int						InitFromBuffer(void* pvBuffer, int iMaxBufferSize, CIndexTreeFileDataCallback* pcCallback);
 
 	void					SetFileIndex(int iFile, unsigned int uiIndex);
 	CFileDataIndex*			GetFileIndex(void);
@@ -45,9 +45,9 @@ public:
 	void					SetChildrensParent(void);
 
 	size_t					CalculateNodeSize(void);
-	size_t					CalculateDataBufferSize(CIndexTreeFileCallback* pcCallback);
-	size_t					CalculateFileSize(CIndexTreeFileCallback* pcCallback);
-	int						WriteToBuffer(void* pvBuffer, int iBufferSize, CIndexTreeFileCallback* pcCallback);
+	size_t					CalculateDataBufferSize(CIndexTreeFileDataCallback* pcCallback);
+	size_t					CalculateFileSize(CIndexTreeFileDataCallback* pcCallback);
+	int						WriteToBuffer(void* pvBuffer, int iBufferSize, CIndexTreeFileDataCallback* pcCallback);
 
 	BOOL					HasFile(void);
 	BOOL					HasOnlyFileNodes(void);

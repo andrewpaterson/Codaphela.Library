@@ -11,7 +11,7 @@
 
 
 class CIndexedDataCommon;
-class CIndexedDescriptorsFile : public CIndexTreeEvictionCallback, public CIndexTreeFileCallback
+class CIndexedDescriptorsFile : public CIndexTreeEvictionCallback, public CIndexTreeFileDataCallback
 {
 protected:
 	CIndexTreeEvicting					mcIndexTree;
