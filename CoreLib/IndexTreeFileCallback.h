@@ -3,6 +3,7 @@
 #include "BaseLib/Bool.h"
 
 
+//xxx //Rename this to CIndexTreeFileDataCallback
 class CIndexTreeFileCallback
 {
 public:
