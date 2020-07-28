@@ -1,13 +1,13 @@
 #include "BaseLib/StringHelper.h"
-#include "IndexTreeKeyEvictedCallback.h"
+#include "IndexTreeEvictingKeyDiagnosticCallback.h"
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeKeyEvictedCallback::Init(char* szKey)
+void CIndexTreeEvictingKeyDiagnosticCallback::Init(char* szKey)
 {
-	Init(szKey, strlen(szKey));
+	CIndexTreeFileKeyDiagnosticCallback::Init(szKey, strlen(szKey));
 }
 
 
@@ -15,10 +15,9 @@ void CIndexTreeKeyEvictedCallback::Init(char* szKey)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeKeyEvictedCallback::Init(void* pvKey, int iKeyLength)
+void CIndexTreeEvictingKeyDiagnosticCallback::Init(void* pvKey, int iKeyLength)
 {
-	mpvKey = pvKey;
-	miKeyLength = iKeyLength;
+	CIndexTreeFileKeyDiagnosticCallback::Init(pvKey, iKeyLength);
 }
 
 
@@ -26,10 +25,9 @@ void CIndexTreeKeyEvictedCallback::Init(void* pvKey, int iKeyLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeKeyEvictedCallback::Kill(void)
+void CIndexTreeEvictingKeyDiagnosticCallback::Kill(void)
 {
-	mpvKey = NULL;
-	miKeyLength = 0;
+	CIndexTreeFileKeyDiagnosticCallback::Kill();
 }
 
 
@@ -37,7 +35,7 @@ void CIndexTreeKeyEvictedCallback::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeKeyEvictedCallback::IndexTreeNodeEvicted(void* pvKey, int iKeySize, void* pvData, int iDataSize)
+BOOL CIndexTreeEvictingKeyDiagnosticCallback::IndexTreeNodeEvicted(void* pvKey, int iKeySize, void* pvData, int iDataSize)
 {
 	if (miKeyLength == iKeySize)
 	{
@@ -47,5 +45,14 @@ BOOL CIndexTreeKeyEvictedCallback::IndexTreeNodeEvicted(void* pvKey, int iKeySiz
 		}
 	}
 	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexTreeEvictingKeyDiagnosticCallback::Evicted(void* pvKey, int iKeySize, void* pvData, int iDataSize)
+{
 }
 
