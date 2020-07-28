@@ -459,17 +459,14 @@
     <ClCompile Include="IndexTreeFileIterator.cpp">
       <Filter>Source\File\Indexed\Index</Filter>
     </ClCompile>
-    <ClCompile Include="KeyEvictedCountingCallback.cpp">
-      <Filter>Source\File\Indexed\Index\Evicting\Key</Filter>
-    </ClCompile>
     <ClCompile Include="IndexTreeFileKeyDiagnosticCallback.cpp">
       <Filter>Source\File\Indexed\Index\Key</Filter>
     </ClCompile>
-    <ClCompile Include="IndexTreeEvictingKeyDiagnosticCallback.cpp">
-      <Filter>Source\File\Indexed\Index\Evicting\Key</Filter>
-    </ClCompile>
     <ClCompile Include="IndexTreeFileDefaultDataCallback.cpp">
       <Filter>Source\File\Indexed\Index\DataWriter</Filter>
+    </ClCompile>
+    <ClCompile Include="KeyEvictedCountingCallback.cpp">
+      <Filter>Source\File\Indexed\Index\Key</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -770,20 +767,17 @@
     <ClInclude Include="IndexTreeFileIterator.h">
       <Filter>Source\File\Indexed\Index</Filter>
     </ClInclude>
-    <ClInclude Include="KeyEvictedCountingCallback.h">
-      <Filter>Source\File\Indexed\Index\Evicting\Key</Filter>
-    </ClInclude>
     <ClInclude Include="IndexTreeFileKeyDiagnosticCallback.h">
       <Filter>Source\File\Indexed\Index\Key</Filter>
-    </ClInclude>
-    <ClInclude Include="IndexTreeEvictingKeyDiagnosticCallback.h">
-      <Filter>Source\File\Indexed\Index\Evicting\Key</Filter>
     </ClInclude>
     <ClInclude Include="IndexTreeFileDataCallback.h">
       <Filter>Source\File\Indexed\Index\DataWriter</Filter>
     </ClInclude>
     <ClInclude Include="IndexTreeFileDefaultDataCallback.h">
       <Filter>Source\File\Indexed\Index\DataWriter</Filter>
+    </ClInclude>
+    <ClInclude Include="KeyEvictedCountingCallback.h">
+      <Filter>Source\File\Indexed\Index\Key</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -11,6 +11,7 @@
 #include "IndexTreeNodeFile.h"
 #include "IndexTreeFileDebug.h"
 #include "IndexedFiles.h"
+#include "IndexTreeFileKeyDiagnosticCallback.h"
 #include "IndexWriteThrough.h"
 
 
@@ -28,13 +29,15 @@ friend class CIndexTreeWriter;
 friend class CIndexTreeNodeFile;
 friend class CIndexTreeFileIterator;
 protected:
-	CIndexTreeNodeFile*			mpcRoot;
-	CIndexedFiles				mcIndexFiles;
-	CDurableFileController*		mpcDurableFileControl;
-	EIndexWriteThrough			meWriteThrough;
-	CDurableFile				mcRootIndex;
-	CCountingAllocator			mcMalloc;
-	CIndexTreeFileDataCallback*		mpcDataCallback;
+	CIndexTreeNodeFile*						mpcRoot;
+	CIndexedFiles							mcIndexFiles;
+	CDurableFileController*					mpcDurableFileControl;
+	EIndexWriteThrough						meWriteThrough;
+	CDurableFile							mcRootIndex;
+	CCountingAllocator						mcMalloc;
+	CIndexTreeFileDataCallback*				mpcDataCallback;
+
+	CIndexTreeFileKeyDiagnosticCallback*	mpcDiagnosticCallback;
 
 public:
 	BOOL					Init(void);
@@ -66,18 +69,21 @@ public:
 	BOOL					Evict(void* pvKey, int iKeySize);
 	BOOL					Flush(void* pvKey, int iKeySize);
 
+	void					SetDiagnosticCallback(CIndexTreeFileKeyDiagnosticCallback* pcCallback);
+
 	BOOL					IsFlushed(void);
 	BOOL					ValidateIndexTree(void);
 	BOOL					ValidateParentIndex(void);
 
 	int						NumElements(void);
 	BOOL					IsWriteThrough(void);
+	BOOL					HasDiagnosticCallback(void);
 
 	void					Print(CChars* pszDest, BOOL bShowFlags, BOOL bShowSize);
 	void					Dump(void);
 
 protected:
-	BOOL					Evict(CIndexTreeNodeFile* pcNode);
+	BOOL					Evict(CIndexTreeNodeFile* pcNode, void* pvKey, int iKeySize);
 
 	void					SetWriteThrough(EIndexWriteThrough eWriteThrough);
 
@@ -144,7 +150,7 @@ protected:
 	CIndexTreeNodeFile*		RemoveWriteThrough(CIndexTreeNodeFile* pcCurrent);
 	BOOL					RemoveWaitForFlush(CIndexTreeNodeFile* pcCurrent);
 	BOOL					EvictNode(CIndexTreeNodeFile* pcCurrent);
-	BOOL					Flush(CIndexTreeNodeFile** ppcCurrent);
+	BOOL					Flush(CIndexTreeNodeFile** ppcCurrent, void* pvKey, int iKeySize);
 	BOOL					CanEvict(CIndexTreeNodeFile* pcNode);
 
 	void					ClearNodesFlags(CArrayVoidPtr* papNodes, unsigned char uiFlags);
@@ -202,6 +208,10 @@ protected:
 	void					PrintNodeFileIndexes(CIndexTreeNodeFile* pcCurrent, CChars* psz);
 
 	void					RecurseDump(CChars* pszDest, CIndexTreeRecursor* pcCursor, BOOL bShowFlags, BOOL bShowSize);
+
+	void					DiagnosticFlushCallback(CIndexTreeRecursor* pcCursor, CIndexTreeNodeFile* pcNode);
+	void					DiagnosticFlushCallback(void* pvKey, int iKeySize, CIndexTreeNodeFile* pcNode);
+	void					DiagnosticEvictCallback(void* pvKey, int iKeySize, CIndexTreeNodeFile* pcNode);
 };
 
 

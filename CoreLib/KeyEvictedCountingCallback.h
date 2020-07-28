@@ -1,9 +1,9 @@
 #ifndef __KEY_EVICTED_COUNTING_CALLBACK_H__
 #define __KEY_EVICTED_COUNTING_CALLBACK_H__
-#include "IndexTreeEvictingKeyDiagnosticCallback.h"
+#include "IndexTreeFileKeyDiagnosticCallback.h"
 
 
-class CKeyEvictedCoutingCallback : public CIndexTreeEvictingKeyDiagnosticCallback
+class CKeyEvictedCoutingCallback : public CIndexTreeFileKeyDiagnosticCallback
 {
 protected:
 	int		miCount;
@@ -13,7 +13,7 @@ public:
 	void	Init(void* pvKey, int iKeyLength);
 	void	Kill(void);
 
-	void	Evicted(void* pvKey, int iKeySize, void* pvData, int iDataSize);
+	void	Evict(void* pvKey, int iKeySize, void* pvData, int iDataSize);
 };
 
 #endif // __KEY_EVICTED_COUNTING_CALLBACK_H__
