@@ -355,3 +355,4 @@ void CIndexTree::GetNodeKey(CIndexTreeNode* pcNode, CArrayChar* pacKey)
 		cTemp.Kill();
 	}
 }
+

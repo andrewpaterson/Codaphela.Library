@@ -106,6 +106,7 @@
     <ClCompile Include="IndexedGeneral.cpp" />
     <ClCompile Include="IndexTreeEvictedList.cpp" />
     <ClCompile Include="IndexTreeEvictionCallbackWrapper.cpp" />
+    <ClCompile Include="IndexTreeEvictionStrategyDataOrderer.cpp" />
     <ClCompile Include="IndexTreeEvictionStrategy.cpp" />
     <ClCompile Include="IndexTreeEvictionStrategyRandom.cpp" />
     <ClCompile Include="IndexTreeFile.cpp" />
@@ -190,6 +191,7 @@
   <ItemGroup>
     <ClInclude Include="CodaBase.h" />
     <ClInclude Include="IndexTreeEvictionCallbackWrapper.h" />
+    <ClInclude Include="IndexTreeEvictionStrategyDataOrderer.h" />
     <ClInclude Include="IndexTreeFileKeyDiagnosticCallback.h" />
     <ClInclude Include="IndexTreeFileIterator.h" />
     <ClInclude Include="NamedIndexedHeader.h" />
