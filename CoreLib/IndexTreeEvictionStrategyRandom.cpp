@@ -49,11 +49,6 @@ BOOL CIndexTreeEvictionStrategyRandom::Run(CIndexTreeNodeFile* pcDontEvict)
 		{
 			return TRUE;
 		}
-
-		if (i > 10)
-		{
-			int xxx = 0;
-		}
 	}
 	return FALSE;
 }

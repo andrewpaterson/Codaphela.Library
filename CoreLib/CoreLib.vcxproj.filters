@@ -172,14 +172,14 @@
     <Filter Include="Source\Coda">
       <UniqueIdentifier>{eabb5af7-d0b9-46c6-b47c-e66924f3845f}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\File\Indexed\Index\Evicting\Key">
-      <UniqueIdentifier>{cb5f8142-25a0-492a-bb1c-978e441f0ea7}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source\File\Indexed\Index\DataWriter">
       <UniqueIdentifier>{b526c97b-a94e-4797-aff7-68d70875a764}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source\File\Indexed\Index\Key">
       <UniqueIdentifier>{0f1d5455-364b-4488-a443-163fd1d6a2e6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\File\Indexed\Index\Evicting\Strategy">
+      <UniqueIdentifier>{7d80d877-ee58-4906-bdfb-ac3d275d4a9d}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -399,12 +399,6 @@
     <ClCompile Include="IndexTreeEvicting.cpp">
       <Filter>Source\File\Indexed\Index\Evicting</Filter>
     </ClCompile>
-    <ClCompile Include="IndexTreeEvictionStrategy.cpp">
-      <Filter>Source\File\Indexed\Index\Evicting</Filter>
-    </ClCompile>
-    <ClCompile Include="IndexTreeEvictionStrategyRandom.cpp">
-      <Filter>Source\File\Indexed\Index\Evicting</Filter>
-    </ClCompile>
     <ClCompile Include="IndexedFilesEvicting.cpp">
       <Filter>Source\File\Indexed\Cache</Filter>
     </ClCompile>
@@ -467,6 +461,15 @@
     </ClCompile>
     <ClCompile Include="KeyEvictedCountingCallback.cpp">
       <Filter>Source\File\Indexed\Index\Key</Filter>
+    </ClCompile>
+    <ClCompile Include="IndexTreeEvictionStrategy.cpp">
+      <Filter>Source\File\Indexed\Index\Evicting\Strategy</Filter>
+    </ClCompile>
+    <ClCompile Include="IndexTreeEvictionStrategyRandom.cpp">
+      <Filter>Source\File\Indexed\Index\Evicting\Strategy</Filter>
+    </ClCompile>
+    <ClCompile Include="IndexTreeEvictionStrategyDataOrderer.cpp">
+      <Filter>Source\File\Indexed\Index\Evicting\Strategy</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -695,12 +698,6 @@
     <ClInclude Include="IndexTreeEvicting.h">
       <Filter>Source\File\Indexed\Index\Evicting</Filter>
     </ClInclude>
-    <ClInclude Include="IndexTreeEvictionStrategy.h">
-      <Filter>Source\File\Indexed\Index\Evicting</Filter>
-    </ClInclude>
-    <ClInclude Include="IndexTreeEvictionStrategyRandom.h">
-      <Filter>Source\File\Indexed\Index\Evicting</Filter>
-    </ClInclude>
     <ClInclude Include="IndexedFilesEvictionCallback.h">
       <Filter>Source\File\Indexed\Cache</Filter>
     </ClInclude>
@@ -778,6 +775,15 @@
     </ClInclude>
     <ClInclude Include="KeyEvictedCountingCallback.h">
       <Filter>Source\File\Indexed\Index\Key</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexTreeEvictionStrategy.h">
+      <Filter>Source\File\Indexed\Index\Evicting\Strategy</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexTreeEvictionStrategyRandom.h">
+      <Filter>Source\File\Indexed\Index\Evicting\Strategy</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexTreeEvictionStrategyDataOrderer.h">
+      <Filter>Source\File\Indexed\Index\Evicting\Strategy</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -33,6 +33,9 @@ public:
 			BOOL				StartIteration(SDataOrderIterator* psIter, void** ppvData, int* piDataSize);
 			BOOL				Iterate(SDataOrderIterator* psIter, void** ppvData, int* piDataSize);
 
+			BOOL				GetFirst(void** ppvData, int* piDataSize);
+			BOOL				GetLast(void** ppvData, int* piDataSize);
+
 protected:
 			BOOL				IterateNode(SLLNode* psNode, SDataOrderIterator* psIter, void** ppvData, int* piDataSize);
 };
