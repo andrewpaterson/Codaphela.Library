@@ -30,14 +30,15 @@ public:
 
 			void				SetIndexTree(CIndexTree* pcIndexTree);
 
-			BOOL				StartIteration(SDataOrderIterator* psIter, void** ppvData, int* piDataSize);
-			BOOL				Iterate(SDataOrderIterator* psIter, void** ppvData, int* piDataSize);
+			//This is not safe.  The tree could change under the SDataOrderIterator.
+			BOOL				StartIteration(SDataOrderIterator* psIter, char* pvDestKey, int* piKeySize, int iDestKeySize, void* pvDestData, int* piDataSize, int iDestDataSize);
+			BOOL				Iterate(SDataOrderIterator* psIter, char* pvDestKey, int* piKeySize, int iDestKeySize, void* pvDestData, int* piDataSize, int iDestDataSize);
 
-			BOOL				GetFirst(void** ppvData, int* piDataSize);
-			BOOL				GetLast(void** ppvData, int* piDataSize);
+			CIndexTreeNode*		GetFirstTreeNode(void);
+			CIndexTreeNode*		GetLastTreeNode(void);
 
 protected:
-			BOOL				IterateNode(SLLNode* psNode, SDataOrderIterator* psIter, void** ppvData, int* piDataSize);
+			BOOL				IterateNode(SLLNode* psNode, SDataOrderIterator* psIter, char* pvDestKey, int* piKeySize, int iDestKeySize, void* pvDestData, int* piDataSize, int iDestDataSize);
 };
 
 

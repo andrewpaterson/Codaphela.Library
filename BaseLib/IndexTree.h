@@ -30,23 +30,25 @@ protected:
 	CIndexTreeDataOrderer*	mpcDataOrderer;
 
 public:
-			BOOL				Init(CMallocator* pcMalloc, EIndexKeyReverse eKeyReverse, size_t tSizeofNode, size_t tSizeofDataNode, size_t tSizeofNodePtr, int iMaxDataSize, int iMaxKeySize, CIndexTreeDataOrderer* pcDataOrderer);
-	virtual BOOL				Kill(void);
+			BOOL					Init(CMallocator* pcMalloc, EIndexKeyReverse eKeyReverse, size_t tSizeofNode, size_t tSizeofDataNode, size_t tSizeofNodePtr, int iMaxDataSize, int iMaxKeySize, CIndexTreeDataOrderer* pcDataOrderer);
+	virtual BOOL					Kill(void);
 
-	virtual BOOL				Remove(void* pvKey, int iKeySize) =0;
-	virtual BOOL				HasKey(void* pvKey, int iKeySize) =0;
+	virtual BOOL					Remove(void* pvKey, int iKeySize) =0;
+	virtual BOOL					HasKey(void* pvKey, int iKeySize) =0;
 
 
-			size_t				SizeofNode(void);
-			size_t				SizeofDataNode(void);
-			size_t				SizeofNodePtr(void);
-			EIndexKeyReverse	ReverseKeys(void);
+			size_t					SizeofNode(void);
+			size_t					SizeofDataNode(void);
+			size_t					SizeofNodePtr(void);
+			EIndexKeyReverse		ReverseKeys(void);
 
-			size_t				CalculateRootNodeSize(void);
-			size_t				CalculateNodeSize(int iRequiredIndices, int iDataSize);
+			size_t					CalculateRootNodeSize(void);
+			size_t					CalculateNodeSize(int iRequiredIndices, int iDataSize);
 
-			void				GetNodeKey(CIndexTreeNode* pcNode, CArrayChar* pacKey);
-	virtual void				Dump(void) =0;
+			void					GetNodeKey(CIndexTreeNode* pcNode, CArrayChar* pacKey);
+	virtual void					Dump(void) =0;
+
+			CIndexTreeDataOrderer*	GetDataOrderer();
 
 protected:
 			void*				Malloc(size_t tSize);
@@ -73,6 +75,8 @@ protected:
 
 	virtual	int					GetNodeKey(CIndexTreeNode* pcNode, char* pvDestKey, int iDestKeySize) =0;
 	virtual	int					GetNodeKeySize(CIndexTreeNode* pcNode) =0;
+	virtual	int					GetNodeDataSize(CIndexTreeNode* pcNode) =0;
+	virtual	int					GetNodeData(CIndexTreeNode* pcNode, void* pvDestData, int iDestDataSize) =0;
 };
 
 

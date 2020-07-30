@@ -13,6 +13,8 @@ public:
 	void Init(CIndexTreeDataOrderer* pcOrderer);
 	void Kill(void);
 
+	void SetIndexTree(CIndexTreeEvicting* pcIndexTree);
+
 	BOOL Run(CIndexTreeNodeFile* pcDontEvict);
 };
 

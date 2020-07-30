@@ -1,4 +1,3 @@
-#include "BaseLib/StackMemory.h"
 #include "IndexTreeEvicting.h"
 #include "IndexTreeEvictionStrategyRandom.h"
 
@@ -64,12 +63,8 @@ BOOL CIndexTreeEvictionStrategyRandom::EvictRandomNode(CIndexTreeNodeFile* pcDon
 	int						iNumIndexes;
 	int						iIndex;
 	int						iKeyDepth;
-	CStackMemory<1 KB>		cStack;
-	char*					pvKey;
-	int						iKeySize;
-	BOOL					bResult;
 
-	pcNode = mpcIndexTree->GetRoot();
+	pcNode = GetRootNode();
 	iKeyDepth = 0;
 	for (;;)
 	{
@@ -94,24 +89,7 @@ BOOL CIndexTreeEvictionStrategyRandom::EvictRandomNode(CIndexTreeNodeFile* pcDon
 		{
 			if (pcNode != pcDontEvict)
 			{
-				if (mpcIndexTree->HasDiagnosticCallback())
-				{
-					pvKey = (char*)cStack.Init(iKeyDepth+1);
-					iKeySize = mpcIndexTree->GetNodeKey(pcNode, pvKey, iKeyDepth+1);
-				}
-				else
-				{
-					iKeySize = 0;
-					pvKey = NULL;
-				}
-
-				bResult = mpcIndexTree->EvictNode(pcNode, pvKey, iKeySize);
-
-				if (mpcIndexTree->HasDiagnosticCallback())
-				{
-					cStack.Kill();
-				}
-				return bResult;
+				return EvictNode(pcNode);
 			}
 			else
 			{
@@ -121,4 +99,5 @@ BOOL CIndexTreeEvictionStrategyRandom::EvictRandomNode(CIndexTreeNodeFile* pcDon
 		iKeyDepth++;
 	}
 }
+
 
