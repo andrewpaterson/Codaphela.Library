@@ -13,7 +13,7 @@ typedef void(CIndexTreeEvicting::*NodeEvicted)(CIndexTreeNodeFile* pcNode);
 class CIndexTreeEvicting
 {
 friend class CIndexedDescriptorsFile;
-friend class CIndexTreeEvictionStrategyRandom;
+friend class CIndexTreeEvictionStrategy;
 friend class CIndexTreeEvictingAccess;
 private:
 	CIndexTreeFile					mcIndexTree;
@@ -25,7 +25,9 @@ private:
 public:
 	BOOL					Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, size_t uiCutoff, CIndexTreeEvictionCallback* pcIndexTreeEvictionCallback, CIndexTreeEvictionStrategy* pcEvictionStrategy, CIndexTreeFileDataCallback* pcWriterCallback, EIndexKeyReverse eKeyReverse);
 	BOOL					Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, size_t uiCutoff, CIndexTreeEvictionCallback* pcIndexTreeEvictionCallback, CIndexTreeEvictionStrategy* pcEvictionStrategy, CIndexTreeFileDataCallback* pcWriterCallback, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse);
+	BOOL					Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, size_t uiCutoff, CIndexTreeEvictionCallback* pcIndexTreeEvictionCallback, CIndexTreeEvictionStrategy* pcEvictionStrategy, CIndexTreeFileDataCallback* pcWriterCallback, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse, CIndexTreeDataOrderer* pcDataOrderer);
 	BOOL					Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, size_t uiCutoff, CIndexTreeEvictionCallback* pcIndexTreeEvictionCallback, CIndexTreeEvictionStrategy* pcEvictionStrategy, CIndexTreeFileDataCallback* pcWriterCallback, CMallocator* pcMalloc, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse);
+	BOOL					Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, size_t uiCutoff, CIndexTreeEvictionCallback* pcIndexTreeEvictionCallback, CIndexTreeEvictionStrategy* pcEvictionStrategy, CIndexTreeFileDataCallback* pcWriterCallback, CMallocator* pcMalloc, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse, CIndexTreeDataOrderer* pcDataOrderer);
 
 	BOOL					Kill(void);
 
@@ -46,6 +48,7 @@ public:
 	BOOL					IsFlushed(void);
 	BOOL					ValidateIndexTree(void);
 	BOOL					HasDiagnosticCallback(void);
+	CIndexTreeDataOrderer*	GetDataOrderer(void);
 
 	int						NumElements(void);
 
@@ -67,6 +70,7 @@ protected:
 	CIndexTreeNodeFile*		GetMemoryNode(void* pvKey, int iKeySize);
 	BOOL					EvictNode(CIndexTreeNodeFile* pcNode, void* pvKey, int iKeySize);
 	int						GetNodeKey(CIndexTreeNodeFile* pcNode, char* pvDestKey, int iDestKeySize);
+	int						GetNodeKeySize(CIndexTreeNodeFile* pcNode);
 
 	size_t					GetSystemMemorySize(void);
 	unsigned char			GetRootFlags(void);

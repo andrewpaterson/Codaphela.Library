@@ -10,10 +10,14 @@ protected:
 	CIndexTreeEvicting*		mpcIndexTree;
 
 public:
-			void Init(void);
-			void SetIndexTree(CIndexTreeEvicting* pcIndexTree);
-	virtual BOOL Run(CIndexTreeNodeFile* pcDontEvict) =0;
-	virtual void Kill(void) =0;
+			void					Init(void);
+	virtual void					SetIndexTree(CIndexTreeEvicting* pcIndexTree);
+	virtual BOOL					Run(CIndexTreeNodeFile* pcDontEvict) =0;
+	virtual void					Kill(void) =0;
+
+protected:
+			BOOL					EvictNode(CIndexTreeNodeFile* pcNode);
+			CIndexTreeNodeFile*		GetRootNode(void);
 };
 
 

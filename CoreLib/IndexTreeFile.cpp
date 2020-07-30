@@ -100,6 +100,16 @@ BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, char* sz
 	return Init(pcDurableFileControl, szSubDirectory, pcWriterCallback, pcMalloc, eWriteThrough, eKeyReverse, MAX_DATA_SIZE, MAX_KEY_SIZE);
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, CIndexTreeFileDataCallback* pcWriterCallback, CMallocator* pcMalloc, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse, CIndexTreeDataOrderer* pcDataOrderer)
+{
+	return Init(pcDurableFileControl, szSubDirectory, pcWriterCallback, pcMalloc, eWriteThrough, eKeyReverse, MAX_DATA_SIZE, MAX_KEY_SIZE, pcDataOrderer);
+}
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -2131,6 +2141,7 @@ BOOL CIndexTreeFile::StepNext(SIndexTreeFileIterator* psIterator)
 			}
 		}
 	}
+	//Should probably return something.
 }
 
 
@@ -3931,6 +3942,50 @@ int CIndexTreeFile::GetNodeKey(CIndexTreeNode* pcNode, char* pvDestKey, int iDes
 	}
 
 	return iKeySize;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CIndexTreeFile::GetNodeDataSize(CIndexTreeNode* pcNode)
+{
+	if (HasData((CIndexTreeNodeFile*)pcNode))
+	{
+		return pcNode->GetDataSize();
+	}
+	else
+	{
+		return 0;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CIndexTreeFile::GetNodeData(CIndexTreeNode* pcNode, void* pvDestData, int iDestDataSize)
+{
+	int				iDataSize;
+	void*			pvData;
+
+	if (HasData((CIndexTreeNodeFile*)pcNode))
+	{
+		iDataSize = pcNode->GetDataSize();
+		pvData = pcNode->GetDataPtr();
+		if (iDataSize > iDestDataSize)
+		{
+			memcpy_fast(pvDestData, pvData, iDestDataSize);
+		}
+		else
+		{
+			memcpy_fast(pvDestData, pvData, iDataSize);
+		}
+		return iDataSize;
+	}
+	return 0;
 }
 
 

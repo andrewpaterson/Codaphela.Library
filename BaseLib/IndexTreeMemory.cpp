@@ -819,6 +819,50 @@ int CIndexTreeMemory::GetNodeKey(CIndexTreeNode* pcNode, char* pvDestKey, int iD
 //
 //
 //////////////////////////////////////////////////////////////////////////
+int CIndexTreeMemory::GetNodeDataSize(CIndexTreeNode* pcNode)
+{
+	if (pcNode->HasData())
+	{
+		return pcNode->GetDataSize();
+	}
+	else
+	{
+		return 0;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CIndexTreeMemory::GetNodeData(CIndexTreeNode* pcNode, void* pvDestData, int iDestDataSize)
+{
+	int				iDataSize;
+	void* pvData;
+
+	if (pcNode->HasData())
+	{
+		iDataSize = pcNode->GetDataSize();
+		pvData = pcNode->GetDataPtr();
+		if (iDataSize > iDestDataSize)
+		{
+			memcpy_fast(pvDestData, pvData, iDestDataSize);
+		}
+		else
+		{
+			memcpy_fast(pvDestData, pvData, iDataSize);
+		}
+		return iDataSize;
+	}
+	return 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeMemory::StartIteration(SIndexTreeMemoryIterator* psIterator, void* pvKey, int* piKeySize, void* pvData, int* piDataSize)
 {
 	psIterator->pcNode = mpcRoot;

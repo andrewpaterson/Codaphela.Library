@@ -56,12 +56,12 @@ void CIndexTreeDataOrderer::New(CIndexTreeDataNode* psNode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeDataOrderer::StartIteration(SDataOrderIterator* psIter, void** ppvData, int* piDataSize)
+BOOL CIndexTreeDataOrderer::StartIteration(SDataOrderIterator* psIter, char* pvDestKey, int* piKeySize, int iDestKeySize, void* pvDestData, int* piDataSize, int iDestDataSize)
 {
 	SLLNode*			psNode;
 
 	psNode = mcDataOrder.GetHead();
-	return IterateNode(psNode, psIter, ppvData, piDataSize);
+	return IterateNode(psNode, psIter, pvDestKey, piKeySize, iDestKeySize, pvDestData, piDataSize, iDestDataSize);
 }
 
 
@@ -69,7 +69,7 @@ BOOL CIndexTreeDataOrderer::StartIteration(SDataOrderIterator* psIter, void** pp
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeDataOrderer::Iterate(SDataOrderIterator* psIter, void** ppvData, int* piDataSize)
+BOOL CIndexTreeDataOrderer::Iterate(SDataOrderIterator* psIter, char* pvDestKey, int* piKeySize, int iDestKeySize, void* pvDestData, int* piDataSize, int iDestDataSize)
 {
 	SLLNode*	psNode;
 
@@ -77,11 +77,10 @@ BOOL CIndexTreeDataOrderer::Iterate(SDataOrderIterator* psIter, void** ppvData, 
 	{
 		
 		psNode = mcDataOrder.GetNext(psIter->pcNode->GetListNode());
-		return IterateNode(psNode, psIter, ppvData, piDataSize);
+		return IterateNode(psNode, psIter, pvDestKey, piKeySize, iDestKeySize, pvDestData, piDataSize, iDestDataSize);
 	}
 	else
 	{
-		SafeAssign(ppvData, NULL);
 		SafeAssign(piDataSize, 0);
 		return FALSE;
 	}
@@ -92,24 +91,29 @@ BOOL CIndexTreeDataOrderer::Iterate(SDataOrderIterator* psIter, void** ppvData, 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeDataOrderer::IterateNode(SLLNode* psNode, SDataOrderIterator* psIter, void** ppvData, int* piDataSize)
+BOOL CIndexTreeDataOrderer::IterateNode(SLLNode* psNode, SDataOrderIterator* psIter, char* pvDestKey, int* piKeySize, int iDestKeySize, void* pvDestData, int* piDataSize, int iDestDataSize)
 {
 	CIndexTreeDataNode* pcDataNode;
-	void*				pvData;
+	CIndexTreeNode*		pcNode;
+	int					iKeySize;
+	int					iDataSize;
 
 	if (psNode)
 	{
 		pcDataNode = (CIndexTreeDataNode*)psNode;
 		psIter->pcNode = pcDataNode;
-		pvData = mpcIndexTree->GetDataForDataNode(pcDataNode);
-		SafeAssign(ppvData, pvData);
-		SafeAssign(piDataSize, pcDataNode->GetDataSize());
+		pcNode = mpcIndexTree->GetNodeForDataNode(pcDataNode);
+
+		iKeySize = mpcIndexTree->GetNodeKey(pcNode, pvDestKey, iDestKeySize);
+		SafeAssign(piKeySize, iKeySize);
+
+		iDataSize = mpcIndexTree->GetNodeData(pcNode, pvDestData, iDestDataSize);
+		SafeAssign(piDataSize, iDataSize);
 		return TRUE;
 	}
 	else
 	{
 		psIter->pcNode = NULL;
-		SafeAssign(ppvData, NULL);
 		SafeAssign(piDataSize, 0);
 		return FALSE;
 	}
@@ -120,18 +124,24 @@ BOOL CIndexTreeDataOrderer::IterateNode(SLLNode* psNode, SDataOrderIterator* psI
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeDataOrderer::GetFirst(void** ppvData, int* piDataSize)
+CIndexTreeNode* CIndexTreeDataOrderer::GetFirstTreeNode(void)
 {
 	SLLNode*			psNode;
 	CIndexTreeDataNode* pcDataNode;
-	void*				pvData;
+	CIndexTreeNode*		pcNode;
 
 	psNode = mcDataOrder.GetHead();
-	pcDataNode = (CIndexTreeDataNode*)psNode;
-	pvData = mpcIndexTree->GetDataForDataNode(pcDataNode);
-	SafeAssign(ppvData, pvData);
-	SafeAssign(piDataSize, pcDataNode->GetDataSize());
-	return TRUE;
+	if (psNode != NULL)
+	{
+		pcDataNode = (CIndexTreeDataNode*)psNode;
+		pcNode = mpcIndexTree->GetNodeForDataNode(pcDataNode);
+
+		return pcNode;
+	}
+	else
+	{
+		return NULL;
+	}
 }
 
 
@@ -139,17 +149,23 @@ BOOL CIndexTreeDataOrderer::GetFirst(void** ppvData, int* piDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeDataOrderer::GetLast(void** ppvData, int* piDataSize)
+CIndexTreeNode* CIndexTreeDataOrderer::GetLastTreeNode(void)
 {
 	SLLNode* psNode;
 	CIndexTreeDataNode* pcDataNode;
-	void* pvData;
+	CIndexTreeNode* pcNode;
 
 	psNode = mcDataOrder.GetTail();
-	pcDataNode = (CIndexTreeDataNode*)psNode;
-	pvData = mpcIndexTree->GetDataForDataNode(pcDataNode);
-	SafeAssign(ppvData, pvData);
-	SafeAssign(piDataSize, pcDataNode->GetDataSize());
-	return TRUE;
+	if (psNode != NULL)
+	{
+		pcDataNode = (CIndexTreeDataNode*)psNode;
+		pcNode = mpcIndexTree->GetNodeForDataNode(pcDataNode);
+
+		return pcNode;
+	}
+	else
+	{
+		return NULL;
+	}
 }
 
