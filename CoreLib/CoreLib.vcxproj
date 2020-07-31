@@ -117,11 +117,12 @@
     <ClCompile Include="IndexTreeFileDefaultDataCallback.cpp" />
     <ClCompile Include="IndexTreeFileIterator.cpp" />
     <ClCompile Include="IndexTreeFileKeyDiagnosticCallback.cpp" />
+    <ClCompile Include="IndexTreeFileKeyDiagnosticLoggingCallback.cpp" />
     <ClCompile Include="IndexTreeHelper.cpp" />
     <ClCompile Include="IndexTreeChildNode.cpp" />
     <ClCompile Include="IndexTreeNodeFile.cpp" />
     <ClCompile Include="IndexTreeWriter.cpp" />
-    <ClCompile Include="KeyEvictedCountingCallback.cpp" />
+    <ClCompile Include="IndexTreeFileKeyDiagnosticCountingCallback.cpp" />
     <ClCompile Include="LogFile.cpp" />
     <ClCompile Include="LogFileCommands.cpp" />
     <ClCompile Include="NamedIndexedDataConfig.cpp" />
@@ -194,6 +195,7 @@
     <ClInclude Include="IndexTreeEvictionStrategyDataOrderer.h" />
     <ClInclude Include="IndexTreeFileKeyDiagnosticCallback.h" />
     <ClInclude Include="IndexTreeFileIterator.h" />
+    <ClInclude Include="IndexTreeFileKeyDiagnosticLoggingCallback.h" />
     <ClInclude Include="NamedIndexedHeader.h" />
     <ClInclude Include="NamedIndexesConfig.h" />
     <ClInclude Include="IndexedCacheResult.h" />
@@ -230,7 +232,7 @@
     <ClInclude Include="NamedIndexedDataConfig.h" />
     <ClInclude Include="NamedIndexedData.h" />
     <ClInclude Include="NamedIndexes.h" />
-    <ClInclude Include="KeyEvictedCountingCallback.h" />
+    <ClInclude Include="IndexTreeFileKeyDiagnosticCountingCallback.h" />
     <ClInclude Include="PackFileOffset.h" />
     <ClInclude Include="IndexedData.h" />
     <ClInclude Include="IndexedGeneral.h" />

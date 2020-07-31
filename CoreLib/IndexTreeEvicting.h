@@ -68,7 +68,7 @@ protected:
 	BOOL					EvictNodeWithObject(CIndexTreeNodeFile* pcNode);
 	CIndexTreeNodeFile*		GetRoot(void);
 	CIndexTreeNodeFile*		GetMemoryNode(void* pvKey, int iKeySize);
-	BOOL					EvictNode(CIndexTreeNodeFile* pcNode, void* pvKey, int iKeySize);
+	BOOL					EvictNode(CIndexTreeNodeFile* pcNode);
 	int						GetNodeKey(CIndexTreeNodeFile* pcNode, char* pvDestKey, int iDestKeySize);
 	int						GetNodeKeySize(CIndexTreeNodeFile* pcNode);
 

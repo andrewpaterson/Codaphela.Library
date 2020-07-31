@@ -268,7 +268,7 @@ BOOL CIndexTreeEvicting::Evict(void* pvKey, int iKeySize)
 	pcNode = mcIndexTree.GetMemoryNode(pvKey, iKeySize);
 	if (pcNode)
 	{
-		return EvictNode(pcNode, pvKey, iKeySize);
+		return EvictNode(pcNode);
 	}
 	else
 	{
@@ -533,7 +533,7 @@ CIndexTreeNodeFile* CIndexTreeEvicting::GetMemoryNode(void* pvKey, int iKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeEvicting::EvictNode(CIndexTreeNodeFile* pcNode, void* pvKey, int iKeySize)
+BOOL CIndexTreeEvicting::EvictNode(CIndexTreeNodeFile* pcNode)
 {
 	BOOL bEvict;
 
@@ -548,7 +548,7 @@ BOOL CIndexTreeEvicting::EvictNode(CIndexTreeNodeFile* pcNode, void* pvKey, int 
 
 	if (bEvict)
 	{
-		return mcIndexTree.Evict(pcNode, pvKey, iKeySize);
+		return mcIndexTree.Evict(pcNode);
 	}
 	else
 	{

@@ -175,11 +175,11 @@
     <Filter Include="Source\File\Indexed\Index\DataWriter">
       <UniqueIdentifier>{b526c97b-a94e-4797-aff7-68d70875a764}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\File\Indexed\Index\Key">
-      <UniqueIdentifier>{0f1d5455-364b-4488-a443-163fd1d6a2e6}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source\File\Indexed\Index\Evicting\Strategy">
       <UniqueIdentifier>{7d80d877-ee58-4906-bdfb-ac3d275d4a9d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\File\Indexed\Index\Diagnostic">
+      <UniqueIdentifier>{0f1d5455-364b-4488-a443-163fd1d6a2e6}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -454,13 +454,10 @@
       <Filter>Source\File\Indexed\Index</Filter>
     </ClCompile>
     <ClCompile Include="IndexTreeFileKeyDiagnosticCallback.cpp">
-      <Filter>Source\File\Indexed\Index\Key</Filter>
+      <Filter>Source\File\Indexed\Index\Diagnostic</Filter>
     </ClCompile>
     <ClCompile Include="IndexTreeFileDefaultDataCallback.cpp">
       <Filter>Source\File\Indexed\Index\DataWriter</Filter>
-    </ClCompile>
-    <ClCompile Include="KeyEvictedCountingCallback.cpp">
-      <Filter>Source\File\Indexed\Index\Key</Filter>
     </ClCompile>
     <ClCompile Include="IndexTreeEvictionStrategy.cpp">
       <Filter>Source\File\Indexed\Index\Evicting\Strategy</Filter>
@@ -470,6 +467,12 @@
     </ClCompile>
     <ClCompile Include="IndexTreeEvictionStrategyDataOrderer.cpp">
       <Filter>Source\File\Indexed\Index\Evicting\Strategy</Filter>
+    </ClCompile>
+    <ClCompile Include="IndexTreeFileKeyDiagnosticLoggingCallback.cpp">
+      <Filter>Source\File\Indexed\Index\Diagnostic</Filter>
+    </ClCompile>
+    <ClCompile Include="IndexTreeFileKeyDiagnosticCountingCallback.cpp">
+      <Filter>Source\File\Indexed\Index\Diagnostic</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -765,16 +768,13 @@
       <Filter>Source\File\Indexed\Index</Filter>
     </ClInclude>
     <ClInclude Include="IndexTreeFileKeyDiagnosticCallback.h">
-      <Filter>Source\File\Indexed\Index\Key</Filter>
+      <Filter>Source\File\Indexed\Index\Diagnostic</Filter>
     </ClInclude>
     <ClInclude Include="IndexTreeFileDataCallback.h">
       <Filter>Source\File\Indexed\Index\DataWriter</Filter>
     </ClInclude>
     <ClInclude Include="IndexTreeFileDefaultDataCallback.h">
       <Filter>Source\File\Indexed\Index\DataWriter</Filter>
-    </ClInclude>
-    <ClInclude Include="KeyEvictedCountingCallback.h">
-      <Filter>Source\File\Indexed\Index\Key</Filter>
     </ClInclude>
     <ClInclude Include="IndexTreeEvictionStrategy.h">
       <Filter>Source\File\Indexed\Index\Evicting\Strategy</Filter>
@@ -784,6 +784,12 @@
     </ClInclude>
     <ClInclude Include="IndexTreeEvictionStrategyDataOrderer.h">
       <Filter>Source\File\Indexed\Index\Evicting\Strategy</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexTreeFileKeyDiagnosticLoggingCallback.h">
+      <Filter>Source\File\Indexed\Index\Diagnostic</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexTreeFileKeyDiagnosticCountingCallback.h">
+      <Filter>Source\File\Indexed\Index\Diagnostic</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

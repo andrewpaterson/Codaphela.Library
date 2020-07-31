@@ -5,14 +5,9 @@
 
 class CIndexTreeFileKeyDiagnosticCallback
 {
-protected:
-	void*	mpvKey;
-	int		miKeyLength;
-
 public:
-			void	Init(char* szKey);
-			void	Init(void* pvKey, int iKeyLength);
-			void	Kill(void);
+			void	Init(void);
+	virtual void	Kill(void);
 
 	virtual void	Put(void* pvKey, int iKeySize, void* pvData, int iDataSize);
 	virtual void	Get(void* pvKey, int iKeySize, void* pvData, int iDataSize);
@@ -21,8 +16,6 @@ public:
 	virtual void	Evict(void* pvKey, int iKeySize, void* pvData, int iDataSize);
 	//virtual void	Read(void* pvKey, int iKeySize, void* pvData, int iDataSize, void* pvBuffer, int iBufferSize);
 	//virtual void	Write(void* pvKey, int iKeySize, void* pvData, int iDataSize, void* pvBuffer, int iBufferSize);
-
-			BOOL	Matches(void* pvKey, int iKeySize);
 };
 
 
