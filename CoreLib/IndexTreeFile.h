@@ -84,7 +84,7 @@ public:
 	void					Dump(void);
 
 protected:
-	BOOL					Evict(CIndexTreeNodeFile* pcNode, void* pvKey, int iKeySize);
+	BOOL					Evict(CIndexTreeNodeFile* pcNode);
 
 	void					SetWriteThrough(EIndexWriteThrough eWriteThrough);
 
@@ -154,7 +154,7 @@ protected:
 	CIndexTreeNodeFile*		RemoveWriteThrough(CIndexTreeNodeFile* pcCurrent);
 	BOOL					RemoveWaitForFlush(CIndexTreeNodeFile* pcCurrent);
 	BOOL					EvictNode(CIndexTreeNodeFile* pcCurrent);
-	BOOL					Flush(CIndexTreeNodeFile** ppcCurrent, void* pvKey, int iKeySize);
+	BOOL					Flush(CIndexTreeNodeFile** ppcCurrent);
 	BOOL					CanEvict(CIndexTreeNodeFile* pcNode);
 
 	void					ClearNodesFlags(CArrayVoidPtr* papNodes, unsigned char uiFlags);
@@ -211,9 +211,8 @@ protected:
 
 	void					RecurseDump(CChars* pszDest, CIndexTreeRecursor* pcCursor, BOOL bShowFlags, BOOL bShowSize);
 
-	void					DiagnosticFlushCallback(CIndexTreeRecursor* pcCursor, CIndexTreeNodeFile* pcNode);
-	void					DiagnosticFlushCallback(void* pvKey, int iKeySize, CIndexTreeNodeFile* pcNode);
-	void					DiagnosticEvictCallback(void* pvKey, int iKeySize, CIndexTreeNodeFile* pcNode);
+	void					DiagnosticFlushCallback(CIndexTreeNodeFile* pcNode);
+	void					DiagnosticEvictCallback(CIndexTreeNodeFile* pcNode);
 };
 
 

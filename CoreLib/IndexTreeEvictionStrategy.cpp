@@ -37,30 +37,7 @@ void CIndexTreeEvictionStrategy::SetIndexTree(CIndexTreeEvicting* pcIndexTree)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeEvictionStrategy::EvictNode(CIndexTreeNodeFile* pcNode)
 {
-	CStackMemory<1 KB>		cStack;
-	char*					pvKey;
-	int						iKeySize;
-	BOOL					bResult;
-
-	if (mpcIndexTree->HasDiagnosticCallback())
-	{
-		iKeySize = mpcIndexTree->GetNodeKeySize(pcNode);
-		pvKey = (char*)cStack.Init(iKeySize + 1);
-		iKeySize = mpcIndexTree->GetNodeKey(pcNode, pvKey, iKeySize + 1);
-	}
-	else
-	{
-		iKeySize = 0;
-		pvKey = NULL;
-	}
-
-	bResult = mpcIndexTree->EvictNode(pcNode, pvKey, iKeySize);
-
-	if (mpcIndexTree->HasDiagnosticCallback())
-	{
-		cStack.Kill();
-	}
-	return bResult;
+	return mpcIndexTree->EvictNode(pcNode);
 }
 
 

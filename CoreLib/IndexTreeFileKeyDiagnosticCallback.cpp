@@ -1,4 +1,3 @@
-#include "BaseLib/StringHelper.h"
 #include "IndexTreeFileKeyDiagnosticCallback.h"
 
 
@@ -6,20 +5,8 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeFileKeyDiagnosticCallback::Init(char* szKey)
+void CIndexTreeFileKeyDiagnosticCallback::Init()
 {
-	Init(szKey, strlen(szKey));
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CIndexTreeFileKeyDiagnosticCallback::Init(void* pvKey, int iKeyLength)
-{
-	mpvKey = pvKey;
-	miKeyLength = iKeyLength;
 }
 
 
@@ -29,8 +16,6 @@ void CIndexTreeFileKeyDiagnosticCallback::Init(void* pvKey, int iKeyLength)
 //////////////////////////////////////////////////////////////////////////
 void CIndexTreeFileKeyDiagnosticCallback::Kill(void)
 {
-	mpvKey = NULL;
-	miKeyLength = 0;
 }
 
 
@@ -97,18 +82,3 @@ void CIndexTreeFileKeyDiagnosticCallback::Evict(void* pvKey, int iKeySize, void*
 }
 
 
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFileKeyDiagnosticCallback::Matches(void* pvKey, int iKeySize)
-{
-	if (miKeyLength == iKeySize)
-	{
-		if (memcmp(mpvKey, pvKey, iKeySize) == 0)
-		{
-			return TRUE;
-		}
-	}
-	return FALSE;
-}

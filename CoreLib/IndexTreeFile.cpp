@@ -203,11 +203,19 @@ void CIndexTreeFile::RecurseKill(CIndexTreeNodeFile* pcNode)
 			pcChild = &apcChildren[i];
 			if (pcChild->IsMemory())
 			{
-				//Save if dirty.
 				pcChildNode = pcChild->u.mpcMemory;
 				RecurseKill(pcChildNode);
 			}
 		}
+
+		if (mpcDiagnosticCallback)
+		{
+			if (HasData(pcNode))
+			{
+				DiagnosticEvictCallback(pcNode);
+			}
+		}
+
 		FreeNode(pcNode);
 	}
 }
@@ -1076,7 +1084,7 @@ BOOL CIndexTreeFile::Flush(void* pvKey, int iKeySize)
 	}
 	else
 	{
-		bResult = Flush(&pcNode, pvKey, iKeySize);
+		bResult = Flush(&pcNode);
 		return bResult;
 	}
 }
@@ -1331,7 +1339,7 @@ BOOL CIndexTreeFile::Evict(void* pvKey, int iKeySize)
 		return FALSE;
 	}
 
-	return Evict(pcCurrent, pvKey, iKeySize);
+	return Evict(pcCurrent);
 }
 
 
@@ -1339,7 +1347,7 @@ BOOL CIndexTreeFile::Evict(void* pvKey, int iKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::Evict(CIndexTreeNodeFile* pcNode, void* pvKey, int iKeySize)
+BOOL CIndexTreeFile::Evict(CIndexTreeNodeFile* pcNode)
 {
 	BOOL	bResult;
 
@@ -1352,7 +1360,7 @@ BOOL CIndexTreeFile::Evict(CIndexTreeNodeFile* pcNode, void* pvKey, int iKeySize
 
 	if (meWriteThrough == IWT_No)
 	{
-		bResult = Flush(&pcNode, pvKey, iKeySize);
+		bResult = Flush(&pcNode);
 		if (!bResult)
 		{
 			return FALSE;
@@ -1363,7 +1371,7 @@ BOOL CIndexTreeFile::Evict(CIndexTreeNodeFile* pcNode, void* pvKey, int iKeySize
 	{
 		if (mpcDiagnosticCallback)
 		{
-			DiagnosticEvictCallback(pvKey, iKeySize, pcNode);
+			DiagnosticEvictCallback(pcNode);
 		}
 		return EvictNode(pcNode);
 	}
@@ -1429,7 +1437,7 @@ BOOL CIndexTreeFile::EvictNode(CIndexTreeNodeFile* pcCurrent)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::Flush(CIndexTreeNodeFile** ppcCurrent, void* pvKey, int iKeySize)
+BOOL CIndexTreeFile::Flush(CIndexTreeNodeFile** ppcCurrent)
 {
 	BOOL				bResult;
 	BOOL				bRootHasIndex;
@@ -1454,7 +1462,7 @@ BOOL CIndexTreeFile::Flush(CIndexTreeNodeFile** ppcCurrent, void* pvKey, int iKe
 	{
 		if (mpcDiagnosticCallback)
 		{
-			mpcDiagnosticCallback->Flush(pvKey, iKeySize, NULL, 0);
+			DiagnosticFlushCallback(pcCurrent);
 		}
 
 		*ppcCurrent = NULL;
@@ -1476,7 +1484,7 @@ BOOL CIndexTreeFile::Flush(CIndexTreeNodeFile** ppcCurrent, void* pvKey, int iKe
 	{
 		if (mpcDiagnosticCallback)
 		{
-			DiagnosticFlushCallback(pvKey, iKeySize, pcCurrent);
+			DiagnosticFlushCallback(pcCurrent);
 		}
 
 		bRootHasIndex = mpcRoot->GetFileIndex()->HasFile();
@@ -1720,7 +1728,10 @@ BOOL CIndexTreeFile::RecurseFlushDirty(CIndexTreeRecursor* pcCursor)
 
 		if (mpcDiagnosticCallback)
 		{
-			DiagnosticFlushCallback(pcCursor, pcNode);
+			if (HasData(pcNode))
+			{
+				DiagnosticFlushCallback(pcNode);
+			}
 		}
 
 		bResult = WriteBackPathCaching(pcNode);
@@ -2528,8 +2539,11 @@ BOOL CIndexTreeFile::RecurseValidateFileIndexes(CIndexTreeRecursor* pcCursor, BO
 	{
 		if (!pcNode->GetFileIndex()->HasFile())
 		{
-			pcCursor->GenerateBad();
-			return gcLogger.Error2(__METHOD__, " Node [", pcCursor->GetBadNode(), "] for key [", pcCursor->GetBadKey(), "] has no file associated.", NULL);
+			if (pcNode != mpcRoot)  //This is not the right solution.  The root file should be written along with all the configuration for how the tree was created.
+			{
+				pcCursor->GenerateBad();
+				return gcLogger.Error2(__METHOD__, " Node [", pcCursor->GetBadNode(), "] for key [", pcCursor->GetBadKey(), "] has no file associated.", NULL);
+			}
 		}
 
 		if (pcNode->HasNodes())
@@ -3993,24 +4007,22 @@ int CIndexTreeFile::GetNodeData(CIndexTreeNode* pcNode, void* pvDestData, int iD
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeFile::DiagnosticFlushCallback(CIndexTreeRecursor* pcCursor, CIndexTreeNodeFile* pcNode)
+void CIndexTreeFile::DiagnosticFlushCallback(CIndexTreeNodeFile* pcNode)
 {
 	CStackMemory<>	cStackData;
 	CStackMemory<>	cStackKey;
-	void* pv;
-	void* pvData;
+	void*			pvData;
 	unsigned short	uiDataSize;
 	int				iKeySize;
-	char* pvKey;
+	char*			pvKey;
 
-	uiDataSize = pcNode->GetDataSize();
+	uiDataSize = GetNodeDataSize(pcNode);
 	pvData = cStackData.Init(uiDataSize);
-	pv = pcNode->GetDataPtr();
-	memcpy(pvData, pv, uiDataSize);
+	GetNodeData(pcNode, pvData, uiDataSize);
 
-	iKeySize = pcCursor->GetKeySize();
-	pvKey = (char*)cStackKey.Init(iKeySize);
-	pcCursor->GetKey(pvKey, NULL);
+	iKeySize = GetNodeKeySize(pcNode);
+	pvKey = (char*)cStackKey.Init(iKeySize+1);
+	GetNodeKey(pcNode, pvKey, iKeySize + 1);
 
 	mpcDiagnosticCallback->Flush(pvKey, iKeySize, pvData, uiDataSize);
 
@@ -4023,42 +4035,26 @@ void CIndexTreeFile::DiagnosticFlushCallback(CIndexTreeRecursor* pcCursor, CInde
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeFile::DiagnosticFlushCallback(void* pvKey, int iKeySize, CIndexTreeNodeFile* pcNode)
+void CIndexTreeFile::DiagnosticEvictCallback(CIndexTreeNodeFile* pcNode)
 {
 	CStackMemory<>	cStackData;
-	void*			pv;
-	void*			pvData;
-	unsigned short	uiDataSize;
-
-	uiDataSize = pcNode->GetDataSize();
-	pvData = cStackData.Init(uiDataSize);
-	pv = pcNode->GetDataPtr();
-	memcpy(pvData, pv, uiDataSize);
-
-	mpcDiagnosticCallback->Flush(pvKey, iKeySize, pvData, uiDataSize);
-
-	cStackData.Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CIndexTreeFile::DiagnosticEvictCallback(void* pvKey, int iKeySize, CIndexTreeNodeFile* pcNode)
-{
-	CStackMemory<>	cStackData;
-	void* pv;
+	CStackMemory<>	cStackKey;
 	void* pvData;
 	unsigned short	uiDataSize;
+	int				iKeySize;
+	char* pvKey;
 
-	uiDataSize = pcNode->GetDataSize();
+	uiDataSize = GetNodeDataSize(pcNode);
 	pvData = cStackData.Init(uiDataSize);
-	pv = pcNode->GetDataPtr();
-	memcpy(pvData, pv, uiDataSize);
+	GetNodeData(pcNode, pvData, uiDataSize);
+
+	iKeySize = GetNodeKeySize(pcNode);
+	pvKey = (char*)cStackKey.Init(iKeySize + 1);
+	GetNodeKey(pcNode, pvKey, iKeySize + 1);
 
 	mpcDiagnosticCallback->Evict(pvKey, iKeySize, pvData, uiDataSize);
 
+	cStackKey.Kill();
 	cStackData.Kill();
 }
 
