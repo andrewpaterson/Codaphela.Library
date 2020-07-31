@@ -1,10 +1,10 @@
 #ifndef __INDEX_TREE_FILE_KEY_DIAGNOSTIC_LOGGING_CALLBACK_H__
 #define __INDEX_TREE_FILE_KEY_DIAGNOSTIC_LOGGING_CALLBACK_H__
 #include "BaseLib/Chars.h"
-#include "IndexTreeFileKeyDiagnosticCallback.h"
+#include "IndexTreeFileDiagnosticCallback.h"
 
 
-class CIndexTreeFileKeyDiagnosticLoggingCallback : public CIndexTreeFileKeyDiagnosticCallback
+class CIndexTreeFileDiagnosticLoggingCallback : public CIndexTreeFileDiagnosticCallback
 {
 protected:
 	CChars	szLog;

@@ -1,11 +1,11 @@
-#include "IndexTreeFileKeyDiagnosticCallback.h"
+#include "IndexTreeFileDiagnosticCallback.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeFileKeyDiagnosticCallback::Init()
+void CIndexTreeFileDiagnosticCallback::Init()
 {
 }
 
@@ -14,7 +14,7 @@ void CIndexTreeFileKeyDiagnosticCallback::Init()
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeFileKeyDiagnosticCallback::Kill(void)
+void CIndexTreeFileDiagnosticCallback::Kill(void)
 {
 }
 
@@ -23,7 +23,7 @@ void CIndexTreeFileKeyDiagnosticCallback::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeFileKeyDiagnosticCallback::Put(void* pvKey, int iKeySize, void* pvData, int iDataSize)
+void CIndexTreeFileDiagnosticCallback::Put(void* pvKey, int iKeySize, void* pvData, int iDataSize)
 {
 }
 
@@ -32,7 +32,7 @@ void CIndexTreeFileKeyDiagnosticCallback::Put(void* pvKey, int iKeySize, void* p
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeFileKeyDiagnosticCallback::Get(void* pvKey, int iKeySize, void* pvData, int iDataSize)
+void CIndexTreeFileDiagnosticCallback::Get(void* pvKey, int iKeySize, void* pvData, int iDataSize)
 {
 }
 
@@ -41,7 +41,7 @@ void CIndexTreeFileKeyDiagnosticCallback::Get(void* pvKey, int iKeySize, void* p
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeFileKeyDiagnosticCallback::Remove(void* pvKey, int iKeySize, void* pvData, int iDataSize)
+void CIndexTreeFileDiagnosticCallback::Remove(void* pvKey, int iKeySize, void* pvData, int iDataSize)
 {
 }
 
@@ -50,7 +50,7 @@ void CIndexTreeFileKeyDiagnosticCallback::Remove(void* pvKey, int iKeySize, void
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeFileKeyDiagnosticCallback::Flush(void* pvKey, int iKeySize, void* pvData, int iDataSize)
+void CIndexTreeFileDiagnosticCallback::Flush(void* pvKey, int iKeySize, void* pvData, int iDataSize)
 {
 }
 
@@ -59,7 +59,7 @@ void CIndexTreeFileKeyDiagnosticCallback::Flush(void* pvKey, int iKeySize, void*
 ////
 ////
 ////////////////////////////////////////////////////////////////////////////
-//void CIndexTreeFileKeyDiagnosticCallback::Read(void* pvKey, int iKeySize, void* pvData, int iDataSize, void* pvBuffer, int iBufferSize)
+//void CIndexTreeFileDiagnosticCallback::Read(void* pvKey, int iKeySize, void* pvData, int iDataSize, void* pvBuffer, int iBufferSize)
 //{
 //}
 //
@@ -68,7 +68,7 @@ void CIndexTreeFileKeyDiagnosticCallback::Flush(void* pvKey, int iKeySize, void*
 ////
 ////
 ////////////////////////////////////////////////////////////////////////////
-//void CIndexTreeFileKeyDiagnosticCallback::Write(void* pvKey, int iKeySize, void* pvData, int iDataSize, void* pvBuffer, int iBufferSize)
+//void CIndexTreeFileDiagnosticCallback::Write(void* pvKey, int iKeySize, void* pvData, int iDataSize, void* pvBuffer, int iBufferSize)
 //{
 //}
 
@@ -77,7 +77,7 @@ void CIndexTreeFileKeyDiagnosticCallback::Flush(void* pvKey, int iKeySize, void*
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeFileKeyDiagnosticCallback::Evict(void* pvKey, int iKeySize, void* pvData, int iDataSize)
+void CIndexTreeFileDiagnosticCallback::Evict(void* pvKey, int iKeySize, void* pvData, int iDataSize)
 {
 }
 

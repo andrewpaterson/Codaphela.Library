@@ -42,11 +42,12 @@ public:
 
 	BOOL					Flush(void);
 
-	void					SetDiagnosticCallback(CIndexTreeFileKeyDiagnosticCallback* pcCallback);
+	void					SetDiagnosticCallback(CIndexTreeFileDiagnosticCallback* pcCallback);
 
 	BOOL					IsWriteThrough(void);
 	BOOL					IsFlushed(void);
 	BOOL					ValidateIndexTree(void);
+	BOOL					ValidateIndexTree(BOOL bReadNodes);
 	BOOL					HasDiagnosticCallback(void);
 	CIndexTreeDataOrderer*	GetDataOrderer(void);
 

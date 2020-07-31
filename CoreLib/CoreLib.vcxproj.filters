@@ -453,9 +453,6 @@
     <ClCompile Include="IndexTreeFileIterator.cpp">
       <Filter>Source\File\Indexed\Index</Filter>
     </ClCompile>
-    <ClCompile Include="IndexTreeFileKeyDiagnosticCallback.cpp">
-      <Filter>Source\File\Indexed\Index\Diagnostic</Filter>
-    </ClCompile>
     <ClCompile Include="IndexTreeFileDefaultDataCallback.cpp">
       <Filter>Source\File\Indexed\Index\DataWriter</Filter>
     </ClCompile>
@@ -468,10 +465,13 @@
     <ClCompile Include="IndexTreeEvictionStrategyDataOrderer.cpp">
       <Filter>Source\File\Indexed\Index\Evicting\Strategy</Filter>
     </ClCompile>
-    <ClCompile Include="IndexTreeFileKeyDiagnosticLoggingCallback.cpp">
+    <ClCompile Include="IndexTreeFileKeyDiagnosticCountingCallback.cpp">
       <Filter>Source\File\Indexed\Index\Diagnostic</Filter>
     </ClCompile>
-    <ClCompile Include="IndexTreeFileKeyDiagnosticCountingCallback.cpp">
+    <ClCompile Include="IndexTreeFileDiagnosticCallback.cpp">
+      <Filter>Source\File\Indexed\Index\Diagnostic</Filter>
+    </ClCompile>
+    <ClCompile Include="IndexTreeFileDiagnosticLoggingCallback.cpp">
       <Filter>Source\File\Indexed\Index\Diagnostic</Filter>
     </ClCompile>
   </ItemGroup>
@@ -767,9 +767,6 @@
     <ClInclude Include="IndexTreeFileIterator.h">
       <Filter>Source\File\Indexed\Index</Filter>
     </ClInclude>
-    <ClInclude Include="IndexTreeFileKeyDiagnosticCallback.h">
-      <Filter>Source\File\Indexed\Index\Diagnostic</Filter>
-    </ClInclude>
     <ClInclude Include="IndexTreeFileDataCallback.h">
       <Filter>Source\File\Indexed\Index\DataWriter</Filter>
     </ClInclude>
@@ -785,10 +782,13 @@
     <ClInclude Include="IndexTreeEvictionStrategyDataOrderer.h">
       <Filter>Source\File\Indexed\Index\Evicting\Strategy</Filter>
     </ClInclude>
-    <ClInclude Include="IndexTreeFileKeyDiagnosticLoggingCallback.h">
+    <ClInclude Include="IndexTreeFileKeyDiagnosticCountingCallback.h">
       <Filter>Source\File\Indexed\Index\Diagnostic</Filter>
     </ClInclude>
-    <ClInclude Include="IndexTreeFileKeyDiagnosticCountingCallback.h">
+    <ClInclude Include="IndexTreeFileDiagnosticCallback.h">
+      <Filter>Source\File\Indexed\Index\Diagnostic</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexTreeFileDiagnosticLoggingCallback.h">
       <Filter>Source\File\Indexed\Index\Diagnostic</Filter>
     </ClInclude>
   </ItemGroup>
