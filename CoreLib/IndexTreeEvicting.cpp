@@ -345,7 +345,7 @@ BOOL CIndexTreeEvicting::IsWriteThrough(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeEvicting::SetDiagnosticCallback(CIndexTreeFileKeyDiagnosticCallback* pcCallback)
+void CIndexTreeEvicting::SetDiagnosticCallback(CIndexTreeFileDiagnosticCallback* pcCallback)
 {
 	return mcIndexTree.SetDiagnosticCallback(pcCallback);
 }
@@ -378,6 +378,16 @@ BOOL CIndexTreeEvicting::IsFlushed(void)
 BOOL CIndexTreeEvicting::ValidateIndexTree(void)
 {
 	return mcIndexTree.ValidateIndexTree();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeEvicting::ValidateIndexTree(BOOL bReadNodes)
+{
+	return mcIndexTree.ValidateIndexTree(bReadNodes);
 }
 
 

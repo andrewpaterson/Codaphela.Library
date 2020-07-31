@@ -1,13 +1,13 @@
-#include "IndexTreeFileKeyDiagnosticLoggingCallback.h"
+#include "IndexTreeFileDiagnosticLoggingCallback.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeFileKeyDiagnosticLoggingCallback::Init(void)
+void CIndexTreeFileDiagnosticLoggingCallback::Init(void)
 {
-	CIndexTreeFileKeyDiagnosticCallback::Init();
+	CIndexTreeFileDiagnosticCallback::Init();
 	szLog.Init();
 }
 
@@ -16,10 +16,10 @@ void CIndexTreeFileKeyDiagnosticLoggingCallback::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeFileKeyDiagnosticLoggingCallback::Kill(void)
+void CIndexTreeFileDiagnosticLoggingCallback::Kill(void)
 {
 	szLog.Kill();
-	CIndexTreeFileKeyDiagnosticCallback::Kill();
+	CIndexTreeFileDiagnosticCallback::Kill();
 }
 
 
@@ -27,7 +27,7 @@ void CIndexTreeFileKeyDiagnosticLoggingCallback::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeFileKeyDiagnosticLoggingCallback::Put(void* pvKey, int iKeySize, void* pvData, int iDataSize)
+void CIndexTreeFileDiagnosticLoggingCallback::Put(void* pvKey, int iKeySize, void* pvData, int iDataSize)
 {
 	Log("Put", pvKey, iKeySize, pvData, iDataSize);
 }
@@ -37,7 +37,7 @@ void CIndexTreeFileKeyDiagnosticLoggingCallback::Put(void* pvKey, int iKeySize, 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeFileKeyDiagnosticLoggingCallback::Get(void* pvKey, int iKeySize, void* pvData, int iDataSize)
+void CIndexTreeFileDiagnosticLoggingCallback::Get(void* pvKey, int iKeySize, void* pvData, int iDataSize)
 {
 	Log("Get", pvKey, iKeySize, pvData, iDataSize);
 }
@@ -47,7 +47,7 @@ void CIndexTreeFileKeyDiagnosticLoggingCallback::Get(void* pvKey, int iKeySize, 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeFileKeyDiagnosticLoggingCallback::Remove(void* pvKey, int iKeySize, void* pvData, int iDataSize)
+void CIndexTreeFileDiagnosticLoggingCallback::Remove(void* pvKey, int iKeySize, void* pvData, int iDataSize)
 {
 	Log("Remove", pvKey, iKeySize, pvData, iDataSize);
 }
@@ -57,7 +57,7 @@ void CIndexTreeFileKeyDiagnosticLoggingCallback::Remove(void* pvKey, int iKeySiz
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeFileKeyDiagnosticLoggingCallback::Flush(void* pvKey, int iKeySize, void* pvData, int iDataSize)
+void CIndexTreeFileDiagnosticLoggingCallback::Flush(void* pvKey, int iKeySize, void* pvData, int iDataSize)
 {
 	Log("Flush", pvKey, iKeySize, pvData, iDataSize);
 }
@@ -67,7 +67,7 @@ void CIndexTreeFileKeyDiagnosticLoggingCallback::Flush(void* pvKey, int iKeySize
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeFileKeyDiagnosticLoggingCallback::Evict(void* pvKey, int iKeySize, void* pvData, int iDataSize)
+void CIndexTreeFileDiagnosticLoggingCallback::Evict(void* pvKey, int iKeySize, void* pvData, int iDataSize)
 {
 	Log("Evict", pvKey, iKeySize, pvData, iDataSize);
 }
@@ -77,7 +77,7 @@ void CIndexTreeFileKeyDiagnosticLoggingCallback::Evict(void* pvKey, int iKeySize
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeFileKeyDiagnosticLoggingCallback::Log(char* szOperation, void* pvKey, int iKeySize, void* pvData, int iDataSize)
+void CIndexTreeFileDiagnosticLoggingCallback::Log(char* szOperation, void* pvKey, int iKeySize, void* pvData, int iDataSize)
 {
 	szLog.Append(szOperation);
 	szLog.Append(":");
@@ -94,7 +94,7 @@ void CIndexTreeFileKeyDiagnosticLoggingCallback::Log(char* szOperation, void* pv
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeFileKeyDiagnosticLoggingCallback::Print(CChars* psz)
+void CIndexTreeFileDiagnosticLoggingCallback::Print(CChars* psz)
 {
 	psz->Append(szLog);
 }
@@ -104,7 +104,7 @@ void CIndexTreeFileKeyDiagnosticLoggingCallback::Print(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeFileKeyDiagnosticLoggingCallback::Dump(void)
+void CIndexTreeFileDiagnosticLoggingCallback::Dump(void)
 {
 	szLog.Dump();
 }

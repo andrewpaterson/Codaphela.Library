@@ -3,7 +3,7 @@
 #include "BaseLib/Define.h"
 
 
-class CIndexTreeFileKeyDiagnosticCallback
+class CIndexTreeFileDiagnosticCallback
 {
 public:
 			void	Init(void);

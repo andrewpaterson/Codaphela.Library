@@ -116,8 +116,8 @@
     <ClCompile Include="IndexTreeEvictingAccess.cpp" />
     <ClCompile Include="IndexTreeFileDefaultDataCallback.cpp" />
     <ClCompile Include="IndexTreeFileIterator.cpp" />
-    <ClCompile Include="IndexTreeFileKeyDiagnosticCallback.cpp" />
-    <ClCompile Include="IndexTreeFileKeyDiagnosticLoggingCallback.cpp" />
+    <ClCompile Include="IndexTreeFileDiagnosticCallback.cpp" />
+    <ClCompile Include="IndexTreeFileDiagnosticLoggingCallback.cpp" />
     <ClCompile Include="IndexTreeHelper.cpp" />
     <ClCompile Include="IndexTreeChildNode.cpp" />
     <ClCompile Include="IndexTreeNodeFile.cpp" />
@@ -193,9 +193,9 @@
     <ClInclude Include="CodaBase.h" />
     <ClInclude Include="IndexTreeEvictionCallbackWrapper.h" />
     <ClInclude Include="IndexTreeEvictionStrategyDataOrderer.h" />
-    <ClInclude Include="IndexTreeFileKeyDiagnosticCallback.h" />
+    <ClInclude Include="IndexTreeFileDiagnosticCallback.h" />
     <ClInclude Include="IndexTreeFileIterator.h" />
-    <ClInclude Include="IndexTreeFileKeyDiagnosticLoggingCallback.h" />
+    <ClInclude Include="IndexTreeFileDiagnosticLoggingCallback.h" />
     <ClInclude Include="NamedIndexedHeader.h" />
     <ClInclude Include="NamedIndexesConfig.h" />
     <ClInclude Include="IndexedCacheResult.h" />

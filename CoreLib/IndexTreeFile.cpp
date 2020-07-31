@@ -1810,7 +1810,7 @@ BOOL CIndexTreeFile::FlushDeleted(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeFile::SetDiagnosticCallback(CIndexTreeFileKeyDiagnosticCallback* pcCallback)
+void CIndexTreeFile::SetDiagnosticCallback(CIndexTreeFileDiagnosticCallback* pcCallback)
 {
 	mpcDiagnosticCallback = pcCallback;
 }

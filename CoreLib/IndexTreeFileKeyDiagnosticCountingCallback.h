@@ -1,9 +1,9 @@
 #ifndef __INDEX_TREE_FILE_KEY_DIAGNOSTIC_COUNTING_CALLBACK_H__
 #define __INDEX_TREE_FILE_KEY_DIAGNOSTIC_COUNTING_CALLBACK_H__
-#include "IndexTreeFileKeyDiagnosticCallback.h"
+#include "IndexTreeFileDiagnosticCallback.h"
 
 
-class CIndexTreeFileKeyDiagnosticCountingCallback : public CIndexTreeFileKeyDiagnosticCallback
+class CIndexTreeFileKeyDiagnosticCountingCallback : public CIndexTreeFileDiagnosticCallback
 {
 protected:
 	int		miCount;

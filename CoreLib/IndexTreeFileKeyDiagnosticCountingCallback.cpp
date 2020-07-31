@@ -18,7 +18,7 @@ void CIndexTreeFileKeyDiagnosticCountingCallback::Init(char* szKey)
 //////////////////////////////////////////////////////////////////////////
 void CIndexTreeFileKeyDiagnosticCountingCallback::Init(void* pvKey, int iKeyLength)
 {
-	CIndexTreeFileKeyDiagnosticCallback::Init();
+	CIndexTreeFileDiagnosticCallback::Init();
 	miCount = 0;
 	mpvKey = pvKey;
 	miKeyLength = iKeyLength;

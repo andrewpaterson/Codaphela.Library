@@ -11,7 +11,7 @@
 #include "IndexTreeNodeFile.h"
 #include "IndexTreeFileDebug.h"
 #include "IndexedFiles.h"
-#include "IndexTreeFileKeyDiagnosticCallback.h"
+#include "IndexTreeFileDiagnosticCallback.h"
 #include "IndexWriteThrough.h"
 
 
@@ -37,7 +37,7 @@ protected:
 	CCountingAllocator						mcMalloc;
 	CIndexTreeFileDataCallback*				mpcDataCallback;
 
-	CIndexTreeFileKeyDiagnosticCallback*	mpcDiagnosticCallback;
+	CIndexTreeFileDiagnosticCallback*	mpcDiagnosticCallback;
 
 public:
 	BOOL					Init(void);
@@ -70,7 +70,7 @@ public:
 	BOOL					Evict(void* pvKey, int iKeySize);
 	BOOL					Flush(void* pvKey, int iKeySize);
 
-	void					SetDiagnosticCallback(CIndexTreeFileKeyDiagnosticCallback* pcCallback);
+	void					SetDiagnosticCallback(CIndexTreeFileDiagnosticCallback* pcCallback);
 
 	BOOL					IsFlushed(void);
 	BOOL					ValidateIndexTree(void);
