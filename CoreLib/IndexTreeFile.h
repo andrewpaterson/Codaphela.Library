@@ -145,9 +145,9 @@ protected:
 	CIndexTreeNodeFile*		ReallocateNodeForSmallerData(CIndexTreeNodeFile* pcNode, void* pvData, unsigned short uiOriginalSize);
 	CIndexTreeNodeFile*		ReallocateNodeForUncontainIndex(CIndexTreeNodeFile* pcNode, unsigned char c);
 
-	CIndexTreeNodeFile*		GetOrAllocateChildNode(CIndexTreeNodeFile* pcParent, unsigned char uiIndexInParent);
+	CIndexTreeNodeFile*		AllocateChildNode(CIndexTreeNodeFile* pcParent, unsigned char uiIndexInParent);
 	CIndexTreeNodeFile*		SetNodeData(CIndexTreeNodeFile* pcCurrent, void* pvObject, unsigned short uiDataSize);
-	CIndexTreeNodeFile*		GetOrAllocateKey(void* pvKey, int iKeySize);
+	CIndexTreeNodeFile*		AllocateKey(void* pvKey, int iKeySize);
 	BOOL					HasData(CIndexTreeNodeFile* pcNode);
 	void					RemapNodePointers(CIndexTreeNodeFile* pcOldNode, CIndexTreeNodeFile* pcNode);
 
