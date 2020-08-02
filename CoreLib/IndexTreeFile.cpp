@@ -738,7 +738,7 @@ BOOL CIndexTreeFile::Put(void* pvKey, int iKeySize, void* pvData, int iDataSize)
 	uiDataSize = (unsigned short)iDataSize;
 
 	bRootHasIndex = mpcRoot->GetFileIndex()->HasFile();
-	pcCurrent = GetOrAllocateKey(pvKey, iKeySize);
+	pcCurrent = AllocateKey(pvKey, iKeySize);
 
 	bNewNode = FALSE;
 	if (!HasData(pcCurrent))
@@ -785,7 +785,7 @@ BOOL CIndexTreeFile::Put(void* pvKey, int iKeySize, void* pvData, int iDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTreeNodeFile* CIndexTreeFile::GetOrAllocateKey(void* pvKey, int iKeySize)
+CIndexTreeNodeFile* CIndexTreeFile::AllocateKey(void* pvKey, int iKeySize)
 {
 	CIndexTreeNodeFile*		pcCurrent;
 	unsigned char			c;
@@ -797,7 +797,7 @@ CIndexTreeNodeFile* CIndexTreeFile::GetOrAllocateKey(void* pvKey, int iKeySize)
 	while (bExecute)
 	{
 		c = ((char*)pvKey)[i];
-		pcCurrent = GetOrAllocateChildNode(pcCurrent, c);
+		pcCurrent = AllocateChildNode(pcCurrent, c);
 		bExecute = LoopKey(&i, iKeySize);
 	}
 	return pcCurrent;
@@ -1000,7 +1000,7 @@ void CIndexTreeFile::RemapNodePointers(CIndexTreeNodeFile* pcOldNode, CIndexTree
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTreeNodeFile* CIndexTreeFile::GetOrAllocateChildNode(CIndexTreeNodeFile* pcParent, unsigned char uiIndexInParent)
+CIndexTreeNodeFile* CIndexTreeFile::AllocateChildNode(CIndexTreeNodeFile* pcParent, unsigned char uiIndexInParent)
 {
 	CIndexTreeNodeFile*		pcNewFileNode;
 	CIndexTreeChildNode*	pcChildNodeOnParent;
@@ -1015,13 +1015,8 @@ CIndexTreeNodeFile* CIndexTreeFile::GetOrAllocateChildNode(CIndexTreeNodeFile* p
 
 		//The new node must also still be allocated.  Two nodes have been altered (the parent and the new node).
 		pcNewFileNode = AllocateNodeSingle(pcReallocedParent, uiIndexInParent, 0);
-		pcNewFileNode->SetDirtyNode(TRUE);
 
 		bDirty = pcReallocedParent->SetMemory(uiIndexInParent, pcNewFileNode);
-		if (bDirty)
-		{
-			pcReallocedParent->SetDirtyNode(TRUE);
-		}
 
 		//If the parent moved in memory then all its children must be corrected.
 		if (pcParent != pcReallocedParent)
@@ -1052,10 +1047,8 @@ CIndexTreeNodeFile* CIndexTreeFile::GetOrAllocateChildNode(CIndexTreeNodeFile* p
 		else if (pcChildNodeOnParent->IsUnallocated())
 		{
 			pcNewFileNode = AllocateNodeSingle(pcParent, uiIndexInParent, 0);
-			pcNewFileNode->SetDirtyNode(TRUE);
 
 			pcChildNodeOnParent->Init(pcNewFileNode);
-			pcParent->SetDirtyNode(TRUE);
 
 			return pcChildNodeOnParent->u.mpcMemory;
 		}
