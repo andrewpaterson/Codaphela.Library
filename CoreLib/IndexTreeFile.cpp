@@ -909,7 +909,7 @@ CIndexTreeNodeFile* CIndexTreeFile::ReallocateNodeForContainIndex(CIndexTreeNode
 	pcNode = (CIndexTreeNodeFile*)Realloc(pcNode, tNewNodeSize, tOldNodeSize);
 
 	pcNode->Contain(uiIndex, INDEX_TREE_FILE_NODE_UNALLOCATED);
-	pcNode->SetDirtyNode(TRUE);
+	//pcNode->SetDirtyNode(TRUE);
 
 	RemapNodePointers(pcOldNode, pcNode);
 	return pcNode;
@@ -1193,6 +1193,7 @@ CIndexTreeNodeFile* CIndexTreeFile::RemoveWriteThrough(CIndexTreeNodeFile* pcCur
 			if (pcParent != mpcRoot)
 			{
 				pcParent = ReallocateNodeForUncontainIndex(pcParent, c);  //Sets parent dirty.
+				pcParent->SetDirtyNode(TRUE);
 			}
 			else
 			{
@@ -1244,7 +1245,6 @@ CIndexTreeNodeFile* CIndexTreeFile::ReallocateNodeForUncontainIndex(CIndexTreeNo
 		pcNode = (CIndexTreeNodeFile*)Realloc(pcNode, tNewNodeSize, tOldNodeSize);
 		RemapNodePointers(pcOldNode, pcNode);
 	}
-	pcNode->SetDirtyNode(TRUE);
 
 	return pcNode;
 }
