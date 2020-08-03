@@ -20,6 +20,8 @@ public:
 	CIndexTreeIterator* CreateIterator(void);
 	void				FreeIterator(CIndexTreeIterator* pcIter);
 
+	CIndexTreeFile*		GetTree(void);
+
 protected:
 	BOOL	Put(void* pvKey, int iKeySize, void* pvData, int iDataSize);
 	BOOL	Get(void* pvKey, int iKeySize, void* pvData, int* uiDataSize);

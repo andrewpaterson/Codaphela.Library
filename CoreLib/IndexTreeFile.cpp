@@ -1147,6 +1147,7 @@ BOOL CIndexTreeFile::Remove(void* pvKey, int iKeySize)
 		pcDirty = RemoveWriteThrough(pcCurrent);
 		if (pcDirty != NULL)
 		{
+			pcDirty->SetDirtyNode(TRUE);
 			return WriteBackPathWriteThrough(pcDirty);
 		}
 		else
@@ -1171,7 +1172,6 @@ CIndexTreeNodeFile* CIndexTreeFile::RemoveWriteThrough(CIndexTreeNodeFile* pcCur
 	CIndexTreeNodeFile*		pcParent;
 	CIndexTreeNodeFile*		pcNode;
 	BOOL					bResult;
-	BOOL					bDirty;
 
 	if (pcCurrent->GetDataSize() == 0)
 	{
@@ -1181,8 +1181,6 @@ CIndexTreeNodeFile* CIndexTreeFile::RemoveWriteThrough(CIndexTreeNodeFile* pcCur
 	bResult = TRUE;
 
 	pcNode = ReallocateNodeForSmallerData(pcCurrent, NULL, 0);
-
-	pcNode->SetDirtyNode(TRUE);
 	while (pcNode)
 	{
 		pcParent = (CIndexTreeNodeFile*)pcNode->GetParent();
@@ -1192,16 +1190,11 @@ CIndexTreeNodeFile* CIndexTreeFile::RemoveWriteThrough(CIndexTreeNodeFile* pcCur
 		{
 			if (pcParent != mpcRoot)
 			{
-				pcParent = ReallocateNodeForUncontainIndex(pcParent, c);  //Sets parent dirty.
-				pcParent->SetDirtyNode(TRUE);
+				pcParent = ReallocateNodeForUncontainIndex(pcParent, c);
 			}
 			else
 			{
-				bDirty = pcParent->ClearIndex(c);
-				if (bDirty)
-				{
-					pcParent->SetDirtyNode(TRUE);
-				}
+				pcParent->ClearIndex(c);
 			}
 
 			bResult = Delete(pcNode);
@@ -1459,11 +1452,12 @@ BOOL CIndexTreeFile::Flush(CIndexTreeNodeFile** ppcCurrent)
 		}
 
 		*ppcCurrent = NULL;
+		pcCurrent->SetDeletedNode(FALSE);
+		bResult = ClearDeletedPath(pcCurrent);
 		pcDirty = RemoveWriteThrough(pcCurrent);
 		if (pcDirty != NULL)
 		{
-			pcDirty->SetDeletedNode(FALSE);
-			bResult = ClearDeletedPath(pcDirty);
+			pcDirty->SetDirtyNode(TRUE);
 			bResult &= SetDirtyPath(pcDirty);
 			bResult &= WriteBackPathCaching(pcDirty);
 			return bResult;
@@ -1631,6 +1625,16 @@ BOOL CIndexTreeFile::HasDiagnosticCallback(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+CDurableFileController* CIndexTreeFile::GetController(void)
+{
+	return mpcDurableFileControl;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 int CIndexTreeFile::NumElements(void)
 {
 	int		iNumElements;
@@ -1779,6 +1783,7 @@ BOOL CIndexTreeFile::FlushDeleted(void)
 			pcDirty = RemoveWriteThrough(pcNode);
 			if (pcDirty != NULL)
 			{
+				pcDirty->SetDirtyNode(TRUE);
 				SetDirtyPath(pcDirty);
 			}
 			else
