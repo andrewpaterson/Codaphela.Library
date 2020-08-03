@@ -79,6 +79,7 @@ public:
 	int						NumElements(void);
 	BOOL					IsWriteThrough(void);
 	BOOL					HasDiagnosticCallback(void);
+	CDurableFileController* GetController(void);
 
 	void					Print(CChars* pszDest, BOOL bShowFlags, BOOL bShowSize);
 	void					Dump(void);
