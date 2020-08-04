@@ -186,9 +186,6 @@
     <ClCompile Include="IndexedData.cpp">
       <Filter>Source\File\Indexed</Filter>
     </ClCompile>
-    <ClCompile Include="Indexes.cpp">
-      <Filter>Source\File\Indexed</Filter>
-    </ClCompile>
     <ClCompile Include="IndexedFile.cpp">
       <Filter>Source\File\Indexed\Data</Filter>
     </ClCompile>
@@ -480,9 +477,6 @@
       <Filter>Source\File\Indexed</Filter>
     </ClInclude>
     <ClInclude Include="IndexedGeneral.h">
-      <Filter>Source\File\Indexed</Filter>
-    </ClInclude>
-    <ClInclude Include="Indexes.h">
       <Filter>Source\File\Indexed</Filter>
     </ClInclude>
     <ClInclude Include="IndexedFile.h">
