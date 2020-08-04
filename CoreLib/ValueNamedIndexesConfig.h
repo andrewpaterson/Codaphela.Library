@@ -21,7 +21,7 @@ public:
 	void							Kill(void);
 
 	size_t							GetIndexCacheSize(void);
-	CIndexTreeEvictionStrategy* GetEvictionStrategy(void);
+	CIndexTreeEvictionStrategy*		GetEvictionStrategy(void);
 	EIndexWriteThrough				GetWriteThrough(void);
 	CIndexTreeEvictionCallback*		GetIndexTreeEvictionCallback(void);
 	char*							GetSubDirectory(void);

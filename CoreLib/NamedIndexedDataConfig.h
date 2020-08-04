@@ -10,9 +10,10 @@ protected:
 	CIndexedDataConfig*		mpcIndexConfig;
 	CNamedIndexesConfig*	mpcNamedConfig;
 	BOOL					mbKillConfigs;
+	BOOL					mbFreeConfigs;
 
 public:
-	void					Init(CIndexedDataConfig* pcIndexConfig, CNamedIndexesConfig* pcNamedConfig, BOOL bKillConfigs = TRUE);
+	void					Init(CIndexedDataConfig* pcIndexConfig, CNamedIndexesConfig* pcNamedConfig, BOOL bKillConfigs = TRUE, BOOL bFreeConfigs = FALSE);
 	void					Kill(void);
 
 	BOOL					HasDatabaseConfig(void);
