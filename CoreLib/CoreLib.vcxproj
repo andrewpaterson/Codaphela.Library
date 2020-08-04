@@ -92,6 +92,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="CodaBase.cpp" />
+    <ClCompile Include="Database.cpp" />
+    <ClCompile Include="DatabaseFactory.cpp" />
     <ClCompile Include="FileIterator.cpp" />
     <ClCompile Include="FileIteratorReturn.cpp" />
     <ClCompile Include="Files.cpp" />
@@ -190,6 +192,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CodaBase.h" />
+    <ClInclude Include="Database.h" />
+    <ClInclude Include="DatabaseFactory.h" />
     <ClInclude Include="IndexTreeEvictionCallbackWrapper.h" />
     <ClInclude Include="IndexTreeEvictionStrategyDataOrderer.h" />
     <ClInclude Include="IndexTreeFileDiagnosticCallback.h" />

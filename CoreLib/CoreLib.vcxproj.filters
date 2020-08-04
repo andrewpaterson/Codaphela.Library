@@ -181,6 +181,9 @@
     <Filter Include="Source\File\Indexed\Index\Diagnostic">
       <UniqueIdentifier>{0f1d5455-364b-4488-a443-163fd1d6a2e6}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Database">
+      <UniqueIdentifier>{98d5ad19-9dd4-4edd-a9e8-08a3472537ba}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="IndexedData.cpp">
@@ -470,6 +473,12 @@
     </ClCompile>
     <ClCompile Include="IndexTreeFileDiagnosticLoggingCallback.cpp">
       <Filter>Source\File\Indexed\Index\Diagnostic</Filter>
+    </ClCompile>
+    <ClCompile Include="Database.cpp">
+      <Filter>Source\Database</Filter>
+    </ClCompile>
+    <ClCompile Include="DatabaseFactory.cpp">
+      <Filter>Source\Database</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -784,6 +793,12 @@
     </ClInclude>
     <ClInclude Include="IndexTreeFileDiagnosticLoggingCallback.h">
       <Filter>Source\File\Indexed\Index\Diagnostic</Filter>
+    </ClInclude>
+    <ClInclude Include="Database.h">
+      <Filter>Source\Database</Filter>
+    </ClInclude>
+    <ClInclude Include="DatabaseFactory.h">
+      <Filter>Source\Database</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

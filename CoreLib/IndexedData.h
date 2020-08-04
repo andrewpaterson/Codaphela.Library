@@ -33,9 +33,17 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 class CIndexedData : public CIndexedDataCommon, public CIndexedFilesEvictionCallback
 {
-protected:
-	CIndexedDescriptorsFile		mcIndices;
+	//The following are in CIndexedDataCommon.
+	//	CIndexedFilesEvicting			mcData;
+	//	EIndexWriteThrough				meWriteThrough;
+	//	CIndexedDataEvictionCallback*	mpcIndexedDataEvictionCallback;
 
+protected:
+	//The following are in CIndexedDescriptorsFile:
+	//	CIndexTreeEvicting					mcIndexTree;  <---
+	//	CIndexedDataCommon*					mpcIndexedData;
+	//	CIndexTreeEvictionCallbackWrapper	mcEvictionCallbackWrapper;
+	CIndexedDescriptorsFile		mcIndices;
 	CDurableFileController*		mpcDurableFileControl;
 
 public:

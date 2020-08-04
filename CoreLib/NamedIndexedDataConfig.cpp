@@ -5,7 +5,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNamedIndexedDataConfig::Init(CIndexedDataConfig* pcIndexConfig, CNamedIndexesConfig* pcNamedConfig, BOOL bKillConfigs)
+void CNamedIndexedDataConfig::Init(CIndexedDataConfig* pcIndexConfig, CNamedIndexesConfig* pcNamedConfig, BOOL bKillConfigs, BOOL bFreeConfigs)
 {
 	mpcIndexConfig = pcIndexConfig;
 	mpcNamedConfig = pcNamedConfig;
@@ -24,8 +24,17 @@ void CNamedIndexedDataConfig::Kill(void)
 		mpcIndexConfig->Kill();
 		mpcNamedConfig->Kill();
 	}
-	mpcIndexConfig  = NULL;
-	mpcNamedConfig = NULL;
+
+	if (mbFreeConfigs)
+	{
+		SafeFree(mpcIndexConfig);
+		SafeFree(mpcNamedConfig);
+	}
+	else
+	{
+		mpcIndexConfig = NULL;
+		mpcNamedConfig = NULL;
+	}
 }
 
 
