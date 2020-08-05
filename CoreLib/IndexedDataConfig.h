@@ -1,5 +1,6 @@
 #ifndef __INDEXED_DATA_CONFIG_H__
 #define __INDEXED_DATA_CONFIG_H__
+#include "BaseLib/IndexTreeDataOrderer.h"
 #include "IndexWriteThrough.h"
 #include "DurableFileController.h"
 #include "IndexTreeEvictionCallback.h"
@@ -19,6 +20,7 @@ public:
 	virtual CIndexTreeEvictionCallback*		GetIndexTreeEvictionUserCallback(void) =0;
 	virtual CIndexedDataEvictionCallback*	GetIndexedDataEvictionUserCallback(void) =0;
 	virtual CIndexTreeEvictionStrategy*		GetEvictionStrategy(void) =0;
+	virtual CIndexTreeDataOrderer*			GetIndexTreeDataOrderer(void) =0;
 };
 
 

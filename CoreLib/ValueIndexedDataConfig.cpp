@@ -7,7 +7,7 @@
 //////////////////////////////////////////////////////////////////////////
 void CValueIndexedDataConfig::Init(char* szSubDirectory, size_t uiDataCacheSize, size_t uiIndexCacheSize, EIndexWriteThrough eWriteThrough, CIndexTreeEvictionStrategy* pcEvictionStrategy)
 {
-	Init(szSubDirectory, uiDataCacheSize, uiIndexCacheSize, eWriteThrough, pcEvictionStrategy, NULL, NULL);
+	Init(szSubDirectory, uiDataCacheSize, uiIndexCacheSize, eWriteThrough, pcEvictionStrategy, NULL, NULL, NULL);
 }
 
 
@@ -15,7 +15,7 @@ void CValueIndexedDataConfig::Init(char* szSubDirectory, size_t uiDataCacheSize,
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CValueIndexedDataConfig::Init(char* szSubDirectory, size_t uiDataCacheSize, size_t uiIndexCacheSize, EIndexWriteThrough eWriteThrough, CIndexTreeEvictionStrategy* pcEvictionStrategy, CIndexTreeEvictionCallback* pcIndexTreeEvictionUserCallback, CIndexedDataEvictionCallback* pcIndexedDataEvictionUserCallback)
+void CValueIndexedDataConfig::Init(char* szSubDirectory, size_t uiDataCacheSize, size_t uiIndexCacheSize, EIndexWriteThrough eWriteThrough, CIndexTreeEvictionStrategy* pcEvictionStrategy, CIndexTreeEvictionCallback* pcIndexTreeEvictionUserCallback, CIndexedDataEvictionCallback* pcIndexedDataEvictionUserCallback, CIndexTreeDataOrderer* pcIndexTreeDataOrderer)
 {
 	mszSubDirectory = szSubDirectory;
 
@@ -25,6 +25,7 @@ void CValueIndexedDataConfig::Init(char* szSubDirectory, size_t uiDataCacheSize,
 	mpcIndexTreeEvictionUserCallback = pcIndexTreeEvictionUserCallback;
 	mpcIndexedDataEvictionUserCallback = pcIndexedDataEvictionUserCallback;
 	mpcEvictionStrategy = pcEvictionStrategy;
+	mpcIndexTreeDataOrderer = pcIndexTreeDataOrderer;
 }
 
 
@@ -105,5 +106,15 @@ CIndexedDataEvictionCallback* CValueIndexedDataConfig::GetIndexedDataEvictionUse
 CIndexTreeEvictionStrategy* CValueIndexedDataConfig::GetEvictionStrategy(void)
 {
 	return mpcEvictionStrategy;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CIndexTreeDataOrderer* CValueIndexedDataConfig::GetIndexTreeDataOrderer(void)
+{
+	return mpcIndexTreeDataOrderer;
 }
 

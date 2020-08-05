@@ -2,16 +2,16 @@
 #include "ValueNamedIndexesConfig.h"
 #include "ValueIndexedDataConfig.h"
 #include "IndexTreeEvictionStrategyDataOrderer.h"
-#include "DatabaseFactory.h"
+#include "CodabaseFactory.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CDatabase* CDatabaseFactory::Create(char* szDirectory, EIndexWriteThrough eWriteThrough)
+CCodabase* CCodabaseFactory::Create(char* szDirectory, EIndexWriteThrough eWriteThrough)
 {
-	CDatabase*								pcDatabase;
+	CCodabase*								pcDatabase;
 	CNamedIndexedDataConfig*				pcConfig;
 	CValueIndexedDataConfig*				pcIndexConfig;
 	CValueNamedIndexesConfig*				pcNamedConfig;
@@ -25,19 +25,19 @@ CDatabase* CDatabaseFactory::Create(char* szDirectory, EIndexWriteThrough eWrite
 	pcIndexConfig = NewMalloc<CValueIndexedDataConfig>();
 	pcIndexAccessOrderer->Init();
 	pcIndexEvictionStrategy->Init(pcIndexAccessOrderer);
-	pcIndexConfig->Init("Index", 16 MB, 8 MB, eWriteThrough, pcIndexEvictionStrategy);
+	pcIndexConfig->Init("Index", 16 MB, 8 MB, eWriteThrough, pcIndexEvictionStrategy, NULL, NULL, pcIndexAccessOrderer);
 
 	pcNamedAccessOrderer = NewMalloc<CAccessDataOrderer>();
 	pcNamedEvictionStrategy = NewMalloc<CIndexTreeEvictionStrategyDataOrderer>();
 	pcNamedConfig = NewMalloc<CValueNamedIndexesConfig>();
 	pcNamedAccessOrderer->Init();
-	pcIndexEvictionStrategy->Init(pcNamedAccessOrderer);
-	pcNamedConfig->Init("Names", 1 MB, pcNamedEvictionStrategy, eWriteThrough);
+	pcNamedEvictionStrategy->Init(pcNamedAccessOrderer);
+	pcNamedConfig->Init("Names", 1 MB, pcNamedEvictionStrategy, eWriteThrough, NULL, pcNamedAccessOrderer);
 
 	pcConfig = NewMalloc<CNamedIndexedDataConfig>();
 	pcConfig->Init(pcIndexConfig, pcNamedConfig, TRUE, TRUE);
 
-	pcDatabase = NewMalloc<CDatabase>();
+	pcDatabase = NewMalloc<CCodabase>();
 	pcDatabase->Init(szDirectory, pcConfig);
 	return pcDatabase;
 }

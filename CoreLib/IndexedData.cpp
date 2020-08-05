@@ -39,7 +39,7 @@ void CIndexedData::Init(CDurableFileController* pcController, CIndexedDataConfig
 
 	mpcDurableFileControl = pcController;
 
-	mcIndices.Init(this, mpcDurableFileControl, pcConfig->GetSubdirectory(), pcConfig->GetIndexCacheSize(), meWriteThrough, pcConfig->GetEvictionStrategy(), pcConfig->GetIndexTreeEvictionUserCallback());
+	mcIndices.Init(this, mpcDurableFileControl, pcConfig->GetSubdirectory(), pcConfig->GetIndexCacheSize(), meWriteThrough, pcConfig->GetEvictionStrategy(), pcConfig->GetIndexTreeEvictionUserCallback(), pcConfig->GetIndexTreeDataOrderer());
 	mcData.Init(mpcDurableFileControl, pcConfig->GetSubdirectory(), "DAT", "Files.IDX", "_Files.IDX", pcConfig->GetDataCacheSize(), meWriteThrough, this);
 }
 

@@ -7,7 +7,7 @@
 //////////////////////////////////////////////////////////////////////////
 void CValueNamedIndexesConfig::Init(char* szSubDirectory, size_t uiIndexCacheSize, CIndexTreeEvictionStrategy* pcNamedEvictionStrategy, EIndexWriteThrough eWriteThrough)
 {
-	Init(szSubDirectory, uiIndexCacheSize, pcNamedEvictionStrategy, eWriteThrough, NULL);
+	Init(szSubDirectory, uiIndexCacheSize, pcNamedEvictionStrategy, eWriteThrough, NULL, NULL);
 }
 
 
@@ -15,13 +15,14 @@ void CValueNamedIndexesConfig::Init(char* szSubDirectory, size_t uiIndexCacheSiz
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CValueNamedIndexesConfig::Init(char* szSubDirectory, size_t uiIndexCacheSize, CIndexTreeEvictionStrategy* pcNamedEvictionStrategy, EIndexWriteThrough eWriteThrough, CIndexTreeEvictionCallback* pcEvictionCallback)
+void CValueNamedIndexesConfig::Init(char* szSubDirectory, size_t uiIndexCacheSize, CIndexTreeEvictionStrategy* pcNamedEvictionStrategy, EIndexWriteThrough eWriteThrough, CIndexTreeEvictionCallback* pcEvictionCallback, CIndexTreeDataOrderer* pcIndexTreeDataOrderer)
 {
 	muiIndexCacheSize = uiIndexCacheSize;
 	mpcNamedEvictionStrategy = pcNamedEvictionStrategy;
 	meWriteThrough = eWriteThrough;
 	mpEvictionCallback = pcEvictionCallback;
 	mszSubDirectory = szSubDirectory;
+	mpcIndexTreeDataOrderer = pcIndexTreeDataOrderer;
 }
 
 
@@ -82,5 +83,16 @@ CIndexTreeEvictionCallback* CValueNamedIndexesConfig::GetIndexTreeEvictionCallba
 char* CValueNamedIndexesConfig::GetSubDirectory(void)
 {
 	return mszSubDirectory;
+}
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CIndexTreeDataOrderer* CValueNamedIndexesConfig::GetIndexTreeDataOrderer(void)
+{
+	return mpcIndexTreeDataOrderer;
 }
 
