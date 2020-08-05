@@ -14,10 +14,11 @@ protected:
 	CIndexedDataEvictionCallback*	mpcIndexedDataEvictionUserCallback;
 	char*							mszSubDirectory;
 	CIndexTreeEvictionStrategy*		mpcEvictionStrategy;
+	CIndexTreeDataOrderer*			mpcIndexTreeDataOrderer;
 
 public:
 	void 							Init(char* szSubDirectory, size_t uiDataCacheSize, size_t uiIndexCacheSize, EIndexWriteThrough eWriteThrough, CIndexTreeEvictionStrategy* pcEvictionStrategy);
-	void 							Init(char* szSubDirectory, size_t uiDataCacheSize, size_t uiIndexCacheSize, EIndexWriteThrough eWriteThrough, CIndexTreeEvictionStrategy* pcEvictionStrategy, CIndexTreeEvictionCallback* pcIndexTreeEvictionUserCallback, CIndexedDataEvictionCallback* mpcIndexedDataEvictionUserCallback);
+	void 							Init(char* szSubDirectory, size_t uiDataCacheSize, size_t uiIndexCacheSize, EIndexWriteThrough eWriteThrough, CIndexTreeEvictionStrategy* pcEvictionStrategy, CIndexTreeEvictionCallback* pcIndexTreeEvictionUserCallback, CIndexedDataEvictionCallback* mpcIndexedDataEvictionUserCallback, CIndexTreeDataOrderer* pcIndexTreeDataOrderer);
 	void							Kill(void);
 
 	char*							GetSubdirectory(void);
@@ -27,6 +28,7 @@ public:
 	CIndexTreeEvictionCallback*		GetIndexTreeEvictionUserCallback(void);
 	CIndexedDataEvictionCallback*	GetIndexedDataEvictionUserCallback(void);
 	CIndexTreeEvictionStrategy*		GetEvictionStrategy(void);
+	CIndexTreeDataOrderer*			GetIndexTreeDataOrderer(void);
 };
 
 

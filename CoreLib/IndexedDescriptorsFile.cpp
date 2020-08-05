@@ -9,7 +9,7 @@
 //////////////////////////////////////////////////////////////////////////
 void CIndexedDescriptorsFile::Init(CIndexedDataCommon* pcIndexedData, CDurableFileController* pcDurableFileController, char* szSubDirectory, size_t uiIndexCacheSize, EIndexWriteThrough eWriteThrough, CIndexTreeEvictionStrategy* pcEvictionStrategy)
 {
-	Init(mpcIndexedData, pcDurableFileController, szSubDirectory, uiIndexCacheSize, eWriteThrough, pcEvictionStrategy, NULL);
+	Init(mpcIndexedData, pcDurableFileController, szSubDirectory, uiIndexCacheSize, eWriteThrough, pcEvictionStrategy, NULL, NULL);
 }
 
 
@@ -17,7 +17,7 @@ void CIndexedDescriptorsFile::Init(CIndexedDataCommon* pcIndexedData, CDurableFi
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedDescriptorsFile::Init(CIndexedDataCommon* pcIndexedData, CDurableFileController* pcDurableFileController, char* szSubDirectory, size_t uiIndexCacheSize, EIndexWriteThrough eWriteThrough, CIndexTreeEvictionStrategy* pcEvictionStrategy, CIndexTreeEvictionCallback* pcEvictionCallback)
+void CIndexedDescriptorsFile::Init(CIndexedDataCommon* pcIndexedData, CDurableFileController* pcDurableFileController, char* szSubDirectory, size_t uiIndexCacheSize, EIndexWriteThrough eWriteThrough, CIndexTreeEvictionStrategy* pcEvictionStrategy, CIndexTreeEvictionCallback* pcEvictionCallback, CIndexTreeDataOrderer* pcDataOrderer)
 {
 	CIndexTreeEvictionCallback*	pcCallback;
 
@@ -32,7 +32,7 @@ void CIndexedDescriptorsFile::Init(CIndexedDataCommon* pcIndexedData, CDurableFi
 		mcEvictionCallbackWrapper.Init(NULL, NULL);
 		pcCallback = this;
 	}
-	mcIndexTree.Init(pcDurableFileController, szSubDirectory, uiIndexCacheSize, pcCallback, pcEvictionStrategy, this, eWriteThrough, IKR_Yes);
+	mcIndexTree.Init(pcDurableFileController, szSubDirectory, uiIndexCacheSize, pcCallback, pcEvictionStrategy, this, eWriteThrough, IKR_Yes, pcDataOrderer);
 }
 
 

@@ -9,7 +9,8 @@ void CNamedIndexedDataConfig::Init(CIndexedDataConfig* pcIndexConfig, CNamedInde
 {
 	mpcIndexConfig = pcIndexConfig;
 	mpcNamedConfig = pcNamedConfig;
-	mbKillConfigs = mbKillConfigs;
+	mbKillConfigs = bKillConfigs;
+	mbFreeConfigs = bFreeConfigs;
 }
 
 
