@@ -15,26 +15,6 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::Init(void)
-{
-	return Init(NULL, NULL, &gcIndexTreeFileDefaultCallback, &gcSystemAllocator, IWT_Yes, IKR_No);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory)
-{
-	return Init(pcDurableFileControl, szSubDirectory, &gcIndexTreeFileDefaultCallback, &gcSystemAllocator, IWT_Yes, IKR_No);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, int iMaxDataSize, int iMaxKeySize)
 {
 	return Init(pcDurableFileControl, szSubDirectory, &gcIndexTreeFileDefaultCallback, &gcSystemAllocator, IWT_Yes, IKR_No, iMaxDataSize, iMaxKeySize);
