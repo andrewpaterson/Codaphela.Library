@@ -19,7 +19,7 @@ BOOL CIndexTreeWriter::Write(CIndexTreeMemory* pcIndexTreeMemory, char* szDirect
 	ReturnOnFalse(cController.Init(cHelper.GetPrimaryDirectory(), cHelper.GetBackupDirectory()));
 	ReturnOnFalse(cController.Begin());
 
-	ReturnOnFalse(cIndexTreeFile.Init(&cController, NULL, pcIndexTreeMemory->ReverseKeys()));
+	ReturnOnFalse(cIndexTreeFile.Init(&cController, NULL, IWT_Yes, pcIndexTreeMemory->ReverseKeys()));
 	
 	RecurseAllocate(pcIndexTreeMemory->GetRoot(), &cIndexTreeFile, cIndexTreeFile.GetRoot());
 	RecurseWrite(&cIndexTreeFile, cIndexTreeFile.GetRoot());
