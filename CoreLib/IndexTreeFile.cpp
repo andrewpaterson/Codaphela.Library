@@ -274,7 +274,9 @@ BOOL CIndexTreeFile::InitRoot(char* szSubDirectory)
 	else
 	{
 		mpcRoot = AllocateRoot();
-		return TRUE;
+		bResult = Write(mpcRoot);
+		bResult = WriteRootFileIndex(mpcRoot->GetFileIndex());
+		return bResult;
 	}
 }
 
@@ -317,24 +319,6 @@ BOOL CIndexTreeFile::WriteRootFileIndex(CFileDataIndex* pcRootIndex)
 
 	ulliWritten = mcRootIndex.Write(0, pcRootIndex, sizeof(CFileDataIndex), 1);
 	return ulliWritten == 1;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::WriteRootFileIndex(BOOL bRootHasIndex, CFileDataIndex* pcRootIndex)
-{
-	if (!bRootHasIndex)
-	{
-		if (pcRootIndex->HasFile())
-		{
-			return WriteRootFileIndex(pcRootIndex);
-		}
-		return TRUE;
-	}
-	return TRUE;
 }
 
 
@@ -729,7 +713,6 @@ BOOL CIndexTreeFile::Put(void* pvKey, int iKeySize, void* pvData, int iDataSize)
 {
 	CIndexTreeNodeFile*		pcCurrent;
 	BOOL					bResult;
-	BOOL					bRootHasIndex;
 	unsigned short			uiDataSize;
 	BOOL					bNewNode;
 
@@ -737,7 +720,6 @@ BOOL CIndexTreeFile::Put(void* pvKey, int iKeySize, void* pvData, int iDataSize)
 
 	uiDataSize = (unsigned short)iDataSize;
 
-	bRootHasIndex = mpcRoot->GetFileIndex()->HasFile();
 	pcCurrent = AllocateKey(pvKey, iKeySize);
 
 	bNewNode = FALSE;
@@ -770,8 +752,6 @@ BOOL CIndexTreeFile::Put(void* pvKey, int iKeySize, void* pvData, int iDataSize)
 		InsertReorderData(pcCurrent);
 	}
 	PutReorderData(pcCurrent);
-
-	bResult = WriteRootFileIndex(bRootHasIndex, mpcRoot->GetFileIndex());
 
 	if (mpcDiagnosticCallback)
 	{
@@ -1426,7 +1406,6 @@ BOOL CIndexTreeFile::EvictNode(CIndexTreeNodeFile* pcCurrent)
 BOOL CIndexTreeFile::Flush(CIndexTreeNodeFile** ppcCurrent)
 {
 	BOOL				bResult;
-	BOOL				bRootHasIndex;
 	CIndexTreeNodeFile* pcCurrent;
 	CIndexTreeNodeFile* pcDirty;
 	BOOL				bDeleted;
@@ -1474,9 +1453,7 @@ BOOL CIndexTreeFile::Flush(CIndexTreeNodeFile** ppcCurrent)
 			DiagnosticFlushCallback(pcCurrent);
 		}
 
-		bRootHasIndex = mpcRoot->GetFileIndex()->HasFile();
 		bResult = WriteBackPathCaching(pcCurrent);
-		bResult &= WriteRootFileIndex(bRootHasIndex, mpcRoot->GetFileIndex());
 		return bResult;
 	}
 	else
@@ -1661,19 +1638,15 @@ int CIndexTreeFile::NumMemoryElements(void)
 BOOL CIndexTreeFile::Flush(void)
 {
 	BOOL	bResult;
-	BOOL	bRootHasIndex;
 	
 	if (meWriteThrough == IWT_Yes)
 	{
 		return gcLogger.Error2(__METHOD__, " Cannot flush an index tree that is write through.", NULL);
 	}
 
-	bRootHasIndex = mpcRoot->GetFileIndex()->HasFile();
-
 	bResult = FlushDeleted();
 	bResult &= FlushDirty();
 
-	bResult &= WriteRootFileIndex(bRootHasIndex, mpcRoot->GetFileIndex());
 	return bResult;
 }
 
