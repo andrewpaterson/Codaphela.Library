@@ -40,8 +40,6 @@ protected:
 	CIndexTreeFileDiagnosticCallback*	mpcDiagnosticCallback;
 
 public:
-	BOOL					Init(void);
-	BOOL					Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory);
 	BOOL					Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, int iMaxDataSize, int iMaxKeySize);
 	BOOL					Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, EIndexKeyReverse eKeyReverse);
 	BOOL					Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse);
