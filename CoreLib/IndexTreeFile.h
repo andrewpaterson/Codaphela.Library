@@ -201,7 +201,6 @@ protected:
 
 	CFileDataIndex			ReadRootFileIndex(void);
 	BOOL					WriteRootFileIndex(CFileDataIndex* pcRootIndex);
-	BOOL					WriteRootFileIndex(BOOL bRootHasIndex, CFileDataIndex* pcRootIndex);
 
 	CIndexTreeNodeFile*		DebugNode(CChars* pszDest, CIndexTreeNodeFile* pcParent, int uiIndexInParent, BOOL bShowFlags, BOOL bShowSize);
 	void					DebugNode(CChars* pszDest, int iFile, unsigned int uiIndex, int uIndexFromParent, BOOL bShowFlags, BOOL bShowSize);
