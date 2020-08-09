@@ -698,13 +698,18 @@ BOOL CIndexTreeFile::Put(void* pvKey, int iKeySize, void* pvData, int iDataSize)
 	{
 		bResult = WriteBackPathWriteThrough(pcCurrent);
 	}
-	else
+	else if (meWriteThrough == IWT_No)
 	{
 		bResult = DirtySetPaths(pcCurrent);
 		if (!bResult)
 		{
 			return FALSE;
 		}
+	}
+	else
+	{
+		gcLogger.Error2(__METHOD__, " Don't know how to put data with Write Through [IWT_Unknown].", NULL);
+		return FALSE;
 	}
 
 	if (bNewNode)
@@ -789,6 +794,14 @@ BOOL CIndexTreeFile::SetDirtyPath(CIndexTreeNodeFile* pcCurrent)
 	{
 		return gcLogger.Error2(__METHOD__, " Cannot SetDirtyPath on an index tree that is write through.", NULL);
 	}
+	else if (meWriteThrough == IWT_No)
+	{
+	}
+	else
+	{
+		gcLogger.Error2(__METHOD__, " Don't know how to set dirty path with Write Through [IWT_Unknown].", NULL);
+		return FALSE;
+	}
 
 	if (pcCurrent->IsDirty())
 	{
@@ -811,6 +824,14 @@ BOOL CIndexTreeFile::SetDeletedPath(CIndexTreeNodeFile* pcCurrent)
 	if (meWriteThrough == IWT_Yes)
 	{
 		return gcLogger.Error2(__METHOD__, " Cannot SetDeletedPath on an index tree that is write through.", NULL);
+	}
+	else if (meWriteThrough == IWT_No)
+	{
+	}
+	else 
+	{
+		gcLogger.Error2(__METHOD__, " Don't know how to flush data with Write Through [IWT_Unknown].", NULL);
+		return FALSE;
 	}
 
 	if (pcCurrent->IsDeleted())
@@ -1095,9 +1116,14 @@ BOOL CIndexTreeFile::Remove(void* pvKey, int iKeySize)
 			return FALSE;
 		}
 	}
-	else
+	else if (meWriteThrough == IWT_No)
 	{
 		return RemoveWaitForFlush(pcCurrent);
+	}
+	else
+	{
+		gcLogger.Error2(__METHOD__, " Don't know how to remove data with Write Through [IWT_Unknown].", NULL);
+		return FALSE;
 	}
 }
 
@@ -1292,6 +1318,14 @@ BOOL CIndexTreeFile::Evict(CIndexTreeNodeFile* pcNode)
 			return FALSE;
 		}
 	}
+	else if (meWriteThrough == IWT_Yes)
+	{
+	}
+	else 
+	{
+		gcLogger.Error2(__METHOD__, " Don't know how to evict data with Write Through [IWT_Unknown].", NULL);
+		return FALSE;
+	}
 
 	if (pcNode)
 	{
@@ -1375,6 +1409,14 @@ BOOL CIndexTreeFile::Flush(CIndexTreeNodeFile** ppcCurrent)
 	if (meWriteThrough == IWT_Yes)
 	{
 		return gcLogger.Error2(__METHOD__, " Cannot flush an index tree that is write through.", NULL);
+	}
+	else if (meWriteThrough == IWT_No)
+	{
+	}
+	else
+	{
+		gcLogger.Error2(__METHOD__, " Don't know how to flush data with Write Through [IWT_Unknown].", NULL);
+		return FALSE;
 	}
 
 	bDeleted = pcCurrent->IsDeleted();
@@ -1544,7 +1586,19 @@ size_t CIndexTreeFile::GetSystemMemorySize(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeFile::IsWriteThrough(void)
 {
-	return meWriteThrough;
+	if (meWriteThrough == IWT_Yes)
+	{
+		return TRUE;
+	}
+	else if (meWriteThrough == IWT_No)
+	{
+		return FALSE;
+	}
+	else
+	{
+		gcLogger.Error2(__METHOD__, " Don't know how to flush data with Write Through [IWT_Unknown].", NULL);
+		return FALSE;
+	}
 }
 
 
@@ -1602,6 +1656,14 @@ BOOL CIndexTreeFile::Flush(void)
 	if (meWriteThrough == IWT_Yes)
 	{
 		return gcLogger.Error2(__METHOD__, " Cannot flush an index tree that is write through.", NULL);
+	}
+	else if (meWriteThrough == IWT_No)
+	{
+	}
+	else
+	{
+		gcLogger.Error2(__METHOD__, " Don't know how to flush data with Write Through [IWT_Unknown].", NULL);
+		return FALSE;
 	}
 
 	bResult = FlushDeleted();
@@ -1764,9 +1826,14 @@ BOOL CIndexTreeFile::IsFlushed(void)
 
 		return bResult;
 	}
-	else
+	else if (meWriteThrough == IWT_Yes)
 	{
 		return TRUE;
+	}
+	else 
+	{
+		gcLogger.Error2(__METHOD__, " Don't know how to flush data with Write Through [IWT_Unknown].", NULL);
+		return FALSE;
 	}
 }
 

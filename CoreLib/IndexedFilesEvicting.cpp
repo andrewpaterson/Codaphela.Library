@@ -291,7 +291,7 @@ void CIndexedFilesEvicting::InvalidateData(CIndexedDataDescriptor* pcDescriptor)
 			mcDataCache.Invalidate(pcDescriptor->GetCache());
 			mcDataFiles.Delete(&cDataIndex);
 		}
-		else
+		else if (meWriteThrough == IWT_No)
 		{
 			pvCache = pcDescriptor->GetCache();
 			if (pvCache)
@@ -303,6 +303,11 @@ void CIndexedFilesEvicting::InvalidateData(CIndexedDataDescriptor* pcDescriptor)
 			{
 				mcDataFiles.Delete(&cDataIndex);
 			}
+		}
+		else 
+		{
+			gcLogger.Error2(__METHOD__, " Don't know how to flush data with Write Through [IWT_Unknown].", NULL);
+			return;
 		}
 	}
 	else
@@ -342,7 +347,7 @@ BOOL CIndexedFilesEvicting::SetData(OIndex oi, CIndexedDataDescriptor* pcDescrip
 			uiFileDataSize = uiDataSize;
 			bResult |= cPosIndex.HasFile();
 		}
-		else
+		else if (meWriteThrough == IWT_No)
 		{
 			if (pvNewCache != NULL)
 			{
@@ -359,6 +364,11 @@ BOOL CIndexedFilesEvicting::SetData(OIndex oi, CIndexedDataDescriptor* pcDescrip
 				cPosIndex.Init();
 				uiFileDataSize = 0;
 			}
+		}
+		else
+		{
+			gcLogger.Error2(__METHOD__, " Don't know how to set data with Write Through [IWT_Unknown].", NULL);
+			return FALSE;
 		}
 	}
 	else
