@@ -35,6 +35,8 @@ public:
 
 	template<class M>
 	void	Add(char* szConstructorName);
+	template<class M>
+	void	Add(void);
 
 	void*	Construct(const char* szName, CMallocator* pcMalloc);
 	int		NumConstructors(void);
@@ -53,6 +55,24 @@ void CConstructors::Add(char* szConstructorName)
 
 	iSize = sizeof(M);
 	pvM = (M*)mcConstructors.Put(szConstructorName, iSize);
+	memset(pvM, 0, iSize);
+	new(pvM) M();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+void CConstructors::Add(void)
+{
+	M*		pvM;
+	int		iSize;
+	M		m;
+
+	iSize = sizeof(M);
+	pvM = (M*)mcConstructors.Put(m.ClassName(), iSize);
 	memset(pvM, 0, iSize);
 	new(pvM) M();
 }
