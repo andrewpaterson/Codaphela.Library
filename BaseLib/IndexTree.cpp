@@ -267,10 +267,15 @@ BOOL CIndexTree::StartKey(int* pi, int iKeySize)
 		*pi = 0;
 		return *pi < iKeySize;
 	}
-	else
+	else if (meReverseKey == IKR_Yes)
 	{
 		*pi = iKeySize - 1;
 		return *pi >= 0;
+	}
+	else
+	{
+		gcLogger.Error2(__METHOD__, " Don't know how to start key traversal for key direction [IKR_Unknown].", NULL);
+		return FALSE;
 	}
 }
 
@@ -286,10 +291,15 @@ BOOL CIndexTree::LoopKey(int* pi, int iKeySize)
 		(*pi)++;
 		return *pi < iKeySize;
 	}
-	else
+	else if (meReverseKey == IKR_Yes)
 	{
 		(*pi)--;
 		return *pi >= 0;
+	}
+	else
+	{
+		gcLogger.Error2(__METHOD__, " Don't know how to loop key traversal for key direction [IKR_Unknown].", NULL);
+		return FALSE;
 	}
 }
 

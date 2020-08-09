@@ -42,42 +42,41 @@ void CIndexTreeConfig::Init(CFileReader* pcFileReader)
 //////////////////////////////////////////////////////////////////////////
 EIndexKeyReverse CIndexTreeConfig::ReadKeyReverse(CFileReader* pcFileReader)
 {
-	//int					iLength;
-	//CStackMemory<32>	cStack;
-	//char*				szName;
-	//EIndexKeyReverse	eKeyReverse;
+	int					iLength;
+	CStackMemory<32>	cStack;
+	char*				szName;
+	EIndexKeyReverse	eKeyReverse;
 
-	//if (!pcFileReader->ReadStringLength(&iLength))
-	//{
-	//	gcLogger.Error2(__METHOD__, " Could not read Key Reverse name length.", NULL);
-	//	return IKR_Unknown;
-	//}
+	if (!pcFileReader->ReadStringLength(&iLength))
+	{
+		gcLogger.Error2(__METHOD__, " Could not read Key Reverse name length.", NULL);
+		return IKR_Unknown;
+	}
 
-	//szName = (char*)cStack.Init(iLength);
-	//if (!pcFileReader->ReadStringChars(szName, iLength))
-	//{
-	//	gcLogger.Error2(__METHOD__, " Could not read Key Reverse name.", NULL);
-	//	cStack.Kill();
-	//	return IKR_Unknown;
-	//}
+	szName = (char*)cStack.Init(iLength);
+	if (!pcFileReader->ReadStringChars(szName, iLength))
+	{
+		gcLogger.Error2(__METHOD__, " Could not read Key Reverse name.", NULL);
+		cStack.Kill();
+		return IKR_Unknown;
+	}
 
-	//if (strcmp("IKR_Yes", szName) == 0)
-	//{
-	//	eKeyReverse = IKR_Yes;
-	//}
-	//else if (strcmp("IKR_No", szName) == 0)
-	//{
-	//	eKeyReverse = IKR_No;
-	//}
-	//else
-	//{
-	//	gcLogger.Error2(__METHOD__, " Could not match Key Reverse name.", NULL);
-	//	eKeyReverse = IKR_Unknown;
-	//}
-	//cStack.Kill();
+	if (strcmp("IKR_Yes", szName) == 0)
+	{
+		eKeyReverse = IKR_Yes;
+	}
+	else if (strcmp("IKR_No", szName) == 0)
+	{
+		eKeyReverse = IKR_No;
+	}
+	else
+	{
+		gcLogger.Error2(__METHOD__, " Could not match Key Reverse name.", NULL);
+		eKeyReverse = IKR_Unknown;
+	}
+	cStack.Kill();
 
-	//return eKeyReverse;
-	return IKR_No;
+	return eKeyReverse;
 }
 
 
