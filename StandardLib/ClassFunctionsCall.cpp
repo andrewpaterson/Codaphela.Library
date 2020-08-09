@@ -25,7 +25,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CClassFunctionsCall::Init(char* szClassName)
+void CClassFunctionsCall::Init(const char* szClassName)
 {
 	CListenerCall::Init();
 	mszClassName.Init(szClassName);

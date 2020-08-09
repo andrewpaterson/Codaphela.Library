@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "Logger.h"
 #include "Constructors.h"
 
 
@@ -54,6 +55,7 @@ void* CConstructors::Construct(const char* szName, CMallocator* pcMalloc)
 	pcConstructor = mcConstructors.Get(szName, &iSize);
 	if (!pcConstructor)
 	{
+		gcLogger.Error2(__METHOD__, " Could not find a Constructor named [", szName, "].", NULL);
 		return NULL;
 	}
 

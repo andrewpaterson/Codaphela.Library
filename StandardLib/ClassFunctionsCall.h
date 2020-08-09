@@ -31,7 +31,7 @@ public:
 
 	template<class M>
 	void 	Init(void);
-	void 	Init(char* szClassName);
+	void 	Init(const char* szClassName);
 	void 	Kill(void);
 
 	template <class M>

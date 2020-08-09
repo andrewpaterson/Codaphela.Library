@@ -28,7 +28,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 class CImageGreyToRGB : public CImageModifier
 {
-BASE_FUNCTIONS(CImageGreyToRGB);
+CONSTRUCTABLE(CImageGreyToRGB);
 public:
 	void Init(void);
 	void Kill(void);

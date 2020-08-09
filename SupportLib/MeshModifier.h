@@ -30,7 +30,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 class CMeshEditor;
 class CMeshModifier : public CUnknown
 {
-BASE_FUNCTIONS(CMeshModifier);
+CONSTRUCTABLE(CMeshModifier);
 public:
 	void			Kill(void);
 

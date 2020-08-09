@@ -30,7 +30,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 class CImageSourceMemory : public CImageSource
 {
 public:
-	BASE_FUNCTIONS(CImageSourceMemory);
+	CONSTRUCTABLE(CImageSourceMemory);
 
 	void Init(CImage* pcImage);
 	void Kill(void);

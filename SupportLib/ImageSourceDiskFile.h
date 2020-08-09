@@ -30,7 +30,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 class CImageSourceDiskFile : public CImageSource
 {
 public:
-	BASE_FUNCTIONS(CImageSourceDiskFile);
+	CONSTRUCTABLE(CImageSourceDiskFile);
 
 	CChars	mszFileName;
 

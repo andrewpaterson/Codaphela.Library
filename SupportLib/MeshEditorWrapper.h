@@ -34,7 +34,7 @@ struct SMeshNormalFace;
 struct SMeshUVFace;
 class CMeshEditorWrapper : public CUnknown
 {
-BASE_FUNCTIONS(CUnknown);
+CONSTRUCTABLE(CUnknown);
 public:
 
 	//Either/Or.

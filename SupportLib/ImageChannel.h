@@ -77,7 +77,7 @@ enum EImagePurpose	//3 bytes for purpose
 
 class CImageChannelsSource : public CUnknown
 {
-BASE_FUNCTIONS(CImageChannelsSource);
+CONSTRUCTABLE(CImageChannelsSource);
 public:
 	void				Kill(void);
 	virtual int			NumChannels(void) =0;
@@ -88,7 +88,7 @@ public:
 //Standard colours are R8 B8 G8 with R in the low byte.
 class CChannelRGB : CImageChannelsSource
 {
-BASE_FUNCTIONS(CChannelRGB);
+CONSTRUCTABLE(CChannelRGB);
 public:
 	static CImageChannelsSource* Get(void);
 
@@ -99,7 +99,7 @@ public:
 
 class CChannelRGBA : CImageChannelsSource
 {
-BASE_FUNCTIONS(CChannelRGBA);
+CONSTRUCTABLE(CChannelRGBA);
 public:
 	static CImageChannelsSource* Get(void);
 
@@ -110,7 +110,7 @@ public:
 
 class CChannelRGBX : CImageChannelsSource
 {
-BASE_FUNCTIONS(CChannelRGBX);
+CONSTRUCTABLE(CChannelRGBX);
 public:
 	static CImageChannelsSource* Get(void);
 

@@ -36,7 +36,7 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 
 class CMesh : public CNamedObject
 {
-BASE_FUNCTIONS(CMesh);
+CONSTRUCTABLE(CMesh);
 protected:
 	CMeshPositions		mcPositions;		
 	CMeshConnectivity	mcConnectivity;		

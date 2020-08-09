@@ -33,7 +33,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 class CInput : public CUnknown
 {
-BASE_FUNCTIONS(CInput);
+CONSTRUCTABLE(CInput);
 protected:
 	CInputDevices		mcDevices;
 	CInputActions		mcActions;

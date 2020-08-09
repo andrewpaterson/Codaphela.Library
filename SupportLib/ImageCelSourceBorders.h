@@ -26,7 +26,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 class CImageCelSourceBorders : public CImageCelSource
 {
-BASE_FUNCTIONS(CImageCelSourceBorders);
+CONSTRUCTABLE(CImageCelSourceBorders);
 public:
 	void Init(SImageColour* psTransparentColour = NULL, BOOL bIgnoreEmpty = TRUE, BOOL bCropTransparentBorders = TRUE);
 	void Kill(void);

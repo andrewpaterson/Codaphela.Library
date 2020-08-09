@@ -29,7 +29,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 class CInputListener : public CListener
 {
 public:
-	BASE_FUNCTIONS(CInputListener);
+	CONSTRUCTABLE(CInputListener);
 
 	virtual void InputEvent(CUnknown* pcSource, void* pvContext) {};
 };

@@ -26,7 +26,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 class CMapStringUnknown : public CMapCommon
 {
-BASE_FUNCTIONS(CMapStringUnknown);
+CONSTRUCTABLE(CMapStringUnknown);
 private:
 	CMapStringTemplate<CUnknown*>	mcMap;
 

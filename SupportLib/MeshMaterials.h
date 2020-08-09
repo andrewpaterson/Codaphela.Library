@@ -29,7 +29,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 class CMeshMaterials : public CMeshDetail
 {
-BASE_FUNCTIONS(CMeshMaterials);
+CONSTRUCTABLE(CMeshMaterials);
 public:
 	CArrayInt	mcMaterials;  //mcMaterials.NumElements is the number of materials in this mesh.  It maps 0 -> A, 1 -> B, 2 -> C
 							  //where A, B, C etc... are indexes in the Material Tracker.

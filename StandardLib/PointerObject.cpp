@@ -494,7 +494,7 @@ BOOL CPointer::IsNamed(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CPointer::ClassName(void)
+const char* CPointer::ClassName(void)
 {
 	if (mpcObject)
 	{

@@ -32,7 +32,7 @@ class CInputDeviceVariableValueDesc;
 class CInputDeviceVariable;
 class CInputDeviceVariableValue : public CUnknown
 {
-BASE_FUNCTIONS(CInputDeviceVariableValue);
+CONSTRUCTABLE(CInputDeviceVariableValue);
 protected:
 	CInputDeviceVariableValueDesc*	mpcDesc;  //For the Name!  In the King!
 	CInputDeviceVariableCondition	mcCondition;

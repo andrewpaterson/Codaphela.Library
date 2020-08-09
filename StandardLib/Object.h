@@ -31,7 +31,7 @@ friend class CPointer;
 friend class CObjects;
 friend class CObjectGraphDeserialiser;
 
-BASE_FUNCTIONS(CObject);
+CONSTRUCTABLE(CObject);
 protected:
 	CArrayTemplateEmbedded<CPointer*, 5>		mapPointers;  //Pointers in this object.  
 	CArrayTemplateEmbedded<CBaseObject*, 3>		mapEmbedded;  //Objects embedded in this object

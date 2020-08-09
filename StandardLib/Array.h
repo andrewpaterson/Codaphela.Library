@@ -28,7 +28,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 template<class M = CBaseObject>
 class CArray : public CArrayObject
 {
-BASE_FUNCTIONS(CArray);
+CONSTRUCTABLE(CArray);
 public:
 	Ptr<CArray<M>>	Init(void);
 	void			Kill(void);

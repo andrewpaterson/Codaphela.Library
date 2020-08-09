@@ -32,7 +32,7 @@ class CMeshPolygons;
 class CMeshConnectivity;
 class CMeshEdgeVisibility : public CUnknown
 {
-BASE_FUNCTIONS(CMeshEdgeVisibility);
+CONSTRUCTABLE(CMeshEdgeVisibility);
 public:
 	//0 if not visible, > 0 if visible.  Char value is supposed to represent visible style.  Larger numbers are more visible.
 	CArrayChar	mcEdges;  //mcEdges.NumElements == mpcMesh->mcEdges.NumElements

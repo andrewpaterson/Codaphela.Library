@@ -29,7 +29,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 class CTileImageCel : public CTile
 {
-BASE_FUNCTIONS(CTileImageCel);
+CONSTRUCTABLE(CTileImageCel);
 public:
 	CImageCel*	mpcImageCel;
 

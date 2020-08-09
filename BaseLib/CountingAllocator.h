@@ -18,20 +18,22 @@ protected:
 	size_t			mtSystemSize;
 
 public:
-	void		Init(CMallocator* pcAlloc);
-	void		Kill(void);
+	void			Init(CMallocator* pcAlloc);
+	void			Kill(void);
 
-	size_t		AllocatedUserSize(void);
-	size_t		AllocatedSystemSize(void);
+	size_t			AllocatedUserSize(void);
+	size_t			AllocatedSystemSize(void);
 
-	void*		Malloc(size_t tSize);
-	void*		Realloc(void* pv, size_t tSize);
-	void		Free(void* pv);
+	void*			Malloc(size_t tSize);
+	void*			Realloc(void* pv, size_t tSize);
+	void			Free(void* pv);
 
-	const char*	GetName(void);
+	//This looks so very wrong.  CONSTRUCTABLE(CCountingAllocator); should be used!
+	const char*		ClassName(void);
+	unsigned int	ClassSize(void);
 
-	BOOL		IsLocal(void);
-	size_t		SizeOffset(void);
+	BOOL			IsLocal(void);
+	size_t			SizeOffset(void);
 };
 
 

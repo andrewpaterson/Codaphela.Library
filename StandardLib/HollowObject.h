@@ -25,7 +25,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 class CHollowObject : public CBaseObject
 {
-BASE_FUNCTIONS(CHollowObject);
+CONSTRUCTABLE(CHollowObject);
 public:
 								CHollowObject(void);
 			void				Init(unsigned short iNumEmbedded);

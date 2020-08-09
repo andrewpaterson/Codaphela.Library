@@ -71,7 +71,7 @@ union UInputSourceTypeDetail
 class CInputSourceDesc;
 class CInputSourceValue : public CUnknown
 {
-BASE_FUNCTIONS(CInputSourceValue);
+CONSTRUCTABLE(CInputSourceValue);
 protected:
 	CInputDataFormat*			mpcDataFormat;
 	CInputSourceDesc*			mpcSourceDesc;

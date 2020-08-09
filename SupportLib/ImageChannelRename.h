@@ -29,7 +29,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 class CImageChannelRename : public CImageModifier
 {
-BASE_FUNCTIONS(CImageChannelRename);
+CONSTRUCTABLE(CImageChannelRename);
 public:
 	EChannel	meOldName;
 	EChannel	meNewName;

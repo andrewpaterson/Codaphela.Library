@@ -31,7 +31,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 class CMeshVertexArray : public CUnknown
 {
-BASE_FUNCTIONS(CMeshVertexArray);
+CONSTRUCTABLE(CMeshVertexArray);
 protected:
 	SMeshFaceType			msFaceType;
 	CVertexArray			mcVertexArray;

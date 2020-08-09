@@ -45,7 +45,7 @@ class CMeshPositions;
 class CMesh;
 class CMeshNormals : public CMeshDetail
 {
-BASE_FUNCTIONS(CMeshNormals);
+CONSTRUCTABLE(CMeshNormals);
 public:
 	CArrayFloat3			mcNormals;  //0 .. Flats, Flats+1 .. End
 	CArrayMeshFaceNormal	mcFaces;  //mcFaces.NumElements == mpcMesh->mcFaces.NumElements

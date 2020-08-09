@@ -28,7 +28,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 class CInputCategoryGeneric : public CUnknown
 {
-BASE_FUNCTIONS(CInputCategoryGeneric);
+CONSTRUCTABLE(CInputCategoryGeneric);
 protected:
 	CChars	mszName;
 

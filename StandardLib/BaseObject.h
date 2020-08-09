@@ -71,7 +71,7 @@ friend class CObjects;
 friend class CObjectRemapFrom;
 friend class CEmbeddedObject;
 
-BASE_FUNCTIONS(CBaseObject);
+CONSTRUCTABLE(CBaseObject);
 protected:
 	OIndex				moi;
 	CObjects*			mpcObjectsThisIn;

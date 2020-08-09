@@ -48,7 +48,7 @@ enum EImageResample
 class CImage;
 class CImageResampler : public CImageModifier
 {
-BASE_FUNCTIONS(CImageResampler);
+CONSTRUCTABLE(CImageResampler);
 private:
 	void GetPowerOf2Size(EPow2Style eStyle, int iSourceWidth, int iSourceHeight, int* piDestWidth, int* piDestHeight);
 	void ResampleTo(CImage* pcDest, CImage* pcSource);

@@ -63,7 +63,7 @@ typedef CArrayTemplate<CMeshSkinVert> CArrayMeshSkinVert;
 class CMeshConnectivity;
 class CMeshSkin : public CMeshDetail
 {
-BASE_FUNCTIONS(CMeshSkin);
+CONSTRUCTABLE(CMeshSkin);
 public:
 	CArrayMeshSkinVert	mcSkinVerts;  //mcSkinVerts.NumElements == mpcMesh->mcConnectivity.mcCorners.NumElements.  
 									  //And there is a one to one mapping between corners and positions thus:

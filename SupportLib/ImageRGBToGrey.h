@@ -37,7 +37,7 @@ enum ERGBToGreyStyle
 
 class CImageRGBToGrey : public CImageModifier
 {
-BASE_FUNCTIONS(CImageRGBToGrey);
+CONSTRUCTABLE(CImageRGBToGrey);
 public:
 	ERGBToGreyStyle meStyle;
 

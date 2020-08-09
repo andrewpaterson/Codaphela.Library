@@ -25,7 +25,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 class CSetUnknown : public CArrayCommonUnknown
 {
-BASE_FUNCTIONS(CSetUnknown);
+CONSTRUCTABLE(CSetUnknown);
 public:
 	void 		Init(void);
 	void 		Init(int iChunkSize);

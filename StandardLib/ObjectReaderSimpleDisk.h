@@ -6,7 +6,7 @@
 
 class CObjectReaderSimpleDisk : public CObjectReaderSimple
 {
-BASE_FUNCTIONS(CObjectReaderSimpleDisk);
+CONSTRUCTABLE(CObjectReaderSimpleDisk);
 protected:
 	CChars		mszFullDirectory;
 	CFileBasic	mcFile;

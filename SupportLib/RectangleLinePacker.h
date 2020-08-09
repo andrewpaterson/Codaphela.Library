@@ -28,7 +28,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 class CRectangleLinePacker : public CRectanglePacker
 {
-BASE_FUNCTIONS(CRectangleLinePacker);
+CONSTRUCTABLE(CRectangleLinePacker);
 protected:
 	CArrayPackedRectangle	macRectangles;
 	int						miOutsideEdgeWidth;

@@ -26,7 +26,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 class CObjectReaderChunkFile : public CObjectReader
 {
-BASE_FUNCTIONS(CObjectReaderChunkFile);
+CONSTRUCTABLE(CObjectReaderChunkFile);
 protected:
 	CChunkFileNames*	mpcChunkFile;
 

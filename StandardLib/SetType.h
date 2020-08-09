@@ -27,7 +27,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 template<class M>
 class CSetType : public CSetUnknown
 {
-BASE_FUNCTIONS(CSetType);
+CONSTRUCTABLE(CSetType);
 public:
 	void 	Init(void);
 	void 	Init(CUnknowns* pcUnknownsAllocatingFrom);

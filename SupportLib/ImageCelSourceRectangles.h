@@ -28,7 +28,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 class CImageCelSourceRectangles : public CImageCelSource
 {
-BASE_FUNCTIONS(CImageCelSourceRectangles);
+CONSTRUCTABLE(CImageCelSourceRectangles);
 protected:
 	CArrayRectangle mcRectangles;
 

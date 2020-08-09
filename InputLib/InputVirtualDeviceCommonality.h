@@ -28,7 +28,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 class CInputVirtualDevice;
 class CInputVirtualDeviceCommonality : public CUnknown
 {
-BASE_FUNCTIONS(CInputVirtualDeviceCommonality);
+CONSTRUCTABLE(CInputVirtualDeviceCommonality);
 protected:
 	CInputVirtualDevice*				mpcVirtualDevice;
 	CArrayTemplateMinimal<CInputVirtualDevice*>	mapcSharedDeviceSources;

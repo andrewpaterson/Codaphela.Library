@@ -29,7 +29,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 class CMeshFlatFaces : public CMeshModifier
 {
-BASE_FUNCTIONS(CMeshFlatFaces);
+CONSTRUCTABLE(CMeshFlatFaces);
 public:
 	void 	Init(void);
 	void 	Kill(void);

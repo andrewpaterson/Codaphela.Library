@@ -30,7 +30,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 class CImageRecolour : public CImageModifier
 {
-BASE_FUNCTIONS(CImageRecolour);
+CONSTRUCTABLE(CImageRecolour);
 public:
 	CRectangle		mcRectangle;
 	BOOL			mbWholeImage;

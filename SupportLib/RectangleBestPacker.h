@@ -31,7 +31,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 class CRectangleBestPacker : public CRectanglePacker
 {
-BASE_FUNCTIONS(CRectangleBestPacker)
+CONSTRUCTABLE(CRectangleBestPacker)
 private:
 	SInt2			GetSourcesSizes(void);
 

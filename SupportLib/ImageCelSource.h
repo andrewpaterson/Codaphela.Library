@@ -31,7 +31,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //Image Cel Sources can be used multiple times on different images.  They cannot carry the results of their divide.
 class CImageCelSource : public CUnknown
 {
-BASE_FUNCTIONS(CImageCelSource);
+CONSTRUCTABLE(CImageCelSource);
 protected:
 	BOOL			mbIgnoreEmpty;
 	SImageColour*	mpsTransparentColour;

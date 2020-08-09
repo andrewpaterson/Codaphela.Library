@@ -7,7 +7,7 @@ class CObjectReader;
 class CObjectReaderSimple;
 class CObjectSourceSimple : public CObjectSingleSource
 {
-BASE_FUNCTIONS(CObjectSourceSimple);
+CONSTRUCTABLE(CObjectSourceSimple);
 protected:
 	CObjectReaderSimple*	mpcReader;
 

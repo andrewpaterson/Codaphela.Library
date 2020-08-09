@@ -57,7 +57,7 @@ typedef CArrayTemplate<CMeshUVLayer>	CArrayMeshUVLayer;
 class CMeshConnectivity;
 class CMeshUVCoords : public CMeshDetail
 {
-BASE_FUNCTIONS(CMeshUVCoords)
+CONSTRUCTABLE(CMeshUVCoords)
 public:
 	CArrayMeshUVLayer	mcLayers;
 

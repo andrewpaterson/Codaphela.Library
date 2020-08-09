@@ -28,7 +28,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 class CMapCommon : public CUnknown
 {
-BASE_FUNCTIONS(CMapCommon);
+CONSTRUCTABLE(CMapCommon);
 protected:
 	int		miFlags;
 

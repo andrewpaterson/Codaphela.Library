@@ -5,7 +5,7 @@
 
 class CNamedHollowObject : public CHollowObject
 {
-BASE_FUNCTIONS(CNamedHollowObject);
+CONSTRUCTABLE(CNamedHollowObject);
 protected:
 	CChars	mon;
 

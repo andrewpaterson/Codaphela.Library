@@ -29,7 +29,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 class CMeshCache : public CMeshDetail
 {
-BASE_FUNCTIONS(CMeshCache);
+CONSTRUCTABLE(CMeshCache);
 public:
 	CMeshVertexArrayArray	mcMeshVerticesArrays;
 

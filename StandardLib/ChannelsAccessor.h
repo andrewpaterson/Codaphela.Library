@@ -27,7 +27,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 class CChannelsAccessor : public CUnknown
 {
-BASE_FUNCTIONS(CChannelsAccessor);
+CONSTRUCTABLE(CChannelsAccessor);
 protected:
 	CChannels*				mpcChannels;
 	CArrayChannelAccessor	macAccessors;

@@ -32,7 +32,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 class CInputDeviceVariableListener : public CListener
 {
 public:
-	BASE_FUNCTIONS(CInputDeviceVariableListener);
+	CONSTRUCTABLE(CInputDeviceVariableListener);
 
 	virtual void VariableAction(CUnknown* pcSource, void* pvContext) {};
 };

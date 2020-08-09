@@ -31,7 +31,7 @@ class CMeshPositions;
 class CMeshNormals;
 class CMeshBoundingBox : public CMeshDetail
 {
-BASE_FUNCTIONS(CMeshBoundingBox);
+CONSTRUCTABLE(CMeshBoundingBox);
 public:
 	CBoxIndexed		mcBox;
 

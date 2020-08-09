@@ -28,7 +28,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 class CTileBoolean : public CTile
 {
-BASE_FUNCTIONS(CTileBoolean);
+CONSTRUCTABLE(CTileBoolean);
 public:
 	BOOL	mbValue;
 

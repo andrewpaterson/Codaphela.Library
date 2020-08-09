@@ -25,7 +25,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 class CObjectReaderChunkFileDisk : public CObjectReaderChunkFile
 {
-BASE_FUNCTIONS(CObjectReaderChunkFileDisk);
+CONSTRUCTABLE(CObjectReaderChunkFileDisk);
 protected:
 	CChunkFileNames		mcChunkFile;
 	CChars				mszFileName;

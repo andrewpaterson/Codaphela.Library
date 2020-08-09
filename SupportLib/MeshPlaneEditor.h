@@ -29,7 +29,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 class CMeshPlaneEditor : public CMeshSourceModifier
 {
-BASE_FUNCTIONS(CMeshPlaneEditor);
+CONSTRUCTABLE(CMeshPlaneEditor);
 public:
 	SFloat3 	msXDirection;
 	SFloat3 	msYDirection; 

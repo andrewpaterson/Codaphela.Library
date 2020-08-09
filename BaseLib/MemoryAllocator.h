@@ -6,6 +6,7 @@
 
 class CMemoryAllocator : public CLocalMallocator
 {
+CONSTRUCTABLE(CMemoryAllocator);
 protected:
 	CGeneralMemory		mcMemory;
 

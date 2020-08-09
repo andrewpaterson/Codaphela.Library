@@ -35,7 +35,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 class CImage;
 class CImageAccessor : public CUnknown
 {
-BASE_FUNCTIONS(CImageAccessor);
+CONSTRUCTABLE(CImageAccessor);
 protected:
 	CChannelsAccessor*	mpcAccessor;
 	Ptr<CImage>			mpcImage;

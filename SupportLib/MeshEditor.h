@@ -34,7 +34,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 class CMesh;
 class CMeshEditor : public CUnknown
 {
-BASE_FUNCTIONS(CMeshEditor);
+CONSTRUCTABLE(CMeshEditor);
 public:
 	CMesh*					mpcMesh;
 	CMeshModifierStack		mcModifiers;

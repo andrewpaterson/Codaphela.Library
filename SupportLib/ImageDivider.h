@@ -30,7 +30,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 class CImageDivider : public CUnknown
 {
-BASE_FUNCTIONS(CImageDivider);
+CONSTRUCTABLE(CImageDivider);
 protected:
 	CImage*			mpcImage;
 

@@ -27,7 +27,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 class CObjectWriterSimple : public CObjectWriter, public CObjectIOSimple
 {
-BASE_FUNCTIONS(CObjectWriterSimple);
+CONSTRUCTABLE(CObjectWriterSimple);
 public:
 	void Init(char* szDirectory, char* szBaseName);
 	void Kill(void);

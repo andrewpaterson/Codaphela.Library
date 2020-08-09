@@ -34,7 +34,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 class CInputDevices;
 class CInputCategory : public CUnknown
 {
-BASE_FUNCTIONS(CInputCategory);
+CONSTRUCTABLE(CInputCategory);
 protected:
 	CChars						mszCategory;
 	CSetInputCategoryGeneric	mlcGenerics;

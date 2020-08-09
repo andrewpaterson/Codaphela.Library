@@ -27,7 +27,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 class CSerialisedObject;
 class CObjectWriter : public CUnknown
 {
-BASE_FUNCTIONS(CObjectWriter);
+CONSTRUCTABLE(CObjectWriter);
 protected:
 	CChars	mszDirectory;
 	CChars	mszObjectBaseName;

@@ -35,7 +35,7 @@ class CInputActions;
 class CInputChord;
 class CInputDevice : public CUnknown
 {
-BASE_FUNCTIONS(CInputDevice);
+CONSTRUCTABLE(CInputDevice);
 protected:
 	CInputDeviceDesc*			mpcDesc;
 	CChars						mszFriendlyName;

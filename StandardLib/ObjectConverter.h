@@ -8,7 +8,7 @@
 
 class CObjectConverter : public CUnknown
 {
-BASE_FUNCTIONS(CObjectConverter);
+CONSTRUCTABLE(CObjectConverter);
 public:
 			void			Kill(void);
 

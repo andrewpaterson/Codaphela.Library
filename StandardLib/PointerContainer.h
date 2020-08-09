@@ -6,7 +6,7 @@
 
 class CPointerContainer : public CObject
 {
-BASE_FUNCTIONS(CPointerContainer);
+CONSTRUCTABLE(CPointerContainer);
 public:
 	Ptr<>	mp;
 
@@ -25,7 +25,7 @@ public:
 
 class CNamedPointerContainer : public CNamedObject
 {
-BASE_FUNCTIONS(CNamedPointerContainer);
+CONSTRUCTABLE(CNamedPointerContainer);
 public:
 	Ptr<>	mp;
 

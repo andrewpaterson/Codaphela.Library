@@ -21,11 +21,11 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __UNKNOWN_H__
 #define __UNKNOWN_H__
 #include "BaseLib/ChunkFile.h"
-#include "Base.h"
+#include "BaseLib/Constructable.h"
 
 
 class CUnknowns;
-class CUnknown : public CBase
+class CUnknown : public CConstructable
 {
 protected:
 	CUnknowns*	mpcUnknownsThisIn;

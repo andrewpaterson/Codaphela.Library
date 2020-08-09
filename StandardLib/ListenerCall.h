@@ -42,7 +42,7 @@ public:
 	void			Init(void);
 	void			Kill(void);
 
-	void			AddAllowedClassName(char* szName);
+	void			AddAllowedClassName(const char* szName);
 	template <class M>
 	void			AddAllowedClass(void);
 	template <class M>
@@ -61,7 +61,7 @@ public:
 template <class M>
 void CListenerCall::AddAllowedClass(void)
 {
-	char*				szName;
+	const char*				szName;
 	M					cTemp;
 
 	szName = cTemp.ClassName();
@@ -78,7 +78,7 @@ BOOL CListenerCall::AddListener(M* pcListener)
 {
 	CListener*			pcCast;
 	CArrayListenerPtr*	pcArray;
-	char*				szName;
+	const char*			szName;
 	M					cTemp;
 
 	pcCast = pcListener;

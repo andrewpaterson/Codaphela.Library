@@ -33,7 +33,7 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 
 class CConnection : public CNamedObject
 {
-BASE_FUNCTIONS(CConnection);
+CONSTRUCTABLE(CConnection);
 public:
 
 	SFloat4x4			msWorldMatrix;

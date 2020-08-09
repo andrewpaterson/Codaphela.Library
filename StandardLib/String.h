@@ -7,7 +7,7 @@ class CObjectSerialiser;
 class CObjectDeserialiser;
 class CString : public CObject, public CChars
 {
-BASE_FUNCTIONS(CString);
+CONSTRUCTABLE(CString);
 public:
 	Ptr<CString>	Init(char* sz);
 	void			Kill(void);

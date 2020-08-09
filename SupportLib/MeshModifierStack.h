@@ -30,7 +30,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 class CMeshEditor;
 class CMeshModifierStack : public CUnknown
 {
-BASE_FUNCTIONS(CMeshModifierStack);
+CONSTRUCTABLE(CMeshModifierStack);
 protected:
 	CArrayUnknown	macEditors;  //Mesh | Editor 0 | Editor 1 | etc...
 	int				miCurrent;

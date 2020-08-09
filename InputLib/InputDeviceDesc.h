@@ -38,7 +38,7 @@ class CInputDeviceCopyContext;
 class CInputVirtualDeviceDesc;
 class CInputDeviceDesc : public CUnknown
 {
-BASE_FUNCTIONS(CInputDeviceDesc);
+CONSTRUCTABLE(CInputDeviceDesc);
 protected:
 	CChars								mszID;
 	CChars								mszFriendlyName;

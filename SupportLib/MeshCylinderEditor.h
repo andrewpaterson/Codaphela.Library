@@ -29,7 +29,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 class CMeshCylinderEditor : public CMeshSourceModifier
 {
-BASE_FUNCTIONS(CMeshCylinderEditor);
+CONSTRUCTABLE(CMeshCylinderEditor);
 public:
 	CMeshConeEditor		mcConeEditor;
 

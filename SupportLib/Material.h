@@ -28,7 +28,7 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 
 class CMaterial : public CNamedObject
 {
-BASE_FUNCTIONS(CMaterial);
+CONSTRUCTABLE(CMaterial);
 public:
 
 	CMaterialImage		msDiffuse;

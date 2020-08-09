@@ -27,7 +27,7 @@ class CObjectDeserialiser;
 class CEmbeddedObject : public CUnknown
 {
 friend class CPointer;
-BASE_FUNCTIONS(CEmbeddedObject);
+CONSTRUCTABLE(CEmbeddedObject);
 protected:
 	CBaseObject*								mpcEmbedded;  //Object that 'this' is embedded in.
 	CArrayTemplateEmbedded<CBaseObject*, 6>		mapHeapFroms;  //Objects on the heap that 'this' is pointed to from.  This is a BaseOject not an EmbeddedObject because HollowEmbeddedObjects cannot point to anything.

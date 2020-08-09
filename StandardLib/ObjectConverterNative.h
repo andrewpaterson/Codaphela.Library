@@ -11,7 +11,7 @@ class CIndexGenerator;
 class CObjectSource;
 class CObjectConverterNative : public CObjectConverter
 {
-BASE_FUNCTIONS(CObjectConverterNative);
+CONSTRUCTABLE(CObjectConverterNative);
 public:
 	CDependentReadObjects	mcDependentObjects;  //This is a field for testing purposes only.
 

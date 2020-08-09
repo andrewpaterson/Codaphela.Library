@@ -7,7 +7,7 @@
 
 class CObjectReader : public CUnknown
 {
-BASE_FUNCTIONS(CObjectReader);
+CONSTRUCTABLE(CObjectReader);
 public:
 			void				Kill(void);
 

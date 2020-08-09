@@ -29,7 +29,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 class CImageChannelAdd : public CImageModifier
 {
-BASE_FUNCTIONS(CImageChannelAdd);
+CONSTRUCTABLE(CImageChannelAdd);
 public:
 	EPrimitiveTypes		meType;
 	CArrayInt			maiChannels;

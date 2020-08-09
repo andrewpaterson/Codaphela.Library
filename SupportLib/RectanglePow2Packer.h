@@ -28,7 +28,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 class CRectanglePow2Packer : public CRectanglePacker
 {
-BASE_FUNCTIONS(CRectanglePow2Packer);
+CONSTRUCTABLE(CRectanglePow2Packer);
 protected:
 	CRectangleBestPacker	mcPacker;
 

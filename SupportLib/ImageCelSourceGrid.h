@@ -26,7 +26,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 class CImageCelSourceGrid : public CImageCelSource
 {
-BASE_FUNCTIONS(CImageCelSourceGrid);
+CONSTRUCTABLE(CImageCelSourceGrid);
 protected:
 	CImageDividerNumbers	mcNumbers;
 

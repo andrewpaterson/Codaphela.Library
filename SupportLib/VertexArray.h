@@ -30,7 +30,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 class CVertexArray : public CChannels
 {
-BASE_FUNCTIONS(CVertexArray);
+CONSTRUCTABLE(CVertexArray);
 protected:
 public:
 };

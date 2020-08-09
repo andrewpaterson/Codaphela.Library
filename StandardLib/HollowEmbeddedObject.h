@@ -7,7 +7,7 @@ class CObjects;
 class CHollowObject;
 class CHollowEmbeddedObject : public CEmbeddedObject
 {
-BASE_FUNCTIONS(CHollowEmbeddedObject);
+CONSTRUCTABLE(CHollowEmbeddedObject);
 public:
 	void				KillDontFree(void);
 	BOOL				Save(CObjectSerialiser* pcFile);

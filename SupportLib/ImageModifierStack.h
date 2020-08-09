@@ -31,7 +31,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 class CImageModifierStack : public CUnknown
 {
-BASE_FUNCTIONS(CImageModifierStack);
+CONSTRUCTABLE(CImageModifierStack);
 protected:
 	CArrayUnknown	macModifiers;  //Image | Modifier 0 | Modifier 1 | etc...
 	CImage*			mpcImage;

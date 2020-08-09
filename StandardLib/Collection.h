@@ -28,7 +28,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 class CObjects;
 class CCollection : public CBaseObject
 {
-BASE_FUNCTIONS(CCollection);
+CONSTRUCTABLE(CCollection);
 public:
 			void			Init(void);
 			void			Kill(void);

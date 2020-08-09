@@ -44,7 +44,7 @@ class CInputDeviceDesc;
 class CInputVirtualSourceDesc;
 class CInputChordCriteriaDesc : public CUnknown
 {
-BASE_FUNCTIONS(CInputChordCriteriaDesc);
+CONSTRUCTABLE(CInputChordCriteriaDesc);
 protected:
 	EInputChordCriteriaDescType		meType;
 	CInputChordDesc*				mpcChordDesc;
@@ -73,7 +73,7 @@ enum EInputChordCriteriaDescActiveType
 class CInputChordActiveDesc : public CInputChordCriteriaDesc
 {
 public:
-	BASE_FUNCTIONS(CInputChordActiveDesc);
+	CONSTRUCTABLE(CInputChordActiveDesc);
 
 	CInputSourceDesc*					mpcSourceDesc;  //Only valy valid for ICCDAT_SpecificSource.
 	int									miDescriptionID;  //Only valy valid for ICCDAT_SpecificSource.
@@ -94,7 +94,7 @@ public:
 class CInputChordCollectiveDesc : public CInputChordCriteriaDesc
 {
 public:
-	BASE_FUNCTIONS(CInputChordCollectiveDesc);
+	CONSTRUCTABLE(CInputChordCollectiveDesc);
 
 	CArrayInputChordCriteriaDesc	macCriteria;
 

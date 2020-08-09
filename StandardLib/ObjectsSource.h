@@ -29,7 +29,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 class CObjectSource;
 class CObjectsSource : public CUnknown
 {
-BASE_FUNCTIONS(CObjectsSource);
+CONSTRUCTABLE(CObjectsSource);
 protected:
 	CFiles				mcFiles;
 	CArrayUnknown		macSources;

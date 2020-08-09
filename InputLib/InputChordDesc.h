@@ -34,7 +34,7 @@ class CInputChordActiveDesc;
 class CInputChordCollectiveDesc;
 class CInputChordDesc : public CUnknown
 {
-BASE_FUNCTIONS(CInputChordDesc);
+CONSTRUCTABLE(CInputChordDesc);
 protected:
 	CInputChordCriteriaDesc*	mpcRootCriteriaDesc;
 	CChars						mszActionName;

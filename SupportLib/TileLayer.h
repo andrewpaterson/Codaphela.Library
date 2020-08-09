@@ -32,7 +32,7 @@ class CTileMap;
 class CTileType;
 class CTileLayer : public CUnknown
 {
-BASE_FUNCTIONS(CTileLayer);
+CONSTRUCTABLE(CTileLayer);
 public:
 	CArrayUnknown	macTiles;
 	CChars			mszname;

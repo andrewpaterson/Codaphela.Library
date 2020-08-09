@@ -32,7 +32,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 class CTileWorld;
 class CTileMap : public CUnknown
 {
-BASE_FUNCTIONS(CTileMap);
+CONSTRUCTABLE(CTileMap);
 public:
 	CArrayTileLayer		macTileLayers;
 	CChars				mszName;

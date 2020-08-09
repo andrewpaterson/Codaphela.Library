@@ -35,7 +35,7 @@ class CInputDeviceState;
 class CInputDeviceValues;
 class CInputSourceDesc : public CUnknown
 {
-BASE_FUNCTIONS(CInputSourceDesc);
+CONSTRUCTABLE(CInputSourceDesc);
 protected:
 	EInputSourceType				meType;  //If a connection event is sent then fValue is 0.0f for disconection and 1.0f for connection.
 	CChars							mszFriendlyName;

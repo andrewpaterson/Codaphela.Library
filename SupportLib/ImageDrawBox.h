@@ -29,7 +29,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 class CImageDrawBox : public CImageModifier
 {
-BASE_FUNCTIONS(CImageDrawBox);
+CONSTRUCTABLE(CImageDrawBox);
 public:
 	CRectangle		mcRectangle;
 	BOOL			mbWholeImage;

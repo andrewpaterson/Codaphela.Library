@@ -27,7 +27,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 class CObjectWriterChunked : public CObjectWriter, public CObjectIO
 {
-BASE_FUNCTIONS(CObjectWriterChunked);
+CONSTRUCTABLE(CObjectWriterChunked);
 protected:
 	CChunkFileNames		mcChunkFile;
 	CChars				mszFileName;

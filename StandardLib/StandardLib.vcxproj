@@ -88,7 +88,6 @@
   <ItemGroup>
     <ClInclude Include="Array.h" />
     <ClInclude Include="ArrayUnknownPtr.h" />
-    <ClInclude Include="Base.h" />
     <ClInclude Include="ChunkFileNames.h" />
     <ClInclude Include="DependentObjectAdder.h" />
     <ClInclude Include="DependentReadObject.h" />

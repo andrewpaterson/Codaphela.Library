@@ -6,7 +6,7 @@
 class CObjectSource;
 class CObjectConverterText : public CObjectConverter
 {
-BASE_FUNCTIONS(CObjectConverterText);
+CONSTRUCTABLE(CObjectConverterText);
 public:
 	void			Init(void);
 	void			Kill(void);

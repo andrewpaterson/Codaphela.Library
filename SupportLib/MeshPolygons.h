@@ -52,7 +52,7 @@ class CMeshConnectivity;
 class CMeshNormals;
 class CMeshPolygons : public CUnknown
 {
-BASE_FUNCTIONS(CMeshPolygons);
+CONSTRUCTABLE(CMeshPolygons);
 public:
 	CArrayMeshPolygon	mcPolygons;
 	CArrayInt			maiFacesToPolygons;

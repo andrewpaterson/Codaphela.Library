@@ -29,7 +29,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 class CMeshSelections : public CUnknown
 {
-BASE_FUNCTIONS(CMeshSelections);
+CONSTRUCTABLE(CMeshSelections);
 public:
 	CArrayBit	mcVerts;  //1 if selected.  mcVerts.NumElements == mpcMesh->mcPositions.NumElements
 	CArrayBit	mcEdges;  //mcEdges.NumElements == mpcMesh->mcEdges.NumElements
