@@ -828,6 +828,9 @@
     <ClInclude Include="Constructable.h">
       <Filter>Source\Constructor</Filter>
     </ClInclude>
+    <ClInclude Include="IndexTreeDataOrdererConstructors.h">
+      <Filter>Source\Data\Index\DataOrder</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -1312,6 +1315,9 @@
     </ClCompile>
     <ClCompile Include="IndexTreeConfig.cpp">
       <Filter>Source\Data\Index\Config</Filter>
+    </ClCompile>
+    <ClCompile Include="IndexTreeDataOrdererConstructors.cpp">
+      <Filter>Source\Data\Index\DataOrder</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

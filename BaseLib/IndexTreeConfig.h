@@ -7,7 +7,6 @@
 
 class CIndexTreeConfig
 {
-public:
 protected:
 	CMallocator*			mpcMalloc;
 	EIndexKeyReverse		meKeyReverse;
@@ -15,15 +14,19 @@ protected:
 	int						miMaxKeySize;
 	CIndexTreeDataOrderer*	mpcDataOrderer;
 
-	void				Init(CMallocator* pcMalloc, EIndexKeyReverse eKeyReverse, int iMaxDataSize, int iMaxKeySize, CIndexTreeDataOrderer* pcDataOrderer);
-	void				Init(CFileReader* pcFileReader);
+	void					Init(CMallocator* pcMalloc, EIndexKeyReverse eKeyReverse, int iMaxDataSize, int iMaxKeySize, CIndexTreeDataOrderer* pcDataOrderer);
+	BOOL					Init(CFileReader* pcFileReader);
+
+	BOOL					Write(CFileWriter* pcFileWrite);
 
 protected:
-	EIndexKeyReverse	ReadKeyReverse(CFileReader* pcFileReader);
-	BOOL				WriteKeyReverse(CFileWriter* pcFileWriter, EIndexKeyReverse	eKeyReverse);
+	BOOL					Read(CFileReader* pcFileReader);
 
-	CAccessDataOrderer*	ReadDataOrderer(CFileReader* pcFileReader);
-	BOOL				WriteDataOrderer(CFileWriter* pcFileWriter, CAccessDataOrderer*);
+	EIndexKeyReverse		ReadKeyReverse(CFileReader* pcFileReader);
+	BOOL					WriteKeyReverse(CFileWriter* pcFileWriter, EIndexKeyReverse	eKeyReverse);
+
+	CIndexTreeDataOrderer*	ReadDataOrderer(CFileReader* pcFileReader);
+	BOOL					WriteDataOrderer(CFileWriter* pcFileWriter, CIndexTreeDataOrderer*);
 };
 
 

@@ -11,7 +11,11 @@
 //////////////////////////////////////////////////////////////////////////
 void CIndexTreeConfig::Init(CMallocator* pcMalloc, EIndexKeyReverse eKeyReverse, int iMaxDataSize, int iMaxKeySize, CIndexTreeDataOrderer* pcDataOrderer)
 {
-
+	mpcMalloc = pcMalloc;
+	meKeyReverse = eKeyReverse;
+	miMaxDataSize = iMaxDataSize;
+	miMaxKeySize = iMaxKeySize;
+	mpcDataOrderer = pcDataOrderer;
 }
 
 
@@ -19,20 +23,9 @@ void CIndexTreeConfig::Init(CMallocator* pcMalloc, EIndexKeyReverse eKeyReverse,
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeConfig::Init(CFileReader* pcFileReader)
+BOOL CIndexTreeConfig::Init(CFileReader* pcFileReader)
 {
-	CMallocator*			pcMalloc;
-	EIndexKeyReverse		eKeyReverse;
-	int						iMaxDataSize;
-	int						iMaxKeySize;
-	CIndexTreeDataOrderer*	pcDataOrderer;
-
-	pcMalloc = gcMallocators.ReadMallocator(pcFileReader);
-	eKeyReverse = ReadKeyReverse(pcFileReader);
-	pcFileReader->ReadInt(&iMaxDataSize);
-	pcFileReader->ReadInt(&iMaxKeySize);
-	pcDataOrderer = ReadDataOrderer(pcFileReader);
-
+	return Read(pcFileReader);
 }
 
 
@@ -106,12 +99,12 @@ BOOL CIndexTreeConfig::WriteKeyReverse(CFileWriter* pcFileWriter, EIndexKeyRever
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CAccessDataOrderer* CIndexTreeConfig::ReadDataOrderer(CFileReader* pcFileReader)
+CIndexTreeDataOrderer* CIndexTreeConfig::ReadDataOrderer(CFileReader* pcFileReader)
 {
-	int					iLength;
-	CStackMemory<1024>	cStack;
-	char*				szName;
-	CAccessDataOrderer* pcDataOrderer;
+	int						iLength;
+	CStackMemory<1024>		cStack;
+	char*					szName;
+	CIndexTreeDataOrderer* pcDataOrderer;
 
 	if (!MemoryValidate())
 	{
@@ -145,8 +138,71 @@ CAccessDataOrderer* CIndexTreeConfig::ReadDataOrderer(CFileReader* pcFileReader)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeConfig::WriteDataOrderer(CFileWriter* pcFileWriter, CAccessDataOrderer*)
+BOOL CIndexTreeConfig::WriteDataOrderer(CFileWriter* pcFileWriter, CIndexTreeDataOrderer* pcDataOrderer)
 {
-	return FALSE;
+	return pcFileWriter->WriteString(pcDataOrderer->ClassName());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeConfig::Write(CFileWriter* pcFileWriter)
+{
+	BOOL	bResult;
+
+	bResult = gcMallocators.WriteMallocator(pcFileWriter, mpcMalloc);
+	ReturnOnFalse(bResult);
+	bResult = WriteKeyReverse(pcFileWriter, meKeyReverse);
+	ReturnOnFalse(bResult);
+	bResult = pcFileWriter->WriteInt(miMaxDataSize);
+	ReturnOnFalse(bResult);
+	bResult = pcFileWriter->WriteInt(miMaxKeySize);
+	ReturnOnFalse(bResult);
+	bResult = WriteDataOrderer(pcFileWriter, mpcDataOrderer);
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeConfig::Read(CFileReader* pcFileReader)
+{
+	CMallocator*			pcMalloc;
+	EIndexKeyReverse		eKeyReverse;
+	int						iMaxDataSize;
+	int						iMaxKeySize;
+	CIndexTreeDataOrderer*	pcDataOrderer;
+	BOOL					bResult;
+
+	pcMalloc = gcMallocators.ReadMallocator(pcFileReader);
+	if (pcMalloc == NULL)
+	{
+		return FALSE;
+	}
+
+	eKeyReverse = ReadKeyReverse(pcFileReader);
+	if (eKeyReverse == IKR_Unknown)
+	{
+		return FALSE;
+	}
+
+	bResult = pcFileReader->ReadInt(&iMaxDataSize);
+	ReturnOnFalse(bResult);
+
+	bResult = pcFileReader->ReadInt(&iMaxKeySize);
+	ReturnOnFalse(bResult);
+
+	pcDataOrderer = ReadDataOrderer(pcFileReader);
+	if (pcDataOrderer == NULL)
+	{
+		return FALSE;
+	}
+
+	Init(pcMalloc, eKeyReverse, iMaxDataSize, iMaxKeySize, pcDataOrderer);
+	return TRUE;
 }
 
