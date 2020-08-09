@@ -24,6 +24,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "BaseLib/FileUtil.h"
 #include "BaseLib/FastFunctions.h"
 #include "BaseLib/PointerFunctions.h"
+#include "BaseLib/Logger.h"
 #include "IndexedData.h"
 
 
@@ -125,6 +126,14 @@ BOOL CIndexedData::Flush(BOOL bClearDataCache)
 		bRresult &= mcData.Flush(bClearDataCache);
 		bRresult = mcIndices.Flush();
 		return bRresult;
+	}
+	else if (meWriteThrough == IWT_Yes)
+	{
+	}
+	else
+	{
+		gcLogger.Error2(__METHOD__, " Don't know how to flush data with Write Through [IWT_Unknown].", NULL);
+		return FALSE;
 	}
 	return TRUE;
 }

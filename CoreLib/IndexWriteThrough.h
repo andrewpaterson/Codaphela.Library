@@ -4,6 +4,7 @@
 
 enum EIndexWriteThrough
 {
+	IWT_Unknown,
 	IWT_No,
 	IWT_Yes
 };
