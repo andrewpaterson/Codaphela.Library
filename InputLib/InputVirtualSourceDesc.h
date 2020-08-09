@@ -30,7 +30,7 @@ class CInputVirtualDeviceDesc;
 class CInputSourceDesc;
 class CInputVirtualSourceDesc : public CUnknown
 {
-BASE_FUNCTIONS(CInputVirtualSourceDesc);
+CONSTRUCTABLE(CInputVirtualSourceDesc);
 protected:
 	CInputSourceDesc*			mpcSourceDesc;  //CInputDeviceDesc* is found from the source desc.
 	CInputVirtualDeviceDesc*	mpcVirtualDeviceDesc;

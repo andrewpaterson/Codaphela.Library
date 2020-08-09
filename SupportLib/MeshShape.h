@@ -32,7 +32,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 class CMesh;
 class CMeshShape : public CUnknown
 {
-BASE_FUNCTIONS(CMeshShape);
+CONSTRUCTABLE(CMeshShape);
 public:
 	CMesh*				mpcMesh;
 	CMeshTriangles		mcTriangles;		//Touched, Depends: Normals

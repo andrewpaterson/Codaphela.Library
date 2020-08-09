@@ -28,7 +28,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 class CInputDataFormats : public CUnknown
 {
-BASE_FUNCTIONS(CInputDataFormats);
+CONSTRUCTABLE(CInputDataFormats);
 protected:
 	CSetInputDataFormat	mlcFormats;
 

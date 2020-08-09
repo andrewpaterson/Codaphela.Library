@@ -71,7 +71,7 @@ class CMeshColours;
 class CMesh;
 class CMeshFaceTypes : public CMeshDetail
 {
-BASE_FUNCTIONS(CMeshFaceTypes);
+CONSTRUCTABLE(CMeshFaceTypes);
 public:
 	CArrayMeshFaceType	mcFaces;
 	CArrayMeshFaceType	mcUniqueTypes;

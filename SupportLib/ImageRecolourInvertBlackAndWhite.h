@@ -28,7 +28,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 class CImageRecolourInvertBlackAndWhite : public CImageRecolour
 {
-BASE_FUNCTIONS(CImageRecolourInvertBlackAndWhite);
+CONSTRUCTABLE(CImageRecolourInvertBlackAndWhite);
 public:
 	CImageColourARGB	cARGB0000;
 	CImageColourARGB	cARGB1111;

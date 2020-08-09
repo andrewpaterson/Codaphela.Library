@@ -30,7 +30,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 class CImage;
 class CPixelOpacityBase : public CUnknown
 {
-BASE_FUNCTIONS(CPixelOpacityBase);
+CONSTRUCTABLE(CPixelOpacityBase);
 public:
 	virtual void Kill(void);
 	virtual BOOL IsTransparent(int x, int y) =0;
@@ -39,7 +39,7 @@ public:
 
 class CPixelOpacityChannel : public CPixelOpacityBase
 {
-BASE_FUNCTIONS(CPixelOpacityChannel);
+CONSTRUCTABLE(CPixelOpacityChannel);
 protected:
 	CImageAccessor*		mpcOpacityChannel;
 	BOOL				mbHasOpacity;
@@ -54,7 +54,7 @@ public:
 
 class CPixelOpacityTransparentColour : public CPixelOpacityChannel
 {
-BASE_FUNCTIONS(CPixelOpacityTransparentColour);
+CONSTRUCTABLE(CPixelOpacityTransparentColour);
 protected:
 	SImageColour		msTransparentColour;
 	CImageAccessor*		mpcAllChannels;
@@ -69,7 +69,7 @@ public:
 
 class CPixelOpacityMask : public CPixelOpacityChannel
 {
-BASE_FUNCTIONS(CPixelOpacityMask);
+CONSTRUCTABLE(CPixelOpacityMask);
 protected:
 	CImageAccessor*		mpcMaskChannel;
 	short				miMask;
@@ -84,7 +84,7 @@ public:
 
 class CPixelOpacityMaskTransparentColour : public CPixelOpacityMask
 {
-BASE_FUNCTIONS(CPixelOpacityMaskTransparentColour);
+CONSTRUCTABLE(CPixelOpacityMaskTransparentColour);
 protected:
 	SImageColour		msTransparentColour;
 	CImageAccessor*		mpcAllChannels;

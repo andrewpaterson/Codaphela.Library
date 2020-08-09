@@ -11,19 +11,21 @@ protected:
 	CArrayBlockSorted					mapv;
 
 public:
-	void		Init(CMallocator* pcAlloc);
-	void		Kill(void);
+	void			Init(CMallocator* pcAlloc);
+	void			Kill(void);
 
-	int			AllocatedCount(void);
+	int				AllocatedCount(void);
 
-	void*		Malloc(size_t tSize);
-	void*		Realloc(void* pv, size_t tSize);
-	void		Free(void* pv);
+	void*			Malloc(size_t tSize);
+	void*			Realloc(void* pv, size_t tSize);
+	void			Free(void* pv);
 
-	const char*	GetName(void);
+	//This looks so very wrong.  CONSTRUCTABLE(CCountingAllocator); should be used!
+	const char*		ClassName(void);
+	unsigned int	ClassSize(void);
 
-	BOOL		IsLocal(void);
-	size_t		SizeOffset(void);
+	BOOL			IsLocal(void);
+	size_t			SizeOffset(void);
 };
 
 

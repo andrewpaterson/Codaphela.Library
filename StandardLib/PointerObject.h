@@ -73,7 +73,7 @@ public:
 	OIndex				GetIndex(void);
 	char*				GetName(void);
 	BOOL				IsNamed(void);
-	char*				ClassName(void);
+	const char*			ClassName(void);
 	BOOL				IsDirty(void);
 	BOOL				IsEmbeddingAllocatedInObjects(void);
 	void				Kill(void);

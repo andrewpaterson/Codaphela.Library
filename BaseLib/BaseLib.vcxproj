@@ -106,12 +106,14 @@
     <ClInclude Include="ChunkFileFile.h" />
     <ClInclude Include="ChunkFileHeader.h" />
     <ClInclude Include="ChunkStack.h" />
+    <ClInclude Include="Constructable.h" />
     <ClInclude Include="CountingAllocator.h" />
     <ClInclude Include="CreationDataOrderer.h" />
     <ClInclude Include="DataMemory.h" />
     <ClInclude Include="FilePathBuilder.h" />
     <ClInclude Include="IndexKeyReverse.h" />
     <ClInclude Include="IndexTreeAccess.h" />
+    <ClInclude Include="IndexTreeConfig.h" />
     <ClInclude Include="IndexTreeDataNode.h" />
     <ClInclude Include="IndexTreeDataOrderer.h" />
     <ClInclude Include="IndexTreeIterator.h" />
@@ -331,6 +333,7 @@
     <ClCompile Include="GuidClass.cpp" />
     <ClCompile Include="IndexTree.cpp" />
     <ClCompile Include="IndexTreeAccess.cpp" />
+    <ClCompile Include="IndexTreeConfig.cpp" />
     <ClCompile Include="IndexTreeDataNode.cpp" />
     <ClCompile Include="IndexTreeDataOrderer.cpp" />
     <ClCompile Include="IndexTreeIterator.cpp" />

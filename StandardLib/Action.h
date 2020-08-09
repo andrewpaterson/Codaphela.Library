@@ -28,7 +28,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //For instance: A timer alarm cannot invoke an action that expects an input event.
 class CAction : public CUnknown
 {
-BASE_FUNCTIONS(CAction);
+CONSTRUCTABLE(CAction);
 protected:
 	CClassFunctionsCall		mcFunction;
 	CChars					mszName;

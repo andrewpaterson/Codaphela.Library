@@ -45,7 +45,7 @@ void CListenerCall::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CListenerCall::AddAllowedClassName(char* szName)
+void CListenerCall::AddAllowedClassName(const char* szName)
 {
 	CArrayListenerPtr*	pcArray;
 

@@ -1,6 +1,7 @@
 #ifndef __INDEX_TREE_DATA_ORDERER_H__
 #define __INDEX_TREE_DATA_ORDERER_H__
 #include "LinkedList.h"
+#include "Constructable.h"
 #include "IndexTreeDataNode.h"
 
 
@@ -12,7 +13,7 @@ struct SDataOrderIterator
 
 
 class CIndexTree;
-class CIndexTreeDataOrderer
+class CIndexTreeDataOrderer : public CConstructable
 {
 protected:
 	CLinkedList		mcDataOrder;

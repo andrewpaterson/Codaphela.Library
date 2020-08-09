@@ -26,7 +26,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 class CNamedIndexedData;
 class CObjectWriterIndexed : public CObjectWriter
 {
-BASE_FUNCTIONS(CObjectWriterIndexed);
+CONSTRUCTABLE(CObjectWriterIndexed);
 protected:
 	CNamedIndexedData*	mpcIndexedData;
 	unsigned int		muiTimeStamp;

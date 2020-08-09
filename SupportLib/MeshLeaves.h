@@ -86,7 +86,7 @@ class CMeshPositions;
 class CMeshTriangles;
 class CMeshLeaves : public CMeshDetail
 {
-BASE_FUNCTIONS(CMeshLeaves);
+CONSTRUCTABLE(CMeshLeaves);
 public:
 	CArrayMeshLeaf	mcLeaves;
 

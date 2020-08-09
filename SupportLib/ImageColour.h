@@ -47,7 +47,7 @@ struct SImageColour
 
 class CImageColour : public CUnknown
 {
-BASE_FUNCTIONS(CImageColour);
+CONSTRUCTABLE(CImageColour);
 public:
 	void			Init(void);
 	void			Kill(void);
@@ -60,7 +60,7 @@ public:
 //Need separate R, G and B colours also.
 class CImageColourRGB : public CImageColour
 {
-BASE_FUNCTIONS(CImageColourRGB);
+CONSTRUCTABLE(CImageColourRGB);
 public:
 	float	r;
 	float	g;
@@ -78,7 +78,7 @@ public:
 
 class CImageColourARGB : public CImageColour
 {
-BASE_FUNCTIONS(CImageColourARGB);
+CONSTRUCTABLE(CImageColourARGB);
 public:
 	float	a;
 	float	r;
@@ -98,7 +98,7 @@ public:
 
 class CImageColourOpacity : public CImageColour
 {
-BASE_FUNCTIONS(CImageColourOpacity);
+CONSTRUCTABLE(CImageColourOpacity);
 public:
 	float	a;
 
@@ -114,7 +114,7 @@ public:
 
 class CImageColourSpecular : public CImageColour
 {
-BASE_FUNCTIONS(CImageColourSpecular);
+CONSTRUCTABLE(CImageColourSpecular);
 public:
 	float	s;
 
@@ -130,7 +130,7 @@ public:
 
 class CImageColourNormal : public CImageColour
 {
-BASE_FUNCTIONS(CImageColourNormal);
+CONSTRUCTABLE(CImageColourNormal);
 public:
 	float	x;
 	float	y;
@@ -148,7 +148,7 @@ public:
 
 class CImageColourCombo2 : public CImageColour
 {
-BASE_FUNCTIONS(CImageColourCombo2);
+CONSTRUCTABLE(CImageColourCombo2);
 public:
 	CImageColour*	cImageColours[2];
 

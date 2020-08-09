@@ -34,7 +34,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 class CImageSourceWithCelSources : public CUnknown
 {
-BASE_FUNCTIONS(CImageSourceWithCelSources);
+CONSTRUCTABLE(CImageSourceWithCelSources);
 protected:
 	CImageSource*		mpcImageSource;
 	CImageCelSource*	mpcCelsSource;
@@ -53,7 +53,7 @@ typedef CArrayType<CImageSourceWithCelSources> CArrayImageSourceWithCelSources;
 //This class *does not* add the Cels to a Group because they probably need to be hit with the Image Combiner first.
 class CImageCelsSource : public CUnknown
 {
-BASE_FUNCTIONS(CImageCelsSource);
+CONSTRUCTABLE(CImageCelsSource);
 protected:
 	BOOL								mbPackOnLoad;	//This will crop transparent edges as the image is loaded to save memory.
 														//Also cropped images don't need the mask image.

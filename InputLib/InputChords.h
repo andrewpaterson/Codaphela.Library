@@ -58,7 +58,7 @@ struct SChordInputEvent
 class CInputChords : public CInputListener
 {
 public:
-	BASE_FUNCTIONS(CInputChords);
+	CONSTRUCTABLE(CInputChords);
 
 	CSetInputSourceEvaluators	mscEvaluators;
 	CSetInputChords				mlcChords;

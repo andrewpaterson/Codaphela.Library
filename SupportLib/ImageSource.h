@@ -34,7 +34,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //Or you can call TakeControl() which will stop the image from being killed.
 class CImageSource : public CUnknown
 {
-BASE_FUNCTIONS(CImageSource);
+CONSTRUCTABLE(CImageSource);
 protected:
 	CChars			mszImageName;
 	Ptr<CImage>		mpcImage;

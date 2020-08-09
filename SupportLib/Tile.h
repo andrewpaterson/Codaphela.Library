@@ -30,7 +30,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 class CTileType;
 class CTile : public CUnknown
 {
-BASE_FUNCTIONS(CTile);
+CONSTRUCTABLE(CTile);
 public:
 	CTileType*	mpcType;
 	CChars		mszName;

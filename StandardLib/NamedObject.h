@@ -30,7 +30,7 @@ class CNamedObject : public CObject
 {
 friend class CNamedIndexedObjects;
 
-BASE_FUNCTIONS(CNamedObject);
+CONSTRUCTABLE(CNamedObject);
 protected:
 	CChars	mon;
 

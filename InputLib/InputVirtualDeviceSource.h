@@ -42,7 +42,7 @@ enum EInputDevice
 class CInputDevice;
 class CInputVirtualDeviceSource : public CUnknown
 {
-BASE_FUNCTIONS(CInputVirtualDeviceSource);
+CONSTRUCTABLE(CInputVirtualDeviceSource);
 protected:
 	SInputDeviceValueSource		msSource;
 

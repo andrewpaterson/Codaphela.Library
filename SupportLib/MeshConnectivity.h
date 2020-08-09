@@ -50,7 +50,7 @@ typedef	CArrayTemplate<CCornerEdgesMap>		CArrayCornerEdgesMap;
 //Positions belongs in here, not separate.
 class CMeshConnectivity : public CMeshDetail
 {
-BASE_FUNCTIONS(CMeshConnectivity);
+CONSTRUCTABLE(CMeshConnectivity);
 public:
 	CArrayCorner			mcCorners;
 	CArrayEdge				mcEdges;

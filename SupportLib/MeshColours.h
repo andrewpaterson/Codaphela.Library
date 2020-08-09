@@ -38,7 +38,7 @@ typedef CArrayTemplate<SMeshFaceColour>	CArrayMeshFaceColours;
 
 class CMeshColours : public CMeshDetail
 {
-BASE_FUNCTIONS(CMeshColours);
+CONSTRUCTABLE(CMeshColours);
 public:
 	CArrayInt				mcColours;
 	CArrayMeshFaceColours	mcFaces;  //mcFaces.NumElements == mpcMesh->mcFaces.NumElements.

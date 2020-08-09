@@ -220,6 +220,9 @@
     <Filter Include="Source\Data\Types\Tree">
       <UniqueIdentifier>{4cd9ae6e-01e1-4483-a044-dd7486b0ac0b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Data\Index\Config">
+      <UniqueIdentifier>{c1e708a4-821d-4ea7-b54d-59335c8299f2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DataMacro.h">
@@ -819,6 +822,12 @@
     <ClInclude Include="IndexTreeIterator.h">
       <Filter>Source\Data\Index</Filter>
     </ClInclude>
+    <ClInclude Include="IndexTreeConfig.h">
+      <Filter>Source\Data\Index\Config</Filter>
+    </ClInclude>
+    <ClInclude Include="Constructable.h">
+      <Filter>Source\Constructor</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -1300,6 +1309,9 @@
     </ClCompile>
     <ClCompile Include="IndexTreeIterator.cpp">
       <Filter>Source\Data\Index</Filter>
+    </ClCompile>
+    <ClCompile Include="IndexTreeConfig.cpp">
+      <Filter>Source\Data\Index\Config</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

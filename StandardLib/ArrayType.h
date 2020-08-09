@@ -27,7 +27,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 template<class M>
 class CArrayType : public CArrayUnknown
 {
-BASE_FUNCTIONS(CArrayType);
+CONSTRUCTABLE(CArrayType);
 public:
 	void 	Init(void);
 	void 	Init(CUnknowns* pcUnknownsAllocatingFrom);

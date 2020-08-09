@@ -51,7 +51,7 @@ class CImageAccessor;
 
 class CImage : public CNamedObject
 {
-BASE_FUNCTIONS(CImage);
+CONSTRUCTABLE(CImage);
 public:
 	CChannels				mcChannels;
 	int						miWidth;

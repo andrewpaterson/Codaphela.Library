@@ -38,7 +38,7 @@ class CInputDevices;
 class CInputDeviceValues;
 class CInputVirtualDevice : public CUnknown
 {
-BASE_FUNCTIONS(CInputVirtualDevice);
+CONSTRUCTABLE(CInputVirtualDevice);
 protected:
 	CChars							mszName;
 	CSetInputVirtualDeviceSource	mlcHistorySources;

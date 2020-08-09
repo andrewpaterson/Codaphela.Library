@@ -67,7 +67,7 @@ typedef CArrayTemplate<CAnimKeyFrame>	CArrayAnimKeyFrame;
 
 class CSequence : public CNamedObject
 {
-BASE_FUNCTIONS(CSequence);
+CONSTRUCTABLE(CSequence);
 public:
 	CArrayAnimKeyFrame	masKeyFrames;
 	int					miConnectionIndex;  //The connection this key-frame animates

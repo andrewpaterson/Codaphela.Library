@@ -29,7 +29,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 class CMeshRingEditor : public CMeshSourceModifier
 {
-BASE_FUNCTIONS(CMeshRingEditor);
+CONSTRUCTABLE(CMeshRingEditor);
 public:
 	SFloat3 	msZDirection;
 	SFloat3 	msStart;

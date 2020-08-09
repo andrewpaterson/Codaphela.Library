@@ -35,7 +35,7 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 class CInstance : public CNamedObject
 {
 public:
-	BASE_FUNCTIONS(CInstance);
+	CONSTRUCTABLE(CInstance);
 
 	ETrackerType		meType;  //Which Tracker to look this object up in.
 	int					miObjectIndex;

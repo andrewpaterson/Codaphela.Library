@@ -38,7 +38,7 @@ BOOL CMallocators::AddMallocator(CMallocator* pcMallocator)
 {
 	char*	sz;
 
-	sz = (char*)(pcMallocator->GetName());
+	sz = (char*)(pcMallocator->ClassName());
 	if (mmszcMallocators.Get(sz))
 	{
 		gcLogger.Error2(__METHOD__, " A mallocator named [", sz, "] already exists.", NULL);
@@ -68,7 +68,7 @@ CMallocator* CMallocators::ReadMallocator(CFileReader* pcFileReader)
 
 	if (!pcFileReader->ReadStringLength(&iLength))
 	{
-		gcLogger.Error("Could not read mallocator name length.");
+		gcLogger.Error2(__METHOD__, " Could not read mallocator name length.", NULL);
 		return FALSE;
 	}
 
@@ -93,15 +93,15 @@ CMallocator* CMallocators::ReadMallocator(CFileReader* pcFileReader)
 	if ((*ppcMallocator)->IsLocal())
 	{
 		pcLocalMallocator = (CLocalMallocator*)(*ppcMallocator);
-		pcLocalMallocator = (CLocalMallocator*)gcConstructors.Construct(pcLocalMallocator->GetName(), &gcSystemAllocator);
+		pcLocalMallocator = (CLocalMallocator*)gcConstructors.Construct(pcLocalMallocator->ClassName(), &gcSystemAllocator);
 		if (!pcLocalMallocator)
 		{
-			gcLogger.Error2(__METHOD__, " Could not construct local mallocator [", (*ppcMallocator)->GetName(), "].", NULL);
+			gcLogger.Error2(__METHOD__, " Could not construct local mallocator [", (*ppcMallocator)->ClassName(), "].", NULL);
 			return NULL;
 		}
 		if (!pcLocalMallocator->Read(pcFileReader))
 		{
-			gcLogger.Error2(__METHOD__, " Could not read local mallocator [", pcLocalMallocator->GetName(), "].", NULL);
+			gcLogger.Error2(__METHOD__, " Could not read local mallocator [", pcLocalMallocator->ClassName(), "].", NULL);
 			return NULL;
 		}
 		else
@@ -135,9 +135,9 @@ BOOL CMallocators::WriteMallocator(CFileWriter* pcFileWriter, CMallocator* pcMal
 		return FALSE;
 	}
 
-	if (!pcFileWriter->WriteString(pcMallocator->GetName()))
+	if (!pcFileWriter->WriteString(pcMallocator->ClassName()))
 	{
-		gcLogger.Error2(__METHOD__, " Could not write mallocator name [", pcMallocator->GetName(), "].", NULL);
+		gcLogger.Error2(__METHOD__, " Could not write mallocator name [", pcMallocator->ClassName(), "].", NULL);
 		return FALSE;
 	}
 

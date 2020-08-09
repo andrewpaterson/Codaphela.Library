@@ -27,7 +27,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 class CChannelsAccessorWorstCase : public CChannelsAccessor
 {
 public:
-	BASE_FUNCTIONS(CChannelsAccessorWorstCase);
+	CONSTRUCTABLE(CChannelsAccessorWorstCase);
 
 	void*	Get(int iPos);
 	void	Set(int iPos, void* pvData);  //No bit offset for source, it's byte aligned.

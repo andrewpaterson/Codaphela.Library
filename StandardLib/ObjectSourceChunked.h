@@ -8,7 +8,7 @@ class CObjectReader;
 class CObjectReaderChunkFile;
 class CObjectSourceChunked : public CObjectSource
 {
-BASE_FUNCTIONS(CObjectSourceChunked);
+CONSTRUCTABLE(CObjectSourceChunked);
 protected:
 	CArrayChars				mcNames;
 	CChunkFileNames				mcChunkFile;

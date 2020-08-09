@@ -5,6 +5,7 @@
 
 class CNullAllocator : public CMallocator
 {
+CONSTRUCTABLE(CNullAllocator);
 public:
 	void*		Malloc(size_t tSize);
 	void*		Realloc(void* pv, size_t iMemSize);

@@ -29,7 +29,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 class CInputChordDescs : public CUnknown
 {
-BASE_FUNCTIONS(CInputChordDescs);
+CONSTRUCTABLE(CInputChordDescs);
 protected:
 	CSetInputChordDesc	mlcChordDescs;
 

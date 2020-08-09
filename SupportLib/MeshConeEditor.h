@@ -31,7 +31,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 class CMeshConeEditor : public CMeshSourceModifier
 {
-BASE_FUNCTIONS(CMeshConeEditor);
+CONSTRUCTABLE(CMeshConeEditor);
 public:
 	SFloat3 			msZDirection;
 	SFloat3 			msStart;

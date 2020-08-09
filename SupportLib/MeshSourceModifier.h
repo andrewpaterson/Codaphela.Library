@@ -29,7 +29,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 class CMeshEditor;
 class CMeshSourceModifier : public CMeshModifier
 {
-BASE_FUNCTIONS(CMeshSourceModifier);
+CONSTRUCTABLE(CMeshSourceModifier);
 public:
 	void		Init(void);
 	void		Kill(void);

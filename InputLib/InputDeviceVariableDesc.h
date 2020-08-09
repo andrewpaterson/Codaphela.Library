@@ -31,7 +31,7 @@ class CInputDeviceDesc;
 class CInputDeviceCopyContext;
 class CInputDeviceVariableDesc : public CUnknown
 {
-BASE_FUNCTIONS(CInputDeviceVariableDesc);
+CONSTRUCTABLE(CInputDeviceVariableDesc);
 protected:
 	CChars								mszName;
 	CSetInputDeviceVariableValueDesc	mlcValues;

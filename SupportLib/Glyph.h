@@ -28,7 +28,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 class CGlyph : public CUnknown
 {
-BASE_FUNCTIONS(CGlyph);
+CONSTRUCTABLE(CGlyph);
 protected:
 	CImageCel*	mpcCel;
 	int			miStep;

@@ -26,7 +26,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 class CChannelsAccessorByteAligned : public CChannelsAccessor
 {
 public:
-	BASE_FUNCTIONS(CChannelsAccessorByteAligned);
+	CONSTRUCTABLE(CChannelsAccessorByteAligned);
 
 	void*	Get(int iPos);
 	void	Set(int iPos, void* pvData);

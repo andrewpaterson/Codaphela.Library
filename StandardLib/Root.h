@@ -30,7 +30,7 @@ class CRoot : public CNamedObject
 {
 friend class CObjects;
 friend class CUnknowns;
-BASE_FUNCTIONS(CRoot);
+CONSTRUCTABLE(CRoot);
 protected:
 	Ptr<CSetObject>		mpObjects;
 	CObjects*			mpcObjectsAllocatingFrom;

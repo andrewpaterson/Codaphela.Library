@@ -267,9 +267,9 @@ CUnknown* CUnknowns::Iterate(SIteratorUnknown* psIter)
 //////////////////////////////////////////////////////////////////////////
 void CUnknowns::DebugName(CUnknown* pcUnknown, char (*pszDebug)[4])
 {
-	char*	sz;
-	char	szDebug[4];
-	int		iLen;
+	const char*	sz;
+	char		szDebug[4];
+	int			iLen;
 
 	sz = pcUnknown->ClassName();
 	iLen = (int)strlen(sz);

@@ -28,7 +28,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 class CImageCelSourceSubImages : public CImageCelSource
 {
-BASE_FUNCTIONS(CImageCelSourceSubImages);
+CONSTRUCTABLE(CImageCelSourceSubImages);
 protected:
 	CArraySubImage macSubImages;
 

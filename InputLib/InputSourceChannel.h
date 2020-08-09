@@ -40,7 +40,7 @@ enum EInputSourceChannelComparator
 class CInputSourceValue;
 class CInputSouceChannel : public CUnknown
 {
-BASE_FUNCTIONS(CInputSouceChannel);
+CONSTRUCTABLE(CInputSouceChannel);
 protected:
 	int								miChannel;  //Index into InputDataFormat channels.
 	EInputSourceChannelComparator	meCompare;

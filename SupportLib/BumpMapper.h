@@ -29,7 +29,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 class CImageHeightToNormals : public CImageModifier
 {
-BASE_FUNCTIONS(CImageHeightToNormals);
+CONSTRUCTABLE(CImageHeightToNormals);
 public:
 	EChannel meHeightChannel;
 
@@ -41,7 +41,7 @@ public:
 
 class CImageHeightToBumpUVs : public CImageModifier
 {
-BASE_FUNCTIONS(CImageHeightToBumpUVs);
+CONSTRUCTABLE(CImageHeightToBumpUVs);
 public:
 	EChannel meHeightChannel;
 

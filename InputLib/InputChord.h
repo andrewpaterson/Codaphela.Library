@@ -40,7 +40,7 @@ class CInputChords;
 class CInputChordDesc;
 class CInputChord : public CUnknown
 {
-BASE_FUNCTIONS(CInputChord);
+CONSTRUCTABLE(CInputChord);
 protected:
 	UInputChordCriteria				muActionCriteria;
 	int								miTotalCriteria;

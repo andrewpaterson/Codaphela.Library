@@ -31,7 +31,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 class CInputDataFormat : public CUnknown
 {
-BASE_FUNCTIONS(CInputDataFormat);
+CONSTRUCTABLE(CInputDataFormat);
 protected:
 	CChannels			mcExternalChannels;
 	CArrayChars		mcChannelNames;

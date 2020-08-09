@@ -33,7 +33,7 @@ class CInputActions;
 class CInputDevices : public CListener
 {
 public:
-	BASE_FUNCTIONS(CInputDevices);
+	CONSTRUCTABLE(CInputDevices);
 
 	CSetInputDevice					mlcDevices;
 	CSetInputDeviceDesc				mlcDeviceDescs;

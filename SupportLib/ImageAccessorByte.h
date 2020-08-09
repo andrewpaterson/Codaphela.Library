@@ -29,7 +29,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 class CImageAccessorByte : public CImageAccessor
 {
-BASE_FUNCTIONS(CImageAccessorByte);
+CONSTRUCTABLE(CImageAccessorByte);
 protected:
 	int				miOffset;
 	int				miImageStride;

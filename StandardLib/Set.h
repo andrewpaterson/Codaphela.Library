@@ -28,7 +28,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 template<class M = CBaseObjec>
 class CSet : public CSetObject
 {
-	BASE_FUNCTIONS(CSet);
+	CONSTRUCTABLE(CSet);
 public:
 	Ptr<CSet<M>>	Init(void);
 	void 			Kill(void);

@@ -45,7 +45,7 @@ enum ELightType
 class CLight : public CNamedObject
 {
 public:
-	BASE_FUNCTIONS(CLight);
+	CONSTRUCTABLE(CLight);
 
 	ELightType			meType;
 	CImageColourARGB	msColour;

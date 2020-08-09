@@ -30,7 +30,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 class CMeshPositions : public CMeshDetail
 {
-BASE_FUNCTIONS(CMeshPositions);
+CONSTRUCTABLE(CMeshPositions);
 public:
 	CArrayFloat3	mcPositions;
 

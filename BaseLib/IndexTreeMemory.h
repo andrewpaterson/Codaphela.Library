@@ -26,7 +26,7 @@ public:
 	void					Init(EIndexKeyReverse eKeyReverse, CIndexTreeDataOrderer* pcDataOrderer);
 	void					Init(CMallocator* pcMalloc, EIndexKeyReverse eKeyReverse);
 	void					Init(CMallocator* pcMalloc, EIndexKeyReverse eKeyReverse, int iMaxDataSize, int	iMaxKeySize);
-	void					Init(CMallocator* pcMalloc, EIndexKeyReverse eKeyReverse, int iMaxDataSize, int	iMaxKeySize, CIndexTreeDataOrderer* pcDataOrderer);
+	void					Init(CMallocator* pcMalloc, EIndexKeyReverse eKeyReverse, int iMaxDataSize, int iMaxKeySize, CIndexTreeDataOrderer* pcDataOrderer);
 	BOOL					Kill(void);
 
 	void*					Get(void* pvKey, int iKeySize, int* piDataSize);

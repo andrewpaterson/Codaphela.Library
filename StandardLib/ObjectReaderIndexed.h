@@ -27,7 +27,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 class CNamedIndexedData;
 class CObjectReaderIndexed : public CObjectReader
 {
-BASE_FUNCTIONS(CObjectReaderIndexed);
+CONSTRUCTABLE(CObjectReaderIndexed);
 protected:
 	CNamedIndexedData*	mpcIndexedData;
 

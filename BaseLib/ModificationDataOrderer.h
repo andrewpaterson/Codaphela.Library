@@ -1,10 +1,12 @@
 #ifndef __MODIFICATION_DATA_ORDERER_H__
 #define __MODIFICATION_DATA_ORDERER_H__
+#include "Constructable.h"
 #include "IndexTreeDataOrderer.h"
 
 
 class CModificationDataOrderer : public CIndexTreeDataOrderer
 {
+CONSTRUCTABLE(CModificationDataOrderer);
 public:
 	void	Init(void);
 	void	Kill(void);

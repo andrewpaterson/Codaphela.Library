@@ -37,7 +37,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 class CMeshDetail : public CUnknown
 {
-BASE_FUNCTIONS(CMeshDetail);
+CONSTRUCTABLE(CMeshDetail);
 public:
 	BOOL	mbInUse;
 

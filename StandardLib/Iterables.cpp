@@ -25,7 +25,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIterableList::Init(char* szName)
+void CIterableList::Init(const char* szName)
 {
 	mcFreeListPtrs.Init(128, sizeof(CUnknown*));
 	mszName.Init(szName);
@@ -83,7 +83,7 @@ BOOL CIterableList::Remove(CUnknown* pcUnknown)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIterableList::Is(char* szName)
+BOOL CIterableList::Is(const char* szName)
 {
 	return mszName.Equals(szName);
 }
@@ -159,7 +159,7 @@ void CIterables::Kill(void)
 void CIterables::Add(CUnknown* pcUnknown)
 {
 	CIterableList*	pcList;
-	char*			szName;
+	const char*		szName;
 
 	szName = pcUnknown->ClassName();
 
@@ -186,7 +186,7 @@ void CIterables::Add(CUnknown* pcUnknown)
 BOOL CIterables::Remove(CUnknown* pcUnknown)
 {
 	CIterableList*	pcList;
-	char*			szName;
+	const char*		szName;
 
 	szName = pcUnknown->ClassName();
 

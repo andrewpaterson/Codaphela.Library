@@ -30,7 +30,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 class CFillRectangle;
 class CImageCelMask : public CImageCel
 {
-BASE_FUNCTIONS(CImageCelMask);
+CONSTRUCTABLE(CImageCelMask);
 protected:
 	CImage*		mpcMaskImage;  //Which pixels in the sub image belong to this cel using the mask value.
 	short		miMask;

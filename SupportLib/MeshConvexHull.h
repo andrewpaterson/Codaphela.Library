@@ -31,7 +31,7 @@ class CMeshPositions;
 class CMeshNormals;
 class CMeshConvexHull : public CMeshDetail
 {
-BASE_FUNCTIONS(CMeshConvexHull);
+CONSTRUCTABLE(CMeshConvexHull);
 public:
 	CConvexHullIndexed	mcHull;
 

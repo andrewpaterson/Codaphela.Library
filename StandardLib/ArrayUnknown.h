@@ -25,7 +25,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 class CArrayUnknown : public CArrayCommonUnknown
 {
-BASE_FUNCTIONS(CArrayUnknown);
+CONSTRUCTABLE(CArrayUnknown);
 public:
 	void 		Init(void);
 	void 		Kill(void);

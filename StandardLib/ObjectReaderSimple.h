@@ -6,7 +6,7 @@
 
 class CObjectReaderSimple : public CObjectReader, public CObjectIOSimple
 {
-BASE_FUNCTIONS(CObjectReaderSimple);
+CONSTRUCTABLE(CObjectReaderSimple);
 protected:
 	CFileBasic*		mpcFile;
 

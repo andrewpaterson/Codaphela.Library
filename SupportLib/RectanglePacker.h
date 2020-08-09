@@ -33,7 +33,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 class CRectanglePacker : public CUnknown
 {
-BASE_FUNCTIONS(CRectanglePacker);
+CONSTRUCTABLE(CRectanglePacker);
 public:
 	virtual void	Kill(void) =0;
 

@@ -50,11 +50,11 @@ public:
 	CFreeList	mcFreeListPtrs;
 	CChars		mszName;
 
-	void		Init(char* szName);
+	void		Init(const char* szName);
 	void		Kill(void);
 	void		Add(CUnknown* pcUnknown);
 	BOOL		Remove(CUnknown* pcUnknown);
-	BOOL		Is(char* szName);
+	BOOL		Is(const char* szName);
 	template<class M>
 	M*			StartIteration(SIteratorTemplate<M>* psIter);
 	template<class M>

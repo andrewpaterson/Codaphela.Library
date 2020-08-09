@@ -28,7 +28,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 class CChannels : public CUnknown
 {
-BASE_FUNCTIONS(CChannels);
+CONSTRUCTABLE(CChannels);
 protected:
 	CArrayChannelOffset		masChannelOffsets;
 	int						miSize;  //The number of 'pixels' in the channels (not the size in bytes).

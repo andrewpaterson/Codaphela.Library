@@ -74,7 +74,7 @@ class CInputSourceDesc;
 class CInputVirtualDeviceSource;
 class CInputSourceEvaluator : public CUnknown
 {
-BASE_FUNCTIONS(CInputSourceEvaluator);
+CONSTRUCTABLE(CInputSourceEvaluator);
 protected:
 	EInputEvaluatorType	meEvaluatorType;
 	EInputChordType		meChordType;

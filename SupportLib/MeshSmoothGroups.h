@@ -38,7 +38,7 @@ enum ESmoothGenerationStyle
 class CMesh;
 class CMeshSmoothGroups : public CMeshModifier
 {
-BASE_FUNCTIONS(CMeshSmoothGroups);
+CONSTRUCTABLE(CMeshSmoothGroups);
 public:
 	CArrayInt				mcSmoothingGroups;  //mcSmoothingGroups.NumElements == mpcMesh->mcFaces.NumElements
 	int						miAddGroup;

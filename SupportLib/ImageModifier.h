@@ -29,7 +29,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 class CImageModifier : public CUnknown
 {
-BASE_FUNCTIONS(CImageModifier);
+CONSTRUCTABLE(CImageModifier);
 public:
 	void			Kill(void);
 	virtual void	Modify(CImage* pcImage) =0;

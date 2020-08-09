@@ -29,7 +29,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 class CImageCelMaskTransparent : public CImageCelMask
 {
-BASE_FUNCTIONS(CImageCelMaskTransparent);
+CONSTRUCTABLE(CImageCelMaskTransparent);
 protected:
 	SImageColour	msTransparentColour;  //Treat this colour as transparent.
 

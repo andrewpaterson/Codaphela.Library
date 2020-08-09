@@ -30,7 +30,7 @@ class CInputChordDesc;
 class CInputDeviceVariableValueDesc;
 class CInputDeviceVariableValueConditionDesc : public CUnknown
 {
-BASE_FUNCTIONS(CInputDeviceVariableValueConditionDesc);
+CONSTRUCTABLE(CInputDeviceVariableValueConditionDesc);
 public:
 	void Init(void);
 	void Kill(void);
@@ -43,7 +43,7 @@ public:
 class CInputDeviceVariableValueConditionChordDesc : public CInputDeviceVariableValueConditionDesc
 {
 public:
-	BASE_FUNCTIONS(CInputDeviceVariableValueConditionChordDesc);
+	CONSTRUCTABLE(CInputDeviceVariableValueConditionChordDesc);
 
 	CInputChordDesc* mpcChordDesc;
 
@@ -58,7 +58,7 @@ public:
 class CInputDeviceVariableValueConditionVariableDesc : public CInputDeviceVariableValueConditionDesc
 {
 public:
-	BASE_FUNCTIONS(CInputDeviceVariableValueConditionVariableDesc);
+	CONSTRUCTABLE(CInputDeviceVariableValueConditionVariableDesc);
 
 	CInputDeviceVariableValueDesc* mpcVariableValueDesc;
 

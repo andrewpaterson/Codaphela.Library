@@ -31,7 +31,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 class CImageCel;
 class CImageCopier : public CUnknown
 {
-BASE_FUNCTIONS(CImageCopier);
+CONSTRUCTABLE(CImageCopier);
 public:
 	static void Copy(Ptr<CImage> pcSource, Ptr<CImage> pcDest, int iDestX, int iDestY, CRectangle* psSourceRect = NULL);
 	static void Copy(Ptr<CImage> pcSource, Ptr<CImage> pcDest, int iDestX, int iDestY, int iSourceX1, int iSourceY1, int iSourceX2, int iSourceY2);

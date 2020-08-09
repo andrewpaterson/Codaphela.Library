@@ -26,7 +26,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 class CStandardTrackerObject : public CUnknown
 {
-BASE_FUNCTIONS(CStandardTrackerObject);
+CONSTRUCTABLE(CStandardTrackerObject);
 protected:
 };
 

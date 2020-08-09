@@ -27,7 +27,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 class CArrayCommonUnknown;
 class CArrayCommonObject : public CCollection
 {
-BASE_FUNCTIONS(CArrayCommonObject);
+CONSTRUCTABLE(CArrayCommonObject);
 protected:
 	CArrayCommonUnknown		mcArray;
 	BOOL					mbSubRoot;

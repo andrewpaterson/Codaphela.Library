@@ -27,7 +27,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //This will return an image as a single cel.  ie: the whole image.
 class CImageCelSourceSingle : public CImageCelSource
 {
-BASE_FUNCTIONS(CImageCelSourceSingle);
+CONSTRUCTABLE(CImageCelSourceSingle);
 protected:
 
 	int miLeftOffset;

@@ -34,7 +34,7 @@ class CMeshNormals;
 class CMeshConnectivity;
 class CMeshTriangles : public CMeshDetail
 {
-BASE_FUNCTIONS(CMeshTriangles);
+CONSTRUCTABLE(CMeshTriangles);
 public:
 	CArrayTriangleIndexed	mcTriangles;  //mcTriangles.NumElements == mpcMesh->mcFaces.NumElements
 

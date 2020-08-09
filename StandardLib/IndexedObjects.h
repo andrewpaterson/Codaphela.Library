@@ -20,15 +20,19 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __INDEX_OBJECTS_H__
 #define __INDEX_OBJECTS_H__
-#include "CoreLib/Indexes.h"
+#include "BaseLib/IndexTreeMemory.h"
 #include "BaseObject.h"
 
 
 // CIndexedObjects maps an OIndex to a CBaseObject*.
 
+//I have no idea what this class is for.  It should probably understand evictions...
 
-class CIndexedObjects : public CIndexes
+class CIndexedObjects
 {
+protected:
+	CIndexTreeMemory	mcIndexes;
+
 public:
 	void			Init(void);
 	void			Kill(void);

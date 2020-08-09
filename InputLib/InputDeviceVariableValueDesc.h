@@ -32,7 +32,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 class CInputDeviceVariableDesc;
 class CInputDeviceVariableValueDesc : public CUnknown
 {
-BASE_FUNCTIONS(CInputDeviceVariableValueDesc);
+CONSTRUCTABLE(CInputDeviceVariableValueDesc);
 protected:
 	CChars											mszName;
 	CInputDeviceVariableDesc*						mpcVariableDesc;
