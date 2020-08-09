@@ -2156,10 +2156,16 @@ BOOL CIndexTreeFile::RecurseValidateKeys(CIndexTreeRecursor* pcCursor, BOOL bRea
 			pcKey = (char*)cStack.Init();
 			pcCursor->GetKey(pcKey, &iKeySize);
 
-			if (meReverseKey)
+			if (meReverseKey == IKR_Yes)
 			{
 				StrRev(pcKey, iKeySize);
 			}
+			else if (meReverseKey == IKR_Unknown)
+			{
+				gcLogger.Error2(__METHOD__, " Don't know how to order key bytes for direction [IKR_Unknown].", NULL);
+				return FALSE;
+			}
+
 
 			bResult = Get(pcKey, iKeySize, NULL, &iDataSize);
 			if (!bResult)
@@ -3879,6 +3885,11 @@ int CIndexTreeFile::GetNodeKey(CIndexTreeNode* pcNode, char* pvDestKey, int iDes
 	{
 		//The key is already reversed by revese node traversal.
 		ReverseBytes(pvDestKey, iLength);
+	}
+	else if (meReverseKey == IKR_Unknown)
+	{
+		gcLogger.Error2(__METHOD__, " Don't know how to order key bytes for direction [IKR_Unknown].", NULL);
+		return FALSE;
 	}
 
 	if (iKeySize < iDestKeySize)

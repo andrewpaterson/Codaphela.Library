@@ -4,7 +4,7 @@
 
 enum EIndexKeyReverse
 {
-	//IKR_Unknown,
+	IKR_Unknown,
 	IKR_No,
 	IKR_Yes
 };

@@ -805,6 +805,11 @@ int CIndexTreeMemory::GetNodeKey(CIndexTreeNode* pcNode, char* pvDestKey, int iD
 		//The key is already reversed by revese node traversal.
 		ReverseBytes(pvDestKey, iLength);
 	}
+	else if (meReverseKey == IKR_Unknown)
+	{
+		gcLogger.Error2(__METHOD__, " Don't know how to order key bytes for direction [IKR_Unknown].", NULL);
+		return FALSE;
+	}
 
 	if (iKeySize < iDestKeySize)
 	{
