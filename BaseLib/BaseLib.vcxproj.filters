@@ -223,6 +223,9 @@
     <Filter Include="Source\Data\Index\Config">
       <UniqueIdentifier>{c1e708a4-821d-4ea7-b54d-59335c8299f2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Memory\Allocator\Local">
+      <UniqueIdentifier>{3682a5ba-ee1d-4c1d-b78a-cda1f93682e4}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DataMacro.h">
@@ -654,9 +657,6 @@
     <ClInclude Include="GlobalMemoryAllocator.h">
       <Filter>Source\Memory\Manager</Filter>
     </ClInclude>
-    <ClInclude Include="LocalMallocator.h">
-      <Filter>Source\Memory\Allocator</Filter>
-    </ClInclude>
     <ClInclude Include="ScratchPadAllocator.h">
       <Filter>Source\Memory\ScratchPad</Filter>
     </ClInclude>
@@ -830,6 +830,15 @@
     </ClInclude>
     <ClInclude Include="IndexTreeDataOrdererConstructors.h">
       <Filter>Source\Data\Index\DataOrder</Filter>
+    </ClInclude>
+    <ClInclude Include="LocalMallocator.h">
+      <Filter>Source\Memory\Allocator\Local</Filter>
+    </ClInclude>
+    <ClInclude Include="LocalMallocatorConstructors.h">
+      <Filter>Source\Memory\Allocator\Local</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexTreeMemoryConfig.h">
+      <Filter>Source\Data\Index\Config</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -1169,9 +1178,6 @@
     <ClCompile Include="GlobalMemoryAllocator.cpp">
       <Filter>Source\Memory\Manager</Filter>
     </ClCompile>
-    <ClCompile Include="LocalMallocator.cpp">
-      <Filter>Source\Memory\Allocator</Filter>
-    </ClCompile>
     <ClCompile Include="ScratchPadAllocator.cpp">
       <Filter>Source\Memory\ScratchPad</Filter>
     </ClCompile>
@@ -1318,6 +1324,15 @@
     </ClCompile>
     <ClCompile Include="IndexTreeDataOrdererConstructors.cpp">
       <Filter>Source\Data\Index\DataOrder</Filter>
+    </ClCompile>
+    <ClCompile Include="LocalMallocator.cpp">
+      <Filter>Source\Memory\Allocator\Local</Filter>
+    </ClCompile>
+    <ClCompile Include="LocalMallocatorConstructors.cpp">
+      <Filter>Source\Memory\Allocator\Local</Filter>
+    </ClCompile>
+    <ClCompile Include="IndexTreeMemoryConfig.cpp">
+      <Filter>Source\Data\Index\Config</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

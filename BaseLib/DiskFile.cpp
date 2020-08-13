@@ -21,10 +21,10 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
 #include <stdio.h>
-#include "DiskFile.h"
 #include "IntegerHelper.h"
 #include "FileUtil.h"
 #include "ConstructorCall.h"
+#include "DiskFile.h"
 
 
 //////////////////////////////////////////////////////////////////////////
