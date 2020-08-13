@@ -119,6 +119,7 @@
     <ClInclude Include="IndexTreeDataOrdererConstructors.h" />
     <ClInclude Include="IndexTreeIterator.h" />
     <ClInclude Include="IndexTreeMemoryAccess.h" />
+    <ClInclude Include="IndexTreeMemoryConfig.h" />
     <ClInclude Include="IndexTreeMemoryIterator.h" />
     <ClInclude Include="IndexTreeNodeDebug.h" />
     <ClInclude Include="LinkedList.h" />
@@ -162,6 +163,7 @@
     <ClInclude Include="ListTemplateMinimal.h" />
     <ClInclude Include="ListVariable.h" />
     <ClInclude Include="LocalMallocator.h" />
+    <ClInclude Include="LocalMallocatorConstructors.h" />
     <ClInclude Include="Log.h" />
     <ClInclude Include="LogConfig.h" />
     <ClInclude Include="LogString.h" />
@@ -341,6 +343,7 @@
     <ClCompile Include="IndexTreeIterator.cpp" />
     <ClCompile Include="IndexTreeMemory.cpp" />
     <ClCompile Include="IndexTreeMemoryAccess.cpp" />
+    <ClCompile Include="IndexTreeMemoryConfig.cpp" />
     <ClCompile Include="IndexTreeMemoryIterator.cpp" />
     <ClCompile Include="IndexTreeNode.cpp" />
     <ClCompile Include="IndexTreeNodeDebug.cpp" />
@@ -352,6 +355,7 @@
     <ClCompile Include="ListCharsMinimal.cpp" />
     <ClCompile Include="ListVariable.cpp" />
     <ClCompile Include="LocalMallocator.cpp" />
+    <ClCompile Include="LocalMallocatorConstructors.cpp" />
     <ClCompile Include="LogString.cpp" />
     <ClCompile Include="MapBlock.cpp" />
     <ClCompile Include="MapLongLong.cpp" />

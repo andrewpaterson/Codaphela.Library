@@ -2,6 +2,7 @@
 #define __INDEX_TREE_MEMORY_H__
 #include "IndexTreeNodeMemory.h"
 #include "IndexTreeRecursor.h"
+#include "IndexTreeMemoryConfig.h"
 #include "IndexTree.h"
 
 
@@ -26,6 +27,7 @@ public:
 	void					Init(EIndexKeyReverse eKeyReverse, CIndexTreeDataOrderer* pcDataOrderer);
 	void					Init(CMallocator* pcMalloc, EIndexKeyReverse eKeyReverse);
 	void					Init(CMallocator* pcMalloc, EIndexKeyReverse eKeyReverse, int iMaxDataSize, int	iMaxKeySize);
+	void					Init(CIndexTreeConfig* pcConfig);
 	void					Init(CMallocator* pcMalloc, EIndexKeyReverse eKeyReverse, int iMaxDataSize, int iMaxKeySize, CIndexTreeDataOrderer* pcDataOrderer);
 	BOOL					Kill(void);
 
@@ -45,8 +47,9 @@ public:
 
 	size_t					ByteSize(void);
 
+	BOOL					WriteConfig(CFileWriter* pcFileWriter);
 	BOOL					Write(CFileWriter* pcFileWriter);
-	BOOL					Read(CFileReader* pcFileReader, EIndexKeyReverse eKeyReverse);
+	BOOL					Read(CFileReader* pcFileReader);
 
 	BOOL					ValidateIndexTree(void);
 
@@ -100,5 +103,5 @@ protected:
 };
 
 
-#endif // __INDEX_TREE_BLOCK_H__
+#endif // __INDEX_TREE_MEMORY_H__
 

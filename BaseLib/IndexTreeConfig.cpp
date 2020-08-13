@@ -25,7 +25,17 @@ void CIndexTreeConfig::Init(CMallocator* pcMalloc, EIndexKeyReverse eKeyReverse,
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeConfig::Init(CFileReader* pcFileReader)
 {
+	
 	return Read(pcFileReader);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexTreeConfig::Kill(void)
+{
 }
 
 
@@ -205,4 +215,15 @@ BOOL CIndexTreeConfig::Read(CFileReader* pcFileReader)
 	Init(pcMalloc, eKeyReverse, iMaxDataSize, iMaxKeySize, pcDataOrderer);
 	return TRUE;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CMallocator* CIndexTreeConfig::GetMalloc(void) { return mpcMalloc; }
+EIndexKeyReverse CIndexTreeConfig::GetKeyReverse(void) { return meKeyReverse; }
+int CIndexTreeConfig::GetMaxDataSize(void) { return miMaxDataSize; }
+int CIndexTreeConfig::GetMaxKeySize(void) { return miMaxKeySize; }
+CIndexTreeDataOrderer* CIndexTreeConfig::GetDataOrderer(void) { return mpcDataOrderer; }
 

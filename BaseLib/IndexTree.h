@@ -29,6 +29,7 @@ protected:
 
 	CIndexTreeDataOrderer*	mpcDataOrderer;
 
+
 public:
 			BOOL					Init(CMallocator* pcMalloc, EIndexKeyReverse eKeyReverse, size_t tSizeofNode, size_t tSizeofDataNode, size_t tSizeofNodePtr, int iMaxDataSize, int iMaxKeySize, CIndexTreeDataOrderer* pcDataOrderer);
 	virtual BOOL					Kill(void);
@@ -49,6 +50,7 @@ public:
 	virtual void					Dump(void) =0;
 
 			CIndexTreeDataOrderer*	GetDataOrderer();
+			CMallocator*			GetMallocator();
 
 protected:
 			void*				Malloc(size_t tSize);

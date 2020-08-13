@@ -57,6 +57,16 @@ void CIndexTreeMemory::Init(CMallocator* pcMalloc, EIndexKeyReverse eKeyReverse,
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CIndexTreeMemory::Init(CIndexTreeConfig* pcConfig)
+{
+	Init(pcConfig->GetMalloc(), pcConfig->GetKeyReverse(), pcConfig->GetMaxDataSize(), pcConfig->GetMaxKeySize(), pcConfig->GetDataOrderer()); 
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CIndexTreeMemory::Init(CMallocator* pcMalloc, EIndexKeyReverse eKeyReverse, int iMaxDataSize, int	iMaxKeySize, CIndexTreeDataOrderer* pcDataOrderer)
 {
 	CIndexTree::Init(pcMalloc, eKeyReverse, sizeof(CIndexTreeNodeMemory), sizeof(CIndexTreeNodeMemory) + sizeof(CIndexTreeDataNode), sizeof(CIndexTreeNodeMemory*), iMaxDataSize, iMaxKeySize, pcDataOrderer);
@@ -617,21 +627,28 @@ void CIndexTreeMemory::RecurseFindAll(CIndexTreeNodeMemory* pcNode, CArrayVoidPt
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeMemory::WriteConfig(CFileWriter* pcFileWriter)
+{
+	CIndexTreeMemoryConfig	cConfig;
+
+	cConfig.Init(mpcMalloc, meReverseKey, miMaxDataSize, miMaxKeySize, mpcDataOrderer);
+	return cConfig.Write(pcFileWriter);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeMemory::Write(CFileWriter* pcFileWriter)
 {
 	SIndexTreeMemoryIterator	sIter;
-	void*				pvData;
-	int					iDataSize;
-	int					iKeySize;
-	BOOL				bResult;
-	char				acKey[MAX_KEY_SIZE];
-	int					iCount;
-
-	bResult = gcMallocators.WriteMallocator(pcFileWriter, mpcMalloc);
-	if (!bResult)
-	{
-		return FALSE;
-	}
+	void*						pvData;
+	int							iDataSize;
+	int							iKeySize;
+	BOOL						bResult;
+	char						acKey[MAX_KEY_SIZE];
+	int							iCount;
 
 	if (!pcFileWriter->WriteInt(miSize))
 	{
@@ -671,23 +688,14 @@ BOOL CIndexTreeMemory::Write(CFileWriter* pcFileWriter)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeMemory::Read(CFileReader* pcFileReader, EIndexKeyReverse eKeyReverse)
+BOOL CIndexTreeMemory::Read(CFileReader* pcFileReader)
 {
-	CMallocator*	pcMalloc;
 	int				iCount;
 	int				i;
 	char			acKey[1024];
 	int				iKeySize;
 	int				iDataSize;
 	void*			pvData;
-
-	pcMalloc = gcMallocators.ReadMallocator(pcFileReader);
-	if (pcMalloc == NULL)
-	{
-		return FALSE;
-	}
-
-	Init(pcMalloc, eKeyReverse);
 
 	if (!pcFileReader->ReadInt(&iCount))
 	{

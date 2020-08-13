@@ -14,19 +14,27 @@ protected:
 	int						miMaxKeySize;
 	CIndexTreeDataOrderer*	mpcDataOrderer;
 
-	void					Init(CMallocator* pcMalloc, EIndexKeyReverse eKeyReverse, int iMaxDataSize, int iMaxKeySize, CIndexTreeDataOrderer* pcDataOrderer);
-	BOOL					Init(CFileReader* pcFileReader);
+public:
+			void					Init(CMallocator* pcMalloc, EIndexKeyReverse eKeyReverse, int iMaxDataSize, int iMaxKeySize, CIndexTreeDataOrderer* pcDataOrderer);
+			BOOL					Init(CFileReader* pcFileReader);
+	virtual void					Kill(void) =0;
 
-	BOOL					Write(CFileWriter* pcFileWrite);
+	virtual BOOL					Write(CFileWriter* pcFileWrite);
+
+			CMallocator*			GetMalloc(void);
+			EIndexKeyReverse		GetKeyReverse(void);
+			int						GetMaxDataSize(void);
+			int						GetMaxKeySize(void);
+			CIndexTreeDataOrderer*  GetDataOrderer(void);
 
 protected:
-	BOOL					Read(CFileReader* pcFileReader);
+	virtual BOOL					Read(CFileReader* pcFileReader);
 
-	EIndexKeyReverse		ReadKeyReverse(CFileReader* pcFileReader);
-	BOOL					WriteKeyReverse(CFileWriter* pcFileWriter, EIndexKeyReverse	eKeyReverse);
+			EIndexKeyReverse		ReadKeyReverse(CFileReader* pcFileReader);
+			BOOL					WriteKeyReverse(CFileWriter* pcFileWriter, EIndexKeyReverse	eKeyReverse);
 
-	CIndexTreeDataOrderer*	ReadDataOrderer(CFileReader* pcFileReader);
-	BOOL					WriteDataOrderer(CFileWriter* pcFileWriter, CIndexTreeDataOrderer*);
+			CIndexTreeDataOrderer*	ReadDataOrderer(CFileReader* pcFileReader);
+			BOOL					WriteDataOrderer(CFileWriter* pcFileWriter, CIndexTreeDataOrderer*);
 };
 
 
