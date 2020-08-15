@@ -2,6 +2,7 @@
 #define __CREATION_DATA_ORDERER_H__
 #include "Constructable.h"
 #include "IndexTreeDataOrderer.h"
+#include "LifeCycle.h"
 
 
 class CCreationDataOrderer : public CIndexTreeDataOrderer
@@ -15,6 +16,9 @@ public:
 	void	Get(CIndexTreeDataNode* psNode);
 	void	Remove(CIndexTreeDataNode* psNode);
 	void	HasKey(CIndexTreeDataNode* psNode);
+
+public:
+	static CLifeInit<CIndexTreeDataOrderer> Create(void);
 };
 
 

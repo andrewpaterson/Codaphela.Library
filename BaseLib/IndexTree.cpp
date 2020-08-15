@@ -9,9 +9,26 @@
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTree::Init(CMallocator* pcMalloc, EIndexKeyReverse eKeyReverse, size_t tSizeofNode, size_t tSizeofDataNode, size_t tSizeofNodePtr, int iMaxDataSize, int	iMaxKeySize, CIndexTreeDataOrderer* pcDataOrderer)
 {
+	CLifeInit<CMallocator>				cMalloc;
+	CLifeInit<CIndexTreeDataOrderer>	cDataOrderer;
+
+	cMalloc.Init(pcMalloc, FALSE, FALSE);
+	cDataOrderer.Init(pcDataOrderer, FALSE, FALSE);
+
+	return Init(cMalloc, eKeyReverse, tSizeofNode, tSizeofDataNode, tSizeofNodePtr, iMaxDataSize, iMaxKeySize, cDataOrderer);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTree::Init(CLifeInit<CMallocator> cMalloc, EIndexKeyReverse eKeyReverse, size_t tSizeofNode, size_t tSizeofDataNode, size_t tSizeofNodePtr, int iMaxDataSize, int	iMaxKeySize, CLifeInit<CIndexTreeDataOrderer> cDataOrderer)
+{
 	BOOL bResult;
 
-	mpcMalloc = pcMalloc;
+	cMalloc.ConfigureLife(&mcMallocLife, &mpcMalloc);
+
 	meReverseKey = eKeyReverse;
 	mtSizeofNode = tSizeofNode;
 	mtSizeofDataNode = tSizeofDataNode;
@@ -32,12 +49,11 @@ BOOL CIndexTree::Init(CMallocator* pcMalloc, EIndexKeyReverse eKeyReverse, size_
 	miMaxDataSize = iMaxDataSize;
 	miMaxKeySize = iMaxKeySize;
 
-	mpcDataOrderer = pcDataOrderer;
+	cDataOrderer.ConfigureLife(&mcDataOrdererLife, &mpcDataOrderer);
 	if (mpcDataOrderer)
 	{
 		mpcDataOrderer->SetIndexTree(this);
 	}
-
 	return bResult;
 }
 
@@ -48,11 +64,8 @@ BOOL CIndexTree::Init(CMallocator* pcMalloc, EIndexKeyReverse eKeyReverse, size_
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTree::Kill(void)
 {
-	if (mpcDataOrderer)
-	{
-		mpcDataOrderer->Kill();
-	}
-
+	mcDataOrdererLife.Kill();
+	mcMallocLife.Kill();
 	return TRUE;
 }
 

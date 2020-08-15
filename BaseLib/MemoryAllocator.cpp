@@ -1,3 +1,4 @@
+#include "ConstructorCall.h"
 #include "MemoryAllocator.h"
 
 
@@ -131,5 +132,37 @@ CGeneralMemory* CMemoryAllocator::GetMemory(void)
 size_t CMemoryAllocator::SizeOffset(void)
 {
 	return sizeof(SGeneralMemoryAllocation);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CLifeInit<CMallocator> CMemoryAllocator::Create(void)
+{
+	CLifeInit<CMallocator> cLife;
+	CMemoryAllocator*		pcLife;
+
+	pcLife = NewMalloc<CMemoryAllocator>();
+	pcLife->Init();
+	cLife.Init(pcLife, TRUE, TRUE);
+	return cLife;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CLifeInit<CMallocator> CMemoryAllocator::Create(int iDefaultAlignment, BOOL bDefaultFreeListParams)
+{
+	CLifeInit<CMallocator> cLife;
+	CMemoryAllocator* pcLife;
+
+	pcLife = NewMalloc<CMemoryAllocator>();
+	pcLife->Init(iDefaultAlignment, bDefaultFreeListParams);
+	cLife.Init(pcLife, TRUE, TRUE);
+	return cLife;
 }
 

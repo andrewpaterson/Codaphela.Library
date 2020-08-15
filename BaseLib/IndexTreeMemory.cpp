@@ -79,6 +79,18 @@ void CIndexTreeMemory::Init(CMallocator* pcMalloc, EIndexKeyReverse eKeyReverse,
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CIndexTreeMemory::Init(CLifeInit<CMallocator> cMalloc, EIndexKeyReverse eKeyReverse, int iMaxDataSize, int	iMaxKeySize, CLifeInit<CIndexTreeDataOrderer> cDataOrderer)
+{
+	CIndexTree::Init(cMalloc, eKeyReverse, sizeof(CIndexTreeNodeMemory), sizeof(CIndexTreeNodeMemory) + sizeof(CIndexTreeDataNode), sizeof(CIndexTreeNodeMemory*), iMaxDataSize, iMaxKeySize, cDataOrderer);
+	mpcRoot = AllocateRoot();
+	miSize = 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeMemory::Kill(void)
 {
 	RecurseKill(mpcRoot);
@@ -629,9 +641,13 @@ void CIndexTreeMemory::RecurseFindAll(CIndexTreeNodeMemory* pcNode, CArrayVoidPt
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeMemory::WriteConfig(CFileWriter* pcFileWriter)
 {
-	CIndexTreeMemoryConfig	cConfig;
+	CIndexTreeMemoryConfig				cConfig;
+	CLifeInit<CMallocator>				cMalloc;
+	CLifeInit<CIndexTreeDataOrderer>	cDataOrderer;
 
-	cConfig.Init(mpcMalloc, meReverseKey, miMaxDataSize, miMaxKeySize, mpcDataOrderer);
+	cMalloc.Init(mpcMalloc, mcMallocLife.MustFree(), mcMallocLife.MustKill());
+	cDataOrderer.Init(mpcDataOrderer, mcDataOrdererLife.MustFree(), mcDataOrdererLife.MustKill());
+	cConfig.Init(cMalloc, meReverseKey, miMaxDataSize, miMaxKeySize, cDataOrderer);
 	return cConfig.Write(pcFileWriter);
 }
 

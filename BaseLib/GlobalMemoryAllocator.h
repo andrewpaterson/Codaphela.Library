@@ -8,6 +8,8 @@ class CGlobalMemoryAllocator : public CMallocator
 {
 CONSTRUCTABLE(CGlobalMemoryAllocator);
 public:
+	void		Kill(void);
+
 	void*		Malloc(size_t tSize);
 	void*		Realloc(void* pv, size_t tSize);
 	void		Free(void* pv);

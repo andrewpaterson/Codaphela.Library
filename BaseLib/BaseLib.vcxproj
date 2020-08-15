@@ -122,6 +122,8 @@
     <ClInclude Include="IndexTreeMemoryConfig.h" />
     <ClInclude Include="IndexTreeMemoryIterator.h" />
     <ClInclude Include="IndexTreeNodeDebug.h" />
+    <ClInclude Include="Killable.h" />
+    <ClInclude Include="LifeCycle.h" />
     <ClInclude Include="LinkedList.h" />
     <ClInclude Include="ListCharsMinimal.h" />
     <ClInclude Include="Constructors.h" />

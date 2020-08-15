@@ -8,24 +8,24 @@
 class CIndexTreeConfig
 {
 protected:
-	CMallocator*			mpcMalloc;
-	EIndexKeyReverse		meKeyReverse;
-	int						miMaxDataSize;
-	int						miMaxKeySize;
-	CIndexTreeDataOrderer*	mpcDataOrderer;
+	CLifeInit<CMallocator>				mcMalloc;
+	CLifeInit<CIndexTreeDataOrderer>	mcDataOrderer;
+	int									miMaxDataSize;
+	int									miMaxKeySize;
+	EIndexKeyReverse					meKeyReverse;
 
 public:
-			void					Init(CMallocator* pcMalloc, EIndexKeyReverse eKeyReverse, int iMaxDataSize, int iMaxKeySize, CIndexTreeDataOrderer* pcDataOrderer);
-			BOOL					Init(CFileReader* pcFileReader);
-	virtual void					Kill(void) =0;
+			void								Init(CLifeInit<CMallocator> cMalloc, EIndexKeyReverse eKeyReverse, int iMaxDataSize, int iMaxKeySize, CLifeInit<CIndexTreeDataOrderer> cDataOrderer);
+			BOOL								Init(CFileReader* pcFileReader);
+	virtual void								Kill(void) =0;
 
-	virtual BOOL					Write(CFileWriter* pcFileWrite);
+	virtual BOOL								Write(CFileWriter* pcFileWrite);
 
-			CMallocator*			GetMalloc(void);
-			EIndexKeyReverse		GetKeyReverse(void);
-			int						GetMaxDataSize(void);
-			int						GetMaxKeySize(void);
-			CIndexTreeDataOrderer*  GetDataOrderer(void);
+			CLifeInit<CMallocator>				GetMalloc(void);
+			EIndexKeyReverse					GetKeyReverse(void);
+			int									GetMaxDataSize(void);
+			int									GetMaxKeySize(void);
+			CLifeInit<CIndexTreeDataOrderer>	GetDataOrderer(void);
 
 protected:
 	virtual BOOL					Read(CFileReader* pcFileReader);

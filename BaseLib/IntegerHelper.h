@@ -43,11 +43,11 @@ int 	GetBestHighBit(int i);
 int 	GetLogBase2(int i);  //0x1 -> 0, 0x2 -> 1, 0x4 -> 2, 0x8 -> 3, 0x10 -> 4, 0x20 -> 5...
 int 	GetByte(int iInt, int iPos);
 int 	SetByte(int c, int iPos);
-int 	GetBit(int iBit, void* pvArray);  //return 1 or 0 in char.
-int 	GetBitReverseHiLo(int iBit, void* pvArray);  //return 1 or 0 in char.
+int 	GetBit(int iBit, void* pvBitArray);  //return 1 or 0 in char array of bits.
+int 	GetBitReverseHiLo(int iBit, void* pvBitArray);  //return 1 or 0 in char array of bits indexed in reverse.
 int		CountBits(void* pvBitArray, int iBitLength); 
 int		CountBitsSingly(void* pvBitArray, int iBitLength);  //Slow, for testing.
-void 	SetBit(int iBit, void* pvArray, int bBit);  //bBit can only take 1 or 0.
+void 	SetBit(int iBit, void* pvBitArray, int bBit);  //bBit can only take 1 or 0.
 void 	SetFlag(int* piDest, int iFlag, int iFlagValue);  //Identically to set bit but only works on 4bytes.
 void 	SetFlag(unsigned int* piDest, int iFlag, int iFlagValue);  //Identically to set bit but only works on 4bytes.
 void 	SetFlag(short int* psiDest, int iFlag, int iFlagValue);  //Identically to set bit but only works on 4bytes.
