@@ -7,6 +7,8 @@ class CSystemAllocator : public CMallocator
 {
 CONSTRUCTABLE(CSystemAllocator);
 public:
+	void		Kill(void);
+
 	void*		Malloc(size_t tSize);
 	void*		Realloc(void* pv, size_t iMemSize);
 	void		Free(void* pv);

@@ -2,6 +2,7 @@
 #define __MALLOCATOR_H__
 #include "Define.h"
 #include "Constructable.h"
+#include "Killable.h"
 
 //Global Mallocators are created once on executable start.  Their will only be one of any type of global Mallocator.
 //
@@ -11,7 +12,7 @@
 
 class CFileReader;
 class CFileWriter;
-class CMallocator : public CConstructable
+class CMallocator : public CConstructable, public CKillable
 {
 public:
 	virtual void*		Malloc(size_t tSize) =0;

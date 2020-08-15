@@ -840,6 +840,12 @@
     <ClInclude Include="IndexTreeMemoryConfig.h">
       <Filter>Source\Data\Index\Config</Filter>
     </ClInclude>
+    <ClInclude Include="Killable.h">
+      <Filter>Source\Constructor</Filter>
+    </ClInclude>
+    <ClInclude Include="LifeCycle.h">
+      <Filter>Source\Constructor</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">

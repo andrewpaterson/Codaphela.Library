@@ -59,3 +59,20 @@ void CModificationDataOrderer::HasKey(CIndexTreeDataNode* psNode)
 {
 }
 
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CLifeInit<CIndexTreeDataOrderer> CModificationDataOrderer::Create(void)
+{
+	CLifeInit<CIndexTreeDataOrderer> cLife;
+	CModificationDataOrderer*		pcLife;
+
+	pcLife = NewMalloc<CModificationDataOrderer>();
+	pcLife->Init();
+	cLife.Init(pcLife, TRUE, TRUE);
+	return cLife;
+}
+

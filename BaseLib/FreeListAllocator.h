@@ -2,6 +2,7 @@
 #define __FREE_LIST_ALLOCATOR_H__
 #include "LocalMallocator.h"
 #include "FreeList.h"
+#include "LifeCycle.h"
 
 
 class CFreeListAllocator : public CLocalMallocator
@@ -28,6 +29,11 @@ public:
 	BOOL			Write(CFileWriter* pcFileWriter);
 
 	size_t			SizeOffset(void);
+
+public:
+	static CLifeInit<CMallocator> Create(int iElementSize);
+	static CLifeInit<CMallocator> Create(int iElementSize, int iAlignment);
+	static CLifeInit<CMallocator> Create(int iElementSize, int iAlignment, int iOffset);
 };
 
 

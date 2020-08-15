@@ -62,3 +62,19 @@ void CAccessDataOrderer::HasKey(CIndexTreeDataNode* psNode)
 }
 
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CLifeInit<CAccessDataOrderer> CAccessDataOrderer::Create(void)
+{
+	CLifeInit<CAccessDataOrderer> cLife;
+	CAccessDataOrderer*				pcLife;
+
+	pcLife = NewMalloc<CAccessDataOrderer>();
+	pcLife->Init();
+	cLife.Init(pcLife, TRUE, TRUE);
+	return cLife;
+}
+

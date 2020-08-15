@@ -7,6 +7,7 @@
 #include "MemoryCache.h"
 #include "IndexTreeNode.h"
 #include "IndexKeyReverse.h"
+#include "LifeCycle.h"
 #include "IndexTreeDataOrderer.h"
 
 
@@ -18,20 +19,22 @@ class CIndexTree
 {
 friend class CIndexTreeDataOrderer;
 protected:
-	CMallocator*			mpcMalloc;
+	CLife<CMallocator>				mcMallocLife;
+	CMallocator*					mpcMalloc;
 
-	EIndexKeyReverse		meReverseKey;
-	size_t					mtSizeofNode;
-	size_t					mtSizeofNodePtr;
-	size_t					mtSizeofDataNode;
-	int						miMaxDataSize;
-	int						miMaxKeySize;
+	CLife<CIndexTreeDataOrderer>	mcDataOrdererLife;
+	CIndexTreeDataOrderer*			mpcDataOrderer;
 
-	CIndexTreeDataOrderer*	mpcDataOrderer;
-
+	EIndexKeyReverse				meReverseKey;
+	size_t							mtSizeofNode;
+	size_t							mtSizeofNodePtr;
+	size_t							mtSizeofDataNode;
+	int								miMaxDataSize;
+	int								miMaxKeySize;
 
 public:
 			BOOL					Init(CMallocator* pcMalloc, EIndexKeyReverse eKeyReverse, size_t tSizeofNode, size_t tSizeofDataNode, size_t tSizeofNodePtr, int iMaxDataSize, int iMaxKeySize, CIndexTreeDataOrderer* pcDataOrderer);
+			BOOL					Init(CLifeInit<CMallocator> cMalloc, EIndexKeyReverse eKeyReverse, size_t tSizeofNode, size_t tSizeofDataNode, size_t tSizeofNodePtr, int iMaxDataSize, int	iMaxKeySize, CLifeInit<CIndexTreeDataOrderer> cDataOrderer);
 	virtual BOOL					Kill(void);
 
 	virtual BOOL					Remove(void* pvKey, int iKeySize) =0;

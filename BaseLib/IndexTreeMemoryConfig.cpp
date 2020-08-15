@@ -5,9 +5,9 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeMemoryConfig::Init(CMallocator* pcMalloc, EIndexKeyReverse eKeyReverse, int iMaxDataSize, int iMaxKeySize, CIndexTreeDataOrderer* pcDataOrderer)
+void CIndexTreeMemoryConfig::Init(CLifeInit<CMallocator> cMalloc, EIndexKeyReverse eKeyReverse, int iMaxDataSize, int iMaxKeySize, CLifeInit<CIndexTreeDataOrderer> cDataOrderer)
 {
-	CIndexTreeConfig::Init(pcMalloc, eKeyReverse, iMaxDataSize, iMaxKeySize, pcDataOrderer);
+	CIndexTreeConfig::Init(cMalloc, eKeyReverse, iMaxDataSize, iMaxKeySize, cDataOrderer);
 }
 
 

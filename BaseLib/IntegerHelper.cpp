@@ -138,9 +138,9 @@ int SetByte(int c, int iPos)
 //	No bounds checking is done.
 //
 //////////////////////////////////////////////////////////////////////////
-int GetBit(int iBit, void* pvArray)
+int GetBit(int iBit, void* pvBitArray)
 {
-	return ((char*)pvArray)[iBit / 8] & (1 << (iBit % 8));
+	return ((char*)pvBitArray)[iBit / 8] & (1 << (iBit % 8));
 }
 
 
@@ -277,9 +277,9 @@ int	CountBits(void* pvBitArray, int iBitLength)
 //	No bounds checking is done.
 //
 //////////////////////////////////////////////////////////////////////////
-int GetBitReverseHiLo(int iBit, void* pvArray)
+int GetBitReverseHiLo(int iBit, void* pvBitArray)
 {
-	return ((char*)pvArray)[iBit / 8] & (1 << (7 - (iBit % 8)));
+	return ((char*)pvBitArray)[iBit / 8] & (1 << (7 - (iBit % 8)));
 }
 
 
@@ -289,15 +289,15 @@ int GetBitReverseHiLo(int iBit, void* pvArray)
 //	No bounds checking is done.
 //
 //////////////////////////////////////////////////////////////////////////
-void SetBit(int iBit, void* pvArray, int bBit)
+void SetBit(int iBit, void* pvBitArray, int bBit)
 {
 	if (bBit)
 	{
-		((char*)pvArray)[iBit / 8] |= (1 << (iBit % 8));
+		((char*)pvBitArray)[iBit / 8] |= (1 << (iBit % 8));
 	}
 	else
 	{
-		((char*)pvArray)[iBit / 8] &= ~(1 << (iBit % 8));
+		((char*)pvBitArray)[iBit / 8] &= ~(1 << (iBit % 8));
 	}
 }
 

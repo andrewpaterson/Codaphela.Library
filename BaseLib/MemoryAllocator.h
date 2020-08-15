@@ -2,6 +2,7 @@
 #define __MEMORY_ALLOCATOR_H__
 #include "GeneralMemory.h"
 #include "LocalMallocator.h"
+#include "LifeCycle.h"
 
 
 class CMemoryAllocator : public CLocalMallocator
@@ -26,6 +27,10 @@ public:
 
 	CGeneralMemory*	GetMemory(void);
 	size_t			SizeOffset(void);
+
+public:
+	static CLifeInit<CMallocator> Create(void);
+	static CLifeInit<CMallocator> Create(int iDefaultAlignment, BOOL bDefaultFreeListParams = TRUE);
 };
 
 

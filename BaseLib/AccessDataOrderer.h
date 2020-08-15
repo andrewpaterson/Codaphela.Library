@@ -1,7 +1,7 @@
 #ifndef __ACCESS_DATA_ORDERER_H__
 #define __ACCESS_DATA_ORDERER_H__
 #include "IndexTreeDataOrderer.h"
-
+#include "LifeCycle.h"
 
 class CAccessDataOrderer : public CIndexTreeDataOrderer
 {
@@ -14,6 +14,9 @@ public:
 	void	Get(CIndexTreeDataNode* psNode);
 	void	Remove(CIndexTreeDataNode* psNode);
 	void	HasKey(CIndexTreeDataNode* psNode);
+
+public:
+	static CLifeInit<CAccessDataOrderer> Create(void);
 };
 
 

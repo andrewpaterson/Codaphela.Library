@@ -2,6 +2,7 @@
 #define __SCRATCH_PAD_ALLOCATOR_H__
 #include "ScratchPad.h"
 #include "LocalMallocator.h"
+#include "LifeCycle.h"
 
 
 class CScratchPadAllocator : public CLocalMallocator
@@ -27,6 +28,10 @@ public:
 	BOOL			Write(CFileWriter* pcFileWriter);
 
 	size_t			SizeOffset(void);
+
+public:
+	static CLifeInit<CMallocator> Create(void);
+	static CLifeInit<CMallocator> Create(int iChunkSize);
 };
 
 
