@@ -154,12 +154,7 @@ size_t CFreeListAllocator::SizeOffset(void)
 //////////////////////////////////////////////////////////////////////////
 CLifeInit<CMallocator> CFreeListAllocator::Create(int iElementSize)
 {
-	CLifeInit<CMallocator> cLife;
-	CFreeListAllocator* pcLife;
-
-	pcLife = NewMalloc<CFreeListAllocator>();
-	pcLife->Init(iElementSize);
-	cLife.Init(pcLife, TRUE, TRUE);
+	LIFE_ALLOC(CFreeListAllocator, CMallocator)->Init(iElementSize);
 	return cLife;
 }
 
@@ -170,12 +165,7 @@ CLifeInit<CMallocator> CFreeListAllocator::Create(int iElementSize)
 //////////////////////////////////////////////////////////////////////////
 CLifeInit<CMallocator> CFreeListAllocator::Create(int iElementSize, int iAlignment)
 {
-	CLifeInit<CMallocator> cLife;
-	CFreeListAllocator* pcLife;
-
-	pcLife = NewMalloc<CFreeListAllocator>();
-	pcLife->Init(iElementSize, iAlignment);
-	cLife.Init(pcLife, TRUE, TRUE);
+	LIFE_ALLOC(CFreeListAllocator, CMallocator)->Init(iElementSize, iAlignment);
 	return cLife;
 }
 
@@ -186,12 +176,7 @@ CLifeInit<CMallocator> CFreeListAllocator::Create(int iElementSize, int iAlignme
 //////////////////////////////////////////////////////////////////////////
 CLifeInit<CMallocator> CFreeListAllocator::Create(int iElementSize, int iAlignment, int iOffset)
 {
-	CLifeInit<CMallocator> cLife;
-	CFreeListAllocator* pcLife;
-
-	pcLife = NewMalloc<CFreeListAllocator>();
-	pcLife->Init(iElementSize, iAlignment, iOffset);
-	cLife.Init(pcLife, TRUE, TRUE);
+	LIFE_ALLOC(CFreeListAllocator, CMallocator)->Init(iElementSize, iAlignment, iOffset);
 	return cLife;
 }
 

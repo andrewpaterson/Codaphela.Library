@@ -26,9 +26,10 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNamedIndexes::Init(CDurableFileController* pcController, CNamedIndexesConfig* pcConfig)
+void CNamedIndexes::Init(CDurableFileController* pcController, CLifeInit<CNamedIndexesConfig> cConfig)
 {
-	mcIndexTree.Init(pcController, pcConfig->GetSubDirectory(), pcConfig->GetIndexCacheSize(), pcConfig->GetIndexTreeEvictionCallback(), pcConfig->GetEvictionStrategy(), this, pcConfig->GetWriteThrough(), IKR_No, pcConfig->GetIndexTreeDataOrderer());
+	cConfig.ConfigureLife(&mcConfig, &mpcConfig);
+	mcIndexTree.Init(pcController, mpcConfig->GetSubDirectory(), mpcConfig->GetIndexCacheSize(), mpcConfig->GetIndexTreeEvictionCallback(), mpcConfig->GetEvictionStrategy(), this, mpcConfig->GetWriteThrough(), IKR_No, mpcConfig->GetIndexTreeDataOrderer());
 }
 
 
@@ -38,7 +39,12 @@ void CNamedIndexes::Init(CDurableFileController* pcController, CNamedIndexesConf
 //////////////////////////////////////////////////////////////////////////
 BOOL CNamedIndexes::Kill(void)
 {
-	return mcIndexTree.Kill();
+	BOOL	bResult;
+
+	bResult = mcIndexTree.Kill();
+	mcConfig.Kill();
+
+	return bResult;
 }
 
 

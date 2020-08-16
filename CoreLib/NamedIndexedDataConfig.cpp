@@ -5,12 +5,10 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNamedIndexedDataConfig::Init(CIndexedDataConfig* pcIndexConfig, CNamedIndexesConfig* pcNamedConfig, BOOL bKillConfigs, BOOL bFreeConfigs)
+void CNamedIndexedDataConfig::Init(CLifeInit<CIndexedDataConfig> cIndexConfig, CLifeInit<CNamedIndexesConfig> cNamedConfig)
 {
-	mpcIndexConfig = pcIndexConfig;
-	mpcNamedConfig = pcNamedConfig;
-	mbKillConfigs = bKillConfigs;
-	mbFreeConfigs = bFreeConfigs;
+	mcIndexConfig = cIndexConfig;
+	mcNamedConfig = cNamedConfig;
 }
 
 
@@ -20,22 +18,6 @@ void CNamedIndexedDataConfig::Init(CIndexedDataConfig* pcIndexConfig, CNamedInde
 //////////////////////////////////////////////////////////////////////////
 void CNamedIndexedDataConfig::Kill(void)
 {
-	if (mbKillConfigs)
-	{
-		mpcIndexConfig->Kill();
-		mpcNamedConfig->Kill();
-	}
-
-	if (mbFreeConfigs)
-	{
-		SafeFree(mpcIndexConfig);
-		SafeFree(mpcNamedConfig);
-	}
-	else
-	{
-		mpcIndexConfig = NULL;
-		mpcNamedConfig = NULL;
-	}
 }
 
 
@@ -45,7 +27,7 @@ void CNamedIndexedDataConfig::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CNamedIndexedDataConfig::HasDatabaseConfig(void)
 {
-	return (mpcIndexConfig != NULL) && (mpcNamedConfig != NULL);
+	return (mcIndexConfig.GetLife() != NULL) && (mcNamedConfig.GetLife() != NULL);
 }
 
 
@@ -53,9 +35,9 @@ BOOL CNamedIndexedDataConfig::HasDatabaseConfig(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexedDataConfig* CNamedIndexedDataConfig::GetIndexConfig(void)
+CLifeInit<CIndexedDataConfig> CNamedIndexedDataConfig::GetIndexConfig(void)
 {
-	return mpcIndexConfig;
+	return mcIndexConfig;
 }
 
 
@@ -63,8 +45,8 @@ CIndexedDataConfig* CNamedIndexedDataConfig::GetIndexConfig(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CNamedIndexesConfig* CNamedIndexedDataConfig::GetNamedConfig(void)
+CLifeInit<CNamedIndexesConfig> CNamedIndexedDataConfig::GetNamedConfig(void)
 {
-	return mpcNamedConfig;
+	return mcNamedConfig;
 }
 

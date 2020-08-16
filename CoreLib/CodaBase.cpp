@@ -12,7 +12,6 @@ void CCodabase::Init(char* szDirectory, CNamedIndexedDataConfig* pcConfig)
 
 	cHelper.Init(szDirectory, "Primary", "Backup", FALSE);
 
-	mpcConfig = pcConfig;
 	mcFileController.Init(cHelper.GetPrimaryDirectory(), cHelper.GetBackupDirectory());
 	mcFileController.Begin();
 	mcNamedIndexedData.Init(&mcFileController, pcConfig);
@@ -30,5 +29,5 @@ void CCodabase::Kill(void)
 {
 	mcNamedIndexedData.Kill();
 	mcFileController.Kill();
-	SafeKill(mpcConfig);
 }
+

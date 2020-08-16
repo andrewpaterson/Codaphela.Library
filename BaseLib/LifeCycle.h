@@ -50,6 +50,15 @@ void CLife<M>::Init(M** ppcLifeCycleObject, BOOL bMustFree, BOOL bMustKill)
 };
 
 
+#define LIFE_ALLOC(specific, super) \
+CLifeInit<super>	cLife;\
+specific*			pcLife;\
+\
+pcLife = NewMalloc<specific>();\
+cLife.Init(pcLife, TRUE, TRUE);\
+pcLife
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //

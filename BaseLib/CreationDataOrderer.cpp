@@ -65,12 +65,7 @@ void CCreationDataOrderer::HasKey(CIndexTreeDataNode* psNode)
 //////////////////////////////////////////////////////////////////////////
 CLifeInit<CIndexTreeDataOrderer> CCreationDataOrderer::Create(void)
 {
-	CLifeInit<CIndexTreeDataOrderer> cLife;
-	CCreationDataOrderer*			pcLife;
-
-	pcLife = NewMalloc<CCreationDataOrderer>();
-	pcLife->Init();
-	cLife.Init(pcLife, TRUE, TRUE);
+	LIFE_ALLOC(CCreationDataOrderer, CIndexTreeDataOrderer)->Init();
 	return cLife;
 }
 

@@ -1,6 +1,8 @@
 #ifndef __INDEXED_DATA_CONFIG_H__
 #define __INDEXED_DATA_CONFIG_H__
 #include "BaseLib/IndexTreeDataOrderer.h"
+#include "BaseLib/Constructable.h"
+#include "BaseLib/Killable.h"
 #include "IndexWriteThrough.h"
 #include "DurableFileController.h"
 #include "IndexTreeEvictionCallback.h"
@@ -8,8 +10,10 @@
 #include "IndexTreeEvictionStrategy.h"
 
 
-class CIndexedDataConfig
+class CIndexedDataConfig : public CConstructable, public CKillable
 {
+friend class CIndexedData;
+CONSTRUCTABLE(CIndexedDataConfig);
 public:
 	virtual void							Kill(void);
 

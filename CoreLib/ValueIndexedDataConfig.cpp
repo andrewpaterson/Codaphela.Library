@@ -118,3 +118,25 @@ CIndexTreeDataOrderer* CValueIndexedDataConfig::GetIndexTreeDataOrderer(void)
 	return mpcIndexTreeDataOrderer;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CLifeInit<CIndexedDataConfig> CValueIndexedDataConfig::Create(char* szSubDirectory, size_t uiDataCacheSize, size_t uiIndexCacheSize, EIndexWriteThrough eWriteThrough, CIndexTreeEvictionStrategy* pcEvictionStrategy)
+{
+	LIFE_ALLOC(CValueIndexedDataConfig, CIndexedDataConfig)->Init(szSubDirectory, uiDataCacheSize, uiIndexCacheSize, eWriteThrough, pcEvictionStrategy);
+	return cLife;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CLifeInit<CIndexedDataConfig> CValueIndexedDataConfig::Create(char* szSubDirectory, size_t uiDataCacheSize, size_t uiIndexCacheSize, EIndexWriteThrough eWriteThrough, CIndexTreeEvictionStrategy* pcEvictionStrategy, CIndexTreeEvictionCallback* pcIndexTreeEvictionUserCallback, CIndexedDataEvictionCallback* pcIndexedDataEvictionUserCallback, CIndexTreeDataOrderer* pcIndexTreeDataOrderer)
+{
+	LIFE_ALLOC(CValueIndexedDataConfig, CIndexedDataConfig)->Init(szSubDirectory, uiDataCacheSize, uiIndexCacheSize, eWriteThrough, pcEvictionStrategy, pcIndexTreeEvictionUserCallback, pcIndexedDataEvictionUserCallback, pcIndexTreeDataOrderer);
+	return cLife;
+}
+

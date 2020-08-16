@@ -22,6 +22,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __NAMED_INDEXES_H__
 #include "BaseLib/Define.h"
 #include "BaseLib/MemoryCache.h"
+#include "BaseLib/LifeCycle.h"
 #include "DurableFileController.h"
 #include "IndexedFiles.h"
 #include "IndexTreeEvicting.h"
@@ -32,10 +33,12 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 class CNamedIndexes : public CIndexTreeEvictionCallback, public CIndexTreeFileDataCallback
 {
 protected:
-	CIndexTreeEvicting	mcIndexTree;
+	CIndexTreeEvicting			mcIndexTree;
+	CLife<CNamedIndexesConfig>	mcConfig;
+	CNamedIndexesConfig*		mpcConfig;
 	
 public:
-	void			Init(CDurableFileController* pcController, CNamedIndexesConfig* pcConfig);
+	void			Init(CDurableFileController* pcController, CLifeInit<CNamedIndexesConfig> pcConfig);
 	BOOL			Kill(void);
 
 	BOOL			Add(char* szName, OIndex oi);

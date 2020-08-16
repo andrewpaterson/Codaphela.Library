@@ -32,16 +32,16 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedData::Init(CDurableFileController* pcController, CIndexedDataConfig* pcConfig)
+void CIndexedData::Init(CDurableFileController* pcController, CLifeInit<CIndexedDataConfig> cConfig)
 {
-	CIndexedDataCommon::Init(pcConfig->GetIndexedDataEvictionUserCallback());
+	cConfig.ConfigureLife(&mcConfig, &mpcConfig);
+	CIndexedDataCommon::Init(mpcConfig->GetIndexedDataEvictionUserCallback());
 
-	meWriteThrough = pcConfig->GetWriteThrough();
-
+	meWriteThrough = mpcConfig->GetWriteThrough();
 	mpcDurableFileControl = pcController;
 
-	mcIndices.Init(this, mpcDurableFileControl, pcConfig->GetSubdirectory(), pcConfig->GetIndexCacheSize(), meWriteThrough, pcConfig->GetEvictionStrategy(), pcConfig->GetIndexTreeEvictionUserCallback(), pcConfig->GetIndexTreeDataOrderer());
-	mcData.Init(mpcDurableFileControl, pcConfig->GetSubdirectory(), "DAT", "Files.IDX", "_Files.IDX", pcConfig->GetDataCacheSize(), meWriteThrough, this);
+	mcIndices.Init(this, mpcDurableFileControl, mpcConfig->GetSubdirectory(), mpcConfig->GetIndexCacheSize(), meWriteThrough, mpcConfig->GetEvictionStrategy(), mpcConfig->GetIndexTreeEvictionUserCallback(), mpcConfig->GetIndexTreeDataOrderer());
+	mcData.Init(mpcDurableFileControl, mpcConfig->GetSubdirectory(), "DAT", "Files.IDX", "_Files.IDX", mpcConfig->GetDataCacheSize(), meWriteThrough, this);
 }
 
 
@@ -56,8 +56,8 @@ BOOL CIndexedData::Kill(void)
 	mpcDurableFileControl = NULL;
 
 	bResult = mcData.Kill();
-
 	bResult &= mcIndices.Kill();
+	mcConfig.Kill();
 
 	return bResult;;
 }

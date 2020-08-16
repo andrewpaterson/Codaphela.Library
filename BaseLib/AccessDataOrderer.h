@@ -16,7 +16,7 @@ public:
 	void	HasKey(CIndexTreeDataNode* psNode);
 
 public:
-	static CLifeInit<CAccessDataOrderer> Create(void);
+	static CLifeInit<CIndexTreeDataOrderer> Create(void);
 };
 
 
