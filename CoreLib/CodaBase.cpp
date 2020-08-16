@@ -6,7 +6,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCodabase::Init(char* szDirectory, CNamedIndexedDataConfig* pcConfig)
+void CCodabase::Init(char* szDirectory, CLifeInit<CIndexedDataConfig> cIndexConfig, CLifeInit<CNamedIndexesConfig> cNamedConfig)
 {
 	CIndexTreeHelper	cHelper;
 
@@ -14,7 +14,7 @@ void CCodabase::Init(char* szDirectory, CNamedIndexedDataConfig* pcConfig)
 
 	mcFileController.Init(cHelper.GetPrimaryDirectory(), cHelper.GetBackupDirectory());
 	mcFileController.Begin();
-	mcNamedIndexedData.Init(&mcFileController, pcConfig);
+	mcNamedIndexedData.Init(&mcFileController, cIndexConfig, cNamedConfig);
 	mcFileController.End();
 
 	cHelper.Kill(FALSE);
