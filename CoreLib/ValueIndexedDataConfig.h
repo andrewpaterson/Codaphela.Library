@@ -1,5 +1,6 @@
 #ifndef __VALUE_INDEXED_DATA_CONFIG_H__
 #define __VALUE_INDEXED_DATA_CONFIG_H__
+#include "BaseLib/LifeCycle.h"
 #include "IndexedDataConfig.h"
 #include "IndexTreeEvictionStrategy.h"
 
@@ -18,7 +19,7 @@ protected:
 
 public:
 	void 							Init(char* szSubDirectory, size_t uiDataCacheSize, size_t uiIndexCacheSize, EIndexWriteThrough eWriteThrough, CIndexTreeEvictionStrategy* pcEvictionStrategy);
-	void 							Init(char* szSubDirectory, size_t uiDataCacheSize, size_t uiIndexCacheSize, EIndexWriteThrough eWriteThrough, CIndexTreeEvictionStrategy* pcEvictionStrategy, CIndexTreeEvictionCallback* pcIndexTreeEvictionUserCallback, CIndexedDataEvictionCallback* mpcIndexedDataEvictionUserCallback, CIndexTreeDataOrderer* pcIndexTreeDataOrderer);
+	void 							Init(char* szSubDirectory, size_t uiDataCacheSize, size_t uiIndexCacheSize, EIndexWriteThrough eWriteThrough, CIndexTreeEvictionStrategy* pcEvictionStrategy, CIndexTreeEvictionCallback* pcIndexTreeEvictionUserCallback, CIndexedDataEvictionCallback* pcIndexedDataEvictionUserCallback, CIndexTreeDataOrderer* pcIndexTreeDataOrderer);
 	void							Kill(void);
 
 	char*							GetSubdirectory(void);
@@ -29,6 +30,10 @@ public:
 	CIndexedDataEvictionCallback*	GetIndexedDataEvictionUserCallback(void);
 	CIndexTreeEvictionStrategy*		GetEvictionStrategy(void);
 	CIndexTreeDataOrderer*			GetIndexTreeDataOrderer(void);
+
+public:
+	static CLifeInit<CIndexedDataConfig> Create(char* szSubDirectory, size_t uiDataCacheSize, size_t uiIndexCacheSize, EIndexWriteThrough eWriteThrough, CIndexTreeEvictionStrategy* pcEvictionStrategy);
+	static CLifeInit<CIndexedDataConfig> Create(char* szSubDirectory, size_t uiDataCacheSize, size_t uiIndexCacheSize, EIndexWriteThrough eWriteThrough, CIndexTreeEvictionStrategy* pcEvictionStrategy, CIndexTreeEvictionCallback* pcIndexTreeEvictionUserCallback, CIndexedDataEvictionCallback* pcIndexedDataEvictionUserCallback, CIndexTreeDataOrderer* pcIndexTreeDataOrderer);
 };
 
 

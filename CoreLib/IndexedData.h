@@ -43,11 +43,14 @@ protected:
 	//	CIndexTreeEvicting					mcIndexTree;  <---
 	//	CIndexedDataCommon*					mpcIndexedData;
 	//	CIndexTreeEvictionCallbackWrapper	mcEvictionCallbackWrapper;
+
 	CIndexedDescriptorsFile		mcIndices;
 	CDurableFileController*		mpcDurableFileControl;
+	CLife<CIndexedDataConfig>	mcConfig;
+	CIndexedDataConfig*			mpcConfig;
 
 public:
-	void 			Init(CDurableFileController* pcController, CIndexedDataConfig* pcConfig);
+	void 			Init(CDurableFileController* pcController, CLifeInit<CIndexedDataConfig> cConfig);
 	BOOL 			Kill(void);
 
 	BOOL			Flush(void);

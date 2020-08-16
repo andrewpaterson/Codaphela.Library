@@ -8,7 +8,6 @@ class CCodabase
 protected:
 	CNamedIndexedData			mcNamedIndexedData;
 	CDurableFileController		mcFileController;
-	CNamedIndexedDataConfig*	mpcConfig;
 
 public:
 	void	Init(char* szDirectory, CNamedIndexedDataConfig* pcConfig);

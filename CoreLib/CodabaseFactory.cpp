@@ -12,9 +12,9 @@
 CCodabase* CCodabaseFactory::Create(char* szDirectory, EIndexWriteThrough eWriteThrough)
 {
 	CCodabase*								pcDatabase;
-	CNamedIndexedDataConfig*				pcConfig;
-	CValueIndexedDataConfig*				pcIndexConfig;
-	CValueNamedIndexesConfig*				pcNamedConfig;
+	CNamedIndexedDataConfig					cConfig;
+	CLifeInit<CIndexedDataConfig>			cIndexConfig;
+	CLifeInit<CNamedIndexesConfig>			cNamedConfig;
 	CIndexTreeEvictionStrategyDataOrderer*	pcIndexEvictionStrategy;
 	CAccessDataOrderer*						pcIndexAccessOrderer;
 	CIndexTreeEvictionStrategyDataOrderer*	pcNamedEvictionStrategy;
@@ -22,23 +22,20 @@ CCodabase* CCodabaseFactory::Create(char* szDirectory, EIndexWriteThrough eWrite
 
 	pcIndexAccessOrderer = NewMalloc<CAccessDataOrderer>();
 	pcIndexEvictionStrategy = NewMalloc<CIndexTreeEvictionStrategyDataOrderer>();
-	pcIndexConfig = NewMalloc<CValueIndexedDataConfig>();
 	pcIndexAccessOrderer->Init();
 	pcIndexEvictionStrategy->Init(pcIndexAccessOrderer);
-	pcIndexConfig->Init("Index", 16 MB, 8 MB, eWriteThrough, pcIndexEvictionStrategy, NULL, NULL, pcIndexAccessOrderer);
+	cIndexConfig = CValueIndexedDataConfig::Create("Index", 16 MB, 8 MB, eWriteThrough, pcIndexEvictionStrategy, NULL, NULL, pcIndexAccessOrderer);
 
 	pcNamedAccessOrderer = NewMalloc<CAccessDataOrderer>();
 	pcNamedEvictionStrategy = NewMalloc<CIndexTreeEvictionStrategyDataOrderer>();
-	pcNamedConfig = NewMalloc<CValueNamedIndexesConfig>();
 	pcNamedAccessOrderer->Init();
 	pcNamedEvictionStrategy->Init(pcNamedAccessOrderer);
-	pcNamedConfig->Init("Names", 1 MB, pcNamedEvictionStrategy, eWriteThrough, NULL, pcNamedAccessOrderer);
-
-	pcConfig = NewMalloc<CNamedIndexedDataConfig>();
-	pcConfig->Init(pcIndexConfig, pcNamedConfig, TRUE, TRUE);
+	cNamedConfig = CValueNamedIndexesConfig::Create("Names", 1 MB, pcNamedEvictionStrategy, eWriteThrough, NULL, pcNamedAccessOrderer);
+	
+	cConfig.Init(cIndexConfig, cNamedConfig);
 
 	pcDatabase = NewMalloc<CCodabase>();
-	pcDatabase->Init(szDirectory, pcConfig);
+	pcDatabase->Init(szDirectory, &cConfig);
 	return pcDatabase;
 }
 

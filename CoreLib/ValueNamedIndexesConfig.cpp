@@ -96,3 +96,26 @@ CIndexTreeDataOrderer* CValueNamedIndexesConfig::GetIndexTreeDataOrderer(void)
 	return mpcIndexTreeDataOrderer;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CLifeInit<CNamedIndexesConfig> CValueNamedIndexesConfig::Create(char* szSubDirectory, size_t uiIndexCacheSize, CIndexTreeEvictionStrategy* pcNamedEvictionStrategy, EIndexWriteThrough eWriteThrough)
+{
+	LIFE_ALLOC(CValueNamedIndexesConfig, CNamedIndexesConfig)->Init(szSubDirectory, uiIndexCacheSize, pcNamedEvictionStrategy, eWriteThrough);
+	return cLife;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CLifeInit<CNamedIndexesConfig> CValueNamedIndexesConfig::Create(char* szSubDirectory, size_t uiIndexCacheSize, CIndexTreeEvictionStrategy* pcNamedEvictionStrategy, EIndexWriteThrough eWriteThrough, CIndexTreeEvictionCallback* pcEvictionCallback, CIndexTreeDataOrderer* pcIndexTreeDataOrderer)
+{
+	LIFE_ALLOC(CValueNamedIndexesConfig, CNamedIndexesConfig)->Init(szSubDirectory, uiIndexCacheSize, pcNamedEvictionStrategy, eWriteThrough, pcEvictionCallback, pcIndexTreeDataOrderer);
+	return cLife;
+}
+
+

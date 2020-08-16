@@ -1,14 +1,18 @@
 #ifndef __NAMED_INDEXES_CONFIG_H__
 #define __NAMED_INDEXES_CONFIG_H__
 #include "BaseLib/IndexTreeDataOrderer.h"
+#include "BaseLib/Constructable.h"
+#include "BaseLib/Killable.h"
 #include "DurableFileController.h"
 #include "IndexWriteThrough.h"
 #include "IndexTreeEvictionCallback.h"
 #include "IndexTreeEvictionStrategy.h"
 
 
-class CNamedIndexesConfig
+class CNamedIndexesConfig : public CConstructable, public CKillable
 {
+friend class CNamedIndexes;
+CONSTRUCTABLE(CNamedIndexesConfig);
 public:
 	virtual void							Kill(void);
 
