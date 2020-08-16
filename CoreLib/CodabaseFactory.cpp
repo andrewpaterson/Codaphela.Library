@@ -12,7 +12,6 @@
 CCodabase* CCodabaseFactory::Create(char* szDirectory, EIndexWriteThrough eWriteThrough)
 {
 	CCodabase*								pcDatabase;
-	CNamedIndexedDataConfig					cConfig;
 	CLifeInit<CIndexedDataConfig>			cIndexConfig;
 	CLifeInit<CNamedIndexesConfig>			cNamedConfig;
 	CIndexTreeEvictionStrategyDataOrderer*	pcIndexEvictionStrategy;
@@ -32,10 +31,9 @@ CCodabase* CCodabaseFactory::Create(char* szDirectory, EIndexWriteThrough eWrite
 	pcNamedEvictionStrategy->Init(pcNamedAccessOrderer);
 	cNamedConfig = CValueNamedIndexesConfig::Create("Names", 1 MB, pcNamedEvictionStrategy, eWriteThrough, NULL, pcNamedAccessOrderer);
 	
-	cConfig.Init(cIndexConfig, cNamedConfig);
 
 	pcDatabase = NewMalloc<CCodabase>();
-	pcDatabase->Init(szDirectory, &cConfig);
+	pcDatabase->Init(szDirectory, cIndexConfig, cNamedConfig);
 	return pcDatabase;
 }
 

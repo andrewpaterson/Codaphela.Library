@@ -10,7 +10,7 @@ protected:
 	CDurableFileController		mcFileController;
 
 public:
-	void	Init(char* szDirectory, CNamedIndexedDataConfig* pcConfig);
+	void	Init(char* szDirectory, CLifeInit<CIndexedDataConfig> cIndexConfig, CLifeInit<CNamedIndexesConfig> cNamedConfig);
 	void	Kill(void);
 };
 

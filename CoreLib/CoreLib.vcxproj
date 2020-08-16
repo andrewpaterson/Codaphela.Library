@@ -126,7 +126,6 @@
     <ClCompile Include="IndexTreeFileKeyDiagnosticCountingCallback.cpp" />
     <ClCompile Include="LogFile.cpp" />
     <ClCompile Include="LogFileCommands.cpp" />
-    <ClCompile Include="NamedIndexedDataConfig.cpp" />
     <ClCompile Include="NamedIndexedData.cpp" />
     <ClCompile Include="NamedIndexedHeader.cpp" />
     <ClCompile Include="NamedIndexes.cpp" />
@@ -230,7 +229,6 @@
     <ClInclude Include="IndexWriteThrough.h" />
     <ClInclude Include="LogFile.h" />
     <ClInclude Include="LogFileCommands.h" />
-    <ClInclude Include="NamedIndexedDataConfig.h" />
     <ClInclude Include="NamedIndexedData.h" />
     <ClInclude Include="NamedIndexes.h" />
     <ClInclude Include="IndexTreeFileKeyDiagnosticCountingCallback.h" />
