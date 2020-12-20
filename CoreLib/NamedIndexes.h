@@ -66,7 +66,10 @@ public:
 	BOOL			IndexTreeWriteData(void* pvDataBuffer, void* pvSource, int iFileDataSize, unsigned short uiSourceDataSize);
 	BOOL			IndexTreeReadData(void* pvDest, void* pvDataBuffer, unsigned short uiDestDataSize, int iFileDataSize);
 
-	void			Dump(void);
+	void			DumpIndex(void);
+	BOOL			ValidateIndex(void);
+	BOOL			ValidateConfigInitialised(void);
+	BOOL			ValidateConfigKilled(void);
 };
 
 

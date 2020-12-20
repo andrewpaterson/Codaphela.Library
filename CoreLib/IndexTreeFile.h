@@ -37,7 +37,7 @@ protected:
 	CCountingAllocator						mcMalloc;
 	CIndexTreeFileDataCallback*				mpcDataCallback;
 
-	CIndexTreeFileDiagnosticCallback*	mpcDiagnosticCallback;
+	CIndexTreeFileDiagnosticCallback*		mpcDiagnosticCallback;
 
 public:
 	BOOL					Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, int iMaxDataSize, int iMaxKeySize);
