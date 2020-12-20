@@ -35,7 +35,7 @@ void CNumber::PrivateInit(void)
 #if NUMBER_SIZE(DEFAULT_WHOLE_NUMBERS, DEFAULT_DECIMALS) != 52
 #error DEFAULT_DIGITS has changed
 #endif
-	memset_fast_52bytes(this, 0);
+	memset_fast(this, 0, NUMBER_SIZE(DEFAULT_WHOLE_NUMBERS, DEFAULT_DECIMALS));
 	mcMaxWholeNumbers = DEFAULT_WHOLE_NUMBERS;
 	mcMaxDecimals = DEFAULT_DECIMALS;
 }
@@ -2863,7 +2863,7 @@ CNumber* CNumber::Exponential(void)  //e^this
 	CNumber*	pcResult;
 	int			iDecimals;
 
-	iDecimals = mcMaxDecimals+mcMaxWholeNumbers+3;
+	iDecimals = mcMaxDecimals+3;
 	pcFractional = gcNumberControl.Add(mcMaxWholeNumbers, iDecimals);
 	pcIntegral = gcNumberControl.Add(mcMaxWholeNumbers, iDecimals);
 	pcOne = gcNumberControl.Add(mcMaxWholeNumbers, iDecimals);
