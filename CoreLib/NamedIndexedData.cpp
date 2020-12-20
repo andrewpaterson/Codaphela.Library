@@ -871,3 +871,33 @@ BOOL CNamedIndexedData::IsCaching(void)
 	return mcData.IsCaching();
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CNamedIndexedData::ValidateConfigInitialised(void)
+{
+	BOOL	bResult;
+
+	bResult = mcData.ValidateConfigInitialised();
+	bResult |= mcNames.ValidateConfigInitialised();
+
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CNamedIndexedData::ValidateConfigKilled(void)
+{
+	BOOL	bResult;
+
+	bResult = mcData.ValidateConfigKilled();
+	bResult |= mcNames.ValidateConfigKilled();
+
+	return bResult; 
+}
+

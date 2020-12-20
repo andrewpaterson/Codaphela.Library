@@ -81,6 +81,9 @@ public:
 	int64			NumNames(void);
 	BOOL			IsCaching(void);
 
+	BOOL			ValidateConfigInitialised(void);
+	BOOL			ValidateConfigKilled(void);
+
 private:
 	BOOL			Add(OIndex oi, char* szName, int iNameLength, void* pvData, unsigned int uiDataSize);
 	BOOL			Set(OIndex oi, char* szName, int iNameLength, void* pvData, unsigned int uiDataSize);

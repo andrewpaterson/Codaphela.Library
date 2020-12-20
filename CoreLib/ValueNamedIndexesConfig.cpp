@@ -118,4 +118,3 @@ CLifeInit<CNamedIndexesConfig> CValueNamedIndexesConfig::Create(char* szSubDirec
 	return cLife;
 }
 
-

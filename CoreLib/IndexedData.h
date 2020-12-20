@@ -75,6 +75,8 @@ public:
 
 	void			DumpIndex(void);
 	BOOL			ValidateIndex(void);
+	BOOL			ValidateConfigInitialised(void);
+	BOOL			ValidateConfigKilled(void);
 
 protected:
 	BOOL			GetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor, BOOL bNoEviction = FALSE);

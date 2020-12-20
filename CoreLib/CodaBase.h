@@ -12,6 +12,9 @@ protected:
 public:
 	void	Init(char* szDirectory, CLifeInit<CIndexedDataConfig> cIndexConfig, CLifeInit<CNamedIndexesConfig> cNamedConfig);
 	void	Kill(void);
+
+	BOOL	ValidateConfigInitialised(void);
+	BOOL	ValidateConfigKilled(void);
 };
 
 

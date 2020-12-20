@@ -5,14 +5,17 @@
 
 #define LIFE_CYCLE_FLAG_KILL 0x01
 #define LIFE_CYCLE_FLAG_FREE 0x02
+#define LIFE_CYCLE_FLAG_MASK 0x000000FF
 
+#define LIFE_CYCLE_INITIALISED 0xB6A45B00
+#define LIFE_CYCLE_KILLED      0x5D59B400
 
 template <class M>
 class CLife
 {
 protected:
-	M**				mppcLifeCycleObject;
-	unsigned char	mcFlags;
+	M**		mppcLifeCycleObject;
+	uint32	mcFlags;
 
 public:
 
@@ -21,6 +24,10 @@ public:
 
 	BOOL	MustKill(void);
 	BOOL	MustFree(void);
+
+	BOOL	IsInitialised(void);
+	BOOL	HasLifeCycleObject(void);
+	BOOL	IsKilled(void);
 };
 
 
@@ -44,7 +51,7 @@ template <class M>
 void CLife<M>::Init(M** ppcLifeCycleObject, BOOL bMustFree, BOOL bMustKill)
 {
 	mppcLifeCycleObject = ppcLifeCycleObject;
-	mcFlags = 0;
+	mcFlags = LIFE_CYCLE_INITIALISED;
 	SetFlag(&mcFlags, LIFE_CYCLE_FLAG_FREE, bMustFree);
 	SetFlag(&mcFlags, LIFE_CYCLE_FLAG_KILL, bMustKill);
 };
@@ -138,6 +145,7 @@ void CLife<M>::Kill(void)
 			if (MustKill())
 			{
 				mpcKillable->Kill();
+				mcFlags = (mcFlags & LIFE_CYCLE_FLAG_MASK) | LIFE_CYCLE_KILLED;
 			}
 			if (MustFree())
 			{
@@ -169,6 +177,43 @@ template <class M>
 BOOL CLife<M>::MustFree(void)
 {
 	return FixBool(mcFlags & LIFE_CYCLE_FLAG_FREE);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template <class M>
+BOOL CLife<M>::IsInitialised(void)
+{
+	return (mcFlags & ~0x000000FF) == LIFE_CYCLE_INITIALISED;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template <class M>
+BOOL CLife<M>::HasLifeCycleObject(void)
+{
+	if (mppcLifeCycleObject != NULL)
+	{
+		return *mppcLifeCycleObject != NULL;
+	}
+	return FALSE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template <class M>
+BOOL CLife<M>::IsKilled(void)
+{
+	return (mcFlags & ~0x000000FF) == LIFE_CYCLE_KILLED;
 }
 
 

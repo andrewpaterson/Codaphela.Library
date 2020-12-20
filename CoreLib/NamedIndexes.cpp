@@ -28,6 +28,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CNamedIndexes::Init(CDurableFileController* pcController, CLifeInit<CNamedIndexesConfig> cConfig)
 {
+	mpcConfig = NULL;
 	cConfig.ConfigureLife(&mcConfig, &mpcConfig);
 	mcIndexTree.Init(pcController, mpcConfig->GetSubDirectory(), mpcConfig->GetIndexCacheSize(), mpcConfig->GetIndexTreeEvictionCallback(), mpcConfig->GetEvictionStrategy(), this, mpcConfig->GetWriteThrough(), IKR_No, mpcConfig->GetIndexTreeDataOrderer());
 }
@@ -351,8 +352,62 @@ BOOL CNamedIndexes::IndexTreeReadData(void* pvDest, void* pvDataBuffer, unsigned
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNamedIndexes::Dump(void)
+void CNamedIndexes::DumpIndex(void)
 {
 	mcIndexTree.Dump();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CNamedIndexes::ValidateIndex(void)
+{
+	return mcIndexTree.ValidateIndexTree();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CNamedIndexes::ValidateConfigInitialised(void)
+{
+	if (!mcConfig.IsInitialised())
+	{
+		return gcLogger.Error2(__METHOD__, " IndexedData config is not initialised.", NULL);
+	}
+	if (!mcConfig.HasLifeCycleObject())
+	{
+		return gcLogger.Error2(__METHOD__, " IndexedData config has [NULL] life cycle object.", NULL);
+	}
+	if (mpcConfig == NULL)
+	{
+		return gcLogger.Error2(__METHOD__, " IndexedData config is [NULL].", NULL);
+	}
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CNamedIndexes::ValidateConfigKilled(void)
+{
+	if (!mcConfig.IsKilled())
+	{
+		return gcLogger.Error2(__METHOD__, " IndexedData config is not killed", NULL);
+	}
+	if (mcConfig.HasLifeCycleObject())
+	{
+		return gcLogger.Error2(__METHOD__, " IndexedData config has [!NULL] life cycle object.", NULL);
+	}
+	if (mpcConfig != NULL)
+	{
+		return gcLogger.Error2(__METHOD__, " IndexedData config is [!NULL].", NULL);
+	}
+	return TRUE;
 }
 

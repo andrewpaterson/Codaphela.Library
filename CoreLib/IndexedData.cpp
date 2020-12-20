@@ -34,6 +34,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //////////////////////////////////////////////////////////////////////////
 void CIndexedData::Init(CDurableFileController* pcController, CLifeInit<CIndexedDataConfig> cConfig)
 {
+	mpcConfig = NULL;
 	cConfig.ConfigureLife(&mcConfig, &mpcConfig);
 	CIndexedDataCommon::Init(mpcConfig->GetIndexedDataEvictionUserCallback());
 
@@ -258,6 +259,50 @@ void CIndexedData::DumpIndex(void)
 BOOL CIndexedData::ValidateIndex(void)
 {
 	return mcIndices.ValidateIndex();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexedData::ValidateConfigInitialised(void)
+{
+	if (!mcConfig.IsInitialised())
+	{
+		return gcLogger.Error2(__METHOD__, " IndexedData config is not initialised.", NULL);
+	}
+	if (!mcConfig.HasLifeCycleObject())
+	{
+		return gcLogger.Error2(__METHOD__, " IndexedData config has [NULL] life cycle object.", NULL);
+	}
+	if (mpcConfig == NULL)
+	{
+		return gcLogger.Error2(__METHOD__, " IndexedData config is [NULL].", NULL);
+	}
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexedData::ValidateConfigKilled(void)
+{
+	if (!mcConfig.IsKilled())
+	{
+		return gcLogger.Error2(__METHOD__, " IndexedData config is not killed", NULL);
+	}
+	if (mcConfig.HasLifeCycleObject())
+	{
+		return gcLogger.Error2(__METHOD__, " IndexedData config has [!NULL] life cycle object.", NULL);
+	}
+	if (mpcConfig != NULL)
+	{
+		return gcLogger.Error2(__METHOD__, " IndexedData config is [!NULL].", NULL);
+	}
+	return TRUE;
 }
 
 
