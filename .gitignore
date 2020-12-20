@@ -24,6 +24,8 @@ DirectXLib/Debug
 DirectXLib/Game_Release
 ImageLib/Debug
 ImageLib/Release
+ThreadLib/Debug
+ThreadLib/Release
 LanguageLib/Debug
 LanguageLib/Release
 StandardLib/StandardLib.sdf
@@ -34,3 +36,5 @@ BerkeleyLib/ipch
 us.stackdump
 TestLib/TestLib.sdf
 *.suo
+/BaseLib/.vs/*
+/ThreadLib/.vs/*

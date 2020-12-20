@@ -1,0 +1,78 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source">
+      <UniqueIdentifier>{506ea173-25a5-42cb-9648-7878fd53c328}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data">
+      <UniqueIdentifier>{a886e8af-38ac-4ae3-ac02-da28f83e9713}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\Array">
+      <UniqueIdentifier>{bd99f217-fd86-4d5e-addd-181c89f35308}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\Array\Tree">
+      <UniqueIdentifier>{8e1f12d3-fcd6-46c9-9ce9-aad10fa666ac}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\String">
+      <UniqueIdentifier>{bea213cd-2a49-448f-ade4-5d1eb3293042}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\Map">
+      <UniqueIdentifier>{c19b3a97-f9e7-44b6-8a7e-d8947c2878bd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\Array\Bit">
+      <UniqueIdentifier>{4e1176d2-6d04-451d-a202-23cd72e4f390}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\Array\Minimal">
+      <UniqueIdentifier>{f65ab9ec-1d22-4e59-b3b1-09a1edc871fa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\Array\Embedded">
+      <UniqueIdentifier>{53041b47-649b-4e72-a17d-51652e7ea39f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\Array\Primitive">
+      <UniqueIdentifier>{6445202a-5105-4aa1-b102-e6737a166fd3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\Array\Basic">
+      <UniqueIdentifier>{c3884b9c-7a91-41df-adb9-7e7ec5507ca4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\Array\Primitive\Specific">
+      <UniqueIdentifier>{8e62ab87-bd86-4e0a-b616-b1ccdd605d85}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\Array\Basic\Specific">
+      <UniqueIdentifier>{83449a31-83b1-4279-b615-edc6e292db70}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\Array\Minimal\Specific">
+      <UniqueIdentifier>{bcb3c77f-e340-4e34-ac4e-f45a13486256}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\Array\Sorted">
+      <UniqueIdentifier>{b62cf4e0-ad10-4860-86b3-7f1593b3df9e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\Map\String">
+      <UniqueIdentifier>{2f70e5dc-7c62-4305-8fe9-1f0757f57293}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\List">
+      <UniqueIdentifier>{8851766b-4b5a-4c89-951c-c696331bb6a3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\List\Minimal">
+      <UniqueIdentifier>{937b36a0-a2c9-43cd-96c2-3f4664ec0db2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\List\Minimal\Specific">
+      <UniqueIdentifier>{40587235-3dae-4501-817f-2ac8ea9e6eaa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\Map\Primitive">
+      <UniqueIdentifier>{c57d1158-7981-4514-905a-5cadf907a3c0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\LinkedList">
+      <UniqueIdentifier>{fa3dfb29-19bd-41e1-8e9e-400f402430f7}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="SafeArrayBlock.cpp">
+      <Filter>Source\Data\Array\Basic</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="SafeArrayBlock.h">
+      <Filter>Source\Data\Array\Basic</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
