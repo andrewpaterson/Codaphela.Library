@@ -32,9 +32,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 //////////////////////////////////////////////////////////////////////////
 void CNumber::PrivateInit(void)
 {
-#if NUMBER_SIZE(DEFAULT_WHOLE_NUMBERS, DEFAULT_DECIMALS) != 52
-#error DEFAULT_DIGITS has changed
-#endif
 	memset_fast(this, 0, NUMBER_SIZE(DEFAULT_WHOLE_NUMBERS, DEFAULT_DECIMALS));
 	mcMaxWholeNumbers = DEFAULT_WHOLE_NUMBERS;
 	mcMaxDecimals = DEFAULT_DECIMALS;
