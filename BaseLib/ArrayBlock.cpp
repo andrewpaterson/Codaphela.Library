@@ -571,6 +571,20 @@ BOOL CArrayBlock::RemoveTail(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
+BOOL CArrayBlock::RemoveFirst(void)
+{
+	if (miUsedElements > 0)
+	{
+		RemoveAt(0);
+		return TRUE;
+	}
+	return FALSE;
+}
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
 void CArrayBlock::Finalise(void)
 {
 	miChunkSize = 1;
@@ -695,7 +709,7 @@ BOOL CArrayBlock::Pop(void* pvDest)
 	{
 		pvSource = Get(miUsedElements - 1);
 		memcpy(pvDest, pvSource, miElementSize);
-		RemoveTail();
+		RemoveAt(miUsedElements - 1);
 		return TRUE;
 	}
 	else
@@ -713,6 +727,39 @@ BOOL CArrayBlock::Pop(void* pvDest)
 BOOL CArrayBlock::Pop(void)
 {
 	return RemoveTail();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+BOOL CArrayBlock::PopFirst(void* pvDest)
+{
+	void* pvSource;
+
+	if (miUsedElements > 0)
+	{
+		pvSource = Get(0);
+		memcpy(pvDest, pvSource, miElementSize);
+		RemoveAt(0);
+		return TRUE;
+	}
+	else
+	{
+		memset(pvDest, 0, miElementSize);
+		return FALSE;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+BOOL CArrayBlock::PopFirst(void)
+{
+	return RemoveFirst();
 }
 
 

@@ -44,6 +44,8 @@ public:
 	BOOL	Pop(void* pvDest);
 	BOOL	Pop(void);
 	void 	Push(void* pvData);
+	BOOL	PopFirst(void* pvData);
+	BOOL	PopFirst(void);
 
 	int		Resize(int iNumElements);
 
