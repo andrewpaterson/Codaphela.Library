@@ -72,12 +72,18 @@
     <ClCompile Include="SafeArrayBlock.cpp">
       <Filter>Source\Data\Array\Basic</Filter>
     </ClCompile>
+    <ClCompile Include="Thread.cpp">
+      <Filter>Source\Thread</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SafeArrayBlock.h">
       <Filter>Source\Data\Array\Basic</Filter>
     </ClInclude>
     <ClInclude Include="ThreadPool.h">
+      <Filter>Source\Thread</Filter>
+    </ClInclude>
+    <ClInclude Include="Thread.h">
       <Filter>Source\Thread</Filter>
     </ClInclude>
   </ItemGroup>

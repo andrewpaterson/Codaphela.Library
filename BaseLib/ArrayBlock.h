@@ -83,6 +83,8 @@ public:
 	void 	Push(void* pvData);
 	void*	Push(void);
 	void* 	PushCopy(void);
+	BOOL	PopFirst(void* pvData);
+	BOOL	PopFirst(void);
 
 	int		AddNum(int iNumElements);
 	void*	GrowToAtLeastNumElements(int iNumElements, BOOL bClear = FALSE, unsigned char  iClear = 0);
@@ -104,6 +106,7 @@ public:
 	void	RemoveAt(int* paiIndex, int iNumElements, BOOL bPreserveOrder = TRUE);
 	void	RemoveRange(int iStartIndex, int iEndIndexExclusive, BOOL bPreserveOrder = TRUE);
 	BOOL 	RemoveTail(void);
+	BOOL	RemoveFirst(void);
 	void	RemoveBatch(int iFirstIndex, int iNumInBatch, int iNumBatches, int iStrideToNextBatch);
 
 	void	Set(int iIndex, void* pvData);
