@@ -246,9 +246,6 @@
     <ClCompile Include="PlainTextEditor.cpp">
       <Filter>Source\Text\Editor</Filter>
     </ClCompile>
-    <ClCompile Include="Thread_Windows.cpp">
-      <Filter>Source\Windows</Filter>
-    </ClCompile>
     <ClCompile Include="Timer_Windows.cpp">
       <Filter>Source\Windows</Filter>
     </ClCompile>
@@ -544,12 +541,6 @@
     </ClInclude>
     <ClInclude Include="TextEditor.h">
       <Filter>Source\Text\Editor</Filter>
-    </ClInclude>
-    <ClInclude Include="Thread.h">
-      <Filter>Source\Windows</Filter>
-    </ClInclude>
-    <ClInclude Include="Thread_Windows.h">
-      <Filter>Source\Windows</Filter>
     </ClInclude>
     <ClInclude Include="Timer.h">
       <Filter>Source\Windows</Filter>

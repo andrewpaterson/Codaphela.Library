@@ -155,7 +155,6 @@
     <ClCompile Include="XMLParser.cpp" />
     <ClCompile Include="MarkupTextParser.cpp" />
     <ClCompile Include="PlainTextEditor.cpp" />
-    <ClCompile Include="Thread_Windows.cpp" />
     <ClCompile Include="Timer_Windows.cpp" />
     <ClCompile Include="WinConfig.cpp" />
     <ClCompile Include="WinInit.cpp" />
@@ -260,8 +259,6 @@
     <ClInclude Include="MarkupTextParser.h" />
     <ClInclude Include="PlainTextEditor.h" />
     <ClInclude Include="TextEditor.h" />
-    <ClInclude Include="Thread.h" />
-    <ClInclude Include="Thread_Windows.h" />
     <ClInclude Include="Timer.h" />
     <ClInclude Include="WinConfig.h" />
     <ClInclude Include="WinInit.h" />
