@@ -16,6 +16,7 @@ public:
 	void*	Init(size_t iSize);
 	void	Kill(void);
 	int		GetStackSize(void);
+	void*	GetStackData(void);
 };
 
 
@@ -70,6 +71,24 @@ template<int I>
 int CStackMemory<I>::GetStackSize(void)
 {
 	return I;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<int I>
+void* CStackMemory<I>::GetStackData(void)
+{
+	if (mpvOffStack)
+	{
+		return mpvOffStack;
+	}
+	else
+	{
+		return macOnStack;
+	}
 }
 
 

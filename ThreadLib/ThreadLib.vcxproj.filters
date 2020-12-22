@@ -64,6 +64,9 @@
     <Filter Include="Source\Data\LinkedList">
       <UniqueIdentifier>{fa3dfb29-19bd-41e1-8e9e-400f402430f7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Thread">
+      <UniqueIdentifier>{2cb981f0-0306-49fe-9274-ce889c19c3b2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="SafeArrayBlock.cpp">
@@ -73,6 +76,9 @@
   <ItemGroup>
     <ClInclude Include="SafeArrayBlock.h">
       <Filter>Source\Data\Array\Basic</Filter>
+    </ClInclude>
+    <ClInclude Include="ThreadPool.h">
+      <Filter>Source\Thread</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

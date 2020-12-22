@@ -52,17 +52,18 @@ public:
 	void*	Add(void);
 	void*	Add(void* pvData);
 	void* 	AddGetIndex(int* piIndex);
+	int		AddGetIndex(void* pvData);
 	int 	AddIfUnique(void* pData);
 	int 	AddIfUniqueKey(void* pData, int iKeyOffset, int iKeySize);
 
-	BOOL 	Copy(CArrayBlock* pcTemplateArray);
+	void 	Copy(CArrayBlock* pcTemplateArray);
 
 	void*	Get(int iIndex);
 	void*	SafeGet(int iIndex);
 	int		GetAdjustedIndex(int iIndex);
 	void*	GetData(void);
 	void	GetHeader(SArrayTemplateHeader* psHeader);
-	int		GetIndex(void* pvElement);
+	int		GetIndex(void* pvData);
 	void*	Tail(void);
 
 	void*	InsertArrayAfterEnd(CArrayBlock* pcTemplateArray);
@@ -73,28 +74,28 @@ public:
 	void*	InsertBlockAfterEnd(void* paElements, int iLength);
 	void*	InsertBlockAt(void* paElements, int iIndex, int iLength);
 	void*	InsertBlockBeforeStart(void* paElements, int iLength);
-	int		InsertIntoSorted(int(*fCompare)(const void*, const void*), void* pvElement, BOOL bOverwriteExisting);
+	int		InsertIntoSorted(int(*fCompare)(const void*, const void*), void* pvData, BOOL bOverwriteExisting);
 	void*	InsertNumAt(int iNumElements, int iIndex);
 	void	InsertBatch(int iFirstIndex, int iNumInBatch, int iNumBatches, int iStrideToNextBatch);
 
-	void	Pop(void* pvData);
-	void	Pop(void);
-	void 	Push(void* pvElement);
+	BOOL	Pop(void* pvDest);
+	BOOL	Pop(void);
+	void 	Push(void* pvData);
 	void*	Push(void);
 	void* 	PushCopy(void);
 
 	int		AddNum(int iNumElements);
-	void*	GrowToAtLeastNumElements(int iNumElements, BOOL bClear = FALSE, unsigned char  iClear = 0);  //ie:  Don't shrink the array.
-	int		Resize(int iNumElements);  //Can shrink the array.  Should probably call this resize.
+	void*	GrowToAtLeastNumElements(int iNumElements, BOOL bClear = FALSE, unsigned char  iClear = 0);
+	int		Resize(int iNumElements);
 
-	void	BubbleSort(int(*)(const void*, const void*));
-	void	QuickSort(int(*)(const void*, const void*));
+	void	BubbleSort(int(*fCompare)(const void*, const void*));
+	void	QuickSort(int(*fCompare)(const void*, const void*));
 	void	Reverse(void);
 
 	BOOL	Contains(void* pData);
 	BOOL	Equals(CArrayBlock* pcTemplateArray);
 	int 	Find(void* pData);
-	BOOL	FindInSorted(void* pData, int(*)(const void*, const void*), int* piIndex);
+	BOOL	FindInSorted(void* pData, int(*fCompare)(const void*, const void*), int* piIndex);
 	int		FindWithIntKey(int iKey);
 	int		FindWithIntKey(int iKey, int iKeyOffset);
 	int 	FindWithKey(void* pData, int iKeyOffset, int iKeySize);
@@ -102,13 +103,13 @@ public:
 	void 	RemoveAt(int iIndex, int bPreserveOrder = TRUE);
 	void	RemoveAt(int* paiIndex, int iNumElements, BOOL bPreserveOrder = TRUE);
 	void	RemoveRange(int iStartIndex, int iEndIndexExclusive, BOOL bPreserveOrder = TRUE);
-	void 	RemoveTail(void);
+	BOOL 	RemoveTail(void);
 	void	RemoveBatch(int iFirstIndex, int iNumInBatch, int iNumBatches, int iStrideToNextBatch);
 
 	void	Set(int iIndex, void* pvData);
 	BOOL	SafeSet(int iIndex, void* pvData);
 	void	Swap(int iIndex1, int iIndex2);
-	void	Unuse(void);
+	void	Unuse(void);  //Da fuq?
 	void 	Zero(void);
 
 	int 	ByteSize(void);
@@ -131,7 +132,7 @@ protected:
 	void*	Realloc(void* pv, size_t tSize);
 	void	Free(void* pv);
 
-	BOOL	BinarySearch(void* pData, int iLeft, int iRight, int(*)(const void*, const void*), int* piIndex);
+	BOOL	BinarySearch(void* pData, int iLeft, int iRight, int(*fCompare)(const void*, const void*), int* piIndex);
 	void*	CopyArrayInto(CArrayBlock* pcTemplateArray, int iIndex);
 	void*	CopyBlockInto(void* paElements, int iLength, int iIndex);
 	void	PrivateRemoveAt(int iIndex, BOOL bPreserveOrder, int iDataSize);
