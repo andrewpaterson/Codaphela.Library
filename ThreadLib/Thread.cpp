@@ -9,6 +9,17 @@
 //////////////////////////////////////////////////////////////////////////
 void CThread::Init(void)
 {
+	Init(NULL);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CThread::Init(CThreadStateNotifer* pcNotify)
+{
+	mpcNotify = pcNotify;
 	meState = TS_Waiting;
 	miThreadId = -1;
 	mpstdThread = NULL;
@@ -23,6 +34,7 @@ void CThread::Init(void)
 void CThread::Kill(void)
 {
 	miThreadId = -1;
+
 	meState = TS_Killed;
 	if (mbDelete)
 	{
@@ -39,7 +51,7 @@ void CThread::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void RunThread(char* psz, CThread* pcThread)
+void RunThread(CThread* pcThread)
 {
 	std::thread::id id = std::this_thread::get_id();
 	std::thread::id* pid = &id;
@@ -55,8 +67,7 @@ void RunThread(char* psz, CThread* pcThread)
 //////////////////////////////////////////////////////////////////////////
 void CThread::Start(void)
 {
-	char sz[] = { "Starting" };
-	std::thread* pstdThread = new std::thread(RunThread, sz, this);
+	std::thread* pstdThread = new std::thread(RunThread, this);
 	
 	SetThread(pstdThread);
 }
@@ -80,9 +91,9 @@ void CThread::Start(int iThreadId, BOOL bDelete)
 {
 	miThreadId = iThreadId;
 	mbDelete = bDelete;
-	meState = TS_Running;
+	ChangeState(TS_Running);
 	Run();
-	meState = TS_Stopped;
+	ChangeState(TS_Stopped);
 }
 
 
@@ -124,8 +135,21 @@ void CThread::TryStop(void)
 {
 	if (meState == TS_Running)
 	{
-		meState = TS_Stopping;
+		ChangeState(TS_Stopping);
 	}
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CThread::ChangeState(EThreadState eState)
+{
+	meState = eState;
+	if (mpcNotify)
+	{
+		mpcNotify->ThreadStateChanged(this, eState);
+	}
+}
 
