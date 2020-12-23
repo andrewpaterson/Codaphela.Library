@@ -75,6 +75,9 @@
     <ClCompile Include="Thread.cpp">
       <Filter>Source\Thread</Filter>
     </ClCompile>
+    <ClCompile Include="ThreadPool.cpp">
+      <Filter>Source\Thread</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SafeArrayBlock.h">
@@ -84,6 +87,15 @@
       <Filter>Source\Thread</Filter>
     </ClInclude>
     <ClInclude Include="VitsenityThreadPool.h">
+      <Filter>Source\Thread</Filter>
+    </ClInclude>
+    <ClInclude Include="ThreadPool.h">
+      <Filter>Source\Thread</Filter>
+    </ClInclude>
+    <ClInclude Include="ThreadStateNotifier.h">
+      <Filter>Source\Thread</Filter>
+    </ClInclude>
+    <ClInclude Include="ThreadState.h">
       <Filter>Source\Thread</Filter>
     </ClInclude>
   </ItemGroup>

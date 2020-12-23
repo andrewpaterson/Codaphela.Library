@@ -2,28 +2,23 @@
 #define __THREAD_H__
 #include "BaseLib/Define.h"
 #include "BaseLib/Killable.h"
+#include "BaseLib/Constructable.h"
+#include "ThreadState.h"
+#include "ThreadStateNotifier.h"
 
 
-enum EThreadState
-{
-	TS_Waiting,
-	TS_Running,
-	TS_Stopping,
-	TS_Stopped,
-	TS_Killed
-};
-
-
-class CThread 
+class CThread : public CConstructable, public CKillable
 {
 private:
-	EThreadState	meState;
-	int				miThreadId;
-	std::thread*	mpstdThread;
-	BOOL			mbDelete;
+	EThreadState			meState;
+	int						miThreadId;
+	std::thread*			mpstdThread;
+	BOOL					mbDelete;
+	CThreadStateNotifer*	mpcNotify;
 
 public:
 			void	Init(void);
+			void	Init(CThreadStateNotifer* pcNotify);
 			void	Kill(void);
 
 			void	Start(void);
@@ -37,6 +32,7 @@ public:
 protected:
 	virtual void	Run(void) =0;
 			void	SetThread(std::thread* pstdThread);
+			void	ChangeState(EThreadState eState);
 };
 
 
