@@ -95,8 +95,11 @@
   <ItemGroup>
     <ClInclude Include="SafeArrayBlock.h" />
     <ClInclude Include="SafeLinkedListBlock.h" />
+    <ClInclude Include="StandAloneThreadStarter.h" />
     <ClInclude Include="Thread.h" />
     <ClInclude Include="ThreadPool.h" />
+    <ClInclude Include="ThreadsDone.h" />
+    <ClInclude Include="ThreadStarter.h" />
     <ClInclude Include="ThreadState.h" />
     <ClInclude Include="ThreadStateNotifier.h" />
     <ClInclude Include="VitsenityThreadPool.h" />
@@ -104,8 +107,10 @@
   <ItemGroup>
     <ClCompile Include="SafeArrayBlock.cpp" />
     <ClCompile Include="SafeLinkedListBlock.cpp" />
+    <ClCompile Include="StandAloneThreadStarter.cpp" />
     <ClCompile Include="Thread.cpp" />
     <ClCompile Include="ThreadPool.cpp" />
+    <ClCompile Include="ThreadsDone.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -56,12 +56,14 @@ public:
 
 	M*		Add(void);
 	M*		Add(M* pData);
+	void	AddPtr(void* pv);
 	int 	ByteSize(void);
 	int		EmbeddedSize(void);
 	int 	Find(M* pvElement);
 	M*		Get(int iIndex);
 	M*		GetData(void);
 	int		GetIndex(M* pvElement);
+	void*	GetPtr(int iIndex);
 	int		AddNum(int iNumElements);
 	int		Resize(int iNumElements);
 	M* 		InsertAt(int iIndex);
@@ -224,6 +226,20 @@ M* CArrayTemplateEmbedded<M, I>::Add(M* pData)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, int I>
+void CArrayTemplateEmbedded<M, I>::AddPtr(void* pv)
+{
+	void** pvTemp;
+
+	pvTemp = (void**)Add();
+	*pvTemp = pv;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M, int I>
 int CArrayTemplateEmbedded<M, I>::ByteSize(void)
 {
 	if (IsEmbedded())
@@ -285,6 +301,17 @@ M* CArrayTemplateEmbedded<M, I>::GetData(void)
 	{
 		return mcArray.GetData();
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M, int I>
+void* CArrayTemplateEmbedded<M, I>::GetPtr(int iIndex)
+{
+	return *Get(iIndex);
 }
 
 

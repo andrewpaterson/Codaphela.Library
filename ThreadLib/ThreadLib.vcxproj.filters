@@ -67,6 +67,9 @@
     <Filter Include="Source\Thread">
       <UniqueIdentifier>{2cb981f0-0306-49fe-9274-ce889c19c3b2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Thread\Pool">
+      <UniqueIdentifier>{f0506833-0d7b-4d2a-a750-b7775a17e332}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="SafeArrayBlock.cpp">
@@ -75,11 +78,17 @@
     <ClCompile Include="Thread.cpp">
       <Filter>Source\Thread</Filter>
     </ClCompile>
-    <ClCompile Include="ThreadPool.cpp">
-      <Filter>Source\Thread</Filter>
-    </ClCompile>
     <ClCompile Include="SafeLinkedListBlock.cpp">
       <Filter>Source\Data\List</Filter>
+    </ClCompile>
+    <ClCompile Include="ThreadPool.cpp">
+      <Filter>Source\Thread\Pool</Filter>
+    </ClCompile>
+    <ClCompile Include="StandAloneThreadStarter.cpp">
+      <Filter>Source\Thread</Filter>
+    </ClCompile>
+    <ClCompile Include="ThreadsDone.cpp">
+      <Filter>Source\Thread</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -87,12 +96,6 @@
       <Filter>Source\Data\Array\Basic</Filter>
     </ClInclude>
     <ClInclude Include="Thread.h">
-      <Filter>Source\Thread</Filter>
-    </ClInclude>
-    <ClInclude Include="VitsenityThreadPool.h">
-      <Filter>Source\Thread</Filter>
-    </ClInclude>
-    <ClInclude Include="ThreadPool.h">
       <Filter>Source\Thread</Filter>
     </ClInclude>
     <ClInclude Include="ThreadStateNotifier.h">
@@ -103,6 +106,21 @@
     </ClInclude>
     <ClInclude Include="SafeLinkedListBlock.h">
       <Filter>Source\Data\List</Filter>
+    </ClInclude>
+    <ClInclude Include="ThreadStarter.h">
+      <Filter>Source\Thread</Filter>
+    </ClInclude>
+    <ClInclude Include="VitsenityThreadPool.h">
+      <Filter>Source\Thread\Pool</Filter>
+    </ClInclude>
+    <ClInclude Include="ThreadPool.h">
+      <Filter>Source\Thread\Pool</Filter>
+    </ClInclude>
+    <ClInclude Include="StandAloneThreadStarter.h">
+      <Filter>Source\Thread</Filter>
+    </ClInclude>
+    <ClInclude Include="ThreadsDone.h">
+      <Filter>Source\Thread</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

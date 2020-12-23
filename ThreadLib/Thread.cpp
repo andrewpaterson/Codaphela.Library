@@ -1,5 +1,5 @@
-#include <thread>
 #include "BaseLib/DebugOutput.h"
+#include "StandAloneThreadStarter.h"
 #include "Thread.h"
 
 
@@ -7,21 +7,12 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CThread::Init(void)
+CThread::CThread()
 {
-	Init(NULL);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CThread::Init(CThreadStateNotifer* pcNotify)
-{
-	mpcNotify = pcNotify;
+	mapcNotifiers.Init();
+	mpcStarter = &gcStandAloneThreadStarter;
 	meState = TS_Waiting;
-	miThreadId = -1;
+	miThreadId = 0;
 	mpstdThread = NULL;
 	mbDelete = FALSE;
 }
@@ -31,10 +22,33 @@ void CThread::Init(CThreadStateNotifer* pcNotify)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+CThread::CThread(CThreadStarter* pcStarter, CThreadStateNotifer* pcNotify)
+{
+	mapcNotifiers.Init();
+	mapcNotifiers.AddPtr(pcNotify);
+	mpcStarter = pcStarter;
+	meState = TS_Waiting;
+	miThreadId = 0;
+	mpstdThread = NULL;
+	mbDelete = FALSE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CThread::Init(void)
+{
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CThread::Kill(void)
 {
-	miThreadId = -1;
-
 	meState = TS_Killed;
 	if (mbDelete)
 	{
@@ -44,20 +58,8 @@ void CThread::Kill(void)
 		}
 		delete mpstdThread;
 	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void RunThread(CThread* pcThread)
-{
-	std::thread::id id = std::this_thread::get_id();
-	std::thread::id* pid = &id;
-	int	iid = *((int*)pid);
-
-	pcThread->Start(iid, TRUE);
+	miThreadId = 0;
+	mapcNotifiers.Kill();
 }
 
 
@@ -67,9 +69,7 @@ void RunThread(CThread* pcThread)
 //////////////////////////////////////////////////////////////////////////
 void CThread::Start(void)
 {
-	std::thread* pstdThread = new std::thread(RunThread, this);
-	
-	SetThread(pstdThread);
+	mpcStarter->StartThread(this);
 }
 
 
@@ -131,6 +131,16 @@ int CThread::GetThreadId(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CThread::AddNotifier(CThreadStateNotifer* pcNotify)
+{
+	mapcNotifiers.AddPtr(pcNotify);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CThread::TryStop(void)
 {
 	if (meState == TS_Running)
@@ -146,10 +156,14 @@ void CThread::TryStop(void)
 //////////////////////////////////////////////////////////////////////////
 void CThread::ChangeState(EThreadState eState)
 {
+	int						i;
+	CThreadStateNotifer*	pcNotifier;
+
 	meState = eState;
-	if (mpcNotify)
+	for (i = mapcNotifiers.NumElements() -1; i >= 0; i--)
 	{
-		mpcNotify->ThreadStateChanged(this, eState);
+		pcNotifier = (CThreadStateNotifer*)mapcNotifiers.GetPtr(i);
+		pcNotifier->ThreadStateChanged(this, eState);
 	}
 }
 
