@@ -18,8 +18,8 @@
 
 //https://github.com/vit-vit/CTPL/blob/master/ctpl.h
 
-#ifndef __THREAD_POOL_H__
-#define __THREAD_POOL_H__
+#ifndef __VISENITY_THREAD_POOL_H__
+#define __VISENITY_THREAD_POOL_H__
 
 #include <functional>
 #include <thread>
@@ -329,5 +329,5 @@ public:
 };
 
 
-#endif // __THREAD_POOL_H__
+#endif // __VISENITY_THREAD_POOL_H__
 
