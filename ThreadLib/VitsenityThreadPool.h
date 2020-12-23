@@ -71,7 +71,7 @@ public:
 };
 
 
-class CThreadPool 
+class CVitsenityThreadPool 
 {
 private:
     std::vector<std::unique_ptr<std::thread>> threads;
@@ -86,29 +86,45 @@ private:
 
 private:
     // deleted
-    CThreadPool(const CThreadPool&);// = delete;
-    CThreadPool(CThreadPool&&);// = delete;
-    CThreadPool& operator=(const CThreadPool&);// = delete;
-    CThreadPool& operator=(CThreadPool&&);// = delete;
+    CVitsenityThreadPool(const CVitsenityThreadPool&);// = delete;
+    CVitsenityThreadPool(CVitsenityThreadPool&&);// = delete;
+    CVitsenityThreadPool& operator=(const CVitsenityThreadPool&);// = delete;
+    CVitsenityThreadPool& operator=(CVitsenityThreadPool&&);// = delete;
 
 public:
-    CThreadPool(void)
+    CVitsenityThreadPool()
     {
-        this->Init();
+        this->Clear();
     }
 
-
-    CThreadPool(int nThreads)
+    void Init(int iNumThreads)
     {
-        this->Init();
-        this->Resize(nThreads);
+        this->Clear();
+        this->Resize(iNumThreads);
+    }
+
+    void Init(void)
+    {
+        int				iNumHardwareTheads;
+
+        this->Clear();
+
+        iNumHardwareTheads = std::thread::hardware_concurrency();
+        this->Resize(iNumHardwareTheads);
     }
 
 
     // the destructor waits for all the functions in the queue to be finished
-    ~CThreadPool(void)
+    void Kill(void)
     {
-        this->Stop(true);
+        Stop();
+    }
+
+    void Clear()
+    {
+        this->nWaiting = 0;
+        this->isStop = false;
+        this->isDone = false;
     }
 
     // get the number of running threads in the pool
@@ -309,13 +325,6 @@ public:
         };
 
         this->threads[i].reset(new std::thread(f)); // compiler may not support std::make_unique()
-    }
-
-    void Init()
-    {
-        this->nWaiting = 0;
-        this->isStop = false;
-        this->isDone = false;
     }
 };
 

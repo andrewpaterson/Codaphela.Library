@@ -80,10 +80,10 @@
     <ClInclude Include="SafeArrayBlock.h">
       <Filter>Source\Data\Array\Basic</Filter>
     </ClInclude>
-    <ClInclude Include="ThreadPool.h">
+    <ClInclude Include="Thread.h">
       <Filter>Source\Thread</Filter>
     </ClInclude>
-    <ClInclude Include="Thread.h">
+    <ClInclude Include="VitsenityThreadPool.h">
       <Filter>Source\Thread</Filter>
     </ClInclude>
   </ItemGroup>
