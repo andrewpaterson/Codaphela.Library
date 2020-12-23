@@ -95,7 +95,7 @@
   <ItemGroup>
     <ClInclude Include="SafeArrayBlock.h" />
     <ClInclude Include="Thread.h" />
-    <ClInclude Include="ThreadPool.h" />
+    <ClInclude Include="VitsenityThreadPool.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="SafeArrayBlock.cpp" />
