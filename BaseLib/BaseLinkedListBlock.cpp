@@ -420,9 +420,9 @@ int	CBaseLinkedListBlock::NumElements(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CBaseLinkedListBlock::BubbleSort(int(*Func)(const void*, const void*))
+void CBaseLinkedListBlock::BubbleSort(int(*fCompare)(const void*, const void*))
 {
-	mcList.BubbleSort(Func, muiNodeSize);
+	mcList.BubbleSort(fCompare, muiNodeSize);
 }
 
 
@@ -430,12 +430,12 @@ void CBaseLinkedListBlock::BubbleSort(int(*Func)(const void*, const void*))
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CBaseLinkedListBlock::InsertDetachedIntoSorted(int(*Func)(const void*, const void*), void* pvData)
+void CBaseLinkedListBlock::InsertDetachedIntoSorted(int(*fCompare)(const void*, const void*), void* pvData)
 {
 	SLLNode* psNode;
 
 	psNode = DataGetNode(pvData);
-	mcList.InsertIntoSorted(Func, psNode, muiNodeSize);
+	mcList.InsertIntoSorted(fCompare, psNode, muiNodeSize);
 }
 
 

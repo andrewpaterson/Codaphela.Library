@@ -78,6 +78,9 @@
     <ClCompile Include="ThreadPool.cpp">
       <Filter>Source\Thread</Filter>
     </ClCompile>
+    <ClCompile Include="SafeLinkedListBlock.cpp">
+      <Filter>Source\Data\List</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SafeArrayBlock.h">
@@ -97,6 +100,9 @@
     </ClInclude>
     <ClInclude Include="ThreadState.h">
       <Filter>Source\Thread</Filter>
+    </ClInclude>
+    <ClInclude Include="SafeLinkedListBlock.h">
+      <Filter>Source\Data\List</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -91,8 +91,8 @@ public:
 	int			IndexOf(void* pvData);
 	BOOL		IsInList(void* pvData);
 
-	void		BubbleSort(int(*Func)(const void*, const void*));
-	void		InsertDetachedIntoSorted(int(*)(const void*, const void*), void* pvData);
+	void		BubbleSort(int(*fCompare)(const void*, const void*));
+	void		InsertDetachedIntoSorted(int(*fCompare)(const void*, const void*), void* pvData);
 
 protected:	
 	void*		Malloc(size_t tSize);
