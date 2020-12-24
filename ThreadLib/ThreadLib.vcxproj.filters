@@ -73,6 +73,9 @@
     <Filter Include="Source\Process">
       <UniqueIdentifier>{1e3bc765-90bc-40b3-9065-d343542bb704}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\SharedMemory">
+      <UniqueIdentifier>{a250ae84-95df-4c44-9ed4-957c8e7b7a85}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="SafeArrayBlock.cpp">
@@ -93,14 +96,14 @@
     <ClCompile Include="ThreadsDone.cpp">
       <Filter>Source\Thread</Filter>
     </ClCompile>
-    <ClCompile Include="SharedMemoryQueue.cpp">
-      <Filter>Source\Process</Filter>
-    </ClCompile>
     <ClCompile Include="ProcessFork.cpp">
       <Filter>Source\Process</Filter>
     </ClCompile>
     <ClCompile Include="MainProcessDirector.cpp">
       <Filter>Source\Process</Filter>
+    </ClCompile>
+    <ClCompile Include="SharedMemory.cpp">
+      <Filter>Source\SharedMemory</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -134,14 +137,14 @@
     <ClInclude Include="ThreadsDone.h">
       <Filter>Source\Thread</Filter>
     </ClInclude>
-    <ClInclude Include="SharedMemoryQueue.h">
-      <Filter>Source\Process</Filter>
-    </ClInclude>
     <ClInclude Include="ProcessFork.h">
       <Filter>Source\Process</Filter>
     </ClInclude>
     <ClInclude Include="MainProcessDirector.h">
       <Filter>Source\Process</Filter>
+    </ClInclude>
+    <ClInclude Include="SharedMemory.h">
+      <Filter>Source\SharedMemory</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
