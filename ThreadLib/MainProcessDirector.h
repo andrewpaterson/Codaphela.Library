@@ -6,7 +6,6 @@
 typedef int(*main_func)(int argc, char* argv[]);
 
 
-
 class CMainProcessDirector
 {
 private:

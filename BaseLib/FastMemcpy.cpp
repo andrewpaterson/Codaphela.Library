@@ -20,6 +20,7 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
+#include <immintrin.h>
 #include "FastMemcpy.h"
 
 
@@ -647,5 +648,20 @@ void memcpy_fast_64bytes(void* pvDest, void* pvSource)
 void memcpy_large(void* pvDest, void* pvSource, size_t uiByteSize)
 {
 	memcpy(pvDest, pvSource, uiByteSize);
+}
+
+
+void memcpy_avx2(void* pvDest, void* pvSource, int iLength)
+{
+	float* pfSource = (float*)pvSource;
+	float* pfDest = (float*)pvDest;
+
+	while (iLength > 31)
+	{
+		_mm256_storeu_ps(pfDest, _mm256_loadu_ps(pfSource));
+		pfDest += 8;
+		pfSource += 8;
+		iLength -= 32;
+	}
 }
 

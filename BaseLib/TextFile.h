@@ -34,21 +34,21 @@ public:
 	CChars		mszFileName;
 	CChars		mcText;
 
-	void	Init(void);
-	void	Init(char* szText);
-	void	Kill(void);
-	void	KillExceptBuffer(void);
+	CTextFile*	Init(void);
+	void		Init(char* szText);
+	void		Kill(void);
+	void		KillExceptBuffer(void);
 
-	BOOL	Read(char* szFileName);
-	BOOL	Read(CAbstractFile* pcAbstractFile);
-	BOOL	Write(char* szFileName);
+	BOOL		Read(char* szFileName);
+	BOOL		Read(CAbstractFile* pcAbstractFile);
+	BOOL		Write(char* szFileName);
 
-	char*	Text(void);
-	char*	Text(int iOffset);
-	int		Length(void);
+	char*		Text(void);
+	char*		Text(int iOffset);
+	int			Length(void);
 
-	void	PassifyNewlines(void);
-	void	Dump(void);
+	void		PassifyNewlines(void);
+	void		Dump(void);
 };
 
 

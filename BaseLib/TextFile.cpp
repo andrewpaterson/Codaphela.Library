@@ -28,10 +28,11 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTextFile::Init(void)
+CTextFile* CTextFile::Init(void)
 {
 	mcText.Init();
 	mszFileName.Init();
+	return this;
 }
 
 
