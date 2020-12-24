@@ -93,8 +93,11 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="MainProcessDirector.h" />
+    <ClInclude Include="ProcessFork.h" />
     <ClInclude Include="SafeArrayBlock.h" />
     <ClInclude Include="SafeLinkedListBlock.h" />
+    <ClInclude Include="SharedMemoryQueue.h" />
     <ClInclude Include="StandAloneThreadStarter.h" />
     <ClInclude Include="Thread.h" />
     <ClInclude Include="ThreadPool.h" />
@@ -105,8 +108,11 @@
     <ClInclude Include="VitsenityThreadPool.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="MainProcessDirector.cpp" />
+    <ClCompile Include="ProcessFork.cpp" />
     <ClCompile Include="SafeArrayBlock.cpp" />
     <ClCompile Include="SafeLinkedListBlock.cpp" />
+    <ClCompile Include="SharedMemoryQueue.cpp" />
     <ClCompile Include="StandAloneThreadStarter.cpp" />
     <ClCompile Include="Thread.cpp" />
     <ClCompile Include="ThreadPool.cpp" />
