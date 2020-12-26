@@ -187,7 +187,7 @@ SMemoryCacheDescriptor* CCircularMemoryList::GetLast(void)
 //////////////////////////////////////////////////////////////////////////
 int CCircularMemoryList::NumElements(void)
 {
-	SMemoryCacheDescriptor* psDescriptor;
+	SMemoryCacheDescriptor*		psDescriptor;
 	int							iNum;
 
 	if (IsEmpty())
@@ -226,6 +226,14 @@ void* CCircularMemoryList::GetData(SMemoryCacheDescriptor* psDescriptor)
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+SMemoryCacheDescriptor* CCircularMemoryList::GetDescriptor(void* pvData)
+{
+	return (SMemoryCacheDescriptor*)RemapSinglePointer(pvData, -miDescriptorSize);
+}
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -293,5 +301,46 @@ SMemoryCacheDescriptor* CCircularMemoryList::Iterate(SMemoryCacheDescriptor* psC
 		return psCurrent;
 	}
 	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCircularMemoryList::Dump(void)
+{
+	SMemoryCacheDescriptor* psDescriptor;
+	CChars						sz;
+	char* pvData;
+	int							iLen;
+
+	sz.Init();
+
+	sz.Append("Data Cache (");
+	sz.Append(NumElements());
+	sz.Append(")\n---------------\n");
+
+	psDescriptor = StartIteration();
+	while (psDescriptor)
+	{
+		pvData = (char*)RemapSinglePointer(psDescriptor, miDescriptorSize);
+		iLen = psDescriptor->uiSize;
+
+		sz.Append("(Ln:");
+		sz.AppendHexHiLo(&iLen, 4);
+		sz.Append(" Da:");
+		sz.AppendHexHiLo(&psDescriptor, 4);
+		sz.Append(" Nx:");
+		sz.AppendHexHiLo(&psDescriptor->psNext, 4);
+		sz.Append(") ");
+
+		sz.AppendData(pvData, iLen, 80);
+		sz.AppendNewLine();
+		psDescriptor = Iterate(psDescriptor);
+	}
+	sz.AppendNewLine();
+	sz.Dump();
+	sz.Kill();
 }
 

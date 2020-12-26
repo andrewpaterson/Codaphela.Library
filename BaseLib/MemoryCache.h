@@ -29,23 +29,21 @@ Microsoft Windows is Copyright Microsoft Corporation
 class CMemoryCache : public CCircularMemoryList
 {
 public:
-	void						Init(size_t uiCacheSize, int iDescriptorSize = sizeof(SMemoryCacheDescriptor));
-	void						Kill(void);
+	void	Init(size_t uiCacheSize, int iDescriptorSize = sizeof(SMemoryCacheDescriptor));
+	void	Kill(void);
 
-	BOOL						PreAllocate(CMemoryCacheAllocation* pcPreAllocationResult);
-	SMemoryCacheDescriptor*		Allocate(CMemoryCacheAllocation* pcPreAllocated);
-	void*						QuickAllocate(int iDataSize);
+	BOOL	PreAllocate(CMemoryCacheAllocation* pcPreAllocationResult);
+	void*	Allocate(CMemoryCacheAllocation* pcPreAllocated);
+	void*	QuickAllocate(int iDataSize);
 
-	BOOL						CanCache(unsigned int uiDataSize);
+	BOOL	CanCache(unsigned int uiDataSize);
 
-	size_t						RemainingAfterLast(void);
-	void						FindOverlapping(void* pvNew, size_t uiNewSize, CArrayVoidPtr* pasOverlappingCacheDescriptors);
-	BOOL						Overlaps(void* pvNew, size_t uiNewSize, SMemoryCacheDescriptor* psExisting);
-
-	void						Dump(void);
+	void	FindOverlapping(void* pvNew, size_t uiNewSize, CArrayVoidPtr* pasOverlappingCacheDescriptors);
+	BOOL	Overlaps(void* pvNew, size_t uiNewSize, SMemoryCacheDescriptor* psExisting);
 
 protected:
 	SMemoryCacheDescriptor*		OneAllocation(void);
+	size_t						RemainingAfterTail(void);
 };
 
 

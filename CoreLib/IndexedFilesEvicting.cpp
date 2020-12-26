@@ -498,7 +498,7 @@ CIndexedCacheResult CIndexedFilesEvicting::CacheAllocate(OIndex oi, unsigned int
 	CMemoryCacheAllocation	cPreAllocated;
 	BOOL					bResult;
 
-	cPreAllocated.Init(uiDataSize, mcDataCache.GetIndexCacheDescritorSize());
+	cPreAllocated.Init(uiDataSize);
 	if (mcDataCache.PreAllocate(&cPreAllocated))  //PreAllocate ensures there will be enough space in the cache.
 	{
 		bResult = EvictPreAllocatedDescriptors(cPreAllocated.GetEvictedArray());

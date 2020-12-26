@@ -6,11 +6,10 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMemoryCacheAllocation::Init(int uiSize, int iDescriptorSize)
+void CMemoryCacheAllocation::Init(int uiSize)
 {
 	mapEvictedCacheDescriptors.Init();
 	muiSize = uiSize;
-	miDescriptorSize = iDescriptorSize;
 	
 	mpsDescriptor = NULL;
 	miCachedSize = 0;
@@ -71,7 +70,7 @@ CArrayVoidPtr* CMemoryCacheAllocation::GetEvictedArray(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMemoryCacheAllocation::Dump(void)
+void CMemoryCacheAllocation::Dump(int iDescriptorSize)
 {
 	SMemoryCacheDescriptor*		psCacheDesc;
 	CChars						sz;
@@ -88,7 +87,7 @@ void CMemoryCacheAllocation::Dump(void)
 	for (i = 0; i < NumElements(); i++)
 	{
 		psCacheDesc = Get(i);
-		pvData = (char*)RemapSinglePointer(psCacheDesc, miDescriptorSize);
+		pvData = (char*)RemapSinglePointer(psCacheDesc, iDescriptorSize);
 		iLen = psCacheDesc->uiSize;
 
 		sz.Append("(Ln:");

@@ -58,7 +58,7 @@ BOOL CMemoryCache::PreAllocate(CMemoryCacheAllocation* pcPreAllocationResult)
 {
 	SMemoryCacheDescriptor*		psDescriptor;
 	size_t						iCachedSize;
-	size_t						iRemaining;
+	size_t						iRemainingAfterLast;
 
 	iCachedSize = miDescriptorSize + pcPreAllocationResult->muiSize;
 	if (iCachedSize > muiCacheSize)
@@ -66,10 +66,10 @@ BOOL CMemoryCache::PreAllocate(CMemoryCacheAllocation* pcPreAllocationResult)
 		return FALSE;
 	}
 
-	iRemaining = RemainingAfterLast();
+	iRemainingAfterLast = RemainingAfterTail();
 	if (!IsEmpty())
 	{
-		if (iCachedSize <= iRemaining)
+		if (iCachedSize <= iRemainingAfterLast)
 		{
 			psDescriptor = (SMemoryCacheDescriptor*)RemapSinglePointer(mpsTail, (int)(miDescriptorSize + mpsTail->uiSize));
 		}
@@ -95,7 +95,7 @@ BOOL CMemoryCache::PreAllocate(CMemoryCacheAllocation* pcPreAllocationResult)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SMemoryCacheDescriptor* CMemoryCache::Allocate(CMemoryCacheAllocation* pcPreAllocated)
+void* CMemoryCache::Allocate(CMemoryCacheAllocation* pcPreAllocated)
 {
 	SMemoryCacheDescriptor*		psDescriptor;
 	SMemoryCacheDescriptor*		psLastOverlap;
@@ -152,9 +152,8 @@ SMemoryCacheDescriptor* CMemoryCache::Allocate(CMemoryCacheAllocation* pcPreAllo
 	}
 
 	psDescriptor->uiSize = pcPreAllocated->muiSize;
-	return psDescriptor;
+	return GetData(psDescriptor);
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -186,10 +185,9 @@ void* CMemoryCache::QuickAllocate(int iDataSize)
 	CMemoryCacheAllocation	cPreAllocation;
 	BOOL					bResult;
 	void*					pvCache;
-	SMemoryCacheDescriptor*	psDescriptor;
 
 	//Evicted data is just trashed.
-	cPreAllocation.Init(iDataSize, miDescriptorSize);
+	cPreAllocation.Init(iDataSize);
 
 	bResult = PreAllocate(&cPreAllocation);
 	if (!bResult)
@@ -198,10 +196,9 @@ void* CMemoryCache::QuickAllocate(int iDataSize)
 		return NULL;
 	}
 
-	psDescriptor = Allocate(&cPreAllocation);
+	pvCache = Allocate(&cPreAllocation);
 	cPreAllocation.Kill();
 
-	pvCache = RemapSinglePointer(psDescriptor, miDescriptorSize);
 	return pvCache;
 }
 
@@ -220,7 +217,7 @@ BOOL CMemoryCache::CanCache(unsigned int uiDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size_t CMemoryCache::RemainingAfterLast(void)
+size_t CMemoryCache::RemainingAfterTail(void)
 {
 	size_t		iAllocated;
 
@@ -296,46 +293,5 @@ void CMemoryCache::FindOverlapping(void* pvNew, size_t uiNewSize, CArrayVoidPtr*
 			return;
 		}
 	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CMemoryCache::Dump(void)
-{
-	SMemoryCacheDescriptor*		psDescriptor;
-	CChars						sz;
-	char*						pvData;
-	int							iLen;
-
-	sz.Init();
-
-	sz.Append("Data Cache (");
-	sz.Append(NumElements());
-	sz.Append(")\n---------------\n");
-
-	psDescriptor = StartIteration();
-	while (psDescriptor)
-	{
-		pvData = (char*)RemapSinglePointer(psDescriptor, miDescriptorSize);
-		iLen = psDescriptor->uiSize;
-
-		sz.Append("(Ln:");
-		sz.AppendHexHiLo(&iLen, 4);
-		sz.Append(" Da:");
-		sz.AppendHexHiLo(&psDescriptor, 4);
-		sz.Append(" Nx:");
-		sz.AppendHexHiLo(&psDescriptor->psNext, 4);
-		sz.Append(") ");
-
-		sz.AppendData(pvData, iLen, 80);
-		sz.AppendNewLine();
-		psDescriptor = Iterate(psDescriptor);
-	}
-	sz.AppendNewLine();
-	sz.Dump();
-	sz.Kill();
 }
 
