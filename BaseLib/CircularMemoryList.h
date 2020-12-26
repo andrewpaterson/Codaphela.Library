@@ -25,10 +25,12 @@ public:
 	SMemoryCacheDescriptor*		GetNext(SMemoryCacheDescriptor* psCurrent);
 	SMemoryCacheDescriptor*		GetPrev(SMemoryCacheDescriptor* psCurrent);
 	SMemoryCacheDescriptor*		GetLast(void);
+	
 	int							NumElements(void);
 
 	int							GetDescriptorSize(void);
 	void*						GetData(SMemoryCacheDescriptor* psCacheDesc);
+	SMemoryCacheDescriptor*		GetDescriptor(void* pvData);
 
 	void						Deallocate(void* pvData);
 	void						Deallocate(SMemoryCacheDescriptor* psDescriptor);
@@ -40,6 +42,8 @@ public:
 
 	SMemoryCacheDescriptor*		StartIteration(void);
 	SMemoryCacheDescriptor*		Iterate(SMemoryCacheDescriptor* psCurrent);
+
+	void						Dump(void);
 };
 
 

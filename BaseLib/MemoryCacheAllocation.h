@@ -8,13 +8,12 @@ class CMemoryCacheAllocation
 friend class CMemoryCache;
 protected:
 	unsigned int				muiSize;
-	int							miDescriptorSize;
 	CArrayVoidPtr				mapEvictedCacheDescriptors; 
 	SMemoryCacheDescriptor*		mpsDescriptor;
 	unsigned int				miCachedSize;
 
 public:
-	void						Init(int uiSize, int iDescriptorSize);
+	void						Init(int uiSize);
 	void						Kill(void);
 
 	BOOL						HasOverlaps(void);
@@ -23,7 +22,7 @@ public:
 
 	CArrayVoidPtr*				GetEvictedArray(void);
 
-	void						Dump(void);
+	void						Dump(int iDescriptorSize);
 };
 
 
