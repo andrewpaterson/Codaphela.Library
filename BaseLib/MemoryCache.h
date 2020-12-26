@@ -22,60 +22,27 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __MEMORY_CACHE_H__
 #define __MEMORY_CACHE_H__
+#include "CircularMemoryList.h"
 #include "MemoryCacheAllocation.h"
 
 
-//Memory cache should be built on the link part of LinkListBlock.
-class CMemoryCache
+class CMemoryCache : public CCircularMemoryList
 {
 public:
-	int							miDescriptorSize;
-
-private:
-	void*						mpvCache;
-	size_t						muiCacheSize;
-
-	SMemoryCacheDescriptor*		mpsTail;
-	SMemoryCacheDescriptor*		mpsHead;
-
-public:
-	void						Init(void);
-	void						Init(size_t iCacheSize, int iDescriptorSize = sizeof(SMemoryCacheDescriptor));
+	void						Init(size_t uiCacheSize, int iDescriptorSize = sizeof(SMemoryCacheDescriptor));
 	void						Kill(void);
 
 	BOOL						PreAllocate(CMemoryCacheAllocation* pcPreAllocationResult);
 	SMemoryCacheDescriptor*		Allocate(CMemoryCacheAllocation* pcPreAllocated);
 	void*						QuickAllocate(int iDataSize);
 
-	void						Deallocate(void* pvData);
-	void						Deallocate(SMemoryCacheDescriptor* psDescriptor);
-
-	size_t						GetCacheSize(void);
-	size_t						GetAllocatedSize(void);
 	BOOL						CanCache(unsigned int uiDataSize);
 
 	size_t						RemainingAfterLast(void);
 	void						FindOverlapping(void* pvNew, size_t uiNewSize, CArrayVoidPtr* pasOverlappingCacheDescriptors);
 	BOOL						Overlaps(void* pvNew, size_t uiNewSize, SMemoryCacheDescriptor* psExisting);
-	void						Clear(void);
 
-	SMemoryCacheDescriptor*		GetFirst(void);
-	SMemoryCacheDescriptor*		GetNext(SMemoryCacheDescriptor* psCurrent);
-	SMemoryCacheDescriptor*		GetPrev(SMemoryCacheDescriptor* psCurrent);
-	SMemoryCacheDescriptor*		GetLast(void);
-	int							NumCached(void);
-	BOOL						IsEmpty(void);
-	int							NumCached(int iSize);
-
-	void*						GetData(SMemoryCacheDescriptor* psCacheDesc);
-
-	void						Zero(void);
 	void						Dump(void);
-	SMemoryCacheDescriptor*		TestGetFirst(void);
-	SMemoryCacheDescriptor*		TestGetLast(void);
-
-	SMemoryCacheDescriptor*		StartIteration(void);
-	SMemoryCacheDescriptor*		Iterate(SMemoryCacheDescriptor* psCurrent);
 
 protected:
 	SMemoryCacheDescriptor*		OneAllocation(void);

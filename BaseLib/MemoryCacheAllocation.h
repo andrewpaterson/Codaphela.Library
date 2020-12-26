@@ -1,15 +1,7 @@
 #ifndef __MEMORY_CACHE_ALLOCATION_H__
 #define __MEMORY_CACHE_ALLOCATION_H__
 #include "ArrayVoidPtr.h"
-
-
-struct SMemoryCacheDescriptor
-{
-	SMemoryCacheDescriptor*		psNext;
-	SMemoryCacheDescriptor*		psPrev;
-	unsigned int				uiSize;  //Not including the sizeof this.
-};
-
+#include "MemoryCacheDescriptor.h"
 
 class CMemoryCacheAllocation
 {

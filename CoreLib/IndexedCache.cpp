@@ -158,7 +158,7 @@ void CIndexedCache::SetDirty(void* pvCache)
 //////////////////////////////////////////////////////////////////////////
 int CIndexedCache::NumCached(void)
 {
-	return mcCache.NumCached();
+	return mcCache.NumElements();
 }
 
 
@@ -168,7 +168,7 @@ int CIndexedCache::NumCached(void)
 //////////////////////////////////////////////////////////////////////////
 int CIndexedCache::NumCached(int iSize)
 {
-	return mcCache.NumCached(iSize);
+	return mcCache.NumElements(iSize);
 }
 
 
@@ -178,7 +178,7 @@ int CIndexedCache::NumCached(int iSize)
 //////////////////////////////////////////////////////////////////////////
 SIndexedCacheDescriptor* CIndexedCache::GetHeader(void* pvData)
 {
-	return (SIndexedCacheDescriptor*)RemapSinglePointer(pvData, -mcCache.miDescriptorSize);
+	return (SIndexedCacheDescriptor*)RemapSinglePointer(pvData, -mcCache.GetDescriptorSize());
 }
 
 
@@ -188,7 +188,7 @@ SIndexedCacheDescriptor* CIndexedCache::GetHeader(void* pvData)
 //////////////////////////////////////////////////////////////////////////
 void* CIndexedCache::GetCache(SIndexedCacheDescriptor* psDescriptor)
 {
-	return RemapSinglePointer(psDescriptor, mcCache.miDescriptorSize);
+	return RemapSinglePointer(psDescriptor, mcCache.GetDescriptorSize());
 }
 
 
@@ -218,7 +218,7 @@ SIndexedCacheDescriptor* CIndexedCache::Iterate(SIndexedCacheDescriptor* psCurre
 //////////////////////////////////////////////////////////////////////////
 int CIndexedCache::GetIndexCacheDescritorSize(void)
 {
-	return mcCache.miDescriptorSize;
+	return mcCache.GetDescriptorSize();
 }
 
 

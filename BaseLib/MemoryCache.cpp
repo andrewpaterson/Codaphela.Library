@@ -20,7 +20,6 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-#include "DataMacro.h"
 #include "PointerFunctions.h"
 #include "PointerRemapper.h"
 #include "FastMemcpy.h"
@@ -34,27 +33,9 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMemoryCache::Init(void)
-{
-	miDescriptorSize = 0;
-	muiCacheSize = 0;
-	mpvCache = NULL;
-	mpsTail = NULL;
-	mpsHead = NULL;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CMemoryCache::Init(size_t uiCacheSize, int iDescriptorSize)
 {
-	miDescriptorSize = iDescriptorSize;
-	muiCacheSize = uiCacheSize;
-	mpvCache = malloc(muiCacheSize);
-
-	Zero();
+	CCircularMemoryList::Init(malloc(uiCacheSize), uiCacheSize, iDescriptorSize);
 }
 
 
@@ -65,9 +46,7 @@ void CMemoryCache::Init(size_t uiCacheSize, int iDescriptorSize)
 void CMemoryCache::Kill(void)
 {
 	SafeFree(mpvCache);
-	mpsTail = NULL;
-	mpsHead = NULL;
-	muiCacheSize = 0;
+	CCircularMemoryList::Kill();
 }
 
 
@@ -202,16 +181,6 @@ SMemoryCacheDescriptor* CMemoryCache::OneAllocation(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CMemoryCache::GetData(SMemoryCacheDescriptor* psDescriptor)
-{
-	return RemapSinglePointer(psDescriptor, miDescriptorSize);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void* CMemoryCache::QuickAllocate(int iDataSize)
 {
 	CMemoryCacheAllocation	cPreAllocation;
@@ -234,87 +203,6 @@ void* CMemoryCache::QuickAllocate(int iDataSize)
 
 	pvCache = RemapSinglePointer(psDescriptor, miDescriptorSize);
 	return pvCache;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CMemoryCache::Deallocate(void* pvData)
-{
-	SMemoryCacheDescriptor*	psDescriptor;
-
-	if (pvData)
-	{
-		psDescriptor = DataGetHeader<SMemoryCacheDescriptor, void>(pvData);
-		Deallocate(psDescriptor);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CMemoryCache::Deallocate(SMemoryCacheDescriptor* psDescriptor)
-{
-	if ((psDescriptor == mpsHead) && (psDescriptor == mpsTail))
-	{
-		mpsHead = NULL;
-		mpsTail = NULL;
-		return;
-	}
-
-	if (psDescriptor != mpsHead)
-	{
-		psDescriptor->psPrev->psNext = psDescriptor->psNext;
-	}
-	else
-	{
-		psDescriptor->psPrev->psNext = psDescriptor->psNext;
-		mpsHead = psDescriptor->psNext;
-	}
-
-	if (psDescriptor != mpsTail)
-	{
-		psDescriptor->psNext->psPrev = psDescriptor->psPrev;
-	}
-	else
-	{
-		psDescriptor->psNext->psPrev = psDescriptor->psPrev;
-		mpsTail = psDescriptor->psPrev;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-size_t CMemoryCache::GetCacheSize(void)
-{
-	return muiCacheSize;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-size_t CMemoryCache::GetAllocatedSize(void)
-{
-	SMemoryCacheDescriptor*	psIter;
-	size_t					tSize;
-		
-	tSize = 0;
-	psIter = StartIteration();
-	while (psIter)
-	{
-		tSize += psIter->uiSize + sizeof(SMemoryCacheDescriptor);
-		psIter = Iterate(psIter);
-	}
-	return tSize;
 }
 
 
@@ -415,179 +303,6 @@ void CMemoryCache::FindOverlapping(void* pvNew, size_t uiNewSize, CArrayVoidPtr*
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMemoryCache::Clear(void)
-{
-	mpsTail = NULL;
-	mpsHead = NULL;
-	memset_fast(mpvCache, 0, muiCacheSize);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-SMemoryCacheDescriptor* CMemoryCache::GetFirst(void)
-{
-	return mpsHead;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-SMemoryCacheDescriptor* CMemoryCache::GetNext(SMemoryCacheDescriptor* psCurrent)
-{
-	if (!psCurrent)
-	{
-		return NULL;
-	}
-
-	psCurrent = psCurrent->psNext;
-
-	return psCurrent;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-SMemoryCacheDescriptor* CMemoryCache::GetPrev(SMemoryCacheDescriptor* psCurrent)
-{
-	if (!psCurrent)
-	{
-		return NULL;
-	}
-
-	psCurrent = psCurrent->psPrev;
-
-	return psCurrent;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-SMemoryCacheDescriptor* CMemoryCache::GetLast(void)
-{
-	return mpsTail;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-int CMemoryCache::NumCached(void)
-{
-	SMemoryCacheDescriptor*		psDescriptor;
-	int							iNum;
-
-	if (IsEmpty())
-	{
-		return 0;
-	}
-
-	iNum = 0;
-	psDescriptor = StartIteration();
-	while (psDescriptor)
-	{
-		iNum++;
-		psDescriptor = Iterate(psDescriptor);
-	}
-	return iNum;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-int CMemoryCache::NumCached(int iSize)
-{
-	SMemoryCacheDescriptor*		psDescriptor;
-	int							iNum;
-
-	if (IsEmpty())
-	{
-		return 0;
-	}
-
-	iNum = 0;
-	psDescriptor = StartIteration();
-	while (psDescriptor)
-	{
-		if (psDescriptor->uiSize == iSize)
-		{
-			iNum++;
-		}
-		psDescriptor = Iterate(psDescriptor);
-	}
-	return iNum;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CMemoryCache::IsEmpty(void)
-{
-	return mpsTail == NULL;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-SMemoryCacheDescriptor* CMemoryCache::StartIteration(void)
-{
-	return mpsHead;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-SMemoryCacheDescriptor* CMemoryCache::Iterate(SMemoryCacheDescriptor* psCurrent)
-{
-	if (!psCurrent)
-	{
-		return NULL;
-	}
-
-	psCurrent = psCurrent->psNext;
-	if (psCurrent != mpsHead)
-	{
-		return psCurrent;
-	}
-	return NULL;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CMemoryCache::Zero(void)
-{
-	//Trashes whole cache.
-
-	memset_fast(mpvCache, 0, muiCacheSize);
-	mpsTail = NULL;
-	mpsHead = NULL;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CMemoryCache::Dump(void)
 {
 	SMemoryCacheDescriptor*		psDescriptor;
@@ -598,7 +313,7 @@ void CMemoryCache::Dump(void)
 	sz.Init();
 
 	sz.Append("Data Cache (");
-	sz.Append(NumCached());
+	sz.Append(NumElements());
 	sz.Append(")\n---------------\n");
 
 	psDescriptor = StartIteration();
@@ -623,8 +338,4 @@ void CMemoryCache::Dump(void)
 	sz.Dump();
 	sz.Kill();
 }
-
-
-SMemoryCacheDescriptor* CMemoryCache::TestGetLast(void) { return mpsTail; }
-SMemoryCacheDescriptor* CMemoryCache::TestGetFirst(void) { return mpsHead; }
 

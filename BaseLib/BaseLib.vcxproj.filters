@@ -226,6 +226,9 @@
     <Filter Include="Source\Memory\Allocator\Local">
       <UniqueIdentifier>{3682a5ba-ee1d-4c1d-b78a-cda1f93682e4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Memory\Cache\Queue">
+      <UniqueIdentifier>{d72b40c5-1431-447e-be69-a797f0bfe41a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DataMacro.h">
@@ -846,6 +849,15 @@
     <ClInclude Include="LifeCycle.h">
       <Filter>Source\Constructor</Filter>
     </ClInclude>
+    <ClInclude Include="MemoryQueue.h">
+      <Filter>Source\Memory\Cache\Queue</Filter>
+    </ClInclude>
+    <ClInclude Include="CircularMemoryList.h">
+      <Filter>Source\Memory\Cache</Filter>
+    </ClInclude>
+    <ClInclude Include="MemoryCacheDescriptor.h">
+      <Filter>Source\Memory\Cache</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -1339,6 +1351,12 @@
     </ClCompile>
     <ClCompile Include="IndexTreeMemoryConfig.cpp">
       <Filter>Source\Data\Index\Config</Filter>
+    </ClCompile>
+    <ClCompile Include="MemoryQueue.cpp">
+      <Filter>Source\Memory\Cache\Queue</Filter>
+    </ClCompile>
+    <ClCompile Include="CircularMemoryList.cpp">
+      <Filter>Source\Memory\Cache</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

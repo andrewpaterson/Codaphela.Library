@@ -639,7 +639,6 @@ void CArrayBlock::Zero(void)
 void CArrayBlock::Copy(CArrayBlock* pcArray)
 {
 	//Assumes the array is initialised.  
-	//Returns whether or not it had to be resized.
 	if (pcArray->miNumElements != miNumElements)
 	{
 		SetArraySize(pcArray->miUsedElements);
