@@ -31,6 +31,7 @@ class CMemoryCache : public CCircularMemoryList
 public:
 	void	Init(size_t uiCacheSize, int iDescriptorSize = sizeof(SMemoryCacheDescriptor));
 	void	Kill(void);
+	void	Resize(size_t uiNewCacheSize);
 
 	BOOL	PreAllocate(CMemoryCacheAllocation* pcPreAllocationResult);
 	void*	Allocate(CMemoryCacheAllocation* pcPreAllocated);

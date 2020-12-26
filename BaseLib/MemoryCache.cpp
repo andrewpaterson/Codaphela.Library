@@ -54,6 +54,23 @@ void CMemoryCache::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CMemoryCache::Resize(size_t uiNewCacheSize)
+{
+	void*	pvNewCache;
+	void*	pvOldCache;
+
+	pvOldCache = mpvCache;
+	pvNewCache = malloc(uiNewCacheSize);
+	Remap(pvNewCache, uiNewCacheSize);
+
+	free(pvOldCache);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL CMemoryCache::PreAllocate(CMemoryCacheAllocation* pcPreAllocationResult)
 {
 	SMemoryCacheDescriptor*		psDescriptor;
