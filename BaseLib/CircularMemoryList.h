@@ -19,6 +19,7 @@ public:
 	void						Init(void* pvCache, size_t uiCacheSize, int iDescriptorSize = sizeof(SMemoryCacheDescriptor));
 	void						Kill(void);
 
+	void						Remap(void* pvNewCache, size_t uiCacheSize);
 	void						Clear(void);
 
 	SMemoryCacheDescriptor*		GetFirst(void);

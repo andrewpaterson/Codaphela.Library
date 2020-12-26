@@ -1,8 +1,5 @@
 #include "PointerFunctions.h"
 #include "PointerRemapper.h"
-#include "FastMemcpy.h"
-#include "FastMemcmp.h"
-#include "FastMemset.h"
 #include "Chars.h"
 #include "CircularMemoryList.h"
 
@@ -31,6 +28,70 @@ void CCircularMemoryList::Kill(void)
 	mpsTail = NULL;
 	mpsHead = NULL;
 	muiCacheSize = 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCircularMemoryList::Remap(void* pvNewCache, size_t uiCacheSize)
+{
+	ptrdiff_t					uiAbsDiff;
+	SMemoryCacheDescriptor*		psDescriptor;
+	SMemoryCacheDescriptor*		psNext;
+
+
+	if (mpsHead)
+	{
+		if (pvNewCache > mpvCache)
+		{
+			uiAbsDiff = (size_t)pvNewCache - (size_t)mpvCache;
+			psDescriptor = mpsHead;
+			do
+			{
+				psNext = psDescriptor->psNext;
+
+				psDescriptor->psNext = (SMemoryCacheDescriptor*)RemapSinglePointer(psDescriptor->psNext, uiAbsDiff);
+				psDescriptor->psPrev = (SMemoryCacheDescriptor*)RemapSinglePointer(psDescriptor->psPrev, uiAbsDiff);
+
+				psDescriptor = psNext;
+			} while (psDescriptor != mpsHead);
+
+			mpsHead = (SMemoryCacheDescriptor*)RemapSinglePointer(mpsHead, uiAbsDiff);
+			mpsTail = (SMemoryCacheDescriptor*)RemapSinglePointer(mpsTail, uiAbsDiff);
+		}
+		else
+		{
+			uiAbsDiff = (size_t)mpvCache - (size_t)pvNewCache;
+			psDescriptor = mpsHead;
+			do
+			{
+				psNext = psDescriptor->psNext;
+
+				psDescriptor->psNext = (SMemoryCacheDescriptor*)RemapSinglePointer(psDescriptor->psNext, -uiAbsDiff);
+				psDescriptor->psPrev = (SMemoryCacheDescriptor*)RemapSinglePointer(psDescriptor->psPrev, -uiAbsDiff);
+
+				psDescriptor = psNext;
+			} while (psDescriptor != mpsHead);
+
+			mpsHead = (SMemoryCacheDescriptor*)RemapSinglePointer(mpsHead, -uiAbsDiff);
+			mpsTail = (SMemoryCacheDescriptor*)RemapSinglePointer(mpsTail, -uiAbsDiff);
+		}
+	}
+
+	if (uiCacheSize > muiCacheSize)
+	{
+		memcpy(pvNewCache, mpvCache, muiCacheSize);
+		memset(RemapSinglePointer(pvNewCache, muiCacheSize), 0, uiCacheSize - muiCacheSize);
+	}
+	else
+	{
+		memcpy(pvNewCache, mpvCache, uiCacheSize);
+	}
+
+	mpvCache = pvNewCache;
+	muiCacheSize = uiCacheSize;
 }
 
 
