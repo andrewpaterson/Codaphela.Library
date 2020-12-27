@@ -37,57 +37,47 @@ void CCircularMemoryList::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CCircularMemoryList::Remap(void* pvNewCache, size_t uiCacheSize)
 {
-	ptrdiff_t					uiAbsDiff;
+	ptrdiff_t					iAbsDiff;
 	SMemoryCacheDescriptor*		psDescriptor;
-	SMemoryCacheDescriptor*		psNext;
-
+	size_t						uiSize;
+	SMemoryCacheDescriptor*		psNewPrev;
+	SMemoryCacheDescriptor*		psNew;
+	
+	memset(pvNewCache, 0, uiCacheSize);
 
 	if (mpsHead)
 	{
-		if (pvNewCache > mpvCache)
+		iAbsDiff = (size_t)pvNewCache - (size_t)mpvCache;
+
+		psDescriptor = mpsHead;
+		psNewPrev = NULL;
+		psNew = (SMemoryCacheDescriptor*)pvNewCache;
+		do
 		{
-			uiAbsDiff = (size_t)pvNewCache - (size_t)mpvCache;
-			psDescriptor = mpsHead;
-			do
+			uiSize = miDescriptorSize + psDescriptor->uiSize;
+			memcpy(psNew, psDescriptor, uiSize);
+
+			psNew->psNext = NULL;
+			psNew->psPrev = psNewPrev;
+			if (psNewPrev != NULL)
 			{
-				psNext = psDescriptor->psNext;
+				psNewPrev->psNext = psNew;
+			}
 
-				psDescriptor->psNext = (SMemoryCacheDescriptor*)RemapSinglePointer(psDescriptor->psNext, uiAbsDiff);
-				psDescriptor->psPrev = (SMemoryCacheDescriptor*)RemapSinglePointer(psDescriptor->psPrev, uiAbsDiff);
+			psNewPrev = psNew;
+			psNew = (SMemoryCacheDescriptor*)RemapSinglePointer(psNew, uiSize);
+			psDescriptor = psDescriptor->psNext;
+		} 
+		while (psDescriptor != mpsHead);
 
-				psDescriptor = psNext;
-			} while (psDescriptor != mpsHead);
-
-			mpsHead = (SMemoryCacheDescriptor*)RemapSinglePointer(mpsHead, uiAbsDiff);
-			mpsTail = (SMemoryCacheDescriptor*)RemapSinglePointer(mpsTail, uiAbsDiff);
-		}
-		else
-		{
-			uiAbsDiff = (size_t)mpvCache - (size_t)pvNewCache;
-			psDescriptor = mpsHead;
-			do
-			{
-				psNext = psDescriptor->psNext;
-
-				psDescriptor->psNext = (SMemoryCacheDescriptor*)RemapSinglePointer(psDescriptor->psNext, -uiAbsDiff);
-				psDescriptor->psPrev = (SMemoryCacheDescriptor*)RemapSinglePointer(psDescriptor->psPrev, -uiAbsDiff);
-
-				psDescriptor = psNext;
-			} while (psDescriptor != mpsHead);
-
-			mpsHead = (SMemoryCacheDescriptor*)RemapSinglePointer(mpsHead, -uiAbsDiff);
-			mpsTail = (SMemoryCacheDescriptor*)RemapSinglePointer(mpsTail, -uiAbsDiff);
-		}
-	}
-
-	if (uiCacheSize > muiCacheSize)
-	{
-		memcpy(pvNewCache, mpvCache, muiCacheSize);
-		memset(RemapSinglePointer(pvNewCache, muiCacheSize), 0, uiCacheSize - muiCacheSize);
+		mpsHead = (SMemoryCacheDescriptor*)pvNewCache;
+		mpsHead->psPrev = psNewPrev;
+		mpsTail = psNewPrev;
 	}
 	else
 	{
-		memcpy(pvNewCache, mpvCache, uiCacheSize);
+		mpsHead = NULL;
+		mpsTail = NULL;
 	}
 
 	mpvCache = pvNewCache;
