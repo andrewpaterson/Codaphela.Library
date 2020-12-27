@@ -55,7 +55,7 @@ public:
 	void						SetDirty(void* pvCache);
 	void*						GetCache(SIndexedCacheDescriptor* psDescriptor);
 
-	SIndexedCacheDescriptor*	GetHeader(void* pvData);
+	SIndexedCacheDescriptor*	GetDescriptor(void* pvData);
 	SIndexedCacheDescriptor*	StartIteration(void);
 	SIndexedCacheDescriptor*	Iterate(SIndexedCacheDescriptor* psCurrent);
 	int							NumCached(void);

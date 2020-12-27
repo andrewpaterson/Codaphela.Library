@@ -595,7 +595,7 @@ BOOL CIndexedFilesEvicting::EvictWriteData(CIndexedDataDescriptor* pcDescriptor,
 	BOOL						bResult;
 
 	pvData = pcDescriptor->GetCache();
-	psCached = mcDataCache.GetHeader(pvData);
+	psCached = mcDataCache.GetDescriptor(pvData);
 	if (psCached->iFlags & CACHE_DESCRIPTOR_FLAG_DIRTY)
 	{
 		bResult = WriteEvictedData2(pcDescriptor, psCached->oi, pvData, eClearCache, TRUE);
@@ -744,7 +744,7 @@ unsigned int CIndexedFilesEvicting::GetCachedDataSize(CIndexedDataDescriptor* pc
 	pvData = pcDescriptor->GetCache();
 	if (pvData)
 	{
-		psDescriptor = mcDataCache.GetHeader(pvData);
+		psDescriptor = mcDataCache.GetDescriptor(pvData);
 		return psDescriptor->uiSize;
 	}
 	else
