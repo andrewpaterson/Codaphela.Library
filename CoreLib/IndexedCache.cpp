@@ -78,14 +78,15 @@ CIndexedCacheResult CIndexedCache::Allocate(OIndex oi, unsigned uiDataSize, CMem
 	SIndexedCacheDescriptor*	psCacheDesc;
 	CIndexedCacheResult			cResult;
 
-	psCacheDesc = (SIndexedCacheDescriptor*)mcCache.Allocate(pcPreAllocated);
+	pvCache = mcCache.Allocate(pcPreAllocated);
 
-	if (!psCacheDesc)
+	if (!pvCache)
 	{
 		cResult.Fail();
 		return cResult;
 	}
 
+	psCacheDesc = (SIndexedCacheDescriptor*)mcCache.GetDescriptor(pvCache);
 	psCacheDesc->oi = oi;
 	psCacheDesc->iFlags = 0;
 
@@ -123,7 +124,7 @@ void CIndexedCache::Invalidate(void* pvCache)
 
 	if (pvCache)
 	{
-		psDescriptor = GetHeader(pvCache);
+		psDescriptor = GetDescriptor(pvCache);
 		mcCache.Deallocate(psDescriptor);
 	}
 }
@@ -147,7 +148,7 @@ void CIndexedCache::SetDirty(void* pvCache)
 {
 	SIndexedCacheDescriptor* psCacheDesc;
 
-	psCacheDesc = GetHeader(pvCache);
+	psCacheDesc = GetDescriptor(pvCache);
 	psCacheDesc->iFlags |= CACHE_DESCRIPTOR_FLAG_DIRTY;
 }
 
@@ -176,7 +177,7 @@ int CIndexedCache::NumCached(int iSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SIndexedCacheDescriptor* CIndexedCache::GetHeader(void* pvData)
+SIndexedCacheDescriptor* CIndexedCache::GetDescriptor(void* pvData)
 {
 	return (SIndexedCacheDescriptor*)RemapSinglePointer(pvData, -mcCache.GetDescriptorSize());
 }
