@@ -44,6 +44,7 @@ public:
 	SMemoryCacheDescriptor*		StartIteration(void);
 	SMemoryCacheDescriptor*		Iterate(SMemoryCacheDescriptor* psCurrent);
 
+	BOOL						ValidateCache(void);
 	void						Dump(void);
 
 protected:

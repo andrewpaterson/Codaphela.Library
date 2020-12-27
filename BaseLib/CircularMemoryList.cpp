@@ -1,3 +1,4 @@
+#include "Logger.h"
 #include "PointerFunctions.h"
 #include "PointerRemapper.h"
 #include "Chars.h"
@@ -73,6 +74,7 @@ void CCircularMemoryList::Remap(void* pvNewCache, size_t uiCacheSize)
 		mpsHead = (SMemoryCacheDescriptor*)pvNewCache;
 		mpsHead->psPrev = psNewPrev;
 		mpsTail = psNewPrev;
+		mpsTail->psNext = mpsHead;
 	}
 	else
 	{
@@ -491,8 +493,85 @@ size_t CCircularMemoryList::RemainingAfterTail(void)
 	{
 		iAllocated = ((int)(size_t)mpsTail - (int)(size_t)mpvCache);
 		iAllocated += (mpsTail->uiSize + miDescriptorSize);
-		return muiCacheSize - iAllocated;
+		if (iAllocated < muiCacheSize)
+		{
+			return muiCacheSize - iAllocated;
+		}
+		else
+		{
+			return 0;
+		}
 	}
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CCircularMemoryList::ValidateCache(void)
+{
+	SMemoryCacheDescriptor*		psDescriptor;
+	int							iCount;
+	void*						pvLastCacheByte;
+	void*						pvEndDesc;
+
+	if (mpvCache == NULL)
+	{
+		return gcLogger.Error2(__METHOD__, " Cache is NULL.", NULL);
+	}
+	if (muiCacheSize == 0)
+	{
+		return gcLogger.Error2(__METHOD__, " Cache Size is zero.", NULL);
+	}
+
+	pvLastCacheByte = RemapSinglePointer(mpvCache, muiCacheSize);
+
+	if (mpsHead == NULL)
+	{
+		if (mpsTail != NULL)
+		{
+			return gcLogger.Error2(__METHOD__, " Head is NULL but Tail is not NULL.", NULL);
+		}
+	}
+
+	if (mpsTail == NULL)
+	{
+		if (mpsHead != NULL)
+		{
+			return gcLogger.Error2(__METHOD__, " Tail is NULL but Head is not NULL.", NULL);
+		}
+	}
+
+	if (mpsHead == NULL)
+	{
+		return TRUE;
+	}
+
+	iCount = 0;
+	psDescriptor = mpsHead;
+	do
+	{
+		if (psDescriptor->psNext == NULL)
+		{
+			return gcLogger.Error2(__METHOD__, " Descriptor [", IntToString(iCount), "] Next is NULL.", NULL);
+		}
+		if (psDescriptor->psPrev == NULL)
+		{
+			return gcLogger.Error2(__METHOD__, " Descriptor [", IntToString(iCount), "] Prev is NULL.", NULL);
+		}
+
+		pvEndDesc = RemapSinglePointer(psDescriptor, psDescriptor->uiSize + miDescriptorSize);
+		if (pvEndDesc > pvLastCacheByte)
+		{
+			return gcLogger.Error2(__METHOD__, " Descriptor [", IntToString(iCount), "]'s bytes extend passed the end of the cache.", NULL);
+		}
+
+		iCount++;
+		psDescriptor = psDescriptor->psNext;
+		
+	} 
+	while (psDescriptor != mpsHead);
+	return TRUE;
+}
 
