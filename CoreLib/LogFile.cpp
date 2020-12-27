@@ -545,7 +545,7 @@ BOOL CLogFile::AmalgamateOverlappingWrites(CArrayIntAndPointer* papvOverlapping,
 	{
 		iIndex = papvOverlapping->GetType(i);
 		psWrite = (CLogFileCommandWrite*)macCommands.Get(iIndex);
-		pvDest = RemapSinglePointer(pvData, (int)(psWrite->iPosition - iStart));
+		pvDest = RemapSinglePointer(pvData, (ptrdiff_t)psWrite->iPosition - (ptrdiff_t)iStart);
 		pvNewSource = RemapSinglePointer(psWrite, sizeof(CLogFileCommandWrite));
 		memcpy_fast(pvDest, pvNewSource, (int)psWrite->iSize);
 	}
@@ -752,8 +752,8 @@ void CLogFile::CopyWritesToRead(CArrayIntAndPointer* papvOverlapping, filePos iB
 
 		iLength -= iSourceOffset;
 
-		pvSource = RemapSinglePointer(pvData, (int)iSourceOffset);
-		pvNewDest = RemapSinglePointer(pvDest, (int)iDestOffset);
+		pvSource = RemapSinglePointer(pvData, (ptrdiff_t)iSourceOffset);
+		pvNewDest = RemapSinglePointer(pvDest, (ptrdiff_t)iDestOffset);
 
 		memcpy_fast(pvNewDest, pvSource, (int)iLength);
 	}

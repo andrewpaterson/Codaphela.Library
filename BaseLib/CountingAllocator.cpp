@@ -121,7 +121,7 @@ void* CCountingAllocator::Realloc(void* pv, size_t tSize)
 		}
 		else
 		{
-			ps = (SCountingMemoryAllocation*)RemapSinglePointer(pv, -(int)(tOffset));
+			ps = (SCountingMemoryAllocation*)RemapSinglePointer(pv, -(ptrdiff_t)tOffset);
 			mtUserSize -= ps->tSize;
 			mtSystemSize -= (ps->tSize + tOffset);
 		}
@@ -175,7 +175,7 @@ void CCountingAllocator::Free(void* pv)
 		}
 		else
 		{
-			ps = (SCountingMemoryAllocation*)RemapSinglePointer(pv, -(int)(tOffset));
+			ps = (SCountingMemoryAllocation*)RemapSinglePointer(pv, -(ptrdiff_t)tOffset);
 			mtUserSize -= ps->tSize;
 			mtSystemSize -= (ps->tSize + tOffset);
 			mpcAlloc->Free(pv);

@@ -323,7 +323,7 @@ BOOL CIndexTree::LoopKey(int* pi, int iKeySize)
 //////////////////////////////////////////////////////////////////////////
 CIndexTreeNode* CIndexTree::GetNodeForDataNode(CIndexTreeDataNode* pcDataNode)
 {
-	return (CIndexTreeNode*)RemapSinglePointer(pcDataNode, -((int)mtSizeofNode));
+	return (CIndexTreeNode*)RemapSinglePointer(pcDataNode, -(ptrdiff_t)mtSizeofNode);
 }
 
 
@@ -333,7 +333,7 @@ CIndexTreeNode* CIndexTree::GetNodeForDataNode(CIndexTreeDataNode* pcDataNode)
 //////////////////////////////////////////////////////////////////////////
 CIndexTreeNode* CIndexTree::GetNodeForData(void* pvData)
 {
-	return (CIndexTreeNode*)RemapSinglePointer(pvData, -((int)mtSizeofDataNode));
+	return (CIndexTreeNode*)RemapSinglePointer(pvData, -(ptrdiff_t)mtSizeofDataNode);
 }
 
 

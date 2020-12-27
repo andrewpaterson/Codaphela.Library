@@ -88,7 +88,7 @@ void CDataMemory::ReInit(void)
 void CDataMemory::Remove(void* pv)
 {
 	SDataMemoryAllocation*	psAlloc;
-	CFreeList*					pcList;
+	CFreeList*				pcList;
 
 	psAlloc = DATA_MEMORY_GET_ALLOCATION(pv);
 	if (psAlloc->uiSize <= mpcFreeListParams->GetMaxFreeListElementSize())
@@ -312,7 +312,7 @@ void* CDataMemory::Grow(void* pvInitial, unsigned int uiSize)
 	}
 	else
 	{
-		psNode = (SLLAlignedNode*)RemapSinglePointer(psAlloc, -((int)sizeof(SLLAlignedNode)));
+		psNode = (SLLAlignedNode*)RemapSinglePointer(psAlloc, -(ptrdiff_t)sizeof(SLLAlignedNode));
 		if (uiSize <= mpcFreeListParams->GetMaxFreeListElementSize())
 		{
 			pvNew = Add(uiSize);

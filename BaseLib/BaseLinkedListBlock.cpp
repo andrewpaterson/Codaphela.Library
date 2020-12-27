@@ -276,7 +276,7 @@ SLLNode* CBaseLinkedListBlock::DataGetNode(void* pvData)
 	{
 		return NULL;
 	}
-	return (SLLNode*)RemapSinglePointer(pvData, -((int)muiNodeSize));
+	return (SLLNode*)RemapSinglePointer(pvData, -(ptrdiff_t)muiNodeSize);
 }
 
 
