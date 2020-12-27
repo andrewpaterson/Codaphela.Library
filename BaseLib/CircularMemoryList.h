@@ -45,6 +45,12 @@ public:
 	SMemoryCacheDescriptor*		Iterate(SMemoryCacheDescriptor* psCurrent);
 
 	void						Dump(void);
+
+protected:
+	SMemoryCacheDescriptor*		OneAllocation(void);
+	SMemoryCacheDescriptor*		InsertNext(SMemoryCacheDescriptor* psDescriptor);
+	BOOL						Overlaps(void* pvNew, size_t uiNewSize, SMemoryCacheDescriptor* psExisting);
+	size_t						RemainingAfterTail(void);
 };
 
 

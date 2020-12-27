@@ -8,12 +8,15 @@
 class CMemoryQueue : public CCircularMemoryList
 {
 public:
-	void	Init(void* pvMemory, size_t iByteSize);
+	void	Init(void* pvMemory, size_t uiByteSize);
 	void	Kill(void);
 
-	void*	InsertAfterTail(int iDataSize);
+	void*	InsertAfterTail(size_t uiDataSize);
 	void*	GetHead(void);
 	void	RemoveHead(void);
+
+protected:
+	BOOL	FindOverlapping(void* pvNew, size_t uiNewSize);
 };
 
 
