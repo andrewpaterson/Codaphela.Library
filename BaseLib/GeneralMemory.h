@@ -89,7 +89,7 @@ private:
 
 
 //This should be a method.
-#define GENERAL_MEMORY_GET_ALLOCATION(p)	(SGeneralMemoryAllocation*)RemapSinglePointer(p, -(int)(sizeof(SGeneralMemoryAllocation)))
+#define GENERAL_MEMORY_GET_ALLOCATION(p)	(SGeneralMemoryAllocation*)RemapSinglePointer(p, -(ptrdiff_t)sizeof(SGeneralMemoryAllocation))
 
 
 #endif // __GENERAL_MEMORY_H__

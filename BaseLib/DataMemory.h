@@ -86,7 +86,7 @@ private:
 
 
 //This should be a method.
-#define DATA_MEMORY_GET_ALLOCATION(p)	(SDataMemoryAllocation*)RemapSinglePointer(p, -(int)(sizeof(SDataMemoryAllocation)))
+#define DATA_MEMORY_GET_ALLOCATION(p)	(SDataMemoryAllocation*)RemapSinglePointer(p, -(ptrdiff_t)sizeof(SDataMemoryAllocation))
 
 
 void DataMemoryInit(void);

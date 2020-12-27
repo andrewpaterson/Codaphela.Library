@@ -237,7 +237,7 @@ filePos CBufferedFile::Write(const void* pvSource, filePos iSize, filePos iCount
 				bResult = WriteUnwritten();
 
 				iSourceRemaining = iByteSize - iRemainingBuffer;
-				memcpy(mpvMem, RemapSinglePointer(pvSource, iRemainingBuffer), (size_t)iSourceRemaining);
+				memcpy(mpvMem, RemapSinglePointer(pvSource, iRemainingBuffer), (ptrdiff_t)iSourceRemaining);
 				miBufferPos = (size_t)iSourceRemaining;
 				meType = BT_Write;
 

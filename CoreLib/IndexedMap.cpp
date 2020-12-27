@@ -239,7 +239,7 @@ BOOL CIndexedMap::IsDirty(OIndex oi)
 	{
 		if (pcKeyDescriptor->GetCache())
 		{
-			psDataDescriptor = (SIndexedCacheDescriptor*)RemapSinglePointer(pcKeyDescriptor->GetCache(), -(int)(sizeof(SIndexedCacheDescriptor)));
+			psDataDescriptor = (SIndexedCacheDescriptor*)RemapSinglePointer(pcKeyDescriptor->GetCache(), -(ptrdiff_t)sizeof(SIndexedCacheDescriptor));
 			if (psDataDescriptor->iFlags & CACHE_DESCRIPTOR_FLAG_DIRTY)
 			{
 				return TRUE;

@@ -52,7 +52,7 @@ T* DataGetHeader(M* pv)
 	{
 		return NULL;
 	}
-	return (T*)RemapSinglePointer(pv, -((int)sizeof(T)));
+	return (T*)RemapSinglePointer(pv, -(ptrdiff_t)sizeof(T));
 }
 
 

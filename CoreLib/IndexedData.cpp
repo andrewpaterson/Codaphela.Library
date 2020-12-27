@@ -180,7 +180,7 @@ BOOL CIndexedData::IsDirty(OIndex oi)
 	{
 		if (cKeyDescriptor.GetCache())
 		{
-			psDataDescriptor = (SIndexedCacheDescriptor*)RemapSinglePointer(cKeyDescriptor.GetCache(), -(int)(sizeof(SIndexedCacheDescriptor)));
+			psDataDescriptor = (SIndexedCacheDescriptor*)RemapSinglePointer(cKeyDescriptor.GetCache(), -(ptrdiff_t)sizeof(SIndexedCacheDescriptor));
 			if (psDataDescriptor->iFlags & CACHE_DESCRIPTOR_FLAG_DIRTY)
 			{
 				return TRUE;
