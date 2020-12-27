@@ -39,12 +39,8 @@ public:
 
 	BOOL	CanCache(unsigned int uiDataSize);
 
-	void	FindOverlapping(void* pvNew, size_t uiNewSize, CArrayVoidPtr* pasOverlappingCacheDescriptors);
-	BOOL	Overlaps(void* pvNew, size_t uiNewSize, SMemoryCacheDescriptor* psExisting);
-
 protected:
-	SMemoryCacheDescriptor*		OneAllocation(void);
-	size_t						RemainingAfterTail(void);
+	void	FindOverlapping(void* pvNew, size_t uiNewSize, CArrayVoidPtr* pasOverlappingCacheDescriptors);
 };
 
 

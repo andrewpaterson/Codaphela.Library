@@ -88,7 +88,7 @@ BOOL CMemoryCache::PreAllocate(CMemoryCacheAllocation* pcPreAllocationResult)
 	{
 		if (iCachedSize <= iRemainingAfterLast)
 		{
-			psDescriptor = (SMemoryCacheDescriptor*)RemapSinglePointer(mpsTail, (int)(miDescriptorSize + mpsTail->uiSize));
+			psDescriptor = (SMemoryCacheDescriptor*)RemapSinglePointer(mpsTail, miDescriptorSize + mpsTail->uiSize);
 		}
 		else
 		{
@@ -150,46 +150,11 @@ void* CMemoryCache::Allocate(CMemoryCacheAllocation* pcPreAllocated)
 	}
 	else
 	{
-		if (IsEmpty())
-		{
-			psDescriptor = OneAllocation();
-		}
-		else
-		{
-			psDescriptor = pcPreAllocated->mpsDescriptor;
-
-			mpsTail->psNext = psDescriptor;
-			mpsHead->psPrev = psDescriptor;
-
-			psDescriptor->psNext = mpsHead;
-			psDescriptor->psPrev = mpsTail;
-
-			mpsTail = psDescriptor;
-		}
+		psDescriptor = InsertNext(pcPreAllocated->mpsDescriptor);
 	}
 
 	psDescriptor->uiSize = pcPreAllocated->muiSize;
 	return GetData(psDescriptor);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-SMemoryCacheDescriptor* CMemoryCache::OneAllocation(void)
-{
-	SMemoryCacheDescriptor*		psDescriptor;
-
-	psDescriptor = (SMemoryCacheDescriptor*)mpvCache;
-
-	mpsTail = psDescriptor;
-	mpsHead = psDescriptor;
-
-	psDescriptor->psNext = psDescriptor;
-	psDescriptor->psPrev = psDescriptor;
-
-	return psDescriptor;
 }
 
 
@@ -234,61 +199,6 @@ BOOL CMemoryCache::CanCache(unsigned int uiDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size_t CMemoryCache::RemainingAfterTail(void)
-{
-	size_t		iAllocated;
-
-	if (IsEmpty())
-	{
-		return muiCacheSize;
-	}
-	else
-	{
-		iAllocated = ((int)(size_t)mpsTail - (int)(size_t)mpvCache);
-		iAllocated += (mpsTail->uiSize + miDescriptorSize);
-		return muiCacheSize - iAllocated;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CMemoryCache::Overlaps(void* pvNew, size_t uiNewSize, SMemoryCacheDescriptor* psExisting)
-{
-	size_t	uiNewStart;
-	size_t	uiNewEnd;  //Inclusive
-
-	size_t	uiNextStart;
-	size_t	uiNextEnd; //Inclusive
-
-	uiNewStart = (size_t) pvNew;
-	uiNewEnd = uiNewStart + uiNewSize - 1;
-
-	uiNextStart = (size_t) psExisting;
-	uiNextEnd = uiNextStart + psExisting->uiSize + miDescriptorSize - 1;
-
-	if ((uiNewStart <= uiNextStart) && (uiNewEnd >= uiNextStart))
-	{
-		return TRUE;
-	}
-	if ((uiNewStart <= uiNextEnd) && (uiNewEnd >= uiNextEnd))
-	{
-		return TRUE;
-	}
-	if ((uiNewStart >= uiNextStart) && (uiNewStart <= uiNextEnd))
-	{
-		return TRUE;
-	}
-	return FALSE;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CMemoryCache::FindOverlapping(void* pvNew, size_t uiNewSize, CArrayVoidPtr* pasOverlappingCacheDescriptors)
 {
 	SMemoryCacheDescriptor*	psNext;
@@ -311,4 +221,6 @@ void CMemoryCache::FindOverlapping(void* pvNew, size_t uiNewSize, CArrayVoidPtr*
 		}
 	}
 }
+
+
 

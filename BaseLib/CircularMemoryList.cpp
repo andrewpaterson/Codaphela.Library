@@ -395,3 +395,104 @@ void CCircularMemoryList::Dump(void)
 	sz.Kill();
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+SMemoryCacheDescriptor* CCircularMemoryList::OneAllocation(void)
+{
+	SMemoryCacheDescriptor* psDescriptor;
+
+	psDescriptor = (SMemoryCacheDescriptor*)mpvCache;
+
+	mpsTail = psDescriptor;
+	mpsHead = psDescriptor;
+
+	psDescriptor->psNext = psDescriptor;
+	psDescriptor->psPrev = psDescriptor;
+
+	return psDescriptor;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+SMemoryCacheDescriptor* CCircularMemoryList::InsertNext(SMemoryCacheDescriptor* psDescriptor)
+{
+	if (IsEmpty())
+	{
+		psDescriptor = OneAllocation();
+	}
+	else
+	{
+		mpsTail->psNext = psDescriptor;
+		mpsHead->psPrev = psDescriptor;
+
+		psDescriptor->psNext = mpsHead;
+		psDescriptor->psPrev = mpsTail;
+
+		mpsTail = psDescriptor;
+	}
+
+	return psDescriptor;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CCircularMemoryList::Overlaps(void* pvNew, size_t uiNewSize, SMemoryCacheDescriptor* psExisting)
+{
+	size_t	uiNewStart;
+	size_t	uiNewEnd;  //Inclusive
+
+	size_t	uiNextStart;
+	size_t	uiNextEnd; //Inclusive
+
+	uiNewStart = (size_t)pvNew;
+	uiNewEnd = uiNewStart + uiNewSize - 1;
+
+	uiNextStart = (size_t)psExisting;
+	uiNextEnd = uiNextStart + psExisting->uiSize + miDescriptorSize - 1;
+
+	if ((uiNewStart <= uiNextStart) && (uiNewEnd >= uiNextStart))
+	{
+		return TRUE;
+	}
+	if ((uiNewStart <= uiNextEnd) && (uiNewEnd >= uiNextEnd))
+	{
+		return TRUE;
+	}
+	if ((uiNewStart >= uiNextStart) && (uiNewStart <= uiNextEnd))
+	{
+		return TRUE;
+	}
+	return FALSE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size_t CCircularMemoryList::RemainingAfterTail(void)
+{
+	size_t		iAllocated;
+
+	if (IsEmpty())
+	{
+		return muiCacheSize;
+	}
+	else
+	{
+		iAllocated = ((int)(size_t)mpsTail - (int)(size_t)mpvCache);
+		iAllocated += (mpsTail->uiSize + miDescriptorSize);
+		return muiCacheSize - iAllocated;
+	}
+}
+
+
