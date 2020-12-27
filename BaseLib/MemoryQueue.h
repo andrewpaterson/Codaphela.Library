@@ -11,9 +11,9 @@ public:
 	void	Init(void* pvMemory, size_t uiByteSize);
 	void	Kill(void);
 
-	void*	InsertAfterTail(size_t uiDataSize);
-	void*	GetHead(void);
-	void	RemoveHead(void);
+	void*	Push(size_t uiDataSize);
+	void*	Peek(size_t* puiDataSize);
+	BOOL	Drop(void* pvHead);
 
 protected:
 	BOOL	FindOverlapping(void* pvNew, size_t uiNewSize);

@@ -50,20 +50,23 @@ BOOL CMemoryQueue::FindOverlapping(void* pvNew, size_t uiNewSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CMemoryQueue::InsertAfterTail(size_t uiDataSize)
+void* CMemoryQueue::Push(size_t uiDataSize)
 {
 	SMemoryCacheDescriptor*		psDescriptor;
-	size_t						iRemainingAfterLast;
+	size_t						uiRemainingAfterLast;
+	size_t						uiTotalSize;
+	BOOL						bOverlaps;
 
-	if (uiDataSize > muiCacheSize)
+	uiTotalSize = uiDataSize + miDescriptorSize;
+	if (uiTotalSize > muiCacheSize)
 	{
 		return NULL;
 	}
 
-	iRemainingAfterLast = RemainingAfterTail();
+	uiRemainingAfterLast = RemainingAfterTail();
 	if (!IsEmpty())
 	{
-		if (uiDataSize <= iRemainingAfterLast)
+		if (uiTotalSize <= uiRemainingAfterLast)
 		{
 			psDescriptor = (SMemoryCacheDescriptor*)RemapSinglePointer(mpsTail, miDescriptorSize + mpsTail->uiSize);
 		}
@@ -72,16 +75,20 @@ void* CMemoryQueue::InsertAfterTail(size_t uiDataSize)
 			//Cycle back to the beginning of the cache.
 			psDescriptor = (SMemoryCacheDescriptor*)mpvCache;
 		}
-		FindOverlapping(psDescriptor, uiDataSize);
+		bOverlaps = FindOverlapping(psDescriptor, uiTotalSize);
+		if (bOverlaps)
+		{
+			return NULL;
+		}
+		psDescriptor = InsertNext(psDescriptor);
 	}
 	else
 	{
-		psDescriptor = (SMemoryCacheDescriptor*)mpvCache;
+		psDescriptor = OneAllocation();
 	}
 
-	CCircularMemoryList::InsertNext(psDescriptor);
 	psDescriptor->uiSize = uiDataSize;
-	return NULL;
+	return GetData(psDescriptor);
 }
 
 
@@ -89,9 +96,21 @@ void* CMemoryQueue::InsertAfterTail(size_t uiDataSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CMemoryQueue::GetHead(void)
+void* CMemoryQueue::Peek(size_t* puiDataSize)
 {
-	return NULL;
+	void*	pv;
+
+	if (!IsEmpty())
+	{
+		pv = GetData(mpsHead);
+		*puiDataSize = mpsHead->uiSize;
+		return pv;
+	}
+	else
+	{
+		*puiDataSize = 0;
+		return NULL;
+	}
 }
 
 
@@ -99,7 +118,19 @@ void* CMemoryQueue::GetHead(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CMemoryQueue::RemoveHead(void)
+BOOL CMemoryQueue::Drop(void* pvHead)
 {
+	SMemoryCacheDescriptor*		psDescriptor;
+
+	psDescriptor = GetDescriptor(pvHead);
+	if (psDescriptor == mpsHead)
+	{
+		Deallocate(psDescriptor);
+		return TRUE;
+	}
+	else
+	{
+		return FALSE;
+	}
 }
 
