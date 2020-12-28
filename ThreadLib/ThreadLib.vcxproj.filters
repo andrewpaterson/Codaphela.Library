@@ -105,6 +105,12 @@
     <ClCompile Include="SharedMemory.cpp">
       <Filter>Source\SharedMemory</Filter>
     </ClCompile>
+    <ClCompile Include="SharedMemoryQueue.cpp">
+      <Filter>Source\SharedMemory</Filter>
+    </ClCompile>
+    <ClCompile Include="InterProcessMutex.cpp">
+      <Filter>Source\Process</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SafeArrayBlock.h">
@@ -145,6 +151,12 @@
     </ClInclude>
     <ClInclude Include="SharedMemory.h">
       <Filter>Source\SharedMemory</Filter>
+    </ClInclude>
+    <ClInclude Include="SharedMemoryQueue.h">
+      <Filter>Source\SharedMemory</Filter>
+    </ClInclude>
+    <ClInclude Include="InterProcessMutex.h">
+      <Filter>Source\Process</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

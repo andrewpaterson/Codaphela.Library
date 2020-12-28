@@ -8,29 +8,55 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CSharedMemory::Create(char* szName, size_t iSize)
+void CSharedMemory::Init(char* szName)
+{
+    mszName.Init(szName);
+    miConnectionId = 0;
+    mpvMemory = NULL;
+    mpsDescriptor = NULL;
+    mhMapFile = NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CSharedMemory::Kill(void)
+{
+    mszName.Kill();
+    miConnectionId = 0;
+    mpvMemory = NULL;
+    mpsDescriptor = NULL;
+    mhMapFile = NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CSharedMemory::Create(size_t uiSize)
 {
     size_t iAdjustedSize;
 
-    mpvMemory = NULL;
-    mpsDescriptor = NULL;
-    iAdjustedSize = iSize + sizeof(SSharedMemory);
+    iAdjustedSize = uiSize + sizeof(SSharedMemory);
 
-    hMapFile = CreateFileMapping(
+    mhMapFile = CreateFileMapping(
                     INVALID_HANDLE_VALUE,    // use paging file
                     NULL,                    // default security
                     PAGE_READWRITE,          // read/write access
                     0,                       // maximum object size (high-order DWORD)
-                    iAdjustedSize,                   // maximum object size (low-order DWORD)
-                    szName);                 // name of mapping object
+                    iAdjustedSize,           // maximum object size (low-order DWORD)
+                    mszName.Text());                 // name of mapping object
 
-    if (hMapFile == NULL)
+    if (mhMapFile == NULL)
     {
         return gcLogger.Error2(__METHOD__, " Could not create file mapping object [", GetLastError(),"].", NULL);
     }
 
     mpsDescriptor = (SSharedMemory*)MapViewOfFile(
-                    hMapFile,               // handle to map object
+                    mhMapFile,               // handle to map object
                     FILE_MAP_ALL_ACCESS,    // read/write permission
                     0,
                     0,
@@ -38,15 +64,18 @@ BOOL CSharedMemory::Create(char* szName, size_t iSize)
 
    if (mpsDescriptor == NULL)
    {
-       CloseHandle(hMapFile);
+       CloseHandle(mhMapFile);
        return gcLogger.Error2(__METHOD__, " Could not map view of file [", GetLastError(), "].", NULL);
    }
 
    mpvMemory = RemapSinglePointer(mpsDescriptor, sizeof(SSharedMemory));
 
+   miConnectionId = 1;
+
    mpsDescriptor->uiMagic = SHARED_MEMORY_MAGIC;
-   mpsDescriptor->uiSize = iSize;
-   StrCpySafe(mpsDescriptor->szName, szName, 128);
+   mpsDescriptor->uiSize = uiSize;
+   mpsDescriptor->iConnectionId = miConnectionId;
+   StrCpySafe(mpsDescriptor->szName, mszName.Text(), 128);
 
    return TRUE;
 }
@@ -56,34 +85,43 @@ BOOL CSharedMemory::Create(char* szName, size_t iSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CSharedMemory::Connect(char* szName, size_t iSize)
+BOOL CSharedMemory::Connect(void)
 {
-    int iAdjustedSize;
+    return Touch(0);
+}
 
-    mpvMemory = NULL;
-    mpsDescriptor = NULL;
-    iAdjustedSize = iSize + sizeof(SSharedMemory);
 
-    hMapFile = OpenFileMapping(
-                    FILE_MAP_ALL_ACCESS,   // read/write access
-                    FALSE,                 // do not inherit the name
-                    szName);               // name of mapping object
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CSharedMemory::Touch(size_t uiSize)
+{
+    int     iAdjustedSize;
+    int     iConnectionId;
 
-    if (hMapFile == NULL)
+    iAdjustedSize = uiSize + sizeof(SSharedMemory);
+
+    mhMapFile = OpenFileMapping(
+        FILE_MAP_ALL_ACCESS,   // read/write access
+        FALSE,                 // do not inherit the name
+        mszName.Text());       // name of mapping object
+
+    if (mhMapFile == NULL)
     {
         return gcLogger.Error2(__METHOD__, " Could not open file mapping object [", GetLastError(), "].", NULL);
     }
 
     mpsDescriptor = (SSharedMemory*)MapViewOfFile(
-                    hMapFile,               // handle to map object
-                    FILE_MAP_ALL_ACCESS,    // read/write permission
-                    0,
-                    0,
-                    iAdjustedSize);
+        mhMapFile,              // handle to map object
+        FILE_MAP_ALL_ACCESS,    // read/write permission
+        0,
+        0,
+        iAdjustedSize);
 
     if (mpsDescriptor == NULL)
     {
-        CloseHandle(hMapFile);
+        CloseHandle(mhMapFile);
         return gcLogger.Error2(__METHOD__, " Could not map view of file [", GetLastError(), "].", NULL);
     }
 
@@ -93,9 +131,21 @@ BOOL CSharedMemory::Connect(char* szName, size_t iSize)
         return gcLogger.Error2(__METHOD__, " Magic mismatch connecting to view of file [", LongLongToString(mpsDescriptor->uiMagic, 16), "].", NULL);
     }
 
-    mpvMemory = RemapSinglePointer(mpsDescriptor, sizeof(SSharedMemory));
+    //Test that the names are the same.
 
-    return TRUE;
+    if (miConnectionId != mpsDescriptor->iConnectionId)
+    {
+        iConnectionId = mpsDescriptor->iConnectionId;
+        uiSize = (size_t)mpsDescriptor->uiSize;
+        Close();
+        miConnectionId = iConnectionId;
+        return Touch(uiSize);
+    }
+    else
+    {
+        mpvMemory = RemapSinglePointer(mpsDescriptor, sizeof(SSharedMemory));
+        return TRUE;
+    }
 }
 
 
@@ -109,8 +159,8 @@ void CSharedMemory::Close(void)
     mpsDescriptor = NULL;
     mpvMemory = NULL;
 
-    CloseHandle(hMapFile);
-    hMapFile = INVALID_HANDLE_VALUE;
+    CloseHandle(mhMapFile);
+    mhMapFile = NULL;
 }
 
 

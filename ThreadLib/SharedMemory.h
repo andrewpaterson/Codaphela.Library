@@ -1,5 +1,6 @@
 #ifndef __SHARED_MEMORY_H__
 #define __SHARED_MEMORY_H__
+#include "BaseLib/Chars.h"
 #include "BaseLib/WindowsHeaders.h"
 
 
@@ -10,6 +11,7 @@ struct SSharedMemory
 {
 	unsigned long long int	uiMagic;
 	unsigned long long int	uiSize;
+	int						iConnectionId;
 	char					szName[128];
 };
 
@@ -17,15 +19,23 @@ struct SSharedMemory
 class CSharedMemory
 {
 private:
-	HANDLE			hMapFile;
+	HANDLE			mhMapFile;
 	SSharedMemory*	mpsDescriptor;
 	void*			mpvMemory;
+	CChars			mszName;
+	int				miConnectionId;
 
 public:
-	BOOL	Create(char* szName, size_t iSize);
-	BOOL	Connect(char* szName, size_t iSize);
+	void	Init(char* szName);
+	void	Kill(void);
+
+	BOOL	Create(size_t uiSize);
+	BOOL	Connect(void);
 	void	Close(void);
 	void*	GetMemory(void);
+
+protected:
+	BOOL	Touch(size_t uiSize);
 };
 
 
