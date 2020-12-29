@@ -1,4 +1,5 @@
 #include "BaseLib/Logger.h"
+#include "BaseLib/DebugOutput.h"
 #include "BaseLib/PointerRemapper.h"
 #include "BaseLib/StringHelper.h"
 #include "WindowsError.h"
@@ -150,16 +151,37 @@ BOOL CSharedMemory::Connect(int iCurrentMemory, int iNextMemory)
 //////////////////////////////////////////////////////////////////////////
 BOOL CSharedMemory::Touch(void)
 {
-    int iSharedMemory;
+    int     iSharedMemory;
+    BOOL    bResult;
 
     if (mpsDescriptor)
     {
         if (mpsDescriptor->iInvalid)
         {
+            CChars sz;
+            sz.Init("Invalid: ");
+            sz.Append(mpsDescriptor->uiSize);
+            sz.Append(" [");
+            sz.Append(mpsDescriptor->iMapCount);
+            sz.Append("]");
+            sz.Dump();
+            sz.Kill();
+
             mpsDescriptor->iMapCount--;
             iSharedMemory = miSharedMemory;
             Close();
-            return Connect(1 - iSharedMemory, iSharedMemory);
+            bResult = Connect(1 - iSharedMemory, iSharedMemory);
+
+            sz.Init(" -> Connect: ");
+            sz.Append(mpsDescriptor->uiSize);
+            sz.Append(" [");
+            sz.Append(mpsDescriptor->iMapCount);
+            sz.Append("]");
+            sz.AppendNewLine();
+            sz.Dump();
+            sz.Kill();
+
+            return bResult;
         }
         else
         {
@@ -326,6 +348,16 @@ BOOL CSharedMemory::Resize(size_t uiSize)
         bResult = Create(1 - miSharedMemory, uiSize);
         if (bResult)
         {
+            CChars sz;
+            sz.Init("Resized: ");
+            sz.Append(uiSize);
+            sz.Append(" [");
+            sz.Append(mpsDescriptor->iMapCount);
+            sz.Append("]");
+            sz.AppendNewLine();
+            sz.Dump();
+            sz.Kill();
+
             memcpy(mpvMemory, pvOldMemory, (size_t)uiOldSize);
             psOldDescriptor->iInvalid = SHARED_MEMORY_INVALID;
             Close(psOldDescriptor, iOldSharedMemory);
