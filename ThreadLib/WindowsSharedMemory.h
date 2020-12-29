@@ -21,7 +21,7 @@ public:
 
 	BOOL	Create(size_t uiSize);
 	BOOL	Connect(void);
-	void	Close(void);
+	int		Close(void);
 
 	size_t	IncreaseSize(void);
 	BOOL	Resize(size_t uiSize);
@@ -34,7 +34,7 @@ protected:
 	BOOL	Map(int iSharedMemory, size_t uiSize);
 	BOOL	Remap(int iSharedMemory, size_t uiSize);
 	BOOL	Create(int iSharedMemory, size_t uiSize);
-	void	Close(SSharedMemory* psDescriptor, int iSharedMemory);
+	int		Close(SSharedMemory* psDescriptor, int iSharedMemory);
 };
 
 

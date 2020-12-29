@@ -3,6 +3,7 @@
 #include "BaseLib/Logger.h"
 #include "BaseLib/StackMemory.h"
 #include "BaseLib/WindowsHeaders.h"
+#include "WindowsError.h"
 #include "ProcessFork.h"
 
 
@@ -121,7 +122,7 @@ BOOL ForkProcess(char* szCommandLineParameters, BOOL bWaitForProcessToExit)
         &sProcessInformation))  // Pointer to PROCESS_INFORMATION structure
     {
         szCommandLine.Kill();
-        gcLogger.Error2(__METHOD__, "CreateProcess failed [", GetLastError(), "].", NULL);
+        gcLogger.Error2(__METHOD__, "CreateProcess failed [", WindowsErrorCodeToString(GetLastError()), "].", NULL);
         return FALSE;
     }
     szCommandLine.Kill();

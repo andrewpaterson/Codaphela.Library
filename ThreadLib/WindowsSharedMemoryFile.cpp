@@ -1,5 +1,6 @@
 #include "BaseLib/Logger.h"
 #include "SharedMemory.h"
+#include "WindowsError.h"
 #include "WindowsSharedMemoryFile.h"
 
 
@@ -122,6 +123,18 @@ SSharedMemoryResult CWindowsSharedMemoryFile::Create(size_t uiSize)
         return SSharedMemoryResult(SMR_FileHandleAlreadySet);
     }
 
+    mhMapFile = OpenFileMapping(
+        FILE_MAP_ALL_ACCESS,
+        FALSE,
+        mszName.Text());
+    if (mhMapFile)
+    {
+        CloseHandle(mhMapFile);
+        mhMapFile = NULL;
+        gcLogger.Error2(__METHOD__, " Could not create mapping.  File alread exists.", NULL);
+        return SSharedMemoryResult(SMR_FileHandleAlreadySet);
+    }
+
     mhMapFile = CreateFileMapping(
         INVALID_HANDLE_VALUE,
         NULL,
@@ -132,7 +145,7 @@ SSharedMemoryResult CWindowsSharedMemoryFile::Create(size_t uiSize)
 
     if (mhMapFile == NULL)
     {
-        gcLogger.Warning2(__METHOD__, " Could not create file mapping object [", GetLastError(), "].", NULL);
+        gcLogger.Warning2(__METHOD__, " Could not create file mapping object [", WindowsErrorCodeToString(GetLastError()), "].", NULL);
         return SSharedMemoryResult(SMR_CannotCreate);
     }
 
@@ -140,7 +153,7 @@ SSharedMemoryResult CWindowsSharedMemoryFile::Create(size_t uiSize)
     if (psDescriptor == NULL)
     {
         CloseHandle(mhMapFile);
-        gcLogger.Warning2(__METHOD__, " Could not map view of file [", GetLastError(), "].", NULL);
+        gcLogger.Warning2(__METHOD__, " Could not map view of file [", WindowsErrorCodeToString(GetLastError()), "].", NULL);
         return SSharedMemoryResult(SMR_CannotMap);
     }
 
@@ -179,7 +192,7 @@ SSharedMemoryResult CWindowsSharedMemoryFile::Open(void)
     if (mhMapFile == NULL)
     {
         return SSharedMemoryResult(SMR_CannotOpen);
-        //return gcLogger.Error2(__METHOD__, " Could not open file mapping object [", GetLastError(), "].", NULL);
+        //return gcLogger.Error2(__METHOD__, " Could not open file mapping object [", WindowsErrorCodeToString(GetLastError()), "].", NULL);
     }
 
     psDescriptor = Map(0);
@@ -187,7 +200,7 @@ SSharedMemoryResult CWindowsSharedMemoryFile::Open(void)
     if (psDescriptor == NULL)
     {
         CloseHandle(mhMapFile);
-        gcLogger.Warning2(__METHOD__, " Could not map view of file [", GetLastError(), "].", NULL);
+        gcLogger.Warning2(__METHOD__, " Could not map view of file [", WindowsErrorCodeToString(GetLastError()), "].", NULL);
         return SSharedMemoryResult(SMR_CannotMap);
     }
 

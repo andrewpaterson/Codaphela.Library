@@ -99,6 +99,7 @@
     <ClInclude Include="SafeLinkedListBlock.h" />
     <ClInclude Include="SharedMemory.h" />
     <ClInclude Include="InterProcessMutex.h" />
+    <ClInclude Include="WindowsError.h" />
     <ClInclude Include="WindowsSharedMemory.h" />
     <ClInclude Include="WindowsSharedMemoryFile.h" />
     <ClInclude Include="SharedMemoryQueue.h" />
@@ -116,6 +117,7 @@
     <ClCompile Include="ProcessFork.cpp" />
     <ClCompile Include="SafeArrayBlock.cpp" />
     <ClCompile Include="SafeLinkedListBlock.cpp" />
+    <ClCompile Include="WindowsError.cpp" />
     <ClCompile Include="WindowsSharedMemory.cpp" />
     <ClCompile Include="InterProcessMutex.cpp" />
     <ClCompile Include="WindowsSharedMemoryFile.cpp" />
