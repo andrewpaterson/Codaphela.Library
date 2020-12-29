@@ -76,6 +76,9 @@
     <Filter Include="Source\SharedMemory">
       <UniqueIdentifier>{a250ae84-95df-4c44-9ed4-957c8e7b7a85}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\SharedMemory\Windows">
+      <UniqueIdentifier>{57034488-82aa-4239-b47a-d34562d6748b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="SafeArrayBlock.cpp">
@@ -102,14 +105,17 @@
     <ClCompile Include="MainProcessDirector.cpp">
       <Filter>Source\Process</Filter>
     </ClCompile>
-    <ClCompile Include="SharedMemory.cpp">
-      <Filter>Source\SharedMemory</Filter>
-    </ClCompile>
     <ClCompile Include="SharedMemoryQueue.cpp">
       <Filter>Source\SharedMemory</Filter>
     </ClCompile>
     <ClCompile Include="InterProcessMutex.cpp">
       <Filter>Source\Process</Filter>
+    </ClCompile>
+    <ClCompile Include="WindowsSharedMemoryFile.cpp">
+      <Filter>Source\SharedMemory\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="WindowsSharedMemory.cpp">
+      <Filter>Source\SharedMemory\Windows</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -149,14 +155,20 @@
     <ClInclude Include="MainProcessDirector.h">
       <Filter>Source\Process</Filter>
     </ClInclude>
-    <ClInclude Include="SharedMemory.h">
-      <Filter>Source\SharedMemory</Filter>
-    </ClInclude>
     <ClInclude Include="SharedMemoryQueue.h">
       <Filter>Source\SharedMemory</Filter>
     </ClInclude>
     <ClInclude Include="InterProcessMutex.h">
       <Filter>Source\Process</Filter>
+    </ClInclude>
+    <ClInclude Include="WindowsSharedMemoryFile.h">
+      <Filter>Source\SharedMemory\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="WindowsSharedMemory.h">
+      <Filter>Source\SharedMemory\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="SharedMemory.h">
+      <Filter>Source\SharedMemory</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
