@@ -99,7 +99,7 @@ BOOL CWindowsSharedMemoryFile::Kill(void)
 {
 	if (mhMapFile != NULL)
 	{
-		return gcLogger.Error2(__METHOD__, " Cannot Kill windows shared memory file.  It's handle has not been closed.", NULL);
+		return gcLogger.Error2(__METHOD__, " Cannot Kill windows shared memory file [", mszName.Text(), "].  It's handle has not been closed.", NULL);
 	}
 	mszName.Kill();
     return TRUE;
@@ -119,7 +119,7 @@ SSharedMemoryResult CWindowsSharedMemoryFile::Create(size_t uiSize)
 
     if (mhMapFile)
     {
-        gcLogger.Error2(__METHOD__, " Could not create mapping.  Map file handle must be NULL.", NULL);
+        gcLogger.Error2(__METHOD__, " Could not create mapping [", mszName.Text(), "].  Map file handle must be NULL.", NULL);
         return SSharedMemoryResult(SMR_FileHandleAlreadySet);
     }
 
@@ -131,7 +131,7 @@ SSharedMemoryResult CWindowsSharedMemoryFile::Create(size_t uiSize)
     {
         CloseHandle(mhMapFile);
         mhMapFile = NULL;
-        gcLogger.Error2(__METHOD__, " Could not create mapping.  File alread exists.", NULL);
+        gcLogger.Error2(__METHOD__, " Could not create mapping [", mszName.Text(), "].  File already exists.", NULL);
         return SSharedMemoryResult(SMR_FileHandleAlreadySet);
     }
 
@@ -145,7 +145,7 @@ SSharedMemoryResult CWindowsSharedMemoryFile::Create(size_t uiSize)
 
     if (mhMapFile == NULL)
     {
-        gcLogger.Warning2(__METHOD__, " Could not create file mapping object [", WindowsErrorCodeToString(GetLastError()), "].", NULL);
+        gcLogger.Warning2(__METHOD__, " Could not create file mapping object [", mszName.Text(), "].  Failed with [", WindowsErrorCodeToString(GetLastError()), "].", NULL);
         return SSharedMemoryResult(SMR_CannotCreate);
     }
 
@@ -153,7 +153,7 @@ SSharedMemoryResult CWindowsSharedMemoryFile::Create(size_t uiSize)
     if (psDescriptor == NULL)
     {
         CloseHandle(mhMapFile);
-        gcLogger.Warning2(__METHOD__, " Could not map view of file [", WindowsErrorCodeToString(GetLastError()), "].", NULL);
+        gcLogger.Warning2(__METHOD__, " Could not map view of file  [", mszName.Text(), "].  Failed with [", WindowsErrorCodeToString(GetLastError()), "].", NULL);
         return SSharedMemoryResult(SMR_CannotMap);
     }
 
@@ -180,7 +180,7 @@ SSharedMemoryResult CWindowsSharedMemoryFile::Open(void)
 
     if (mhMapFile)
     {
-        gcLogger.Error2(__METHOD__, " Could not open mapping.  Map file handle must be NULL.", NULL);
+        gcLogger.Error2(__METHOD__, " Could not open mapping [", mszName.Text(), "].  Map file handle must be NULL.", NULL);
         return SSharedMemoryResult(SMR_FileHandleAlreadySet);
     }
 
@@ -200,7 +200,7 @@ SSharedMemoryResult CWindowsSharedMemoryFile::Open(void)
     if (psDescriptor == NULL)
     {
         CloseHandle(mhMapFile);
-        gcLogger.Warning2(__METHOD__, " Could not map view of file [", WindowsErrorCodeToString(GetLastError()), "].", NULL);
+        gcLogger.Warning2(__METHOD__, " Could not map view of file  [", mszName.Text(), "].  Failed with [", WindowsErrorCodeToString(GetLastError()), "].", NULL);
         return SSharedMemoryResult(SMR_CannotMap);
     }
 
