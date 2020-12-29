@@ -45,6 +45,7 @@ public:
 	BOOL		Error(const char* szText);
 	BOOL		Error2(const char* szText, ...);
 	BOOL		Warning(const char* szText);
+	BOOL		Warning2(const char* szText, ...);
 	void		Info(const char* szText);
 	void		Info2(const char* szText, ...);
 	void		Debug(const char* szText);

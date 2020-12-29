@@ -205,6 +205,40 @@ BOOL CLogger::Warning(const char* szText)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL CLogger::Warning2(const char* szText, ...)
+{
+	va_list		vaMarker;
+	char* sz;
+	CChars		szError;
+
+	if (szText)
+	{
+		szError.Init(szText);
+		va_start(vaMarker, szText);
+		sz = va_arg(vaMarker, char*);
+		while (sz != NULL)
+		{
+			szError.Append(sz);
+			sz = va_arg(vaMarker, char*);
+		}
+		va_end(vaMarker);
+
+		Warning(szError.Text());
+		szError.Kill();
+	}
+	else
+	{
+		Warning("");
+	}
+
+	return FALSE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CLogger::Info2(const char* szText, ...)
 {
 	va_list		vaMarker;
