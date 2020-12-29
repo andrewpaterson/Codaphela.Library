@@ -1,5 +1,6 @@
 #include "BaseLib/Logger.h"
 #include "BaseLib/WindowsHeaders.h"
+#include "WindowsError.h"
 #include "InterProcessMutex.h"
 
 
@@ -38,7 +39,7 @@ BOOL CInterProcessMutex::Create(void)
 
     if (mhMutex == NULL)
     {
-        return gcLogger.Error2(__METHOD__, " Could not create mutex [", GetLastError(), "].", NULL);
+        return gcLogger.Error2(__METHOD__, " Could not create mutex [", WindowsErrorCodeToString(GetLastError()), "].", NULL);
     }
     else
     {
@@ -68,7 +69,7 @@ BOOL CInterProcessMutex::Connect(void)
 
     if (mhMutex == NULL)
     {
-        return gcLogger.Error2(__METHOD__, " Could not open mutex [", GetLastError(), "].", NULL);
+        return gcLogger.Error2(__METHOD__, " Could not open mutex [", WindowsErrorCodeToString(GetLastError()), "].", NULL);
     }
     else
     {

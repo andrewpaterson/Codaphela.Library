@@ -117,6 +117,9 @@
     <ClCompile Include="WindowsSharedMemory.cpp">
       <Filter>Source\SharedMemory\Windows</Filter>
     </ClCompile>
+    <ClCompile Include="WindowsError.cpp">
+      <Filter>Source\SharedMemory\Windows</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SafeArrayBlock.h">
@@ -169,6 +172,9 @@
     </ClInclude>
     <ClInclude Include="SharedMemory.h">
       <Filter>Source\SharedMemory</Filter>
+    </ClInclude>
+    <ClInclude Include="WindowsError.h">
+      <Filter>Source\SharedMemory\Windows</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

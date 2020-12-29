@@ -5,10 +5,6 @@
 #include "LogString.h"
 
 
-#define LOG_TO_STRING_SCRATCH_PAD_SIZE	32
-#define LOG_TO_STRING_MAX_LENGTH		8192
-
-
 char gaszLogToStringScratchPad[LOG_TO_STRING_SCRATCH_PAD_SIZE][LOG_TO_STRING_MAX_LENGTH];
 int  giLogToStringCount = 0;
 

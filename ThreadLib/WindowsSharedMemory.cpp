@@ -1,6 +1,7 @@
 #include "BaseLib/Logger.h"
 #include "BaseLib/PointerRemapper.h"
 #include "BaseLib/StringHelper.h"
+#include "WindowsError.h"
 #include "SharedMemory.h"
 
 
@@ -62,7 +63,7 @@ BOOL CSharedMemory::Create(int iSharedMemory, size_t uiSize)
    if (mpsDescriptor == NULL)
    {
        mcMappedFiles[iSharedMemory].Close();
-       return gcLogger.Error2(__METHOD__, " Could not map view of file [", GetLastError(), "].", NULL);
+       return gcLogger.Error2(__METHOD__, " Could not map view of file [", WindowsErrorCodeToString(GetLastError()), "].", NULL);
    }
 
    mpvMemory = RemapSinglePointer(mpsDescriptor, sizeof(SSharedMemory));
@@ -80,13 +81,25 @@ BOOL CSharedMemory::Create(int iSharedMemory, size_t uiSize)
 //////////////////////////////////////////////////////////////////////////
 BOOL CSharedMemory::Connect(void)
 {
+    BOOL    bResult;
+
     if ((miSharedMemory == -1) || (miSharedMemory == 0))
     {
-        return Connect(0, 1);
+        bResult = Connect(0, 1);
+        if (!bResult)
+        {
+            return Connect(1, 0);
+        }
+        return TRUE;
     }
     else
     {
-        return Connect(1, 0);
+        bResult = Connect(1, 0);
+        if (!bResult)
+        {
+            return Connect(0, 1);
+        }
+        return TRUE;
     }
 }
 
@@ -172,7 +185,7 @@ BOOL CSharedMemory::Map(int iSharedMemory, size_t uiSize)
     {
         mpvMemory = NULL;
         mcMappedFiles[0].Close();
-        return gcLogger.Error2(__METHOD__, " Could not map view of file [", GetLastError(), "].", NULL);
+        return gcLogger.Error2(__METHOD__, " Could not map view of file [", WindowsErrorCodeToString(GetLastError()), "].", NULL);
     }
 
     mpsDescriptor->iMapCount++;
@@ -204,7 +217,7 @@ BOOL CSharedMemory::Remap(int iSharedMemory, size_t uiSize)
             {
                 mpvMemory = NULL;
                 mcMappedFiles[0].Close();
-                return gcLogger.Error2(__METHOD__, " Could not re-map view of file [", GetLastError(), "].", NULL);
+                return gcLogger.Error2(__METHOD__, " Could not re-map view of file [", WindowsErrorCodeToString(GetLastError()), "].", NULL);
             }
             mpsDescriptor->iMapCount++;
             mpvMemory = RemapSinglePointer(mpsDescriptor, sizeof(SSharedMemory));
@@ -229,12 +242,16 @@ BOOL CSharedMemory::Remap(int iSharedMemory, size_t uiSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CSharedMemory::Close(void)
+int CSharedMemory::Close(void)
 {
-    Close(mpsDescriptor, miSharedMemory);
+    int iStillMapped;
+
+    iStillMapped = Close(mpsDescriptor, miSharedMemory);
     mpsDescriptor = NULL;
     mpvMemory = NULL;
     miSharedMemory = -1;
+
+    return iStillMapped;
 }
 
 
@@ -242,11 +259,14 @@ void CSharedMemory::Close(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CSharedMemory::Close(SSharedMemory* psDescriptor, int iSharedMemory)
+int CSharedMemory::Close(SSharedMemory* psDescriptor, int iSharedMemory)
 {
+    int iStillMapped;
+
     if (psDescriptor)
     {
         psDescriptor->iMapCount--;
+        iStillMapped = psDescriptor->iMapCount;
         if (psDescriptor->iMapCount == 0)
         {
             memset(psDescriptor, 0, sizeof(SSharedMemory));
@@ -254,8 +274,13 @@ void CSharedMemory::Close(SSharedMemory* psDescriptor, int iSharedMemory)
         }
         UnmapViewOfFile(psDescriptor);
     }
+    else
+    {
+        iStillMapped = 0;
+    }
 
     mcMappedFiles[iSharedMemory].Close();
+    return iStillMapped;
 }
 
 

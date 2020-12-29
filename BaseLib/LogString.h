@@ -25,7 +25,11 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 
 #define __METHOD__ MethodToString(__FILE__, __LINE__, __ENGINE_PRETTY_FUNCTION__)
+#define LOG_TO_STRING_SCRATCH_PAD_SIZE	32
+#define LOG_TO_STRING_MAX_LENGTH		8192
 
+
+int IncrementLogToStringCount(void);
 
 char* CharToString(char c);
 char* IntToString(int i, int iBase = 10);
@@ -36,6 +40,9 @@ char* MethodToString(const char* szFile, int iLine, const char* szFunction);
 char* IntToFlags(int iInt);
 char* ShortToFlags(int siShort);
 char* StringToString(char* sz);
+
+extern char gaszLogToStringScratchPad[LOG_TO_STRING_SCRATCH_PAD_SIZE][LOG_TO_STRING_MAX_LENGTH];
+extern int  giLogToStringCount;
 
 
 #endif // __LOG_TO_STRING_H__
