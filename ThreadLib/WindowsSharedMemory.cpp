@@ -167,7 +167,6 @@ BOOL CSharedMemory::Touch(void)
             sz.Dump();
             sz.Kill();
 
-            mpsDescriptor->iMapCount--;
             iSharedMemory = miSharedMemory;
             Close();
             bResult = Connect(1 - iSharedMemory, iSharedMemory);
@@ -182,6 +181,10 @@ BOOL CSharedMemory::Touch(void)
             sz.Kill();
 
             return bResult;
+        }
+        else if (mpsDescriptor->szName[0] == '\0')
+        {
+            return gcLogger.Error2(__METHOD__, " Touched a descriptor with an invalid name.", NULL);
         }
         else
         {
@@ -293,6 +296,7 @@ int CSharedMemory::Close(SSharedMemory* psDescriptor, int iSharedMemory)
         {
             memset(psDescriptor, 0, sizeof(SSharedMemory));
             psDescriptor->iInvalid = SHARED_MEMORY_VALID;
+            psDescriptor->iMapCount = -1;
         }
         UnmapViewOfFile(psDescriptor);
     }

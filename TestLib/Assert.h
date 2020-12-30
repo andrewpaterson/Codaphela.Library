@@ -40,7 +40,6 @@ void InitTotalStatistics(void);
 BOOL Pass(void);
 BOOL Fail(const char* szExpected, const char* szActual, int iLine, char* szFile);
 
-
 BOOL PrivateAssertTristate(TRISTATE tExpected, TRISTATE tActual, int iLine, char* szFile);
 BOOL PrivateAssertBool(BOOL bExpected, BOOL bActual, int iLine, char* szFile);
 BOOL PrivateAssertChar(char cExpected, char cActual, int iLine, char* szFile);
