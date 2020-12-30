@@ -32,7 +32,7 @@ BOOL CSharedMemoryQueue::Init(BOOL bMaster, char* szName, size_t uiByteSize)
 			bResult = mcMutex.Create();
 			if (bResult)
 			{
-				mcQueue.Init(mcMemory.GetMemory(), uiByteSize);
+				mcQueue.Init(mcMemory.Touch(), uiByteSize);
 			}
 			else
 			{

@@ -11,22 +11,22 @@ private:
 	SSharedMemory*				mpsDescriptor;
 	void*						mpvMemory;
 	CChars						mszSharedName;
+	CChars						mszDebugIdentifier;
 	int							miSharedMemory;
 
 public:
-	void	Init(char* szName);
+	void	Init(char* szName, char* szDebugIdentifier = NULL);
 	void	Kill(void);
 
-	BOOL	Touch(void);
+	void*	Touch(void);
 
 	BOOL	Create(size_t uiSize);
 	BOOL	Connect(void);
 	int		Close(void);
 
-	size_t	IncreaseSize(void);
-	BOOL	Resize(size_t uiSize);
+	void*	IncreaseSize(void);
+	void*	Resize(size_t uiSize);
 
-	void*	GetMemory(void);
 	size_t	GetSize(void);
 
 protected:

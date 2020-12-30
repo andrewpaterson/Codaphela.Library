@@ -10,7 +10,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CSharedMemory::Init(char* szName)
+void CSharedMemory::Init(char* szName, char* szDebugIdentifier)
 {
     mcMappedFiles[0].Init(szName, 0);
     mcMappedFiles[1].Init(szName, 1);
@@ -18,6 +18,15 @@ void CSharedMemory::Init(char* szName)
     mpvMemory = NULL;
     mpsDescriptor = NULL;
     miSharedMemory = -1;
+
+    if (szDebugIdentifier)
+    {
+        mszDebugIdentifier.Init(szDebugIdentifier);
+    }
+    else
+    {
+        mszDebugIdentifier.Init();
+    }
 }
 
 
@@ -27,6 +36,7 @@ void CSharedMemory::Init(char* szName)
 //////////////////////////////////////////////////////////////////////////
 void CSharedMemory::Kill(void)
 {
+    mszDebugIdentifier.Kill();
     mszSharedName.Kill();
     mcMappedFiles[0].Kill();
     mcMappedFiles[1].Kill();
@@ -149,7 +159,7 @@ BOOL CSharedMemory::Connect(int iCurrentMemory, int iNextMemory)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CSharedMemory::Touch(void)
+void* CSharedMemory::Touch(void)
 {
     int     iSharedMemory;
     BOOL    bResult;
@@ -159,7 +169,9 @@ BOOL CSharedMemory::Touch(void)
         if (mpsDescriptor->iInvalid)
         {
             CChars sz;
-            sz.Init("Invalid: ");
+            sz.Init("Invalid ");
+            sz.Append(mszDebugIdentifier);
+            sz.Append(": ");
             sz.Append(mpsDescriptor->uiSize);
             sz.Append(" [");
             sz.Append(mpsDescriptor->iMapCount);
@@ -180,21 +192,37 @@ BOOL CSharedMemory::Touch(void)
             sz.Dump();
             sz.Kill();
 
-            return bResult;
+            if (bResult)
+            {
+                return mpvMemory;
+            }
+            else
+            {
+                return NULL;
+            }
         }
         else if (mpsDescriptor->szName[0] == '\0')
         {
-            return gcLogger.Error2(__METHOD__, " Touched a descriptor with an invalid name.", NULL);
+            gcLogger.Error2(__METHOD__, " Touched a descriptor with an invalid name.", NULL);
+            return NULL;
         }
         else
         {
             //Test the name and the map count.
-            return TRUE;
+            return mpvMemory;
         }
     }
     else
     {
-        return Connect();
+        bResult = Connect();
+        if (bResult)
+        {
+            return mpvMemory;
+        }
+        else
+        {
+            return NULL;
+        }
     }
 }
 
@@ -314,16 +342,6 @@ int CSharedMemory::Close(SSharedMemory* psDescriptor, int iSharedMemory)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CSharedMemory::GetMemory(void)
-{
-    return mpvMemory;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 size_t CSharedMemory::GetSize(void)
 {
     return (size_t)mpsDescriptor->uiSize;
@@ -334,7 +352,7 @@ size_t CSharedMemory::GetSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CSharedMemory::Resize(size_t uiSize)
+void* CSharedMemory::Resize(size_t uiSize)
 {
     BOOL            bResult;
     SSharedMemory*  psOldDescriptor;
@@ -353,7 +371,9 @@ BOOL CSharedMemory::Resize(size_t uiSize)
         if (bResult)
         {
             CChars sz;
-            sz.Init("Resized: ");
+            sz.Init("Resized ");
+            sz.Append(mszDebugIdentifier);
+            sz.Append(": ");
             sz.Append(uiSize);
             sz.Append(" [");
             sz.Append(mpsDescriptor->iMapCount);
@@ -365,16 +385,18 @@ BOOL CSharedMemory::Resize(size_t uiSize)
             memcpy(mpvMemory, pvOldMemory, (size_t)uiOldSize);
             psOldDescriptor->iInvalid = SHARED_MEMORY_INVALID;
             Close(psOldDescriptor, iOldSharedMemory);
-            return TRUE;
+
+            return mpvMemory;
         }
         else
         {
-            return gcLogger.Error2(__METHOD__, " Could not resize file.", NULL);
+            gcLogger.Error2(__METHOD__, " Could not resize file.", NULL);
+            return NULL;
         }
     }
     else
     {
-        return TRUE;
+        return mpvMemory;
     }
 }
 
@@ -383,10 +405,9 @@ BOOL CSharedMemory::Resize(size_t uiSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size_t CSharedMemory::IncreaseSize(void)
+void* CSharedMemory::IncreaseSize(void)
 {
     size_t  uiSize;
-    BOOL    bResult;
 
     if (mpsDescriptor)
     {
@@ -397,14 +418,6 @@ size_t CSharedMemory::IncreaseSize(void)
         uiSize = 16000;
     }
 
-    bResult = Resize(uiSize);
-    if (bResult)
-    {
-        return uiSize;
-    }
-    else
-    {
-        return 0;
-    }
+    return Resize(uiSize);
 }
 
