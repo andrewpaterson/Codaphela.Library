@@ -10,14 +10,15 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CSharedMemory::Init(char* szName, char* szDebugIdentifier)
+void CSharedMemory::Init(char* szMemoryName, char* szDebugIdentifier)
 {
-    mcMappedFiles[0].Init(szName, 0);
-    mcMappedFiles[1].Init(szName, 1);
-    mszSharedName.Init(szName);
-    mpvMemory = NULL;
-    mpsDescriptor = NULL;
-    miSharedMemory = -1;
+    InitCoordinator(szMemoryName);
+
+    mszSharedName.Init(szMemoryName);
+    if (mszSharedName.Length() > 60)
+    {
+        mszSharedName.Remove(61, mszSharedName.Length());
+    }
 
     if (szDebugIdentifier)
     {
@@ -34,15 +35,54 @@ void CSharedMemory::Init(char* szName, char* szDebugIdentifier)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CSharedMemory::InitCoordinator(char* szMemoryName)
+{
+    CChars                      sz;
+
+    sz.Init(szMemoryName);
+    sz.Append(":C");
+    mcCoordinator.Init(sz.Text());
+    sz.Kill();
+
+    //mpcCoordinatorMappedFile, mcMappedFile, mpvMemory and mpsDescriptor all move together
+    mpcCoordinatorMappedFile = NULL;
+
+    mcMappedFile.Init();
+
+    mpvMemory = NULL;
+    mpsDescriptor = NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CSharedMemory::ReinitCoordinator(void)
+{
+    mpcCoordinatorMappedFile = NULL;
+    mcMappedFile.Close();
+    mcMappedFile.Reinit();
+    mpsDescriptor = NULL;
+    mpvMemory = NULL;
+
+    return FALSE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CSharedMemory::Kill(void)
 {
     mszDebugIdentifier.Kill();
     mszSharedName.Kill();
-    mcMappedFiles[0].Kill();
-    mcMappedFiles[1].Kill();
+
     mpvMemory = NULL;
     mpsDescriptor = NULL;
-    miSharedMemory = -1;
+
+    mcCoordinator.Kill();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -51,38 +91,35 @@ void CSharedMemory::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CSharedMemory::Create(size_t uiSize)
 {
-    return Create(0, uiSize);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CSharedMemory::Create(int iSharedMemory, size_t uiSize)
-{
-    miSharedMemory = iSharedMemory;
-
-    SSharedMemoryResult sResult = mcMappedFiles[iSharedMemory].Create(uiSize);
-    if (sResult.IsFailed())
+    if (mcMappedFile.IsNamed())
     {
-        return FALSE;
+        return gcLogger.Error2(__METHOD__, " Could not create map file.  Already exists [", mcMappedFile.GetName(), "].", NULL);
     }
 
-    mpsDescriptor = mcMappedFiles[iSharedMemory].Map(uiSize);
+    mpcCoordinatorMappedFile = mcCoordinator.Add(mszSharedName.Text());
+    if (!mpcCoordinatorMappedFile)
+    {
+        return gcLogger.Error2(__METHOD__, " Could not create map file.  Previously created must be invalidated first [", mcMappedFile.GetName(), "].", NULL);
+    }
 
-   if (mpsDescriptor == NULL)
-   {
-       mcMappedFiles[iSharedMemory].Close();
-       return gcLogger.Error2(__METHOD__, " Could not map view of file [", WindowsErrorCodeToString(GetLastError()), "].", NULL);
-   }
+    mcMappedFile.Reinit(mpcCoordinatorMappedFile->mszName);
 
-   mpvMemory = RemapSinglePointer(mpsDescriptor, sizeof(SSharedMemory));
+    SSharedMemoryResult sResult = mcMappedFile.Create(uiSize);
+    if (sResult.IsFailed())
+    {
+        return ReinitCoordinator();
+    }
 
-   mpsDescriptor->iMapCount = 1;
-   StrCpySafe(mpsDescriptor->szName, mszSharedName.Text(), 128);
+    if (Map(uiSize))
+    {
+        StrCpySafe(mpsDescriptor->szName, mszSharedName.Text(), 64);
+        return TRUE;
+    }
+    else
+    {
+        return TRUE;
+    }
 
-   return TRUE;
 }
 
 
@@ -92,65 +129,29 @@ BOOL CSharedMemory::Create(int iSharedMemory, size_t uiSize)
 //////////////////////////////////////////////////////////////////////////
 BOOL CSharedMemory::Connect(void)
 {
-    BOOL    bResult;
-
-    if ((miSharedMemory == -1) || (miSharedMemory == 0))
+    if (mcMappedFile.IsNamed())
     {
-        bResult = Connect(0, 1);
-        if (!bResult)
+        return gcLogger.Error2(__METHOD__, " Could not connect to map file.  Already connected [", mcMappedFile.GetName(), "].", NULL);
+    }
+
+    mpcCoordinatorMappedFile = mcCoordinator.GetCurrent();
+    if (mpcCoordinatorMappedFile)
+    {
+        mcMappedFile.Reinit(mpcCoordinatorMappedFile->mszName);
+
+        SSharedMemoryResult sResult = mcMappedFile.Open();
+        if (sResult.IsFailed())
         {
-            return Connect(1, 0);
+            ReinitCoordinator();
+            return gcLogger.Error2(__METHOD__, " Could not connect to map file.  No map file exists.", NULL);
         }
-        return TRUE;
+
+        return Map(sResult.GetSize());
     }
     else
     {
-        bResult = Connect(1, 0);
-        if (!bResult)
-        {
-            return Connect(0, 1);
-        }
-        return TRUE;
-    }
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CSharedMemory::Connect(int iCurrentMemory, int iNextMemory)
-{
-    miSharedMemory = iCurrentMemory;
-
-    SSharedMemoryResult sResult = mcMappedFiles[iCurrentMemory].Open();
-
-    if (sResult.IsSuccess())
-    {
-        return Map(iCurrentMemory, sResult.GetSize());
-    }
-    else if (sResult.IsInvalid())
-    {
-        miSharedMemory = iNextMemory;
-
-        SSharedMemoryResult sResult = mcMappedFiles[iNextMemory].Open();
-
-        if (sResult.IsSuccess())
-        {
-            return Map(iNextMemory, sResult.GetSize());
-        }
-        else if (sResult.IsInvalid())
-        {
-            return FALSE;
-        }
-        else
-        {
-            return FALSE;
-        }
-    }
-    else
-    {
-        return FALSE;
+        ReinitCoordinator();
+        return gcLogger.Error2(__METHOD__, " Could not connect to map file.  No map file exists.", NULL);
     }
 }
 
@@ -161,8 +162,7 @@ BOOL CSharedMemory::Connect(int iCurrentMemory, int iNextMemory)
 //////////////////////////////////////////////////////////////////////////
 void* CSharedMemory::Touch(void)
 {
-    int     iSharedMemory;
-    BOOL    bResult;
+    BOOL                        bResult;
 
     if (mpsDescriptor)
     {
@@ -179,34 +179,35 @@ void* CSharedMemory::Touch(void)
             sz.Dump();
             sz.Kill();
 
-            iSharedMemory = miSharedMemory;
             Close();
-            bResult = Connect(1 - iSharedMemory, iSharedMemory);
-
-            sz.Init(" -> Connect: ");
-            sz.Append(mpsDescriptor->uiSize);
-            sz.Append(" [");
-            sz.Append(mpsDescriptor->iMapCount);
-            sz.Append("]");
-            sz.AppendNewLine();
-            sz.Dump();
-            sz.Kill();
+            bResult = Connect();
+            
+            if (bResult)
+            {
+                sz.Init(" -> Connect: ");
+                sz.Append(mpsDescriptor->uiSize);
+                sz.Append(" [");
+                sz.Append(mpsDescriptor->iMapCount);
+                sz.Append("]");
+                sz.AppendNewLine();
+                sz.Dump();
+                sz.Kill();
+            }
+            else
+            {
+                sz.Init(" -> Connect Failed");
+                sz.AppendNewLine();
+                sz.Dump();
+                sz.Kill();
+            }
 
             if (bResult)
             {
                 return mpvMemory;
             }
-            else
-            {
-                return NULL;
-            }
-        }
-        else if (mpsDescriptor->szName[0] == '\0')
-        {
-            gcLogger.Error2(__METHOD__, " Touched a descriptor with an invalid name.", NULL);
             return NULL;
         }
-        else
+        else 
         {
             //Test the name and the map count.
             return mpvMemory;
@@ -214,15 +215,12 @@ void* CSharedMemory::Touch(void)
     }
     else
     {
-        bResult = Connect();
-        if (bResult)
+        Close();
+        if (Connect())
         {
             return mpvMemory;
         }
-        else
-        {
-            return NULL;
-        }
+        return NULL;
     }
 }
 
@@ -231,13 +229,12 @@ void* CSharedMemory::Touch(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CSharedMemory::Map(int iSharedMemory, size_t uiSize)
+BOOL CSharedMemory::Map(size_t uiSize)
 {
-    mpsDescriptor = mcMappedFiles[iSharedMemory].Map(uiSize);
+    mpsDescriptor = mcMappedFile.Map(uiSize);
     if (mpsDescriptor == NULL)
     {
-        mpvMemory = NULL;
-        mcMappedFiles[0].Close();
+        ReinitCoordinator();
         return gcLogger.Error2(__METHOD__, " Could not map view of file [", WindowsErrorCodeToString(GetLastError()), "].", NULL);
     }
 
@@ -251,26 +248,25 @@ BOOL CSharedMemory::Map(int iSharedMemory, size_t uiSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CSharedMemory::Remap(int iSharedMemory, size_t uiSize)
+BOOL CSharedMemory::Remap(size_t uiSize)
 {
-    uint64 uiOldSize;
-        
+    uint64                      uiOldSize;
+
     if (mpsDescriptor)
     {
         uiOldSize = mpsDescriptor->uiSize;
         mpsDescriptor->iMapCount--;
         UnmapViewOfFile(mpsDescriptor);
      
-        mpsDescriptor = mcMappedFiles[iSharedMemory].Map(uiSize);
+        mpsDescriptor = mcMappedFile.Map(uiSize);
         if (mpsDescriptor == NULL)
         {
             mpvMemory = NULL;
-            mpsDescriptor = mcMappedFiles[iSharedMemory].Map((size_t)uiOldSize);
+            mpsDescriptor = mcMappedFile.Map((size_t)uiOldSize);
             if (mpsDescriptor == NULL)
             {
-                mpvMemory = NULL;
-                mcMappedFiles[0].Close();
-                return gcLogger.Error2(__METHOD__, " Could not re-map view of file [", WindowsErrorCodeToString(GetLastError()), "].", NULL);
+                ReinitCoordinator();
+                return gcLogger.Error2(__METHOD__, " Could not re-map view of file back to original size.  Failed with [", WindowsErrorCodeToString(GetLastError()), "].", NULL);
             }
             mpsDescriptor->iMapCount++;
             mpvMemory = RemapSinglePointer(mpsDescriptor, sizeof(SSharedMemory));
@@ -297,43 +293,26 @@ BOOL CSharedMemory::Remap(int iSharedMemory, size_t uiSize)
 //////////////////////////////////////////////////////////////////////////
 int CSharedMemory::Close(void)
 {
-    int iStillMapped;
+    int                         iStillMapped;
 
-    iStillMapped = Close(mpsDescriptor, miSharedMemory);
-    mpsDescriptor = NULL;
-    mpvMemory = NULL;
-    miSharedMemory = -1;
-
-    return iStillMapped;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-int CSharedMemory::Close(SSharedMemory* psDescriptor, int iSharedMemory)
-{
-    int iStillMapped;
-
-    if (psDescriptor)
+    if (mpsDescriptor)
     {
-        psDescriptor->iMapCount--;
-        iStillMapped = psDescriptor->iMapCount;
-        if (psDescriptor->iMapCount == 0)
+        mpsDescriptor->iMapCount--;
+        iStillMapped = mpsDescriptor->iMapCount;
+        if (mpsDescriptor->iMapCount == 0)
         {
-            memset(psDescriptor, 0, sizeof(SSharedMemory));
-            psDescriptor->iInvalid = SHARED_MEMORY_VALID;
-            psDescriptor->iMapCount = -1;
+            memset(mpsDescriptor, 0, sizeof(SSharedMemory));
+            mpsDescriptor->iMapCount = -1;
         }
-        UnmapViewOfFile(psDescriptor);
+        UnmapViewOfFile(mpsDescriptor);
+        mcMappedFile.Close();
     }
     else
     {
         iStillMapped = 0;
     }
+    ReinitCoordinator();
 
-    mcMappedFiles[iSharedMemory].Close();
     return iStillMapped;
 }
 
@@ -354,42 +333,59 @@ size_t CSharedMemory::GetSize(void)
 //////////////////////////////////////////////////////////////////////////
 void* CSharedMemory::Resize(size_t uiSize)
 {
-    BOOL            bResult;
-    SSharedMemory*  psOldDescriptor;
-    int             iOldSharedMemory;
-    void*           pvOldMemory;
-    uint64          uiOldSize;
+    BOOL                        bResult;
+    uint64                      uiOldSize;
+    int                         iStillMapped;
+    void*                       pvMemory;
+    CChars                      sz;
 
-    bResult = Remap(miSharedMemory, uiSize);
+    bResult = Remap(uiSize);
     if (!bResult)
     { 
-        psOldDescriptor = mpsDescriptor;
-        iOldSharedMemory = miSharedMemory;
-        pvOldMemory = mpvMemory;
+        mcCoordinator.Invalidate();
+        mpsDescriptor->iInvalid = SHARED_MEMORY_INVALID;
         uiOldSize = mpsDescriptor->uiSize;
-        bResult = Create(1 - miSharedMemory, uiSize);
+        pvMemory = malloc((size_t)uiOldSize);
+        memcpy(pvMemory, mpvMemory, (size_t)uiOldSize);
+
+        sz.Init("Resized ");
+        sz.Append(mszDebugIdentifier);
+        sz.Append(": ");
+        sz.Append(uiSize);
+        sz.Append(" [");
+        sz.Append(mpsDescriptor->iMapCount);
+        sz.Append("]");
+        sz.Dump();
+        sz.Kill();
+
+        iStillMapped = Close();
+        bResult = Create(uiSize);
         if (bResult)
         {
-            CChars sz;
-            sz.Init("Resized ");
-            sz.Append(mszDebugIdentifier);
-            sz.Append(": ");
-            sz.Append(uiSize);
+            memcpy(mpvMemory, pvMemory, (size_t)uiOldSize);
+            free(pvMemory);
+            
+            sz.Init(" -> Close: ");
+            sz.Append(0);
             sz.Append(" [");
-            sz.Append(mpsDescriptor->iMapCount);
+            sz.Append(iStillMapped);
             sz.Append("]");
             sz.AppendNewLine();
             sz.Dump();
             sz.Kill();
 
-            memcpy(mpvMemory, pvOldMemory, (size_t)uiOldSize);
-            psOldDescriptor->iInvalid = SHARED_MEMORY_INVALID;
-            Close(psOldDescriptor, iOldSharedMemory);
 
             return mpvMemory;
         }
         else
         {
+            free(pvMemory);
+
+            sz.Init(" -> Resized Failed");
+            sz.AppendNewLine();
+            sz.Dump();
+            sz.Kill();
+
             gcLogger.Error2(__METHOD__, " Could not resize file.", NULL);
             return NULL;
         }

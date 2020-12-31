@@ -3,6 +3,7 @@
 #include "BaseLib/Chars.h"
 #include "BaseLib/WindowsHeaders.h"
 
+
 enum ESharedMemoryResult
 {
 	SMR_Success,
@@ -35,12 +36,17 @@ class CWindowsSharedMemoryFile
 {
 protected:
 	HANDLE	mhMapFile;
-	CChars	mszName;
-	int		miIndex;
+	char	mszName[64];
 
 public:
-	void				Init(char* szName, int iIndex);
+	void				Init(void);
+	void				Init(char* szName);
+	void				Reinit(void);
+	void				Reinit(char* szName);
 	BOOL				Kill(void);
+
+	BOOL				IsNamed(void);
+	char*				GetName(void);
 
 	SSharedMemoryResult	Create(size_t uiSize);
 	SSharedMemoryResult	Open(void);

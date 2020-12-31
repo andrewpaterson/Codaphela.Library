@@ -120,6 +120,9 @@
     <ClCompile Include="WindowsError.cpp">
       <Filter>Source\SharedMemory\Windows</Filter>
     </ClCompile>
+    <ClCompile Include="WindowsSharedMemoryCoordinator.cpp">
+      <Filter>Source\SharedMemory\Windows</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SafeArrayBlock.h">
@@ -174,6 +177,9 @@
       <Filter>Source\SharedMemory</Filter>
     </ClInclude>
     <ClInclude Include="WindowsError.h">
+      <Filter>Source\SharedMemory\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="WindowsSharedMemoryCoordinator.h">
       <Filter>Source\SharedMemory\Windows</Filter>
     </ClInclude>
   </ItemGroup>
