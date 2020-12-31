@@ -299,11 +299,7 @@ int CSharedMemory::Close(void)
     {
         mpsDescriptor->iMapCount--;
         iStillMapped = mpsDescriptor->iMapCount;
-        if (mpsDescriptor->iMapCount == 0)
-        {
-            memset(mpsDescriptor, 0, sizeof(SSharedMemory));
-            mpsDescriptor->iMapCount = -1;
-        }
+
         UnmapViewOfFile(mpsDescriptor);
         mcMappedFile.Close();
     }

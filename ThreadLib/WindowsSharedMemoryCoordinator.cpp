@@ -24,6 +24,7 @@ BOOL CWindowsSharedMemoryCoordinator::Init(char* szCoordinatorMemoryName)
 	if (sResult.IsSuccess())
 	{
 		mpsDescriptor = (SWindowsSharedMemoryFile*)mcMemory.Map(sResult.GetSize());
+		mpsDescriptor->miClients++;
 		return TRUE;
 	}
 	
@@ -31,6 +32,7 @@ BOOL CWindowsSharedMemoryCoordinator::Init(char* szCoordinatorMemoryName)
 	if (sResult.IsSuccess())
 	{
 		mpsDescriptor = (SWindowsSharedMemoryFile*)mcMemory.Map(sResult.GetSize());
+		mpsDescriptor->miClients = 1;
 		StrCpySafe(mpsDescriptor->szName, szCoordinatorMemoryName, 64);
 		mpsDescriptor->iNumSharedMemoryFiles = 0;
 		mpsDescriptor->iValidSharedMemoryIndex = -1;
@@ -51,6 +53,7 @@ void CWindowsSharedMemoryCoordinator::Kill(void)
 {
 	if (mpsDescriptor)
 	{
+		mpsDescriptor->miClients--;
 		UnmapViewOfFile(mpsDescriptor);
 		mcMemory.Close();
 		mpsDescriptor = NULL;
