@@ -260,7 +260,7 @@ BOOL CResizableSharedMemory::Map(size_t uiSize)
     }
 
     mpsDescriptor->iMapCount++;
-    mpvMemory = RemapSinglePointer(mpsDescriptor, sizeof(SResizableSharedMemory));
+    mpvMemory = RemapSinglePointer(mpsDescriptor, sizeof(SSharedMemoryDescriptor));
     return TRUE;
 }
 
@@ -290,14 +290,14 @@ BOOL CResizableSharedMemory::Remap(size_t uiSize)
                 return ReinitCoordinator();
             }
             mpsDescriptor->iMapCount++;
-            mpvMemory = RemapSinglePointer(mpsDescriptor, sizeof(SResizableSharedMemory));
+            mpvMemory = RemapSinglePointer(mpsDescriptor, sizeof(SSharedMemoryDescriptor));
             return FALSE;
         }
         else
         {
             mpsDescriptor->iMapCount++;
             mpsDescriptor->uiSize = uiSize;
-            mpvMemory = RemapSinglePointer(mpsDescriptor, sizeof(SResizableSharedMemory));
+            mpvMemory = RemapSinglePointer(mpsDescriptor, sizeof(SSharedMemoryDescriptor));
             return TRUE;
         }
     }

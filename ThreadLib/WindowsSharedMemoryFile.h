@@ -2,7 +2,7 @@
 #define __WINDOWS_SHARED_MEMORY_FILE_H__
 #include "BaseLib/Chars.h"
 #include "BaseLib/WindowsHeaders.h"
-
+#include "SharedMemoryDescriptor.h"
 
 enum ESharedMemoryResult
 {
@@ -52,7 +52,7 @@ public:
 	SSharedMemoryResult		Open(void);
 	void					Close(void);
 
-	SResizableSharedMemory*	Map(size_t uiSize);
+	SSharedMemoryDescriptor*	Map(size_t uiSize);
 };
 
 

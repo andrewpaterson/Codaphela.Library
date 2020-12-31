@@ -14,7 +14,7 @@ public:
 };
 
 
-struct SResizableWindowsSharedMemoryFile : SResizableSharedMemory
+struct SResizableWindowsSharedMemoryFile : SSharedMemoryDescriptor
 {
 	int								iNumSharedMemoryFiles;
 	int								iValidSharedMemoryIndex;

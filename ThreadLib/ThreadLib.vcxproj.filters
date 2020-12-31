@@ -123,6 +123,9 @@
     <ClCompile Include="WindowsResizableSharedMemory.cpp">
       <Filter>Source\SharedMemory\Windows</Filter>
     </ClCompile>
+    <ClCompile Include="WindowsSharedMemory.cpp">
+      <Filter>Source\SharedMemory\Windows</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SafeArrayBlock.h">
@@ -181,6 +184,15 @@
     </ClInclude>
     <ClInclude Include="WindowsResizableSharedMemory.h">
       <Filter>Source\SharedMemory\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="SharedMemory.h">
+      <Filter>Source\SharedMemory</Filter>
+    </ClInclude>
+    <ClInclude Include="WindowsSharedMemory.h">
+      <Filter>Source\SharedMemory\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="SharedMemoryDescriptor.h">
+      <Filter>Source\SharedMemory</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
