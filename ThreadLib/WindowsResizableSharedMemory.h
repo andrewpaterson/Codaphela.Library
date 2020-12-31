@@ -4,7 +4,7 @@
 #include "WindowsSharedMemoryFile.h"
 
 
-struct SResizableSharedMemory;
+struct SSharedMemoryDescriptor;
 class CResizableSharedMemory
 {
 private:
@@ -12,14 +12,14 @@ private:
 	SWindowsSharedMemoryFileName*	mpcCoordinatorMappedFile;
 
 	CWindowsSharedMemoryFile		mcMappedFile;
-	SResizableSharedMemory*					mpsDescriptor;
+	SSharedMemoryDescriptor*					mpsDescriptor;
 	void*							mpvMemory;
 
 	CChars							mszSharedName;
 	CChars							mszDebugIdentifier;
 
 	CWindowsSharedMemoryFile		mcHoldingMappedFile;
-	SResizableSharedMemory*			mpsHoldingDescriptor;
+	SSharedMemoryDescriptor*			mpsHoldingDescriptor;
 
 public:
 	void	Init(char* szMemoryName, char* szDebugIdentifier = NULL);

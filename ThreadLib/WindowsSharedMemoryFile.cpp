@@ -1,5 +1,4 @@
 #include "BaseLib/Logger.h"
-#include "ResizableSharedMemory.h"
 #include "WindowsError.h"
 #include "WindowsSharedMemoryFile.h"
 
@@ -165,9 +164,9 @@ char* CWindowsSharedMemoryFile::GetName(void)
 SSharedMemoryResult CWindowsSharedMemoryFile::Create(size_t uiSize)
 {
     size_t          iAdjustedSize;
-    SResizableSharedMemory*  psDescriptor;
+    SSharedMemoryDescriptor*  psDescriptor;
 
-    iAdjustedSize = uiSize + sizeof(SResizableSharedMemory);
+    iAdjustedSize = uiSize + sizeof(SSharedMemoryDescriptor);
 
     if (mhMapFile)
     {
@@ -209,7 +208,7 @@ SSharedMemoryResult CWindowsSharedMemoryFile::Create(size_t uiSize)
         return SSharedMemoryResult(SMR_CannotMap);
     }
 
-    memset(psDescriptor, 0, sizeof(SResizableSharedMemory));
+    memset(psDescriptor, 0, sizeof(SSharedMemoryDescriptor));
     psDescriptor->uiMagic = SHARED_MEMORY_MAGIC;
     psDescriptor->uiSize = uiSize;
     psDescriptor->iInvalid = SHARED_MEMORY_VALID;
@@ -228,7 +227,7 @@ SSharedMemoryResult CWindowsSharedMemoryFile::Create(size_t uiSize)
 //////////////////////////////////////////////////////////////////////////
 SSharedMemoryResult CWindowsSharedMemoryFile::Open(void)
 {
-    SResizableSharedMemory*  psDescriptor;
+    SSharedMemoryDescriptor*  psDescriptor;
     size_t          uiSize;
 
     if (mhMapFile)
@@ -288,16 +287,16 @@ void CWindowsSharedMemoryFile::Close(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SResizableSharedMemory* CWindowsSharedMemoryFile::Map(size_t uiSize)
+SSharedMemoryDescriptor* CWindowsSharedMemoryFile::Map(size_t uiSize)
 {
-    SResizableSharedMemory*  psDescriptor;
+    SSharedMemoryDescriptor*  psDescriptor;
     size_t          iAdjustedSize;
 
     if (mhMapFile != NULL)
     {
-        iAdjustedSize = uiSize + sizeof(SResizableSharedMemory);
+        iAdjustedSize = uiSize + sizeof(SSharedMemoryDescriptor);
 
-        psDescriptor = (SResizableSharedMemory*)MapViewOfFile(
+        psDescriptor = (SSharedMemoryDescriptor*)MapViewOfFile(
             mhMapFile,
             FILE_MAP_ALL_ACCESS,
             0,
