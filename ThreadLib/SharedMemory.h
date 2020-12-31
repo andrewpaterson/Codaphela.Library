@@ -14,9 +14,8 @@ struct SSharedMemory
 	uint64	uiSize;
 	int		iInvalid;
 	int		iMapCount;
-	char	szName[128];
+	char	szName[64];
 };
-
 
 
 #ifdef _MSC_VER

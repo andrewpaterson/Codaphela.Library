@@ -29,10 +29,10 @@ Microsoft Windows is Copyright Microsoft Corporation
 int			StrICmp(const char* ps1, const char* ps2);
 char*		StrIStr(char* ps1, const char* ps2);
 int			MemICmp(const void* pv1, const void* pv2, int iLength);
-char*		IToA(int iValue, char* szResult, int iBase);
-char*		IToA(unsigned int iValue, char* szResult, int iBase);
-char*		IToA(long long int lliValue, char* szResult, int iBase);
-char*		IToA(unsigned long long int ulliValue, char* szResult, int iBase);
+char*		IToA(int iValue, char* szResult, int iBase = 10);
+char*		IToA(unsigned int iValue, char* szResult, int iBase = 10);
+char*		IToA(long long int lliValue, char* szResult, int iBase = 10);
+char*		IToA(unsigned long long int ulliValue, char* szResult, int iBase = 10);
 char*		StrRev(char* szString);
 char*		StrRev(char* szString, int iLength);
 const char*	FindChar(const char* szString, char c, BOOL bReverse = 0);

@@ -77,6 +77,60 @@ BOOL ForkProcess(char* szParameter1, char* szParameter2, char* szParameter3, cha
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL ForkProcess(char* szParameter1, char* szParameter2, char* szParameter3, char* szParameter4, char* szParameter5, BOOL bWaitForProcessToExit)
+{
+    CChars  sz;
+    BOOL    bResult;
+
+    sz.Init(szParameter1);
+    sz.Append(" ");
+    sz.Append(szParameter2);
+    sz.Append(" ");
+    sz.Append(szParameter3);
+    sz.Append(" ");
+    sz.Append(szParameter4);
+    sz.Append(" ");
+    sz.Append(szParameter5);
+
+    bResult = ForkProcess(sz.Text(), bWaitForProcessToExit);
+
+    sz.Kill();
+    return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL ForkProcess(char* szParameter1, char* szParameter2, char* szParameter3, char* szParameter4, char* szParameter5, char* szParameter6, BOOL bWaitForProcessToExit)
+{
+    CChars  sz;
+    BOOL    bResult;
+
+    sz.Init(szParameter1);
+    sz.Append(" ");
+    sz.Append(szParameter2);
+    sz.Append(" ");
+    sz.Append(szParameter3);
+    sz.Append(" ");
+    sz.Append(szParameter4);
+    sz.Append(" ");
+    sz.Append(szParameter5);
+    sz.Append(" ");
+    sz.Append(szParameter6);
+
+    bResult = ForkProcess(sz.Text(), bWaitForProcessToExit);
+
+    sz.Kill();
+    return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL ForkProcess(char* szCommandLineParameters, BOOL bWaitForProcessToExit)
 {
     CStackMemory<>          cTemp;
