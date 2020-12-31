@@ -10,9 +10,6 @@
     <ClCompile Include="Assert.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="IntelTimer.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
     <ClCompile Include="Words.cpp">
       <Filter>Source</Filter>
     </ClCompile>
@@ -22,9 +19,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Assert.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="IntelTimer.h">
       <Filter>Source</Filter>
     </ClInclude>
     <ClInclude Include="Words.h">
