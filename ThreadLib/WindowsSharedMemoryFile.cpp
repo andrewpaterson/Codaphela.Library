@@ -1,5 +1,5 @@
 #include "BaseLib/Logger.h"
-#include "SharedMemory.h"
+#include "ResizableSharedMemory.h"
 #include "WindowsError.h"
 #include "WindowsSharedMemoryFile.h"
 
@@ -140,7 +140,7 @@ BOOL CWindowsSharedMemoryFile::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CWindowsSharedMemoryFile::IsNamed(void)
 {
-    if (mszName[0] == '\0')
+    if (StrEmpty(mszName))
     {
         return FALSE;
     }
@@ -165,9 +165,9 @@ char* CWindowsSharedMemoryFile::GetName(void)
 SSharedMemoryResult CWindowsSharedMemoryFile::Create(size_t uiSize)
 {
     size_t          iAdjustedSize;
-    SSharedMemory*  psDescriptor;
+    SResizableSharedMemory*  psDescriptor;
 
-    iAdjustedSize = uiSize + sizeof(SSharedMemory);
+    iAdjustedSize = uiSize + sizeof(SResizableSharedMemory);
 
     if (mhMapFile)
     {
@@ -209,7 +209,7 @@ SSharedMemoryResult CWindowsSharedMemoryFile::Create(size_t uiSize)
         return SSharedMemoryResult(SMR_CannotMap);
     }
 
-    memset(psDescriptor, 0, sizeof(SSharedMemory));
+    memset(psDescriptor, 0, sizeof(SResizableSharedMemory));
     psDescriptor->uiMagic = SHARED_MEMORY_MAGIC;
     psDescriptor->uiSize = uiSize;
     psDescriptor->iInvalid = SHARED_MEMORY_VALID;
@@ -228,7 +228,7 @@ SSharedMemoryResult CWindowsSharedMemoryFile::Create(size_t uiSize)
 //////////////////////////////////////////////////////////////////////////
 SSharedMemoryResult CWindowsSharedMemoryFile::Open(void)
 {
-    SSharedMemory*  psDescriptor;
+    SResizableSharedMemory*  psDescriptor;
     size_t          uiSize;
 
     if (mhMapFile)
@@ -288,16 +288,16 @@ void CWindowsSharedMemoryFile::Close(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SSharedMemory* CWindowsSharedMemoryFile::Map(size_t uiSize)
+SResizableSharedMemory* CWindowsSharedMemoryFile::Map(size_t uiSize)
 {
-    SSharedMemory*  psDescriptor;
+    SResizableSharedMemory*  psDescriptor;
     size_t          iAdjustedSize;
 
     if (mhMapFile != NULL)
     {
-        iAdjustedSize = uiSize + sizeof(SSharedMemory);
+        iAdjustedSize = uiSize + sizeof(SResizableSharedMemory);
 
-        psDescriptor = (SSharedMemory*)MapViewOfFile(
+        psDescriptor = (SResizableSharedMemory*)MapViewOfFile(
             mhMapFile,
             FILE_MAP_ALL_ACCESS,
             0,

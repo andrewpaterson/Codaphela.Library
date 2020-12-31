@@ -39,20 +39,20 @@ protected:
 	char	mszName[64];
 
 public:
-	void				Init(void);
-	void				Init(char* szName);
-	void				Reinit(void);
-	void				Reinit(char* szName);
-	BOOL				Kill(void);
+	void					Init(void);
+	void					Init(char* szName);
+	void					Reinit(void);
+	void					Reinit(char* szName);
+	BOOL					Kill(void);
 
-	BOOL				IsNamed(void);
-	char*				GetName(void);
+	BOOL					IsNamed(void);
+	char*					GetName(void);
 
-	SSharedMemoryResult	Create(size_t uiSize);
-	SSharedMemoryResult	Open(void);
-	void				Close(void);
+	SSharedMemoryResult		Create(size_t uiSize);
+	SSharedMemoryResult		Open(void);
+	void					Close(void);
 
-	SSharedMemory*		Map(size_t uiSize);
+	SResizableSharedMemory*	Map(size_t uiSize);
 };
 
 

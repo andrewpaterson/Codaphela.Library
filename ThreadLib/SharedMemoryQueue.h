@@ -1,14 +1,14 @@
 #ifndef __SHARED_MEMORY_QUEUE_H__
 #define __SHARED_MEMORY_QUEUE_H__
 #include "BaseLib/MemoryQueue.h"
-#include "SharedMemory.h"
+#include "ResizableSharedMemory.h"
 #include "InterProcessMutex.h"
 
 
 class CSharedMemoryQueue
 {
 private:
-	CSharedMemory		mcMemory;
+	CResizableSharedMemory		mcMemory;
 	CMemoryQueue		mcQueue;
 	CInterProcessMutex	mcMutex;
 	BOOL				mbMaster;

@@ -1,4 +1,4 @@
-#include "SharedMemory.h"
+#include "ResizableSharedMemory.h"
 #include "WindowsSharedMemoryCoordinator.h"
 
 
@@ -23,7 +23,7 @@ BOOL CWindowsSharedMemoryCoordinator::Init(char* szCoordinatorMemoryName)
 	SSharedMemoryResult sResult = mcMemory.Open();
 	if (sResult.IsSuccess())
 	{
-		mpsDescriptor = (SWindowsSharedMemoryFile*)mcMemory.Map(sResult.GetSize());
+		mpsDescriptor = (SResizableWindowsSharedMemoryFile*)mcMemory.Map(sResult.GetSize());
 		mpsDescriptor->miClients++;
 		return TRUE;
 	}
@@ -31,7 +31,7 @@ BOOL CWindowsSharedMemoryCoordinator::Init(char* szCoordinatorMemoryName)
 	sResult = mcMemory.Create(8192);
 	if (sResult.IsSuccess())
 	{
-		mpsDescriptor = (SWindowsSharedMemoryFile*)mcMemory.Map(sResult.GetSize());
+		mpsDescriptor = (SResizableWindowsSharedMemoryFile*)mcMemory.Map(sResult.GetSize());
 		mpsDescriptor->miClients = 1;
 		StrCpySafe(mpsDescriptor->szName, szCoordinatorMemoryName, 64);
 		mpsDescriptor->iNumSharedMemoryFiles = 0;
