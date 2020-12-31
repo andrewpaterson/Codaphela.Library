@@ -114,13 +114,13 @@
     <ClCompile Include="WindowsSharedMemoryFile.cpp">
       <Filter>Source\SharedMemory\Windows</Filter>
     </ClCompile>
-    <ClCompile Include="WindowsSharedMemory.cpp">
-      <Filter>Source\SharedMemory\Windows</Filter>
-    </ClCompile>
     <ClCompile Include="WindowsError.cpp">
       <Filter>Source\SharedMemory\Windows</Filter>
     </ClCompile>
     <ClCompile Include="WindowsSharedMemoryCoordinator.cpp">
+      <Filter>Source\SharedMemory\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="WindowsResizableSharedMemory.cpp">
       <Filter>Source\SharedMemory\Windows</Filter>
     </ClCompile>
   </ItemGroup>
@@ -170,16 +170,16 @@
     <ClInclude Include="WindowsSharedMemoryFile.h">
       <Filter>Source\SharedMemory\Windows</Filter>
     </ClInclude>
-    <ClInclude Include="WindowsSharedMemory.h">
-      <Filter>Source\SharedMemory\Windows</Filter>
-    </ClInclude>
-    <ClInclude Include="SharedMemory.h">
-      <Filter>Source\SharedMemory</Filter>
-    </ClInclude>
     <ClInclude Include="WindowsError.h">
       <Filter>Source\SharedMemory\Windows</Filter>
     </ClInclude>
     <ClInclude Include="WindowsSharedMemoryCoordinator.h">
+      <Filter>Source\SharedMemory\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="ResizableSharedMemory.h">
+      <Filter>Source\SharedMemory</Filter>
+    </ClInclude>
+    <ClInclude Include="WindowsResizableSharedMemory.h">
       <Filter>Source\SharedMemory\Windows</Filter>
     </ClInclude>
   </ItemGroup>

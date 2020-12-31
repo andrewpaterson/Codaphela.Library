@@ -1,5 +1,5 @@
-#ifndef __SHARED_MEMORY_H__
-#define __SHARED_MEMORY_H__
+#ifndef __RESIZABLE_SHARED_MEMORY_H__
+#define __RESIZABLE_SHARED_MEMORY_H__
 #include "BaseLib/PrimitiveTypes.h"
 
 
@@ -8,7 +8,7 @@
 #define SHARED_MEMORY_INVALID	-1
 
 
-struct SSharedMemory
+struct SResizableSharedMemory
 {
 	uint64	uiMagic;
 	uint64	uiSize;
@@ -19,11 +19,11 @@ struct SSharedMemory
 
 
 #ifdef _MSC_VER
-#include "WindowsSharedMemory.h"
+#include "WindowsResizableSharedMemory.h"
 #endif // _MSC_VER
 
 
-#endif // __SHARED_MEMORY_H__
+#endif // __RESIZABLE_SHARED_MEMORY_H__
 
 
 

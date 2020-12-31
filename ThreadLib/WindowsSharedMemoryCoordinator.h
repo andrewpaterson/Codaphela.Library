@@ -7,14 +7,14 @@
 struct SWindowsSharedMemoryFileName
 {
 public:
-	char				mszName[64];
-	int					miIndex;
+	char	mszName[64];
+	int		miIndex;
 
 	void	Init(int iIndex, char* szName);
 };
 
 
-struct SWindowsSharedMemoryFile : SSharedMemory
+struct SResizableWindowsSharedMemoryFile : SResizableSharedMemory
 {
 	int								iNumSharedMemoryFiles;
 	int								iValidSharedMemoryIndex;
@@ -26,8 +26,8 @@ struct SWindowsSharedMemoryFile : SSharedMemory
 class CWindowsSharedMemoryCoordinator
 {
 protected:
-	CWindowsSharedMemoryFile	mcMemory;
-	SWindowsSharedMemoryFile*	mpsDescriptor;
+	CWindowsSharedMemoryFile			mcMemory;
+	SResizableWindowsSharedMemoryFile*	mpsDescriptor;
 	
 public:
 	BOOL							Init(char* szCoordinatorMemoryName);

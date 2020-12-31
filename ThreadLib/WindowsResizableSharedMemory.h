@@ -4,19 +4,22 @@
 #include "WindowsSharedMemoryFile.h"
 
 
-struct SSharedMemory;
-class CSharedMemory
+struct SResizableSharedMemory;
+class CResizableSharedMemory
 {
 private:
 	CWindowsSharedMemoryCoordinator	mcCoordinator;
 	SWindowsSharedMemoryFileName*	mpcCoordinatorMappedFile;
 
 	CWindowsSharedMemoryFile		mcMappedFile;
-	SSharedMemory*					mpsDescriptor;
+	SResizableSharedMemory*					mpsDescriptor;
 	void*							mpvMemory;
 
 	CChars							mszSharedName;
 	CChars							mszDebugIdentifier;
+
+	CWindowsSharedMemoryFile		mcHoldingMappedFile;
+	SResizableSharedMemory*			mpsHoldingDescriptor;
 
 public:
 	void	Init(char* szMemoryName, char* szDebugIdentifier = NULL);
@@ -39,6 +42,9 @@ protected:
 
 	BOOL	Map(size_t uiSize);
 	BOOL	Remap(size_t uiSize);
+
+	void	HoldValid(void);
+	void	TouchHolding(void);
 };
 
 

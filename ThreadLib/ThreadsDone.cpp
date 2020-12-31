@@ -24,4 +24,3 @@ void CThreadsDone::ThreadStateChanged(CThread* pcThread, EThreadState eState)
 	}
 }
 
-
