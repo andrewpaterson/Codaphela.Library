@@ -10,7 +10,9 @@ public:
 	std::atomic<int> miThreadsStopped;
 
 	void Init(void);
+	void Wait(int iCount);
 
+protected:
 	void ThreadStateChanged(CThread* pcThread, EThreadState eState);
 };
 

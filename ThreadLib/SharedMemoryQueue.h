@@ -8,10 +8,10 @@
 class CSharedMemoryQueue
 {
 private:
-	CResizableSharedMemory		mcMemory;
-	CMemoryQueue		mcQueue;
-	CInterProcessMutex	mcMutex;
-	BOOL				mbMaster;
+	CResizableSharedMemory	mcMemory;
+	CMemoryQueue			mcQueue;
+	CInterProcessMutex		mcMutex;
+	BOOL					mbMaster;
 
 public:
 	BOOL Init(BOOL bMaster, char* szName, size_t uiByteSize);

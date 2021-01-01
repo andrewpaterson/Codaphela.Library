@@ -1,12 +1,12 @@
 #include<thread>
-#include "InterProcessWait.h"
+#include "InterProcessHold.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CInterProcessWait::Init(char* szSharedMemoryName)
+void CInterProcessHold::Init(char* szSharedMemoryName)
 {
 	mcSharedMemory.Init(szSharedMemoryName);
 	mpsWait = NULL;
@@ -17,7 +17,21 @@ void CInterProcessWait::Init(char* szSharedMemoryName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CInterProcessWait::Kill(void)
+void CInterProcessHold::Init(char* szSharedMemoryName, char* szSharedMemoryNamePostfix)
+{
+	CChars	sz;
+
+	sz.Init(szSharedMemoryName)->Append(szSharedMemoryNamePostfix);
+	Init(sz.Text());
+	sz.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CInterProcessHold::Kill(void)
 {
 	mcSharedMemory.Close();
 	mcSharedMemory.Kill();
@@ -28,7 +42,7 @@ void CInterProcessWait::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CInterProcessWait::Start(void)
+void CInterProcessHold::Start(void)
 {
 	mpsWait = (SInterProcessWait*)mcSharedMemory.Create(sizeof(SInterProcessWait));
 	mpsWait->iWait = TRUE;
@@ -39,9 +53,18 @@ void CInterProcessWait::Start(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CInterProcessWait::Wait(void)
+void CInterProcessHold::Touch(void)
 {
 	mpsWait = (SInterProcessWait*)mcSharedMemory.Open();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CInterProcessHold::Wait(void)
+{
 	while (mpsWait->iWait)
 	{
 		std::this_thread::yield();
@@ -53,7 +76,7 @@ void CInterProcessWait::Wait(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CInterProcessWait::Stop(void)
+void CInterProcessHold::Stop(void)
 {
 	mpsWait->iWait = FALSE;
 }

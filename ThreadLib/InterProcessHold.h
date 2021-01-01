@@ -1,5 +1,5 @@
-#ifndef __INTER_PROCESS_WAIT_H__
-#define __INTER_PROCESS_WAIT_H__
+#ifndef __INTER_PROCESS_HOLD_H__
+#define __INTER_PROCESS_HOLD_H__
 #include <atomic>
 #include "SharedMemory.h"
 
@@ -10,7 +10,7 @@ struct SInterProcessWait
 };
 
 
-class CInterProcessWait
+class CInterProcessHold
 {
 protected:
 	SInterProcessWait*	mpsWait;
@@ -18,14 +18,15 @@ protected:
 
 public:
 	void Init(char* szSharedMemoryName);
+	void Init(char* szSharedMemoryName, char* szSharedMemoryNamePostfix);
 	void Kill(void);
 
 	void Start(void);
+	void Touch(void);
 	void Wait(void);
 	void Stop(void);
 };
 
 
 #endif // __INTER_PROCESS_WAIT_H__
-
 
