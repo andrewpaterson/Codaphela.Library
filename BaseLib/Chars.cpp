@@ -89,11 +89,12 @@ void CChars::Zero(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::InitLength(int iLength)
+CChars* CChars::InitLength(int iLength)
 {
 	mcText.Init();
 	mcText.Resize(iLength+1);
 	mcText.SetValue(iLength, '\0');
+	return this;
 }
 
 
@@ -101,10 +102,11 @@ void CChars::InitLength(int iLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::Init(void)
+CChars* CChars::Init(void)
 {
 	mcText.Init();
 	Set("");
+	return this;
 }
 
 
@@ -112,7 +114,7 @@ void CChars::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::Init(const char* sz)
+CChars* CChars::Init(const char* sz)
 {
 	mcText.Init();
 	if (sz)
@@ -123,13 +125,14 @@ void CChars::Init(const char* sz)
 	{
 		Set("");
 	}
+	return this;
 }
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::Init(CChars sz, int iStartInclusive, int iEndExclusive)
+CChars* CChars::Init(CChars sz, int iStartInclusive, int iEndExclusive)
 {
 	mcText.Init();
 	if (iEndExclusive - iStartInclusive > 0)
@@ -140,6 +143,7 @@ void CChars::Init(CChars sz, int iStartInclusive, int iEndExclusive)
 	{
 		Set("");
 	}
+	return this;
 }
 
 
@@ -147,7 +151,7 @@ void CChars::Init(CChars sz, int iStartInclusive, int iEndExclusive)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::Init(const char* sz, int iStartInclusive, int iEndExclusive)
+CChars* CChars::Init(const char* sz, int iStartInclusive, int iEndExclusive)
 {
 	mcText.Init();
 	if (iEndExclusive - iStartInclusive > 0)
@@ -158,6 +162,7 @@ void CChars::Init(const char* sz, int iStartInclusive, int iEndExclusive)
 	{
 		Set("");
 	}
+	return this;
 }
 
 
@@ -166,10 +171,11 @@ void CChars::Init(const char* sz, int iStartInclusive, int iEndExclusive)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::Init(const char* sz, int iStartInclusive)
+CChars* CChars::Init(const char* sz, int iStartInclusive)
 {
 	mcText.Init();
 	Set(&sz[iStartInclusive]);
+	return this;
 }
 
 
@@ -177,10 +183,11 @@ void CChars::Init(const char* sz, int iStartInclusive)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::Init(CChars sz)
+CChars* CChars::Init(CChars sz)
 {
 	mcText.Init();
 	mcText.Copy(&(sz.mcText));
+	return this;
 }
 
 
@@ -188,10 +195,11 @@ void CChars::Init(CChars sz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::Init(CChars* psz)
+CChars* CChars::Init(CChars* psz)
 {
 	mcText.Init();
 	mcText.Copy(&(psz->mcText));
+	return this;
 }
 
 
@@ -199,11 +207,12 @@ void CChars::Init(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::Init(char cPadCharacter, int iNumber)
+CChars* CChars::Init(char cPadCharacter, int iNumber)
 {
 	mcText.Init();
 	Set("");
 	Append(cPadCharacter, iNumber);
+	return this;
 }
 
 
@@ -211,7 +220,7 @@ void CChars::Init(char cPadCharacter, int iNumber)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::InitList(const char* szFirst, ...)
+CChars* CChars::InitList(const char* szFirst, ...)
 {
 	mcText.Init();
 	Set("");
@@ -231,6 +240,7 @@ void CChars::InitList(const char* szFirst, ...)
 		pc = va_arg(vaMarker, char*);
 	}
 	va_end(vaMarker);
+	return this;
 }
 
 
@@ -238,7 +248,7 @@ void CChars::InitList(const char* szFirst, ...)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::InitList(CChars* szFirst, ...)
+CChars* CChars::InitList(CChars* szFirst, ...)
 {
 	mcText.Init();
 	Set("");
@@ -258,6 +268,7 @@ void CChars::InitList(CChars* szFirst, ...)
 		pc = va_arg(vaMarker, CChars*);
 	}
 	va_end(vaMarker);
+	return this;
 }
 
 

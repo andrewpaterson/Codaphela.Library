@@ -126,6 +126,9 @@
     <ClCompile Include="WindowsSharedMemory.cpp">
       <Filter>Source\SharedMemory\Windows</Filter>
     </ClCompile>
+    <ClCompile Include="InterProcessWait.cpp">
+      <Filter>Source\Process</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SafeArrayBlock.h">
@@ -193,6 +196,9 @@
     </ClInclude>
     <ClInclude Include="SharedMemoryDescriptor.h">
       <Filter>Source\SharedMemory</Filter>
+    </ClInclude>
+    <ClInclude Include="InterProcessWait.h">
+      <Filter>Source\Process</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

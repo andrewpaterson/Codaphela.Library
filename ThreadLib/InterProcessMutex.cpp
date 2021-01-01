@@ -45,13 +45,12 @@ BOOL CInterProcessMutex::Create(void)
     {
         if (GetLastError() == ERROR_ALREADY_EXISTS)
         {
-            gcLogger.Info2(__METHOD__, " CreateMutex opened an existing mutex.", NULL);
+            return TRUE;
         }
         else
         {
-            gcLogger.Info2(__METHOD__, " CreateMutex created a new mutex.", NULL);
+            return TRUE;
         }
-        return TRUE;
     }
 }
 
@@ -73,7 +72,6 @@ BOOL CInterProcessMutex::Connect(void)
     }
     else
     {
-        gcLogger.Info2(__METHOD__, " OpenMutex successfully opened the mutex.", NULL);
         return TRUE;
     }
 }

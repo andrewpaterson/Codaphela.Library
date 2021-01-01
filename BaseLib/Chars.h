@@ -46,17 +46,17 @@ protected:
 
 public:
 	void	Zero(void);
-	void	Init(void);
-	void	Init(const char* sz);
-	void	Init(CChars sz);
-	void	Init(CChars* psz);
-	void	Init(const char* sz, int iStartInclusive);
-	void	Init(CChars sz, int iStartInclusive, int iEndExclusive);
-	void	Init(const char* sz, int iStartInclusive, int iEndExclusive);
-	void	Init(char cPadCharacter, int iNumber);
-	void	InitList(const char* szFirst, ...);
-	void	InitList(CChars* szFirst, ...);
-	void	InitLength(int iLength);
+	CChars*	Init(void);
+	CChars* Init(const char* sz);
+	CChars* Init(CChars sz);
+	CChars* Init(CChars* psz);
+	CChars* Init(const char* sz, int iStartInclusive);
+	CChars*	Init(CChars sz, int iStartInclusive, int iEndExclusive);
+	CChars* Init(const char* sz, int iStartInclusive, int iEndExclusive);
+	CChars* Init(char cPadCharacter, int iNumber);
+	CChars* InitList(const char* szFirst, ...);
+	CChars* InitList(CChars* szFirst, ...);
+	CChars* InitLength(int iLength);
 	BOOL	InitData2(const char* szData, int iDataLength);
 	void	Kill(void);
 	void	Fake(char* sz);
