@@ -79,6 +79,9 @@
     <Filter Include="Source\SharedMemory\Windows">
       <UniqueIdentifier>{57034488-82aa-4239-b47a-d34562d6748b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Process\Flow">
+      <UniqueIdentifier>{bf7e0b79-2a70-413c-9403-ff7005e33632}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="SafeArrayBlock.cpp">
@@ -126,8 +129,11 @@
     <ClCompile Include="WindowsSharedMemory.cpp">
       <Filter>Source\SharedMemory\Windows</Filter>
     </ClCompile>
-    <ClCompile Include="InterProcessWait.cpp">
-      <Filter>Source\Process</Filter>
+    <ClCompile Include="InterProcessDone.cpp">
+      <Filter>Source\Process\Flow</Filter>
+    </ClCompile>
+    <ClCompile Include="InterProcessHold.cpp">
+      <Filter>Source\Process\Flow</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -197,8 +203,11 @@
     <ClInclude Include="SharedMemoryDescriptor.h">
       <Filter>Source\SharedMemory</Filter>
     </ClInclude>
-    <ClInclude Include="InterProcessWait.h">
-      <Filter>Source\Process</Filter>
+    <ClInclude Include="InterProcessDone.h">
+      <Filter>Source\Process\Flow</Filter>
+    </ClInclude>
+    <ClInclude Include="InterProcessHold.h">
+      <Filter>Source\Process\Flow</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

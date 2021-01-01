@@ -1,3 +1,4 @@
+#include <thread>
 #include "ThreadsDone.h"
 
 
@@ -21,6 +22,18 @@ void CThreadsDone::ThreadStateChanged(CThread* pcThread, EThreadState eState)
 	{
 		miThreadsStopped++;
 		pcThread = NULL;  //Appease the compiler.
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CThreadsDone::Wait(int iCount)
+{
+	while (miThreadsStopped < iCount)
+	{
+		std::this_thread::yield();
 	}
 }
 

@@ -5,7 +5,8 @@
 class CThread;
 class CThreadStateNotifer
 {
-public:
+friend class CThread;
+protected:
 	virtual void ThreadStateChanged(CThread* pcThread, EThreadState eState) =0;
 };
 

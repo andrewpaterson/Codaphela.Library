@@ -93,7 +93,8 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="InterProcessWait.h" />
+    <ClInclude Include="InterProcessDone.h" />
+    <ClInclude Include="InterProcessHold.h" />
     <ClInclude Include="MainProcessDirector.h" />
     <ClInclude Include="ProcessFork.h" />
     <ClInclude Include="SafeArrayBlock.h" />
@@ -118,7 +119,8 @@
     <ClInclude Include="VitsenityThreadPool.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="InterProcessWait.cpp" />
+    <ClCompile Include="InterProcessDone.cpp" />
+    <ClCompile Include="InterProcessHold.cpp" />
     <ClCompile Include="MainProcessDirector.cpp" />
     <ClCompile Include="ProcessFork.cpp" />
     <ClCompile Include="SafeArrayBlock.cpp" />
