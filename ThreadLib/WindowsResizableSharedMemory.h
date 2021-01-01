@@ -1,5 +1,5 @@
-#ifndef __WINDOWS_SHARED_MEMORY_H__
-#define __WINDOWS_SHARED_MEMORY_H__
+#ifndef __WINDOWS_RESIZABLE_SHARED_MEMORY_H__
+#define __WINDOWS_RESIZABLE_SHARED_MEMORY_H__
 #include "WindowsSharedMemoryCoordinator.h"
 #include "WindowsSharedMemoryFile.h"
 
@@ -48,5 +48,5 @@ protected:
 };
 
 
-#endif // __WINDOWS_SHARED_MEMORY_H__
+#endif // __WINDOWS_RESIZABLE_SHARED_MEMORY_H__
 

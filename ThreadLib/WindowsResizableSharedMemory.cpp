@@ -189,39 +189,9 @@ void* CResizableSharedMemory::Touch(void)
     {
         if (mpsDescriptor->iInvalid)
         {
-            CChars sz;
-            sz.Init("Invalid ");
-            sz.Append(mszDebugIdentifier);
-            sz.Append(": ");
-            sz.Append(mpsDescriptor->uiSize);
-            sz.Append(" [");
-            sz.Append(mpsDescriptor->iMapCount);
-            sz.Append("]");
-            sz.Dump();
-            sz.Kill();
-
             Close();
             bResult = Connect();
             
-            if (bResult)
-            {
-                sz.Init(" -> Connect: ");
-                sz.Append(mpsDescriptor->uiSize);
-                sz.Append(" [");
-                sz.Append(mpsDescriptor->iMapCount);
-                sz.Append("]");
-                sz.AppendNewLine();
-                sz.Dump();
-                sz.Kill();
-            }
-            else
-            {
-                sz.Init(" -> Connect Failed");
-                sz.AppendNewLine();
-                sz.Dump();
-                sz.Kill();
-            }
-
             if (bResult)
             {
                 return mpvMemory;
@@ -393,7 +363,6 @@ void* CResizableSharedMemory::Resize(size_t uiSize)
     uint64                      uiOldSize;
     int                         iStillMapped;
     void*                       pvMemory;
-    CChars                      sz;
 
     bResult = Remap(uiSize);
     if (!bResult)
@@ -404,16 +373,6 @@ void* CResizableSharedMemory::Resize(size_t uiSize)
         pvMemory = malloc((size_t)uiOldSize);
         memcpy(pvMemory, mpvMemory, (size_t)uiOldSize);
 
-        sz.Init("Resized ");
-        sz.Append(mszDebugIdentifier);
-        sz.Append(": ");
-        sz.Append(uiSize);
-        sz.Append(" [");
-        sz.Append(mpsDescriptor->iMapCount);
-        sz.Append("]");
-        sz.Dump();
-        sz.Kill();
-
         iStillMapped = Close();
         bResult = Create(uiSize);
         if (bResult)
@@ -421,26 +380,11 @@ void* CResizableSharedMemory::Resize(size_t uiSize)
             memcpy(mpvMemory, pvMemory, (size_t)uiOldSize);
             free(pvMemory);
             
-            sz.Init(" -> Close: ");
-            sz.Append(0);
-            sz.Append(" [");
-            sz.Append(iStillMapped);
-            sz.Append("]");
-            sz.AppendNewLine();
-            sz.Dump();
-            sz.Kill();
-
-
             return mpvMemory;
         }
         else
         {
             free(pvMemory);
-
-            sz.Init(" -> Resized Failed");
-            sz.AppendNewLine();
-            sz.Dump();
-            sz.Kill();
 
             gcLogger.Error2(__METHOD__, " Could not resize file.", NULL);
             return NULL;

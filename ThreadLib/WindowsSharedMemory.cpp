@@ -22,9 +22,12 @@ void CSharedMemory::Init(char* szName)
 //////////////////////////////////////////////////////////////////////////
 BOOL CSharedMemory::Kill(void)
 {
-	mcMappedFile.Kill();
+	BOOL	bResult;
+
+	bResult = mcMappedFile.Kill();
 	mpsDescriptor = NULL;
 	mpvMemory = NULL;
+	return bResult;
 }
 
 
@@ -50,10 +53,12 @@ void* CSharedMemory::Create(size_t uiSize)
 	{
 		mpsDescriptor = mcMappedFile.Map(sResult.uiSize);
 		mpvMemory = RemapSinglePointer(mpsDescriptor, sizeof(SSharedMemoryDescriptor));
+		return mpvMemory;
 	}
 	else
 	{
-		return gcLogger.Error2(__METHOD__, " Could not map file [", mcMappedFile.GetName, "].  Failed with [", WindowsErrorCodeToString(GetLastError()), "].", NULL);
+		gcLogger.Error2(__METHOD__, " Could not create map file [", mcMappedFile.GetName(), "].  Failed with [", WindowsErrorCodeToString(GetLastError()), "].", NULL);
+		return NULL;
 	}
 }
 
@@ -64,7 +69,19 @@ void* CSharedMemory::Create(size_t uiSize)
 //////////////////////////////////////////////////////////////////////////
 void* CSharedMemory::Open(void)
 {
+	SSharedMemoryResult sResult = mcMappedFile.Open();
 
+	if (sResult.IsSuccess())
+	{
+		mpsDescriptor = mcMappedFile.Map(sResult.uiSize);
+		mpvMemory = RemapSinglePointer(mpsDescriptor, sizeof(SSharedMemoryDescriptor));
+		return mpvMemory;
+	}
+	else
+	{
+		gcLogger.Error2(__METHOD__, " Could not open map file [", mcMappedFile.GetName(), "].  Failed with [", WindowsErrorCodeToString(GetLastError()), "].", NULL);
+		return NULL;
+	}
 }
 
 
@@ -74,5 +91,12 @@ void* CSharedMemory::Open(void)
 //////////////////////////////////////////////////////////////////////////
 void CSharedMemory::Close(void)
 {
-
+	if (mpsDescriptor)
+	{
+		UnmapViewOfFile(mpsDescriptor);
+		mpsDescriptor = NULL;
+	}
+	mpvMemory = NULL;
+	mcMappedFile.Close();
 }
+
