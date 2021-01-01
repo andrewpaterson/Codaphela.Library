@@ -135,6 +135,9 @@
     <ClCompile Include="InterProcessHold.cpp">
       <Filter>Source\Process\Flow</Filter>
     </ClCompile>
+    <ClCompile Include="InterProcessFlow.cpp">
+      <Filter>Source\Process\Flow</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SafeArrayBlock.h">
@@ -207,6 +210,9 @@
       <Filter>Source\Process\Flow</Filter>
     </ClInclude>
     <ClInclude Include="InterProcessHold.h">
+      <Filter>Source\Process\Flow</Filter>
+    </ClInclude>
+    <ClInclude Include="InterProcessFlow.h">
       <Filter>Source\Process\Flow</Filter>
     </ClInclude>
   </ItemGroup>

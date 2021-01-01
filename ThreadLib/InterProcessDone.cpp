@@ -8,7 +8,7 @@
 //////////////////////////////////////////////////////////////////////////
 void CInterProcessDone::Init(char* szSharedMemoryName)
 {
-	mcSharedMemory.Init(szSharedMemoryName);
+	CInterProcessFlow::Init(szSharedMemoryName);
 	mpsDone = NULL;
 }
 
@@ -19,11 +19,8 @@ void CInterProcessDone::Init(char* szSharedMemoryName)
 //////////////////////////////////////////////////////////////////////////
 void CInterProcessDone::Init(char* szSharedMemoryName, char* szSharedMemoryNamePostfix)
 {
-	CChars	sz;
-
-	sz.Init(szSharedMemoryName)->Append(szSharedMemoryNamePostfix);
-	Init(sz.Text());
-	sz.Kill();
+	CInterProcessFlow::Init(szSharedMemoryName, szSharedMemoryNamePostfix);
+	mpsDone = NULL;
 }
 
 
@@ -33,8 +30,7 @@ void CInterProcessDone::Init(char* szSharedMemoryName, char* szSharedMemoryNameP
 //////////////////////////////////////////////////////////////////////////
 void CInterProcessDone::Kill(void)
 {
-	mcSharedMemory.Close();
-	mcSharedMemory.Kill();
+	CInterProcessFlow::Kill();
 }
 
 
