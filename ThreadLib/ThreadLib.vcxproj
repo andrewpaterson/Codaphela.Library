@@ -94,6 +94,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="InterProcessDone.h" />
+    <ClInclude Include="InterProcessFlow.h" />
     <ClInclude Include="InterProcessHold.h" />
     <ClInclude Include="MainProcessDirector.h" />
     <ClInclude Include="ProcessFork.h" />
@@ -120,6 +121,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="InterProcessDone.cpp" />
+    <ClCompile Include="InterProcessFlow.cpp" />
     <ClCompile Include="InterProcessHold.cpp" />
     <ClCompile Include="MainProcessDirector.cpp" />
     <ClCompile Include="ProcessFork.cpp" />

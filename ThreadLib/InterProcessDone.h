@@ -1,7 +1,7 @@
 #ifndef __INTER_PROCESS_DONE_H__
 #define __INTER_PROCESS_DONE_H__
 #include <atomic>
-#include "SharedMemory.h"
+#include "InterProcessFlow.h"
 
 
 struct SInterProcessDone
@@ -10,11 +10,10 @@ struct SInterProcessDone
 };
 
 
-class CInterProcessDone
+class CInterProcessDone : public CInterProcessFlow
 {
 protected:
 	SInterProcessDone*	mpsDone;
-	CSharedMemory		mcSharedMemory;
 
 public:
 	void Init(char* szSharedMemoryName);

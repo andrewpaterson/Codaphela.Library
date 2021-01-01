@@ -1,7 +1,7 @@
 #ifndef __INTER_PROCESS_HOLD_H__
 #define __INTER_PROCESS_HOLD_H__
 #include <atomic>
-#include "SharedMemory.h"
+#include "InterProcessFlow.h"
 
 
 struct SInterProcessWait
@@ -10,11 +10,10 @@ struct SInterProcessWait
 };
 
 
-class CInterProcessHold
+class CInterProcessHold : public CInterProcessFlow
 {
 protected:
 	SInterProcessWait*	mpsWait;
-	CSharedMemory		mcSharedMemory;
 
 public:
 	void Init(char* szSharedMemoryName);
