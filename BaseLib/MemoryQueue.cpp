@@ -1,3 +1,4 @@
+#include "PointerFunctions.h"
 #include "MemoryQueue.h"
 
 
@@ -103,12 +104,12 @@ void* CMemoryQueue::Peek(size_t* puiDataSize)
 	if (!IsEmpty())
 	{
 		pv = GetData(mpsHead);
-		*puiDataSize = mpsHead->uiSize;
+		SafeAssign(puiDataSize,  mpsHead->uiSize);
 		return pv;
 	}
 	else
 	{
-		*puiDataSize = 0;
+		SafeAssign(puiDataSize, 0);
 		return NULL;
 	}
 }
@@ -132,5 +133,24 @@ BOOL CMemoryQueue::Drop(void* pvHead)
 	{
 		return FALSE;
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+BOOL CMemoryQueue::Pop(void)
+{
+	size_t	uiDataSize;
+	void*	pvData;
+
+	pvData = Peek(&uiDataSize);
+	if (!pvData)
+	{
+		return FALSE;
+	}
+
+	return Drop(pvData);
 }
 

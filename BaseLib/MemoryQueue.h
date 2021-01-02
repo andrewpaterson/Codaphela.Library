@@ -14,6 +14,7 @@ public:
 	void*	Push(size_t uiDataSize);
 	void*	Peek(size_t* puiDataSize);
 	BOOL	Drop(void* pvHead);
+	BOOL	Pop(void);
 
 protected:
 	BOOL	FindOverlapping(void* pvNew, size_t uiNewSize);

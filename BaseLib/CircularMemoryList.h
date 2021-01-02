@@ -51,7 +51,12 @@ protected:
 	SMemoryCacheDescriptor*		OneAllocation(void);
 	SMemoryCacheDescriptor*		InsertNext(SMemoryCacheDescriptor* psDescriptor);
 	BOOL						Overlaps(void* pvNew, size_t uiNewSize, SMemoryCacheDescriptor* psExisting);
+
 	size_t						RemainingAfterTail(void);
+	size_t						RemainingAfter(SMemoryCacheDescriptor* psDescriptor);
+
+	void						RemapDifferentMemory(void* pvNewCache, size_t uiCacheSize);
+	void						RemapSameMemory(void* pvNewCache, size_t uiCacheSize);
 };
 
 

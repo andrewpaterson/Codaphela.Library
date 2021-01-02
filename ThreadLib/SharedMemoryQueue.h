@@ -8,14 +8,27 @@
 class CSharedMemoryQueue
 {
 private:
-	CResizableSharedMemory	mcMemory;
+	CResizableSharedMemory	mcSharedMemory;
 	CMemoryQueue			mcQueue;
 	CInterProcessMutex		mcMutex;
 	BOOL					mbMaster;
 
 public:
-	BOOL Init(BOOL bMaster, char* szName, size_t uiByteSize);
-	void Kill(void);
+	BOOL	Init(BOOL bMaster, char* szName, size_t uiByteSize);
+	void	Kill(void);
+
+	BOOL	Push(void* pvData, size_t uiDataSize);
+	BOOL	Pop(void* pvData, size_t* puiDataSize, size_t uiMaxDataSize);
+
+	BOOL	IsEmpty(void);
+	size_t	GetCacheSize(void);
+	size_t	GetAllocatedSize(void);
+
+	BOOL	ValidateQueue(void);
+
+protected:
+	BOOL	InitMaster(size_t uiByteSize);
+	BOOL	InitClient(void);
 };
 
 

@@ -19,22 +19,22 @@ private:
 	CChars							mszDebugIdentifier;
 
 	CWindowsSharedMemoryFile		mcHoldingMappedFile;
-	SSharedMemoryDescriptor*			mpsHoldingDescriptor;
+	SSharedMemoryDescriptor*		mpsHoldingDescriptor;
 
 public:
-	void	Init(char* szMemoryName, char* szDebugIdentifier = NULL);
-	void	Kill(void);
+	void				Init(char* szMemoryName, char* szDebugIdentifier = NULL);
+	void				Kill(void);
 
-	void*	Touch(void);
+	void*				Touch(void);
 
-	BOOL	Create(size_t uiSize);
-	BOOL	Connect(void);
-	int		Close(void);
+	BOOL				Create(size_t uiSize);
+	BOOL				Connect(void);
+	int					Close(void);
 
-	void*	IncreaseSize(void);
-	void*	Resize(size_t uiSize);
+	SSharedMemoryResize	IncreaseSize(size_t uiMore);
+	SSharedMemoryResize	Resize(size_t uiSize);
 
-	size_t	GetSize(void);
+	size_t				GetSize(void);
 
 protected:
 	void	InitCoordinator(char* szMemoryName);
