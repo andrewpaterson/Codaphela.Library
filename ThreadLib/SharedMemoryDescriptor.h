@@ -18,5 +18,18 @@ struct SSharedMemoryDescriptor
 };
 
 
+struct SSharedMemoryResize
+{
+	void*	pvMemory;
+	size_t	uiSize;
+
+	SSharedMemoryResize(void* pvMemory, size_t uiSize)
+	{
+		this->pvMemory = pvMemory;
+		this->uiSize = uiSize;
+	}
+};
+
+
 #endif // !__SHARED_MEMORY_DESCRIPTOR_H__
 

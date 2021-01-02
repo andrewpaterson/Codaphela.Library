@@ -357,7 +357,7 @@ size_t CResizableSharedMemory::GetSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CResizableSharedMemory::Resize(size_t uiSize)
+SSharedMemoryResize CResizableSharedMemory::Resize(size_t uiSize)
 {
     BOOL                        bResult;
     uint64                      uiOldSize;
@@ -379,20 +379,21 @@ void* CResizableSharedMemory::Resize(size_t uiSize)
         {
             memcpy(mpvMemory, pvMemory, (size_t)uiOldSize);
             free(pvMemory);
-            
-            return mpvMemory;
+         
+            return SSharedMemoryResize(mpvMemory, uiSize);
+
         }
         else
         {
             free(pvMemory);
 
             gcLogger.Error2(__METHOD__, " Could not resize file.", NULL);
-            return NULL;
+            return SSharedMemoryResize(NULL, 0);
         }
     }
     else
     {
-        return mpvMemory;
+        return SSharedMemoryResize(mpvMemory, uiSize);
     }
 }
 
@@ -401,19 +402,21 @@ void* CResizableSharedMemory::Resize(size_t uiSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CResizableSharedMemory::IncreaseSize(void)
+SSharedMemoryResize CResizableSharedMemory::IncreaseSize(size_t uiMore)
 {
     size_t  uiSize;
 
     if (mpsDescriptor)
     {
-        uiSize = (size_t)(mpsDescriptor->uiSize + mpsDescriptor->uiSize / 2);
+        uiSize = (size_t)mpsDescriptor->uiSize + uiMore;
+        uiSize = (size_t)(uiSize + uiSize / 2);
     }
     else
     {
-        uiSize = 16000;
+        uiSize = 16000 + uiMore;
     }
 
     return Resize(uiSize);
 }
+
 
