@@ -16,7 +16,7 @@ enum EClearCache
 
 
 class CIndexedFilesEvictionCallback;
-class CIndexedFilesEvicting
+class CIndexedFilesEvicting : public CMemoryCacheEvictionCallback
 {
 protected:
 	CIndexedCache					mcDataCache;
@@ -44,9 +44,6 @@ public:
 	int64			NumDatas(void);
 	int64			NumDatas(int iDataSize);
 
-	unsigned int	GetCachedDataSize(CIndexedDataDescriptor* pcDescriptor);
-	void*			GetCachedData(SIndexedCacheDescriptor* psDescriptor);
-
 	BOOL			Evict(OIndex oi, CIndexedDataDescriptor* pcDescriptor);
 	void			InvalidateData(CIndexedDataDescriptor* pcDescriptor);
 
@@ -57,16 +54,17 @@ public:
 protected:
 	void*				SetCacheData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, void* pvData, unsigned int uiDataSize);
 	CIndexedCacheResult	CacheAllocate(OIndex oi, unsigned int uiDataSize);
-	BOOL				EvictPreAllocatedDescriptors(CArrayVoidPtr* papsEvictedIndexedCacheDescriptors);
 
 	CFilePosIndex		WriteThroughData(CIndexedDataDescriptor* pcDescriptor, void* pvData, unsigned int uiDataSize);
-	BOOL				WriteEvictedData1b(SIndexedCacheDescriptor* psCached, EClearCache eClearCache, BOOL bNoEviction);
+	BOOL				WriteEvictedData1b(SIndexedCacheDescriptor* psCached, void* pvData, EClearCache eClearCache, BOOL bNoEviction);
 	BOOL				EvictWriteData(CIndexedDataDescriptor* pcDescriptor, EClearCache eClearCache);
 	BOOL				WriteEvictedData2(CIndexedDataDescriptor* pcDescriptor, OIndex oi, void* pvData, EClearCache eClearCache, BOOL bNoEviction);
 
 	BOOL				CompareDiskToMemory(CIndexedDataDescriptor* pcDescriptor, void* pvData);
 	BOOL				ClearDescriptorCache(SIndexedCacheDescriptor* psCached);
 	unsigned int		MinDataSize(unsigned int uiDataSize, unsigned int uiMaxDataSize);
+
+	BOOL				CacheDataEvicted(void* pvData, SMemoryCacheDescriptor* psDescriptor);
 };
 
 

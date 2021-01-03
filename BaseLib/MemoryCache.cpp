@@ -173,7 +173,6 @@ void* CMemoryCache::Allocate(size_t uiDataSize)
 	SMemoryCacheDescriptor* psDescriptor;
 	void*					pvEvictedData;
 
-	//Evicted data is just trashed.
 	cPreAllocation.Init(uiDataSize);
 
 	bResult = PreAllocate(&cPreAllocation);
@@ -190,7 +189,7 @@ void* CMemoryCache::Allocate(size_t uiDataSize)
 		{
 			psDescriptor = cPreAllocation.Get(i);
 			pvEvictedData = GetData(psDescriptor);
-			mpcEvictionCallback->CacheDataEvicted(pvEvictedData, psDescriptor->uiSize);
+			mpcEvictionCallback->CacheDataEvicted(pvEvictedData, psDescriptor);
 		}
 	}
 

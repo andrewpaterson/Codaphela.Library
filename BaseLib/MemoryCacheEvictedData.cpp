@@ -25,9 +25,9 @@ void CMemoryCacheEvictedData::Kill(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CMemoryCacheEvictedData::CacheDataEvicted(void* pvData, size_t iDataSize)
+BOOL CMemoryCacheEvictedData::CacheDataEvicted(void* pvData, SMemoryCacheDescriptor* psDescriptor)
 {
-	pvData = mcEvictedData.Add(pvData, iDataSize);
+	pvData = mcEvictedData.Add(pvData, psDescriptor->uiSize);
 	return pvData != NULL;
 }
 

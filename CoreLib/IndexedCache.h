@@ -43,21 +43,19 @@ protected:
 	CMemoryCache				mcCache;
 
 public:
-	void						Init(size_t iCacheSize);
+	void						Init(size_t iCacheSize, CMemoryCacheEvictionCallback* pcEvictionCallback);
 	void						Zero(void);
 	void						Kill(void);
 
-	BOOL						PreAllocate(CMemoryCacheAllocation* pcResult);
-	CIndexedCacheResult			Allocate(OIndex oi, unsigned uiDataSize, CMemoryCacheAllocation* pcResult);
+	CIndexedCacheResult			Allocate(OIndex oi, unsigned uiDataSize);
 	void						Clear(void);
 	void						Invalidate(void* pcCache);
-	void						Deallocate(SIndexedCacheDescriptor* psDescriptor);
 	void						SetDirty(void* pvCache);
 	void*						GetCache(SIndexedCacheDescriptor* psDescriptor);
 
-	SIndexedCacheDescriptor*	GetDescriptor(void* pvData);
-	SIndexedCacheDescriptor*	StartIteration(void);
-	SIndexedCacheDescriptor*	Iterate(SIndexedCacheDescriptor* psCurrent);
+	SIndexedCacheDescriptor*	GetDescriptor(void* pvData);  // <-- Hmmmm....
+	void*						StartIteration(void);
+	void*						Iterate(void* psCurrent);
 	int							NumCached(void);
 	int							NumCached(int iSize);
 
@@ -66,7 +64,7 @@ public:
 	size_t						GetAllocatedSize(void);
 	BOOL						CanCache(unsigned int uiDataSize);
 
-	SIndexedCacheDescriptor*	TestGetDescriptor(OIndex oi);
+	void*						TestGetDescriptor(OIndex oi);
 	void						Dump(void);
 };
 

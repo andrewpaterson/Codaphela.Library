@@ -20,7 +20,7 @@ void CIndexedFilesEvicting::Init(CDurableFileController* pcDurableFileControl, c
 
 	if (iCacheSize != 0)
 	{
-		mcDataCache.Init(iCacheSize);
+		mcDataCache.Init(iCacheSize, this);
 		mbCaching = TRUE;
 	}
 	else
@@ -136,11 +136,11 @@ unsigned int CIndexedFilesEvicting::MinDataSize(unsigned int uiDataSize, unsigne
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexedFilesEvicting::Flush(BOOL bClearCache)
 {
-	SIndexedCacheDescriptor*	psCached;
 	BOOL						bAnyFailed;
 	BOOL						bResult;
 	EClearCache					eClearCache;
 	void*						pvData;
+	SIndexedCacheDescriptor*	psDescriptor;
 
 	if (mbCaching)
 	{
@@ -154,21 +154,21 @@ BOOL CIndexedFilesEvicting::Flush(BOOL bClearCache)
 		}
 
 		bAnyFailed = FALSE;
-		psCached = mcDataCache.StartIteration();
-		while (psCached)
+		pvData = mcDataCache.StartIteration();
+		while (pvData)
 		{
-			bResult = WriteEvictedData1b(psCached, eClearCache, TRUE);
+			psDescriptor = mcDataCache.GetDescriptor(pvData);
+			bResult = WriteEvictedData1b(psDescriptor, pvData, eClearCache, TRUE);
 			if (bResult)
 			{
-				pvData = RemapSinglePointer(psCached, sizeof(SIndexedCacheDescriptor));
-				mpcEvictionCallback->DescriptorEvicted(psCached->oi, pvData, psCached->uiSize);
+				mpcEvictionCallback->DescriptorEvicted(psDescriptor->oi, pvData, psDescriptor->uiSize);
 			}
 			else
 			{
 				bAnyFailed = TRUE;
 			}
 
-			psCached = mcDataCache.Iterate(psCached);
+			pvData = mcDataCache.Iterate(pvData);
 		}
 		if (bClearCache && !bAnyFailed)
 		{
@@ -190,20 +190,22 @@ BOOL CIndexedFilesEvicting::Flush(BOOL bClearCache)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexedFilesEvicting::IsFlushed(void)
 {
-	SIndexedCacheDescriptor*	psCached;
+	void*						pvData;
+	SIndexedCacheDescriptor*	psDescriptor;
 	BOOL						bAnyFailed;
 
 	if (mbCaching)
 	{
 		bAnyFailed = FALSE;
-		psCached = mcDataCache.StartIteration();
-		while (psCached)
+		pvData = mcDataCache.StartIteration();
+		while (pvData)
 		{
-			if (psCached->iFlags & CACHE_DESCRIPTOR_FLAG_DIRTY)
+			psDescriptor = mcDataCache.GetDescriptor(pvData);
+			if (psDescriptor->iFlags & CACHE_DESCRIPTOR_FLAG_DIRTY)
 			{
 				return FALSE;
 			}
-			psCached = mcDataCache.Iterate(psCached);
+			pvData = mcDataCache.Iterate(pvData);
 		}
 	}
 	return TRUE;
@@ -492,29 +494,25 @@ CFilePosIndex CIndexedFilesEvicting::WriteThroughData(CIndexedDataDescriptor* pc
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexedCacheResult CIndexedFilesEvicting::CacheAllocate(OIndex oi, unsigned int uiDataSize)
+BOOL CIndexedFilesEvicting::CacheDataEvicted(void* pvData, SMemoryCacheDescriptor* psDescriptor)
 {
-	CIndexedCacheResult		cResult;
-	CMemoryCacheAllocation	cPreAllocated;
-	BOOL					bResult;
+	BOOL						bResult;
+	SIndexedCacheDescriptor*	psIndexedDescriptor;
 
-	cPreAllocated.Init(uiDataSize);
-	if (mcDataCache.PreAllocate(&cPreAllocated))  //PreAllocate ensures there will be enough space in the cache.
+	psIndexedDescriptor = (SIndexedCacheDescriptor*)psDescriptor;
+	bResult = WriteEvictedData1b(psIndexedDescriptor, pvData, CC_Yes, FALSE);
+	if (!bResult)
 	{
-		bResult = EvictPreAllocatedDescriptors(cPreAllocated.GetEvictedArray());
-		if (bResult)
-		{
-			cResult = mcDataCache.Allocate(oi, uiDataSize, &cPreAllocated);
-		}
-		cPreAllocated.Kill();
-		return cResult;
+		return FALSE;
 	}
-	else
+
+	bResult = mpcEvictionCallback->DescriptorEvicted(psIndexedDescriptor->oi, pvData, psIndexedDescriptor->uiSize);
+	if (!bResult)
 	{
-		cPreAllocated.Kill();
-		cResult.Fail();
-		return cResult;
+		return FALSE;
 	}
+
+	return TRUE;
 }
 
 
@@ -522,37 +520,12 @@ CIndexedCacheResult CIndexedFilesEvicting::CacheAllocate(OIndex oi, unsigned int
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedFilesEvicting::EvictPreAllocatedDescriptors(CArrayVoidPtr* papsEvictedIndexedCacheDescriptors)
+CIndexedCacheResult CIndexedFilesEvicting::CacheAllocate(OIndex oi, unsigned int uiDataSize)
 {
-	BOOL						bResult;
-	int							i;
-	SIndexedCacheDescriptor*	psCached;
-	void*						pvData;
+	CIndexedCacheResult		cResult;
 
-	for (i = 0; i < papsEvictedIndexedCacheDescriptors->NumElements(); i++)
-	{
-		psCached = (SIndexedCacheDescriptor*)papsEvictedIndexedCacheDescriptors->GetPtr(i);
-		bResult = WriteEvictedData1b(psCached, CC_Yes, FALSE);
-		if (!bResult)
-		{
-			return FALSE;
-		}
-	}
-
-	for (i = 0; i < papsEvictedIndexedCacheDescriptors->NumElements(); i++)
-	{
-		psCached = (SIndexedCacheDescriptor*)papsEvictedIndexedCacheDescriptors->GetPtr(i);
-		if (psCached != NULL)
-		{
-			pvData = mcDataCache.GetCache(psCached);
-			bResult = mpcEvictionCallback->DescriptorEvicted(psCached->oi, pvData, psCached->uiSize);
-			if (!bResult)
-			{
-				return FALSE;
-			}
-		}
-	}
-	return TRUE;
+	cResult = mcDataCache.Allocate(oi, uiDataSize);
+	return cResult;
 }
 
 
@@ -623,13 +596,11 @@ BOOL CIndexedFilesEvicting::EvictWriteData(CIndexedDataDescriptor* pcDescriptor,
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedFilesEvicting::WriteEvictedData1b(SIndexedCacheDescriptor* psCached, EClearCache eClearCache, BOOL bNoEviction)
+BOOL CIndexedFilesEvicting::WriteEvictedData1b(SIndexedCacheDescriptor* psCached, void* pvData, EClearCache eClearCache, BOOL bNoEviction)
 {
 	CIndexedDataDescriptor	cDescriptor;
 	BOOL					bResult;
-	void*					pvData;
 
-	pvData = RemapSinglePointer(psCached, sizeof(SIndexedCacheDescriptor));
 	if (psCached->iFlags & CACHE_DESCRIPTOR_FLAG_DIRTY)
 	{
 		bResult = mpcEvictionCallback->GetDescriptor(psCached->oi, &cDescriptor, bNoEviction);
@@ -736,49 +707,15 @@ BOOL CIndexedFilesEvicting::ClearDescriptorCache(SIndexedCacheDescriptor* psCach
 //
 //
 //////////////////////////////////////////////////////////////////////////
-unsigned int CIndexedFilesEvicting::GetCachedDataSize(CIndexedDataDescriptor* pcDescriptor)
-{
-	void*						pvData;
-	SIndexedCacheDescriptor*	psDescriptor;
-
-	pvData = pcDescriptor->GetCache();
-	if (pvData)
-	{
-		psDescriptor = mcDataCache.GetDescriptor(pvData);
-		return psDescriptor->uiSize;
-	}
-	else
-	{
-		return 0;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void* CIndexedFilesEvicting::GetCachedData(SIndexedCacheDescriptor* psDescriptor)
-{
-	if (psDescriptor != NULL)
-	{
-		return RemapSinglePointer(psDescriptor, mcDataCache.GetIndexCacheDescritorSize());
-	}
-	return NULL;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 unsigned int CIndexedFilesEvicting::TestGetCachedObjectSize(OIndex oi)
 {
 	SIndexedCacheDescriptor*	psDescriptor;
+	void*						pvData;
 
-	psDescriptor = mcDataCache.TestGetDescriptor(oi);
-	if (psDescriptor)
+	pvData = mcDataCache.TestGetDescriptor(oi);
+	if (pvData)
 	{
+		psDescriptor = mcDataCache.GetDescriptor(pvData);
 		return sizeof(SIndexedCacheDescriptor) + psDescriptor->uiSize;
 	}
 	return 0;
