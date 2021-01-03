@@ -855,6 +855,12 @@
     <ClInclude Include="MemoryQueue.h">
       <Filter>Source\Memory\Cache</Filter>
     </ClInclude>
+    <ClInclude Include="MemoryCacheEvictionCallback.h">
+      <Filter>Source\Memory\Cache</Filter>
+    </ClInclude>
+    <ClInclude Include="MemoryCacheEvictedData.h">
+      <Filter>Source\Memory\Cache</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -1353,6 +1359,9 @@
       <Filter>Source\Memory\Cache</Filter>
     </ClCompile>
     <ClCompile Include="MemoryQueue.cpp">
+      <Filter>Source\Memory\Cache</Filter>
+    </ClCompile>
+    <ClCompile Include="MemoryCacheEvictedData.cpp">
       <Filter>Source\Memory\Cache</Filter>
     </ClCompile>
   </ItemGroup>

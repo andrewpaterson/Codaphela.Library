@@ -183,7 +183,7 @@ BOOL CResizableSharedMemory::Connect(void)
 //////////////////////////////////////////////////////////////////////////
 void* CResizableSharedMemory::Touch(void)
 {
-    BOOL                        bResult;
+    BOOL    bResult;
 
     if (mpsDescriptor)
     {

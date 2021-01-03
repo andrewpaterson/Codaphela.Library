@@ -5,12 +5,46 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CSharedMemoryQueue::Init(BOOL bMaster, char* szName, size_t uiByteSize)
+BOOL CSharedMemoryQueue::Init(char* szName, size_t uiByteSize)
+{
+	BOOL	bResult;
+
+	mbMaster = TRUE;
+	InitMutexAndMemory(szName);
+
+	mcMutex.Lock();
+	bResult = InitMaster(uiByteSize);
+	mcMutex.Unlock();
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CSharedMemoryQueue::Init(char* szName)
+{
+	BOOL	bResult;
+
+	mbMaster = FALSE;
+	InitMutexAndMemory(szName);
+
+	mcMutex.Lock();
+	bResult = InitClient();
+	mcMutex.Unlock();
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CSharedMemoryQueue::InitMutexAndMemory(char* szName)
 {
 	CChars		szMemoryName;
 	CChars		szMutexName;
-
-	mbMaster = bMaster;
 
 	szMemoryName.Init("Local\\SharedMemory:")->Append(szName);
 	mcSharedMemory.Init(szMemoryName.Text());
@@ -19,15 +53,6 @@ BOOL CSharedMemoryQueue::Init(BOOL bMaster, char* szName, size_t uiByteSize)
 	szMutexName.Init("Local\\ProcessMutex:")->Append(szName);
 	mcMutex.Init(szMutexName.Text());
 	szMutexName.Kill();
-
-	if (mbMaster)
-	{
-		return InitMaster(uiByteSize);
-	}
-	else
-	{
-		return InitClient();
-	}
 }
 
 
@@ -113,6 +138,8 @@ BOOL CSharedMemoryQueue::Push(void* pvData, size_t uiDataSize)
 {
 	void*	pvMemory;
 
+	mcMutex.Lock();
+
 	pvMemory = mcQueue.Push(uiDataSize);
 	if (!pvMemory)
 	{
@@ -131,6 +158,8 @@ BOOL CSharedMemoryQueue::Push(void* pvData, size_t uiDataSize)
 	}
 
 	memcpy(pvMemory, pvData, uiDataSize);
+	mcMutex.Unlock();
+
 	return TRUE;
 }
 
@@ -142,6 +171,10 @@ BOOL CSharedMemoryQueue::Push(void* pvData, size_t uiDataSize)
 BOOL CSharedMemoryQueue::Pop(void* pvData, size_t* puiDataSize, size_t uiMaxDataSize)
 {
 	void*	pvMemory;
+
+	mcMutex.Lock();
+	
+	Touch();
 
 	pvMemory = mcQueue.Peek(puiDataSize);
 	if (!pvMemory)
@@ -159,6 +192,7 @@ BOOL CSharedMemoryQueue::Pop(void* pvData, size_t* puiDataSize, size_t uiMaxData
 	{
 		return FALSE;
 	}
+	mcMutex.Unlock();
 }
 
 
@@ -168,7 +202,13 @@ BOOL CSharedMemoryQueue::Pop(void* pvData, size_t* puiDataSize, size_t uiMaxData
 //////////////////////////////////////////////////////////////////////////
 BOOL CSharedMemoryQueue::IsEmpty(void)
 {
-	return mcQueue.IsEmpty();
+	BOOL	bEmpty;
+
+	mcMutex.Lock();
+	bEmpty = mcQueue.IsEmpty();
+	mcMutex.Unlock();
+
+	return bEmpty;
 }
 
 
@@ -178,7 +218,13 @@ BOOL CSharedMemoryQueue::IsEmpty(void)
 //////////////////////////////////////////////////////////////////////////
 size_t CSharedMemoryQueue::GetCacheSize(void)
 {
-	return mcQueue.GetCacheSize();
+	size_t uiCacheSize;
+
+	mcMutex.Lock();
+	uiCacheSize = mcQueue.GetCacheSize();
+	mcMutex.Unlock();
+
+	return uiCacheSize;
 }
 
 
@@ -188,7 +234,13 @@ size_t CSharedMemoryQueue::GetCacheSize(void)
 //////////////////////////////////////////////////////////////////////////
 size_t CSharedMemoryQueue::GetAllocatedSize(void)
 {
-	return mcQueue.GetAllocatedSize();
+	size_t uiAllocatedSize;
+
+	mcMutex.Lock();
+	uiAllocatedSize = mcQueue.GetAllocatedSize();
+	mcMutex.Unlock();
+
+	return uiAllocatedSize;
 }
 
 
@@ -198,6 +250,28 @@ size_t CSharedMemoryQueue::GetAllocatedSize(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CSharedMemoryQueue::ValidateQueue(void)
 {
-	return mcQueue.ValidateCache();
+	BOOL	bResult;
+
+	mcMutex.Lock();
+	bResult = mcQueue.ValidateCache();
+	mcMutex.Unlock();
+
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CSharedMemoryQueue::Touch(void)
+{
+	size_t	uiMemorySize;
+	void*	pvMemory;
+
+	pvMemory = mcSharedMemory.Touch();
+	uiMemorySize = mcSharedMemory.GetSize();
+
+	mcQueue.Touch(pvMemory, uiMemorySize);
 }
 

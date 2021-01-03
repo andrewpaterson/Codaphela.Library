@@ -181,6 +181,8 @@
     <ClInclude Include="MemoryBlock.h" />
     <ClInclude Include="MemoryCacheAllocation.h" />
     <ClInclude Include="MemoryCacheDescriptor.h" />
+    <ClInclude Include="MemoryCacheEvictedData.h" />
+    <ClInclude Include="MemoryCacheEvictionCallback.h" />
     <ClInclude Include="MemoryFreeListParams.h" />
     <ClInclude Include="MemoryHeader.h" />
     <ClInclude Include="MemoryQueue.h" />
@@ -369,6 +371,7 @@
     <ClCompile Include="Mallocators.cpp" />
     <ClCompile Include="MemoryBlock.cpp" />
     <ClCompile Include="MemoryCacheAllocation.cpp" />
+    <ClCompile Include="MemoryCacheEvictedData.cpp" />
     <ClCompile Include="MemoryFreeListParams.cpp" />
     <ClCompile Include="MemoryHeader.cpp" />
     <ClCompile Include="MemoryQueue.cpp" />

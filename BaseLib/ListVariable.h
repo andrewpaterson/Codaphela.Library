@@ -48,10 +48,11 @@ public:
 	void	Init(void);
 	void	ReInit(void);
 	void	Kill(void);
-	void*	Add(int iElementSize);
-	void*	Add(void* pvElement, int iElementSize);
+	void*	Add(size_t iElementSize);
+	void*	Add(void* pvElement, size_t iElementSize);
 	BOOL	Get(int iIndex, void** pvData);
 	void*	Get(int iIndex);
+	void*	Get(int iIndex, size_t* puiElementSize);
 	void	Set(int iIndex, void* pvData, int iElementSize);
 	void*	Resize(int iIndex, int iElementSize = 0);
 	void	RemoveAt(int iIndex, int bPreserveOrder = TRUE);

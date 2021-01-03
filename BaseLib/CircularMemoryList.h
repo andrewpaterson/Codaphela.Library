@@ -22,27 +22,17 @@ public:
 	void						Remap(void* pvNewCache, size_t uiCacheSize);
 	void						Clear(void);
 
-	SMemoryCacheDescriptor*		GetFirst(void);
-	SMemoryCacheDescriptor*		GetNext(SMemoryCacheDescriptor* psCurrent);
-	SMemoryCacheDescriptor*		GetPrev(SMemoryCacheDescriptor* psCurrent);
-	SMemoryCacheDescriptor*		GetLast(void);
-	
+	size_t						GetSize(void* pvData);
 	int							NumElements(void);
 
 	int							GetDescriptorSize(void);
-	void*						GetData(SMemoryCacheDescriptor* psCacheDesc);
-	SMemoryCacheDescriptor*		GetDescriptor(void* pvData);
 
 	void						Deallocate(void* pvData);
-	void						Deallocate(SMemoryCacheDescriptor* psDescriptor);
 
 	BOOL						IsEmpty(void);
 	int							NumElements(int iSize);
 	size_t						GetCacheSize(void);
 	size_t						GetAllocatedSize(void);
-
-	SMemoryCacheDescriptor*		StartIteration(void);
-	SMemoryCacheDescriptor*		Iterate(SMemoryCacheDescriptor* psCurrent);
 
 	BOOL						ValidateCache(void);
 	void						Dump(void);
@@ -57,6 +47,19 @@ protected:
 
 	void						RemapDifferentMemory(void* pvNewCache, size_t uiCacheSize);
 	void						RemapSameMemory(void* pvNewCache, size_t uiCacheSize);
+
+	SMemoryCacheDescriptor*		StartIteration(void);
+	SMemoryCacheDescriptor*		Iterate(SMemoryCacheDescriptor* psCurrent);
+
+	SMemoryCacheDescriptor*		GetFirst(void);
+	SMemoryCacheDescriptor*		GetNext(SMemoryCacheDescriptor* psCurrent);
+	SMemoryCacheDescriptor*		GetPrev(SMemoryCacheDescriptor* psCurrent);
+	SMemoryCacheDescriptor*		GetLast(void);
+
+	void*						GetData(SMemoryCacheDescriptor* psCacheDesc);
+	SMemoryCacheDescriptor*		GetDescriptor(void* pvData);
+
+	void						Deallocate(SMemoryCacheDescriptor* psDescriptor);
 };
 
 
