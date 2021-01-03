@@ -32,9 +32,9 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedCache::Init(size_t uiCacheSize)
+void CIndexedCache::Init(size_t uiCacheSize, CMemoryCacheEvictionCallback* pcEvictionCallback)
 {
-	mcCache.Init(uiCacheSize, sizeof(SIndexedCacheDescriptor));
+	mcCache.Init(uiCacheSize, pcEvictionCallback, sizeof(SIndexedCacheDescriptor));
 }
 
 
@@ -62,23 +62,13 @@ void CIndexedCache::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedCache::PreAllocate(CMemoryCacheAllocation* pcResult)
-{
-	return mcCache.PreAllocate(pcResult);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CIndexedCacheResult CIndexedCache::Allocate(OIndex oi, unsigned uiDataSize, CMemoryCacheAllocation* pcPreAllocated)
+CIndexedCacheResult CIndexedCache::Allocate(OIndex oi, unsigned uiDataSize)
 {
 	void*						pvCache;
 	SIndexedCacheDescriptor*	psCacheDesc;
 	CIndexedCacheResult			cResult;
 
-	pvCache = mcCache.Allocate(pcPreAllocated);
+	pvCache = mcCache.Allocate(uiDataSize);
 
 	if (!pvCache)
 	{
@@ -86,13 +76,12 @@ CIndexedCacheResult CIndexedCache::Allocate(OIndex oi, unsigned uiDataSize, CMem
 		return cResult;
 	}
 
-	psCacheDesc = (SIndexedCacheDescriptor*)mcCache.GetDescriptor(pvCache);
+	psCacheDesc = GetDescriptor(pvCache);
 	psCacheDesc->oi = oi;
 	psCacheDesc->iFlags = 0;
 
 	if (uiDataSize == psCacheDesc->uiSize)
 	{
-		pvCache = GetCache(psCacheDesc);
 		cResult.Succeed(pvCache);
 		return cResult;
 	}
@@ -120,23 +109,10 @@ void CIndexedCache::Clear(void)
 //////////////////////////////////////////////////////////////////////////
 void CIndexedCache::Invalidate(void* pvCache)
 {
-	SIndexedCacheDescriptor*	psDescriptor;
-
 	if (pvCache)
 	{
-		psDescriptor = GetDescriptor(pvCache);
-		mcCache.Deallocate(psDescriptor);
+		mcCache.Deallocate(pvCache);
 	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CIndexedCache::Deallocate(SIndexedCacheDescriptor* psDescriptor)
-{
-	mcCache.Deallocate(psDescriptor);
 }
 
 
@@ -197,9 +173,9 @@ void* CIndexedCache::GetCache(SIndexedCacheDescriptor* psDescriptor)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SIndexedCacheDescriptor* CIndexedCache::StartIteration(void)
+void* CIndexedCache::StartIteration(void)
 {
-	return (SIndexedCacheDescriptor*)mcCache.StartIteration();
+	return mcCache.StartIteration();
 }
 
 
@@ -207,9 +183,9 @@ SIndexedCacheDescriptor* CIndexedCache::StartIteration(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SIndexedCacheDescriptor* CIndexedCache::Iterate(SIndexedCacheDescriptor* psCurrent)
+void* CIndexedCache::Iterate(void* psCurrent)
 {
-	return (SIndexedCacheDescriptor*)mcCache.Iterate((SIndexedCacheDescriptor*)psCurrent);
+	return mcCache.Iterate(psCurrent);
 }
 
 
@@ -257,18 +233,20 @@ BOOL CIndexedCache::CanCache(unsigned int uiDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SIndexedCacheDescriptor* CIndexedCache::TestGetDescriptor(OIndex oi)
+void* CIndexedCache::TestGetDescriptor(OIndex oi)
 {
 	SIndexedCacheDescriptor*	psDesc;
+	void*						pvData;
 
-	psDesc = StartIteration();
-	while (psDesc)
+	pvData = StartIteration();
+	while (pvData)
 	{
+		psDesc = GetDescriptor(pvData);
 		if (psDesc->oi == oi)
 		{
-			return psDesc;
+			return pvData;
 		}
-		psDesc = Iterate(psDesc);
+		pvData = Iterate(pvData);
 	}
 	return NULL;
 }

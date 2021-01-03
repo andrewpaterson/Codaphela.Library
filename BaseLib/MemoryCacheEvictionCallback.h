@@ -3,10 +3,11 @@
 #include "BaseLib/Bool.h"
 
 
+struct SMemoryCacheDescriptor;
 class CMemoryCacheEvictionCallback
 {
 public:
-	virtual BOOL CacheDataEvicted(void* pvData, size_t iDataSize) = 0;
+	virtual BOOL CacheDataEvicted(void* pvData, SMemoryCacheDescriptor* psDescriptor) =0;
 };
 
 
