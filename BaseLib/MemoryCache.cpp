@@ -33,9 +33,10 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMemoryCache::Init(size_t uiCacheSize, int iDescriptorSize)
+void CMemoryCache::Init(size_t uiCacheSize, CMemoryCacheEvictionCallback* pcEvictionCallback, int iDescriptorSize)
 {
 	CCircularMemoryList::Init(malloc(uiCacheSize), uiCacheSize, iDescriptorSize);
+	mpcEvictionCallback = pcEvictionCallback;
 }
 
 
@@ -112,7 +113,7 @@ BOOL CMemoryCache::PreAllocate(CMemoryCacheAllocation* pcPreAllocationResult)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CMemoryCache::Allocate(CMemoryCacheAllocation* pcPreAllocated)
+void* CMemoryCache::PostAllocate(CMemoryCacheAllocation* pcPreAllocated)
 {
 	SMemoryCacheDescriptor*		psDescriptor;
 	SMemoryCacheDescriptor*		psLastOverlap;
@@ -137,11 +138,11 @@ void* CMemoryCache::Allocate(CMemoryCacheAllocation* pcPreAllocated)
 		{
 			psDescriptor = pcPreAllocated->mpsDescriptor;
 
-			psFirstPrev = GetPrev(psFirstOverlap);
+			psFirstPrev = CCircularMemoryList::GetPrev(psFirstOverlap);
 			psFirstPrev->psNext = psDescriptor;
 
 			mpsTail = psDescriptor;
-			mpsHead = GetNext(psLastOverlap);
+			mpsHead = CCircularMemoryList::GetNext(psLastOverlap);
 			mpsHead->psPrev = mpsTail;
 
 			mpsTail->psNext = mpsHead;
@@ -162,14 +163,18 @@ void* CMemoryCache::Allocate(CMemoryCacheAllocation* pcPreAllocated)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CMemoryCache::QuickAllocate(int iDataSize)
+void* CMemoryCache::Allocate(size_t uiDataSize)
 {
 	CMemoryCacheAllocation	cPreAllocation;
 	BOOL					bResult;
 	void*					pvCache;
+	int						i;
+	int						iNumEvictions;
+	SMemoryCacheDescriptor* psDescriptor;
+	void*					pvEvictedData;
 
 	//Evicted data is just trashed.
-	cPreAllocation.Init(iDataSize);
+	cPreAllocation.Init(uiDataSize);
 
 	bResult = PreAllocate(&cPreAllocation);
 	if (!bResult)
@@ -178,7 +183,18 @@ void* CMemoryCache::QuickAllocate(int iDataSize)
 		return NULL;
 	}
 
-	pvCache = Allocate(&cPreAllocation);
+	if (mpcEvictionCallback)
+	{
+		iNumEvictions = cPreAllocation.NumElements();
+		for (i = 0; i < iNumEvictions; i++)
+		{
+			psDescriptor = cPreAllocation.Get(i);
+			pvEvictedData = GetData(psDescriptor);
+			mpcEvictionCallback->CacheDataEvicted(pvEvictedData, psDescriptor->uiSize);
+		}
+	}
+
+	pvCache = PostAllocate(&cPreAllocation);
 	cPreAllocation.Kill();
 
 	return pvCache;
@@ -189,7 +205,7 @@ void* CMemoryCache::QuickAllocate(int iDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMemoryCache::CanCache(unsigned int uiDataSize)
+BOOL CMemoryCache::CanCache(size_t uiDataSize)
 {
 	return (miDescriptorSize + uiDataSize) <= muiCacheSize;
 }
@@ -222,5 +238,97 @@ void CMemoryCache::FindOverlapping(void* pvNew, size_t uiNewSize, CArrayVoidPtr*
 	}
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void* CMemoryCache::StartIteration(void)
+{
+	SMemoryCacheDescriptor* psDesc;
+	void*					pvData;
+
+	psDesc = CCircularMemoryList::StartIteration();
+	pvData = GetData(psDesc);
+	return pvData;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void* CMemoryCache::Iterate(void* psCurrent)
+{
+	SMemoryCacheDescriptor* psDesc; 
+	void*					pvData;
+
+	psDesc = CCircularMemoryList::GetDescriptor(psCurrent);
+	psDesc = CCircularMemoryList::Iterate(psDesc);
+	pvData = GetData(psDesc);
+	return pvData;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void* CMemoryCache::GetFirst(void)
+{
+	SMemoryCacheDescriptor* psDesc;
+	void*					pvData;
+
+	psDesc = CCircularMemoryList::GetFirst();
+	pvData = GetData(psDesc);
+	return pvData;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void* CMemoryCache::GetLast(void)
+{
+	SMemoryCacheDescriptor* psDesc; 
+	void*					pvData;
+
+	psDesc = CCircularMemoryList::GetLast();
+	pvData = GetData(psDesc);
+	return pvData;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void* CMemoryCache::GetNext(void* psCurrent)
+{
+	SMemoryCacheDescriptor* psDesc; 
+	void*					pvData;
+
+	psDesc = CCircularMemoryList::GetDescriptor(psCurrent);
+	psDesc = CCircularMemoryList::GetNext(psDesc);
+	pvData = GetData(psDesc); 
+	return pvData;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void* CMemoryCache::GetPrev(void* psCurrent)
+{
+	SMemoryCacheDescriptor* psDesc;
+	void* pvData;
+
+	psDesc = CCircularMemoryList::GetDescriptor(psCurrent);
+	psDesc = CCircularMemoryList::GetPrev(psDesc);
+	pvData = GetData(psDesc);
+	return pvData;
+}
 
 

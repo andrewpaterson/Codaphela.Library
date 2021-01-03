@@ -14,7 +14,8 @@ private:
 	BOOL					mbMaster;
 
 public:
-	BOOL	Init(BOOL bMaster, char* szName, size_t uiByteSize);
+	BOOL	Init(char* szName, size_t uiByteSize);
+	BOOL	Init(char* szName);
 	void	Kill(void);
 
 	BOOL	Push(void* pvData, size_t uiDataSize);
@@ -29,6 +30,9 @@ public:
 protected:
 	BOOL	InitMaster(size_t uiByteSize);
 	BOOL	InitClient(void);
+	void	InitMutexAndMemory(char* szName);
+
+	void	Touch(void);
 };
 
 

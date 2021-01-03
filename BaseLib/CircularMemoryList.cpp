@@ -116,7 +116,7 @@ void CCircularMemoryList::RemapSameMemory(void* pvNewCache, size_t uiCacheSize)
 	size_t						uiRemaining;
 
 	muiCacheSize = uiCacheSize;
-	if (pvNewCache == mpsHead)
+	if (pvNewCache == mpsHead || mpsHead == NULL)
 	{
 		return;
 	}
@@ -323,6 +323,19 @@ SMemoryCacheDescriptor* CCircularMemoryList::GetLast(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+size_t CCircularMemoryList::GetSize(void* pvData)
+{
+	SMemoryCacheDescriptor* psDescriptor;
+
+	psDescriptor = GetDescriptor(pvData);
+	return psDescriptor->uiSize;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 int CCircularMemoryList::NumElements(void)
 {
 	SMemoryCacheDescriptor*		psDescriptor;
@@ -360,7 +373,11 @@ int CCircularMemoryList::GetDescriptorSize(void)
 //////////////////////////////////////////////////////////////////////////
 void* CCircularMemoryList::GetData(SMemoryCacheDescriptor* psDescriptor)
 {
-	return RemapSinglePointer(psDescriptor, miDescriptorSize);
+	if (psDescriptor)
+	{
+		return RemapSinglePointer(psDescriptor, miDescriptorSize);
+	}
+	return NULL;
 }
 
 
@@ -370,7 +387,11 @@ void* CCircularMemoryList::GetData(SMemoryCacheDescriptor* psDescriptor)
 //////////////////////////////////////////////////////////////////////////
 SMemoryCacheDescriptor* CCircularMemoryList::GetDescriptor(void* pvData)
 {
-	return (SMemoryCacheDescriptor*)RemapSinglePointer(pvData, -miDescriptorSize);
+	if (pvData)
+	{
+		return (SMemoryCacheDescriptor*)RemapSinglePointer(pvData, -miDescriptorSize);
+	}
+	return NULL;
 }
 
 

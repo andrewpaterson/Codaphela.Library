@@ -12,7 +12,7 @@ public:
 	void	Init(int iSeed);
 	void	Kill(void);
 		
-	int		Next(int iMin, int iMax);
+	int		Next(int iMin, int iMaxInclusive);
 };
 
 

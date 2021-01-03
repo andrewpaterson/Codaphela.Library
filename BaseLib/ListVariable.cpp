@@ -94,6 +94,28 @@ void* CListVariable::Get(int iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void* CListVariable::Get(int iIndex, size_t* puiElementSize)
+{
+	SPointerAndSize* ps;
+
+	ps = mcArray.SafeGet(iIndex);
+	if (ps)
+	{
+		SafeAssign(puiElementSize, ps->iSize);
+		return ps->pvData;
+	}
+	else
+	{
+		SafeAssign(puiElementSize, 0);
+		return NULL;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 int CListVariable::GetSize(int iIndex)
 {
 	SPointerAndSize*	ps;
@@ -114,7 +136,7 @@ int CListVariable::GetSize(int iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CListVariable::Add(int iElementSize)
+void* CListVariable::Add(size_t iElementSize)
 {
 	SPointerAndSize*	psType;
 
@@ -136,7 +158,7 @@ void* CListVariable::Add(int iElementSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CListVariable::Add(void* pvElement, int iElementSize)
+void* CListVariable::Add(void* pvElement, size_t iElementSize)
 {
 	void*	pvDest;
 

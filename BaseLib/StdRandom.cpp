@@ -24,9 +24,9 @@ void CRandom::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CRandom::Next(int iMin, int iMax)
+int CRandom::Next(int iMin, int iMaxInclusive)
 {
-	std::uniform_int_distribution<int> range(iMin, iMax);
+	std::uniform_int_distribution<int> range(iMin, iMaxInclusive);
 	
 	return range(mcRNG);
 }
