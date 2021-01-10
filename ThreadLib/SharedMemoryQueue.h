@@ -30,7 +30,7 @@ public:
 protected:
 	BOOL	InitMaster(size_t uiByteSize);
 	BOOL	InitClient(void);
-	void	InitMutexAndMemory(char* szName);
+	void	InitNames(char* szName);
 
 	void	Touch(void);
 };

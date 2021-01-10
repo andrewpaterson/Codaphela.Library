@@ -26,20 +26,20 @@ void CMemoryQueue::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMemoryQueue::FindOverlapping(void* pvNew, size_t uiNewSize)
+BOOL CMemoryQueue::FindOverlapping(SMemoryCacheDescriptor* pvCacheBasedNew, size_t uiNewSize)
 {
 	SMemoryCacheDescriptor* psNext;
 
-	psNext = mpsHead;
+	psNext = CCircularMemoryList::GetFirst();
 	for (;;)
 	{
-		if (Overlaps(pvNew, uiNewSize, psNext))
+		if (Overlaps(pvCacheBasedNew, uiNewSize, psNext))
 		{
 			return TRUE;
 		}
 
-		psNext = psNext->psNext;
-		if (psNext == mpsHead)
+		psNext = GetNext(psNext);
+		if (IsFirst(psNext))
 		{
 			return FALSE;
 		}
@@ -53,10 +53,11 @@ BOOL CMemoryQueue::FindOverlapping(void* pvNew, size_t uiNewSize)
 //////////////////////////////////////////////////////////////////////////
 void* CMemoryQueue::Push(size_t uiDataSize)
 {
-	SMemoryCacheDescriptor*		psDescriptor;
+	SMemoryCacheDescriptor*		psCacheBasedDescriptor;
 	size_t						uiRemainingAfterLast;
 	size_t						uiTotalSize;
 	BOOL						bOverlaps;
+	SMemoryCacheDescriptor*		psCacheBasedTail;
 
 	uiTotalSize = uiDataSize + miDescriptorSize;
 	if (uiTotalSize > muiCacheSize)
@@ -69,27 +70,28 @@ void* CMemoryQueue::Push(size_t uiDataSize)
 	{
 		if (uiTotalSize <= uiRemainingAfterLast)
 		{
-			psDescriptor = (SMemoryCacheDescriptor*)RemapSinglePointer(mpsTail, miDescriptorSize + mpsTail->uiSize);
+			psCacheBasedTail = CCircularMemoryList::GetLast();
+			psCacheBasedDescriptor = (SMemoryCacheDescriptor*)RemapSinglePointer(psCacheBasedTail, miDescriptorSize + psCacheBasedTail->uiSize);
 		}
 		else
 		{
 			//Cycle back to the beginning of the cache.
-			psDescriptor = (SMemoryCacheDescriptor*)mpvCache;
+			psCacheBasedDescriptor = (SMemoryCacheDescriptor*)mpvCache;
 		}
-		bOverlaps = FindOverlapping(psDescriptor, uiTotalSize);
+		bOverlaps = FindOverlapping(psCacheBasedDescriptor, uiTotalSize);
 		if (bOverlaps)
 		{
 			return NULL;
 		}
-		psDescriptor = InsertNext(psDescriptor);
+		psCacheBasedDescriptor = InsertNext(psCacheBasedDescriptor);
 	}
 	else
 	{
-		psDescriptor = OneAllocation();
+		psCacheBasedDescriptor = OneAllocation();
 	}
 
-	psDescriptor->uiSize = uiDataSize;
-	return GetData(psDescriptor);
+	psCacheBasedDescriptor->uiSize = uiDataSize;
+	return GetData(psCacheBasedDescriptor);
 }
 
 
@@ -99,12 +101,14 @@ void* CMemoryQueue::Push(size_t uiDataSize)
 //////////////////////////////////////////////////////////////////////////
 void* CMemoryQueue::Peek(size_t* puiDataSize)
 {
-	void*	pv;
+	void*						pv;
+	SMemoryCacheDescriptor*		psCacheBasedHead;
 
 	if (!IsEmpty())
 	{
-		pv = GetData(mpsHead);
-		SafeAssign(puiDataSize,  mpsHead->uiSize);
+		psCacheBasedHead = CCircularMemoryList::GetFirst();
+		pv = GetData(psCacheBasedHead);
+		SafeAssign(puiDataSize, psCacheBasedHead->uiSize);
 		return pv;
 	}
 	else
@@ -119,12 +123,12 @@ void* CMemoryQueue::Peek(size_t* puiDataSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CMemoryQueue::Drop(void* pvHead)
+BOOL CMemoryQueue::Drop(void* pvCacheBasedHead)
 {
 	SMemoryCacheDescriptor*		psDescriptor;
 
-	psDescriptor = GetDescriptor(pvHead);
-	if (psDescriptor == mpsHead)
+	psDescriptor = GetDescriptorNoRemap(pvCacheBasedHead);
+	if (IsFirst(psDescriptor))
 	{
 		Deallocate(psDescriptor);
 		return TRUE;
@@ -162,7 +166,7 @@ BOOL CMemoryQueue::Pop(void)
 void* CMemoryQueue::GetFirst(void)
 {
 	SMemoryCacheDescriptor* psDesc;
-	void* pvData;
+	void*					pvData;
 
 	psDesc = CCircularMemoryList::GetFirst();
 	pvData = GetData(psDesc);
@@ -177,7 +181,7 @@ void* CMemoryQueue::GetFirst(void)
 void* CMemoryQueue::GetLast(void)
 {
 	SMemoryCacheDescriptor* psDesc;
-	void* pvData;
+	void*					pvData;
 
 	psDesc = CCircularMemoryList::GetLast();
 	pvData = GetData(psDesc);
@@ -191,9 +195,7 @@ void* CMemoryQueue::GetLast(void)
 //////////////////////////////////////////////////////////////////////////
 void CMemoryQueue::Touch(void* pvMemory, size_t uiByteSize)
 {
-	if ((mpvCache != pvMemory) || (uiByteSize != muiCacheSize))
-	{
-		
-	}
+	mpvCache = (SMemoryCacheDescriptor*)pvMemory;
+	muiCacheSize = uiByteSize;
 }
 

@@ -7,7 +7,7 @@
 class CCircularMemoryList
 {
 protected:
-	void*						mpvCache;
+	SMemoryCacheDescriptor*		mpvCache;
 	size_t						muiCacheSize;
 
 	SMemoryCacheDescriptor*		mpsTail;
@@ -39,27 +39,35 @@ public:
 
 protected:
 	SMemoryCacheDescriptor*		OneAllocation(void);
-	SMemoryCacheDescriptor*		InsertNext(SMemoryCacheDescriptor* psDescriptor);
-	BOOL						Overlaps(void* pvNew, size_t uiNewSize, SMemoryCacheDescriptor* psExisting);
+	SMemoryCacheDescriptor*		InsertNext(SMemoryCacheDescriptor* psCacheBasedDescriptor);
+	BOOL						Overlaps(SMemoryCacheDescriptor* pvCacheBasedNew, size_t uiNewSize, SMemoryCacheDescriptor* psExisting);
 
 	size_t						RemainingAfterTail(void);
-	size_t						RemainingAfter(SMemoryCacheDescriptor* psDescriptor);
+	size_t						RemainingAfter(SMemoryCacheDescriptor* psCacheBasedDescriptor);
 
 	void						RemapDifferentMemory(void* pvNewCache, size_t uiCacheSize);
 	void						RemapSameMemory(void* pvNewCache, size_t uiCacheSize);
 
 	SMemoryCacheDescriptor*		StartIteration(void);
-	SMemoryCacheDescriptor*		Iterate(SMemoryCacheDescriptor* psCurrent);
+	SMemoryCacheDescriptor*		Iterate(SMemoryCacheDescriptor* psCacheBasedDescriptor);
 
 	SMemoryCacheDescriptor*		GetFirst(void);
-	SMemoryCacheDescriptor*		GetNext(SMemoryCacheDescriptor* psCurrent);
-	SMemoryCacheDescriptor*		GetPrev(SMemoryCacheDescriptor* psCurrent);
+	SMemoryCacheDescriptor*		GetNext(SMemoryCacheDescriptor* psCacheBasedDescriptor);
+	SMemoryCacheDescriptor*		GetPrev(SMemoryCacheDescriptor* psCacheBasedDescriptor);
 	SMemoryCacheDescriptor*		GetLast(void);
 
-	void*						GetData(SMemoryCacheDescriptor* psCacheDesc);
-	SMemoryCacheDescriptor*		GetDescriptor(void* pvData);
+	void*						GetData(SMemoryCacheDescriptor* psCacheBasedDescriptor);
+	SMemoryCacheDescriptor*		GetDescriptorNoRemap(void* pvData);
 
-	void						Deallocate(SMemoryCacheDescriptor* psDescriptor);
+	void						Deallocate(SMemoryCacheDescriptor* psCacheBasedDescriptor);
+
+	SMemoryCacheDescriptor*		MapFromZeroBasedToCacheBased(SMemoryCacheDescriptor* psZeroBasedDescriptor);
+	SMemoryCacheDescriptor*		MapFromCacheBasedToZeroBased(SMemoryCacheDescriptor* psCacheBasedDescriptor);
+	SMemoryCacheDescriptor*		MapFromZeroBasedToCacheBased(void* pvCache, SMemoryCacheDescriptor* psZeroBasedDescriptor);
+	SMemoryCacheDescriptor*		MapFromCacheBasedToZeroBased(void* pvCache, SMemoryCacheDescriptor* psCacheBasedDescriptor);
+
+	BOOL						IsFirst(SMemoryCacheDescriptor* psCacheBasedDescriptor);
+	BOOL						IsLast(SMemoryCacheDescriptor* psCacheBasedDescriptor);
 };
 
 

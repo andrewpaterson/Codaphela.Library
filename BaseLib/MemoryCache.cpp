@@ -64,7 +64,10 @@ void CMemoryCache::Resize(size_t uiNewCacheSize)
 	pvNewCache = malloc(uiNewCacheSize);
 	Remap(pvNewCache, uiNewCacheSize);
 
-	free(pvOldCache);
+	if (pvOldCache != pvNewCache)
+	{
+		free(pvOldCache);
+	}
 }
 
 
@@ -74,9 +77,10 @@ void CMemoryCache::Resize(size_t uiNewCacheSize)
 //////////////////////////////////////////////////////////////////////////
 BOOL CMemoryCache::PreAllocate(CMemoryCacheAllocation* pcPreAllocationResult)
 {
-	SMemoryCacheDescriptor*		psDescriptor;
+	SMemoryCacheDescriptor*		psCacheBasedDescriptor;
 	size_t						iCachedSize;
 	size_t						iRemainingAfterLast;
+	SMemoryCacheDescriptor*		psTail;
 
 	iCachedSize = miDescriptorSize + pcPreAllocationResult->muiSize;
 	if (iCachedSize > muiCacheSize)
@@ -89,21 +93,22 @@ BOOL CMemoryCache::PreAllocate(CMemoryCacheAllocation* pcPreAllocationResult)
 	{
 		if (iCachedSize <= iRemainingAfterLast)
 		{
-			psDescriptor = (SMemoryCacheDescriptor*)RemapSinglePointer(mpsTail, miDescriptorSize + mpsTail->uiSize);
+			psTail = CCircularMemoryList::GetLast();
+			psCacheBasedDescriptor = (SMemoryCacheDescriptor*)RemapSinglePointer(psTail, miDescriptorSize + psTail->uiSize);
 		}
 		else
 		{
 			//Cycle back to the beginning of the cache.
-			psDescriptor = (SMemoryCacheDescriptor*)mpvCache;
+			psCacheBasedDescriptor = mpvCache;
 		}
-		FindOverlapping(psDescriptor, iCachedSize, &pcPreAllocationResult->mapEvictedCacheDescriptors);
+		FindOverlapping(psCacheBasedDescriptor, iCachedSize, &pcPreAllocationResult->mapEvictedCacheDescriptors);
 	}
 	else
 	{
-		psDescriptor = (SMemoryCacheDescriptor*)mpvCache;
+		psCacheBasedDescriptor = mpvCache;
 	}
 	pcPreAllocationResult->miCachedSize = iCachedSize;
-	pcPreAllocationResult->mpsDescriptor = psDescriptor;  
+	pcPreAllocationResult->mpsDescriptor = psCacheBasedDescriptor;
 
 	return TRUE;
 }
@@ -115,7 +120,7 @@ BOOL CMemoryCache::PreAllocate(CMemoryCacheAllocation* pcPreAllocationResult)
 //////////////////////////////////////////////////////////////////////////
 void* CMemoryCache::PostAllocate(CMemoryCacheAllocation* pcPreAllocated)
 {
-	SMemoryCacheDescriptor*		psDescriptor;
+	SMemoryCacheDescriptor*		psCacheBasedDescriptor;
 	SMemoryCacheDescriptor*		psLastOverlap;
 	SMemoryCacheDescriptor*		psFirstOverlap;
 	SMemoryCacheDescriptor*		psFirstPrev;
@@ -130,32 +135,32 @@ void* CMemoryCache::PostAllocate(CMemoryCacheAllocation* pcPreAllocated)
 		psLastOverlap = (SMemoryCacheDescriptor*)(pcPreAllocated->mapEvictedCacheDescriptors.GetPtr(pcPreAllocated->mapEvictedCacheDescriptors.NumElements() -1));
 		psFirstOverlap = (SMemoryCacheDescriptor*)(pcPreAllocated->mapEvictedCacheDescriptors.GetPtr(0));
 		
-		if (psLastOverlap == mpsTail)
+		if (IsLast(psLastOverlap))
 		{
-			psDescriptor = OneAllocation();  //If the last overlapping cache descriptor points to the last cache descriptor in the cache then everything is being evicted.
+			psCacheBasedDescriptor = OneAllocation();  //If the last overlapping cache descriptor points to the last cache descriptor in the cache then everything is being evicted.
 		}
 		else
 		{
-			psDescriptor = pcPreAllocated->mpsDescriptor;
+			psCacheBasedDescriptor = pcPreAllocated->mpsDescriptor;
 
 			psFirstPrev = CCircularMemoryList::GetPrev(psFirstOverlap);
-			psFirstPrev->psNext = psDescriptor;
+			psFirstPrev->psNext = MapFromCacheBasedToZeroBased(psCacheBasedDescriptor);
 
-			mpsTail = psDescriptor;
-			mpsHead = CCircularMemoryList::GetNext(psLastOverlap);
-			mpsHead->psPrev = mpsTail;
+			mpsTail = MapFromCacheBasedToZeroBased(psCacheBasedDescriptor);
+			mpsHead = MapFromCacheBasedToZeroBased(CCircularMemoryList::GetNext(psLastOverlap));
+			CCircularMemoryList::GetFirst()->psPrev = mpsTail;
 
-			mpsTail->psNext = mpsHead;
-			mpsTail->psPrev = psFirstPrev;
+			CCircularMemoryList::GetLast()->psNext = mpsHead;
+			CCircularMemoryList::GetLast()->psPrev = psFirstPrev;
 		}
 	}
 	else
 	{
-		psDescriptor = InsertNext(pcPreAllocated->mpsDescriptor);
+		psCacheBasedDescriptor = InsertNext(pcPreAllocated->mpsDescriptor);
 	}
 
-	psDescriptor->uiSize = pcPreAllocated->muiSize;
-	return GetData(psDescriptor);
+	psCacheBasedDescriptor->uiSize = pcPreAllocated->muiSize;
+	return GetData(psCacheBasedDescriptor);
 }
 
 
@@ -214,18 +219,18 @@ BOOL CMemoryCache::CanCache(size_t uiDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMemoryCache::FindOverlapping(void* pvNew, size_t uiNewSize, CArrayVoidPtr* pasOverlappingCacheDescriptors)
+void CMemoryCache::FindOverlapping(SMemoryCacheDescriptor* psCachedBasedNew, size_t uiNewSize, CArrayVoidPtr* pasOverlappingCacheDescriptors)
 {
-	SMemoryCacheDescriptor*	psNext;
+	SMemoryCacheDescriptor*	psCacheBasedNext;
 
-	psNext = mpsHead;
+	psCacheBasedNext = CCircularMemoryList::GetFirst();
 	for (;;)
 	{
-		if (Overlaps(pvNew, uiNewSize, psNext))
+		if (Overlaps(psCachedBasedNew, uiNewSize, psCacheBasedNext))
 		{
-			pasOverlappingCacheDescriptors->Add(psNext);
-			psNext = psNext->psNext;
-			if (psNext == mpsHead)
+			pasOverlappingCacheDescriptors->Add(psCacheBasedNext);
+			psCacheBasedNext = CCircularMemoryList::GetNext(psCacheBasedNext);
+			if (IsFirst(psCacheBasedNext))
 			{
 				return;
 			}
@@ -262,7 +267,7 @@ void* CMemoryCache::Iterate(void* psCurrent)
 	SMemoryCacheDescriptor* psDesc; 
 	void*					pvData;
 
-	psDesc = CCircularMemoryList::GetDescriptor(psCurrent);
+	psDesc = CCircularMemoryList::GetDescriptorNoRemap(psCurrent);
 	psDesc = CCircularMemoryList::Iterate(psDesc);
 	pvData = GetData(psDesc);
 	return pvData;
@@ -308,7 +313,7 @@ void* CMemoryCache::GetNext(void* psCurrent)
 	SMemoryCacheDescriptor* psDesc; 
 	void*					pvData;
 
-	psDesc = CCircularMemoryList::GetDescriptor(psCurrent);
+	psDesc = CCircularMemoryList::GetDescriptorNoRemap(psCurrent);
 	psDesc = CCircularMemoryList::GetNext(psDesc);
 	pvData = GetData(psDesc); 
 	return pvData;
@@ -324,7 +329,7 @@ void* CMemoryCache::GetPrev(void* psCurrent)
 	SMemoryCacheDescriptor* psDesc;
 	void* pvData;
 
-	psDesc = CCircularMemoryList::GetDescriptor(psCurrent);
+	psDesc = CCircularMemoryList::GetDescriptorNoRemap(psCurrent);
 	psDesc = CCircularMemoryList::GetPrev(psDesc);
 	pvData = GetData(psDesc);
 	return pvData;
