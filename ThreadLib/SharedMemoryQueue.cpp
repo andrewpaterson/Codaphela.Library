@@ -7,15 +7,10 @@
 //////////////////////////////////////////////////////////////////////////
 BOOL CSharedMemoryQueue::Init(char* szName, size_t uiByteSize)
 {
-	BOOL	bResult;
-
 	mbMaster = TRUE;
-	InitMutexAndMemory(szName);
+	InitNames(szName);
 
-	mcMutex.Lock();
-	bResult = InitMaster(uiByteSize);
-	mcMutex.Unlock();
-	return bResult;
+	return InitMaster(uiByteSize);
 }
 
 
@@ -28,8 +23,9 @@ BOOL CSharedMemoryQueue::Init(char* szName)
 	BOOL	bResult;
 
 	mbMaster = FALSE;
-	InitMutexAndMemory(szName);
+	InitNames(szName);
 
+	mcMutex.Connect();
 	mcMutex.Lock();
 	bResult = InitClient();
 	mcMutex.Unlock();
@@ -41,7 +37,7 @@ BOOL CSharedMemoryQueue::Init(char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CSharedMemoryQueue::InitMutexAndMemory(char* szName)
+void CSharedMemoryQueue::InitNames(char* szName)
 {
 	CChars		szMemoryName;
 	CChars		szMutexName;
@@ -65,23 +61,39 @@ BOOL CSharedMemoryQueue::InitMaster(size_t uiByteSize)
 	BOOL	bResult;
 	void*	pvMemory;
 
-	bResult = mcSharedMemory.Create(uiByteSize);
-	if (!bResult)
-	{
-		mcSharedMemory.Close();
-		return FALSE;
-	}
-
 	bResult = mcMutex.Create();
 	if (!bResult)
 	{
 		mcMutex.Close();
+		return FALSE;
+	}
+
+	bResult = mcMutex.Lock();
+	if (!bResult)
+	{
+		mcMutex.Close();
+		return FALSE;
+	}
+
+	bResult = mcSharedMemory.Create(uiByteSize);
+	if (!bResult)
+	{
 		mcSharedMemory.Close();
+		mcMutex.Unlock();
+		mcMutex.Close();
 		return FALSE;
 	}
 
 	pvMemory = mcSharedMemory.Touch();
+	if (!pvMemory)
+	{
+		mcSharedMemory.Close();
+		mcMutex.Unlock();
+		mcMutex.Close();
+		return FALSE;
+	}
 	mcQueue.Init(pvMemory, mcSharedMemory.GetSize());
+	mcMutex.Unlock();
 
 	return TRUE;
 }
@@ -126,6 +138,7 @@ void CSharedMemoryQueue::Kill(void)
 {
 	mcQueue.Kill();
 	mcSharedMemory.Kill();
+	mcMutex.Close();
 	mcMutex.Kill();
 }
 

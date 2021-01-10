@@ -50,7 +50,7 @@ public:
 	void*	GetPrev(void* psCurrent);
 
 protected:
-	void	FindOverlapping(void* pvNew, size_t uiNewSize, CArrayVoidPtr* pasOverlappingCacheDescriptors);
+	void	FindOverlapping(SMemoryCacheDescriptor* psCachedBasedNew, size_t uiNewSize, CArrayVoidPtr* pasOverlappingCacheDescriptors);
 	BOOL	PreAllocate(CMemoryCacheAllocation* pcPreAllocationResult);
 	void*	PostAllocate(CMemoryCacheAllocation* pcPreAllocated);
 };

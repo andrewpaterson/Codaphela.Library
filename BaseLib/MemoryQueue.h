@@ -22,7 +22,7 @@ public:
 	void*	GetLast(void);
 
 protected:
-	BOOL	FindOverlapping(void* pvNew, size_t uiNewSize);
+	BOOL	FindOverlapping(SMemoryCacheDescriptor* pvCacheBasedNew, size_t uiNewSize);
 };
 
 
