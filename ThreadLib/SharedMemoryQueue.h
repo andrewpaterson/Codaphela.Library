@@ -31,8 +31,6 @@ protected:
 	BOOL	InitMaster(size_t uiByteSize);
 	BOOL	InitClient(void);
 	void	InitNames(char* szName);
-
-	void	Touch(void);
 };
 
 

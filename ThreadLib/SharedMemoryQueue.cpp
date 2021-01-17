@@ -75,7 +75,7 @@ BOOL CSharedMemoryQueue::InitMaster(size_t uiByteSize)
 		return FALSE;
 	}
 
-	bResult = mcSharedMemory.Create(uiByteSize);
+	bResult = mcSharedMemory.Create(uiByteSize + sizeof(SCircularMemoryList));
 	if (!bResult)
 	{
 		mcSharedMemory.Close();
@@ -187,8 +187,6 @@ BOOL CSharedMemoryQueue::Pop(void* pvData, size_t* puiDataSize, size_t uiMaxData
 
 	mcMutex.Lock();
 	
-	Touch();
-
 	pvMemory = mcQueue.Peek(puiDataSize);
 	if (!pvMemory)
 	{
@@ -270,21 +268,5 @@ BOOL CSharedMemoryQueue::ValidateQueue(void)
 	mcMutex.Unlock();
 
 	return bResult;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CSharedMemoryQueue::Touch(void)
-{
-	size_t	uiMemorySize;
-	void*	pvMemory;
-
-	pvMemory = mcSharedMemory.Touch();
-	uiMemorySize = mcSharedMemory.GetSize();
-
-	mcQueue.Touch(pvMemory, uiMemorySize);
 }
 

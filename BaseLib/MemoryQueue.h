@@ -16,8 +16,6 @@ public:
 	BOOL	Drop(void* pvHead);
 	BOOL	Pop(void);
 
-	void	Touch(void* pvMemory, size_t uiByteSize);
-
 	void*	GetFirst(void);
 	void*	GetLast(void);
 

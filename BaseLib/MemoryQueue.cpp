@@ -60,7 +60,7 @@ void* CMemoryQueue::Push(size_t uiDataSize)
 	SMemoryCacheDescriptor*		psCacheBasedTail;
 
 	uiTotalSize = uiDataSize + miDescriptorSize;
-	if (uiTotalSize > muiCacheSize)
+	if ((mpsDetail == NULL) || (uiTotalSize > mpsDetail->muiCacheSize))
 	{
 		return NULL;
 	}
@@ -186,16 +186,5 @@ void* CMemoryQueue::GetLast(void)
 	psDesc = CCircularMemoryList::GetLast();
 	pvData = GetData(psDesc);
 	return pvData;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void CMemoryQueue::Touch(void* pvMemory, size_t uiByteSize)
-{
-	mpvCache = (SMemoryCacheDescriptor*)pvMemory;
-	muiCacheSize = uiByteSize;
 }
 

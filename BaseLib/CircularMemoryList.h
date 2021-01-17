@@ -4,22 +4,28 @@
 #include "MemoryCacheDescriptor.h"
 
 
-class CCircularMemoryList
+struct SCircularMemoryList
 {
-protected:
-	SMemoryCacheDescriptor*		mpvCache;
 	size_t						muiCacheSize;
 
 	SMemoryCacheDescriptor*		mpsTail;
 	SMemoryCacheDescriptor*		mpsHead;
+};
+
+
+class CCircularMemoryList
+{
+protected:
+	SCircularMemoryList*		mpsDetail;
+	SMemoryCacheDescriptor*		mpvCache;
 
 	int							miDescriptorSize;
 
 public:
-	void						Init(void* pvCache, size_t uiCacheSize, int iDescriptorSize = sizeof(SMemoryCacheDescriptor));
+	void						Init(void* pvCache, size_t uiByteSize, int iDescriptorSize = sizeof(SMemoryCacheDescriptor));
 	void						Kill(void);
 
-	void						Remap(void* pvNewCache, size_t uiCacheSize);
+	void						Remap(void* pvNewCache, size_t uiByteSize);
 	void						Clear(void);
 
 	size_t						GetSize(void* pvData);
