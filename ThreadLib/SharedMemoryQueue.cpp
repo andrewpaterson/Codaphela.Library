@@ -152,6 +152,7 @@ BOOL CSharedMemoryQueue::Push(void* pvData, size_t uiDataSize)
 	void*	pvMemory;
 
 	mcMutex.Lock();
+	mcSharedMemory.Touch();
 
 	pvMemory = mcQueue.Push(uiDataSize);
 	if (!pvMemory)
@@ -187,7 +188,8 @@ BOOL CSharedMemoryQueue::Pop(void* pvData, size_t* puiDataSize, size_t uiMaxData
 	void*	pvMemory;
 
 	mcMutex.Lock();
-	
+	mcSharedMemory.Touch();
+
 	pvMemory = mcQueue.Peek(puiDataSize);
 	if (!pvMemory)
 	{
@@ -217,9 +219,11 @@ BOOL CSharedMemoryQueue::IsEmpty(void)
 	BOOL	bEmpty;
 
 	mcMutex.Lock();
+	mcSharedMemory.Touch();
+	
 	bEmpty = mcQueue.IsEmpty();
-	mcMutex.Unlock();
 
+	mcMutex.Unlock();
 	return bEmpty;
 }
 
@@ -232,9 +236,11 @@ int CSharedMemoryQueue::NumElements(void)
 	int		i;
 
 	mcMutex.Lock();
-	i = mcQueue.NumElements();
-	mcMutex.Unlock();
+	mcSharedMemory.Touch();
 
+	i = mcQueue.NumElements();
+
+	mcMutex.Unlock();
 	return i;
 }
 
@@ -248,9 +254,11 @@ size_t CSharedMemoryQueue::GetCacheSize(void)
 	size_t uiCacheSize;
 
 	mcMutex.Lock();
-	uiCacheSize = mcQueue.GetCacheSize();
-	mcMutex.Unlock();
+	mcSharedMemory.Touch();
 
+	uiCacheSize = mcQueue.GetCacheSize();
+
+	mcMutex.Unlock();
 	return uiCacheSize;
 }
 
@@ -264,9 +272,11 @@ size_t CSharedMemoryQueue::GetAllocatedSize(void)
 	size_t uiAllocatedSize;
 
 	mcMutex.Lock();
-	uiAllocatedSize = mcQueue.GetAllocatedSize();
-	mcMutex.Unlock();
+	mcSharedMemory.Touch();
 
+	uiAllocatedSize = mcQueue.GetAllocatedSize();
+
+	mcMutex.Unlock();
 	return uiAllocatedSize;
 }
 
@@ -280,9 +290,11 @@ BOOL CSharedMemoryQueue::ValidateQueue(void)
 	BOOL	bResult;
 
 	mcMutex.Lock();
-	bResult = mcQueue.ValidateCache();
-	mcMutex.Unlock();
+	mcSharedMemory.Touch();
 
+	bResult = mcQueue.ValidateCache();
+	
+	mcMutex.Unlock();
 	return bResult;
 }
 
