@@ -35,7 +35,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //////////////////////////////////////////////////////////////////////////
 void CMemoryCache::Init(size_t uiCacheSize, CMemoryCacheEvictionCallback* pcEvictionCallback, int iDescriptorSize)
 {
-	CCircularMemoryList::Init(malloc(uiCacheSize), uiCacheSize, iDescriptorSize);
+	CCircularMemoryList::Init(malloc(uiCacheSize + sizeof(SCircularMemoryList)), uiCacheSize + sizeof(SCircularMemoryList), iDescriptorSize);
 	mpcEvictionCallback = pcEvictionCallback;
 }
 
@@ -46,7 +46,7 @@ void CMemoryCache::Init(size_t uiCacheSize, CMemoryCacheEvictionCallback* pcEvic
 //////////////////////////////////////////////////////////////////////////
 void CMemoryCache::Kill(void)
 {
-	SafeFree(mpvCache);
+	SafeFree(mpsDetail);
 	CCircularMemoryList::Kill();
 }
 
@@ -57,16 +57,18 @@ void CMemoryCache::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CMemoryCache::Resize(size_t uiNewCacheSize)
 {
-	void*	pvNewCache;
-	void*	pvOldCache;
+	void*					pvNewDetail;
+	void*					pvOldCache;
+	SCircularMemoryList*	psDetail;
 
+	psDetail = mpsDetail;
 	pvOldCache = mpvCache;
-	pvNewCache = malloc(uiNewCacheSize);
-	Remap(pvNewCache, uiNewCacheSize);
+	pvNewDetail = malloc(uiNewCacheSize + sizeof(SCircularMemoryList));
+	Remap(pvNewDetail, uiNewCacheSize + sizeof(SCircularMemoryList));
 
-	if (pvOldCache != pvNewCache)
+	if (psDetail != pvNewDetail)
 	{
-		free(pvOldCache);
+		free(psDetail);
 	}
 }
 
@@ -83,7 +85,7 @@ BOOL CMemoryCache::PreAllocate(CMemoryCacheAllocation* pcPreAllocationResult)
 	SMemoryCacheDescriptor*		psTail;
 
 	iCachedSize = miDescriptorSize + pcPreAllocationResult->muiSize;
-	if (iCachedSize > muiCacheSize)
+	if (iCachedSize > mpsDetail->muiCacheSize)
 	{
 		return FALSE;
 	}
@@ -125,7 +127,7 @@ void* CMemoryCache::PostAllocate(CMemoryCacheAllocation* pcPreAllocated)
 	SMemoryCacheDescriptor*		psFirstOverlap;
 	SMemoryCacheDescriptor*		psFirstPrev;
 
-	if (pcPreAllocated->miCachedSize > muiCacheSize)
+	if (pcPreAllocated->miCachedSize > mpsDetail->muiCacheSize)
 	{
 		return NULL;
 	}
@@ -146,11 +148,11 @@ void* CMemoryCache::PostAllocate(CMemoryCacheAllocation* pcPreAllocated)
 			psFirstPrev = CCircularMemoryList::GetPrev(psFirstOverlap);
 			psFirstPrev->psNext = MapFromCacheBasedToZeroBased(psCacheBasedDescriptor);
 
-			mpsTail = MapFromCacheBasedToZeroBased(psCacheBasedDescriptor);
-			mpsHead = MapFromCacheBasedToZeroBased(CCircularMemoryList::GetNext(psLastOverlap));
-			CCircularMemoryList::GetFirst()->psPrev = mpsTail;
+			mpsDetail->mpsTail = MapFromCacheBasedToZeroBased(psCacheBasedDescriptor);
+			mpsDetail->mpsHead = MapFromCacheBasedToZeroBased(CCircularMemoryList::GetNext(psLastOverlap));
+			CCircularMemoryList::GetFirst()->psPrev = mpsDetail->mpsTail;
 
-			CCircularMemoryList::GetLast()->psNext = mpsHead;
+			CCircularMemoryList::GetLast()->psNext = mpsDetail->mpsHead;
 			CCircularMemoryList::GetLast()->psPrev = psFirstPrev;
 		}
 	}
@@ -211,7 +213,7 @@ void* CMemoryCache::Allocate(size_t uiDataSize)
 //////////////////////////////////////////////////////////////////////////
 BOOL CMemoryCache::CanCache(size_t uiDataSize)
 {
-	return (miDescriptorSize + uiDataSize) <= muiCacheSize;
+	return (miDescriptorSize + uiDataSize) <= mpsDetail->muiCacheSize;
 }
 
 
