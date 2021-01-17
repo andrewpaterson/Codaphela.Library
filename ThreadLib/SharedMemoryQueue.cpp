@@ -193,6 +193,7 @@ BOOL CSharedMemoryQueue::Pop(void* pvData, size_t* puiDataSize, size_t uiMaxData
 	pvMemory = mcQueue.Peek(puiDataSize);
 	if (!pvMemory)
 	{
+		mcMutex.Unlock();
 		return FALSE;
 	}
 
@@ -200,13 +201,15 @@ BOOL CSharedMemoryQueue::Pop(void* pvData, size_t* puiDataSize, size_t uiMaxData
 	{
 		memcpy(pvData, pvMemory, *puiDataSize);
 		mcQueue.Drop(pvMemory);
+		mcMutex.Unlock();
 		return TRUE;
 	}
 	else
 	{
+		mcMutex.Unlock();
 		return FALSE;
 	}
-	mcMutex.Unlock();
+	
 }
 
 
