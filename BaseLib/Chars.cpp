@@ -449,7 +449,7 @@ CChars* CChars::Append(const char* sz, int iLen)
 		pcPosition = PrivateGrow(iLen);
 		memcpy(pcPosition, sz, iLen);
 		pcZero = mcText.Tail();
-		*pcZero = 0;
+		*pcZero = '\0';
 	}
 
 	return this;
@@ -935,7 +935,7 @@ void CChars::Append(char cPadCharacter, int iNumber)
 		pcPosition = PrivateGrow(iNumber);
 		memset(pcPosition, cPadCharacter, iNumber);
 		pcPosition = mcText.Tail();
-		*pcPosition = 0;
+		*pcPosition = '\0';
 	}
 }
 
@@ -1052,7 +1052,7 @@ void CChars::AppendSubString(const char* sz, int iLength)
 	{
 		pcPosition = PrivateGrow(iLength);
 		memcpy(pcPosition, sz, iLength);
-		(*mcText.Tail()) = 0;
+		(*mcText.Tail()) = '\0';
 	}
 }
 
@@ -1105,7 +1105,7 @@ void CChars::RemoveLastCharacter(void)
 	{
 		mcText.RemoveTail();
 		pcPosition = mcText.Tail();
-		*pcPosition = 0;
+		*pcPosition = '\0';
 	}
 }
 
@@ -2005,7 +2005,7 @@ int CChars::PrivateReplaceWithShorter(const char* szFind, const char* szReplace,
 		}
 	}
 	mcText.AddNum(iTotalDifference);
-	(*mcText.Tail()) = 0;
+	(*mcText.Tail()) = '\0';
 	return iCount;
 }
 
@@ -2030,7 +2030,7 @@ int CChars::PrivateReplaceWithLonger(const char* szFind, const char* szReplace, 
 
 	iTotalDifference = iDifference * iCount;
 	mcText.AddNum(iTotalDifference);
-	(*mcText.Tail()) = 0;
+	(*mcText.Tail()) = '\0';
 
 	iIndex = Length() - (iFindLen + iTotalDifference);
 	for (i = iCount-1; i >= 0; i--)
