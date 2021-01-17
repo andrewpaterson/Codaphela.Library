@@ -20,6 +20,7 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
+#include "Logger.h"
 #include "PointerFunctions.h"
 #include "PointerRemapper.h"
 #include "FastMemcpy.h"
@@ -57,18 +58,18 @@ void CMemoryCache::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CMemoryCache::Resize(size_t uiNewCacheSize)
 {
-	void*					pvNewDetail;
-	void*					pvOldCache;
-	SCircularMemoryList*	psDetail;
+	SCircularMemoryList*	pvNewDetail;
 
-	psDetail = mpsDetail;
-	pvOldCache = mpvCache;
-	pvNewDetail = malloc(uiNewCacheSize + sizeof(SCircularMemoryList));
-	Remap(pvNewDetail, uiNewCacheSize + sizeof(SCircularMemoryList));
-
-	if (psDetail != pvNewDetail)
+	pvNewDetail = (SCircularMemoryList*)realloc(mpsDetail, uiNewCacheSize + sizeof(SCircularMemoryList));
+	if (pvNewDetail)
 	{
-		free(psDetail);
+		Remap(pvNewDetail, uiNewCacheSize + sizeof(SCircularMemoryList));
+	}
+	else
+	{
+		gcLogger.Error2(__METHOD__, " Could not realloc.");
+		mpvCache = NULL;
+		mpsDetail = NULL;
 	}
 }
 
@@ -153,7 +154,7 @@ void* CMemoryCache::PostAllocate(CMemoryCacheAllocation* pcPreAllocated)
 			CCircularMemoryList::GetFirst()->psPrev = mpsDetail->mpsTail;
 
 			CCircularMemoryList::GetLast()->psNext = mpsDetail->mpsHead;
-			CCircularMemoryList::GetLast()->psPrev = psFirstPrev;
+			CCircularMemoryList::GetLast()->psPrev = MapFromCacheBasedToZeroBased(psFirstPrev);
 		}
 	}
 	else

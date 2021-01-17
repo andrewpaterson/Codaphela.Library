@@ -1,3 +1,25 @@
+/** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
+
+Copyright (c) 2021 Andrew Paterson
+
+This file is part of The Codaphela Project: Codaphela BaseLib
+
+Codaphela BaseLib is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Codaphela BaseLib is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
+
+Microsoft Windows is Copyright Microsoft Corporation
+
+** ------------------------------------------------------------------------ **/
 #include "Logger.h"
 #include "PointerFunctions.h"
 #include "PointerRemapper.h"
@@ -45,32 +67,33 @@ void CCircularMemoryList::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CCircularMemoryList::Remap(void* pvNewCache, size_t uiByteSize)
 {
-	SCircularMemoryList*	psDetail;
-
-	psDetail = mpsDetail;
-	mpsDetail = (SCircularMemoryList*)pvNewCache;
-	if (psDetail)
+	if (pvNewCache != mpsDetail)
 	{
-		mpsDetail->mpsHead = psDetail->mpsHead;
-		mpsDetail->mpsTail = psDetail->mpsTail;
-		mpsDetail->muiCacheSize = psDetail->muiCacheSize;
+		RemapDifferentMemory(RemapSinglePointer(pvNewCache, sizeof(SCircularMemoryList)), uiByteSize);
 	}
 	else
 	{
-		mpsDetail->mpsHead = NULL;
-		mpsDetail->mpsTail = NULL;
-		mpsDetail->muiCacheSize = 0;
+		RemapSameMemory(uiByteSize - sizeof(SCircularMemoryList));
 	}
+}
 
-	pvNewCache = (SMemoryCacheDescriptor*)RemapSinglePointer(pvNewCache, sizeof(SCircularMemoryList));
 
-	if (pvNewCache != mpvCache)
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCircularMemoryList::Remap(SCircularMemoryList* pvNewCache, size_t uiByteSize)
+{
+	if (pvNewCache)
 	{
-		RemapDifferentMemory(pvNewCache, uiByteSize - sizeof(SCircularMemoryList));
+		mpsDetail = pvNewCache;
+		mpvCache = (SMemoryCacheDescriptor*)RemapSinglePointer(pvNewCache, sizeof(SCircularMemoryList));
+		RemapSameMemory(uiByteSize - sizeof(SCircularMemoryList));
 	}
 	else
 	{
-		RemapSameMemory(pvNewCache, uiByteSize - sizeof(SCircularMemoryList));
+		mpsDetail = NULL;
+		mpvCache = NULL;
 	}
 }
 
@@ -86,8 +109,6 @@ void CCircularMemoryList::RemapDifferentMemory(void* pvNewCache, size_t uiCacheS
 	size_t						uiSize;
 	SMemoryCacheDescriptor*		psNewPrev;
 	SMemoryCacheDescriptor*		psNew;
-
-	memset(pvNewCache, 0, uiCacheSize);
 
 	if (!IsEmpty())
 	{
@@ -138,16 +159,16 @@ void CCircularMemoryList::RemapDifferentMemory(void* pvNewCache, size_t uiCacheS
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCircularMemoryList::RemapSameMemory(void* pvNewCache, size_t uiCacheSize)
+void CCircularMemoryList::RemapSameMemory(size_t uiCacheSize)
 {
 	SMemoryCacheDescriptor*		psCacheBasedDescriptor;
 	SMemoryCacheDescriptor*		psLargest;
 	SMemoryCacheDescriptor*		psNew;
 	size_t						uiSize;
 	size_t						uiRemaining;
-
+	
 	mpsDetail->muiCacheSize = uiCacheSize;
-	if (pvNewCache == GetFirst() || mpsDetail->mpsHead == NULL)
+	if (mpvCache == GetFirst() || mpsDetail->mpsHead == NULL)
 	{
 		return;
 	}
