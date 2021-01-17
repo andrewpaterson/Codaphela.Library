@@ -22,6 +22,7 @@ public:
 	BOOL	Pop(void* pvData, size_t* puiDataSize, size_t uiMaxDataSize);
 
 	BOOL	IsEmpty(void);
+	int		NumElements(void);
 	size_t	GetCacheSize(void);
 	size_t	GetAllocatedSize(void);
 

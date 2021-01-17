@@ -162,7 +162,8 @@ BOOL CSharedMemoryQueue::Push(void* pvData, size_t uiDataSize)
 			return FALSE;
 		}
 
-		mcQueue.Remap(sResize.pvMemory, sResize.uiSize);
+		//You can't call remap after mcQueue.mpsDetail has been freed.
+		mcQueue.Remap((SCircularMemoryList*)sResize.pvMemory, sResize.uiSize);
 		pvMemory = mcQueue.Push(uiDataSize);
 		if (!pvMemory)
 		{
@@ -220,6 +221,21 @@ BOOL CSharedMemoryQueue::IsEmpty(void)
 	mcMutex.Unlock();
 
 	return bEmpty;
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CSharedMemoryQueue::NumElements(void)
+{
+	int		i;
+
+	mcMutex.Lock();
+	i = mcQueue.NumElements();
+	mcMutex.Unlock();
+
+	return i;
 }
 
 

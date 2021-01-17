@@ -25,7 +25,10 @@ public:
 	void						Init(void* pvCache, size_t uiByteSize, int iDescriptorSize = sizeof(SMemoryCacheDescriptor));
 	void						Kill(void);
 
+	//These methods need to be renamed to something sane.
 	void						Remap(void* pvNewCache, size_t uiByteSize);
+	void						Remap(SCircularMemoryList* pvNewCache, size_t uiByteSize);
+
 	void						Clear(void);
 
 	size_t						GetSize(void* pvData);
@@ -52,7 +55,7 @@ protected:
 	size_t						RemainingAfter(SMemoryCacheDescriptor* psCacheBasedDescriptor);
 
 	void						RemapDifferentMemory(void* pvNewCache, size_t uiCacheSize);
-	void						RemapSameMemory(void* pvNewCache, size_t uiCacheSize);
+	void						RemapSameMemory(size_t uiCacheSize);
 
 	SMemoryCacheDescriptor*		StartIteration(void);
 	SMemoryCacheDescriptor*		Iterate(SMemoryCacheDescriptor* psCacheBasedDescriptor);

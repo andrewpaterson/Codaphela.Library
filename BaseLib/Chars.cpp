@@ -299,6 +299,17 @@ void CChars::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CChars::DumpKill(void)
+{
+	Dump();
+	Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CChars::Fake(char* sz)
 {
 	if (sz)
@@ -409,7 +420,7 @@ void CChars::SetChar(int iIndex, char c)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::Append(const char* sz)
+CChars* CChars::Append(const char* sz)
 {
 	int		iLen;
 	char*	pcPosition;
@@ -420,6 +431,7 @@ void CChars::Append(const char* sz)
 		pcPosition = PrivateGrow(iLen);
 		strcpy(pcPosition, sz);
 	}
+	return this;
 }
 
 
@@ -427,7 +439,7 @@ void CChars::Append(const char* sz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::Append(const char* sz, int iLen)
+CChars* CChars::Append(const char* sz, int iLen)
 {
 	char*	pcPosition;
 	char*	pcZero;
@@ -439,6 +451,8 @@ void CChars::Append(const char* sz, int iLen)
 		pcZero = mcText.Tail();
 		*pcZero = 0;
 	}
+
+	return this;
 }
 
 
@@ -480,12 +494,12 @@ void CChars::Append(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::Append(int i)
+CChars* CChars::Append(int i)
 {
 	char sz[32];
 
 	IToA(i, sz, 10);
-	Append(sz);
+	return Append(sz);
 }
 
 
@@ -493,12 +507,12 @@ void CChars::Append(int i)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::Append(int i, int iBase)
+CChars* CChars::Append(int i, int iBase)
 {
 	char sz[32];
 
 	IToA(i, sz, iBase);
-	Append(sz);
+	return Append(sz);
 }
 
 
@@ -630,9 +644,9 @@ void CChars::AppendQuoted(char c)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::AppendNewLine(void)
+CChars* CChars::AppendNewLine(void)
 {
-	Append("\n");
+	return Append("\n");
 }
 
 
@@ -640,10 +654,10 @@ void CChars::AppendNewLine(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::AppendNewLine(CChars sz)
+CChars* CChars::AppendNewLine(CChars sz)
 {
 	Append(&sz);
-	AppendNewLine();
+	return AppendNewLine();
 }
 
 
@@ -2083,7 +2097,7 @@ void CChars::Clear(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::AppendData(const char* szData, int iMaxLength)
+CChars* CChars::AppendData(const char* szData, int iMaxLength)
 {
 	int		i;
 	int		iLength;
@@ -2098,7 +2112,7 @@ void CChars::AppendData(const char* szData, int iMaxLength)
 		}
 	}
 
-	Append(szData, iLength);
+	return Append(szData, iLength);
 }
 
 
@@ -2106,7 +2120,7 @@ void CChars::AppendData(const char* szData, int iMaxLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::AppendData(const char* szData, int iDataLength, int iMaxLength)
+CChars* CChars::AppendData(const char* szData, int iDataLength, int iMaxLength)
 {
 	int				i;
 	int				iLength;
@@ -2176,6 +2190,8 @@ void CChars::AppendData(const char* szData, int iDataLength, int iMaxLength)
 	{
 		Append("...");
 	}
+
+	return this;
 }
 
 
