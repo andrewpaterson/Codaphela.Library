@@ -86,9 +86,17 @@ void CCircularMemoryList::Remap(SCircularMemoryList* pvNewCache, size_t uiByteSi
 {
 	if (pvNewCache)
 	{
-		mpsDetail = pvNewCache;
-		mpvCache = (SMemoryCacheDescriptor*)RemapSinglePointer(pvNewCache, sizeof(SCircularMemoryList));
-		RemapSameMemory(uiByteSize - sizeof(SCircularMemoryList));
+		if ((mpsDetail == NULL) || (mpsDetail->muiCacheSize != uiByteSize - sizeof(SCircularMemoryList)))
+		{
+			mpsDetail = pvNewCache;
+			mpvCache = (SMemoryCacheDescriptor*)RemapSinglePointer(pvNewCache, sizeof(SCircularMemoryList));
+			RemapSameMemory(uiByteSize - sizeof(SCircularMemoryList));
+		}
+		else
+		{
+			mpsDetail = pvNewCache;
+			mpvCache = (SMemoryCacheDescriptor*)RemapSinglePointer(pvNewCache, sizeof(SCircularMemoryList));
+		}
 	}
 	else
 	{

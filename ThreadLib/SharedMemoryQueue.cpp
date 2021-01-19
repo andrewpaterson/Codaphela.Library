@@ -20,16 +20,10 @@ BOOL CSharedMemoryQueue::Init(char* szName, size_t uiByteSize)
 //////////////////////////////////////////////////////////////////////////
 BOOL CSharedMemoryQueue::Init(char* szName)
 {
-	BOOL	bResult;
-
 	mbMaster = FALSE;
 	InitNames(szName);
 
-	mcMutex.Connect();
-	mcMutex.Lock();
-	bResult = InitClient();
-	mcMutex.Unlock();
-	return bResult;
+	return InitClient();
 }
 
 
@@ -59,7 +53,6 @@ void CSharedMemoryQueue::InitNames(char* szName)
 BOOL CSharedMemoryQueue::InitMaster(size_t uiByteSize)
 {
 	BOOL				bResult;
-	void*				pvMemory;
 	SSharedMemoryMap	sMap;
 
 	bResult = mcMutex.Create();
@@ -86,15 +79,14 @@ BOOL CSharedMemoryQueue::InitMaster(size_t uiByteSize)
 	}
 
 	sMap = mcSharedMemory.Touch();
-	pvMemory = sMap.pvMemory;
-	if (!pvMemory)
+	if (!sMap.pvMemory)
 	{
 		mcSharedMemory.Close();
 		mcMutex.Unlock();
 		mcMutex.Close();
 		return FALSE;
 	}
-	mcQueue.Init(pvMemory, sMap.uiSize);
+	mcQueue.Init(sMap.pvMemory, sMap.uiSize);
 	mcMutex.Unlock();
 
 	return TRUE;
@@ -110,23 +102,33 @@ BOOL CSharedMemoryQueue::InitClient(void)
 	BOOL				bResult;
 	SSharedMemoryMap	sMap;
 
-	bResult = mcSharedMemory.Connect();
-	if (!bResult)
-	{
-		mcSharedMemory.Close();
-		return FALSE;
-	}
-
 	bResult = mcMutex.Connect();
 	if (!bResult)
 	{
 		mcMutex.Close();
+		return FALSE;
+	}
+
+	mcMutex.Lock();
+	bResult = mcSharedMemory.Connect();
+	if (!bResult)
+	{
 		mcSharedMemory.Close();
+		mcMutex.Unlock();
+		mcMutex.Close();
 		return FALSE;
 	}
 
 	sMap = mcSharedMemory.Touch();
+	if (!sMap.pvMemory)
+	{
+		mcSharedMemory.Close();
+		mcMutex.Unlock();
+		mcMutex.Close();
+		return FALSE;
+	}
 	mcQueue.Init(sMap.pvMemory, sMap.uiSize);
+	mcMutex.Unlock();
 
 	return TRUE;
 }
@@ -191,7 +193,8 @@ BOOL CSharedMemoryQueue::Pop(void* pvData, size_t* puiDataSize, size_t uiMaxData
 	void*	pvMemory;
 
 	mcMutex.Lock();
-	mcSharedMemory.Touch();
+	SSharedMemoryMap sMap = mcSharedMemory.Touch();
+	mcQueue.Remap((SCircularMemoryList*)sMap.pvMemory, sMap.uiSize);
 
 	pvMemory = mcQueue.Peek(puiDataSize);
 	if (!pvMemory)
@@ -225,7 +228,9 @@ BOOL CSharedMemoryQueue::IsEmpty(void)
 	BOOL	bEmpty;
 
 	mcMutex.Lock();
-	mcSharedMemory.Touch();
+	SSharedMemoryMap sMap = mcSharedMemory.Touch();
+	mcQueue.Remap((SCircularMemoryList*)sMap.pvMemory, sMap.uiSize);
+
 	
 	bEmpty = mcQueue.IsEmpty();
 
@@ -242,7 +247,8 @@ int CSharedMemoryQueue::NumElements(void)
 	int		i;
 
 	mcMutex.Lock();
-	mcSharedMemory.Touch();
+	SSharedMemoryMap sMap = mcSharedMemory.Touch();
+	mcQueue.Remap((SCircularMemoryList*)sMap.pvMemory, sMap.uiSize);
 
 	i = mcQueue.NumElements();
 
@@ -260,7 +266,8 @@ size_t CSharedMemoryQueue::GetCacheSize(void)
 	size_t uiCacheSize;
 
 	mcMutex.Lock();
-	mcSharedMemory.Touch();
+	SSharedMemoryMap sMap = mcSharedMemory.Touch();
+	mcQueue.Remap((SCircularMemoryList*)sMap.pvMemory, sMap.uiSize);
 
 	uiCacheSize = mcQueue.GetCacheSize();
 
@@ -278,7 +285,8 @@ size_t CSharedMemoryQueue::GetAllocatedSize(void)
 	size_t uiAllocatedSize;
 
 	mcMutex.Lock();
-	mcSharedMemory.Touch();
+	SSharedMemoryMap sMap = mcSharedMemory.Touch();
+	mcQueue.Remap((SCircularMemoryList*)sMap.pvMemory, sMap.uiSize);
 
 	uiAllocatedSize = mcQueue.GetAllocatedSize();
 
@@ -296,7 +304,8 @@ BOOL CSharedMemoryQueue::ValidateQueue(void)
 	BOOL	bResult;
 
 	mcMutex.Lock();
-	mcSharedMemory.Touch();
+	SSharedMemoryMap sMap = mcSharedMemory.Touch();
+	mcQueue.Remap((SCircularMemoryList*)sMap.pvMemory, sMap.uiSize);
 
 	bResult = mcQueue.ValidateCache();
 	
