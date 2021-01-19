@@ -3,33 +3,7 @@
 #include "BaseLib/Chars.h"
 #include "BaseLib/WindowsHeaders.h"
 #include "SharedMemoryDescriptor.h"
-
-enum ESharedMemoryResult
-{
-	SMR_Success,
-	SMR_NotSet,
-	SMR_CannotCreate,
-	SMR_CannotMap,
-	SMR_FileHandleAlreadySet,
-	SMR_CannotOpen,
-	SMR_Invalid
-};
-
-
-struct SSharedMemoryResult
-{
-	size_t					uiSize;
-	ESharedMemoryResult		eResult;
-
-			SSharedMemoryResult();
-			SSharedMemoryResult(size_t uiSize);
-			SSharedMemoryResult(ESharedMemoryResult eRsult);
-	
-	size_t	GetSize(void);
-	BOOL	IsFailed(void);
-	BOOL	IsSuccess(void);
-	BOOL	IsInvalid(void);
-};
+#include "SharedMemoryResult.h"
 
 
 class CWindowsSharedMemoryFile
@@ -39,18 +13,18 @@ protected:
 	char	mszName[64];
 
 public:
-	void					Init(void);
-	void					Init(char* szName);
-	void					Reinit(void);
-	void					Reinit(char* szName);
-	BOOL					Kill(void);
+	void						Init(void);
+	void						Init(char* szName);
+	void						Reinit(void);
+	void						Reinit(char* szName);
+	BOOL						Kill(void);
 
-	BOOL					IsNamed(void);
-	char*					GetName(void);
+	BOOL						IsNamed(void);
+	char*						GetName(void);
 
-	SSharedMemoryResult		Create(size_t uiSize);
-	SSharedMemoryResult		Open(void);
-	void					Close(void);
+	SSharedMemoryResult			Create(size_t uiSize);
+	SSharedMemoryResult			Open(void);
+	void						Close(void);
 
 	SSharedMemoryDescriptor*	Map(size_t uiSize);
 };

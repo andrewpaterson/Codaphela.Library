@@ -181,7 +181,7 @@ BOOL CResizableSharedMemory::Connect(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CResizableSharedMemory::Touch(void)
+SSharedMemoryMap CResizableSharedMemory::Touch(void)
 {
     BOOL    bResult;
 
@@ -194,14 +194,14 @@ void* CResizableSharedMemory::Touch(void)
             
             if (bResult)
             {
-                return mpvMemory;
+                return SSharedMemoryMap(mpvMemory, (size_t)mpsDescriptor->uiSize);
             }
-            return NULL;
+            return SSharedMemoryMap();
         }
         else 
         {
             //Test the name and the map count.
-            return mpvMemory;
+            return SSharedMemoryMap(mpvMemory, (size_t)mpsDescriptor->uiSize);
         }
     }
     else
@@ -209,9 +209,9 @@ void* CResizableSharedMemory::Touch(void)
         Close();
         if (Connect())
         {
-            return mpvMemory;
+            return SSharedMemoryMap(mpvMemory, (size_t)mpsDescriptor->uiSize);
         }
-        return NULL;
+        return SSharedMemoryMap();
     }
 }
 
@@ -357,7 +357,7 @@ size_t CResizableSharedMemory::GetSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SSharedMemoryResize CResizableSharedMemory::Resize(size_t uiSize)
+SSharedMemoryMap CResizableSharedMemory::Resize(size_t uiSize)
 {
     BOOL                        bResult;
     uint64                      uiOldSize;
@@ -380,7 +380,7 @@ SSharedMemoryResize CResizableSharedMemory::Resize(size_t uiSize)
             memcpy(mpvMemory, pvMemory, (size_t)uiOldSize);
             free(pvMemory);
          
-            return SSharedMemoryResize(mpvMemory, uiSize);
+            return SSharedMemoryMap(mpvMemory, uiSize);
 
         }
         else
@@ -388,12 +388,12 @@ SSharedMemoryResize CResizableSharedMemory::Resize(size_t uiSize)
             free(pvMemory);
 
             gcLogger.Error2(__METHOD__, " Could not resize file.", NULL);
-            return SSharedMemoryResize(NULL, 0);
+            return SSharedMemoryMap();
         }
     }
     else
     {
-        return SSharedMemoryResize(mpvMemory, uiSize);
+        return SSharedMemoryMap(mpvMemory, uiSize);
     }
 }
 
@@ -402,7 +402,7 @@ SSharedMemoryResize CResizableSharedMemory::Resize(size_t uiSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SSharedMemoryResize CResizableSharedMemory::IncreaseSize(size_t uiMore)
+SSharedMemoryMap CResizableSharedMemory::IncreaseSize(size_t uiMore)
 {
     size_t  uiSize;
 

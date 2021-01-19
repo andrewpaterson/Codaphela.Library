@@ -12,7 +12,7 @@ private:
 	SWindowsSharedMemoryFileName*	mpcCoordinatorMappedFile;
 
 	CWindowsSharedMemoryFile		mcMappedFile;
-	SSharedMemoryDescriptor*					mpsDescriptor;
+	SSharedMemoryDescriptor*		mpsDescriptor;
 	void*							mpvMemory;
 
 	CChars							mszSharedName;
@@ -25,14 +25,14 @@ public:
 	void				Init(char* szMemoryName, char* szDebugIdentifier = NULL);
 	void				Kill(void);
 
-	void*				Touch(void);
+	SSharedMemoryMap	Touch(void);
 
 	BOOL				Create(size_t uiSize);
 	BOOL				Connect(void);
 	int					Close(void);
 
-	SSharedMemoryResize	IncreaseSize(size_t uiMore);
-	SSharedMemoryResize	Resize(size_t uiSize);
+	SSharedMemoryMap	IncreaseSize(size_t uiMore);
+	SSharedMemoryMap	Resize(size_t uiSize);
 
 	size_t				GetSize(void);
 
