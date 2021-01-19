@@ -49,7 +49,7 @@ void CInterProcessDone::Start(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CInterProcessDone::Touch(void)
+void CInterProcessDone::Open(void)
 {
 	mpsDone = (SInterProcessDone*)mcSharedMemory.Open();
 }
@@ -61,10 +61,20 @@ void CInterProcessDone::Touch(void)
 //////////////////////////////////////////////////////////////////////////
 void CInterProcessDone::Wait(int iCount)
 {
-	while (mpsDone->iDone < iCount)
+	while (!IsDone(iCount))
 	{
 		std::this_thread::yield();
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CInterProcessDone::IsDone(int iCount)
+{
+	return mpsDone->iDone >= iCount;
 }
 
 

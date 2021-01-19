@@ -21,7 +21,8 @@ public:
 	void Kill(void);
 
 	void Start(void);
-	void Touch(void);
+	void Open(void);
+	BOOL IsDone(int iCount);
 	void Wait(int iCount);
 	void Stop(void);
 };
