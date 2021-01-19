@@ -138,6 +138,9 @@
     <ClCompile Include="InterProcessFlow.cpp">
       <Filter>Source\Process\Flow</Filter>
     </ClCompile>
+    <ClCompile Include="SharedMemoryResult.cpp">
+      <Filter>Source\SharedMemory</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SafeArrayBlock.h">
@@ -214,6 +217,9 @@
     </ClInclude>
     <ClInclude Include="InterProcessFlow.h">
       <Filter>Source\Process\Flow</Filter>
+    </ClInclude>
+    <ClInclude Include="SharedMemoryResult.h">
+      <Filter>Source\SharedMemory</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

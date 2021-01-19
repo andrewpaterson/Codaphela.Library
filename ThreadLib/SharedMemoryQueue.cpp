@@ -58,8 +58,9 @@ void CSharedMemoryQueue::InitNames(char* szName)
 //////////////////////////////////////////////////////////////////////////
 BOOL CSharedMemoryQueue::InitMaster(size_t uiByteSize)
 {
-	BOOL	bResult;
-	void*	pvMemory;
+	BOOL				bResult;
+	void*				pvMemory;
+	SSharedMemoryMap	sMap;
 
 	bResult = mcMutex.Create();
 	if (!bResult)
@@ -84,7 +85,8 @@ BOOL CSharedMemoryQueue::InitMaster(size_t uiByteSize)
 		return FALSE;
 	}
 
-	pvMemory = mcSharedMemory.Touch();
+	sMap = mcSharedMemory.Touch();
+	pvMemory = sMap.pvMemory;
 	if (!pvMemory)
 	{
 		mcSharedMemory.Close();
@@ -92,7 +94,7 @@ BOOL CSharedMemoryQueue::InitMaster(size_t uiByteSize)
 		mcMutex.Close();
 		return FALSE;
 	}
-	mcQueue.Init(pvMemory, mcSharedMemory.GetSize());
+	mcQueue.Init(pvMemory, sMap.uiSize);
 	mcMutex.Unlock();
 
 	return TRUE;
@@ -105,8 +107,8 @@ BOOL CSharedMemoryQueue::InitMaster(size_t uiByteSize)
 //////////////////////////////////////////////////////////////////////////
 BOOL CSharedMemoryQueue::InitClient(void)
 {
-	BOOL	bResult;
-	void*	pvMemory;
+	BOOL				bResult;
+	SSharedMemoryMap	sMap;
 
 	bResult = mcSharedMemory.Connect();
 	if (!bResult)
@@ -123,8 +125,8 @@ BOOL CSharedMemoryQueue::InitClient(void)
 		return FALSE;
 	}
 
-	pvMemory = mcSharedMemory.Touch();
-	mcQueue.Init(pvMemory, mcSharedMemory.GetSize());
+	sMap = mcSharedMemory.Touch();
+	mcQueue.Init(sMap.pvMemory, sMap.uiSize);
 
 	return TRUE;
 }
@@ -149,15 +151,16 @@ void CSharedMemoryQueue::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CSharedMemoryQueue::Push(void* pvData, size_t uiDataSize)
 {
-	void*	pvMemory;
+	void*				pvMemory;
 
 	mcMutex.Lock();
-	mcSharedMemory.Touch();
+	SSharedMemoryMap sMap = mcSharedMemory.Touch();
+	mcQueue.Remap((SCircularMemoryList*)sMap.pvMemory, sMap.uiSize);
 
 	pvMemory = mcQueue.Push(uiDataSize);
 	if (!pvMemory)
 	{
-		SSharedMemoryResize	sResize = mcSharedMemory.IncreaseSize(uiDataSize);
+		SSharedMemoryMap	sResize = mcSharedMemory.IncreaseSize(uiDataSize);
 		if (!sResize.pvMemory)
 		{
 			return FALSE;
