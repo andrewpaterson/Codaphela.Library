@@ -29,9 +29,8 @@ public:
 	BOOL	ValidateQueue(void);
 
 protected:
-	BOOL	InitMaster(size_t uiByteSize);
-	BOOL	InitClient(void);
-	void	InitNames(char* szName);
+	BOOL	InitMaster(char* szName, size_t uiByteSize);
+	BOOL	InitClient(char* szName);
 };
 
 

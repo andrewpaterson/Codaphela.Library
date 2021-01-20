@@ -54,6 +54,18 @@ void CCircularMemoryList::Init(void* pvCache, size_t uiByteSize, int iDescriptor
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CCircularMemoryList::InitExisting(void* pvCache, size_t uiByteSize, int iDescriptorSize)
+{
+	miDescriptorSize = iDescriptorSize;
+	mpsDetail = (SCircularMemoryList*)pvCache;
+	mpvCache = (SMemoryCacheDescriptor*)RemapSinglePointer(pvCache, sizeof(SCircularMemoryList));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CCircularMemoryList::Kill(void)
 {
 	mpvCache = NULL;
@@ -86,16 +98,11 @@ void CCircularMemoryList::Remap(SCircularMemoryList* pvNewCache, size_t uiByteSi
 {
 	if (pvNewCache)
 	{
-		if ((mpsDetail == NULL) || (mpsDetail->muiCacheSize != uiByteSize - sizeof(SCircularMemoryList)))
+		mpsDetail = pvNewCache;
+		mpvCache = (SMemoryCacheDescriptor*)RemapSinglePointer(pvNewCache, sizeof(SCircularMemoryList));
+		if (mpsDetail->muiCacheSize != uiByteSize - sizeof(SCircularMemoryList))
 		{
-			mpsDetail = pvNewCache;
-			mpvCache = (SMemoryCacheDescriptor*)RemapSinglePointer(pvNewCache, sizeof(SCircularMemoryList));
 			RemapSameMemory(uiByteSize - sizeof(SCircularMemoryList));
-		}
-		else
-		{
-			mpsDetail = pvNewCache;
-			mpvCache = (SMemoryCacheDescriptor*)RemapSinglePointer(pvNewCache, sizeof(SCircularMemoryList));
 		}
 	}
 	else

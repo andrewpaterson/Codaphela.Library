@@ -23,6 +23,7 @@ protected:
 
 public:
 	void						Init(void* pvCache, size_t uiByteSize, int iDescriptorSize = sizeof(SMemoryCacheDescriptor));
+	void						InitExisting(void* pvCache, size_t uiByteSize, int iDescriptorSize = sizeof(SMemoryCacheDescriptor));
 	void						Kill(void);
 
 	//These methods need to be renamed to something sane.

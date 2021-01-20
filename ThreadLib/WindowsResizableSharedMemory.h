@@ -22,7 +22,7 @@ private:
 	SSharedMemoryDescriptor*		mpsHoldingDescriptor;
 
 public:
-	void				Init(char* szMemoryName, char* szDebugIdentifier = NULL);
+	BOOL				Init(char* szMemoryName, char* szDebugIdentifier = NULL);
 	void				Kill(void);
 
 	SSharedMemoryMap	Touch(void);
@@ -37,7 +37,7 @@ public:
 	size_t				GetSize(void);
 
 protected:
-	void	InitCoordinator(char* szMemoryName);
+	BOOL	InitCoordinator(char* szMemoryName);
 	BOOL	ReinitCoordinator(void);
 
 	BOOL	Map(size_t uiSize);
