@@ -68,7 +68,7 @@ BOOL CInterProcessMutex::Connect(void)
 
     if (mhMutex == NULL)
     {
-        return gcLogger.Error2(__METHOD__, " Could not open mutex [", WindowsErrorCodeToString(GetLastError()), "].", NULL);
+        return gcLogger.Error2(__METHOD__, " Could not open mutex [", mszName.Text(), "].  Failed with [", WindowsErrorCodeToString(GetLastError()), "].", NULL);
     }
     else
     {

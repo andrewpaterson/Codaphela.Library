@@ -10,9 +10,11 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CResizableSharedMemory::Init(char* szMemoryName, char* szDebugIdentifier)
+BOOL CResizableSharedMemory::Init(char* szMemoryName, char* szDebugIdentifier)
 {
-    InitCoordinator(szMemoryName);
+    BOOL    bResult;
+
+    bResult = InitCoordinator(szMemoryName);
     mcHoldingMappedFile.Init();
     mpsHoldingDescriptor = NULL;
 
@@ -30,6 +32,8 @@ void CResizableSharedMemory::Init(char* szMemoryName, char* szDebugIdentifier)
     {
         mszDebugIdentifier.Init();
     }
+
+    return bResult;
 }
 
 
@@ -37,13 +41,14 @@ void CResizableSharedMemory::Init(char* szMemoryName, char* szDebugIdentifier)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CResizableSharedMemory::InitCoordinator(char* szMemoryName)
+BOOL CResizableSharedMemory::InitCoordinator(char* szMemoryName)
 {
-    CChars                      sz;
+    CChars  sz;
+    BOOL    bResult;
 
     sz.Init(szMemoryName);
     sz.Append(":C");
-    mcCoordinator.Init(sz.Text());
+    bResult = mcCoordinator.Init(sz.Text());
     sz.Kill();
 
     //mpcCoordinatorMappedFile, mcMappedFile, mpvMemory and mpsDescriptor all move together
@@ -53,6 +58,8 @@ void CResizableSharedMemory::InitCoordinator(char* szMemoryName)
 
     mpvMemory = NULL;
     mpsDescriptor = NULL;
+
+    return bResult;
 }
 
 
