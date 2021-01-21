@@ -106,7 +106,7 @@ void CListenerCall::CallListeners(void(M::*ListenerFunc)(CUnknown*, void*), CUnk
 	int					i;
 	M*					pcListener;
 	M					cTemp;
-	char*				szName;
+	const char*			szName;
 	CArrayListenerPtr*	pcArray;
 
 	szName = cTemp.ClassName();

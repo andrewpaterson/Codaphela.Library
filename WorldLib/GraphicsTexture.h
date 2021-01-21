@@ -28,7 +28,7 @@ Microsoft DirectX is Copyright Microsoft Corporation
 
 class CGraphicsTexture : public CUnknown
 {
-BASE_FUNCTIONS(CGraphicsTexture);
+CONSTRUCTABLE(CGraphicsTexture);
 protected:
 	STexture	msTexture;
 

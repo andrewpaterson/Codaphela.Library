@@ -106,8 +106,7 @@ template <class M>
 void CLinkedListTemplateFreeList<M>::Kill(void)
 {
 	mcFreeList.Kill();
-	mpsHead = NULL;
-	mpsTail = NULL;
+	CLinkedListTemplate<M>::Kill();
 }
 
 

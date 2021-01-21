@@ -30,7 +30,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 class CTextField : public CLabel
 {
 public:
-	BASE_FUNCTIONS(CTextField);
+	CONSTRUCTABLE(CTextField);
 
 	CPlainGraphicalTextEditor	mcEditor;
 

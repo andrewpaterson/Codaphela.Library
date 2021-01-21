@@ -65,7 +65,7 @@ typedef CArrayTemplate<SSkinnedLinkObjectNode> CArraySkinnedLinkObjectNodes;
 //There is a maximum of 255 LinkObjectNodes (which is a directX limitation).
 class CMeshObject : public CUnknown
 {
-BASE_FUNCTIONS(CMeshObject);
+CONSTRUCTABLE(CMeshObject);
 protected:
 	CLinkListLinkObjectNode			mcNodes;
 	CArrayVector					mcVerticies;  //Each vertex (and normal) may be duplicated up to 4 times depending on the number of

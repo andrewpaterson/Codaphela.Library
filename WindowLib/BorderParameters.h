@@ -27,7 +27,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 class CBorderParameters : public CQuadParameters
 {
 public:
-	BASE_FUNCTIONS(CBorderParameters);
+	CONSTRUCTABLE(CBorderParameters);
 
 	int					meBorderStyle;
 	EBorderEdgeType		meEdgeType;

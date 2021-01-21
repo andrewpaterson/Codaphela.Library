@@ -32,7 +32,7 @@ Microsoft DirectX is Copyright Microsoft Corporation
 class CWorld;
 class CCameraInstance : public CUnknown
 {
-BASE_FUNCTIONS(CCameraInstance);
+CONSTRUCTABLE(CCameraInstance);
 protected:
 	SSurface*	mpsSurface;
 	SMatrix*	mpsView;  //This will transform the view about the camera (practically keeping the camera at 0,0,0).

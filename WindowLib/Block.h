@@ -30,8 +30,8 @@ class CBlockParameters;
 
 class CBlock : public CDrawable
 {
+CONSTRUCTABLE(CBlock);
 public:
-	BASE_FUNCTIONS(CBlock);
 
 	CBlockParameters*	mpcBlockParameters;
 	float				mfAlpha;

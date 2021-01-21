@@ -39,7 +39,7 @@ enum EMovementType
 
 class CMovement : public CUnknown
 {
-BASE_FUNCTIONS(CMovement);
+CONSTRUCTABLE(CMovement);
 protected:
 	int				miType;
 	CAnimation*		mpcRotationAnimation;

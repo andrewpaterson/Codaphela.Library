@@ -76,7 +76,7 @@ typedef CLinkedListTemplate<CMeshInstanceNode>	CLinkListLinkInstanceNode;
 //not a body with legs) then you must use a different class (Not written at this time).
 class CMeshInstance : public CUnknown
 {
-BASE_FUNCTIONS(CMeshInstance);
+CONSTRUCTABLE(CMeshInstance);
 protected:
 	CMeshObject*				mpcMeshObject;
 	SMatrix*					mpsWorldSpaceTransform;	

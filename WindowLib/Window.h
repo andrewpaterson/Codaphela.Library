@@ -32,7 +32,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 class CWindow : public CInputListener
 {
 public:
-	BASE_FUNCTIONS(CWindow);
+	CONSTRUCTABLE(CWindow);
 
 	CViewport*		mpcViewport;
 	CInput*			mpcInput;

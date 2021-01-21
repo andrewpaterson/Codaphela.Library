@@ -26,7 +26,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 class CFocusListener : public CListener
 {
 public:
-	BASE_FUNCTIONS(CFocusListener);
+	CONSTRUCTABLE(CFocusListener);
 
 	virtual void	FocusGained(void) {};
 	virtual void	FocusLost(void) {};

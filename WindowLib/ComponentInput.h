@@ -33,7 +33,7 @@ class CViewport;
 class CComponent;
 class CComponentInput : public CUnknown, public CListener
 {
-BASE_FUNCTIONS(CComponentInput);
+CONSTRUCTABLE(CComponentInput);
 protected:
 	CSetComponentInputDevices	mlcInputDevices;
 

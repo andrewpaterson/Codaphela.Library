@@ -32,7 +32,7 @@ class CWorldEditor;
 
 class CHomeGrid : public CUnknown
 {
-BASE_FUNCTIONS(CHomeGrid)
+CONSTRUCTABLE(CHomeGrid)
 protected:
 	SMatrix*			mpsMatrix;
 	D3DXVECTOR2			msSpacing;

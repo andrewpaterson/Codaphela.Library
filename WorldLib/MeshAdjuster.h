@@ -37,7 +37,7 @@ class CWorldEditor;
 class CMeshEditor;
 class CMeshAdjuster : public CUnknown
 {
-BASE_FUNCTIONS(CMeshAdjuster)
+CONSTRUCTABLE(CMeshAdjuster)
 protected:
 	CWorldEditor*			mpcWorldEditor;
 	CMeshEditor*			mpcMeshEditor;

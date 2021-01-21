@@ -34,7 +34,7 @@ Microsoft DirectX is Copyright Microsoft Corporation
 class CScene;
 class CSceneConverter
 {
-BASE_FUNCTIONS(CSceneConverter);
+CONSTRUCTABLE(CSceneConverter);
 protected:
 	CMaterialConverter		mcMaterialConverter;
 	CMeshConverter			mcMeshConverter;

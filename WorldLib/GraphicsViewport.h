@@ -30,7 +30,7 @@ Microsoft DirectX is Copyright Microsoft Corporation
 class CWorld;
 class CViewportInstance : public CUnknown
 {
-BASE_FUNCTIONS(CViewportInstance);
+CONSTRUCTABLE(CViewportInstance);
 protected:
 	SViewport	msViewport;
 	CWorld*		mpcWorld;

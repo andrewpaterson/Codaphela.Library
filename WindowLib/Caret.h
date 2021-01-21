@@ -26,7 +26,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 class CCaret : public CBlock
 {
 public:
-	BASE_FUNCTIONS(CCaret);
+	CONSTRUCTABLE(CCaret);
 
 	CBlockParameters*	mpcBlackParameters;
 

@@ -27,7 +27,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 class CToolbar : public CFlowContainer
 {
 public:
-	BASE_FUNCTIONS(CToolbar);
+	CONSTRUCTABLE(CToolbar);
 
 	void	Init(CViewport* pcViewport);
 	void	Kill(void);

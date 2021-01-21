@@ -73,7 +73,7 @@ public:
 
 class CPosition : public CUnknown
 {
-BASE_FUNCTIONS(CPosition);
+CONSTRUCTABLE(CPosition);
 protected:
 	SIntAndPointer	msType;
 

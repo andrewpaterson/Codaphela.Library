@@ -43,7 +43,7 @@ typedef CArrayTemplateMinimal<SRenderState>	CRenderStateArray;
 class CGraphicsTexture;
 class CGraphicsMaterial : public CUnknown
 {
-BASE_FUNCTIONS(CGraphicsMaterial);
+CONSTRUCTABLE(CGraphicsMaterial);
 protected:
 	SMaterial			msMaterial;
 	CGraphicsTexture*	mapsTexture[MAX_TEX];

@@ -44,7 +44,7 @@ struct SContainerBounds
 
 class CComponent : public CUnknown, public CFocusListener, public CComponentListener
 {
-BASE_FUNCTIONS(CComponent);
+CONSTRUCTABLE(CComponent);
 protected:
 	CViewport*			mpcViewport;
 	CWorld*				mpcWorld;

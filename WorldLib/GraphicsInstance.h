@@ -42,7 +42,7 @@ typedef CArrayTemplate<CGraphPrimInstance> CGraphPrimInstanceArray;
 class CWorld;
 class CGraphicsInstance : public CUnknown
 {
-BASE_FUNCTIONS(CGraphicsInstance);
+CONSTRUCTABLE(CGraphicsInstance);
 protected:
 	CGraphicsObject*			mpcGraphicsObject;		//Pointer to the graphics object.
 	CArrayPtrMatrices			mapMatrices;	 		//Pointers to the controlling matrices.

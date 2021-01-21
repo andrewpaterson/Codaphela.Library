@@ -30,7 +30,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 class CQuadParameters : public CUnknown
 {
-BASE_FUNCTIONS(CQuadParameters);
+CONSTRUCTABLE(CQuadParameters);
 protected:
 	CGraphicsState*		mpcGraphicsState;
 

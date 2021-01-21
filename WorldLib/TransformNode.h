@@ -51,7 +51,7 @@ public:
 
 class CTransformNode : public CUnknown
 {
-BASE_FUNCTIONS(CTransformNode);
+CONSTRUCTABLE(CTransformNode);
 protected:
 	SIntAndPointer	msType;
 
