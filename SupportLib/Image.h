@@ -45,10 +45,6 @@ struct SImageChangingDesc
 };
 
 
-//Image shouldn't be aware of CImageAccessor.
-class CImageAccessor;
-
-
 class CImage : public CNamedObject
 {
 CONSTRUCTABLE(CImage);

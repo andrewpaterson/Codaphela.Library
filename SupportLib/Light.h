@@ -44,9 +44,8 @@ enum ELightType
 
 class CLight : public CNamedObject
 {
+CONSTRUCTABLE(CLight);
 public:
-	CONSTRUCTABLE(CLight);
-
 	ELightType			meType;
 	CImageColourARGB	msColour;
 	ELightDecayType		meDecay;

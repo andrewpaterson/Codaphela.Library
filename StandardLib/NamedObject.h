@@ -29,7 +29,6 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 class CNamedObject : public CObject
 {
 friend class CNamedIndexedObjects;
-
 CONSTRUCTABLE(CNamedObject);
 protected:
 	CChars	mon;

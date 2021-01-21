@@ -34,9 +34,8 @@ enum ECameraType
 
 class CCamera : public CNamedObject
 {
+CONSTRUCTABLE(CCamera); 
 public:
-	CONSTRUCTABLE(CCamera);
-
 	ECameraType		meCameraType;
 	float			mfFOV;
 

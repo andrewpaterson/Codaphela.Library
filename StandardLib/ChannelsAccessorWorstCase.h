@@ -26,9 +26,8 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //Source and dest both bitty.
 class CChannelsAccessorWorstCase : public CChannelsAccessor
 {
+CONSTRUCTABLE(CChannelsAccessorWorstCase); 
 public:
-	CONSTRUCTABLE(CChannelsAccessorWorstCase);
-
 	void*	Get(int iPos);
 	void	Set(int iPos, void* pvData);  //No bit offset for source, it's byte aligned.
 };

@@ -35,7 +35,6 @@ class CConnection : public CNamedObject
 {
 CONSTRUCTABLE(CConnection);
 public:
-
 	SFloat4x4			msWorldMatrix;
 	SFloat4x4			msLocalMatrix;  //It's possible to work this out given a parent matrix.
 	BOOL				mbSelected;

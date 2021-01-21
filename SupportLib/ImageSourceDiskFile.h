@@ -29,9 +29,8 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 class CImageSourceDiskFile : public CImageSource
 {
+CONSTRUCTABLE(CImageSourceDiskFile);
 public:
-	CONSTRUCTABLE(CImageSourceDiskFile);
-
 	CChars	mszFileName;
 
 	void Init(char* szFileName, char* szImageName = NULL);
