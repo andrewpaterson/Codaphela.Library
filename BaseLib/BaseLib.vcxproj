@@ -479,9 +479,7 @@
     <None Include="gpl.txt" />
     <None Include="lgpl.txt" />
     <None Include="TypeConverter_Mapping.inl" />
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="LibraryBreakdown.txt" />
+    <None Include="LibraryBreakdown.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
