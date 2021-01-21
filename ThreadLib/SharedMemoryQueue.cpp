@@ -190,7 +190,6 @@ BOOL CSharedMemoryQueue::Push(void* pvData, size_t uiDataSize)
 			return FALSE;
 		}
 
-		//You can't call remap after mcQueue.mpsDetail has been freed.
 		mcQueue.Remap((SCircularMemoryList*)sResize.pvMemory, sResize.uiSize);
 		pvMemory = mcQueue.Push(uiDataSize);
 		if (!pvMemory)
