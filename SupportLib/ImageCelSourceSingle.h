@@ -29,7 +29,6 @@ class CImageCelSourceSingle : public CImageCelSource
 {
 CONSTRUCTABLE(CImageCelSourceSingle);
 protected:
-
 	int miLeftOffset;
 	int miTopOffset;
 	int miRightOffset;

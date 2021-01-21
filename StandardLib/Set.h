@@ -25,10 +25,10 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseObject.h"
 
 
-template<class M = CBaseObjec>
+template<class M = CBaseObject>
 class CSet : public CSetObject
 {
-	CONSTRUCTABLE(CSet);
+CONSTRUCTABLE(CSet);
 public:
 	Ptr<CSet<M>>	Init(void);
 	void 			Kill(void);

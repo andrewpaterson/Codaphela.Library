@@ -25,9 +25,8 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 class CChannelsAccessorAccessBitty : public CChannelsAccessor
 {
+CONSTRUCTABLE(CChannelsAccessorAccessBitty);
 public:
-	CONSTRUCTABLE(CChannelsAccessorAccessBitty);
-
 	void*	Get(int iPos);
 	void	Set(int iPos, void* pvData);
 };

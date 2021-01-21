@@ -3,6 +3,7 @@
 #include "BaseLib/Chars.h"
 #include "Object.h"
 
+
 class CObjectSerialiser;
 class CObjectDeserialiser;
 class CString : public CObject, public CChars

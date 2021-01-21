@@ -33,9 +33,8 @@ struct STimerData
 
 class CTimerListener : public CListener
 {
+CONSTRUCTABLE(CTimerListener); 
 public:
-	CONSTRUCTABLE(CTimerListener);
-
 	virtual void	TimerAlarm(CUnknown* pcSource, void* pvContext) {};
 };
 
