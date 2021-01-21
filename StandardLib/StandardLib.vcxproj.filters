@@ -91,12 +91,6 @@
     <Filter Include="Source\Object\Object\Source\Text">
       <UniqueIdentifier>{c2e3cc07-a997-441d-9324-ea44c92d1e4f}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Data">
-      <UniqueIdentifier>{a188da79-5423-454c-bb1a-c091d28e2812}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Data\String">
-      <UniqueIdentifier>{7967ff9e-3665-4856-a8e3-bb8fd1129628}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source\File\Chunk">
       <UniqueIdentifier>{a9727c0f-808f-423d-ac01-83f734db49c3}</UniqueIdentifier>
     </Filter>
@@ -127,9 +121,6 @@
     <Filter Include="Source\Object\Object\Serilalisation\Indexed">
       <UniqueIdentifier>{302cf9ae-684d-4734-8ebb-e95c2596e133}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Data\Pointer">
-      <UniqueIdentifier>{2041e945-c1cb-4e33-9f2a-2015b2dc0f38}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source\Object\Object\Distance">
       <UniqueIdentifier>{e2da8052-1373-4d1d-8f90-2758043ce82a}</UniqueIdentifier>
     </Filter>
@@ -138,6 +129,12 @@
     </Filter>
     <Filter Include="Source\Object\Object\Distance\Stack">
       <UniqueIdentifier>{4b1a6f45-2322-44af-a95d-1985553e1843}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Object\Object\String">
+      <UniqueIdentifier>{7967ff9e-3665-4856-a8e3-bb8fd1129628}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Object\Object\NewFilter1">
+      <UniqueIdentifier>{77aff5f8-fd5e-447c-8ddd-63d2c6c93e1f}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -289,7 +286,7 @@
       <Filter>Source\Object\Object\Indexed</Filter>
     </ClInclude>
     <ClInclude Include="String.h">
-      <Filter>Source\Data\String</Filter>
+      <Filter>Source\Object\Object\String</Filter>
     </ClInclude>
     <ClInclude Include="ChunkFileNames.h">
       <Filter>Source\File\Chunk</Filter>
@@ -426,9 +423,6 @@
     <ClInclude Include="EmbeddedObject.h">
       <Filter>Source\Object\Object</Filter>
     </ClInclude>
-    <ClInclude Include="PointerContainer.h">
-      <Filter>Source\Data\Pointer</Filter>
-    </ClInclude>
     <ClInclude Include="StackPointers.h">
       <Filter>Source\Object\Object\Pointer</Filter>
     </ClInclude>
@@ -458,6 +452,9 @@
     </ClInclude>
     <ClInclude Include="HollowEmbeddedObject.h">
       <Filter>Source\Object\Object\Hollow</Filter>
+    </ClInclude>
+    <ClInclude Include="PointerContainer.h">
+      <Filter>Source\Object\Object\Pointer</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -588,7 +585,7 @@
       <Filter>Source\Object\Object\Indexed</Filter>
     </ClCompile>
     <ClCompile Include="String.cpp">
-      <Filter>Source\Data\String</Filter>
+      <Filter>Source\Object\Object\String</Filter>
     </ClCompile>
     <ClCompile Include="ChunkFileNames.cpp">
       <Filter>Source\File\Chunk</Filter>
@@ -713,9 +710,6 @@
     <ClCompile Include="EmbeddedObject.cpp">
       <Filter>Source\Object\Object</Filter>
     </ClCompile>
-    <ClCompile Include="PointerContainer.cpp">
-      <Filter>Source\Data\Pointer</Filter>
-    </ClCompile>
     <ClCompile Include="StackPointers.cpp">
       <Filter>Source\Object\Object\Pointer</Filter>
     </ClCompile>
@@ -742,6 +736,9 @@
     </ClCompile>
     <ClCompile Include="HollowEmbeddedObject.cpp">
       <Filter>Source\Object\Object\Hollow</Filter>
+    </ClCompile>
+    <ClCompile Include="PointerContainer.cpp">
+      <Filter>Source\Object\Object\Pointer</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

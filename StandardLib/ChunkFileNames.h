@@ -19,7 +19,7 @@ struct SChunkFileNameIterator
 class CChunkFileNames : public CChunkFile
 {
 protected:
-	CArrayChars	maszOpenChunkNames;  //All the chunk names not including the last one.
+	CArrayChars		maszOpenChunkNames;  //All the chunk names not including the last one.
 	CChars			mszLastChunkName;  //The last open chunk name.
 
 public:
