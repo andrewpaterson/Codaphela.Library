@@ -30,7 +30,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 class CComponentInput;
 class CComponentInputDevice : public CUnknown
 {
-BASE_FUNCTIONS(CComponentInputDevice);
+CONSTRUCTABLE(CComponentInputDevice);
 protected:
 	CComponentInput*			mpcComponentInput;
 

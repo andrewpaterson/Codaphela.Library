@@ -30,7 +30,7 @@ Microsoft DirectX is Copyright Microsoft Corporation
 
 class CGraphicsState : public CUnknown
 {
-BASE_FUNCTIONS(CGraphicsState);
+CONSTRUCTABLE(CGraphicsState);
 protected:
 	int							miNumTextures;
 	int							miNumSamplers;

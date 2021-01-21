@@ -30,7 +30,7 @@ class CViewport;
 class CTextParameters : public CQuadParameters
 {
 public:
-	BASE_FUNCTIONS(CTextParameters);
+	CONSTRUCTABLE(CTextParameters);
 
 	CFont*				mpcFont;
 	int					miTabSpaceCount;  //tab width = miTabSpaceCount*miSpaceWidth.

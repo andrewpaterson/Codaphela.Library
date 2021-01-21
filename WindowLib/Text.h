@@ -30,7 +30,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 class CText : public CDrawable
 {
 public:
-	BASE_FUNCTIONS(CText);
+	CONSTRUCTABLE(CText);
 
 	float		mfAlpha;
 	CTextData	mcTextData;

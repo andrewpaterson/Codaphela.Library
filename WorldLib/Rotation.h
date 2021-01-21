@@ -51,7 +51,7 @@ public:
 
 class CRotation : public CUnknown
 {
-BASE_FUNCTIONS(CRotation);
+CONSTRUCTABLE(CRotation);
 protected:
 	SIntAndPointer	msType;
 

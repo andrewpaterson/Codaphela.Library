@@ -59,7 +59,7 @@ typedef CArrayTemplateMinimal<CViewportInstance*>	CArrayPtrViewports;
 class CWorld;
 class CGraphicsObject : public CUnknown
 {
-BASE_FUNCTIONS(CGraphicsObject);
+CONSTRUCTABLE(CGraphicsObject);
 protected:
 	CGraphicsDynamicVertexBufferArray	msDynamicVertexBuffers; //Array of vertex buffers.
 	CGraphicsVertexBufferArray			msStaticVertexBuffers;	//Array of vertex buffers.

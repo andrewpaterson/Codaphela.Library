@@ -27,7 +27,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 class CComponentListener : public CTextEditor, public CListener
 {
 public:
-	BASE_FUNCTIONS(CComponentListener);
+	CONSTRUCTABLE(CComponentListener);
 
 	virtual void Up(void) {};
 	virtual void Down(void) {};

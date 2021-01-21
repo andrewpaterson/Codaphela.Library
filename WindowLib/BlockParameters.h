@@ -28,7 +28,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 class CBlockParameters : public CQuadParameters
 {
 public:
-	BASE_FUNCTIONS(CBlockParameters);
+	CONSTRUCTABLE(CBlockParameters);
 
 	CRectangle			macRects[MAX_TEX];
 	unsigned int			miColour;

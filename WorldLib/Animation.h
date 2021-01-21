@@ -65,7 +65,7 @@ typedef CArrayTemplate<SAnimationCelIndex>	CAnimationIndexCelArray;
 
 class CAnimation : public CStandardTrackerObject
 {
-BASE_FUNCTIONS(CAnimation);
+CONSTRUCTABLE(CAnimation);
 protected:
 	CAnimationIndexCelArray		maCelIndices;
 	BOOL						mbEnabled;

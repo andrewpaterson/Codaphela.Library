@@ -90,7 +90,7 @@ class CBorderParameters;
 class CBorder : public CDrawable
 {
 public:
-	BASE_FUNCTIONS(CBorder);
+	CONSTRUCTABLE(CBorder);
 
 	CBorderParameters*		mpcBorderParameters;
 	float					mfAlpha;

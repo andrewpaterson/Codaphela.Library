@@ -159,7 +159,7 @@ struct SParticleType
 
 class CParticleSystem : public CUnknown
 {
-BASE_FUNCTIONS(CParticleSystem);
+CONSTRUCTABLE(CParticleSystem);
 protected:
 	SParticleType		msParticleType;
 	CFreeList			mcParticles;

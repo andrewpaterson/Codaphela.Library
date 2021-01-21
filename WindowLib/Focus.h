@@ -28,7 +28,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 class CFocus : public CUnknown
 {
-BASE_FUNCTIONS(CFocus);
+CONSTRUCTABLE(CFocus);
 protected:
 	CComponent*					mpcMouseOverComponent;
 	CComponent*					mpcFocussedComponent;

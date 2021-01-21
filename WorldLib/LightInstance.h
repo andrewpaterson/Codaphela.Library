@@ -32,7 +32,7 @@ Microsoft DirectX is Copyright Microsoft Corporation
 
 class CLightInstance : public CUnknown
 {
-BASE_FUNCTIONS(CLightInstance);
+CONSTRUCTABLE(CLightInstance);
 protected:
 	D3DLIGHT9	msLight;
 	SMatrix*	mpsMatrix;

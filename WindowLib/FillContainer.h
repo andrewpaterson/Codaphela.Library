@@ -45,7 +45,7 @@ enum EFillStyleVertical
 class CFillContainer : public CContainer
 {
 public:
-	BASE_FUNCTIONS(CFillContainer);
+	CONSTRUCTABLE(CFillContainer);
 
 	EFillStyleHorizontal	meHorizontal;
 	EFillStyleVertical		meVertical;

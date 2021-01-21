@@ -34,7 +34,7 @@ Microsoft DirectX is Copyright Microsoft Corporation
 
 class CQuad2D : public CUnknown
 {
-BASE_FUNCTIONS(CQuad2D);
+CONSTRUCTABLE(CQuad2D);
 protected:
 	SInt3				msPosition;
 	CGraphicsMaterial*	mpcGraphicsMaterial;

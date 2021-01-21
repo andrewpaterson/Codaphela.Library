@@ -33,7 +33,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 class CViewport : public CFixedContainer
 {
 public:
-	BASE_FUNCTIONS(CViewport);
+	CONSTRUCTABLE(CViewport);
 
 	CGraphicsObject*	mpcGraphicsObject;
 	CFocus				mcFocus;
