@@ -27,7 +27,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 // CIndexedObjects maps an OIndex to a CBaseObject*.
 
 //I have no idea what this class is for.  It should probably understand evictions...
-
+//  CIndexedObjects is only used by CNamedIndexedObjects
 class CIndexedObjects
 {
 protected:
