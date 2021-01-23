@@ -57,7 +57,8 @@ public:
 	BOOL			Remove(char* szName);
 	BOOL			Remove(CChars* szName);
 
-	filePos			NumElements(void);
+	int64			NumElements(void);
+	int64			NumElementsCached(void);
 	BOOL			Flush(void);
 
 	BOOL			IndexTreeNodeEvicted(void* pvKey, int iKeySize, void* pvData, int iDataSize);

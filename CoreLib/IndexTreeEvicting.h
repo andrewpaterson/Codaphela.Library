@@ -15,6 +15,7 @@ class CIndexTreeEvicting
 friend class CIndexedDescriptorsFile;
 friend class CIndexTreeEvictionStrategy;
 friend class CIndexTreeEvictingAccess;
+friend class CNamedIndexes;
 private:
 	CIndexTreeFile					mcIndexTree;
 	size_t							muiCutoff;

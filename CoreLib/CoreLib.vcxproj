@@ -190,6 +190,7 @@
   <ItemGroup>
     <ClInclude Include="Codabase.h" />
     <ClInclude Include="CodabaseFactory.h" />
+    <ClInclude Include="DataConnection.h" />
     <ClInclude Include="IndexTreeEvictionCallbackWrapper.h" />
     <ClInclude Include="IndexTreeEvictionStrategyDataOrderer.h" />
     <ClInclude Include="IndexTreeFileDiagnosticCallback.h" />

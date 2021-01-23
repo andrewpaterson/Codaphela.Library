@@ -79,6 +79,7 @@ public:
 	int64			NumIndicesCached(void);
 	int64			NumIndicesCached(int iSize);
 	int64			NumNames(void);
+	int64			NumNamesCached(void);
 	BOOL			IsCaching(void);
 
 	BOOL			ValidateConfigInitialised(void);

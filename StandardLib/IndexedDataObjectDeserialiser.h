@@ -20,6 +20,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __INDEXED_DATA_OBJECT_DESERIALISER__
 #define __INDEXED_DATA_OBJECT_DESERIALISER__
+#include "CoreLib/DataConnection.h"
 #include "DependentObjectAdder.h"
 #include "ObjectAllocator.h"
 #include "DependentReadObjects.h"
@@ -28,14 +29,14 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 class CIndexedDataObjectDeserialiser : public CDependentObjectAdder
 {
 protected:
-	CObjectAllocator*		mpcAllocator;
-	CNamedIndexedData*		mpcDatabase;
-	CNamedIndexedObjects*	mpcMemory;
+	CObjectAllocator*			mpcAllocator;
+	CDataConnection*		mpcDataConnection;
+	CNamedIndexedObjects*		mpcMemory;
 
 	CDependentReadObjects	mcDependentObjects;  //CDependentObjectAdder points to this CDependentReadObjects.
 
 public:
-	void			Init(CObjectAllocator* pcAllocator, CNamedIndexedData* pcDatabase, CNamedIndexedObjects* pcMemory);
+	void			Init(CObjectAllocator* pcAllocator, CDataConnection* pcDataConnection, CNamedIndexedObjects* pcMemory);
 	void			Kill(void);
 
 	CBaseObject*	Read(OIndex oi);

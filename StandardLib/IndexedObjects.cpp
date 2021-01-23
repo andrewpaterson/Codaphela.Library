@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/IndexTreeMemoryAccess.h"
 #include "IndexedObjects.h"
 
 
@@ -27,7 +28,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CIndexedObjects::Init(void)
 {
-	CIndexes::Init();
+	mcIndexes.Init();
 }
 
 
@@ -37,7 +38,7 @@ void CIndexedObjects::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CIndexedObjects::Kill(void)
 {
-	CIndexes::Kill();
+	mcIndexes.Kill();
 }
 
 
@@ -47,7 +48,10 @@ void CIndexedObjects::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 CBaseObject* CIndexedObjects::Get(OIndex oi)
 {
-	return (CBaseObject*)CIndexes::Get(oi);
+	CIndexTreeMemoryAccess	cAccess;
+
+	cAccess.Init(&mcIndexes);
+	return (CBaseObject*)cAccess.GetLongPtr(oi);
 }
 
 
@@ -57,7 +61,11 @@ CBaseObject* CIndexedObjects::Get(OIndex oi)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexedObjects::Add(OIndex oi, CBaseObject* pvMemory)
 {
-	return CIndexes::Add(oi, pvMemory);
+	CIndexTreeMemoryAccess	cAccess;
+
+	cAccess.Init(&mcIndexes);
+
+	return cAccess.PutLongPtr(oi, pvMemory);
 }
 
 
@@ -67,6 +75,69 @@ BOOL CIndexedObjects::Add(OIndex oi, CBaseObject* pvMemory)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexedObjects::Remove(OIndex oi)
 {
-	return CIndexes::Remove(oi);
+	CIndexTreeMemoryAccess	cAccess;
+
+	cAccess.Init(&mcIndexes);
+	return cAccess.DeleteLong(oi);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CIndexedObjects::NumIndexed(void)
+{
+	return mcIndexes.NumElements();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+OIndex CIndexedObjects::StartIteration(SIndexesIterator* psIterator)
+{
+	void*	pvData;
+	int		uiDataSize;
+	BOOL	bResult;
+	OIndex	oi;
+	int		iKeyLength;
+
+	bResult = mcIndexes.StartUnsafeIteration(psIterator, &pvData, &uiDataSize);
+	if (bResult)
+	{
+		iKeyLength = mcIndexes.GetKey(pvData, (char*)&oi, sizeof(OIndex));
+		if (iKeyLength == sizeof(OIndex))
+		{
+			return oi;
+		}
+	}
+	return INVALID_O_INDEX;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+OIndex CIndexedObjects::Iterate(SIndexesIterator* psIterator)
+{
+	void*	pvData;
+	int		uiDataSize;
+	BOOL	bResult;
+	OIndex	oi;
+	int		iKeyLength;
+
+	bResult = mcIndexes.UnsafeIterate(psIterator, &pvData, &uiDataSize);
+	if (bResult)
+	{
+		iKeyLength = mcIndexes.GetKey(pvData, (char*)&oi, sizeof(OIndex));
+		if (iKeyLength == sizeof(OIndex))
+		{
+			return oi;
+		}
+	}
+	return INVALID_O_INDEX;
 }
 

@@ -47,6 +47,7 @@ public:
 			int64	GetLongLong(int64 lliKey, int64 lliNUllValue = -1);
 			char	GetLongChar(int64 lliKey, char cNUllValue = -1);
 			BOOL	GetLongData(int64 lliKey, void* pvData, int* piDataSize = NULL);
+			void*	GetLongPtr(int64 lliKey);
 			char*	GetIntString(int iKey, char* pszDest);
 			int		GetIntInt(int iKey, int iNUllValue = -1);
 			int64	GetIntLong(int iKey, int64 iNullValue = -1LL);

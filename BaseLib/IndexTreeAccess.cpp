@@ -417,6 +417,25 @@ BOOL CIndexTreeAccess::GetLongData(int64 lliKey, void* pvData, int* piDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void* CIndexTreeAccess::GetLongPtr(int64 lliKey)
+{
+	void**	pv;
+	BOOL	bResult;
+
+	bResult = Get(&lliKey, sizeof(int64), &pv, NULL);
+	if (bResult)
+	{
+		return pv;
+	}
+	return NULL;
+
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 char* CIndexTreeAccess::GetIntString(int iKey, char* pszDest)
 {
 	BOOL	bResult;

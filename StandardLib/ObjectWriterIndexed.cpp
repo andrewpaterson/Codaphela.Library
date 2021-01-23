@@ -1,4 +1,4 @@
-#include "CoreLib/NamedIndexedData.h"
+#include "CoreLib/DataConnection.h"
 #include "SerialisedObject.h"
 #include "ObjectWriterIndexed.h"
 
@@ -7,9 +7,9 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectWriterIndexed::Init(CNamedIndexedData* pcIndexedData, unsigned int	uiTimeStamp)
+void CObjectWriterIndexed::Init(CDataConnection* pcDataConnection, unsigned int	uiTimeStamp)
 {
-	mpcIndexedData = pcIndexedData;
+	mpcDataConnection = pcDataConnection;
 	muiTimeStamp = uiTimeStamp;
 }
 
@@ -20,7 +20,7 @@ void CObjectWriterIndexed::Init(CNamedIndexedData* pcIndexedData, unsigned int	u
 //////////////////////////////////////////////////////////////////////////
 void CObjectWriterIndexed::Kill(void)
 {
-	mpcIndexedData = NULL;
+	mpcDataConnection = NULL;
 }
 
 
@@ -36,11 +36,11 @@ BOOL CObjectWriterIndexed::Write(CSerialisedObject* pcSerialised)
 	oi = pcSerialised->GetIndex();
 	if (pcSerialised->IsNamed())
 	{
-		bResult = mpcIndexedData->Put(oi, pcSerialised->GetName(), pcSerialised, pcSerialised->GetLength());
+		bResult = mpcDataConnection->Put(oi, pcSerialised->GetName(), pcSerialised, pcSerialised->GetLength());
 	}
 	else if (pcSerialised->IsIndexed())
 	{
-		bResult = mpcIndexedData->Put(oi, pcSerialised, pcSerialised->GetLength());
+		bResult = mpcDataConnection->Put(oi, pcSerialised, pcSerialised->GetLength());
 	}
 	else
 	{

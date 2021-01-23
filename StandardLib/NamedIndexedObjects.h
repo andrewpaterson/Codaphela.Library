@@ -26,11 +26,6 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 // CIndexedObjects maps a string name to an OIndex and then an OIndex to a CBaseObject*.
 
-//Remove this.  It's just to stop the mess of compiler errros.
-struct SIndexesIterator
-{
-
-};
 
 class CNamedIndexedObjects
 {

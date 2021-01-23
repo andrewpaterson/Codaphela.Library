@@ -24,6 +24,12 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseObject.h"
 
 
+struct SIndexesIterator : public SIndexTreeMemoryIterator
+{
+
+};
+
+
 // CIndexedObjects maps an OIndex to a CBaseObject*.
 
 //I have no idea what this class is for.  It should probably understand evictions...
@@ -39,6 +45,10 @@ public:
 	CBaseObject*	Get(OIndex oi);
 	BOOL			Add(OIndex oi, CBaseObject* pvMemory);
 	BOOL			Remove(OIndex oi);
+	int				NumIndexed(void);
+
+	OIndex			StartIteration(SIndexesIterator* psIterator);
+	OIndex			Iterate(SIndexesIterator* psIterator);
 };
 
 
