@@ -20,6 +20,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __OBJECTS_H__
 #define __OBJECTS_H__
+#include "CoreLib/DataConnection.h"
 #include "CoreLib/IndexedGeneral.h"
 #include "CoreLib/NamedIndexedData.h"
 #include "NamedIndexedObjects.h"
@@ -57,12 +58,10 @@ protected:
 	CUnknowns*				mpcUnknownsAllocatingFrom;
 
 	CNamedIndexedObjects	mcMemory;		//Objects (BaseObject*) allocated in Unknowns referenced by name and OIndex.  
-	CNamedIndexedData		mcDatabase;		//Objects in the database also referenced by String and OIndex.  
-	
+	CIndexGenerator			mcIndexGenerator;
 	CObjectsSource			mcSource;		//An object found on disk will be converted (cooked) and then placed in memory.
 
-	CIndexGenerator			mcIndexGenerator;
-	BOOL					mbDatabase;
+	CDataConnection*		mpcDataConnection;
 
 	CStackPointers*			mpcStackPointers;
 
@@ -70,8 +69,7 @@ protected:
 
 public:
 												CObjects();
-						void					Init(CUnknowns* pcUnknownsAllocatingFrom, CStackPointers* pcStackPointers, char* szWorkingDirectory);
-						void					Init(CUnknowns* pcUnknownsAllocatingFrom, CStackPointers* pcStackPointers, CNamedIndexedDataConfig* pcConfig);
+						void					Init(CUnknowns* pcUnknownsAllocatingFrom, CStackPointers* pcStackPointers, CDataConnection* pcDataConnection);
 						void					Kill(void);
 						void					DumpIndex(void);
 						void					DumpNames(void);
@@ -105,10 +103,6 @@ public:
 
 						int64					NumMemoryIndexes(void);
 						int						NumMemoryNames(void);
-						int64					NumIndices(void);
-						int64					NumIndicesCached(void);
-						int64					NumIndicesCached(int iSize);
-						int64					NumDatabaseNames(void);
 						CIndexGenerator*		GetIndexGenerator(void);
 						CNamedIndexedObjects*	GetMemory(void);
 
@@ -155,9 +149,9 @@ protected:
 
 extern CObjects gcObjects;
 
+
 void ObjectsInit(void);
-void ObjectsInit(char* szWorkingDirectory);
-void ObjectsInit(CNamedIndexedDataConfig* pcConfig);
+void ObjectsInit(CDataConnection* pcDataConnection);
 void ObjectsKill(void);
 
 void LogObjectAllocation(CBaseObject* pcObject, char* szMethod);

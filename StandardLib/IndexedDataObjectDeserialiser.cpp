@@ -12,11 +12,11 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedDataObjectDeserialiser::Init(CObjectAllocator* pcAllocator, CNamedIndexedData* pcDatabase, CNamedIndexedObjects* pcMemory)
+void CIndexedDataObjectDeserialiser::Init(CObjectAllocator* pcAllocator, CDataConnection* pcDataConnection, CNamedIndexedObjects* pcMemory)
 {
 	CDependentObjectAdder::Init(&mcDependentObjects);
 	mpcAllocator = pcAllocator;
-	mpcDatabase = pcDatabase;
+	mpcDataConnection = pcDataConnection;
 	mpcMemory = pcMemory;
 
 	mcDependentObjects.Init();
@@ -29,6 +29,8 @@ void CIndexedDataObjectDeserialiser::Init(CObjectAllocator* pcAllocator, CNamedI
 //////////////////////////////////////////////////////////////////////////
 void CIndexedDataObjectDeserialiser::Kill(void)
 {
+	mpcDataConnection = NULL;
+	mpcMemory = NULL;
 	mpcAllocator = NULL;
 	mcDependentObjects.Kill();
 	CDependentObjectAdder::Kill();
@@ -49,7 +51,7 @@ CBaseObject* CIndexedDataObjectDeserialiser::Read(OIndex oi)
 
 	pcSerialised = (CSerialisedObject*)cTemp.Init();
 
-	bExists = mpcDatabase->Get(oi, &uiDataSize, pcSerialised, cTemp.GetStackSize());
+	bExists = mpcDataConnection->Get(oi, &uiDataSize, pcSerialised, cTemp.GetStackSize());
 	if (bExists)
 	{
 		if (uiDataSize <= (unsigned int)cTemp.GetStackSize())
@@ -59,7 +61,7 @@ CBaseObject* CIndexedDataObjectDeserialiser::Read(OIndex oi)
 		else
 		{
 			pcSerialised = (CSerialisedObject*)cTemp.Init(uiDataSize);
-			mpcDatabase->Get(oi, pcSerialised);
+			mpcDataConnection->Get(oi, pcSerialised);
 			pcBaseObject = ReadSerialised(pcSerialised);
 			cTemp.Kill();
 			return pcBaseObject;
@@ -86,7 +88,7 @@ CBaseObject* CIndexedDataObjectDeserialiser::Read(char* szObjectName)
 
 	pcSerialised = (CSerialisedObject*)cTemp.Init();
 
-	bExists = mpcDatabase->Get(szObjectName, &uiDataSize, pcSerialised, cTemp.GetStackSize());
+	bExists = mpcDataConnection->Get(szObjectName, &uiDataSize, pcSerialised, cTemp.GetStackSize());
 	if (bExists)
 	{
 		if (uiDataSize <= (unsigned int)cTemp.GetStackSize())
@@ -96,7 +98,7 @@ CBaseObject* CIndexedDataObjectDeserialiser::Read(char* szObjectName)
 		else
 		{
 			pcSerialised = (CSerialisedObject*)cTemp.Init(uiDataSize);
-			mpcDatabase->Get(szObjectName, pcSerialised);
+			mpcDataConnection->Get(szObjectName, pcSerialised);
 			pcBaseObject = ReadSerialised(pcSerialised);
 			cTemp.Kill();
 			return pcBaseObject;

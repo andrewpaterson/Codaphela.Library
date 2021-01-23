@@ -22,8 +22,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/GlobalMemory.h"
 #include "BaseLib/DebugOutput.h"
 #include "BaseLib/Log.h"
-#include "CoreLib/ValueIndexedDataConfig.h"
-#include "CoreLib/ValueNamedIndexesConfig.h"
+#include "CoreLib/DataConnection.h"
 #include "BaseObject.h"
 #include "NamedObject.h"
 #include "ObjectSingleSerialiser.h"
@@ -110,7 +109,7 @@ CObjects::CObjects()
 	mbInitialised = FALSE;
 	mpcUnknownsAllocatingFrom = NULL;
 	mpcStackPointers = NULL;
-	mbDatabase = FALSE;
+	mpcDataConnection = NULL;
 }
 
 
@@ -118,38 +117,13 @@ CObjects::CObjects()
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjects::Init(CUnknowns* pcUnknownsAllocatingFrom, CStackPointers* pcStackPointers, char* szWorkingDirectory)
-{
-	CNamedIndexedDataConfig		cConfig;
-	CValueIndexedDataConfig		cIndexConfig;
-	CValueNamedIndexesConfig	cNamedConfig;
-
-	cIndexConfig.Init()
-	cConfig.Init(&cIndexConfig, &cNamedConfig, TRUE);
-
-	Init(pcUnknownsAllocatingFrom, pcStackPointers, &cConfig);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CObjects::Init(CUnknowns* pcUnknownsAllocatingFrom, CStackPointers* pcStackPointers, CNamedIndexedDataConfig* pcConfig)
+void CObjects::Init(CUnknowns* pcUnknownsAllocatingFrom, CStackPointers* pcStackPointers, CDataConnection* pcDataConnection)
 {
 	mpcUnknownsAllocatingFrom = pcUnknownsAllocatingFrom;
 	mpcStackPointers = pcStackPointers;
 	mcIndexGenerator.Init();
 
-	if (pcConfig->HasDatabaseConfig())
-	{
-		mcDatabase.Init(pcConfig);
-		mbDatabase = TRUE;
-	}
-	else
-	{
-		mbDatabase = FALSE;
-	}
+	mpcDataConnection = pcDataConnection;
 
 	mcMemory.Init();
 
@@ -166,12 +140,9 @@ void CObjects::Init(CUnknowns* pcUnknownsAllocatingFrom, CStackPointers* pcStack
 void CObjects::Kill(void)
 {
 	mbInitialised = FALSE;
+	mpcDataConnection = NULL;  //Maybe needs to be flushed here?
 	mcSource.Kill();
 	mcMemory.Kill();
-	if (mbDatabase)
-	{
-		mcDatabase.Kill();  //Also flushes.
-	}
 	mcIndexGenerator.Kill();
 	mpcUnknownsAllocatingFrom = NULL;
 }
@@ -488,7 +459,7 @@ BOOL CObjects::Flush(BOOL bClearMemory, BOOL bClearCache)
 	BOOL				bResult;
 	CBaseObject*		pcBaseObject;
 
-	if (mbDatabase)
+	if (mpcDataConnection)
 	{
 		bResult = TRUE;
 		oi = StartMemoryIteration(&sIter);
@@ -504,7 +475,7 @@ BOOL CObjects::Flush(BOOL bClearMemory, BOOL bClearCache)
 			bResult &= ClearMemory();
 		}
 
-		bResult &= mcDatabase.Flush(bClearCache);
+		bResult &= mpcDataConnection->Flush(bClearCache);
 		return bResult;
 	}
 	else
@@ -638,7 +609,7 @@ BOOL CObjects::ForceSave(CBaseObject* pcObject)
 
 	pcContainer = pcObject->GetEmbeddingContainer();
 
-	cWriter.Init(&mcDatabase, 0);
+	cWriter.Init(mpcDataConnection, 0);
 	cGraphSerialiser.Init(&cWriter);
 	bResult = cGraphSerialiser.Write(pcContainer);
 	cGraphSerialiser.Kill();
@@ -850,18 +821,18 @@ CBaseObject* CObjects::GetFromDatabase(OIndex oi)
 	CObjectAllocator				cAllocator;
 	CBaseObject*					pvBaseObject;
 
-	if (!mbDatabase)
+	if (!mpcDataConnection)
 	{
 		return NULL;
 	}
 
-	if (!mcDatabase.Contains(oi))
+	if (!mpcDataConnection->Contains(oi))
 	{
 		return NULL;
 	}
 
 	cAllocator.Init(this);
-	cDeserialiser.Init(&cAllocator, &mcDatabase, &mcMemory);
+	cDeserialiser.Init(&cAllocator, mpcDataConnection, &mcMemory);
 
 	pvBaseObject = cDeserialiser.Read(oi);
 	cDeserialiser.Kill();
@@ -886,15 +857,15 @@ CBaseObject* CObjects::GetFromDatabase(char* szObjectName)
 	CObjectAllocator				cAllocator;
 	CBaseObject*					pvObject;
 
-	if (!mbDatabase)
+	if (!mpcDataConnection)
 	{
 		return NULL;
 	}
 
-	if (mcDatabase.Contains(szObjectName))
+	if (mpcDataConnection->Contains(szObjectName))
 	{
 		cAllocator.Init(this); 
-		cDeserialiser.Init(&cAllocator, &mcDatabase, &mcMemory);
+		cDeserialiser.Init(&cAllocator, mpcDataConnection, &mcMemory);
 		pvObject = cDeserialiser.Read(szObjectName);
 		cDeserialiser.Kill();
 		return pvObject;
@@ -1006,9 +977,9 @@ BOOL CObjects::Contains(char* szObjectName)
 	}
 	else
 	{
-		if (mbDatabase)
+		if (mpcDataConnection)
 		{
-			return mcDatabase.Contains(szObjectName);
+			return mpcDataConnection->Contains(szObjectName);
 		}
 		else
 		{
@@ -1095,74 +1066,6 @@ int64 CObjects::NumMemoryIndexes(void)
 int CObjects::NumMemoryNames(void)
 {
 	return mcMemory.NumNames();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-int64 CObjects::NumIndices(void)
-{
-	if (mbDatabase)
-	{
-		return mcDatabase.NumIndices();
-	}
-	else
-	{
-		return 0;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-int64 CObjects::NumIndicesCached(int iSize)
-{
-	if (mbDatabase)
-	{
-		return mcDatabase.NumIndicesCached(iSize);
-	}
-	else
-	{
-		return 0;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-int64 CObjects::NumIndicesCached(void)
-{
-	if (mbDatabase)
-	{
-		return mcDatabase.NumIndicesCached();
-	}
-	else
-	{
-		return 0;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-int64 CObjects::NumDatabaseNames(void)
-{
-	if (mbDatabase)
-	{
-		return mcDatabase.NumNames();
-	}
-	else
-	{
-		return 0;
-	}
 }
 
 
@@ -1387,9 +1290,7 @@ CStackPointers* CObjects::GetStackPointers(void)
 //////////////////////////////////////////////////////////////////////////
 void ObjectsInit(void)
 {
-	UnknownsInit();
-	gcStackPointers.Init(2048);
-	gcObjects.Init(&gcUnknowns, &gcStackPointers, (char*)NULL);
+	ObjectsInit(NULL);
 }
 
 
@@ -1397,23 +1298,11 @@ void ObjectsInit(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void ObjectsInit(char* szWorkingDirectory)
+void ObjectsInit(CDataConnection* pcDataConnection)
 {
 	UnknownsInit();
 	gcStackPointers.Init(2048);
-	gcObjects.Init(&gcUnknowns, &gcStackPointers, szWorkingDirectory);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void ObjectsInit(CNamedIndexedDataConfig* pcConfig)
-{
-	UnknownsInit();
-	gcStackPointers.Init(2048);
-	gcObjects.Init(&gcUnknowns, &gcStackPointers, pcConfig);
+	gcObjects.Init(&gcUnknowns, &gcStackPointers, pcDataConnection);
 }
 
 

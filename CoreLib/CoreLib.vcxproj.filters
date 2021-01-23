@@ -181,6 +181,9 @@
     <Filter Include="Source\Database">
       <UniqueIdentifier>{98d5ad19-9dd4-4edd-a9e8-08a3472537ba}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Database\Codabase">
+      <UniqueIdentifier>{36b2e996-0550-4e8d-9ad6-3b3b3e539bd8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="IndexedData.cpp">
@@ -463,10 +466,10 @@
       <Filter>Source\File\Indexed\Index\Diagnostic</Filter>
     </ClCompile>
     <ClCompile Include="Codabase.cpp">
-      <Filter>Source\Database</Filter>
+      <Filter>Source\Database\Codabase</Filter>
     </ClCompile>
     <ClCompile Include="CodabaseFactory.cpp">
-      <Filter>Source\Database</Filter>
+      <Filter>Source\Database\Codabase</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -770,10 +773,13 @@
     <ClInclude Include="IndexTreeFileDiagnosticLoggingCallback.h">
       <Filter>Source\File\Indexed\Index\Diagnostic</Filter>
     </ClInclude>
-    <ClInclude Include="Codabase.h">
-      <Filter>Source\Database</Filter>
-    </ClInclude>
     <ClInclude Include="CodabaseFactory.h">
+      <Filter>Source\Database\Codabase</Filter>
+    </ClInclude>
+    <ClInclude Include="Codabase.h">
+      <Filter>Source\Database\Codabase</Filter>
+    </ClInclude>
+    <ClInclude Include="DataConnection.h">
       <Filter>Source\Database</Filter>
     </ClInclude>
   </ItemGroup>

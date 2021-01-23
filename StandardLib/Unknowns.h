@@ -200,8 +200,8 @@ void CUnknowns::RemoveDuringIteration(SIteratorTemplate<M>* psIter)
 template<class M>
 void CUnknowns::AddConstructor(void)
 {
-	char*	szClassName;
-	M* pvM;
+	const char*	szClassName;
+	M*			pvM;
 
 	pvM = NewMalloc<M>();
 	if (pvM)
