@@ -80,11 +80,11 @@ CBaseObject* CIndexedDataObjectDeserialiser::Read(OIndex oi)
 //////////////////////////////////////////////////////////////////////////
 CBaseObject* CIndexedDataObjectDeserialiser::Read(char* szObjectName)
 {
-	CSerialisedObject* pcSerialised;
-	unsigned int			uiDataSize;
-	CStackMemory<>			cTemp;
-	BOOL					bExists;
-	CBaseObject* pcBaseObject;
+	CSerialisedObject*	pcSerialised;
+	unsigned int		uiDataSize;
+	CStackMemory<>		cTemp;
+	BOOL				bExists;
+	CBaseObject*		pcBaseObject;
 
 	pcSerialised = (CSerialisedObject*)cTemp.Init();
 
@@ -124,7 +124,6 @@ CBaseObject* CIndexedDataObjectDeserialiser::ReadSerialised(CSerialisedObject* p
 	pvObject = cDeserialiser.Load(pcSerialised);
 
 	cDeserialiser.Kill();
-	free(pcSerialised);
 
 	if (pvObject)
 	{
