@@ -315,5 +315,7 @@ int64 CIndexedDataCommon::NumDatas(unsigned int uiDataSize)
 //
 //////////////////////////////////////////////////////////////////////////
 unsigned int CIndexedDataCommon::TestGetCachedObjectSize(OIndex oi) { return  mcData.TestGetCachedObjectSize(oi); }
-BOOL CIndexedDataCommon::IsCaching(void) { return mcData.IsCaching(); }
+BOOL CIndexedDataCommon::IsCaching(void) { return mcData.IsCaching();  }
+BOOL CIndexedDataCommon::IsWriteThrough(void) { return meWriteThrough == IWT_Yes; }
+BOOL CIndexedDataCommon::IsFlushed(void) { return mcData.IsFlushed(); }
 

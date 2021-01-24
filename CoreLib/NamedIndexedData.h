@@ -81,6 +81,7 @@ public:
 	int64			NumNames(void);
 	int64			NumNamesCached(void);
 	BOOL			IsCaching(void);
+	BOOL			IsWriteThrough(void);
 
 	BOOL			ValidateConfigInitialised(void);
 	BOOL			ValidateConfigKilled(void);

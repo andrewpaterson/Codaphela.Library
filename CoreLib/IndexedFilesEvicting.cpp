@@ -737,4 +737,5 @@ size_t CIndexedFilesEvicting::GetSystemMemorySize(void)
 //
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexedFilesEvicting::IsCaching(void) { return mbCaching; }
+BOOL CIndexedFilesEvicting::IsWriteThrough(void) { return meWriteThrough == IWT_Yes; }
 

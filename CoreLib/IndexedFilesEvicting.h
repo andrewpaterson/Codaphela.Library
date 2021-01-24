@@ -37,6 +37,7 @@ public:
 	BOOL			Flush(BOOL bClearCache);
 	BOOL			IsFlushed(void);
 	BOOL			IsCaching(void);
+	BOOL			IsWriteThrough(void);
 
 	int				NumCached(void);
 	int				NumCached(int iSize);
