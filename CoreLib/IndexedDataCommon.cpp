@@ -176,6 +176,7 @@ BOOL CIndexedDataCommon::Get(OIndex oi, unsigned int* puiDataSize, void* pvData,
 
 	if (!IsValidIndex(oi))
 	{
+		SafeAssign(puiDataSize, 0);
 		return gcLogger.Error2(__METHOD__, " Cannot Get Index [", IndexToString(oi), "].", NULL);
 	}
 

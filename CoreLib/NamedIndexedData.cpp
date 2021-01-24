@@ -536,8 +536,12 @@ BOOL CNamedIndexedData::Get(OIndex oi, unsigned int* puiDataSize, void* pvData, 
 				return FALSE;
 			}
 		}
-		pvHeaderData = pcHeader->GetData();
- 		memcpy_fast(pvData, pvHeaderData, MinDataSize(uiDataSize, uiMaxDataSize));
+		SafeAssign(puiDataSize, uiDataSize);
+		if (pvData)
+		{
+			pvHeaderData = pcHeader->GetData();
+			memcpy_fast(pvData, pvHeaderData, MinDataSize(uiDataSize, uiMaxDataSize));
+		}
 		cStack.Kill();
 		return TRUE;
 	}
