@@ -50,7 +50,14 @@ BOOL CCodabase::Close(void)
 {
 	BOOL	bResult;
 
-	bResult = Flush(FALSE);
+	if (!mcNamedIndexedData.IsWriteThrough())
+	{
+		bResult = Flush(FALSE);
+	}
+	else
+	{
+		bResult = TRUE;
+	}
 	bResult |= mcFileController.End();
 	return bResult;
 }

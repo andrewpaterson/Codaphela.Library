@@ -20,6 +20,8 @@ public:
 	virtual BOOL			Kill(void) =0;
 
 			BOOL			IsCaching(void);
+			BOOL			IsWriteThrough(void);
+			BOOL			IsFlushed(void);
 	
 			BOOL			Add(OIndex oi, void* pvData, unsigned int uiDataSize);
 

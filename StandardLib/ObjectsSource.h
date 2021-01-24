@@ -77,17 +77,17 @@ TConverter* CObjectsSource::AddConverter(void)
 {
 	TConverter*	pcConveter;
 	TConverter	t;
-	char*		szClassName;
+	const char*	szClassName;
 	CUnknown*	pcExistingConverter;
 
 	szClassName = t.ClassName();
-	pcExistingConverter = mmszpcConverters.Get(szClassName);
+	pcExistingConverter = mmszpcConverters.Get((char*)szClassName);
 	if (!pcExistingConverter)
 	{
 		pcConveter = gcUnknowns.Add<TConverter>();
 		pcConveter->Init();
 
-		mmszpcConverters.Put(szClassName, pcConveter);
+		mmszpcConverters.Put((char*)szClassName, pcConveter);
 		return pcConveter;
 	}
 	else
