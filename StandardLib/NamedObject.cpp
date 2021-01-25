@@ -86,12 +86,7 @@ BOOL CNamedObject::IsNamed(char* szName)
 BOOL CNamedObject::InitName(char* szName)
 {
 	mon.Init(szName);
-	if (mon.Length() < MAX_NAMED_OBJECT_NAME_LENGTH)
-	{
-		return TRUE;
-	}
-	mon.SetLength(MAX_NAMED_OBJECT_NAME_LENGTH-1);
-	return FALSE;
+	return ClipName();
 }
 
 
@@ -99,9 +94,34 @@ BOOL CNamedObject::InitName(char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNamedObject::SetName(char* szName)
+BOOL CNamedObject::SetName(char* szName)
 {
 	mon.Set(szName);
+	return ClipName();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CNamedObject::ClipName(void)
+{
+	BOOL	bResult;
+
+	bResult = TRUE;
+	if (mon.Contains("\\"))
+	{
+		mon.Replace("\\", "/");
+		bResult = FALSE;
+	}
+	if (mon.Length() >= MAX_NAMED_OBJECT_NAME_LENGTH)
+	{
+		mon.SetLength(MAX_NAMED_OBJECT_NAME_LENGTH - 1);
+		bResult = FALSE;
+	}
+	
+	return bResult;
 }
 
 

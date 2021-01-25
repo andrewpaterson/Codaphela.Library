@@ -42,11 +42,12 @@ public:
 
 protected:
 	void	KillIdentifiers(void);
-	void	SetName(char* szName);
+	BOOL	SetName(char* szName);
 	void	ClearName(void);
 
 private:
 	BOOL	InitName(char* szName);
+	BOOL	ClipName(void);
 };
 
 

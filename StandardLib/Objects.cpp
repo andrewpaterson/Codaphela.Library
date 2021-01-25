@@ -59,11 +59,11 @@ void LogObjectAllocation(CBaseObject* pcObject, char* szMethod)
 		szIndex = IndexToString(pcObject->GetOI());
 		szName = pcObject->GetName();
 		szAddress = PointerToString(pcObject);
-		gcLogger.Debug2(szMethod, "Allocate ", szClass, ": ", szIndex, " ", szName, " (", szAddress, ")]", NULL);
+		gcLogger.Debug2(szMethod, " Allocate ", szClass, ": ", szIndex, " ", szName, " (", szAddress, ")]", NULL);
 	}
 	else
 	{
-		gcLogger.Debug2(szMethod, "Allocate NULL]", NULL);
+		gcLogger.Debug2(szMethod, " Allocate NULL]", NULL);
 	}
 #endif // DEBUG
 #endif // DEBUG_OBJECT_ALLOCATION
@@ -89,11 +89,11 @@ void LogObjectDestruction(CBaseObject* pcObject, char* szMethod)
 		szIndex = IndexToString(pcObject->GetOI());
 		szName = pcObject->GetName();
 		szAddress = PointerToString(pcObject);
-		gcLogger.Debug2(szMethod, "Kill ", szClass, ": ", szIndex, " ", szName, " (", szAddress, ")]", NULL);
+		gcLogger.Debug2(szMethod, " Kill ", szClass, ": ", szIndex, " ", szName, " (", szAddress, ")]", NULL);
 	}
 	else
 	{
-		gcLogger.Debug2(szMethod, "Kill NULL]", NULL);
+		gcLogger.Debug2(szMethod, " Kill NULL]", NULL);
 	}
 #endif // DEBUG
 #endif // DEBUG_OBJECT_ALLOCATION
@@ -703,7 +703,7 @@ Ptr<CRoot> CObjects::GetRoot(void)
 {
 	if (!mbInitialised)
 	{
-		gcLogger.Error("CObjects is not initialised.");
+		gcLogger.Error2(__METHOD__, " CObjects is not initialised.", NULL);
 		return ONull;
 	}
 	return Get(ROOT_NAME);

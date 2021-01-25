@@ -10,6 +10,7 @@ void CObjectWriter::Init(char* szDirectory, char* szBaseName)
 	mszDirectory.Init(szDirectory);
 	mszObjectBaseName.Init(szBaseName);
 
+	mszObjectBaseName.Replace("\\", "/");
 	if (mszObjectBaseName.EndsWith("/"))
 	{
 		mszObjectBaseName.RemoveLastCharacter();

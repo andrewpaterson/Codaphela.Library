@@ -319,7 +319,7 @@ void CObject::SetPointedTosDistToRoot(int iDistToRoot)
 	}
 	else
 	{
-		gcLogger.Error2(__METHOD__, "Don't know how to set dist to root to [", IntToString(iDistToRoot), "].", NULL);
+		gcLogger.Error2(__METHOD__, " Don't know how to set dist to root to [", IntToString(iDistToRoot), "].", NULL);
 	}
 }
 

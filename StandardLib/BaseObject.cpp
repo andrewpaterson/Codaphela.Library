@@ -817,6 +817,27 @@ char* CBaseObject::GetName(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+char* CBaseObject::GetIdentifier(CChars* psz)
+{
+	char*	szName;
+	psz->Append(ClassName());
+	psz->Append(":");
+	psz->Append(GetOI());
+	szName = GetName();
+	if (!StrEmpty(szName))
+	{
+		psz->Append(":\"");
+		psz->Append(szName);
+		psz->Append("\"");
+	}
+	return psz->Text();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL CBaseObject::IsSubRoot(void)
 {
 	return FALSE;
@@ -983,8 +1004,9 @@ OIndex CBaseObject::GetOI(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::SetName(char* szName)
+BOOL CBaseObject::SetName(char* szName)
 {
+	return FALSE;
 }
 
 

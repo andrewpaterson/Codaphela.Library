@@ -22,6 +22,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #include "ChunkFile.h"
 #include "MD5HashFile.h"
+#include "Logger.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -66,8 +67,15 @@ BOOL CChunkFile::WriteOpen(int iUserID)
 	msHeader.WriteInit(iUserID);
 	miLastName = CFN_Error;
 
-	ReturnOnFalse(CFileBasic::Open(EFM_Write_Create));
-	ReturnOnFalse(WriteBasic(&msHeader, sizeof(CChunkFileHeader)));
+	if (!CFileBasic::Open(EFM_Write_Create))
+	{
+		return gcLogger.Error2(__METHOD__, " Could not create chunk file [", GetFileName(), "].", NULL);
+	}
+
+	if (!WriteBasic(&msHeader, sizeof(CChunkFileHeader)))
+	{
+		return gcLogger.Error2(__METHOD__, " Could not write chunk file [", GetFileName(), "] header.", NULL);
+	}
 
 	return WriteChunkBegin();
 }
@@ -183,7 +191,10 @@ BOOL CChunkFile::WriteChunkBegin(void)
 
 	psElement = mcChunkStack.Push();
 	psElement->Init(iFilePos);
-	ReturnOnFalse(WriteBasic(&psElement->sHeader, sizeof(CChunkHeader)));  //This write is ignored from a hashing point of view.
+	if (!WriteBasic(&psElement->sHeader, sizeof(CChunkHeader)))  //This write is ignored from a hashing point of view.
+	{
+		return gcLogger.Error2(__METHOD__, " Could not write chunk file [", GetFileName(), "] chunk header.", NULL);
+	}
 
 	((CMD5HashFile*)mpcFile)->StartHashing(); //Reset the files current MD5 hash for the new chunk.
 	return TRUE;
