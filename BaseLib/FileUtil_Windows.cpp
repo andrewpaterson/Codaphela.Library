@@ -34,7 +34,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileUtil::MakeDir(const char*szPathName)
+BOOL CFileUtil::MakeDir(const char* szPathName)
 {
 	return CreateDirectory(szPathName, NULL);
 }

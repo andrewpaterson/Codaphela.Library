@@ -20,6 +20,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/FileUtil.h"
 #include "BaseLib/DiskFile.h"
+#include "BaseLib/Logger.h"
 #include "ChunkFileNames.h"
 #include "ObjectFileGeneral.h"
 #include "SerialisedObject.h"
@@ -63,7 +64,10 @@ BOOL CObjectWriterChunked::Begin(void)
 
 	szFullDirectory.Init(mszDirectory);
 	cFileUtil.AppendToPath(&szFullDirectory, mszObjectBaseName.Text());
-	cFileUtil.MakeDir(szFullDirectory.Text());
+	if (!cFileUtil.TouchDir(szFullDirectory.Text()))
+	{
+		gcLogger.Error2(__METHOD__, " Could not create directory [", szFullDirectory.Text(), "].", NULL);
+	}
 	szFileName.Init(szFullDirectory);
 	szFullDirectory.Kill();
 
@@ -99,10 +103,15 @@ BOOL CObjectWriterChunked::End(void)
 BOOL CObjectWriterChunked::Write(CSerialisedObject* pcSerialised)
 {
 	CChars	szChunkName;
+	BOOL	bResult;
 
 	if (pcSerialised->IsNamed())
 	{
-		ReturnOnFalse(ObjectStartsWithBase(pcSerialised->GetName()));
+		bResult = ObjectStartsWithBase(pcSerialised->GetName());
+		if (!bResult)
+		{
+			return FALSE;
+		}
 		RemainingName(&szChunkName, pcSerialised->GetName());
 	}
 	else if (pcSerialised->IsIndexed())

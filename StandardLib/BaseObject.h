@@ -118,8 +118,9 @@ public:
 			BOOL				HasClass(void);
 
 	virtual char*				GetName(void);
-	virtual void				SetName(char* szName);
+	virtual BOOL				SetName(char* szName);
 			int					SerialisedSize(void);
+	virtual char*				GetIdentifier(CChars* psz);
 
 			unsigned short int	GetNumEmbedded(void);
 
@@ -186,7 +187,6 @@ protected:
 			void				SetCalculatedDistToRoot(void);
 			int					CalculateDistToRootFromPointedFroms(void);
 	virtual int					CalculateDistToRootFromPointedFroms(int iDistToRoot);
-			void				CollectThoseToBeKilled(CArrayBlockObjectPtr* papcKilled);
 			BOOL				IsBaseObject(void);
 			unsigned short int	GetNumEmbeddedFromFlags(void);
 			void				SetFlagNumEmbedded(int iNumEmbedded);

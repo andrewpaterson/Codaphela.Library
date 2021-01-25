@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/Logger.h"
 #include "ObjectSerialiser.h"
 #include "ObjectGraphSerialiser.h"
 #include "SerialisedObject.h"
@@ -88,16 +89,34 @@ BOOL CObjectGraphSerialiser::WriteUnwritten(CBaseObject* pcObject)
 	CObjectSerialiser	cSerialiser;
 	BOOL				bResult;
 	CSerialisedObject*	pcSerialised;
+	CChars				szDescription;
+
+	if (!pcObject)
+	{
+		return gcLogger.Error2(__METHOD__, " Could write [NULL] object.", NULL);
+	}
 
 	cSerialiser.Init(this, pcObject);
 
 	bResult = cSerialiser.Save();
-	ReturnOnFalse(bResult);
+	if (!bResult)
+	{
+		szDescription.Init();
+		gcLogger.Error2(__METHOD__, " Could not serialise object [", pcObject->GetIdentifier(&szDescription), "].", NULL);
+		szDescription.Kill();
+		return FALSE;
+	}
 
 	pcSerialised = (CSerialisedObject*)cSerialiser.GetData();
 
 	bResult = mpcWriter->Write(pcSerialised);
-	ReturnOnFalse(bResult);
+	if (!bResult)
+	{
+		szDescription.Init();
+		gcLogger.Error2(__METHOD__, " Could write object [", pcObject->GetIdentifier(&szDescription), "].", NULL);
+		szDescription.Kill();
+		return FALSE;
+	}
 
 	cSerialiser.Kill();
 
