@@ -42,6 +42,8 @@ public:
 
 	void*	Construct(const char* szName, CMallocator* pcMalloc);
 	int		NumConstructors(void);
+
+	BOOL	ValidateMemoryInitialised(void);
 };
 
 
