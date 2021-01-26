@@ -94,16 +94,9 @@ void CIndexTree::Free(void* pv)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CIndexTree::Realloc(void* pv, size_t tNewSize, size_t tExistingSize)
+void* CIndexTree::Realloc(void* pv, size_t tSize)
 {
-	if (tExistingSize != tNewSize)
-	{
-		return mpcMalloc->Realloc(pv, tNewSize);
-	}
-	else
-	{
-		return pv;
-	}
+	return mpcMalloc->Realloc(pv, tSize);
 }
 
 
