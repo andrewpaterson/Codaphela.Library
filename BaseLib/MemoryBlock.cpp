@@ -17,7 +17,7 @@ void CMemoryBlock::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CMemoryBlock::Init(CMallocator* pcMalloc)
 {
-	mpcMalloc = pcMalloc;
+	CAlloc::Init(pcMalloc);
 	mpvMem = NULL;
 	mtSize = 0;
 }
@@ -32,6 +32,7 @@ void CMemoryBlock::Kill(void)
 	Free(mpvMem);
 	mpvMem = NULL;
 	mtSize = 0;
+	CAlloc::Kill();
 }
 
 

@@ -1,6 +1,7 @@
 #ifndef __MAP_BLOCK_H__
 #define __MAP_BLOCK_H__
 #include "ArrayBlockSorted.h"
+#include "Alloc.h"
 
 
 class CMapBlock;
@@ -21,11 +22,10 @@ typedef int(*CompareFunc)(const void*, const void*);
 
 
 //I think CMapBlock must memory leak a lot.  SMNodes are allocated but never freed when overwritten.
-class CMapBlock
+class CMapBlock : public CAlloc
 {
 protected:
 	CArrayBlockSorted	mapArray;
-	CMallocator*		mpcMalloc;
 	int					miLargestKeySize;
 	BOOL				mbOverwrite;
 

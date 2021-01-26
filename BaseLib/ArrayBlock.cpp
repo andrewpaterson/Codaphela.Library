@@ -30,7 +30,7 @@ void CArrayBlock::Init(CMallocator* pcMalloc, int iElementSize)
 //////////////////////////////////////////////////////////////////////////
 void CArrayBlock::Init(CMallocator* pcMalloc, int iElementSize, int iChunkSize)
 {
-	mpcMalloc = pcMalloc;
+	CAlloc::Init(pcMalloc);
 	mpvArray = NULL;
 	miNumElements = 0;
 	miUsedElements = 0;
@@ -45,7 +45,7 @@ void CArrayBlock::Init(CMallocator* pcMalloc, int iElementSize, int iChunkSize)
 //////////////////////////////////////////////////////////////////////////
 void CArrayBlock::Fake(int iElementSize, void* pvData, int iNum, int iChunkSize)
 {
-	mpcMalloc = NULL;
+	CAlloc::Kill();
 	mpvArray = pvData;
 	miElementSize = iElementSize;
 	miNumElements = iChunkSize;
@@ -69,36 +69,6 @@ void CArrayBlock::ReInit(void)
 	Init(pcMalloc, miElementSize);
 	SetAllocateSize(iChunkSize);
 	
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void* CArrayBlock::Malloc(size_t tSize)
-{
-	return mpcMalloc->Malloc(tSize);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void CArrayBlock::Free(void* pv)
-{
-	mpcMalloc->Free(pv);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void* CArrayBlock::Realloc(void* pv, size_t tSize)
-{
-	return mpcMalloc->Realloc(pv, tSize);
 }
 
 
@@ -604,8 +574,8 @@ void CArrayBlock::Kill(void)
 		miNumElements = 0;
 		miUsedElements = 0;
 	}
-	mpcMalloc = NULL;
 	mpvArray = NULL;
+	CAlloc::Kill();
 }
 
 
@@ -1659,7 +1629,7 @@ BOOL CArrayBlock::ReadHeader(CFileReader* pcFileReader, CMallocator* pcMalloc)
 	miNumElements = 0;
 	miUsedElements = 0;
 	mpvArray = NULL;
-	mpcMalloc = pcMalloc;
+	CAlloc::Init(pcMalloc);
 
 	if (sHeader.miUsedElements != 0)
 	{

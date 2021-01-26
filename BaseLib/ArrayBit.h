@@ -23,13 +23,13 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __ARRAY_BIT_H__
 #define __ARRAY_BIT_H__
 #include "ChunkFile.h"
+#include "Alloc.h"
 
 
-class CArrayBit
+class CArrayBit : public CAlloc
 {
 protected:
 	int				miNumBits;
-	CMallocator*	mpcMalloc;
 
 	union
 	{
@@ -69,11 +69,6 @@ public:
 	int		ByteSize(int iNumBits);
 
 	BOOL	IsLarge(void);
-
-protected:
-	void*	Malloc(size_t tSize);
-	void*	Realloc(void* pv, size_t tSize);
-	void	Free(void* pv);
 };
 
 

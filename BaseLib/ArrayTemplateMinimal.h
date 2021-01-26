@@ -101,10 +101,6 @@ public:
 
 protected:
 	BOOL	BinarySearch(M* pData, int iLeft, int iRight, int(*Func)(const void*, const void*), int* piIndex);
-
-	void*	Malloc(size_t tSize);
-	void*	Realloc(void* pv, size_t iMemSize);
-	void	Free(void* pv);
 };
 
 
@@ -1065,39 +1061,6 @@ M* CArrayTemplateMinimal<M>::PushCopy(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void* CArrayTemplateMinimal<M>::Malloc(size_t tSize)
-{
-	return mpcMalloc->Malloc(tSize);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class M>
-void CArrayTemplateMinimal<M>::Free(void* pv)
-{
-	mpcMalloc->Free(pv);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class M>
-void* CArrayTemplateMinimal<M>::Realloc(void* pv, size_t tSize)
-{
-	return mpcMalloc->Realloc(pv, tSize);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class M>
 BOOL CArrayTemplateMinimal<M>::WriteHeader(CFileWriter* pcFileWriter)
 {
 	return CArrayBlockMinimal::WriteHeader(pcFileWriter);
@@ -1153,7 +1116,7 @@ BOOL CArrayTemplateMinimal<M>::ReadHeader(CFileReader* pcFileReader, CMallocator
 	}
 	mpvArray = NULL;
 	miUsedElements = 0;
-	mpcMalloc = pcMalloc;
+	CAlloc::Init(pcMalloc);
 
 	if (!SetUsedElements(iUsedElements))
 	{
