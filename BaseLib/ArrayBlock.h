@@ -5,6 +5,7 @@
 #include "FastFunctions.h"
 #include "Mallocator.h"
 #include "FileIO.h"
+#include "Alloc.h"
 
 
 struct SArrayTemplateHeader
@@ -22,12 +23,11 @@ struct SArrayTemplateHeader
 //For constant element pointers take a look at CListBlock.
 
 //For variable sized elements take a look at CListVariable.
-class CArrayBlock : protected SArrayTemplateHeader
+class CArrayBlock : public CAlloc, protected SArrayTemplateHeader
 {
 protected:
 	int				miNumElements;
 	void*			mpvArray;
-	CMallocator*	mpcMalloc;
 
 public:
 	void 	Init(int iElementSize);
@@ -131,10 +131,6 @@ public:
 	BOOL	ReadHeader(CFileReader* pcFileReader, CMallocator* pcMalloc);
 
 protected:
-	void*	Malloc(size_t tSize);
-	void*	Realloc(void* pv, size_t tSize);
-	void	Free(void* pv);
-
 	BOOL	BinarySearch(void* pData, int iLeft, int iRight, int(*fCompare)(const void*, const void*), int* piIndex);
 	void*	CopyArrayInto(CArrayBlock* pcTemplateArray, int iIndex);
 	void*	CopyBlockInto(void* paElements, int iLength, int iIndex);

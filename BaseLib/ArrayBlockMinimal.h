@@ -6,13 +6,13 @@
 #include "ErrorHandler.h"
 #include "FileIO.h"
 #include "Mallocator.h"
+#include "Alloc.h"
 
 
-class CArrayBlockMinimal
+class CArrayBlockMinimal : public CAlloc
 {
 protected:
 	int 			miUsedElements;
-	CMallocator 	*mpcMalloc;
 
 public:
 	void Init(void);

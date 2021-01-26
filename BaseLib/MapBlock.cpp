@@ -47,14 +47,10 @@ void CMapBlock::Init(CMallocator* pcMalloc, int(*fKeyCompare)(const void*, const
 	int		iHoldingBufferSize;
 	int		iHoldingBuffers;
 
+	CAlloc::Init(pcMalloc);
+
 	iHoldingBufferSize = 256;
 	iHoldingBuffers = 4;
-
-	mpcMalloc = pcMalloc;
-	if (!mpcMalloc)
-	{
-		gcLogger.Error2(__METHOD__, " Mallocator is NULL.", NULL);
-	}
 
 	this->fKeyCompare = fKeyCompare;
 	mapArray.Init(pcMalloc, sizeof(void*), iHoldingBufferSize, iHoldingBuffers, &CompareMNode);
@@ -81,7 +77,7 @@ void CMapBlock::Kill(void)
 
 	miLargestKeySize = 0;
 	mapArray.Kill();
-	mpcMalloc = NULL;
+	CAlloc::Kill();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -397,7 +393,8 @@ BOOL CMapBlock::ReadExceptData(CFileReader* pcFileReader, int(*fKeyCompare)(cons
 		return FALSE;
 	}
 
-	mpcMalloc = pcMalloc;
+	CAlloc::Init(pcMalloc);
+
 	this->fKeyCompare = fKeyCompare;
 	miLargestKeySize = 0;
 

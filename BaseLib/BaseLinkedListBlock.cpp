@@ -44,6 +44,7 @@ void CBaseLinkedListBlock::Kill(void)
 		psNode = psNode2;
 	}
 	mcList.Kill();
+	CAlloc::Kill();
 }
 
 

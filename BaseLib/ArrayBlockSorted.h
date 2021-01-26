@@ -3,6 +3,7 @@
 #include "SystemAllocator.h"
 #include "ArrayBlock.h"
 #include "ArrayTemplate.h"
+#include "Alloc.h"
 
 
 typedef CArrayTemplate<CArrayBlock> CArrayArrayBlock;
@@ -15,12 +16,11 @@ struct SArraySortedIterator
 };
 
 
-class CArrayBlockSorted 
+class CArrayBlockSorted : public CAlloc
 {
 protected:
 	CArrayBlock			maSortedArray;
 	CArrayArrayBlock	maaHoldingArrays;
-	CMallocator*		mpcMalloc;
 	int					(*mfCompare)(const void*, const void*);
 	int*				mapiInsertionIndices;
 

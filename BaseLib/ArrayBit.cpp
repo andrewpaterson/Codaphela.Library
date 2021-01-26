@@ -43,7 +43,7 @@ void CArrayBit::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CArrayBit::Init(CMallocator* pcMalloc)
 {
-	mpcMalloc = pcMalloc;
+	CAlloc::Init(pcMalloc);
 	miNumBits = 0;
 	u.aSmall.ui[0] = 0;
 	u.aSmall.ui[1] = 0;
@@ -61,7 +61,7 @@ void CArrayBit::Kill(void)
 	{
 		Free(u.aLarge.mpvData);
 	}
-	Init();
+	CAlloc::Kill();
 }
 
 
@@ -289,38 +289,5 @@ void* CArrayBit::GetData(void)
 int CArrayBit::ByteSize(int iNumBits)
 {
 	return (iNumBits + 7) / 8;
-}
-
-
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void* CArrayBit::Malloc(size_t tSize)
-{
-	return malloc(tSize);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void CArrayBit::Free(void* pv)
-{
-	SafeFree(pv);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void* CArrayBit::Realloc(void* pv, size_t tSize)
-{
-	pv = realloc(pv, tSize);
-	return pv;
 }
 
