@@ -932,7 +932,7 @@ BOOL CFileUtil::TouchDir(const char* szDirectory, BOOL bLastIsFileName)
 {
 	CChars			szPath;
 	char			cDrive;
-	CArrayChars	aszPathComponents;
+	CArrayChars		aszPathComponents;
 	int				i;
 	CChars			szPartialPath;
 	BOOL			bResult;

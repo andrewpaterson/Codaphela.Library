@@ -64,9 +64,13 @@ BOOL CObjectWriterChunked::Begin(void)
 
 	szFullDirectory.Init(mszDirectory);
 	cFileUtil.AppendToPath(&szFullDirectory, mszObjectBaseName.Text());
-	if (!cFileUtil.TouchDir(szFullDirectory.Text()))
+
+	if (!cFileUtil.Exists(szFullDirectory.Text()))
 	{
-		gcLogger.Error2(__METHOD__, " Could not create directory [", szFullDirectory.Text(), "].", NULL);
+		if (!cFileUtil.TouchDir(szFullDirectory.Text()))
+		{
+			gcLogger.Error2(__METHOD__, " Could not create directory [", szFullDirectory.Text(), "].", NULL);
+		}
 	}
 	szFileName.Init(szFullDirectory);
 	szFullDirectory.Kill();

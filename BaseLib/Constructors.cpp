@@ -74,3 +74,17 @@ int CConstructors::NumConstructors(void)
 	return mcConstructors.NumElements();
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CConstructors::ValidateMemoryInitialised(void)
+{
+	if (!mcConstructors.IsMallocInitialised())
+	{
+		return gcLogger.Error2(__METHOD__, " Constructor's Malloc is not initialised.  Call MemoryInit()", NULL);
+	}
+	return TRUE;
+}
+

@@ -1,3 +1,4 @@
+#include "IntegerHelper.h"
 #include "Logger.h"
 #include "Malloc.h"
 
@@ -53,5 +54,15 @@ void CMalloc::Free(void* pv)
 void* CMalloc::Realloc(void* pv, size_t tSize)
 {
 	return mpcMalloc->Realloc(pv, tSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+BOOL CMalloc::IsMallocInitialised(void)
+{
+	return FixBool(mpcMalloc);
 }
 

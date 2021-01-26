@@ -35,6 +35,7 @@ CUnknowns gcUnknowns;
 void CUnknowns::Init(char* szName, CConstructors* pcConstructors)
 {
 	mpcConstructors = pcConstructors;
+	mpcConstructors->ValidateMemoryInitialised();
 
 	mcAlloc.Init();
 	mpcMemory = mcAlloc.GetMemory();
