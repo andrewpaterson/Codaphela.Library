@@ -70,7 +70,7 @@ BOOL CFileCompare::Compare(const char* szName1, const char* szName2, CChars* psz
 		return FALSE;
 	}
 
-	bResult = Compare(szName1, szName2, psz1, psz2, cFile1.mpvMem, cFile2.mpvMem, cFile1.miSize, cFile2.miSize);
+	bResult = Compare(szName1, szName2, psz1, psz2, cFile1.Get(), cFile2.Get(), cFile1.Size(), cFile2.Size());
 
 	cFile1.Kill();
 	cFile2.Kill();
@@ -116,7 +116,7 @@ BOOL CFileCompare::Compare(const char* szName1, void* pvMemory, filePos iLength,
 		return FALSE;
 	}
 
-	bResult = Compare(szName1, "Memory", psz1, psz2, cFile1.mpvMem, pvMemory, cFile1.miSize, iLength);
+	bResult = Compare(szName1, "Memory", psz1, psz2, cFile1.Get(), pvMemory, cFile1.Size(), iLength);
 
 	cFile1.Kill();
 	return bResult;

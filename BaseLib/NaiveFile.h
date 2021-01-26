@@ -29,26 +29,29 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 class CNaiveFile
 {
-public:
+protected:
 	CChars		mszFileName;
 	void*		mpvMem;
 	filePos		miSize;
 
-	void	Init(void);
-	void	Init(void* pvMem, int iSize);
-	void	Kill(void);
-	void	KillExceptBuffer(void);
+public:
+	CNaiveFile();
 
-	BOOL	Read(const char* szFileName);
-	BOOL	Read(CAbstractFile* pcAbstractFile);
-	BOOL	Write(const char* szFileName);
+	CNaiveFile*	Init(void);
+	CNaiveFile* Init(void* pvMem, int iSize);
+	void		Kill(void);
+	void		KillExceptBuffer(void);
 
-	void*	Get(void);
-	void*	Get(int iOffset);
-	void	Set(void* pvMem, int iSize);
-	filePos	Size();
+	BOOL		Read(const char* szFileName);
+	BOOL		Read(CAbstractFile* pcAbstractFile);
+	BOOL		Write(const char* szFileName);
 
-	int		Compare(void* pvOther, int iSize);
+	void*		Get(void);
+	void*		Get(int iOffset);
+	void		Set(void* pvMem, int iSize);
+	filePos		Size();
+
+	int			Compare(void* pvOther, int iSize);
 };
 
 

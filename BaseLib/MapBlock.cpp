@@ -1,3 +1,4 @@
+#include "Logger.h"
 #include "DataMacro.h"
 #include "GlobalMemory.h"
 #include "StackMemory.h"
@@ -54,6 +55,11 @@ void CMapBlock::Init(CMallocator* pcMalloc, int(*fKeyCompare)(const void*, const
 	mapArray.Init(pcMalloc, sizeof(void*), iHoldingBufferSize, iHoldingBuffers, &CompareMNode);
 	miLargestKeySize = 0;
 	mbOverwrite = bOverwrite;
+
+	if (!mpcMalloc)
+	{
+		gcLogger.Error2(__METHOD__, " Mallocator is NULL.", NULL);
+	}
 }
 
 
