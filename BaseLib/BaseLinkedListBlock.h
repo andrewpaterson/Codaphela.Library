@@ -24,7 +24,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define __BASE_LINKED_LIST_BLOCK_H__
 #include "DataMacro.h"
 #include "FileIO.h"
-#include "Mallocator.h"
+#include "Alloc.h"
 #include "LinkedList.h"
 
 
@@ -47,11 +47,10 @@ struct SLinkedListTemplateDesc
 };
 
 
-class CBaseLinkedListBlock
+class CBaseLinkedListBlock : public CAlloc
 {
 protected:
 	CLinkedList		mcList;
-	CMallocator*	mpcMalloc;
 	size_t			muiNodeSize;
 
 public:
@@ -95,10 +94,6 @@ public:
 	void		InsertDetachedIntoSorted(int(*fCompare)(const void*, const void*), void* pvData);
 
 protected:	
-	void*		Malloc(size_t tSize);
-	void*		Realloc(void* pv, size_t iMemSize);
-	void		Free(void* pv);
-
 	SLLNode*	AllocateDetached(size_t uiDataSize);
 
 	void		Swap(void* psData1, void* psData2);

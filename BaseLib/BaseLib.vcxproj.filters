@@ -226,6 +226,9 @@
     <Filter Include="Source\Memory\Allocator\Local">
       <UniqueIdentifier>{3682a5ba-ee1d-4c1d-b78a-cda1f93682e4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Memory\Allocator\Base">
+      <UniqueIdentifier>{7092bf6c-d93e-4736-aa8a-9cc2f4cde368}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DataMacro.h">
@@ -861,6 +864,9 @@
     <ClInclude Include="MemoryCacheEvictedData.h">
       <Filter>Source\Memory\Cache</Filter>
     </ClInclude>
+    <ClInclude Include="Alloc.h">
+      <Filter>Source\Memory\Allocator\Base</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -1364,6 +1370,9 @@
     <ClCompile Include="MemoryCacheEvictedData.cpp">
       <Filter>Source\Memory\Cache</Filter>
     </ClCompile>
+    <ClCompile Include="Alloc.cpp">
+      <Filter>Source\Memory\Allocator\Base</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="gpl.txt">
@@ -1376,8 +1385,6 @@
     <None Include="TypeConverter_Mapping.inl">
       <Filter>Source\Data\Types\Converter</Filter>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="LibraryBreakdown.txt" />
+    <None Include="LibraryBreakdown.txt" />
   </ItemGroup>
 </Project>
