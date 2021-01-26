@@ -33,7 +33,7 @@ class CMapStringBlock : public CMapBlock
 {
 public:
 	void		Init(BOOL bCaseSensitive = TRUE, BOOL bOverwrite = TRUE);
-	void		Init(CMallocator* pcMallocator, BOOL bCaseSensitive = TRUE, BOOL bOverwrite = TRUE);
+	void		Init(CMallocator* pcMalloc, BOOL bCaseSensitive = TRUE, BOOL bOverwrite = TRUE);
 	void		Kill(void);
 
 	void*		Get(const char* szKey);

@@ -18,12 +18,12 @@ void CMapStringBlock::Init(BOOL bCaseSensitive, BOOL bOverwrite)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CMapStringBlock::Init(CMallocator* pcMallocator, BOOL bCaseSensitive, BOOL bOverwrite)
+void CMapStringBlock::Init(CMallocator* pcMalloc, BOOL bCaseSensitive, BOOL bOverwrite)
 {
 	CompareFunc	CaseFunc;
 
 	CaseFunc = CalculateCompareFunc(bCaseSensitive);
-	CMapBlock::Init(pcMallocator, CaseFunc, bOverwrite);
+	CMapBlock::Init(pcMalloc, CaseFunc, bOverwrite);
 }
 
 

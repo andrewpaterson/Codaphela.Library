@@ -31,7 +31,7 @@ protected:
 public:
 	void			Init(int iElementSize, int(*fCompare)(const void*, const void*));
 	void			Init(int iElementSize, int iHoldingBufferSize, int iHoldingBuffers, int(*fCompare)(const void*, const void*));
-	void			Init(CMallocator* pcMallocator, int iElementSize, int iHoldingBufferSize, int iHoldingBuffers, int(*fCompare)(const void*, const void*));
+	void			Init(CMallocator* pcMalloc, int iElementSize, int iHoldingBufferSize, int iHoldingBuffers, int(*fCompare)(const void*, const void*));
 	void			Kill(void);
 
 	BOOL			Add(void* pv);

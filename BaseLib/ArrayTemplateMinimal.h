@@ -34,13 +34,13 @@ protected:
 
 public:
 	void	Init(void);
-	void	Init(CMallocator* pcMallocator);
+	void	Init(CMallocator* pcMalloc);
 	void 	Init(CArrayTemplateMinimal<M>* pArray);  //Used to be Copy
-	void 	Init(CMallocator* pcMallocator, CArrayTemplateMinimal<M>* pArray);  //Used to be Copy
+	void 	Init(CMallocator* pcMalloc, CArrayTemplateMinimal<M>* pArray);  //Used to be Copy
 	void 	ReInit(void);
 	void	Kill(void);
 	void	Allocate(int iNum);
-	void	Allocate(CMallocator* pcMallocator, int iNum);
+	void	Allocate(CMallocator* pcMalloc, int iNum);
 
 	int		Resize(int iNumElements);  //Test Virtual and make sure only PostMalloc only called once.
 	int		NumElements(void);
@@ -125,9 +125,9 @@ void CArrayTemplateMinimal<M>::Init(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CArrayTemplateMinimal<M>::Init(CMallocator* pcMallocator)
+void CArrayTemplateMinimal<M>::Init(CMallocator* pcMalloc)
 {
-	CArrayBlockMinimal::Init(pcMallocator);
+	CArrayBlockMinimal::Init(pcMalloc);
 	mpvArray = NULL;
 }
 
@@ -179,9 +179,9 @@ void CArrayTemplateMinimal<M>::Allocate(int iNum)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CArrayTemplateMinimal<M>::Allocate(CMallocator* pcMallocator, int iNum)
+void CArrayTemplateMinimal<M>::Allocate(CMallocator* pcMalloc, int iNum)
 {
-	CArrayBlockMinimal::Init(pcMallocator);
+	CArrayBlockMinimal::Init(pcMalloc);
 	mpvArray = NULL;
 	SetArraySize(iNum);
 }
