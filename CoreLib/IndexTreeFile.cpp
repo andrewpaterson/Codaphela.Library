@@ -856,18 +856,16 @@ CIndexTreeNodeFile* CIndexTreeFile::ReallocateNodeForContainIndex(CIndexTreeNode
 {
 	CIndexTreeNodeFile*		pcOldNode;
 	size_t					tNewNodeSize;
-	size_t					tOldNodeSize;
 
 	if (pcNode->ContainsIndex(uiIndex))
 	{
 		return pcNode;
 	}
 
-	tOldNodeSize = pcNode->CalculateRequiredNodeSizeForCurrent();
 	tNewNodeSize = pcNode->CalculateRequiredNodeSizeForIndex(uiIndex);
 
 	pcOldNode = pcNode;
-	pcNode = (CIndexTreeNodeFile*)Realloc(pcNode, tNewNodeSize, tOldNodeSize);
+	pcNode = (CIndexTreeNodeFile*)Realloc(pcNode, tNewNodeSize);
 
 	pcNode->Contain(uiIndex, INDEX_TREE_FILE_NODE_UNALLOCATED);
 	//pcNode->SetDirtyNode(TRUE);
@@ -884,14 +882,12 @@ CIndexTreeNodeFile* CIndexTreeFile::ReallocateNodeForContainIndex(CIndexTreeNode
 CIndexTreeNodeFile* CIndexTreeFile::ReallocateNodeForLargerData(CIndexTreeNodeFile* pcNode, void* pvData, unsigned short uiDataSize)
 {
 	size_t					tNewNodeSize;
-	size_t					tOldNodeSize;
 	CIndexTreeNodeFile*		pcOldNode;
 
-	tOldNodeSize = pcNode->CalculateRequiredNodeSizeForCurrent();
 	tNewNodeSize = pcNode->CalculateRequiredNodeSizeForData(uiDataSize);
 
 	pcOldNode = pcNode;
-	pcNode = (CIndexTreeNodeFile*)Realloc(pcNode, tNewNodeSize, tOldNodeSize);
+	pcNode = (CIndexTreeNodeFile*)Realloc(pcNode, tNewNodeSize);
 	if (pcNode)
 	{
 		pcNode->SetData(pvData, uiDataSize);
@@ -913,18 +909,16 @@ CIndexTreeNodeFile* CIndexTreeFile::ReallocateNodeForLargerData(CIndexTreeNodeFi
 CIndexTreeNodeFile* CIndexTreeFile::ReallocateNodeForSmallerData(CIndexTreeNodeFile* pcNode, void* pvData, unsigned short uiDataSize)
 {
 	size_t					tNewNodeSize;
-	size_t					tOldNodeSize;
 	unsigned short			uiOriginalSize;
 	CIndexTreeNodeFile*		pcOldNode;
 
 	uiOriginalSize = pcNode->GetDataSize();
 	pcNode->SetData(pvData, uiDataSize);
 
-	tOldNodeSize = pcNode->CalculateRequiredNodeSizeForData(uiOriginalSize);
 	tNewNodeSize = pcNode->CalculateRequiredNodeSizeForCurrent();
 
 	pcOldNode = pcNode;
-	pcNode = (CIndexTreeNodeFile*)Realloc(pcNode, tNewNodeSize, tOldNodeSize);
+	pcNode = (CIndexTreeNodeFile*)Realloc(pcNode, tNewNodeSize);
 	if (pcNode)
 	{
 		RemapNodePointers(pcOldNode, pcNode);
@@ -1192,16 +1186,14 @@ CIndexTreeNodeFile* CIndexTreeFile::ReallocateNodeForUncontainIndex(CIndexTreeNo
 	CIndexTreeNodeFile*		pcOldNode;
 	BOOL					bResizeNode;
 	size_t					tNewNodeSize;
-	size_t					tOldNodeSize;
 
 	bResizeNode = pcNode->ClearIndexAndUncontain(c);
 	if (bResizeNode)
 	{
-		tOldNodeSize = pcNode->CalculateRequiredNodeSizeForCurrent();
 		tNewNodeSize = pcNode->CalculateRequiredNodeSizeForCurrent();
 		pcOldNode = pcNode;
 
-		pcNode = (CIndexTreeNodeFile*)Realloc(pcNode, tNewNodeSize, tOldNodeSize);
+		pcNode = (CIndexTreeNodeFile*)Realloc(pcNode, tNewNodeSize);
 		RemapNodePointers(pcOldNode, pcNode);
 	}
 

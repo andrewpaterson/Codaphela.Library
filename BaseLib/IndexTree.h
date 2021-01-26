@@ -57,7 +57,7 @@ public:
 
 protected:
 			void*				Malloc(size_t tSize);
-			void*				Realloc(void* pv, size_t tNewSize, size_t tExistingSize);
+			void*				Realloc(void* pv, size_t tSize);
 			void				Free(void* pv);
 
 			BOOL				ValidatePut(int iKeySize, int iDataSize);
