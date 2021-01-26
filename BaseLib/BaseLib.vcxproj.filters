@@ -864,7 +864,7 @@
     <ClInclude Include="MemoryCacheEvictedData.h">
       <Filter>Source\Memory\Cache</Filter>
     </ClInclude>
-    <ClInclude Include="Alloc.h">
+    <ClInclude Include="Malloc.h">
       <Filter>Source\Memory\Allocator\Base</Filter>
     </ClInclude>
   </ItemGroup>
@@ -1370,7 +1370,7 @@
     <ClCompile Include="MemoryCacheEvictedData.cpp">
       <Filter>Source\Memory\Cache</Filter>
     </ClCompile>
-    <ClCompile Include="Alloc.cpp">
+    <ClCompile Include="Malloc.cpp">
       <Filter>Source\Memory\Allocator\Base</Filter>
     </ClCompile>
   </ItemGroup>

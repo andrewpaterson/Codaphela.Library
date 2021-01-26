@@ -3,7 +3,7 @@
 #include "SystemAllocator.h"
 #include "ArrayBlock.h"
 #include "ArrayTemplate.h"
-#include "Alloc.h"
+#include "Malloc.h"
 
 
 typedef CArrayTemplate<CArrayBlock> CArrayArrayBlock;
@@ -16,7 +16,7 @@ struct SArraySortedIterator
 };
 
 
-class CArrayBlockSorted : public CAlloc
+class CArrayBlockSorted : public CMalloc
 {
 protected:
 	CArrayBlock			maSortedArray;

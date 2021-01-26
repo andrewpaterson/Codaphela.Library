@@ -30,7 +30,7 @@ void CArrayBlock::Init(CMallocator* pcMalloc, int iElementSize)
 //////////////////////////////////////////////////////////////////////////
 void CArrayBlock::Init(CMallocator* pcMalloc, int iElementSize, int iChunkSize)
 {
-	CAlloc::Init(pcMalloc);
+	CMalloc::Init(pcMalloc);
 	mpvArray = NULL;
 	miNumElements = 0;
 	miUsedElements = 0;
@@ -45,7 +45,7 @@ void CArrayBlock::Init(CMallocator* pcMalloc, int iElementSize, int iChunkSize)
 //////////////////////////////////////////////////////////////////////////
 void CArrayBlock::Fake(int iElementSize, void* pvData, int iNum, int iChunkSize)
 {
-	CAlloc::Kill();
+	CMalloc::Kill();
 	mpvArray = pvData;
 	miElementSize = iElementSize;
 	miNumElements = iChunkSize;
@@ -575,7 +575,7 @@ void CArrayBlock::Kill(void)
 		miUsedElements = 0;
 	}
 	mpvArray = NULL;
-	CAlloc::Kill();
+	CMalloc::Kill();
 }
 
 
@@ -1629,7 +1629,7 @@ BOOL CArrayBlock::ReadHeader(CFileReader* pcFileReader, CMallocator* pcMalloc)
 	miNumElements = 0;
 	miUsedElements = 0;
 	mpvArray = NULL;
-	CAlloc::Init(pcMalloc);
+	CMalloc::Init(pcMalloc);
 
 	if (sHeader.miUsedElements != 0)
 	{

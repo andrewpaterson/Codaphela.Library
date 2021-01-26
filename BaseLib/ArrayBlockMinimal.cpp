@@ -19,7 +19,7 @@ void CArrayBlockMinimal::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CArrayBlockMinimal::Init(CMallocator* pcMalloc)
 {
-	CAlloc::Init(pcMalloc);
+	CMalloc::Init(pcMalloc);
 	miUsedElements = 0;
 }
 
@@ -31,7 +31,7 @@ void CArrayBlockMinimal::Init(CMallocator* pcMalloc)
 void CArrayBlockMinimal::Kill(void)
 {
 	miUsedElements = 0;
-	CAlloc::Kill();
+	CMalloc::Kill();
 }
 
 
@@ -86,7 +86,7 @@ BOOL CArrayBlockMinimal::ReadAllocator(CFileReader* pcFileReader)
 	{
 		return FALSE;
 	}
-	CAlloc::Init(pcMalloc);
+	CMalloc::Init(pcMalloc);
 	return TRUE;
 }
 

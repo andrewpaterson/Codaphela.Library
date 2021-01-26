@@ -1,12 +1,12 @@
 #include "Logger.h"
-#include "Alloc.h"
+#include "Malloc.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CAlloc::Init(CMallocator* pcMalloc)
+void CMalloc::Init(CMallocator* pcMalloc)
 {
 	mpcMalloc = pcMalloc;
 	if (!mpcMalloc)
@@ -20,7 +20,7 @@ void CAlloc::Init(CMallocator* pcMalloc)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CAlloc::Kill(void)
+void CMalloc::Kill(void)
 {
 	mpcMalloc = NULL;
 }
@@ -30,7 +30,7 @@ void CAlloc::Kill(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CAlloc::Malloc(size_t tSize)
+void* CMalloc::Malloc(size_t tSize)
 {
 	return mpcMalloc->Malloc(tSize);
 }
@@ -40,7 +40,7 @@ void* CAlloc::Malloc(size_t tSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CAlloc::Free(void* pv)
+void CMalloc::Free(void* pv)
 {
 	mpcMalloc->Free(pv);
 }
@@ -50,7 +50,7 @@ void CAlloc::Free(void* pv)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CAlloc::Realloc(void* pv, size_t tSize)
+void* CMalloc::Realloc(void* pv, size_t tSize)
 {
 	return mpcMalloc->Realloc(pv, tSize);
 }

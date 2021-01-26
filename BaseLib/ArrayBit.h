@@ -23,10 +23,10 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __ARRAY_BIT_H__
 #define __ARRAY_BIT_H__
 #include "ChunkFile.h"
-#include "Alloc.h"
+#include "Malloc.h"
 
 
-class CArrayBit : public CAlloc
+class CArrayBit : public CMalloc
 {
 protected:
 	int				miNumBits;

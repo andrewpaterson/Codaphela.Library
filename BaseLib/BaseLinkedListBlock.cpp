@@ -11,7 +11,7 @@
 //////////////////////////////////////////////////////////////////////////
 void CBaseLinkedListBlock::Init(CMallocator* pcMalloc, size_t uiNodeSize)
 {
-	CAlloc::Init(pcMalloc);
+	CMalloc::Init(pcMalloc);
 	muiNodeSize = uiNodeSize;
 	mcList.Init();
 }
@@ -44,7 +44,7 @@ void CBaseLinkedListBlock::Kill(void)
 		psNode = psNode2;
 	}
 	mcList.Kill();
-	CAlloc::Kill();
+	CMalloc::Kill();
 }
 
 

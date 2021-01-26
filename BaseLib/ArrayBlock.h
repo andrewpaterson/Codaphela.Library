@@ -5,7 +5,7 @@
 #include "FastFunctions.h"
 #include "Mallocator.h"
 #include "FileIO.h"
-#include "Alloc.h"
+#include "Malloc.h"
 
 
 struct SArrayTemplateHeader
@@ -23,7 +23,7 @@ struct SArrayTemplateHeader
 //For constant element pointers take a look at CListBlock.
 
 //For variable sized elements take a look at CListVariable.
-class CArrayBlock : public CAlloc, protected SArrayTemplateHeader
+class CArrayBlock : public CMalloc, protected SArrayTemplateHeader
 {
 protected:
 	int				miNumElements;

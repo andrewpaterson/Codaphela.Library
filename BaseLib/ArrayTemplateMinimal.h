@@ -1116,7 +1116,7 @@ BOOL CArrayTemplateMinimal<M>::ReadHeader(CFileReader* pcFileReader, CMallocator
 	}
 	mpvArray = NULL;
 	miUsedElements = 0;
-	CAlloc::Init(pcMalloc);
+	CMalloc::Init(pcMalloc);
 
 	if (!SetUsedElements(iUsedElements))
 	{

@@ -6,10 +6,10 @@
 #include "ErrorHandler.h"
 #include "FileIO.h"
 #include "Mallocator.h"
-#include "Alloc.h"
+#include "Malloc.h"
 
 
-class CArrayBlockMinimal : public CAlloc
+class CArrayBlockMinimal : public CMalloc
 {
 protected:
 	int 			miUsedElements;

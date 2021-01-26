@@ -94,7 +94,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="AccessDataOrderer.h" />
-    <ClInclude Include="Alloc.h" />
+    <ClInclude Include="Malloc.h" />
     <ClInclude Include="ArrayBlock.h" />
     <ClInclude Include="ArrayBlockMinimal.h" />
     <ClInclude Include="ArrayBlockSorted.h" />
@@ -308,7 +308,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AccessDataOrderer.cpp" />
-    <ClCompile Include="Alloc.cpp" />
+    <ClCompile Include="Malloc.cpp" />
     <ClCompile Include="ArrayBlock.cpp" />
     <ClCompile Include="ArrayBit.cpp" />
     <ClCompile Include="ArrayBlockMinimal.cpp" />

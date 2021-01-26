@@ -43,7 +43,7 @@ void CArrayBit::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CArrayBit::Init(CMallocator* pcMalloc)
 {
-	CAlloc::Init(pcMalloc);
+	CMalloc::Init(pcMalloc);
 	miNumBits = 0;
 	u.aSmall.ui[0] = 0;
 	u.aSmall.ui[1] = 0;
@@ -61,7 +61,7 @@ void CArrayBit::Kill(void)
 	{
 		Free(u.aLarge.mpvData);
 	}
-	CAlloc::Kill();
+	CMalloc::Kill();
 }
 
 
