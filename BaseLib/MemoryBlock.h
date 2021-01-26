@@ -2,9 +2,9 @@
 #define __MEMORY_BLOCK_H__
 #include "Define.h"
 #include "Mallocator.h"
-#include "Alloc.h"
+#include "Malloc.h"
 
-class CMemoryBlock : public CAlloc
+class CMemoryBlock : public CMalloc
 {
 protected:
 	void*			mpvMem;

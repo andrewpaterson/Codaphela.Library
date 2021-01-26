@@ -24,7 +24,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define __BASE_LINKED_LIST_BLOCK_H__
 #include "DataMacro.h"
 #include "FileIO.h"
-#include "Alloc.h"
+#include "Malloc.h"
 #include "LinkedList.h"
 
 
@@ -47,7 +47,7 @@ struct SLinkedListTemplateDesc
 };
 
 
-class CBaseLinkedListBlock : public CAlloc
+class CBaseLinkedListBlock : public CMalloc
 {
 protected:
 	CLinkedList		mcList;

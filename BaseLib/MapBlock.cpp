@@ -47,7 +47,7 @@ void CMapBlock::Init(CMallocator* pcMalloc, int(*fKeyCompare)(const void*, const
 	int		iHoldingBufferSize;
 	int		iHoldingBuffers;
 
-	CAlloc::Init(pcMalloc);
+	CMalloc::Init(pcMalloc);
 
 	iHoldingBufferSize = 256;
 	iHoldingBuffers = 4;
@@ -77,7 +77,7 @@ void CMapBlock::Kill(void)
 
 	miLargestKeySize = 0;
 	mapArray.Kill();
-	CAlloc::Kill();
+	CMalloc::Kill();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -393,7 +393,7 @@ BOOL CMapBlock::ReadExceptData(CFileReader* pcFileReader, int(*fKeyCompare)(cons
 		return FALSE;
 	}
 
-	CAlloc::Init(pcMalloc);
+	CMalloc::Init(pcMalloc);
 
 	this->fKeyCompare = fKeyCompare;
 	miLargestKeySize = 0;

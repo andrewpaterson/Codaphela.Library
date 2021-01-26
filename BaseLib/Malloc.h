@@ -1,9 +1,9 @@
-#ifndef __ALLOC_H__
-#define __ALLOC_H__
+#ifndef __MALLOC_H__
+#define __MALLOC_H__
 #include "Mallocator.h"
 
 
-class CAlloc
+class CMalloc
 {
 protected:
 	CMallocator* mpcMalloc;
@@ -18,6 +18,6 @@ public:
 };
 
 
-#endif // __ALLOC_H__
+#endif // __MALLOC_H__
 
 

@@ -31,7 +31,7 @@ void CArrayBlockSorted::Init(CMallocator* pcMalloc, int iElementSize, int iHoldi
 	CArrayBlock*	paHoldingArray;
 	int				i;
 
-	CAlloc::Init(pcMalloc);
+	CMalloc::Init(pcMalloc);
 	miHoldingBufferSize = iHoldingBufferSize;
 	miElementSize = iElementSize;
 	mfCompare = fCompare;
@@ -73,7 +73,7 @@ void CArrayBlockSorted::Kill(void)
 	}
 	maaHoldingArrays.Kill();
 	maSortedArray.Kill();
-	CAlloc::Kill();
+	CMalloc::Kill();
 }
 
 
@@ -624,7 +624,7 @@ BOOL CArrayBlockSorted::ReadHeader(CMallocator* pcMalloc, CFileReader* pcFileRea
 	int				iHoldingBuffers;
 	BOOL			bOverwrite;
 
-	CAlloc::Init(pcMalloc);
+	CMalloc::Init(pcMalloc);
 	ReturnOnFalse(pcFileReader->ReadInt(&iHoldingBufferSize));
 	ReturnOnFalse(pcFileReader->ReadInt(&iElementSize));
 	ReturnOnFalse(pcFileReader->ReadInt(&iHoldingBuffers));
