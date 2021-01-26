@@ -26,26 +26,26 @@ void CArrayBlockSorted::Init(int iElementSize, int iHoldingBufferSize, int iHold
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayBlockSorted::Init(CMallocator* pcMallocator, int iElementSize, int iHoldingBufferSize, int iHoldingBuffers, int(*fCompare)(const void*, const void*))
+void CArrayBlockSorted::Init(CMallocator* pcMalloc, int iElementSize, int iHoldingBufferSize, int iHoldingBuffers, int(*fCompare)(const void*, const void*))
 {
 	CArrayBlock*	paHoldingArray;
 	int				i;
 
-	mpcMalloc = pcMallocator;
+	mpcMalloc = pcMalloc;
 	miHoldingBufferSize = iHoldingBufferSize;
 	miElementSize = iElementSize;
 	mfCompare = fCompare;
 	mbOverwrite = FALSE;
 
-	maSortedArray.Init(pcMallocator, iElementSize);
-	maaHoldingArrays.Init(pcMallocator);
+	maSortedArray.Init(pcMalloc, iElementSize);
+	maaHoldingArrays.Init(pcMalloc);
 	if (iHoldingBuffers > 0)
 	{
 		maaHoldingArrays.Resize(iHoldingBuffers);
 		for (i = 0; i < iHoldingBuffers; i++)
 		{
 			paHoldingArray = maaHoldingArrays.Get(i);
-			paHoldingArray->Init(pcMallocator, miElementSize);
+			paHoldingArray->Init(pcMalloc, miElementSize);
 		}
 		mapiInsertionIndices = (int*)mpcMalloc->Malloc(miHoldingBufferSize * iHoldingBuffers * sizeof(int));
 	}

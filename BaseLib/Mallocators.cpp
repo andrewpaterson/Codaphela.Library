@@ -34,18 +34,18 @@ void CMallocators::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMallocators::AddMallocator(CMallocator* pcMallocator)
+BOOL CMallocators::AddMallocator(CMallocator* pcMalloc)
 {
 	char*	sz;
 
-	sz = (char*)(pcMallocator->ClassName());
+	sz = (char*)(pcMalloc->ClassName());
 	if (mmszcMallocators.Get(sz))
 	{
 		gcLogger.Error2(__METHOD__, " A mallocator named [", sz, "] already exists.", NULL);
 		return FALSE;
 	}
 
-	mmszcMallocators.Put(sz, &pcMallocator);
+	mmszcMallocators.Put(sz, &pcMalloc);
 	return TRUE;
 }
 
@@ -120,7 +120,7 @@ CMallocator* CMallocators::ReadMallocator(CFileReader* pcFileReader)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMallocators::WriteMallocator(CFileWriter* pcFileWriter, CMallocator* pcMallocator)
+BOOL CMallocators::WriteMallocator(CFileWriter* pcFileWriter, CMallocator* pcMalloc)
 {
 	CLocalMallocator*	pcLocal;
 
@@ -129,21 +129,21 @@ BOOL CMallocators::WriteMallocator(CFileWriter* pcFileWriter, CMallocator* pcMal
 		return FALSE;
 	}
 
-	if (pcMallocator == NULL)
+	if (pcMalloc == NULL)
 	{
 		gcLogger.Error2(__METHOD__, " Could not write NULL mallocator.", NULL);
 		return FALSE;
 	}
 
-	if (!pcFileWriter->WriteString(pcMallocator->ClassName()))
+	if (!pcFileWriter->WriteString(pcMalloc->ClassName()))
 	{
-		gcLogger.Error2(__METHOD__, " Could not write mallocator name [", pcMallocator->ClassName(), "].", NULL);
+		gcLogger.Error2(__METHOD__, " Could not write mallocator name [", pcMalloc->ClassName(), "].", NULL);
 		return FALSE;
 	}
 
-	if (pcMallocator->IsLocal())
+	if (pcMalloc->IsLocal())
 	{
-		pcLocal = (CLocalMallocator*)pcMallocator;
+		pcLocal = (CLocalMallocator*)pcMalloc;
 		return pcLocal->Write(pcFileWriter);
 	}
 	else

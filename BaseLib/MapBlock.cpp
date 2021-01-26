@@ -51,15 +51,15 @@ void CMapBlock::Init(CMallocator* pcMalloc, int(*fKeyCompare)(const void*, const
 	iHoldingBuffers = 4;
 
 	mpcMalloc = pcMalloc;
-	this->fKeyCompare = fKeyCompare;
-	mapArray.Init(pcMalloc, sizeof(void*), iHoldingBufferSize, iHoldingBuffers, &CompareMNode);
-	miLargestKeySize = 0;
-	mbOverwrite = bOverwrite;
-
 	if (!mpcMalloc)
 	{
 		gcLogger.Error2(__METHOD__, " Mallocator is NULL.", NULL);
 	}
+
+	this->fKeyCompare = fKeyCompare;
+	mapArray.Init(pcMalloc, sizeof(void*), iHoldingBufferSize, iHoldingBuffers, &CompareMNode);
+	miLargestKeySize = 0;
+	mbOverwrite = bOverwrite;
 }
 
 

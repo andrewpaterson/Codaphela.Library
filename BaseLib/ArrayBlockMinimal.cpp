@@ -17,10 +17,10 @@ void CArrayBlockMinimal::Init(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayBlockMinimal::Init(CMallocator* pcMallocator)
+void CArrayBlockMinimal::Init(CMallocator* pcMalloc)
 {
 	miUsedElements = 0;
-	mpcMalloc = pcMallocator;
+	mpcMalloc = pcMalloc;
 }
 
 
