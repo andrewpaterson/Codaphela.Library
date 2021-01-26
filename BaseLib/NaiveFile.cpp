@@ -29,11 +29,11 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNaiveFile::Init(void)
+CNaiveFile::CNaiveFile()
 {
 	mpvMem = NULL;
 	miSize = 0;
-	mszFileName.Init();
+	mszFileName.Zero();
 }
 
 
@@ -41,10 +41,24 @@ void CNaiveFile::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNaiveFile::Init(void* pvMem, int iSize)
+CNaiveFile* CNaiveFile::Init(void)
+{
+	mpvMem = NULL;
+	miSize = 0;
+	mszFileName.Init();
+	return this;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CNaiveFile* CNaiveFile::Init(void* pvMem, int iSize)
 {
 	Init();
 	Set(pvMem, iSize);
+	return this;
 }
 
 
