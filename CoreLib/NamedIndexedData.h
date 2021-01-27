@@ -86,6 +86,8 @@ public:
 	BOOL			ValidateConfigInitialised(void);
 	BOOL			ValidateConfigKilled(void);
 
+	void			Dump(void);
+
 private:
 	BOOL			Add(OIndex oi, char* szName, int iNameLength, void* pvData, unsigned int uiDataSize);
 	BOOL			Set(OIndex oi, char* szName, int iNameLength, void* pvData, unsigned int uiDataSize);

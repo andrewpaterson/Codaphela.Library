@@ -14,6 +14,11 @@ BOOL					gbMemory = FALSE;
 //////////////////////////////////////////////////////////////////////////
 void MemoryInit(void)
 {
+	if (gbMemory)
+	{
+		gcLogger.Error("Global Memory has already been initialised.");
+	}
+
 	gcMemory.Init();
 	gbMemory = TRUE;
 
@@ -28,6 +33,11 @@ void MemoryInit(void)
 //////////////////////////////////////////////////////////////////////////
 void MemoryInit(int iDefaultAlignment, BOOL bDefaultFreeListParams)
 {
+	if (gbMemory)
+	{
+		gcLogger.Error("Global Memory has already been initialised.");
+	}
+
 	gcMemory.Init(iDefaultAlignment, bDefaultFreeListParams);
 	gbMemory = TRUE;
 
@@ -42,6 +52,11 @@ void MemoryInit(int iDefaultAlignment, BOOL bDefaultFreeListParams)
 //////////////////////////////////////////////////////////////////////////
 void MemoryKill(void)
 {
+	if (!gbMemory)
+	{
+		gcLogger.Error("Global Memory has already been Killed.");
+	}
+
 	gcConstructors.Kill();
 	gcMallocators.Kill();
 
@@ -66,4 +81,5 @@ BOOL MemoryValidate(void)
 		return TRUE;
 	}
 }
+
 
