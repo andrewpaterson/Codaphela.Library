@@ -925,3 +925,18 @@ BOOL CNamedIndexedData::ValidateConfigKilled(void)
 	return bResult; 
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CNamedIndexedData::Dump(void)
+{
+	CChars	sz;
+
+	sz.Init("---- Names -----")->AppendNewLine()->DumpKill();
+	mcNames.DumpIndex();
+	sz.Init()->AppendNewLine()->Append("--- Indicies ---")->AppendNewLine()->DumpKill();
+	mcData.DumpIndex();
+}
+

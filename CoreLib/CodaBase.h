@@ -63,6 +63,8 @@ public:
 	int64	NumIndicesCached(void);
 	int64	NumNames(void);
 	int64	NumNamesCached(void);
+
+	void	Dump(void);
 };
 
 
