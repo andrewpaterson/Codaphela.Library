@@ -61,6 +61,7 @@ public:
 
 	int64			NumIndices(void);
 	int64			NumIndicesCached(void);
+	int64			NumIndicesCached(size_t iSize);
 
 	BOOL			IsDirty(OIndex oi);
 	BOOL			EvictKey(OIndex oi);

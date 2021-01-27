@@ -311,6 +311,7 @@ BOOL CIndexedData::ValidateConfigKilled(void)
 //
 //////////////////////////////////////////////////////////////////////////
 int64 CIndexedData::NumIndicesCached(void) { return mcIndices.NumIndicesCached(); }
+int64 CIndexedData::NumIndicesCached(size_t iSize) { return mcIndices.NumIndicesCached(iSize); }
 CDurableFileController* CIndexedData::GetDurableFileControl(void) { return mpcDurableFileControl; }
 BOOL CIndexedData::IsDurable(void) { return mpcDurableFileControl->IsDurable(); }
 size_t CIndexedData::GetIndiciesSystemMemorySize(void) { return mcIndices.GetSystemMemorySize(); }

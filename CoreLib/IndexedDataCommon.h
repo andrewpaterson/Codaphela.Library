@@ -42,7 +42,7 @@ public:
 	virtual int64			NumIndicesCached(void) =0;
 			int64			NumDatas(void);
 			int				NumDataCached(void);
-			int				NumDataCached(int iSize);
+			int				NumDataCached(size_t iSize);
 			int				NumFiles(void);
 			int64			NumDatas(unsigned int uiDataSize);
 

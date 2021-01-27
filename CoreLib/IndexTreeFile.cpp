@@ -1641,6 +1641,16 @@ int CIndexTreeFile::NumMemoryElements(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+int CIndexTreeFile::NumMemoryElements(size_t iSize)
+{
+	return RecurseNumMemoryElements(mpcRoot, iSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeFile::Flush(void)
 {
 	BOOL	bResult;
@@ -2291,7 +2301,7 @@ int CIndexTreeFile::RecurseNumElements(CIndexTreeNodeFile* pcNode)
 int CIndexTreeFile::RecurseNumMemoryElements(CIndexTreeNodeFile* pcNode)
 {
 	int						i;
-	CIndexTreeNodeFile*		pcChild;
+	CIndexTreeNodeFile* pcChild;
 	int						iLastIndex;
 
 	int count = 0;
@@ -2308,6 +2318,39 @@ int CIndexTreeFile::RecurseNumMemoryElements(CIndexTreeNodeFile* pcNode)
 		{
 			pcChild = ReadMemoryNode(pcNode, i);
 			count += RecurseNumMemoryElements(pcChild);
+		}
+	}
+	return count;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CIndexTreeFile::RecurseNumMemoryElements(CIndexTreeNodeFile* pcNode, size_t iSize)
+{
+	int						i;
+	CIndexTreeNodeFile*		pcChild;
+	int						iLastIndex;
+
+	int count = 0;
+
+	if (pcNode != NULL)
+	{
+		if (HasData(pcNode))
+		{
+			if (pcNode->GetDataSize() == iSize)
+			{
+				count++;
+			}
+		}
+
+		iLastIndex = pcNode->GetLastIndex();
+		for (i = pcNode->GetFirstIndex(); i <= iLastIndex; i++)
+		{
+			pcChild = ReadMemoryNode(pcNode, i);
+			count += RecurseNumMemoryElements(pcChild, iSize);
 		}
 	}
 	return count;

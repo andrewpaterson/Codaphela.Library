@@ -64,6 +64,7 @@ protected:
 	int						NumNodes(void);
 	int						NumMemoryNodes(void);
 	int						NumMemoryElements(void);
+	int						NumMemoryElements(size_t iSize);
 
 	void					DebugKey(CChars* pszDest, void* pvKey, int iKeySize, BOOL bSkipRoot, BOOL bShowFlags, BOOL bShowSize, BOOL bKeyAlreadyReversed);
 

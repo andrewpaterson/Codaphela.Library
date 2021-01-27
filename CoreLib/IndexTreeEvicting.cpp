@@ -471,6 +471,16 @@ int CIndexTreeEvicting::NumMemoryElements(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+int CIndexTreeEvicting::NumMemoryElements(size_t iSize)
+{
+	return mcIndexTree.NumMemoryElements(iSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CIndexTreeEvicting::DebugKey(CChars* pszDest, void* pvKey, int iKeySize, BOOL bSkipRoot, BOOL bShowFlags, BOOL bShowSize, BOOL bKeyAlreadyReversed)
 {
 	return mcIndexTree.DebugKey(pszDest, pvKey, iKeySize, bSkipRoot, bShowFlags, bShowSize, bKeyAlreadyReversed);
