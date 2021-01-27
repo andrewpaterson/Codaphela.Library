@@ -115,6 +115,7 @@ protected:
 	int						NumNodes(void);
 	int						NumMemoryNodes(void);
 	int						NumMemoryElements(void);
+	int						NumMemoryElements(size_t iSize);
 
 	void					DebugKey(CChars* pszDest, void* pvKey, int iKeySize, BOOL bSkipRoot, BOOL bShowFlags, BOOL bShowSize, BOOL bKeyAlreadyReversed);
 	void					PrintChildren(CChars* pszDest, BOOL bShowFlags, BOOL bShowSize);
@@ -158,6 +159,7 @@ protected:
 	void					FindWithFlags(CArrayVoidPtr* papNodes, unsigned char uiFollowFlags, unsigned char uiAddFlags);
 	int						RecurseNumElements(CIndexTreeNodeFile* pcNode);
 	int						RecurseNumMemoryElements(CIndexTreeNodeFile* pcNode);
+	int						RecurseNumMemoryElements(CIndexTreeNodeFile* pcNode, size_t iSize);
 	int						CountListSize(void);
 	int						RecurseCountListSize(CIndexTreeNodeFile* pcNode);
 	size_t					RecurseByteSize(CIndexTreeNodeFile* pcNode);

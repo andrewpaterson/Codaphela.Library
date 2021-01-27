@@ -1,4 +1,5 @@
 #include "BaseLib/FastMemcpy.h"
+#include "BaseLib/StringHelper.h"
 #include "BaseLib/PointerRemapper.h"
 #include "NamedIndexedHeader.h"
 
@@ -96,6 +97,16 @@ int CNamedIndexedHeader::GetHeaderSize(void)
 	{
 		return sizeof(CNamedIndexedHeader) + miNameLength + sizeof(char);
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size_t NamedIndexedHeaderSize(char* szName, unsigned int uiDataSize)
+{
+	return NamedIndexedHeaderSize(strlen(szName), uiDataSize);
 }
 
 

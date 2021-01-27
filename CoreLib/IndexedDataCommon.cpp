@@ -275,7 +275,7 @@ int CIndexedDataCommon::NumDataCached(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CIndexedDataCommon::NumDataCached(int iSize)
+int CIndexedDataCommon::NumDataCached(size_t iSize)
 {
 	return mcData.NumCached(iSize);
 }

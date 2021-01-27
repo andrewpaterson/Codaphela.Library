@@ -35,6 +35,7 @@ public:
 	int64			NumElements(void);
 	int64			NumIndices(void);
 	int				NumIndicesCached(void);
+	int				NumIndicesCached(size_t iSize);
 	int64			NumDatas(void);
 	BOOL			IsFlushed(void);
 

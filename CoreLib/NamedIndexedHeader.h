@@ -17,6 +17,7 @@ public:
 };
 
 
+size_t NamedIndexedHeaderSize(char* szName, unsigned int uiDataSize);
 size_t NamedIndexedHeaderSize(unsigned int uiDataSize);
 size_t NamedIndexedHeaderSize(int iNameLength, unsigned int uiDataSize);
 

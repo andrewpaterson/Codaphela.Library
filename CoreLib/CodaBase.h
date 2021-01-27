@@ -61,6 +61,9 @@ public:
 
 	int64	NumIndices(void);
 	int64	NumIndicesCached(void);
+	int64	NumIndicesCached(size_t iSize);
+	int64	NumDataCached(void);
+	int64	NumDataCached(size_t iSize);
 	int64	NumNames(void);
 	int64	NumNamesCached(void);
 
