@@ -950,6 +950,7 @@ BOOL CFileUtil::TouchDir(const char* szDirectory, BOOL bLastIsFileName)
 		RemoveLastFromPath(&szPath);
 		if (szPath.Empty())
 		{
+			szPath.Kill();
 			return FALSE;
 		}
 	}
@@ -959,10 +960,12 @@ BOOL CFileUtil::TouchDir(const char* szDirectory, BOOL bLastIsFileName)
 		cDrive = GetDriveLetter(szPath.Text());
 		if ((cDrive != 0) && (szPath.Length() == 3))
 		{
+			szPath.Kill();
 			return FALSE;
 		}
 		if (szPath.Length() == 1)
 		{
+			szPath.Kill();
 			return FALSE;
 		}
 	}

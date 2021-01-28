@@ -133,7 +133,7 @@ template <class M>
 CFileNode<M>* CFileNames<M>::AddFile(char* szFullName)
 {
 	CChars			szFake;
-	CArrayChars	asNames;
+	CArrayChars		asNames;
 	int				i;
 	char*			szName;
 	CFileNode<M>*	pcCurrent;

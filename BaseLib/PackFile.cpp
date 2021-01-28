@@ -29,10 +29,10 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPackFile::Init(CPackFiles* pcPackFiles, CPackFileNode* psPackFile)
+void CPackFile::Init(CPackFiles* pcPackFiles, CPackFileNode* psPackFileNode)
 {
 	mpcPackFiles = pcPackFiles;
-	mpsPackFile = psPackFile;
+	mpsPackFileNode = psPackFileNode;
 	miPos = 0;
 	meMode = EFM_Unknown;
 }
@@ -44,6 +44,8 @@ void CPackFile::Init(CPackFiles* pcPackFiles, CPackFileNode* psPackFile)
 //////////////////////////////////////////////////////////////////////////
 void CPackFile::Kill(void)
 {
+	//You need to free mpsPackFileNode
+	xxx
 }
 
 
@@ -99,7 +101,7 @@ filePos CPackFile::Read(void* pvBuffer, filePos iSize, filePos iCount)
 {
 	if (meMode == EFM_Read)
 	{
-		return mpcPackFiles->Read(mpsPackFile, pvBuffer, iSize, iCount);
+		return mpcPackFiles->Read(mpsPackFileNode, pvBuffer, iSize, iCount);
 	}
 	return 0;
 }
@@ -113,7 +115,7 @@ BOOL CPackFile::Seek(filePos iOffset, EFileSeekOrigin iSeekOrigin)
 {
 	if (meMode != EFM_Unknown)
 	{
-		return mpcPackFiles->Seek(mpsPackFile, iOffset, iSeekOrigin);
+		return mpcPackFiles->Seek(mpsPackFileNode, iOffset, iSeekOrigin);
 	}
 	return FALSE;
 }
@@ -127,7 +129,7 @@ filePos CPackFile::Write(const void* pvBuffer, filePos iSize, filePos iCount)
 {
 	if (meMode == EFM_Write_Create)
 	{
-		return mpcPackFiles->Write(mpsPackFile, pvBuffer, iSize, iCount);
+		return mpcPackFiles->Write(mpsPackFileNode, pvBuffer, iSize, iCount);
 	}
 	return 0;
 }
@@ -141,7 +143,7 @@ filePos CPackFile::Tell(void)
 {
 	if (meMode != EFM_Unknown)
 	{
-		return mpcPackFiles->Tell(mpsPackFile);
+		return mpcPackFiles->Tell(mpsPackFileNode);
 	}
 	return 0;
 }
@@ -155,7 +157,7 @@ BOOL CPackFile::Eof(void)
 {
 	if (meMode != EFM_Unknown)
 	{
-		return mpcPackFiles->Eof(mpsPackFile);
+		return mpcPackFiles->Eof(mpsPackFileNode);
 	}
 	return FALSE;
 }
@@ -177,7 +179,7 @@ BOOL CPackFile::IsOpen(void)
 //////////////////////////////////////////////////////////////////////////
 filePos CPackFile::Size(void)
 {
-	return mpsPackFile->Size();
+	return mpsPackFileNode->Size();
 }
 
 

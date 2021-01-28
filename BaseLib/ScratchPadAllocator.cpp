@@ -105,6 +105,8 @@ const char* CScratchPadAllocator::GetName(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CScratchPadAllocator::Read(CFileReader* pcFileReader)
 {
+	//Do not call .Init() before Read().
+
 	SScratchPadParams	sParams;
 
 	if (!pcFileReader->ReadData(&sParams, sizeof(SScratchPadParams)))

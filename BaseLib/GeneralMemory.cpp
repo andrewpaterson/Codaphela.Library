@@ -67,6 +67,7 @@ void CGeneralMemory::Kill(void)
 		pcFreeList->Kill();
 		pcFreeList = mcFreeLists.GetNext(pcFreeList);
 	}
+	mcOrder.Kill();
 	mcFreeLists.Kill();
 
 	mcLargeList.Kill();

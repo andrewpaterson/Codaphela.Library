@@ -563,6 +563,7 @@ BOOL CChunkFile::ReadChunkNames(void)
 
 	CFileBasic::Seek(msHeader.miChunkNamesPos);
 
+	mmsziNames.Kill();
 	bResult = mmsziNames.Read(this);
 	if (!bResult)
 	{

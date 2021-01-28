@@ -199,6 +199,8 @@ void CArrayBit::Add(void* pvSource, int iSourceOffset, int iNumBits)
 //////////////////////////////////////////////////////////////////////////
 BOOL CArrayBit::Read(CFileReader* pcFileReader)
 {
+	//Do not call .Init() before Read().
+
 	int				iNumBits;
 	BOOL			bResult;
 	CMallocator*	pcMalloc;

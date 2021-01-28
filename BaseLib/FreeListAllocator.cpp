@@ -108,6 +108,8 @@ CFreeList* CFreeListAllocator::GetFreeList(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CFreeListAllocator::Read(CFileReader* pcFileReader)
 {
+	//Do not call .Init() before Read().
+
 	SFreeListParams	sParams;
 
 	if (!pcFileReader->ReadData(&sParams, sizeof(SFreeListParams)))

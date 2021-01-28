@@ -698,6 +698,8 @@ BOOL CIndexTreeMemory::Write(CFileWriter* pcFileWriter)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeMemory::Read(CFileReader* pcFileReader)
 {
+	//Do not call .Init() before Read().
+
 	int				iCount;
 	int				i;
 	char			acKey[1024];

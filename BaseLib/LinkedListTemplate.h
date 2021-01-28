@@ -376,6 +376,8 @@ BOOL CLinkedListTemplate<M>::WriteData(CFileWriter* pcFileWriter)
 template<class M>
 BOOL CLinkedListTemplate<M>::Read(CFileReader* pcFileReader)
 {
+	//Do not call .Init() before Read().
+
 	int				iNumElements;
 	BOOL			bResult;
 	CMallocator*	pcMalloc;
