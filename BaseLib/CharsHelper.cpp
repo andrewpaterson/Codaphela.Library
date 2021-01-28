@@ -118,6 +118,7 @@ void CCharsHelper::Intersect(CArrayChars* paszDest, CArrayChars* paszLeft, CArra
 			paszDest->InsertIntoSorted(psz);
 		}
 	}
+	aszSorted.Kill();
 }
 
 

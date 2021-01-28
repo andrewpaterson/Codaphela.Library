@@ -969,6 +969,7 @@ BOOL CFileUtil::TouchDir(const char* szDirectory, BOOL bLastIsFileName)
 
 	aszPathComponents.Init();
 	SplitPath(szPath.Text(), &aszPathComponents);
+	szPath.Kill();
 	szPartialPath.Init();
 	bResult = FALSE;
 	for (i = 0; i < aszPathComponents.NumElements(); i++)

@@ -12,9 +12,6 @@ void CIndexTreeRecursor::Init(CIndexTreeNode* pcRoot)
 	CIndexTreeNodeDebug::Init();
 	macKey.Init();
 	mpcCurrent = pcRoot;
-
-	mszBadKey.Init();
-	mszBadNode.Init();
 }
 
 
@@ -24,9 +21,7 @@ void CIndexTreeRecursor::Init(CIndexTreeNode* pcRoot)
 //////////////////////////////////////////////////////////////////////////
 void CIndexTreeRecursor::Kill(void)
 {
-	mszBadNode.Kill();
-	mszBadKey.Kill();
-
+	CIndexTreeNodeDebug::Kill();
 	macKey.Kill();
 }
 
