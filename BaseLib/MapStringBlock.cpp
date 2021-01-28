@@ -194,6 +194,8 @@ CompareFunc CMapStringBlock::ReadCaseSensitivity(CFileReader* pcFileReader)
 //////////////////////////////////////////////////////////////////////////
 BOOL CMapStringBlock::Read(CFileReader* pcFileReader)
 {
+	//Do not call .Init() before Read().
+
 	CompareFunc		CaseFunc;
 	BOOL			bResult;
 

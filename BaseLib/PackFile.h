@@ -31,11 +31,11 @@ class CPackFile : public CAbstractFile
 {
 public:
 	CPackFiles*		mpcPackFiles;
-	CPackFileNode*	mpsPackFile;
+	CPackFileNode*	mpsPackFileNode;
 	filePos			miPos;
 	EFileMode		meMode;
 
-	void		Init(CPackFiles* pcPackFiles, CPackFileNode* psPackFile);
+	void		Init(CPackFiles* pcPackFiles, CPackFileNode* psPackFileNode);
 	void		Kill(void);
 
 	BOOL		Open(EFileMode eFileMode);

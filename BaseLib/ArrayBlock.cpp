@@ -1670,6 +1670,8 @@ BOOL CArrayBlock::ReadAllocatorAndHeader(CFileReader* pcFileReader)
 //////////////////////////////////////////////////////////////////////////
 BOOL CArrayBlock::Read(CFileReader* pcFileReader)
 {
+	//Do not call .Init() before Read().
+
 	BOOL			bResult;
 
 	bResult = ReadAllocatorAndHeader(pcFileReader);

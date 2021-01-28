@@ -179,6 +179,8 @@ BOOL CIndexTreeConfig::Write(CFileWriter* pcFileWriter)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeConfig::Read(CFileReader* pcFileReader)
 {
+	//Do not call .Init() before Read().
+
 	CMallocator*						pcMalloc;
 	EIndexKeyReverse					eKeyReverse;
 	int									iMaxDataSize;

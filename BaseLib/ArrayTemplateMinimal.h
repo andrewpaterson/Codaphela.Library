@@ -1157,6 +1157,8 @@ BOOL CArrayTemplateMinimal<M>::ReadAllocatorAndHeader(CFileReader* pcFileReader)
 template<class M>
 BOOL CArrayTemplateMinimal<M>::Read(CFileReader* pcFileReader)
 {
+	//Do not call .Init() before Read().
+
 	if (!ReadAllocatorAndHeader(pcFileReader))
 	{
 		return FALSE;

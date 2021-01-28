@@ -424,6 +424,8 @@ BOOL CLinkedListBlockAligned::WriteData(CFileWriter* pcFileWriter)
 //////////////////////////////////////////////////////////////////////////
 BOOL CLinkedListBlockAligned::Read(CFileReader* pcFileReader)
 {
+	//Do not call .Init() before Read().
+
 	int				iNumElements;
 	BOOL			bResult;
 	CMallocator*	pcMalloc;
