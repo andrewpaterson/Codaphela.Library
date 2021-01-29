@@ -310,11 +310,11 @@ void CChars::DumpKill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::Fake(char* sz)
+void CChars::Fake(const char* sz)
 {
 	if (sz)
 	{
-		mcText.Fake(sz, (int)strlen(sz) + 1);
+		mcText.Fake((char*)sz, (int)strlen(sz) + 1);
 	}
 	else
 	{
@@ -327,7 +327,7 @@ void CChars::Fake(char* sz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::Fake(char* sz, int iStartInclusive, int iEndExclusive)
+void CChars::Fake(const char* sz, int iStartInclusive, int iEndExclusive)
 {
 	char* pcPosition;
 

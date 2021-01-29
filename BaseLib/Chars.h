@@ -60,8 +60,8 @@ public:
 	BOOL	InitData2(const char* szData, int iDataLength);
 	void	Kill(void);
 	void	DumpKill(void);
-	void	Fake(char* sz);
-	void	Fake(char* sz, int iStartInclusive, int iEndExclusive);
+	void	Fake(const char* sz);
+	void	Fake(const char* sz, int iStartInclusive, int iEndExclusive);
 	int		Length(void);
 	void	Set(const char* sz);
 	void	Set(CChars sz);

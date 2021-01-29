@@ -28,12 +28,18 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectSerialiser::Init(CObjectSingleSerialiser* pcSerialiser, CBaseObject* pcObject)
+BOOL CObjectSerialiser::Init(CObjectSingleSerialiser* pcSerialiser, CBaseObject* pcObject)
 {
 	mpcThis = pcObject;
+	if (!mpcThis)
+	{
+		return gcLogger.Error2(__METHOD__, " Cannot serialse a NULL object.", NULL);
+	}
+
 	mpcMemory = MemoryFile();
 	mcFile.Init(mpcMemory);
 	mpcSerialiser = pcSerialiser;
+	return TRUE;
 }
 
 
@@ -55,17 +61,18 @@ void CObjectSerialiser::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CObjectSerialiser::Save(void)
 {
-	BOOL		bResult;
-	filePos		iLength;
+	BOOL			bResult;
+	filePos			iLength;
+	CObjectHeader	sHeader;
 
 	bResult = mcFile.Open(EFM_Write_Create);
 	ReturnOnFalse(bResult);
 
 	bResult = WriteInt(0);
 	ReturnOnFalse(bResult);
-	bResult = WriteIdentifier(mpcThis);
-	ReturnOnFalse(bResult);
-	bResult = mpcThis->SaveHeader(this);
+
+	InitObjectHeader(&sHeader, mpcThis);
+	bResult = WriteObjectHeader(&sHeader);
 	ReturnOnFalse(bResult);
 	bResult = mpcThis->Save(this);
 	ReturnOnFalse(bResult);
@@ -102,6 +109,7 @@ BOOL CObjectSerialiser::WriteDependent(CEmbeddedObject* pcDependent)
 	CBaseObject*		pcContainer;
 	unsigned short int	iEmbeddedIndex;
 	unsigned short int	iNumEmbedded;
+	CObjectIdentifier	sIdentifier;
 
 	if (pcDependent)
 	{
@@ -109,7 +117,8 @@ BOOL CObjectSerialiser::WriteDependent(CEmbeddedObject* pcDependent)
 		iEmbeddedIndex = pcContainer->GetEmbeddedIndex(pcDependent);
 		iNumEmbedded = pcContainer->GetNumEmbedded();
 
-		bResult = WriteIdentifier(pcContainer);
+		InitIdentifier(&sIdentifier, pcContainer);
+		bResult = WriteIdentifier(&sIdentifier);
 		bResult &= WriteShort(iNumEmbedded);
 		bResult &= WriteShort(iEmbeddedIndex);
 
@@ -124,7 +133,8 @@ BOOL CObjectSerialiser::WriteDependent(CEmbeddedObject* pcDependent)
 	}
 	else
 	{
-		bResult = WriteIdentifier(NULL);
+		InitIdentifier(&sIdentifier, NULL);
+		bResult = WriteIdentifier(&sIdentifier);
 		return bResult;
 	}
 }
@@ -134,39 +144,94 @@ BOOL CObjectSerialiser::WriteDependent(CEmbeddedObject* pcDependent)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectSerialiser::WriteIdentifier(CBaseObject* pcObject)
+void CObjectSerialiser::InitObjectHeader(CObjectHeader* psHeader, CBaseObject* pcObject)
 {
-	OIndex		oi;
-	int			c;
-	char*		szName;
-	
+	const char* szClassName;
+
+	InitIdentifier(psHeader, pcObject);
+
 	if (pcObject)
 	{
+		szClassName = mpcThis->ClassName();
+		psHeader->mszClassName.Fake(szClassName);
+	}
+	else
+	{
+		psHeader->mszClassName.Zero();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CObjectSerialiser::InitIdentifier(CObjectIdentifier* psHeader, CBaseObject* pcObject)
+{
+	OIndex		oi;
+	const char* szObjectName;
+
+	if (pcObject)
+	{
+		oi = pcObject->GetOI();
+
 		if (!pcObject->IsNamed())
 		{
-			c = OBJECT_POINTER_ID;
-			WriteInt(c);
-
-			oi = pcObject->GetOI();
-			return WriteLong(oi);
+			psHeader->mcType = OBJECT_POINTER_ID;
+			psHeader->moi = oi;
+			psHeader->mszObjectName.Zero();
 		}
 		else
 		{
-			c = OBJECT_POINTER_NAMED;
-			WriteInt(c);
-
-			oi = pcObject->GetOI();
-			WriteLong(oi);
-
-			szName = pcObject->GetName();
-			return WriteString(szName);
+			szObjectName = pcObject->GetName();
+			psHeader->mcType = OBJECT_POINTER_NAMED;
+			psHeader->moi = oi;
+			psHeader->mszObjectName.Fake(szObjectName);
 		}
 	}
 	else
 	{
-		c = OBJECT_POINTER_NULL;
-		return WriteInt(c);
+		psHeader->mcType = OBJECT_POINTER_NULL;
+		psHeader->moi = NULL_O_INDEX;
+		psHeader->mszObjectName.Zero();
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CObjectSerialiser::WriteObjectHeader(CObjectHeader* psHeader)
+{
+	ReturnOnFalse(WriteIdentifier(psHeader));
+	return WriteString(psHeader->mszClassName.Text());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CObjectSerialiser::WriteIdentifier(CObjectIdentifier* psIdentifier)
+{
+	BOOL bResult;
+
+	bResult = WriteInt(psIdentifier->mcType);
+	ReturnOnFalse(bResult);
+
+	if (psIdentifier->mcType != OBJECT_POINTER_NULL)
+	{
+		bResult = WriteLong(psIdentifier->moi);
+		ReturnOnFalse(bResult);
+
+		if (psIdentifier->mcType == OBJECT_POINTER_NAMED)
+		{
+			bResult = WriteString(psIdentifier->mszObjectName.Text());
+			ReturnOnFalse(bResult);
+		}
+	}
+	return TRUE;
 }
 
 

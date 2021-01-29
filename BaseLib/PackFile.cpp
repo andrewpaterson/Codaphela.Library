@@ -45,7 +45,6 @@ void CPackFile::Init(CPackFiles* pcPackFiles, CPackFileNode* psPackFileNode)
 void CPackFile::Kill(void)
 {
 	//You need to free mpsPackFileNode
-	xxx
 }
 
 
