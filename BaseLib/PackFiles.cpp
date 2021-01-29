@@ -394,7 +394,6 @@ CPackFile* CPackFiles::WriteOpen(char* szFileName)
 			bResult = pcFile->Open(EFM_Write_Create);
 			if (!bResult)
 			{
-				mcNames.Free(pcFile);
 				return NULL;
 			}
 			mpsLastAccessed = pcFileNode->File();

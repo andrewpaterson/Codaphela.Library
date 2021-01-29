@@ -24,7 +24,6 @@ public:
 class CObjectHeader : public CObjectIdentifier
 {
 public:
-	int		miClassSize;
 	CChars	mszClassName;
 
 	void Init(void);

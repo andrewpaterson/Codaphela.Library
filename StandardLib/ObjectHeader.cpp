@@ -96,7 +96,6 @@ void CObjectHeader::Init(void)
 {
 	//This should not call CObjectIdentifier::Init.
 	mszClassName.Zero();
-	miClassSize = 0;
 }
 
 

@@ -72,8 +72,7 @@ BOOL CUnknown::Iterable(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CUnknown::SaveHeader(CFileWriter* pcFile)
 {
-	ReturnOnFalse(pcFile->WriteString(ClassName()));
-	return TRUE;
+	return pcFile->WriteString(ClassName());
 }
 
 
