@@ -11,15 +11,15 @@ protected:
 	int				miType;
 	BOOL			mbStarted;
 	int				miKeySize;
-	int				miDataSize;
+	size_t			miDataSize;
 
 public:
 			void	Init(int iType);
 	virtual void	Kill(void);
 
-			int		GetDataSize(void);
+			size_t	GetDataSize(void);
 			void*	GetData(void);
-			int		GetKeySize(void);
+			size_t	GetKeySize(void);
 			char*	GetKey(void);
 
 	virtual BOOL	Iterate(void) =0;

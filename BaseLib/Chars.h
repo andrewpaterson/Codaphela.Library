@@ -94,9 +94,9 @@ public:
 	void	AppendSubString(const char* szStartInclusive, const char* szEndExclusive);
 	void	AppendBool(BOOL bValue);
 	void	AppendBool(BOOL bValue, const char* szTrue, const char* szFalse);
-	CChars* AppendData(const char* szData, int iMaxLength);
-	CChars* AppendData(const char* szData, int iDataLength, int iMaxLength);
-	BOOL	AppendData2(const char* szData, int iDataLength);
+	CChars* AppendData(const char* szData, size_t iMaxLength);
+	CChars* AppendData(const char* szData, size_t iDataLength, size_t iMaxLength);
+	BOOL	AppendData2(const char* szData, size_t iDataLength);
 	void	AppendPointer(void* pv);
 	BOOL	AppendFlag(unsigned int msFlags, unsigned int uiFlag, char* szFlagName, BOOL bAppendComma = FALSE);
 	void	Insert(int iPos, char c);

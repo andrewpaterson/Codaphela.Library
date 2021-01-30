@@ -99,7 +99,7 @@ int CIndexedObjects::NumIndexed(void)
 OIndex CIndexedObjects::StartIteration(SIndexesIterator* psIterator)
 {
 	void*	pvData;
-	int		uiDataSize;
+	size_t	uiDataSize;
 	BOOL	bResult;
 	OIndex	oi;
 	int		iKeyLength;
@@ -124,7 +124,7 @@ OIndex CIndexedObjects::StartIteration(SIndexesIterator* psIterator)
 OIndex CIndexedObjects::Iterate(SIndexesIterator* psIterator)
 {
 	void*	pvData;
-	int		uiDataSize;
+	size_t	uiDataSize;
 	BOOL	bResult;
 	OIndex	oi;
 	int		iKeyLength;

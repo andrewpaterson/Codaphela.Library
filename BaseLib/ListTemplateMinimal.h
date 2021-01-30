@@ -8,10 +8,10 @@ class CListTemplateMinimal
 protected:
 	int		miNumElements;
 	int		miRowLength;  //The number of characters in the string including all terminating zeros.
-	int		miTotalSize;
+	size_t	miTotalSize;
 
-	int		miUsedElements;
-	int		miUsedLength;
+	size_t	miUsedElements;
+	size_t	miUsedLength;
 
 	int		maiFieldOffsets[1];	//This is just the first fields positions, the size of the struct will be increased to contain iNumFields char*'s.
 							//...
@@ -23,8 +23,8 @@ public:
 	void	Kill(void);
 
 	M*		Get(int iIndex);
-	M*		Get(int iIndex, int* piSize);
-	M*		Add(M* pv, int iSize);
+	M*		Get(int iIndex, size_t* piSize);
+	M*		Add(M* pv, size_t iSize);
 	int		NumElements(void);
 	int		AllocatedElements(void);
 };
@@ -87,7 +87,7 @@ M* CListTemplateMinimal<M>::Get(int iIndex)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M* CListTemplateMinimal<M>::Get(int iIndex, int* piSize)
+M* CListTemplateMinimal<M>::Get(int iIndex, size_t* piSize)
 {
 	if (iIndex < miNumElements - 1)
 	{
@@ -106,16 +106,16 @@ M* CListTemplateMinimal<M>::Get(int iIndex, int* piSize)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M* CListTemplateMinimal<M>::Add(M* pv, int iSize)
+M* CListTemplateMinimal<M>::Add(M* pv, size_t iSize)
 {
-	int		iStringStart;
+	size_t	iStringStart;
 	M*		pvDest;
 
-	iStringStart = maiFieldOffsets[0];
+	iStringStart = (int)maiFieldOffsets[0];
 
 	pvDest = (M*)RemapSinglePointer(this, iStringStart + miUsedLength);
 	memcpy(pvDest, pv, iSize);
-	maiFieldOffsets[miUsedElements] = iStringStart + miUsedLength;
+	maiFieldOffsets[miUsedElements] = (int)(iStringStart + miUsedLength);
 	miUsedLength += iSize;
 	miUsedElements++;
 

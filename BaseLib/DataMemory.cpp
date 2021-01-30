@@ -336,9 +336,9 @@ void* CDataMemory::Grow(void* pvInitial, unsigned int uiSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDataMemory::CopyAllocation(void* pvDest, void* pvSource, unsigned int uiDestSize, unsigned int uiSourceSize)
+void CDataMemory::CopyAllocation(void* pvDest, void* pvSource, size_t uiDestSize, size_t uiSourceSize)
 {
-	unsigned int	uiSize;
+	size_t	uiSize;
 
 	uiSize = (uiDestSize < uiSourceSize) ? uiDestSize : uiSourceSize;
 	memcpy(pvDest, pvSource, uiSize);
@@ -441,7 +441,7 @@ void CDataMemory::DeallocateInLargeList(SDataMemoryAllocation* psAlloc)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CFreeList* CDataMemory::GetFreeList(unsigned int iElementSize)
+CFreeList* CDataMemory::GetFreeList(size_t iElementSize)
 {
 	SFreeListDesc			sDesc;
 	BOOL					bResult;
@@ -468,7 +468,7 @@ CFreeList* CDataMemory::GetFreeList(unsigned int iElementSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CFreeList* CDataMemory::GetOrAddFreeList(unsigned int iElementSize)
+CFreeList* CDataMemory::GetOrAddFreeList(size_t iElementSize)
 {
 	SFreeListDesc			sDesc;
 	BOOL					bResult;
@@ -483,7 +483,7 @@ CFreeList* CDataMemory::GetOrAddFreeList(unsigned int iElementSize)
 	psParams = mpcFreeListParams->GetFreeListParamsForSize(iElementSize);
 	if (psParams == NULL)
 	{
-		gcLogger.Error2(__METHOD__, " No free list parameter for element size [", IntToString(iElementSize), "].  Available parameter options [", IntToString(mpcFreeListParams->NumParams()), "] (should be more than 0, call DataMemoryInit())." , NULL);
+		gcLogger.Error2(__METHOD__, " No free list parameter for element size [", SizeToString(iElementSize), "].  Available parameter options [", IntToString(mpcFreeListParams->NumParams()), "] (should be more than 0, call DataMemoryInit())." , NULL);
 	}
 	iStride = CalculateStride(psParams->iMaxElementSize, DATA_MEMORY_ALIGNMENT);
 

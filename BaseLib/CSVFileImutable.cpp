@@ -32,7 +32,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //////////////////////////////////////////////////////////////////////////
 void SCSVRowImmutable::Dump(void)
 {	
-	int			i;
+	size_t		i;
 	CChars		szString;
 	CChars		szLeft;
 	char*		pszString;

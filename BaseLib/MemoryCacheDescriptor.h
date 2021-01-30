@@ -6,7 +6,7 @@ struct SMemoryCacheDescriptor
 {
 	SMemoryCacheDescriptor* psNext;
 	SMemoryCacheDescriptor* psPrev;
-	unsigned int			uiSize;  //Not including the sizeof this.
+	size_t					uiSize;  //Not including the sizeof this.
 };
 
 

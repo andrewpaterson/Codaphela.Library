@@ -2097,10 +2097,10 @@ void CChars::Clear(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CChars* CChars::AppendData(const char* szData, int iMaxLength)
+CChars* CChars::AppendData(const char* szData, size_t iMaxLength)
 {
-	int		i;
-	int		iLength;
+	size_t		i;
+	size_t		iLength;
 
 	iLength = iMaxLength;
 	for (i = 0; i < iMaxLength; i++)
@@ -2120,7 +2120,7 @@ CChars* CChars::AppendData(const char* szData, int iMaxLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CChars* CChars::AppendData(const char* szData, int iDataLength, int iMaxLength)
+CChars* CChars::AppendData(const char* szData, size_t iDataLength, size_t iMaxLength)
 {
 	int				i;
 	int				iLength;
@@ -2199,9 +2199,9 @@ CChars* CChars::AppendData(const char* szData, int iDataLength, int iMaxLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChars::AppendData2(const char* szData, int iDataLength)
+BOOL CChars::AppendData2(const char* szData, size_t iDataLength)
 {
-	int				i;
+	size_t			i;
 	int				iPrintable;
 	unsigned char	c;
 	float			fPrintable;

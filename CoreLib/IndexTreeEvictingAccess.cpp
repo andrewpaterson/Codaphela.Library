@@ -96,7 +96,7 @@ BOOL CIndexTreeEvictingAccess::Put(void* pvKey, int iKeySize, void* pvData, size
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeEvictingAccess::Get(void* pvKey, int iKeySize, void* pvData, size_t* piDataSize)
 {
-	int		iDataSize;
+	size_t	iDataSize;
 	BOOL	bResult;
 
 	bResult = mpcTree->Get(pvKey, iKeySize, pvData, &iDataSize);

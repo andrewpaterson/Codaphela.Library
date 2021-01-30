@@ -43,7 +43,7 @@ public:
 	BOOL					Read(CFileReader* pcFileReader);
 	BOOL					Write(CFileWriter* pcFileWriter);
 	void					SetFreeListSizeLimit(unsigned int uiFreeListSizeLimit);
-	SMemoryFreeListParams*	GetFreeListParamsForSize(unsigned int iElementSize);
+	SMemoryFreeListParams*	GetFreeListParamsForSize(size_t iElementSize);
 	unsigned int			GetFreeListSizeLimit(void);
 	unsigned int			GetMaxFreeListElementSize(void);
 	int						NumParams(void);

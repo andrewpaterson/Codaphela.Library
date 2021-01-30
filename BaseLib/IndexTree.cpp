@@ -144,16 +144,16 @@ void CIndexTree::FreeNode(CIndexTreeNode* pcNode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTree::ValidatePut(int iKeySize, int iDataSize)
+BOOL CIndexTree::ValidatePut(int iKeySize, size_t iDataSize)
 {
 	if ((iKeySize <= 0) || (iKeySize > miMaxKeySize))
 	{
-		gcLogger.Error2(__METHOD__, "Key size [", IntToString(iKeySize), "] must be positive and <= [", IntToString(miMaxKeySize), "].", NULL);
+		gcLogger.Error2(__METHOD__, "Key size [", SizeToString(iKeySize), "] must be positive and <= [", SizeToString(miMaxKeySize), "].", NULL);
 		return FALSE;
 	}
 	if ((iDataSize <= 0) || (iDataSize > miMaxDataSize))
 	{
-		gcLogger.Error2(__METHOD__, "Data size [", IntToString(iDataSize), "] must be positive and <= [", IntToString(miMaxDataSize), "].", NULL);
+		gcLogger.Error2(__METHOD__, "Data size [", SizeToString(iDataSize), "] must be positive and <= [", SizeToString(miMaxDataSize), "].", NULL);
 		return FALSE;
 	}
 	return TRUE;
@@ -239,7 +239,7 @@ size_t CIndexTree::CalculateRootNodeSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size_t CIndexTree::CalculateNodeSize(int iRequiredIndices, int iDataSize)
+size_t CIndexTree::CalculateNodeSize(int iRequiredIndices, size_t iDataSize)
 {
 	if (iDataSize == 0)
 	{
