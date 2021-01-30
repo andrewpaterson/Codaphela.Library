@@ -17,7 +17,7 @@ void CIndexedDataCommon::Init(CIndexedDataEvictionCallback* pcIndexedDataEvictio
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedDataCommon::Add(OIndex oi, void* pvData, unsigned int uiDataSize)
+BOOL CIndexedDataCommon::Add(OIndex oi, void* pvData, size_t uiDataSize)
 {
 	CIndexedDataDescriptor	cDescriptor;
 	BOOL					bResult;
@@ -68,7 +68,7 @@ BOOL CIndexedDataCommon::Set(OIndex oi, void* pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedDataCommon::Set(OIndex oi, void* pvData, unsigned int uiDataSize)
+BOOL CIndexedDataCommon::Set(OIndex oi, void* pvData, size_t uiDataSize)
 {
 	CIndexedDataDescriptor	cDescriptor;
 	BOOL					bResult;
@@ -94,7 +94,7 @@ BOOL CIndexedDataCommon::Set(OIndex oi, void* pvData, unsigned int uiDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedDataCommon::Put(OIndex oi, void* pvData, unsigned int uiDataSize)
+BOOL CIndexedDataCommon::Put(OIndex oi, void* pvData, size_t uiDataSize)
 {
 	BOOL					bExists;
 	CIndexedDataDescriptor	cDescriptor;
@@ -305,7 +305,7 @@ int64 CIndexedDataCommon::NumDatas()
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int64 CIndexedDataCommon::NumDatas(unsigned int uiDataSize)
+int64 CIndexedDataCommon::NumDatas(size_t uiDataSize)
 {
 	return mcData.NumDatas(uiDataSize);
 }

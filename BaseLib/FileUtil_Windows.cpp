@@ -202,7 +202,7 @@ BOOL CFileUtil::Delete(const char* szFileName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileUtil::Exists(const char*szFileName)
+BOOL CFileUtil::Exists(const char* szFileName)
 {
 	return PathFileExists(szFileName);
 }

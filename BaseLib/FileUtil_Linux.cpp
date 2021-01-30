@@ -191,7 +191,7 @@ BOOL CFileUtil::Delete(const char*szFileName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileUtil::Exists(const char*szFileName)
+BOOL CFileUtil::Exists(const char* szFileName)
 {
     int     iHandle;
 

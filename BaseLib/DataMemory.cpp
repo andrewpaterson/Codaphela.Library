@@ -108,7 +108,7 @@ void CDataMemory::Remove(void* pv)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-unsigned int CDataMemory::GetSize(void* pv)
+size_t CDataMemory::GetSize(void* pv)
 {
 	SDataMemoryAllocation*	psAlloc;
 
@@ -372,7 +372,7 @@ void CDataMemory::DeallocateInFreeList(CFreeList* pcFreeList, SDataMemoryAllocat
 	psFreeListNode = psAlloc->psFreeListNode;
 
 #ifdef _DEBUG
-	int		iSize;
+	size_t	iSize;
 	void*	pvMem;
 
 	iSize = sizeof(psAlloc) + psAlloc->uiSize - sizeof(unsigned int);

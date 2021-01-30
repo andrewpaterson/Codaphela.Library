@@ -84,7 +84,7 @@ BOOL CIndexTreeEvictingAccess::ValidateIndex(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeEvictingAccess::Put(void* pvKey, int iKeySize, void* pvData, int iDataSize)
+BOOL CIndexTreeEvictingAccess::Put(void* pvKey, int iKeySize, void* pvData, size_t iDataSize)
 {
 	return mpcTree->Put(pvKey, iKeySize, pvData, iDataSize);
 }
@@ -94,7 +94,7 @@ BOOL CIndexTreeEvictingAccess::Put(void* pvKey, int iKeySize, void* pvData, int 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeEvictingAccess::Get(void* pvKey, int iKeySize, void* pvData, int* piDataSize)
+BOOL CIndexTreeEvictingAccess::Get(void* pvKey, int iKeySize, void* pvData, size_t* piDataSize)
 {
 	int		iDataSize;
 	BOOL	bResult;

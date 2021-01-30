@@ -69,7 +69,7 @@ BOOL CIndexedDataAccess::ValidateIndex(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedDataAccess::Put(void* pvKey, int iKeySize, void* pvData, int iDataSize)
+BOOL CIndexedDataAccess::Put(void* pvKey, int iKeySize, void* pvData, size_t iDataSize)
 {
 	OIndex	oi;
 
@@ -89,7 +89,7 @@ BOOL CIndexedDataAccess::Put(void* pvKey, int iKeySize, void* pvData, int iDataS
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedDataAccess::Get(void* pvKey, int iKeySize, void* pvData, int* piDataSize)
+BOOL CIndexedDataAccess::Get(void* pvKey, int iKeySize, void* pvData, size_t* piDataSize)
 {
 	OIndex	oi;
 

@@ -23,12 +23,12 @@ public:
 			BOOL			IsWriteThrough(void);
 			BOOL			IsFlushed(void);
 	
-			BOOL			Add(OIndex oi, void* pvData, unsigned int uiDataSize);
+			BOOL			Add(OIndex oi, void* pvData, size_t uiDataSize);
 
 			BOOL			Set(OIndex oi, void* pvData);
-			BOOL			Set(OIndex oi, void* pvData, unsigned int uiDataSize);
+			BOOL			Set(OIndex oi, void* pvData, size_t uiDataSize);
 
-			BOOL			Put(OIndex oi, void* pvData, unsigned int uiDataSize);
+			BOOL			Put(OIndex oi, void* pvData, size_t uiDataSize);
 
 			BOOL			Get(OIndex oi, void* pvData, unsigned int uiMaxSize = 0);
 			BOOL			Get(OIndex oi, unsigned int* puiDataSize, void* pvData, unsigned int uiMaxSize);
@@ -44,7 +44,7 @@ public:
 			int				NumDataCached(void);
 			int				NumDataCached(size_t iSize);
 			int				NumFiles(void);
-			int64			NumDatas(unsigned int uiDataSize);
+			int64			NumDatas(size_t uiDataSize);
 
 			BOOL			Remove(OIndex oi);
 
@@ -57,7 +57,7 @@ public:
 protected:
 	virtual BOOL			GetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor, BOOL bNoEviction = FALSE) =0;
 	virtual BOOL			SetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor, BOOL bNoEviction = FALSE) =0;
-	virtual BOOL			UpdateDescriptorCache(OIndex oi, void* pvCache, unsigned int uiDataSize) =0;
+	virtual BOOL			UpdateDescriptorCache(OIndex oi, void* pvCache, size_t uiDataSize) =0;
 	virtual BOOL			RemoveDescriptor(OIndex oi) =0;
 
 	virtual BOOL			Flush(BOOL bClearCache) =0;

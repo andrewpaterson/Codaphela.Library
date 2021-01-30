@@ -83,7 +83,7 @@ BOOL CIndexTreeFileAccess::ValidateIndex(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFileAccess::Put(void* pvKey, int iKeySize, void* pvData, int iDataSize)
+BOOL CIndexTreeFileAccess::Put(void* pvKey, int iKeySize, void* pvData, size_t iDataSize)
 {
 	return mpcTree->Put(pvKey, iKeySize, pvData, iDataSize);
 }
@@ -93,7 +93,7 @@ BOOL CIndexTreeFileAccess::Put(void* pvKey, int iKeySize, void* pvData, int iDat
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFileAccess::Get(void* pvKey, int iKeySize, void* pvData, int* piDataSize)
+BOOL CIndexTreeFileAccess::Get(void* pvKey, int iKeySize, void* pvData, size_t* piDataSize)
 {
 	int		iDataSize;
 	BOOL	bResult;

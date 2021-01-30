@@ -69,7 +69,7 @@ BOOL CIndexTreeMemoryAccess::ValidateIndex(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeMemoryAccess::Put(void* pvKey, int iKeySize, void* pvData, int iDataSize)
+BOOL CIndexTreeMemoryAccess::Put(void* pvKey, int iKeySize, void* pvData, size_t iDataSize)
 {
 	void* pvResult;
 
@@ -82,10 +82,10 @@ BOOL CIndexTreeMemoryAccess::Put(void* pvKey, int iKeySize, void* pvData, int iD
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeMemoryAccess::Get(void* pvKey, int iKeySize, void* pvData, int* piDataSize)
+BOOL CIndexTreeMemoryAccess::Get(void* pvKey, int iKeySize, void* pvData, size_t* piDataSize)
 {
-	void*			pvResult;
-	int				iDataSize;
+	void*	pvResult;
+	int		iDataSize;
 
 	pvResult = mpcTree->Get(pvKey, iKeySize, &iDataSize);
 	

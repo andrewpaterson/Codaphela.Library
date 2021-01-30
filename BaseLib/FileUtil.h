@@ -77,6 +77,7 @@ public:
 
 	//Miscellaneous methods.  I'm not sure what class this belongs in.
 	void	MakeNameFromDirectory(CChars* pszName, CChars* pszFileName, CChars* pszDirectory);
+	void	FixSeparators(CChars* szPathName);
 
 private:
 	BOOL    RecurseRemoveDir(const char* szPathName);
@@ -87,7 +88,6 @@ private:
 	int		FindFirstSeparator(const char* szString);
 	int		FindLastSeparator(const char* szPathName);
 	void    RemoveLastSeparator(CChars* szPathName);
-	void	FixSeparators(CChars* szPathName);
 };
 
 
