@@ -32,15 +32,19 @@ BOOL CObjectWriterIndexed::Write(CSerialisedObject* pcSerialised)
 {
 	OIndex	oi;
 	BOOL	bResult;
+	int		iLength;
+	char*	szName;
 
 	oi = pcSerialised->GetIndex();
+	iLength = pcSerialised->GetLength();
 	if (pcSerialised->IsNamed())
 	{
-		bResult = mpcDataConnection->Put(oi, pcSerialised->GetName(), pcSerialised, pcSerialised->GetLength());
+		szName = pcSerialised->GetName();
+		bResult = mpcDataConnection->Put(oi, szName, pcSerialised, iLength);
 	}
 	else if (pcSerialised->IsIndexed())
 	{
-		bResult = mpcDataConnection->Put(oi, pcSerialised, pcSerialised->GetLength());
+		bResult = mpcDataConnection->Put(oi, pcSerialised, iLength);
 	}
 	else
 	{
