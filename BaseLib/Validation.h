@@ -3,11 +3,7 @@
 #include <csignal>
 
 #ifdef _MSC_VER
-#define Break()	__asm int 3;
-
-/* Should use:
- * #define Break()	std::raise(SIGABRT);
- */
+#define Break()	__debugbreak();
 #endif // _MSC_VER
 
 

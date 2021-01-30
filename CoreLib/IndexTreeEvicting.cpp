@@ -90,7 +90,7 @@ BOOL CIndexTreeEvicting::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeEvicting::Get(void* pvKey, int iKeySize, void* pvObject, int* piDataSize)
+BOOL CIndexTreeEvicting::Get(void* pvKey, int iKeySize, void* pvObject, size_t* piDataSize)
 {
 	BOOL	bFound;
 	int		iEvicted;
@@ -108,7 +108,7 @@ BOOL CIndexTreeEvicting::Get(void* pvKey, int iKeySize, void* pvObject, int* piD
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeEvicting::GetWithoutEviction(void* pvKey, int iKeySize, void* pvObject, int* piDataSize)
+BOOL CIndexTreeEvicting::GetWithoutEviction(void* pvKey, int iKeySize, void* pvObject, size_t* piDataSize)
 {
 	BOOL	bResult;
 
@@ -121,7 +121,7 @@ BOOL CIndexTreeEvicting::GetWithoutEviction(void* pvKey, int iKeySize, void* pvO
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeEvicting::Put(void* pvKey, int iKeySize, void* pvObject, int iDataSize)
+BOOL CIndexTreeEvicting::Put(void* pvKey, int iKeySize, void* pvObject, size_t iDataSize)
 {
 	BOOL	bResult;
 	int		iEvicted;
@@ -136,7 +136,7 @@ BOOL CIndexTreeEvicting::Put(void* pvKey, int iKeySize, void* pvObject, int iDat
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeEvicting::PutWithoutEviction(void* pvKey, int iKeySize, void* pvObject, int iDataSize)
+BOOL CIndexTreeEvicting::PutWithoutEviction(void* pvKey, int iKeySize, void* pvObject, size_t iDataSize)
 {
 	BOOL	bResult;
 

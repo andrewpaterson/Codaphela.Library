@@ -50,7 +50,7 @@ public:
 	BOOL					Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, CIndexTreeFileDataCallback* pcWriterCallback, CMallocator* pcMalloc, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse, int iMaxDataSize, int iMaxKeySize, CIndexTreeDataOrderer* pcDataOrderer);
 	BOOL					Kill(void);
 
-	BOOL					Get(void* pvKey, int iKeySize, void* pvObject, int* piDataSize);
+	BOOL					Get(void* pvKey, int iKeySize, void* pvObject, size_t* piDataSize);
 	BOOL					Put(void* pvKey, int iKeySize, void* pvObject, int iDataSize);
 	BOOL					Remove(void* pvKey, int iKeySize);
 	BOOL					HasKey(void* pvKey, int iKeySize);
@@ -58,10 +58,10 @@ public:
 
 	BOOL					Flush(void);
 
-	BOOL					StartUnsafeIteration(SIndexTreeFileIterator* psIterator, char* pvKey, int* piKeySize, void** ppvData, int* piDataSize);
-	BOOL					UnsafeIterate(SIndexTreeFileIterator* psIterator, char* pvKey, int* piKeySize, void** ppvData, int* piDataSize);
-	BOOL					StartUnsafeIteration(SIndexTreeFileIterator* psIterator, void** ppvData, int* piDataSize);
-	BOOL					UnsafeIterate(SIndexTreeFileIterator* psIterator, void** ppvData, int* piDataSize);
+	BOOL					StartUnsafeIteration(SIndexTreeFileIterator* psIterator, char* pvKey, int* piKeySize, void** ppvData, size_t* piDataSize);
+	BOOL					UnsafeIterate(SIndexTreeFileIterator* psIterator, char* pvKey, int* piKeySize, void** ppvData, size_t* piDataSize);
+	BOOL					StartUnsafeIteration(SIndexTreeFileIterator* psIterator, void** ppvData, size_t* piDataSize);
+	BOOL					UnsafeIterate(SIndexTreeFileIterator* psIterator, void** ppvData, size_t* piDataSize);
 
 	BOOL					Evict(void* pvKey, int iKeySize);
 	BOOL					Flush(void* pvKey, int iKeySize);
@@ -181,8 +181,8 @@ protected:
 	BOOL					RecurseValidateKeys(CIndexTreeRecursor* pcCursor, BOOL bReadNodes);
 
 	BOOL					StepNext(SIndexTreeFileIterator* psIterator);
-	BOOL					StartIteration(SIndexTreeFileIterator* psIterator, void* pvKey, int* piKeySize, void* pvData, int* piDataSize);
-	BOOL					Iterate(SIndexTreeFileIterator* psIterator, void* pvKey, int* piKeySize, void* pvData, int* piDataSize);
+	BOOL					StartIteration(SIndexTreeFileIterator* psIterator, void* pvKey, int* piKeySize, void* pvData, size_t* piDataSize);
+	BOOL					Iterate(SIndexTreeFileIterator* psIterator, void* pvKey, int* piKeySize, void* pvData, size_t* piDataSize);
 
 	BOOL					FlushDeleted(void);
 	BOOL					FlushDirty(void);

@@ -38,7 +38,7 @@ public:
 	int	 		IndexOf(char* szString);
 
 	void		Add(char* sz);
-	void		Add(char* sz, int iSize);
+	void		Add(char* sz, size_t iSize);
 };
 
 

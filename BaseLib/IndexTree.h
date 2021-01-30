@@ -29,7 +29,7 @@ protected:
 	size_t							mtSizeofNode;
 	size_t							mtSizeofNodePtr;
 	size_t							mtSizeofDataNode;
-	int								miMaxDataSize;
+	size_t							miMaxDataSize;
 	int								miMaxKeySize;
 
 public:
@@ -40,14 +40,13 @@ public:
 	virtual BOOL					Remove(void* pvKey, int iKeySize) =0;
 	virtual BOOL					HasKey(void* pvKey, int iKeySize) =0;
 
-
 			size_t					SizeofNode(void);
 			size_t					SizeofDataNode(void);
 			size_t					SizeofNodePtr(void);
 			EIndexKeyReverse		ReverseKeys(void);
 
 			size_t					CalculateRootNodeSize(void);
-			size_t					CalculateNodeSize(int iRequiredIndices, int iDataSize);
+			size_t					CalculateNodeSize(int iRequiredIndices, size_t iDataSize);
 
 			void					GetNodeKey(CIndexTreeNode* pcNode, CArrayChar* pacKey);
 	virtual void					Dump(void) =0;
@@ -60,7 +59,7 @@ protected:
 			void*				Realloc(void* pv, size_t tSize);
 			void				Free(void* pv);
 
-			BOOL				ValidatePut(int iKeySize, int iDataSize);
+			BOOL				ValidatePut(int iKeySize, size_t iDataSize);
 
 			void				InsertReorderData(CIndexTreeNode* pcNode);
 			void				GetReorderData(CIndexTreeNode* pcNode);

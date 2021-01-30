@@ -29,11 +29,11 @@ public:
 	void					Init(CMallocator* pcMalloc, EIndexKeyReverse eKeyReverse, int iMaxDataSize, int	iMaxKeySize);
 	void					Init(CIndexTreeConfig* pcConfig);
 	void					Init(CMallocator* pcMalloc, EIndexKeyReverse eKeyReverse, int iMaxDataSize, int iMaxKeySize, CIndexTreeDataOrderer* pcDataOrderer);
-	void					Init(CLifeInit<CMallocator> cMalloc, EIndexKeyReverse eKeyReverse, int iMaxDataSize, int	iMaxKeySize, CLifeInit<CIndexTreeDataOrderer> cDataOrderer);
+	void					Init(CLifeInit<CMallocator> cMalloc, EIndexKeyReverse eKeyReverse, int iMaxDataSize, int iMaxKeySize, CLifeInit<CIndexTreeDataOrderer> cDataOrderer);
 	BOOL					Kill(void);
 
-	void*					Get(void* pvKey, int iKeySize, int* piDataSize);
-	void*					Put(void* pvKey, int iKeySize, void* pvObject, int iDataSize);
+	void*					Get(void* pvKey, int iKeySize, size_t* piDataSize);
+	void*					Put(void* pvKey, int iKeySize, void* pvObject, size_t iDataSize);
 	BOOL					Remove(void* pvKey, int iKeySize);
 	BOOL					HasKey(void* pvKey, int iKeySize);
 	unsigned short			GetDataSize(void* pvKey, int iKeySize);
@@ -43,8 +43,8 @@ public:
 
 	int						NumElements(void);
 
-	BOOL					StartUnsafeIteration(SIndexTreeMemoryIterator* psIterator, void** ppvData, int* piDataSize);
-	BOOL					UnsafeIterate(SIndexTreeMemoryIterator* psIterator, void** ppvData, int* piDataSize);
+	BOOL					StartUnsafeIteration(SIndexTreeMemoryIterator* psIterator, void** ppvData, size_t* piDataSize);
+	BOOL					UnsafeIterate(SIndexTreeMemoryIterator* psIterator, void** ppvData, size_t* piDataSize);
 
 	size_t					ByteSize(void);
 
@@ -96,8 +96,8 @@ protected:
 	int						NumAllocatedNodes(void);
 
 	BOOL					StepNext(SIndexTreeMemoryIterator* psIterator);
-	BOOL					StartIteration(SIndexTreeMemoryIterator* psIterator, void* pvKey, int* piKeySize, void* pvData, int* piDataSize);
-	BOOL					Iterate(SIndexTreeMemoryIterator* psIterator, void* pvKey, int* piKeySize, void* pvData, int* piDataSize);
+	BOOL					StartIteration(SIndexTreeMemoryIterator* psIterator, void* pvKey, int* piKeySize, void* pvData, size_t* piDataSize);
+	BOOL					Iterate(SIndexTreeMemoryIterator* psIterator, void* pvKey, int* piKeySize, void* pvData, size_t* piDataSize);
 
 	BOOL					ValidateSize(void);
 	int						RecurseSize(void);

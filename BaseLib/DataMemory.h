@@ -53,8 +53,8 @@ public:
 	void*					Add(unsigned int iSize);
 	void					Remove(void* pv);
 	BOOL					Remove(CArrayVoidPtr* pav);
-	size_t			GetSize(void* pv);
-	CFreeList*				GetFreeList(unsigned int iElementSize);
+	size_t					GetSize(void* pv);
+	CFreeList*				GetFreeList(size_t iElementSize);
 	void*					Grow(void* pvInitial, unsigned int iSize);
 	int						NumElements(void);
 	int						ByteSize(void);
@@ -75,13 +75,13 @@ protected:
 	int						RemoveElements(CArrayVoidPtr* pav, int i, SFNode* psNode, CFreeList* pcList);
 
 private:
-	CFreeList*				GetOrAddFreeList(unsigned int iElementSize);
+	CFreeList*				GetOrAddFreeList(size_t iElementSize);
 	void*					AllocateInFreeList(CFreeList* pcFreeList, unsigned int uiElementSize);
 	void					DeallocateInFreeList(CFreeList* pcFreeList, SDataMemoryAllocation* psAlloc);
 	void					FreeFreeList(CFreeList* pcFreeList);
 	void*					AllocateInLargeList(unsigned int uiSize);
 	void					DeallocateInLargeList(SDataMemoryAllocation* psAlloc);
-	void					CopyAllocation(void* pvDest, void* pvSource, unsigned int uiDestSize, unsigned int uiSourceSize);
+	void					CopyAllocation(void* pvDest, void* pvSource, size_t uiDestSize, size_t uiSourceSize);
 };
 
 

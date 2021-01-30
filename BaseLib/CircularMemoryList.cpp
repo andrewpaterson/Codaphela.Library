@@ -535,10 +535,10 @@ SMemoryCacheDescriptor* CCircularMemoryList::Iterate(SMemoryCacheDescriptor* psC
 //////////////////////////////////////////////////////////////////////////
 void CCircularMemoryList::Dump(void)
 {
-	SMemoryCacheDescriptor* psDescriptor;
+	SMemoryCacheDescriptor*		psDescriptor;
 	CChars						sz;
-	char* pvData;
-	int							iLen;
+	char*						pvData;
+	size_t						iLen;
 
 	sz.Init();
 

@@ -31,7 +31,7 @@ BOOL CIndexTreeAccess::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeAccess::PutStringPtr(char* pszKey, void* pvPointer)
 {
-	size_t iKeySize;
+	int iKeySize;
 
 	if (StrEmpty(pszKey))
 	{
@@ -282,7 +282,7 @@ BOOL CIndexTreeAccess::PutKeyInt(void* pvKey, int iKeySize, int iData)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeAccess::PutKeyString(void* pvKey, int iKeySize, char* pszData)
 {
-	int uiDataSize;
+	size_t uiDataSize;
 
 	uiDataSize = strlen(pszData) + 1;
 	if (uiDataSize > MAX_UCHAR)
@@ -664,7 +664,7 @@ char* CIndexTreeAccess::GetStringString(char* pszKey, char* pszDest)
 //////////////////////////////////////////////////////////////////////////
 CChars CIndexTreeAccess::GetStringString(char* pszKey)
 {
-	int				iKeySize;
+	size_t			iKeySize;
 	BOOL			bResult;
 	CChars			sz;
 	unsigned int	uiDataSize;
@@ -698,7 +698,7 @@ CChars CIndexTreeAccess::GetStringString(char* pszKey)
 //////////////////////////////////////////////////////////////////////////
 int CIndexTreeAccess::GetStringInt(char* pszKey, int iNullValue)
 {
-	int				iKeySize;
+	size_t			iKeySize;
 	BOOL			bResult;
 	int				i;
 	unsigned short	uiDataSize;
@@ -733,7 +733,7 @@ int CIndexTreeAccess::GetStringInt(char* pszKey, int iNullValue)
 //////////////////////////////////////////////////////////////////////////
 char CIndexTreeAccess::GetStringChar(char* pszKey, char iNullValue)
 {
-	int				iKeySize;
+	size_t			iKeySize;
 	BOOL			bResult;
 	char			c;
 	unsigned short	uiDataSize;
@@ -768,7 +768,7 @@ char CIndexTreeAccess::GetStringChar(char* pszKey, char iNullValue)
 //////////////////////////////////////////////////////////////////////////
 int64 CIndexTreeAccess::GetStringLong(char* pszKey, int64 iNullValue)
 {
-	int				iKeySize;
+	size_t			iKeySize;
 	BOOL			bResult;
 	int64			lli;
 	unsigned short	uiDataSize;

@@ -30,7 +30,7 @@ void CIndexTreeIterator::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CIndexTreeIterator::GetDataSize(void)
+size_t CIndexTreeIterator::GetDataSize(void)
 {
 	return miDataSize;
 }
@@ -50,7 +50,7 @@ void* CIndexTreeIterator::GetData(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CIndexTreeIterator::GetKeySize(void)
+size_t CIndexTreeIterator::GetKeySize(void)
 {
 	return miKeySize;
 }

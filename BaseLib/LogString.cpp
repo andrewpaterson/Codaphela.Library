@@ -160,6 +160,27 @@ char* LongLongToString(long long int lli, int iBase)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+char* SizeToString(size_t i, int iBase)
+{
+	if (sizeof(size_t) == sizeof(int))
+	{
+		return IntToString((int)i, iBase);
+	}
+	else if (sizeof(size_t) == sizeof(long long int))
+	{
+		return LongLongToString((long long int)i, iBase);
+	}
+	else
+	{
+		return NULL;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 char* PointerToString(void* pv)
 {
 	int iCount = IncrementLogToStringCount();

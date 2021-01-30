@@ -168,7 +168,7 @@ SMemoryFreeListParams* CMemoryFreeListParams::GetFreeListParams(int iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SMemoryFreeListParams* CMemoryFreeListParams::GetFreeListParamsForSize(unsigned int iElementSize)
+SMemoryFreeListParams* CMemoryFreeListParams::GetFreeListParamsForSize(size_t iElementSize)
 {
 	int						iIndex;
 	SMemoryFreeListParams*	psParams;
