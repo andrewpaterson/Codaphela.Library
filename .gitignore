@@ -33,3 +33,5 @@ us.stackdump
 *.sdf
 */.vs
 
+/BaseLib/x64/Debug/*
+/TestLib/x64/Debug/*

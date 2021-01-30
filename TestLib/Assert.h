@@ -64,7 +64,7 @@ BOOL PrivateAssertNotNull(void* pvActual, int iLine, char* szFile);
 BOOL PrivateAssertNull(void* pvActual, int iLine, char* szFile);
 BOOL PrivateAssertMD5(unsigned char* pucExpected, unsigned char* pucActual, int iLine, char* szFile);
 BOOL PrivateAssertFile(const char* szExpectedFileName, char* szActualFileName, int iLine, char* szFile);
-BOOL PrivateAssertFileMemory(const char* szExpectedFileName, void* pcMemory, int iLength, int iLine, char* szFile);
+BOOL PrivateAssertFileMemory(const char* szExpectedFileName, void* pcMemory, size_t iLength, int iLine, char* szFile);
 BOOL PrivateAssertFileString(const char* szExpectedFileName, const char* szString, int iLine, char* szFile);
 
 

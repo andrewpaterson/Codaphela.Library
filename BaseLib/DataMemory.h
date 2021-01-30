@@ -53,7 +53,7 @@ public:
 	void*					Add(unsigned int iSize);
 	void					Remove(void* pv);
 	BOOL					Remove(CArrayVoidPtr* pav);
-	unsigned int			GetSize(void* pv);
+	size_t			GetSize(void* pv);
 	CFreeList*				GetFreeList(unsigned int iElementSize);
 	void*					Grow(void* pvInitial, unsigned int iSize);
 	int						NumElements(void);

@@ -23,8 +23,8 @@ public:
 	CIndexTreeFile*		GetTree(void);
 
 protected:
-	BOOL	Put(void* pvKey, int iKeySize, void* pvData, int iDataSize);
-	BOOL	Get(void* pvKey, int iKeySize, void* pvData, int* uiDataSize);
+	BOOL	Put(void* pvKey, int iKeySize, void* pvData, size_t iDataSize);
+	BOOL	Get(void* pvKey, int iKeySize, void* pvData, size_t* uiDataSize);
 	BOOL	Remove(void* pvKey, int iKeySize);
 	int		DataSize(void* pvKey, int iKeySize);
 	BOOL	Has(void* pvKey, int iKeySize);

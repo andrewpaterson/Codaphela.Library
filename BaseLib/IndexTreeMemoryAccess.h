@@ -21,8 +21,8 @@ public:
 	void				FreeIterator(CIndexTreeIterator* pcIter);
 
 protected:
-	BOOL	Put(void* pvKey, int iKeySize, void* pvData, int iDataSize);
-	BOOL	Get(void* pvKey, int iKeySize, void* pvData, int* piDataSize);
+	BOOL	Put(void* pvKey, int iKeySize, void* pvData, size_t iDataSize);
+	BOOL	Get(void* pvKey, int iKeySize, void* pvData, size_t* piDataSize);
 	BOOL	Remove(void* pvKey, int iKeySize);
 	BOOL	Has(void* pvKey, int iKeySize);
 	int		DataSize(void* pvKey, int iKeySize);
