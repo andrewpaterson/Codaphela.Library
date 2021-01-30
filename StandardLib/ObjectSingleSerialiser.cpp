@@ -18,6 +18,7 @@ void CObjectSingleSerialiser::Init(CObjectWriter* pcWriter)
 //////////////////////////////////////////////////////////////////////////
 void CObjectSingleSerialiser::Kill(void)
 {
+	mpcWriter = NULL;
 }
 
 

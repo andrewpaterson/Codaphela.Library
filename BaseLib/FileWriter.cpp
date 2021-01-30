@@ -45,7 +45,7 @@ BOOL CFileWriter::WriteString(const char* szString)
 	int		iStrLen;
 
 	iStrLen = (int)strlen(szString)+1;
-	CheckWrite(&iStrLen, sizeof(int));
+	WriteInt(iStrLen);
 	CheckWrite(szString, iStrLen);
 	return TRUE;
 }
