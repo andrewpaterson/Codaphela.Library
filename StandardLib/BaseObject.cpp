@@ -54,7 +54,10 @@ CBaseObject::~CBaseObject()
 		//This destructor code will only be called if the object was allocated on the stack.
 		ValidateHasClass();
 	}
+
+	ValidateInitCalled();
 }
+
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -87,9 +90,10 @@ void CBaseObject::PreInit(void)
 {
 	CBaseObject*	pcContainer;
 
-#ifdef DEBUG
-	ValidateHasClass();
-#endif
+	if (!HasClass())
+	{
+		Class();
+	}
 
 	pcContainer = GetEmbeddingContainer();
 	pcContainer->ContainerPreInit();
@@ -163,6 +167,7 @@ void CBaseObject::Kill(void)
 		mpcObjectsThisIn->ValidateObjectsConsistency();
 	}
 #endif
+	SetFlag(OBJECT_FLAGS_CALLED_KILL, TRUE);
 }
 
 
@@ -1703,7 +1708,7 @@ void CBaseObject::ValidateHasClass(void)
 		sz.Init();
 		PrintObject(&sz, IsEmbedded());
 
-		gcLogger.Error2(__METHOD__, " Object {", sz.Text(), "} does not have Class initialised.", NULL);
+		gcLogger.Error2(__METHOD__, " Object {", sz.Text(), "} does not have Class initialised.  Call PreInit() first in Init().", NULL);
 
 		sz.Kill();
 	}
@@ -1722,15 +1727,19 @@ void CBaseObject::ValidateInitCalled(void)
 	{
 		szObject.Init();
 		PrintObject(&szObject, IsEmbedded());
-		gcLogger.Error2(__METHOD__, " Object {", szObject.Text(), "} has pre-inits [", IntToString(miPreInits), "] not equal to post inits [", IntToString(miPostInits), "].", NULL);
+		gcLogger.Error2(__METHOD__, " Object {", szObject.Text(), "} has pre-inits [", IntToString(miPreInits), "] not equal to post inits [", IntToString(miPostInits), "].  Call PreInit() first in Init().", NULL);
 		szObject.Kill();
 	}
 	else if (miPreInits == 0)
 	{
-		szObject.Init();
-		PrintObject(&szObject, IsEmbedded());
-		gcLogger.Error2(__METHOD__, " Object {", szObject.Text(), "} has a pre-init of zero.", NULL);
-		szObject.Kill();
+		//Unfortunately there is no good way of telling if Init() was called so we will assume if it was then Kill() was also.
+		if (miFlags & OBJECT_FLAGS_CALLED_KILL)
+		{
+			szObject.Init();
+			PrintObject(&szObject, IsEmbedded());
+			gcLogger.Error2(__METHOD__, " Object {", szObject.Text(), "} has a pre-init of zero.  Call PreInit() first in Init().", NULL);
+			szObject.Kill();
+		}
 	}
 }
 
