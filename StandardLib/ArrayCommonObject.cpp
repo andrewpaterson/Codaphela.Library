@@ -326,7 +326,18 @@ int CArrayCommonObject::BaseNumPointerTos(void)
 //////////////////////////////////////////////////////////////////////////
 void CArrayCommonObject::RemoveAllPointerTosDontKill(void)
 {
-	BaseRemoveAllPointerTosDontKill();
+	CBaseObject* pcPointedTo;
+	int						i;
+
+	for (i = 0; i < mcArray.UnsafeNumElements(); i++)
+	{
+		pcPointedTo = (CBaseObject*)mcArray.UnsafeGet(i);
+		if (pcPointedTo)
+		{
+			RemoveToFrom(pcPointedTo);
+		}
+	}
+	mcArray.ReInit();
 }
 
 
@@ -368,27 +379,6 @@ void CArrayCommonObject::UpdateAttachedEmbeddedObjectPointerTosDistToRoot(CDistC
 		pcPointedTo = (CBaseObject*)mcArray.UnsafeGet(i);
 		AddExpectedDistToRoot(pcPointedTo, iExpectedDist+1, pcParameters);
 	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CArrayCommonObject::BaseRemoveAllPointerTosDontKill(void)
-{
-	CBaseObject*			pcPointedTo;
-	int						i;
-
-	for (i = 0; i < mcArray.UnsafeNumElements(); i++)
-	{
-		pcPointedTo = (CBaseObject*)mcArray.UnsafeGet(i);
-		if (pcPointedTo)
-		{
-			RemoveToFrom(pcPointedTo);
-		}
-	}
-	mcArray.ReInit();
 }
 
 

@@ -79,7 +79,6 @@ protected:
 	void				RemovePointerTo(CEmbeddedObject* pcTo);
 	void				RemoveAllPointerTosDontKill(void);
 	void				RemoveAllPointerTos(void);
-	void				BaseRemoveAllPointerTosDontKill(void);
 	void				RemoveAllHeapFroms(void);
 	void				RemoveAllStackFroms(void);
 	CBaseObject*		GetClosestFromForCanFindRoot(void);
