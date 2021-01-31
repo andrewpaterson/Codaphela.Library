@@ -141,6 +141,7 @@ void CObjects::Kill(void)
 {
 	mbInitialised = FALSE;
 	mpcDataConnection = NULL;  //Maybe needs to be flushed here?
+
 	mcSource.Kill();
 	mcMemory.Kill();
 	mcIndexGenerator.Kill();
@@ -452,12 +453,12 @@ void CObjects::RecurseValidateSceneGraph(CBaseObject* pcBaseObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjects::Flush(BOOL bClearMemory, BOOL bClearCache)
+BOOL CObjects::Flush(void)
 {
 	SIndexesIterator	sIter;
 	OIndex				oi;
 	BOOL				bResult;
-	CBaseObject*		pcBaseObject;
+	CBaseObject* pcBaseObject;
 
 	if (mpcDataConnection)
 	{
@@ -470,19 +471,10 @@ BOOL CObjects::Flush(BOOL bClearMemory, BOOL bClearCache)
 			oi = IterateMemory(&sIter);
 		}
 
-		if (bClearMemory)
-		{
-			bResult &= ClearMemory();
-		}
-
-		bResult &= mpcDataConnection->Flush(bClearCache);
+		bResult &= mpcDataConnection->Flush(FALSE);
 		return bResult;
 	}
-	else
-	{
-		bResult = ClearMemory();
-		return bResult;
-	}
+	return TRUE;
 }
 
 
@@ -490,7 +482,7 @@ BOOL CObjects::Flush(BOOL bClearMemory, BOOL bClearCache)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjects::ClearMemory(void)
+BOOL CObjects::EvictInMemory(void)
 {
 	SIndexesIterator		sIter;
 	OIndex					oi;
@@ -707,6 +699,17 @@ Ptr<CRoot> CObjects::GetRoot(void)
 		return ONull;
 	}
 	return Get(ROOT_NAME);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CObjects::HasRoot(void)
+{
+	Ptr<CRoot> pRoot = GetRoot();
+	return pRoot.IsNotNull();
 }
 
 

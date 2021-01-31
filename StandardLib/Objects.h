@@ -59,7 +59,7 @@ protected:
 
 	CNamedIndexedObjects	mcMemory;		//Objects (BaseObject*) allocated in Unknowns referenced by name and OIndex.  
 	CIndexGenerator			mcIndexGenerator;
-	CObjectsSource			mcSource;		//An object found on disk will be converted (cooked) and then placed in memory.
+	CObjectsSource			mcSource;		//An object found on disk will be deserialised and then placed in memory.
 
 	CDataConnection*		mpcDataConnection;
 
@@ -80,7 +80,7 @@ public:
 	template<class M>	void					AddConstructor(void);
 	template<class M>	CObjectSource*			AddSource(CAbstractFile* pcFile, char* szFileName);
 
-						BOOL					Flush(BOOL bClearMemory, BOOL bClearCache);
+						BOOL					Flush(void);
 						BOOL					Save(CBaseObject* pcObject);
 						BOOL					ForceSave(CBaseObject* pcObject);
 
@@ -95,6 +95,7 @@ public:
 
 						Ptr<CRoot>				AddRoot(void);
 						Ptr<CRoot>				GetRoot(void);
+						BOOL					HasRoot(void);
 
 						BOOL					Remove(CArrayBlockObjectPtr* papcKilled);
 
@@ -105,6 +106,7 @@ public:
 						int						NumMemoryNames(void);
 						CIndexGenerator*		GetIndexGenerator(void);
 						CNamedIndexedObjects*	GetMemory(void);
+						BOOL					EvictInMemory(void);
 
 						void					RemoveInKill(CBaseObject* pvObject);
 						CBaseObject*			Dehollow(OIndex oi);
@@ -132,7 +134,7 @@ protected:
 						CBaseObject*			GetFromDatabase(OIndex oi);
 						CBaseObject*			GetFromDatabase(char* szObjectName);
 						CBaseObject*			GetFromSources(char* szObjectName);
-						BOOL					ClearMemory(void);
+						
 						void					KillDontFreeObjects(CArrayBlockObjectPtr* papcObjectPts);
 						void					FreeObjects(CArrayBlockObjectPtr* papcObjectPts);
 						void					RecurseDumpGraph(CChars* psz, CEmbeddedObject* pcObject, int iLevel, BOOL bEmbedded);
