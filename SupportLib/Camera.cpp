@@ -49,7 +49,7 @@ void CCamera::Init(ECameraType eCameraType, float fFOV)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCamera::KillData(void)
+void CCamera::Free(void)
 {
 	meCameraType = CT_Unknown;
 }

@@ -9,7 +9,7 @@ class CHollowEmbeddedObject : public CEmbeddedObject
 {
 CONSTRUCTABLE(CHollowEmbeddedObject);
 public:
-	void				KillDontFree(void);
+	void				InternalFree(void);
 	BOOL				Save(CObjectSerialiser* pcFile);
 	BOOL				Load(CObjectDeserialiser* pcFile);
 	void				RemovePointerTo(CEmbeddedObject* pcTo);

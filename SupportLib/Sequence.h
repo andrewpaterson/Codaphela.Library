@@ -73,7 +73,7 @@ public:
 	int					miConnectionIndex;  //The connection this key-frame animates
 
 	void 			Init(void);
-	void 			KillData(void);
+	void 			Free(void);
 
 	BOOL			Load(CObjectDeserialiser* pcFile);
 	BOOL			Save(CObjectSerialiser* pcFile);

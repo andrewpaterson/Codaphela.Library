@@ -74,13 +74,12 @@ public:
 	void				ValidateConsistency(void);
 
 protected:
-	void				KillDontFree(void);
+	void				InternalFree(void);
 	void				FreePointers(void);
 	void				RemovePointerTo(CEmbeddedObject* pcTo);
 	void				RemoveAllPointerTosDontKill(void);
 	void				RemoveAllPointerTos(void);
 	void				BaseRemoveAllPointerTosDontKill(void);
-	void				BaseRemoveAllPointerTos(void);
 	void				RemoveAllHeapFroms(void);
 	void				RemoveAllStackFroms(void);
 	CBaseObject*		GetClosestFromForCanFindRoot(void);

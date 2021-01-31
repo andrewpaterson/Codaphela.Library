@@ -336,7 +336,19 @@ void CArrayCommonObject::RemoveAllPointerTosDontKill(void)
 //////////////////////////////////////////////////////////////////////////
 void CArrayCommonObject::RemoveAllPointerTos(void)
 {
-	BaseRemoveAllPointerTos();
+	CBaseObject* pcPointedTo;
+	int						i;
+
+	for (i = 0; i < mcArray.UnsafeNumElements(); i++)
+	{
+		pcPointedTo = (CBaseObject*)mcArray.UnsafeGet(i);
+		if (pcPointedTo)
+		{
+			pcPointedTo->RemoveHeapFrom(this, TRUE);
+			mcArray.UnsafeSet(i, NULL);
+		}
+	}
+	mcArray.ReInit();
 }
 
 
@@ -374,28 +386,6 @@ void CArrayCommonObject::BaseRemoveAllPointerTosDontKill(void)
 		if (pcPointedTo)
 		{
 			RemoveToFrom(pcPointedTo);
-		}
-	}
-	mcArray.ReInit();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CArrayCommonObject::BaseRemoveAllPointerTos(void)
-{
-	CBaseObject*			pcPointedTo;
-	int						i;
-
-	for (i = 0; i < mcArray.UnsafeNumElements(); i++)
-	{
-		pcPointedTo = (CBaseObject*)mcArray.UnsafeGet(i);
-		if (pcPointedTo)
-		{
-			pcPointedTo->RemoveHeapFrom(this, TRUE);
-			mcArray.UnsafeSet(i, NULL);
 		}
 	}
 	mcArray.ReInit();

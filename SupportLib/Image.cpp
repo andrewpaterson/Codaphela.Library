@@ -181,7 +181,7 @@ void CImage::Class(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImage::KillData(void)
+void CImage::Free(void)
 {
 	SafeFree(mpsImageChangingDesc);
 	miWidth = 0;

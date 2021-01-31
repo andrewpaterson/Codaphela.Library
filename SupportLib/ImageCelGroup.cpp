@@ -37,7 +37,7 @@ void CImageCelGroup::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCelGroup::KillData(void)
+void CImageCelGroup::Free(void)
 {
 	mcImageCels.Kill();
 }

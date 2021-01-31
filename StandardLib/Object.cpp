@@ -81,7 +81,7 @@ void CObject::FreePointers(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObject::KillDontFree(void)
+void CObject::InternalFree(void)
 {
 	int					iNumEmbedded;
 	CBaseObject*		pcEmbedded;
@@ -91,10 +91,10 @@ void CObject::KillDontFree(void)
 	for (i = 0; i < iNumEmbedded; i++)
 	{
 		pcEmbedded = *mapEmbedded.Get(i);
-		pcEmbedded->KillDontFree();
+		pcEmbedded->InternalFree();
 	}
 
-	CBaseObject::KillDontFree();
+	CBaseObject::InternalFree();
 }
 
 
@@ -659,32 +659,11 @@ void CObject::RemoveAllPointerTosDontKill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObject::BaseRemoveAllPointerTos(void)
-{
-	int					iNumPointers;
-	int					i;
-	CPointer**			ppPointer;
-
-	iNumPointers = mapPointers.NumElements();
-	for (i = 0; i < iNumPointers; i++)
-	{
-		ppPointer = mapPointers.Get(i);
-		(*ppPointer)->PointTo(NULL, TRUE);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CObject::RemoveAllPointerTos(void)
 {
 	int				i;
 	int				iNumEmbedded;
 	CBaseObject*	pcEmbedded;
-
-	BaseRemoveAllPointerTos();
 
 	iNumEmbedded = mapEmbedded.NumElements();
 	for (i = 0; i < iNumEmbedded; i++)

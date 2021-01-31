@@ -37,7 +37,7 @@ public:
 
 	void 		Init(void);
 	void 		Init(char* szName);
-	void 		KillData(void);
+	void 		Free(void);
 
 	BOOL		Load(CObjectDeserialiser* pcFile);
 	BOOL		Save(CObjectSerialiser* pcFile);

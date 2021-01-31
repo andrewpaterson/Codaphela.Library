@@ -51,7 +51,7 @@ protected:
 public:
 	Ptr<CFont>	Init(char* szName, int iSpaceWidth, int iAscent, int iDescent);
 	void		Class(void);
-	void 		KillData(void);
+	void 		Free(void);
 
 	BOOL		Save(CObjectSerialiser* pcFile);
 	BOOL		Load(CObjectDeserialiser* pcFile);

@@ -40,7 +40,7 @@ public:
 	virtual void				Kill(void);
 	virtual void				Kill(BOOL bHeapFromChanged);
 
-	virtual void				KillDontFree(void) =0;
+	virtual void				InternalFree(void) =0;
 	virtual void				FreePointers(void);
 			void				PostRemapFroms(void);
 	virtual BOOL				Save(CObjectSerialiser* pcFile) =0;

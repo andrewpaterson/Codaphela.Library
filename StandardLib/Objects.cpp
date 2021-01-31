@@ -311,7 +311,7 @@ void CObjects::RecurseDumpGraph(CChars* psz, CEmbeddedObject* pcIncoming, int iL
 		psz->AppendNewLine();
 	}
 
-	pcBaseObject->miFlags |= OBJECT_FLAGS_DUMPED;
+	pcBaseObject->SetFlag(OBJECT_FLAGS_DUMPED, TRUE);
 
 
 	apcTos.Init();
@@ -536,7 +536,7 @@ void CObjects::KillDontFreeObjects(CArrayBlockObjectPtr* papcObjectPts)
 	for (i = 0; i < iNumElements; i++)
 	{
 		pcBaseObject = (CBaseObject*)(*papcObjectPts->Get(i));
-		pcBaseObject->KillDontFree();
+		pcBaseObject->InternalFree();
 	}
 }
 

@@ -48,7 +48,7 @@ void CMaterial::Init(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CMaterial::KillData(void)
+void CMaterial::Free(void)
 {
 	msDiffuse.Kill();
 	msDiffuseLevel.Kill();

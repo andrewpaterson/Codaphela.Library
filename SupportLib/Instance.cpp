@@ -39,7 +39,7 @@ void CInstance::Init(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CInstance::KillData(void)
+void CInstance::Free(void)
 {	
 	maiConnections.Kill();
 }

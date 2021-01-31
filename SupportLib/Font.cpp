@@ -60,7 +60,7 @@ void CFont::Class(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFont::KillData(void)
+void CFont::Free(void)
 {
 	macGlyphs.Kill();
 	mszName.Kill();

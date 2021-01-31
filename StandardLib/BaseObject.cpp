@@ -203,7 +203,7 @@ void CBaseObject::Kill(BOOL bHeapFromChanged)
 		RemoveAllStackFroms();
 		RemoveAllHeapFroms();
 
-		KillDontFree();
+		InternalFree();
 	}
 }
 
@@ -212,7 +212,7 @@ void CBaseObject::Kill(BOOL bHeapFromChanged)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::KillDontFree(void)
+void CBaseObject::InternalFree(void)
 {
 	LOG_OBJECT_DESTRUCTION(this);
 
@@ -222,7 +222,7 @@ void CBaseObject::KillDontFree(void)
 	//Clean up all the to and from pointers
 	FreePointers();
 
-	miFlags |= OBJECT_FLAGS_FREED;
+	SetFlag(OBJECT_FLAGS_FREED, TRUE);
 }
 
 
@@ -898,7 +898,7 @@ BOOL CBaseObject::TestedForSanity(void)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::SetDirty(void)
 {
-	miFlags |= OBJECT_FLAGS_DIRTY;
+	SetFlag(OBJECT_FLAGS_DIRTY, TRUE);
 }
 
 
