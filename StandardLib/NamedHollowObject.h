@@ -19,7 +19,7 @@ public:
 	BOOL			InitName(char* szName);
 
 protected:
-	void				KillIdentifiers(void);
+	void				FreeIdentifiers(void);
 	CEmbeddedObject*	GetRemappedEmbeddedObject(int iIndex);
 	void				ClearName(void);
 };

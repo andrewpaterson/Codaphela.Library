@@ -108,7 +108,6 @@ public:
 						CNamedIndexedObjects*	GetMemory(void);
 						BOOL					EvictInMemory(void);
 
-						void					RemoveInKill(CBaseObject* pvObject);
 						CBaseObject*			Dehollow(OIndex oi);
 						CBaseObject*			Dehollow(char* szObjectName);
 
@@ -137,6 +136,8 @@ protected:
 						
 						void					KillDontFreeObjects(CArrayBlockObjectPtr* papcObjectPts);
 						void					FreeObjects(CArrayBlockObjectPtr* papcObjectPts);
+						void					FreeObject(CBaseObject* pvObject);
+
 						void					RecurseDumpGraph(CChars* psz, CEmbeddedObject* pcObject, int iLevel, BOOL bEmbedded);
 						void					ValidateSceneGraph(void);
 						void					ValidateIndexedObjects(void);

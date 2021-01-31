@@ -69,9 +69,9 @@ void CObject::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObject::KillInternalData(void)
+void CObject::FreePointers(void)
 {
-	CBaseObject::KillInternalData();
+	CBaseObject::FreePointers();
 	mapEmbedded.Kill();
 	mapPointers.Kill();
 }

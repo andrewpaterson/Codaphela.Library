@@ -14,7 +14,7 @@ public:
 	Ptr<CPointerContainer>	Init(void);
 	Ptr<CPointerContainer>	Init(CPointer& pPointer);
 	Ptr<CPointerContainer>	Init(CEmbeddedObject* pcObject);
-	void					KillData(void);
+	void					Free(void);
 
 	void					Clear();
 
@@ -33,7 +33,7 @@ public:
 	Ptr<CNamedPointerContainer>	Init(void);
 	Ptr<CNamedPointerContainer>	Init(CPointer& pPointer);
 	Ptr<CNamedPointerContainer>	Init(CEmbeddedObject* pcObject);
-	void						KillData(void);
+	void						Free(void);
 
 	void						Clear();
 

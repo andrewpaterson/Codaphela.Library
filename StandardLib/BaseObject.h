@@ -34,7 +34,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #define OBJECT_FLAGS_DIRTY						  0x08
 
 //Debug flag marking whether or not an object has had kill called on it.  An object that is killed should be removed from Memory so an object with this flag set is broken.
-#define OBJECT_FLAGS_KILLED						  0x10
+#define OBJECT_FLAGS_FREED						  0x10
 
 //Debug flag marking whether or not an object has had it's graph dumped yet.
 #define OBJECT_FLAGS_DUMPED						  0x20
@@ -95,11 +95,8 @@ public:
 	virtual void				Initialised(void);
 
 			void				Kill(void);
-			void				Kill(BOOL bHeapFromChanged);
-			void				TryKill(BOOL bKillIfNoRoot, BOOL bHeapFromChanged);
 
-	virtual void				KillDontFree(void);
-	virtual void				KillData(void) =0;
+	virtual void				Free(void) =0;
 
 			OIndex				GetOI(void);
 			void				SetObjectID(OIndex oi);
@@ -179,8 +176,12 @@ public:
 			void				ValidateInitCalled(void);
 	
 protected:
-	virtual void				KillIdentifiers(void);
-			void				KillInternalData(void);
+	virtual void				KillDontFree(void);
+			void				Kill(BOOL bHeapFromChanged);
+			void				TryFree(BOOL bKillIfNoRoot, BOOL bHeapFromChanged);
+
+	virtual void				FreeIdentifiers(void);
+			void				FreePointers(void);
 			int					RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew) =0;
 			BOOL				RemoveToFrom(CEmbeddedObject* pcPointedTo);
 	virtual void				BaseRemoveAllPointerTosDontKill(void) =0;

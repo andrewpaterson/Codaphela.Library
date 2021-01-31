@@ -72,8 +72,8 @@ public:
 	void					ValidateConsistency(void);
 
 protected:
-	void	KillInternalData(void);
-	void	KillData(void);
+	void	FreePointers(void);
+	void	Free(void);
 	void	RemovePointerTo(CEmbeddedObject* pcTo);
 	void	BaseRemoveAllPointerTosDontKill(void);
 	void	BaseRemoveAllPointerTos(void);
@@ -81,7 +81,6 @@ protected:
 	void	SetPointedTosDistToRoot(int iDistToRoot);
 
 	void	UpdateAttachedEmbeddedObjectPointerTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist);
-	void	ClearEmbeddedObjectTosUpdatedTosFlags(void);
 };
 
 

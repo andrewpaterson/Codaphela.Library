@@ -53,8 +53,8 @@ public:
 			void				ValidateConsistency(void);
 
 protected:
-			void				KillInternalData(void);
-			void				KillData(void);
+			void				FreePointers(void);
+			void				Free(void);
 			int					RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew);
 			void				RemovePointerTo(CEmbeddedObject* pcTo);
 			void				BaseRemoveAllPointerTosDontKill(void);

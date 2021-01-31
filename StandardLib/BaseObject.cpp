@@ -216,10 +216,13 @@ void CBaseObject::KillDontFree(void)
 {
 	LOG_OBJECT_DESTRUCTION(this);
 
-	KillData();
-	KillInternalData();
+	//Frees user data.
+	Free();
 
-	miFlags |= OBJECT_FLAGS_KILLED;
+	//Clean up all the to and from pointers
+	FreePointers();
+
+	miFlags |= OBJECT_FLAGS_FREED;
 }
 
 
@@ -227,9 +230,9 @@ void CBaseObject::KillDontFree(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::KillInternalData(void)
+void CBaseObject::FreePointers(void)
 {
-	CEmbeddedObject::KillInternalData();
+	CEmbeddedObject::FreePointers();
 }
 
 
@@ -237,7 +240,7 @@ void CBaseObject::KillInternalData(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::KillIdentifiers(void)
+void CBaseObject::FreeIdentifiers(void)
 {
 }
 
@@ -430,7 +433,7 @@ BOOL CBaseObject::IsDistToRootValid(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::TryKill(BOOL bKillIfNoRoot, BOOL bHeapFromChanged)
+void CBaseObject::TryFree(BOOL bKillIfNoRoot, BOOL bHeapFromChanged)
 {
 	ValidateNotEmbedded(__METHOD__);
 
@@ -1460,7 +1463,7 @@ void CBaseObject::ValidateContainerFlag(void)
 void CBaseObject::ValidateFlags(void)
 {
 	ValidateFlagNotSet(OBJECT_FLAGS_TESTED_FOR_ROOT, "OBJECT_FLAGS_TESTED_FOR_ROOT");
-	ValidateFlagNotSet(OBJECT_FLAGS_KILLED, "OBJECT_FLAGS_KILLED");
+	ValidateFlagNotSet(OBJECT_FLAGS_FREED, "OBJECT_FLAGS_FREED");
 	ValidateFlagNotSet(OBJECT_FLAGS_DUMPED, "OBJECT_FLAGS_DUMPED");
 	ValidateFlagNotSet(OBJECT_FLAGS_UNREACHABLE, "OBJECT_FLAGS_UNREACHABLE");
 	ValidateFlagNotSet(OBJECT_FLAGS_CLEARED_DIST_TO_ROOT, "OBJECT_FLAGS_CLEARED_DIST_TO_ROOT");
