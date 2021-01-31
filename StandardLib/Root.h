@@ -41,7 +41,7 @@ public:
 						Ptr<CRoot>		Init(void);
 						void			Kill(void);
 						void			Class(void);
-						void			KillData(void);
+						void			Free(void);
 
 						void			Add(CPointer& pObject);
 						BOOL			Remove(CPointer& pObject);

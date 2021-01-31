@@ -40,7 +40,7 @@ void CString::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CString::KillData(void)
+void CString::Free(void)
 {
 	CChars::Kill();
 }

@@ -75,7 +75,7 @@ public:
 
 protected:
 	void				KillDontFree(void);
-	void				KillInternalData(void);
+	void				FreePointers(void);
 	void				RemovePointerTo(CEmbeddedObject* pcTo);
 	void				RemoveAllPointerTosDontKill(void);
 	void				RemoveAllPointerTos(void);

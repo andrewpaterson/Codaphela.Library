@@ -41,7 +41,7 @@ public:
 	BOOL	IsNamed(char* szName);
 
 protected:
-	void	KillIdentifiers(void);
+	void	FreeIdentifiers(void);
 	BOOL	SetName(char* szName);
 	void	ClearName(void);
 

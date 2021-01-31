@@ -61,9 +61,9 @@ void CArrayCommonObject::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayCommonObject::KillInternalData(void)
+void CArrayCommonObject::FreePointers(void)
 {
-	CBaseObject::KillInternalData();
+	CBaseObject::FreePointers();
 	mcArray.Kill();
 }
 
@@ -135,7 +135,7 @@ BOOL CArrayCommonObject::UnsafeRemove(CBaseObject* pcObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayCommonObject::KillData(void)
+void CArrayCommonObject::Free(void)
 {
 }
 

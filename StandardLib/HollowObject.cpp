@@ -202,9 +202,9 @@ void CHollowObject::BaseRemoveAllPointerTosDontKill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHollowObject::KillInternalData(void)
+void CHollowObject::FreePointers(void)
 {
-	CBaseObject::KillInternalData();
+	CBaseObject::FreePointers();
 }
 
 
@@ -212,7 +212,7 @@ void CHollowObject::KillInternalData(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHollowObject::KillData(void)
+void CHollowObject::Free(void)
 {
 }
 

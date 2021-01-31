@@ -18,10 +18,10 @@ void CNamedHollowObject::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNamedHollowObject::KillIdentifiers(void)
+void CNamedHollowObject::FreeIdentifiers(void)
 {
 	mon.Kill();
-	CHollowObject::KillIdentifiers();
+	CHollowObject::FreeIdentifiers();
 }
 
 

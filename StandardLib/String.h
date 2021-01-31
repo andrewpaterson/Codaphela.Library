@@ -13,7 +13,7 @@ public:
 	Ptr<CString>	Init(char* sz);
 	void			Kill(void);
 	void			Class(void);
-	void			KillData(void);
+	void			Free(void);
 
 	BOOL			Save(CObjectSerialiser* pcFile);
 	BOOL			Load(CObjectDeserialiser* pcFile);

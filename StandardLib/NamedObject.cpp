@@ -35,10 +35,10 @@ void CNamedObject::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNamedObject::KillIdentifiers(void)
+void CNamedObject::FreeIdentifiers(void)
 {
 	mon.Kill();
-	CObject::KillIdentifiers();
+	CObject::FreeIdentifiers();
 }
 
 

@@ -559,7 +559,7 @@ void CObjects::FreeObjects(CArrayBlockObjectPtr* papcObjectPts)
 		for (i = 0; i < iNumElements; i++)
 		{
 			pcBaseObject = (*papcObjectPts->Get(i));
-			RemoveInKill(pcBaseObject);
+			FreeObject(pcBaseObject);
 		}
 
 		pvData = (CUnknown**)papcObjectPts->GetData();
@@ -1148,11 +1148,11 @@ CBaseObject* CObjects::Allocate(char* szClassName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjects::RemoveInKill(CBaseObject* pvObject)
+void CObjects::FreeObject(CBaseObject* pvObject)
 {
 	Deindex(pvObject);
 	Dename(pvObject);
-	pvObject->KillIdentifiers();
+	pvObject->FreeIdentifiers();
 }
 
 

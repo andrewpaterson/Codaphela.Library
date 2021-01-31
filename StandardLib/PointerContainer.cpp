@@ -57,7 +57,7 @@ Ptr<CPointerContainer> CPointerContainer::Init(CEmbeddedObject* pcObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPointerContainer::KillData(void)
+void CPointerContainer::Free(void)
 {
 }
 
@@ -146,7 +146,7 @@ Ptr<CNamedPointerContainer> CNamedPointerContainer::Init(CEmbeddedObject* pcObje
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNamedPointerContainer::KillData(void)
+void CNamedPointerContainer::Free(void)
 {
 }
 

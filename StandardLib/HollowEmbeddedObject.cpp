@@ -122,7 +122,7 @@ int CHollowEmbeddedObject::GetEmbeddedIndex(void)
 //////////////////////////////////////////////////////////////////////////
 void CHollowEmbeddedObject::KillDontFree(void)
 {
-	KillInternalData();
+	FreePointers();
 }
 
 

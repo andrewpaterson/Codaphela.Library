@@ -221,7 +221,7 @@ void CEmbeddedObject::SetEmbedded(CBaseObject* pcEmbedded)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CEmbeddedObject::KillInternalData()
+void CEmbeddedObject::FreePointers()
 {
 	mapHeapFroms.Kill();
 
@@ -331,7 +331,7 @@ void CEmbeddedObject::RemoveHeapFrom(CBaseObject* pcFromObject, BOOL bValidate)
 	PrivateRemoveHeapFrom(pcFromObject);
 
 	pcContainer = GetEmbeddingContainer();
-	pcContainer->TryKill(TRUE, TRUE);
+	pcContainer->TryFree(TRUE, TRUE);
 
 #ifdef DEBUG
 	if (bValidate)
@@ -627,7 +627,7 @@ BOOL CEmbeddedObject::IsInStack(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CEmbeddedObject::RemoveStackFromTryKill(CPointer* pcPointer, BOOL bKillIfNoRoot)
+void CEmbeddedObject::RemoveStackFromTryKill(CPointer* pcPointer, BOOL bFreeIfNoRoot)
 {
 	CStackPointers*	pcStackPointers;
 	CBaseObject*	pcContainer;
@@ -639,7 +639,7 @@ void CEmbeddedObject::RemoveStackFromTryKill(CPointer* pcPointer, BOOL bKillIfNo
 		{
 			mpcStackFroms = pcStackPointers->Remove(mpcStackFroms, pcPointer);
 			pcContainer = GetEmbeddingContainer();
-			pcContainer->TryKill(bKillIfNoRoot, FALSE);
+			pcContainer->TryFree(bFreeIfNoRoot, FALSE);
 		}
 	}
 }
