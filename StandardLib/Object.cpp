@@ -616,10 +616,12 @@ void CObject::BaseGetPointerTos(CArrayTemplateEmbeddedObjectPtr* papcTos)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObject::BaseRemoveAllPointerTosDontKill(void)
+void CObject::RemoveAllPointerTosDontKill(void)
 {
-	int					iNumPointers;
 	int					i;
+	int					iNumEmbedded;
+	CBaseObject*		pcEmbedded;
+	int					iNumPointers;
 	CPointer**			ppPointer;
 	CEmbeddedObject*	pcPointedTo;
 
@@ -631,20 +633,6 @@ void CObject::BaseRemoveAllPointerTosDontKill(void)
 		RemoveToFrom(pcPointedTo);
 		(*ppPointer)->UnsafeClearObject();
 	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CObject::RemoveAllPointerTosDontKill(void)
-{
-	int				i;
-	int				iNumEmbedded;
-	CBaseObject*	pcEmbedded;
-
-	BaseRemoveAllPointerTosDontKill();
 
 	iNumEmbedded = mapEmbedded.NumElements();
 	for (i = 0; i < iNumEmbedded; i++)
@@ -664,6 +652,15 @@ void CObject::RemoveAllPointerTos(void)
 	int				i;
 	int				iNumEmbedded;
 	CBaseObject*	pcEmbedded;
+	int				iNumPointers;
+	CPointer**		ppPointer;
+
+	iNumPointers = mapPointers.NumElements();
+	for (i = 0; i < iNumPointers; i++)
+	{
+		ppPointer = mapPointers.Get(i);
+		(*ppPointer)->PointTo(NULL, TRUE);
+	}
 
 	iNumEmbedded = mapEmbedded.NumElements();
 	for (i = 0; i < iNumEmbedded; i++)
