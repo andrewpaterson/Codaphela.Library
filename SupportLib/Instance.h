@@ -42,7 +42,7 @@ public:
 	CArrayIntMinimal	maiConnections;  //Matricies, just one unless the the object is a skinned mesh.
 	
 	void 	Init(void);
-	void 	KillData(void);
+	void 	Free(void);
 
 	BOOL	Load(CObjectDeserialiser* pcFile);
 	BOOL	Save(CObjectSerialiser* pcFile);

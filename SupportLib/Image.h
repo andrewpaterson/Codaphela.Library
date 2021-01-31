@@ -62,7 +62,7 @@ public:
 	void					Init(int iWidth, int iHeight, CImage* pcChannelsSource);
 	void					Init(CImage* pcChannelsSource);  //This only sets up channels and dimensions.  
 	void					Class(void);
-	void					KillData(void);
+	void					Free(void);
 
 	void					BeginChange(void);
 	void 					AddChannel(int iChannel, EPrimitiveTypes eType, BOOL bReverse = FALSE);

@@ -76,7 +76,6 @@ protected:
 	void	Free(void);
 	void	RemovePointerTo(CEmbeddedObject* pcTo);
 	void	BaseRemoveAllPointerTosDontKill(void);
-	void	BaseRemoveAllPointerTos(void);
 	int		RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew);
 	void	SetPointedTosDistToRoot(int iDistToRoot);
 

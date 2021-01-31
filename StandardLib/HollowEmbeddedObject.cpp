@@ -120,7 +120,7 @@ int CHollowEmbeddedObject::GetEmbeddedIndex(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHollowEmbeddedObject::KillDontFree(void)
+void CHollowEmbeddedObject::InternalFree(void)
 {
 	FreePointers();
 }

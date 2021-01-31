@@ -41,7 +41,7 @@ void CConnection::Init(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CConnection::KillData(void)
+void CConnection::Free(void)
 {	
 	mbSelected = 0;
 }

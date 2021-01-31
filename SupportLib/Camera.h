@@ -41,7 +41,7 @@ public:
 
 	void 	Init(void);
 	void 	Init(ECameraType eCameraType, float fFOV);
-	void 	KillData(void);
+	void 	Free(void);
 
 	BOOL	Load(CObjectDeserialiser* pcFile);
 	BOOL	Save(CObjectSerialiser* pcFile);

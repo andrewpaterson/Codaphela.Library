@@ -58,7 +58,7 @@ void CMesh::PrivateInit(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMesh::KillData(void)
+void CMesh::Free(void)
 {
 	mcNormals.Kill();
 	mcUVs.Kill();

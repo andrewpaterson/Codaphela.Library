@@ -33,7 +33,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //Dirty must be manually set when an object needs to be written from memory to indexed data.  Objects are - by default always dirty.
 #define OBJECT_FLAGS_DIRTY						  0x08
 
-//Debug flag marking whether or not an object has had kill called on it.  An object that is killed should be removed from Memory so an object with this flag set is broken.
+//Debug flag marking whether or not an object has had Free called on it.  An object that is killed should be removed from Memory so an object with this flag set is broken.
 #define OBJECT_FLAGS_FREED						  0x10
 
 //Debug flag marking whether or not an object has had it's graph dumped yet.
@@ -128,8 +128,6 @@ public:
 			int					GetDistToStack(void);
 	virtual BOOL				SetDistToRoot(int iDistToRoot);
 			BOOL				TestedForRoot(void);
-	virtual void				RemoveAllPointerTosDontKill(void) =0;
-	virtual void				RemoveAllPointerTos(void) =0;
 			void				UpdateAttachedTosDistToRoot(CDistCalculatorParameters* pcParameters);
 			void				CollectValidDistStartingObjectsAndSetClearedToRoot(CBaseObject* pcTo, CDistCalculatorParameters* pcParameters);
 			void				CollectAndClearInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters);
@@ -167,7 +165,6 @@ public:
 			void				ValidateIndex(void);
 			void				ValidateObjectsThisIn(void);
 			void				ValidateCanFindRoot(void);
-	virtual void				BaseValidatePointerTos(void) =0;
 	virtual void				ValidateEmbeddedConsistency(void);
 	virtual void				ValidateObjectIdentifiers(void);
 			void				ValidateBaseObjectDetail(void);
@@ -176,9 +173,12 @@ public:
 			void				ValidateInitCalled(void);
 	
 protected:
-	virtual void				KillDontFree(void);
+	virtual void				InternalFree(void);
 			void				Kill(BOOL bHeapFromChanged);
 			void				TryFree(BOOL bKillIfNoRoot, BOOL bHeapFromChanged);
+
+	virtual void				RemoveAllPointerTosDontKill(void) =0;
+	virtual void				RemoveAllPointerTos(void) =0;
 
 	virtual void				FreeIdentifiers(void);
 			void				FreePointers(void);
@@ -196,6 +196,8 @@ protected:
 			void				ReplaceOneWithX(char* szDest, char* szMask);
 			void				ContainerPreInit(void);
 			void				ContainerPostInit(void);
+
+	virtual void				BaseValidatePointerTos(void) = 0;
 };
 
 

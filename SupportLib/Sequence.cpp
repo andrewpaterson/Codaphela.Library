@@ -38,7 +38,7 @@ void CSequence::Init(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CSequence::KillData(void)
+void CSequence::Free(void)
 {	
 	masKeyFrames.Kill();
 }
