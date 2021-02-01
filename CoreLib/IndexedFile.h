@@ -41,7 +41,6 @@ class CIndexedFile
 private:
 	int				miFileIndex;  //This is the index of the file in the CIndexedFiles.mcFiles array.
 
-protected:
 	CDurableFile	mcFile;
 
 	unsigned int	muiDataSize;

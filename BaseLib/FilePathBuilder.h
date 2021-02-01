@@ -2,6 +2,7 @@
 #define __FILE_PATH_BUILDER_H__
 #include "Chars.h"
 
+
 class CFilePathBuilder
 {
 private:
