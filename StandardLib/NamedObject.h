@@ -34,8 +34,6 @@ protected:
 	CChars	mon;
 
 public:
-	void	Kill(void);
-
 	char*	GetName(void);
 	BOOL	IsNamed(void);
 	BOOL	IsNamed(char* szName);

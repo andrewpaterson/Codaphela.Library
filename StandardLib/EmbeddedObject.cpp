@@ -40,7 +40,7 @@ void CEmbeddedObject::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CEmbeddedObject::Kill(BOOL bHeapFromChanged)
+void CEmbeddedObject::KillInternal(BOOL bHeapFromChanged)
 {
 	NotImplemented(__METHOD__);
 }

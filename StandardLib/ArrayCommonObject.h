@@ -35,7 +35,6 @@ protected:
 public:
 	Ptr<CArrayCommonObject>	Init(BOOL bUnique, BOOL bIgnoreNull, BOOL bPreserveOrder);
 	void					Class(void);
-	void					Kill(void);
 
 	void					Add(CPointer& pObject);
 	void					AddAll(CArrayCommonObject* pcArray);

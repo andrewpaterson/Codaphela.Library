@@ -31,7 +31,6 @@ class CArray : public CArrayObject
 CONSTRUCTABLE(CArray);
 public:
 	Ptr<CArray<M>>	Init(void);
-	void			Kill(void);
 
 	void			Add(Ptr<M> pObject);
 	void			AddAll(Ptr<CArrayCommonObject> pcArray);
@@ -52,17 +51,6 @@ Ptr<CArray<M>> CArray<M>::Init(void)
 {
 	CArrayObject::Init();
 	return Ptr<CArray<M>>(this);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-template<class M>
-void CArray<M>::Kill(void)
-{
-	CArrayObject::Kill();
 }
 
 

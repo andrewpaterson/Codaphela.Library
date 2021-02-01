@@ -30,7 +30,6 @@ public:
 								CHollowObject(void);
 			void				Init(unsigned short iNumEmbedded);
 			void				Class(void);
-			void				Kill(void);
 			CBaseObject*		Dehollow(void);
 
 			BOOL				IsHollow(void);

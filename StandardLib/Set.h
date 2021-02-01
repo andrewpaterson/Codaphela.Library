@@ -31,7 +31,6 @@ class CSet : public CSetObject
 CONSTRUCTABLE(CSet);
 public:
 	Ptr<CSet<M>>	Init(void);
-	void 			Kill(void);
 
 	void			Add(Ptr<M> pObject);
 	void			AddAll(Ptr<CArrayCommonObject> pcSet);
@@ -54,17 +53,6 @@ Ptr<CSet<M>> CSet<M>::Init(void)
 {
 	CSetObject::Init();
 	return Ptr<CSet<M>>(this);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-template<class M>
-void CSet<M>::Kill(void)
-{
-	CSetObject::Kill();
 }
 
 

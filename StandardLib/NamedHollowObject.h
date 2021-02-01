@@ -10,7 +10,6 @@ protected:
 	CChars	mon;
 
 public:
-	void			Kill(void);
 	CBaseObject*	Dehollow(void);
 
 	char*			GetName(void);

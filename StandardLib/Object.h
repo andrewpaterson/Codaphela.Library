@@ -39,7 +39,6 @@ protected:
 public:
 						CObject();
 	void				Allocate(CObjects* pcObjects);
-	void				Kill(void);
 	BOOL				IsCollection(void);
 	BOOL				IsObject(void);
 	void				SetPointerTosExpectedDistToRoot(int iDistToRoot);

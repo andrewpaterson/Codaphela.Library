@@ -31,7 +31,6 @@ class CCollection : public CBaseObject
 CONSTRUCTABLE(CCollection);
 public:
 			void			Init(void);
-			void			Kill(void);
 			BOOL			IsCollection(void);
 			BOOL			IsObject(void);
 	virtual void			RemoveAll(void) =0;

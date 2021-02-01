@@ -38,7 +38,7 @@ public:
 								~CEmbeddedObject();
 
 	virtual void				Kill(void);
-	virtual void				Kill(BOOL bHeapFromChanged);
+	virtual void				KillInternal(BOOL bHeapFromChanged);
 
 	virtual void				InternalFree(void) =0;
 	virtual void				FreePointers(void);

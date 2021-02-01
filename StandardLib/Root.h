@@ -39,7 +39,6 @@ public:
 						CRoot();
 
 						Ptr<CRoot>		Init(void);
-						void			Kill(void);
 						void			Class(void);
 						void			Free(void);
 
@@ -64,6 +63,9 @@ public:
 						void			NullifySet(void);
 						CSetObject*		TestGetSet(void);
 						BOOL			IsSetHollow(void);
+
+protected:
+						void			KillInternal(BOOL bHeapFromChanged);
 };
 
 
