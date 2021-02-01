@@ -11,7 +11,6 @@ class CString : public CObject, public CChars
 CONSTRUCTABLE(CString);
 public:
 	Ptr<CString>	Init(char* sz);
-	void			Kill(void);
 	void			Class(void);
 	void			Free(void);
 

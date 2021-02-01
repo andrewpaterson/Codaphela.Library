@@ -158,8 +158,12 @@ void CBaseObject::Kill(void)
 {
 	BOOL	bHeapFromChanged;
 
+	//This method is for the user to forcibly kill an object.
+	//It is not called internally.
+
+
 	bHeapFromChanged = HasHeapFroms();
-	Kill(bHeapFromChanged);
+	KillInternal(bHeapFromChanged);
 
 #ifdef DEBUG
 	if (mpcObjectsThisIn)
@@ -175,15 +179,12 @@ void CBaseObject::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::Kill(BOOL bHeapFromChanged)
+void CBaseObject::KillInternal(BOOL bHeapFromChanged)
 {
 	ValidateNotEmbedded(__METHOD__);
 
 	CDistCalculator			cDistCalculator;
 	CArrayBlockObjectPtr*	papcKilled;
-
-	//This method is for the user to forcibly kill an object.
-	//It is not called internally.
 
 	if (IsAllocatedInObjects())
 	{
@@ -1735,8 +1736,7 @@ void CBaseObject::ValidateInitCalled(void)
 	}
 	else if (miPreInits == 0)
 	{
-		//Unfortunately there is no good way of telling if Init() was called so we will assume if it was then Kill() was also.
-		if (miFlags & OBJECT_FLAGS_CALLED_KILL)
+		if (!IsEmbedded())
 		{
 			szObject.Init();
 			PrintObject(&szObject, IsEmbedded());

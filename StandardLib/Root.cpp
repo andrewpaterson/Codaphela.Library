@@ -55,10 +55,10 @@ Ptr<CRoot> CRoot::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CRoot::Kill(void)
+void CRoot::KillInternal(BOOL bHeapFromChanged)
 {
 	mpObjects->Kill();
-	CNamedObject::Kill();
+	CNamedObject::KillInternal(bHeapFromChanged);
 }
 
 

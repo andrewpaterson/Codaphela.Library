@@ -32,7 +32,7 @@ int CObjectRemapFrom::Remap(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew, BOOL
 		pcOld->ClearIndex();
 		pcOld->ClearName();
 	}
-	pcOld->Kill(bHeapFromChanged);
+	pcOld->KillInternal(bHeapFromChanged);
 
 	return iCount;
 }

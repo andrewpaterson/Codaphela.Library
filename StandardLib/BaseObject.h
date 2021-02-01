@@ -94,7 +94,7 @@ public:
 			void				PostInit(void);
 	virtual void				Initialised(void);
 
-			void				Kill(void);
+			void				Kill(void) final;
 
 	virtual void				Free(void) =0;
 
@@ -174,7 +174,7 @@ public:
 	
 protected:
 	virtual void				InternalFree(void);
-			void				Kill(BOOL bHeapFromChanged);
+			void				KillInternal(BOOL bHeapFromChanged);
 			void				TryFree(BOOL bKillIfNoRoot, BOOL bHeapFromChanged);
 
 	virtual void				RemoveAllPointerTosDontKill(void) =0;
