@@ -51,7 +51,8 @@ void CIndexedFiles::Init(CDurableFileController* pcDurableFileControl, char* szS
 	mcFiles.Init();
 
 	mcFileDescriptors.Init(mpcDurableFileControl, cPathName.Build(NullToEmpty(szSubDirectory), szDescriptorName, NULL), cPathRewrite.Build(szSubDirectory, szDescriptorRewrite, NULL));
-	cPathName.Kill(); cPathRewrite.Kill();
+	cPathName.Kill();
+	cPathRewrite.Kill();
 }
 
 

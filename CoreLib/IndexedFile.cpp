@@ -121,7 +121,7 @@ unsigned int CIndexedFile::Write(void* pvData, filePos iCount)
 
 	if (iCount == 0)
 	{
-		return FALSE;
+		return 0;
 	}
 
 	iFilePos = mcFile.Size();
