@@ -324,7 +324,7 @@ int CIndexTreeAccess::GetLongInt(int64 lliKey, int iNUllValue)
 	int				iKeySize;
 	BOOL			bResult;
 	int				i;
-	unsigned short	uiDataSize;
+	uint16	uiDataSize;
 
 	iKeySize = sizeof(int64);
 	uiDataSize = DataSize(&lliKey, iKeySize);
@@ -352,7 +352,7 @@ int64 CIndexTreeAccess::GetLongLong(int64 lliKey, int64 lliNUllValue)
 	int				iKeySize;
 	BOOL			bResult;
 	int				i;
-	unsigned short	uiDataSize;
+	uint16	uiDataSize;
 
 	iKeySize = sizeof(int64);
 	uiDataSize = DataSize(&lliKey, iKeySize);
@@ -382,7 +382,7 @@ char CIndexTreeAccess::GetLongChar(int64 lliKey, char cNUllValue)
 	int				iKeySize;
 	BOOL			bResult;
 	char			c;
-	unsigned short	uiDataSize;
+	uint16	uiDataSize;
 
 	iKeySize = sizeof(int64);
 	uiDataSize = DataSize(&lliKey, iKeySize);
@@ -462,7 +462,7 @@ int CIndexTreeAccess::GetIntInt(int iKey, int iNUllValue)
 	int				iKeySize;
 	BOOL			bResult;
 	int				i;
-	unsigned short	uiDataSize;
+	uint16	uiDataSize;
 
 	iKeySize = sizeof(int);
 	uiDataSize = DataSize(&iKey, iKeySize);
@@ -492,7 +492,7 @@ int64 CIndexTreeAccess::GetIntLong(int iKey, int64 lliNUllValue)
 	int				iKeySize;
 	BOOL			bResult;
 	int				i;
-	unsigned short	uiDataSize;
+	uint16	uiDataSize;
 
 	iKeySize = sizeof(int);
 	uiDataSize = DataSize(&iKey, iKeySize);
@@ -522,7 +522,7 @@ char CIndexTreeAccess::GetIntChar(int iKey, char cNUllValue)
 	int				iKeySize;
 	BOOL			bResult;
 	char			c;
-	unsigned short	uiDataSize;
+	uint16	uiDataSize;
 
 	iKeySize = sizeof(int);
 	uiDataSize = DataSize(&iKey, iKeySize);
@@ -701,7 +701,7 @@ int CIndexTreeAccess::GetStringInt(char* pszKey, int iNullValue)
 	size_t			iKeySize;
 	BOOL			bResult;
 	int				i;
-	unsigned short	uiDataSize;
+	uint16	uiDataSize;
 
 	if (StrEmpty(pszKey))
 	{
@@ -736,7 +736,7 @@ char CIndexTreeAccess::GetStringChar(char* pszKey, char iNullValue)
 	size_t			iKeySize;
 	BOOL			bResult;
 	char			c;
-	unsigned short	uiDataSize;
+	uint16	uiDataSize;
 
 	if (StrEmpty(pszKey))
 	{
@@ -771,7 +771,7 @@ int64 CIndexTreeAccess::GetStringLong(char* pszKey, int64 iNullValue)
 	size_t			iKeySize;
 	BOOL			bResult;
 	int64			lli;
-	unsigned short	uiDataSize;
+	uint16	uiDataSize;
 
 	if (StrEmpty(pszKey))
 	{

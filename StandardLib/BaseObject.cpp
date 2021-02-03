@@ -1033,7 +1033,7 @@ BOOL CBaseObject::IsBaseObject(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-unsigned short int CBaseObject::GetNumEmbedded(void)
+uint16 CBaseObject::GetNumEmbedded(void)
 {
 	SetFlagNumEmbedded(1);
 	return 1;
@@ -1044,7 +1044,7 @@ unsigned short int CBaseObject::GetNumEmbedded(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-unsigned short int CBaseObject::GetNumEmbeddedFromFlags(void)
+uint16 CBaseObject::GetNumEmbeddedFromFlags(void)
 {
 	return miNumEmbedded;
 }
@@ -1056,7 +1056,7 @@ unsigned short int CBaseObject::GetNumEmbeddedFromFlags(void)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::SetFlagNumEmbedded(int iNumEmbedded)
 {
-	miNumEmbedded = (unsigned short int)iNumEmbedded;
+	miNumEmbedded = (uint16)iNumEmbedded;
 }
 
 

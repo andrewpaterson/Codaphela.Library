@@ -12,10 +12,10 @@ public:
 	CEmbeddedObject**	mppcPointedFrom;
 	CBaseObject*		mpcContaining;
 	OIndex				moiPointedTo;  //This pointer refers to the OLD index (ie: the one in the file not in the database).
-	unsigned short		miEmbeddedIndex;
-	unsigned short		miNumEmbedded;
+	uint16		miEmbeddedIndex;
+	uint16		miNumEmbedded;
 
-	void Init(CEmbeddedObject**	ppcPointedFrom, CBaseObject* pcContaining, OIndex oiPointedTo, unsigned short iNumEmbedded, unsigned short iEmbeddedIndex);
+	void Init(CEmbeddedObject**	ppcPointedFrom, CBaseObject* pcContaining, OIndex oiPointedTo, uint16 iNumEmbedded, uint16 iEmbeddedIndex);
 };
 
 

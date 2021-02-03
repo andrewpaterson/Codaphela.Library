@@ -208,7 +208,7 @@ void* CIndexTreeMemory::Get(void* pvKey, int iKeySize, size_t* piDataSize)
 {
 	CIndexTreeNodeMemory*	pcNode;
 	void*					pv;
-	unsigned short			uiDataSize;
+	uint16			uiDataSize;
 
 	pcNode = GetNode(pvKey, iKeySize);
 	if (pcNode == NULL)
@@ -242,12 +242,12 @@ void* CIndexTreeMemory::Get(void* pvKey, int iKeySize, size_t* piDataSize)
 void* CIndexTreeMemory::Put(void* pvKey, int iKeySize, void* pvData, size_t iDataSize)
 {
 	CIndexTreeNodeMemory*	pcCurrent;
-	unsigned short			uiDataSize;
+	uint16			uiDataSize;
 	BOOL					bNewNode;
 
 	ReturnNullOnFalse(ValidatePut(iKeySize, iDataSize));
 
-	uiDataSize = (unsigned short)iDataSize;
+	uiDataSize = (uint16)iDataSize;
 
 	pcCurrent = GetOrAllocateKey(pvKey, iKeySize);
 
@@ -304,10 +304,10 @@ CIndexTreeNodeMemory* CIndexTreeMemory::GetOrAllocateKey(void* pvKey, int iKeySi
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTreeNodeMemory* CIndexTreeMemory::SetNodeData(CIndexTreeNodeMemory* pcCurrent, void* pvData, unsigned short uiDataSize)
+CIndexTreeNodeMemory* CIndexTreeMemory::SetNodeData(CIndexTreeNodeMemory* pcCurrent, void* pvData, uint16 uiDataSize)
 {
 	CIndexTreeNodeMemory*	pcReallocatedCurrent;
-	unsigned short			uiOldDataSize;
+	uint16			uiOldDataSize;
 
 	uiOldDataSize = pcCurrent->GetDataSize();
 	if (uiDataSize > uiOldDataSize)
@@ -369,7 +369,7 @@ CIndexTreeNodeMemory* CIndexTreeMemory::ReallocateNodeForIndex(CIndexTreeNodeMem
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTreeNodeMemory* CIndexTreeMemory::ReallocateNodeForLargerData(CIndexTreeNodeMemory* pcNode, void* pvData, unsigned short uiDataSize)
+CIndexTreeNodeMemory* CIndexTreeMemory::ReallocateNodeForLargerData(CIndexTreeNodeMemory* pcNode, void* pvData, uint16 uiDataSize)
 {
 	size_t					tNewNodeSize;
 	CIndexTreeNodeMemory*	pcOldNode;
@@ -396,11 +396,11 @@ CIndexTreeNodeMemory* CIndexTreeMemory::ReallocateNodeForLargerData(CIndexTreeNo
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTreeNodeMemory* CIndexTreeMemory::ReallocateNodeForSmallerData(CIndexTreeNodeMemory* pcNode, void* pvData, unsigned short uiDataSize)
+CIndexTreeNodeMemory* CIndexTreeMemory::ReallocateNodeForSmallerData(CIndexTreeNodeMemory* pcNode, void* pvData, uint16 uiDataSize)
 {
 	size_t					tNewNodeSize;
 	CIndexTreeNodeMemory*	pcOldNode;
-	unsigned short			uiOriginalSize;
+	uint16			uiOriginalSize;
 
 	uiOriginalSize = pcNode->GetDataSize();
 	pcNode->SetData(pvData, uiDataSize);
@@ -536,7 +536,7 @@ BOOL CIndexTreeMemory::Remove(CIndexTreeNodeMemory*	pcCurrent)
 	CIndexTreeNodeMemory*	pcNode;
 	BOOL					bResizeNode;
 	size_t					tNewNodeSize;
-	unsigned short			uiOldDataSize;
+	uint16			uiOldDataSize;
 
 	uiOldDataSize = pcCurrent->GetDataSize();
 	if (uiOldDataSize == 0)
@@ -1113,7 +1113,7 @@ size_t CIndexTreeMemory::RecurseByteSize(CIndexTreeNodeMemory* pcNode)
 {
 	int						i;
 	CIndexTreeNodeMemory*	pcChild;
-	unsigned short			uiSize;
+	uint16			uiSize;
 	size_t					tSize;
 
 	tSize = 0;
@@ -1340,7 +1340,7 @@ BOOL CIndexTreeMemory::HasKey(void* pvKey, int iKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-unsigned short CIndexTreeMemory::GetDataSize(void* pvKey, int iKeySize)
+uint16 CIndexTreeMemory::GetDataSize(void* pvKey, int iKeySize)
 {
 	CIndexTreeNodeMemory* pcNode;
 

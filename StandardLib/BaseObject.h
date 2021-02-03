@@ -74,14 +74,14 @@ friend class CEmbeddedObject;
 
 CONSTRUCTABLE(CBaseObject);
 protected:
-	OIndex				moi;
-	CObjects*			mpcObjectsThisIn;
-	int					miDistToRoot;
-	int					miDistToStack;
-	unsigned short int	miFlags;
-	unsigned short int  miNumEmbedded;
-	unsigned short int	miPreInits;
-	unsigned short int	miPostInits;
+	OIndex		moi;
+	CObjects*	mpcObjectsThisIn;
+	int			miDistToRoot;
+	int			miDistToStack;
+	uint16		miFlags;
+	uint16		miNumEmbedded;
+	uint16		miPreInits;
+	uint16		miPostInits;
 
 public:
 								CBaseObject();
@@ -120,7 +120,7 @@ public:
 			int					SerialisedSize(void);
 	virtual char*				GetIdentifier(CChars* psz);
 
-			unsigned short int	GetNumEmbedded(void);
+			uint16	GetNumEmbedded(void);
 
 	virtual void				SetPointerTosExpectedDistToRoot(int iDistToRoot) =0;
 			void				SetDirty(void);
@@ -189,7 +189,7 @@ protected:
 			int					CalculateDistToRootFromPointedFroms(void);
 	virtual int					CalculateDistToRootFromPointedFroms(int iDistToRoot);
 			BOOL				IsBaseObject(void);
-			unsigned short int	GetNumEmbeddedFromFlags(void);
+			uint16	GetNumEmbeddedFromFlags(void);
 			void				SetFlagNumEmbedded(int iNumEmbedded);
 			BOOL				IsMarkedUnreachable(void);
 			void				ReplaceOneWithX(char* szDest, char* szMask);

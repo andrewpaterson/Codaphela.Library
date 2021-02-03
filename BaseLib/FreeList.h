@@ -37,7 +37,7 @@ struct SFNode
 {
 	unsigned char	bFull;
 	char			iOffset;
-	unsigned short  uiChunkSize;
+	uint16  uiChunkSize;
 	CFreeList*		pcList;
 };
 
@@ -69,13 +69,13 @@ protected:
 	char				miAlignment;
 	unsigned char		muiMagic;
 
-	unsigned short		miStride;
-	unsigned short		miElementSize;
+	uint16		miStride;
+	uint16		miElementSize;
 
 public:
-	void		Init(unsigned short iElementSize);
-	void		Init(unsigned short iElementSize, char iAlignment);
-	void		Init(unsigned short iElementSize, char iAlignment, char iOffset);
+	void		Init(uint16 iElementSize);
+	void		Init(uint16 iElementSize, char iAlignment);
+	void		Init(uint16 iElementSize, char iAlignment, char iOffset);
 	void		Kill(void);
 
 	void*		Add(SFNode** ppsNode = NULL);
@@ -116,7 +116,7 @@ protected:
 	BOOL		RemoveExisiting(SFNode* psNode, int iPosition);
 	int			CalculateStride(void);
 	char		CalculateOffset(int iOffset);
-	int			CalculateBitArraySize(unsigned short uiChunkSize);
+	int			CalculateBitArraySize(uint16 uiChunkSize);
 	int			CalculateOffset(SFNode* psNode);
 	void*		GetElementInNode(SFNode* psNode, int iPosition);
 	BOOL		IsElementInNodeAllocated(SFNode* psNode, int iPosition);

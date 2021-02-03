@@ -51,7 +51,7 @@ void 	SetBit(int iBit, void* pvBitArray, int bBit);  //bBit can only take 1 or 0
 void 	SetFlag(int* piDest, int iFlag, int iFlagValue);  //Identically to set bit but only works on 4bytes.
 void 	SetFlag(unsigned int* piDest, int iFlag, int iFlagValue);  //Identically to set bit but only works on 4bytes.
 void 	SetFlag(short int* psiDest, int iFlag, int iFlagValue);  //Identically to set bit but only works on 4bytes.
-void 	SetFlag(unsigned short int* psiDest, int iFlag, int iFlagValue);  //Identically to set bit but only works on 2bytes.
+void 	SetFlag(uint16* psiDest, int iFlag, int iFlagValue);  //Identically to set bit but only works on 2bytes.
 void 	SetFlag(char* psiDest, int iFlag, int iFlagValue);  //Identically to set bit but only works on 4bytes.
 void 	SetFlag(unsigned char* psiDest, int iFlag, int iFlagValue);  //Identically to set bit but only works on 2bytes.
 int 	FindFirstClearBit(void* pvArray, int iArraySize);

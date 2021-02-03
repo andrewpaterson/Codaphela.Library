@@ -203,7 +203,7 @@ CBaseObject* CObjectAllocator::ReplaceExisting(CBaseObject* pvExisting, CBaseObj
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CObjectAllocator::AddHollow(OIndex oiForced, unsigned short iNumEmbedded)
+CBaseObject* CObjectAllocator::AddHollow(OIndex oiForced, uint16 iNumEmbedded)
 {
 	CHollowObject*		pcHollow;
 	BOOL				bResult;
@@ -245,7 +245,7 @@ CBaseObject* CObjectAllocator::AddHollow(OIndex oiForced, unsigned short iNumEmb
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CObjectAllocator::AddHollow(char* szObjectName, OIndex oiForced, unsigned short iNumEmbedded)
+CBaseObject* CObjectAllocator::AddHollow(char* szObjectName, OIndex oiForced, uint16 iNumEmbedded)
 {
 	CNamedHollowObject*			pcHollow;
 	BOOL						bResult;
@@ -298,7 +298,7 @@ CBaseObject* CObjectAllocator::AddHollow(char* szObjectName, OIndex oiForced, un
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CObjectAllocator::AddHollow(char* szObjectName, unsigned short iNumEmbedded)
+CBaseObject* CObjectAllocator::AddHollow(char* szObjectName, uint16 iNumEmbedded)
 {
 	CNamedHollowObject*		pcHollow;
 	BOOL					bResult;

@@ -7,7 +7,7 @@
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CFreeList::Init(unsigned short iElementSize)
+void CFreeList::Init(uint16 iElementSize)
 {
 	Init(iElementSize, 4);
 }
@@ -17,7 +17,7 @@ void CFreeList::Init(unsigned short iElementSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CFreeList::Init(unsigned short iElementSize, char iAlignment)
+void CFreeList::Init(uint16 iElementSize, char iAlignment)
 {
 	Init(iElementSize, iAlignment, 0);
 }
@@ -27,7 +27,7 @@ void CFreeList::Init(unsigned short iElementSize, char iAlignment)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CFreeList::Init(unsigned short iElementSize, char iAlignment, char iOffset)
+void CFreeList::Init(uint16 iElementSize, char iAlignment, char iOffset)
 {
 	muiMagic = FREE_LIST_MAGIC;
 
@@ -113,7 +113,7 @@ int CFreeList::CalculateOffset(SFNode* psNode)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CFreeList::CalculateBitArraySize(unsigned short uiChunkSize)
+int CFreeList::CalculateBitArraySize(uint16 uiChunkSize)
 {
 	//The bit array size is the number of elements in a chunk divided by 8 (+1).
 
@@ -342,7 +342,7 @@ SFNode* CFreeList::AllocateNew(void)
 
 	//Find the size of this free list block.  It is integer aligned.
 	//miChunkSize+1 ... -1 to ensure enough space given alignment.
-	iBitArraySize = CalculateBitArraySize((unsigned short)iChunkSize);
+	iBitArraySize = CalculateBitArraySize((uint16)iChunkSize);
 
 	if (miAlignment != 1)
 	{
@@ -369,7 +369,7 @@ SFNode* CFreeList::AllocateNew(void)
 	mpsNotFull = psNew;
 	psNew->iOffset = CalculateOffset(psNew);
 	psNew->pcList = this;
-	psNew->uiChunkSize = (unsigned short)iChunkSize;
+	psNew->uiChunkSize = (uint16)iChunkSize;
 	return psNew;
 }
 

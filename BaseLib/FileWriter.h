@@ -49,7 +49,7 @@ public:
 						BOOL	WriteChar(unsigned char c);
 						BOOL	WriteBool(BOOL b);
 						BOOL	WriteShort(short int i);
-						BOOL	WriteShort(unsigned short int i);
+						BOOL	WriteShort(uint16 i);
 						BOOL	WriteBits(void* pvData, int iBitLength);
 
 						BOOL	WriteIntArray(int* pai, int iLength);

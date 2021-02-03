@@ -36,7 +36,7 @@ public:
 	BOOL					Put(void* pvKey, int iKeySize, void* pvObject, size_t iDataSize);
 	BOOL					Remove(void* pvKey, int iKeySize);
 	BOOL					HasKey(void* pvKey, int iKeySize);
-	unsigned short			GetDataSize(void* pvKey, int iKeySize);
+	uint16			GetDataSize(void* pvKey, int iKeySize);
 
 	BOOL					Evict(void* pvKey, int iKeySize);
 	BOOL					Flush(void* pvKey, int iKeySize);

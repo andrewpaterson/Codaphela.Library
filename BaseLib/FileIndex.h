@@ -31,15 +31,15 @@ public:
 	int				miFile;
 
 public:
-	void Init(void);
-	void Init(int iFile, unsigned int uiIndex);
-	void Kill(void);
+	void			Init(void);
+	void			Init(int iFile, unsigned int uiIndex);
+	void			Kill(void);
 
-	BOOL HasFile(void);
-	void SetIndex(int iFile, unsigned int uiIndex);
-	void SetIndex(CFileDataIndex* pcSource);
+	BOOL			HasFile(void);
+	void			SetIndex(int iFile, unsigned int uiIndex);
+	void			SetIndex(CFileDataIndex* pcSource);
 
-	BOOL Equals(CFileDataIndex* pcOther);
+	BOOL			Equals(CFileDataIndex* pcOther);
 
 	CFilePosIndex	ToFilePosIndex(unsigned int muiDataSize);
 };

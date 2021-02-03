@@ -53,7 +53,7 @@ public:
 	TRISTATE	ParseFloat(float* pDest);
 	TRISTATE	ParseDouble(double* pDest);
 	TRISTATE	ParseUInt(unsigned int* pDest);
-	TRISTATE	ParseUShort(unsigned short* pDest);
+	TRISTATE	ParseUShort(uint16* pDest);
 	TRISTATE	ParseUChar(unsigned char* pDest);
 	TRISTATE	ParseLong(long long int* pDest);
 	TRISTATE	ParseULong(unsigned long long int* pDest);

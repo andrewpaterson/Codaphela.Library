@@ -1190,7 +1190,7 @@ CNamedIndexedObjects* CObjects::GetMemory(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CNamedHollowObject* CObjects::AllocateNamedHollow(unsigned short iNumEmbedded)
+CNamedHollowObject* CObjects::AllocateNamedHollow(uint16 iNumEmbedded)
 {
 	CNamedHollowObject*		pcHollow;
 	int						iAdditionalBytes;
@@ -1226,7 +1226,7 @@ CNamedHollowObject* CObjects::AllocateNamedHollow(unsigned short iNumEmbedded)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CHollowObject* CObjects::AllocateHollow(unsigned short iNumEmbedded)
+CHollowObject* CObjects::AllocateHollow(uint16 iNumEmbedded)
 {
 	CHollowObject*		pcHollow;
 	int					iAdditionalBytes;
@@ -1260,7 +1260,7 @@ CHollowObject* CObjects::AllocateHollow(unsigned short iNumEmbedded)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjects::AppenedHollowEmbeddedObjects(CBaseObject* pcHollow, unsigned short iNumEmbedded, void* pvEmbedded) 
+void CObjects::AppenedHollowEmbeddedObjects(CBaseObject* pcHollow, uint16 iNumEmbedded, void* pvEmbedded) 
 {
 	CHollowEmbeddedObject	cEmbeddedObject;
 	int						i;

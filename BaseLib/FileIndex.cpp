@@ -97,7 +97,7 @@ CFileDataIndex CFilePosIndex::ToFileDataIndex(unsigned int muiDataSize)
 void CFileDataIndex::Init(void)
 {
 	miFile = -1;
-	muiIndex = -1LL;
+	muiIndex = -1;
 }
 
 

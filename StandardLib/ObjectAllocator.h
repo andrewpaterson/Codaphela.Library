@@ -23,9 +23,9 @@ public:
 	CBaseObject*	Add(char* szClassName, char* szObjectName, OIndex oiForced);
 	CBaseObject*	Add(char* szClassName, char* szObjectName, OIndex oiForced, OIndex* poiExisting);
 
-	CBaseObject*	AddHollow(char* szObjectName, unsigned short iNumEmbedded);
-	CBaseObject*	AddHollow(OIndex oiForced, unsigned short iNumEmbedded);
-	CBaseObject*	AddHollow(char* szObjectName, OIndex oiForced, unsigned short iNumEmbedded);
+	CBaseObject*	AddHollow(char* szObjectName, uint16 iNumEmbedded);
+	CBaseObject*	AddHollow(OIndex oiForced, uint16 iNumEmbedded);
+	CBaseObject*	AddHollow(char* szObjectName, OIndex oiForced, uint16 iNumEmbedded);
 
 protected:
 	CBaseObject*	ReplaceExisting(CBaseObject* pvExisting, CBaseObject* pvObject, char* szObjectName, OIndex oiForced);

@@ -185,9 +185,9 @@ BOOL CIndexTreeEvicting::HasKey(void* pvKey, int iKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-unsigned short CIndexTreeEvicting::GetDataSize(void* pvKey, int iKeySize)
+uint16 CIndexTreeEvicting::GetDataSize(void* pvKey, int iKeySize)
 {
-	unsigned short	uiSize;
+	uint16	uiSize;
 	int				iEvicted;
 
 	uiSize = mcIndexTree.GetDataSize(pvKey, iKeySize);
@@ -288,7 +288,7 @@ BOOL CIndexTreeEvicting::EvictNodeWithObject(CIndexTreeNodeFile* pcNode)
 	int					iKeySize;
 	BOOL				bResult;
 	void*				pvData;
-	unsigned short		uiDataSize;
+	uint16		uiDataSize;
 
 	if (mpcIndexTreeEvictionCallback)
 	{

@@ -47,7 +47,7 @@ int SIndexTreeDebugNode::InitFromBuffer(void* pvBuffer, int iBufferSize, int iFi
 	}
 
 	iFileDataSize = *((int*)&pucMemory[iPos]);  iPos += sizeof(int);
-	uiDataSize = *((unsigned short*)&pucMemory[iPos]);  iPos += sizeof(unsigned short);
+	uiDataSize = *((uint16*)&pucMemory[iPos]);  iPos += sizeof(uint16);
 
 	uiFirstIndex = pucMemory[iPos];  iPos++;
 	uiLastIndex = pucMemory[iPos];  iPos++;

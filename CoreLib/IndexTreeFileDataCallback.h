@@ -1,15 +1,14 @@
 #ifndef __INDEX_TREE_FILE_CALLBACK_H__
 #define __INDEX_TREE_FILE_CALLBACK_H__
-#include "BaseLib/Bool.h"
+#include "BaseLib/PrimitiveTypes.h"
 
 
-//xxx //Rename this to CIndexTreeFileDataCallback
 class CIndexTreeFileDataCallback
 {
 public:
-	virtual unsigned short	IndexTreeDataSize(unsigned short uiSourceSize) =0;
-	virtual BOOL			IndexTreeWriteData(void* pvDataBuffer, void* pvSource, int iFileSize, unsigned short uiSourceSize) =0;
-	virtual BOOL			IndexTreeReadData(void* pvDest, void* pvDataBuffer, unsigned short uiDestSize, int iFileSize) =0;
+	virtual uint16		IndexTreeDataSize(uint16 uiSourceSize) =0;
+	virtual BOOL		IndexTreeWriteData(void* pvDataBuffer, void* pvSource, int iFileSize, uint16 uiSourceSize) =0;
+	virtual BOOL		IndexTreeReadData(void* pvDest, void* pvDataBuffer, uint16 uiDestSize, int iFileSize) =0;
 };
 
 
