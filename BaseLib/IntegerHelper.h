@@ -50,7 +50,7 @@ int		CountBitsSingly(void* pvBitArray, int iBitLength);  //Slow, for testing.
 void 	SetBit(int iBit, void* pvBitArray, int bBit);  //bBit can only take 1 or 0.
 void 	SetFlag(int* piDest, int iFlag, int iFlagValue);  //Identically to set bit but only works on 4bytes.
 void 	SetFlag(unsigned int* piDest, int iFlag, int iFlagValue);  //Identically to set bit but only works on 4bytes.
-void 	SetFlag(short int* psiDest, int iFlag, int iFlagValue);  //Identically to set bit but only works on 4bytes.
+void 	SetFlag(int16* psiDest, int iFlag, int iFlagValue);  //Identically to set bit but only works on 4bytes.
 void 	SetFlag(uint16* psiDest, int iFlag, int iFlagValue);  //Identically to set bit but only works on 2bytes.
 void 	SetFlag(char* psiDest, int iFlag, int iFlagValue);  //Identically to set bit but only works on 4bytes.
 void 	SetFlag(unsigned char* psiDest, int iFlag, int iFlagValue);  //Identically to set bit but only works on 2bytes.
@@ -74,7 +74,7 @@ char 	GetCrumb(int iCrumb, void* pvArray);  //return 11, 10, 01 or 00 in char.
 char 	GetNybble(int iNybble, void* pvArray);
 void 	CopyBits(void* pvDest, int iDestOffset, void* pvSource, int iSourceOffset, int iNumBits, int bClear);  //Setting clear will make all unused bits zero.
 void 	CopyBitsReverseHiLo(void* pvDest, int iDestOffset, void* pvSource, int iSourceOffset, int iNumBits, int bClear);  //Setting clear will make all unused bits zero.
-short	ReverseShortEndianness(short s);
+int16	ReverseShortEndianness(int16 s);
 int		ReverseIntEndianness(int i);
 int64	ReverseLongEndianness(int64 i);
 void	ReverseEndianness(void* pv, int iSize);

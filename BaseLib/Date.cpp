@@ -27,7 +27,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDate::Init(short sYear, char cMonth, char cDay)
+void CDate::Init(int16 sYear, char cMonth, char cDay)
 {
 	msYear = sYear;
 	mcMonth = cMonth;

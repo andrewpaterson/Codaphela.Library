@@ -20,6 +20,7 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
+#include "PrimitiveTypes.h"
 #include "FastMemcpyBackwards.h"
 
 
@@ -121,14 +122,14 @@ void memcpy_fast_backwards_1byte(void* pvDest, void* pvSource)
 
 void memcpy_fast_backwards_2bytes(void* pvDest, void* pvSource)
 {
-	((short*)pvDest)[0] = ((short*)pvSource)[0];
+	((int16*)pvDest)[0] = ((int16*)pvSource)[0];
 }
 
 
 void memcpy_fast_backwards_3bytes(void* pvDest, void* pvSource)
 {
 	((char*)pvDest)[2] = ((char*)pvSource)[2];
-	((short*)pvDest)[0] = ((short*)pvSource)[0];
+	((int16*)pvDest)[0] = ((int16*)pvSource)[0];
 }
 
 
@@ -147,7 +148,7 @@ void memcpy_fast_backwards_5bytes(void* pvDest, void* pvSource)
 
 void memcpy_fast_backwards_6bytes(void* pvDest, void* pvSource)
 {
-	((short*)pvDest)[2] = ((short*)pvSource)[2];
+	((int16*)pvDest)[2] = ((int16*)pvSource)[2];
 	((int*)pvDest)[0] = ((int*)pvSource)[0];
 }
 
@@ -155,7 +156,7 @@ void memcpy_fast_backwards_6bytes(void* pvDest, void* pvSource)
 void memcpy_fast_backwards_7bytes(void* pvDest, void* pvSource)
 {
 	((char*)pvDest)[6] = ((char*)pvSource)[6];
-	((short*)pvDest)[2] = ((short*)pvSource)[2];
+	((int16*)pvDest)[2] = ((int16*)pvSource)[2];
 	((int*)pvDest)[0] = ((int*)pvSource)[0];
 }
 
@@ -178,7 +179,7 @@ void memcpy_fast_backwards_9bytes(void* pvDest, void* pvSource)
 
 void memcpy_fast_backwards_10bytes(void* pvDest, void* pvSource)
 {
-	((short*)pvDest)[4] = ((short*)pvSource)[4];
+	((int16*)pvDest)[4] = ((int16*)pvSource)[4];
 	((int*)pvDest)[1] = ((int*)pvSource)[1];
 	((int*)pvDest)[0] = ((int*)pvSource)[0];
 }
@@ -187,7 +188,7 @@ void memcpy_fast_backwards_10bytes(void* pvDest, void* pvSource)
 void memcpy_fast_backwards_11bytes(void* pvDest, void* pvSource)
 {
 	((char*)pvDest)[10] = ((char*)pvSource)[10];
-	((short*)pvDest)[4] = ((short*)pvSource)[4];
+	((int16*)pvDest)[4] = ((int16*)pvSource)[4];
 	((int*)pvDest)[1] = ((int*)pvSource)[1];
 	((int*)pvDest)[0] = ((int*)pvSource)[0];
 }
@@ -212,7 +213,7 @@ void memcpy_fast_backwards_13bytes(void* pvDest, void* pvSource)
 
 void memcpy_fast_backwards_14bytes(void* pvDest, void* pvSource)
 {
-	((short*)pvDest)[6] = ((short*)pvSource)[6];
+	((int16*)pvDest)[6] = ((int16*)pvSource)[6];
 	((int*)pvDest)[2] = ((int*)pvSource)[2];
 	((int*)pvDest)[1] = ((int*)pvSource)[1];
 	((int*)pvDest)[0] = ((int*)pvSource)[0];
@@ -222,7 +223,7 @@ void memcpy_fast_backwards_14bytes(void* pvDest, void* pvSource)
 void memcpy_fast_backwards_15bytes(void* pvDest, void* pvSource)
 {
 	((char*)pvDest)[14] = ((char*)pvSource)[14];
-	((short*)pvDest)[6] = ((short*)pvSource)[6];
+	((int16*)pvDest)[6] = ((int16*)pvSource)[6];
 	((int*)pvDest)[2] = ((int*)pvSource)[2];
 	((int*)pvDest)[1] = ((int*)pvSource)[1];
 	((int*)pvDest)[0] = ((int*)pvSource)[0];

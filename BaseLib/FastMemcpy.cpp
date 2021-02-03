@@ -21,6 +21,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
 #include <immintrin.h>
+#include "PrimitiveTypes.h"
 #include "FastMemcpy.h"
 
 
@@ -122,13 +123,13 @@ void memcpy_fast_1byte(void* pvDest, void* pvSource)
 
 void memcpy_fast_2bytes(void* pvDest, void* pvSource)
 {
-	((short*)pvDest)[0] = ((short*)pvSource)[0];
+	((int16*)pvDest)[0] = ((int16*)pvSource)[0];
 }
 
 
 void memcpy_fast_3bytes(void* pvDest, void* pvSource)
 {
-	((short*)pvDest)[0] = ((short*)pvSource)[0];
+	((int16*)pvDest)[0] = ((int16*)pvSource)[0];
 	((char*)pvDest)[2] = ((char*)pvSource)[2];
 }
 
@@ -149,14 +150,14 @@ void memcpy_fast_5bytes(void* pvDest, void* pvSource)
 void memcpy_fast_6bytes(void* pvDest, void* pvSource)
 {
 	((int*)pvDest)[0] = ((int*)pvSource)[0];
-	((short*)pvDest)[2] = ((short*)pvSource)[2];
+	((int16*)pvDest)[2] = ((int16*)pvSource)[2];
 }
 
 
 void memcpy_fast_7bytes(void* pvDest, void* pvSource)
 {
 	((int*)pvDest)[0] = ((int*)pvSource)[0];
-	((short*)pvDest)[2] = ((short*)pvSource)[2];
+	((int16*)pvDest)[2] = ((int16*)pvSource)[2];
 	((char*)pvDest)[6] = ((char*)pvSource)[6];
 }
 
@@ -181,7 +182,7 @@ void memcpy_fast_10bytes(void* pvDest, void* pvSource)
 {
 	((int*)pvDest)[0] = ((int*)pvSource)[0];
 	((int*)pvDest)[1] = ((int*)pvSource)[1];
-	((short*)pvDest)[4] = ((short*)pvSource)[4];
+	((int16*)pvDest)[4] = ((int16*)pvSource)[4];
 }
 
 
@@ -189,7 +190,7 @@ void memcpy_fast_11bytes(void* pvDest, void* pvSource)
 {
 	((int*)pvDest)[0] = ((int*)pvSource)[0];
 	((int*)pvDest)[1] = ((int*)pvSource)[1];
-	((short*)pvDest)[4] = ((short*)pvSource)[4];
+	((int16*)pvDest)[4] = ((int16*)pvSource)[4];
 	((char*)pvDest)[10] = ((char*)pvSource)[10];
 }
 
@@ -216,7 +217,7 @@ void memcpy_fast_14bytes(void* pvDest, void* pvSource)
 	((int*)pvDest)[0] = ((int*)pvSource)[0];
 	((int*)pvDest)[1] = ((int*)pvSource)[1];
 	((int*)pvDest)[2] = ((int*)pvSource)[2];
-	((short*)pvDest)[6] = ((short*)pvSource)[6];
+	((int16*)pvDest)[6] = ((int16*)pvSource)[6];
 }
 
 
@@ -225,7 +226,7 @@ void memcpy_fast_15bytes(void* pvDest, void* pvSource)
 	((int*)pvDest)[0] = ((int*)pvSource)[0];
 	((int*)pvDest)[1] = ((int*)pvSource)[1];
 	((int*)pvDest)[2] = ((int*)pvSource)[2];
-	((short*)pvDest)[6] = ((short*)pvSource)[6];
+	((int16*)pvDest)[6] = ((int16*)pvSource)[6];
 	((char*)pvDest)[14] = ((char*)pvSource)[14];
 }
 

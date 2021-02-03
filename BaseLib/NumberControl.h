@@ -39,10 +39,10 @@ public:
 	void 		Init(int iScratchPadSize);
 	void 		Kill(void);
 	void 		Pi(CNumber* pcDest);
-	void 		Pi(CNumber* pcDest, short cMaxWholeNumbers, short cMaxDecimals);
+	void 		Pi(CNumber* pcDest, int16 cMaxWholeNumbers, int16 cMaxDecimals);
 	void 		E(CNumber* pcDest);
-	void 		E(CNumber* pcDest, short cMaxWholeNumbers, short cMaxDecimals);
-	CNumber*	Add(short cMaxWholeNumbers, short cMaxDecimals);
+	void 		E(CNumber* pcDest, int16 cMaxWholeNumbers, int16 cMaxDecimals);
+	CNumber*	Add(int16 cMaxWholeNumbers, int16 cMaxDecimals);
 	void		Remove(void);
 	void		Remove(int iNumToRemove);
 };

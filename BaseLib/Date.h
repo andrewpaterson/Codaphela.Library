@@ -35,12 +35,12 @@ enum EDateRounding
 class CDate
 {
 public:
-	short	msYear;
+	int16	msYear;
 	char	mcMonth;
 	char	mcDay;
 
 	void 	Init(void);  //Sets date to today.
-	void 	Init(short sYear, char cMonth, char cDay);
+	void 	Init(int16 sYear, char cMonth, char cDay);
 	void 	Today(void);
 	void 	Tomorrow(void);
 	void 	Yesterday(void);

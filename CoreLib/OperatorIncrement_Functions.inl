@@ -1,5 +1,5 @@
 void IncrementInt(void* pvDest) { (*(int*)pvDest)++; }
-void IncrementShort(void* pvDest) { (*(short*)pvDest)++; }
+void IncrementShort(void* pvDest) { (*(int16*)pvDest)++; }
 void IncrementChar(void* pvDest) { (*(char*)pvDest)++; }
 void IncrementFloat(void* pvDest) { (*(float*)pvDest)++; }
 void IncrementDouble(void* pvDest) { (*(double*)pvDest)++; }

@@ -505,7 +505,7 @@ int CIndexTreeNodeFile::WriteToBuffer(void* pvBuffer, int iBufferSize, CIndexTre
 
 	*((int*)&pucMemory[iPos]) = iFileSize;  iPos += sizeof(int);
 	*((int*)&pucMemory[iPos]) = iFileDataSize;  iPos += sizeof(int);
-	*((short*)&pucMemory[iPos]) = uiDataSize;  iPos += sizeof(uint16);
+	*((int16*)&pucMemory[iPos]) = uiDataSize;  iPos += sizeof(uint16);
 
 	pucMemory[iPos] = muiFirstIndex;  iPos += sizeof(unsigned char);
 	pucMemory[iPos] = muiLastIndex;  iPos += sizeof(unsigned char);

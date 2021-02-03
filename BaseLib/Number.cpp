@@ -42,7 +42,7 @@ void CNumber::PrivateInit(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNumber::PrivateInit(short cWholeNumbers, short cMaxDecimals)
+void CNumber::PrivateInit(int16 cWholeNumbers, int16 cMaxDecimals)
 {
 	memset_fast(this, 0, NUMBER_SIZE((int)cWholeNumbers, (int)cMaxDecimals));
 	mcMaxWholeNumbers = cWholeNumbers;
@@ -54,7 +54,7 @@ void CNumber::PrivateInit(short cWholeNumbers, short cMaxDecimals)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CNumber* CNumber::Init(short cMaxWholeNumbers, short cMaxDecimals)
+CNumber* CNumber::Init(int16 cMaxWholeNumbers, int16 cMaxDecimals)
 {
 	PrivateInit(cMaxWholeNumbers, cMaxDecimals);
 	SetFirstNonZerotDigit(1);
@@ -76,7 +76,7 @@ CNumber* CNumber::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CNumber* CNumber::Init(int i, short cMaxWholeNumbers, short cMaxDecimals)
+CNumber* CNumber::Init(int i, int16 cMaxWholeNumbers, int16 cMaxDecimals)
 {
 	int		iRemainder;
 	int		iCount;
@@ -119,7 +119,7 @@ CNumber* CNumber::Init(int i)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CNumber* CNumber::Init(float ff, short cMaxWholeNumbers, short cMaxDecimals)
+CNumber* CNumber::Init(float ff, int16 cMaxWholeNumbers, int16 cMaxDecimals)
 {
 	int		i;
 	int		e;
@@ -188,7 +188,7 @@ CNumber* CNumber::Init(float ff)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CNumber* CNumber::BinaryOne(int iBinaryExponent, short cMaxWholeNumbers, short cMaxDecimals)
+CNumber* CNumber::BinaryOne(int iBinaryExponent, int16 cMaxWholeNumbers, int16 cMaxDecimals)
 {
 	int			iNumber;
 
@@ -220,7 +220,7 @@ CNumber* CNumber::BinaryOne(int iBinaryExponent, short cMaxWholeNumbers, short c
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CNumber* CNumber::Init(const char* szNumber, short cMaxWholeNumbers, short cMaxDecimals, int iLen)
+CNumber* CNumber::Init(const char* szNumber, int16 cMaxWholeNumbers, int16 cMaxDecimals, int iLen)
 {
 	char	cDigits[64 KB];
 	int		iSign;
@@ -335,7 +335,7 @@ CNumber* CNumber::Init(char* szNumber, int iLen)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CNumber* CNumber::Init(CNumber* pcNumber, short cMaxWholeNumbers, short cMaxDecimals)
+CNumber* CNumber::Init(CNumber* pcNumber, int16 cMaxWholeNumbers, int16 cMaxDecimals)
 {
 	if ((cMaxWholeNumbers + cMaxDecimals) == (pcNumber->mcMaxWholeNumbers + pcNumber->mcMaxDecimals))
 	{
@@ -367,7 +367,7 @@ CNumber* CNumber::Init(CNumber* pcNumber)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CNumber* CNumber::Zero(short cMaxWholeNumbers, short cMaxDecimals)
+CNumber* CNumber::Zero(int16 cMaxWholeNumbers, int16 cMaxDecimals)
 {
 	return Init(cMaxWholeNumbers, cMaxDecimals);
 }
@@ -381,7 +381,7 @@ CNumber* CNumber::Zero(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CNumber* CNumber::One(short cMaxWholeNumbers, short cMaxDecimals)
+CNumber* CNumber::One(int16 cMaxWholeNumbers, int16 cMaxDecimals)
 {
 	PrivateInit(cMaxWholeNumbers, cMaxDecimals);
 	SetFirstNonZerotDigit(1);
@@ -405,7 +405,7 @@ CNumber* CNumber::One(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CNumber* CNumber::Pi(short cMaxWholeNumbers, short cMaxDecimals)
+CNumber* CNumber::Pi(int16 cMaxWholeNumbers, int16 cMaxDecimals)
 {
 	gcNumberControl.Pi(this, cMaxWholeNumbers, cMaxDecimals);
 	return this;
@@ -421,7 +421,7 @@ CNumber* CNumber::Pi(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CNumber* CNumber::E(short cMaxWholeNumbers, short cMaxDecimals)
+CNumber* CNumber::E(int16 cMaxWholeNumbers, int16 cMaxDecimals)
 {
 	gcNumberControl.E(this, cMaxWholeNumbers, cMaxDecimals);
 	return this;
@@ -437,7 +437,7 @@ CNumber* CNumber::E(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CNumber* CNumber::Copy(CNumber* pcNumber, short cMaxWholeNumbers, short cMaxDecimals)
+CNumber* CNumber::Copy(CNumber* pcNumber, int16 cMaxWholeNumbers, int16 cMaxDecimals)
 {
 	return Init(pcNumber, cMaxWholeNumbers, cMaxDecimals);
 }
@@ -491,7 +491,7 @@ CNumber* CNumber::Overflow(int iSign)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CNumber* CNumber::Digit(char cValue, short cMaxWholeNumbers, short cMaxDecimals)
+CNumber* CNumber::Digit(char cValue, int16 cMaxWholeNumbers, int16 cMaxDecimals)
 {
 	Zero(cMaxWholeNumbers, cMaxDecimals);
 	if ((cValue >= 0) && (cValue <= 9))
@@ -533,7 +533,7 @@ CNumber* CNumber::Digit(char cValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CNumber* CNumber::Digit(int iDigit, char cValue, short cMaxWholeNumbers, short cMaxDecimals)
+CNumber* CNumber::Digit(int iDigit, char cValue, int16 cMaxWholeNumbers, int16 cMaxDecimals)
 {
 	Zero(cMaxWholeNumbers, cMaxDecimals);
 	if ((cValue >= 0) && (cValue <= 9))
@@ -591,7 +591,7 @@ void CNumber::AddBinaryOne(int iBinaryExponent)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNumber::SetFirstNonZerotDigit(short iDigit)
+void CNumber::SetFirstNonZerotDigit(int16 iDigit)
 {
 	mcFirstDigit = iDigit;
 }
@@ -601,7 +601,7 @@ void CNumber::SetFirstNonZerotDigit(short iDigit)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNumber::SetLastNonZeroDigit(short iDigit)
+void CNumber::SetLastNonZeroDigit(int16 iDigit)
 {
 	mcLastDigit = iDigit;
 }
@@ -611,7 +611,7 @@ void CNumber::SetLastNonZeroDigit(short iDigit)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-short CNumber::GetFirstNonZeroDigit(void)
+int16 CNumber::GetFirstNonZeroDigit(void)
 {
 	return mcFirstDigit;
 }
@@ -621,7 +621,7 @@ short CNumber::GetFirstNonZeroDigit(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-short CNumber::GetLastNonZeroDigit(void)
+int16 CNumber::GetLastNonZeroDigit(void)
 {
 	return mcLastDigit;
 }
@@ -770,7 +770,7 @@ BOOL CNumber::IsError(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNumber::SetFlag(short iFlag)
+void CNumber::SetFlag(int16 iFlag)
 {
 	mcFlags |= iFlag;
 }
@@ -780,7 +780,7 @@ void CNumber::SetFlag(short iFlag)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNumber::ClearFlag(short iFlag)
+void CNumber::ClearFlag(int16 iFlag)
 {
 	mcFlags &= ~iFlag;
 }
@@ -1284,7 +1284,7 @@ BOOL CNumber::IsNegative(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNumber::PrivateEquals(CNumber* pcNumber, short iDecimals)
+BOOL CNumber::PrivateEquals(CNumber* pcNumber, int16 iDecimals)
 {
 	int		iThisLastDigit;
 	int		iOtherLastDigit;
@@ -2317,7 +2317,7 @@ BOOL CNumber::PrivateOverflow(CNumber* pcNumber)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNumber::PrivateIntegerFactorial(int iN, short cMaxWholeNumbers, short cMaxDecimals)
+void CNumber::PrivateIntegerFactorial(int iN, int16 cMaxWholeNumbers, int16 cMaxDecimals)
 {
 	CNumber*	pcI;
 	int			i;
@@ -2409,7 +2409,7 @@ void CNumber::PrivateIntegerRoot(CNumber* pcRoot)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNumber::PrivateCopy(CNumber* pcNumber, short cMaxWholeNumbers, short cMaxDecimals)
+void CNumber::PrivateCopy(CNumber* pcNumber, int16 cMaxWholeNumbers, int16 cMaxDecimals)
 {
 	int iOtherFirst;
 	int	iOtherLast;

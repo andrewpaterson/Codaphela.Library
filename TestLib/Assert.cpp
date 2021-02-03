@@ -411,7 +411,7 @@ BOOL PrivateAssertIntHex(int iExpected, int iActual, int iLine, char* szFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL PrivateAssertShort(short iExpected, short iActual, int iLine, char* szFile)
+BOOL PrivateAssertShort(int16 iExpected, int16 iActual, int iLine, char* szFile)
 {
 	char szExpected[32];
 	char szActual[32];
@@ -433,7 +433,7 @@ BOOL PrivateAssertShort(short iExpected, short iActual, int iLine, char* szFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL PrivateAssertShortHex(short iExpected, short iActual, int iLine, char* szFile)
+BOOL PrivateAssertShortHex(int16 iExpected, int16 iActual, int iLine, char* szFile)
 {
 	char szExpected[32];
 	char szActual[32];
@@ -712,14 +712,14 @@ BOOL PrivateAssertNumber(const char* szExpected, CNumber* pcActual, int iLine, c
 	CChars		szActual;
 	CChars		szFake;
 	int			iIndex;
-	short		iDecimals;
+	int16		iDecimals;
 	BOOL		bResult;
 
 	szFake.Fake((char*)szExpected);
 	iIndex = szFake.Find(0, '.');
 	if (iIndex != -1)
 	{
-		iDecimals = (short)(szFake.Length() - iIndex);
+		iDecimals = (int16)(szFake.Length() - iIndex);
 	}
 	else
 	{

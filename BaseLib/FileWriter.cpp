@@ -131,9 +131,9 @@ BOOL CFileWriter::WriteBool(BOOL b)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileWriter::WriteShort(short int i)
+BOOL CFileWriter::WriteShort(int16 i)
 {
-	CheckWrite(&i, sizeof(short int));
+	CheckWrite(&i, sizeof(int16));
 	return TRUE;
 }
 

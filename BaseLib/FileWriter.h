@@ -48,7 +48,7 @@ public:
 						BOOL	WriteChar(char c);
 						BOOL	WriteChar(unsigned char c);
 						BOOL	WriteBool(BOOL b);
-						BOOL	WriteShort(short int i);
+						BOOL	WriteShort(int16 i);
 						BOOL	WriteShort(uint16 i);
 						BOOL	WriteBits(void* pvData, int iBitLength);
 
