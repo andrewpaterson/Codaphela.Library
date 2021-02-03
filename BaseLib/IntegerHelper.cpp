@@ -604,7 +604,7 @@ void SetFlag(unsigned int* piDest, int iFlag, int iFlagValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void SetFlag(short int* psiDest, int iFlag, int iFlagValue)
+void SetFlag(int16* psiDest, int iFlag, int iFlagValue)
 {
 	//If the value is true then or it with dest.
 	if (iFlagValue)
@@ -950,7 +950,7 @@ void CopyBitsReverseHiLo(void* pvDest, int iDestOffset, void* pvSource, int iSou
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-short ReverseShortEndianness(short s)
+int16 ReverseShortEndianness(int16 s)
 {
 	Swap((char*)&s, ((char*)&s) + 1);
 	return s;
@@ -995,7 +995,7 @@ void ReverseEndianness(void* pv, int iSize)
 	}
 	if (iSize == 2)
 	{
-		*(short*)pv = ReverseShortEndianness(*(short*)pv);
+		*(int16*)pv = ReverseShortEndianness(*(int16*)pv);
 	}
 	if (iSize == 8)
 	{

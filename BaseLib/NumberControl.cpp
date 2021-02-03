@@ -87,7 +87,7 @@ void CNumberControl::Pi(CNumber* pcDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNumberControl::Pi(CNumber* pcDest, short cMaxWholeNumbers, short cMaxDecimals)
+void CNumberControl::Pi(CNumber* pcDest, int16 cMaxWholeNumbers, int16 cMaxDecimals)
 {
 	pcDest->Copy(&mc_pi_lots.c, cMaxWholeNumbers, cMaxDecimals);
 }
@@ -107,7 +107,7 @@ void CNumberControl::E(CNumber* pcDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNumberControl::E(CNumber* pcDest, short cMaxWholeNumbers, short cMaxDecimals)
+void CNumberControl::E(CNumber* pcDest, int16 cMaxWholeNumbers, int16 cMaxDecimals)
 {
 	pcDest->Copy(&mc_e_lots.c, cMaxWholeNumbers, cMaxDecimals);
 }
@@ -117,7 +117,7 @@ void CNumberControl::E(CNumber* pcDest, short cMaxWholeNumbers, short cMaxDecima
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CNumber* CNumberControl::Add(short cMaxWholeNumbers, short cMaxDecimals)
+CNumber* CNumberControl::Add(int16 cMaxWholeNumbers, int16 cMaxDecimals)
 {
 	return (CNumber*)mcScratchPad.Add(NUMBER_SIZE(cMaxWholeNumbers, cMaxDecimals));
 }

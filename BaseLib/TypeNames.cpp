@@ -79,7 +79,7 @@ void CTypeNames::Init(void)
 	masTypeNames.Init();
 	AddType(PT_Undefined,	0,					"Undefined",	"",					"PT_Undefined");
 	AddType(PT_int,			INT_BYTE_SIZE,		"Int",			"int",				"PT_int");
-	AddType(PT_short,		SHORT_BYTE_SIZE,	"Short",		"short",			"PT_short");
+	AddType(PT_short,		SHORT_BYTE_SIZE,	"Short",		"int16",			"PT_short");
 	AddType(PT_VoidPointer, sizeof(void*),		"Pointer",		"void*",			"PT_VoidPointer");
 	AddType(PT_char,		CHAR_BYTE_SIZE,		"Char",			"char",				"PT_char");
 	AddType(PT_float,		FLOAT_BYTE_SIZE,	 "Float",		"float",			"PT_float");
@@ -132,7 +132,7 @@ void CTypeNames::Init(void)
 	mmsziCppNames.Init(30, TRUE);
 	mmsziCppNames.Put("int", PT_int);
 	mmsziCppNames.Put("BOOL", PT_bool);
-	mmsziCppNames.Put("short", PT_short);
+	mmsziCppNames.Put("int16", PT_short);
 	mmsziCppNames.Put("void", PT_void);
 	mmsziCppNames.Put("void*", PT_VoidPointer); //?
 	mmsziCppNames.Put("char", PT_char);

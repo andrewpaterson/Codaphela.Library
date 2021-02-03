@@ -61,7 +61,7 @@ CNumber	CCalcBinaryExpression::Evaluate(void)
 	cNumberLeft = mpcLeft->Evaluate();
 	cNumberRight = mpcRight->Evaluate();
 
-	//To do short circuiting you actually need to do some sort of partial evaluation here.
+	//To do int16 circuiting you actually need to do some sort of partial evaluation here.
 	mpcOp->Evaluate(&cAnswer, &cNumberLeft, &cNumberRight);
 
 	return cAnswer;

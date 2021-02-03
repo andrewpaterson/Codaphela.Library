@@ -171,7 +171,7 @@ TRISTATE CTypeParser::ParseChar(char* pDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CTypeParser::ParseShort(short* pDest)
+TRISTATE CTypeParser::ParseShort(int16* pDest)
 {
 	TRISTATE				tResult;
 	long long int			lliValue;
@@ -179,7 +179,7 @@ TRISTATE CTypeParser::ParseShort(short* pDest)
 	tResult = GetSmallIntegerValue(&lliValue, MAX_SHORT, MIN_SHORT);
 	if (tResult == TRITRUE)
 	{
-		*pDest = (short)lliValue;
+		*pDest = (int16)lliValue;
 	}
 	return tResult;
 }
@@ -710,7 +710,7 @@ TRISTATE CTypeParser::Parse(EPrimitiveTypes eType, void* pvDest, int iDestLength
 		case PT_short:
 			if (iDestLength >= SHORT_BYTE_SIZE)
 			{
-				return ParseShort((short*)pvDest);
+				return ParseShort((int16*)pvDest);
 			}
 			break;
 		case PT_char:

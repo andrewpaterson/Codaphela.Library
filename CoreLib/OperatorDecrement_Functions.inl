@@ -1,5 +1,5 @@
 void DecrementInt(void* pvDest) { (*(int*)pvDest)--; }
-void DecrementShort(void* pvDest) { (*(short*)pvDest)--; }
+void DecrementShort(void* pvDest) { (*(int16*)pvDest)--; }
 void DecrementChar(void* pvDest) { (*(char*)pvDest)--; }
 void DecrementFloat(void* pvDest) { (*(float*)pvDest)--; }
 void DecrementDouble(void* pvDest) { (*(double*)pvDest)--; }

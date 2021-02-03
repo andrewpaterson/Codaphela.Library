@@ -46,11 +46,11 @@ class CNumberControl;
 class CNumber
 {
 public:
-	short		mcMaxWholeNumbers;
-	short		mcMaxDecimals;
-	short		mcFirstDigit;
-	short		mcLastDigit;
-	short		mcFlags;
+	int16		mcMaxWholeNumbers;
+	int16		mcMaxDecimals;
+	int16		mcFirstDigit;
+	int16		mcLastDigit;
+	int16		mcFlags;
 
 	char		mcDigits[DEFAULT_DIGITS];		// WWWWWWWWWWWWWWWWWWWWWWWWWW.DDDDDDDDDDDDDDDD
 												//
@@ -79,19 +79,19 @@ public:
 	//Then things like Zero, One, E etc... and operate on an existing number.
 
 	//Initialisation(cMaxWholeNumbers, cMaxDecimals)
-	CNumber*	Init(short cMaxWholeNumbers, short cMaxDecimals);
-	CNumber*	Init(int i, short cMaxWholeNumbers, short cMaxDecimals);
-	CNumber*	Init(float ff, short cMaxWholeNumbers, short cMaxDecimals);
-	CNumber*	Init(const char* szNumber, short cMaxWholeNumbers, short cMaxDecimals, int iLen = 0);
-	CNumber*	Init(CNumber* pcNumber, short cMaxWholeNumbers, short cMaxDecimals);
-	CNumber*	Zero(short cMaxWholeNumbers, short cMaxDecimals);
-	CNumber*	One(short cMaxWholeNumbers, short cMaxDecimals);
-	CNumber*	Pi(short cMaxWholeNumbers, short cMaxDecimals);
-	CNumber*	E(short cMaxWholeNumbers, short cMaxDecimals);
-	CNumber*	BinaryOne(int iBinaryExponent, short cMaxWholeNumbers, short cMaxDecimals);
-	CNumber*	Digit(char cValue, short cMaxWholeNumbers, short cMaxDecimals);
-	CNumber*	Digit(int iDigit, char cValue, short cMaxWholeNumbers, short cMaxDecimals);
-	CNumber* 	Copy(CNumber* pcNumber, short cMaxWholeNumbers, short cMaxDecimals);
+	CNumber*	Init(int16 cMaxWholeNumbers, int16 cMaxDecimals);
+	CNumber*	Init(int i, int16 cMaxWholeNumbers, int16 cMaxDecimals);
+	CNumber*	Init(float ff, int16 cMaxWholeNumbers, int16 cMaxDecimals);
+	CNumber*	Init(const char* szNumber, int16 cMaxWholeNumbers, int16 cMaxDecimals, int iLen = 0);
+	CNumber*	Init(CNumber* pcNumber, int16 cMaxWholeNumbers, int16 cMaxDecimals);
+	CNumber*	Zero(int16 cMaxWholeNumbers, int16 cMaxDecimals);
+	CNumber*	One(int16 cMaxWholeNumbers, int16 cMaxDecimals);
+	CNumber*	Pi(int16 cMaxWholeNumbers, int16 cMaxDecimals);
+	CNumber*	E(int16 cMaxWholeNumbers, int16 cMaxDecimals);
+	CNumber*	BinaryOne(int iBinaryExponent, int16 cMaxWholeNumbers, int16 cMaxDecimals);
+	CNumber*	Digit(char cValue, int16 cMaxWholeNumbers, int16 cMaxDecimals);
+	CNumber*	Digit(int iDigit, char cValue, int16 cMaxWholeNumbers, int16 cMaxDecimals);
+	CNumber* 	Copy(CNumber* pcNumber, int16 cMaxWholeNumbers, int16 cMaxDecimals);
 
 	//Initialisation Errors
 	CNumber*	NotANumber(void);
@@ -99,14 +99,14 @@ public:
 	CNumber*	DivisionByZero(void);
 
 	//Miscellaneous
-	void		SetFirstNonZerotDigit(short iDigit);  //Valid: 26 -> 1, not 0, -1 -> -16.
-	void		SetLastNonZeroDigit(short iDigit);  //Inclusive of this digit.  First always >= Last.
+	void		SetFirstNonZerotDigit(int16 iDigit);  //Valid: 26 -> 1, not 0, -1 -> -16.
+	void		SetLastNonZeroDigit(int16 iDigit);  //Inclusive of this digit.  First always >= Last.
 	void		SetSign(int iSign);
 	int			GetSign(void);
-	void		SetFlag(short iFlag);
-	void		ClearFlag(short iFlags);
-	short		GetFirstNonZeroDigit(void);  //GetFirstNonZeroDigit
-	short		GetLastNonZeroDigit(void);  //GetLastNonZeroDigit
+	void		SetFlag(int16 iFlag);
+	void		ClearFlag(int16 iFlags);
+	int16		GetFirstNonZeroDigit(void);  //GetFirstNonZeroDigit
+	int16		GetLastNonZeroDigit(void);  //GetLastNonZeroDigit
 	int			GetDecimals(void);
 	int			GetWholeNumbers(void);
 	int			GetDigitsBetween(void);
@@ -156,11 +156,11 @@ public:
 	void		PrivateIntegerRoot(CNumber* pcRoot);
 	void		PrivateIntegerExponent(CNumber* pcExponent);  //The number returned is not this.
 	void		PrivateIntegerExponent(int iExponent);
-	void		PrivateIntegerFactorial(int iN, short cMaxWholeNumbers, short cMaxDecimals);
+	void		PrivateIntegerFactorial(int iN, int16 cMaxWholeNumbers, int16 cMaxDecimals);
 	void		PrivateInit(void);
-	void		PrivateInit(short cWholeNumbers, short cMaxDecimals);
-	void		PrivateCopy(CNumber* pcNumber, short cMaxWholeNumbers, short cMaxDecimals);
-	BOOL		PrivateEquals(CNumber* pcNumber, short iDecimals);
+	void		PrivateInit(int16 cWholeNumbers, int16 cMaxDecimals);
+	void		PrivateCopy(CNumber* pcNumber, int16 cMaxWholeNumbers, int16 cMaxDecimals);
+	BOOL		PrivateEquals(CNumber* pcNumber, int16 iDecimals);
 	int			PrivateGetIndex(int iDigit);
 
 	//Mathematical

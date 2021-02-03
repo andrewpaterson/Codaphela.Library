@@ -22,6 +22,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __NEW_FUNCTION_CALLER_H__
 #define __NEW_FUNCTION_CALLER_H__
+#include "BaseLib/PrimitiveTypes.h"
 #include "BaseLib/Define.h"
 
 
