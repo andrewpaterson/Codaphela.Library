@@ -35,7 +35,7 @@ typedef wchar_t					char16;
 typedef float					float32;
 typedef double					float64;
 typedef unsigned int			uint32;
-typedef unsigned short  int		uint16;
+typedef unsigned short int		uint16;
 typedef long long int			int64;
 typedef unsigned long long int	uint64;
 

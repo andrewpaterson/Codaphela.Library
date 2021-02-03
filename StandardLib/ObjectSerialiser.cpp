@@ -107,8 +107,8 @@ BOOL CObjectSerialiser::WriteDependent(CEmbeddedObject* pcDependent)
 {
 	BOOL				bResult;
 	CBaseObject*		pcContainer;
-	uint16	iEmbeddedIndex;
-	uint16	iNumEmbedded;
+	uint16				iEmbeddedIndex;
+	uint16				iNumEmbedded;
 	CObjectIdentifier	sIdentifier;
 
 	if (pcDependent)

@@ -25,7 +25,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 
 class CUnknowns;
-class CUnknown : public CConstructable
+class CUnknown : public CConstructable, public CKillable
 {
 protected:
 	CUnknowns*	mpcUnknownsThisIn;
@@ -33,7 +33,7 @@ protected:
 public:
 						CUnknown(void);
 			void		SetUnknowns(CUnknowns* pcUnknowns);
-	virtual void 		Kill(void);
+			void 		Kill(void);
 
 	virtual BOOL		IsUnknown(void);
 	virtual BOOL		Iterable(void);
