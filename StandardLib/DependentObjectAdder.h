@@ -14,7 +14,7 @@ public:
 			void			Init(CDependentReadObjects*	pcDependentObjects);
 			void			Kill(void);
 
-			BOOL			AddDependent(CObjectIdentifier* pcHeader, CEmbeddedObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingPtrToBeUpdated, unsigned short iNumEmbedded, unsigned short iEmbeddedIndex);
+			BOOL			AddDependent(CObjectIdentifier* pcHeader, CEmbeddedObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingPtrToBeUpdated, uint16 iNumEmbedded, uint16 iEmbeddedIndex);
 
 	virtual CBaseObject*	AllocateObject(CObjectHeader* pcHeader) =0;
 

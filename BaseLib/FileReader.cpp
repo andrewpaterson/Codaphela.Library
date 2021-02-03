@@ -198,9 +198,9 @@ BOOL CFileReader::ReadShort(short int* pi)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileReader::ReadShort(unsigned short int* pi)
+BOOL CFileReader::ReadShort(uint16* pi)
 {
-	CheckRead(pi, sizeof(unsigned short int));
+	CheckRead(pi, sizeof(uint16));
 	return TRUE;
 }
 

@@ -46,8 +46,8 @@ public:
 	void				Embedded(CBaseObject* pcObject);
 	BOOL				IsDirty(void);
 	int					GetEmbeddedIndex(CEmbeddedObject* pcEmbedded);
-	unsigned short int	GetNumEmbedded(void);
-	CEmbeddedObject*	GetEmbeddedObject(unsigned short int iIndex);
+	uint16	GetNumEmbedded(void);
+	CEmbeddedObject*	GetEmbeddedObject(uint16 iIndex);
 	CBaseObject*		Dehollow(void);
 	int					NumHeapFroms(void);
 	int					NumStackFroms(void);

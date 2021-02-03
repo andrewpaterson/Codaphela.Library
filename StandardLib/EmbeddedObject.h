@@ -66,9 +66,9 @@ public:
 	virtual BOOL				IsInitialised(void) =0;
 			BOOL				IsInStack(void);
 	virtual int					GetEmbeddedIndex(CEmbeddedObject* pcEmbedded);
-	virtual unsigned short int	GetNumEmbedded(void) =0;
+	virtual uint16	GetNumEmbedded(void) =0;
 			void				SetEmbedded(CBaseObject* pcEmbedded);
-	virtual CEmbeddedObject*	GetEmbeddedObject(unsigned short int iIndex) =0;
+	virtual CEmbeddedObject*	GetEmbeddedObject(uint16 iIndex) =0;
 	virtual CBaseObject*		Dehollow(void) =0;
 			BOOL				IsAllocatedInObjects(void);
 	virtual void				ValidateConsistency(void) =0;

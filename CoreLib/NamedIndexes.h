@@ -63,9 +63,9 @@ public:
 
 	BOOL			IndexTreeNodeEvicted(void* pvKey, int iKeySize, void* pvData, int iDataSize);
 
-	unsigned short	IndexTreeDataSize(unsigned short uiSourceSize);
-	BOOL			IndexTreeWriteData(void* pvDataBuffer, void* pvSource, int iFileDataSize, unsigned short uiSourceDataSize);
-	BOOL			IndexTreeReadData(void* pvDest, void* pvDataBuffer, unsigned short uiDestDataSize, int iFileDataSize);
+	uint16	IndexTreeDataSize(uint16 uiSourceSize);
+	BOOL			IndexTreeWriteData(void* pvDataBuffer, void* pvSource, int iFileDataSize, uint16 uiSourceDataSize);
+	BOOL			IndexTreeReadData(void* pvDest, void* pvDataBuffer, uint16 uiDestDataSize, int iFileDataSize);
 
 	void			DumpIndex(void);
 	BOOL			ValidateIndex(void);

@@ -37,7 +37,7 @@ CHollowObject::CHollowObject(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHollowObject::Init(unsigned short iNumEmbedded)
+void CHollowObject::Init(uint16 iNumEmbedded)
 {
 	PreInit();
 	SetFlagNumEmbedded(iNumEmbedded);
@@ -211,7 +211,7 @@ void CHollowObject::RemovePointerTo(CEmbeddedObject* pcTo)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-unsigned short int CHollowObject::GetNumEmbedded(void)
+uint16 CHollowObject::GetNumEmbedded(void)
 {
 	return GetNumEmbeddedFromFlags();
 }
@@ -221,7 +221,7 @@ unsigned short int CHollowObject::GetNumEmbedded(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CEmbeddedObject* CHollowObject::GetEmbeddedObject(unsigned short int iIndex)
+CEmbeddedObject* CHollowObject::GetEmbeddedObject(uint16 iIndex)
 {
 	if (iIndex >= GetNumEmbeddedFromFlags())
 	{

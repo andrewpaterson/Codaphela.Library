@@ -5,7 +5,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDependentReadPointer::Init(CEmbeddedObject** ppcPointedFrom, CBaseObject* pcContaining, OIndex oiPointedTo, unsigned short iNumEmbedded, unsigned short iEmbeddedIndex)
+void CDependentReadPointer::Init(CEmbeddedObject** ppcPointedFrom, CBaseObject* pcContaining, OIndex oiPointedTo, uint16 iNumEmbedded, uint16 iEmbeddedIndex)
 {
 	mppcPointedFrom = ppcPointedFrom;
 	mpcContaining = pcContaining;

@@ -85,7 +85,7 @@ void CTypeNames::Init(void)
 	AddType(PT_float,		FLOAT_BYTE_SIZE,	 "Float",		"float",			"PT_float");
 	AddType(PT_double,		DOUBLE_BYTE_SIZE,	"Double",		"double",			"PT_double");
 	AddType(PT_uint,		INT_BYTE_SIZE,		"UInt",			"unsigned int",		"PT_uint");
-	AddType(PT_ushort,		SHORT_BYTE_SIZE,	"UShort",		"unsigned short",	"PT_ushort");
+	AddType(PT_ushort,		SHORT_BYTE_SIZE,	"UShort",		"uint16",	"PT_ushort");
 	AddType(PT_uchar,		CHAR_BYTE_SIZE,		"UChar",		"unsigned char",	"PT_uchar");
 	AddType(PT_long,		LONG_BYTE_SIZE,		"Long",			"long long int",	"PT_long");
 	AddType(PT_ulong,		LONG_BYTE_SIZE,		"ULong",		"unsigned long long int", "PT_ulong");
@@ -139,7 +139,7 @@ void CTypeNames::Init(void)
 	mmsziCppNames.Put("float", PT_float);
 	mmsziCppNames.Put("double", PT_double);
 	mmsziCppNames.Put("unsigned int", PT_uint);
-	mmsziCppNames.Put("unsigned short", PT_ushort);
+	mmsziCppNames.Put("uint16", PT_ushort);
 	mmsziCppNames.Put("unsigned char", PT_uchar);
 	mmsziCppNames.Put("long long int", PT_long);
 	mmsziCppNames.Put("unsigned long long int", PT_ulong);

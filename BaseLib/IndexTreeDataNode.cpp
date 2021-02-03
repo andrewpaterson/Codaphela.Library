@@ -5,7 +5,7 @@
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeDataNode::Init(unsigned short uiDataSize)
+void CIndexTreeDataNode::Init(uint16 uiDataSize)
 {
 	muiDataSize = uiDataSize;
 	msListNode.psNext = NULL;
@@ -29,7 +29,7 @@ void CIndexTreeDataNode::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-unsigned short CIndexTreeDataNode::GetDataSize(void)
+uint16 CIndexTreeDataNode::GetDataSize(void)
 {
 	return muiDataSize;
 }
@@ -39,7 +39,7 @@ unsigned short CIndexTreeDataNode::GetDataSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeDataNode::SetDataSize(unsigned short uiDataSize)
+void CIndexTreeDataNode::SetDataSize(uint16 uiDataSize)
 {
 	muiDataSize = uiDataSize;
 }

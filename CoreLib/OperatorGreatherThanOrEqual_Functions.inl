@@ -29,15 +29,15 @@ void GreatherThanOrEqualDoubleFloat(BOOL* pvDest, void* pvLeft, void* pvRight) {
 void GreatherThanOrEqualDoubleDouble(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL)(*(double*)pvLeft >= *(double*)pvRight); }
 void GreatherThanOrEqualDoubleLong(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL)(*(double*)pvLeft >= *(long long int*)pvRight); }
 void GreatherThanOrEqualUIntUInt(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL)(*(unsigned int*)pvLeft >= *(unsigned int*)pvRight); }
-void GreatherThanOrEqualUIntUShort(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL)(*(unsigned int*)pvLeft >= *(unsigned short*)pvRight); }
+void GreatherThanOrEqualUIntUShort(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL)(*(unsigned int*)pvLeft >= *(uint16*)pvRight); }
 void GreatherThanOrEqualUIntUChar(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL)(*(unsigned int*)pvLeft >= *(unsigned char*)pvRight); }
 void GreatherThanOrEqualUIntULong(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL)(*(unsigned int*)pvLeft >= *(unsigned long long int*)pvRight); }
-void GreatherThanOrEqualUShortUInt(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL)(*(unsigned short*)pvLeft >= *(unsigned int*)pvRight); }
-void GreatherThanOrEqualUShortUShort(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL)(*(unsigned short*)pvLeft >= *(unsigned short*)pvRight); }
-void GreatherThanOrEqualUShortUChar(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL)(*(unsigned short*)pvLeft >= *(unsigned char*)pvRight); }
-void GreatherThanOrEqualUShortULong(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL)(*(unsigned short*)pvLeft >= *(unsigned long long int*)pvRight); }
+void GreatherThanOrEqualUShortUInt(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL)(*(uint16*)pvLeft >= *(unsigned int*)pvRight); }
+void GreatherThanOrEqualUShortUShort(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL)(*(uint16*)pvLeft >= *(uint16*)pvRight); }
+void GreatherThanOrEqualUShortUChar(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL)(*(uint16*)pvLeft >= *(unsigned char*)pvRight); }
+void GreatherThanOrEqualUShortULong(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL)(*(uint16*)pvLeft >= *(unsigned long long int*)pvRight); }
 void GreatherThanOrEqualUCharUInt(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL)(*(unsigned char*)pvLeft >= *(unsigned int*)pvRight); }
-void GreatherThanOrEqualUCharUShort(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL)(*(unsigned char*)pvLeft >= *(unsigned short*)pvRight); }
+void GreatherThanOrEqualUCharUShort(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL)(*(unsigned char*)pvLeft >= *(uint16*)pvRight); }
 void GreatherThanOrEqualUCharUChar(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL)(*(unsigned char*)pvLeft >= *(unsigned char*)pvRight); }
 void GreatherThanOrEqualUCharULong(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL)(*(unsigned char*)pvLeft >= *(unsigned long long int*)pvRight); }
 void GreatherThanOrEqualLongInt(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL)(*(long long int*)pvLeft >= *(int*)pvRight); }
@@ -47,6 +47,6 @@ void GreatherThanOrEqualLongFloat(BOOL* pvDest, void* pvLeft, void* pvRight) { *
 void GreatherThanOrEqualLongDouble(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL)(*(long long int*)pvLeft >= *(double*)pvRight); }
 void GreatherThanOrEqualLongLong(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL)(*(long long int*)pvLeft >= *(long long int*)pvRight); }
 void GreatherThanOrEqualULongUInt(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL)(*(unsigned long long int*)pvLeft >= *(unsigned int*)pvRight); }
-void GreatherThanOrEqualULongUShort(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL)(*(unsigned long long int*)pvLeft >= *(unsigned short*)pvRight); }
+void GreatherThanOrEqualULongUShort(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL)(*(unsigned long long int*)pvLeft >= *(uint16*)pvRight); }
 void GreatherThanOrEqualULongUChar(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL)(*(unsigned long long int*)pvLeft >= *(unsigned char*)pvRight); }
 void GreatherThanOrEqualULongULong(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL)(*(unsigned long long int*)pvLeft >= *(unsigned long long int*)pvRight); }

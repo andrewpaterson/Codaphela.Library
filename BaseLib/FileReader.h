@@ -51,7 +51,7 @@ public:
 						BOOL	ReadChar(unsigned char* pc);
 						BOOL	ReadBool(BOOL* pb);
 						BOOL	ReadShort(short int* pi);
-						BOOL	ReadShort(unsigned short int* pi);
+						BOOL	ReadShort(uint16* pi);
 						BOOL	ReadBits(void* pvData, int iByteLength);
 						BOOL	ReadIntArray(int* pai, int iLength);
 

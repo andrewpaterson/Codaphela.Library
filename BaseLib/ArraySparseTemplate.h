@@ -52,7 +52,7 @@ private:
 	SSparseNode*	mpsRoot;
 
 public:
-	void 			Init(unsigned short iElementSize);
+	void 			Init(uint16 iElementSize);
 	void 			Kill(void);
 	M*				Set(int iElementPos, M* pvData);
 	SSparseNode*	Search(int iElementPos);
@@ -106,7 +106,7 @@ SSparseNode** SSparseNode::GetParentPointer(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void __CArraySparseTemplate<M>::Init(unsigned short iElementSize)
+void __CArraySparseTemplate<M>::Init(uint16 iElementSize)
 {
 	mcNodes.Init(sizeof(SSparseNode) + iElementSize);
 	miElementSize = iElementSize;

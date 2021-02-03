@@ -142,9 +142,9 @@ BOOL CFileWriter::WriteShort(short int i)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileWriter::WriteShort(unsigned short int i)
+BOOL CFileWriter::WriteShort(uint16 i)
 {
-	CheckWrite(&i, sizeof(unsigned short int));
+	CheckWrite(&i, sizeof(uint16));
 	return TRUE;
 }
 

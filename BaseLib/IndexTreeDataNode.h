@@ -1,22 +1,23 @@
 #ifndef __INDEX_TREE_DATA_NODE_H__
 #define __INDEX_TREE_DATA_NODE_H__
+#include "PrimitiveTypes.h"
 #include "LinkedList.h"
 
 
 class CIndexTreeDataNode
 {
 protected:
-	SLLNode			msListNode;
-	unsigned short	muiDataSize;   // Size of object "pointed" to by this node.  The object is small: usually a OIndex, a pointer or a CFileId.
+	SLLNode		msListNode;
+	uint16		muiDataSize;   // Size of object "pointed" to by this node.  The object is small: usually a OIndex, a pointer or a CFileId.
 
 public:
-	void			Init(unsigned short uiDataSize);
-	void			Kill(void);
+	void		Init(uint16 uiDataSize);
+	void		Kill(void);
 
-	unsigned short	GetDataSize(void);
-	void			SetDataSize(unsigned short uiDataSize);
-	SLLNode*		GetListNode(void);
-	void			RemapListNode(void);
+	uint16		GetDataSize(void);
+	void		SetDataSize(uint16 uiDataSize);
+	SLLNode*	GetListNode(void);
+	void		RemapListNode(void);
 };
 
 

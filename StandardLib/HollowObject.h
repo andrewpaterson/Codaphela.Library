@@ -28,7 +28,7 @@ class CHollowObject : public CBaseObject
 CONSTRUCTABLE(CHollowObject);
 public:
 								CHollowObject(void);
-			void				Init(unsigned short iNumEmbedded);
+			void				Init(uint16 iNumEmbedded);
 			void				Class(void);
 			CBaseObject*		Dehollow(void);
 
@@ -41,8 +41,8 @@ public:
 			void				SetPointerTosExpectedDistToRoot(int iDistToRoot);
 			void				GetPointerTos(CArrayTemplateEmbeddedObjectPtr* papcTos);
 			int					NumPointerTos(void);
-			unsigned short int	GetNumEmbedded(void);
-			CEmbeddedObject*	GetEmbeddedObject(unsigned short int iIndex);
+			uint16	GetNumEmbedded(void);
+			CEmbeddedObject*	GetEmbeddedObject(uint16 iIndex);
 			int					GetEmbeddedIndex(CEmbeddedObject* pcEmbedded);
 			int					NumHeapFroms(void);
 			int					NumStackFroms(void);

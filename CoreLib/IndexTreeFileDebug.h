@@ -11,8 +11,8 @@ struct SIndexTreeDebugNode
 
 	BOOL			bEmpty;
 
-	unsigned short	uiDataSize;
-	unsigned short	iFileNodeSize;
+	uint16	uiDataSize;
+	uint16	iFileNodeSize;
 
 	unsigned char	uiFirstIndex;
 	unsigned char	uiLastIndex;

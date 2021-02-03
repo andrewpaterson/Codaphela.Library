@@ -7,7 +7,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNode::Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex, unsigned short uiDataSize, int iClearValue, unsigned char uiIndexInParent)
+void CIndexTreeNode::Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex, uint16 uiDataSize, int iClearValue, unsigned char uiIndexInParent)
 {
 	size_t tSize;
 
@@ -50,7 +50,7 @@ void CIndexTreeNode::Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent, uns
 //
 //
 //////////////////////////////////////////////////////////////////////////
-unsigned short CIndexTreeNode::GetDataSize(void)
+uint16 CIndexTreeNode::GetDataSize(void)
 {
 	if (!HasData())
 	{
@@ -225,7 +225,7 @@ size_t CIndexTreeNode::CalculateRequiredNodeSizeForIndex(unsigned char uiIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size_t CIndexTreeNode::CalculateRequiredNodeSizeForData(unsigned short uiDataSize)
+size_t CIndexTreeNode::CalculateRequiredNodeSizeForData(uint16 uiDataSize)
 {
 	size_t	tSize;
 	int		iExistingIndices;
@@ -644,7 +644,7 @@ void CIndexTreeNode::SetDeletedPath(BOOL bDeleted)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNode::SetData(void* pvData, unsigned short uiDataSize)
+void CIndexTreeNode::SetData(void* pvData, uint16 uiDataSize)
 {
 	if (GetDataSize() != uiDataSize)
 	{
@@ -669,7 +669,7 @@ void CIndexTreeNode::SetData(void* pvData, unsigned short uiDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNode::ChangeDataSize(unsigned short uiSize)
+void CIndexTreeNode::ChangeDataSize(uint16 uiSize)
 {
 	size_t				tIndexSize;
 	void*				apcChildren;

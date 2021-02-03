@@ -17,8 +17,8 @@ public:
 	int					GetDistToRoot(void);
 	BOOL				SetDistToRoot(int iDistToRoot);
 	void				SetPointerTosExpectedDistToRoot(int iDistToRoot);
-	unsigned short int	GetNumEmbedded(void);
-	CEmbeddedObject*	GetEmbeddedObject(unsigned short int iIndex);
+	uint16	GetNumEmbedded(void);
+	CEmbeddedObject*	GetEmbeddedObject(uint16 iIndex);
 	BOOL				IsHollow(void);
 	CBaseObject*		Dehollow(void);
 	int					GetEmbeddedIndex(void);

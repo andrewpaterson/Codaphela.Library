@@ -322,7 +322,7 @@ BOOL CNamedIndexes::Flush(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-unsigned short CNamedIndexes::IndexTreeDataSize(unsigned short uiSourceSize)
+uint16 CNamedIndexes::IndexTreeDataSize(uint16 uiSourceSize)
 {
 	if (uiSourceSize != 0)
 	{
@@ -339,7 +339,7 @@ unsigned short CNamedIndexes::IndexTreeDataSize(unsigned short uiSourceSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNamedIndexes::IndexTreeWriteData(void* pvDataBuffer, void* pvSource, int iFileDataSize, unsigned short uiSourceDataSize)
+BOOL CNamedIndexes::IndexTreeWriteData(void* pvDataBuffer, void* pvSource, int iFileDataSize, uint16 uiSourceDataSize)
 {
 	memcpy_fast(pvDataBuffer, pvSource, iFileDataSize);
 	return TRUE;
@@ -350,7 +350,7 @@ BOOL CNamedIndexes::IndexTreeWriteData(void* pvDataBuffer, void* pvSource, int i
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNamedIndexes::IndexTreeReadData(void* pvDest, void* pvDataBuffer, unsigned short uiDestDataSize, int iFileDataSize)
+BOOL CNamedIndexes::IndexTreeReadData(void* pvDest, void* pvDataBuffer, uint16 uiDestDataSize, int iFileDataSize)
 {
 	memset_fast(pvDest, 0, uiDestDataSize);
 	memcpy_fast(pvDest, pvDataBuffer, iFileDataSize);

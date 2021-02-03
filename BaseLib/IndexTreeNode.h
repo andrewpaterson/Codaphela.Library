@@ -31,7 +31,7 @@ protected:
 	CIndexTree*			mpcIndexTree;
 	CIndexTreeNode*		mpcParent;
 
-	unsigned short		muiMagic;  //Always set to INDEX_TREE_NODE_MAGIC
+	uint16		muiMagic;  //Always set to INDEX_TREE_NODE_MAGIC
 
 	unsigned char		muiFirstIndex;
 	unsigned char		muiLastIndex;  // Inclusive (because 255 is a legitimate last index and 256 can't be represented)
@@ -40,12 +40,12 @@ protected:
 	unsigned char		msFlags;
 
 public:
-	void				Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex, unsigned short uiDataSize, int iClearValue, unsigned char uiIndexInParent);
+	void				Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex, uint16 uiDataSize, int iClearValue, unsigned char uiIndexInParent);
 	void				Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent, unsigned char uiIndexInParent);
 
-	void				SetData(void* pvObject, unsigned short uiSize);
+	void				SetData(void* pvObject, uint16 uiSize);
 
-	unsigned short		GetDataSize(void);
+	uint16		GetDataSize(void);
 	CIndexTreeDataNode* GetNodeData(void);
 	void*				GetDataPtr(void);
 	BOOL				HasData(void);
@@ -96,11 +96,11 @@ public:
 	char*				GetFlagsString(CChars* psz);
 
 	size_t				CalculateRequiredNodeSizeForIndex(unsigned char uiIndex);
-	size_t				CalculateRequiredNodeSizeForData(unsigned short uiDataSize);
+	size_t				CalculateRequiredNodeSizeForData(uint16 uiDataSize);
 	size_t				CalculateRequiredNodeSizeForCurrent(void);
 
 protected:
-	void				ChangeDataSize(unsigned short uiSize);
+	void				ChangeDataSize(uint16 uiSize);
 };
 
 

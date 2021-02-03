@@ -189,16 +189,16 @@ int CountBits_PopCount32(unsigned int i)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CountBits_PopCount16(unsigned short i)
+int CountBits_PopCount16(uint16 i)
 {
-	const unsigned short m1 = 0x5555;
-	const unsigned short m2 = 0x3333;
-	const unsigned short m4 = 0x0f0f;
+	const uint16 m1 = 0x5555;
+	const uint16 m2 = 0x3333;
+	const uint16 m4 = 0x0f0f;
 
 	i = i - ((i >> 1) & m1);
 	i = (i & m2) + ((i >> 2) & m2);
 	i = ((i + (i >> 4)) & m4);
-	return (unsigned short)(i * 0x0101) >> 8;
+	return (uint16)(i * 0x0101) >> 8;
 }
 
 
@@ -261,7 +261,7 @@ int	CountBits(void* pvBitArray, int iBitLength)
 	}
 	else if (iBitLength == 16)
 	{
-		return CountBits_PopCount16(*((unsigned short int*)pvBitArray));
+		return CountBits_PopCount16(*((uint16*)pvBitArray));
 	}
 	else
 	{
@@ -623,7 +623,7 @@ void SetFlag(short int* psiDest, int iFlag, int iFlagValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void SetFlag(unsigned short int* psiDest, int iFlag, int iFlagValue)
+void SetFlag(uint16* psiDest, int iFlag, int iFlagValue)
 {
 	//If the value is true then or it with dest.
 	if (iFlagValue)
