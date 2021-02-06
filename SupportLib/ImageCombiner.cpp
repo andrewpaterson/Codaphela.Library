@@ -158,7 +158,7 @@ Ptr<CImage> CImageCombiner::InitiailiseDestImage(SInt2 sSize)
 	BOOL			bResult; 
 	Ptr<CImage>		pcImage;
 
-	pcImage = OMalloc(CImage);
+	pcImage = OMalloc<CImage>();
 	pcImage->Init();
 	pcImage->BeginChange();
 

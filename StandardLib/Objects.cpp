@@ -627,7 +627,8 @@ BOOL CObjects::AddWithID(CBaseObject* pvObject, OIndex oi)
 //////////////////////////////////////////////////////////////////////////
 BOOL CObjects::AddWithIDAndName(CBaseObject* pvObject, char* szObjectName, OIndex oi)
 {
-	if ((szObjectName != NULL) || (pvObject->IsNamed()))
+	
+	if (!StrEmpty(szObjectName) || (pvObject->IsNamed()))
 	{
 		return mcMemory.AddWithIDAndName(pvObject, oi, szObjectName);
 	}

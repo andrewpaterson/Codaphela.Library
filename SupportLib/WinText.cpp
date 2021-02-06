@@ -219,7 +219,7 @@ Ptr<CFont> CWinText::GenerateFont(SWinFontInstance* pcWinFont, char* szFontName)
 
 	GetTextMetrics(hDC, &sTextMetric);
 
-	pcFont = OMalloc(CFont)->Init(szFontName, acRectangles.Get(0)->GetWidth(), sTextMetric.tmAscent, sTextMetric.tmDescent);
+	pcFont = OMalloc<CFont>(szFontName, acRectangles.Get(0)->GetWidth(), sTextMetric.tmAscent, sTextMetric.tmDescent);
 
 	pcImageTemp = DrawTextToImage(&szLetters, hDC);
 
@@ -356,7 +356,7 @@ Ptr<CImage> CWinText::DrawTextToImage(CChars* pszLetters, HDC hDC)
 	SelectObject(hDC, hBM);
 	TextOut(hDC, 0, 0, pszLetters->Text(), pszLetters->Length());
 
-	Ptr<CImage>	pcDestImage = OMalloc(CImage);
+	Ptr<CImage>	pcDestImage = OMalloc<CImage>();
 
 	pcDestImage->Init(sSize.cx, sSize.cy, PT_uchar, IMAGE_DIFFUSE_BLUE, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_RED, IMAGE_OPACITY, CHANNEL_ZERO);
 	memcpy(pcDestImage->GetData(), pBits, pcDestImage->GetByteSize());
