@@ -259,7 +259,7 @@ BOOL CImageCelsSource::Load(void)
 
 		if (pcCelsSource->NeedsMask())
 		{
-			pcMask = ONMalloc(CImage, NULL);
+			pcMask = OMalloc<CImage>();
 			macFillMasks.Add(pcMask);
 		}
 		iFirstCelIndex = macImageCels.NumElements();
@@ -308,7 +308,7 @@ Ptr<CImage> CImageCelsSource::Combine(int iFirstCelIndex)
 	int				i;
 	CImageCel*		pcCel;
 
-	pcDest = ONMalloc(CImage, "");
+	pcDest = OMalloc<CImage>();
 	cImageCombiner.Init(ICL_Best, ICS_Arbitrary);
 
 	for (i = iFirstCelIndex; i < macImageCels.NumElements(); i++)

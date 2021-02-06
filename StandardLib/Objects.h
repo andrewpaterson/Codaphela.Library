@@ -37,16 +37,26 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 #define CLEAR_MEMORY_CHUNK_SIZE		16384
 
-#define OMalloc(classtype)			(gcObjects.Add<classtype>())
-#define ONMalloc(classtype, name)	(gcObjects.Add<classtype>(name))
 #define ORoot()						(gcObjects.AddRoot())
 #define ONull						(Null())
+
+
+template <class SpecificClass, typename ... Args>
+Ptr<SpecificClass> OMalloc(Args ... args);
+
+template <class SpecificClass, typename ... Args>
+Ptr<SpecificClass> ONMalloc(char* szObjectName, Args ... args);
+
+template <class SpecificClass, typename ... Args>
+Ptr<SpecificClass> ONMalloc(const char* szObjectName, Args ... args);
+
 
 //Isn't this just a Ptr?  Which already works.
 //#define ONRef(name)  gcObjects.AllocateNamedHollow();  //TODO: Sometimes you need to refer to an object that is already in the database without allocating a new one.
 
 #define  LOG_OBJECT_ALLOCATION(pcObject) LogObjectAllocation(pcObject, __ENGINE_PRETTY_FUNCTION__)
 #define  LOG_OBJECT_DESTRUCTION(pcObject) LogObjectDestruction(pcObject, __ENGINE_PRETTY_FUNCTION__)
+
 
 class CHollowObject;
 class CNamedHollowObject;
@@ -337,6 +347,59 @@ template<class M>
 CObjectSource* CObjects::AddSource(CAbstractFile* pcFile, char* szFileName)
 {
 	return mcSource.AddSource<M>(pcFile, szFileName);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template <class SpecificClass, typename ... Args>
+Ptr<SpecificClass> OMalloc(Args ... args)
+{
+	Ptr<SpecificClass>	pObject;
+
+	pObject = gcObjects.Add<SpecificClass>();
+	if (pObject.IsNotNull())
+	{
+		pObject->Init(args...);
+	}
+	return pObject;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template <class SpecificClass, typename ... Args>
+Ptr<SpecificClass> ONMalloc(char* szObjectName, Args ... args)
+{
+	Ptr<SpecificClass>	pObject;
+
+	pObject = gcObjects.Add<SpecificClass>(szObjectName);
+	if (pObject.IsNotNull())
+	{
+		pObject->Init(args...);
+	}
+	return pObject;
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template <class SpecificClass, typename ... Args>
+Ptr<SpecificClass> ONMalloc(const char* szObjectName, Args ... args)
+{
+	Ptr<SpecificClass>	pObject;
+
+	pObject = gcObjects.Add<SpecificClass>((char*)szObjectName);
+	if (pObject.IsNotNull())
+	{
+		pObject->Init(args...);
+	}
+	return pObject;
 }
 
 

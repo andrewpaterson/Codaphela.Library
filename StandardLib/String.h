@@ -10,7 +10,9 @@ class CString : public CObject, public CChars
 {
 CONSTRUCTABLE(CString);
 public:
-	Ptr<CString>	Init(char* sz);
+	void			Init(void);
+	void			Init(char* sz);
+	void			Init(const char* sz);
 	void			Class(void);
 	void			Free(void);
 

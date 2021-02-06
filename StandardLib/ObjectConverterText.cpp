@@ -85,13 +85,11 @@ CBaseObject* CObjectConverterText::Convert(CObjectSource* pcSource, char* szObje
 		return NULL;
 	}
 
-	pcString = OMalloc(CString);
-	
+	pcString = OMalloc<CString>(cTextFile.Text());
 	if (!pcString)
 	{
 		return NULL;
 	}
-	pcString->Init(cTextFile.Text());
 
 	cTextFile.Kill();
 	return (CBaseObject*)pcString.Return();

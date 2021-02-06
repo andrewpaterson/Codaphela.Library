@@ -145,7 +145,7 @@ BOOL CImageCelsSourceXML::ImportCels(CMarkupTag* pcCelsTag, char* szFileName)
 
 	mpcWorld->AddImages(cCelsSource.GetImages());
 
-	pcGroup = ONMalloc(CImageCelGroup, szGroupName.Text());
+	pcGroup = ONMalloc<CImageCelGroup>(szGroupName.Text());
 	mpcWorld->AddGroup(pcGroup);
 	pcGroup->AddCels(cCelsSource.GetImageCels());
 

@@ -58,7 +58,7 @@ Ptr<CImage> CImageSource::Allocate(char* szName)
 {
 	Ptr<CImage>	pcImage;
 
-	pcImage = ONMalloc(CImage, szName);
+	pcImage = ONMalloc<CImage>(szName);
 	return pcImage;
 }
 
