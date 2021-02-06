@@ -7,10 +7,10 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeEvictionStrategyDataOrderer::Init(CIndexTreeDataOrderer* pcOrderer)
+void CIndexTreeEvictionStrategyDataOrderer::Init(CLifeInit<CIndexTreeDataOrderer> cOrderer)
 {
 	CIndexTreeEvictionStrategy::Init();
-	mpcOrderer = pcOrderer;
+	cOrderer.ConfigureLife(&mcLifeOrderer, &mpcOrderer);
 }
 
 
@@ -20,7 +20,7 @@ void CIndexTreeEvictionStrategyDataOrderer::Init(CIndexTreeDataOrderer* pcOrdere
 //////////////////////////////////////////////////////////////////////////
 void CIndexTreeEvictionStrategyDataOrderer::Kill(void)
 {
-	mpcOrderer = NULL;
+	mcLifeOrderer.Kill();
 	mpcIndexTree = NULL;
 }
 
@@ -62,5 +62,15 @@ BOOL CIndexTreeEvictionStrategyDataOrderer::Run(CIndexTreeNodeFile* pcDontEvict)
 	}
 
 	return EvictNode(pcNode);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CIndexTreeDataOrderer* CIndexTreeEvictionStrategyDataOrderer::GetDataOrderer(void)
+{
+	return mpcOrderer;
 }
 

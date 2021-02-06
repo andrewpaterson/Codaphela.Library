@@ -42,6 +42,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #define ORoot()						(gcObjects.AddRoot())
 #define ONull						(Null())
 
+//Isn't this just a Ptr?  Which already works.
 //#define ONRef(name)  gcObjects.AllocateNamedHollow();  //TODO: Sometimes you need to refer to an object that is already in the database without allocating a new one.
 
 #define  LOG_OBJECT_ALLOCATION(pcObject) LogObjectAllocation(pcObject, __ENGINE_PRETTY_FUNCTION__)

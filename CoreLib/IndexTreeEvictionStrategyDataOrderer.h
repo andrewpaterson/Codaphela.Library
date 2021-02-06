@@ -7,15 +7,18 @@
 class CIndexTreeEvictionStrategyDataOrderer : public CIndexTreeEvictionStrategy
 {
 protected:
-	CIndexTreeDataOrderer*	mpcOrderer;
+	CLife<CIndexTreeDataOrderer>	mcLifeOrderer;
+	CIndexTreeDataOrderer*			mpcOrderer;
 
 public:
-	void Init(CIndexTreeDataOrderer* pcOrderer);
-	void Kill(void);
+	void					Init(CLifeInit<CIndexTreeDataOrderer> cOrderer);
+	void					Kill(void);
 
-	void SetIndexTree(CIndexTreeEvicting* pcIndexTree);
+	void					SetIndexTree(CIndexTreeEvicting* pcIndexTree);
 
-	BOOL Run(CIndexTreeNodeFile* pcDontEvict);
+	BOOL					Run(CIndexTreeNodeFile* pcDontEvict);
+
+	CIndexTreeDataOrderer*	GetDataOrderer(void);
 };
 
 

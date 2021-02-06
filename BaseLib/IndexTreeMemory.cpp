@@ -1,5 +1,6 @@
 #include "Numbers.h"
 #include "GlobalMemory.h"
+#include "LifeCycle.h"
 #include "Logger.h"
 #include "IndexTreeMemory.h"
 
@@ -10,7 +11,7 @@
 //////////////////////////////////////////////////////////////////////////
 void CIndexTreeMemory::Init(void)
 {
-	Init(&gcSystemAllocator, IKR_No, MAX_DATA_SIZE, MAX_KEY_SIZE);
+	Init(LifeLocal<CMallocator>(&gcSystemAllocator), IKR_No, MAX_DATA_SIZE, MAX_KEY_SIZE);
 }
 
 
@@ -18,9 +19,9 @@ void CIndexTreeMemory::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeMemory::Init(EIndexKeyReverse eKeyReverse, CIndexTreeDataOrderer* pcDataOrderer)
+void CIndexTreeMemory::Init(EIndexKeyReverse eKeyReverse, CLifeInit<CIndexTreeDataOrderer> cDataOrderer)
 {
-	Init(&gcSystemAllocator, eKeyReverse, MAX_DATA_SIZE, MAX_KEY_SIZE, pcDataOrderer);
+	Init(LifeLocal<CMallocator>(&gcSystemAllocator), eKeyReverse, MAX_DATA_SIZE, MAX_KEY_SIZE, cDataOrderer);
 }
 
 
@@ -30,7 +31,7 @@ void CIndexTreeMemory::Init(EIndexKeyReverse eKeyReverse, CIndexTreeDataOrderer*
 //////////////////////////////////////////////////////////////////////////
 void CIndexTreeMemory::Init(EIndexKeyReverse eKeyReverse)
 {
-	Init(&gcSystemAllocator, eKeyReverse, MAX_DATA_SIZE, MAX_KEY_SIZE);
+	Init(LifeLocal<CMallocator>(&gcSystemAllocator), eKeyReverse, MAX_DATA_SIZE, MAX_KEY_SIZE);
 }
 
 
@@ -38,18 +39,18 @@ void CIndexTreeMemory::Init(EIndexKeyReverse eKeyReverse)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeMemory::Init(CMallocator* pcMalloc, EIndexKeyReverse eKeyReverse)
+void CIndexTreeMemory::Init(CLifeInit<CMallocator> cMalloc, EIndexKeyReverse eKeyReverse)
 {
-	Init(pcMalloc, eKeyReverse, MAX_DATA_SIZE, MAX_KEY_SIZE);
+	Init(cMalloc, eKeyReverse, MAX_DATA_SIZE, MAX_KEY_SIZE);
 }
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeMemory::Init(CMallocator* pcMalloc, EIndexKeyReverse eKeyReverse, int iMaxDataSize, int	iMaxKeySize)
+void CIndexTreeMemory::Init(CLifeInit<CMallocator> cMalloc, EIndexKeyReverse eKeyReverse, int iMaxDataSize, int	iMaxKeySize)
 {
-	Init(pcMalloc, eKeyReverse, iMaxDataSize, iMaxKeySize, NULL);
+	Init(cMalloc, eKeyReverse, iMaxDataSize, iMaxKeySize, LifeNull<CIndexTreeDataOrderer>());
 }
 
 
@@ -60,18 +61,6 @@ void CIndexTreeMemory::Init(CMallocator* pcMalloc, EIndexKeyReverse eKeyReverse,
 void CIndexTreeMemory::Init(CIndexTreeConfig* pcConfig)
 {
 	Init(pcConfig->GetMalloc(), pcConfig->GetKeyReverse(), pcConfig->GetMaxDataSize(), pcConfig->GetMaxKeySize(), pcConfig->GetDataOrderer()); 
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CIndexTreeMemory::Init(CMallocator* pcMalloc, EIndexKeyReverse eKeyReverse, int iMaxDataSize, int	iMaxKeySize, CIndexTreeDataOrderer* pcDataOrderer)
-{
-	CIndexTree::Init(pcMalloc, eKeyReverse, sizeof(CIndexTreeNodeMemory), sizeof(CIndexTreeNodeMemory) + sizeof(CIndexTreeDataNode), sizeof(CIndexTreeNodeMemory*), iMaxDataSize, iMaxKeySize, pcDataOrderer);
-	mpcRoot = AllocateRoot();
-	miSize = 0;
 }
 
 

@@ -31,7 +31,7 @@ protected:
 	CIndexTree*			mpcIndexTree;
 	CIndexTreeNode*		mpcParent;
 
-	uint16		muiMagic;  //Always set to INDEX_TREE_NODE_MAGIC
+	uint16				muiMagic;  //Always set to INDEX_TREE_NODE_MAGIC
 
 	unsigned char		muiFirstIndex;
 	unsigned char		muiLastIndex;  // Inclusive (because 255 is a legitimate last index and 256 can't be represented)
@@ -45,7 +45,7 @@ public:
 
 	void				SetData(void* pvObject, uint16 uiSize);
 
-	uint16		GetDataSize(void);
+	uint16				GetDataSize(void);
 	CIndexTreeDataNode* GetNodeData(void);
 	void*				GetDataPtr(void);
 	BOOL				HasData(void);

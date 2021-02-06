@@ -9,29 +9,30 @@
 class CValueNamedIndexesConfig : public CNamedIndexesConfig
 {
 protected:
-	size_t							muiIndexCacheSize;
-	CIndexTreeEvictionStrategy*		mpcNamedEvictionStrategy;
-	EIndexWriteThrough				meWriteThrough;
-	CIndexTreeEvictionCallback*		mpEvictionCallback;
-	char*							mszSubDirectory;
-	CIndexTreeDataOrderer*			mpcIndexTreeDataOrderer;
+	size_t									muiIndexCacheSize;
+	EIndexWriteThrough						meWriteThrough;
+	CIndexTreeEvictionCallback*				mpEvictionCallback;
+	char*									mszSubDirectory;
+	CLifeInit<CIndexTreeEvictionStrategy>	mcEvictionStrategy;
+	CLifeInit<CIndexTreeDataOrderer>		mcIndexTreeDataOrderer;
 
 public:
-	void							Init(char* szSubDirectory, size_t uiIndexCacheSize, CIndexTreeEvictionStrategy* pcNamedEvictionStrategy, EIndexWriteThrough eWriteThrough);
-	void							Init(char* szSubDirectory, size_t uiIndexCacheSize, CIndexTreeEvictionStrategy* pcNamedEvictionStrategy, EIndexWriteThrough eWriteThrough, CIndexTreeEvictionCallback* pcEvictionCallback, CIndexTreeDataOrderer* pcIndexTreeDataOrderer);
+	void									Init(char* szSubDirectory, size_t uiIndexCacheSize, CLifeInit<CIndexTreeEvictionStrategy> cEvictionStrategy, EIndexWriteThrough eWriteThrough);
+	void									Init(char* szSubDirectory, size_t uiIndexCacheSize, CLifeInit<CIndexTreeEvictionStrategy> cEvictionStrategy, EIndexWriteThrough eWriteThrough, CIndexTreeEvictionCallback* pcEvictionCallback, CLifeInit<CIndexTreeDataOrderer> cIndexTreeDataOrderer);
 
-	void							Kill(void);
+	void									Kill(void);
 
-	size_t							GetIndexCacheSize(void);
-	CIndexTreeEvictionStrategy*		GetEvictionStrategy(void);
-	EIndexWriteThrough				GetWriteThrough(void);
-	CIndexTreeEvictionCallback*		GetIndexTreeEvictionCallback(void);
-	char*							GetSubDirectory(void);
-	CIndexTreeDataOrderer*			GetIndexTreeDataOrderer(void);
+	size_t									GetIndexCacheSize(void);
+	CLifeInit<CIndexTreeEvictionStrategy>	GetEvictionStrategy(void);
+	EIndexWriteThrough						GetWriteThrough(void);
+	CIndexTreeEvictionCallback*				GetIndexTreeEvictionCallback(void);
+	char*									GetSubDirectory(void);
+	CLifeInit<CIndexTreeDataOrderer>		GetIndexTreeDataOrderer(void);
 
 public:
-	static CLifeInit<CNamedIndexesConfig> Create(char* szSubDirectory, size_t uiIndexCacheSize, CIndexTreeEvictionStrategy* pcNamedEvictionStrategy, EIndexWriteThrough eWriteThrough);
-	static CLifeInit<CNamedIndexesConfig> Create(char* szSubDirectory, size_t uiIndexCacheSize, CIndexTreeEvictionStrategy* pcNamedEvictionStrategy, EIndexWriteThrough eWriteThrough, CIndexTreeEvictionCallback* pcEvictionCallback, CIndexTreeDataOrderer* pcIndexTreeDataOrderer);
+	static CLifeInit<CNamedIndexesConfig> Create(char* szSubDirectory, size_t uiIndexCacheSize, CLifeInit<CIndexTreeEvictionStrategy> cEvictionStrategy, EIndexWriteThrough eWriteThrough);
+	static CLifeInit<CNamedIndexesConfig> Create(char* szSubDirectory, size_t uiIndexCacheSize, CLifeInit<CIndexTreeEvictionStrategy> cEvictionStrategy, EIndexWriteThrough eWriteThrough, CIndexTreeEvictionCallback* pcEvictionCallback);
+	static CLifeInit<CNamedIndexesConfig> Create(char* szSubDirectory, size_t uiIndexCacheSize, CLifeInit<CIndexTreeEvictionStrategy> cEvictionStrategy, EIndexWriteThrough eWriteThrough, CIndexTreeEvictionCallback* pcEvictionCallback, CLifeInit<CIndexTreeDataOrderer> cIndexTreeDataOrderer);
 };
 
 

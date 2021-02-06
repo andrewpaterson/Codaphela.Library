@@ -1,4 +1,5 @@
 #include "BaseLib/ConstructorCall.h"
+#include "CoreLib/IndexTreeEvictionStrategyFactory.h"
 #include "ValueNamedIndexesConfig.h"
 #include "ValueIndexedDataConfig.h"
 #include "IndexTreeEvictionStrategyDataOrderer.h"
@@ -14,23 +15,15 @@ CCodabase* CCodabaseFactory::Create(char* szDirectory, EIndexWriteThrough eWrite
 	CCodabase*								pcDatabase;
 	CLifeInit<CIndexedDataConfig>			cIndexConfig;
 	CLifeInit<CNamedIndexesConfig>			cNamedConfig;
-	CIndexTreeEvictionStrategyDataOrderer*	pcIndexEvictionStrategy;
-	CAccessDataOrderer*						pcIndexAccessOrderer;
-	CIndexTreeEvictionStrategyDataOrderer*	pcNamedEvictionStrategy;
-	CAccessDataOrderer*						pcNamedAccessOrderer;
+	CLifeInit<CIndexTreeEvictionStrategy>	cIndexEvictionStrategy;
+	CLifeInit<CIndexTreeEvictionStrategy>	cNamedEvictionStrategy;
 
-	pcIndexAccessOrderer = NewMalloc<CAccessDataOrderer>();
-	pcIndexEvictionStrategy = NewMalloc<CIndexTreeEvictionStrategyDataOrderer>();
-	pcIndexAccessOrderer->Init();
-	pcIndexEvictionStrategy->Init(pcIndexAccessOrderer);
-	cIndexConfig = CValueIndexedDataConfig::Create("Index", 16 MB, 8 MB, eWriteThrough, pcIndexEvictionStrategy, NULL, NULL, pcIndexAccessOrderer);
+	cIndexEvictionStrategy = CIndexTreeEvictionStrategyFactory::Create(ITESST_Access);
 
-	pcNamedAccessOrderer = NewMalloc<CAccessDataOrderer>();
-	pcNamedEvictionStrategy = NewMalloc<CIndexTreeEvictionStrategyDataOrderer>();
-	pcNamedAccessOrderer->Init();
-	pcNamedEvictionStrategy->Init(pcNamedAccessOrderer);
-	cNamedConfig = CValueNamedIndexesConfig::Create("Names", 1 MB, pcNamedEvictionStrategy, eWriteThrough, NULL, pcNamedAccessOrderer);
-	
+	cIndexConfig = CValueIndexedDataConfig::Create("Index", 16 MB, 8 MB, eWriteThrough, cIndexEvictionStrategy, NULL, NULL);
+
+	cNamedEvictionStrategy = CIndexTreeEvictionStrategyFactory::Create(ITESST_Access);
+	cNamedConfig = CValueNamedIndexesConfig::Create("Names", 1 MB, cNamedEvictionStrategy, eWriteThrough, NULL);
 
 	pcDatabase = NewMalloc<CCodabase>();
 	pcDatabase->Init(szDirectory, cIndexConfig, cNamedConfig);

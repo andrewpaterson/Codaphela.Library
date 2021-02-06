@@ -7,7 +7,7 @@
 class CIndexTreeEvictionStrategyRandom : public CIndexTreeEvictionStrategy
 {
 protected:
-	CRandom							mcRandom;
+	CRandom		mcRandom;
 
 public:
 	void	Init(void);
