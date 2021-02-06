@@ -69,7 +69,6 @@ void CAccessDataOrderer::HasKey(CIndexTreeDataNode* psNode)
 //////////////////////////////////////////////////////////////////////////
 CLifeInit<CIndexTreeDataOrderer> CAccessDataOrderer::Create(void)
 {
-	LIFE_ALLOC(CAccessDataOrderer, CIndexTreeDataOrderer)->Init();
-	return cLife;
+	return LifeAlloc<CAccessDataOrderer, CIndexTreeDataOrderer>();
 }
 

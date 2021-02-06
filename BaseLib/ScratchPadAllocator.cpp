@@ -153,8 +153,7 @@ size_t CScratchPadAllocator::SizeOffset(void)
 //////////////////////////////////////////////////////////////////////////
 CLifeInit<CMallocator> CScratchPadAllocator::Create(void)
 {
-	LIFE_ALLOC(CScratchPadAllocator, CMallocator)->Init();
-	return cLife;
+	return LifeAlloc<CScratchPadAllocator, CMallocator>();
 }
 
 
@@ -164,8 +163,6 @@ CLifeInit<CMallocator> CScratchPadAllocator::Create(void)
 //////////////////////////////////////////////////////////////////////////
 CLifeInit<CMallocator> CScratchPadAllocator::Create(int iChunkSize)
 {
-	LIFE_ALLOC(CScratchPadAllocator, CMallocator)->Init(iChunkSize);
-	return cLife;
-
+	return LifeAlloc<CScratchPadAllocator, CMallocator>(iChunkSize);
 }
 
