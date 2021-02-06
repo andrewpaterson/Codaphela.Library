@@ -141,8 +141,7 @@ size_t CMemoryAllocator::SizeOffset(void)
 //////////////////////////////////////////////////////////////////////////
 CLifeInit<CMallocator> CMemoryAllocator::Create(void)
 {
-	LIFE_ALLOC(CMemoryAllocator, CMallocator)->Init();
-	return cLife;
+	return LifeAlloc<CMemoryAllocator, CMallocator>();
 }
 
 
@@ -152,7 +151,6 @@ CLifeInit<CMallocator> CMemoryAllocator::Create(void)
 //////////////////////////////////////////////////////////////////////////
 CLifeInit<CMallocator> CMemoryAllocator::Create(int iDefaultAlignment, BOOL bDefaultFreeListParams)
 {
-	LIFE_ALLOC(CMemoryAllocator, CMallocator)->Init(iDefaultAlignment, bDefaultFreeListParams);
-	return cLife;
+	return LifeAlloc<CMemoryAllocator, CMallocator>(iDefaultAlignment, bDefaultFreeListParams);
 }
 

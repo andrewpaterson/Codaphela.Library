@@ -67,7 +67,7 @@ void CModificationDataOrderer::HasKey(CIndexTreeDataNode* psNode)
 //////////////////////////////////////////////////////////////////////////
 CLifeInit<CIndexTreeDataOrderer> CModificationDataOrderer::Create(void)
 {
-	LIFE_ALLOC(CModificationDataOrderer, CIndexTreeDataOrderer)->Init();
-	return cLife;
+
+	return LifeAlloc<CModificationDataOrderer, CIndexTreeDataOrderer>();
 }
 
