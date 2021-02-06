@@ -37,8 +37,11 @@ class CLifeInit
 protected:
 	M*				mpcLifeCycleObject;
 	unsigned char	mcFlags;
+
 public:
-	void	Init(M* pcLifeCycleObject, BOOL bMustFree, BOOL bMustKill);
+	void	Init(M* pcLifeCycleObject, BOOL bMustFree = TRUE, BOOL bMustKill = TRUE);
+	void	Null(void);
+
 	void	ConfigureLife(CLife<M>* pcLife, M** ppcLifeCycleObject);
 
 	M*		GetLife(void);
@@ -47,6 +50,10 @@ public:
 };
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 template <class M>
 void CLife<M>::Init(M** ppcLifeCycleObject, BOOL bMustFree, BOOL bMustKill)
 {
@@ -55,6 +62,50 @@ void CLife<M>::Init(M** ppcLifeCycleObject, BOOL bMustFree, BOOL bMustKill)
 	SetFlag(&mcFlags, LIFE_CYCLE_FLAG_FREE, bMustFree);
 	SetFlag(&mcFlags, LIFE_CYCLE_FLAG_KILL, bMustKill);
 };
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template <class SpecificClass, class SuperClass, typename ... Args>
+CLifeInit<SuperClass> LifeAlloc(Args ... args)
+{
+	CLifeInit<SuperClass>	cLife;
+	SpecificClass*			pcLife;
+
+	pcLife = NewMalloc<SpecificClass>();
+	pcLife->Init(args...);
+	cLife.Init(pcLife, TRUE, TRUE); 
+	return cLife;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template <class SuperClass>
+CLifeInit<SuperClass> LifeLocal(SuperClass* pcLifeCycleObject)
+{
+	CLifeInit<SuperClass>	cLife;
+
+	cLife.Init(pcLifeCycleObject, FALSE, FALSE);
+	return cLife;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template <class SuperClass>
+CLifeInit<SuperClass> LifeNull(void)
+{
+	CLifeInit<SuperClass>	cLife;
+	cLife.Null();
+	return cLife;
+}
 
 
 #define LIFE_ALLOC(specific, super) \
@@ -77,6 +128,17 @@ void CLifeInit<M>::Init(M* pcLifeCycleObject, BOOL bMustFree, BOOL bMustKill)
 	mcFlags = 0;
 	SetFlag(&mcFlags, LIFE_CYCLE_FLAG_FREE, bMustFree);
 	SetFlag(&mcFlags, LIFE_CYCLE_FLAG_KILL, bMustKill);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template <class M>
+void CLifeInit<M>::Null(void)
+{
+	Init(NULL, FALSE, FALSE);
 }
 
 

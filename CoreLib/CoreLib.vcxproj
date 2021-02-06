@@ -109,6 +109,7 @@
     <ClCompile Include="IndexTreeEvictionCallbackWrapper.cpp" />
     <ClCompile Include="IndexTreeEvictionStrategyDataOrderer.cpp" />
     <ClCompile Include="IndexTreeEvictionStrategy.cpp" />
+    <ClCompile Include="IndexTreeEvictionStrategyFactory.cpp" />
     <ClCompile Include="IndexTreeEvictionStrategyRandom.cpp" />
     <ClCompile Include="IndexTreeFile.cpp" />
     <ClCompile Include="IndexTreeFileAccess.cpp" />
@@ -193,6 +194,8 @@
     <ClInclude Include="DataConnection.h" />
     <ClInclude Include="IndexTreeEvictionCallbackWrapper.h" />
     <ClInclude Include="IndexTreeEvictionStrategyDataOrderer.h" />
+    <ClInclude Include="IndexTreeEvictionStrategyFactory.h" />
+    <ClInclude Include="IndexTreeEvctionStrategySystemTypes.h" />
     <ClInclude Include="IndexTreeFileDiagnosticCallback.h" />
     <ClInclude Include="IndexTreeFileIterator.h" />
     <ClInclude Include="IndexTreeFileDiagnosticLoggingCallback.h" />

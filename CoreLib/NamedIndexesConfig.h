@@ -3,6 +3,7 @@
 #include "BaseLib/IndexTreeDataOrderer.h"
 #include "BaseLib/Constructable.h"
 #include "BaseLib/Killable.h"
+#include "BaseLib/LifeCycle.h"
 #include "DurableFileController.h"
 #include "IndexWriteThrough.h"
 #include "IndexTreeEvictionCallback.h"
@@ -14,14 +15,14 @@ class CNamedIndexesConfig : public CConstructable, public CKillable
 friend class CNamedIndexes;
 CONSTRUCTABLE(CNamedIndexesConfig);
 public:
-	virtual void							Kill(void);
+	virtual void									Kill(void);
 
-	virtual size_t							GetIndexCacheSize(void) =0;
-	virtual CIndexTreeEvictionStrategy*		GetEvictionStrategy() =0;
-	virtual EIndexWriteThrough				GetWriteThrough(void) =0;
-	virtual CIndexTreeEvictionCallback*		GetIndexTreeEvictionCallback(void) =0;
-	virtual char*							GetSubDirectory(void) =0;
-	virtual CIndexTreeDataOrderer*			GetIndexTreeDataOrderer(void) =0;
+	virtual size_t									GetIndexCacheSize(void) =0;
+	virtual CLifeInit<CIndexTreeEvictionStrategy>	GetEvictionStrategy(void) =0;
+	virtual EIndexWriteThrough						GetWriteThrough(void) =0;
+	virtual CIndexTreeEvictionCallback*				GetIndexTreeEvictionCallback(void) =0;
+	virtual char*									GetSubDirectory(void) =0;
+	virtual CLifeInit<CIndexTreeDataOrderer>		GetIndexTreeDataOrderer(void) =0;
 };
 
 

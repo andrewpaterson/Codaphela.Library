@@ -24,11 +24,10 @@ protected:
 public:
 	void					Init(void);
 	void					Init(EIndexKeyReverse eKeyReverse);
-	void					Init(EIndexKeyReverse eKeyReverse, CIndexTreeDataOrderer* pcDataOrderer);
-	void					Init(CMallocator* pcMalloc, EIndexKeyReverse eKeyReverse);
-	void					Init(CMallocator* pcMalloc, EIndexKeyReverse eKeyReverse, int iMaxDataSize, int	iMaxKeySize);
+	void					Init(EIndexKeyReverse eKeyReverse, CLifeInit<CIndexTreeDataOrderer> cDataOrderer);
+	void					Init(CLifeInit<CMallocator> cMalloc, EIndexKeyReverse eKeyReverse);
+	void					Init(CLifeInit<CMallocator> cMalloc, EIndexKeyReverse eKeyReverse, int iMaxDataSize, int	iMaxKeySize);
 	void					Init(CIndexTreeConfig* pcConfig);
-	void					Init(CMallocator* pcMalloc, EIndexKeyReverse eKeyReverse, int iMaxDataSize, int iMaxKeySize, CIndexTreeDataOrderer* pcDataOrderer);
 	void					Init(CLifeInit<CMallocator> cMalloc, EIndexKeyReverse eKeyReverse, int iMaxDataSize, int iMaxKeySize, CLifeInit<CIndexTreeDataOrderer> cDataOrderer);
 	BOOL					Kill(void);
 

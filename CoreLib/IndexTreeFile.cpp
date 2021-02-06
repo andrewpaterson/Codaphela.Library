@@ -17,7 +17,7 @@
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, int iMaxDataSize, int iMaxKeySize)
 {
-	return Init(pcDurableFileControl, szSubDirectory, &gcIndexTreeFileDefaultCallback, &gcSystemAllocator, IWT_Yes, IKR_No, iMaxDataSize, iMaxKeySize);
+	return Init(pcDurableFileControl, szSubDirectory, &gcIndexTreeFileDefaultCallback, LifeLocal<CMallocator>(&gcSystemAllocator), IWT_Yes, IKR_No, iMaxDataSize, iMaxKeySize);
 }
 
 
@@ -27,7 +27,7 @@ BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, char* sz
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse)
 {
-	return Init(pcDurableFileControl, szSubDirectory, &gcIndexTreeFileDefaultCallback, &gcSystemAllocator, eWriteThrough, eKeyReverse, MAX_DATA_SIZE, MAX_KEY_SIZE);
+	return Init(pcDurableFileControl, szSubDirectory, &gcIndexTreeFileDefaultCallback, LifeLocal<CMallocator>(&gcSystemAllocator), eWriteThrough, eKeyReverse, MAX_DATA_SIZE, MAX_KEY_SIZE);
 }
 
 
@@ -35,9 +35,9 @@ BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, char* sz
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse, CIndexTreeDataOrderer* pcDataOrderer)
+BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse, CLifeInit<CIndexTreeDataOrderer> cDataOrderer)
 {
-	return Init(pcDurableFileControl, szSubDirectory, &gcIndexTreeFileDefaultCallback, &gcSystemAllocator, eWriteThrough, eKeyReverse, MAX_DATA_SIZE, MAX_KEY_SIZE, pcDataOrderer);
+	return Init(pcDurableFileControl, szSubDirectory, &gcIndexTreeFileDefaultCallback, LifeLocal<CMallocator>(&gcSystemAllocator), eWriteThrough, eKeyReverse, MAX_DATA_SIZE, MAX_KEY_SIZE, cDataOrderer);
 }
 
 
@@ -45,9 +45,9 @@ BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, char* sz
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, CMallocator* pcMalloc, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse)
+BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, CLifeInit<CMallocator> cMalloc, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse)
 {
-	return Init(pcDurableFileControl, szSubDirectory, &gcIndexTreeFileDefaultCallback, pcMalloc, eWriteThrough, eKeyReverse, MAX_DATA_SIZE, MAX_KEY_SIZE);
+	return Init(pcDurableFileControl, szSubDirectory, &gcIndexTreeFileDefaultCallback, cMalloc, eWriteThrough, eKeyReverse, MAX_DATA_SIZE, MAX_KEY_SIZE);
 }
 
 
@@ -57,7 +57,7 @@ BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, char* sz
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, CIndexTreeFileDataCallback* pcWriterCallback, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse)
 {
-	return Init(pcDurableFileControl, szSubDirectory, pcWriterCallback, &gcSystemAllocator, eWriteThrough, eKeyReverse, MAX_DATA_SIZE, MAX_KEY_SIZE);
+	return Init(pcDurableFileControl, szSubDirectory, pcWriterCallback, LifeLocal<CMallocator>(&gcSystemAllocator), eWriteThrough, eKeyReverse, MAX_DATA_SIZE, MAX_KEY_SIZE);
 }
 
 
@@ -65,18 +65,18 @@ BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, char* sz
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, CIndexTreeFileDataCallback* pcWriterCallback, CMallocator* pcMalloc, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse, CIndexTreeDataOrderer* pcDataOrderer)
+BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, CIndexTreeFileDataCallback* pcWriterCallback, CLifeInit<CMallocator> cMalloc, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse, CLifeInit<CIndexTreeDataOrderer> cDataOrderer)
 {
-	return Init(pcDurableFileControl, szSubDirectory, pcWriterCallback, pcMalloc, eWriteThrough, eKeyReverse, MAX_DATA_SIZE, MAX_KEY_SIZE, pcDataOrderer);
+	return Init(pcDurableFileControl, szSubDirectory, pcWriterCallback, cMalloc, eWriteThrough, eKeyReverse, MAX_DATA_SIZE, MAX_KEY_SIZE, cDataOrderer);
 }
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, CIndexTreeFileDataCallback* pcWriterCallback, CMallocator* pcMalloc, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse, int iMaxDataSize, int iMaxKeySize)
+BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, CIndexTreeFileDataCallback* pcWriterCallback, CLifeInit<CMallocator> cMalloc, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse, int iMaxDataSize, int iMaxKeySize)
 {
-	return Init(pcDurableFileControl, szSubDirectory, pcWriterCallback, pcMalloc, eWriteThrough, eKeyReverse, iMaxDataSize, iMaxKeySize, NULL);
+	return Init(pcDurableFileControl, szSubDirectory, pcWriterCallback, cMalloc, eWriteThrough, eKeyReverse, iMaxDataSize, iMaxKeySize, LifeNull<CIndexTreeDataOrderer>());
 }
 
 
@@ -84,17 +84,18 @@ BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, char* sz
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, CIndexTreeFileDataCallback* pcWriterCallback, CMallocator* pcMalloc, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse, int iMaxDataSize, int iMaxKeySize, CIndexTreeDataOrderer* pcDataOrderer)
+BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, CIndexTreeFileDataCallback* pcWriterCallback, CLifeInit<CMallocator> cMalloc, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse, int iMaxDataSize, int iMaxKeySize, CLifeInit<CIndexTreeDataOrderer> cDataOrderer)
 {
-	BOOL	bResult;
+	BOOL					bResult;
 
 	if (!pcDurableFileControl->IsBegun())
 	{
 		return gcLogger.Error2(__METHOD__, " DurableFileController.Begin must be called before Init.", NULL);
 	}
 
-	mcMalloc.Init(pcMalloc);
-	CIndexTree::Init(&mcMalloc, eKeyReverse, sizeof(CIndexTreeNodeFile), sizeof(CIndexTreeNodeFile) + sizeof(CIndexTreeDataNode), sizeof(CIndexTreeChildNode), iMaxDataSize, iMaxKeySize, pcDataOrderer);
+	cMalloc.ConfigureLife(&mcPassThruMallocLife, &mpcPassThruMallocLife);
+	mcMalloc.Init(cMalloc.GetLife());
+	CIndexTree::Init(LifeLocal<CMallocator>(&mcMalloc), eKeyReverse, sizeof(CIndexTreeNodeFile), sizeof(CIndexTreeNodeFile) + sizeof(CIndexTreeDataNode), sizeof(CIndexTreeChildNode), iMaxDataSize, iMaxKeySize, cDataOrderer);
 
 	mpcDiagnosticCallback = NULL;
 	mpcDataCallback = pcWriterCallback;
@@ -133,6 +134,7 @@ BOOL CIndexTreeFile::Kill(void)
 		return gcLogger.Error2(__METHOD__, " Flush must called before Kill.", NULL);
 	}
 
+	mcPassThruMallocLife.Kill();
 	mcRootIndex.Kill();
 	mcIndexFiles.Kill();
 	mpcDurableFileControl = NULL;

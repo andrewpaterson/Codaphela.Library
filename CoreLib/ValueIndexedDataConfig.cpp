@@ -5,9 +5,9 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CValueIndexedDataConfig::Init(char* szSubDirectory, size_t uiDataCacheSize, size_t uiIndexCacheSize, EIndexWriteThrough eWriteThrough, CIndexTreeEvictionStrategy* pcEvictionStrategy)
+void CValueIndexedDataConfig::Init(char* szSubDirectory, size_t uiDataCacheSize, size_t uiIndexCacheSize, EIndexWriteThrough eWriteThrough, CLifeInit<CIndexTreeEvictionStrategy> cEvictionStrategy)
 {
-	Init(szSubDirectory, uiDataCacheSize, uiIndexCacheSize, eWriteThrough, pcEvictionStrategy, NULL, NULL, NULL);
+	Init(szSubDirectory, uiDataCacheSize, uiIndexCacheSize, eWriteThrough, cEvictionStrategy, NULL, NULL, LifeNull<CIndexTreeDataOrderer>());
 }
 
 
@@ -15,7 +15,7 @@ void CValueIndexedDataConfig::Init(char* szSubDirectory, size_t uiDataCacheSize,
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CValueIndexedDataConfig::Init(char* szSubDirectory, size_t uiDataCacheSize, size_t uiIndexCacheSize, EIndexWriteThrough eWriteThrough, CIndexTreeEvictionStrategy* pcEvictionStrategy, CIndexTreeEvictionCallback* pcIndexTreeEvictionUserCallback, CIndexedDataEvictionCallback* pcIndexedDataEvictionUserCallback, CIndexTreeDataOrderer* pcIndexTreeDataOrderer)
+void CValueIndexedDataConfig::Init(char* szSubDirectory, size_t uiDataCacheSize, size_t uiIndexCacheSize, EIndexWriteThrough eWriteThrough, CLifeInit<CIndexTreeEvictionStrategy> cEvictionStrategy, CIndexTreeEvictionCallback* pcIndexTreeEvictionUserCallback, CIndexedDataEvictionCallback* pcIndexedDataEvictionUserCallback, CLifeInit<CIndexTreeDataOrderer> cIndexTreeDataOrderer)
 {
 	mszSubDirectory = szSubDirectory;
 
@@ -24,8 +24,8 @@ void CValueIndexedDataConfig::Init(char* szSubDirectory, size_t uiDataCacheSize,
 	meWriteThrough = eWriteThrough;
 	mpcIndexTreeEvictionUserCallback = pcIndexTreeEvictionUserCallback;
 	mpcIndexedDataEvictionUserCallback = pcIndexedDataEvictionUserCallback;
-	mpcEvictionStrategy = pcEvictionStrategy;
-	mpcIndexTreeDataOrderer = pcIndexTreeDataOrderer;
+	mcEvictionStrategy = cEvictionStrategy;
+	mcIndexTreeDataOrderer = cIndexTreeDataOrderer;
 }
 
 
@@ -103,9 +103,9 @@ CIndexedDataEvictionCallback* CValueIndexedDataConfig::GetIndexedDataEvictionUse
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTreeEvictionStrategy* CValueIndexedDataConfig::GetEvictionStrategy(void)
+CLifeInit<CIndexTreeEvictionStrategy> CValueIndexedDataConfig::GetEvictionStrategy(void)
 {
-	return mpcEvictionStrategy;
+	return mcEvictionStrategy;
 }
 
 
@@ -113,9 +113,9 @@ CIndexTreeEvictionStrategy* CValueIndexedDataConfig::GetEvictionStrategy(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTreeDataOrderer* CValueIndexedDataConfig::GetIndexTreeDataOrderer(void)
+CLifeInit<CIndexTreeDataOrderer> CValueIndexedDataConfig::GetIndexTreeDataOrderer(void)
 {
-	return mpcIndexTreeDataOrderer;
+	return mcIndexTreeDataOrderer;
 }
 
 
@@ -123,9 +123,9 @@ CIndexTreeDataOrderer* CValueIndexedDataConfig::GetIndexTreeDataOrderer(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CLifeInit<CIndexedDataConfig> CValueIndexedDataConfig::Create(char* szSubDirectory, size_t uiDataCacheSize, size_t uiIndexCacheSize, EIndexWriteThrough eWriteThrough, CIndexTreeEvictionStrategy* pcEvictionStrategy)
+CLifeInit<CIndexedDataConfig> CValueIndexedDataConfig::Create(char* szSubDirectory, size_t uiDataCacheSize, size_t uiIndexCacheSize, EIndexWriteThrough eWriteThrough, CLifeInit<CIndexTreeEvictionStrategy> cEvictionStrategy)
 {
-	LIFE_ALLOC(CValueIndexedDataConfig, CIndexedDataConfig)->Init(szSubDirectory, uiDataCacheSize, uiIndexCacheSize, eWriteThrough, pcEvictionStrategy);
+	CLifeInit<CIndexedDataConfig> cLife = LifeAlloc<CValueIndexedDataConfig, CIndexedDataConfig>(szSubDirectory, uiDataCacheSize, uiIndexCacheSize, eWriteThrough, cEvictionStrategy);
 	return cLife;
 }
 
@@ -134,9 +134,28 @@ CLifeInit<CIndexedDataConfig> CValueIndexedDataConfig::Create(char* szSubDirecto
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CLifeInit<CIndexedDataConfig> CValueIndexedDataConfig::Create(char* szSubDirectory, size_t uiDataCacheSize, size_t uiIndexCacheSize, EIndexWriteThrough eWriteThrough, CIndexTreeEvictionStrategy* pcEvictionStrategy, CIndexTreeEvictionCallback* pcIndexTreeEvictionUserCallback, CIndexedDataEvictionCallback* pcIndexedDataEvictionUserCallback, CIndexTreeDataOrderer* pcIndexTreeDataOrderer)
+CLifeInit<CIndexedDataConfig> CValueIndexedDataConfig::Create(char* szSubDirectory, size_t uiDataCacheSize, size_t uiIndexCacheSize, EIndexWriteThrough eWriteThrough, CLifeInit<CIndexTreeEvictionStrategy> cEvictionStrategy, CIndexTreeEvictionCallback* pcIndexTreeEvictionUserCallback, CIndexedDataEvictionCallback* pcIndexedDataEvictionUserCallback)
 {
-	LIFE_ALLOC(CValueIndexedDataConfig, CIndexedDataConfig)->Init(szSubDirectory, uiDataCacheSize, uiIndexCacheSize, eWriteThrough, pcEvictionStrategy, pcIndexTreeEvictionUserCallback, pcIndexedDataEvictionUserCallback, pcIndexTreeDataOrderer);
+	CIndexTreeEvictionStrategy*			pcEvictionStrategy;
+	CLifeInit<CIndexTreeDataOrderer>	cIndexTreeDataOrderer;
+	CIndexTreeDataOrderer*				pcIndexTreeDataOrderer;
+
+	pcEvictionStrategy = cEvictionStrategy.GetLife();
+	pcIndexTreeDataOrderer = pcEvictionStrategy->GetDataOrderer();
+	cIndexTreeDataOrderer.Init(pcIndexTreeDataOrderer, FALSE, FALSE);
+
+	CLifeInit<CIndexedDataConfig> cLife = LifeAlloc<CValueIndexedDataConfig, CIndexedDataConfig>(szSubDirectory, uiDataCacheSize, uiIndexCacheSize, eWriteThrough, cEvictionStrategy, pcIndexTreeEvictionUserCallback, pcIndexedDataEvictionUserCallback, cIndexTreeDataOrderer);
+	return cLife;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CLifeInit<CIndexedDataConfig> CValueIndexedDataConfig::Create(char* szSubDirectory, size_t uiDataCacheSize, size_t uiIndexCacheSize, EIndexWriteThrough eWriteThrough, CLifeInit<CIndexTreeEvictionStrategy> cEvictionStrategy, CIndexTreeEvictionCallback* pcIndexTreeEvictionUserCallback, CIndexedDataEvictionCallback* pcIndexedDataEvictionUserCallback, CLifeInit<CIndexTreeDataOrderer> cIndexTreeDataOrderer)
+{
+	CLifeInit<CIndexedDataConfig> cLife = LifeAlloc<CValueIndexedDataConfig, CIndexedDataConfig>(szSubDirectory, uiDataCacheSize, uiIndexCacheSize, eWriteThrough, cEvictionStrategy, pcIndexTreeEvictionUserCallback, pcIndexedDataEvictionUserCallback, cIndexTreeDataOrderer);
 	return cLife;
 }
 

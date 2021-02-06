@@ -189,7 +189,7 @@ protected:
 			int					CalculateDistToRootFromPointedFroms(void);
 	virtual int					CalculateDistToRootFromPointedFroms(int iDistToRoot);
 			BOOL				IsBaseObject(void);
-			uint16	GetNumEmbeddedFromFlags(void);
+			uint16				GetNumEmbeddedFromFlags(void);
 			void				SetFlagNumEmbedded(int iNumEmbedded);
 			BOOL				IsMarkedUnreachable(void);
 			void				ReplaceOneWithX(char* szDest, char* szMask);
