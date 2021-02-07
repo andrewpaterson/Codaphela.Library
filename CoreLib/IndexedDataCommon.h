@@ -30,8 +30,8 @@ public:
 
 			BOOL			Put(OIndex oi, void* pvData, size_t uiDataSize);
 
-			BOOL			Get(OIndex oi, void* pvData, unsigned int uiMaxSize = 0);
-			BOOL			Get(OIndex oi, unsigned int* puiDataSize, void* pvData, unsigned int uiMaxSize);
+			BOOL			Get(OIndex oi, void* pvData, size_t uiMaxSize = 0);
+			BOOL			Get(OIndex oi, size_t* puiDataSize, void* pvData, size_t uiMaxSize);
 
 			unsigned int	Size(OIndex oi);
 			BOOL			Contains(OIndex oi);
@@ -61,6 +61,8 @@ protected:
 	virtual BOOL			RemoveDescriptor(OIndex oi) =0;
 
 	virtual BOOL			Flush(BOOL bClearCache) =0;
+
+			BOOL			GetData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, size_t* puiDataSize, void* pvData, size_t uiMaxSize);
 };
 
 

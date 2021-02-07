@@ -310,6 +310,54 @@ BOOL CIndexedData::ValidateConfigKilled(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+OIndex CIndexedData::StartIteration(SIndexTreeFileIterator* psIterator, void* pvData, size_t* piDataSize, size_t iMaxDataSize)
+{
+	CIndexedDataDescriptor	cDescriptor;
+	OIndex					oi;
+	BOOL					bResult;
+	size_t					iDescriptorSize;
+
+	oi = mcIndices.StartIteration(psIterator, &cDescriptor, &iDescriptorSize, sizeof(CIndexedDataDescriptor));
+	if (oi != INVALID_O_INDEX)
+	{
+		bResult = GetData(oi, &cDescriptor, piDataSize, pvData, iMaxDataSize);
+		if (!bResult)
+		{
+			oi = INVALID_O_INDEX;
+		}
+	}
+	return oi;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+OIndex CIndexedData::Iterate(SIndexTreeFileIterator* psIterator, void* pvData, size_t* piDataSize, size_t iMaxDataSize)
+{
+	CIndexedDataDescriptor	cDescriptor;
+	OIndex					oi;
+	BOOL					bResult;
+	size_t					iDescriptorSize;
+
+	oi = mcIndices.Iterate(psIterator, &cDescriptor, &iDescriptorSize, sizeof(CIndexedDataDescriptor));
+	if (oi != INVALID_O_INDEX)
+	{
+		bResult = GetData(oi, &cDescriptor, piDataSize, pvData, iMaxDataSize);
+		if (!bResult)
+		{
+			oi = INVALID_O_INDEX;
+		}
+	}
+	return oi;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 int64 CIndexedData::NumIndicesCached(void) { return mcIndices.NumIndicesCached(); }
 int64 CIndexedData::NumIndicesCached(size_t iSize) { return mcIndices.NumIndicesCached(iSize); }
 CDurableFileController* CIndexedData::GetDurableFileControl(void) { return mpcDurableFileControl; }

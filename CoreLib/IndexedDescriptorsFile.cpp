@@ -343,3 +343,48 @@ BOOL CIndexedDescriptorsFile::IndexTreeReadData(void* pvDest, void* pvDataBuffer
 	return TRUE;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+OIndex CIndexedDescriptorsFile::StartIteration(SIndexTreeFileIterator* psIterator, void* pvData, size_t* piDataSize, size_t iMaxDataSize)
+{
+	OIndex	oi;
+	int		iKeySize;
+	BOOL	bExists;
+
+	bExists = mcIndexTree.StartIteration(psIterator, &oi, &iKeySize, sizeof(OIndex), pvData, piDataSize, iMaxDataSize);
+	if (bExists)
+	{
+		return oi;
+	}
+	else
+	{
+		return INVALID_O_INDEX;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+OIndex CIndexedDescriptorsFile::Iterate(SIndexTreeFileIterator* psIterator, void* pvData, size_t* piDataSize, size_t iMaxDataSize)
+{
+	OIndex	oi;
+	int		iKeySize;
+	BOOL	bExists;
+
+	bExists = mcIndexTree.Iterate(psIterator, &oi, &iKeySize, sizeof(OIndex), pvData, piDataSize, iMaxDataSize);
+	if (bExists)
+	{
+		return oi;
+	}
+	else
+	{
+		return INVALID_O_INDEX;
+	}
+}
+
+

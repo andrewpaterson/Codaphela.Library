@@ -322,6 +322,54 @@ BOOL CNamedIndexes::Flush(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL CNamedIndexes::StartIteration(SIndexTreeFileIterator* psIterator, char* szKey, OIndex* poi)
+{
+	int		iKeySize;
+	BOOL	bExists;
+	size_t	iDataSize;
+
+	bExists = mcIndexTree.StartIteration(psIterator, szKey, &iKeySize, MAX_KEY_SIZE, poi, &iDataSize, sizeof(OIndex));
+	if (bExists)
+	{
+		szKey[iKeySize] = '\0';
+	}
+	else
+	{
+		*poi = INVALID_O_INDEX;
+		szKey[0] = '\0';
+	}
+	return bExists;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CNamedIndexes::Iterate(SIndexTreeFileIterator* psIterator, char* szKey, OIndex* poi)
+{
+	int		iKeySize;
+	BOOL	bExists;
+	size_t	iDataSize;
+
+	bExists = mcIndexTree.Iterate(psIterator, szKey, &iKeySize, MAX_KEY_SIZE, poi, &iDataSize, sizeof(OIndex));
+	if (bExists)
+	{
+		szKey[iKeySize] = '\0';
+	}
+	else
+	{
+		*poi = INVALID_O_INDEX;
+		szKey[0] = '\0';
+	}
+	return bExists;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 uint16 CNamedIndexes::IndexTreeDataSize(uint16 uiSourceSize)
 {
 	if (uiSourceSize != 0)

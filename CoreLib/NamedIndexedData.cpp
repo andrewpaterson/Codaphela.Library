@@ -540,7 +540,7 @@ BOOL CNamedIndexedData::Get(OIndex oi, unsigned int* puiDataSize, void* pvData, 
 		if (pvData)
 		{
 			pvHeaderData = pcHeader->GetData();
-			memcpy_fast(pvData, pvHeaderData, MinDataSize(uiDataSize, uiMaxDataSize));
+			memcpy(pvData, pvHeaderData, MinDataSize(uiDataSize, uiMaxDataSize));
 		}
 		cStack.Kill();
 		return TRUE;
@@ -969,4 +969,82 @@ void CNamedIndexedData::Dump(void)
 	mcData.DumpIndex();
 }
 
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+OIndex CNamedIndexedData::StartIndexIteration(SIndexTreeFileIterator* psIterator, void* pvData, size_t* piDataSize, size_t iMaxDataSize)
+{
+	CStackMemory<8 KB>		cStack;
+	CNamedIndexedHeader*	pcHeader;
+	void*					pvHeaderData;
+	size_t					iMaxDataAndHeaderSize;
+	OIndex					oi;
+	size_t					iDataSize;
+
+	iMaxDataAndHeaderSize = iMaxDataSize + sizeof(CNamedIndexedHeader) + MAX_KEY_SIZE;
+	pcHeader = (CNamedIndexedHeader*)cStack.Init(iMaxDataAndHeaderSize);
+
+	oi = mcData.StartIteration(psIterator, pcHeader, &iDataSize, iMaxDataAndHeaderSize);
+	if (oi != INVALID_O_INDEX)
+	{
+		pvHeaderData = pcHeader->GetData();
+		*piDataSize = iDataSize - pcHeader->GetHeaderSize();
+		memcpy(pvData, pvHeaderData, MinDataSize(*piDataSize, iMaxDataSize));
+	}
+	
+	cStack.Kill();
+	return oi;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+OIndex CNamedIndexedData::IndexIterate(SIndexTreeFileIterator* psIterator, void* pvData, size_t* piDataSize, size_t iMaxDataSize)
+{
+	CStackMemory<8 KB>		cStack;
+	CNamedIndexedHeader* pcHeader;
+	void* pvHeaderData;
+	size_t					iMaxDataAndHeaderSize;
+	OIndex					oi;
+	size_t					iDataSize;
+
+	iMaxDataAndHeaderSize = iMaxDataSize + sizeof(CNamedIndexedHeader) + MAX_KEY_SIZE;
+	pcHeader = (CNamedIndexedHeader*)cStack.Init(iMaxDataAndHeaderSize);
+
+	oi = mcData.Iterate(psIterator, pcHeader, &iDataSize, iMaxDataAndHeaderSize);
+	if (oi != INVALID_O_INDEX)
+	{
+		pvHeaderData = pcHeader->GetData();
+		*piDataSize = iDataSize - pcHeader->GetHeaderSize();
+		memcpy(pvData, pvHeaderData, MinDataSize(*piDataSize, iMaxDataSize));
+	}
+
+	cStack.Kill();
+	return oi;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CNamedIndexedData::StartNameIteration(SIndexTreeFileIterator* psIterator, char* szKey, OIndex* poi)
+{
+	return mcNames.StartIteration(psIterator, szKey, poi);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CNamedIndexedData::NameIterate(SIndexTreeFileIterator* psIterator, char* szKey, OIndex* poi)
+{
+	return mcNames.Iterate(psIterator, szKey, poi);
+}
 

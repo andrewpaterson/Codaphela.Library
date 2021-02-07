@@ -148,6 +148,7 @@ protected:
 
 						void					RecurseDumpGraph(CChars* psz, CEmbeddedObject* pcObject, int iLevel, BOOL bEmbedded);
 						void					ValidateSceneGraph(void);
+						void					ValidateIdentifiers(void);
 						void					ValidateIndexedObjects(void);
 						void					ClearValidationFlags(void);
 						void					RecurseValidateSceneGraph(CBaseObject* pcBaseObject);

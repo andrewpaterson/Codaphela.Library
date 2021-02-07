@@ -37,7 +37,7 @@ public:
 	BOOL					Put(void* pvKey, int iKeySize, void* pvObject, size_t iDataSize);
 	BOOL					Remove(void* pvKey, int iKeySize);
 	BOOL					HasKey(void* pvKey, int iKeySize);
-	uint16			GetDataSize(void* pvKey, int iKeySize);
+	uint16					GetDataSize(void* pvKey, int iKeySize);
 
 	BOOL					Evict(void* pvKey, int iKeySize);
 	BOOL					Flush(void* pvKey, int iKeySize);
@@ -54,6 +54,9 @@ public:
 	CIndexTreeDataOrderer*	GetDataOrderer(void);
 
 	int						NumElements(void);
+
+	BOOL					StartIteration(SIndexTreeFileIterator* psIterator, void* pvKey, int* piKeySize, int iMaxKeySize, void* pvData, size_t* piDataSize, size_t iMaxDataSize);
+	BOOL					Iterate(SIndexTreeFileIterator* psIterator, void* pvKey, int* piKeySize, int iMaxKeySize, void* pvData, size_t* piDataSize, size_t iMaxDataSize);
 
 	void					Print(CChars* pszDest, BOOL bShowFlags, BOOL bShowSize);
 	void					Dump(void);

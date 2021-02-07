@@ -88,6 +88,11 @@ public:
 	BOOL			ValidateConfigInitialised(void);
 	BOOL			ValidateConfigKilled(void);
 
+	OIndex 			StartIndexIteration(SIndexTreeFileIterator* psIterator, void* pvData, size_t* piDataSize, size_t iMaxDataSize);
+	OIndex			IndexIterate(SIndexTreeFileIterator* psIterator, void* pvData, size_t* piDataSize, size_t iMaxDataSize);
+	BOOL			StartNameIteration(SIndexTreeFileIterator* psIterator, char* szKey, OIndex* poi);
+	BOOL			NameIterate(SIndexTreeFileIterator* psIterator, char* szKey, OIndex* poi);
+
 	void			Dump(void);
 
 private:
