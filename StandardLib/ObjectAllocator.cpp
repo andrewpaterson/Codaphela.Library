@@ -77,7 +77,7 @@ CBaseObject* CObjectAllocator::Add(char* szClassName, OIndex oiForced)
 	}
 	else
 	{
-		pvObject = ReplaceExisting(pvExisting, pvObject, NULL, oiForced);
+		pvObject = ReplaceExisting(pvExisting, pvObject, oiForced);
 		LOG_OBJECT_ALLOCATION(pvObject);
 		
 		return pvObject;
@@ -186,9 +186,34 @@ CBaseObject* CObjectAllocator::ReplaceExisting(CBaseObject* pvExisting, CBaseObj
 	mpcObjects->Dename(pvExisting);
 	mpcObjects->Deindex(pvExisting);
 
-	bResult = mpcObjects->AddWithIDAndName(pvObject, szObjectName, oiForced);
+	bResult = mpcObjects->Replace(pvObject, szObjectName, oiForced);
 	if (!bResult)
 	{ 
+		pvObject->Kill();
+		return NULL;
+	}
+
+	cRemapper.Remap(pvExisting, pvObject, TRUE);
+
+	return pvObject;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CBaseObject* CObjectAllocator::ReplaceExisting(CBaseObject* pvExisting, CBaseObject* pvObject, OIndex oiForced)
+{
+	BOOL				bResult;
+	CObjectRemapFrom	cRemapper;
+
+	mpcObjects->Dename(pvExisting);
+	mpcObjects->Deindex(pvExisting);
+
+	bResult = mpcObjects->AddWithID(pvObject, oiForced);
+	if (!bResult)
+	{
 		pvObject->Kill();
 		return NULL;
 	}

@@ -165,9 +165,7 @@ BOOL CNamedIndexedObjects::AddWithIDAndName(CBaseObject* pvObject, OIndex oi, ch
 	cAccess.Kill();
 	if (bHasObject)
 	{
-		
-		gcLogger.Error2(__METHOD__, " Cannot add object named [", szName, "].  It already exists.", NULL);
-		return FALSE;
+		return gcLogger.Error2(__METHOD__, " Cannot add object named [", szName, "].  It already exists.", NULL);
 	}
 
 	bResult = AddWithID(pvObject, oi);
@@ -175,8 +173,7 @@ BOOL CNamedIndexedObjects::AddWithIDAndName(CBaseObject* pvObject, OIndex oi, ch
 	{
 		char sz[32];
 
-		gcLogger.Error2(__METHOD__, " Cannot add object named [", szName, "].  An index [", IToA(oi, sz, 10), "] already exists.", NULL);
-		return FALSE;
+		return gcLogger.Error2(__METHOD__, " Cannot add object named [", szName, "].  An index [", IToA(oi, sz, 10), "] already exists.", NULL);
 	}
 
 	if (!pvObject->IsHollow())
@@ -190,12 +187,57 @@ BOOL CNamedIndexedObjects::AddWithIDAndName(CBaseObject* pvObject, OIndex oi, ch
 		bResult = pcNamedHollow->InitName(szName);
 	}
 
-	if ((szName != NULL) && (szName[0] != 0))
+	if (!StrEmpty(szName))
 	{
 		cAccess.Init(&mcNames);
 		oi = pvObject->GetOI();
 		szName = (char*)cAccess.PutStringLong(szName, oi);
 		bResult = szName != NULL;
+		cAccess.Kill();
+	}
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CNamedIndexedObjects::ReplaceWithIDAndName(CBaseObject* pvObject, char* szExistingName, OIndex oi)
+{
+	CNamedObject*			pcNamed;
+	CNamedHollowObject*		pcNamedHollow;
+	BOOL					bResult;
+	CIndexTreeMemoryAccess	cAccess;
+
+	//This does nothing meaningful.  The old object still exists believing it is named szExistingName too.
+
+	bResult = AddWithID(pvObject, oi);
+	if (!bResult)
+	{
+		char sz[32];
+
+		gcLogger.Error2(__METHOD__, " Cannot add object named [", szExistingName, "].  An index [", IToA(oi, sz, 10), "] already exists.", NULL);
+		return FALSE;
+	}
+
+	if (!pvObject->IsHollow())
+	{
+		pcNamed = (CNamedObject*)pvObject;
+		bResult = pcNamed->InitName(szExistingName);
+	}
+	else
+	{
+		pcNamedHollow = (CNamedHollowObject*)pvObject;
+		bResult = pcNamedHollow->InitName(szExistingName);
+	}
+
+	if (!StrEmpty(szExistingName))
+	{
+		cAccess.Init(&mcNames);
+		oi = pvObject->GetOI();
+		szExistingName = (char*)cAccess.PutStringLong(szExistingName, oi);
+		bResult = szExistingName != NULL;
 		cAccess.Kill();
 	}
 	return bResult;
@@ -269,5 +311,34 @@ CBaseObject* CNamedIndexedObjects::Iterate(SIndexesIterator* psIter)
 	{
 		return NULL;
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CNamedIndexedObjects::ValidateNoDirty(void)
+{
+	SIndexesIterator	sIter;
+	OIndex				oi;
+	CBaseObject*		pcObject;
+	BOOL				bIsDirty;
+	CChars				szIdentifier;
+
+	oi = mcIndexedObjects.StartIteration(&sIter);
+	while (oi != INVALID_O_INDEX)
+	{
+		pcObject = Get(oi);
+		bIsDirty = pcObject->IsDirty();
+		if (bIsDirty)
+		{
+			szIdentifier.Init();
+			pcObject->GetIdentifier(&szIdentifier);
+			return gcLogger.Error2(__METHOD__, " Object [", szIdentifier.Text(), "] is dirty.", NULL);
+		}
+		oi = mcIndexedObjects.Iterate(&sIter);
+	}
+	return TRUE;
 }
 

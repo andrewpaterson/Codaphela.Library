@@ -40,6 +40,8 @@ public:
 			void				Kill(void);
 	virtual void				KillInternal(BOOL bHeapFromChanged);
 
+	virtual void				Evict(void);
+
 	virtual void				InternalFree(void) =0;
 	virtual void				FreePointers(void);
 			void				PostRemapFroms(void);
@@ -66,7 +68,7 @@ public:
 	virtual BOOL				IsInitialised(void) =0;
 			BOOL				IsInStack(void);
 	virtual int					GetEmbeddedIndex(CEmbeddedObject* pcEmbedded);
-	virtual uint16	GetNumEmbedded(void) =0;
+	virtual uint16				GetNumEmbedded(void) =0;
 			void				SetEmbedded(CBaseObject* pcEmbedded);
 	virtual CEmbeddedObject*	GetEmbeddedObject(uint16 iIndex) =0;
 	virtual CBaseObject*		Dehollow(void) =0;
@@ -76,7 +78,6 @@ public:
 			void				ValidateFroms(void);
 			void				ValidatePointerTo(CEmbeddedObject* pcPointedTo);
 	virtual void				ValidatePointerTos(void);
-			void				ValidateBaseObjectDetail(void);
 
 	virtual int					NumPointerTos(void) =0;
 	virtual int					BaseNumPointerTos(void);

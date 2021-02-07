@@ -41,6 +41,7 @@ public:
 	CBaseObject*		Get(char* szName);
 	BOOL				AddWithID(CBaseObject* pvObject, OIndex oi);
 	BOOL				AddWithIDAndName(CBaseObject* pvObject, OIndex oi, char* szName);
+	BOOL				ReplaceWithIDAndName(CBaseObject* pvObject, char* szExistingName, OIndex oi);
 	BOOL				RemoveIndex(OIndex oi);
 	BOOL				RemoveName(char* szName);
 	OIndex				NumIndexed(void);
@@ -49,6 +50,8 @@ public:
 	CIndexedObjects*	GetObjects(void);
 	CBaseObject*		StartIteration(SIndexesIterator* psIter);
 	CBaseObject*		Iterate(SIndexesIterator* psIter);
+
+	BOOL				ValidateNoDirty(void);
 };
 
 

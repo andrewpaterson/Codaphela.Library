@@ -370,7 +370,7 @@ BOOL CCodabase::Remove(CChars* szName)
 //////////////////////////////////////////////////////////////////////////
 BOOL CCodabase::Flush(void)
 {
-	return mcNamedIndexedData.Flush();
+	return Flush(FALSE);
 }
 
 

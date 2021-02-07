@@ -29,6 +29,7 @@ public:
 
 protected:
 	CBaseObject*	ReplaceExisting(CBaseObject* pvExisting, CBaseObject* pvObject, char* szObjectName, OIndex oiForced);
+	CBaseObject*	ReplaceExisting(CBaseObject* pvExisting, CBaseObject* pvObject, OIndex oiForced);
 };
 
 

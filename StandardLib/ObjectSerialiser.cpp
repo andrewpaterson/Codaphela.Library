@@ -64,25 +64,56 @@ BOOL CObjectSerialiser::Save(void)
 	BOOL			bResult;
 	filePos			iLength;
 	CObjectHeader	sHeader;
+	CChars			sz;
 
 	bResult = mcFile.Open(EFM_Write_Create);
-	ReturnOnFalse(bResult);
+	if (!bResult)
+	{
+		sz.Init();
+		mpcThis->GetIdentifier(&sz);
+		gcLogger.Error2(__METHOD__, " Could not open serialiser to save object [", sz.Text(), "].", NULL);
+		sz.Kill();
+		return FALSE;
+	}
 
 	bResult = WriteInt(0);
-	ReturnOnFalse(bResult);
-
 	InitObjectHeader(&sHeader, mpcThis);
-	bResult = WriteObjectHeader(&sHeader);
-	ReturnOnFalse(bResult);
+	bResult &= WriteObjectHeader(&sHeader);
+	if (!bResult)
+	{
+		sz.Init();
+		mpcThis->GetIdentifier(&sz);
+		gcLogger.Error2(__METHOD__, " Could not write object header saving object [", sz.Text(), "].", NULL);
+		sz.Kill();
+		return FALSE;
+	}
+
 	bResult = mpcThis->Save(this);
-	ReturnOnFalse(bResult);
+	if (!bResult)
+	{
+		sz.Init();
+		mpcThis->GetIdentifier(&sz);
+		gcLogger.Error2(__METHOD__, " Could not Save() object [", sz.Text(), "].", NULL);
+		sz.Kill();
+		return FALSE;
+	}
+
 	iLength = mcFile.GetFileLength();
 	mcFile.Seek(0);
 	bResult = WriteInt((int)iLength);
 	ReturnOnFalse(bResult);
 
 	bResult = mcFile.Close();
-	return bResult;
+	if (!bResult)
+	{
+		sz.Init();
+		mpcThis->GetIdentifier(&sz);
+		gcLogger.Error2(__METHOD__, " Could not close serialiser saving object [", sz.Text(), "].", NULL);
+		sz.Kill();
+		return FALSE;
+	}
+
+	return TRUE;
 }
 
 
