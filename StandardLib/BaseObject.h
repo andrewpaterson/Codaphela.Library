@@ -95,8 +95,8 @@ public:
 	virtual void				Initialised(void);
 
 			void				Kill(void) final;
-
 	virtual void				Free(void) =0;
+	virtual BOOL				Flush(void);
 
 			OIndex				GetOI(void);
 			void				SetObjectID(OIndex oi);
@@ -120,10 +120,10 @@ public:
 			int					SerialisedSize(void);
 	virtual char*				GetIdentifier(CChars* psz);
 
-			uint16	GetNumEmbedded(void);
+			uint16				GetNumEmbedded(void);
 
 	virtual void				SetPointerTosExpectedDistToRoot(int iDistToRoot) =0;
-			void				SetDirty(void);
+			void				SetDirty(BOOL bDirty);
 			int					GetDistToRoot(void);
 			int					GetDistToStack(void);
 	virtual BOOL				SetDistToRoot(int iDistToRoot);

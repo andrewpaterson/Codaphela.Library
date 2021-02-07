@@ -51,9 +51,6 @@ template <class SpecificClass, typename ... Args>
 Ptr<SpecificClass> ONMalloc(const char* szObjectName, Args ... args);
 
 
-//Isn't this just a Ptr?  Which already works.
-//#define ONRef(name)  gcObjects.AllocateNamedHollow();  //TODO: Sometimes you need to refer to an object that is already in the database without allocating a new one.
-
 #define  LOG_OBJECT_ALLOCATION(pcObject) LogObjectAllocation(pcObject, __ENGINE_PRETTY_FUNCTION__)
 #define  LOG_OBJECT_DESTRUCTION(pcObject) LogObjectDestruction(pcObject, __ENGINE_PRETTY_FUNCTION__)
 
@@ -92,7 +89,6 @@ public:
 	template<class M>	CObjectSource*			AddSource(CAbstractFile* pcFile, char* szFileName);
 
 						BOOL					Flush(void);
-						BOOL					Save(CBaseObject* pcObject);
 						BOOL					ForceSave(CBaseObject* pcObject);
 
 						CPointer				Get(OIndex oi);
@@ -122,6 +118,7 @@ public:
 						CBaseObject*			Dehollow(OIndex oi);
 						CBaseObject*			Dehollow(char* szObjectName);
 
+						BOOL					Replace(CBaseObject* pvNewObject, char* szExistingName, OIndex oiNew);
 						BOOL					Dename(CBaseObject* pvObject);
 						BOOL					Deindex(CBaseObject* pvObject);
 
@@ -167,6 +164,7 @@ extern CObjects gcObjects;
 void ObjectsInit(void);
 void ObjectsInit(CDataConnection* pcDataConnection);
 void ObjectsKill(void);
+BOOL ObjectsFlush(void);
 
 void LogObjectAllocation(CBaseObject* pcObject, char* szMethod);
 void LogObjectDestruction(CBaseObject* pcObject, char* szMethod);

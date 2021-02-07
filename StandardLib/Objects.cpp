@@ -140,7 +140,10 @@ void CObjects::Init(CUnknowns* pcUnknownsAllocatingFrom, CStackPointers* pcStack
 void CObjects::Kill(void)
 {
 	mbInitialised = FALSE;
-	mpcDataConnection = NULL;  //Maybe needs to be flushed here?
+
+	mcMemory.ValidateNoDirty();
+
+	mpcDataConnection = NULL;
 
 	mcSource.Kill();
 	mcMemory.Kill();
@@ -467,14 +470,29 @@ BOOL CObjects::Flush(void)
 		while (oi != INVALID_O_INDEX)
 		{
 			pcBaseObject = GetFromMemory(oi);
-			bResult &= Save(pcBaseObject);
+			bResult &= pcBaseObject->Flush();
 			oi = IterateMemory(&sIter);
 		}
 
 		bResult &= mpcDataConnection->Flush(FALSE);
 		return bResult;
 	}
-	return TRUE;
+	else
+	{
+		//No backing data connection so just discard everything.  I.e. mark it as saved.
+		oi = StartMemoryIteration(&sIter);
+		while (oi != INVALID_O_INDEX)
+		{
+			pcBaseObject = GetFromMemory(oi);
+			if (pcBaseObject->IsDirty())
+			{
+				pcBaseObject->SetDirty(FALSE);
+			}
+			oi = IterateMemory(&sIter);
+		}
+
+		return TRUE;
+	}
 }
 
 
@@ -573,25 +591,6 @@ void CObjects::FreeObjects(CArrayBlockObjectPtr* papcObjectPts)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjects::Save(CBaseObject* pcObject)
-{
-	pcObject->ValidateNotEmbedded(__METHOD__);
-
-	if (pcObject->IsDirty())
-	{
-		return ForceSave(pcObject);
-	}
-	else
-	{
-		return TRUE;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 BOOL CObjects::ForceSave(CBaseObject* pcObject)
 {
 	BOOL						bResult;
@@ -603,7 +602,7 @@ BOOL CObjects::ForceSave(CBaseObject* pcObject)
 
 	cWriter.Init(mpcDataConnection, 0);
 	cGraphSerialiser.Init(&cWriter);
-	bResult = cGraphSerialiser.Write(pcContainer);
+	bResult = cGraphSerialiser.Write(pcContainer);  //Does this handle embedded objects?
 	cGraphSerialiser.Kill();
 	cWriter.Kill();
 
@@ -627,14 +626,67 @@ BOOL CObjects::AddWithID(CBaseObject* pvObject, OIndex oi)
 //////////////////////////////////////////////////////////////////////////
 BOOL CObjects::AddWithIDAndName(CBaseObject* pvObject, char* szObjectName, OIndex oi)
 {
-	
-	if (!StrEmpty(szObjectName) || (pvObject->IsNamed()))
+	if (!StrEmpty(szObjectName))
 	{
-		return mcMemory.AddWithIDAndName(pvObject, oi, szObjectName);
+		if ((pvObject->IsNamed()))
+		{
+			return mcMemory.AddWithIDAndName(pvObject, oi, szObjectName);
+		}
+		else
+		{
+			CChars sz;
+			sz.Init();
+			pvObject->GetIdentifier(&sz);
+			gcLogger.Error2(__METHOD__, " Cannot add object [", sz.Text(), "] with name [", szObjectName, "], it is not a named object.", NULL);
+			sz.Kill();
+			return FALSE;
+		}
 	}
 	else
 	{
-		return mcMemory.AddWithID(pvObject, oi);
+		if ((pvObject->IsNamed()))
+		{
+			return mcMemory.AddWithIDAndName(pvObject, oi, "");
+		}
+		else
+		{
+			return mcMemory.AddWithID(pvObject, oi);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CObjects::Replace(CBaseObject* pvNewObject, char* szExistingName, OIndex oiNew)
+{
+
+	if (!StrEmpty(szExistingName))
+	{
+		if ((pvNewObject->IsNamed()))
+		{
+			return mcMemory.ReplaceWithIDAndName(pvNewObject, szExistingName, oiNew);
+		}
+		else
+		{
+			CChars sz;
+			sz.Init();
+			pvNewObject->GetIdentifier(&sz);
+			gcLogger.Error2(__METHOD__, " Cannot Replace object [", sz.Text(), "] with name [", szExistingName, "], it is not a named obect.", NULL);
+			sz.Kill();
+			return FALSE;
+		}
+	}
+	else
+	{
+		CChars sz;
+		sz.Init();
+		pvNewObject->GetIdentifier(&sz);
+		gcLogger.Error2(__METHOD__, " Cannot replace object [", sz.Text(), "] with an empty name.", NULL);
+		sz.Kill();
+		return FALSE;
 	}
 }
 
@@ -1320,5 +1372,15 @@ void ObjectsKill(void)
 	gcStackPointers.ClearAllPointers();
 	gcStackPointers.Kill();
 	UnknownsKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL ObjectsFlush(void)
+{
+	return gcObjects.Flush();
 }
 

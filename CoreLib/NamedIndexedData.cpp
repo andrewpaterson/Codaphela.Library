@@ -397,7 +397,7 @@ BOOL CNamedIndexedData::Put(OIndex oi, char* szName, int iNameLength, void* pvDa
 	else
 	{
 		gcLogger.Error2(__METHOD__, " Name [", szName, "] does not have an existing index.", NULL);
-		return FALSE;
+		return FALSE; 
 	}
 }
 
@@ -821,9 +821,17 @@ BOOL CNamedIndexedData::Flush(BOOL bClearCache)
 {
 	BOOL	bResult;
 
-	bResult = mcNames.Flush();
-	bResult &= mcData.Flush(bClearCache);
-	return bResult;
+	if (!IsWriteThrough())
+	{
+		bResult = mcNames.Flush();
+		bResult &= mcData.Flush(bClearCache);
+		return bResult;
+	}
+	else
+	{
+		//mcData.ClearCache();  //Seriously, what even is the point of "clear cache"?
+		return TRUE;
+	}
 }
 
 

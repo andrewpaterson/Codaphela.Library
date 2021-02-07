@@ -213,6 +213,29 @@ void CBaseObject::KillInternal(BOOL bHeapFromChanged)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL CBaseObject::Flush(void)
+{
+	BOOL	bResult;
+
+	ValidateNotEmbedded(__METHOD__);
+
+	if (IsDirty())
+	{
+		bResult = GetObjects()->ForceSave(this);
+		SetDirty(FALSE);
+		return bResult;
+	}
+	else
+	{
+		return TRUE;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CBaseObject::InternalFree(void)
 {
 	LOG_OBJECT_DESTRUCTION(this);
@@ -897,9 +920,9 @@ BOOL CBaseObject::TestedForSanity(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::SetDirty(void)
+void CBaseObject::SetDirty(BOOL bDirty)
 {
-	SetFlag(OBJECT_FLAGS_DIRTY, TRUE);
+	SetFlag(OBJECT_FLAGS_DIRTY, bDirty);
 }
 
 
