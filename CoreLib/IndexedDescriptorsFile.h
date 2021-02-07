@@ -42,9 +42,12 @@ public:
 	BOOL			Evict(OIndex oi);
 	BOOL			Flush(OIndex oi);
 
+	OIndex 			StartIteration(SIndexTreeFileIterator* psIterator, void* pvData, size_t* piDataSize, size_t iMaxDataSize);
+	OIndex			Iterate(SIndexTreeFileIterator* psIterator, void* pvData, size_t* piDataSize, size_t iMaxDataSize);
+
 	BOOL			IndexTreeNodeEvicted(void* pvKey, int iKeySize, void* pvData, int iDataSize);
 
-	uint16	IndexTreeDataSize(uint16 uiSourceSize);
+	uint16			IndexTreeDataSize(uint16 uiSourceSize);
 	BOOL			IndexTreeWriteData(void* pvDataBuffer, void* pvSource, int iFileDataSize, uint16 uiSourceDataSize);
 	BOOL			IndexTreeReadData(void* pvDest, void* pvDataBuffer, uint16 uiDestDataSize, int iFileDataSize);
 

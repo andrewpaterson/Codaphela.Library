@@ -57,7 +57,7 @@ public:
 	BOOL					Put(void* pvKey, int iKeySize, void* pvObject, int iDataSize);
 	BOOL					Remove(void* pvKey, int iKeySize);
 	BOOL					HasKey(void* pvKey, int iKeySize);
-	uint16			GetDataSize(void* pvKey, int iKeySize);
+	uint16					GetDataSize(void* pvKey, int iKeySize);
 
 	BOOL					Flush(void);
 
@@ -184,8 +184,8 @@ protected:
 	BOOL					RecurseValidateKeys(CIndexTreeRecursor* pcCursor, BOOL bReadNodes);
 
 	BOOL					StepNext(SIndexTreeFileIterator* psIterator);
-	BOOL					StartIteration(SIndexTreeFileIterator* psIterator, void* pvKey, int* piKeySize, void* pvData, size_t* piDataSize);
-	BOOL					Iterate(SIndexTreeFileIterator* psIterator, void* pvKey, int* piKeySize, void* pvData, size_t* piDataSize);
+	BOOL					StartIteration(SIndexTreeFileIterator* psIterator, void* pvKey, int* piKeySize, int iMaxKeySize, void* pvData, size_t* piDataSize, size_t iMaxDataSize);
+	BOOL					Iterate(SIndexTreeFileIterator* psIterator, void* pvKey, int* piKeySize, int iMaxKeySize, void* pvData, size_t* piDataSize, size_t iMaxDataSize);
 
 	BOOL					FlushDeleted(void);
 	BOOL					FlushDirty(void);

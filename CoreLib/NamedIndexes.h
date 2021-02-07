@@ -61,9 +61,12 @@ public:
 	int64			NumElementsCached(void);
 	BOOL			Flush(void);
 
+	BOOL			StartIteration(SIndexTreeFileIterator* psIterator, char* szKey, OIndex* poi);
+	BOOL			Iterate(SIndexTreeFileIterator* psIterator, char* szKey, OIndex* poi);
+
 	BOOL			IndexTreeNodeEvicted(void* pvKey, int iKeySize, void* pvData, int iDataSize);
 
-	uint16	IndexTreeDataSize(uint16 uiSourceSize);
+	uint16			IndexTreeDataSize(uint16 uiSourceSize);
 	BOOL			IndexTreeWriteData(void* pvDataBuffer, void* pvSource, int iFileDataSize, uint16 uiSourceDataSize);
 	BOOL			IndexTreeReadData(void* pvDest, void* pvDataBuffer, uint16 uiDestDataSize, int iFileDataSize);
 

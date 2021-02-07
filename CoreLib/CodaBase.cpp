@@ -463,3 +463,43 @@ void CCodabase::Dump(void)
 	mcNamedIndexedData.Dump();
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+OIndex CCodabase::StartIndexIteration(SIndexTreeFileIterator* psIterator, void* pvData, size_t* piDataSize, size_t iMaxDataSize)
+{
+	return mcNamedIndexedData.StartIndexIteration(psIterator, pvData, piDataSize, iMaxDataSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+OIndex CCodabase::IndexIterate(SIndexTreeFileIterator* psIterator, void* pvData, size_t* piDataSize, size_t iMaxDataSize)
+{
+	return mcNamedIndexedData.IndexIterate(psIterator, pvData, piDataSize, iMaxDataSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CCodabase::StartNameIteration(SIndexTreeFileIterator* psIterator, char* szKey, OIndex* poi)
+{
+	return mcNamedIndexedData.StartNameIteration(psIterator, szKey, poi);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CCodabase::NameIterate(SIndexTreeFileIterator* psIterator, char* szKey, OIndex* poi)
+{
+	return mcNamedIndexedData.NameIterate(psIterator, szKey, poi);
+}
+

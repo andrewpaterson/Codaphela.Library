@@ -143,7 +143,7 @@ unsigned int CIndexedDataCommon::Size(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedDataCommon::Get(OIndex oi, void* pvData, unsigned int uiMaxSize)
+BOOL CIndexedDataCommon::Get(OIndex oi, void* pvData, size_t uiMaxSize)
 {
 	CIndexedDataDescriptor	cDescriptor;
 	BOOL					bResult;
@@ -168,11 +168,10 @@ BOOL CIndexedDataCommon::Get(OIndex oi, void* pvData, unsigned int uiMaxSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedDataCommon::Get(OIndex oi, unsigned int* puiDataSize, void* pvData, unsigned int uiMaxSize)
+BOOL CIndexedDataCommon::Get(OIndex oi, size_t* puiDataSize, void* pvData, size_t uiMaxSize)
 {
 	CIndexedDataDescriptor	cDescriptor;
 	BOOL					bResult;
-	unsigned int			uiDataSize;
 
 	if (!IsValidIndex(oi))
 	{
@@ -187,12 +186,26 @@ BOOL CIndexedDataCommon::Get(OIndex oi, unsigned int* puiDataSize, void* pvData,
 		return FALSE;
 	}
 
-	uiDataSize = cDescriptor.GetDataSize();
-	SafeAssign(puiDataSize, (int)uiDataSize);
+	return GetData(oi, &cDescriptor, puiDataSize, pvData, uiMaxSize);
+
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexedDataCommon::GetData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, size_t* puiDataSize, void* pvData, size_t uiMaxSize)
+{
+	BOOL	bResult;
+	size_t	uiDataSize;
+
+	uiDataSize = pcDescriptor->GetDataSize();
+	SafeAssign(puiDataSize, uiDataSize);
 
 	if (pvData)
 	{
-		bResult = mcData.GetData(oi, &cDescriptor, pvData, uiMaxSize);
+		bResult = mcData.GetData(oi, pcDescriptor, pvData, uiMaxSize);
 		if (bResult)
 		{
 			return TRUE;
