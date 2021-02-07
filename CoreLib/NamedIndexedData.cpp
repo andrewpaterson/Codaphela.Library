@@ -992,7 +992,10 @@ OIndex CNamedIndexedData::StartIndexIteration(SIndexTreeFileIterator* psIterator
 	{
 		pvHeaderData = pcHeader->GetData();
 		*piDataSize = iDataSize - pcHeader->GetHeaderSize();
-		memcpy(pvData, pvHeaderData, MinDataSize(*piDataSize, iMaxDataSize));
+		if (iMaxDataSize > 0)
+		{
+			memcpy(pvData, pvHeaderData, MinDataSize(*piDataSize, iMaxDataSize));
+		}
 	}
 	
 	cStack.Kill();
@@ -1021,7 +1024,10 @@ OIndex CNamedIndexedData::IndexIterate(SIndexTreeFileIterator* psIterator, void*
 	{
 		pvHeaderData = pcHeader->GetData();
 		*piDataSize = iDataSize - pcHeader->GetHeaderSize();
-		memcpy(pvData, pvHeaderData, MinDataSize(*piDataSize, iMaxDataSize));
+		if (iMaxDataSize > 0)
+		{
+			memcpy(pvData, pvHeaderData, MinDataSize(*piDataSize, iMaxDataSize));
+		}
 	}
 
 	cStack.Kill();
