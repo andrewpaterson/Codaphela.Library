@@ -101,12 +101,14 @@
     <ClCompile Include="IndexedDataAccess.cpp" />
     <ClCompile Include="IndexedDataCommon.cpp" />
     <ClCompile Include="IndexedDataEvictedList.cpp" />
+    <ClCompile Include="IndexedDataEvictionCounter.cpp" />
     <ClCompile Include="IndexedMap.cpp" />
     <ClCompile Include="IndexedDescriptorsFile.cpp" />
     <ClCompile Include="IndexedFilesEvicting.cpp" />
     <ClCompile Include="IndexedGeneral.cpp" />
     <ClCompile Include="IndexTreeEvictedList.cpp" />
     <ClCompile Include="IndexTreeEvictionCallbackWrapper.cpp" />
+    <ClCompile Include="IndexTreeEvictionCounter.cpp" />
     <ClCompile Include="IndexTreeEvictionStrategyDataOrderer.cpp" />
     <ClCompile Include="IndexTreeEvictionStrategy.cpp" />
     <ClCompile Include="IndexTreeEvictionStrategyFactory.cpp" />
@@ -192,6 +194,9 @@
     <ClInclude Include="Codabase.h" />
     <ClInclude Include="CodabaseFactory.h" />
     <ClInclude Include="DataConnection.h" />
+    <ClInclude Include="IndexedDataEvictionCallback.h" />
+    <ClInclude Include="IndexedDataEvictionCounter.h" />
+    <ClInclude Include="IndexTreeEvictionCounter.h" />
     <ClInclude Include="IndexTreeEvictionCallbackWrapper.h" />
     <ClInclude Include="IndexTreeEvictionStrategyDataOrderer.h" />
     <ClInclude Include="IndexTreeEvictionStrategyFactory.h" />
@@ -205,7 +210,6 @@
     <ClInclude Include="IndexedDataConfig.h" />
     <ClInclude Include="IndexedDataAccess.h" />
     <ClInclude Include="IndexedDataCommon.h" />
-    <ClInclude Include="IndexedEvictionCallback.h" />
     <ClInclude Include="IndexedDataEvictedList.h" />
     <ClInclude Include="IndexedMap.h" />
     <ClInclude Include="IndexedFilesEvictionCallback.h" />
