@@ -15,6 +15,13 @@
 #include "IndexWriteThrough.h"
 
 
+struct SIndexTreeFileUnsafeIterator
+{
+	CIndexTreeNodeFile*		pcNode;
+	int						iIndex;
+};
+
+
 struct SIndexTreeFileIterator
 {
 	CIndexTreeNodeFile*		pcNode;
@@ -61,10 +68,10 @@ public:
 
 	BOOL					Flush(void);
 
-	BOOL					StartUnsafeIteration(SIndexTreeFileIterator* psIterator, char* pvKey, int* piKeySize, void** ppvData, size_t* piDataSize);
-	BOOL					UnsafeIterate(SIndexTreeFileIterator* psIterator, char* pvKey, int* piKeySize, void** ppvData, size_t* piDataSize);
-	BOOL					StartUnsafeIteration(SIndexTreeFileIterator* psIterator, void** ppvData, size_t* piDataSize);
-	BOOL					UnsafeIterate(SIndexTreeFileIterator* psIterator, void** ppvData, size_t* piDataSize);
+	BOOL					StartUnsafeIteration(SIndexTreeFileUnsafeIterator* psIterator, char* pvKey, int* piKeySize, void** ppvData, size_t* piDataSize);
+	BOOL					UnsafeIterate(SIndexTreeFileUnsafeIterator* psIterator, char* pvKey, int* piKeySize, void** ppvData, size_t* piDataSize);
+	BOOL					StartUnsafeIteration(SIndexTreeFileUnsafeIterator* psIterator, void** ppvData, size_t* piDataSize);
+	BOOL					UnsafeIterate(SIndexTreeFileUnsafeIterator* psIterator, void** ppvData, size_t* piDataSize);
 
 	BOOL					Evict(void* pvKey, int iKeySize);
 	BOOL					Flush(void* pvKey, int iKeySize);
@@ -186,6 +193,8 @@ protected:
 	BOOL					StepNext(SIndexTreeFileIterator* psIterator);
 	BOOL					StartIteration(SIndexTreeFileIterator* psIterator, void* pvKey, int* piKeySize, int iMaxKeySize, void* pvData, size_t* piDataSize, size_t iMaxDataSize);
 	BOOL					Iterate(SIndexTreeFileIterator* psIterator, void* pvKey, int* piKeySize, int iMaxKeySize, void* pvData, size_t* piDataSize, size_t iMaxDataSize);
+
+	BOOL					StepNext(SIndexTreeFileUnsafeIterator* psIterator);
 
 	BOOL					FlushDeleted(void);
 	BOOL					FlushDirty(void);

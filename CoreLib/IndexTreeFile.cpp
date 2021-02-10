@@ -1900,7 +1900,7 @@ void CIndexTreeFile::SetWriteThrough(EIndexWriteThrough eWriteThrough)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeFile::StartIteration(SIndexTreeFileIterator* psIterator, void* pvKey, int* piKeySize, int iMaxKeySize, void* pvData, size_t* piDataSize, size_t iMaxDataSize)
 {
-	//This is not safe.  SIndexTreeFileIterator.CIndexTreeNodeFile* pcNode can be reallocated during iteration.
+	//This is not safe.  SIndexTreeFileUnsafeIterator.CIndexTreeNodeFile* pcNode can be reallocated during iteration.
 	psIterator->pcNode = mpcRoot;
 	psIterator->iIndex = mpcRoot->GetFirstIndex();
 
@@ -1944,7 +1944,7 @@ BOOL CIndexTreeFile::Iterate(SIndexTreeFileIterator* psIterator, void* pvKey, in
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::StartUnsafeIteration(SIndexTreeFileIterator* psIterator, char* pvKey, int* piKeySize, void** ppvData, size_t* piDataSize)
+BOOL CIndexTreeFile::StartUnsafeIteration(SIndexTreeFileUnsafeIterator* psIterator, char* pvKey, int* piKeySize, void** ppvData, size_t* piDataSize)
 {
 	psIterator->pcNode = mpcRoot;
 	psIterator->iIndex = mpcRoot->GetFirstIndex();
@@ -1957,7 +1957,7 @@ BOOL CIndexTreeFile::StartUnsafeIteration(SIndexTreeFileIterator* psIterator, ch
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::UnsafeIterate(SIndexTreeFileIterator* psIterator, char* pvKey, int* piKeySize, void** pvData, size_t* piDataSize)
+BOOL CIndexTreeFile::UnsafeIterate(SIndexTreeFileUnsafeIterator* psIterator, char* pvKey, int* piKeySize, void** pvData, size_t* piDataSize)
 {
 	void*	pvDataTemp;
 	int		iKeySize;
@@ -2002,7 +2002,7 @@ BOOL CIndexTreeFile::UnsafeIterate(SIndexTreeFileIterator* psIterator, char* pvK
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::StartUnsafeIteration(SIndexTreeFileIterator* psIterator, void** ppvData, size_t* piDataSize)
+BOOL CIndexTreeFile::StartUnsafeIteration(SIndexTreeFileUnsafeIterator* psIterator, void** ppvData, size_t* piDataSize)
 {
 	return StartUnsafeIteration(psIterator, NULL, NULL, ppvData, piDataSize);
 }
@@ -2012,7 +2012,7 @@ BOOL CIndexTreeFile::StartUnsafeIteration(SIndexTreeFileIterator* psIterator, vo
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::UnsafeIterate(SIndexTreeFileIterator* psIterator, void** ppvData, size_t* piDataSize)
+BOOL CIndexTreeFile::UnsafeIterate(SIndexTreeFileUnsafeIterator* psIterator, void** ppvData, size_t* piDataSize)
 {
 	return UnsafeIterate(psIterator, NULL, NULL, ppvData, piDataSize);
 }
@@ -2121,6 +2121,58 @@ BOOL CIndexTreeFile::StepNext(SIndexTreeFileIterator* psIterator)
 {
 	CIndexTreeNodeFile*		pcChildNode;
 	CIndexTreeNodeFile*		pcParent;
+	int						iCount;
+
+	iCount = 0;
+	for (;;)
+	{
+		pcChildNode = ReadNode(psIterator->pcNode, psIterator->iIndex);
+
+		if (pcChildNode != NULL)
+		{
+			psIterator->pcNode = pcChildNode;
+			psIterator->iIndex = pcChildNode->GetFirstIndex();
+
+			if (HasData(pcChildNode))
+			{
+				return TRUE;
+			}
+			iCount++;
+		}
+		else
+		{
+			for (;;)
+			{
+				psIterator->iIndex++;
+				if (psIterator->iIndex > psIterator->pcNode->GetLastIndex())
+				{
+					pcParent = (CIndexTreeNodeFile*)psIterator->pcNode->GetParent();
+					if (pcParent == NULL)
+					{
+						return FALSE;
+					}
+					psIterator->iIndex = psIterator->pcNode->GetIndexInParent();
+					psIterator->pcNode = pcParent;
+				}
+				else
+				{
+					break;
+				}
+			}
+		}
+	}
+	//Should probably return something.
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeFile::StepNext(SIndexTreeFileUnsafeIterator* psIterator)
+{
+	CIndexTreeNodeFile* pcChildNode;
+	CIndexTreeNodeFile* pcParent;
 	int						iCount;
 
 	iCount = 0;
