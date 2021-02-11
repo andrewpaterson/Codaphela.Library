@@ -93,6 +93,10 @@ public:
 	BOOL			StartNameIteration(SIndexTreeFileIterator* psIterator, char* szKey, OIndex* poi);
 	BOOL			NameIterate(SIndexTreeFileIterator* psIterator, char* szKey, OIndex* poi);
 
+	size_t			GetIndiciesSystemMemorySize(void);
+	size_t			GetDataSystemMemorySize(void);
+	size_t			GetNamesSystemMemorySize(void);
+
 	void			Dump(void);
 
 private:

@@ -26,6 +26,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "Chars.h"
 
 
+class CRandom;
 typedef CArrayTemplate<CChars>	__CArrayChars;
 class CArrayChars
 {
@@ -71,6 +72,7 @@ public:
 	BOOL		ContainsSubString(char* szText);
 	void		QuickSort(BOOL bCaseSensitive = TRUE);
 	void		BubbleSort(BOOL bCaseSensitive = TRUE);
+	void		Shuffle(CRandom* pcRandom = NULL);
 	BOOL		Split(char* szString, char cSplitter);
 	void		Finalise(void);
 	void		Dump(void);

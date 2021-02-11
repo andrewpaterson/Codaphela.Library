@@ -9,6 +9,7 @@ private:
 	std::mt19937	mcRNG;
 
 public:
+	void	Init(void);
 	void	Init(int iSeed);
 	void	Kill(void);
 		

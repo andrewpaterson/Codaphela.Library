@@ -10,14 +10,15 @@ protected:
 	CRandom		mcRandom;
 
 public:
-	void	Init(void);
-	void	Init(int iSeed);
-	void	Kill(void);
+	void		Init(void);
+	void		Init(int iSeed);
+	void		Kill(void);
 
-	BOOL	Run(CIndexTreeNodeFile* pcDontEvict);
+	BOOL		Run(CIndexTreeNodeFile* pcDontEvict);
+	CRandom*	GetRandom(void);
 
 protected:
-	BOOL	EvictRandomNode(CIndexTreeNodeFile* pcDontEvict);
+	BOOL		EvictRandomNode(CIndexTreeNodeFile* pcDontEvict);
 };
 
 

@@ -80,6 +80,7 @@ protected:
 	int						GetNodeKeySize(CIndexTreeNodeFile* pcNode);
 
 	size_t					GetSystemMemorySize(void);
+	size_t					GetUserMemorySize(void);
 	unsigned char			GetRootFlags(void);
 
 	int						PotentiallyEvict(void* pvKey, int iKeySize);
