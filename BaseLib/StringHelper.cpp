@@ -149,6 +149,38 @@ int MemICmp(const void* pv1, const void* pv2, int iLength)
 //
 //
 ////////////////////////////////////////////////////////////////////////////////////
+void MemSwp(const void* pv1, const void* pv2, int iLength)
+{
+	int i;
+	int iIntLength;
+	int	iTemp;
+	int iRemainder;
+	char cTemp;
+	int iCharIndex;
+	
+	iIntLength = iLength / sizeof(int);
+	iRemainder = iLength % sizeof(int);
+	for (i = 0; i < iIntLength; i++)
+	{
+		iTemp = ((int*)pv1)[i];
+		((int*)pv1)[i] = ((int*)pv2)[i];
+		((int*)pv2)[i] = iTemp;
+	}
+
+	iCharIndex = iIntLength * sizeof(int);
+	for (i = 0; i < iRemainder; i++)
+	{
+		cTemp = ((char*)pv1)[iCharIndex + i];
+		((char*)pv1)[iCharIndex + i] = ((char*)pv2)[iCharIndex + i];
+		((char*)pv2)[iCharIndex + i] = cTemp;
+	}
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////
+//
+//
+////////////////////////////////////////////////////////////////////////////////////
 char* IToA(int iValue, char* szResult, int iBase)
 {
 	char	szDigits[] = "0123456789abcdef";

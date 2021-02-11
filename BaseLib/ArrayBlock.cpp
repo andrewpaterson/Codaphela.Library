@@ -1,6 +1,7 @@
 #include "SystemAllocator.h"
 #include "GlobalMemory.h"
 #include "ArraySizer.h"
+#include "StdRandom.h"
 #include "ArrayBlock.h"
 
 
@@ -967,31 +968,14 @@ BOOL CArrayBlock::Equals(CArrayBlock* pcTemplateArray)
 //////////////////////////////////////////////////////////////////////////
 void CArrayBlock::Swap(int iIndex1, int iIndex2)
 {
-	void*	pvTemp;
 	void*	pElement1;
 	void*	pElement2;
 
-	//Only allocate memory if we don't already have temporary memory assigned.
-	if (miUsedElements < miNumElements)
-	{
-		pvTemp = Get(miUsedElements);
-	}
-	else
-	{
-		pvTemp = (void*)Malloc(miElementSize);
-	}
 
 	pElement1 = Get(iIndex1);
 	pElement2 = Get(iIndex2);
-	memcpy(pvTemp, pElement1, miElementSize);
-	memcpy(pElement1, pElement2, miElementSize);
-	memcpy(pElement2, pvTemp, miElementSize);
 
-	//Free any memory we had to allocate.
-	if (miUsedElements == miNumElements)
-	{
-		Free(pvTemp);
-	}
+	MemSwp(pElement1, pElement2, miElementSize);
 }
 
 
@@ -1145,6 +1129,43 @@ void CArrayBlock::Reverse(void)
 	for (i = 0; i < iCount; i++)
 	{
 		Swap(i, miUsedElements-i-1);
+	}
+}
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CArrayBlock::Shuffle(CRandom* pcRandom)
+{
+	int			i;
+	int			iNumElements;
+	CRandom		cRandom;
+	BOOL		bKillRandom;
+	int			iIndex;
+
+	bKillRandom = FALSE;
+	if (pcRandom == NULL)
+	{
+		cRandom.Init();
+		bKillRandom = TRUE;
+		pcRandom = &cRandom;
+	}
+
+	iIndex = 0;
+	iNumElements = NumElements();
+	for (i = 0; i < iNumElements; i++)
+	{
+		iIndex = cRandom.Next(i, iNumElements - 1);
+		Swap(i, iIndex);
+	}
+
+	if (bKillRandom)
+	{
+		pcRandom = NULL;
+		cRandom.Kill();
 	}
 }
 

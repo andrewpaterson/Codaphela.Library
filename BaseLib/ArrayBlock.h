@@ -23,6 +23,7 @@ struct SArrayTemplateHeader
 //For constant element pointers take a look at CListBlock.
 
 //For variable sized elements take a look at CListVariable.
+class CRandom; 
 class CArrayBlock : public CMalloc, protected SArrayTemplateHeader
 {
 protected:
@@ -93,6 +94,7 @@ public:
 	void	BubbleSort(int(*fCompare)(const void*, const void*));
 	void	QuickSort(int(*fCompare)(const void*, const void*));
 	void	Reverse(void);
+	void	Shuffle(CRandom* pcRandom = NULL);
 
 	BOOL	Contains(void* pData);
 	BOOL	Equals(CArrayBlock* pcTemplateArray);
