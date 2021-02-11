@@ -63,7 +63,6 @@ protected:
 
 	BOOL				CompareDiskToMemory(CIndexedDataDescriptor* pcDescriptor, void* pvData);
 	BOOL				ClearDescriptorCache(SIndexedCacheDescriptor* psCached);
-	unsigned int		MinDataSize(unsigned int uiDataSize, unsigned int uiMaxDataSize);
 
 	BOOL				CacheDataEvicted(void* pvData, SMemoryCacheDescriptor* psDescriptor);
 };

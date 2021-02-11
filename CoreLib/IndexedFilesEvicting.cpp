@@ -2,6 +2,7 @@
 #include "BaseLib/LogString.h"
 #include "BaseLib/MemoryCacheAllocation.h"
 #include "BaseLib/StackMemory.h"
+#include "BaseLib/IndexTree.h"
 #include "IndexedFilesEvictionCallback.h"
 #include "IndexedFilesEvicting.h"
 
@@ -105,27 +106,6 @@ BOOL CIndexedFilesEvicting::GetData(OIndex oi, CIndexedDataDescriptor* pcExistin
 			cDataIndex = pcExistingDescriptor->GetFileDataIndex();
 			return mcDataFiles.Read(&cDataIndex, pvData);
 		}
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-unsigned int CIndexedFilesEvicting::MinDataSize(unsigned int uiDataSize, unsigned int uiMaxDataSize)
-{
-	if (uiMaxDataSize == 0)
-	{
-		return uiDataSize;
-	}
-	else if (uiMaxDataSize > uiDataSize)
-	{
-		return uiDataSize;
-	}
-	else
-	{
-		return uiMaxDataSize;
 	}
 }
 

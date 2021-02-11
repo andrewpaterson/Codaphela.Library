@@ -42,26 +42,26 @@ public:
 			BOOL	PutKeyInt(void* pvKey, int iKeySize, int iData);
 			BOOL	PutKeyString(void* pvKey, int iKeySize, char* pszData);
 
-			char*	GetLongString(int64 lliKey, char* pszDest);
-			int		GetLongInt(int64 lliKey, int iNUllValue = -1);
-			int64	GetLongLong(int64 lliKey, int64 lliNUllValue = -1);
-			char	GetLongChar(int64 lliKey, char cNUllValue = -1);
-			BOOL	GetLongData(int64 lliKey, void* pvData, size_t* piDataSize = NULL);
+			char*	GetLongString(int64 lliKey, char* pszDest, size_t uiMaxDataSize = 0);
+			int		GetLongInt(int64 lliKey, int iNullValue = -1);
+			int64	GetLongLong(int64 lliKey, int64 lliNullValue = -1);
+			char	GetLongChar(int64 lliKey, char cNullValue = -1);
+			BOOL	GetLongData(int64 lliKey, void* pvData, size_t* piDataSize = NULL, size_t uiMaxDataSize = 0);
 			void*	GetLongPtr(int64 lliKey);
-			char*	GetIntString(int iKey, char* pszDest);
-			int		GetIntInt(int iKey, int iNUllValue = -1);
+			char*	GetIntString(int iKey, char* pszDest, size_t uiMaxDataSize = 0);
+			int		GetIntInt(int iKey, int iNullValue = -1);
 			int64	GetIntLong(int iKey, int64 iNullValue = -1LL);
-			char	GetIntChar(int iKey, char cNUllValue = -1);
-			BOOL	GetIntData(int iKey, void* pvData, size_t* piDataSize = NULL);
-			BOOL	GetStringData(char* pszKey, void* pvData, size_t* piDataSize = NULL);
-			char*	GetStringString(char* pszKey, char* pszDest);
-			CChars	GetStringString(char* pszKey);
+			char	GetIntChar(int iKey, char cNullValue = -1);
+			BOOL	GetIntData(int iKey, void* pvData, size_t* piDataSize = NULL, size_t uiMaxDataSize = 0);
+			BOOL	GetStringData(char* pszKey, void* pvData, size_t* piDataSize = NULL, size_t uiMaxDataSize = 0);
+			char*	GetStringString(char* pszKey, char* pszDest, size_t uiMaxDataSize = 0);
+			CChars	GetStringString(char* pszKey, size_t uiMaxDataSize = 0);
 			char	GetStringChar(char* pszKey, char iNullValue = -1);
 			int		GetStringInt(char* pszKey, int iNullValue = -1);
 			int64	GetStringLong(char* pszKey, int64 iNullValue = -1LL);
 			void*	GetStringPtr(char* pszKey);
-			char*	GetKeyString(void* pvKey, int iKeySize, char* pszDest);
-			BOOL	GetKeyData(void* pvKey, int iKeySize, void* pvData, size_t* piDataSize);
+			char*	GetKeyString(void* pvKey, int iKeySize, char* pszDest, size_t uiMaxDataSize = 0);
+			BOOL	GetKeyData(void* pvKey, int iKeySize, void* pvData, size_t* piDataSize, size_t uiMaxDataSize = 0);
 
 			BOOL	HasLong(int64 lliKey);
 			BOOL	HasInt(int iKey);
@@ -91,7 +91,7 @@ public:
 
 protected:
 	virtual BOOL	Put(void* pvKey, int iKeySize, void* pvData, size_t iDataSize) =0;
-	virtual BOOL	Get(void* pvKey, int iKeySize, void* pvData, size_t* piDataSize) =0;
+	virtual BOOL	Get(void* pvKey, int iKeySize, void* pvData, size_t* piDataSize, size_t uiMaxDataSize) =0;
 	virtual int		DataSize(void* pvKey, int iKeySize) =0;
 	virtual BOOL	Remove(void* pvKey, int iKeySize) =0;
 	virtual BOOL	Has(void* pvKey, int iKeySize) =0;

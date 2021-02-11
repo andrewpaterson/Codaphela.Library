@@ -1,6 +1,7 @@
 #ifndef __INDEX_TREE_H__
 #define __INDEX_TREE_H__
 #include "Chars.h"
+#include "PrimitiveTypes.h"
 #include "Numbers.h"
 #include "ArrayVoidPtr.h"
 #include "ArrayTemplateEmbedded.h"
@@ -78,10 +79,12 @@ protected:
 
 	virtual	int					GetNodeKey(CIndexTreeNode* pcNode, char* pvDestKey, int iDestKeySize) =0;
 	virtual	int					GetNodeKeySize(CIndexTreeNode* pcNode) =0;
-	virtual	int					GetNodeDataSize(CIndexTreeNode* pcNode) =0;
-	virtual	int					GetNodeData(CIndexTreeNode* pcNode, void* pvDestData, int iDestDataSize) =0;
+	virtual	uint16				GetNodeDataSize(CIndexTreeNode* pcNode) =0;
+	virtual	uint16				GetNodeData(CIndexTreeNode* pcNode, void* pvDestData, int iDestDataSize) =0;
 };
 
+
+size_t MinDataSize(size_t uiDataSize, size_t uiMaxDataSize);
 
 #endif // __INDEX_TREE_H__
 

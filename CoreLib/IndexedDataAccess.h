@@ -21,7 +21,7 @@ public:
 
 protected:
 	BOOL	Put(void* pvKey, int iKeySize, void* pvData, size_t iDataSize);
-	BOOL	Get(void* pvKey, int iKeySize, void* pvData, size_t* piDataSize);
+	BOOL	Get(void* pvKey, int iKeySize, void* pvData, size_t* piDataSize, size_t uiMaxDataSize);
 	int		DataSize(void* pvKey, int iKeySize);
 	BOOL	Remove(void* pvKey, int iKeySize);
 	BOOL	Has(void* pvKey, int iKeySize);

@@ -626,11 +626,10 @@ BOOL CIndexTreeFile::HasMemoryNodes(CIndexTreeNodeFile* pcNode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::Get(void* pvKey, int iKeySize, void* pvData, size_t* piDataSize)
+BOOL CIndexTreeFile::Get(void* pvKey, int iKeySize, void* pvData, size_t* piDataSize, size_t uiMaxDataSize)
 {
 	CIndexTreeNodeFile* pcNode;
-	void*				pv;
-	uint16		uiDataSize;
+	uint16				uiDataSize;
 
 	pcNode = GetNode(pvKey, iKeySize);
 	if (pcNode == NULL)
@@ -639,19 +638,12 @@ BOOL CIndexTreeFile::Get(void* pvKey, int iKeySize, void* pvData, size_t* piData
 	}
 	else
 	{
-		if (HasData(pcNode))
+		uiDataSize = GetNodeData(pcNode, pvData, uiMaxDataSize);
+		if (uiDataSize != 0)
 		{
-			uiDataSize = pcNode->GetDataSize();
-
 			GetReorderData(pcNode);
 
 			SafeAssign(piDataSize, uiDataSize);
-
-			pv = pcNode->GetDataPtr();
-			if (pvData)
-			{
-				memcpy(pvData, pv, uiDataSize);
-			}
 
 			if (mpcDiagnosticCallback)
 			{
@@ -1900,11 +1892,25 @@ void CIndexTreeFile::SetWriteThrough(EIndexWriteThrough eWriteThrough)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeFile::StartIteration(SIndexTreeFileIterator* psIterator, void* pvKey, int* piKeySize, int iMaxKeySize, void* pvData, size_t* piDataSize, size_t iMaxDataSize)
 {
-	//This is not safe.  SIndexTreeFileUnsafeIterator.CIndexTreeNodeFile* pcNode can be reallocated during iteration.
-	psIterator->pcNode = mpcRoot;
-	psIterator->iIndex = mpcRoot->GetFirstIndex();
+	SIndexTreeFileUnsafeIterator	sIter;
+	size_t							iDataSize;
+	BOOL							bResult;
 
-	return Iterate(psIterator, pvKey, piKeySize, iMaxKeySize, pvData, piDataSize, iMaxDataSize);
+	memset(psIterator->pvKey, 0, MAX_KEY_SIZE);
+	psIterator->iIndex = mpcRoot->GetFirstIndex();
+	psIterator->iKeyLength = 0;
+	
+	bResult = StartUnsafeIteration(&sIter, psIterator->pvKey, &psIterator->iKeyLength, iMaxKeySize, NULL, NULL);
+	psIterator->iIndex = sIter.iIndex;
+
+	if (bResult)
+	{
+		memcpy(pvKey, psIterator->pvKey, MinDataSize(psIterator->iKeyLength, iMaxKeySize));
+		SafeAssign(piKeySize, psIterator->iKeyLength);
+		iDataSize = GetNodeData(sIter.pcNode, pvData, iMaxDataSize);
+		SafeAssign(piDataSize, iDataSize);
+	}
+	return bResult;
 }
 
 
@@ -1914,29 +1920,32 @@ BOOL CIndexTreeFile::StartIteration(SIndexTreeFileIterator* psIterator, void* pv
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeFile::Iterate(SIndexTreeFileIterator* psIterator, void* pvKey, int* piKeySize, int iMaxKeySize, void* pvData, size_t* piDataSize, size_t iMaxDataSize)
 {
-	int		iKeySize;
-	size_t	iDataSize;
+	SIndexTreeFileUnsafeIterator	sIter;
+	size_t							iDataSize;
+	BOOL							bResult;
 
-	if (StepNext(psIterator))
-	{
-		iDataSize = psIterator->pcNode->GetDataSize();
-		*piDataSize = iDataSize;
-		if (iDataSize > iMaxDataSize)
-		{
-			iDataSize = iMaxDataSize;
-		}
-		memcpy(pvData, psIterator->pcNode->GetDataPtr(), iDataSize);
-		iKeySize = GetNodeKey(psIterator->pcNode, (char*)pvKey, iMaxKeySize);
-		*piKeySize = iKeySize;
+	sIter.iIndex = psIterator->iIndex;
+	sIter.pcNode = GetNode(psIterator->pvKey, psIterator->iKeyLength);
 
-		GetReorderData(psIterator->pcNode);
-
-		return TRUE;
-	}
-	else
+	if (!sIter.pcNode)
 	{
 		return FALSE;
 	}
+
+	bResult = UnsafeIterate(&sIter, (char*)psIterator->pvKey, &psIterator->iKeyLength, iMaxKeySize, NULL, NULL);
+	psIterator->iIndex = sIter.iIndex;
+
+	if (bResult)
+	{
+		if (pvKey)
+		{
+			memcpy(pvKey, psIterator->pvKey, MinDataSize(psIterator->iKeyLength, iMaxKeySize));
+		}
+		SafeAssign(piKeySize, psIterator->iKeyLength);
+		iDataSize = GetNodeData(sIter.pcNode, pvData, iMaxDataSize);
+		SafeAssign(piDataSize, iDataSize);
+	}
+	return bResult;
 }
 
 
@@ -1944,12 +1953,12 @@ BOOL CIndexTreeFile::Iterate(SIndexTreeFileIterator* psIterator, void* pvKey, in
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::StartUnsafeIteration(SIndexTreeFileUnsafeIterator* psIterator, char* pvKey, int* piKeySize, void** ppvData, size_t* piDataSize)
+BOOL CIndexTreeFile::StartUnsafeIteration(SIndexTreeFileUnsafeIterator* psIterator, char* pvKey, int* piKeySize, int iMaxKeySize, void** ppvData, size_t* piDataSize)
 {
 	psIterator->pcNode = mpcRoot;
 	psIterator->iIndex = mpcRoot->GetFirstIndex();
 
-	return UnsafeIterate(psIterator, pvKey, piKeySize, ppvData, piDataSize);
+	return UnsafeIterate(psIterator, pvKey, piKeySize, iMaxKeySize, ppvData, piDataSize);
 }
 
 
@@ -1957,7 +1966,7 @@ BOOL CIndexTreeFile::StartUnsafeIteration(SIndexTreeFileUnsafeIterator* psIterat
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::UnsafeIterate(SIndexTreeFileUnsafeIterator* psIterator, char* pvKey, int* piKeySize, void** pvData, size_t* piDataSize)
+BOOL CIndexTreeFile::UnsafeIterate(SIndexTreeFileUnsafeIterator* psIterator, char* pvKey, int* piKeySize, int iMaxKeySize, void** pvData, size_t* piDataSize)
 {
 	void*	pvDataTemp;
 	int		iKeySize;
@@ -1967,7 +1976,6 @@ BOOL CIndexTreeFile::UnsafeIterate(SIndexTreeFileUnsafeIterator* psIterator, cha
 		pvDataTemp = psIterator->pcNode->GetDataPtr();
 		if (pvData)
 		{
-
 			*pvData = pvDataTemp;
 		}
 		if (piDataSize)
@@ -1976,7 +1984,7 @@ BOOL CIndexTreeFile::UnsafeIterate(SIndexTreeFileUnsafeIterator* psIterator, cha
 		}
 		if (pvKey) 
 		{
-			iKeySize = GetNodeKey(psIterator->pcNode, pvKey, MAX_KEY_SIZE);
+			iKeySize = GetNodeKey(psIterator->pcNode, pvKey, iMaxKeySize);
 			if (piKeySize)
 			{
 				*piKeySize = iKeySize;
@@ -2004,7 +2012,7 @@ BOOL CIndexTreeFile::UnsafeIterate(SIndexTreeFileUnsafeIterator* psIterator, cha
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeFile::StartUnsafeIteration(SIndexTreeFileUnsafeIterator* psIterator, void** ppvData, size_t* piDataSize)
 {
-	return StartUnsafeIteration(psIterator, NULL, NULL, ppvData, piDataSize);
+	return StartUnsafeIteration(psIterator, NULL, NULL, miMaxDataSize, ppvData, piDataSize);
 }
 
 
@@ -2014,7 +2022,7 @@ BOOL CIndexTreeFile::StartUnsafeIteration(SIndexTreeFileUnsafeIterator* psIterat
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeFile::UnsafeIterate(SIndexTreeFileUnsafeIterator* psIterator, void** ppvData, size_t* piDataSize)
 {
-	return UnsafeIterate(psIterator, NULL, NULL, ppvData, piDataSize);
+	return UnsafeIterate(psIterator, NULL, NULL, miMaxDataSize, ppvData, piDataSize);
 }
 
 
@@ -2117,51 +2125,61 @@ CListCharsMinimal* CIndexTreeFile::GetNodesStringKeys(CArrayVoidPtr* apvNodes)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::StepNext(SIndexTreeFileIterator* psIterator)
+CIndexTreeNodeFile* CIndexTreeFile::StepNext(SIndexTreeFileIterator* psIterator)
 {
 	CIndexTreeNodeFile*		pcChildNode;
 	CIndexTreeNodeFile*		pcParent;
 	int						iCount;
+	CIndexTreeNodeFile*		pcNode;
+	int						iIndex;
 
 	iCount = 0;
-	for (;;)
+	iIndex = psIterator->iIndex;
+	pcNode = GetNode(psIterator->pvKey, psIterator->iKeyLength);
+
+	if (pcNode)
 	{
-		pcChildNode = ReadNode(psIterator->pcNode, psIterator->iIndex);
-
-		if (pcChildNode != NULL)
+		for (;;)
 		{
-			psIterator->pcNode = pcChildNode;
-			psIterator->iIndex = pcChildNode->GetFirstIndex();
+			pcChildNode = ReadNode(pcNode, iIndex);
 
-			if (HasData(pcChildNode))
+			if (pcChildNode != NULL)
 			{
-				return TRUE;
-			}
-			iCount++;
-		}
-		else
-		{
-			for (;;)
-			{
-				psIterator->iIndex++;
-				if (psIterator->iIndex > psIterator->pcNode->GetLastIndex())
+				pcNode = pcChildNode;
+				iIndex = pcChildNode->GetFirstIndex();
+
+				if (HasData(pcChildNode))
 				{
-					pcParent = (CIndexTreeNodeFile*)psIterator->pcNode->GetParent();
-					if (pcParent == NULL)
-					{
-						return FALSE;
-					}
-					psIterator->iIndex = psIterator->pcNode->GetIndexInParent();
-					psIterator->pcNode = pcParent;
+					psIterator->iKeyLength = GetNodeKey(pcChildNode, psIterator->pvKey, MAX_KEY_SIZE);
+					psIterator->iIndex = iIndex;
+					return pcChildNode;
 				}
-				else
+				iCount++;
+			}
+			else
+			{
+				for (;;)
 				{
-					break;
+					iIndex++;
+					if (iIndex > pcNode->GetLastIndex())
+					{
+						pcParent = (CIndexTreeNodeFile*)pcNode->GetParent();
+						if (pcParent == NULL)
+						{
+							return NULL;
+						}
+						iIndex = pcNode->GetIndexInParent();
+						pcNode = pcParent;
+					}
+					else
+					{
+						break;
+					}
 				}
 			}
 		}
 	}
-	//Should probably return something.
+	return NULL;
 }
 
 
@@ -2276,7 +2294,6 @@ BOOL CIndexTreeFile::RecurseValidateKeys(CIndexTreeRecursor* pcCursor, BOOL bRea
 	CStackMemory<>			cStack;
 	char*					pcKey;
 	int						iKeySize;
-	size_t					iDataSize;
 
 	pcNode = (CIndexTreeNodeFile*)pcCursor->GetNode();
 	if (pcNode != NULL)
@@ -2297,7 +2314,7 @@ BOOL CIndexTreeFile::RecurseValidateKeys(CIndexTreeRecursor* pcCursor, BOOL bRea
 			}
 
 
-			bResult = Get(pcKey, iKeySize, NULL, &iDataSize);
+			bResult = Get(pcKey, iKeySize, NULL, NULL, NULL);
 			if (!bResult)
 			{
 				pcCursor->GenerateBad();
@@ -4068,7 +4085,7 @@ int CIndexTreeFile::GetNodeKey(CIndexTreeNode* pcNode, char* pvDestKey, int iDes
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CIndexTreeFile::GetNodeDataSize(CIndexTreeNode* pcNode)
+uint16 CIndexTreeFile::GetNodeDataSize(CIndexTreeNode* pcNode)
 {
 	if (HasData((CIndexTreeNodeFile*)pcNode))
 	{
@@ -4085,7 +4102,7 @@ int CIndexTreeFile::GetNodeDataSize(CIndexTreeNode* pcNode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CIndexTreeFile::GetNodeData(CIndexTreeNode* pcNode, void* pvDestData, int iDestDataSize)
+uint16 CIndexTreeFile::GetNodeData(CIndexTreeNode* pcNode, void* pvDestData, int iDestDataSize)
 {
 	int				iDataSize;
 	void*			pvData;
@@ -4094,14 +4111,7 @@ int CIndexTreeFile::GetNodeData(CIndexTreeNode* pcNode, void* pvDestData, int iD
 	{
 		iDataSize = pcNode->GetDataSize();
 		pvData = pcNode->GetDataPtr();
-		if (iDataSize > iDestDataSize)
-		{
-			memcpy_fast(pvDestData, pvData, iDestDataSize);
-		}
-		else
-		{
-			memcpy_fast(pvDestData, pvData, iDataSize);
-		}
+		memcpy(pvDestData, pvData, MinDataSize(iDataSize, iDestDataSize));
 		return iDataSize;
 	}
 	return 0;

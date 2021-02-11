@@ -1,5 +1,6 @@
 #ifndef __INDEX_TREE_MEMORY_H__
 #define __INDEX_TREE_MEMORY_H__
+#include "PrimitiveTypes.h"
 #include "IndexTreeNodeMemory.h"
 #include "IndexTreeRecursor.h"
 #include "IndexTreeMemoryConfig.h"
@@ -35,7 +36,7 @@ public:
 	void*					Put(void* pvKey, int iKeySize, void* pvObject, size_t iDataSize);
 	BOOL					Remove(void* pvKey, int iKeySize);
 	BOOL					HasKey(void* pvKey, int iKeySize);
-	uint16			GetDataSize(void* pvKey, int iKeySize);
+	uint16					GetDataSize(void* pvKey, int iKeySize);
 
 	void					FindAll(CArrayVoidPtr* papvElements);
 	int						GetKey(void* pvData, char* pvDestKey, int iDestKeySize);
@@ -61,8 +62,8 @@ protected:
 	CIndexTreeNodeMemory*	GetNodeForData(void* pvData);
 	int						GetNodeKeySize(CIndexTreeNode* pcNode);
 	int						GetNodeKey(CIndexTreeNode* pcNode, char* pvDestKey, int iDestKeySize);
-	int						GetNodeDataSize(CIndexTreeNode* pcNode);
-	int						GetNodeData(CIndexTreeNode* pcNode, void* pvDestData, int iDestDataSize);
+	uint16					GetNodeDataSize(CIndexTreeNode* pcNode);
+	uint16					GetNodeData(CIndexTreeNode* pcNode, void* pvDestData, int iDestDataSize);
 
 	void					RecurseKill(CIndexTreeNodeMemory* pcNode);
 

@@ -90,12 +90,12 @@ BOOL CIndexTreeEvicting::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeEvicting::Get(void* pvKey, int iKeySize, void* pvObject, size_t* piDataSize)
+BOOL CIndexTreeEvicting::Get(void* pvKey, int iKeySize, void* pvData, size_t* piDataSize, size_t uiMaxDataSize)
 {
 	BOOL	bFound;
 	int		iEvicted;
 
-	bFound = mcIndexTree.Get(pvKey, iKeySize, pvObject, piDataSize);
+	bFound = mcIndexTree.Get(pvKey, iKeySize, pvData, piDataSize, uiMaxDataSize);
 	if (bFound)
 	{
 		iEvicted = PotentiallyEvict(pvKey, iKeySize);
@@ -108,11 +108,11 @@ BOOL CIndexTreeEvicting::Get(void* pvKey, int iKeySize, void* pvObject, size_t* 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeEvicting::GetWithoutEviction(void* pvKey, int iKeySize, void* pvObject, size_t* piDataSize)
+BOOL CIndexTreeEvicting::GetWithoutEviction(void* pvKey, int iKeySize, void* pvData, size_t* piDataSize, size_t uiMaxDataSize)
 {
 	BOOL	bResult;
 
-	bResult = mcIndexTree.Get(pvKey, iKeySize, pvObject, piDataSize);
+	bResult = mcIndexTree.Get(pvKey, iKeySize, pvData, piDataSize, uiMaxDataSize);
 	return bResult;
 }
 
@@ -121,12 +121,12 @@ BOOL CIndexTreeEvicting::GetWithoutEviction(void* pvKey, int iKeySize, void* pvO
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeEvicting::Put(void* pvKey, int iKeySize, void* pvObject, size_t iDataSize)
+BOOL CIndexTreeEvicting::Put(void* pvKey, int iKeySize, void* pvData, size_t iDataSize)
 {
 	BOOL	bResult;
 	int		iEvicted;
 
-	bResult = mcIndexTree.Put(pvKey, iKeySize, pvObject, iDataSize);
+	bResult = mcIndexTree.Put(pvKey, iKeySize, pvData, iDataSize);
 	iEvicted = PotentiallyEvict(pvKey, iKeySize);
 	return bResult;
 }
@@ -136,11 +136,11 @@ BOOL CIndexTreeEvicting::Put(void* pvKey, int iKeySize, void* pvObject, size_t i
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeEvicting::PutWithoutEviction(void* pvKey, int iKeySize, void* pvObject, size_t iDataSize)
+BOOL CIndexTreeEvicting::PutWithoutEviction(void* pvKey, int iKeySize, void* pvData, size_t iDataSize)
 {
 	BOOL	bResult;
 
-	bResult = mcIndexTree.Put(pvKey, iKeySize, pvObject, iDataSize);
+	bResult = mcIndexTree.Put(pvKey, iKeySize, pvData, iDataSize);
 	return bResult;
 }
 

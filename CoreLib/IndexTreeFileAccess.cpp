@@ -93,12 +93,12 @@ BOOL CIndexTreeFileAccess::Put(void* pvKey, int iKeySize, void* pvData, size_t i
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFileAccess::Get(void* pvKey, int iKeySize, void* pvData, size_t* piDataSize)
+BOOL CIndexTreeFileAccess::Get(void* pvKey, int iKeySize, void* pvData, size_t* piDataSize, size_t uiMaxDataSize)
 {
 	size_t	iDataSize;
 	BOOL	bResult;
 
-	bResult = mpcTree->Get(pvKey, iKeySize, pvData, &iDataSize);
+	bResult = mpcTree->Get(pvKey, iKeySize, pvData, &iDataSize, uiMaxDataSize);
 
 	SafeAssign(piDataSize, iDataSize);
 	return bResult;

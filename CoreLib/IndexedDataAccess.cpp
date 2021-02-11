@@ -89,14 +89,14 @@ BOOL CIndexedDataAccess::Put(void* pvKey, int iKeySize, void* pvData, size_t iDa
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedDataAccess::Get(void* pvKey, int iKeySize, void* pvData, size_t* piDataSize)
+BOOL CIndexedDataAccess::Get(void* pvKey, int iKeySize, void* pvData, size_t* piDataSize, size_t uiMaxDataSize)
 {
 	OIndex	oi;
 
 	if (iKeySize == sizeof(OIndex))
 	{
 		oi = *((OIndex*)pvKey);
-		return mpcIndexData->Get(oi, (unsigned int*)piDataSize, pvData, 0);
+		return mpcIndexData->Get(oi, (unsigned int*)piDataSize, pvData, uiMaxDataSize);
 	}
 	else
 	{

@@ -101,7 +101,6 @@ private:
 	BOOL			Put(OIndex oi, char* szName, int iNameLength, void* pvData, unsigned int uiDataSize);
 
 	unsigned int	MinNameSize(unsigned int uiNameSize, unsigned int uiMaxNameSize);
-	unsigned int	MinDataSize(unsigned int uiDataSize, unsigned int uiMaxDataSize);
 };
 
 
