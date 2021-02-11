@@ -33,8 +33,8 @@ public:
 
 	BOOL					Kill(void);
 
-	BOOL					Get(void* pvKey, int iKeySize, void* pvObject, size_t* piDataSize);
-	BOOL					Put(void* pvKey, int iKeySize, void* pvObject, size_t iDataSize);
+	BOOL					Get(void* pvKey, int iKeySize, void* pvData, size_t* piDataSize, size_t uiMaxDataSize);
+	BOOL					Put(void* pvKey, int iKeySize, void* pvData, size_t iDataSize);
 	BOOL					Remove(void* pvKey, int iKeySize);
 	BOOL					HasKey(void* pvKey, int iKeySize);
 	uint16					GetDataSize(void* pvKey, int iKeySize);
@@ -83,7 +83,7 @@ protected:
 	unsigned char			GetRootFlags(void);
 
 	int						PotentiallyEvict(void* pvKey, int iKeySize);
-	BOOL					GetWithoutEviction(void* pvKey, int iKeySize, void* pvObject, size_t* piDataSize);
+	BOOL					GetWithoutEviction(void* pvKey, int iKeySize, void* pvObject, size_t* piDataSize, size_t uiMaxDataSize);
 	BOOL					PutWithoutEviction(void* pvKey, int iKeySize, void* pvObject, size_t iDataSize);
 };
 

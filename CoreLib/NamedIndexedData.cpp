@@ -628,27 +628,6 @@ unsigned int CNamedIndexedData::MinNameSize(unsigned int uiNameSize, unsigned in
 //
 //
 //////////////////////////////////////////////////////////////////////////
-unsigned int CNamedIndexedData::MinDataSize(unsigned int uiDataSize, unsigned int uiMaxDataSize)
-{
-	if (uiMaxDataSize == 0)
-	{
-		return uiDataSize;
-	}
-	else if (uiMaxDataSize > uiDataSize)
-	{
-		return uiDataSize;
-	}
-	else
-	{
-		return uiMaxDataSize;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 OIndex CNamedIndexedData::GetIndex(char* szName)
 {
 	OIndex	oi;

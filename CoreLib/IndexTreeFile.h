@@ -24,8 +24,9 @@ struct SIndexTreeFileUnsafeIterator
 
 struct SIndexTreeFileIterator
 {
-	CIndexTreeNodeFile*		pcNode;
-	int						iIndex;
+	char	pvKey[MAX_KEY_SIZE];
+	int		iKeyLength;
+	int		iIndex;
 };
 
 
@@ -60,7 +61,7 @@ public:
 	BOOL					Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, CIndexTreeFileDataCallback* pcWriterCallback, CLifeInit<CMallocator> cMalloc, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse, int iMaxDataSize, int iMaxKeySize, CLifeInit<CIndexTreeDataOrderer> cDataOrderer);
 	BOOL					Kill(void);
 
-	BOOL					Get(void* pvKey, int iKeySize, void* pvObject, size_t* piDataSize);
+	BOOL					Get(void* pvKey, int iKeySize, void* pvObject, size_t* piDataSize, size_t uiMaxDataSize);
 	BOOL					Put(void* pvKey, int iKeySize, void* pvObject, int iDataSize);
 	BOOL					Remove(void* pvKey, int iKeySize);
 	BOOL					HasKey(void* pvKey, int iKeySize);
@@ -68,8 +69,8 @@ public:
 
 	BOOL					Flush(void);
 
-	BOOL					StartUnsafeIteration(SIndexTreeFileUnsafeIterator* psIterator, char* pvKey, int* piKeySize, void** ppvData, size_t* piDataSize);
-	BOOL					UnsafeIterate(SIndexTreeFileUnsafeIterator* psIterator, char* pvKey, int* piKeySize, void** ppvData, size_t* piDataSize);
+	BOOL					StartUnsafeIteration(SIndexTreeFileUnsafeIterator* psIterator, char* pvKey, int* piKeySize, int iMaxKeySize, void** ppvData, size_t* piDataSize);
+	BOOL					UnsafeIterate(SIndexTreeFileUnsafeIterator* psIterator, char* pvKey, int* piKeySize, int iMaxKeySize, void** ppvData, size_t* piDataSize);
 	BOOL					StartUnsafeIteration(SIndexTreeFileUnsafeIterator* psIterator, void** ppvData, size_t* piDataSize);
 	BOOL					UnsafeIterate(SIndexTreeFileUnsafeIterator* psIterator, void** ppvData, size_t* piDataSize);
 
@@ -104,8 +105,8 @@ protected:
 	CIndexTreeNodeFile*		GetNodeForData(void* pvData);
 	int						GetNodeKeySize(CIndexTreeNode* pcNode);
 	int						GetNodeKey(CIndexTreeNode* pcNode, char* pvDestKey, int iDestKeySize);
-	int						GetNodeDataSize(CIndexTreeNode* pcNode);
-	int						GetNodeData(CIndexTreeNode* pcNode, void* pvDestData, int iDestDataSize);
+	uint16					GetNodeDataSize(CIndexTreeNode* pcNode);
+	uint16					GetNodeData(CIndexTreeNode* pcNode, void* pvDestData, int iDestDataSize);
 
 	CListTemplateMinimal<char>* GetNodesKeys(CArrayVoidPtr* apvNodes);
 	CListCharsMinimal*		GetNodesStringKeys(CArrayVoidPtr* apvNodes);
@@ -190,7 +191,7 @@ protected:
 	BOOL					ValidateKeys(BOOL bReadNodes);
 	BOOL					RecurseValidateKeys(CIndexTreeRecursor* pcCursor, BOOL bReadNodes);
 
-	BOOL					StepNext(SIndexTreeFileIterator* psIterator);
+	CIndexTreeNodeFile*		StepNext(SIndexTreeFileIterator* psIterator);
 	BOOL					StartIteration(SIndexTreeFileIterator* psIterator, void* pvKey, int* piKeySize, int iMaxKeySize, void* pvData, size_t* piDataSize, size_t iMaxDataSize);
 	BOOL					Iterate(SIndexTreeFileIterator* psIterator, void* pvKey, int* piKeySize, int iMaxKeySize, void* pvData, size_t* piDataSize, size_t iMaxDataSize);
 

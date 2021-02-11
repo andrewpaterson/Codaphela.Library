@@ -831,7 +831,7 @@ int CIndexTreeMemory::GetNodeKey(CIndexTreeNode* pcNode, char* pvDestKey, int iD
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CIndexTreeMemory::GetNodeDataSize(CIndexTreeNode* pcNode)
+uint16 CIndexTreeMemory::GetNodeDataSize(CIndexTreeNode* pcNode)
 {
 	if (pcNode->HasData())
 	{
@@ -848,7 +848,7 @@ int CIndexTreeMemory::GetNodeDataSize(CIndexTreeNode* pcNode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CIndexTreeMemory::GetNodeData(CIndexTreeNode* pcNode, void* pvDestData, int iDestDataSize)
+uint16 CIndexTreeMemory::GetNodeData(CIndexTreeNode* pcNode, void* pvDestData, int iDestDataSize)
 {
 	int				iDataSize;
 	void* pvData;

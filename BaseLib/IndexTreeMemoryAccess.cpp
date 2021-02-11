@@ -82,7 +82,7 @@ BOOL CIndexTreeMemoryAccess::Put(void* pvKey, int iKeySize, void* pvData, size_t
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeMemoryAccess::Get(void* pvKey, int iKeySize, void* pvData, size_t* piDataSize)
+BOOL CIndexTreeMemoryAccess::Get(void* pvKey, int iKeySize, void* pvData, size_t* piDataSize, size_t uiMaxDataSize)
 {
 	void*	pvResult;
 	size_t	iDataSize;
@@ -95,7 +95,7 @@ BOOL CIndexTreeMemoryAccess::Get(void* pvKey, int iKeySize, void* pvData, size_t
 	{
 		if (pvData)
 		{
-			memcpy(pvData, pvResult, iDataSize);
+			memcpy(pvData, pvResult, MinDataSize(iDataSize, uiMaxDataSize));
 		}
 		return TRUE;
 	}

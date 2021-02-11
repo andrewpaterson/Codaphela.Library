@@ -171,7 +171,6 @@ void CCountingAllocator::Free(void* pv)
 			mtUserSize -= ps->tSize;
 			mtSystemSize -= (ps->tSize + sizeof(SCountingMemoryAllocation));
 			mpcAlloc->Free(ps);
-
 		}
 		else
 		{
