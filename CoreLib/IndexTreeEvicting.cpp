@@ -230,7 +230,7 @@ int CIndexTreeEvicting::PotentiallyEvict(void* pvKey, int iKeySize)
 			{
 				sz.Init();
 				sz.AppendData2((const char*)pvKey, iKeySize);
-				gcLogger.Error2(__METHOD__, " Could not evict key [", sz.Text(), "].  Tree size [", IntToString(uiSize), "] could not be reduced below cache size [", IntToString(muiCutoff), "].", NULL);
+				gcLogger.Error2(__METHOD__, " Could not evict anything while touching key [", sz.Text(), "].  Tree size [", IntToString(uiSize), "] could not be reduced below cache size [", IntToString(muiCutoff), "].", NULL);
 				sz.Kill();
 				return iEvicted;
 			}
@@ -249,7 +249,7 @@ int CIndexTreeEvicting::PotentiallyEvict(void* pvKey, int iKeySize)
 		{
 			sz.Init();
 			sz.AppendData2((const char*)pvKey, iKeySize);
-			gcLogger.Error2(__METHOD__, " Could not evict key [", sz.Text(), "].  Tree size [", IntToString(uiSize), "] could not be reduced below cache size [", IntToString(muiCutoff), "].", NULL);
+			gcLogger.Error2(__METHOD__, " Could not anything while touching evict key [", sz.Text(), "].  Tree size [", IntToString(uiSize), "] could not be reduced below cache size [", IntToString(muiCutoff), "].", NULL);
 			sz.Kill();
 			return 0;
 		}
@@ -633,7 +633,19 @@ unsigned char CIndexTreeEvicting::GetRootFlags(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeEvicting::StartIteration(SIndexTreeFileIterator* psIterator, void* pvKey, int* piKeySize, int iMaxKeySize, void* pvData, size_t* piDataSize, size_t iMaxDataSize)
 {
-	return mcIndexTree.StartIteration(psIterator, pvKey, piKeySize, iMaxKeySize, pvData, piDataSize, iMaxDataSize);
+	BOOL	bResult;
+	int		iEvicted;
+
+	bResult = mcIndexTree.StartIteration(psIterator, pvKey, piKeySize, iMaxKeySize, pvData, piDataSize, iMaxDataSize);
+	if (bResult)
+	{
+		iEvicted = PotentiallyEvict(psIterator->pvKey, psIterator->iKeyLength);
+	}
+	else
+	{
+		iEvicted = PotentiallyEvict(NULL, 0);
+	}
+	return bResult;
 }
 
 
@@ -643,7 +655,19 @@ BOOL CIndexTreeEvicting::StartIteration(SIndexTreeFileIterator* psIterator, void
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeEvicting::Iterate(SIndexTreeFileIterator* psIterator, void* pvKey, int* piKeySize, int iMaxKeySize, void* pvData, size_t* piDataSize, size_t iMaxDataSize)
 {
-	return mcIndexTree.Iterate(psIterator, pvKey, piKeySize, iMaxKeySize, pvData, piDataSize, iMaxDataSize);
-}
 
+	BOOL	bResult;
+	int		iEvicted;
+
+	bResult = mcIndexTree.Iterate(psIterator, pvKey, piKeySize, iMaxKeySize, pvData, piDataSize, iMaxDataSize);
+	if (bResult)
+	{
+		iEvicted = PotentiallyEvict(psIterator->pvKey, psIterator->iKeyLength);
+	}
+	else
+	{
+		iEvicted = PotentiallyEvict(NULL, 0);
+	}
+	return bResult;
+}
 
