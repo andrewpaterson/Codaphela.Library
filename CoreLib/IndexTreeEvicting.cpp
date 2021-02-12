@@ -209,7 +209,6 @@ int CIndexTreeEvicting::PotentiallyEvict(void* pvKey, int iKeySize)
 	CChars				sz;
 	int					iEvicted;
 
-	mcIndexTree.GetNode(pvKey, iKeySize);
 	uiLastSize = 0;
 	pcDontEvict = mcIndexTree.GetMemoryNode(pvKey, iKeySize);
 	iEvicted = 0;
