@@ -2207,6 +2207,11 @@ BOOL CChars::AppendData2(const char* szData, size_t iDataLength)
 	float			fPrintable;
 	CChars			sz;
 
+	if ((szData == NULL) || (iDataLength == 0))
+	{
+		return FALSE;
+	}
+
 	iPrintable = StrPrintable(szData, iDataLength);
 	fPrintable = (float)iPrintable / (float)iDataLength;
 
