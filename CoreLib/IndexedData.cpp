@@ -161,7 +161,7 @@ BOOL CIndexedData::IsFlushed(void)
 //////////////////////////////////////////////////////////////////////////
 int64 CIndexedData::NumIndices(void)
 {
-	return mcIndices.NumElements();
+	return mcIndices.NumIndices();
 }
 
 

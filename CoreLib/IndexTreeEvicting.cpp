@@ -450,9 +450,20 @@ int CIndexTreeEvicting::NumMemoryNodes(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CIndexTreeEvicting::NumElements(void)
+int64 CIndexTreeEvicting::NumElements(void)
 {
-	return mcIndexTree.NumElements();
+	SIndexTreeFileIterator	sIter;
+	int64					iCount;
+	BOOL					bExists;
+
+	iCount = 0;
+	bExists = StartIteration(&sIter, NULL, NULL, 0, NULL, NULL, 0);
+	while (bExists)
+	{
+		iCount++;
+		bExists = Iterate(&sIter, NULL, NULL, 0, NULL, NULL, 0);
+	}
+	return iCount;
 }
 
 
