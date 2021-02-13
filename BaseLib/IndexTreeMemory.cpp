@@ -231,7 +231,7 @@ void* CIndexTreeMemory::Get(void* pvKey, int iKeySize, size_t* piDataSize)
 void* CIndexTreeMemory::Put(void* pvKey, int iKeySize, void* pvData, size_t iDataSize)
 {
 	CIndexTreeNodeMemory*	pcCurrent;
-	uint16			uiDataSize;
+	uint16					uiDataSize;
 	BOOL					bNewNode;
 
 	ReturnNullOnFalse(ValidatePut(iKeySize, iDataSize));

@@ -26,7 +26,7 @@ void CListCharsMinimal::Init(int iNumElements, int iRowLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CListCharsMinimal::IndexOf(char* szString)
+size_t CListCharsMinimal::IndexOf(char* szString)
 {
 	size_t	i;
 

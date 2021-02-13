@@ -75,7 +75,7 @@ void CMemoryCacheAllocation::Dump(int iDescriptorSize)
 	SMemoryCacheDescriptor*		psCacheDesc;
 	CChars						sz;
 	char*						pvData;
-	int							iLen;
+	size_t						iLen;
 	int							i;
 
 	sz.Init();
