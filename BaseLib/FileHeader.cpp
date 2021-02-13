@@ -153,7 +153,7 @@ BOOL CFileHeader::CheckHeaderSize(const char* szMethod)
 	tFileHeaderSize = sizeof(CFileHeader);
 	if (tFileHeaderSize != FILE_HEADER_SIZE)
 	{
-		gcLogger.Error2(szMethod, " File header memory size [", IntToString(tFileHeaderSize), "] different to expected size [", IntToString(FILE_HEADER_SIZE), "].", NULL);
+		gcLogger.Error2(szMethod, " File header memory size [", SizeToString(tFileHeaderSize), "] different to expected size [", IntToString(FILE_HEADER_SIZE), "].", NULL);
 		return FALSE;
 	}
 	return TRUE;

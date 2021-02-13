@@ -38,7 +38,7 @@ BOOL CIndexTreeAccess::PutStringPtr(char* pszKey, void* pvPointer)
 		return FALSE;
 	}
 
-	iKeySize = strlen(pszKey);
+	iKeySize = (int)strlen(pszKey);
 
 	return Put(pszKey, iKeySize, &pvPointer, sizeof(void*));
 }
@@ -50,14 +50,14 @@ BOOL CIndexTreeAccess::PutStringPtr(char* pszKey, void* pvPointer)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeAccess::PutStringInt(char* pszKey, int iIndex)
 {
-	size_t	iKeySize;
+	int	iKeySize;
 
 	if (StrEmpty(pszKey))
 	{
 		return FALSE;
 	}
 
-	iKeySize = strlen(pszKey);
+	iKeySize = (int)strlen(pszKey);
 
 	return Put(pszKey, iKeySize, &iIndex, sizeof(int));
 }
@@ -69,14 +69,14 @@ BOOL CIndexTreeAccess::PutStringInt(char* pszKey, int iIndex)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeAccess::PutStringChar(char* pszKey, char cData)
 {
-	size_t	iKeySize;
+	int	iKeySize;
 
 	if (StrEmpty(pszKey))
 	{
 		return FALSE;
 	}
 
-	iKeySize = strlen(pszKey);
+	iKeySize = (int)strlen(pszKey);
 
 	return Put(pszKey, iKeySize, &cData, sizeof(char));
 }
@@ -88,14 +88,14 @@ BOOL CIndexTreeAccess::PutStringChar(char* pszKey, char cData)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeAccess::PutStringLong(char* pszKey, int64 lliIndex)
 {
-	size_t		iKeySize;
+	int		iKeySize;
 
 	if (StrEmpty(pszKey))
 	{
 		return FALSE;
 	}
 
-	iKeySize = strlen(pszKey);
+	iKeySize = (int)strlen(pszKey);
 
 	return Put(pszKey, iKeySize, &lliIndex, sizeof(int64));
 }
@@ -107,14 +107,15 @@ BOOL CIndexTreeAccess::PutStringLong(char* pszKey, int64 lliIndex)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeAccess::PutStringData(char* pszKey, void* pvData, size_t iDataSize)
 {
-	size_t		iKeySize;
+	int		iKeySize;
 
 	if (StrEmpty(pszKey))
 	{
 		return FALSE;
 	}
 
-	iKeySize = strlen(pszKey);
+	iKeySize = (int)strlen(pszKey);
+
 	return Put(pszKey, iKeySize, pvData, iDataSize);
 }
 
@@ -241,15 +242,15 @@ BOOL CIndexTreeAccess::PutIntData(int iKey, void* pvData, size_t iDataSize)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeAccess::PutStringString(char* pszKey, char* pszData)
 {
-	int iKeySize;
-	size_t iDataSize;
+	int		iKeySize;
+	size_t	iDataSize;
 
 	if (StrEmpty(pszKey))
 	{
 		return FALSE;
 	}
 
-	iKeySize = strlen(pszKey);
+	iKeySize = (int)strlen(pszKey);
 	iDataSize = strlen(pszData) + 1;
 
 	return Put(pszKey, iKeySize, pszData, iDataSize);
@@ -566,7 +567,7 @@ BOOL CIndexTreeAccess::GetStringData(char* pszKey, void* pvData, size_t* piDataS
 		return FALSE;
 	}
 
-	iKeySize = strlen(pszKey);
+	iKeySize = (int)strlen(pszKey);
 
 	return Get(pszKey, iKeySize, pvData, piDataSize, uiMaxDataSize);
 }

@@ -35,7 +35,7 @@ public:
 
 	void		Init(int iNumElements, int iRowLength);
 	
-	int	 		IndexOf(char* szString);
+	size_t 		IndexOf(char* szString);
 
 	void		Add(char* sz);
 	void		Add(char* sz, size_t iSize);
