@@ -394,6 +394,7 @@ CPackFile* CPackFiles::WriteOpen(char* szFileName)
 			bResult = pcFile->Open(EFM_Write_Create);
 			if (!bResult)
 			{
+				free(pcFile);
 				return NULL;
 			}
 			mpsLastAccessed = pcFileNode->File();
@@ -486,6 +487,7 @@ BOOL CPackFiles::AddFile(CAbstractFile* pcFile, char* szFileName)
 	bResult = cCopier.Copy(pcFile, pcPackFile);
 	pcPackFile->Close();
 	pcPackFile->Kill();
+	free(pcPackFile);
 	return bResult;
 }
 
@@ -533,11 +535,13 @@ BOOL CPackFiles::AddDirectory(char* szDirectory, char* szPackDirectory)
 
 		if (!bResult)
 		{
+			szNameDirectory.Kill();
 			aszFileNames.Kill();
 			return FALSE;
 		}
 	}
 
+	szNameDirectory.Kill();
 	aszFileNames.Kill();
 	return TRUE;
 }
@@ -723,10 +727,10 @@ BOOL CPackFiles::ReadNode(void)
 	CChars			sz;
 	CFileNodePackFileNode*	pcNode;
 
-	sz.Init();
 
 	if (!sz.ReadString(&mcFile))
 	{
+		sz.Kill();
 		return FALSE;
 	}
 
