@@ -53,7 +53,7 @@ public:
 	BOOL					HasDiagnosticCallback(void);
 	CIndexTreeDataOrderer*	GetDataOrderer(void);
 
-	int						NumElements(void);
+	int64					NumElements(void);
 
 	BOOL					StartIteration(SIndexTreeFileIterator* psIterator, void* pvKey, int* piKeySize, int iMaxKeySize, void* pvData, size_t* piDataSize, size_t iMaxDataSize);
 	BOOL					Iterate(SIndexTreeFileIterator* psIterator, void* pvKey, int* piKeySize, int iMaxKeySize, void* pvData, size_t* piDataSize, size_t iMaxDataSize);

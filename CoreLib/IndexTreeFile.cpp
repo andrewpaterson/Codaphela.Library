@@ -1900,15 +1900,18 @@ BOOL CIndexTreeFile::StartIteration(SIndexTreeFileIterator* psIterator, void* pv
 	psIterator->iIndex = mpcRoot->GetFirstIndex();
 	psIterator->iKeyLength = 0;
 	
-	bResult = StartUnsafeIteration(&sIter, psIterator->pvKey, &psIterator->iKeyLength, iMaxKeySize, NULL, NULL);
+	bResult = StartUnsafeIteration(&sIter, psIterator->pvKey, &psIterator->iKeyLength, MAX_KEY_SIZE, NULL, NULL);
 	psIterator->iIndex = sIter.iIndex;
 
 	if (bResult)
 	{
 		CopyData((char*)pvKey, psIterator->pvKey, psIterator->iKeyLength, iMaxKeySize);
 		SafeAssign(piKeySize, psIterator->iKeyLength);
-		iDataSize = GetNodeData(sIter.pcNode, pvData, iMaxDataSize);
-		SafeAssign(piDataSize, iDataSize);
+		if (piDataSize)
+		{
+			iDataSize = GetNodeData(sIter.pcNode, pvData, iMaxDataSize);
+			*piDataSize, iDataSize;
+		}
 	}
 	return bResult;
 }
@@ -1932,15 +1935,18 @@ BOOL CIndexTreeFile::Iterate(SIndexTreeFileIterator* psIterator, void* pvKey, in
 		return FALSE;
 	}
 
-	bResult = UnsafeIterate(&sIter, (char*)psIterator->pvKey, &psIterator->iKeyLength, iMaxKeySize, NULL, NULL);
+	bResult = UnsafeIterate(&sIter, (char*)psIterator->pvKey, &psIterator->iKeyLength, MAX_KEY_SIZE, NULL, NULL);
 	psIterator->iIndex = sIter.iIndex;
 
 	if (bResult)
 	{
 		CopyData((char*)pvKey, psIterator->pvKey, psIterator->iKeyLength, iMaxKeySize);
 		SafeAssign(piKeySize, psIterator->iKeyLength);
-		iDataSize = GetNodeData(sIter.pcNode, pvData, iMaxDataSize);
-		SafeAssign(piDataSize, iDataSize);
+		if (piDataSize)
+		{
+			iDataSize = GetNodeData(sIter.pcNode, pvData, iMaxDataSize);
+			*piDataSize, iDataSize;
+		}
 	}
 	return bResult;
 }
