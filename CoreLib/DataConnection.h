@@ -1,6 +1,7 @@
 #ifndef __DATA_CONNECTION_H__
 #define __DATA_CONNECTION_H__
 #include "BaseLib/Chars.h"
+#include "CoreLib/IndexTreeFile.h"
 #include "IndexedGeneral.h"
 
 
@@ -44,6 +45,13 @@ public:
 
 	virtual BOOL	Flush(void) =0;
 	virtual BOOL	Flush(BOOL bClearCache) =0;
+
+	virtual OIndex 	StartIndexIteration(SIndexTreeFileIterator* psIterator, void* pvData, size_t* piDataSize, size_t iMaxDataSize) =0;
+	virtual OIndex	IndexIterate(SIndexTreeFileIterator* psIterator, void* pvData, size_t* piDataSize, size_t iMaxDataSize) =0;
+	virtual BOOL	StartNameIteration(SIndexTreeFileIterator* psIterator, char* szKey, OIndex* poi) =0;
+	virtual BOOL	NameIterate(SIndexTreeFileIterator* psIterator, char* szKey, OIndex* poi) =0;
+
+	virtual BOOL	ValidateIdentifiers(void) =0;
 };
 
 

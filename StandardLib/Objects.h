@@ -65,9 +65,9 @@ protected:
 	BOOL					mbInitialised;
 	CUnknowns*				mpcUnknownsAllocatingFrom;
 
-	CNamedIndexedObjects	mcMemory;		//Objects (BaseObject*) allocated in Unknowns referenced by name and OIndex.  
+	CNamedIndexedObjects	mcMemory;			//Objects (BaseObject*) allocated in Unknowns referenced by name and OIndex.  
 	CIndexGenerator			mcIndexGenerator;
-	CObjectsSource			mcSource;		//An object found on disk will be deserialised and then placed in memory.
+	CObjectsSource			mcSource;			//An object found on disk will be deserialised and then placed in memory.
 
 	CDataConnection*		mpcDataConnection;
 
@@ -148,7 +148,7 @@ protected:
 
 						void					RecurseDumpGraph(CChars* psz, CEmbeddedObject* pcObject, int iLevel, BOOL bEmbedded);
 						void					ValidateSceneGraph(void);
-						void					ValidateIdentifiers(void);
+						BOOL					ValidateIdentifiers(void);
 						void					ValidateIndexedObjects(void);
 						void					ClearValidationFlags(void);
 						void					RecurseValidateSceneGraph(CBaseObject* pcBaseObject);

@@ -22,6 +22,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/GlobalMemory.h"
 #include "BaseLib/DebugOutput.h"
 #include "BaseLib/Log.h"
+#include "BaseLib/StackMemory.h"
 #include "CoreLib/DataConnection.h"
 #include "BaseObject.h"
 #include "NamedObject.h"
@@ -351,6 +352,7 @@ void CObjects::ValidateObjectsConsistency(void)
 	ValidateSceneGraph();
 	ValidateIndexedObjects();
 	ClearValidationFlags();
+	ValidateIdentifiers();
 }
 
 
@@ -407,10 +409,13 @@ void CObjects::ClearValidationFlags(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjects::ValidateIdentifiers(void)
+BOOL CObjects::ValidateIdentifiers(void)
 {
-	//Make sure object names and oids match those in names and indexes.
-	mpcDataConnection
+	if (mpcDataConnection)
+	{
+		return mpcDataConnection->ValidateIdentifiers();
+	}
+	return TRUE;
 }
 
 
