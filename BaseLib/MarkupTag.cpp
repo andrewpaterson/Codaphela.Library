@@ -71,14 +71,7 @@ void CMarkupTag::Kill(void)
 	for (i = 0; i < macBases.NumElements(); i++)
 	{
 		pcBase = *(macBases.Get(i));
-		if (pcBase->IsTag())
-		{
-			((CMarkupTag*)pcBase)->Kill();
-		}
-		else if (pcBase->IsText())
-		{
-			((CMarkupText*)pcBase)->Kill();
-		}
+		pcBase->Kill();
 	}
 	macBases.Kill();
 }

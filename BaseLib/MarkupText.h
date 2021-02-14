@@ -34,6 +34,7 @@ public:
 	void 	Init(CMarkupTag* pcParent);
 	void 	Init(char* szText, CMarkupTag* pcParent);
 	void 	Kill(void);
+
 	char*	Text(void);
 	int		ToString(CChars* psz, int iDepth, int iLine);
 };

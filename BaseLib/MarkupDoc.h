@@ -41,6 +41,7 @@ public:
 
 	void			Init(CMarkup* pcMarkup);
 	void			Kill(void);
+
 	CMarkupTag*		GetRootTag(void);
 	CMarkupTag*		SetRootTag(char* szTagName);
 	BOOL			Is(char* szName);

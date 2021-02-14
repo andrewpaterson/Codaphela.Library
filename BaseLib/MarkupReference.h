@@ -39,6 +39,7 @@ public:
 
 	void 	Init(CMarkupSubText* pcRef, CMarkupTag* pcParent);
 	void 	Kill(void);
+
 	int		ToString(CChars* psz, int iDepth, int iLine);
 };
 
@@ -65,6 +66,7 @@ public:
 
 	void 	Init(char* szName, CMarkupTag* pcParent);
 	void 	Kill(void);
+
 	int		ToString(CChars* psz, int iDepth, int iLine);
 };
 
