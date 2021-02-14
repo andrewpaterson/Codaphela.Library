@@ -908,6 +908,62 @@ BOOL CNamedIndexedData::IsWriteThrough(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL CNamedIndexedData::ValidateIdentifiers(void)
+{
+	SIndexTreeFileIterator	sIter;
+	char					szName[MAX_KEY_SIZE + 1];
+	OIndex					oi;
+	BOOL					bExists;
+	CStackMemory<>			cStackMemory;
+	unsigned int			uiDataSize;
+	unsigned int			uiMaxDataSize;
+	void*					pvData;
+	CNamedIndexedHeader*	pcHeader;
+	BOOL					bResult;
+	char*					szNameFromData;
+	int						iResult;
+
+	pvData = cStackMemory.Init();
+	uiMaxDataSize = cStackMemory.GetStackSize();
+
+	bExists = StartNameIteration(&sIter, szName, &oi);
+	while (bExists)
+	{
+		bResult = mcData.Get(oi, &uiDataSize, pvData, uiMaxDataSize);
+		if (!bResult)
+		{
+			cStackMemory.Kill();
+			return gcLogger.Error2(__METHOD__, " NamedIndexedData corrupt.  Iterated oid [0x", LongLongToString(oi, 16), "] but it doesn not exist.", NULL);
+		}
+		if (uiDataSize > uiMaxDataSize)
+		{
+			cStackMemory.Kill();
+			pvData = cStackMemory.Init(uiDataSize);
+			uiMaxDataSize = uiDataSize;
+
+			bResult = mcData.Get(oi, &uiDataSize, pvData, uiMaxDataSize);
+		}
+
+		pcHeader = (CNamedIndexedHeader*)pvData;
+		szNameFromData = pcHeader->GetName();
+		iResult = strcmp(szName, szNameFromData);
+		if (iResult != 0)
+		{
+			cStackMemory.Kill();
+			return gcLogger.Error2(__METHOD__, " NamedIndexedData corrupt.  Name [", szName, "] maps to oid oid [0x", LongLongToString(oi, 16), "] but the oid maps to name [", szNameFromData, "].", NULL);
+		}
+
+		bExists = NameIterate(&sIter, szName, &oi);
+	}
+	cStackMemory.Kill();
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL CNamedIndexedData::ValidateConfigInitialised(void)
 {
 	BOOL	bResult;

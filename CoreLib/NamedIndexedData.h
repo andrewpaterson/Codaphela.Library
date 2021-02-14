@@ -75,6 +75,11 @@ public:
 	BOOL			Flush(void);
 	BOOL			Flush(BOOL bClearCache);
 
+	OIndex 			StartIndexIteration(SIndexTreeFileIterator* psIterator, void* pvData, size_t* piDataSize, size_t iMaxDataSize);
+	OIndex			IndexIterate(SIndexTreeFileIterator* psIterator, void* pvData, size_t* piDataSize, size_t iMaxDataSize);
+	BOOL			StartNameIteration(SIndexTreeFileIterator* psIterator, char* szKey, OIndex* poi);
+	BOOL			NameIterate(SIndexTreeFileIterator* psIterator, char* szKey, OIndex* poi);
+
 	int64			NumIndices(void);
 	int64			NumIndicesCached(void);
 	int64			NumIndicesCached(size_t iSize);
@@ -85,13 +90,9 @@ public:
 	BOOL			IsCaching(void);
 	BOOL			IsWriteThrough(void);
 
+	BOOL			ValidateIdentifiers(void);
 	BOOL			ValidateConfigInitialised(void);
 	BOOL			ValidateConfigKilled(void);
-
-	OIndex 			StartIndexIteration(SIndexTreeFileIterator* psIterator, void* pvData, size_t* piDataSize, size_t iMaxDataSize);
-	OIndex			IndexIterate(SIndexTreeFileIterator* psIterator, void* pvData, size_t* piDataSize, size_t iMaxDataSize);
-	BOOL			StartNameIteration(SIndexTreeFileIterator* psIterator, char* szKey, OIndex* poi);
-	BOOL			NameIterate(SIndexTreeFileIterator* psIterator, char* szKey, OIndex* poi);
 
 	size_t			GetIndiciesSystemMemorySize(void);
 	size_t			GetDataSystemMemorySize(void);

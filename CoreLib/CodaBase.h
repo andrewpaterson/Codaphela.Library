@@ -20,6 +20,7 @@ public:
 
 	BOOL	ValidateConfigInitialised(void);
 	BOOL	ValidateConfigKilled(void);
+	BOOL	ValidateIdentifiers(void);
 
 	BOOL	Add(OIndex oi, void* pvData, unsigned int uiDataSize);
 	BOOL	Add(OIndex oi, char* szName, void* pvData, unsigned int uiDataSize);

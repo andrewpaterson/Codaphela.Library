@@ -18,11 +18,11 @@ void CNamedIndexedHeader::Init(char* szName, int iNameLength, void* pvData, unsi
 		miNameLength = iNameLength;
 
 		szDestName = GetName();
-		memcpy_fast(szDestName, szName, iNameLength);
+		memcpy(szDestName, szName, iNameLength);
 		szDestName[iNameLength] = '\0';
 
 		szDestData = GetData();
-		memcpy_fast(szDestData, pvData, uiDataSize);
+		memcpy(szDestData, pvData, uiDataSize);
 	}
 	else
 	{
@@ -42,7 +42,7 @@ void CNamedIndexedHeader::Init(void* pvData, unsigned int uiDataSize)
 	miNameLength = 0;
 
 	szDestData = GetData();
-	memcpy_fast(szDestData, pvData, uiDataSize);
+	memcpy(szDestData, pvData, uiDataSize);
 }
 
 
