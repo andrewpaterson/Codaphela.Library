@@ -29,6 +29,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 class CMarkupReference;
 typedef CArrayTemplate<CMarkupReference*>	CArrayMarkupReference;
+class CMarkupSubstitute;
+typedef CArrayTemplate<CMarkupSubstitute*>	CArrayMarkupSubstitute;
 
 
 class CMarkup;
@@ -37,6 +39,7 @@ class CMarkupDoc
 public:
 	CMarkupTag*				mpcRootTag;
 	CArrayMarkupReference	macRefs;
+	CArrayMarkupSubstitute	macSubstitutes;
 	CMarkup*				mpcMarkup;
 
 	void			Init(CMarkup* pcMarkup);
@@ -47,6 +50,8 @@ public:
 	BOOL			Is(char* szName);
 	void			AddReference(CMarkupReference* pcRef);
 	BOOL			FixReferences(void);
+
+	void			AddSubstitute(CMarkupSubstitute* pcSubstitute);
 
 	int				ToString(CChars* psz);
 	int				ToString(CChars* psz, int iDepth, int iLine);

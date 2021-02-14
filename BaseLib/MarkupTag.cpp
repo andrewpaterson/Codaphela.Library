@@ -558,26 +558,7 @@ int CMarkupTag::ToString(CChars* psz, int iDepth, int iLine)
 			for (i = 0; i < macBases.NumElements(); i++)
 			{
 				pcBase = *macBases.Get(i);
-				if (pcBase->IsTag())
-				{
-					iLine = ((CMarkupTag*)pcBase)->ToString(psz, iDepth+1, iLine);
-				}
-				else if (pcBase->IsText())
-				{
-					iLine = ((CMarkupText*)pcBase)->ToString(psz, iDepth+1, iLine);
-				}
-				else if (pcBase->IsNamedRef())
-				{
-					iLine = ((CMarkupNamedRef*)pcBase)->ToString(psz, iDepth+1, iLine);
-				}
-				else if (pcBase->IsRefDoc())
-				{
-					iLine = ((CMarkupRefDoc*)pcBase)->ToString(psz, iDepth+1, iLine);
-				}
-				else if (pcBase->IsRefText())
-				{
-					iLine = ((CMarkupRefText*)pcBase)->ToString(psz, iDepth+1, iLine);
-				}
+				iLine = pcBase->ToString(psz, iDepth + 1, iLine);
 			}
 		}
 

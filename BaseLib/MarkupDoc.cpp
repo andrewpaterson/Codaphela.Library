@@ -32,6 +32,7 @@ void CMarkupDoc::Init(CMarkup* pcMarkup)
 {
 	mpcRootTag = NULL;
 	macRefs.Init();
+	macSubstitutes.Init();
 	mpcMarkup = pcMarkup;
 }
 
@@ -42,11 +43,22 @@ void CMarkupDoc::Init(CMarkup* pcMarkup)
 //////////////////////////////////////////////////////////////////////////
 void CMarkupDoc::Kill(void)
 {
+	CMarkupSubstitute*	pcSubstitute;
+	int					i;
+
 	if (mpcRootTag)
 	{
 		mpcRootTag->Kill();
 	}
 
+	for (i = 0; i < macSubstitutes.NumElements(); i++)
+	{
+		pcSubstitute = *macSubstitutes.Get(i);
+		pcSubstitute->RemoveRef();
+		pcSubstitute->Kill();
+	}
+
+	macSubstitutes.Kill();
 	macRefs.Kill();
 	mpcMarkup = NULL;
 }
@@ -125,6 +137,17 @@ BOOL CMarkupDoc::Is(char* szName)
 		}
 	}
 	return FALSE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMarkupDoc::AddSubstitute(CMarkupSubstitute* pcSubstitute)
+{
+	macSubstitutes.Add(&pcSubstitute);
+	pcSubstitute->AddRef();
 }
 
 

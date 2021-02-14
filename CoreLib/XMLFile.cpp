@@ -97,6 +97,7 @@ BOOL CXMLFile::Read(char* szFileName, CMarkupDoc* pcDoc)
 	if (!bResult)
 	{
 		cTextFile.Kill();
+		szPath.Kill();
 		return FALSE;
 	}
 
@@ -107,6 +108,7 @@ BOOL CXMLFile::Read(char* szFileName, CMarkupDoc* pcDoc)
 	{
 		cXMLParser.Kill();
 		cTextFile.Kill();
+		szPath.Kill();
 		return FALSE;
 	}
 
@@ -115,11 +117,13 @@ BOOL CXMLFile::Read(char* szFileName, CMarkupDoc* pcDoc)
 	{
 		cXMLParser.Kill();
 		cTextFile.Kill();
+		szPath.Kill();
 		return FALSE;
 	}
 
 	cXMLParser.Kill();
 	cTextFile.Kill();
+	szPath.Kill();
 	return TRUE;	
 }
 
@@ -137,7 +141,9 @@ BOOL CXMLFile::Entities(CXMLParser* pcXMLParser)
 	CMarkupSubDoc*		pcSubDoc;
 	CMarkupDoc*			pcDoc;
 	BOOL				bResult;
+	CMarkupDoc*			pcParentDoc;
 
+	pcParentDoc = pcXMLParser->mpcDoc;
 	pcMarkup = pcXMLParser->mpcDoc->mpcMarkup;
 	for (i = 0; i <	pcXMLParser->macEntities.NumElements(); i++)
 	{
@@ -148,6 +154,8 @@ BOOL CXMLFile::Entities(CXMLParser* pcXMLParser)
 			pcDoc->Init(pcMarkup);
 			pcSubDoc = pcMarkup->AllocateSubDoc();
 			pcSubDoc->Init(pcEntity->mszName.Text(), pcDoc);
+			pcParentDoc->AddSubstitute(pcSubDoc);
+		
 			bResult = Read(pcEntity->mszValue.Text(), pcDoc);
 			if (!bResult)
 			{
@@ -158,6 +166,7 @@ BOOL CXMLFile::Entities(CXMLParser* pcXMLParser)
 		{
 			pcSubText = pcMarkup->AllocateSubText();
 			pcSubText->Init(pcEntity->mszName.Text(), pcEntity->mszValue.Text());
+			pcParentDoc->AddSubstitute(pcSubText);
 		}
 	}
 	return TRUE;

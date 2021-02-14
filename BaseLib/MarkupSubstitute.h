@@ -38,13 +38,18 @@ class CMarkupSubstitute : public CKillable
 public:
 	CChars					mszName;
 	EMarkupSubstituteType	meType;
+	int						miReferences;
 
-	void Init(char* szName, EMarkupSubstituteType eType);
-	void Kill(void);
+			void Init(char* szName, EMarkupSubstituteType eType);
+			void Kill(void);
 
-	BOOL Is(char* szName);
-	BOOL IsText(void);
-	BOOL IsDoc(void);
+			void AddRef(void);
+			BOOL RemoveRef(void);
+	virtual void RemoveAndKill(void);  //Remove a reference and kill the MarkupSubText if the reference count goes to zero.
+
+			BOOL Is(char* szName);
+			BOOL IsText(void);
+			BOOL IsDoc(void);
 };
 
 
@@ -53,15 +58,10 @@ class CMarkupSubText : public CMarkupSubstitute
 {
 public:
 	CChars		mszText;
-	int			miReferences;
 	CMarkup*	mpcMarkup;
 
 	void Init(char* szName, char* szText);
 	void Kill(void);
-
-	void AddRef(void);
-	BOOL RemoveRef(void);
-	void RemoveAndKill(void);  //Remove a reference and kill the MarkupSubText if the reference count goes to zero.
 };
 
 
@@ -69,15 +69,10 @@ class CMarkupSubDoc : public CMarkupSubstitute
 {
 public:
 	CMarkupDoc*		mpcDoc;
-	int				miReferences;
 	CMarkup*		mpcMarkup;
 
 	void Init(char* szName, CMarkupDoc* pcDoc);
 	void Kill(void);
-
-	void AddRef(void);
-	BOOL RemoveRef(void);
-	void RemoveAndKill(void);
 };
 
 
