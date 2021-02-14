@@ -20,6 +20,7 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
+#include "ConstructorCall.h"
 #include "Markup.h"
 
 
@@ -68,9 +69,12 @@ void CMarkup::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 CMarkupTag* CMarkup::AllocateTag(CMarkupDoc* pcDoc)
 {
-	CMarkupTag*		pcTag;
+	CMarkupTag*					pcTag;
+	CPostMalloc<CMarkupTag>		cPostMalloc;
 
 	pcTag = (CMarkupTag*)mcTags.Add();
+	cPostMalloc.PostMalloc(pcTag);
+
 	pcTag->mpcDoc = pcDoc;
 	return pcTag;
 }
@@ -82,9 +86,12 @@ CMarkupTag* CMarkup::AllocateTag(CMarkupDoc* pcDoc)
 //////////////////////////////////////////////////////////////////////////
 CMarkupText* CMarkup::AllocateText(CMarkupDoc* pcDoc)
 {
-	CMarkupText*	pcText;
+	CMarkupText*				pcText;
+	CPostMalloc<CMarkupText>	cPostMalloc;
 
 	pcText = (CMarkupText*)mcTexts.Add();
+	cPostMalloc.PostMalloc(pcText);
+
 	pcText->mpcDoc = pcDoc;
 	return pcText;
 }
@@ -96,9 +103,12 @@ CMarkupText* CMarkup::AllocateText(CMarkupDoc* pcDoc)
 //////////////////////////////////////////////////////////////////////////
 CMarkupSubDoc* CMarkup::AllocateSubDoc(void)
 {
-	CMarkupSubDoc*		pcSubDoc;
+	CMarkupSubDoc*				pcSubDoc;
+	CPostMalloc<CMarkupSubDoc>	cPostMalloc;
 
 	pcSubDoc = (CMarkupSubDoc*)mcSubDocs.Add();
+	cPostMalloc.PostMalloc(pcSubDoc);
+
 	pcSubDoc->mpcMarkup = this;
 	return pcSubDoc;
 }
@@ -110,9 +120,12 @@ CMarkupSubDoc* CMarkup::AllocateSubDoc(void)
 //////////////////////////////////////////////////////////////////////////
 CMarkupSubText* CMarkup::AllocateSubText(void)
 {
-	CMarkupSubText*		pcSubText;
+	CMarkupSubText*				pcSubText;
+	CPostMalloc<CMarkupSubText>	cPostMalloc;
 
 	pcSubText = (CMarkupSubText*)mcSubTexts.Add();
+	cPostMalloc.PostMalloc(pcSubText);
+
 	pcSubText->mpcMarkup = this;
 	return pcSubText;
 }
@@ -124,9 +137,12 @@ CMarkupSubText* CMarkup::AllocateSubText(void)
 //////////////////////////////////////////////////////////////////////////
 CMarkupRefDoc* CMarkup::AllocateRefDoc(CMarkupDoc* pcDoc)
 {
-	CMarkupRefDoc*		pcRefDoc;
+	CMarkupRefDoc*				pcRefDoc;
+	CPostMalloc<CMarkupRefDoc>	cPostMalloc;
 
 	pcRefDoc = (CMarkupRefDoc*)mcRefDocs.Add();
+	cPostMalloc.PostMalloc(pcRefDoc);
+
 	pcRefDoc->mpcDoc = pcDoc;
 	return pcRefDoc;
 }
@@ -138,9 +154,12 @@ CMarkupRefDoc* CMarkup::AllocateRefDoc(CMarkupDoc* pcDoc)
 //////////////////////////////////////////////////////////////////////////
 CMarkupRefText* CMarkup::AllocateRefText(CMarkupDoc* pcDoc)
 {
-	CMarkupRefText*		pcRefText;
+	CMarkupRefText*				pcRefText;
+	CPostMalloc<CMarkupRefText>	cPostMalloc;
 
 	pcRefText = (CMarkupRefText*)mcRefTexts.Add();
+	cPostMalloc.PostMalloc(pcRefText);
+
 	pcRefText->mpcDoc = pcDoc;
 	return pcRefText;
 }
@@ -152,9 +171,12 @@ CMarkupRefText* CMarkup::AllocateRefText(CMarkupDoc* pcDoc)
 //////////////////////////////////////////////////////////////////////////
 CMarkupNamedRef* CMarkup::AllocateNamedRef(CMarkupDoc* pcDoc)
 {
-	CMarkupNamedRef*		pcNamedRef;
+	CMarkupNamedRef*				pcNamedRef;
+	CPostMalloc<CMarkupNamedRef>	cPostMalloc;
 
 	pcNamedRef = (CMarkupNamedRef*)mcNamedRefs.Add();
+	cPostMalloc.PostMalloc(pcNamedRef);
+
 	pcNamedRef->mpcDoc = pcDoc;
 	return pcNamedRef;
 }

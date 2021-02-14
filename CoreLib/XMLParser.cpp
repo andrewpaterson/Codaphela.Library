@@ -545,7 +545,7 @@ TRISTATE CXMLParser::ParseContent(void)
 		}
 		break;
 	}
-	return TRITRUE;
+ 	return TRITRUE;
 }
 
 

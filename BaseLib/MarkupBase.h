@@ -39,7 +39,7 @@ enum EMarkupType
 
 class CMarkupTag;
 class CMarkupDoc;
-class CMarkupBase
+class CMarkupBase : public CKillable
 {
 public:
 	EMarkupType		meType;
@@ -49,20 +49,23 @@ public:
 	int				miLine;
 	int				miColumn;
 
-	void 	Init(EMarkupType eType, CMarkupTag* pcParent);
+public:
+			void 	Init(EMarkupType eType, CMarkupTag* pcParent);
 
-	BOOL 	IsTag(void);
-	BOOL 	IsText(void);
-	BOOL	IsRefDoc(void);
-	BOOL	IsRefText(void);
-	BOOL	IsNamedRef(void);
+			BOOL 	IsTag(void);
+			BOOL 	IsText(void);
+			BOOL	IsRefDoc(void);
+			BOOL	IsRefText(void);
+			BOOL	IsNamedRef(void);
 
-	int		GetLine(void);
-	int		GetColumn(void);
-	void	SetLineAndColumn(int iLine, int iColumn);
+			int		GetLine(void);
+			int		GetColumn(void);
+			void	SetLineAndColumn(int iLine, int iColumn);
 
-	void	ReplaceIllegalChars(CChars* pszMutableSource);
-	int		ToString(CChars* pszDest, CChars* pszMutableSource, int iDepth, int iLine, BOOL bAllowSameLine);
+			void	ReplaceIllegalChars(CChars* pszMutableSource);
+			int		ToString(CChars* pszDest, CChars* pszMutableSource, int iDepth, int iLine, BOOL bAllowSameLine);
+
+	virtual int		ToString(CChars* psz, int iDepth, int iLine) =0;
 };
 
 

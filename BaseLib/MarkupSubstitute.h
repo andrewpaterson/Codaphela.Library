@@ -33,7 +33,7 @@ enum EMarkupSubstituteType
 };
 
 
-class CMarkupSubstitute
+class CMarkupSubstitute : public CKillable
 {
 public:
 	CChars					mszName;
@@ -58,6 +58,7 @@ public:
 
 	void Init(char* szName, char* szText);
 	void Kill(void);
+
 	void AddRef(void);
 	BOOL RemoveRef(void);
 	void RemoveAndKill(void);  //Remove a reference and kill the MarkupSubText if the reference count goes to zero.
@@ -73,6 +74,7 @@ public:
 
 	void Init(char* szName, CMarkupDoc* pcDoc);
 	void Kill(void);
+
 	void AddRef(void);
 	BOOL RemoveRef(void);
 	void RemoveAndKill(void);
