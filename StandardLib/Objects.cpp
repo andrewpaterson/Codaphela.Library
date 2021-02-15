@@ -225,7 +225,10 @@ void CObjects::DumpNames(void)
 	sz.Init("-------------------------- Names -------------------------- \n");
 	sz.Dump();
 	sz.Kill();
-//	mcMemory.GetNames()->DumpTree();
+
+	//mpcDataConnection->StartNameIteration()
+	//	...
+
 	sz.Init();
 	sz.Append("------------------------------------------------------------ \n");
 	sz.Dump();
@@ -352,7 +355,6 @@ void CObjects::ValidateObjectsConsistency(void)
 	ValidateSceneGraph();
 	ValidateIndexedObjects();
 	ClearValidationFlags();
-	ValidateIdentifiers();
 }
 
 
@@ -402,20 +404,6 @@ void CObjects::ClearValidationFlags(void)
 		pcBaseObject->SetFlag(OBJECT_FLAGS_TESTED_FOR_SANITY, FALSE);
 		pcBaseObject = mcMemory.Iterate(&sIter);
 	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CObjects::ValidateIdentifiers(void)
-{
-	if (mpcDataConnection)
-	{
-		return mpcDataConnection->ValidateIdentifiers();
-	}
-	return TRUE;
 }
 
 

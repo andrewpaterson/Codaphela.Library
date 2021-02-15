@@ -910,6 +910,77 @@ BOOL CNamedIndexedData::IsWriteThrough(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CNamedIndexedData::ValidateIdentifiers(void)
 {
+	BOOL bResult;
+
+	bResult = ValidateNameToOidToName();
+	bResult &= ValidateOidToNameToOid();
+
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CNamedIndexedData::ValidateOidToNameToOid(void)
+{
+	SIndexTreeFileIterator	sIter;
+	OIndex					oi;
+	CStackMemory<>			cStackMemory;
+	unsigned int			uiDataSize;
+	unsigned int			uiMaxDataSize;
+	void*					pvData;
+	BOOL					bResult;
+	CNamedIndexedHeader*	pcHeader;
+	char*					szName;
+	OIndex					oiFromData;
+
+	pvData = cStackMemory.Init();
+	uiMaxDataSize = cStackMemory.GetStackSize();
+
+	oi = StartIndexIteration(&sIter, NULL, NULL, 0);
+	while (oi != INVALID_O_INDEX)
+	{
+		bResult = mcData.Get(oi, &uiDataSize, pvData, uiMaxDataSize);
+		if (!bResult)
+		{
+			cStackMemory.Kill();
+			return gcLogger.Error2(__METHOD__, " NamedIndexedData corrupt.  Iterated index [0x", LongLongToString(oi, 16), "] but it doesn not exist.", NULL);
+		}
+		if (uiDataSize > uiMaxDataSize)
+		{
+			cStackMemory.Kill();
+			pvData = cStackMemory.Init(uiDataSize);
+			uiMaxDataSize = uiDataSize;
+
+			bResult = mcData.Get(oi, &uiDataSize, pvData, uiMaxDataSize);
+		}
+
+		pcHeader = (CNamedIndexedHeader*)pvData;
+		if (pcHeader->HasName())
+		{
+			szName = pcHeader->GetName();
+			oiFromData = GetIndex(szName);
+			if (oi != oiFromData)
+			{
+				cStackMemory.Kill();
+				return gcLogger.Error2(__METHOD__, " NamedIndexedData corrupt.  Index [0x", LongLongToString(oi, 16), "] maps to name [", szName, "] but the name maps to index [0x", LongLongToString(oiFromData, 16), "].", NULL);
+			}
+		}
+
+		oi = IndexIterate(&sIter, NULL, NULL, 0);
+	}
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CNamedIndexedData::ValidateNameToOidToName(void)
+{
 	SIndexTreeFileIterator	sIter;
 	char					szName[MAX_KEY_SIZE + 1];
 	OIndex					oi;
@@ -926,6 +997,7 @@ BOOL CNamedIndexedData::ValidateIdentifiers(void)
 	pvData = cStackMemory.Init();
 	uiMaxDataSize = cStackMemory.GetStackSize();
 
+	memset(szName, 0, MAX_KEY_SIZE + 1);
 	bExists = StartNameIteration(&sIter, szName, &oi);
 	while (bExists)
 	{
@@ -950,7 +1022,7 @@ BOOL CNamedIndexedData::ValidateIdentifiers(void)
 		if (iResult != 0)
 		{
 			cStackMemory.Kill();
-			return gcLogger.Error2(__METHOD__, " NamedIndexedData corrupt.  Name [", szName, "] maps to oid oid [0x", LongLongToString(oi, 16), "] but the oid maps to name [", szNameFromData, "].", NULL);
+			return gcLogger.Error2(__METHOD__, " NamedIndexedData corrupt.  Name [", szName, "] maps to index [0x", LongLongToString(oi, 16), "] but the index maps to name [", szNameFromData, "].", NULL);
 		}
 
 		bExists = NameIterate(&sIter, szName, &oi);
@@ -1056,10 +1128,11 @@ OIndex CNamedIndexedData::StartIndexIteration(SIndexTreeFileIterator* psIterator
 	if (oi != INVALID_O_INDEX)
 	{
 		pvHeaderData = pcHeader->GetData();
-		*piDataSize = iDataSize - pcHeader->GetHeaderSize();
+		iDataSize = iDataSize - pcHeader->GetHeaderSize();
+		SafeAssign(piDataSize, iDataSize);
 		if (iMaxDataSize > 0)
 		{
-			memcpy(pvData, pvHeaderData, MinDataSize(*piDataSize, iMaxDataSize));
+			memcpy(pvData, pvHeaderData, MinDataSize(iDataSize, iMaxDataSize));
 		}
 	}
 	
@@ -1088,10 +1161,11 @@ OIndex CNamedIndexedData::IndexIterate(SIndexTreeFileIterator* psIterator, void*
 	if (oi != INVALID_O_INDEX)
 	{
 		pvHeaderData = pcHeader->GetData();
-		*piDataSize = iDataSize - pcHeader->GetHeaderSize();
+		iDataSize = iDataSize - pcHeader->GetHeaderSize();
+		SafeAssign(piDataSize, iDataSize);
 		if (iMaxDataSize > 0)
 		{
-			memcpy(pvData, pvHeaderData, MinDataSize(*piDataSize, iMaxDataSize));
+			memcpy(pvData, pvHeaderData, MinDataSize(iDataSize, iMaxDataSize));
 		}
 	}
 
