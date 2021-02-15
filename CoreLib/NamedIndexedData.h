@@ -91,6 +91,9 @@ public:
 	BOOL			IsWriteThrough(void);
 
 	BOOL			ValidateIdentifiers(void);
+	BOOL			ValidateNameToOidToName(void);
+	BOOL			ValidateOidToNameToOid(void);
+
 	BOOL			ValidateConfigInitialised(void);
 	BOOL			ValidateConfigKilled(void);
 

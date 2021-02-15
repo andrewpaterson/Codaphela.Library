@@ -14,6 +14,7 @@ public:
 	void*	GetData(void);
 	int		GetNameLength(void);
 	int		GetHeaderSize(void);
+	BOOL	HasName(void);
 };
 
 

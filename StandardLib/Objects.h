@@ -22,7 +22,6 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __OBJECTS_H__
 #include "CoreLib/DataConnection.h"
 #include "CoreLib/IndexedGeneral.h"
-#include "CoreLib/NamedIndexedData.h"
 #include "NamedIndexedObjects.h"
 #include "Unknowns.h"
 #include "Null.h"
@@ -148,7 +147,6 @@ protected:
 
 						void					RecurseDumpGraph(CChars* psz, CEmbeddedObject* pcObject, int iLevel, BOOL bEmbedded);
 						void					ValidateSceneGraph(void);
-						BOOL					ValidateIdentifiers(void);
 						void					ValidateIndexedObjects(void);
 						void					ClearValidationFlags(void);
 						void					RecurseValidateSceneGraph(CBaseObject* pcBaseObject);

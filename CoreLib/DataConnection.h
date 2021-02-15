@@ -50,8 +50,6 @@ public:
 	virtual OIndex	IndexIterate(SIndexTreeFileIterator* psIterator, void* pvData, size_t* piDataSize, size_t iMaxDataSize) =0;
 	virtual BOOL	StartNameIteration(SIndexTreeFileIterator* psIterator, char* szKey, OIndex* poi) =0;
 	virtual BOOL	NameIterate(SIndexTreeFileIterator* psIterator, char* szKey, OIndex* poi) =0;
-
-	virtual BOOL	ValidateIdentifiers(void) =0;
 };
 
 
