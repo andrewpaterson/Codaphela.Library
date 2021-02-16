@@ -254,6 +254,16 @@ filePos CFileBasic::GetFileSize(void)
 
 //====================================================================================
 //=
+//=
+//====================================================================================
+BOOL CFileBasic::Truncate(filePos iSize)
+{
+	return mpcFile->Truncate(iSize);
+}
+
+
+//====================================================================================
+//=
 //= Function Name: CFileBasic::FilePos
 //=
 //= Returns      : integer position in the file

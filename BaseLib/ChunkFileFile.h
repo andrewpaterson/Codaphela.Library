@@ -49,6 +49,7 @@ public:
 	filePos		Tell(void);
 	BOOL		Eof(void);
 	BOOL		IsOpen(void);
+	BOOL		Truncate(filePos iSize);
 	filePos		Size(void);
 	BOOL		Flush(void);
 	BOOL		Delete(void);

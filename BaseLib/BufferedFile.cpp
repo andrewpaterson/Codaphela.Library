@@ -327,6 +327,24 @@ filePos CBufferedFile::Size(void)
 	return mulliLength;
 }
 
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CBufferedFile::Truncate(filePos iSize)
+{
+	BOOL	bResult;
+	bResult = WriteUnwritten();
+	bResult &= mpcFile->Truncate(iSize);
+	if (bResult)
+	{
+		mulliFilePos = iSize;
+		mulliCurrentPos = iSize;
+		bResult = mpcFile->Seek(iSize, EFSO_SET);
+	}
+	return bResult;
+}
+
 
 //////////////////////////////////////////////////////////////////////////
 //

@@ -126,10 +126,15 @@ BOOL CDurableSet::Begin(void)
 		return gcLogger.Error2(__METHOD__, " Cannot begin.  Already begun.", NULL);
 	}
 
-	CheckWriteStatus(TRUE);
-
-	mbBegun = TRUE;
-	return TRUE;
+	if (CheckWriteStatus(TRUE))
+	{
+		mbBegun = TRUE;
+	}
+	else
+	{
+		mbBegun = FALSE;
+	}
+	return mbBegun;
 }
 
 
@@ -270,7 +275,7 @@ BOOL CDurableSet::Add(CDurableFile* pcFile)
 	}
 	else
 	{
-		return TRUE;
+		return FALSE;
 	}
 }
 

@@ -21,6 +21,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
 #include <stdio.h>
+#include <io.h>
+#include "Windows.h"
 #include "IntegerHelper.h"
 #include "FileUtil.h"
 #include "ConstructorCall.h"
@@ -268,6 +270,27 @@ filePos CDiskFile::Size(void)
 	{
 		return 0;
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CDiskFile::Truncate(filePos iSize)
+{
+	//You should really convert DiskFile to be Windows (and Linux) specific and use HANDLEs in windows.
+	//Use SetEndOfFile rather than _chsize.
+
+	int filedes = _fileno(mpsFileHandle);
+	HANDLE handle = (HANDLE)_get_osfhandle(filedes);
+	unsigned int uiResult = SetFilePointer(handle, (LONG)iSize, NULL, FILE_END);
+	if (uiResult != INVALID_SET_FILE_POINTER)
+	{
+		BOOL bResult = SetEndOfFile(handle);
+		return bResult;
+	}
+	return FALSE;
 }
 
 

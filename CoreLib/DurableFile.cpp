@@ -560,6 +560,7 @@ filePos CDurableFile::Tell(void)
 filePos CDurableFile::Size(void)
 {
 	filePos ulliSize;
+
 	if (!IsBegun())
 	{
 		gcLogger.Error2(__METHOD__, " Cannot size from CDurableFile [", mszFileName.Text(), "] that is not Begun.", NULL);
@@ -587,7 +588,22 @@ filePos CDurableFile::Size(void)
 	{
 		return mcPrimaryFile.GetFileSize();
 	}
+}
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CDurableFile::Truncate(filePos iSize)
+{
+	if (!IsBegun())
+	{
+		gcLogger.Error2(__METHOD__, " Cannot truncate CDurableFile [", mszFileName.Text(), "] that is not Begun.", NULL);
+		return -1;
+	}
+
+	return mcPrimaryFile.Truncate(iSize);
 }
 
 

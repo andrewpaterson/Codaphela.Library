@@ -20,6 +20,7 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
+#include "Logger.h"
 #include "ConstructorCall.h"
 #include "PackFiles.h"
 #include "PackFile.h"
@@ -179,6 +180,16 @@ BOOL CPackFile::IsOpen(void)
 filePos CPackFile::Size(void)
 {
 	return mpsPackFileNode->Size();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CPackFile::Truncate(filePos iSize)
+{
+	return gcLogger.Error2(__METHOD__, " Cannot truncate Pack Files.", NULL);
 }
 
 
