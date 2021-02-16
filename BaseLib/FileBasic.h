@@ -53,6 +53,8 @@ public:
 	filePos		GetFilePos(void);
 	filePos		GetFileSize(void);  //Same as GetFileLength.
 
+	BOOL		Truncate(filePos iSize);
+
 	char*		GetFileName(void);
 
 	//Generally you shouldn't use these.  Use WriteData instead.

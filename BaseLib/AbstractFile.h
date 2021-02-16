@@ -43,6 +43,7 @@ public:
 	virtual BOOL		Eof(void) =0;
 	virtual BOOL		IsOpen(void) =0;
 	virtual filePos		Size(void) =0;
+	virtual BOOL		Truncate(filePos iSize) =0;
 	virtual BOOL		Flush(void) =0;
 	virtual BOOL		Delete(void) =0;
 	virtual char*		GetFileName(void) =0;

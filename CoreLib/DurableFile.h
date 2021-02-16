@@ -87,6 +87,7 @@ public:
 
 	filePos		Tell(void);
 	filePos		Size(void);
+	BOOL		Truncate(filePos iSize);
 
 	int			GetNumWrites(void);
 	void*		GetWriteData(int iWrite);

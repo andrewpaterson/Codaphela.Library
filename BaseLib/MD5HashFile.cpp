@@ -20,6 +20,7 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
+#include "Logger.h"
 #include "ConstructorCall.h"
 #include "Chars.h"
 #include "MD5HashFile.h"
@@ -228,6 +229,16 @@ int CMD5HashFile::Eof(void)
 filePos CMD5HashFile::Size(void)
 {
 	return mpcFile->Size();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CMD5HashFile::Truncate(filePos iSize)
+{
+	return gcLogger.Error2(__METHOD__, " Cannot truncate Hash Files.", NULL);
 }
 
 

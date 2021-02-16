@@ -372,32 +372,29 @@ BOOL CNamedIndexedData::Put(OIndex oi, char* szName, void* pvData, unsigned int 
 BOOL CNamedIndexedData::Put(OIndex oi, char* szName, int iNameLength, void* pvData, unsigned int uiDataSize)
 {
 	OIndex	oiExisting;
-	BOOL	bExist;
+	BOOL	bExists;
 
 	oiExisting = mcNames.Get(szName);
-	bExist = mcData.Contains(oi);
-	if (bExist && oiExisting != INVALID_O_INDEX)
+	bExists = mcData.Contains(oi);
+	if (bExists && oiExisting != INVALID_O_INDEX)
 	{
 		if (oiExisting != oi)
 		{
-			gcLogger.Error2(__METHOD__, " Put Index [", IndexToString(oi), "] not equal to existing index [", IndexToString(oiExisting), "] for name [", szName, "].", NULL);
-			return FALSE;
+			return gcLogger.Error2(__METHOD__, " Put Index [", IndexToString(oi), "] not equal to existing index [", IndexToString(oiExisting), "] for name [", szName, "].", NULL);
 		}
 		return Set(oi, pvData, uiDataSize);
 	}
-	else if (!bExist && oiExisting == INVALID_O_INDEX)
+	else if (!bExists && oiExisting == INVALID_O_INDEX)
 	{
 		return Add(oi, szName, iNameLength, pvData, uiDataSize);
 	}
-	else if (oiExisting)
+	else if (oiExisting != INVALID_O_INDEX)
 	{
-		gcLogger.Error2(__METHOD__, " Index [", IndexToString(oi), "] does not have an existing name [", szName, "].", NULL);
-		return FALSE;
+		return gcLogger.Error2(__METHOD__, " Index [", IndexToString(oi), "] does not have an existing name [", szName, "].", NULL);
 	}
 	else
 	{
-		gcLogger.Error2(__METHOD__, " Name [", szName, "] does not have an existing index.", NULL);
-		return FALSE; 
+		return gcLogger.Error2(__METHOD__, " Name [", szName, "] does not have an existing index.", NULL);
 	}
 }
 

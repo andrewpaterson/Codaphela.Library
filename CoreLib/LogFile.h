@@ -37,6 +37,7 @@ public:
 	filePos					Read(void* pvDest, filePos iSize, filePos iCount);
 	filePos					Tell(void);
 	filePos					Size(void);
+	BOOL					Truncate(filePos iSize);
 	BOOL					Seek(filePos iOffset, EFileSeekOrigin iSeekOrigin);
 	BOOL					Eof(void);
 	BOOL					IsOpen(void);

@@ -39,9 +39,8 @@ int	giTotalTestsFailed;
 
 clock_t gClock;
 
-BOOL Fail(void);
-BOOL Pass(void);
-BOOL Fail(char* szExpected, char* szActual, int iLine, char* szFile);
+BOOL Failed(void);
+BOOL Failed(const char* szExpected, const char* szActual, int iLine, char* szFile);
 void ToTristateString(TRISTATE t, char* sz);
 void ToBoolString(BOOL b, char* sz);
 void ToCharString(char c, char* sz);
@@ -183,11 +182,11 @@ BOOL PrivateAssertString(const char* szExpected, const char* szActual, BOOL bTes
 	}
 	else if (szActual == NULL)
 	{
-		return Fail(szExpected, "** NULL **", iLine, szFile);
+		return Failed(szExpected, "** NULL **", iLine, szFile);
 	}
 	else if (szExpected == NULL)
 	{
-		return Fail("** NULL **", szActual, iLine, szFile);
+		return Failed("** NULL **", szActual, iLine, szFile);
 	}
 	else
 	{
@@ -195,7 +194,7 @@ BOOL PrivateAssertString(const char* szExpected, const char* szActual, BOOL bTes
 		{
 			if (strcmp(szExpected, szActual) != 0)
 			{
-				return Fail(szExpected, szActual, iLine, szFile);
+				return Failed(szExpected, szActual, iLine, szFile);
 			}
 			else
 			{
@@ -206,7 +205,7 @@ BOOL PrivateAssertString(const char* szExpected, const char* szActual, BOOL bTes
 		{
 			if (StrICmp(szExpected, szActual) != 0)
 			{
-				return Fail(szExpected, szActual, iLine, szFile);
+				return Failed(szExpected, szActual, iLine, szFile);
 			}
 			else
 			{
@@ -310,7 +309,7 @@ BOOL PrivateAssertTristate(TRISTATE tExpected, TRISTATE tActual, int iLine, char
 	{
 		ToTristateString(tExpected, szExpected);
 		ToTristateString(tActual, szActual);
-		return Fail((const char*)szExpected, (const char*)szActual, iLine, szFile);
+		return Failed((const char*)szExpected, (const char*)szActual, iLine, szFile);
 	}
 	else
 	{
@@ -332,7 +331,7 @@ BOOL PrivateAssertBool(BOOL bExpected, BOOL bActual, int iLine, char* szFile)
 	{
 		ToBoolString(bExpected, szExpected);
 		ToBoolString(bActual, szActual);
-		return Fail((const char*)szExpected, (const char*)szActual, iLine, szFile);
+		return Failed((const char*)szExpected, (const char*)szActual, iLine, szFile);
 	}
 	else
 	{
@@ -354,7 +353,7 @@ BOOL PrivateAssertChar(char cExpected, char cActual, int iLine, char* szFile)
 	{
 		ToCharString(cExpected, szExpected);
 		ToCharString(cActual, szActual);
-		return Fail((const char*)szExpected, (const char*)szActual, iLine, szFile);
+		return Failed((const char*)szExpected, (const char*)szActual, iLine, szFile);
 	}
 	else
 	{
@@ -376,7 +375,7 @@ BOOL PrivateAssertInt(int iExpected, int iActual, int iLine, char* szFile)
 	{
 		ToIntString(iExpected, szExpected);
 		ToIntString(iActual, szActual);
-		return Fail((const char*)szExpected, (const char*)szActual, iLine, szFile);
+		return Failed((const char*)szExpected, (const char*)szActual, iLine, szFile);
 	}
 	else
 	{
@@ -398,7 +397,7 @@ BOOL PrivateAssertIntHex(int iExpected, int iActual, int iLine, char* szFile)
 	{
 		ToIntHexString(iExpected, szExpected);
 		ToIntHexString(iActual, szActual);
-		return Fail((const char*)szExpected, (const char*)szActual, iLine, szFile);
+		return Failed((const char*)szExpected, (const char*)szActual, iLine, szFile);
 	}
 	else
 	{
@@ -420,7 +419,7 @@ BOOL PrivateAssertShort(int16 iExpected, int16 iActual, int iLine, char* szFile)
 	{
 		ToIntString(iExpected, szExpected);
 		ToIntString(iActual, szActual);
-		return Fail((const char*)szExpected, (const char*)szActual, iLine, szFile);
+		return Failed((const char*)szExpected, (const char*)szActual, iLine, szFile);
 	}
 	else
 	{
@@ -442,7 +441,7 @@ BOOL PrivateAssertShortHex(int16 iExpected, int16 iActual, int iLine, char* szFi
 	{
 		ToIntHexString(iExpected, szExpected);
 		ToIntHexString(iActual, szActual);
-		return Fail((const char*)szExpected, (const char*)szActual, iLine, szFile);
+		return Failed((const char*)szExpected, (const char*)szActual, iLine, szFile);
 	}
 	else
 	{
@@ -466,7 +465,7 @@ BOOL PrivateAssertLongLongInt(long long int iExpected, long long int iActual, in
 		ToLongLongIntString(iActual, szActual);
 		strcat(szExpected, "LL");
 		strcat(szActual, "LL");
-		return Fail((const char*)szExpected, (const char*)szActual, iLine, szFile);
+		return Failed((const char*)szExpected, (const char*)szActual, iLine, szFile);
 	}
 	else
 	{
@@ -474,6 +473,27 @@ BOOL PrivateAssertLongLongInt(long long int iExpected, long long int iActual, in
 	}
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL PrivateAssertLongLongIntHex(long long int iExpected, long long int iActual, int iLine, char* szFile)
+{
+	char szExpected[32];
+	char szActual[32];
+
+	if (iExpected != iActual)
+	{
+		ToLongLongIntHexString(iExpected, szExpected);
+		ToLongLongIntHexString(iActual, szActual);
+		return Failed((const char*)szExpected, (const char*)szActual, iLine, szFile);
+	}
+	else
+	{
+		return Pass();
+	}
+}
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -491,7 +511,7 @@ BOOL PrivateAssertLongHex(long long int iExpected, long long int iActual, int iL
 		ToLongLongIntHexString(iActual, szActual);
 		strcat(szExpected, "LL");
 		strcat(szActual, "LL");
-		return Fail((const char*)szExpected, (const char*)szActual, iLine, szFile);
+		return Failed((const char*)szExpected, (const char*)szActual, iLine, szFile);
 	}
 	else
 	{
@@ -515,7 +535,7 @@ BOOL PrivateAssertFloat(float fExpected, float fActual, int iDecimals, int iLine
 	{
 		ToFloatString(fExpected, szExpected, iDecimals);
 		ToFloatString(fActual, szActual, iDecimals);
-		return Fail((const char*)szExpected, (const char*)szActual, iLine, szFile);
+		return Failed((const char*)szExpected, (const char*)szActual, iLine, szFile);
 	}
 	else
 	{
@@ -539,7 +559,7 @@ BOOL PrivateAssertDouble(double fExpected, double fActual, int iDecimals, int iL
 	{
 		ToDoubleString(fExpected, szExpected, iDecimals);
 		ToDoubleString(fActual, szActual, iDecimals);
-		return Fail((const char*)szExpected, (const char*)szActual, iLine, szFile);
+		return Failed((const char*)szExpected, (const char*)szActual, iLine, szFile);
 	}
 	else
 	{
@@ -577,7 +597,7 @@ BOOL PrivateAssertFloat3(SFloat3 fExpected, SFloat3* pfActual, int iDecimals, in
 
 		ToFloat3String(&fExpected, szExpected, iWholeNumbers, iDecimals);
 		ToFloat3String(pfActual, szActual, iWholeNumbers, iDecimals);
-		return Fail((const char*)szExpected, (const char*)szActual, iLine, szFile);
+		return Failed((const char*)szExpected, (const char*)szActual, iLine, szFile);
 	}
 	else
 	{
@@ -601,7 +621,7 @@ BOOL PrivateAssertMemory(void* pvExpected, void* pvActual, int iSize, int iLine,
 	{
 		sprintf(szExpected, "memcmp() == 0");
 		sprintf(szActual, "memcmp() == %i", i);
-		return Fail((const char*)szExpected, (const char*)szActual, iLine, szFile);
+		return Failed((const char*)szExpected, (const char*)szActual, iLine, szFile);
 	}
 	else
 	{
@@ -648,7 +668,7 @@ BOOL PrivateAssertZero(void* pvActual, int iSize, int iLine, char* szFile)
 	{
 		sprintf(szExpected, "zerocmp() == 0");
 		sprintf(szActual, "zerocmp() == %i", i);
-		return Fail((const char*)szExpected, (const char*)szActual, iLine, szFile);
+		return Failed((const char*)szExpected, (const char*)szActual, iLine, szFile);
 	}
 	else
 	{
@@ -670,7 +690,7 @@ BOOL PrivateAssertNegative(int i, int iLine, char* szFile)
 	{
 		sprintf(szExpected, ">= 0");
 		ToIntString(i, szActual);
-		return Fail((const char*)szExpected, (const char*)szActual, iLine, szFile);
+		return Failed((const char*)szExpected, (const char*)szActual, iLine, szFile);
 	}
 	else
 	{
@@ -692,7 +712,7 @@ BOOL PrivateAssertPositive(int i, int iLine, char* szFile)
 	{
 		sprintf(szExpected, "<= 0");
 		ToIntString(i, szActual);
-		return Fail((const char*)szExpected, (const char*)szActual, iLine, szFile);
+		return Failed((const char*)szExpected, (const char*)szActual, iLine, szFile);
 	}
 	else
 	{
@@ -732,7 +752,7 @@ BOOL PrivateAssertNumber(const char* szExpected, CNumber* pcActual, int iLine, c
 	{
 		pcExpected->ToString(&szExpectedAsChars);
 		pcActual->ToString(&szActual);
-		bResult = Fail((const char*)szExpectedAsChars.Text(), (const char*)szActual.Text(), iLine, szFile);
+		bResult = Failed((const char*)szExpectedAsChars.Text(), (const char*)szActual.Text(), iLine, szFile);
 		szExpectedAsChars.Kill();
 		szActual.Kill();
 	}
@@ -758,7 +778,7 @@ BOOL PrivateAssertPointer(void* pvExpected, void* pvActual, int iLine, char* szF
 	{
 		ToPointerString(pvExpected, szExpected);
 		ToPointerString(pvActual, szActual);
-		return Fail((const char*)szExpected, (const char*)szActual, iLine, szFile);
+		return Failed((const char*)szExpected, (const char*)szActual, iLine, szFile);
 	}
 	else
 	{
@@ -783,14 +803,14 @@ BOOL PrivateAssertMD5(unsigned char* pucExpected, unsigned char* pucActual, int 
 	else if (pucActual == NULL)
 	{
 		ToMD5String(pucExpected, szExpected);
-		return Fail((const char*)szExpected, "** NULL **", iLine, szFile);
+		return Failed((const char*)szExpected, "** NULL **", iLine, szFile);
 	}
 
 	if (memcmp(pucExpected, pucActual, 16) != 0)
 	{
 		ToMD5String(pucExpected, szExpected);
 		ToMD5String(pucActual, szActual);
-		return Fail((const char*)szExpected, (const char*)szActual, iLine, szFile);
+		return Failed((const char*)szExpected, (const char*)szActual, iLine, szFile);
 	}
 	else
 	{
@@ -807,7 +827,7 @@ BOOL PrivateAssertNotNull(void* pvActual, int iLine, char* szFile)
 {
 	if (NULL == pvActual)
 	{
-		return Fail((const char*)"Not NULL", (const char*)"NULL", iLine, szFile);
+		return Failed((const char*)"Not NULL", (const char*)"NULL", iLine, szFile);
 	}
 	else
 	{
@@ -824,7 +844,7 @@ BOOL PrivateAssertNull(void* pvActual, int iLine, char* szFile)
 {
 	if (NULL != pvActual)
 	{
-		return Fail("NULL", "Not NULL", iLine, szFile);
+		return Failed("NULL", "Not NULL", iLine, szFile);
 	}
 	else
 	{
@@ -851,7 +871,7 @@ BOOL PrivateAssertFile(const char* szExpectedFileName, char* szActualFileName, i
 
 	if (!bResult)
 	{
-		bResult = Fail((const char*)szExpected.Text(), (const char*)szActual.Text(), iLine, szFile);
+		bResult = Failed((const char*)szExpected.Text(), (const char*)szActual.Text(), iLine, szFile);
 		szActual.Kill();
 		szExpected.Kill();
 		return bResult;
@@ -880,7 +900,7 @@ BOOL PrivateAssertFileMemory(const char* szExpectedFileName, void* pcMemory, siz
 
 	if (!bResult)
 	{
-		bResult = Fail((const char*)szExpected.Text(), (const char*)szActual.Text(), iLine, szFile);
+		bResult = Failed((const char*)szExpected.Text(), (const char*)szActual.Text(), iLine, szFile);
 		szActual.Kill();
 		szExpected.Kill();
 		return bResult;
@@ -909,12 +929,38 @@ BOOL PrivateAssertFileString(const char* szExpectedFileName, const char* szStrin
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL Fail(const char* szExpected, const char* szActual, int iLine, char* szFile)
+BOOL Failed(int iLine, char* szFile)
 {
 	char    szLine[1024];
 	CChars  szError;
 
-	Fail();
+	Failed();
+
+	IToA(iLine, szLine, 10);
+	szError.Init("Failed: ");
+	szError.Append(szFile);
+	szError.Append(" line ");
+	szError.Append(szLine);
+	szError.AppendNewLine();
+
+	gcLogger.Add(szError.Text());
+
+	szError.Kill();
+
+	return FALSE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL Failed(const char* szExpected, const char* szActual, int iLine, char* szFile)
+{
+	char    szLine[1024];
+	CChars  szError;
+
+	Failed();
 
 	IToA(iLine, szLine, 10);
 	szError.Init("Failed: ");
@@ -944,7 +990,7 @@ BOOL Fail(const char* szExpected, const char* szActual, int iLine, char* szFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL Fail(void)
+BOOL Failed(void)
 {
 	giTestsRun++;
 	giTestsFailed++;

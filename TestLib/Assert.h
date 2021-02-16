@@ -38,7 +38,7 @@ int  TestTotalStatistics(void);
 void InitTotalStatistics(void);
 
 BOOL Pass(void);
-BOOL Fail(const char* szExpected, const char* szActual, int iLine, char* szFile);
+BOOL Failed(int iLine, char* szFile);
 
 BOOL PrivateAssertTristate(TRISTATE tExpected, TRISTATE tActual, int iLine, char* szFile);
 BOOL PrivateAssertBool(BOOL bExpected, BOOL bActual, int iLine, char* szFile);
@@ -48,7 +48,7 @@ BOOL PrivateAssertIntHex(int iExpected, int iActual, int iLine, char* szFile);
 BOOL PrivateAssertShort(int16 iExpected, int16 iActual, int iLine, char* szFile);
 BOOL PrivateAssertShortHex(int16 iExpected, int16 iActual, int iLine, char* szFile);
 BOOL PrivateAssertLongLongInt(long long int iExpected, long long int iActual, int iLine, char* szFile);
-//BOOL PrivateAssertLongLongIntHex(long long int iExpected, long long int iActual, int iLine, char* szFile);
+BOOL PrivateAssertLongLongIntHex(long long int iExpected, long long int iActual, int iLine, char* szFile);
 BOOL PrivateAssertFloat(float fExpected, float fActual, int iDecimals, int iLine, char* szFile);
 BOOL PrivateAssertFloat3(SFloat3 fExpected, SFloat3* pfActual, int iDecimals, int iLine, char* szFile);
 BOOL PrivateAssertDouble(double fExpected, double fActual, int iDecimals, int iLine, char* szFile);
@@ -99,7 +99,7 @@ BOOL PrivateAssertFileString(const char* szExpectedFileName, const char* szStrin
 #define AssertFile(e, a)					Validate(PrivateAssertFile(e, a, __LINE__, __FILE__))
 #define AssertFileMemory(e, a, l)			Validate(PrivateAssertFileMemory(e, a, l, __LINE__, __FILE__))
 #define AssertFileString(e, a)				Validate(PrivateAssertFileString(e, a, __LINE__, __FILE__))
-
+#define Fail()								Validate(Failed(__LINE__, __FILE__))
 
 #endif // __ASSERT_FUNCTIONS_H__
 

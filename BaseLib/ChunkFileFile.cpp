@@ -1,3 +1,4 @@
+#include "Logger.h"
 #include "ChunkFile.h"
 #include "ChunkFileFile.h"
 
@@ -169,6 +170,16 @@ BOOL CChunkFileFile::IsOpen(void)
 filePos CChunkFileFile::Size(void)
 {
 	return miChunkSize;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CChunkFileFile::Truncate(filePos iSize)
+{
+	return gcLogger.Error2(__METHOD__, " Cannot truncate Chunk Files.", NULL);
 }
 
 

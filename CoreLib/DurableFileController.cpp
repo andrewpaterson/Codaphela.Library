@@ -22,6 +22,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/Logger.h"
 #include "BaseLib/LogString.h"
+#include "BaseLib/StackMemory.h"
 #include "DurableFile.h"
 #include "DurableFileController.h"
 
@@ -40,11 +41,12 @@ BOOL CDurableFileController::Init(char* szDirectory)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CDurableFileController::Init(char* szDirectory, char* szRewriteDirectory)
+BOOL CDurableFileController::Init(char* szDirectory, char* szRewriteDirectory, char* szFileListWrite, char* szFileListRewrite, char* szMarkWrite, char* szMarkRewrite)
 {
 	CChars		szStart;
 	CChars		szRewrite;
 	CFileUtil	cFileUtil;
+	BOOL		bResult;
 
 	if (StrEmpty(szDirectory))
 	{
@@ -64,7 +66,11 @@ BOOL CDurableFileController::Init(char* szDirectory, char* szRewriteDirectory)
 
 	mszDirectory.Init(szDirectory);
 	szStart.Init(szDirectory);
-	cFileUtil.AppendToPath(&szStart, "Mark1.Write");
+	if (!szMarkWrite)
+	{
+		szMarkWrite = "Mark1.Write";
+	}
+	cFileUtil.AppendToPath(&szStart, szMarkWrite);
 
 	if (szRewriteDirectory && mbDurable)
 	{
@@ -76,13 +82,33 @@ BOOL CDurableFileController::Init(char* szDirectory, char* szRewriteDirectory)
 		mszRewriteDirectory.Init();
 		szRewrite.Init(szDirectory);
 	}
-	cFileUtil.AppendToPath(&szRewrite, "Mark2.Rewrite");
+	if (!szMarkRewrite)
+	{
+		szMarkRewrite = "Mark2.Rewrite";
+	}
+	cFileUtil.AppendToPath(&szRewrite, szMarkRewrite);
 
 	mcDurableSet.Init(szStart.Text(), szRewrite.Text());
 
 	szRewrite.Kill();
 	szStart.Kill();
 
+	mcFileList.Init(this, szFileListWrite, szFileListRewrite);
+	mcFileList.AddFile();
+
+	mcNameMap.Init(FALSE, TRUE);
+
+	bResult = ReadControlledFileList(&mcFileList);
+	if (!bResult)
+	{
+		return FALSE;
+	}
+
+	bResult = Check(FALSE);
+	if (!bResult)
+	{
+		return FALSE;
+	}
 	return TRUE;
 }
 
@@ -93,6 +119,9 @@ BOOL CDurableFileController::Init(char* szDirectory, char* szRewriteDirectory)
 //////////////////////////////////////////////////////////////////////////
 void CDurableFileController::Kill(void)
 {
+	mcFileList.Kill();
+	mcNameMap.Kill();
+
 	mcDurableSet.Kill();
 
 	mszRewriteDirectory.Kill();
@@ -106,9 +135,15 @@ void CDurableFileController::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CDurableFileController::Begin(void)
 {
-	return mcDurableSet.Begin();
-}
+	BOOL			bResult;
 
+	bResult = mcDurableSet.Begin();
+	if (!bResult)
+	{
+		return FALSE;
+	}
+	return TRUE;
+}
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -118,7 +153,7 @@ BOOL CDurableFileController::Begin(void)
 BOOL CDurableFileController::Begin(CDurableFile* pcFirst, ...)
 {
 	va_list			vaMarker;
-	CDurableFile*	pc;
+	CDurableFile* pc;
 	int				iCount;
 	BOOL			bResult;
 
@@ -134,12 +169,6 @@ BOOL CDurableFileController::Begin(CDurableFile* pcFirst, ...)
 	}
 	va_end(vaMarker);
 
-	bResult = Check();
-	if (!bResult)
-	{
-		return FALSE;
-	}
-
 	return Begin();
 }
 
@@ -151,6 +180,100 @@ BOOL CDurableFileController::Begin(CDurableFile* pcFirst, ...)
 BOOL CDurableFileController::End(void)
 {
 	return mcDurableSet.End();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CDurableFileController::WriteControlledFileList(CDurableFile* pcFile)
+{
+	unsigned int	uiFileMagic;
+	BOOL			bRead;
+	unsigned int	uiFileNumber;
+	unsigned int	uiFileCount;
+	BOOL			bResult;
+	CStackMemory<>	cStack;
+	int				iFileNameLength;
+	char*			szFileName;
+	int				iWriteOrRewrite;
+	SMapIterator	sIter;
+	BOOL			bExists;
+	char*			pcName;
+	int*			piWriteOrRewrite;
+
+	pcFile->Truncate(0);
+
+	uiFileCount = 0;
+	bExists = mcNameMap.StartIteration(&sIter, (void**)&pcName, (void**)&piWriteOrRewrite);
+	while (bExists)
+	{
+		bResult = pcFile->WriteInt(DURABLE_FILE_MAGIC);
+		bResult &= pcFile->WriteInt(uiFileCount);
+		bResult &= pcFile->WriteString(pcName);
+		bResult &= pcFile->WriteInt(*piWriteOrRewrite);
+
+		if (!bResult)
+		{
+			return gcLogger.Error2(__METHOD__, " File list could not be written.", NULL);
+		}
+	}
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CDurableFileController::ReadControlledFileList(CDurableFile* pcFile)
+{
+	unsigned int	uiFileMagic;
+	BOOL			bRead;
+	unsigned int	uiFileNumber;
+	unsigned int	uiFileCount;
+	BOOL			bResult;
+	CStackMemory<>	cStack;
+	int				iFileNameLength;
+	char*			szFileName;
+	int				iWriteOrRewrite;
+	
+	uiFileCount = 0;
+	bRead = pcFile->ReadInt(&uiFileMagic);
+	while (bRead)
+	{
+		if (uiFileMagic != DURABLE_FILE_MAGIC)
+		{
+			return gcLogger.Error2(__METHOD__, " File list is corrupt.  Expected to read DURABLE_FILE_MAGIC but read [0x", IntToString(uiFileMagic, 16), "] instead.", NULL);
+		}
+		
+		uiFileNumber = -1;
+		bResult = pcFile->ReadInt(&uiFileNumber);
+		if (uiFileNumber != uiFileCount)
+		{
+			return gcLogger.Error2(__METHOD__, " File list is corrupt.  Expected to read file number [", IntToString(uiFileCount), "] but read number [", IntToString(uiFileNumber), "].", NULL);
+		}
+
+		iFileNameLength = 0;
+		bResult = pcFile->ReadStringLength(&iFileNameLength);
+		if (bResult)
+		{
+			szFileName = (char*)cStack.Init(iFileNameLength + 1);
+			bResult = pcFile->ReadStringChars(szFileName, iFileNameLength);
+			if (bResult)
+			{
+				bResult = pcFile->ReadInt(&iWriteOrRewrite);
+				mcNameMap.Put(szFileName, iWriteOrRewrite);
+			}
+			cStack.Kill();
+		}
+		if (!bResult)
+		{
+			return gcLogger.Error2(__METHOD__, " File list is corrupt.  Expected to read file name for file number [", IntToString(uiFileCount), "] but could not.", NULL);
+		}
+	}
+	return TRUE;
 }
 
 
@@ -194,9 +317,9 @@ BOOL CDurableFileController::Recover(CDurableFile* pcFirst, ...)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CDurableFileController::Check(void)
+BOOL CDurableFileController::Check(BOOL bThorough)
 {
-	return mcDurableSet.Check(TRUE);
+	return mcDurableSet.Check(bThorough);
 }
 
 
@@ -204,9 +327,9 @@ BOOL CDurableFileController::Check(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDurableFileController::AddFile(CDurableFile* pcFile)
+BOOL CDurableFileController::AddFile(CDurableFile* pcFile)
 {
-	mcDurableSet.Add(pcFile);
+	return mcDurableSet.Add(pcFile);
 }
 
 

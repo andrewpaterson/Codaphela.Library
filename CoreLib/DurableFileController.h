@@ -24,7 +24,12 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define __FILE_DISTRIBUTOR_H__
 #include "BaseLib/FileBasic.h"
 #include "BaseLib/FileUtil.h"
+#include "BaseLib/MapStringInt.h"
+#include "DurableFile.h"
 #include "DurableSet.h"
+
+
+#define DURABLE_FILE_MAGIC	'ELIF'
 
 
 class CDurableFileController
@@ -34,10 +39,12 @@ private:
 	CChars			mszDirectory;
 	CChars			mszRewriteDirectory;
 	BOOL			mbDurable;
+	CDurableFile	mcFileList;
+	CMapStringInt	mcNameMap;
 
 public:
 	BOOL			Init(char* szDirectory);
-	BOOL			Init(char* szDirectory, char* szRewriteDirectory);
+	BOOL			Init(char* szDirectory, char* szRewriteDirectory, char* szFileListWrite = NULL, char* szFileListRewrite = NULL, char* szMarkWrite = NULL, char* szMarkRewrite = NULL);
 	void			Kill(void);
 
 	BOOL			Begin(void);
@@ -45,9 +52,9 @@ public:
 	BOOL			End(void);
 	BOOL			Recover(void);
 	BOOL			Recover(CDurableFile* pcFirst, ...);
-	BOOL			Check(void);
+	BOOL			Check(BOOL bThorough);
 
-	void			AddFile(CDurableFile* pcFile);
+	BOOL			AddFile(CDurableFile* pcFile);
 	int				NumFiles(void);
 	CDurableFile*	GetFile(int iIndex);
 
@@ -56,6 +63,9 @@ public:
 	char*			GetRewriteDirectory(void);
 	BOOL			IsDurable(void);
 	CDurableSet*	GetDurableSet(void);
+
+	BOOL			ReadControlledFileList(CDurableFile* pcFile);
+	BOOL			WriteControlledFileList(CDurableFile* pcFile);
 };
 
 
