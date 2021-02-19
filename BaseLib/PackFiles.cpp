@@ -318,35 +318,6 @@ filePos CPackFiles::Tell(CPackFileNode* psPackFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPackFiles::Eof(CPackFileNode* psPackFile)
-{
-	filePos	iPosition;
-
-	if (meMode == PFM_Read)
-	{
-		iPosition = Tell(psPackFile);
-		if (iPosition == -1)
-		{
-			return TRUE;
-		}
-
-		if (iPosition >= psPackFile->Size())
-		{
-			return TRUE;
-		}
-		return FALSE;
-	}
-	else
-	{
-		return TRUE;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 BOOL CPackFiles::Flush(void)
 {
 	if (meMode == PFM_Write)

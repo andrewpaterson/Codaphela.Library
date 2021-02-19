@@ -183,7 +183,7 @@ BOOL CDurableSet::End(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CDurableSet::Check(BOOL bThorough)
+BOOL CDurableSet::Check(BOOL bThorough, BOOL bLogError)
 {
 	CFileUtil	cFileUtil;
 	BOOL		bMarkStart;
@@ -194,10 +194,10 @@ BOOL CDurableSet::Check(BOOL bThorough)
 
 	if ((!bMarkStart) && (!bMarkRewrite))
 	{
-		return CheckFilesIdentical(bThorough, TRUE);
+		return CheckFilesIdentical(bThorough, bLogError);
 	}
 
-	return CheckWriteStatus(bMarkStart, bMarkRewrite, TRUE);
+	return CheckWriteStatus(bMarkStart, bMarkRewrite, bLogError);
 }
 
 
@@ -214,7 +214,7 @@ BOOL CDurableSet::CheckWriteStatus(BOOL bLogError)
 	bMarkStart = cFileUtil.Exists(mszMarkStart.Text());
 	bMarkRewrite = cFileUtil.Exists(mszMarkRewrite.Text());
 
-	return CheckWriteStatus(bMarkStart, bMarkRewrite, FALSE);
+	return CheckWriteStatus(bMarkStart, bMarkRewrite, bLogError);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -231,7 +231,7 @@ BOOL CDurableSet::CheckWriteStatus(BOOL bMarkStart, BOOL bMarkRewrite, BOOL bLog
 	{
 		if (bLogError)
 		{
-			return gcLogger.Error2(__METHOD__, " Primary files were written but backup failed.", NULL);
+			return gcLogger.Error2(__METHOD__, " Primary files were written but re-write failed.", NULL);
 		}
 		return FALSE;
 	}
@@ -241,7 +241,7 @@ BOOL CDurableSet::CheckWriteStatus(BOOL bMarkStart, BOOL bMarkRewrite, BOOL bLog
 	{
 		if (bLogError)
 		{
-			return gcLogger.Error2(__METHOD__, " Primary files were not written.  Reverting to backup.", NULL);
+			return gcLogger.Error2(__METHOD__, " Primary files were not written.", NULL);
 		}
 		return FALSE;
 	}

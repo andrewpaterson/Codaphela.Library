@@ -92,6 +92,8 @@ BOOL CDurableFile::Init(CDurableFileController* pcController, char* szFileName, 
 		mcRewriteFile.Init(&mcRewriteDiskFile);
 	}
 
+	//AddFile();
+
 	return TRUE;
 }
 
@@ -230,7 +232,10 @@ BOOL CDurableFile::Recommit(void)
 	}
 	else
 	{
-		mcLogFile.End();
+		if (mcLogFile.IsBegun())
+		{
+			mcLogFile.End();
+		}
 		return TRUE;
 	}
 }

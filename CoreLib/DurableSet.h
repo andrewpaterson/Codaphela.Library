@@ -47,7 +47,7 @@ public:
 	BOOL			Recover(void);
 	BOOL			Begin(void);
 	BOOL			End(void);
-	BOOL			Check(BOOL bThorough);
+	BOOL			Check(BOOL bThorough, BOOL bLogError);
 
 	BOOL			Add(CDurableFile* pcFile);
 	int				Num(void);

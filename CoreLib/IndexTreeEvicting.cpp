@@ -298,7 +298,6 @@ BOOL CIndexTreeEvicting::EvictNodeWithObject(CIndexTreeNodeFile* pcNode)
 		pvData = pcNode->GetDataPtr();
 		uiDataSize = pcNode->GetDataSize();
 
-		//xxx;
 		// mpcIndexTreeEvictionCallback->IndexTreeNodeEvicted calls 
         //   CIndexedDescriptorsFile::IndexTreeNodeEvicted 
 		//   CIndexedData::EvictData

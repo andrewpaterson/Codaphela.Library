@@ -229,6 +229,9 @@
     <Filter Include="Source\Memory\Allocator\Base">
       <UniqueIdentifier>{7092bf6c-d93e-4736-aa8a-9cc2f4cde368}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Error\Windows">
+      <UniqueIdentifier>{f1b9e3be-2dd9-4972-87c6-12216bf5249c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DataMacro.h">
@@ -867,6 +870,9 @@
     <ClInclude Include="Malloc.h">
       <Filter>Source\Memory\Allocator\Base</Filter>
     </ClInclude>
+    <ClInclude Include="WindowsError.h">
+      <Filter>Source\Error\Windows</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -1372,6 +1378,9 @@
     </ClCompile>
     <ClCompile Include="Malloc.cpp">
       <Filter>Source\Memory\Allocator\Base</Filter>
+    </ClCompile>
+    <ClCompile Include="WindowsError.cpp">
+      <Filter>Source\Error\Windows</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

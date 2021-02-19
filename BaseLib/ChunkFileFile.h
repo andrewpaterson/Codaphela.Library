@@ -47,7 +47,6 @@ public:
 	BOOL		Seek(filePos iOffset, EFileSeekOrigin iSeekOrigin);
 	filePos		Write(const void* pvBuffer, filePos iSize, filePos iCount);
 	filePos		Tell(void);
-	BOOL		Eof(void);
 	BOOL		IsOpen(void);
 	BOOL		Truncate(filePos iSize);
 	filePos		Size(void);

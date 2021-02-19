@@ -117,9 +117,6 @@
     <ClCompile Include="WindowsSharedMemoryFile.cpp">
       <Filter>Source\SharedMemory\Windows</Filter>
     </ClCompile>
-    <ClCompile Include="WindowsError.cpp">
-      <Filter>Source\SharedMemory\Windows</Filter>
-    </ClCompile>
     <ClCompile Include="WindowsSharedMemoryCoordinator.cpp">
       <Filter>Source\SharedMemory\Windows</Filter>
     </ClCompile>
@@ -186,9 +183,6 @@
       <Filter>Source\Process</Filter>
     </ClInclude>
     <ClInclude Include="WindowsSharedMemoryFile.h">
-      <Filter>Source\SharedMemory\Windows</Filter>
-    </ClInclude>
-    <ClInclude Include="WindowsError.h">
       <Filter>Source\SharedMemory\Windows</Filter>
     </ClInclude>
     <ClInclude Include="WindowsSharedMemoryCoordinator.h">

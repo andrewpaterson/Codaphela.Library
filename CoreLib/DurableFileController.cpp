@@ -93,18 +93,25 @@ BOOL CDurableFileController::Init(char* szDirectory, char* szRewriteDirectory, c
 	szRewrite.Kill();
 	szStart.Kill();
 
+	if (!szFileListWrite)
+	{
+		szFileListWrite = "FileNames.Write";
+	}
+	if (!szFileListRewrite)
+	{
+		szFileListRewrite = "FileNames.Rewrite";
+	}
 	mcFileList.Init(this, szFileListWrite, szFileListRewrite);
-	mcFileList.AddFile();
-
+	
 	mcNameMap.Init(FALSE, TRUE);
 
-	bResult = ReadControlledFileList(&mcFileList);
-	if (!bResult)
-	{
-		return FALSE;
-	}
+	//bResult = ReadControlledFileList(&mcFileList);
+	//if (!bResult)
+	//{
+	//	return FALSE;
+	//}
 
-	bResult = Check(FALSE);
+	bResult = Check(FALSE, FALSE);
 	if (!bResult)
 	{
 		return FALSE;
@@ -155,7 +162,6 @@ BOOL CDurableFileController::Begin(CDurableFile* pcFirst, ...)
 	va_list			vaMarker;
 	CDurableFile* pc;
 	int				iCount;
-	BOOL			bResult;
 
 	iCount = 0;
 	pc = pcFirst;
@@ -189,15 +195,8 @@ BOOL CDurableFileController::End(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CDurableFileController::WriteControlledFileList(CDurableFile* pcFile)
 {
-	unsigned int	uiFileMagic;
-	BOOL			bRead;
-	unsigned int	uiFileNumber;
 	unsigned int	uiFileCount;
 	BOOL			bResult;
-	CStackMemory<>	cStack;
-	int				iFileNameLength;
-	char*			szFileName;
-	int				iWriteOrRewrite;
 	SMapIterator	sIter;
 	BOOL			bExists;
 	char*			pcName;
@@ -317,9 +316,9 @@ BOOL CDurableFileController::Recover(CDurableFile* pcFirst, ...)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CDurableFileController::Check(BOOL bThorough)
+BOOL CDurableFileController::Check(BOOL bThorough, BOOL bLogError)
 {
-	return mcDurableSet.Check(bThorough);
+	return mcDurableSet.Check(bThorough, bLogError);
 }
 
 

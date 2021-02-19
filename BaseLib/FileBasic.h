@@ -43,11 +43,10 @@ public:
 	BOOL		Seek(filePos iOffset, EFileSeekOrigin eOrigin);
 	BOOL		Seek(filePos iOffset);
 
-	void		Flush(void);
+	BOOL		Flush(void);
 
 	BOOL		Delete(void);
 
-	BOOL		IsEndOfFile(void);
 	BOOL		IsOpen(void);
 	filePos		GetFileLength(void);
 	filePos		GetFilePos(void);

@@ -53,6 +53,7 @@ public:
 	int						GetNumCommands(void);
 	CLogFileCommandWrite*	GetWriteData(int iWrite);
 	BOOL					TestFindHoles(int iWriteIndex, CArrayIntAndPointer* papvOverlapping, filePos iPosition, filePos iLength);
+	BOOL					IsBegun(void);
 
 protected:
 	BOOL					FindTouchingWriteCommands(int iStartIndex, CArrayIntAndPointer* papvOverlapping, filePos iPosition, filePos iLength, BOOL bMustOverlap);
