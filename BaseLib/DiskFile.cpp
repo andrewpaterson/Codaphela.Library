@@ -22,6 +22,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #include <stdio.h>
 #include <io.h>
+#include "Windows.h"
 #include "WindowsError.h"
 #include "IntegerHelper.h"
 #include "FileUtil.h"
@@ -33,10 +34,46 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void SetHandle(CDiskFile* pcDiskFile, HANDLE hFile)
+{
+	pcDiskFile->SetFile(&hFile, sizeof(HANDLE));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL IsHandle(CDiskFile* pcDiskFile, HANDLE hFile)
+{
+	return pcDiskFile->IsFile(&hFile, sizeof(HANDLE));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+HANDLE GetHandle(CDiskFile* pcDiskFile)
+{
+	HANDLE	hFile;
+	void*	pvFile;
+
+	pvFile = pcDiskFile->GetFile();
+	memcpy(&hFile, pvFile, sizeof(HANDLE));
+
+	return hFile;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CDiskFile::Init(const char* szFileName)
 {
 	CAbstractFile::Init();
-	mhFile = INVALID_HANDLE_VALUE;
+	SetHandle(this, INVALID_HANDLE_VALUE);
 	mszFileName.Init(szFileName);
 }
 
@@ -48,7 +85,8 @@ void CDiskFile::Init(const char* szFileName)
 void CDiskFile::Init(CChars szFileName)
 {
 	CAbstractFile::Init();
-	mhFile = INVALID_HANDLE_VALUE;
+
+	SetHandle(this, INVALID_HANDLE_VALUE);
 	mszFileName.Init(szFileName);
 }
 
@@ -60,7 +98,47 @@ void CDiskFile::Init(CChars szFileName)
 void CDiskFile::Kill(void)
 {
 	mszFileName.Kill();
-	mhFile = INVALID_HANDLE_VALUE;
+	SetHandle(this, INVALID_HANDLE_VALUE);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CDiskFile::SetFile(void* pvFile, size_t uiSize)
+{
+	if (uiSize <= 8)
+	{
+		memcpy(maFile, pvFile, uiSize);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CDiskFile::IsFile(void* pvFile, size_t uiSize)
+{
+	if (uiSize <= 8)
+	{
+		return memcmp(maFile, pvFile, uiSize) == 0;
+	}
+	else
+	{
+		return FALSE;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void* CDiskFile::GetFile(void)
+{
+	return maFile;
 }
 
 
@@ -89,37 +167,41 @@ HANDLE CreateWindowsFile(char* szName, unsigned int uiRights, unsigned uiShare, 
 //////////////////////////////////////////////////////////////////////////
 BOOL CDiskFile::Open(EFileMode eMode)
 {
-	if (mhFile != INVALID_HANDLE_VALUE)
+	HANDLE hFile;
+
+	if (!IsHandle(this, INVALID_HANDLE_VALUE))
 	{
 		Close();
 	}
 
 	if (eMode == EFM_Read)
 	{
-		mhFile = CreateWindowsFile(mszFileName.Text(), GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING);
+		hFile = CreateWindowsFile(mszFileName.Text(), GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING);
 	}
 	else if (eMode == EFM_Read_Create)
 	{
-		mhFile = CreateWindowsFile(mszFileName.Text(), GENERIC_READ, FILE_SHARE_READ, OPEN_ALWAYS);
+		hFile = CreateWindowsFile(mszFileName.Text(), GENERIC_READ, FILE_SHARE_READ, OPEN_ALWAYS);
 	}
 	else if (eMode == EFM_Write_Create)
 	{
-		mhFile = CreateWindowsFile(mszFileName.Text(), GENERIC_WRITE, FILE_SHARE_READ, OPEN_ALWAYS);
+		hFile = CreateWindowsFile(mszFileName.Text(), GENERIC_WRITE, FILE_SHARE_READ, OPEN_ALWAYS);
 	}
 	else if (eMode == EFM_ReadWrite)
 	{
-		mhFile = CreateWindowsFile(mszFileName.Text(), GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, OPEN_EXISTING);
+		hFile = CreateWindowsFile(mszFileName.Text(), GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, OPEN_EXISTING);
 	}
 	else if (eMode == EFM_ReadWrite_Create)
 	{
-		mhFile = CreateWindowsFile(mszFileName.Text(), GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, OPEN_ALWAYS);
+		hFile = CreateWindowsFile(mszFileName.Text(), GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, OPEN_ALWAYS);
 	}
 	else
 	{
-		mhFile = INVALID_HANDLE_VALUE;
+		hFile = INVALID_HANDLE_VALUE;
 	}
 
-	return mhFile != INVALID_HANDLE_VALUE;
+	SetHandle(this, hFile);
+
+	return hFile != INVALID_HANDLE_VALUE;
 }
 
 
@@ -130,16 +212,18 @@ BOOL CDiskFile::Open(EFileMode eMode)
 BOOL CDiskFile::Close(void)
 {
 	BOOL	bResult;
+	HANDLE	hFile;
 
-	if (mhFile == INVALID_HANDLE_VALUE)
+	if (IsHandle(this, INVALID_HANDLE_VALUE))
 	{
 		return FALSE;
 	}
 
-	bResult = CloseHandle(mhFile);
+	hFile = GetHandle(this);
+	bResult = CloseHandle(hFile);
 	if (bResult)
 	{
-		mhFile = INVALID_HANDLE_VALUE;
+		SetHandle(this, INVALID_HANDLE_VALUE);
 		return TRUE;
 	}
 	return FALSE;
@@ -169,7 +253,7 @@ filePos CDiskFile::Read(void* pvBuffer, filePos iSize, filePos iCount)
 			uiTruncatedLength = 0;
 		}
 
-		bResult = ReadFile(mhFile, pvBuffer, uiTruncatedLength, (LPDWORD)&uiReadLength, NULL);
+		bResult = ReadFile(GetHandle(this), pvBuffer, uiTruncatedLength, (LPDWORD)&uiReadLength, NULL);
 		if (bResult)
 		{
 			return uiReadLength / iSize;
@@ -198,15 +282,15 @@ BOOL CDiskFile::Seek(filePos iOffset, EFileSeekOrigin iSeekOrigin)
 	{
 		if (iSeekOrigin == EFSO_SET)
 		{
-			uiResult = SetFilePointer(mhFile, (LONG)iOffset, NULL, FILE_BEGIN);
+			uiResult = SetFilePointer(GetHandle(this), (LONG)iOffset, NULL, FILE_BEGIN);
 		}
 		else if (iSeekOrigin == EFSO_CURRENT)
 		{
-			uiResult = SetFilePointer(mhFile, (LONG)iOffset, NULL, FILE_CURRENT);
+			uiResult = SetFilePointer(GetHandle(this), (LONG)iOffset, NULL, FILE_CURRENT);
 		}
 		else if (iSeekOrigin == EFSO_END)
 		{
-			uiResult = SetFilePointer(mhFile, (LONG)iOffset, NULL, FILE_END);
+			uiResult = SetFilePointer(GetHandle(this), (LONG)iOffset, NULL, FILE_END);
 		}
 		return (uiResult != INVALID_SET_FILE_POINTER);
 	}
@@ -241,7 +325,7 @@ filePos CDiskFile::Write(const void* pvBuffer, filePos iSize, filePos iCount)
 		}
 
 		bResult = WriteFile(
-			mhFile,
+			GetHandle(this),
 			pvBuffer,
 			uiTruncatedLength,
 			(LPDWORD)&uiWritten,
@@ -269,7 +353,7 @@ filePos CDiskFile::Tell(void)
 	unsigned int	uiResult;
 	if (IsOpen())
 	{
-		uiResult = SetFilePointer(mhFile, 0, NULL, FILE_CURRENT);
+		uiResult = SetFilePointer(GetHandle(this), 0, NULL, FILE_CURRENT);
 		return uiResult;
 	}
 	else
@@ -285,7 +369,7 @@ filePos CDiskFile::Tell(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CDiskFile::IsOpen(void)
 {
-	return mhFile != INVALID_HANDLE_VALUE;
+	return !IsHandle(this, INVALID_HANDLE_VALUE);
 }
 
 
@@ -299,7 +383,7 @@ filePos CDiskFile::Size(void)
 
 	if (IsOpen())
 	{
-		uiFileSize = GetFileSize(mhFile, NULL);
+		uiFileSize = GetFileSize(GetHandle(this), NULL);
 		return uiFileSize;	
 	}
 	else
@@ -318,12 +402,12 @@ BOOL CDiskFile::Truncate(filePos iSize)
 	unsigned int	uiResult;
 	BOOL			bResult;
 
-	uiResult = SetFilePointer(mhFile, (LONG)iSize, NULL, FILE_BEGIN);
+	uiResult = SetFilePointer(GetHandle(this), (LONG)iSize, NULL, FILE_BEGIN);
 	if (uiResult == INVALID_SET_FILE_POINTER)
 	{
 		return FALSE;
 	}
-	bResult = SetEndOfFile(mhFile);
+	bResult = SetEndOfFile(GetHandle(this));
 	return bResult;
 }
 
@@ -339,7 +423,7 @@ BOOL CDiskFile::Flush(void)
 
 	if (IsOpen())
 	{
-		bResult = FlushFileBuffers(mhFile);
+		bResult = FlushFileBuffers(GetHandle(this));
 		if (!bResult)
 		{
 			sz = WindowsErrorCodeToString(GetLastError());
