@@ -255,10 +255,12 @@ BOOL CLogFile::Commit(CAbstractFile* pcFile)
 	CLogFileCommandDelete*		psDelete;
 	BOOL						bResult;
 	CChars						szError;
+	int							iNumCommands;
 
 	ReturnOnFalse(ValidateBegun(__METHOD__, "commit", pcFile));
 
-	for (i = 0; i < macCommands.NumElements(); i++)
+	iNumCommands = macCommands.NumElements();
+	for (i = 0; i < iNumCommands; i++)
 	{
 		macCommands.Get(i, &pvData);
 		psCommand = (CLogFileCommand*)pvData;
@@ -293,6 +295,7 @@ BOOL CLogFile::Commit(CAbstractFile* pcFile)
 		}
 	}
 
+	//Shouldn't we check the file is open before flushing?
 	pcFile->Flush();
 
 	miBackingFileLength = miLength;
@@ -888,6 +891,16 @@ BOOL CLogFile::TestFindHoles(int iWriteIndex, CArrayIntAndPointer* papvOverlappi
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL CLogFile::IsBegun(void)
+{
+	return mbBegun;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL CLogFile::FindHoles(CArrayIntAndPointer* papvOverlapping, filePos iPosition, filePos iLength)
 {
 	CArrayIntAndPointer				apvOverlappingSorted;
@@ -1060,7 +1073,8 @@ filePos CLogFile::Size(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CLogFile::Truncate(filePos iSize)
 {
-	return xxx;
+	//return xxx;
+	return TRUE;
 }
 
 

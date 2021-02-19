@@ -82,7 +82,6 @@ protected:
 	BOOL					Seek(CPackFileNode* psPackFile, filePos iOffset, EFileSeekOrigin iSeekOrigin);
 	filePos					Write(CPackFileNode* psPackFile, const void* pvBuffer, filePos iSize, filePos iCount);
 	filePos					Tell(CPackFileNode* psPackFile);
-	BOOL					Eof(CPackFileNode* psPackFile);
 	BOOL					Flush(void);
 	CFileNodePackFileNode*	AddFile(char* szFullName);
 	filePos					PrivateRead(CPackFileNode* psPackFile, void* pvBuffer, filePos iSize, filePos iCount);

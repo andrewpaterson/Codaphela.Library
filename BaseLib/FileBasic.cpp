@@ -21,6 +21,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
 #include <stdio.h>
+#include "Logger.h"
 #include "FileBasic.h"
 #include "IntegerHelper.h"
 #include "MemoryFile.h"
@@ -44,6 +45,10 @@ void CFileBasic::Init(CAbstractFile* pcFile)
 //////////////////////////////////////////////////////////////////////////
 void CFileBasic::Kill(void)
 {
+	if (IsOpen())
+	{
+		gcLogger.Error2(__METHOD__, " File [", StringToString(GetFileName()), "] has not been closed before kill.", NULL);
+	}
 	if ((mpcFile != NULL) && (mpcFile->mbBasicFileMustFree))
 	{
 		SafeKill(mpcFile);
@@ -87,23 +92,6 @@ BOOL CFileBasic::Open(EFileMode eMode)
 BOOL CFileBasic::Close()
 {
 	return mpcFile->Close();
-}
-
-
-//====================================================================================
-//=
-//= Function Name: CFileBasic::IsEndOfFile
-//=
-//= Parameters   : -
-//=
-//= Returns      : true if file is at the end of the file, false if not
-//=
-//= Description  : returns whether at the end of the file or not
-//=
-//====================================================================================
-BOOL CFileBasic::IsEndOfFile(void)
-{
-	return mpcFile->Eof();
 }
 
 
@@ -194,9 +182,9 @@ BOOL CFileBasic::Seek(filePos iOffset)
 //= Description  : Flush the file cache to disk.
 //=
 //====================================================================================
-void CFileBasic::Flush(void)
+BOOL CFileBasic::Flush(void)
 {
-	mpcFile->Flush();
+	return mpcFile->Flush();
 }
 
 

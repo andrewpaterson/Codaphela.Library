@@ -23,6 +23,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __DISK_FILE_H__
 #define __DISK_FILE_H__
 #include <stdio.h>
+#include "Windows.h"
 #include "Chars.h"
 #include "ArrayChar.h"
 #include "AbstractFile.h"
@@ -31,8 +32,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 class CDiskFile : public CAbstractFile
 {
 public:
-	FILE*			mpsFileHandle;
-	CChars			mszFileName;
+	HANDLE		mhFile;
+	CChars		mszFileName;
 
 	void		Init(const char* szFileName);
 	void		Init(CChars szFileName);
@@ -40,12 +41,10 @@ public:
 
 	BOOL		Open(EFileMode eMode);
 	BOOL		Close(void);
-	BOOL		Create(void);
 	filePos		Read(void* pvBuffer, filePos iSize, filePos iCount);
 	BOOL		Seek(filePos iOffset, EFileSeekOrigin iSeekOrigin);
 	filePos		Write(const void* pvBuffer, filePos iSize, filePos iCount);
 	filePos		Tell(void);
-	BOOL		Eof(void);
 	BOOL		IsOpen(void);
 	filePos		Size(void);
 	BOOL		Truncate(filePos iSize);

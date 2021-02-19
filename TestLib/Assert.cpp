@@ -900,13 +900,15 @@ BOOL PrivateAssertFileMemory(const char* szExpectedFileName, void* pcMemory, siz
 
 	if (!bResult)
 	{
-		bResult = Failed((const char*)szExpected.Text(), (const char*)szActual.Text(), iLine, szFile);
+		Failed((const char*)szExpected.Text(), (const char*)szActual.Text(), iLine, szFile);
 		szActual.Kill();
 		szExpected.Kill();
-		return bResult;
+		return FALSE;
 	}
 	else
 	{
+		szActual.Kill();
+		szExpected.Kill();
 		return Pass();
 	}
 }

@@ -2,7 +2,7 @@
 #include "BaseLib/DebugOutput.h"
 #include "BaseLib/PointerRemapper.h"
 #include "BaseLib/StringHelper.h"
-#include "WindowsError.h"
+#include "BaseLib/WindowsError.h"
 #include "ResizableSharedMemory.h"
 
 

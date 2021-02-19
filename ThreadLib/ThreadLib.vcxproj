@@ -105,7 +105,6 @@
     <ClInclude Include="SharedMemory.h" />
     <ClInclude Include="SharedMemoryDescriptor.h" />
     <ClInclude Include="SharedMemoryResult.h" />
-    <ClInclude Include="WindowsError.h" />
     <ClInclude Include="WindowsResizableSharedMemory.h" />
     <ClInclude Include="WindowsSharedMemory.h" />
     <ClInclude Include="WindowsSharedMemoryCoordinator.h" />
@@ -129,7 +128,6 @@
     <ClCompile Include="SafeArrayBlock.cpp" />
     <ClCompile Include="SafeLinkedListBlock.cpp" />
     <ClCompile Include="SharedMemoryResult.cpp" />
-    <ClCompile Include="WindowsError.cpp" />
     <ClCompile Include="WindowsResizableSharedMemory.cpp" />
     <ClCompile Include="InterProcessMutex.cpp" />
     <ClCompile Include="WindowsSharedMemory.cpp" />

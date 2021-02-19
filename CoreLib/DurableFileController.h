@@ -52,7 +52,7 @@ public:
 	BOOL			End(void);
 	BOOL			Recover(void);
 	BOOL			Recover(CDurableFile* pcFirst, ...);
-	BOOL			Check(BOOL bThorough);
+	BOOL			Check(BOOL bThorough, BOOL bLogError);
 
 	BOOL			AddFile(CDurableFile* pcFile);
 	int				NumFiles(void);

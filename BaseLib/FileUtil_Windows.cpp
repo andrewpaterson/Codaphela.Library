@@ -194,7 +194,14 @@ BOOL CFileUtil::Touch(const char* szFileName)
 //////////////////////////////////////////////////////////////////////////
 BOOL CFileUtil::Delete(const char* szFileName)
 {
-	return DeleteFile(szFileName);
+	if (Exists(szFileName))
+	{
+		return DeleteFile(szFileName);
+	}
+	else
+	{
+		return TRUE;
+	}
 }
 
 

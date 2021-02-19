@@ -373,6 +373,7 @@
     <ClInclude Include="TypeParser.h" />
     <ClInclude Include="Validation.h" />
     <ClInclude Include="Version.h" />
+    <ClInclude Include="WindowsError.h" />
     <ClInclude Include="WindowsHeaders.h" />
     <ClInclude Include="ConstructorCall.h" />
     <ClInclude Include="Aardvark.h" />
@@ -546,6 +547,7 @@
     <ClCompile Include="TypeConverter.cpp" />
     <ClCompile Include="TypeNames.cpp" />
     <ClCompile Include="TypeParser.cpp" />
+    <ClCompile Include="WindowsError.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="MemoryTodo.txt" />

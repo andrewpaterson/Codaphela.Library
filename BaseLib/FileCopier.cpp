@@ -58,8 +58,9 @@ BOOL CFileCopier::Copy(CAbstractFile* pcSource, CAbstractFile* pcDest)
 	iLength = cSource.GetFileLength();
 	if (iLength == 0)
 	{
-		cSource.Close();
+		cDest.Close();
 		cDest.Kill();
+		cSource.Close();
 		cSource.Kill();
 		return TRUE;
 	}
