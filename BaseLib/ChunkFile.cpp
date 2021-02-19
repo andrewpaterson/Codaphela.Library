@@ -473,6 +473,31 @@ int CChunkFile::GetChunkName(int iChunkNum)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
+BOOL CChunkFile::ReadChunkBegin(char* szName)
+{
+	int					iChunkNum;
+	CChunkStackElement* psElement;
+	SChunkIndex*		psIndex;
+
+	iChunkNum = FindFirstChunkWithName(szName);
+	psElement = mcChunkStack.Tail();
+	if (psElement)
+	{
+		psIndex = psElement->cChunkIndex.mcChunkIndices.SafeGet(iChunkNum);
+		if (psIndex)
+		{
+			CFileBasic::Seek(psIndex->miChunkDataPos - sizeof(CChunkHeader), EFSO_SET);
+			return __PrivateReadChunkBegin();
+		}
+	}
+	return FALSE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
 BOOL CChunkFile::ReadChunkBegin(int iChunkNum)
 {
 	CChunkStackElement*		psElement;

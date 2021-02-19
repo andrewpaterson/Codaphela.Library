@@ -30,16 +30,17 @@ class CChunkFile;
 class CChunkFileFile : public CAbstractFile
 {
 protected:
-	FILE*			mpsFileHandle;
 	CChunkFile*		mpcChunkFile;
 	filePos			miChunkStart;
 	filePos			miChunkSize;
 
 	BOOL			mbEndOfFile;
+	BOOL			mbWriteMode;
+	BOOL			mbReadMode;
 
 public:
-	void	Init(CChunkFile* pcChunkFile);
-	void	Kill(void);
+	void		Init(CChunkFile* pcChunkFile);
+	void		Kill(void);
 
 	BOOL		Open(EFileMode eMode);
 	BOOL		Close(void);

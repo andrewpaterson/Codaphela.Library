@@ -14,6 +14,8 @@ void CChunkFileFile::Init(CChunkFile* pcChunkFile)
 	miChunkStart = 0;
 	miChunkSize = 0;
 	mbEndOfFile = TRUE;
+	mbWriteMode = FALSE;
+	mbReadMode = FALSE;
 }
 
 
@@ -37,7 +39,16 @@ BOOL CChunkFileFile::Open(EFileMode eMode)
 	{
 		miChunkSize = mpcChunkFile->ChunkSize();
 		miChunkStart = mpcChunkFile->ChunkStart();
+		mbEndOfFile = TRUE;
+		mbReadMode = TRUE;
+		return TRUE;
+	}
+	else if (eMode == EFM_Write_Create)
+	{
+		miChunkSize = -1;
+		miChunkStart = mpcChunkFile->ChunkStart();
 		mbEndOfFile = FALSE;
+		mbWriteMode = TRUE;
 		return TRUE;
 	}
 
@@ -54,6 +65,8 @@ BOOL CChunkFileFile::Close(void)
 	miChunkStart = 0;
 	miChunkSize = 0;
 	mbEndOfFile = TRUE;
+	mbWriteMode = FALSE;
+	mbReadMode = FALSE;
 	return TRUE;
 }
 
@@ -67,8 +80,12 @@ filePos CChunkFileFile::Read(void* pvBuffer, filePos iSize, filePos iCount)
 	filePos		iRemain;
 	filePos		iReadSize;
 
-	iRemain = Tell();
-	iRemain = miChunkSize - iRemain;
+	if (!mbReadMode)
+	{
+		return 0;
+	}
+
+	iRemain = miChunkSize - Tell();
 
 	iReadSize = iSize * iCount;
 
@@ -91,21 +108,27 @@ filePos CChunkFileFile::Read(void* pvBuffer, filePos iSize, filePos iCount)
 //////////////////////////////////////////////////////////////////////////
 BOOL CChunkFileFile::Seek(filePos iOffset, EFileSeekOrigin iSeekOrigin)
 {
-	if (iSeekOrigin == EFSO_SET)
+	if (mbReadMode)
 	{
-		if (iOffset < 0)
+		if (iSeekOrigin == EFSO_SET)
 		{
-			iOffset = 0;
-		}
-		if (iOffset > miChunkSize)
-		{
-			iOffset = miChunkSize;
-		}
+			if (iOffset < 0)
+			{
+				iOffset = 0;
+			}
+			if (iOffset > miChunkSize)
+			{
+				iOffset = miChunkSize;
+				mbEndOfFile = TRUE;
+			}
+			else
+			{
+				mbEndOfFile = FALSE;
+			}
 
-		mbEndOfFile = FALSE;
-		return mpcChunkFile->Seek(miChunkStart + iOffset, EFSO_SET);
+			return mpcChunkFile->Seek(miChunkStart + iOffset, EFSO_SET);
+		}
 	}
-
 	return FALSE;
 }
 
@@ -116,10 +139,12 @@ BOOL CChunkFileFile::Seek(filePos iOffset, EFileSeekOrigin iSeekOrigin)
 //////////////////////////////////////////////////////////////////////////
 filePos CChunkFileFile::Write(const void* pvBuffer, filePos iSize, filePos iCount)
 {
-	pvBuffer = pvBuffer;
-	iSize = iSize;
-	iCount = iCount;
-	return 0;
+	if (!mbWriteMode)
+	{
+		return FALSE;
+	}
+
+	return mpcChunkFile->Write(pvBuffer, iSize, iCount);
 }
 
 
@@ -131,12 +156,14 @@ filePos CChunkFileFile::Tell(void)
 {
 	filePos iPos;
 
-	iPos = mpcChunkFile->GetFilePos();
-	iPos -= miChunkStart;
+	iPos = mpcChunkFile->GetFilePos() - miChunkStart;
 
-	if (iPos > miChunkSize)
+	if (mbReadMode)
 	{
-		iPos = miChunkSize;
+		if (iPos > miChunkSize)
+		{
+			iPos = miChunkSize;
+		}
 	}
 
 	return iPos;
@@ -149,7 +176,7 @@ filePos CChunkFileFile::Tell(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CChunkFileFile::IsOpen(void)
 {
-	return TRUE;
+	return mbReadMode || mbWriteMode;
 }
 
 
@@ -159,7 +186,14 @@ BOOL CChunkFileFile::IsOpen(void)
 //////////////////////////////////////////////////////////////////////////
 filePos CChunkFileFile::Size(void)
 {
-	return miChunkSize;
+	if (mbReadMode)
+	{
+		return miChunkSize;
+	}
+	else
+	{
+		return Tell();
+	}
 }
 
 
