@@ -61,6 +61,7 @@ public:
 	BOOL	ContainsChunks(void);
 
 	BOOL	ReadChunkBegin(int iChunkNum);  //ChunkIndex not ChunkName
+	BOOL	ReadChunkBegin(char* szName);
 	BOOL	ReadChunkEnd(void);
 	BOOL	ReadChunkEnd(int iNumChunksToEnd);
 
