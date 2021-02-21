@@ -19,11 +19,9 @@ void CObjectIOSimple::FileName(char* szSerialisedName, char* szWorkingDirectory,
 	szShortFileName.Append(OBJECT_FILE_EXTENSION);
 
 	pszFullFileName->Init(szWorkingDirectory);
-	pszFullFileName->Append(FILE_SEPARATOR[0]);
-	pszFullFileName->Append(pszFullDirectory);
+	cFileUtil.AppendToPath(pszFullFileName, pszFullDirectory->Text());
 	pszFullDirectory->Set(pszFullFileName);
 
-	pszFullFileName->Append(FILE_SEPARATOR[0]);
-	pszFullFileName->Append(szShortFileName);
+	cFileUtil.AppendToPath(pszFullFileName, szShortFileName.Text());
 	szShortFileName.Kill();
 }
