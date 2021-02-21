@@ -3,13 +3,13 @@
 #include "SequenceConfig.h"
 #include "DurableFileController.h"
 #include "IndexedGeneral.h"
+#include "SequenceConnection.h"
 
-
-class CSequence
+class CSequence : public CSequenceConnection
 {
 protected:
 	CDurableFileController		mcFileController;
-	OIndex						muiNext;
+	OIndex						moiNext;
 	CDurableFile				mcFile;
 	CSequenceConfig*			mpcConfig;
 	CLife<CSequenceConfig>		mcConfig;
@@ -19,6 +19,7 @@ public:
 	void	Kill(void);
 
 	OIndex	GetNext(void);
+	OIndex	PeekNext(void);
 
 protected:
 	OIndex	ReadIndex(void);

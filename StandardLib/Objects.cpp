@@ -18,12 +18,12 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-
 #include "BaseLib/GlobalMemory.h"
 #include "BaseLib/DebugOutput.h"
 #include "BaseLib/Log.h"
 #include "BaseLib/StackMemory.h"
 #include "CoreLib/DataConnection.h"
+#include "CoreLib/TransientSequence.h"
 #include "BaseObject.h"
 #include "NamedObject.h"
 #include "ObjectSingleSerialiser.h"
@@ -111,6 +111,7 @@ CObjects::CObjects()
 	mpcUnknownsAllocatingFrom = NULL;
 	mpcStackPointers = NULL;
 	mpcDataConnection = NULL;
+	mpcSequenceConnection = NULL;
 }
 
 
@@ -118,13 +119,13 @@ CObjects::CObjects()
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjects::Init(CUnknowns* pcUnknownsAllocatingFrom, CStackPointers* pcStackPointers, CDataConnection* pcDataConnection)
+void CObjects::Init(CUnknowns* pcUnknownsAllocatingFrom, CStackPointers* pcStackPointers, CDataConnection* pcDataConnection, CSequenceConnection* pcSequenceConnection)
 {
 	mpcUnknownsAllocatingFrom = pcUnknownsAllocatingFrom;
 	mpcStackPointers = pcStackPointers;
-	mcIndexGenerator.Init();
 
 	mpcDataConnection = pcDataConnection;
+	mpcSequenceConnection = pcSequenceConnection;
 
 	mcMemory.Init();
 
@@ -145,10 +146,11 @@ void CObjects::Kill(void)
 	mcMemory.ValidateNoDirty();
 
 	mpcDataConnection = NULL;
+	mpcSequenceConnection = NULL;
 
 	mcSource.Kill();
 	mcMemory.Kill();
-	mcIndexGenerator.Kill();
+	
 	mpcUnknownsAllocatingFrom = NULL;
 }
 
@@ -963,6 +965,23 @@ CBaseObject* CObjects::GetFromSources(char* szObjectName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+OIndex CObjects::GetNextID(void)
+{
+	if (mpcSequenceConnection)
+	{
+		return mpcSequenceConnection->GetNext();
+	}
+	else
+	{
+		return INVALID_O_INDEX;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 CPointer CObjects::TestGetFromMemory(char* szName)
 {
 	CPointer	pObject;
@@ -1133,9 +1152,9 @@ int CObjects::NumMemoryNames(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexGenerator* CObjects::GetIndexGenerator(void)
+CSequenceConnection* CObjects::GetIndexGenerator(void)
 {
-	return &mcIndexGenerator;
+	return mpcSequenceConnection;
 }
 
 
@@ -1350,7 +1369,7 @@ CStackPointers* CObjects::GetStackPointers(void)
 //////////////////////////////////////////////////////////////////////////
 void ObjectsInit(void)
 {
-	ObjectsInit(NULL);
+	ObjectsInit(NULL, &gcTransientSequence);
 }
 
 
@@ -1358,11 +1377,12 @@ void ObjectsInit(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void ObjectsInit(CDataConnection* pcDataConnection)
+void ObjectsInit(CDataConnection* pcDataConnection, CSequenceConnection* pcSequenceConnection)
 {
 	UnknownsInit();
+	TransientSequenceInit();
 	gcStackPointers.Init(2048);
-	gcObjects.Init(&gcUnknowns, &gcStackPointers, pcDataConnection);
+	gcObjects.Init(&gcUnknowns, &gcStackPointers, pcDataConnection, pcSequenceConnection);
 }
 
 
@@ -1375,6 +1395,7 @@ void ObjectsKill(void)
 	gcObjects.Kill();
 	gcStackPointers.ClearAllPointers();
 	gcStackPointers.Kill();
+	TransientSequenceKill();
 	UnknownsKill();
 }
 

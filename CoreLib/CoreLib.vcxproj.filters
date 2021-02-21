@@ -184,10 +184,10 @@
     <Filter Include="Source\Database\Codabase">
       <UniqueIdentifier>{36b2e996-0550-4e8d-9ad6-3b3b3e539bd8}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\File\Indexed\Sequence">
+    <Filter Include="Source\Sequence">
       <UniqueIdentifier>{80f80ffa-c7f4-4173-a0ee-b6b44ac121fe}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\File\Indexed\Sequence\Config">
+    <Filter Include="Source\Sequence\Config">
       <UniqueIdentifier>{a413eb42-1e57-4123-b4dd-49f19fb7f871}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -487,13 +487,19 @@
       <Filter>Source\File\Indexed\Index\Evicting</Filter>
     </ClCompile>
     <ClCompile Include="Sequence.cpp">
-      <Filter>Source\File\Indexed\Sequence</Filter>
+      <Filter>Source\Sequence</Filter>
     </ClCompile>
     <ClCompile Include="SequenceConfig.cpp">
-      <Filter>Source\File\Indexed\Sequence\Config</Filter>
+      <Filter>Source\Sequence\Config</Filter>
     </ClCompile>
     <ClCompile Include="ValueSequenceConfig.cpp">
-      <Filter>Source\File\Indexed\Sequence\Config</Filter>
+      <Filter>Source\Sequence\Config</Filter>
+    </ClCompile>
+    <ClCompile Include="SequenceFactory.cpp">
+      <Filter>Source\Sequence</Filter>
+    </ClCompile>
+    <ClCompile Include="TransientSequence.cpp">
+      <Filter>Source\Sequence</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -819,13 +825,22 @@
       <Filter>Source\File\Indexed\Index\Evicting</Filter>
     </ClInclude>
     <ClInclude Include="Sequence.h">
-      <Filter>Source\File\Indexed\Sequence</Filter>
+      <Filter>Source\Sequence</Filter>
     </ClInclude>
     <ClInclude Include="SequenceConfig.h">
-      <Filter>Source\File\Indexed\Sequence\Config</Filter>
+      <Filter>Source\Sequence\Config</Filter>
     </ClInclude>
     <ClInclude Include="ValueSequenceConfig.h">
-      <Filter>Source\File\Indexed\Sequence\Config</Filter>
+      <Filter>Source\Sequence\Config</Filter>
+    </ClInclude>
+    <ClInclude Include="SequenceConnection.h">
+      <Filter>Source\Sequence</Filter>
+    </ClInclude>
+    <ClInclude Include="SequenceFactory.h">
+      <Filter>Source\Sequence</Filter>
+    </ClInclude>
+    <ClInclude Include="TransientSequence.h">
+      <Filter>Source\Sequence</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -20,12 +20,12 @@ BOOL CSequence::Init(CLifeInit<CSequenceConfig> cConfig)
 	mcFile.Init(&mcFileController, "Sequence.DAT", "_Sequence.DAT");
 
 	bResult = mcFileController.Begin();
-	muiNext = ReadIndex();
+	moiNext = ReadIndex();
 	bResult &= mcFileController.End();
 
-	if (muiNext == INVALID_O_INDEX || !bResult)
+	if (moiNext == INVALID_O_INDEX || !bResult)
 	{
-		muiNext = FIRST_O_INDEX;
+		moiNext = FIRST_O_INDEX;
 		return gcLogger.Error2(__METHOD__, " Could not read Sequence file.", NULL);
 	}
 	return TRUE;
@@ -53,17 +53,17 @@ OIndex CSequence::GetNext(void)
 	OIndex	uiNext;
 	BOOL	bResult;
 
-	uiNext = muiNext;
+	uiNext = moiNext;
 
-	muiNext++;
+	moiNext++;
 
 	bResult = mcFileController.Begin();
-	bResult &= WriteIndex(muiNext);
+	bResult &= WriteIndex(moiNext);
 	bResult &= mcFileController.End();
 
 	if (!bResult)
 	{
-		muiNext = FIRST_O_INDEX;
+		moiNext = FIRST_O_INDEX;
 		gcLogger.Error2(__METHOD__, " Could not write Sequence file.", NULL);
 	}
 
@@ -75,9 +75,19 @@ OIndex CSequence::GetNext(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+OIndex CSequence::PeekNext(void)
+{
+	return moiNext;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL CSequence::WriteIndex(OIndex oi)
 {
-	return mcFile.WriteLong(muiNext);
+	return mcFile.WriteLong(moiNext);
 }
 
 

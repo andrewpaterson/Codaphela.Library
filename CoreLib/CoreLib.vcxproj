@@ -145,6 +145,8 @@
     <ClCompile Include="PropertiesFile.cpp" />
     <ClCompile Include="Sequence.cpp" />
     <ClCompile Include="SequenceConfig.cpp" />
+    <ClCompile Include="SequenceFactory.cpp" />
+    <ClCompile Include="TransientSequence.cpp" />
     <ClCompile Include="ValueIndexedDataConfig.cpp" />
     <ClCompile Include="ValueNamedIndexesConfig.cpp" />
     <ClCompile Include="ValueSequenceConfig.cpp" />
@@ -255,6 +257,9 @@
     <ClInclude Include="PropertiesFile.h" />
     <ClInclude Include="Sequence.h" />
     <ClInclude Include="SequenceConfig.h" />
+    <ClInclude Include="SequenceConnection.h" />
+    <ClInclude Include="SequenceFactory.h" />
+    <ClInclude Include="TransientSequence.h" />
     <ClInclude Include="ValueIndexedDataConfig.h" />
     <ClInclude Include="ValueNamedIndexesConfig.h" />
     <ClInclude Include="ValueSequenceConfig.h" />
