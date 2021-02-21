@@ -65,10 +65,10 @@ protected:
 	CUnknowns*				mpcUnknownsAllocatingFrom;
 
 	CNamedIndexedObjects	mcMemory;			//Objects (BaseObject*) allocated in Unknowns referenced by name and OIndex.  
-	CIndexGenerator			mcIndexGenerator;
 	CObjectsSource			mcSource;			//An object found on disk will be deserialised and then placed in memory.
 
 	CDataConnection*		mpcDataConnection;
+	CSequenceConnection*	mpcSequenceConnection;
 
 	CStackPointers*			mpcStackPointers;
 
@@ -76,7 +76,7 @@ protected:
 
 public:
 												CObjects();
-						void					Init(CUnknowns* pcUnknownsAllocatingFrom, CStackPointers* pcStackPointers, CDataConnection* pcDataConnection);
+						void					Init(CUnknowns* pcUnknownsAllocatingFrom, CStackPointers* pcStackPointers, CDataConnection* pcDataConnection, CSequenceConnection* pcSequenceConnection);
 						void					Kill(void);
 						void					DumpIndex(void);
 						void					DumpNames(void);
@@ -110,7 +110,7 @@ public:
 
 						int64					NumMemoryIndexes(void);
 						int						NumMemoryNames(void);
-						CIndexGenerator*		GetIndexGenerator(void);
+						CSequenceConnection*	GetIndexGenerator(void);
 						CNamedIndexedObjects*	GetMemory(void);
 						BOOL					EvictInMemory(void);
 
@@ -140,6 +140,7 @@ protected:
 						CBaseObject*			GetFromDatabase(OIndex oi);
 						CBaseObject*			GetFromDatabase(char* szObjectName);
 						CBaseObject*			GetFromSources(char* szObjectName);
+						OIndex					GetNextID(void);
 						
 						void					KillDontFreeObjects(CArrayBlockObjectPtr* papcObjectPts);
 						void					FreeObjects(CArrayBlockObjectPtr* papcObjectPts);
@@ -161,7 +162,7 @@ extern CObjects gcObjects;
 
 
 void ObjectsInit(void);
-void ObjectsInit(CDataConnection* pcDataConnection);
+void ObjectsInit(CDataConnection* pcDataConnection, CSequenceConnection* pcSequenceConnection);
 void ObjectsKill(void);
 BOOL ObjectsFlush(void);
 
@@ -220,7 +221,7 @@ Ptr<M> CObjects::Add(void)
 	if (pvObject->IsNamed())
 	{
 		LOG_OBJECT_ALLOCATION(pvObject);
-		AddWithIDAndName(pvObject, "", mcIndexGenerator.PopIndex());
+		AddWithIDAndName(pvObject, "", GetNextID());
 
 		//No PointTo because we don't know the embedding object until assignment.
 		pObject.AssignObject(pvObject);
@@ -228,7 +229,7 @@ Ptr<M> CObjects::Add(void)
 	}
 
 	LOG_OBJECT_ALLOCATION(pvObject);
-	AddWithID(pvObject, mcIndexGenerator.PopIndex());  //TODO: The OID should be assigned when saved, not when allocated.
+	AddWithID(pvObject, GetNextID());  //TODO: The OID should be assigned when saved, not when allocated.
 
 	//No PointTo because we don't know the embedding object until assignment.
 	pObject.AssignObject(pvObject);
@@ -246,6 +247,7 @@ Ptr<M> CObjects::Add(char* szObjectName)
 {
 	Ptr<M>	pObject;
 	M*		pvObject;
+	BOOL	bResult;
 
 	pvObject = Allocate<M>();
 	if (!pvObject->IsNamed())
@@ -256,11 +258,18 @@ Ptr<M> CObjects::Add(char* szObjectName)
 	}
 
 	LOG_OBJECT_ALLOCATION(pvObject);
-	AddWithIDAndName(pvObject, szObjectName, mcIndexGenerator.PopIndex());
-
-	//No PointTo because we don't know the embedding object until assignment.
-	pObject.AssignObject(pvObject);
-	return pObject;
+	bResult = AddWithIDAndName(pvObject, szObjectName, GetNextID());
+	if (bResult)
+	{
+		//No PointTo because we don't know the embedding object until assignment.
+		pObject.AssignObject(pvObject);
+		return pObject;
+	}
+	else
+	{
+		mpcUnknownsAllocatingFrom->Remove(pvObject);
+		return Null<M>();
+	}
 }
 
 

@@ -39,7 +39,7 @@ CBaseObject* CObjectAllocator::Add(char* szClassName)
 		return NULL;
 	}
 	
-	mpcObjects->AddWithIDAndName(pvObject, NULL, mpcObjects->GetIndexGenerator()->PopIndex());
+	mpcObjects->AddWithIDAndName(pvObject, NULL, mpcObjects->GetIndexGenerator()->GetNext());
 	LOG_OBJECT_ALLOCATION(pvObject);
 
 	return pvObject;
@@ -106,7 +106,7 @@ CBaseObject* CObjectAllocator::Add(char* szClassName, char* szObjectName, OIndex
 	CBaseObject*	pvObject;
 	OIndex			oi;
 
-	oi = mpcObjects->GetIndexGenerator()->PopIndex();
+	oi = mpcObjects->GetIndexGenerator()->GetNext();
 	pvObject = Add(szClassName, szObjectName, oi, poiExisting);
 
 	return pvObject;
@@ -348,7 +348,7 @@ CBaseObject* CObjectAllocator::AddHollow(char* szObjectName, uint16 iNumEmbedded
 
 	pcHollow->InitName(szObjectName);
 
-	bResult = mpcObjects->AddWithIDAndName(pcHollow, szObjectName, mpcObjects->GetIndexGenerator()->PopIndex());
+	bResult = mpcObjects->AddWithIDAndName(pcHollow, szObjectName, mpcObjects->GetIndexGenerator()->GetNext());
 	if (bResult)
 	{
 		LOG_OBJECT_ALLOCATION(pcHollow);

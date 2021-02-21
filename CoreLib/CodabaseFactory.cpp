@@ -20,6 +20,7 @@ CCodabase* CCodabaseFactory::Create(char* szDirectory, EIndexWriteThrough eWrite
 
 	cIndexEvictionStrategy = CIndexTreeEvictionStrategyFactory::Create(ITESST_Access);
 
+	//TODO: Shouldn't these parameter be configurable?
 	cIndexConfig = CValueIndexedDataConfig::Create("Index", 16 MB, 8 MB, eWriteThrough, cIndexEvictionStrategy, NULL, NULL);
 
 	cNamedEvictionStrategy = CIndexTreeEvictionStrategyFactory::Create(ITESST_Access);

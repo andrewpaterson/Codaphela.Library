@@ -5,9 +5,9 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexGenerator::Init(void)
+void CIndexGenerator::Init(CLifeInit<CSequenceConfig> cConfig)
 {
-	moiNext = FIRST_O_INDEX;
+	mcSequence.Init(cConfig);
 }
 
 
@@ -17,7 +17,7 @@ void CIndexGenerator::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CIndexGenerator::Kill(void)
 {
-	moiNext = INVALID_O_INDEX;
+	mcSequence.Kill();
 }
 
 
@@ -27,11 +27,7 @@ void CIndexGenerator::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 OIndex CIndexGenerator::PopIndex(void)
 {
-	OIndex	oi;
-
-	oi = moiNext;
-	StepNext();
-	return oi;
+	return mcSequence.GetNext();
 }
 
 
@@ -41,15 +37,6 @@ OIndex CIndexGenerator::PopIndex(void)
 //////////////////////////////////////////////////////////////////////////
 OIndex CIndexGenerator::PeekIndex(void)
 {
-	return moiNext;
+	return mcSequence.PeekNext();
 }
 
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CIndexGenerator::StepNext(void)
-{
-	moiNext++;
-}

@@ -1,21 +1,19 @@
 #ifndef __INDEX_GENERATOR_H__
 #define __INDEX_GENERATOR_H__
+#include "CoreLib/Sequence.h"
 #include "CoreLib/IndexedGeneral.h"
 
 
 class CIndexGenerator
 {
 protected:
-	OIndex	moiNext;
+	CSequence	mcSequence;
 
 public:
-	void	Init(void);
+	void	Init(CLifeInit<CSequenceConfig> cConfig);
 	void	Kill(void);
 	OIndex	PopIndex(void);
 	OIndex	PeekIndex(void);
-
-protected:
-	void	StepNext(void);
 };
 
 
