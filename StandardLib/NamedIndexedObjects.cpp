@@ -133,12 +133,27 @@ BOOL CNamedIndexedObjects::RemoveName(char* szName)
 //////////////////////////////////////////////////////////////////////////
 BOOL CNamedIndexedObjects::AddWithID(CBaseObject* pvObject, OIndex oi)
 {
-	BOOL	bResult;
+	BOOL				bResult;
+	CNamedObject*		pcNamed;
+	CNamedHollowObject* pcNamedHollow;
 
 	bResult = mcIndexedObjects.Add(oi, pvObject);
 	if (bResult)
 	{
 		pvObject->SetObjectID(oi);
+		if (pvObject->IsNamed())
+		{
+			if (!pvObject->IsHollow())
+			{
+				pcNamed = (CNamedObject*)pvObject;
+				bResult = pcNamed->InitName("");
+			}
+			else
+			{
+				pcNamedHollow = (CNamedHollowObject*)pvObject;
+				bResult = pcNamedHollow->InitName("");
+			}
+		}
 		return TRUE;
 	}
 	else
@@ -159,6 +174,11 @@ BOOL CNamedIndexedObjects::AddWithIDAndName(CBaseObject* pvObject, OIndex oi, ch
 	BOOL					bResult;
 	CIndexTreeMemoryAccess	cAccess;
 	BOOL					bHasObject;
+
+	if (StrEmpty(szName))
+	{
+		return gcLogger.Error2(__METHOD__, " Cannot add object with an empty name.", NULL);
+	}
 
 	cAccess.Init(&mcNames);
 	bHasObject = cAccess.HasString(szName);
@@ -187,14 +207,12 @@ BOOL CNamedIndexedObjects::AddWithIDAndName(CBaseObject* pvObject, OIndex oi, ch
 		bResult = pcNamedHollow->InitName(szName);
 	}
 
-	if (!StrEmpty(szName))
-	{
-		cAccess.Init(&mcNames);
-		oi = pvObject->GetOI();
-		szName = (char*)cAccess.PutStringLong(szName, oi);
-		bResult = szName != NULL;
-		cAccess.Kill();
-	}
+	cAccess.Init(&mcNames);
+	oi = pvObject->GetOI();
+	szName = (char*)cAccess.PutStringLong(szName, oi);
+	bResult = szName != NULL;
+	cAccess.Kill();
+
 	return bResult;
 }
 

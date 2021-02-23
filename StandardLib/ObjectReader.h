@@ -17,7 +17,7 @@ public:
 	virtual BOOL				End(void);
 
 protected:
-	CSerialisedObject*  ReadSerialised(CFileReader* pcReader);
+			CSerialisedObject*  ReadSerialised(CFileReader* pcReader);
 
 };
 

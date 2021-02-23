@@ -12,8 +12,8 @@ protected:
 	CObjects*	mpcObjects;
 
 public:
-	void				Init(CObjects* pcObjects);
-	void				Kill(void);
+	void			Init(CObjects* pcObjects);
+	void			Kill(void);
 
 	CBaseObject*	Add(char* szClassName);
 	CBaseObject*	Add(char* szClassName, OIndex oiForced);
