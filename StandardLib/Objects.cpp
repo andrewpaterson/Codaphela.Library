@@ -32,6 +32,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "IndexedDataObjectDeserialiser.h"
 #include "ObjectAllocator.h"
 #include "ObjectSource.h"
+#include "ObjectRemapFrom.h"
 #include "Objects.h"
 #include "NamedHollowObject.h"
 #include "HollowEmbeddedObject.h"
@@ -622,7 +623,14 @@ BOOL CObjects::ForceSave(CBaseObject* pcObject)
 //////////////////////////////////////////////////////////////////////////
 BOOL CObjects::AddWithID(CBaseObject* pvObject, OIndex oi)
 {
-	return mcMemory.AddWithID(pvObject, oi);
+	BOOL	bResult;
+
+	bResult = mcMemory.AddWithID(pvObject, oi);
+	if (bResult)
+	{
+		LOG_OBJECT_ALLOCATION(pvObject);
+	}
+	return bResult;
 }
 
 
@@ -632,32 +640,25 @@ BOOL CObjects::AddWithID(CBaseObject* pvObject, OIndex oi)
 //////////////////////////////////////////////////////////////////////////
 BOOL CObjects::AddWithIDAndName(CBaseObject* pvObject, char* szObjectName, OIndex oi)
 {
-	if (!StrEmpty(szObjectName))
+	BOOL	bResult;
+
+	if ((pvObject->IsNamed()))
 	{
-		if ((pvObject->IsNamed()))
+		bResult = mcMemory.AddWithIDAndName(pvObject, oi, szObjectName);
+		if (bResult)
 		{
-			return mcMemory.AddWithIDAndName(pvObject, oi, szObjectName);
+			LOG_OBJECT_ALLOCATION(pvObject);
 		}
-		else
-		{
-			CChars sz;
-			sz.Init();
-			pvObject->GetIdentifier(&sz);
-			gcLogger.Error2(__METHOD__, " Cannot add object [", sz.Text(), "] with name [", szObjectName, "], it is not a named object.", NULL);
-			sz.Kill();
-			return FALSE;
-		}
+		return bResult;
 	}
 	else
 	{
-		if ((pvObject->IsNamed()))
-		{
-			return mcMemory.AddWithIDAndName(pvObject, oi, "");
-		}
-		else
-		{
-			return mcMemory.AddWithID(pvObject, oi);
-		}
+		CChars sz;
+		sz.Init();
+		pvObject->GetIdentifier(&sz);
+		gcLogger.Error2(__METHOD__, " Cannot add object [", sz.Text(), "] with name [", szObjectName, "], it is not a named object.", NULL);
+		sz.Kill();
+		return FALSE;
 	}
 }
 
@@ -668,7 +669,6 @@ BOOL CObjects::AddWithIDAndName(CBaseObject* pvObject, char* szObjectName, OInde
 //////////////////////////////////////////////////////////////////////////
 BOOL CObjects::Replace(CBaseObject* pvNewObject, char* szExistingName, OIndex oiNew)
 {
-
 	if (!StrEmpty(szExistingName))
 	{
 		if ((pvNewObject->IsNamed()))
@@ -1367,6 +1367,335 @@ CStackPointers* CObjects::GetStackPointers(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+CBaseObject* CObjects::Add(char* szClassName)
+{
+	CBaseObject* pvObject;
+
+	pvObject = Allocate(szClassName);
+	if (!pvObject)
+	{
+		return NULL;
+	}
+
+	AddWithID(pvObject, GetIndexGenerator()->GetNext());
+
+	return pvObject;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CBaseObject* CObjects::Add(char* szClassName, OIndex oiForced)
+{
+	CBaseObject* pvExisting;
+	CBaseObject* pvObject;
+	BOOL			bResult;
+
+	pvObject = Allocate(szClassName);
+	if (!pvObject)
+	{
+		return NULL;
+	}
+
+	pvExisting = GetFromMemory(oiForced);
+	if (pvExisting == NULL)
+	{
+		bResult = AddWithID(pvObject, oiForced);
+		if (!bResult)
+		{
+			pvObject->Kill();
+			return NULL;
+		}
+
+		return pvObject;
+	}
+	else
+	{
+		pvObject = ReplaceExisting(pvExisting, pvObject, oiForced);
+
+		return pvObject;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CBaseObject* CObjects::Add(char* szClassName, char* szObjectName)
+{
+	OIndex oiExisting;
+
+	return Add(szClassName, szObjectName, &oiExisting);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CBaseObject* CObjects::Add(char* szClassName, char* szObjectName, OIndex* poiExisting)
+{
+	CBaseObject* pvObject;
+	OIndex			oi;
+
+	oi = GetIndexGenerator()->GetNext();
+	pvObject = Add(szClassName, szObjectName, oi, poiExisting);
+
+	return pvObject;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CBaseObject* CObjects::Add(char* szClassName, char* szObjectName, OIndex oiForced)
+{
+	OIndex oiExisting;
+
+	return Add(szClassName, szObjectName, oiForced, &oiExisting);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CBaseObject* CObjects::Add(char* szClassName, char* szObjectName, OIndex oiForced, OIndex* poiExisting)
+{
+	CBaseObject* pvObject;
+	CBaseObject* pvExisting;
+	BOOL			bResult;
+
+	pvObject = Allocate(szClassName);
+	if (!pvObject)
+	{
+		gcLogger.Error2(__METHOD__, " Cannot add object named [", szObjectName, "] class [", szClassName, "].", NULL);
+		return NULL;
+	}
+
+	if (!pvObject->IsNamed())
+	{
+		gcLogger.Error2(__METHOD__, " Cannot add object named [", szObjectName, "] the class ", pvObject->ClassName(), " is not derived from NamedObject.", NULL);
+		pvObject->Kill();
+		return NULL;
+	}
+
+	pvExisting = GetFromMemory(szObjectName);
+	if (pvExisting == NULL)
+	{
+		bResult = AddWithIDAndName(pvObject, szObjectName, oiForced);
+		if (!bResult)
+		{
+			pvObject->Kill();
+			return NULL;
+		}
+
+		*poiExisting = INVALID_O_INDEX;
+		return pvObject;
+	}
+	else
+	{
+		*poiExisting = pvExisting->GetOI();
+		pvObject = ReplaceExisting(pvExisting, pvObject, szObjectName, oiForced);
+
+		return pvObject;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CBaseObject* CObjects::ReplaceExisting(CBaseObject* pvExisting, CBaseObject* pvObject, char* szObjectName, OIndex oiForced)
+{
+	BOOL				bResult;
+	CObjectRemapFrom	cRemapper;
+
+	Dename(pvExisting);
+	Deindex(pvExisting);
+
+	bResult = Replace(pvObject, szObjectName, oiForced);
+	if (!bResult)
+	{
+		pvObject->Kill();
+		return NULL;
+	}
+
+	cRemapper.Remap(pvExisting, pvObject, TRUE);
+
+	return pvObject;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CBaseObject* CObjects::ReplaceExisting(CBaseObject* pvExisting, CBaseObject* pvObject, OIndex oiForced)
+{
+	BOOL				bResult;
+	CObjectRemapFrom	cRemapper;
+
+	Dename(pvExisting);
+	Deindex(pvExisting);
+
+	bResult = AddWithID(pvObject, oiForced);
+	if (!bResult)
+	{
+		pvObject->Kill();
+		return NULL;
+	}
+
+	cRemapper.Remap(pvExisting, pvObject, TRUE);
+
+	return pvObject;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CBaseObject* CObjects::AddHollow(OIndex oiForced, uint16 iNumEmbedded)
+{
+	CHollowObject* pcHollow;
+	BOOL				bResult;
+	CBaseObject* pcExisting;
+
+	if (oiForced == INVALID_O_INDEX)
+	{
+		gcLogger.Error("CObjects::AddHollow Cannot allocate a hollow object with an invalid index.");
+		return NULL;
+	}
+
+	pcExisting = GetFromMemory(oiForced);
+	if (pcExisting)
+	{
+		LOG_OBJECT_ALLOCATION(pcExisting);
+		return pcExisting;
+	}
+
+	pcHollow = AllocateHollow(iNumEmbedded);
+	if (!pcHollow)
+	{
+		return NULL;
+	}
+
+	bResult = AddWithID(pcHollow, oiForced);
+	if (bResult)
+	{
+		return pcHollow;
+	}
+	else
+	{
+		return NULL;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CBaseObject* CObjects::AddHollow(char* szObjectName, OIndex oiForced, uint16 iNumEmbedded)
+{
+	CNamedHollowObject* pcHollow;
+	BOOL						bResult;
+	CBaseObject* pvExisting;
+
+	if (oiForced == INVALID_O_INDEX)
+	{
+		gcLogger.Error("CObjects::AddHollow Cannot allocate a hollow object with an invalid index.");
+		return NULL;
+	}
+
+	if ((szObjectName == NULL || szObjectName[0] == '\0'))
+	{
+		return AddHollow(oiForced, iNumEmbedded);
+	}
+
+	pvExisting = GetFromMemory(szObjectName);
+	if (pvExisting)
+	{
+		return pvExisting;
+	}
+
+	pvExisting = GetFromMemory(oiForced);
+	if (pvExisting)
+	{
+		gcLogger.Error2(__METHOD__, " Cannot add hollow object named [", szObjectName, "] another object with index [", IndexToString(oiForced), "] and name [", pvExisting->GetName(), "] already exists.", NULL);
+		return NULL;
+	}
+
+	pcHollow = AllocateNamedHollow(iNumEmbedded);
+	if (!pcHollow)
+	{
+		return NULL;
+	}
+
+	bResult = AddWithIDAndName(pcHollow, szObjectName, oiForced);
+	if (bResult)
+	{
+		return pcHollow;
+	}
+	else
+	{
+		return NULL;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CBaseObject* CObjects::AddHollow(char* szObjectName, uint16 iNumEmbedded)
+{
+	CNamedHollowObject* pcHollow;
+	BOOL					bResult;
+	CBaseObject* pvExisting;
+
+	if ((szObjectName == NULL || szObjectName[0] == '\0'))
+	{
+		return NULL;
+	}
+
+	pvExisting = GetFromMemory(szObjectName);
+	if (pvExisting)
+	{
+		return pvExisting;
+	}
+
+	pcHollow = AllocateNamedHollow(iNumEmbedded);
+	if (!pcHollow)
+	{
+		return NULL;
+	}
+
+	pcHollow->InitName(szObjectName);
+
+	bResult = AddWithIDAndName(pcHollow, szObjectName, GetIndexGenerator()->GetNext());
+	if (bResult)
+	{
+		return pcHollow;
+	}
+	else
+	{
+		return NULL;
+	}
+}
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void ObjectsInit(void)
 {
 	ObjectsInit(NULL, &gcTransientSequence);
@@ -1408,4 +1737,6 @@ BOOL ObjectsFlush(void)
 {
 	return gcObjects.Flush();
 }
+
+
 

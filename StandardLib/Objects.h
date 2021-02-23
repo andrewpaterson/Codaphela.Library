@@ -155,6 +155,21 @@ protected:
 						CHollowObject*			AllocateHollow(uint16 iNumEmbedded);
 						void					AppenedHollowEmbeddedObjects(CBaseObject* pcHollow, uint16 iNumEmbedded, void* pvEmbedded) ;
 						void					PrintMemory(CChars* psz);
+
+						CBaseObject*			Add(char* szClassName);
+						CBaseObject*			Add(char* szClassName, OIndex oiForced);
+
+						CBaseObject*			Add(char* szClassName, char* szObjectName);
+						CBaseObject*			Add(char* szClassName, char* szObjectName, OIndex* poiExisting);
+						CBaseObject*			Add(char* szClassName, char* szObjectName, OIndex oiForced);
+						CBaseObject*			Add(char* szClassName, char* szObjectName, OIndex oiForced, OIndex* poiExisting);
+
+						CBaseObject*			AddHollow(char* szObjectName, uint16 iNumEmbedded);
+						CBaseObject*			AddHollow(OIndex oiForced, uint16 iNumEmbedded);
+						CBaseObject*			AddHollow(char* szObjectName, OIndex oiForced, uint16 iNumEmbedded);
+
+						CBaseObject*			ReplaceExisting(CBaseObject* pvExisting, CBaseObject* pvObject, char* szObjectName, OIndex oiForced);
+						CBaseObject*			ReplaceExisting(CBaseObject* pvExisting, CBaseObject* pvObject, OIndex oiForced);
 };
 
 
@@ -218,18 +233,7 @@ Ptr<M> CObjects::Add(void)
 	M*		pvObject;
 
 	pvObject = Allocate<M>();
-	if (pvObject->IsNamed())
-	{
-		LOG_OBJECT_ALLOCATION(pvObject);
-		AddWithIDAndName(pvObject, "", GetNextID());
-
-		//No PointTo because we don't know the embedding object until assignment.
-		pObject.AssignObject(pvObject);
-		return pObject;
-	}
-
-	LOG_OBJECT_ALLOCATION(pvObject);
-	AddWithID(pvObject, GetNextID());  //TODO: The OID should be assigned when saved, not when allocated.
+	AddWithID(pvObject, GetNextID());
 
 	//No PointTo because we don't know the embedding object until assignment.
 	pObject.AssignObject(pvObject);
@@ -250,14 +254,6 @@ Ptr<M> CObjects::Add(char* szObjectName)
 	BOOL	bResult;
 
 	pvObject = Allocate<M>();
-	if (!pvObject->IsNamed())
-	{
-		//Can't add an unnamed object with a name.
-		mpcUnknownsAllocatingFrom->Remove(pvObject);
-		return Null<M>();
-	}
-
-	LOG_OBJECT_ALLOCATION(pvObject);
 	bResult = AddWithIDAndName(pvObject, szObjectName, GetNextID());
 	if (bResult)
 	{
