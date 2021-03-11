@@ -128,13 +128,13 @@ unsigned int CGeneralMemory::GetSize(void* pv)
 //////////////////////////////////////////////////////////////////////////
 BOOL CGeneralMemory::Remove(CArrayVoidPtr* pav)
 {
-	int					i;
-	void*				pv;
+	int							i;
+	void*						pv;
 	SGeneralMemoryAllocation*	psAlloc;
-	CFreeList*		pcList;
-	SFNode*				psNode;
-	int					iNumElements;
-	int					iRemoved;
+	CFreeList*					pcList;
+	SFNode*						psNode;
+	int							iNumElements;
+	int							iRemoved;
 	
 	pav->QuickSort();
 
@@ -786,3 +786,4 @@ void* CGeneralMemory::TestGetLargeListsHead(void) { return mcLargeList.GetHead()
 CMemoryFreeListParams* CGeneralMemory::GetFreeListParams(void) { return &mcFreeListParams; }
 int CGeneralMemory::GetDefaultAlignment(void) { return miDefaultAlignment; }
 int	CGeneralMemory::NumFreeLists(void) { return mcFreeLists.NumElements(); }
+

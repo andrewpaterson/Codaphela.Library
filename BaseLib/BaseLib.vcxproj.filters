@@ -1382,6 +1382,9 @@
     <ClCompile Include="WindowsError.cpp">
       <Filter>Source\Error\Windows</Filter>
     </ClCompile>
+    <ClCompile Include="Mallocator.cpp">
+      <Filter>Source\Memory\Allocator</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="gpl.txt">

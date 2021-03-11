@@ -24,6 +24,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/ConstructorCall.h"
 #include "BaseLib/Constructors.h"
 #include "BaseLib/Log.h"
+#include "BaseLib/LifeCycle.h"
 #include "ArrayUnknownPtr.h"
 #include "Iterables.h"
 
@@ -34,14 +35,16 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 class CUnknowns
 {
 protected:
-	CMemoryAllocator		mcAlloc;
-	CGeneralMemory*			mpcMemory;
 	CIterables				mcIterables;
 	CChars					mszName;
 	CConstructors*			mpcConstructors;
+	CLife<CMallocator>		mcMallocLife;
+	CMallocator*			mpcMalloc;
+	size_t					miNumElements;
 
 public:
 						void			Init(char* szName, CConstructors* pcConstructors);
+						void			Init(CLifeInit<CMallocator> cMalloc, char* szName, CConstructors* pcConstructors);
 						void			Kill(void);
 
 						void			Remove(CUnknown* pcUnknown);
@@ -66,20 +69,18 @@ public:
 	template<class M>	void			RemoveDuringIteration(SIteratorTemplate<M>* psIter);
 
 						//Debug stuff
-						int				NumElements(void);
 						void			DumpAddDetail(CUnknown* pcUnknown);
+						size_t			NumElements(void);
 
 						int				GetIterableListsHeadNumElements(void);
-						CFreeList*		GetFreeList(unsigned int iElementSize);
-						CGeneralMemory*	GetMemory(void);
 
 						void			RemoveInKill(CUnknown* pcUnknown);
 						void			RemoveInKill(CArrayUnknownPtr* papcObjectPts);
+
 protected:
-	CUnknown*	AddExisting(CUnknown* pcExisting);
-	void		DebugName(CUnknown* pcUnknown, char (*pszDebug)[4]);
-	void		BreakOnAdd(unsigned int uiAllocCount);
-	BOOL		IsFreed(CUnknown* pcUnknown);
+						CUnknown*		AddExisting(CUnknown* pcExisting);
+						void			DebugName(CUnknown* pcUnknown, char (*pszDebug)[4]);
+						BOOL			IsFreed(CUnknown* pcUnknown);
 };
 
 
@@ -132,25 +133,25 @@ M* CUnknowns::AddUnsafe(void)
 template<class M>
 M* CUnknowns::AddUnsafe(int iAdditionalSize)
 {
-	M*		pv;
-	char	szDebug[4];
-	int		iSize;
+	M*			pv;
+	char(*		acDebug)[4];
+	int			iSize;
 
 	iSize = sizeof(M);
-	pv = (M*)mcAlloc.Malloc(iSize + iAdditionalSize);
+	pv = (M*)mpcMalloc->Malloc(iSize + iAdditionalSize, &acDebug);
 	if (pv)
 	{
 		memset(pv, 0, iSize + iAdditionalSize);
 		new(pv) M();
 
-		DebugName(pv, &szDebug);
-		mpcMemory->SetDebugName(pv, &szDebug);
-
+		DebugName(pv, (char(*)[4])acDebug);
 		pv->CUnknown::SetUnknowns(this);
 		if (pv->Iterable())
 		{
 			mcIterables.Add(pv);
 		}
+
+		miNumElements++;
 		return pv;
 	}
 	else

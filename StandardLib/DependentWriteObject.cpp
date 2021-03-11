@@ -37,3 +37,4 @@ int CompareDependentWriteObject(const void* ps1, const void* ps2)
 		return 0;
 	}
 }
+
