@@ -1719,6 +1719,19 @@ void ObjectsInit(CDataConnection* pcDataConnection, CSequenceConnection* pcSeque
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void ObjectsInit(CUnknowns* pcUnknowns, CStackPointers* pcStackPointers, CDataConnection* pcDataConnection, CSequenceConnection* pcSequenceConnection)
+{
+	UnknownsInit();
+	TransientSequenceInit();
+	gcStackPointers.Init(2048);
+	gcObjects.Init(pcUnknowns, pcStackPointers, pcDataConnection, pcSequenceConnection);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void ObjectsKill(void)
 {
 	gcObjects.Kill();

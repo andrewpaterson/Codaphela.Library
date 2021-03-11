@@ -10,6 +10,7 @@ public:
 	CBaseObject*	mpcObject;
 	BOOL			mbWritten;
 
+public:
 	void Init(CBaseObject* pcObject, BOOL bWritten);
 };
 

@@ -17,8 +17,10 @@ public:
 	void			Kill(void);
 
 	void*			Malloc(size_t tSize);
+	void*			Malloc(size_t tSize, char(**pacDebugName)[4]);
 	void*			Realloc(void* pv, size_t tSize);
 	void			Free(void* pv);
+	void			FreeMultiple(CArrayVoidPtr* pav);
 
 	const char*		GetName(void);
 

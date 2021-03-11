@@ -12,12 +12,15 @@
 
 class CFileReader;
 class CFileWriter;
+class CArrayVoidPtr;
 class CMallocator : public CConstructable, public CKillable
 {
 public:
 	virtual void*		Malloc(size_t tSize) =0;
+	virtual void*		Malloc(size_t tSize, char(** pacDebugName)[4]);
 	virtual void*		Realloc(void* pv, size_t tSize) =0;
 	virtual void		Free(void* pv) =0;
+	virtual void		FreeMultiple(CArrayVoidPtr* pav);
 
 	virtual BOOL		IsLocal(void) =0;
 

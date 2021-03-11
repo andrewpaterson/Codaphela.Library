@@ -438,6 +438,7 @@
     <ClCompile Include="LocalMallocator.cpp" />
     <ClCompile Include="LocalMallocatorConstructors.cpp" />
     <ClCompile Include="LogString.cpp" />
+    <ClCompile Include="Mallocator.cpp" />
     <ClCompile Include="MapBlock.cpp" />
     <ClCompile Include="MapLongLong.cpp" />
     <ClCompile Include="MapStringBlock.cpp" />

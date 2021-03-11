@@ -34,13 +34,25 @@ CUnknowns gcUnknowns;
 //////////////////////////////////////////////////////////////////////////
 void CUnknowns::Init(char* szName, CConstructors* pcConstructors)
 {
+	CLifeInit<CMallocator> cLifeMalloc =  LifeAlloc<CMemoryAllocator, CMallocator>();
+	Init(cLifeMalloc, szName, pcConstructors);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CUnknowns::Init(CLifeInit<CMallocator> cMalloc, char* szName, CConstructors* pcConstructors)
+{
 	mpcConstructors = pcConstructors;
 	mpcConstructors->ValidateMemoryInitialised();
 
-	mcAlloc.Init();
-	mpcMemory = mcAlloc.GetMemory();
+	cMalloc.ConfigureLife(&mcMallocLife, &mpcMalloc);
+
 	mcIterables.Init();
 	mszName.Init(szName);
+	miNumElements = 0;
 }
 
 
@@ -52,8 +64,7 @@ void CUnknowns::Kill(void)
 {
 	mszName.Kill();
 	mcIterables.Kill();
-	mcAlloc.Kill();
-	mpcMemory = NULL;
+	mcMallocLife.Kill();
 }
 
 
@@ -63,12 +74,9 @@ void CUnknowns::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 CUnknown* CUnknowns::AddExisting(CUnknown* pcExisting)
 {
-	char		szDebug[4];
-	
-	DebugName(pcExisting, &szDebug);
-	mpcMemory->SetDebugName(pcExisting, &szDebug);
-
 	pcExisting->SetUnknowns(this);
+	miNumElements++;
+
 	if (pcExisting->Iterable())
 	{
 		mcIterables.Add(pcExisting);
@@ -91,7 +99,7 @@ CUnknown* CUnknowns::Add(char* szClassName)
 		return NULL;
 	}
 
-	pcUnknown = (CUnknown*)mpcConstructors->Construct(szClassName, &mcAlloc);
+	pcUnknown = (CUnknown*)mpcConstructors->Construct(szClassName, mpcMalloc);
 	if (pcUnknown)
 	{
 		pcUnknown = AddExisting(pcUnknown);
@@ -206,11 +214,15 @@ void CUnknowns::RemoveInKill(CUnknown* pcUnknown)
 {
 	//Unknowns kill must call this last.
 	//That means that anything inheriting from CUnknown must have a Kill that last calls CUnknown::Kill()
-	if (pcUnknown->Iterable())
+	if (pcUnknown)
 	{
-		mcIterables.Remove(pcUnknown);
+		if (pcUnknown->Iterable())
+		{
+			mcIterables.Remove(pcUnknown);
+		}
+		mpcMalloc->Free(pcUnknown);
+		miNumElements--;
 	}
-	mpcMemory->Remove(pcUnknown);
 }
 
 
@@ -225,20 +237,24 @@ void CUnknowns::RemoveInKill(CArrayUnknownPtr* papcObjectPts)
 	CArrayVoidPtr	cArray;
 	void**			pvData;
 
-	//Optimise this sometime later as iterables aren't used yet.
-	for (i = 0; i < papcObjectPts->NumElements(); i++)
+	if (papcObjectPts)
 	{
-		pcUnknown = *papcObjectPts->Get(i);
-		if (pcUnknown->Iterable())
+		//Optimise this sometime later as iterables aren't used yet.
+		for (i = 0; i < papcObjectPts->NumElements(); i++)
 		{
-			mcIterables.Remove(pcUnknown);
+			pcUnknown = *papcObjectPts->Get(i);
+			if (pcUnknown->Iterable())
+			{
+				mcIterables.Remove(pcUnknown);
+			}
 		}
+
+		pvData = (void**)papcObjectPts->GetData();
+		cArray.Fake(pvData, papcObjectPts->NumElements());
+
+		mpcMalloc->FreeMultiple(&cArray);
+		miNumElements--;
 	}
-
-	pvData = (void**)papcObjectPts->GetData();
-	cArray.Fake(pvData, papcObjectPts->NumElements());
-
-	mpcMemory->Remove(&cArray);
 }
 
 
@@ -367,39 +383,9 @@ BOOL CUnknowns::IsFreed(CUnknown* pcUnknown)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CUnknowns::BreakOnAdd(unsigned int uiAllocCount)
+size_t CUnknowns::NumElements(void)
 {
-	mpcMemory->BreakOnAdd(uiAllocCount);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-int CUnknowns::NumElements(void)
-{
-	return mpcMemory->NumElements();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CFreeList* CUnknowns::GetFreeList(unsigned int iElementSize)
-{
-	return mpcMemory->GetFreeList(iElementSize);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CGeneralMemory* CUnknowns::GetMemory(void)
-{
-	return mpcMemory;
+	return miNumElements;
 }
 
 

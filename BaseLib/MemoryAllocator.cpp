@@ -46,6 +46,25 @@ void* CMemoryAllocator::Malloc(size_t tSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void* CMemoryAllocator::Malloc(size_t tSize, char(**pacDebugName)[4])
+{
+	void*						pv;
+	SGeneralMemoryAllocation*	psGeneralMemoryAllocation;
+
+	pv = mcMemory.Add((unsigned int)tSize);
+	psGeneralMemoryAllocation = GENERAL_MEMORY_GET_ALLOCATION(pv);
+	if (pacDebugName)
+	{
+		*pacDebugName = &psGeneralMemoryAllocation->szDebug;
+	}
+	return pv;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void* CMemoryAllocator::Realloc(void* pv, size_t tSize)
 {
 	void*	pvNew;
@@ -62,6 +81,16 @@ void* CMemoryAllocator::Realloc(void* pv, size_t tSize)
 void CMemoryAllocator::Free(void* pv)
 {
 	mcMemory.Remove(pv);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMemoryAllocator::FreeMultiple(CArrayVoidPtr* pav)
+{
+	mcMemory.Remove(pav);
 }
 
 
