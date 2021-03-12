@@ -18,7 +18,7 @@ public:
 
 	void*			Malloc(size_t tSize);
 	void*			Realloc(void* pv, size_t tSize);
-	void			Free(void* pv);
+	BOOL			Free(void* pv);
 
 	//This looks so very wrong.  CONSTRUCTABLE(CCountingAllocator); should be used!
 	const char*		ClassName(void);

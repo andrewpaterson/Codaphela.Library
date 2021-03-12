@@ -78,9 +78,9 @@ void* CMemoryAllocator::Realloc(void* pv, size_t tSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMemoryAllocator::Free(void* pv)
+BOOL CMemoryAllocator::Free(void* pv)
 {
-	mcMemory.Remove(pv);
+	return mcMemory.Remove(pv);
 }
 
 
@@ -88,9 +88,9 @@ void CMemoryAllocator::Free(void* pv)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMemoryAllocator::FreeMultiple(CArrayVoidPtr* pav)
+int CMemoryAllocator::FreeMultiple(CArrayVoidPtr* pav)
 {
-	mcMemory.Remove(pav);
+	return mcMemory.RemoveMultiple(pav);
 }
 
 

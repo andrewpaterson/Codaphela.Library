@@ -28,9 +28,17 @@ void* CSystemAllocator::Malloc(size_t tSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CSystemAllocator::Free(void* pv)
+BOOL CSystemAllocator::Free(void* pv)
 {
-	free(pv);
+	if (pv)
+	{
+		free(pv);
+		return TRUE;
+	}
+	else
+	{
+		return FALSE;
+	}
 }
 
 

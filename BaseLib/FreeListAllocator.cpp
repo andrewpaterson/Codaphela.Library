@@ -60,9 +60,9 @@ void* CFreeListAllocator::Malloc(size_t tSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CFreeListAllocator::Free(void* pv)
+BOOL CFreeListAllocator::Free(void* pv)
 {
-	mcFreeList.Remove(pv);
+	return mcFreeList.Remove(pv);
 }
 
 

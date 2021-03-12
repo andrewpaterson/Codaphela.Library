@@ -29,8 +29,9 @@ void* CNullAllocator::Malloc(size_t tSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CNullAllocator::Free(void* pv)
+BOOL CNullAllocator::Free(void* pv)
 {
+	return FALSE;
 }
 
 
