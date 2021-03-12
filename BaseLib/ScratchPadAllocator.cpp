@@ -70,12 +70,20 @@ void* CScratchPadAllocator::Realloc(void* pv, size_t tSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CScratchPadAllocator::Free(void* pv)
+BOOL CScratchPadAllocator::Free(void* pv)
 {
 	SSPNode*	psNode;
 
-	psNode =  DataGetHeader<SSPNode, void>(pv);
-	psNode->bUsed = FALSE;
+	if (pv)
+	{
+		psNode = DataGetHeader<SSPNode, void>(pv);
+		psNode->bUsed = FALSE;
+		return TRUE;
+	}
+	else
+	{
+		return FALSE;
+	}
 }
 
 

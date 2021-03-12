@@ -41,9 +41,9 @@ void* CGlobalMemoryAllocator::Realloc(void* pv, size_t tSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CGlobalMemoryAllocator::Free(void* pv)
+BOOL CGlobalMemoryAllocator::Free(void* pv)
 {
-	gcMemory.Remove(pv);
+	return gcMemory.Remove(pv);
 }
 
 

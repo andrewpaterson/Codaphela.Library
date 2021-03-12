@@ -71,10 +71,16 @@ void* CTrackingAllocator::Realloc(void* pv, size_t tSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTrackingAllocator::Free(void* pv)
+BOOL CTrackingAllocator::Free(void* pv)
 {
-	mpcAlloc->Free(pv);
-	mapv.Remove(&pv);
+	BOOL	bFreed;
+
+	bFreed = mpcAlloc->Free(pv);
+	if (bFreed)
+	{
+		bFreed = mapv.Remove(&pv);
+	}
+	return bFreed;
 }
 
 

@@ -8,6 +8,10 @@
 //////////////////////////////////////////////////////////////////////////
 void* CMallocator::Malloc(size_t tSize, char(** pacDebugName)[4])
 {
+	if (pacDebugName)
+	{
+		*pacDebugName = NULL;
+	}
 	return Malloc(tSize);
 }
 
@@ -16,18 +20,24 @@ void* CMallocator::Malloc(size_t tSize, char(** pacDebugName)[4])
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMallocator::FreeMultiple(CArrayVoidPtr* pav)
+int CMallocator::FreeMultiple(CArrayVoidPtr* pav)
 {
 	int		iNumElements;
 	int		i;
 	void*	pv;
+	BOOL	bFreed;
 
 	pav->QuickSort();
 	iNumElements = pav->NumElements();
 	for (i = iNumElements - 1; i >=0; i--)
 	{
 		pv = pav->GetPtr(i);
-		Free(pv);
+		bFreed = Free(pv);
+		if (!bFreed)
+		{
+			return i;
+		}
 	}
+	return i;
 }
 

@@ -11,7 +11,7 @@ public:
 
 	void*		Malloc(size_t tSize);
 	void*		Realloc(void* pv, size_t iMemSize);
-	void		Free(void* pv);
+	BOOL		Free(void* pv);
 
 	BOOL		IsLocal(void);
 	size_t		SizeOffset(void);

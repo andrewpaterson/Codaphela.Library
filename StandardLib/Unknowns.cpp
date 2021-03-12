@@ -236,6 +236,7 @@ void CUnknowns::RemoveInKill(CArrayUnknownPtr* papcObjectPts)
 	CUnknown*		pcUnknown;
 	CArrayVoidPtr	cArray;
 	void**			pvData;
+	int				iNumFreed;
 
 	if (papcObjectPts)
 	{
@@ -252,8 +253,8 @@ void CUnknowns::RemoveInKill(CArrayUnknownPtr* papcObjectPts)
 		pvData = (void**)papcObjectPts->GetData();
 		cArray.Fake(pvData, papcObjectPts->NumElements());
 
-		mpcMalloc->FreeMultiple(&cArray);
-		miNumElements--;
+		iNumFreed = mpcMalloc->FreeMultiple(&cArray);
+		miNumElements -= iNumFreed;
 	}
 }
 
@@ -288,28 +289,31 @@ void CUnknowns::DebugName(CUnknown* pcUnknown, char (*pszDebug)[4])
 	char		szDebug[4];
 	int			iLen;
 
-	sz = pcUnknown->ClassName();
-	iLen = (int)strlen(sz);
-	if (iLen >= 5)
+	if (pszDebug)
 	{
-		szDebug[0] = sz[1];
-		szDebug[1] = sz[2];
-		szDebug[2] = sz[iLen-2];
-		szDebug[3] = sz[iLen-1];
-	}
-	else
-	{
-		szDebug[0] = 0;
-		szDebug[1] = 0;
-		szDebug[2] = 0;
-		szDebug[3] = 0;
-		memcpy(szDebug, sz, iLen);
-	}
+		sz = pcUnknown->ClassName();
+		iLen = (int)strlen(sz);
+		if (iLen >= 5)
+		{
+			szDebug[0] = sz[1];
+			szDebug[1] = sz[2];
+			szDebug[2] = sz[iLen - 2];
+			szDebug[3] = sz[iLen - 1];
+		}
+		else
+		{
+			szDebug[0] = 0;
+			szDebug[1] = 0;
+			szDebug[2] = 0;
+			szDebug[3] = 0;
+			memcpy(szDebug, sz, iLen);
+		}
 
-	(*pszDebug)[0] = szDebug[0];
-	(*pszDebug)[1] = szDebug[1];
-	(*pszDebug)[2] = szDebug[2];
-	(*pszDebug)[3] = szDebug[3];
+		(*pszDebug)[0] = szDebug[0];
+		(*pszDebug)[1] = szDebug[1];
+		(*pszDebug)[2] = szDebug[2];
+		(*pszDebug)[3] = szDebug[3];
+	}
 }
 
 

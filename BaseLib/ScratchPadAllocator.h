@@ -18,7 +18,7 @@ public:
 
 	void*			Malloc(size_t tSize);
 	void*			Realloc(void* pv, size_t tSize);
-	void			Free(void* pv);
+	BOOL			Free(void* pv);
 
 	CScratchPad*	GetScratchPad(void);
 

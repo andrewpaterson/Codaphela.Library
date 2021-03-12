@@ -90,7 +90,7 @@ void* CGeneralMemory::Add(unsigned int iSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CGeneralMemory::Remove(void* pv)
+BOOL CGeneralMemory::Remove(void* pv)
 {
 	SGeneralMemoryAllocation*	psAlloc;
 	CFreeList*					pcList;
@@ -100,11 +100,11 @@ void CGeneralMemory::Remove(void* pv)
 	{
 		pcList = psAlloc->psFreeListNode->pcList;
 
-		DeallocateInFreeList(pcList, psAlloc);
+		return DeallocateInFreeList(pcList, psAlloc);
 	}
 	else
 	{
-		DeallocateInLargeList(psAlloc);
+		return DeallocateInLargeList(psAlloc);
 	}
 }
 
@@ -126,7 +126,7 @@ unsigned int CGeneralMemory::GetSize(void* pv)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CGeneralMemory::Remove(CArrayVoidPtr* pav)
+int CGeneralMemory::RemoveMultiple(CArrayVoidPtr* pav)
 {
 	int							i;
 	void*						pv;
@@ -135,6 +135,7 @@ BOOL CGeneralMemory::Remove(CArrayVoidPtr* pav)
 	SFNode*						psNode;
 	int							iNumElements;
 	int							iRemoved;
+	BOOL						bResult;
 	
 	pav->QuickSort();
 
@@ -164,16 +165,25 @@ BOOL CGeneralMemory::Remove(CArrayVoidPtr* pav)
 				else
 				{
 					gcLogger.Error2(__METHOD__, " Could not deallocate memory.", NULL);
-					return FALSE;
+					return i;
 				}
 			}
 		}
 		else
 		{
-			DeallocateInLargeList(psAlloc);
+			bResult = DeallocateInLargeList(psAlloc);
+			if (bResult)
+			{
+				i++;
+			}
+			else
+			{
+				gcLogger.Error2(__METHOD__, " Could not deallocate memory.", NULL);
+				return i;
+			}
 		}
 	}
-	return TRUE;
+	return i;
 }
 
 
@@ -393,9 +403,15 @@ void* CGeneralMemory::AllocateInFreeList(CFreeList* pcFreeList, unsigned int uiE
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CGeneralMemory::DeallocateInFreeList(CFreeList* pcFreeList, SGeneralMemoryAllocation* psAlloc)
+BOOL CGeneralMemory::DeallocateInFreeList(CFreeList* pcFreeList, SGeneralMemoryAllocation* psAlloc)
 {
 	SFNode*			psFreeListNode;
+	BOOL			bFreed;
+
+	if (!psAlloc)
+	{
+		return FALSE;
+	}
 
 	psFreeListNode = psAlloc->psFreeListNode;
 
@@ -408,12 +424,12 @@ void CGeneralMemory::DeallocateInFreeList(CFreeList* pcFreeList, SGeneralMemoryA
 	memset(pvMem, 0xef, iSize);
 #endif
 
-	pcFreeList->Remove(psFreeListNode, psAlloc);
-
+	bFreed = pcFreeList->Remove(psFreeListNode, psAlloc);
 	if (!pcFreeList->HasElements())
 	{
 		FreeFreeList(pcFreeList);
 	}
+	return bFreed;
 }
 
 
@@ -461,9 +477,18 @@ void* CGeneralMemory::AllocateInLargeList(unsigned int uiSize, int iAlignment, i
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CGeneralMemory::DeallocateInLargeList(SGeneralMemoryAllocation* psAlloc)
+BOOL CGeneralMemory::DeallocateInLargeList(SGeneralMemoryAllocation* psAlloc)
 {
-	mcLargeList.Remove(psAlloc);
+	if (psAlloc)
+	{
+		mcLargeList.Remove(psAlloc);
+		return TRUE;
+	}
+	else
+	{
+		return FALSE;
+	}
+
 }
 
 

@@ -19,8 +19,8 @@ public:
 	void*			Malloc(size_t tSize);
 	void*			Malloc(size_t tSize, char(**pacDebugName)[4]);
 	void*			Realloc(void* pv, size_t tSize);
-	void			Free(void* pv);
-	void			FreeMultiple(CArrayVoidPtr* pav);
+	BOOL			Free(void* pv);
+	int				FreeMultiple(CArrayVoidPtr* pav);
 
 	const char*		GetName(void);
 
