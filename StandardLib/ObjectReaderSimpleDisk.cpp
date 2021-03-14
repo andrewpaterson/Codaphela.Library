@@ -49,7 +49,7 @@ CSerialisedObject* CObjectReaderSimpleDisk::Read(char* szObjectName)
 		return NULL;
 	}
 
-	//Write file type identifier.
+	//Read file type identifier.
 	bResult = mcFile.ReadData(szExtension, 4);
 	if ((!bResult) || (strcmp(szExtension, OBJECT_FILE_EXTENSION) != 0))
 	{

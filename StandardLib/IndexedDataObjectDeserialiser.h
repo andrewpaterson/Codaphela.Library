@@ -26,12 +26,17 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "DependentReadObjects.h"
 
 
+//The Indexed Data Object Deserialiser only deserialises objects out of the database.
+//  The index in the header is assumed to match the database index key.
+//  The name in the header is assumed to match the database name key.
+
+
 class CIndexedDataObjectDeserialiser : public CDependentObjectAdder
 {
 protected:
-	CObjectAllocator*			mpcAllocator;
+	CObjectAllocator*		mpcAllocator;
 	CDataConnection*		mpcDataConnection;
-	CNamedIndexedObjects*		mpcMemory;
+	CNamedIndexedObjects*	mpcMemory;
 
 	CDependentReadObjects	mcDependentObjects;  //CDependentObjectAdder points to this CDependentReadObjects.
 
