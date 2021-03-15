@@ -621,7 +621,7 @@ BOOL CObjects::ForceSave(CBaseObject* pcObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjects::AddWithID(CBaseObject* pvObject, OIndex oi)
+BOOL CObjects::AddObjectIntoMemoryWithIndex(CBaseObject* pvObject, OIndex oi)
 {
 	BOOL	bResult;
 
@@ -638,7 +638,7 @@ BOOL CObjects::AddWithID(CBaseObject* pvObject, OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjects::AddWithIDAndName(CBaseObject* pvObject, char* szObjectName, OIndex oi)
+BOOL CObjects::AddObjectIntoMemoryWithIndexAndName(CBaseObject* pvObject, char* szObjectName, OIndex oi)
 {
 	BOOL	bResult;
 
@@ -1200,7 +1200,7 @@ BOOL CObjects::ValidateCanAllocate(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CObjects::Allocate(char* szClassName)
+CBaseObject* CObjects::AllocateUninitialised(char* szClassName)
 {
 	CBaseObject*	pvObject;
 	BOOL			bResult;
@@ -1367,17 +1367,19 @@ CStackPointers* CObjects::GetStackPointers(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CObjects::Add(char* szClassName)
+CBaseObject* CObjects::AllocateNew(char* szClassName)
 {
-	CBaseObject* pvObject;
+	CBaseObject*	pvObject;
+	OIndex			oi;
 
-	pvObject = Allocate(szClassName);
+	pvObject = AllocateUninitialised(szClassName);
 	if (!pvObject)
 	{
 		return NULL;
 	}
 
-	AddWithID(pvObject, GetIndexGenerator()->GetNext());
+	oi = GetIndexGenerator()->GetNext();
+	AddObjectIntoMemoryWithIndex(pvObject, oi);
 
 	return pvObject;
 }
@@ -1387,13 +1389,13 @@ CBaseObject* CObjects::Add(char* szClassName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CObjects::Add(char* szClassName, OIndex oiForced)
+CBaseObject* CObjects::AllocateNewMaybeReplaceExisting(char* szClassName, OIndex oiForced)
 {
 	CBaseObject* pvExisting;
 	CBaseObject* pvObject;
 	BOOL			bResult;
 
-	pvObject = Allocate(szClassName);
+	pvObject = AllocateUninitialised(szClassName);
 	if (!pvObject)
 	{
 		return NULL;
@@ -1402,7 +1404,7 @@ CBaseObject* CObjects::Add(char* szClassName, OIndex oiForced)
 	pvExisting = GetFromMemory(oiForced);
 	if (pvExisting == NULL)
 	{
-		bResult = AddWithID(pvObject, oiForced);
+		bResult = AddObjectIntoMemoryWithIndex(pvObject, oiForced);
 		if (!bResult)
 		{
 			pvObject->Kill();
@@ -1424,11 +1426,11 @@ CBaseObject* CObjects::Add(char* szClassName, OIndex oiForced)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CObjects::Add(char* szClassName, char* szObjectName)
+CBaseObject* CObjects::AllocateNewMaybeReplaceExisting(char* szClassName, char* szObjectName)
 {
 	OIndex oiExisting;
 
-	return Add(szClassName, szObjectName, &oiExisting);
+	return AllocateNewMaybeReplaceExisting(szClassName, szObjectName, &oiExisting);
 }
 
 
@@ -1436,13 +1438,13 @@ CBaseObject* CObjects::Add(char* szClassName, char* szObjectName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CObjects::Add(char* szClassName, char* szObjectName, OIndex* poiExisting)
+CBaseObject* CObjects::AllocateNewMaybeReplaceExisting(char* szClassName, char* szObjectName, OIndex* poiExisting)
 {
-	CBaseObject* pvObject;
+	CBaseObject*	pvObject;
 	OIndex			oi;
 
 	oi = GetIndexGenerator()->GetNext();
-	pvObject = Add(szClassName, szObjectName, oi, poiExisting);
+	pvObject = AllocateNewMaybeReplaceExisting(szClassName, szObjectName, oi, poiExisting);
 
 	return pvObject;
 }
@@ -1452,11 +1454,11 @@ CBaseObject* CObjects::Add(char* szClassName, char* szObjectName, OIndex* poiExi
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CObjects::Add(char* szClassName, char* szObjectName, OIndex oiForced)
+CBaseObject* CObjects::AllocateNewMaybeReplaceExisting(char* szClassName, char* szObjectName, OIndex oiForced)
 {
 	OIndex oiExisting;
 
-	return Add(szClassName, szObjectName, oiForced, &oiExisting);
+	return AllocateNewMaybeReplaceExisting(szClassName, szObjectName, oiForced, &oiExisting);
 }
 
 
@@ -1464,13 +1466,13 @@ CBaseObject* CObjects::Add(char* szClassName, char* szObjectName, OIndex oiForce
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CObjects::Add(char* szClassName, char* szObjectName, OIndex oiForced, OIndex* poiExisting)
+CBaseObject* CObjects::AllocateNewMaybeReplaceExisting(char* szClassName, char* szObjectName, OIndex oiForced, OIndex* poiExisting)
 {
-	CBaseObject* pvObject;
-	CBaseObject* pvExisting;
+	CBaseObject*	pvObject;
+	CBaseObject*	pvExisting;
 	BOOL			bResult;
-
-	pvObject = Allocate(szClassName);
+	
+	pvObject = AllocateNew(szClassName);
 	if (!pvObject)
 	{
 		gcLogger.Error2(__METHOD__, " Cannot add object named [", szObjectName, "] class [", szClassName, "].", NULL);
@@ -1487,7 +1489,7 @@ CBaseObject* CObjects::Add(char* szClassName, char* szObjectName, OIndex oiForce
 	pvExisting = GetFromMemory(szObjectName);
 	if (pvExisting == NULL)
 	{
-		bResult = AddWithIDAndName(pvObject, szObjectName, oiForced);
+		bResult = AddObjectIntoMemoryWithIndexAndName(pvObject, szObjectName, oiForced);
 		if (!bResult)
 		{
 			pvObject->Kill();
@@ -1544,7 +1546,7 @@ CBaseObject* CObjects::ReplaceExisting(CBaseObject* pvExisting, CBaseObject* pvO
 	Dename(pvExisting);
 	Deindex(pvExisting);
 
-	bResult = AddWithID(pvObject, oiForced);
+	bResult = AddObjectIntoMemoryWithIndex(pvObject, oiForced);
 	if (!bResult)
 	{
 		pvObject->Kill();
@@ -1561,7 +1563,7 @@ CBaseObject* CObjects::ReplaceExisting(CBaseObject* pvExisting, CBaseObject* pvO
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CObjects::AddHollow(OIndex oiForced, uint16 iNumEmbedded)
+CBaseObject* CObjects::AllocateExistingHollow(OIndex oiForced, uint16 iNumEmbedded)
 {
 	CHollowObject* pcHollow;
 	BOOL				bResult;
@@ -1586,7 +1588,7 @@ CBaseObject* CObjects::AddHollow(OIndex oiForced, uint16 iNumEmbedded)
 		return NULL;
 	}
 
-	bResult = AddWithID(pcHollow, oiForced);
+	bResult = AddObjectIntoMemoryWithIndex(pcHollow, oiForced);
 	if (bResult)
 	{
 		return pcHollow;
@@ -1614,9 +1616,10 @@ CBaseObject* CObjects::AddHollow(char* szObjectName, OIndex oiForced, uint16 iNu
 		return NULL;
 	}
 
-	if ((szObjectName == NULL || szObjectName[0] == '\0'))
+	
+	if (StrEmpty(szObjectName))
 	{
-		return AddHollow(oiForced, iNumEmbedded);
+		return AllocateExistingHollow(oiForced, iNumEmbedded);
 	}
 
 	pvExisting = GetFromMemory(szObjectName);
@@ -1638,7 +1641,7 @@ CBaseObject* CObjects::AddHollow(char* szObjectName, OIndex oiForced, uint16 iNu
 		return NULL;
 	}
 
-	bResult = AddWithIDAndName(pcHollow, szObjectName, oiForced);
+	bResult = AddObjectIntoMemoryWithIndexAndName(pcHollow, szObjectName, oiForced);
 	if (bResult)
 	{
 		return pcHollow;
@@ -1654,7 +1657,7 @@ CBaseObject* CObjects::AddHollow(char* szObjectName, OIndex oiForced, uint16 iNu
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CObjects::AddHollow(char* szObjectName, uint16 iNumEmbedded)
+CBaseObject* CObjects::AllocateExistingHollowFromMemoryOrMaybeANewNamedHollow(char* szObjectName, uint16 iNumEmbedded)
 {
 	CNamedHollowObject* pcHollow;
 	BOOL					bResult;
@@ -1679,7 +1682,7 @@ CBaseObject* CObjects::AddHollow(char* szObjectName, uint16 iNumEmbedded)
 
 	pcHollow->InitName(szObjectName);
 
-	bResult = AddWithIDAndName(pcHollow, szObjectName, GetIndexGenerator()->GetNext());
+	bResult = AddObjectIntoMemoryWithIndexAndName(pcHollow, szObjectName, GetIndexGenerator()->GetNext());
 	if (bResult)
 	{
 		return pcHollow;

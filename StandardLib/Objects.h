@@ -128,11 +128,11 @@ public:
 						CPointer				TestGetFromMemory(OIndex oi);
 						CPointer				TestGetFromMemory(char* szName);
 protected:
-						BOOL					AddWithID(CBaseObject* pvObject, OIndex oi);
-						BOOL					AddWithIDAndName(CBaseObject* pvObject, char* szObjectName, OIndex oi);
+						BOOL					AddObjectIntoMemoryWithIndex(CBaseObject* pvObject, OIndex oi);
+						BOOL					AddObjectIntoMemoryWithIndexAndName(CBaseObject* pvObject, char* szObjectName, OIndex oi);
 	template<class M>	M*						Allocate(void);
 	template<class M>	M*						Allocate(int iAdditionalBytes);
-						CBaseObject*			Allocate(char* szClassName);
+						CBaseObject*			AllocateUninitialised(char* szClassName);
 						BOOL					ValidateCanAllocate(char* szClassName);
 						BOOL					ValidateCanAllocate(void);
 						CBaseObject*			GetFromMemory(OIndex oi);
@@ -156,16 +156,16 @@ protected:
 						void					AppenedHollowEmbeddedObjects(CBaseObject* pcHollow, uint16 iNumEmbedded, void* pvEmbedded) ;
 						void					PrintMemory(CChars* psz);
 
-						CBaseObject*			Add(char* szClassName);
-						CBaseObject*			Add(char* szClassName, OIndex oiForced);
+						CBaseObject*			AllocateNew(char* szClassName);
+						CBaseObject*			AllocateNewMaybeReplaceExisting(char* szClassName, OIndex oiForced);
 
-						CBaseObject*			Add(char* szClassName, char* szObjectName);
-						CBaseObject*			Add(char* szClassName, char* szObjectName, OIndex* poiExisting);
-						CBaseObject*			Add(char* szClassName, char* szObjectName, OIndex oiForced);
-						CBaseObject*			Add(char* szClassName, char* szObjectName, OIndex oiForced, OIndex* poiExisting);
+						CBaseObject*			AllocateNewMaybeReplaceExisting(char* szClassName, char* szObjectName);
+						CBaseObject*			AllocateNewMaybeReplaceExisting(char* szClassName, char* szObjectName, OIndex* poiExisting);
+						CBaseObject*			AllocateNewMaybeReplaceExisting(char* szClassName, char* szObjectName, OIndex oiForced);
+						CBaseObject*			AllocateNewMaybeReplaceExisting(char* szClassName, char* szObjectName, OIndex oiForced, OIndex* poiExisting);
 
-						CBaseObject*			AddHollow(char* szObjectName, uint16 iNumEmbedded);
-						CBaseObject*			AddHollow(OIndex oiForced, uint16 iNumEmbedded);
+						CBaseObject*			AllocateExistingHollowFromMemoryOrMaybeANewNamedHollow(char* szObjectName, uint16 iNumEmbedded);
+						CBaseObject*			AllocateExistingHollow(OIndex oiForced, uint16 iNumEmbedded);
 						CBaseObject*			AddHollow(char* szObjectName, OIndex oiForced, uint16 iNumEmbedded);
 
 						CBaseObject*			ReplaceExisting(CBaseObject* pvExisting, CBaseObject* pvObject, char* szObjectName, OIndex oiForced);
@@ -234,7 +234,7 @@ Ptr<M> CObjects::Add(void)
 	M*		pvObject;
 
 	pvObject = Allocate<M>();
-	AddWithID(pvObject, GetNextID());
+	AddObjectIntoMemoryWithIndex(pvObject, GetNextID());
 
 	//No PointTo because we don't know the embedding object until assignment.
 	pObject.AssignObject(pvObject);
@@ -255,7 +255,7 @@ Ptr<M> CObjects::Add(char* szObjectName)
 	BOOL	bResult;
 
 	pvObject = Allocate<M>();
-	bResult = AddWithIDAndName(pvObject, szObjectName, GetNextID());
+	bResult = AddObjectIntoMemoryWithIndexAndName(pvObject, szObjectName, GetNextID());
 	if (bResult)
 	{
 		//No PointTo because we don't know the embedding object until assignment.

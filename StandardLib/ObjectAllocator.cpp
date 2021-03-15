@@ -30,9 +30,9 @@ void CObjectAllocator::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CObjectAllocator::Add(char* szClassName)
+CBaseObject* CObjectAllocator::AllocateNew(char* szClassName)
 {
-	return mpcObjects->Add(szClassName);
+	return mpcObjects->AllocateNew(szClassName);
 }
 
 
@@ -40,9 +40,9 @@ CBaseObject* CObjectAllocator::Add(char* szClassName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CObjectAllocator::Add(char* szClassName, OIndex oiForced)
+CBaseObject* CObjectAllocator::AllocateNewMaybeReplaceExisting(char* szClassName, OIndex oiForced)
 {
-	return mpcObjects->Add(szClassName, oiForced);
+	return mpcObjects->AllocateNewMaybeReplaceExisting(szClassName, oiForced);
 }
 
 
@@ -50,9 +50,9 @@ CBaseObject* CObjectAllocator::Add(char* szClassName, OIndex oiForced)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CObjectAllocator::Add(char* szClassName, char* szObjectName)
+CBaseObject* CObjectAllocator::AllocateNewMaybeReplaceExisting(char* szClassName, char* szObjectName)
 {
-	return mpcObjects->Add(szClassName, szObjectName);
+	return mpcObjects->AllocateNewMaybeReplaceExisting(szClassName, szObjectName);
 }
 
 
@@ -60,29 +60,9 @@ CBaseObject* CObjectAllocator::Add(char* szClassName, char* szObjectName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CObjectAllocator::Add(char* szClassName, char* szObjectName, OIndex* poiExisting)
+CBaseObject* CObjectAllocator::AllocateNewMaybeReplaceExisting(char* szClassName, char* szObjectName, OIndex oiForced)
 {
-	return mpcObjects->Add(szClassName, szObjectName, poiExisting);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CBaseObject* CObjectAllocator::Add(char* szClassName, char* szObjectName, OIndex oiForced)
-{
-	return mpcObjects->Add(szClassName, szObjectName, oiForced);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CBaseObject* CObjectAllocator::Add(char* szClassName, char* szObjectName, OIndex oiForced, OIndex* poiExisting)
-{
-	return mpcObjects->Add(szClassName, szObjectName, oiForced, poiExisting);
+	return mpcObjects->AllocateNewMaybeReplaceExisting(szClassName, szObjectName, oiForced);
 }
 
 
@@ -110,9 +90,9 @@ CBaseObject* CObjectAllocator::ReplaceExisting(CBaseObject* pvExisting, CBaseObj
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CObjectAllocator::AddHollow(OIndex oiForced, uint16 iNumEmbedded)
+CBaseObject* CObjectAllocator::AllocateExistingHollow(OIndex oiForced, uint16 iNumEmbedded)
 {
-	return mpcObjects->AddHollow(oiForced, iNumEmbedded);
+	return mpcObjects->AllocateExistingHollow(oiForced, iNumEmbedded);
 }
 
 
@@ -120,7 +100,7 @@ CBaseObject* CObjectAllocator::AddHollow(OIndex oiForced, uint16 iNumEmbedded)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CObjectAllocator::AddHollow(char* szObjectName, OIndex oiForced, uint16 iNumEmbedded)
+CBaseObject* CObjectAllocator::AllocateExistingHollow(char* szObjectName, OIndex oiForced, uint16 iNumEmbedded)
 {
 	return mpcObjects->AddHollow(szObjectName, oiForced, iNumEmbedded);
 }
@@ -130,8 +110,8 @@ CBaseObject* CObjectAllocator::AddHollow(char* szObjectName, OIndex oiForced, ui
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CObjectAllocator::AddHollow(char* szObjectName, uint16 iNumEmbedded)
+CBaseObject* CObjectAllocator::AllocateExistingHollowFromMemoryOrMaybeANewNamedHollow(char* szObjectName, uint16 iNumEmbedded)
 {
-	return mpcObjects->AddHollow(szObjectName, iNumEmbedded);
+	return mpcObjects->AllocateExistingHollowFromMemoryOrMaybeANewNamedHollow(szObjectName, iNumEmbedded);
 }
 
