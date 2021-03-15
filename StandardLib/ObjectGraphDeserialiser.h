@@ -14,19 +14,18 @@
 //  It does not load objects by id.
 
 
-class CObjectAllocator;
 class CIndexGenerator;
 class CObjectGraphDeserialiser : public CDependentObjectAdder
 {
 protected:
 	CObjectReader*			mpcReader;  //The ObjectReader knows how to load the serialised form of the object by name.
-	CObjectAllocator*		mpcAllocator;
+	CObjects*				mpcObjects;
 
 	CNamedIndexedObjects*	mpcMemory;
 	BOOL					mbNamedHollows;
 	
 public:
-	void			Init(CObjectReader* pcReader, BOOL bNamedHollows, CObjectAllocator* pcAllocator, CDependentReadObjects* pcDependentReadObjects, CNamedIndexedObjects* pcMemory);
+	void			Init(CObjectReader* pcReader, BOOL bNamedHollows, CObjects* pcObjects, CDependentReadObjects* pcDependentReadObjects, CNamedIndexedObjects* pcMemory);
 	void			Kill(void);
 
 	CBaseObject*	Read(char* szObjectName);

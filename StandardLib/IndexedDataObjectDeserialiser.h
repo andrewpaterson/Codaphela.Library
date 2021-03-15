@@ -34,14 +34,14 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 class CIndexedDataObjectDeserialiser : public CDependentObjectAdder
 {
 protected:
-	CObjectAllocator*		mpcAllocator;
 	CDataConnection*		mpcDataConnection;
 	CNamedIndexedObjects*	mpcMemory;
+	CObjects*				mpcObjects;
 
 	CDependentReadObjects	mcDependentObjects;  //CDependentObjectAdder points to this CDependentReadObjects.
 
 public:
-	void			Init(CObjectAllocator* pcAllocator, CDataConnection* pcDataConnection, CNamedIndexedObjects* pcMemory);
+	void			Init(CObjects* pcObjects, CDataConnection* pcDataConnection, CNamedIndexedObjects* pcMemory);
 	void			Kill(void);
 
 	CBaseObject*	Read(OIndex oi);
