@@ -243,7 +243,7 @@ BOOL CObjectGraphDeserialiser::AddContainingPointersAndCreateHollowObject(CDepen
 		pcDependentReadObject = mpcDependentObjects->GetObject(pcDependentReadPointer->moiPointedTo);
 		if (pcDependentReadObject->mcType == OBJECT_POINTER_NAMED)
 		{
-			pvObject = mpcAllocator->AddHollow(pcDependentReadObject->mszObjectName.Text(), pcDependentReadPointer->miNumEmbedded);
+			pvObject = mpcAllocator->AllocateExistingHollowFromMemoryOrMaybeANewNamedHollow(pcDependentReadObject->mszObjectName.Text(), pcDependentReadPointer->miNumEmbedded);
 			mpcDependentObjects->AddIndexRemap(pvObject->GetOI(), pcDependentReadPointer->moiPointedTo);
 			pcBaseObject = pvObject;
 		}
@@ -280,11 +280,11 @@ CBaseObject* CObjectGraphDeserialiser::AllocateObject(CObjectHeader* pcHeader)
 	}
 	else if (pcHeader->mcType == OBJECT_POINTER_ID)
 	{
-		return mpcAllocator->Add(pcHeader->mszClassName.Text());
+		return mpcAllocator->AllocateNew(pcHeader->mszClassName.Text());
 	}
 	else if (pcHeader->mcType == OBJECT_POINTER_NAMED)
 	{
-		return mpcAllocator->Add(pcHeader->mszClassName.Text(), pcHeader->mszObjectName.Text());
+		return mpcAllocator->AllocateNewMaybeReplaceExisting(pcHeader->mszClassName.Text(), pcHeader->mszObjectName.Text());
 	}
 	else
 	{

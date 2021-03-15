@@ -180,11 +180,11 @@ BOOL CIndexedDataObjectDeserialiser::AddContainingPointersAndCreateHollowObject(
 		pcDependentReadObject = mpcDependentObjects->GetObject(pcDependentReadPointer->moiPointedTo);
 		if (pcDependentReadObject->mcType == OBJECT_POINTER_ID)
 		{
-			pcHollowObject = mpcAllocator->AddHollow(pcDependentReadObject->moi, pcDependentReadPointer->miNumEmbedded);
+			pcHollowObject = mpcAllocator->AllocateExistingHollow(pcDependentReadObject->moi, pcDependentReadPointer->miNumEmbedded);
 		}
 		else if (pcDependentReadObject->mcType == OBJECT_POINTER_NAMED)
 		{
-			pcHollowObject = mpcAllocator->AddHollow(pcDependentReadObject->mszObjectName.Text(), pcDependentReadObject->moi, pcDependentReadPointer->miNumEmbedded);
+			pcHollowObject = mpcAllocator->AllocateExistingHollow(pcDependentReadObject->mszObjectName.Text(), pcDependentReadObject->moi, pcDependentReadPointer->miNumEmbedded);
 		}
 
 		pcBaseObject = pcHollowObject->GetEmbeddedObject(pcDependentReadPointer->miEmbeddedIndex);
@@ -213,11 +213,11 @@ CBaseObject* CIndexedDataObjectDeserialiser::AllocateObject(CObjectHeader* pcHea
 	}
 	else if (pcHeader->mcType == OBJECT_POINTER_ID)
 	{
-		return mpcAllocator->Add(pcHeader->mszClassName.Text(), pcHeader->moi);
+		return mpcAllocator->AllocateNewMaybeReplaceExisting(pcHeader->mszClassName.Text(), pcHeader->moi);
 	}
 	else if (pcHeader->mcType == OBJECT_POINTER_NAMED)
 	{
-		return mpcAllocator->Add(pcHeader->mszClassName.Text(), pcHeader->mszObjectName.Text(), pcHeader->moi);
+		return mpcAllocator->AllocateNewMaybeReplaceExisting(pcHeader->mszClassName.Text(), pcHeader->mszObjectName.Text(), pcHeader->moi);
 	}
 	else
 	{
