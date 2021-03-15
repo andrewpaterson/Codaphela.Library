@@ -880,7 +880,6 @@ CBaseObject* CObjects::GetFromMemory(char* szObjectName)
 CBaseObject* CObjects::GetFromDatabase(OIndex oi)
 {
 	CIndexedDataObjectDeserialiser	cDeserialiser;
-	CObjectAllocator				cAllocator;
 	CBaseObject*					pvBaseObject;
 
 	if (!mpcDataConnection)
@@ -893,8 +892,7 @@ CBaseObject* CObjects::GetFromDatabase(OIndex oi)
 		return NULL;
 	}
 
-	cAllocator.Init(this);
-	cDeserialiser.Init(&cAllocator, mpcDataConnection, &mcMemory);
+	cDeserialiser.Init(this, mpcDataConnection, &mcMemory);
 
 	pvBaseObject = cDeserialiser.Read(oi);
 	cDeserialiser.Kill();
@@ -916,7 +914,6 @@ CBaseObject* CObjects::GetFromDatabase(OIndex oi)
 CBaseObject* CObjects::GetFromDatabase(char* szObjectName)
 {
 	CIndexedDataObjectDeserialiser	cDeserialiser;
-	CObjectAllocator				cAllocator;
 	CBaseObject*					pvObject;
 
 	if (!mpcDataConnection)
@@ -926,8 +923,7 @@ CBaseObject* CObjects::GetFromDatabase(char* szObjectName)
 
 	if (mpcDataConnection->Contains(szObjectName))
 	{
-		cAllocator.Init(this); 
-		cDeserialiser.Init(&cAllocator, mpcDataConnection, &mcMemory);
+		cDeserialiser.Init(this, mpcDataConnection, &mcMemory);
 		pvObject = cDeserialiser.Read(szObjectName);
 		cDeserialiser.Kill();
 		return pvObject;
@@ -965,7 +961,7 @@ CBaseObject* CObjects::GetFromSources(char* szObjectName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-OIndex CObjects::GetNextID(void)
+OIndex CObjects::GetNextIndex(void)
 {
 	if (mpcSequenceConnection)
 	{
@@ -1604,7 +1600,7 @@ CBaseObject* CObjects::AllocateExistingHollow(OIndex oiForced, uint16 iNumEmbedd
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CObjects::AddHollow(char* szObjectName, OIndex oiForced, uint16 iNumEmbedded)
+CBaseObject* CObjects::AllocateExistingHollowFromMemoryOrMaybeANewNamedHollow(char* szObjectName, OIndex oiForced, uint16 iNumEmbedded)
 {
 	CNamedHollowObject* pcHollow;
 	BOOL						bResult;

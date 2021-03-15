@@ -59,7 +59,6 @@ class CNamedHollowObject;
 class CObjects
 {
 friend class CBaseObject;
-friend class CObjectAllocator;
 protected:
 	BOOL					mbInitialised;
 	CUnknowns*				mpcUnknownsAllocatingFrom;
@@ -140,7 +139,7 @@ protected:
 						CBaseObject*			GetFromDatabase(OIndex oi);
 						CBaseObject*			GetFromDatabase(char* szObjectName);
 						CBaseObject*			GetFromSources(char* szObjectName);
-						OIndex					GetNextID(void);
+						OIndex					GetNextIndex(void);
 						
 						void					KillDontFreeObjects(CArrayBlockObjectPtr* papcObjectPts);
 						void					FreeObjects(CArrayBlockObjectPtr* papcObjectPts);
@@ -156,18 +155,19 @@ protected:
 						void					AppenedHollowEmbeddedObjects(CBaseObject* pcHollow, uint16 iNumEmbedded, void* pvEmbedded) ;
 						void					PrintMemory(CChars* psz);
 
+public:
 						CBaseObject*			AllocateNew(char* szClassName);
 						CBaseObject*			AllocateNewMaybeReplaceExisting(char* szClassName, OIndex oiForced);
-
 						CBaseObject*			AllocateNewMaybeReplaceExisting(char* szClassName, char* szObjectName);
+						CBaseObject*			AllocateExistingHollow(OIndex oiForced, uint16 iNumEmbedded);
+						CBaseObject*			AllocateExistingHollowFromMemoryOrMaybeANewNamedHollow(char* szObjectName, uint16 iNumEmbedded);
+						CBaseObject*			AllocateExistingHollowFromMemoryOrMaybeANewNamedHollow(char* szObjectName, OIndex oiForced, uint16 iNumEmbedded);
+
 						CBaseObject*			AllocateNewMaybeReplaceExisting(char* szClassName, char* szObjectName, OIndex* poiExisting);
 						CBaseObject*			AllocateNewMaybeReplaceExisting(char* szClassName, char* szObjectName, OIndex oiForced);
 						CBaseObject*			AllocateNewMaybeReplaceExisting(char* szClassName, char* szObjectName, OIndex oiForced, OIndex* poiExisting);
 
-						CBaseObject*			AllocateExistingHollowFromMemoryOrMaybeANewNamedHollow(char* szObjectName, uint16 iNumEmbedded);
-						CBaseObject*			AllocateExistingHollow(OIndex oiForced, uint16 iNumEmbedded);
-						CBaseObject*			AddHollow(char* szObjectName, OIndex oiForced, uint16 iNumEmbedded);
-
+protected:
 						CBaseObject*			ReplaceExisting(CBaseObject* pvExisting, CBaseObject* pvObject, char* szObjectName, OIndex oiForced);
 						CBaseObject*			ReplaceExisting(CBaseObject* pvExisting, CBaseObject* pvObject, OIndex oiForced);
 };
@@ -234,7 +234,7 @@ Ptr<M> CObjects::Add(void)
 	M*		pvObject;
 
 	pvObject = Allocate<M>();
-	AddObjectIntoMemoryWithIndex(pvObject, GetNextID());
+	AddObjectIntoMemoryWithIndex(pvObject, GetNextIndex());
 
 	//No PointTo because we don't know the embedding object until assignment.
 	pObject.AssignObject(pvObject);
@@ -255,7 +255,7 @@ Ptr<M> CObjects::Add(char* szObjectName)
 	BOOL	bResult;
 
 	pvObject = Allocate<M>();
-	bResult = AddObjectIntoMemoryWithIndexAndName(pvObject, szObjectName, GetNextID());
+	bResult = AddObjectIntoMemoryWithIndexAndName(pvObject, szObjectName, GetNextIndex());
 	if (bResult)
 	{
 		//No PointTo because we don't know the embedding object until assignment.

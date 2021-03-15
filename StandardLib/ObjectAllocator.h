@@ -23,22 +23,7 @@ protected:
 	CObjects*	mpcObjects;
 
 public:
-	void			Init(CObjects* pcObjects);
-	void			Kill(void);
 
-	CBaseObject*	AllocateNew(char* szClassName);
-	CBaseObject*	AllocateNewMaybeReplaceExisting(char* szClassName, char* szObjectName);
-
-	CBaseObject*	AllocateNewMaybeReplaceExisting(char* szClassName, OIndex oiForced);
-	CBaseObject*	AllocateNewMaybeReplaceExisting(char* szClassName, char* szObjectName, OIndex oiForced);
-
-	CBaseObject*	AllocateExistingHollowFromMemoryOrMaybeANewNamedHollow(char* szObjectName, uint16 iNumEmbedded);
-	CBaseObject*	AllocateExistingHollow(OIndex oiForced, uint16 iNumEmbedded);
-	CBaseObject*	AllocateExistingHollow(char* szObjectName, OIndex oiForced, uint16 iNumEmbedded);
-
-protected:
-	CBaseObject*	ReplaceExisting(CBaseObject* pvExisting, CBaseObject* pvObject, char* szObjectName, OIndex oiForced);
-	CBaseObject*	ReplaceExisting(CBaseObject* pvExisting, CBaseObject* pvObject, OIndex oiForced);
 };
 
 

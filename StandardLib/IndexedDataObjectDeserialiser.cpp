@@ -12,10 +12,10 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedDataObjectDeserialiser::Init(CObjectAllocator* pcAllocator, CDataConnection* pcDataConnection, CNamedIndexedObjects* pcMemory)
+void CIndexedDataObjectDeserialiser::Init(CObjects* pcObjects, CDataConnection* pcDataConnection, CNamedIndexedObjects* pcMemory)
 {
 	CDependentObjectAdder::Init(&mcDependentObjects);
-	mpcAllocator = pcAllocator;
+	mpcObjects = pcObjects;
 	mpcDataConnection = pcDataConnection;
 	mpcMemory = pcMemory;
 
@@ -31,7 +31,7 @@ void CIndexedDataObjectDeserialiser::Kill(void)
 {
 	mpcDataConnection = NULL;
 	mpcMemory = NULL;
-	mpcAllocator = NULL;
+	mpcObjects = NULL;
 	mcDependentObjects.Kill();
 	CDependentObjectAdder::Kill();
 }
@@ -180,11 +180,11 @@ BOOL CIndexedDataObjectDeserialiser::AddContainingPointersAndCreateHollowObject(
 		pcDependentReadObject = mpcDependentObjects->GetObject(pcDependentReadPointer->moiPointedTo);
 		if (pcDependentReadObject->mcType == OBJECT_POINTER_ID)
 		{
-			pcHollowObject = mpcAllocator->AllocateExistingHollow(pcDependentReadObject->moi, pcDependentReadPointer->miNumEmbedded);
+			pcHollowObject = mpcObjects->AllocateExistingHollow(pcDependentReadObject->moi, pcDependentReadPointer->miNumEmbedded);
 		}
 		else if (pcDependentReadObject->mcType == OBJECT_POINTER_NAMED)
 		{
-			pcHollowObject = mpcAllocator->AllocateExistingHollow(pcDependentReadObject->mszObjectName.Text(), pcDependentReadObject->moi, pcDependentReadPointer->miNumEmbedded);
+			pcHollowObject = mpcObjects->AllocateExistingHollowFromMemoryOrMaybeANewNamedHollow(pcDependentReadObject->mszObjectName.Text(), pcDependentReadObject->moi, pcDependentReadPointer->miNumEmbedded);
 		}
 
 		pcBaseObject = pcHollowObject->GetEmbeddedObject(pcDependentReadPointer->miEmbeddedIndex);
@@ -213,11 +213,11 @@ CBaseObject* CIndexedDataObjectDeserialiser::AllocateObject(CObjectHeader* pcHea
 	}
 	else if (pcHeader->mcType == OBJECT_POINTER_ID)
 	{
-		return mpcAllocator->AllocateNewMaybeReplaceExisting(pcHeader->mszClassName.Text(), pcHeader->moi);
+		return mpcObjects->AllocateNewMaybeReplaceExisting(pcHeader->mszClassName.Text(), pcHeader->moi);
 	}
 	else if (pcHeader->mcType == OBJECT_POINTER_NAMED)
 	{
-		return mpcAllocator->AllocateNewMaybeReplaceExisting(pcHeader->mszClassName.Text(), pcHeader->mszObjectName.Text(), pcHeader->moi);
+		return mpcObjects->AllocateNewMaybeReplaceExisting(pcHeader->mszClassName.Text(), pcHeader->mszObjectName.Text(), pcHeader->moi);
 	}
 	else
 	{

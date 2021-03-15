@@ -114,7 +114,6 @@ CBaseObject* CObjectConverterNative::Convert(CObjectSource* pcSource, char* szOb
 	CFileBasic					cFileBasic;
 	CObjectGraphDeserialiser	cGraphDeserialiser;
 	CObjectReader*				pcReader;
-	CObjectAllocator			cAllocator;
 
 	//This if statement should be calling a virtual method instead.
 	pcReader = pcSource->GetReader();
@@ -126,8 +125,7 @@ CBaseObject* CObjectConverterNative::Convert(CObjectSource* pcSource, char* szOb
 	mcDependentObjects.Kill();
 	mcDependentObjects.Init();
 
-	cAllocator.Init(&gcObjects);
-	cGraphDeserialiser.Init(pcReader, TRUE,  &cAllocator, &mcDependentObjects, gcObjects.GetMemory());
+	cGraphDeserialiser.Init(pcReader, TRUE, &gcObjects, &mcDependentObjects, gcObjects.GetMemory());
 	pvObject = cGraphDeserialiser.Read(szObjectName);
 	cGraphDeserialiser.Kill();
 
