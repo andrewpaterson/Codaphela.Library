@@ -1,5 +1,5 @@
-#ifndef __OBJECT_GRAPH_DESERIALISER_H__
-#define __OBJECT_GRAPH_DESERIALISER_H__
+#ifndef __EXTERNAL_OBJECT_DESERIALISER_H__
+#define __EXTERNAL_OBJECT_DESERIALISER_H__
 #include "BaseObject.h"
 #include "ObjectReader.h"
 #include "Pointer.h"
@@ -15,7 +15,7 @@
 
 
 class CIndexGenerator;
-class CObjectGraphDeserialiser : public CDependentObjectAdder
+class CExternalObjectDeserialiser : public CDependentObjectAdder
 {
 protected:
 	CObjectReader*			mpcReader;  //The ObjectReader knows how to load the serialised form of the object by name.
@@ -31,7 +31,7 @@ public:
 	CBaseObject*	Read(char* szObjectName);
 			 
 	//Used by CObjectDeserialiser
-	CBaseObject*	AllocateObject(CObjectHeader* pcHeader);
+	CBaseObject*	AllocateForDeserialisation(CObjectHeader* pcHeader);
 
 	OIndex			GetNewIndexFromOld(OIndex oiNew);
 
@@ -45,5 +45,5 @@ protected:
 };
 
 
-#endif // __OBJECT_GRAPH_DESERIALISER_H__
+#endif // __EXTERNAL_OBJECT_DESERIALISER_H__
 

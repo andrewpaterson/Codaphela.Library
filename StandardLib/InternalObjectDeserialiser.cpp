@@ -5,14 +5,14 @@
 #include "ObjectDeserialiser.h"
 #include "Objects.h"
 #include "HollowObject.h"
-#include "IndexedDataObjectDeserialiser.h"
+#include "InternalObjectDeserialiser.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedDataObjectDeserialiser::Init(CObjects* pcObjects, CDataConnection* pcDataConnection, CNamedIndexedObjects* pcMemory)
+void CInternalObjectDeserialiser::Init(CObjects* pcObjects, CDataConnection* pcDataConnection, CNamedIndexedObjects* pcMemory)
 {
 	CDependentObjectAdder::Init(&mcDependentObjects);
 	mpcObjects = pcObjects;
@@ -27,7 +27,7 @@ void CIndexedDataObjectDeserialiser::Init(CObjects* pcObjects, CDataConnection* 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedDataObjectDeserialiser::Kill(void)
+void CInternalObjectDeserialiser::Kill(void)
 {
 	mpcDataConnection = NULL;
 	mpcMemory = NULL;
@@ -41,7 +41,7 @@ void CIndexedDataObjectDeserialiser::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CIndexedDataObjectDeserialiser::Read(OIndex oi)
+CBaseObject* CInternalObjectDeserialiser::Read(OIndex oi)
 {
 	CSerialisedObject*		pcSerialised;
 	unsigned int			uiDataSize;
@@ -78,7 +78,7 @@ CBaseObject* CIndexedDataObjectDeserialiser::Read(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CIndexedDataObjectDeserialiser::Read(char* szObjectName)
+CBaseObject* CInternalObjectDeserialiser::Read(char* szObjectName)
 {
 	CSerialisedObject*	pcSerialised;
 	unsigned int		uiDataSize;
@@ -115,7 +115,7 @@ CBaseObject* CIndexedDataObjectDeserialiser::Read(char* szObjectName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CIndexedDataObjectDeserialiser::ReadSerialised(CSerialisedObject* pcSerialised)
+CBaseObject* CInternalObjectDeserialiser::ReadSerialised(CSerialisedObject* pcSerialised)
 {
 	CObjectDeserialiser		cDeserialiser;
 	CBaseObject*			pvObject;
@@ -138,7 +138,7 @@ CBaseObject* CIndexedDataObjectDeserialiser::ReadSerialised(CSerialisedObject* p
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedDataObjectDeserialiser::AddContainingPointersAndCreateHollowObjects(void)
+BOOL CInternalObjectDeserialiser::AddContainingPointersAndCreateHollowObjects(void)
 {
 	CDependentReadPointer*	pcDependentReadPointer;
 	int						i;
@@ -161,7 +161,7 @@ BOOL CIndexedDataObjectDeserialiser::AddContainingPointersAndCreateHollowObjects
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedDataObjectDeserialiser::AddContainingPointersAndCreateHollowObject(CDependentReadPointer* pcDependentReadPointer)
+BOOL CInternalObjectDeserialiser::AddContainingPointersAndCreateHollowObject(CDependentReadPointer* pcDependentReadPointer)
 {
 	CEmbeddedObject*		pcBaseObject;
 	CDependentReadObject*	pcDependentReadObject;
@@ -205,7 +205,7 @@ BOOL CIndexedDataObjectDeserialiser::AddContainingPointersAndCreateHollowObject(
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CIndexedDataObjectDeserialiser::AllocateObject(CObjectHeader* pcHeader)
+CBaseObject* CInternalObjectDeserialiser::AllocateForDeserialisation(CObjectHeader* pcHeader)
 {
 	if (pcHeader->mcType == OBJECT_POINTER_NULL)
 	{
@@ -213,11 +213,11 @@ CBaseObject* CIndexedDataObjectDeserialiser::AllocateObject(CObjectHeader* pcHea
 	}
 	else if (pcHeader->mcType == OBJECT_POINTER_ID)
 	{
-		return mpcObjects->AllocateNewMaybeReplaceExisting(pcHeader->mszClassName.Text(), pcHeader->moi);
+		return mpcObjects->AllocateForDeserialisation(pcHeader->mszClassName.Text(), pcHeader->moi);
 	}
 	else if (pcHeader->mcType == OBJECT_POINTER_NAMED)
 	{
-		return mpcObjects->AllocateNewMaybeReplaceExisting(pcHeader->mszClassName.Text(), pcHeader->mszObjectName.Text(), pcHeader->moi);
+		return mpcObjects->AllocateForDeserialisation(pcHeader->mszClassName.Text(), pcHeader->mszObjectName.Text(), pcHeader->moi);
 	}
 	else
 	{

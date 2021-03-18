@@ -18,11 +18,10 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __INDEXED_DATA_OBJECT_DESERIALISER__
-#define __INDEXED_DATA_OBJECT_DESERIALISER__
+#ifndef __INTERNAL_OBJECT_DESERIALISER__
+#define __INTERNAL_OBJECT_DESERIALISER__
 #include "CoreLib/DataConnection.h"
 #include "DependentObjectAdder.h"
-#include "ObjectAllocator.h"
 #include "DependentReadObjects.h"
 
 
@@ -31,7 +30,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //  The name in the header is assumed to match the database name key.
 
 
-class CIndexedDataObjectDeserialiser : public CDependentObjectAdder
+class CInternalObjectDeserialiser : public CDependentObjectAdder
 {
 protected:
 	CDataConnection*		mpcDataConnection;
@@ -47,7 +46,7 @@ public:
 	CBaseObject*	Read(OIndex oi);
 	CBaseObject*	Read(char* szObjectName);
 
-	CBaseObject*	AllocateObject(CObjectHeader* pcHeader);
+	CBaseObject*	AllocateForDeserialisation(CObjectHeader* pcHeader);
 
 protected:
 	CBaseObject*	ReadSerialised(CSerialisedObject* pcSerialised);

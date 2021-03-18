@@ -157,14 +157,14 @@ protected:
 
 public:
 						CBaseObject*			AllocateNew(char* szClassName);
-						CBaseObject*			AllocateNewMaybeReplaceExisting(char* szClassName, OIndex oiForced);
+						CBaseObject*			AllocateForDeserialisation(char* szClassName, OIndex oiForced);
 						CBaseObject*			AllocateNewMaybeReplaceExisting(char* szClassName, char* szObjectName);
 						CBaseObject*			AllocateExistingHollow(OIndex oiForced, uint16 iNumEmbedded);
 						CBaseObject*			AllocateExistingHollowFromMemoryOrMaybeANewNamedHollow(char* szObjectName, uint16 iNumEmbedded);
 						CBaseObject*			AllocateExistingHollowFromMemoryOrMaybeANewNamedHollow(char* szObjectName, OIndex oiForced, uint16 iNumEmbedded);
 
 						CBaseObject*			AllocateNewMaybeReplaceExisting(char* szClassName, char* szObjectName, OIndex* poiExisting);
-						CBaseObject*			AllocateNewMaybeReplaceExisting(char* szClassName, char* szObjectName, OIndex oiForced);
+						CBaseObject*			AllocateForDeserialisation(char* szClassName, char* szObjectName, OIndex oiForced);
 						CBaseObject*			AllocateNewMaybeReplaceExisting(char* szClassName, char* szObjectName, OIndex oiForced, OIndex* poiExisting);
 
 protected:

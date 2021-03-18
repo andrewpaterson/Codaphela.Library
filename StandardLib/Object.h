@@ -29,7 +29,7 @@ template<class M>
 friend class Ptr;
 friend class CPointer;
 friend class CObjects;
-friend class CObjectGraphDeserialiser;
+friend class CExternalObjectDeserialiser;
 
 CONSTRUCTABLE(CObject);
 protected:

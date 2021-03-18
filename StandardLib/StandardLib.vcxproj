@@ -100,9 +100,8 @@
     <ClInclude Include="DistToStackCalculator.h" />
     <ClInclude Include="EmbeddedObject.h" />
     <ClInclude Include="HollowEmbeddedObject.h" />
-    <ClInclude Include="IndexedDataObjectDeserialiser.h" />
+    <ClInclude Include="InternalObjectDeserialiser.h" />
     <ClInclude Include="Null.h" />
-    <ClInclude Include="ObjectAllocator.h" />
     <ClInclude Include="IndexGenerator.h" />
     <ClInclude Include="IndexNewOld.h" />
     <ClInclude Include="NamedHollowObject.h" />
@@ -111,7 +110,7 @@
     <ClInclude Include="ObjectConverterNative.h" />
     <ClInclude Include="ObjectConverterText.h" />
     <ClInclude Include="ObjectFileGeneral.h" />
-    <ClInclude Include="ObjectGraphDeserialiser.h" />
+    <ClInclude Include="ExternalObjectDeserialiser.h" />
     <ClInclude Include="ObjectHeader.h" />
     <ClInclude Include="ObjectIO.h" />
     <ClInclude Include="ObjectIOSimple.h" />
@@ -206,9 +205,8 @@
     <ClCompile Include="DistToStackCalculator.cpp" />
     <ClCompile Include="EmbeddedObject.cpp" />
     <ClCompile Include="HollowEmbeddedObject.cpp" />
-    <ClCompile Include="IndexedDataObjectDeserialiser.cpp" />
+    <ClCompile Include="InternalObjectDeserialiser.cpp" />
     <ClCompile Include="Null.cpp" />
-    <ClCompile Include="ObjectAllocator.cpp" />
     <ClCompile Include="IndexGenerator.cpp" />
     <ClCompile Include="IndexNewOld.cpp" />
     <ClCompile Include="NamedHollowObject.cpp" />
@@ -217,7 +215,7 @@
     <ClCompile Include="ObjectConverter.cpp" />
     <ClCompile Include="ObjectConverterNative.cpp" />
     <ClCompile Include="ObjectConverterText.cpp" />
-    <ClCompile Include="ObjectGraphDeserialiser.cpp" />
+    <ClCompile Include="ExternalObjectDeserialiser.cpp" />
     <ClCompile Include="ObjectHeader.cpp" />
     <ClCompile Include="ObjectIOSimple.cpp" />
     <ClCompile Include="ObjectReader.cpp" />

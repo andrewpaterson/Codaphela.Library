@@ -29,8 +29,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "ObjectSingleSerialiser.h"
 #include "ObjectWriterIndexed.h"
 #include "ObjectReaderIndexed.h"
-#include "IndexedDataObjectDeserialiser.h"
-#include "ObjectAllocator.h"
+#include "InternalObjectDeserialiser.h"
 #include "ObjectSource.h"
 #include "ObjectRemapFrom.h"
 #include "Objects.h"
@@ -879,7 +878,7 @@ CBaseObject* CObjects::GetFromMemory(char* szObjectName)
 //////////////////////////////////////////////////////////////////////////
 CBaseObject* CObjects::GetFromDatabase(OIndex oi)
 {
-	CIndexedDataObjectDeserialiser	cDeserialiser;
+	CInternalObjectDeserialiser		cDeserialiser;
 	CBaseObject*					pvBaseObject;
 
 	if (!mpcDataConnection)
@@ -913,7 +912,7 @@ CBaseObject* CObjects::GetFromDatabase(OIndex oi)
 //////////////////////////////////////////////////////////////////////////
 CBaseObject* CObjects::GetFromDatabase(char* szObjectName)
 {
-	CIndexedDataObjectDeserialiser	cDeserialiser;
+	CInternalObjectDeserialiser	cDeserialiser;
 	CBaseObject*					pvObject;
 
 	if (!mpcDataConnection)
@@ -1385,7 +1384,7 @@ CBaseObject* CObjects::AllocateNew(char* szClassName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CObjects::AllocateNewMaybeReplaceExisting(char* szClassName, OIndex oiForced)
+CBaseObject* CObjects::AllocateForDeserialisation(char* szClassName, OIndex oiForced)
 {
 	CBaseObject* pvExisting;
 	CBaseObject* pvObject;
@@ -1450,7 +1449,7 @@ CBaseObject* CObjects::AllocateNewMaybeReplaceExisting(char* szClassName, char* 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CObjects::AllocateNewMaybeReplaceExisting(char* szClassName, char* szObjectName, OIndex oiForced)
+CBaseObject* CObjects::AllocateForDeserialisation(char* szClassName, char* szObjectName, OIndex oiForced)
 {
 	OIndex oiExisting;
 

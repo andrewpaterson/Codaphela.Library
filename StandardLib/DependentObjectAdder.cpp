@@ -50,3 +50,4 @@ BOOL CDependentObjectAdder::AddDependent(CObjectIdentifier* pcHeader, CEmbeddedO
 	}
 	return TRUE;
 }
+

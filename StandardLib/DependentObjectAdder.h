@@ -16,7 +16,7 @@ public:
 
 			BOOL			AddDependent(CObjectIdentifier* pcHeader, CEmbeddedObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingPtrToBeUpdated, uint16 iNumEmbedded, uint16 iEmbeddedIndex);
 
-	virtual CBaseObject*	AllocateObject(CObjectHeader* pcHeader) =0;
+	virtual CBaseObject*	AllocateForDeserialisation(CObjectHeader* pcHeader) =0;
 
 protected:
 			void			AddContainingPointer(CEmbeddedObject* pcBaseObject, CEmbeddedObject** ppcPointedFrom, CBaseObject* pcContaining);
