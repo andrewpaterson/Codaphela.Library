@@ -2,14 +2,14 @@
 #include "BaseLib/ErrorTypes.h"
 #include "Objects.h"
 #include "ObjectDeserialiser.h"
-#include "ObjectGraphDeserialiser.h"
+#include "ExternalObjectDeserialiser.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectGraphDeserialiser::Init(CObjectReader* pcReader, BOOL bNamedHollows, CObjects* pcObjects, CDependentReadObjects* pcDependentReadObjects, CNamedIndexedObjects* pcMemory)
+void CExternalObjectDeserialiser::Init(CObjectReader* pcReader, BOOL bNamedHollows, CObjects* pcObjects, CDependentReadObjects* pcDependentReadObjects, CNamedIndexedObjects* pcMemory)
 {
 	CDependentObjectAdder::Init(pcDependentReadObjects);
 	mpcReader = pcReader;
@@ -23,7 +23,7 @@ void CObjectGraphDeserialiser::Init(CObjectReader* pcReader, BOOL bNamedHollows,
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectGraphDeserialiser::Kill(void)
+void CExternalObjectDeserialiser::Kill(void)
 {
 	mpcObjects = NULL;
 	mpcMemory = NULL;
@@ -36,7 +36,7 @@ void CObjectGraphDeserialiser::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CObjectGraphDeserialiser::Read(char* szObjectName)
+CBaseObject* CExternalObjectDeserialiser::Read(char* szObjectName)
 {
 	BOOL				bResult;
 	CBaseObject*		pvObject;
@@ -75,7 +75,7 @@ CBaseObject* CObjectGraphDeserialiser::Read(char* szObjectName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectGraphDeserialiser::ReadDependentObjects(void)
+BOOL CExternalObjectDeserialiser::ReadDependentObjects(void)
 {
 	BOOL					bResult;
 	CDependentReadObject*	pcDependent;
@@ -124,7 +124,7 @@ BOOL CObjectGraphDeserialiser::ReadDependentObjects(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectGraphDeserialiser::ReadUnread(CDependentReadObject* pcDependent)
+BOOL CExternalObjectDeserialiser::ReadUnread(CDependentReadObject* pcDependent)
 {
 	CSerialisedObject*			pcSerialised;
 	char*						szObjectName;
@@ -165,7 +165,7 @@ BOOL CObjectGraphDeserialiser::ReadUnread(CDependentReadObject* pcDependent)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CObjectGraphDeserialiser::ReadSerialsed(CSerialisedObject* pcSerialised)
+CBaseObject* CExternalObjectDeserialiser::ReadSerialsed(CSerialisedObject* pcSerialised)
 {
 	CObjectDeserialiser		cDeserialiser;
 	CBaseObject*			pvObject;
@@ -195,7 +195,7 @@ CBaseObject* CObjectGraphDeserialiser::ReadSerialsed(CSerialisedObject* pcSerial
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectGraphDeserialiser::MarkRead(OIndex oi)
+void CExternalObjectDeserialiser::MarkRead(OIndex oi)
 {
 	mpcDependentObjects->Mark(oi);
 }
@@ -205,7 +205,7 @@ void CObjectGraphDeserialiser::MarkRead(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectGraphDeserialiser::AddContainingPointersAndCreateHollowObjects(void)
+BOOL CExternalObjectDeserialiser::AddContainingPointersAndCreateHollowObjects(void)
 {
 	CDependentReadPointer*	pcDependentReadPointer;
 	int						i;
@@ -228,7 +228,7 @@ BOOL CObjectGraphDeserialiser::AddContainingPointersAndCreateHollowObjects(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectGraphDeserialiser::AddContainingPointersAndCreateHollowObject(CDependentReadPointer* pcDependentReadPointer)
+BOOL CExternalObjectDeserialiser::AddContainingPointersAndCreateHollowObject(CDependentReadPointer* pcDependentReadPointer)
 {
 	OIndex					oiNew;
 	CBaseObject*			pcBaseObject;
@@ -262,7 +262,7 @@ BOOL CObjectGraphDeserialiser::AddContainingPointersAndCreateHollowObject(CDepen
 //
 //
 //////////////////////////////////////////////////////////////////////////
-OIndex CObjectGraphDeserialiser::GetNewIndexFromOld(OIndex oiOld)
+OIndex CExternalObjectDeserialiser::GetNewIndexFromOld(OIndex oiOld)
 {
 	return mpcDependentObjects->GetNewIndexFromOld(oiOld);
 }
@@ -272,7 +272,7 @@ OIndex CObjectGraphDeserialiser::GetNewIndexFromOld(OIndex oiOld)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CObjectGraphDeserialiser::AllocateObject(CObjectHeader* pcHeader)
+CBaseObject* CExternalObjectDeserialiser::AllocateForDeserialisation(CObjectHeader* pcHeader)
 {
 	if (pcHeader->mcType == OBJECT_POINTER_NULL)
 	{

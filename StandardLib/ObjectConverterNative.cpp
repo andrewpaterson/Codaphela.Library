@@ -5,7 +5,7 @@
 #include "ObjectFileGeneral.h"
 #include "IndexGenerator.h"
 #include "ObjectDeserialiser.h"
-#include "ObjectGraphDeserialiser.h"
+#include "ExternalObjectDeserialiser.h"
 #include "ObjectConverterNative.h"
 
 
@@ -112,7 +112,7 @@ CBaseObject* CObjectConverterNative::Convert(CObjectSource* pcSource, char* szOb
 	CChunkFileFile				cFile;
 	CBaseObject*				pvObject;
 	CFileBasic					cFileBasic;
-	CObjectGraphDeserialiser	cGraphDeserialiser;
+	CExternalObjectDeserialiser	cGraphDeserialiser;
 	CObjectReader*				pcReader;
 
 	//This if statement should be calling a virtual method instead.

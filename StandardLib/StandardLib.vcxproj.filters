@@ -324,9 +324,6 @@
     <ClInclude Include="NamedHollowObject.h">
       <Filter>Source\Object\Object\Named</Filter>
     </ClInclude>
-    <ClInclude Include="ObjectGraphDeserialiser.h">
-      <Filter>Source\Object\Object\Serilalisation\Graph</Filter>
-    </ClInclude>
     <ClInclude Include="ObjectFileGeneral.h">
       <Filter>Source\Object\Object\IO\Common</Filter>
     </ClInclude>
@@ -396,17 +393,11 @@
     <ClInclude Include="Null.h">
       <Filter>Source\Object\Object</Filter>
     </ClInclude>
-    <ClInclude Include="ObjectAllocator.h">
-      <Filter>Source\Object\Object</Filter>
-    </ClInclude>
     <ClInclude Include="ObjectReaderIndexed.h">
       <Filter>Source\Object\Object\IO\Indexed</Filter>
     </ClInclude>
     <ClInclude Include="DependentObjectAdder.h">
       <Filter>Source\Object\Object\Serilalisation</Filter>
-    </ClInclude>
-    <ClInclude Include="IndexedDataObjectDeserialiser.h">
-      <Filter>Source\Object\Object\Serilalisation\Indexed</Filter>
     </ClInclude>
     <ClInclude Include="ArrayObject.h">
       <Filter>Source\Object\Object\Collections\Array</Filter>
@@ -455,6 +446,12 @@
     </ClInclude>
     <ClInclude Include="PointerContainer.h">
       <Filter>Source\Object\Object\Pointer</Filter>
+    </ClInclude>
+    <ClInclude Include="InternalObjectDeserialiser.h">
+      <Filter>Source\Object\Object\Serilalisation\Indexed</Filter>
+    </ClInclude>
+    <ClInclude Include="ExternalObjectDeserialiser.h">
+      <Filter>Source\Object\Object\Serilalisation\Graph</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -626,9 +623,6 @@
     <ClCompile Include="NamedHollowObject.cpp">
       <Filter>Source\Object\Object\Named</Filter>
     </ClCompile>
-    <ClCompile Include="ObjectGraphDeserialiser.cpp">
-      <Filter>Source\Object\Object\Serilalisation\Graph</Filter>
-    </ClCompile>
     <ClCompile Include="ObjectHeader.cpp">
       <Filter>Source\Object\Object\Serilalisation</Filter>
     </ClCompile>
@@ -686,17 +680,11 @@
     <ClCompile Include="ObjectSingleSerialiser.cpp">
       <Filter>Source\Object\Object\Serilalisation\Single</Filter>
     </ClCompile>
-    <ClCompile Include="ObjectAllocator.cpp">
-      <Filter>Source\Object\Object</Filter>
-    </ClCompile>
     <ClCompile Include="Null.cpp">
       <Filter>Source\Object\Object\Source</Filter>
     </ClCompile>
     <ClCompile Include="ObjectReaderIndexed.cpp">
       <Filter>Source\Object\Object\IO\Indexed</Filter>
-    </ClCompile>
-    <ClCompile Include="IndexedDataObjectDeserialiser.cpp">
-      <Filter>Source\Object\Object\Serilalisation\Indexed</Filter>
     </ClCompile>
     <ClCompile Include="DependentObjectAdder.cpp">
       <Filter>Source\Object\Object\Serilalisation</Filter>
@@ -739,6 +727,12 @@
     </ClCompile>
     <ClCompile Include="PointerContainer.cpp">
       <Filter>Source\Object\Object\Pointer</Filter>
+    </ClCompile>
+    <ClCompile Include="InternalObjectDeserialiser.cpp">
+      <Filter>Source\Object\Object\Serilalisation\Indexed</Filter>
+    </ClCompile>
+    <ClCompile Include="ExternalObjectDeserialiser.cpp">
+      <Filter>Source\Object\Object\Serilalisation\Graph</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

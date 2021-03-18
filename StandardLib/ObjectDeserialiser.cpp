@@ -23,7 +23,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Null.h"
 #include "ObjectFileGeneral.h"
 #include "ObjectHeader.h"
-#include "ObjectGraphDeserialiser.h"
+#include "ExternalObjectDeserialiser.h"
 #include "ObjectDeserialiser.h"
 
 
@@ -97,7 +97,7 @@ CBaseObject* CObjectDeserialiser::Load(CSerialisedObject* pcSerialised)
 
 	CBaseObject*	pvObject;
 
-	pvObject = mpcDependents->AllocateObject(&sHeader);
+	pvObject = mpcDependents->AllocateForDeserialisation(&sHeader);
 
 	sHeader.Kill();
 

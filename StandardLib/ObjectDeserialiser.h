@@ -22,7 +22,6 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __OBJECT_DESERIALISER_H__
 #include "BaseLib/FileReader.h"
 #include "BaseLib/MemoryFile.h"
-#include "ObjectAllocator.h"
 #include "IndexNewOld.h"
 #include "SerialisedObject.h"
 #include "DependentObjectAdder.h"
