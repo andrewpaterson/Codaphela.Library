@@ -59,6 +59,7 @@ class CNamedHollowObject;
 class CObjects
 {
 friend class CBaseObject;
+friend class CInternalObjectDeserialiser;
 protected:
 	BOOL					mbInitialised;
 	CUnknowns*				mpcUnknownsAllocatingFrom;
@@ -157,19 +158,18 @@ protected:
 
 public:
 						CBaseObject*			AllocateNew(char* szClassName);
+						CBaseObject*			AllocateExistingNamed(char* szClassName, char* szObjectName);  //This mean overwrite an existing object with a new object (with the same name).
 						CBaseObject*			AllocateForDeserialisation(char* szClassName, OIndex oiForced);
-						CBaseObject*			AllocateNewMaybeReplaceExisting(char* szClassName, char* szObjectName);
+						CBaseObject*			AllocateNewNamed(char* szClassName, char* szObjectName);
 						CBaseObject*			AllocateExistingHollow(OIndex oiForced, uint16 iNumEmbedded);
 						CBaseObject*			AllocateExistingHollowFromMemoryOrMaybeANewNamedHollow(char* szObjectName, uint16 iNumEmbedded);
 						CBaseObject*			AllocateExistingHollowFromMemoryOrMaybeANewNamedHollow(char* szObjectName, OIndex oiForced, uint16 iNumEmbedded);
-
-						CBaseObject*			AllocateNewMaybeReplaceExisting(char* szClassName, char* szObjectName, OIndex* poiExisting);
-						CBaseObject*			AllocateForDeserialisation(char* szClassName, char* szObjectName, OIndex oiForced);
-						CBaseObject*			AllocateNewMaybeReplaceExisting(char* szClassName, char* szObjectName, OIndex oiForced, OIndex* poiExisting);
+						CBaseObject*			AllocateForDeserialisation(char* szClassName, char* szObjectName, OIndex oiForced, OIndex* poiExisting);
 
 protected:
 						CBaseObject*			ReplaceExisting(CBaseObject* pvExisting, CBaseObject* pvObject, char* szObjectName, OIndex oiForced);
 						CBaseObject*			ReplaceExisting(CBaseObject* pvExisting, CBaseObject* pvObject, OIndex oiForced);
+						CBaseObject*			AllocateForExistingInDatabaseWithExplicitIdentifiers(char* szClassName, char* szObjectName, OIndex oiForced, OIndex* poiExisting);
 };
 
 
