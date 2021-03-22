@@ -229,7 +229,6 @@ BOOL CNamedIndexedObjects::ReplaceWithIDAndName(CBaseObject* pvObject, char* szE
 	CIndexTreeMemoryAccess	cAccess;
 
 	//This does nothing meaningful.  The old object still exists believing it is named szExistingName too.
-
 	bResult = AddWithID(pvObject, oi);
 	if (!bResult)
 	{

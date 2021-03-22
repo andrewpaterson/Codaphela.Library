@@ -655,7 +655,7 @@ BOOL CObjects::AddObjectIntoMemoryWithIndexAndName(CBaseObject* pvObject, char* 
 		CChars sz;
 		sz.Init();
 		pvObject->GetIdentifier(&sz);
-		gcLogger.Error2(__METHOD__, " Cannot add object [", sz.Text(), "] with name [", szObjectName, "], it is not a named object.", NULL);
+		gcLogger.Error2(__METHOD__, " Cannot allocate object [", sz.Text(), "] with name [", szObjectName, "], it is not a named object.", NULL);
 		sz.Kill();
 		return FALSE;
 	}
@@ -920,17 +920,10 @@ CBaseObject* CObjects::GetFromDatabase(char* szObjectName)
 		return NULL;
 	}
 
-	if (mpcDataConnection->Contains(szObjectName))
-	{
-		cDeserialiser.Init(this, mpcDataConnection, &mcMemory);
-		pvObject = cDeserialiser.Read(szObjectName);
-		cDeserialiser.Kill();
-		return pvObject;
-	}
-	else
-	{
-		return NULL;		
-	}
+	cDeserialiser.Init(this, mpcDataConnection, &mcMemory);
+	pvObject = cDeserialiser.Read(szObjectName);
+	cDeserialiser.Kill();
+	return pvObject;
 }
 
 
@@ -1421,25 +1414,38 @@ CBaseObject* CObjects::AllocateForDeserialisation(char* szClassName, OIndex oiFo
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CObjects::AllocateNewMaybeReplaceExisting(char* szClassName, char* szObjectName)
+CBaseObject* CObjects::AllocateNewNamed(char* szClassName, char* szObjectName)
 {
-	OIndex oiExisting;
-
-	return AllocateNewMaybeReplaceExisting(szClassName, szObjectName, &oiExisting);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CBaseObject* CObjects::AllocateNewMaybeReplaceExisting(char* szClassName, char* szObjectName, OIndex* poiExisting)
-{
+	BOOL			bResult;
 	CBaseObject*	pvObject;
 	OIndex			oi;
 
+	if (Contains(szObjectName))
+	{
+		gcLogger.Error2(__METHOD__, " Cannot allocate object named [", szObjectName, "] class [", szClassName, "].  It already exists.", NULL);
+		return NULL;
+	}
+
+	pvObject = AllocateUninitialised(szClassName);
+	if (!pvObject)
+	{
+		gcLogger.Error2(__METHOD__, " Cannot allocate object named [", szObjectName, "] class [", szClassName, "].", NULL);
+		return NULL;
+	}
+	if (!pvObject->IsNamed())
+	{
+		gcLogger.Error2(__METHOD__, " Cannot allocate object named [", szObjectName, "] the class ", pvObject->ClassName(), " is not derived from NamedObject.", NULL);
+		pvObject->Kill();
+		return NULL;
+	}
+
 	oi = GetIndexGenerator()->GetNext();
-	pvObject = AllocateNewMaybeReplaceExisting(szClassName, szObjectName, oi, poiExisting);
+	bResult = AddObjectIntoMemoryWithIndexAndName(pvObject, szObjectName, oi);
+	if (!bResult)
+	{
+		mpcUnknownsAllocatingFrom->RemoveInKill(pvObject);
+		return NULL;
+	}
 
 	return pvObject;
 }
@@ -1449,11 +1455,50 @@ CBaseObject* CObjects::AllocateNewMaybeReplaceExisting(char* szClassName, char* 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CObjects::AllocateForDeserialisation(char* szClassName, char* szObjectName, OIndex oiForced)
+CBaseObject* CObjects::AllocateExistingNamed(char* szClassName, char* szObjectName)
 {
-	OIndex oiExisting;
+	CBaseObject*	pvOldObject;
+	CBaseObject*	pvObject;
+	CBaseObject*	pvReplacedObject;
+	OIndex			oi;
 
-	return AllocateNewMaybeReplaceExisting(szClassName, szObjectName, oiForced, &oiExisting);
+	//Old objects pointing to the oi are left still pointing to the oi?
+	oi = INVALID_O_INDEX;
+	pvOldObject = GetFromMemory(szObjectName);
+	if (pvOldObject)
+	{
+		oi = pvOldObject->GetOI();
+	}
+	else
+	{
+		pvOldObject = GetFromDatabase(szObjectName);
+		if (pvOldObject)
+		{
+			oi = pvOldObject->GetOI();
+		}
+	}
+
+	pvObject = AllocateUninitialised(szClassName);
+	if (!pvObject)
+	{
+		gcLogger.Error2(__METHOD__, " Cannot allocate object named [", szObjectName, "] class [", szClassName, "].", NULL);
+		return NULL;
+	}
+	if (!pvObject->IsNamed())
+	{
+		gcLogger.Error2(__METHOD__, " Cannot allocate object named [", szObjectName, "] the class ", pvObject->ClassName(), " is not derived from NamedObject.", NULL);
+		pvObject->Kill();
+		return NULL;
+	}
+
+	pvReplacedObject = ReplaceExisting(pvOldObject, pvObject, oi);
+	if (!pvReplacedObject)
+	{
+		mpcUnknownsAllocatingFrom->RemoveInKill(pvObject);
+		return NULL;
+	}
+
+	return pvReplacedObject;
 }
 
 
@@ -1461,22 +1506,60 @@ CBaseObject* CObjects::AllocateForDeserialisation(char* szClassName, char* szObj
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CObjects::AllocateNewMaybeReplaceExisting(char* szClassName, char* szObjectName, OIndex oiForced, OIndex* poiExisting)
+CBaseObject* CObjects::AllocateForExistingInDatabaseWithExplicitIdentifiers(char* szClassName, char* szObjectName, OIndex oiForced, OIndex* poiExisting)
+{
+	CBaseObject*	pvObject;
+	BOOL			bResult;
+
+	pvObject = GetFromMemory(szObjectName);
+	if (pvObject)
+	{
+		gcLogger.Error2(__METHOD__, " Cannot allocate object named [", szObjectName, "] class [", szClassName, "].  It already exists in memory.", NULL);
+		return NULL;
+	}
+	pvObject = GetFromMemory(oiForced);
+	if (pvObject)
+	{
+		gcLogger.Error2(__METHOD__, " Cannot allocate object with index [", LongLongToString(oiForced), "] class [", szClassName, "].  It already exists in memory.", NULL);
+		return NULL;
+	}
+
+	pvObject = AllocateUninitialised(szClassName);
+	if (!pvObject)
+	{
+		return NULL;
+	}
+
+	bResult = AddObjectIntoMemoryWithIndexAndName(pvObject, szObjectName, oiForced);
+	if (!bResult)
+	{
+		mpcUnknownsAllocatingFrom->RemoveInKill(pvObject);
+		return NULL;
+	}
+	return pvObject;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CBaseObject* CObjects::AllocateForDeserialisation(char* szClassName, char* szObjectName, OIndex oiForced, OIndex* poiExisting)
 {
 	CBaseObject*	pvObject;
 	CBaseObject*	pvExisting;
 	BOOL			bResult;
-	
+
 	pvObject = AllocateNew(szClassName);
 	if (!pvObject)
 	{
-		gcLogger.Error2(__METHOD__, " Cannot add object named [", szObjectName, "] class [", szClassName, "].", NULL);
+		gcLogger.Error2(__METHOD__, " Cannot allocate object named [", szObjectName, "] class [", szClassName, "].", NULL);
 		return NULL;
 	}
 
 	if (!pvObject->IsNamed())
 	{
-		gcLogger.Error2(__METHOD__, " Cannot add object named [", szObjectName, "] the class ", pvObject->ClassName(), " is not derived from NamedObject.", NULL);
+		gcLogger.Error2(__METHOD__, " Cannot allocate object named [", szObjectName, "] the class ", pvObject->ClassName(), " is not derived from NamedObject.", NULL);
 		pvObject->Kill();
 		return NULL;
 	}

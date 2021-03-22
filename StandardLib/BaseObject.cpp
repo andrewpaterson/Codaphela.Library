@@ -112,6 +112,7 @@ void CBaseObject::PostInit(void)
 	pcContainer->ContainerPostInit();
 }
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -130,7 +131,17 @@ void CBaseObject::ContainerPreInit(void)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::ContainerPostInit(void)
 {
+	CChars	sz;
+
 	ValidateNotEmbedded(__METHOD__);
+
+	if (IsInitialised())
+	{
+		sz.Init();
+		gcLogger.Error2(__METHOD__, " Init has already been called on object[", GetIdentifier(&sz), "].", NULL);
+		sz.Kill();
+		return;
+	}
 
 	miPostInits++;
 	if (miPreInits == miPostInits)

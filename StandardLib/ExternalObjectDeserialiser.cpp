@@ -274,6 +274,8 @@ OIndex CExternalObjectDeserialiser::GetNewIndexFromOld(OIndex oiOld)
 //////////////////////////////////////////////////////////////////////////
 CBaseObject* CExternalObjectDeserialiser::AllocateForDeserialisation(CObjectHeader* pcHeader)
 {
+	OIndex	oiExisting;
+
 	if (pcHeader->mcType == OBJECT_POINTER_NULL)
 	{
 		return NULL;
@@ -284,7 +286,7 @@ CBaseObject* CExternalObjectDeserialiser::AllocateForDeserialisation(CObjectHead
 	}
 	else if (pcHeader->mcType == OBJECT_POINTER_NAMED)
 	{
-		return mpcObjects->AllocateNewMaybeReplaceExisting(pcHeader->mszClassName.Text(), pcHeader->mszObjectName.Text());
+		return mpcObjects->AllocateForDeserialisation(pcHeader->mszClassName.Text(), pcHeader->mszObjectName.Text(), pcHeader->moi, &oiExisting);
 	}
 	else
 	{
