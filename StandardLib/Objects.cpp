@@ -1461,6 +1461,7 @@ CBaseObject* CObjects::AllocateExistingNamed(char* szClassName, char* szObjectNa
 	CBaseObject*	pvObject;
 	CBaseObject*	pvReplacedObject;
 	OIndex			oi;
+	BOOL			bResult;
 
 	//Old objects pointing to the oi are left still pointing to the oi?
 	oi = INVALID_O_INDEX;
@@ -1495,6 +1496,13 @@ CBaseObject* CObjects::AllocateExistingNamed(char* szClassName, char* szObjectNa
 	if (!pvReplacedObject)
 	{
 		mpcUnknownsAllocatingFrom->RemoveInKill(pvObject);
+		return NULL;
+	}
+
+	bResult = AddObjectIntoMemoryWithIndexAndName(pvReplacedObject, szObjectName, oi);
+	if (!bResult)
+	{
+		mpcUnknownsAllocatingFrom->RemoveInKill(pvReplacedObject);
 		return NULL;
 	}
 
