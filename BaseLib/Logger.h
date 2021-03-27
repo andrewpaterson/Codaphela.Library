@@ -25,15 +25,19 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "Define.h"
 #include "LogConfig.h"
 #include "LogString.h"
+#include "ArrayTemplate.h"
+
+
+typedef CArrayTemplate<CAbstractFile*> CArrayFile;
 
 
 class CAbstractFile;
 class CLogger
 {
 protected:
-	CAbstractFile*	mpcFile;
-	BOOL			mbFreeFile;
+	CArrayFile		mapcFiles;
 	SLogConfig		msConfig;
+	CAbstractFile*	mpcDebugOutputFile;
 
 public:
 	void		Init(void);
@@ -52,12 +56,13 @@ public:
 	void		Debug2(const char* szText, ...);
 	void		Disable(void);
 	void		Enable(void);
-	void		SetEngineOutput(BOOL bEngineOut);
 	void		SetBreakOnError(BOOL bBreakOnError);
 	void		SetBreakOnWarning(BOOL bBreakOnWarning);
 	SLogConfig	SetSilent(void);
 	void		SetConfig(SLogConfig* psConfig);
 	void		GetConfig(SLogConfig* psConfig);
+	void		AddOutput(CAbstractFile* pcFile);
+	void		RemoveOutput(CAbstractFile* pcFile);
 };
 
 

@@ -5,10 +5,11 @@
 struct SLogConfig
 {
 	BOOL	bEnabled;
-	BOOL	bEngineOut;
+	BOOL	bDebugOutput;
 	BOOL	bBreakOnError;
 	BOOL	bBreakOnWarning;
 };
 
 
 #endif // __LOG_CONFIG_H__
+

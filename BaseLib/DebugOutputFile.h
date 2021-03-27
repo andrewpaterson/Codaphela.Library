@@ -20,32 +20,21 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __MEMORY_FILE_H__
-#define __MEMORY_FILE_H__
+#ifndef __DEBUG_OUTPUT_FILE_H__
+#define __DEBUG_OUTPUT_FILE_H__
 #include "ArrayChar.h"
 #include "AbstractFile.h"
 
 
-class CMemoryFile : public CAbstractFile
+class CDebugOutputFile : public CAbstractFile
 {
 protected:
-	int			miFlags;
 	filePos		miPos;
 	BOOL		mbOpen;
-	void*		mpvInitialMem;
-	int			miInitialLength;
-	BOOL		mbFakeArray;
-	CArrayChar	mcArray;  //protect me please.
 
 public:
 	void		Init(void);
-	void		Init(void* pvInitialMem, int iInitialLength);
 	void		Kill(void);
-
-	void*		GetBufferPointer(void);
-	int			GetBufferSize(void);
-	void		SetBufferPointer(void* pvBuffer);
-	void		SetBufferSize(int iBufferSize);
 
 	BOOL		Open(EFileMode eFileMode);
 	BOOL		Close(void);
@@ -62,9 +51,8 @@ public:
 };
 
 
-CMemoryFile* MemoryFile(void);
-CMemoryFile* MemoryFile(void* pvInitialMem, int iInitialLength);
+CDebugOutputFile* DebugOutputFile(void);
 
 
-#endif // __MEMORY_FILE_H__
+#endif // __DEBUG_OUTPUT_FILE_H__
 

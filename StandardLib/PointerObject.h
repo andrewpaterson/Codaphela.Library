@@ -80,6 +80,7 @@ public:
 	void				ClearIndex(void);
 	void				AssignObject(CEmbeddedObject* pcObject);
 	CEmbeddedObject*	Dereference(void);
+	CEmbeddedObject*	DereferenceArrow(void);
 
 	void				PointTo(CEmbeddedObject* pcObject, BOOL bKillIfNoRoot);
 	void				AddHeapFrom(CBaseObject* pcFrom);

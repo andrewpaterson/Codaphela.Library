@@ -20,6 +20,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/Define.h"
 #include "BaseLib/Log.h"
+#include "BaseLib/Numbers.h"
 #include "Object.h"
 #include "HollowObject.h"
 #include "ObjectDeserialiser.h"
@@ -150,11 +151,7 @@ void CPointer::operator = (CPointer& pcPointer)
 //////////////////////////////////////////////////////////////////////////
 CEmbeddedObject* CPointer::operator -> ()
 {
-	if ((mpcObject) && (mpcObject->IsHollow()))
-	{
-		mpcObject = mpcObject->Dehollow();
-	}
-	return mpcObject;
+	return DereferenceArrow();
 }
 
 
@@ -164,11 +161,7 @@ CEmbeddedObject* CPointer::operator -> ()
 //////////////////////////////////////////////////////////////////////////
 CEmbeddedObject* CPointer::operator & ()
 {
-	if ((mpcObject) && (mpcObject->IsHollow()))
-	{
-		mpcObject = mpcObject->Dehollow();
-	}
-	return mpcObject;
+	return Dereference();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -217,6 +210,11 @@ void CPointer::UnsafePointTo(CEmbeddedObject* pcNewObject)
 void CPointer::PointTo(CEmbeddedObject* pcNewObject, BOOL bKillIfNoRoot)
 {
 	CEmbeddedObject*	pcOldObject;
+
+	if ((char*)this < (char*)(16 KB))
+	{
+		return;
+	}
 
 	if (mpcObject != pcNewObject)
 	{
@@ -357,11 +355,40 @@ CObject* CPointer::Embedding(void)
 //////////////////////////////////////////////////////////////////////////
 CEmbeddedObject* CPointer::Dereference(void)
 {
-	if ((mpcObject) && (mpcObject->IsHollow()))
+	if (mpcObject)
 	{
-		mpcObject = mpcObject->Dehollow();
+		if (mpcObject->IsHollow())
+		{
+			mpcObject = mpcObject->Dehollow();
+		}
+		return mpcObject;
 	}
-	return mpcObject;
+	else
+	{
+		return NULL;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CEmbeddedObject* CPointer::DereferenceArrow(void)
+{
+	if (mpcObject)
+	{
+		if (mpcObject->IsHollow())
+		{
+			mpcObject = mpcObject->Dehollow();
+		}
+		return mpcObject;
+	}
+	else
+	{
+		gcLogger.Error2(__METHOD__, " Attempted to dereference NULL Pointer.", NULL);
+		return NULL;
+	}
 }
 
 
