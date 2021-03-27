@@ -22,7 +22,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #include <string.h>
 #include <stdlib.h>
-#include "DebugOutput.h"
 #include "Logger.h"
 #include "Define.h"  //For EngineOutput
 #include "Chars.h"
@@ -30,6 +29,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "DiskFile.h"
 #include "FileUtil.h"
 #include "Validation.h"
+#include "DebugOutput.h"
+#include "DebugOutputFile.h"
 
 
 CLogger		gcLogger;
@@ -55,8 +56,6 @@ void CLogger::Init(const char* szName)
 
 	cFileUtil.Delete(szName);
 	Init(DiskFile(szName), szName);
-	mbFreeFile = TRUE;
-	msConfig.bEngineOut = TRUE;
 
 	msConfig.bBreakOnWarning = FALSE;
 	msConfig.bBreakOnError = FALSE;
@@ -78,18 +77,24 @@ void CLogger::Init(const char* szName)
 //////////////////////////////////////////////////////////////////////////
 void CLogger::Init(CAbstractFile* pcFile, const char* szName)
 {
-	char	s[512];
+	char				s[512];
+	CDebugOutputFile*	pcDebugFile;
 
-	mpcFile = pcFile;
+	mapcFiles.Init();
+	mapcFiles.Add(&pcFile);
+
+	pcDebugFile = DebugOutputFile();
+	mapcFiles.Add((CAbstractFile**)&pcDebugFile);
+	mpcDebugOutputFile = pcDebugFile;
+
 	msConfig.bEnabled = TRUE;
+	msConfig.bDebugOutput = TRUE;
 
 	if (szName)
 	{
 		sprintf(s, "-----------------------------------------------------------\n- Log File: [%s]\n-----------------------------------------------------------\n\n", szName);
 		Add(s);
 	}
-
-	mbFreeFile = FALSE;
 }
 
 
@@ -99,11 +104,18 @@ void CLogger::Init(CAbstractFile* pcFile, const char* szName)
 //////////////////////////////////////////////////////////////////////////
 void CLogger::Kill(void)
 {
-	if (mbFreeFile)
+	int				i;
+	CAbstractFile*	pcFile;
+
+	for (i = 0; i < mapcFiles.NumElements(); i++)
 	{
-		SafeKill(mpcFile);
+		pcFile = *mapcFiles.Get(i);
+		if (pcFile->mbBasicFileMustFree)
+		{
+			SafeKill(pcFile);
+		}
 	}
-	mpcFile = NULL;
+	mapcFiles.Kill();
 }
 
 
@@ -113,21 +125,18 @@ void CLogger::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CLogger::Add(const char* szText)
 {
+	int				i;
+	CAbstractFile*	pcFile;
+
 	if (msConfig.bEnabled)
 	{
-		if (msConfig.bEngineOut)
+		for (i = 0; i < mapcFiles.NumElements(); i++)
 		{
-			EngineOutput(szText);
-		}
-		if (mpcFile)
-		{
-			mpcFile->Open(EFM_ReadWrite_Create);
-			mpcFile->Seek(0, EFSO_END);
-			if (mpcFile)
-			{
-				mpcFile->Write(szText, (int)strlen(szText), 1);
-				mpcFile->Close();
-			}
+			pcFile = *mapcFiles.Get(i);
+			pcFile->Open(EFM_ReadWrite_Create);
+			pcFile->Seek(0, EFSO_END);
+			pcFile->Write(szText, (int)strlen(szText), 1);
+			pcFile->Close();
 		}
 	}
 }
@@ -394,16 +403,6 @@ void CLogger::Enable(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CLogger::SetEngineOutput(BOOL bEngineOut)
-{
-	msConfig.bEngineOut = bEngineOut;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CLogger::SetBreakOnError(BOOL bBreakOnError)
 {
 	msConfig.bBreakOnError = bBreakOnError;
@@ -433,7 +432,9 @@ SLogConfig CLogger::SetSilent(void)
 	msConfig.bEnabled = TRUE;
 	msConfig.bBreakOnError = FALSE;
 	msConfig.bBreakOnWarning = FALSE;
-	msConfig.bEngineOut = FALSE;
+	msConfig.bDebugOutput = FALSE;
+
+	RemoveOutput(mpcDebugOutputFile);
 
 	return sExisting;
 }
@@ -448,7 +449,12 @@ void CLogger::SetConfig(SLogConfig* psConfig)
 	msConfig.bEnabled = psConfig->bEnabled;
 	msConfig.bBreakOnError = psConfig->bBreakOnError;
 	msConfig.bBreakOnWarning = psConfig->bBreakOnWarning;
-	msConfig.bEngineOut = psConfig->bEngineOut;
+	msConfig.bDebugOutput = psConfig->bDebugOutput;
+	RemoveOutput(mpcDebugOutputFile);
+	if (msConfig.bDebugOutput)
+	{
+		AddOutput(mpcDebugOutputFile);
+	}
 }
 
 
@@ -461,6 +467,29 @@ void CLogger::GetConfig(SLogConfig* psConfig)
 	psConfig->bEnabled = msConfig.bEnabled;
 	psConfig->bBreakOnError = msConfig.bBreakOnError;
 	psConfig->bBreakOnWarning = msConfig.bBreakOnWarning;
-	psConfig->bEngineOut = msConfig.bEngineOut;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CLogger::AddOutput(CAbstractFile* pcFile)
+{
+	mapcFiles.Add(&pcFile);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CLogger::RemoveOutput(CAbstractFile* pcFile)
+{
+	int	iIndex;
+
+	iIndex = mapcFiles.FindWithKey(&pcFile, 0, sizeof(CAbstractFile*));
+	mapcFiles.RemoveAt(iIndex);
+}
+
 

@@ -873,6 +873,9 @@
     <ClInclude Include="WindowsError.h">
       <Filter>Source\Error\Windows</Filter>
     </ClInclude>
+    <ClInclude Include="DebugOutputFile.h">
+      <Filter>Source\File\Chains</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -1384,6 +1387,9 @@
     </ClCompile>
     <ClCompile Include="Mallocator.cpp">
       <Filter>Source\Memory\Allocator</Filter>
+    </ClCompile>
+    <ClCompile Include="DebugOutputFile.cpp">
+      <Filter>Source\File\Chains</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

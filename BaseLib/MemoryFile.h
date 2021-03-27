@@ -29,8 +29,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 class CMemoryFile : public CAbstractFile
 {
 protected:
-	int			iFlags;
-	filePos		iPos;
+	int			miFlags;
+	filePos		miPos;
 	BOOL		mbOpen;
 	void*		mpvInitialMem;
 	int			miInitialLength;

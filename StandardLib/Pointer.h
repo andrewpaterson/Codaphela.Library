@@ -144,7 +144,7 @@ void Ptr<M>::operator = (Ptr& pcPointer)
 template<class M>
 M* Ptr<M>::operator -> ()
 {
-	return (M*)Dereference();
+	return (M*)DereferenceArrow();
 }
 
 

@@ -82,25 +82,25 @@ BOOL CMemoryFile::Open(EFileMode eFileMode)
 	if (IsFileModeWritable(eFileMode))
 	{
 		mbFakeArray = FALSE;
-		iFlags = MEMORY_FILE_READ_FLAG | MEMORY_FILE_WRITE_FLAG;
+		miFlags = MEMORY_FILE_READ_FLAG | MEMORY_FILE_WRITE_FLAG;
 		if (miInitialLength != 0)
 		{
 			mcArray.InsertBlockAt((char*)mpvInitialMem, miInitialLength, 0);
 		}
 		mpvInitialMem = NULL;
 		miInitialLength = 0;
-		iPos = 0;
+		miPos = 0;
 	}
 	else if (IsFileModeReadOnly(eFileMode))
 	{
-		iFlags = MEMORY_FILE_READ_FLAG;
+		miFlags = MEMORY_FILE_READ_FLAG;
 		if (miInitialLength != 0)
 		{
 			mbFakeArray = TRUE;
 			mcArray.ReInit();
 			mcArray.Fake((char*)mpvInitialMem, miInitialLength);
 		}
-		iPos = 0;
+		miPos = 0;
 	}
 	else
 	{
@@ -120,11 +120,11 @@ BOOL CMemoryFile::Close(void)
 	if (mbOpen)
 	{
 		mbOpen = FALSE;
-		if (iFlags & MEMORY_FILE_WRITE_FLAG)
+		if (miFlags & MEMORY_FILE_WRITE_FLAG)
 		{
 			return TRUE;
 		}
-		if (iFlags & MEMORY_FILE_READ_FLAG)
+		if (miFlags & MEMORY_FILE_READ_FLAG)
 		{
 			return TRUE;
 		}
@@ -144,32 +144,32 @@ filePos CMemoryFile::Read(void* pvBuffer, filePos iSize, filePos iCount)
 	filePos	iNumCopied;
 	filePos	iOldPos;
 
-	if (iFlags & MEMORY_FILE_READ_FLAG)
+	if (miFlags & MEMORY_FILE_READ_FLAG)
 	{
-		iOldPos = iPos;
+		iOldPos = miPos;
 		iAmountToRead = (int)(iSize * iCount);
-		iAmountToCopy = (mcArray.NumElements() - iPos);
+		iAmountToCopy = (mcArray.NumElements() - miPos);
 
 		if (iAmountToRead > iAmountToCopy)
 		{
 			iNumCopied = iAmountToCopy / (int)iSize;
 			iAmountToCopy = iNumCopied * iSize;
-			iFlags |= MEMORY_FILE_EOF_FLAG;
-			iPos = mcArray.NumElements();
+			miFlags |= MEMORY_FILE_EOF_FLAG;
+			miPos = mcArray.NumElements();
 		}
 		else
 		{
 			iAmountToCopy = iSize * iCount;
 			iNumCopied = (int)iCount;
-			iPos += iAmountToCopy;
+			miPos += iAmountToCopy;
 
-			if (iPos == mcArray.NumElements())
+			if (miPos == mcArray.NumElements())
 			{
-				iFlags |= MEMORY_FILE_EOF_FLAG;
+				miFlags |= MEMORY_FILE_EOF_FLAG;
 			}
 			else
 			{
-				iFlags &= ~MEMORY_FILE_EOF_FLAG;
+				miFlags &= ~MEMORY_FILE_EOF_FLAG;
 			}
 		}
 		memcpy(pvBuffer, mcArray.Get((int)iOldPos), (int)iAmountToCopy);
@@ -187,33 +187,33 @@ BOOL CMemoryFile::Seek(filePos iOffset, EFileSeekOrigin iSeekOrigin)
 {
 	if (iSeekOrigin == EFSO_SET)
 	{
-		iPos = iOffset;
+		miPos = iOffset;
 	}
 	else if (iSeekOrigin == EFSO_END)
 	{
-		iPos = mcArray.NumElements() + iOffset;
+		miPos = mcArray.NumElements() + iOffset;
 	}
 	else if (iSeekOrigin == EFSO_CURRENT)
 	{
-		iPos += iOffset;
+		miPos += iOffset;
 	}
 
-	if (iPos > mcArray.NumElements())
+	if (miPos > mcArray.NumElements())
 	{
-		iPos = mcArray.NumElements();  //This is not the same behavior as file...
+		miPos = mcArray.NumElements();  //This is not the same behavior as file...
 	}
-	if (iPos < 0)
+	if (miPos < 0)
 	{
-		iPos = 0;
+		miPos = 0;
 	}
 
-	if (iPos == mcArray.NumElements())
+	if (miPos == mcArray.NumElements())
 	{
-		iFlags |= MEMORY_FILE_EOF_FLAG;
+		miFlags |= MEMORY_FILE_EOF_FLAG;
 	}
 	else
 	{
-		iFlags &= ~MEMORY_FILE_EOF_FLAG;
+		miFlags &= ~MEMORY_FILE_EOF_FLAG;
 	}
 	return TRUE;
 }
@@ -228,10 +228,10 @@ filePos CMemoryFile::Write(const void* pvBuffer, filePos iSize, filePos iCount)
 	filePos iAmountToCopy;
 	filePos	iAmountToAdd;
 
-	if (iFlags & MEMORY_FILE_WRITE_FLAG)
+	if (miFlags & MEMORY_FILE_WRITE_FLAG)
 	{
 		iAmountToCopy = iSize * iCount;
-		iAmountToAdd = iAmountToCopy - (mcArray.NumElements() - iPos);
+		iAmountToAdd = iAmountToCopy - (mcArray.NumElements() - miPos);
 		if (iAmountToAdd > 0)
 		{
 			mcArray.AddNum((int)iAmountToAdd);
@@ -241,16 +241,16 @@ filePos CMemoryFile::Write(const void* pvBuffer, filePos iSize, filePos iCount)
 			}
 		}
 
-		memcpy(mcArray.Get((int)iPos), pvBuffer, (int)iAmountToCopy);
-		iPos += iAmountToCopy;
+		memcpy(mcArray.Get((int)miPos), pvBuffer, (int)iAmountToCopy);
+		miPos += iAmountToCopy;
 
-		if (iPos == mcArray.NumElements())
+		if (miPos == mcArray.NumElements())
 		{
-			iFlags |= MEMORY_FILE_EOF_FLAG;
+			miFlags |= MEMORY_FILE_EOF_FLAG;
 		}
 		else
 		{
-			iFlags &= ~MEMORY_FILE_EOF_FLAG;
+			miFlags &= ~MEMORY_FILE_EOF_FLAG;
 		}
 		return iCount;
 	}
@@ -264,7 +264,7 @@ filePos CMemoryFile::Write(const void* pvBuffer, filePos iSize, filePos iCount)
 //////////////////////////////////////////////////////////////////////////
 filePos CMemoryFile::Tell(void)
 {
-	return iPos;
+	return miPos;
 }
 
 
