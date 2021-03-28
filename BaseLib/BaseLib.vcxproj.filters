@@ -876,6 +876,9 @@
     <ClInclude Include="DebugOutputFile.h">
       <Filter>Source\File\Chains</Filter>
     </ClInclude>
+    <ClInclude Include="LogToMemory.h">
+      <Filter>Source\Error</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -1390,6 +1393,9 @@
     </ClCompile>
     <ClCompile Include="DebugOutputFile.cpp">
       <Filter>Source\File\Chains</Filter>
+    </ClCompile>
+    <ClCompile Include="LogToMemory.cpp">
+      <Filter>Source\Error</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

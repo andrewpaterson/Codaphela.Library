@@ -165,6 +165,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="AccessDataOrderer.h" />
+    <ClInclude Include="LogToMemory.h" />
     <ClInclude Include="Malloc.h" />
     <ClInclude Include="ArrayBlock.h" />
     <ClInclude Include="ArrayBlockMinimal.h" />
@@ -381,6 +382,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AccessDataOrderer.cpp" />
+    <ClCompile Include="LogToMemory.cpp" />
     <ClCompile Include="Malloc.cpp" />
     <ClCompile Include="ArrayBlock.cpp" />
     <ClCompile Include="ArrayBit.cpp" />
