@@ -50,8 +50,7 @@ public:
 						void			Remove(CUnknown* pcUnknown);
 
 	template<class M>	M*				Add(void);
-	template<class M>	M*				AddUnsafe(void);
-	template<class M>	M*				AddUnsafe(int iAdditionalSize);
+	template<class M>	M*				Add(int iAdditionalSize);
 						CUnknown*		Add(char* szClassName);
 						CUnknown*		AddFromHeader(CFileReader* pcFile);
 
@@ -78,7 +77,7 @@ public:
 						void			RemoveInKill(CArrayUnknownPtr* papcObjectPts);
 
 protected:
-						CUnknown*		AddExisting(CUnknown* pcExisting);
+						CUnknown*		AddExisting(CUnknown* pcExisting, char(*pszDebug)[4]);
 						void			DebugName(CUnknown* pcUnknown, char (*pszDebug)[4]);
 						BOOL			IsFreed(CUnknown* pcUnknown);
 };
@@ -98,20 +97,7 @@ void UnknownsKill(void);
 template<class M>
 M* CUnknowns::Add(void)
 {
-	M*		pv;
-
-	//You can only add Unknown class types to Unknowns.
-	//Practically this excludes anything that extends CObject.
-	pv = AddUnsafe<M>();
-	if (pv->IsUnknown())
-	{
-		return pv;
-	}
-	else
-	{
-		RemoveInKill(pv);
-		return NULL;
-	}
+	return Add<M>(0);
 }
 
 
@@ -120,22 +106,13 @@ M* CUnknowns::Add(void)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M* CUnknowns::AddUnsafe(void)
-{
-	return AddUnsafe<M>(0);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-template<class M>
-M* CUnknowns::AddUnsafe(int iAdditionalSize)
+M* CUnknowns::Add(int iAdditionalSize)
 {
 	M*			pv;
 	char(*		acDebug)[4];
 	int			iSize;
+
+	//You can only add Unknown class types to Unknowns.
 
 	iSize = sizeof(M);
 	pv = (M*)mpcMalloc->Malloc(iSize + iAdditionalSize, &acDebug);
@@ -143,15 +120,13 @@ M* CUnknowns::AddUnsafe(int iAdditionalSize)
 	{
 		memset(pv, 0, iSize + iAdditionalSize);
 		new(pv) M();
-
-		DebugName(pv, (char(*)[4])acDebug);
-		pv->CUnknown::SetUnknowns(this);
-		if (pv->Iterable())
+		if (!pv->IsUnknown())
 		{
-			mcIterables.Add(pv);
+			mpcMalloc->Free(pv);
+			return NULL;
 		}
 
-		miNumElements++;
+		pv = (M*)AddExisting(pv, acDebug);
 		return pv;
 	}
 	else

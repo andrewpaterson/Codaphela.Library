@@ -72,8 +72,10 @@ void CUnknowns::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CUnknown* CUnknowns::AddExisting(CUnknown* pcExisting)
+CUnknown* CUnknowns::AddExisting(CUnknown* pcExisting, char(*pszDebug)[4])
 {
+	DebugName(pcExisting, pszDebug);
+
 	pcExisting->SetUnknowns(this);
 	miNumElements++;
 
@@ -91,7 +93,8 @@ CUnknown* CUnknowns::AddExisting(CUnknown* pcExisting)
 //////////////////////////////////////////////////////////////////////////
 CUnknown* CUnknowns::Add(char* szClassName)
 {
-	CUnknown*			pcUnknown;
+	CUnknown*	pcUnknown;
+	char(*		acDebug)[4];
 
 	if ((szClassName == NULL) || (szClassName[0] == 0))
 	{
@@ -99,11 +102,10 @@ CUnknown* CUnknowns::Add(char* szClassName)
 		return NULL;
 	}
 
-	pcUnknown = (CUnknown*)mpcConstructors->Construct(szClassName, mpcMalloc);
+	pcUnknown = (CUnknown*)mpcConstructors->Construct(szClassName, mpcMalloc, &acDebug);
 	if (pcUnknown)
 	{
-		pcUnknown = AddExisting(pcUnknown);
-		return pcUnknown;
+		return AddExisting(pcUnknown, acDebug);
 	}
 	else
 	{
