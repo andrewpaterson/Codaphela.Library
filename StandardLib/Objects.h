@@ -130,8 +130,7 @@ public:
 protected:
 						BOOL					AddObjectIntoMemoryWithIndex(CBaseObject* pvObject, OIndex oi);
 						BOOL					AddObjectIntoMemoryWithIndexAndName(CBaseObject* pvObject, char* szObjectName, OIndex oi);
-	template<class M>	M*						Allocate(void);
-	template<class M>	M*						Allocate(int iAdditionalBytes);
+	template<class M>	M*						AllocateWithAdditionBytes(int iAdditionalBytes);
 						CBaseObject*			AllocateUninitialised(char* szClassName);
 						BOOL					ValidateCanAllocate(char* szClassName);
 						BOOL					ValidateCanAllocate(void);
@@ -191,18 +190,7 @@ void LogObjectDestruction(CBaseObject* pcObject, char* szMethod);
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>	
-M* CObjects::Allocate(void)
-{
-	return Allocate<M>(0);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-template<class M>	
-M* CObjects::Allocate(int iAdditionalBytes)
+M* CObjects::AllocateWithAdditionBytes(int iAdditionalBytes)
 {
 	M*		pcObject;
 	BOOL	bResult;
@@ -213,7 +201,7 @@ M* CObjects::Allocate(int iAdditionalBytes)
 		return NULL;
 	}
 
-	pcObject = mpcUnknownsAllocatingFrom->AddUnsafe<M>(iAdditionalBytes);
+	pcObject = mpcUnknownsAllocatingFrom->Add<M>(iAdditionalBytes);
 	if (pcObject)
 	{
 		pcObject->Allocate(this);
@@ -232,9 +220,16 @@ Ptr<M> CObjects::Add(void)
 {
 	Ptr<M>	pObject;
 	M*		pvObject;
+	OIndex	oi;
 
-	pvObject = Allocate<M>();
-	AddObjectIntoMemoryWithIndex(pvObject, GetNextIndex());
+	pvObject = AllocateWithAdditionBytes<M>(0);
+	if (!pvObject)
+	{
+		return pObject;
+	}
+
+	oi = GetIndexGenerator()->GetNext();
+	AddObjectIntoMemoryWithIndex(pvObject, oi);
 
 	//No PointTo because we don't know the embedding object until assignment.
 	pObject.AssignObject(pvObject);
@@ -254,7 +249,7 @@ Ptr<M> CObjects::Add(char* szObjectName)
 	M*		pvObject;
 	BOOL	bResult;
 
-	pvObject = Allocate<M>();
+	pvObject = AllocateWithAdditionBytes<M>(0);
 	bResult = AddObjectIntoMemoryWithIndexAndName(pvObject, szObjectName, GetNextIndex());
 	if (bResult)
 	{

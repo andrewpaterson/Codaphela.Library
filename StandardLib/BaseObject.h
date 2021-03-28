@@ -104,7 +104,6 @@ public:
 
 	virtual BOOL				IsRoot(void);
 	virtual BOOL				IsSubRoot(void);
-			BOOL				IsUnknown(void);
 			BOOL				IsHollow(void);
 	virtual BOOL				IsCollection(void) =0;
 	virtual BOOL				IsObject(void) =0;

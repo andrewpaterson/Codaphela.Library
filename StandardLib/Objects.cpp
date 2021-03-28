@@ -1202,7 +1202,8 @@ CBaseObject* CObjects::AllocateUninitialised(char* szClassName)
 	pvObject = (CBaseObject*)mpcUnknownsAllocatingFrom->Add(szClassName);
 	if (pvObject)
 	{
-		pvObject->CBaseObject::Allocate(this);
+		//pvObject->CBaseObject::Allocate(this);  Should this call CBaseObject::Allocate instead?
+		pvObject->Allocate(this);
 	}
 	return pvObject;
 }
@@ -1267,14 +1268,14 @@ CNamedHollowObject* CObjects::AllocateNamedHollow(uint16 iNumEmbedded)
 	}
 	if (iNumEmbedded == 1)
 	{
-		pcHollow = Allocate<CNamedHollowObject>();
+		pcHollow = AllocateWithAdditionBytes<CNamedHollowObject>(0);
 		pcHollow->Init(1);
 		return pcHollow;
 	}
 	else
 	{
 		iAdditionalBytes = sizeof(CHollowEmbeddedObject) * (iNumEmbedded-1);
-		pcHollow = Allocate<CNamedHollowObject>(iAdditionalBytes);
+		pcHollow = AllocateWithAdditionBytes<CNamedHollowObject>(iAdditionalBytes);
 		pcHollow->Init(iNumEmbedded);
 
 		iHollowSize = sizeof(CNamedHollowObject);
@@ -1302,14 +1303,14 @@ CHollowObject* CObjects::AllocateHollow(uint16 iNumEmbedded)
 	}
 	if (iNumEmbedded == 1)
 	{
-		pcHollow = Allocate<CHollowObject>();
+		pcHollow = AllocateWithAdditionBytes<CHollowObject>(0);
 		pcHollow->Init(1);
 		return pcHollow;
 	}
 	else
 	{
 		iAdditionalBytes = sizeof(CHollowEmbeddedObject) * (iNumEmbedded-1);
-		pcHollow = Allocate<CHollowObject>(iAdditionalBytes);
+		pcHollow = AllocateWithAdditionBytes<CHollowObject>(iAdditionalBytes);
 		pcHollow->Init(iNumEmbedded);
 
 		pvEmbedded = RemapSinglePointer(pcHollow, sizeof(CHollowObject));

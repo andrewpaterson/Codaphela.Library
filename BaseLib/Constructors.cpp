@@ -46,7 +46,7 @@ void CConstructors::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CConstructors::Construct(const char* szName, CMallocator* pcMalloc)
+void* CConstructors::Construct(const char* szName, CMallocator* pcMalloc, char(**pacDebugName)[4])
 {
 	void*	pcConstructor;
 	int		iSize;
@@ -59,7 +59,7 @@ void* CConstructors::Construct(const char* szName, CMallocator* pcMalloc)
 		return NULL;
 	}
 
-	pcObject = pcMalloc->Malloc(iSize);
+	pcObject = pcMalloc->Malloc(iSize, pacDebugName);
 	memcpy(pcObject, pcConstructor, iSize);
 	return pcObject;
 }

@@ -40,7 +40,7 @@ public:
 	template<class M>
 	M*		Add(void);
 
-	void*	Construct(const char* szName, CMallocator* pcMalloc);
+	void*	Construct(const char* szName, CMallocator* pcMalloc, char(**pacDebugName)[4] = NULL);
 	int		NumConstructors(void);
 
 	BOOL	ValidateMemoryInitialised(void);
