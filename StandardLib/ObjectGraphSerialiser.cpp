@@ -64,12 +64,6 @@ BOOL CObjectGraphSerialiser::Write(CBaseObject* pcObject)
 		pcUnwritten = mcDependentObjects.GetUnwritten();
 		if (pcUnwritten)
 		{
-			CChars sz;
-			sz.Init();
-			pcUnwritten->GetIdentifier(&sz);
-			gcLogger.Info2(sz.Text(), NULL);
-			sz.Kill();
-
 			bResult = WriteUnwritten(pcUnwritten);
 			if (!bResult)
 			{
