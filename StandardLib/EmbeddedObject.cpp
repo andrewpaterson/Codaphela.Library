@@ -69,7 +69,7 @@ int CEmbeddedObject::RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* mp
 //
 //
 //////////////////////////////////////////////////////////////////////////
-OIndex CEmbeddedObject::GetOI(void)
+OIndex CEmbeddedObject::GetIndex(void)
 {
 	return INVALID_O_INDEX;
 }
@@ -746,7 +746,7 @@ void CEmbeddedObject::PrintObject(CChars* psz, BOOL bEmbedded)
 	psz->Append("(");
 	psz->Append(ClassSize());
 	psz->Append(") Index:");
-	psz->Append(GetOI());
+	psz->Append(GetIndex());
 	if (IsNamed())
 	{
 		psz->Append(" Name:");
@@ -925,7 +925,7 @@ void CEmbeddedObject::LogNotExpectedToBeEmbedded(char* szMethod)
 	CBaseObject*					pcContainer;
 
 	pcContainer = GetEmbeddingContainer();
-	gcLogger.Error2(szMethod, " Cannot be called on embedded object of class [", ClassName(), "] with embedding index [", IndexToString(pcContainer->GetOI()),"] and embedding class [", pcContainer->ClassName(), "].", NULL);
+	gcLogger.Error2(szMethod, " Cannot be called on embedded object of class [", ClassName(), "] with embedding index [", IndexToString(pcContainer->GetIndex()),"] and embedding class [", pcContainer->ClassName(), "].", NULL);
 }
 
 
@@ -938,6 +938,6 @@ void CEmbeddedObject::LogExpectedToBeInitialised(char* szMethod)
 	CBaseObject*					pcContainer;
 
 	pcContainer = GetEmbeddingContainer();
-	gcLogger.Error2(szMethod, " Cannot be called on un-initialised object of class [", ClassName(), "] with index [", IndexToString(GetOI()),"].", NULL);
+	gcLogger.Error2(szMethod, " Cannot be called on un-initialised object of class [", ClassName(), "] with index [", IndexToString(GetIndex()),"].", NULL);
 }
 

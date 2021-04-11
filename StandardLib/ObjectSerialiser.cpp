@@ -204,7 +204,7 @@ void CObjectSerialiser::InitIdentifier(CObjectIdentifier* psHeader, CBaseObject*
 
 	if (pcObject)
 	{
-		oi = pcObject->GetOI();
+		oi = pcObject->GetIndex();
 
 		if (!pcObject->IsNamed())
 		{

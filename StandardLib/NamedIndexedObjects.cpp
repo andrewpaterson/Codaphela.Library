@@ -137,6 +137,11 @@ BOOL CNamedIndexedObjects::AddWithID(CBaseObject* pvObject, OIndex oi)
 	CNamedObject*		pcNamed;
 	CNamedHollowObject* pcNamedHollow;
 
+	if (!IsValidIndex(oi))
+	{
+		return gcLogger.Error2(__METHOD__, " Cannot add object with an invalid index [", LongLongToString(oi), " ].", NULL);
+	}
+
 	bResult = mcIndexedObjects.Add(oi, pvObject);
 	if (bResult)
 	{
@@ -180,6 +185,12 @@ BOOL CNamedIndexedObjects::AddWithIDAndName(CBaseObject* pvObject, OIndex oi, ch
 		return gcLogger.Error2(__METHOD__, " Cannot add object with an empty name.", NULL);
 	}
 
+	if (!IsValidIndex(oi))
+	{
+		return gcLogger.Error2(__METHOD__, " Cannot add object with name [", szName, "] and invalid index [", LongLongToString(oi), " ].", NULL);
+	}
+
+
 	cAccess.Init(&mcNames);
 	bHasObject = cAccess.HasString(szName);
 	cAccess.Kill();
@@ -208,7 +219,7 @@ BOOL CNamedIndexedObjects::AddWithIDAndName(CBaseObject* pvObject, OIndex oi, ch
 	}
 
 	cAccess.Init(&mcNames);
-	oi = pvObject->GetOI();
+	oi = pvObject->GetIndex();
 	szName = (char*)cAccess.PutStringLong(szName, oi);
 	bResult = szName != NULL;
 	cAccess.Kill();
@@ -252,7 +263,7 @@ BOOL CNamedIndexedObjects::ReplaceWithIDAndName(CBaseObject* pvObject, char* szE
 	if (!StrEmpty(szExistingName))
 	{
 		cAccess.Init(&mcNames);
-		oi = pvObject->GetOI();
+		oi = pvObject->GetIndex();
 		szExistingName = (char*)cAccess.PutStringLong(szExistingName, oi);
 		bResult = szExistingName != NULL;
 		cAccess.Kill();

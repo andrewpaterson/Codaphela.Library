@@ -98,9 +98,9 @@ public:
 	virtual void				Free(void) =0;
 	virtual BOOL				Flush(void);
 
-			OIndex				GetOI(void);
-			void				SetObjectID(OIndex oi);
-			void				ClearIndex(void);
+			OIndex				GetIndex(void);
+			void				SetObjectID(OIndex oi);  //This looks like a bad idea.
+			void				ClearIndex(void);  //This looks like a bad idea.
 
 	virtual BOOL				IsRoot(void);
 	virtual BOOL				IsSubRoot(void);

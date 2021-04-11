@@ -47,7 +47,7 @@ void LogPointerDebug(CPointer* pvThis, char* szMethod)
 	if (pcEmbedding != NULL)
 	{
 		szEmbeddingClass = pcEmbedding->ClassName();
-		szEmbeddingIndex = IndexToString(pcEmbedding->GetOI());
+		szEmbeddingIndex = IndexToString(pcEmbedding->GetIndex());
 		szEmbeddingName = pcEmbedding->GetName();
 		szEmbeddingAddress = PointerToString(pcEmbedding);
 		gcLogger.Debug2(PointerToString(pvThis), "->", szMethod, " [Embedding ", szEmbeddingClass, ": ", szEmbeddingIndex, " ", szEmbeddingName, " (", szEmbeddingAddress, ")]", NULL);
@@ -474,7 +474,7 @@ OIndex CPointer::GetIndex(void)
 {
 	if (mpcObject)
 	{
-		return mpcObject->GetOI();
+		return mpcObject->GetIndex();
 	}
 	else
 	{

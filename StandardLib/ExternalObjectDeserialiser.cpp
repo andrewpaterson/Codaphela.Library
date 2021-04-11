@@ -50,6 +50,8 @@ CBaseObject* CExternalObjectDeserialiser::Read(char* szObjectName)
 
 	pcSerialised = mpcReader->Read(szObjectName);
 	pvObject = ReadSerialsed(pcSerialised);
+	SafeFree(pcSerialised);
+
 	if (pvObject == NULL)
 	{
 		return NULL;
@@ -157,6 +159,8 @@ BOOL CExternalObjectDeserialiser::ReadUnread(CDependentReadObject* pcDependent)
 	}
 
 	pvObject = ReadSerialsed(pcSerialised);
+	SafeFree(pcSerialised);
+
 	return pvObject != NULL;
 }
 
@@ -177,13 +181,12 @@ CBaseObject* CExternalObjectDeserialiser::ReadSerialsed(CSerialisedObject* pcSer
 	pvObject = cDeserialiser.Load(pcSerialised);
 
 	cDeserialiser.Kill();
-	free(pcSerialised);
 
 	if (pvObject)
 	{
 		MarkRead(oiOld);
 
-		oiNew = pvObject->GetOI();
+		oiNew = pvObject->GetIndex();
 		mpcDependentObjects->AddIndexRemap(oiNew, oiOld);
 	}
 
@@ -244,7 +247,7 @@ BOOL CExternalObjectDeserialiser::AddContainingPointersAndCreateHollowObject(CDe
 		if (pcDependentReadObject->mcType == OBJECT_POINTER_NAMED)
 		{
 			pvObject = mpcObjects->AllocateExistingHollowFromMemoryOrMaybeANewNamedHollow(pcDependentReadObject->mszObjectName.Text(), pcDependentReadPointer->miNumEmbedded);
-			mpcDependentObjects->AddIndexRemap(pvObject->GetOI(), pcDependentReadPointer->moiPointedTo);
+			mpcDependentObjects->AddIndexRemap(pvObject->GetIndex(), pcDependentReadPointer->moiPointedTo);
 			pcBaseObject = pvObject;
 		}
 		else if (pcDependentReadObject->mcType == OBJECT_POINTER_ID)
@@ -274,8 +277,6 @@ OIndex CExternalObjectDeserialiser::GetNewIndexFromOld(OIndex oiOld)
 //////////////////////////////////////////////////////////////////////////
 CBaseObject* CExternalObjectDeserialiser::AllocateForDeserialisation(CObjectHeader* pcHeader)
 {
-	OIndex	oiExisting;
-
 	if (pcHeader->mcType == OBJECT_POINTER_NULL)
 	{
 		return NULL;
@@ -286,7 +287,7 @@ CBaseObject* CExternalObjectDeserialiser::AllocateForDeserialisation(CObjectHead
 	}
 	else if (pcHeader->mcType == OBJECT_POINTER_NAMED)
 	{
-		return mpcObjects->AllocateForDeserialisation(pcHeader->mszClassName.Text(), pcHeader->mszObjectName.Text(), pcHeader->moi, &oiExisting);
+		return mpcObjects->AllocateExistingNamed(pcHeader->mszClassName.Text(), pcHeader->mszObjectName.Text());
 	}
 	else
 	{
