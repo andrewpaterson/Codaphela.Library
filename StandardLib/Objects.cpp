@@ -57,7 +57,7 @@ void LogObjectAllocation(CBaseObject* pcObject, char* szMethod)
 	if (pcObject != NULL)
 	{
 		szClass = pcObject->ClassName();
-		szIndex = IndexToString(pcObject->GetOI());
+		szIndex = IndexToString(pcObject->GetIndex());
 		szName = pcObject->GetName();
 		szAddress = PointerToString(pcObject);
 		gcLogger.Debug2(szMethod, " Allocate ", szClass, ": ", szIndex, " ", szName, " (", szAddress, ")]", NULL);
@@ -87,7 +87,7 @@ void LogObjectDestruction(CBaseObject* pcObject, char* szMethod)
 	if (pcObject != NULL)
 	{
 		szClass = pcObject->ClassName();
-		szIndex = IndexToString(pcObject->GetOI());
+		szIndex = IndexToString(pcObject->GetIndex());
 		szName = pcObject->GetName();
 		szAddress = PointerToString(pcObject);
 		gcLogger.Debug2(szMethod, " Kill ", szClass, ": ", szIndex, " ", szName, " (", szAddress, ")]", NULL);
@@ -652,12 +652,7 @@ BOOL CObjects::AddObjectIntoMemoryWithIndexAndName(CBaseObject* pvObject, char* 
 	}
 	else
 	{
-		CChars sz;
-		sz.Init();
-		pvObject->GetIdentifier(&sz);
-		gcLogger.Error2(__METHOD__, " Cannot allocate object [", sz.Text(), "] with name [", szObjectName, "], it is not a named object.", NULL);
-		sz.Kill();
-		return FALSE;
+		return gcLogger.Error2(__METHOD__, " Cannot allocate object with name [", szObjectName, "], it is not a named object.", NULL);
 	}
 }
 
@@ -724,7 +719,7 @@ BOOL CObjects::Dename(CBaseObject* pvObject)
 //////////////////////////////////////////////////////////////////////////
 BOOL CObjects::Deindex(CBaseObject* pvObject)
 {
-	return mcMemory.RemoveIndex(pvObject->GetOI());
+	return mcMemory.RemoveIndex(pvObject->GetIndex());
 }
 
 
@@ -896,9 +891,9 @@ CBaseObject* CObjects::GetFromDatabase(OIndex oi)
 	pvBaseObject = cDeserialiser.Read(oi);
 	cDeserialiser.Kill();
 
-	if (pvBaseObject->GetOI() != oi)
+	if (pvBaseObject->GetIndex() != oi)
 	{
-		gcLogger.Error2(__METHOD__, " Requested object with index [", IndexToString(oi), "] but object had index [", IndexToString(pvBaseObject->GetOI()), "].", NULL);
+		gcLogger.Error2(__METHOD__, " Requested object with index [", IndexToString(oi), "] but object had index [", IndexToString(pvBaseObject->GetIndex()), "].", NULL);
 		return NULL;
 	}
 
@@ -1082,7 +1077,7 @@ BOOL CObjects::Remove(CArrayBlockObjectPtr* papcKilled)
 		if (pcKilled->IsEmbedded())
 		{
 			pcContainer = pcKilled->GetEmbeddingContainer();
-			gcLogger.Error2(__METHOD__, " Object of class [", pcKilled->ClassName(), "] is marked for killing but is embedded in object with index [", IndexToString(pcContainer->GetOI()),"] of class [", pcContainer->ClassName(), "].", NULL);
+			gcLogger.Error2(__METHOD__, " Object of class [", pcKilled->ClassName(), "] is marked for killing but is embedded in object with index [", IndexToString(pcContainer->GetIndex()),"] of class [", pcContainer->ClassName(), "].", NULL);
 			return FALSE;
 		}
 		else if (!pcKilled->IsAllocatedInObjects())
@@ -1469,14 +1464,18 @@ CBaseObject* CObjects::AllocateExistingNamed(char* szClassName, char* szObjectNa
 	pvOldObject = GetFromMemory(szObjectName);
 	if (pvOldObject)
 	{
-		oi = pvOldObject->GetOI();
+		oi = pvOldObject->GetIndex();
 	}
 	else
 	{
 		pvOldObject = GetFromDatabase(szObjectName);
 		if (pvOldObject)
 		{
-			oi = pvOldObject->GetOI();
+			oi = pvOldObject->GetIndex();
+		}
+		else
+		{
+			oi = GetNextIndex();
 		}
 	}
 
@@ -1493,11 +1492,18 @@ CBaseObject* CObjects::AllocateExistingNamed(char* szClassName, char* szObjectNa
 		return NULL;
 	}
 
-	pvReplacedObject = ReplaceExisting(pvOldObject, pvObject, oi);
-	if (!pvReplacedObject)
+	if (pvOldObject)
 	{
-		mpcUnknownsAllocatingFrom->RemoveInKill(pvObject);
-		return NULL;
+		pvReplacedObject = ReplaceExisting(pvOldObject, pvObject, oi);
+		if (!pvReplacedObject)
+		{
+			mpcUnknownsAllocatingFrom->RemoveInKill(pvObject);
+			return NULL;
+		}
+	}
+	else
+	{
+		pvReplacedObject = pvObject;
 	}
 
 	bResult = AddObjectIntoMemoryWithIndexAndName(pvReplacedObject, szObjectName, oi);
@@ -1546,53 +1552,6 @@ CBaseObject* CObjects::AllocateForExistingInDatabaseWithExplicitIdentifiers(char
 		return NULL;
 	}
 	return pvObject;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CBaseObject* CObjects::AllocateForDeserialisation(char* szClassName, char* szObjectName, OIndex oiForced, OIndex* poiExisting)
-{
-	CBaseObject*	pvObject;
-	CBaseObject*	pvExisting;
-	BOOL			bResult;
-
-	pvObject = AllocateNew(szClassName);
-	if (!pvObject)
-	{
-		gcLogger.Error2(__METHOD__, " Cannot allocate object named [", szObjectName, "] class [", szClassName, "].", NULL);
-		return NULL;
-	}
-
-	if (!pvObject->IsNamed())
-	{
-		gcLogger.Error2(__METHOD__, " Cannot allocate object named [", szObjectName, "] the class ", pvObject->ClassName(), " is not derived from NamedObject.", NULL);
-		pvObject->Kill();
-		return NULL;
-	}
-
-	pvExisting = GetFromMemory(szObjectName);
-	if (pvExisting == NULL)
-	{
-		bResult = AddObjectIntoMemoryWithIndexAndName(pvObject, szObjectName, oiForced);
-		if (!bResult)
-		{
-			pvObject->Kill();
-			return NULL;
-		}
-
-		*poiExisting = INVALID_O_INDEX;
-		return pvObject;
-	}
-	else
-	{
-		*poiExisting = pvExisting->GetOI();
-		pvObject = ReplaceExisting(pvExisting, pvObject, szObjectName, oiForced);
-
-		return pvObject;
-	}
 }
 
 

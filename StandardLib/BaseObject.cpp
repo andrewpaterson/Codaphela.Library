@@ -865,7 +865,7 @@ char* CBaseObject::GetIdentifier(CChars* psz)
 	char*	szName;
 	psz->Append(ClassName());
 	psz->Append(":");
-	psz->Append(GetOI());
+	psz->Append(GetIndex());
 	szName = GetName();
 	if (!StrEmpty(szName))
 	{
@@ -1027,7 +1027,7 @@ BOOL CBaseObject::ContainsPointerTo(CEmbeddedObject* pcEmbedded)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-OIndex CBaseObject::GetOI(void)
+OIndex CBaseObject::GetIndex(void)
 {
 	return moi;
 }
@@ -1709,7 +1709,7 @@ void CBaseObject::ValidateObjectIdentifiers(void)
 
 	if (!IsEmbedded())
 	{
-		pcThis = mpcObjectsThisIn->GetFromMemory(GetOI());
+		pcThis = mpcObjectsThisIn->GetFromMemory(GetIndex());
 		if (pcThis != this)
 		{
 			szThis.Init();

@@ -163,7 +163,6 @@ public:
 						CBaseObject*			AllocateExistingHollow(OIndex oiForced, uint16 iNumEmbedded);
 						CBaseObject*			AllocateExistingHollowFromMemoryOrMaybeANewNamedHollow(char* szObjectName, uint16 iNumEmbedded);
 						CBaseObject*			AllocateExistingHollowFromMemoryOrMaybeANewNamedHollow(char* szObjectName, OIndex oiForced, uint16 iNumEmbedded);
-						CBaseObject*			AllocateForDeserialisation(char* szClassName, char* szObjectName, OIndex oiForced, OIndex* poiExisting);
 
 protected:
 						CBaseObject*			ReplaceExisting(CBaseObject* pvExisting, CBaseObject* pvObject, char* szObjectName, OIndex oiForced);

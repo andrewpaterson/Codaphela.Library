@@ -54,7 +54,7 @@ public:
 
 	virtual int					GetDistToRoot(void) =0;
 	virtual int					GetDistToStack(void) =0;
-	virtual OIndex				GetOI(void);
+	virtual OIndex				GetIndex(void);
 	virtual BOOL				IsNamed(void);
 	virtual char*				GetName(void);
 	virtual BOOL				IsDirty(void);
