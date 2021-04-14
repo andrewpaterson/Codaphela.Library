@@ -1135,6 +1135,50 @@ int CObjects::NumMemoryNames(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+int64 CObjects::NumDatabaseIndexes(void)
+{
+	SIndexTreeFileIterator	sIter;
+	OIndex					oi;
+	int64					iCount;
+
+	iCount = 0;
+	oi = mpcDataConnection->StartIndexIteration(&sIter, NULL, NULL, 0);
+	while (oi != INVALID_O_INDEX)
+	{
+		iCount++;
+		oi = mpcDataConnection->IndexIterate(&sIter, NULL, NULL, 0);
+	}
+
+	return iCount;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CObjects::NumDatabaseNames(void)
+{
+	SIndexTreeFileIterator	sIter;
+	OIndex					oi;
+	int						iCount;
+
+	iCount = 0;
+	mpcDataConnection->StartNameIteration(&sIter, NULL, &oi);
+	while (oi != INVALID_O_INDEX)
+	{
+		iCount++;
+		mpcDataConnection->NameIterate(&sIter, NULL, &oi);
+	}
+
+	return iCount;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 CSequenceConnection* CObjects::GetIndexGenerator(void)
 {
 	return mpcSequenceConnection;

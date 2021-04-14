@@ -110,6 +110,9 @@ public:
 
 						int64					NumMemoryIndexes(void);
 						int						NumMemoryNames(void);
+						int64					NumDatabaseIndexes(void);
+						int						NumDatabaseNames(void);
+
 						CSequenceConnection*	GetIndexGenerator(void);
 						CNamedIndexedObjects*	GetMemory(void);
 						BOOL					EvictInMemory(void);

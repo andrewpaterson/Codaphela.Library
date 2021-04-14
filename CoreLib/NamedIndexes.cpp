@@ -331,12 +331,18 @@ BOOL CNamedIndexes::StartIteration(SIndexTreeFileIterator* psIterator, char* szK
 	bExists = mcIndexTree.StartIteration(psIterator, szKey, &iKeySize, MAX_KEY_SIZE, poi, &iDataSize, sizeof(OIndex));
 	if (bExists)
 	{
-		szKey[iKeySize] = '\0';
+		if (szKey)
+		{
+			szKey[iKeySize] = '\0';
+		}
 	}
 	else
 	{
-		*poi = INVALID_O_INDEX;
-		szKey[0] = '\0';
+		SafeAssign(poi, INVALID_O_INDEX);
+		if (szKey)
+		{
+			szKey[0] = '\0';
+		}
 	}
 	return bExists;
 }
@@ -355,12 +361,18 @@ BOOL CNamedIndexes::Iterate(SIndexTreeFileIterator* psIterator, char* szKey, OIn
 	bExists = mcIndexTree.Iterate(psIterator, szKey, &iKeySize, MAX_KEY_SIZE, poi, &iDataSize, sizeof(OIndex));
 	if (bExists)
 	{
-		szKey[iKeySize] = '\0';
+		if (szKey)
+		{
+			szKey[iKeySize] = '\0';
+		}
 	}
 	else
 	{
-		*poi = INVALID_O_INDEX;
-		szKey[0] = '\0';
+		SafeAssign(poi, INVALID_O_INDEX);
+		if (szKey)
+		{
+			szKey[0] = '\0';
+		}
 	}
 	return bExists;
 }
