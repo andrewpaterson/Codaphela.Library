@@ -29,6 +29,8 @@ public:
 	int					NumPointerTos(void);
 	void				ValidateConsistency(void);
 	BOOL				IsInitialised(void);
+	BOOL				IsDirty(void);
+	void				SetDirty(BOOL bDirty);
 
 protected:
 	void				UpdateAttachedEmbeddedObjectPointerTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist);

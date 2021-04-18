@@ -604,6 +604,21 @@ BOOL CObjects::ForceSave(CBaseObject* pcObject)
 	CObjectWriterIndexed		cWriter;
 	CBaseObject*				pcContainer;
 
+	if (!pcObject)
+	{
+		return gcLogger.Error2(__METHOD__, " Cannot Save object [NULL].", NULL);
+	}
+	if (!mpcDataConnection)
+	{
+		CChars	sz;
+
+		sz.Init();
+		pcObject->GetIdentifier(&sz);
+		gcLogger.Error2(__METHOD__, " Cannot save object [", sz.Text(), "], Objects has data connection [NULL].", NULL);
+		sz.Kill();
+		return FALSE;
+	}
+
 	pcContainer = pcObject->GetEmbeddingContainer();
 
 	cWriter.Init(mpcDataConnection, 0);
@@ -727,14 +742,14 @@ BOOL CObjects::Deindex(CBaseObject* pvObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CRoot> CObjects::AddRoot(void)
+Ptr<CRoot> CObjects::Root(void)
 {
 	Ptr<CRoot>	pRoot;
 
 	pRoot = GetRoot();
-	if (!pRoot)
+	if (pRoot.IsNull())
 	{
-		pRoot = Add<CRoot>(ROOT_NAME)->Init();
+		pRoot = Malloc<CRoot>(ROOT_NAME)->Init();
 	}
 	return pRoot;
 }
@@ -1227,7 +1242,7 @@ BOOL CObjects::ValidateCanAllocate(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CObjects::AllocateUninitialised(char* szClassName)
+CBaseObject* CObjects::AllocateUninitialisedByClassName(char* szClassName)
 {
 	CBaseObject*	pvObject;
 	BOOL			bResult;
@@ -1241,7 +1256,6 @@ CBaseObject* CObjects::AllocateUninitialised(char* szClassName)
 	pvObject = (CBaseObject*)mpcUnknownsAllocatingFrom->Add(szClassName);
 	if (pvObject)
 	{
-		//pvObject->CBaseObject::Allocate(this);  Should this call CBaseObject::Allocate instead?
 		pvObject->Allocate(this);
 	}
 	return pvObject;
@@ -1307,14 +1321,14 @@ CNamedHollowObject* CObjects::AllocateNamedHollow(uint16 iNumEmbedded)
 	}
 	if (iNumEmbedded == 1)
 	{
-		pcHollow = AllocateWithAdditionBytes<CNamedHollowObject>(0);
+		pcHollow = AllocateUninitialisedByTemplate<CNamedHollowObject>(0);
 		pcHollow->Init(1);
 		return pcHollow;
 	}
 	else
 	{
 		iAdditionalBytes = sizeof(CHollowEmbeddedObject) * (iNumEmbedded-1);
-		pcHollow = AllocateWithAdditionBytes<CNamedHollowObject>(iAdditionalBytes);
+		pcHollow = AllocateUninitialisedByTemplate<CNamedHollowObject>(iAdditionalBytes);
 		pcHollow->Init(iNumEmbedded);
 
 		iHollowSize = sizeof(CNamedHollowObject);
@@ -1342,14 +1356,14 @@ CHollowObject* CObjects::AllocateHollow(uint16 iNumEmbedded)
 	}
 	if (iNumEmbedded == 1)
 	{
-		pcHollow = AllocateWithAdditionBytes<CHollowObject>(0);
+		pcHollow = AllocateUninitialisedByTemplate<CHollowObject>(0);
 		pcHollow->Init(1);
 		return pcHollow;
 	}
 	else
 	{
 		iAdditionalBytes = sizeof(CHollowEmbeddedObject) * (iNumEmbedded-1);
-		pcHollow = AllocateWithAdditionBytes<CHollowObject>(iAdditionalBytes);
+		pcHollow = AllocateUninitialisedByTemplate<CHollowObject>(iAdditionalBytes);
 		pcHollow->Init(iNumEmbedded);
 
 		pvEmbedded = RemapSinglePointer(pcHollow, sizeof(CHollowObject));
@@ -1400,7 +1414,7 @@ CBaseObject* CObjects::AllocateNew(char* szClassName)
 	CBaseObject*	pvObject;
 	OIndex			oi;
 
-	pvObject = AllocateUninitialised(szClassName);
+	pvObject = AllocateUninitialisedByClassName(szClassName);
 	if (!pvObject)
 	{
 		return NULL;
@@ -1423,7 +1437,7 @@ CBaseObject* CObjects::AllocateForDeserialisation(char* szClassName, OIndex oiFo
 	CBaseObject* pvObject;
 	BOOL			bResult;
 
-	pvObject = AllocateUninitialised(szClassName);
+	pvObject = AllocateUninitialisedByClassName(szClassName);
 	if (!pvObject)
 	{
 		return NULL;
@@ -1466,7 +1480,7 @@ CBaseObject* CObjects::AllocateNewNamed(char* szClassName, char* szObjectName)
 		return NULL;
 	}
 
-	pvObject = AllocateUninitialised(szClassName);
+	pvObject = AllocateUninitialisedByClassName(szClassName);
 	if (!pvObject)
 	{
 		gcLogger.Error2(__METHOD__, " Cannot allocate object named [", szObjectName, "] class [", szClassName, "].", NULL);
@@ -1523,7 +1537,7 @@ CBaseObject* CObjects::AllocateExistingNamed(char* szClassName, char* szObjectNa
 		}
 	}
 
-	pvObject = AllocateUninitialised(szClassName);
+	pvObject = AllocateUninitialisedByClassName(szClassName);
 	if (!pvObject)
 	{
 		gcLogger.Error2(__METHOD__, " Cannot allocate object named [", szObjectName, "] class [", szClassName, "].", NULL);
@@ -1583,7 +1597,7 @@ CBaseObject* CObjects::AllocateForExistingInDatabaseWithExplicitIdentifiers(char
 		return NULL;
 	}
 
-	pvObject = AllocateUninitialised(szClassName);
+	pvObject = AllocateUninitialisedByClassName(szClassName);
 	if (!pvObject)
 	{
 		return NULL;
@@ -1732,14 +1746,13 @@ CBaseObject* CObjects::AllocateExistingHollowFromMemoryOrMaybeANewNamedHollow(ch
 	}
 
 	bResult = AddObjectIntoMemoryWithIndexAndName(pcHollow, szObjectName, oiForced);
-	if (bResult)
+	if (!bResult)
 	{
-		return pcHollow;
-	}
-	else
-	{
+		mpcUnknownsAllocatingFrom->RemoveInKill(pcHollow);
 		return NULL;
 	}
+
+	return pcHollow;
 }
 
 
@@ -1750,8 +1763,9 @@ CBaseObject* CObjects::AllocateExistingHollowFromMemoryOrMaybeANewNamedHollow(ch
 CBaseObject* CObjects::AllocateExistingHollowFromMemoryOrMaybeANewNamedHollow(char* szObjectName, uint16 iNumEmbedded)
 {
 	CNamedHollowObject* pcHollow;
-	BOOL					bResult;
-	CBaseObject* pvExisting;
+	BOOL				bResult;
+	CBaseObject*		pvExisting;
+	OIndex				oi;
 
 	if ((szObjectName == NULL || szObjectName[0] == '\0'))
 	{
@@ -1772,15 +1786,15 @@ CBaseObject* CObjects::AllocateExistingHollowFromMemoryOrMaybeANewNamedHollow(ch
 
 	pcHollow->InitName(szObjectName);
 
-	bResult = AddObjectIntoMemoryWithIndexAndName(pcHollow, szObjectName, GetIndexGenerator()->GetNext());
-	if (bResult)
+	oi = GetIndexGenerator()->GetNext();
+	bResult = AddObjectIntoMemoryWithIndexAndName(pcHollow, szObjectName, oi);
+	if (!bResult)
 	{
-		return pcHollow;
-	}
-	else
-	{
+		mpcUnknownsAllocatingFrom->RemoveInKill(pcHollow);
 		return NULL;
 	}
+
+	return pcHollow;
 }
 
 

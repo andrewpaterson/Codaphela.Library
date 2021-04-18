@@ -7,6 +7,7 @@
 #include "ObjectPointerArrays.h"
 #include "DistToRootCalculator.h"
 #include "DistToStackCalculator.h"
+#include "Primitive.h"
 #include "Unknown.h"
 
 
@@ -57,7 +58,8 @@ public:
 	virtual OIndex				GetIndex(void);
 	virtual BOOL				IsNamed(void);
 	virtual char*				GetName(void);
-	virtual BOOL				IsDirty(void);
+	virtual BOOL				IsDirty(void) =0;
+	virtual void				SetDirty(BOOL bDirty) =0;
 	virtual void				ClearIndex(void);
 	virtual void				ClearName(void);
 	virtual BOOL				IsBaseObject(void);

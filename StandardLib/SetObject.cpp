@@ -70,7 +70,7 @@ void CSetObject::RemoveDuringIteration(SSetIterator* psIter)
 CPointer CSetObject::StartIteration(SSetIterator* psIter)
 {
 	CBaseObject*	pcObject;
-	CPointer	pObject;
+	CPointer		pObject;
 
 	pcObject = (CBaseObject*)mcArray.StartIteration(psIter);
 	pObject.AssignObject(pcObject);

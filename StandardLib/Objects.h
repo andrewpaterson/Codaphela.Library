@@ -36,7 +36,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 #define CLEAR_MEMORY_CHUNK_SIZE		16384
 
-#define ORoot()						(gcObjects.AddRoot())
+#define ORoot()						(gcObjects.Root())
 #define ONull						(Null())
 
 
@@ -78,11 +78,6 @@ public:
 												CObjects();
 						void					Init(CUnknowns* pcUnknownsAllocatingFrom, CStackPointers* pcStackPointers, CDataConnection* pcDataConnection, CSequenceConnection* pcSequenceConnection);
 						void					Kill(void);
-						void					DumpIndex(void);
-						void					DumpNames(void);
-						void					DumpGraph(void);
-						void					ValidateEmpty(void);
-						void					ValidateObjectsConsistency(void);
 
 	template<class M>	void					AddConstructor(void);
 	template<class M>	CObjectSource*			AddSource(CAbstractFile* pcFile, char* szFileName);
@@ -96,12 +91,10 @@ public:
 	template<class M>	Ptr<M>					Get(char* szObjectName);
 						BOOL					Contains(char* szObjectName);
 
-	template<class M>	Ptr<M>					Add(void);
-	template<class M>	Ptr<M>					Add(char* szObjectName);
+	template<class M> 	Ptr<M>					Malloc(void);
+	template<class M>	Ptr<M>					Malloc(char* szObjectName);
 
-						Ptr<CRoot>				AddRoot(void);
-						Ptr<CRoot>				GetRoot(void);
-						BOOL					HasRoot(void);
+						Ptr<CRoot>				Root(void);
 
 						BOOL					Remove(CArrayBlockObjectPtr* papcKilled);
 
@@ -130,11 +123,23 @@ public:
 						OIndex					IterateMemory(SIndexesIterator* psIter);
 						CPointer				TestGetFromMemory(OIndex oi);
 						CPointer				TestGetFromMemory(char* szName);
+
+						void					DumpIndex(void);
+						void					DumpNames(void);
+						void					DumpGraph(void);
+						void					ValidateEmpty(void);
+						void					ValidateObjectsConsistency(void);
+
 protected:
+						Ptr<CRoot>				GetRoot(void);
+						BOOL					HasRoot(void);
+
 						BOOL					AddObjectIntoMemoryWithIndex(CBaseObject* pvObject, OIndex oi);
 						BOOL					AddObjectIntoMemoryWithIndexAndName(CBaseObject* pvObject, char* szObjectName, OIndex oi);
-	template<class M>	M*						AllocateWithAdditionBytes(int iAdditionalBytes);
-						CBaseObject*			AllocateUninitialised(char* szClassName);
+	template<class M> 	Ptr<M>					PointTo(M* pcObject);
+	template<class M> 	Ptr<M>					PointToSetDirty(M* pcObject);
+	template<class M>	M*						AllocateUninitialisedByTemplate(int iAdditionalBytes);
+						CBaseObject*			AllocateUninitialisedByClassName(char* szClassName);
 						BOOL					ValidateCanAllocate(char* szClassName);
 						BOOL					ValidateCanAllocate(void);
 						CBaseObject*			GetFromMemory(OIndex oi);
@@ -158,6 +163,10 @@ protected:
 						void					AppenedHollowEmbeddedObjects(CBaseObject* pcHollow, uint16 iNumEmbedded, void* pvEmbedded) ;
 						void					PrintMemory(CChars* psz);
 
+
+protected:  //Above is protected also:
+						template<class M>	M* AllocateNewByTemplate(void);
+						template<class M>	M* AllocateNewByTemplate(char* szObjectName);
 public:
 						CBaseObject*			AllocateNew(char* szClassName);
 						CBaseObject*			AllocateExistingNamed(char* szClassName, char* szObjectName);  //This mean overwrite an existing object with a new object (with the same name).
@@ -191,11 +200,11 @@ void LogObjectDestruction(CBaseObject* pcObject, char* szMethod);
 //
 //
 //////////////////////////////////////////////////////////////////////////
-template<class M>	
-M* CObjects::AllocateWithAdditionBytes(int iAdditionalBytes)
+template<class SpecificClass>
+SpecificClass* CObjects::AllocateUninitialisedByTemplate(int iAdditionalBytes)
 {
-	M*		pcObject;
-	BOOL	bResult;
+	SpecificClass*	pcObject;
+	BOOL			bResult;
 
 	bResult = ValidateCanAllocate();
 	if (!bResult)
@@ -203,7 +212,7 @@ M* CObjects::AllocateWithAdditionBytes(int iAdditionalBytes)
 		return NULL;
 	}
 
-	pcObject = mpcUnknownsAllocatingFrom->Add<M>(iAdditionalBytes);
+	pcObject = mpcUnknownsAllocatingFrom->Add<SpecificClass>(iAdditionalBytes);
 	if (pcObject)
 	{
 		pcObject->Allocate(this);
@@ -216,25 +225,64 @@ M* CObjects::AllocateWithAdditionBytes(int iAdditionalBytes)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-//Called by Macro 'OMalloc'
-Ptr<M> CObjects::Add(void)
+template<class SpecificClass>
+SpecificClass* CObjects::AllocateNewByTemplate(void)
 {
-	Ptr<M>	pObject;
-	M*		pvObject;
-	OIndex	oi;
+	SpecificClass*	pvObject;
+	OIndex			oi;
+	BOOL			bResult;
 
-	pvObject = AllocateWithAdditionBytes<M>(0);
+	pvObject = AllocateUninitialisedByTemplate<SpecificClass>(0);
 	if (!pvObject)
 	{
-		return pObject;
+		return pvObject;
 	}
 
 	oi = GetIndexGenerator()->GetNext();
-	AddObjectIntoMemoryWithIndex(pvObject, oi);
+	bResult = AddObjectIntoMemoryWithIndex(pvObject, oi);
+	if (!bResult)
+	{
+		mpcUnknownsAllocatingFrom->RemoveInKill(pvObject);
+		return NULL;
+	}
 
-	//No PointTo because we don't know the embedding object until assignment.
-	pObject.AssignObject(pvObject);
+	return pvObject;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class SpecificClass>
+SpecificClass* CObjects::AllocateNewByTemplate(char* szObjectName)
+{
+	SpecificClass*	pvObject;
+	BOOL			bResult;
+	OIndex			oi;
+
+	pvObject = AllocateUninitialisedByTemplate<SpecificClass>(0);
+
+	oi = GetNextIndex();
+	bResult = AddObjectIntoMemoryWithIndexAndName(pvObject, szObjectName, oi);
+	if (!bResult)
+	{
+		mpcUnknownsAllocatingFrom->RemoveInKill(pvObject);
+		return NULL;
+	}
+
+	return pvObject;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class SpecificClass>
+Ptr<SpecificClass> CObjects::Null(void)
+{
+	Ptr<SpecificClass> pObject;
 	return pObject;
 }
 
@@ -243,38 +291,15 @@ Ptr<M> CObjects::Add(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-//Called by Macro 'ONMalloc'.  Note the 'N'.
-Ptr<M> CObjects::Add(char* szObjectName)
+template<class SpecificClass>
+Ptr<SpecificClass> CObjects::PointTo(SpecificClass* pcObject)
 {
-	Ptr<M>	pObject;
-	M*		pvObject;
-	BOOL	bResult;
+	Ptr<SpecificClass>	pObject;
 
-	pvObject = AllocateWithAdditionBytes<M>(0);
-	bResult = AddObjectIntoMemoryWithIndexAndName(pvObject, szObjectName, GetNextIndex());
-	if (bResult)
+	if (pcObject)
 	{
-		//No PointTo because we don't know the embedding object until assignment.
-		pObject.AssignObject(pvObject);
-		return pObject;
+		pObject.AssignObject(pcObject);
 	}
-	else
-	{
-		mpcUnknownsAllocatingFrom->Remove(pvObject);
-		return Null<M>();
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-template<class M>
-Ptr<M> CObjects::Null(void)
-{
-	Ptr<M> pObject;
 	return pObject;
 }
 
@@ -283,23 +308,17 @@ Ptr<M> CObjects::Null(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-Ptr<M> CObjects::Get(OIndex oi)
+template<class SpecificClass>
+Ptr<SpecificClass> CObjects::PointToSetDirty(SpecificClass* pcObject)
 {
-	CBaseObject*	pvObject;
+	Ptr<SpecificClass>	pObject;
 
-	pvObject = mcMemory.Get(oi);
-	if (pvObject)
+	if (pcObject)
 	{
-		Ptr<M>		pObject;
-
-		pObject.AssignObject(pvObject);
-		return pObject;
+		pObject.AssignObject(pcObject);
+		pcObject->SetDirty(TRUE);
 	}
-	else
-	{
-		return Null<M>();
-	}
+	return pObject;
 }
 
 
@@ -307,23 +326,47 @@ Ptr<M> CObjects::Get(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-Ptr<M> CObjects::Get(char* szObjectName)
+template<class SpecificClass>
+Ptr<SpecificClass> CObjects::Malloc(void)
 {
-	CBaseObject*	pvObject;
+	SpecificClass* pcObject = AllocateNewByTemplate<SpecificClass>();
+	return PointToSetDirty(pcObject);
+}
 
-	pvObject = mcMemory.Get(szObjectName);
-	if (pvObject)
-	{
-		Ptr<M>		pObject;
 
-		pObject.AssignObject(pvObject);
-		return pObject;
-	}
-	else
-	{
-		return Null<M>();
-	}
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class SpecificClass>
+Ptr<SpecificClass> CObjects::Malloc(char* szObjectName)
+{
+	SpecificClass* pcObject = AllocateNewByTemplate<SpecificClass>(szObjectName);
+	return PointToSetDirty(pcObject);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class SpecificClass>
+Ptr<SpecificClass> CObjects::Get(OIndex oi)
+{
+	SpecificClass* pcObject = pcObject = (SpecificClass*)mcMemory.Get(oi);
+	return PointTo<SpecificClass>(pcObject);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class SpecificClass>
+Ptr<SpecificClass> CObjects::Get(char* szObjectName)
+{
+	SpecificClass* pcObject = (SpecificClass*)mcMemory.Get(szObjectName);
+	return PointTo<SpecificClass>(pcObject);
 }
 
 
@@ -332,10 +375,10 @@ Ptr<M> CObjects::Get(char* szObjectName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-template<class M>
+template<class SpecificClass>
 void CObjects::AddConstructor(void)
 {
-	mpcUnknownsAllocatingFrom->AddConstructor<M>();
+	mpcUnknownsAllocatingFrom->AddConstructor<SpecificClass>();
 }
 
 
@@ -343,10 +386,10 @@ void CObjects::AddConstructor(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-template<class M>
+template<class SpecificClass>
 CObjectSource* CObjects::AddSource(CAbstractFile* pcFile, char* szFileName)
 {
-	return mcSource.AddSource<M>(pcFile, szFileName);
+	return mcSource.AddSource<SpecificClass>(pcFile, szFileName);
 }
 
 
@@ -357,9 +400,7 @@ CObjectSource* CObjects::AddSource(CAbstractFile* pcFile, char* szFileName)
 template <class SpecificClass, typename ... Args>
 Ptr<SpecificClass> OMalloc(Args ... args)
 {
-	Ptr<SpecificClass>	pObject;
-
-	pObject = gcObjects.Add<SpecificClass>();
+	Ptr<SpecificClass> pObject = gcObjects.Malloc<SpecificClass>();
 	if (pObject.IsNotNull())
 	{
 		pObject->Init(args...);
@@ -375,15 +416,14 @@ Ptr<SpecificClass> OMalloc(Args ... args)
 template <class SpecificClass, typename ... Args>
 Ptr<SpecificClass> ONMalloc(char* szObjectName, Args ... args)
 {
-	Ptr<SpecificClass>	pObject;
-
-	pObject = gcObjects.Add<SpecificClass>(szObjectName);
+	Ptr<SpecificClass> pObject = gcObjects.Malloc<SpecificClass>(szObjectName);
 	if (pObject.IsNotNull())
 	{
 		pObject->Init(args...);
 	}
 	return pObject;
 }
+
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -392,9 +432,7 @@ Ptr<SpecificClass> ONMalloc(char* szObjectName, Args ... args)
 template <class SpecificClass, typename ... Args>
 Ptr<SpecificClass> ONMalloc(const char* szObjectName, Args ... args)
 {
-	Ptr<SpecificClass>	pObject;
-
-	pObject = gcObjects.Add<SpecificClass>((char*)szObjectName);
+	Ptr<SpecificClass> pObject = gcObjects.Malloc<SpecificClass>((char*)szObjectName);
 	if (pObject.IsNotNull())
 	{
 		pObject->Init(args...);

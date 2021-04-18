@@ -88,6 +88,7 @@
   <ItemGroup>
     <ClInclude Include="Array.h" />
     <ClInclude Include="ArrayUnknownPtr.h" />
+    <ClInclude Include="Character.h" />
     <ClInclude Include="ChunkFileNames.h" />
     <ClInclude Include="DependentObjectAdder.h" />
     <ClInclude Include="DependentReadObject.h" />
@@ -99,6 +100,8 @@
     <ClInclude Include="DistCalculatorParameters.h" />
     <ClInclude Include="DistToStackCalculator.h" />
     <ClInclude Include="EmbeddedObject.h" />
+    <ClInclude Include="Float.h" />
+    <ClInclude Include="PrimitiveObject.h" />
     <ClInclude Include="HollowEmbeddedObject.h" />
     <ClInclude Include="InternalObjectDeserialiser.h" />
     <ClInclude Include="Null.h" />
@@ -130,6 +133,8 @@
     <ClInclude Include="ObjectsSource.h" />
     <ClInclude Include="Parameters.h" />
     <ClInclude Include="PointerContainer.h" />
+    <ClInclude Include="Integer.h" />
+    <ClInclude Include="Primitive.h" />
     <ClInclude Include="SerialisedObject.h" />
     <ClInclude Include="Set.h" />
     <ClInclude Include="StackPointer.h" />
@@ -233,6 +238,7 @@
     <ClCompile Include="ObjectsSource.cpp" />
     <ClCompile Include="ObjectWriter.cpp" />
     <ClCompile Include="PointerContainer.cpp" />
+    <ClCompile Include="PrimitiveObject.cpp" />
     <ClCompile Include="SerialisedObject.cpp" />
     <ClCompile Include="StackPointer.cpp" />
     <ClCompile Include="StackPointers.cpp" />

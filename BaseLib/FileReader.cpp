@@ -161,6 +161,7 @@ BOOL CFileReader::ReadChar(char* pc)
 	return TRUE;
 }
 
+
 //////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//
@@ -168,6 +169,17 @@ BOOL CFileReader::ReadChar(char* pc)
 BOOL CFileReader::ReadChar(unsigned char* pc)
 {
 	CheckRead(pc, sizeof(unsigned char));
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+BOOL CFileReader::ReadWChar(char16* pc)
+{
+	CheckRead(pc, sizeof(char16));
 	return TRUE;
 }
 

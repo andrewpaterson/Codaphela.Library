@@ -55,7 +55,7 @@ BOOL CFileWriter::WriteString(const char* szString)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileWriter::WriteInt(int i)
+BOOL CFileWriter::WriteInt(int32 i)
 {
 	CheckWrite(&i, sizeof(int));
 	return TRUE;
@@ -102,6 +102,17 @@ BOOL CFileWriter::WriteDouble(double f)
 BOOL CFileWriter::WriteChar(char c)
 {
 	CheckWrite(&c, sizeof(char));
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+BOOL CFileWriter::WriteWChar(char16 c)
+{
+	CheckWrite(&c, sizeof(char16));
 	return TRUE;
 }
 

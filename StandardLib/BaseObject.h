@@ -76,8 +76,8 @@ CONSTRUCTABLE(CBaseObject);
 protected:
 	OIndex		moi;
 	CObjects*	mpcObjectsThisIn;
-	int			miDistToRoot;
-	int			miDistToStack;
+	int32		miDistToRoot;
+	int32		miDistToStack;
 	uint16		miFlags;
 	uint16		miNumEmbedded;
 	uint16		miPreInits;
@@ -109,7 +109,7 @@ public:
 	virtual BOOL				IsObject(void) =0;
 	virtual BOOL				IsNamed(void);
 			BOOL				IsInvalidated(void);
-	virtual BOOL				IsDirty(void);
+			BOOL				IsDirty(void);
 			BOOL				IsUpdateAttachedPointerTosDistToRoot(void);
 			BOOL				IsInitialised(void);
 			BOOL				HasClass(void);

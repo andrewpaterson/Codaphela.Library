@@ -39,7 +39,7 @@ public:
 						BOOL	WriteString(const char* szString);
 
 	//Helpers.		
-						BOOL	WriteInt(int i);
+						BOOL	WriteInt(int32 i);
 						BOOL	WriteInt(unsigned int i);
 						BOOL	WriteLong(long long int i);
 						BOOL	WriteLong(unsigned long long int i);
@@ -47,6 +47,7 @@ public:
 						BOOL	WriteDouble(double f);
 						BOOL	WriteChar(char c);
 						BOOL	WriteChar(unsigned char c);
+						BOOL	WriteWChar(char16 c);
 						BOOL	WriteBool(BOOL b);
 						BOOL	WriteShort(int16 i);
 						BOOL	WriteShort(uint16 i);

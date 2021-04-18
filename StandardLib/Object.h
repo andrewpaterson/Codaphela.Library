@@ -42,8 +42,11 @@ public:
 	BOOL				IsCollection(void);
 	BOOL				IsObject(void);
 	void				SetPointerTosExpectedDistToRoot(int iDistToRoot);
+
 	CPointer*			Pointer(CPointer* pcPointer);
 	void				Embedded(CBaseObject* pcObject);
+	void				Primitive(CPrimitiveObject* pcPrimitive);
+
 	BOOL				IsDirty(void);
 	int					GetEmbeddedIndex(CEmbeddedObject* pcEmbedded);
 	uint16				GetNumEmbedded(void);
