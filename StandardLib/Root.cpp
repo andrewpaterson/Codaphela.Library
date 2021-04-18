@@ -88,7 +88,7 @@ void CRoot::Class(void)
 //////////////////////////////////////////////////////////////////////////
 void CRoot::CreateSet(void)
 {
-	mpObjects = mpcObjectsAllocatingFrom->Add<CSetObject>()->Init();
+	mpObjects = mpcObjectsAllocatingFrom->Malloc<CSetObject>()->Init();
 	mpObjects->MakeSubRoot();
 }
 

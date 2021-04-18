@@ -64,10 +64,10 @@ Ptr<M>::Ptr()
 template<class M>
 Ptr<M>::Ptr(CPointer& cPointer)
 {
-	LOG_POINTER_DEBUG();
-
 	mpcEmbedding = NULL;
 	mpcObject = NULL;
+
+	LOG_POINTER_DEBUG();
 
 	PointTo(cPointer.mpcObject, FALSE);
 }

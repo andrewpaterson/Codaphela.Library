@@ -49,6 +49,7 @@ public:
 						BOOL	ReadDouble(double* pf);
 						BOOL	ReadChar(char* pc);
 						BOOL	ReadChar(unsigned char* pc);
+						BOOL	ReadWChar(char16* pc);
 						BOOL	ReadBool(BOOL* pb);
 						BOOL	ReadShort(int16* pi);
 						BOOL	ReadShort(uint16* pi);

@@ -98,6 +98,7 @@ enum EPrimitiveTypes
 	PT_int4,	//128
 	PT_bool, 	//32
 	PT_void,	//0
+	PT_wchar,	//16
 
 	//"Complex" primitives, so widely used they're included
 	PT_String,  //CChars

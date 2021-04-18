@@ -36,10 +36,10 @@ void LogPointerDebug(CPointer* pvThis, char* szMethod)
 {
 #ifdef DEBUG_POINTER
 #ifdef DEBUG
-	char*	szEmbeddingClass;
-	char*	szEmbeddingName;
-	char*	szEmbeddingIndex;
-	char*	szEmbeddingAddress;
+	const char*	szEmbeddingClass;
+	char*		szEmbeddingName;
+	char*		szEmbeddingIndex;
+	char*		szEmbeddingAddress;
 
 	CObject*	pcEmbedding;
 
@@ -211,6 +211,7 @@ void CPointer::PointTo(CEmbeddedObject* pcNewObject, BOOL bKillIfNoRoot)
 {
 	CEmbeddedObject*	pcOldObject;
 
+	//Any pointers with a numerical value less than 16384 cannot be valid assignments.
 	if ((char*)this < (char*)(16 KB))
 	{
 		return;
@@ -228,13 +229,17 @@ void CPointer::PointTo(CEmbeddedObject* pcNewObject, BOOL bKillIfNoRoot)
 				if (mpcObject)
 				{
 					mpcObject->AddHeapFrom(mpcEmbedding, FALSE);
+					mpcObject->SetDirty(TRUE);
 				}
 				pcOldObject->RemoveHeapFrom(mpcEmbedding, TRUE);
+				pcOldObject->SetDirty(TRUE);
 			}
 			else if (mpcObject)
 			{
 				mpcObject->AddHeapFrom(mpcEmbedding, TRUE);
+				mpcObject->SetDirty(TRUE);
 			}
+			mpcEmbedding->SetDirty(TRUE);
 		}
 		else
 		{

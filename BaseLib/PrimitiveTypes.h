@@ -26,18 +26,17 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 
 typedef char					int8;
-typedef unsigned char			uint8;
-typedef int						int32;
-typedef unsigned int			uint32;
 typedef short int				int16;
+typedef int						int32;
+typedef long long int			int64;
+typedef unsigned char			uint8;
+typedef unsigned int			uint32;
+typedef unsigned short int		uint16;
+typedef unsigned long long int	uint64;
 typedef char					char8;
 typedef wchar_t					char16;
 typedef float					float32;
 typedef double					float64;
-typedef unsigned int			uint32;
-typedef unsigned short int		uint16;
-typedef long long int			int64;
-typedef unsigned long long int	uint64;
 
 
 #endif // __PRIMITIVE_TYPES_H__

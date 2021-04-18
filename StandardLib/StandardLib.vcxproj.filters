@@ -133,8 +133,8 @@
     <Filter Include="Source\Object\Object\String">
       <UniqueIdentifier>{7967ff9e-3665-4856-a8e3-bb8fd1129628}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Object\Object\NewFilter1">
-      <UniqueIdentifier>{77aff5f8-fd5e-447c-8ddd-63d2c6c93e1f}</UniqueIdentifier>
+    <Filter Include="Source\Object\Object\Primitive">
+      <UniqueIdentifier>{141e3edc-97a1-49b8-8981-69c69006aea7}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -453,6 +453,21 @@
     <ClInclude Include="ExternalObjectDeserialiser.h">
       <Filter>Source\Object\Object\Serilalisation\Graph</Filter>
     </ClInclude>
+    <ClInclude Include="Integer.h">
+      <Filter>Source\Object\Object\Primitive</Filter>
+    </ClInclude>
+    <ClInclude Include="Primitive.h">
+      <Filter>Source\Object\Object\Primitive</Filter>
+    </ClInclude>
+    <ClInclude Include="PrimitiveObject.h">
+      <Filter>Source\Object\Object\Primitive</Filter>
+    </ClInclude>
+    <ClInclude Include="Float.h">
+      <Filter>Source\Object\Object\Primitive</Filter>
+    </ClInclude>
+    <ClInclude Include="Character.h">
+      <Filter>Source\Object\Object\Primitive</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Unknown.cpp">
@@ -733,6 +748,9 @@
     </ClCompile>
     <ClCompile Include="ExternalObjectDeserialiser.cpp">
       <Filter>Source\Object\Object\Serilalisation\Graph</Filter>
+    </ClCompile>
+    <ClCompile Include="PrimitiveObject.cpp">
+      <Filter>Source\Object\Object\Primitive</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

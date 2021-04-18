@@ -20,6 +20,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include "PointerObject.h"
 #include "Objects.h"
+#include "Primitive.h"
 #include "Object.h"
 
 
@@ -749,6 +750,16 @@ void CObject::Embedded(CBaseObject* pcObject)
 	pcObject->Class();
 	pcObject->mpcEmbedded = this;
 	mapEmbedded.Add(&pcObject);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CObject::Primitive(CPrimitiveObject* pcPrimitive)
+{
+	pcPrimitive->SetEmbedding(this);
 }
 
 

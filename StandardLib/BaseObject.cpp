@@ -36,7 +36,7 @@ CBaseObject::CBaseObject()
 	miDistToRoot = UNATTACHED_DIST_TO_ROOT;
 	miDistToStack = MIN_STACK_DIST_TO_STACK;
 	moi = INVALID_O_INDEX;
-	miFlags = OBJECT_FLAGS_DIRTY | OBJECT_FLAGS_CALLED_CONSTRUCTOR;
+	miFlags = OBJECT_FLAGS_CALLED_CONSTRUCTOR;
 	miNumEmbedded = 0;
 	miPreInits = 0;
 	miPostInits = 0;
@@ -781,7 +781,7 @@ void CBaseObject::ClearDistTouchedFlags(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CBaseObject::HasDistTouchedFlag(void)
 {
-	return miFlags & (OBJECT_FLAGS_CLEARED_DIST_TO_ROOT | OBJECT_FLAGS_UPDATED_TOS_DIST_TO_ROOT);
+	return FixBool(miFlags & (OBJECT_FLAGS_CLEARED_DIST_TO_ROOT | OBJECT_FLAGS_UPDATED_TOS_DIST_TO_ROOT));
 }
 
 
@@ -863,6 +863,7 @@ char* CBaseObject::GetName(void)
 char* CBaseObject::GetIdentifier(CChars* psz)
 {
 	char*	szName;
+
 	psz->Append(ClassName());
 	psz->Append(":");
 	psz->Append(GetIndex());
@@ -893,7 +894,7 @@ BOOL CBaseObject::IsSubRoot(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CBaseObject::IsInvalidated(void)
 {
-	return miFlags & OBJECT_FLAGS_INVALIDATED;
+	return FixBool(miFlags & OBJECT_FLAGS_INVALIDATED);
 }
 
 
@@ -903,7 +904,7 @@ BOOL CBaseObject::IsInvalidated(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CBaseObject::IsDirty(void)
 {
-	return miFlags & OBJECT_FLAGS_DIRTY;
+	return FixBool(miFlags & OBJECT_FLAGS_DIRTY);
 }
 
 
@@ -913,7 +914,7 @@ BOOL CBaseObject::IsDirty(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CBaseObject::TestedForRoot(void)
 {
-	return miFlags & OBJECT_FLAGS_TESTED_FOR_ROOT;
+	return FixBool(miFlags & OBJECT_FLAGS_TESTED_FOR_ROOT);
 }
 
 
@@ -923,7 +924,7 @@ BOOL CBaseObject::TestedForRoot(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CBaseObject::TestedForSanity(void)
 {
-	return miFlags & OBJECT_FLAGS_TESTED_FOR_SANITY;
+	return FixBool(miFlags & OBJECT_FLAGS_TESTED_FOR_SANITY);
 }
 
 
@@ -1133,7 +1134,7 @@ CStackPointers* CBaseObject::GetStackPointers(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CBaseObject::IsMarkedUnreachable(void)
 {
-	return miFlags & OBJECT_FLAGS_UNREACHABLE;
+	return FixBool(miFlags & OBJECT_FLAGS_UNREACHABLE);
 }
 
 
@@ -1143,7 +1144,7 @@ BOOL CBaseObject::IsMarkedUnreachable(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CBaseObject::IsUpdateAttachedPointerTosDistToRoot(void)
 {
-	return miFlags & OBJECT_FLAGS_UPDATED_TOS_DIST_TO_ROOT;
+	return FixBool(miFlags & OBJECT_FLAGS_UPDATED_TOS_DIST_TO_ROOT);
 }
 
 
@@ -1153,7 +1154,7 @@ BOOL CBaseObject::IsUpdateAttachedPointerTosDistToRoot(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CBaseObject::HasClass(void)
 {
-	return miFlags & OBJECT_FLAGS_CALLED_CLASS;
+	return FixBool(miFlags & OBJECT_FLAGS_CALLED_CLASS);
 }
 
 
@@ -1163,7 +1164,7 @@ BOOL CBaseObject::HasClass(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CBaseObject::IsInitialised(void)
 {
-	return miFlags & OBJECT_FLAGS_CALLED_INIT;
+	return FixBool(miFlags & OBJECT_FLAGS_CALLED_INIT);
 }
 
 
@@ -1514,8 +1515,7 @@ void CBaseObject::ValidateAllocation(void)
 	CChars	sz;
 
 	bDistToStackZero = GetDistToStack() == 0;
-	bAllocateCalled = miFlags & OBJECT_FLAGS_CALLED_ALLOCATE;
-	bAllocateCalled = FixBool(bAllocateCalled);
+	bAllocateCalled = FixBool(miFlags & OBJECT_FLAGS_CALLED_ALLOCATE);
 	bInObjects = IsAllocatedInObjects();
 	bAllSame = !bDistToStackZero == bAllocateCalled == bInObjects;
 
