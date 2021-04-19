@@ -109,7 +109,10 @@ void CRoot::NullifySet(void)
 //////////////////////////////////////////////////////////////////////////
 void CRoot::Add(CPointer& pObject)
 {
-	mpObjects->Add(pObject);
+	if (pObject.IsNotNull())
+	{
+		mpObjects->Add(pObject);
+	}
 }
 
 
@@ -119,7 +122,14 @@ void CRoot::Add(CPointer& pObject)
 //////////////////////////////////////////////////////////////////////////
 BOOL CRoot::Remove(CPointer& pObject)
 {
-	return mpObjects->Remove(pObject);
+	if (pObject.IsNotNull())
+	{
+		return mpObjects->Remove(pObject);
+	}
+	else
+	{
+		return FALSE;
+	}
 }
 
 
@@ -210,7 +220,7 @@ CPointer CRoot::Get(char* szObjectName)
 
 	if ((szObjectName == NULL) || (szObjectName[0] == '\0'))
 	{
-		return ONull;
+		return Null();
 	}
 
 	CPointer pObject = mpObjects->StartIteration(&sIter);
@@ -227,7 +237,7 @@ CPointer CRoot::Get(char* szObjectName)
 		pObject = mpObjects->Iterate(&sIter);
 	}
 
-	return ONull;
+	return Null();
 }
 
 
@@ -269,3 +279,27 @@ int CRoot::NumObjects(void)
 {
 	return mpObjects->NumElements();
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CRoot::Add(CPointer& pO1, CPointer& pO2)
+{
+	Add(pO1);
+	Add(pO2);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CRoot::Add(CPointer& pO1, CPointer& pO2, CPointer& pO3)
+{
+	Add(pO1);
+	Add(pO2);
+	Add(pO3);
+}
+

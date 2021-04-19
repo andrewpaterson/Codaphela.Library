@@ -64,6 +64,9 @@ public:
 						CSetObject*		TestGetSet(void);
 						BOOL			IsSetHollow(void);
 
+						void			Add(CPointer& pO1, CPointer& pO2);
+						void			Add(CPointer& pO1, CPointer& pO2, CPointer& pO3);
+
 protected:
 						void			KillInternal(BOOL bHeapFromChanged);
 };

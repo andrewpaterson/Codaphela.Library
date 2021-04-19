@@ -227,19 +227,21 @@ void CBaseObject::KillInternal(BOOL bHeapFromChanged)
 BOOL CBaseObject::Flush(void)
 {
 	BOOL	bResult;
+	BOOL	bCanFindRoot;
+	BOOL	bDirty;
 
 	ValidateNotEmbedded(__METHOD__);
 
-	if (IsDirty())
+	bCanFindRoot = GetDistToRoot() != UNATTACHED_DIST_TO_ROOT;
+	bDirty = IsDirty();
+
+	if (bDirty && bCanFindRoot)
 	{
 		bResult = GetObjects()->ForceSave(this);
 		SetDirty(FALSE);
 		return bResult;
 	}
-	else
-	{
-		return TRUE;
-	}
+	return TRUE;
 }
 
 

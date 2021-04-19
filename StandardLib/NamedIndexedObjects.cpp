@@ -31,8 +31,8 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CNamedIndexedObjects::Init(void)
 {
-	mcNames.Init();
-	mcIndexedObjects.Init();
+	mcMemoryNames.Init();
+	mcMemoryIndexedObjects.Init();
 }
 
 
@@ -42,8 +42,8 @@ void CNamedIndexedObjects::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CNamedIndexedObjects::Kill(void)
 {
-	mcIndexedObjects.Kill();
-	mcNames.Kill();
+	mcMemoryIndexedObjects.Kill();
+	mcMemoryNames.Kill();
 }
 
 
@@ -64,7 +64,7 @@ void CNamedIndexedObjects::ReInit(void)
 //////////////////////////////////////////////////////////////////////////
 CBaseObject* CNamedIndexedObjects::Get(OIndex oi)
 {
-	return (CBaseObject*)mcIndexedObjects.Get(oi);
+	return (CBaseObject*)mcMemoryIndexedObjects.Get(oi);
 }
 
 
@@ -78,7 +78,7 @@ CBaseObject* CNamedIndexedObjects::Get(char* szName)
 	CIndexTreeMemoryAccess	cAccess;
 	BOOL					bExists;
 
-	cAccess.Init(&mcNames);
+	cAccess.Init(&mcMemoryNames);
 	bExists = cAccess.GetStringData(szName, &oi);
 	cAccess.Kill();
 	if (bExists)
@@ -103,7 +103,7 @@ BOOL CNamedIndexedObjects::RemoveIndex(OIndex oi)
 	if (oi != INVALID_O_INDEX)
 	{
 		//This only removes the index from the indexes, it does not free the object pointer too.
-		bResult = mcIndexedObjects.Remove(oi);
+		bResult = mcMemoryIndexedObjects.Remove(oi);
 		return bResult;
 	}
 	return TRUE;
@@ -120,7 +120,7 @@ BOOL CNamedIndexedObjects::RemoveName(char* szName)
 	BOOL					bResult;
 
 	//This only removes the name from the names, it does not free the object pointer to.
-	cAccess.Init(&mcNames);
+	cAccess.Init(&mcMemoryNames);
 	bResult = cAccess.DeleteString(szName);
 	cAccess.Kill();
 	return bResult;
@@ -142,7 +142,7 @@ BOOL CNamedIndexedObjects::AddWithID(CBaseObject* pvObject, OIndex oi)
 		return gcLogger.Error2(__METHOD__, " Cannot add object with an invalid index [", LongLongToString(oi), " ].", NULL);
 	}
 
-	bResult = mcIndexedObjects.Add(oi, pvObject);
+	bResult = mcMemoryIndexedObjects.Add(oi, pvObject);
 	if (bResult)
 	{
 		pvObject->SetObjectID(oi);
@@ -191,7 +191,7 @@ BOOL CNamedIndexedObjects::AddWithIDAndName(CBaseObject* pvObject, OIndex oi, ch
 	}
 
 
-	cAccess.Init(&mcNames);
+	cAccess.Init(&mcMemoryNames);
 	bHasObject = cAccess.HasString(szName);
 	cAccess.Kill();
 	if (bHasObject)
@@ -218,7 +218,7 @@ BOOL CNamedIndexedObjects::AddWithIDAndName(CBaseObject* pvObject, OIndex oi, ch
 		bResult = pcNamedHollow->InitName(szName);
 	}
 
-	cAccess.Init(&mcNames);
+	cAccess.Init(&mcMemoryNames);
 	oi = pvObject->GetIndex();
 	szName = (char*)cAccess.PutStringLong(szName, oi);
 	bResult = szName != NULL;
@@ -262,7 +262,7 @@ BOOL CNamedIndexedObjects::ReplaceWithIDAndName(CBaseObject* pvObject, char* szE
 
 	if (!StrEmpty(szExistingName))
 	{
-		cAccess.Init(&mcNames);
+		cAccess.Init(&mcMemoryNames);
 		oi = pvObject->GetIndex();
 		szExistingName = (char*)cAccess.PutStringLong(szExistingName, oi);
 		bResult = szExistingName != NULL;
@@ -278,7 +278,7 @@ BOOL CNamedIndexedObjects::ReplaceWithIDAndName(CBaseObject* pvObject, char* szE
 //////////////////////////////////////////////////////////////////////////
 OIndex CNamedIndexedObjects::NumIndexed(void)
 {
-	return mcIndexedObjects.NumIndexed();
+	return mcMemoryIndexedObjects.NumIndexed();
 }
 
 
@@ -288,7 +288,7 @@ OIndex CNamedIndexedObjects::NumIndexed(void)
 //////////////////////////////////////////////////////////////////////////
 int CNamedIndexedObjects::NumNames(void)
 {
-	return mcNames.NumElements();
+	return mcMemoryNames.NumElements();
 }
 
 
@@ -298,7 +298,7 @@ int CNamedIndexedObjects::NumNames(void)
 //////////////////////////////////////////////////////////////////////////
 CIndexedObjects* CNamedIndexedObjects::GetObjects(void)
 {
-	return &mcIndexedObjects;
+	return &mcMemoryIndexedObjects;
 }
 
 
@@ -310,7 +310,7 @@ CBaseObject* CNamedIndexedObjects::StartIteration(SIndexesIterator* psIter)
 {
 	OIndex		oi;
 
-	oi = mcIndexedObjects.StartIteration(psIter);
+	oi = mcMemoryIndexedObjects.StartIteration(psIter);
 	if (oi != INVALID_O_INDEX)
 	{
 		return Get(oi);
@@ -330,7 +330,7 @@ CBaseObject* CNamedIndexedObjects::Iterate(SIndexesIterator* psIter)
 {
 	OIndex		oi;
 
-	oi = mcIndexedObjects.Iterate(psIter);
+	oi = mcMemoryIndexedObjects.Iterate(psIter);
 	if (oi != INVALID_O_INDEX)
 	{
 		return Get(oi);
@@ -351,21 +351,23 @@ BOOL CNamedIndexedObjects::ValidateNoDirty(void)
 	SIndexesIterator	sIter;
 	OIndex				oi;
 	CBaseObject*		pcObject;
-	BOOL				bIsDirty;
+	BOOL				bDirty;
 	CChars				szIdentifier;
+	BOOL				bCanFindRoot;
 
-	oi = mcIndexedObjects.StartIteration(&sIter);
+	oi = mcMemoryIndexedObjects.StartIteration(&sIter);
 	while (oi != INVALID_O_INDEX)
 	{
 		pcObject = Get(oi);
-		bIsDirty = pcObject->IsDirty();
-		if (bIsDirty)
+		bDirty = pcObject->IsDirty();
+		bCanFindRoot = pcObject->GetDistToRoot() != UNATTACHED_DIST_TO_ROOT;
+		if (bDirty && bCanFindRoot)
 		{
 			szIdentifier.Init();
 			pcObject->GetIdentifier(&szIdentifier);
 			return gcLogger.Error2(__METHOD__, " Object [", szIdentifier.Text(), "] is dirty.", NULL);
 		}
-		oi = mcIndexedObjects.Iterate(&sIter);
+		oi = mcMemoryIndexedObjects.Iterate(&sIter);
 	}
 	return TRUE;
 }

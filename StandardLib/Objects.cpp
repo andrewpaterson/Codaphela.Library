@@ -467,7 +467,9 @@ BOOL CObjects::Flush(void)
 	SIndexesIterator	sIter;
 	OIndex				oi;
 	BOOL				bResult;
-	CBaseObject* pcBaseObject;
+	CBaseObject*		pcBaseObject;
+	BOOL				bCanFindRoot;	
+	BOOL				bDirty;
 
 	if (mpcDataConnection)
 	{
@@ -490,7 +492,10 @@ BOOL CObjects::Flush(void)
 		while (oi != INVALID_O_INDEX)
 		{
 			pcBaseObject = GetFromMemory(oi);
-			if (pcBaseObject->IsDirty())
+			bCanFindRoot = pcBaseObject->GetDistToRoot() != UNATTACHED_DIST_TO_ROOT;
+			bDirty = pcBaseObject->IsDirty();
+
+			if (bDirty && bCanFindRoot)
 			{
 				pcBaseObject->SetDirty(FALSE);
 			}
@@ -764,7 +769,7 @@ Ptr<CRoot> CObjects::GetRoot(void)
 	if (!mbInitialised)
 	{
 		gcLogger.Error2(__METHOD__, " CObjects is not initialised.", NULL);
-		return ONull;
+		return Null();
 	}
 	return Get(ROOT_NAME);
 }
@@ -1057,6 +1062,36 @@ BOOL CObjects::Contains(char* szObjectName)
 		if (mpcDataConnection)
 		{
 			return mpcDataConnection->Contains(szObjectName);
+		}
+		else
+		{
+			return FALSE;
+		}
+	}
+	return FALSE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CObjects::Contains(OIndex oi)
+{
+	CBaseObject* pvObject;
+
+	//This does not check mcSources intentionally.
+
+	pvObject = mcMemory.Get(oi);
+	if (pvObject)
+	{
+		return TRUE;
+	}
+	else
+	{
+		if (mpcDataConnection)
+		{
+			return mpcDataConnection->Contains(oi);
 		}
 		else
 		{
@@ -1858,5 +1893,14 @@ BOOL ObjectsFlush(void)
 	return gcObjects.Flush();
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CRoot> ORoot(void)
+{
+	return gcObjects.Root();
+}
 
 
