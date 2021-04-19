@@ -208,6 +208,7 @@ BOOL CInternalObjectDeserialiser::AddContainingPointersAndCreateHollowObject(CDe
 CBaseObject* CInternalObjectDeserialiser::AllocateForDeserialisation(CObjectHeader* pcHeader)
 {
 	OIndex	oiExisting;
+	char*	szName;
 
 	if (pcHeader->mcType == OBJECT_POINTER_NULL)
 	{
@@ -219,7 +220,15 @@ CBaseObject* CInternalObjectDeserialiser::AllocateForDeserialisation(CObjectHead
 	}
 	else if (pcHeader->mcType == OBJECT_POINTER_NAMED)
 	{
-		return mpcObjects->AllocateForExistingInDatabaseWithExplicitIdentifiers(pcHeader->mszClassName.Text(), pcHeader->mszObjectName.Text(), pcHeader->moi, &oiExisting);
+		szName = pcHeader->mszObjectName.Text();
+		if (!StrEmpty(szName))
+		{
+			return mpcObjects->AllocateForExistingInDatabaseWithExplicitIdentifiers(pcHeader->mszClassName.Text(), szName, pcHeader->moi, &oiExisting);
+		}
+		else
+		{
+			return mpcObjects->AllocateForDeserialisation(pcHeader->mszClassName.Text(), pcHeader->moi);
+		}
 	}
 	else
 	{

@@ -757,6 +757,5 @@
     <None Include="ObjectsSources.txt">
       <Filter>Source\Object\Object\Source</Filter>
     </None>
-    <None Include="ClassDiagram.cd" />
   </ItemGroup>
 </Project>

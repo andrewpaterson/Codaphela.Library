@@ -36,9 +36,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 #define CLEAR_MEMORY_CHUNK_SIZE		16384
 
-#define ORoot()						(gcObjects.Root())
-#define ONull						(Null())
-
+Ptr<CRoot> ORoot(void);
 
 template <class SpecificClass, typename ... Args>
 Ptr<SpecificClass> OMalloc(Args ... args);
@@ -90,6 +88,7 @@ public:
 	template<class M> 	Ptr<M>					Get(OIndex oi);
 	template<class M>	Ptr<M>					Get(char* szObjectName);
 						BOOL					Contains(char* szObjectName);
+						BOOL					Contains(OIndex oi);
 
 	template<class M> 	Ptr<M>					Malloc(void);
 	template<class M>	Ptr<M>					Malloc(char* szObjectName);
