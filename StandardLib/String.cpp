@@ -20,7 +20,7 @@ void CString::Class(void)
 void CString::Init(void)
 {
 	PreInit();
-	CChars::Init();
+	msz.Init();
 	PostInit();
 }
 
@@ -32,7 +32,7 @@ void CString::Init(void)
 void CString::Init(char* sz)
 {
 	PreInit();
-	CChars::Init(sz);
+	msz.Init(sz);
 	PostInit();
 }
 
@@ -44,7 +44,7 @@ void CString::Init(char* sz)
 void CString::Init(const char* sz)
 {
 	PreInit();
-	CChars::Init(sz);
+	msz.Init(sz);
 	PostInit();
 }
 
@@ -55,7 +55,7 @@ void CString::Init(const char* sz)
 //////////////////////////////////////////////////////////////////////////
 void CString::Free(void)
 {
-	CChars::Kill();
+	msz.Kill();
 }
 
 
@@ -65,7 +65,7 @@ void CString::Free(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CString::Save(CObjectSerialiser* pcFile)
 {
-	return CChars::WriteString(pcFile);
+	return msz.WriteString(pcFile);
 }
 
 
@@ -75,6 +75,16 @@ BOOL CString::Save(CObjectSerialiser* pcFile)
 //////////////////////////////////////////////////////////////////////////
 BOOL CString::Load(CObjectDeserialiser* pcFile)
 {
-	return CChars::ReadString(pcFile);
+	return msz.ReadString(pcFile);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CString::D(void)
+{
+	SetDirty(TRUE);
 }
 
