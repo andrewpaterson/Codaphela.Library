@@ -635,3 +635,23 @@ void CArrayCommonObject::ValidateConsistency(void)
 	ValidateCanFindRoot();
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CArrayCommonObject::TouchAll(void)
+{
+	CBaseObject* pcObject;
+	CPointer		pObject;
+	int				i;
+	int				iNum;
+
+	iNum = mcArray.UnsafeNumElements();
+	for (i = 0; i < iNum; i++)
+	{
+		pcObject = (CBaseObject*)mcArray.UnsafeGet(i);
+		pObject.AssignObject(pcObject);
+	}
+}
+

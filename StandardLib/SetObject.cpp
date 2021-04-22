@@ -92,3 +92,20 @@ CPointer CSetObject::Iterate(SSetIterator* psIter)
 	return pObject;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CSetObject::TouchAll(void)
+{
+	SSetIterator	sIter;
+	CPointer		p;
+
+	p = StartIteration(&sIter);
+	while (p.IsNotNull())
+	{
+		p = Iterate(&sIter);
+	}
+}
+

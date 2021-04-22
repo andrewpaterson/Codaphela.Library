@@ -35,6 +35,7 @@ public:
 			BOOL			IsObject(void);
 	virtual void			RemoveAll(void) =0;
 			CBaseObject*	Dehollow(void);
+	virtual void			TouchAll(void) =0;
 };
 
 

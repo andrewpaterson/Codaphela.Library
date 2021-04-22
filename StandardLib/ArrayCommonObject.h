@@ -70,6 +70,8 @@ public:
 	void					ValidatePointerTos(void);
 	void					ValidateConsistency(void);
 
+	void					TouchAll(void);
+
 protected:
 	void	FreePointers(void);
 	void	Free(void);
