@@ -41,6 +41,8 @@ public:
 
 	template<class M>	Ptr<M>			StartIteration(SSetIterator* psIter);
 	template<class M>	Ptr<M>			Iterate(SSetIterator* psIter);
+
+						void			TouchAll(void);
 };
 
 
