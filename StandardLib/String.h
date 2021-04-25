@@ -2,7 +2,11 @@
 #define __STRING_H__
 #include "BaseLib/Chars.h"
 #include "Object.h"
+#include "Array.h"
 
+
+template <class SpecificClass, typename ... Args>
+Ptr<SpecificClass> OString(Args ... args);
 
 class CObjectSerialiser;
 class CObjectDeserialiser;
@@ -106,7 +110,7 @@ public:
 	BOOL			EqualsIgnoreCase(CChars szString) { return msz.EqualsIgnoreCase(szString); }
 	BOOL			Contains(const char* szString) { return msz.Contains(szString); }
 	BOOL			Contains(Ptr<CString> pString);
-	BOOL			ContainsIgnoreCase(const char* szString) { return msz.CompareIgnoreCase(szString); }
+	BOOL			ContainsIgnoreCase(const char* szString) { return msz.ContainsIgnoreCase(szString); }
 	BOOL			ContainsIgnoreCase(Ptr<CString> pString);
 	BOOL			EndsWith(const char* szString) { return msz.EndsWith(szString); }
 	BOOL			EndsWith(Ptr<CString> pString);
@@ -128,6 +132,8 @@ public:
 	int				FindFromEnd(int iPos, Ptr<CString> pString);
 	int				FindFromEnd(char c) { return msz.FindFromEnd(c); }
 	int				FindFromEnd(int iIndex, char c) { return msz.FindFromEnd(iIndex, c); }
+	int				Find(Ptr<CString> pString);
+	int				Find(const char* szString) { return msz.Find(szString); }
 	int				Find(int iPos, const char* szString) { return msz.Find(iPos, szString); }
 	int				Find(int iPos, Ptr<CString> pString);
 	int				Find(int iPos, char c) { return msz.Find(iPos, c); }
@@ -154,8 +160,25 @@ public:
 	int				Count(char c) { return msz.Count(c); }
 
 	void			Split(CArrayChars* aszDest, char cSplitter) { msz.Split(aszDest, cSplitter); }
+	void			Split(Ptr<CArray<CString>> aszDest, char cSplitter);
 	void			SplitLines(CArrayChars* aszDest) { msz.SplitLines(aszDest); }
 };
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template <typename ... Args>
+Ptr<CString> OString(Args ... args)
+{
+	Ptr<CString> pObject = gcObjects.Malloc<CString>();
+	if (pObject.IsNotNull())
+	{
+		pObject->Init(args...);
+	}
+	return pObject;
+}
 
 
 #endif // __STRING_H__
