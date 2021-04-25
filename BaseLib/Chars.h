@@ -139,6 +139,7 @@ public:
 	int		FindFromEnd(int iPos, const char* szString);
 	int		FindFromEnd(char c);
 	int		FindFromEnd(int iIndex, char c);
+	int		Find(const char* szString);
 	int		Find(int iPos, const char* szString);
 	int		Find(int iPos, char c);
 	int		Find(char c);
