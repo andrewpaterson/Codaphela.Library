@@ -2262,7 +2262,7 @@ void CChars::AppendPointer(void* pv)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChars::AppendFlag(unsigned int msFlags, unsigned int uiFlag, char* szFlagName, BOOL bAppendComma)
+BOOL CChars::AppendFlag(unsigned int msFlags, unsigned int uiFlag, const char* szFlagName, BOOL bAppendComma)
 {
 	if (msFlags & uiFlag)
 	{
