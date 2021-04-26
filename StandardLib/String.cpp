@@ -1,5 +1,6 @@
 #include "ObjectDeserialiser.h"
 #include "ObjectSerialiser.h"
+#include "Objects.h"
 #include "String.h"
 
 
@@ -17,11 +18,13 @@ void CString::Class(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CString::Init(void)
+Ptr<CString> CString::Init(void)
 {
 	PreInit();
 	msz.Init();
 	PostInit();
+
+	return this;
 }
 
 
@@ -29,11 +32,13 @@ void CString::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CString::Init(char* sz)
+Ptr<CString> CString::Init(char* sz)
 {
 	PreInit();
 	msz.Init(sz);
 	PostInit();
+
+	return this;
 }
 
 
@@ -41,11 +46,13 @@ void CString::Init(char* sz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CString::Init(const char* sz)
+Ptr<CString> CString::Init(const char* sz)
 {
 	PreInit();
 	msz.Init(sz);
 	PostInit();
+
+	return this;
 }
 
 
@@ -53,11 +60,41 @@ void CString::Init(const char* sz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CString::Init(Ptr<CString> sz)
+Ptr<CString> CString::Init(CChars* psz)
 {
 	PreInit();
-	msz.Init(sz->Text());
+	msz.Init(psz);
 	PostInit();
+
+	return this;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CString> CString::Init(CChars sz)
+{
+	PreInit();
+	msz.Init(sz);
+	PostInit();
+
+	return this;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CString> CString::Init(Ptr<CString> pString)
+{
+	PreInit();
+	msz.Init(pString->Text());
+	PostInit();
+
+	return this;
 }
 
 
@@ -408,5 +445,44 @@ int	 CString::Replace(Ptr<CString> pFind, Ptr<CString> pReplace)
 void CString::Overwrite(int iPos, Ptr<CString> pReplace)
 {
 	return Overwrite(iPos, pReplace->Text());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CChars* CString::GetChars(void) 
+{ 
+	return &msz; 
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CArray<CString>> CString::Split(char cSplitter)
+{
+	Ptr<CArray<CString>>	paDest;
+	CArrayChars				aszTemp;
+	int						i;
+	CChars*					psz;
+	Ptr<CString>			pString;
+
+	paDest = GetObjects()->Malloc<CArray<CString>>();
+	paDest->Init();
+
+	aszTemp.Init();
+	msz.Split(&aszTemp, cSplitter);
+
+	for (i = 0; i < aszTemp.NumElements(); i++)
+	{
+		psz = aszTemp.Get(i);
+		pString = GetObjects()->Malloc<CString>()->Init(psz);
+		paDest->Add(pString);
+	}
+	
+	return paDest;
 }
 

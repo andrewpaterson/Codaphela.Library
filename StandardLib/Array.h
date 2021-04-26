@@ -37,6 +37,7 @@ public:
 	void			Insert(int iIndex, Ptr<M> pObject);
 	Ptr<M>			Get(int iIndex);
 	void			Set(int iIndex, Ptr<M> pObject);
+
 	BOOL			RemoveAt(int iIndex);
 	BOOL			Remove(Ptr<M> pObject);
 };
