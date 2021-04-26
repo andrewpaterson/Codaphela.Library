@@ -879,6 +879,9 @@
     <ClInclude Include="LogToMemory.h">
       <Filter>Source\Error</Filter>
     </ClInclude>
+    <ClInclude Include="EnumeratorNode.h">
+      <Filter>Source\Data\Primitive</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">

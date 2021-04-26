@@ -27,6 +27,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "ArrayInt.h"
 #include "LinkedListTemplate.h"
 #include "StringHelper.h"
+#include "EnumeratorNode.h"
 
 
 #define ENUMERATOR_MANAGED	1
