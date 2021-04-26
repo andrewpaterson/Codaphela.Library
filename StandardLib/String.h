@@ -17,10 +17,12 @@ protected:
 	CChars	msz;
 
 public:
-	void			Init(void);
-	void			Init(char* sz);
-	void			Init(const char* sz);
-	void			Init(Ptr<CString> sz);
+	Ptr<CString>	Init(void);
+	Ptr<CString>	Init(char* sz);
+	Ptr<CString>	Init(const char* sz);
+	Ptr<CString>	Init(CChars* psz);
+	Ptr<CString>	Init(CChars sz);
+	Ptr<CString>	Init(Ptr<CString> pString);
 	void			Class(void);
 	void			Free(void);
 
@@ -92,6 +94,7 @@ public:
 	void			Minimize(void) { msz.Minimize(); }
 	char*			Text(void) { return msz.Text(); }
 	char*			Text(int iIndex) { return msz.Text(iIndex); }
+	CChars*			GetChars(void);
 	BOOL			Empty(void) { return msz.Empty(); }
 	void			RemoveLastCharacter(void) { msz.RemoveLastCharacter(); D(); }
 	void			RemoveFromStart(int iNumChars) { msz.RemoveFromStart(iNumChars); D(); }
@@ -159,9 +162,9 @@ public:
 	int				CountNewLines(void) { return msz.CountNewLines(); }
 	int				Count(char c) { return msz.Count(c); }
 
-	void			Split(CArrayChars* aszDest, char cSplitter) { msz.Split(aszDest, cSplitter); }
-	void			Split(Ptr<CArray<CString>> aszDest, char cSplitter);
-	void			SplitLines(CArrayChars* aszDest) { msz.SplitLines(aszDest); }
+	void					Split(CArrayChars* aszDest, char cSplitter) { msz.Split(aszDest, cSplitter); }
+	Ptr<CArray<CString>>	Split(char cSplitter);
+	void					SplitLines(CArrayChars* aszDest) { msz.SplitLines(aszDest); }
 };
 
 

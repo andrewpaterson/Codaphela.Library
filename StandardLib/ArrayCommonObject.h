@@ -39,12 +39,16 @@ public:
 	void					Add(CPointer& pObject);
 	void					AddAll(CArrayCommonObject* pcArray);
 	void					Set(int iIndex, CPointer& pObject);
+
 	BOOL					Remove(CPointer& pObject);
 	BOOL					Remove(CBaseObject* pcObject);
 	void					RemoveAll(void);
+	void					Clear(void);
 
 	int						NumElements(void);
 	int						NonNullElements(void);
+	int						Size(void);
+	int						Length(void);
 
 	void					MakeSubRoot(void);
 	BOOL					IsSubRoot(void);
