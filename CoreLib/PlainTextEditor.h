@@ -23,6 +23,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __PLAIN_TEXT_EDITOR_H__
 #define __PLAIN_TEXT_EDITOR_H__
 #include "BaseLib/Chars.h"
+#include "BaseLib/Int2.h"
 #include "TextEditor.h"
 
 

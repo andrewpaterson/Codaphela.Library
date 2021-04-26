@@ -136,6 +136,9 @@
     <Filter Include="Source\Object\Object\Primitive">
       <UniqueIdentifier>{141e3edc-97a1-49b8-8981-69c69006aea7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Object\Class">
+      <UniqueIdentifier>{b647ecea-453e-4848-884e-4e3109afb267}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Parameters.h">
@@ -468,6 +471,21 @@
     <ClInclude Include="Character.h">
       <Filter>Source\Object\Object\Primitive</Filter>
     </ClInclude>
+    <ClInclude Include="Class.h">
+      <Filter>Source\Object\Class</Filter>
+    </ClInclude>
+    <ClInclude Include="Field.h">
+      <Filter>Source\Object\Class</Filter>
+    </ClInclude>
+    <ClInclude Include="PointerField.h">
+      <Filter>Source\Object\Class</Filter>
+    </ClInclude>
+    <ClInclude Include="EmbeddedObjectField.h">
+      <Filter>Source\Object\Class</Filter>
+    </ClInclude>
+    <ClInclude Include="DataField.h">
+      <Filter>Source\Object\Class</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Unknown.cpp">
@@ -751,6 +769,21 @@
     </ClCompile>
     <ClCompile Include="PrimitiveObject.cpp">
       <Filter>Source\Object\Object\Primitive</Filter>
+    </ClCompile>
+    <ClCompile Include="Class.cpp">
+      <Filter>Source\Object\Class</Filter>
+    </ClCompile>
+    <ClCompile Include="Field.cpp">
+      <Filter>Source\Object\Class</Filter>
+    </ClCompile>
+    <ClCompile Include="PointerField.cpp">
+      <Filter>Source\Object\Class</Filter>
+    </ClCompile>
+    <ClCompile Include="EmbeddedObjectField.cpp">
+      <Filter>Source\Object\Class</Filter>
+    </ClCompile>
+    <ClCompile Include="DataField.cpp">
+      <Filter>Source\Object\Class</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

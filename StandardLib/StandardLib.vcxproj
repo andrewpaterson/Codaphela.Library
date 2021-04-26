@@ -90,6 +90,7 @@
     <ClInclude Include="ArrayUnknownPtr.h" />
     <ClInclude Include="Character.h" />
     <ClInclude Include="ChunkFileNames.h" />
+    <ClInclude Include="Class.h" />
     <ClInclude Include="DependentObjectAdder.h" />
     <ClInclude Include="DependentReadObject.h" />
     <ClInclude Include="DependentReadObjects.h" />
@@ -100,7 +101,11 @@
     <ClInclude Include="DistCalculatorParameters.h" />
     <ClInclude Include="DistToStackCalculator.h" />
     <ClInclude Include="EmbeddedObject.h" />
+    <ClInclude Include="EmbeddedObjectField.h" />
+    <ClInclude Include="Field.h" />
     <ClInclude Include="Float.h" />
+    <ClInclude Include="PointerField.h" />
+    <ClInclude Include="DataField.h" />
     <ClInclude Include="PrimitiveObject.h" />
     <ClInclude Include="HollowEmbeddedObject.h" />
     <ClInclude Include="InternalObjectDeserialiser.h" />
@@ -199,6 +204,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ChunkFileNames.cpp" />
+    <ClCompile Include="Class.cpp" />
     <ClCompile Include="DependentObjectAdder.cpp" />
     <ClCompile Include="DependentReadObject.cpp" />
     <ClCompile Include="DependentReadObjects.cpp" />
@@ -209,6 +215,8 @@
     <ClCompile Include="DistCalculatorParameters.cpp" />
     <ClCompile Include="DistToStackCalculator.cpp" />
     <ClCompile Include="EmbeddedObject.cpp" />
+    <ClCompile Include="EmbeddedObjectField.cpp" />
+    <ClCompile Include="Field.cpp" />
     <ClCompile Include="HollowEmbeddedObject.cpp" />
     <ClCompile Include="InternalObjectDeserialiser.cpp" />
     <ClCompile Include="Null.cpp" />
@@ -238,6 +246,8 @@
     <ClCompile Include="ObjectsSource.cpp" />
     <ClCompile Include="ObjectWriter.cpp" />
     <ClCompile Include="PointerContainer.cpp" />
+    <ClCompile Include="PointerField.cpp" />
+    <ClCompile Include="DataField.cpp" />
     <ClCompile Include="PrimitiveObject.cpp" />
     <ClCompile Include="SerialisedObject.cpp" />
     <ClCompile Include="StackPointer.cpp" />

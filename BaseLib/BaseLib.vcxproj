@@ -165,6 +165,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="AccessDataOrderer.h" />
+    <ClInclude Include="EnumeratorNode.h" />
     <ClInclude Include="LogToMemory.h" />
     <ClInclude Include="Malloc.h" />
     <ClInclude Include="ArrayBlock.h" />

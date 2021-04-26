@@ -23,6 +23,9 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __TYPE_PARSER_H__
 #define __TYPE_PARSER_H__
 #include "DataTypes.h"
+#include "Int2.h"
+#include "Int3.h"
+#include "Int4.h"
 #include "GeometricTypes.h"
 #include "Chars.h"
 #include "Number.h"
