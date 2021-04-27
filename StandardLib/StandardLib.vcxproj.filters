@@ -7,9 +7,6 @@
     <Filter Include="Source\Object">
       <UniqueIdentifier>{d9740d88-8bd9-42d4-97e9-084836463738}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Object\Parameters">
-      <UniqueIdentifier>{a878f40d-c2b6-45b2-970e-a555619c173b}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source\Object\Unknown">
       <UniqueIdentifier>{f6afd551-23b2-4f18-afc8-8b9c8cc67541}</UniqueIdentifier>
     </Filter>
@@ -141,9 +138,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Parameters.h">
-      <Filter>Source\Object\Parameters</Filter>
-    </ClInclude>
     <ClInclude Include="Unknown.h">
       <Filter>Source\Object\Unknown</Filter>
     </ClInclude>
