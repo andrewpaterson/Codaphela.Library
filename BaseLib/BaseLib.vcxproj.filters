@@ -232,6 +232,9 @@
     <Filter Include="Source\Error\Windows">
       <UniqueIdentifier>{f1b9e3be-2dd9-4972-87c6-12216bf5249c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Data\Types\File">
+      <UniqueIdentifier>{230e995a-3402-46b6-a4ab-e48d06be2818}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DataMacro.h">
@@ -882,6 +885,9 @@
     <ClInclude Include="EnumeratorNode.h">
       <Filter>Source\Data\Primitive</Filter>
     </ClInclude>
+    <ClInclude Include="DataTypesIO.h">
+      <Filter>Source\Data\Types\File</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -1399,6 +1405,9 @@
     </ClCompile>
     <ClCompile Include="LogToMemory.cpp">
       <Filter>Source\Error</Filter>
+    </ClCompile>
+    <ClCompile Include="DataTypesIO.cpp">
+      <Filter>Source\Data\Types\File</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

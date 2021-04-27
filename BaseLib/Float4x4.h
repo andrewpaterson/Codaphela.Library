@@ -32,6 +32,7 @@ class SFloat3;
 class SFloat4;
 class SFloat4x4
 {
+CONSTRUCTABLE(SFloat4x4);
 public:
 	SFloat4	x;
 	SFloat4	y;

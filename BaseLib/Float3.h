@@ -23,6 +23,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __FLOAT_3_H__
 #define __FLOAT_3_H__
 #include "Define.h"
+#include "Constructable.h"
 #include "ChunkFile.h"
 
 
@@ -31,6 +32,7 @@ class SFloat2;
 class SFloat4x4;
 class SFloat3
 {
+CONSTRUCTABLE(SFloat3);
 public:
 	float x, y, z;
 

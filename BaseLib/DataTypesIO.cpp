@@ -18,49 +18,17 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __CONSTRUCTORS_H__
-#define __CONSTRUCTORS_H__
-#include "ConstructorCall.h"
-#include "MapStringBlock.h"
-
-
-class CConstructors
-{
-protected:
-	CMapStringBlock		mcConstructors;
-
-public:
-	void	Init(void);
-	void	Kill(void);
-
-	template<class M>
-	void	Add(char* szClassName);
-	template<class M>
-	void	Add(const char* szClassName);
-	template<class M>
-	M*		Add(void);
-
-	void*	Construct(const char* szName, CMallocator* pcMalloc, char(**pacDebugName)[4] = NULL);
-	int		NumConstructors(void);
-
-	BOOL	ValidateMemoryInitialised(void);
-};
+#include "Logger.h"
+#include "DataTypesIO.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-void CConstructors::Add(char* szClassName)
+void CDataTypesIO::Init(void)
 {
-	M*		pvM;
-	int		iSize;
-
-	iSize = sizeof(M);
-	pvM = (M*)mcConstructors.Put(szClassName, iSize);
-	memset(pvM, 0, iSize);
-	new(pvM) M();
+	mcDataIOs.Init(32);
 }
 
 
@@ -68,16 +36,9 @@ void CConstructors::Add(char* szClassName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-void CConstructors::Add(const char* szClassName)
+void CDataTypesIO::Kill(void)
 {
-	M* pvM;
-	int		iSize;
-
-	iSize = sizeof(M);
-	pvM = (M*)mcConstructors.Put(szClassName, iSize);
-	memset(pvM, 0, iSize);
-	new(pvM) M();
+	mcDataIOs.Kill();
 }
 
 
@@ -85,24 +46,69 @@ void CConstructors::Add(const char* szClassName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-M* CConstructors::Add(void)
+DataTypeIO_FileWriter CDataTypesIO::GetSave(char* szClassName)
 {
-	M*				pvM;
-	int				iSize;
-	M				m;
-	const char*		szName;
-	BOOL			bResult;
+	SDataTypeIOPointers* psIO;
 
-	iSize = sizeof(M);
-	memset(&m, 0, iSize);
-	new(&m) M();
-	szName = m.ClassName();
-	bResult = mcConstructors.Put(szName, &m, iSize);
-	pvM = (M*)mcConstructors.Get(szName);
-	return pvM;
+	psIO = (SDataTypeIOPointers*)mcDataIOs.Get(szClassName);
+	if (psIO)
+	{
+		return psIO->fWriter;
+	}
+	else
+	{
+		return NULL;
+	}
 }
 
 
-#endif // __CONSTRUCTORS_H__
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+DataTypeIO_FileReader CDataTypesIO::GetLoad(char* szClassName)
+{
+	SDataTypeIOPointers* psIO;
+
+	psIO = (SDataTypeIOPointers*)mcDataIOs.Get(szClassName);
+	if (psIO)
+	{
+		return psIO->fReader;
+	}
+	else
+	{
+		return NULL;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CDataTypesIO::NumDataIOs(void)
+{
+	return mcDataIOs.NumElements();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL SDataTypeIO::Save(CFileWriter* pcFile)
+{
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL SDataTypeIO::Load(CFileReader* pcFile)
+{
+	return TRUE;
+}
+
 

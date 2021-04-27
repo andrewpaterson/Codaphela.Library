@@ -33,6 +33,7 @@ float	Deg2Dot(float fDegrees);
 class SFloat3;
 class SFloat2
 {
+CONSTRUCTABLE(SFloat2);
 public:
 	float x, y;
 
