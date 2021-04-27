@@ -50,6 +50,7 @@ BOOL PrivateAssertShortHex(int16 iExpected, int16 iActual, int iLine, char* szFi
 BOOL PrivateAssertLongLongInt(long long int iExpected, long long int iActual, int iLine, char* szFile);
 BOOL PrivateAssertLongLongIntHex(long long int iExpected, long long int iActual, int iLine, char* szFile);
 BOOL PrivateAssertFloat(float fExpected, float fActual, int iDecimals, int iLine, char* szFile);
+BOOL PrivateAssertFloat(float fExpected, float fActual, int iLine, char* szFile);
 BOOL PrivateAssertFloat3(SFloat3 fExpected, SFloat3* pfActual, int iDecimals, int iLine, char* szFile);
 BOOL PrivateAssertDouble(double fExpected, double fActual, int iDecimals, int iLine, char* szFile);
 BOOL PrivateAssertString(const char* szExpected, const char* szActual, BOOL bTestCase, int iLine, char* szFile);

@@ -32,12 +32,17 @@ public:
 
 	template<class M>
 	void					Add(char* szClassName);
-	//template<class M>
-	//void					Add(const char* szClassName);
+	template<class M>
+	void					Add(const char* szClassName);
 	template<class M>
 	void					Add(void);
+
 	DataTypeIO_FileWriter	GetSave(char* szClassName);
 	DataTypeIO_FileReader	GetLoad(char* szClassName);
+	template<class M>
+	DataTypeIO_FileWriter	GetSave(void);
+	template<class M>
+	DataTypeIO_FileReader	GetLoad(void);
 
 	int						NumDataIOs(void);
 };
@@ -68,6 +73,17 @@ void CDataTypesIO::Add(char* szConstructorName)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
+void CDataTypesIO::Add(const char* szConstructorName)
+{
+	return Add<M>((char*)szConstructorName);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
 void CDataTypesIO::Add(void)
 {
 	M						m;
@@ -81,6 +97,32 @@ void CDataTypesIO::Add(void)
 	psIO = (SDataTypeIOPointers*)mcDataIOs.Put(m.ClassName(), sizeof(SDataTypeIOPointers));
 	psIO->fWriter = (DataTypeIO_FileWriter)fSpecificClassFileSave;
 	psIO->fReader = (DataTypeIO_FileReader)fSpecificClassFileLoad;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+DataTypeIO_FileWriter CDataTypesIO::GetSave(void)
+{
+	M m;
+
+	return GetSave((char*)m.ClassName());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+DataTypeIO_FileReader CDataTypesIO::GetLoad(void)
+{
+	M m;
+
+	return GetLoad((char*)m.ClassName());
 }
 
 
