@@ -548,6 +548,16 @@ BOOL PrivateAssertFloat(float fExpected, float fActual, int iDecimals, int iLine
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL PrivateAssertFloat(float fExpected, float fActual, int iLine, char* szFile)
+{
+	return PrivateAssertFloat(fExpected, fActual, 8, iLine, szFile);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL PrivateAssertDouble(double fExpected, double fActual, int iDecimals, int iLine, char* szFile)
 {
 	char	szExpected[32];
