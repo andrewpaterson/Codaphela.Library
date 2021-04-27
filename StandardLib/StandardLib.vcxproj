@@ -136,7 +136,6 @@
     <ClInclude Include="ObjectSourceSimple.h" />
     <ClInclude Include="ObjectSourceText.h" />
     <ClInclude Include="ObjectsSource.h" />
-    <ClInclude Include="Parameters.h" />
     <ClInclude Include="PointerContainer.h" />
     <ClInclude Include="Integer.h" />
     <ClInclude Include="Primitive.h" />
