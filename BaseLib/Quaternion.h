@@ -28,6 +28,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 class SQuaternion
 {
+CONSTRUCTABLE(SQuaternion);
 public:
 	float x, y, z, w;
 

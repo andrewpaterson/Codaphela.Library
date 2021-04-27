@@ -31,6 +31,7 @@ class SFloat3;
 class SFloat4x4;
 class SFloat4
 {
+CONSTRUCTABLE(SFloat4);
 public:
 	float x, y, z, w;
 

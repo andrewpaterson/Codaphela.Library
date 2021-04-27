@@ -5,6 +5,7 @@
 
 class SInt3
 {
+CONSTRUCTABLE(SInt3);
 public:
 	int x, y, z;
 

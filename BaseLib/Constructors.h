@@ -34,9 +34,9 @@ public:
 	void	Kill(void);
 
 	template<class M>
-	void	Add(char* szConstructorName);
+	void	Add(char* szClassName);
 	template<class M>
-	void	Add(const char* szConstructorName);
+	void	Add(const char* szClassName);
 	template<class M>
 	M*		Add(void);
 
@@ -52,13 +52,13 @@ public:
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CConstructors::Add(char* szConstructorName)
+void CConstructors::Add(char* szClassName)
 {
 	M*		pvM;
 	int		iSize;
 
 	iSize = sizeof(M);
-	pvM = (M*)mcConstructors.Put(szConstructorName, iSize);
+	pvM = (M*)mcConstructors.Put(szClassName, iSize);
 	memset(pvM, 0, iSize);
 	new(pvM) M();
 }
@@ -69,13 +69,13 @@ void CConstructors::Add(char* szConstructorName)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CConstructors::Add(const char* szConstructorName)
+void CConstructors::Add(const char* szClassName)
 {
 	M* pvM;
 	int		iSize;
 
 	iSize = sizeof(M);
-	pvM = (M*)mcConstructors.Put(szConstructorName, iSize);
+	pvM = (M*)mcConstructors.Put(szClassName, iSize);
 	memset(pvM, 0, iSize);
 	new(pvM) M();
 }
