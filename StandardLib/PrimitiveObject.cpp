@@ -83,7 +83,7 @@ void LogPrimitiveAssignDebug(CPrimitiveObject* pvThis, char* szMethod)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPrimitiveObject::CPrimitiveObject(EPrimitiveTypes eType)
+CPrimitiveObject::CPrimitiveObject(EPrimitiveType eType)
 {
 	muiClassType = eType;
 	muiNegativeEmbeddingOffset = 0;
@@ -133,5 +133,15 @@ CObject* CPrimitiveObject::Embedding(void)
 	{
 		return NULL;
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+EPrimitiveType CPrimitiveObject::GetClassType(void)
+{
+	return (EPrimitiveType)muiClassType;
 }
 

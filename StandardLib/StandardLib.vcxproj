@@ -91,6 +91,7 @@
     <ClInclude Include="Character.h" />
     <ClInclude Include="ChunkFileNames.h" />
     <ClInclude Include="Class.h" />
+    <ClInclude Include="Classes.h" />
     <ClInclude Include="DependentObjectAdder.h" />
     <ClInclude Include="DependentReadObject.h" />
     <ClInclude Include="DependentReadObjects.h" />
@@ -204,6 +205,7 @@
   <ItemGroup>
     <ClCompile Include="ChunkFileNames.cpp" />
     <ClCompile Include="Class.cpp" />
+    <ClCompile Include="Classes.cpp" />
     <ClCompile Include="DependentObjectAdder.cpp" />
     <ClCompile Include="DependentReadObject.cpp" />
     <ClCompile Include="DependentReadObjects.cpp" />

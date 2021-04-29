@@ -65,7 +65,7 @@ void COperatorBitwiseOr::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void COperatorBitwiseOr::Do(EPrimitiveTypes eDest, void* pvDest, EPrimitiveTypes eLeft, void* pvLeft, EPrimitiveTypes eRight, void* pvRight)
+void COperatorBitwiseOr::Do(EPrimitiveType eDest, void* pvDest, EPrimitiveType eLeft, void* pvLeft, EPrimitiveType eRight, void* pvRight)
 {
 	mapvBitwiseOr[eDest][eLeft][eRight](pvDest, pvLeft, pvRight);
 }

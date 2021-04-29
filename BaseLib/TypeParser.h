@@ -72,7 +72,7 @@ public:
 	TRISTATE	ParseNumber(CNumber* pDest);	
 	TRISTATE	ParseDate(CDate* pDest);
 
-	TRISTATE	Parse(EPrimitiveTypes eType, void* pvDest, int iDestLength, char cOpen = '\0', char cSplit = ',', char cClose = '\0');
+	TRISTATE	Parse(EPrimitiveType eType, void* pvDest, int iDestLength, char cOpen = '\0', char cSplit = ',', char cClose = '\0');
 };
 
 

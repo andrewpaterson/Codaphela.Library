@@ -22,6 +22,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __BASE_OBJECT_H__
 #include "CoreLib/IndexedGeneral.h"
 #include "EmbeddedObject.h"
+#include "Class.h"
 
 
 //Tested for root is only valid whilst the scene graph is calling CanFindRoot.  It stops the graph from walking already tested objects.
@@ -76,6 +77,7 @@ CONSTRUCTABLE(CBaseObject);
 protected:
 	OIndex		moi;
 	CObjects*	mpcObjectsThisIn;
+	CClass*		mpcClass;
 	int32		miDistToRoot;
 	int32		miDistToStack;
 	uint16		miFlags;
@@ -88,7 +90,9 @@ public:
 								~CBaseObject();
 
 	virtual void				Allocate(CObjects* pcObjects);
-	virtual	void				Class(void);
+	virtual	void				Class(void) =0;
+			void				PreClass(void);
+			void				SetClass(CClass* pcClass);
 
 			void				PreInit(void);
 			void				PostInit(void);
@@ -97,6 +101,9 @@ public:
 			void				Kill(void) final;
 	virtual void				Free(void) =0;
 	virtual BOOL				Flush(void);
+
+			BOOL				Save(CObjectSerialiser* pcFile);
+			BOOL				Load(CObjectDeserialiser* pcFile);
 
 			OIndex				GetIndex(void);
 			void				SetObjectID(OIndex oi);  //This looks like a bad idea.
@@ -113,6 +120,7 @@ public:
 			BOOL				IsUpdateAttachedPointerTosDistToRoot(void);
 			BOOL				IsInitialised(void);
 			BOOL				HasClass(void);
+			CClass*				GetClass(void);
 
 	virtual char*				GetName(void);
 	virtual BOOL				SetName(char* szName);

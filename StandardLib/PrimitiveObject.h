@@ -12,16 +12,18 @@ class CObject;
 class CPrimitiveObject
 {
 private:
-	uint16	muiClassType;  //EPrimitiveTypes
+	uint16	muiClassType;  //EPrimitiveType
 	uint16	muiNegativeEmbeddingOffset;
 
 public:
-				CPrimitiveObject(EPrimitiveTypes eType);
+					CPrimitiveObject(EPrimitiveType eType);
 
-	void		SetEmbedding(CObject* pcEmbedding);
-	void		SetDirty(void);
+	EPrimitiveType	GetClassType(void);
 
-	CObject*	Embedding(void);
+	void			SetEmbedding(CObject* pcEmbedding);
+	void			SetDirty(void);
+
+	CObject*		Embedding(void);
 };
 
 

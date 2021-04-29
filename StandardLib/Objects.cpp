@@ -128,8 +128,8 @@ void CObjects::Init(CUnknowns* pcUnknownsAllocatingFrom, CStackPointers* pcStack
 	mpcSequenceConnection = pcSequenceConnection;
 
 	mcMemory.Init();
-
 	mcSource.Init();
+	mcClasses.Init();
 
 	mbInitialised = TRUE;
 }
@@ -148,6 +148,7 @@ void CObjects::Kill(void)
 	mpcDataConnection = NULL;
 	mpcSequenceConnection = NULL;
 
+	mcClasses.Kill();
 	mcSource.Kill();
 	mcMemory.Kill();
 	
@@ -1437,6 +1438,16 @@ void CObjects::AppenedHollowEmbeddedObjects(CBaseObject* pcHollow, uint16 iNumEm
 CStackPointers* CObjects::GetStackPointers(void)
 {
 	return mpcStackPointers;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CClasses* CObjects::GetClasses(void)
+{
+	return &mcClasses;
 }
 
 

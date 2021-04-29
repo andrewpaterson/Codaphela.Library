@@ -45,6 +45,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 class CNumberControl;
 class CNumber
 {
+CONSTRUCTABLE(CNumber);
 public:
 	int16		mcMaxWholeNumbers;
 	int16		mcMaxDecimals;

@@ -29,6 +29,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Root.h"
 #include "IndexGenerator.h"
 #include "Pointer.h"
+#include "Classes.h"
 #include "DistCalculator.h"
 
 
@@ -64,6 +65,7 @@ protected:
 
 	CNamedIndexedObjects	mcMemory;			//Objects (BaseObject*) allocated in Unknowns referenced by name and OIndex.  
 	CObjectsSource			mcSource;			//An object found on disk will be deserialised and then placed in memory.
+	CClasses				mcClasses;
 
 	CDataConnection*		mpcDataConnection;
 	CSequenceConnection*	mpcSequenceConnection;
@@ -117,6 +119,7 @@ public:
 						BOOL					Deindex(CBaseObject* pvObject);
 
 						CStackPointers*			GetStackPointers(void);
+						CClasses*				GetClasses(void);
 
 						OIndex					StartMemoryIteration(SIndexesIterator* psIter);
 						OIndex					IterateMemory(SIndexesIterator* psIter);

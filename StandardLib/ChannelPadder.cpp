@@ -39,7 +39,7 @@ void CChannelPadder::Init(CChannels* pcExternal)
 //////////////////////////////////////////////////////////////////////////
 BOOL CChannelPadder::OptimalPadding(void)
 {
-	EPrimitiveTypes			eType;
+	EPrimitiveType			eType;
 	int						iMaxSize;
 	CChannel*				pcChannel;
 	int						i;

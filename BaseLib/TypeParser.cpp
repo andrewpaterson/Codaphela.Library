@@ -697,7 +697,7 @@ TRISTATE CTypeParser::ParseDate(CDate* pDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CTypeParser::Parse(EPrimitiveTypes eType, void* pvDest, int iDestLength, char cOpen, char cSplit, char cClose)
+TRISTATE CTypeParser::Parse(EPrimitiveType eType, void* pvDest, int iDestLength, char cOpen, char cSplit, char cClose)
 {
 	switch (eType)
 	{

@@ -39,6 +39,7 @@ class CArrayChars;
 
 class CChars
 {
+CONSTRUCTABLE(CChars);
 friend class CFileReader;
 friend class CFileWriter;
 protected:

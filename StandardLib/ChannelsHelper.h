@@ -29,10 +29,10 @@ Microsoft Windows is Copyright Microsoft Corporation
 struct SChannel
 {
 	int					iChannel;
-	EPrimitiveTypes		eType;
+	EPrimitiveType		eType;
 	BOOL				bReverse;
 
-	void Init(int iChannel, EPrimitiveTypes eType, BOOL bReverse);
+	void Init(int iChannel, EPrimitiveType eType, BOOL bReverse);
 };
 
 

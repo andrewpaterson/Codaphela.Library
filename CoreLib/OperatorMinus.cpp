@@ -74,7 +74,7 @@ void COperatorMinus::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void COperatorMinus::Do(EPrimitiveTypes eDest, void* pvDest, EPrimitiveTypes eLeft, void* pvLeft, EPrimitiveTypes eRight, void* pvRight)
+void COperatorMinus::Do(EPrimitiveType eDest, void* pvDest, EPrimitiveType eLeft, void* pvLeft, EPrimitiveType eRight, void* pvRight)
 {
 	mapvMinus[eDest][eLeft][eRight](pvDest, pvLeft, pvRight);
 }

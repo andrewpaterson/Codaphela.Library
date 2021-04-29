@@ -61,7 +61,7 @@ void COperatorGreatherThanOrEqual::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void COperatorGreatherThanOrEqual::Do(BOOL* pvDest, EPrimitiveTypes eLeft, void* pvLeft, EPrimitiveTypes eRight, void* pvRight)
+void COperatorGreatherThanOrEqual::Do(BOOL* pvDest, EPrimitiveType eLeft, void* pvLeft, EPrimitiveType eRight, void* pvRight)
 {
 	mapvGreatherThanOrEqual[eLeft][eRight](pvDest, pvLeft, pvRight);
 }

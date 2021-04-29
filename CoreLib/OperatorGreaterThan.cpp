@@ -61,7 +61,7 @@ void COperatorGreaterThan::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void COperatorGreaterThan::Do(BOOL* pvDest, EPrimitiveTypes eLeft, void* pvLeft, EPrimitiveTypes eRight, void* pvRight)
+void COperatorGreaterThan::Do(BOOL* pvDest, EPrimitiveType eLeft, void* pvLeft, EPrimitiveType eRight, void* pvRight)
 {
 	mapvGreaterThan[eLeft][eRight](pvDest, pvLeft, pvRight);
 }

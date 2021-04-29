@@ -386,7 +386,7 @@ void CTypeConverter::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTypeConverter::Do(EPrimitiveTypes eDest, void* pvDest, EPrimitiveTypes eSource, void* pvSource)
+void CTypeConverter::Do(EPrimitiveType eDest, void* pvDest, EPrimitiveType eSource, void* pvSource)
 {
 	mapvConversion[eDest][eSource](pvDest, pvSource);
 }

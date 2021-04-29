@@ -57,7 +57,7 @@ void COperatorIncrement::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void COperatorIncrement::Do(EPrimitiveTypes eDest, void* pvDest)
+void COperatorIncrement::Do(EPrimitiveType eDest, void* pvDest)
 {
 	mapvIncrement[eDest](pvDest);
 }

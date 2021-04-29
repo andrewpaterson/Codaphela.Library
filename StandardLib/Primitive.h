@@ -12,7 +12,7 @@ private:
 	PRIMITIVE_TYPE mVal;
 
 public:
-	CPrimitive(EPrimitiveTypes eType) : CPrimitiveObject(eType) {}
+	CPrimitive(EPrimitiveType eType) : CPrimitiveObject(eType) {}
 
 	void Assign(PRIMITIVE_TYPE val)
 	{

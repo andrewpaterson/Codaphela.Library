@@ -29,7 +29,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 struct SChannelAccess 
 {
 	int					iChannel;
-	EPrimitiveTypes		eType;
+	EPrimitiveType		eType;
 };
 
 
@@ -49,13 +49,13 @@ public:
 	CChannelsAccessor*	Create(void);
 	CChannelsAccessor*	CreateAndKill(void);
 
-	static CChannelsAccessor*	CreateSingleChannelAccessor(CChannels* pcChannels, int iChannel, EPrimitiveTypes eType = PT_Undefined);
+	static CChannelsAccessor*	CreateSingleChannelAccessor(CChannels* pcChannels, int iChannel, EPrimitiveType eType = PT_Undefined);
 
-	void 	AddAccess(int iChannel, EPrimitiveTypes eType = PT_Undefined);
-	void 	AddAccess(int iChannel1, int iChannel2, EPrimitiveTypes eType = PT_Undefined);
-	void	AddAccess(int iChannel1, int iChannel2, int iChannel3, EPrimitiveTypes eType = PT_Undefined);
-	void	AddAccess(int iChannel1, int iChannel2, int iChannel3, int iChannel4, EPrimitiveTypes eType = PT_Undefined);
-	void	AddAccess(CArrayInt* paiChannels, EPrimitiveTypes eType = PT_Undefined);
+	void 	AddAccess(int iChannel, EPrimitiveType eType = PT_Undefined);
+	void 	AddAccess(int iChannel1, int iChannel2, EPrimitiveType eType = PT_Undefined);
+	void	AddAccess(int iChannel1, int iChannel2, int iChannel3, EPrimitiveType eType = PT_Undefined);
+	void	AddAccess(int iChannel1, int iChannel2, int iChannel3, int iChannel4, EPrimitiveType eType = PT_Undefined);
+	void	AddAccess(CArrayInt* paiChannels, EPrimitiveType eType = PT_Undefined);
 	void	AddAccess(CChannel* pcChannel);
 	void	AddAccess(CChannels* pcChannels);
 	void	AddAccess(CChannelAccessor* pcChannel);

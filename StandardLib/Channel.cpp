@@ -27,7 +27,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannel::Init(int iChannel, EPrimitiveTypes eType, BOOL bReverse)
+void CChannel::Init(int iChannel, EPrimitiveType eType, BOOL bReverse)
 {
 	this->iChannel = iChannel;
 	this->eType = eType;
@@ -39,7 +39,7 @@ void CChannel::Init(int iChannel, EPrimitiveTypes eType, BOOL bReverse)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannel::Init(int iChannel, EPrimitiveTypes eType, int iByteSize, int iBitSize, int iByteOffset, int iBitOffset, BOOL bReverse)
+void CChannel::Init(int iChannel, EPrimitiveType eType, int iByteSize, int iBitSize, int iByteOffset, int iBitOffset, BOOL bReverse)
 {
 	this->iChannel = iChannel;
 	this->eType = eType;

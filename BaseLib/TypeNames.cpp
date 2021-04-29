@@ -33,7 +33,7 @@ CTypeNames gcTypeNames;
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTypeNames::AddType(EPrimitiveTypes eType, int iSize, const char* szPrettyName, const char* szCppName, const char* szPrimitiveName)
+void CTypeNames::AddType(EPrimitiveType eType, int iSize, const char* szPrettyName, const char* szCppName, const char* szPrimitiveName)
 {
 	STypeName*	psTypeName;
 	int			iPrettyNameLen;
@@ -80,7 +80,7 @@ void CTypeNames::Init(void)
 	AddType(PT_Undefined,	0,					"Undefined",	"",					"PT_Undefined");
 	AddType(PT_int,			INT_BYTE_SIZE,		"Int",			"int",				"PT_int");
 	AddType(PT_short,		SHORT_BYTE_SIZE,	"Short",		"int16",			"PT_short");
-	AddType(PT_VoidPointer, sizeof(void*),		"Pointer",		"void*",			"PT_VoidPointer");
+	AddType(PT_Pointer,		sizeof(void*),		"Pointer",		"void*",			"PT_Pointer");
 	AddType(PT_char,		CHAR_BYTE_SIZE,		"Char",			"char",				"PT_char");
 	AddType(PT_float,		FLOAT_BYTE_SIZE,	 "Float",		"float",			"PT_float");
 	AddType(PT_double,		DOUBLE_BYTE_SIZE,	"Double",		"double",			"PT_double");
@@ -108,7 +108,7 @@ void CTypeNames::Init(void)
 	mmsziPrettyNames.Put("Bool", PT_bool);
 	mmsziPrettyNames.Put("Short", PT_short);
 	mmsziPrettyNames.Put("Void", PT_void);
-	mmsziPrettyNames.Put("Pointer", PT_VoidPointer); //?
+	mmsziPrettyNames.Put("Pointer", PT_Pointer); //?
 	mmsziPrettyNames.Put("Char", PT_char);
 	mmsziPrettyNames.Put("Float", PT_float);
 	mmsziPrettyNames.Put("Double", PT_double);
@@ -134,7 +134,7 @@ void CTypeNames::Init(void)
 	mmsziCppNames.Put("BOOL", PT_bool);
 	mmsziCppNames.Put("int16", PT_short);
 	mmsziCppNames.Put("void", PT_void);
-	mmsziCppNames.Put("void*", PT_VoidPointer); //?
+	mmsziCppNames.Put("void*", PT_Pointer); //?
 	mmsziCppNames.Put("char", PT_char);
 	mmsziCppNames.Put("float", PT_float);
 	mmsziCppNames.Put("double", PT_double);
@@ -178,7 +178,7 @@ void CTypeNames::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-const char* CTypeNames::GetPrettyName(EPrimitiveTypes eType)
+const char* CTypeNames::GetPrettyName(EPrimitiveType eType)
 {
 	STypeName*	psTypeName;
 
@@ -198,7 +198,7 @@ const char* CTypeNames::GetPrettyName(EPrimitiveTypes eType)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-const char* CTypeNames::GetCPPName(EPrimitiveTypes eType)
+const char* CTypeNames::GetCPPName(EPrimitiveType eType)
 {
 	STypeName*	psTypeName;
 
@@ -218,7 +218,7 @@ const char* CTypeNames::GetCPPName(EPrimitiveTypes eType)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-const char* CTypeNames::GetPrimitiveName(EPrimitiveTypes eType)
+const char* CTypeNames::GetPrimitiveName(EPrimitiveType eType)
 {
 	STypeName*	psTypeName;
 
@@ -238,14 +238,14 @@ const char* CTypeNames::GetPrimitiveName(EPrimitiveTypes eType)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EPrimitiveTypes CTypeNames::GetTypeFromPrettyName(const char* szPrettyName)
+EPrimitiveType CTypeNames::GetTypeFromPrettyName(const char* szPrettyName)
 {
 	int*	piType;
 
 	piType = mmsziPrettyNames.Get(szPrettyName);
 	if (piType)
 	{
-		return (EPrimitiveTypes)(*piType);
+		return (EPrimitiveType)(*piType);
 	}
 	return PT_Undefined;
 }
@@ -255,14 +255,14 @@ EPrimitiveTypes CTypeNames::GetTypeFromPrettyName(const char* szPrettyName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EPrimitiveTypes CTypeNames::GetTypeFromCPPName(const char* szCppName)
+EPrimitiveType CTypeNames::GetTypeFromCPPName(const char* szCppName)
 {
 	int*	piType;
 
 	piType = mmsziCppNames.Get(szCppName);
 	if (piType)
 	{
-		return (EPrimitiveTypes)(*piType);
+		return (EPrimitiveType)(*piType);
 	}
 	return PT_Undefined;
 }
@@ -272,7 +272,7 @@ EPrimitiveTypes CTypeNames::GetTypeFromCPPName(const char* szCppName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CTypeNames::GetByteSize(EPrimitiveTypes eType)
+int CTypeNames::GetByteSize(EPrimitiveType eType)
 {
 	STypeName*	psTypeName;
 
@@ -293,7 +293,7 @@ int CTypeNames::GetByteSize(EPrimitiveTypes eType)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CTypeNames::GetBitSize(EPrimitiveTypes eType)
+int CTypeNames::GetBitSize(EPrimitiveType eType)
 {
 	STypeName*	psTypeName;
 

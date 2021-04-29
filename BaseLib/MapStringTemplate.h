@@ -29,6 +29,7 @@ template<class D>
 class CMapStringTemplate : public CMapStringBlock
 {
 public:
+	D*		Get(char* szKey);
 	D*		Get(const char* szKey);
 
 	D*		Put(char* szKey);
@@ -36,6 +37,17 @@ public:
 	D*		Put(const char* szKey);
 	BOOL	Put(const char* szKey, D* psData);
 };
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class D>
+D* CMapStringTemplate<D>::Get(char* szKey)
+{
+	return (D*)CMapStringBlock::Get(szKey);
+}
 
 
 //////////////////////////////////////////////////////////////////////////

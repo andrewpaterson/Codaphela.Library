@@ -66,11 +66,11 @@ BOOL CChannelsAccessor::IsContiguous(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EPrimitiveTypes CChannelsAccessor::GetType(void)
+EPrimitiveType CChannelsAccessor::GetType(void)
 {
 	int					i;
 	CChannelAccessor*	pcAccessor;
-	EPrimitiveTypes		eType;
+	EPrimitiveType		eType;
 
 	eType = PT_Undefined;
 	for (i = 0; i < macAccessors.NumElements(); i++)

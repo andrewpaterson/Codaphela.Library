@@ -60,6 +60,15 @@ void CObject::Allocate(CObjects* pcObjects)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CObject::Class(void)
+{
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CObject::FreePointers(void)
 {
 	CBaseObject::FreePointers();
@@ -736,6 +745,8 @@ void CObject::RemovePointerTo(CEmbeddedObject* pcTo)
 CPointer* CObject::Pointer(CPointer* pcPointer)
 {
 	pcPointer->SetEmbedding(this);
+
+	mpcClass->Pointer(this, pcPointer);
 	mapPointers.Add(&pcPointer);
 	return pcPointer;
 }
@@ -747,9 +758,11 @@ CPointer* CObject::Pointer(CPointer* pcPointer)
 //////////////////////////////////////////////////////////////////////////
 void CObject::Embedded(CBaseObject* pcObject)
 {
-	pcObject->Class();
+	pcObject->PreClass();
 	pcObject->mpcEmbedded = this;
 	mapEmbedded.Add(&pcObject);
+
+	mpcClass->Embedded(this, pcObject);
 }
 
 
@@ -760,6 +773,8 @@ void CObject::Embedded(CBaseObject* pcObject)
 void CObject::Primitive(CPrimitiveObject* pcPrimitive)
 {
 	pcPrimitive->SetEmbedding(this);
+
+	mpcClass->Primitive(this, pcPrimitive);
 }
 
 

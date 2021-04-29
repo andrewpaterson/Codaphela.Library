@@ -67,7 +67,7 @@ void COperatorPower::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void COperatorPower::Do(EPrimitiveTypes eDest, void* pvDest, EPrimitiveTypes eLeft, void* pvLeft, EPrimitiveTypes eRight, void* pvRight)
+void COperatorPower::Do(EPrimitiveType eDest, void* pvDest, EPrimitiveType eLeft, void* pvLeft, EPrimitiveType eRight, void* pvRight)
 {
 	mapvPower[eDest][eLeft][eRight](pvDest, pvLeft, pvRight);
 }

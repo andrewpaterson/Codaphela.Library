@@ -7,7 +7,7 @@ class CDataField : public CField
 {
 CONSTRUCTABLE(CDataField);
 public:
-	void Init(void);
+	void Init(EPrimitiveType eType, ptrdiff_t iOffset);
 	void Kill(void);
 };
 

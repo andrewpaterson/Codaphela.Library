@@ -18,11 +18,15 @@ protected:
 	CArrayTemplate<CPointerField>			macPointers;
 	CArrayTemplate<CEmbeddedObjectField>	macEmbeddedObjects;
 	CArrayTemplate<CDataField>				macDatas;
+	uint16									muiFlags;
 
 public:
 	void Init(void);
 	void Kill(void);
 
+	void Pointer(CBaseObject* pcThis, CPointer* pcPointer);
+	void Primitive(CBaseObject* pcThis, CPrimitiveObject* pcPrimitive);
+	void Embedded(CBaseObject* pcThis, CBaseObject* pcObject);
 };
 
 #endif // __CLASS_H__

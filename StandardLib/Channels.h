@@ -44,18 +44,18 @@ protected:
 
 public:
 	void 					Init(void);
-	void 					Init(int iSize, EPrimitiveTypes eType, int iFirst, ...);
-	void 					Init(int iSize, void* pvUserData, EPrimitiveTypes eType, int iFirst, ...);
+	void 					Init(int iSize, EPrimitiveType eType, int iFirst, ...);
+	void 					Init(int iSize, void* pvUserData, EPrimitiveType eType, int iFirst, ...);
 	void					Init(CChannels* pcSource);
 	void 					Kill(void);
 
 	void 					BeginChange(void);
 	void 					SetSize(int iSize);
-	void 					PrivateAddChannel(int iChannel, EPrimitiveTypes eType, BOOL bReverse);
-	void 					AddChannel(int iChannel, EPrimitiveTypes eType, BOOL bReverse = FALSE);
-	void 					AddChannel(int iChannel1, int iChannel2, EPrimitiveTypes eType, BOOL bReverse = FALSE);
-	void 					AddChannel(int iChannel1, int iChannel2, int iChannel3, EPrimitiveTypes eType, BOOL bReverse = FALSE);
-	void 					AddChannel(int iChannel1, int iChannel2, int iChannel3, int iChannel4, EPrimitiveTypes eType, BOOL bReverse = FALSE);
+	void 					PrivateAddChannel(int iChannel, EPrimitiveType eType, BOOL bReverse);
+	void 					AddChannel(int iChannel, EPrimitiveType eType, BOOL bReverse = FALSE);
+	void 					AddChannel(int iChannel1, int iChannel2, EPrimitiveType eType, BOOL bReverse = FALSE);
+	void 					AddChannel(int iChannel1, int iChannel2, int iChannel3, EPrimitiveType eType, BOOL bReverse = FALSE);
+	void 					AddChannel(int iChannel1, int iChannel2, int iChannel3, int iChannel4, EPrimitiveType eType, BOOL bReverse = FALSE);
 	void 					AddChannels(CArrayChannel* pasChannels);
 	void 					AddChannels(CChannels* pcSourceChannels);
 	void					RemoveChannel(int iChannel);
@@ -99,9 +99,9 @@ public:
 
 	void					GetAllChannels(CArrayInt* paiChannels);
 	void					GetAllChannels(CArrayChannel* pasChannels);
-	EPrimitiveTypes			GetPrimitiveType(void);  //Returns PT_Undefined if more than one.
+	EPrimitiveType			GetPrimitiveType(void);  //Returns PT_Undefined if more than one.
 	void					GetAllPrimitiveTypes(CArrayInt* paiPrimitiveTypes);
-	void					GetChannelsForType(EPrimitiveTypes eType, CArrayInt* paiChannels);
+	void					GetChannelsForType(EPrimitiveType eType, CArrayInt* paiChannels);
 	BOOL					IsOnlyBasicTypes(void);
 
 	void					SetByteStride(int iByteStride);
@@ -109,7 +109,7 @@ public:
 
 	BOOL					IsValid(int iPos);
 
-	EPrimitiveTypes			GetLargestPrimitiveType(void);
+	EPrimitiveType			GetLargestPrimitiveType(void);
 
 protected:
 	void					Recalculate(void);

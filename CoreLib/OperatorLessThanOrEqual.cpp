@@ -61,7 +61,7 @@ void COperatorLessThanOrEqual::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void COperatorLessThanOrEqual::Do(BOOL* pvDest, EPrimitiveTypes eLeft, void* pvLeft, EPrimitiveTypes eRight, void* pvRight)
+void COperatorLessThanOrEqual::Do(BOOL* pvDest, EPrimitiveType eLeft, void* pvLeft, EPrimitiveType eRight, void* pvRight)
 {
 	mapvLessThanOrEqual[eLeft][eRight](pvDest, pvLeft, pvRight);
 }

@@ -65,7 +65,7 @@ void COperatorRemainder::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void COperatorRemainder::Do(EPrimitiveTypes eDest, void* pvDest, EPrimitiveTypes eLeft, void* pvLeft, EPrimitiveTypes eRight, void* pvRight)
+void COperatorRemainder::Do(EPrimitiveType eDest, void* pvDest, EPrimitiveType eLeft, void* pvLeft, EPrimitiveType eRight, void* pvRight)
 {
 	mapvRemainder[eDest][eLeft][eRight](pvDest, pvLeft, pvRight);
 }
