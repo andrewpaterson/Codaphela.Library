@@ -53,7 +53,7 @@ void CChannels::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannels::Init(int iSize, EPrimitiveTypes eType, int iFirst, ...)
+void CChannels::Init(int iSize, EPrimitiveType eType, int iFirst, ...)
 {
 	va_list					vaMarker;
 	int						iCount;
@@ -82,7 +82,7 @@ void CChannels::Init(int iSize, EPrimitiveTypes eType, int iFirst, ...)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannels::Init(int iSize, void* pvUserData, EPrimitiveTypes eType, int iFirst, ...)
+void CChannels::Init(int iSize, void* pvUserData, EPrimitiveType eType, int iFirst, ...)
 {
 	va_list					vaMarker;
 	int						iCount;
@@ -183,7 +183,7 @@ void CChannels::SetSize(int iSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannels::AddChannel(int iChannel, EPrimitiveTypes eType, BOOL bReverse)
+void CChannels::AddChannel(int iChannel, EPrimitiveType eType, BOOL bReverse)
 {
 	if (IsChanging())
 	{
@@ -200,7 +200,7 @@ void CChannels::AddChannel(int iChannel, EPrimitiveTypes eType, BOOL bReverse)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannels::AddChannel(int iChannel1, int iChannel2, EPrimitiveTypes eType, BOOL bReverse)
+void CChannels::AddChannel(int iChannel1, int iChannel2, EPrimitiveType eType, BOOL bReverse)
 {
 	if (IsChanging())
 	{
@@ -218,7 +218,7 @@ void CChannels::AddChannel(int iChannel1, int iChannel2, EPrimitiveTypes eType, 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannels::AddChannel(int iChannel1, int iChannel2, int iChannel3, EPrimitiveTypes eType, BOOL bReverse)
+void CChannels::AddChannel(int iChannel1, int iChannel2, int iChannel3, EPrimitiveType eType, BOOL bReverse)
 {
 	if (IsChanging())
 	{
@@ -237,7 +237,7 @@ void CChannels::AddChannel(int iChannel1, int iChannel2, int iChannel3, EPrimiti
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannels::AddChannel(int iChannel1, int iChannel2, int iChannel3, int iChannel4, EPrimitiveTypes eType, BOOL bReverse)
+void CChannels::AddChannel(int iChannel1, int iChannel2, int iChannel3, int iChannel4, EPrimitiveType eType, BOOL bReverse)
 {
 	if (IsChanging())
 	{
@@ -297,7 +297,7 @@ void CChannels::AddChannels(CChannels* pcSourceChannels)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannels::PrivateAddChannel(int iChannel, EPrimitiveTypes eType, BOOL bReverse)
+void CChannels::PrivateAddChannel(int iChannel, EPrimitiveType eType, BOOL bReverse)
 {
 	SChannel*	psChannel;
 
@@ -1088,11 +1088,11 @@ void CChannels::GetAllChannels(CArrayChannel* pasChannels)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EPrimitiveTypes CChannels::GetPrimitiveType(void)
+EPrimitiveType CChannels::GetPrimitiveType(void)
 {
 	int					j;
 	CChannel*			psChannel;
-	EPrimitiveTypes		eType;
+	EPrimitiveType		eType;
 
 	eType = PT_Undefined;
 	for (j = 0; j < masChannelOffsets.NumElements(); j++)
@@ -1133,7 +1133,7 @@ void CChannels::GetAllPrimitiveTypes(CArrayInt* paiPrimitiveTypes)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannels::GetChannelsForType(EPrimitiveTypes eType, CArrayInt* paiChannels)
+void CChannels::GetChannelsForType(EPrimitiveType eType, CArrayInt* paiChannels)
 {
 	int					j;
 	CChannel*			psChannel;
@@ -1248,11 +1248,11 @@ void CChannels::Dump(int iLineLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EPrimitiveTypes CChannels::GetLargestPrimitiveType(void)
+EPrimitiveType CChannels::GetLargestPrimitiveType(void)
 {
 	CChannel*			pcChannel;
 	int					i;
-	EPrimitiveTypes		eLargeType;
+	EPrimitiveType		eLargeType;
 	int					iLargeSize;
 	int					iSize;
 

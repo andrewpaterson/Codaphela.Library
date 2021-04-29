@@ -480,6 +480,9 @@
     <ClInclude Include="DataField.h">
       <Filter>Source\Object\Class</Filter>
     </ClInclude>
+    <ClInclude Include="Classes.h">
+      <Filter>Source\Object\Class</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Unknown.cpp">
@@ -777,6 +780,9 @@
       <Filter>Source\Object\Class</Filter>
     </ClCompile>
     <ClCompile Include="DataField.cpp">
+      <Filter>Source\Object\Class</Filter>
+    </ClCompile>
+    <ClCompile Include="Classes.cpp">
       <Filter>Source\Object\Class</Filter>
     </ClCompile>
   </ItemGroup>

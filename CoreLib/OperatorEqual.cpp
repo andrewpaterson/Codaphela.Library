@@ -63,7 +63,7 @@ void COperatorEqual::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void COperatorEqual::Do(BOOL* pvDest, EPrimitiveTypes eLeft, void* pvLeft, EPrimitiveTypes eRight, void* pvRight)
+void COperatorEqual::Do(BOOL* pvDest, EPrimitiveType eLeft, void* pvLeft, EPrimitiveType eRight, void* pvRight)
 {
 	mapvEqual[eLeft][eRight](pvDest, pvLeft, pvRight);
 }

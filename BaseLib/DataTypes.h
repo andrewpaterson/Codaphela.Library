@@ -75,7 +75,7 @@ class CFileWriter;
 
 
 //These are not C/C++ types.
-enum EPrimitiveTypes
+enum EPrimitiveType
 {
 	PT_Undefined,
 
@@ -115,7 +115,7 @@ enum EPrimitiveTypes
 	PRIMTIVE_TYPE_END,
 
 	//Pointers.
-	PT_VoidPointer,  //An arbitrary pointer.
+	PT_Pointer,  //An arbitrary pointer.
 
 	NUM_PRIMITIVE_TYPES,
 	STRUCT_TYPES = 0x40,  //Any type with an ID >= 0x40 is a struct type.

@@ -61,7 +61,7 @@ void COperatorAssignment::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void COperatorAssignment::Do(EPrimitiveTypes eDest, void* pvDest, EPrimitiveTypes eLeft, void* pvLeft)
+void COperatorAssignment::Do(EPrimitiveType eDest, void* pvDest, EPrimitiveType eLeft, void* pvLeft)
 {
 	mapvAssignment[eDest][eLeft](pvDest, pvLeft);
 }

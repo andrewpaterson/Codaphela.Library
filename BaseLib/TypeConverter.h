@@ -357,7 +357,7 @@ class CTypeConverter
 public:
 	void Init(void);
 	void Kill(void);
-	void Do(EPrimitiveTypes eDest, void* pvDest, EPrimitiveTypes eSource, void* pvSource);
+	void Do(EPrimitiveType eDest, void* pvDest, EPrimitiveType eSource, void* pvSource);
 };
 
 

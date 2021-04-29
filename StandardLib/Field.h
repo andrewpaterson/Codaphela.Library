@@ -13,7 +13,7 @@ protected:
 	uint32	muiOffset;
 
 public:
-	void Init(void);
+	void Init(uint32 uiType, uint32 uiOffset);
 	void Kill(void);
 };
 

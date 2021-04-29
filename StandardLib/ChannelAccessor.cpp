@@ -28,7 +28,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannelAccessor::Init(int iAccessByteSize, int iAccessBitSize, EPrimitiveTypes eAccessType, int iChannelByteOffset, int iChannelByteSize, EPrimitiveTypes eChannelType, BOOL bChannelReverse, int iChannelBitSize, int iChannelBitOffset, int iChannel)
+void CChannelAccessor::Init(int iAccessByteSize, int iAccessBitSize, EPrimitiveType eAccessType, int iChannelByteOffset, int iChannelByteSize, EPrimitiveType eChannelType, BOOL bChannelReverse, int iChannelBitSize, int iChannelBitOffset, int iChannel)
 {
 	miAccessByteSize = iAccessByteSize;
 	miAccessBitSize = iAccessBitSize;
@@ -58,7 +58,7 @@ void CChannelAccessor::GetNative(void* pvBase, void* pvDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannelAccessor::GetAs(EPrimitiveTypes eType, void* pvBase, void* pvDest)
+void CChannelAccessor::GetAs(EPrimitiveType eType, void* pvBase, void* pvDest)
 {
 	pvBase = RemapSinglePointer(pvBase, miChannelByteOffset);
 	gcTypeConverter.Do(eType, pvDest, meChannelType, pvBase);
@@ -73,7 +73,7 @@ void CChannelAccessor::GetAs(EPrimitiveTypes eType, void* pvBase, void* pvDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannelAccessor::GetCast(EPrimitiveTypes eType, void* pvBase, void* pvDest)
+void CChannelAccessor::GetCast(EPrimitiveType eType, void* pvBase, void* pvDest)
 {
 	pvBase = RemapSinglePointer(pvBase, miChannelByteOffset);
 	gcOperators.mcAssignment.Do(eType, pvDest, meChannelType, pvBase);
@@ -88,7 +88,7 @@ void CChannelAccessor::GetCast(EPrimitiveTypes eType, void* pvBase, void* pvDest
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannelAccessor::GetAsSub(EPrimitiveTypes eType, void* pvBase, int iBitOffset, void* pvDest)
+void CChannelAccessor::GetAsSub(EPrimitiveType eType, void* pvBase, int iBitOffset, void* pvDest)
 {
 	char	c[16];
 
@@ -102,7 +102,7 @@ void CChannelAccessor::GetAsSub(EPrimitiveTypes eType, void* pvBase, int iBitOff
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannelAccessor::GetCastSub(EPrimitiveTypes eType, void* pvBase, int iBitOffset, void* pvDest)
+void CChannelAccessor::GetCastSub(EPrimitiveType eType, void* pvBase, int iBitOffset, void* pvDest)
 {
 	char	c[16];
 
@@ -143,7 +143,7 @@ void CChannelAccessor::SetNative(void* pvBase, void* pvSource)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannelAccessor::SetFrom(EPrimitiveTypes eType, void* pvBase, void* pvSource)
+void CChannelAccessor::SetFrom(EPrimitiveType eType, void* pvBase, void* pvSource)
 {
 	pvBase = RemapSinglePointer(pvBase, miChannelByteOffset);
 	gcTypeConverter.Do(meChannelType, pvBase, eType, pvSource);
@@ -158,7 +158,7 @@ void CChannelAccessor::SetFrom(EPrimitiveTypes eType, void* pvBase, void* pvSour
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannelAccessor::SetFromSub(EPrimitiveTypes eType, void* pvBase, int iBitOffset, void* pvSource)
+void CChannelAccessor::SetFromSub(EPrimitiveType eType, void* pvBase, int iBitOffset, void* pvSource)
 {
 	char	c[16];
 

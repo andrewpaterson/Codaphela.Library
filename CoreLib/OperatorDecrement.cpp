@@ -57,7 +57,7 @@ void COperatorDecrement::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void COperatorDecrement::Do(EPrimitiveTypes eDest, void* pvDest)
+void COperatorDecrement::Do(EPrimitiveType eDest, void* pvDest)
 {
 	mapvDecrement[eDest](pvDest);
 }

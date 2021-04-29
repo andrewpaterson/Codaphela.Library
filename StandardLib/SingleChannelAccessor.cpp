@@ -62,7 +62,7 @@ float CSingleChannelAccessor::GetCastToFloat(int iChannel, int iPos)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CSingleChannelAccessor::GetConvertTo(int iChannel, EPrimitiveTypes eType, void* pvDest, int iPos)
+void CSingleChannelAccessor::GetConvertTo(int iChannel, EPrimitiveType eType, void* pvDest, int iPos)
 {
 	CChannel*			pcChannel;
 	void*				pvData;
@@ -117,7 +117,7 @@ void CSingleChannelAccessor::GetConvertTo(int iChannel, EPrimitiveTypes eType, v
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CSingleChannelAccessor::GetCastTo(int iChannel, EPrimitiveTypes eType, void* pvDest, int iPos)
+void CSingleChannelAccessor::GetCastTo(int iChannel, EPrimitiveType eType, void* pvDest, int iPos)
 {
 	CChannel*			pcChannel;
 	void*				pvData;

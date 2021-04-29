@@ -888,6 +888,9 @@
     <ClInclude Include="DataTypesIO.h">
       <Filter>Source\Data\Types\File</Filter>
     </ClInclude>
+    <ClInclude Include="GlobalDataTypesIO.h">
+      <Filter>Source\Data\Types\File</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -1407,6 +1410,9 @@
       <Filter>Source\Error</Filter>
     </ClCompile>
     <ClCompile Include="DataTypesIO.cpp">
+      <Filter>Source\Data\Types\File</Filter>
+    </ClCompile>
+    <ClCompile Include="GlobalDataTypesIO.cpp">
       <Filter>Source\Data\Types\File</Filter>
     </ClCompile>
   </ItemGroup>

@@ -45,7 +45,7 @@ public:
 
 	virtual BOOL				IsContiguous(void);
 
-	EPrimitiveTypes				GetType(void);
+	EPrimitiveType				GetType(void);
 	int							GetBitSize(void);
 	int							GetByteSize(void);
 	int							GetBufferSize(void);

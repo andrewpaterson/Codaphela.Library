@@ -23,6 +23,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "ObjectDeserialiser.h"
 #include "Objects.h"
 #include "DistCalculator.h"
+#include "Classes.h"
 #include "BaseObject.h"
 
 
@@ -33,6 +34,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 CBaseObject::CBaseObject()
 {
 	mpcObjectsThisIn = NULL;
+	mpcClass = NULL;
 	miDistToRoot = UNATTACHED_DIST_TO_ROOT;
 	miDistToStack = MIN_STACK_DIST_TO_STACK;
 	moi = INVALID_O_INDEX;
@@ -67,7 +69,7 @@ void CBaseObject::Allocate(CObjects* pcObjects)
 {
 	mpcObjectsThisIn = pcObjects;
 	SetFlag(OBJECT_FLAGS_CALLED_ALLOCATE, TRUE);
-	Class();
+	PreClass();
 	SetDistToStack(UNKNOWN_DIST_TO_STACK);
 }
 
@@ -76,9 +78,46 @@ void CBaseObject::Allocate(CObjects* pcObjects)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::Class(void)
+void CBaseObject::PreClass(void)
 {
-	SetFlag(OBJECT_FLAGS_CALLED_CLASS, TRUE);
+	CClasses*	pcClasses;
+	CClass*		pcClass;
+
+	if (!HasClass())
+	{
+		SetFlag(OBJECT_FLAGS_CALLED_CLASS, TRUE);
+
+		pcClasses = mpcObjectsThisIn->GetClasses();
+		pcClass = pcClasses->Get(ClassName());
+		if (pcClass)
+		{
+			SetClass(pcClass);
+		}
+		else
+		{
+			pcClass = pcClasses->Add(ClassName());
+			pcClass->Init();
+			SetClass(pcClass);
+			Class();
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CBaseObject::SetClass(CClass* pcClass)
+{
+	if (!mpcClass)
+	{
+		mpcClass = pcClass;
+	}
+	else
+	{
+		gcLogger.Error2(__METHOD__, " Class is already set.", NULL);
+	}
 }
 
 
@@ -90,10 +129,7 @@ void CBaseObject::PreInit(void)
 {
 	CBaseObject*	pcContainer;
 
-	if (!HasClass())
-	{
-		Class();
-	}
+	PreClass();
 
 	pcContainer = GetEmbeddingContainer();
 	pcContainer->ContainerPreInit();
@@ -1025,6 +1061,31 @@ BOOL CBaseObject::ContainsPointerTo(CEmbeddedObject* pcEmbedded)
 	return FALSE;
 }
 
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CBaseObject::Save(CObjectSerialiser* pcFile)
+{
+	CClass* pcClass;
+
+	pcClass = GetClass();
+	return FALSE;
+} 
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CBaseObject::Load(CObjectDeserialiser* pcFile)
+{
+	CClass* pcClass;
+
+	pcClass = GetClass();
+	return FALSE;
+}
+
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -1190,6 +1251,16 @@ void CBaseObject::ReplaceOneWithX(char* szDest, char* szMask)
 			szDest[i] ='X';
 		}
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CClass* CBaseObject::GetClass(void)
+{
+	return NULL;
 }
 
 

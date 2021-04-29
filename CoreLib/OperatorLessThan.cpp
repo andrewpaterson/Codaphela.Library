@@ -61,7 +61,7 @@ void COperatorLessThan::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void COperatorLessThan::Do(BOOL* pvDest, EPrimitiveTypes eLeft, void* pvLeft, EPrimitiveTypes eRight, void* pvRight)
+void COperatorLessThan::Do(BOOL* pvDest, EPrimitiveType eLeft, void* pvLeft, EPrimitiveType eRight, void* pvRight)
 {
 	mapvLessThan[eLeft][eRight](pvDest, pvLeft, pvRight);
 }

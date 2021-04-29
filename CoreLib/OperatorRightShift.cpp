@@ -65,7 +65,7 @@ void COperatorRightShift::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void COperatorRightShift::Do(EPrimitiveTypes eDest, void* pvDest, EPrimitiveTypes eLeft, void* pvLeft, EPrimitiveTypes eRight, void* pvRight)
+void COperatorRightShift::Do(EPrimitiveType eDest, void* pvDest, EPrimitiveType eLeft, void* pvLeft, EPrimitiveType eRight, void* pvRight)
 {
 	mapvRightShift[eDest][eLeft][eRight](pvDest, pvLeft, pvRight);
 }

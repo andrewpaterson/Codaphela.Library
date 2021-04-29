@@ -50,7 +50,6 @@ void CHollowObject::Init(uint16 iNumEmbedded)
 //////////////////////////////////////////////////////////////////////////
 void CHollowObject::Class(void)
 {
-	CBaseObject::Class();
 }
 
 

@@ -61,7 +61,7 @@ void COperatorBitwiseNot::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void COperatorBitwiseNot::Do(EPrimitiveTypes eDest, void* pvDest, EPrimitiveTypes eRight, void* pvRight)
+void COperatorBitwiseNot::Do(EPrimitiveType eDest, void* pvDest, EPrimitiveType eRight, void* pvRight)
 {
 	mapvBitwiseNot[eDest][eRight](pvDest, pvRight);
 }

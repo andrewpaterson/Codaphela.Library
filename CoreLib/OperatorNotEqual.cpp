@@ -63,7 +63,7 @@ void COperatorNotEqual::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void COperatorNotEqual::Do(BOOL* pvDest, EPrimitiveTypes eLeft, void* pvLeft, EPrimitiveTypes eRight, void* pvRight)
+void COperatorNotEqual::Do(BOOL* pvDest, EPrimitiveType eLeft, void* pvLeft, EPrimitiveType eRight, void* pvRight)
 {
 	mapvNotEqual[eLeft][eRight](pvDest, pvLeft, pvRight);
 }

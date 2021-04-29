@@ -35,7 +35,7 @@ public:
 
 	void Init(void);
 	void Kill(void);
-	void Do(EPrimitiveTypes eDest, void* pvDest);
+	void Do(EPrimitiveType eDest, void* pvDest);
 };
 
 

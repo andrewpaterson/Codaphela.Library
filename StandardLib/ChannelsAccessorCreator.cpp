@@ -167,7 +167,7 @@ CChannelsAccessor* CChannelsAccessorCreator::CreateAndKill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CChannelsAccessor* CChannelsAccessorCreator::CreateSingleChannelAccessor(CChannels* pcChannels, int iChannel, EPrimitiveTypes eType)
+CChannelsAccessor* CChannelsAccessorCreator::CreateSingleChannelAccessor(CChannels* pcChannels, int iChannel, EPrimitiveType eType)
 {
 	CChannelsAccessorCreator	cCreator;
 
@@ -188,7 +188,7 @@ BOOL CChannelsAccessorCreator::CreateAccessors(void)
 	CChannelAccessor*	pcAccessor;
 	int					iByteSize;
 	int					iBitSize;
-	EPrimitiveTypes		eAccessType;
+	EPrimitiveType		eAccessType;
 	CChannel*			pcChannel;
 	int					iIndex;
 
@@ -378,7 +378,7 @@ int CChannelsAccessorCreator::CalclulateBitSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannelsAccessorCreator::AddAccess(int iChannel, EPrimitiveTypes eType)
+void CChannelsAccessorCreator::AddAccess(int iChannel, EPrimitiveType eType)
 {
 	SChannelAccess*	psAccess;
 
@@ -396,7 +396,7 @@ void CChannelsAccessorCreator::AddAccess(int iChannel, EPrimitiveTypes eType)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannelsAccessorCreator::AddAccess(int iChannel1, int iChannel2, EPrimitiveTypes eType)
+void CChannelsAccessorCreator::AddAccess(int iChannel1, int iChannel2, EPrimitiveType eType)
 {
 	AddAccess(iChannel1, eType);
 	AddAccess(iChannel2, eType);
@@ -407,7 +407,7 @@ void CChannelsAccessorCreator::AddAccess(int iChannel1, int iChannel2, EPrimitiv
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannelsAccessorCreator::AddAccess(int iChannel1, int iChannel2, int iChannel3, EPrimitiveTypes eType)
+void CChannelsAccessorCreator::AddAccess(int iChannel1, int iChannel2, int iChannel3, EPrimitiveType eType)
 {
 	AddAccess(iChannel1, eType);
 	AddAccess(iChannel2, eType);
@@ -419,7 +419,7 @@ void CChannelsAccessorCreator::AddAccess(int iChannel1, int iChannel2, int iChan
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannelsAccessorCreator::AddAccess(int iChannel1, int iChannel2, int iChannel3, int iChannel4, EPrimitiveTypes eType)
+void CChannelsAccessorCreator::AddAccess(int iChannel1, int iChannel2, int iChannel3, int iChannel4, EPrimitiveType eType)
 {
 	AddAccess(iChannel1, eType);
 	AddAccess(iChannel2, eType);
@@ -432,7 +432,7 @@ void CChannelsAccessorCreator::AddAccess(int iChannel1, int iChannel2, int iChan
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannelsAccessorCreator::AddAccess(CArrayInt* paiChannels, EPrimitiveTypes eType)
+void CChannelsAccessorCreator::AddAccess(CArrayInt* paiChannels, EPrimitiveType eType)
 {
 	int		i;
 	int		iChannel;
