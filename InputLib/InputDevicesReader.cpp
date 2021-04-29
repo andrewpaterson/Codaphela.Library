@@ -241,7 +241,7 @@ BOOL CInputDevicesReader::ReadDataFormatChannels(CMarkupTag* pcParentTag, CTypeN
 	char*				szCount;
 	BOOL				bEmptyName;
 	BOOL				bEmptyCount;
-	EPrimitiveTypes		eType;
+	EPrimitiveType		eType;
 	int					iIndex;
 	CTextParser			cTextParser;
 	int					iCount;

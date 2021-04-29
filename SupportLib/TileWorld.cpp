@@ -171,6 +171,7 @@ Ptr<CImageCelGroup> CTileWorld::GetGroup(char* szName)
 			return pcImageCelGroup;
 		}
 	}
-	return ONull;
+	//Should this be ONull?
+	return NULL;
 }
 

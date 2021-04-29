@@ -55,8 +55,8 @@ public:
 	SImageChangingDesc*		mpsImageChangingDesc;
 	
 	void					Init(void);
-	void					Init(int iWidth, int iHeight, EPrimitiveTypes eType, EChannel eFirst, ...);
-	void					Init(int iWidth, int iHeight, void* pvUserData, EPrimitiveTypes eType, EChannel eFirst, ...);
+	void					Init(int iWidth, int iHeight, EPrimitiveType eType, EChannel eFirst, ...);
+	void					Init(int iWidth, int iHeight, void* pvUserData, EPrimitiveType eType, EChannel eFirst, ...);
 	void					Init(int iWidth, int iHeight, CImageChannelsSource* pcSource);
 	void					Init(int iWidth, int iHeight, void* pvUserData, CImageChannelsSource* pcSource);
 	void					Init(int iWidth, int iHeight, CImage* pcChannelsSource);
@@ -65,10 +65,10 @@ public:
 	void					Free(void);
 
 	void					BeginChange(void);
-	void 					AddChannel(int iChannel, EPrimitiveTypes eType, BOOL bReverse = FALSE);
-	void 					AddChannel(int iChannel1, int iChannel2, EPrimitiveTypes eType, BOOL bReverse = FALSE);
-	void 					AddChannel(int iChannel1, int iChannel2, int iChannel3, EPrimitiveTypes eType, BOOL bReverse = FALSE);
-	void 					AddChannel(int iChannel1, int iChannel2, int iChannel3, int iChannel4, EPrimitiveTypes eType, BOOL bReverse = FALSE);
+	void 					AddChannel(int iChannel, EPrimitiveType eType, BOOL bReverse = FALSE);
+	void 					AddChannel(int iChannel1, int iChannel2, EPrimitiveType eType, BOOL bReverse = FALSE);
+	void 					AddChannel(int iChannel1, int iChannel2, int iChannel3, EPrimitiveType eType, BOOL bReverse = FALSE);
+	void 					AddChannel(int iChannel1, int iChannel2, int iChannel3, int iChannel4, EPrimitiveType eType, BOOL bReverse = FALSE);
 	void					AddChannels(CImageChannelsSource* pcSource);
 	void 					AddChannels(CArrayChannel* pasChannels);
 	void 					AddChannels(CImage* pcSourceChannels);
@@ -98,9 +98,9 @@ public:
 	int						GetChannelsCount(void);
 	void					GetAllChannels(CArrayInt* paiChannels);
 	void					GetAllChannels(CArrayChannel* pasChannels);
-	EPrimitiveTypes			GetPrimitiveType(void);  //Returns PT_Undefined if more than one.
+	EPrimitiveType			GetPrimitiveType(void);  //Returns PT_Undefined if more than one.
 	void					GetAllPrimitiveTypes(CArrayInt* paiPrimitiveTypes);
-	void					GetChannelsForType(EPrimitiveTypes eType, CArrayInt* paiChannels);
+	void					GetChannelsForType(EPrimitiveType eType, CArrayInt* paiChannels);
 
 	BOOL					HasChannel(int iChannel);
 	BOOL					HasChannels(int iFirst, ...);

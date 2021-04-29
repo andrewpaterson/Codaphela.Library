@@ -10,6 +10,7 @@
 
 class CPointer;
 class CBaseObject;
+class CPrimitiveObject;
 class CClass
 {
 protected:

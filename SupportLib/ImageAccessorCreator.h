@@ -47,11 +47,11 @@ public:
 	CImageAccessor*		Create(void);
 	CImageAccessor*		CreateAndKill(void);
 
-	void 	AddAccess(int iChannel, EPrimitiveTypes eType = PT_Undefined);
-	void 	AddAccess(int iChannel1, int iChannel2, EPrimitiveTypes eType = PT_Undefined);
-	void	AddAccess(int iChannel1, int iChannel2, int iChannel3, EPrimitiveTypes eType = PT_Undefined);
-	void	AddAccess(int iChannel1, int iChannel2, int iChannel3, int iChannel4, EPrimitiveTypes eType = PT_Undefined);
-	void	AddAccess(CArrayInt* paiChannels, EPrimitiveTypes eType = PT_Undefined);
+	void 	AddAccess(int iChannel, EPrimitiveType eType = PT_Undefined);
+	void 	AddAccess(int iChannel1, int iChannel2, EPrimitiveType eType = PT_Undefined);
+	void	AddAccess(int iChannel1, int iChannel2, int iChannel3, EPrimitiveType eType = PT_Undefined);
+	void	AddAccess(int iChannel1, int iChannel2, int iChannel3, int iChannel4, EPrimitiveType eType = PT_Undefined);
+	void	AddAccess(CArrayInt* paiChannels, EPrimitiveType eType = PT_Undefined);
 	void	AddAccess(Ptr<CImage> pcChannels);
 	void	AddAccess(CImageAccessor* pcChannels);
 

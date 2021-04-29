@@ -26,6 +26,8 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "BaseLib/DataTypes.h"
 #include "BaseLib/GeometricTypes.h"
 #include "BaseLib/ArrayTemplate.h"
+#include "BaseLib/Int2.h"
+
 
 
 //Left 0 to Right 1 gives a width of 1 pixel.  0 to 0 gives a width of 0.

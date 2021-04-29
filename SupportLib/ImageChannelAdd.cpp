@@ -28,7 +28,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageChannelAdd::Init(EChannel eChannel, EPrimitiveTypes eType, int iGroup)
+void CImageChannelAdd::Init(EChannel eChannel, EPrimitiveType eType, int iGroup)
 {
 	maiChannels.Init();
 	meType = eType;

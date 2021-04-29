@@ -74,7 +74,7 @@ public:
 	void				Kill(void);
 	void 				AddCel(CImageCel* pcCel);
 	void 				AddCels(CArrayUnknown* pcCels);
-	void				AddChannel(EChannel eChannel, EPrimitiveTypes eType);
+	void				AddChannel(EChannel eChannel, EPrimitiveType eType);
 	Ptr<CImage>			Combine(void);
 	CArrayUnknown*		GetCels(void);  //If something else is taking ownership of the cels (the normal case) then bKillDestCels must be FALSE.
 

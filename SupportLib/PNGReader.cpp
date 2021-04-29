@@ -42,7 +42,7 @@ BOOL LoadPNG(CImage* pcImage, char *file_name)
 	int					iHeight;
 	int					i;
 	CImage				cImageImport;
-	EPrimitiveTypes		eSourceType;
+	EPrimitiveType		eSourceType;
 	BOOL				bReverse;
 	CImageCopier		cCopier;
 

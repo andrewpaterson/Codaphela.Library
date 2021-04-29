@@ -223,7 +223,7 @@ void CImageAccessor::SyncDataCache(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EPrimitiveTypes	CImageAccessor::GetType(void)
+EPrimitiveType	CImageAccessor::GetType(void)
 {
 	return mpcAccessor->GetType();
 }

@@ -139,7 +139,7 @@ void CImageCombiner::AddCels(CArrayUnknown* pcCels)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCombiner::AddChannel(EChannel eChannel, EPrimitiveTypes eType)
+void CImageCombiner::AddChannel(EChannel eChannel, EPrimitiveType eType)
 {
 	SChannel*	psChannel;
 
@@ -176,7 +176,8 @@ Ptr<CImage> CImageCombiner::InitiailiseDestImage(SInt2 sSize)
 	}
 	else
 	{
-		return ONull;
+		//Should this be ONull?
+		return NULL;
 	}
 }
 

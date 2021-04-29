@@ -43,7 +43,7 @@ public:
 	void 		Init(char* szCommonName);
 	void 		Kill(void);
 
-	void		Add(EPrimitiveTypes eType, char* szName);
+	void		Add(EPrimitiveType eType, char* szName);
 	void		Done(void);
 	int			GetIndex(char* szName);
 	CChannel*	Get(int iIndex);

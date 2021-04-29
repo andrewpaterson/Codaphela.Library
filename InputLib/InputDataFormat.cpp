@@ -71,7 +71,7 @@ void CInputDataFormat::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CInputDataFormat::Add(EPrimitiveTypes eType, char* szName)
+void CInputDataFormat::Add(EPrimitiveType eType, char* szName)
 {
 	mcExternalChannels.AddChannel(mcChannelNames.NumElements(), eType);
 	mcChannelNames.Add(szName);
