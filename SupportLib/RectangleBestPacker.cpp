@@ -24,6 +24,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include <math.h>
 #include "BaseLib/DataTypes.h"
 #include "BaseLib/FloatHelper.h"
+#include "BaseLib/Int2.h"
 #include "RectangleBestPacker.h"
 
 

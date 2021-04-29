@@ -60,7 +60,7 @@ void CImageGreyToRGB::Modify(CImage* pcImage)
 	int 					iWidth;
 	int 					iHeight;
 	void*					pvRed;
-	EPrimitiveTypes			eChannelType;
+	EPrimitiveType			eChannelType;
 
 	psGreyChannel = pcImage->GetChannel(IMAGE_DIFFUSE_GREY);
 	if (psGreyChannel)

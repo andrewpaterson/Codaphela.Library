@@ -56,7 +56,7 @@ BOOL CInputSouceChannel::Compare(void* pvData)
 	CChannel*			pcChannel;
 	BOOL				bResult;
 	char				sValue[8];
-	EPrimitiveTypes		eOperatorType;
+	EPrimitiveType		eOperatorType;
 
 	pcChannel = mpcSourceValue->GetDataFormat()->Get(miChannel);
 	eOperatorType = pcChannel->eType;

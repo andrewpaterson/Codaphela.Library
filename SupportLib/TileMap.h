@@ -25,6 +25,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #define __TILE_MAP_H__
 #include "StandardLib/Unknown.h"
 #include "StandardLib/ArrayType.h"
+#include "BaseLib/Int2.h"
 #include "TileLayer.h"
 #include "Tile.h"
 

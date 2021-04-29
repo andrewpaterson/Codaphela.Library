@@ -58,7 +58,7 @@ public:
 
 	BOOL				MakeColour(SImageColour* psDest, CImageColour* pcColour);
 	BOOL				IsEmpty(void);
-	EPrimitiveTypes		GetType(void);
+	EPrimitiveType		GetType(void);
 
 	int					GetBitSize(void);
 	int					GetByteSize(void);

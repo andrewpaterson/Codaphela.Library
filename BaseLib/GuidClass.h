@@ -37,7 +37,7 @@ public:
 	uint8	maubData4[8];	
 
 	void Init(char8* sz);
-	void Init(uint32 uiData1, uint16 uiData2, uint16 uiData3, int8* paubData4);
+	void Init(uint32 uiData1, uint16 uiData2, uint16 uiData3, uint8* paubData4);
 	void Clear(void);
 	BOOL Get32Format(CTextParser* pcParser, uint64 uiValue);
 	BOOL Get8_4_4_4_12Format(CTextParser* pcParser, uint32 uiValue);

@@ -23,6 +23,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 ** ------------------------------------------------------------------------ **/
 #ifndef __SUB_IMAGE_H__
 #define __SUB_IMAGE_H__
+#include "BaseLib/Int2.h"
 #include "Rectangle.h"
 
 

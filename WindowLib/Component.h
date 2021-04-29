@@ -21,6 +21,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __COMPONENT_H__
 #define __COMPONENT_H__
 #include "BaseLib/GeometricTypes.h"
+#include "BaseLib/Int2.h"
 #include "StandardLib/StandardHeader.h"
 #include "StandardLib/TimerAlarm.h"
 #include "StandardLib/ListenerCall.h"

@@ -97,7 +97,7 @@ BOOL AddChannelsFromText(CTextParser* pcTextParser, CImage* pcImport)
 			return FALSE;
 		}
 
-		pcImport->AddChannel(iChannel, (EPrimitiveTypes)iType);
+		pcImport->AddChannel(iChannel, (EPrimitiveType)iType);
 
 		//Optionally get a semicolon.
 		pcTextParser->GetExactCharacter(';');

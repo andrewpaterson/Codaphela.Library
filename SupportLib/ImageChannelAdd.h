@@ -31,11 +31,11 @@ class CImageChannelAdd : public CImageModifier
 {
 CONSTRUCTABLE(CImageChannelAdd);
 public:
-	EPrimitiveTypes		meType;
+	EPrimitiveType		meType;
 	CArrayInt			maiChannels;
 	int					miGroup;
 
-	void Init(EChannel eChannel, EPrimitiveTypes eType, int iGroup = 0);
+	void Init(EChannel eChannel, EPrimitiveType eType, int iGroup = 0);
 	void Kill(void);
 
 	void AddChannel(EChannel eChannel);

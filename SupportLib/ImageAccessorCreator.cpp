@@ -103,7 +103,7 @@ CImageAccessor* CImageAccessorCreator::CreateAndKill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageAccessorCreator::AddAccess(int iChannel, EPrimitiveTypes eType)
+void CImageAccessorCreator::AddAccess(int iChannel, EPrimitiveType eType)
 {
 	mcCreator.AddAccess(iChannel, eType);
 }
@@ -113,7 +113,7 @@ void CImageAccessorCreator::AddAccess(int iChannel, EPrimitiveTypes eType)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageAccessorCreator::AddAccess(int iChannel1, int iChannel2, EPrimitiveTypes eType)
+void CImageAccessorCreator::AddAccess(int iChannel1, int iChannel2, EPrimitiveType eType)
 {
 	AddAccess(iChannel1, eType);
 	AddAccess(iChannel2, eType);
@@ -124,7 +124,7 @@ void CImageAccessorCreator::AddAccess(int iChannel1, int iChannel2, EPrimitiveTy
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageAccessorCreator::AddAccess(int iChannel1, int iChannel2, int iChannel3, EPrimitiveTypes eType)
+void CImageAccessorCreator::AddAccess(int iChannel1, int iChannel2, int iChannel3, EPrimitiveType eType)
 {
 	AddAccess(iChannel1, eType);
 	AddAccess(iChannel2, eType);
@@ -136,7 +136,7 @@ void CImageAccessorCreator::AddAccess(int iChannel1, int iChannel2, int iChannel
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageAccessorCreator::AddAccess(int iChannel1, int iChannel2, int iChannel3, int iChannel4, EPrimitiveTypes eType)
+void CImageAccessorCreator::AddAccess(int iChannel1, int iChannel2, int iChannel3, int iChannel4, EPrimitiveType eType)
 {
 	AddAccess(iChannel1, eType);
 	AddAccess(iChannel2, eType);
@@ -149,7 +149,7 @@ void CImageAccessorCreator::AddAccess(int iChannel1, int iChannel2, int iChannel
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageAccessorCreator::AddAccess(CArrayInt* paiChannels, EPrimitiveTypes eType)
+void CImageAccessorCreator::AddAccess(CArrayInt* paiChannels, EPrimitiveType eType)
 {
 	mcCreator.AddAccess(paiChannels, eType);
 }

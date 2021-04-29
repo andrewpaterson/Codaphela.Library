@@ -27,7 +27,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CGuidClass::Init(uint32 uiData1, uint16 uiData2, uint16 uiData3, int8* paubData4)
+void CGuidClass::Init(uint32 uiData1, uint16 uiData2, uint16 uiData3, uint8* paubData4)
 {
 	muiData1 = uiData1;
 	muiData2 = uiData2;
