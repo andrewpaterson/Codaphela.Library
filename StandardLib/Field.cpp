@@ -1,3 +1,5 @@
+#include "Class.h"
+#include "Classes.h"
 #include "Field.h"
 
 
@@ -5,10 +7,11 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CField::Init(uint32 uiType, uint32 uiOffset)
+void CField::Init(CClass* pcFieldClass, uint32 uiOffset, CClass* pcContainingClass)
 {
-	muiType = uiType;
+	mpcFieldClass = pcFieldClass;
 	muiOffset = uiOffset;
+	mpcContainingClass = pcContainingClass;
 }
 
 
@@ -18,7 +21,18 @@ void CField::Init(uint32 uiType, uint32 uiOffset)
 //////////////////////////////////////////////////////////////////////////
 void CField::Kill(void)
 {
-	muiType = PT_Undefined;
+	mpcFieldClass = NULL;
 	muiOffset = 0;
+	mpcContainingClass = NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CClasses* CField::GetClasses(void)
+{
+	return mpcContainingClass->GetClasses();
 }
 

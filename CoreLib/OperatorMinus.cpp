@@ -51,12 +51,12 @@ void COperatorMinus::Init(void)
 		}
 	}
 #include "OperatorMinus_Mapping.inl"
-	mapvMinus[PT_float2][PT_float2][PT_float2] = MinusFloat2Float2Float2;
-	mapvMinus[PT_float3][PT_float3][PT_float3] = MinusFloat3Float3Float3;
-	mapvMinus[PT_float4][PT_float4][PT_float4] = MinusFloat4Float4Float4;
-	//mapvMinus[PT_int2][PT_int2][PT_int2] = MinusInt2Int2Int2;
-	//mapvMinus[PT_int3][PT_int3][PT_int3] = MinusInt3Int3Int3;
-	//mapvMinus[PT_int4][PT_int4][PT_int4] = MinusInt4Int4Int4;
+	mapvMinus[PT_M2float32][PT_M2float32][PT_M2float32] = MinusFloat2Float2Float2;
+	mapvMinus[PT_M3float32][PT_M3float32][PT_M3float32] = MinusFloat3Float3Float3;
+	mapvMinus[PT_M4float32][PT_M4float32][PT_M4float32] = MinusFloat4Float4Float4;
+	//mapvMinus[PT_M2int32][PT_M2int32][PT_M2int32] = MinusInt2Int2Int2;
+	//mapvMinus[PT_M3int32][PT_M3int32][PT_M3int32] = MinusInt3Int3Int3;
+	//mapvMinus[PT_M4int32][PT_M4int32][PT_M4int32] = MinusInt4Int4Int4;
 }
 
 

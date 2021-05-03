@@ -138,8 +138,8 @@ CInputDeviceDesc* CProgramInput::CreateStandardDesc(CInputDevices* pcDevices, CP
 void CProgramInput::AddFormat(CInputDevices* pcDevices)
 {
 	mpcFormat = pcDevices->AddFormat("Programmatic");
-	mpcFormat->Add(PT_int, "iName");
-	mpcFormat->Add(PT_float, "fValue");
+	mpcFormat->Add(PT_int32, "iName");
+	mpcFormat->Add(PT_float32, "fValue");
 	mpcFormat->Done();
 }
 

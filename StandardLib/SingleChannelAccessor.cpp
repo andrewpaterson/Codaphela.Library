@@ -40,7 +40,7 @@ float CSingleChannelAccessor::GetConvertToFloat(int iChannel, int iPos)
 {
 	float				f;
 
-	GetConvertTo(iChannel, PT_float, &f, iPos);
+	GetConvertTo(iChannel, PT_float32, &f, iPos);
 	return f;
 }
 
@@ -53,7 +53,7 @@ float CSingleChannelAccessor::GetCastToFloat(int iChannel, int iPos)
 {
 	float				f;
 
-	GetCastTo(iChannel, PT_float, &f, iPos);
+	GetCastTo(iChannel, PT_float32, &f, iPos);
 	return f;
 }
 

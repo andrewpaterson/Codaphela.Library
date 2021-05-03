@@ -82,21 +82,22 @@ void CBaseObject::PreClass(void)
 {
 	CClasses*	pcClasses;
 	CClass*		pcClass;
+	const char*	szClassName;
 
+	szClassName = ClassName();
 	if (!HasClass())
 	{
 		SetFlag(OBJECT_FLAGS_CALLED_CLASS, TRUE);
 
 		pcClasses = mpcObjectsThisIn->GetClasses();
-		pcClass = pcClasses->Get(ClassName());
+		pcClass = pcClasses->Get(szClassName);
 		if (pcClass)
 		{
 			SetClass(pcClass);
 		}
 		else
 		{
-			pcClass = pcClasses->Add(ClassName());
-			pcClass->Init();
+			pcClass = pcClasses->Add(szClassName);
 			SetClass(pcClass);
 			Class();
 		}

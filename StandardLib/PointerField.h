@@ -7,7 +7,7 @@ class CPointerField : public CField
 {
 CONSTRUCTABLE(CPointerField);
 public:
-	void Init(ptrdiff_t iOffset);
+	void Init(ptrdiff_t iOffset, CClass* pcContainingClass);
 	void Kill(void);
 };
 

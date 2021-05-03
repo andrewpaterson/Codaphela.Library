@@ -51,12 +51,12 @@ void COperatorPlus::Init(void)
 		}
 	}
 	#include "OperatorPlus_Mapping.inl"
-	mapvPlus[PT_float2][PT_float2][PT_float2] = PlusFloat2Float2Float2;
-	mapvPlus[PT_float3][PT_float3][PT_float3] = PlusFloat3Float3Float3;
-	mapvPlus[PT_float4][PT_float4][PT_float4] = PlusFloat4Float4Float4;
-	//mapvPlus[PT_int2][PT_int2][PT_int2] = PlusInt2Int2Int2;
-	//mapvPlus[PT_int3][PT_int3][PT_int3] = PlusInt3Int3Int3;
-	//mapvPlus[PT_int4][PT_int4][PT_int4] = PlusInt4Int4Int4;
+	mapvPlus[PT_M2float32][PT_M2float32][PT_M2float32] = PlusFloat2Float2Float2;
+	mapvPlus[PT_M3float32][PT_M3float32][PT_M3float32] = PlusFloat3Float3Float3;
+	mapvPlus[PT_M4float32][PT_M4float32][PT_M4float32] = PlusFloat4Float4Float4;
+	//mapvPlus[PT_M2int32][PT_M2int32][PT_M2int32] = PlusInt2Int2Int2;
+	//mapvPlus[PT_M3int32][PT_M3int32][PT_M3int32] = PlusInt3Int3Int3;
+	//mapvPlus[PT_M4int32][PT_M4int32][PT_M4int32] = PlusInt4Int4Int4;
 }
 
 

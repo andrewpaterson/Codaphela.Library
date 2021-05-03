@@ -929,9 +929,6 @@
     <ClCompile Include="Date.cpp">
       <Filter>Source\Data\Time</Filter>
     </ClCompile>
-    <ClCompile Include="DataTypes.cpp">
-      <Filter>Source\Data\Primitive</Filter>
-    </ClCompile>
     <ClCompile Include="Markup.cpp">
       <Filter>Source\Data\Markup</Filter>
     </ClCompile>

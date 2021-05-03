@@ -78,23 +78,23 @@ void CTypeNames::Init(void)
 {
 	masTypeNames.Init();
 	AddType(PT_Undefined,	0,					"Undefined",	"",					"PT_Undefined");
-	AddType(PT_int,			INT_BYTE_SIZE,		"Int",			"int",				"PT_int");
-	AddType(PT_short,		SHORT_BYTE_SIZE,	"Short",		"int16",			"PT_short");
+	AddType(PT_int32,			INT_BYTE_SIZE,		"Int",			"int",				"PT_int32");
+	AddType(PT_int16,		SHORT_BYTE_SIZE,	"Short",		"int16",			"PT_int16");
 	AddType(PT_Pointer,		sizeof(void*),		"Pointer",		"void*",			"PT_Pointer");
-	AddType(PT_char,		CHAR_BYTE_SIZE,		"Char",			"char",				"PT_char");
-	AddType(PT_float,		FLOAT_BYTE_SIZE,	 "Float",		"float",			"PT_float");
-	AddType(PT_double,		DOUBLE_BYTE_SIZE,	"Double",		"double",			"PT_double");
-	AddType(PT_uint,		INT_BYTE_SIZE,		"UInt",			"unsigned int",		"PT_uint");
-	AddType(PT_ushort,		SHORT_BYTE_SIZE,	"UShort",		"uint16",	"PT_ushort");
-	AddType(PT_uchar,		CHAR_BYTE_SIZE,		"UChar",		"unsigned char",	"PT_uchar");
-	AddType(PT_long,		LONG_BYTE_SIZE,		"Long",			"long long int",	"PT_long");
-	AddType(PT_ulong,		LONG_BYTE_SIZE,		"ULong",		"unsigned long long int", "PT_ulong");
-	AddType(PT_float2,		FLOAT2_BYTE_SIZE,	"Float2",		"SFloat2",			"PT_float2");
-	AddType(PT_float3,		FLOAT3_BYTE_SIZE,	"Float3",		"SFloat3",			"PT_float3");
-	AddType(PT_float4,		FLOAT4_BYTE_SIZE,	"Float4",		"SFloat4",			"PT_float4");
-	AddType(PT_int2,		INT2_BYTE_SIZE,		"Int2",			"SInt2",			"PT_int2");
-	AddType(PT_int3,		INT3_BYTE_SIZE,		"Int3",			"SInt3",			"PT_int3");
-	AddType(PT_int4,		INT4_BYTE_SIZE,		"Int4",			"SInt4",			"PT_int4");
+	AddType(PT_char8,		CHAR_BYTE_SIZE,		"Char",			"char",				"PT_char8");
+	AddType(PT_float32,		FLOAT_BYTE_SIZE,	"Float",		"float",			"PT_float32");
+	AddType(PT_float64,		DOUBLE_BYTE_SIZE,	"Double",		"double",			"PT_float64");
+	AddType(PT_uint32,		INT_BYTE_SIZE,		"UInt",			"unsigned int",		"PT_uint32");
+	AddType(PT_uint16,		SHORT_BYTE_SIZE,	"UShort",		"uint16",			"PT_uint16");
+	AddType(PT_uint8,		CHAR_BYTE_SIZE,		"UChar",		"unsigned char",	"PT_uint8");
+	AddType(PT_int64,		LONG_BYTE_SIZE,		"Long",			"long long int",	"PT_int64");
+	AddType(PT_uint64,		LONG_BYTE_SIZE,		"ULong",		"unsigned long long int", "PT_uint64");
+	AddType(PT_M2float32,		FLOAT2_BYTE_SIZE,	"Float2",		"SFloat2",			"PT_M2float32");
+	AddType(PT_M3float32,		FLOAT3_BYTE_SIZE,	"Float3",		"SFloat3",			"PT_M3float32");
+	AddType(PT_M4float32,		FLOAT4_BYTE_SIZE,	"Float4",		"SFloat4",			"PT_M4float32");
+	AddType(PT_M2int32,		INT2_BYTE_SIZE,		"Int2",			"SInt2",			"PT_M2int32");
+	AddType(PT_M3int32,		INT3_BYTE_SIZE,		"Int3",			"SInt3",			"PT_M3int32");
+	AddType(PT_M4int32,		INT4_BYTE_SIZE,		"Int4",			"SInt4",			"PT_M4int32");
 	AddType(PT_bool,		BOOL_BYTE_SIZE,		"Bool",			"BOOL",				"PT_bool");
 	AddType(PT_void,		VOID_BYTE_SIZE,		"Void",			"void",				"PT_void");
 	AddType(PT_bit,			BIT_SIZE,			"Bit",			"",					"PT_bit");
@@ -103,52 +103,52 @@ void CTypeNames::Init(void)
 	AddType(PT_nickle,		NICKLE_SIZE,		"Nickle",		"",					"PT_nickle");
 	AddType(PT_sixbits,		SIXBITS_SIZE,		"Sixbits",		"",					"PT_sixbits");
 
-	mmsziPrettyNames.Init(30, TRUE);
-	mmsziPrettyNames.Put("Int", PT_int);
+	mmsziPrettyNames.Init();
+	mmsziPrettyNames.Put("Int", PT_int32);
 	mmsziPrettyNames.Put("Bool", PT_bool);
-	mmsziPrettyNames.Put("Short", PT_short);
+	mmsziPrettyNames.Put("Short", PT_int16);
 	mmsziPrettyNames.Put("Void", PT_void);
 	mmsziPrettyNames.Put("Pointer", PT_Pointer); //?
-	mmsziPrettyNames.Put("Char", PT_char);
-	mmsziPrettyNames.Put("Float", PT_float);
-	mmsziPrettyNames.Put("Double", PT_double);
-	mmsziPrettyNames.Put("UInt", PT_uint);
-	mmsziPrettyNames.Put("UShort", PT_ushort);
-	mmsziPrettyNames.Put("UChar", PT_uchar);
-	mmsziPrettyNames.Put("Long", PT_long);
-	mmsziPrettyNames.Put("ULong", PT_ulong);
-	mmsziPrettyNames.Put("Float2", PT_float2);
-	mmsziPrettyNames.Put("Float3", PT_float3);
-	mmsziPrettyNames.Put("Float4", PT_float4);
-	mmsziPrettyNames.Put("Int2", PT_int2);
-	mmsziPrettyNames.Put("Int3", PT_int3);
-	mmsziPrettyNames.Put("Int4", PT_int4);
+	mmsziPrettyNames.Put("Char", PT_char8);
+	mmsziPrettyNames.Put("Float", PT_float32);
+	mmsziPrettyNames.Put("Double", PT_float64);
+	mmsziPrettyNames.Put("UInt", PT_uint32);
+	mmsziPrettyNames.Put("UShort", PT_uint16);
+	mmsziPrettyNames.Put("UChar", PT_uint8);
+	mmsziPrettyNames.Put("Long", PT_int64);
+	mmsziPrettyNames.Put("ULong", PT_uint64);
+	mmsziPrettyNames.Put("Float2", PT_M2float32);
+	mmsziPrettyNames.Put("Float3", PT_M3float32);
+	mmsziPrettyNames.Put("Float4", PT_M4float32);
+	mmsziPrettyNames.Put("Int2", PT_M2int32);
+	mmsziPrettyNames.Put("Int3", PT_M3int32);
+	mmsziPrettyNames.Put("Int4", PT_M4int32);
 	mmsziPrettyNames.Put("Bit", PT_bit);
 	mmsziPrettyNames.Put("Crumb", PT_crumb);
 	mmsziPrettyNames.Put("Nybble", PT_nybble);
 	mmsziPrettyNames.Put("Nickle", PT_nickle);
 	mmsziPrettyNames.Put("Sixbits", PT_sixbits);
 
-	mmsziCppNames.Init(30, TRUE);
-	mmsziCppNames.Put("int", PT_int);
+	mmsziCppNames.Init();
+	mmsziCppNames.Put("int", PT_int32);
 	mmsziCppNames.Put("BOOL", PT_bool);
-	mmsziCppNames.Put("int16", PT_short);
+	mmsziCppNames.Put("int16", PT_int16);
 	mmsziCppNames.Put("void", PT_void);
 	mmsziCppNames.Put("void*", PT_Pointer); //?
-	mmsziCppNames.Put("char", PT_char);
-	mmsziCppNames.Put("float", PT_float);
-	mmsziCppNames.Put("double", PT_double);
-	mmsziCppNames.Put("unsigned int", PT_uint);
-	mmsziCppNames.Put("uint16", PT_ushort);
-	mmsziCppNames.Put("unsigned char", PT_uchar);
-	mmsziCppNames.Put("long long int", PT_long);
-	mmsziCppNames.Put("unsigned long long int", PT_ulong);
-	mmsziCppNames.Put("SFloat2", PT_float2);
-	mmsziCppNames.Put("SFloat3", PT_float3);
-	mmsziCppNames.Put("SFloat4", PT_float4);
-	mmsziCppNames.Put("SInt2", PT_int2);
-	mmsziCppNames.Put("SInt3", PT_int3);
-	mmsziCppNames.Put("SInt4", PT_int4);
+	mmsziCppNames.Put("char", PT_char8);
+	mmsziCppNames.Put("float", PT_float32);
+	mmsziCppNames.Put("double", PT_float64);
+	mmsziCppNames.Put("unsigned int", PT_uint32);
+	mmsziCppNames.Put("uint16", PT_uint16);
+	mmsziCppNames.Put("unsigned char", PT_uint8);
+	mmsziCppNames.Put("long long int", PT_int64);
+	mmsziCppNames.Put("unsigned long long int", PT_uint64);
+	mmsziCppNames.Put("SFloat2", PT_M2float32);
+	mmsziCppNames.Put("SFloat3", PT_M3float32);
+	mmsziCppNames.Put("SFloat4", PT_M4float32);
+	mmsziCppNames.Put("SInt2", PT_M2int32);
+	mmsziCppNames.Put("SInt3", PT_M3int32);
+	mmsziCppNames.Put("SInt4", PT_M4int32);
 }
 
 
@@ -171,7 +171,6 @@ void CTypeNames::Kill(void)
 	}
 	masTypeNames.Kill();
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////

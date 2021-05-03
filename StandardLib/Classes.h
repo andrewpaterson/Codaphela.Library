@@ -10,7 +10,8 @@ typedef CMapStringTemplate<CClass> CMapClasses;
 class CClasses
 {
 protected:
-	CMapClasses	macClasses;
+	CMapClasses		macClasses;
+	CClass*			mpcVoidClass;
 
 public:
 	void Init(void);
@@ -18,8 +19,12 @@ public:
 
 	CClass* Get(char* szClassName);
 	CClass* Get(const char* szClassName);
+	CClass* Get(EPrimitiveType eType);
+
 	CClass* Add(char* szClassName);
 	CClass* Add(const char* szClassName);
+
+	CClass* GetVoidPtrClass(void);
 };
 
 

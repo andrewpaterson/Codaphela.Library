@@ -485,7 +485,6 @@
     <ClCompile Include="MapStringInt.cpp" />
     <ClCompile Include="MapStringString.cpp" />
     <ClCompile Include="Date.cpp" />
-    <ClCompile Include="DataTypes.cpp" />
     <ClCompile Include="Markup.cpp" />
     <ClCompile Include="MarkupBase.cpp" />
     <ClCompile Include="MarkupDoc.cpp" />

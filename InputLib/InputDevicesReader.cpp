@@ -264,7 +264,7 @@ BOOL CInputDevicesReader::ReadDataFormatChannels(CMarkupTag* pcParentTag, CTypeN
 		}
 
 		eType = pcTypeNames->GetTypeFromPrettyName(szType);
-		if (!(((eType >= PT_int ) && (eType <= PT_ulong)) || ((eType >= PT_bit ) && (eType <= PT_sixbits))))
+		if (!(((eType >= PT_int32 ) && (eType <= PT_uint64)) || ((eType >= PT_bit ) && (eType <= PT_sixbits))))
 		{
 			gcLogger.Error("Attribute 'Type' is not a primitive type");
 			return FALSE;
