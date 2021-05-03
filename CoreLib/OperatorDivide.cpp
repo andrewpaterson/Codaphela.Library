@@ -51,9 +51,9 @@ void COperatorDivide::Init(void)
 		}
 	}
 #include "OperatorDivide_Mapping.inl"
-	mapvDivide[PT_float2][PT_float2][PT_float] = DivideFloat2Float2Float;
-	mapvDivide[PT_float3][PT_float3][PT_float] = DivideFloat3Float3Float;
-	mapvDivide[PT_float4][PT_float4][PT_float] = DivideFloat4Float4Float;
+	mapvDivide[PT_M2float32][PT_M2float32][PT_float32] = DivideFloat2Float2Float;
+	mapvDivide[PT_M3float32][PT_M3float32][PT_float32] = DivideFloat3Float3Float;
+	mapvDivide[PT_M4float32][PT_M4float32][PT_float32] = DivideFloat4Float4Float;
 }
 
 

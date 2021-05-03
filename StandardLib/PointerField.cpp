@@ -1,3 +1,5 @@
+#include "Class.h"
+#include "Classes.h"
 #include "PointerField.h"
 
 
@@ -5,15 +7,18 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPointerField::Init(ptrdiff_t iOffset)
+void CPointerField::Init(ptrdiff_t iOffset, CClass* pcContainingClass)
 {
+	CClasses*	pcClasses;
+
+	pcClasses = pcContainingClass->GetClasses();
 	if (iOffset >= 0)
 	{
-		CField::Init(PT_Pointer, iOffset);
+		CField::Init(pcClasses->GetVoidPtrClass(), iOffset, pcContainingClass);
 	}
 	else
 	{
-		CField::Init(PT_Undefined, 0);
+		CField::Init(NULL, 0, pcContainingClass);
 	}
 }
 

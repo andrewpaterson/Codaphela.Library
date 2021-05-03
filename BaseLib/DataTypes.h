@@ -74,51 +74,50 @@ class CFileReader;
 class CFileWriter;
 
 
-//These are not C/C++ types.
 enum EPrimitiveType
 {
 	PT_Undefined,
 
 	//Standard primitives (size in bits).
-	PT_int,  	//32
-	PT_short, 	//16
-	PT_char,	//8
-	PT_float,	//32
-	PT_double,	//64
-	PT_uint,	//32
-	PT_ushort,	//16
-	PT_uchar,	//8
-	PT_long,	//64
-	PT_ulong,	//64
-	PT_float2,	//64
-	PT_float3,	//96
-	PT_float4,  //128
-	PT_int2,	//64
-	PT_int3,	//96
-	PT_int4,	//128
-	PT_bool, 	//32
-	PT_void,	//0
-	PT_wchar,	//16
+	PT_int32,  		//32
+	PT_int16, 		//16
+	PT_char8,		//8
+	PT_float32,		//32
+	PT_float64,		//64
+	PT_uint32,		//32
+	PT_uint16,		//16
+	PT_uint8,		//8
+	PT_int64,		//64
+	PT_uint64,		//64
+	PT_M2float32,	//64
+	PT_M3float32,	//96
+	PT_M4float32,  //128
+	PT_M2int32,		//64
+	PT_M3int32,		//96
+	PT_M4int32,		//128
+	PT_bool, 		//32
+	PT_void,		//0
+	PT_char16,		//16
 
-	//"Complex" primitives, so widely used they're included
-	PT_String,  //CChars
-	PT_Number,	//CNumber
-	PT_Date,  //CDate
+	//"Complex" primitives
+	PT_String,		//CChars
+	PT_Number,		//CNumber
+	PT_Date,		//CDate
 
 	//Special primitives.
 	PRIMTIVE_OPERATOR_END,
 	PT_bit,
-	PT_crumb,	//2
-	PT_nybble,	//4
-	PT_nickle,	//5
-	PT_sixbits, //6
+	PT_crumb,		//2
+	PT_nybble,		//4
+	PT_nickle,		//5
+	PT_sixbits,		//6
 	PRIMTIVE_TYPE_END,
 
 	//Pointers.
 	PT_Pointer,  //An arbitrary pointer.
 
 	NUM_PRIMITIVE_TYPES,
-	STRUCT_TYPES = 0x40,  //Any type with an ID >= 0x40 is a struct type.
+	CLASS_TYPES = 0x40,  //Any type with an ID >= 0x40 is a class type.
 };
 
 

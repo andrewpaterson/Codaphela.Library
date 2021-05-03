@@ -650,7 +650,7 @@ void CChannels::ByteAlign(void)
 			psChannel = mpsChangingDesc->asAddedChannels.Get(i);
 			if ((psChannel->eType >= PRIMTIVE_OPERATOR_END) && (psChannel->eType < PRIMTIVE_TYPE_END))
 			{
-				psChannel->eType = PT_uchar;
+				psChannel->eType = PT_uint8;
 			}
 		}
 	}

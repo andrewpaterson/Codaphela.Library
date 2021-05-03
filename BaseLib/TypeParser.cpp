@@ -701,97 +701,97 @@ TRISTATE CTypeParser::Parse(EPrimitiveType eType, void* pvDest, int iDestLength,
 {
 	switch (eType)
 	{
-		case PT_int:
+		case PT_int32:
 			if (iDestLength >= INT_BYTE_SIZE)
 			{
 				return ParseInt((int*)pvDest);
 			}
 			break;
-		case PT_short:
+		case PT_int16:
 			if (iDestLength >= SHORT_BYTE_SIZE)
 			{
 				return ParseShort((int16*)pvDest);
 			}
 			break;
-		case PT_char:
+		case PT_char8:
 			if (iDestLength >= CHAR_BYTE_SIZE)
 			{
 				return ParseChar((char*)pvDest);
 			}
 			break;
-		case PT_float:
+		case PT_float32:
 			if (iDestLength >= FLOAT_BYTE_SIZE)
 			{
 				return ParseFloat((float*)pvDest);
 			}
 			break;		
-		case PT_double:
+		case PT_float64:
 			if (iDestLength >= DOUBLE_BYTE_SIZE)
 			{
 				return ParseDouble((double*)pvDest);
 			}
 			break;		
-		case PT_uint:
+		case PT_uint32:
 			if (iDestLength >= INT_BYTE_SIZE)
 			{
 				return ParseUInt((unsigned int*)pvDest);
 			}
 			break;
-		case PT_ushort:
+		case PT_uint16:
 			if (iDestLength >= SHORT_BYTE_SIZE)
 			{
 				return ParseUShort((uint16*)pvDest);
 			}
 			break;
-		case PT_uchar:
+		case PT_uint8:
 			if (iDestLength >= CHAR_BYTE_SIZE)
 			{
 				return ParseUChar((unsigned char*)pvDest);
 			}
 			break;
-		case PT_long:
+		case PT_int64:
 			if (iDestLength >= LONG_BYTE_SIZE)
 			{
 				return ParseLong((long long int*)pvDest);
 			}
 			break;
-		case PT_ulong:
+		case PT_uint64:
 			if (iDestLength >= LONG_BYTE_SIZE)
 			{
 				return ParseULong((unsigned long long int*)pvDest);
 			}
 			break;
-		case PT_float2:
+		case PT_M2float32:
 			if (iDestLength >= FLOAT2_BYTE_SIZE)
 			{
 				return ParseFloat2((SFloat2*)pvDest);
 			}
 			break;
-		case PT_float3:
+		case PT_M3float32:
 			if (iDestLength >= FLOAT3_BYTE_SIZE)
 			{
 				return ParseFloat3((SFloat3*)pvDest);
 			}
 			break;
-		case PT_float4:
+		case PT_M4float32:
 			if (iDestLength >= FLOAT4_BYTE_SIZE)
 			{
 				return ParseFloat4((SFloat4*)pvDest);
 			}
 			break;
-		case PT_int2:
+		case PT_M2int32:
 			if (iDestLength >= INT2_BYTE_SIZE)
 			{
 				return ParseInt2((SInt2*)pvDest);
 			}
 			break;
-		case PT_int3:
+		case PT_M3int32:
 			if (iDestLength >= INT3_BYTE_SIZE)
 			{
 				return ParseInt3((SInt3*)pvDest);
 			}
 			break;
-		case PT_int4:
+		case PT_M4int32:
 			if (iDestLength >= INT4_BYTE_SIZE)
 			{
 				return ParseInt4((SInt4*)pvDest);

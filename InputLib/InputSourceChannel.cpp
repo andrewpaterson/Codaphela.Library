@@ -63,7 +63,7 @@ BOOL CInputSouceChannel::Compare(void* pvData)
 	mpcSourceValue->GetDataFormat()->GetAsNative(sValue, miChannel, pvData);
 	if ((eOperatorType >= PRIMTIVE_OPERATOR_END) && (eOperatorType < PRIMTIVE_TYPE_END))
 	{
-		eOperatorType = PT_uchar;
+		eOperatorType = PT_uint8;
 	}
 	
 	if (eOperatorType < PRIMTIVE_OPERATOR_END)

@@ -51,9 +51,9 @@ void COperatorMultiply::Init(void)
 		}
 	}
 #include "OperatorMultiply_Mapping.inl"
-	mapvMultiply[PT_float2][PT_float2][PT_float] = MultiplyFloat2Float2Float;
-	mapvMultiply[PT_float3][PT_float3][PT_float] = MultiplyFloat3Float3Float;
-	mapvMultiply[PT_float4][PT_float4][PT_float] = MultiplyFloat4Float4Float;
+	mapvMultiply[PT_M2float32][PT_M2float32][PT_float32] = MultiplyFloat2Float2Float;
+	mapvMultiply[PT_M3float32][PT_M3float32][PT_float32] = MultiplyFloat3Float3Float;
+	mapvMultiply[PT_M4float32][PT_M4float32][PT_float32] = MultiplyFloat4Float4Float;
 }
 
 
