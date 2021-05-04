@@ -42,6 +42,7 @@ BOOL CMapStringInt::Put(char* szKey, int iData)
 	return CMapStringTemplate<int>::Put(szKey, &iData);
 }
 
+
 //////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//

@@ -596,6 +596,16 @@ CArrayBlockSorted* CMapBlock::GetArray(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CMapBlock::FinaliseSorted(void)
+{
+	InsertHoldingIntoSorted();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CMapBlock::InsertHoldingIntoSorted(void)
 {
 	mapArray.InsertHoldingIntoSorted();
@@ -627,4 +637,5 @@ void CMapBlock::GetInSorted(int iIndex, void** ppvKey, void** ppvData)
 	*ppvKey = pvKey;
 	*ppvData = pvData;
 }
+
 

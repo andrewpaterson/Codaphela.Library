@@ -522,7 +522,7 @@ int CMarkupTag::ToString(CChars* psz, int iDepth, int iLine)
 	psz->Append('<');
 	psz->Append(mszName);
 
-	mcAttributes.InsertHoldingIntoSorted();
+	mcAttributes.FinaliseSorted();
 	bResult = mcAttributes.StartIteration(&sIter, (void**)&szKey, (void**)&szValue);
 	while (bResult)
 	{

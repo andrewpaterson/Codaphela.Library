@@ -891,6 +891,9 @@
     <ClInclude Include="GlobalDataTypesIO.h">
       <Filter>Source\Data\Types\File</Filter>
     </ClInclude>
+    <ClInclude Include="IndexBlock.h">
+      <Filter>Source\Data\Map</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -1411,6 +1414,9 @@
     </ClCompile>
     <ClCompile Include="GlobalDataTypesIO.cpp">
       <Filter>Source\Data\Types\File</Filter>
+    </ClCompile>
+    <ClCompile Include="IndexBlock.cpp">
+      <Filter>Source\Data\Map</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
