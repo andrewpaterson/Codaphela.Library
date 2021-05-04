@@ -115,7 +115,7 @@ int CIndexBlock::NumElements(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexBlock::StartIteration(SIndexTreeMemoryIterator* psIterator, void** pvKey, void** pvData)
 {
-	return mcIndex.StartUnsafeIteration(psIterator, pvData, NULL);
+	return mcIndex.StartIteration(psIterator, pvKey, NULL, 0, pvData, NULL, 0);
 }
 
 
@@ -125,7 +125,7 @@ BOOL CIndexBlock::StartIteration(SIndexTreeMemoryIterator* psIterator, void** pv
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexBlock::Iterate(SIndexTreeMemoryIterator* psIterator, void** pvKey, void** pvData)
 {
-	return mcIndex.UnsafeIterate(psIterator, pvData, NULL);
+	return mcIndex.Iterate(psIterator, pvKey, NULL, 0, pvData, NULL, 0);
 }
 
 
