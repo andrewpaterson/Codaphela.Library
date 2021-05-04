@@ -28,6 +28,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 template<class D>
 class CMapStringTemplate : public CMapStringBlock
 {
+friend class CMapStringUnknown;
 public:
 	D*		Get(char* szKey);
 	D*		Get(const char* szKey);

@@ -98,20 +98,14 @@ int CIndexedObjects::NumIndexed(void)
 //////////////////////////////////////////////////////////////////////////
 OIndex CIndexedObjects::StartIteration(SIndexesIterator* psIterator)
 {
-	void*	pvData;
-	size_t	uiDataSize;
 	BOOL	bResult;
 	OIndex	oi;
 	int		iKeyLength;
 
-	bResult = mcIndexes.StartUnsafeIteration(psIterator, &pvData, &uiDataSize);
-	if (bResult)
+	bResult = mcIndexes.StartIteration(psIterator, &oi, &iKeyLength, sizeof(oi), NULL, NULL, 0);
+	if ((bResult) && (iKeyLength == sizeof(OIndex)))
 	{
-		iKeyLength = mcIndexes.GetKey(pvData, (char*)&oi, sizeof(OIndex));
-		if (iKeyLength == sizeof(OIndex))
-		{
 			return oi;
-		}
 	}
 	return INVALID_O_INDEX;
 }
@@ -123,20 +117,14 @@ OIndex CIndexedObjects::StartIteration(SIndexesIterator* psIterator)
 //////////////////////////////////////////////////////////////////////////
 OIndex CIndexedObjects::Iterate(SIndexesIterator* psIterator)
 {
-	void*	pvData;
-	size_t	uiDataSize;
 	BOOL	bResult;
 	OIndex	oi;
 	int		iKeyLength;
 
-	bResult = mcIndexes.UnsafeIterate(psIterator, &pvData, &uiDataSize);
-	if (bResult)
+	bResult = mcIndexes.Iterate(psIterator, &oi, &iKeyLength, sizeof(oi), NULL, NULL, 0);
+	if ((bResult) && (iKeyLength == sizeof(OIndex)))
 	{
-		iKeyLength = mcIndexes.GetKey(pvData, (char*)&oi, sizeof(OIndex));
-		if (iKeyLength == sizeof(OIndex))
-		{
-			return oi;
-		}
+		return oi;
 	}
 	return INVALID_O_INDEX;
 }
