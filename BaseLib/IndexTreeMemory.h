@@ -7,10 +7,18 @@
 #include "IndexTree.h"
 
 
-struct SIndexTreeMemoryIterator
+struct SIndexTreeMemoryUnsafeIterator
 {
 	CIndexTreeNodeMemory*	pcNode;
 	int						iIndex;
+};
+
+
+struct SIndexTreeMemoryIterator
+{
+	char	pvKey[MAX_KEY_SIZE];
+	int		iKeyLength;
+	int		iIndex;
 };
 
 
@@ -43,8 +51,12 @@ public:
 
 	int						NumElements(void);
 
-	BOOL					StartUnsafeIteration(SIndexTreeMemoryIterator* psIterator, void** ppvData, size_t* piDataSize);
-	BOOL					UnsafeIterate(SIndexTreeMemoryIterator* psIterator, void** ppvData, size_t* piDataSize);
+	BOOL					StartIteration(SIndexTreeMemoryIterator* psIterator, void* pvKey, int* piKeySize, int iMaxKeySize, void* pvData, size_t* piDataSize, size_t iMaxDataSize);
+	BOOL					Iterate(SIndexTreeMemoryIterator* psIterator, void* pvKey, int* piKeySize, int iMaxKeySize, void* pvData, size_t* piDataSize, size_t iMaxDataSize);
+	BOOL					StartUnsafeIteration(SIndexTreeMemoryUnsafeIterator* psIterator, char* pvKey, int* piKeySize, int iMaxKeySize, void** ppvData, size_t* piDataSize);
+	BOOL					UnsafeIterate(SIndexTreeMemoryUnsafeIterator* psIterator, char* pvKey, int* piKeySize, int iMaxKeySize, void** ppvData, size_t* piDataSize);
+	BOOL					StartUnsafeIteration(SIndexTreeMemoryUnsafeIterator* psIterator, void** ppvData, size_t* piDataSize);
+	BOOL					UnsafeIterate(SIndexTreeMemoryUnsafeIterator* psIterator, void** ppvData, size_t* piDataSize);
 
 	size_t					ByteSize(void);
 
@@ -95,9 +107,7 @@ protected:
 
 	int						NumAllocatedNodes(void);
 
-	BOOL					StepNext(SIndexTreeMemoryIterator* psIterator);
-	BOOL					StartIteration(SIndexTreeMemoryIterator* psIterator, void* pvKey, int* piKeySize, void* pvData, size_t* piDataSize);
-	BOOL					Iterate(SIndexTreeMemoryIterator* psIterator, void* pvKey, int* piKeySize, void* pvData, size_t* piDataSize);
+	BOOL					StepNext(SIndexTreeMemoryUnsafeIterator* psIterator);
 
 	BOOL					ValidateSize(void);
 	int						RecurseSize(void);

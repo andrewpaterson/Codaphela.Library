@@ -165,7 +165,7 @@ BOOL CPropertiesFile::Write(void)
 
 	cFile.Init();
 
-	mcProperties.InsertHoldingIntoSorted();
+	mcProperties.FinaliseSorted();
 	bResult = mcProperties.StartIteration(&sIter, (void**)&szProperty, (void**)&szValue);
 	while (bResult)
 	{
