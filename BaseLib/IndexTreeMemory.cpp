@@ -296,7 +296,7 @@ CIndexTreeNodeMemory* CIndexTreeMemory::GetOrAllocateKey(void* pvKey, int iKeySi
 CIndexTreeNodeMemory* CIndexTreeMemory::SetNodeData(CIndexTreeNodeMemory* pcCurrent, void* pvData, uint16 uiDataSize)
 {
 	CIndexTreeNodeMemory*	pcReallocatedCurrent;
-	uint16			uiOldDataSize;
+	uint16					uiOldDataSize;
 
 	uiOldDataSize = pcCurrent->GetDataSize();
 	if (uiDataSize > uiOldDataSize)
