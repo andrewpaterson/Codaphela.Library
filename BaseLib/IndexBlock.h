@@ -14,10 +14,8 @@ public:
 	void				Init(CIndexTreeConfig* pcConfig);
 	void				Kill(void);
 
-	BOOL				Get(void* pvKey, int iKeySize, void** ppvData, size_t* piDataSize);
-	void*				Get(void* pvKey, int iKeySize);
+	BOOL				Get(void* pvKey, int iKeySize, void* pvDestData, size_t* puiDataSize, size_t uiMaxDataSize);
 
-	void*				Put(void* pvKey, int iKeySize, size_t iDataSize);
 	BOOL				Put(void* pvKey, int iKeySize, void* pvData, size_t iDataSize);
 	BOOL				Remove(void* pvKey, int iKeySize);
 

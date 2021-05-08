@@ -35,47 +35,11 @@ void CIndexBlock::Kill(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexBlock::Get(void* pvKey, int iKeySize, void** ppvData, size_t* piDataSize)
+BOOL CIndexBlock::Get(void* pvKey, int iKeySize, void* pvDestData, size_t* puiDataSize, size_t uiMaxDataSize)
 {
-	void*	pvData;
-
-	pvData = mcIndex.Get(pvKey, iKeySize, piDataSize);
-	if (pvData)
-	{
-		SafeAssign(ppvData, pvData);
-		return TRUE;
-	}
-	else
-	{
-		return FALSE;
-	}
+	return mcIndex.Get(pvKey, iKeySize, pvDestData, puiDataSize, uiMaxDataSize);
 }
 
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void* CIndexBlock::Get(void* pvKey, int iKeySize)
-{
-	void* pvData;
-
-	pvData = mcIndex.Get(pvKey, iKeySize, NULL);
-	return pvData;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void* CIndexBlock::Put(void* pvKey, int iKeySize, size_t iDataSize)
-{
-	void*	pvData;
-
-	pvData = mcIndex.Put(pvKey, iKeySize, NULL, iDataSize);
-	return pvData;
-}
 
 
 //////////////////////////////////////////////////////////////////////////

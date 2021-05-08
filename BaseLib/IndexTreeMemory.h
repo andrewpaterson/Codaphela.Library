@@ -40,8 +40,8 @@ public:
 	void					Init(CLifeInit<CMallocator> cMalloc, EIndexKeyReverse eKeyReverse, int iMaxDataSize, int iMaxKeySize, CLifeInit<CIndexTreeDataOrderer> cDataOrderer);
 	BOOL					Kill(void);
 
-	void*					Get(void* pvKey, int iKeySize, size_t* piDataSize);
-	void*					Put(void* pvKey, int iKeySize, void* pvObject, size_t iDataSize);
+	BOOL					Get(void* pvKey, int iKeySize, void* pvDestData, size_t* puiDataSize, size_t uiMaxDataSize);
+	void*					Put(void* pvKey, int iKeySize, void* pvData, size_t iDataSize);
 	BOOL					Remove(void* pvKey, int iKeySize);
 	BOOL					HasKey(void* pvKey, int iKeySize);
 	uint16					GetDataSize(void* pvKey, int iKeySize);
@@ -51,12 +51,12 @@ public:
 
 	int						NumElements(void);
 
-	BOOL					StartIteration(SIndexTreeMemoryIterator* psIterator, void* pvKey, int* piKeySize, int iMaxKeySize, void* pvData, size_t* piDataSize, size_t iMaxDataSize);
-	BOOL					Iterate(SIndexTreeMemoryIterator* psIterator, void* pvKey, int* piKeySize, int iMaxKeySize, void* pvData, size_t* piDataSize, size_t iMaxDataSize);
-	BOOL					StartUnsafeIteration(SIndexTreeMemoryUnsafeIterator* psIterator, char* pvKey, int* piKeySize, int iMaxKeySize, void** ppvData, size_t* piDataSize);
-	BOOL					UnsafeIterate(SIndexTreeMemoryUnsafeIterator* psIterator, char* pvKey, int* piKeySize, int iMaxKeySize, void** ppvData, size_t* piDataSize);
-	BOOL					StartUnsafeIteration(SIndexTreeMemoryUnsafeIterator* psIterator, void** ppvData, size_t* piDataSize);
-	BOOL					UnsafeIterate(SIndexTreeMemoryUnsafeIterator* psIterator, void** ppvData, size_t* piDataSize);
+	BOOL					StartIteration(SIndexTreeMemoryIterator* psIterator, void* pvKey, int* piKeySize, int iMaxKeySize, void* pvData, size_t* puiDataSize, size_t uiMaxDataSize);
+	BOOL					Iterate(SIndexTreeMemoryIterator* psIterator, void* pvKey, int* piKeySize, int iMaxKeySize, void* pvData, size_t* puiDataSize, size_t uiMaxDataSize);
+	BOOL					StartUnsafeIteration(SIndexTreeMemoryUnsafeIterator* psIterator, char* pvKey, int* piKeySize, int iMaxKeySize, void** ppvData, size_t* puiDataSize);
+	BOOL					UnsafeIterate(SIndexTreeMemoryUnsafeIterator* psIterator, char* pvKey, int* piKeySize, int iMaxKeySize, void** ppvData, size_t* puiDataSize);
+	BOOL					StartUnsafeIteration(SIndexTreeMemoryUnsafeIterator* psIterator, void** ppvData, size_t* puiDataSize);
+	BOOL					UnsafeIterate(SIndexTreeMemoryUnsafeIterator* psIterator, void** ppvData, size_t* puiDataSize);
 
 	size_t					ByteSize(void);
 
