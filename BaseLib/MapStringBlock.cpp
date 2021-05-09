@@ -44,8 +44,15 @@ void CMapStringBlock::Kill(void)
 void* CMapStringBlock::Get(const char* szKey)
 {
 	void*	pvData;
+	int		iStrLen;
 
-	pvData = CMapBlock::Get((void*)szKey);
+	if (!szKey)
+	{
+		return NULL;
+	}
+
+	iStrLen = strlen(szKey) + 1;
+	pvData = CMapBlock::Get((void*)szKey, iStrLen);
 	return pvData;
 }
 
@@ -58,8 +65,15 @@ void* CMapStringBlock::Get(const char* szKey, int* piDataSize)
 {
 	void*	pvData;
 	BOOL	bFound;
+	int		iStrLen;
 
-	bFound = CMapBlock::Get((void*)szKey, &pvData, piDataSize);
+	if (!szKey)
+	{
+		return NULL;
+	}
+
+	iStrLen = strlen(szKey) + 1;
+	bFound = CMapBlock::Get((void*)szKey, iStrLen, &pvData, piDataSize);
 	if (bFound)
 	{
 		return pvData;
@@ -80,16 +94,14 @@ void* CMapStringBlock::Put(char* szKey, int iDataSize)
 	void*	pvData;
 	int		iStrLen;
 
-	if (szKey)
-	{
-		iStrLen = strlen(szKey);
-		pvData = CMapBlock::Put(szKey, iStrLen + 1, iDataSize);
-		return (void*)pvData;
-	}
-	else
+	if (!szKey)
 	{
 		return NULL;
 	}
+
+	iStrLen = strlen(szKey) + 1;
+	pvData = CMapBlock::Put(szKey, iStrLen + 1, iDataSize);
+	return (void*)pvData;
 }
 
 
@@ -101,15 +113,13 @@ BOOL CMapStringBlock::Put(char* szKey, void* psData, int iDataSize)
 {
 	int	iStrLen;
 
-	if (szKey)
-	{
-		iStrLen = strlen(szKey);
-		return CMapBlock::Put(szKey, iStrLen + 1, psData, iDataSize);
-	}
-	else
+	if (!szKey)
 	{
 		return FALSE;
 	}
+
+	iStrLen = strlen(szKey) + 1;
+	return CMapBlock::Put(szKey, iStrLen + 1, psData, iDataSize);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -138,7 +148,15 @@ BOOL CMapStringBlock::Put(const char* szKey, void* psData, int iDataSize)
 //////////////////////////////////////////////////////////////////////////
 BOOL CMapStringBlock::Remove(char* szKey)
 {
-	return CMapBlock::Remove(szKey);
+	int	iStrLen;
+
+	if (!szKey)
+	{
+		return FALSE;
+	}
+
+	iStrLen = strlen(szKey) + 1;
+	return CMapBlock::Remove(szKey, iStrLen);
 }
 
 
