@@ -15,7 +15,6 @@ public:
 	void				Kill(void);
 
 	BOOL				Get(void* pvKey, int iKeySize, void* pvDestData, size_t* puiDataSize, size_t uiMaxDataSize);
-
 	BOOL				Put(void* pvKey, int iKeySize, void* pvData, size_t iDataSize);
 	BOOL				Remove(void* pvKey, int iKeySize);
 

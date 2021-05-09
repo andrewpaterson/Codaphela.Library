@@ -894,6 +894,9 @@
     <ClInclude Include="IndexBlock.h">
       <Filter>Source\Data\Map</Filter>
     </ClInclude>
+    <ClInclude Include="MapHelper.h">
+      <Filter>Source\Data\Map</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -1416,6 +1419,9 @@
       <Filter>Source\Data\Types\File</Filter>
     </ClCompile>
     <ClCompile Include="IndexBlock.cpp">
+      <Filter>Source\Data\Map</Filter>
+    </ClCompile>
+    <ClCompile Include="MapHelper.cpp">
       <Filter>Source\Data\Map</Filter>
     </ClCompile>
   </ItemGroup>

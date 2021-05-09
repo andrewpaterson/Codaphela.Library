@@ -2,6 +2,7 @@
 #include "GlobalMemory.h"
 #include "LifeCycle.h"
 #include "Logger.h"
+#include "MapHelper.h"
 #include "IndexTreeMemory.h"
 
 

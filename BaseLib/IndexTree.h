@@ -9,10 +9,10 @@
 #include "IndexTreeNode.h"
 #include "IndexKeyReverse.h"
 #include "LifeCycle.h"
+#include "MapHelper.h"
 #include "IndexTreeDataOrderer.h"
 
 
-#define MAX_KEY_SIZE (4 KB)
 #define MAX_DATA_SIZE (8 KB)
 
 
@@ -55,38 +55,33 @@ public:
 			CMallocator*			GetMallocator();
 
 protected:
-			void*				Malloc(size_t tSize);
-			void*				Realloc(void* pv, size_t tSize);
-			void				Free(void* pv);
+			void*					Malloc(size_t tSize);
+			void*					Realloc(void* pv, size_t tSize);
+			void					Free(void* pv);
 
-			BOOL				ValidatePut(int iKeySize, size_t iDataSize);
+			BOOL					ValidatePut(int iKeySize, size_t iDataSize);
 
-			void				InsertReorderData(CIndexTreeNode* pcNode);
-			void				GetReorderData(CIndexTreeNode* pcNode);
-			void				PutReorderData(CIndexTreeNode* pcNode);
-			void				RemoveReorderData(CIndexTreeNode* pcNode);
-			void				HasKeyReorderData(CIndexTreeNode* pcNode);
+			void					InsertReorderData(CIndexTreeNode* pcNode);
+			void					GetReorderData(CIndexTreeNode* pcNode);
+			void					PutReorderData(CIndexTreeNode* pcNode);
+			void					RemoveReorderData(CIndexTreeNode* pcNode);
+			void					HasKeyReorderData(CIndexTreeNode* pcNode);
 
-			void				FreeNode(CIndexTreeNode* pcNode);
+			void					FreeNode(CIndexTreeNode* pcNode);
 
-			BOOL				StartKey(int* pi, int iKeySize);
-			BOOL				LoopKey(int* pi, int iKeySize);
+			BOOL					StartKey(int* pi, int iKeySize);
+			BOOL					LoopKey(int* pi, int iKeySize);
 
-			CIndexTreeNode*		GetNodeForDataNode(CIndexTreeDataNode* pcDataNode);
-			CIndexTreeNode*		GetNodeForData(void* pvData);
-			void*				GetDataForDataNode(CIndexTreeDataNode* pcDataNode);
-			void*				GetDataForNode(CIndexTreeNode* pcNode);
+			CIndexTreeNode*			GetNodeForDataNode(CIndexTreeDataNode* pcDataNode);
+			CIndexTreeNode*			GetNodeForData(void* pvData);
+			void*					GetDataForDataNode(CIndexTreeDataNode* pcDataNode);
+			void*					GetDataForNode(CIndexTreeNode* pcNode);
 
-	virtual	int					GetNodeKey(CIndexTreeNode* pcNode, char* pvDestKey, int iDestKeySize) =0;
-	virtual	int					GetNodeKeySize(CIndexTreeNode* pcNode) =0;
-	virtual	uint16				GetNodeDataSize(CIndexTreeNode* pcNode) =0;
-	virtual	uint16				GetNodeData(CIndexTreeNode* pcNode, void* pvDestData, int iDestDataSize) =0;
+	virtual	int						GetNodeKey(CIndexTreeNode* pcNode, char* pvDestKey, int iDestKeySize) =0;
+	virtual	int						GetNodeKeySize(CIndexTreeNode* pcNode) =0;
+	virtual	uint16					GetNodeDataSize(CIndexTreeNode* pcNode) =0;
+	virtual	uint16					GetNodeData(CIndexTreeNode* pcNode, void* pvDestData, int iDestDataSize) =0;
 };
-
-
-size_t	MinDataSize(size_t uiDataSize, size_t uiMaxDataSize);
-BOOL	CopyString(char* pvDest, char* pvSource, size_t iSourceLength, size_t iMaxDestLength);
-void	CopyData(char* pvDest, char* pvSource, size_t iSourceLength, size_t iMaxDestLength);
 
 
 #endif // __INDEX_TREE_H__
