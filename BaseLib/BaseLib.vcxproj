@@ -248,6 +248,7 @@
     <ClInclude Include="Mallocator.h" />
     <ClInclude Include="MapBlock.h" />
     <ClInclude Include="IndexBlock.h" />
+    <ClInclude Include="MapHelper.h" />
     <ClInclude Include="MapLongLong.h" />
     <ClInclude Include="MapLongTemplate.h" />
     <ClInclude Include="MapPrimitiveTemplate.h" />
@@ -450,6 +451,7 @@
     <ClCompile Include="Mallocator.cpp" />
     <ClCompile Include="MapBlock.cpp" />
     <ClCompile Include="IndexBlock.cpp" />
+    <ClCompile Include="MapHelper.cpp" />
     <ClCompile Include="MapLongLong.cpp" />
     <ClCompile Include="MapStringBlock.cpp" />
     <ClCompile Include="MemoryAllocator.cpp" />
