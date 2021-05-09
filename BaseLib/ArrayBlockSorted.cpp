@@ -416,8 +416,10 @@ void* CArrayBlockSorted::FindInHoldingArrays(void* pv)
 	CArrayBlock*	paHoldingArray;
 	int				i;
 	void*			pvData;
+	int				iNumElements;
 
-	for (i = 0; i < maaHoldingArrays.NumElements(); i++)
+	iNumElements = maaHoldingArrays.NumElements();
+	for (i = 0; i < iNumElements; i++)
 	{
 		paHoldingArray = maaHoldingArrays.Get(i);
 		bFound = paHoldingArray->FindInSorted(pv, mfCompare, &iIndex);

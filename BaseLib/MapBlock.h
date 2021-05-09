@@ -37,12 +37,13 @@ public:
 	void				Init(CMallocator* pcMalloc, int(*fKeyCompare)(const void*, const void*), BOOL bOverwrite);
 	void				Kill(void);
 
-	BOOL				Get(void* pvKey, void** ppvData, int* piDataSize);
-	void*				Get(void* pvKey);
+	BOOL				Get(void* pvKey, int iKeySize, void** ppvData, int* piDataSize);
+	void*				Get(void* pvKey, int iKeySize);
 
 	void*				Put(void* pvKey, int iKeySize, int iDataSize);
 	BOOL				Put(void* psKey, int iKeySize, void* pvData, int iDataSize);
-	BOOL				Remove(void* pvKey);
+
+	BOOL				Remove(void* pvKey, int iKeySize);
 
 	int					NumElements(void);
 	CArrayBlockSorted*	GetArray(void);
@@ -66,6 +67,7 @@ protected:
 
 	void				InsertHoldingIntoSorted(void);
 	void				GetInSorted(int iIndex, void** ppvKey, void** ppvData);
+	SMNode*				GetNode(void* pvKey, int iKeySize);
 };
 
 

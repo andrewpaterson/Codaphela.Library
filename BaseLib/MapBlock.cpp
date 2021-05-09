@@ -2,6 +2,7 @@
 #include "DataMacro.h"
 #include "GlobalMemory.h"
 #include "StackMemory.h"
+#include "MapHelper.h"
 #include "MapBlock.h"
 
 
@@ -84,12 +85,12 @@ void CMapBlock::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CMapBlock::Get(void* pvKey)
+void* CMapBlock::Get(void* pvKey, int iKeySize)
 {
 	void*	pvData;
 	BOOL	bFound;
 
-	bFound = Get(pvKey, &pvData, NULL);
+	bFound = Get(pvKey, iKeySize, &pvData, NULL);
 	if (bFound)
 	{
 		return pvData;
@@ -105,49 +106,21 @@ void* CMapBlock::Get(void* pvKey)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMapBlock::Get(void* pvKey, void** ppvData, int* piDataSize)
+BOOL CMapBlock::Get(void* pvKey, int iKeySize, void** ppvData, int* piDataSize)
 {
-	SMNode**	ppsNode;
+	SMNode*		psNode;
 	void*		pvData;
-	SMNode*		psSourceNode;
-	void*		pvSourceKey;
-	int			iKeySize;
-	char		ac[1024];
 
-	if (pvKey == NULL)
+	psNode = GetNode(pvKey, iKeySize);
+	if (!psNode)
 	{
 		return FALSE;
 	}
 
-	if (miLargestKeySize + sizeof(SMNode) >= 1024)
-	{
-		return FALSE;
-	}
+	pvData = RemapSinglePointer(psNode, sizeof(SMNode) + psNode->iKeySize);
 
-	psSourceNode = (SMNode*)ac;
-
-	psSourceNode->pcMapBlock = this;
-	psSourceNode->iDataSize = 0;
-	psSourceNode->iKeySize = 0;
-	pvSourceKey = RemapSinglePointer(psSourceNode, sizeof(SMNode));
-	memcpy(pvSourceKey, pvKey, miLargestKeySize);
-
-	ppsNode = (SMNode**)mapArray.Get(&psSourceNode);
-
-	if (!ppsNode)
-	{
-		*ppvData = NULL;
-		return FALSE;
-	}
-
-	iKeySize = (*ppsNode)->iKeySize;
-	pvData = RemapSinglePointer((*ppsNode), sizeof(SMNode) + iKeySize);
-
-	*ppvData = pvData;
-	if (piDataSize != NULL)
-	{
-		*piDataSize = (*ppsNode)->iDataSize;
-	}
+	SafeAssign(ppvData, pvData);
+	SafeAssign(piDataSize, psNode->iDataSize);
 
 	return TRUE;
 }
@@ -189,17 +162,23 @@ void* CMapBlock::Put(void* pvKey, int iKeySize, int iDataSize)
 	BOOL			bResult;
 	void*			pvExistingData;
 
+	if (iKeySize > MAX_KEY_SIZE)
+	{
+		gcLogger.Error2(__METHOD__, " Key too long.  Cannot Put.", NULL);
+		return NULL;
+	}
+
 	if (mbOverwrite)
 	{
 		//It's safe to call remove if the key does not exist.
-		Remove(pvKey);
+		Remove(pvKey, iKeySize);
 	}
 	else
 	{
-		pvExistingData = Get(pvKey);
+		pvExistingData = Get(pvKey, iKeySize);
 		if (pvExistingData)
 		{
-			return FALSE;
+			return NULL;
 		}
 	}
 
@@ -227,16 +206,38 @@ void* CMapBlock::Put(void* pvKey, int iKeySize, int iDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMapBlock::Remove(void* pvKey)
+BOOL CMapBlock::Remove(void* pvKey, int iKeySize)
+{
+	SMNode*		psNode;
+
+	psNode = GetNode(pvKey, iKeySize);
+	if (psNode)
+	{
+		mapArray.Remove(&psNode);
+		mpcMalloc->Free(psNode);
+		return TRUE;
+	}
+	else
+	{
+		return FALSE;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+SMNode* CMapBlock::GetNode(void* pvKey, int iKeySize)
 {
 	SMNode**	ppsNode;
 	SMNode*		psSourceNode;
 	void*		pvSourceKey;
-	char		ac[1024];
-	SMNode*		psNode;
+	char		ac[MAX_KEY_SIZE + sizeof(SMNode)];
 
-	if (miLargestKeySize + sizeof(SMNode) >= 1024)
+	if (iKeySize > MAX_KEY_SIZE)
 	{
+		gcLogger.Error2(__METHOD__, " Key too long.  Cannot Get.", NULL);
 		return FALSE;
 	}
 
@@ -244,23 +245,18 @@ BOOL CMapBlock::Remove(void* pvKey)
 
 	psSourceNode->pcMapBlock = this;
 	psSourceNode->iDataSize = 0;
-	psSourceNode->iKeySize = 0;
-	pvSourceKey = RemapSinglePointer(ac, sizeof(SMNode));
-	memcpy(pvSourceKey, pvKey, miLargestKeySize);
+	psSourceNode->iKeySize = iKeySize;
+	pvSourceKey = RemapSinglePointer(psSourceNode, sizeof(SMNode));
+	memcpy(pvSourceKey, pvKey, iKeySize);
 
 	ppsNode = (SMNode**)mapArray.Get(&psSourceNode);
 
 	if (!ppsNode)
 	{
-		return FALSE;
+		return NULL;
 	}
 
-	psNode = *ppsNode;
-	mapArray.Remove(&psNode);
-
-	mpcMalloc->Free(psNode);
-
-	return TRUE;
+	return *ppsNode;
 }
 
 
