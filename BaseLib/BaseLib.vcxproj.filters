@@ -1304,9 +1304,6 @@
     <ClCompile Include="IntegerHelper.cpp">
       <Filter>Source\Math\Primitive</Filter>
     </ClCompile>
-    <ClCompile Include="Numbers.cpp">
-      <Filter>Source\Math\Primitive</Filter>
-    </ClCompile>
     <ClCompile Include="DataMemory.cpp">
       <Filter>Source\Memory\Manager</Filter>
     </ClCompile>

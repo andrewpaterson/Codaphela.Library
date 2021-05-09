@@ -510,7 +510,6 @@
     <ClCompile Include="Logger.cpp" />
     <ClCompile Include="FloatHelper.cpp" />
     <ClCompile Include="IntegerHelper.cpp" />
-    <ClCompile Include="Numbers.cpp" />
     <ClCompile Include="PackedFloat.cpp" />
     <ClCompile Include="Number.cpp" />
     <ClCompile Include="NumberControl.cpp" />
