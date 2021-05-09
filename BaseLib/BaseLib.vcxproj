@@ -252,8 +252,8 @@
     <ClInclude Include="MapLongLong.h" />
     <ClInclude Include="MapLongTemplate.h" />
     <ClInclude Include="MapPrimitiveTemplate.h" />
-    <ClInclude Include="MapPtrPrimitiveTemplate.h" />
     <ClInclude Include="MapStringBlock.h" />
+    <ClInclude Include="MapVariable.h" />
     <ClInclude Include="MemoryAllocator.h" />
     <ClInclude Include="Mallocators.h" />
     <ClInclude Include="MemoryBlock.h" />
@@ -454,6 +454,7 @@
     <ClCompile Include="MapHelper.cpp" />
     <ClCompile Include="MapLongLong.cpp" />
     <ClCompile Include="MapStringBlock.cpp" />
+    <ClCompile Include="MapVariable.cpp" />
     <ClCompile Include="MemoryAllocator.cpp" />
     <ClCompile Include="Mallocators.cpp" />
     <ClCompile Include="MemoryBlock.cpp" />

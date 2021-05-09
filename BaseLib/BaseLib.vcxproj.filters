@@ -166,9 +166,6 @@
     <Filter Include="Source\Data\Array\Sorted">
       <UniqueIdentifier>{b62cf4e0-ad10-4860-86b3-7f1593b3df9e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Data\Map\String">
-      <UniqueIdentifier>{2f70e5dc-7c62-4305-8fe9-1f0757f57293}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source\Memory\Temporary">
       <UniqueIdentifier>{ea1ef655-d694-4fb3-8e7c-fafee33c8e6f}</UniqueIdentifier>
     </Filter>
@@ -205,9 +202,6 @@
     <Filter Include="Source\Math\Random">
       <UniqueIdentifier>{56de7461-47e8-4032-bef0-2e4ff47edfd7}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Data\Map\Primitive">
-      <UniqueIdentifier>{c57d1158-7981-4514-905a-5cadf907a3c0}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source\Data\Index\Access">
       <UniqueIdentifier>{4b512cee-ea10-4e58-ae83-fb564f68aefb}</UniqueIdentifier>
     </Filter>
@@ -234,6 +228,18 @@
     </Filter>
     <Filter Include="Source\Data\Types\File">
       <UniqueIdentifier>{230e995a-3402-46b6-a4ab-e48d06be2818}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\Map\Block">
+      <UniqueIdentifier>{b1c0a83d-abe5-4aec-aab3-11107b81e98c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\Map\Block\String">
+      <UniqueIdentifier>{2f70e5dc-7c62-4305-8fe9-1f0757f57293}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\Map\Block\Primitive">
+      <UniqueIdentifier>{c57d1158-7981-4514-905a-5cadf907a3c0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\Map\Variable">
+      <UniqueIdentifier>{b19f294a-58d1-489d-b7a9-c7a0e27db503}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -278,12 +284,6 @@
     </ClInclude>
     <ClInclude Include="StringHelper.h">
       <Filter>Source\Data\String</Filter>
-    </ClInclude>
-    <ClInclude Include="MapPtrPtr.h">
-      <Filter>Source\Data\Map</Filter>
-    </ClInclude>
-    <ClInclude Include="MapTemplate.h">
-      <Filter>Source\Data\Map</Filter>
     </ClInclude>
     <ClInclude Include="Date.h">
       <Filter>Source\Data\Time</Filter>
@@ -645,20 +645,17 @@
     <ClInclude Include="ArrayBlockSorted.h">
       <Filter>Source\Data\Array\Sorted</Filter>
     </ClInclude>
-    <ClInclude Include="MapBlock.h">
-      <Filter>Source\Data\Map</Filter>
-    </ClInclude>
     <ClInclude Include="MapStringTemplate.h">
-      <Filter>Source\Data\Map\String</Filter>
+      <Filter>Source\Data\Map\Block\String</Filter>
     </ClInclude>
     <ClInclude Include="MapStringInt.h">
-      <Filter>Source\Data\Map\String</Filter>
+      <Filter>Source\Data\Map\Block\String</Filter>
     </ClInclude>
     <ClInclude Include="MapStringString.h">
-      <Filter>Source\Data\Map\String</Filter>
+      <Filter>Source\Data\Map\Block\String</Filter>
     </ClInclude>
     <ClInclude Include="MapStringBlock.h">
-      <Filter>Source\Data\Map\String</Filter>
+      <Filter>Source\Data\Map\Block\String</Filter>
     </ClInclude>
     <ClInclude Include="Constructors.h">
       <Filter>Source\Constructor</Filter>
@@ -671,9 +668,6 @@
     </ClInclude>
     <ClInclude Include="TrackingAllocator.h">
       <Filter>Source\Memory\Manager</Filter>
-    </ClInclude>
-    <ClInclude Include="MapPtrPrimitiveTemplate.h">
-      <Filter>Source\Data\Map</Filter>
     </ClInclude>
     <ClInclude Include="IndexTreeNodeMemory.h">
       <Filter>Source\Data\Index</Filter>
@@ -775,19 +769,19 @@
       <Filter>Source\Math\Random</Filter>
     </ClInclude>
     <ClInclude Include="MapIntTemplate.h">
-      <Filter>Source\Data\Map\Primitive</Filter>
+      <Filter>Source\Data\Map\Block\Primitive</Filter>
     </ClInclude>
     <ClInclude Include="MapIntInt.h">
-      <Filter>Source\Data\Map\Primitive</Filter>
+      <Filter>Source\Data\Map\Block\Primitive</Filter>
     </ClInclude>
     <ClInclude Include="MapPrimitiveTemplate.h">
-      <Filter>Source\Data\Map\Primitive</Filter>
+      <Filter>Source\Data\Map\Block\Primitive</Filter>
     </ClInclude>
     <ClInclude Include="MapLongTemplate.h">
-      <Filter>Source\Data\Map\Primitive</Filter>
+      <Filter>Source\Data\Map\Block\Primitive</Filter>
     </ClInclude>
     <ClInclude Include="MapLongLong.h">
-      <Filter>Source\Data\Map\Primitive</Filter>
+      <Filter>Source\Data\Map\Block\Primitive</Filter>
     </ClInclude>
     <ClInclude Include="IndexTreeAccess.h">
       <Filter>Source\Data\Index\Access</Filter>
@@ -894,8 +888,20 @@
     <ClInclude Include="IndexBlock.h">
       <Filter>Source\Data\Map</Filter>
     </ClInclude>
+    <ClInclude Include="MapTemplate.h">
+      <Filter>Source\Data\Map\Block</Filter>
+    </ClInclude>
+    <ClInclude Include="MapBlock.h">
+      <Filter>Source\Data\Map\Block</Filter>
+    </ClInclude>
     <ClInclude Include="MapHelper.h">
-      <Filter>Source\Data\Map</Filter>
+      <Filter>Source\Data\Map\Block</Filter>
+    </ClInclude>
+    <ClInclude Include="MapPtrPtr.h">
+      <Filter>Source\Data\Map\Block</Filter>
+    </ClInclude>
+    <ClInclude Include="MapVariable.h">
+      <Filter>Source\Data\Map\Variable</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -928,9 +934,6 @@
     </ClCompile>
     <ClCompile Include="StringHelper.cpp">
       <Filter>Source\Data\String</Filter>
-    </ClCompile>
-    <ClCompile Include="MapPtrPtr.cpp">
-      <Filter>Source\Data\Map</Filter>
     </ClCompile>
     <ClCompile Include="Date.cpp">
       <Filter>Source\Data\Time</Filter>
@@ -1215,16 +1218,13 @@
       <Filter>Source\Data\Array\Sorted</Filter>
     </ClCompile>
     <ClCompile Include="MapStringInt.cpp">
-      <Filter>Source\Data\Map\String</Filter>
+      <Filter>Source\Data\Map\Block\String</Filter>
     </ClCompile>
     <ClCompile Include="MapStringString.cpp">
-      <Filter>Source\Data\Map\String</Filter>
-    </ClCompile>
-    <ClCompile Include="MapBlock.cpp">
-      <Filter>Source\Data\Map</Filter>
+      <Filter>Source\Data\Map\Block\String</Filter>
     </ClCompile>
     <ClCompile Include="MapStringBlock.cpp">
-      <Filter>Source\Data\Map\String</Filter>
+      <Filter>Source\Data\Map\Block\String</Filter>
     </ClCompile>
     <ClCompile Include="Constructors.cpp">
       <Filter>Source\Constructor</Filter>
@@ -1326,10 +1326,10 @@
       <Filter>Source\Math\Random</Filter>
     </ClCompile>
     <ClCompile Include="MapIntInt.cpp">
-      <Filter>Source\Data\Map\Primitive</Filter>
+      <Filter>Source\Data\Map\Block\Primitive</Filter>
     </ClCompile>
     <ClCompile Include="MapLongLong.cpp">
-      <Filter>Source\Data\Map\Primitive</Filter>
+      <Filter>Source\Data\Map\Block\Primitive</Filter>
     </ClCompile>
     <ClCompile Include="IndexTreeAccess.cpp">
       <Filter>Source\Data\Index\Access</Filter>
@@ -1418,8 +1418,17 @@
     <ClCompile Include="IndexBlock.cpp">
       <Filter>Source\Data\Map</Filter>
     </ClCompile>
+    <ClCompile Include="MapBlock.cpp">
+      <Filter>Source\Data\Map\Block</Filter>
+    </ClCompile>
     <ClCompile Include="MapHelper.cpp">
-      <Filter>Source\Data\Map</Filter>
+      <Filter>Source\Data\Map\Block</Filter>
+    </ClCompile>
+    <ClCompile Include="MapPtrPtr.cpp">
+      <Filter>Source\Data\Map\Block</Filter>
+    </ClCompile>
+    <ClCompile Include="MapVariable.cpp">
+      <Filter>Source\Data\Map\Variable</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

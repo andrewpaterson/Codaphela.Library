@@ -25,6 +25,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "MapTemplate.h"
 
 
+//Used in InputLib by CInputDeviceCopyContext
 class CMapPtrPtr : public CMapTemplate<void*, void*>
 {
 public:
@@ -33,7 +34,6 @@ public:
 
 	void*	Get(void* pvKey);
 
-	void*	Put(void* pvKey);
 	BOOL	Put(void* pvKey, void* psData);
 
 	BOOL	Remove(void* pvKey);

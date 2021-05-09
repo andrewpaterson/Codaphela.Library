@@ -1,3 +1,4 @@
+#include "PointerFunctions.h"
 #include "TrackingAllocator.h"
 
 

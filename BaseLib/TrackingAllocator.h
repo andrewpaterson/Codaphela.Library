@@ -1,14 +1,14 @@
 #ifndef __TRACKING_ALLOCATOR_H__
 #define __TRACKING_ALLOCATOR_H__
 #include "Mallocator.h"
-#include "MapPtrPrimitiveTemplate.h"
+#include "ArrayBlockSorted.h"
 
 
 class CTrackingAllocator : public CMallocator
 {
 protected:
-	CMallocator*						mpcAlloc;
-	CArrayBlockSorted					mapv;
+	CMallocator*		mpcAlloc;
+	CArrayBlockSorted	mapv;
 
 public:
 	void			Init(CMallocator* pcAlloc);
