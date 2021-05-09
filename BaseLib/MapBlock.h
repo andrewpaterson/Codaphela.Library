@@ -21,7 +21,6 @@ struct SMapIterator : SArraySortedIterator
 typedef int(*CompareFunc)(const void*, const void*);
 
 
-//I think CMapBlock must memory leak a lot.  SMNodes are allocated but never freed when overwritten.
 class CMapBlock : public CMalloc
 {
 protected:

@@ -21,7 +21,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
 #include "CharsHelper.h"
-#include "Numbers.h"
+#include "StdRandom.h"
 #include "IntegerHelper.h"
 
 
@@ -34,11 +34,14 @@ void CCharsHelper::GenerateRandomNumbersCharList(int iNum)
 	int		i;
 	int		r;
 	CChars	sz;
+	CRandom	cRandom;
+
+	cRandom.Init();
 
 	sz.Init("	unsigned char		uc[] = {");
 	for (i = 0; i < iNum; i++)
 	{
-		r = Random(0, 255);
+		r = cRandom.Next(0, 255);
 		sz.Append("0x");
 		sz.AppendHexHiLo(&r, 1);
 		if (i != iNum-1)

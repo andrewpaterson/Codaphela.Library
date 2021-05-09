@@ -45,9 +45,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define MB				*(1024*1024)
 #define GB				*(1024*1024*1024)
 
-float	Random(float fMin, float fMax);
-int		Random(int iMin, int iMax);
-
 
 #endif // __NUMBERS_H__
 
