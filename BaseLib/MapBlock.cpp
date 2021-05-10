@@ -178,6 +178,7 @@ void* CMapBlock::Put(void* pvKey, int iKeySize, int iDataSize)
 		pvExistingData = Get(pvKey, iKeySize);
 		if (pvExistingData)
 		{
+			gcLogger.Error2(__METHOD__, " Key already exists.  Cannot Put.", NULL);
 			return NULL;
 		}
 	}

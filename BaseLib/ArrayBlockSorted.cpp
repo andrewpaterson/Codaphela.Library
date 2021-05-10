@@ -37,7 +37,7 @@ void CArrayBlockSorted::Init(CMallocator* pcMalloc, int iElementSize, int iHoldi
 	mfCompare = fCompare;
 	mbOverwrite = FALSE;
 
-	maSortedArray.Init(pcMalloc, iElementSize);
+	maSortedArray.Init(pcMalloc, miElementSize);
 	maaHoldingArrays.Init(pcMalloc);
 	if (iHoldingBuffers > 0)
 	{

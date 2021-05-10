@@ -165,7 +165,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="AccessDataOrderer.h" />
-    <ClInclude Include="BaseMap.h" />
     <ClInclude Include="DataTypesIO.h" />
     <ClInclude Include="EnumeratorNode.h" />
     <ClInclude Include="GlobalDataTypesIO.h" />
@@ -254,7 +253,6 @@
     <ClInclude Include="MapLongTemplate.h" />
     <ClInclude Include="MapPrimitiveTemplate.h" />
     <ClInclude Include="MapStringBlock.h" />
-    <ClInclude Include="MapVariable.h" />
     <ClInclude Include="MemoryAllocator.h" />
     <ClInclude Include="Mallocators.h" />
     <ClInclude Include="MemoryBlock.h" />
@@ -455,7 +453,6 @@
     <ClCompile Include="MapHelper.cpp" />
     <ClCompile Include="MapLongLong.cpp" />
     <ClCompile Include="MapStringBlock.cpp" />
-    <ClCompile Include="MapVariable.cpp" />
     <ClCompile Include="MemoryAllocator.cpp" />
     <ClCompile Include="Mallocators.cpp" />
     <ClCompile Include="MemoryBlock.cpp" />
