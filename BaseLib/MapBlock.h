@@ -1,7 +1,7 @@
 #ifndef __MAP_BLOCK_H__
 #define __MAP_BLOCK_H__
+#include "BaseMap.h"
 #include "ArrayBlockSorted.h"
-#include "Malloc.h"
 
 
 class CMapBlock;
@@ -21,13 +21,12 @@ struct SMapIterator : SArraySortedIterator
 typedef int(*CompareFunc)(const void*, const void*);
 
 
-class CMapBlock : public CMalloc
+class CMapBlock : public CBaseMap
 {
 protected:
 	CArrayBlockSorted	mapArray;
 	int					miLargestKeySize;
 	BOOL				mbOverwrite;
-	
 
 public:
 	int					(*fKeyCompare)(const void*, const void*);
