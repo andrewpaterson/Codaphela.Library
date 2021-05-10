@@ -241,6 +241,12 @@
     <Filter Include="Source\Data\Map\Variable">
       <UniqueIdentifier>{b19f294a-58d1-489d-b7a9-c7a0e27db503}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Data\Map\BlockInline">
+      <UniqueIdentifier>{c065aa9b-37d8-427c-af11-e04ebe3ad357}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\Map\VariableInline">
+      <UniqueIdentifier>{36f0fb07-00ce-4fd2-9c52-ab75343ac6f4}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DataMacro.h">
@@ -891,17 +897,20 @@
     <ClInclude Include="MapTemplate.h">
       <Filter>Source\Data\Map\Block</Filter>
     </ClInclude>
-    <ClInclude Include="MapBlock.h">
-      <Filter>Source\Data\Map\Block</Filter>
-    </ClInclude>
-    <ClInclude Include="MapHelper.h">
-      <Filter>Source\Data\Map\Block</Filter>
-    </ClInclude>
     <ClInclude Include="MapPtrPtr.h">
       <Filter>Source\Data\Map\Block</Filter>
     </ClInclude>
     <ClInclude Include="MapVariable.h">
       <Filter>Source\Data\Map\Variable</Filter>
+    </ClInclude>
+    <ClInclude Include="MapHelper.h">
+      <Filter>Source\Data\Map\Block</Filter>
+    </ClInclude>
+    <ClInclude Include="MapBlock.h">
+      <Filter>Source\Data\Map\Block</Filter>
+    </ClInclude>
+    <ClInclude Include="BaseMap.h">
+      <Filter>Source\Data\Map</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -1418,17 +1427,17 @@
     <ClCompile Include="IndexBlock.cpp">
       <Filter>Source\Data\Map</Filter>
     </ClCompile>
-    <ClCompile Include="MapBlock.cpp">
-      <Filter>Source\Data\Map\Block</Filter>
-    </ClCompile>
-    <ClCompile Include="MapHelper.cpp">
-      <Filter>Source\Data\Map\Block</Filter>
-    </ClCompile>
     <ClCompile Include="MapPtrPtr.cpp">
       <Filter>Source\Data\Map\Block</Filter>
     </ClCompile>
     <ClCompile Include="MapVariable.cpp">
       <Filter>Source\Data\Map\Variable</Filter>
+    </ClCompile>
+    <ClCompile Include="MapBlock.cpp">
+      <Filter>Source\Data\Map\Block</Filter>
+    </ClCompile>
+    <ClCompile Include="MapHelper.cpp">
+      <Filter>Source\Data\Map\Block</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
