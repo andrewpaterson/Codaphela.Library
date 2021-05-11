@@ -6,7 +6,7 @@
 class CMalloc
 {
 protected:
-	CMallocator* mpcMalloc;
+	CMallocator*	mpcMalloc;
 
 public:
 	void	Init(CMallocator* pcMalloc);

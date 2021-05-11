@@ -70,7 +70,7 @@ BOOL CListenerCall::RemoveListener(CListener* pcRemoved)
 	SMapIterator		sIter;
 	BOOL				bResult;
 
-	bResult = mcListeners.StartIteration(&sIter, NULL, (void**)&pcArray);
+	bResult = mcListeners.StartIteration(&sIter, NULL, NULL, (void**)&pcArray, NULL);
 	while (bResult)
 	{
 		for (i = 0; i < pcArray->NumElements(); i++)
@@ -82,7 +82,7 @@ BOOL CListenerCall::RemoveListener(CListener* pcRemoved)
 				return TRUE;
 			}
 		}
-		bResult = mcListeners.Iterate(&sIter, NULL, (void**)&pcArray);
+		bResult = mcListeners.Iterate(&sIter, NULL, NULL, (void**)&pcArray, NULL);
 	}
 	return FALSE;
 }

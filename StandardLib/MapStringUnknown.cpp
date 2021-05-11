@@ -46,14 +46,14 @@ void CMapStringUnknown::Kill(void)
 
 	if (miFlags & MAP_COMMOM_KILL_ELEMENT)
 	{
-		bResult = mcMap.StartIteration(&sIter, (void**)&szKey, (void**)&ppcUnknown);
+		bResult = mcMap.StartIteration(&sIter, (void**)&szKey, NULL, (void**)&ppcUnknown, NULL);
 		while (bResult)
 		{
 			if (ppcUnknown)
 			{
 				(*ppcUnknown)->Kill();
 			}
-			bResult = mcMap.Iterate(&sIter, (void**)&szKey, (void**)&ppcUnknown);
+			bResult = mcMap.Iterate(&sIter, (void**)&szKey, NULL, (void**)&ppcUnknown, NULL);
 		}
 	}
 	

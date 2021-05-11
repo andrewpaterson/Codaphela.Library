@@ -81,11 +81,11 @@ void CIndexedMap::NullCachedDescriptors(void)
 	CIndexedDataDescriptor*	pcDescriptor;
 	BOOL					bExists;
 	
-	bExists = mcDescriptors.StartIteration(&sIter, (void**)&poi, (void**)&pcDescriptor);
+	bExists = mcDescriptors.StartIteration(&sIter, (void**)&poi, NULL, (void**)&pcDescriptor, NULL);
 	while (bExists)
 	{
 		pcDescriptor->ClearCache();
-		bExists = mcDescriptors.Iterate(&sIter, (void**)&poi, (void**)&pcDescriptor);
+		bExists = mcDescriptors.Iterate(&sIter, (void**)&poi, NULL, (void**)&pcDescriptor, NULL);
 	}
 }
 

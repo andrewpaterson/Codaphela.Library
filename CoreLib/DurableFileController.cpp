@@ -205,7 +205,7 @@ BOOL CDurableFileController::WriteControlledFileList(CDurableFile* pcFile)
 	pcFile->Truncate(0);
 
 	uiFileCount = 0;
-	bExists = mcNameMap.StartIteration(&sIter, (void**)&pcName, (void**)&piWriteOrRewrite);
+	bExists = mcNameMap.StartIteration(&sIter, (void**)&pcName, NULL, (void**)&piWriteOrRewrite, NULL);
 	while (bExists)
 	{
 		bResult = pcFile->WriteInt(DURABLE_FILE_MAGIC);
@@ -217,6 +217,9 @@ BOOL CDurableFileController::WriteControlledFileList(CDurableFile* pcFile)
 		{
 			return gcLogger.Error2(__METHOD__, " File list could not be written.", NULL);
 		}
+
+		//Uh... why did this not iterate?
+		bExists = mcNameMap.Iterate(&sIter, (void**)&pcName, NULL, (void**)&piWriteOrRewrite, NULL);
 	}
 	return TRUE;
 }
@@ -271,6 +274,9 @@ BOOL CDurableFileController::ReadControlledFileList(CDurableFile* pcFile)
 		{
 			return gcLogger.Error2(__METHOD__, " File list is corrupt.  Expected to read file name for file number [", IntToString(uiFileCount), "] but could not.", NULL);
 		}
+
+		//Uh... why did this not loop?
+		bRead = pcFile->ReadInt(&uiFileMagic);
 	}
 	return TRUE;
 }

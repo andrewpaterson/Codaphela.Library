@@ -64,14 +64,14 @@ char* CMapStringInt::GetWithValue(int iData)
 	int*			piData;
 	BOOL			bResult;
 
-	bResult = StartIteration(&sIter, (void**)&szKey, (void**)&piData);
+	bResult = StartIteration(&sIter, (void**)&szKey, NULL, (void**)&piData, NULL);
 	while (bResult)
 	{
 		if (*piData == iData)
 		{
 			return szKey;
 		}
-		bResult = Iterate(&sIter, (void**)&szKey, (void**)&piData);
+		bResult = Iterate(&sIter, (void**)&szKey, NULL, (void**)&piData, NULL);
 	}
 	return NULL;
 }

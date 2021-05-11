@@ -16,6 +16,7 @@ struct SArraySortedIterator
 };
 
 
+class CChars;
 class CArrayBlockSorted : public CMalloc
 {
 protected:
@@ -46,6 +47,8 @@ public:
 	void*			Iterate(SArraySortedIterator* psIter);
 	void*			GetIterated(SArraySortedIterator* psIter);
 
+	size_t			ByteSize(void);
+
 	BOOL			WriteHeader(CFileWriter* pcFileWriter);
 	BOOL			Write(CFileWriter* pcFileWriter);
 	BOOL			ReadHeader(CMallocator* pcMalloc, CFileReader* pcFileReader, int(*Func)(const void*, const void*));
@@ -61,6 +64,9 @@ public:
 
 	void			InsertHoldingIntoSorted(void);
 	CArrayBlock*	GetSortedArray(void);
+
+	void			Print(CChars* psz);
+	void			Dump(void);
 
 protected:
 	BOOL			AddIntoHoldingArrays(void* pv, BOOL* pbUpdateSortedArray);

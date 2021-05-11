@@ -1,4 +1,5 @@
 #include "GlobalMemory.h"
+#include "Chars.h"
 #include "ArrayBlockSorted.h"
 
 
@@ -788,5 +789,64 @@ void* CArrayBlockSorted::GetInHolding(int iArray, int iIndex)
 	}
 	
 	return paHoldingArray->SafeGet(iIndex);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size_t CArrayBlockSorted::ByteSize(void)
+{
+	size_t			uiSize;
+	CArrayBlock*	paHoldingArray;
+	int				i;
+
+	uiSize = 0;
+	for (i = 0; i < maaHoldingArrays.NumElements(); i++)
+	{
+		paHoldingArray = maaHoldingArrays.Get(i);
+
+		uiSize += paHoldingArray->ByteSize();
+	}
+	uiSize += maaHoldingArrays.ByteSize();
+	uiSize += maSortedArray.ByteSize();
+	uiSize += miHoldingBufferSize * maaHoldingArrays.NumElements() * sizeof(int);
+	return uiSize;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CArrayBlockSorted::Print(CChars* psz)
+{
+	size_t			uiSize;
+	CArrayBlock*	paHoldingArray;
+	int				i;
+
+	uiSize = 0;
+	for (i = 0; i < maaHoldingArrays.NumElements(); i++)
+	{
+		paHoldingArray = maaHoldingArrays.Get(i);
+
+		psz->Append("Holding Array [")->Append(i)->Append("] Elements [")->Append(paHoldingArray->NumElements())->Append("]")->AppendNewLine();
+	}
+	psz->Append("Main Array Elements [")->Append(maSortedArray.NumElements())->Append("]")->AppendNewLine();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CArrayBlockSorted::Dump(void)
+{
+	CChars sz;
+
+	sz.Init();
+	Print(&sz);
+	sz.DumpKill();
 }
 

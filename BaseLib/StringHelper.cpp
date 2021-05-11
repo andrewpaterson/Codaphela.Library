@@ -149,6 +149,50 @@ int MemICmp(const void* pv1, const void* pv2, int iLength)
 //
 //
 ////////////////////////////////////////////////////////////////////////////////////
+int MemCmp(const void* pv1, int iLen1, const void* pv2, int iLen2)
+{
+	int		iSize;
+	int		iResult;
+
+	iSize = iLen1;
+	if (iSize == iLen2)
+	{
+		iResult = memcmp(pv1, pv2, iSize);
+	}
+	else if (iSize < iLen2)
+	{
+		iResult = memcmp(pv1, pv2, iSize);
+		if (iResult == 0)
+		{
+			iResult = -1;
+		}
+	}
+	else
+	{
+		iSize = iLen2;
+		iResult = memcmp(pv1, pv2, iSize);
+		if (iResult == 0)
+		{
+			iResult = 1;
+		}
+	}
+
+	if (iResult < -1)
+	{
+		iResult = -1;
+	}
+	else if (iResult > 1)
+	{
+		iResult = 1;
+	}
+	return iResult;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////
+//
+//
+////////////////////////////////////////////////////////////////////////////////////
 void MemSwp(const void* pv1, const void* pv2, int iLength)
 {
 	int i;

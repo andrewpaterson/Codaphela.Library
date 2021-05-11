@@ -29,6 +29,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 int			StrICmp(const char* ps1, const char* ps2);
 char*		StrIStr(char* ps1, const char* ps2);
 int			MemICmp(const void* pv1, const void* pv2, int iLength);
+int			MemCmp(const void* pv1, int iLen1, const void* pv2, int iLen2);
 void		MemSwp(const void* pv1, const void* pv2, int iLength);
 char*		IToA(int iValue, char* szResult, int iBase = 10);
 char*		IToA(unsigned int iValue, char* szResult, int iBase = 10);
