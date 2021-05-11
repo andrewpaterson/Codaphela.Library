@@ -9,9 +9,6 @@
 
 class CIndexTreeAccess
 {
-private:
-	CTemporaryMemory	mcTemp;
-
 public:
 			void	Init(void);
 	virtual BOOL	Kill(void);
