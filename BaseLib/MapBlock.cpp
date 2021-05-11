@@ -7,25 +7,22 @@
 
 
 //////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
+//
+//
 //////////////////////////////////////////////////////////////////////////
-int CompareMNode(const void* arg1, const void* arg2)
+void CMapBlock::Init(BOOL bOverwrite)
 {
-	SMNode**	ppNode1;
-	SMNode**	ppNode2;
-	void*		pvKey1;
-	void*		pvKey2;
-	int			iResult;
+	Init(&gcSystemAllocator, NULL, &CompareMNodeKey, bOverwrite);
+}
 
-	ppNode1 = (SMNode**)arg1;
-	ppNode2 = (SMNode**)arg2;
 
-	pvKey1 = HeaderGetData<SMNode, void>(*ppNode1);
-	pvKey2 = HeaderGetData<SMNode, void>(*ppNode2);
-
-	iResult = (*ppNode1)->pcMapBlock->fKeyCompare(pvKey1, pvKey2);
-	return iResult;
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMapBlock::Init(CMallocator* pcMalloc, BOOL bOverwrite)
+{
+	Init(pcMalloc, NULL, &CompareMNodeKey, bOverwrite);
 }
 
 
@@ -35,7 +32,7 @@ int CompareMNode(const void* arg1, const void* arg2)
 //////////////////////////////////////////////////////////////////////////
 void CMapBlock::Init(int(*fKeyCompare)(const void*, const void*), BOOL bOverwrite)
 {
-	Init(&gcSystemAllocator, fKeyCompare, bOverwrite);
+	Init(&gcSystemAllocator, fKeyCompare, &CompareMNode, bOverwrite);
 }
 
 
@@ -44,6 +41,16 @@ void CMapBlock::Init(int(*fKeyCompare)(const void*, const void*), BOOL bOverwrit
 //
 //////////////////////////////////////////////////////////////////////////
 void CMapBlock::Init(CMallocator* pcMalloc, int(*fKeyCompare)(const void*, const void*), BOOL bOverwrite)
+{
+	Init(pcMalloc, fKeyCompare, &CompareMNode, bOverwrite);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMapBlock::Init(CMallocator* pcMalloc, int(*fKeyCompare)(const void*, const void*), CompareFunc fCompare, BOOL bOverwrite)
 {
 	int		iHoldingBufferSize;
 	int		iHoldingBuffers;
@@ -54,7 +61,7 @@ void CMapBlock::Init(CMallocator* pcMalloc, int(*fKeyCompare)(const void*, const
 	iHoldingBuffers = 4;
 
 	this->fKeyCompare = fKeyCompare;
-	mapArray.Init(pcMalloc, sizeof(void*), iHoldingBufferSize, iHoldingBuffers, &CompareMNode);
+	mapArray.Init(pcMalloc, sizeof(void*), iHoldingBufferSize, iHoldingBuffers, fCompare);
 	miLargestKeySize = 0;
 	mbOverwrite = bOverwrite;
 }
@@ -229,6 +236,39 @@ BOOL CMapBlock::Remove(void* pvKey, int iKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+size_t CMapBlock::DataSize(void* pvKey, int iKeySize)
+{
+	SMNode* psNode;
+
+	psNode = GetNode(pvKey, iKeySize);
+	if (psNode)
+	{
+		return psNode->iDataSize;
+	}
+	else
+	{
+		return 0;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CMapBlock::HasKey(void* pvKey, int iKeySize)
+{
+	SMNode* psNode;
+
+	psNode = GetNode(pvKey, iKeySize);
+	return psNode != NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 SMNode* CMapBlock::GetNode(void* pvKey, int iKeySize)
 {
 	SMNode**	ppsNode;
@@ -275,11 +315,12 @@ int CMapBlock::NumElements(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMapBlock::StartIteration(SMapIterator* psIterator, void** ppvKey, void** ppvData)
+BOOL CMapBlock::StartIteration(SMapIterator* psIterator, void** ppvKey, int* piKeySize, void** ppvData, int* piDataSize)
 {
 	SMNode**	ppsNode;
 	void*		pvKey;
 	void*		pvData;
+	SMNode*		psNode;
 
 	ppsNode = (SMNode**)mapArray.StartIteration(psIterator);
 	if (!ppsNode)
@@ -287,16 +328,14 @@ BOOL CMapBlock::StartIteration(SMapIterator* psIterator, void** ppvKey, void** p
 		return FALSE;
 	}
 
-	pvKey = RemapSinglePointer(*ppsNode, sizeof(SMNode));
-	pvData = RemapSinglePointer(pvKey, (*ppsNode)->iKeySize);
-	if (ppvKey)
-	{
-		*ppvKey = pvKey;
-	}
-	if (ppvData)
-	{
-		*ppvData = pvData;
-	}
+	psNode = *ppsNode;
+	pvKey = RemapSinglePointer(psNode, sizeof(SMNode));
+	pvData = RemapSinglePointer(pvKey, psNode->iKeySize);
+	SafeAssign(ppvKey, pvKey);
+	SafeAssign(ppvData, pvData);
+	SafeAssign(piKeySize, psNode->iKeySize);
+	SafeAssign(piDataSize, psNode->iDataSize);
+
 	return TRUE;
 }
 
@@ -305,11 +344,12 @@ BOOL CMapBlock::StartIteration(SMapIterator* psIterator, void** ppvKey, void** p
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMapBlock::Iterate(SMapIterator* psIterator, void** ppvKey, void** ppvData)
+BOOL CMapBlock::Iterate(SMapIterator* psIterator, void** ppvKey, int* piKeySize, void** ppvData, int* piDataSize)
 {
 	SMNode**	ppsNode;
 	void*		pvKey;
 	void*		pvData;
+	SMNode* psNode;
 
 	ppsNode = (SMNode**)mapArray.Iterate(psIterator);
 	if (!ppsNode)
@@ -317,17 +357,14 @@ BOOL CMapBlock::Iterate(SMapIterator* psIterator, void** ppvKey, void** ppvData)
 		return FALSE;
 	}
 
+	psNode = *ppsNode;
+	pvKey = RemapSinglePointer(psNode, sizeof(SMNode));
+	pvData = RemapSinglePointer(pvKey, psNode->iKeySize);
+	SafeAssign(ppvKey, pvKey);
+	SafeAssign(ppvData, pvData);
+	SafeAssign(piKeySize, psNode->iKeySize);
+	SafeAssign(piDataSize, psNode->iDataSize);
 
-	pvKey = RemapSinglePointer(*ppsNode, sizeof(SMNode));
-	pvData = RemapSinglePointer(pvKey, (*ppsNode)->iKeySize);
-	if (ppvKey)
-	{
-		*ppvKey = pvKey;
-	}
-	if (ppvData)
-	{
-		*ppvData = pvData;
-	}
 	return TRUE;
 }
 
@@ -635,4 +672,36 @@ void CMapBlock::GetInSorted(int iIndex, void** ppvKey, void** ppvData)
 	*ppvData = pvData;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size_t CMapBlock::ByteSize(void)
+{
+	SMapIterator	sIter;
+	int				iKeySize;
+	int				iDataSize;
+	BOOL			bExists;
+	size_t			uiByteSize;
+
+	uiByteSize = 0;
+	bExists = StartIteration(&sIter, NULL, &iKeySize, NULL, &iDataSize);
+	while (bExists)
+	{
+		uiByteSize += sizeof(SMNode) + iKeySize + iDataSize;
+		bExists = Iterate(&sIter, NULL, &iKeySize, NULL, &iDataSize);
+	}
+	return mapArray.ByteSize();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMapBlock::Dump(void)
+{
+	mapArray.Dump();
+}
 

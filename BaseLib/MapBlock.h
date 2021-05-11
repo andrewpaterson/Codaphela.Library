@@ -1,24 +1,13 @@
 #ifndef __MAP_BLOCK_H__
 #define __MAP_BLOCK_H__
 #include "Malloc.h"
+#include "MapNode.h"
 #include "ArrayBlockSorted.h"
-
-
-class CMapBlock;
-struct SMNode
-{
-	int			iKeySize;
-	int			iDataSize;
-	CMapBlock*	pcMapBlock;
-};
 
 
 struct SMapIterator : SArraySortedIterator
 {
 };
-
-
-typedef int(*CompareFunc)(const void*, const void*);
 
 
 class CMapBlock : public CMalloc
@@ -32,8 +21,11 @@ public:
 	int					(*fKeyCompare)(const void*, const void*);
 
 public:
+	void				Init(BOOL bOverwrite = TRUE);
+	void				Init(CMallocator* pcMalloc, BOOL bOverwrite = TRUE);
 	void				Init(int(*fKeyCompare)(const void*, const void*), BOOL bOverwrite = TRUE);
-	void				Init(CMallocator* pcMalloc, int(*fKeyCompare)(const void*, const void*), BOOL bOverwrite);
+	void				Init(CMallocator* pcMalloc, int(*fKeyCompare)(const void*, const void*), BOOL bOverwrite = TRUE);
+	void				Init(CMallocator* pcMalloc, int(*fKeyCompare)(const void*, const void*), CompareFunc fCompare, BOOL bOverwrite);
 	void				Kill(void);
 
 	BOOL				Get(void* pvKey, int iKeySize, void** ppvData, int* piDataSize);
@@ -44,16 +36,22 @@ public:
 
 	BOOL				Remove(void* pvKey, int iKeySize);
 
+	size_t				DataSize(void* pvKey, int iKeySize);
+
+	BOOL				HasKey(void* pvKey, int iKeySize);
+
 	int					NumElements(void);
 	CArrayBlockSorted*	GetArray(void);
 
-	BOOL				StartIteration(SMapIterator* psIterator, void** pvKey, void** pvData);
-	BOOL				Iterate(SMapIterator* psIterator, void** pvKey, void** pvData);
+	BOOL				StartIteration(SMapIterator* psIterator, void** ppvKey, int* piKeySize, void** ppvData, int* piDataSize);
+	BOOL				Iterate(SMapIterator* psIterator, void** ppvKey, int* piKeySize, void** ppvData, int* piDataSize);
 
 	BOOL				Write(CFileWriter* pcFileWriter);
 	BOOL				Read(CFileReader* pcFileReader, int(*fKeyCompare)(const void*, const void*));
 
 	void				FinaliseSorted(void);
+	size_t				ByteSize(void);
+	void				Dump(void);
 
 protected:
 	BOOL				WriteExceptData(CFileWriter* pcFileWriter);

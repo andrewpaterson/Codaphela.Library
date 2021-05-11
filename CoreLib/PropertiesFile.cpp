@@ -166,7 +166,7 @@ BOOL CPropertiesFile::Write(void)
 	cFile.Init();
 
 	mcProperties.FinaliseSorted();
-	bResult = mcProperties.StartIteration(&sIter, (void**)&szProperty, (void**)&szValue);
+	bResult = mcProperties.StartIteration(&sIter, (void**)&szProperty, NULL, (void**)&szValue, NULL);
 	while (bResult)
 	{
 		cFile.mcText.Append(szProperty);
@@ -177,7 +177,7 @@ BOOL CPropertiesFile::Write(void)
 			cFile.mcText.Append(szValue);
 		}
 		cFile.mcText.AppendNewLine();
-		bResult = mcProperties.Iterate(&sIter, (void**)&szProperty, (void**)&szValue);
+		bResult = mcProperties.Iterate(&sIter, (void**)&szProperty, NULL, (void**)&szValue, NULL);
 	}
 
 	if (!cFile.Write(mszName.Text()))

@@ -523,7 +523,7 @@ int CMarkupTag::ToString(CChars* psz, int iDepth, int iLine)
 	psz->Append(mszName);
 
 	mcAttributes.FinaliseSorted();
-	bResult = mcAttributes.StartIteration(&sIter, (void**)&szKey, (void**)&szValue);
+	bResult = mcAttributes.StartIteration(&sIter, (void**)&szKey, NULL, (void**)&szValue, NULL);
 	while (bResult)
 	{
 		psz->Append(' ');
@@ -532,7 +532,7 @@ int CMarkupTag::ToString(CChars* psz, int iDepth, int iLine)
 		psz->Append('"');
 		psz->Append(szValue);
 		psz->Append('"');
-		bResult = mcAttributes.Iterate(&sIter, (void**)&szKey, (void**)&szValue);
+		bResult = mcAttributes.Iterate(&sIter, (void**)&szKey, NULL, (void**)&szValue, NULL);
 	}
 
 	if (macBases.NumElements() == 0)

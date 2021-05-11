@@ -239,14 +239,14 @@ char* CMapStringBlock::GetKeyForData(void* psData)
 		return NULL;
 	}
 
-	bResult = StartIteration(&sIter, &pvKey, &pvData);
+	bResult = StartIteration(&sIter, &pvKey, NULL, &pvData, NULL);
 	while (bResult)
 	{
 		if (pvData == psData)
 		{
 			return (char*)pvKey;
 		}
-		bResult = Iterate(&sIter, &pvKey, &pvData);
+		bResult = Iterate(&sIter, &pvKey, NULL, &pvData, NULL);
 	}
 	return NULL;
 }

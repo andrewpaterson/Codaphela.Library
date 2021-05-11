@@ -596,14 +596,14 @@ BOOL CChunkFile::ReadChunkNames(void)
 	}
 
 	iMax = CFN_Error;
-	bResult = mmsziNames.StartIteration(&sIter, NULL, (void**)&piVal);
+	bResult = mmsziNames.StartIteration(&sIter, NULL, NULL, (void**)&piVal, NULL);
 	while(bResult)
 	{
 		if (*piVal > iMax)
 		{
 			iMax = *piVal;
 		}
-		bResult = mmsziNames.Iterate(&sIter, NULL, (void**)&piVal);
+		bResult = mmsziNames.Iterate(&sIter, NULL, NULL, (void**)&piVal, NULL);
 	}
 	miLastName = iMax;
 	return TRUE;
