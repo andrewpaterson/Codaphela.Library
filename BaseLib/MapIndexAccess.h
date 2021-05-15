@@ -1,10 +1,10 @@
-#ifndef __MAP_BLOCK_ACCESS_H__
-#define __MAP_BLOCK_ACCESS_H__
-#include "IndexTreeAccess.h"
-#include "MapBlock.h"
+#ifndef __MAP_INDEX_ACCESS_H__
+#define __MAP_INDEX_ACCESS_H__
+#include "IndexAccess.h"
 
 
-class CMapBlockAccess : public CIndexTreeAccess
+class CMapBlock;
+class CMapIndexAccess : public CIndexAccess
 {
 protected:
 	CMapBlock*	mpcMap;
@@ -33,5 +33,5 @@ protected:
 };
 
 
-#endif // __MAP_BLOCK_ACCESS_H__
+#endif // __MAP_INDEX_ACCESS_H__
 

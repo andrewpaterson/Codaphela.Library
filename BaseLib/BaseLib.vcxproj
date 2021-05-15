@@ -188,7 +188,7 @@
     <ClInclude Include="DataMemory.h" />
     <ClInclude Include="FilePathBuilder.h" />
     <ClInclude Include="IndexKeyReverse.h" />
-    <ClInclude Include="IndexTreeAccess.h" />
+    <ClInclude Include="IndexAccess.h" />
     <ClInclude Include="IndexTreeConfig.h" />
     <ClInclude Include="IndexTreeDataNode.h" />
     <ClInclude Include="IndexTreeDataOrderer.h" />
@@ -246,9 +246,10 @@
     <ClInclude Include="LogConfig.h" />
     <ClInclude Include="LogString.h" />
     <ClInclude Include="Mallocator.h" />
+    <ClInclude Include="MapAccess.h" />
     <ClInclude Include="MapBlock.h" />
     <ClInclude Include="IndexBlock.h" />
-    <ClInclude Include="MapBlockAccess.h" />
+    <ClInclude Include="MapIndexAccess.h" />
     <ClInclude Include="MapHelper.h" />
     <ClInclude Include="MapLongLong.h" />
     <ClInclude Include="MapLongTemplate.h" />
@@ -427,7 +428,7 @@
     <ClCompile Include="GlobalMemoryAllocator.cpp" />
     <ClCompile Include="GuidClass.cpp" />
     <ClCompile Include="IndexTree.cpp" />
-    <ClCompile Include="IndexTreeAccess.cpp" />
+    <ClCompile Include="IndexAccess.cpp" />
     <ClCompile Include="IndexTreeConfig.cpp" />
     <ClCompile Include="IndexTreeDataNode.cpp" />
     <ClCompile Include="IndexTreeDataOrderer.cpp" />
@@ -450,9 +451,10 @@
     <ClCompile Include="LocalMallocatorConstructors.cpp" />
     <ClCompile Include="LogString.cpp" />
     <ClCompile Include="Mallocator.cpp" />
+    <ClCompile Include="MapAccess.cpp" />
     <ClCompile Include="MapBlock.cpp" />
     <ClCompile Include="IndexBlock.cpp" />
-    <ClCompile Include="MapBlockAccess.cpp" />
+    <ClCompile Include="MapIndexAccess.cpp" />
     <ClCompile Include="MapHelper.cpp" />
     <ClCompile Include="MapLongLong.cpp" />
     <ClCompile Include="MapNode.cpp" />

@@ -7,7 +7,7 @@
 #include "IndexTreeIterator.h"
 
 
-class CIndexTreeAccess
+class CIndexAccess
 {
 public:
 			void	Init(void);
@@ -85,6 +85,9 @@ public:
 public:
 	virtual	CIndexTreeIterator* CreateIterator(void) =0;
 	virtual	void				FreeIterator(CIndexTreeIterator* pcIter) =0;
+
+protected:
+			char*	GetString(void* pvKey, int iKeySize, char* pszDest, size_t uiMaxDataSize);
 
 protected:
 	virtual BOOL	Put(void* pvKey, int iKeySize, void* pvData, size_t iDataSize) =0;
