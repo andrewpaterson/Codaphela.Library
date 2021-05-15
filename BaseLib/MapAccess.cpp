@@ -45,6 +45,16 @@ int* CMapAccess::PutLongInt(int64 lliKey, int iData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+int64* CMapAccess::PutLongLong(int64 lliKey, int64 lliData)
+{
+	return (int64*)Put(&lliKey, sizeof(int64), &lliData, sizeof(int64));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 char* CMapAccess::PutLongChar(int64 lliKey, char cData)
 {
 	return (char*)Put(&lliKey, sizeof(int64), &cData, sizeof(char));

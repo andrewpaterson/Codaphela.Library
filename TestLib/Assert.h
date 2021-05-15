@@ -53,6 +53,7 @@ BOOL PrivateAssertFloat(float fExpected, float fActual, int iDecimals, int iLine
 BOOL PrivateAssertFloat(float fExpected, float fActual, int iLine, char* szFile);
 BOOL PrivateAssertFloat3(SFloat3 fExpected, SFloat3* pfActual, int iDecimals, int iLine, char* szFile);
 BOOL PrivateAssertDouble(double fExpected, double fActual, int iDecimals, int iLine, char* szFile);
+BOOL PrivateAssertSize(size_t iExpected, size_t iActual, int iLine, char* szFile);
 BOOL PrivateAssertString(const char* szExpected, const char* szActual, BOOL bTestCase, int iLine, char* szFile);
 BOOL PrivateAssertStringApproximate(const char* szExpected, const char* szActual, BOOL bTestCase, int iLine, char* szFile);
 BOOL PrivateAssertMemory(void* pvExpected, void* pvActual, int iSize, int iLine, char* szFile);
@@ -88,6 +89,7 @@ BOOL PrivateAssertFileString(const char* szExpectedFileName, const char* szStrin
 #define AssertFloat(e, a, t)				Validate(PrivateAssertFloat(e, a, t, __LINE__, __FILE__))
 #define AssertFloat3(e, a, t)				Validate(PrivateAssertFloat3(e, a, t, __LINE__, __FILE__))
 #define AssertDouble(e, a, t)				Validate(PrivateAssertDouble(e, a, t, __LINE__, __FILE__))
+#define AssertSize(e, a)		    		Validate(PrivateAssertSize(e, a, __LINE__, __FILE__))
 #define AssertMemory(e, a, s)				Validate(PrivateAssertMemory(e, a, s, __LINE__, __FILE__))
 #define AssertZero(a, s)					Validate(PrivateAssertZero(a, s, __LINE__, __FILE__))
 #define AssertNegative(a)					Validate(PrivateAssertNegative(a, __LINE__, __FILE__))
