@@ -388,6 +388,28 @@ BOOL PrivateAssertInt(int iExpected, int iActual, int iLine, char* szFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL PrivateAssertSize(size_t iExpected, size_t iActual, int iLine, char* szFile)
+{
+	char szExpected[32];
+	char szActual[32];
+
+	if (iExpected != iActual)
+	{
+		ToLongLongIntString(iExpected, szExpected);
+		ToLongLongIntString(iActual, szActual);
+		return Failed((const char*)szExpected, (const char*)szActual, iLine, szFile);
+	}
+	else
+	{
+		return Pass();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL PrivateAssertIntHex(int iExpected, int iActual, int iLine, char* szFile)
 {
 	char szExpected[32];

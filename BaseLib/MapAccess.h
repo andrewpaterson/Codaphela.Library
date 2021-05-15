@@ -18,6 +18,7 @@ public:
 
 			void**	PutLongPtr(int64 lliKey, void* pvPointer);
 			int*	PutLongInt(int64 lliKey, int iData);
+			int64*	PutLongLong(int64 lliKey, int64 lliData);
 			char*	PutLongChar(int64 lliKey, char cData);
 			char*	PutLongString(int64 lliKey, char* pszData);
 			void*	PutLongData(int64 lliKey, void* pvData, size_t iDataSize);

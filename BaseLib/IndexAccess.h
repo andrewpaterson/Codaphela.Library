@@ -23,6 +23,7 @@ public:
 			BOOL	PutLongChar(int64 lliKey, char cData);
 			BOOL	PutLongString(int64 lliKey, char* pszData);
 			BOOL	PutLongData(int64 lliKey, void* pvData, size_t iDataSize);
+			BOOL	PutLongLong(int64 lliKey, int64 lliData);
 			BOOL	PutIntPtr(int iKey, void* pvPointer);
 			BOOL	PutIntInt(int iKey, int iData);
 			BOOL	PutIntLong(int iKey, int64 lliData);
@@ -49,6 +50,7 @@ public:
 			int		GetIntInt(int iKey, int iNullValue = -1);
 			int64	GetIntLong(int iKey, int64 iNullValue = -1LL);
 			char	GetIntChar(int iKey, char cNullValue = -1);
+			void*	GetIntPtr(int iKey);
 			BOOL	GetIntData(int iKey, void* pvData, size_t* piDataSize = NULL, size_t uiMaxDataSize = 0);
 			BOOL	GetStringData(char* pszKey, void* pvData, size_t* piDataSize = NULL, size_t uiMaxDataSize = 0);
 			char*	GetStringString(char* pszKey, char* pszDest, size_t uiMaxDataSize = 0);
@@ -59,6 +61,7 @@ public:
 			void*	GetStringPtr(char* pszKey);
 			char*	GetKeyString(void* pvKey, int iKeySize, char* pszDest, size_t uiMaxDataSize = 0);
 			BOOL	GetKeyData(void* pvKey, int iKeySize, void* pvData, size_t* piDataSize, size_t uiMaxDataSize = 0);
+			int		GetKeyInt(void* pvKey, int iKeySize, int iNullValue = -1);
 
 			BOOL	HasLong(int64 lliKey);
 			BOOL	HasInt(int iKey);
