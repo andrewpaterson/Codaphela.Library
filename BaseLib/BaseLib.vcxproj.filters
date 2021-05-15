@@ -780,7 +780,7 @@
     <ClInclude Include="MapLongLong.h">
       <Filter>Source\Data\Map\Map\Primitive</Filter>
     </ClInclude>
-    <ClInclude Include="IndexTreeAccess.h">
+    <ClInclude Include="IndexAccess.h">
       <Filter>Source\Data\Index\Access</Filter>
     </ClInclude>
     <ClInclude Include="IndexTreeMemoryAccess.h">
@@ -897,11 +897,14 @@
     <ClInclude Include="MapHelper.h">
       <Filter>Source\Data\Map</Filter>
     </ClInclude>
-    <ClInclude Include="MapBlockAccess.h">
+    <ClInclude Include="MapIndexAccess.h">
       <Filter>Source\Data\Map\Map</Filter>
     </ClInclude>
     <ClInclude Include="MapNode.h">
       <Filter>Source\Data\Map\Map</Filter>
+    </ClInclude>
+    <ClInclude Include="MapAccess.h">
+      <Filter>Source\Data\Map</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -1331,7 +1334,7 @@
     <ClCompile Include="MapLongLong.cpp">
       <Filter>Source\Data\Map\Map\Primitive</Filter>
     </ClCompile>
-    <ClCompile Include="IndexTreeAccess.cpp">
+    <ClCompile Include="IndexAccess.cpp">
       <Filter>Source\Data\Index\Access</Filter>
     </ClCompile>
     <ClCompile Include="IndexTreeMemoryAccess.cpp">
@@ -1427,11 +1430,14 @@
     <ClCompile Include="MapHelper.cpp">
       <Filter>Source\Data\Map</Filter>
     </ClCompile>
-    <ClCompile Include="MapBlockAccess.cpp">
+    <ClCompile Include="MapIndexAccess.cpp">
       <Filter>Source\Data\Map\Map</Filter>
     </ClCompile>
     <ClCompile Include="MapNode.cpp">
       <Filter>Source\Data\Map\Map</Filter>
+    </ClCompile>
+    <ClCompile Include="MapAccess.cpp">
+      <Filter>Source\Data\Map</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -1,10 +1,10 @@
 #ifndef __INDEX_TREE_MEMORY_ACCESS_H__
 #define __INDEX_TREE_MEMORY_ACCESS_H__
 #include "IndexTreeMemory.h"
-#include "IndexTreeAccess.h"
+#include "IndexAccess.h"
 #include "IndexTreeIterator.h"
 
-class CIndexTreeMemoryAccess : public CIndexTreeAccess
+class CIndexTreeMemoryAccess : public CIndexAccess
 {
 private:
 	CIndexTreeMemory*	mpcTree;
