@@ -15,16 +15,6 @@ void CMapAccess::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMapAccess::Kill(void)
-{
-	return TRUE;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void** CMapAccess::PutLongPtr(int64 lliKey, void* pvPointer)
 {
 	return (void**)Put(&lliKey, sizeof(int64), &pvPointer, sizeof(void*));
@@ -328,11 +318,12 @@ void* CMapAccess::GetLongData(int64 lliKey, size_t* piDataSize)
 //////////////////////////////////////////////////////////////////////////
 void* CMapAccess::GetLongPtr(int64 lliKey)
 {
-	void**	ppv;
-	ppv = (void**)Get(&lliKey, sizeof(int64), NULL);
-	if (ppv)
+	void*	pv;
+
+	pv = Get(&lliKey, sizeof(int64), NULL);
+	if (pv)
 	{
-		return *ppv;
+		return pv;
 	}
 	else
 	{
@@ -418,6 +409,26 @@ char CMapAccess::GetIntChar(int iKey, char cNullValue)
 void* CMapAccess::GetIntData(int iKey, size_t* piDataSize)
 {
 	return Get(&iKey, sizeof(int), piDataSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void* CMapAccess::GetIntPtr(int iKey)
+{
+	void** ppv;
+
+	ppv = (void**)Get(&iKey, sizeof(int), NULL);
+	if (ppv)
+	{
+		return *ppv;
+	}
+	else
+	{
+		return NULL;
+	}
 }
 
 
@@ -538,6 +549,46 @@ char* CMapAccess::GetKeyString(void* pvKey, int iKeySize)
 void* CMapAccess::GetKeyData(void* pvKey, int iKeySize, size_t* piDataSize)
 {
 	return Get(pvKey, iKeySize, piDataSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CMapAccess::GetKeyInt(void* pvKey, int iKeySize, int iNullValue)
+{
+	int*	pi;
+
+	pi = (int*)Get(pvKey, iKeySize, NULL);
+	if (pi)
+	{
+		return *pi;
+	}
+	else
+	{
+		return iNullValue;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int64 CMapAccess::GetKeyLong(void* pvKey, int iKeySize, int64 lliNullValue)
+{
+	int64* plli;
+
+	plli = (int64*)Get(pvKey, iKeySize, NULL);
+	if (plli)
+	{
+		return *plli;
+	}
+	else
+	{
+		return lliNullValue;
+	}
 }
 
 

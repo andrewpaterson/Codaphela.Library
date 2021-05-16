@@ -2,16 +2,16 @@
 #define __MAP_ACCESS_H__
 #include "Define.h"
 #include "Chars.h"
+#include "Killable.h"
 #include "PrimitiveTypes.h"
 #include "TemporaryMemory.h"
-#include "IndexTreeIterator.h"
+#include "MapIterator.h"
 
 
-class CMapAccess
+class CMapAccess : public CKillable
 {
 public:
 			void	Init(void);
-	virtual BOOL	Kill(void);
 
 	virtual int64	NumElements(void) =0;
 	virtual void	Dump(void) =0;
@@ -49,6 +49,7 @@ public:
 			int64	GetIntLong(int iKey, int64 iNullValue = -1LL);
 			char	GetIntChar(int iKey, char cNullValue = -1);
 			void*	GetIntData(int iKey, size_t* piDataSize = NULL);
+			void*	GetIntPtr(int iKey);
 			void*	GetStringData(char* pszKey, size_t* piDataSize = NULL);
 			char*	GetStringString(char* pszKey);
 			char	GetStringChar(char* pszKey, char iNullValue = -1);
@@ -56,7 +57,9 @@ public:
 			int64	GetStringLong(char* pszKey, int64 iNullValue = -1LL);
 			void*	GetStringPtr(char* pszKey);
 			char*	GetKeyString(void* pvKey, int iKeySize);
-			void*	GetKeyData(void* pvKey, int iKeySize, size_t* piDataSize);
+			void*	GetKeyData(void* pvKey, int iKeySize, size_t* piDataSize = NULL);
+			int		GetKeyInt(void* pvKey, int iKeySize, int iNullValue = -1);
+			int64	GetKeyLong(void* pvKey, int iKeySize, int64 lliNullValue = -1);
 			
 			BOOL	HasLong(int64 lliKey);
 			BOOL	HasInt(int iKey);
@@ -70,6 +73,10 @@ public:
 			int		DataSizeLong(int64 lliKey);
 			int		DataSizeString(char* pszKey);
 			int		DataSizeKey(void* pvKey, int iKeySize);
+
+public:
+	virtual CMapIterator*	CreateIterator(void) =0;
+	virtual void			FreeIterator(CMapIterator* pcIter) =0;
 
 protected:
 			char*	GetString(void* pvKey, int iKeySize);

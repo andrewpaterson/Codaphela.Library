@@ -61,7 +61,14 @@ void CIndexTreeMemory::Init(CLifeInit<CMallocator> cMalloc, EIndexKeyReverse eKe
 //////////////////////////////////////////////////////////////////////////
 void CIndexTreeMemory::Init(CIndexTreeConfig* pcConfig)
 {
-	Init(pcConfig->GetMalloc(), pcConfig->GetKeyReverse(), pcConfig->GetMaxDataSize(), pcConfig->GetMaxKeySize(), pcConfig->GetDataOrderer()); 
+	if (pcConfig)
+	{
+		Init(pcConfig->GetMalloc(), pcConfig->GetKeyReverse(), pcConfig->GetMaxDataSize(), pcConfig->GetMaxKeySize(), pcConfig->GetDataOrderer());
+	}
+	else
+	{
+		Init();
+	}
 }
 
 
@@ -1018,9 +1025,6 @@ BOOL CIndexTreeMemory::UnsafeIterate(SIndexTreeMemoryUnsafeIterator* psIterator,
 {
 	return UnsafeIterate(psIterator, NULL, NULL, miMaxDataSize, ppvData, piDataSize);
 }
-
-
-
 
 
 //////////////////////////////////////////////////////////////////////////

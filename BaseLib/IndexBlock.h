@@ -4,24 +4,40 @@
 #include "IndexTreeMemory.h"
 
 
-class CIndexBlock
+struct SIndexBlockNode
+{
+	void*	pvData;
+	int		iDataSize;
+};
+
+
+class CIndexBlock : public CMalloc
 {
 protected:
 	CIndexTreeMemory	mcIndex;
 
 public:
 	void				Init(void);
-	void				Init(CIndexTreeConfig* pcConfig);
+	void				Init(CMallocator* pcMalloc, CIndexTreeConfig* pcConfig);
 	void				Kill(void);
 
-	BOOL				Get(void* pvKey, int iKeySize, void* pvDestData, size_t* puiDataSize, size_t uiMaxDataSize);
-	BOOL				Put(void* pvKey, int iKeySize, void* pvData, size_t iDataSize);
+	BOOL				Get(void* pvKey, int iKeySize, void** ppvData, int* piDataSize);
+	void*				Get(void* pvKey, int iKeySize);
+
+	void*				Put(void* pvKey, int iKeySize, int iDataSize);
+	BOOL				Put(void* pvKey, int iKeySize, void* pvData, int iDataSize);
+
 	BOOL				Remove(void* pvKey, int iKeySize);
 
-	int					NumElements(void);
+	size_t				DataSize(void* pvKey, int iKeySize);
 
-	BOOL				StartIteration(SIndexTreeMemoryIterator* psIterator, void** pvKey, void** pvData);
-	BOOL				Iterate(SIndexTreeMemoryIterator* psIterator, void** pvKey, void** pvData);
+	BOOL				HasKey(void* pvKey, int iKeySize);
+
+	int					NumElements(void);
+	void				Dump(void);
+
+	BOOL				StartIteration(SIndexTreeMemoryUnsafeIterator* psIterator, void** ppvData, size_t* puiDataSize, void* pvDestKey, size_t* puiKeySize, size_t uiMaxKeySize);
+	BOOL				Iterate(SIndexTreeMemoryUnsafeIterator* psIterator, void** ppvData, size_t* puiDataSize, void* pvDestKey, size_t* puiKeySize, size_t uiMaxKeySize);
 
 	BOOL				Write(CFileWriter* pcFileWriter);
 	BOOL				Read(CFileReader* pcFileReader);

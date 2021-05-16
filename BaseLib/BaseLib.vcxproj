@@ -168,6 +168,8 @@
     <ClInclude Include="DataTypesIO.h" />
     <ClInclude Include="EnumeratorNode.h" />
     <ClInclude Include="GlobalDataTypesIO.h" />
+    <ClInclude Include="IndexMapAccess.h" />
+    <ClInclude Include="IndexMapIterator.h" />
     <ClInclude Include="LogToMemory.h" />
     <ClInclude Include="Malloc.h" />
     <ClInclude Include="ArrayBlock.h" />
@@ -251,8 +253,11 @@
     <ClInclude Include="IndexBlock.h" />
     <ClInclude Include="MapIndexAccess.h" />
     <ClInclude Include="MapHelper.h" />
+    <ClInclude Include="MapIterator.h" />
     <ClInclude Include="MapLongLong.h" />
     <ClInclude Include="MapLongTemplate.h" />
+    <ClInclude Include="MapMapAccess.h" />
+    <ClInclude Include="MapMapIterator.h" />
     <ClInclude Include="MapNode.h" />
     <ClInclude Include="MapPrimitiveTemplate.h" />
     <ClInclude Include="MapStringBlock.h" />
@@ -391,6 +396,8 @@
     <ClCompile Include="AccessDataOrderer.cpp" />
     <ClCompile Include="DataTypesIO.cpp" />
     <ClCompile Include="GlobalDataTypesIO.cpp" />
+    <ClCompile Include="IndexMapAccess.cpp" />
+    <ClCompile Include="IndexMapIterator.cpp" />
     <ClCompile Include="LogToMemory.cpp" />
     <ClCompile Include="Malloc.cpp" />
     <ClCompile Include="ArrayBlock.cpp" />
@@ -457,6 +464,8 @@
     <ClCompile Include="MapIndexAccess.cpp" />
     <ClCompile Include="MapHelper.cpp" />
     <ClCompile Include="MapLongLong.cpp" />
+    <ClCompile Include="MapMapAccess.cpp" />
+    <ClCompile Include="MapMapIterator.cpp" />
     <ClCompile Include="MapNode.cpp" />
     <ClCompile Include="MapStringBlock.cpp" />
     <ClCompile Include="MemoryAllocator.cpp" />
