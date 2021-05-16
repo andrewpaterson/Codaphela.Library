@@ -238,6 +238,15 @@
     <Filter Include="Source\Data\Map\Map\Primitive">
       <UniqueIdentifier>{c57d1158-7981-4514-905a-5cadf907a3c0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Data\Map\Access">
+      <UniqueIdentifier>{f306f695-3465-4554-a640-acfe28041a27}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\Map\Map\Access">
+      <UniqueIdentifier>{2468c101-e5bc-4da1-887e-862d5536015c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\Map\Index">
+      <UniqueIdentifier>{80415a7b-f63b-4294-b829-8e25e1a67243}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DataMacro.h">
@@ -780,9 +789,6 @@
     <ClInclude Include="MapLongLong.h">
       <Filter>Source\Data\Map\Map\Primitive</Filter>
     </ClInclude>
-    <ClInclude Include="IndexAccess.h">
-      <Filter>Source\Data\Index\Access</Filter>
-    </ClInclude>
     <ClInclude Include="IndexTreeMemoryAccess.h">
       <Filter>Source\Data\Index\Access</Filter>
     </ClInclude>
@@ -882,9 +888,6 @@
     <ClInclude Include="GlobalDataTypesIO.h">
       <Filter>Source\Data\Types\File</Filter>
     </ClInclude>
-    <ClInclude Include="IndexBlock.h">
-      <Filter>Source\Data\Map</Filter>
-    </ClInclude>
     <ClInclude Include="MapTemplate.h">
       <Filter>Source\Data\Map\Map</Filter>
     </ClInclude>
@@ -897,14 +900,35 @@
     <ClInclude Include="MapHelper.h">
       <Filter>Source\Data\Map</Filter>
     </ClInclude>
-    <ClInclude Include="MapIndexAccess.h">
-      <Filter>Source\Data\Map\Map</Filter>
-    </ClInclude>
     <ClInclude Include="MapNode.h">
       <Filter>Source\Data\Map\Map</Filter>
     </ClInclude>
     <ClInclude Include="MapAccess.h">
+      <Filter>Source\Data\Map\Access</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexAccess.h">
+      <Filter>Source\Data\Map\Access</Filter>
+    </ClInclude>
+    <ClInclude Include="MapIndexAccess.h">
+      <Filter>Source\Data\Map\Map\Access</Filter>
+    </ClInclude>
+    <ClInclude Include="MapMapAccess.h">
+      <Filter>Source\Data\Map\Map\Access</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexMapAccess.h">
+      <Filter>Source\Data\Index\Access</Filter>
+    </ClInclude>
+    <ClInclude Include="MapIterator.h">
       <Filter>Source\Data\Map</Filter>
+    </ClInclude>
+    <ClInclude Include="MapMapIterator.h">
+      <Filter>Source\Data\Map\Map</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexMapIterator.h">
+      <Filter>Source\Data\Index</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexBlock.h">
+      <Filter>Source\Data\Map\Index</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -1334,9 +1358,6 @@
     <ClCompile Include="MapLongLong.cpp">
       <Filter>Source\Data\Map\Map\Primitive</Filter>
     </ClCompile>
-    <ClCompile Include="IndexAccess.cpp">
-      <Filter>Source\Data\Index\Access</Filter>
-    </ClCompile>
     <ClCompile Include="IndexTreeMemoryAccess.cpp">
       <Filter>Source\Data\Index\Access</Filter>
     </ClCompile>
@@ -1418,9 +1439,6 @@
     <ClCompile Include="GlobalDataTypesIO.cpp">
       <Filter>Source\Data\Types\File</Filter>
     </ClCompile>
-    <ClCompile Include="IndexBlock.cpp">
-      <Filter>Source\Data\Map</Filter>
-    </ClCompile>
     <ClCompile Include="MapPtrPtr.cpp">
       <Filter>Source\Data\Map\Map</Filter>
     </ClCompile>
@@ -1430,14 +1448,32 @@
     <ClCompile Include="MapHelper.cpp">
       <Filter>Source\Data\Map</Filter>
     </ClCompile>
-    <ClCompile Include="MapIndexAccess.cpp">
-      <Filter>Source\Data\Map\Map</Filter>
-    </ClCompile>
     <ClCompile Include="MapNode.cpp">
       <Filter>Source\Data\Map\Map</Filter>
     </ClCompile>
     <ClCompile Include="MapAccess.cpp">
-      <Filter>Source\Data\Map</Filter>
+      <Filter>Source\Data\Map\Access</Filter>
+    </ClCompile>
+    <ClCompile Include="IndexAccess.cpp">
+      <Filter>Source\Data\Map\Access</Filter>
+    </ClCompile>
+    <ClCompile Include="MapIndexAccess.cpp">
+      <Filter>Source\Data\Map\Map\Access</Filter>
+    </ClCompile>
+    <ClCompile Include="MapMapAccess.cpp">
+      <Filter>Source\Data\Map\Map\Access</Filter>
+    </ClCompile>
+    <ClCompile Include="IndexMapAccess.cpp">
+      <Filter>Source\Data\Index\Access</Filter>
+    </ClCompile>
+    <ClCompile Include="MapMapIterator.cpp">
+      <Filter>Source\Data\Map\Map</Filter>
+    </ClCompile>
+    <ClCompile Include="IndexMapIterator.cpp">
+      <Filter>Source\Data\Index</Filter>
+    </ClCompile>
+    <ClCompile Include="IndexBlock.cpp">
+      <Filter>Source\Data\Map\Index</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
