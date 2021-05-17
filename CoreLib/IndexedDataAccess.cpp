@@ -7,7 +7,7 @@
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexedDataAccess::Init(CIndexedData* pcIndexData)
 {
-	CIndexTreeAccess::Init();
+	CIndexAccess::Init();
 	mpcIndexData = pcIndexData;
 	return TRUE;
 }
@@ -20,7 +20,7 @@ BOOL CIndexedDataAccess::Init(CIndexedData* pcIndexData)
 BOOL CIndexedDataAccess::Kill(void)
 {
 	mpcIndexData = NULL;
-	return CIndexTreeAccess::Kill();
+	return CIndexAccess::Kill();
 }
 
 

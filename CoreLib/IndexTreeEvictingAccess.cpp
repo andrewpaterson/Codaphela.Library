@@ -8,7 +8,7 @@
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeEvictingAccess::Init(CIndexTreeEvicting* pcTree)
 {
-	CIndexTreeAccess::Init();
+	CIndexAccess::Init();
 	mpcTree = pcTree;
 	return TRUE;
 }
@@ -21,7 +21,7 @@ BOOL CIndexTreeEvictingAccess::Init(CIndexTreeEvicting* pcTree)
 BOOL CIndexTreeEvictingAccess::Kill(void)
 {
 	mpcTree = NULL;
-	return CIndexTreeAccess::Kill();
+	return CIndexAccess::Kill();
 }
 
 

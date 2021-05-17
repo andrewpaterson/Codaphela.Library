@@ -1,5 +1,5 @@
-#ifndef __INDEX_TREE_ACCESS_H__
-#define __INDEX_TREE_ACCESS_H__
+#ifndef __INDEX_ACCESS_H__
+#define __INDEX_ACCESS_H__
 #include "Define.h"
 #include "Chars.h"
 #include "PrimitiveTypes.h"
@@ -103,5 +103,5 @@ protected:
 };
 
 
-#endif // __INDEX_TREE_ACCESS_H__
+#endif // __INDEX_ACCESS_H__
 

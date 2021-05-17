@@ -8,7 +8,7 @@
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeFileAccess::Init(CIndexTreeFile* pcTree)
 {
-	CIndexTreeAccess::Init();
+	CIndexAccess::Init();
 	mpcTree = pcTree;
 	return TRUE;
 }
@@ -21,7 +21,7 @@ BOOL CIndexTreeFileAccess::Init(CIndexTreeFile* pcTree)
 BOOL CIndexTreeFileAccess::Kill(void)
 {
 	mpcTree = NULL;
-	return CIndexTreeAccess::Kill();
+	return CIndexAccess::Kill();
 }
 
 
