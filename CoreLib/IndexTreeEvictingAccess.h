@@ -1,10 +1,10 @@
 #ifndef __INDEX_TREE_EVICTING_ACCESS_H__
 #define __INDEX_TREE_EVICTING_ACCESS_H__
-#include "BaseLib/IndexTreeAccess.h"
+#include "BaseLib/IndexAccess.h"
 #include "IndexTreeEvicting.h"
 
 
-class CIndexTreeEvictingAccess : public CIndexTreeAccess
+class CIndexTreeEvictingAccess : public CIndexAccess
 {
 private:
 	CIndexTreeEvicting*		mpcTree;

@@ -1,9 +1,9 @@
 #ifndef __INDEXED_DATA_ACCESS_H__
 #define __INDEXED_DATA_ACCESS_H__
-#include "BaseLib/IndexTreeAccess.h"
+#include "BaseLib/IndexAccess.h"
 #include "IndexedData.h"
 
-class CIndexedDataAccess : public CIndexTreeAccess
+class CIndexedDataAccess : public CIndexAccess
 {
 protected:
 	CIndexedData*	mpcIndexData;

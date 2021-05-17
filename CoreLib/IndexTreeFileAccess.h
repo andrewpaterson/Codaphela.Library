@@ -1,10 +1,10 @@
 #ifndef __INDEX_TREE_FILE_ACCESS_H__
 #define __INDEX_TREE_FILE_ACCESS_H__
-#include "BaseLib/IndexTreeAccess.h"
+#include "BaseLib/IndexAccess.h"
 #include "IndexTreeFile.h"
 
 
-class CIndexTreeFileAccess : public CIndexTreeAccess
+class CIndexTreeFileAccess : public CIndexAccess
 {
 private:
 	CIndexTreeFile*		mpcTree;
