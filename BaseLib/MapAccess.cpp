@@ -418,12 +418,12 @@ void* CMapAccess::GetIntData(int iKey, size_t* piDataSize)
 //////////////////////////////////////////////////////////////////////////
 void* CMapAccess::GetIntPtr(int iKey)
 {
-	void** ppv;
+	void* pv;
 
-	ppv = (void**)Get(&iKey, sizeof(int), NULL);
-	if (ppv)
+	pv = Get(&iKey, sizeof(int), NULL);
+	if (pv)
 	{
-		return *ppv;
+		return pv;
 	}
 	else
 	{
@@ -518,12 +518,12 @@ int64 CMapAccess::GetStringLong(char* pszKey, int64 lliNullValue)
 //////////////////////////////////////////////////////////////////////////
 void* CMapAccess::GetStringPtr(char* pszKey)
 {
-	void** ppv;
+	void* pv;
 
-	ppv = (void**)Get(pszKey, StrKeySize(pszKey), NULL);
-	if (ppv)
+	pv = Get(pszKey, StrKeySize(pszKey), NULL);
+	if (pv)
 	{
-		return *ppv;
+		return pv;
 	}
 	else
 	{

@@ -30,6 +30,19 @@ void CIndexBlock::Init(CMallocator* pcMalloc, CIndexTreeConfig* pcConfig)
 //////////////////////////////////////////////////////////////////////////
 void CIndexBlock::Kill(void)
 {
+	SIndexTreeMemoryUnsafeIterator	sIter;
+	SIndexBlockNode*				psNode;
+	BOOL							bResult;
+
+	bResult = mcIndex.StartUnsafeIteration(&sIter, (void**)&psNode, NULL);
+	while (bResult)
+	{
+		if (psNode)
+		{
+			mpcMalloc->Free(psNode->pvData);
+		}
+		bResult = mcIndex.UnsafeIterate(&sIter, (void**)&psNode, NULL);
+	}
 	mcIndex.Kill();
 }
 

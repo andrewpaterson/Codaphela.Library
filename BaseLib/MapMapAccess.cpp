@@ -74,7 +74,14 @@ void CMapMapAccess::FreeIterator(CMapIterator* pcIter)
 //////////////////////////////////////////////////////////////////////////
 void* CMapMapAccess::Put(void* pvKey, int iKeySize, void* pvData, size_t uiDataSize)
 {
-	return mpcMap->Put(pvKey, iKeySize, uiDataSize);
+	void*	pv;
+
+	pv = mpcMap->Put(pvKey, iKeySize, uiDataSize);
+	if (pv)
+	{
+		memcpy(pv, pvData, uiDataSize);
+	}
+	return pv;
 }
 
 
