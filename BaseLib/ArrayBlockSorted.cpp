@@ -7,7 +7,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayBlockSorted::Init(int iElementSize, int(*fCompare)(const void*, const void*))
+void CArrayBlockSorted::Init(int iElementSize, DataCompare fCompare)
 {
 	Init(&gcSystemAllocator, iElementSize, 256, 4, fCompare);
 }
@@ -17,7 +17,7 @@ void CArrayBlockSorted::Init(int iElementSize, int(*fCompare)(const void*, const
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayBlockSorted::Init(int iElementSize, int iHoldingBufferSize, int iHoldingBuffers, int(*fCompare)(const void*, const void*))
+void CArrayBlockSorted::Init(int iElementSize, int iHoldingBufferSize, int iHoldingBuffers, DataCompare fCompare)
 {
 	Init(&gcSystemAllocator, iElementSize, iHoldingBufferSize, iHoldingBuffers, fCompare);
 }
@@ -27,7 +27,7 @@ void CArrayBlockSorted::Init(int iElementSize, int iHoldingBufferSize, int iHold
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayBlockSorted::Init(CMallocator* pcMalloc, int iElementSize, int iHoldingBufferSize, int iHoldingBuffers, int(*fCompare)(const void*, const void*))
+void CArrayBlockSorted::Init(CMallocator* pcMalloc, int iElementSize, int iHoldingBufferSize, int iHoldingBuffers, DataCompare fCompare)
 {
 	CArrayBlock*	paHoldingArray;
 	int				i;
@@ -618,7 +618,7 @@ BOOL CArrayBlockSorted::Write(CFileWriter* pcFileWriter)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayBlockSorted::ReadHeader(CMallocator* pcMalloc, CFileReader* pcFileReader, int(*fCompare)(const void*, const void*))
+BOOL CArrayBlockSorted::ReadHeader(CMallocator* pcMalloc, CFileReader* pcFileReader, DataCompare fCompare)
 {
 	CArrayBlock*	paHoldingArray;
 	int				i;
@@ -655,7 +655,7 @@ BOOL CArrayBlockSorted::ReadHeader(CMallocator* pcMalloc, CFileReader* pcFileRea
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayBlockSorted::Read(CFileReader* pcFileReader, int(*Func)(const void*, const void*))
+BOOL CArrayBlockSorted::Read(CFileReader* pcFileReader, DataCompare fCompare)
 {
 	CMallocator*	pcMalloc;
 
@@ -665,7 +665,7 @@ BOOL CArrayBlockSorted::Read(CFileReader* pcFileReader, int(*Func)(const void*, 
 		return FALSE;
 	}
 
-	if (!ReadHeader(pcMalloc, pcFileReader, Func))
+	if (!ReadHeader(pcMalloc, pcFileReader, fCompare))
 	{
 		return FALSE;
 	}

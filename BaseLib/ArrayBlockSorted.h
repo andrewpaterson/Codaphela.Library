@@ -22,7 +22,7 @@ class CArrayBlockSorted : public CMalloc
 protected:
 	CArrayBlock			maSortedArray;
 	CArrayArrayBlock	maaHoldingArrays;
-	int					(*mfCompare)(const void*, const void*);
+	DataCompare			mfCompare;
 	int*				mapiInsertionIndices;
 
 	int					miElementSize;
@@ -30,9 +30,9 @@ protected:
 	BOOL				mbOverwrite;
 
 public:
-	void			Init(int iElementSize, int(*fCompare)(const void*, const void*));
-	void			Init(int iElementSize, int iHoldingBufferSize, int iHoldingBuffers, int(*fCompare)(const void*, const void*));
-	void			Init(CMallocator* pcMalloc, int iElementSize, int iHoldingBufferSize, int iHoldingBuffers, int(*fCompare)(const void*, const void*));
+	void			Init(int iElementSize, DataCompare fCompare);
+	void			Init(int iElementSize, int iHoldingBufferSize, int iHoldingBuffers, DataCompare fCompare);
+	void			Init(CMallocator* pcMalloc, int iElementSize, int iHoldingBufferSize, int iHoldingBuffers, DataCompare fCompare);
 	void			Kill(void);
 
 	BOOL			Add(void* pv);
@@ -51,8 +51,8 @@ public:
 
 	BOOL			WriteHeader(CFileWriter* pcFileWriter);
 	BOOL			Write(CFileWriter* pcFileWriter);
-	BOOL			ReadHeader(CMallocator* pcMalloc, CFileReader* pcFileReader, int(*Func)(const void*, const void*));
-	BOOL			Read(CFileReader* pcFileReader, int(*Func)(const void*, const void*));
+	BOOL			ReadHeader(CMallocator* pcMalloc, CFileReader* pcFileReader, DataCompare fCompare);
+	BOOL			Read(CFileReader* pcFileReader, DataCompare fCompare);
 
 	void			SetOverwrite(BOOL bOverwrite);
 

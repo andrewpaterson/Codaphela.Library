@@ -23,6 +23,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __ARRAY_TEMPLATE_MINIMAL_H__
 #define __ARRAY_TEMPLATE_MINIMAL_H__
 #include "ConstructorCall.h"
+#include "DataCallback.h"
 #include "ArrayBlockMinimal.h"
 
 
@@ -62,18 +63,18 @@ public:
 	M*		InsertAt(int iElementPos);
 	M*		InsertAt(M* pvData, int iElementPos);
 	M*		InsertNumAt(int iNumElements, int iIndex);
-	int		InsertIntoSorted(int(*fCompare)(const void*, const void*), M* pvElement, BOOL bOverwriteExisting);
+	int		InsertIntoSorted(DataCompare fCompare, M* pvElement, BOOL bOverwriteExisting);
 	void	InsertBatch(int iFirstElementPos, int iNumInBatch, int iNumBatches, int iSkip);  //Test Virtual
 
 	M*		Push(void);
 	M*		PushCopy(void);
 
-	void	QuickSort(int(*fCompare)(const void*, const void*));
+	void	QuickSort(DataCompare fCompare);
 
 	int 	Find(M* pData);
 	int 	FindWithKey(M* pData, int iKeyOffset, int iKeySize);
 	int		FindWithIntKey(int iKey, int iKeyOffset);
-	BOOL	FindInSorted(M* pData, int(*)(const void*, const void*), int* piIndex);
+	BOOL	FindInSorted(M* pData, DataCompare fCompare, int* piIndex);
 
 	BOOL	RemoveAt(int iElementPos, int bPreserveOrder = 0);
 	BOOL	RemoveTail(void);
@@ -100,7 +101,7 @@ public:
 	M*		SetArraySize(int iNum, int iClearValue);
 
 protected:
-	BOOL	BinarySearch(M* pData, int iLeft, int iRight, int(*Func)(const void*, const void*), int* piIndex);
+	BOOL	BinarySearch(M* pData, int iLeft, int iRight, DataCompare fCompare, int* piIndex);
 };
 
 
@@ -474,7 +475,7 @@ void CArrayTemplateMinimal<M>::Zero(int iStart, int iEnd)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CArrayTemplateMinimal<M>::QuickSort(int(*fCompare)(const void*, const void*))
+void CArrayTemplateMinimal<M>::QuickSort(DataCompare fCompare)
 {
 	qsort((void*)mpvArray, miUsedElements, sizeof(M), fCompare);
 }
@@ -485,7 +486,7 @@ void CArrayTemplateMinimal<M>::QuickSort(int(*fCompare)(const void*, const void*
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-int CArrayTemplateMinimal<M>::InsertIntoSorted(int(*fCompare)(const void*, const void*), M* pvElement, BOOL bOverwriteExisting)
+int CArrayTemplateMinimal<M>::InsertIntoSorted(DataCompare fCompare, M* pvElement, BOOL bOverwriteExisting)
 {
 	int		iIndex;
 	BOOL	bExists;
@@ -522,14 +523,14 @@ int CArrayTemplateMinimal<M>::InsertIntoSorted(int(*fCompare)(const void*, const
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-BOOL CArrayTemplateMinimal<M>::FindInSorted(M* pData, int(* Func)(const void*, const void*), int* piIndex)
+BOOL CArrayTemplateMinimal<M>::FindInSorted(M* pData, DataCompare fCompare, int* piIndex)
 {
 	if (miUsedElements == 0)
 	{
 		*piIndex = 0;
 		return FALSE;
 	}
-	return BinarySearch(pData, 0, miUsedElements - 1, Func, piIndex);
+	return BinarySearch(pData, 0, miUsedElements - 1, fCompare, piIndex);
 }
 
 
@@ -538,7 +539,7 @@ BOOL CArrayTemplateMinimal<M>::FindInSorted(M* pData, int(* Func)(const void*, c
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-BOOL CArrayTemplateMinimal<M>::BinarySearch(M* pData, int iLeft, int iRight, int(* Func)(const void*, const void*), int* piIndex)
+BOOL CArrayTemplateMinimal<M>::BinarySearch(M* pData, int iLeft, int iRight, DataCompare fCompare, int* piIndex)
 {
 	int		iMiddle;
 	int		iResultMiddle;
@@ -549,7 +550,7 @@ BOOL CArrayTemplateMinimal<M>::BinarySearch(M* pData, int iLeft, int iRight, int
 	{
 		iMiddle = (iLeft + iRight) >> 1; //Divide by 2
 		pvMiddle = Get(iMiddle);
-		iResultMiddle = Func(pData, pvMiddle);
+		iResultMiddle = fCompare(pData, pvMiddle);
 		if (iResultMiddle == 0)
 		{
 			*piIndex = iMiddle;

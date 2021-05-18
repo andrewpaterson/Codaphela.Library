@@ -45,9 +45,9 @@ public:
 	int		SafeGetType(int iElementPos);
 	void	Set(int iElementPos, void* pvData, int iInt);
 	void	Remove(void* pv);
-	void*	InsertIntoSorted(int(* Func)(const void*, const void*), void* pvElement, int iInt);
-	BOOL	FindInSorted(void* pvElement, int(* Func)(const void*, const void*), int* piIndex);
-	BOOL	BinarySearch(void* pvData, int iLeft, int iRight, int(* Func)(const void*, const void*), int* piIndex);
+	void*	InsertIntoSorted(DataCompare fCompare, void* pvElement, int iInt);
+	BOOL	FindInSorted(void* pvElement, DataCompare fCompare, int* piIndex);
+	BOOL	BinarySearch(void* pvData, int iLeft, int iRight, DataCompare fCompare, int* piIndex);
 };
 
 

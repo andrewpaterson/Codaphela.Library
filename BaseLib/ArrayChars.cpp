@@ -563,19 +563,19 @@ int CArrayChars::FindInSorted(char* szString, BOOL bCaseSensitive)
 //////////////////////////////////////////////////////////////////////////
 int CArrayChars::FindInSorted(CChars* szString, BOOL bCaseSensitive)
 {
-	int(*Func)(const void*, const void*);
-	int		iIndex;
-	BOOL	bResult;
+	DataCompare		fCompare;
+	int				iIndex;
+	BOOL			bResult;
 
 	if (bCaseSensitive)
 	{
-		Func = CompareChars;
+		fCompare = CompareChars;
 	}
 	else
 	{
-		Func = CompareCharsIgnoreCase;
+		fCompare = CompareCharsIgnoreCase;
 	}
-	bResult = mcArray.FindInSorted(szString, Func, &iIndex);
+	bResult = mcArray.FindInSorted(szString, fCompare, &iIndex);
 	if (!bResult)
 	{
 		return -1;

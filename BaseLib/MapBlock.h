@@ -1,6 +1,7 @@
 #ifndef __MAP_BLOCK_H__
 #define __MAP_BLOCK_H__
 #include "Malloc.h"
+#include "DataCallback.h"
 #include "MapNode.h"
 #include "ArrayBlockSorted.h"
 
@@ -18,14 +19,14 @@ protected:
 	BOOL				mbOverwrite;
 
 public:
-	int					(*fKeyCompare)(const void*, const void*);
+	DataCompare			fKeyCompare;
 
 public:
 	void				Init(BOOL bOverwrite = TRUE);
 	void				Init(CMallocator* pcMalloc, BOOL bOverwrite = TRUE);
-	void				Init(int(*fKeyCompare)(const void*, const void*), BOOL bOverwrite = TRUE);
-	void				Init(CMallocator* pcMalloc, int(*fKeyCompare)(const void*, const void*), BOOL bOverwrite = TRUE);
-	void				Init(CMallocator* pcMalloc, int(*fKeyCompare)(const void*, const void*), CompareFunc fCompare, BOOL bOverwrite);
+	void				Init(DataCompare fKeyCompare, BOOL bOverwrite = TRUE);
+	void				Init(CMallocator* pcMalloc, DataCompare fKeyCompare, BOOL bOverwrite = TRUE);
+	void				Init(CMallocator* pcMalloc, DataCompare fKeyCompare, DataCompare fCompare, BOOL bOverwrite);
 	void				Kill(void);
 
 	BOOL				Get(void* pvKey, int iKeySize, void** ppvData, int* piDataSize);
@@ -47,7 +48,7 @@ public:
 	BOOL				Iterate(SMapIterator* psIterator, void** ppvKey, int* piKeySize, void** ppvData, int* piDataSize);
 
 	BOOL				Write(CFileWriter* pcFileWriter);
-	BOOL				Read(CFileReader* pcFileReader, int(*fKeyCompare)(const void*, const void*));
+	BOOL				Read(CFileReader* pcFileReader, DataCompare fKeyCompare);
 
 	void				FinaliseSorted(void);
 	size_t				ByteSize(void);
@@ -55,7 +56,7 @@ public:
 
 protected:
 	BOOL				WriteExceptData(CFileWriter* pcFileWriter);
-	BOOL				ReadExceptData(CFileReader* pcFileReader, int(*fKeyCompare)(const void*, const void*));
+	BOOL				ReadExceptData(CFileReader* pcFileReader, DataCompare fKeyCompare);
 	void*				WriteKey(CFileWriter* pcFileWriter, int iIndex, int* piDataSize);
 	void*				ReadKey(CFileReader* pcFileReader, int iIndex, int* piDataSize);
 

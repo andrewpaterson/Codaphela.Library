@@ -253,14 +253,10 @@ void* CIndexTreeMemory::Put(void* pvKey, int iKeySize, void* pvData, size_t iDat
 
 	pcCurrent = GetOrAllocateKey(pvKey, iKeySize);
 
-	if (!pcCurrent->HasData())
-	{
-		miSize++;
-	}
-
 	bNewNode = FALSE;
 	if (!pcCurrent->HasData())
 	{
+		miSize++;
 		bNewNode = TRUE;
 	}
 
@@ -301,6 +297,7 @@ CIndexTreeNodeMemory* CIndexTreeMemory::GetOrAllocateKey(void* pvKey, int iKeySi
 	}
 	return pcCurrent;
 }
+
 
 //////////////////////////////////////////////////////////////////////////
 //

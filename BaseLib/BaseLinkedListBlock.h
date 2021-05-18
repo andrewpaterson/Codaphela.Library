@@ -90,8 +90,8 @@ public:
 	int			IndexOf(void* pvData);
 	BOOL		IsInList(void* pvData);
 
-	void		BubbleSort(int(*fCompare)(const void*, const void*));
-	void		InsertDetachedIntoSorted(int(*fCompare)(const void*, const void*), void* pvData);
+	void		BubbleSort(DataCompare fCompare);
+	void		InsertDetachedIntoSorted(DataCompare fCompare, void* pvData);
 
 protected:	
 	SLLNode*	AllocateDetached(size_t uiDataSize);

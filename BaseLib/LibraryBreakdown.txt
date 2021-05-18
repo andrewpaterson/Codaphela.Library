@@ -61,8 +61,6 @@ File Handling
   Properties file
   XML
 
-Function Thunking (Deprecated)
-
 Operators
   Arithmetic
   Assignment

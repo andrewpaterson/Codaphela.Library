@@ -11,9 +11,6 @@ struct SMNode
 };
 
 
-typedef int(*CompareFunc)(const void*, const void*);
-
-
 int CompareMNode(const void* arg1, const void* arg2);
 int CompareMNodeKey(const void* arg1, const void* arg2);
 

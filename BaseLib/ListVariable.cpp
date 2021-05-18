@@ -347,13 +347,13 @@ void* CListVariable::InsertAt(int iIndex, int iElementSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CListVariable::InsertIntoSorted(int(*Func)(const void*, const void*), void* pvElement, BOOL bOverwriteExisting, int iElementSize)
+int CListVariable::InsertIntoSorted(DataCompare fCompare, void* pvElement, BOOL bOverwriteExisting, int iElementSize)
 {
 	int		iPos;
 	BOOL	bExists;
 	void*	pvData;
 
-	bExists = FindInSorted(pvElement, Func, &iPos);
+	bExists = FindInSorted(pvElement, fCompare, &iPos);
 	if (iPos < mcArray.NumElements())
 	{
 		if ((!bExists) && (!bOverwriteExisting))
@@ -385,11 +385,11 @@ int CListVariable::InsertIntoSorted(int(*Func)(const void*, const void*), void* 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CListVariable::FindInSorted(void* pvElement, int(*Func)(const void*, const void*), int* piIndex)
+BOOL CListVariable::FindInSorted(void* pvElement, DataCompare fCompare, int* piIndex)
 {
 	SPointerAndSize	sPointerAndSize;
 
 	sPointerAndSize.pvData = pvElement;
 	sPointerAndSize.iSize = 0;
-	return mcArray.FindInSorted(&sPointerAndSize, Func, piIndex);
+	return mcArray.FindInSorted(&sPointerAndSize, fCompare, piIndex);
 }

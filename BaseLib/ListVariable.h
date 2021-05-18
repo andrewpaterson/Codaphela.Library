@@ -59,9 +59,9 @@ public:
 	int		IndexOf(void* pvElement);
 	BOOL	Remove(void* pvElement);
 	int		NumElements(void);
-	BOOL	FindInSorted(void* pvElement, int(*Func)(const void*, const void*), int* piIndex);
+	BOOL	FindInSorted(void* pvElement, DataCompare fCompare, int* piIndex);
 	void*	InsertAt(int iIndex, int iElementSize);
-	int		InsertIntoSorted(int(*)(const void*, const void*), void* pvElement, BOOL bOverwriteExisting, int iElementSize);
+	int		InsertIntoSorted(DataCompare fCompare, void* pvElement, BOOL bOverwriteExisting, int iElementSize);
 	int		GetSize(int iIndex);
 
 private:

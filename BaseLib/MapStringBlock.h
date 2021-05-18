@@ -48,7 +48,7 @@ public:
 
 	BOOL		WriteCaseSensitivity(CFileWriter* pcFileWriter);
 	BOOL		Write(CFileWriter* pcFileWriter);
-	CompareFunc	ReadCaseSensitivity(CFileReader* pcFileReader);
+	DataCompare	ReadCaseSensitivity(CFileReader* pcFileReader);
 	BOOL		Read(CFileReader* pcFileReader);
 
 	char*		GetKeyForData(void* psData);
@@ -57,7 +57,7 @@ public:
 	void		SetCaseSensitive(BOOL bCaseSensitive);
 
 protected:
-	CompareFunc	CalculateCompareFunc(BOOL bCaseSensitive);
+	DataCompare	CalculateCompareFunc(BOOL bCaseSensitive);
 };
 
 
