@@ -30,7 +30,7 @@ void CMapBlock::Init(CMallocator* pcMalloc, BOOL bOverwrite)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMapBlock::Init(int(*fKeyCompare)(const void*, const void*), BOOL bOverwrite)
+void CMapBlock::Init(DataCompare fKeyCompare, BOOL bOverwrite)
 {
 	Init(&gcSystemAllocator, fKeyCompare, &CompareMNode, bOverwrite);
 }
@@ -40,7 +40,7 @@ void CMapBlock::Init(int(*fKeyCompare)(const void*, const void*), BOOL bOverwrit
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMapBlock::Init(CMallocator* pcMalloc, int(*fKeyCompare)(const void*, const void*), BOOL bOverwrite)
+void CMapBlock::Init(CMallocator* pcMalloc, DataCompare fKeyCompare, BOOL bOverwrite)
 {
 	Init(pcMalloc, fKeyCompare, &CompareMNode, bOverwrite);
 }
@@ -50,7 +50,7 @@ void CMapBlock::Init(CMallocator* pcMalloc, int(*fKeyCompare)(const void*, const
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMapBlock::Init(CMallocator* pcMalloc, int(*fKeyCompare)(const void*, const void*), CompareFunc fCompare, BOOL bOverwrite)
+void CMapBlock::Init(CMallocator* pcMalloc, DataCompare fKeyCompare, DataCompare fCompare, BOOL bOverwrite)
 {
 	int		iHoldingBufferSize;
 	int		iHoldingBuffers;
@@ -404,7 +404,7 @@ BOOL CMapBlock::WriteExceptData(CFileWriter* pcFileWriter)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMapBlock::ReadExceptData(CFileReader* pcFileReader, int(*fKeyCompare)(const void*, const void*))
+BOOL CMapBlock::ReadExceptData(CFileReader* pcFileReader, DataCompare fKeyCompare)
 {
 	CMallocator*	pcMalloc;
 	BOOL			bResult;
@@ -547,7 +547,7 @@ BOOL CMapBlock::Write(CFileWriter* pcFileWriter)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMapBlock::Read(CFileReader* pcFileReader, int(*fKeyCompare)(const void*, const void*))
+BOOL CMapBlock::Read(CFileReader* pcFileReader, DataCompare fKeyCompare)
 {
 	int			i;
 	int			iNumElements;

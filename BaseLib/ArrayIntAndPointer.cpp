@@ -175,7 +175,7 @@ void CArrayIntAndPointer::Remove(void* pv)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CArrayIntAndPointer::InsertIntoSorted(int(* Func)(const void*, const void*), void* pvElement, int iInt)
+void* CArrayIntAndPointer::InsertIntoSorted(DataCompare fCompare, void* pvElement, int iInt)
 {
 	int				iPos;
 	SIntAndPointer	sTypedPointer;
@@ -183,7 +183,7 @@ void* CArrayIntAndPointer::InsertIntoSorted(int(* Func)(const void*, const void*
 
 	//This function never overwrites because it does not know how to free an existing object.
 
-	bExists = FindInSorted(pvElement, Func, &iPos);
+	bExists = FindInSorted(pvElement, fCompare, &iPos);
 
 	sTypedPointer.iValue = iInt;
 	sTypedPointer.pvData = pvElement;
@@ -210,14 +210,14 @@ void* CArrayIntAndPointer::InsertIntoSorted(int(* Func)(const void*, const void*
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayIntAndPointer::FindInSorted(void* pvElement, int(* Func)(const void*, const void*), int* piIndex)
+BOOL CArrayIntAndPointer::FindInSorted(void* pvElement, DataCompare fCompare, int* piIndex)
 {
 	if (miUsedElements == 0)
 	{
 		*piIndex = 0;
 		return FALSE;
 	}
-	return BinarySearch(pvElement, 0, miUsedElements - 1, Func, piIndex);
+	return BinarySearch(pvElement, 0, miUsedElements - 1, fCompare, piIndex);
 }
 
 
@@ -225,7 +225,7 @@ BOOL CArrayIntAndPointer::FindInSorted(void* pvElement, int(* Func)(const void*,
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayIntAndPointer::BinarySearch(void* pvData, int iLeft, int iRight, int(* Func)(const void*, const void*), int* piIndex)
+BOOL CArrayIntAndPointer::BinarySearch(void* pvData, int iLeft, int iRight, DataCompare fCompare, int* piIndex)
 {
 	int		iMiddle;
 	int		iResultMiddle;
@@ -237,7 +237,7 @@ BOOL CArrayIntAndPointer::BinarySearch(void* pvData, int iLeft, int iRight, int(
 	{
 		iMiddle = (iLeft + iRight) >> 1; //Divide by 2
 		pvMiddle = GetPtr(iMiddle);
-		iResultMiddle = Func(pvData, pvMiddle);
+		iResultMiddle = fCompare(pvData, pvMiddle);
 		if (iResultMiddle == 0)
 		{
 			*piIndex = iMiddle;

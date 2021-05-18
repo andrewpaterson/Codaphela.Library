@@ -342,7 +342,7 @@ BOOL CLinkedList::IsInList(SLLNode* psNode)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CLinkedList::BubbleSort(int(*Func)(const void*, const void*), size_t iOffset)
+void CLinkedList::BubbleSort(DataCompare fCompare, size_t iOffset)
 {
 	SLLNode*	psCurrent;
 	SLLNode*	psNext;
@@ -369,7 +369,7 @@ void CLinkedList::BubbleSort(int(*Func)(const void*, const void*), size_t iOffse
 		{
 			pvCurrent = RemapSinglePointer(psCurrent, iOffset);
 			pvNext = RemapSinglePointer(psNext, iOffset);
-			iResult = Func(pvCurrent, pvNext);
+			iResult = fCompare(pvCurrent, pvNext);
 			if (iResult > 0)
 			{
 				Swap(psCurrent, psNext);
@@ -448,7 +448,7 @@ void CLinkedList::Swap(SLLNode* psNode1, SLLNode* psNode2)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CLinkedList::InsertIntoSorted(int(*Func)(const void*, const void*), SLLNode* psNode, size_t iOffset)
+void CLinkedList::InsertIntoSorted(DataCompare fCompare, SLLNode* psNode, size_t iOffset)
 {
 	SLLNode*	psCurrent;
 	int			iResult;
@@ -461,7 +461,7 @@ void CLinkedList::InsertIntoSorted(int(*Func)(const void*, const void*), SLLNode
 	{
 		pvCurrent = RemapSinglePointer(psCurrent, iOffset);
 		pvNext = RemapSinglePointer(psNode, iOffset);
-		iResult = Func(pvNext, pvCurrent);
+		iResult = fCompare(pvNext, pvCurrent);
 		if (iResult < 0)
 		{
 			InsertBeforeNode(psCurrent, psNode);

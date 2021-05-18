@@ -1,6 +1,7 @@
 #ifndef __LINKED_LIST_H__
 #define __LINKED_LIST_H__
 #include "Define.h"
+#include "DataCallback.h"
 
 
 struct SLLNode
@@ -43,9 +44,9 @@ public:
 	int			IndexOf(SLLNode* psExistingNode);
 	BOOL		IsInList(SLLNode* pcNode);
 
-	void		BubbleSort(int(*Func)(const void*, const void*), size_t iOffset);
+	void		BubbleSort(DataCompare fCompare, size_t iOffset);
 	void		Swap(SLLNode* psNode1, SLLNode* psNode2);
-	void		InsertIntoSorted(int(*Func)(const void*, const void*), SLLNode* psNode, size_t iOffset);
+	void		InsertIntoSorted(DataCompare fCompare, SLLNode* psNode, size_t iOffset);
 };
 
 

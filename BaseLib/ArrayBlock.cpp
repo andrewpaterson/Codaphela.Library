@@ -983,9 +983,9 @@ void CArrayBlock::Swap(int iIndex1, int iIndex2)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayBlock::QuickSort(int(* Func)(const void*, const void*))
+void CArrayBlock::QuickSort(DataCompare fCompare)
 {
-	qsort((void*)mpvArray, miUsedElements, miElementSize, Func);
+	qsort((void*)mpvArray, miUsedElements, miElementSize, fCompare);
 }
 
 
@@ -993,7 +993,7 @@ void CArrayBlock::QuickSort(int(* Func)(const void*, const void*))
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayBlock::BubbleSort(int(* Func)(const void*, const void*))
+void CArrayBlock::BubbleSort(DataCompare fCompare)
 {
 	int		iIndex;
 	int		iResult;
@@ -1009,7 +1009,7 @@ void CArrayBlock::BubbleSort(int(* Func)(const void*, const void*))
 
 		while ((iIndex+1) < (miUsedElements - iNumDone))
 		{
-			iResult = Func(Get(iIndex), Get(iIndex+1));
+			iResult = fCompare(Get(iIndex), Get(iIndex+1));
 			if (iResult > 0)
 			{
 				Swap(iIndex, iIndex+1);
@@ -1026,7 +1026,7 @@ void CArrayBlock::BubbleSort(int(* Func)(const void*, const void*))
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CArrayBlock::InsertIntoSorted(int(*fCompare)(const void*, const void*), void* pvData, BOOL bOverwriteExisting)
+int CArrayBlock::InsertIntoSorted(DataCompare fCompare, void* pvData, BOOL bOverwriteExisting)
 {
 	int		iIndex;
 	BOOL	bExists;
@@ -1062,14 +1062,14 @@ int CArrayBlock::InsertIntoSorted(int(*fCompare)(const void*, const void*), void
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayBlock::FindInSorted(void* pvData, int(* Func)(const void*, const void*), int* piIndex)
+BOOL CArrayBlock::FindInSorted(void* pvData, DataCompare fCompare, int* piIndex)
 {
 	if (miUsedElements == 0)
 	{
 		*piIndex = 0;
 		return FALSE;
 	}
-	return BinarySearch(pvData, 0, miUsedElements - 1, Func, piIndex);
+	return BinarySearch(pvData, 0, miUsedElements - 1, fCompare, piIndex);
 }
 
 
@@ -1077,7 +1077,7 @@ BOOL CArrayBlock::FindInSorted(void* pvData, int(* Func)(const void*, const void
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayBlock::BinarySearch(void* pvData, int iLeft, int iRight, int(* Func)(const void*, const void*), int* piIndex)
+BOOL CArrayBlock::BinarySearch(void* pvData, int iLeft, int iRight, DataCompare fCompare, int* piIndex)
 {
 	int		iMiddle;
 	int		iResultMiddle;
@@ -1088,7 +1088,7 @@ BOOL CArrayBlock::BinarySearch(void* pvData, int iLeft, int iRight, int(* Func)(
 	{
 		iMiddle = (iLeft + iRight) >> 1; //Divide by 2
 		pvMiddle = Get(iMiddle);
-		iResultMiddle = Func(pvData, pvMiddle);
+		iResultMiddle = fCompare(pvData, pvMiddle);
 		if (iResultMiddle == 0)
 		{
 			*piIndex = iMiddle;

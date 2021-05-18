@@ -930,6 +930,9 @@
     <ClInclude Include="IndexBlock.h">
       <Filter>Source\Data\Map\Index</Filter>
     </ClInclude>
+    <ClInclude Include="DataCallback.h">
+      <Filter>Source\Data</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">

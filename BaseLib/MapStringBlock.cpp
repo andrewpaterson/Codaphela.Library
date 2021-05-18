@@ -20,7 +20,7 @@ void CMapStringBlock::Init(BOOL bCaseSensitive, BOOL bOverwrite)
 //////////////////////////////////////////////////////////////////////////
 void CMapStringBlock::Init(CMallocator* pcMalloc, BOOL bCaseSensitive, BOOL bOverwrite)
 {
-	CompareFunc	CaseFunc;
+	DataCompare	CaseFunc;
 
 	CaseFunc = CalculateCompareFunc(bCaseSensitive);
 	CMapBlock::Init(pcMalloc, CaseFunc, bOverwrite);
@@ -191,10 +191,10 @@ BOOL CMapStringBlock::Write(CFileWriter* pcFileWriter)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CompareFunc CMapStringBlock::ReadCaseSensitivity(CFileReader* pcFileReader)
+DataCompare CMapStringBlock::ReadCaseSensitivity(CFileReader* pcFileReader)
 {
 	BOOL			bCaseSensitive;
-	CompareFunc		CaseFunc;
+	DataCompare		CaseFunc;
 
 	if (!pcFileReader->ReadBool(&bCaseSensitive))
 	{
@@ -214,7 +214,7 @@ BOOL CMapStringBlock::Read(CFileReader* pcFileReader)
 {
 	//Do not call .Init() before Read().
 
-	CompareFunc		CaseFunc;
+	DataCompare		CaseFunc;
 	BOOL			bResult;
 
 	CaseFunc = ReadCaseSensitivity(pcFileReader);
@@ -258,7 +258,7 @@ char* CMapStringBlock::GetKeyForData(void* psData)
 //////////////////////////////////////////////////////////////////////////
 BOOL CMapStringBlock::IsCaseSensitive(void)
 {
-	return fKeyCompare == (CompareFunc)&strcmp;
+	return fKeyCompare == (DataCompare)&strcmp;
 }
 
 
@@ -276,20 +276,20 @@ void CMapStringBlock::SetCaseSensitive(BOOL bCaseSensitive)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CompareFunc CMapStringBlock::CalculateCompareFunc(BOOL bCaseSensitive)
+DataCompare CMapStringBlock::CalculateCompareFunc(BOOL bCaseSensitive)
 {
 	if (bCaseSensitive)
 	{
-		return (CompareFunc)&strcmp;
+		return (DataCompare)&strcmp;
 	}
 	else
 	{
 #ifdef _MSC_VER
-		return (CompareFunc)&_stricmp;
+		return (DataCompare)&_stricmp;
 #endif // _MSC_VER		
 
 #ifdef LINUX_GNU_32
-		return (CompareFunc)&strcasecmp;
+		return (DataCompare)&strcasecmp;
 #endif // LINUX_GNU_32
 	}
 }

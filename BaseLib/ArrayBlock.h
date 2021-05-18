@@ -6,6 +6,7 @@
 #include "Mallocator.h"
 #include "FileIO.h"
 #include "Malloc.h"
+#include "DataCallback.h"
 
 
 struct SArrayTemplateHeader
@@ -75,7 +76,7 @@ public:
 	void*	InsertBlockAfterEnd(void* paElements, int iLength);
 	void*	InsertBlockAt(void* paElements, int iIndex, int iLength);
 	void*	InsertBlockBeforeStart(void* paElements, int iLength);
-	int		InsertIntoSorted(int(*fCompare)(const void*, const void*), void* pvData, BOOL bOverwriteExisting);
+	int		InsertIntoSorted(DataCompare fCompare, void* pvData, BOOL bOverwriteExisting);
 	void*	InsertNumAt(int iNumElements, int iIndex);
 	void	InsertBatch(int iFirstIndex, int iNumInBatch, int iNumBatches, int iStrideToNextBatch);
 
@@ -91,15 +92,15 @@ public:
 	void*	GrowToAtLeastNumElements(int iNumElements, BOOL bClear = FALSE, unsigned char  iClear = 0);
 	int		Resize(int iNumElements);
 
-	void	BubbleSort(int(*fCompare)(const void*, const void*));
-	void	QuickSort(int(*fCompare)(const void*, const void*));
+	void	BubbleSort(DataCompare fCompare);
+	void	QuickSort(DataCompare fCompare);
 	void	Reverse(void);
 	void	Shuffle(CRandom* pcRandom = NULL);
 
 	BOOL	Contains(void* pData);
 	BOOL	Equals(CArrayBlock* pcTemplateArray);
 	int 	Find(void* pData);
-	BOOL	FindInSorted(void* pData, int(*fCompare)(const void*, const void*), int* piIndex);
+	BOOL	FindInSorted(void* pvData, DataCompare fCompare, int* piIndex);
 	int		FindWithIntKey(int iKey);
 	int		FindWithIntKey(int iKey, int iKeyOffset);
 	int 	FindWithKey(void* pData, int iKeyOffset, int iKeySize);
@@ -133,7 +134,7 @@ public:
 	BOOL	ReadHeader(CFileReader* pcFileReader, CMallocator* pcMalloc);
 
 protected:
-	BOOL	BinarySearch(void* pData, int iLeft, int iRight, int(*fCompare)(const void*, const void*), int* piIndex);
+	BOOL	BinarySearch(void* pData, int iLeft, int iRight, DataCompare fCompare, int* piIndex);
 	void*	CopyArrayInto(CArrayBlock* pcTemplateArray, int iIndex);
 	void*	CopyBlockInto(void* paElements, int iLength, int iIndex);
 	void	PrivateRemoveAt(int iIndex, BOOL bPreserveOrder, int iDataSize);
