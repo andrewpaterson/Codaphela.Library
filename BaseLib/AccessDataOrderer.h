@@ -3,6 +3,7 @@
 #include "IndexTreeDataOrderer.h"
 #include "LifeCycle.h"
 
+
 class CAccessDataOrderer : public CIndexTreeDataOrderer
 {
 CONSTRUCTABLE(CAccessDataOrderer);

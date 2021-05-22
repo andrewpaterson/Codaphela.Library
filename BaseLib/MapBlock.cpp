@@ -64,6 +64,7 @@ void CMapBlock::Init(CMallocator* pcMalloc, DataCompare fKeyCompare, DataCompare
 	mapArray.Init(pcMalloc, sizeof(void*), iHoldingBufferSize, iHoldingBuffers, fCompare);
 	miLargestKeySize = 0;
 	mbOverwrite = bOverwrite;
+	mDataFree = NULL;
 }
 
 
@@ -80,6 +81,10 @@ void CMapBlock::Kill(void)
 	for (i = 0; i < mapArray.NumElements(); i++)
 	{
 		ppsNode = (SMNode**)mapArray.GetInSorted(i);
+		if (mDataFree)
+		{
+			mDataFree(GetData(*ppsNode));
+		}
 		mpcMalloc->Free(*ppsNode);
 	}
 
@@ -124,7 +129,7 @@ BOOL CMapBlock::Get(void* pvKey, int iKeySize, void** ppvData, int* piDataSize)
 		return FALSE;
 	}
 
-	pvData = RemapSinglePointer(psNode, sizeof(SMNode) + psNode->iKeySize);
+	pvData = GetData(psNode);
 
 	SafeAssign(ppvData, pvData);
 	SafeAssign(piDataSize, psNode->iDataSize);
@@ -175,6 +180,7 @@ void* CMapBlock::Put(void* pvKey, int iKeySize, int iDataSize)
 		return NULL;
 	}
 
+	//This is really not optimal as it will have to find the node twice and may reallocate a new node with the same size as the old one.
 	if (mbOverwrite)
 	{
 		//It's safe to call remove if the key does not exist.
@@ -222,6 +228,10 @@ BOOL CMapBlock::Remove(void* pvKey, int iKeySize)
 	if (psNode)
 	{
 		mapArray.Remove(&psNode);
+		if (mDataFree)
+		{
+			mDataFree(GetData(psNode));
+		}
 		mpcMalloc->Free(psNode);
 		return TRUE;
 	}
@@ -379,7 +389,7 @@ BOOL CMapBlock::WriteExceptData(CFileWriter* pcFileWriter)
 
 	InsertHoldingIntoSorted();
 
-	bResult = gcMallocators.WriteMallocator(pcFileWriter, mpcMalloc);
+	bResult = gcMallocators.Write(pcFileWriter, mpcMalloc);
 	if (!bResult)
 	{
 		return FALSE;
@@ -409,7 +419,7 @@ BOOL CMapBlock::ReadExceptData(CFileReader* pcFileReader, DataCompare fKeyCompar
 	CMallocator*	pcMalloc;
 	BOOL			bResult;
 
-	pcMalloc = gcMallocators.ReadMallocator(pcFileReader);
+	pcMalloc = gcMallocators.Read(pcFileReader);
 	if (pcMalloc == NULL)
 	{
 		return FALSE;
@@ -547,6 +557,16 @@ BOOL CMapBlock::Write(CFileWriter* pcFileWriter)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL CMapBlock::Read(CFileReader* pcFileReader)
+{
+	return Read(pcFileReader, &CompareMNodeKey);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL CMapBlock::Read(CFileReader* pcFileReader, DataCompare fKeyCompare)
 {
 	int			i;
@@ -558,6 +578,8 @@ BOOL CMapBlock::Read(CFileReader* pcFileReader, DataCompare fKeyCompare)
 	{
 		return FALSE;
 	}
+
+	mDataFree = NULL;
 
 	if (!ReadExceptData(pcFileReader, fKeyCompare))
 	{
@@ -630,6 +652,16 @@ CArrayBlockSorted* CMapBlock::GetArray(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CMapBlock::SetDataFreeCallback(DataFree fDataFree)
+{
+	mDataFree = fDataFree;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CMapBlock::FinaliseSorted(void)
 {
 	InsertHoldingIntoSorted();
@@ -670,6 +702,16 @@ void CMapBlock::GetInSorted(int iIndex, void** ppvKey, void** ppvData)
 
 	*ppvKey = pvKey;
 	*ppvData = pvData;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void* CMapBlock::GetData(SMNode* psNode)
+{
+	return RemapSinglePointer(psNode, sizeof(SMNode) + psNode->iKeySize);
 }
 
 

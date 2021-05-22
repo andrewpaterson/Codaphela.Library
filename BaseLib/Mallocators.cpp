@@ -12,11 +12,11 @@
 //////////////////////////////////////////////////////////////////////////
 void CMallocators::Init(void)
 {
-	mmszcMallocators.Init(8, FALSE);
+	mmszClasses.Init(TRUE, FALSE);
 
-	AddMallocator(&gcNullAllocator);
-	AddMallocator(&gcSystemAllocator);
-	AddMallocator(&gcMemoryAllocator);
+	Add(&gcNullAllocator);
+	Add(&gcSystemAllocator);
+	Add(&gcMemoryAllocator);
 }
 
 
@@ -26,7 +26,7 @@ void CMallocators::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CMallocators::Kill(void)
 {
-	mmszcMallocators.Kill();
+	mmszClasses.Kill();
 }
 
 
@@ -34,18 +34,18 @@ void CMallocators::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMallocators::AddMallocator(CMallocator* pcMalloc)
+BOOL CMallocators::Add(CMallocator* pcMalloc)
 {
 	char*	sz;
 
 	sz = (char*)(pcMalloc->ClassName());
-	if (mmszcMallocators.Get(sz))
+	if (mmszClasses.Get(sz))
 	{
 		gcLogger.Error2(__METHOD__, " A mallocator named [", sz, "] already exists.", NULL);
 		return FALSE;
 	}
 
-	mmszcMallocators.Put(sz, &pcMalloc);
+	mmszClasses.Put(sz, &pcMalloc);
 	return TRUE;
 }
 
@@ -54,7 +54,7 @@ BOOL CMallocators::AddMallocator(CMallocator* pcMalloc)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CMallocator* CMallocators::ReadMallocator(CFileReader* pcFileReader)
+CMallocator* CMallocators::Read(CFileReader* pcFileReader)
 {
 	int					iLength;
 	char				szName[1024];
@@ -83,7 +83,7 @@ CMallocator* CMallocators::ReadMallocator(CFileReader* pcFileReader)
 		return FALSE;
 	}
 
-	ppcMallocator = mmszcMallocators.Get(szName);
+	ppcMallocator = mmszClasses.Get(szName);
 	if (!ppcMallocator)
 	{
 		gcLogger.Error2(__METHOD__, " Could not find mallocator named [", szName, "].", NULL);
@@ -120,7 +120,7 @@ CMallocator* CMallocators::ReadMallocator(CFileReader* pcFileReader)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMallocators::WriteMallocator(CFileWriter* pcFileWriter, CMallocator* pcMalloc)
+BOOL CMallocators::Write(CFileWriter* pcFileWriter, CMallocator* pcMalloc)
 {
 	CLocalMallocator*	pcLocal;
 

@@ -21,6 +21,7 @@ void CIndexBlock::Init(CMallocator* pcMalloc, CIndexTreeConfig* pcConfig)
 	CMalloc::Init(pcMalloc);
 
 	mcIndex.Init(pcConfig);
+	mDataFree = NULL;
 }
 
 
@@ -169,6 +170,16 @@ int CIndexBlock::NumElements(void)
 
 
 //////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexBlock::SetDataFreeCallback(DataFree mDataFree)
+{
+	this->mDataFree = mDataFree;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
@@ -194,7 +205,16 @@ BOOL CIndexBlock::HasKey(void* pvKey, int iKeySize)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexBlock::StartIteration(SIndexTreeMemoryUnsafeIterator* psIterator, void** ppvData, size_t* puiDataSize, void* pvDestKey, size_t* puiKeySize, size_t uiMaxKeySize)
 {
-	return mcIndex.StartUnsafeIteration(psIterator, (char*)pvDestKey, (int*)puiKeySize, uiMaxKeySize, ppvData, puiDataSize);
+	BOOL				bResult;
+	SIndexBlockNode*	psNode;
+
+	bResult = mcIndex.StartUnsafeIteration(psIterator, (char*)pvDestKey, (int*)puiKeySize, uiMaxKeySize, (void**)&psNode, NULL);
+	if (bResult)
+	{
+		SafeAssign(ppvData, psNode->pvData);
+		SafeAssign(puiDataSize, psNode->iDataSize);
+	}
+	return bResult;
 }
 
 
@@ -204,27 +224,127 @@ BOOL CIndexBlock::StartIteration(SIndexTreeMemoryUnsafeIterator* psIterator, voi
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexBlock::Iterate(SIndexTreeMemoryUnsafeIterator* psIterator, void** ppvData, size_t* puiDataSize, void* pvDestKey, size_t* puiKeySize, size_t uiMaxKeySize)
 {
-	return mcIndex.UnsafeIterate(psIterator, (char*)pvDestKey, (int*)puiKeySize, uiMaxKeySize, ppvData, puiDataSize);
+	BOOL				bResult;
+	SIndexBlockNode*	psNode;
+
+	bResult = mcIndex.UnsafeIterate(psIterator, (char*)pvDestKey, (int*)puiKeySize, uiMaxKeySize, (void**)&psNode, NULL);
+	if (bResult)
+	{
+		SafeAssign(ppvData, psNode->pvData);
+		SafeAssign(puiDataSize, psNode->iDataSize);
+	}
+	return bResult;
+
 }
 
 
 //////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
+//
+//
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexBlock::Write(CFileWriter* pcFileWriter)
 {
-	return mcIndex.Write(pcFileWriter);
+	SIndexTreeMemoryUnsafeIterator		sIter;
+	void*								pvData;
+	size_t								iDataSize;
+	size_t								iKeySize;
+	BOOL								bResult;
+	char								acKey[MAX_KEY_SIZE];
+	int									iCount;
+
+	if (!mcIndex.WriteConfig(pcFileWriter))
+	{
+		return FALSE;
+	}
+
+	if (!pcFileWriter->WriteInt(mcIndex.NumElements()))
+	{
+		return FALSE;
+	}
+
+	iCount = 0;
+	bResult = StartIteration(&sIter, &pvData, &iDataSize, acKey, &iKeySize, MAX_KEY_SIZE);
+	while (bResult)
+	{
+		if (!pcFileWriter->WriteInt((int)iKeySize))
+		{
+			return FALSE;
+		}
+		if (!pcFileWriter->WriteInt((int)iDataSize))
+		{
+			return FALSE;
+		}
+		if (!pcFileWriter->WriteData(acKey, iKeySize))
+		{
+			return FALSE;
+		}
+		if (!pcFileWriter->WriteData(pvData, iDataSize))
+		{
+			return FALSE;
+		}
+
+		bResult = Iterate(&sIter, &pvData, &iDataSize, acKey, &iKeySize, MAX_KEY_SIZE);
+		iCount ++;
+	}
+	return mcIndex.NumElements() == iCount;
 }
 
 
+
 //////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
+//
+//
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexBlock::Read(CFileReader* pcFileReader)
 {
-	return mcIndex.Read(pcFileReader);
+	//Do not call .Init() before Read().
+
+	int				iCount;
+	int				i;
+	char			acKey[1024];
+	int				iKeySize;
+	int				iDataSize;
+	void* pvData;
+
+	if (!mcIndex.ReadConfig(pcFileReader))
+	{
+		return FALSE;
+	}
+
+	mDataFree = NULL;
+	mpcMalloc = mcIndex.GetMallocator();
+
+	if (!pcFileReader->ReadInt(&iCount))
+	{
+		return FALSE;
+	}
+
+	for (i = 0; i < iCount; i++)
+	{
+		if (!pcFileReader->ReadInt(&iKeySize))
+		{
+			return FALSE;
+		}
+		if (!pcFileReader->ReadInt(&iDataSize))
+		{
+			return FALSE;
+		}
+		if (!pcFileReader->ReadData(acKey, iKeySize))
+		{
+			return FALSE;
+		}
+		pvData = Put(acKey, iKeySize, iDataSize);
+		if (!pvData)
+		{
+			return FALSE;
+		}
+		if (!pcFileReader->ReadData(pvData, iDataSize))
+		{
+			return FALSE;
+		}
+	}
+
+	return TRUE;
 }
 
 

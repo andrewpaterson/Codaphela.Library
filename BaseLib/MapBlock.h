@@ -17,6 +17,7 @@ protected:
 	CArrayBlockSorted	mapArray;  //All that is stored in this array is the SMNode*.  
 	int					miLargestKeySize;
 	BOOL				mbOverwrite;
+	DataFree			mDataFree;
 
 public:
 	DataCompare			fKeyCompare;
@@ -43,11 +44,13 @@ public:
 
 	int					NumElements(void);
 	CArrayBlockSorted*	GetArray(void);
+	void				SetDataFreeCallback(DataFree fDataFree);
 
 	BOOL				StartIteration(SMapIterator* psIterator, void** ppvKey, int* piKeySize, void** ppvData, int* piDataSize);
 	BOOL				Iterate(SMapIterator* psIterator, void** ppvKey, int* piKeySize, void** ppvData, int* piDataSize);
 
 	BOOL				Write(CFileWriter* pcFileWriter);
+	BOOL				Read(CFileReader* pcFileReader);
 	BOOL				Read(CFileReader* pcFileReader, DataCompare fKeyCompare);
 
 	void				FinaliseSorted(void);
@@ -66,6 +69,7 @@ protected:
 	void				InsertHoldingIntoSorted(void);
 	void				GetInSorted(int iIndex, void** ppvKey, void** ppvData);
 	SMNode*				GetNode(void* pvKey, int iKeySize);
+	void*				GetData(SMNode* psNode);
 };
 
 

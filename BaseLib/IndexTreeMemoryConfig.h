@@ -11,8 +11,6 @@ public:
 	void	Kill(void);
 
 	BOOL	Write(CFileWriter* pcFileWriter);
-
-protected:
 	BOOL	Read(CFileReader* pcFileReader);
 };
 
