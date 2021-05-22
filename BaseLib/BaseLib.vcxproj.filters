@@ -834,9 +834,6 @@
     <ClInclude Include="Constructable.h">
       <Filter>Source\Constructor</Filter>
     </ClInclude>
-    <ClInclude Include="IndexTreeDataOrdererConstructors.h">
-      <Filter>Source\Data\Index\DataOrder</Filter>
-    </ClInclude>
     <ClInclude Include="LocalMallocator.h">
       <Filter>Source\Memory\Allocator\Local</Filter>
     </ClInclude>
@@ -1403,9 +1400,6 @@
     <ClCompile Include="IndexTreeConfig.cpp">
       <Filter>Source\Data\Index\Config</Filter>
     </ClCompile>
-    <ClCompile Include="IndexTreeDataOrdererConstructors.cpp">
-      <Filter>Source\Data\Index\DataOrder</Filter>
-    </ClCompile>
     <ClCompile Include="LocalMallocator.cpp">
       <Filter>Source\Memory\Allocator\Local</Filter>
     </ClCompile>
@@ -1483,6 +1477,9 @@
     </ClCompile>
     <ClCompile Include="DataOrderers.cpp">
       <Filter>Source\Data\Index\DataOrder</Filter>
+    </ClCompile>
+    <ClCompile Include="DataCallback.cpp">
+      <Filter>Source\Data</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

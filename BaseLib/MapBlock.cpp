@@ -64,7 +64,7 @@ void CMapBlock::Init(CMallocator* pcMalloc, DataCompare fKeyCompare, DataCompare
 	mapArray.Init(pcMalloc, sizeof(void*), iHoldingBufferSize, iHoldingBuffers, fCompare);
 	miLargestKeySize = 0;
 	mbOverwrite = bOverwrite;
-	mDataFree = NULL;
+	mpcDataFree = NULL;
 }
 
 
@@ -81,9 +81,9 @@ void CMapBlock::Kill(void)
 	for (i = 0; i < mapArray.NumElements(); i++)
 	{
 		ppsNode = (SMNode**)mapArray.GetInSorted(i);
-		if (mDataFree)
+		if (mpcDataFree)
 		{
-			mDataFree(GetData(*ppsNode));
+			mpcDataFree->DataWillBeFreed(GetData(*ppsNode));
 		}
 		mpcMalloc->Free(*ppsNode);
 	}
@@ -228,9 +228,9 @@ BOOL CMapBlock::Remove(void* pvKey, int iKeySize)
 	if (psNode)
 	{
 		mapArray.Remove(&psNode);
-		if (mDataFree)
+		if (mpcDataFree)
 		{
-			mDataFree(GetData(psNode));
+			mpcDataFree->DataWillBeFreed(GetData(psNode));
 		}
 		mpcMalloc->Free(psNode);
 		return TRUE;
@@ -579,7 +579,7 @@ BOOL CMapBlock::Read(CFileReader* pcFileReader, DataCompare fKeyCompare)
 		return FALSE;
 	}
 
-	mDataFree = NULL;
+	mpcDataFree = NULL;
 
 	if (!ReadExceptData(pcFileReader, fKeyCompare))
 	{
@@ -652,9 +652,9 @@ CArrayBlockSorted* CMapBlock::GetArray(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMapBlock::SetDataFreeCallback(DataFree fDataFree)
+void CMapBlock::SetDataFreeCallback(CDataFree* pcDataFree)
 {
-	mDataFree = fDataFree;
+	mpcDataFree = pcDataFree;
 }
 
 

@@ -8,7 +8,7 @@
 
 
 CDataOrderers	gcDataOrderers;
-
+BOOL			gbDataOrderers = FALSE;
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -61,7 +61,7 @@ CIndexTreeDataOrderer* CDataOrderers::Read(CFileReader* pcFileReader)
 	CIndexTreeDataOrderer**	ppcDataOrderer;
 	CIndexTreeDataOrderer*	pcDataOrderer;
 	
-	if (!MemoryValidate())
+	if (!MemoryValidate() || !DataOrderersValidate())
 	{
 		return NULL;
 	}
@@ -112,7 +112,7 @@ CIndexTreeDataOrderer* CDataOrderers::Read(CFileReader* pcFileReader)
 //////////////////////////////////////////////////////////////////////////
 BOOL CDataOrderers::Write(CFileWriter* pcFileWriter, CIndexTreeDataOrderer* pcDataOrderer)
 {
-	if (!MemoryValidate())
+	if (!MemoryValidate() || !DataOrderersValidate())
 	{
 		return FALSE;
 	}
@@ -168,6 +168,7 @@ void DataOrderersInit(CConstructors* pcConstructors, CDataOrderers* pcDataOrdere
 	pcDataOrderers->Add(pcModificationDataOrderer);
 	pcDataOrderers->Add(pcCreationDataOrderer);
 
+	gbDataOrderers = TRUE;
 }
 
 
@@ -178,5 +179,23 @@ void DataOrderersInit(CConstructors* pcConstructors, CDataOrderers* pcDataOrdere
 void DataOrderersKill(void)
 {
 	gcDataOrderers.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL DataOrderersValidate(void)
+{
+	if (!gbDataOrderers)
+	{
+		gcLogger.Error("Global Data Orderers have not been initialised.  Call DataOrderersInit.");
+		return FALSE;
+	}
+	else
+	{
+		return TRUE;
+	}
 }
 
