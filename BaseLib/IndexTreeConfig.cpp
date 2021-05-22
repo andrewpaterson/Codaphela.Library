@@ -2,6 +2,7 @@
 #include "Logger.h"
 #include "Mallocators.h"
 #include "StackMemory.h"
+#include "DataOrderers.h"
 #include "IndexTreeConfig.h"
 
 
@@ -111,40 +112,9 @@ BOOL CIndexTreeConfig::WriteKeyReverse(CFileWriter* pcFileWriter, EIndexKeyRever
 //////////////////////////////////////////////////////////////////////////
 CIndexTreeDataOrderer* CIndexTreeConfig::ReadDataOrderer(CFileReader* pcFileReader)
 {
-	int						iLength;
-	CStackMemory<1024>		cStack;
-	char*					szName;
-	CIndexTreeDataOrderer* pcDataOrderer;
+	CIndexTreeDataOrderer*	pcDataOrderer;
 
-	if (!MemoryValidate())
-	{
-		return NULL;
-	}
-
-	if (!pcFileReader->ReadStringLength(&iLength))
-	{
-		gcLogger.Error2(__METHOD__, " Could not read Data Orderer name length.", NULL);
-		return FALSE;
-	}
-	
-	szName = (char*)cStack.Init(iLength);
-	if (!pcFileReader->ReadStringChars(szName, iLength))
-	{
-		gcLogger.Error2(__METHOD__, " Could not read Data Orderer name.", NULL);
-		cStack.Kill();
-		return FALSE;
-	}
-
-	if (!StrEmpty(szName))
-	{
-		pcDataOrderer = (CAccessDataOrderer*)gcConstructors.Construct(szName, &gcSystemAllocator);
-	}
-	else
-	{
-		pcDataOrderer = NULL;
-	}
-	cStack.Kill();
-
+	pcDataOrderer = gcDataOrderers.Read(pcFileReader);
 	return pcDataOrderer;
 }
 
@@ -155,14 +125,7 @@ CIndexTreeDataOrderer* CIndexTreeConfig::ReadDataOrderer(CFileReader* pcFileRead
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeConfig::WriteDataOrderer(CFileWriter* pcFileWriter, CIndexTreeDataOrderer* pcDataOrderer)
 {
-	if (pcDataOrderer)
-	{
-		return pcFileWriter->WriteString(pcDataOrderer->ClassName());
-	}
-	else
-	{
-		return pcFileWriter->WriteString("");
-	}
+	return gcDataOrderers.Write(pcFileWriter, pcDataOrderer);
 }
 
 

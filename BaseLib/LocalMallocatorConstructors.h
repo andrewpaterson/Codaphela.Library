@@ -4,6 +4,7 @@
 #include "Mallocators.h"
 
 
+void LocalMallocatorsInit(void);
 void LocalMallocatorsInit(CConstructors* pcConstructors, CMallocators* pcMallocators);
 
 
