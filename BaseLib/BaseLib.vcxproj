@@ -196,7 +196,6 @@
     <ClInclude Include="IndexTreeConfig.h" />
     <ClInclude Include="IndexTreeDataNode.h" />
     <ClInclude Include="IndexTreeDataOrderer.h" />
-    <ClInclude Include="IndexTreeDataOrdererConstructors.h" />
     <ClInclude Include="IndexTreeIterator.h" />
     <ClInclude Include="IndexTreeMemoryAccess.h" />
     <ClInclude Include="IndexTreeMemoryConfig.h" />
@@ -396,6 +395,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AccessDataOrderer.cpp" />
+    <ClCompile Include="DataCallback.cpp" />
     <ClCompile Include="DataOrderers.cpp" />
     <ClCompile Include="DataTypesIO.cpp" />
     <ClCompile Include="GlobalDataTypesIO.cpp" />
@@ -442,7 +442,6 @@
     <ClCompile Include="IndexTreeConfig.cpp" />
     <ClCompile Include="IndexTreeDataNode.cpp" />
     <ClCompile Include="IndexTreeDataOrderer.cpp" />
-    <ClCompile Include="IndexTreeDataOrdererConstructors.cpp" />
     <ClCompile Include="IndexTreeIterator.cpp" />
     <ClCompile Include="IndexTreeMemory.cpp" />
     <ClCompile Include="IndexTreeMemoryAccess.cpp" />

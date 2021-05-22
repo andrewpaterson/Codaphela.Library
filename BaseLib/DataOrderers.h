@@ -23,9 +23,11 @@ public:
 void DataOrderersInit(void);
 void DataOrderersInit(CConstructors* pcConstructors, CDataOrderers* pcDataOrderers);
 void DataOrderersKill(void);
+BOOL DataOrderersValidate(void);
 
 
 extern CDataOrderers	gcDataOrderers;
+extern BOOL				gbDataOrderers;
 
 
 #endif // __ACCESS_DATA_ORDERERS_H__

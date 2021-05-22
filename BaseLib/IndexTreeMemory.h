@@ -29,7 +29,7 @@ friend class CIndexTreeMemoryIterator;
 protected:
 	CIndexTreeNodeMemory*	mpcRoot;
 	int						miSize;
-	DataFree				mDataFree;
+	CDataFree*				mpcDataFree;
 
 public:
 	void					Init(void);
@@ -51,7 +51,7 @@ public:
 	int						GetKey(void* pvData, char* pvDestKey, int iDestKeySize);
 
 	int						NumElements(void);
-	void					SetDataFreeCallback(DataFree fDataFree);
+	void					SetDataFreeCallback(CDataFree* pcDataFree);
 
 	BOOL					StartIteration(SIndexTreeMemoryIterator* psIterator, void* pvKey, int* piKeySize, int iMaxKeySize, void* pvData, size_t* puiDataSize, size_t uiMaxDataSize);
 	BOOL					Iterate(SIndexTreeMemoryIterator* psIterator, void* pvKey, int* piKeySize, int iMaxKeySize, void* pvData, size_t* puiDataSize, size_t uiMaxDataSize);

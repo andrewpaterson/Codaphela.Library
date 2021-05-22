@@ -82,7 +82,7 @@ void CIndexTreeMemory::Init(CLifeInit<CMallocator> cMalloc, EIndexKeyReverse eKe
 	CIndexTree::Init(cMalloc, eKeyReverse, sizeof(CIndexTreeNodeMemory), sizeof(CIndexTreeNodeMemory) + sizeof(CIndexTreeDataNode), sizeof(CIndexTreeNodeMemory*), iMaxDataSize, iMaxKeySize, cDataOrderer);
 	mpcRoot = AllocateRoot();
 	miSize = 0;
-	mDataFree = NULL;
+	mpcDataFree = NULL;
 }
 
 
@@ -113,11 +113,11 @@ void CIndexTreeMemory::RecurseKill(CIndexTreeNodeMemory* pcNode)
 			pcChild = pcNode->GetNode(i);
 			RecurseKill(pcChild);
 		}
-		if (mDataFree)
+		if (mpcDataFree)
 		{
 			if (pcNode->HasData())
 			{
-				mDataFree(GetDataForNode(pcNode));
+				mpcDataFree->DataWillBeFreed(GetDataForNode(pcNode));
 			}
 		}
 		FreeNode(pcNode);
@@ -270,9 +270,9 @@ void* CIndexTreeMemory::Put(void* pvKey, int iKeySize, void* pvData, size_t iDat
 	}
 	else
 	{
-		if (mDataFree)
+		if (mpcDataFree)
 		{
-			mDataFree(GetDataForNode(pcCurrent));
+			mpcDataFree->DataWillBeFreed(GetDataForNode(pcCurrent));
 		}
 	}
 
@@ -560,9 +560,9 @@ BOOL CIndexTreeMemory::Remove(CIndexTreeNodeMemory*	pcCurrent)
 	}
 
 	RemoveReorderData(pcCurrent);
-	if (mDataFree)
+	if (mpcDataFree)
 	{
-		mDataFree(GetDataForNode(pcCurrent));
+		mpcDataFree->DataWillBeFreed(GetDataForNode(pcCurrent));
 	}
 	pcNode = ReallocateNodeForSmallerData(pcCurrent, NULL, 0);
 
@@ -805,9 +805,9 @@ int CIndexTreeMemory::NumElements(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeMemory::SetDataFreeCallback(DataFree mDataFree)
+void CIndexTreeMemory::SetDataFreeCallback(CDataFree* pcDataFree)
 {
-	this->mDataFree = mDataFree;
+	mpcDataFree = pcDataFree;
 }
 
 

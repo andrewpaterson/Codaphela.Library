@@ -11,11 +11,25 @@ struct SIndexBlockNode
 };
 
 
+class CIndexBlock;
+class CIndexBlockMapDataFreeCallback : public CDataFree 
+{
+private:
+	CIndexBlock*	mpcIndexBlock;
+
+public:
+	void Init(CIndexBlock* pcIndexBlock);
+	void DataWillBeFreed(void* pvData);
+};
+
+
 class CIndexBlock : public CMalloc
 {
+friend class CIndexBlockMapDataFreeCallback;
 protected:
-	CIndexTreeMemory	mcIndex;
-	DataFree			mDataFree;
+	CIndexTreeMemory				mcIndex;
+	CIndexBlockMapDataFreeCallback	mcIndexCallback;
+	CDataFree*						mpcDataFree;
 
 public:
 	void				Init(void);
@@ -35,7 +49,7 @@ public:
 	BOOL				HasKey(void* pvKey, int iKeySize);
 
 	int					NumElements(void);
-	void				SetDataFreeCallback(DataFree fDataFree);
+	void				SetDataFreeCallback(CDataFree* pcDataFree);
 	void				Dump(void);
 
 	BOOL				StartIteration(SIndexTreeMemoryUnsafeIterator* psIterator, void** ppvData, size_t* puiDataSize, void* pvDestKey, size_t* puiKeySize, size_t uiMaxKeySize);
@@ -43,6 +57,9 @@ public:
 
 	BOOL				Write(CFileWriter* pcFileWriter);
 	BOOL				Read(CFileReader* pcFileReader);
+
+protected:
+	void				DataWillBeFreed(SIndexBlockNode* psNode);
 };
 
 #endif // __MAP_BLOCK2_H__
