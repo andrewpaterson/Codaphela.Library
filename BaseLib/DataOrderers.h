@@ -15,11 +15,12 @@ public:
 
 	BOOL					Add(CIndexTreeDataOrderer* pcMalloc);
 
-	CIndexTreeDataOrderer*	Read(CFileReader* pcFileReader, CIndexTree* pcIndexTree);
+	CIndexTreeDataOrderer*	Read(CFileReader* pcFileReader);
 	BOOL					Write(CFileWriter* pcFileWriter, CIndexTreeDataOrderer* pcDataOrderer);
 };
 
 
+void DataOrderersInit(void);
 void DataOrderersInit(CConstructors* pcConstructors, CDataOrderers* pcDataOrderers);
 void DataOrderersKill(void);
 

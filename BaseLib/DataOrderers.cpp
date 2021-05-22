@@ -54,13 +54,13 @@ BOOL CDataOrderers::Add(CIndexTreeDataOrderer* pcMalloc)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTreeDataOrderer* CDataOrderers::Read(CFileReader* pcFileReader, CIndexTree* pcIndexTree)
+CIndexTreeDataOrderer* CDataOrderers::Read(CFileReader* pcFileReader)
 {
 	int						iLength;
 	char					szName[1024];
 	CIndexTreeDataOrderer**	ppcDataOrderer;
 	CIndexTreeDataOrderer*	pcDataOrderer;
-
+	
 	if (!MemoryValidate())
 	{
 		return NULL;
@@ -83,6 +83,11 @@ CIndexTreeDataOrderer* CDataOrderers::Read(CFileReader* pcFileReader, CIndexTree
 		return FALSE;
 	}
 
+	if (StrEmpty(szName))
+	{
+		return NULL;
+	}
+
 	ppcDataOrderer = mmszClasses.Get(szName);
 	if (!ppcDataOrderer)
 	{
@@ -97,7 +102,6 @@ CIndexTreeDataOrderer* CDataOrderers::Read(CFileReader* pcFileReader, CIndexTree
 		gcLogger.Error2(__METHOD__, " Could not construct data orderer [", (*ppcDataOrderer)->ClassName(), "].", NULL);
 		return NULL;
 	}
-	pcDataOrderer->SetIndexTree(pcIndexTree);
 	return pcDataOrderer;
 }
 
@@ -106,26 +110,41 @@ CIndexTreeDataOrderer* CDataOrderers::Read(CFileReader* pcFileReader, CIndexTree
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CDataOrderers::Write(CFileWriter* pcFileWriter, CIndexTreeDataOrderer* pcMalloc)
+BOOL CDataOrderers::Write(CFileWriter* pcFileWriter, CIndexTreeDataOrderer* pcDataOrderer)
 {
 	if (!MemoryValidate())
 	{
 		return FALSE;
 	}
 
-	if (pcMalloc == NULL)
+	if (pcDataOrderer == NULL)
 	{
-		gcLogger.Error2(__METHOD__, " Could not write NULL data orderer.", NULL);
-		return FALSE;
+		if (!pcFileWriter->WriteString(""))
+		{
+			gcLogger.Error2(__METHOD__, " Could not write NULL data orderer.", NULL);
+			return FALSE;
+		}
 	}
-
-	if (!pcFileWriter->WriteString(pcMalloc->ClassName()))
+	else
 	{
-		gcLogger.Error2(__METHOD__, " Could not write data orderer name [", pcMalloc->ClassName(), "].", NULL);
-		return FALSE;
+		if (!pcFileWriter->WriteString(pcDataOrderer->ClassName()))
+		{
+			gcLogger.Error2(__METHOD__, " Could not write data orderer name [", pcDataOrderer->ClassName(), "].", NULL);
+			return FALSE;
+		}
 	}
 
 	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void DataOrderersInit(void)
+{
+	DataOrderersInit(&gcConstructors, &gcDataOrderers);
 }
 
 
