@@ -7,16 +7,16 @@
 class CMallocators
 {
 protected:
-	CMapStringTemplate<CMallocator*>	mmszcMallocators;
+	CMapStringTemplate<CMallocator*>	mmszClasses;
 
 public:
 	void			Init(void);
 	void			Kill(void);
 
-	BOOL			AddMallocator(CMallocator* pcMalloc);
+	BOOL			Add(CMallocator* pcMalloc);
 
-	CMallocator*	ReadMallocator(CFileReader* pcFileReader);
-	BOOL			WriteMallocator(CFileWriter* pcFileWriter, CMallocator* pcMalloc);
+	CMallocator*	Read(CFileReader* pcFileReader);
+	BOOL			Write(CFileWriter* pcFileWriter, CMallocator* pcMalloc);
 };
 
 

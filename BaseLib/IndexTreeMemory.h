@@ -29,7 +29,8 @@ friend class CIndexTreeMemoryIterator;
 protected:
 	CIndexTreeNodeMemory*	mpcRoot;
 	int						miSize;
-	
+	DataFree				mDataFree;
+
 public:
 	void					Init(void);
 	void					Init(EIndexKeyReverse eKeyReverse);
@@ -50,6 +51,7 @@ public:
 	int						GetKey(void* pvData, char* pvDestKey, int iDestKeySize);
 
 	int						NumElements(void);
+	void					SetDataFreeCallback(DataFree fDataFree);
 
 	BOOL					StartIteration(SIndexTreeMemoryIterator* psIterator, void* pvKey, int* piKeySize, int iMaxKeySize, void* pvData, size_t* puiDataSize, size_t uiMaxDataSize);
 	BOOL					Iterate(SIndexTreeMemoryIterator* psIterator, void* pvKey, int* piKeySize, int iMaxKeySize, void* pvData, size_t* puiDataSize, size_t uiMaxDataSize);
@@ -60,9 +62,11 @@ public:
 
 	size_t					ByteSize(void);
 
-	BOOL					WriteConfig(CFileWriter* pcFileWriter);
 	BOOL					Write(CFileWriter* pcFileWriter);
 	BOOL					Read(CFileReader* pcFileReader);
+
+	BOOL					WriteConfig(CFileWriter* pcFileWriter);  //Should be protected
+	BOOL					ReadConfig(CFileReader* pcFileReader);
 
 	BOOL					ValidateIndexTree(void);
 

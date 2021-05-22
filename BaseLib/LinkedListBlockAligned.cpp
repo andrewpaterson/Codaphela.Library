@@ -345,7 +345,7 @@ BOOL CLinkedListBlockAligned::Write(CFileWriter* pcFileWriter)
 {
 	BOOL	bResult;
 
-	bResult = gcMallocators.WriteMallocator(pcFileWriter, mpcMalloc);
+	bResult = gcMallocators.Write(pcFileWriter, mpcMalloc);
 	if (!bResult)
 	{
 		return FALSE;
@@ -430,7 +430,7 @@ BOOL CLinkedListBlockAligned::Read(CFileReader* pcFileReader)
 	BOOL			bResult;
 	CMallocator*	pcMalloc;
 
-	pcMalloc = gcMallocators.ReadMallocator(pcFileReader);
+	pcMalloc = gcMallocators.Read(pcFileReader);
 	if (pcMalloc == NULL)
 	{
 		return FALSE;

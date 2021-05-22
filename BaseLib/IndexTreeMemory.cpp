@@ -1,5 +1,6 @@
 #include "Numbers.h"
 #include "GlobalMemory.h"
+#include "DataOrderers.h"
 #include "LifeCycle.h"
 #include "Logger.h"
 #include "MapHelper.h"
@@ -81,6 +82,7 @@ void CIndexTreeMemory::Init(CLifeInit<CMallocator> cMalloc, EIndexKeyReverse eKe
 	CIndexTree::Init(cMalloc, eKeyReverse, sizeof(CIndexTreeNodeMemory), sizeof(CIndexTreeNodeMemory) + sizeof(CIndexTreeDataNode), sizeof(CIndexTreeNodeMemory*), iMaxDataSize, iMaxKeySize, cDataOrderer);
 	mpcRoot = AllocateRoot();
 	miSize = 0;
+	mDataFree = NULL;
 }
 
 
@@ -110,6 +112,13 @@ void CIndexTreeMemory::RecurseKill(CIndexTreeNodeMemory* pcNode)
 		{
 			pcChild = pcNode->GetNode(i);
 			RecurseKill(pcChild);
+		}
+		if (mDataFree)
+		{
+			if (pcNode->HasData())
+			{
+				mDataFree(GetDataForNode(pcNode));
+			}
 		}
 		FreeNode(pcNode);
 	}
@@ -258,6 +267,13 @@ void* CIndexTreeMemory::Put(void* pvKey, int iKeySize, void* pvData, size_t iDat
 	{
 		miSize++;
 		bNewNode = TRUE;
+	}
+	else
+	{
+		if (mDataFree)
+		{
+			mDataFree(GetDataForNode(pcCurrent));
+		}
 	}
 
 	pcCurrent = SetNodeData(pcCurrent, pvData, uiDataSize);
@@ -544,7 +560,10 @@ BOOL CIndexTreeMemory::Remove(CIndexTreeNodeMemory*	pcCurrent)
 	}
 
 	RemoveReorderData(pcCurrent);
-
+	if (mDataFree)
+	{
+		mDataFree(GetDataForNode(pcCurrent));
+	}
 	pcNode = ReallocateNodeForSmallerData(pcCurrent, NULL, 0);
 
 	pcParent = (CIndexTreeNodeMemory*)pcNode->GetParent();
@@ -635,11 +654,14 @@ BOOL CIndexTreeMemory::WriteConfig(CFileWriter* pcFileWriter)
 	CIndexTreeMemoryConfig				cConfig;
 	CLifeInit<CMallocator>				cMalloc;
 	CLifeInit<CIndexTreeDataOrderer>	cDataOrderer;
+	BOOL								bResult;
 
 	cMalloc.Init(mpcMalloc, mcMallocLife.MustFree(), mcMallocLife.MustKill());
 	cDataOrderer.Init(mpcDataOrderer, mcDataOrdererLife.MustFree(), mcDataOrdererLife.MustKill());
 	cConfig.Init(cMalloc, meReverseKey, miMaxDataSize, miMaxKeySize, cDataOrderer);
-	return cConfig.Write(pcFileWriter);
+	bResult = cConfig.Write(pcFileWriter);
+	cConfig.Kill();
+	return bResult;
 }
 
 
@@ -649,13 +671,18 @@ BOOL CIndexTreeMemory::WriteConfig(CFileWriter* pcFileWriter)
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeMemory::Write(CFileWriter* pcFileWriter)
 {
-	SIndexTreeMemoryUnsafeIterator	sIter;
-	void*							pvData;
-	size_t							iDataSize;
-	size_t							iKeySize;
-	BOOL							bResult;
-	char							acKey[MAX_KEY_SIZE];
-	int								iCount;
+	SIndexTreeMemoryUnsafeIterator		sIter;
+	void*								pvData;
+	size_t								iDataSize;
+	size_t								iKeySize;
+	BOOL								bResult;
+	char								acKey[MAX_KEY_SIZE];
+	int									iCount;
+
+	if (!WriteConfig(pcFileWriter))
+	{
+		return FALSE;
+	}
 
 	if (!pcFileWriter->WriteInt(miSize))
 	{
@@ -695,6 +722,25 @@ BOOL CIndexTreeMemory::Write(CFileWriter* pcFileWriter)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeMemory::ReadConfig(CFileReader* pcFileReader)
+{
+	CIndexTreeMemoryConfig				cConfig;
+	BOOL								bResult;
+
+	bResult = cConfig.Read(pcFileReader);
+	if (bResult)
+	{
+		Init(cConfig.GetMalloc(), cConfig.GetKeyReverse(), cConfig.GetMaxDataSize(), cConfig.GetMaxKeySize(), cConfig.GetDataOrderer());
+	}
+	cConfig.Kill();
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeMemory::Read(CFileReader* pcFileReader)
 {
 	//Do not call .Init() before Read().
@@ -705,6 +751,11 @@ BOOL CIndexTreeMemory::Read(CFileReader* pcFileReader)
 	int				iKeySize;
 	int				iDataSize;
 	void*			pvData;
+
+	if (!ReadConfig(pcFileReader))
+	{
+		return FALSE;
+	}
 
 	if (!pcFileReader->ReadInt(&iCount))
 	{
@@ -734,7 +785,6 @@ BOOL CIndexTreeMemory::Read(CFileReader* pcFileReader)
 		{
 			return FALSE;
 		}
-
 	}
 
 	return TRUE;
@@ -748,6 +798,16 @@ BOOL CIndexTreeMemory::Read(CFileReader* pcFileReader)
 int CIndexTreeMemory::NumElements(void)
 {
 	return miSize;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexTreeMemory::SetDataFreeCallback(DataFree mDataFree)
+{
+	this->mDataFree = mDataFree;
 }
 
 

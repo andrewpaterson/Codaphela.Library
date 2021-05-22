@@ -135,7 +135,14 @@ CIndexTreeDataOrderer* CIndexTreeConfig::ReadDataOrderer(CFileReader* pcFileRead
 		return FALSE;
 	}
 
-	pcDataOrderer = (CAccessDataOrderer*)gcConstructors.Construct(szName, &gcSystemAllocator);
+	if (!StrEmpty(szName))
+	{
+		pcDataOrderer = (CAccessDataOrderer*)gcConstructors.Construct(szName, &gcSystemAllocator);
+	}
+	else
+	{
+		pcDataOrderer = NULL;
+	}
 	cStack.Kill();
 
 	return pcDataOrderer;
@@ -148,7 +155,14 @@ CIndexTreeDataOrderer* CIndexTreeConfig::ReadDataOrderer(CFileReader* pcFileRead
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeConfig::WriteDataOrderer(CFileWriter* pcFileWriter, CIndexTreeDataOrderer* pcDataOrderer)
 {
-	return pcFileWriter->WriteString(pcDataOrderer->ClassName());
+	if (pcDataOrderer)
+	{
+		return pcFileWriter->WriteString(pcDataOrderer->ClassName());
+	}
+	else
+	{
+		return pcFileWriter->WriteString("");
+	}
 }
 
 
@@ -160,7 +174,7 @@ BOOL CIndexTreeConfig::Write(CFileWriter* pcFileWriter)
 {
 	BOOL	bResult;
 
-	bResult = gcMallocators.WriteMallocator(pcFileWriter, mcMalloc.GetLife());
+	bResult = gcMallocators.Write(pcFileWriter, mcMalloc.GetLife());
 	ReturnOnFalse(bResult);
 	bResult = WriteKeyReverse(pcFileWriter, meKeyReverse);
 	ReturnOnFalse(bResult);
@@ -190,7 +204,7 @@ BOOL CIndexTreeConfig::Read(CFileReader* pcFileReader)
 	CLifeInit<CMallocator>				cMalloc;
 	CLifeInit<CIndexTreeDataOrderer>	cDataOrderer;
 
-	pcMalloc = gcMallocators.ReadMallocator(pcFileReader);
+	pcMalloc = gcMallocators.Read(pcFileReader);
 	if (pcMalloc == NULL)
 	{
 		return FALSE;
@@ -209,10 +223,6 @@ BOOL CIndexTreeConfig::Read(CFileReader* pcFileReader)
 	ReturnOnFalse(bResult);
 
 	pcDataOrderer = ReadDataOrderer(pcFileReader);
-	if (pcDataOrderer == NULL)
-	{
-		return FALSE;
-	}
 
 	cMalloc.Init(pcMalloc, pcMalloc->IsLocal(), pcMalloc->IsLocal());
 	cDataOrderer.Init(pcDataOrderer, TRUE, TRUE);

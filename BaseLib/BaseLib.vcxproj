@@ -165,6 +165,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="AccessDataOrderer.h" />
+    <ClInclude Include="DataOrderers.h" />
     <ClInclude Include="DataCallback.h" />
     <ClInclude Include="DataTypesIO.h" />
     <ClInclude Include="EnumeratorNode.h" />
@@ -395,6 +396,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AccessDataOrderer.cpp" />
+    <ClCompile Include="DataOrderers.cpp" />
     <ClCompile Include="DataTypesIO.cpp" />
     <ClCompile Include="GlobalDataTypesIO.cpp" />
     <ClCompile Include="IndexMapAccess.cpp" />

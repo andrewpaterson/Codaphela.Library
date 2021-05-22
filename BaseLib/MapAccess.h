@@ -66,6 +66,7 @@ public:
 			BOOL	HasString(char* pszKey);
 			BOOL	HasKey(void* pvKey, int iKeySize);
 
+			BOOL	DeleteInt(int iKey);
 			BOOL	DeleteLong(int64 lliKey);
 			BOOL	DeleteString(char* pszKey);
 			BOOL	DeleteKey(void* pvKey, int iKeySize);

@@ -15,6 +15,7 @@ class CIndexBlock : public CMalloc
 {
 protected:
 	CIndexTreeMemory	mcIndex;
+	DataFree			mDataFree;
 
 public:
 	void				Init(void);
@@ -34,6 +35,7 @@ public:
 	BOOL				HasKey(void* pvKey, int iKeySize);
 
 	int					NumElements(void);
+	void				SetDataFreeCallback(DataFree fDataFree);
 	void				Dump(void);
 
 	BOOL				StartIteration(SIndexTreeMemoryUnsafeIterator* psIterator, void** ppvData, size_t* puiDataSize, void* pvDestKey, size_t* puiKeySize, size_t uiMaxKeySize);

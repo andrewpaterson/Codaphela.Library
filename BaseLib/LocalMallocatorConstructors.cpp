@@ -8,7 +8,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void LocalMallocatorsInit(CConstructors* pcConstructors, CMallocators* pcMallocatos)
+void LocalMallocatorsInit(CConstructors* pcConstructors, CMallocators* pcMallocators)
 {
 	CFreeListAllocator*		pcFreeListAllocator;
 	CMemoryAllocator*		pcMemoryAllocator;
@@ -18,8 +18,8 @@ void LocalMallocatorsInit(CConstructors* pcConstructors, CMallocators* pcMalloca
 	pcMemoryAllocator = pcConstructors->Add<CMemoryAllocator>();
 	pcScratchPadAllocator = pcConstructors->Add<CScratchPadAllocator>();
 
-	pcMallocatos->AddMallocator(pcFreeListAllocator);
-	pcMallocatos->AddMallocator(pcMemoryAllocator);
-	pcMallocatos->AddMallocator(pcScratchPadAllocator);
+	pcMallocators->Add(pcFreeListAllocator);
+	pcMallocators->Add(pcMemoryAllocator);
+	pcMallocators->Add(pcScratchPadAllocator);
 }
 
