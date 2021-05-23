@@ -48,6 +48,7 @@ BOOL CIndexedMap::Kill(void)
 
 	mcData.Kill();
 
+	mcDescriptorsFile.Kill();
 	mcDescriptors.Kill();
 	return TRUE;
 }
@@ -58,7 +59,6 @@ BOOL CIndexedMap::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CIndexedMap::InitIndices(CDurableFileController* pcDurableFileControl, BOOL bDirtyTesting)
 {
-	mcDescriptors.Init(TRUE);
 	mbDescriptorsWritten = TRUE;
 	mcDescriptorsFile.Init(pcDurableFileControl, "Descriptors.IDX", "_Descriptors.IDX");
 
@@ -66,6 +66,10 @@ void CIndexedMap::InitIndices(CDurableFileController* pcDurableFileControl, BOOL
 	{
 		mcDescriptors.Read(&mcDescriptorsFile);
 		NullCachedDescriptors();
+	}
+	else
+	{
+		mcDescriptors.Init(TRUE);
 	}
 }
 
