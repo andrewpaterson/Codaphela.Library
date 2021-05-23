@@ -215,8 +215,8 @@ CDiskFile* CFiles::GetSystemFile(char* szFullName)
 			szRemain.Kill();
 			return pcDiskFile;
 		}
-		szRemain.Kill();
 	}
+	szRemain.Kill();
 	return NULL;
 }
 
