@@ -13,13 +13,12 @@ struct SMapIterator : SArraySortedIterator
 
 class CMapBlock : public CMalloc
 {
+friend struct SMNode;
 protected:
 	CArrayBlockSorted	mapArray;  //All that is stored in this array is the SMNode*.  
 	int					miLargestKeySize;
 	BOOL				mbOverwrite;
 	CDataFree*			mpcDataFree;
-
-public:
 	DataCompare			fKeyCompare;
 
 public:

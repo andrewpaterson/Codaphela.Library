@@ -30,7 +30,6 @@ void CMapCommon::Init(BOOL bKillElements, BOOL bOverwriteExisting)
 {
 	miFlags = 0;
 	SetFlag(&miFlags, MAP_COMMOM_KILL_ELEMENT, bKillElements);
-	SetFlag(&miFlags, MAP_COMMOM_OVERWRITE, bOverwriteExisting);
 }
 
 

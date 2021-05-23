@@ -8,6 +8,16 @@
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
+int SMNode::KeyCompare(const void* arg1, const void* arg2)
+{
+	return pcMapBlock->fKeyCompare(arg1, arg2);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
 int CompareMNode(const void* arg1, const void* arg2)
 {
 	SMNode*		pNode1;
@@ -22,7 +32,7 @@ int CompareMNode(const void* arg1, const void* arg2)
 	pvKey1 = HeaderGetData<SMNode, void>(pNode1);
 	pvKey2 = HeaderGetData<SMNode, void>(pNode2);
 
-	iResult = pNode1->pcMapBlock->fKeyCompare(pvKey1, pvKey2);
+	iResult = pNode1->KeyCompare(pvKey1, pvKey2);
 	return iResult;
 }
 
