@@ -81,6 +81,7 @@ BOOL CIndexTreeEvicting::Kill(void)
 {
 	BOOL bResult;
 
+	mcEvictionStrategy.Kill();
 	bResult = mcIndexTree.Kill();
 	return bResult;
 }
