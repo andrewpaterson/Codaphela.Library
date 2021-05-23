@@ -23,11 +23,14 @@ BOOL CSequence::Init(CLifeInit<CSequenceConfig> cConfig)
 	moiNext = ReadIndex();
 	bResult &= mcFileController.End();
 
+	cHelper.Kill(FALSE);
+
 	if (moiNext == INVALID_O_INDEX || !bResult)
 	{
 		moiNext = FIRST_O_INDEX;
 		return gcLogger.Error2(__METHOD__, " Could not read Sequence file.", NULL);
 	}
+
 	return TRUE;
 }
 
