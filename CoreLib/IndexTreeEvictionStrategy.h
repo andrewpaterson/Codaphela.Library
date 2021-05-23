@@ -5,7 +5,7 @@
 
 
 class CIndexTreeEvicting;
-class CIndexTreeEvictionStrategy
+class CIndexTreeEvictionStrategy : public CKillable
 {
 protected:
 	CIndexTreeEvicting*		mpcIndexTree;
@@ -16,7 +16,6 @@ protected:
 public:
 	virtual void					SetIndexTree(CIndexTreeEvicting* pcIndexTree);
 	virtual BOOL					Run(CIndexTreeNodeFile* pcDontEvict) =0;
-	virtual void					Kill(void) =0;
 
 	virtual CIndexTreeDataOrderer*	GetDataOrderer(void);
 
