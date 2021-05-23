@@ -910,6 +910,8 @@ BOOL PrivateAssertFile(const char* szExpectedFileName, char* szActualFileName, i
 	}
 	else
 	{
+		szActual.Kill();
+		szExpected.Kill();
 		return Pass();
 	}
 }

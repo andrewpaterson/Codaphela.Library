@@ -46,7 +46,7 @@ BOOL CIndexedFile::Init(CDurableFileController* pcDurableFileControl, int iFileI
 //////////////////////////////////////////////////////////////////////////
 void CIndexedFile::Kill(void)
 {
-	// mcFile.Kill();  //Shouldn't this be called?
+	mcFile.Kill();
 	miNumDatas = 0;
 }
 
