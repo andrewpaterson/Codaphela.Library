@@ -23,7 +23,6 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Unknown.h"
 
 #define MAP_COMMOM_KILL_ELEMENT	0x0001
-#define MAP_COMMOM_OVERWRITE	0x0002
 
 
 class CMapCommon : public CUnknown

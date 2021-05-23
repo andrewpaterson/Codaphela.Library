@@ -8,6 +8,8 @@ struct SMNode
 	int			iKeySize;
 	int			iDataSize;
 	CMapBlock*	pcMapBlock;
+
+	int KeyCompare(const void* arg1, const void* arg2);
 };
 
 

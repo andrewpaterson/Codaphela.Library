@@ -18,8 +18,33 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/DataCallback.h"
 #include "Unknowns.h"
 #include "MapStringUnknown.h"
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMapStringUnknownDataFree::Init(CMapStringUnknown* pcMap)
+{
+	mpcMap = pcMap;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMapStringUnknownDataFree::DataWillBeFreed(void* pvData)
+{
+	CUnknown** ppcExisting;
+
+	ppcExisting = (CUnknown**)pvData;
+
+	mpcMap->DataWillBeFreed(*ppcExisting);
+}
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -30,6 +55,8 @@ void CMapStringUnknown::Init(BOOL bKillElements, BOOL bOverwriteExisting)
 {
 	CMapCommon::Init(bKillElements, bOverwriteExisting);
 	mcMap.Init(TRUE, bOverwriteExisting);
+	mcDataFree.Init(this);
+	mcMap.SetDataFreeCallback(&mcDataFree);
 }
 
 
@@ -39,23 +66,23 @@ void CMapStringUnknown::Init(BOOL bKillElements, BOOL bOverwriteExisting)
 //////////////////////////////////////////////////////////////////////////
 void CMapStringUnknown::Kill(void)
 {
-	CUnknown**		ppcUnknown;
-	SMapIterator	sIter;
-	char*			szKey;
-	BOOL			bResult;
+	//CUnknown**		ppcUnknown;
+	//SMapIterator	sIter;
+	//char*			szKey;
+	//BOOL			bResult;
 
-	if (miFlags & MAP_COMMOM_KILL_ELEMENT)
-	{
-		bResult = mcMap.StartIteration(&sIter, (void**)&szKey, NULL, (void**)&ppcUnknown, NULL);
-		while (bResult)
-		{
-			if (ppcUnknown)
-			{
-				(*ppcUnknown)->Kill();
-			}
-			bResult = mcMap.Iterate(&sIter, (void**)&szKey, NULL, (void**)&ppcUnknown, NULL);
-		}
-	}
+	//if (miFlags & MAP_COMMOM_KILL_ELEMENT)
+	//{
+	//	bResult = mcMap.StartIteration(&sIter, (void**)&szKey, NULL, (void**)&ppcUnknown, NULL);
+	//	while (bResult)
+	//	{
+	//		if (ppcUnknown)
+	//		{
+	//			(*ppcUnknown)->Kill();
+	//		}
+	//		bResult = mcMap.Iterate(&sIter, (void**)&szKey, NULL, (void**)&ppcUnknown, NULL);
+	//	}
+	//}
 	
 	mcMap.Kill();
 	CMapCommon::Kill();
@@ -106,7 +133,7 @@ BOOL CMapStringUnknown::Load(CFileReader* pcFileReader)
 	int				iNumElements;
 	void*			pvData;
 	int				iDataSize;
-	CompareFunc		CaseFunc;
+	DataCompare		CaseFunc;
 
 	ReturnOnFalse(pcFileReader->ReadInt(&miFlags));
 	CaseFunc = mcMap.ReadCaseSensitivity(pcFileReader);
@@ -143,28 +170,14 @@ BOOL CMapStringUnknown::Load(CFileReader* pcFileReader)
 BOOL CMapStringUnknown::Put(char* szKey, CUnknown* pcValue)
 {
 	CUnknown**	ppcNew;
-	CUnknown**	ppcExisting;
 
-	if (szKey)
+	if (!StrEmpty(szKey))
 	{
 		ppcNew = mcMap.Put(szKey);
 		if (ppcNew)
 		{
 			*ppcNew = pcValue;
 			return TRUE;
-		}
-		else
-		{
-			if (miFlags & MAP_COMMOM_OVERWRITE)
-			{
-				ppcExisting = mcMap.Get(szKey);
-				if (miFlags & MAP_COMMOM_KILL_ELEMENT)
-				{
-					(*ppcExisting)->Kill();
-				}
-				*ppcExisting = pcValue;
-				return TRUE;
-			}
 		}
 	}
 	return FALSE;
@@ -198,5 +211,18 @@ CUnknown* CMapStringUnknown::Get(char* szKey)
 int CMapStringUnknown::NumElements(void)
 {
 	return mcMap.NumElements();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMapStringUnknown::DataWillBeFreed(CUnknown* pcUnknown)
+{
+	if (miFlags & MAP_COMMOM_KILL_ELEMENT)
+	{
+		pcUnknown->Kill();
+	}
 }
 

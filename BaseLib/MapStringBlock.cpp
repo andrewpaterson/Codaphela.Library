@@ -94,13 +94,13 @@ void* CMapStringBlock::Put(char* szKey, int iDataSize)
 	void*	pvData;
 	int		iStrLen;
 
-	if (!szKey)
+	if (StrEmpty(szKey))
 	{
 		return NULL;
 	}
 
 	iStrLen = strlen(szKey) + 1;
-	pvData = CMapBlock::Put(szKey, iStrLen + 1, iDataSize);
+	pvData = CMapBlock::Put(szKey, iStrLen, iDataSize);
 	return (void*)pvData;
 }
 
@@ -113,13 +113,13 @@ BOOL CMapStringBlock::Put(char* szKey, void* psData, int iDataSize)
 {
 	int	iStrLen;
 
-	if (!szKey)
+	if (StrEmpty(szKey))
 	{
 		return FALSE;
 	}
 
 	iStrLen = strlen(szKey) + 1;
-	return CMapBlock::Put(szKey, iStrLen + 1, psData, iDataSize);
+	return CMapBlock::Put(szKey, iStrLen, psData, iDataSize);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -150,7 +150,7 @@ BOOL CMapStringBlock::Remove(char* szKey)
 {
 	int	iStrLen;
 
-	if (!szKey)
+	if (!StrEmpty(szKey))
 	{
 		return FALSE;
 	}

@@ -24,11 +24,24 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "MapCommon.h"
 
 
+class CMapStringUnknownDataFree : public CDataFree
+{
+private:
+	CMapStringUnknown*	mpcMap;
+
+public:
+	void Init(CMapStringUnknown* pcMap);
+	void DataWillBeFreed(void* pvData);
+};
+
+
 class CMapStringUnknown : public CMapCommon
 {
+friend class CMapStringUnknownDataFree;
 CONSTRUCTABLE(CMapStringUnknown);
 private:
 	CMapStringTemplate<CUnknown*>	mcMap;
+	CMapStringUnknownDataFree		mcDataFree;
 
 public:
 	void		Init(BOOL bKillElements = TRUE, BOOL bOverwriteExisting = TRUE);
@@ -41,6 +54,9 @@ public:
 	BOOL		Put(char* szKey, CUnknown* pcValue);
 	CUnknown*	Get(char* szKey);
 	int			NumElements(void);
+
+protected:
+	void DataWillBeFreed(CUnknown* pcUnknown);
 };
 
 
@@ -54,7 +70,7 @@ M* CMapStringUnknown::Put(char* szKey)
 	M*		pv;
 	BOOL	bResult;
 
-	if (szKey)
+	if (!StrEmpty(szKey))
 	{
 		pv = gcUnknowns.Add<M>();
 		bResult = Put(szKey, pv);
@@ -71,7 +87,6 @@ M* CMapStringUnknown::Put(char* szKey)
 	}
 	else
 	{
-		//Don't try and put NULL, put the empty string "" instead.
 		return NULL;
 	}
 }
