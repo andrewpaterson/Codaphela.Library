@@ -7,7 +7,15 @@
 //////////////////////////////////////////////////////////////////////////
 void CClasses::Init(void)
 {
-	macClasses.Init();
+	muiCurrentClassType = 0;
+
+	maClasses.Init(sizeof(CClass));
+	mmcpClassesByName.Init();
+	mmcpClassesByType.Init();
+
+	mcPrimitives.Init(this);
+
+	muiCurrentClassType = CLASS_TYPES - 1;
 }
 
 
@@ -17,7 +25,11 @@ void CClasses::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CClasses::Kill(void)
 {
-	macClasses.Kill();
+	mcPrimitives.Kill();
+
+	mmcpClassesByName.Kill();
+	mmcpClassesByType.Kill();
+	maClasses.Kill();
 }
 
 
@@ -25,9 +37,16 @@ void CClasses::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CClass* CClasses::Get(char* szClassName)
+CClass* CClasses::Add(char* szClassName, uint32 uiSize, EPrimitiveType eType)
 {
-	return macClasses.Get(szClassName);
+	CClass* pcClass;
+
+	pcClass = (CClass*)maClasses.Add();
+	pcClass->Init(szClassName, uiSize, eType, this);
+	mmcpClassesByName.Put(szClassName, &pcClass);
+	mmcpClassesByType.Put(eType, &pcClass);
+
+	return pcClass;
 }
 
 
@@ -35,9 +54,9 @@ CClass* CClasses::Get(char* szClassName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CClass* CClasses::Get(const char* szClassName)
+CClass* CClasses::Add(const char* szClassName, uint32 uiSize, EPrimitiveType eType)
 {
-	return macClasses.Get(szClassName);
+	return Add((char*)szClassName, uiSize, eType);
 }
 
 
@@ -47,11 +66,7 @@ CClass* CClasses::Get(const char* szClassName)
 //////////////////////////////////////////////////////////////////////////
 CClass* CClasses::Add(char* szClassName)
 {
-	CClass* pcClass;
-
-	pcClass = macClasses.Put(szClassName);
-	pcClass->Init2(szClassName, this);
-	return pcClass;
+	return Add(szClassName, 0, (EPrimitiveType)GetNextClassType());
 }
 
 
@@ -69,9 +84,26 @@ CClass* CClasses::Add(const char* szClassName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CClass* CClasses::GetVoidPtrClass(void)
+CClass* CClasses::Get(char* szClassName)
 {
-	return mpcVoidClass;
+	CClass** ppcClass;
+
+	ppcClass = mmcpClassesByName.Get(szClassName);
+	if (ppcClass)
+	{
+		return *ppcClass;
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CClass* CClasses::Get(const char* szClassName)
+{
+	return Get((char*)szClassName);
 }
 
 
@@ -81,6 +113,45 @@ CClass* CClasses::GetVoidPtrClass(void)
 //////////////////////////////////////////////////////////////////////////
 CClass* CClasses::Get(EPrimitiveType eType)
 {
+	CClass** ppcClass;
+
+	ppcClass = mmcpClassesByType.Get(eType);
+	if (ppcClass)
+	{
+		return *ppcClass;
+	}
 	return NULL;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CClass* CClasses::Get(uint32 iType)
+{
+	return Get((EPrimitiveType)iType);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CPrimitiveClasses* CClasses::GetPrimitiveClasses(void)
+{
+	return &mcPrimitives;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+uint32 CClasses::GetNextClassType(void)
+{
+	muiCurrentClassType++;
+	return muiCurrentClassType;
+}
+
 

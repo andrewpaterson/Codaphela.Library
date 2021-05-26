@@ -63,11 +63,13 @@ private:
 };
 
 
-extern CTypeNames gcTypeNames;
+extern CTypeNames	gcTypeNames;
+extern BOOL			gbTypeNames;
 
 
 void TypesInit(void);
 void TypesKill(void);
+BOOL TypesValidate(void);
 
 
 #endif // __TYPE_NAMES_H__

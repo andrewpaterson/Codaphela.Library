@@ -486,6 +486,9 @@
     <ClInclude Include="DefaultClasses.h">
       <Filter>Source\Object\Class</Filter>
     </ClInclude>
+    <ClInclude Include="PrimitiveClasses.h">
+      <Filter>Source\Object\Class</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Unknown.cpp">
@@ -789,6 +792,9 @@
       <Filter>Source\Object\Class</Filter>
     </ClCompile>
     <ClCompile Include="DefaultClasses.cpp">
+      <Filter>Source\Object\Class</Filter>
+    </ClCompile>
+    <ClCompile Include="PrimitiveClasses.cpp">
       <Filter>Source\Object\Class</Filter>
     </ClCompile>
   </ItemGroup>

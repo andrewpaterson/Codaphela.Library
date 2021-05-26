@@ -8,6 +8,10 @@
 #include "DataField.h"
 
 
+#define CLASS_FLAGS_PRIMITIVE	0x01
+#define CLASS_FLAGS_COMPLETE	0x02
+
+
 class CPointer;
 class CBaseObject;
 class CPrimitiveObject;
@@ -17,7 +21,7 @@ class CClass
 protected:
 	CChars									mszClassName;
 	uint32									muiSize;
-	uint32									muiType;
+	EPrimitiveType							meType;
 	CArrayTemplate<CPointerField>			macPointers;
 	CArrayTemplate<CEmbeddedObjectField>	macEmbeddedObjects;
 	CArrayTemplate<CDataField>				macDatas;
@@ -25,14 +29,24 @@ protected:
 	CClasses*								mpcClassesThisIn;
 
 public:
-	void		Init2(char* szClassName, CClasses* mpcClasses);
-	void		Kill(void);
+	void			Init(char* szClassName, uint32 uiSize, EPrimitiveType eType, CClasses* pcClasses);
+	void			Kill(void);
 
-	void		Pointer(CBaseObject* pcThis, CPointer* pcPointer);
-	void		Primitive(CBaseObject* pcThis, CPrimitiveObject* pcPrimitive);
-	void		Embedded(CBaseObject* pcThis, CBaseObject* pcObject);
-	CClasses*	GetClasses(void);
-	CClass*		GetClass(EPrimitiveType eType);
+	void			Complete(void);
+
+	void			Pointer(CBaseObject* pcThis, CPointer* pcPointer);
+	void			Primitive(CBaseObject* pcThis, CPrimitiveObject* pcPrimitive);
+	void			Embedded(CBaseObject* pcThis, CBaseObject* pcObject);
+
+	CClasses*		GetClasses(void);
+	char*			GetName(void);
+	EPrimitiveType	GetType(void);
+
+	BOOL			IsComplete(void);
+	void			Primitive(void);
+	BOOL			IsPrimitive(void);
+
+	CClass*			GetClass(EPrimitiveType eType);
 };
 
 #endif // __CLASS_H__
