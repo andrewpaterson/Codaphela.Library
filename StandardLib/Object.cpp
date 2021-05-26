@@ -758,8 +758,8 @@ CPointer* CObject::Pointer(CPointer* pcPointer)
 //////////////////////////////////////////////////////////////////////////
 void CObject::Embedded(CBaseObject* pcObject)
 {
-	pcObject->PreClass();
 	pcObject->mpcEmbedded = this;
+	pcObject->PreClass();
 	mapEmbedded.Add(&pcObject);
 
 	mpcClass->Embedded(this, pcObject);

@@ -30,8 +30,8 @@ template<class D>
 class CMapIntTemplate : public CMapPrimitiveTemplate<int, D>
 {
 public:
-	void	Init(BOOL bOverwrite);
-	void	Init(CMallocator* pcMalloc, BOOL bOverwrite);
+	void	Init(BOOL bOverwrite = TRUE);
+	void	Init(CMallocator* pcMalloc, BOOL bOverwrite = TRUE);
 };
 
 

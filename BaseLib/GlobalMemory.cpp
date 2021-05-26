@@ -73,7 +73,7 @@ BOOL MemoryValidate(void)
 {
 	if (!gbMemory)
 	{
-		gcLogger.Error("Global Memory has not been initialised.  CallMemoryInit.");
+		gcLogger.Error("Global Memory has not been initialised.  Call MemoryInit().");
 		return FALSE;
 	}
 	else

@@ -14,7 +14,7 @@ void CPointerField::Init(ptrdiff_t iOffset, CClass* pcContainingClass)
 	pcClasses = pcContainingClass->GetClasses();
 	if (iOffset >= 0)
 	{
-		CField::Init(pcClasses->GetVoidPtrClass(), iOffset, pcContainingClass);
+		CField::Init(pcClasses->GetPrimitiveClasses()->GetPointer(), iOffset, pcContainingClass);
 	}
 	else
 	{

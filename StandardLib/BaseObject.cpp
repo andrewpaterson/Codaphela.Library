@@ -19,6 +19,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/Log.h"
+#include "BaseLib/Logger.h"
 #include "ObjectSerialiser.h"
 #include "ObjectDeserialiser.h"
 #include "Objects.h"
@@ -80,26 +81,34 @@ void CBaseObject::Allocate(CObjects* pcObjects)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::PreClass(void)
 {
-	CClasses*	pcClasses;
-	CClass*		pcClass;
-	const char*	szClassName;
+	CClasses*		pcClasses;
+	CClass*			pcClass;
+	const char*		szClassName;
+	CObjects*		pcObjects;
 
 	szClassName = ClassName();
 	if (!HasClass())
 	{
 		SetFlag(OBJECT_FLAGS_CALLED_CLASS, TRUE);
 
-		pcClasses = mpcObjectsThisIn->GetClasses();
-		pcClass = pcClasses->Get(szClassName);
-		if (pcClass)
+		pcObjects = GetObjects();
+		if (!pcObjects)
 		{
-			SetClass(pcClass);
+			gcLogger.Error2(__METHOD__, " Objects is NULL.", NULL);
+			return;
 		}
-		else
+
+		pcClasses = pcObjects->GetClasses();
+		pcClass = pcClasses->Get(szClassName);
+		if (!pcClass)
 		{
 			pcClass = pcClasses->Add(szClassName);
-			SetClass(pcClass);
+		}
+		SetClass(pcClass);
+		if (!pcClass->IsComplete())
+		{
 			Class();
+			pcClass->Complete();
 		}
 	}
 }
@@ -1261,7 +1270,7 @@ void CBaseObject::ReplaceOneWithX(char* szDest, char* szMask)
 //////////////////////////////////////////////////////////////////////////
 CClass* CBaseObject::GetClass(void)
 {
-	return NULL;
+	return mpcClass;
 }
 
 

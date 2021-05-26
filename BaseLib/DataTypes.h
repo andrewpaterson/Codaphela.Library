@@ -51,12 +51,17 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define INT_BYTE_SIZE		4
 #define SHORT_BYTE_SIZE		2
 #define CHAR_BYTE_SIZE		1
+#define BYTE_BYTE_SIZE		1
+#define WIDE_CHAR_BYTE_SIZE	2
 #define FLOAT_BYTE_SIZE		4
 #define DOUBLE_BYTE_SIZE	82
 #define LONG_BYTE_SIZE		8
 #define FLOAT2_BYTE_SIZE	8
 #define FLOAT3_BYTE_SIZE	12
 #define FLOAT4_BYTE_SIZE	16
+#define DOUBLE2_BYTE_SIZE	16
+#define DOUBLE3_BYTE_SIZE	24
+#define DOUBLE4_BYTE_SIZE	32
 #define INT2_BYTE_SIZE		8
 #define INT3_BYTE_SIZE		12
 #define INT4_BYTE_SIZE		16
@@ -65,6 +70,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 #define BIT_SIZE			(1 | SIZE_IN_BITS)
 #define CRUMB_SIZE			(2 | SIZE_IN_BITS)
+#define TRIBBLE_SIZE		(3 | SIZE_IN_BITS)
 #define NYBBLE_SIZE			(4 | SIZE_IN_BITS)
 #define NICKLE_SIZE			(5 | SIZE_IN_BITS)
 #define SIXBITS_SIZE		(6 | SIZE_IN_BITS)
@@ -81,7 +87,7 @@ enum EPrimitiveType
 	//Standard primitives (size in bits).
 	PT_int32,  		//32
 	PT_int16, 		//16
-	PT_char8,		//8
+	PT_int8,		//8
 	PT_float32,		//32
 	PT_float64,		//64
 	PT_uint32,		//32
@@ -91,12 +97,16 @@ enum EPrimitiveType
 	PT_uint64,		//64
 	PT_M2float32,	//64
 	PT_M3float32,	//96
-	PT_M4float32,  //128
+	PT_M4float32,   //128
+	PT_M2float64,	//128
+	PT_M3float64,	//192
+	PT_M4float64,   //256
 	PT_M2int32,		//64
 	PT_M3int32,		//96
 	PT_M4int32,		//128
 	PT_bool, 		//32
 	PT_void,		//0
+	PT_char8,		//8
 	PT_char16,		//16
 
 	//"Complex" primitives
@@ -108,6 +118,7 @@ enum EPrimitiveType
 	PRIMTIVE_OPERATOR_END,
 	PT_bit,
 	PT_crumb,		//2
+	PT_tribble,		//3
 	PT_nybble,		//4
 	PT_nickle,		//5
 	PT_sixbits,		//6
