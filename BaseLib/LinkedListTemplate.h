@@ -23,11 +23,12 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __LINKED_LIST_TEMPLATE_H__
 #define __LINKED_LIST_TEMPLATE_H__
 #include "BaseLinkedListBlock.h"
+#include "ConstructorCall.h"
 #include "SystemAllocator.h"
 
 
 template<class M>
-class CLinkedListTemplate : public CBaseLinkedListBlock
+class CLinkedListTemplate : public CBaseLinkedListBlock, public CPostMalloc<M>
 {
 private:
 	unsigned int	muiDataSize;

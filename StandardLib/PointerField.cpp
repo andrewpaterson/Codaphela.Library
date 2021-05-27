@@ -7,18 +7,18 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPointerField::Init(ptrdiff_t iOffset, CClass* pcContainingClass)
+void CPointerField::Init(ptrdiff_t iOffset, CClass* pcContainingClass, char* szName)
 {
 	CClasses*	pcClasses;
 
 	pcClasses = pcContainingClass->GetClasses();
 	if (iOffset >= 0)
 	{
-		CField::Init(pcClasses->GetPrimitiveClasses()->GetPointer(), iOffset, pcContainingClass);
+		CField::Init(pcClasses->GetPrimitiveClasses()->GetPointer(), iOffset, pcContainingClass, szName);
 	}
 	else
 	{
-		CField::Init(NULL, 0, pcContainingClass);
+		CField::Init(NULL, 0, pcContainingClass, szName);
 	}
 }
 

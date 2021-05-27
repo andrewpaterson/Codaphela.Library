@@ -17,9 +17,6 @@ public:
 	void					Free(void);
 
 	void					Clear();
-
-	BOOL					Save(CObjectSerialiser* pcFile);
-	BOOL					Load(CObjectDeserialiser* pcFile);
 };
 
 
@@ -36,10 +33,6 @@ public:
 	void						Free(void);
 
 	void						Clear();
-
-	BOOL						Save(CObjectSerialiser* pcFile);
-	BOOL						Load(CObjectDeserialiser* pcFile);
-
 };
 
 
