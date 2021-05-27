@@ -93,7 +93,6 @@
     <ClInclude Include="Class.h" />
     <ClInclude Include="Classes.h" />
     <ClInclude Include="PrimitiveClasses.h" />
-    <ClInclude Include="DefaultClasses.h" />
     <ClInclude Include="DependentObjectAdder.h" />
     <ClInclude Include="DependentReadObject.h" />
     <ClInclude Include="DependentReadObjects.h" />
@@ -203,13 +202,13 @@
     <ClInclude Include="SingleChannelAccessor.h" />
     <ClInclude Include="StandardHeader.h" />
     <ClInclude Include="TrackerTemplate.h" />
+    <ClInclude Include="UnmanagedField.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ChunkFileNames.cpp" />
     <ClCompile Include="Class.cpp" />
     <ClCompile Include="Classes.cpp" />
     <ClCompile Include="PrimitiveClasses.cpp" />
-    <ClCompile Include="DefaultClasses.cpp" />
     <ClCompile Include="DependentObjectAdder.cpp" />
     <ClCompile Include="DependentReadObject.cpp" />
     <ClCompile Include="DependentReadObjects.cpp" />
@@ -307,6 +306,7 @@
     <ClCompile Include="ChannelsAccessorCreator.cpp" />
     <ClCompile Include="SingleChannelAccessor.cpp" />
     <ClCompile Include="StandardHeader.cpp" />
+    <ClCompile Include="UnmanagedField.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="ObjectsSources.txt" />

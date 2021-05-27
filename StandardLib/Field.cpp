@@ -7,11 +7,12 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CField::Init(CClass* pcFieldClass, uint32 uiOffset, CClass* pcContainingClass)
+void CField::Init(CClass* pcFieldClass, uint32 uiOffset, CClass* pcContainingClass, char* szName)
 {
 	mpcFieldClass = pcFieldClass;
 	muiOffset = uiOffset;
 	mpcContainingClass = pcContainingClass;
+	strcpy(GetName(), szName);
 }
 
 
@@ -35,4 +36,25 @@ CClasses* CField::GetClasses(void)
 {
 	return mpcContainingClass->GetClasses();
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CField::GetName(void)
+{
+	return (char*)RemapSinglePointer(this, GetNameOffset());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size_t CField::GetNameOffset(void)
+{
+	return sizeof(CField);
+}
+
 

@@ -483,10 +483,10 @@
     <ClInclude Include="Classes.h">
       <Filter>Source\Object\Class</Filter>
     </ClInclude>
-    <ClInclude Include="DefaultClasses.h">
+    <ClInclude Include="PrimitiveClasses.h">
       <Filter>Source\Object\Class</Filter>
     </ClInclude>
-    <ClInclude Include="PrimitiveClasses.h">
+    <ClInclude Include="UnmanagedField.h">
       <Filter>Source\Object\Class</Filter>
     </ClInclude>
   </ItemGroup>
@@ -791,10 +791,10 @@
     <ClCompile Include="Classes.cpp">
       <Filter>Source\Object\Class</Filter>
     </ClCompile>
-    <ClCompile Include="DefaultClasses.cpp">
+    <ClCompile Include="PrimitiveClasses.cpp">
       <Filter>Source\Object\Class</Filter>
     </ClCompile>
-    <ClCompile Include="PrimitiveClasses.cpp">
+    <ClCompile Include="UnmanagedField.cpp">
       <Filter>Source\Object\Class</Filter>
     </ClCompile>
   </ItemGroup>

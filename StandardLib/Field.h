@@ -15,11 +15,16 @@ protected:
 	CClass*	mpcFieldClass;
 	CClass*	mpcContainingClass;
 
-public:
-	void		Init(CClass* pcFieldClass, uint32 uiOffset, CClass* pcContainingClass);
-	void		Kill(void);
 
-	CClasses*	GetClasses(void);
+public:
+			void		Init(CClass* pcFieldClass, uint32 uiOffset, CClass* pcContainingClass, char* szName);
+			void		Kill(void);
+
+			CClasses*	GetClasses(void);
+			char*		GetName(void);
+
+protected:
+	virtual	size_t		GetNameOffset(void);
 };
 
 

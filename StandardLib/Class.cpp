@@ -17,9 +17,40 @@ void CClass::Init(char* szClassName, uint32 uiSize, EPrimitiveType eType, CClass
 	meType = eType;
 	muiFlags = 0;
 
-	macPointers.Init();
-	macEmbeddedObjects.Init();
-	macDatas.Init();
+	mapcPointers.Init();
+	mapcEmbeddedObjects.Init();
+	mapcDatas.Init();
+	mapcUnmanaged.Init();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CClass::Kill(void)
+{
+	int			i;
+	CField*		pcField;
+
+	mapcUnmanaged.Kill();
+	mapcDatas.Kill();
+	mapcEmbeddedObjects.Kill();
+	mapcPointers.Kill();
+
+	for (i = 0; i < macFields.NumElements(); i++)
+	{
+		pcField = (CField*)macFields.Get(i);
+		pcField->Kill();
+	}
+	macFields.Kill();
+
+	muiFlags = 0;
+	muiSize = 0;
+	meType = PT_Undefined;
+
+	mszClassName.Kill();
+	mpcClassesThisIn = NULL;
 }
 
 
@@ -67,33 +98,16 @@ BOOL CClass::IsPrimitive(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CClass::Kill(void)
-{
-	macPointers.Kill();
-	macEmbeddedObjects.Kill();
-	macDatas.Kill();
-
-	muiFlags = 0;
-	muiSize = 0;
-	meType = PT_Undefined;
-
-	mszClassName.Kill();
-	mpcClassesThisIn = NULL;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CClass::Pointer(CBaseObject* pcThis, CPointer* pcPointer)
+void CClass::Pointer(CBaseObject* pcThis, CPointer* pcPointer, char* szName)
 {
 	CPointerField*	pcPointerField;
 	ptrdiff_t		iOffset;
 
 	iOffset = (size_t)pcPointer - (size_t)pcThis;
-	pcPointerField = macPointers.Add();
-	pcPointerField->Init(iOffset, this);
+	pcPointerField = (CPointerField*)AddField(sizeof(CPointerField), szName);
+	PostMalloc<CPointerField>(pcPointerField);
+	mapcPointers.Add(pcPointerField);
+	pcPointerField->Init(iOffset, this, szName);
 }
 
 
@@ -101,17 +115,18 @@ void CClass::Pointer(CBaseObject* pcThis, CPointer* pcPointer)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CClass::Primitive(CBaseObject* pcThis, CPrimitiveObject* pcPrimitive)
+void CClass::Primitive(CBaseObject* pcThis, CPrimitiveObject* pcPrimitive, char* szName)
 {
 	CDataField*		pcDataField;
 	ptrdiff_t		iOffset;
 	CClass*			pcClass;
 
 	iOffset = (size_t)pcPrimitive - (size_t)pcThis;
-
-	pcDataField = macDatas.Add();
+	pcDataField = (CDataField*)AddField(sizeof(CDataField), szName);
+	PostMalloc<CDataField>(pcDataField);
+	mapcDatas.Add(pcDataField);
 	pcClass = GetClass(pcPrimitive->GetClassType());
-	pcDataField->Init(pcClass, iOffset, this);
+	pcDataField->Init(pcClass, iOffset, this, szName);
 }
 
 
@@ -119,15 +134,153 @@ void CClass::Primitive(CBaseObject* pcThis, CPrimitiveObject* pcPrimitive)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CClass::Embedded(CBaseObject* pcThis, CBaseObject* pcObject)
+void CClass::Embedded(CBaseObject* pcThis, CBaseObject* pcObject, char* szName)
 {
 	CEmbeddedObjectField*	pcEmbeddedObjectField;
 	ptrdiff_t				iOffset;
 
-	iOffset = (size_t)pcObject- (size_t)pcThis;
+	iOffset = (size_t)pcObject - (size_t)pcThis;
+	pcEmbeddedObjectField = (CEmbeddedObjectField*)AddField(sizeof(CEmbeddedObjectField), szName);
+	PostMalloc<CEmbeddedObjectField>(pcEmbeddedObjectField);
+	mapcEmbeddedObjects.Add(pcEmbeddedObjectField);
+	pcEmbeddedObjectField->Init(pcObject->GetClass(), iOffset, this, szName);
+}
 
-	pcEmbeddedObjectField = macEmbeddedObjects.Add();
-	pcEmbeddedObjectField->Init(pcObject->GetClass(), iOffset, this);
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CClass::Unmanaged(CBaseObject* pcThis, int32* pi, char* szFieldName)
+{
+	Unmanaged(pcThis, PT_int32, pi, szFieldName);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CClass::Unmanaged(CBaseObject* pcThis, int32* pai, size_t uiLength, char* szFieldName)
+{
+	Unmanaged(pcThis, PT_int32, pai, uiLength, szFieldName);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CClass::Unmanaged(CBaseObject* pcThis, float32* pf, char* szFieldName)
+{
+	Unmanaged(pcThis, PT_float32, pf, szFieldName);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CClass::Unmanaged(CBaseObject* pcThis, float32* paf, size_t uiLength, char* szFieldName)
+{
+	Unmanaged(pcThis, PT_float32, paf, uiLength, szFieldName);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CClass::Unmanaged(CBaseObject* pcThis, char8* pc, char* szFieldName)
+{
+	Unmanaged(pcThis, PT_char8, pc, szFieldName);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CClass::Unmanaged(CBaseObject* pcThis, char8* pac, size_t uiLength, char* szFieldName)
+{
+	Unmanaged(pcThis, PT_char8, pac, uiLength, szFieldName);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CClass::Unmanaged(CBaseObject* pcThis, void* pv, size_t uiSizeof, char* szFieldName)
+{
+	Unmanaged(pcThis, PT_uint8, pv, uiSizeof, szFieldName);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CClass::Unmanaged(CBaseObject* pcThis, CChars* pcChars, char* szFieldName)
+{
+	Unmanaged(pcThis, PT_String, pcChars, szFieldName);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CClass::Unmanaged(CBaseObject* pcThis, CNumber* pcNumber, char* szFieldName)
+{
+	Unmanaged(pcThis, PT_Number, pcNumber, szFieldName);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CClass::Unmanaged(CBaseObject* pcThis, CDate* pcDate, char* szFieldName)
+{
+	Unmanaged(pcThis, PT_Date, pcDate, szFieldName);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CClass::Unmanaged(CBaseObject* pcThis, EPrimitiveType eType, void* pv, char* szFieldName)
+{
+	CUnmanagedField*	pcUnmanagedField;
+	ptrdiff_t			iOffset;
+
+	iOffset = (size_t)pv - (size_t)pcThis;
+	pcUnmanagedField = (CUnmanagedField*)AddField(sizeof(CUnmanagedField), szFieldName);
+	PostMalloc<CUnmanagedField>(pcUnmanagedField);
+	mapcUnmanaged.Add(pcUnmanagedField);
+	pcUnmanagedField->Init(eType, iOffset, this, szFieldName);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CClass::Unmanaged(CBaseObject* pcThis, EPrimitiveType eType, void* pv, size_t uiLength, char* szFieldName)
+{
+	CUnmanagedField* pcUnmanagedField;
+	ptrdiff_t			iOffset;
+
+	iOffset = (size_t)pv - (size_t)pcThis;
+	pcUnmanagedField = (CUnmanagedField*)AddField(sizeof(CUnmanagedField), szFieldName);
+	PostMalloc<CUnmanagedField>(pcUnmanagedField);
+	mapcUnmanaged.Add(pcUnmanagedField);
+	pcUnmanagedField->Init(eType, iOffset, this, szFieldName);
+	//uiLength
+
+	//I don't actually know what to do about arrays.
 }
 
 
@@ -168,5 +321,20 @@ EPrimitiveType CClass::GetType(void)
 CClass* CClass::GetClass(EPrimitiveType eType)
 {
 	return mpcClassesThisIn->Get(eType);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CField* CClass::AddField(size_t uiFieldSize, char* szName)
+{
+	size_t	uiNameLength;
+	CField* pcField;
+
+	uiNameLength = strlen(szName) + 1;
+	pcField = (CField*)macFields.Add(uiFieldSize + uiNameLength);
+	return pcField;
 }
 

@@ -5,15 +5,15 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDataField::Init(CClass* pcFieldClass, ptrdiff_t iOffset, CClass* pcContainingClass)
+void CDataField::Init(CClass* pcFieldClass, ptrdiff_t iOffset, CClass* pcContainingClass, char* szName)
 {
 	if (iOffset >= 0)
 	{
-		CField::Init(pcFieldClass, iOffset, pcContainingClass);
+		CField::Init(pcFieldClass, iOffset, pcContainingClass, szName);
 	}
 	else
 	{
-		CField::Init(NULL, 0, pcContainingClass);
+		CField::Init(NULL, 0, pcContainingClass, szName);
 	}
 }
 

@@ -31,25 +31,30 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "PointerRemapper.h"
 
 
-template<class M>
-M* NewMalloc(void)
+template<class Class>
+Class* NewMalloc(void)
 {
-	M*	pv;
+	Class*	pv;
 
-	pv = (M*)malloc(sizeof(M));
-	memset(pv, 0, sizeof(M));
-	new(pv) M;
+	pv = (Class*)malloc(sizeof(Class));
+	memset(pv, 0, sizeof(Class));
+	new(pv) Class;
 
 	return pv;
 }
 
 
-template<class M>
+template<class Class>
 class CPostMalloc
 {
 public:
-	M* 		PostMalloc(M* pv);
-	M* 		PostMalloc(M* pv, int iNumElements, int iStride);
+	Class* 		PostMalloc(Class* pv);
+	Class* 		PostMalloc(Class* pv, int iNumElements, int iStride);
+
+	template<class Subclass>
+	Class* 		PostMalloc(Subclass* pv);
+	template<class Subclass>
+	Class* 		PostMalloc(Subclass* pv, int iNumElements, int iStride);
 
 	BOOL 	RequiresVirtualFunctionTable(void);
 };
@@ -59,12 +64,12 @@ public:
 //
 //
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-M* CPostMalloc<M>::PostMalloc(M* pv)
+template<class Class>
+Class* CPostMalloc<Class>::PostMalloc(Class* pv)
 {
-	if (!std::is_trivially_default_constructible<M>())
+	if (!std::is_trivially_default_constructible<Class>())
 	{
-		new(pv) M;
+		new(pv) Class;
 	}
 	return pv;
 }
@@ -74,8 +79,8 @@ M* CPostMalloc<M>::PostMalloc(M* pv)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-M* CPostMalloc<M>::PostMalloc(M* pv, int iNumElements, int iStride)
+template<class Class>
+Class* CPostMalloc<Class>::PostMalloc(Class* pv, int iNumElements, int iStride)
 {
 	int		i;
 
@@ -83,8 +88,8 @@ M* CPostMalloc<M>::PostMalloc(M* pv, int iNumElements, int iStride)
 	{
 		for (i = 0; i < iNumElements; i++)
 		{
-			new(pv) M;
-			pv = (M*)RemapSinglePointer(pv, iStride);
+			new(pv) Class;
+			pv = (Class*)RemapSinglePointer(pv, iStride);
 		}
 	}
 	return pv;
@@ -94,10 +99,46 @@ M* CPostMalloc<M>::PostMalloc(M* pv, int iNumElements, int iStride)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-BOOL CPostMalloc<M>::RequiresVirtualFunctionTable(void)
+template<class Class> template<class Subclass>
+Class* CPostMalloc<Class>::PostMalloc(Subclass* pv)
 {
-	return !std::is_trivially_default_constructible<M>();
+	if (!std::is_trivially_default_constructible<Subclass>())
+	{
+		new(pv) Subclass;
+	}
+	return pv;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class Class> template<class Subclass>
+Class* CPostMalloc<Class>::PostMalloc(Subclass* pv, int iNumElements, int iStride)
+{
+	int		i;
+
+	if (RequiresVirtualFunctionTable())
+	{
+		for (i = 0; i < iNumElements; i++)
+		{
+			new(pv) Subclass;
+			pv = (Subclass*)RemapSinglePointer(pv, iStride);
+		}
+	}
+	return pv;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class Class>
+BOOL CPostMalloc<Class>::RequiresVirtualFunctionTable(void)
+{
+	return !std::is_trivially_default_constructible<Class>();
 }
 
 

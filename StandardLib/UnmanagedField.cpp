@@ -1,25 +1,20 @@
 #include "Class.h"
 #include "Classes.h"
-#include "PointerField.h"
+#include "UnmanagedField.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPointerField::Init(ptrdiff_t iOffset, CClass* pcContainingClass, char* szName)
+void CUnmanagedField::Init(EPrimitiveType eType, ptrdiff_t iOffset, CClass* pcContainingClass, char* szName)
 {
 	CClasses*	pcClasses;
+	CClass*		pcFieldClass;
 
 	pcClasses = pcContainingClass->GetClasses();
-	if (iOffset >= 0)
-	{
-		CField::Init(pcClasses->GetPrimitiveClasses()->GetPointer(), iOffset, pcContainingClass, szName);
-	}
-	else
-	{
-		CField::Init(NULL, 0, pcContainingClass, szName);
-	}
+	pcFieldClass = pcClasses->Get(eType);
+	CField::Init(pcFieldClass, iOffset, pcContainingClass, szName);
 }
 
 
@@ -27,7 +22,7 @@ void CPointerField::Init(ptrdiff_t iOffset, CClass* pcContainingClass, char* szN
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPointerField::Kill(void)
+void CUnmanagedField::Kill(void)
 {
 	CField::Kill();
 }

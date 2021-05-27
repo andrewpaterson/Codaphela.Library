@@ -44,9 +44,9 @@ public:
 	BOOL				IsObject(void);
 	void				SetPointerTosExpectedDistToRoot(int iDistToRoot);
 
-	CPointer*			Pointer(CPointer* pcPointer);
-	void				Embedded(CBaseObject* pcObject);
-	void				Primitive(CPrimitiveObject* pcPrimitive);
+	CPointer*			Pointer(CPointer* pcPointer, char* szFieldName);
+	void				Embedded(CBaseObject* pcObject, char* szFieldName);
+	void				Primitive(CPrimitiveObject* pcPrimitive, char* szFieldName);
 
 	BOOL				IsDirty(void);
 	int					GetEmbeddedIndex(CEmbeddedObject* pcEmbedded);
@@ -75,6 +75,19 @@ public:
 
 	void				ValidatePointerTos(void);
 	void				ValidateConsistency(void);
+
+	void				Unmanaged(int* pi, char* szFieldName);
+	void				Unmanaged(int* pai, size_t uiLength, char* szFieldName);
+	void				Unmanaged(float* pf, char* szFieldName);
+	void				Unmanaged(float* paf, size_t uiLength, char* szFieldName);
+	void				Unmanaged(char* pc, char* szFieldName);
+	void				Unmanaged(char* pac, size_t uiLength, char* szFieldName);
+
+	void				Unmanaged(CChars* pcChars, char* szFieldName);
+	void				Unmanaged(CNumber* pcNumber, char* szFieldName);
+	void				Unmanaged(CDate* pcDate, char* szFieldName);
+
+	void				Unmanaged(void* pv, size_t uiSizeof, char* szFieldName);
 
 protected:
 	void				InternalFree(void);

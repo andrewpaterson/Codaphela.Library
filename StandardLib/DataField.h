@@ -3,11 +3,12 @@
 #include "Field.h"
 
 
+//Shouldn't this be called PrimitiveField?
 class CDataField : public CField
 {
 CONSTRUCTABLE(CDataField);
 public:
-	void Init(CClass* pcFieldClass, ptrdiff_t iOffset, CClass* pcContainingClass);
+	void Init(CClass* pcFieldClass, ptrdiff_t iOffset, CClass* pcContainingClass, char* szName);
 	void Kill(void);
 };
 

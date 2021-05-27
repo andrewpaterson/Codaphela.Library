@@ -7,7 +7,7 @@ class CEmbeddedObjectField : public CField
 {
 CONSTRUCTABLE(CEmbeddedObjectField);
 public:
-	void Init(CClass* pcFieldClass, uint32 uiOffset, CClass* pcContainingClass);
+	void Init(CClass* pcFieldClass, uint32 uiOffset, CClass* pcContainingClass, char* szName);
 	void Kill(void);
 };
 
