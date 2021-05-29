@@ -72,6 +72,8 @@ friend class CObject;
 friend class CObjects;
 friend class CObjectRemapFrom;
 friend class CEmbeddedObject;
+friend class CObjectSerialiser;
+friend class CObjectDeserialiser;
 
 CONSTRUCTABLE(CBaseObject);
 protected:
@@ -187,6 +189,9 @@ protected:
 	virtual void				RemoveAllPointerTosDontKill(void) =0;
 	virtual void				RemoveAllPointerTos(void) =0;
 
+			BOOL				SaveManaged(CObjectSerialiser* pcFile);
+			BOOL				LoadManaged(CObjectDeserialiser* pcFile);
+
 	virtual void				FreeIdentifiers(void);
 			void				FreePointers(void);
 			int					RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew) =0;
@@ -203,7 +208,12 @@ protected:
 			void				ContainerPreInit(void);
 			void				ContainerPostInit(void);
 
-	virtual void				BaseValidatePointerTos(void) = 0;
+			BOOL				SaveEmbeddedObjects(CObjectSerialiser* pcFile);
+			BOOL				SavePointers(CObjectSerialiser* pcFile);
+			BOOL				SavePrimitives(CObjectSerialiser* pcFile);
+			BOOL				SaveUnmanaged(CObjectSerialiser* pcFile);
+
+	virtual void				BaseValidatePointerTos(void) =0;
 };
 
 

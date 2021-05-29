@@ -3,12 +3,19 @@
 #include "Field.h"
 
 
+class CBaseObject;
 class CEmbeddedObjectField : public CField
 {
 CONSTRUCTABLE(CEmbeddedObjectField);
 public:
-	void Init(CClass* pcFieldClass, uint32 uiOffset, CClass* pcContainingClass, char* szName);
-	void Kill(void);
+	void			Init(CClass* pcFieldClass, uint32 uiOffset, CClass* pcContainingClass, char* szName);
+	void			Kill(void);
+
+	BOOL			IsEmbeddedObject(void);
+	uint32			GetSizeOf(void);
+	size_t			GetNameOffset(void);
+
+	CBaseObject*	GetEmbeddedObject(CBaseObject* pcFieldContainer);
 };
 
 

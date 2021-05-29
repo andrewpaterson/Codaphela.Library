@@ -1,3 +1,5 @@
+#include "Array.h"
+#include "Set.h"
 #include "Classes.h"
 
 
@@ -16,6 +18,8 @@ void CClasses::Init(void)
 	mcPrimitives.Init(this);
 
 	muiCurrentClassType = CLASS_TYPES - 1;
+
+	AddSystemClasses();
 }
 
 
@@ -30,6 +34,27 @@ void CClasses::Kill(void)
 	mmcpClassesByName.Kill();
 	mmcpClassesByType.Kill();
 	maClasses.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CClasses::AddSystemClasses(void)
+{
+	CClass*		pcClass;
+
+	pcClass = Add("Pointer");
+	pcClass->SetSize(sizeof(CPointer));
+	pcClass->System();
+	pcClass->Complete();
+
+	//CSet<>		cSet;
+	//CArray<>	cArray;
+
+	//cSet.Init();
+	//cArray.Init();
 }
 
 
@@ -141,6 +166,16 @@ CClass* CClasses::Get(uint32 iType)
 CPrimitiveClasses* CClasses::GetPrimitiveClasses(void)
 {
 	return &mcPrimitives;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CClass* CClasses::GetPointer(void)
+{
+	return mpcPointer;
 }
 
 

@@ -22,9 +22,12 @@ protected:
 
 	uint32				muiCurrentClassType;
 
+	CClass*				mpcPointer;
+
 public:
 	void				Init(void);
 	void				Kill(void);
+	void				AddSystemClasses(void);
 
 	CClass*				Get(char* szClassName);
 	CClass*				Get(const char* szClassName);
@@ -35,6 +38,8 @@ public:
 	CClass*				Add(const char* szClassName, uint32 uiSize, EPrimitiveType eType);
 	CClass*				Add(char* szClassName);
 	CClass*				Add(const char* szClassName);
+
+	CClass*				GetPointer(void);
 
 	CPrimitiveClasses*	GetPrimitiveClasses(void);
 

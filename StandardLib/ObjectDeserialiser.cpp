@@ -109,7 +109,7 @@ CBaseObject* CObjectDeserialiser::Load(CSerialisedObject* pcSerialised)
 		return NULL;
 	}
 
-	bResult = pvObject->Load(this);
+	bResult = pvObject->LoadManaged(this);
 	if (!bResult)
 	{
 		gcLogger.Error("CObjectDeserialiser::Load Could not load serialised object.");

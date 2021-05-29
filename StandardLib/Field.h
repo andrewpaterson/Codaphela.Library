@@ -11,10 +11,9 @@ class CField : public CConstructable, public CKillable
 {
 CONSTRUCTABLE(CField);
 protected:
-	uint32	muiOffset;
-	CClass*	mpcFieldClass;
-	CClass*	mpcContainingClass;
-
+	uint32		muiOffset;
+	CClass*		mpcFieldClass;
+	CClass*		mpcContainingClass;
 
 public:
 			void		Init(CClass* pcFieldClass, uint32 uiOffset, CClass* pcContainingClass, char* szName);
@@ -22,9 +21,18 @@ public:
 
 			CClasses*	GetClasses(void);
 			char*		GetName(void);
+			CClass*		GetClass(void);
+	virtual	uint32		GetSizeOf(void) =0;
+
+	virtual	BOOL		IsArray(void);
+			uint32		GetOffset(void);
+	virtual	BOOL		IsPointer(void);
+	virtual	BOOL		IsPrimitive(void);
+	virtual	BOOL		IsUnmanaged(void);
+	virtual	BOOL		IsEmbeddedObject(void);
 
 protected:
-	virtual	size_t		GetNameOffset(void);
+	virtual	size_t		GetNameOffset(void) =0;
 };
 
 

@@ -477,7 +477,7 @@
     <ClInclude Include="EmbeddedObjectField.h">
       <Filter>Source\Object\Class</Filter>
     </ClInclude>
-    <ClInclude Include="DataField.h">
+    <ClInclude Include="PrimitiveField.h">
       <Filter>Source\Object\Class</Filter>
     </ClInclude>
     <ClInclude Include="Classes.h">
@@ -785,7 +785,7 @@
     <ClCompile Include="EmbeddedObjectField.cpp">
       <Filter>Source\Object\Class</Filter>
     </ClCompile>
-    <ClCompile Include="DataField.cpp">
+    <ClCompile Include="PrimitiveField.cpp">
       <Filter>Source\Object\Class</Filter>
     </ClCompile>
     <ClCompile Include="Classes.cpp">

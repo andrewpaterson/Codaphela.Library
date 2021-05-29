@@ -185,13 +185,14 @@ protected:
 };
 
 
-extern CObjects gcObjects;
-
+extern CObjects	gcObjects;
+extern BOOL		gbObjects;
 
 void ObjectsInit(void);
 void ObjectsInit(CDataConnection* pcDataConnection, CSequenceConnection* pcSequenceConnection);
 void ObjectsInit(CUnknowns* pcUnknowns, CStackPointers* pcStackPointers, CDataConnection* pcDataConnection, CSequenceConnection* pcSequenceConnection);
 void ObjectsKill(void);
+BOOL ObjectsValidate(void);
 BOOL ObjectsFlush(void);
 
 void LogObjectAllocation(CBaseObject* pcObject, char* szMethod);

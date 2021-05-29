@@ -107,7 +107,7 @@
     <ClInclude Include="Field.h" />
     <ClInclude Include="Float.h" />
     <ClInclude Include="PointerField.h" />
-    <ClInclude Include="DataField.h" />
+    <ClInclude Include="PrimitiveField.h" />
     <ClInclude Include="PrimitiveObject.h" />
     <ClInclude Include="HollowEmbeddedObject.h" />
     <ClInclude Include="InternalObjectDeserialiser.h" />
@@ -251,7 +251,7 @@
     <ClCompile Include="ObjectWriter.cpp" />
     <ClCompile Include="PointerContainer.cpp" />
     <ClCompile Include="PointerField.cpp" />
-    <ClCompile Include="DataField.cpp" />
+    <ClCompile Include="PrimitiveField.cpp" />
     <ClCompile Include="PrimitiveObject.cpp" />
     <ClCompile Include="SerialisedObject.cpp" />
     <ClCompile Include="StackPointer.cpp" />

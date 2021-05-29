@@ -76,18 +76,37 @@ public:
 	void				ValidatePointerTos(void);
 	void				ValidateConsistency(void);
 
-	void				Unmanaged(int* pi, char* szFieldName);
-	void				Unmanaged(int* pai, size_t uiLength, char* szFieldName);
-	void				Unmanaged(float* pf, char* szFieldName);
-	void				Unmanaged(float* paf, size_t uiLength, char* szFieldName);
-	void				Unmanaged(char* pc, char* szFieldName);
-	void				Unmanaged(char* pac, size_t uiLength, char* szFieldName);
+public:
+	void			UnmanagedInt(int8* pc, char* szFieldName);
+	void			UnmanagedInt(int8* pac, size_t uiLength, char* szFieldName);
+	void			UnmanagedInt(int16* pi, char* szFieldName);
+	void			UnmanagedInt(int16* pai, size_t uiLength, char* szFieldName);
+	void			UnmanagedInt(int32* pi, char* szFieldName);
+	void			UnmanagedInt(int32* pai, size_t uiLength, char* szFieldName);
+	void			UnmanagedInt(int64* pi, char* szFieldName);
+	void			UnmanagedInt(int64* pai, size_t uiLength, char* szFieldName);
+	void			UnmanagedInt(uint8* pc, char* szFieldName);
+	void			UnmanagedInt(uint8* pac, size_t uiLength, char* szFieldName);
+	void			UnmanagedInt(uint16* pi, char* szFieldName);
+	void			UnmanagedInt(uint16* pai, size_t uiLength, char* szFieldName);
+	void			UnmanagedInt(uint32* pi, char* szFieldName);
+	void			UnmanagedInt(uint32* pai, size_t uiLength, char* szFieldName);
+	void			UnmanagedInt(uint64* pi, char* szFieldName);
+	void			UnmanagedInt(uint64* pai, size_t uiLength, char* szFieldName);
+	void			UnmanagedFloat(float32* pf, char* szFieldName);
+	void			UnmanagedFloat(float32* paf, size_t uiLength, char* szFieldName);
+	void			UnmanagedFloat(float64* pf, char* szFieldName);
+	void			UnmanagedFloat(float64* paf, size_t uiLength, char* szFieldName);
+	void			UnmanagedChar(char8* pc, char* szFieldName);
+	void			UnmanagedChar(char8* pac, size_t uiLength, char* szFieldName);
+	void			UnmanagedChar(char16* pc, char* szFieldName);
+	void			UnmanagedChar(char16* pac, size_t uiLength, char* szFieldName);
 
-	void				Unmanaged(CChars* pcChars, char* szFieldName);
-	void				Unmanaged(CNumber* pcNumber, char* szFieldName);
-	void				Unmanaged(CDate* pcDate, char* szFieldName);
+	void			UnmanagedString(CChars* pcChars, char* szFieldName);
+	void			UnmanagedNumber(CNumber* pcNumber, char* szFieldName);
+	void			UnmanagedDate(CDate* pcDate, char* szFieldName);
 
-	void				Unmanaged(void* pv, size_t uiSizeof, char* szFieldName);
+	void			UnmanagedData(void* pv, size_t uiSizeof, char* szFieldName);
 
 protected:
 	void				InternalFree(void);
