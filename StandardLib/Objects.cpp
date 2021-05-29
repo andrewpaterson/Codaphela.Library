@@ -38,7 +38,8 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "StackPointers.h"
 
 
-CObjects gcObjects;
+CObjects	gcObjects;
+BOOL		gbObjects = FALSE;
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1861,10 +1862,16 @@ void ObjectsInit(void)
 //////////////////////////////////////////////////////////////////////////
 void ObjectsInit(CDataConnection* pcDataConnection, CSequenceConnection* pcSequenceConnection)
 {
+	if (gbObjects)
+	{
+		gcLogger.Error("Objects has already been initialised.");
+	}
+
 	UnknownsInit();
 	TransientSequenceInit();
 	gcStackPointers.Init(2048);
 	gcObjects.Init(&gcUnknowns, &gcStackPointers, pcDataConnection, pcSequenceConnection);
+	gbObjects = TRUE;
 }
 
 
@@ -1874,10 +1881,16 @@ void ObjectsInit(CDataConnection* pcDataConnection, CSequenceConnection* pcSeque
 //////////////////////////////////////////////////////////////////////////
 void ObjectsInit(CUnknowns* pcUnknowns, CStackPointers* pcStackPointers, CDataConnection* pcDataConnection, CSequenceConnection* pcSequenceConnection)
 {
+	if (gbObjects)
+	{
+		gcLogger.Error("Objects has already been initialised.");
+	}
+
 	UnknownsInit();
 	TransientSequenceInit();
 	gcStackPointers.Init(2048);
 	gcObjects.Init(pcUnknowns, pcStackPointers, pcDataConnection, pcSequenceConnection);
+	gbObjects = TRUE;
 }
 
 
@@ -1887,11 +1900,36 @@ void ObjectsInit(CUnknowns* pcUnknowns, CStackPointers* pcStackPointers, CDataCo
 //////////////////////////////////////////////////////////////////////////
 void ObjectsKill(void)
 {
+	if (!gbObjects)
+	{
+		gcLogger.Error("Global Memory has already been Killed.");
+	}
+
 	gcObjects.Kill();
 	gcStackPointers.ClearAllPointers();
 	gcStackPointers.Kill();
 	TransientSequenceKill();
 	UnknownsKill();
+
+	gbObjects = FALSE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL ObjectsValidate(void)
+{
+	if (!gbObjects)
+	{
+		gcLogger.Error("Objects have not been initialised.  Call ObjectsInit().");
+		return FALSE;
+	}
+	else
+	{
+		return TRUE;
+	}
 }
 
 
@@ -1901,6 +1939,11 @@ void ObjectsKill(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL ObjectsFlush(void)
 {
+	if (!ObjectsValidate())
+	{
+		return FALSE;
+	}
+
 	return gcObjects.Flush();
 }
 

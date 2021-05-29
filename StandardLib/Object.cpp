@@ -782,100 +782,36 @@ void CObject::Primitive(CPrimitiveObject* pcPrimitive, char* szFieldName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObject::Unmanaged(int* pi, char* szFieldName)
-{
-	mpcClass->Unmanaged(this, pi, szFieldName);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CObject::Unmanaged(int* pai, size_t uiLength, char* szFieldName)
-{
-	mpcClass->Unmanaged(this, pai, uiLength, szFieldName);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CObject::Unmanaged(float* pf, char* szFieldName)
-{
-	mpcClass->Unmanaged(this, pf, szFieldName);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CObject::Unmanaged(float* paf, size_t uiLength, char* szFieldName)
-{
-	mpcClass->Unmanaged(this, paf, uiLength, szFieldName);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CObject::Unmanaged(char* pc, char* szFieldName)
-{
-	mpcClass->Unmanaged(this, pc, szFieldName);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CObject::Unmanaged(char* pac, size_t uiLength, char* szFieldName)
-{
-	mpcClass->Unmanaged(this, pac, uiLength, szFieldName);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CObject::Unmanaged(CChars* pcChars, char* szFieldName)
-{
-	mpcClass->Unmanaged(this, pcChars, szFieldName);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CObject::Unmanaged(CNumber* pcNumber, char* szFieldName)
-{
-	mpcClass->Unmanaged(this, pcNumber, szFieldName);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CObject::Unmanaged(CDate* pcDate, char* szFieldName)
-{
-	mpcClass->Unmanaged(this, pcDate, szFieldName);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CObject::Unmanaged(void* pv, size_t uiSizeof, char* szFieldName)
-{
-	mpcClass->Unmanaged(this, pv, uiSizeof, szFieldName);
-}
+void CObject::UnmanagedInt(int8* pc, char* szFieldName) { mpcClass->UnmanagedInt(this, pc, szFieldName); };
+void CObject::UnmanagedInt(int8* pac, size_t uiLength, char* szFieldName) { mpcClass->UnmanagedInt(this, pac, uiLength, szFieldName); };
+void CObject::UnmanagedInt(int16* pi, char* szFieldName) { mpcClass->UnmanagedInt(this, pi, szFieldName); };
+void CObject::UnmanagedInt(int16* pai, size_t uiLength, char* szFieldName) { mpcClass->UnmanagedInt(this, pai, uiLength, szFieldName); };
+void CObject::UnmanagedInt(int32* pi, char* szFieldName) { mpcClass->UnmanagedInt(this, pi, szFieldName); };
+void CObject::UnmanagedInt(int32* pai, size_t uiLength, char* szFieldName) { mpcClass->UnmanagedInt(this, pai, uiLength, szFieldName); };
+void CObject::UnmanagedInt(int64* pi, char* szFieldName) { mpcClass->UnmanagedInt(this, pi, szFieldName); };
+void CObject::UnmanagedInt(int64* pai, size_t uiLength, char* szFieldName){ mpcClass->UnmanagedInt(this, pai, uiLength, szFieldName); };
+void CObject::UnmanagedInt(uint8* pc, char* szFieldName){ mpcClass->UnmanagedInt(this, pc, szFieldName); };
+void CObject::UnmanagedInt(uint8* pac, size_t uiLength, char* szFieldName){ mpcClass->UnmanagedInt(this, pac, uiLength, szFieldName); };
+void CObject::UnmanagedInt(uint16* pi, char* szFieldName){ mpcClass->UnmanagedInt(this, pi, szFieldName); };
+void CObject::UnmanagedInt(uint16* pai, size_t uiLength, char* szFieldName){ mpcClass->UnmanagedInt(this, pai, uiLength, szFieldName); };
+void CObject::UnmanagedInt(uint32* pi, char* szFieldName){ mpcClass->UnmanagedInt(this, pi, szFieldName); };
+void CObject::UnmanagedInt(uint32* pai, size_t uiLength, char* szFieldName){ mpcClass->UnmanagedInt(this, pai, uiLength, szFieldName); };
+void CObject::UnmanagedInt(uint64* pi, char* szFieldName){ mpcClass->UnmanagedInt(this, pi, szFieldName); };
+void CObject::UnmanagedInt(uint64* pai, size_t uiLength, char* szFieldName){ mpcClass->UnmanagedInt(this, pai, uiLength, szFieldName); };
+void CObject::UnmanagedFloat(float32* pf, char* szFieldName) { mpcClass->UnmanagedFloat(this, pf, szFieldName); }
+void CObject::UnmanagedFloat(float32* paf, size_t uiLength, char* szFieldName) { mpcClass->UnmanagedFloat(this, paf, uiLength,szFieldName); }
+void CObject::UnmanagedFloat(float64* pf, char* szFieldName) { mpcClass->UnmanagedFloat(this, pf, szFieldName); }
+void CObject::UnmanagedFloat(float64* paf, size_t uiLength, char* szFieldName) { mpcClass->UnmanagedFloat(this, paf, uiLength, szFieldName); }
+void CObject::UnmanagedChar(char8* pc, char* szFieldName) { mpcClass->UnmanagedChar(this, pc, szFieldName); }
+void CObject::UnmanagedChar(char8* pac, size_t uiLength, char* szFieldName) { mpcClass->UnmanagedChar(this, pac, uiLength, szFieldName); }
+void CObject::UnmanagedChar(char16* pc, char* szFieldName) { mpcClass->UnmanagedChar(this, pc, szFieldName); }
+void CObject::UnmanagedChar(char16* pac, size_t uiLength, char* szFieldName) { mpcClass->UnmanagedChar(this, pac, uiLength, szFieldName); }
+	 
+void CObject::UnmanagedString(CChars* pcChars, char* szFieldName) { mpcClass->UnmanagedString(this, pcChars, szFieldName); };
+void CObject::UnmanagedNumber(CNumber* pcNumber, char* szFieldName) { mpcClass->UnmanagedNumber(this, pcNumber, szFieldName); };
+void CObject::UnmanagedDate(CDate* pcDate, char* szFieldName) { mpcClass->UnmanagedDate(this, pcDate, szFieldName); };
+	 
+void CObject::UnmanagedData(void* pv, size_t uiSizeof, char* szFieldName) { mpcClass->UnmanagedData(this, pv, uiSizeof, szFieldName); };
 
 
 //////////////////////////////////////////////////////////////////////////

@@ -12,7 +12,7 @@ void CPrimitiveClasses::Init(CClasses* pcClasses)
 	mpcClasses = pcClasses;
 
 	mpcUndefined = AddClass(PT_Undefined);
-	mpcPointer = AddClass(PT_Pointer);
+	mpcVoidPointer = AddClass(PT_Pointer);
 	mpcInt8 = AddClass(PT_int8);
 	mpcInt16 = AddClass(PT_int16);
 	mpcInt32 = AddClass(PT_int32);
@@ -51,7 +51,6 @@ void CPrimitiveClasses::Init(CClasses* pcClasses)
 //////////////////////////////////////////////////////////////////////////
 void CPrimitiveClasses::Kill(void)
 {
-
 }
 
 
@@ -77,7 +76,7 @@ CClass* CPrimitiveClasses::AddClass(EPrimitiveType eType)
 
 
 CClass* CPrimitiveClasses::GetUndefined(void) { return mpcUndefined; }
-CClass* CPrimitiveClasses::GetPointer(void) { return mpcPointer; }
+CClass* CPrimitiveClasses::GetVoidPointer(void) { return mpcVoidPointer; }
 CClass* CPrimitiveClasses::GetByte(void) { return mpcInt8; }
 CClass* CPrimitiveClasses::GetShort(void) { return mpcInt16; }
 CClass* CPrimitiveClasses::GetInt(void) { return mpcInt32; }

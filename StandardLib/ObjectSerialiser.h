@@ -42,6 +42,7 @@ public:
 
 	BOOL			WriteObjectHeader(CObjectHeader* psHeader);
 	BOOL			WritePointer(CPointer& pObject);
+	BOOL			WritePointer(CPointer* pObject);
 	BOOL			WriteIdentifier(CObjectIdentifier* psIdentifier);
 	BOOL			WriteDependent(CEmbeddedObject* pcBaseObject);
 
@@ -50,6 +51,7 @@ public:
 
 	void			InitObjectHeader(CObjectHeader* psHeader, CBaseObject* pcObject);
 	void			InitIdentifier(CObjectIdentifier* psHeader, CBaseObject* pcObject);
+
 protected:
 	filePos			Write(const void* pvSource, filePos iSize, filePos iCount);
 };

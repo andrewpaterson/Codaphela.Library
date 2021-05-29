@@ -35,9 +35,11 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 class CEmbeddedObject;
 class CObject;
 class CObjectDeserialiser;
+
 class CPointer
 {
-template<class M> friend class Ptr;
+template<class M> 
+friend class Ptr;
 protected:
 	CEmbeddedObject*	mpcObject;
 	CObject*			mpcEmbedding;  //Collections do not embed pointer objects.  They manage their own pointers.

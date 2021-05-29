@@ -11,7 +11,7 @@ private:
 
 protected:
 	CClass* mpcUndefined;
-	CClass* mpcPointer;
+	CClass* mpcVoidPointer;
 
 	CClass* mpcInt8;
 	CClass* mpcInt16;
@@ -53,7 +53,7 @@ public:
 	void		Kill(void);
 
 	CClass*		GetUndefined(void);
-	CClass*		GetPointer(void);
+	CClass*		GetVoidPointer(void);
 	CClass*		GetByte(void);
 	CClass*		GetShort(void);
 	CClass*		GetInt(void);

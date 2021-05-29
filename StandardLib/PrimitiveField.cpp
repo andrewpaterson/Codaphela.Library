@@ -1,15 +1,23 @@
 #include "Class.h"
 #include "Classes.h"
-#include "EmbeddedObjectField.h"
+#include "PrimitiveObject.h"
+#include "PrimitiveField.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CEmbeddedObjectField::Init(CClass* pcFieldClass, uint32 uiOffset, CClass* pcContainingClass, char* szName)
+void CPrimitiveField::Init(CClass* pcFieldClass, ptrdiff_t iOffset, CClass* pcContainingClass, char* szName)
 {
-	CField::Init(pcFieldClass, uiOffset, pcContainingClass, szName);
+	if (iOffset >= 0)
+	{
+		CField::Init(pcFieldClass, iOffset, pcContainingClass, szName);
+	}
+	else
+	{
+		CField::Init(NULL, 0, pcContainingClass, szName);
+	}
 }
 
 
@@ -17,7 +25,7 @@ void CEmbeddedObjectField::Init(CClass* pcFieldClass, uint32 uiOffset, CClass* p
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CEmbeddedObjectField::Kill(void)
+void CPrimitiveField::Kill(void)
 {
 	CField::Kill();
 }
@@ -27,7 +35,7 @@ void CEmbeddedObjectField::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CEmbeddedObjectField::IsEmbeddedObject(void)
+BOOL CPrimitiveField::IsPrimitive(void)
 {
 	return TRUE;
 }
@@ -37,8 +45,9 @@ BOOL CEmbeddedObjectField::IsEmbeddedObject(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CEmbeddedObjectField::GetSizeOf(void)
+uint32 CPrimitiveField::GetSizeOf(void)
 {
+	//This is the size of the whole primitive object; not just the primitive part.
 	return mpcFieldClass->GetSizeOf();
 }
 
@@ -47,20 +56,21 @@ uint32 CEmbeddedObjectField::GetSizeOf(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CEmbeddedObjectField::GetEmbeddedObject(CBaseObject* pcFieldContainer)
+CPrimitiveObject* CPrimitiveField::GetPrimitiveObject(CBaseObject* pcFieldContainer)
 {
-	CBaseObject*	pcEmbeddedObject;
+	CPrimitiveObject* pcPrimitive;
 
-	pcEmbeddedObject = (CBaseObject*)RemapSinglePointer(pcFieldContainer, muiOffset);
-	return pcEmbeddedObject;
+	pcPrimitive = (CPrimitiveObject*)RemapSinglePointer(pcFieldContainer, muiOffset);
+	return pcPrimitive;
 }
 
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size_t CEmbeddedObjectField::GetNameOffset(void)
+size_t CPrimitiveField::GetNameOffset(void)
 {
-	return sizeof(CEmbeddedObjectField);
+	return sizeof(CPrimitiveField);
 }

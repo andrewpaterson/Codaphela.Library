@@ -88,7 +88,7 @@ BOOL CObjectSerialiser::Save(void)
 		return FALSE;
 	}
 
-	bResult = mpcThis->Save(this);
+	bResult = mpcThis->SaveManaged(this);
 	if (!bResult)
 	{
 		sz.Init();
@@ -123,9 +123,22 @@ BOOL CObjectSerialiser::Save(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CObjectSerialiser::WritePointer(CPointer& pObject)
 {
-	CEmbeddedObject*	pcEmbeddedObject;
+	CEmbeddedObject* pcEmbeddedObject;
 
-	pcEmbeddedObject = (&pObject);
+	pcEmbeddedObject = pObject.Object();
+	return WriteDependent(pcEmbeddedObject);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CObjectSerialiser::WritePointer(CPointer* pObject)
+{
+	CEmbeddedObject* pcEmbeddedObject;
+
+	pcEmbeddedObject = pObject->Object();
 	return WriteDependent(pcEmbeddedObject);
 }
 

@@ -55,7 +55,7 @@ protected:
 	int					miFlags;
 
 private:
-	CArrayUnknownPtr	mcArray;
+	CArrayUnknownPtr	mcArray;  //CArrayTemplate<CUnknown*>
 	int					miNonNullElements;
 
 	BOOL				PrivateIterate(SSetIterator* psIter, CUnknown** ppcUnknown);

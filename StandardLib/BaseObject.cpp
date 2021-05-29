@@ -25,6 +25,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Objects.h"
 #include "DistCalculator.h"
 #include "Classes.h"
+#include "Primitive.h"
 #include "BaseObject.h"
 
 
@@ -94,8 +95,12 @@ void CBaseObject::PreClass(void)
 		pcObjects = GetObjects();
 		if (!pcObjects)
 		{
-			gcLogger.Error2(__METHOD__, " Objects is NULL.", NULL);
-			return;
+			if (!ObjectsValidate())
+			{
+				return;
+			}
+
+			pcObjects = &gcObjects;
 		}
 
 		pcClasses = pcObjects->GetClasses();
@@ -1071,16 +1076,14 @@ BOOL CBaseObject::ContainsPointerTo(CEmbeddedObject* pcEmbedded)
 	return FALSE;
 }
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
 BOOL CBaseObject::Save(CObjectSerialiser* pcFile)
 {
-	CClass* pcClass;
-
-	pcClass = GetClass();
-	return FALSE;
+	return TRUE;
 } 
 
 
@@ -1088,7 +1091,179 @@ BOOL CBaseObject::Save(CObjectSerialiser* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL CBaseObject::SaveManaged(CObjectSerialiser* pcFile)
+{
+	BOOL	bResult;
+
+	bResult = SaveEmbeddedObjects(pcFile);
+	if (!bResult)
+	{
+		return FALSE;
+	}
+	bResult = SavePointers(pcFile);
+	if (!bResult)
+	{
+		return FALSE;
+	}
+	bResult = SavePrimitives(pcFile);
+	if (!bResult)
+	{
+		return FALSE;
+	}
+	bResult = SaveUnmanaged(pcFile);
+	if (!bResult)
+	{
+		return FALSE;
+	}
+	bResult = Save(pcFile);
+	if (!bResult)
+	{
+		return FALSE;
+	}
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CBaseObject::SaveEmbeddedObjects(CObjectSerialiser* pcFile)
+{
+	int						iNumFields;
+	CEmbeddedObjectField**	ppacEmbeddedObjectFields;
+	CArrayVoidPtr*			papv;
+	int						i;
+	CBaseObject*			pcEmbeddedObject;
+	BOOL					bResult;
+
+	papv = mpcClass->GetEmbeddedObjectFields();
+	ppacEmbeddedObjectFields = (CEmbeddedObjectField**)papv->GetData();
+	iNumFields = papv->NumElements();
+	for (i = 0; i < iNumFields; i++)
+	{
+		pcEmbeddedObject = ppacEmbeddedObjectFields[i]->GetEmbeddedObject(this);
+		bResult = pcEmbeddedObject->SaveManaged(pcFile);
+		if (!bResult)
+		{
+			return FALSE;
+		}
+	}
+
+	return FALSE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CBaseObject::SavePointers(CObjectSerialiser* pcFile)
+{
+	int						iNumFields;
+	CPointerField**			ppacPointerFields;
+	CArrayVoidPtr*			papv;
+	int						i;
+	CPointer*				pcPointer;
+	BOOL					bResult;
+
+	papv = mpcClass->GetPointerFields();
+	ppacPointerFields = (CPointerField**)papv->GetData();
+	iNumFields = papv->NumElements();
+	for (i = 0; i < iNumFields; i++)
+	{
+		pcPointer = ppacPointerFields[i]->GetPointer(this);
+		bResult = pcFile->WritePointer(pcPointer);
+		if (!bResult)
+		{
+			return FALSE;
+		}
+	}
+
+	return FALSE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CBaseObject::SavePrimitives(CObjectSerialiser* pcFile)
+{
+	int						iNumFields;
+	CPrimitiveField**		ppacPrimitiveFields;
+	CArrayVoidPtr*			papv;
+	int						i;
+	CPrimitiveObject*		pcPrimitive;
+	BOOL					bResult;
+
+	papv = mpcClass->GetPrimitiveFields();
+	ppacPrimitiveFields = (CPrimitiveField**)papv->GetData();
+	iNumFields = papv->NumElements();
+	for (i = 0; i < iNumFields; i++)
+	{
+		pcPrimitive = ppacPrimitiveFields[i]->GetPrimitiveObject(this);
+		bResult = FALSE; //pcPrimitive->Write(pcFile);
+		if (!bResult)
+		{
+			return FALSE;
+		}
+	}
+
+	return FALSE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CBaseObject::SaveUnmanaged(CObjectSerialiser* pcFile)
+{
+	int						iNumFields;
+	CUnmanagedField**		ppacUnmanagedFields;
+	CArrayVoidPtr*			papv;
+	int						i;
+	CUnmanagedField*		pcUnmanagedField;
+	BOOL					bResult;
+	size_t					uiCount;
+	size_t					uiSize;
+
+
+	papv = mpcClass->GetPrimitiveFields();
+	ppacUnmanagedFields = (CUnmanagedField**)papv->GetData();
+	iNumFields = papv->NumElements();
+	for (i = 0; i < iNumFields; i++)
+	{
+		pcUnmanagedField = ppacUnmanagedFields[i];
+		uiSize = pcUnmanagedField->GetSizeOf();
+		uiCount = pcUnmanagedField->GetLength();
+		bResult = pcFile->WriteData(pcUnmanagedField->GetData(this), uiSize * uiCount);
+		if (!bResult)
+		{
+			return FALSE;
+		}
+	}
+
+	return FALSE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL CBaseObject::Load(CObjectDeserialiser* pcFile)
+{
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CBaseObject::LoadManaged(CObjectDeserialiser* pcFile)
 {
 	CClass* pcClass;
 

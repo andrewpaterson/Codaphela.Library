@@ -1,5 +1,6 @@
 #include "Class.h"
 #include "Classes.h"
+#include "Pointer.h"
 #include "PointerField.h"
 
 
@@ -14,7 +15,7 @@ void CPointerField::Init(ptrdiff_t iOffset, CClass* pcContainingClass, char* szN
 	pcClasses = pcContainingClass->GetClasses();
 	if (iOffset >= 0)
 	{
-		CField::Init(pcClasses->GetPrimitiveClasses()->GetPointer(), iOffset, pcContainingClass, szName);
+		CField::Init(pcClasses->GetPointer(), iOffset, pcContainingClass, szName);
 	}
 	else
 	{
@@ -32,3 +33,47 @@ void CPointerField::Kill(void)
 	CField::Kill();
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CPointerField::IsPointer(void)
+{
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+uint32 CPointerField::GetSizeOf(void)
+{
+	return mpcFieldClass->GetSizeOf();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CPointer* CPointerField::GetPointer(CBaseObject* pcFieldContainer)
+{
+	CPointer*	pcPointer;
+
+	pcPointer = (CPointer*)RemapSinglePointer(pcFieldContainer, muiOffset);
+	return pcPointer;
+}
+
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size_t CPointerField::GetNameOffset(void)
+{
+	return sizeof(CPointerField);
+}

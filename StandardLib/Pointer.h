@@ -27,7 +27,6 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 
 class CObject;
-
 template<class M = CEmbeddedObject>
 class Ptr : public CPointer
 {
@@ -43,8 +42,6 @@ public:
 	M*		operator -> ();
 	M*		operator & ();
 };
-
-
 
 
 //////////////////////////////////////////////////////////////////////////

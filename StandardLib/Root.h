@@ -49,7 +49,6 @@ public:
 						BOOL			IsRoot(void);
 						BOOL			IsSubRoot(void);
 
-						BOOL			Save(CObjectSerialiser* pcFile);
 						BOOL			Load(CObjectDeserialiser* pcFile);
 
 						CPointer		Get(int iIndex);

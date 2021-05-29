@@ -177,23 +177,11 @@ BOOL CRoot::IsSubRoot(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CRoot::Save(CObjectSerialiser* pcFile)
-{
-	return pcFile->WritePointer(mpObjects);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 BOOL CRoot::Load(CObjectDeserialiser* pcFile)
 {
-	BOOL	bResult;
-
+	//This smells.
 	mpcObjectsAllocatingFrom = &gcObjects;
-	bResult = pcFile->ReadPointer(mpObjects.This());
-	return bResult;
+	return TRUE;
 }
 
 
