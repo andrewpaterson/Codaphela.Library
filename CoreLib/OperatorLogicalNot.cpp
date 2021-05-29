@@ -50,5 +50,11 @@ void COperatorLogicalNot::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void COperatorLogicalNot::Do(BOOL* pvDest, BOOL* pvRight)
 {
-	*pvDest =  !*pvRight;
+	if (pvRight && pvDest)
+	{
+		*pvDest = !*pvRight;
+		return;
+	}
+	gcUserError.Set("Operator not defined for types (NULL).");
 }
+

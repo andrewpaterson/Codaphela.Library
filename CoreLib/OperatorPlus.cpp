@@ -76,5 +76,11 @@ void COperatorPlus::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void COperatorPlus::Do(EPrimitiveType eDest, void* pvDest, EPrimitiveType eLeft, void* pvLeft, EPrimitiveType eRight, void* pvRight)
 {
-	mapvPlus[eDest][eLeft][eRight](pvDest, pvLeft, pvRight);
+	if ((eLeft < PRIMTIVE_OPERATOR_END) && (eRight < PRIMTIVE_OPERATOR_END))
+	{
+		mapvPlus[eDest][eLeft][eRight](pvDest, pvLeft, pvRight);
+		return;
+	}
+	gcUserError.Set("Operator not defined for types (out of bounds).");
 }
+

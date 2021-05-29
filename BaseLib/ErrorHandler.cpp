@@ -58,6 +58,7 @@ void CUserError::Set(const char* szError)
 	{
 		strcpy(mszUserError, szError);
 		mbUserError = TRUE;
+		gcLogger.Break();
 	}
 }
 

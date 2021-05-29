@@ -350,7 +350,7 @@ void ConvertSixbitsToLong(void* pvDest, void* pvSource) { gcUserError.Set("Conve
 void ConvertSixbitsToDouble(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
 void ConvertSixbitsToULong(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
 
-void ConversionInvalid(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types (ConversionInvalid)"); }
+void ConversionInvalid(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types (invalid)."); }
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -361,9 +361,9 @@ void CTypeConverter::Init(void)
 	int		iDest;
 	int		iSource;
 
-	for (iDest = 0; iDest < PRIMTIVE_TYPE_END; iDest++)
+	for (iDest = 0; iDest < PRIMTIVE_CONVERTER_END; iDest++)
 	{
-		for (iSource = 0; iSource < PRIMTIVE_TYPE_END; iSource++)
+		for (iSource = 0; iSource < PRIMTIVE_CONVERTER_END; iSource++)
 		{
 			mapvConversion[iDest][iSource] = ConversionInvalid;
 		}
@@ -388,7 +388,12 @@ void CTypeConverter::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CTypeConverter::Do(EPrimitiveType eDest, void* pvDest, EPrimitiveType eSource, void* pvSource)
 {
-	mapvConversion[eDest][eSource](pvDest, pvSource);
+	if ((eSource < PRIMTIVE_CONVERTER_END) && (eDest < PRIMTIVE_CONVERTER_END))
+	{
+		mapvConversion[eDest][eSource](pvDest, pvSource);
+		return;
+	}
+	gcUserError.Set("Conversion not defined for types (out of bounds)."); 
 }
 
 

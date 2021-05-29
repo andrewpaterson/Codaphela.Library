@@ -63,5 +63,11 @@ void COperatorBitwiseNot::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void COperatorBitwiseNot::Do(EPrimitiveType eDest, void* pvDest, EPrimitiveType eRight, void* pvRight)
 {
-	mapvBitwiseNot[eDest][eRight](pvDest, pvRight);
+	if ((eRight < PRIMTIVE_OPERATOR_END) && (eDest < PRIMTIVE_OPERATOR_END))
+	{
+		mapvBitwiseNot[eDest][eRight](pvDest, pvRight);
+		return;
+	}
+	gcUserError.Set("Operator not defined for types (out of bounds).");
 }
+

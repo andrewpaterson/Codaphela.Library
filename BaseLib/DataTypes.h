@@ -85,16 +85,18 @@ enum EPrimitiveType
 	PT_Undefined,
 
 	//Standard primitives (size in bits).
-	PT_int32,  		//32
-	PT_int16, 		//16
 	PT_int8,		//8
+	PT_int16, 		//16
+	PT_int32,  		//32
+	PT_int64,		//64
+	PT_uint8,		//8
+	PT_uint16,		//16
+	PT_uint32,		//32
+	PT_uint64,		//64
 	PT_float32,		//32
 	PT_float64,		//64
-	PT_uint32,		//32
-	PT_uint16,		//16
-	PT_uint8,		//8
-	PT_int64,		//64
-	PT_uint64,		//64
+	PT_char8,		//8  ANSI or UTF-8, zero terminated
+	PT_char16,		//16 UTF-16, zero zero terminated
 	PT_M2float32,	//64
 	PT_M3float32,	//96
 	PT_M4float32,   //128
@@ -105,27 +107,27 @@ enum EPrimitiveType
 	PT_M3int32,		//96
 	PT_M4int32,		//128
 	PT_bool, 		//32
-	PT_void,		//0
-	PT_char8,		//8
-	PT_char16,		//16
-
-	//"Complex" primitives
-	PT_String,		//CChars
-	PT_Number,		//CNumber
-	PT_Date,		//CDate
+	PRIMTIVE_OPERATOR_END,  //See Operator*.inl and Equal*.inl
 
 	//Special primitives.
-	PRIMTIVE_OPERATOR_END,
 	PT_bit,
 	PT_crumb,		//2
 	PT_tribble,		//3
 	PT_nybble,		//4
 	PT_nickle,		//5
 	PT_sixbits,		//6
-	PRIMTIVE_TYPE_END,
+	PRIMTIVE_CONVERTER_END, //See TypeConverter_Mapping.inl
+
+	//"Complex" primitives
+	PT_String,		//CChars
+	PT_Number,		//CNumber
+	PT_Date,		//CDate
+
+	PT_void,		//0
 
 	//Pointers.
-	PT_Pointer,  //An arbitrary pointer.
+	PT_Pointer,		//An arbitrary void pointer.
+	PT_Data,		//8 Unknown arrays of bytes.  Data implies you should not perform operations/transformations directy on the data array.
 
 	NUM_PRIMITIVE_TYPES,
 	CLASS_TYPES = 0x40,  //Any type with an ID >= 0x40 is a class type.

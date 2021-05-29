@@ -67,5 +67,11 @@ void COperatorRightShift::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void COperatorRightShift::Do(EPrimitiveType eDest, void* pvDest, EPrimitiveType eLeft, void* pvLeft, EPrimitiveType eRight, void* pvRight)
 {
-	mapvRightShift[eDest][eLeft][eRight](pvDest, pvLeft, pvRight);
+	if ((eLeft < PRIMTIVE_OPERATOR_END) && (eRight < PRIMTIVE_OPERATOR_END) && (eDest < PRIMTIVE_OPERATOR_END))
+	{
+		mapvRightShift[eDest][eLeft][eRight](pvDest, pvLeft, pvRight);
+		return;
+	}
+	gcUserError.Set("Operator not defined for types (out of bounds).");
 }
+

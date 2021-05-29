@@ -63,5 +63,11 @@ void COperatorGreaterThan::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void COperatorGreaterThan::Do(BOOL* pvDest, EPrimitiveType eLeft, void* pvLeft, EPrimitiveType eRight, void* pvRight)
 {
-	mapvGreaterThan[eLeft][eRight](pvDest, pvLeft, pvRight);
+	if ((eLeft < PRIMTIVE_OPERATOR_END) && (eRight < PRIMTIVE_OPERATOR_END))
+	{
+		mapvGreaterThan[eLeft][eRight](pvDest, pvLeft, pvRight);
+		return;
+	}
+	gcUserError.Set("Operator not defined for types (out of bounds).");
 }
+

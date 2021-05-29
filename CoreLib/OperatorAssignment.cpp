@@ -63,5 +63,11 @@ void COperatorAssignment::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void COperatorAssignment::Do(EPrimitiveType eDest, void* pvDest, EPrimitiveType eLeft, void* pvLeft)
 {
-	mapvAssignment[eDest][eLeft](pvDest, pvLeft);
+	if ((eLeft < PRIMTIVE_OPERATOR_END) && (eLeft < PRIMTIVE_OPERATOR_END))
+	{
+		mapvAssignment[eDest][eLeft](pvDest, pvLeft);
+		return;
+	}
+	gcUserError.Set("Operator not defined for types (out of bounds).");
 }
+

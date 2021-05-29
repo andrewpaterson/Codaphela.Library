@@ -59,5 +59,11 @@ void COperatorDecrement::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void COperatorDecrement::Do(EPrimitiveType eDest, void* pvDest)
 {
-	mapvDecrement[eDest](pvDest);
+	if (eDest < PRIMTIVE_OPERATOR_END)
+	{
+		mapvDecrement[eDest](pvDest);
+		return;
+	}
+	gcUserError.Set("Operator not defined for types (out of bounds).");
 }
+

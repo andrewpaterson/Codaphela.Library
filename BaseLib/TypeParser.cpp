@@ -744,7 +744,7 @@ TRISTATE CTypeParser::Parse(EPrimitiveType eType, void* pvDest, int iDestLength,
 			}
 			break;
 		case PT_uint8:
-			if (iDestLength >= CHAR_BYTE_SIZE)
+			if (iDestLength >= BYTE_BYTE_SIZE)
 			{
 				return ParseUChar((unsigned char*)pvDest);
 			}
@@ -823,10 +823,11 @@ TRISTATE CTypeParser::Parse(EPrimitiveType eType, void* pvDest, int iDestLength,
 			break;
 		case PT_bit:
 		case PT_crumb:
+		case PT_tribble:
 		case PT_nybble:
 		case PT_nickle:
 		case PT_sixbits:
-			if (iDestLength >= CHAR_BYTE_SIZE)
+			if (iDestLength >= BYTE_BYTE_SIZE)
 			{
 				return ParseUChar((unsigned char*)pvDest);
 			}
