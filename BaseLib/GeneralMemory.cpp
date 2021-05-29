@@ -291,7 +291,7 @@ void* CGeneralMemory::Add(unsigned int uiSize, int iAlignment, int iOffset)
 		sz.Dump();
 		sz.Kill();
 
-		Break();
+		BREAK();
 	}
 
 	if (uiSize == 0)

@@ -63,5 +63,11 @@ void COperatorLessThanOrEqual::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void COperatorLessThanOrEqual::Do(BOOL* pvDest, EPrimitiveType eLeft, void* pvLeft, EPrimitiveType eRight, void* pvRight)
 {
-	mapvLessThanOrEqual[eLeft][eRight](pvDest, pvLeft, pvRight);
+	if ((eLeft < PRIMTIVE_OPERATOR_END) && (eRight < PRIMTIVE_OPERATOR_END))
+	{
+		mapvLessThanOrEqual[eLeft][eRight](pvDest, pvLeft, pvRight);
+		return;
+	}
+	gcUserError.Set("Operator not defined for types (out of bounds).");
 }
+

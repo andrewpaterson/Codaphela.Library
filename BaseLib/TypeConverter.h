@@ -352,7 +352,7 @@ typedef void	(*ConversionFunc)		(void* pvDest, void* pvSource);
 
 class CTypeConverter
 {
-	ConversionFunc	mapvConversion[PRIMTIVE_TYPE_END][PRIMTIVE_TYPE_END];  //Dest, source
+	ConversionFunc	mapvConversion[PRIMTIVE_CONVERTER_END][PRIMTIVE_CONVERTER_END];  //Dest, source
 
 public:
 	void Init(void);

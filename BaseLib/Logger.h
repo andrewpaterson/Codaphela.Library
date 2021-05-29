@@ -63,6 +63,8 @@ public:
 	void		GetConfig(SLogConfig* psConfig);
 	void		AddOutput(CAbstractFile* pcFile);
 	void		RemoveOutput(CAbstractFile* pcFile);
+
+	void		Break(void);
 };
 
 

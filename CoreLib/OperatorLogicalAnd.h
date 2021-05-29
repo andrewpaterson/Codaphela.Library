@@ -35,3 +35,4 @@ public:
 
 
 #endif // __OPERATOR_LOGICAL_AND_H__
+

@@ -149,13 +149,21 @@ void CLogger::Add(const char* szText)
 BOOL CLogger::Error(const char* szText)
 {
 	Add("ERROR", szText);
+	Break();
+	return FALSE;
+}
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CLogger::Break(void)
+{
 	if (msConfig.bBreakOnError)
 	{
-		Break();
+		BREAK();
 	}
-
-	return FALSE;
 }
 
 
@@ -203,7 +211,7 @@ BOOL CLogger::Warning(const char* szText)
 
 	if (msConfig.bBreakOnWarning)
 	{
-		Break();
+		BREAK();
 	}
 
 	return FALSE;
