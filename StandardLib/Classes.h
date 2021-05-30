@@ -3,7 +3,7 @@
 #include "BaseLib/MapStringTemplate.h"
 #include "BaseLib/MapIntTemplate.h"
 #include "BaseLib/FreeList.h"
-#include "PrimitiveClasses.h"
+#include "UnmanagedClasses.h"
 #include "Class.h"
 
 
@@ -18,7 +18,7 @@ protected:
 	CMapClassesByType	mmcpClassesByType;
 	CFreeList			maClasses;
 
-	CPrimitiveClasses	mcPrimitives;
+	CUnmanagedClasses	mcUnmanaged;
 
 	uint32				muiCurrentClassType;
 
@@ -41,7 +41,7 @@ public:
 
 	CClass*				GetPointer(void);
 
-	CPrimitiveClasses*	GetPrimitiveClasses(void);
+	CUnmanagedClasses*	GetUnmanagedClasses(void);
 
 protected:
 	uint32		GetNextClassType(void);
