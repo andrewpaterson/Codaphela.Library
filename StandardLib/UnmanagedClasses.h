@@ -1,5 +1,5 @@
-#ifndef __PRIMITIVE_CLASSES_H__
-#define __PRIMITIVE_CLASSES_H__
+#ifndef __UNMANAGED_CLASSES_H__
+#define __UNMANAGED_CLASSES_H__
 #include "Class.h"
 
 
@@ -93,5 +93,5 @@ protected:
 
 
 
-#endif // __PRIMITIVE_CLASSES_H__
+#endif // __UNMANAGED_CLASSES_H__
 

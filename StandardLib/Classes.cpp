@@ -1,3 +1,5 @@
+#include "BaseLib/GlobalDataTypesIO.h"
+#include "BaseLib/TypeNames.h"
 #include "Array.h"
 #include "Set.h"
 #include "Classes.h"
@@ -9,6 +11,9 @@
 //////////////////////////////////////////////////////////////////////////
 void CClasses::Init(void)
 {
+	DataIOValidate();
+	TypesValidate();
+
 	muiCurrentClassType = 0;
 
 	maClasses.Init(sizeof(CClass));
@@ -20,6 +25,7 @@ void CClasses::Init(void)
 	muiCurrentClassType = CLASS_TYPES - 1;
 
 	AddSystemClasses();
+	mcPrimitive.Init(this);
 }
 
 
@@ -165,6 +171,16 @@ CClass* CClasses::Get(uint32 iType)
 CUnmanagedClasses* CClasses::GetUnmanagedClasses(void)
 {
 	return &mcUnmanaged;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CPrimitiveClasses* CClasses::GetPrimitiveClasses(void)
+{
+	return &mcPrimitive;
 }
 
 

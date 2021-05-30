@@ -1,10 +1,10 @@
 #ifndef __GLOBAL_DATA_TYPES_IO_H__
 #define __GLOBAL_DATA_TYPES_IO_H__
-#include "DataTypesIO.h"
+#include "DatasIO.h"
 
 
-extern CDataTypesIO			gcDataTypesIO;
-extern BOOL					gbDataTypesIO;
+extern CDatasIO		gcDataTypesIO;
+extern BOOL			gbDataTypesIO;
 
 
 void DataIOInit(void);

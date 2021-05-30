@@ -52,6 +52,7 @@ void CUnmanagedClasses::Init(CClasses* pcClasses)
 //////////////////////////////////////////////////////////////////////////
 void CUnmanagedClasses::Kill(void)
 {
+	mpcClasses = NULL;
 }
 
 
@@ -70,7 +71,8 @@ CClass* CUnmanagedClasses::AddClass(EPrimitiveType eType)
 	pszName = gcTypeNames.GetPrettyName(eType);
 	iSize = gcTypeNames.GetByteSize(eType);
 	pcClass = mpcClasses->Add(pszName, iSize, eType);
-	pcClass->Primitive();
+	pcClass->System();
+	pcClass->Unmanaged();
 	pcClass->Complete();
 	return pcClass;
 }

@@ -19,14 +19,14 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include "Logger.h"
-#include "DataTypesIO.h"
+#include "DatasIO.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDataTypesIO::Init(void)
+void CDatasIO::Init(void)
 {
 	mcDataIOs.Init(32);
 }
@@ -36,7 +36,7 @@ void CDataTypesIO::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDataTypesIO::Kill(void)
+void CDatasIO::Kill(void)
 {
 	mcDataIOs.Kill();
 }
@@ -46,7 +46,7 @@ void CDataTypesIO::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-DataTypeIO_FileWriter CDataTypesIO::Save(char* szClassName)
+DataTypeIO_FileWriter CDatasIO::Save(char* szClassName)
 {
 	SDataIO* psIO;
 
@@ -66,7 +66,7 @@ DataTypeIO_FileWriter CDataTypesIO::Save(char* szClassName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-DataTypeIO_FileReader CDataTypesIO::Load(char* szClassName)
+DataIO_FileReader CDatasIO::Load(char* szClassName)
 {
 	SDataIO* psIO;
 
@@ -86,7 +86,7 @@ DataTypeIO_FileReader CDataTypesIO::Load(char* szClassName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
- SDataIO* CDataTypesIO::GetIO(char* szClassName)
+SDataIO* CDatasIO::GetIO(char* szClassName)
 {
 	return (SDataIO*)mcDataIOs.Get(szClassName, NULL);
 }
@@ -96,7 +96,17 @@ DataTypeIO_FileReader CDataTypesIO::Load(char* szClassName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CDataTypesIO::NumDataIOs(void)
+SDataIO* CDatasIO::GetIO(const char* szClassName)
+{
+	return (SDataIO*)mcDataIOs.Get(szClassName, NULL);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CDatasIO::NumDataIOs(void)
 {
 	return mcDataIOs.NumElements();
 }

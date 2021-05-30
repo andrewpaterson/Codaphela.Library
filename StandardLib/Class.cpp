@@ -1,4 +1,5 @@
 #include "BaseLib/GlobalDataTypesIO.h"
+#include "BaseLib/TypeNames.h"
 #include "PrimitiveObject.h"
 #include "BaseObject.h"
 #include "Classes.h"
@@ -81,6 +82,16 @@ void CClass::Primitive(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CClass::Unmanaged(void)
+{
+	muiFlags |= CLASS_FLAGS_UNMANAGED;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CClass::System(void)
 {
 	muiFlags |= CLASS_FLAGS_SYSTEM;
@@ -94,6 +105,16 @@ void CClass::System(void)
 BOOL CClass::IsComplete(void)
 {
 	return muiFlags & CLASS_FLAGS_COMPLETE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CClass::IsUnmanaged(void)
+{
+	return muiFlags & CLASS_FLAGS_UNMANAGED;
 }
 
 
@@ -241,7 +262,7 @@ void CClass::UnmanagedData(CBaseObject* pcThis, void* pv, size_t uiSizeof, char*
 {
 	CUnmanagedField* pcUnmanagedField;
 
-	pcUnmanagedField = AddUnmanaged(pcThis, PT_Data, pv, szFieldName);
+	pcUnmanagedField = AddUnmanaged(szFieldName);
 	pcUnmanagedField->Init(PT_Data, (size_t)pv - (size_t)pcThis, this, uiSizeof, 1, NULL, szFieldName);
 }
 
@@ -254,8 +275,8 @@ void CClass::UnmanagedVoid(CBaseObject* pcThis, void* pv, char* szFieldName)
 {
 	CUnmanagedField* pcUnmanagedField;
 
-	pcUnmanagedField = AddUnmanaged(pcThis, PT_Data, pv, szFieldName);
-	pcUnmanagedField->Init(PT_Data, (size_t)pv - (size_t)pcThis, this, 0, 0, szFieldName);
+	pcUnmanagedField = AddUnmanaged(szFieldName);
+	pcUnmanagedField->Init(PT_Data, (size_t)pv - (size_t)pcThis, this, 0, NULL, szFieldName);
 }
 
 
@@ -265,10 +286,15 @@ void CClass::UnmanagedVoid(CBaseObject* pcThis, void* pv, char* szFieldName)
 //////////////////////////////////////////////////////////////////////////
 void CClass::Unmanaged(CBaseObject* pcThis, EPrimitiveType eType, void* pv, char* szFieldName)
 {
-	CUnmanagedField* pcUnmanagedField;
+	CUnmanagedField*	pcUnmanagedField;
+	const char*			szPrettyFieldTypeName;
+	SDataIO*			psFieldIO;
 
-	pcUnmanagedField = AddUnmanaged(pcThis, eType, pv, szFieldName);
-	pcUnmanagedField->Init(eType, (size_t)pv - (size_t)pcThis, this, NULL, szFieldName);
+	szPrettyFieldTypeName = gcTypeNames.GetPrettyName(eType);
+	psFieldIO = gcDataTypesIO.GetIO(szPrettyFieldTypeName);
+
+	pcUnmanagedField = AddUnmanaged(szFieldName);
+	pcUnmanagedField->Init(eType, (size_t)pv - (size_t)pcThis, this, psFieldIO, szFieldName);
 }
 
 
@@ -280,7 +306,7 @@ void CClass::Unmanaged(CBaseObject* pcThis, EPrimitiveType eType, void* pv, size
 {
 	CUnmanagedField* pcUnmanagedField;
 
-	pcUnmanagedField = AddUnmanaged(pcThis, eType, pv, szFieldName);
+	pcUnmanagedField = AddUnmanaged(szFieldName);
 	pcUnmanagedField->Init(eType, (size_t)pv - (size_t)pcThis, this, uiLength, NULL, szFieldName);
 }
 
@@ -354,14 +380,29 @@ CField* CClass::AddField(size_t uiFieldSize, char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CUnmanagedField* CClass::AddUnmanaged(CBaseObject* pcThis, EPrimitiveType eType, void* pv, char* szFieldName)
+CUnmanagedField* CClass::AddUnmanaged(char* szFieldName)
 {
-	CUnmanagedField*	pcUnmanagedField;
+	CUnmanagedField* pcUnmanagedField;
 
 	pcUnmanagedField = (CUnmanagedField*)AddField(sizeof(CUnmanagedField), szFieldName);
 	PostMalloc<CUnmanagedField>(pcUnmanagedField);
 	mapcUnmanaged.Add(pcUnmanagedField);
 	return pcUnmanagedField;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CPrimitiveField* CClass::AddPrimitive(char* szFieldName)
+{
+	CPrimitiveField* pcPrimitiveField;
+
+	pcPrimitiveField = (CPrimitiveField*)AddField(sizeof(CPrimitiveField), szFieldName);
+	PostMalloc<CPrimitiveField>(pcPrimitiveField);
+	mapcPrimitives.Add(pcPrimitiveField);
+	return pcPrimitiveField;
 }
 
 
