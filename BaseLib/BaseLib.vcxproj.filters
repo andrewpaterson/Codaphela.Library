@@ -879,7 +879,7 @@
     <ClInclude Include="EnumeratorNode.h">
       <Filter>Source\Data\Primitive</Filter>
     </ClInclude>
-    <ClInclude Include="DataTypesIO.h">
+    <ClInclude Include="DatasIO.h">
       <Filter>Source\Data\Types\File</Filter>
     </ClInclude>
     <ClInclude Include="GlobalDataTypesIO.h">
@@ -1433,7 +1433,7 @@
     <ClCompile Include="LogToMemory.cpp">
       <Filter>Source\Error</Filter>
     </ClCompile>
-    <ClCompile Include="DataTypesIO.cpp">
+    <ClCompile Include="DatasIO.cpp">
       <Filter>Source\Data\Types\File</Filter>
     </ClCompile>
     <ClCompile Include="GlobalDataTypesIO.cpp">

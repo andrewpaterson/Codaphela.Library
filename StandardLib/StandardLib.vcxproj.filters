@@ -487,6 +487,12 @@
       <Filter>Source\Object\Class</Filter>
     </ClInclude>
     <ClInclude Include="UnmanagedClasses.h" />
+    <ClInclude Include="PrimitiveClasses.h">
+      <Filter>Source\Object\Class</Filter>
+    </ClInclude>
+    <ClInclude Include="PrimitiveVoid.h">
+      <Filter>Source\Object\Object\Primitive</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Unknown.cpp">
@@ -793,6 +799,9 @@
       <Filter>Source\Object\Class</Filter>
     </ClCompile>
     <ClCompile Include="UnmanagedClasses.cpp" />
+    <ClCompile Include="PrimitiveClasses.cpp">
+      <Filter>Source\Object\Class</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="ObjectsSources.txt">

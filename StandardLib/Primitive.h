@@ -10,6 +10,7 @@ class UInt32;
 template<class PRIMITIVE_TYPE>
 class CPrimitive : public CPrimitiveObject
 {
+friend class CPrimitiveClasses;
 protected:
 	PRIMITIVE_TYPE mVal;
 
@@ -45,6 +46,7 @@ public:
 #define PRIMITIVE_TYPE_DEFINITION(CLASS_TYPE, C_PRIMITIVE, DATA_TYPE, WRITE_FUNC, READ_FUNC)  \
 class CLASS_TYPE : public CPrimitive<C_PRIMITIVE> \
 { \
+CONSTRUCTABLE(CLASS_TYPE); \
 public: \
 	CLASS_TYPE() : CPrimitive(DATA_TYPE) {}\
  \

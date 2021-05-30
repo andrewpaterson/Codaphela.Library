@@ -1,5 +1,5 @@
-#ifndef __DATA_TYPES_IO_H__
-#define __DATA_TYPES_IO_H__
+#ifndef __DATAS_IO_H__
+#define __DATAS_IO_H__
 #include "MapStringBlock.h"
 
 
@@ -11,17 +11,17 @@ struct SDataTypeIO
 
 
 typedef BOOL (SDataTypeIO::* DataTypeIO_FileWriter)(CFileWriter*);
-typedef BOOL (SDataTypeIO::* DataTypeIO_FileReader)(CFileReader*);
+typedef BOOL (SDataTypeIO::* DataIO_FileReader)(CFileReader*);
 
 
 struct SDataIO
 {
 	DataTypeIO_FileWriter	fWriter;
-	DataTypeIO_FileReader	fReader;
+	DataIO_FileReader		fReader;
 };
 
 
-class CDataTypesIO
+class CDatasIO
 {
 protected:
 	CMapStringBlock		mcDataIOs;
@@ -38,13 +38,14 @@ public:
 	void					Add(void);
 
 	DataTypeIO_FileWriter	Save(char* szClassName);
-	DataTypeIO_FileReader	Load(char* szClassName);
+	DataIO_FileReader	Load(char* szClassName);
 	template<class M>
 	DataTypeIO_FileWriter	Save(void);
 	template<class M>
-	DataTypeIO_FileReader	Load(void);
+	DataIO_FileReader	Load(void);
 
 	SDataIO*				GetIO(char* szClassName);
+	SDataIO*				GetIO(const char* szClassName);
 	int						NumDataIOs(void);
 };
 
@@ -54,7 +55,7 @@ public:
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CDataTypesIO::Add(char* szConstructorName)
+void CDatasIO::Add(char* szConstructorName)
 {
 	SDataIO*	psIO;
 	BOOL(M::*				fSpecificClassFileSave)(CFileWriter*);
@@ -65,7 +66,7 @@ void CDataTypesIO::Add(char* szConstructorName)
 
 	psIO = (SDataIO*)mcDataIOs.Put(szConstructorName, sizeof(SDataIO));
 	psIO->fWriter = (DataTypeIO_FileWriter)fSpecificClassFileSave;
-	psIO->fReader = (DataTypeIO_FileReader)fSpecificClassFileLoad;
+	psIO->fReader = (DataIO_FileReader)fSpecificClassFileLoad;
 }
 
 
@@ -74,7 +75,7 @@ void CDataTypesIO::Add(char* szConstructorName)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CDataTypesIO::Add(const char* szConstructorName)
+void CDatasIO::Add(const char* szConstructorName)
 {
 	return Add<M>((char*)szConstructorName);
 }
@@ -85,7 +86,7 @@ void CDataTypesIO::Add(const char* szConstructorName)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CDataTypesIO::Add(void)
+void CDatasIO::Add(void)
 {
 	M						m;
 	SDataIO*	psIO;
@@ -97,7 +98,7 @@ void CDataTypesIO::Add(void)
 
 	psIO = (SDataIO*)mcDataIOs.Put(m.ClassName(), sizeof(SDataIO));
 	psIO->fWriter = (DataTypeIO_FileWriter)fSpecificClassFileSave;
-	psIO->fReader = (DataTypeIO_FileReader)fSpecificClassFileLoad;
+	psIO->fReader = (DataIO_FileReader)fSpecificClassFileLoad;
 }
 
 
@@ -106,7 +107,7 @@ void CDataTypesIO::Add(void)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-DataTypeIO_FileWriter CDataTypesIO::Save(void)
+DataTypeIO_FileWriter CDatasIO::Save(void)
 {
 	M m;
 
@@ -119,7 +120,7 @@ DataTypeIO_FileWriter CDataTypesIO::Save(void)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-DataTypeIO_FileReader CDataTypesIO::Load(void)
+DataIO_FileReader CDatasIO::Load(void)
 {
 	M m;
 
@@ -127,5 +128,5 @@ DataTypeIO_FileReader CDataTypesIO::Load(void)
 }
 
 
-#endif // __DATA_TYPES_IO_H__
+#endif // __DATAS_IO_H__
 

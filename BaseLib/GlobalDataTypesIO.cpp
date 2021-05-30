@@ -2,7 +2,7 @@
 #include "GlobalDataTypesIO.h"
 
 
-CDataTypesIO			gcDataTypesIO;
+CDatasIO			gcDataTypesIO;
 BOOL					gbDataTypesIO = FALSE;
 
 
