@@ -168,6 +168,11 @@
     <ClInclude Include="DataOrderers.h" />
     <ClInclude Include="DataCallback.h" />
     <ClInclude Include="DatasIO.h" />
+    <ClInclude Include="DataTypesIO.h" />
+    <ClInclude Include="Double2.h" />
+    <ClInclude Include="Double3.h" />
+    <ClInclude Include="Double4.h" />
+    <ClInclude Include="Double4x4.h" />
     <ClInclude Include="EnumeratorNode.h" />
     <ClInclude Include="GlobalDataTypesIO.h" />
     <ClInclude Include="IndexMapAccess.h" />
@@ -398,6 +403,11 @@
     <ClCompile Include="DataCallback.cpp" />
     <ClCompile Include="DataOrderers.cpp" />
     <ClCompile Include="DatasIO.cpp" />
+    <ClCompile Include="DataTypesIO.cpp" />
+    <ClCompile Include="Double2.cpp" />
+    <ClCompile Include="Double3.cpp" />
+    <ClCompile Include="Double4.cpp" />
+    <ClCompile Include="Double4x4.cpp" />
     <ClCompile Include="GlobalDataTypesIO.cpp" />
     <ClCompile Include="IndexMapAccess.cpp" />
     <ClCompile Include="IndexMapIterator.cpp" />

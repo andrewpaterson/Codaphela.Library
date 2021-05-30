@@ -26,6 +26,10 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "Float3.h"
 #include "Float4.h"
 #include "Float4x4.h"
+#include "Double2.h"
+#include "Double3.h"
+#include "Double4.h"
+#include "Double4x4.h"
 #include "Quaternion.h"
 
 

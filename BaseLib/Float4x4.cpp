@@ -30,10 +30,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "Float4x4.h"
 
 
-double det2x2(double a, double b, double c, double d);
-double det3x3(double a1, double a2, double a3, double b1, double b2, double b3, double c1, double c2, double c3);
-
-
 //////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//
@@ -84,13 +80,28 @@ void SFloat4x4::Init(SFloat3* psX, SFloat3* psY, SFloat3* psZ, SFloat3* psPos)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
+void SFloat4x4::Fix(void)
+{
+	x.Fix();
+	y.Fix();
+	z.Fix();
+	pos.Fix();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
 BOOL SFloat4x4::Save(CFileWriter* pcFile)
 {
-	ReturnOnFalse(x.Save(pcFile));
-	ReturnOnFalse(y.Save(pcFile));
-	ReturnOnFalse(z.Save(pcFile));
-	ReturnOnFalse(pos.Save(pcFile));
-	return TRUE;
+	BOOL	bResult;
+
+	bResult = x.Save(pcFile);
+	bResult |= y.Save(pcFile);
+	bResult |= z.Save(pcFile);
+	bResult |= pos.Save(pcFile);
+	return bResult;
 }
 
 
@@ -100,25 +111,13 @@ BOOL SFloat4x4::Save(CFileWriter* pcFile)
 //////////////////////////////////////////////////////////////////////////
 BOOL SFloat4x4::Load(CFileReader* pcFile)
 {
-	ReturnOnFalse(x.Load(pcFile));
-	ReturnOnFalse(y.Load(pcFile));
-	ReturnOnFalse(z.Load(pcFile));
-	ReturnOnFalse(pos.Load(pcFile));
-	return TRUE;
+	BOOL	bResult;
 
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void SFloat4x4::Fix(void)
-{
-	x.Fix();
-	y.Fix();
-	z.Fix();
-	pos.Fix();
+	bResult = x.Load(pcFile);
+	bResult |= y.Load(pcFile);
+	bResult |= z.Load(pcFile);
+	bResult |= pos.Load(pcFile);
+	return bResult;
 }
 
 
@@ -321,36 +320,6 @@ SFloat3* SFloat4x4::Across(void)
 SFloat3* SFloat4x4::Pos(void)
 {
 	return (SFloat3*)&pos;
-}
-
-
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-double det3x3(double a1, double a2, double a3, double b1, double b2, double b3, double c1, double c2, double c3)
-{
-	double ans;
-
-	ans = a1 * det2x2(b2, b3, c2, c3)
-		- b1 * det2x2(a2, a3, c2, c3)
-		+ c1 * det2x2(a2, a3, b2, b3);
-	return ans;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-double det2x2(double a, double b, double c, double d)
-{
-	double ans;
-
-	ans = a * d - b * c;
-	return ans;
 }
 
 

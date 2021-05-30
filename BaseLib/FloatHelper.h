@@ -23,6 +23,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __FLOAT_HELPER_H__
 #define __FLOAT_HELPER_H__
 #include "Define.h"
+#include "PrimitiveTypes.h"
+
 
 float	sqf(float f);
 float	minf(float f1, float f2);
@@ -41,11 +43,28 @@ float	InterpolateFloat(float f1, float f2, float fPos);
 void	InterpolateFloat(float* fDest, float f1, float f2, float fPos);
 float	FloatToleranceForDecimals(int iDecimals);
 int		FloatWholeNumbers(float f);
-double	DoubleToleranceForDecimals(int iDecimals);
+double	sq(double f);
+BOOL	DoubleEqual(double f1, double f2);
 BOOL	DoubleEqual(double f1, double f2, double fTolerance);
+BOOL	DoubleGreaterThanOrEqual(double f1, double f2);
+BOOL	DoubleLessThanOrEqual(double f1, double f2);
+BOOL	DoubleGreaterThan(double f1, double f2);
+BOOL	DoubleLessThan(double f1, double f2);
+double 	RoundDouble(double fInput, int64 iBinaryExponent);
+double 	TruncateDouble(double fInput, int64 iBinaryExponent);
+double 	NormaliseDouble(double fSize, double fPos);  //returns 1 .. -1
+double 	NormaliseDouble(double fMax, double fMin, double fPos);  //returns 1 .. 0
+double	InterpolateDouble(double f1, double f2, double fPos);
+void	InterpolateDouble(double* fDest, double f1, double f2, double fPos);
+double	DoubleToleranceForDecimals(int iDecimals);
+int		DoubleWholeNumbers(double f);
 void	Swap(float* f1, float* f2);
 float	NotANumber(void);
 BOOL	IsNotANumber(float* pf);
+float	det2x2(float a, float b, float c, float d);
+float	det3x3(float a1, float a2, float a3, float b1, float b2, float b3, float c1, float c2, float c3);
+double	det2x2(double a, double b, double c, double d);
+double	det3x3(double a1, double a2, double a3, double b1, double b2, double b3, double c1, double c2, double c3);
 
 
 extern float gfNaN;

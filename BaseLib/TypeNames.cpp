@@ -24,6 +24,14 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "PointerRemapper.h"
 #include "PointerFunctions.h"
 #include "Logger.h"
+#include "Int2.h"
+#include "Int3.h"
+#include "Int4.h"
+#include "GeometricTypes.h"
+#include "Double2.h"
+#include "Double3.h"
+#include "Double4.h"
+#include "Double4x4.h"
 #include "DataTypes.h"
 
 
@@ -110,6 +118,8 @@ void CTypeNames::Init(void)
 	AddType(PT_Pointer,		sizeof(void*),		"VoidPointer",	"void*",			"PT_Pointer");
 	AddType(PT_void,		VOID_BYTE_SIZE,		"Void",			"void",				"PT_void");
 	AddType(PT_Data,		BYTE_BYTE_SIZE,		"Data",			"",					"PT_Data");
+	AddType(PT_M4x4float32, FLOAT4x4_BYTE_SIZE,	"Float4x4",		"",					"PT_M4x4float32");
+	AddType(PT_M4x4float64, DOUBLE4x4_BYTE_SIZE,"Double4x4",	"",					"PT_M4x4float64");
 
 	mmsziPrettyNames.Init();
 	mmsziPrettyNames.Put("Pointer", PT_Pointer);
@@ -129,9 +139,11 @@ void CTypeNames::Init(void)
 	mmsziPrettyNames.Put("Float2", PT_M2float32);
 	mmsziPrettyNames.Put("Float3", PT_M3float32);
 	mmsziPrettyNames.Put("Float4", PT_M4float32);
+	mmsziPrettyNames.Put("Float4x4", PT_M4x4float32); 
 	mmsziPrettyNames.Put("Double2", PT_M2float64);
 	mmsziPrettyNames.Put("Double3", PT_M3float64);
 	mmsziPrettyNames.Put("Double4", PT_M4float64);
+	mmsziPrettyNames.Put("Double4x4", PT_M4x4float64);
 	mmsziPrettyNames.Put("Int2", PT_M2int32);
 	mmsziPrettyNames.Put("Int3", PT_M3int32);
 	mmsziPrettyNames.Put("Int4", PT_M4int32);
@@ -163,9 +175,11 @@ void CTypeNames::Init(void)
 	mmsziCppNames.Put("SFloat2", PT_M2float32);
 	mmsziCppNames.Put("SFloat3", PT_M3float32);
 	mmsziCppNames.Put("SFloat4", PT_M4float32);
+	mmsziCppNames.Put("SFloat4x4", PT_M4x4float32);
 	mmsziCppNames.Put("SDouble2", PT_M2float64);
 	mmsziCppNames.Put("SDouble3", PT_M3float64);
 	mmsziCppNames.Put("SDouble4", PT_M4float64);
+	mmsziCppNames.Put("SDouble4x4", PT_M4x4float64);
 	mmsziCppNames.Put("SInt2", PT_M2int32);
 	mmsziCppNames.Put("SInt3", PT_M3int32);
 	mmsziCppNames.Put("SInt4", PT_M4int32);
