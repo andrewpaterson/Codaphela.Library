@@ -432,7 +432,7 @@ double TruncateDouble(double fInput, int64 iBinaryExponent)
 	iDoubleExponent >>= 52;  //Remove the fractions part of the double leaving only the exponent and sign.
 	iDoubleExponent &= 0xfffLL;  //Get rid of the sign
 
-	iBinaryExponent += 0x7ffLL;  //Get the ieee 754 exponent representation to truncate to.
+	iBinaryExponent += 0x3ffLL;  //Get the ieee 754 exponent representation to truncate to.
 
 	iExponentDifference = iDoubleExponent - iBinaryExponent;  //The difference between the floats exponent and the wanted exponent.
 
@@ -475,8 +475,8 @@ double RoundDouble(double fInput, int64 iBinaryExponent)
 	double	fValue;
 	int64		iAdjustedExponent;
 
-	iAdjustedExponent = iBinaryExponent - 1 + 0x7f;
-	iAdjustedExponent <<= 23;
+	iAdjustedExponent = iBinaryExponent - 1 + 0x3ff;
+	iAdjustedExponent <<= 52;
 	fValue = *((double*)((void*)&iAdjustedExponent));
 
 	if (((fValue < 0.0f) && (fInput > 0.0f)) || ((fValue > 0.0f) && (fInput < 0.0f)))
