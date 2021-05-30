@@ -29,7 +29,7 @@ class CObjectWriter : public CUnknown
 {
 CONSTRUCTABLE(CObjectWriter);
 protected:
-	CChars	mszDirectory;
+	//CChars	mszDirectory;
 	CChars	mszObjectBaseName;
 
 public:

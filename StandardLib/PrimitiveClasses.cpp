@@ -16,6 +16,21 @@ void CPrimitiveClasses::Init(CClasses* pcClasses)
 {
 	mpcClasses = pcClasses;
 
+	gcDataTypesIO.Add<Int8>();
+	gcDataTypesIO.Add<Int16>();
+	gcDataTypesIO.Add<Int32>();
+	gcDataTypesIO.Add<Int64>();
+	gcDataTypesIO.Add<UInt8>();
+	gcDataTypesIO.Add<UInt16>();
+	gcDataTypesIO.Add<UInt32>();
+	gcDataTypesIO.Add<UInt64>();
+	gcDataTypesIO.Add<Char8>();
+	gcDataTypesIO.Add<Char16>();
+	gcDataTypesIO.Add<Bool>();
+	gcDataTypesIO.Add<Float32>();
+	gcDataTypesIO.Add<Float64>();
+	gcDataTypesIO.Add<Void>();
+	
 	mpcInt8 = AddClass<Int8>(PT_int8);
 	mpcInt16 = AddClass<Int16>(PT_int16);
 	mpcInt32 = AddClass<Int32>(PT_int32);
@@ -42,14 +57,12 @@ void CPrimitiveClasses::Init(CClasses* pcClasses)
 CClass* CPrimitiveClasses::AddClass(const char* szClassName, size_t uiClassSize, EPrimitiveType eFieldType, uint32 eFieldOffest) 
 {
 	CUnmanagedField*	pcField;
-	const char*			szPrettyFieldTypeName;
 	SDataIO*			psFieldIO;
 	CClass*				pcClass;
 
 	pcClass = mpcClasses->Add(szClassName, uiClassSize);
 
-	szPrettyFieldTypeName = gcTypeNames.GetPrettyName(eFieldType);
-	psFieldIO = gcDataTypesIO.GetIO(szPrettyFieldTypeName);
+	psFieldIO = gcDataTypesIO.GetIO(szClassName);
 
 	pcField = pcClass->AddUnmanaged("mVal");
 	pcField->Init(eFieldType, eFieldOffest, pcClass, psFieldIO, "mVal");

@@ -7,7 +7,7 @@
 //////////////////////////////////////////////////////////////////////////
 void CObjectWriter::Init(char* szDirectory, char* szBaseName)
 {
-	mszDirectory.Init(szDirectory);
+	//mszDirectory.Init(szDirectory);
 	mszObjectBaseName.Init(szBaseName);
 
 	mszObjectBaseName.Replace("\\", "/");
@@ -24,7 +24,7 @@ void CObjectWriter::Init(char* szDirectory, char* szBaseName)
 //////////////////////////////////////////////////////////////////////////
 void CObjectWriter::Kill(void)
 {
-	mszDirectory.Kill();
+	//mszDirectory.Kill();
 	mszObjectBaseName.Kill();
 
 	CUnknown::Kill();

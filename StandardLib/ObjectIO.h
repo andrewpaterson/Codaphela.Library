@@ -8,11 +8,9 @@ class CSerialisedObject;
 class CObjectIO
 {
 public:
-	char* Unnamed(CSerialisedObject* pcSerialised, CChars* pszUnnamed);
+	char*	Unnamed(CSerialisedObject* pcSerialised, CChars* pszUnnamed);
 };
 
 
 #endif // __OBJECT_IO_H__
-
-
 
