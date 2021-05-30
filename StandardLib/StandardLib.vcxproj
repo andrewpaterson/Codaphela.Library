@@ -92,7 +92,7 @@
     <ClInclude Include="ChunkFileNames.h" />
     <ClInclude Include="Class.h" />
     <ClInclude Include="Classes.h" />
-    <ClInclude Include="PrimitiveClasses.h" />
+    <ClInclude Include="UnmanagedClasses.h" />
     <ClInclude Include="DependentObjectAdder.h" />
     <ClInclude Include="DependentReadObject.h" />
     <ClInclude Include="DependentReadObjects.h" />
@@ -208,7 +208,7 @@
     <ClCompile Include="ChunkFileNames.cpp" />
     <ClCompile Include="Class.cpp" />
     <ClCompile Include="Classes.cpp" />
-    <ClCompile Include="PrimitiveClasses.cpp" />
+    <ClCompile Include="UnmanagedClasses.cpp" />
     <ClCompile Include="DependentObjectAdder.cpp" />
     <ClCompile Include="DependentReadObject.cpp" />
     <ClCompile Include="DependentReadObjects.cpp" />

@@ -15,7 +15,7 @@ void CClasses::Init(void)
 	mmcpClassesByName.Init();
 	mmcpClassesByType.Init();
 
-	mcPrimitives.Init(this);
+	mcUnmanaged.Init(this);
 
 	muiCurrentClassType = CLASS_TYPES - 1;
 
@@ -29,7 +29,7 @@ void CClasses::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CClasses::Kill(void)
 {
-	mcPrimitives.Kill();
+	mcUnmanaged.Kill();
 
 	mmcpClassesByName.Kill();
 	mmcpClassesByType.Kill();
@@ -162,9 +162,9 @@ CClass* CClasses::Get(uint32 iType)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPrimitiveClasses* CClasses::GetPrimitiveClasses(void)
+CUnmanagedClasses* CClasses::GetUnmanagedClasses(void)
 {
-	return &mcPrimitives;
+	return &mcUnmanaged;
 }
 
 

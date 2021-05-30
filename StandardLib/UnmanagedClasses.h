@@ -4,7 +4,7 @@
 
 
 class CClasses;
-class CPrimitiveClasses
+class CUnmanagedClasses
 {
 private:
 	CClasses*	mpcClasses;
