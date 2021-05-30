@@ -41,5 +41,20 @@ DATA_TYPE_IO_DEFINITION(SIOChar16, char16, WriteChar, ReadChar)
 DATA_TYPE_IO_DEFINITION(SIOFloat32, float32, WriteFloat, ReadFloat)
 DATA_TYPE_IO_DEFINITION(SIOFloat64, float64, WriteFloat, ReadFloat)
 
+
+struct SIOVoid
+{
+CONSTRUCTABLE(SIOVoid);
+	BOOL Save(CFileWriter* pcFile)
+	{
+		return TRUE;
+	}
+
+	BOOL Load(CFileReader* pcFile)
+	{
+		return TRUE;
+	}
+};
+
 #endif // __DATA_TYPES_IO_H__
 

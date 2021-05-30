@@ -57,6 +57,8 @@ void DataIOInit(void)
 	gcDataTypesIO.Add<SDouble3>(gcTypeNames.GetPrettyName(PT_M3float64));
 	gcDataTypesIO.Add<SDouble4>(gcTypeNames.GetPrettyName(PT_M4float64));
 	gcDataTypesIO.Add<SDouble4x4>(gcTypeNames.GetPrettyName(PT_M4x4float64));
+
+	gcDataTypesIO.Add<SIOVoid>(gcTypeNames.GetPrettyName(PT_void));
 }
 
 
@@ -84,7 +86,7 @@ BOOL DataIOValidate(void)
 {
 	if (!gbDataTypesIO)
 	{
-		gcLogger.Error("Global Data Types IO has not been initialised.  CallMemoryInit.");
+		gcLogger.Error("Global Data Types IO has not been initialised.  DataIOInit.");
 		return FALSE;
 	}
 	else
