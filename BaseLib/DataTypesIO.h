@@ -14,7 +14,7 @@ typedef BOOL (SDataTypeIO::* DataTypeIO_FileWriter)(CFileWriter*);
 typedef BOOL (SDataTypeIO::* DataTypeIO_FileReader)(CFileReader*);
 
 
-struct SDataTypeIOPointers
+struct SDataIO
 {
 	DataTypeIO_FileWriter	fWriter;
 	DataTypeIO_FileReader	fReader;
@@ -37,13 +37,14 @@ public:
 	template<class M>
 	void					Add(void);
 
-	DataTypeIO_FileWriter	GetSave(char* szClassName);
-	DataTypeIO_FileReader	GetLoad(char* szClassName);
+	DataTypeIO_FileWriter	Save(char* szClassName);
+	DataTypeIO_FileReader	Load(char* szClassName);
 	template<class M>
-	DataTypeIO_FileWriter	GetSave(void);
+	DataTypeIO_FileWriter	Save(void);
 	template<class M>
-	DataTypeIO_FileReader	GetLoad(void);
+	DataTypeIO_FileReader	Load(void);
 
+	SDataIO*				GetIO(char* szClassName);
 	int						NumDataIOs(void);
 };
 
@@ -55,14 +56,14 @@ public:
 template<class M>
 void CDataTypesIO::Add(char* szConstructorName)
 {
-	SDataTypeIOPointers*	psIO;
+	SDataIO*	psIO;
 	BOOL(M::*				fSpecificClassFileSave)(CFileWriter*);
 	BOOL(M::*				fSpecificClassFileLoad)(CFileReader*);
 
 	fSpecificClassFileSave = &M::Save;
 	fSpecificClassFileLoad = &M::Load;
 
-	psIO = (SDataTypeIOPointers*)mcDataIOs.Put(szConstructorName, sizeof(SDataTypeIOPointers));
+	psIO = (SDataIO*)mcDataIOs.Put(szConstructorName, sizeof(SDataIO));
 	psIO->fWriter = (DataTypeIO_FileWriter)fSpecificClassFileSave;
 	psIO->fReader = (DataTypeIO_FileReader)fSpecificClassFileLoad;
 }
@@ -87,14 +88,14 @@ template<class M>
 void CDataTypesIO::Add(void)
 {
 	M						m;
-	SDataTypeIOPointers*	psIO;
+	SDataIO*	psIO;
 	BOOL(M::*				fSpecificClassFileSave)(CFileWriter*);
 	BOOL(M::*				fSpecificClassFileLoad)(CFileReader*);
 
 	fSpecificClassFileSave = &M::Save;
 	fSpecificClassFileLoad = &M::Load;
 
-	psIO = (SDataTypeIOPointers*)mcDataIOs.Put(m.ClassName(), sizeof(SDataTypeIOPointers));
+	psIO = (SDataIO*)mcDataIOs.Put(m.ClassName(), sizeof(SDataIO));
 	psIO->fWriter = (DataTypeIO_FileWriter)fSpecificClassFileSave;
 	psIO->fReader = (DataTypeIO_FileReader)fSpecificClassFileLoad;
 }
@@ -105,11 +106,11 @@ void CDataTypesIO::Add(void)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-DataTypeIO_FileWriter CDataTypesIO::GetSave(void)
+DataTypeIO_FileWriter CDataTypesIO::Save(void)
 {
 	M m;
 
-	return GetSave((char*)m.ClassName());
+	return Save((char*)m.ClassName());
 }
 
 
@@ -118,11 +119,11 @@ DataTypeIO_FileWriter CDataTypesIO::GetSave(void)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-DataTypeIO_FileReader CDataTypesIO::GetLoad(void)
+DataTypeIO_FileReader CDataTypesIO::Load(void)
 {
 	M m;
 
-	return GetLoad((char*)m.ClassName());
+	return Load((char*)m.ClassName());
 }
 
 

@@ -1,5 +1,7 @@
 #ifndef __PRIMITIVE_H__
 #define __PRIMITIVE_H__
+#include "BaseLib/FileReader.h"
+#include "BaseLib/FileWriter.h"
 #include "PrimitiveObject.h"
 
 
@@ -8,7 +10,7 @@ class UInt32;
 template<class PRIMITIVE_TYPE>
 class CPrimitive : public CPrimitiveObject
 {
-private:
+protected:
 	PRIMITIVE_TYPE mVal;
 
 public:
@@ -40,7 +42,7 @@ public:
 };
 
 
-#define PRIMITIVE_TYPE_DEFINITION(CLASS_TYPE, C_PRIMITIVE, DATA_TYPE)  \
+#define PRIMITIVE_TYPE_DEFINITION(CLASS_TYPE, C_PRIMITIVE, DATA_TYPE, WRITE_FUNC, READ_FUNC)  \
 class CLASS_TYPE : public CPrimitive<C_PRIMITIVE> \
 { \
 public: \
@@ -51,7 +53,17 @@ public: \
 		Assign(val); \
 		return *this; \
 	} \
-}; 
+\
+	BOOL Save(CFileWriter* pcFile) \
+	{ \
+		return pcFile-> WRITE_FUNC (mVal); \
+	} \
+\
+	BOOL Load(CFileReader* pcFile) \
+	{ \
+		return pcFile-> READ_FUNC (&mVal); \
+	} \
+};
 
 
 #endif // __PRIMITIVE_H__

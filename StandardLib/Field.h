@@ -3,6 +3,7 @@
 #include "BaseLib/DataTypes.h"
 #include "BaseLib/Constructable.h"
 #include "BaseLib/Killable.h"
+#include "BaseLib/DataTypesIO.h"
 
 
 class CClass;
@@ -30,6 +31,7 @@ public:
 	virtual	BOOL		IsPrimitive(void);
 	virtual	BOOL		IsUnmanaged(void);
 	virtual	BOOL		IsEmbeddedObject(void);
+	virtual	SDataIO*	GetDataIO(void);
 
 protected:
 	virtual	size_t		GetNameOffset(void) =0;

@@ -41,18 +41,19 @@ public:
 						BOOL	ReadString(char* szString, int iMaxLength);
 
 	//Helpers.		
-						BOOL	ReadInt(int* pi);
-						BOOL	ReadInt(unsigned int* pi);
-						BOOL	ReadLong(long long int* plli);
-						BOOL	ReadLong(unsigned long long int* plli);
-						BOOL	ReadFloat(float* pf);
-						BOOL	ReadDouble(double* pf);
-						BOOL	ReadChar(char* pc);
-						BOOL	ReadChar(unsigned char* pc);
-						BOOL	ReadWChar(char16* pc);
+						BOOL	ReadInt(int8* pi);
+						BOOL	ReadInt(uint8* pi);
+						BOOL	ReadInt(int16* pi);
+						BOOL	ReadInt(uint16* pi);
+						BOOL	ReadInt(int32* pi);
+						BOOL	ReadInt(uint32* pi);
+						BOOL	ReadInt(int64* plli);
+						BOOL	ReadInt(uint64* plli);
+						BOOL	ReadFloat(float32* pf);
+						BOOL	ReadFloat(float64* pf);
+						BOOL	ReadChar(char8* pc);
+						BOOL	ReadChar(char16* pc);
 						BOOL	ReadBool(BOOL* pb);
-						BOOL	ReadShort(int16* pi);
-						BOOL	ReadShort(uint16* pi);
 						BOOL	ReadBits(void* pvData, int iByteLength);
 						BOOL	ReadIntArray(int* pai, int iLength);
 

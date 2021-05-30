@@ -90,7 +90,7 @@ OIndex CSequence::PeekNext(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CSequence::WriteIndex(OIndex oi)
 {
-	return mcFile.WriteLong(moiNext);
+	return mcFile.WriteInt(moiNext);
 }
 
 
@@ -105,7 +105,7 @@ OIndex CSequence::ReadIndex(void)
 
 	if (mcFile.Exists())
 	{
-		bResult = mcFile.ReadLong(&oi);
+		bResult = mcFile.ReadInt(&oi);
 		if (bResult)
 		{
 			return oi;

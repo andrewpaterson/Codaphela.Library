@@ -16,7 +16,6 @@
 #define CLASS_FLAGS_PRIMITIVE		0x01
 #define CLASS_FLAGS_COMPLETE		0x02
 #define CLASS_FLAGS_SYSTEM			0x04
-#define CLASS_FLAGS_SIZE_COMPUTED	0x08
 
 
 class CPointer;
@@ -60,7 +59,6 @@ public:
 	void			System(void);
 	BOOL			IsSystem(void);
 	CField*			GetField(char* szFieldName);
-	void			SetSize(uint32 uiSize);
 
 	CArrayVoidPtr*	GetPointerFields(void);
 	CArrayVoidPtr*	GetEmbeddedObjectFields(void);

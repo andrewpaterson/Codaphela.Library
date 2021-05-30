@@ -45,8 +45,7 @@ void CClasses::AddSystemClasses(void)
 {
 	CClass*		pcClass;
 
-	pcClass = Add("Pointer");
-	pcClass->SetSize(sizeof(CPointer));
+	pcClass = Add("Pointer", sizeof(CPointer));
 	pcClass->System();
 	pcClass->Complete();
 
@@ -89,9 +88,9 @@ CClass* CClasses::Add(const char* szClassName, uint32 uiSize, EPrimitiveType eTy
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CClass* CClasses::Add(char* szClassName)
+CClass* CClasses::Add(char* szClassName, uint32 uiSize)
 {
-	return Add(szClassName, 0, (EPrimitiveType)GetNextClassType());
+	return Add(szClassName, uiSize, (EPrimitiveType)GetNextClassType());
 }
 
 
@@ -99,9 +98,9 @@ CClass* CClasses::Add(char* szClassName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CClass* CClasses::Add(const char* szClassName)
+CClass* CClasses::Add(const char* szClassName, uint32 uiSize)
 {
-	return Add((char*)szClassName);
+	return Add((char*)szClassName, uiSize);
 }
 
 

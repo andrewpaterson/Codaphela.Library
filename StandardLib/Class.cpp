@@ -1,3 +1,4 @@
+#include "BaseLib/GlobalDataTypesIO.h"
 #include "PrimitiveObject.h"
 #include "BaseObject.h"
 #include "Classes.h"
@@ -15,14 +16,7 @@ void CClass::Init(char* szClassName, uint32 uiSize, EPrimitiveType eType, CClass
 
 	muiSize = uiSize;
 	meType = eType;
-	if (uiSize == 0)
-	{
-		muiFlags = 0;
-	}
-	else
-	{
-		muiFlags = CLASS_FLAGS_SIZE_COMPUTED;
-	}
+	muiFlags = 0;
 
 	macFields.Init();
 
@@ -69,13 +63,6 @@ void CClass::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CClass::Complete(void)
 {
-	uint32	uiSize;
-
-	if (!(muiFlags & CLASS_FLAGS_SIZE_COMPUTED))
-	{
-		uiSize = ComputeSize();
-		SetSize(uiSize);
-	}
 	muiFlags |= CLASS_FLAGS_COMPLETE;
 }
 
@@ -134,17 +121,6 @@ BOOL CClass::IsSystem(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CClass::SetSize(uint32 uiSize)
-{
-	muiFlags |= CLASS_FLAGS_SIZE_COMPUTED;
-	muiSize = uiSize;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 CField* CClass::GetField(char* szFieldName)
 {
 	CField*		pcField;
@@ -191,16 +167,18 @@ void CClass::Pointer(CBaseObject* pcThis, CPointer* pcPointer, char* szName)
 //////////////////////////////////////////////////////////////////////////
 void CClass::Primitive(CBaseObject* pcThis, CPrimitiveObject* pcPrimitive, char* szName)
 {
-	CPrimitiveField*		pcDataField;
-	ptrdiff_t		iOffset;
-	CClass*			pcClass;
+	CPrimitiveField*	pcDataField;
+	ptrdiff_t			iOffset;
+	CClass*				pcClass;
+	SDataIO*			psIO;
 
 	iOffset = (size_t)pcPrimitive - (size_t)pcThis;
 	pcDataField = (CPrimitiveField*)AddField(sizeof(CPrimitiveField), szName);
 	PostMalloc<CPrimitiveField>(pcDataField);
 	mapcPrimitives.Add(pcDataField);
 	pcClass = GetClass(pcPrimitive->GetClassType());
-	pcDataField->Init(pcClass, iOffset, this, szName);
+	psIO = gcDataTypesIO.GetIO(pcClass->GetName());
+	pcDataField->Init(pcClass, iOffset, this, psIO, szName);
 }
 
 
@@ -264,7 +242,7 @@ void CClass::UnmanagedData(CBaseObject* pcThis, void* pv, size_t uiSizeof, char*
 	CUnmanagedField* pcUnmanagedField;
 
 	pcUnmanagedField = AddUnmanaged(pcThis, PT_Data, pv, szFieldName);
-	pcUnmanagedField->Init(PT_Data, (size_t)pv - (size_t)pcThis, this, uiSizeof, 1, szFieldName);
+	pcUnmanagedField->Init(PT_Data, (size_t)pv - (size_t)pcThis, this, uiSizeof, 1, NULL, szFieldName);
 }
 
 
@@ -290,7 +268,7 @@ void CClass::Unmanaged(CBaseObject* pcThis, EPrimitiveType eType, void* pv, char
 	CUnmanagedField* pcUnmanagedField;
 
 	pcUnmanagedField = AddUnmanaged(pcThis, eType, pv, szFieldName);
-	pcUnmanagedField->Init(eType, (size_t)pv - (size_t)pcThis, this, szFieldName);
+	pcUnmanagedField->Init(eType, (size_t)pv - (size_t)pcThis, this, NULL, szFieldName);
 }
 
 
@@ -303,7 +281,7 @@ void CClass::Unmanaged(CBaseObject* pcThis, EPrimitiveType eType, void* pv, size
 	CUnmanagedField* pcUnmanagedField;
 
 	pcUnmanagedField = AddUnmanaged(pcThis, eType, pv, szFieldName);
-	pcUnmanagedField->Init(eType, (size_t)pv - (size_t)pcThis, this, uiLength, szFieldName);
+	pcUnmanagedField->Init(eType, (size_t)pv - (size_t)pcThis, this, uiLength, NULL, szFieldName);
 }
 
 

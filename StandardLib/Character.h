@@ -4,8 +4,8 @@
 #include "Primitive.h"
 
 
-PRIMITIVE_TYPE_DEFINITION(Char8, char8, PT_char8)
-PRIMITIVE_TYPE_DEFINITION(Char16, char16, PT_char16)
+PRIMITIVE_TYPE_DEFINITION(Char8, char8, PT_char8, WriteChar, ReadChar)
+PRIMITIVE_TYPE_DEFINITION(Char16, char16, PT_char16, WriteChar, ReadChar)
 
 
 #endif // __PRIMITIVE_CHARACTER_H__

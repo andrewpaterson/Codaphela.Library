@@ -36,8 +36,8 @@ public:
 
 	CClass*				Add(char* szClassName, uint32 uiSize, EPrimitiveType eType);
 	CClass*				Add(const char* szClassName, uint32 uiSize, EPrimitiveType eType);
-	CClass*				Add(char* szClassName);
-	CClass*				Add(const char* szClassName);
+	CClass*				Add(char* szClassName, uint32 uiSize);
+	CClass*				Add(const char* szClassName, uint32 uiSize);
 
 	CClass*				GetPointer(void);
 

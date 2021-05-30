@@ -8,7 +8,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPrimitiveField::Init(CClass* pcFieldClass, ptrdiff_t iOffset, CClass* pcContainingClass, char* szName)
+void CPrimitiveField::Init(CClass* pcFieldClass, ptrdiff_t iOffset, CClass* pcContainingClass, SDataIO* pcIO, char* szName)
 {
 	if (iOffset >= 0)
 	{
@@ -18,6 +18,7 @@ void CPrimitiveField::Init(CClass* pcFieldClass, ptrdiff_t iOffset, CClass* pcCo
 	{
 		CField::Init(NULL, 0, pcContainingClass, szName);
 	}
+	mpcIO = pcIO;
 }
 
 
@@ -65,7 +66,6 @@ CPrimitiveObject* CPrimitiveField::GetPrimitiveObject(CBaseObject* pcFieldContai
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -74,3 +74,14 @@ size_t CPrimitiveField::GetNameOffset(void)
 {
 	return sizeof(CPrimitiveField);
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+SDataIO* CPrimitiveField::GetDataIO(void)
+{
+	return mpcIO;
+}
+

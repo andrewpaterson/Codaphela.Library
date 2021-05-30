@@ -89,9 +89,9 @@ BOOL CFileReader::ReadString(char* szString, int iMaxLength)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileReader::ReadInt(int* pi)
+BOOL CFileReader::ReadInt(int32* pi)
 {
-	CheckRead(pi, sizeof(int));
+	CheckRead(pi, sizeof(int32));
 	return TRUE;
 }
 
@@ -100,9 +100,9 @@ BOOL CFileReader::ReadInt(int* pi)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileReader::ReadInt(unsigned int* pui)
+BOOL CFileReader::ReadInt(uint32* pui)
 {
-	CheckRead(pui, sizeof(unsigned int));
+	CheckRead(pui, sizeof(uint32));
 	return TRUE;
 }
 
@@ -111,9 +111,9 @@ BOOL CFileReader::ReadInt(unsigned int* pui)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileReader::ReadLong(long long int* plli)
+BOOL CFileReader::ReadInt(int64* plli)
 {
-	CheckRead(plli, sizeof(long long int));
+	CheckRead(plli, sizeof(int64));
 	return TRUE;
 }
 
@@ -122,9 +122,9 @@ BOOL CFileReader::ReadLong(long long int* plli)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileReader::ReadLong(unsigned long long int* pulli)
+BOOL CFileReader::ReadInt(uint64* pulli)
 {
-	CheckRead(pulli, sizeof(unsigned long long int));
+	CheckRead(pulli, sizeof(uint64));
 	return TRUE;
 }
 
@@ -133,9 +133,9 @@ BOOL CFileReader::ReadLong(unsigned long long int* pulli)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileReader::ReadFloat(float* pf)
+BOOL CFileReader::ReadFloat(float32* pf)
 {
-	CheckRead(pf, sizeof(float));
+	CheckRead(pf, sizeof(float32));
 	return TRUE;
 }
 
@@ -144,9 +144,9 @@ BOOL CFileReader::ReadFloat(float* pf)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileReader::ReadDouble(double* pf)
+BOOL CFileReader::ReadFloat(float64* pf)
 {
-	CheckRead(pf, sizeof(double));
+	CheckRead(pf, sizeof(float64));
 	return TRUE;
 }
 
@@ -155,7 +155,7 @@ BOOL CFileReader::ReadDouble(double* pf)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileReader::ReadChar(char* pc)
+BOOL CFileReader::ReadChar(char8* pc)
 {
 	CheckRead(pc, sizeof(char));
 	return TRUE;
@@ -166,18 +166,7 @@ BOOL CFileReader::ReadChar(char* pc)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileReader::ReadChar(unsigned char* pc)
-{
-	CheckRead(pc, sizeof(unsigned char));
-	return TRUE;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-BOOL CFileReader::ReadWChar(char16* pc)
+BOOL CFileReader::ReadChar(char16* pc)
 {
 	CheckRead(pc, sizeof(char16));
 	return TRUE;
@@ -199,7 +188,7 @@ BOOL CFileReader::ReadBool(BOOL* pb)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileReader::ReadShort(int16* pi)
+BOOL CFileReader::ReadInt(int16* pi)
 {
 	CheckRead(pi, sizeof(int16));
 	return TRUE;
@@ -210,9 +199,31 @@ BOOL CFileReader::ReadShort(int16* pi)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileReader::ReadShort(uint16* pi)
+BOOL CFileReader::ReadInt(uint16* pi)
 {
 	CheckRead(pi, sizeof(uint16));
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+BOOL CFileReader::ReadInt(int8* pi)
+{
+	CheckRead(pi, sizeof(int8));
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+BOOL CFileReader::ReadInt(uint8* pi)
+{
+	CheckRead(pi, sizeof(uint8));
 	return TRUE;
 }
 

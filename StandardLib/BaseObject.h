@@ -150,6 +150,7 @@ public:
 
 			BOOL				TestedForSanity(void);
 			CObjects*			GetObjects(void);
+			CClasses*			GetClasses(void);
 			CStackPointers*		GetStackPointers(void);
 	virtual void				SetDistToStack(int iDistToStack);
 
