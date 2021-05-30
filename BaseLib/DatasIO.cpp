@@ -46,7 +46,7 @@ void CDatasIO::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-DataTypeIO_FileWriter CDatasIO::Save(char* szClassName)
+DataIO_FileWriter CDatasIO::Save(char* szClassName)
 {
 	SDataIO* psIO;
 

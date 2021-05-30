@@ -48,25 +48,27 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define MIN_ULONG	((unsigned long long)0x0000000000000000LL)
 
 
-#define INT_BYTE_SIZE		4
-#define SHORT_BYTE_SIZE		2
-#define CHAR_BYTE_SIZE		1
+#define INT_BYTE_SIZE		sizeof(int32)
+#define SHORT_BYTE_SIZE		sizeof(int16)
+#define CHAR_BYTE_SIZE		sizeof(char8)
 #define BYTE_BYTE_SIZE		1
-#define WIDE_CHAR_BYTE_SIZE	2
-#define FLOAT_BYTE_SIZE		4
-#define DOUBLE_BYTE_SIZE	82
-#define LONG_BYTE_SIZE		8
-#define FLOAT2_BYTE_SIZE	8
-#define FLOAT3_BYTE_SIZE	12
-#define FLOAT4_BYTE_SIZE	16
-#define DOUBLE2_BYTE_SIZE	16
-#define DOUBLE3_BYTE_SIZE	24
-#define DOUBLE4_BYTE_SIZE	32
-#define INT2_BYTE_SIZE		8
-#define INT3_BYTE_SIZE		12
-#define INT4_BYTE_SIZE		16
-#define BOOL_BYTE_SIZE		4
+#define WIDE_CHAR_BYTE_SIZE	sizeof(char16)
+#define FLOAT_BYTE_SIZE		sizeof(float32)
+#define DOUBLE_BYTE_SIZE	sizeof(float64)
+#define LONG_BYTE_SIZE		sizeof(int64)
+#define FLOAT2_BYTE_SIZE	sizeof(SFloat2)
+#define FLOAT3_BYTE_SIZE	sizeof(SFloat3)
+#define FLOAT4_BYTE_SIZE	sizeof(SFloat4)
+#define DOUBLE2_BYTE_SIZE	sizeof(SDouble2)
+#define DOUBLE3_BYTE_SIZE	sizeof(SDouble3)
+#define DOUBLE4_BYTE_SIZE	sizeof(SDouble4)
+#define INT2_BYTE_SIZE		sizeof(SInt2)
+#define INT3_BYTE_SIZE		sizeof(SInt3)
+#define INT4_BYTE_SIZE		sizeof(SInt4)
+#define BOOL_BYTE_SIZE		sizeof(BOOL)
 #define VOID_BYTE_SIZE		0
+#define FLOAT4x4_BYTE_SIZE	sizeof(SFloat4x4)
+#define DOUBLE4x4_BYTE_SIZE	sizeof(SDouble4x4)
 
 #define BIT_SIZE			(1 | SIZE_IN_BITS)
 #define CRUMB_SIZE			(2 | SIZE_IN_BITS)
@@ -117,6 +119,9 @@ enum EPrimitiveType
 	PT_nickle,		//5
 	PT_sixbits,		//6
 	PRIMTIVE_CONVERTER_END, //See TypeConverter_Mapping.inl
+
+	PT_M4x4float32,
+	PT_M4x4float64,
 
 	//"Complex" primitives
 	PT_String,		//CChars

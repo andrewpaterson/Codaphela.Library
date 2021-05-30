@@ -933,6 +933,21 @@
     <ClInclude Include="DataOrderers.h">
       <Filter>Source\Data\Index\DataOrder</Filter>
     </ClInclude>
+    <ClInclude Include="DataTypesIO.h">
+      <Filter>Source\Data\Types\File</Filter>
+    </ClInclude>
+    <ClInclude Include="Double2.h">
+      <Filter>Source\Data\Geometric</Filter>
+    </ClInclude>
+    <ClInclude Include="Double3.h">
+      <Filter>Source\Data\Geometric</Filter>
+    </ClInclude>
+    <ClInclude Include="Double4.h">
+      <Filter>Source\Data\Geometric</Filter>
+    </ClInclude>
+    <ClInclude Include="Double4x4.h">
+      <Filter>Source\Data\Geometric</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -1480,6 +1495,21 @@
     </ClCompile>
     <ClCompile Include="DataCallback.cpp">
       <Filter>Source\Data</Filter>
+    </ClCompile>
+    <ClCompile Include="DataTypesIO.cpp">
+      <Filter>Source\Data\Types\File</Filter>
+    </ClCompile>
+    <ClCompile Include="Double2.cpp">
+      <Filter>Source\Data\Geometric</Filter>
+    </ClCompile>
+    <ClCompile Include="Double3.cpp">
+      <Filter>Source\Data\Geometric</Filter>
+    </ClCompile>
+    <ClCompile Include="Double4.cpp">
+      <Filter>Source\Data\Geometric</Filter>
+    </ClCompile>
+    <ClCompile Include="Double4x4.cpp">
+      <Filter>Source\Data\Geometric</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
