@@ -635,7 +635,7 @@ BOOL CPackFiles::ReadHeader(void)
 	CFileHeader	cFileHeader;
 
 	ReturnOnFalse(cFileHeader.Load(&mcFile, PACK_FILE_WRITER, PACK_FILE_VERSION));
-	ReturnOnFalse(mcFile.ReadLong(&miNodes));
+	ReturnOnFalse(mcFile.ReadInt(&miNodes));
 
 	miPosition = mcFile.GetFilePos();
 	miNextNodesPtr = miPosition - sizeof(filePos);
@@ -672,7 +672,7 @@ BOOL CPackFiles::ReadNodes(void)
 			}
 
 			miNextNodesPtr = miPosition;
-			bResult = mcFile.ReadLong(&miNodes);
+			bResult = mcFile.ReadInt(&miNodes);
 			if (!bResult)
 			{
 				break;
@@ -737,7 +737,7 @@ BOOL CPackFiles::WriteNodes(void)
 	iPosition = mcFile.GetFileSize();
 
 	mcFile.Seek(miNextNodesPtr, EFSO_SET);
-	ReturnOnFalse(mcFile.WriteLong(iPosition));
+	ReturnOnFalse(mcFile.WriteInt(iPosition));
 
 	mcFile.Seek(iPosition, EFSO_SET);
 	iNumFiles = GetNumUnwrittenNames();

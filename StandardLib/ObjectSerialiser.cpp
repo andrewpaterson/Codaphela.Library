@@ -163,8 +163,8 @@ BOOL CObjectSerialiser::WriteDependent(CEmbeddedObject* pcDependent)
 
 		InitIdentifier(&sIdentifier, pcContainer);
 		bResult = WriteIdentifier(&sIdentifier);
-		bResult &= WriteShort(iNumEmbedded);
-		bResult &= WriteShort(iEmbeddedIndex);
+		bResult &= WriteInt(iNumEmbedded);
+		bResult &= WriteInt(iEmbeddedIndex);
 
 		if (bResult)
 		{
@@ -266,7 +266,7 @@ BOOL CObjectSerialiser::WriteIdentifier(CObjectIdentifier* psIdentifier)
 
 	if (psIdentifier->mcType != OBJECT_POINTER_NULL)
 	{
-		bResult = WriteLong(psIdentifier->moi);
+		bResult = WriteInt(psIdentifier->moi);
 		ReturnOnFalse(bResult);
 
 		if (psIdentifier->mcType == OBJECT_POINTER_NAMED)

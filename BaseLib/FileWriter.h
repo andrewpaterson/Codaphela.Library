@@ -39,18 +39,19 @@ public:
 						BOOL	WriteString(const char* szString);
 
 	//Helpers.		
+						BOOL	WriteInt(int8 i);
+						BOOL	WriteInt(uint8 i);
+						BOOL	WriteInt(int16 i);
+						BOOL	WriteInt(uint16 i);
 						BOOL	WriteInt(int32 i);
-						BOOL	WriteInt(unsigned int i);
-						BOOL	WriteLong(long long int i);
-						BOOL	WriteLong(unsigned long long int i);
-						BOOL	WriteFloat(float f);
-						BOOL	WriteDouble(double f);
-						BOOL	WriteChar(char c);
-						BOOL	WriteChar(unsigned char c);
-						BOOL	WriteWChar(char16 c);
+						BOOL	WriteInt(uint32 i);
+						BOOL	WriteInt(int64 i);
+						BOOL	WriteInt(uint64 i);
+						BOOL	WriteFloat(float32 f);
+						BOOL	WriteFloat(float64 f);
+						BOOL	WriteChar(char8 c);
+						BOOL	WriteChar(char16 c);
 						BOOL	WriteBool(BOOL b);
-						BOOL	WriteShort(int16 i);
-						BOOL	WriteShort(uint16 i);
 						BOOL	WriteBits(void* pvData, int iBitLength);
 
 						BOOL	WriteIntArray(int* pai, int iLength);

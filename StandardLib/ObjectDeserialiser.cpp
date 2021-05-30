@@ -144,11 +144,11 @@ BOOL CObjectDeserialiser::ReadIdentifier(CObjectIdentifier* pcPointerHeader)
 	}
 	else if (pcPointerHeader->mcType == OBJECT_POINTER_ID)
 	{
-		ReturnOnFalse(ReadLong(&pcPointerHeader->moi));
+		ReturnOnFalse(ReadInt(&pcPointerHeader->moi));
 	}
 	else if (pcPointerHeader->mcType == OBJECT_POINTER_NAMED)
 	{
-		ReturnOnFalse(ReadLong(&pcPointerHeader->moi));
+		ReturnOnFalse(ReadInt(&pcPointerHeader->moi));
 		ReturnOnFalse(pcPointerHeader->mszObjectName.ReadChars(this));
 	}
 	else
@@ -204,8 +204,8 @@ BOOL CObjectDeserialiser::ReadPointer(CPointer* pObject)
 
 	if ((cHeader.mcType == OBJECT_POINTER_NAMED) || (cHeader.mcType == OBJECT_POINTER_ID))
 	{
-		bResult = ReadShort(&cHeader.miNumEmbedded);
-		bResult &= ReadShort(&cHeader.miEmbeddedIndex);
+		bResult = ReadInt(&cHeader.miNumEmbedded);
+		bResult &= ReadInt(&cHeader.miEmbeddedIndex);
 		if (!bResult)
 		{
 			cHeader.Kill();
@@ -241,8 +241,8 @@ BOOL CObjectDeserialiser::ReadDependent(CEmbeddedObject** ppcObjectPtr, CBaseObj
 	{
 		if ((cHeader.mcType == OBJECT_POINTER_NAMED) || (cHeader.mcType == OBJECT_POINTER_ID))
 		{
-			bResult = ReadShort(&cHeader.miNumEmbedded);
-			bResult &= ReadShort(&cHeader.miEmbeddedIndex);
+			bResult = ReadInt(&cHeader.miNumEmbedded);
+			bResult &= ReadInt(&cHeader.miEmbeddedIndex);
 
 			*ppcObjectPtr = NULL;
 			bResult &= mpcDependents->AddDependent(&cHeader, ppcObjectPtr, pcContaining, cHeader.miNumEmbedded, cHeader.miEmbeddedIndex);

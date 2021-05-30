@@ -46,11 +46,11 @@ void CDataTypesIO::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-DataTypeIO_FileWriter CDataTypesIO::GetSave(char* szClassName)
+DataTypeIO_FileWriter CDataTypesIO::Save(char* szClassName)
 {
-	SDataTypeIOPointers* psIO;
+	SDataIO* psIO;
 
-	psIO = (SDataTypeIOPointers*)mcDataIOs.Get(szClassName);
+	psIO = (SDataIO*)mcDataIOs.Get(szClassName);
 	if (psIO)
 	{
 		return psIO->fWriter;
@@ -66,11 +66,11 @@ DataTypeIO_FileWriter CDataTypesIO::GetSave(char* szClassName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-DataTypeIO_FileReader CDataTypesIO::GetLoad(char* szClassName)
+DataTypeIO_FileReader CDataTypesIO::Load(char* szClassName)
 {
-	SDataTypeIOPointers* psIO;
+	SDataIO* psIO;
 
-	psIO = (SDataTypeIOPointers*)mcDataIOs.Get(szClassName);
+	psIO = (SDataIO*)mcDataIOs.Get(szClassName);
 	if (psIO)
 	{
 		return psIO->fReader;
@@ -79,6 +79,16 @@ DataTypeIO_FileReader CDataTypesIO::GetLoad(char* szClassName)
 	{
 		return NULL;
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+ SDataIO* CDataTypesIO::GetIO(char* szClassName)
+{
+	return (SDataIO*)mcDataIOs.Get(szClassName, NULL);
 }
 
 

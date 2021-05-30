@@ -150,7 +150,7 @@ BOOL CMapStringBlock::Remove(char* szKey)
 {
 	int	iStrLen;
 
-	if (!StrEmpty(szKey))
+	if (StrEmpty(szKey))
 	{
 		return FALSE;
 	}

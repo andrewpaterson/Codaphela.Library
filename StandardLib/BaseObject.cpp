@@ -107,7 +107,7 @@ void CBaseObject::PreClass(void)
 		pcClass = pcClasses->Get(szClassName);
 		if (!pcClass)
 		{
-			pcClass = pcClasses->Add(szClassName);
+			pcClass = pcClasses->Add(szClassName, ClassSize());
 		}
 		SetClass(pcClass);
 		if (!pcClass->IsComplete())
@@ -1196,21 +1196,26 @@ BOOL CBaseObject::SavePrimitives(CObjectSerialiser* pcFile)
 	int						i;
 	CPrimitiveObject*		pcPrimitive;
 	BOOL					bResult;
+	CPrimitiveField*		pcPrimitiveField;
+	SDataIO*				psIO;
 
 	papv = mpcClass->GetPrimitiveFields();
 	ppacPrimitiveFields = (CPrimitiveField**)papv->GetData();
 	iNumFields = papv->NumElements();
 	for (i = 0; i < iNumFields; i++)
 	{
-		pcPrimitive = ppacPrimitiveFields[i]->GetPrimitiveObject(this);
-		bResult = FALSE; //pcPrimitive->Write(pcFile);
+		pcPrimitiveField = ppacPrimitiveFields[i];
+		psIO = pcPrimitiveField->GetDataIO();
+		pcPrimitive = pcPrimitiveField->GetPrimitiveObject(this);
+		bResult = (((SDataTypeIO*)pcPrimitive)->*(psIO->fWriter))(pcFile);
+		
 		if (!bResult)
 		{
 			return FALSE;
 		}
 	}
 
-	return FALSE;
+	return TRUE;
 }
 
 
@@ -1360,9 +1365,40 @@ int CBaseObject::TestGetNumEmbeddedFromFlags(void)
 CObjects* CBaseObject::GetObjects(void)
 {
 	CBaseObject*	pcBaseObject;
+	CObjects*		pcObjects;
 
 	pcBaseObject = GetEmbeddingContainer();
-	return pcBaseObject->mpcObjectsThisIn;
+	pcObjects = pcBaseObject->mpcObjectsThisIn;
+	if (!pcObjects)
+	{
+		if (!ObjectsValidate())
+		{
+			return NULL;
+		}
+
+		pcObjects = &gcObjects;
+	}
+	return pcObjects;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CClasses* CBaseObject::GetClasses(void)
+{
+	CObjects*		pcObjects;
+
+	pcObjects = GetObjects();
+	if (pcObjects)
+	{
+		return pcObjects->GetClasses();
+	}
+	else
+	{
+		return NULL;
+	}
 }
 
 
