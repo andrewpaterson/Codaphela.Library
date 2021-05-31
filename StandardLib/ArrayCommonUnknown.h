@@ -66,6 +66,7 @@ public:
 	void				Init(BOOL bTypeKnown, BOOL bKillElements, BOOL bUnique, BOOL bIgnoreNull, BOOL bPreserveOrder, int iChunkSize);
 	void 				Kill(void);
 	void 				ReInit(void);
+
 	BOOL				Save(CFileWriter* pcFile);
 	BOOL				Load(CFileReader* pcFile);
 

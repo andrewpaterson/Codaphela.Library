@@ -23,6 +23,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "Numbers.h"
 #include "IntegerHelper.h"
 #include "FloatHelper.h"
+#include "DataIO.h"
 #include "Float2.h"
 #include "Float3.h"
 #include "Float4x4.h"
@@ -236,12 +237,13 @@ void SFloat4::Zero(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL SFloat4::Save(CFileWriter* pcFile)
 {
-	ReturnOnFalse(pcFile->WriteFloat(x));
-	ReturnOnFalse(pcFile->WriteFloat(y));
-	ReturnOnFalse(pcFile->WriteFloat(z));
-	ReturnOnFalse(pcFile->WriteFloat(w));
-	return TRUE;
+	BOOL	bResult;
 
+	bResult = pcFile->WriteFloat(x);
+	bResult &= pcFile->WriteFloat(y);
+	bResult &= pcFile->WriteFloat(z);
+	bResult &= pcFile->WriteFloat(w);
+	return bResult;
 }
 
 
@@ -251,11 +253,33 @@ BOOL SFloat4::Save(CFileWriter* pcFile)
 //////////////////////////////////////////////////////////////////////////
 BOOL SFloat4::Load(CFileReader* pcFile)
 {
-	ReturnOnFalse(pcFile->ReadFloat(&x));
-	ReturnOnFalse(pcFile->ReadFloat(&y));
-	ReturnOnFalse(pcFile->ReadFloat(&z));
-	ReturnOnFalse(pcFile->ReadFloat(&w));
-	return TRUE;
+	BOOL	bResult;
+
+	bResult = pcFile->ReadFloat(&x);
+	bResult &= pcFile->ReadFloat(&y);
+	bResult &= pcFile->ReadFloat(&z);
+	bResult &= pcFile->ReadFloat(&w);
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL SFloat4::Save(CFileWriter* pcFile, size_t uiCount)
+{
+	return SaveMultiple<SFloat4>(this, pcFile, uiCount);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL SFloat4::Load(CFileReader* pcFile, size_t uiCount)
+{
+	return LoadMultiple<SFloat4>(this, pcFile, uiCount);
 }
 
 

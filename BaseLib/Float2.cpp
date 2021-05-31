@@ -22,6 +22,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #include "Numbers.h"
 #include "FloatHelper.h"
+#include "DataIO.h"
 #include "Float3.h"
 #include "Float2.h"
 
@@ -214,9 +215,11 @@ void SFloat2::Zero(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL SFloat2::Save(CFileWriter* pcFile)
 {
-	ReturnOnFalse(pcFile->WriteFloat(x));
-	ReturnOnFalse(pcFile->WriteFloat(y));
-	return TRUE;
+	BOOL	bResult;
+
+	bResult = pcFile->WriteFloat(x);
+	bResult &= pcFile->WriteFloat(y);
+	return bResult;
 }
 
 
@@ -226,11 +229,32 @@ BOOL SFloat2::Save(CFileWriter* pcFile)
 //////////////////////////////////////////////////////////////////////////
 BOOL SFloat2::Load(CFileReader* pcFile)
 {
-	ReturnOnFalse(pcFile->ReadFloat(&x));
-	ReturnOnFalse(pcFile->ReadFloat(&y));
-	return TRUE;
+	BOOL	bResult;
+
+	bResult = pcFile->ReadFloat(&x);
+	bResult &= pcFile->ReadFloat(&y);
+	return bResult;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL SFloat2::Save(CFileWriter* pcFile, size_t uiCount)
+{
+	return SaveMultiple<SFloat2>(this, pcFile, uiCount);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL SFloat2::Load(CFileReader* pcFile, size_t uiCount)
+{
+	return LoadMultiple<SFloat2>(this, pcFile, uiCount);
+}
 
 
 //////////////////////////////////////////////////////////////////////////

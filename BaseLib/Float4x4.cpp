@@ -24,6 +24,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "IntegerHelper.h"
 #include "Numbers.h"
 #include "FloatHelper.h"
+#include "DataIO.h"
 #include "Float2.h"
 #include "Float3.h"
 #include "Float4.h"
@@ -118,6 +119,26 @@ BOOL SFloat4x4::Load(CFileReader* pcFile)
 	bResult |= z.Load(pcFile);
 	bResult |= pos.Load(pcFile);
 	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL SFloat4x4::Save(CFileWriter* pcFile, size_t uiCount)
+{
+	return SaveMultiple<SFloat4x4>(this, pcFile, uiCount);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL SFloat4x4::Load(CFileReader* pcFile, size_t uiCount)
+{
+	return LoadMultiple<SFloat4x4>(this, pcFile, uiCount);
 }
 
 

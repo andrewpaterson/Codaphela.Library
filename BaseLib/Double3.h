@@ -24,6 +24,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define __DOUBLE_3_H__
 #include "Define.h"
 #include "Constructable.h"
+#include "DatasIO.h"
 #include "ChunkFile.h"
 
 
@@ -64,6 +65,9 @@ public:
 
 	BOOL 	Save(CFileWriter* pcFile);
 	BOOL 	Load(CFileReader* pcFile);
+	BOOL	Save(CFileWriter* pcFile, size_t uiCount);
+	BOOL	Load(CFileReader* pcFile, size_t uiCount);
+
 	void 	Fix(void);
 	void 	ToString(CChars* psx, int iWholeNumbers = -1, int iDecimals = 2);
 	int		WholeNumbers(void);

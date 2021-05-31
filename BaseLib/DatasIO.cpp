@@ -46,7 +46,7 @@ void CDatasIO::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-DataIO_FileWriter CDatasIO::Save(char* szClassName)
+DataIO_FileWriter CDatasIO::GetFileWriter(char* szClassName)
 {
 	SDataIO* psIO;
 
@@ -66,7 +66,7 @@ DataIO_FileWriter CDatasIO::Save(char* szClassName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-DataIO_FileReader CDatasIO::Load(char* szClassName)
+DataIO_FileReader CDatasIO::GetFileReader(char* szClassName)
 {
 	SDataIO* psIO;
 
@@ -131,4 +131,23 @@ BOOL SDataTypeIO::Load(CFileReader* pcFile)
 	return TRUE;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL SDataTypeIO::Save(CFileWriter* pcFile, size_t uiCount)
+{
+	return SaveMultiple<SDataTypeIO>(this, pcFile, uiCount);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL SDataTypeIO::Load(CFileReader* pcFile, size_t uiCount)
+{
+	return LoadMultiple<SDataTypeIO>(this, pcFile, uiCount);
+}
 

@@ -59,14 +59,17 @@ public:
 	BOOL operator == (const SFloat2&) const;
 	BOOL operator != (const SFloat2&) const;
 
-	void Init(float x, float y);
-	void Init(int x, int y);
-	void Zero(void);
+	void	Init(float x, float y);
+	void	Init(int x, int y);
+	void	Zero(void);
 
-	BOOL Save(CFileWriter* pcFile);
-	BOOL Load(CFileReader* pcFile);
-	void Fix(void);
-	void Dump(void);
+	BOOL	Save(CFileWriter* pcFile);
+	BOOL	Load(CFileReader* pcFile);
+	BOOL	Save(CFileWriter* pcFile, size_t uiCount);
+	BOOL	Load(CFileReader* pcFile, size_t uiCount);
+
+	void	Fix(void);
+	void	Dump(void);
 };
 
 

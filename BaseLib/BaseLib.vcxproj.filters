@@ -948,6 +948,9 @@
     <ClInclude Include="Double4x4.h">
       <Filter>Source\Data\Geometric</Filter>
     </ClInclude>
+    <ClInclude Include="DataIO.h">
+      <Filter>Source\Data\Types\File</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">

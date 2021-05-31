@@ -64,6 +64,9 @@ public:
 
 	BOOL 	Save(CFileWriter* pcFile);
 	BOOL 	Load(CFileReader* pcFile);
+	BOOL	Save(CFileWriter* pcFile, size_t uiCount);
+	BOOL	Load(CFileReader* pcFile, size_t uiCount);
+
 	void 	Fix(void);
 	void 	ToString(CChars* psx, int iWholeNumbers = -1, int iDecimals = 2);
 	int		WholeNumbers(void);

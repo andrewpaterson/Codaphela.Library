@@ -59,6 +59,7 @@ void DataIOInit(void)
 	gcDataTypesIO.Add<SDouble4x4>(gcTypeNames.GetPrettyName(PT_M4x4float64));
 
 	gcDataTypesIO.Add<SIOVoid>(gcTypeNames.GetPrettyName(PT_void));
+	gcDataTypesIO.Add<SIOData>(gcTypeNames.GetPrettyName(PT_Data));
 }
 
 
