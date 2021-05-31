@@ -5,16 +5,8 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectWriter::Init(char* szDirectory, char* szBaseName)
+void CObjectWriter::Init(char* szBaseName)
 {
-	//mszDirectory.Init(szDirectory);
-	mszObjectBaseName.Init(szBaseName);
-
-	mszObjectBaseName.Replace("\\", "/");
-	if (mszObjectBaseName.EndsWith("/"))
-	{
-		mszObjectBaseName.RemoveLastCharacter();
-	}
 }
 
 
@@ -24,9 +16,6 @@ void CObjectWriter::Init(char* szDirectory, char* szBaseName)
 //////////////////////////////////////////////////////////////////////////
 void CObjectWriter::Kill(void)
 {
-	//mszDirectory.Kill();
-	mszObjectBaseName.Kill();
-
 	CUnknown::Kill();
 }
 
@@ -48,33 +37,5 @@ BOOL CObjectWriter::Begin(void)
 BOOL CObjectWriter::End(void)
 {
 	return TRUE;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CObjectWriter::ObjectStartsWithBase(char* szObjectName)
-{
-	CChars	szRemainingName;
-
-	szRemainingName.Fake(szObjectName);
-	return szRemainingName.StartsWith(mszObjectBaseName.Text());
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CObjectWriter::RemainingName(CChars* pszRemainingName, char* szObjectName)
-{
-	pszRemainingName->Init(szObjectName);
-	pszRemainingName->RemoveFromStart(mszObjectBaseName.Length());
-	if (pszRemainingName->StartsWith("/"))
-	{
-		pszRemainingName->RemoveCharacter(0);
-	}
 }
 

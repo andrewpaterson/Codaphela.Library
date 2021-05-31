@@ -28,20 +28,13 @@ class CSerialisedObject;
 class CObjectWriter : public CUnknown
 {
 CONSTRUCTABLE(CObjectWriter);
-protected:
-	//CChars	mszDirectory;
-	CChars	mszObjectBaseName;
-
 public:
-			void Init(char* szDirectory, char* szBaseName);
+			void Init(char* szBaseName);
 			void Kill(void);
 
 	virtual BOOL Begin(void);
 	virtual BOOL Write(CSerialisedObject* pcSerialised) =0;
 	virtual BOOL End(void);
-
-			BOOL ObjectStartsWithBase(char* szObjectName);
-			void RemainingName(CChars* pszRemainingName, char* szObjectName);
 };
 
 

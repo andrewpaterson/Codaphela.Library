@@ -33,8 +33,16 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CObjectWriterChunked::Init(char* szDirectory, char* szBaseName, char* szChunkFileName)
 {
-	CObjectWriter::Init(szDirectory, szBaseName);
+	CObjectWriter::Init(szDirectory);
+	mszDirectory.Init(szDirectory);
 	mszFileName.Init(szChunkFileName);
+	mszObjectBaseName.Init(szBaseName);
+
+	mszObjectBaseName.Replace("\\", "/");
+	if (mszObjectBaseName.EndsWith("/"))
+	{
+		mszObjectBaseName.RemoveLastCharacter();
+	}
 }
 
 
@@ -44,7 +52,9 @@ void CObjectWriterChunked::Init(char* szDirectory, char* szBaseName, char* szChu
 //////////////////////////////////////////////////////////////////////////
 void CObjectWriterChunked::Kill(void)
 {
+	mszObjectBaseName.Kill();
 	mszFileName.Kill();
+	mszDirectory.Kill();
 	CObjectWriter::Kill();
 }
 
@@ -133,5 +143,33 @@ BOOL CObjectWriterChunked::Write(CSerialisedObject* pcSerialised)
 
 	szChunkName.Kill();
 	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CObjectWriterChunked::ObjectStartsWithBase(char* szObjectName)
+{
+	CChars	szRemainingName;
+
+	szRemainingName.Fake(szObjectName);
+	return szRemainingName.StartsWith(mszObjectBaseName.Text());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CObjectWriterChunked::RemainingName(CChars* pszRemainingName, char* szObjectName)
+{
+	pszRemainingName->Init(szObjectName);
+	pszRemainingName->RemoveFromStart(mszObjectBaseName.Length());
+	if (pszRemainingName->StartsWith("/"))
+	{
+		pszRemainingName->RemoveCharacter(0);
+	}
 }
 

@@ -25,3 +25,4 @@ void CObjectIOSimple::FileName(char* szSerialisedName, char* szWorkingDirectory,
 	cFileUtil.AppendToPath(pszFullFileName, szShortFileName.Text());
 	szShortFileName.Kill();
 }
+
