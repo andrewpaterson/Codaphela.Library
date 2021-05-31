@@ -1150,7 +1150,7 @@ BOOL CBaseObject::SaveEmbeddedObjects(CObjectSerialiser* pcFile)
 		}
 	}
 
-	return FALSE;
+	return TRUE;
 }
 
 
@@ -1180,7 +1180,7 @@ BOOL CBaseObject::SavePointers(CObjectSerialiser* pcFile)
 		}
 	}
 
-	return FALSE;
+	return TRUE;
 }
 
 
@@ -1250,7 +1250,7 @@ BOOL CBaseObject::SaveUnmanaged(CObjectSerialiser* pcFile)
 		}
 	}
 
-	return FALSE;
+	return TRUE;
 }
 
 

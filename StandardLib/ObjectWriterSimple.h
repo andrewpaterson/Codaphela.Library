@@ -25,16 +25,25 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "ObjectWriter.h"
 
 
+//This writes a file on disk per object.  It really needs a better name
 class CObjectWriterSimple : public CObjectWriter, public CObjectIOSimple
 {
 CONSTRUCTABLE(CObjectWriterSimple);
-public:
-	void Init(char* szDirectory, char* szBaseName);
-	void Kill(void);
+protected:
+	CChars	mszObjectBaseName;
+	CChars	mszDirectory;
 
-	BOOL Begin(void);
-	BOOL Write(CSerialisedObject* pcSerialised);
-	BOOL End(void);
+public:
+	void	Init(char* szDirectory, char* szBaseName);
+	void	Kill(void);
+
+	BOOL	Begin(void);
+	BOOL	Write(CSerialisedObject* pcSerialised);
+	BOOL	End(void);
+
+protected:
+	BOOL	ObjectStartsWithBase(char* szObjectName);
+	void	RemainingName(CChars* pszRemainingName, char* szObjectName);
 };
 
 

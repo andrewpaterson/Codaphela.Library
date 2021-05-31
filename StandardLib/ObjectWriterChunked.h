@@ -25,20 +25,27 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "ObjectWriter.h"
 
 
+//This writes a single CChunkFile containing all objects.
 class CObjectWriterChunked : public CObjectWriter, public CObjectIO
 {
 CONSTRUCTABLE(CObjectWriterChunked);
 protected:
 	CChunkFileNames		mcChunkFile;
 	CChars				mszFileName;
+	CChars				mszDirectory;
+	CChars				mszObjectBaseName;
 
 public:
-	void Init(char* szDirectory, char* szBaseName, char* szChunkFileName);
-	void Kill(void);
+	void	Init(char* szDirectory, char* szBaseName, char* szChunkFileName);
+	void	Kill(void);
 
-	BOOL Begin(void);
-	BOOL Write(CSerialisedObject* pcSerialised);
-	BOOL End(void);
+	BOOL	Begin(void);
+	BOOL	Write(CSerialisedObject* pcSerialised);
+	BOOL	End(void);
+
+protected:
+	BOOL	ObjectStartsWithBase(char* szObjectName);
+	void	RemainingName(CChars* pszRemainingName, char* szObjectName);
 };
 
 

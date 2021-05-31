@@ -31,7 +31,15 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CObjectWriterSimple::Init(char* szDirectory, char* szBaseName)
 {
-	CObjectWriter::Init(szDirectory, szBaseName);
+	CObjectWriter::Init(szBaseName);
+	mszDirectory.Init(szDirectory);
+	mszObjectBaseName.Init(szBaseName);
+
+	mszObjectBaseName.Replace("\\", "/");
+	if (mszObjectBaseName.EndsWith("/"))
+	{
+		mszObjectBaseName.RemoveLastCharacter();
+	}
 }
 
 
@@ -41,6 +49,8 @@ void CObjectWriterSimple::Init(char* szDirectory, char* szBaseName)
 //////////////////////////////////////////////////////////////////////////
 void CObjectWriterSimple::Kill(void)
 {
+	mszObjectBaseName.Kill();
+	mszDirectory.Kill();
 	CObjectWriter::Kill();
 }
 
@@ -112,5 +122,33 @@ BOOL CObjectWriterSimple::Write(CSerialisedObject* pcSerialised)
 	cFile.Close();
 	cFile.Kill();
 	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CObjectWriterSimple::ObjectStartsWithBase(char* szObjectName)
+{
+	CChars	szRemainingName;
+
+	szRemainingName.Fake(szObjectName);
+	return szRemainingName.StartsWith(mszObjectBaseName.Text());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CObjectWriterSimple::RemainingName(CChars* pszRemainingName, char* szObjectName)
+{
+	pszRemainingName->Init(szObjectName);
+	pszRemainingName->RemoveFromStart(mszObjectBaseName.Length());
+	if (pszRemainingName->StartsWith("/"))
+	{
+		pszRemainingName->RemoveCharacter(0);
+	}
 }
 
