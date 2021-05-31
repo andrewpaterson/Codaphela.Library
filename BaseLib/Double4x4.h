@@ -42,8 +42,12 @@ public:
 	void 		Init(void);
 	void 		Init(SDouble3* psX, SDouble3* psY, SDouble3* psZ, SDouble3* psPos);
 	void		Zero(void);
+
 	BOOL 		Save(CFileWriter* pcFile);
 	BOOL 		Load(CFileReader* pcFile);
+	BOOL		Save(CFileWriter* pcFile, size_t uiCount);
+	BOOL		Load(CFileReader* pcFile, size_t uiCount);
+
 	void 		Fix(void);
 	void		Identity(void);
 	BOOL 		Inverse(SDouble4x4* psOut, double* pfDeterminant);

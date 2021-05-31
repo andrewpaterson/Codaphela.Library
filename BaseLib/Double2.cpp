@@ -21,7 +21,9 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
 #include "Numbers.h"
+#include "DatasIO.h"
 #include "FloatHelper.h"
+#include "DataIO.h"
 #include "Double3.h"
 #include "Double2.h"
 
@@ -214,9 +216,11 @@ void SDouble2::Zero(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL SDouble2::Save(CFileWriter* pcFile)
 {
-	ReturnOnFalse(pcFile->WriteFloat(x));
-	ReturnOnFalse(pcFile->WriteFloat(y));
-	return TRUE;
+	BOOL bResult;
+
+	bResult = pcFile->WriteFloat(x);
+	bResult &= pcFile->WriteFloat(y);
+	return bResult;
 }
 
 
@@ -226,9 +230,31 @@ BOOL SDouble2::Save(CFileWriter* pcFile)
 //////////////////////////////////////////////////////////////////////////
 BOOL SDouble2::Load(CFileReader* pcFile)
 {
-	ReturnOnFalse(pcFile->ReadFloat(&x));
-	ReturnOnFalse(pcFile->ReadFloat(&y));
-	return TRUE;
+	BOOL bResult;
+
+	bResult = pcFile->ReadFloat(&x);
+	bResult &= pcFile->ReadFloat(&y);
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL SDouble2::Save(CFileWriter* pcFile, size_t uiCount)
+{
+	return SaveMultiple<SDouble2>(this, pcFile, uiCount);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL SDouble2::Load(CFileReader* pcFile, size_t uiCount)
+{
+	return LoadMultiple<SDouble2>(this, pcFile, uiCount);
 }
 
 

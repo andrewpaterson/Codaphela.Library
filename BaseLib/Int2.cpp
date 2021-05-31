@@ -1,3 +1,4 @@
+#include "DataIO.h"
 #include "Int2.h"
 
 
@@ -120,5 +121,25 @@ BOOL SInt2::Load(CFileReader* pcFile)
 	ReturnOnFalse(pcFile->ReadInt(&x));
 	ReturnOnFalse(pcFile->ReadInt(&y));
 	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL SInt2::Save(CFileWriter* pcFile, size_t uiCount)
+{
+	return SaveMultiple<SInt2>(this, pcFile, uiCount);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL SInt2::Load(CFileReader* pcFile, size_t uiCount)
+{
+	return LoadMultiple<SInt2>(this, pcFile, uiCount);
 }
 

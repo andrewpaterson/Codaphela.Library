@@ -2,7 +2,7 @@
 #define __DATA_TYPES_IO_H__
 #include "Constructable.h"
 #include "PrimitiveTypes.h"
-#include "FileIO.h"
+#include "DataIO.h"
 
 
 #define DATA_TYPE_IO_DEFINITION(CLASS_TYPE, C_PRIMITIVE, WRITE_FUNC, READ_FUNC) \
@@ -20,6 +20,16 @@ CONSTRUCTABLE(CLASS_TYPE); \
 	BOOL Load(CFileReader* pcFile) \
 	{ \
 		return pcFile-> READ_FUNC (&mVal); \
+	} \
+ \
+	BOOL Save(CFileWriter* pcFile, size_t uiCount) \
+	{ \
+		return SaveMultiple<CLASS_TYPE>(this, pcFile, uiCount); \
+	} \
+ \
+	BOOL Load(CFileReader* pcFile, size_t uiCount) \
+	{ \
+		return LoadMultiple<CLASS_TYPE>(this, pcFile, uiCount); \
 	} \
 };
 
@@ -54,7 +64,43 @@ CONSTRUCTABLE(SIOVoid);
 	{
 		return TRUE;
 	}
+
+	BOOL Save(CFileWriter* pcFile, size_t uiCount)
+	{
+		return TRUE;
+	}
+
+	BOOL Load(CFileReader* pcFile, size_t uiCount)
+	{
+		return TRUE;
+	}
 };
+
+
+struct SIOData
+{
+CONSTRUCTABLE(SIOData);
+	BOOL Save(CFileWriter* pcFile)
+	{
+		return pcFile->WriteData(this, 1); 
+	}
+
+	BOOL Load(CFileReader* pcFile)
+	{
+		return pcFile->ReadData(this, 1);
+	}
+
+	BOOL Save(CFileWriter* pcFile, size_t uiCount)
+	{
+		return pcFile->WriteData(this, uiCount);
+	}
+
+	BOOL Load(CFileReader* pcFile, size_t uiCount)
+	{
+		return pcFile->ReadData(this, uiCount);
+	}
+};
+
 
 #endif // __DATA_TYPES_IO_H__
 

@@ -1232,8 +1232,8 @@ BOOL CBaseObject::SaveUnmanaged(CObjectSerialiser* pcFile)
 	CUnmanagedField*		pcUnmanagedField;
 	BOOL					bResult;
 	size_t					uiCount;
-	size_t					uiSize;
-
+	SDataIO*				psIO;
+	void*					pvUnmanaged;
 
 	papv = mpcClass->GetPrimitiveFields();
 	ppacUnmanagedFields = (CUnmanagedField**)papv->GetData();
@@ -1241,9 +1241,11 @@ BOOL CBaseObject::SaveUnmanaged(CObjectSerialiser* pcFile)
 	for (i = 0; i < iNumFields; i++)
 	{
 		pcUnmanagedField = ppacUnmanagedFields[i];
-		uiSize = pcUnmanagedField->GetSizeOf();
+		pvUnmanaged = pcUnmanagedField->GetData(this);
+		psIO = pcUnmanagedField->GetDataIO();
 		uiCount = pcUnmanagedField->GetLength();
-		bResult = pcFile->WriteData(pcUnmanagedField->GetData(this), uiSize * uiCount);
+		bResult = (((SDataTypeIO*)pvUnmanaged)->*(psIO->fArrayWriter))(pcFile, uiCount);
+
 		if (!bResult)
 		{
 			return FALSE;

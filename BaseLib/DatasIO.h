@@ -1,24 +1,7 @@
 #ifndef __DATAS_IO_H__
 #define __DATAS_IO_H__
+#include "DataIO.h"
 #include "MapStringBlock.h"
-
-
-struct SDataTypeIO
-{
-	BOOL Save(CFileWriter* pcFile);
-	BOOL Load(CFileReader* pcFile);
-};
-
-
-typedef BOOL (SDataTypeIO::* DataIO_FileWriter)(CFileWriter*);
-typedef BOOL (SDataTypeIO::* DataIO_FileReader)(CFileReader*);
-
-
-struct SDataIO
-{
-	DataIO_FileWriter	fWriter;
-	DataIO_FileReader	fReader;
-};
 
 
 class CDatasIO
@@ -37,8 +20,8 @@ public:
 	template<class M>
 	void				Add(void);
 
-	DataIO_FileWriter	Save(char* szClassName);
-	DataIO_FileReader	Load(char* szClassName);
+	DataIO_FileWriter	GetFileWriter(char* szClassName);
+	DataIO_FileReader	GetFileReader(char* szClassName);
 	template<class M>
 	DataIO_FileWriter	Save(void);
 	template<class M>

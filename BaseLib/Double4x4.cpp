@@ -24,6 +24,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "IntegerHelper.h"
 #include "Numbers.h"
 #include "FloatHelper.h"
+#include "DataIO.h"
 #include "Double2.h"
 #include "Double3.h"
 #include "Double4.h"
@@ -118,6 +119,26 @@ BOOL SDouble4x4::Load(CFileReader* pcFile)
 	bResult |= z.Load(pcFile);
 	bResult |= pos.Load(pcFile);
 	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL SDouble4x4::Save(CFileWriter* pcFile, size_t uiCount)
+{
+	return SaveMultiple<SDouble4x4>(this, pcFile, uiCount);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL SDouble4x4::Load(CFileReader* pcFile, size_t uiCount)
+{
+	return LoadMultiple<SDouble4x4>(this, pcFile, uiCount);
 }
 
 

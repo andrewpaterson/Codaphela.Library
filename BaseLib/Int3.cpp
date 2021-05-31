@@ -1,3 +1,4 @@
+#include "DataIO.h"
 #include "Int3.h"
 
 
@@ -128,5 +129,25 @@ BOOL SInt3::Load(CFileReader* pcFile)
 	ReturnOnFalse(pcFile->ReadInt(&y));
 	ReturnOnFalse(pcFile->ReadInt(&z));
 	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL SInt3::Save(CFileWriter* pcFile, size_t uiCount)
+{
+	return SaveMultiple<SInt3>(this, pcFile, uiCount);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL SInt3::Load(CFileReader* pcFile, size_t uiCount)
+{
+	return LoadMultiple<SInt3>(this, pcFile, uiCount);
 }
 

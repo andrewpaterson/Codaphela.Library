@@ -23,6 +23,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "Numbers.h"
 #include "IntegerHelper.h"
 #include "FloatHelper.h"
+#include "DataIO.h"
 #include "Double2.h"
 #include "Double4.h"
 #include "Double4x4.h"
@@ -352,10 +353,12 @@ void SDouble3::Copy(const SDouble2* ps)
 //////////////////////////////////////////////////////////////////////////
 BOOL SDouble3::Save(CFileWriter* pcFile)
 {
-	ReturnOnFalse(pcFile->WriteFloat(x));
-	ReturnOnFalse(pcFile->WriteFloat(y));
-	ReturnOnFalse(pcFile->WriteFloat(z));
-	return TRUE;
+	BOOL	bResult;
+
+	bResult = pcFile->WriteFloat(x);
+	bResult &= pcFile->WriteFloat(y);
+	bResult &= pcFile->WriteFloat(z);
+	return bResult;
 }
 
 
@@ -365,10 +368,32 @@ BOOL SDouble3::Save(CFileWriter* pcFile)
 //////////////////////////////////////////////////////////////////////////
 BOOL SDouble3::Load(CFileReader* pcFile)
 {
-	ReturnOnFalse(pcFile->ReadFloat(&x));
-	ReturnOnFalse(pcFile->ReadFloat(&y));
-	ReturnOnFalse(pcFile->ReadFloat(&z));
-	return TRUE;
+	BOOL	bResult;
+
+	bResult = pcFile->ReadFloat(&x);
+	bResult &= pcFile->ReadFloat(&y);
+	bResult &= pcFile->ReadFloat(&z);
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL SDouble3::Save(CFileWriter* pcFile, size_t uiCount)
+{
+	return SaveMultiple<SDouble3>(this, pcFile, uiCount);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL SDouble3::Load(CFileReader* pcFile, size_t uiCount)
+{
+	return LoadMultiple<SDouble3>(this, pcFile, uiCount);
 }
 
 
