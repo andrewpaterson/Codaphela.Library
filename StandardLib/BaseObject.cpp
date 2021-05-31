@@ -1235,7 +1235,7 @@ BOOL CBaseObject::SaveUnmanaged(CObjectSerialiser* pcFile)
 	SDataIO*				psIO;
 	void*					pvUnmanaged;
 
-	papv = mpcClass->GetPrimitiveFields();
+	papv = mpcClass->GetUnmanagedFields();
 	ppacUnmanagedFields = (CUnmanagedField**)papv->GetData();
 	iNumFields = papv->NumElements();
 	for (i = 0; i < iNumFields; i++)
