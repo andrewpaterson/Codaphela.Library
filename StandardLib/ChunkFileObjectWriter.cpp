@@ -24,14 +24,14 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "ChunkFileNames.h"
 #include "ObjectFileGeneral.h"
 #include "SerialisedObject.h"
-#include "ObjectWriterChunked.h"
+#include "ChunkFileObjectWriter.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectWriterChunked::Init(char* szDirectory, char* szBaseName, char* szChunkFileName)
+void CChunkFileObjectWriter::Init(char* szDirectory, char* szBaseName, char* szChunkFileName)
 {
 	CObjectWriter::Init(szDirectory);
 	mszDirectory.Init(szDirectory);
@@ -50,7 +50,7 @@ void CObjectWriterChunked::Init(char* szDirectory, char* szBaseName, char* szChu
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectWriterChunked::Kill(void)
+void CChunkFileObjectWriter::Kill(void)
 {
 	mszObjectBaseName.Kill();
 	mszFileName.Kill();
@@ -63,7 +63,7 @@ void CObjectWriterChunked::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectWriterChunked::Begin(void)
+BOOL CChunkFileObjectWriter::Begin(void)
 {
 	CDiskFile*	pcDiskFile;
 	CFileUtil	cFileUtil;
@@ -101,7 +101,7 @@ BOOL CObjectWriterChunked::Begin(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectWriterChunked::End(void)
+BOOL CChunkFileObjectWriter::End(void)
 {
 	mcChunkFile.WriteClose();
 	mcChunkFile.Kill();
@@ -114,7 +114,7 @@ BOOL CObjectWriterChunked::End(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectWriterChunked::Write(CSerialisedObject* pcSerialised)
+BOOL CChunkFileObjectWriter::Write(CSerialisedObject* pcSerialised)
 {
 	CChars	szChunkName;
 	BOOL	bResult;
@@ -150,7 +150,7 @@ BOOL CObjectWriterChunked::Write(CSerialisedObject* pcSerialised)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectWriterChunked::ObjectStartsWithBaseName(char* szObjectName)
+BOOL CChunkFileObjectWriter::ObjectStartsWithBaseName(char* szObjectName)
 {
 	CChars	szRemainingName;
 
@@ -163,7 +163,7 @@ BOOL CObjectWriterChunked::ObjectStartsWithBaseName(char* szObjectName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectWriterChunked::RemainingName(CChars* pszRemainingName, char* szObjectName)
+void CChunkFileObjectWriter::RemainingName(CChars* pszRemainingName, char* szObjectName)
 {
 	pszRemainingName->Init(szObjectName);
 	pszRemainingName->RemoveFromStart(mszObjectBaseName.Length());

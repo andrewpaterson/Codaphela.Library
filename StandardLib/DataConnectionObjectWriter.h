@@ -23,7 +23,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "ObjectWriter.h"
 
 
-//This writes back into key/value store.
+//This class is only used by Objects.ForceSave()
 class CDataConnection;
 class CDataConnectionObjectWriter : public CObjectWriter
 {
