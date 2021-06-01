@@ -165,6 +165,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="AccessDataOrderer.h" />
+    <ClInclude Include="ChunkFileFileSystem.h" />
     <ClInclude Include="DataIO.h" />
     <ClInclude Include="DataOrderers.h" />
     <ClInclude Include="DataCallback.h" />
@@ -401,6 +402,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AccessDataOrderer.cpp" />
+    <ClCompile Include="ChunkFileFileSystem.cpp" />
     <ClCompile Include="DataCallback.cpp" />
     <ClCompile Include="DataOrderers.cpp" />
     <ClCompile Include="DatasIO.cpp" />
