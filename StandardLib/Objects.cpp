@@ -27,8 +27,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseObject.h"
 #include "NamedObject.h"
 #include "ObjectSingleSerialiser.h"
-#include "ObjectWriterIndexed.h"
-#include "ObjectReaderIndexed.h"
+#include "DataConnectionObjectWriter.h"
 #include "InternalObjectDeserialiser.h"
 #include "ObjectSource.h"
 #include "ObjectRemapFrom.h"
@@ -608,7 +607,7 @@ BOOL CObjects::ForceSave(CBaseObject* pcObject)
 {
 	BOOL						bResult;
 	CObjectSingleSerialiser		cGraphSerialiser;
-	CObjectWriterIndexed		cWriter;
+	CDataConnectionObjectWriter		cWriter;
 	CBaseObject*				pcContainer;
 
 	if (!pcObject)

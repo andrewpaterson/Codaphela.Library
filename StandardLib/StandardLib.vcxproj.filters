@@ -195,7 +195,7 @@
     <ClInclude Include="NamedObject.h">
       <Filter>Source\Object\Object\Named</Filter>
     </ClInclude>
-    <ClInclude Include="ObjectWriterIndexed.h">
+    <ClInclude Include="DataConnectionObjectWriter.h">
       <Filter>Source\Object\Object\IO\Indexed</Filter>
     </ClInclude>
     <ClInclude Include="HollowObject.h">
@@ -387,9 +387,6 @@
     <ClInclude Include="Null.h">
       <Filter>Source\Object\Object</Filter>
     </ClInclude>
-    <ClInclude Include="ObjectReaderIndexed.h">
-      <Filter>Source\Object\Object\IO\Indexed</Filter>
-    </ClInclude>
     <ClInclude Include="DependentObjectAdder.h">
       <Filter>Source\Object\Object\Serilalisation</Filter>
     </ClInclude>
@@ -540,7 +537,7 @@
     <ClCompile Include="NamedObject.cpp">
       <Filter>Source\Object\Object\Named</Filter>
     </ClCompile>
-    <ClCompile Include="ObjectWriterIndexed.cpp">
+    <ClCompile Include="DataConnectionObjectWriter.cpp">
       <Filter>Source\Object\Object\IO\Indexed</Filter>
     </ClCompile>
     <ClCompile Include="HollowObject.cpp">
@@ -716,9 +713,6 @@
     </ClCompile>
     <ClCompile Include="Null.cpp">
       <Filter>Source\Object\Object\Source</Filter>
-    </ClCompile>
-    <ClCompile Include="ObjectReaderIndexed.cpp">
-      <Filter>Source\Object\Object\IO\Indexed</Filter>
     </ClCompile>
     <ClCompile Include="DependentObjectAdder.cpp">
       <Filter>Source\Object\Object\Serilalisation</Filter>
