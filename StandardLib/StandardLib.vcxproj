@@ -89,7 +89,6 @@
     <ClInclude Include="Array.h" />
     <ClInclude Include="ArrayUnknownPtr.h" />
     <ClInclude Include="Character.h" />
-    <ClInclude Include="ChunkFileFileSystem.h" />
     <ClInclude Include="Class.h" />
     <ClInclude Include="Classes.h" />
     <ClInclude Include="PrimitiveClasses.h" />
@@ -205,7 +204,6 @@
     <ClInclude Include="PrimitiveVoid.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="ChunkFileFileSystem.cpp" />
     <ClCompile Include="Class.cpp" />
     <ClCompile Include="Classes.cpp" />
     <ClCompile Include="PrimitiveClasses.cpp" />

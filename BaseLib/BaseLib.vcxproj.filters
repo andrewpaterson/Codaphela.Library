@@ -951,6 +951,9 @@
     <ClInclude Include="DataIO.h">
       <Filter>Source\Data\Types\File</Filter>
     </ClInclude>
+    <ClInclude Include="ChunkFileFileSystem.h">
+      <Filter>Source\File\Chunk</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -1513,6 +1516,9 @@
     </ClCompile>
     <ClCompile Include="Double4x4.cpp">
       <Filter>Source\Data\Geometric</Filter>
+    </ClCompile>
+    <ClCompile Include="ChunkFileFileSystem.cpp">
+      <Filter>Source\File\Chunk</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

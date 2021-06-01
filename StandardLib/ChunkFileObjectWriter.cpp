@@ -21,7 +21,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/FileUtil.h"
 #include "BaseLib/DiskFile.h"
 #include "BaseLib/Logger.h"
-#include "ChunkFileFileSystem.h"
+#include "BaseLib/ChunkFileFileSystem.h"
 #include "ObjectFileGeneral.h"
 #include "SerialisedObject.h"
 #include "ChunkFileObjectWriter.h"

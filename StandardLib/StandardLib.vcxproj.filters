@@ -82,14 +82,8 @@
     <Filter Include="Source\Action">
       <UniqueIdentifier>{c776e7d2-7fdd-4d00-bcbe-e9448c397f1e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\File">
-      <UniqueIdentifier>{72a7554e-c380-4f0f-9f6c-7eb5201c4e61}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source\Object\Object\Source\Text">
       <UniqueIdentifier>{c2e3cc07-a997-441d-9324-ea44c92d1e4f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\File\Chunk">
-      <UniqueIdentifier>{a9727c0f-808f-423d-ac01-83f734db49c3}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source\Object\Object\Source\Native">
       <UniqueIdentifier>{4e548420-22fe-4037-b223-8ce34e9f42f6}</UniqueIdentifier>
@@ -284,9 +278,6 @@
     </ClInclude>
     <ClInclude Include="String.h">
       <Filter>Source\Object\Object\String</Filter>
-    </ClInclude>
-    <ClInclude Include="ChunkFileFileSystem.h">
-      <Filter>Source\File\Chunk</Filter>
     </ClInclude>
     <ClInclude Include="ObjectConverterText.h">
       <Filter>Source\Object\Object\Source\Text</Filter>
@@ -617,9 +608,6 @@
     </ClCompile>
     <ClCompile Include="String.cpp">
       <Filter>Source\Object\Object\String</Filter>
-    </ClCompile>
-    <ClCompile Include="ChunkFileFileSystem.cpp">
-      <Filter>Source\File\Chunk</Filter>
     </ClCompile>
     <ClCompile Include="ObjectConverterText.cpp">
       <Filter>Source\Object\Object\Source\Text</Filter>
