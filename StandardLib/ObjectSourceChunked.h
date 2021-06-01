@@ -1,6 +1,6 @@
 #ifndef __OBJECT_SOURCE_CHUNKED_H__
 #define __OBJECT_SOURCE_CHUNKED_H__
-#include "ChunkFileNames.h"
+#include "ChunkFileFileSystem.h"
 #include "ObjectSource.h"
 
 
@@ -12,7 +12,7 @@ CONSTRUCTABLE(CObjectSourceChunked);
 protected:
 	CArrayChars					mcNames;
 	CChunkFile					mcChunkFile;
-	CChunkFileNames				mcChunkFileNames;
+	CChunkFileFileSystem				mcChunkFileFileSystem;
 	CObjectReaderChunkFile*		mpcReader;
 
 public:

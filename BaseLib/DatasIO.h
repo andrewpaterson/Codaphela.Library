@@ -23,9 +23,9 @@ public:
 	DataIO_FileWriter	GetFileWriter(char* szClassName);
 	DataIO_FileReader	GetFileReader(char* szClassName);
 	template<class M>
-	DataIO_FileWriter	Save(void);
+	DataIO_FileWriter	GetFileWriter(void);
 	template<class M>
-	DataIO_FileReader	Load(void);
+	DataIO_FileReader	GetFileReader(void);
 
 	SDataIO*			GetIO(char* szClassName);
 	SDataIO*			GetIO(const char* szClassName);
@@ -96,11 +96,11 @@ void CDatasIO::Add(void)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-DataIO_FileWriter CDatasIO::Save(void)
+DataIO_FileWriter CDatasIO::GetFileWriter(void)
 {
 	M m;
 
-	return Save((char*)m.ClassName());
+	return GetFileWriter((char*)m.ClassName());
 }
 
 
@@ -109,11 +109,11 @@ DataIO_FileWriter CDatasIO::Save(void)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-DataIO_FileReader CDatasIO::Load(void)
+DataIO_FileReader CDatasIO::GetFileReader(void)
 {
 	M m;
 
-	return Load((char*)m.ClassName());
+	return GetFileReader((char*)m.ClassName());
 }
 
 

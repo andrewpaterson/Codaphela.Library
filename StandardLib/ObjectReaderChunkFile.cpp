@@ -21,7 +21,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/FileUtil.h"
 #include "BaseLib/DiskFile.h"
 #include "BaseLib/ChunkFileFile.h"
-#include "ChunkFileNames.h"
+#include "ChunkFileFileSystem.h"
 #include "ObjectFileGeneral.h"
 #include "SerialisedObject.h"
 #include "ObjectReaderChunkFile.h"
@@ -31,7 +31,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectReaderChunkFile::Init(CChunkFileNames* pcChunkFile)
+void CObjectReaderChunkFile::Init(CChunkFileFileSystem* pcChunkFile)
 {
 	mpcChunkFile = pcChunkFile;
 }

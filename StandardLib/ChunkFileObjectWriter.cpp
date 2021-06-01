@@ -21,7 +21,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/FileUtil.h"
 #include "BaseLib/DiskFile.h"
 #include "BaseLib/Logger.h"
-#include "ChunkFileNames.h"
+#include "ChunkFileFileSystem.h"
 #include "ObjectFileGeneral.h"
 #include "SerialisedObject.h"
 #include "ChunkFileObjectWriter.h"
@@ -45,7 +45,7 @@ void CChunkFileObjectWriter::Init(char* szDirectory, char* szBaseName, char* szC
 	}
 
 	mcChunkFile._Init();
-	mcChunkFileNames._Init();
+	mcChunkFileFileSystem._Init();
 }
 
 
@@ -96,8 +96,8 @@ BOOL CChunkFileObjectWriter::Begin(void)
 	szFileName.Kill();
 
 	mcChunkFile.Init(pcDiskFile);
-	mcChunkFileNames.Init(&mcChunkFile);
-	return mcChunkFileNames.WriteOpen(CHUNKED_OBJECT_FILE);
+	mcChunkFileFileSystem.Init(&mcChunkFile);
+	return mcChunkFileFileSystem.WriteOpen(CHUNKED_OBJECT_FILE);
 }
 
 
@@ -107,8 +107,8 @@ BOOL CChunkFileObjectWriter::Begin(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CChunkFileObjectWriter::End(void)
 {
-	mcChunkFileNames.WriteClose();
-	mcChunkFileNames.Kill();
+	mcChunkFileFileSystem.WriteClose();
+	mcChunkFileFileSystem.Kill();
 	mcChunkFile.Kill();
 
 	return CObjectWriter::End();
@@ -142,9 +142,9 @@ BOOL CChunkFileObjectWriter::Write(CSerialisedObject* pcSerialised)
 		return FALSE;
 	}
 
-	ReturnOnFalse(mcChunkFileNames.WriteChunkBegin(szChunkName.Text()));
-	ReturnOnFalse(mcChunkFileNames.WriteData(pcSerialised, pcSerialised->GetLength()));
-	ReturnOnFalse(mcChunkFileNames.WriteChunkEnd());
+	ReturnOnFalse(mcChunkFileFileSystem.WriteChunkBegin(szChunkName.Text()));
+	ReturnOnFalse(mcChunkFileFileSystem.WriteData(pcSerialised, pcSerialised->GetLength()));
+	ReturnOnFalse(mcChunkFileFileSystem.WriteChunkEnd());
 
 	szChunkName.Kill();
 	return TRUE;

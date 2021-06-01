@@ -15,7 +15,7 @@ BOOL CObjectSourceChunked::Init(CObjectConverter* pcConverter, CAbstractFile* pc
 	CObjectSource::Init(pcConverter, pcFile, szFileName);
 
 	mcChunkFile.Init(pcFile);
-	mcChunkFileNames.Init(&mcChunkFile);
+	mcChunkFileFileSystem.Init(&mcChunkFile);
 	mcNames.Init();
 
 	ReturnOnFalse(mcChunkFile.ReadOpen());
@@ -34,7 +34,7 @@ void CObjectSourceChunked::Kill(void)
 {
 	mcChunkFile.ReadClose();
 	mcChunkFile.Kill();
-	mcChunkFileNames.Kill();
+	mcChunkFileFileSystem.Kill();
 
 	mcNames.Kill();
 
@@ -51,16 +51,16 @@ BOOL CObjectSourceChunked::ReadNames(void)
 	SChunkFileNameIterator	sIter;
 	char*					szName;
 
-	szName = mcChunkFileNames.StartNameIteration(&sIter);
+	szName = mcChunkFileFileSystem.StartNameIteration(&sIter);
 	while (szName)
 	{
 		if (!sIter.szValue.StartsWith(OBJECT_UNNAMED_FILE))
 		{
 			mcNames.Add(szName);
 		}
-		szName = mcChunkFileNames.IterateName(&sIter);
+		szName = mcChunkFileFileSystem.IterateName(&sIter);
 	}
-	mcChunkFileNames.StopIteration(&sIter);
+	mcChunkFileFileSystem.StopIteration(&sIter);
 
 
 	mcNames.QuickSort(TRUE);
@@ -78,7 +78,7 @@ CBaseObject* CObjectSourceChunked::Convert(char* szFullName)
 	CBaseObject*	pvObject;
 
 	mpcReader = UMalloc(CObjectReaderChunkFile);
-	mpcReader->Init(&mcChunkFileNames);
+	mpcReader->Init(&mcChunkFileFileSystem);
 
 	pvObject = mpcConverter->Convert(this, szFullName);
 	mpcReader->Kill();

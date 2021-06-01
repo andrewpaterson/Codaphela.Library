@@ -523,7 +523,7 @@ BOOL CChunkFile::ReadChunkBegin(char* szName)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CChunkFile::ReadChunkBegin(int iChunkNum)
+BOOL CChunkFile::ReadChunkBegin(int iChunkIndex)
 {
 	CChunkStackElement*		psElement;
 	SChunkIndex*			psIndex;
@@ -531,7 +531,7 @@ BOOL CChunkFile::ReadChunkBegin(int iChunkNum)
 	psElement = mcChunkStack.Tail();
 	if (psElement)
 	{
-		psIndex = psElement->cChunkIndex.mcChunkIndices.SafeGet(iChunkNum);
+		psIndex = psElement->cChunkIndex.mcChunkIndices.SafeGet(iChunkIndex);
 		if (psIndex)
 		{
 			CFileBasic::Seek(psIndex->miChunkDataPos - sizeof(CChunkHeader), EFSO_SET);
