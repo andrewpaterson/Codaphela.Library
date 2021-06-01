@@ -8,7 +8,7 @@
 //////////////////////////////////////////////////////////////////////////
 void CObjectReaderSimpleDisk::Init(char* szDirectory)
 {
-	CObjectReaderSimple::Init(&mcFile);
+	CFileObjectReader::Init(&mcFile);
 	mszFullDirectory.Init(szDirectory);
 }
 
@@ -20,7 +20,7 @@ void CObjectReaderSimpleDisk::Init(char* szDirectory)
 void CObjectReaderSimpleDisk::Kill(void)
 {
 	mszFullDirectory.Kill();
-	CObjectReaderSimple::Kill();
+	CFileObjectReader::Kill();
 }
 
 
@@ -72,3 +72,4 @@ CSerialisedObject* CObjectReaderSimpleDisk::Read(char* szObjectName)
 	mcFile.Kill();
 	return pcSerialised;
 }
+

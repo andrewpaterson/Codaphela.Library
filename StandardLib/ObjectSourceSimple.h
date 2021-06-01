@@ -4,12 +4,12 @@
 
 
 class CObjectReader;
-class CObjectReaderSimple;
+class CFileObjectReader;
 class CObjectSourceSimple : public CObjectSingleSource
 {
 CONSTRUCTABLE(CObjectSourceSimple);
 protected:
-	CObjectReaderSimple*	mpcReader;
+	CFileObjectReader*	mpcReader;
 
 public:
 	void			Init(CObjectConverter* pcConverter, CAbstractFile* pcFile, char* szFileName);

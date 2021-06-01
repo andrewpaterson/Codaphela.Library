@@ -1,6 +1,6 @@
 #include "Unknowns.h"
 #include "ObjectSourceSimple.h"
-#include "ObjectReaderSimple.h"
+#include "FileObjectReader.h"
 #include "ObjectConverterNative.h"
 
 
@@ -63,7 +63,7 @@ CBaseObject* CObjectSourceSimple::Convert(char* szFullName)
 {
 	CBaseObject*	pvObject;
 
-	mpcReader = UMalloc(CObjectReaderSimple);
+	mpcReader = UMalloc(CFileObjectReader);
 	mpcReader->Init(NULL);
 
 	pvObject = mpcConverter->Convert(this, szFullName);

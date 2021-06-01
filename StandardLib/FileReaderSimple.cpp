@@ -6,7 +6,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectReaderSimple::Init(CFileBasic* pcFile)
+void CFileObjectReader::Init(CFileBasic* pcFile)
 {
 	mpcFile = pcFile;
 }
@@ -16,7 +16,7 @@ void CObjectReaderSimple::Init(CFileBasic* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectReaderSimple::Kill(void)
+void CFileObjectReader::Kill(void)
 {
 	mpcFile = NULL;
 	CObjectReader::Kill();
@@ -27,7 +27,7 @@ void CObjectReaderSimple::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CSerialisedObject* CObjectReaderSimple::Read(OIndex oi)
+CSerialisedObject* CFileObjectReader::Read(OIndex oi)
 {
 	CChars				szUnnamed;
 	CSerialisedObject*	pcSerialised;
@@ -46,7 +46,7 @@ CSerialisedObject* CObjectReaderSimple::Read(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CSerialisedObject* CObjectReaderSimple::Read(char* szObjectName)
+CSerialisedObject* CFileObjectReader::Read(char* szObjectName)
 {
 	CSerialisedObject*	pcSerialised;
 	CChars				szDirectory;
