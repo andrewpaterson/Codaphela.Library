@@ -103,15 +103,6 @@
     <Filter Include="Source\Object\Object\Serilalisation\Graph">
       <UniqueIdentifier>{8705b1ae-591f-4793-92d8-06f3a04698bb}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Object\Object\IO\Simple">
-      <UniqueIdentifier>{d0c92515-243f-42ea-9db7-c95bbdea1c93}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Object\Object\IO\Chunked">
-      <UniqueIdentifier>{1fea8d17-7695-4b54-9773-e80e042c3ac2}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Object\Object\IO\Indexed">
-      <UniqueIdentifier>{998549eb-11d7-4b02-a517-7012ae0b1885}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source\Object\Object\Serilalisation\Single">
       <UniqueIdentifier>{52a03096-8f90-4a1f-9091-1baf27f0a9e2}</UniqueIdentifier>
     </Filter>
@@ -135,6 +126,15 @@
     </Filter>
     <Filter Include="Source\Object\Class">
       <UniqueIdentifier>{b647ecea-453e-4848-884e-4e3109afb267}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Object\Object\IO\File">
+      <UniqueIdentifier>{d0c92515-243f-42ea-9db7-c95bbdea1c93}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Object\Object\IO\DataConnection">
+      <UniqueIdentifier>{998549eb-11d7-4b02-a517-7012ae0b1885}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Object\Object\IO\ChunkFile">
+      <UniqueIdentifier>{1fea8d17-7695-4b54-9773-e80e042c3ac2}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -196,7 +196,7 @@
       <Filter>Source\Object\Object\Named</Filter>
     </ClInclude>
     <ClInclude Include="DataConnectionObjectWriter.h">
-      <Filter>Source\Object\Object\IO\Indexed</Filter>
+      <Filter>Source\Object\Object\IO\DataConnection</Filter>
     </ClInclude>
     <ClInclude Include="HollowObject.h">
       <Filter>Source\Object\Object\Hollow</Filter>
@@ -334,13 +334,13 @@
       <Filter>Source\Object\Object\IO\Common</Filter>
     </ClInclude>
     <ClInclude Include="MultiFileObjectWriter.h">
-      <Filter>Source\Object\Object\IO\Simple</Filter>
+      <Filter>Source\Object\Object\IO\File</Filter>
     </ClInclude>
     <ClInclude Include="FileObjectReader.h">
-      <Filter>Source\Object\Object\IO\Simple</Filter>
+      <Filter>Source\Object\Object\IO\File</Filter>
     </ClInclude>
-    <ClInclude Include="ObjectWriterChunked.h">
-      <Filter>Source\Object\Object\IO\Chunked</Filter>
+    <ClInclude Include="ChunkFileObjectWriter.h">
+      <Filter>Source\Object\Object\IO\ChunkFile</Filter>
     </ClInclude>
     <ClInclude Include="ObjectIO.h">
       <Filter>Source\Object\Object\IO\Common</Filter>
@@ -352,13 +352,13 @@
       <Filter>Source\Object\Object\Serilalisation</Filter>
     </ClInclude>
     <ClInclude Include="ObjectReaderChunkFileDisk.h">
-      <Filter>Source\Object\Object\IO\Chunked</Filter>
+      <Filter>Source\Object\Object\IO\ChunkFile</Filter>
     </ClInclude>
     <ClInclude Include="ObjectReaderChunkFile.h">
-      <Filter>Source\Object\Object\IO\Chunked</Filter>
+      <Filter>Source\Object\Object\IO\ChunkFile</Filter>
     </ClInclude>
     <ClInclude Include="ObjectReaderSimpleDisk.h">
-      <Filter>Source\Object\Object\IO\Simple</Filter>
+      <Filter>Source\Object\Object\IO\File</Filter>
     </ClInclude>
     <ClInclude Include="DependentWriteObjects.h">
       <Filter>Source\Object\Object\Serilalisation\Graph</Filter>
@@ -538,7 +538,7 @@
       <Filter>Source\Object\Object\Named</Filter>
     </ClCompile>
     <ClCompile Include="DataConnectionObjectWriter.cpp">
-      <Filter>Source\Object\Object\IO\Indexed</Filter>
+      <Filter>Source\Object\Object\IO\DataConnection</Filter>
     </ClCompile>
     <ClCompile Include="HollowObject.cpp">
       <Filter>Source\Object\Object\Hollow</Filter>
@@ -667,13 +667,13 @@
       <Filter>Source\Object\Object\IO\Common</Filter>
     </ClCompile>
     <ClCompile Include="MultiFileObjectWriter.cpp">
-      <Filter>Source\Object\Object\IO\Simple</Filter>
+      <Filter>Source\Object\Object\IO\File</Filter>
     </ClCompile>
     <ClCompile Include="FileObjectReader.cpp">
-      <Filter>Source\Object\Object\IO\Simple</Filter>
+      <Filter>Source\Object\Object\IO\File</Filter>
     </ClCompile>
-    <ClCompile Include="ObjectWriterChunked.cpp">
-      <Filter>Source\Object\Object\IO\Chunked</Filter>
+    <ClCompile Include="ChunkFileObjectWriter.cpp">
+      <Filter>Source\Object\Object\IO\ChunkFile</Filter>
     </ClCompile>
     <ClCompile Include="ObjectIO.cpp">
       <Filter>Source\Object\Object\IO\Common</Filter>
@@ -685,13 +685,13 @@
       <Filter>Source\Object\Object\Serilalisation</Filter>
     </ClCompile>
     <ClCompile Include="ObjectReaderChunkFileDisk.cpp">
-      <Filter>Source\Object\Object\IO\Chunked</Filter>
+      <Filter>Source\Object\Object\IO\ChunkFile</Filter>
     </ClCompile>
     <ClCompile Include="ObjectReaderChunkFile.cpp">
-      <Filter>Source\Object\Object\IO\Chunked</Filter>
+      <Filter>Source\Object\Object\IO\ChunkFile</Filter>
     </ClCompile>
     <ClCompile Include="ObjectReaderSimpleDisk.cpp">
-      <Filter>Source\Object\Object\IO\Simple</Filter>
+      <Filter>Source\Object\Object\IO\File</Filter>
     </ClCompile>
     <ClCompile Include="DependentReadObject.cpp">
       <Filter>Source\Object\Object\Serilalisation\Graph</Filter>
