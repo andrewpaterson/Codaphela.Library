@@ -93,7 +93,8 @@ BOOL CChunkFileObjectWriter::Begin(void)
 	szFileName.Kill();
 
 	mcChunkFile.Init(pcDiskFile);
-	return mcChunkFile.WriteOpen(CHUNKED_OBJECT_FILE);
+	mcChunkFileNames.Init(&mcChunkFile);
+	return mcChunkFileNames.WriteOpen(CHUNKED_OBJECT_FILE);
 }
 
 
@@ -103,8 +104,8 @@ BOOL CChunkFileObjectWriter::Begin(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CChunkFileObjectWriter::End(void)
 {
-	mcChunkFile.WriteClose();
-	mcChunkFile.Kill();
+	mcChunkFileNames.WriteClose();
+	mcChunkFileNames.Kill();
 
 	return CObjectWriter::End();
 }
@@ -137,9 +138,9 @@ BOOL CChunkFileObjectWriter::Write(CSerialisedObject* pcSerialised)
 		return FALSE;
 	}
 
-	ReturnOnFalse(mcChunkFile.WriteChunkBegin(szChunkName.Text()));
-	ReturnOnFalse(mcChunkFile.WriteData(pcSerialised, pcSerialised->GetLength()));
-	ReturnOnFalse(mcChunkFile.WriteChunkEnd());
+	ReturnOnFalse(mcChunkFileNames.WriteChunkBegin(szChunkName.Text()));
+	ReturnOnFalse(mcChunkFileNames.WriteData(pcSerialised, pcSerialised->GetLength()));
+	ReturnOnFalse(mcChunkFileNames.WriteChunkEnd());
 
 	szChunkName.Kill();
 	return TRUE;

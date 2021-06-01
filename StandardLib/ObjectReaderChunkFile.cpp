@@ -81,7 +81,7 @@ CSerialisedObject* CObjectReaderChunkFile::Read(char* szChunkName)
 		return NULL;
 	}
 
-	cChunkFile.Init(mpcChunkFile);
+	cChunkFile.Init(mpcChunkFile->GetChunkFile());
 	cFileBasic.Init(&cChunkFile);
 	cFileBasic.Open(EFM_Read);
 

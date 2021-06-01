@@ -16,27 +16,33 @@ struct SChunkFileNameIterator
 };
 
 
-class CChunkFileNames : public CChunkFile
+class CChunkFileNames : public CFileIO
 {
 protected:
 	CArrayChars		maszOpenChunkNames;		//All the chunk names not including the last one.
 	CChars			mszLastChunkName;		//The last open chunk name.
+	CChunkFile*		mpcChunkFile;
 
 public:
-	void	Init(CAbstractFile*	pcFile);
-	void	Kill(void);
+	void		Init(CChunkFile* pcChunkFile);
+	void		Kill(void);
 
-	BOOL	WriteChunkBegin(char* szChunkName);
-	BOOL	WriteChunkEnd(void);
+	BOOL		WriteOpen(void);
+	BOOL		WriteOpen(int iUserID);
+	BOOL		WriteChunkBegin(char* szChunkName);
+	BOOL		WriteChunkEnd(void);
+	BOOL		WriteClose(void);
 
-	BOOL	WriteClose(void);
+	BOOL		ReadOpen(void);
+	BOOL		ReadChunkBegin(char* szChunkName);
+	BOOL		ReadChunkEnd(void);
+	BOOL		ReadClose(void);
 
-	BOOL	ReadChunkBegin(char* szChunkName);
-	BOOL	ReadChunkEnd(void);
+	char*		StartNameIteration(SChunkFileNameIterator* psIter);
+	char*		IterateName(SChunkFileNameIterator* psIter);
+	BOOL		StopIteration(SChunkFileNameIterator* psIter);
 
-	char*	StartNameIteration(SChunkFileNameIterator* psIter);
-	char*	IterateName(SChunkFileNameIterator* psIter);
-	BOOL	StopIteration(SChunkFileNameIterator* psIter);
+	CChunkFile* GetChunkFile(void);
 
 protected:
 	BOOL	WriteChunkBegin(void);
@@ -46,7 +52,8 @@ protected:
 	BOOL	WriteUnmatchedChunkEnds(int iMatchingOpen);
 	BOOL	WriteNewUnmatchedChunks(int iMatchingOpen, CArrayChars* paszChunkNames);
 
-	char*	PrivateGetChunkName(int iIndex);
+	filePos	Write(const void* pvSource, filePos iSize, filePos iCount);
+	filePos	Read(void* pvDest, filePos iSize, filePos iCount);
 };
 
 

@@ -27,7 +27,8 @@ class CObjectReaderChunkFileDisk : public CObjectReaderChunkFile
 {
 CONSTRUCTABLE(CObjectReaderChunkFileDisk);
 protected:
-	CChunkFileNames		mcChunkFile;
+	CChunkFile			mcChunkFile;
+	CChunkFileNames		mcChunkFileNames;
 	CChars				mszFileName;
 	CChars				mszFullDirectory;
 

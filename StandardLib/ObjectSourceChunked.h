@@ -11,7 +11,8 @@ class CObjectSourceChunked : public CObjectSource
 CONSTRUCTABLE(CObjectSourceChunked);
 protected:
 	CArrayChars					mcNames;
-	CChunkFileNames				mcChunkFile;
+	CChunkFile					mcChunkFile;
+	CChunkFileNames				mcChunkFileNames;
 	CObjectReaderChunkFile*		mpcReader;
 
 public:
