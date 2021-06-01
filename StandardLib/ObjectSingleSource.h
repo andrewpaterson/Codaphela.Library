@@ -28,6 +28,7 @@ class CObjectSingleSource : public CObjectSource
 CONSTRUCTABLE(CObjectSingleSource);
 protected:
 	CChars	mszObjectName;
+
 public:
 	void			Init(CObjectConverter* pcConverter, CAbstractFile* pcFile, char* szObjectName);
 	void			Kill(void);

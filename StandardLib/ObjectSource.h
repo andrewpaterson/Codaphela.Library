@@ -26,6 +26,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Object.h"
 #include "ObjectReader.h"
 
+
 class CSerialisedObject;
 class CObjectConverter;
 class CObjectSource : public CUnknown

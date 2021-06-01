@@ -121,7 +121,7 @@ BOOL CObjectWriterChunked::Write(CSerialisedObject* pcSerialised)
 
 	if (pcSerialised->IsNamed())
 	{
-		bResult = ObjectStartsWithBase(pcSerialised->GetName());
+		bResult = ObjectStartsWithBaseName(pcSerialised->GetName());
 		if (!bResult)
 		{
 			return FALSE;
@@ -150,7 +150,7 @@ BOOL CObjectWriterChunked::Write(CSerialisedObject* pcSerialised)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectWriterChunked::ObjectStartsWithBase(char* szObjectName)
+BOOL CObjectWriterChunked::ObjectStartsWithBaseName(char* szObjectName)
 {
 	CChars	szRemainingName;
 
