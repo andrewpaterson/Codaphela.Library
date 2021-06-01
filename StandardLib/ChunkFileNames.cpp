@@ -30,9 +30,9 @@ void SChunkFileNameIterator::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChunkFileNames::Init(CAbstractFile* pcFile)
+void CChunkFileNames::Init(CChunkFile* pcChunkFile)
 {
-	CChunkFile::Init(pcFile);
+	mpcChunkFile = pcChunkFile;
 	maszOpenChunkNames.Init();
 }
 
@@ -44,7 +44,7 @@ void CChunkFileNames::Init(CAbstractFile* pcFile)
 void CChunkFileNames::Kill(void)
 {
 	maszOpenChunkNames.Kill();
-	CChunkFile::Kill();
+	mpcChunkFile = NULL;
 }
 
 
@@ -151,12 +151,52 @@ BOOL CChunkFileNames::WriteChunkEnd(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL CChunkFileNames::ReadOpen(void)
+{
+	return mpcChunkFile->ReadOpen();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CChunkFileNames::ReadClose(void)
+{
+	return mpcChunkFile->ReadClose();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CChunkFileNames::WriteOpen(void)
+{
+	return mpcChunkFile->WriteOpen();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CChunkFileNames::WriteOpen(int iUserID)
+{
+	return mpcChunkFile->WriteOpen(iUserID);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL CChunkFileNames::WriteClose(void)
 {
 	BOOL	bResult;
 
 	bResult = WriteUnmatchedChunkEnds(0);
-	bResult &= CChunkFile::WriteClose();
+	bResult &= mpcChunkFile->WriteClose();
 	return bResult;
 }
 
@@ -167,7 +207,7 @@ BOOL CChunkFileNames::WriteClose(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CChunkFileNames::WriteChunkBegin(void)
 {
-	return CChunkFile::WriteChunkBegin();
+	return mpcChunkFile->WriteChunkBegin();
 }
 
 
@@ -177,7 +217,7 @@ BOOL CChunkFileNames::WriteChunkBegin(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CChunkFileNames::WriteChunkEnd(char* szChunkName)
 {
-	return CChunkFile::WriteChunkEnd(szChunkName);
+	return mpcChunkFile->WriteChunkEnd(szChunkName);
 }
 
 
@@ -218,12 +258,12 @@ BOOL CChunkFileNames::ReadChunkBegin(char* szChunkName)
 		pszName = aszChunkNames.Get(iDepth);
 		if (!abFoundFirst[iDepth])
 		{
-			iIndex = FindFirstChunkWithName(pszName->Text());
+			iIndex = mpcChunkFile->FindFirstChunkWithName(pszName->Text());
 			abFoundFirst[iDepth] = TRUE;
 		}
 		else
 		{
-			iIndex = FindNextChunkWithName();
+			iIndex = mpcChunkFile->FindNextChunkWithName();
 		}
 
 		if (iIndex == -1)
@@ -238,11 +278,11 @@ BOOL CChunkFileNames::ReadChunkBegin(char* szChunkName)
 				free(abFoundFirst);
 				return FALSE;
 			}
-			CChunkFile::ReadChunkEnd();
+			mpcChunkFile->ReadChunkEnd();
 		}
 		else
 		{
-			bResult = CChunkFile::ReadChunkBegin(iIndex);
+			bResult = mpcChunkFile->ReadChunkBegin(iIndex);
 			if (iDepth == iLength-1)
 			{
 				return TRUE;
@@ -264,21 +304,7 @@ BOOL CChunkFileNames::ReadChunkBegin(char* szChunkName)
 //////////////////////////////////////////////////////////////////////////
 BOOL CChunkFileNames::ReadChunkEnd(void)
 {
-	int		i;
-
-	if (mcChunkStack.NumElements() > 0)
-	{
-		for (i = 1; i < mcChunkStack.NumElements(); i++)
-		{
-			mcChunkStack.Get(i)->cChunkIndex.Kill();
-		}
-		mcChunkStack.SetUsedElements(1);
-		return TRUE;
-	}
-	else
-	{
-		return FALSE;
-	}
+	return mpcChunkFile->ReadChunkEndAll();
 }
 
 
@@ -310,16 +336,16 @@ char* CChunkFileNames::IterateName(SChunkFileNameIterator* psIter)
 		return NULL;
 	}
 
-	iNumChunks = GetNumChunks();
+	iNumChunks = mpcChunkFile->GetNumChunks();
 	piIndex = psIter->aiIndex.Tail();
 
 	if (iNumChunks == 0)
 	{
-		CChunkFile::ReadChunkEnd();
+		mpcChunkFile->ReadChunkEnd();
 		psIter->aiIndex.Pop();
 
 		piIndex = psIter->aiIndex.Tail();
-		szName = PrivateGetChunkName(*piIndex);
+		szName = mpcChunkFile->GetTailChunkNameForIndex(*piIndex);
 		iLength = strlen(szName);
 		psIter->szValue.Kill();
 		psIter->szValue.Init(psIter->szFullName.Text(), 1);
@@ -331,7 +357,7 @@ char* CChunkFileNames::IterateName(SChunkFileNameIterator* psIter)
 
 	if (*piIndex >= iNumChunks)
 	{
-		CChunkFile::ReadChunkEnd();
+		mpcChunkFile->ReadChunkEnd();
 		psIter->aiIndex.Pop();
 
 		if (psIter->aiIndex.NumElements() == 0)
@@ -342,14 +368,14 @@ char* CChunkFileNames::IterateName(SChunkFileNameIterator* psIter)
 		}
 
 		piIndex = psIter->aiIndex.Tail();
-		szName = PrivateGetChunkName(*piIndex);
+		szName = mpcChunkFile->GetTailChunkNameForIndex(*piIndex);
 		iLength = strlen(szName);
 		psIter->szFullName.RemoveFromEnd(1 + iLength);
 		(*piIndex)++;
 		return IterateName(psIter);
 	}
 
-	szName = PrivateGetChunkName(*piIndex);
+	szName = mpcChunkFile->GetTailChunkNameForIndex(*piIndex);
 	if (szName == NULL)
 	{
 		return FALSE;
@@ -358,27 +384,9 @@ char* CChunkFileNames::IterateName(SChunkFileNameIterator* psIter)
 	psIter->szFullName.Append('/');
 	psIter->szFullName.Append(szName);
 
-	CChunkFile::ReadChunkBegin(*piIndex);
+	mpcChunkFile->ReadChunkBegin(*piIndex);
 	psIter->aiIndex.Add(0);
 	return IterateName(psIter);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-char* CChunkFileNames::PrivateGetChunkName(int iIndex)
-{
-	int	iName;
-
-	iName = GetChunkName(iIndex);
-	if (iName == -1)
-	{
-		return NULL;
-	}
-
-	return mmsziNames.GetWithValue(iName);
 }
 
 
@@ -390,7 +398,36 @@ BOOL CChunkFileNames::StopIteration(SChunkFileNameIterator* psIter)
 {
 	psIter->Kill();
 
-	CFileBasic::Seek(sizeof(CChunkFileHeader));
-	return __PrivateReadChunkBegin();
+	return mpcChunkFile->SeekStart();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CChunkFile* CChunkFileNames::GetChunkFile(void)
+{
+	return mpcChunkFile;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+filePos CChunkFileNames::Write(const void* pvSource, filePos iSize, filePos iCount)
+{
+	return mpcChunkFile->Write(pvSource, iSize, iCount);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+filePos CChunkFileNames::Read(void* pvDest, filePos iSize, filePos iCount)
+{
+	return mpcChunkFile->Read(pvDest, iSize, iCount);
 }
 

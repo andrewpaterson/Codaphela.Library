@@ -64,6 +64,7 @@ public:
 	BOOL	ReadChunkBegin(char* szName);
 	BOOL	ReadChunkEnd(void);
 	BOOL	ReadChunkEnd(int iNumChunksToEnd);
+	BOOL	ReadChunkEndAll(void);
 
 	BOOL	WriteChunkBegin(void);
 	BOOL	WriteChunkEnd(char* szChunkName);
@@ -71,6 +72,9 @@ public:
 	int		StackDepth(void);
 	filePos	ChunkSize(void);
 	filePos	ChunkStart(void);
+	
+	char*	GetTailChunkNameForIndex(int iIndex);
+	BOOL	SeekStart(void);
 
 protected:
 	int		FindFirstChunkWithID(int iName);
@@ -79,7 +83,7 @@ protected:
 	BOOL	WriteChunkNames(void);
 	BOOL	WriteChunkEnd(int iChunkName);
 	BOOL	WriteBasic(const void* pvSource, filePos iSize);
-	int		GetChunkName(int iChunkNum);
+	int		GetTailChunkNameIndex(int iChunkNum);
 };
 
 

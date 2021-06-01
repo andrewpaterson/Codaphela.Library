@@ -300,6 +300,17 @@ BOOL CChunkFile::WriteChunkNames(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
+BOOL CChunkFile::SeekStart(void)
+{
+	CFileBasic::Seek(sizeof(CChunkFileHeader));
+	return __PrivateReadChunkBegin();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
 BOOL CChunkFile::__PrivateReadChunkBegin(void)
 {
 	CChunkStackElement*		psElement;
@@ -448,7 +459,7 @@ int CChunkFile::GetNumChunks(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CChunkFile::GetChunkName(int iChunkNum)
+int CChunkFile::GetTailChunkNameIndex(int iChunkNum)
 {
 	SChunkIndex*			psIndex;
 	CChunkStackElement*		psElement;
@@ -685,5 +696,47 @@ filePos CChunkFile::ChunkStart(void)
 		return psElement->iChunkHeaderPos + sizeof(CChunkHeader);
 	}
 	return 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CChunkFile::GetTailChunkNameForIndex(int iIndex)
+{
+	int	iName;
+
+	iName = GetTailChunkNameIndex(iIndex);
+	if (iName == -1)
+	{
+		return NULL;
+	}
+
+	return mmsziNames.GetWithValue(iName);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CChunkFile::ReadChunkEndAll(void)
+{
+	int		i;
+
+	if (mcChunkStack.NumElements() > 0)
+	{
+		for (i = 1; i < mcChunkStack.NumElements(); i++)
+		{
+			mcChunkStack.Get(i)->cChunkIndex.Kill();
+		}
+		mcChunkStack.SetUsedElements(1);
+		return TRUE;
+	}
+	else
+	{
+		return FALSE;
+	}
 }
 

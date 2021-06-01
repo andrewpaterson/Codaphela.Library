@@ -33,7 +33,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CObjectReaderChunkFileDisk::Init(char* szDirectory, char* szChunkFileName)
 {
-	CObjectReaderChunkFile::Init(&mcChunkFile);
+	CObjectReaderChunkFile::Init(&mcChunkFileNames);
 	mszFileName.Init(szChunkFileName);
 	mszFullDirectory.Init(szDirectory);
 }
@@ -73,7 +73,8 @@ BOOL CObjectReaderChunkFileDisk::Begin(void)
 	szFileName.Kill();
 
 	mcChunkFile.Init(pcDiskFile);
-	return mcChunkFile.ReadOpen();
+	mcChunkFileNames.Init(&mcChunkFile);
+	return mcChunkFileNames.ReadOpen();
 }
 
 
@@ -83,8 +84,8 @@ BOOL CObjectReaderChunkFileDisk::Begin(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CObjectReaderChunkFileDisk::End(void)
 {
-	mcChunkFile.ReadClose();
-	mcChunkFile.Kill();
+	mcChunkFileNames.ReadClose();
+	mcChunkFileNames.Kill();
 	return TRUE;
 }
 
@@ -99,12 +100,12 @@ CSerialisedObject* CObjectReaderChunkFileDisk::Read(char* szChunkName)
 	CChunkFileFile		cChunkFile;
 	CFileBasic			cFileBasic;
 
-	if (!mcChunkFile.ReadChunkBegin(szChunkName))
+	if (!mcChunkFileNames.ReadChunkBegin(szChunkName))
 	{
 		return NULL;
 	}
 
-	cChunkFile.Init(&mcChunkFile);
+	cChunkFile.Init(mcChunkFileNames.GetChunkFile());
 	cFileBasic.Init(&cChunkFile);
 	cFileBasic.Open(EFM_Read);
 
@@ -119,7 +120,7 @@ CSerialisedObject* CObjectReaderChunkFileDisk::Read(char* szChunkName)
 		return NULL;
 	}
 
-	if (!mcChunkFile.ReadChunkEnd())
+	if (!mcChunkFileNames.ReadChunkEnd())
 	{
 		free(pcSerialised);
 		return NULL;

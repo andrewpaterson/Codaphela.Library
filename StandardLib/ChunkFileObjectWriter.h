@@ -29,7 +29,8 @@ class CChunkFileObjectWriter : public CObjectWriter, public CObjectIO
 {
 CONSTRUCTABLE(CChunkFileObjectWriter);
 protected:
-	CChunkFileNames		mcChunkFile;
+	CChunkFile			mcChunkFile;
+	CChunkFileNames		mcChunkFileNames;
 	CChars				mszFileName;
 	CChars				mszDirectory;
 	CChars				mszObjectBaseName;
