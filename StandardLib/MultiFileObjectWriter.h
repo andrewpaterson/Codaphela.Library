@@ -21,11 +21,11 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __MULTI_FILE_OBJECT_WRITER_SIMPLE_H__
 #define __MULTI_FILE_OBJECT_WRITER_SIMPLE_H__
 #include "BaseLib/Chars.h"
-#include "ObjectIOSimple.h"
+#include "ObjectIO.h"
 #include "ObjectWriter.h"
 
 
-class CMultiFileObjectWriter : public CObjectWriter, public CObjectIOSimple
+class CMultiFileObjectWriter : public CObjectWriter, public CObjectIO
 {
 CONSTRUCTABLE(CMultiFileObjectWriter);
 protected:
@@ -41,7 +41,7 @@ public:
 	BOOL	End(void);
 
 protected:
-	BOOL	ObjectStartsWithBase(char* szObjectName);
+	BOOL	ObjectStartsWithBaseName(char* szObjectName);
 	void	RemainingName(CChars* pszRemainingName, char* szObjectName);
 };
 

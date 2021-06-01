@@ -44,7 +44,7 @@ public:
 	BOOL	End(void);
 
 protected:
-	BOOL	ObjectStartsWithBase(char* szObjectName);
+	BOOL	ObjectStartsWithBaseName(char* szObjectName);
 	void	RemainingName(CChars* pszRemainingName, char* szObjectName);
 };
 
