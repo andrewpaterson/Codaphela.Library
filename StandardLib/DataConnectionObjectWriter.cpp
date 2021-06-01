@@ -1,13 +1,13 @@
 #include "CoreLib/DataConnection.h"
 #include "SerialisedObject.h"
-#include "ObjectWriterIndexed.h"
+#include "DataConnectionObjectWriter.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectWriterIndexed::Init(CDataConnection* pcDataConnection, unsigned int	uiTimeStamp)
+void CDataConnectionObjectWriter::Init(CDataConnection* pcDataConnection, unsigned int	uiTimeStamp)
 {
 	mpcDataConnection = pcDataConnection;
 	muiTimeStamp = uiTimeStamp;
@@ -18,7 +18,7 @@ void CObjectWriterIndexed::Init(CDataConnection* pcDataConnection, unsigned int	
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectWriterIndexed::Kill(void)
+void CDataConnectionObjectWriter::Kill(void)
 {
 	mpcDataConnection = NULL;
 }
@@ -28,7 +28,7 @@ void CObjectWriterIndexed::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectWriterIndexed::Write(CSerialisedObject* pcSerialised)
+BOOL CDataConnectionObjectWriter::Write(CSerialisedObject* pcSerialised)
 {
 	OIndex	oi;
 	BOOL	bResult;

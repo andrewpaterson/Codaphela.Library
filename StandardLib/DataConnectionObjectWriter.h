@@ -25,9 +25,9 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 //This writes back into key/value store.
 class CDataConnection;
-class CObjectWriterIndexed : public CObjectWriter
+class CDataConnectionObjectWriter : public CObjectWriter
 {
-CONSTRUCTABLE(CObjectWriterIndexed);
+CONSTRUCTABLE(CDataConnectionObjectWriter);
 protected:
 	CDataConnection*	mpcDataConnection;
 	unsigned int		muiTimeStamp;

@@ -128,7 +128,6 @@
     <ClInclude Include="ObjectReader.h" />
     <ClInclude Include="ObjectReaderChunkFile.h" />
     <ClInclude Include="ObjectReaderChunkFileDisk.h" />
-    <ClInclude Include="ObjectReaderIndexed.h" />
     <ClInclude Include="FileObjectReader.h" />
     <ClInclude Include="ObjectReaderSimpleDisk.h" />
     <ClInclude Include="ObjectRemapFrom.h" />
@@ -173,7 +172,7 @@
     <ClInclude Include="ObjectSerialiser.h" />
     <ClInclude Include="ObjectWriterChunked.h" />
     <ClInclude Include="ObjectWriter.h" />
-    <ClInclude Include="ObjectWriterIndexed.h" />
+    <ClInclude Include="DataConnectionObjectWriter.h" />
     <ClInclude Include="MultiFileObjectWriter.h" />
     <ClInclude Include="HollowObject.h" />
     <ClInclude Include="IndexedObjects.h" />
@@ -239,7 +238,6 @@
     <ClCompile Include="ObjectReader.cpp" />
     <ClCompile Include="ObjectReaderChunkFile.cpp" />
     <ClCompile Include="ObjectReaderChunkFileDisk.cpp" />
-    <ClCompile Include="ObjectReaderIndexed.cpp" />
     <ClCompile Include="FileObjectReader.cpp" />
     <ClCompile Include="ObjectReaderSimpleDisk.cpp" />
     <ClCompile Include="ObjectRemapFrom.cpp" />
@@ -281,7 +279,7 @@
     <ClCompile Include="ObjectDeserialiser.cpp" />
     <ClCompile Include="ObjectSerialiser.cpp" />
     <ClCompile Include="ObjectWriterChunked.cpp" />
-    <ClCompile Include="ObjectWriterIndexed.cpp" />
+    <ClCompile Include="DataConnectionObjectWriter.cpp" />
     <ClCompile Include="MultiFileObjectWriter.cpp" />
     <ClCompile Include="HollowObject.cpp" />
     <ClCompile Include="IndexedObjects.cpp" />
