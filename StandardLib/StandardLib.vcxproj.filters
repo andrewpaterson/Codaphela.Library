@@ -333,7 +333,7 @@
     <ClInclude Include="ObjectReader.h">
       <Filter>Source\Object\Object\IO\Common</Filter>
     </ClInclude>
-    <ClInclude Include="ObjectWriterSimple.h">
+    <ClInclude Include="MultiFileObjectWriter.h">
       <Filter>Source\Object\Object\IO\Simple</Filter>
     </ClInclude>
     <ClInclude Include="ObjectReaderSimple.h">
@@ -672,7 +672,7 @@
     <ClCompile Include="ObjectReader.cpp">
       <Filter>Source\Object\Object\IO\Common</Filter>
     </ClCompile>
-    <ClCompile Include="ObjectWriterSimple.cpp">
+    <ClCompile Include="MultiFileObjectWriter.cpp">
       <Filter>Source\Object\Object\IO\Simple</Filter>
     </ClCompile>
     <ClCompile Include="ObjectReaderSimple.cpp">
