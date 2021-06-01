@@ -77,7 +77,7 @@ int CompareCharsIgnoreCase(const void* arg1, const void* arg2)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::Zero(void)
+void CChars::_Init(void)
 {
 	//This makes it safe to call kill.
 	//It does not make 'this' usable.  It will - rightly - null pointer.

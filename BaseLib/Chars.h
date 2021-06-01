@@ -46,7 +46,7 @@ protected:
 	CArrayChar	mcText;
 
 public:
-	void	Zero(void);
+	void	_Init(void);
 	CChars*	Init(void);
 	CChars* Init(const char* sz);
 	CChars* Init(CChars sz);

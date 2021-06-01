@@ -30,6 +30,7 @@ protected:
 	BOOL				mbOverwrite;
 
 public:
+	void			_Init(void);
 	void			Init(int iElementSize, DataCompare fCompare);
 	void			Init(int iElementSize, int iHoldingBufferSize, int iHoldingBuffers, DataCompare fCompare);
 	void			Init(CMallocator* pcMalloc, int iElementSize, int iHoldingBufferSize, int iHoldingBuffers, DataCompare fCompare);

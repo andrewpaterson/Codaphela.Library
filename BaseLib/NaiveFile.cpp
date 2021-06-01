@@ -33,7 +33,7 @@ CNaiveFile::CNaiveFile()
 {
 	mpvMem = NULL;
 	miSize = 0;
-	mszFileName.Zero();
+	mszFileName._Init();
 }
 
 

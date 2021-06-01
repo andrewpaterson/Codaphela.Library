@@ -34,6 +34,7 @@ public:
 	__CArrayChars	mcArray;
 	BOOL			mbFaked;
 
+	void 		_Init(void);
 	void 		Init(void);
 	void 		Init(CArrayChars* pasz);
 	void 		Fake(void);

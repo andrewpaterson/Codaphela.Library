@@ -9,7 +9,7 @@
 void CObjectIdentifier::Init(void)
 {
 	mcType = 0;
-	mszObjectName.Zero();
+	mszObjectName._Init();
 	moi = INVALID_O_INDEX;
 }
 
@@ -22,7 +22,7 @@ void CObjectIdentifier::Init(OIndex oi)
 {
 	mcType = OBJECT_POINTER_ID;
 	moi = oi;
-	mszObjectName.Zero();
+	mszObjectName._Init();
 }
 
 
@@ -151,8 +151,7 @@ char* CObjectIdentifier::GetType(void)
 //////////////////////////////////////////////////////////////////////////
 void CObjectHeader::Init(void)
 {
-	//This should not call CObjectIdentifier::Init.
-	mszClassName.Zero();
+	mszClassName._Init();
 }
 
 

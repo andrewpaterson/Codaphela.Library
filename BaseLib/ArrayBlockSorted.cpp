@@ -7,6 +7,22 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CArrayBlockSorted::_Init(void)
+{
+	maSortedArray._Init();
+	maaHoldingArrays._Init();
+	mfCompare = NULL;
+	mapiInsertionIndices = NULL;
+	miElementSize = 0;
+	miHoldingBufferSize = 0;
+	mbOverwrite = FALSE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CArrayBlockSorted::Init(int iElementSize, DataCompare fCompare)
 {
 	Init(&gcSystemAllocator, iElementSize, 256, 4, fCompare);

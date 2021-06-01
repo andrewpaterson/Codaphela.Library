@@ -29,6 +29,20 @@ Microsoft Windows is Copyright Microsoft Corporation
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
+void CChunkFile::_Init(void)
+{
+	mcChunkStack.Init();
+	mbLastHashCheck = FALSE;
+	mmsziNames._Init();
+	memset(&msHeader, 0, sizeof(SChunkFileHeader));
+	miLastName = 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
 void CChunkFile::Init(CAbstractFile* pcFile)
 {
 	CFileBasic::Init(MD5HashFile(pcFile));
@@ -72,7 +86,7 @@ BOOL CChunkFile::WriteOpen(int iUserID)
 		return gcLogger.Error2(__METHOD__, " Could not create chunk file [", GetFileName(), "].", NULL);
 	}
 
-	if (!WriteBasic(&msHeader, sizeof(CChunkFileHeader)))
+	if (!WriteBasic(&msHeader, sizeof(SChunkFileHeader)))
 	{
 		return gcLogger.Error2(__METHOD__, " Could not write chunk file [", GetFileName(), "] header.", NULL);
 	}
@@ -106,7 +120,7 @@ BOOL CChunkFile::WriteClose(void)
 	((CMD5HashFile*)mpcFile)->StopHashing();
 	((CMD5HashFile*)mpcFile)->CopyDigestToDest(msHeader.macMD5Hash);
 	CFileBasic::Seek(0);
-	ReturnOnFalse(CFileBasic::WriteData(&msHeader, sizeof(CChunkFileHeader)));
+	ReturnOnFalse(CFileBasic::WriteData(&msHeader, sizeof(SChunkFileHeader)));
 	CFileBasic::Seek(0, EFSO_END);
 	ReturnOnFalse(CFileBasic::Close());
 
@@ -130,7 +144,7 @@ BOOL CChunkFile::ReadOpen(void)
 	miLastName = CFN_Error;
 
 	ReturnOnFalse(CFileBasic::Open(EFM_Read));
-	ReturnOnFalse(CFileBasic::Read(&msHeader, sizeof(CChunkFileHeader), 1));
+	ReturnOnFalse(CFileBasic::Read(&msHeader, sizeof(SChunkFileHeader), 1));
 	if (msHeader.miMagic != CHUNK_HEADER_MAGIC)
 	{
 		return FALSE;
@@ -145,7 +159,7 @@ BOOL CChunkFile::ReadOpen(void)
 		return FALSE;
 	}
 
-	CFileBasic::Seek(sizeof(CChunkFileHeader));
+	CFileBasic::Seek(sizeof(SChunkFileHeader));
 	return __PrivateReadChunkBegin();
 }
 
@@ -302,7 +316,7 @@ BOOL CChunkFile::WriteChunkNames(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CChunkFile::SeekStart(void)
 {
-	CFileBasic::Seek(sizeof(CChunkFileHeader));
+	CFileBasic::Seek(sizeof(SChunkFileHeader));
 	return __PrivateReadChunkBegin();
 }
 
