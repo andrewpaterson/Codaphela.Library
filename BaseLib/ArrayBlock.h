@@ -32,6 +32,7 @@ protected:
 	void*			mpvArray;
 
 public:
+	void 	_Init(void);
 	void 	Init(int iElementSize);
 	void 	Init(CMallocator* pcMalloc, int iElementSize);
 	void	Init(CMallocator* pcMalloc, int iElementSize, int iChunkSize);

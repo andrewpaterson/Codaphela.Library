@@ -9,6 +9,20 @@
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
+void CArrayBlock::_Init(void)
+{
+	miNumElements = 0;
+	mpvArray = 0;
+	miElementSize = 0;
+	miUsedElements = 0;
+	miChunkSize = 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
 void CArrayBlock::Init(int iElementSize)
 {
 	Init(&gcSystemAllocator, iElementSize);
@@ -112,7 +126,7 @@ BOOL CArrayBlock::SafeSet(int iIndex, void* pvData)
 	{
 		iOldLength = NumElements();
 		SetUsedElements(iIndex+1);
-		memset_fast(Get(iOldLength), 0, (iIndex-iOldLength) * miElementSize);
+		memset(Get(iOldLength), 0, (iIndex-iOldLength) * miElementSize);
 		Set(iIndex, pvData);
 		return TRUE;
 	}
@@ -370,13 +384,13 @@ int CArrayBlock::RemoveAtNoDeallocate(int iIndex, BOOL bPreserveOrder, int iData
 	{
 		//If the order of elements is to be preserved then move all the elements back one.
 		pDest = (void*)RemapSinglePointer(pSource, iDataSize);
-		memmove_fast(pSource, pDest, iDataSize * (iUsedElements - iIndex));
+		memmove(pSource, pDest, iDataSize * (iUsedElements - iIndex));
 	}
 	else
 	{
 		//If the order is unimportant then just move the last element to the empty.
 		pEnd = (void*)RemapSinglePointer(mpvArray, iUsedElements * iDataSize);
-		memcpy_fast(pSource, pEnd, iDataSize);
+		memcpy(pSource, pEnd, iDataSize);
 	}
 	return iUsedElements;
 }
@@ -491,7 +505,7 @@ void CArrayBlock::RemoveAt(int* paiElementsToDelete, int iNumElementsToDelete, B
 				if (iIndex == iNumElementsToDelete)
 				{
 					iMoved = miUsedElements - iFirstElementToMove;
-					memcpy_fast(Get(iDestElement - iDestOffset), Get(iFirstElementToMove), iMoved * miElementSize);
+					memcpy(Get(iDestElement - iDestOffset), Get(iFirstElementToMove), iMoved * miElementSize);
 					SetUsedElements(miUsedElements - iNumElementsToDelete);
 					return;
 				}
@@ -505,7 +519,7 @@ void CArrayBlock::RemoveAt(int* paiElementsToDelete, int iNumElementsToDelete, B
 			//iFirstElementToMove is the first element to move
 			//iEndElementToMove is the last element to move exclusive.
 			iMoved = iEndElementToMove - iFirstElementToMove;
-			memcpy_fast(Get(iDestElement - iDestOffset), Get(iFirstElementToMove), iMoved * miElementSize);
+			memcpy(Get(iDestElement - iDestOffset), Get(iFirstElementToMove), iMoved * miElementSize);
 
 			iDestOffset += iNumDeleted;
 
@@ -598,7 +612,7 @@ void CArrayBlock::Zero(void)
 {
 	if (miUsedElements != 0)
 	{
-		memset_fast(mpvArray, 0, miUsedElements * miElementSize);
+		memset(mpvArray, 0, miUsedElements * miElementSize);
 	}
 }
 
@@ -923,7 +937,7 @@ void* CArrayBlock::GrowToAtLeastNumElements(int iNumElements, BOOL bClear, unsig
 			if (iOldUsedElements < iNumElements)
 			{
 				pvStart = Get(iOldUsedElements);
-				memset_fast(pvStart, iClear, (iNumElements - iOldUsedElements) * miElementSize);
+				memset(pvStart, iClear, (iNumElements - iOldUsedElements) * miElementSize);
 			}
 		}
 		return Get(iNumElements-1);

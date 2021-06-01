@@ -37,13 +37,14 @@ protected:
 	CChunkStack			mcChunkStack;
 	BOOL				mbLastHashCheck;
 	CMapStringInt		mmsziNames;
-	CChunkFileHeader	msHeader;
+	SChunkFileHeader	msHeader;
 	int					miLastName;
 	
 	BOOL	__PrivateReadChunkBegin(void);
 	BOOL	__PrivateReadChunkIndex(filePos iIndexPos, CChunkIndex* pcIndex);
 
 public:
+	void	_Init(void);
 	void	Init(CAbstractFile*	pcFile);
 	void	Kill(void);
 

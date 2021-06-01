@@ -22,6 +22,7 @@ protected:
 	DataCompare			fKeyCompare;
 
 public:
+	void				_Init(void);
 	void				Init(BOOL bOverwrite = TRUE);
 	void				Init(CMallocator* pcMalloc, BOOL bOverwrite = TRUE);
 	void				Init(DataCompare fKeyCompare, BOOL bOverwrite = TRUE);

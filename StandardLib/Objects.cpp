@@ -606,7 +606,7 @@ void CObjects::FreeObjects(CArrayBlockObjectPtr* papcObjectPts)
 BOOL CObjects::ForceSave(CBaseObject* pcObject)
 {
 	BOOL							bResult;
-	CObjectSingleSerialiser			cGraphSerialiser;
+	CObjectSingleSerialiser			cSerialiser;
 	CDataConnectionObjectWriter		cWriter;
 	CBaseObject*					pcContainer;
 
@@ -628,9 +628,9 @@ BOOL CObjects::ForceSave(CBaseObject* pcObject)
 	pcContainer = pcObject->GetEmbeddingContainer();
 
 	cWriter.Init(mpcDataConnection, 0);
-	cGraphSerialiser.Init(&cWriter);
-	bResult = cGraphSerialiser.Write(pcContainer);
-	cGraphSerialiser.Kill();
+	cSerialiser.Init(&cWriter);
+	bResult = cSerialiser.Write(pcContainer);
+	cSerialiser.Kill();
 	cWriter.Kill();
 
 	return bResult;

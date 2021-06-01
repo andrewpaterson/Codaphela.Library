@@ -32,7 +32,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //////////////////////////////////////////////////////////////////////////
 void CFileNodeSystemFile::Init(void)
 {
-	mszFullPath.Zero();
+	mszFullPath._Init();
 }
 
 

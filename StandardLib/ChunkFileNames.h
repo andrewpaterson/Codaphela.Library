@@ -24,6 +24,7 @@ protected:
 	CChunkFile*		mpcChunkFile;
 
 public:
+	void		_Init(void);
 	void		Init(CChunkFile* pcChunkFile);
 	void		Kill(void);
 

@@ -43,6 +43,9 @@ void CChunkFileObjectWriter::Init(char* szDirectory, char* szBaseName, char* szC
 	{
 		mszObjectBaseName.RemoveLastCharacter();
 	}
+
+	mcChunkFile._Init();
+	mcChunkFileNames._Init();
 }
 
 
@@ -106,6 +109,7 @@ BOOL CChunkFileObjectWriter::End(void)
 {
 	mcChunkFileNames.WriteClose();
 	mcChunkFileNames.Kill();
+	mcChunkFile.Kill();
 
 	return CObjectWriter::End();
 }

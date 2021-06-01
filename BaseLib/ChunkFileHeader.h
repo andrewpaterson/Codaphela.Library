@@ -6,9 +6,8 @@
 #define CHUNK_HEADER_MAGIC 0xb4d85f9a
 
 
-class CChunkFileHeader
+struct SChunkFileHeader
 {
-public:
 	int			miUserID;
 	filePos		miChunkNamesPos;
 	char		macMD5Hash[16];  //0's if not hashed.

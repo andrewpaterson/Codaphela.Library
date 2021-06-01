@@ -201,7 +201,7 @@ void CObjectSerialiser::InitObjectHeader(CObjectHeader* psHeader, CBaseObject* p
 	}
 	else
 	{
-		psHeader->mszClassName.Zero();
+		psHeader->mszClassName._Init();
 	}
 }
 
@@ -223,7 +223,7 @@ void CObjectSerialiser::InitIdentifier(CObjectIdentifier* psHeader, CBaseObject*
 		{
 			psHeader->mcType = OBJECT_POINTER_ID;
 			psHeader->moi = oi;
-			psHeader->mszObjectName.Zero();
+			psHeader->mszObjectName._Init();
 		}
 		else
 		{
@@ -237,7 +237,7 @@ void CObjectSerialiser::InitIdentifier(CObjectIdentifier* psHeader, CBaseObject*
 	{
 		psHeader->mcType = OBJECT_POINTER_NULL;
 		psHeader->moi = NULL_O_INDEX;
-		psHeader->mszObjectName.Zero();
+		psHeader->mszObjectName._Init();
 	}
 }
 

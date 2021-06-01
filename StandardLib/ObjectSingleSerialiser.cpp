@@ -32,6 +32,8 @@ BOOL CObjectSingleSerialiser::Write(CBaseObject* pcObject)
 	BOOL				bResult;
 	CSerialisedObject*	pcSerialised;
 
+	ReturnOnFalse(mpcWriter->Begin());
+
 	cSerialiser.Init(this, pcObject);
 
 	bResult = cSerialiser.Save();
@@ -43,7 +45,8 @@ BOOL CObjectSingleSerialiser::Write(CBaseObject* pcObject)
 	ReturnOnFalse(bResult);
 
 	cSerialiser.Kill();
-	return TRUE;
+
+	return mpcWriter->End();
 }
 
 
