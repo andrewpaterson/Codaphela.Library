@@ -1,15 +1,14 @@
 #include "BaseLib/DiskFile.h"
-#include "ObjectReaderSimpleDisk.h"
+#include "FileObjectReader.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectReaderSimpleDisk::Init(char* szDirectory)
+void CFileObjectReader::Init(CFileBasic* pcFile)
 {
-	CFileObjectReader::Init(&mcFile);
-	mszFullDirectory.Init(szDirectory);
+	mpcFile = pcFile;
 }
 
 
@@ -17,10 +16,10 @@ void CObjectReaderSimpleDisk::Init(char* szDirectory)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectReaderSimpleDisk::Kill(void)
+void CFileObjectReader::Kill(void)
 {
-	mszFullDirectory.Kill();
-	CFileObjectReader::Kill();
+	mpcFile = NULL;
+	CObjectReader::Kill();
 }
 
 
@@ -28,7 +27,26 @@ void CObjectReaderSimpleDisk::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CSerialisedObject* CObjectReaderSimpleDisk::Read(char* szObjectName)
+CSerialisedObject* CFileObjectReader::Read(OIndex oi)
+{
+	CChars				szUnnamed;
+	CSerialisedObject*	pcSerialised;
+
+	szUnnamed.Init(OBJECT_UNNAMED_FILE"/");
+	szUnnamed.AppendHexHiLo(&oi, sizeof(OIndex));
+
+	pcSerialised = Read(szUnnamed.Text());
+
+	szUnnamed.Kill();
+	return pcSerialised;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CSerialisedObject* CFileObjectReader::Read(char* szObjectName)
 {
 	CSerialisedObject*	pcSerialised;
 	CChars				szDirectory;
@@ -37,39 +55,36 @@ CSerialisedObject* CObjectReaderSimpleDisk::Read(char* szObjectName)
 	BOOL				bResult;
 	int					iFileType;
 
-	FileName(szObjectName, mszFullDirectory.Text(), &szDirectory, &szFileName);
-
-	mcFile.Init(DiskFile(szFileName.Text()));
 	szFileName.Kill();
 	szDirectory.Kill();
 
-	bResult = mcFile.Open(EFM_Read);
+	bResult = mpcFile->Open(EFM_Read);
 	if (!bResult)
 	{
 		return NULL;
 	}
-
-	//Read file type identifier.
-	bResult = mcFile.ReadData(szExtension, 4);
+	
+	//Write file type identifier.
+	bResult = mpcFile->ReadData(szExtension, 4);
 	if ((!bResult) || (strcmp(szExtension, OBJECT_FILE_EXTENSION) != 0))
 	{
 		return NULL;
 	}
 
-	bResult = mcFile.ReadInt(&iFileType);
+	bResult = mpcFile->ReadInt(&iFileType);
 	if ((!bResult) || (iFileType != BASIC_OBJECT_FILE))
 	{
 		return NULL;
 	}
 
-	pcSerialised = ReadSerialised(&mcFile);
+	pcSerialised = ReadSerialised(mpcFile);
 	if (!pcSerialised)
 	{
 		return NULL;
 	}
 
-	mcFile.Close();
-	mcFile.Kill();
+	mpcFile->Close();
 	return pcSerialised;
 }
+
 
