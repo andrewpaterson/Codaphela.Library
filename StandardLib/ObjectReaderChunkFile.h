@@ -20,7 +20,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __OBJECT_READER_CHUNK_FILE_H__
 #define __OBJECT_READER_CHUNK_FILE_H__
-#include "ChunkFileNames.h"
+#include "ChunkFileFileSystem.h"
 #include "ObjectReader.h"
 
 
@@ -28,10 +28,10 @@ class CObjectReaderChunkFile : public CObjectReader
 {
 CONSTRUCTABLE(CObjectReaderChunkFile);
 protected:
-	CChunkFileNames*	mpcChunkFile;
+	CChunkFileFileSystem*	mpcChunkFile;
 
 public:
-	void				Init(CChunkFileNames* mpcChunkFile);
+	void				Init(CChunkFileFileSystem* mpcChunkFile);
 	void				Kill(void);
 
 	CSerialisedObject*	Read(OIndex oi);

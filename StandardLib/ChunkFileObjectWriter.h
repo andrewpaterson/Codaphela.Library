@@ -21,7 +21,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __OBJECT_WRITER_CHUNKED_H__
 #define __OBJECT_WRITER_CHUNKED_H__
 #include "ObjectIO.h"
-#include "ChunkFileNames.h"
+#include "ChunkFileFileSystem.h"
 #include "ObjectWriter.h"
 
 
@@ -30,7 +30,7 @@ class CChunkFileObjectWriter : public CObjectWriter, public CObjectIO
 CONSTRUCTABLE(CChunkFileObjectWriter);
 protected:
 	CChunkFile			mcChunkFile;
-	CChunkFileNames		mcChunkFileNames;
+	CChunkFileFileSystem		mcChunkFileFileSystem;
 	CChars				mszFileName;
 	CChars				mszDirectory;
 	CChars				mszObjectBaseName;

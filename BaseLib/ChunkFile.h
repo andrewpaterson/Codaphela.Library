@@ -61,7 +61,7 @@ public:
 	void*	GetMD5Hash(void);
 	BOOL	ContainsChunks(void);
 
-	BOOL	ReadChunkBegin(int iChunkNum);  //ChunkIndex not ChunkName
+	BOOL	ReadChunkBegin(int iChunkIndex);
 	BOOL	ReadChunkBegin(char* szName);
 	BOOL	ReadChunkEnd(void);
 	BOOL	ReadChunkEnd(int iNumChunksToEnd);

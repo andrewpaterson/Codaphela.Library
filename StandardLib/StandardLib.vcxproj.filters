@@ -285,7 +285,7 @@
     <ClInclude Include="String.h">
       <Filter>Source\Object\Object\String</Filter>
     </ClInclude>
-    <ClInclude Include="ChunkFileNames.h">
+    <ClInclude Include="ChunkFileFileSystem.h">
       <Filter>Source\File\Chunk</Filter>
     </ClInclude>
     <ClInclude Include="ObjectConverterText.h">
@@ -618,7 +618,7 @@
     <ClCompile Include="String.cpp">
       <Filter>Source\Object\Object\String</Filter>
     </ClCompile>
-    <ClCompile Include="ChunkFileNames.cpp">
+    <ClCompile Include="ChunkFileFileSystem.cpp">
       <Filter>Source\File\Chunk</Filter>
     </ClCompile>
     <ClCompile Include="ObjectConverterText.cpp">

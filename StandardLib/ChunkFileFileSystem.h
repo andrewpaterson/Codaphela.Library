@@ -1,5 +1,5 @@
-#ifndef __CHUNK_FILE_NAMES_H__
-#define __CHUNK_FILE_NAMES_H__
+#ifndef __CHUNK_FILE_FILE_SYSTEM_H__
+#define __CHUNK_FILE_FILE_SYSTEM_H__
 #include "BaseLib/ArrayChars.h"
 #include "BaseLib/ChunkFile.h"
 
@@ -16,7 +16,7 @@ struct SChunkFileNameIterator
 };
 
 
-class CChunkFileNames : public CFileIO
+class CChunkFileFileSystem : public CFileIO
 {
 protected:
 	CArrayChars		maszOpenChunkNames;		//All the chunk names not including the last one.
@@ -58,5 +58,5 @@ protected:
 };
 
 
-#endif // __CHUNK_FILE_NAMES_H__
+#endif // __CHUNK_FILE_FILE_SYSTEM_H__
 

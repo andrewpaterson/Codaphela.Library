@@ -21,7 +21,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/FileUtil.h"
 #include "BaseLib/DiskFile.h"
 #include "BaseLib/ChunkFileFile.h"
-#include "ChunkFileNames.h"
+#include "ChunkFileFileSystem.h"
 #include "ObjectFileGeneral.h"
 #include "SerialisedObject.h"
 #include "ObjectReaderChunkFileDisk.h"
@@ -33,7 +33,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CObjectReaderChunkFileDisk::Init(char* szDirectory, char* szChunkFileName)
 {
-	CObjectReaderChunkFile::Init(&mcChunkFileNames);
+	CObjectReaderChunkFile::Init(&mcChunkFileFileSystem);
 	mszFileName.Init(szChunkFileName);
 	mszFullDirectory.Init(szDirectory);
 }
@@ -73,8 +73,8 @@ BOOL CObjectReaderChunkFileDisk::Begin(void)
 	szFileName.Kill();
 
 	mcChunkFile.Init(pcDiskFile);
-	mcChunkFileNames.Init(&mcChunkFile);
-	return mcChunkFileNames.ReadOpen();
+	mcChunkFileFileSystem.Init(&mcChunkFile);
+	return mcChunkFileFileSystem.ReadOpen();
 }
 
 
@@ -84,8 +84,8 @@ BOOL CObjectReaderChunkFileDisk::Begin(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CObjectReaderChunkFileDisk::End(void)
 {
-	mcChunkFileNames.ReadClose();
-	mcChunkFileNames.Kill();
+	mcChunkFileFileSystem.ReadClose();
+	mcChunkFileFileSystem.Kill();
 	return TRUE;
 }
 
@@ -100,12 +100,12 @@ CSerialisedObject* CObjectReaderChunkFileDisk::Read(char* szChunkName)
 	CChunkFileFile		cChunkFile;
 	CFileBasic			cFileBasic;
 
-	if (!mcChunkFileNames.ReadChunkBegin(szChunkName))
+	if (!mcChunkFileFileSystem.ReadChunkBegin(szChunkName))
 	{
 		return NULL;
 	}
 
-	cChunkFile.Init(mcChunkFileNames.GetChunkFile());
+	cChunkFile.Init(mcChunkFileFileSystem.GetChunkFile());
 	cFileBasic.Init(&cChunkFile);
 	cFileBasic.Open(EFM_Read);
 
@@ -120,7 +120,7 @@ CSerialisedObject* CObjectReaderChunkFileDisk::Read(char* szChunkName)
 		return NULL;
 	}
 
-	if (!mcChunkFileNames.ReadChunkEnd())
+	if (!mcChunkFileFileSystem.ReadChunkEnd())
 	{
 		free(pcSerialised);
 		return NULL;
