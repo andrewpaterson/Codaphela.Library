@@ -22,14 +22,14 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/DiskFile.h"
 #include "ObjectFileGeneral.h"
 #include "SerialisedObject.h"
-#include "ObjectWriterSimple.h"
+#include "MultiFileObjectWriter.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectWriterSimple::Init(char* szDirectory, char* szBaseName)
+void CMultiFileObjectWriter::Init(char* szDirectory, char* szBaseName)
 {
 	CObjectWriter::Init(szBaseName);
 	mszDirectory.Init(szDirectory);
@@ -47,7 +47,7 @@ void CObjectWriterSimple::Init(char* szDirectory, char* szBaseName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectWriterSimple::Kill(void)
+void CMultiFileObjectWriter::Kill(void)
 {
 	mszObjectBaseName.Kill();
 	mszDirectory.Kill();
@@ -59,7 +59,7 @@ void CObjectWriterSimple::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectWriterSimple::Begin(void)
+BOOL CMultiFileObjectWriter::Begin(void)
 {
 	return CObjectWriter::Begin();
 }
@@ -69,7 +69,7 @@ BOOL CObjectWriterSimple::Begin(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectWriterSimple::End(void)
+BOOL CMultiFileObjectWriter::End(void)
 {
 	return CObjectWriter::End();
 }
@@ -79,7 +79,7 @@ BOOL CObjectWriterSimple::End(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectWriterSimple::Write(CSerialisedObject* pcSerialised)
+BOOL CMultiFileObjectWriter::Write(CSerialisedObject* pcSerialised)
 {
 	CFileUtil		cFileUtil;
 	CChars			szDirectory;
@@ -103,6 +103,7 @@ BOOL CObjectWriterSimple::Write(CSerialisedObject* pcSerialised)
 		return FALSE;
 	}
 
+	//What the actual fuck is going on in this method?
 	ReturnOnFalse(ObjectStartsWithBase(pcSerialised->GetName()));
 
 	cFileUtil.MakeDir(szDirectory.Text());
@@ -129,7 +130,7 @@ BOOL CObjectWriterSimple::Write(CSerialisedObject* pcSerialised)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectWriterSimple::ObjectStartsWithBase(char* szObjectName)
+BOOL CMultiFileObjectWriter::ObjectStartsWithBase(char* szObjectName)
 {
 	CChars	szRemainingName;
 
@@ -142,7 +143,7 @@ BOOL CObjectWriterSimple::ObjectStartsWithBase(char* szObjectName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectWriterSimple::RemainingName(CChars* pszRemainingName, char* szObjectName)
+void CMultiFileObjectWriter::RemainingName(CChars* pszRemainingName, char* szObjectName)
 {
 	pszRemainingName->Init(szObjectName);
 	pszRemainingName->RemoveFromStart(mszObjectBaseName.Length());

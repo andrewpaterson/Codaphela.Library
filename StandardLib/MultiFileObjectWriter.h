@@ -18,17 +18,16 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __OBJECT_WRITER_SIMPLE_H__
-#define __OBJECT_WRITER_SIMPLE_H__
+#ifndef __MULTI_FILE_OBJECT_WRITER_SIMPLE_H__
+#define __MULTI_FILE_OBJECT_WRITER_SIMPLE_H__
 #include "BaseLib/Chars.h"
 #include "ObjectIOSimple.h"
 #include "ObjectWriter.h"
 
 
-//This writes a file on disk per object.  It really needs a better name
-class CObjectWriterSimple : public CObjectWriter, public CObjectIOSimple
+class CMultiFileObjectWriter : public CObjectWriter, public CObjectIOSimple
 {
-CONSTRUCTABLE(CObjectWriterSimple);
+CONSTRUCTABLE(CMultiFileObjectWriter);
 protected:
 	CChars	mszObjectBaseName;
 	CChars	mszDirectory;
@@ -47,5 +46,5 @@ protected:
 };
 
 
-#endif // __OBJECT_WRITER_SIMPLE_H__
+#endif // __MULTI_FILE_OBJECT_WRITER_SIMPLE_H__
 
