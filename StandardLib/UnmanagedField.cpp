@@ -8,9 +8,9 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CUnmanagedField::Init(EPrimitiveType eType, ptrdiff_t iOffset, CClass* pcContainingClass, SDataIO* pcIO, char* szName)
+void CUnmanagedField::Init(EPrimitiveType eType, ptrdiff_t iOffset, CClass* pcContainingClass, char* szName)
 {
-	Init(eType, iOffset, pcContainingClass, 1, pcIO, szName);
+	Init(eType, iOffset, pcContainingClass, 1, szName);
 }
 
 
@@ -18,7 +18,7 @@ void CUnmanagedField::Init(EPrimitiveType eType, ptrdiff_t iOffset, CClass* pcCo
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CUnmanagedField::Init(EPrimitiveType eType, ptrdiff_t iOffset, CClass* pcContainingClass, size_t uiLength, SDataIO* pcIO, char* szName)
+void CUnmanagedField::Init(EPrimitiveType eType, ptrdiff_t iOffset, CClass* pcContainingClass, size_t uiLength, char* szName)
 {
 	CClasses*	pcClasses;
 	CClass*		pcFieldClass;
@@ -28,7 +28,6 @@ void CUnmanagedField::Init(EPrimitiveType eType, ptrdiff_t iOffset, CClass* pcCo
 	CField::Init(pcFieldClass, iOffset, pcContainingClass, szName);
 	muiElementSize = pcFieldClass->GetSizeOf();
 	muiLength = uiLength;
-	mpcIO = pcIO;
 }
 
 
@@ -36,7 +35,7 @@ void CUnmanagedField::Init(EPrimitiveType eType, ptrdiff_t iOffset, CClass* pcCo
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CUnmanagedField::Init(EPrimitiveType eType, ptrdiff_t iOffset, CClass* pcContainingClass, uint32 uiElementSize, size_t uiLength, SDataIO* pcIO, char* szName)
+void CUnmanagedField::Init(EPrimitiveType eType, ptrdiff_t iOffset, CClass* pcContainingClass, uint32 uiElementSize, size_t uiLength, char* szName)
 {
 	CClasses*	pcClasses;
 	CClass*		pcFieldClass;
@@ -46,7 +45,6 @@ void CUnmanagedField::Init(EPrimitiveType eType, ptrdiff_t iOffset, CClass* pcCo
 	CField::Init(pcFieldClass, iOffset, pcContainingClass, szName);
 	muiElementSize = uiElementSize;
 	muiLength = uiLength;
-	mpcIO = pcIO;
 }
 
 
@@ -117,15 +115,5 @@ void* CUnmanagedField::GetData(CBaseObject* pcFieldContainer)
 size_t CUnmanagedField::GetNameOffset(void)
 {
 	return sizeof(CUnmanagedField);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-SDataIO* CUnmanagedField::GetDataIO(void)
-{
-	return mpcIO;
 }
 

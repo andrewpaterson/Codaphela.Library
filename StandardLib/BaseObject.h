@@ -213,6 +213,10 @@ protected:
 			BOOL				SavePointers(CObjectSerialiser* pcFile);
 			BOOL				SavePrimitives(CObjectSerialiser* pcFile);
 			BOOL				SaveUnmanaged(CObjectSerialiser* pcFile);
+			BOOL				LoadEmbeddedObjects(CObjectDeserialiser* pcFile);
+			BOOL				LoadPointers(CObjectDeserialiser* pcFile);
+			BOOL				LoadPrimitives(CObjectDeserialiser* pcFile);
+			BOOL				LoadUnmanaged(CObjectDeserialiser* pcFile);
 
 	virtual void				BaseValidatePointerTos(void) =0;
 };
