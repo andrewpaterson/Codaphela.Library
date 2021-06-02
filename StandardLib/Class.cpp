@@ -261,12 +261,9 @@ void CClass::UnmanagedDate(CBaseObject* pcThis, CDate* pcDate, char* szFieldName
 void CClass::UnmanagedData(CBaseObject* pcThis, void* pv, size_t uiSizeof, char* szFieldName)
 {
 	CUnmanagedField*	pcUnmanagedField;
-	SDataIO*			psFieldIO;
-
-	psFieldIO = gcDataTypesIO.GetIO("Data");
 
 	pcUnmanagedField = AddUnmanaged(szFieldName);
-	pcUnmanagedField->Init(PT_Data, (size_t)pv - (size_t)pcThis, this, uiSizeof, 1, psFieldIO, szFieldName);
+	pcUnmanagedField->Init(PT_Data, (size_t)pv - (size_t)pcThis, this, uiSizeof, 1, szFieldName);
 }
 
 
@@ -277,14 +274,9 @@ void CClass::UnmanagedData(CBaseObject* pcThis, void* pv, size_t uiSizeof, char*
 void CClass::UnmanagedVoid(CBaseObject* pcThis, void* pv, char* szFieldName)
 {
 	CUnmanagedField*	pcUnmanagedField;
-	SDataIO*			psFieldIO;
-	const char*			szPrettyFieldTypeName;
-
-	szPrettyFieldTypeName = gcTypeNames.GetPrettyName(PT_void);
-	psFieldIO = gcDataTypesIO.GetIO(szPrettyFieldTypeName);
 
 	pcUnmanagedField = AddUnmanaged(szFieldName);
-	pcUnmanagedField->Init(PT_void, (size_t)pv - (size_t)pcThis, this, 0, NULL, szFieldName);
+	pcUnmanagedField->Init(PT_void, (size_t)pv - (size_t)pcThis, this, 0, szFieldName);
 }
 
 
@@ -295,14 +287,9 @@ void CClass::UnmanagedVoid(CBaseObject* pcThis, void* pv, char* szFieldName)
 void CClass::Unmanaged(CBaseObject* pcThis, EPrimitiveType eType, void* pv, char* szFieldName)
 {
 	CUnmanagedField*	pcUnmanagedField;
-	const char*			szPrettyFieldTypeName;
-	SDataIO*			psFieldIO;
-
-	szPrettyFieldTypeName = gcTypeNames.GetPrettyName(eType);
-	psFieldIO = gcDataTypesIO.GetIO(szPrettyFieldTypeName);
 
 	pcUnmanagedField = AddUnmanaged(szFieldName);
-	pcUnmanagedField->Init(eType, (size_t)pv - (size_t)pcThis, this, psFieldIO, szFieldName);
+	pcUnmanagedField->Init(eType, (size_t)pv - (size_t)pcThis, this, szFieldName);
 }
 
 
@@ -313,14 +300,9 @@ void CClass::Unmanaged(CBaseObject* pcThis, EPrimitiveType eType, void* pv, char
 void CClass::Unmanaged(CBaseObject* pcThis, EPrimitiveType eType, void* pv, size_t uiLength, char* szFieldName)
 {
 	CUnmanagedField*	pcUnmanagedField;
-	const char*			szPrettyFieldTypeName;
-	SDataIO*			psFieldIO;
-
-	szPrettyFieldTypeName = gcTypeNames.GetPrettyName(eType);
-	psFieldIO = gcDataTypesIO.GetIO(szPrettyFieldTypeName);
 
 	pcUnmanagedField = AddUnmanaged(szFieldName);
-	pcUnmanagedField->Init(eType, (size_t)pv - (size_t)pcThis, this, uiLength, psFieldIO, szFieldName);
+	pcUnmanagedField->Init(eType, (size_t)pv - (size_t)pcThis, this, uiLength, szFieldName);
 }
 
 

@@ -1232,7 +1232,7 @@ BOOL CBaseObject::SaveUnmanaged(CObjectSerialiser* pcFile)
 	CUnmanagedField*		pcUnmanagedField;
 	BOOL					bResult;
 	size_t					uiCount;
-	SDataIO*				psIO;
+	uint32					uiSize;
 	void*					pvUnmanaged;
 
 	papv = mpcClass->GetUnmanagedFields();
@@ -1242,9 +1242,9 @@ BOOL CBaseObject::SaveUnmanaged(CObjectSerialiser* pcFile)
 	{
 		pcUnmanagedField = ppacUnmanagedFields[i];
 		pvUnmanaged = pcUnmanagedField->GetData(this);
-		psIO = pcUnmanagedField->GetDataIO();
 		uiCount = pcUnmanagedField->GetLength();
-		bResult = (((SDataTypeIO*)pvUnmanaged)->*(psIO->fArrayWriter))(pcFile, uiCount);
+		uiSize = pcUnmanagedField->GetSizeOf();
+		bResult = pcFile->WriteData(pvUnmanaged, uiCount * uiSize);
 
 		if (!bResult)
 		{
@@ -1272,10 +1272,166 @@ BOOL CBaseObject::Load(CObjectDeserialiser* pcFile)
 //////////////////////////////////////////////////////////////////////////
 BOOL CBaseObject::LoadManaged(CObjectDeserialiser* pcFile)
 {
-	CClass* pcClass;
+	BOOL	bResult;
 
-	pcClass = GetClass();
-	return FALSE;
+	bResult = LoadEmbeddedObjects(pcFile);
+	if (!bResult)
+	{
+		return FALSE;
+	}
+	bResult = LoadPointers(pcFile);
+	if (!bResult)
+	{
+		return FALSE;
+	}
+	bResult = LoadPrimitives(pcFile);
+	if (!bResult)
+	{
+		return FALSE;
+	}
+	bResult = LoadUnmanaged(pcFile);
+	if (!bResult)
+	{
+		return FALSE;
+	}
+	bResult = Load(pcFile);
+	if (!bResult)
+	{
+		return FALSE;
+	}
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CBaseObject::LoadEmbeddedObjects(CObjectDeserialiser* pcFile)
+{
+	int						iNumFields;
+	CEmbeddedObjectField**	ppacEmbeddedObjectFields;
+	CArrayVoidPtr*			papv;
+	int						i;
+	CBaseObject*			pcEmbeddedObject;
+	BOOL					bResult;
+
+	papv = mpcClass->GetEmbeddedObjectFields();
+	ppacEmbeddedObjectFields = (CEmbeddedObjectField**)papv->GetData();
+	iNumFields = papv->NumElements();
+	for (i = 0; i < iNumFields; i++)
+	{
+		pcEmbeddedObject = ppacEmbeddedObjectFields[i]->GetEmbeddedObject(this);
+		bResult = pcEmbeddedObject->LoadManaged(pcFile);
+		if (!bResult)
+		{
+			return FALSE;
+		}
+	}
+
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CBaseObject::LoadPointers(CObjectDeserialiser* pcFile)
+{
+	int						iNumFields;
+	CPointerField**			ppacPointerFields;
+	CArrayVoidPtr*			papv;
+	int						i;
+	CPointer*				pcPointer;
+	BOOL					bResult;
+
+	papv = mpcClass->GetPointerFields();
+	ppacPointerFields = (CPointerField**)papv->GetData();
+	iNumFields = papv->NumElements();
+	for (i = 0; i < iNumFields; i++)
+	{
+		pcPointer = ppacPointerFields[i]->GetPointer(this);
+		bResult = pcFile->ReadPointer(pcPointer);
+		if (!bResult)
+		{
+			return FALSE;
+		}
+	}
+
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CBaseObject::LoadPrimitives(CObjectDeserialiser* pcFile)
+{
+	int						iNumFields;
+	CPrimitiveField** ppacPrimitiveFields;
+	CArrayVoidPtr* papv;
+	int						i;
+	CPrimitiveObject* pcPrimitive;
+	BOOL					bResult;
+	CPrimitiveField* pcPrimitiveField;
+	SDataIO* psIO;
+
+	papv = mpcClass->GetPrimitiveFields();
+	ppacPrimitiveFields = (CPrimitiveField**)papv->GetData();
+	iNumFields = papv->NumElements();
+	for (i = 0; i < iNumFields; i++)
+	{
+		pcPrimitiveField = ppacPrimitiveFields[i];
+		psIO = pcPrimitiveField->GetDataIO();
+		pcPrimitive = pcPrimitiveField->GetPrimitiveObject(this);
+		bResult = (((SDataTypeIO*)pcPrimitive)->*(psIO->fReader))(pcFile);
+
+		if (!bResult)
+		{
+			return FALSE;
+		}
+	}
+
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CBaseObject::LoadUnmanaged(CObjectDeserialiser* pcFile)
+{
+	int						iNumFields;
+	CUnmanagedField**		ppacUnmanagedFields;
+	CArrayVoidPtr*			papv;
+	int						i;
+	CUnmanagedField*		pcUnmanagedField;
+	BOOL					bResult;
+	size_t					uiCount;
+	uint32					uiSize;
+	void*					pvUnmanaged;
+
+	papv = mpcClass->GetUnmanagedFields();
+	ppacUnmanagedFields = (CUnmanagedField**)papv->GetData();
+	iNumFields = papv->NumElements();
+	for (i = 0; i < iNumFields; i++)
+	{
+		pcUnmanagedField = ppacUnmanagedFields[i];
+		pvUnmanaged = pcUnmanagedField->GetData(this);
+		uiCount = pcUnmanagedField->GetLength();
+		uiSize = pcUnmanagedField->GetSizeOf();
+		bResult = pcFile->ReadData(pvUnmanaged, uiCount * uiSize);
+
+		if (!bResult)
+		{
+			return FALSE;
+		}
+	}
+
+	return TRUE;
 }
 
 

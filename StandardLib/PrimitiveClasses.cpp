@@ -57,15 +57,12 @@ void CPrimitiveClasses::Init(CClasses* pcClasses)
 CClass* CPrimitiveClasses::AddClass(const char* szClassName, size_t uiClassSize, EPrimitiveType eFieldType, uint32 eFieldOffest) 
 {
 	CUnmanagedField*	pcField;
-	SDataIO*			psFieldIO;
 	CClass*				pcClass;
 
 	pcClass = mpcClasses->Add(szClassName, uiClassSize);
 
-	psFieldIO = gcDataTypesIO.GetIO(szClassName);
-
 	pcField = pcClass->AddUnmanaged("mVal");
-	pcField->Init(eFieldType, eFieldOffest, pcClass, psFieldIO, "mVal");
+	pcField->Init(eFieldType, eFieldOffest, pcClass, "mVal");
 
 	pcClass->Primitive();
 	pcClass->System();

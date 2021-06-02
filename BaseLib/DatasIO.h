@@ -43,19 +43,13 @@ void CDatasIO::Add(char* szConstructorName)
 	SDataIO*	psIO;
 	BOOL(M::*	fSpecificClassFileSave)(CFileWriter*);
 	BOOL(M::*	fSpecificClassFileLoad)(CFileReader*);
-	BOOL(M::*	fArraySpecificClassFileSave)(CFileWriter*, size_t uiCount);
-	BOOL(M::*	fArraySpecificClassFileLoad)(CFileReader*, size_t uiCount);
 
 	fSpecificClassFileSave = &M::Save;
 	fSpecificClassFileLoad = &M::Load;
-	fArraySpecificClassFileSave = &M::Save;
-	fArraySpecificClassFileLoad = &M::Load;
 
 	psIO = (SDataIO*)mcDataIOs.Put(szConstructorName, sizeof(SDataIO));
 	psIO->fWriter = (DataIO_FileWriter)fSpecificClassFileSave;
 	psIO->fReader = (DataIO_FileReader)fSpecificClassFileLoad;
-	psIO->fArrayWriter = (DataIO_FileArrayWriter)fArraySpecificClassFileSave;
-	psIO->fArrayReader = (DataIO_FileArrayReader)fArraySpecificClassFileLoad;
 }
 
 

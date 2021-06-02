@@ -20,7 +20,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __OBJECT_READER_CHUNK_FILE_H__
 #define __OBJECT_READER_CHUNK_FILE_H__
-#include "ChunkFileFileSystem.h"
+#include "BaseLib/ChunkFileFileSystem.h"
 #include "ObjectReader.h"
 
 
