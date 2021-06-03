@@ -49,6 +49,10 @@ CBaseObject* CExternalObjectDeserialiser::Read(char* szObjectName)
 	}
 
 	pcSerialised = mpcReader->Read(szObjectName);
+	if (!pcSerialised)
+	{
+		return NULL;
+	}
 	pvObject = ReadSerialsed(pcSerialised);
 	SafeFree(pcSerialised);
 
