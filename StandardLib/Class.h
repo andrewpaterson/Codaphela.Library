@@ -7,6 +7,10 @@
 #include "BaseLib/ConstructorCall.h"
 #include "BaseLib/Number.h"
 #include "BaseLib/Date.h"
+#include "Integer.h"
+#include "Float.h"
+#include "Character.h"
+#include "PrimitiveVoid.h"
 #include "PointerField.h"
 #include "EmbeddedObjectField.h"
 #include "PrimitiveField.h"
@@ -45,9 +49,9 @@ public:
 
 	void				Complete(void);
 
-	void				Pointer(CBaseObject* pcThis, CPointer* pcPointer, char* szName);
-	void				Primitive(CBaseObject* pcThis, CPrimitiveObject* pcPrimitive, char* szName);
-	void				Embedded(CBaseObject* pcThis, CBaseObject* pcObject, char* szName);
+	void				Pointer(CBaseObject* pcThis, CPointer* pcPointer, char* szFieldName);
+	void				Primitive(CBaseObject* pcThis, CPrimitiveObject* pcPrimitive, void* pvPrimitive, char* szFieldName);
+	void				Embedded(CBaseObject* pcThis, CBaseObject* pcObject, char* szFieldName);
 
 	CClasses*			GetClasses(void);
 	char*				GetName(void);
@@ -76,6 +80,20 @@ public:
 	CPrimitiveField*	AddPrimitive(char* szFieldName);
 
 public:
+	void				Primitive(CBaseObject* pcThis, Int8* pcPrimitive, char* szFieldName);
+	void				Primitive(CBaseObject* pcThis, UInt8* pcPrimitive, char* szFieldName);
+	void				Primitive(CBaseObject* pcThis, Int16* pcPrimitive, char* szFieldName);
+	void				Primitive(CBaseObject* pcThis, UInt16* pcPrimitive, char* szFieldName);
+	void				Primitive(CBaseObject* pcThis, Int32* pcPrimitive, char* szFieldName);
+	void				Primitive(CBaseObject* pcThis, UInt32* pcPrimitive, char* szFieldName);
+	void				Primitive(CBaseObject* pcThis, Int64* pcPrimitive, char* szFieldName);
+	void				Primitive(CBaseObject* pcThis, UInt64* pcPrimitive, char* szFieldName);
+	void				Primitive(CBaseObject* pcThis, Bool* pcPrimitive, char* szFieldName);
+	void				Primitive(CBaseObject* pcThis, Float32* pcPrimitive, char* szFieldName);
+	void				Primitive(CBaseObject* pcThis, Float64* pcPrimitive, char* szFieldName);
+	void				Primitive(CBaseObject* pcThis, Char8* pcPrimitive, char* szFieldName);
+	void				Primitive(CBaseObject* pcThis, Char16* pcPrimitive, char* szFieldName);
+
 	void				UnmanagedInt(CBaseObject* pcThis, int8* pc, char* szFieldName);
 	void				UnmanagedInt(CBaseObject* pcThis, int8* pac, size_t uiLength, char* szFieldName);
 	void				UnmanagedInt(CBaseObject* pcThis, int16* pi, char* szFieldName);

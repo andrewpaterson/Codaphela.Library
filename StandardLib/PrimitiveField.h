@@ -10,9 +10,10 @@ class CPrimitiveField : public CField
 CONSTRUCTABLE(CPrimitiveField);
 protected:
 	SDataIO*	mpcIO;
+	uint32		muiValueOffset;
 
 public:
-	void				Init(CClass* pcFieldClass, ptrdiff_t iOffset, CClass* pcContainingClass, SDataIO* pcIO, char* szName);
+	void				Init(CClass* pcFieldClass, ptrdiff_t iOffset, ptrdiff_t iValueOffset, CClass* pcContainingClass, SDataIO* pcIO, char* szName);
 	void				Kill(void);
 
 	BOOL				IsPrimitive(void);
@@ -20,6 +21,7 @@ public:
 	size_t				GetNameOffset(void);
 	SDataIO*			GetDataIO(void);
 	CPrimitiveObject*	GetPrimitiveObject(CBaseObject* pcFieldContainer);
+	void*				GetValue(CBaseObject* pcFieldContainer);
 };
 
 
