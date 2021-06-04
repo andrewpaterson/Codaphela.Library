@@ -169,16 +169,16 @@ CField* CClass::GetField(char* szFieldName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CClass::Pointer(CBaseObject* pcThis, CPointer* pcPointer, char* szName)
+void CClass::Pointer(CBaseObject* pcThis, CPointer* pcPointer, char* szFieldName)
 {
 	CPointerField*	pcPointerField;
 	ptrdiff_t		iOffset;
 
 	iOffset = (size_t)pcPointer - (size_t)pcThis;
-	pcPointerField = (CPointerField*)AddField(sizeof(CPointerField), szName);
+	pcPointerField = (CPointerField*)AddField(sizeof(CPointerField), szFieldName);
 	PostMalloc<CPointerField>(pcPointerField);
 	mapcPointers.Add(pcPointerField);
-	pcPointerField->Init(iOffset, this, szName);
+	pcPointerField->Init(iOffset, this, szFieldName);
 }
 
 
@@ -186,20 +186,24 @@ void CClass::Pointer(CBaseObject* pcThis, CPointer* pcPointer, char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CClass::Primitive(CBaseObject* pcThis, CPrimitiveObject* pcPrimitive, char* szName)
+void CClass::Primitive(CBaseObject* pcThis, CPrimitiveObject* pcPrimitive, void* pvPrimitive, char* szFieldName)
 {
 	CPrimitiveField*	pcDataField;
-	ptrdiff_t			iOffset;
+	ptrdiff_t			iObjectOffset;
+	ptrdiff_t			iValueOffset;
 	CClass*				pcClass;
 	SDataIO*			psIO;
 
-	iOffset = (size_t)pcPrimitive - (size_t)pcThis;
-	pcDataField = (CPrimitiveField*)AddField(sizeof(CPrimitiveField), szName);
+	pcPrimitive->SetEmbedding((CObject*)pcThis);
+
+	iObjectOffset = (size_t)pcPrimitive - (size_t)pcThis;
+	iValueOffset = (size_t)pvPrimitive - (size_t)pcThis;
+	pcDataField = (CPrimitiveField*)AddField(sizeof(CPrimitiveField), szFieldName);
 	PostMalloc<CPrimitiveField>(pcDataField);
 	mapcPrimitives.Add(pcDataField);
 	pcClass = GetClass(pcPrimitive->GetClassType());
 	psIO = gcDataTypesIO.GetIO(pcClass->GetName());
-	pcDataField->Init(pcClass, iOffset, this, psIO, szName);
+	pcDataField->Init(pcClass, iObjectOffset, iValueOffset, this, psIO, szFieldName);
 }
 
 
@@ -207,17 +211,36 @@ void CClass::Primitive(CBaseObject* pcThis, CPrimitiveObject* pcPrimitive, char*
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CClass::Embedded(CBaseObject* pcThis, CBaseObject* pcObject, char* szName)
+void CClass::Embedded(CBaseObject* pcThis, CBaseObject* pcObject, char* szFieldName)
 {
 	CEmbeddedObjectField*	pcEmbeddedObjectField;
 	ptrdiff_t				iOffset;
 
 	iOffset = (size_t)pcObject - (size_t)pcThis;
-	pcEmbeddedObjectField = (CEmbeddedObjectField*)AddField(sizeof(CEmbeddedObjectField), szName);
+	pcEmbeddedObjectField = (CEmbeddedObjectField*)AddField(sizeof(CEmbeddedObjectField), szFieldName);
 	PostMalloc<CEmbeddedObjectField>(pcEmbeddedObjectField);
 	mapcEmbeddedObjects.Add(pcEmbeddedObjectField);
-	pcEmbeddedObjectField->Init(pcObject->GetClass(), iOffset, this, szName);
+	pcEmbeddedObjectField->Init(pcObject->GetClass(), iOffset, this, szFieldName);
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CClass::Primitive(CBaseObject* pcThis, Int8* pcPrimitive, char* szFieldName) { Primitive(pcThis, pcPrimitive, pcPrimitive->GetPrimitivePointer(), szFieldName); }
+void CClass::Primitive(CBaseObject* pcThis, UInt8* pcPrimitive, char* szFieldName) { Primitive(pcThis, pcPrimitive, pcPrimitive->GetPrimitivePointer(), szFieldName); }
+void CClass::Primitive(CBaseObject* pcThis, Int16* pcPrimitive, char* szFieldName) { Primitive(pcThis, pcPrimitive, pcPrimitive->GetPrimitivePointer(), szFieldName); }
+void CClass::Primitive(CBaseObject* pcThis, UInt16* pcPrimitive, char* szFieldName) { Primitive(pcThis, pcPrimitive, pcPrimitive->GetPrimitivePointer(), szFieldName); }
+void CClass::Primitive(CBaseObject* pcThis, Int32* pcPrimitive, char* szFieldName) { Primitive(pcThis, pcPrimitive, pcPrimitive->GetPrimitivePointer(), szFieldName); }
+void CClass::Primitive(CBaseObject* pcThis, UInt32* pcPrimitive, char* szFieldName) { Primitive(pcThis, pcPrimitive, pcPrimitive->GetPrimitivePointer(), szFieldName); }
+void CClass::Primitive(CBaseObject* pcThis, Int64* pcPrimitive, char* szFieldName) { Primitive(pcThis, pcPrimitive, pcPrimitive->GetPrimitivePointer(), szFieldName); }
+void CClass::Primitive(CBaseObject* pcThis, UInt64* pcPrimitive, char* szFieldName) { Primitive(pcThis, pcPrimitive, pcPrimitive->GetPrimitivePointer(), szFieldName); }
+void CClass::Primitive(CBaseObject* pcThis, Bool* pcPrimitive, char* szFieldName) { Primitive(pcThis, pcPrimitive, pcPrimitive->GetPrimitivePointer(), szFieldName); }
+void CClass::Primitive(CBaseObject* pcThis, Float32* pcPrimitive, char* szFieldName) { Primitive(pcThis, pcPrimitive, pcPrimitive->GetPrimitivePointer(), szFieldName); }
+void CClass::Primitive(CBaseObject* pcThis, Float64* pcPrimitive, char* szFieldName) { Primitive(pcThis, pcPrimitive, pcPrimitive->GetPrimitivePointer(), szFieldName); }
+void CClass::Primitive(CBaseObject* pcThis, Char8* pcPrimitive, char* szFieldName) { Primitive(pcThis, pcPrimitive, pcPrimitive->GetPrimitivePointer(), szFieldName); }
+void CClass::Primitive(CBaseObject* pcThis, Char16* pcPrimitive, char* szFieldName) { Primitive(pcThis, pcPrimitive, pcPrimitive->GetPrimitivePointer(), szFieldName); }
 
 
 //////////////////////////////////////////////////////////////////////////

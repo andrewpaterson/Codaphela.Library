@@ -145,3 +145,4 @@ EPrimitiveType CPrimitiveObject::GetClassType(void)
 	return (EPrimitiveType)muiClassType;
 }
 
+

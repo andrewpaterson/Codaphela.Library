@@ -20,6 +20,10 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __OBJECT_H__
 #define __OBJECT_H__
+#include "Integer.h"
+#include "Float.h"
+#include "Character.h"
+#include "PrimitiveVoid.h"
 #include "BaseObject.h"
 
 
@@ -77,36 +81,50 @@ public:
 	void				ValidateConsistency(void);
 
 public:
-	void			UnmanagedInt(int8* pc, char* szFieldName);
-	void			UnmanagedInt(int8* pac, size_t uiLength, char* szFieldName);
-	void			UnmanagedInt(int16* pi, char* szFieldName);
-	void			UnmanagedInt(int16* pai, size_t uiLength, char* szFieldName);
-	void			UnmanagedInt(int32* pi, char* szFieldName);
-	void			UnmanagedInt(int32* pai, size_t uiLength, char* szFieldName);
-	void			UnmanagedInt(int64* pi, char* szFieldName);
-	void			UnmanagedInt(int64* pai, size_t uiLength, char* szFieldName);
-	void			UnmanagedInt(uint8* pc, char* szFieldName);
-	void			UnmanagedInt(uint8* pac, size_t uiLength, char* szFieldName);
-	void			UnmanagedInt(uint16* pi, char* szFieldName);
-	void			UnmanagedInt(uint16* pai, size_t uiLength, char* szFieldName);
-	void			UnmanagedInt(uint32* pi, char* szFieldName);
-	void			UnmanagedInt(uint32* pai, size_t uiLength, char* szFieldName);
-	void			UnmanagedInt(uint64* pi, char* szFieldName);
-	void			UnmanagedInt(uint64* pai, size_t uiLength, char* szFieldName);
-	void			UnmanagedFloat(float32* pf, char* szFieldName);
-	void			UnmanagedFloat(float32* paf, size_t uiLength, char* szFieldName);
-	void			UnmanagedFloat(float64* pf, char* szFieldName);
-	void			UnmanagedFloat(float64* paf, size_t uiLength, char* szFieldName);
-	void			UnmanagedChar(char8* pc, char* szFieldName);
-	void			UnmanagedChar(char8* pac, size_t uiLength, char* szFieldName);
-	void			UnmanagedChar(char16* pc, char* szFieldName);
-	void			UnmanagedChar(char16* pac, size_t uiLength, char* szFieldName);
+	void				Primitive(Int8* pcPrimitive, char* szFieldName);
+	void				Primitive(UInt8* pcPrimitive, char* szFieldName);
+	void				Primitive(Int16* pcPrimitive, char* szFieldName);
+	void				Primitive(UInt16* pcPrimitive, char* szFieldName);
+	void				Primitive(Int32* pcPrimitive, char* szFieldName);
+	void				Primitive(UInt32* pcPrimitive, char* szFieldName);
+	void				Primitive(Int64* pcPrimitive, char* szFieldName);
+	void				Primitive(UInt64* pcPrimitive, char* szFieldName);
+	void				Primitive(Bool* pcPrimitive, char* szFieldName);
+	void				Primitive(Float32* pcPrimitive, char* szFieldName);
+	void				Primitive(Float64* pcPrimitive, char* szFieldName);
+	void				Primitive(Char8* pcPrimitive, char* szFieldName);
+	void				Primitive(Char16* pcPrimitive, char* szFieldName);
 
-	void			UnmanagedString(CChars* pcChars, char* szFieldName);
-	void			UnmanagedNumber(CNumber* pcNumber, char* szFieldName);
-	void			UnmanagedDate(CDate* pcDate, char* szFieldName);
+	void				UnmanagedInt(int8* pc, char* szFieldName);
+	void				UnmanagedInt(int8* pac, size_t uiLength, char* szFieldName);
+	void				UnmanagedInt(int16* pi, char* szFieldName);
+	void				UnmanagedInt(int16* pai, size_t uiLength, char* szFieldName);
+	void				UnmanagedInt(int32* pi, char* szFieldName);
+	void				UnmanagedInt(int32* pai, size_t uiLength, char* szFieldName);
+	void				UnmanagedInt(int64* pi, char* szFieldName);
+	void				UnmanagedInt(int64* pai, size_t uiLength, char* szFieldName);
+	void				UnmanagedInt(uint8* pc, char* szFieldName);
+	void				UnmanagedInt(uint8* pac, size_t uiLength, char* szFieldName);
+	void				UnmanagedInt(uint16* pi, char* szFieldName);
+	void				UnmanagedInt(uint16* pai, size_t uiLength, char* szFieldName);
+	void				UnmanagedInt(uint32* pi, char* szFieldName);
+	void				UnmanagedInt(uint32* pai, size_t uiLength, char* szFieldName);
+	void				UnmanagedInt(uint64* pi, char* szFieldName);
+	void				UnmanagedInt(uint64* pai, size_t uiLength, char* szFieldName);
+	void				UnmanagedFloat(float32* pf, char* szFieldName);
+	void				UnmanagedFloat(float32* paf, size_t uiLength, char* szFieldName);
+	void				UnmanagedFloat(float64* pf, char* szFieldName);
+	void				UnmanagedFloat(float64* paf, size_t uiLength, char* szFieldName);
+	void				UnmanagedChar(char8* pc, char* szFieldName);
+	void				UnmanagedChar(char8* pac, size_t uiLength, char* szFieldName);
+	void				UnmanagedChar(char16* pc, char* szFieldName);
+	void				UnmanagedChar(char16* pac, size_t uiLength, char* szFieldName);
 
-	void			UnmanagedData(void* pv, size_t uiSizeof, char* szFieldName);
+	void				UnmanagedString(CChars* pcChars, char* szFieldName);
+	void				UnmanagedNumber(CNumber* pcNumber, char* szFieldName);
+	void				UnmanagedDate(CDate* pcDate, char* szFieldName);
+
+	void				UnmanagedData(void* pv, size_t uiSizeof, char* szFieldName);
 
 protected:
 	void				InternalFree(void);

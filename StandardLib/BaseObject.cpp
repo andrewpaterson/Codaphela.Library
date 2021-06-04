@@ -1198,6 +1198,7 @@ BOOL CBaseObject::SavePrimitives(CObjectSerialiser* pcFile)
 	BOOL					bResult;
 	CPrimitiveField*		pcPrimitiveField;
 	SDataIO*				psIO;
+	void*					pvPrimitive;
 
 	papv = mpcClass->GetPrimitiveFields();
 	ppacPrimitiveFields = (CPrimitiveField**)papv->GetData();
@@ -1207,7 +1208,8 @@ BOOL CBaseObject::SavePrimitives(CObjectSerialiser* pcFile)
 		pcPrimitiveField = ppacPrimitiveFields[i];
 		psIO = pcPrimitiveField->GetDataIO();
 		pcPrimitive = pcPrimitiveField->GetPrimitiveObject(this);
-		bResult = (((SDataTypeIO*)pcPrimitive)->*(psIO->fWriter))(pcFile);
+		pvPrimitive = pcPrimitiveField->GetValue(this);
+		bResult = (((SDataTypeIO*)pvPrimitive)->*(psIO->fWriter))(pcFile);
 		
 		if (!bResult)
 		{
@@ -1370,13 +1372,14 @@ BOOL CBaseObject::LoadPointers(CObjectDeserialiser* pcFile)
 BOOL CBaseObject::LoadPrimitives(CObjectDeserialiser* pcFile)
 {
 	int						iNumFields;
-	CPrimitiveField** ppacPrimitiveFields;
-	CArrayVoidPtr* papv;
+	CPrimitiveField**		ppacPrimitiveFields;
+	CArrayVoidPtr*			papv;
 	int						i;
-	CPrimitiveObject* pcPrimitive;
+	CPrimitiveObject*		pcPrimitive;
 	BOOL					bResult;
-	CPrimitiveField* pcPrimitiveField;
-	SDataIO* psIO;
+	CPrimitiveField*		pcPrimitiveField;
+	SDataIO*				psIO;
+	void*					pvPrimitive;
 
 	papv = mpcClass->GetPrimitiveFields();
 	ppacPrimitiveFields = (CPrimitiveField**)papv->GetData();
@@ -1386,7 +1389,8 @@ BOOL CBaseObject::LoadPrimitives(CObjectDeserialiser* pcFile)
 		pcPrimitiveField = ppacPrimitiveFields[i];
 		psIO = pcPrimitiveField->GetDataIO();
 		pcPrimitive = pcPrimitiveField->GetPrimitiveObject(this);
-		bResult = (((SDataTypeIO*)pcPrimitive)->*(psIO->fReader))(pcFile);
+		pvPrimitive = pcPrimitiveField->GetValue(this);
+		bResult = (((SDataTypeIO*)pvPrimitive)->*(psIO->fReader))(pcFile);
 
 		if (!bResult)
 		{

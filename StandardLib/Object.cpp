@@ -20,7 +20,6 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include "PointerObject.h"
 #include "Objects.h"
-#include "Primitive.h"
 #include "Object.h"
 
 
@@ -770,12 +769,19 @@ void CObject::Embedded(CBaseObject* pcObject, char* szFieldName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObject::Primitive(CPrimitiveObject* pcPrimitive, char* szFieldName)
-{
-	pcPrimitive->SetEmbedding(this);
-
-	mpcClass->Primitive(this, pcPrimitive, szFieldName);
-}
+void CObject::Primitive(Int8* pcPrimitive, char* szFieldName) { mpcClass->Primitive(this, pcPrimitive, szFieldName); }
+void CObject::Primitive(UInt8* pcPrimitive, char* szFieldName) { mpcClass->Primitive(this, pcPrimitive, szFieldName); }
+void CObject::Primitive(Int16* pcPrimitive, char* szFieldName) { mpcClass->Primitive(this, pcPrimitive, szFieldName); }
+void CObject::Primitive(UInt16* pcPrimitive, char* szFieldName) { mpcClass->Primitive(this, pcPrimitive, szFieldName); }
+void CObject::Primitive(Int32* pcPrimitive, char* szFieldName) { mpcClass->Primitive(this, pcPrimitive, szFieldName); }
+void CObject::Primitive(UInt32* pcPrimitive, char* szFieldName) { mpcClass->Primitive(this, pcPrimitive, szFieldName); }
+void CObject::Primitive(Int64* pcPrimitive, char* szFieldName) { mpcClass->Primitive(this, pcPrimitive, szFieldName); }
+void CObject::Primitive(UInt64* pcPrimitive, char* szFieldName) { mpcClass->Primitive(this, pcPrimitive, szFieldName); }
+void CObject::Primitive(Bool* pcPrimitive, char* szFieldName) { mpcClass->Primitive(this, pcPrimitive, szFieldName); }
+void CObject::Primitive(Float32* pcPrimitive, char* szFieldName) { mpcClass->Primitive(this, pcPrimitive, szFieldName); }
+void CObject::Primitive(Float64* pcPrimitive, char* szFieldName) { mpcClass->Primitive(this, pcPrimitive, szFieldName); }
+void CObject::Primitive(Char8* pcPrimitive, char* szFieldName) { mpcClass->Primitive(this, pcPrimitive, szFieldName); }
+void CObject::Primitive(Char16* pcPrimitive, char* szFieldName) { mpcClass->Primitive(this, pcPrimitive, szFieldName); }
 
 
 //////////////////////////////////////////////////////////////////////////

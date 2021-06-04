@@ -8,16 +8,17 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPrimitiveField::Init(CClass* pcFieldClass, ptrdiff_t iOffset, CClass* pcContainingClass, SDataIO* pcIO, char* szName)
+void CPrimitiveField::Init(CClass* pcFieldClass, ptrdiff_t iObjectOffset, ptrdiff_t iValueOffset, CClass* pcContainingClass, SDataIO* pcIO, char* szName)
 {
-	if (iOffset >= 0)
+	if (iObjectOffset >= 0)
 	{
-		CField::Init(pcFieldClass, iOffset, pcContainingClass, szName);
+		CField::Init(pcFieldClass, iObjectOffset, pcContainingClass, szName);
 	}
 	else
 	{
 		CField::Init(NULL, 0, pcContainingClass, szName);
 	}
+	muiValueOffset = iValueOffset;
 	mpcIO = pcIO;
 }
 
@@ -63,6 +64,16 @@ CPrimitiveObject* CPrimitiveField::GetPrimitiveObject(CBaseObject* pcFieldContai
 
 	pcPrimitive = (CPrimitiveObject*)RemapSinglePointer(pcFieldContainer, muiOffset);
 	return pcPrimitive;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void* CPrimitiveField::GetValue(CBaseObject* pcFieldContainer)
+{
+	return RemapSinglePointer(pcFieldContainer, muiValueOffset);
 }
 
 
