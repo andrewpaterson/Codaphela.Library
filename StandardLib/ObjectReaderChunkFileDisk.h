@@ -27,10 +27,10 @@ class CObjectReaderChunkFileDisk : public CObjectReaderChunkFile
 {
 CONSTRUCTABLE(CObjectReaderChunkFileDisk);
 protected:
-	CChunkFile			mcChunkFile;
-	CChunkFileFileSystem		mcChunkFileFileSystem;
-	CChars				mszFileName;
-	CChars				mszFullDirectory;
+	CChunkFile				mcChunkFile;
+	CChunkFileFileSystem	mcChunkFileFileSystem;
+	CChars					mszFileName;
+	CChars					mszFullDirectory;
 
 public:
 	void				Init(char* szDirectory, char* szChunkFileName);

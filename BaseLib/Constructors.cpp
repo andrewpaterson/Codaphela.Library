@@ -88,3 +88,23 @@ BOOL CConstructors::ValidateMemoryInitialised(void)
 	return TRUE;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CConstructors::ValidateNotAdded(const char* szClassName)
+{
+	BOOL	bResult;
+
+	bResult = mcConstructors.HasKey(szClassName);
+	if (bResult)
+	{
+		return gcLogger.Error2(__METHOD__, " Constructor [", szClassName, "] has already been added.", NULL);
+	}
+	else
+	{
+		return TRUE;
+	}
+}
+

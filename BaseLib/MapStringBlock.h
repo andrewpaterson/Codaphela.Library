@@ -45,6 +45,10 @@ public:
 	BOOL		Put(const char* szKey, void* psData, int iDataSize);
 
 	BOOL		Remove(char* szKey);
+	BOOL		Remove(const char* szKey);
+
+	BOOL		HasKey(char* szKey);
+	BOOL		HasKey(const char* szKey);
 
 	BOOL		WriteCaseSensitivity(CFileWriter* pcFileWriter);
 	BOOL		Write(CFileWriter* pcFileWriter);
