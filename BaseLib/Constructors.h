@@ -20,6 +20,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __CONSTRUCTORS_H__
 #define __CONSTRUCTORS_H__
+#include "StackMemory.h"
 #include "ConstructorCall.h"
 #include "MapStringBlock.h"
 
@@ -34,9 +35,9 @@ public:
 	void	Kill(void);
 
 	template<class M>
-	void	Add(char* szClassName);
+	M*		Add(char* szClassName);
 	template<class M>
-	void	Add(const char* szClassName);
+	M*		Add(const char* szClassName);
 	template<class M>
 	M*		Add(void);
 
@@ -44,6 +45,9 @@ public:
 	int		NumConstructors(void);
 
 	BOOL	ValidateMemoryInitialised(void);
+
+protected:
+	BOOL	ValidateNotAdded(const char* szClassName);
 };
 
 
@@ -52,15 +56,21 @@ public:
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CConstructors::Add(char* szClassName)
+M* CConstructors::Add(char* szClassName)
 {
 	M*		pvM;
 	int		iSize;
+
+	if (!ValidateNotAdded(szClassName))
+	{
+		return NULL;
+	}
 
 	iSize = sizeof(M);
 	pvM = (M*)mcConstructors.Put(szClassName, iSize);
 	memset(pvM, 0, iSize);
 	new(pvM) M();
+	return pvM;
 }
 
 
@@ -69,15 +79,21 @@ void CConstructors::Add(char* szClassName)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CConstructors::Add(const char* szClassName)
+M* CConstructors::Add(const char* szClassName)
 {
-	M* pvM;
+	M*		pvM;
 	int		iSize;
+
+	if (!ValidateNotAdded(szClassName))
+	{
+		return NULL;
+	}
 
 	iSize = sizeof(M);
 	pvM = (M*)mcConstructors.Put(szClassName, iSize);
 	memset(pvM, 0, iSize);
 	new(pvM) M();
+	return pvM;
 }
 
 
@@ -90,16 +106,30 @@ M* CConstructors::Add(void)
 {
 	M*				pvM;
 	int				iSize;
-	M				m;
-	const char*		szName;
+	CStackMemory<>	cStack;  //Stop the destructor being called on M so we can't just declare M on the stack.
+	const char*		szClassName;
 	BOOL			bResult;
 
 	iSize = sizeof(M);
-	memset(&m, 0, iSize);
-	new(&m) M();
-	szName = m.ClassName();
-	bResult = mcConstructors.Put(szName, &m, iSize);
-	pvM = (M*)mcConstructors.Get(szName);
+	pvM = (M*)cStack.Init(iSize); 
+	memset(pvM, 0, iSize);
+	new(pvM) M();
+
+	szClassName = pvM->ClassName();
+	if (!ValidateNotAdded(szClassName))
+	{
+		cStack.Kill();
+		return NULL;
+	}
+
+	bResult = mcConstructors.Put(szClassName, pvM, iSize);
+	if (!bResult)
+	{
+		cStack.Kill();
+		return NULL;
+	}
+	pvM = (M*)mcConstructors.Get(szClassName);
+	cStack.Kill(); 
 	return pvM;
 }
 

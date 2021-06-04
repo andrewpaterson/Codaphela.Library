@@ -176,26 +176,13 @@ void CUnknowns::RemoveDuringIteration(SIteratorTemplate<M>* psIter)
 template<class M>
 void CUnknowns::AddConstructor(void)
 {
-	const char*	szClassName;
-	M*			pvM;
-
-	pvM = NewMalloc<M>();
-	if (pvM)
+	if (mpcConstructors)
 	{
-		szClassName = pvM->ClassName();
-		if (mpcConstructors)
-		{
-			mpcConstructors->Add<M>(szClassName);
-		}
-		else
-		{
-			gcLogger.Error2(__METHOD__, " Constructors for Unknowns is NULL.", NULL);
-		}
-		free (pvM);
+		mpcConstructors->Add<M>();
 	}
 	else
 	{
-		gcLogger.Error2(__METHOD__, " Couldn't get class name whilst adding constructor for class.", NULL);
+		gcLogger.Error2(__METHOD__, " Constructors for Unknowns is NULL.", NULL);
 	}
 }
 

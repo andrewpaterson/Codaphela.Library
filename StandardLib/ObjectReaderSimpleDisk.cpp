@@ -1,3 +1,4 @@
+#include "BaseLib/Logger.h"
 #include "BaseLib/DiskFile.h"
 #include "ObjectReaderSimpleDisk.h"
 
@@ -46,6 +47,8 @@ CSerialisedObject* CObjectReaderSimpleDisk::Read(char* szObjectName)
 	bResult = mcFile.Open(EFM_Read);
 	if (!bResult)
 	{
+		gcLogger.Error2(__METHOD__, " Could not open file [", mcFile.GetFileName(), "] for reading.", NULL);
+		mcFile.Kill();
 		return NULL;
 	}
 
@@ -53,18 +56,24 @@ CSerialisedObject* CObjectReaderSimpleDisk::Read(char* szObjectName)
 	bResult = mcFile.ReadData(szExtension, 4);
 	if ((!bResult) || (strcmp(szExtension, OBJECT_FILE_EXTENSION) != 0))
 	{
+		mcFile.Close();
+		mcFile.Kill();
 		return NULL;
 	}
 
 	bResult = mcFile.ReadInt(&iFileType);
 	if ((!bResult) || (iFileType != BASIC_OBJECT_FILE))
 	{
+		mcFile.Close();
+		mcFile.Kill();
 		return NULL;
 	}
 
 	pcSerialised = ReadSerialised(&mcFile);
 	if (!pcSerialised)
 	{
+		mcFile.Close();
+		mcFile.Kill();
 		return NULL;
 	}
 
