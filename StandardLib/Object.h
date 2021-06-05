@@ -48,7 +48,7 @@ public:
 	BOOL				IsObject(void);
 	void				SetPointerTosExpectedDistToRoot(int iDistToRoot);
 
-	CPointer*			Pointer(CPointer* pcPointer, char* szFieldName);
+	void				Pointer(CPointer* pcPointer, char* szFieldName);
 	void				Embedded(CBaseObject* pcObject, char* szFieldName);
 
 	BOOL				IsDirty(void);
@@ -149,7 +149,7 @@ protected:
 	void				BaseValidatePointerTos(void);
 	void				ValidateEmbeddedConsistency(void);
 	BOOL				IsDistToRootValid(void);
-	void				EmbedPoinerFields(void);
+	void				EmbedPointerFields(void);
 	void				EmbedEmbeddedObjectFields(void);
 };
 
