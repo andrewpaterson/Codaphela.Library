@@ -50,7 +50,6 @@ public:
 
 	CPointer*			Pointer(CPointer* pcPointer, char* szFieldName);
 	void				Embedded(CBaseObject* pcObject, char* szFieldName);
-	void				Primitive(CPrimitiveObject* pcPrimitive, char* szFieldName);
 
 	BOOL				IsDirty(void);
 	int					GetEmbeddedIndex(CEmbeddedObject* pcEmbedded);
@@ -127,6 +126,7 @@ public:
 	void				UnmanagedData(void* pv, size_t uiSizeof, char* szFieldName);
 
 protected:
+	void				EmbedFields(void);
 	void				InternalFree(void);
 	void				FreePointers(void);
 	void				RemovePointerTo(CEmbeddedObject* pcTo);
@@ -149,6 +149,8 @@ protected:
 	void				BaseValidatePointerTos(void);
 	void				ValidateEmbeddedConsistency(void);
 	BOOL				IsDistToRootValid(void);
+	void				EmbedPoinerFields(void);
+	void				EmbedEmbeddedObjectFields(void);
 };
 
 

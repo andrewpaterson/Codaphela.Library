@@ -115,6 +115,8 @@ void CBaseObject::PreClass(void)
 			Class();
 			pcClass->Complete();
 		}
+
+		EmbedFields();
 	}
 }
 

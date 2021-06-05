@@ -68,6 +68,63 @@ void CObject::Class(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CObject::EmbedFields(void)
+{
+	EmbedPoinerFields();
+	EmbedEmbeddedObjectFields();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CObject::EmbedPoinerFields(void)
+{
+	int						iNumFields;
+	CPointerField**			ppacPointerFields;
+	CArrayVoidPtr*			papv;
+	int						i;
+	CPointer*				pcPointer;
+
+	papv = mpcClass->GetPointerFields();
+	ppacPointerFields = (CPointerField**)papv->GetData();
+	iNumFields = papv->NumElements();
+	for (i = 0; i < iNumFields; i++)
+	{
+		pcPointer = ppacPointerFields[i]->GetPointer(this);
+		pcPointer->SetEmbedding(this);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CObject::EmbedEmbeddedObjectFields(void)
+{
+	int						iNumFields;
+	CEmbeddedObjectField**	ppacEmbeddedObjectFields;
+	CArrayVoidPtr*			papv;
+	int						i;
+	CBaseObject*			pcEmbeddedObject;
+
+	papv = mpcClass->GetEmbeddedObjectFields();
+	ppacEmbeddedObjectFields = (CEmbeddedObjectField**)papv->GetData();
+	iNumFields = papv->NumElements();
+	for (i = 0; i < iNumFields; i++)
+	{
+		pcEmbeddedObject = ppacEmbeddedObjectFields[i]->GetEmbeddedObject(this);
+		pcEmbeddedObject->SetEmbedding(this);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CObject::FreePointers(void)
 {
 	CBaseObject::FreePointers();

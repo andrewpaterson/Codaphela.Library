@@ -210,7 +210,7 @@ void CEmbeddedObject::CollectAndClearPointerTosInvalidDistToRootObjects(CDistCal
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CEmbeddedObject::SetEmbedded(CBaseObject* pcEmbedded)
+void CEmbeddedObject::SetEmbedding(CBaseObject* pcEmbedded)
 {
 	mpcEmbedded = pcEmbedded;
 }

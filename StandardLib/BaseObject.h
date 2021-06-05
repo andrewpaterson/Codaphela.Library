@@ -91,15 +91,10 @@ public:
 								CBaseObject();
 								~CBaseObject();
 
-	virtual void				Allocate(CObjects* pcObjects);
+protected:
 	virtual	void				Class(void) =0;
-			void				PreClass(void);
-			void				SetClass(CClass* pcClass);
 
-			void				PreInit(void);
-			void				PostInit(void);
-	virtual void				Initialised(void);
-
+public:
 			void				Kill(void) final;
 	virtual void				Free(void) =0;
 	virtual BOOL				Flush(void);
@@ -183,6 +178,15 @@ public:
 			void				ValidateInitCalled(void);
 	
 protected:
+	virtual void				Allocate(CObjects* pcObjects);
+			void				PreClass(void);
+			void				SetClass(CClass* pcClass);
+
+			void				PreInit(void);
+			void				PostInit(void);
+	virtual void				Initialised(void);
+	virtual	void				EmbedFields(void) =0;
+
 	virtual void				InternalFree(void);
 			void				KillInternal(BOOL bHeapFromChanged);
 			void				TryFree(BOOL bKillIfNoRoot, BOOL bHeapFromChanged);
