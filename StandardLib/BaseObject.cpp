@@ -1521,15 +1521,6 @@ CObjects* CBaseObject::GetObjectsThisIn(void)
 
 	pcBaseObject = GetEmbeddingContainer();
 	pcObjects = pcBaseObject->mpcObjectsThisIn;
-	if (!pcObjects)
-	{
-		if (!ObjectsValidate())
-		{
-			return NULL;
-		}
-
-		pcObjects = &gcObjects;
-	}
 	return pcObjects;
 }
 
