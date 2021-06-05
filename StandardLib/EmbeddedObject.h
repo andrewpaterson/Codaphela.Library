@@ -108,7 +108,8 @@ public:
 			BOOL				ContainsFrom(CEmbeddedObject* pcBaseObject);
 	virtual CBaseObject*		GetClosestFromToRoot(void);
 
-	virtual CObjects*			GetObjects(void) =0;
+			CObjects*			GetObjects(void);
+	virtual CObjects*			GetObjectsThisIn(void) =0;
 			void				PrintObject(CChars* psz, BOOL bEmbedded = FALSE);
 			void				LogNotExpectedToBeEmbedded(char* szMethod);
 			void				LogExpectedToBeInitialised(char* szMethod);

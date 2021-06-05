@@ -23,7 +23,7 @@ public:
 	CBaseObject*		Dehollow(void);
 	int					GetEmbeddedIndex(void);
 	CHollowObject*		GetHollowObject(void);
-	CObjects*			GetObjects(void);
+	CObjects*			GetObjectsThisIn(void);
 	CStackPointers*		GetStackPointers(void);
 	void				GetPointerTos(CArrayTemplateEmbeddedObjectPtr* papcTos);
 	int					NumPointerTos(void);
