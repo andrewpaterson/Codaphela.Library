@@ -453,7 +453,6 @@ BOOL CPointer::Load(CObjectDeserialiser* pcFile)
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -463,6 +462,23 @@ int CPointer::GetDistToRoot(void)
 	if (mpcObject)
 	{
 		return mpcObject->GetDistToRoot();
+	}
+	else
+	{
+		return -1;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CPointer::GetDistToStack(void)
+{
+	if (mpcObject)
+	{
+		return mpcObject->GetDistToStack();
 	}
 	else
 	{

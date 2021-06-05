@@ -29,8 +29,6 @@ CONSTRUCTABLE(CHollowObject);
 public:
 								CHollowObject(void);
 			void				Init(uint16 iNumEmbedded);
-			void				Class(void);
-			CBaseObject*		Dehollow(void);
 
 			BOOL				IsHollow(void);
 
@@ -52,6 +50,10 @@ public:
 			void				ValidateConsistency(void);
 
 protected:
+			void				EmbedFields(void);
+			void				Class(void);
+			CBaseObject*		Dehollow(void);
+
 			void				FreePointers(void);
 			void				Free(void);
 			int					RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew);

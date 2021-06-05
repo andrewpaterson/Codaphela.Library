@@ -1420,7 +1420,7 @@ void CObjects::AppenedHollowEmbeddedObjects(CBaseObject* pcHollow, uint16 iNumEm
 	int						i;
 	CHollowEmbeddedObject*	pcEmbeddedObject;
 
-	cEmbeddedObject.SetEmbedded(pcHollow);
+	cEmbeddedObject.SetEmbedding(pcHollow);
 
 	for (i = 0; i < iNumEmbedded-1; i++)
 	{

@@ -71,7 +71,7 @@ public:
 			BOOL				IsInStack(void);
 	virtual int					GetEmbeddedIndex(CEmbeddedObject* pcEmbedded);
 	virtual uint16				GetNumEmbedded(void) =0;
-			void				SetEmbedded(CBaseObject* pcEmbedded);
+			void				SetEmbedding(CBaseObject* pcEmbedded);
 	virtual CEmbeddedObject*	GetEmbeddedObject(uint16 iIndex) =0;
 	virtual CBaseObject*		Dehollow(void) =0;
 			BOOL				IsAllocatedInObjects(void);

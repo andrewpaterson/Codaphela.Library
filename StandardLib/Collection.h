@@ -31,12 +31,15 @@ class CCollection : public CBaseObject
 CONSTRUCTABLE(CCollection);
 public:
 			void			Init(void);
-			void			Class(void);
 			BOOL			IsCollection(void);
 			BOOL			IsObject(void);
 	virtual void			RemoveAll(void) =0;
 			CBaseObject*	Dehollow(void);
 	virtual void			TouchAll(void) =0;
+
+protected:
+			void			Class(void);
+			void			EmbedFields(void);
 };
 
 
