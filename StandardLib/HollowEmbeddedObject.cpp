@@ -161,14 +161,13 @@ BOOL CHollowEmbeddedObject::SetDistToRoot(int iDistToRoot)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CObjects* CHollowEmbeddedObject::GetObjects(void)
+CObjects* CHollowEmbeddedObject::GetObjectsThisIn(void)
 {
 	CHollowObject*	pcHollow;
 
 	pcHollow = GetHollowObject();
-	return pcHollow->GetObjects();
+	return pcHollow->GetObjectsThisIn();
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////

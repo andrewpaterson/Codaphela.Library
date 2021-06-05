@@ -278,7 +278,7 @@ BOOL CBaseObject::Flush(void)
 
 	if (bDirty && bCanFindRoot)
 	{
-		bResult = GetObjects()->ForceSave(this);
+		bResult = GetObjectsThisIn()->ForceSave(this);
 		SetDirty(FALSE);
 		return bResult;
 	}
@@ -1514,7 +1514,7 @@ int CBaseObject::TestGetNumEmbeddedFromFlags(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CObjects* CBaseObject::GetObjects(void)
+CObjects* CBaseObject::GetObjectsThisIn(void)
 {
 	CBaseObject*	pcBaseObject;
 	CObjects*		pcObjects;
@@ -1969,7 +1969,7 @@ void CBaseObject::ValidateAllocation(void)
 	{
 		sz.Init();
 		PrintObject(&sz, IsEmbedded());
-		gcLogger.Error2(__METHOD__, " Object {", sz.Text(), "} should not have a dist to stack of [", IntToString(GetDistToStack()), "] and flag OBJECT_FLAGS_CALLED_ALLOCATE [", IntToString(bAllocateCalled), "] and be allocated in Objects [0x", PointerToString(GetObjects()), "].", NULL);
+		gcLogger.Error2(__METHOD__, " Object {", sz.Text(), "} should not have a dist to stack of [", IntToString(GetDistToStack()), "] and flag OBJECT_FLAGS_CALLED_ALLOCATE [", IntToString(bAllocateCalled), "] and be allocated in Objects [0x", PointerToString(GetObjectsThisIn()), "].", NULL);
 		sz.Kill();
 	}
 }

@@ -144,7 +144,7 @@ public:
 			BOOL				HasDistTouchedFlag(void);
 
 			BOOL				TestedForSanity(void);
-			CObjects*			GetObjects(void);
+			CObjects*			GetObjectsThisIn(void);
 			CClasses*			GetClasses(void);
 			CStackPointers*		GetStackPointers(void);
 	virtual void				SetDistToStack(int iDistToStack);

@@ -287,7 +287,7 @@ void CEmbeddedObject::AddHeapFrom(CBaseObject* pcFromObject, BOOL bValidate)
 		{
 			if (IsAllocatedInObjects())
 			{
-				GetObjects()->ValidateObjectsConsistency();
+				GetObjectsThisIn()->ValidateObjectsConsistency();
 			}
 		}
 #endif
@@ -337,7 +337,7 @@ void CEmbeddedObject::RemoveHeapFrom(CBaseObject* pcFromObject, BOOL bValidate)
 	{
 		if (IsAllocatedInObjects())
 		{
-			GetObjects()->ValidateObjectsConsistency();
+			GetObjectsThisIn()->ValidateObjectsConsistency();
 		}
 	}
 #endif
@@ -698,8 +698,30 @@ BOOL CEmbeddedObject::IsAllocatedInObjects(void)
 {
 	CObjects*	pcObjects;
 
-	pcObjects = GetObjects();
+	pcObjects = GetObjectsThisIn();
 	return pcObjects != NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CObjects* CEmbeddedObject::GetObjects(void)
+{
+	CObjects* pcObjects;
+
+	pcObjects = GetObjectsThisIn();
+	if (!pcObjects)
+	{
+		if (!ObjectsValidate())
+		{
+			return NULL;
+		}
+
+		pcObjects = &gcObjects;
+	}
+	return pcObjects;
 }
 
 
