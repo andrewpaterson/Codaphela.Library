@@ -85,25 +85,13 @@ void CBaseObject::PreClass(void)
 	CClasses*		pcClasses;
 	CClass*			pcClass;
 	const char*		szClassName;
-	CObjects*		pcObjects;
 
 	szClassName = ClassName();
 	if (!HasClass())
 	{
 		SetFlag(OBJECT_FLAGS_CALLED_CLASS, TRUE);
 
-		pcObjects = GetObjects();
-		if (!pcObjects)
-		{
-			if (!ObjectsValidate())
-			{
-				return;
-			}
-
-			pcObjects = &gcObjects;
-		}
-
-		pcClasses = pcObjects->GetClasses();
+		pcClasses = GetClasses();
 		pcClass = pcClasses->Get(szClassName);
 		if (!pcClass)
 		{
