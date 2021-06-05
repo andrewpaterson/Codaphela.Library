@@ -70,7 +70,7 @@ void CObject::Class(void)
 //////////////////////////////////////////////////////////////////////////
 void CObject::EmbedFields(void)
 {
-	EmbedPoinerFields();
+	EmbedPointerFields();
 	EmbedEmbeddedObjectFields();
 }
 
@@ -79,7 +79,7 @@ void CObject::EmbedFields(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObject::EmbedPoinerFields(void)
+void CObject::EmbedPointerFields(void)
 {
 	int						iNumFields;
 	CPointerField**			ppacPointerFields;
@@ -94,6 +94,7 @@ void CObject::EmbedPoinerFields(void)
 	{
 		pcPointer = ppacPointerFields[i]->GetPointer(this);
 		pcPointer->SetEmbedding(this);
+		mapPointers.AddPtr(pcPointer);
 	}
 }
 
@@ -117,6 +118,8 @@ void CObject::EmbedEmbeddedObjectFields(void)
 	{
 		pcEmbeddedObject = ppacEmbeddedObjectFields[i]->GetEmbeddedObject(this);
 		pcEmbeddedObject->SetEmbedding(this);
+		pcEmbeddedObject->PreClass();
+		mapEmbedded.AddPtr(pcEmbeddedObject);
 	}
 }
 
@@ -798,13 +801,9 @@ void CObject::RemovePointerTo(CEmbeddedObject* pcTo)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointer* CObject::Pointer(CPointer* pcPointer, char* szFieldName)
+void CObject::Pointer(CPointer* pcPointer, char* szFieldName)
 {
-	pcPointer->SetEmbedding(this);
-
 	mpcClass->Pointer(this, pcPointer, szFieldName);
-	mapPointers.Add(&pcPointer);
-	return pcPointer;
 }
 
 
@@ -814,10 +813,6 @@ CPointer* CObject::Pointer(CPointer* pcPointer, char* szFieldName)
 //////////////////////////////////////////////////////////////////////////
 void CObject::Embedded(CBaseObject* pcObject, char* szFieldName)
 {
-	pcObject->mpcEmbedded = this;
-	pcObject->PreClass();
-	mapEmbedded.Add(&pcObject);
-
 	mpcClass->Embedded(this, pcObject, szFieldName);
 }
 
