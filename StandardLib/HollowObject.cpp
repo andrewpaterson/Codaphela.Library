@@ -29,7 +29,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 CHollowObject::CHollowObject(void)
 {
-	miFlags &= ~OBJECT_FLAGS_DIRTY;
+	muiFlags &= ~OBJECT_FLAGS_DIRTY;
 }
 
 

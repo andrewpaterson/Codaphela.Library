@@ -931,7 +931,7 @@ BOOL CObject::IsDirty(void)
 	int				i;
 	CBaseObject*	pcEmbedded;
 
-	if (miFlags & OBJECT_FLAGS_DIRTY)
+	if (muiFlags & OBJECT_FLAGS_DIRTY)
 	{
 		return TRUE;
 	}
@@ -1313,7 +1313,7 @@ void CObject::SetFlag(int iFlag, int iFlagValue)
 	int				i;
 	CBaseObject*	pcBaseObject;
 
-	::SetFlag(&miFlags, iFlag, iFlagValue);
+	::SetFlag(&muiFlags, iFlag, iFlagValue);
 
 	for (i = 0; i < mapEmbedded.NumElements(); i++)
 	{
