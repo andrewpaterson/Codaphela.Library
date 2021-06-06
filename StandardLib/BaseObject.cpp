@@ -213,7 +213,7 @@ void CBaseObject::Kill(void)
 
 	//This method is for the user to forcibly kill an object.
 	//It is not called internally.
-
+	SetFlag(OBJECT_FLAGS_CALLED_KILL, TRUE);
 
 	bHeapFromChanged = HasHeapFroms();
 	KillInternal(bHeapFromChanged);
@@ -224,7 +224,6 @@ void CBaseObject::Kill(void)
 		mpcObjectsThisIn->ValidateObjectsConsistency();
 	}
 #endif
-	SetFlag(OBJECT_FLAGS_CALLED_KILL, TRUE);
 }
 
 

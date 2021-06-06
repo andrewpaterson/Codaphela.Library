@@ -40,9 +40,9 @@ CObject::CObject()
 //////////////////////////////////////////////////////////////////////////
 void CObject::Allocate(CObjects* pcObjects)
 {
-	int					iNumEmbedded;
-	CBaseObject*		pcEmbedded;
-	int					i;
+	int				iNumEmbedded;
+	CBaseObject*	pcEmbedded;
+	int				i;
 
 	CBaseObject::Allocate(pcObjects);
 
