@@ -85,10 +85,10 @@ protected:
 	CClass*		mpcClass;
 	int32		miDistToRoot;
 	int32		miDistToStack;
-	uint16		miFlags;
-	uint16		miNumEmbedded;
-	uint16		miPreInits;
-	uint16		miPostInits;
+	uint16		muiFlags;
+	uint16		muiNumEmbedded;
+	uint16		muiPreInits;
+	uint16		muiPostInits;
 
 public:
 								CBaseObject();
@@ -121,6 +121,7 @@ public:
 			BOOL				IsInitialised(void);
 			BOOL				HasClass(void);
 			CClass*				GetClass(void);
+			BOOL				IsKilled(void);
 
 	virtual char*				GetName(void);
 	virtual BOOL				SetName(char* szName);

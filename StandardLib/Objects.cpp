@@ -270,7 +270,7 @@ void CObjects::DumpGraph(void)
 	pcBaseObject = mcMemory.StartIteration(&sIter);
 	while (pcBaseObject)
 	{
-		SetFlag(&pcBaseObject->miFlags, OBJECT_FLAGS_DUMPED, FALSE);
+		SetFlag(&pcBaseObject->muiFlags, OBJECT_FLAGS_DUMPED, FALSE);
 
 		if (pcBaseObject->IsObject())
 		{
@@ -278,7 +278,7 @@ void CObjects::DumpGraph(void)
 			for (i = 0; i < pcObject->mapEmbedded.NumElements(); i++)
 			{
 				pcEmbeddedObject = *pcObject->mapEmbedded.Get(i);
-				SetFlag(&pcEmbeddedObject->miFlags, OBJECT_FLAGS_DUMPED, FALSE);
+				SetFlag(&pcEmbeddedObject->muiFlags, OBJECT_FLAGS_DUMPED, FALSE);
 			}
 		}
 		pcBaseObject = mcMemory.Iterate(&sIter);
@@ -307,7 +307,7 @@ void CObjects::RecurseDumpGraph(CChars* psz, CEmbeddedObject* pcIncoming, int iL
 	pcBaseObject = (CBaseObject*)pcIncoming;
 
 	psz->Append(' ', iLevel * 3);
-	if ((pcBaseObject->miFlags & OBJECT_FLAGS_DUMPED) || (pcBaseObject->miDistToRoot < iLevel))
+	if ((pcBaseObject->muiFlags & OBJECT_FLAGS_DUMPED) || (pcBaseObject->miDistToRoot < iLevel))
 	{
 		psz->Append('*');
 		pcBaseObject->PrintObject(psz, bEmbedded);
@@ -373,7 +373,7 @@ void CObjects::ValidateIndexedObjects(void)
 	pcBaseObject = mcMemory.StartIteration(&sIter);
 	while (pcBaseObject)
 	{
-		if (!(pcBaseObject->miFlags & OBJECT_FLAGS_TESTED_FOR_SANITY))
+		if (!(pcBaseObject->muiFlags & OBJECT_FLAGS_TESTED_FOR_SANITY))
 		{
 			pcBaseObject->SetFlag(OBJECT_FLAGS_TESTED_FOR_SANITY, TRUE);
 
