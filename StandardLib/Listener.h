@@ -20,10 +20,10 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __LISTENER_H__
 #define __LISTENER_H__
-#include "BaseLib/Constructable.h"
+#include "Unknown.h"
 
 
-class CListener : public CConstructable
+class CListener : public CUnknown
 {
 public:
 };

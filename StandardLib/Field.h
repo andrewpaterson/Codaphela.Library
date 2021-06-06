@@ -4,11 +4,12 @@
 #include "BaseLib/Constructable.h"
 #include "BaseLib/Killable.h"
 #include "BaseLib/DatasIO.h"
+#include "Unknown.h"
 
 
 class CClass;
 class CClasses;
-class CField : public CConstructable, public CKillable
+class CField : public CUnknown
 {
 CONSTRUCTABLE(CField);
 protected:
