@@ -45,6 +45,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define MB				*(1024*1024)
 #define GB				*(1024*1024*1024)
 
+#define CORRUPT_MEMORY	((void*)(16 KB))
+
 
 #endif // __NUMBERS_H__
 

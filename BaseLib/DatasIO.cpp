@@ -132,3 +132,16 @@ BOOL SDataTypeIO::Load(CFileReader* pcFile)
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CDatasIO::Add(const char* szFileName, DataIO_FileWriter fSpecificClassFileSave, DataIO_FileReader fSpecificClassFileLoad)
+{
+	SDataIO*	psIO;
+
+	psIO = (SDataIO*)mcDataIOs.Put(szFileName, sizeof(SDataIO));
+	psIO->fWriter = (DataIO_FileWriter)fSpecificClassFileSave;
+	psIO->fReader = (DataIO_FileReader)fSpecificClassFileLoad;
+}
+

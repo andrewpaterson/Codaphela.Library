@@ -34,3 +34,33 @@ void CDate::Init(int16 sYear, char cMonth, char cDay)
 	mcDay = cDay;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CDate::Save(CFileWriter* pcFile)
+{
+	BOOL	bResult;
+
+	bResult = pcFile->WriteInt(msYear);
+	bResult &= pcFile->WriteInt(mcMonth);
+	bResult &= pcFile->WriteInt(mcDay);
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CDate::Load(CFileReader* pcFile)
+{
+	BOOL	bResult;
+
+	bResult = pcFile->ReadInt(&msYear);
+	bResult &= pcFile->ReadInt(&mcMonth);
+	bResult &= pcFile->ReadInt(&mcDay);
+	return bResult;
+}
+

@@ -36,6 +36,8 @@ public:
 	CClass*				Get(EPrimitiveType eType);
 	CClass*				Get(uint32 iType);
 
+	CClass*				GetValid(EPrimitiveType eType);
+
 	CClass*				Add(char* szClassName, uint32 uiSize, EPrimitiveType eType);
 	CClass*				Add(const char* szClassName, uint32 uiSize, EPrimitiveType eType);
 	CClass*				Add(char* szClassName, uint32 uiSize);
@@ -45,6 +47,8 @@ public:
 
 	CUnmanagedClasses*	GetUnmanagedClasses(void);
 	CPrimitiveClasses*	GetPrimitiveClasses(void);
+
+	void				ValidateType(EPrimitiveType eType);
 
 protected:
 	uint32		GetNextClassType(void);

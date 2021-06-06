@@ -24,7 +24,12 @@ void CUnmanagedField::Init(EPrimitiveType eType, ptrdiff_t iOffset, CClass* pcCo
 	CClass*		pcFieldClass;
 
 	pcClasses = pcContainingClass->GetClasses();
-	pcFieldClass = pcClasses->Get(eType);
+	pcFieldClass = pcClasses->GetValid(eType);
+	if (!pcFieldClass)
+	{
+		return;
+	}
+
 	CField::Init(pcFieldClass, iOffset, pcContainingClass, szName);
 	muiElementSize = pcFieldClass->GetSizeOf();
 	muiLength = uiLength;

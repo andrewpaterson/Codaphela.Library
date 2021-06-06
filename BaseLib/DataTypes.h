@@ -127,6 +127,7 @@ enum EPrimitiveType
 	PT_String,		//CChars
 	PT_Number,		//CNumber
 	PT_Date,		//CDate
+	PT_DateTime,	//CDateTime
 
 	PT_void,		//0
 

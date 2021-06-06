@@ -60,6 +60,8 @@ void DataIOInit(void)
 
 	gcDataTypesIO.Add<SIOVoid>(gcTypeNames.GetPrettyName(PT_void));
 	gcDataTypesIO.Add<SIOData>(gcTypeNames.GetPrettyName(PT_Data));
+
+	gcDataTypesIO.Add("CChars", (DataIO_FileWriter)(&CChars::WriteString), (DataIO_FileReader)(&CChars::ReadString));
 }
 
 
