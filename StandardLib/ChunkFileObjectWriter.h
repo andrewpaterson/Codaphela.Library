@@ -28,6 +28,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 class CChunkFileObjectWriter : public CObjectWriter, public CObjectIO
 {
 CONSTRUCTABLE(CChunkFileObjectWriter);
+DESTRUCTABLE(CChunkFileObjectWriter);
 protected:
 	CChunkFile			mcChunkFile;
 	CChunkFileFileSystem		mcChunkFileFileSystem;

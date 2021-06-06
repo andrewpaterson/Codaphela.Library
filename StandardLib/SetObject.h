@@ -29,6 +29,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 class CSetObject : public CArrayCommonObject
 {
 CONSTRUCTABLE(CSetObject);
+DESTRUCTABLE(CSetObject);
 public:
 						Ptr<CSetObject> Init(void);
 
