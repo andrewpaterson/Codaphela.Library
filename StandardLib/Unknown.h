@@ -27,6 +27,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 class CUnknowns;
 class CUnknown : public CConstructable, public CKillable
 {
+CONSTRUCTABLE(CUnknown);
 protected:
 	CUnknowns*	mpcUnknownsThisIn;
 

@@ -59,8 +59,9 @@ void CObject::Allocate(CObjects* pcObjects)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObject::Class(void)
+void CObject::Kill(void)
 {
+	CBaseObject::Kill();
 }
 
 

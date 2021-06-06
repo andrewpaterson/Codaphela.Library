@@ -51,7 +51,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #define OBJECT_FLAGS_CALLED_ALLOCATE			 0x200
 #define OBJECT_FLAGS_CALLED_INIT				 0x400
 #define OBJECT_FLAGS_CALLED_CLASS				 0x800
-#define OBJECT_FLAGS_CALLED_KILL		       0x10000
+#define OBJECT_FLAGS_CALLED_KILL		       0x10000  //Only set on BaseObject when .Kill is explictly called.  
 
 #define OBJECT_FLAGS_CLEARED_DIST_TO_ROOT		0x1000
 #define OBJECT_FLAGS_UPDATED_TOS_DIST_TO_ROOT	0x2000
@@ -95,7 +95,7 @@ protected:
 	virtual	void				Class(void) =0;
 
 public:
-			void				Kill(void) final;
+	virtual	void				Kill(void);
 	virtual void				Free(void) =0;
 	virtual BOOL				Flush(void);
 
@@ -176,6 +176,7 @@ public:
 			void				ValidateAllocation(void);
 			void				ValidateHasClass(void);
 			void				ValidateInitCalled(void);
+			void				ValidateKillCalled(void);
 	
 protected:
 	virtual void				Allocate(CObjects* pcObjects);

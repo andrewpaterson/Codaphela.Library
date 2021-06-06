@@ -9,7 +9,6 @@
 //////////////////////////////////////////////////////////////////////////
 void CPointerContainer::Class(void)
 {
-	CObject::Class();
 	Pointer(mp.This(), "mp");
 }
 
@@ -78,7 +77,6 @@ void CPointerContainer::Clear()
 //////////////////////////////////////////////////////////////////////////
 void CNamedPointerContainer::Class(void)
 {
-	CObject::Class();
 	Pointer(mp.This(), "mp");
 }
 
