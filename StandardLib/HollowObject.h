@@ -29,6 +29,7 @@ CONSTRUCTABLE(CHollowObject);
 public:
 								CHollowObject(void);
 			void				Init(uint16 iNumEmbedded);
+			void				Kill(void) final;
 
 			BOOL				IsHollow(void);
 

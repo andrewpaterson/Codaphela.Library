@@ -77,7 +77,6 @@ void CRoot::Free(void)
 //////////////////////////////////////////////////////////////////////////
 void CRoot::Class(void)
 {
-	CObject::Class();
 	Pointer(mpObjects.This(), "mpObjects");
 }
 

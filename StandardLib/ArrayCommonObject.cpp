@@ -367,8 +367,8 @@ void CArrayCommonObject::RemoveAllPointerTosDontKill(void)
 //////////////////////////////////////////////////////////////////////////
 void CArrayCommonObject::RemoveAllPointerTos(void)
 {
-	CBaseObject* pcPointedTo;
-	int						i;
+	CBaseObject*	pcPointedTo;
+	int				i;
 
 	for (i = 0; i < mcArray.UnsafeNumElements(); i++)
 	{

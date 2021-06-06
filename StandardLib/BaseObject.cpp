@@ -60,6 +60,7 @@ CBaseObject::~CBaseObject()
 	}
 
 	ValidateInitCalled();
+	ValidateKillCalled();
 }
 
 
@@ -251,12 +252,12 @@ void CBaseObject::KillInternal(BOOL bHeapFromChanged)
 	}
 	else
 	{
-		RemoveAllPointerTos();
+		RemoveAllPointerTos();  //Handles embedded objects.
 
-		RemoveAllStackFroms();
-		RemoveAllHeapFroms();
+		RemoveAllStackFroms();  //Handles embedded objects (in Object.RemoveAllStackFroms()).
+		RemoveAllHeapFroms();   //Handles embedded objects (in Object.RemoveAllHeapFroms()).
 
-		InternalFree();
+		InternalFree();         //Handles embedded objects (in Object.InternalFree()).
 	}
 }
 
@@ -2204,6 +2205,24 @@ void CBaseObject::ValidateInitCalled(void)
 			gcLogger.Error2(__METHOD__, " Object {", szObject.Text(), "} has a pre-init of zero.  Call PreInit() first in Init().", NULL);
 			szObject.Kill();
 		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CBaseObject::ValidateKillCalled(void)
+{
+	CChars	szObject;
+
+	if (!(miFlags & OBJECT_FLAGS_CALLED_KILL))
+	{
+		szObject.Init();
+		PrintObject(&szObject, IsEmbedded());
+		gcLogger.Error2(__METHOD__, " Object {", szObject.Text(), "} has not beel killed.  Call Kill() before the destructor.", NULL);
+		szObject.Kill();
 	}
 }
 
