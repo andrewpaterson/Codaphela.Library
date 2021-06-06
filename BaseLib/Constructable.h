@@ -54,6 +54,13 @@ unsigned int ClassSize(void)\
 	return sizeof(c);\
 }
 
+#define DESTRUCTABLE(c) \
+public:\
+~c(void)\
+{\
+	Kill();\
+}
+
 
 #endif // __CONSTRUCTABLE_H__
 

@@ -28,6 +28,7 @@ class CArrayCommonUnknown;
 class CArrayCommonObject : public CCollection
 {
 CONSTRUCTABLE(CArrayCommonObject);
+DESTRUCTABLE(CArrayCommonObject);
 protected:
 	CArrayCommonUnknown		mcArray;
 	BOOL					mbSubRoot;

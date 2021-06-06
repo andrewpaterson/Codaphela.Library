@@ -2235,7 +2235,7 @@ void CBaseObject::ValidateKillCalled(void)
 	{
 		szObject.Init();
 		PrintObject(&szObject, IsEmbedded());
-		gcLogger.Error2(__METHOD__, " Object {", szObject.Text(), "} has not beel killed.  Call Kill() before the destructor.", NULL);
+		gcLogger.Error2(__METHOD__, " Object {", szObject.Text(), "} has not beel killed.  Ensure sub-classes are declared DESTRUCTABLE().", NULL);
 		szObject.Kill();
 	}
 }
