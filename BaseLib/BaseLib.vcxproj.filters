@@ -954,6 +954,9 @@
     <ClInclude Include="ChunkFileFileSystem.h">
       <Filter>Source\File\Chunk</Filter>
     </ClInclude>
+    <ClInclude Include="DateTime.h">
+      <Filter>Source\Data\Time</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -1519,6 +1522,9 @@
     </ClCompile>
     <ClCompile Include="ChunkFileFileSystem.cpp">
       <Filter>Source\File\Chunk</Filter>
+    </ClCompile>
+    <ClCompile Include="DateTime.cpp">
+      <Filter>Source\Data\Time</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

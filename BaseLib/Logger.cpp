@@ -184,7 +184,15 @@ BOOL CLogger::Error2(const char* szText, ...)
 		sz = va_arg(vaMarker, char*);
 		while (sz != NULL)
 		{
-			szError.Append(sz);
+			if (sz > CORRUPT_MEMORY)
+			{
+				szError.Append(sz);
+			}
+			else
+			{
+				szError.Append(":Error args corrupt!");
+				break;
+			}
 			sz = va_arg(vaMarker, char*);
 		}
 		va_end(vaMarker);

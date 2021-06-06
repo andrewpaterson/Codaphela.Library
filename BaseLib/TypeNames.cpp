@@ -33,6 +33,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "Double4.h"
 #include "Double4x4.h"
 #include "DataTypes.h"
+#include "Date.h"
+#include "DateTime.h"
 
 
 CTypeNames	gcTypeNames;
@@ -76,6 +78,15 @@ void CTypeNames::AddType(EPrimitiveType eType, int iSize, const char* szPrettyNa
 	strcpy(psTypeName->szPrettyName, szPrettyName);
 	strcpy(psTypeName->szCppName, szCppName);
 	strcpy(psTypeName->szPrimitiveName, szPrimitiveName);
+
+	if (eType > PT_Undefined)
+	{
+		mmsziPrettyNames.Put(szPrettyName, eType);
+	}
+	if (!StrEmpty(szCppName))
+	{
+		mmsziCppNames.Put(szCppName, eType);
+	}
 }
 
 
@@ -86,6 +97,9 @@ void CTypeNames::AddType(EPrimitiveType eType, int iSize, const char* szPrettyNa
 void CTypeNames::Init(void)
 {
 	masTypeNames.Init();
+	mmsziPrettyNames.Init();
+	mmsziCppNames.Init();
+
 	AddType(PT_Undefined,	0,					"Undefined",	"",					"PT_Undefined");
 	AddType(PT_int8,		BYTE_BYTE_SIZE,		"Byte",			"int8",				"PT_int8");
 	AddType(PT_int16,		SHORT_BYTE_SIZE,	"Short",		"int16",			"PT_int16");
@@ -120,69 +134,10 @@ void CTypeNames::Init(void)
 	AddType(PT_Data,		BYTE_BYTE_SIZE,		"Data",			"",					"PT_Data");
 	AddType(PT_M4x4float32, FLOAT4x4_BYTE_SIZE,	"Float4x4",		"",					"PT_M4x4float32");
 	AddType(PT_M4x4float64, DOUBLE4x4_BYTE_SIZE,"Double4x4",	"",					"PT_M4x4float64");
-
-	mmsziPrettyNames.Init();
-	mmsziPrettyNames.Put("Pointer", PT_Pointer);
-	mmsziPrettyNames.Put("Byte", PT_int8);
-	mmsziPrettyNames.Put("Short", PT_int16);
-	mmsziPrettyNames.Put("Int", PT_int32);
-	mmsziPrettyNames.Put("Long", PT_int64);
-	mmsziPrettyNames.Put("UByte", PT_uint8);
-	mmsziPrettyNames.Put("UShort", PT_uint16);
-	mmsziPrettyNames.Put("UInt", PT_uint32);
-	mmsziPrettyNames.Put("ULong", PT_uint64);
-	mmsziPrettyNames.Put("Void", PT_void);
-	mmsziPrettyNames.Put("Char", PT_char8);
-	mmsziPrettyNames.Put("Widechar", PT_char16);
-	mmsziPrettyNames.Put("Float", PT_float32);
-	mmsziPrettyNames.Put("Double", PT_float64);
-	mmsziPrettyNames.Put("Float2", PT_M2float32);
-	mmsziPrettyNames.Put("Float3", PT_M3float32);
-	mmsziPrettyNames.Put("Float4", PT_M4float32);
-	mmsziPrettyNames.Put("Float4x4", PT_M4x4float32); 
-	mmsziPrettyNames.Put("Double2", PT_M2float64);
-	mmsziPrettyNames.Put("Double3", PT_M3float64);
-	mmsziPrettyNames.Put("Double4", PT_M4float64);
-	mmsziPrettyNames.Put("Double4x4", PT_M4x4float64);
-	mmsziPrettyNames.Put("Int2", PT_M2int32);
-	mmsziPrettyNames.Put("Int3", PT_M3int32);
-	mmsziPrettyNames.Put("Int4", PT_M4int32);
-	mmsziPrettyNames.Put("Bit", PT_bit);
-	mmsziPrettyNames.Put("Crumb", PT_crumb);
-	mmsziPrettyNames.Put("Tribble", PT_tribble);
-	mmsziPrettyNames.Put("Nybble", PT_nybble);
-	mmsziPrettyNames.Put("Nickle", PT_nickle);
-	mmsziPrettyNames.Put("Sixbits", PT_sixbits);
-	mmsziPrettyNames.Put("Data", PT_Data);
-	mmsziPrettyNames.Put("Bool", PT_bool);
-
-	mmsziCppNames.Init();
-	mmsziCppNames.Put("BOOL", PT_bool);
-	mmsziCppNames.Put("int8", PT_int8);
-	mmsziCppNames.Put("int16", PT_int16);
-	mmsziCppNames.Put("int", PT_int32);
-	mmsziCppNames.Put("long long int", PT_int64);
-	mmsziCppNames.Put("void", PT_void);
-	mmsziCppNames.Put("void*", PT_Pointer);
-	mmsziCppNames.Put("char", PT_char8);
-	mmsziCppNames.Put("wchar_t", PT_char16);
-	mmsziCppNames.Put("float", PT_float32);
-	mmsziCppNames.Put("double", PT_float64);
-	mmsziCppNames.Put("uint16", PT_uint16);
-	mmsziCppNames.Put("unsigned char", PT_uint8);
-	mmsziCppNames.Put("unsigned int", PT_uint32);
-	mmsziCppNames.Put("unsigned long long int", PT_uint64);
-	mmsziCppNames.Put("SFloat2", PT_M2float32);
-	mmsziCppNames.Put("SFloat3", PT_M3float32);
-	mmsziCppNames.Put("SFloat4", PT_M4float32);
-	mmsziCppNames.Put("SFloat4x4", PT_M4x4float32);
-	mmsziCppNames.Put("SDouble2", PT_M2float64);
-	mmsziCppNames.Put("SDouble3", PT_M3float64);
-	mmsziCppNames.Put("SDouble4", PT_M4float64);
-	mmsziCppNames.Put("SDouble4x4", PT_M4x4float64);
-	mmsziCppNames.Put("SInt2", PT_M2int32);
-	mmsziCppNames.Put("SInt3", PT_M3int32);
-	mmsziCppNames.Put("SInt4", PT_M4int32);
+	AddType(PT_String,		0,					"Chars",		"CChars",			"PT_String");
+	AddType(PT_Number,		0,					"Chars",		"CChars",			"PT_String");
+	AddType(PT_Date,		sizeof(CDate),		"Date",			"CDate",			"PT_Date");
+	AddType(PT_DateTime,	sizeof(CDateTime),	"DateTime",		"CDateTime",		"PT_DateTime");
 }
 
 

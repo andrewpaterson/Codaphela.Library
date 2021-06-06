@@ -40,6 +40,7 @@ protected:
 	CClass* mpcString;
 	CClass* mpcNumber;
 	CClass* mpcDate;
+	CClass* mpcDateTime;
 
 	CClass* mpcBit;
 	CClass* mpcCrumb;
@@ -80,6 +81,7 @@ public:
 	CClass*		GetString(void);
 	CClass*		GetNumber(void);
 	CClass*		GetDate(void);
+	CClass*		GetDateTime(void);
 	CClass*		GetBit(void);
 	CClass*		GetCrumb(void);
 	CClass*		GetTribble(void);
@@ -88,7 +90,9 @@ public:
 	CClass*		GetSixbits(void);
 
 protected:
-	CClass*		AddClass(EPrimitiveType eType);
+	CClass*		AddClassByPrettyName(EPrimitiveType eType);
+	CClass*		AddClassByCPPName(EPrimitiveType eType);
+	CClass*		AddClass(EPrimitiveType eType, const char* szName, int iSize);
 };
 
 

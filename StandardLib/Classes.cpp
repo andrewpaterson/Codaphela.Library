@@ -158,6 +158,24 @@ CClass* CClasses::Get(EPrimitiveType eType)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+CClass* CClasses::GetValid(EPrimitiveType eType)
+{
+	CClass** ppcClass;
+
+	ppcClass = mmcpClassesByType.Get(eType);
+	if (ppcClass)
+	{
+		return *ppcClass;
+	}
+	ValidateType(eType);
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 CClass* CClasses::Get(uint32 iType)
 {
 	return Get((EPrimitiveType)iType);
@@ -204,4 +222,35 @@ uint32 CClasses::GetNextClassType(void)
 	return muiCurrentClassType;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CClasses::ValidateType(EPrimitiveType eType)
+{
+	const char* szName;
+
+	if (eType < NUM_PRIMITIVE_TYPES)
+	{
+		if (gbTypeNames)
+		{
+			szName = gcTypeNames.GetPrettyName(eType);
+			if (!szName)
+			{
+				szName = "";
+			}
+			gcLogger.Error2(__METHOD__, " Classes does not contain unmanaged primitive class with ID [", IntToString(eType), "] and name [", szName, "].", NULL);
+		}
+		else
+		{
+			gcLogger.Error2(__METHOD__, " Classes does not contain unmanaged primitive class with ID [", IntToString(eType), "].", NULL);
+		}
+	}
+	else
+	{
+		gcLogger.Error2(__METHOD__, " Classes does not contain class with ID [", IntToString(eType), "].", NULL);
+	}
+	return;
+}
 

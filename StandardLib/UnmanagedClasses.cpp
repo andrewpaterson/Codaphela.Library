@@ -12,37 +12,44 @@ void CUnmanagedClasses::Init(CClasses* pcClasses)
 {
 	mpcClasses = pcClasses;
 
-	mpcUndefined = AddClass(PT_Undefined);
-	mpcVoidPointer = AddClass(PT_Pointer);
-	mpcInt8 = AddClass(PT_int8);
-	mpcInt16 = AddClass(PT_int16);
-	mpcInt32 = AddClass(PT_int32);
-	mpcInt64 = AddClass(PT_int64);
-	mpcUInt8 = AddClass(PT_uint8);
-	mpcUInt16 = AddClass(PT_uint16);
-	mpcUInt32 = AddClass(PT_uint32);
-	mpcUInt64 = AddClass(PT_uint64);
-	mpcFloat32 = AddClass(PT_float32);
-	mpcFloat64 = AddClass(PT_float64);
-	mpcM2float32 = AddClass(PT_M2float32);
-	mpcM3float32 = AddClass(PT_M3float32);
-	mpcM4float32 = AddClass(PT_M4float32);
-	mpcM2float64 = AddClass(PT_M2float64);
-	mpcM3float64 = AddClass(PT_M3float64);
-	mpcM4float64 = AddClass(PT_M4float64);
-	mpcM2int32 = AddClass(PT_M2int32);
-	mpcM3int32 = AddClass(PT_M3int32);
-	mpcM4int32 = AddClass(PT_M4int32);
-	mpcBool = AddClass(PT_bool);
-	mpcVoid = AddClass(PT_void);
-	mpcChar8 = AddClass(PT_char8);
-	mpcChar16 = AddClass(PT_char16);
-	mpcBit = AddClass(PT_bit);
-	mpcCrumb = AddClass(PT_crumb);		
-	mpcTribble = AddClass(PT_tribble);
-	mpcNybble = AddClass(PT_nybble);
-	mpcNickle = AddClass(PT_nickle);
-	mpcSixbits = AddClass(PT_sixbits);
+	mpcUndefined = AddClassByPrettyName(PT_Undefined);
+
+	mpcVoidPointer = AddClassByPrettyName(PT_Pointer);
+	mpcInt8 = AddClassByPrettyName(PT_int8);
+	mpcInt16 = AddClassByPrettyName(PT_int16);
+	mpcInt32 = AddClassByPrettyName(PT_int32);
+	mpcInt64 = AddClassByPrettyName(PT_int64);
+	mpcUInt8 = AddClassByPrettyName(PT_uint8);
+	mpcUInt16 = AddClassByPrettyName(PT_uint16);
+	mpcUInt32 = AddClassByPrettyName(PT_uint32);
+	mpcUInt64 = AddClassByPrettyName(PT_uint64);
+	mpcFloat32 = AddClassByPrettyName(PT_float32);
+	mpcFloat64 = AddClassByPrettyName(PT_float64);
+	mpcM2float32 = AddClassByPrettyName(PT_M2float32);
+	mpcM3float32 = AddClassByPrettyName(PT_M3float32);
+	mpcM4float32 = AddClassByPrettyName(PT_M4float32);
+	mpcM2float64 = AddClassByPrettyName(PT_M2float64);
+	mpcM3float64 = AddClassByPrettyName(PT_M3float64);
+	mpcM4float64 = AddClassByPrettyName(PT_M4float64);
+	mpcM2int32 = AddClassByPrettyName(PT_M2int32);
+	mpcM3int32 = AddClassByPrettyName(PT_M3int32);
+	mpcM4int32 = AddClassByPrettyName(PT_M4int32);
+	mpcBool = AddClassByPrettyName(PT_bool);
+	mpcVoid = AddClassByPrettyName(PT_void);
+	mpcChar8 = AddClassByPrettyName(PT_char8);
+	mpcChar16 = AddClassByPrettyName(PT_char16);
+
+	mpcBit = AddClassByPrettyName(PT_bit);
+	mpcCrumb = AddClassByPrettyName(PT_crumb);		
+	mpcTribble = AddClassByPrettyName(PT_tribble);
+	mpcNybble = AddClassByPrettyName(PT_nybble);
+	mpcNickle = AddClassByPrettyName(PT_nickle);
+	mpcSixbits = AddClassByPrettyName(PT_sixbits);
+
+	mpcString = AddClassByCPPName(PT_String);
+	mpcNumber = AddClassByCPPName(PT_Number);
+	mpcDate = AddClassByCPPName(PT_Date);
+	mpcDateTime = AddClassByCPPName(PT_DateTime);
 }
 
 
@@ -60,17 +67,45 @@ void CUnmanagedClasses::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CClass* CUnmanagedClasses::AddClass(EPrimitiveType eType)
+CClass* CUnmanagedClasses::AddClassByPrettyName(EPrimitiveType eType)
 {
-	const char*		pszName;
-	int				iSize;
-	CClass*			pcClass;
+	const char* pszName;
+	int			iSize;
 
 	TypesValidate();
 
 	pszName = gcTypeNames.GetPrettyName(eType);
 	iSize = gcTypeNames.GetByteSize(eType);
-	pcClass = mpcClasses->Add(pszName, iSize, eType);
+	return AddClass(eType, pszName, iSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CClass* CUnmanagedClasses::AddClassByCPPName(EPrimitiveType eType)
+{
+	const char*	pszName;
+	int			iSize;
+
+	TypesValidate();
+
+	pszName = gcTypeNames.GetCPPName(eType);
+	iSize = gcTypeNames.GetByteSize(eType);
+	return AddClass(eType, pszName, iSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CClass* CUnmanagedClasses::AddClass(EPrimitiveType eType, const char* szName, int iSize)
+{
+	CClass*			pcClass;
+
+	pcClass = mpcClasses->Add(szName, iSize, eType);
 	pcClass->System();
 	pcClass->Unmanaged();
 	pcClass->Complete();
@@ -106,6 +141,7 @@ CClass* CUnmanagedClasses::GetWidechar(void) { return mpcChar16; }
 CClass* CUnmanagedClasses::GetString(void) { return mpcString; }
 CClass* CUnmanagedClasses::GetNumber(void) { return mpcNumber; }
 CClass* CUnmanagedClasses::GetDate(void) { return mpcDate; }
+CClass* CUnmanagedClasses::GetDateTime(void) { return mpcDateTime; }
 CClass* CUnmanagedClasses::GetBit(void) { return mpcBit; }
 CClass* CUnmanagedClasses::GetCrumb(void) { return mpcCrumb; }
 CClass* CUnmanagedClasses::GetTribble(void) { return mpcTribble; }

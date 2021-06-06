@@ -211,8 +211,7 @@ void CPointer::PointTo(CEmbeddedObject* pcNewObject, BOOL bKillIfNoRoot)
 {
 	CEmbeddedObject*	pcOldObject;
 
-	//Any pointers with a numerical value less than 16384 cannot be valid assignments.
-	if ((char*)this < (char*)(16 KB))
+	if ((char*)this < CORRUPT_MEMORY)
 	{
 		return;
 	}

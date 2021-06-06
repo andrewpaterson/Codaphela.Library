@@ -21,16 +21,6 @@ CONSTRUCTABLE(CLASS_TYPE); \
 	{ \
 		return pcFile-> READ_FUNC (&mVal); \
 	} \
- \
-	BOOL Save(CFileWriter* pcFile, size_t uiCount) \
-	{ \
-		return SaveMultiple<CLASS_TYPE>(this, pcFile, uiCount); \
-	} \
- \
-	BOOL Load(CFileReader* pcFile, size_t uiCount) \
-	{ \
-		return LoadMultiple<CLASS_TYPE>(this, pcFile, uiCount); \
-	} \
 };
 
 
@@ -64,16 +54,6 @@ CONSTRUCTABLE(SIOVoid);
 	{
 		return TRUE;
 	}
-
-	BOOL Save(CFileWriter* pcFile, size_t uiCount)
-	{
-		return TRUE;
-	}
-
-	BOOL Load(CFileReader* pcFile, size_t uiCount)
-	{
-		return TRUE;
-	}
 };
 
 
@@ -88,16 +68,6 @@ CONSTRUCTABLE(SIOData);
 	BOOL Load(CFileReader* pcFile)
 	{
 		return pcFile->ReadData(this, 1);
-	}
-
-	BOOL Save(CFileWriter* pcFile, size_t uiCount)
-	{
-		return pcFile->WriteData(this, uiCount);
-	}
-
-	BOOL Load(CFileReader* pcFile, size_t uiCount)
-	{
-		return pcFile->ReadData(this, uiCount);
 	}
 };
 

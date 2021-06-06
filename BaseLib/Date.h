@@ -59,6 +59,9 @@ public:
 	BOOL	Equals(CDate* pcRight);
 	BOOL	After(CDate* pcRight);
 	BOOL	Before(CDate* pcRight);
+
+	BOOL 	Save(CFileWriter* pcFile);
+	BOOL 	Load(CFileReader* pcFile);
 };
 
 

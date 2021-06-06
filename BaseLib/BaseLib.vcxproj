@@ -171,6 +171,7 @@
     <ClInclude Include="DataCallback.h" />
     <ClInclude Include="DatasIO.h" />
     <ClInclude Include="DataTypesIO.h" />
+    <ClInclude Include="DateTime.h" />
     <ClInclude Include="Double2.h" />
     <ClInclude Include="Double3.h" />
     <ClInclude Include="Double4.h" />
@@ -407,6 +408,7 @@
     <ClCompile Include="DataOrderers.cpp" />
     <ClCompile Include="DatasIO.cpp" />
     <ClCompile Include="DataTypesIO.cpp" />
+    <ClCompile Include="DateTime.cpp" />
     <ClCompile Include="Double2.cpp" />
     <ClCompile Include="Double3.cpp" />
     <ClCompile Include="Double4.cpp" />
