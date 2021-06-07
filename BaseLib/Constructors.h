@@ -44,11 +44,31 @@ public:
 	void*	Construct(const char* szName, CMallocator* pcMalloc, char(**pacDebugName)[4] = NULL);
 	int		NumConstructors(void);
 
+	BOOL	Contains(const char* szName);
+
 	BOOL	ValidateMemoryInitialised(void);
 
 protected:
 	BOOL	ValidateNotAdded(const char* szClassName);
 };
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+M* StackConstruct(CStackMemory<>* pcStack)
+{
+	M*		pvM;
+	size_t	iSize;
+
+	iSize = sizeof(M);
+	pvM = (M*)pcStack->Init(iSize);
+	memset(pvM, 0, iSize);
+	new(pvM) M();
+	return pvM;
+}
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -110,11 +130,7 @@ M* CConstructors::Add(void)
 	const char*		szClassName;
 	BOOL			bResult;
 
-	iSize = sizeof(M);
-	pvM = (M*)cStack.Init(iSize); 
-	memset(pvM, 0, iSize);
-	new(pvM) M();
-
+	pvM = StackConstruct<M>(&cStack);
 	szClassName = pvM->ClassName();
 	if (!ValidateNotAdded(szClassName))
 	{
@@ -122,6 +138,7 @@ M* CConstructors::Add(void)
 		return NULL;
 	}
 
+	iSize = pvM->ClassSize();
 	bResult = mcConstructors.Put(szClassName, pvM, iSize);
 	if (!bResult)
 	{

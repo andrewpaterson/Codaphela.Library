@@ -2,6 +2,10 @@
 #include "BaseLib/TypeNames.h"
 #include "Array.h"
 #include "Set.h"
+#include "Root.h"
+#include "ArrayObject.h"
+#include "String.h"
+#include "PointerContainer.h"
 #include "Classes.h"
 
 
@@ -9,7 +13,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CClasses::Init(void)
+void CClasses::Init(CObjects* pcObjects)
 {
 	DataIOValidate();
 	TypesValidate();
@@ -49,17 +53,19 @@ void CClasses::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CClasses::AddSystemClasses(void)
 {
-	CClass*		pcClass;
+	CClass*			pcClass;
 
 	pcClass = Add("Pointer", sizeof(CPointer));
 	pcClass->System();
 	pcClass->Complete();
 
-	//CSet<>		cSet;
-	//CArray<>	cArray;
-
-	//cSet.Init();
-	//cArray.Init();
+	AddSystemClassAndConstructor<CSetObject>();
+	AddSystemClassAndConstructor<CSet<>>();
+	AddSystemClassAndConstructor<CArrayObject>();
+	AddSystemClassAndConstructor<CArray<>>();
+	AddSystemClassAndConstructor<CRoot>();
+	AddSystemClassAndConstructor<CString>();
+	AddSystemClassAndConstructor<CPointerContainer>();
 }
 
 

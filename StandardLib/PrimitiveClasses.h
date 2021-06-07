@@ -1,5 +1,6 @@
 #ifndef __PRIMITIVE_CLASSES_H__
 #define __PRIMITIVE_CLASSES_H__
+#include "BaseLib/GlobalMemory.h"
 #include "Class.h"
 
 
@@ -47,7 +48,10 @@ public:
 protected:
 	template<class Class>
 	CClass*		AddClass(EPrimitiveType eFieldType);
+	template<class Class>
+	CClass*		AddClassWithConstructorAndIO(EPrimitiveType eFieldType);
 	CClass*		AddClass(const char* szClassName, size_t uiClassSize, EPrimitiveType eFieldType, uint32 eFieldOffest);
+	CClass*		AddVoid(void);
 };
 
 
@@ -64,6 +68,26 @@ CClass* CPrimitiveClasses::AddClass(EPrimitiveType eFieldType)
 
 	uiOffset = (char*)(&cInstance.mVal) - (char*)(&cInstance);
 	pcClass = AddClass(cInstance.ClassName(), cInstance.ClassSize(), eFieldType, uiOffset);
+
+	return pcClass;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class Class>
+CClass* CPrimitiveClasses::AddClassWithConstructorAndIO(EPrimitiveType eFieldType)
+{
+	Class			c;
+	const char*		szClassName;
+	CClass*			pcClass;
+
+	szClassName = c.ClassName();
+	pcClass = AddClass<Class>(eFieldType);
+
+	mpcClasses->AddConstructorAndIO<Class>();
 
 	return pcClass;
 }

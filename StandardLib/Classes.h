@@ -12,6 +12,7 @@ typedef CMapStringTemplate<CClass*> CMapClassesByName;
 typedef CMapIntTemplate<CClass*>	CMapClassesByType;
 
 
+class CObjects;
 class CClasses
 {
 protected:
@@ -27,7 +28,7 @@ protected:
 	CClass*				mpcPointer;
 
 public:
-	void				Init(void);
+	void				Init(CObjects* pcObjects);
 	void				Kill(void);
 	void				AddSystemClasses(void);
 
@@ -49,10 +50,72 @@ public:
 	CPrimitiveClasses*	GetPrimitiveClasses(void);
 
 	void				ValidateType(EPrimitiveType eType);
+	template<class Class>
+	void				AddConstructorAndIO(void);
+	template<class Class>
+	void				AddSystemClassAndConstructor(void);
 
 protected:
-	uint32		GetNextClassType(void);
+	uint32				GetNextClassType(void);
 };
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class Class>
+void CClasses::AddConstructorAndIO(void)
+{			
+	const char*		szClassName;
+	SDataIO*		psIO;
+	BOOL			bConstructor;
+	CStackMemory<>	cStack;
+	Class*			pcClass;
+
+	pcClass = StackConstruct<Class>(&cStack);
+	szClassName = pcClass->ClassName();
+	cStack.Kill();
+
+	psIO = gcDataTypesIO.GetIO(szClassName);
+	if (!psIO)
+	{
+		gcDataTypesIO.Add<Class>();
+	}
+
+	bConstructor = gcConstructors.Contains(szClassName);
+	if (!bConstructor)
+	{
+		gcConstructors.Add<Class>();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class Class>
+void CClasses::AddSystemClassAndConstructor(void)
+{
+	BOOL			bConstructor;
+	Class*			pvM;
+	CClass*			pcClass;
+	CStackMemory<>	cStack;
+	const char*		szClassName;
+
+	pvM = StackConstruct<Class>(&cStack);
+	szClassName = pvM->ClassName();
+	pcClass = pvM->CBaseObject::Class(this);
+	pcClass->System();
+	cStack.Kill();
+
+	bConstructor = gcConstructors.Contains(szClassName);
+	if (!bConstructor)
+	{
+		gcConstructors.Add<Class>();
+	}
+}
 
 
 #endif // __CLASSES_H__

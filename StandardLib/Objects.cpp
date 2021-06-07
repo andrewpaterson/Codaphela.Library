@@ -129,7 +129,7 @@ void CObjects::Init(CUnknowns* pcUnknownsAllocatingFrom, CStackPointers* pcStack
 
 	mcMemory.Init();
 	mcSource.Init();
-	mcClasses.Init();
+	mcClasses.Init(this);
 
 	mbInitialised = TRUE;
 }
