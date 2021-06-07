@@ -108,3 +108,18 @@ BOOL CConstructors::ValidateNotAdded(const char* szClassName)
 	}
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CConstructors::Contains(const char* szName)
+{
+	void*	pcConstructor;
+	int		iSize;
+
+	pcConstructor = mcConstructors.Get(szName, &iSize);
+	return pcConstructor != NULL;
+}
+
+

@@ -84,29 +84,40 @@ void CBaseObject::Allocate(CObjects* pcObjects)
 void CBaseObject::PreClass(void)
 {
 	CClasses*		pcClasses;
-	CClass*			pcClass;
-	const char*		szClassName;
 
-	szClassName = ClassName();
 	if (!HasClass())
 	{
 		SetFlag(OBJECT_FLAGS_CALLED_CLASS, TRUE);
 
 		pcClasses = GetClasses();
-		pcClass = pcClasses->Get(szClassName);
-		if (!pcClass)
-		{
-			pcClass = pcClasses->Add(szClassName, ClassSize());
-		}
-		SetClass(pcClass);
-		if (!pcClass->IsComplete())
-		{
-			Class();
-			pcClass->Complete();
-		}
-
+		Class(pcClasses);
 		EmbedFields();
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CClass* CBaseObject::Class(CClasses* pcClasses)
+{
+	CClass*		pcClass;
+	const char* szClassName;
+
+	szClassName = ClassName();
+	pcClass = pcClasses->Get(szClassName);
+	if (!pcClass)
+	{
+		pcClass = pcClasses->Add(szClassName, ClassSize());
+	}
+	SetClass(pcClass);
+	if (!pcClass->IsComplete())
+	{
+		Class();
+		pcClass->Complete();
+	}
+	return pcClass;
 }
 
 

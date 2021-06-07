@@ -15,38 +15,32 @@
 void CPrimitiveClasses::Init(CClasses* pcClasses)
 {
 	mpcClasses = pcClasses;
-
-	gcDataTypesIO.Add<Int8>();
-	gcDataTypesIO.Add<Int16>();
-	gcDataTypesIO.Add<Int32>();
-	gcDataTypesIO.Add<Int64>();
-	gcDataTypesIO.Add<UInt8>();
-	gcDataTypesIO.Add<UInt16>();
-	gcDataTypesIO.Add<UInt32>();
-	gcDataTypesIO.Add<UInt64>();
-	gcDataTypesIO.Add<Char8>();
-	gcDataTypesIO.Add<Char16>();
-	gcDataTypesIO.Add<Bool>();
-	gcDataTypesIO.Add<Float32>();
-	gcDataTypesIO.Add<Float64>();
-	gcDataTypesIO.Add<Void>();
 	
-	mpcInt8 = AddClass<Int8>(PT_int8);
-	mpcInt16 = AddClass<Int16>(PT_int16);
-	mpcInt32 = AddClass<Int32>(PT_int32);
-	mpcInt64 = AddClass<Int64>(PT_int64);
-	mpcUInt8 = AddClass<UInt8>(PT_uint8);
-	mpcUInt16 = AddClass<UInt16>(PT_uint16);
-	mpcUInt32 = AddClass<UInt32>(PT_uint32);
-	mpcUInt64 = AddClass<UInt64>(PT_uint64);
-	mpcFloat32 = AddClass<Char8>(PT_char8);
-	mpcFloat64 = AddClass<Char16>(PT_char16);
-	mpcBool = AddClass<Bool>(PT_bool);
-	mpcChar8 = AddClass<Float32>(PT_float32);
-	mpcChar16 = AddClass<Float64>(PT_float64);
+	mpcInt8 = AddClassWithConstructorAndIO<Int8>(PT_int8);
+	mpcInt16 = AddClassWithConstructorAndIO<Int16>(PT_int16);
+	mpcInt32 = AddClassWithConstructorAndIO<Int32>(PT_int32);
+	mpcInt64 = AddClassWithConstructorAndIO<Int64>(PT_int64);
+	mpcUInt8 = AddClassWithConstructorAndIO<UInt8>(PT_uint8);
+	mpcUInt16 = AddClassWithConstructorAndIO<UInt16>(PT_uint16);
+	mpcUInt32 = AddClassWithConstructorAndIO<UInt32>(PT_uint32);
+	mpcUInt64 = AddClassWithConstructorAndIO<UInt64>(PT_uint64);
+	mpcFloat32 = AddClassWithConstructorAndIO<Char8>(PT_char8);
+	mpcFloat64 = AddClassWithConstructorAndIO<Char16>(PT_char16);
+	mpcBool = AddClassWithConstructorAndIO<Bool>(PT_bool);
+	mpcChar8 = AddClassWithConstructorAndIO<Float32>(PT_float32);
+	mpcChar16 = AddClassWithConstructorAndIO<Float64>(PT_float64);
 
-	Void	cVoid;
-	mpcVoid = AddClass(cVoid.ClassName(), cVoid.ClassSize(), PT_void, sizeof(CPrimitiveObject));
+	mpcVoid = AddVoid();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CPrimitiveClasses::Kill(void)
+{
+	mpcClasses = NULL;
 }
 
 
@@ -76,12 +70,26 @@ CClass* CPrimitiveClasses::AddClass(const char* szClassName, size_t uiClassSize,
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPrimitiveClasses::Kill(void)
+CClass* CPrimitiveClasses::AddVoid(void)
 {
-	mpcClasses = NULL;
+	Void	cVoid;
+	CClass* pcClass;
+
+	pcClass = mpcClasses->Add(cVoid.ClassName(), cVoid.ClassSize());
+	pcClass->Primitive();
+	pcClass->System();
+	pcClass->Complete();
+
+	mpcClasses->AddConstructorAndIO<Void>();
+
+	return pcClass;
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 CClass* CPrimitiveClasses::GetByte(void) { return mpcInt8; }
 CClass* CPrimitiveClasses::GetShort(void) { return mpcInt16; }
 CClass* CPrimitiveClasses::GetInt(void) { return mpcInt32; }
