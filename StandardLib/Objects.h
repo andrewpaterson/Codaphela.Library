@@ -380,7 +380,13 @@ Ptr<SpecificClass> CObjects::Get(char* szObjectName)
 template<class SpecificClass>
 void CObjects::AddConstructor(void)
 {
-	mpcUnknownsAllocatingFrom->AddConstructor<SpecificClass>();
+	SpecificClass*	pcClass;
+
+	pcClass = mpcUnknownsAllocatingFrom->GetConstructor<SpecificClass>();
+	if (!pcClass)
+	{
+		mpcUnknownsAllocatingFrom->AddConstructor<SpecificClass>();
+	}
 }
 
 

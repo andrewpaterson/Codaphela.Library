@@ -56,7 +56,7 @@ public:
 
 
 	template<class M>	void			AddConstructor(void);
-
+	template<class M>	M*				GetConstructor(void);
 						BOOL			LoadUnknown(CFileReader* pcFile, CUnknown** ppcUnknown);
 						BOOL			SaveUnknown(CFileWriter* pcFile, CUnknown* pcUnknown);
 
@@ -183,6 +183,25 @@ void CUnknowns::AddConstructor(void)
 	else
 	{
 		gcLogger.Error2(__METHOD__, " Constructors for Unknowns is NULL.", NULL);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+M* CUnknowns::GetConstructor(void)
+{
+	if (mpcConstructors)
+	{
+		return mpcConstructors->Get<M>();
+	}
+	else
+	{
+		gcLogger.Error2(__METHOD__, " Constructors for Unknowns is NULL.", NULL);
+		return NULL;
 	}
 }
 
