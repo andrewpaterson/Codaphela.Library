@@ -31,25 +31,24 @@ protected:
 	CMapStringBlock		mcConstructors;
 
 public:
-	void	Init(void);
-	void	Kill(void);
+						void	Init(void);
+						void	Kill(void);
 
-	template<class M>
-	M*		Add(char* szClassName);
-	template<class M>
-	M*		Add(const char* szClassName);
-	template<class M>
-	M*		Add(void);
+	template<class M>	M*		Add(char* szClassName);
+	template<class M>	M*		Add(const char* szClassName);
+	template<class M>	M*		Add(void);
 
-	void*	Construct(const char* szName, CMallocator* pcMalloc, char(**pacDebugName)[4] = NULL);
-	int		NumConstructors(void);
+	template<class M>	M*		Get(void);
 
-	BOOL	Contains(const char* szName);
+						void*	Construct(const char* szName, CMallocator* pcMalloc, char(**pacDebugName)[4] = NULL);
+						int		NumConstructors(void);
 
-	BOOL	ValidateMemoryInitialised(void);
+						BOOL	Contains(const char* szName);
+
+						BOOL	ValidateMemoryInitialised(void);
 
 protected:
-	BOOL	ValidateNotAdded(const char* szClassName);
+						BOOL	ValidateNotAdded(const char* szClassName);
 };
 
 
@@ -148,6 +147,31 @@ M* CConstructors::Add(void)
 	pvM = (M*)mcConstructors.Get(szClassName);
 	cStack.Kill(); 
 	return pvM;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+M* CConstructors::Get(void)
+{
+	M*				pvM;
+	CStackMemory<>	cStack;
+	const char*		szClassName;
+
+	pvM = StackConstruct<M>(&cStack);
+	szClassName = pvM->ClassName();
+	pvM = (M*)mcConstructors.Get(szClassName);
+	if (pvM)
+	{
+		if (strcmp(pvM->ClassName(), szClassName) == 0)
+		{
+			return pvM;
+		}
+	}
+	return NULL;
 }
 
 

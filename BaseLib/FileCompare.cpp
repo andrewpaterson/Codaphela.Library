@@ -197,7 +197,7 @@ BOOL CFileCompare::Compare(const char* szName1, const char* szName2, CChars* psz
 		{
 			if (iCount == 0)
 			{
-				ErrorNames(szName1, "Memory", psz1, psz2);
+				ErrorNames(szName1, szName2, psz1, psz2);
 			}
 
 			if (iCount < 16)
