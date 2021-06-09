@@ -354,9 +354,6 @@
     <ClInclude Include="DependentReadObject.h">
       <Filter>Source\Object\Object\Serilalisation\Graph</Filter>
     </ClInclude>
-    <ClInclude Include="DependentReadObjects.h">
-      <Filter>Source\Object\Object\Serilalisation\Graph</Filter>
-    </ClInclude>
     <ClInclude Include="DependentReadPointer.h">
       <Filter>Source\Object\Object\Serilalisation\Graph</Filter>
     </ClInclude>
@@ -679,9 +676,6 @@
       <Filter>Source\Object\Object\IO\File</Filter>
     </ClCompile>
     <ClCompile Include="DependentReadObject.cpp">
-      <Filter>Source\Object\Object\Serilalisation\Graph</Filter>
-    </ClCompile>
-    <ClCompile Include="DependentReadObjects.cpp">
       <Filter>Source\Object\Object\Serilalisation\Graph</Filter>
     </ClCompile>
     <ClCompile Include="DependentReadPointer.cpp">

@@ -9,9 +9,9 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CExternalObjectDeserialiser::Init(CObjectReader* pcReader, BOOL bNamedHollows, CObjects* pcObjects, CDependentReadObjects* pcDependentReadObjects, CNamedIndexedObjects* pcMemory)
+void CExternalObjectDeserialiser::Init(CObjectReader* pcReader, BOOL bNamedHollows, CObjects* pcObjects, CNamedIndexedObjects* pcMemory)
 {
-	CDependentObjectAdder::Init(pcDependentReadObjects);
+	CDependentObjectAdder::Init();
 	mpcReader = pcReader;
 	mpcObjects = pcObjects;
 	mpcMemory = pcMemory;
@@ -27,7 +27,6 @@ void CExternalObjectDeserialiser::Kill(void)
 {
 	mpcObjects = NULL;
 	mpcMemory = NULL;
-	mpcDependentObjects = NULL;
 	CDependentObjectAdder::Kill();
 }
 
@@ -88,7 +87,7 @@ BOOL CExternalObjectDeserialiser::ReadDependentObjects(void)
 
 	for (;;)
 	{
-		pcDependent = mpcDependentObjects->GetUnread();
+		pcDependent = GetUnread();
 		if (pcDependent)
 		{
 			if (mbNamedHollows)
@@ -191,7 +190,7 @@ CBaseObject* CExternalObjectDeserialiser::ReadSerialsed(CSerialisedObject* pcSer
 		MarkRead(oiOld);
 
 		oiNew = pvObject->GetIndex();
-		mpcDependentObjects->AddIndexRemap(oiNew, oiOld);
+		AddIndexRemap(oiNew, oiOld);
 	}
 
 	return pvObject;
@@ -204,7 +203,7 @@ CBaseObject* CExternalObjectDeserialiser::ReadSerialsed(CSerialisedObject* pcSer
 //////////////////////////////////////////////////////////////////////////
 void CExternalObjectDeserialiser::MarkRead(OIndex oi)
 {
-	mpcDependentObjects->Mark(oi);
+	Mark(oi);
 }
 
 
@@ -218,10 +217,10 @@ BOOL CExternalObjectDeserialiser::AddContainingPointersAndCreateHollowObjects(vo
 	int						i;
 	int						iNum;
 
-	iNum = mpcDependentObjects->NumPointers();
+	iNum = NumPointers();
 	for (i = 0; i < iNum; i++)
 	{
-		pcDependentReadPointer = mpcDependentObjects->GetPointer(i);
+		pcDependentReadPointer = GetPointer(i);
 		if (!AddContainingPointersAndCreateHollowObject(pcDependentReadPointer))
 		{
 			return FALSE;
@@ -247,11 +246,11 @@ BOOL CExternalObjectDeserialiser::AddContainingPointersAndCreateHollowObject(CDe
 
 	if (!pcBaseObject)
 	{
-		pcDependentReadObject = mpcDependentObjects->GetObject(pcDependentReadPointer->moiPointedTo);
+		pcDependentReadObject = GetObject(pcDependentReadPointer->moiPointedTo);
 		if (pcDependentReadObject->mcType == OBJECT_POINTER_NAMED)
 		{
 			pvObject = mpcObjects->AllocateExistingHollowFromMemoryOrMaybeANewNamedHollow(pcDependentReadObject->mszObjectName.Text(), pcDependentReadPointer->miNumEmbedded);
-			mpcDependentObjects->AddIndexRemap(pvObject->GetIndex(), pcDependentReadPointer->moiPointedTo);
+			AddIndexRemap(pvObject->GetIndex(), pcDependentReadPointer->moiPointedTo);
 			pcBaseObject = pvObject;
 		}
 		else if (pcDependentReadObject->mcType == OBJECT_POINTER_ID)
@@ -262,16 +261,6 @@ BOOL CExternalObjectDeserialiser::AddContainingPointersAndCreateHollowObject(CDe
 
 	AddHeapFrom(pcBaseObject, pcDependentReadPointer->mppcPointedFrom, pcDependentReadPointer->mpcContaining);
 	return TRUE;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-OIndex CExternalObjectDeserialiser::GetNewIndexFromOld(OIndex oiOld)
-{
-	return mpcDependentObjects->GetNewIndexFromOld(oiOld);
 }
 
 

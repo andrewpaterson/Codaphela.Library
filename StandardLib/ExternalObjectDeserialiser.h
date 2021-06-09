@@ -3,7 +3,6 @@
 #include "BaseObject.h"
 #include "ObjectReader.h"
 #include "Pointer.h"
-#include "DependentReadObjects.h"
 #include "DependentObjectAdder.h"
 #include "NamedIndexedObjects.h"
 
@@ -25,15 +24,13 @@ protected:
 	BOOL					mbNamedHollows;
 	
 public:
-	void			Init(CObjectReader* pcReader, BOOL bNamedHollows, CObjects* pcObjects, CDependentReadObjects* pcDependentReadObjects, CNamedIndexedObjects* pcMemory);
+	void			Init(CObjectReader* pcReader, BOOL bNamedHollows, CObjects* pcObjects, CNamedIndexedObjects* pcMemory);
 	void			Kill(void);
 
 	CBaseObject*	Read(char* szObjectName);
 			 
 	//Used by CObjectDeserialiser
 	CBaseObject*	AllocateForDeserialisation(CObjectHeader* pcHeader);
-
-	OIndex			GetNewIndexFromOld(OIndex oiNew);
 
 protected:
 	CBaseObject*	ReadSerialsed(CSerialisedObject* pcSerialised);

@@ -22,7 +22,6 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __INTERNAL_OBJECT_DESERIALISER__
 #include "CoreLib/DataConnection.h"
 #include "DependentObjectAdder.h"
-#include "DependentReadObjects.h"
 
 
 //The Interal Object Deserialiser only deserialises objects out of the CObjects database.
@@ -36,8 +35,6 @@ protected:
 	CDataConnection*		mpcDataConnection;
 	CNamedIndexedObjects*	mpcMemory;
 	CObjects*				mpcObjects;
-
-	CDependentReadObjects	mcDependentObjects;  //CDependentObjectAdder points to this CDependentReadObjects.
 
 public:
 	void			Init(CObjects* pcObjects, CDataConnection* pcDataConnection, CNamedIndexedObjects* pcMemory);
