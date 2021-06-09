@@ -1,12 +1,12 @@
 #include "ObjectFileGeneral.h"
-#include "DependentObjectAdder.h"
+#include "DependentReadObjects.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDependentObjectAdder::Init(void)
+void CDependentReadObjects::Init(void)
 {
 	mcReadObjects.Init();
 	mcPointers.Init();
@@ -19,7 +19,7 @@ void CDependentObjectAdder::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDependentObjectAdder::Kill(void)
+void CDependentReadObjects::Kill(void)
 {
 	int						i;
 	CDependentReadObject* pcDependent;
@@ -40,7 +40,7 @@ void CDependentObjectAdder::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDependentObjectAdder::AddHeapFrom(CEmbeddedObject* pcBaseObject, CEmbeddedObject** ppcPointedFrom, CBaseObject* pcContaining)
+void CDependentReadObjects::AddHeapFrom(CEmbeddedObject* pcBaseObject, CEmbeddedObject** ppcPointedFrom, CBaseObject* pcContaining)
 {
 	*ppcPointedFrom = pcBaseObject;
 
@@ -55,7 +55,7 @@ void CDependentObjectAdder::AddHeapFrom(CEmbeddedObject* pcBaseObject, CEmbedded
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CDependentObjectAdder::AddDependent(CObjectIdentifier* pcHeader, CEmbeddedObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingPtrToBeUpdated, uint16 iNumEmbedded, uint16 iEmbeddedIndex)
+BOOL CDependentReadObjects::AddDependent(CObjectIdentifier* pcHeader, CEmbeddedObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingPtrToBeUpdated, uint16 iNumEmbedded, uint16 iEmbeddedIndex)
 {
 	CDependentReadObject	cDependent;
 	CDependentReadObject* pcExistingInFile;
@@ -103,7 +103,7 @@ BOOL CDependentObjectAdder::AddDependent(CObjectIdentifier* pcHeader, CEmbeddedO
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CDependentReadObject* CDependentObjectAdder::GetUnread(void)
+CDependentReadObject* CDependentReadObjects::GetUnread(void)
 {
 	int						iOldIndex;
 	CDependentReadObject* psObject;
@@ -143,7 +143,7 @@ CDependentReadObject* CDependentObjectAdder::GetUnread(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CDependentObjectAdder::Mark(OIndex oi)
+BOOL CDependentReadObjects::Mark(OIndex oi)
 {
 	CDependentReadObject* pcDependent;
 
@@ -162,7 +162,7 @@ BOOL CDependentObjectAdder::Mark(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CDependentReadObject* CDependentObjectAdder::GetObject(OIndex oi)
+CDependentReadObject* CDependentReadObjects::GetObject(OIndex oi)
 {
 	CDependentReadObject	cObject;
 	int						iIndex;
@@ -185,7 +185,7 @@ CDependentReadObject* CDependentObjectAdder::GetObject(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CDependentObjectAdder::NumPointers(void)
+int CDependentReadObjects::NumPointers(void)
 {
 	return mcPointers.NumElements();
 }
@@ -195,7 +195,7 @@ int CDependentObjectAdder::NumPointers(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CDependentReadPointer* CDependentObjectAdder::GetPointer(int iIndex)
+CDependentReadPointer* CDependentReadObjects::GetPointer(int iIndex)
 {
 	return mcPointers.Get(iIndex);
 }
@@ -205,7 +205,7 @@ CDependentReadPointer* CDependentObjectAdder::GetPointer(int iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CDependentObjectAdder::NumObjects(void)
+int CDependentReadObjects::NumObjects(void)
 {
 	return mcReadObjects.NumElements();
 }
@@ -215,7 +215,7 @@ int CDependentObjectAdder::NumObjects(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-OIndex CDependentObjectAdder::GetNewIndexFromOld(OIndex oiOld)
+OIndex CDependentReadObjects::GetNewIndexFromOld(OIndex oiOld)
 {
 	int				i;
 	CIndexNewOld*	pcRemap;
@@ -236,7 +236,7 @@ OIndex CDependentObjectAdder::GetNewIndexFromOld(OIndex oiOld)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDependentObjectAdder::AddIndexRemap(OIndex oiNew, OIndex oiOld)
+void CDependentReadObjects::AddIndexRemap(OIndex oiNew, OIndex oiOld)
 {
 	CIndexNewOld* pcNewOld;
 
@@ -249,7 +249,7 @@ void CDependentObjectAdder::AddIndexRemap(OIndex oiNew, OIndex oiOld)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CArrayIndexNewOld* CDependentObjectAdder::GetArrayIndexNewOld(void)
+CArrayIndexNewOld* CDependentReadObjects::GetArrayIndexNewOld(void)
 {
 	return &mcIndexRemap;
 }

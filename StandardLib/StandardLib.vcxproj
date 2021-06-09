@@ -93,7 +93,7 @@
     <ClInclude Include="Classes.h" />
     <ClInclude Include="PrimitiveClasses.h" />
     <ClInclude Include="UnmanagedClasses.h" />
-    <ClInclude Include="DependentObjectAdder.h" />
+    <ClInclude Include="DependentReadObjects.h" />
     <ClInclude Include="DependentReadObject.h" />
     <ClInclude Include="DependentReadPointer.h" />
     <ClInclude Include="DependentWriteObject.h" />
@@ -207,7 +207,7 @@
     <ClCompile Include="Classes.cpp" />
     <ClCompile Include="PrimitiveClasses.cpp" />
     <ClCompile Include="UnmanagedClasses.cpp" />
-    <ClCompile Include="DependentObjectAdder.cpp" />
+    <ClCompile Include="DependentReadObjects.cpp" />
     <ClCompile Include="DependentReadObject.cpp" />
     <ClCompile Include="DependentReadPointer.cpp" />
     <ClCompile Include="DependentWriteObject.cpp" />

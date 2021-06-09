@@ -11,7 +11,7 @@
 //////////////////////////////////////////////////////////////////////////
 void CExternalObjectDeserialiser::Init(CObjectReader* pcReader, BOOL bNamedHollows, CObjects* pcObjects, CNamedIndexedObjects* pcMemory)
 {
-	CDependentObjectAdder::Init();
+	CDependentReadObjects::Init();
 	mpcReader = pcReader;
 	mpcObjects = pcObjects;
 	mpcMemory = pcMemory;
@@ -27,7 +27,7 @@ void CExternalObjectDeserialiser::Kill(void)
 {
 	mpcObjects = NULL;
 	mpcMemory = NULL;
-	CDependentObjectAdder::Kill();
+	CDependentReadObjects::Kill();
 }
 
 
