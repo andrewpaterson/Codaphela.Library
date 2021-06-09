@@ -1,5 +1,5 @@
-#ifndef __DEPENDENT_OBJECT_ADDER_H__
-#define __DEPENDENT_OBJECT_ADDER_H__
+#ifndef __DEPENDENT_READ_OBJECTS_H__
+#define __DEPENDENT_READ_OBJECTS_H__
 #include "BaseLib/Log.h"
 #include "ObjectHeader.h"
 #include "BaseObject.h"
@@ -11,7 +11,7 @@
 #include "DependentReadPointer.h"
 
 
-class CDependentObjectAdder
+class CDependentReadObjects
 {
 protected:
 	CArrayDependentReadObject	mcReadObjects;
@@ -45,5 +45,5 @@ protected:
 };
 
 
-#endif // __DEPENDENT_OBJECT_ADDER_H__
+#endif // __DEPENDENT_READ_OBJECTS_H__
 

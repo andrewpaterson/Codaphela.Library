@@ -31,7 +31,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectDeserialiser::Init(CDependentObjectAdder* pcDependents)
+BOOL CObjectDeserialiser::Init(CDependentReadObjects* pcDependents)
 {
 	mpcDependents = pcDependents;
 

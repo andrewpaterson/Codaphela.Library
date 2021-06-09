@@ -14,7 +14,7 @@
 //////////////////////////////////////////////////////////////////////////
 void CInternalObjectDeserialiser::Init(CObjects* pcObjects, CDataConnection* pcDataConnection, CNamedIndexedObjects* pcMemory)
 {
-	CDependentObjectAdder::Init();
+	CDependentReadObjects::Init();
 	mpcObjects = pcObjects;
 	mpcDataConnection = pcDataConnection;
 	mpcMemory = pcMemory;
@@ -30,7 +30,7 @@ void CInternalObjectDeserialiser::Kill(void)
 	mpcDataConnection = NULL;
 	mpcMemory = NULL;
 	mpcObjects = NULL;
-	CDependentObjectAdder::Kill();
+	CDependentReadObjects::Kill();
 }
 
 

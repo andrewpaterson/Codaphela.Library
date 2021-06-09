@@ -24,7 +24,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/MemoryFile.h"
 #include "IndexNewOld.h"
 #include "SerialisedObject.h"
-#include "DependentObjectAdder.h"
+#include "DependentReadObjects.h"
 #include "Pointer.h"
 
 
@@ -33,11 +33,11 @@ class CObjectIdentifier;
 class CObjectDeserialiser : public CFileReader
 {
 protected:
-	CDependentObjectAdder*	mpcDependents;
+	CDependentReadObjects*	mpcDependents;
 	CFileBasic				mcFile;
 	
 public:
-	BOOL			Init(CDependentObjectAdder* pcDependents);
+	BOOL			Init(CDependentReadObjects* pcDependents);
 	void			Kill(void);
 	CBaseObject*	Load(CSerialisedObject* pcSerialised);
 

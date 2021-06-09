@@ -3,7 +3,7 @@
 #include "BaseObject.h"
 #include "ObjectReader.h"
 #include "Pointer.h"
-#include "DependentObjectAdder.h"
+#include "DependentReadObjects.h"
 #include "NamedIndexedObjects.h"
 
 
@@ -14,7 +14,7 @@
 
 
 class CIndexGenerator;
-class CExternalObjectDeserialiser : public CDependentObjectAdder
+class CExternalObjectDeserialiser : public CDependentReadObjects
 {
 protected:
 	CObjectReader*			mpcReader;  //The ObjectReader knows how to load the serialised form of the object by name.

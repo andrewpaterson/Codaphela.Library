@@ -369,7 +369,7 @@
     <ClInclude Include="Null.h">
       <Filter>Source\Object\Object</Filter>
     </ClInclude>
-    <ClInclude Include="DependentObjectAdder.h">
+    <ClInclude Include="DependentReadObjects.h">
       <Filter>Source\Object\Object\Serilalisation</Filter>
     </ClInclude>
     <ClInclude Include="ArrayObject.h">
@@ -690,7 +690,7 @@
     <ClCompile Include="Null.cpp">
       <Filter>Source\Object\Object\Source</Filter>
     </ClCompile>
-    <ClCompile Include="DependentObjectAdder.cpp">
+    <ClCompile Include="DependentReadObjects.cpp">
       <Filter>Source\Object\Object\Serilalisation</Filter>
     </ClCompile>
     <ClCompile Include="ArrayObject.cpp">

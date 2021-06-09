@@ -21,7 +21,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __INTERNAL_OBJECT_DESERIALISER__
 #define __INTERNAL_OBJECT_DESERIALISER__
 #include "CoreLib/DataConnection.h"
-#include "DependentObjectAdder.h"
+#include "DependentReadObjects.h"
 
 
 //The Interal Object Deserialiser only deserialises objects out of the CObjects database.
@@ -29,7 +29,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //  The name in the header is assumed to match the database name key.
 
 
-class CInternalObjectDeserialiser : public CDependentObjectAdder
+class CInternalObjectDeserialiser : public CDependentReadObjects
 {
 protected:
 	CDataConnection*		mpcDataConnection;
