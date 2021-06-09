@@ -302,11 +302,18 @@ BOOL CBaseObject::Flush(void)
 	bCanFindRoot = GetDistToRoot() != UNATTACHED_DIST_TO_ROOT;
 	bDirty = IsDirty();
 
-	if (bDirty && bCanFindRoot)
+	if (bDirty)
 	{
-		bResult = GetObjectsThisIn()->ForceSave(this);
-		SetDirty(FALSE);
-		return bResult;
+		if (bCanFindRoot)
+		{
+			bResult = GetObjectsThisIn()->ForceSave(this);
+			SetDirty(FALSE);
+			return bResult;
+		}
+		else
+		{
+			return FALSE;
+		}
 	}
 	return TRUE;
 }
