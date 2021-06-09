@@ -15,7 +15,7 @@
 //////////////////////////////////////////////////////////////////////////
 void CObjectConverterNative::Init(void)
 {
-	mcDependentObjects.Init();
+	mcIndexRemap.Init();
 }
 
 
@@ -25,7 +25,7 @@ void CObjectConverterNative::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CObjectConverterNative::Kill(void)
 {
-	mcDependentObjects.Kill();
+	mcIndexRemap.Kill();
 	CObjectConverter::Kill();
 }
 
@@ -122,11 +122,11 @@ CBaseObject* CObjectConverterNative::Convert(CObjectSource* pcSource, char* szOb
 		return NULL;
 	}
 
-	mcDependentObjects.Kill();
-	mcDependentObjects.Init();
-
-	cGraphDeserialiser.Init(pcReader, TRUE, &gcObjects, &mcDependentObjects, gcObjects.GetMemory());
+	cGraphDeserialiser.Init(pcReader, TRUE, &gcObjects, gcObjects.GetMemory());
 	pvObject = cGraphDeserialiser.Read(szObjectName);
+
+	mcIndexRemap.InsertArrayAfterEnd(cGraphDeserialiser.GetArrayIndexNewOld());
+
 	cGraphDeserialiser.Kill();
 
 	return pvObject;
@@ -149,5 +149,17 @@ BOOL CObjectConverterNative::IsNative(void)
 //////////////////////////////////////////////////////////////////////////
 OIndex CObjectConverterNative::TestGetNewIndexFromOld(OIndex oiOld)
 {
-	return mcDependentObjects.GetNewIndexFromOld(oiOld);
+	int				i;
+	CIndexNewOld* pcRemap;
+
+	for (i = 0; i < mcIndexRemap.NumElements(); i++)
+	{
+		pcRemap = mcIndexRemap.Get(i);
+		if (pcRemap->moiOld == oiOld)
+		{
+			return pcRemap->moiNew;
+		}
+	}
+	return INVALID_O_INDEX;
 }
+

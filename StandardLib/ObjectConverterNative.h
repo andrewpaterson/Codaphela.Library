@@ -3,8 +3,8 @@
 #include "ObjectConverter.h"
 #include "ObjectSourceChunked.h"
 #include "ObjectSourceSimple.h"
-#include "DependentReadObjects.h"
 #include "ObjectReader.h"
+#include "IndexNewOld.h"
 
 
 class CIndexGenerator;
@@ -12,9 +12,10 @@ class CObjectSource;
 class CObjectConverterNative : public CObjectConverter
 {
 CONSTRUCTABLE(CObjectConverterNative);
-public:
-	CDependentReadObjects	mcDependentObjects;  //This is a field for testing purposes only.
+protected:
+	CArrayIndexNewOld			mcIndexRemap;  //For testing.
 
+public:
 	void			Init(void);
 	void			Kill(void);
 

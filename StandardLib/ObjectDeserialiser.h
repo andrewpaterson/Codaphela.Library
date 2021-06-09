@@ -33,9 +33,8 @@ class CObjectIdentifier;
 class CObjectDeserialiser : public CFileReader
 {
 protected:
-	CDependentObjectAdder*		mpcDependents;
-
-	CFileBasic					mcFile;
+	CDependentObjectAdder*	mpcDependents;
+	CFileBasic				mcFile;
 	
 public:
 	BOOL			Init(CDependentObjectAdder* pcDependents);

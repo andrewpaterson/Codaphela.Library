@@ -14,12 +14,10 @@
 //////////////////////////////////////////////////////////////////////////
 void CInternalObjectDeserialiser::Init(CObjects* pcObjects, CDataConnection* pcDataConnection, CNamedIndexedObjects* pcMemory)
 {
-	CDependentObjectAdder::Init(&mcDependentObjects);
+	CDependentObjectAdder::Init();
 	mpcObjects = pcObjects;
 	mpcDataConnection = pcDataConnection;
 	mpcMemory = pcMemory;
-
-	mcDependentObjects.Init();
 }
 
 
@@ -32,7 +30,6 @@ void CInternalObjectDeserialiser::Kill(void)
 	mpcDataConnection = NULL;
 	mpcMemory = NULL;
 	mpcObjects = NULL;
-	mcDependentObjects.Kill();
 	CDependentObjectAdder::Kill();
 }
 
@@ -144,10 +141,10 @@ BOOL CInternalObjectDeserialiser::AddContainingPointersAndCreateHollowObjects(vo
 	int						i;
 	int						iNum;
 
-	iNum = mpcDependentObjects->NumPointers();
+	iNum = NumPointers();
 	for (i = 0; i < iNum; i++)
 	{
-		pcDependentReadPointer = mpcDependentObjects->GetPointer(i);
+		pcDependentReadPointer = GetPointer(i);
 		if (!AddContainingPointersAndCreateHollowObject(pcDependentReadPointer))
 		{
 			return FALSE;
@@ -177,7 +174,7 @@ BOOL CInternalObjectDeserialiser::AddContainingPointersAndCreateHollowObject(CDe
 	}
 	else
 	{
-		pcDependentReadObject = mpcDependentObjects->GetObject(pcDependentReadPointer->moiPointedTo);
+		pcDependentReadObject = GetObject(pcDependentReadPointer->moiPointedTo);
 		if (pcDependentReadObject->mcType == OBJECT_POINTER_ID)
 		{
 			pcHollowObject = mpcObjects->AllocateExistingHollow(pcDependentReadObject->moi, pcDependentReadPointer->miNumEmbedded);
