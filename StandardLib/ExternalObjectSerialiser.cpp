@@ -30,7 +30,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CExternalObjectSerialiser::Init(CObjectWriter* pcWriter)
 {
-	CInternalObjectSerialiser::Init(pcWriter);
+	mpcWriter = pcWriter;
 	mcDependentObjects.Init();
 }
 
@@ -42,7 +42,7 @@ void CExternalObjectSerialiser::Init(CObjectWriter* pcWriter)
 void CExternalObjectSerialiser::Kill(void)
 {
 	mcDependentObjects.Kill();
-	CInternalObjectSerialiser::Kill();
+	mpcWriter = NULL;
 }
 
 
@@ -96,7 +96,7 @@ BOOL CExternalObjectSerialiser::WriteUnwritten(CBaseObject* pcObject)
 		return gcLogger.Error2(__METHOD__, " Could write [NULL] object.", NULL);
 	}
 
-	cSerialiser.Init(this, pcObject);
+	cSerialiser.Init(&mcDependentObjects, pcObject);
 
 	bResult = cSerialiser.Save();
 	if (!bResult)
