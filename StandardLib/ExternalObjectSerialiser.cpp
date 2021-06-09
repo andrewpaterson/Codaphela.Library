@@ -20,7 +20,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/Logger.h"
 #include "ObjectSerialiser.h"
-#include "ObjectGraphSerialiser.h"
+#include "ExternalObjectSerialiser.h"
 #include "SerialisedObject.h"
 
 
@@ -28,9 +28,9 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectGraphSerialiser::Init(CObjectWriter* pcWriter)
+void CExternalObjectSerialiser::Init(CObjectWriter* pcWriter)
 {
-	CObjectSingleSerialiser::Init(pcWriter);
+	CInternalObjectSerialiser::Init(pcWriter);
 	mcDependentObjects.Init();
 }
 
@@ -39,10 +39,10 @@ void CObjectGraphSerialiser::Init(CObjectWriter* pcWriter)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectGraphSerialiser::Kill(void)
+void CExternalObjectSerialiser::Kill(void)
 {
 	mcDependentObjects.Kill();
-	CObjectSingleSerialiser::Kill();
+	CInternalObjectSerialiser::Kill();
 }
 
 
@@ -50,7 +50,7 @@ void CObjectGraphSerialiser::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectGraphSerialiser::Write(CBaseObject* pcObject)
+BOOL CExternalObjectSerialiser::Write(CBaseObject* pcObject)
 {
 	CBaseObject*	pcUnwritten;
 	BOOL			bResult;
@@ -84,7 +84,7 @@ BOOL CObjectGraphSerialiser::Write(CBaseObject* pcObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectGraphSerialiser::WriteUnwritten(CBaseObject* pcObject)
+BOOL CExternalObjectSerialiser::WriteUnwritten(CBaseObject* pcObject)
 {
 	CObjectSerialiser	cSerialiser;
 	BOOL				bResult;
@@ -129,7 +129,7 @@ BOOL CObjectGraphSerialiser::WriteUnwritten(CBaseObject* pcObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectGraphSerialiser::AddDependent(CBaseObject* pcObject)
+void CExternalObjectSerialiser::AddDependent(CBaseObject* pcObject)
 {
 	mcDependentObjects.Add(pcObject);
 }
@@ -139,7 +139,7 @@ void CObjectGraphSerialiser::AddDependent(CBaseObject* pcObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectGraphSerialiser::MarkWritten(CBaseObject* pcObject)
+void CExternalObjectSerialiser::MarkWritten(CBaseObject* pcObject)
 {
 	mcDependentObjects.Mark(pcObject);
 }

@@ -8,7 +8,7 @@
 #include "NamedIndexedObjects.h"
 
 
-//The Object Graph Deserialiser works with chunk files and simple files.  
+//The External Object Deserialiser works with chunk files and simple files.  
 //  It does not deserialise objects out of the database.
 //  It does not create hollow objects.
 //  It does not load objects by id.

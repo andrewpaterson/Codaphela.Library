@@ -19,7 +19,7 @@ public:
 	virtual CBaseObject*	AllocateForDeserialisation(CObjectHeader* pcHeader) =0;
 
 protected:
-			void			AddContainingPointer(CEmbeddedObject* pcBaseObject, CEmbeddedObject** ppcPointedFrom, CBaseObject* pcContaining);
+			void			AddHeapFrom(CEmbeddedObject* pcBaseObject, CEmbeddedObject** ppcPointedFrom, CBaseObject* pcContaining);
 };
 
 

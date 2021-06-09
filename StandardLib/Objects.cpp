@@ -26,7 +26,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "CoreLib/TransientSequence.h"
 #include "BaseObject.h"
 #include "NamedObject.h"
-#include "ObjectSingleSerialiser.h"
+#include "InternalObjectSerialiser.h"
 #include "DataConnectionObjectWriter.h"
 #include "InternalObjectDeserialiser.h"
 #include "ObjectSource.h"
@@ -606,7 +606,7 @@ void CObjects::FreeObjects(CArrayBlockObjectPtr* papcObjectPts)
 BOOL CObjects::ForceSave(CBaseObject* pcObject)
 {
 	BOOL							bResult;
-	CObjectSingleSerialiser			cSerialiser;
+	CInternalObjectSerialiser			cSerialiser;
 	CDataConnectionObjectWriter		cWriter;
 	CBaseObject*					pcContainer;
 

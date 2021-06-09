@@ -28,7 +28,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectSerialiser::Init(CObjectSingleSerialiser* pcSerialiser, CBaseObject* pcObject)
+BOOL CObjectSerialiser::Init(CInternalObjectSerialiser* pcSerialiser, CBaseObject* pcObject)
 {
 	mpcThis = pcObject;
 	if (!mpcThis)

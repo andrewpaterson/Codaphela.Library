@@ -172,7 +172,7 @@ BOOL CInternalObjectDeserialiser::AddContainingPointersAndCreateHollowObject(CDe
 	pcBaseObject = mpcMemory->Get(oiNew);
 	if (pcBaseObject)
 	{
-		AddContainingPointer(pcBaseObject, pcDependentReadPointer->mppcPointedFrom, pcDependentReadPointer->mpcContaining);
+		AddHeapFrom(pcBaseObject, pcDependentReadPointer->mppcPointedFrom, pcDependentReadPointer->mpcContaining);
 		return TRUE;
 	}
 	else
@@ -190,7 +190,7 @@ BOOL CInternalObjectDeserialiser::AddContainingPointersAndCreateHollowObject(CDe
 		pcBaseObject = pcHollowObject->GetEmbeddedObject(pcDependentReadPointer->miEmbeddedIndex);
 		if (pcBaseObject)
 		{
-			AddContainingPointer(pcBaseObject, pcDependentReadPointer->mppcPointedFrom, pcDependentReadPointer->mpcContaining);
+			AddHeapFrom(pcBaseObject, pcDependentReadPointer->mppcPointedFrom, pcDependentReadPointer->mpcContaining);
 			return TRUE;
 		}
 		else

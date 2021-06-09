@@ -97,9 +97,6 @@
     <Filter Include="Source\Object\Object\Serilalisation\Graph">
       <UniqueIdentifier>{8705b1ae-591f-4793-92d8-06f3a04698bb}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Object\Object\Serilalisation\Single">
-      <UniqueIdentifier>{52a03096-8f90-4a1f-9091-1baf27f0a9e2}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source\Object\Object\Serilalisation\Indexed">
       <UniqueIdentifier>{302cf9ae-684d-4734-8ebb-e95c2596e133}</UniqueIdentifier>
     </Filter>
@@ -300,7 +297,7 @@
     <ClInclude Include="ObjectDeserialiser.h">
       <Filter>Source\Object\Object\Serilalisation</Filter>
     </ClInclude>
-    <ClInclude Include="ObjectGraphSerialiser.h">
+    <ClInclude Include="ExternalObjectSerialiser.h">
       <Filter>Source\Object\Object\Serilalisation\Graph</Filter>
     </ClInclude>
     <ClInclude Include="SerialisedObject.h">
@@ -365,9 +362,6 @@
     </ClInclude>
     <ClInclude Include="DependentWriteObject.h">
       <Filter>Source\Object\Object\Serilalisation\Graph</Filter>
-    </ClInclude>
-    <ClInclude Include="ObjectSingleSerialiser.h">
-      <Filter>Source\Object\Object\Serilalisation\Single</Filter>
     </ClInclude>
     <ClInclude Include="ArrayUnknownPtr.h">
       <Filter>Source\Object\Unknown\Allocation</Filter>
@@ -477,6 +471,9 @@
     </ClInclude>
     <ClInclude Include="PrimitiveVoid.h">
       <Filter>Source\Object\Object\Primitive</Filter>
+    </ClInclude>
+    <ClInclude Include="InternalObjectSerialiser.h">
+      <Filter>Source\Object\Object\Serilalisation\Indexed</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -630,7 +627,7 @@
     <ClCompile Include="ObjectSerialiser.cpp">
       <Filter>Source\Object\Object\Serilalisation</Filter>
     </ClCompile>
-    <ClCompile Include="ObjectGraphSerialiser.cpp">
+    <ClCompile Include="ExternalObjectSerialiser.cpp">
       <Filter>Source\Object\Object\Serilalisation\Graph</Filter>
     </ClCompile>
     <ClCompile Include="SerialisedObject.cpp">
@@ -695,9 +692,6 @@
     </ClCompile>
     <ClCompile Include="DependentWriteObjects.cpp">
       <Filter>Source\Object\Object\Serilalisation\Graph</Filter>
-    </ClCompile>
-    <ClCompile Include="ObjectSingleSerialiser.cpp">
-      <Filter>Source\Object\Object\Serilalisation\Single</Filter>
     </ClCompile>
     <ClCompile Include="Null.cpp">
       <Filter>Source\Object\Object\Source</Filter>
@@ -777,6 +771,9 @@
     <ClCompile Include="UnmanagedClasses.cpp" />
     <ClCompile Include="PrimitiveClasses.cpp">
       <Filter>Source\Object\Class</Filter>
+    </ClCompile>
+    <ClCompile Include="InternalObjectSerialiser.cpp">
+      <Filter>Source\Object\Object\Serilalisation\Indexed</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
