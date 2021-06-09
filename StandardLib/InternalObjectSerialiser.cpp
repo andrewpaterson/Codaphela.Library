@@ -34,7 +34,7 @@ BOOL CInternalObjectSerialiser::Write(CBaseObject* pcObject)
 
 	ReturnOnFalse(mpcWriter->Begin());
 
-	cSerialiser.Init(this, pcObject);
+	cSerialiser.Init(NULL, pcObject);
 
 	bResult = cSerialiser.Save();
 	ReturnOnFalse(bResult);

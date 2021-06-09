@@ -23,12 +23,12 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseObject.h"
 #include "ObjectWriter.h"
 #include "DependentWriteObjects.h"
-#include "InternalObjectSerialiser.h"
 
 
-class CExternalObjectSerialiser : public CInternalObjectSerialiser
+class CExternalObjectSerialiser
 {
 protected:
+	CObjectWriter*			mpcWriter;
 	CDependentWriteObjects	mcDependentObjects;
 
 public:

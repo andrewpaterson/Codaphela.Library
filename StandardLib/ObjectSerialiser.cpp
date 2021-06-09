@@ -28,7 +28,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectSerialiser::Init(CInternalObjectSerialiser* pcSerialiser, CBaseObject* pcObject)
+BOOL CObjectSerialiser::Init(CDependentWriteObjects* pcDependentObjects, CBaseObject* pcObject)
 {
 	mpcThis = pcObject;
 	if (!mpcThis)
@@ -38,7 +38,7 @@ BOOL CObjectSerialiser::Init(CInternalObjectSerialiser* pcSerialiser, CBaseObjec
 
 	mpcMemory = MemoryFile();
 	mcFile.Init(mpcMemory);
-	mpcSerialiser = pcSerialiser;
+	mpcDependentObjects = pcDependentObjects;
 	return TRUE;
 }
 
@@ -49,7 +49,7 @@ BOOL CObjectSerialiser::Init(CInternalObjectSerialiser* pcSerialiser, CBaseObjec
 //////////////////////////////////////////////////////////////////////////
 void CObjectSerialiser::Kill(void)
 {
-	mpcSerialiser = NULL;
+	mpcDependentObjects = NULL;
 	mpcThis = NULL;
 	mcFile.Kill();
 }
@@ -168,9 +168,9 @@ BOOL CObjectSerialiser::WriteDependent(CEmbeddedObject* pcDependent)
 
 		if (bResult)
 		{
-			if (mpcSerialiser)
+			if (mpcDependentObjects)
 			{
-				mpcSerialiser->AddDependent(pcContainer);
+				mpcDependentObjects->Add(pcContainer);
 			}
 		}
 		return bResult;

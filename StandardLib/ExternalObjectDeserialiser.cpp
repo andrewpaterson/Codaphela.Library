@@ -270,6 +270,8 @@ BOOL CExternalObjectDeserialiser::AddContainingPointersAndCreateHollowObject(CDe
 //////////////////////////////////////////////////////////////////////////
 CBaseObject* CExternalObjectDeserialiser::AllocateForDeserialisation(CObjectHeader* pcHeader)
 {
+	char* szName;
+
 	if (pcHeader->mcType == OBJECT_POINTER_NULL)
 	{
 		return NULL;
@@ -280,7 +282,15 @@ CBaseObject* CExternalObjectDeserialiser::AllocateForDeserialisation(CObjectHead
 	}
 	else if (pcHeader->mcType == OBJECT_POINTER_NAMED)
 	{
-		return mpcObjects->AllocateExistingNamed(pcHeader->mszClassName.Text(), pcHeader->mszObjectName.Text());
+		szName = pcHeader->mszClassName.Text();
+		if (!StrEmpty(szName))
+		{
+			return mpcObjects->AllocateExistingNamed(szName, pcHeader->mszObjectName.Text());
+		}
+		else
+		{
+			return mpcObjects->AllocateNew(pcHeader->mszClassName.Text());
+		}
 	}
 	else
 	{
