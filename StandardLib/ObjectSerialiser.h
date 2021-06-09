@@ -30,30 +30,30 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 class CObjectSerialiser : public CFileWriter
 {
 protected:
-	CBaseObject*				mpcThis;
 	CMemoryFile*				mpcMemory;
 	CFileBasic					mcFile;
 	CDependentWriteObjects*		mpcDependentObjects;
 
 public:
-	BOOL			Init(CDependentWriteObjects* pcDependentObjects, CBaseObject* pcObject);
+	BOOL			Init(CDependentWriteObjects* pcDependentObjects);
 	void			Kill(void);
 
-	BOOL			Save(void);
-
-	BOOL			WriteObjectHeader(CObjectHeader* psHeader);
-	BOOL			WritePointer(CPointer& pObject);
-	BOOL			WritePointer(CPointer* pObject);
-	BOOL			WriteIdentifier(CObjectIdentifier* psIdentifier);
-	BOOL			WriteDependent(CEmbeddedObject* pcBaseObject);
+	BOOL			Save(CBaseObject* pcThis);
 
 	void*			GetData(void);
 	int				GetLength(void);
 
+	BOOL			WritePointer(CPointer& pObject);
+	BOOL			WritePointer(CPointer* pObject);
+	BOOL			WriteDependent(CEmbeddedObject* pcBaseObject);
+
+protected:
+	BOOL			WriteObjectHeader(CObjectHeader* psHeader);
+	BOOL			WriteIdentifier(CObjectIdentifier* psIdentifier);
+
 	void			InitObjectHeader(CObjectHeader* psHeader, CBaseObject* pcObject);
 	void			InitIdentifier(CObjectIdentifier* psHeader, CBaseObject* pcObject);
 
-protected:
 	filePos			Write(const void* pvSource, filePos iSize, filePos iCount);
 };
 
