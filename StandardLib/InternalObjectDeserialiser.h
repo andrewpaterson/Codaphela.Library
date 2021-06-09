@@ -25,7 +25,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "DependentReadObjects.h"
 
 
-//The Indexed Data Object Deserialiser only deserialises objects out of the database.
+//The Interal Object Deserialiser only deserialises objects out of the CObjects database.
 //  The index in the header is assumed to match the database index key.
 //  The name in the header is assumed to match the database name key.
 
@@ -55,5 +55,5 @@ protected:
 };
 
 
-#endif // __INDEXED_DATA_OBJECT_DESERIALISER__
+#endif // __INTERNAL_OBJECT_DESERIALISER__
 

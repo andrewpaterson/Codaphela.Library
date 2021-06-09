@@ -1118,6 +1118,8 @@ BOOL CBaseObject::SaveManaged(CObjectSerialiser* pcFile)
 {
 	BOOL	bResult;
 
+	bResult = 
+
 	bResult = SaveEmbeddedObjects(pcFile);
 	if (!bResult)
 	{

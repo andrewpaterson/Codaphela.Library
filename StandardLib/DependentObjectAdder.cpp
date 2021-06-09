@@ -26,7 +26,7 @@ void CDependentObjectAdder::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDependentObjectAdder::AddContainingPointer(CEmbeddedObject* pcBaseObject, CEmbeddedObject** ppcPointedFrom, CBaseObject* pcContaining)
+void CDependentObjectAdder::AddHeapFrom(CEmbeddedObject* pcBaseObject, CEmbeddedObject** ppcPointedFrom, CBaseObject* pcContaining)
 {
 	*ppcPointedFrom = pcBaseObject;
 
@@ -35,7 +35,6 @@ void CDependentObjectAdder::AddContainingPointer(CEmbeddedObject* pcBaseObject, 
 		pcBaseObject->AddHeapFrom(pcContaining, FALSE);
 	}
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////

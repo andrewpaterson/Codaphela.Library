@@ -1,12 +1,12 @@
 #include "ObjectSerialiser.h"
-#include "ObjectSingleSerialiser.h"
+#include "InternalObjectSerialiser.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectSingleSerialiser::Init(CObjectWriter* pcWriter)
+void CInternalObjectSerialiser::Init(CObjectWriter* pcWriter)
 {
 	mpcWriter = pcWriter;
 }
@@ -16,7 +16,7 @@ void CObjectSingleSerialiser::Init(CObjectWriter* pcWriter)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectSingleSerialiser::Kill(void)
+void CInternalObjectSerialiser::Kill(void)
 {
 	mpcWriter = NULL;
 }
@@ -26,7 +26,7 @@ void CObjectSingleSerialiser::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectSingleSerialiser::Write(CBaseObject* pcObject)
+BOOL CInternalObjectSerialiser::Write(CBaseObject* pcObject)
 {
 	CObjectSerialiser	cSerialiser;
 	BOOL				bResult;
@@ -54,7 +54,7 @@ BOOL CObjectSingleSerialiser::Write(CBaseObject* pcObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectSingleSerialiser::AddDependent(CBaseObject* pcObject)
+void CInternalObjectSerialiser::AddDependent(CBaseObject* pcObject)
 {
 }
 

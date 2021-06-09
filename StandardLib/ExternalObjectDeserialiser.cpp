@@ -260,7 +260,7 @@ BOOL CExternalObjectDeserialiser::AddContainingPointersAndCreateHollowObject(CDe
 		}
 	}
 
-	AddContainingPointer(pcBaseObject, pcDependentReadPointer->mppcPointedFrom, pcDependentReadPointer->mpcContaining);
+	AddHeapFrom(pcBaseObject, pcDependentReadPointer->mppcPointedFrom, pcDependentReadPointer->mpcContaining);
 	return TRUE;
 }
 
