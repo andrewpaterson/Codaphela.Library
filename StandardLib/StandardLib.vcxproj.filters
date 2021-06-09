@@ -351,12 +351,6 @@
     <ClInclude Include="DependentWriteObjects.h">
       <Filter>Source\Object\Object\Serilalisation\Graph</Filter>
     </ClInclude>
-    <ClInclude Include="DependentReadObject.h">
-      <Filter>Source\Object\Object\Serilalisation\Graph</Filter>
-    </ClInclude>
-    <ClInclude Include="DependentReadPointer.h">
-      <Filter>Source\Object\Object\Serilalisation\Graph</Filter>
-    </ClInclude>
     <ClInclude Include="DependentWriteObject.h">
       <Filter>Source\Object\Object\Serilalisation\Graph</Filter>
     </ClInclude>
@@ -471,6 +465,12 @@
     </ClInclude>
     <ClInclude Include="InternalObjectSerialiser.h">
       <Filter>Source\Object\Object\Serilalisation\Indexed</Filter>
+    </ClInclude>
+    <ClInclude Include="DependentReadPointer.h">
+      <Filter>Source\Object\Object\Serilalisation</Filter>
+    </ClInclude>
+    <ClInclude Include="DependentReadObject.h">
+      <Filter>Source\Object\Object\Serilalisation</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -675,12 +675,6 @@
     <ClCompile Include="ObjectReaderSimpleDisk.cpp">
       <Filter>Source\Object\Object\IO\File</Filter>
     </ClCompile>
-    <ClCompile Include="DependentReadObject.cpp">
-      <Filter>Source\Object\Object\Serilalisation\Graph</Filter>
-    </ClCompile>
-    <ClCompile Include="DependentReadPointer.cpp">
-      <Filter>Source\Object\Object\Serilalisation\Graph</Filter>
-    </ClCompile>
     <ClCompile Include="DependentWriteObject.cpp">
       <Filter>Source\Object\Object\Serilalisation\Graph</Filter>
     </ClCompile>
@@ -768,6 +762,12 @@
     </ClCompile>
     <ClCompile Include="InternalObjectSerialiser.cpp">
       <Filter>Source\Object\Object\Serilalisation\Indexed</Filter>
+    </ClCompile>
+    <ClCompile Include="DependentReadObject.cpp">
+      <Filter>Source\Object\Object\Serilalisation</Filter>
+    </ClCompile>
+    <ClCompile Include="DependentReadPointer.cpp">
+      <Filter>Source\Object\Object\Serilalisation</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
