@@ -28,17 +28,12 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectSerialiser::Init(CDependentWriteObjects* pcDependentObjects, CBaseObject* pcObject)
+BOOL CObjectSerialiser::Init(CDependentWriteObjects* pcDependentObjects)
 {
-	mpcThis = pcObject;
-	if (!mpcThis)
-	{
-		return gcLogger.Error2(__METHOD__, " Cannot serialse a NULL object.", NULL);
-	}
+	mpcDependentObjects = pcDependentObjects;
 
 	mpcMemory = MemoryFile();
 	mcFile.Init(mpcMemory);
-	mpcDependentObjects = pcDependentObjects;
 	return TRUE;
 }
 
@@ -49,9 +44,9 @@ BOOL CObjectSerialiser::Init(CDependentWriteObjects* pcDependentObjects, CBaseOb
 //////////////////////////////////////////////////////////////////////////
 void CObjectSerialiser::Kill(void)
 {
-	mpcDependentObjects = NULL;
-	mpcThis = NULL;
 	mcFile.Kill();
+
+	mpcDependentObjects = NULL;
 }
 
 
@@ -59,40 +54,45 @@ void CObjectSerialiser::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectSerialiser::Save(void)
+BOOL CObjectSerialiser::Save(CBaseObject* pcThis)
 {
 	BOOL			bResult;
 	filePos			iLength;
 	CObjectHeader	sHeader;
 	CChars			sz;
 
+	if (!pcThis)
+	{
+		return gcLogger.Error2(__METHOD__, " Cannot serialse a NULL object.", NULL);
+	}
+
 	bResult = mcFile.Open(EFM_Write_Create);
 	if (!bResult)
 	{
 		sz.Init();
-		mpcThis->GetIdentifier(&sz);
+		pcThis->GetIdentifier(&sz);
 		gcLogger.Error2(__METHOD__, " Could not open serialiser to save object [", sz.Text(), "].", NULL);
 		sz.Kill();
 		return FALSE;
 	}
 
 	bResult = WriteInt(0);
-	InitObjectHeader(&sHeader, mpcThis);
+	InitObjectHeader(&sHeader, pcThis);
 	bResult &= WriteObjectHeader(&sHeader);
 	if (!bResult)
 	{
 		sz.Init();
-		mpcThis->GetIdentifier(&sz);
+		pcThis->GetIdentifier(&sz);
 		gcLogger.Error2(__METHOD__, " Could not write object header saving object [", sz.Text(), "].", NULL);
 		sz.Kill();
 		return FALSE;
 	}
 
-	bResult = mpcThis->SaveManaged(this);
+	bResult = pcThis->SaveManaged(this);
 	if (!bResult)
 	{
 		sz.Init();
-		mpcThis->GetIdentifier(&sz);
+		pcThis->GetIdentifier(&sz);
 		gcLogger.Error2(__METHOD__, " Could not Save() object [", sz.Text(), "].", NULL);
 		sz.Kill();
 		return FALSE;
@@ -107,7 +107,7 @@ BOOL CObjectSerialiser::Save(void)
 	if (!bResult)
 	{
 		sz.Init();
-		mpcThis->GetIdentifier(&sz);
+		pcThis->GetIdentifier(&sz);
 		gcLogger.Error2(__METHOD__, " Could not close serialiser saving object [", sz.Text(), "].", NULL);
 		sz.Kill();
 		return FALSE;
@@ -196,7 +196,7 @@ void CObjectSerialiser::InitObjectHeader(CObjectHeader* psHeader, CBaseObject* p
 
 	if (pcObject)
 	{
-		szClassName = mpcThis->ClassName();
+		szClassName = pcObject->ClassName();
 		psHeader->mszClassName.Fake(szClassName);
 	}
 	else

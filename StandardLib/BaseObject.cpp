@@ -894,8 +894,8 @@ int CBaseObject::SerialisedSize(void)
 	CObjectSerialiser	cSerialiser;
 	int					iLength;
 
-	cSerialiser.Init(NULL, this);
-	cSerialiser.Save();
+	cSerialiser.Init(NULL);
+	cSerialiser.Save(this);
 	iLength = cSerialiser.GetLength();
 	cSerialiser.Kill();
 	return iLength;

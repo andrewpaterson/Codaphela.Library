@@ -96,9 +96,9 @@ BOOL CExternalObjectSerialiser::WriteUnwritten(CBaseObject* pcObject)
 		return gcLogger.Error2(__METHOD__, " Could write [NULL] object.", NULL);
 	}
 
-	cSerialiser.Init(&mcDependentObjects, pcObject);
+	cSerialiser.Init(&mcDependentObjects);
 
-	bResult = cSerialiser.Save();
+	bResult = cSerialiser.Save(pcObject);
 	if (!bResult)
 	{
 		szDescription.Init();
