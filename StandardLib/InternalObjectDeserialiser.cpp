@@ -2,7 +2,7 @@
 #include "BaseLib/ErrorTypes.h"
 #include "BaseLib/StackMemory.h"
 #include "SerialisedObject.h"
-#include "ObjectDeserialiser.h"
+#include "ObjectReader.h"
 #include "Objects.h"
 #include "HollowObject.h"
 #include "InternalObjectDeserialiser.h"
@@ -114,7 +114,7 @@ CBaseObject* CInternalObjectDeserialiser::Read(char* szObjectName)
 //////////////////////////////////////////////////////////////////////////
 CBaseObject* CInternalObjectDeserialiser::ReadSerialised(CSerialisedObject* pcSerialised)
 {
-	CObjectDeserialiser		cDeserialiser;
+	CObjectReader		cDeserialiser;
 	CBaseObject*			pvObject;
 
 	cDeserialiser.Init(this);

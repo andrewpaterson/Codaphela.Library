@@ -10,8 +10,8 @@ class CHollowEmbeddedObject : public CEmbeddedObject
 CONSTRUCTABLE(CHollowEmbeddedObject);
 public:
 	void				InternalFree(void);
-	BOOL				Save(CObjectSerialiser* pcFile);
-	BOOL				Load(CObjectDeserialiser* pcFile);
+	BOOL				Save(CObjectWriter* pcFile);
+	BOOL				Load(CObjectReader* pcFile);
 	void				RemovePointerTo(CEmbeddedObject* pcTo);
 	int					GetDistToStack(void);
 	int					GetDistToRoot(void);

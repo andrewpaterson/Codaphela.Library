@@ -8,7 +8,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CHollowEmbeddedObject::Save(CObjectSerialiser* pcFile)
+BOOL CHollowEmbeddedObject::Save(CObjectWriter* pcFile)
 {
 	return FALSE;
 }
@@ -18,7 +18,7 @@ BOOL CHollowEmbeddedObject::Save(CObjectSerialiser* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CHollowEmbeddedObject::Load(CObjectDeserialiser* pcFile)
+BOOL CHollowEmbeddedObject::Load(CObjectReader* pcFile)
 {
 	return FALSE;
 }

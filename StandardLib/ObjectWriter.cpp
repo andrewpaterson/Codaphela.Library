@@ -21,14 +21,14 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "ObjectFileGeneral.h"
 #include "PointerObject.h"
 #include "Object.h"
-#include "ObjectSerialiser.h"
+#include "ObjectWriter.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectSerialiser::Init(CDependentWriteObjects* pcDependentObjects)
+BOOL CObjectWriter::Init(CDependentWriteObjects* pcDependentObjects)
 {
 	mpcDependentObjects = pcDependentObjects;
 
@@ -42,7 +42,7 @@ BOOL CObjectSerialiser::Init(CDependentWriteObjects* pcDependentObjects)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectSerialiser::Kill(void)
+void CObjectWriter::Kill(void)
 {
 	mcFile.Kill();
 
@@ -54,7 +54,7 @@ void CObjectSerialiser::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectSerialiser::Save(CBaseObject* pcThis)
+BOOL CObjectWriter::Save(CBaseObject* pcThis)
 {
 	BOOL			bResult;
 	filePos			iLength;
@@ -121,7 +121,7 @@ BOOL CObjectSerialiser::Save(CBaseObject* pcThis)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectSerialiser::WritePointer(CPointer& pObject)
+BOOL CObjectWriter::WritePointer(CPointer& pObject)
 {
 	CEmbeddedObject* pcEmbeddedObject;
 
@@ -134,7 +134,7 @@ BOOL CObjectSerialiser::WritePointer(CPointer& pObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectSerialiser::WritePointer(CPointer* pObject)
+BOOL CObjectWriter::WritePointer(CPointer* pObject)
 {
 	CEmbeddedObject* pcEmbeddedObject;
 
@@ -147,7 +147,7 @@ BOOL CObjectSerialiser::WritePointer(CPointer* pObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectSerialiser::WriteDependent(CEmbeddedObject* pcDependent)
+BOOL CObjectWriter::WriteDependent(CEmbeddedObject* pcDependent)
 {
 	BOOL				bResult;
 	CBaseObject*		pcContainer;
@@ -188,7 +188,7 @@ BOOL CObjectSerialiser::WriteDependent(CEmbeddedObject* pcDependent)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectSerialiser::InitObjectHeader(CObjectHeader* psHeader, CBaseObject* pcObject)
+void CObjectWriter::InitObjectHeader(CObjectHeader* psHeader, CBaseObject* pcObject)
 {
 	const char* szClassName;
 
@@ -210,7 +210,7 @@ void CObjectSerialiser::InitObjectHeader(CObjectHeader* psHeader, CBaseObject* p
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectSerialiser::InitIdentifier(CObjectIdentifier* psHeader, CBaseObject* pcObject)
+void CObjectWriter::InitIdentifier(CObjectIdentifier* psHeader, CBaseObject* pcObject)
 {
 	OIndex		oi;
 	const char* szObjectName;
@@ -246,7 +246,7 @@ void CObjectSerialiser::InitIdentifier(CObjectIdentifier* psHeader, CBaseObject*
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectSerialiser::WriteObjectHeader(CObjectHeader* psHeader)
+BOOL CObjectWriter::WriteObjectHeader(CObjectHeader* psHeader)
 {
 	ReturnOnFalse(WriteIdentifier(psHeader));
 	return WriteString(psHeader->mszClassName.Text());
@@ -257,7 +257,7 @@ BOOL CObjectSerialiser::WriteObjectHeader(CObjectHeader* psHeader)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectSerialiser::WriteIdentifier(CObjectIdentifier* psIdentifier)
+BOOL CObjectWriter::WriteIdentifier(CObjectIdentifier* psIdentifier)
 {
 	BOOL bResult;
 
@@ -283,7 +283,7 @@ BOOL CObjectSerialiser::WriteIdentifier(CObjectIdentifier* psIdentifier)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-filePos CObjectSerialiser::Write(const void* pvSource, filePos iSize, filePos iCount)
+filePos CObjectWriter::Write(const void* pvSource, filePos iSize, filePos iCount)
 {
 	return mcFile.Write(pvSource, iSize, iCount);
 }
@@ -293,7 +293,7 @@ filePos CObjectSerialiser::Write(const void* pvSource, filePos iSize, filePos iC
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CObjectSerialiser::GetData(void)
+void* CObjectWriter::GetData(void)
 {
 	return mpcMemory->GetBufferPointer();
 }
@@ -303,7 +303,7 @@ void* CObjectSerialiser::GetData(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CObjectSerialiser::GetLength(void)
+int CObjectWriter::GetLength(void)
 {
 	return mpcMemory->GetBufferSize();
 }

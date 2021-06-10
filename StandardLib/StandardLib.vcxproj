@@ -166,8 +166,8 @@
     <ClInclude Include="NamedObject.h" />
     <ClInclude Include="DependentWriteObjects.h" />
     <ClInclude Include="ExternalObjectSerialiser.h" />
-    <ClInclude Include="ObjectDeserialiser.h" />
-    <ClInclude Include="ObjectSerialiser.h" />
+    <ClInclude Include="ObjectReader.h" />
+    <ClInclude Include="ObjectWriter.h" />
     <ClInclude Include="ChunkFileObjectWriter.h" />
     <ClInclude Include="ExternalObjectWriter.h" />
     <ClInclude Include="MultiFileObjectWriter.h" />
@@ -271,8 +271,8 @@
     <ClCompile Include="NamedObject.cpp" />
     <ClCompile Include="DependentWriteObjects.cpp" />
     <ClCompile Include="ExternalObjectSerialiser.cpp" />
-    <ClCompile Include="ObjectDeserialiser.cpp" />
-    <ClCompile Include="ObjectSerialiser.cpp" />
+    <ClCompile Include="ObjectReader.cpp" />
+    <ClCompile Include="ObjectWriter.cpp" />
     <ClCompile Include="ChunkFileObjectWriter.cpp" />
     <ClCompile Include="MultiFileObjectWriter.cpp" />
     <ClCompile Include="HollowObject.cpp" />

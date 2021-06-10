@@ -20,8 +20,8 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/Log.h"
 #include "BaseLib/Logger.h"
-#include "ObjectSerialiser.h"
-#include "ObjectDeserialiser.h"
+#include "ObjectWriter.h"
+#include "ObjectReader.h"
 #include "Objects.h"
 #include "DistCalculator.h"
 #include "Classes.h"
@@ -891,7 +891,7 @@ BOOL CBaseObject::RemoveToFrom(CEmbeddedObject* pcPointedTo)
 //////////////////////////////////////////////////////////////////////////
 int CBaseObject::SerialisedSize(void)
 {
-	CObjectSerialiser	cSerialiser;
+	CObjectWriter	cSerialiser;
 	int					iLength;
 
 	cSerialiser.Init(NULL);
@@ -1104,7 +1104,7 @@ BOOL CBaseObject::ContainsPointerTo(CEmbeddedObject* pcEmbedded)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CBaseObject::Save(CObjectSerialiser* pcFile)
+BOOL CBaseObject::Save(CObjectWriter* pcFile)
 {
 	return TRUE;
 } 
@@ -1114,7 +1114,7 @@ BOOL CBaseObject::Save(CObjectSerialiser* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CBaseObject::SaveManaged(CObjectSerialiser* pcFile)
+BOOL CBaseObject::SaveManaged(CObjectWriter* pcFile)
 {
 	BOOL	bResult;
 
@@ -1153,7 +1153,7 @@ BOOL CBaseObject::SaveManaged(CObjectSerialiser* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CBaseObject::SaveEmbeddedObjects(CObjectSerialiser* pcFile)
+BOOL CBaseObject::SaveEmbeddedObjects(CObjectWriter* pcFile)
 {
 	int						iNumFields;
 	CEmbeddedObjectField**	ppacEmbeddedObjectFields;
@@ -1183,7 +1183,7 @@ BOOL CBaseObject::SaveEmbeddedObjects(CObjectSerialiser* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CBaseObject::SavePointers(CObjectSerialiser* pcFile)
+BOOL CBaseObject::SavePointers(CObjectWriter* pcFile)
 {
 	int						iNumFields;
 	CPointerField**			ppacPointerFields;
@@ -1213,7 +1213,7 @@ BOOL CBaseObject::SavePointers(CObjectSerialiser* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CBaseObject::SavePrimitives(CObjectSerialiser* pcFile)
+BOOL CBaseObject::SavePrimitives(CObjectWriter* pcFile)
 {
 	int						iNumFields;
 	CPrimitiveField**		ppacPrimitiveFields;
@@ -1250,7 +1250,7 @@ BOOL CBaseObject::SavePrimitives(CObjectSerialiser* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CBaseObject::SaveUnmanaged(CObjectSerialiser* pcFile)
+BOOL CBaseObject::SaveUnmanaged(CObjectWriter* pcFile)
 {
 	int						iNumFields;
 	CUnmanagedField**		ppacUnmanagedFields;
@@ -1287,7 +1287,7 @@ BOOL CBaseObject::SaveUnmanaged(CObjectSerialiser* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CBaseObject::Load(CObjectDeserialiser* pcFile)
+BOOL CBaseObject::Load(CObjectReader* pcFile)
 {
 	return TRUE;
 }
@@ -1297,7 +1297,7 @@ BOOL CBaseObject::Load(CObjectDeserialiser* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CBaseObject::LoadManaged(CObjectDeserialiser* pcFile)
+BOOL CBaseObject::LoadManaged(CObjectReader* pcFile)
 {
 	BOOL	bResult;
 
@@ -1334,7 +1334,7 @@ BOOL CBaseObject::LoadManaged(CObjectDeserialiser* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CBaseObject::LoadEmbeddedObjects(CObjectDeserialiser* pcFile)
+BOOL CBaseObject::LoadEmbeddedObjects(CObjectReader* pcFile)
 {
 	int						iNumFields;
 	CEmbeddedObjectField**	ppacEmbeddedObjectFields;
@@ -1364,7 +1364,7 @@ BOOL CBaseObject::LoadEmbeddedObjects(CObjectDeserialiser* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CBaseObject::LoadPointers(CObjectDeserialiser* pcFile)
+BOOL CBaseObject::LoadPointers(CObjectReader* pcFile)
 {
 	int						iNumFields;
 	CPointerField**			ppacPointerFields;
@@ -1394,7 +1394,7 @@ BOOL CBaseObject::LoadPointers(CObjectDeserialiser* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CBaseObject::LoadPrimitives(CObjectDeserialiser* pcFile)
+BOOL CBaseObject::LoadPrimitives(CObjectReader* pcFile)
 {
 	int						iNumFields;
 	CPrimitiveField**		ppacPrimitiveFields;
@@ -1431,7 +1431,7 @@ BOOL CBaseObject::LoadPrimitives(CObjectDeserialiser* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CBaseObject::LoadUnmanaged(CObjectDeserialiser* pcFile)
+BOOL CBaseObject::LoadUnmanaged(CObjectReader* pcFile)
 {
 	int						iNumFields;
 	CUnmanagedField**		ppacUnmanagedFields;

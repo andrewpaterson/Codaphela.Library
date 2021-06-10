@@ -50,7 +50,7 @@ public:
 						BOOL			IsRoot(void);
 						BOOL			IsSubRoot(void);
 
-						BOOL			Load(CObjectDeserialiser* pcFile);
+						BOOL			Load(CObjectReader* pcFile);
 
 						CPointer		Get(int iIndex);
 	template<class M>	Ptr<M>			Get(int iIndex);

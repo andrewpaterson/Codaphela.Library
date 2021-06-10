@@ -18,45 +18,38 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __OBJET_SERIALISER_H__
-#define __OBJET_SERIALISER_H__
-#include "BaseLib/FileWriter.h"
+#ifndef __OBJECT_READER_H__
+#define __OBJECT_READER_H__
+#include "BaseLib/FileReader.h"
 #include "BaseLib/MemoryFile.h"
-#include "BaseObject.h"
-#include "ObjectHeader.h"
-#include "DependentWriteObjects.h"
+#include "IndexNewOld.h"
+#include "SerialisedObject.h"
+#include "DependentReadObjects.h"
+#include "Pointer.h"
 
 
-class CObjectSerialiser : public CFileWriter
+class CObjectHeader;
+class CObjectIdentifier;
+class CObjectReader : public CFileReader
 {
 protected:
-	CMemoryFile*				mpcMemory;
-	CFileBasic					mcFile;
-	CDependentWriteObjects*		mpcDependentObjects;
-
+	CDependentReadObjects*	mpcDependents;
+	CFileBasic				mcFile;
+	
 public:
-	BOOL			Init(CDependentWriteObjects* pcDependentObjects);
+	BOOL			Init(CDependentReadObjects* pcDependents);
 	void			Kill(void);
+	CBaseObject*	Load(CSerialisedObject* pcSerialised);
 
-	BOOL			Save(CBaseObject* pcThis);
-
-	void*			GetData(void);
-	int				GetLength(void);
-
-	BOOL			WritePointer(CPointer& pObject);
-	BOOL			WritePointer(CPointer* pObject);
-	BOOL			WriteDependent(CEmbeddedObject* pcBaseObject);
+	BOOL			ReadPointer(CPointer* pObject);
+	BOOL			ReadIdentifier(CObjectIdentifier* pcPointerHeader);
+	BOOL			ReadObjectHeader(CObjectHeader* pcObjectHeader);
+	BOOL			ReadDependent(CEmbeddedObject** ppcObjectPtr, CBaseObject* pcContaining);
 
 protected:
-	BOOL			WriteObjectHeader(CObjectHeader* psHeader);
-	BOOL			WriteIdentifier(CObjectIdentifier* psIdentifier);
-
-	void			InitObjectHeader(CObjectHeader* psHeader, CBaseObject* pcObject);
-	void			InitIdentifier(CObjectIdentifier* psHeader, CBaseObject* pcObject);
-
-	filePos			Write(const void* pvSource, filePos iSize, filePos iCount);
+	filePos			Read(void* pvDest, filePos iSize, filePos iCount);
 };
 
 
-#endif // __OBJET_SERIALISER_H__
+#endif // __OBJECT_READER_H__
 

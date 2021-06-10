@@ -17,7 +17,7 @@ class CIndexGenerator;
 class CExternalObjectDeserialiser : public CDependentReadObjects
 {
 protected:
-	CExternalObjectReader*			mpcReader;  //The ObjectReader knows how to load the serialised form of the object by name.
+	CExternalObjectReader*	mpcReader;  //The ObjectReader knows how to load the serialised form of the object by name.
 	CObjects*				mpcObjects;
 
 	CNamedIndexedObjects*	mpcMemory;
@@ -29,7 +29,7 @@ public:
 
 	CBaseObject*	Read(char* szObjectName);
 			 
-	//Used by CObjectDeserialiser
+	//Used by CObjectReader
 	CBaseObject*	AllocateForDeserialisation(CObjectHeader* pcHeader);
 
 protected:

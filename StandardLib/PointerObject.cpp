@@ -23,7 +23,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/Numbers.h"
 #include "Object.h"
 #include "HollowObject.h"
-#include "ObjectDeserialiser.h"
+#include "ObjectReader.h"
 #include "ObjectRemapFrom.h"
 #include "PointerObject.h"
 
@@ -432,7 +432,7 @@ BOOL CPointer::IsHollow(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPointer::Load(CObjectDeserialiser* pcFile)
+BOOL CPointer::Load(CObjectReader* pcFile)
 {
 	if (mpcObject)
 	{

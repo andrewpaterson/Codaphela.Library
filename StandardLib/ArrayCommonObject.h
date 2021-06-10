@@ -64,8 +64,8 @@ public:
 	void					RemoveAllPointerTos(void);
 	void					CollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters);
 
-	BOOL					Save(CObjectSerialiser* pcFile);
-	BOOL					Load(CObjectDeserialiser* pcFile);
+	BOOL					Save(CObjectWriter* pcFile);
+	BOOL					Load(CObjectReader* pcFile);
 
 	CBaseObject*			UnsafeGet(int iIndex);
 	BOOL					UnsafeRemove(CBaseObject* pcObject);

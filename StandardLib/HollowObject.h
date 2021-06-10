@@ -33,8 +33,8 @@ public:
 
 			BOOL				IsHollow(void);
 
-			BOOL				Save(CObjectSerialiser* pcFile);
-			BOOL				Load(CObjectDeserialiser* pcFile);
+			BOOL				Save(CObjectWriter* pcFile);
+			BOOL				Load(CObjectReader* pcFile);
 			BOOL				IsCollection(void);
 			BOOL				IsObject(void);
 			void				SetPointerTosExpectedDistToRoot(int iDistToRoot);

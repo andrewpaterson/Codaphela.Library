@@ -1,7 +1,7 @@
 #include "BaseLib/Log.h"
 #include "BaseLib/ErrorTypes.h"
 #include "Objects.h"
-#include "ObjectDeserialiser.h"
+#include "ObjectReader.h"
 #include "ExternalObjectDeserialiser.h"
 
 
@@ -133,7 +133,7 @@ BOOL CExternalObjectDeserialiser::ReadUnread(CDependentReadObject* pcDependent)
 {
 	CSerialisedObject*			pcSerialised;
 	char*						szObjectName;
-	CObjectDeserialiser			cDeserialiser;
+	CObjectReader			cDeserialiser;
 	CBaseObject*				pvObject;
 
 	pcSerialised = NULL;
@@ -174,7 +174,7 @@ BOOL CExternalObjectDeserialiser::ReadUnread(CDependentReadObject* pcDependent)
 //////////////////////////////////////////////////////////////////////////
 CBaseObject* CExternalObjectDeserialiser::ReadSerialsed(CSerialisedObject* pcSerialised)
 {
-	CObjectDeserialiser		cDeserialiser;
+	CObjectReader		cDeserialiser;
 	CBaseObject*			pvObject;
 	OIndex					oiNew;
 	OIndex					oiOld;
