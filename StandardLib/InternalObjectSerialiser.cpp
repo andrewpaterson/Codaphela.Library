@@ -1,4 +1,6 @@
+#include "CoreLib/DataConnection.h"
 #include "ObjectSerialiser.h"
+#include "SerialisedObject.h"
 #include "InternalObjectSerialiser.h"
 
 
@@ -8,7 +10,7 @@
 //////////////////////////////////////////////////////////////////////////
 void CInternalObjectSerialiser::Init(CDataConnection* pcDataConnection)
 {
-	mcWriter.Init(pcDataConnection, 0);
+	mpcDataConnection = pcDataConnection;
 }
 
 
@@ -18,7 +20,7 @@ void CInternalObjectSerialiser::Init(CDataConnection* pcDataConnection)
 //////////////////////////////////////////////////////////////////////////
 void CInternalObjectSerialiser::Kill(void)
 {
-	mcWriter.Kill();
+	mpcDataConnection = NULL;
 }
 
 
@@ -39,7 +41,7 @@ BOOL CInternalObjectSerialiser::Write(CBaseObject* pcObject)
 
 	pcSerialised = (CSerialisedObject*)cSerialiser.GetData();
 
-	bResult = mcWriter.Write(pcSerialised);
+	bResult = Write(pcSerialised);
 	ReturnOnFalse(bResult);
 
 	cSerialiser.Kill();
@@ -52,7 +54,29 @@ BOOL CInternalObjectSerialiser::Write(CBaseObject* pcObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CInternalObjectSerialiser::AddDependent(CBaseObject* pcObject)
+BOOL CInternalObjectSerialiser::Write(CSerialisedObject* pcSerialised)
 {
-}
+	OIndex	oi;
+	BOOL	bResult;
+	int		iLength;
+	char* szName;
 
+	iLength = pcSerialised->GetLength();
+	if (pcSerialised->IsNamed())
+	{
+		oi = pcSerialised->GetIndex();
+		szName = pcSerialised->GetName();
+		bResult = mpcDataConnection->Put(oi, szName, pcSerialised, iLength);
+	}
+	else if (pcSerialised->IsIndexed())
+	{
+		oi = pcSerialised->GetIndex();
+		bResult = mpcDataConnection->Put(oi, pcSerialised, iLength);
+	}
+	else
+	{
+		bResult = FALSE;
+	}
+
+	return bResult;
+}
