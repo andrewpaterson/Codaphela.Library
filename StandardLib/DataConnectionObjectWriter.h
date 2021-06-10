@@ -20,12 +20,14 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __OBJECT_WRITER_INDEXED_H__
 #define __OBJECT_WRITER_INDEXED_H__
-#include "ObjectWriter.h"
+#include "CoreLib/IndexedGeneral.h"
+#include "Unknown.h"
 
 
 //This class is only used by Objects.ForceSave()
 class CDataConnection;
-class CDataConnectionObjectWriter : public CObjectWriter
+class CSerialisedObject;
+class CDataConnectionObjectWriter
 {
 CONSTRUCTABLE(CDataConnectionObjectWriter);
 protected:
