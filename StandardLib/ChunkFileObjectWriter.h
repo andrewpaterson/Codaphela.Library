@@ -22,10 +22,10 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __OBJECT_WRITER_CHUNKED_H__
 #include "ObjectIO.h"
 #include "BaseLib/ChunkFileFileSystem.h"
-#include "ObjectWriter.h"
+#include "ExternalObjectWriter.h"
 
 
-class CChunkFileObjectWriter : public CObjectWriter, public CObjectIO
+class CChunkFileObjectWriter : public CExternalObjectWriter, public CObjectIO
 {
 CONSTRUCTABLE(CChunkFileObjectWriter);
 DESTRUCTABLE(CChunkFileObjectWriter);

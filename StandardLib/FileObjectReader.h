@@ -1,10 +1,10 @@
 #ifndef __FILE_OBJECT_READER_H__
 #define __FILE_OBJECT_READER_H__
 #include "ObjectIO.h"
-#include "ObjectReader.h"
+#include "ExternalObjectReader.h"
 
 
-class CFileObjectReader : public CObjectReader, public CObjectIO
+class CFileObjectReader : public CExternalObjectReader, public CObjectIO
 {
 CONSTRUCTABLE(CFileObjectReader);
 protected:

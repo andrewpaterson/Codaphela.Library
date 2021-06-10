@@ -309,10 +309,10 @@
     <ClInclude Include="ObjectHeader.h">
       <Filter>Source\Object\Object\Serilalisation</Filter>
     </ClInclude>
-    <ClInclude Include="ObjectWriter.h">
+    <ClInclude Include="ExternalObjectWriter.h">
       <Filter>Source\Object\Object\IO\Common</Filter>
     </ClInclude>
-    <ClInclude Include="ObjectReader.h">
+    <ClInclude Include="ExternalObjectReader.h">
       <Filter>Source\Object\Object\IO\Common</Filter>
     </ClInclude>
     <ClInclude Include="MultiFileObjectWriter.h">
@@ -633,10 +633,10 @@
     <ClCompile Include="ObjectHeader.cpp">
       <Filter>Source\Object\Object\Serilalisation</Filter>
     </ClCompile>
-    <ClCompile Include="ObjectWriter.cpp">
+    <ClCompile Include="ExternalObjectWriter.cpp">
       <Filter>Source\Object\Object\IO\Common</Filter>
     </ClCompile>
-    <ClCompile Include="ObjectReader.cpp">
+    <ClCompile Include="ExternalObjectReader.cpp">
       <Filter>Source\Object\Object\IO\Common</Filter>
     </ClCompile>
     <ClCompile Include="MultiFileObjectWriter.cpp">

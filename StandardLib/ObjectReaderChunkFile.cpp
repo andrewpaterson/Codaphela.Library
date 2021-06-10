@@ -43,7 +43,7 @@ void CObjectReaderChunkFile::Init(CChunkFileFileSystem* pcChunkFile)
 //////////////////////////////////////////////////////////////////////////
 void CObjectReaderChunkFile::Kill(void)
 {
-	CObjectReader::Kill();
+	CExternalObjectReader::Kill();
 }
 
 

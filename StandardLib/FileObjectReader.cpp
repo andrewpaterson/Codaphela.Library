@@ -19,7 +19,7 @@ void CFileObjectReader::Init(CFileBasic* pcFile)
 void CFileObjectReader::Kill(void)
 {
 	mpcFile = NULL;
-	CObjectReader::Kill();
+	CExternalObjectReader::Kill();
 }
 
 

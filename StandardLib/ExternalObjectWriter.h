@@ -18,16 +18,16 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __OBJECT_WRITER_H__
-#define __OBJECT_WRITER_H__
+#ifndef __EXTERNAL_OBJECT_WRITER_H__
+#define __EXTERNAL_OBJECT_WRITER_H__
 #include "CoreLib/IndexedGeneral.h"
 #include "Unknown.h"
 
 
 class CSerialisedObject;
-class CObjectWriter : public CUnknown
+class CExternalObjectWriter : public CUnknown
 {
-CONSTRUCTABLE(CObjectWriter);
+CONSTRUCTABLE(CExternalObjectWriter);
 public:
 			void Init(char* szBaseName);
 			void Kill(void);
@@ -38,5 +38,5 @@ public:
 };
 
 
-#endif // __OBJECT_WRITER_H__
+#endif // __EXTERNAL_OBJECT_WRITER_H__
 

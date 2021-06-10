@@ -47,7 +47,7 @@ void CObjectReaderChunkFileDisk::Kill(void)
 {
 	mszFullDirectory.Kill();
 	mszFileName.Kill();
-	CObjectReader::Kill();
+	CExternalObjectReader::Kill();
 }
 
 
@@ -61,7 +61,7 @@ BOOL CObjectReaderChunkFileDisk::Begin(void)
 	CFileUtil	cFileUtil;
 	CChars		szFileName;
 
-	CObjectReader::Begin();
+	CExternalObjectReader::Begin();
 
 	szFileName.Init(mszFullDirectory);
 

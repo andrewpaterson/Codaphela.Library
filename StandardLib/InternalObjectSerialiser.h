@@ -21,7 +21,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __INTERNAL_OBJECT_SERIALISER_H__
 #define __INTERNAL_OBJECT_SERIALISER_H__
 #include "BaseObject.h"
-#include "ObjectWriter.h"
+#include "ExternalObjectWriter.h"
 
 
 class CInternalObjectSerialiser

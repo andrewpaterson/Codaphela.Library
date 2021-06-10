@@ -4,7 +4,7 @@
 #include "ObjectSource.h"
 
 
-class CObjectReader;
+class CExternalObjectReader;
 class CObjectReaderChunkFile;
 class CObjectSourceChunked : public CObjectSource
 {
@@ -29,7 +29,7 @@ public:
 	char*			GetName(int iIndex);
 	int				NumNames(void);
 
-	CObjectReader*	GetReader(void);
+	CExternalObjectReader*	GetReader(void);
 };
 
 

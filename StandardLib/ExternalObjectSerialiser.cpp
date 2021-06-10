@@ -28,7 +28,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CExternalObjectSerialiser::Init(CObjectWriter* pcWriter)
+void CExternalObjectSerialiser::Init(CExternalObjectWriter* pcWriter)
 {
 	mpcWriter = pcWriter;
 	mcDependentObjects.Init();

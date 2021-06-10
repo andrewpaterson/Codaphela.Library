@@ -24,7 +24,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Unknown.h"
 #include "Pointer.h"
 #include "Object.h"
-#include "ObjectReader.h"
+#include "ExternalObjectReader.h"
 
 
 class CSerialisedObject;
@@ -48,7 +48,7 @@ public:
 
 			CAbstractFile*	GetFile(void);
 
-	virtual CObjectReader*	GetReader(void);
+	virtual CExternalObjectReader*	GetReader(void);
 };
 
 
