@@ -21,20 +21,21 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __INTERNAL_OBJECT_SERIALISER_H__
 #define __INTERNAL_OBJECT_SERIALISER_H__
 #include "BaseObject.h"
+#include "DataConnectionObjectWriter.h"
 #include "ObjectWriter.h"
 
 
 class CInternalObjectSerialiser
 {
 protected:
-	CObjectWriter*	mpcWriter;
+	CDataConnectionObjectWriter		mcWriter;
 
 public:
-			void	Init(CObjectWriter* pcWriter);
-			void	Kill(void);
+	void	Init(CDataConnection* pcDataConnection);
+	void	Kill(void);
 
-	virtual BOOL	Write(CBaseObject* pcObject);
-	virtual void	AddDependent(CBaseObject* pcObject);
+	BOOL	Write(CBaseObject* pcObject);
+	void	AddDependent(CBaseObject* pcObject);
 };
 
 

@@ -30,11 +30,11 @@ class CChunkFileObjectWriter : public CObjectWriter, public CObjectIO
 CONSTRUCTABLE(CChunkFileObjectWriter);
 DESTRUCTABLE(CChunkFileObjectWriter);
 protected:
-	CChunkFile			mcChunkFile;
-	CChunkFileFileSystem		mcChunkFileFileSystem;
-	CChars				mszFileName;
-	CChars				mszDirectory;
-	CChars				mszObjectBaseName;
+	CChunkFile				mcChunkFile;
+	CChunkFileFileSystem	mcChunkFileFileSystem;
+	CChars					mszFileName;
+	CChars					mszDirectory;
+	CChars					mszObjectBaseName;
 
 public:
 	void	Init(char* szDirectory, char* szBaseName, char* szChunkFileName);

@@ -6,9 +6,9 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CInternalObjectSerialiser::Init(CObjectWriter* pcWriter)
+void CInternalObjectSerialiser::Init(CDataConnection* pcDataConnection)
 {
-	mpcWriter = pcWriter;
+	mcWriter.Init(pcDataConnection, 0);
 }
 
 
@@ -18,7 +18,7 @@ void CInternalObjectSerialiser::Init(CObjectWriter* pcWriter)
 //////////////////////////////////////////////////////////////////////////
 void CInternalObjectSerialiser::Kill(void)
 {
-	mpcWriter = NULL;
+	mcWriter.Kill();
 }
 
 
@@ -32,8 +32,6 @@ BOOL CInternalObjectSerialiser::Write(CBaseObject* pcObject)
 	BOOL				bResult;
 	CSerialisedObject*	pcSerialised;
 
-	ReturnOnFalse(mpcWriter->Begin());
-
 	cSerialiser.Init(NULL);
 
 	bResult = cSerialiser.Save(pcObject);
@@ -41,12 +39,12 @@ BOOL CInternalObjectSerialiser::Write(CBaseObject* pcObject)
 
 	pcSerialised = (CSerialisedObject*)cSerialiser.GetData();
 
-	bResult = mpcWriter->Write(pcSerialised);
+	bResult = mcWriter.Write(pcSerialised);
 	ReturnOnFalse(bResult);
 
 	cSerialiser.Kill();
 
-	return mpcWriter->End();
+	return TRUE;
 }
 
 
