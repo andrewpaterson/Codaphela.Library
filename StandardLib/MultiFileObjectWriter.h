@@ -22,10 +22,10 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __MULTI_FILE_OBJECT_WRITER_SIMPLE_H__
 #include "BaseLib/Chars.h"
 #include "ObjectIO.h"
-#include "ObjectWriter.h"
+#include "ExternalObjectWriter.h"
 
 
-class CMultiFileObjectWriter : public CObjectWriter, public CObjectIO
+class CMultiFileObjectWriter : public CExternalObjectWriter, public CObjectIO
 {
 CONSTRUCTABLE(CMultiFileObjectWriter);
 protected:

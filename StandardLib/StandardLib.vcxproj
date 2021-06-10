@@ -123,7 +123,7 @@
     <ClInclude Include="ObjectHeader.h" />
     <ClInclude Include="ObjectIO.h" />
     <ClInclude Include="ObjectPointerArrays.h" />
-    <ClInclude Include="ObjectReader.h" />
+    <ClInclude Include="ExternalObjectReader.h" />
     <ClInclude Include="ObjectReaderChunkFile.h" />
     <ClInclude Include="ObjectReaderChunkFileDisk.h" />
     <ClInclude Include="FileObjectReader.h" />
@@ -169,7 +169,7 @@
     <ClInclude Include="ObjectDeserialiser.h" />
     <ClInclude Include="ObjectSerialiser.h" />
     <ClInclude Include="ChunkFileObjectWriter.h" />
-    <ClInclude Include="ObjectWriter.h" />
+    <ClInclude Include="ExternalObjectWriter.h" />
     <ClInclude Include="MultiFileObjectWriter.h" />
     <ClInclude Include="HollowObject.h" />
     <ClInclude Include="IndexedObjects.h" />
@@ -230,7 +230,7 @@
     <ClCompile Include="ObjectConverterText.cpp" />
     <ClCompile Include="ExternalObjectDeserialiser.cpp" />
     <ClCompile Include="ObjectHeader.cpp" />
-    <ClCompile Include="ObjectReader.cpp" />
+    <ClCompile Include="ExternalObjectReader.cpp" />
     <ClCompile Include="ObjectReaderChunkFile.cpp" />
     <ClCompile Include="ObjectReaderChunkFileDisk.cpp" />
     <ClCompile Include="FileObjectReader.cpp" />
@@ -242,7 +242,7 @@
     <ClCompile Include="ObjectSourceSimple.cpp" />
     <ClCompile Include="ObjectSourceText.cpp" />
     <ClCompile Include="ObjectsSource.cpp" />
-    <ClCompile Include="ObjectWriter.cpp" />
+    <ClCompile Include="ExternalObjectWriter.cpp" />
     <ClCompile Include="PointerContainer.cpp" />
     <ClCompile Include="PointerField.cpp" />
     <ClCompile Include="PrimitiveField.cpp" />

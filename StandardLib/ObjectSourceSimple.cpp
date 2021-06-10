@@ -77,7 +77,7 @@ CBaseObject* CObjectSourceSimple::Convert(char* szFullName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CObjectReader* CObjectSourceSimple::GetReader(void)
+CExternalObjectReader* CObjectSourceSimple::GetReader(void)
 {
 	return mpcReader;
 }

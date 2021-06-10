@@ -153,7 +153,7 @@ BOOL CObjectSourceChunked::IsNative(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CObjectReader* CObjectSourceChunked::GetReader(void)
+CExternalObjectReader* CObjectSourceChunked::GetReader(void)
 {
 	return mpcReader;
 }

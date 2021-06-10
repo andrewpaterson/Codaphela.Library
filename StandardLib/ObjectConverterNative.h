@@ -3,7 +3,7 @@
 #include "ObjectConverter.h"
 #include "ObjectSourceChunked.h"
 #include "ObjectSourceSimple.h"
-#include "ObjectReader.h"
+#include "ExternalObjectReader.h"
 #include "IndexNewOld.h"
 
 

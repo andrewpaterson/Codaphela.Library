@@ -3,7 +3,7 @@
 #include "ObjectSingleSource.h"
 
 
-class CObjectReader;
+class CExternalObjectReader;
 class CFileObjectReader;
 class CObjectSourceSimple : public CObjectSingleSource
 {
@@ -19,7 +19,7 @@ public:
 	BOOL			IsNative(void);
 	BOOL			Contains(char* szFullName);
 	CBaseObject*	Convert(char* szFullName);
-	CObjectReader*	GetReader(void);
+	CExternalObjectReader*	GetReader(void);
 };
 
 

@@ -1,11 +1,11 @@
-#include "ObjectWriter.h"
+#include "ExternalObjectWriter.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectWriter::Init(char* szBaseName)
+void CExternalObjectWriter::Init(char* szBaseName)
 {
 }
 
@@ -14,7 +14,7 @@ void CObjectWriter::Init(char* szBaseName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectWriter::Kill(void)
+void CExternalObjectWriter::Kill(void)
 {
 	CUnknown::Kill();
 }
@@ -24,7 +24,7 @@ void CObjectWriter::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectWriter::Begin(void)
+BOOL CExternalObjectWriter::Begin(void)
 {
 	return TRUE;
 }
@@ -34,7 +34,7 @@ BOOL CObjectWriter::Begin(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectWriter::End(void)
+BOOL CExternalObjectWriter::End(void)
 {
 	return TRUE;
 }

@@ -31,7 +31,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CMultiFileObjectWriter::Init(char* szDirectory, char* szBaseName)
 {
-	CObjectWriter::Init(szBaseName);
+	CExternalObjectWriter::Init(szBaseName);
 	mszDirectory.Init(szDirectory);
 	mszObjectBaseName.Init(szBaseName);
 
@@ -51,7 +51,7 @@ void CMultiFileObjectWriter::Kill(void)
 {
 	mszObjectBaseName.Kill();
 	mszDirectory.Kill();
-	CObjectWriter::Kill();
+	CExternalObjectWriter::Kill();
 }
 
 
@@ -61,7 +61,7 @@ void CMultiFileObjectWriter::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CMultiFileObjectWriter::Begin(void)
 {
-	return CObjectWriter::Begin();
+	return CExternalObjectWriter::Begin();
 }
 
 
@@ -71,7 +71,7 @@ BOOL CMultiFileObjectWriter::Begin(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CMultiFileObjectWriter::End(void)
 {
-	return CObjectWriter::End();
+	return CExternalObjectWriter::End();
 }
 
 

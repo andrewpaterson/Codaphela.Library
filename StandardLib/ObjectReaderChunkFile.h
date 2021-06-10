@@ -21,10 +21,10 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __OBJECT_READER_CHUNK_FILE_H__
 #define __OBJECT_READER_CHUNK_FILE_H__
 #include "BaseLib/ChunkFileFileSystem.h"
-#include "ObjectReader.h"
+#include "ExternalObjectReader.h"
 
 
-class CObjectReaderChunkFile : public CObjectReader
+class CObjectReaderChunkFile : public CExternalObjectReader
 {
 CONSTRUCTABLE(CObjectReaderChunkFile);
 protected:

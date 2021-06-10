@@ -77,7 +77,7 @@ CAbstractFile* CObjectSource::GetFile(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CObjectReader* CObjectSource::GetReader(void)
+CExternalObjectReader* CObjectSource::GetReader(void)
 {
 	return NULL;
 }

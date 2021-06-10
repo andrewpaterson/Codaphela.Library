@@ -21,18 +21,18 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __EXTERNAL_OBJECT_SERIALISER_H__
 #define __EXTERNAL_OBJECT_SERIALISER_H__
 #include "BaseObject.h"
-#include "ObjectWriter.h"
+#include "ExternalObjectWriter.h"
 #include "DependentWriteObjects.h"
 
 
 class CExternalObjectSerialiser
 {
 protected:
-	CObjectWriter*			mpcWriter;
+	CExternalObjectWriter*			mpcWriter;
 	CDependentWriteObjects	mcDependentObjects;
 
 public:
-	void	Init(CObjectWriter* pcWriter);
+	void	Init(CExternalObjectWriter* pcWriter);
 	void	Kill(void);
 
 	BOOL	Write(CBaseObject* pcObject);

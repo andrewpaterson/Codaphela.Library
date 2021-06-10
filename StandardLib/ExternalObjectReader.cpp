@@ -1,12 +1,12 @@
 #include "ObjectIO.h"
-#include "ObjectReader.h"
+#include "ExternalObjectReader.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectReader::Kill(void)
+void CExternalObjectReader::Kill(void)
 {
 	CUnknown::Kill();
 }
@@ -16,7 +16,7 @@ void CObjectReader::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectReader::Begin(void)
+BOOL CExternalObjectReader::Begin(void)
 {
 	return TRUE;
 }
@@ -26,7 +26,7 @@ BOOL CObjectReader::Begin(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectReader::End(void)
+BOOL CExternalObjectReader::End(void)
 {
 	return TRUE;
 }
@@ -36,7 +36,7 @@ BOOL CObjectReader::End(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CSerialisedObject* CObjectReader::ReadSerialised(CFileReader* pcReader)
+CSerialisedObject* CExternalObjectReader::ReadSerialised(CFileReader* pcReader)
 {
 	int					iLength;
 	CSerialisedObject*	pcSerialised;

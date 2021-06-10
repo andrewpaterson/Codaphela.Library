@@ -33,7 +33,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CChunkFileObjectWriter::Init(char* szDirectory, char* szBaseName, char* szChunkFileName)
 {
-	CObjectWriter::Init(szDirectory);
+	CExternalObjectWriter::Init(szDirectory);
 	mszDirectory.Init(szDirectory);
 	mszFileName.Init(szChunkFileName);
 	mszObjectBaseName.Init(szBaseName);
@@ -58,7 +58,7 @@ void CChunkFileObjectWriter::Kill(void)
 	mszObjectBaseName.Kill();
 	mszFileName.Kill();
 	mszDirectory.Kill();
-	CObjectWriter::Kill();
+	CExternalObjectWriter::Kill();
 }
 
 
@@ -73,7 +73,7 @@ BOOL CChunkFileObjectWriter::Begin(void)
 	CChars		szFullDirectory;
 	CChars		szFileName;
 
-	CObjectWriter::Begin();
+	CExternalObjectWriter::Begin();
 
 	szFullDirectory.Init(mszDirectory);
 	cFileUtil.AppendToPath(&szFullDirectory, mszObjectBaseName.Text());
@@ -111,7 +111,7 @@ BOOL CChunkFileObjectWriter::End(void)
 	mcChunkFileFileSystem.Kill();
 	mcChunkFile.Kill();
 
-	return CObjectWriter::End();
+	return CExternalObjectWriter::End();
 }
 
 

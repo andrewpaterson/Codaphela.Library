@@ -9,7 +9,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CExternalObjectDeserialiser::Init(CObjectReader* pcReader, BOOL bNamedHollows, CObjects* pcObjects, CNamedIndexedObjects* pcMemory)
+void CExternalObjectDeserialiser::Init(CExternalObjectReader* pcReader, BOOL bNamedHollows, CObjects* pcObjects, CNamedIndexedObjects* pcMemory)
 {
 	CDependentReadObjects::Init();
 	mpcReader = pcReader;

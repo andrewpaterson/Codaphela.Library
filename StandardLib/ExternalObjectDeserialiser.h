@@ -1,7 +1,7 @@
 #ifndef __EXTERNAL_OBJECT_DESERIALISER_H__
 #define __EXTERNAL_OBJECT_DESERIALISER_H__
 #include "BaseObject.h"
-#include "ObjectReader.h"
+#include "ExternalObjectReader.h"
 #include "Pointer.h"
 #include "DependentReadObjects.h"
 #include "NamedIndexedObjects.h"
@@ -17,14 +17,14 @@ class CIndexGenerator;
 class CExternalObjectDeserialiser : public CDependentReadObjects
 {
 protected:
-	CObjectReader*			mpcReader;  //The ObjectReader knows how to load the serialised form of the object by name.
+	CExternalObjectReader*			mpcReader;  //The ObjectReader knows how to load the serialised form of the object by name.
 	CObjects*				mpcObjects;
 
 	CNamedIndexedObjects*	mpcMemory;
 	BOOL					mbNamedHollows;
 	
 public:
-	void			Init(CObjectReader* pcReader, BOOL bNamedHollows, CObjects* pcObjects, CNamedIndexedObjects* pcMemory);
+	void			Init(CExternalObjectReader* pcReader, BOOL bNamedHollows, CObjects* pcObjects, CNamedIndexedObjects* pcMemory);
 	void			Kill(void);
 
 	CBaseObject*	Read(char* szObjectName);

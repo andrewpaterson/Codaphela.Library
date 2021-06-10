@@ -113,7 +113,7 @@ CBaseObject* CObjectConverterNative::Convert(CObjectSource* pcSource, char* szOb
 	CBaseObject*				pvObject;
 	CFileBasic					cFileBasic;
 	CExternalObjectDeserialiser	cGraphDeserialiser;
-	CObjectReader*				pcReader;
+	CExternalObjectReader*				pcReader;
 
 	//This if statement should be calling a virtual method instead.
 	pcReader = pcSource->GetReader();
