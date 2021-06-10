@@ -27,7 +27,6 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseObject.h"
 #include "NamedObject.h"
 #include "InternalObjectSerialiser.h"
-#include "DataConnectionObjectWriter.h"
 #include "InternalObjectDeserialiser.h"
 #include "ObjectSource.h"
 #include "ObjectRemapFrom.h"

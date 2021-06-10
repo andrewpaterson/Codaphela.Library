@@ -121,9 +121,6 @@
     <Filter Include="Source\Object\Object\IO\File">
       <UniqueIdentifier>{d0c92515-243f-42ea-9db7-c95bbdea1c93}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Object\Object\IO\DataConnection">
-      <UniqueIdentifier>{998549eb-11d7-4b02-a517-7012ae0b1885}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source\Object\Object\IO\ChunkFile">
       <UniqueIdentifier>{1fea8d17-7695-4b54-9773-e80e042c3ac2}</UniqueIdentifier>
     </Filter>
@@ -185,9 +182,6 @@
     </ClInclude>
     <ClInclude Include="NamedObject.h">
       <Filter>Source\Object\Object\Named</Filter>
-    </ClInclude>
-    <ClInclude Include="DataConnectionObjectWriter.h">
-      <Filter>Source\Object\Object\IO\DataConnection</Filter>
     </ClInclude>
     <ClInclude Include="HollowObject.h">
       <Filter>Source\Object\Object\Hollow</Filter>
@@ -521,9 +515,6 @@
     </ClCompile>
     <ClCompile Include="NamedObject.cpp">
       <Filter>Source\Object\Object\Named</Filter>
-    </ClCompile>
-    <ClCompile Include="DataConnectionObjectWriter.cpp">
-      <Filter>Source\Object\Object\IO\DataConnection</Filter>
     </ClCompile>
     <ClCompile Include="HollowObject.cpp">
       <Filter>Source\Object\Object\Hollow</Filter>

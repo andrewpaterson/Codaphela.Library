@@ -170,7 +170,6 @@
     <ClInclude Include="ObjectSerialiser.h" />
     <ClInclude Include="ChunkFileObjectWriter.h" />
     <ClInclude Include="ObjectWriter.h" />
-    <ClInclude Include="DataConnectionObjectWriter.h" />
     <ClInclude Include="MultiFileObjectWriter.h" />
     <ClInclude Include="HollowObject.h" />
     <ClInclude Include="IndexedObjects.h" />
@@ -275,7 +274,6 @@
     <ClCompile Include="ObjectDeserialiser.cpp" />
     <ClCompile Include="ObjectSerialiser.cpp" />
     <ClCompile Include="ChunkFileObjectWriter.cpp" />
-    <ClCompile Include="DataConnectionObjectWriter.cpp" />
     <ClCompile Include="MultiFileObjectWriter.cpp" />
     <ClCompile Include="HollowObject.cpp" />
     <ClCompile Include="IndexedObjects.cpp" />
