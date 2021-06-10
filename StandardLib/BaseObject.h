@@ -61,8 +61,8 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //All flags are used!  You'll need to make miFlags bigger if you need more.
 
 
-class CObjectDeserialiser;
-class CObjectSerialiser;
+class CObjectReader;
+class CObjectWriter;
 class CObjects;
 class CObjectRemapFrom;
 class CBaseObject : public CEmbeddedObject
@@ -75,8 +75,8 @@ friend class CObject;
 friend class CObjects;
 friend class CObjectRemapFrom;
 friend class CEmbeddedObject;
-friend class CObjectSerialiser;
-friend class CObjectDeserialiser;
+friend class CObjectWriter;
+friend class CObjectReader;
 
 CONSTRUCTABLE(CBaseObject);
 protected:
@@ -102,8 +102,8 @@ public:
 	virtual void				Free(void) =0;
 	virtual BOOL				Flush(void);
 
-			BOOL				Save(CObjectSerialiser* pcFile);
-			BOOL				Load(CObjectDeserialiser* pcFile);
+			BOOL				Save(CObjectWriter* pcFile);
+			BOOL				Load(CObjectReader* pcFile);
 
 			OIndex				GetIndex(void);
 			void				SetObjectID(OIndex oi);  //This looks like a bad idea.
@@ -200,8 +200,8 @@ protected:
 	virtual void				RemoveAllPointerTosDontKill(void) =0;
 	virtual void				RemoveAllPointerTos(void) =0;
 
-			BOOL				SaveManaged(CObjectSerialiser* pcFile);
-			BOOL				LoadManaged(CObjectDeserialiser* pcFile);
+			BOOL				SaveManaged(CObjectWriter* pcFile);
+			BOOL				LoadManaged(CObjectReader* pcFile);
 
 	virtual void				FreeIdentifiers(void);
 			void				FreePointers(void);
@@ -219,14 +219,14 @@ protected:
 			void				ContainerPreInit(void);
 			void				ContainerPostInit(void);
 
-			BOOL				SaveEmbeddedObjects(CObjectSerialiser* pcFile);
-			BOOL				SavePointers(CObjectSerialiser* pcFile);
-			BOOL				SavePrimitives(CObjectSerialiser* pcFile);
-			BOOL				SaveUnmanaged(CObjectSerialiser* pcFile);
-			BOOL				LoadEmbeddedObjects(CObjectDeserialiser* pcFile);
-			BOOL				LoadPointers(CObjectDeserialiser* pcFile);
-			BOOL				LoadPrimitives(CObjectDeserialiser* pcFile);
-			BOOL				LoadUnmanaged(CObjectDeserialiser* pcFile);
+			BOOL				SaveEmbeddedObjects(CObjectWriter* pcFile);
+			BOOL				SavePointers(CObjectWriter* pcFile);
+			BOOL				SavePrimitives(CObjectWriter* pcFile);
+			BOOL				SaveUnmanaged(CObjectWriter* pcFile);
+			BOOL				LoadEmbeddedObjects(CObjectReader* pcFile);
+			BOOL				LoadPointers(CObjectReader* pcFile);
+			BOOL				LoadPrimitives(CObjectReader* pcFile);
+			BOOL				LoadUnmanaged(CObjectReader* pcFile);
 
 	virtual void				BaseValidatePointerTos(void) =0;
 };

@@ -24,14 +24,14 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "ObjectFileGeneral.h"
 #include "ObjectHeader.h"
 #include "ExternalObjectDeserialiser.h"
-#include "ObjectDeserialiser.h"
+#include "ObjectReader.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectDeserialiser::Init(CDependentReadObjects* pcDependents)
+BOOL CObjectReader::Init(CDependentReadObjects* pcDependents)
 {
 	mpcDependents = pcDependents;
 
@@ -43,7 +43,7 @@ BOOL CObjectDeserialiser::Init(CDependentReadObjects* pcDependents)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectDeserialiser::Kill(void)
+void CObjectReader::Kill(void)
 {
 	mpcDependents = NULL;
 }
@@ -53,7 +53,7 @@ void CObjectDeserialiser::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CObjectDeserialiser::Load(CSerialisedObject* pcSerialised)
+CBaseObject* CObjectReader::Load(CSerialisedObject* pcSerialised)
 {
 	BOOL			bResult;
 	int				iLength;
@@ -62,7 +62,7 @@ CBaseObject* CObjectDeserialiser::Load(CSerialisedObject* pcSerialised)
 
 	if (!pcSerialised)
 	{
-		gcLogger.Error("CObjectDeserialiser::Load Serialised Object is NULL.");
+		gcLogger.Error("CObjectReader::Load Serialised Object is NULL.");
 		return NULL;
 	}
 
@@ -78,7 +78,7 @@ CBaseObject* CObjectDeserialiser::Load(CSerialisedObject* pcSerialised)
 	bResult = ReadInt(&iLength);
 	if (!bResult)
 	{
-		gcLogger.Error("CObjectDeserialiser::Load Could not read serialised object length.");
+		gcLogger.Error("CObjectReader::Load Could not read serialised object length.");
 		mcFile.Close();
 		mcFile.Kill();
 
@@ -88,7 +88,7 @@ CBaseObject* CObjectDeserialiser::Load(CSerialisedObject* pcSerialised)
 	bResult = ReadObjectHeader(&sHeader);
 	if (!bResult)
 	{
-		gcLogger.Error("CObjectDeserialiser::Load Could not read serialised object header.");
+		gcLogger.Error("CObjectReader::Load Could not read serialised object header.");
 		mcFile.Close();
 		mcFile.Kill();
 		sHeader.Kill();
@@ -103,7 +103,7 @@ CBaseObject* CObjectDeserialiser::Load(CSerialisedObject* pcSerialised)
 
 	if (pvObject == NULL)
 	{
-		gcLogger.Error("CObjectDeserialiser::Load Could not load serialised object.");
+		gcLogger.Error("CObjectReader::Load Could not load serialised object.");
 		mcFile.Close();
 		mcFile.Kill();
 		return NULL;
@@ -112,7 +112,7 @@ CBaseObject* CObjectDeserialiser::Load(CSerialisedObject* pcSerialised)
 	bResult = pvObject->LoadManaged(this);
 	if (!bResult)
 	{
-		gcLogger.Error("CObjectDeserialiser::Load Could not load serialised object.");
+		gcLogger.Error("CObjectReader::Load Could not load serialised object.");
 		mcFile.Close();
 		mcFile.Kill();
 
@@ -132,7 +132,7 @@ CBaseObject* CObjectDeserialiser::Load(CSerialisedObject* pcSerialised)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectDeserialiser::ReadIdentifier(CObjectIdentifier* pcPointerHeader)
+BOOL CObjectReader::ReadIdentifier(CObjectIdentifier* pcPointerHeader)
 {
 	pcPointerHeader->Init();
 
@@ -163,7 +163,7 @@ BOOL CObjectDeserialiser::ReadIdentifier(CObjectIdentifier* pcPointerHeader)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectDeserialiser::ReadObjectHeader(CObjectHeader* pcObjectHeader)
+BOOL CObjectReader::ReadObjectHeader(CObjectHeader* pcObjectHeader)
 {
 	pcObjectHeader->Init();
 	ReturnOnFalse(ReadIdentifier(pcObjectHeader));
@@ -176,7 +176,7 @@ BOOL CObjectDeserialiser::ReadObjectHeader(CObjectHeader* pcObjectHeader)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-filePos CObjectDeserialiser::Read(void* pvDest, filePos iSize, filePos iCount)
+filePos CObjectReader::Read(void* pvDest, filePos iSize, filePos iCount)
 {
 	return mcFile.Read(pvDest, iSize, iCount);
 }
@@ -186,7 +186,7 @@ filePos CObjectDeserialiser::Read(void* pvDest, filePos iSize, filePos iCount)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectDeserialiser::ReadPointer(CPointer* pObject)
+BOOL CObjectReader::ReadPointer(CPointer* pObject)
 {
 	CPointerHeader		cHeader;
 	BOOL				bResult;
@@ -231,7 +231,7 @@ BOOL CObjectDeserialiser::ReadPointer(CPointer* pObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectDeserialiser::ReadDependent(CEmbeddedObject** ppcObjectPtr, CBaseObject* pcContaining)
+BOOL CObjectReader::ReadDependent(CEmbeddedObject** ppcObjectPtr, CBaseObject* pcContaining)
 {
 	CPointerHeader	cHeader;
 	BOOL			bResult;

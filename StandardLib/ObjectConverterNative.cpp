@@ -4,7 +4,7 @@
 #include "Objects.h"
 #include "ObjectFileGeneral.h"
 #include "IndexGenerator.h"
-#include "ObjectDeserialiser.h"
+#include "ObjectReader.h"
 #include "ExternalObjectDeserialiser.h"
 #include "ObjectConverterNative.h"
 

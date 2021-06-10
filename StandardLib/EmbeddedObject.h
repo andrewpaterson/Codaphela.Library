@@ -23,8 +23,8 @@
 
 class CObject;
 class CObjects;
-class CObjectSerialiser;
-class CObjectDeserialiser;
+class CObjectWriter;
+class CObjectReader;
 class CEmbeddedObject : public CUnknown
 {
 friend class CPointer;
@@ -46,8 +46,8 @@ public:
 	virtual void				InternalFree(void) =0;
 	virtual void				FreePointers(void);
 			void				PostRemapFroms(void);
-	virtual BOOL				Save(CObjectSerialiser* pcFile) =0;
-	virtual BOOL				Load(CObjectDeserialiser* pcFile) =0;
+	virtual BOOL				Save(CObjectWriter* pcFile) =0;
+	virtual BOOL				Load(CObjectReader* pcFile) =0;
 	virtual BOOL				IsHollow(void) =0;
 	virtual int					RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* mpcObject);
 	virtual BOOL				SetDistToRoot(int iDistToRoot) =0;

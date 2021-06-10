@@ -19,8 +19,8 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include "Objects.h"
-#include "ObjectSerialiser.h"
-#include "ObjectDeserialiser.h"
+#include "ObjectWriter.h"
+#include "ObjectReader.h"
 #include "Root.h"
 
 
@@ -176,7 +176,7 @@ BOOL CRoot::IsSubRoot(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CRoot::Load(CObjectDeserialiser* pcFile)
+BOOL CRoot::Load(CObjectReader* pcFile)
 {
 	//This smells.
 	mpcObjectsAllocatingFrom = &gcObjects;

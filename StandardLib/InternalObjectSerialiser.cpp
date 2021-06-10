@@ -1,5 +1,5 @@
 #include "CoreLib/DataConnection.h"
-#include "ObjectSerialiser.h"
+#include "ObjectWriter.h"
 #include "SerialisedObject.h"
 #include "InternalObjectSerialiser.h"
 
@@ -30,7 +30,7 @@ void CInternalObjectSerialiser::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CInternalObjectSerialiser::Write(CBaseObject* pcObject)
 {
-	CObjectSerialiser	cSerialiser;
+	CObjectWriter	cSerialiser;
 	BOOL				bResult;
 	CSerialisedObject*	pcSerialised;
 

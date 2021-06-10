@@ -19,8 +19,8 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include "Objects.h"
-#include "ObjectSerialiser.h"
-#include "ObjectDeserialiser.h"
+#include "ObjectWriter.h"
+#include "ObjectReader.h"
 #include "ArrayCommonObject.h"
 
 
@@ -144,7 +144,7 @@ void CArrayCommonObject::Free(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayCommonObject::Save(CObjectSerialiser* pcFile)
+BOOL CArrayCommonObject::Save(CObjectWriter* pcFile)
 {
 	int				i;
 	int				iNumElements;
@@ -168,7 +168,7 @@ BOOL CArrayCommonObject::Save(CObjectSerialiser* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayCommonObject::Load(CObjectDeserialiser* pcFile)
+BOOL CArrayCommonObject::Load(CObjectReader* pcFile)
 {
 	int					i;
 	int					iFlags;

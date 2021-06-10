@@ -18,38 +18,45 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __OBJECT_DESERIALISER_H__
-#define __OBJECT_DESERIALISER_H__
-#include "BaseLib/FileReader.h"
+#ifndef __OBJET_WRITER_H__
+#define __OBJET_WRITER_H__
+#include "BaseLib/FileWriter.h"
 #include "BaseLib/MemoryFile.h"
-#include "IndexNewOld.h"
-#include "SerialisedObject.h"
-#include "DependentReadObjects.h"
-#include "Pointer.h"
+#include "BaseObject.h"
+#include "ObjectHeader.h"
+#include "DependentWriteObjects.h"
 
 
-class CObjectHeader;
-class CObjectIdentifier;
-class CObjectDeserialiser : public CFileReader
+class CObjectWriter : public CFileWriter
 {
 protected:
-	CDependentReadObjects*	mpcDependents;
-	CFileBasic				mcFile;
-	
-public:
-	BOOL			Init(CDependentReadObjects* pcDependents);
-	void			Kill(void);
-	CBaseObject*	Load(CSerialisedObject* pcSerialised);
+	CMemoryFile*				mpcMemory;
+	CFileBasic					mcFile;
+	CDependentWriteObjects*		mpcDependentObjects;
 
-	BOOL			ReadPointer(CPointer* pObject);
-	BOOL			ReadIdentifier(CObjectIdentifier* pcPointerHeader);
-	BOOL			ReadObjectHeader(CObjectHeader* pcObjectHeader);
-	BOOL			ReadDependent(CEmbeddedObject** ppcObjectPtr, CBaseObject* pcContaining);
+public:
+	BOOL			Init(CDependentWriteObjects* pcDependentObjects);
+	void			Kill(void);
+
+	BOOL			Save(CBaseObject* pcThis);
+
+	void*			GetData(void);
+	int				GetLength(void);
+
+	BOOL			WritePointer(CPointer& pObject);
+	BOOL			WritePointer(CPointer* pObject);
+	BOOL			WriteDependent(CEmbeddedObject* pcBaseObject);
 
 protected:
-	filePos			Read(void* pvDest, filePos iSize, filePos iCount);
+	BOOL			WriteObjectHeader(CObjectHeader* psHeader);
+	BOOL			WriteIdentifier(CObjectIdentifier* psIdentifier);
+
+	void			InitObjectHeader(CObjectHeader* psHeader, CBaseObject* pcObject);
+	void			InitIdentifier(CObjectIdentifier* psHeader, CBaseObject* pcObject);
+
+	filePos			Write(const void* pvSource, filePos iSize, filePos iCount);
 };
 
 
-#endif // __OBJECT_DESERIALISER_H__
+#endif // __OBJET_WRITER_H__
 

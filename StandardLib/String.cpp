@@ -1,5 +1,5 @@
-#include "ObjectDeserialiser.h"
-#include "ObjectSerialiser.h"
+#include "ObjectReader.h"
+#include "ObjectWriter.h"
 #include "Objects.h"
 #include "String.h"
 
@@ -111,7 +111,7 @@ void CString::Free(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CString::Save(CObjectSerialiser* pcFile)
+BOOL CString::Save(CObjectWriter* pcFile)
 {
 	return msz.WriteString(pcFile);
 }
@@ -121,7 +121,7 @@ BOOL CString::Save(CObjectSerialiser* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CString::Load(CObjectDeserialiser* pcFile)
+BOOL CString::Load(CObjectReader* pcFile)
 {
 	return msz.ReadString(pcFile);
 }

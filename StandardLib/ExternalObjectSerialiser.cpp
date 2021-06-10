@@ -19,7 +19,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/Logger.h"
-#include "ObjectSerialiser.h"
+#include "ObjectWriter.h"
 #include "ExternalObjectSerialiser.h"
 #include "SerialisedObject.h"
 
@@ -86,7 +86,7 @@ BOOL CExternalObjectSerialiser::Write(CBaseObject* pcObject)
 //////////////////////////////////////////////////////////////////////////
 BOOL CExternalObjectSerialiser::WriteUnwritten(CBaseObject* pcObject)
 {
-	CObjectSerialiser	cSerialiser;
+	CObjectWriter	cSerialiser;
 	BOOL				bResult;
 	CSerialisedObject*	pcSerialised;
 	CChars				szDescription;

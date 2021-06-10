@@ -8,8 +8,8 @@
 template <class SpecificClass, typename ... Args>
 Ptr<SpecificClass> OString(Args ... args);
 
-class CObjectSerialiser;
-class CObjectDeserialiser;
+class CObjectWriter;
+class CObjectReader;
 class CString : public CObject
 {
 CONSTRUCTABLE(CString);
@@ -27,8 +27,8 @@ public:
 	void			Class(void);
 	void			Free(void);
 
-	BOOL			Save(CObjectSerialiser* pcFile);
-	BOOL			Load(CObjectDeserialiser* pcFile);
+	BOOL			Save(CObjectWriter* pcFile);
+	BOOL			Load(CObjectReader* pcFile);
 
 	void			D(void);
 

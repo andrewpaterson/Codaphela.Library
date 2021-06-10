@@ -34,7 +34,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 class CEmbeddedObject;
 class CObject;
-class CObjectDeserialiser;
+class CObjectReader;
 
 class CPointer
 {
@@ -70,7 +70,7 @@ public:
 	int					MorphInto(CEmbeddedObject* pcOld);
 
 	BOOL				IsHollow(void);
-	BOOL				Load(CObjectDeserialiser* pcFile);
+	BOOL				Load(CObjectReader* pcFile);
 	int					GetDistToRoot(void);
 	int					GetDistToStack(void);
 	OIndex				GetIndex(void);

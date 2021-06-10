@@ -97,7 +97,7 @@ BOOL CHollowObject::IsHollow(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CHollowObject::Save(CObjectSerialiser* pcFile)
+BOOL CHollowObject::Save(CObjectWriter* pcFile)
 {
 	return FALSE;
 }
@@ -107,7 +107,7 @@ BOOL CHollowObject::Save(CObjectSerialiser* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CHollowObject::Load(CObjectDeserialiser* pcFile)
+BOOL CHollowObject::Load(CObjectReader* pcFile)
 {
 	return FALSE;
 }
