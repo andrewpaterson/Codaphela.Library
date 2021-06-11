@@ -30,21 +30,21 @@ void CInternalObjectSerialiser::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CInternalObjectSerialiser::Write(CBaseObject* pcObject)
 {
-	CObjectWriter	cSerialiser;
+	CObjectWriter		cWriter;
 	BOOL				bResult;
 	CSerialisedObject*	pcSerialised;
 
-	cSerialiser.Init(NULL);
+	cWriter.Init(NULL);
 
-	bResult = cSerialiser.Write(pcObject);
+	bResult = cWriter.Write(pcObject);
 	ReturnOnFalse(bResult);
 
-	pcSerialised = (CSerialisedObject*)cSerialiser.GetData();
+	pcSerialised = (CSerialisedObject*)cWriter.GetData();
 
 	bResult = Write(pcSerialised);
 	ReturnOnFalse(bResult);
 
-	cSerialiser.Kill();
+	cWriter.Kill();
 
 	return TRUE;
 }

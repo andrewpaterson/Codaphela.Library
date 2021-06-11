@@ -32,8 +32,8 @@ BOOL CObjectWriter::Init(CDependentWriteObjects* pcDependentObjects)
 {
 	mpcDependentObjects = pcDependentObjects;
 
-	mpcMemory = MemoryFile();
-	mcFile.Init(mpcMemory);
+	mcMemory.Init();
+	mcFile.Init(&mcMemory);
 	return TRUE;
 }
 
@@ -45,6 +45,7 @@ BOOL CObjectWriter::Init(CDependentWriteObjects* pcDependentObjects)
 void CObjectWriter::Kill(void)
 {
 	mcFile.Kill();
+	mcMemory.Kill();
 
 	mpcDependentObjects = NULL;
 }
@@ -295,7 +296,7 @@ filePos CObjectWriter::Write(const void* pvSource, filePos iSize, filePos iCount
 //////////////////////////////////////////////////////////////////////////
 void* CObjectWriter::GetData(void)
 {
-	return mpcMemory->GetBufferPointer();
+	return mcMemory.GetBufferPointer();
 }
 
 
@@ -305,6 +306,6 @@ void* CObjectWriter::GetData(void)
 //////////////////////////////////////////////////////////////////////////
 int CObjectWriter::GetLength(void)
 {
-	return mpcMemory->GetBufferSize();
+	return mcMemory.GetBufferSize();
 }
 

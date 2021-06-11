@@ -30,7 +30,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 class CObjectWriter : public CFileWriter
 {
 protected:
-	CMemoryFile*				mpcMemory;
+	CMemoryFile					mcMemory;
 	CFileBasic					mcFile;
 	CDependentWriteObjects*		mpcDependentObjects;
 

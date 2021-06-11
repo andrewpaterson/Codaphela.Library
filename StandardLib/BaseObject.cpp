@@ -891,13 +891,14 @@ BOOL CBaseObject::RemoveToFrom(CEmbeddedObject* pcPointedTo)
 //////////////////////////////////////////////////////////////////////////
 int CBaseObject::SerialisedSize(void)
 {
-	CObjectWriter	cSerialiser;
-	int					iLength;
+	//This method should only be used for testing.  It should be a helper somewhere else.
+	CObjectWriter	cWriter;
+	int				iLength;
 
-	cSerialiser.Init(NULL);
-	cSerialiser.Write(this);
-	iLength = cSerialiser.GetLength();
-	cSerialiser.Kill();
+	cWriter.Init(NULL);
+	cWriter.Write(this);
+	iLength = cWriter.GetLength();
+	cWriter.Kill();
 	return iLength;
 }
 
