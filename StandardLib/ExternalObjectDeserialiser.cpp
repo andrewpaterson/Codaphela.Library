@@ -181,7 +181,7 @@ CBaseObject* CExternalObjectDeserialiser::ReadSerialsed(CSerialisedObject* pcSer
 
 	oiOld = pcSerialised->GetIndex();
 	cDeserialiser.Init(this);
-	pvObject = cDeserialiser.Load(pcSerialised);
+	pvObject = cDeserialiser.Read(pcSerialised);
 
 	cDeserialiser.Kill();
 

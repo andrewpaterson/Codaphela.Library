@@ -39,7 +39,7 @@ protected:
 public:
 	BOOL			Init(CDependentReadObjects* pcDependents);
 	void			Kill(void);
-	CBaseObject*	Load(CSerialisedObject* pcSerialised);
+	CBaseObject*	Read(CSerialisedObject* pcSerialised);
 
 	BOOL			ReadPointer(CPointer* pObject);
 	BOOL			ReadIdentifier(CObjectIdentifier* pcPointerHeader);

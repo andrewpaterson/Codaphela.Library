@@ -38,7 +38,7 @@ public:
 	BOOL			Init(CDependentWriteObjects* pcDependentObjects);
 	void			Kill(void);
 
-	BOOL			Save(CBaseObject* pcThis);
+	BOOL			Write(CBaseObject* pcThis);
 
 	void*			GetData(void);
 	int				GetLength(void);
