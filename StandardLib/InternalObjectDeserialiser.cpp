@@ -118,7 +118,7 @@ CBaseObject* CInternalObjectDeserialiser::ReadSerialised(CSerialisedObject* pcSe
 	CBaseObject*			pvObject;
 
 	cDeserialiser.Init(this);
-	pvObject = cDeserialiser.Load(pcSerialised);
+	pvObject = cDeserialiser.Read(pcSerialised);
 
 	cDeserialiser.Kill();
 

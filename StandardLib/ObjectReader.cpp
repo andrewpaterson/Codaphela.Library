@@ -53,7 +53,7 @@ void CObjectReader::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CObjectReader::Load(CSerialisedObject* pcSerialised)
+CBaseObject* CObjectReader::Read(CSerialisedObject* pcSerialised)
 {
 	BOOL			bResult;
 	int				iLength;

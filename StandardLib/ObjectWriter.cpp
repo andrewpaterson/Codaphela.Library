@@ -54,7 +54,7 @@ void CObjectWriter::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectWriter::Save(CBaseObject* pcThis)
+BOOL CObjectWriter::Write(CBaseObject* pcThis)
 {
 	BOOL			bResult;
 	filePos			iLength;

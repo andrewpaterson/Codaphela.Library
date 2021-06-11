@@ -86,7 +86,7 @@ BOOL CExternalObjectSerialiser::Write(CBaseObject* pcObject)
 //////////////////////////////////////////////////////////////////////////
 BOOL CExternalObjectSerialiser::WriteUnwritten(CBaseObject* pcObject)
 {
-	CObjectWriter	cSerialiser;
+	CObjectWriter		cObjectWriter;
 	BOOL				bResult;
 	CSerialisedObject*	pcSerialised;
 	CChars				szDescription;
@@ -96,9 +96,9 @@ BOOL CExternalObjectSerialiser::WriteUnwritten(CBaseObject* pcObject)
 		return gcLogger.Error2(__METHOD__, " Could write [NULL] object.", NULL);
 	}
 
-	cSerialiser.Init(&mcDependentObjects);
+	cObjectWriter.Init(&mcDependentObjects);
 
-	bResult = cSerialiser.Save(pcObject);
+	bResult = cObjectWriter.Write(pcObject);
 	if (!bResult)
 	{
 		szDescription.Init();
@@ -107,7 +107,7 @@ BOOL CExternalObjectSerialiser::WriteUnwritten(CBaseObject* pcObject)
 		return FALSE;
 	}
 
-	pcSerialised = (CSerialisedObject*)cSerialiser.GetData();
+	pcSerialised = (CSerialisedObject*)cObjectWriter.GetData();
 
 	bResult = mpcWriter->Write(pcSerialised);
 	if (!bResult)
@@ -118,7 +118,7 @@ BOOL CExternalObjectSerialiser::WriteUnwritten(CBaseObject* pcObject)
 		return FALSE;
 	}
 
-	cSerialiser.Kill();
+	cObjectWriter.Kill();
 
 	MarkWritten(pcObject);
 	return TRUE;
