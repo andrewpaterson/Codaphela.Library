@@ -36,19 +36,21 @@ BOOL CInternalObjectSerialiser::Write(CBaseObject* pcObject)
 	CMemoryFile			cMemory;
 
 	cMemory.Init();
+	cMemory.Open(EFM_ReadWrite_Create);
 	cWriter.Init(&cMemory, NULL);
 
 	bResult = cWriter.Write(pcObject);
 	ReturnOnFalse(bResult);
 
-	//bResult = cWriter.WriteHeapFroms(pcObject);
-	//ReturnOnFalse(bResult);
+	bResult = cWriter.WriteHeapFroms(pcObject);
+	ReturnOnFalse(bResult);
 
 	pcSerialised = (CSerialisedObject*)cMemory.GetBufferPointer();
 
 	bResult = Put(pcSerialised);
 	ReturnOnFalse(bResult);
 
+	cMemory.Close();
 	cWriter.Kill();
 	cMemory.Kill();
 

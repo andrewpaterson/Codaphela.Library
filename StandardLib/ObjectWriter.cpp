@@ -76,9 +76,6 @@ BOOL CObjectWriter::Write(CBaseObject* pcThis)
 		return gcLogger.Error2(__METHOD__, " Cannot serialse a NULL object.", NULL);
 	}
 
-	bResult = mcFile.Open(EFM_ReadWrite_Create);
-	ObjectWriterErrorCheck(bResult, pcThis, __METHOD__, " Could not open serialiser to save object [", sz.Text(), "].", NULL);
-
 	bResult = WriteInt(0);
 	ObjectWriterErrorCheck(bResult, pcThis, __METHOD__, " Could not write object steam size saving object [", sz.Text(), "].", NULL);
 
@@ -89,13 +86,12 @@ BOOL CObjectWriter::Write(CBaseObject* pcThis)
 	bResult = pcThis->SaveManaged(this);
 	ObjectWriterErrorCheck(bResult, pcThis, __METHOD__, " Could not Save() object [", sz.Text(), "].", NULL);
 
-	iLength = mcFile.GetFileLength();
+	iLength = mcFile.GetFilePos();
 	mcFile.Seek(0);
 	bResult = WriteInt((int)iLength);
 	ObjectWriterErrorCheck(bResult, pcThis, __METHOD__, " Could not write object steam size saving object [", sz.Text(), "].", NULL);
 
-	bResult = mcFile.Close();
-	ObjectWriterErrorCheck(bResult, pcThis, __METHOD__, " Could not close serialiser saving object [", sz.Text(), "].", NULL);
+	mcFile.Seek(iLength);
 
 	return TRUE;
 }
@@ -111,12 +107,7 @@ BOOL CObjectWriter::WriteHeapFroms(CBaseObject* pcThis)
 	filePos			iLength;
 	BOOL			bResult;
 
-	bResult = mcFile.Open(EFM_ReadWrite);
-	ObjectWriterErrorCheck(bResult, pcThis, __METHOD__, " Could not open serialiser to save object [", sz.Text(), "] 'froms'.", NULL);
-
 	iStart = mcFile.GetFilePos();
-	bResult = mcFile.Seek(iStart);
-	ObjectWriterErrorCheck(bResult, pcThis, __METHOD__, " Could not seek while saving object [", sz.Text(), "] 'froms'.", NULL);
 
 	bResult = WriteInt(0);
 	ObjectWriterErrorCheck(bResult, pcThis, __METHOD__, " Could not write object steam size saving object [", sz.Text(), "] 'froms'.", NULL);
@@ -127,7 +118,9 @@ BOOL CObjectWriter::WriteHeapFroms(CBaseObject* pcThis)
 	iLength = mcFile.GetFileLength();
 	mcFile.Seek(iStart);
 	bResult = WriteInt((int)(iLength - iStart));
-	ObjectWriterErrorCheck(bResult, pcThis, __METHOD__, " Could not close serialiser saving object [", sz.Text(), "].", NULL);
+	ObjectWriterErrorCheck(bResult, pcThis, __METHOD__, " Could not write object steam size saving object [", sz.Text(), "] 'froms'.", NULL);
+
+	mcFile.Seek(iLength);
 
 	return TRUE;
 }

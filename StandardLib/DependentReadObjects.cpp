@@ -58,10 +58,10 @@ void CDependentReadObjects::AddHeapFrom(CEmbeddedObject* pcBaseObject, CEmbedded
 BOOL CDependentReadObjects::AddDependent(CObjectIdentifier* pcHeader, CEmbeddedObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingPtrToBeUpdated, uint16 iNumEmbedded, uint16 iEmbeddedIndex)
 {
 	CDependentReadObject	cDependent;
-	CDependentReadObject* pcExistingInFile;
+	CDependentReadObject*	pcExistingInFile;
 	BOOL					bOiExistsInDependents;
 	int						iIndex;
-	CDependentReadPointer* pcPointer;
+	CDependentReadPointer*	pcPointer;
 	CPointer				pExisitingInDatabase;
 	BOOL					bNameExistsInDatabase;
 

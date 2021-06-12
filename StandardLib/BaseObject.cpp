@@ -897,9 +897,11 @@ int CBaseObject::SerialisedSize(void)
 	CMemoryFile		cMemory;
 
 	cMemory.Init();
+	cMemory.Open(EFM_ReadWrite_Create);
 	cWriter.Init(&cMemory, NULL);
 	cWriter.Write(this);
 	iLength = cMemory.GetBufferSize();
+	cMemory.Close();
 	cWriter.Kill();
 	cMemory.Kill();
 	return iLength;
@@ -1150,6 +1152,7 @@ BOOL CBaseObject::SaveManaged(CObjectWriter* pcFile)
 	return TRUE;
 }
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -1160,7 +1163,6 @@ BOOL CBaseObject::SaveHeapFroms(CObjectWriter* pcFile)
 	int				i;
 	int				iNumElements;
 	CBaseObject*	pcHeapFrom;
-	int				iDistToRoot;
 
 	bResult = pcFile->WriteInt(OBJECT_FROM_HEAP);
 	ReturnOnFalse(bResult);
@@ -1180,10 +1182,6 @@ BOOL CBaseObject::SaveHeapFroms(CObjectWriter* pcFile)
 	for (i = 0; i < iNumElements; i++)
 	{
 		bResult = pcFile->WriteDependent(pcHeapFrom);
-		ReturnOnFalse(bResult);
-
-		iDistToRoot = pcHeapFrom->GetDistToRoot();
-		bResult = pcFile->WriteInt(iDistToRoot);
 		ReturnOnFalse(bResult);
 
 		pcHeapFrom = (CBaseObject*)RemapSinglePointer(pcHeapFrom, sizeof(CBaseObject*));
@@ -1406,7 +1404,28 @@ BOOL CBaseObject::LoadManaged(CObjectReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 BOOL CBaseObject::LoadHeapFroms(CObjectReader* pcFile)
 {
-	return FALSE;
+	BOOL				bResult;
+	int					i;
+	int					iNumElements;
+	CEmbeddedObject*	pcHeapFrom;
+	int					iType;
+
+	bResult = pcFile->ReadInt(&iType);
+	if ((!bResult) || (iType != OBJECT_FROM_HEAP))
+	{
+		return FALSE;
+	}
+
+	bResult = pcFile->ReadInt(&iNumElements);
+	ReturnOnFalse(bResult);
+
+	for (i = 0; i < iNumElements; i++)
+	{
+		bResult = pcFile->ReadReverseDependent(&pcHeapFrom);
+		ReturnOnFalse(bResult);
+	}
+	
+	return TRUE;
 }
 
 

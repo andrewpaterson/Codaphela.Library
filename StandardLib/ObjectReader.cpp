@@ -31,10 +31,10 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectReader::Init(CDependentReadObjects* pcDependents)
+BOOL CObjectReader::Init(CAbstractFile* pcFile, CDependentReadObjects* pcDependents)
 {
 	mpcDependents = pcDependents;
-
+	mcFile.Init(pcFile);
 	return TRUE;
 } 
 
@@ -45,6 +45,7 @@ BOOL CObjectReader::Init(CDependentReadObjects* pcDependents)
 //////////////////////////////////////////////////////////////////////////
 void CObjectReader::Kill(void)
 {
+	mcFile.Kill();
 	mpcDependents = NULL;
 }
 
@@ -53,35 +54,16 @@ void CObjectReader::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CObjectReader::Read(CSerialisedObject* pcSerialised)
+CBaseObject* CObjectReader::Read(void)
 {
 	BOOL			bResult;
 	int				iLength;
 	CObjectHeader	sHeader;
-	CMemoryFile*	pcMemory;
-
-	if (!pcSerialised)
-	{
-		gcLogger.Error("CObjectReader::Load Serialised Object is NULL.");
-		return NULL;
-	}
-
-	pcMemory = MemoryFile(pcSerialised, pcSerialised->GetLength());
-	mcFile.Init(pcMemory);
-	bResult = mcFile.Open(EFM_Read);
-	if (!bResult)
-	{
-		mcFile.Kill();
-		return NULL;
-	}
 
 	bResult = ReadInt(&iLength);
 	if (!bResult)
 	{
 		gcLogger.Error("CObjectReader::Load Could not read serialised object length.");
-		mcFile.Close();
-		mcFile.Kill();
-
 		return NULL;
 	}
 
@@ -89,8 +71,6 @@ CBaseObject* CObjectReader::Read(CSerialisedObject* pcSerialised)
 	if (!bResult)
 	{
 		gcLogger.Error("CObjectReader::Load Could not read serialised object header.");
-		mcFile.Close();
-		mcFile.Kill();
 		sHeader.Kill();
 		return NULL;
 	}
@@ -104,8 +84,6 @@ CBaseObject* CObjectReader::Read(CSerialisedObject* pcSerialised)
 	if (pvObject == NULL)
 	{
 		gcLogger.Error("CObjectReader::Load Could not load serialised object.");
-		mcFile.Close();
-		mcFile.Kill();
 		return NULL;
 	}
 
@@ -113,18 +91,23 @@ CBaseObject* CObjectReader::Read(CSerialisedObject* pcSerialised)
 	if (!bResult)
 	{
 		gcLogger.Error("CObjectReader::Load Could not load serialised object.");
-		mcFile.Close();
-		mcFile.Kill();
 
 		pvObject->Kill();
 		return NULL;
 	}
 
-	mcFile.Close();
-	mcFile.Kill();
-
 	pvObject->Initialised();
 	return pvObject;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CObjectReader::ReadHeapFroms(void)
+{
+	return TRUE;
 }
 
 
@@ -260,4 +243,40 @@ BOOL CObjectReader::ReadDependent(CEmbeddedObject** ppcObjectPtr, CBaseObject* p
 
 	//cHeader is killed by mpcDependents.
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CObjectReader::ReadReverseDependent(CEmbeddedObject** ppcObjectPtr)
+{
+	CPointerHeader	cHeader;
+	BOOL			bResult;
+
+	bResult = ReadIdentifier(&cHeader);
+	if (bResult)
+	{
+		if ((cHeader.mcType == OBJECT_POINTER_NAMED) || (cHeader.mcType == OBJECT_POINTER_ID))
+		{
+			bResult = ReadInt(&cHeader.miNumEmbedded);
+			bResult &= ReadInt(&cHeader.miEmbeddedIndex);
+
+			*ppcObjectPtr = NULL;
+			//bResult &= mpcDependents->AddDependent(&cHeader, ppcObjectPtr, pcContaining, cHeader.miNumEmbedded, cHeader.miEmbeddedIndex);
+			return bResult;
+		}
+		else
+		{
+			return TRUE;
+		}
+	}
+	else
+	{
+		return FALSE;
+	}
+
+	//cHeader is killed by mpcDependents.
+}
+
 

@@ -98,12 +98,17 @@ BOOL CExternalObjectSerialiser::WriteUnwritten(CBaseObject* pcObject)
 	}
 
 	mcMemory.Init();
+	mcMemory.Open(EFM_ReadWrite_Create);
+
 	cObjectWriter.Init(&mcMemory, &mcDependentObjects);
 
 	bResult = cObjectWriter.Write(pcObject);
+
+	mcMemory.Close();
+	cObjectWriter.Kill();
+
 	if (!bResult)
 	{
-		cObjectWriter.Kill();
 		mcMemory.Kill();
 		szDescription.Init();
 		gcLogger.Error2(__METHOD__, " Could not serialise object [", pcObject->GetIdentifier(&szDescription), "].", NULL);
@@ -114,18 +119,16 @@ BOOL CExternalObjectSerialiser::WriteUnwritten(CBaseObject* pcObject)
 	pcSerialised = (CSerialisedObject*)mcMemory.GetBufferPointer();
 
 	bResult = mpcWriter->Write(pcSerialised);
+
+	mcMemory.Kill();
+
 	if (!bResult)
 	{
-		cObjectWriter.Kill();
-		mcMemory.Kill();
 		szDescription.Init();
 		gcLogger.Error2(__METHOD__, " Could write object [", pcObject->GetIdentifier(&szDescription), "].", NULL);
 		szDescription.Kill();
 		return FALSE;
 	}
-
-	cObjectWriter.Kill();
-	mcMemory.Kill();
 
 	MarkWritten(pcObject);
 	return TRUE;
