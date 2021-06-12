@@ -894,11 +894,14 @@ int CBaseObject::SerialisedSize(void)
 	//This method should only be used for testing.  It should be a helper somewhere else.
 	CObjectWriter	cWriter;
 	int				iLength;
+	CMemoryFile		cMemory;
 
-	cWriter.Init(NULL);
+	cMemory.Init();
+	cWriter.Init(&cMemory, NULL);
 	cWriter.Write(this);
-	iLength = cWriter.GetLength();
+	iLength = cMemory.GetBufferSize();
 	cWriter.Kill();
+	cMemory.Kill();
 	return iLength;
 }
 

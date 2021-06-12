@@ -30,18 +30,14 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 class CObjectWriter : public CFileWriter
 {
 protected:
-	CMemoryFile					mcMemory;
 	CFileBasic					mcFile;
 	CDependentWriteObjects*		mpcDependentObjects;
 
 public:
-	BOOL			Init(CDependentWriteObjects* pcDependentObjects);
+	BOOL			Init(CAbstractFile* pcFile, CDependentWriteObjects* pcDependentObjects);
 	void			Kill(void);
 
 	BOOL			Write(CBaseObject* pcThis);
-
-	void*			GetData(void);
-	int				GetLength(void);
 
 	BOOL			WritePointer(CPointer& pObject);
 	BOOL			WritePointer(CPointer* pObject);
