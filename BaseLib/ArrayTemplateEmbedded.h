@@ -77,6 +77,8 @@ public:
 	void	Copy(CArrayTemplateEmbedded<M, I>* pcArrayTemplateEmbedded);
 	BOOL	TestInternalConsistency(void);
 	void 	Zero(void);
+	BOOL	Write(CFileWriter* pcFileWriter);
+	BOOL	Read(CFileReader* pcFileReader);
 };
 
 
@@ -660,6 +662,28 @@ void CArrayTemplateEmbedded<M, I>::Zero(void)
 	{
 		mcArray.Zero();
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M, int I>
+BOOL CArrayTemplateEmbedded<M, I>::Write(CFileWriter* pcFileWriter)
+{
+	return FALSE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M, int I>
+BOOL CArrayTemplateEmbedded<M, I>::Read(CFileReader* pcFileReader)
+{
+	return FALSE;
 }
 
 

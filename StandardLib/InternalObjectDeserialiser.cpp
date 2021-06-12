@@ -124,7 +124,7 @@ CBaseObject* CInternalObjectDeserialiser::ReadSerialised(CSerialisedObject* pcSe
 
 	if (pvObject)
 	{
-		AddContainingPointersAndCreateHollowObjects();
+		AddHeapFromPointersAndCreateHollowObjects();
 	}
 
 	return pvObject;
@@ -135,7 +135,7 @@ CBaseObject* CInternalObjectDeserialiser::ReadSerialised(CSerialisedObject* pcSe
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CInternalObjectDeserialiser::AddContainingPointersAndCreateHollowObjects(void)
+BOOL CInternalObjectDeserialiser::AddHeapFromPointersAndCreateHollowObjects(void)
 {
 	CDependentReadPointer*	pcDependentReadPointer;
 	int						i;
@@ -145,7 +145,7 @@ BOOL CInternalObjectDeserialiser::AddContainingPointersAndCreateHollowObjects(vo
 	for (i = 0; i < iNum; i++)
 	{
 		pcDependentReadPointer = GetPointer(i);
-		if (!AddContainingPointersAndCreateHollowObject(pcDependentReadPointer))
+		if (!AddHeapFromPointersAndCreateHollowObject(pcDependentReadPointer))
 		{
 			return FALSE;
 		}
@@ -158,7 +158,7 @@ BOOL CInternalObjectDeserialiser::AddContainingPointersAndCreateHollowObjects(vo
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CInternalObjectDeserialiser::AddContainingPointersAndCreateHollowObject(CDependentReadPointer* pcDependentReadPointer)
+BOOL CInternalObjectDeserialiser::AddHeapFromPointersAndCreateHollowObject(CDependentReadPointer* pcDependentReadPointer)
 {
 	CEmbeddedObject*		pcBaseObject;
 	CDependentReadObject*	pcDependentReadObject;

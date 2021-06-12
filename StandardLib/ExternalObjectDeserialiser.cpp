@@ -120,7 +120,7 @@ BOOL CExternalObjectDeserialiser::ReadDependentObjects(void)
 		}
 	}
 
-	bResult = AddContainingPointersAndCreateHollowObjects();
+	bResult = AddHeapFromPointersAndCreateHollowObjects();
 	return bResult;
 }
 
@@ -211,7 +211,7 @@ void CExternalObjectDeserialiser::MarkRead(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CExternalObjectDeserialiser::AddContainingPointersAndCreateHollowObjects(void)
+BOOL CExternalObjectDeserialiser::AddHeapFromPointersAndCreateHollowObjects(void)
 {
 	CDependentReadPointer*	pcDependentReadPointer;
 	int						i;
@@ -221,7 +221,7 @@ BOOL CExternalObjectDeserialiser::AddContainingPointersAndCreateHollowObjects(vo
 	for (i = 0; i < iNum; i++)
 	{
 		pcDependentReadPointer = GetPointer(i);
-		if (!AddContainingPointersAndCreateHollowObject(pcDependentReadPointer))
+		if (!AddHeapFromPointersAndCreateHollowObject(pcDependentReadPointer))
 		{
 			return FALSE;
 		}
@@ -234,7 +234,7 @@ BOOL CExternalObjectDeserialiser::AddContainingPointersAndCreateHollowObjects(vo
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CExternalObjectDeserialiser::AddContainingPointersAndCreateHollowObject(CDependentReadPointer* pcDependentReadPointer)
+BOOL CExternalObjectDeserialiser::AddHeapFromPointersAndCreateHollowObject(CDependentReadPointer* pcDependentReadPointer)
 {
 	OIndex					oiNew;
 	CBaseObject*			pcBaseObject;

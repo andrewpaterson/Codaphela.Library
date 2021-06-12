@@ -49,6 +49,18 @@ void CObjectWriter::Kill(void)
 }
 
 
+#define ObjectWriterErrorCheck(result, object, ...) \
+if (!result) \
+{ \
+	CChars			sz; \
+\
+	sz.Init(); \
+	object->GetIdentifier(&sz); \
+	gcLogger.Error2(__VA_ARGS__); \
+	sz.Kill(); \
+	return FALSE; \
+}
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -58,59 +70,64 @@ BOOL CObjectWriter::Write(CBaseObject* pcThis)
 	BOOL			bResult;
 	filePos			iLength;
 	CObjectHeader	sHeader;
-	CChars			sz;
 
 	if (!pcThis)
 	{
 		return gcLogger.Error2(__METHOD__, " Cannot serialse a NULL object.", NULL);
 	}
 
-	bResult = mcFile.Open(EFM_Write_Create);
-	if (!bResult)
-	{
-		sz.Init();
-		pcThis->GetIdentifier(&sz);
-		gcLogger.Error2(__METHOD__, " Could not open serialiser to save object [", sz.Text(), "].", NULL);
-		sz.Kill();
-		return FALSE;
-	}
+	bResult = mcFile.Open(EFM_ReadWrite_Create);
+	ObjectWriterErrorCheck(bResult, pcThis, __METHOD__, " Could not open serialiser to save object [", sz.Text(), "].", NULL);
 
 	bResult = WriteInt(0);
+	ObjectWriterErrorCheck(bResult, pcThis, __METHOD__, " Could not write object steam size saving object [", sz.Text(), "].", NULL);
+
 	InitObjectHeader(&sHeader, pcThis);
 	bResult &= WriteObjectHeader(&sHeader);
-	if (!bResult)
-	{
-		sz.Init();
-		pcThis->GetIdentifier(&sz);
-		gcLogger.Error2(__METHOD__, " Could not write object header saving object [", sz.Text(), "].", NULL);
-		sz.Kill();
-		return FALSE;
-	}
+	ObjectWriterErrorCheck(bResult, pcThis, __METHOD__, " Could not write object header saving object [", sz.Text(), "].", NULL);
 
 	bResult = pcThis->SaveManaged(this);
-	if (!bResult)
-	{
-		sz.Init();
-		pcThis->GetIdentifier(&sz);
-		gcLogger.Error2(__METHOD__, " Could not Save() object [", sz.Text(), "].", NULL);
-		sz.Kill();
-		return FALSE;
-	}
+	ObjectWriterErrorCheck(bResult, pcThis, __METHOD__, " Could not Save() object [", sz.Text(), "].", NULL);
 
 	iLength = mcFile.GetFileLength();
 	mcFile.Seek(0);
 	bResult = WriteInt((int)iLength);
-	ReturnOnFalse(bResult);
+	ObjectWriterErrorCheck(bResult, pcThis, __METHOD__, " Could not write object steam size saving object [", sz.Text(), "].", NULL);
 
 	bResult = mcFile.Close();
-	if (!bResult)
-	{
-		sz.Init();
-		pcThis->GetIdentifier(&sz);
-		gcLogger.Error2(__METHOD__, " Could not close serialiser saving object [", sz.Text(), "].", NULL);
-		sz.Kill();
-		return FALSE;
-	}
+	ObjectWriterErrorCheck(bResult, pcThis, __METHOD__, " Could not close serialiser saving object [", sz.Text(), "].", NULL);
+
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CObjectWriter::WriteHeapFroms(CBaseObject* pcThis)
+{
+	filePos			iStart;
+	filePos			iLength;
+	BOOL			bResult;
+
+	bResult = mcFile.Open(EFM_ReadWrite);
+	ObjectWriterErrorCheck(bResult, pcThis, __METHOD__, " Could not open serialiser to save object [", sz.Text(), "] 'froms'.", NULL);
+
+	iStart = mcFile.GetFilePos();
+	bResult = mcFile.Seek(iStart);
+	ObjectWriterErrorCheck(bResult, pcThis, __METHOD__, " Could not seek while saving object [", sz.Text(), "] 'froms'.", NULL);
+
+	bResult = WriteInt(0);
+	ObjectWriterErrorCheck(bResult, pcThis, __METHOD__, " Could not write object steam size saving object [", sz.Text(), "] 'froms'.", NULL);
+
+	bResult = pcThis->SaveHeapFroms(this);
+	ObjectWriterErrorCheck(bResult, pcThis, __METHOD__, " Could not Save() object [", sz.Text(), "].", NULL);
+
+	iLength = mcFile.GetFileLength();
+	mcFile.Seek(iStart);
+	bResult = WriteInt((int)(iLength - iStart));
+	ObjectWriterErrorCheck(bResult, pcThis, __METHOD__, " Could not close serialiser saving object [", sz.Text(), "].", NULL);
 
 	return TRUE;
 }

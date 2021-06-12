@@ -203,6 +203,9 @@ protected:
 			BOOL				SaveManaged(CObjectWriter* pcFile);
 			BOOL				LoadManaged(CObjectReader* pcFile);
 
+			BOOL				SaveHeapFroms(CObjectWriter* pcFile);
+			BOOL				LoadHeapFroms(CObjectReader* pcFile);
+
 	virtual void				FreeIdentifiers(void);
 			void				FreePointers(void);
 			int					RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew) =0;
@@ -219,14 +222,17 @@ protected:
 			void				ContainerPreInit(void);
 			void				ContainerPostInit(void);
 
-			BOOL				SaveEmbeddedObjects(CObjectWriter* pcFile);
+			BOOL				SaveEmbeddedObjectsManaged(CObjectWriter* pcFile);
 			BOOL				SavePointers(CObjectWriter* pcFile);
 			BOOL				SavePrimitives(CObjectWriter* pcFile);
 			BOOL				SaveUnmanaged(CObjectWriter* pcFile);
-			BOOL				LoadEmbeddedObjects(CObjectReader* pcFile);
+			BOOL				LoadEmbeddedObjectsManaged(CObjectReader* pcFile);
 			BOOL				LoadPointers(CObjectReader* pcFile);
 			BOOL				LoadPrimitives(CObjectReader* pcFile);
 			BOOL				LoadUnmanaged(CObjectReader* pcFile);
+
+			BOOL				SaveEmbeddedObjectsHeapFroms(CObjectWriter* pcFile);
+			BOOL				LoadEmbeddedObjectsHeapFroms(CObjectReader* pcFile);
 
 	virtual void				BaseValidatePointerTos(void) =0;
 };
