@@ -28,12 +28,11 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectWriter::Init(CDependentWriteObjects* pcDependentObjects)
+BOOL CObjectWriter::Init(CAbstractFile* pcFile, CDependentWriteObjects* pcDependentObjects)
 {
 	mpcDependentObjects = pcDependentObjects;
 
-	mcMemory.Init();
-	mcFile.Init(&mcMemory);
+	mcFile.Init(pcFile);
 	return TRUE;
 }
 
@@ -45,7 +44,6 @@ BOOL CObjectWriter::Init(CDependentWriteObjects* pcDependentObjects)
 void CObjectWriter::Kill(void)
 {
 	mcFile.Kill();
-	mcMemory.Kill();
 
 	mpcDependentObjects = NULL;
 }
@@ -290,22 +288,4 @@ filePos CObjectWriter::Write(const void* pvSource, filePos iSize, filePos iCount
 }
 
 
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void* CObjectWriter::GetData(void)
-{
-	return mcMemory.GetBufferPointer();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-int CObjectWriter::GetLength(void)
-{
-	return mcMemory.GetBufferSize();
-}
 
