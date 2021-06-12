@@ -174,16 +174,23 @@ BOOL CExternalObjectDeserialiser::ReadUnread(CDependentReadObject* pcDependent)
 //////////////////////////////////////////////////////////////////////////
 CBaseObject* CExternalObjectDeserialiser::ReadSerialsed(CSerialisedObject* pcSerialised)
 {
-	CObjectReader		cDeserialiser;
-	CBaseObject*			pvObject;
-	OIndex					oiNew;
-	OIndex					oiOld;
+	CObjectReader		cReader;
+	CBaseObject*		pvObject;
+	OIndex				oiNew;
+	OIndex				oiOld;
+	CMemoryFile			cMemoryFile;
 
 	oiOld = pcSerialised->GetIndex();
-	cDeserialiser.Init(this);
-	pvObject = cDeserialiser.Read(pcSerialised);
 
-	cDeserialiser.Kill();
+	cMemoryFile.Init(pcSerialised, pcSerialised->GetLength());
+	cMemoryFile.Open(EFM_Read);
+	cReader.Init(&cMemoryFile, this);
+
+	pvObject = cReader.Read();
+
+	cMemoryFile.Close();
+	cReader.Kill();
+	cMemoryFile.Kill();
 
 	if (pvObject)
 	{

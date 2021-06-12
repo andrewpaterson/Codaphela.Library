@@ -114,19 +114,36 @@ CBaseObject* CInternalObjectDeserialiser::Read(char* szObjectName)
 //////////////////////////////////////////////////////////////////////////
 CBaseObject* CInternalObjectDeserialiser::ReadSerialised(CSerialisedObject* pcSerialised)
 {
-	CObjectReader		cDeserialiser;
-	CBaseObject*			pvObject;
+	CObjectReader	cReader;
+	CBaseObject*	pvObject;
+	BOOL			bResult;
+	CMemoryFile		cMemoryFile;
 
-	cDeserialiser.Init(this);
-	pvObject = cDeserialiser.Read(pcSerialised);
+	cMemoryFile.Init(pcSerialised, pcSerialised->GetLength());
+	cMemoryFile.Open(EFM_Read);
+	cReader.Init(&cMemoryFile, this);
+	pvObject = cReader.Read();
 
-	cDeserialiser.Kill();
-
-	if (pvObject)
+	if (!pvObject)
 	{
-		AddHeapFromPointersAndCreateHollowObjects();
+		cMemoryFile.Close();
+		cReader.Kill();
+		cMemoryFile.Kill();
+		return NULL;
 	}
 
+	bResult = cReader.ReadHeapFroms();
+
+	cMemoryFile.Close();
+	cReader.Kill();
+	cMemoryFile.Kill();
+
+	if (!bResult)
+	{
+		return NULL;
+	}
+
+	AddHeapFromPointersAndCreateHollowObjects();
 	return pvObject;
 }
 
