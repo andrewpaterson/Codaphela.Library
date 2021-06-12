@@ -46,7 +46,7 @@ BOOL CInternalObjectSerialiser::Write(CBaseObject* pcObject)
 
 	pcSerialised = (CSerialisedObject*)cMemory.GetBufferPointer();
 
-	bResult = Write(pcSerialised);
+	bResult = Put(pcSerialised);
 	ReturnOnFalse(bResult);
 
 	cWriter.Kill();
@@ -60,7 +60,7 @@ BOOL CInternalObjectSerialiser::Write(CBaseObject* pcObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CInternalObjectSerialiser::Write(CSerialisedObject* pcSerialised)
+BOOL CInternalObjectSerialiser::Put(CSerialisedObject* pcSerialised)
 {
 	OIndex	oi;
 	BOOL	bResult;

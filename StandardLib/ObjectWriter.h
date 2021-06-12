@@ -38,6 +38,7 @@ public:
 	void			Kill(void);
 
 	BOOL			Write(CBaseObject* pcThis);
+	BOOL			WriteHeapFroms(CBaseObject* pcThis);
 
 	BOOL			WritePointer(CPointer& pObject);
 	BOOL			WritePointer(CPointer* pObject);

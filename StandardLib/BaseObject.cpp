@@ -1122,9 +1122,7 @@ BOOL CBaseObject::SaveManaged(CObjectWriter* pcFile)
 {
 	BOOL	bResult;
 
-	bResult = 
-
-	bResult = SaveEmbeddedObjects(pcFile);
+	bResult = SaveEmbeddedObjectsManaged(pcFile);
 	if (!bResult)
 	{
 		return FALSE;
@@ -1152,12 +1150,54 @@ BOOL CBaseObject::SaveManaged(CObjectWriter* pcFile)
 	return TRUE;
 }
 
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CBaseObject::SaveHeapFroms(CObjectWriter* pcFile)
+{
+	BOOL			bResult;
+	int				i;
+	int				iNumElements;
+	CBaseObject*	pcHeapFrom;
+	int				iDistToRoot;
+
+	bResult = pcFile->WriteInt(OBJECT_FROM_HEAP);
+	ReturnOnFalse(bResult);
+
+	pcHeapFrom = GetClosestFromToRoot();
+	if (pcHeapFrom)
+	{
+		iNumElements = 1;
+	}
+	else
+	{
+		iNumElements = 0;
+	}
+	bResult = pcFile->WriteInt(iNumElements);
+	ReturnOnFalse(bResult);
+
+	for (i = 0; i < iNumElements; i++)
+	{
+		bResult = pcFile->WriteDependent(pcHeapFrom);
+		ReturnOnFalse(bResult);
+
+		iDistToRoot = pcHeapFrom->GetDistToRoot();
+		bResult = pcFile->WriteInt(iDistToRoot);
+		ReturnOnFalse(bResult);
+
+		pcHeapFrom = (CBaseObject*)RemapSinglePointer(pcHeapFrom, sizeof(CBaseObject*));
+	}
+	
+	return TRUE;
+}
+
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CBaseObject::SaveEmbeddedObjects(CObjectWriter* pcFile)
+BOOL CBaseObject::SaveEmbeddedObjectsManaged(CObjectWriter* pcFile)
 {
 	int						iNumFields;
 	CEmbeddedObjectField**	ppacEmbeddedObjectFields;
@@ -1173,6 +1213,36 @@ BOOL CBaseObject::SaveEmbeddedObjects(CObjectWriter* pcFile)
 	{
 		pcEmbeddedObject = ppacEmbeddedObjectFields[i]->GetEmbeddedObject(this);
 		bResult = pcEmbeddedObject->SaveManaged(pcFile);
+		if (!bResult)
+		{
+			return FALSE;
+		}
+	}
+
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CBaseObject::SaveEmbeddedObjectsHeapFroms(CObjectWriter* pcFile)
+{
+	int						iNumFields;
+	CEmbeddedObjectField**	ppacEmbeddedObjectFields;
+	CArrayVoidPtr*			papv;
+	int						i;
+	CBaseObject*			pcEmbeddedObject;
+	BOOL					bResult;
+
+	papv = mpcClass->GetEmbeddedObjectFields();
+	ppacEmbeddedObjectFields = (CEmbeddedObjectField**)papv->GetData();
+	iNumFields = papv->NumElements();
+	for (i = 0; i < iNumFields; i++)
+	{
+		pcEmbeddedObject = ppacEmbeddedObjectFields[i]->GetEmbeddedObject(this);
+		bResult = pcEmbeddedObject->SaveHeapFroms(pcFile);
 		if (!bResult)
 		{
 			return FALSE;
@@ -1239,11 +1309,7 @@ BOOL CBaseObject::SavePrimitives(CObjectWriter* pcFile)
 		pcPrimitive = pcPrimitiveField->GetPrimitiveObject(this);
 		pvPrimitive = pcPrimitiveField->GetValue(this);
 		bResult = (((SDataTypeIO*)pvPrimitive)->*(psIO->fWriter))(pcFile);
-		
-		if (!bResult)
-		{
-			return FALSE;
-		}
+		ReturnOnFalse(bResult);
 	}
 
 	return TRUE;
@@ -1305,7 +1371,7 @@ BOOL CBaseObject::LoadManaged(CObjectReader* pcFile)
 {
 	BOOL	bResult;
 
-	bResult = LoadEmbeddedObjects(pcFile);
+	bResult = LoadEmbeddedObjectsManaged(pcFile);
 	if (!bResult)
 	{
 		return FALSE;
@@ -1338,7 +1404,17 @@ BOOL CBaseObject::LoadManaged(CObjectReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CBaseObject::LoadEmbeddedObjects(CObjectReader* pcFile)
+BOOL CBaseObject::LoadHeapFroms(CObjectReader* pcFile)
+{
+	return FALSE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CBaseObject::LoadEmbeddedObjectsManaged(CObjectReader* pcFile)
 {
 	int						iNumFields;
 	CEmbeddedObjectField**	ppacEmbeddedObjectFields;

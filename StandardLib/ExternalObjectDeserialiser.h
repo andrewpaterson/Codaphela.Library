@@ -37,8 +37,8 @@ protected:
 	BOOL			ReadDependentObjects(void);
 	BOOL			ReadUnread(CDependentReadObject* pcDependent);
 	void			MarkRead(OIndex oi);
-	BOOL			AddContainingPointersAndCreateHollowObjects(void);
-	BOOL			AddContainingPointersAndCreateHollowObject(CDependentReadPointer* pcDependentReadPointer);
+	BOOL			AddHeapFromPointersAndCreateHollowObjects(void);
+	BOOL			AddHeapFromPointersAndCreateHollowObject(CDependentReadPointer* pcDependentReadPointer);
 };
 
 

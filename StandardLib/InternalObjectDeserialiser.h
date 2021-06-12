@@ -47,8 +47,8 @@ public:
 
 protected:
 	CBaseObject*	ReadSerialised(CSerialisedObject* pcSerialised);
-	BOOL			AddContainingPointersAndCreateHollowObjects(void);
-	BOOL			AddContainingPointersAndCreateHollowObject(CDependentReadPointer* pcDependentReadPointer);
+	BOOL			AddHeapFromPointersAndCreateHollowObjects(void);
+	BOOL			AddHeapFromPointersAndCreateHollowObject(CDependentReadPointer* pcDependentReadPointer);
 };
 
 
