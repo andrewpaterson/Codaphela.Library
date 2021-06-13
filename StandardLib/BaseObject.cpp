@@ -1164,27 +1164,19 @@ BOOL CBaseObject::SaveHeapFroms(CObjectWriter* pcFile)
 	int				iNumElements;
 	CBaseObject*	pcHeapFrom;
 
-	bResult = pcFile->WriteInt(OBJECT_FROM_HEAP);
+	bResult = SaveEmbeddedObjectsHeapFroms(pcFile);
 	ReturnOnFalse(bResult);
 
-	pcHeapFrom = GetClosestFromToRoot();
-	if (pcHeapFrom)
-	{
-		iNumElements = 1;
-	}
-	else
-	{
-		iNumElements = 0;
-	}
+	iNumElements = mapHeapFroms.NumElements();
 	bResult = pcFile->WriteInt(iNumElements);
+
 	ReturnOnFalse(bResult);
 
 	for (i = 0; i < iNumElements; i++)
 	{
+		pcHeapFrom = (CBaseObject*)mapHeapFroms.Get(i);
 		bResult = pcFile->WriteDependent(pcHeapFrom);
 		ReturnOnFalse(bResult);
-
-		pcHeapFrom = (CBaseObject*)RemapSinglePointer(pcHeapFrom, sizeof(CBaseObject*));
 	}
 	
 	return TRUE;
