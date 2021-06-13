@@ -79,6 +79,9 @@ BOOL CObjectWriter::Write(CBaseObject* pcThis)
 	bResult = WriteInt(0);
 	ObjectWriterErrorCheck(bResult, pcThis, __METHOD__, " Could not write object steam size saving object [", sz.Text(), "].", NULL);
 
+	bResult = mcFile.WriteInt(OBJECT_DATA);
+	ObjectWriterErrorCheck(bResult, pcThis, __METHOD__, " Could not write object magic saving object [", sz.Text(), "].", NULL);
+
 	InitObjectHeader(&sHeader, pcThis);
 	bResult &= WriteObjectHeader(&sHeader);
 	ObjectWriterErrorCheck(bResult, pcThis, __METHOD__, " Could not write object header saving object [", sz.Text(), "].", NULL);
@@ -112,10 +115,13 @@ BOOL CObjectWriter::WriteHeapFroms(CBaseObject* pcThis)
 	bResult = WriteInt(0);
 	ObjectWriterErrorCheck(bResult, pcThis, __METHOD__, " Could not write object steam size saving object [", sz.Text(), "] 'froms'.", NULL);
 
-	bResult = pcThis->SaveHeapFroms(this);
-	ObjectWriterErrorCheck(bResult, pcThis, __METHOD__, " Could not Save() object [", sz.Text(), "].", NULL);
+	bResult = mcFile.WriteInt(OBJECT_FROM_HEAP);
+	ObjectWriterErrorCheck(bResult, pcThis, __METHOD__, " Could not write object froms magic saving object [", sz.Text(), "] 'froms'.", NULL);
 
-	iLength = mcFile.GetFileLength();
+	bResult = pcThis->SaveHeapFroms(this);
+	ObjectWriterErrorCheck(bResult, pcThis, __METHOD__, " Could not Save() object [", sz.Text(), "] 'froms'.", NULL);
+
+	iLength = mcFile.GetFilePos();
 	mcFile.Seek(iStart);
 	bResult = WriteInt((int)(iLength - iStart));
 	ObjectWriterErrorCheck(bResult, pcThis, __METHOD__, " Could not write object steam size saving object [", sz.Text(), "] 'froms'.", NULL);

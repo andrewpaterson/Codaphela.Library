@@ -59,18 +59,29 @@ CBaseObject* CObjectReader::Read(void)
 	BOOL			bResult;
 	int				iLength;
 	CObjectHeader	sHeader;
+	int				iMagic;
 
 	bResult = ReadInt(&iLength);
 	if (!bResult)
 	{
-		gcLogger.Error("CObjectReader::Load Could not read serialised object length.");
+		gcLogger.Error2(__METHOD__, " Could not read serialised object length.", NULL);
 		return NULL;
+	}
+
+	bResult = mcFile.ReadInt(&iMagic);
+	if (bResult)
+	{
+		bResult = iMagic = OBJECT_DATA;
+	}
+	if (!bResult)
+	{
+		gcLogger.Error2(__METHOD__, " Serialised object length magic corrupt.", NULL);
 	}
 
 	bResult = ReadObjectHeader(&sHeader);
 	if (!bResult)
 	{
-		gcLogger.Error("CObjectReader::Load Could not read serialised object header.");
+		gcLogger.Error2(__METHOD__, " Could not read serialised object header.");
 		sHeader.Kill();
 		return NULL;
 	}
@@ -83,14 +94,14 @@ CBaseObject* CObjectReader::Read(void)
 
 	if (pvObject == NULL)
 	{
-		gcLogger.Error("CObjectReader::Load Could not load serialised object.");
+		gcLogger.Error2(__METHOD__, " Could not load serialised object.");
 		return NULL;
 	}
 
 	bResult = pvObject->LoadManaged(this);
 	if (!bResult)
 	{
-		gcLogger.Error("CObjectReader::Load Could not load serialised object.");
+		gcLogger.Error2(__METHOD__, " Could not load serialised object.");
 
 		pvObject->Kill();
 		return NULL;
@@ -107,7 +118,7 @@ CBaseObject* CObjectReader::Read(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CObjectReader::ReadHeapFroms(void)
 {
-	return TRUE;
+	return FALSE;
 }
 
 

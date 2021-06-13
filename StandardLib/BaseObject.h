@@ -226,12 +226,11 @@ protected:
 			BOOL				SavePointers(CObjectWriter* pcFile);
 			BOOL				SavePrimitives(CObjectWriter* pcFile);
 			BOOL				SaveUnmanaged(CObjectWriter* pcFile);
+			BOOL				SaveEmbeddedObjectsHeapFroms(CObjectWriter* pcFile);
 			BOOL				LoadEmbeddedObjectsManaged(CObjectReader* pcFile);
 			BOOL				LoadPointers(CObjectReader* pcFile);
 			BOOL				LoadPrimitives(CObjectReader* pcFile);
 			BOOL				LoadUnmanaged(CObjectReader* pcFile);
-
-			BOOL				SaveEmbeddedObjectsHeapFroms(CObjectWriter* pcFile);
 			BOOL				LoadEmbeddedObjectsHeapFroms(CObjectReader* pcFile);
 
 	virtual void				BaseValidatePointerTos(void) =0;
