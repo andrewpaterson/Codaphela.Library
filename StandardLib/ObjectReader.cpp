@@ -57,31 +57,36 @@ void CObjectReader::Kill(void)
 CBaseObject* CObjectReader::Read(void)
 {
 	BOOL			bResult;
-	int				iLength;
+	filePos			iLength;
+	filePos			iStart;
+	int				iExpectedLength;
 	CObjectHeader	sHeader;
 	int				iMagic;
 
-	bResult = ReadInt(&iLength);
+	iStart = mcFile.GetFilePos();
+	bResult = ReadInt(&iExpectedLength);
 	if (!bResult)
 	{
 		gcLogger.Error2(__METHOD__, " Could not read serialised object length.", NULL);
 		return NULL;
 	}
 
+	iMagic = OBJECT_DATA;
 	bResult = mcFile.ReadInt(&iMagic);
 	if (bResult)
 	{
-		bResult = iMagic = OBJECT_DATA;
+		bResult = iMagic == OBJECT_DATA;
 	}
 	if (!bResult)
 	{
-		gcLogger.Error2(__METHOD__, " Serialised object length magic corrupt.", NULL);
+		gcLogger.Error2(__METHOD__, " Could not read serialised object magic or magic corrupt [", IntToString(iMagic, 16), "].", NULL);
+		return NULL;
 	}
 
 	bResult = ReadObjectHeader(&sHeader);
 	if (!bResult)
 	{
-		gcLogger.Error2(__METHOD__, " Could not read serialised object header.");
+		gcLogger.Error2(__METHOD__, " Could not read serialised object header.", NULL);
 		sHeader.Kill();
 		return NULL;
 	}
@@ -90,25 +95,60 @@ CBaseObject* CObjectReader::Read(void)
 
 	pvObject = mpcDependents->AllocateForDeserialisation(&sHeader);
 
-	sHeader.Kill();
-
 	if (pvObject == NULL)
 	{
-		gcLogger.Error2(__METHOD__, " Could not load serialised object.");
+		CChars	sz;
+		sz.Init();
+		gcLogger.Error2(__METHOD__, " Could not allocate serialised object [", sHeader.GetIdentifier(&sz), "] header.", NULL);
+		sHeader.Kill();
+		sz.Kill();
 		return NULL;
 	}
+
 
 	bResult = pvObject->LoadManaged(this);
 	if (!bResult)
 	{
-		gcLogger.Error2(__METHOD__, " Could not load serialised object.");
-
+		CChars	sz;
+		sz.Init();
+		gcLogger.Error2(__METHOD__, " Could not load serialised object [", sHeader.GetIdentifier(&sz), "] fields.", NULL);
+		sHeader.Kill();
+		sz.Kill();
 		pvObject->Kill();
 		return NULL;
 	}
 
+	sHeader.Kill();
+
+	iLength = mcFile.GetFilePos();
+	bResult = (iLength - iStart) == iExpectedLength;
+	if (!bResult)
+	{
+		CChars	sz;
+		sz.Init();
+		gcLogger.Error2(__METHOD__, " Could not load serialised object [", sHeader.GetIdentifier(&sz), "] fields.", NULL);
+		sHeader.Kill();
+		sz.Kill();
+		pvObject->Kill();
+		return NULL;
+	}
+
+
 	pvObject->Initialised();
 	return pvObject;
+}
+
+
+#define ObjectReaderErrorCheck(result, object, ...) \
+if (!result) \
+{ \
+	CChars			sz; \
+\
+	sz.Init(); \
+	object->GetIdentifier(&sz); \
+	gcLogger.Error2(__VA_ARGS__); \
+	sz.Kill(); \
+	return FALSE; \
 }
 
 
@@ -116,9 +156,36 @@ CBaseObject* CObjectReader::Read(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectReader::ReadHeapFroms(void)
+BOOL CObjectReader::ReadHeapFroms(CBaseObject* pcThis)
 {
-	return FALSE;
+	filePos			iStart;
+	int				iExpectedLength;
+	filePos			iLength;
+	BOOL			bResult;
+	int				iMagic;
+
+	iStart = mcFile.GetFilePos();
+	bResult = ReadInt(&iExpectedLength);
+	
+	ObjectReaderErrorCheck(bResult, pcThis, __METHOD__, " Could not read object steam size loading object [", sz.Text(), "] 'froms'.", NULL);
+
+	iMagic = OBJECT_FROM_HEAP;
+	bResult = mcFile.ReadInt(&iMagic);
+	if (bResult)
+	{
+		bResult = iMagic == OBJECT_FROM_HEAP;
+	}
+
+	ObjectReaderErrorCheck(bResult, pcThis, __METHOD__, " Could not read object froms magic loading object [", sz.Text(), "] 'froms'.", NULL);
+
+	bResult = pcThis->LoadHeapFroms(this);
+	ObjectReaderErrorCheck(bResult, pcThis, __METHOD__, " Could not LoadHeadFroms() object [", sz.Text(), "] 'froms'.", NULL);
+
+	iLength = mcFile.GetFilePos();
+	bResult = (iLength - iStart) == iExpectedLength;
+	ObjectReaderErrorCheck(bResult, pcThis, __METHOD__, " Size mismatch expected stream length [", LongLongToString(iExpectedLength), "] but read length [", LongLongToString(iLength), "] reading object froms [", sz.Text(), "] 'froms'.", NULL);
+
+	return TRUE;
 }
 
 

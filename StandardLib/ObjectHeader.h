@@ -30,8 +30,11 @@ class CObjectHeader : public CObjectIdentifier
 public:
 	CChars	mszClassName;
 
-	void Init(void);
-	void Kill(void);
+	void	Init(void);
+	void	Kill(void);
+
+	char*	ClassName(void);
+	char*	GetIdentifier(CChars* sz);
 };
 
 
