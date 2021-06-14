@@ -61,6 +61,7 @@ if (!result) \
 	return FALSE; \
 }
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -119,7 +120,7 @@ BOOL CObjectWriter::WriteHeapFroms(CBaseObject* pcThis)
 	ObjectWriterErrorCheck(bResult, pcThis, __METHOD__, " Could not write object froms magic saving object [", sz.Text(), "] 'froms'.", NULL);
 
 	bResult = pcThis->SaveHeapFroms(this);
-	ObjectWriterErrorCheck(bResult, pcThis, __METHOD__, " Could not Save() object [", sz.Text(), "] 'froms'.", NULL);
+	ObjectWriterErrorCheck(bResult, pcThis, __METHOD__, " Could not SaveHeapFroms() object [", sz.Text(), "] 'froms'.", NULL);
 
 	iLength = mcFile.GetFilePos();
 	mcFile.Seek(iStart);

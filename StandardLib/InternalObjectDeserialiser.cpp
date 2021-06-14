@@ -132,7 +132,7 @@ CBaseObject* CInternalObjectDeserialiser::ReadSerialised(CSerialisedObject* pcSe
 		return NULL;
 	}
 
-	bResult = cReader.ReadHeapFroms();
+	bResult = cReader.ReadHeapFroms(pvObject);
 
 	cMemoryFile.Close();
 	cReader.Kill();

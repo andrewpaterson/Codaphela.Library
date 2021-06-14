@@ -42,7 +42,7 @@ public:
 
 	CBaseObject*	Read(void);
 
-	BOOL			ReadHeapFroms(void);
+	BOOL			ReadHeapFroms(CBaseObject* pcThis);
 
 	BOOL			ReadPointer(CPointer* pObject);
 	BOOL			ReadIdentifier(CObjectIdentifier* pcPointerHeader);
