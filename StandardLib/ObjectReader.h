@@ -48,7 +48,7 @@ public:
 	BOOL			ReadIdentifier(CObjectIdentifier* pcPointerHeader);
 	BOOL			ReadObjectHeader(CObjectHeader* pcObjectHeader);
 	BOOL			ReadDependent(CEmbeddedObject** ppcObjectPtr, CBaseObject* pcContaining);
-	BOOL			ReadReverseDependent(CEmbeddedObject** ppcObjectPtr);
+	BOOL			ReadReverseDependent(CEmbeddedObject** ppcObjectPtr, CBaseObject* pcContaining);
 
 protected:
 	filePos			Read(void* pvDest, filePos iSize, filePos iCount);

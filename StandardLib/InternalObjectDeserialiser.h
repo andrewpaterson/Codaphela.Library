@@ -49,6 +49,8 @@ protected:
 	CBaseObject*	ReadSerialised(CSerialisedObject* pcSerialised);
 	BOOL			AddHeapFromPointersAndCreateHollowObjects(void);
 	BOOL			AddHeapFromPointersAndCreateHollowObject(CDependentReadPointer* pcDependentReadPointer);
+	BOOL			AddDependent(CObjectIdentifier* pcHeader, CEmbeddedObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingPtrToBeUpdated, uint16 iNumEmbedded, uint16 iEmbeddedIndex);
+	BOOL			AddReverseDependent(CObjectIdentifier* pcHeader, CEmbeddedObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingHeapFrom, uint16 iNumEmbedded, uint16 iEmbeddedIndex);
 };
 
 

@@ -55,54 +55,6 @@ void CDependentReadObjects::AddHeapFrom(CEmbeddedObject* pcBaseObject, CEmbedded
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CDependentReadObjects::AddDependent(CObjectIdentifier* pcHeader, CEmbeddedObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingPtrToBeUpdated, uint16 iNumEmbedded, uint16 iEmbeddedIndex)
-{
-	CDependentReadObject	cDependent;
-	CDependentReadObject*	pcExistingInFile;
-	BOOL					bOiExistsInDependents;
-	int						iIndex;
-	CDependentReadPointer*	pcPointer;
-	CPointer				pExisitingInDatabase;
-	BOOL					bNameExistsInDatabase;
-
-	if (!((pcHeader->mcType == OBJECT_POINTER_NAMED) || (pcHeader->mcType == OBJECT_POINTER_ID)))
-	{
-		return TRUE;
-	}
-
-	cDependent.Init(pcHeader);
-
-	bOiExistsInDependents = mcReadObjects.FindInSorted(&cDependent, &CompareDependentReadObject, &iIndex);
-	if (!bOiExistsInDependents)
-	{
-		if (pcHeader->IsNamed())
-		{
-			bNameExistsInDatabase = gcObjects.Contains(pcHeader->mszObjectName.Text());
-			if (bNameExistsInDatabase)
-			{
-				cDependent.SetExisting();
-			}
-		}
-
-		mcReadObjects.InsertAt(&cDependent, iIndex);
-	}
-	else
-	{
-		pcExistingInFile = mcReadObjects.Get(iIndex);
-		cDependent.Kill();
-	}
-
-	pcPointer = mcPointers.Add();
-	pcPointer->Init(ppcPtrToBeUpdated, pcObjectContainingPtrToBeUpdated, pcHeader->moi, iNumEmbedded, iEmbeddedIndex);
-
-	return TRUE;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 CDependentReadObject* CDependentReadObjects::GetUnread(void)
 {
 	int						iOldIndex;

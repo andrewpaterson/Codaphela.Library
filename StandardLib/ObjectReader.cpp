@@ -195,9 +195,12 @@ BOOL CObjectReader::ReadHeapFroms(CBaseObject* pcThis)
 //////////////////////////////////////////////////////////////////////////
 BOOL CObjectReader::ReadIdentifier(CObjectIdentifier* pcPointerHeader)
 {
+	int		iIgnored;
+
 	pcPointerHeader->Init();
 
 	ReturnOnFalse(ReadInt(&pcPointerHeader->mcType));
+	ReturnOnFalse(ReadInt(&iIgnored));
 
 	if (pcPointerHeader->mcType == OBJECT_POINTER_NULL)
 	{
@@ -327,7 +330,7 @@ BOOL CObjectReader::ReadDependent(CEmbeddedObject** ppcObjectPtr, CBaseObject* p
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectReader::ReadReverseDependent(CEmbeddedObject** ppcObjectPtr)
+BOOL CObjectReader::ReadReverseDependent(CEmbeddedObject** ppcObjectPtr, CBaseObject* pcContaining)
 {
 	CPointerHeader	cHeader;
 	BOOL			bResult;
@@ -341,7 +344,8 @@ BOOL CObjectReader::ReadReverseDependent(CEmbeddedObject** ppcObjectPtr)
 			bResult &= ReadInt(&cHeader.miEmbeddedIndex);
 
 			*ppcObjectPtr = NULL;
-			//bResult &= mpcDependents->AddDependent(&cHeader, ppcObjectPtr, pcContaining, cHeader.miNumEmbedded, cHeader.miEmbeddedIndex);
+			
+			bResult &= mpcDependents->AddReverseDependent(&cHeader, ppcObjectPtr, pcContaining, cHeader.miNumEmbedded, cHeader.miEmbeddedIndex);
 			return bResult;
 		}
 		else

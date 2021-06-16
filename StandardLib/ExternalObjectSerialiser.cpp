@@ -54,12 +54,13 @@ BOOL CExternalObjectSerialiser::Write(CBaseObject* pcObject)
 {
 	CBaseObject*	pcUnwritten;
 	BOOL			bResult;
+	int				iCount;  //Just for debugging.
 
 	ReturnOnFalse(mpcWriter->Begin());
 
 	AddDependent(pcObject);
 
-	for (;;)
+	for (iCount = 0;; iCount++)
 	{
 		pcUnwritten = mcDependentObjects.GetUnwritten();
 		if (pcUnwritten)

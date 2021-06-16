@@ -18,7 +18,9 @@ class CSerialisedObject
 {
 protected:
 	int					miLength;
+	char				mszMagic[4];
 	char				mszType[4];
+	int					miIgnored;
 
 	OIndex				moi;
 
