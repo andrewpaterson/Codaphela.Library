@@ -251,3 +251,96 @@ CBaseObject* CInternalObjectDeserialiser::AllocateForDeserialisation(CObjectHead
 	}
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CInternalObjectDeserialiser::AddDependent(CObjectIdentifier* pcHeader, CEmbeddedObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingPtrToBeUpdated, uint16 iNumEmbedded, uint16 iEmbeddedIndex)
+{
+	CDependentReadObject	cDependent;
+	CDependentReadObject* pcExistingInFile;
+	BOOL					bOiExistsInDependents;
+	int						iIndex;
+	CDependentReadPointer* pcPointer;
+	CPointer				pExisitingInDatabase;
+	BOOL					bNameExistsInDatabase;
+
+	if (!((pcHeader->mcType == OBJECT_POINTER_NAMED) || (pcHeader->mcType == OBJECT_POINTER_ID)))
+	{
+		return TRUE;
+	}
+
+	cDependent.Init(pcHeader);
+
+	bOiExistsInDependents = mcReadObjects.FindInSorted(&cDependent, &CompareDependentReadObject, &iIndex);
+	if (!bOiExistsInDependents)
+	{
+		if (pcHeader->IsNamed())
+		{
+			bNameExistsInDatabase = gcObjects.Contains(pcHeader->mszObjectName.Text());
+			if (bNameExistsInDatabase)
+			{
+				cDependent.SetExisting();
+			}
+			//If the object has an OI (which it does because its in the database) then it should be marked as existing.
+		}
+
+		mcReadObjects.InsertAt(&cDependent, iIndex);
+	}
+	else
+	{
+		pcExistingInFile = mcReadObjects.Get(iIndex);
+		cDependent.Kill();
+	}
+
+	pcPointer = mcPointers.Add();
+	pcPointer->Init(ppcPtrToBeUpdated, pcObjectContainingPtrToBeUpdated, pcHeader->moi, iNumEmbedded, iEmbeddedIndex);
+
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CInternalObjectDeserialiser::AddReverseDependent(CObjectIdentifier* pcHeader, CEmbeddedObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingHeapFrom, uint16 iNumEmbedded, uint16 iEmbeddedIndex)
+{
+	CDependentReadObject	cDependent;
+	CDependentReadObject*	pcExistingInFile;
+	BOOL					bOiExistsInDependents;
+	int						iIndex;
+	CPointer				pExisitingInDatabase;
+	BOOL					bNameExistsInDatabase;
+
+	if (!((pcHeader->mcType == OBJECT_POINTER_NAMED) || (pcHeader->mcType == OBJECT_POINTER_ID)))
+	{
+		return TRUE;
+	}
+
+	cDependent.Init(pcHeader);
+
+	bOiExistsInDependents = mcReadObjects.FindInSorted(&cDependent, &CompareDependentReadObject, &iIndex);
+	if (!bOiExistsInDependents)
+	{
+		if (pcHeader->IsNamed())
+		{
+			bNameExistsInDatabase = gcObjects.Contains(pcHeader->mszObjectName.Text());
+			if (bNameExistsInDatabase)
+			{
+				cDependent.SetExisting();
+			}
+		}
+
+		mcReadObjects.InsertAt(&cDependent, iIndex);
+	}
+	else
+	{
+		pcExistingInFile = mcReadObjects.Get(iIndex);
+		cDependent.Kill();
+	}
+
+	return FALSE;
+}
+

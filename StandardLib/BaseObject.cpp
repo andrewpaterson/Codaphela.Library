@@ -1413,7 +1413,7 @@ BOOL CBaseObject::LoadHeapFroms(CObjectReader* pcFile)
 
 	for (i = 0; i < iNumElements; i++)
 	{
-		bResult = pcFile->ReadReverseDependent(&pcHeapFrom);
+		bResult = pcFile->ReadReverseDependent(&pcHeapFrom, this);
 		ReturnOnFalse(bResult);
 	}
 	

@@ -280,6 +280,9 @@ BOOL CObjectWriter::WriteIdentifier(CObjectIdentifier* psIdentifier)
 	bResult = WriteInt(psIdentifier->mcType);
 	ReturnOnFalse(bResult);
 
+	bResult = WriteInt(0xffffffff);
+	ReturnOnFalse(bResult);
+
 	if (psIdentifier->mcType != OBJECT_POINTER_NULL)
 	{
 		bResult = WriteInt(psIdentifier->moi);
