@@ -76,6 +76,7 @@ public:
 	void					ValidateConsistency(void);
 
 	void					TouchAll(void);
+	void					KillAll(void);
 
 protected:
 	void	FreePointers(void);

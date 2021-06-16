@@ -5,7 +5,7 @@
 
 
 class CExternalObjectReader;
-class CObjectReaderChunkFile;
+class CChunkFileObjectReader;
 class CObjectSourceChunked : public CObjectSource
 {
 CONSTRUCTABLE(CObjectSourceChunked);
@@ -13,7 +13,7 @@ protected:
 	CArrayChars					mcNames;
 	CChunkFile					mcChunkFile;
 	CChunkFileFileSystem				mcChunkFileFileSystem;
-	CObjectReaderChunkFile*		mpcReader;
+	CChunkFileObjectReader*		mpcReader;
 
 public:
 	BOOL			Init(CObjectConverter* pcConverter, CAbstractFile* pcFile, char* szFileName);

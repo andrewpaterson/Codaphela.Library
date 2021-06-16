@@ -672,7 +672,7 @@ void CArrayCommonObject::ValidateConsistency(void)
 //////////////////////////////////////////////////////////////////////////
 void CArrayCommonObject::TouchAll(void)
 {
-	CBaseObject* pcObject;
+	CBaseObject*	pcObject;
 	CPointer		pObject;
 	int				i;
 	int				iNum;
@@ -682,6 +682,26 @@ void CArrayCommonObject::TouchAll(void)
 	{
 		pcObject = (CBaseObject*)mcArray.UnsafeGet(i);
 		pObject.AssignObject(pcObject);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CArrayCommonObject::KillAll(void)
+{
+	CBaseObject*	pcObject;
+	CPointer		pObject;
+	int				i;
+	int				iNum;
+
+	iNum = mcArray.UnsafeNumElements();
+	for (i = 0; i < iNum; i++)
+	{
+		pcObject = (CBaseObject*)mcArray.UnsafeGet(i);
+		pcObject->Kill();
 	}
 }
 

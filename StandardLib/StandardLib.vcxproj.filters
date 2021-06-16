@@ -333,10 +333,10 @@
     <ClInclude Include="IndexNewOld.h">
       <Filter>Source\Object\Object\Serilalisation</Filter>
     </ClInclude>
-    <ClInclude Include="ObjectReaderChunkFileDisk.h">
+    <ClInclude Include="ChunkFileSystemObjectReader.h">
       <Filter>Source\Object\Object\IO\ChunkFile</Filter>
     </ClInclude>
-    <ClInclude Include="ObjectReaderChunkFile.h">
+    <ClInclude Include="ChunkFileObjectReader.h">
       <Filter>Source\Object\Object\IO\ChunkFile</Filter>
     </ClInclude>
     <ClInclude Include="ObjectReaderSimpleDisk.h">
@@ -657,10 +657,10 @@
     <ClCompile Include="IndexNewOld.cpp">
       <Filter>Source\Object\Object\Serilalisation</Filter>
     </ClCompile>
-    <ClCompile Include="ObjectReaderChunkFileDisk.cpp">
+    <ClCompile Include="ChunkFileSystemObjectReader.cpp">
       <Filter>Source\Object\Object\IO\ChunkFile</Filter>
     </ClCompile>
-    <ClCompile Include="ObjectReaderChunkFile.cpp">
+    <ClCompile Include="ChunkFileObjectReader.cpp">
       <Filter>Source\Object\Object\IO\ChunkFile</Filter>
     </ClCompile>
     <ClCompile Include="ObjectReaderSimpleDisk.cpp">

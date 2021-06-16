@@ -24,16 +24,16 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/ChunkFileFileSystem.h"
 #include "ObjectFileGeneral.h"
 #include "SerialisedObject.h"
-#include "ObjectReaderChunkFileDisk.h"
+#include "ChunkFileSystemObjectReader.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectReaderChunkFileDisk::Init(char* szDirectory, char* szChunkFileName)
+void CChunkFileSystemObjectReader::Init(char* szDirectory, char* szChunkFileName)
 {
-	CObjectReaderChunkFile::Init(&mcChunkFileFileSystem);
+	CChunkFileObjectReader::Init(&mcChunkFileFileSystem);
 	mszFileName.Init(szChunkFileName);
 	mszFullDirectory.Init(szDirectory);
 }
@@ -43,7 +43,7 @@ void CObjectReaderChunkFileDisk::Init(char* szDirectory, char* szChunkFileName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectReaderChunkFileDisk::Kill(void)
+void CChunkFileSystemObjectReader::Kill(void)
 {
 	mszFullDirectory.Kill();
 	mszFileName.Kill();
@@ -55,7 +55,7 @@ void CObjectReaderChunkFileDisk::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectReaderChunkFileDisk::Begin(void)
+BOOL CChunkFileSystemObjectReader::Begin(void)
 {
 	CDiskFile*	pcDiskFile;
 	CFileUtil	cFileUtil;
@@ -82,7 +82,7 @@ BOOL CObjectReaderChunkFileDisk::Begin(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectReaderChunkFileDisk::End(void)
+BOOL CChunkFileSystemObjectReader::End(void)
 {
 	mcChunkFileFileSystem.ReadClose();
 	mcChunkFileFileSystem.Kill();
@@ -94,7 +94,7 @@ BOOL CObjectReaderChunkFileDisk::End(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CSerialisedObject* CObjectReaderChunkFileDisk::Read(char* szChunkName)
+CSerialisedObject* CChunkFileSystemObjectReader::Read(char* szChunkName)
 {
 	CSerialisedObject*	pcSerialised;
 	CChunkFileFile		cChunkFile;

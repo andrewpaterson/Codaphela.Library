@@ -18,29 +18,26 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __OBJECT_READER_CHUNK_FILE_DISK_H__
-#define __OBJECT_READER_CHUNK_FILE_DISK_H__
-#include "ObjectReaderChunkFile.h"
+#ifndef __CHUNK_FILE_OBJECT_READER_H__
+#define __CHUNK_FILE_OBJECT_READER_H__
+#include "BaseLib/ChunkFileFileSystem.h"
+#include "ExternalObjectReader.h"
 
 
-class CObjectReaderChunkFileDisk : public CObjectReaderChunkFile
+class CChunkFileObjectReader : public CExternalObjectReader
 {
-CONSTRUCTABLE(CObjectReaderChunkFileDisk);
+CONSTRUCTABLE(CChunkFileObjectReader);
 protected:
-	CChunkFile				mcChunkFile;
-	CChunkFileFileSystem	mcChunkFileFileSystem;
-	CChars					mszFileName;
-	CChars					mszFullDirectory;
+	CChunkFileFileSystem*	mpcChunkFile;
 
 public:
-	void				Init(char* szDirectory, char* szChunkFileName);
+	void				Init(CChunkFileFileSystem* mpcChunkFile);
 	void				Kill(void);
 
-	BOOL				Begin(void);
+	CSerialisedObject*	Read(OIndex oi);
 	CSerialisedObject*  Read(char* szObjectName);
-	BOOL				End(void);
 };
 
 
-#endif // __OBJECT_READER_CHUNK_FILE_DISK_H__
+#endif // __CHUNK_FILE_OBJECT_READER_H__
 

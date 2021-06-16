@@ -2,7 +2,7 @@
 #include "Objects.h"
 #include "ObjectConverterNative.h"
 #include "ObjectFileGeneral.h"
-#include "ObjectReaderChunkFile.h"
+#include "ChunkFileObjectReader.h"
 #include "ObjectSourceChunked.h"
 
 
@@ -77,7 +77,7 @@ CBaseObject* CObjectSourceChunked::Convert(char* szFullName)
 {
 	CBaseObject*	pvObject;
 
-	mpcReader = UMalloc(CObjectReaderChunkFile);
+	mpcReader = UMalloc(CChunkFileObjectReader);
 	mpcReader->Init(&mcChunkFileFileSystem);
 
 	pvObject = mpcConverter->Convert(this, szFullName);
