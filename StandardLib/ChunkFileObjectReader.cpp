@@ -24,14 +24,14 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/ChunkFileFileSystem.h"
 #include "ObjectFileGeneral.h"
 #include "SerialisedObject.h"
-#include "ObjectReaderChunkFile.h"
+#include "ChunkFileObjectReader.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectReaderChunkFile::Init(CChunkFileFileSystem* pcChunkFile)
+void CChunkFileObjectReader::Init(CChunkFileFileSystem* pcChunkFile)
 {
 	mpcChunkFile = pcChunkFile;
 }
@@ -41,7 +41,7 @@ void CObjectReaderChunkFile::Init(CChunkFileFileSystem* pcChunkFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectReaderChunkFile::Kill(void)
+void CChunkFileObjectReader::Kill(void)
 {
 	CExternalObjectReader::Kill();
 }
@@ -51,7 +51,7 @@ void CObjectReaderChunkFile::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CSerialisedObject* CObjectReaderChunkFile::Read(OIndex oi)
+CSerialisedObject* CChunkFileObjectReader::Read(OIndex oi)
 {
 	CChars				szUnnamed;
 	CSerialisedObject*	pcSerialised;
@@ -70,7 +70,7 @@ CSerialisedObject* CObjectReaderChunkFile::Read(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CSerialisedObject* CObjectReaderChunkFile::Read(char* szChunkName)
+CSerialisedObject* CChunkFileObjectReader::Read(char* szChunkName)
 {
 	CSerialisedObject*	pcSerialised;
 	CChunkFileFile		cChunkFile;
