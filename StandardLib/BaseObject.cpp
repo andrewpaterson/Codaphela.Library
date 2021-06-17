@@ -1174,7 +1174,7 @@ BOOL CBaseObject::SaveHeapFroms(CObjectWriter* pcFile)
 
 	for (i = 0; i < iNumElements; i++)
 	{
-		pcHeapFrom = (CBaseObject*)mapHeapFroms.Get(i);
+		pcHeapFrom = (CBaseObject*)mapHeapFroms.GetPtr(i);
 		bResult = pcFile->WriteDependent(pcHeapFrom);
 		ReturnOnFalse(bResult);
 	}
@@ -1394,37 +1394,6 @@ BOOL CBaseObject::LoadManaged(CObjectReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CBaseObject::LoadHeapFroms(CObjectReader* pcFile)
-{
-	BOOL				bResult;
-	int					i;
-	int					iNumElements;
-	CEmbeddedObject*	pcHeapFrom;
-	int					iType;
-
-	bResult = pcFile->ReadInt(&iType);
-	if ((!bResult) || (iType != OBJECT_FROM_HEAP))
-	{
-		return FALSE;
-	}
-
-	bResult = pcFile->ReadInt(&iNumElements);
-	ReturnOnFalse(bResult);
-
-	for (i = 0; i < iNumElements; i++)
-	{
-		bResult = pcFile->ReadReverseDependent(&pcHeapFrom, this);
-		ReturnOnFalse(bResult);
-	}
-	
-	return TRUE;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 BOOL CBaseObject::LoadEmbeddedObjectsManaged(CObjectReader* pcFile)
 {
 	int						iNumFields;
@@ -1545,6 +1514,63 @@ BOOL CBaseObject::LoadUnmanaged(CObjectReader* pcFile)
 		uiSize = pcUnmanagedField->GetSizeOf();
 		bResult = pcFile->ReadData(pvUnmanaged, uiCount * uiSize);
 
+		if (!bResult)
+		{
+			return FALSE;
+		}
+	}
+
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CBaseObject::LoadHeapFroms(CObjectReader* pcFile)
+{
+	BOOL				bResult;
+	int					i;
+	int					iNumElements;
+	CEmbeddedObject* pcHeapFrom;
+
+	bResult = LoadEmbeddedObjectsHeapFroms(pcFile);
+	ReturnOnFalse(bResult);
+
+	bResult = pcFile->ReadInt(&iNumElements);
+	ReturnOnFalse(bResult);
+
+	for (i = 0; i < iNumElements; i++)
+	{
+		bResult = pcFile->ReadReverseDependent(&pcHeapFrom, this);
+		ReturnOnFalse(bResult);
+	}
+
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CBaseObject::LoadEmbeddedObjectsHeapFroms(CObjectReader* pcFile)
+{
+	int						iNumFields;
+	CEmbeddedObjectField** ppacEmbeddedObjectFields;
+	CArrayVoidPtr* papv;
+	int						i;
+	CBaseObject* pcEmbeddedObject;
+	BOOL					bResult;
+
+	papv = mpcClass->GetEmbeddedObjectFields();
+	ppacEmbeddedObjectFields = (CEmbeddedObjectField**)papv->GetData();
+	iNumFields = papv->NumElements();
+	for (i = 0; i < iNumFields; i++)
+	{
+		pcEmbeddedObject = ppacEmbeddedObjectFields[i]->GetEmbeddedObject(this);
+		bResult = pcEmbeddedObject->LoadHeapFroms(pcFile);
 		if (!bResult)
 		{
 			return FALSE;

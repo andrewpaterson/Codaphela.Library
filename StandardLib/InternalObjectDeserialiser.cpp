@@ -53,13 +53,13 @@ CBaseObject* CInternalObjectDeserialiser::Read(OIndex oi)
 	{
 		if (uiDataSize <= (unsigned int)cTemp.GetStackSize())
 		{
-			return ReadSerialised(pcSerialised);
+			return ReadSerialised(pcSerialised, uiDataSize);
 		}
 		else
 		{
 			pcSerialised = (CSerialisedObject*)cTemp.Init(uiDataSize);
 			mpcDataConnection->Get(oi, pcSerialised);
-			pcBaseObject = ReadSerialised(pcSerialised);
+			pcBaseObject = ReadSerialised(pcSerialised, uiDataSize);
 			cTemp.Kill();
 			return pcBaseObject;
 		}
@@ -90,13 +90,13 @@ CBaseObject* CInternalObjectDeserialiser::Read(char* szObjectName)
 	{
 		if (uiDataSize <= (unsigned int)cTemp.GetStackSize())
 		{
-			return ReadSerialised(pcSerialised);
+			return ReadSerialised(pcSerialised, uiDataSize);
 		}
 		else
 		{
 			pcSerialised = (CSerialisedObject*)cTemp.Init(uiDataSize);
 			mpcDataConnection->Get(szObjectName, pcSerialised);
-			pcBaseObject = ReadSerialised(pcSerialised);
+			pcBaseObject = ReadSerialised(pcSerialised, uiDataSize);
 			cTemp.Kill();
 			return pcBaseObject;
 		}
@@ -112,14 +112,14 @@ CBaseObject* CInternalObjectDeserialiser::Read(char* szObjectName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CInternalObjectDeserialiser::ReadSerialised(CSerialisedObject* pcSerialised)
+CBaseObject* CInternalObjectDeserialiser::ReadSerialised(CSerialisedObject* pcSerialised, unsigned int iSize)
 {
 	CObjectReader	cReader;
 	CBaseObject*	pvObject;
 	BOOL			bResult;
 	CMemoryFile		cMemoryFile;
 
-	cMemoryFile.Init(pcSerialised, pcSerialised->GetLength());
+	cMemoryFile.Init(pcSerialised, iSize);
 	cMemoryFile.Open(EFM_Read);
 	cReader.Init(&cMemoryFile, this);
 	pvObject = cReader.Read();

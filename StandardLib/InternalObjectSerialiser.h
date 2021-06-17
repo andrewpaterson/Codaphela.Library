@@ -36,7 +36,7 @@ public:
 	BOOL	Write(CBaseObject* pcObject);
 
 protected:
-	BOOL	Put(CSerialisedObject* pcSerialised);
+	BOOL	Put(CSerialisedObject* pcSerialised, unsigned int iSize);
 };
 
 

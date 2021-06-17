@@ -46,7 +46,7 @@ public:
 	CBaseObject*	AllocateForDeserialisation(CObjectHeader* pcHeader);
 
 protected:
-	CBaseObject*	ReadSerialised(CSerialisedObject* pcSerialised);
+	CBaseObject*	ReadSerialised(CSerialisedObject* pcSerialised, unsigned int iSize);
 	BOOL			AddHeapFromPointersAndCreateHollowObjects(void);
 	BOOL			AddHeapFromPointersAndCreateHollowObject(CDependentReadPointer* pcDependentReadPointer);
 	BOOL			AddDependent(CObjectIdentifier* pcHeader, CEmbeddedObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingPtrToBeUpdated, uint16 iNumEmbedded, uint16 iEmbeddedIndex);
