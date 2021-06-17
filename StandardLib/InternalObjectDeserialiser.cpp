@@ -143,7 +143,6 @@ CBaseObject* CInternalObjectDeserialiser::ReadSerialised(CSerialisedObject* pcSe
 		return NULL;
 	}
 
-	AddHeapFromPointersAndCreateHollowObjects();
 	return pvObject;
 }
 
@@ -152,33 +151,9 @@ CBaseObject* CInternalObjectDeserialiser::ReadSerialised(CSerialisedObject* pcSe
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CInternalObjectDeserialiser::AddHeapFromPointersAndCreateHollowObjects(void)
-{
-	CDependentReadPointer*	pcDependentReadPointer;
-	int						i;
-	int						iNum;
-
-	iNum = NumPointers();
-	for (i = 0; i < iNum; i++)
-	{
-		pcDependentReadPointer = GetPointer(i);
-		if (!AddHeapFromPointersAndCreateHollowObject(pcDependentReadPointer))
-		{
-			return FALSE;
-		}
-	}
-	return TRUE;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CInternalObjectDeserialiser::AddHeapFromPointersAndCreateHollowObject(CDependentReadPointer* pcDependentReadPointer)
+BOOL CInternalObjectDeserialiser::AddHeapFromPointersAndCreateHollowObject(CDependentReadPointer* pcDependentReadPointer, CDependentReadObject* pcDependent)
 {
 	CEmbeddedObject*		pcBaseObject;
-	CDependentReadObject*	pcDependentReadObject;
 	OIndex					oiNew;
 	CBaseObject*			pcHollowObject;
 
@@ -191,14 +166,13 @@ BOOL CInternalObjectDeserialiser::AddHeapFromPointersAndCreateHollowObject(CDepe
 	}
 	else
 	{
-		pcDependentReadObject = GetObject(pcDependentReadPointer->moiPointedTo);
-		if (pcDependentReadObject->mcType == OBJECT_POINTER_ID)
+		if (pcDependent->mcType == OBJECT_POINTER_ID)
 		{
-			pcHollowObject = mpcObjects->AllocateExistingHollow(pcDependentReadObject->moi, pcDependentReadPointer->miNumEmbedded);
+			pcHollowObject = mpcObjects->AllocateExistingHollow(pcDependent->moi, pcDependentReadPointer->miNumEmbedded);
 		}
-		else if (pcDependentReadObject->mcType == OBJECT_POINTER_NAMED)
+		else if (pcDependent->mcType == OBJECT_POINTER_NAMED)
 		{
-			pcHollowObject = mpcObjects->AllocateExistingHollowFromMemoryOrMaybeANewNamedHollow(pcDependentReadObject->mszObjectName.Text(), pcDependentReadObject->moi, pcDependentReadPointer->miNumEmbedded);
+			pcHollowObject = mpcObjects->AllocateExistingHollowFromMemoryOrMaybeANewNamedHollow(pcDependent->mszObjectName.Text(), pcDependent->moi, pcDependentReadPointer->miNumEmbedded);
 		}
 
 		pcBaseObject = pcHollowObject->GetEmbeddedObject(pcDependentReadPointer->miEmbeddedIndex);
@@ -259,12 +233,7 @@ CBaseObject* CInternalObjectDeserialiser::AllocateForDeserialisation(CObjectHead
 BOOL CInternalObjectDeserialiser::AddDependent(CObjectIdentifier* pcHeader, CEmbeddedObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingPtrToBeUpdated, uint16 iNumEmbedded, uint16 iEmbeddedIndex)
 {
 	CDependentReadObject	cDependent;
-	CDependentReadObject* pcExistingInFile;
-	BOOL					bOiExistsInDependents;
-	int						iIndex;
-	CDependentReadPointer* pcPointer;
-	CPointer				pExisitingInDatabase;
-	BOOL					bNameExistsInDatabase;
+	CDependentReadPointer	cPointer;
 
 	if (!((pcHeader->mcType == OBJECT_POINTER_NAMED) || (pcHeader->mcType == OBJECT_POINTER_ID)))
 	{
@@ -272,31 +241,14 @@ BOOL CInternalObjectDeserialiser::AddDependent(CObjectIdentifier* pcHeader, CEmb
 	}
 
 	cDependent.Init(pcHeader);
+	cPointer.Init(ppcPtrToBeUpdated, pcObjectContainingPtrToBeUpdated, pcHeader->moi, iNumEmbedded, iEmbeddedIndex);
 
-	bOiExistsInDependents = mcReadObjects.FindInSorted(&cDependent, &CompareDependentReadObject, &iIndex);
-	if (!bOiExistsInDependents)
+	if (!AddHeapFromPointersAndCreateHollowObject(&cPointer, &cDependent))
 	{
-		if (pcHeader->IsNamed())
-		{
-			bNameExistsInDatabase = gcObjects.Contains(pcHeader->mszObjectName.Text());
-			if (bNameExistsInDatabase)
-			{
-				cDependent.SetExisting();
-			}
-			//If the object has an OI (which it does because its in the database) then it should be marked as existing.
-		}
-
-		mcReadObjects.InsertAt(&cDependent, iIndex);
-	}
-	else
-	{
-		pcExistingInFile = mcReadObjects.Get(iIndex);
 		cDependent.Kill();
+		return FALSE;
 	}
-
-	pcPointer = mcPointers.Add();
-	pcPointer->Init(ppcPtrToBeUpdated, pcObjectContainingPtrToBeUpdated, pcHeader->moi, iNumEmbedded, iEmbeddedIndex);
-
+	cDependent.Kill();
 	return TRUE;
 }
 
@@ -308,11 +260,7 @@ BOOL CInternalObjectDeserialiser::AddDependent(CObjectIdentifier* pcHeader, CEmb
 BOOL CInternalObjectDeserialiser::AddReverseDependent(CObjectIdentifier* pcHeader, CEmbeddedObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingHeapFrom, uint16 iNumEmbedded, uint16 iEmbeddedIndex)
 {
 	CDependentReadObject	cDependent;
-	CDependentReadObject*	pcExistingInFile;
-	BOOL					bOiExistsInDependents;
-	int						iIndex;
 	CPointer				pExisitingInDatabase;
-	BOOL					bNameExistsInDatabase;
 
 	if (!((pcHeader->mcType == OBJECT_POINTER_NAMED) || (pcHeader->mcType == OBJECT_POINTER_ID)))
 	{
@@ -321,26 +269,8 @@ BOOL CInternalObjectDeserialiser::AddReverseDependent(CObjectIdentifier* pcHeade
 
 	cDependent.Init(pcHeader);
 
-	bOiExistsInDependents = mcReadObjects.FindInSorted(&cDependent, &CompareDependentReadObject, &iIndex);
-	if (!bOiExistsInDependents)
-	{
-		if (pcHeader->IsNamed())
-		{
-			bNameExistsInDatabase = gcObjects.Contains(pcHeader->mszObjectName.Text());
-			if (bNameExistsInDatabase)
-			{
-				cDependent.SetExisting();
-			}
-		}
+	cDependent.Kill();
 
-		mcReadObjects.InsertAt(&cDependent, iIndex);
-	}
-	else
-	{
-		pcExistingInFile = mcReadObjects.Get(iIndex);
-		cDependent.Kill();
-	}
-
-	return FALSE;
+	return TRUE;
 }
 
