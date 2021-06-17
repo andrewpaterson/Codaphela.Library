@@ -12,6 +12,10 @@
 void CExternalObjectDeserialiser::Init(CExternalObjectReader* pcReader, BOOL bNamedHollows, CObjects* pcObjects, CNamedIndexedObjects* pcMemory)
 {
 	CDependentReadObjects::Init();
+	mcIndexRemap.Init();
+	miGetIndex = 0;
+	mcReadObjects.Init();
+	mcPointers.Init();
 	mpcReader = pcReader;
 	mpcObjects = pcObjects;
 	mpcMemory = pcMemory;
@@ -25,8 +29,22 @@ void CExternalObjectDeserialiser::Init(CExternalObjectReader* pcReader, BOOL bNa
 //////////////////////////////////////////////////////////////////////////
 void CExternalObjectDeserialiser::Kill(void)
 {
+	int						i;
+	CDependentReadObject*	pcDependent;
+
 	mpcObjects = NULL;
 	mpcMemory = NULL;
+
+	mcIndexRemap.Kill();
+	mcPointers.Kill();
+
+	for (i = 0; i < mcReadObjects.NumElements(); i++)
+	{
+		pcDependent = mcReadObjects.Get(i);
+		pcDependent->Kill();
+	}
+	mcReadObjects.Kill();
+
 	CDependentReadObjects::Kill();
 }
 
@@ -219,6 +237,123 @@ void CExternalObjectDeserialiser::MarkRead(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL CExternalObjectDeserialiser::Mark(OIndex oi)
+{
+	CDependentReadObject* pcDependent;
+
+	pcDependent = GetObject(oi);
+	if (!pcDependent)
+	{
+		return FALSE;
+	}
+
+	pcDependent->SetRead();
+	return TRUE;
+}
+ 
+ 
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CDependentReadObject* CExternalObjectDeserialiser::GetObject(OIndex oi)
+{
+	CDependentReadObject	cObject;
+	int						iIndex;
+	BOOL					bResult;
+	CDependentReadObject* pcDependent;
+
+	cObject.moi = oi;
+
+	bResult = mcReadObjects.FindInSorted(&cObject, &CompareDependentReadObject, &iIndex);
+	if (!bResult)
+	{
+		return NULL;
+	}
+	pcDependent = mcReadObjects.Get(iIndex);
+	return pcDependent;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CExternalObjectDeserialiser::NumPointers(void)
+{
+	return mcPointers.NumElements();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CDependentReadPointer* CExternalObjectDeserialiser::GetPointer(int iIndex)
+{
+	return mcPointers.Get(iIndex);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CExternalObjectDeserialiser::NumObjects(void)
+{
+	return mcReadObjects.NumElements();
+}
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+OIndex CExternalObjectDeserialiser::GetNewIndexFromOld(OIndex oiOld)
+{
+	int				i;
+	CIndexNewOld* pcRemap;
+
+	for (i = 0; i < mcIndexRemap.NumElements(); i++)
+	{
+		pcRemap = mcIndexRemap.Get(i);
+		if (pcRemap->moiOld == oiOld)
+		{
+			return pcRemap->moiNew;
+		}
+	}
+	return INVALID_O_INDEX;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CExternalObjectDeserialiser::AddIndexRemap(OIndex oiNew, OIndex oiOld)
+{
+	CIndexNewOld* pcNewOld;
+
+	pcNewOld = mcIndexRemap.Add();
+	pcNewOld->Init(oiNew, oiOld);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CArrayIndexNewOld* CExternalObjectDeserialiser::GetArrayIndexNewOld(void)
+{
+	return &mcIndexRemap;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL CExternalObjectDeserialiser::AddHeapFromPointersAndCreateHollowObjects(void)
 {
 	CDependentReadPointer*	pcDependentReadPointer;
@@ -315,11 +450,9 @@ CBaseObject* CExternalObjectDeserialiser::AllocateForDeserialisation(CObjectHead
 BOOL CExternalObjectDeserialiser::AddDependent(CObjectIdentifier* pcHeader, CEmbeddedObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingPtrToBeUpdated, uint16 iNumEmbedded, uint16 iEmbeddedIndex)
 {
 	CDependentReadObject	cDependent;
-	CDependentReadObject*	pcExistingInFile;
 	BOOL					bOiExistsInDependents;
 	int						iIndex;
 	CDependentReadPointer*	pcPointer;
-	CPointer				pExisitingInDatabase;
 	BOOL					bNameExistsInDatabase;
 
 	if (!((pcHeader->mcType == OBJECT_POINTER_NAMED) || (pcHeader->mcType == OBJECT_POINTER_ID)))
@@ -345,7 +478,6 @@ BOOL CExternalObjectDeserialiser::AddDependent(CObjectIdentifier* pcHeader, CEmb
 	}
 	else
 	{
-		pcExistingInFile = mcReadObjects.Get(iIndex);
 		cDependent.Kill();
 	}
 
@@ -363,5 +495,45 @@ BOOL CExternalObjectDeserialiser::AddDependent(CObjectIdentifier* pcHeader, CEmb
 BOOL CExternalObjectDeserialiser::AddReverseDependent(CObjectIdentifier* pcHeader, CEmbeddedObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingHeapFrom, uint16 iNumEmbedded, uint16 iEmbeddedIndex)
 {
 	return TRUE;
+}
+
+
+////////////////////////////////////////////////////////////////////////
+
+
+////////////////////////////////////////////////////////////////////////
+CDependentReadObject* CExternalObjectDeserialiser::GetUnread(void)
+{
+	int						iOldIndex;
+	CDependentReadObject* psObject;
+
+	if (mcReadObjects.NumElements() == 0)
+	{
+		return NULL;
+	}
+
+	iOldIndex = miGetIndex;
+	for (;;)
+	{
+		if (miGetIndex >= mcReadObjects.NumElements() - 1)
+		{
+			miGetIndex = 0;
+		}
+		else
+		{
+			miGetIndex++;
+		}
+
+		psObject = mcReadObjects.Get(miGetIndex);
+		if (!psObject->IsRead())
+		{
+			return psObject;
+		}
+
+		if (miGetIndex == iOldIndex)
+		{
+			return NULL;
+		}
+	}
 }
 

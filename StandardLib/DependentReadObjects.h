@@ -13,13 +13,6 @@
 
 class CDependentReadObjects
 {
-protected:
-	CArrayDependentReadObject	mcReadObjects;
-	CArrayDependentReadPointer	mcPointers;
-	CArrayIndexNewOld			mcIndexRemap;
-
-	int							miGetIndex;  //The index of the next object to 'gotten' for reading.
-
 public:
 			void					Init(void);
 			void					Kill(void);
@@ -29,20 +22,8 @@ public:
 
 	virtual CBaseObject*			AllocateForDeserialisation(CObjectHeader* pcHeader) =0;
 
-			OIndex					GetNewIndexFromOld(OIndex oiOld);  //Is this used?
-			CArrayIndexNewOld*		GetArrayIndexNewOld(void);
-
 protected:
 			void					AddHeapFrom(CEmbeddedObject* pcBaseObject, CEmbeddedObject** ppcPointedFrom, CBaseObject* pcContaining);
-			CDependentReadObject*	GetUnread(void);
-			CDependentReadObject*	GetObject(OIndex oi);
-			BOOL					Mark(OIndex oi);
-		
-			int						NumPointers(void);
-			CDependentReadPointer*	GetPointer(int iIndex);
-		
-			int						NumObjects(void);
-			void					AddIndexRemap(OIndex oiNew, OIndex oiOld);
 };
 
 

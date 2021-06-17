@@ -1753,15 +1753,14 @@ CBaseObject* CObjects::AllocateExistingHollow(OIndex oiForced, uint16 iNumEmbedd
 CBaseObject* CObjects::AllocateExistingHollowFromMemoryOrMaybeANewNamedHollow(char* szObjectName, OIndex oiForced, uint16 iNumEmbedded)
 {
 	CNamedHollowObject* pcHollow;
-	BOOL						bResult;
-	CBaseObject* pvExisting;
+	BOOL				bResult;
+	CBaseObject*		pvExisting;
 
 	if (oiForced == INVALID_O_INDEX)
 	{
-		gcLogger.Error("CObjects::AddHollow Cannot allocate a hollow object with an invalid index.");
+		gcLogger.Error2(__METHOD__, " CObjects::AddHollow Cannot allocate a hollow object with an invalid index.", NULL);
 		return NULL;
 	}
-
 	
 	if (StrEmpty(szObjectName))
 	{

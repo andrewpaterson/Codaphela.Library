@@ -17,30 +17,51 @@ class CIndexGenerator;
 class CExternalObjectDeserialiser : public CDependentReadObjects
 {
 protected:
-	CExternalObjectReader*	mpcReader;  //The ObjectReader knows how to load the serialised form of the object by name.
-	CObjects*				mpcObjects;
+	CArrayDependentReadObject	mcReadObjects;
+	CArrayDependentReadPointer	mcPointers;
+	CArrayIndexNewOld			mcIndexRemap;
 
-	CNamedIndexedObjects*	mpcMemory;
-	BOOL					mbNamedHollows;
+	int							miGetIndex;  //The index of the next object to 'gotten' for reading.
+
+	CExternalObjectReader*		mpcReader;  //The ObjectReader knows how to load the serialised form of the object by name.
+	CObjects*					mpcObjects;
+
+	CNamedIndexedObjects*		mpcMemory;
+	BOOL						mbNamedHollows;
 	
 public:
-	void			Init(CExternalObjectReader* pcReader, BOOL bNamedHollows, CObjects* pcObjects, CNamedIndexedObjects* pcMemory);
-	void			Kill(void);
+	void					Init(CExternalObjectReader* pcReader, BOOL bNamedHollows, CObjects* pcObjects, CNamedIndexedObjects* pcMemory);
+	void					Kill(void);
 
-	CBaseObject*	Read(char* szObjectName);
+	CBaseObject*			Read(char* szObjectName);
 			 
 	//Used by CObjectReader
-	CBaseObject*	AllocateForDeserialisation(CObjectHeader* pcHeader);
+	CBaseObject*			AllocateForDeserialisation(CObjectHeader* pcHeader);
+
+	//I don't know what these are
+	OIndex					GetNewIndexFromOld(OIndex oiOld);  //Is this used?
+	CArrayIndexNewOld*		GetArrayIndexNewOld(void);
 
 protected:
-	CBaseObject*	ReadSerialsed(CSerialisedObject* pcSerialised);
-	BOOL			ReadDependentObjects(void);
-	BOOL			ReadUnread(CDependentReadObject* pcDependent);
-	void			MarkRead(OIndex oi);
-	BOOL			AddHeapFromPointersAndCreateHollowObjects(void);
-	BOOL			AddHeapFromPointersAndCreateHollowObject(CDependentReadPointer* pcDependentReadPointer);
-	BOOL			AddDependent(CObjectIdentifier* pcHeader, CEmbeddedObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingPtrToBeUpdated, uint16 iNumEmbedded, uint16 iEmbeddedIndex);
-	BOOL			AddReverseDependent(CObjectIdentifier* pcHeader, CEmbeddedObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingHeapFrom, uint16 iNumEmbedded, uint16 iEmbeddedIndex);
+	CBaseObject*			ReadSerialsed(CSerialisedObject* pcSerialised);
+	BOOL					ReadDependentObjects(void);
+	BOOL					ReadUnread(CDependentReadObject* pcDependent);
+	void					MarkRead(OIndex oi);
+	BOOL					AddHeapFromPointersAndCreateHollowObjects(void);
+	BOOL					AddHeapFromPointersAndCreateHollowObject(CDependentReadPointer* pcDependentReadPointer);
+	BOOL					AddDependent(CObjectIdentifier* pcHeader, CEmbeddedObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingPtrToBeUpdated, uint16 iNumEmbedded, uint16 iEmbeddedIndex);
+	BOOL					AddReverseDependent(CObjectIdentifier* pcHeader, CEmbeddedObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingHeapFrom, uint16 iNumEmbedded, uint16 iEmbeddedIndex);
+
+	CDependentReadObject*	GetUnread(void);
+	BOOL					Mark(OIndex oi);
+
+	CDependentReadObject*	GetObject(OIndex oi);
+		
+	int						NumPointers(void);
+	CDependentReadPointer*	GetPointer(int iIndex);
+		
+	void					AddIndexRemap(OIndex oiNew, OIndex oiOld);
+	int						NumObjects(void);
 };
 
 

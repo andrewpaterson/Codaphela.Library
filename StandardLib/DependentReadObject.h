@@ -23,7 +23,7 @@ public:
 	void	SetRead(void);
 	void	SetExisting(void);
 	BOOL	IsRead(void);
-	BOOL	PreExisted(void);
+	BOOL	ExistsInObjects(void);
 };
 
 
