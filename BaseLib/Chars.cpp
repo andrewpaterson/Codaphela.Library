@@ -35,13 +35,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "Chars.h"
 
 
-CChars gszEmptyChars;
-
-
-void InitEmptyString(void) { gszEmptyChars.Init(); }
-void KillEmptyString(void) { gszEmptyChars.Kill(); }
-
-
 //////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//
@@ -91,10 +84,18 @@ void CChars::_Init(void)
 //////////////////////////////////////////////////////////////////////////
 CChars* CChars::InitLength(int iLength)
 {
-	mcText.Init();
-	mcText.Resize(iLength+1);
-	mcText.SetValue(iLength, '\0');
-	return this;
+	if (iLength > 0)
+	{
+		mcText.Init();
+		mcText.Resize(iLength + 1);
+		mcText.SetValue(iLength, '\0');
+		return this;
+	}
+	else
+	{
+		InitEmpty();
+		return this;
+	}
 }
 
 
@@ -104,8 +105,7 @@ CChars* CChars::InitLength(int iLength)
 //////////////////////////////////////////////////////////////////////////
 CChars* CChars::Init(void)
 {
-	mcText.Init();
-	Set("");
+	InitEmpty();
 	return this;
 }
 
@@ -117,16 +117,17 @@ CChars* CChars::Init(void)
 CChars* CChars::Init(const char* sz)
 {
 	mcText.Init();
-	if (sz)
+	if (!StrEmpty(sz))
 	{
 		Set(sz);
 	}
 	else
 	{
-		Set("");
+		SetEmpty();
 	}
 	return this;
 }
+
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -134,14 +135,15 @@ CChars* CChars::Init(const char* sz)
 //////////////////////////////////////////////////////////////////////////
 CChars* CChars::Init(CChars sz, int iStartInclusive, int iEndExclusive)
 {
-	mcText.Init();
 	if (iEndExclusive - iStartInclusive > 0)
 	{
+		mcText.Init();
 		AppendSubString(sz, iStartInclusive, iEndExclusive);
+		CleanIfEmpty();
 	}
 	else
 	{
-		Set("");
+		InitEmpty();
 	}
 	return this;
 }
@@ -153,14 +155,15 @@ CChars* CChars::Init(CChars sz, int iStartInclusive, int iEndExclusive)
 //////////////////////////////////////////////////////////////////////////
 CChars* CChars::Init(const char* sz, int iStartInclusive, int iEndExclusive)
 {
-	mcText.Init();
 	if (iEndExclusive - iStartInclusive > 0)
 	{
+		mcText.Init();
 		AppendSubString(sz, iStartInclusive, iEndExclusive);
+		CleanIfEmpty();
 	}
 	else
 	{
-		Set("");
+		InitEmpty();
 	}
 	return this;
 }
@@ -185,8 +188,16 @@ CChars* CChars::Init(const char* sz, int iStartInclusive)
 //////////////////////////////////////////////////////////////////////////
 CChars* CChars::Init(CChars sz)
 {
-	mcText.Init();
-	mcText.Copy(&(sz.mcText));
+	if (!sz.Empty())
+	{
+		mcText.Init();
+		mcText.Copy(&(sz.mcText));
+	}
+	else
+	{
+		InitEmpty();
+	}
+
 	return this;
 }
 
@@ -197,8 +208,15 @@ CChars* CChars::Init(CChars sz)
 //////////////////////////////////////////////////////////////////////////
 CChars* CChars::Init(CChars* psz)
 {
-	mcText.Init();
-	mcText.Copy(&(psz->mcText));
+	if (psz && !psz->Empty())
+	{
+		mcText.Init();
+		mcText.Copy(&(psz->mcText));
+	}
+	else
+	{
+		InitEmpty();
+	}
 	return this;
 }
 
@@ -209,9 +227,16 @@ CChars* CChars::Init(CChars* psz)
 //////////////////////////////////////////////////////////////////////////
 CChars* CChars::Init(char cPadCharacter, int iNumber)
 {
-	mcText.Init();
-	Set("");
-	Append(cPadCharacter, iNumber);
+	if (iNumber > 0)
+	{
+		mcText.Init();
+		SetEmpty();
+		Append(cPadCharacter, iNumber);
+	}
+	else
+	{
+		InitEmpty();
+	}
 	return this;
 }
 
@@ -222,24 +247,28 @@ CChars* CChars::Init(char cPadCharacter, int iNumber)
 //////////////////////////////////////////////////////////////////////////
 CChars* CChars::InitList(const char* szFirst, ...)
 {
-	mcText.Init();
-	Set("");
+	InitEmpty();
 
-	va_list		vaMarker;
+	va_list			vaMarker;
 	const char*		pc;
-	int			iCount;
+	int				iCount;
 
-	iCount = 0;
-	pc = szFirst;
-
-	va_start(vaMarker, szFirst);
-	while (pc != NULL)
+	if (szFirst)
 	{
-		Append(pc);
-		iCount++;
-		pc = va_arg(vaMarker, char*);
+		iCount = 0;
+		pc = szFirst;
+
+		va_start(vaMarker, szFirst);
+		while (pc)
+		{
+			Append(pc);
+			iCount++;
+			pc = va_arg(vaMarker, char*);
+		}
+		va_end(vaMarker);
 	}
-	va_end(vaMarker);
+
+	CleanIfEmpty();
 	return this;
 }
 
@@ -250,24 +279,27 @@ CChars* CChars::InitList(const char* szFirst, ...)
 //////////////////////////////////////////////////////////////////////////
 CChars* CChars::InitList(CChars* szFirst, ...)
 {
-	mcText.Init();
-	Set("");
+	InitEmpty();
 
 	va_list		vaMarker;
 	CChars*		pc;
 	int			iCount;
 
-	iCount = 0;
-	pc = szFirst;
-
-	va_start(vaMarker, szFirst);
-	while (pc->Length() != 0)
+	if (szFirst)
 	{
-		Append(pc->Text());
-		iCount++;
-		pc = va_arg(vaMarker, CChars*);
+		iCount = 0;
+		pc = szFirst;
+
+		va_start(vaMarker, szFirst);
+		while (pc && pc->Length() != 0)
+		{
+			Append(pc->Text());
+			iCount++;
+			pc = va_arg(vaMarker, CChars*);
+		}
+		va_end(vaMarker);
 	}
-	va_end(vaMarker);
+	CleanIfEmpty();
 	return this;
 }
 
@@ -278,8 +310,7 @@ CChars* CChars::InitList(CChars* szFirst, ...)
 //////////////////////////////////////////////////////////////////////////
 BOOL CChars::InitData2(const char* szData, int iDataLength)
 {
-	mcText.Init();
-	Set("");
+	InitEmpty();
 
 	return AppendData2(szData, iDataLength);
 }
@@ -291,7 +322,10 @@ BOOL CChars::InitData2(const char* szData, int iDataLength)
 //////////////////////////////////////////////////////////////////////////
 void CChars::Kill(void)
 {
-	mcText.Kill();
+	if (!IsFakeEmpty())
+	{
+		mcText.Kill();
+	}
 }
 
 
@@ -318,7 +352,7 @@ void CChars::Fake(const char* sz)
 	}
 	else
 	{
-		mcText.Fake(gszEmptyChars.Text(), 1);
+		InitEmpty();
 	}
 }
 
@@ -338,7 +372,7 @@ void CChars::Fake(const char* sz, int iStartInclusive, int iEndExclusive)
 	}
 	else
 	{
-		mcText.Fake(gszEmptyChars.Text(), 1);
+		InitEmpty();
 	}
 }
 
@@ -354,7 +388,7 @@ int CChars::Length(void)
 	{
 		return 0;
 	}
-	return mcText.NumElements()-1;
+	return mcText.NumElements() - 1;
 }
 
 
@@ -367,8 +401,14 @@ void CChars::Set(CChars sz)
 	int iLen;
 
 	iLen = sz.Length()+1;
-	mcText.Resize(iLen);
-	memcpy(mcText.GetData(), sz.Text(), iLen);
+	if (iLen > 1)
+	{
+		SetNonNull(sz.Text(), iLen);
+	}
+	else
+	{
+		SetEmpty();
+	}
 }
 
 
@@ -380,9 +420,15 @@ void CChars::Set(CChars* psz)
 {
 	int iLen;
 
-	iLen = psz->Length()+1;
-	mcText.Resize(iLen);
-	memcpy(mcText.GetData(), psz->Text(), iLen);
+	iLen = psz->Length() + 1;
+	if (iLen > 1)
+	{
+		SetNonNull(psz->Text(), iLen);
+	}
+	else
+	{
+		SetEmpty();
+	}
 }
 
 
@@ -392,13 +438,49 @@ void CChars::Set(CChars* psz)
 //////////////////////////////////////////////////////////////////////////
 void CChars::Set(const char* sz)
 {
-	int iLen;
+	size_t iLen;
 
-	if (sz)
+	if (!StrEmpty(sz))
 	{
-		iLen = ((int)strlen(sz)) + 1;
+		iLen = (strlen(sz)) + 1;
+		SetNonNull(sz, iLen);
+	}
+	else
+	{
+		SetEmpty();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CChars::SetNonNull(const char* sz, int iLen)
+{
+	if (!IsFakeEmpty())
+	{
 		mcText.Resize(iLen);
-		memcpy(mcText.GetData(), sz, iLen);
+	}
+	else
+	{
+		Unfake();
+		mcText.Resize(iLen);
+	}
+	memcpy(mcText.GetData(), sz, iLen);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CChars::SetEmpty(void)
+{
+	if (!IsFakeEmpty())
+	{
+		mcText.Resize(0);
+		InitEmpty();
 	}
 }
 
@@ -425,7 +507,7 @@ CChars* CChars::Append(const char* sz)
 	int		iLen;
 	char*	pcPosition;
 
-	if (sz)
+	if (!StrEmpty(sz))
 	{
 		iLen = (int)strlen(sz);
 		pcPosition = PrivateGrow(iLen);
@@ -444,7 +526,7 @@ CChars* CChars::Append(const char* sz, int iLen)
 	char*	pcPosition;
 	char*	pcZero;
 
-	if (sz)
+	if (sz && iLen > 0)
 	{
 		pcPosition = PrivateGrow(iLen);
 		memcpy(pcPosition, sz, iLen);
@@ -463,6 +545,8 @@ CChars* CChars::Append(const char* sz, int iLen)
 void CChars::Append(char c)
 {
 	char* pcReplace;
+
+	UnfakeIfFakeEmpty();
 
 	pcReplace = mcText.Tail();
 	*pcReplace = c;
@@ -759,6 +843,13 @@ void CChars::AppendBool(BOOL bValue, const char* szTrue, const char* szFalse)
 //////////////////////////////////////////////////////////////////////////
 void CChars::Insert(int iPos, char c)
 {
+	if ((iPos < 0) || (iPos >= mcText.NumElements()))
+	{
+		return;
+	}
+
+	UnfakeIfFakeEmpty();
+
 	mcText.InsertAt(c, iPos);
 }
 
@@ -770,16 +861,20 @@ void CChars::Insert(int iPos, char c)
 void CChars::Insert(int iPos, const char* szString)
 {
 	char*	pcNew;
-	int		iInsertLen;
+	size_t	uiInsertLen;
 
-	if (szString == NULL)
+	if (StrEmpty(szString))
 	{
 		return;
 	}
-	iInsertLen = (int)strlen(szString);
 
-	pcNew = mcText.InsertNumAt(iInsertLen, iPos);
-	memcpy(pcNew, szString, iInsertLen);
+	UnfakeIfFakeEmpty();
+	uiInsertLen = strlen(szString);
+	pcNew = mcText.InsertNumAt(uiInsertLen, iPos);
+	if (pcNew)
+	{
+		memcpy(pcNew, szString, uiInsertLen);
+	}
 }
 
 
@@ -790,16 +885,20 @@ void CChars::Insert(int iPos, const char* szString)
 void CChars::Insert(int iPos, CChars* pszString)
 {
 	char*	pcNew;
-	int		iInsertLen;
+	size_t uiInsertLen;
 
-	if (pszString == NULL)
+	if (pszString == NULL || pszString->Empty())
 	{
 		return;
 	}
-	iInsertLen = pszString->Length();
 
-	pcNew = mcText.InsertNumAt(iInsertLen, iPos);
-	memcpy(pcNew, pszString->Text(), iInsertLen);
+	UnfakeIfFakeEmpty();
+	uiInsertLen = pszString->Length();
+	pcNew = mcText.InsertNumAt(uiInsertLen, iPos);
+	if (pcNew)
+	{
+		memcpy(pcNew, pszString->Text(), uiInsertLen);
+	}
 }
 
 
@@ -809,7 +908,10 @@ void CChars::Insert(int iPos, CChars* pszString)
 //////////////////////////////////////////////////////////////////////////
 void CChars::Minimize(void)
 {
-	mcText.Finalise();
+	if (!IsFakeEmpty())
+	{
+		mcText.Finalise();
+	}
 }
 
 
@@ -888,36 +990,30 @@ void CChars::AppendList(const char* szFirst, ...)
 //////////////////////////////////////////////////////////////////////////
 char* CChars::PrivateGrow(int iNumberOfCharacters)
 {
-	char*	pcPosition;
+	char* pszPosition;
 	int		iPosition;
 
-	if (mcText.NumElements() == 0)
+	if (mcText.IsEmpty())
 	{
-		mcText.AddNum(iNumberOfCharacters+1);  //To include trailing zero.
+		if (iNumberOfCharacters > 0)
+		{
+			mcText.AddNum(iNumberOfCharacters + 1);  //To include trailing zero.
+		}
+		else
+		{
+			SetEmpty();
+		}
 		return mcText.GetData();
 	}
 	else
 	{
+		if (IsFakeEmpty())
+		{
+			Unfake();
+		}
 		iPosition = mcText.AddNum(iNumberOfCharacters);
-		pcPosition = (char*)RemapSinglePointer(mcText.GetData(), iPosition-1);
-		return pcPosition;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CChars::PrivateFixLength(void)
-{
-	int		iLen;
-
-	iLen = (int)strlen(mcText.GetData());
-	iLen++;
-	if (iLen != mcText.NumElements())
-	{
-		mcText.Resize(iLen);
+		pszPosition = (char*)RemapSinglePointer(mcText.GetData(), iPosition - 1);
+		return pszPosition;
 	}
 }
 
@@ -943,18 +1039,21 @@ void CChars::Append(char cPadCharacter, int iNumber)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::LeftAlign(const char* sz, char cPadCharacter, int iWidth)
+void CChars::LeftAlign(const char* sz, char cPadCharacter, unsigned int iWidth)
 {
-	if (sz)
+	size_t	uiLen;
+
+	if (!StrEmpty(sz))
 	{
-		if ((int)strlen(sz) <= iWidth)
+		uiLen = strlen(sz);
+		if (uiLen <= iWidth)
 		{
 			Append(sz);
-			Append(cPadCharacter, iWidth-(int)strlen(sz));
+			Append(cPadCharacter, iWidth - uiLen);
 		}
 		else
 		{
-			//AppendSubString(sz, 0, iWidth);
+			AppendSubString(sz, 0, iWidth);
 		}
 	}
 }
@@ -964,18 +1063,21 @@ void CChars::LeftAlign(const char* sz, char cPadCharacter, int iWidth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::RightAlign(const char* sz, char cPadCharacter, int iWidth)
+void CChars::RightAlign(const char* sz, char cPadCharacter, unsigned int iWidth)
 {
-	if (sz)
+	size_t	uiLen;
+
+	if (!StrEmpty(sz))
 	{
-		if ((int)strlen(sz) <= iWidth)
+		uiLen = strlen(sz);
+		if (uiLen <= iWidth)
 		{
-			Append(cPadCharacter, iWidth-(int)strlen(sz));
+			Append(cPadCharacter, iWidth - uiLen);
 			Append(sz);
 		}
 		else
 		{
-			//AppendSubString(sz, 0, iWidth);
+			AppendSubString(sz, 0, iWidth);
 		}
 	}
 }
@@ -985,12 +1087,12 @@ void CChars::RightAlign(const char* sz, char cPadCharacter, int iWidth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::LeftAlign(CChars sz, char cPadCharacter, int iWidth)
+void CChars::LeftAlign(CChars sz, char cPadCharacter, unsigned int iWidth)
 {
-	if (sz.Length() <= iWidth)
+	if (sz.Length() <= (int)iWidth)
 	{
 		Append(sz);
-		Append(cPadCharacter, iWidth-sz.Length());
+		Append(cPadCharacter, iWidth - sz.Length());
 	}
 	else
 	{
@@ -1003,11 +1105,11 @@ void CChars::LeftAlign(CChars sz, char cPadCharacter, int iWidth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::RightAlign(CChars sz, char cPadCharacter, int iWidth)
+void CChars::RightAlign(CChars sz, char cPadCharacter, unsigned int iWidth)
 {
-	if (sz.Length() <= iWidth)
+	if (sz.Length() <= (int)iWidth)
 	{
-		Append(cPadCharacter, iWidth-sz.Length());
+		Append(cPadCharacter, iWidth - sz.Length());
 		Append(sz);
 	}
 	else
@@ -1021,21 +1123,21 @@ void CChars::RightAlign(CChars sz, char cPadCharacter, int iWidth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::RightAlign(char cPadCharacter, int iWidth)
+void CChars::RightAlign(char cPadCharacter, unsigned int iWidth)
 {
 	int		iLength;
 	char*	pcDest;
 	int		iOldWidth;
 
-	if (Length() < iWidth)
+	if (Length() < (int)iWidth)
 	{
-		iLength = iWidth-Length();
+		iLength = iWidth - Length();
 		iOldWidth = Length();
 		PrivateGrow(iLength);
 		pcDest = (char*)RemapSinglePointer(mcText.GetData(), iLength);
 		memmove(pcDest, mcText.GetData(), iOldWidth);
 		memset(mcText.GetData(), cPadCharacter, iLength);
-		(*mcText.Tail()) =  0;
+		(*mcText.Tail()) = '\0';
 	}
 }
 
@@ -1101,11 +1203,18 @@ void CChars::RemoveLastCharacter(void)
 {
 	char*	pcPosition;
 
-	if (mcText.NumElements() > 1)
+	if (Length() > 0)
 	{
 		mcText.RemoveTail();
-		pcPosition = mcText.Tail();
-		*pcPosition = '\0';
+		if (mcText.NumElements() > 1)
+		{
+			pcPosition = mcText.Tail();
+			*pcPosition = '\0';
+		}
+		else
+		{
+			SetEmpty();
+		}
 	}
 }
 
@@ -1126,7 +1235,7 @@ void CChars::RemoveFromStart(int iNumChars)
 //////////////////////////////////////////////////////////////////////////
 void CChars::RemoveFromEnd(int iNumChars)
 {
-	Remove(Length()-iNumChars, Length());
+	Remove(Length() - iNumChars, Length());
 }
 
 
@@ -1134,9 +1243,20 @@ void CChars::RemoveFromEnd(int iNumChars)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::Remove(int iStart, int iEnd)
+void CChars::Remove(int iStartInclusive, int iEndExclusive)
 {
-	mcText.RemoveRange(iStart, iEnd);
+	int	iLength;
+
+	if (!Empty())
+	{
+		iLength = Length();
+		if (iEndExclusive > iLength)
+		{
+			iEndExclusive = iLength;
+		}
+		mcText.RemoveRange(iStartInclusive, iEndExclusive);
+		CleanIfEmpty();
+	}
 }
 
 
@@ -1146,7 +1266,20 @@ void CChars::Remove(int iStart, int iEnd)
 //////////////////////////////////////////////////////////////////////////
 void CChars::RemoveEnd(int iIndex)
 {
-	mcText.RemoveRange(iIndex, Length());
+	int	iToRemove;
+
+	iToRemove = Length() - iIndex;
+	if (iToRemove > 0)
+	{
+		if (iIndex > 0)
+		{
+			mcText.RemoveRange(iIndex, Length());
+		}
+		else
+		{
+			SetEmpty();
+		}
+	}
 }
 
 
@@ -1159,6 +1292,7 @@ void CChars::RemoveCharacter(int iPos)
 	if ((iPos < Length()) && (iPos >= 0))
 	{
 		mcText.RemoveAt(iPos, TRUE);
+		CleanIfEmpty();
 	}
 }
 
@@ -1169,9 +1303,9 @@ void CChars::RemoveCharacter(int iPos)
 //////////////////////////////////////////////////////////////////////////
 void CChars::Split(CArrayChars* aszDest, char cSplitter)
 {
-	int			iPos;
-	char*		pszPos;
-	int			iMax;
+	int		iPos;
+	char*	pszPos;
+	int		iMax;
 
 	pszPos = Text();
 	iMax = Length();
@@ -1430,7 +1564,7 @@ BOOL CChars::SubStringEquals(int iStart, const char* szString)
 		}
 		else
 		{
-			return TRUE;
+			return iStart == 0;
 		}
 	}
 
@@ -1598,6 +1732,11 @@ int CChars::Find(int iIndex, char c)
 {
 	int	i;
 
+	if (iIndex < 0)
+	{
+		iIndex = 0;
+	}
+
 	for (i = iIndex; i < Length(); i++)
 	{
 		if (mcText.GetValue(i) == c)
@@ -1628,6 +1767,11 @@ int CChars::FindDigit(int iIndex)
 	int		i;
 	char	c;
 
+	if (iIndex < 0)
+	{
+		iIndex = 0;
+	}
+
 	for (i = iIndex; i < Length(); i++)
 	{
 		c = *mcText.Get(i);
@@ -1653,7 +1797,7 @@ char CChars::GetChar(int iIndex)
 	{
 		return *pc;
 	}
-	return (char)0;
+	return '\0';
 }
 
 
@@ -1731,8 +1875,10 @@ BOOL CChars::IsWhiteSpace(int iPos, BOOL bIncludeNewLines)
 BOOL CChars::IsWhiteSpace(void)
 {
 	int		i;
+	int		iLen;
 
-	for (i = 0; i < mcText.NumElements()-1; i++)
+	iLen = Length();
+	for (i = 0; i < iLen; i++)
 	{
 		if (!IsWhiteSpace(i, TRUE))
 		{
@@ -1749,9 +1895,18 @@ BOOL CChars::IsWhiteSpace(void)
 //////////////////////////////////////////////////////////////////////////
 void CChars::SetLength(int iLength)
 {
-	//This assumes you'll fill mcText with iLengths count of non-zero characters.
-	mcText.Resize(iLength+1);
-	mcText.SetValue(iLength, '\0');
+	if (iLength > 0)
+	{
+		UnfakeIfFakeEmpty();
+
+		//This assumes you'll fill mcText with iLengths count of non-zero characters.
+		mcText.Resize(iLength + 1);
+		mcText.SetValue(iLength, '\0');
+	}
+	else
+	{
+		SetEmpty();
+	}
 }
 
 
@@ -1759,7 +1914,7 @@ void CChars::SetLength(int iLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CChars::PrivateFindEndOfLeadingWhiteSpace(BOOL bIncludeNewLines)
+int CChars::FindEndOfLeadingWhiteSpace(BOOL bIncludeNewLines)
 {
 	int		iLength;
 	int		iStart;
@@ -1780,7 +1935,7 @@ int CChars::PrivateFindEndOfLeadingWhiteSpace(BOOL bIncludeNewLines)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CChars::PrivateFindStartOfTrailingWhiteSpace(BOOL bIncludeNewLines)
+int CChars::FindStartOfTrailingWhiteSpace(BOOL bIncludeNewLines)
 {
 	int		iLength;
 	int		iEnd;
@@ -1796,6 +1951,7 @@ int CChars::PrivateFindStartOfTrailingWhiteSpace(BOOL bIncludeNewLines)
 	return iEnd;
 }
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -1806,13 +1962,12 @@ int CChars::StripWhiteSpace(BOOL bIncludeNewLines)
 	int		iStart;
 	int		iEnd;
 
-	iStart = PrivateFindEndOfLeadingWhiteSpace(bIncludeNewLines);
-	iEnd = PrivateFindStartOfTrailingWhiteSpace(bIncludeNewLines);
+	iStart = FindEndOfLeadingWhiteSpace(bIncludeNewLines);
+	iEnd = FindStartOfTrailingWhiteSpace(bIncludeNewLines);
 
 	if (iEnd < iStart)
 	{
-		Kill();
-		Init();
+		SetEmpty();
 	}
 	else
 	{
@@ -1921,23 +2076,24 @@ int CChars::Replace(const char* szFind, const char* szReplace)
 
 	if (iDifference > 0)
 	{
-		return PrivateReplaceWithLonger(szFind, szReplace, iFindLen, iDifference);
+		return ReplaceWithLonger(szFind, szReplace, iFindLen, iDifference);
 	}
 	else if (iDifference < 0)
 	{
-		return PrivateReplaceWithShorter(szFind, szReplace, iReplaceLen, iFindLen, iDifference);
+		return ReplaceWithShorter(szFind, szReplace, iReplaceLen, iFindLen, iDifference);
 	}
 	else
 	{
-		return PrivateReplaceWithEqualLength(szFind, szReplace, iFindLen, iDifference);
+		return ReplaceWithEqualLength(szFind, szReplace, iFindLen, iDifference);
 	}
 }
+
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CChars::PrivateReplaceWithEqualLength(const char* szFind, const char* szReplace, int iFindLen, int iDifference)
+int CChars::ReplaceWithEqualLength(const char* szFind, const char* szReplace, int iFindLen, int iDifference)
 {
 	int		iCount;
 	int		iIndex;
@@ -1957,7 +2113,7 @@ int CChars::PrivateReplaceWithEqualLength(const char* szFind, const char* szRepl
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CChars::PrivateReplaceWithShorter(const char* szFind, const char* szReplace, int iReplaceLen, int iFindLen, int iDifference)
+int CChars::ReplaceWithShorter(const char* szFind, const char* szReplace, int iReplaceLen, int iFindLen, int iDifference)
 {
 	int		iCount;
 	int		iIndex;
@@ -2024,7 +2180,7 @@ int CChars::PrivateReplaceWithShorter(const char* szFind, const char* szReplace,
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CChars::PrivateReplaceWithLonger(const char* szFind, const char* szReplace, int iFindLen, int iDifference)
+int CChars::ReplaceWithLonger(const char* szFind, const char* szReplace, int iFindLen, int iDifference)
 {
 	int		iCount;
 	int		iIndex;
@@ -2065,7 +2221,7 @@ void CChars::Overwrite(int iIndex, const char* szReplace)
 	int		j;
 	int		iLen;
 
-	if (szReplace == NULL)
+	if (StrEmpty(szReplace))
 	{
 		return;
 	}
@@ -2082,14 +2238,16 @@ void CChars::Overwrite(int iIndex, const char* szReplace)
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
 void CChars::Reverse(void)
 {
-	StrRev(mcText.GetData(), mcText.NumElements());
+	if (!Empty())
+	{
+		StrRev(mcText.GetData(), mcText.NumElements());
+	}
 }
 
 
@@ -2099,7 +2257,10 @@ void CChars::Reverse(void)
 //////////////////////////////////////////////////////////////////////////
 void CChars::Clear(void)
 {
-	Set("");
+	if (!IsFakeEmpty())
+	{
+		SetEmpty();
+	}
 }
 
 
@@ -2452,6 +2613,66 @@ BOOL CChars::ReadChars(CFileReader* pcReader)
 	else
 	{
 		return FALSE;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CChars::CleanIfEmpty(void)
+{
+	if (mcText.NumElements() <= 1)
+	{
+		if (!IsFakeEmpty())
+		{
+			SetEmpty();
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CChars::InitEmpty(void)
+{
+	mcText.Fake(gszEmptyString, 1);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CChars::IsFakeEmpty(void)
+{
+	return mcText.GetData() == gszEmptyString;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CChars::Unfake(void)
+{
+	mcText.Init();
+	mcText.Add('\0');
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CChars::UnfakeIfFakeEmpty(void)
+{
+	if (IsFakeEmpty())
+	{
+		Unfake();
 	}
 }
 
