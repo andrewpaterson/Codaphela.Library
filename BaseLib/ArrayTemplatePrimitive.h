@@ -165,7 +165,10 @@ void CArrayTemplatePrimitive<M>::InsertAt(M iElement, int iIndex)
 	M*	pvTemp;
 
 	pvTemp = CArrayTemplate<M>::InsertAt(iIndex);
-	*pvTemp = iElement;
+	if (pvTemp)
+	{
+		*pvTemp = iElement;
+	}
 }
 
 

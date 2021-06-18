@@ -314,6 +314,11 @@ void* CArrayBlock::InsertAt(int iIndex)  //The new element will be at iIndex
 	void*	pSource;
 	void*	pDest;
 
+	if ((iIndex < 0) || (iIndex > miNumElements))
+	{
+		return NULL;
+	}
+
 	//This assumes that iIndex is within the array (or the last element).
 	miUsedElements++;
 	if (miUsedElements > miNumElements)
@@ -421,6 +426,11 @@ void CArrayBlock::PrivateRemoveRange(int iStartIndex, int iEndIndexExclusive, in
 	if (iEndIndexExclusive <= iStartIndex)
 	{
 		return;
+	}
+
+	if (iStartIndex < 0)
+	{
+		iStartIndex = 0;
 	}
 
 	if (iEndIndexExclusive >= miUsedElements)
@@ -1260,7 +1270,7 @@ void* CArrayBlock::InsertNumAt(int iNumElements, int iIndex)
 	void*	pvTo;
 	int		iNumToMove;
 
-	if (iNumElements <= 0)
+	if ((iNumElements <= 0) || (iIndex < 0) || (iIndex > miNumElements))
 	{
 		return NULL;
 	}

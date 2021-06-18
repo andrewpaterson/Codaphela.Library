@@ -33,10 +33,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 class CArrayChars;
 
 
-//Fix CChars to not allocate memory for the empty string.
-//CChars must be based on something other than CArrayChar.
-
-
 class CChars
 {
 CONSTRUCTABLE(CChars);
@@ -108,15 +104,15 @@ public:
 	char*	Text(void);
 	char*	Text(int iIndex);
 	BOOL	Empty(void);
-	void	LeftAlign(CChars sz, char cPadCharacter, int iWidth);
-	void	LeftAlign(const char* sz, char cPadCharacter, int iWidth);
-	void	RightAlign(CChars sz, char cPadCharacter, int iWidth);
-	void	RightAlign(const char* sz, char cPadCharacter, int iWidth);
-	void	RightAlign(char cPadCharacter, int iWidth);
+	void	LeftAlign(CChars sz, char cPadCharacter, unsigned int iWidth);
+	void	LeftAlign(const char* sz, char cPadCharacter, unsigned int iWidth);
+	void	RightAlign(CChars sz, char cPadCharacter, unsigned int iWidth);
+	void	RightAlign(const char* sz, char cPadCharacter, unsigned int iWidth);
+	void	RightAlign(char cPadCharacter, unsigned int iWidth);
 	void	RemoveLastCharacter(void);
 	void	RemoveFromStart(int iNumChars);
 	void	RemoveFromEnd(int iNumChars);
-	void	Remove(int iStart, int iEnd);
+	void	Remove(int iStartInclusive, int iEndExclusive);
 	void	RemoveEnd(int iIndex);
 	void	RemoveCharacter(int iPos);
 	void	Split(CArrayChars* aszDest, char cSplitter);
@@ -179,20 +175,21 @@ public:
 
 protected:
 	char*	PrivateGrow(int iNumberOfCharacters);
-	int		PrivateReplaceWithLonger(const char* szFind, const char* szReplace, int iFindLen, int iDifference);
-	int		PrivateReplaceWithShorter(const char* szFind, const char* szReplace, int iReplaceLen, int iFindLen, int iDifference);
-	int		PrivateReplaceWithEqualLength(const char* szFind, const char* szReplace, int iFindLen, int iDifference);
-	void	PrivateFixLength(void);
-	int		PrivateFindEndOfLeadingWhiteSpace(BOOL bIncludeNewLines);
-	int		PrivateFindStartOfTrailingWhiteSpace(BOOL bIncludeNewLines);
+	int		ReplaceWithLonger(const char* szFind, const char* szReplace, int iFindLen, int iDifference);
+	int		ReplaceWithShorter(const char* szFind, const char* szReplace, int iReplaceLen, int iFindLen, int iDifference);
+	int		ReplaceWithEqualLength(const char* szFind, const char* szReplace, int iFindLen, int iDifference);
+	int		FindEndOfLeadingWhiteSpace(BOOL bIncludeNewLines);
+	int		FindStartOfTrailingWhiteSpace(BOOL bIncludeNewLines);
+	void	SetNonNull(const char* sz, int iLen);
+	void	SetEmpty(void);
+	void	CleanIfEmpty(void);
+	void	InitEmpty(void);
+	BOOL	IsFakeEmpty(void);
+	void	Unfake(void);
+	void	UnfakeIfFakeEmpty(void);
 };
 
 
-extern CChars	gszEmptyChars;
-
-
-void InitEmptyString(void);
-void KillEmptyString(void);
 int CompareChars(const void* arg1, const void* arg2);
 int CompareCharsIgnoreCase(const void* arg1, const void* arg2);
 

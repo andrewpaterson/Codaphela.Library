@@ -26,7 +26,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "StringHelper.h"
 
 
-char	gszEmptyString[] = "";
+char	gszEmptyString[4] = { '\0', '\0', '\0', '\0' };
 
 
 ////////////////////////////////////////////////////////////////////////////////////
