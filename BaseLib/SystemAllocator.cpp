@@ -53,7 +53,7 @@ void* CSystemAllocator::Realloc(void* pv, size_t tSize)
 		pv = malloc(tSize);
 	}
 	else
-	{ 
+	{
 		pv = realloc(pv, tSize);
 	}
 	return pv;

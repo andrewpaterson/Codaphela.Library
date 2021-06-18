@@ -230,7 +230,6 @@ CChars* CChars::Init(char cPadCharacter, int iNumber)
 	if (iNumber > 0)
 	{
 		mcText.Init();
-		SetEmpty();
 		Append(cPadCharacter, iNumber);
 	}
 	else
