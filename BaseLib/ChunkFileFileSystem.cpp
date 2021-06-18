@@ -297,6 +297,8 @@ BOOL CChunkFileFileSystem::ReadChunkBegin(char* szChunkName)
 			bResult = mpcChunkFile->ReadChunkBegin(iIndex);
 			if (iDepth == iLength-1)
 			{
+				aszChunkNames.Kill();
+				free(abFoundFirst);
 				return TRUE;
 			}
 			iDepth++;
