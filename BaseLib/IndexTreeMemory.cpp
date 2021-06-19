@@ -1164,6 +1164,7 @@ BOOL CIndexTreeMemory::ValidateIndexTree(void)
 	BOOL bResult;
 
 	bResult = ValidateLimits();
+	bResult &= ValidateNodeTree();
 	bResult &= ValidateSize();
 	bResult &= ValidateParentIndex();
 	return bResult;
@@ -1401,14 +1402,6 @@ BOOL CIndexTreeMemory::RecurseValidateParentIndex(CIndexTreeRecursor* pcCursor)
 						gcLogger.Error2(__METHOD__, " Node [", pcCursor->GetBadNode(), "] points to the wrong parent node.", NULL);
 						return FALSE;
 					}
-
-					pcCursor->Push(pcChild, i);
-					bResult = RecurseValidateParentIndex(pcCursor);
-					if (!bResult)
-					{
-						pcCursor->Pop();
-						return FALSE;
-					}
 				}
 			}
 
@@ -1417,6 +1410,66 @@ BOOL CIndexTreeMemory::RecurseValidateParentIndex(CIndexTreeRecursor* pcCursor)
 				pcChild = pcNode->Get(i);
 				pcCursor->Push(pcChild, i);
 				bResult = RecurseValidateParentIndex(pcCursor);
+				if (!bResult)
+				{
+					pcCursor->Pop();
+					return FALSE;
+				}
+			}
+
+		}
+	}
+	pcCursor->Pop();
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeMemory::ValidateNodeTree(void)
+{
+	CIndexTreeRecursor	cCursor;
+	BOOL				bResult;
+
+	cCursor.Init(mpcRoot);
+	bResult = RecurseValidateNodeTree(&cCursor);
+	cCursor.Kill();
+
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeMemory::RecurseValidateNodeTree(CIndexTreeRecursor* pcCursor)
+{
+	CIndexTreeNodeMemory*	pcNode;
+	int						i;
+	CIndexTreeNodeMemory*	pcChild;
+	BOOL					bResult;
+
+
+	pcNode = (CIndexTreeNodeMemory*)pcCursor->GetNode();
+	if (pcNode != NULL)
+	{
+		if (pcNode->GetIndexTree() != this)
+		{
+			pcCursor->GenerateBad();
+			gcLogger.Error2(__METHOD__, " Node [", pcCursor->GetBadNode(), "] does not point back into its Index Tree.", NULL);
+			return FALSE;
+		}
+
+		if (pcNode->HasNodes())
+		{
+			for (i = pcNode->GetFirstIndex(); i <= pcNode->GetLastIndex(); i++)
+			{
+				pcChild = pcNode->Get(i);
+				pcCursor->Push(pcChild, i);
+				bResult = RecurseValidateNodeTree(pcCursor);
 				if (!bResult)
 				{
 					pcCursor->Pop();

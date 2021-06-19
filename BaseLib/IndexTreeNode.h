@@ -57,6 +57,7 @@ public:
 	unsigned char		GetIndexInParent(void);
 	unsigned char		GetFlags(void);
 	unsigned char		GetTransientFlags(void);
+	CIndexTree*			GetIndexTree(void);
 
 	int					NumIndexes(void);
 	int					NumIndexes(unsigned char uiFirstIndex, unsigned char uiLastIndex);
