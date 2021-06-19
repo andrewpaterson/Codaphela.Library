@@ -44,6 +44,7 @@ public:
 
 	void		Init(void);
 	void		Free(void);
+	void		Class(void);
 
 	BOOL		Load(CObjectReader* pcFile);
 	BOOL		Save(CObjectWriter* pcFile);

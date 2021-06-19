@@ -152,6 +152,7 @@ protected:
 	BOOL				IsDistToRootValid(void);
 	void				EmbedPointerFields(void);
 	void				EmbedEmbeddedObjectFields(void);
+	void				ClassNotImplemented(void);
 };
 
 

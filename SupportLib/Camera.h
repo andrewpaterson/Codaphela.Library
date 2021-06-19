@@ -42,6 +42,7 @@ public:
 	void 	Init(void);
 	void 	Init(ECameraType eCameraType, float fFOV);
 	void 	Free(void);
+	void	Class(void);
 
 	BOOL	Load(CObjectReader* pcFile);
 	BOOL	Save(CObjectWriter* pcFile);

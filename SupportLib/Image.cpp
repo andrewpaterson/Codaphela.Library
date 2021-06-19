@@ -173,7 +173,7 @@ void CImage::Init(int iWidth, int iHeight, CImage* pcChannelsSource)
 //////////////////////////////////////////////////////////////////////////
 void CImage::Class(void)
 {
-	CObject::Class();
+	CObject::ClassNotImplemented();
 }
 
 

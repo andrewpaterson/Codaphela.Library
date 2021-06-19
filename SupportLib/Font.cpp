@@ -52,7 +52,7 @@ Ptr<CFont> CFont::Init(char* szName, int iSpaceWidth, int iAscent, int iDescent)
 //////////////////////////////////////////////////////////////////////////
 void CFont::Class(void)
 {
-	CObject::Class();
+	CObject::ClassNotImplemented();
 }
 
 

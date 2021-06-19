@@ -28,11 +28,11 @@ DESTRUCTABLE(CNamedPointerContainer);
 public:
 	Ptr<>	mp;
 
-	void						Class(void);
 	Ptr<CNamedPointerContainer>	Init(void);
 	Ptr<CNamedPointerContainer>	Init(CPointer& pPointer);
 	Ptr<CNamedPointerContainer>	Init(CEmbeddedObject* pcObject);
 	void						Free(void);
+	void						Class(void);
 
 	void						Clear();
 };
