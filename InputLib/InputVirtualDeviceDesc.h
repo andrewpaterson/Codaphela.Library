@@ -63,5 +63,5 @@ public:
 typedef CSetType<CInputVirtualDeviceDesc>	CSetInputVirtualDeviceDesc;
 
 
-#endif // __INPUT_VIRTUAL_DEVICE_DESC_H__
+#endif // !__INPUT_VIRTUAL_DEVICE_DESC_H__
 

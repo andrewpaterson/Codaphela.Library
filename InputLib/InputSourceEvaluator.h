@@ -111,5 +111,5 @@ public:
 };
 
 
-#endif // __INPUT_ACTION_CONFIG_H__
+#endif // !__INPUT_ACTION_CONFIG_H__
 

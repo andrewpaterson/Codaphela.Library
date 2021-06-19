@@ -81,5 +81,5 @@ typedef CSetType<CInputDevice>	CSetInputDevice;
 typedef CSetType<CInputDeviceDesc> CSetInputDeviceDesc;
 
 
-#endif // __INPUT_DEVICE_H__
+#endif // !__INPUT_DEVICE_H__
 

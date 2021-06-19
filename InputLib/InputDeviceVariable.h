@@ -51,5 +51,5 @@ public:
 typedef CSetType<CInputDeviceVariable>	CSetInputDeviceVariable;
 
 
-#endif // __INPUT_DEVICE_VARIABLE_H__
+#endif // !__INPUT_DEVICE_VARIABLE_H__
 

@@ -40,5 +40,5 @@ public:
 };
 
 
-#endif // __INPUT_CATEGORIES_H__
+#endif // !__INPUT_CATEGORIES_H__
 

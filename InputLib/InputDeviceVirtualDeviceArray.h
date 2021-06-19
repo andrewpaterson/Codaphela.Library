@@ -38,5 +38,5 @@ public:
 typedef CArrayTemplate<SInputDeviceVirtualDevicePair> CArrayInputDeviceVirtualDevice;
 
 
-#endif // __INPUT_DEVICE_VIRTUAL_DEVICE_ARRAY_H__
+#endif // !__INPUT_DEVICE_VIRTUAL_DEVICE_ARRAY_H__
 

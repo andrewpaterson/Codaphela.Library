@@ -110,5 +110,5 @@ public:
 typedef CSetType<CInputSourceValue>	CSetInputSourceValue;
 
 
-#endif // __INPUT_SOURCE_VALUE_H_
+#endif // !__INPUT_SOURCE_VALUE_H_
 

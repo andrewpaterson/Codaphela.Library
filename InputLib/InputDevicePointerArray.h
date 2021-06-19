@@ -28,5 +28,5 @@ class CInputDevice;
 typedef CArrayTemplate<CInputDevice*> CArrayInputDevicePtr;
 
 
-#endif // __INPUT_DEVICE_POINTER_ARRAY_H__
+#endif // !__INPUT_DEVICE_POINTER_ARRAY_H__
 

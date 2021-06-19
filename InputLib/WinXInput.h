@@ -68,5 +68,5 @@ public:
 };
 
 
-#endif // __WIN_X_INPUT_H__
+#endif // !__WIN_X_INPUT_H__
 

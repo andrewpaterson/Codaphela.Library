@@ -40,5 +40,5 @@ public:
 typedef CArrayTemplate<CInputVirtualDeviceSwitch>	CArrayInputVirtualDeviceSwitch;
 
 
-#endif // __INPUT_VIRTUAL_DEVICE_SWITCH_H__
+#endif // !__INPUT_VIRTUAL_DEVICE_SWITCH_H__
 

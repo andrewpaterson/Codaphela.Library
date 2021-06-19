@@ -80,5 +80,5 @@ public:
 };
 
 
-#endif // __INPUT_CHORDS_H__
+#endif // !__INPUT_CHORDS_H__
 

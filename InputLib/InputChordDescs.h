@@ -49,5 +49,5 @@ private:
 };
 
 
-#endif // __INPUT_CHORD_DESCS_H__
+#endif // !__INPUT_CHORD_DESCS_H__
 

@@ -58,5 +58,5 @@ public:
 typedef CSetType<CInputChordDesc>	CSetInputChordDesc;
 
 
-#endif // __INPUT_CHORD_DESC_H__
+#endif // !__INPUT_CHORD_DESC_H__
 

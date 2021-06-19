@@ -76,5 +76,5 @@ typedef CSetType<CInputSourceDesc> CSetInputSourceDesc;
 typedef CArrayTemplate<CInputSourceDesc*> CArrayInputSourceDescPtr;
 
 
-#endif // __INPUT_SOURCE_DESC_H__
+#endif // !__INPUT_SOURCE_DESC_H__
 

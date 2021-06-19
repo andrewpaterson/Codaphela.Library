@@ -35,5 +35,5 @@ struct SInputDeviceTimeValue : SInputDeviceValue
 typedef CArrayTemplate<SInputDeviceTimeValue>	CArrayInputDeviceTimeValue;
 
 
-#endif // __INPUT_EVENT_HISTORY_H__
+#endif // !__INPUT_EVENT_HISTORY_H__
 

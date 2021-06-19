@@ -111,5 +111,5 @@ public:
 };
 
 
-#endif // __INPUT_CHORD_CRITERIA_DESC_H__
+#endif // !__INPUT_CHORD_CRITERIA_DESC_H__
 

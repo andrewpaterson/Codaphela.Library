@@ -62,5 +62,5 @@ public:
 };
 
 
-#endif // __INPUT_STATE_H__
+#endif // !__INPUT_STATE_H__
 
