@@ -995,7 +995,6 @@ void CArrayBlock::Swap(int iIndex1, int iIndex2)
 	void*	pElement1;
 	void*	pElement2;
 
-
 	pElement1 = Get(iIndex1);
 	pElement2 = Get(iIndex2);
 

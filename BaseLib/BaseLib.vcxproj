@@ -22,6 +22,7 @@
     <ProjectGuid>{E25D2DAC-0E80-42B2-8FA7-99B837CF7588}</ProjectGuid>
     <RootNamespace>BaseLib</RootNamespace>
     <Keyword>Win32Proj</Keyword>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
@@ -105,7 +106,7 @@
       <PrecompiledHeader>
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
-      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <StringPooling>false</StringPooling>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -130,7 +131,7 @@
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <BufferSecurityCheck>false</BufferSecurityCheck>
-      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
@@ -139,6 +140,9 @@
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <TreatWarningAsError>true</TreatWarningAsError>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <OpenMPSupport>true</OpenMPSupport>
+      <WholeProgramOptimization>true</WholeProgramOptimization>
     </ClCompile>
     <Lib />
   </ItemDefinitionGroup>
@@ -165,6 +169,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="AccessDataOrderer.h" />
+    <ClInclude Include="BubbleSort.h" />
     <ClInclude Include="ChunkFileFileSystem.h" />
     <ClInclude Include="DataIO.h" />
     <ClInclude Include="DataOrderers.h" />
@@ -403,6 +408,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AccessDataOrderer.cpp" />
+    <ClCompile Include="BubbleSort.cpp" />
     <ClCompile Include="ChunkFileFileSystem.cpp" />
     <ClCompile Include="DataCallback.cpp" />
     <ClCompile Include="DataOrderers.cpp" />
