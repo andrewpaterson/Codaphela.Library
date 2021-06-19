@@ -17,6 +17,7 @@ public:
 	void	Free(void* pv);
 
 	BOOL	IsMallocInitialised(void);
+	BOOL	IsMalloc(CMallocator* pcMalloc);
 };
 
 

@@ -32,6 +32,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "FileWriter.h"
 #include "FileReader.h"
 #include "FileUtil.h"
+#include "NullAllocator.h"
 #include "Chars.h"
 
 
@@ -2568,7 +2569,17 @@ void CChars::MakeCPlusPlus(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CChars::WriteString(CFileWriter* pcWriter)
 {
-	return mcText.Write(pcWriter);
+	CArrayChar c;
+
+	if (!IsFakeEmpty())
+	{
+		return mcText.Write(pcWriter);
+	}
+	else
+	{
+		c.Fake(NULL, 0);
+		return c.Write(pcWriter);
+	}
 }
 
 
@@ -2578,7 +2589,18 @@ BOOL CChars::WriteString(CFileWriter* pcWriter)
 //////////////////////////////////////////////////////////////////////////
 BOOL CChars::ReadString(CFileReader* pcReader)
 {
-	return mcText.Read(pcReader);
+	BOOL bResult;
+
+	bResult = mcText.Read(pcReader);
+	if (bResult)
+	{
+		if ((mcText.NumElements() == 0) && (mcText.IsMalloc(&gcNullAllocator)))
+		{
+			InitEmpty();
+		}
+		return TRUE;
+	}
+	return FALSE;
 }
 
 

@@ -1,4 +1,5 @@
 #include "SystemAllocator.h"
+#include "NullAllocator.h"
 #include "GlobalMemory.h"
 #include "ArraySizer.h"
 #include "StdRandom.h"
@@ -60,7 +61,7 @@ void CArrayBlock::Init(CMallocator* pcMalloc, int iElementSize, int iChunkSize)
 //////////////////////////////////////////////////////////////////////////
 void CArrayBlock::Fake(int iElementSize, void* pvData, int iNum, int iChunkSize)
 {
-	CMalloc::Kill();
+	CMalloc::Init(&gcNullAllocator);
 	mpvArray = pvData;
 	miElementSize = iElementSize;
 	miNumElements = iChunkSize;

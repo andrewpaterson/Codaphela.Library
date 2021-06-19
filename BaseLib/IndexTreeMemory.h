@@ -108,6 +108,8 @@ protected:
 	BOOL					RecurseValidateLimits(CIndexTreeRecursor* pcCursor);
 	BOOL					ValidateParentIndex(void);
 	BOOL					RecurseValidateParentIndex(CIndexTreeRecursor* pcCursor);
+	BOOL					ValidateNodeTree(void);
+	BOOL					RecurseValidateNodeTree(CIndexTreeRecursor* pcCursor);
 
 	int						NumAllocatedNodes(void);
 
