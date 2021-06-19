@@ -72,5 +72,5 @@ public:
 };
 
 
-#endif // __ARRAY_BIT_H__
+#endif // !__ARRAY_BIT_H__
 

@@ -194,5 +194,5 @@ int CompareChars(const void* arg1, const void* arg2);
 int CompareCharsIgnoreCase(const void* arg1, const void* arg2);
 
 
-#endif // __CHARS_H__
+#endif // !__CHARS_H__
 

@@ -496,5 +496,5 @@ M& CArrayTemplate<M>::operator[](int iIndex)
 }
 
 
-#endif // __TEMPLATE_ARRAY_H__
+#endif // !__TEMPLATE_ARRAY_H__
 

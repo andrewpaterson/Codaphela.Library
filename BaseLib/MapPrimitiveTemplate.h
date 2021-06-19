@@ -104,5 +104,5 @@ BOOL CMapPrimitiveTemplate<M, D>::Remove(M iKey)
 }
 
 
-#endif // __MAP_PRIMITIVE_TEMPLATE_H__
+#endif // !__MAP_PRIMITIVE_TEMPLATE_H__
 

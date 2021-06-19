@@ -11,5 +11,5 @@ struct SLogConfig
 };
 
 
-#endif // __LOG_CONFIG_H__
+#endif // !__LOG_CONFIG_H__
 

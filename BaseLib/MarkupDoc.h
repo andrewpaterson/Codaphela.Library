@@ -59,6 +59,6 @@ public:
 };
 
 
-#endif // __MARKUP_DOC_H__
+#endif // !__MARKUP_DOC_H__
 
 

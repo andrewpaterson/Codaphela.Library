@@ -74,5 +74,5 @@ int CompareAlignedFreeListDesc(const void* arg1, const void* arg2);
 int CompareFreeListDesc(const void* arg1, const void* arg2);
 
 
-#endif // __MEMORY_HEADER_H__
+#endif // !__MEMORY_HEADER_H__
 

@@ -14,5 +14,5 @@ public:
 };
 
 
-#endif // __FILE_PATH_BUILDER_H__
+#endif // !__FILE_PATH_BUILDER_H__
 

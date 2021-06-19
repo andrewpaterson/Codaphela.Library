@@ -19,5 +19,5 @@ public:
 };
 
 
-#endif // __MAP_MAP_ITERATOR_H__
+#endif // !__MAP_MAP_ITERATOR_H__
 

@@ -62,5 +62,5 @@ BOOL LoadMultiple(M* psThis, CFileReader* pcFile, size_t uiCount)
 }
 
 
-#endif // __DATA_IO_H__
+#endif // !__DATA_IO_H__
 

@@ -72,5 +72,5 @@ void TypesKill(void);
 BOOL TypesValidate(void);
 
 
-#endif // __TYPE_NAMES_H__
+#endif // !__TYPE_NAMES_H__
 

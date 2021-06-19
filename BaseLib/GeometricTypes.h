@@ -39,5 +39,5 @@ SFloat3*	GetNormal(SFloat3* psNormals, int iStride, int iNormal);
 int			GetIndex(SFloat3* psPoints, int iStride, SFloat3* psPosition);
 
 
-#endif // __GEOMETRIC_TYPES_H__
+#endif // !__GEOMETRIC_TYPES_H__
 

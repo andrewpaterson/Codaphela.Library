@@ -17,5 +17,5 @@ typedef CFileNames<CPackFileNode>				CFileNamesPackFileNode;
 typedef CArrayTemplate<CFileNodePackFileNode*>	CArrayPackFileNodePtrs;
 
 
-#endif // __PACK_FILES_GENERAL_H__
+#endif // !__PACK_FILES_GENERAL_H__
 

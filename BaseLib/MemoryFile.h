@@ -66,5 +66,5 @@ CMemoryFile* MemoryFile(void);
 CMemoryFile* MemoryFile(void* pvInitialMem, int iInitialLength);
 
 
-#endif // __MEMORY_FILE_H__
+#endif // !__MEMORY_FILE_H__
 

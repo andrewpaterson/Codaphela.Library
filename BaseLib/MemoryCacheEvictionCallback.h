@@ -11,5 +11,5 @@ public:
 };
 
 
-#endif // __MEMORY_CACHE_EVICTION_CALLBACK_H__
+#endif // !__MEMORY_CACHE_EVICTION_CALLBACK_H__
 

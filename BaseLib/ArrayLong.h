@@ -33,5 +33,5 @@ public:
 };
 
 
-#endif // __LONG_ARRAY_H__
+#endif // !__LONG_ARRAY_H__
 

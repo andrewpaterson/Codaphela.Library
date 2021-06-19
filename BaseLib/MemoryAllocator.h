@@ -36,5 +36,5 @@ public:
 };
 
 
-#endif // __MEMORY_ALLOCATOR_H__
+#endif // !__MEMORY_ALLOCATOR_H__
 

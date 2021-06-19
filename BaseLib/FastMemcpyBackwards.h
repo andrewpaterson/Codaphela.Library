@@ -100,5 +100,5 @@ void memcpy_fast_backwards_63bytes(void* pvDest, void* pvSource);
 void memcpy_fast_backwards_64bytes(void* pvDest, void* pvSource);
 
 
-#endif // __FAST_MEMCPY_BACKWARDS_H__
+#endif // !__FAST_MEMCPY_BACKWARDS_H__
 

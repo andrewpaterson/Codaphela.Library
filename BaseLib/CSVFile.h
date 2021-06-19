@@ -51,5 +51,5 @@ protected:
 };
 
 
-#endif // __CSV_FILE_H__
+#endif // !__CSV_FILE_H__
 

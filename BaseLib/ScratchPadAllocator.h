@@ -35,5 +35,5 @@ public:
 };
 
 
-#endif // __SCRATCH_PAD_ALLOCATOR_H__
+#endif // !__SCRATCH_PAD_ALLOCATOR_H__
 

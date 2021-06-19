@@ -145,5 +145,5 @@ protected:
 };
 
 
-#endif // __ARRAY_BASE_H__
+#endif // !__ARRAY_BASE_H__
 

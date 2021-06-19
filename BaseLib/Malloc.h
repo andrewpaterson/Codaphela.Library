@@ -20,6 +20,6 @@ public:
 };
 
 
-#endif // __MALLOC_H__
+#endif // !__MALLOC_H__
 
 

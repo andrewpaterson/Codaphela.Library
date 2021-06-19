@@ -1176,5 +1176,5 @@ BOOL CArrayTemplateMinimal<M>::Read(CFileReader* pcFileReader)
 }
 
 
-#endif // __ARRAY_TEMPLATE_MINIMAL_H__
+#endif // !__ARRAY_TEMPLATE_MINIMAL_H__
 

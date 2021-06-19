@@ -28,5 +28,5 @@ char GetEscapeCode(char cCurrent);
 int GetEscapeString(char cCurrent, char* szDest);
 
 
-#endif // __ESCAPE_CODES_H__
+#endif // !__ESCAPE_CODES_H__
 

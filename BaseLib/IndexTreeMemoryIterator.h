@@ -21,5 +21,5 @@ public:
 };
 
 
-#endif // __INDEX_TREE_MEMORY_ITERATOR_H__
+#endif // !__INDEX_TREE_MEMORY_ITERATOR_H__
 

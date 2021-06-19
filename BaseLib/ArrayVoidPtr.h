@@ -22,5 +22,5 @@ public:
 };
 
 
-#endif // __ARRAY_VOID_POINTER_H__
+#endif // !__ARRAY_VOID_POINTER_H__
 

@@ -37,5 +37,5 @@ public:
 };
 
 
-#endif // __ARRAY_INT_MINIMAL_H__
+#endif // !__ARRAY_INT_MINIMAL_H__
 

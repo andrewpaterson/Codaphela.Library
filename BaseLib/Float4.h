@@ -86,5 +86,5 @@ SFloat4* 	Float4Lerp(SFloat4* pOut, const SFloat4* pV1, const SFloat4* pV2, floa
 SFloat4*    Float4Transform(SFloat4* psOut, SFloat4x4* psMat, SFloat4* psV);
 
 
-#endif // __FLOAT_4_H__
+#endif // !__FLOAT_4_H__
 

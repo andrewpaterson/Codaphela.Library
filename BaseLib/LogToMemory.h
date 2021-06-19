@@ -17,5 +17,5 @@ public:
 };
 
 
-#endif // __LOG_TO_MEMORY_H__
+#endif // !__LOG_TO_MEMORY_H__
 

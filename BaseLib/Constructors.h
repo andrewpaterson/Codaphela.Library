@@ -175,5 +175,5 @@ M* CConstructors::Get(void)
 }
 
 
-#endif // __CONSTRUCTORS_H__
+#endif // !__CONSTRUCTORS_H__
 

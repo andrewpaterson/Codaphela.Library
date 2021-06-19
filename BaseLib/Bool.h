@@ -33,5 +33,5 @@ typedef int                 BOOL;
 #endif
 
 
-#endif // __BOOL_H__
+#endif // !__BOOL_H__
 

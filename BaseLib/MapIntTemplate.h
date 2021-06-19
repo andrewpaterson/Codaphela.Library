@@ -57,5 +57,5 @@ void CMapIntTemplate<D>::Init(CMallocator* pcMalloc, BOOL bOverwrite)
 };
 
 
-#endif // __MAP_INT_TEMPLATE_H__
+#endif // !__MAP_INT_TEMPLATE_H__
 

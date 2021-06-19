@@ -51,5 +51,5 @@ char*		NullToEmpty(const char* szString);
 extern char	gszEmptyString[4];
 
 
-#endif // __STRING_HELPER_H__
+#endif // !__STRING_HELPER_H__
 

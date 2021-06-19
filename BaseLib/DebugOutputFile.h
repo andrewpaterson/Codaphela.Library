@@ -54,5 +54,5 @@ public:
 CDebugOutputFile* DebugOutputFile(void);
 
 
-#endif // __DEBUG_OUTPUT_FILE_H__
+#endif // !__DEBUG_OUTPUT_FILE_H__
 

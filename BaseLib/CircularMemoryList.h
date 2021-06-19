@@ -81,6 +81,6 @@ protected:
 };
 
 
-#endif // __CIRCULAR_MEMORY_LIST_H__
+#endif // !__CIRCULAR_MEMORY_LIST_H__
 
 

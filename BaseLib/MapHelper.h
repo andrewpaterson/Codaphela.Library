@@ -14,6 +14,6 @@ size_t	StrDataSize(char* pszData);
 size_t	StrKeySize(char* pszKey);
 
 
-#endif // __MAP_HELPER_H__
+#endif // !__MAP_HELPER_H__
 
 

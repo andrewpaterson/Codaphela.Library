@@ -10,5 +10,5 @@ typedef CFileNames<CFileNodeSystemFile>			CSystemFileNames;
 typedef CArrayTemplate<CSystemFileNode*>		CArraySystemFilePtrs;
 
 
-#endif // __FILE_SYSTEM_GENERAL_H__
+#endif // !__FILE_SYSTEM_GENERAL_H__
 

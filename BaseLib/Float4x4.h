@@ -76,5 +76,5 @@ SFloat4x4* 	Float4x4PerspectiveFovRH(SFloat4x4* psOut, float fFovY, float fAspec
 BOOL		Float4x4Equals(SFloat4x4* ps1, SFloat4x4* ps2);
 
 
-#endif // __FLOAT_4_X_4_H__
+#endif // !__FLOAT_4_X_4_H__
 

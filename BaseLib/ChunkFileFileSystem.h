@@ -58,5 +58,5 @@ protected:
 };
 
 
-#endif // __CHUNK_FILE_FILE_SYSTEM_H__
+#endif // !__CHUNK_FILE_FILE_SYSTEM_H__
 

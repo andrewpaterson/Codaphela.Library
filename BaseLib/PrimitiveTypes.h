@@ -39,5 +39,5 @@ typedef float					float32;
 typedef double					float64;
 
 
-#endif // __PRIMITIVE_TYPES_H__
+#endif // !__PRIMITIVE_TYPES_H__
 

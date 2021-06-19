@@ -32,5 +32,5 @@ public:
 };
 
 
-#endif // __PACK_FILE_ITERATOR_H__
+#endif // !__PACK_FILE_ITERATOR_H__
 

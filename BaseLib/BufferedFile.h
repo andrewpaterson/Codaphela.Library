@@ -90,5 +90,5 @@ CBufferedFile* BufferedFile(CAbstractFile* pcFile);
 CBufferedFile* BufferedFile(CAbstractFile* pcFile, int iBufferSize);
 
 
-#endif // __BUFFERED_FILE_H__
+#endif // !__BUFFERED_FILE_H__
 

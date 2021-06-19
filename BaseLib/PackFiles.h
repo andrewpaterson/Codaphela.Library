@@ -101,5 +101,5 @@ protected:
 };
 
 
-#endif // __PACK_FILES_H__
+#endif // !__PACK_FILES_H__
 

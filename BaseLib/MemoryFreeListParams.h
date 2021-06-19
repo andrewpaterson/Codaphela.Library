@@ -53,5 +53,5 @@ private:
 };
 
 
-#endif // __MEMORY_FREE_LIST_PARAMS__
+#endif // !__MEMORY_FREE_LIST_PARAMS__
 
