@@ -89,5 +89,5 @@ protected:
 };
 
 
-#endif // __ARRAY_COMMON_OBJECT_H__
+#endif // !__ARRAY_COMMON_OBJECT_H__
 

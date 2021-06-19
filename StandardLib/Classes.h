@@ -118,5 +118,5 @@ void CClasses::AddSystemClassAndConstructor(void)
 }
 
 
-#endif // __CLASSES_H__
+#endif // !__CLASSES_H__
 

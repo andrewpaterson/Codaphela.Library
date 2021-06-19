@@ -51,5 +51,5 @@ struct SChannelsChangingDesc
 };
 
 
-#endif // __CHANNELS_HELPER_H__
+#endif // !__CHANNELS_HELPER_H__
 

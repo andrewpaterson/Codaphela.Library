@@ -97,5 +97,5 @@ TConverter* CObjectsSource::AddConverter(void)
 
 }
 
-#endif // __OBJECTS_SOURCE_H__
+#endif // !__OBJECTS_SOURCE_H__
 

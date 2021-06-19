@@ -15,5 +15,5 @@ public:
 };
 
 
-#endif // __DIST_TO_ROOT_CALCULATOR_H__
+#endif // !__DIST_TO_ROOT_CALCULATOR_H__
 

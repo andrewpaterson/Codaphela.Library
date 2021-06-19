@@ -31,5 +31,5 @@ void LogPrimitiveAccessDebug(CPrimitiveObject* pvThis, char* szMethod);
 void LogPrimitiveAssignDebug(CPrimitiveObject* pvThis, char* szMethod);
 
 
-#endif // __PRIMITIVE_OBJECT_H__
+#endif // !__PRIMITIVE_OBJECT_H__
 

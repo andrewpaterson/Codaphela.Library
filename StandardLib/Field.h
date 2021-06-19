@@ -39,5 +39,5 @@ protected:
 };
 
 
-#endif // __FIELD_H__
+#endif // !__FIELD_H__
 

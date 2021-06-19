@@ -32,5 +32,5 @@ public:
 };
 
 
-#endif // __CHANNELS_ACCESSOR_TYPE_CONVERT_H__
+#endif // !__CHANNELS_ACCESSOR_TYPE_CONVERT_H__
 

@@ -32,5 +32,5 @@ public:
 };
 
 
-#endif // __CHANNELS_ACCESSOR_BYTE_ALIGNED_H__
+#endif // !__CHANNELS_ACCESSOR_BYTE_ALIGNED_H__
 

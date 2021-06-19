@@ -65,5 +65,5 @@ void CClassFunctionsCall::SetFunction(void(M::*ActionFunc)(CUnknown*, void*))
 }
 
 
-#endif // __CLASS_FUNCTIONS_CALL_H__
+#endif // !__CLASS_FUNCTIONS_CALL_H__
 

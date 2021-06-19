@@ -32,5 +32,5 @@ public:
 };
 
 
-#endif // __CHANNELS_ACCESSOR_CHANNEL_BITTY_H__
+#endif // !__CHANNELS_ACCESSOR_CHANNEL_BITTY_H__
 

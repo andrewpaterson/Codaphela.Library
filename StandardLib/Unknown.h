@@ -48,5 +48,5 @@ public:
 };
 
 
-#endif // __UNKNOWN_H__
+#endif // !__UNKNOWN_H__
 

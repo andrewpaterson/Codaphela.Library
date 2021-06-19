@@ -14,5 +14,5 @@ private:
 };
 
 
-#endif // __OBJECT_REMAP_FROM_H__
+#endif // !__OBJECT_REMAP_FROM_H__
 

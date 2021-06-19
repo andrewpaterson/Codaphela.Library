@@ -194,5 +194,5 @@ void CIterables::RemoveDuringIteration(SIteratorTemplate<M>* psIter)
 
 
 
-#endif // __ITERABLES_H__
+#endif // !__ITERABLES_H__
 

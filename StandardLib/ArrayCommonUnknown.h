@@ -114,5 +114,5 @@ protected:
 };
 
 
-#endif // __ARRAY_COMMON_UNKNOWN_H__
+#endif // !__ARRAY_COMMON_UNKNOWN_H__
 

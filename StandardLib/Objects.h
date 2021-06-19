@@ -449,5 +449,5 @@ Ptr<SpecificClass> ONMalloc(const char* szObjectName, Args ... args)
 }
 
 
-#endif // __OBJECTS_H__
+#endif // !__OBJECTS_H__
 

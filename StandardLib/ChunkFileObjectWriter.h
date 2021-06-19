@@ -50,5 +50,5 @@ protected:
 };
 
 
-#endif // __OBJECT_WRITER_CHUNKED_H__
+#endif // !__OBJECT_WRITER_CHUNKED_H__
 

@@ -201,5 +201,5 @@ BOOL CSetType<M>::SaveElement(CFileWriter* pcFile, CUnknown* pcUnknown)
 }
 
 
-#endif // __SET_TYPE_H__
+#endif // !__SET_TYPE_H__
 

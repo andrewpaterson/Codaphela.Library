@@ -70,5 +70,5 @@ BOOL CAction::AddListener(M* pcListener)
 }
 
 
-#endif // __ACTION_H__
+#endif // !__ACTION_H__
 

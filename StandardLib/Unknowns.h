@@ -206,5 +206,5 @@ M* CUnknowns::GetConstructor(void)
 }
 
 
-#endif // __UNKNOWNS_H__
+#endif // !__UNKNOWNS_H__
 
