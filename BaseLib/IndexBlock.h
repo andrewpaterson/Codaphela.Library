@@ -58,6 +58,8 @@ public:
 	BOOL				Write(CFileWriter* pcFileWriter);
 	BOOL				Read(CFileReader* pcFileReader);
 
+	BOOL				ValidateIndexTree(void);
+
 protected:
 	void				DataWillBeFreed(SIndexBlockNode* psNode);
 };
