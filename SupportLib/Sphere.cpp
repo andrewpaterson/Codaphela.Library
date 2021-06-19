@@ -129,6 +129,8 @@ void CSphere::SetFromPointsUsingBestFit(SFloat3* psPoints, int iStride, int iNum
 	//This could be optimised quite easily by discarding points which fall inside the sphere.
 	fMaxLen = 0.0f;
 	psPoints1 = psPoints;
+	psEndPoint1 = NULL;
+	psEndPoint2 = NULL;
 	for (i = 0; i < iNumPoints; i++)
 	{
 		psPoints2 = psPoints;

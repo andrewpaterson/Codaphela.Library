@@ -457,6 +457,10 @@ void CImageCombiner::Draw(CArrayPackedRectangle* pacPackedRects)
 		bDestHasOpacity = TRUE;
 		pcDestOpacity = CImageAccessorCreator::Create(&mpcDestImage, pcOpacityChannel->eType, IMAGE_OPACITY, CHANNEL_ZERO);
 	}
+	else
+	{
+		pcDestOpacity = NULL;
+	}
 
 	pcLastImage = NULL;
 	pcDest = CImageAccessorCreator::CreateEmpty();
