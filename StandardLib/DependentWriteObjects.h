@@ -38,5 +38,5 @@ public:
 };
 
 
-#endif // __DEPENDENT_WRITE_OBJECTS_H__
+#endif // !__DEPENDENT_WRITE_OBJECTS_H__
 

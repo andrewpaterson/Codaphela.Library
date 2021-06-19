@@ -22,5 +22,5 @@ public:
 typedef CArrayTemplate<CDependentReadPointer>	CArrayDependentReadPointer;
 
 
-#endif // __DEPENDENT_READ_POINTER_H__
+#endif // !__DEPENDENT_READ_POINTER_H__
 

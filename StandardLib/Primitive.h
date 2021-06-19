@@ -68,5 +68,5 @@ public: \
 };
 
 
-#endif // __PRIMITIVE_H__
+#endif // !__PRIMITIVE_H__
 

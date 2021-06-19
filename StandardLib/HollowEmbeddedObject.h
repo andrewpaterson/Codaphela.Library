@@ -38,5 +38,5 @@ protected:
 };
 
 
-#endif // __HOLLOW_EMBEDDED_OBJECT_H__
+#endif // !__HOLLOW_EMBEDDED_OBJECT_H__
 

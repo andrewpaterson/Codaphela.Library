@@ -61,5 +61,5 @@ public:
 typedef CArrayTemplate<CChannelAccessor>	CArrayChannelAccessor;
 
 
-#endif // __CHANNEL_ACCESSOR_H__ 
+#endif // !__CHANNEL_ACCESSOR_H__ 
 

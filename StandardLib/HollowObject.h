@@ -64,5 +64,5 @@ protected:
 };
 
 
-#endif // __HOLLOW_OBJECT_H__
+#endif // !__HOLLOW_OBJECT_H__
 

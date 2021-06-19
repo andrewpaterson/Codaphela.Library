@@ -54,5 +54,5 @@ public:
 };
 
 
-#endif // __CHANNELS_ACCESSOR_H__
+#endif // !__CHANNELS_ACCESSOR_H__
 

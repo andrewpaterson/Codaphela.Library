@@ -133,5 +133,5 @@ protected:
 	uint32				ComputeSize(void);
 };
 
-#endif // __CLASS_H__
+#endif // !__CLASS_H__
 

@@ -24,5 +24,5 @@ protected:
 };
 
 
-#endif // __NAMED_HOLLOW_OBJECT_H__
+#endif // !__NAMED_HOLLOW_OBJECT_H__
 

@@ -17,5 +17,5 @@ public:
 };
 
 
-#endif // __INDEX_GENERATOR_H__
+#endif // !__INDEX_GENERATOR_H__
 

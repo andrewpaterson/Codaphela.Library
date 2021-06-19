@@ -225,5 +225,5 @@ BOOL CArrayType<M>::SaveElement(CFileWriter* pcFile, CUnknown* pcUnknown)
 }
 
 
-#endif // __ARRAY_TYPE_H__
+#endif // !__ARRAY_TYPE_H__
 

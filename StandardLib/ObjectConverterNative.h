@@ -29,5 +29,5 @@ public:
 };
 
 
-#endif // __OBJECT_CONVERTER_NATIVE_H__
+#endif // !__OBJECT_CONVERTER_NATIVE_H__
 

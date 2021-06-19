@@ -33,5 +33,5 @@ public:
 };
 
 
-#endif // __OBJECT_SOURCE_CHUNKED_H__
+#endif // !__OBJECT_SOURCE_CHUNKED_H__
 

@@ -133,5 +133,5 @@ Ptr<M> CSet<M>::Iterate(SSetIterator* psIter)
 }
 
 
-#endif // __SET_H__
+#endif // !__SET_H__
 

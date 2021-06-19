@@ -33,5 +33,5 @@ int CompareDependentReadObject(const void* ps1, const void* ps2);
 typedef CArrayTemplate<CDependentReadObject> CArrayDependentReadObject;
 
 
-#endif // __DEPENDENT_READ_OBJECT_H__
+#endif // !__DEPENDENT_READ_OBJECT_H__
 

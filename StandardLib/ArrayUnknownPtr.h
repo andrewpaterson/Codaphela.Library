@@ -7,4 +7,4 @@ class CUnknown;
 typedef CArrayTemplate<CUnknown*> CArrayUnknownPtr;
 
 
-#endif // __ARRAY_UNKNOWN_PTR_H__
+#endif // !__ARRAY_UNKNOWN_PTR_H__

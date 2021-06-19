@@ -44,5 +44,5 @@ protected:
 };
 
 
-#endif // __COLLECTION_H__
+#endif // !__COLLECTION_H__
 

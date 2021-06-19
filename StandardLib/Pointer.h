@@ -156,5 +156,5 @@ M* Ptr<M>::operator & ()
 }
 
 
-#endif // __POINTER_H__
+#endif // !__POINTER_H__
 

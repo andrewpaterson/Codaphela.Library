@@ -92,5 +92,5 @@ M* CMapStringUnknown::Put(char* szKey)
 }
 
 
-#endif // __MAP_STRING_UNKNOWN_H__
+#endif // !__MAP_STRING_UNKNOWN_H__
 

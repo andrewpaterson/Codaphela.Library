@@ -30,5 +30,5 @@ public:
 };
 
 
-#endif // __STACK_POINTER_H__
+#endif // !__STACK_POINTER_H__
 

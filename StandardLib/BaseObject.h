@@ -237,5 +237,5 @@ protected:
 };
 
 
-#endif // __BASE_OBJECT_H__
+#endif // !__BASE_OBJECT_H__
 

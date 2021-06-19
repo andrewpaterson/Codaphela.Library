@@ -19,5 +19,5 @@ public:
 };
 
 
-#endif // __POINTER_FIELD_H__
+#endif // !__POINTER_FIELD_H__
 

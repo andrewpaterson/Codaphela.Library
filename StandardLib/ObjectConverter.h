@@ -19,5 +19,5 @@ public:
 };
 
 
-#endif // __OBJECT_CONVERTER_H__
+#endif // !__OBJECT_CONVERTER_H__
 

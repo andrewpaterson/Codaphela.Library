@@ -16,5 +16,5 @@ class CPointer;
 typedef CArrayTemplateEmbedded<CPointer*, 32>	CArrayTypedPointerPtr;
 
 
-#endif // __OBJECT_POINTER_ARRAYS_H__
+#endif // !__OBJECT_POINTER_ARRAYS_H__
 

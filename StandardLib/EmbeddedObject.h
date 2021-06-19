@@ -130,5 +130,5 @@ protected:
 };
 
 
-#endif // __EMBEDDED_OBJECT__
+#endif // !__EMBEDDED_OBJECT__
 
