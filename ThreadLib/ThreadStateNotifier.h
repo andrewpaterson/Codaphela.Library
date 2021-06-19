@@ -10,5 +10,5 @@ protected:
 	virtual void ThreadStateChanged(CThread* pcThread, EThreadState eState) =0;
 };
 
-#endif // __THREAD_STATE_NOTIFIER_H__
+#endif // !__THREAD_STATE_NOTIFIER_H__
 

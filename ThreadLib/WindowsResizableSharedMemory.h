@@ -48,5 +48,5 @@ protected:
 };
 
 
-#endif // __WINDOWS_RESIZABLE_SHARED_MEMORY_H__
+#endif // !__WINDOWS_RESIZABLE_SHARED_MEMORY_H__
 

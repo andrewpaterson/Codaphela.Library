@@ -329,5 +329,5 @@ public:
 };
 
 
-#endif // __VISENITY_THREAD_POOL_H__
+#endif // !__VISENITY_THREAD_POOL_H__
 

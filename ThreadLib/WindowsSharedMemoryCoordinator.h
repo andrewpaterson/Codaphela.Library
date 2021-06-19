@@ -40,5 +40,5 @@ public:
 };
 
 
-#endif // __WINDOWS_SHARED_MEMORY_COORDINATOR_H__
+#endif // !__WINDOWS_SHARED_MEMORY_COORDINATOR_H__
 

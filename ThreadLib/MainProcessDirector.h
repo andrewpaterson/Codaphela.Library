@@ -24,6 +24,6 @@ public:
 };
 
 
-#endif // __MAIN_PROCESS_DIRECTOR_H__
+#endif // !__MAIN_PROCESS_DIRECTOR_H__
 
 

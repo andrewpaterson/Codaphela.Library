@@ -30,5 +30,5 @@ public:
 };
 
 
-#endif // __WINDOWS_SHARED_MEMORY_FILE_H__
+#endif // !__WINDOWS_SHARED_MEMORY_FILE_H__
 

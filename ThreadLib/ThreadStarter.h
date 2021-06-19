@@ -10,5 +10,5 @@ public:
 };
 
 
-#endif // __THREAD_STARTER_H__
+#endif // !__THREAD_STARTER_H__
 

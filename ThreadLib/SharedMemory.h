@@ -7,5 +7,5 @@
 #endif // _MSC_VER
 
 
-#endif // __SHARED_MEMORY_H__
+#endif // !__SHARED_MEMORY_H__
 

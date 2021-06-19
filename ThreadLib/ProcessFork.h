@@ -11,5 +11,5 @@ BOOL ForkProcess(char* szParameter1, char* szParameter2, char* szParameter3, cha
 BOOL ForkProcess(char* szParameter1, char* szParameter2, char* szParameter3, char* szParameter4, char* szParameter5, char* szParameter6, BOOL bWaitForProcessToExit);
 
 
-#endif // __PROCESS_FORK_H__
+#endif // !__PROCESS_FORK_H__
 

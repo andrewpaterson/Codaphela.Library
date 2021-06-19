@@ -17,5 +17,5 @@ protected:
 };
 
 
-#endif // __THREADS_DONE_H__
+#endif // !__THREADS_DONE_H__
 

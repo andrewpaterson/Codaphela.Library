@@ -34,5 +34,5 @@ protected:
 };
 
 
-#endif // __SHARED_MEMORY_QUEUE_H__
+#endif // !__SHARED_MEMORY_QUEUE_H__
 
