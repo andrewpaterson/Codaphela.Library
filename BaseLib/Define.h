@@ -32,10 +32,10 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifdef _MSC_VER
 
 #ifdef WIN_GNU_32
-#error WIN32 and WIN_GNU_32 cannot both be defined
+#error _WIN32 and WIN_GNU_32 cannot both be defined
 #endif // WIN_GNU_32
 #ifdef LINUX_GNU_32
-#error WIN32 and LINUX_GNU_32 cannot both be defined
+#error _WIN32 and LINUX_GNU_32 cannot both be defined
 #endif // LINUX_GNU_32
 
 #ifndef WINVER
