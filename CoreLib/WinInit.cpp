@@ -20,7 +20,7 @@ along with Codaphela CoreLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-#ifdef WIN32
+#ifdef _WIN32
 #include "BaseLib/Define.h"
 #include "WinInit.h"
 #include "BaseLib/ErrorHandler.h"
@@ -464,5 +464,5 @@ void CWin32Window::GetNormalisedCursorPos(SFloat2* psPosition)
 }
 
 
-#endif //WIN32
+#endif // _WIN32
 

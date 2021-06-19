@@ -260,6 +260,7 @@ BOOL CTokeniser::Tokenise(CPPTokenHolder* pcSource)
 	mcTokens.Init();
 
 	bResult = TRUE;
+	pcLine = NULL;
 	mcParser.Init();
 	for (i = 0; i < pcSource->mcArray.NumElements(); i++)
 	{

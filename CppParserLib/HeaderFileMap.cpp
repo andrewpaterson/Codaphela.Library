@@ -99,7 +99,7 @@ CHeaderFile* CHeaderFileMap::StartIteration(SMapIterator* psIter)
 	CHeaderFile*	pcHeader;
 	BOOL			bResult;
 
-	bResult = mcFiles.StartIteration(psIter, NULL, , NULL(void**)&pcHeader, NULL);
+	bResult = mcFiles.StartIteration(psIter, NULL, NULL, (void**)&pcHeader, NULL);
 	if (bResult)
 	{
 		return pcHeader;

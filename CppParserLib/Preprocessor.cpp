@@ -1232,6 +1232,8 @@ BOOL CPreprocessor::ProcessLine(CPPTokenHolder* pcDest, CPreprocessorTokenParser
 	CPPToken*				pcToken;
 
 	iHashCount = 0;
+	pcTemp = NULL;
+	pcPrev = NULL;
 	while (pcParser->HasToken())
 	{
 		pcToken = pcParser->GetToken();
