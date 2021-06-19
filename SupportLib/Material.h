@@ -45,8 +45,8 @@ public:
 	void		Init(void);
 	void		Free(void);
 
-	BOOL		Load(CObjectDeserialiser* pcFile);
-	BOOL		Save(CObjectSerialiser* pcFile);
+	BOOL		Load(CObjectReader* pcFile);
+	BOOL		Save(CObjectWriter* pcFile);
 	void		Copy(CMaterial* pcMaterial);
 
 	void		Dump(void);

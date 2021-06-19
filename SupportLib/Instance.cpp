@@ -19,8 +19,8 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/GlobalMemory.h"
-#include "StandardLib/ObjectSerialiser.h"
-#include "StandardLib/ObjectDeserialiser.h"
+#include "StandardLib/ObjectWriter.h"
+#include "StandardLib/ObjectReader.h"
 #include "Instance.h"
 
 
@@ -49,7 +49,7 @@ void CInstance::Free(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CInstance::Load(CObjectDeserialiser* pcFile)
+BOOL CInstance::Load(CObjectReader* pcFile)
 {
 	ReturnOnFalse(pcFile->ReadInt((int*)&meType));
 	ReturnOnFalse(pcFile->ReadInt((int*)&miObjectIndex));
@@ -62,7 +62,7 @@ BOOL CInstance::Load(CObjectDeserialiser* pcFile)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CInstance::Save(CObjectSerialiser* pcFile)
+BOOL CInstance::Save(CObjectWriter* pcFile)
 {
 	ReturnOnFalse(pcFile->WriteInt(meType));
 	ReturnOnFalse(pcFile->WriteInt(miObjectIndex));

@@ -82,8 +82,8 @@ public:
 	BOOL 					EndChange(void);
 	BOOL					IsChanging(void);
 
-	BOOL					Load(CObjectDeserialiser* pcFile);
-	BOOL					Save(CObjectSerialiser* pcFile);
+	BOOL					Load(CObjectReader* pcFile);
+	BOOL					Save(CObjectWriter* pcFile);
 	void					Copy(CImage* pcSource);
 	void					Clear(void);
 

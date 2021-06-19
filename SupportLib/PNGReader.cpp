@@ -130,11 +130,11 @@ BOOL LoadPNG(CImage* pcImage, char *file_name)
 	}
 	else if (info_ptr->bit_depth == 8)
 	{
-		eSourceType = PT_uchar;
+		eSourceType = PT_uint8;
 	}
 	else if (info_ptr->bit_depth == 16)
 	{
-		eSourceType = PT_ushort;
+		eSourceType = PT_uint16;
 		bReverse = TRUE;
 	}
 
@@ -152,9 +152,9 @@ BOOL LoadPNG(CImage* pcImage, char *file_name)
 	if (info_ptr->color_type == PNG_COLOR_TYPE_PALETTE)
 	{
 		CChars::Dump("PNG_COLOR_TYPE_PALETTE\n");
-		//pcImage->AddChannel(IC_Index, PT_uchar, 0);
+		//pcImage->AddChannel(IC_Index, PT_uint8, 0);
 		//cSourceRow.Add(eSourceType, IC_Index);
-		//pcImage->AddPalette(256, PT_uchar, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_ZERO);
+		//pcImage->AddPalette(256, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_ZERO);
 	}
 	else 
 	if (info_ptr->color_type == PNG_COLOR_TYPE_RGB)

@@ -55,13 +55,13 @@ SChannel CChannelRGB::GetChannel(int iIndex)
 	switch(iIndex)
 	{
 	case 0:
-		sChannel.Init(IMAGE_DIFFUSE_RED, PT_uchar, FALSE);
+		sChannel.Init(IMAGE_DIFFUSE_RED, PT_uint8, FALSE);
 		break;
 	case 1:
-		sChannel.Init(IMAGE_DIFFUSE_GREEN, PT_uchar, FALSE);
+		sChannel.Init(IMAGE_DIFFUSE_GREEN, PT_uint8, FALSE);
 		break;
 	case 2:
-		sChannel.Init(IMAGE_DIFFUSE_BLUE, PT_uchar, FALSE);
+		sChannel.Init(IMAGE_DIFFUSE_BLUE, PT_uint8, FALSE);
 		break;
 	default:
 		sChannel.Init(CHANNEL_ZERO, PT_Undefined, FALSE);
@@ -102,16 +102,16 @@ SChannel CChannelRGBA::GetChannel(int iIndex)
 	switch(iIndex)
 	{
 	case 0:
-		sChannel.Init(IMAGE_DIFFUSE_RED, PT_uchar, FALSE);
+		sChannel.Init(IMAGE_DIFFUSE_RED, PT_uint8, FALSE);
 		break;
 	case 1:
-		sChannel.Init(IMAGE_DIFFUSE_GREEN, PT_uchar, FALSE);
+		sChannel.Init(IMAGE_DIFFUSE_GREEN, PT_uint8, FALSE);
 		break;
 	case 2:
-		sChannel.Init(IMAGE_DIFFUSE_BLUE, PT_uchar, FALSE);
+		sChannel.Init(IMAGE_DIFFUSE_BLUE, PT_uint8, FALSE);
 		break;
 	case 3:
-		sChannel.Init(IMAGE_OPACITY, PT_uchar, FALSE);
+		sChannel.Init(IMAGE_OPACITY, PT_uint8, FALSE);
 		break;
 	default:
 		sChannel.Init(CHANNEL_ZERO, PT_Undefined, FALSE);
@@ -154,16 +154,16 @@ SChannel CChannelRGBX::GetChannel(int iIndex)
 	switch(iIndex)
 	{
 	case 0:
-		sChannel.Init(IMAGE_DIFFUSE_RED, PT_uchar, FALSE);
+		sChannel.Init(IMAGE_DIFFUSE_RED, PT_uint8, FALSE);
 		break;
 	case 1:
-		sChannel.Init(IMAGE_DIFFUSE_GREEN, PT_uchar, FALSE);
+		sChannel.Init(IMAGE_DIFFUSE_GREEN, PT_uint8, FALSE);
 		break;
 	case 2:
-		sChannel.Init(IMAGE_DIFFUSE_BLUE, PT_uchar, FALSE);
+		sChannel.Init(IMAGE_DIFFUSE_BLUE, PT_uint8, FALSE);
 		break;
 	case 3:
-		sChannel.Init(IMAGE_IGNORED, PT_uchar, FALSE);
+		sChannel.Init(IMAGE_IGNORED, PT_uint8, FALSE);
 		break;
 	default:
 		sChannel.Init(CHANNEL_ZERO, PT_Undefined, FALSE);

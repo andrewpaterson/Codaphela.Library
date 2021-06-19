@@ -40,7 +40,7 @@ void CImageFiller::Init(void* pvBorderColour, CImageAccessor* pcSource, CImage* 
 
 	mpcDestImage->Init(	mpcSourceAccessor->GetWidth(), 
 						mpcSourceAccessor->GetImage()->GetHeight(), 
-						PT_short, 
+						PT_int16, 
 						IMAGE_MASK, 
 						CHANNEL_ZERO);
 

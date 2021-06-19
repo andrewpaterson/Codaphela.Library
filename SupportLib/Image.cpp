@@ -30,8 +30,8 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "BaseLib/NaiveFile.h"
 #include "CoreLib/Operators.h"
 #include "StandardLib/Unknowns.h"
-#include "StandardLib/ObjectSerialiser.h"
-#include "StandardLib/ObjectDeserialiser.h"
+#include "StandardLib/ObjectWriter.h"
+#include "StandardLib/ObjectReader.h"
 #include "ColourARGB.h"
 #include "SubImage.h"
 #include "ImageAccessorCreator.h"
@@ -373,7 +373,7 @@ BOOL CImage::IsChanging(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CImage::Load(CObjectDeserialiser* pcFile)
+BOOL CImage::Load(CObjectReader* pcFile)
 {
 	mpsImageChangingDesc = NULL;
 
@@ -389,7 +389,7 @@ BOOL CImage::Load(CObjectDeserialiser* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CImage::Save(CObjectSerialiser* pcFile)
+BOOL CImage::Save(CObjectWriter* pcFile)
 {
 	ReturnOnFalse(pcFile->WriteInt(miWidth));
 	ReturnOnFalse(pcFile->WriteInt(miHeight));

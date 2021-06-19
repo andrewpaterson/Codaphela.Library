@@ -24,8 +24,8 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #ifndef __FONT_H__
 #define __FONT_H__
 #include "StandardLib/Object.h"
-#include "StandardLib/ObjectSerialiser.h"
-#include "StandardLib/ObjectDeserialiser.h"
+#include "StandardLib/ObjectWriter.h"
+#include "StandardLib/ObjectReader.h"
 #include "Image.h"
 #include "Glyph.h"
 
@@ -53,8 +53,8 @@ public:
 	void		Class(void);
 	void 		Free(void);
 
-	BOOL		Save(CObjectSerialiser* pcFile);
-	BOOL		Load(CObjectDeserialiser* pcFile);
+	BOOL		Save(CObjectWriter* pcFile);
+	BOOL		Load(CObjectReader* pcFile);
 
 	void 		Done(void);
 	BOOL		Is(char* szName);

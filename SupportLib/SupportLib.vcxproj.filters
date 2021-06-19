@@ -390,7 +390,7 @@
     <ClInclude Include="MaterialProperties.h">
       <Filter>Source\Material</Filter>
     </ClInclude>
-    <ClInclude Include="Sequence.h">
+    <ClInclude Include="ConnectionAnimation.h">
       <Filter>Source\Animation</Filter>
     </ClInclude>
     <ClInclude Include="Instance.h">
@@ -836,7 +836,7 @@
     <ClCompile Include="MaterialProperties.cpp">
       <Filter>Source\Material</Filter>
     </ClCompile>
-    <ClCompile Include="Sequence.cpp">
+    <ClCompile Include="ConnectionAnimation.cpp">
       <Filter>Source\Animation</Filter>
     </ClCompile>
     <ClCompile Include="Instance.cpp">

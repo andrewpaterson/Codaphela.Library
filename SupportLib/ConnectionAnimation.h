@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __SEQUENCE_H__
-#define __SEQUENCE_H__
+#ifndef __CONNECTION_ANIMATION_H__
+#define __CONNECTION_ANIMATION_H__
 #include "BaseLib/ChunkFile.h"
 #include "BaseLib/GeometricTypes.h"
 #include "StandardLib/NamedObject.h"
@@ -65,9 +65,9 @@ struct CAnimKeyFrame
 typedef CArrayTemplate<CAnimKeyFrame>	CArrayAnimKeyFrame;
 
 
-class CSequence : public CNamedObject
+class CConnectionAnimation : public CNamedObject
 {
-CONSTRUCTABLE(CSequence);
+CONSTRUCTABLE(CConnectionAnimation);
 public:
 	CArrayAnimKeyFrame	masKeyFrames;
 	int					miConnectionIndex;  //The connection this key-frame animates
@@ -75,9 +75,9 @@ public:
 	void 			Init(void);
 	void 			Free(void);
 
-	BOOL			Load(CObjectDeserialiser* pcFile);
-	BOOL			Save(CObjectSerialiser* pcFile);
-	void			Copy(CSequence* pcConnection);
+	BOOL			Load(CObjectReader* pcFile);
+	BOOL			Save(CObjectWriter* pcFile);
+	void			Copy(CConnectionAnimation* pcConnection);
 
 	void			Dump(void);
 	CAnimKeyFrame*	Add(SFloat4x4* psMatrix, float fTime);
@@ -88,5 +88,5 @@ public:
 };
 
 
-#endif // __SEQUENCE_H__
+#endif // __CONNECTION_ANIMATION_H__
 

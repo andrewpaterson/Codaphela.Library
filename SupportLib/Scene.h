@@ -27,7 +27,7 @@ along with Codaphela SceneLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Light.h"
 #include "Camera.h"
 #include "Connection.h"
-#include "Sequence.h"
+#include "ConnectionAnimation.h"
 #include "Instance.h"
 #include "Material.h"
 #include "FakeTracker.h"

@@ -19,8 +19,8 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include "Camera.h"
-#include "StandardLib/ObjectDeserialiser.h"
-#include "StandardLib/ObjectSerialiser.h"
+#include "StandardLib/ObjectReader.h"
+#include "StandardLib/ObjectWriter.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -59,7 +59,7 @@ void CCamera::Free(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCamera::Load(CObjectDeserialiser* pcFile)
+BOOL CCamera::Load(CObjectReader* pcFile)
 {
 	ReturnOnFalse(pcFile->ReadInt((int*)&meCameraType));
 	ReturnOnFalse(pcFile->ReadFloat(&mfFOV));
@@ -71,7 +71,7 @@ BOOL CCamera::Load(CObjectDeserialiser* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCamera::Save(CObjectSerialiser* pcFile)
+BOOL CCamera::Save(CObjectWriter* pcFile)
 {
 	ReturnOnFalse(pcFile->WriteInt(meCameraType));
 	ReturnOnFalse(pcFile->WriteFloat(mfFOV));

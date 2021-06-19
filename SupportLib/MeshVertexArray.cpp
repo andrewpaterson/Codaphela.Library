@@ -92,27 +92,27 @@ void CMeshVertexArray::Change(void)
 	iNumberOfMatrices = msFaceType.GetMatricies();
 
 	mcVertexArray.BeginChange();
-	mcVertexArray.AddChannel(VERTEX_POSITION_X, VERTEX_POSITION_Y, VERTEX_POSITION_Z, PT_float);
+	mcVertexArray.AddChannel(VERTEX_POSITION_X, VERTEX_POSITION_Y, VERTEX_POSITION_Z, PT_float32);
 
 	if (bNormal)
 	{
-		mcVertexArray.AddChannel(VERTEX_NORMAL_X, VERTEX_NORMAL_Y, VERTEX_NORMAL_Z, PT_float);
+		mcVertexArray.AddChannel(VERTEX_NORMAL_X, VERTEX_NORMAL_Y, VERTEX_NORMAL_Z, PT_float32);
 	}
 
 	if (bColour)
 	{
-		mcVertexArray.AddChannel(VERTEX_DIFFUSE_RED, VERTEX_DIFFUSE_GREEN, VERTEX_DIFFUSE_BLUE, VERTEX_OPACITY, PT_uchar);
+		mcVertexArray.AddChannel(VERTEX_DIFFUSE_RED, VERTEX_DIFFUSE_GREEN, VERTEX_DIFFUSE_BLUE, VERTEX_OPACITY, PT_uint8);
 	}
 
 	for (i = 0; i < iNumberOfTextures; i++)
 	{
-		mcVertexArray.AddChannel(CHANNEL(VP_UVCoord_(i), CT_U), CHANNEL(VP_UVCoord_(i), CT_U), PT_float);
+		mcVertexArray.AddChannel(CHANNEL(VP_UVCoord_(i), CT_U), CHANNEL(VP_UVCoord_(i), CT_U), PT_float32);
 	}
 
 	for (i = 0; i < iNumberOfMatrices; i++)
 	{
-		mcVertexArray.AddChannel(CHANNEL(VP_Matrix_(i), CT_Index), PT_int);
-		mcVertexArray.AddChannel(CHANNEL(VP_Weight_(i), CT_Intensity), PT_float);
+		mcVertexArray.AddChannel(CHANNEL(VP_Matrix_(i), CT_Index), PT_int32);
+		mcVertexArray.AddChannel(CHANNEL(VP_Weight_(i), CT_Intensity), PT_float32);
 	}
 
 	mcVertexArray.EndChange();

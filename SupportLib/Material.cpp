@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "StandardLib/ObjectDeserialiser.h"
-#include "StandardLib/ObjectSerialiser.h"
+#include "StandardLib/ObjectReader.h"
+#include "StandardLib/ObjectWriter.h"
 #include "Material.h"
 
 
@@ -76,7 +76,7 @@ void CMaterial::Copy(CMaterial* pcMaterial)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CMaterial::Load(CObjectDeserialiser* pcFile)
+BOOL CMaterial::Load(CObjectReader* pcFile)
 {
 	ReturnOnFalse(msProperties.Load(pcFile));
 	ReturnOnFalse(msDiffuse.Load(pcFile));
@@ -96,7 +96,7 @@ BOOL CMaterial::Load(CObjectDeserialiser* pcFile)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CMaterial::Save(CObjectSerialiser* pcFile)
+BOOL CMaterial::Save(CObjectWriter* pcFile)
 {
 	ReturnOnFalse(msProperties.Save(pcFile));
 	ReturnOnFalse(msDiffuse.Save(pcFile));

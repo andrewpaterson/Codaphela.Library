@@ -190,23 +190,23 @@ void CImageCombiner::CalculateChannels(void)
 {
 	if (meChannels == ICC_ARGB8bit)
 	{
-		AddChannel(IMAGE_OPACITY, PT_uchar);
-		AddChannel(IMAGE_DIFFUSE_RED, PT_uchar);
-		AddChannel(IMAGE_DIFFUSE_GREEN, PT_uchar);
-		AddChannel(IMAGE_DIFFUSE_BLUE, PT_uchar);
+		AddChannel(IMAGE_OPACITY, PT_uint8);
+		AddChannel(IMAGE_DIFFUSE_RED, PT_uint8);
+		AddChannel(IMAGE_DIFFUSE_GREEN, PT_uint8);
+		AddChannel(IMAGE_DIFFUSE_BLUE, PT_uint8);
 	}
 	else if (meChannels == ICC_RGBA8bit)
 	{
-		AddChannel(IMAGE_DIFFUSE_RED, PT_uchar);
-		AddChannel(IMAGE_DIFFUSE_GREEN, PT_uchar);
-		AddChannel(IMAGE_DIFFUSE_BLUE, PT_uchar);
-		AddChannel(IMAGE_OPACITY, PT_uchar);
+		AddChannel(IMAGE_DIFFUSE_RED, PT_uint8);
+		AddChannel(IMAGE_DIFFUSE_GREEN, PT_uint8);
+		AddChannel(IMAGE_DIFFUSE_BLUE, PT_uint8);
+		AddChannel(IMAGE_OPACITY, PT_uint8);
 	}
 	else if (meChannels == ICC_RGB8bit)
 	{
-		AddChannel(IMAGE_DIFFUSE_RED, PT_uchar);
-		AddChannel(IMAGE_DIFFUSE_GREEN, PT_uchar);
-		AddChannel(IMAGE_DIFFUSE_BLUE, PT_uchar);
+		AddChannel(IMAGE_DIFFUSE_RED, PT_uint8);
+		AddChannel(IMAGE_DIFFUSE_GREEN, PT_uint8);
+		AddChannel(IMAGE_DIFFUSE_BLUE, PT_uint8);
 	}
 	else if (meChannels == ICC_FromCels)
 	{

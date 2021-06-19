@@ -184,7 +184,7 @@ BOOL CImageAccessor::MakeColour(SImageColour* psDest, CImageColour* pcColour)
 		}
 		if (!IsNotANumber(&fValue))
 		{
-			gcTypeConverter.Do(pcAccessor->meAccessType, &sTemp, PT_float, &fValue);
+			gcTypeConverter.Do(pcAccessor->meAccessType, &sTemp, PT_float32, &fValue);
 
 			ga_memcpy_fast[pcAccessor->miAccessByteSize](pvData, &sTemp);
 		}

@@ -166,19 +166,19 @@ BOOL LoadUncompressedTrueColourTGA(CImage *pcImage, char *szFilename)
 	pcImage->BeginChange();
 	if (iBytesPerPixel == 3)
 	{
-		cImageImport.AddChannel(IMAGE_DIFFUSE_BLUE, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_RED, PT_uchar);
-		pcImage->AddChannel(IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, PT_uchar);
+		cImageImport.AddChannel(IMAGE_DIFFUSE_BLUE, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_RED, PT_uint8);
+		pcImage->AddChannel(IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, PT_uint8);
 	}
 	else if (iBytesPerPixel == 4)
 	{
-		cImageImport.AddChannel(IMAGE_DIFFUSE_BLUE, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_RED, IMAGE_OPACITY, PT_uchar);
-		pcImage->AddChannel(IMAGE_OPACITY, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, PT_uchar);
+		cImageImport.AddChannel(IMAGE_DIFFUSE_BLUE, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_RED, IMAGE_OPACITY, PT_uint8);
+		pcImage->AddChannel(IMAGE_OPACITY, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, PT_uint8);
 	}
 	else if (iBytesPerPixel == 2)
 	{
 		cImageImport.AddChannel(IMAGE_DIFFUSE_BLUE, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_RED, PT_nickle);
 		cImageImport.AddChannel(IMAGE_IGNORED, PT_bit);
-		pcImage->AddChannel(IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, PT_uchar);
+		pcImage->AddChannel(IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, PT_uint8);
 	}
 	cImageImport.SetSize(iWidth, iHeight);
 	pcImage->SetSize(iWidth, iHeight);
