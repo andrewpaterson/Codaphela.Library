@@ -22,11 +22,11 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __WINDOWS_HEADERS_H__
 #define __WINDOWS_HEADERS_H__
-#ifdef WIN32
+#ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <winuser.h>
 #include <shlwapi.h>
-#endif // WIN32
+#endif // _WIN32
 #endif // !__WINDOWS_HEADERS_H__
 

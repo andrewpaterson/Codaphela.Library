@@ -7,7 +7,7 @@
 //////////////////////////////////////////////////////////////////////////
 char* WindowsErrorCodeToString(DWORD errorMessageID)
 {
-#ifdef WIN32
+#ifdef _WIN32
     int iCount = IncrementLogToStringCount();
     int iLen;
 
@@ -28,8 +28,8 @@ char* WindowsErrorCodeToString(DWORD errorMessageID)
         LocalFree(messageBuffer);
     }
     return gaszLogToStringScratchPad[iCount];
-#elif // WIN32
+#elif
     return "";
-#endif // WIN32
+#endif
 }
 
