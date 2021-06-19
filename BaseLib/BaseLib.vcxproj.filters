@@ -247,6 +247,9 @@
     <Filter Include="Source\Data\Map\Index">
       <UniqueIdentifier>{80415a7b-f63b-4294-b829-8e25e1a67243}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Sort">
+      <UniqueIdentifier>{8ed41f70-fa3e-4bba-8d88-956b66b141fe}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DataMacro.h">
@@ -957,6 +960,9 @@
     <ClInclude Include="DateTime.h">
       <Filter>Source\Data\Time</Filter>
     </ClInclude>
+    <ClInclude Include="BubbleSort.h">
+      <Filter>Source\Sort</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -1525,6 +1531,9 @@
     </ClCompile>
     <ClCompile Include="DateTime.cpp">
       <Filter>Source\Data\Time</Filter>
+    </ClCompile>
+    <ClCompile Include="BubbleSort.cpp">
+      <Filter>Source\Sort</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
