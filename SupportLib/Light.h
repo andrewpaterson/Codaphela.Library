@@ -56,8 +56,8 @@ public:
 	void 	Init(void);
 	void 	Init(ELightType eType, CImageColourARGB sColour, ELightDecayType eDecay, float fDecayStart, BOOL bCastShadows, float fIntensity);
 
-	BOOL	Load(CObjectDeserialiser* pcFile);
-	BOOL	Save(CObjectSerialiser* pcFile);
+	BOOL	Load(CObjectReader* pcFile);
+	BOOL	Save(CObjectWriter* pcFile);
 	void	Copy(CLight* pcLight);
 };
 

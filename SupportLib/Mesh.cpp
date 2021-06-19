@@ -21,8 +21,8 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/Numbers.h"
 #include "BaseLib/IntegerHelper.h"
 #include "BaseLib/PointerFunctions.h"
-#include "StandardLib/ObjectDeserialiser.h"
-#include "StandardLib/ObjectSerialiser.h"
+#include "StandardLib/ObjectReader.h"
+#include "StandardLib/ObjectWriter.h"
 #include "Mesh.h"
 
 
@@ -76,7 +76,7 @@ void CMesh::Free(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMesh::Load(CObjectDeserialiser* pcFile)
+BOOL CMesh::Load(CObjectReader* pcFile)
 {
 	ReturnOnFalse(mcPositions.Load(pcFile));
 	ReturnOnFalse(mcConnectivity.Load(pcFile));
@@ -95,7 +95,7 @@ BOOL CMesh::Load(CObjectDeserialiser* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMesh::Save(CObjectSerialiser* pcFile)
+BOOL CMesh::Save(CObjectWriter* pcFile)
 {
 	ReturnOnFalse(mcPositions.Save(pcFile));
 	ReturnOnFalse(mcConnectivity.Save(pcFile));

@@ -47,13 +47,13 @@ void CImageCelGroup::Free(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CImageCelGroup::Load(CObjectDeserialiser* pcFile)
+BOOL CImageCelGroup::Load(CObjectReader* pcFile)
 {
 	return FALSE;
 }
 
 
-BOOL CImageCelGroup::Save(CObjectSerialiser* pcFile)
+BOOL CImageCelGroup::Save(CObjectWriter* pcFile)
 {
 	return FALSE;
 }

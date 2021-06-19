@@ -148,8 +148,8 @@ BOOL LoadPictureIPicture(CImage *pcImage, char *szFilename)
 	// NOTE: does not set the unique ID correctly
 	if (bNonZeroAlpha)
 	{
-		pcImage->Init(lWidthPixels, lHeightPixels, PT_uchar, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, IMAGE_OPACITY, CHANNEL_ZERO);
-		cImageImport.Init(lWidthPixels, lHeightPixels, pBits, PT_uchar, IMAGE_DIFFUSE_BLUE, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_RED, IMAGE_OPACITY, CHANNEL_ZERO);
+		pcImage->Init(lWidthPixels, lHeightPixels, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, IMAGE_OPACITY, CHANNEL_ZERO);
+		cImageImport.Init(lWidthPixels, lHeightPixels, pBits, PT_uint8, IMAGE_DIFFUSE_BLUE, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_RED, IMAGE_OPACITY, CHANNEL_ZERO);
 		cCopier.Init(&cImageImport, pcImage);
 		for (i = 0; i < lHeightPixels; i++)
 		{
@@ -163,8 +163,8 @@ BOOL LoadPictureIPicture(CImage *pcImage, char *szFilename)
 	}
 	else
 	{
-		pcImage->Init(lWidthPixels, lHeightPixels, PT_uchar, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_ZERO);
-		cImageImport.Init(lWidthPixels, lHeightPixels, pBits, PT_uchar, IMAGE_DIFFUSE_BLUE, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_RED, IMAGE_IGNORED, CHANNEL_ZERO);
+		pcImage->Init(lWidthPixels, lHeightPixels, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_ZERO);
+		cImageImport.Init(lWidthPixels, lHeightPixels, pBits, PT_uint8, IMAGE_DIFFUSE_BLUE, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_RED, IMAGE_IGNORED, CHANNEL_ZERO);
 		cCopier.Init(&cImageImport, pcImage);
 		for (i = 0; i < lHeightPixels; i++)
 		{

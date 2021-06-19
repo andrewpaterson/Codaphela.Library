@@ -71,7 +71,7 @@ void CFont::Free(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFont::Save(CObjectSerialiser* pcFile)
+BOOL CFont::Save(CObjectWriter* pcFile)
 {
 	return FALSE;
 }
@@ -81,7 +81,7 @@ BOOL CFont::Save(CObjectSerialiser* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFont::Load(CObjectDeserialiser* pcFile)
+BOOL CFont::Load(CObjectReader* pcFile)
 {
 	return FALSE;
 }

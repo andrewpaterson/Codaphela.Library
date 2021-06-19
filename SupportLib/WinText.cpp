@@ -358,7 +358,7 @@ Ptr<CImage> CWinText::DrawTextToImage(CChars* pszLetters, HDC hDC)
 
 	Ptr<CImage>	pcDestImage = OMalloc<CImage>();
 
-	pcDestImage->Init(sSize.cx, sSize.cy, PT_uchar, IMAGE_DIFFUSE_BLUE, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_RED, IMAGE_OPACITY, CHANNEL_ZERO);
+	pcDestImage->Init(sSize.cx, sSize.cy, PT_uint8, IMAGE_DIFFUSE_BLUE, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_RED, IMAGE_OPACITY, CHANNEL_ZERO);
 	memcpy(pcDestImage->GetData(), pBits, pcDestImage->GetByteSize());
 
 	DeleteObject(hBM);

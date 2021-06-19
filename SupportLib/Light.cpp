@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "StandardLib/ObjectSerialiser.h"
-#include "StandardLib/ObjectDeserialiser.h"
+#include "StandardLib/ObjectWriter.h"
+#include "StandardLib/ObjectReader.h"
 #include "Light.h"
 
 
@@ -57,7 +57,7 @@ void CLight::Init(ELightType eType, CImageColourARGB sColour, ELightDecayType eD
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CLight::Load(CObjectDeserialiser* pcFile)
+BOOL CLight::Load(CObjectReader* pcFile)
 {
 	ReturnOnFalse(pcFile->ReadInt((int*)&meType));
 	ReturnOnFalse(msColour.Load(pcFile));
@@ -73,7 +73,7 @@ BOOL CLight::Load(CObjectDeserialiser* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CLight::Save(CObjectSerialiser* pcFile)
+BOOL CLight::Save(CObjectWriter* pcFile)
 {
 	ReturnOnFalse(pcFile->WriteInt(meType));
 	ReturnOnFalse(msColour.Save(pcFile));

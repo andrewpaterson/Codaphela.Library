@@ -65,13 +65,13 @@ BOOL AddChannelsFromText(CTextParser* pcTextParser, CImage* pcImport)
 	cChannels.Add("AdjustV", 			CHANNEL(IP_UVAdjust, CT_V));
 
 	cTypes.Init();
-	cTypes.Add("Char",		PT_char);
-	cTypes.Add("UChar",		PT_uchar);
-	cTypes.Add("Short",		PT_short);
-	cTypes.Add("UShort",	PT_ushort);
-	cTypes.Add("Int",		PT_int);
-	cTypes.Add("UInt",		PT_uint);
-	cTypes.Add("Float", 	PT_float);
+	cTypes.Add("Char",		PT_int8);
+	cTypes.Add("UChar",		PT_uint8);
+	cTypes.Add("Short",		PT_int16);
+	cTypes.Add("UShort",	PT_uint16);
+	cTypes.Add("Int",		PT_int32);
+	cTypes.Add("UInt",		PT_uint32);
+	cTypes.Add("Float", 	PT_float32);
 	cTypes.Add("Bit",		PT_bit);
 	cTypes.Add("Crumb",		PT_crumb);
 	cTypes.Add("Nybble", 	PT_nybble);

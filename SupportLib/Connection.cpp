@@ -19,8 +19,8 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include "Connection.h"
-#include "StandardLib/ObjectDeserialiser.h"
-#include "StandardLib/ObjectSerialiser.h"
+#include "StandardLib/ObjectReader.h"
+#include "StandardLib/ObjectWriter.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -51,7 +51,7 @@ void CConnection::Free(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CConnection::Load(CObjectDeserialiser* pcFile)
+BOOL CConnection::Load(CObjectReader* pcFile)
 {
 	//Read in the matrix.
 	if (!msWorldMatrix.Load(pcFile))
@@ -78,7 +78,7 @@ BOOL CConnection::Load(CObjectDeserialiser* pcFile)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CConnection::Save(CObjectSerialiser* pcFile)
+BOOL CConnection::Save(CObjectWriter* pcFile)
 {
 	//Write out the actual matrix.
 	if (!msWorldMatrix.Save(pcFile))

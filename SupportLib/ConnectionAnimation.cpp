@@ -18,16 +18,16 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "StandardLib/ObjectSerialiser.h"
-#include "StandardLib/ObjectDeserialiser.h"
-#include "Sequence.h"
+#include "StandardLib/ObjectWriter.h"
+#include "StandardLib/ObjectReader.h"
+#include "ConnectionAnimation.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CSequence::Init(void)
+void CConnectionAnimation::Init(void)
 {
 	masKeyFrames.Init();
 	miConnectionIndex = -1;
@@ -38,7 +38,7 @@ void CSequence::Init(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CSequence::Free(void)
+void CConnectionAnimation::Free(void)
 {	
 	masKeyFrames.Kill();
 }
@@ -48,7 +48,7 @@ void CSequence::Free(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CAnimKeyFrame* CSequence::Add(SFloat3* psPosition, SQuaternion* psRotation, float fTime)
+CAnimKeyFrame* CConnectionAnimation::Add(SFloat3* psPosition, SQuaternion* psRotation, float fTime)
 {
 	CAnimKeyFrame*		psKeyFrame;
 	int					iType;
@@ -78,7 +78,7 @@ CAnimKeyFrame* CSequence::Add(SFloat3* psPosition, SQuaternion* psRotation, floa
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CAnimKeyFrame* CSequence::Add(SFloat4x4* psMatrix, float fTime)
+CAnimKeyFrame* CConnectionAnimation::Add(SFloat4x4* psMatrix, float fTime)
 {
 	CAnimKeyFrame*			psKeyFrame;
 	int						iType;
@@ -99,7 +99,7 @@ CAnimKeyFrame* CSequence::Add(SFloat4x4* psMatrix, float fTime)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CAnimKeyFrame* CSequence::Add(SFloat3* psPosition, float fTime)
+CAnimKeyFrame* CConnectionAnimation::Add(SFloat3* psPosition, float fTime)
 {
 	return Add(psPosition, NULL, fTime);
 }
@@ -109,7 +109,7 @@ CAnimKeyFrame* CSequence::Add(SFloat3* psPosition, float fTime)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CAnimKeyFrame* CSequence::Add(SQuaternion* psRotation, float fTime)
+CAnimKeyFrame* CConnectionAnimation::Add(SQuaternion* psRotation, float fTime)
 {
 	return Add(NULL, psRotation, fTime);
 }
@@ -119,7 +119,7 @@ CAnimKeyFrame* CSequence::Add(SQuaternion* psRotation, float fTime)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CSequence::Load(CObjectDeserialiser* pcFile)
+BOOL CConnectionAnimation::Load(CObjectReader* pcFile)
 {
 	ReturnOnFalse(pcFile->ReadInt(&miConnectionIndex));
 	ReturnOnFalse(masKeyFrames.Read(pcFile));
@@ -131,7 +131,7 @@ BOOL CSequence::Load(CObjectDeserialiser* pcFile)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CSequence::Save(CObjectSerialiser* pcFile)
+BOOL CConnectionAnimation::Save(CObjectWriter* pcFile)
 {
 	ReturnOnFalse(pcFile->WriteInt(miConnectionIndex));
 	ReturnOnFalse(masKeyFrames.Write(pcFile));
@@ -143,7 +143,7 @@ BOOL CSequence::Save(CObjectSerialiser* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CSequence::Copy(CSequence* pCSequence)
+void CConnectionAnimation::Copy(CConnectionAnimation* pCSequence)
 {
 	Init();
 }
@@ -153,7 +153,7 @@ void CSequence::Copy(CSequence* pCSequence)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CSequence::SetConnectionID(int iConnectionID)
+void CConnectionAnimation::SetConnectionID(int iConnectionID)
 {
 	miConnectionIndex = iConnectionID;
 }
@@ -163,7 +163,7 @@ void CSequence::SetConnectionID(int iConnectionID)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CSequence::Dump(void)
+void CConnectionAnimation::Dump(void)
 {
 }
 
