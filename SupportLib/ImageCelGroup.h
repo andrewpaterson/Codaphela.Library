@@ -38,6 +38,7 @@ public:
 	void 		Init(void);
 	void 		Init(char* szName);
 	void 		Free(void);
+	void		Class(void);
 
 	BOOL		Load(CObjectReader* pcFile);
 	BOOL		Save(CObjectWriter* pcFile);
