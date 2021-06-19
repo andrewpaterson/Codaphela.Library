@@ -15,5 +15,5 @@
 #define Validate(test)	if (!test) BREAK();
 
 
-#endif // __VALIDATION_H__
+#endif // !__VALIDATION_H__
 

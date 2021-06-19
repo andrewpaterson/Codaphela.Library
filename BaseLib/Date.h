@@ -65,5 +65,5 @@ public:
 };
 
 
-#endif // __DATE_H__
+#endif // !__DATE_H__
 

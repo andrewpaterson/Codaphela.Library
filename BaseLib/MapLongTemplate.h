@@ -70,5 +70,5 @@ BOOL CMapLongTemplate<D>::Read(CFileReader* pcFileReader)
 	return CMapTemplate<int64, D>::Read(pcFileReader, &CompareLong);
 }
 
-#endif // __MAP_LONG_TEMPLATE_H__
+#endif // !__MAP_LONG_TEMPLATE_H__
 

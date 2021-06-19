@@ -62,5 +62,5 @@ public:
 };
 
 
-#endif // __FILE_BASIC_H__
+#endif // !__FILE_BASIC_H__
 

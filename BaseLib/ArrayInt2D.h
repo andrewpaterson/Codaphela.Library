@@ -61,5 +61,5 @@ public:
 };
 
 
-#endif // __ARRAY_INT_2D_H__
+#endif // !__ARRAY_INT_2D_H__
 

@@ -368,5 +368,5 @@ void TypeConverterInit(void);
 void TypeConverterKill(void);
 
 
-#endif // __TYPE_CONVERTER_H__
+#endif // !__TYPE_CONVERTER_H__
 

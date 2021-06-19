@@ -61,5 +61,5 @@ protected:
 };
 
 
-#endif // __FILE_WRITER_H__
+#endif // !__FILE_WRITER_H__
 

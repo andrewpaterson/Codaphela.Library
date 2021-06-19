@@ -42,5 +42,5 @@ public:
 };
 
 
-#endif // __ENUMERATOR_BLOCK_H__
+#endif // !__ENUMERATOR_BLOCK_H__
 

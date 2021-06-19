@@ -28,5 +28,5 @@ BOOL PrivateAssertFilePath(char* szExpected, char* szActual, int iLine, char* sz
 #define AssertFilePath(e, a)			Validate(PrivateAssertFilePath(e, a, __LINE__, __FILE__))
 
 
-#endif // __ASSERT_FILE_FUNCTIONS_H__
+#endif // !__ASSERT_FILE_FUNCTIONS_H__
 

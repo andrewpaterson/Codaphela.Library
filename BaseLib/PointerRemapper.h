@@ -32,5 +32,5 @@ __inline void* RemapSinglePointer(const void* pvPtr, ptrdiff_t iOffest)
 }
 
 
-#endif // __POINTER_REMAPPER_H__
+#endif // !__POINTER_REMAPPER_H__
 

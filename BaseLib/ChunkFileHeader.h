@@ -30,4 +30,4 @@ public:
 };
 
 
-#endif // __CHUNK_FILE_HEADER_H__
+#endif // !__CHUNK_FILE_HEADER_H__

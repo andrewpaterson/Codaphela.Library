@@ -17,5 +17,5 @@ void MemoryKill(void);
 BOOL MemoryValidate(void);
 
 
-#endif // __GLOBAL_MEMORY_H__
+#endif // !__GLOBAL_MEMORY_H__
 

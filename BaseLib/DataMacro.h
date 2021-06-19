@@ -56,5 +56,5 @@ T* DataGetHeader(M* pv)
 }
 
 
-#endif // __DATA_MACRO_H__
+#endif // !__DATA_MACRO_H__
 

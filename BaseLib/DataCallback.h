@@ -26,5 +26,5 @@ public:
 };
 
 
-#endif // __DATA_CALLBACK_H__
+#endif // !__DATA_CALLBACK_H__
 

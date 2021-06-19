@@ -70,5 +70,5 @@ TRISTATE Fix(TRISTATE tristate);
 #define ReturnMinusOneOnMinusOne(p)		if (p == -1)  { return -1; }
 
 
-#endif // __ERROR_TYPES_H__
+#endif // !__ERROR_TYPES_H__
 

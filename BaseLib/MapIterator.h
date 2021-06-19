@@ -10,5 +10,5 @@ class CMapIterator : public CKillable
 };
 
 
-#endif // __MAP_ITERATOR_H__
+#endif // !__MAP_ITERATOR_H__
 

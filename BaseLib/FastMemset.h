@@ -102,5 +102,5 @@ void memset_fast_65bytesUp(void* pvDest, unsigned char cVal, unsigned int iByteS
 
 
 
-#endif // __FAST_MEMSET_H__
+#endif // !__FAST_MEMSET_H__
 

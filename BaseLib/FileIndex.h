@@ -45,5 +45,5 @@ public:
 };
 
 
-#endif // __FILE_INDEX_H__
+#endif // !__FILE_INDEX_H__
 

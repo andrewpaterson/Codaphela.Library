@@ -32,4 +32,4 @@ public:
 };
 
 
-#endif // __BASE_FILE_NODE_H__
+#endif // !__BASE_FILE_NODE_H__

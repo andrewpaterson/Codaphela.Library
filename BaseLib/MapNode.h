@@ -17,6 +17,6 @@ int CompareMNode(const void* arg1, const void* arg2);
 int CompareMNodeKey(const void* arg1, const void* arg2);
 
 
-#endif // __MAP_NODE_H__
+#endif // !__MAP_NODE_H__
 
 

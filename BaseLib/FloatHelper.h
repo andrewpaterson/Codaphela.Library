@@ -70,5 +70,5 @@ double	det3x3(double a1, double a2, double a3, double b1, double b2, double b3, 
 extern float gfNaN;
 
 
-#endif // __FLOAT_HELPER_H__
+#endif // !__FLOAT_HELPER_H__
 

@@ -52,4 +52,4 @@ public:
 };
 
 
-#endif // __PACK_FILE_READ_ARRAY_H__
+#endif // !__PACK_FILE_READ_ARRAY_H__

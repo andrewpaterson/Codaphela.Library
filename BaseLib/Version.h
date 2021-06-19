@@ -28,5 +28,5 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define ENGINE_VERSION "V7 alpha 2016.04.18"
 
 
-#endif // __VERSION_H__
+#endif // !__VERSION_H__
 

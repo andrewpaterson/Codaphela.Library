@@ -26,6 +26,6 @@ public:
 };
 
 
-#endif // __INDEX_TREE_RECURSOR_H__
+#endif // !__INDEX_TREE_RECURSOR_H__
 
 

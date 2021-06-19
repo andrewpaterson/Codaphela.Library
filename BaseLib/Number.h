@@ -219,5 +219,5 @@ public:
 };
 
 
-#endif // __NUMBER_H__
+#endif // !__NUMBER_H__
 

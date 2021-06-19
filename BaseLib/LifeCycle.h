@@ -270,5 +270,5 @@ BOOL CLife<M>::IsKilled(void)
 }
 
 
-#endif // __LIFE_CYCLE_H__
+#endif // !__LIFE_CYCLE_H__
 

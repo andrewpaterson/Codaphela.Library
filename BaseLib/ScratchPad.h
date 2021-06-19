@@ -60,5 +60,5 @@ public:
 };
 
 
-#endif // __SCRATCH_PAD_H__
+#endif // !__SCRATCH_PAD_H__
 

@@ -104,5 +104,5 @@ protected:
 };
 
 
-#endif // __INDEX_TREE_NODE_H__
+#endif // !__INDEX_TREE_NODE_H__
 

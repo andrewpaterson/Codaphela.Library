@@ -8,5 +8,5 @@ void LocalMallocatorsInit(void);
 void LocalMallocatorsInit(CConstructors* pcConstructors, CMallocators* pcMallocators);
 
 
-#endif // __LOCAL_MALLOCATOR_CONSTRUCTORS_H__
+#endif // !__LOCAL_MALLOCATOR_CONSTRUCTORS_H__
 

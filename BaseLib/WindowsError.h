@@ -7,5 +7,5 @@
 
 char* WindowsErrorCodeToString(DWORD errorMessageID);
 
-#endif // __WINDOWS_ERROR_H__
+#endif // !__WINDOWS_ERROR_H__
 

@@ -154,5 +154,5 @@ void CFileNodeDirectory<M>::FixParents(CFileNode<M>* pcContaintingNode)
 }
 
 
-#endif // __FILE_NODE_DIRECTORY_H__
+#endif // !__FILE_NODE_DIRECTORY_H__
 

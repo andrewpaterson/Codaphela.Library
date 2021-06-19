@@ -32,5 +32,5 @@ public:
 };
 
 
-#endif // __MAP_INT_INT_H__
+#endif // !__MAP_INT_INT_H__
 

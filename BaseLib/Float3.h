@@ -110,5 +110,5 @@ void 		Float3RotateAboutNormalisedAxis(SFloat3* psVecDest, SFloat3 p, float fThe
 void 		Float3Normalize(SFloat3* pOut, const SFloat3* pV);
 
 
-#endif // __FLOAT_3_H__
+#endif // !__FLOAT_3_H__
 

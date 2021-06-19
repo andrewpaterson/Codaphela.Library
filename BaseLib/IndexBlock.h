@@ -64,5 +64,5 @@ protected:
 	void				DataWillBeFreed(SIndexBlockNode* psNode);
 };
 
-#endif // __MAP_BLOCK2_H__
+#endif // !__MAP_BLOCK2_H__
 

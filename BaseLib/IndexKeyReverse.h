@@ -10,5 +10,5 @@ enum EIndexKeyReverse
 };
 
 
-#endif // __INDEX_KEY_REVERSE__H__
+#endif // !__INDEX_KEY_REVERSE__H__
 

@@ -16,5 +16,5 @@ void WordsInit(void);
 void WordsKill(void);
 
 
-#endif // __WORDS_H__
+#endif // !__WORDS_H__
 

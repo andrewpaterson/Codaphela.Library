@@ -62,5 +62,5 @@ protected:
 };
 
 
-#endif // __FILE_READER_H__
+#endif // !__FILE_READER_H__
 

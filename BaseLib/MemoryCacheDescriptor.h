@@ -10,5 +10,5 @@ struct SMemoryCacheDescriptor
 };
 
 
-#endif // __MEMORY_CACHE_DESCRIPTOR_H__
+#endif // !__MEMORY_CACHE_DESCRIPTOR_H__
 

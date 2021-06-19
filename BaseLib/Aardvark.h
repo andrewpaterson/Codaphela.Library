@@ -51,5 +51,5 @@ t
 
 void DoStuff();
 
-#endif // __AARDVARK_H__
+#endif // !__AARDVARK_H__
 

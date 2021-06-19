@@ -62,5 +62,5 @@ public:\
 }
 
 
-#endif // __CONSTRUCTABLE_H__
+#endif // !__CONSTRUCTABLE_H__
 

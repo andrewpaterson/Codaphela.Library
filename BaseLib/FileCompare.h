@@ -38,5 +38,5 @@ public:
 };
 
 
-#endif // __FILE_COMPARE_H__
+#endif // !__FILE_COMPARE_H__
 

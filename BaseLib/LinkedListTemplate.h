@@ -451,5 +451,5 @@ BOOL CLinkedListTemplate<M>::ReadData(CFileReader* pcFileReader, int iNumElement
 }
 
 
-#endif // __LINKED_LIST_TEMPLATE_H__
+#endif // !__LINKED_LIST_TEMPLATE_H__
 

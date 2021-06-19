@@ -57,5 +57,5 @@ public:
 };
 
 
-#endif // __CHUNK_FILE_FILE_H__
+#endif // !__CHUNK_FILE_FILE_H__
 

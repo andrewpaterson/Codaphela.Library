@@ -22,5 +22,5 @@ public:
 };
 
 
-#endif // __MODIFICATION_DATA_ORDERER_H__
+#endif // !__MODIFICATION_DATA_ORDERER_H__
 

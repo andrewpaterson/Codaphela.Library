@@ -23,5 +23,5 @@ void CDataFreeCallBack::DataWillBeFreed(void* pvData)
 }
 
 
-#endif // __DATA_FREE_H__
+#endif // !__DATA_FREE_H__
 

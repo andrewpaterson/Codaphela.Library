@@ -23,5 +23,5 @@ protected:
 };
 
 
-#endif // __INDEX_TREE_NODE_DEBUG_H__
+#endif // !__INDEX_TREE_NODE_DEBUG_H__
 

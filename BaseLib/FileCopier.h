@@ -32,4 +32,4 @@ public:
 };
 
 
-#endif // __FILE_COPIER_H__
+#endif // !__FILE_COPIER_H__

@@ -88,5 +88,5 @@ SFloat2* 	Float2Scale(SFloat2* pOut, const SFloat2* pV, float s);
 SFloat2* 	Float2Lerp(SFloat2* pOut, const SFloat2* pV1, const SFloat2* pV2, float s);
 
 
-#endif // __FLOAT_2_H__
+#endif // !__FLOAT_2_H__
 
