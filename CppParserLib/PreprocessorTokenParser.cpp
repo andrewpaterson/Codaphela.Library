@@ -367,6 +367,7 @@ BOOL CPreprocessorTokenParser::GetQuotedCharacterSequence(char cOpen, char cClos
 	SkipWhiteSpace();
 	bResult = GetExactDecorator(cOpen);
 	pcSequence->miLen = 0;
+	szStart = NULL;
 	if (bResult)
 	{
 		for (i = 0;; i++)

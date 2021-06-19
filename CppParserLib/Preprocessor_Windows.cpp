@@ -18,7 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#ifdef WIN32
+#ifdef _WIN32
 #include "Preprocessor.h"
 
 
@@ -161,5 +161,5 @@ void CPreprocessor::InitPlatformSpecific(void)
 }
 
 
-#endif //WIN32
+#endif // _WIN32
 

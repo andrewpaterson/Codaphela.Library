@@ -23,7 +23,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __WIN_INIT_H__
 #define __WIN_INIT_H__
 //I'm not sure what to do about this file... it really doesn't belong in CoreLib.
-#ifdef WIN32
+#ifdef _WIN32
 #include "BaseLib/WindowsHeaders.h"
 #include "BaseLib/Chars.h"
 #include "BaseLib/GeometricTypes.h"
@@ -95,6 +95,6 @@ public:
 	void		GetNormalisedCursorPos(SFloat2* psPosition);
 };
 
-#endif // WIN32
+#endif // _WIN32
 #endif // !__WIN_INIT_H__
 
