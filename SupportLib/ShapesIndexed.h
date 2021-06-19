@@ -112,5 +112,5 @@ public:
 };
 
 
-#endif // __SHAPES_INDEXED_H__
+#endif // !__SHAPES_INDEXED_H__
 

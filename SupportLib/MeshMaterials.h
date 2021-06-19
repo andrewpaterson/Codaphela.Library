@@ -45,5 +45,5 @@ public:
 };
 
 
-#endif // __MESH_MATERIALS_H__
+#endif // !__MESH_MATERIALS_H__
 

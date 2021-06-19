@@ -43,5 +43,5 @@ public:
 };
 
 
-#endif // __MESH_CONVEX_HULL_H__
+#endif // !__MESH_CONVEX_HULL_H__
 

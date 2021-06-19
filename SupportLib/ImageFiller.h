@@ -67,5 +67,5 @@ public:
 };
 
 
-#endif // __IMAGE_FILLER_H__
+#endif // !__IMAGE_FILLER_H__
 

@@ -55,4 +55,4 @@ public:
 };
 
 
-#endif // __MATERIAL_PROPERTIES_H__
+#endif // !__MATERIAL_PROPERTIES_H__

@@ -160,5 +160,5 @@ public:
 };
 
 
-#endif // __IMAGE_COLOUR_H__
+#endif // !__IMAGE_COLOUR_H__
 

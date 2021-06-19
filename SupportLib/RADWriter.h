@@ -30,5 +30,5 @@ BOOL SaveRAD(Ptr<CImage> pcImage, char *szPathName);
 BOOL SaveRAW(Ptr<CImage> pcImage, char *szPathName);
 
 
-#endif // __RAD_WRITER_H__
+#endif // !__RAD_WRITER_H__
 

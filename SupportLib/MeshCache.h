@@ -44,5 +44,5 @@ public:
 };
 
 
-#endif // __MESH_CACHE_H__
+#endif // !__MESH_CACHE_H__
 

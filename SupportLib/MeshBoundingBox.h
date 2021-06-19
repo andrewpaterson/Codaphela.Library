@@ -44,5 +44,5 @@ public:
 };
 
 
-#endif // __MESH_BOUNDING_BOX_H__
+#endif // !__MESH_BOUNDING_BOX_H__
 

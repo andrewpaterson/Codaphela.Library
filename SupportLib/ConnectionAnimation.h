@@ -88,5 +88,5 @@ public:
 };
 
 
-#endif // __CONNECTION_ANIMATION_H__
+#endif // !__CONNECTION_ANIMATION_H__
 

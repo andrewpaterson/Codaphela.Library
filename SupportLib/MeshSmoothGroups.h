@@ -68,5 +68,5 @@ public:
 };
 
 
-#endif // __MESH_SMOOTH_GROUPS_H__
+#endif // !__MESH_SMOOTH_GROUPS_H__
 

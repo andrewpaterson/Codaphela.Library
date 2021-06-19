@@ -48,5 +48,5 @@ public:
 };
 
 
-#endif // __MESH_SHAPE_H__
+#endif // !__MESH_SHAPE_H__
 

@@ -40,5 +40,5 @@ public:
 };
 
 
-#endif // __IMAGE_IMAGE_RENAME_H__
+#endif // !__IMAGE_IMAGE_RENAME_H__
 

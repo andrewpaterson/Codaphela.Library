@@ -33,5 +33,5 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 BOOL ReadImage(CImage* psImage, char* szFilename, EImageType eType = IT_Unknown);
 
 
-#endif // __IMAGE_READER_H__
+#endif // !__IMAGE_READER_H__
 

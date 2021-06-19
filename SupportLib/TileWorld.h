@@ -55,5 +55,5 @@ public:
 };
 
 
-#endif // __TILE_WORLD_H__
+#endif // !__TILE_WORLD_H__
 

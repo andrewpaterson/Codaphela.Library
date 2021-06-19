@@ -86,5 +86,5 @@ public:
 };
 
 
-#endif // __MESH_SKIN_H__
+#endif // !__MESH_SKIN_H__
 

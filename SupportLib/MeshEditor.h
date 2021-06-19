@@ -94,5 +94,5 @@ M* CMeshEditor::AddModifier(void)
 }
 
 
-#endif // __MESH_EDITOR_H__
+#endif // !__MESH_EDITOR_H__
 

@@ -103,5 +103,5 @@ public:
 };
 
 
-#endif // __MESH_LEAVES_H__
+#endif // !__MESH_LEAVES_H__
 

@@ -50,5 +50,5 @@ public:
 typedef CArrayType<CTileLayer>	CArrayTileLayer;
 
 
-#endif // __TILE_LAYER_H__
+#endif // !__TILE_LAYER_H__
 

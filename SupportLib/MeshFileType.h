@@ -35,5 +35,5 @@ enum EMeshType
 EMeshType GuessMeshType(char *szFilename);
 
 
-#endif // __MESH_FILE_TYPE_H__
+#endif // !__MESH_FILE_TYPE_H__
 

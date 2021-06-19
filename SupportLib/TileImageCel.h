@@ -41,5 +41,5 @@ public:
 typedef CArrayType<CTileImageCel>	CArrayTileImageCel;
 
 
-#endif // __TILE_IMAGE_CEL_H__
+#endif // !__TILE_IMAGE_CEL_H__
 

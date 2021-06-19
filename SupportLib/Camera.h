@@ -49,5 +49,5 @@ public:
 };
 
 
-#endif // __CAMERA_H__
+#endif // !__CAMERA_H__
 

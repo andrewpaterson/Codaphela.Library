@@ -47,5 +47,5 @@ public:
 };
 
 
-#endif // __MESH_TRIANGLES_H__
+#endif // !__MESH_TRIANGLES_H__
 

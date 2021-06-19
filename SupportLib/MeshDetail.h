@@ -49,6 +49,6 @@ public:
 };
 
 
-#endif // __MESH_DETAIL_H__
+#endif // !__MESH_DETAIL_H__
 
 

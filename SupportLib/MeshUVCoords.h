@@ -76,5 +76,5 @@ public:
 };
 
 
-#endif // __MESH_UV_COORDS_H__
+#endif // !__MESH_UV_COORDS_H__
 

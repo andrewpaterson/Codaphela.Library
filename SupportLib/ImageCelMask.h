@@ -50,5 +50,5 @@ public:
 };
 
 
-#endif // __IMAGE_CEL_MASK_H__
+#endif // !__IMAGE_CEL_MASK_H__
 

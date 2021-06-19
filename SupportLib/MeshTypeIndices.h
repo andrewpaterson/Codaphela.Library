@@ -60,5 +60,5 @@ public:
 typedef CArrayTemplate<CMeshTypeIndices>	CArrayMeshTypeIndices;
 
 
-#endif // __MESH_TYPE_INDICES_H__
+#endif // !__MESH_TYPE_INDICES_H__
 

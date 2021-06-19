@@ -41,5 +41,5 @@ public:
 	Ptr<CFont>	Get(char* szName);
 };
 
-#endif // __FONT_LIST_H__
+#endif // !__FONT_LIST_H__
 

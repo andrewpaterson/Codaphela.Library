@@ -65,5 +65,5 @@ public:
 };
 
 
-#endif // __MESH_NORMALS_H__
+#endif // !__MESH_NORMALS_H__
 

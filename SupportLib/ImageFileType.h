@@ -45,5 +45,5 @@ enum EImageType
 EImageType GuessImageType(char *szFilename);
 
 
-#endif // __IMAGE_FILE_TYPE_H__
+#endif // !__IMAGE_FILE_TYPE_H__
 
