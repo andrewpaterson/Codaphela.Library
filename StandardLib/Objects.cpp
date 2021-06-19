@@ -908,6 +908,11 @@ CBaseObject* CObjects::GetFromDatabase(OIndex oi)
 	pvBaseObject = cDeserialiser.Read(oi);
 	cDeserialiser.Kill();
 
+	if (!pvBaseObject)
+	{
+		return NULL;
+	}
+
 	if (pvBaseObject->GetIndex() != oi)
 	{
 		gcLogger.Error2(__METHOD__, " Requested object with index [", IndexToString(oi), "] but object had index [", IndexToString(pvBaseObject->GetIndex()), "].", NULL);

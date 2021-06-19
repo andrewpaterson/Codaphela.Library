@@ -6,12 +6,14 @@
 class CLocalMallocator : public CMallocator
 {
 public:
-	virtual void	Kill(void) =0;
+	virtual void		Kill(void) =0;
 
-			BOOL	IsLocal(void);
+			BOOL		IsLocal(void);
 
-	virtual BOOL	Read(CFileReader* pcFileReader) =0;
-	virtual BOOL	Write(CFileWriter* pcFileWriter) =0;
+	virtual BOOL		Read(CFileReader* pcFileReader) =0;
+	virtual BOOL		Write(CFileWriter* pcFileWriter) =0;
+
+			const char*	ShortName(void);
 };
 
 

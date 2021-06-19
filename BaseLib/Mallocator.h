@@ -25,6 +25,8 @@ public:
 	virtual BOOL		IsLocal(void) =0;
 
 	virtual size_t		SizeOffset(void) =0;
+
+	virtual const char*	ShortName(void) =0;
 };
 
 

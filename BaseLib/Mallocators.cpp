@@ -13,6 +13,7 @@
 void CMallocators::Init(void)
 {
 	mmszClasses.Init(TRUE, FALSE);
+	mmShortNames.Init(TRUE, FALSE);
 
 	Add(&gcNullAllocator);
 	Add(&gcSystemAllocator);
@@ -26,6 +27,7 @@ void CMallocators::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CMallocators::Kill(void)
 {
+	mmShortNames.Kill();
 	mmszClasses.Kill();
 }
 
@@ -46,6 +48,7 @@ BOOL CMallocators::Add(CMallocator* pcMalloc)
 	}
 
 	mmszClasses.Put(sz, &pcMalloc);
+	mmShortNames.Put((char*)pcMalloc->ShortName(), sz);
 	return TRUE;
 }
 
@@ -57,9 +60,10 @@ BOOL CMallocators::Add(CMallocator* pcMalloc)
 CMallocator* CMallocators::Read(CFileReader* pcFileReader)
 {
 	int					iLength;
-	char				szName[1024];
+	char				szShortName[1024];
 	CMallocator**		ppcMallocator;
 	CLocalMallocator*	pcLocalMallocator;
+	char*				szClassName;
 
 	if (!MemoryValidate())
 	{
@@ -77,16 +81,23 @@ CMallocator* CMallocators::Read(CFileReader* pcFileReader)
 		gcLogger.Error2(__METHOD__, " Could not read mallocator name, too long [", IntToString(iLength), "].", NULL);
 	}
 
-	if (!pcFileReader->ReadStringChars(szName, iLength))
+	if (!pcFileReader->ReadStringChars(szShortName, iLength))
 	{
 		gcLogger.Error2(__METHOD__, " Could not read mallocator name.", NULL);
 		return FALSE;
 	}
 
-	ppcMallocator = mmszClasses.Get(szName);
+	szClassName =  mmShortNames.Get(szShortName);
+	if (!szClassName)
+	{
+		gcLogger.Error2(__METHOD__, " Could not find mallocator for short name [", szShortName, "].", NULL);
+		return FALSE;
+	}
+
+	ppcMallocator = mmszClasses.Get(szClassName);
 	if (!ppcMallocator)
 	{
-		gcLogger.Error2(__METHOD__, " Could not find mallocator named [", szName, "].", NULL);
+		gcLogger.Error2(__METHOD__, " Could not find mallocator named [", szClassName, "].", NULL);
 		return FALSE;
 	}
 
@@ -135,7 +146,7 @@ BOOL CMallocators::Write(CFileWriter* pcFileWriter, CMallocator* pcMalloc)
 		return FALSE;
 	}
 
-	if (!pcFileWriter->WriteString(pcMalloc->ClassName()))
+	if (!pcFileWriter->WriteString(pcMalloc->ShortName()))
 	{
 		gcLogger.Error2(__METHOD__, " Could not write mallocator name [", pcMalloc->ClassName(), "].", NULL);
 		return FALSE;
