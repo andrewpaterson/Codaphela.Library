@@ -43,5 +43,5 @@ public:
 };
 
 
-#endif // __PROPERTIES_FILE_H__
+#endif // !__PROPERTIES_FILE_H__
 

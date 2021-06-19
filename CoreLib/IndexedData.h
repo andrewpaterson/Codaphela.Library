@@ -92,5 +92,5 @@ protected:
 };
 
 
-#endif // __INDEXED_DATA_H__
+#endif // !__INDEXED_DATA_H__
 

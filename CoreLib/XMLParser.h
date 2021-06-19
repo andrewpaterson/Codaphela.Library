@@ -72,5 +72,5 @@ public:
 };
 
 
-#endif // __XML_PARSER_H__
+#endif // !__XML_PARSER_H__
 

@@ -86,5 +86,5 @@ typedef CListTemplate<CIndexedFile> CListIndexedFile;
 typedef CArrayTemplate<CIndexedFile*> CArrayIndexedFilePtr;
 
 
-#endif // __INDEXED_FILE_H__
+#endif // !__INDEXED_FILE_H__
 

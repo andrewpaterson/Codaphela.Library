@@ -23,5 +23,5 @@ size_t NamedIndexedHeaderSize(unsigned int uiDataSize);
 size_t NamedIndexedHeaderSize(int iNameLength, unsigned int uiDataSize);
 
 
-#endif // __NAMED_INDEXED_HEADER_H__
+#endif // !__NAMED_INDEXED_HEADER_H__
 

@@ -77,5 +77,5 @@ public:
 };
 
 
-#endif // __CODABASE_H__
+#endif // !__CODABASE_H__
 

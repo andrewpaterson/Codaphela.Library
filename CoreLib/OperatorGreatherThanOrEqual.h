@@ -39,4 +39,4 @@ public:
 };
 
 
-#endif // __OPERATOR_GREATHERTHANOREQUAL_H__
+#endif // !__OPERATOR_GREATHERTHANOREQUAL_H__

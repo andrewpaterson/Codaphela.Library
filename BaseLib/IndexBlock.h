@@ -1,5 +1,5 @@
-#ifndef __MAP_BLOCK2_H__
-#define __MAP_BLOCK2_H__
+#ifndef __INDEX_BLOCK_H__
+#define __INDEX_BLOCK_H__
 #include "Malloc.h"
 #include "IndexTreeMemory.h"
 
@@ -64,5 +64,5 @@ protected:
 	void				DataWillBeFreed(SIndexBlockNode* psNode);
 };
 
-#endif // !__MAP_BLOCK2_H__
+#endif // !__INDEX_BLOCK_H__
 

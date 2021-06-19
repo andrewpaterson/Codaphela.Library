@@ -66,5 +66,5 @@ protected:
 };
 
 
-#endif // __INDEX_TREE_NODE_FILE_H__
+#endif // !__INDEX_TREE_NODE_FILE_H__
 

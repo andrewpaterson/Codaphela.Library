@@ -39,5 +39,5 @@ public:
 };
 
 
-#endif // __OPERATOR_POWER_H__
+#endif // !__OPERATOR_POWER_H__
 

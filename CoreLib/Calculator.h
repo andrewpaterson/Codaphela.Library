@@ -57,5 +57,5 @@ public:
 };
 
 
-#endif // __CALCULATOR_H__
+#endif // !__CALCULATOR_H__
 

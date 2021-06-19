@@ -30,5 +30,5 @@ protected:
 };
 
 
-#endif // __INDEXED_DATA_ACCESS_H__
+#endif // !__INDEXED_DATA_ACCESS_H__
 

@@ -19,5 +19,5 @@ public:
 };
 
 
-#endif // __INDEX_TREE_FILE_DIAGNOSTIC_CALLBACK_H__
+#endif // !__INDEX_TREE_FILE_DIAGNOSTIC_CALLBACK_H__
 

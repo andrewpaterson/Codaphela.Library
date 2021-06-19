@@ -112,5 +112,5 @@ private:
 };
 
 
-#endif // __NAMED_INDEXED_DATA_H__
+#endif // !__NAMED_INDEXED_DATA_H__
 

@@ -39,4 +39,4 @@ public:
 };
 
 
-#endif // __OPERATOR_RIGHT_SHIFT_H__
+#endif // !__OPERATOR_RIGHT_SHIFT_H__

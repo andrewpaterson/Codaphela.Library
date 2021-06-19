@@ -45,5 +45,5 @@ BOOL SocketsInit(void);
 void SocketsKill(void);
 
 
-#endif // __SOCKET_H__
+#endif // !__SOCKET_H__
 

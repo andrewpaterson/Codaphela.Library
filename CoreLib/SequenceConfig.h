@@ -16,5 +16,5 @@ public:
 };
 
 
-#endif // __SEQUENCE_CONFIG_H__
+#endif // !__SEQUENCE_CONFIG_H__
 
