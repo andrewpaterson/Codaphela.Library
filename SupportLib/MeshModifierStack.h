@@ -84,5 +84,5 @@ M* CMeshModifierStack::AddModifier(void)
 }
 
 
-#endif // __MESH_MODIFIER_STACK_H__
+#endif // !__MESH_MODIFIER_STACK_H__
 

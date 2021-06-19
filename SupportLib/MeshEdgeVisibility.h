@@ -51,5 +51,5 @@ public:
 };
 
 
-#endif // __MESH_EDGE_VISIBILITY_H__
+#endif // !__MESH_EDGE_VISIBILITY_H__
 

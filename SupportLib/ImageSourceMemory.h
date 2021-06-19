@@ -38,5 +38,5 @@ public:
 };
 
 
-#endif // __IMAGE_SOURCE_MEMORY_H__
+#endif // !__IMAGE_SOURCE_MEMORY_H__
 

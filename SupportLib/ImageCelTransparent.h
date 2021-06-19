@@ -46,7 +46,7 @@ public:
 };
 
 
-#endif // __IMAGE_CEL_TRANSPARENT_H__
+#endif // !__IMAGE_CEL_TRANSPARENT_H__
 
 
 

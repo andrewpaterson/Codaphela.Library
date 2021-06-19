@@ -37,5 +37,5 @@ public:
 };
 
 
-#endif // __MESH_CORNER_H__
+#endif // !__MESH_CORNER_H__
 

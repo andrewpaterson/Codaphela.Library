@@ -103,5 +103,5 @@ protected:
 };
 
 
-#endif // __MESH_H__
+#endif // !__MESH_H__
 

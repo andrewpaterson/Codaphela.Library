@@ -56,5 +56,5 @@ private:
 typedef CArrayType<CMeshVertexArray>	CMeshVertexArrayArray;
 
 
-#endif // __MESH_VERTEX_ARRAY_H__
+#endif // !__MESH_VERTEX_ARRAY_H__
 

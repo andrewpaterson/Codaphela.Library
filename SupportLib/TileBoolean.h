@@ -37,5 +37,5 @@ public:
 };
 
 
-#endif // __TILE_BOOLEAN_H__
+#endif // !__TILE_BOOLEAN_H__
 

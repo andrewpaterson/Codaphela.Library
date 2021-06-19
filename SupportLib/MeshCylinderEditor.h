@@ -44,5 +44,5 @@ public:
 };
 
 
-#endif // __MESH_CYLINDER_EDITOR_H__
+#endif // !__MESH_CYLINDER_EDITOR_H__
 

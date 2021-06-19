@@ -40,5 +40,5 @@ public:
 };
 
 
-#endif // __MESH_EDGE_H__
+#endif // !__MESH_EDGE_H__
 

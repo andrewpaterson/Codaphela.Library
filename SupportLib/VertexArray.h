@@ -39,5 +39,5 @@ public:
 typedef CArrayType<CVertexArray>	CArrayVertexArray;
 
 
-#endif // __VERTEX_ARRAY_H__
+#endif // !__VERTEX_ARRAY_H__
 

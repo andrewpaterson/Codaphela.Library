@@ -41,5 +41,5 @@ public:
 };
 
 
-#endif // __MESH_FLAT_FACES_H__
+#endif // !__MESH_FLAT_FACES_H__
 

@@ -50,5 +50,5 @@ public:
 };
 
 
-#endif // __INSTANCE_H__
+#endif // !__INSTANCE_H__
 

@@ -35,5 +35,5 @@ enum ETrackerType
 };
 
 
-#endif // __TRACKER_TYPES_H__
+#endif // !__TRACKER_TYPES_H__
 

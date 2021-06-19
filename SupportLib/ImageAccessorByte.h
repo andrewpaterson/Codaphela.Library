@@ -47,5 +47,5 @@ public:
 };
 
 
-#endif // __CHANNELS_ACCESSOR_BYTE__H__
+#endif // !__CHANNELS_ACCESSOR_BYTE__H__
 

@@ -58,5 +58,5 @@ public:
 };
 
 
-#endif // __MESH_PLANE_EDITOR_H__
+#endif // !__MESH_PLANE_EDITOR_H__
 

@@ -60,5 +60,5 @@ public:
 };
 
 
-#endif // __IMAGE_ACCESSOR_CREATOR_H__
+#endif // !__IMAGE_ACCESSOR_CREATOR_H__
 

@@ -81,5 +81,5 @@ public:
 };
 
 
-#endif // __MESH_POLYGONS_H__
+#endif // !__MESH_POLYGONS_H__
 

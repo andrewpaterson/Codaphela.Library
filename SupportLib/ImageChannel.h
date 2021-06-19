@@ -119,5 +119,5 @@ public:
 };
 
 
-#endif // __IMAGE_IMAGE__H__
+#endif // !__IMAGE_IMAGE__H__
 

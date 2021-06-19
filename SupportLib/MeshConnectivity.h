@@ -86,5 +86,5 @@ protected:
 };
 
 
-#endif // __MESH_CONNECTIVITY_H__
+#endif // !__MESH_CONNECTIVITY_H__
 

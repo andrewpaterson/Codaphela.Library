@@ -80,5 +80,5 @@ int ConvertToBGR(int iColour);
 int ConvertToBGRA(int iColour);
 
 
-#endif // __COLOUR_RGBA32_H__
+#endif // !__COLOUR_RGBA32_H__
 

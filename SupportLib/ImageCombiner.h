@@ -91,5 +91,5 @@ private:
 };
 
 
-#endif // __IMAGE_COMBINER_H__
+#endif // !__IMAGE_COMBINER_H__
 

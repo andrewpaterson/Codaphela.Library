@@ -48,5 +48,5 @@ private:
 };
 
 
-#endif // __MESH_INDEXER_H__
+#endif // !__MESH_INDEXER_H__
 

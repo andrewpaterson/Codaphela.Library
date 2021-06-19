@@ -69,5 +69,5 @@ public:
 };
 
 
-#endif // __MESH_EDITOR_WRAPPER_H__
+#endif // !__MESH_EDITOR_WRAPPER_H__
 

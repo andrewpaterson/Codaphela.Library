@@ -41,5 +41,5 @@ public:
 };
 
 
-#endif // __MESH_SOURCE_MODIFIER_H__
+#endif // !__MESH_SOURCE_MODIFIER_H__
 

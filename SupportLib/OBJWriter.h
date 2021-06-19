@@ -29,5 +29,5 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 BOOL SaveOBJ(CMesh *pcMesh, char* szFileName);
 
 
-#endif // __OBJ_WRITER_H__
+#endif // !__OBJ_WRITER_H__
 

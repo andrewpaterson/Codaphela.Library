@@ -62,5 +62,5 @@ public:
 };
 
 
-#endif // __LIGHT_H__
+#endif // !__LIGHT_H__
 

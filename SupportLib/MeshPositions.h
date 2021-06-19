@@ -45,5 +45,5 @@ public:
 };
 
 
-#endif // __MESH_POSITIONS_H__
+#endif // !__MESH_POSITIONS_H__
 

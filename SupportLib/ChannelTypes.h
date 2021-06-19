@@ -56,5 +56,5 @@ typedef int EChannel;
 #define CHANNEL(ePurpose, eType) ((EChannel)((NUM_CHANNEL_TYPES * ePurpose) + eType + 1))
 
 
-#endif // __IMAGE_TYPES_H__
+#endif // !__IMAGE_TYPES_H__
 

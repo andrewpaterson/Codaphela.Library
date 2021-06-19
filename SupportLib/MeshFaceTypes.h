@@ -95,5 +95,5 @@ public:
 };
 
 
-#endif // __MESH_FACE_TYPES_H__
+#endif // !__MESH_FACE_TYPES_H__
 

@@ -107,5 +107,5 @@ public:
 };
 
 
-#endif // __IMAGE_H__
+#endif // !__IMAGE_H__
 

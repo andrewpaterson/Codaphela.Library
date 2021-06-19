@@ -55,5 +55,5 @@ public:
 };
 
 
-#endif // __MESH_VERTEX_COLOURS_H__
+#endif // !__MESH_VERTEX_COLOURS_H__
 

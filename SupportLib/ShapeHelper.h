@@ -83,5 +83,5 @@ public:
 };
 
 
-#endif // __SHAPE_HELPER_H__
+#endif // !__SHAPE_HELPER_H__
 
