@@ -27,5 +27,5 @@ public:
 };
 
 
-#endif // __INTER_PROCESS_WAIT_H__
+#endif // !__INTER_PROCESS_WAIT_H__
 

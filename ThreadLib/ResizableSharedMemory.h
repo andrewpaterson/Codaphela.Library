@@ -9,7 +9,7 @@
 #endif // _MSC_VER
 
 
-#endif // __RESIZABLE_SHARED_MEMORY_H__
+#endif // !__RESIZABLE_SHARED_MEMORY_H__
 
 
 

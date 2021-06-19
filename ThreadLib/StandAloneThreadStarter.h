@@ -13,5 +13,5 @@ public:
 extern CStandAloneThreadStarter gcStandAloneThreadStarter;
 
 
-#endif // __STAND_ALONE_THREAD_STARTER_H__
+#endif // !__STAND_ALONE_THREAD_STARTER_H__
 

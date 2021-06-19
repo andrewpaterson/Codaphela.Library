@@ -45,5 +45,5 @@ M* CThreadPool::Add(void)
 }
 
 
-#endif // __THREAD_POOL_H__
+#endif // !__THREAD_POOL_H__
 

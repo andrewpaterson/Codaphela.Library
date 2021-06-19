@@ -22,5 +22,5 @@ public:
 };
 
 
-#endif // __WINDOWS_SHARED_MEMORY_H__
+#endif // !__WINDOWS_SHARED_MEMORY_H__
 

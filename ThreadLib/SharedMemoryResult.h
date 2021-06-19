@@ -41,6 +41,6 @@ struct SSharedMemoryMap
 };
 
 
-#endif // __SHARED_MEMORY_RESULT_H__
+#endif // !__SHARED_MEMORY_RESULT_H__
 
 

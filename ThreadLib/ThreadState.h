@@ -12,5 +12,5 @@ enum EThreadState
 };
 
 
-#endif // __THREAD_STATE_H__
+#endif // !__THREAD_STATE_H__
 

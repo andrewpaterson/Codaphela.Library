@@ -22,5 +22,5 @@ public:
 };
 
 
-#endif // __INTER_PROCESS_MUTEX_H__
+#endif // !__INTER_PROCESS_MUTEX_H__
 
