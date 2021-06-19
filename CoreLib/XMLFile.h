@@ -43,5 +43,5 @@ private:
 };
 
 
-#endif // __XML_FILE_H__
+#endif // !__XML_FILE_H__
 

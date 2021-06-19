@@ -15,5 +15,5 @@ public:
 };
 
 
-#endif // __INDEXED_FILES_EVICTION_CALLBACK_H__
+#endif // !__INDEXED_FILES_EVICTION_CALLBACK_H__
 

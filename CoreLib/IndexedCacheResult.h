@@ -16,6 +16,6 @@ public:
 };
 
 
-#endif // __INDEXED_CACHE_RESULT_H__
+#endif // !__INDEXED_CACHE_RESULT_H__
 
 

@@ -10,5 +10,5 @@ public:
 };
 
 
-#endif // __CODABASE_FACTORY_H__
+#endif // !__CODABASE_FACTORY_H__
 

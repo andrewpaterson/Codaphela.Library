@@ -75,6 +75,6 @@ public:
 };
 
 
-#endif // __CALC_ROOT_H__
+#endif // !__CALC_ROOT_H__
 
 

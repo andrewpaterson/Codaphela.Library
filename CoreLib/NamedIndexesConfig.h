@@ -26,5 +26,5 @@ public:
 };
 
 
-#endif // __NAMED_INDEXES_CONFIG_H__
+#endif // !__NAMED_INDEXES_CONFIG_H__
 

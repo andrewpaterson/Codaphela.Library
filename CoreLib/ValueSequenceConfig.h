@@ -21,5 +21,5 @@ public:
 
 
 
-#endif // __VALUE_SEQUENCE_CONFIG_H__
+#endif // !__VALUE_SEQUENCE_CONFIG_H__
 

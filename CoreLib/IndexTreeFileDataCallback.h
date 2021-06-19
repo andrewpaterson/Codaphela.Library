@@ -12,6 +12,6 @@ public:
 };
 
 
-#endif // __INDEX_TREE_FILE_CALLBACK_H__
+#endif // !__INDEX_TREE_FILE_CALLBACK_H__
 
 

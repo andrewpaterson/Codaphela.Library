@@ -35,5 +35,5 @@ public:
 };
 
 
-#endif // __CALC_OBJECT_H__
+#endif // !__CALC_OBJECT_H__
 

@@ -38,5 +38,5 @@ public:
 };
 
 
-#endif // __CALC_CONST_EXPRESSION_H__
+#endif // !__CALC_CONST_EXPRESSION_H__
 

@@ -66,5 +66,5 @@ private:
 };
 
 
-#endif // __DURABLE_SET_H__
+#endif // !__DURABLE_SET_H__
 

@@ -11,5 +11,5 @@ enum EIndexTreeEvctionStrategySystemType
 };
 
 
-#endif // __INDEX_TREE_EVICTION_STRATEGY_TYPES_H__
+#endif // !__INDEX_TREE_EVICTION_STRATEGY_TYPES_H__
 

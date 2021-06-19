@@ -85,5 +85,5 @@ protected:
 CLogFile* LogFile(CAbstractFile* pcFile);
 
 
-#endif // __LOG_FILE_H__
+#endif // !__LOG_FILE_H__
 

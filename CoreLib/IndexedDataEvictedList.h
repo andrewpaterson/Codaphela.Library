@@ -25,5 +25,5 @@ public:
 };
 
 
-#endif // __INDEXED_DATA_EVICTED_LIST_H__
+#endif // !__INDEXED_DATA_EVICTED_LIST_H__
 

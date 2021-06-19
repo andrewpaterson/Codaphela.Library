@@ -75,5 +75,5 @@ public:
 };
 
 
-#endif // __LOG_FILE_COMMANDS_H__
+#endif // !__LOG_FILE_COMMANDS_H__
 

@@ -38,5 +38,5 @@ public:
 };
 
 
-#endif // __CALC_PARENTHESES_H__
+#endif // !__CALC_PARENTHESES_H__
 
