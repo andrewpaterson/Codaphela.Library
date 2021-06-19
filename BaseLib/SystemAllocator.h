@@ -15,6 +15,8 @@ public:
 
 	BOOL		IsLocal(void);
 	size_t		SizeOffset(void);
+
+	const char*	ShortName(void);
 };
 
 

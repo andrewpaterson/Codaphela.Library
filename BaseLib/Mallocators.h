@@ -2,12 +2,13 @@
 #define __MALLOCATORS_H__
 #include "MapStringTemplate.h"
 #include "Mallocator.h"
-
+#include "MapStringString.h"
 
 class CMallocators
 {
 protected:
 	CMapStringTemplate<CMallocator*>	mmszClasses;
+	CMapStringString					mmShortNames;
 
 public:
 	void			Init(void);

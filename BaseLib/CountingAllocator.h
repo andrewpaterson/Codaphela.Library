@@ -34,6 +34,9 @@ public:
 
 	BOOL			IsLocal(void);
 	size_t			SizeOffset(void);
+
+	//This looks so very wrong.  CONSTRUCTABLE(CCountingAllocator); should be used!
+	const char*		ShortName(void);
 };
 
 
