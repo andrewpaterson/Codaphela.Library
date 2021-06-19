@@ -45,5 +45,5 @@ public:
 };
 
 
-#endif // __PROGRAM_INPUT_H__
+#endif // !__PROGRAM_INPUT_H__
 

@@ -64,5 +64,5 @@ public:
 };
 
 
-#endif // __INPUT_DEVICES_READER_H__
+#endif // !__INPUT_DEVICES_READER_H__
 

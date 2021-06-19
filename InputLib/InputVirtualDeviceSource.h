@@ -59,5 +59,5 @@ public:
 typedef CSetType<CInputVirtualDeviceSource>	CSetInputVirtualDeviceSource;
 
 
-#endif // __INPUT_VIRTUAL_DEVICE_SOURCE_H__
+#endif // !__INPUT_VIRTUAL_DEVICE_SOURCE_H__
 

@@ -35,5 +35,5 @@ class CInputVirtualDeviceReader
 };
 
 
-#endif // __INPUT_VIRTUAL_DEVICE_READER_H__
+#endif // !__INPUT_VIRTUAL_DEVICE_READER_H__
 

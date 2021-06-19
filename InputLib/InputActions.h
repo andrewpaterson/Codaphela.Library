@@ -73,5 +73,5 @@ CAction* CInputActions::AddAction(char* szName, void(M::*ActionFunc)(CUnknown*, 
 }
 
 
-#endif // __INPUT_ACTIONS_H__
+#endif // !__INPUT_ACTIONS_H__
 

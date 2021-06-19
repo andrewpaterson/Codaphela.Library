@@ -165,5 +165,5 @@ public:
 void WinRawInputEvent(CWinRawInput* pcWinRaw, void* pRawInput);
 
 
-#endif // __WIN_RAW_H__
+#endif // !__WIN_RAW_H__
 

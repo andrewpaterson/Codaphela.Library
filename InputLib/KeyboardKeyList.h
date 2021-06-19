@@ -55,5 +55,5 @@ public:
 };
 
 
-#endif // __KEYBOARD_KEY_LIST_H__
+#endif // !__KEYBOARD_KEY_LIST_H__
 

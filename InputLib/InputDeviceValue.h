@@ -83,5 +83,5 @@ public:
 };
 
 
-#endif // __INPUT_DEVICE_VALUE_H__
+#endif // !__INPUT_DEVICE_VALUE_H__
 

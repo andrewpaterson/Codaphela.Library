@@ -129,5 +129,5 @@ void KillActionCriteria(UInputChordCriteria* puCriteria);
 void ToStringActionCriteria(UInputChordCriteria* puCriteria, CChars* psz);
 
 
-#endif // __INPUT_ACTION_CRITERIA_H__
+#endif // !__INPUT_ACTION_CRITERIA_H__
 

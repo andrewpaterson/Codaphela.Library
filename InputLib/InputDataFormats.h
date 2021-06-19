@@ -42,5 +42,5 @@ public:
 };
 
 
-#endif // __INPUT_DATA_FORMATS_H__
+#endif // !__INPUT_DATA_FORMATS_H__
 

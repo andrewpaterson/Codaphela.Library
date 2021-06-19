@@ -60,5 +60,5 @@ public:
 typedef CSetType<CInputDataFormat> CSetInputDataFormat;
 
 
-#endif // __INPUT_DATA_FORMAT_H__
+#endif // !__INPUT_DATA_FORMAT_H__
 
