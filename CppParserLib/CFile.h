@@ -51,5 +51,5 @@ public:
 };
 
 
-#endif // __C_FILE_H__
+#endif // !__C_FILE_H__
 

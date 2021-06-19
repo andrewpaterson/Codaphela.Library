@@ -37,5 +37,5 @@ public:
 };
 
 
-#endif // __C_T__WIDE_STRING_H__
+#endif // !__C_T__WIDE_STRING_H__
 

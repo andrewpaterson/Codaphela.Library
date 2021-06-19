@@ -53,5 +53,5 @@ public:
 };
 
 
-#endif // __ASCII_NODE_H__
+#endif // !__ASCII_NODE_H__
 

@@ -42,5 +42,5 @@ public:
 typedef CArrayTemplate<CPPTokenHolder> CArrayPPTokenHolders;
 
 
-#endif // __P_P_TOKEN_HOLDER_H__
+#endif // !__P_P_TOKEN_HOLDER_H__
 

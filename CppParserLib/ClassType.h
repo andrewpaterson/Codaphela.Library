@@ -31,5 +31,5 @@ enum EClassType
 };
 
 
-#endif // __CLASS_TYPE_H__
+#endif // !__CLASS_TYPE_H__
 

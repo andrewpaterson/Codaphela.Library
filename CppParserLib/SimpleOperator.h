@@ -83,5 +83,5 @@ enum ESimpleOperators
 };
 
 
-#endif // __SIMPLE_OPERATOR_H__
+#endif // !__SIMPLE_OPERATOR_H__
 

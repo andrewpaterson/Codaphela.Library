@@ -35,6 +35,6 @@ public:
 };
 
 
-#endif // __P_P_HOLDER_H__
+#endif // !__P_P_HOLDER_H__
 
 

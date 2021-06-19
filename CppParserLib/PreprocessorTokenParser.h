@@ -97,5 +97,5 @@ public:
 };
 
 
-#endif // __PREPROCESSOR_TOKEN_PARSER_H__
+#endif // !__PREPROCESSOR_TOKEN_PARSER_H__
 

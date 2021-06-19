@@ -67,5 +67,5 @@ public:
 };
 
 
-#endif // __PROJECT_H__
+#endif // !__PROJECT_H__
 

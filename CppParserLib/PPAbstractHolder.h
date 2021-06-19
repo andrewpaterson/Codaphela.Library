@@ -43,5 +43,5 @@ public:
 };
 
 
-#endif // __P_P_ABSTRACT_HOLDER_H__
+#endif // !__P_P_ABSTRACT_HOLDER_H__
 

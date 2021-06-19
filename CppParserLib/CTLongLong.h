@@ -38,5 +38,5 @@ public:
 };
 
 
-#endif // __C_T_LONG_LONG_H__
+#endif // !__C_T_LONG_LONG_H__
 

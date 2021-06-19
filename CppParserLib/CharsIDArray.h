@@ -53,5 +53,5 @@ public:
 
 
 
-#endif // __CHARS_INDEX_ARRAY_H__
+#endif // !__CHARS_INDEX_ARRAY_H__
 

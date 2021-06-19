@@ -24,4 +24,4 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 
 
-#endif // __A_S_T_AGGREGATE_H__
+#endif // !__A_S_T_AGGREGATE_H__

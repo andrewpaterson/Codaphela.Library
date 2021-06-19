@@ -51,5 +51,5 @@ typedef CArrayTemplate<CHeaderNameMap*> CArrayHeaderNameMapPtr;
 typedef CArrayTemplate<CHeaderNameMap> CArrayHeaderNameMap;
 
 
-#endif // __HEADER_NAME_MAP_H__
+#endif // !__HEADER_NAME_MAP_H__
 

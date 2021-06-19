@@ -56,5 +56,5 @@ public:
 };
 
 
-#endif // __NAMED_DEFINE_H__
+#endif // !__NAMED_DEFINE_H__
 

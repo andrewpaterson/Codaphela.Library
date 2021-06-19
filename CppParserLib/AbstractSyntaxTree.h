@@ -36,5 +36,5 @@ public:
 };
 
 
-#endif // __ABSTRACT_SYNTAX_TREE_H__
+#endif // !__ABSTRACT_SYNTAX_TREE_H__
 
