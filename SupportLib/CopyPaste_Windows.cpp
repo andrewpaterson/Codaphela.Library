@@ -21,7 +21,7 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
-#ifdef WIN32
+#ifdef _WIN32
 #include <windows.h>
 #include "CopyPaste.h"
 
@@ -78,5 +78,5 @@ void CCopyPaste::PasteText(CChars* szText)
 }
 
 
-#endif // WIN32
+#endif // _WIN32
 

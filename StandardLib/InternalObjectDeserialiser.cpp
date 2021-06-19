@@ -174,6 +174,10 @@ BOOL CInternalObjectDeserialiser::AddHeapFromPointersAndCreateHollowObject(CDepe
 		{
 			pcHollowObject = mpcObjects->AllocateExistingHollowFromMemoryOrMaybeANewNamedHollow(pcDependent->mszObjectName.Text(), pcDependent->moi, pcDependentReadPointer->miNumEmbedded);
 		}
+		else
+		{
+			pcHollowObject = NULL;
+		}
 
 		pcBaseObject = pcHollowObject->GetEmbeddedObject(pcDependentReadPointer->miEmbeddedIndex);
 		if (pcBaseObject)

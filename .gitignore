@@ -37,3 +37,6 @@ us.stackdump
 /TestLib/x64/Debug/*
 /BaseLib/x64/Release/*
 /TestLib/x64/Release/*
+/CoreLib/x64/Debug/*
+/CoreLib/x64/Release/*
+/StandardLib/x64/Release/*
