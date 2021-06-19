@@ -64,5 +64,5 @@ enum AbstractSyntaxTypes
 };
 
 
-#endif // __ABSTRACT_SYNTAX_TYPES_H__
+#endif // !__ABSTRACT_SYNTAX_TYPES_H__
 

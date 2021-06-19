@@ -27,4 +27,4 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 CPPToken* DuplicatePPToken(CPPToken* pcSource, CMemoryStackExtended* pcStack);
 
 
-#endif // __TOKEN_HELPER_H__
+#endif // !__TOKEN_HELPER_H__

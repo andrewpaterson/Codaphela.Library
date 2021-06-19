@@ -40,5 +40,5 @@ public:
 };
 
 
-#endif // __A_S_T_ARRAY_H__
+#endif // !__A_S_T_ARRAY_H__
 

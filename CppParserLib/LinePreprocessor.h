@@ -61,5 +61,5 @@ public:
 };
 
 
-#endif // __LINE_PREPROCESSOR_H__
+#endif // !__LINE_PREPROCESSOR_H__
 

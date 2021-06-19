@@ -44,5 +44,5 @@ public:
 }
 
 
-#endif // __A_S_T_Common_H__
+#endif // !__A_S_T_Common_H__
 

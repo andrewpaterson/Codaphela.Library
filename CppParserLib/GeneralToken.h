@@ -44,5 +44,5 @@ void InitTokenMemory(void);
 void KillTokenMemory(void);
 
 
-#endif // __GENERAL_TOKEN_H__
+#endif // !__GENERAL_TOKEN_H__
 

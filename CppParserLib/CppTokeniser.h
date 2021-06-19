@@ -65,5 +65,5 @@ public:
 };
 
 
-#endif // __C_P_P_TOKENISER_H__
+#endif // !__C_P_P_TOKENISER_H__
 

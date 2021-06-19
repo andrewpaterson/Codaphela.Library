@@ -34,5 +34,5 @@ struct SCTokenBlock
 };
 
 
-#endif // __C_BLOCK_TOKEN_H__
+#endif // !__C_BLOCK_TOKEN_H__
 

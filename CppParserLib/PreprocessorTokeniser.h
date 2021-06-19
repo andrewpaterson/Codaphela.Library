@@ -64,5 +64,5 @@ public:
 };
 
 
-#endif // __PREPROCESSOR_TOKENISER_H__
+#endif // !__PREPROCESSOR_TOKENISER_H__
 

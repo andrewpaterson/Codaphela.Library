@@ -43,5 +43,5 @@ public:
 };
 
 
-#endif // __HEADER_FILE_MAP_H__
+#endif // !__HEADER_FILE_MAP_H__
 

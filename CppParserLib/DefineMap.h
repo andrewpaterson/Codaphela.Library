@@ -83,5 +83,5 @@ public:
 };
 
 
-#endif // __DEFINE_MAP_H__
+#endif // !__DEFINE_MAP_H__
 

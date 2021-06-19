@@ -42,5 +42,5 @@ public:
 };
 
 
-#endif // __TRANSLATION_UNIT_FILE_ARRAY_H__
+#endif // !__TRANSLATION_UNIT_FILE_ARRAY_H__
 

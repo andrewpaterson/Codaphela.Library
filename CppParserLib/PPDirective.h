@@ -57,5 +57,5 @@ public:
 };
 
 
-#endif // __P_P_LINE_H__
+#endif // !__P_P_LINE_H__
 

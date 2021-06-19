@@ -41,4 +41,4 @@ int FileDefineCompare(const void* pv1, const void* pv2);
 typedef CArrayTemplate<CFileDefine> CFileDefineArray;
 
 
-#endif // __FILE_DEFINE_H__
+#endif // !__FILE_DEFINE_H__

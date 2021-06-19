@@ -56,5 +56,5 @@ public:
 typedef CLinkedListTemplate<CLibrary>	CListLibraries;
 
 
-#endif // __LIBRARY_H__
+#endif // !__LIBRARY_H__
 

@@ -148,5 +148,5 @@ public:
 #define PARSE_POP(p)	DebugPop(p); return p
 
 
-#endif // __C_P_P_PARSER_H__
+#endif // !__C_P_P_PARSER_H__
 

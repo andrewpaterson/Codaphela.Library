@@ -41,11 +41,11 @@ void CHeaderFileMap::Kill(void)
 	SMapIterator	sIter;
 	BOOL			bResult;
 
-	bResult = mcFiles.StartIteration(&sIter, NULL, (void**)&pcHeader);
+	bResult = mcFiles.StartIteration(&sIter, NULL, NULL, (void**)&pcHeader, NULL);
 	while (bResult)
 	{
 		pcHeader->Kill();
-		bResult = mcFiles.Iterate(&sIter, NULL, (void**)&pcHeader);
+		bResult = mcFiles.Iterate(&sIter, NULL, NULL, (void**)&pcHeader, NULL);
 	}
 
 	mcFiles.Kill();
@@ -99,7 +99,7 @@ CHeaderFile* CHeaderFileMap::StartIteration(SMapIterator* psIter)
 	CHeaderFile*	pcHeader;
 	BOOL			bResult;
 
-	bResult = mcFiles.StartIteration(psIter, NULL, (void**)&pcHeader);
+	bResult = mcFiles.StartIteration(psIter, NULL, , NULL(void**)&pcHeader, NULL);
 	if (bResult)
 	{
 		return pcHeader;
@@ -120,7 +120,7 @@ CHeaderFile* CHeaderFileMap::Iterate(SMapIterator* psIter)
 	CHeaderFile*	pcHeader;
 	BOOL			bResult;
 
-	bResult = mcFiles.Iterate(psIter, NULL, (void**)&pcHeader);
+	bResult = mcFiles.Iterate(psIter, NULL, NULL, (void**)&pcHeader, NULL);
 	if (bResult)
 	{
 		return pcHeader;

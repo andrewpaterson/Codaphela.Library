@@ -34,5 +34,5 @@ public:
 };
 
 
-#endif // __P_P_INCLUDE_H__
+#endif // !__P_P_INCLUDE_H__
 

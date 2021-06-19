@@ -108,3 +108,4 @@ void CListenerCall::CallListenersName(char* szClassName, void(CListener::*Listen
 		}
 	}
 }
+

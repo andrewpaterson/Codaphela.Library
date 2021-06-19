@@ -117,5 +117,5 @@ protected:
 };
 
 
-#endif // __ASCII_TREE_H__
+#endif // !__ASCII_TREE_H__
 

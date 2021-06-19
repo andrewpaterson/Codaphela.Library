@@ -34,5 +34,5 @@ public:
 };
 
 
-#endif // __A_S_T_NAME_H__
+#endif // !__A_S_T_NAME_H__
 

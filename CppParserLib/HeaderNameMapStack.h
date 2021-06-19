@@ -44,5 +44,5 @@ public:
 };
 
 
-#endif // __HEADER_NAME_MAP_STACK_H__
+#endif // !__HEADER_NAME_MAP_STACK_H__
 

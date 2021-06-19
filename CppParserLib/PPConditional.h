@@ -36,5 +36,5 @@ public:
 };
 
 
-#endif // __P_P_CONDITIONAL_H__
+#endif // !__P_P_CONDITIONAL_H__
 

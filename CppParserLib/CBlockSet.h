@@ -51,5 +51,5 @@ public:
 };
 
 
-#endif // __C_BLOCK_SET_H__
+#endif // !__C_BLOCK_SET_H__
 

@@ -56,5 +56,5 @@ public:
 };
 
 
-#endif // __P_P_TEXT_H__
+#endif // !__P_P_TEXT_H__
 

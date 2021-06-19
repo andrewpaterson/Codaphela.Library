@@ -40,5 +40,5 @@ public:
 typedef CLinkedListTemplate<CConfig>	CListConfigs;
 
 
-#endif // __CONIFG_H__
+#endif // !__CONIFG_H__
 

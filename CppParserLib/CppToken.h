@@ -42,5 +42,5 @@ public:
 };
 
 
-#endif // __C_P_P_TOKEN_H__
+#endif // !__C_P_P_TOKEN_H__
 

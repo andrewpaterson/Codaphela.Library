@@ -39,5 +39,5 @@ public:
 };
 
 
-#endif // __A_S_T_CLASS_SPEC_H__
+#endif // !__A_S_T_CLASS_SPEC_H__
 

@@ -41,5 +41,5 @@ public:
 
 
 
-#endif // __P_P_HASHES_H__
+#endif // !__P_P_HASHES_H__
 

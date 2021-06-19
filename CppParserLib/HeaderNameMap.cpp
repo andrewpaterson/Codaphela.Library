@@ -134,12 +134,12 @@ void CHeaderNameMap::Dump(void)
 	char*			szName;
 
 	sz.Init();
-	bResult = mcFileNames.StartIteration(&sIter, (void**)&szName, (void**)&pcHeader);
+	bResult = mcFileNames.StartIteration(&sIter, (void**)&szName, NULL, (void**)&pcHeader, NULL);
 	while (bResult)
 	{	
 		sz.Append(szName);
 		sz.AppendNewLine();
-		bResult = mcFileNames.Iterate(&sIter, (void**)&szName, (void**)&pcHeader);
+		bResult = mcFileNames.Iterate(&sIter, (void**)&szName, NULL, (void**)&pcHeader, NULL);
 	}
 	sz.Dump();
 	sz.Kill();
