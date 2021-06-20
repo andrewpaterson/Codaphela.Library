@@ -74,7 +74,7 @@
     <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
     <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">AllRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
-   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;DEBUG;BREAK_ON_WARNING;BREAK_ON_ERROR;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -89,7 +89,7 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <TreatWarningAsError>true</TreatWarningAsError>
-	  <FloatingPointModel>Fast</FloatingPointModel>
+      <FloatingPointModel>Fast</FloatingPointModel>
       <BrowseInformation>true</BrowseInformation>
       <OpenMPSupport>true</OpenMPSupport>
       <SDLCheck>true</SDLCheck>
@@ -114,10 +114,10 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <TreatWarningAsError>true</TreatWarningAsError>
-	  <FloatingPointModel>Fast</FloatingPointModel>
+      <FloatingPointModel>Fast</FloatingPointModel>
       <BrowseInformation>true</BrowseInformation>
       <OpenMPSupport>true</OpenMPSupport>
-	  <SDLCheck>true</SDLCheck>
+      <SDLCheck>true</SDLCheck>
     </ClCompile>
     <Lib />
     <Bscmake>
@@ -200,7 +200,6 @@
     <ClInclude Include="Null.h" />
     <ClInclude Include="IndexGenerator.h" />
     <ClInclude Include="IndexNewOld.h" />
-    <ClInclude Include="NamedHollowObject.h" />
     <ClInclude Include="NamedIndexedObjects.h" />
     <ClInclude Include="ObjectConverter.h" />
     <ClInclude Include="ObjectConverterNative.h" />
@@ -250,7 +249,6 @@
     <ClInclude Include="ArrayCommonObject.h" />
     <ClInclude Include="Pointer.h" />
     <ClInclude Include="PointerObject.h" />
-    <ClInclude Include="NamedObject.h" />
     <ClInclude Include="DependentWriteObjects.h" />
     <ClInclude Include="ExternalObjectSerialiser.h" />
     <ClInclude Include="ObjectReader.h" />
@@ -309,7 +307,6 @@
     <ClCompile Include="Null.cpp" />
     <ClCompile Include="IndexGenerator.cpp" />
     <ClCompile Include="IndexNewOld.cpp" />
-    <ClCompile Include="NamedHollowObject.cpp" />
     <ClCompile Include="NamedIndexedObjects.cpp" />
     <ClCompile Include="ObjectIO.cpp" />
     <ClCompile Include="ObjectConverter.cpp" />
@@ -355,7 +352,6 @@
     <ClCompile Include="ArrayObject.cpp" />
     <ClCompile Include="ArrayCommonObject.cpp" />
     <ClCompile Include="PointerObject.cpp" />
-    <ClCompile Include="NamedObject.cpp" />
     <ClCompile Include="DependentWriteObjects.cpp" />
     <ClCompile Include="ExternalObjectSerialiser.cpp" />
     <ClCompile Include="ObjectReader.cpp" />

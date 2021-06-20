@@ -58,7 +58,7 @@ Ptr<CRoot> CRoot::Init(void)
 void CRoot::KillInternal(BOOL bHeapFromChanged)
 {
 	mpObjects->Kill();
-	CNamedObject::KillInternal(bHeapFromChanged);
+	CBaseObject::KillInternal(bHeapFromChanged);
 }
 
 

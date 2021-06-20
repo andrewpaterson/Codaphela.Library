@@ -160,7 +160,6 @@ protected:
 						void					ValidateIndexedObjects(void);
 						void					ClearValidationFlags(void);
 						void					RecurseValidateSceneGraph(CBaseObject* pcBaseObject);
-						CNamedHollowObject*		AllocateNamedHollow(uint16 iNumEmbedded);
 						CHollowObject*			AllocateHollow(uint16 iNumEmbedded);
 						void					AppenedHollowEmbeddedObjects(CBaseObject* pcHollow, uint16 iNumEmbedded, void* pvEmbedded) ;
 						void					PrintMemory(CChars* psz);

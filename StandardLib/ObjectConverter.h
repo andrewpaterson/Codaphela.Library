@@ -3,7 +3,6 @@
 #include "Unknown.h"
 #include "ObjectSource.h"
 #include "HollowObject.h"
-#include "NamedHollowObject.h"
 
 
 class CObjectConverter : public CUnknown
