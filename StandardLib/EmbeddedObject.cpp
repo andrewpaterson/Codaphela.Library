@@ -325,7 +325,9 @@ void CEmbeddedObject::ValidateInitialised(char* szMethod)
 void CEmbeddedObject::RemoveHeapFrom(CBaseObject* pcFromObject, BOOL bValidate)
 {
 	CBaseObject*	pcContainer;
+	CObjects*		pcObjectsThisIn;
 
+	pcObjectsThisIn = GetObjectsThisIn();
 	//Removing a 'from' kicks off memory reclamation.  This is the entry point for memory management.
 	PrivateRemoveHeapFrom(pcFromObject);
 
@@ -335,9 +337,9 @@ void CEmbeddedObject::RemoveHeapFrom(CBaseObject* pcFromObject, BOOL bValidate)
 #ifdef _DEBUG
 	if (bValidate)
 	{
-		if (IsAllocatedInObjects())
+		if (pcObjectsThisIn)
 		{
-			GetObjectsThisIn()->ValidateObjectsConsistency();
+			pcObjectsThisIn->ValidateObjectsConsistency();
 		}
 	}
 #endif

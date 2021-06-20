@@ -145,6 +145,12 @@ int CGeneralMemory::RemoveMultiple(CArrayVoidPtr* pav)
 	{
 		pv = pav->GetPtr(i);
 		psAlloc = GENERAL_MEMORY_GET_ALLOCATION(pv);
+
+#ifdef _DEBUG
+		memset(pv, 0xcc, psAlloc->uiSize);
+#endif // _DEBUG
+
+
 		if (psAlloc->uiSize <= mcFreeListParams.GetMaxFreeListElementSize())
 		{
 			psNode = psAlloc->psFreeListNode;
@@ -193,12 +199,12 @@ int CGeneralMemory::RemoveMultiple(CArrayVoidPtr* pav)
 //////////////////////////////////////////////////////////////////////////
 int CGeneralMemory::RemoveNode(CArrayVoidPtr* pav, int i, SGeneralMemoryAllocation* psAlloc, SFNode* psNode, CFreeList* pcList)
 {
-	void*				pvLast;
+	void*						pvLast;
 	SGeneralMemoryAllocation*	psPotentialLast;
-	int					iNodeElements;
+	int							iNodeElements;
 	SGeneralMemoryAllocation*	psFirst;
 	SGeneralMemoryAllocation*	psLast;
-	int					iNumElements;
+	int							iNumElements;
 
 	iNumElements = pav->NumElements();
 	psFirst = (SGeneralMemoryAllocation*)pcList->GetFirstNodeElement(psNode);

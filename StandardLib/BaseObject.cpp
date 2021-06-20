@@ -220,12 +220,15 @@ void CBaseObject::Initialised(void)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::Kill(void)
 {
-	BOOL	bHeapFromChanged;
+	BOOL		bHeapFromChanged;
+	CObjects*	pcObjectsThisIn;
 
 	if (IsKilled())
 	{
 		return;
 	}
+
+	pcObjectsThisIn = GetObjectsThisIn();
 
 	//This method is for the user to forcibly kill an object.
 	//It is not called internally.
@@ -235,9 +238,9 @@ void CBaseObject::Kill(void)
 	KillInternal(bHeapFromChanged);
 
 #ifdef _DEBUG
-	if (mpcObjectsThisIn)
+	if (pcObjectsThisIn)
 	{
-		mpcObjectsThisIn->ValidateObjectsConsistency();
+		pcObjectsThisIn->ValidateObjectsConsistency();
 	}
 #endif // _DEBUG
 }
