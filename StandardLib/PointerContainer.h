@@ -1,6 +1,6 @@
 #ifndef __POINTER_CONTAINER_H__
 #define __POINTER_CONTAINER_H__
-#include "NamedObject.h"
+#include "Object.h"
 #include "Pointer.h"
 
 
@@ -21,7 +21,7 @@ public:
 };
 
 
-class CNamedPointerContainer : public CNamedObject
+class CNamedPointerContainer : public CObject
 {
 CONSTRUCTABLE(CNamedPointerContainer);
 DESTRUCTABLE(CNamedPointerContainer);

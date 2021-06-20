@@ -46,9 +46,6 @@
     <Filter Include="Source\Object\Object\Pointer">
       <UniqueIdentifier>{910031f2-a533-4d80-bb22-53fa29ad7ce7}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Object\Object\Named">
-      <UniqueIdentifier>{9669ec03-ba51-4f14-b777-81c9671fa360}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source\Object\Object\IO">
       <UniqueIdentifier>{16ba09be-cb16-4f28-af41-d96110ddbfee}</UniqueIdentifier>
     </Filter>
@@ -180,9 +177,6 @@
     <ClInclude Include="PointerObject.h">
       <Filter>Source\Object\Object\Pointer</Filter>
     </ClInclude>
-    <ClInclude Include="NamedObject.h">
-      <Filter>Source\Object\Object\Named</Filter>
-    </ClInclude>
     <ClInclude Include="HollowObject.h">
       <Filter>Source\Object\Object\Hollow</Filter>
     </ClInclude>
@@ -299,9 +293,6 @@
     </ClInclude>
     <ClInclude Include="ObjectConverterNative.h">
       <Filter>Source\Object\Object\Source\Native</Filter>
-    </ClInclude>
-    <ClInclude Include="NamedHollowObject.h">
-      <Filter>Source\Object\Object\Named</Filter>
     </ClInclude>
     <ClInclude Include="ObjectFileGeneral.h">
       <Filter>Source\Object\Object\IO\Common</Filter>
@@ -513,9 +504,6 @@
     <ClCompile Include="PointerObject.cpp">
       <Filter>Source\Object\Object\Pointer</Filter>
     </ClCompile>
-    <ClCompile Include="NamedObject.cpp">
-      <Filter>Source\Object\Object\Named</Filter>
-    </ClCompile>
     <ClCompile Include="HollowObject.cpp">
       <Filter>Source\Object\Object\Hollow</Filter>
     </ClCompile>
@@ -626,9 +614,6 @@
     </ClCompile>
     <ClCompile Include="ObjectConverterNative.cpp">
       <Filter>Source\Object\Object\Source\Native</Filter>
-    </ClCompile>
-    <ClCompile Include="NamedHollowObject.cpp">
-      <Filter>Source\Object\Object\Named</Filter>
     </ClCompile>
     <ClCompile Include="ObjectHeader.cpp">
       <Filter>Source\Object\Object\Serilalisation</Filter>

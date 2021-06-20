@@ -60,6 +60,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 //All flags are used!  You'll need to make miFlags bigger if you need more.
 
+#define MAX_NAMED_OBJECT_NAME_LENGTH	4096
 
 class CObjectReader;
 class CObjectWriter;
@@ -77,10 +78,12 @@ friend class CObjectRemapFrom;
 friend class CEmbeddedObject;
 friend class CObjectWriter;
 friend class CObjectReader;
+friend class CNamedIndexedObjects;
 
 CONSTRUCTABLE(CBaseObject);
 protected:
 	OIndex		moi;
+	CChars		mon;
 	CObjects*	mpcObjectsThisIn;
 	CClass*		mpcClass;
 	int32		miDistToRoot;
@@ -122,6 +125,7 @@ public:
 			BOOL				HasClass(void);
 			CClass*				GetClass(void);
 			BOOL				IsKilled(void);
+			BOOL				IsNamed(char* szName);
 
 	virtual char*				GetName(void);
 	virtual BOOL				SetName(char* szName);
@@ -222,6 +226,8 @@ protected:
 			void				ContainerPreInit(void);
 			void				ContainerPostInit(void);
 
+			void				ClearName(void);
+
 			BOOL				SaveEmbeddedObjectsManaged(CObjectWriter* pcFile);
 			BOOL				SavePointers(CObjectWriter* pcFile);
 			BOOL				SavePrimitives(CObjectWriter* pcFile);
@@ -234,6 +240,10 @@ protected:
 			BOOL				LoadEmbeddedObjectsHeapFroms(CObjectReader* pcFile);
 
 	virtual void				BaseValidatePointerTos(void) =0;
+
+private:
+			BOOL				InitName(char* szName);
+			BOOL				ClipName(void);
 };
 
 

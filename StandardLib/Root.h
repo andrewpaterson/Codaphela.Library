@@ -21,12 +21,12 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __ROOT_H__
 #define __ROOT_H__
 #include "SetObject.h"
-#include "NamedObject.h"
+#include "Object.h"
 #include "Pointer.h"
 
 
 class CObjects;
-class CRoot : public CNamedObject
+class CRoot : public CObject
 {
 friend class CObjects;
 friend class CUnknowns;

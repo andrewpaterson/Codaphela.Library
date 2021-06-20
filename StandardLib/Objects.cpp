@@ -25,13 +25,12 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "CoreLib/DataConnection.h"
 #include "CoreLib/TransientSequence.h"
 #include "BaseObject.h"
-#include "NamedObject.h"
 #include "InternalObjectSerialiser.h"
 #include "InternalObjectDeserialiser.h"
 #include "ObjectSource.h"
 #include "ObjectRemapFrom.h"
 #include "Objects.h"
-#include "NamedHollowObject.h"
+#include "HollowObject.h"
 #include "HollowEmbeddedObject.h"
 #include "StackPointers.h"
 
@@ -47,7 +46,7 @@ BOOL		gbObjects = FALSE;
 void LogObjectAllocation(CBaseObject* pcObject, char* szMethod)
 {
 #ifdef DEBUG_OBJECT_ALLOCATION
-#ifdef DEBUG
+#ifdef _DEBUG
 	char*	szClass;
 	char*	szName;
 	char*	szIndex;
@@ -65,7 +64,7 @@ void LogObjectAllocation(CBaseObject* pcObject, char* szMethod)
 	{
 		gcLogger.Debug2(szMethod, " Allocate NULL]", NULL);
 	}
-#endif // DEBUG
+#endif // _DEBUG
 #endif // DEBUG_OBJECT_ALLOCATION
 }
 
@@ -77,7 +76,7 @@ void LogObjectAllocation(CBaseObject* pcObject, char* szMethod)
 void LogObjectDestruction(CBaseObject* pcObject, char* szMethod)
 {
 #ifdef DEBUG_OBJECT_ALLOCATION
-#ifdef DEBUG
+#ifdef _DEBUG
 	char*	szClass;
 	char*	szName;
 	char*	szIndex;
@@ -95,7 +94,7 @@ void LogObjectDestruction(CBaseObject* pcObject, char* szMethod)
 	{
 		gcLogger.Debug2(szMethod, " Kill NULL]", NULL);
 	}
-#endif // DEBUG
+#endif // _DEBUG
 #endif // DEBUG_OBJECT_ALLOCATION
 }
 
@@ -351,7 +350,7 @@ void CObjects::RecurseDumpGraph(CChars* psz, CEmbeddedObject* pcIncoming, int iL
 //////////////////////////////////////////////////////////////////////////
 void CObjects::ValidateObjectsConsistency(void)
 {
-	//If this method is called from an Object - rather than a test case - then it should be wrapped with a #ifdef DEBUG
+	//If this method is called from an Object - rather than a test case - then it should be wrapped with a #ifdef _DEBUG
 	//This is because it is still useful to have ValidateObjectsConsistency called in RELEASE from tests.
 
 	ValidateSceneGraph();
@@ -658,19 +657,12 @@ BOOL CObjects::AddObjectIntoMemoryWithIndexAndName(CBaseObject* pvObject, char* 
 {
 	BOOL	bResult;
 
-	if ((pvObject->IsNamed()))
+	bResult = mcMemory.AddWithIDAndName(pvObject, oi, szObjectName);
+	if (bResult)
 	{
-		bResult = mcMemory.AddWithIDAndName(pvObject, oi, szObjectName);
-		if (bResult)
-		{
-			LOG_OBJECT_ALLOCATION(pvObject);
-		}
-		return bResult;
+		LOG_OBJECT_ALLOCATION(pvObject);
 	}
-	else
-	{
-		return gcLogger.Error2(__METHOD__, " Cannot allocate object with name [", szObjectName, "], it is not a named object.", NULL);
-	}
+	return bResult;
 }
 
 
@@ -682,19 +674,7 @@ BOOL CObjects::Replace(CBaseObject* pvNewObject, char* szExistingName, OIndex oi
 {
 	if (!StrEmpty(szExistingName))
 	{
-		if ((pvNewObject->IsNamed()))
-		{
-			return mcMemory.ReplaceWithIDAndName(pvNewObject, szExistingName, oiNew);
-		}
-		else
-		{
-			CChars sz;
-			sz.Init();
-			pvNewObject->GetIdentifier(&sz);
-			gcLogger.Error2(__METHOD__, " Cannot Replace object [", sz.Text(), "] with name [", szExistingName, "], it is not a named obect.", NULL);
-			sz.Kill();
-			return FALSE;
-		}
+		return mcMemory.ReplaceWithIDAndName(pvNewObject, szExistingName, oiNew);
 	}
 	else
 	{
@@ -716,17 +696,13 @@ BOOL CObjects::Dename(CBaseObject* pvObject)
 {
 	char* szName;
 
-	if (pvObject->IsNamed())
+	szName = pvObject->GetName();
+	if (!StrEmpty(szName))
 	{
-		szName = pvObject->GetName();
-		if (!StrEmpty(szName))
-		{
-			mcMemory.RemoveName(szName);
-			pvObject->SetName("");
-		}
-		return TRUE;
+		mcMemory.RemoveName(szName);
+		pvObject->SetName("");
 	}
-	return FALSE;
+	return TRUE;
 }
 
 
@@ -1345,42 +1321,6 @@ CNamedIndexedObjects* CObjects::GetMemory(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CNamedHollowObject* CObjects::AllocateNamedHollow(uint16 iNumEmbedded)
-{
-	CNamedHollowObject*		pcHollow;
-	int						iAdditionalBytes;
-	void*					pvEmbedded;
-	int						iHollowSize;
-
-	if (iNumEmbedded == 0)
-	{
-		return NULL;
-	}
-	if (iNumEmbedded == 1)
-	{
-		pcHollow = AllocateUninitialisedByTemplate<CNamedHollowObject>(0);
-		pcHollow->Init(1);
-		return pcHollow;
-	}
-	else
-	{
-		iAdditionalBytes = sizeof(CHollowEmbeddedObject) * (iNumEmbedded-1);
-		pcHollow = AllocateUninitialisedByTemplate<CNamedHollowObject>(iAdditionalBytes);
-		pcHollow->Init(iNumEmbedded);
-
-		iHollowSize = sizeof(CNamedHollowObject);
-		pvEmbedded = RemapSinglePointer(pcHollow, iHollowSize);
-		AppenedHollowEmbeddedObjects(pcHollow, iNumEmbedded, pvEmbedded);
-
-		return pcHollow;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 CHollowObject* CObjects::AllocateHollow(uint16 iNumEmbedded)
 {
 	CHollowObject*		pcHollow;
@@ -1399,7 +1339,7 @@ CHollowObject* CObjects::AllocateHollow(uint16 iNumEmbedded)
 	}
 	else
 	{
-		iAdditionalBytes = sizeof(CHollowEmbeddedObject) * (iNumEmbedded-1);
+		iAdditionalBytes = sizeof(CHollowEmbeddedObject) * (iNumEmbedded - 1);
 		pcHollow = AllocateUninitialisedByTemplate<CHollowObject>(iAdditionalBytes);
 		pcHollow->Init(iNumEmbedded);
 
@@ -1533,12 +1473,6 @@ CBaseObject* CObjects::AllocateNewNamed(char* szClassName, char* szObjectName)
 		gcLogger.Error2(__METHOD__, " Cannot allocate object named [", szObjectName, "] class [", szClassName, "].", NULL);
 		return NULL;
 	}
-	if (!pvObject->IsNamed())
-	{
-		gcLogger.Error2(__METHOD__, " Cannot allocate object named [", szObjectName, "] the class ", pvObject->ClassName(), " is not derived from NamedObject.", NULL);
-		pvObject->Kill();
-		return NULL;
-	}
 
 	oi = GetIndexGenerator()->GetNext();
 	bResult = AddObjectIntoMemoryWithIndexAndName(pvObject, szObjectName, oi);
@@ -1588,12 +1522,6 @@ CBaseObject* CObjects::AllocateExistingNamed(char* szClassName, char* szObjectNa
 	if (!pvObject)
 	{
 		gcLogger.Error2(__METHOD__, " Cannot allocate object named [", szObjectName, "] class [", szClassName, "].", NULL);
-		return NULL;
-	}
-	if (!pvObject->IsNamed())
-	{
-		gcLogger.Error2(__METHOD__, " Cannot allocate object named [", szObjectName, "] the class ", pvObject->ClassName(), " is not derived from NamedObject.", NULL);
-		pvObject->Kill();
 		return NULL;
 	}
 
@@ -1757,9 +1685,9 @@ CBaseObject* CObjects::AllocateExistingHollow(OIndex oiForced, uint16 iNumEmbedd
 //////////////////////////////////////////////////////////////////////////
 CBaseObject* CObjects::AllocateExistingHollowFromMemoryOrMaybeANewNamedHollow(char* szObjectName, OIndex oiForced, uint16 iNumEmbedded)
 {
-	CNamedHollowObject* pcHollow;
-	BOOL				bResult;
-	CBaseObject*		pvExisting;
+	CHollowObject*	pcHollow;
+	BOOL			bResult;
+	CBaseObject*	pvExisting;
 
 	if (oiForced == INVALID_O_INDEX)
 	{
@@ -1785,7 +1713,7 @@ CBaseObject* CObjects::AllocateExistingHollowFromMemoryOrMaybeANewNamedHollow(ch
 		return NULL;
 	}
 
-	pcHollow = AllocateNamedHollow(iNumEmbedded);
+	pcHollow = AllocateHollow(iNumEmbedded);
 	if (!pcHollow)
 	{
 		return NULL;
@@ -1808,10 +1736,10 @@ CBaseObject* CObjects::AllocateExistingHollowFromMemoryOrMaybeANewNamedHollow(ch
 //////////////////////////////////////////////////////////////////////////
 CBaseObject* CObjects::AllocateExistingHollowFromMemoryOrMaybeANewNamedHollow(char* szObjectName, uint16 iNumEmbedded)
 {
-	CNamedHollowObject* pcHollow;
-	BOOL				bResult;
-	CBaseObject*		pvExisting;
-	OIndex				oi;
+	CHollowObject*	pcHollow;
+	BOOL			bResult;
+	CBaseObject*	pvExisting;
+	OIndex			oi;
 
 	if ((szObjectName == NULL || szObjectName[0] == '\0'))
 	{
@@ -1824,7 +1752,7 @@ CBaseObject* CObjects::AllocateExistingHollowFromMemoryOrMaybeANewNamedHollow(ch
 		return pvExisting;
 	}
 
-	pcHollow = AllocateNamedHollow(iNumEmbedded);
+	pcHollow = AllocateHollow(iNumEmbedded);
 	if (!pcHollow)
 	{
 		return NULL;
@@ -1842,7 +1770,6 @@ CBaseObject* CObjects::AllocateExistingHollowFromMemoryOrMaybeANewNamedHollow(ch
 
 	return pcHollow;
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////

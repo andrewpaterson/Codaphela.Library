@@ -234,12 +234,12 @@ void CBaseObject::Kill(void)
 	bHeapFromChanged = HasHeapFroms();
 	KillInternal(bHeapFromChanged);
 
-#ifdef DEBUG
+#ifdef _DEBUG
 	if (mpcObjectsThisIn)
 	{
 		mpcObjectsThisIn->ValidateObjectsConsistency();
 	}
-#endif
+#endif // _DEBUG
 }
 
 
@@ -353,6 +353,7 @@ void CBaseObject::FreePointers(void)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::FreeIdentifiers(void)
 {
+	mon.Kill();
 }
 
 
@@ -924,17 +925,7 @@ BOOL CBaseObject::IsRoot(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CBaseObject::IsNamed(void)
 {
-	return FALSE;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-char* CBaseObject::GetName(void)
-{
-	return "";
+	return !mon.Empty();
 }
 
 
@@ -1597,7 +1588,8 @@ OIndex CBaseObject::GetIndex(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CBaseObject::SetName(char* szName)
 {
-	return FALSE;
+	mon.Set(szName);
+	return ClipName();
 }
 
 
@@ -2262,7 +2254,7 @@ void CBaseObject::ValidateObjectIdentifiers(void)
 			szThis.Init();
 			PrintObject(&szThis, IsEmbedded());
 
-			gcLogger.Error2(__METHOD__, " Object {", szThis.Text(), "} should have a name as it's embedded in object {", szContainer.Text(), "}.", NULL);
+			gcLogger.Error2(__METHOD__, " Object {", szThis.Text(), "} should not have a name as it's embedded in object {", szContainer.Text(), "}.", NULL);
 
 			szThis.Kill();
 			szContainer.Kill();
@@ -2270,28 +2262,25 @@ void CBaseObject::ValidateObjectIdentifiers(void)
 		else
 		{
 			szName = GetName();
-			if (!StrEmpty(szName))
+			pcThis = mpcObjectsThisIn->GetFromMemory(szName);
+			if (pcThis != this)
 			{
-				pcThis = mpcObjectsThisIn->GetFromMemory(szName);
-				if (pcThis != this)
+				szThis.Init();
+				PrintObject(&szThis, IsEmbedded());
+				szOther.Init();
+				if (pcThis != NULL)
 				{
-					szThis.Init();
-					PrintObject(&szThis, IsEmbedded());
-					szOther.Init();
-					if (pcThis != NULL)
-					{
-						pcThis->PrintObject(&szOther, IsEmbedded());
-					}
-					else
-					{
-						szOther.Append("NULL");
-					}
-
-					gcLogger.Error2(__METHOD__, " 'this' Object {", szThis.Text(), "} does not match the Named Object {", szOther.Text(), "} in Objects.", NULL);
-
-					szOther.Kill();
-					szThis.Kill();
+					pcThis->PrintObject(&szOther, IsEmbedded());
 				}
+				else
+				{
+					szOther.Append("NULL");
+				}
+
+				gcLogger.Error2(__METHOD__, " 'this' Object {", szThis.Text(), "} does not match the Named Object {", szOther.Text(), "} in Objects.", NULL);
+
+				szOther.Kill();
+				szThis.Kill();
 			}
 		}
 	}
@@ -2375,5 +2364,78 @@ void CBaseObject::ValidateKillCalled(void)
 		gcLogger.Error2(__METHOD__, " Object {", szObject.Text(), "} has not beel killed.  Ensure sub-classes are declared DESTRUCTABLE().", NULL);
 		szObject.Kill();
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CBaseObject::GetName(void)
+{
+	return mon.Text();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CBaseObject::IsNamed(char* szName)
+{
+	if (StrEmpty(szName))
+	{
+		return mon.Equals(szName);
+	}
+	else
+	{
+		return FALSE;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CBaseObject::InitName(char* szName)
+{
+	mon.Init(szName);
+	return ClipName();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CBaseObject::ClipName(void)
+{
+	BOOL	bResult;
+
+	bResult = TRUE;
+	if (mon.Contains("\\"))
+	{
+		mon.Replace("\\", "/");
+		bResult = FALSE;
+	}
+	if (mon.Length() >= MAX_NAMED_OBJECT_NAME_LENGTH)
+	{
+		mon.SetLength(MAX_NAMED_OBJECT_NAME_LENGTH - 1);
+		bResult = FALSE;
+	}
+
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CBaseObject::ClearName(void)
+{
+	mon.Kill();
+	mon.Init();
 }
 

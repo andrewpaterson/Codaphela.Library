@@ -79,7 +79,14 @@ void CHollowObject::EmbedFields(void)
 //////////////////////////////////////////////////////////////////////////
 CBaseObject* CHollowObject::Dehollow(void)
 {
-	return mpcObjectsThisIn->Dehollow(moi);
+	if (IsNamed())
+	{
+		return mpcObjectsThisIn->Dehollow(mon.Text());
+	}
+	else
+	{
+		return mpcObjectsThisIn->Dehollow(moi);
+	}
 }
 
 
@@ -293,7 +300,7 @@ CEmbeddedObject* CHollowObject::GetRemappedEmbeddedObject(int iIndex)
 {
 	CEmbeddedObject*	pcEmbedded;
 
-	pcEmbedded = (CEmbeddedObject*)RemapSinglePointer(this, sizeof(CHollowObject) + sizeof(CHollowEmbeddedObject)*(iIndex-1));
+	pcEmbedded = (CEmbeddedObject*)RemapSinglePointer(this, sizeof(CHollowObject) + (sizeof(CHollowEmbeddedObject) * (iIndex - 1)));
 	return pcEmbedded;
 }
 

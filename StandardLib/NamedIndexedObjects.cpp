@@ -21,8 +21,8 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/Log.h"
 #include "BaseLib/IndexTreeMemoryAccess.h"
 #include "NamedIndexedObjects.h"
-#include "NamedObject.h"
-#include "NamedHollowObject.h"
+#include "Object.h"
+#include "HollowObject.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -134,8 +134,6 @@ BOOL CNamedIndexedObjects::RemoveName(char* szName)
 BOOL CNamedIndexedObjects::AddWithID(CBaseObject* pvObject, OIndex oi)
 {
 	BOOL				bResult;
-	CNamedObject*		pcNamed;
-	CNamedHollowObject* pcNamedHollow;
 
 	if (!IsValidIndex(oi))
 	{
@@ -146,20 +144,8 @@ BOOL CNamedIndexedObjects::AddWithID(CBaseObject* pvObject, OIndex oi)
 	if (bResult)
 	{
 		pvObject->SetObjectID(oi);
-		if (pvObject->IsNamed())
-		{
-			if (!pvObject->IsHollow())
-			{
-				pcNamed = (CNamedObject*)pvObject;
-				bResult = pcNamed->InitName("");
-			}
-			else
-			{
-				pcNamedHollow = (CNamedHollowObject*)pvObject;
-				bResult = pcNamedHollow->InitName("");
-			}
-		}
-		return TRUE;
+		bResult = pvObject->InitName("");
+		return bResult;
 	}
 	else
 	{
@@ -174,8 +160,6 @@ BOOL CNamedIndexedObjects::AddWithID(CBaseObject* pvObject, OIndex oi)
 //////////////////////////////////////////////////////////////////////////
 BOOL CNamedIndexedObjects::AddWithIDAndName(CBaseObject* pvObject, OIndex oi, char* szName)
 {
-	CNamedObject*			pcNamed;
-	CNamedHollowObject*		pcNamedHollow;
 	BOOL					bResult;
 	CIndexTreeMemoryAccess	cAccess;
 	BOOL					bHasObject;
@@ -207,16 +191,7 @@ BOOL CNamedIndexedObjects::AddWithIDAndName(CBaseObject* pvObject, OIndex oi, ch
 		return gcLogger.Error2(__METHOD__, " Cannot add object named [", szName, "].  An index [", IToA(oi, sz, 10), "] already exists.", NULL);
 	}
 
-	if (!pvObject->IsHollow())
-	{
-		pcNamed = (CNamedObject*)pvObject;
-		bResult = pcNamed->InitName(szName);
-	}
-	else
-	{
-		pcNamedHollow = (CNamedHollowObject*)pvObject;
-		bResult = pcNamedHollow->InitName(szName);
-	}
+	bResult = pvObject->InitName(szName);
 
 	cAccess.Init(&mcMemoryNames);
 	oi = pvObject->GetIndex();
@@ -234,8 +209,6 @@ BOOL CNamedIndexedObjects::AddWithIDAndName(CBaseObject* pvObject, OIndex oi, ch
 //////////////////////////////////////////////////////////////////////////
 BOOL CNamedIndexedObjects::ReplaceWithIDAndName(CBaseObject* pvObject, char* szExistingName, OIndex oi)
 {
-	CNamedObject*			pcNamed;
-	CNamedHollowObject*		pcNamedHollow;
 	BOOL					bResult;
 	CIndexTreeMemoryAccess	cAccess;
 
@@ -249,16 +222,7 @@ BOOL CNamedIndexedObjects::ReplaceWithIDAndName(CBaseObject* pvObject, char* szE
 		return FALSE;
 	}
 
-	if (!pvObject->IsHollow())
-	{
-		pcNamed = (CNamedObject*)pvObject;
-		bResult = pcNamed->InitName(szExistingName);
-	}
-	else
-	{
-		pcNamedHollow = (CNamedHollowObject*)pvObject;
-		bResult = pcNamedHollow->InitName(szExistingName);
-	}
+	bResult = pvObject->InitName(szExistingName);
 
 	if (!StrEmpty(szExistingName))
 	{

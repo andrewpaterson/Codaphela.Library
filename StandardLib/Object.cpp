@@ -1460,3 +1460,4 @@ void CObject::ClassNotImplemented(void)
 	gcLogger.Error2(__METHOD__, " Class [", ClassName(), "] not yet implemented.", NULL);
 }
 
+

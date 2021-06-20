@@ -78,9 +78,9 @@ void CArrayCommonObject::RemoveAll(void)
 
 	mcArray.ReInit();
 
-#ifdef DEBUG
+#ifdef _DEBUG
 	mpcObjectsThisIn->ValidateObjectsConsistency();
-#endif
+#endif // _DEBUG
 }
 
 
@@ -454,9 +454,9 @@ void CArrayCommonObject::SetPointedTosDistToRoot(int iDistToRoot)
 
 	iNumElements = mcArray.UnsafeNumElements();
 
-#ifdef DEBUG
+#ifdef _DEBUG
 	Validate((iNumElements != 0xCCCCCCCC));
-#endif // DEBUG
+#endif // _DEBUG
 
 	if (iDistToRoot >= ROOT_DIST_TO_ROOT)
 	{

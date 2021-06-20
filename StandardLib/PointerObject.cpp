@@ -35,7 +35,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 void LogPointerDebug(CPointer* pvThis, char* szMethod)
 {
 #ifdef DEBUG_POINTER
-#ifdef DEBUG
+#ifdef _DEBUG
 	const char*	szEmbeddingClass;
 	char*		szEmbeddingName;
 	char*		szEmbeddingIndex;
@@ -58,7 +58,7 @@ void LogPointerDebug(CPointer* pvThis, char* szMethod)
 	}
 
 	
-#endif // DEBUG
+#endif // _DEBUG
 #endif // DEBUG_POINTER
 }
 
@@ -509,7 +509,7 @@ OIndex CPointer::GetIndex(void)
 //////////////////////////////////////////////////////////////////////////
 char* CPointer::GetName(void)
 {
-	if (mpcObject && mpcObject->IsNamed())
+	if (mpcObject)
 	{
 		return mpcObject->GetName();
 	}

@@ -12,7 +12,7 @@
 void LogPrimitiveAccessDebug(CPrimitiveObject* pvThis, char* szMethod)
 {
 #ifdef DEBUG_PRIMITIVE
-#ifdef DEBUG
+#ifdef _DEBUG
 	const char* szEmbeddingClass;
 	char* szEmbeddingName;
 	char* szEmbeddingIndex;
@@ -36,7 +36,7 @@ void LogPrimitiveAccessDebug(CPrimitiveObject* pvThis, char* szMethod)
 	}
 
 
-#endif // DEBUG
+#endif // _DEBUG
 #endif // DEBUG_POINTER
 }
 
@@ -48,7 +48,7 @@ void LogPrimitiveAccessDebug(CPrimitiveObject* pvThis, char* szMethod)
 void LogPrimitiveAssignDebug(CPrimitiveObject* pvThis, char* szMethod)
 {
 #ifdef DEBUG_PRIMITIVE
-#ifdef DEBUG
+#ifdef _DEBUG
 	const char* szEmbeddingClass;
 	char* szEmbeddingName;
 	char* szEmbeddingIndex;
@@ -72,7 +72,7 @@ void LogPrimitiveAssignDebug(CPrimitiveObject* pvThis, char* szMethod)
 	}
 
 
-#endif // DEBUG
+#endif // _DEBUG
 #endif // DEBUG_POINTER
 }
 
