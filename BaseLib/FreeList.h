@@ -37,7 +37,7 @@ struct SFNode
 {
 	unsigned char	bFull;
 	char			iOffset;
-	uint16  uiChunkSize;
+	uint16			uiChunkSize;
 	CFreeList*		pcList;
 };
 
