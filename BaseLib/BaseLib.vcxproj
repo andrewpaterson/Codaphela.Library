@@ -305,6 +305,7 @@
     <ClInclude Include="SystemAllocator.h" />
     <ClInclude Include="TemporaryMemory.h" />
     <ClInclude Include="TextParser.h" />
+    <ClInclude Include="TimSort.h" />
     <ClInclude Include="TrackingAllocator.h" />
     <ClInclude Include="TreeBlock.h" />
     <ClInclude Include="TreeTemplate.h" />
@@ -518,6 +519,7 @@
     <ClCompile Include="SystemAllocator.cpp" />
     <ClCompile Include="TemporaryMemory.cpp" />
     <ClCompile Include="TextParser.cpp" />
+    <ClCompile Include="TimSort.cpp" />
     <ClCompile Include="TrackingAllocator.cpp" />
     <ClCompile Include="TreeBlock.cpp" />
     <ClCompile Include="EnumeratorBlock.cpp" />
@@ -611,6 +613,7 @@
     <None Include="MemoryTodo.txt" />
     <None Include="gpl.txt" />
     <None Include="lgpl.txt" />
+    <None Include="TimSort.inl" />
     <None Include="TypeConverter_Mapping.inl" />
     <None Include="LibraryBreakdown.txt" />
   </ItemGroup>

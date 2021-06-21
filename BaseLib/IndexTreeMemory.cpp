@@ -1094,6 +1094,7 @@ BOOL CIndexTreeMemory::StepNext(SIndexTreeMemoryUnsafeIterator* psIterator)
 	void*					pvData;
 	CIndexTreeNodeMemory*	pcParent;
 
+	//It's possible that the psIterator will point to a free'd node.  (Not related to being Unsafe, just bug).
 	for (;;)
 	{
 		pcChild = psIterator->pcNode->Get(psIterator->iIndex);
