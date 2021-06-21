@@ -146,6 +146,7 @@
       <SDLCheck>false</SDLCheck>
       <Optimization>MaxSpeed</Optimization>
       <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
     </ClCompile>
     <Lib />
   </ItemDefinitionGroup>
