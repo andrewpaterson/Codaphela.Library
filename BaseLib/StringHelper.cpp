@@ -193,17 +193,17 @@ int MemCmp(const void* pv1, int iLen1, const void* pv2, int iLen2)
 //
 //
 ////////////////////////////////////////////////////////////////////////////////////
-void MemSwp(const void* pv1, const void* pv2, int iLength)
+void MemSwp(const void* pv1, const void* pv2, size_t uiLength)
 {
-	int i;
-	int iIntLength;
-	int	iTemp;
-	int iRemainder;
-	char cTemp;
-	int iCharIndex;
+	int		i;
+	int		iIntLength;
+	int		iTemp;
+	int		iRemainder;
+	char	cTemp;
+	int		iCharIndex;
 	
-	iIntLength = iLength / sizeof(int);
-	iRemainder = iLength % sizeof(int);
+	iIntLength = uiLength / sizeof(int);
+	iRemainder = uiLength % sizeof(int);
 	for (i = 0; i < iIntLength; i++)
 	{
 		iTemp = ((int*)pv1)[i];

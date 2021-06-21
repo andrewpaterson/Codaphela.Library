@@ -477,17 +477,6 @@ void CArrayTemplateMinimal<M>::Zero(int iStart, int iEnd)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CArrayTemplateMinimal<M>::QuickSort(DataCompare fCompare)
-{
-	qsort((void*)mpvArray, miUsedElements, sizeof(M), fCompare);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class M>
 void CArrayTemplateMinimal<M>::Swap(int iIndex1, int iIndex2)
 {
 	void* pElement1;
@@ -505,32 +494,20 @@ void CArrayTemplateMinimal<M>::Swap(int iIndex1, int iIndex2)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
+void CArrayTemplateMinimal<M>::QuickSort(DataCompare fCompare)
+{
+	qsort((void*)mpvArray, miUsedElements, sizeof(M), fCompare);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
 void CArrayTemplateMinimal<M>::BubbleSort(DataCompare fCompare)
 {
-	int		iIndex;
-	int		iResult;
-	BOOL	bSwapped;
-	int		iNumDone;
-
-	bSwapped = TRUE;
-	iNumDone = 0;
-	while (bSwapped)
-	{
-		iIndex = 0;
-		bSwapped = FALSE;
-
-		while ((iIndex + 1) < (miUsedElements - iNumDone))
-		{
-			iResult = fCompare(Get(iIndex), Get(iIndex + 1));
-			if (iResult > 0)
-			{
-				Swap(iIndex, iIndex + 1);
-				bSwapped = TRUE;
-			}
-			iIndex++;
-		}
-		iNumDone++;
-	}
+	::BubbleSort(fCompare, mpvArray, miElementSize, miUsedElements);
 }
 
 
