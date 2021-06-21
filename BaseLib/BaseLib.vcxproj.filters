@@ -963,6 +963,9 @@
     <ClInclude Include="BubbleSort.h">
       <Filter>Source\Sort</Filter>
     </ClInclude>
+    <ClInclude Include="QuickSort.h">
+      <Filter>Source\Sort</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -1533,6 +1536,9 @@
       <Filter>Source\Data\Time</Filter>
     </ClCompile>
     <ClCompile Include="BubbleSort.cpp">
+      <Filter>Source\Sort</Filter>
+    </ClCompile>
+    <ClCompile Include="QuickSort.cpp">
       <Filter>Source\Sort</Filter>
     </ClCompile>
   </ItemGroup>

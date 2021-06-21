@@ -1,4 +1,5 @@
 #include "BubbleSort.h"
+#include "QuickSort.h"
 #include "SystemAllocator.h"
 #include "NullAllocator.h"
 #include "GlobalMemory.h"
@@ -1010,7 +1011,7 @@ void CArrayBlock::Swap(int iIndex1, int iIndex2)
 //////////////////////////////////////////////////////////////////////////
 void CArrayBlock::QuickSort(DataCompare fCompare)
 {
-	qsort((void*)mpvArray, miUsedElements, miElementSize, fCompare);
+	::QuickSort(fCompare, mpvArray, miElementSize, miUsedElements);
 }
 
 
