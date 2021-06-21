@@ -23,6 +23,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __ARRAY_TEMPLATE_MINIMAL_H__
 #define __ARRAY_TEMPLATE_MINIMAL_H__
 #include "ConstructorCall.h"
+#include "QuickSort.h"
+#include "BubbleSort.h"
 #include "DataCallback.h"
 #include "ArrayBlockMinimal.h"
 
@@ -496,7 +498,7 @@ void CArrayTemplateMinimal<M>::Swap(int iIndex1, int iIndex2)
 template<class M>
 void CArrayTemplateMinimal<M>::QuickSort(DataCompare fCompare)
 {
-	qsort((void*)mpvArray, miUsedElements, sizeof(M), fCompare);
+	::QuickSort(fCompare, mpvArray, sizeof(M), miUsedElements);
 }
 
 
@@ -507,7 +509,7 @@ void CArrayTemplateMinimal<M>::QuickSort(DataCompare fCompare)
 template<class M>
 void CArrayTemplateMinimal<M>::BubbleSort(DataCompare fCompare)
 {
-	::BubbleSort(fCompare, mpvArray, miElementSize, miUsedElements);
+	::BubbleSort(fCompare, mpvArray, sizeof(M), miUsedElements);
 }
 
 
