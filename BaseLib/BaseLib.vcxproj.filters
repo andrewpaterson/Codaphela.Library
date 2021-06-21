@@ -966,6 +966,9 @@
     <ClInclude Include="QuickSort.h">
       <Filter>Source\Sort</Filter>
     </ClInclude>
+    <ClInclude Include="TimSort.h">
+      <Filter>Source\Sort</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -1541,6 +1544,9 @@
     <ClCompile Include="QuickSort.cpp">
       <Filter>Source\Sort</Filter>
     </ClCompile>
+    <ClCompile Include="TimSort.cpp">
+      <Filter>Source\Sort</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="gpl.txt">
@@ -1554,5 +1560,8 @@
       <Filter>Source\Data\Types\Converter</Filter>
     </None>
     <None Include="LibraryBreakdown.txt" />
+    <None Include="TimSort.inl">
+      <Filter>Source\Sort</Filter>
+    </None>
   </ItemGroup>
 </Project>

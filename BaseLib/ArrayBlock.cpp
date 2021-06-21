@@ -1,5 +1,6 @@
 #include "BubbleSort.h"
 #include "QuickSort.h"
+#include "TimSort.h"
 #include "SystemAllocator.h"
 #include "NullAllocator.h"
 #include "GlobalMemory.h"
@@ -1009,6 +1010,16 @@ void CArrayBlock::Swap(int iIndex1, int iIndex2)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
+void CArrayBlock::BubbleSort(DataCompare fCompare)
+{
+	::BubbleSort(fCompare, mpvArray, miElementSize, miUsedElements);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
 void CArrayBlock::QuickSort(DataCompare fCompare)
 {
 	::QuickSort(fCompare, mpvArray, miElementSize, miUsedElements);
@@ -1019,9 +1030,9 @@ void CArrayBlock::QuickSort(DataCompare fCompare)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayBlock::BubbleSort(DataCompare fCompare)
+void CArrayBlock::TimSort(DataCompare fCompare)
 {
-	::BubbleSort(fCompare, mpvArray, miElementSize, miUsedElements);
+	::TimSort(fCompare, mpvArray, miElementSize, miUsedElements);
 }
 
 
