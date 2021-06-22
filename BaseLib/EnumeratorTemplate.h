@@ -659,11 +659,11 @@ BOOL __CEnumeratorTemplate<M>::PrivateCompare(char* szName, M* pvKey, int iKeySi
 
 	if (this->mbCaseSensitive)
 	{
-		iVal = strcmp(szName, psNode->szName);
+		iVal = StringCompare(szName, psNode->szName);
 	}
 	else
 	{
-		iVal = StrICmp(szName, psNode->szName);
+		iVal = StringInsensitiveCompare(szName, psNode->szName);
 	}
 	if (iVal == 0)
 	{

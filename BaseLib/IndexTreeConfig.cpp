@@ -65,11 +65,11 @@ EIndexKeyReverse CIndexTreeConfig::ReadKeyReverse(CFileReader* pcFileReader)
 		return IKR_Unknown;
 	}
 
-	if (strcmp("IKR_Yes", szName) == 0)
+	if (StringCompare("IKR_Yes", szName) == 0)
 	{
 		eKeyReverse = IKR_Yes;
 	}
-	else if (strcmp("IKR_No", szName) == 0)
+	else if (StringCompare("IKR_No", szName) == 0)
 	{
 		eKeyReverse = IKR_No;
 	}

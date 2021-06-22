@@ -41,7 +41,7 @@ int AlphabeticalComparisionCallbackCaseSensitive(const void* pvNode1, const void
 		return 0;
 	}
 
-	return strcmp(psNode1->szName, psNode2->szName);
+	return StringCompare(psNode1->szName, psNode2->szName);
 }
 
 
@@ -62,6 +62,6 @@ int AlphabeticalComparisionCallbackCaseInsensitive(const void* pvNode1, const  v
 		return 0;
 	}
 
-	return StrICmp(psNode1->szName, psNode2->szName);
+	return StringInsensitiveCompare(psNode1->szName, psNode2->szName);
 }
 

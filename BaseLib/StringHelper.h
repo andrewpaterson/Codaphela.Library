@@ -26,7 +26,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "Define.h"
 
 
-int			StrICmp(const char* ps1, const char* ps2);
+int			StringCompare(const char* ps1, const char* ps2);
+int			StringInsensitiveCompare(const char* ps1, const char* ps2);
 char*		StrIStr(char* ps1, const char* ps2);
 int			MemICmp(const void* pv1, const void* pv2, int iLength);
 int			MemCmp(const void* pv1, int iLen1, const void* pv2, int iLen2);

@@ -90,6 +90,7 @@ CMallocator* CMallocators::Read(CFileReader* pcFileReader)
 	szClassName =  mmShortNames.Get(szShortName);
 	if (!szClassName)
 	{
+		mmShortNames.Dump();
 		gcLogger.Error2(__METHOD__, " Could not find mallocator for short name [", szShortName, "].", NULL);
 		return FALSE;
 	}

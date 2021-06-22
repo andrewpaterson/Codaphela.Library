@@ -74,7 +74,7 @@ BOOL CFileUtil::RemoveDir(const char* szPathName)
 		bValid = TRUE;
 		if (sFindData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
 		{
-			if (!((strcmp(sFindData.cFileName, ".") == 0) || (strcmp(sFindData.cFileName, "..") == 0)))
+			if (!((StringCompare(sFindData.cFileName, ".") == 0) || (StringCompare(sFindData.cFileName, "..") == 0)))
 			{
 				szTemp.Init(szDirectory);
 				AppendToPath(&szTemp, sFindData.cFileName);
@@ -131,7 +131,7 @@ BOOL CFileUtil::CopyDir(const char* szSource, const char* szDest)
 		bValid = TRUE;
 		if (sFindData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
 		{
-			if (!((strcmp(sFindData.cFileName, ".") == 0) || (strcmp(sFindData.cFileName, "..") == 0)))
+			if (!((StringCompare(sFindData.cFileName, ".") == 0) || (StringCompare(sFindData.cFileName, "..") == 0)))
 			{
 				szSourceTemp.Init(szSourceDirectory);
 				szDestTemp.Init(szDestDirectory);
@@ -420,7 +420,7 @@ BOOL CFileUtil::FindFiles(const char*szInDirectory, BOOL bDirs, const char*szInN
 
 		if (bValid)
 		{
-			if (!((strcmp(sFindData.cFileName, ".") == 0) || (strcmp(sFindData.cFileName, "..") == 0)))
+			if (!((StringCompare(sFindData.cFileName, ".") == 0) || (StringCompare(sFindData.cFileName, "..") == 0)))
 			{
 				szTemp.Init(szDirectory);
 				AppendToPath(&szTemp, sFindData.cFileName);

@@ -118,7 +118,7 @@ BOOL CFileHeader::Load(CFileReader* pcReader, const char* szExpectedWriterType, 
 //////////////////////////////////////////////////////////////////////////
 BOOL CFileHeader::IsWriterType(const char* szWriterType)
 {
-	return strcmp(mszWriterType, szWriterType) == 0;
+	return StringCompare(mszWriterType, szWriterType) == 0;
 }
 
 
@@ -128,7 +128,7 @@ BOOL CFileHeader::IsWriterType(const char* szWriterType)
 //////////////////////////////////////////////////////////////////////////
 BOOL CFileHeader::IsEngineVersion(const char* szEngineVersion)
 {
-	return strcmp(mszEngineVersion, szEngineVersion) == 0;
+	return StringCompare(mszEngineVersion, szEngineVersion) == 0;
 }
 
 
@@ -138,7 +138,7 @@ BOOL CFileHeader::IsEngineVersion(const char* szEngineVersion)
 //////////////////////////////////////////////////////////////////////////
 BOOL CFileHeader::IsWriterVersion(const char* szWriterVersion)
 {
-	return strcmp(mszWriterVersion, szWriterVersion) == 0;
+	return StringCompare(mszWriterVersion, szWriterVersion) == 0;
 }
 
 
