@@ -97,7 +97,7 @@ BOOL CWinConfig::Read(void)
 	mbWindowed = TRUE;
 	if (szWindowed)
 	{
-		if (StrICmp(szWindowed, "FALSE") == 0)
+		if (StringInsensitiveCompare(szWindowed, "FALSE") == 0)
 		{
 			mbWindowed = FALSE;
 		}
@@ -107,15 +107,15 @@ BOOL CWinConfig::Read(void)
 	meMode = WM_DX_HAL;
 	if (szMode)
 	{
-		if (StrICmp(szMode, "DX_HAL") == 0)
+		if (StringInsensitiveCompare(szMode, "DX_HAL") == 0)
 		{
 			meMode = WM_DX_HAL;
 		}		
-		if (StrICmp(szMode, "DX_REF") == 0)
+		if (StringInsensitiveCompare(szMode, "DX_REF") == 0)
 		{
 			meMode = WM_DX_REF;
 		}		
-		if (StrICmp(szMode, "DX_SW") == 0)
+		if (StringInsensitiveCompare(szMode, "DX_SW") == 0)
 		{
 			meMode = WM_DX_SW;
 		}

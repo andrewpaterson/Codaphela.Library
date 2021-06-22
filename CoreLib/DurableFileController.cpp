@@ -59,7 +59,7 @@ BOOL CDurableFileController::Init(char* szDirectory, char* szRewriteDirectory, c
 		mbDurable = TRUE;
 	}
 
-	if (mbDurable && (StrICmp(szDirectory, szRewriteDirectory) == 0))
+	if (mbDurable && (StringInsensitiveCompare(szDirectory, szRewriteDirectory) == 0))
 	{
 		return gcLogger.Error2(__METHOD__, " Controller directory and rewrite directory must be different.", NULL);
 	}
