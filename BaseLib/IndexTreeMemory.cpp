@@ -1026,7 +1026,7 @@ BOOL CIndexTreeMemory::StartUnsafeIteration(SIndexTreeMemoryUnsafeIterator* psIt
 //////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeMemory::UnsafeIterate(SIndexTreeMemoryUnsafeIterator* psIterator, char* pvKey, int* piKeySize, int iMaxKeySize, void** pvData, size_t* piDataSize)
 {
-	void* pvDataTemp;
+	void*	pvDataTemp;
 	int		iKeySize;
 
 	if (StepNext(psIterator))
@@ -1093,9 +1093,10 @@ BOOL CIndexTreeMemory::StepNext(SIndexTreeMemoryUnsafeIterator* psIterator)
 	CIndexTreeNodeMemory*	pcChild;
 	void*					pvData;
 	CIndexTreeNodeMemory*	pcParent;
+	int						iChildCount;
+	int						iDownParentCount;
 
-	//It's possible that the psIterator will point to a free'd node.  (Not related to being Unsafe, just bug).
-	for (;;)
+	for (iChildCount = 0;; iChildCount++)
 	{
 		pcChild = psIterator->pcNode->Get(psIterator->iIndex);
 
@@ -1112,7 +1113,7 @@ BOOL CIndexTreeMemory::StepNext(SIndexTreeMemoryUnsafeIterator* psIterator)
 		}
 		else
 		{
-			for (;;)
+			for (iDownParentCount = 0;; iDownParentCount++)
 			{
 				psIterator->iIndex++;
 				if (psIterator->iIndex > psIterator->pcNode->GetLastIndex())
@@ -1452,7 +1453,8 @@ BOOL CIndexTreeMemory::RecurseValidateNodeTree(CIndexTreeRecursor* pcCursor)
 	int						i;
 	CIndexTreeNodeMemory*	pcChild;
 	BOOL					bResult;
-
+	CIndexTreeNodeMemory*	pcBackNode;
+	int						iCount;
 
 	pcNode = (CIndexTreeNodeMemory*)pcCursor->GetNode();
 	if (pcNode != NULL)
@@ -1462,6 +1464,20 @@ BOOL CIndexTreeMemory::RecurseValidateNodeTree(CIndexTreeRecursor* pcCursor)
 			pcCursor->GenerateBad();
 			gcLogger.Error2(__METHOD__, " Node [", pcCursor->GetBadNode(), "] does not point back into its Index Tree.", NULL);
 			return FALSE;
+		}
+
+		pcBackNode = pcNode;
+		iCount = 0;
+		while (pcBackNode != mpcRoot)
+		{
+			pcBackNode = pcBackNode->GetParent();
+			iCount++;
+			if (iCount > MAX_KEY_SIZE)
+			{
+				pcCursor->GenerateBad();
+				gcLogger.Error2(__METHOD__, " Node [", pcCursor->GetBadNode(), "] does not point back to its root node.", NULL);
+				return FALSE;
+			}
 		}
 
 		if (pcNode->HasNodes())

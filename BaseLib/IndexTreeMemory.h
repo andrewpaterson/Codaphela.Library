@@ -69,12 +69,12 @@ public:
 	BOOL					ReadConfig(CFileReader* pcFileReader);
 
 	BOOL					ValidateIndexTree(void);
+	CIndexTreeNodeMemory*	GetRoot(void);
 
 	void					Dump(void);
 
 protected:
 	CIndexTreeNodeMemory*	GetNode(void* pvKey, int iKeySize);
-	CIndexTreeNodeMemory*	GetRoot(void);
 	CIndexTreeNodeMemory*	GetNodeForData(void* pvData);
 	int						GetNodeKeySize(CIndexTreeNode* pcNode);
 	int						GetNodeKey(CIndexTreeNode* pcNode, char* pvDestKey, int iDestKeySize);
