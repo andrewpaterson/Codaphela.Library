@@ -59,6 +59,30 @@ char* CMapStringString::Get(char* szKey)
 //////////////////////////////////////////////////////////////////////////
 void CMapStringString::Dump(void)
 {
-	//Write an iterator, then write this.
+	SMapIterator	sIter;
+	char*			szKey;
+	char*			szValue;
+	int				iKeySize;
+	int				iValueSize;
+	BOOL			bHasNext;
+	CChars			sz;
+	size_t			uiCount;
+
+	uiCount = 0;
+	sz.Init();
+	bHasNext = StartIteration(&sIter, (void**)&szKey, &iKeySize, (void**)&szValue, &iValueSize);
+	while (bHasNext)
+	{
+		sz.Append("[");
+		sz.Append(szKey);
+		sz.Append("] -> [");
+		sz.Append(szValue);
+		sz.Append("]");
+		sz.AppendNewLine();
+		bHasNext = Iterate(&sIter, (void**)&szKey, &iKeySize, (void**)&szValue, &iValueSize);
+		uiCount++;
+	}
+
+	sz.DumpKill();
 }
 

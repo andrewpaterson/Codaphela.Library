@@ -33,12 +33,45 @@ char	gszEmptyString[4] = { '\0', '\0', '\0', '\0' };
 //
 //
 ////////////////////////////////////////////////////////////////////////////////////
-int StrICmp(const char* ps1, const char* ps2)
+int StringCompare(const char* ps1, const char* ps2)
 {
-    int             iS1Len;
-    int             iS2Len;
-    int             iLength;
-    int             iResult;
+	int s1;
+	int s2;
+
+	if ((ps1 == NULL) && (ps2 == NULL))
+	{
+		return 0;
+	}
+
+	if (ps1 == NULL)
+	{
+		return -1;
+	}
+	if (ps2 == NULL)
+	{
+		return 1;
+	}
+
+	do 
+	{
+		s1 = *ps1++;
+		s2 = *ps2++;
+		if (s1 == 0)
+			break;
+	} while (s1 == s2);
+
+	return (s1 < s2) ? -1 : (s1 > s2);
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////
+//
+//
+////////////////////////////////////////////////////////////////////////////////////
+int StringInsensitiveCompare(const char* ps1, const char* ps2)
+{
+	int s1;
+	int s2;
 
     if ((ps1 == NULL) && (ps2 == NULL))
     {
@@ -54,47 +87,17 @@ int StrICmp(const char* ps1, const char* ps2)
         return 1;
     }
 
-    iS1Len = (int)strlen(ps1);
-    iS2Len = (int)strlen(ps2);
-
-    if ((iS1Len == 0) && (iS2Len == 0))
-    {
-        return 0;
-    }
-	else if (iS1Len == 0)
+	do
 	{
-		return -1;
-	}
-	else if (iS2Len == 0)
-	{
-		return 1;
-	}
+		s1 = *ps1++;
+		s2 = *ps2++;
+		if (s1 == 0)
+			break;
+		s1 = ToLower(s1);
+		s2 = ToLower(s2);
+	} while (s1 == s2);
 
-    if (iS1Len < iS2Len)
-    {
-        iLength = iS1Len;
-    }
-    else
-    {
-        iLength = iS2Len;
-    }
-
-    iResult = MemICmp(ps1, ps2, iLength);
-
-    if (iResult != 0)
-    {
-        return iResult;
-    }
-
-    if (iS1Len < iS2Len)
-    {
-        return -1;
-    }
-    else if (iS1Len > iS2Len)
-    {
-        return 1;
-    }
-    return 0;
+	return (s1 < s2) ? -1 : (s1 > s2);
 }
 
 

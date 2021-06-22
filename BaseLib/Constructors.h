@@ -166,7 +166,7 @@ M* CConstructors::Get(void)
 	pvM = (M*)mcConstructors.Get(szClassName);
 	if (pvM)
 	{
-		if (strcmp(pvM->ClassName(), szClassName) == 0)
+		if (StringCompare(pvM->ClassName(), szClassName) == 0)
 		{
 			return pvM;
 		}

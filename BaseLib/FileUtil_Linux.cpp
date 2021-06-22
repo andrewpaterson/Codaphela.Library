@@ -116,7 +116,7 @@ BOOL CFileUtil::RecurseRemoveDir(const char*szPathName)
     pDirEnt = readdir(pDIR);
     while (pDirEnt != NULL)
     {
-        if (!((strcmp(pDirEnt->d_name, ".") == 0) || (strcmp(pDirEnt->d_name, "..") == 0)))
+        if (!((StringCompare(pDirEnt->d_name, ".") == 0) || (StringCompare(pDirEnt->d_name, "..") == 0)))
         {
             szTemp.Init(szDirectory);
             szTemp.Append(FILE_SEPARATOR);
@@ -373,7 +373,7 @@ BOOL CFileUtil::FindFiles(const char*szInDirectory, BOOL bDirs, const char*szInN
 
         if (bValid)
         {
-            if (!((strcmp(pDirEnt->d_name, ".") == 0) || (strcmp(pDirEnt->d_name, "..") == 0)))
+            if (!((StringCompare(pDirEnt->d_name, ".") == 0) || (StringCompare(pDirEnt->d_name, "..") == 0)))
             {
                 szTemp.Init(szDirectory);
                 AppendToPath(&szTemp, pDirEnt->d_name);

@@ -296,7 +296,7 @@ char* CMapStringBlock::GetKeyForData(void* psData)
 //////////////////////////////////////////////////////////////////////////
 BOOL CMapStringBlock::IsCaseSensitive(void)
 {
-	return fKeyCompare == (DataCompare)&strcmp;
+	return fKeyCompare == (DataCompare)&StringCompare;
 }
 
 
@@ -318,17 +318,11 @@ DataCompare CMapStringBlock::CalculateCompareFunc(BOOL bCaseSensitive)
 {
 	if (bCaseSensitive)
 	{
-		return (DataCompare)&strcmp;
+		return (DataCompare)&StringCompare;
 	}
 	else
 	{
-#ifdef _MSC_VER
-		return (DataCompare)&_stricmp;
-#endif // _MSC_VER		
-
-#ifdef LINUX_GNU_32
-		return (DataCompare)&strcasecmp;
-#endif // LINUX_GNU_32
+		return (DataCompare)&StringInsensitiveCompare;
 	}
 }
 

@@ -192,7 +192,7 @@ BOOL PrivateAssertString(const char* szExpected, const char* szActual, BOOL bTes
 	{
 		if (bTestCase)
 		{
-			if (strcmp(szExpected, szActual) != 0)
+			if (StringCompare(szExpected, szActual) != 0)
 			{
 				return Failed(szExpected, szActual, iLine, szFile);
 			}
@@ -203,7 +203,7 @@ BOOL PrivateAssertString(const char* szExpected, const char* szActual, BOOL bTes
 		}
 		else
 		{
-			if (StrICmp(szExpected, szActual) != 0)
+			if (StringInsensitiveCompare(szExpected, szActual) != 0)
 			{
 				return Failed(szExpected, szActual, iLine, szFile);
 			}

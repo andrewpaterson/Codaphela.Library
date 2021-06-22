@@ -1347,7 +1347,7 @@ BOOL CChars::Equals(const char* szString)
 {
 	if (szString)
 	{
-		if (strcmp(Text(), szString) == 0)
+		if (StringCompare(Text(), szString) == 0)
 		{
 			return TRUE;
 		}
@@ -1399,7 +1399,7 @@ BOOL CChars::Equals(CChars* pszString)
 //////////////////////////////////////////////////////////////////////////
 BOOL CChars::EqualsIgnoreCase(const char* szString)
 {
-	if (StrICmp(Text(), szString) == 0)
+	if (StringInsensitiveCompare(Text(), szString) == 0)
 	{
 		return TRUE;
 	}
@@ -1985,7 +1985,7 @@ int CChars::StripWhiteSpace(BOOL bIncludeNewLines)
 //////////////////////////////////////////////////////////////////////////
 int CChars::Compare(CChars* szOther)
 {
-	return strcmp(Text(), szOther->Text());
+	return StringCompare(Text(), szOther->Text());
 }
 
 
@@ -1995,7 +1995,7 @@ int CChars::Compare(CChars* szOther)
 //////////////////////////////////////////////////////////////////////////
 int CChars::CompareIgnoreCase(CChars* szOther)
 {
-	return StrICmp(Text(), szOther->Text());
+	return StringInsensitiveCompare(Text(), szOther->Text());
 }
 
 
@@ -2005,7 +2005,7 @@ int CChars::CompareIgnoreCase(CChars* szOther)
 //////////////////////////////////////////////////////////////////////////
 int CChars::Compare(const char* szOther)
 {
-	return strcmp(Text(), szOther);
+	return StringCompare(Text(), szOther);
 }
 
 
@@ -2015,7 +2015,7 @@ int CChars::Compare(const char* szOther)
 //////////////////////////////////////////////////////////////////////////
 int CChars::CompareIgnoreCase(const char* szOther)
 {
-	return StrICmp(Text(), szOther);
+	return StringInsensitiveCompare(Text(), szOther);
 }
 
 //////////////////////////////////////////////////////////////////////////

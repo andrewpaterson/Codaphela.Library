@@ -32,7 +32,7 @@ size_t CListCharsMinimal::IndexOf(char* szString)
 
 	for (i = 0; i < miUsedElements; i++)
 	{
-		if (strcmp(szString, Get(i)) == 0)
+		if (StringCompare(szString, Get(i)) == 0)
 		{
 			return i;
 		}
