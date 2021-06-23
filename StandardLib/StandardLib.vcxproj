@@ -93,6 +93,8 @@
       <BrowseInformation>true</BrowseInformation>
       <OpenMPSupport>true</OpenMPSupport>
       <SDLCheck>true</SDLCheck>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
+      <CallingConvention>VectorCall</CallingConvention>
     </ClCompile>
     <Lib />
     <Bscmake>
@@ -146,6 +148,8 @@
       <SDLCheck>false</SDLCheck>
       <Optimization>MaxSpeed</Optimization>
       <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <CallingConvention>VectorCall</CallingConvention>
     </ClCompile>
     <Lib />
   </ItemDefinitionGroup>

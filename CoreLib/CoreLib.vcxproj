@@ -94,6 +94,7 @@
       <OpenMPSupport>true</OpenMPSupport>
       <SDLCheck>true</SDLCheck>
       <CallingConvention>VectorCall</CallingConvention>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
     </ClCompile>
     <Lib />
     <Bscmake>
