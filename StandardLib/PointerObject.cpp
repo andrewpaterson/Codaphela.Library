@@ -230,8 +230,8 @@ void CPointer::PointTo(CEmbeddedObject* pcNewObject, BOOL bKillIfNoRoot)
 					mpcObject->AddHeapFrom(mpcEmbedding, FALSE);
 					mpcObject->SetDirty(TRUE);
 				}
-				pcOldObject->RemoveHeapFrom(mpcEmbedding, TRUE);
 				pcOldObject->SetDirty(TRUE);
+				pcOldObject->RemoveHeapFrom(mpcEmbedding, TRUE);
 			}
 			else if (mpcObject)
 			{
