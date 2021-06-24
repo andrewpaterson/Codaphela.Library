@@ -253,7 +253,7 @@ void CEmbeddedObject::RemoveAllHeapFroms(void)
 	iNumFroms = mapHeapFroms.NumElements();
 	if (iNumFroms > 0)
 	{
-		ppcPointedFrom = (CEmbeddedObject**)mapHeapFroms.GetData();
+		ppcPointedFrom = mapHeapFroms.GetData();
 		for (i = 0; i < iNumFroms; i++)
 		{
 			pcPointedFrom = ppcPointedFrom[i];
@@ -269,17 +269,19 @@ void CEmbeddedObject::RemoveAllHeapFroms(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CEmbeddedObject::AddHeapFrom(CBaseObject* pcFromObject, BOOL bValidate)
+void CEmbeddedObject::AddHeapFrom(CEmbeddedObject* pcFromObject, BOOL bValidate)
 {
 	CBaseObject*	pcEmbedding;
+	int				iDistToRoot;
 
 	if (pcFromObject != NULL)
 	{
+		iDistToRoot = pcFromObject->GetDistToRoot();
 		mapHeapFroms.Add(&pcFromObject);
-		if (pcFromObject->miDistToRoot >= ROOT_DIST_TO_ROOT)
+		if (iDistToRoot >= ROOT_DIST_TO_ROOT)
 		{
 			pcEmbedding = GetEmbeddingContainer();
-			pcEmbedding->SetExpectedDistToRoot(pcFromObject->miDistToRoot+1);
+			pcEmbedding->SetExpectedDistToRoot(iDistToRoot + 1);
 		}
 
 #ifdef _DEBUG
@@ -299,7 +301,7 @@ void CEmbeddedObject::AddHeapFrom(CBaseObject* pcFromObject, BOOL bValidate)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CEmbeddedObject::UnsafeAddHeapFrom(CBaseObject* pcFromObject)
+void CEmbeddedObject::UnsafeAddHeapFrom(CEmbeddedObject* pcFromObject)
 {
 	mapHeapFroms.Add(&pcFromObject);
 }
@@ -322,7 +324,7 @@ void CEmbeddedObject::ValidateInitialised(char* szMethod)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CEmbeddedObject::RemoveHeapFrom(CBaseObject* pcFromObject, BOOL bValidate)
+void CEmbeddedObject::RemoveHeapFrom(CEmbeddedObject* pcFromObject, BOOL bValidate)
 {
 	CBaseObject*	pcContainer;
 	CObjects*		pcObjectsThisIn;
@@ -350,7 +352,7 @@ void CEmbeddedObject::RemoveHeapFrom(CBaseObject* pcFromObject, BOOL bValidate)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CEmbeddedObject::PrivateRemoveHeapFrom(CBaseObject* pcFrom)
+BOOL CEmbeddedObject::PrivateRemoveHeapFrom(CEmbeddedObject* pcFrom)
 {
 	return mapHeapFroms.Remove(&pcFrom, FALSE);
 }
@@ -360,9 +362,9 @@ BOOL CEmbeddedObject::PrivateRemoveHeapFrom(CBaseObject* pcFrom)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CEmbeddedObject::GetHeapFrom(int iFrom)
+CEmbeddedObject* CEmbeddedObject::GetHeapFrom(int iFrom)
 {
-	CBaseObject**	ppFrom;
+	CEmbeddedObject**	ppFrom;
 
 	ppFrom = mapHeapFroms.Get(iFrom);
 	if (ppFrom)
@@ -425,13 +427,14 @@ int CEmbeddedObject::NumHeapFroms(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CEmbeddedObject::GetClosestFromToRoot(void)
+CEmbeddedObject* CEmbeddedObject::GetClosestFromToRoot(void)
 {
-	int				iNearestRoot;
-	CBaseObject*	pcNearestPointedFrom;
-	int				i;
-	int				iNumFroms;
-	CBaseObject*	pcFrom;
+	int					iNearestRoot;
+	CEmbeddedObject*	pcNearestPointedFrom;
+	int					i;
+	int					iNumFroms;
+	CEmbeddedObject*	pcFrom;
+	int					iDistToRoot;
 
 	iNearestRoot = MAX_DIST_TO_ROOT;
 	pcNearestPointedFrom = NULL;
@@ -439,11 +442,12 @@ CBaseObject* CEmbeddedObject::GetClosestFromToRoot(void)
 	for (i = 0; i < iNumFroms; i++)
 	{
 		pcFrom = *mapHeapFroms.Get(i);
-		if (pcFrom->miDistToRoot >= ROOT_DIST_TO_ROOT)
+		iDistToRoot = pcFrom->GetDistToRoot();
+		if (iDistToRoot >= ROOT_DIST_TO_ROOT)
 		{
-			if (pcFrom->miDistToRoot < iNearestRoot)
+			if (iDistToRoot < iNearestRoot)
 			{
-				iNearestRoot = pcFrom->miDistToRoot;
+				iNearestRoot = iDistToRoot;
 				pcNearestPointedFrom = pcFrom;
 			}
 		}
@@ -457,13 +461,14 @@ CBaseObject* CEmbeddedObject::GetClosestFromToRoot(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CEmbeddedObject::GetClosestFromForCanFindRoot(void)
+CEmbeddedObject* CEmbeddedObject::GetClosestFromForCanFindRoot(void)
 {
-	int				iNearestRoot;
-	CBaseObject*	pcNearestPointedFrom;
-	int				i;
-	int				iNumFroms;
-	CBaseObject*	pcFrom;
+	int					iNearestRoot;
+	CEmbeddedObject*	pcNearestPointedFrom;
+	int					i;
+	int					iNumFroms;
+	CEmbeddedObject*	pcFrom;
+	int					iDistToRoot;
 
 	iNearestRoot = MAX_DIST_TO_ROOT;
 	pcNearestPointedFrom = NULL;
@@ -471,11 +476,12 @@ CBaseObject* CEmbeddedObject::GetClosestFromForCanFindRoot(void)
 	for (i = 0; i < iNumFroms; i++)
 	{
 		pcFrom = *mapHeapFroms.Get(i);
-		if ((pcFrom->miDistToRoot >= ROOT_DIST_TO_ROOT) && (!pcFrom->TestedForRoot()))
+		iDistToRoot = pcFrom->GetDistToRoot();
+		if ((iDistToRoot >= ROOT_DIST_TO_ROOT) && (!pcFrom->TestedForRoot()))
 		{
-			if (pcFrom->miDistToRoot < iNearestRoot)
+			if (iDistToRoot < iNearestRoot)
 			{
-				iNearestRoot = pcFrom->miDistToRoot;
+				iNearestRoot = iDistToRoot;
 				pcNearestPointedFrom = pcFrom;
 			}
 		}
@@ -489,13 +495,14 @@ CBaseObject* CEmbeddedObject::GetClosestFromForCanFindRoot(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CEmbeddedObject::GetClosestFromToStack(void)
+CEmbeddedObject* CEmbeddedObject::GetClosestFromToStack(void)
 {
-	int				iNearestStack;
-	CBaseObject*	pcNearestPointedFrom;
-	int				i;
-	int				iNumFroms;
-	CBaseObject*	pcFrom;
+	int					iNearestStack;
+	CEmbeddedObject*	pcNearestPointedFrom;
+	int					i;
+	int					iNumFroms;
+	CEmbeddedObject*	pcFrom;
+	int					iDistToStack;
 
 	iNearestStack = MAX_DIST_TO_ROOT;
 	pcNearestPointedFrom = NULL;
@@ -503,11 +510,12 @@ CBaseObject* CEmbeddedObject::GetClosestFromToStack(void)
 	for (i = 0; i < iNumFroms; i++)
 	{
 		pcFrom = *mapHeapFroms.Get(i);
-		if (pcFrom->miDistToStack >= 0)
+		iDistToStack = pcFrom->GetDistToStack();
+		if (iDistToStack >= 0)
 		{
-			if (pcFrom->miDistToStack < iNearestStack)
+			if (iDistToStack < iNearestStack)
 			{
-				iNearestStack = pcFrom->miDistToStack;
+				iNearestStack = iDistToStack;
 				pcNearestPointedFrom = pcFrom;
 			}
 		}
@@ -550,9 +558,9 @@ int CEmbeddedObject::NumTotalFroms(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CEmbeddedObject::ContainsFrom(CEmbeddedObject* pcBaseObject)
 {
-	int				i;
-	int				iNumFroms;
-	CBaseObject*	pcFrom;
+	int					i;
+	int					iNumFroms;
+	CEmbeddedObject*	pcFrom;
 
 	iNumFroms = mapHeapFroms.NumElements();
 	for (i = 0; i < iNumFroms; i++)
@@ -846,14 +854,17 @@ void CEmbeddedObject::ValidatePointerTo(CEmbeddedObject* pcPointedTo)
 //////////////////////////////////////////////////////////////////////////
 void CEmbeddedObject::ValidateFroms(void)
 {
-	int				i;
-	CBaseObject*	pcBaseObject;
+	int					i;
+	CEmbeddedObject*	pcBaseObject;
 
 	for (i = 0; i < mapHeapFroms.NumElements(); i++)
 	{
 		pcBaseObject = *mapHeapFroms.Get(i);
 
-		ValidateFrom(pcBaseObject);
+		if (pcBaseObject->IsBaseObject())
+		{
+			ValidateFrom((CBaseObject*)pcBaseObject);
+		}
 	}
 }
 

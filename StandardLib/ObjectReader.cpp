@@ -183,7 +183,7 @@ BOOL CObjectReader::ReadHeapFroms(CBaseObject* pcThis)
 
 	iLength = mcFile.GetFilePos();
 	bResult = (iLength - iStart) == iExpectedLength;
-	ObjectReaderErrorCheck(bResult, pcThis, __METHOD__, " Size mismatch expected stream length [", LongLongToString(iExpectedLength), "] but read length [", LongLongToString(iLength), "] reading object froms [", sz.Text(), "] 'froms'.", NULL);
+	ObjectReaderErrorCheck(bResult, pcThis, __METHOD__, " Size mismatch expected stream length [", LongLongToString(iExpectedLength), "] but read length [", LongLongToString(iLength - iStart), "] reading object froms [", sz.Text(), "] 'froms'.", NULL);
 
 	return TRUE;
 }
@@ -345,12 +345,16 @@ BOOL CObjectReader::ReadReverseDependent(CEmbeddedObject** ppcObjectPtr, CBaseOb
 
 			*ppcObjectPtr = NULL;
 			
-			bResult &= mpcDependents->AddReverseDependent(&cHeader, ppcObjectPtr, pcContaining, cHeader.miNumEmbedded, cHeader.miEmbeddedIndex);
+			//bResult &= mpcDependents->AddReverseDependent(&cHeader, ppcObjectPtr, pcContaining, cHeader.miNumEmbedded, cHeader.miEmbeddedIndex);
 			return bResult;
+		}
+		else if (cHeader.mcType == OBJECT_POINTER_NULL)
+		{
+			return TRUE;
 		}
 		else
 		{
-			return TRUE;
+			return FALSE;
 		}
 	}
 	else

@@ -162,6 +162,7 @@ BOOL CInternalObjectDeserialiser::AddHeapFromPointersAndCreateHollowObject(CDepe
 	pcExistingObject = mpcMemory->Get(oiNew);
 	if (pcExistingObject)
 	{
+		*pcDependentReadPointer->mppcPointedFrom = pcExistingObject;
 		AddHeapFrom(pcExistingObject, pcDependentReadPointer->mppcPointedFrom, pcDependentReadPointer->mpcContaining);
 		return TRUE;
 	}
@@ -183,6 +184,7 @@ BOOL CInternalObjectDeserialiser::AddHeapFromPointersAndCreateHollowObject(CDepe
 		pcEmbeddedObject = pcHollowObject->GetEmbeddedObject(pcDependentReadPointer->miEmbeddedIndex);
 		if (pcEmbeddedObject)
 		{
+			*pcDependentReadPointer->mppcPointedFrom = pcEmbeddedObject;
 			AddHeapFrom(pcEmbeddedObject, pcDependentReadPointer->mppcPointedFrom, pcDependentReadPointer->mpcContaining);
 			return TRUE;
 		}
@@ -274,9 +276,9 @@ BOOL CInternalObjectDeserialiser::AddReverseDependent(CObjectIdentifier* pcHeade
 
 	cDependent.Init(pcHeader);
 
-	CDependentReadObject*	pcDependent;
-	CBaseObject*			pcHollowObject;
-	CEmbeddedObject*		pcEmbeddedObject;
+	CDependentReadObject* pcDependent;
+	CBaseObject* pcHollowObject;
+	CEmbeddedObject* pcEmbeddedObject;
 
 	pcDependent = &cDependent;
 	if (pcDependent->mcType == OBJECT_POINTER_ID)
@@ -293,7 +295,14 @@ BOOL CInternalObjectDeserialiser::AddReverseDependent(CObjectIdentifier* pcHeade
 	}
 
 	pcEmbeddedObject = pcHollowObject->GetEmbeddedObject(iEmbeddedIndex);
-	//Something, something.  You must set the heap from on the (misnamed?) pcObjectContainingHeapFrom to be the pcEmbeddedObject hollow object.
+	if (pcHollowObject->IsHollow())
+	{
+		pcObjectContainingHeapFrom->AddHeapFrom(pcEmbeddedObject, FALSE);
+	}
+	else
+	{
+		pcObjectContainingHeapFrom->AddHeapFrom(pcEmbeddedObject, FALSE);
+	}
 
 	cDependent.Kill();
 

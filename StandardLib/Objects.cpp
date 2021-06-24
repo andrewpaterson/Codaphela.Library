@@ -1644,9 +1644,9 @@ CBaseObject* CObjects::ReplaceExisting(CBaseObject* pvExisting, CBaseObject* pvO
 //////////////////////////////////////////////////////////////////////////
 CBaseObject* CObjects::GetObjectInMemoryOrAllocateHollowForceIndex(OIndex oiForced, uint16 iNumEmbedded)
 {
-	CHollowObject* pcHollow;
-	BOOL				bResult;
-	CBaseObject* pcExisting;
+	CHollowObject*	pcHollow;
+	BOOL			bResult;
+	CBaseObject*	pcExisting;
 
 	if (oiForced == INVALID_O_INDEX)
 	{

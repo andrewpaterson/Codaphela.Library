@@ -522,9 +522,9 @@ int CBaseObject::CollectDetachedFroms(CDistCalculatorParameters* pcParameters)
 //////////////////////////////////////////////////////////////////////////
 BOOL CBaseObject::IsDistToRootValid(void)
 {
-	int				i;
-	CBaseObject*	pcBaseObject;
-	int				iExpectedDistToRoot;
+	int					i;
+	CEmbeddedObject*	pcBaseObject;
+	int					iExpectedDistToRoot;
 
 	if (miDistToRoot < ROOT_DIST_TO_ROOT)
 	{
@@ -773,10 +773,10 @@ int CBaseObject::CalculateDistToRootFromPointedFroms(void)
 //////////////////////////////////////////////////////////////////////////
 int CBaseObject::CalculateDistToRootFromPointedFroms(int iDistToRoot)
 {
-	int				iNumFroms;
-	int				i;
-	CBaseObject*	pcFrom;
-	int				iBestDistToRoot;
+	int					iNumFroms;
+	int					i;
+	CEmbeddedObject*	pcFrom;
+	int					iBestDistToRoot;
 
 	iBestDistToRoot = iDistToRoot;
 	iNumFroms = CEmbeddedObject::NumHeapFroms();
@@ -785,13 +785,14 @@ int CBaseObject::CalculateDistToRootFromPointedFroms(int iDistToRoot)
 		pcFrom = CEmbeddedObject::GetHeapFrom(i);
 		if (pcFrom)
 		{
-			if (pcFrom->miDistToRoot < iBestDistToRoot)
+			iDistToRoot = pcFrom->GetDistToRoot();
+			if (iDistToRoot < iBestDistToRoot)
 			{
 				if (pcFrom->GetEmbeddingContainer()->CanFindRoot())
 				{
-					if (pcFrom->miDistToRoot >= ROOT_DIST_TO_ROOT)
+					if (iDistToRoot >= ROOT_DIST_TO_ROOT)
 					{
-						iBestDistToRoot = pcFrom->miDistToRoot+1;
+						iBestDistToRoot = iDistToRoot  + 1;
 					}
 				}
 			}
@@ -1527,7 +1528,7 @@ BOOL CBaseObject::LoadHeapFroms(CObjectReader* pcFile)
 	BOOL				bResult;
 	int					i;
 	int					iNumElements;
-	CEmbeddedObject* pcHeapFrom;
+	CEmbeddedObject*	pcHeapFrom;
 
 	bResult = LoadEmbeddedObjectsHeapFroms(pcFile);
 	ReturnOnFalse(bResult);
@@ -1787,7 +1788,7 @@ void CBaseObject::DumpFroms(void)
 	CEmbeddedObject*	pcEmbedded;
 	int					j;
 	int					iNumHeapFroms;
-	CBaseObject*		pcFromObject;
+	CEmbeddedObject*	pcFromObject;
 	int					iLength;
 	CChars				szLine;
 
