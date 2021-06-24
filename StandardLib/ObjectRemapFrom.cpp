@@ -44,12 +44,12 @@ int CObjectRemapFrom::Remap(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew, BOOL
 //////////////////////////////////////////////////////////////////////////
 int CObjectRemapFrom::RemapEmbedded(CEmbeddedObject* pcNew, CEmbeddedObject* pcOld)
 {
-	int				iNumHeapFroms;
-	int				i;
-	CBaseObject*	pvFrom;
-	int				iCount;
-	CStackPointer*	pcStackPointer;
-	CStackPointer*	pcFirstStackPointer;
+	int					iNumHeapFroms;
+	int					i;
+	CEmbeddedObject*	pvFrom;
+	int					iCount;
+	CStackPointer*		pcStackPointer;
+	CStackPointer*		pcFirstStackPointer;
 
 	iCount = 0;
 

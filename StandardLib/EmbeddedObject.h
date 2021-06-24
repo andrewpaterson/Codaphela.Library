@@ -31,7 +31,7 @@ friend class CPointer;
 CONSTRUCTABLE(CEmbeddedObject);
 protected:
 	CBaseObject*								mpcEmbedded;  //Object that 'this' is embedded in.
-	CArrayTemplateEmbedded<CBaseObject*, 6>		mapHeapFroms;  //Objects on the heap that 'this' is pointed to from.  This is a BaseOject not an EmbeddedObject because HollowEmbeddedObjects cannot point to anything.
+	CArrayTemplateEmbedded<CEmbeddedObject*, 6>	mapHeapFroms;  //Objects on the heap that 'this' is pointed to from.  This is a BaseOject not an EmbeddedObject because HollowEmbeddedObjects cannot point to anything.
 	CStackPointer*								mpcStackFroms;  //Objects on the stack that 'this' is pointed to from.  
 
 public:
@@ -52,6 +52,7 @@ public:
 	virtual int					RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* mpcObject);
 	virtual BOOL				SetDistToRoot(int iDistToRoot) =0;
 	virtual void				SetPointerTosExpectedDistToRoot(int iDistToRoot) =0;
+	virtual BOOL				TestedForRoot(void) =0;
 
 	virtual int					GetDistToRoot(void) =0;
 	virtual int					GetDistToStack(void) =0;
@@ -69,6 +70,7 @@ public:
 			BOOL				IsNotEmbedded(void);
 	virtual BOOL				IsInitialised(void) =0;
 			BOOL				IsInStack(void);
+	virtual BOOL				IsRoot(void) =0;
 	virtual int					GetEmbeddedIndex(CEmbeddedObject* pcEmbedded);
 	virtual uint16				GetNumEmbedded(void) =0;
 			void				SetEmbedding(CBaseObject* pcEmbedded);
@@ -89,11 +91,11 @@ public:
 	virtual int					CollectDetachedFroms(CDistCalculatorParameters* pcParameters) =0;
 
 			BOOL				HasHeapFroms(void);
-			void				AddHeapFrom(CBaseObject* pcFromObject, BOOL bValidate);
-			void				RemoveHeapFrom(CBaseObject* pcFromObject, BOOL bValidate);
+			void				AddHeapFrom(CEmbeddedObject* pcFromObject, BOOL bValidate);
+			void				RemoveHeapFrom(CEmbeddedObject* pcFromObject, BOOL bValidate);
 	virtual int					NumHeapFroms(void);
-			CBaseObject*		GetHeapFrom(int iFromIndex);
-			void				UnsafeAddHeapFrom(CBaseObject* pcFromObject);
+			CEmbeddedObject*	GetHeapFrom(int iFromIndex);
+			void				UnsafeAddHeapFrom(CEmbeddedObject* pcFromObject);
 
 			void				AddStackFrom(CPointer* pcPointer);
 			void				AddStackFroms(CStackPointer* pcStackPointer);
@@ -102,11 +104,11 @@ public:
 			void				RemoveStackFromTryKill(CPointer* pcPointer, BOOL bKillIfNoRoot);
 	virtual int					NumStackFroms(void);
 			CStackPointer*		GetFirstStackFrom(void);
-	virtual CBaseObject*		GetClosestFromToStack(void);
+	virtual CEmbeddedObject*	GetClosestFromToStack(void);
 
 			int					NumTotalFroms(void);
 			BOOL				ContainsFrom(CEmbeddedObject* pcBaseObject);
-	virtual CBaseObject*		GetClosestFromToRoot(void);
+	virtual CEmbeddedObject*	GetClosestFromToRoot(void);
 
 			CObjects*			GetObjects(void);
 	virtual CObjects*			GetObjectsThisIn(void) =0;
@@ -121,11 +123,11 @@ public:
 protected:
 	virtual void				RemoveAllHeapFroms(void);
 	virtual void				RemoveAllStackFroms(void);
-			BOOL				PrivateRemoveHeapFrom(CBaseObject* pcFrom);
+			BOOL				PrivateRemoveHeapFrom(CEmbeddedObject* pcFrom);
 	virtual void				GetStackFroms(CArrayTypedPointerPtr* papcFroms);
 	virtual void				GetHeapFroms(CArrayTemplateEmbeddedBaseObjectPtr* papcFroms);
 	virtual CStackPointers*		GetStackPointers(void) =0;
-	virtual CBaseObject*		GetClosestFromForCanFindRoot(void);
+	virtual CEmbeddedObject*	GetClosestFromForCanFindRoot(void);
 	virtual void				UpdateAttachedEmbeddedObjectPointerTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist) =0;
 };
 

@@ -72,12 +72,12 @@ void CDistToStackCalculator::InitialiseCompletelyDetached(CDistCalculatorParamet
 //////////////////////////////////////////////////////////////////////////
 int CDistToStackCalculator::UpdateDistToStackForObjectsWithFromStackDist(CDistCalculatorParameters* pcParameters)
 {
-	int				i;
-	int				iNumDetached;
-	CBaseObject*	pcBaseObject;
-	int				iClosestFrom;
-	CBaseObject*	pcClosest;
-	int				iNumUpdated;
+	int					i;
+	int					iNumDetached;
+	CBaseObject*		pcBaseObject;
+	int					iClosestFrom;
+	CEmbeddedObject*	pcClosest;
+	int					iNumUpdated;
 
 	iNumDetached = pcParameters->NumCompletelyDetached();
 	iNumUpdated = 0;

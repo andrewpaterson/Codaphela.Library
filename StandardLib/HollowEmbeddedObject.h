@@ -31,6 +31,8 @@ public:
 	BOOL				IsInitialised(void);
 	BOOL				IsDirty(void);
 	void				SetDirty(BOOL bDirty);
+	BOOL				IsRoot(void);
+	BOOL				TestedForRoot(void);
 
 protected:
 	void				UpdateAttachedEmbeddedObjectPointerTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist);

@@ -403,6 +403,7 @@ BOOL CExternalObjectDeserialiser::AddHeapFromPointersAndCreateHollowObject(CDepe
 		}
 	}
 
+	*pcDependentReadPointer->mppcPointedFrom = pcBaseObject;
 	AddHeapFrom(pcBaseObject, pcDependentReadPointer->mppcPointedFrom, pcDependentReadPointer->mpcContaining);
 	return TRUE;
 }
