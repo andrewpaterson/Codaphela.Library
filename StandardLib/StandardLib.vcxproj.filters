@@ -441,7 +441,6 @@
     <ClInclude Include="UnmanagedField.h">
       <Filter>Source\Object\Class</Filter>
     </ClInclude>
-    <ClInclude Include="UnmanagedClasses.h" />
     <ClInclude Include="PrimitiveClasses.h">
       <Filter>Source\Object\Class</Filter>
     </ClInclude>
@@ -456,6 +455,9 @@
     </ClInclude>
     <ClInclude Include="DependentReadObject.h">
       <Filter>Source\Object\Object\Serilalisation</Filter>
+    </ClInclude>
+    <ClInclude Include="UnmanagedClasses.h">
+      <Filter>Source\Object\Class</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -732,7 +734,6 @@
     <ClCompile Include="UnmanagedField.cpp">
       <Filter>Source\Object\Class</Filter>
     </ClCompile>
-    <ClCompile Include="UnmanagedClasses.cpp" />
     <ClCompile Include="PrimitiveClasses.cpp">
       <Filter>Source\Object\Class</Filter>
     </ClCompile>
@@ -744,6 +745,9 @@
     </ClCompile>
     <ClCompile Include="DependentReadPointer.cpp">
       <Filter>Source\Object\Object\Serilalisation</Filter>
+    </ClCompile>
+    <ClCompile Include="UnmanagedClasses.cpp">
+      <Filter>Source\Object\Class</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

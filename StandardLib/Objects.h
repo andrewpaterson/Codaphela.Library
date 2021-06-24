@@ -169,13 +169,13 @@ protected:  //Above is protected also:
 						template<class M>	M* AllocateNewByTemplate(void);
 						template<class M>	M* AllocateNewByTemplate(char* szObjectName);
 public:
-						CBaseObject*			AllocateNew(char* szClassName);
-						CBaseObject*			AllocateExistingNamed(char* szClassName, char* szObjectName);  //This mean overwrite an existing object with a new object (with the same name).
-						CBaseObject*			AllocateForDeserialisation(char* szClassName, OIndex oiForced);
-						CBaseObject*			AllocateNewNamed(char* szClassName, char* szObjectName);
-						CBaseObject*			AllocateExistingHollow(OIndex oiForced, uint16 iNumEmbedded);
-						CBaseObject*			AllocateExistingHollowFromMemoryOrMaybeANewNamedHollow(char* szObjectName, uint16 iNumEmbedded);
-						CBaseObject*			AllocateExistingHollowFromMemoryOrMaybeANewNamedHollow(char* szObjectName, OIndex oiForced, uint16 iNumEmbedded);
+						CBaseObject*			AllocateNewUnitialised(char* szClassName);
+						CBaseObject*			GetNamedObjectInMemoryAndReplaceOrAllocateUnitialised(char* szClassName, char* szObjectName);  //This mean overwrite an existing object with a new object (with the same name).
+						CBaseObject*			GetObjectInMemoryAndReplaceOrAllocateUnitialised(char* szClassName, OIndex oiForced);
+						CBaseObject*			AllocateNewNamedUnitialised(char* szClassName, char* szObjectName);
+						CBaseObject*			GetObjectInMemoryOrAllocateHollowForceIndex(OIndex oiForced, uint16 iNumEmbedded);
+						CBaseObject*			GetNamedObjectInMemoryOrAllocateHollow(char* szObjectName, uint16 iNumEmbedded);
+						CBaseObject*			GetNamedObjectInMemoryOrAllocateHollowForceIndex(char* szObjectName, OIndex oiForced, uint16 iNumEmbedded);
 
 protected:
 						CBaseObject*			ReplaceExisting(CBaseObject* pvExisting, CBaseObject* pvObject, char* szObjectName, OIndex oiForced);
