@@ -392,7 +392,8 @@ BOOL CExternalObjectDeserialiser::AddHeapFromPointersAndCreateHollowObject(CDepe
 		pcDependentReadObject = GetObject(pcDependentReadPointer->moiPointedTo);
 		if (pcDependentReadObject->mcType == OBJECT_POINTER_NAMED)
 		{
-			pvObject = mpcObjects->AllocateExistingHollowFromMemoryOrMaybeANewNamedHollow(pcDependentReadObject->mszObjectName.Text(), pcDependentReadPointer->miNumEmbedded);
+			//Should CExternalObjectDeserialiser be calling GetNamedObjectInMemoryOrAllocateHollow?  It's more an CInternalObjectDeserialiser thing.
+			pvObject = mpcObjects->GetNamedObjectInMemoryOrAllocateHollow(pcDependentReadObject->mszObjectName.Text(), pcDependentReadPointer->miNumEmbedded);
 			AddIndexRemap(pvObject->GetIndex(), pcDependentReadPointer->moiPointedTo);
 			pcBaseObject = pvObject;
 		}
@@ -421,18 +422,18 @@ CBaseObject* CExternalObjectDeserialiser::AllocateForDeserialisation(CObjectHead
 	}
 	else if (pcHeader->mcType == OBJECT_POINTER_ID)
 	{
-		return mpcObjects->AllocateNew(pcHeader->mszClassName.Text());
+		return mpcObjects->AllocateNewUnitialised(pcHeader->mszClassName.Text());
 	}
 	else if (pcHeader->mcType == OBJECT_POINTER_NAMED)
 	{
 		szName = pcHeader->mszClassName.Text();
 		if (!StrEmpty(szName))
 		{
-			return mpcObjects->AllocateExistingNamed(szName, pcHeader->mszObjectName.Text());
+			return mpcObjects->GetNamedObjectInMemoryAndReplaceOrAllocateUnitialised(szName, pcHeader->mszObjectName.Text());
 		}
 		else
 		{
-			return mpcObjects->AllocateNew(pcHeader->mszClassName.Text());
+			return mpcObjects->AllocateNewUnitialised(pcHeader->mszClassName.Text());
 		}
 	}
 	else

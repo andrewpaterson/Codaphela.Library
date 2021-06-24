@@ -96,6 +96,5 @@ protected:
 };
 
 
-
 #endif // !__UNMANAGED_CLASSES_H__
 

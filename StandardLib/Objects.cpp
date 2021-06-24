@@ -1396,7 +1396,7 @@ CClasses* CObjects::GetClasses(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CObjects::AllocateNew(char* szClassName)
+CBaseObject* CObjects::AllocateNewUnitialised(char* szClassName)
 {
 	CBaseObject*	pvObject;
 	OIndex			oi;
@@ -1418,10 +1418,10 @@ CBaseObject* CObjects::AllocateNew(char* szClassName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CObjects::AllocateForDeserialisation(char* szClassName, OIndex oiForced)
+CBaseObject* CObjects::GetObjectInMemoryAndReplaceOrAllocateUnitialised(char* szClassName, OIndex oiForced)
 {
-	CBaseObject* pvExisting;
-	CBaseObject* pvObject;
+	CBaseObject*	pvExisting;
+	CBaseObject*	pvObject;
 	BOOL			bResult;
 
 	pvObject = AllocateUninitialisedByClassName(szClassName);
@@ -1455,7 +1455,7 @@ CBaseObject* CObjects::AllocateForDeserialisation(char* szClassName, OIndex oiFo
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CObjects::AllocateNewNamed(char* szClassName, char* szObjectName)
+CBaseObject* CObjects::AllocateNewNamedUnitialised(char* szClassName, char* szObjectName)
 {
 	BOOL			bResult;
 	CBaseObject*	pvObject;
@@ -1490,7 +1490,7 @@ CBaseObject* CObjects::AllocateNewNamed(char* szClassName, char* szObjectName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CObjects::AllocateExistingNamed(char* szClassName, char* szObjectName)
+CBaseObject* CObjects::GetNamedObjectInMemoryAndReplaceOrAllocateUnitialised(char* szClassName, char* szObjectName)
 {
 	CBaseObject*	pvOldObject;
 	CBaseObject*	pvObject;
@@ -1642,7 +1642,7 @@ CBaseObject* CObjects::ReplaceExisting(CBaseObject* pvExisting, CBaseObject* pvO
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CObjects::AllocateExistingHollow(OIndex oiForced, uint16 iNumEmbedded)
+CBaseObject* CObjects::GetObjectInMemoryOrAllocateHollowForceIndex(OIndex oiForced, uint16 iNumEmbedded)
 {
 	CHollowObject* pcHollow;
 	BOOL				bResult;
@@ -1683,7 +1683,7 @@ CBaseObject* CObjects::AllocateExistingHollow(OIndex oiForced, uint16 iNumEmbedd
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CObjects::AllocateExistingHollowFromMemoryOrMaybeANewNamedHollow(char* szObjectName, OIndex oiForced, uint16 iNumEmbedded)
+CBaseObject* CObjects::GetNamedObjectInMemoryOrAllocateHollowForceIndex(char* szObjectName, OIndex oiForced, uint16 iNumEmbedded)
 {
 	CHollowObject*	pcHollow;
 	BOOL			bResult;
@@ -1697,7 +1697,7 @@ CBaseObject* CObjects::AllocateExistingHollowFromMemoryOrMaybeANewNamedHollow(ch
 	
 	if (StrEmpty(szObjectName))
 	{
-		return AllocateExistingHollow(oiForced, iNumEmbedded);
+		return GetObjectInMemoryOrAllocateHollowForceIndex(oiForced, iNumEmbedded);
 	}
 
 	pvExisting = GetFromMemory(szObjectName);
@@ -1734,7 +1734,7 @@ CBaseObject* CObjects::AllocateExistingHollowFromMemoryOrMaybeANewNamedHollow(ch
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CObjects::AllocateExistingHollowFromMemoryOrMaybeANewNamedHollow(char* szObjectName, uint16 iNumEmbedded)
+CBaseObject* CObjects::GetNamedObjectInMemoryOrAllocateHollow(char* szObjectName, uint16 iNumEmbedded)
 {
 	CHollowObject*	pcHollow;
 	BOOL			bResult;

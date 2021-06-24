@@ -153,36 +153,37 @@ CBaseObject* CInternalObjectDeserialiser::ReadSerialised(CSerialisedObject* pcSe
 //////////////////////////////////////////////////////////////////////////
 BOOL CInternalObjectDeserialiser::AddHeapFromPointersAndCreateHollowObject(CDependentReadPointer* pcDependentReadPointer, CDependentReadObject* pcDependent)
 {
-	CEmbeddedObject*		pcBaseObject;
+	CEmbeddedObject*		pcEmbeddedObject;
 	OIndex					oiNew;
 	CBaseObject*			pcHollowObject;
+	CBaseObject*			pcExistingObject;
 
 	oiNew = pcDependentReadPointer->moiPointedTo;
-	pcBaseObject = mpcMemory->Get(oiNew);
-	if (pcBaseObject)
+	pcExistingObject = mpcMemory->Get(oiNew);
+	if (pcExistingObject)
 	{
-		AddHeapFrom(pcBaseObject, pcDependentReadPointer->mppcPointedFrom, pcDependentReadPointer->mpcContaining);
+		AddHeapFrom(pcExistingObject, pcDependentReadPointer->mppcPointedFrom, pcDependentReadPointer->mpcContaining);
 		return TRUE;
 	}
 	else
 	{
 		if (pcDependent->mcType == OBJECT_POINTER_ID)
 		{
-			pcHollowObject = mpcObjects->AllocateExistingHollow(pcDependent->moi, pcDependentReadPointer->miNumEmbedded);
+			pcHollowObject = mpcObjects->GetObjectInMemoryOrAllocateHollowForceIndex(pcDependent->moi, pcDependentReadPointer->miNumEmbedded);
 		}
 		else if (pcDependent->mcType == OBJECT_POINTER_NAMED)
 		{
-			pcHollowObject = mpcObjects->AllocateExistingHollowFromMemoryOrMaybeANewNamedHollow(pcDependent->mszObjectName.Text(), pcDependent->moi, pcDependentReadPointer->miNumEmbedded);
+			pcHollowObject = mpcObjects->GetNamedObjectInMemoryOrAllocateHollowForceIndex(pcDependent->mszObjectName.Text(), pcDependent->moi, pcDependentReadPointer->miNumEmbedded);
 		}
 		else
 		{
 			pcHollowObject = NULL;
 		}
 
-		pcBaseObject = pcHollowObject->GetEmbeddedObject(pcDependentReadPointer->miEmbeddedIndex);
-		if (pcBaseObject)
+		pcEmbeddedObject = pcHollowObject->GetEmbeddedObject(pcDependentReadPointer->miEmbeddedIndex);
+		if (pcEmbeddedObject)
 		{
-			AddHeapFrom(pcBaseObject, pcDependentReadPointer->mppcPointedFrom, pcDependentReadPointer->mpcContaining);
+			AddHeapFrom(pcEmbeddedObject, pcDependentReadPointer->mppcPointedFrom, pcDependentReadPointer->mpcContaining);
 			return TRUE;
 		}
 		else
@@ -208,7 +209,7 @@ CBaseObject* CInternalObjectDeserialiser::AllocateForDeserialisation(CObjectHead
 	}
 	else if (pcHeader->mcType == OBJECT_POINTER_ID)
 	{
-		return mpcObjects->AllocateForDeserialisation(pcHeader->mszClassName.Text(), pcHeader->moi);
+		return mpcObjects->GetObjectInMemoryAndReplaceOrAllocateUnitialised(pcHeader->mszClassName.Text(), pcHeader->moi);
 	}
 	else if (pcHeader->mcType == OBJECT_POINTER_NAMED)
 	{
@@ -219,7 +220,7 @@ CBaseObject* CInternalObjectDeserialiser::AllocateForDeserialisation(CObjectHead
 		}
 		else
 		{
-			return mpcObjects->AllocateForDeserialisation(pcHeader->mszClassName.Text(), pcHeader->moi);
+			return mpcObjects->GetObjectInMemoryAndReplaceOrAllocateUnitialised(pcHeader->mszClassName.Text(), pcHeader->moi);
 		}
 	}
 	else
@@ -272,6 +273,27 @@ BOOL CInternalObjectDeserialiser::AddReverseDependent(CObjectIdentifier* pcHeade
 	}
 
 	cDependent.Init(pcHeader);
+
+	CDependentReadObject*	pcDependent;
+	CBaseObject*			pcHollowObject;
+	CEmbeddedObject*		pcEmbeddedObject;
+
+	pcDependent = &cDependent;
+	if (pcDependent->mcType == OBJECT_POINTER_ID)
+	{
+		pcHollowObject = mpcObjects->GetObjectInMemoryOrAllocateHollowForceIndex(pcDependent->moi, iNumEmbedded);
+	}
+	else if (pcDependent->mcType == OBJECT_POINTER_NAMED)
+	{
+		pcHollowObject = mpcObjects->GetNamedObjectInMemoryOrAllocateHollowForceIndex(pcDependent->mszObjectName.Text(), pcDependent->moi, iNumEmbedded);
+	}
+	else
+	{
+		pcHollowObject = NULL;
+	}
+
+	pcEmbeddedObject = pcHollowObject->GetEmbeddedObject(iEmbeddedIndex);
+	//Something, something.  You must set the heap from on the (misnamed?) pcObjectContainingHeapFrom to be the pcEmbeddedObject hollow object.
 
 	cDependent.Kill();
 
