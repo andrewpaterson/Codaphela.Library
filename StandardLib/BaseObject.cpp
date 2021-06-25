@@ -1159,6 +1159,9 @@ BOOL CBaseObject::SaveHeapFroms(CObjectWriter* pcFile)
 	int				iNumElements;
 	CBaseObject*	pcHeapFrom;
 
+	bResult = pcFile->WriteInt(GetDistToRoot());
+	ReturnOnFalse(bResult);
+
 	bResult = SaveEmbeddedObjectsHeapFroms(pcFile);
 	ReturnOnFalse(bResult);
 
@@ -1171,6 +1174,7 @@ BOOL CBaseObject::SaveHeapFroms(CObjectWriter* pcFile)
 	{
 		pcHeapFrom = (CBaseObject*)mapHeapFroms.GetPtr(i);
 		bResult = pcFile->WriteDependent(pcHeapFrom);
+		bResult &= pcFile->WriteInt(pcHeapFrom->GetDistToRoot());
 		ReturnOnFalse(bResult);
 	}
 	
@@ -1529,6 +1533,12 @@ BOOL CBaseObject::LoadHeapFroms(CObjectReader* pcFile)
 	int					i;
 	int					iNumElements;
 	CEmbeddedObject*	pcHeapFrom;
+	int					iDistToRoot;
+	
+	bResult = pcFile->ReadInt(&iDistToRoot);
+	ReturnOnFalse(bResult);
+
+	miDistToRoot = iDistToRoot;
 
 	bResult = LoadEmbeddedObjectsHeapFroms(pcFile);
 	ReturnOnFalse(bResult);

@@ -264,14 +264,14 @@ BOOL CInternalObjectDeserialiser::AddDependent(CObjectIdentifier* pcHeader, CEmb
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CInternalObjectDeserialiser::AddReverseDependent(CObjectIdentifier* pcHeader, CEmbeddedObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingHeapFrom, uint16 iNumEmbedded, uint16 iEmbeddedIndex)
+BOOL CInternalObjectDeserialiser::AddReverseDependent(CObjectIdentifier* pcHeader, CEmbeddedObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingHeapFrom, uint16 iNumEmbedded, uint16 iEmbeddedIndex, int iDistToRoot)
 {
 	CDependentReadObject	cDependent;
 	CPointer				pExisitingInDatabase;
 
 	if (!((pcHeader->mcType == OBJECT_POINTER_NAMED) || (pcHeader->mcType == OBJECT_POINTER_ID)))
 	{
-		return TRUE;
+		return (pcHeader->mcType == OBJECT_POINTER_NULL);
 	}
 
 	cDependent.Init(pcHeader);
@@ -297,10 +297,20 @@ BOOL CInternalObjectDeserialiser::AddReverseDependent(CObjectIdentifier* pcHeade
 	pcEmbeddedObject = pcHollowObject->GetEmbeddedObject(iEmbeddedIndex);
 	if (pcHollowObject->IsHollow())
 	{
+		pcHollowObject->SetDistToRoot(iDistToRoot);
 		pcObjectContainingHeapFrom->AddHeapFrom(pcEmbeddedObject, FALSE);
 	}
 	else
 	{
+		if (pcHollowObject->GetDistToRoot() != iDistToRoot)
+		{
+			CChars	sz;
+
+			sz.Init();
+			gcLogger.Error2(__METHOD__, " Cannot add reverse dependent serialised dist-to-root [", IntToString(iDistToRoot), "] mismatch memory [", IntToString(pcHollowObject->GetDistToRoot()), "] for object [", pcHollowObject->GetIdentifier(&sz), "]");
+			sz.Kill();
+			return FALSE;
+		}
 		pcObjectContainingHeapFrom->AddHeapFrom(pcEmbeddedObject, FALSE);
 	}
 
