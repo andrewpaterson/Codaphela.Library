@@ -68,6 +68,7 @@ public:
 						void			Add(CPointer& pO1, CPointer& pO2, CPointer& pO3);
 
 						void			TouchAll(void);
+						void			KillAll(void);
 protected:
 						void			KillInternal(BOOL bHeapFromChanged);
 };
