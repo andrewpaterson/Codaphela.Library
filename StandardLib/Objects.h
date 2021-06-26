@@ -114,7 +114,7 @@ public:
 						CBaseObject*			Dehollow(OIndex oi);
 						CBaseObject*			Dehollow(char* szObjectName);
 
-						BOOL					Replace(CBaseObject* pvNewObject, char* szExistingName, OIndex oiNew);
+						CBaseObject*			ReplaceBaseObject(CBaseObject* pvExisting, CBaseObject* pvObject);
 						BOOL					Dename(CBaseObject* pvObject);
 						BOOL					Deindex(CBaseObject* pvObject);
 
@@ -126,7 +126,7 @@ public:
 						CPointer				TestGetFromMemory(OIndex oi);
 						CPointer				TestGetFromMemory(char* szName);
 
-						void					DumpIndex(void);
+						void					DumpMemory(void);
 						void					DumpNames(void);
 						void					DumpGraph(void);
 						void					ValidateEmpty(void);
@@ -166,8 +166,8 @@ protected:
 
 
 protected:  //Above is protected also:
-						template<class M>	M* AllocateNewByTemplate(void);
-						template<class M>	M* AllocateNewByTemplate(char* szObjectName);
+						template<class M>	M*	AllocateNewByTemplate(void);
+						template<class M>	M*	AllocateNewByTemplate(char* szObjectName);
 public:
 						CBaseObject*			AllocateNewUnitialised(char* szClassName);
 						CBaseObject*			GetNamedObjectInMemoryAndReplaceOrAllocateUnitialised(char* szClassName, char* szObjectName);  //This mean overwrite an existing object with a new object (with the same name).
@@ -178,7 +178,6 @@ public:
 						CBaseObject*			GetNamedObjectInMemoryOrAllocateHollowForceIndex(char* szObjectName, OIndex oiForced, uint16 iNumEmbedded);
 
 protected:
-						CBaseObject*			ReplaceExisting(CBaseObject* pvExisting, CBaseObject* pvObject, char* szObjectName, OIndex oiForced);
 						CBaseObject*			ReplaceExisting(CBaseObject* pvExisting, CBaseObject* pvObject, OIndex oiForced);
 						CBaseObject*			AllocateForExistingInDatabaseWithExplicitIdentifiers(char* szClassName, char* szObjectName, OIndex oiForced, OIndex* poiExisting);
 };
