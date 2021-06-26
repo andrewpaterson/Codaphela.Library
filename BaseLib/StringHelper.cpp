@@ -638,7 +638,7 @@ int StrEmpty(const char* szString)
 	{
 		return 1;
 	}
-	else if (szString[0] == '\0')
+	else if (*szString == '\0')
 	{
 		return 1;
 	}

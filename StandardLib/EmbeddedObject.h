@@ -31,7 +31,7 @@ friend class CPointer;
 CONSTRUCTABLE(CEmbeddedObject);
 protected:
 	CBaseObject*								mpcEmbedded;  //Object that 'this' is embedded in.
-	CArrayTemplateEmbedded<CEmbeddedObject*, 6>	mapHeapFroms;  //Objects on the heap that 'this' is pointed to from.  This is a BaseOject not an EmbeddedObject because HollowEmbeddedObjects cannot point to anything.
+	CArrayTemplateEmbedded<CBaseObject*, 6>		mapHeapFroms;  //Objects on the heap that 'this' is pointed to from.  This is a BaseOject not an EmbeddedObject because HollowEmbeddedObjects cannot point to anything.
 	CStackPointer*								mpcStackFroms;  //Objects on the stack that 'this' is pointed to from.  
 
 public:
@@ -91,11 +91,11 @@ public:
 	virtual int					CollectDetachedFroms(CDistCalculatorParameters* pcParameters) =0;
 
 			BOOL				HasHeapFroms(void);
-			void				AddHeapFrom(CEmbeddedObject* pcFromObject, BOOL bValidate);
-			void				RemoveHeapFrom(CEmbeddedObject* pcFromObject, BOOL bValidate);
+			void				AddHeapFrom(CBaseObject* pcFromObject, BOOL bValidate);
+			void				RemoveHeapFrom(CBaseObject* pcFromObject, BOOL bValidate);
 	virtual int					NumHeapFroms(void);
-			CEmbeddedObject*	GetHeapFrom(int iFromIndex);
-			void				UnsafeAddHeapFrom(CEmbeddedObject* pcFromObject);
+			CBaseObject*		GetHeapFrom(int iFromIndex);
+			void				UnsafeAddHeapFrom(CBaseObject* pcFromObject);
 
 			void				AddStackFrom(CPointer* pcPointer);
 			void				AddStackFroms(CStackPointer* pcStackPointer);
@@ -123,7 +123,7 @@ public:
 protected:
 	virtual void				RemoveAllHeapFroms(void);
 	virtual void				RemoveAllStackFroms(void);
-			BOOL				PrivateRemoveHeapFrom(CEmbeddedObject* pcFrom);
+			BOOL				PrivateRemoveHeapFrom(CBaseObject* pcFrom);
 	virtual void				GetStackFroms(CArrayTypedPointerPtr* papcFroms);
 	virtual void				GetHeapFroms(CArrayTemplateEmbeddedBaseObjectPtr* papcFroms);
 	virtual CStackPointers*		GetStackPointers(void) =0;

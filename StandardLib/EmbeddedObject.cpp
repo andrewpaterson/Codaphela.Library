@@ -246,9 +246,9 @@ void CEmbeddedObject::PostRemapFroms(void)
 void CEmbeddedObject::RemoveAllHeapFroms(void)
 {
 	int					iNumFroms;
-	CEmbeddedObject**	ppcPointedFrom;
+	CBaseObject**		ppcPointedFrom;
 	int					i;
-	CEmbeddedObject*	pcPointedFrom;
+	CBaseObject*		pcPointedFrom;
 
 	iNumFroms = mapHeapFroms.NumElements();
 	if (iNumFroms > 0)
@@ -269,7 +269,7 @@ void CEmbeddedObject::RemoveAllHeapFroms(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CEmbeddedObject::AddHeapFrom(CEmbeddedObject* pcFromObject, BOOL bValidate)
+void CEmbeddedObject::AddHeapFrom(CBaseObject* pcFromObject, BOOL bValidate)
 {
 	CBaseObject*	pcEmbedding;
 	int				iDistToRoot;
@@ -301,7 +301,7 @@ void CEmbeddedObject::AddHeapFrom(CEmbeddedObject* pcFromObject, BOOL bValidate)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CEmbeddedObject::UnsafeAddHeapFrom(CEmbeddedObject* pcFromObject)
+void CEmbeddedObject::UnsafeAddHeapFrom(CBaseObject* pcFromObject)
 {
 	mapHeapFroms.Add(&pcFromObject);
 }
@@ -324,7 +324,7 @@ void CEmbeddedObject::ValidateInitialised(char* szMethod)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CEmbeddedObject::RemoveHeapFrom(CEmbeddedObject* pcFromObject, BOOL bValidate)
+void CEmbeddedObject::RemoveHeapFrom(CBaseObject* pcFromObject, BOOL bValidate)
 {
 	CBaseObject*	pcContainer;
 	CObjects*		pcObjectsThisIn;
@@ -352,7 +352,7 @@ void CEmbeddedObject::RemoveHeapFrom(CEmbeddedObject* pcFromObject, BOOL bValida
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CEmbeddedObject::PrivateRemoveHeapFrom(CEmbeddedObject* pcFrom)
+BOOL CEmbeddedObject::PrivateRemoveHeapFrom(CBaseObject* pcFrom)
 {
 	return mapHeapFroms.Remove(&pcFrom, FALSE);
 }
@@ -362,9 +362,9 @@ BOOL CEmbeddedObject::PrivateRemoveHeapFrom(CEmbeddedObject* pcFrom)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CEmbeddedObject* CEmbeddedObject::GetHeapFrom(int iFrom)
+CBaseObject* CEmbeddedObject::GetHeapFrom(int iFrom)
 {
-	CEmbeddedObject**	ppFrom;
+	CBaseObject**	ppFrom;
 
 	ppFrom = mapHeapFroms.Get(iFrom);
 	if (ppFrom)

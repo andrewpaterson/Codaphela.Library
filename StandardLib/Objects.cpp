@@ -799,6 +799,7 @@ CPointer CObjects::Get(char* szObjectName)
 	if (pvObject)
 	{
 		pObject.AssignObject(pvObject);
+		pObject.Dereference();
 		return pObject;
 	}
 
@@ -905,7 +906,7 @@ CBaseObject* CObjects::GetFromDatabase(OIndex oi)
 //////////////////////////////////////////////////////////////////////////
 CBaseObject* CObjects::GetFromDatabase(char* szObjectName)
 {
-	CInternalObjectDeserialiser	cDeserialiser;
+	CInternalObjectDeserialiser		cDeserialiser;
 	CBaseObject*					pvObject;
 
 	if (!mpcDataConnection)
@@ -1002,7 +1003,7 @@ CBaseObject* CObjects::Dehollow(OIndex oi)
 CBaseObject* CObjects::Dehollow(char* szObjectName)
 {
 	CBaseObject*	pvObject;
-	CPointer	pObject;
+	CPointer		pObject;
 
 	pvObject = GetFromDatabase(szObjectName);
 	if (pvObject)
@@ -1219,7 +1220,7 @@ CSequenceConnection* CObjects::GetIndexGenerator(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CObjects::ValidateCanAllocate(char* szClassName)
 {
-	if ((szClassName == NULL) || (szClassName[0] == 0))
+	if (StrEmpty(szClassName))
 	{
 		gcLogger.Error2(__METHOD__, " Cannot allocate an object of class with empty name.", NULL);
 		return FALSE;
@@ -1357,16 +1358,13 @@ CHollowObject* CObjects::AllocateHollow(uint16 iNumEmbedded)
 //////////////////////////////////////////////////////////////////////////
 void CObjects::AppenedHollowEmbeddedObjects(CBaseObject* pcHollow, uint16 iNumEmbedded, void* pvEmbedded) 
 {
-	CHollowEmbeddedObject	cEmbeddedObject;
 	int						i;
 	CHollowEmbeddedObject*	pcEmbeddedObject;
 
-	cEmbeddedObject.SetEmbedding(pcHollow);
-
 	for (i = 0; i < iNumEmbedded-1; i++)
 	{
-		pcEmbeddedObject = (CHollowEmbeddedObject*)pvEmbedded;
-		memcpy(pcEmbeddedObject, &cEmbeddedObject, sizeof(CHollowEmbeddedObject));
+		pcEmbeddedObject = new (pvEmbedded) CHollowEmbeddedObject();
+		pcEmbeddedObject->SetEmbedding(pcHollow);
 		pvEmbedded = RemapSinglePointer(pvEmbedded, sizeof(CHollowEmbeddedObject));
 	}
 }
@@ -1554,37 +1552,57 @@ CBaseObject* CObjects::GetNamedObjectInMemoryAndReplaceOrAllocateUnitialised(cha
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CObjects::AllocateForExistingInDatabaseWithExplicitIdentifiers(char* szClassName, char* szObjectName, OIndex oiForced, OIndex* poiExisting)
+CBaseObject* CObjects::AllocateForExistingInDatabaseWithExplicitIdentifiers(char* szClassName, char* szObjectName, OIndex oi, OIndex* poiExisting)
 {
 	CBaseObject*	pvObject;
 	BOOL			bResult;
 
+	//Only called by the InternalObjectDeserialiser.
+
 	pvObject = GetFromMemory(szObjectName);
 	if (pvObject)
 	{
-		gcLogger.Error2(__METHOD__, " Cannot allocate object named [", szObjectName, "] class [", szClassName, "].  It already exists in memory.", NULL);
-		return NULL;
+		if (pvObject->IsHollow())
+		{
+			if (pvObject->GetIndex() != oi)
+			{
+				gcLogger.Error2(__METHOD__, " Cannot allocate object named [", szObjectName, "] class [", szClassName, "].  It already exists in memory with index [", LongLongToString(oi), "] but expected index [", LongLongToString(pvObject->GetIndex()), "].", NULL);
+				return NULL;
+			}
+			else
+			{
+				return NULL;
+			}
+		}
+		else
+		{
+			gcLogger.Error2(__METHOD__, " Cannot allocate object named [", szObjectName, "] class [", szClassName, "].  It already exists in memory.", NULL);
+			return NULL;
+		}
 	}
-	pvObject = GetFromMemory(oiForced);
-	if (pvObject)
+	else
 	{
-		gcLogger.Error2(__METHOD__, " Cannot allocate object with index [", LongLongToString(oiForced), "] class [", szClassName, "].  It already exists in memory.", NULL);
-		return NULL;
-	}
+		pvObject = GetFromMemory(oi);
+		if (pvObject)
+		{
+			gcLogger.Error2(__METHOD__, " Cannot allocate object with index [", LongLongToString(oi), "] class [", szClassName, "].  It already exists in memory but was not named [", szObjectName, "].", NULL);
+			return NULL;
+		}
 
-	pvObject = AllocateUninitialisedByClassName(szClassName);
-	if (!pvObject)
-	{
-		return NULL;
-	}
+		pvObject = AllocateUninitialisedByClassName(szClassName);
+		if (!pvObject)
+		{
+			return NULL;
+		}
 
-	bResult = AddObjectIntoMemoryWithIndexAndName(pvObject, szObjectName, oiForced);
-	if (!bResult)
-	{
-		mpcUnknownsAllocatingFrom->RemoveInKill(pvObject);
-		return NULL;
+		bResult = AddObjectIntoMemoryWithIndexAndName(pvObject, szObjectName, oi);
+		if (!bResult)
+		{
+			mpcUnknownsAllocatingFrom->RemoveInKill(pvObject);
+			return NULL;
+		}
+		return pvObject;
 	}
-	return pvObject;
 }
 
 
@@ -1597,19 +1615,26 @@ CBaseObject* CObjects::ReplaceExisting(CBaseObject* pvExisting, CBaseObject* pvO
 	BOOL				bResult;
 	CObjectRemapFrom	cRemapper;
 
-	Dename(pvExisting);
-	Deindex(pvExisting);
-
-	bResult = Replace(pvObject, szObjectName, oiForced);
-	if (!bResult)
+	if (pvExisting && pvObject)
 	{
-		pvObject->Kill();
+		Dename(pvExisting);
+		Deindex(pvExisting);
+
+		bResult = Replace(pvObject, szObjectName, oiForced);
+		if (!bResult)
+		{
+			pvObject->Kill();
+			return NULL;
+		}
+
+		cRemapper.Remap(pvExisting, pvObject, TRUE);
+
+		return pvObject;
+	}
+	else
+	{
 		return NULL;
 	}
-
-	cRemapper.Remap(pvExisting, pvObject, TRUE);
-
-	return pvObject;
 }
 
 
@@ -1622,19 +1647,26 @@ CBaseObject* CObjects::ReplaceExisting(CBaseObject* pvExisting, CBaseObject* pvO
 	BOOL				bResult;
 	CObjectRemapFrom	cRemapper;
 
-	Dename(pvExisting);
-	Deindex(pvExisting);
-
-	bResult = AddObjectIntoMemoryWithIndex(pvObject, oiForced);
-	if (!bResult)
+	if (pvExisting && pvObject)
 	{
-		pvObject->Kill();
+		Dename(pvExisting);
+		Deindex(pvExisting);
+
+		bResult = AddObjectIntoMemoryWithIndex(pvObject, oiForced);
+		if (!bResult)
+		{
+			pvObject->Kill();
+			return NULL;
+		}
+
+		cRemapper.Remap(pvExisting, pvObject, TRUE);
+
+		return pvObject;
+	}
+	else
+	{
 		return NULL;
 	}
-
-	cRemapper.Remap(pvExisting, pvObject, TRUE);
-
-	return pvObject;
 }
 
 
@@ -1741,7 +1773,9 @@ CBaseObject* CObjects::GetNamedObjectInMemoryOrAllocateHollow(char* szObjectName
 	CBaseObject*	pvExisting;
 	OIndex			oi;
 
-	if ((szObjectName == NULL || szObjectName[0] == '\0'))
+	//Only called by the ExternalObjectDeserialiser.
+
+	if (StrEmpty(szObjectName))
 	{
 		return NULL;
 	}

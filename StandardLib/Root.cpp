@@ -205,7 +205,7 @@ CPointer CRoot::Get(char* szObjectName)
 	SSetIterator	sIter;
 	char*			szName;
 
-	if ((szObjectName == NULL) || (szObjectName[0] == '\0'))
+	if (StrEmpty(szObjectName))
 	{
 		return Null();
 	}

@@ -276,44 +276,6 @@ BOOL CInternalObjectDeserialiser::AddReverseDependent(CObjectIdentifier* pcHeade
 
 	cDependent.Init(pcHeader);
 
-	CDependentReadObject* pcDependent;
-	CBaseObject* pcHollowObject;
-	CEmbeddedObject* pcEmbeddedObject;
-
-	pcDependent = &cDependent;
-	if (pcDependent->mcType == OBJECT_POINTER_ID)
-	{
-		pcHollowObject = mpcObjects->GetObjectInMemoryOrAllocateHollowForceIndex(pcDependent->moi, iNumEmbedded);
-	}
-	else if (pcDependent->mcType == OBJECT_POINTER_NAMED)
-	{
-		pcHollowObject = mpcObjects->GetNamedObjectInMemoryOrAllocateHollowForceIndex(pcDependent->mszObjectName.Text(), pcDependent->moi, iNumEmbedded);
-	}
-	else
-	{
-		pcHollowObject = NULL;
-	}
-
-	pcEmbeddedObject = pcHollowObject->GetEmbeddedObject(iEmbeddedIndex);
-	if (pcHollowObject->IsHollow())
-	{
-		pcHollowObject->SetDistToRoot(iDistToRoot);
-		pcObjectContainingHeapFrom->AddHeapFrom(pcEmbeddedObject, FALSE);
-	}
-	else
-	{
-		if (pcHollowObject->GetDistToRoot() != iDistToRoot)
-		{
-			CChars	sz;
-
-			sz.Init();
-			gcLogger.Error2(__METHOD__, " Cannot add reverse dependent serialised dist-to-root [", IntToString(iDistToRoot), "] mismatch memory [", IntToString(pcHollowObject->GetDistToRoot()), "] for object [", pcHollowObject->GetIdentifier(&sz), "]");
-			sz.Kill();
-			return FALSE;
-		}
-		pcObjectContainingHeapFrom->AddHeapFrom(pcEmbeddedObject, FALSE);
-	}
-
 	cDependent.Kill();
 
 	return TRUE;
