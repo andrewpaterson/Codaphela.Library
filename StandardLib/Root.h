@@ -50,7 +50,7 @@ public:
 						BOOL			IsRoot(void);
 						BOOL			IsSubRoot(void);
 
-						BOOL			Load(CObjectReader* pcFile);
+						BOOL			Load(CObjectReader* pcFile) override;
 
 						CPointer		Get(int iIndex);
 	template<class M>	Ptr<M>			Get(int iIndex);
@@ -70,7 +70,7 @@ public:
 						void			TouchAll(void);
 						void			KillAll(void);
 protected:
-						void			KillInternal(BOOL bHeapFromChanged);
+						void			KillInternal(BOOL bHeapFromChanged) override;
 };
 
 

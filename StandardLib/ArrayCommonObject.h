@@ -64,8 +64,8 @@ public:
 	void					RemoveAllPointerTos(void);
 	void					CollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters);
 
-	BOOL					Save(CObjectWriter* pcFile);
-	BOOL					Load(CObjectReader* pcFile);
+	BOOL					Save(CObjectWriter* pcFile) override;
+	BOOL					Load(CObjectReader* pcFile) override;
 
 	CBaseObject*			UnsafeGet(int iIndex);
 	BOOL					UnsafeRemove(CBaseObject* pcObject);
@@ -79,7 +79,7 @@ public:
 	void					KillAll(void);
 
 protected:
-	void	FreePointers(void);
+	void	FreePointers(void) override;
 	void	Free(void);
 	void	RemovePointerTo(CEmbeddedObject* pcTo);
 	int		RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew);

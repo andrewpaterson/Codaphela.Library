@@ -101,12 +101,12 @@ protected:
 	virtual	void				Class(void) =0;
 
 public:
-	virtual	void				Kill(void);
+			void				Kill(void) override;
 	virtual void				Free(void) =0;
 	virtual BOOL				Flush(void);
 
-			BOOL				Save(CObjectWriter* pcFile);
-			BOOL				Load(CObjectReader* pcFile);
+			BOOL				Save(CObjectWriter* pcFile) override;
+			BOOL				Load(CObjectReader* pcFile) override;
 
 			OIndex				GetIndex(void);
 			void				SetObjectID(OIndex oi);  //This looks like a bad idea.
@@ -138,7 +138,7 @@ public:
 			void				SetDirty(BOOL bDirty);
 			int					GetDistToRoot(void);
 			int					GetDistToStack(void);
-	virtual BOOL				SetDistToRoot(int iDistToRoot);
+	virtual BOOL				SetDistToRoot(int iDistToRoot) override;
 			BOOL				TestedForRoot(void);
 			void				UpdateAttachedTosDistToRoot(CDistCalculatorParameters* pcParameters);
 			void				CollectValidDistStartingObjectsAndSetClearedToRoot(CBaseObject* pcTo, CDistCalculatorParameters* pcParameters);
@@ -197,8 +197,8 @@ protected:
 	virtual void				Initialised(void);
 	virtual	void				EmbedFields(void) =0;
 
-	virtual void				InternalFree(void);
-			void				KillInternal(BOOL bHeapFromChanged);
+			void				InternalFree(void) override;
+			void				KillInternal(BOOL bHeapFromChanged) override;
 			void				TryFree(BOOL bKillIfNoRoot, BOOL bHeapFromChanged);
 
 	virtual void				RemoveAllPointerTosDontKill(void) =0;
@@ -211,7 +211,7 @@ protected:
 			BOOL				LoadHeapFroms(CObjectReader* pcFile);
 
 	virtual void				FreeIdentifiers(void);
-			void				FreePointers(void);
+			void				FreePointers(void) override;
 			int					RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew) =0;
 			BOOL				RemoveToFrom(CEmbeddedObject* pcPointedTo);
 			void				SetExpectedDistToRoot(int iExpectedDistToRoot);

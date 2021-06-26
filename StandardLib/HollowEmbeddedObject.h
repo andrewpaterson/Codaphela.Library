@@ -9,13 +9,13 @@ class CHollowEmbeddedObject : public CEmbeddedObject
 {
 CONSTRUCTABLE(CHollowEmbeddedObject);
 public:
-	void				InternalFree(void);
-	BOOL				Save(CObjectWriter* pcFile);
-	BOOL				Load(CObjectReader* pcFile);
+	void				InternalFree(void) override;
+	BOOL				Save(CObjectWriter* pcFile) override;
+	BOOL				Load(CObjectReader* pcFile) override;
 	void				RemovePointerTo(CEmbeddedObject* pcTo);
 	int					GetDistToStack(void);
 	int					GetDistToRoot(void);
-	BOOL				SetDistToRoot(int iDistToRoot);
+	BOOL				SetDistToRoot(int iDistToRoot) override;
 	void				SetPointerTosExpectedDistToRoot(int iDistToRoot);
 	uint16				GetNumEmbedded(void);
 	CEmbeddedObject*	GetEmbeddedObject(uint16 iIndex);

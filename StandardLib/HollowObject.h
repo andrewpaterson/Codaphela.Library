@@ -33,10 +33,10 @@ public:
 
 			BOOL				IsHollow(void);
 
-			BOOL				Save(CObjectWriter* pcFile);
-			BOOL				Load(CObjectReader* pcFile);
-			BOOL				IsCollection(void);
-			BOOL				IsObject(void);
+			BOOL				Save(CObjectWriter* pcFile) override;
+			BOOL				Load(CObjectReader* pcFile) override;
+			BOOL				IsCollection(void) override;
+			BOOL				IsObject(void) override;
 			void				SetPointerTosExpectedDistToRoot(int iDistToRoot);
 			void				GetPointerTos(CArrayTemplateEmbeddedObjectPtr* papcTos);
 			int					NumPointerTos(void);
@@ -55,7 +55,7 @@ protected:
 			void				Class(void);
 			CBaseObject*		Dehollow(void);
 
-			void				FreePointers(void);
+			void				FreePointers(void) override;
 			void				Free(void);
 			int					RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew);
 			void				RemovePointerTo(CEmbeddedObject* pcTo);
