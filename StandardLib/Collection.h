@@ -32,8 +32,8 @@ CONSTRUCTABLE(CCollection);
 public:
 			void			Init(void);
 			void			Kill(void) final;
-			BOOL			IsCollection(void);
-			BOOL			IsObject(void);
+			BOOL			IsCollection(void) override;
+			BOOL			IsObject(void) override;
 	virtual void			RemoveAll(void) =0;
 			CBaseObject*	Dehollow(void);
 	virtual void			TouchAll(void) =0;

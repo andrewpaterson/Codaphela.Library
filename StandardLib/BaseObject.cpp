@@ -40,6 +40,7 @@ CBaseObject::CBaseObject()
 	miDistToRoot = UNATTACHED_DIST_TO_ROOT;
 	miDistToStack = MIN_STACK_DIST_TO_STACK;
 	moi = INVALID_O_INDEX;
+	mon._Init();
 	muiFlags = OBJECT_FLAGS_CALLED_CONSTRUCTOR;
 	muiNumEmbedded = 0;
 	muiPreInits = 0;
@@ -110,6 +111,10 @@ CClass* CBaseObject::Class(CClasses* pcClasses)
 	if (!pcClass)
 	{
 		pcClass = pcClasses->Add(szClassName, ClassSize());
+		if (!pcClass)
+		{
+			return NULL;
+		}
 	}
 	SetClass(pcClass);
 	if (!pcClass->IsComplete())

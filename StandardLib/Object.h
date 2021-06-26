@@ -45,8 +45,8 @@ public:
 						CObject();
 	void				Allocate(CObjects* pcObjects);
 	void				Kill(void) final;
-	BOOL				IsCollection(void);
-	BOOL				IsObject(void);
+	BOOL				IsCollection(void) override;
+	BOOL				IsObject(void) override;
 	void				SetPointerTosExpectedDistToRoot(int iDistToRoot);
 
 	void				Pointer(CPointer* pcPointer, char* szFieldName);
@@ -128,20 +128,20 @@ public:
 
 protected:
 	void				EmbedFields(void);
-	void				InternalFree(void);
-	void				FreePointers(void);
+	void				InternalFree(void) override;
+	void				FreePointers(void) override;
 	void				RemovePointerTo(CEmbeddedObject* pcTo);
 	void				RemoveAllPointerTosDontKill(void);
 	void				RemoveAllPointerTos(void);
 	void				RemoveAllHeapFroms(void);
 	void				RemoveAllStackFroms(void);
 	CBaseObject*		GetClosestFromForCanFindRoot(void);
-	int					RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew);
+	int					RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew) override;
 	void				UpdateAttachedEmbeddedObjectPointerTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist);
 	void				BaseUpdateAttachedEmbeddedObjectPointerTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist);
 	int					CalculateDistToRootFromPointedFroms(int iDistToRoot);
 	void				SetPointedTosDistToRoot(int iDistToRoot);
-	BOOL				SetDistToRoot(int iDistToRoot);
+	BOOL				SetDistToRoot(int iDistToRoot) override;
 	void				SetDistToStack(int iDistToStack);
 	BOOL				RecurseGetEmbeddedIndex(CEmbeddedObject* pcTest, int* piIndex);
 	CEmbeddedObject*	RecurseGetEmbeddedObject(int iIndex, int* iCount);

@@ -905,7 +905,7 @@ int CObject::RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObject::GetHeapFroms(CArrayTemplateEmbeddedBaseObjectPtr* papcFroms)
+void  CObject::GetHeapFroms(CArrayTemplateEmbeddedBaseObjectPtr* papcFroms)
 {
 	int				i;
 	int				iNumEmbedded;
