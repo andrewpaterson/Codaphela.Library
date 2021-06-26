@@ -109,7 +109,7 @@ public:
 			BOOL				Load(CObjectReader* pcFile) override;
 
 			OIndex				GetIndex(void);
-			void				SetObjectID(OIndex oi);  //This looks like a bad idea.
+			void				SetIndex(OIndex oi);  //This looks like a bad idea.
 			void				ClearIndex(void);  //This looks like a bad idea.
 
 			BOOL				IsRoot(void);

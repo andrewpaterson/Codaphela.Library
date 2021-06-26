@@ -202,7 +202,7 @@ void CObjects::PrintMemory(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjects::DumpIndex(void)
+void CObjects::DumpMemory(void)
 {
 	CChars				sz;
 
@@ -663,28 +663,6 @@ BOOL CObjects::AddObjectIntoMemoryWithIndexAndName(CBaseObject* pvObject, char* 
 		LOG_OBJECT_ALLOCATION(pvObject);
 	}
 	return bResult;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CObjects::Replace(CBaseObject* pvNewObject, char* szExistingName, OIndex oiNew)
-{
-	if (!StrEmpty(szExistingName))
-	{
-		return mcMemory.ReplaceWithIDAndName(pvNewObject, szExistingName, oiNew);
-	}
-	else
-	{
-		CChars sz;
-		sz.Init();
-		pvNewObject->GetIdentifier(&sz);
-		gcLogger.Error2(__METHOD__, " Cannot replace object [", sz.Text(), "] with an empty name.", NULL);
-		sz.Kill();
-		return FALSE;
-	}
 }
 
 
@@ -1610,24 +1588,25 @@ CBaseObject* CObjects::AllocateForExistingInDatabaseWithExplicitIdentifiers(char
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CObjects::ReplaceExisting(CBaseObject* pvExisting, CBaseObject* pvObject, char* szObjectName, OIndex oiForced)
+CBaseObject* CObjects::ReplaceBaseObject(CBaseObject* pvExisting, CBaseObject* pvObject)
 {
-	BOOL				bResult;
 	CObjectRemapFrom	cRemapper;
+	int					iCount;
 
 	if (pvExisting && pvObject)
 	{
+		if (pvObject->HasHeapFroms())
+		{
+			gcLogger.Error2(__METHOD__, " Cannot remap.  Object has head froms already.", NULL);
+			return NULL;
+		}
+		pvObject->SetIndex(pvExisting->GetIndex());
+		pvObject->SetName(pvExisting->GetName());
 		Dename(pvExisting);
 		Deindex(pvExisting);
 
-		bResult = Replace(pvObject, szObjectName, oiForced);
-		if (!bResult)
-		{
-			pvObject->Kill();
-			return NULL;
-		}
+		iCount= cRemapper.Remap(pvExisting, pvObject, FALSE);
 
-		cRemapper.Remap(pvExisting, pvObject, TRUE);
 
 		return pvObject;
 	}

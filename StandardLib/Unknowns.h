@@ -112,7 +112,7 @@ M* CUnknowns::Add(int iAdditionalSize)
 	char(*		acDebug)[4];
 	int			iSize;
 
-	//You can only add Unknown class types to Unknowns.
+	//You can only add Unknown classes to Unknowns.
 
 	iSize = sizeof(M);
 	pv = (M*)mpcMalloc->Malloc(iSize + iAdditionalSize, &acDebug);

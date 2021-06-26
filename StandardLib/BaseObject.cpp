@@ -1044,7 +1044,7 @@ int CBaseObject::GetDistToStack(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::SetObjectID(OIndex oi)
+void CBaseObject::SetIndex(OIndex oi)
 {
 	moi = oi;
 }
@@ -1056,7 +1056,7 @@ void CBaseObject::SetObjectID(OIndex oi)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::ClearIndex(void)
 {
-	SetObjectID(INVALID_O_INDEX);
+	SetIndex(INVALID_O_INDEX);
 }
 
 

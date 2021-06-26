@@ -143,7 +143,7 @@ BOOL CNamedIndexedObjects::AddWithID(CBaseObject* pvObject, OIndex oi)
 	bResult = mcMemoryIndexedObjects.Add(oi, pvObject);
 	if (bResult)
 	{
-		pvObject->SetObjectID(oi);
+		pvObject->SetIndex(oi);
 		bResult = pvObject->InitName("");
 		return bResult;
 	}
@@ -221,7 +221,7 @@ BOOL CNamedIndexedObjects::ReplaceWithIDAndName(CBaseObject* pvObject, char* szE
 		return FALSE;
 	}
 
-	bResult = pvObject->InitName(szExistingName);
+	bResult = pvObject->SetName(szExistingName);
 
 	if (!StrEmpty(szExistingName))
 	{
