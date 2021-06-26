@@ -40,7 +40,7 @@ public:
 	CBaseObject*		Get(OIndex oi);
 	CBaseObject*		Get(char* szName);
 	BOOL				AddWithID(CBaseObject* pvObject, OIndex oi);
-	BOOL				AddWithIDAndName(CBaseObject* pvObject, OIndex oi, char* szName);
+	BOOL				AddUnitialisedIntoMemoryWithIndexAndName(CBaseObject* pvObject, OIndex oi, char* szName);
 	BOOL				ReplaceWithIDAndName(CBaseObject* pvObject, char* szExistingName, OIndex oi);
 	BOOL				RemoveIndex(OIndex oi);
 	BOOL				RemoveName(char* szName);

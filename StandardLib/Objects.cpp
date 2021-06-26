@@ -58,14 +58,29 @@ void LogObjectAllocation(CBaseObject* pcObject, char* szMethod)
 		szIndex = IndexToString(pcObject->GetIndex());
 		szName = pcObject->GetName();
 		szAddress = PointerToString(pcObject);
-		gcLogger.Debug2(szMethod, " Allocate ", szClass, ": ", szIndex, " ", szName, " (", szAddress, ")]", NULL);
+		gcLogger.Debug2(szMethod, " Allocate [", szClass, ": ", szIndex, " ", szName, " (", szAddress, ")]", NULL);
 	}
 	else
 	{
-		gcLogger.Debug2(szMethod, " Allocate NULL]", NULL);
+		gcLogger.Debug2(szMethod, " Allocate [NULL]", NULL);
 	}
 #endif // _DEBUG
 #endif // DEBUG_OBJECT_ALLOCATION
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void LogObjectAllocationFailure(const char* szClass, OIndex oi, const char* szName, const char* szMethod)
+{
+#ifdef _DEBUG
+	char* szIndex;
+
+	szIndex = IndexToString(oi);
+	gcLogger.Debug2(szMethod, " Allocate FAILED! [", szClass, ": ", szIndex, " ", szName, "]", NULL);
+#endif // _DEBUG
 }
 
 
@@ -88,11 +103,11 @@ void LogObjectDestruction(CBaseObject* pcObject, char* szMethod)
 		szIndex = IndexToString(pcObject->GetIndex());
 		szName = pcObject->GetName();
 		szAddress = PointerToString(pcObject);
-		gcLogger.Debug2(szMethod, " Kill ", szClass, ": ", szIndex, " ", szName, " (", szAddress, ")]", NULL);
+		gcLogger.Debug2(szMethod, " Kill [", szClass, ": ", szIndex, " ", szName, " (", szAddress, ")]", NULL);
 	}
 	else
 	{
-		gcLogger.Debug2(szMethod, " Kill NULL]", NULL);
+		gcLogger.Debug2(szMethod, " Kill [NULL]", NULL);
 	}
 #endif // _DEBUG
 #endif // DEBUG_OBJECT_ALLOCATION
@@ -640,12 +655,23 @@ BOOL CObjects::AddObjectIntoMemoryWithIndex(CBaseObject* pvObject, OIndex oi)
 {
 	BOOL	bResult;
 
-	bResult = mcMemory.AddWithID(pvObject, oi);
-	if (bResult)
+	if (pvObject)
 	{
-		LOG_OBJECT_ALLOCATION(pvObject);
+		bResult = mcMemory.AddWithID(pvObject, oi);
+		if (bResult)
+		{
+			LOG_OBJECT_ALLOCATION(pvObject);
+		}
+		else
+		{
+			LOG_OBJECT_ALLOCATION_FAILURE(pvObject->ClassName(), oi, "");
+		}
+		return bResult;
 	}
-	return bResult;
+	else
+	{
+		return FALSE;
+	}
 }
 
 
@@ -653,15 +679,20 @@ BOOL CObjects::AddObjectIntoMemoryWithIndex(CBaseObject* pvObject, OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjects::AddObjectIntoMemoryWithIndexAndName(CBaseObject* pvObject, char* szObjectName, OIndex oi)
+BOOL CObjects::AddUnitialisedIntoMemoryWithIndexAndName(CBaseObject* pvObject, char* szObjectName, OIndex oi)
 {
 	BOOL	bResult;
 
-	bResult = mcMemory.AddWithIDAndName(pvObject, oi, szObjectName);
+	bResult = mcMemory.AddUnitialisedIntoMemoryWithIndexAndName(pvObject, oi, szObjectName);
 	if (bResult)
 	{
 		LOG_OBJECT_ALLOCATION(pvObject);
 	}
+	else
+	{
+		LOG_OBJECT_ALLOCATION_FAILURE(pvObject->ClassName(), oi, szObjectName);
+	}
+
 	return bResult;
 }
 
@@ -825,11 +856,45 @@ CBaseObject* CObjects::GetFromMemory(OIndex oi)
 //////////////////////////////////////////////////////////////////////////
 CBaseObject* CObjects::GetFromMemory(char* szObjectName)
 {
-	CBaseObject*	pvObject;
+	CBaseObject* pvObject;
 
 	pvObject = mcMemory.Get(szObjectName);
 	if (pvObject)
 	{
+		return pvObject;
+	}
+	else
+	{
+		return NULL;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CBaseObject* CObjects::GetFromMemory(char* szObjectName, OIndex oi)
+{
+	CBaseObject* pvObject;
+
+	pvObject = mcMemory.Get(szObjectName);
+	if (pvObject)
+	{
+		if (pvObject->GetIndex() != oi)
+		{
+			gcLogger.Error2(__METHOD__, " Cannot get object named [", szObjectName, "].  Mismatch expected index [", IndexToString(oi), "] with object index [", IndexToString(pvObject->GetIndex()), "].", NULL);
+		}
+		return pvObject;
+	}
+
+	pvObject = mcMemory.Get(oi);
+	if (pvObject)
+	{
+		if (StringCompare(pvObject->GetName(), szObjectName) != 0)
+		{
+			gcLogger.Error2(__METHOD__, " Cannot get object with index [", IndexToString(oi), "].  Mismatch expected name [", szObjectName, "] with object name [", pvObject->GetName(), "].", NULL);
+		}
 		return pvObject;
 	}
 	else
@@ -1372,7 +1437,7 @@ CClasses* CObjects::GetClasses(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CObjects::AllocateNewUnitialised(char* szClassName)
+CBaseObject* CObjects::AllocateUninitialisedByClassNameAndAddIntoMemory(char* szClassName)
 {
 	CBaseObject*	pvObject;
 	OIndex			oi;
@@ -1394,11 +1459,13 @@ CBaseObject* CObjects::AllocateNewUnitialised(char* szClassName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CObjects::GetObjectInMemoryAndReplaceOrAllocateUnitialised(char* szClassName, OIndex oiForced)
+CBaseObject* CObjects::GetObjectInMemoryAndReplaceOrAllocateUnitialised(char* szClassName, OIndex oi)
 {
 	CBaseObject*	pvExisting;
 	CBaseObject*	pvObject;
 	BOOL			bResult;
+
+	//Only called by the InternalObjectDeserialiser.
 
 	pvObject = AllocateUninitialisedByClassName(szClassName);
 	if (!pvObject)
@@ -1406,10 +1473,10 @@ CBaseObject* CObjects::GetObjectInMemoryAndReplaceOrAllocateUnitialised(char* sz
 		return NULL;
 	}
 
-	pvExisting = GetFromMemory(oiForced);
+	pvExisting = GetFromMemory(oi);
 	if (pvExisting == NULL)
 	{
-		bResult = AddObjectIntoMemoryWithIndex(pvObject, oiForced);
+		bResult = AddObjectIntoMemoryWithIndex(pvObject, oi);
 		if (!bResult)
 		{
 			pvObject->Kill();
@@ -1420,7 +1487,7 @@ CBaseObject* CObjects::GetObjectInMemoryAndReplaceOrAllocateUnitialised(char* sz
 	}
 	else
 	{
-		pvObject = ReplaceExisting(pvExisting, pvObject, oiForced);
+		pvObject = ReplaceExisting(pvExisting, pvObject, oi);
 
 		return pvObject;
 	}
@@ -1431,7 +1498,7 @@ CBaseObject* CObjects::GetObjectInMemoryAndReplaceOrAllocateUnitialised(char* sz
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CObjects::AllocateNewNamedUnitialised(char* szClassName, char* szObjectName)
+CBaseObject* CObjects::AllocateNamedUninitialisedByClassNameAndAddIntoMemory(char* szClassName, char* szObjectName)
 {
 	BOOL			bResult;
 	CBaseObject*	pvObject;
@@ -1451,7 +1518,7 @@ CBaseObject* CObjects::AllocateNewNamedUnitialised(char* szClassName, char* szOb
 	}
 
 	oi = GetIndexGenerator()->GetNext();
-	bResult = AddObjectIntoMemoryWithIndexAndName(pvObject, szObjectName, oi);
+	bResult = AddUnitialisedIntoMemoryWithIndexAndName(pvObject, szObjectName, oi);
 	if (!bResult)
 	{
 		mpcUnknownsAllocatingFrom->RemoveInKill(pvObject);
@@ -1473,6 +1540,8 @@ CBaseObject* CObjects::GetNamedObjectInMemoryAndReplaceOrAllocateUnitialised(cha
 	CBaseObject*	pvReplacedObject;
 	OIndex			oi;
 	BOOL			bResult;
+
+	//Only called by the ExternalObjectDeserialiser.  And some tests that should actually be calling an Allocate only and not Replace method.
 
 	//Old objects pointing to the oi are left still pointing to the oi?
 	oi = INVALID_O_INDEX;
@@ -1515,7 +1584,7 @@ CBaseObject* CObjects::GetNamedObjectInMemoryAndReplaceOrAllocateUnitialised(cha
 		pvReplacedObject = pvObject;
 	}
 
-	bResult = AddObjectIntoMemoryWithIndexAndName(pvReplacedObject, szObjectName, oi);
+	bResult = AddUnitialisedIntoMemoryWithIndexAndName(pvReplacedObject, szObjectName, oi);
 	if (!bResult)
 	{
 		mpcUnknownsAllocatingFrom->RemoveInKill(pvReplacedObject);
@@ -1537,7 +1606,7 @@ CBaseObject* CObjects::AllocateForExistingInDatabaseWithExplicitIdentifiers(char
 
 	//Only called by the InternalObjectDeserialiser.
 
-	pvObject = GetFromMemory(szObjectName);
+	pvObject = GetFromMemory(szObjectName, oi);
 	if (pvObject)
 	{
 		if (pvObject->IsHollow())
@@ -1560,20 +1629,13 @@ CBaseObject* CObjects::AllocateForExistingInDatabaseWithExplicitIdentifiers(char
 	}
 	else
 	{
-		pvObject = GetFromMemory(oi);
-		if (pvObject)
-		{
-			gcLogger.Error2(__METHOD__, " Cannot allocate object with index [", LongLongToString(oi), "] class [", szClassName, "].  It already exists in memory but was not named [", szObjectName, "].", NULL);
-			return NULL;
-		}
-
 		pvObject = AllocateUninitialisedByClassName(szClassName);
 		if (!pvObject)
 		{
 			return NULL;
 		}
 
-		bResult = AddObjectIntoMemoryWithIndexAndName(pvObject, szObjectName, oi);
+		bResult = AddUnitialisedIntoMemoryWithIndexAndName(pvObject, szObjectName, oi);
 		if (!bResult)
 		{
 			mpcUnknownsAllocatingFrom->RemoveInKill(pvObject);
@@ -1653,32 +1715,38 @@ CBaseObject* CObjects::ReplaceExisting(CBaseObject* pvExisting, CBaseObject* pvO
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CObjects::GetObjectInMemoryOrAllocateHollowForceIndex(OIndex oiForced, uint16 iNumEmbedded)
+CBaseObject* CObjects::GetObjectInMemoryOrAllocateHollowForceIndex(OIndex oi, uint16 iNumEmbedded)
 {
 	CHollowObject*	pcHollow;
 	BOOL			bResult;
 	CBaseObject*	pcExisting;
 
-	if (oiForced == INVALID_O_INDEX)
+	//Only called by the InternalObjectDeserialiser.
+
+	if (oi == INVALID_O_INDEX)
 	{
 		gcLogger.Error("CObjects::AddHollow Cannot allocate a hollow object with an invalid index.");
 		return NULL;
 	}
 
-	pcExisting = GetFromMemory(oiForced);
+	pcExisting = GetFromMemory(oi);
 	if (pcExisting)
 	{
-		LOG_OBJECT_ALLOCATION(pcExisting);
 		return pcExisting;
 	}
 
 	pcHollow = AllocateHollow(iNumEmbedded);
-	if (!pcHollow)
+	if (pcHollow)
 	{
+		LOG_OBJECT_ALLOCATION(pcHollow);
+	}
+	else
+	{
+		LOG_OBJECT_ALLOCATION_FAILURE("CHollowObject", oi, "");
 		return NULL;
 	}
 
-	bResult = AddObjectIntoMemoryWithIndex(pcHollow, oiForced);
+	bResult = AddObjectIntoMemoryWithIndex(pcHollow, oi);
 	if (bResult)
 	{
 		return pcHollow;
@@ -1694,13 +1762,15 @@ CBaseObject* CObjects::GetObjectInMemoryOrAllocateHollowForceIndex(OIndex oiForc
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CObjects::GetNamedObjectInMemoryOrAllocateHollowForceIndex(char* szObjectName, OIndex oiForced, uint16 iNumEmbedded)
+CBaseObject* CObjects::GetNamedObjectInMemoryOrAllocateHollowForceIndex(char* szObjectName, OIndex oi, uint16 iNumEmbedded)
 {
 	CHollowObject*	pcHollow;
 	BOOL			bResult;
 	CBaseObject*	pvExisting;
 
-	if (oiForced == INVALID_O_INDEX)
+	//Only called by the InternalObjectDeserialiser.
+
+	if (oi == INVALID_O_INDEX)
 	{
 		gcLogger.Error2(__METHOD__, " CObjects::AddHollow Cannot allocate a hollow object with an invalid index.", NULL);
 		return NULL;
@@ -1708,20 +1778,13 @@ CBaseObject* CObjects::GetNamedObjectInMemoryOrAllocateHollowForceIndex(char* sz
 	
 	if (StrEmpty(szObjectName))
 	{
-		return GetObjectInMemoryOrAllocateHollowForceIndex(oiForced, iNumEmbedded);
+		return GetObjectInMemoryOrAllocateHollowForceIndex(oi, iNumEmbedded);
 	}
 
-	pvExisting = GetFromMemory(szObjectName);
+	pvExisting = GetFromMemory(szObjectName, oi);
 	if (pvExisting)
 	{
 		return pvExisting;
-	}
-
-	pvExisting = GetFromMemory(oiForced);
-	if (pvExisting)
-	{
-		gcLogger.Error2(__METHOD__, " Cannot add hollow object named [", szObjectName, "] another object with index [", IndexToString(oiForced), "] and name [", pvExisting->GetName(), "] already exists.", NULL);
-		return NULL;
 	}
 
 	pcHollow = AllocateHollow(iNumEmbedded);
@@ -1730,7 +1793,7 @@ CBaseObject* CObjects::GetNamedObjectInMemoryOrAllocateHollowForceIndex(char* sz
 		return NULL;
 	}
 
-	bResult = AddObjectIntoMemoryWithIndexAndName(pcHollow, szObjectName, oiForced);
+	bResult = AddUnitialisedIntoMemoryWithIndexAndName(pcHollow, szObjectName, oi);
 	if (!bResult)
 	{
 		mpcUnknownsAllocatingFrom->RemoveInKill(pcHollow);
@@ -1774,7 +1837,7 @@ CBaseObject* CObjects::GetNamedObjectInMemoryOrAllocateHollow(char* szObjectName
 	pcHollow->InitName(szObjectName);
 
 	oi = GetIndexGenerator()->GetNext();
-	bResult = AddObjectIntoMemoryWithIndexAndName(pcHollow, szObjectName, oi);
+	bResult = AddUnitialisedIntoMemoryWithIndexAndName(pcHollow, szObjectName, oi);
 	if (!bResult)
 	{
 		mpcUnknownsAllocatingFrom->RemoveInKill(pcHollow);

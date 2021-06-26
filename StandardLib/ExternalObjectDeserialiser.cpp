@@ -423,7 +423,7 @@ CBaseObject* CExternalObjectDeserialiser::AllocateForDeserialisation(CObjectHead
 	}
 	else if (pcHeader->mcType == OBJECT_POINTER_ID)
 	{
-		return mpcObjects->AllocateNewUnitialised(pcHeader->mszClassName.Text());
+		return mpcObjects->AllocateUninitialisedByClassNameAndAddIntoMemory(pcHeader->mszClassName.Text());
 	}
 	else if (pcHeader->mcType == OBJECT_POINTER_NAMED)
 	{
@@ -434,7 +434,7 @@ CBaseObject* CExternalObjectDeserialiser::AllocateForDeserialisation(CObjectHead
 		}
 		else
 		{
-			return mpcObjects->AllocateNewUnitialised(pcHeader->mszClassName.Text());
+			return mpcObjects->AllocateUninitialisedByClassNameAndAddIntoMemory(pcHeader->mszClassName.Text());
 		}
 	}
 	else

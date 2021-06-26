@@ -158,7 +158,7 @@ BOOL CNamedIndexedObjects::AddWithID(CBaseObject* pvObject, OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNamedIndexedObjects::AddWithIDAndName(CBaseObject* pvObject, OIndex oi, char* szName)
+BOOL CNamedIndexedObjects::AddUnitialisedIntoMemoryWithIndexAndName(CBaseObject* pvObject, OIndex oi, char* szName)
 {
 	BOOL					bResult;
 	CIndexTreeMemoryAccess	cAccess;
