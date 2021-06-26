@@ -194,7 +194,6 @@ BOOL CNamedIndexedObjects::AddWithIDAndName(CBaseObject* pvObject, OIndex oi, ch
 	bResult = pvObject->InitName(szName);
 
 	cAccess.Init(&mcMemoryNames);
-	oi = pvObject->GetIndex();
 	szName = (char*)cAccess.PutStringLong(szName, oi);
 	bResult = szName != NULL;
 	cAccess.Kill();

@@ -96,7 +96,7 @@ CUnknown* CUnknowns::Add(char* szClassName)
 	CUnknown*	pcUnknown;
 	char(*		acDebug)[4];
 
-	if ((szClassName == NULL) || (szClassName[0] == 0))
+	if (StrEmpty(szClassName))
 	{
 		gcLogger.Error2(__METHOD__, " No constructor found for class with empty name.", NULL);
 		return NULL;

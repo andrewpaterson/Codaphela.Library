@@ -46,7 +46,7 @@ int CObjectRemapFrom::RemapEmbedded(CEmbeddedObject* pcNew, CEmbeddedObject* pcO
 {
 	int					iNumHeapFroms;
 	int					i;
-	CEmbeddedObject*	pvFrom;
+	CBaseObject*		pvFrom;
 	int					iCount;
 	CStackPointer*		pcStackPointer;
 	CStackPointer*		pcFirstStackPointer;

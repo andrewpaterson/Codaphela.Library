@@ -178,7 +178,7 @@ void CTextParser::StepRight(void)
 	//Can only move right if we are not sitting to the right of the last character.
 	if (mszParserPos <= mszEndOfText)
 	{
-		if (mszParserPos[0] == '\n')
+		if (*mszParserPos == '\n')
 		{
 			miLine++;
 			miColumn = 0;
@@ -205,7 +205,7 @@ void CTextParser::StepLeft(void)
 	if (mszParserPos >= mszStartOfText)
 	{
 		mszParserPos = &mszParserPos[-1];
-		if (mszParserPos[0] == '\n')
+		if (*mszParserPos == '\n')
 		{
 			miLine--;
 
@@ -215,7 +215,7 @@ void CTextParser::StepLeft(void)
 			{
 				for (;;)
 				{
-					if ((szSearchPos[0] == '\n') || (szSearchPos == mszStartOfText))
+					if ((*szSearchPos == '\n') || (szSearchPos == mszStartOfText))
 					{
 						break;
 					}
@@ -587,7 +587,7 @@ TRISTATE CTextParser::GetExactCharacter(char c, BOOL bSkipWhiteSpace)
 	}
 	if (!mbOutsideText)
 	{
-		if (mszParserPos[0] == c)
+		if (*mszParserPos == c)
 		{
 			StepRight();
 			return TRITRUE;
@@ -1353,7 +1353,7 @@ TRISTATE CTextParser::GetInteger(unsigned long long int* pulli, int* piSign, int
 	if (tResult == TRITRUE)
 	{
 		//Make sure there are no decimals.
-		if (mszParserPos[0] == '.')
+		if (*mszParserPos == '.')
 		{
 			PopPosition();
 			return TRIFALSE;
