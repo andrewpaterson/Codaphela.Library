@@ -40,7 +40,8 @@ public:
 
 	template<class M>	M*		Get(void);
 
-						void*	Construct(const char* szName, CMallocator* pcMalloc, char(**pacDebugName)[4] = NULL);
+						void*	Construct(const char* szConstructorName, CMallocator* pcMalloc, char(**pacDebugName)[4] = NULL);
+						void*	Construct(const char* szConstructorName, CMallocator* pcMalloc, size_t uiAdditionalSize, char(**pacDebugName)[4] = NULL);
 						int		NumConstructors(void);
 
 						BOOL	Contains(const char* szName);

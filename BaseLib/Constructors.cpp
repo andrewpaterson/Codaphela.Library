@@ -46,24 +46,33 @@ void CConstructors::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CConstructors::Construct(const char* szName, CMallocator* pcMalloc, char(**pacDebugName)[4])
+void* CConstructors::Construct(const char* szConstructorName, CMallocator* pcMalloc, char(**pacDebugName)[4])
 {
-	void*	pcConstructor;
-	int		iSize;
-	void*	pcObject;
+	return Construct(szConstructorName, pcMalloc, 0, pacDebugName);
+}
 
-	pcConstructor = mcConstructors.Get(szName, &iSize);
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void* CConstructors::Construct(const char* szConstructorName, CMallocator* pcMalloc, size_t uiAdditionalSize, char(**pacDebugName)[4])
+{
+	void*		pcConstructor;
+	size_t		uiSize;
+	void*		pcObject;
+
+	pcConstructor = mcConstructors.Get(szConstructorName, (int*)&uiSize);
 	if (!pcConstructor)
 	{
-		gcLogger.Error2(__METHOD__, " Could not find a Constructor named [", szName, "].", NULL);
+		gcLogger.Error2(__METHOD__, " Could not find a Constructor named [", szConstructorName, "].", NULL);
 		return NULL;
 	}
 
-	pcObject = pcMalloc->Malloc(iSize, pacDebugName);
-	memcpy(pcObject, pcConstructor, iSize);
+	pcObject = pcMalloc->Malloc(uiSize + uiAdditionalSize, pacDebugName);
+	memcpy(pcObject, pcConstructor, uiSize);
 	return pcObject;
 }
-
 
 //////////////////////////////////////////////////////////////////////////
 //

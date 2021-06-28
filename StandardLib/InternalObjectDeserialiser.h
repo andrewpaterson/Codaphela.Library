@@ -46,10 +46,10 @@ public:
 	CBaseObject*	AllocateForDeserialisation(CObjectHeader* pcHeader);
 
 protected:
+	CBaseObject*	GetFromMemory(CObjectIdentifier* pcIdentifier);
 	CBaseObject*	ReadSerialised(CSerialisedObject* pcSerialised, unsigned int iSize);
-	BOOL			AddHeapFromPointersAndCreateHollowObject(CDependentReadPointer* pcDependentReadPointer, CDependentReadObject* pcDependent);
-	BOOL			AddDependent(CObjectIdentifier* pcHeader, CEmbeddedObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingPtrToBeUpdated, uint16 iNumEmbedded, uint16 iEmbeddedIndex);
-	BOOL			AddReverseDependent(CObjectIdentifier* pcHeader, CEmbeddedObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingHeapFrom, uint16 iNumEmbedded, uint16 iEmbeddedIndex, int iDistToRoot);
+	BOOL			AddDependent(CObjectIdentifier* pcObjectPointerToIdentifier, CEmbeddedObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingPtrToBeUpdated, uint16 iNumEmbedded, uint16 iEmbeddedIndex) override;
+	BOOL			AddReverseDependent(CObjectIdentifier* pcHeader, CEmbeddedObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingHeapFrom, uint16 iNumEmbedded, uint16 iEmbeddedIndex, int iDistToRoot) override;
 };
 
 

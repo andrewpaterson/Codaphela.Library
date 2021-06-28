@@ -91,10 +91,20 @@ CUnknown* CUnknowns::AddExisting(CUnknown* pcExisting, char(*pszDebug)[4])
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CUnknown* CUnknowns::Add(char* szClassName)
+CUnknown* CUnknowns::Add(const char* szClassName)
 {
-	CUnknown*	pcUnknown;
-	char(*		acDebug)[4];
+	return Add(szClassName, 0);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CUnknown* CUnknowns::Add(const char* szClassName, size_t uiAdditionalSize)
+{
+	CUnknown* pcUnknown;
+	char(*acDebug)[4];
 
 	if (StrEmpty(szClassName))
 	{
@@ -102,7 +112,7 @@ CUnknown* CUnknowns::Add(char* szClassName)
 		return NULL;
 	}
 
-	pcUnknown = (CUnknown*)mpcConstructors->Construct(szClassName, mpcMalloc, &acDebug);
+	pcUnknown = (CUnknown*)mpcConstructors->Construct(szClassName, mpcMalloc, uiAdditionalSize, &acDebug);
 	if (pcUnknown)
 	{
 		return AddExisting(pcUnknown, acDebug);
@@ -110,7 +120,7 @@ CUnknown* CUnknowns::Add(char* szClassName)
 	else
 	{
 		gcLogger.Error2(__METHOD__, " No constructor found for class [", szClassName, "].", NULL);
-		return NULL;	
+		return NULL;
 	}
 }
 

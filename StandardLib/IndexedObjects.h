@@ -39,6 +39,7 @@ public:
 	void			Init(void);
 	void			Kill(void);
 	CBaseObject*	Get(OIndex oi);
+	BOOL			Has(OIndex oi);
 	BOOL			Add(OIndex oi, CBaseObject* pvMemory);
 	BOOL			Remove(OIndex oi);
 	int				NumIndexed(void);

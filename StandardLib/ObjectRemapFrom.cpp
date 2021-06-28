@@ -6,7 +6,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CObjectRemapFrom::Remap(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew, BOOL bClearOldIndex)
+int CObjectRemapFrom::Remap(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew)
 {
 	int					iCount;
 	CEmbeddedObject*	pcEmbeddedOld;
@@ -27,11 +27,6 @@ int CObjectRemapFrom::Remap(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew, BOOL
 		iCount += RemapEmbedded(pcEmbeddedNew, pcEmbeddedOld);
 	}
 
-	if (bClearOldIndex)
-	{
-		pcOld->ClearIndex();
-		pcOld->ClearName();
-	}
 	pcOld->KillInternal(bHeapFromChanged);
 
 	return iCount;

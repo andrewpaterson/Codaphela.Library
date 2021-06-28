@@ -39,19 +39,23 @@ public:
 	void				ReInit(void);
 	CBaseObject*		Get(OIndex oi);
 	CBaseObject*		Get(char* szName);
-	BOOL				AddWithID(CBaseObject* pvObject, OIndex oi);
-	BOOL				AddUnitialisedIntoMemoryWithIndexAndName(CBaseObject* pvObject, OIndex oi, char* szName);
-	BOOL				ReplaceWithIDAndName(CBaseObject* pvObject, char* szExistingName, OIndex oi);
+	CBaseObject*		Get(char* szObjectName, OIndex oi);
+	BOOL				Has(OIndex oi);
+	BOOL				Has(char* szName);
+	BOOL				AddUnitialisedIntoMemoryWithIndex(CBaseObject* pvObject);
+	BOOL				AddUnitialisedIntoMemoryWithNameAndIndex(CBaseObject* pvObject);
 	BOOL				RemoveIndex(OIndex oi);
 	BOOL				RemoveName(char* szName);
 	OIndex				NumIndexed(void);
 	int					NumNames(void);
 
 	CIndexedObjects*	GetObjects(void);
+	CIndexTreeMemory*	GetNames(void);
 	CBaseObject*		StartIteration(SIndexesIterator* psIter);
 	CBaseObject*		Iterate(SIndexesIterator* psIter);
 
 	BOOL				ValidateNoDirty(void);
+	BOOL				FreeObjects(void);
 };
 
 

@@ -6,7 +6,7 @@ class CEmbeddedObject;
 class CObjectRemapFrom
 {
 public:
-	int Remap(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew, BOOL bClearOldIndex);
+	int Remap(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew);
 
 private:
 	int RemapEmbedded(CEmbeddedObject* pcNew, CEmbeddedObject* pcOld);

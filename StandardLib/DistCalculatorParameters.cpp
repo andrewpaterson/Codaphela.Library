@@ -21,12 +21,6 @@ void CDistCalculatorParameters::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CDistCalculatorParameters::Kill(void)
 {
-	int x = 3;
-	if (x < 0)
-	{
-		Dump();
-	}
-
 	mapcTouched.Kill();
 	mapcCompletelyDetached.Kill();
 	mapcDetachedFromRoot.Kill();

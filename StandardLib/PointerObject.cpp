@@ -405,7 +405,7 @@ int CPointer::MorphInto(CEmbeddedObject* pcNew)
 	CObjectRemapFrom	cRemapper;
 	int					iCount;
 
-	iCount = cRemapper.Remap(mpcObject, pcNew, FALSE);
+	iCount = cRemapper.Remap(mpcObject, pcNew);
 
 	return iCount;
 }
@@ -598,19 +598,6 @@ void CPointer::Kill(void)
 	if (mpcObject)
 	{
 		return mpcObject->Kill();
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CPointer::ClearIndex(void)
-{
-	if (mpcObject)
-	{
-		mpcObject->ClearIndex();
 	}
 }
 

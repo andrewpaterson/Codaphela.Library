@@ -49,9 +49,28 @@ void CIndexedObjects::Kill(void)
 CBaseObject* CIndexedObjects::Get(OIndex oi)
 {
 	CIndexTreeMemoryAccess	cAccess;
+	CBaseObject*			pcObject;
 
 	cAccess.Init(&mcIndexes);
-	return (CBaseObject*)cAccess.GetLongPtr(oi);
+	pcObject = (CBaseObject*)cAccess.GetLongPtr(oi);
+	cAccess.Kill();
+	return pcObject;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexedObjects::Has(OIndex oi)
+{
+	CIndexTreeMemoryAccess	cAccess;
+	BOOL					bHasObject;
+
+	cAccess.Init(&mcIndexes);
+	bHasObject = cAccess.HasLong(oi);
+	cAccess.Kill();
+	return bHasObject;
 }
 
 
@@ -62,10 +81,12 @@ CBaseObject* CIndexedObjects::Get(OIndex oi)
 BOOL CIndexedObjects::Add(OIndex oi, CBaseObject* pvMemory)
 {
 	CIndexTreeMemoryAccess	cAccess;
+	BOOL					bResult;
 
 	cAccess.Init(&mcIndexes);
-
-	return cAccess.PutLongPtr(oi, pvMemory);
+	bResult = cAccess.PutLongPtr(oi, pvMemory);
+	cAccess.Kill();
+	return bResult;
 }
 
 
@@ -76,9 +97,12 @@ BOOL CIndexedObjects::Add(OIndex oi, CBaseObject* pvMemory)
 BOOL CIndexedObjects::Remove(OIndex oi)
 {
 	CIndexTreeMemoryAccess	cAccess;
+	BOOL					bResult;
 
 	cAccess.Init(&mcIndexes);
-	return cAccess.DeleteLong(oi);
+	bResult =  cAccess.DeleteLong(oi);
+	cAccess.Kill();
+	return bResult;
 }
 
 

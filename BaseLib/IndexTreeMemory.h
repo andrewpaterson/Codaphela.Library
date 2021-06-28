@@ -30,6 +30,7 @@ protected:
 	CIndexTreeNodeMemory*	mpcRoot;
 	int						miSize;
 	CDataFree*				mpcDataFree;
+	//CCountingAllocator		mcMalloc;
 
 public:
 	void					Init(void);
@@ -71,6 +72,8 @@ public:
 	BOOL					ValidateIndexTree(void);
 	CIndexTreeNodeMemory*	GetRoot(void);
 
+	size_t					GetUserMemorySize(void);
+	void					Print(CChars* pszDest, BOOL bShowFlags, BOOL bShowSize);
 	void					Dump(void);
 
 protected:
@@ -117,6 +120,12 @@ protected:
 
 	BOOL					ValidateSize(void);
 	int						RecurseSize(void);
+
+	void					PrintChildren(CChars* pszDest, BOOL bShowFlags, BOOL bShowSize);
+	void					DebugNodeChildren(CChars* pszDest, CIndexTreeNodeMemory* pcCurrent, int uIndexFromParent, BOOL bShowFlags, BOOL bShowSize);
+	void					RecurseDump(CChars* pszDest, CIndexTreeRecursor* pcCursor, BOOL bShowFlags, BOOL bShowSize);
+	void					DebugKey(CChars* pszDest, void* pvKey, int iKeySize, BOOL bSkipRoot, BOOL bShowFlags, BOOL bShowSize, BOOL bKeyAlreadyReversed);
+	CIndexTreeNodeMemory*	DebugNode(CChars* pszDest, CIndexTreeNodeMemory* pcParent, int uiIndexInParent, BOOL bShowFlags, BOOL bShowSize);
 };
 
 

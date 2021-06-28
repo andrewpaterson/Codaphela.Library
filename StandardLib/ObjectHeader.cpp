@@ -101,7 +101,7 @@ char* CObjectIdentifier::GetName(void)
 			return mszObjectName.Text();
 		}
 	}
-	return NULL;
+	return "";
 }
 
 
