@@ -51,7 +51,8 @@ public:
 
 	template<class M>	M*				Add(void);
 	template<class M>	M*				Add(int iAdditionalSize);
-						CUnknown*		Add(char* szClassName);
+						CUnknown*		Add(const char* szClassName);
+						CUnknown*		Add(const char* szClassName, size_t uiAdditionalSize);
 						CUnknown*		AddFromHeader(CFileReader* pcFile);
 
 

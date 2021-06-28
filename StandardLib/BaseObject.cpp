@@ -280,7 +280,7 @@ void CBaseObject::KillInternal(BOOL bHeapFromChanged)
 		RemoveAllStackFroms();  //Handles embedded objects (in Object.RemoveAllStackFroms()).
 		RemoveAllHeapFroms();   //Handles embedded objects (in Object.RemoveAllHeapFroms()).
 
-		InternalFree();         //Handles embedded objects (in Object.InternalFree()).
+		FreeInternal();         //Handles embedded objects (in Object.FreeInternal()).
 	}
 }
 
@@ -331,7 +331,7 @@ BOOL CBaseObject::Flush(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::InternalFree(void)
+void CBaseObject::FreeInternal(void)
 {
 	LOG_OBJECT_DESTRUCTION(this);
 
@@ -340,6 +340,8 @@ void CBaseObject::InternalFree(void)
 
 	//Clean up all the to and from pointers
 	FreePointers();
+
+	FreeIdentifiers();
 
 	SetFlag(OBJECT_FLAGS_FREED, TRUE);
 }
@@ -1044,9 +1046,11 @@ int CBaseObject::GetDistToStack(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::SetIndex(OIndex oi)
+BOOL CBaseObject::InitIdentifiers(const char* szName, OIndex oi)
 {
 	moi = oi;
+	mon.Init(szName);
+	return ClipName();
 }
 
 
@@ -1054,9 +1058,11 @@ void CBaseObject::SetIndex(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::ClearIndex(void)
+void CBaseObject::ClearIdentifiers(void)
 {
-	SetIndex(INVALID_O_INDEX);
+	moi = INVALID_O_INDEX;
+	mon.Kill();
+	mon.Init();
 }
 
 
@@ -1598,17 +1604,6 @@ BOOL CBaseObject::LoadEmbeddedObjectsHeapFroms(CObjectReader* pcFile)
 OIndex CBaseObject::GetIndex(void)
 {
 	return moi;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CBaseObject::SetName(char* szName)
-{
-	mon.Set(szName);
-	return ClipName();
 }
 
 
@@ -2400,7 +2395,7 @@ char* CBaseObject::GetName(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CBaseObject::IsNamed(char* szName)
+BOOL CBaseObject::IsNamed(const char* szName)
 {
 	if (StrEmpty(szName))
 	{
@@ -2410,17 +2405,6 @@ BOOL CBaseObject::IsNamed(char* szName)
 	{
 		return FALSE;
 	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CBaseObject::InitName(char* szName)
-{
-	mon.Init(szName);
-	return ClipName();
 }
 
 
@@ -2445,16 +2429,5 @@ BOOL CBaseObject::ClipName(void)
 	}
 
 	return bResult;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CBaseObject::ClearName(void)
-{
-	mon.Kill();
-	mon.Init();
 }
 

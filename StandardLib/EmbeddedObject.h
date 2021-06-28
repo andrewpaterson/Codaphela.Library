@@ -43,7 +43,7 @@ public:
 
 	virtual void				Evict(void);
 
-	virtual void				InternalFree(void) =0;
+	virtual void				FreeInternal(void) =0;
 	virtual void				FreePointers(void);
 			void				PostRemapFroms(void);
 	virtual BOOL				Save(CObjectWriter* pcFile) =0;
@@ -53,16 +53,14 @@ public:
 	virtual BOOL				SetDistToRoot(int iDistToRoot) =0;
 	virtual void				SetPointerTosExpectedDistToRoot(int iDistToRoot) =0;
 	virtual BOOL				TestedForRoot(void) =0;
-
 	virtual int					GetDistToRoot(void) =0;
 	virtual int					GetDistToStack(void) =0;
 	virtual OIndex				GetIndex(void);
 	virtual BOOL				IsNamed(void);
 	virtual char*				GetName(void);
+	virtual void				ClearIdentifiers(void);
 	virtual BOOL				IsDirty(void) =0;
 	virtual void				SetDirty(BOOL bDirty) =0;
-	virtual void				ClearIndex(void);
-	virtual void				ClearName(void);
 	virtual BOOL				IsBaseObject(void);
 	virtual void				RemovePointerTo(CEmbeddedObject* pcTo) =0;
 			CBaseObject*		GetEmbeddingContainer(void);

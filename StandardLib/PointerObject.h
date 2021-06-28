@@ -80,7 +80,6 @@ public:
 	BOOL				IsDirty(void);
 	BOOL				IsEmbeddingAllocatedInObjects(void);
 	void				Kill(void);
-	void				ClearIndex(void);
 	void				AssignObject(CEmbeddedObject* pcObject);
 	CEmbeddedObject*	Dereference(void);
 	CEmbeddedObject*	DereferenceArrow(void);

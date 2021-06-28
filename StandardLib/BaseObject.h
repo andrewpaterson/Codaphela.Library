@@ -101,6 +101,7 @@ protected:
 	virtual	void				Class(void) =0;
 
 public:
+			BOOL				InitIdentifiers(const char* szName, OIndex oi);
 			void				Kill(void) override;
 	virtual void				Free(void) =0;
 	virtual BOOL				Flush(void);
@@ -108,16 +109,15 @@ public:
 			BOOL				Save(CObjectWriter* pcFile) override;
 			BOOL				Load(CObjectReader* pcFile) override;
 
-			OIndex				GetIndex(void);
-			void				SetIndex(OIndex oi);  //This looks like a bad idea.
-			void				ClearIndex(void);  //This looks like a bad idea.
+			OIndex				GetIndex(void) override;
+			void				ClearIdentifiers(void) override;
 
 			BOOL				IsRoot(void);
 	virtual BOOL				IsSubRoot(void);
 			BOOL				IsHollow(void);
 	virtual BOOL				IsCollection(void) =0;
 	virtual BOOL				IsObject(void) =0;
-	virtual BOOL				IsNamed(void);
+			BOOL				IsNamed(void) override;
 			BOOL				IsInvalidated(void);
 			BOOL				IsDirty(void);
 			BOOL				IsUpdateAttachedPointerTosDistToRoot(void);
@@ -125,10 +125,9 @@ public:
 			BOOL				HasClass(void);
 			CClass*				GetClass(void);
 			BOOL				IsKilled(void);
-			BOOL				IsNamed(char* szName);
+			BOOL				IsNamed(const char* szName);
 
-	virtual char*				GetName(void);
-	virtual BOOL				SetName(char* szName);
+			char*				GetName(void) override;
 			int					SerialisedSize(void);
 	virtual char*				GetIdentifier(CChars* psz);
 
@@ -197,7 +196,7 @@ protected:
 	virtual void				Initialised(void);
 	virtual	void				EmbedFields(void) =0;
 
-			void				InternalFree(void) override;
+			void				FreeInternal(void) override;
 			void				KillInternal(BOOL bHeapFromChanged) override;
 			void				TryFree(BOOL bKillIfNoRoot, BOOL bHeapFromChanged);
 
@@ -226,8 +225,6 @@ protected:
 			void				ContainerPreInit(void);
 			void				ContainerPostInit(void);
 
-			void				ClearName(void);
-
 			BOOL				SaveEmbeddedObjectsManaged(CObjectWriter* pcFile);
 			BOOL				SavePointers(CObjectWriter* pcFile);
 			BOOL				SavePrimitives(CObjectWriter* pcFile);
@@ -242,7 +239,6 @@ protected:
 	virtual void				BaseValidatePointerTos(void) =0;
 
 private:
-			BOOL				InitName(char* szName);
 			BOOL				ClipName(void);
 };
 

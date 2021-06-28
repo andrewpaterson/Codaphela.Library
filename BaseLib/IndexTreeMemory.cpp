@@ -1177,8 +1177,290 @@ BOOL CIndexTreeMemory::ValidateIndexTree(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+size_t CIndexTreeMemory::GetUserMemorySize(void)
+{
+	return 0; //mcMalloc.AllocatedUserSize();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexTreeMemory::Print(CChars* pszDest, BOOL bShowFlags, BOOL bShowSize)
+{
+	CChars				sz;
+
+	sz.Init();
+	sz.Append("= [IndexTreeMemory]");
+	if (bShowSize)
+	{
+		sz.Append("[");
+		sz.Append((unsigned long long int)this->GetUserMemorySize());
+		sz.Append("] ");
+	}
+
+	sz.Append('=', mpcRoot->NumIndexes() * 2 - sz.Length() + 18);
+	pszDest->AppendNewLine(sz);
+	sz.Kill();
+
+	PrintChildren(pszDest, bShowFlags, bShowSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CIndexTreeMemory::Dump(void)
 {
+	CChars				sz;
+
+	sz.Init();
+	Print(&sz, TRUE, TRUE);
+	sz.Dump();
+	sz.Kill();
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexTreeMemory::PrintChildren(CChars* pszDest, BOOL bShowFlags, BOOL bShowSize)
+{
+	CIndexTreeRecursor	cCursor;
+
+	cCursor.Init(mpcRoot);
+
+	DebugNodeChildren(pszDest, mpcRoot, -1, bShowFlags, bShowSize);
+	RecurseDump(pszDest, &cCursor, bShowFlags, bShowSize);
+
+	cCursor.Kill();
+}
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void AppendIndexTreeMemoryNodeDescrition(CChars* psz, CIndexTreeNodeMemory* pcCurrent, int uIndexFromParent)
+{
+	char	szArrow[] = " -> ";
+	BOOL	bHasChildren;
+	BOOL	bHasObject;
+
+	if (uIndexFromParent == -1)
+	{
+		psz->Append("  root -> ");
+	}
+	else
+	{
+		if ((uIndexFromParent >= 32) && (uIndexFromParent <= 126))
+		{
+			psz->Append("  ");
+			psz->Append((char)uIndexFromParent);
+		}
+		else
+		{
+			if (uIndexFromParent < 10)
+			{
+				psz->Append("  ");
+			}
+			else if (uIndexFromParent < 100)
+			{
+				psz->Append(" ");
+			}
+			psz->Append(uIndexFromParent);
+		}
+
+		bHasObject = pcCurrent->HasData();
+		if (bHasObject)
+		{
+			psz->Append("(X)");
+		}
+		else
+		{
+			psz->Append("   ");
+		}
+
+		bHasChildren = pcCurrent->HasNodes();
+		if (bHasChildren)
+		{
+			psz->Append(szArrow);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexTreeMemory::DebugNodeChildren(CChars* pszDest, CIndexTreeNodeMemory* pcCurrent, int uIndexFromParent, BOOL bShowFlags, BOOL bShowSize)
+{
+	CChars	szMemory;
+	CChars	sz;
+	CChars	szFlags;
+
+	szMemory.Init();
+	AppendIndexTreeMemoryNodeDescrition(&szMemory, pcCurrent, uIndexFromParent);
+
+	szFlags.Init();
+	if (bShowFlags)
+	{
+		szFlags.Append(" (");
+		pcCurrent->GetFlagsString(&szFlags);
+		szFlags.Append(")");
+	}
+	if (bShowSize)
+	{
+		szFlags.Append(" [");
+		szFlags.Append(pcCurrent->CalculateRequiredNodeSizeForCurrent());
+		szFlags.Append("]");
+	}
+
+	sz.Init();
+	sz.Append(" Memory: ");
+	sz.Append(szMemory);
+	sz.Append(&szFlags);
+	pszDest->AppendNewLine(sz);
+	sz.Kill();
+
+	szFlags.Kill();
+	szMemory.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexTreeMemory::RecurseDump(CChars* pszDest, CIndexTreeRecursor* pcCursor, BOOL bShowFlags, BOOL bShowSize)
+{
+	CIndexTreeNodeMemory*	pcNode;
+	int						i;
+	int						iKeySize;
+	CIndexTreeNodeMemory*	pcChild;
+	CStackMemory<32>		cStack;
+	char*					pvKey;
+	CChars					szKey;
+	BOOL					bHasNodes;
+	BOOL					bHasData;
+	unsigned char			iFirst;
+	unsigned char			iLast;
+
+	pcNode = (CIndexTreeNodeMemory*)pcCursor->GetNode();
+	if (pcNode != NULL)
+	{
+		bHasNodes = pcNode->HasNodes();
+		bHasData = pcNode->HasData();
+		if (bHasData)
+		{
+			iKeySize = GetNodeKeySize(pcNode);
+			pvKey = (char*)cStack.Init(iKeySize);
+			GetNodeKey(pcNode, pvKey, iKeySize);
+
+			szKey.Init("Key: ------------- [");
+			szKey.AppendData2((const char*)pvKey, iKeySize);
+			szKey.Append("] -------------");
+			pszDest->AppendNewLine(szKey);
+			szKey.Kill();
+
+			DebugKey(pszDest, pvKey, iKeySize, TRUE, bShowFlags, bShowSize, FALSE);
+			cStack.Kill();
+		}
+
+		if (bHasNodes)
+		{
+			iFirst = pcNode->GetFirstIndex();
+			iLast = pcNode->GetLastIndex();
+
+			for (i = iFirst; i <= iLast; i++)
+			{
+				pcChild = pcNode->Get(i);
+				pcCursor->Push(pcChild, i);
+				RecurseDump(pszDest, pcCursor, bShowFlags, bShowSize);
+			}
+		}
+	}
+	pcCursor->Pop();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexTreeMemory::DebugKey(CChars* pszDest, void* pvKey, int iKeySize, BOOL bSkipRoot, BOOL bShowFlags, BOOL bShowSize, BOOL bKeyAlreadyReversed)
+{
+	CIndexTreeNodeMemory*	pcCurrent;
+	unsigned char			c;
+	int						i;
+	BOOL					bExecute;
+
+	pcCurrent = mpcRoot;
+
+	if (!bSkipRoot)
+	{
+		DebugNodeChildren(pszDest, pcCurrent, -1, bShowFlags, bShowSize);
+	}
+
+	if (bKeyAlreadyReversed)
+	{
+		i = 0;
+		bExecute = i < iKeySize;
+	}
+	else
+	{
+		bExecute = StartKey(&i, iKeySize);
+	}
+
+	while (bExecute)
+	{
+		c = ((unsigned char*)pvKey)[i];
+		if (pcCurrent != NULL)
+		{
+			pcCurrent = DebugNode(pszDest, pcCurrent, c, bShowFlags, bShowSize);
+		}
+		else
+		{
+			pszDest->Append("Broken Node!");
+			pszDest->AppendNewLine();
+		}
+
+		if (bKeyAlreadyReversed)
+		{
+			i++;
+			bExecute = i < iKeySize;
+		}
+		else
+		{
+			bExecute = LoopKey(&i, iKeySize);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CIndexTreeNodeMemory* CIndexTreeMemory::DebugNode(CChars* pszDest, CIndexTreeNodeMemory* pcParent, int uiIndexInParent, BOOL bShowFlags, BOOL bShowSize)
+{
+	CIndexTreeNodeMemory* pcChild;
+
+	pcChild = pcParent->Get(uiIndexInParent);
+	if (pcChild)
+	{
+		DebugNodeChildren(pszDest, pcChild, uiIndexInParent, bShowFlags, bShowSize);
+		return pcChild;
+	}
+	else
+	{
+		//Data for key does not exist.
+		return NULL;
+	}
 }
 
 
@@ -1238,7 +1520,7 @@ size_t CIndexTreeMemory::RecurseByteSize(CIndexTreeNodeMemory* pcNode)
 {
 	int						i;
 	CIndexTreeNodeMemory*	pcChild;
-	uint16			uiSize;
+	uint16					uiSize;
 	size_t					tSize;
 
 	tSize = 0;

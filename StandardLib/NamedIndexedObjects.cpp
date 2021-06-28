@@ -96,6 +96,66 @@ CBaseObject* CNamedIndexedObjects::Get(char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+CBaseObject* CNamedIndexedObjects::Get(char* szObjectName, OIndex oi)
+{
+	CBaseObject* pvObject;
+
+	pvObject = Get(szObjectName);
+	if (pvObject)
+	{
+		if (pvObject->GetIndex() != oi)
+		{
+			gcLogger.Error2(__METHOD__, " Cannot get object named [", szObjectName, "].  Mismatch expected index [", IndexToString(oi), "] with object index [", IndexToString(pvObject->GetIndex()), "].", NULL);
+		}
+		return pvObject;
+	}
+
+	pvObject = Get(oi);
+	if (pvObject)
+	{
+		if (StringCompare(pvObject->GetName(), szObjectName) != 0)
+		{
+			gcLogger.Error2(__METHOD__, " Cannot get object with index [", IndexToString(oi), "].  Mismatch expected name [", szObjectName, "] with object name [", pvObject->GetName(), "].", NULL);
+		}
+		return pvObject;
+	}
+	else
+	{
+		return NULL;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CNamedIndexedObjects::Has(OIndex oi)
+{
+	return mcMemoryIndexedObjects.Has(oi);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CNamedIndexedObjects::Has(char* szName)
+{
+	CIndexTreeMemoryAccess	cAccess;
+	BOOL					bHasObject;
+
+	cAccess.Init(&mcMemoryNames);
+	bHasObject = cAccess.HasString(szName);
+	cAccess.Kill();
+	return bHasObject;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL CNamedIndexedObjects::RemoveIndex(OIndex oi)
 {
 	BOOL	bResult;
@@ -131,73 +191,25 @@ BOOL CNamedIndexedObjects::RemoveName(char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNamedIndexedObjects::AddWithID(CBaseObject* pvObject, OIndex oi)
+BOOL CNamedIndexedObjects::AddUnitialisedIntoMemoryWithIndex(CBaseObject* pvObject)
 {
-	BOOL				bResult;
+	BOOL	bResult;
+	OIndex	oi;
+	BOOL	bHasObject;
 
+	oi = pvObject->GetIndex();
 	if (!IsValidIndex(oi))
 	{
-		return gcLogger.Error2(__METHOD__, " Cannot add object with an invalid index [", LongLongToString(oi), " ].", NULL);
+		return gcLogger.Error2(__METHOD__, " Cannot add object with an invalid index [", IndexToString(oi), " ].", NULL);
+	}
+
+	bHasObject = Has(oi);
+	if (bHasObject)
+	{
+		return gcLogger.Error2(__METHOD__, " Cannot add object with index[", IndexToString(oi), "].  It already exists.", NULL);
 	}
 
 	bResult = mcMemoryIndexedObjects.Add(oi, pvObject);
-	if (bResult)
-	{
-		pvObject->SetIndex(oi);
-		bResult = pvObject->InitName("");
-		return bResult;
-	}
-	else
-	{
-		return FALSE;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CNamedIndexedObjects::AddUnitialisedIntoMemoryWithIndexAndName(CBaseObject* pvObject, OIndex oi, char* szName)
-{
-	BOOL					bResult;
-	CIndexTreeMemoryAccess	cAccess;
-	BOOL					bHasObject;
-
-	if (StrEmpty(szName))
-	{
-		return gcLogger.Error2(__METHOD__, " Cannot add object with an empty name.", NULL);
-	}
-
-	if (!IsValidIndex(oi))
-	{
-		return gcLogger.Error2(__METHOD__, " Cannot add object with name [", szName, "] and invalid index [", LongLongToString(oi), " ].", NULL);
-	}
-
-
-	cAccess.Init(&mcMemoryNames);
-	bHasObject = cAccess.HasString(szName);
-	cAccess.Kill();
-	if (bHasObject)
-	{
-		return gcLogger.Error2(__METHOD__, " Cannot add object named [", szName, "].  It already exists.", NULL);
-	}
-
-	bResult = AddWithID(pvObject, oi);
-	if (!bResult)
-	{
-		char sz[32];
-
-		return gcLogger.Error2(__METHOD__, " Cannot add object named [", szName, "].  An index [", IToA(oi, sz, 10), "] already exists.", NULL);
-	}
-
-	bResult = pvObject->InitName(szName);
-
-	cAccess.Init(&mcMemoryNames);
-	szName = (char*)cAccess.PutStringLong(szName, oi);
-	bResult = szName != NULL;
-	cAccess.Kill();
-
 	return bResult;
 }
 
@@ -206,31 +218,50 @@ BOOL CNamedIndexedObjects::AddUnitialisedIntoMemoryWithIndexAndName(CBaseObject*
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNamedIndexedObjects::ReplaceWithIDAndName(CBaseObject* pvObject, char* szExistingName, OIndex oi)
+BOOL CNamedIndexedObjects::AddUnitialisedIntoMemoryWithNameAndIndex(CBaseObject* pvObject)
 {
 	BOOL					bResult;
+	BOOL					bHasObject;
+	OIndex					oi;
+	char*					szName;
 	CIndexTreeMemoryAccess	cAccess;
 
-	//This does nothing meaningful.  The old object still exists believing it is named szExistingName too.
-	bResult = AddWithID(pvObject, oi);
+	oi = pvObject->GetIndex();
+	szName = pvObject->GetName();
+	if (StrEmpty(szName))
+	{
+		return gcLogger.Error2(__METHOD__, " Cannot add object with an empty name.", NULL);
+	}
+
+	if (!IsValidIndex(oi))
+	{
+		return gcLogger.Error2(__METHOD__, " Cannot add object named [", szName, "] with invalid index [", IndexToString(oi), " ].", NULL);
+	}
+
+
+	bHasObject = Has(szName);
+	if (bHasObject)
+	{
+		return gcLogger.Error2(__METHOD__, " Cannot add object named [", szName, "].  It already exists.", NULL);
+	}
+
+	bHasObject = Has(oi);
+	if (bHasObject)
+	{
+		return gcLogger.Error2(__METHOD__, " Cannot add object with index[", IndexToString(oi), "].  It already exists.", NULL);
+	}
+
+	bResult = mcMemoryIndexedObjects.Add(oi, pvObject);
 	if (!bResult)
 	{
-		char sz[32];
-
-		gcLogger.Error2(__METHOD__, " Cannot add object named [", szExistingName, "].  An index [", IToA(oi, sz, 10), "] already exists.", NULL);
 		return FALSE;
 	}
+	
+	cAccess.Init(&mcMemoryNames);
+	szName = (char*)cAccess.PutStringLong(szName, oi);
+	bResult = szName != NULL;
+	cAccess.Kill();
 
-	bResult = pvObject->SetName(szExistingName);
-
-	if (!StrEmpty(szExistingName))
-	{
-		cAccess.Init(&mcMemoryNames);
-		oi = pvObject->GetIndex();
-		szExistingName = (char*)cAccess.PutStringLong(szExistingName, oi);
-		bResult = szExistingName != NULL;
-		cAccess.Kill();
-	}
 	return bResult;
 }
 
@@ -262,6 +293,16 @@ int CNamedIndexedObjects::NumNames(void)
 CIndexedObjects* CNamedIndexedObjects::GetObjects(void)
 {
 	return &mcMemoryIndexedObjects;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CIndexTreeMemory* CNamedIndexedObjects::GetNames(void)
+{
+	return &mcMemoryNames;
 }
 
 
@@ -330,6 +371,27 @@ BOOL CNamedIndexedObjects::ValidateNoDirty(void)
 			pcObject->GetIdentifier(&szIdentifier);
 			return gcLogger.Error2(__METHOD__, " Object [", szIdentifier.Text(), "] is dirty.", NULL);
 		}
+		oi = mcMemoryIndexedObjects.Iterate(&sIter);
+	}
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CNamedIndexedObjects::FreeObjects(void)
+{
+	SIndexesIterator	sIter;
+	OIndex				oi;
+	CBaseObject*		pcObject;
+
+	oi = mcMemoryIndexedObjects.StartIteration(&sIter);
+	while (oi != INVALID_O_INDEX)
+	{
+		pcObject = Get(oi);
+		pcObject->FreeInternal();
 		oi = mcMemoryIndexedObjects.Iterate(&sIter);
 	}
 	return TRUE;

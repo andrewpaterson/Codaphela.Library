@@ -24,7 +24,7 @@ void CDependentReadObjects::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDependentReadObjects::AddHeapFrom(CEmbeddedObject* pcBaseObject, CEmbeddedObject** ppcPointedFrom, CBaseObject* pcContaining)
+void CDependentReadObjects::AddHeapFrom(CEmbeddedObject* pcBaseObject, CBaseObject* pcContaining)
 {
 	if (pcContaining)
 	{

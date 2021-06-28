@@ -55,7 +55,6 @@ Ptr<SpecificClass> ONMalloc(const char* szObjectName, Args ... args);
 
 
 class CHollowObject;
-class CNamedHollowObject;
 class CObjects
 {
 friend class CBaseObject;
@@ -115,9 +114,8 @@ public:
 						CBaseObject*			Dehollow(OIndex oi);
 						CBaseObject*			Dehollow(char* szObjectName);
 
-						CBaseObject*			ReplaceBaseObject(CBaseObject* pvExisting, CBaseObject* pvObject);
-						BOOL					Dename(CBaseObject* pvObject);
-						BOOL					Deindex(CBaseObject* pvObject);
+						BOOL					ReplaceBaseObject(CBaseObject* pvExisting, CBaseObject* pvObject);
+						BOOL					RemoveFromMemory(CBaseObject* pvObject);
 
 						CStackPointers*			GetStackPointers(void);
 						CClasses*				GetClasses(void);
@@ -137,13 +135,17 @@ protected:
 						Ptr<CRoot>				GetRoot(void);
 						BOOL					HasRoot(void);
 
-						BOOL					AddObjectIntoMemoryWithIndex(CBaseObject* pvObject, OIndex oi);
-						BOOL					AddUnitialisedIntoMemoryWithIndexAndName(CBaseObject* pvObject, char* szObjectName, OIndex oi);
+						BOOL					AddUnitialisedIntoMemoryWithIndex(CBaseObject* pvObject);
+						BOOL					AddUnitialisedIntoMemoryWithNameAndIndex(CBaseObject* pvObject);
 	template<class M> 	Ptr<M>					PointTo(M* pcObject);
 	template<class M> 	Ptr<M>					PointToSetDirty(M* pcObject);
-	template<class M>	M*						AllocateUninitialisedByTemplate(int iAdditionalBytes);
-						CBaseObject*			AllocateUninitialisedByClassName(char* szClassName);
-						BOOL					ValidateCanAllocate(char* szClassName);
+	template<class M>	M*						AllocateUninitialisedByTemplate(void);
+	template<class M>	M*						AllocateUninitialisedByTemplate(const char* szObjectName);
+	template<class M>	M*						AllocateUninitialisedByTemplate(OIndex oi, int iAdditionalBytes);
+	template<class M>	M*						AllocateUninitialisedByTemplate(const char* szObjectName, OIndex oi, int iAdditionalBytes);
+						CBaseObject*			AllocateUninitialisedByClassName(const char* szClassName, OIndex oi);
+						CBaseObject*			AllocateUninitialisedByClassName(const char* szClassName, const char* szObjectName, OIndex oi);
+						BOOL					ValidateCanAllocate(const char* szClassName);
 						BOOL					ValidateCanAllocate(void);
 						CBaseObject*			GetFromMemory(OIndex oi);
 						CBaseObject*			GetFromMemory(char* szObjectName);
@@ -154,7 +156,7 @@ protected:
 						OIndex					GetNextIndex(void);
 						
 						void					KillDontFreeObjects(CArrayBlockObjectPtr* papcObjectPts);
-						void					FreeObjects(CArrayBlockObjectPtr* papcObjectPts);
+						void					KillObjects(CArrayBlockObjectPtr* papcObjectPts);
 						void					FreeObject(CBaseObject* pvObject);
 
 						void					RecurseDumpGraph(CChars* psz, CEmbeddedObject* pcObject, int iLevel, BOOL bEmbedded);
@@ -162,25 +164,23 @@ protected:
 						void					ValidateIndexedObjects(void);
 						void					ClearValidationFlags(void);
 						void					RecurseValidateSceneGraph(CBaseObject* pcBaseObject);
-						CHollowObject*			AllocateHollow(uint16 iNumEmbedded);
+						CHollowObject*			AllocateHollow(uint16 iNumEmbedded, OIndex oi);
+						CHollowObject*			AllocateHollow(uint16 iNumEmbedded, const char* szObjectName, OIndex oi);
 						void					AppenedHollowEmbeddedObjects(CBaseObject* pcHollow, uint16 iNumEmbedded, void* pvEmbedded) ;
 						void					PrintMemory(CChars* psz);
 
-						template<class M>	M*	AllocateUnitialisedByTemplate(void);
-						template<class M>	M*	AllocateUnitialisedByTemplate(char* szObjectName);
 public:
 						CBaseObject*			AllocateUninitialisedByClassNameAndAddIntoMemory(char* szClassName);
 						CBaseObject*			AllocateNamedUninitialisedByClassNameAndAddIntoMemory(char* szClassName, char* szObjectName);
 
 						CBaseObject*			GetNamedObjectInMemoryAndReplaceOrAllocateUnitialised(char* szClassName, char* szObjectName);  //This mean overwrite an existing object with a new object (with the same name).
-						CBaseObject*			GetObjectInMemoryAndReplaceOrAllocateUnitialised(char* szClassName, OIndex oi);
-						CBaseObject*			GetObjectInMemoryOrAllocateHollowForceIndex(OIndex oi, uint16 iNumEmbedded);
+						CBaseObject*			AllocateForInternalDeserialisationWithIndex(char* szClassName, OIndex oi);
+						CHollowObject*			AllocateHollowWithIndex(OIndex oi, uint16 iNumEmbedded);
 						CBaseObject*			GetNamedObjectInMemoryOrAllocateHollow(char* szObjectName, uint16 iNumEmbedded);
-						CBaseObject*			GetNamedObjectInMemoryOrAllocateHollowForceIndex(char* szObjectName, OIndex oi, uint16 iNumEmbedded);
+						CHollowObject*			AllocateHollowWithNameAndIndex(char* szObjectName, OIndex oi, uint16 iNumEmbedded);
 
 protected:
-						CBaseObject*			ReplaceExisting(CBaseObject* pvExisting, CBaseObject* pvObject, OIndex oiForced);
-						CBaseObject*			AllocateForExistingInDatabaseWithExplicitIdentifiers(char* szClassName, char* szObjectName, OIndex oiForced, OIndex* poiExisting);
+						CBaseObject*			AllocateForInternalDeserialisationWithNameAndIndex(char* szClassName, char* szObjectName, OIndex oiForced, OIndex* poiExisting);
 };
 
 
@@ -203,7 +203,7 @@ void LogObjectDestruction(CBaseObject* pcObject, char* szMethod);
 //
 //////////////////////////////////////////////////////////////////////////
 template<class SpecificClass>
-SpecificClass* CObjects::AllocateUninitialisedByTemplate(int iAdditionalBytes)
+SpecificClass* CObjects::AllocateUninitialisedByTemplate(OIndex oi, int iAdditionalBytes)
 {
 	SpecificClass*	pcObject;
 	BOOL			bResult;
@@ -218,6 +218,7 @@ SpecificClass* CObjects::AllocateUninitialisedByTemplate(int iAdditionalBytes)
 	if (pcObject)
 	{
 		pcObject->Allocate(this);
+		pcObject->InitIdentifiers("", oi);
 	}
 	return pcObject;
 }
@@ -228,27 +229,24 @@ SpecificClass* CObjects::AllocateUninitialisedByTemplate(int iAdditionalBytes)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class SpecificClass>
-SpecificClass* CObjects::AllocateUnitialisedByTemplate(void)
+SpecificClass* CObjects::AllocateUninitialisedByTemplate(const char* szObjectName, OIndex oi, int iAdditionalBytes)
 {
-	SpecificClass*	pvObject;
-	OIndex			oi;
+	SpecificClass*	pcObject;
 	BOOL			bResult;
 
-	pvObject = AllocateUninitialisedByTemplate<SpecificClass>(0);
-	if (!pvObject)
-	{
-		return pvObject;
-	}
-
-	oi = GetIndexGenerator()->GetNext();
-	bResult = AddObjectIntoMemoryWithIndex(pvObject, oi);
+	bResult = ValidateCanAllocate();
 	if (!bResult)
 	{
-		mpcUnknownsAllocatingFrom->RemoveInKill(pvObject);
 		return NULL;
 	}
 
-	return pvObject;
+	pcObject = mpcUnknownsAllocatingFrom->Add<SpecificClass>(iAdditionalBytes);
+	if (pcObject)
+	{
+		pcObject->Allocate(this);
+		pcObject->InitIdentifiers(szObjectName, oi);
+	}
+	return pcObject;
 }
 
 
@@ -257,23 +255,26 @@ SpecificClass* CObjects::AllocateUnitialisedByTemplate(void)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class SpecificClass>
-SpecificClass* CObjects::AllocateUnitialisedByTemplate(char* szObjectName)
+SpecificClass* CObjects::AllocateUninitialisedByTemplate(void)
 {
-	SpecificClass*	pvObject;
-	BOOL			bResult;
-	OIndex			oi;
+	OIndex	oi;
 
-	pvObject = AllocateUninitialisedByTemplate<SpecificClass>(0);
+	oi = GetIndexGenerator()->GetNext();
+	return AllocateUninitialisedByTemplate<SpecificClass>(oi, 0);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class SpecificClass>
+SpecificClass* CObjects::AllocateUninitialisedByTemplate(const char* szObjectName)
+{
+	OIndex	oi;
 
 	oi = GetNextIndex();
-	bResult = AddUnitialisedIntoMemoryWithIndexAndName(pvObject, szObjectName, oi);
-	if (!bResult)
-	{
-		mpcUnknownsAllocatingFrom->RemoveInKill(pvObject);
-		return NULL;
-	}
-
-	return pvObject;
+	return AllocateUninitialisedByTemplate<SpecificClass>(szObjectName, oi, 0);
 }
 
 
@@ -331,8 +332,25 @@ Ptr<SpecificClass> CObjects::PointToSetDirty(SpecificClass* pcObject)
 template<class SpecificClass>
 Ptr<SpecificClass> CObjects::Malloc(void)
 {
-	SpecificClass* pcObject = AllocateUnitialisedByTemplate<SpecificClass>();
-	return PointToSetDirty(pcObject);
+	BOOL			bResult;
+	SpecificClass*	pcObject = AllocateUninitialisedByTemplate<SpecificClass>();
+	if (pcObject)
+	{
+		bResult = AddUnitialisedIntoMemoryWithIndex(pcObject);
+		if (bResult)
+		{
+			return PointToSetDirty(pcObject);
+		}
+		else
+		{
+			pcObject->KillInternal(FALSE);
+			return NULL;
+		}
+	}
+	else
+	{
+		return NULL;
+	}
 }
 
 
@@ -343,8 +361,25 @@ Ptr<SpecificClass> CObjects::Malloc(void)
 template<class SpecificClass>
 Ptr<SpecificClass> CObjects::Malloc(char* szObjectName)
 {
-	SpecificClass* pcObject = AllocateUnitialisedByTemplate<SpecificClass>(szObjectName);
-	return PointToSetDirty(pcObject);
+	BOOL			bResult;
+	SpecificClass*	pcObject = AllocateUninitialisedByTemplate<SpecificClass>(szObjectName);
+	if (pcObject)
+	{
+		bResult = AddUnitialisedIntoMemoryWithNameAndIndex(pcObject);
+		if (bResult)
+		{
+			return PointToSetDirty(pcObject);
+		}
+		else
+		{
+			pcObject->KillInternal(FALSE);
+			return NULL;
+		}
+	}
+	else
+	{
+		return NULL;
+	}
 }
 
 
