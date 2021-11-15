@@ -251,7 +251,7 @@ A	, 			Comma.  This operator can just fuck-off already!
 	mszReservedWords.Add("not");
 	mszReservedWords.Add("or");
 	mszReservedWords.Add("xor");
-
+	
 	maszCallStack.Init();
 }
 
