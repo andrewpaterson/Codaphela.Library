@@ -64,17 +64,17 @@ public:
 	void			Init(void);
 	void			Kill(void);
 
-	int				Add(long long int lliID, char* szText, char* szLastCharInclusive = NULL);
+	int				Add(int64 lliID, char* szText, char* szLastCharInclusive = NULL);
 
-	long long int	Get(char* szText, char* szLastCharInclusive = NULL, BOOL bExact = TRUE);
+	int64			Get(char* szText, char* szLastCharInclusive = NULL, BOOL bExact = TRUE);
 
 	BOOL			Remove(char* szText, char* szLastCharInclusive = NULL);
 	BOOL			Remove(EASCIITreeRemoveStyle eStyle, char* szText, char* szLastCharInclusive = NULL);
 
 	int				NumElements(void);
 
-	long long int	StartIteration(SASCIITreeIter* psIter);
-	long long int	Iterate(SASCIITreeIter* psIter);
+	int64			StartIteration(SASCIITreeIter* psIter);
+	int64			Iterate(SASCIITreeIter* psIter);
 
 	BOOL			TestConsistency(void);
 	BOOL			IsEmpty(void);
@@ -89,9 +89,9 @@ public:
 
 //Unprotected for the CPP Parser Lib
 	int				AddIndex(char* szText, char* szLastCharInclusive = NULL);
-	int				AddIndex(long long int lliID, char* szText, char* szLastCharInclusive = NULL);
+	int				AddIndex(int64 lliID, char* szText, char* szLastCharInclusive = NULL);
 	int				AddOrGet(char* szText, char* szLastCharInclusive);
-	int				AddOrGet(long long int iID, char* szText, char* szLastCharInclusive);
+	int				AddOrGet(int64 iID, char* szText, char* szLastCharInclusive);
 	int				GetIndex(char* szText, char* szLastCharInclusive = NULL, BOOL bExact = TRUE);
 	int				GetIndexForNew(char* szText, int iLen);
 	char*			GetWord(int iIndex);
@@ -108,7 +108,7 @@ protected:
 	void			GetBetween(CArrayInt* pcArrayInt, char* szTextFirst, char* szTextFirstszLastCharInclusive, char* szTextSecond, char* szTextSecondszLastCharInclusive);
 	SASCIITreePos*	StackTo(CArrayASCIITreePos* pcStack, CASCIINode* pcNode, int iNode, char* szText);
 
-	int				PrivateAdd(CASCIINode* pcNode, int iNode, int iLen, char* szText, long long int lliID);
+	int				PrivateAdd(CASCIINode* pcNode, int iNode, int iLen, char* szText, int64 lliID);
 	BOOL			PrivateRemove(EASCIITreeRemoveStyle eStyle, CASCIINode* pcNode, int iNode, int iLen, char* szText);
 	void			PrivateMoveLastToRemoved(EASCIITreeRemoveStyle eStyle, CASCIINode* pcNode, int iNode, int iLen, char* szText);
 	int				PrivateGetWordIndex(char* szText, int iLen);

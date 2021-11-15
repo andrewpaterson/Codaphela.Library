@@ -57,7 +57,7 @@ void CASCIITree::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CASCIITree::Add(long long int lliID, char* szText, char* szLastCharInclusive)
+int CASCIITree::Add(int64 lliID, char* szText, char* szLastCharInclusive)
 {
 	int	iResult;
 
@@ -80,7 +80,7 @@ int CASCIITree::AddIndex(char* szText, char* szLastCharInclusive)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CASCIITree::AddIndex(long long int lliID, char* szText, char* szLastCharInclusive)
+int CASCIITree::AddIndex(int64 lliID, char* szText, char* szLastCharInclusive)
 {
 	CASCIINode*		pcNode;
 	CASCIINode*		pcWord;
@@ -145,7 +145,7 @@ int CASCIITree::AddOrGet(char* szText, char* szLastCharInclusive)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CASCIITree::AddOrGet(long long int iID, char* szText, char* szLastCharInclusive)
+int CASCIITree::AddOrGet(int64 iID, char* szText, char* szLastCharInclusive)
 {
 	int		iIndex;
 
@@ -165,7 +165,7 @@ int CASCIITree::AddOrGet(long long int iID, char* szText, char* szLastCharInclus
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CASCIITree::PrivateAdd(CASCIINode* pcNode, int iNode, int iLen, char* szText, long long int lliID)
+int CASCIITree::PrivateAdd(CASCIINode* pcNode, int iNode, int iLen, char* szText, int64 lliID)
 {
 	char			c;
 	int				i;
@@ -332,7 +332,7 @@ int CASCIITree::GetIndex(char* szText, char* szLastCharInclusive, BOOL bExact)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-long long int CASCIITree::Get(char* szText, char* szLastCharInclusive, BOOL bExact)
+int64 CASCIITree::Get(char* szText, char* szLastCharInclusive, BOOL bExact)
 {
 	int			iIndex;
 	CCharsID*	pszid;
@@ -952,7 +952,7 @@ BOOL CASCIITree::IsEmpty(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CASCIITree::Contains(char* szText)
 {
-	long long int	lli;
+	int64	lli;
 
 	if ((szText == NULL) || (szText[0] == '\0'))
 	{
@@ -1102,7 +1102,7 @@ BOOL CASCIITree::TestOnlyValidCharacters(char* szText, int iLen)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-long long int CASCIITree::StartIteration(SASCIITreeIter* psIter)
+int64 CASCIITree::StartIteration(SASCIITreeIter* psIter)
 {
 	psIter->iLetter = -1;
 	psIter->pcNode = NULL;
@@ -1124,7 +1124,7 @@ long long int CASCIITree::StartIteration(SASCIITreeIter* psIter)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-long long int CASCIITree::Iterate(SASCIITreeIter* psIter)
+int64 CASCIITree::Iterate(SASCIITreeIter* psIter)
 {
 	int				iWordEnd;
 	CASCIINode*		psChildNode;
