@@ -104,7 +104,7 @@ void CHeaderNameMap::AddFiles(void)
 //////////////////////////////////////////////////////////////////////////
 void CHeaderNameMap::AddFile(char* szFile)
 {
-	CHeaderFile*	pcHeader;
+	CHeaderFile* pcHeader;
 	CChars			szShortName;
 	CChars			szFullName;
 
@@ -116,7 +116,10 @@ void CHeaderNameMap::AddFile(char* szFile)
 
 	szShortName.Init(szFile);
 	szShortName.Replace('\\', '/');
-	mcFileNames.Put(szShortName.Text(), &pcHeader);
+	if (!mcFileNames.HasKey(szShortName.Text()))
+	{
+		mcFileNames.Put(szShortName.Text(), &pcHeader);
+	}
 	szShortName.Kill();
 }
 
