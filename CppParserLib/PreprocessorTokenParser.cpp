@@ -502,8 +502,8 @@ BOOL CPreprocessorTokenParser::GetFloat(long double* pf)
 {
 	CPPText*				pcText;
 	char					c;
-	unsigned long long int	ulliLeft;
-	unsigned long long int	ulliRight;
+	uint64	ulliLeft;
+	uint64	ulliRight;
 	int						iSign;
 	BOOL					bResult;
 	long double				fLeft;
@@ -597,11 +597,11 @@ BOOL CPreprocessorTokenParser::GetFloat(long double* pf)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPreprocessorTokenParser::GetInteger(unsigned long long int* pulli, BOOL bSkipWhiteSpace, BOOL bTestSign)
+BOOL CPreprocessorTokenParser::GetInteger(uint64* pulli, BOOL bSkipWhiteSpace, BOOL bTestSign)
 {	
 	CPPText*				pcText;
 	char					c;
-	unsigned long long int	ulli;
+	uint64	ulli;
 	int						iSign;
 	BOOL					bResult;
 	int						iNumDecimals;
@@ -686,9 +686,9 @@ BOOL CPreprocessorTokenParser::GetInteger(unsigned long long int* pulli, BOOL bS
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPreprocessorTokenParser::GetDigits(unsigned long long int* pulli, int* piNumDecimals)
+BOOL CPreprocessorTokenParser::GetDigits(uint64* pulli, int* piNumDecimals)
 {
-	unsigned long long int	ulli;
+	uint64	ulli;
 	int						i;
 	CPPText*				pcText;
 	int						iTemp;
@@ -721,9 +721,9 @@ BOOL CPreprocessorTokenParser::GetDigits(unsigned long long int* pulli, int* piN
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPreprocessorTokenParser::GetHexadecimal(unsigned long long int* pulli, int* piNumDigits)
+BOOL CPreprocessorTokenParser::GetHexadecimal(uint64* pulli, int* piNumDigits)
 {
-	unsigned long long int	iNum;
+	uint64	iNum;
 	BOOL					bReturn;
 	int						i;
 	CPPText*				pcText;
@@ -825,9 +825,9 @@ BOOL CPreprocessorTokenParser::GetHexadecimal(unsigned long long int* pulli, int
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPreprocessorTokenParser::GetOctal(unsigned long long int* pulli, int* piNumDigits)
+BOOL CPreprocessorTokenParser::GetOctal(uint64* pulli, int* piNumDigits)
 {
-	unsigned long long int	iNum;
+	uint64	iNum;
 	BOOL					bReturn;
 	int						i;
 	CExternalString			cString;

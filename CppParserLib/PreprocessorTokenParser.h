@@ -75,7 +75,7 @@ public:
 	BOOL 		GetQuotedCharacterSequence(char cOpen, char cClosed, CExternalString* pcSequence);
 	BOOL 		GetStringDoubleQuoted(CExternalString* pcString);
 	BOOL 		GetStringSingleQuoted(CExternalString* pcString, BOOL bSkipWhiteSpace);
-	BOOL		GetInteger(unsigned long long int* pulli, BOOL bSkipWhiteSpace, BOOL bTestSign);
+	BOOL		GetInteger(uint64* pulli, BOOL bSkipWhiteSpace, BOOL bTestSign);
 	BOOL		GetFloat(long double* pf);
 	void 		PushPosition(void);
 	void 		PopPosition(void);
@@ -84,9 +84,9 @@ public:
 	int			Column(void);
 	void		AppendRemaining(CChars* psz);
 	BOOL		AppendRemaining(CChars* psz, CPPAbstractHolder* pcHolder, BOOL bAppending);
-	BOOL		GetDigits(unsigned long long int* pulli, int* piNumDecimals);
-	BOOL		GetHexadecimal(unsigned long long int* pulli, int* piNumDigits);
-	BOOL		GetOctal(unsigned long long int* pulli, int* piNumDigits);
+	BOOL		GetDigits(uint64* pulli, int* piNumDecimals);
+	BOOL		GetHexadecimal(uint64* pulli, int* piNumDigits);
+	BOOL		GetOctal(uint64* pulli, int* piNumDigits);
 	BOOL		HasToken(void);
 	CPPToken*	GetToken(void);
 	BOOL		HasTokens(void);
