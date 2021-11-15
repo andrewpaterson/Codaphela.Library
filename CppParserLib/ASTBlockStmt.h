@@ -18,4 +18,13 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+
 //This is the equivalent of compound statement
+
+#ifndef __A_S_T_BLOCK_STMT_H__
+#define __A_S_T_BLOCK_STMT_H__
+#include "ASTStatement.h"
+
+
+#endif // __A_S_T_BLOCK_STMT_H__
+
