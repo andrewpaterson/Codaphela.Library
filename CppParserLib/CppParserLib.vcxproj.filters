@@ -10,9 +10,6 @@
     <Filter Include="Source\Abstract\Expression">
       <UniqueIdentifier>{6b0554c2-4e54-4f0a-9717-c1a0c4f3773e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Abstract\Expression\Operator">
-      <UniqueIdentifier>{37ebc90e-89d6-4945-b07d-610545e083f0}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source\Abstract\Specifier">
       <UniqueIdentifier>{7ebc2e35-1cf3-4975-854c-76f70ccc05ba}</UniqueIdentifier>
     </Filter>
@@ -70,6 +67,12 @@
     <Filter Include="Source\Preprocessor\ASCII">
       <UniqueIdentifier>{05bb2b1e-ee7e-4155-babf-44a5f1d6365a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Parser\Operator">
+      <UniqueIdentifier>{37ebc90e-89d6-4945-b07d-610545e083f0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Parser\Types">
+      <UniqueIdentifier>{8cfc5778-3a0e-4377-bf98-b9ad12fdcbbc}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AbstractSyntaxTree.cpp">
@@ -96,7 +99,7 @@
     <ClCompile Include="ASTUnaryExpr.cpp">
       <Filter>Source\Abstract\Expression</Filter>
     </ClCompile>
-    <ClCompile Include="TernaryExpr.cpp">
+    <ClCompile Include="ASTTernaryExpr.cpp">
       <Filter>Source\Abstract\Expression</Filter>
     </ClCompile>
     <ClCompile Include="ASTAccessSpec.cpp">
@@ -377,11 +380,11 @@
     <ClInclude Include="ASTUnaryExpr.h">
       <Filter>Source\Abstract\Expression</Filter>
     </ClInclude>
-    <ClInclude Include="TernaryExpr.h">
+    <ClInclude Include="ASTTernaryExpr.h">
       <Filter>Source\Abstract\Expression</Filter>
     </ClInclude>
     <ClInclude Include="SimpleOperator.h">
-      <Filter>Source\Abstract\Expression\Operator</Filter>
+      <Filter>Source\Parser\Operator</Filter>
     </ClInclude>
     <ClInclude Include="ASTAccessSpec.h">
       <Filter>Source\Abstract\Specifier</Filter>
@@ -393,9 +396,6 @@
       <Filter>Source\Abstract\Specifier</Filter>
     </ClInclude>
     <ClInclude Include="ASTSpecifier.h">
-      <Filter>Source\Abstract\Specifier</Filter>
-    </ClInclude>
-    <ClInclude Include="ClassType.h">
       <Filter>Source\Abstract\Specifier</Filter>
     </ClInclude>
     <ClInclude Include="ASTDeclarator.h">
@@ -637,6 +637,9 @@
     </ClInclude>
     <ClInclude Include="CharsIDArray.h">
       <Filter>Source\Preprocessor\ASCII</Filter>
+    </ClInclude>
+    <ClInclude Include="ClassType.h">
+      <Filter>Source\Parser\Types</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

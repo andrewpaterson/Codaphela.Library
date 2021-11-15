@@ -65,3 +65,4 @@ CASTCommon* CAbstractSyntaxTree::Create(AbstractSyntaxTypes eType)
 	}
 	return pcCommon;
 }
+

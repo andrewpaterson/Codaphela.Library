@@ -18,10 +18,10 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __A_S_T_UNARY_EXPR_H__
-#define __A_S_T_UNARY_EXPR_H__
+#ifndef __A_S_T_TERNARY_EXPR_H__
+#define __A_S_T_TERNARY_EXPR_H__
 #include "ASTExpression.h"
 
 
-#endif // __A_S_T_UNARY_EXPR_H__
+#endif // __A_S_T_TERNARY_EXPR_H__
 

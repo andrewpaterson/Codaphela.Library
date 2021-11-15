@@ -185,7 +185,7 @@
     <ClCompile Include="ASTExpression.cpp" />
     <ClCompile Include="ASTUnaryExpr.cpp" />
     <ClCompile Include="CharsIDArray.cpp" />
-    <ClCompile Include="TernaryExpr.cpp" />
+    <ClCompile Include="ASTTernaryExpr.cpp" />
     <ClCompile Include="ASTAccessSpec.cpp" />
     <ClCompile Include="ASTClassSpec.cpp" />
     <ClCompile Include="ASTSimpleSpec.cpp" />
@@ -281,7 +281,7 @@
     <ClInclude Include="ASTUnaryExpr.h" />
     <ClInclude Include="CharsID.h" />
     <ClInclude Include="CharsIDArray.h" />
-    <ClInclude Include="TernaryExpr.h" />
+    <ClInclude Include="ASTTernaryExpr.h" />
     <ClInclude Include="SimpleOperator.h" />
     <ClInclude Include="ASTAccessSpec.h" />
     <ClInclude Include="ASTClassSpec.h" />
