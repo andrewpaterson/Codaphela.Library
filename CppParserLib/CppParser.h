@@ -36,15 +36,15 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 class CCppParser
 {
 public:
-	CAbstractSyntaxTree	mcAST;
-	CTextParser			mcParser;
-	CArrayChars		mszSimpleTypes;
-	CArrayChars		mszSimpleModifiers;
-	CArrayChars		mszAccessSpecifiers;
-	CArrayChars		mszSimpleOperators;
-	CArrayChars		mszReservedWords;
-	char				mszScratchPad[MAX_IDENTIFIER];
-	CArrayChars		maszCallStack;
+	CAbstractSyntaxTree		mcAST;
+	CTextParser				mcParser;
+	CArrayChars				mszSimpleTypes;
+	CArrayChars				mszSimpleModifiers;
+	CArrayChars				mszAccessSpecifiers;
+	CArrayChars				mszSimpleOperators;
+	CArrayChars				mszReservedWords;
+	char					mszScratchPad[MAX_IDENTIFIER];
+	CArrayChars				maszCallStack;
 
 	void 		Init(void);
 	void 		Kill(void);
