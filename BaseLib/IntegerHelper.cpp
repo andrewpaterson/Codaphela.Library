@@ -160,7 +160,7 @@ int CountBits_PopCount64(uint64 x)
 	const uint64 m4 = 0x0f0f0f0f0f0f0f0f;
 	const uint64 m5 = 0x0101010101010101;
 
-	x = x - ((x >> 1) & m1);          //put count of each 2 bits into those 2 bits
+	x = x - ((x >> 1) & m1);        //put count of each 2 bits into those 2 bits
 	x = (x & m2) + ((x >> 2) & m2); //put count of each 4 bits into those 4 bits 
 	x = (x + (x >> 4)) & m4;        //put count of each 8 bits into those 8 bits 
 	return (x * m5) >> 56;
