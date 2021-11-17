@@ -28,7 +28,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 class CCharsID : public CChars
 {
 public:
-	long long int mlliID;
+	int64 mlliID;
 };
 
 

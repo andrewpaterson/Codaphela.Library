@@ -1821,7 +1821,7 @@ uint16 CIndexTreeMemory::GetDataSize(void* pvKey, int iKeySize)
 	pcNode = GetNode(pvKey, iKeySize);
 	if (pcNode == NULL)
 	{
-		return FALSE;
+		return 0;
 	}
 
 	GetReorderData(pcNode);

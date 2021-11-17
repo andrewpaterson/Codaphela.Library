@@ -250,6 +250,9 @@
     <Filter Include="Source\Sort">
       <UniqueIdentifier>{8ed41f70-fa3e-4bba-8d88-956b66b141fe}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Data\Map\Index\String">
+      <UniqueIdentifier>{d7374108-0cc8-4ec3-93e2-6498f1646f2c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DataMacro.h">
@@ -968,6 +971,21 @@
     </ClInclude>
     <ClInclude Include="TimSort.h">
       <Filter>Source\Sort</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexTemplate.h">
+      <Filter>Source\Data\Map\Index</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexStringTemplate.h">
+      <Filter>Source\Data\Map\Index\String</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexStringInt.h">
+      <Filter>Source\Data\Map\Index\String</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexStringPrimitive.h">
+      <Filter>Source\Data\Map\Index\String</Filter>
+    </ClInclude>
+    <ClInclude Include="MapStringPrimitive.h">
+      <Filter>Source\Data\Map\Map\String</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
