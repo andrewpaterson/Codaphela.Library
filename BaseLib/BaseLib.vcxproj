@@ -199,6 +199,10 @@
     <ClInclude Include="GlobalDataTypesIO.h" />
     <ClInclude Include="IndexMapAccess.h" />
     <ClInclude Include="IndexMapIterator.h" />
+    <ClInclude Include="IndexStringInt.h" />
+    <ClInclude Include="IndexStringPrimitive.h" />
+    <ClInclude Include="IndexStringTemplate.h" />
+    <ClInclude Include="IndexTemplate.h" />
     <ClInclude Include="LogToMemory.h" />
     <ClInclude Include="Malloc.h" />
     <ClInclude Include="ArrayBlock.h" />
@@ -289,6 +293,7 @@
     <ClInclude Include="MapNode.h" />
     <ClInclude Include="MapPrimitiveTemplate.h" />
     <ClInclude Include="MapStringBlock.h" />
+    <ClInclude Include="MapStringPrimitive.h" />
     <ClInclude Include="MemoryAllocator.h" />
     <ClInclude Include="Mallocators.h" />
     <ClInclude Include="MemoryBlock.h" />

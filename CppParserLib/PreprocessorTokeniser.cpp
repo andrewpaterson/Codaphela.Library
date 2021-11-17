@@ -250,10 +250,6 @@ EPreprocessorDirective CPreprocessorTokeniser::GetDirective(void)
 	{
 		return PPD_unknown;
 	}
-	else if (iIndex == 0xcccccccc)
-	{
-		return PPD_unknown;
-	}
 	szDirective = mcDirectives.mcWords.Get(iIndex);
 	mcParser.StepRight(szDirective->Length());
 	return (EPreprocessorDirective)iIndex;
