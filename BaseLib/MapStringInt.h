@@ -22,16 +22,12 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __MAP_STRING_INT_H__
 #define __MAP_STRING_INT_H__
-#include "MapStringTemplate.h"
+#include "MapStringPrimitive.h"
 
 
-class CMapStringInt : public CMapStringTemplate<int>
+class CMapStringInt : public CMapStringPrimitive<int>
 {
 public:
-	int*	Get(const char* szKey);
-	BOOL	Put(char* szKey, int iData);
-	BOOL	Put(const char* szKey, int iData);
-
 	char*	GetWithValue(int iData);
 };
 

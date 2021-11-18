@@ -224,7 +224,7 @@ BOOL CChunkFile::WriteChunkEnd(char* szChunkName)
 	int*	piName;
 	int		iName;
 
-	piName = mmsziNames.Get(szChunkName);
+	piName = mmsziNames.CMapStringTemplate::Get(szChunkName);
 	if (!piName)
 	{
 		miLastName++;
@@ -397,7 +397,7 @@ int CChunkFile::FindFirstChunkWithName(char* szName)
 {
 	int*	piName;
 
-	piName = mmsziNames.Get(szName);
+	piName = mmsziNames.CMapStringTemplate::Get(szName);
 	if (piName)
 	{
 		return FindFirstChunkWithID(*piName);

@@ -47,6 +47,7 @@ char		ToUpper(char c);
 int			StrEmpty(const char* szString);
 int			StrPrintable(const char* szString);
 int			StrPrintable(const char* szString, int iLength);
+size_t		StrLen(const char* szString, const char* szLastCharInclusive = NULL);
 char*		NullToEmpty(const char* szString);
 
 extern char	gszEmptyString[4];
