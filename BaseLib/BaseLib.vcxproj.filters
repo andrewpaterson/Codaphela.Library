@@ -987,6 +987,9 @@
     <ClInclude Include="MapStringPrimitive.h">
       <Filter>Source\Data\Map\Map\String</Filter>
     </ClInclude>
+    <ClInclude Include="IndexStringLong.h">
+      <Filter>Source\Data\Map\Index\String</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">

@@ -1,6 +1,6 @@
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
-Copyright (c) 2009 Andrew Paterson
+Copyright (c) 2022 Andrew Paterson
 
 This file is part of The Codaphela Project: Codaphela CppParserLib
 
@@ -37,7 +37,7 @@ class CDefine
 public:
 	int				miIndex;  //Index back into the ASCIITree (for the name).
 	CPPLine			mcReplacement;
-	CArrayChars	mcArguments;  //This is unnecessary but useful for reference.
+	CArrayChars		mcArguments;  //This is unnecessary but useful for reference.
 	unsigned int	muiID;  //If a token is undef'd and redef'd it's muiID will change.
 	CDefineMap*		mpcDefineMap;
 	int				miFlags;

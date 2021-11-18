@@ -339,9 +339,6 @@
     <ClCompile Include="GeneralToken.cpp">
       <Filter>Source\General</Filter>
     </ClCompile>
-    <ClCompile Include="ASCIINode.cpp">
-      <Filter>Source\Preprocessor\ASCII</Filter>
-    </ClCompile>
     <ClCompile Include="ASCIITree.cpp">
       <Filter>Source\Preprocessor\ASCII</Filter>
     </ClCompile>
@@ -625,9 +622,6 @@
     </ClInclude>
     <ClInclude Include="GeneralToken.h">
       <Filter>Source\General</Filter>
-    </ClInclude>
-    <ClInclude Include="ASCIINode.h">
-      <Filter>Source\Preprocessor\ASCII</Filter>
     </ClInclude>
     <ClInclude Include="ASCIITree.h">
       <Filter>Source\Preprocessor\ASCII</Filter>
