@@ -710,6 +710,33 @@ int StrPrintable(const char* szString, int iLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+size_t StrLen(const char* szString, const char* szLastCharInclusive)
+{
+	ptrdiff_t i;
+
+	if (szLastCharInclusive)
+	{
+		i = szLastCharInclusive - szString + 1;
+		if (i >= 0)
+		{
+			return i;
+		}
+		else
+		{
+			return 0;
+		}
+	}
+	else
+	{
+		return strlen(szString);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 char* NullToEmpty(const char* szString)
 {
 	if (szString == NULL)

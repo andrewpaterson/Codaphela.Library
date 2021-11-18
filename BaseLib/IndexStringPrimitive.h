@@ -1,3 +1,5 @@
+#ifndef __INDEX_STRING_PRIMITIVE_H__
+#define __INDEX_STRING_PRIMITIVE_H__
 #include "IndexStringTemplate.h"
 
 
@@ -20,17 +22,17 @@ public:
 template<class D>
 D CIndexStringPrimitive<D>::Get(char* szKey, D sNullValue, char* szLastCharInclusive)
 {
-	//D* psData;
+	D* psData;
 
-	//psData = (CIndexStringTemplate<D>::Get(szKey, szLastCharInclusive);
-	//if (psData)
-	//{
-	//	return *psData;
-	//}
-	//else
-	//{
-	//	return sNullValue;
-	//}
+	psData = CIndexStringTemplate<D>::Get(szKey, szLastCharInclusive);
+	if (psData)
+	{
+		return *psData;
+	}
+	else
+	{
+		return sNullValue;
+	}
 }
 
 
@@ -75,4 +77,7 @@ BOOL CIndexStringPrimitive<D>::Put(const char* szKey, D sData, const char* szLas
 {
 	return CIndexStringTemplate<D>::Put(szKey, &sData, szLastCharInclusive);
 }
+
+
+#endif //!__INDEX_STRING_PRIMITIVE_H__
 
