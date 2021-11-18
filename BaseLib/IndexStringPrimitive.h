@@ -11,6 +11,9 @@ public:
 	D		Get(char* szKey, D sNullValue = -1, char* szLastCharInclusive = NULL);
 	D		Get(const char* szKey, D sNullValue = -1, char* szLastCharInclusive = NULL);
 
+	BOOL	HasKey(char* szKey, D sNullValue = -1, char* szLastCharInclusive = NULL);
+	BOOL	HasKey(const char* szKey, D sNullValue = -1, char* szLastCharInclusive = NULL);
+
 	BOOL	Put(char* szKey, D sData, char* szLastCharInclusive = NULL);
 	BOOL	Put(const char* szKey, D sData, const char* szLastCharInclusive = NULL);
 
@@ -58,6 +61,30 @@ D CIndexStringPrimitive<D>::Get(const char* szKey, D sNullValue, char* szLastCha
 	{
 		return sNullValue;
 	}
+}
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class D>
+BOOL CIndexStringPrimitive<D>::HasKey(char* szKey, D sNullValue, char* szLastCharInclusive)
+{
+
+	return CIndexStringTemplate<D>::HasKey(szKey, szLastCharInclusive);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class D>
+BOOL CIndexStringPrimitive<D>::HasKey(const char* szKey, D sNullValue, char* szLastCharInclusive)
+{
+	return CIndexStringTemplate<D>::Get(szKey, szLastCharInclusive);
 }
 
 
