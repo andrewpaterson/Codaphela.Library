@@ -1,6 +1,6 @@
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
-Copyright (c) 2012 Andrew Paterson
+Copyright (c) 2022 Andrew Paterson
 
 This file is part of The Codaphela Project: Codaphela CoreLib
 
@@ -291,7 +291,7 @@ void CFiles::GetFileNames(CMapStringInt* pcFileNames)
 	pcReturn = StartIteration(&cIter);
 	while (pcReturn)
 	{
-		piValue = pcFileNames->Get(pcReturn->GetFullName());
+		piValue = pcFileNames->CMapStringTemplate::Get(pcReturn->GetFullName());
 		if (!piValue)
 		{
 			iRank = pcReturn->GetFileRank() << 16;

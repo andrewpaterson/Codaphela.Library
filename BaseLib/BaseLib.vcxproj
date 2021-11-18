@@ -200,6 +200,7 @@
     <ClInclude Include="IndexMapAccess.h" />
     <ClInclude Include="IndexMapIterator.h" />
     <ClInclude Include="IndexStringInt.h" />
+    <ClInclude Include="IndexStringLong.h" />
     <ClInclude Include="IndexStringPrimitive.h" />
     <ClInclude Include="IndexStringTemplate.h" />
     <ClInclude Include="IndexTemplate.h" />

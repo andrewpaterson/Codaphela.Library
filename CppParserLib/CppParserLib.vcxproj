@@ -175,7 +175,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AbstractSyntaxTree.cpp" />
-    <ClCompile Include="ASCIINode.cpp" />
     <ClCompile Include="ASCIITree.cpp" />
     <ClCompile Include="ASTAggregate.cpp" />
     <ClCompile Include="ASTArray.cpp" />
@@ -269,7 +268,6 @@
   <ItemGroup>
     <ClInclude Include="AbstractSyntaxTree.h" />
     <ClInclude Include="AbstractSyntaxTypes.h" />
-    <ClInclude Include="ASCIINode.h" />
     <ClInclude Include="ASCIITree.h" />
     <ClInclude Include="ASTAggregate.h" />
     <ClInclude Include="ASTArray.h" />

@@ -1,6 +1,6 @@
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
-Copyright (c) 2009 Andrew Paterson
+Copyright (c) 2022 Andrew Paterson
 
 This file is part of The Codaphela Project: Codaphela BaseLib
 
@@ -23,66 +23,34 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __ASCII_TREE_H__
 #define __ASCII_TREE_H__
 #include "BaseLib/ArrayChars.h"
-#include "BaseLib/FreeList.h"
-#include "ASCIINode.h"
+#include "BaseLib/IndexStringLong.h"
 #include "CharsIDArray.h"
-
-
-enum EASCIITreeRemoveStyle
-{
-	ATRS_OnlyEndOfWordMarker,
-	ATRS_EndOfWordMarkerReuseIndex,
-	ATRS_MoveLastToRemoved,
-};
-
-
-struct SASCIITreePos
-{
-	CASCIINode*		pcNode;
-	int				iLetter;
-};
-
-
-typedef CArrayTemplate<SASCIITreePos> CArrayASCIITreePos;
-
-
-struct SASCIITreeIter
-{
-	CASCIINode*		pcNode;
-	int				iLetter;
-};
 
 
 class CASCIITree
 {
 public:
-	CFreeList		mcNodes;
-	CASCIINode*		mpcRoot;
-	CCharsIDArray	mcWords;
-	BOOL			mbContainsUnusedWords;
+	CIndexStringLong	mcIndex;
+	CCharsIDArray		mcWords;
 
 	void			Init(void);
 	void			Kill(void);
 
-	int				Add(int64 lliID, char* szText, char* szLastCharInclusive = NULL);
+	BOOL			Add(int64 lliID, char* szText, char* szLastCharInclusive = NULL);
 
-	int64			Get(char* szText, char* szLastCharInclusive = NULL, BOOL bExact = TRUE);
+	int64			Get(char* szText, char* szLastCharInclusive = NULL /*, BOOL bExact = TRUE */ );
 
 	BOOL			Remove(char* szText, char* szLastCharInclusive = NULL);
-	BOOL			Remove(EASCIITreeRemoveStyle eStyle, char* szText, char* szLastCharInclusive = NULL);
 
 	int				NumElements(void);
 
-	int64			StartIteration(SASCIITreeIter* psIter);
-	int64			Iterate(SASCIITreeIter* psIter);
+	int64			StartIteration(SIndexTreeMemoryUnsafeIterator* psIter);
+	int64			Iterate(SIndexTreeMemoryUnsafeIterator* psIter);
 
-	BOOL			TestConsistency(void);
 	BOOL			IsEmpty(void);
 	BOOL			Contains(char* szText);
-	BOOL			IsOnlyValidCharacters(char* szText);
 
 	void			Dump(void);
-	void			RecurseDump(CASCIINode* pcNode, CChars* psz, int iLevel);
 	void			DumpWords(void);
 	void			Dump(CArrayInt* pcArrayInt);
 	void			DumpTree(void);
@@ -96,24 +64,6 @@ public:
 	int				GetIndexForNew(char* szText, int iLen);
 	char*			GetWord(int iIndex);
 	void			GetBetween(CArrayInt* pcArrayInt, char* szTextZeroTerminatedFirst, char* szTextZeroTerminatedSecond);
-	void			PrivateGetZeroTerminated(CASCIINode** ppcLastNode, CASCIINode** ppcLastWord, int* piLastNode, int* piLastWord, char* szText);
-	void			PrivateGetLengthTerminated(CASCIINode** ppcLastNode, CASCIINode** ppcLastWord, int* piLastNode, int* piLastWord, char* szTextStart, char* szTextEndInclusive);
-
-protected:
-	BOOL			TestWordConsistency(CASCIINode* pcNode);
-	BOOL			TestNodeConsistency(CASCIINode* pcNode, int iLevel);
-	BOOL			TestOnlyValidCharacters(char* szText, int iLen);
-	CCharsID*		GetCharsID(int iIndex);
-
-	void			GetBetween(CArrayInt* pcArrayInt, char* szTextFirst, char* szTextFirstszLastCharInclusive, char* szTextSecond, char* szTextSecondszLastCharInclusive);
-	SASCIITreePos*	StackTo(CArrayASCIITreePos* pcStack, CASCIINode* pcNode, int iNode, char* szText);
-
-	int				PrivateAdd(CASCIINode* pcNode, int iNode, int iLen, char* szText, int64 lliID);
-	BOOL			PrivateRemove(EASCIITreeRemoveStyle eStyle, CASCIINode* pcNode, int iNode, int iLen, char* szText);
-	void			PrivateMoveLastToRemoved(EASCIITreeRemoveStyle eStyle, CASCIINode* pcNode, int iNode, int iLen, char* szText);
-	int				PrivateGetWordIndex(char* szText, int iLen);
-	void			PrivateGetBetween(CArrayInt* pcArrayInt, SASCIITreePos* psPos, CArrayASCIITreePos* pcStack, CASCIINode* pcNodeFirst, CASCIINode* pcNodeSecond, int iLetterFirst, int iLetterSecond);
-
 };
 
 

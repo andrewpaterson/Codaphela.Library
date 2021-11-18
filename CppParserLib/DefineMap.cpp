@@ -1,6 +1,6 @@
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
-Copyright (c) 2009 Andrew Paterson
+Copyright (c) 2022 Andrew Paterson
 
 This file is part of The Codaphela Project: Codaphela CppParserLib
 
@@ -390,7 +390,7 @@ void CDefineMap::RemoveDefine(CExternalString* pcName)
 	{
 		pcDefine = mcDefinesArray.Get(iIndex);
 		pcDefine->Kill();
-		mcDefinesTree.Remove(ATRS_OnlyEndOfWordMarker, pcName->msz, pcName->EndInclusive());
+		mcDefinesTree.Remove(pcName->msz, pcName->EndInclusive());
 	}
 }
 
@@ -408,7 +408,7 @@ void CDefineMap::RemoveDefine(char* szName)
 	{
 		pcDefine = mcDefinesArray.Get(iIndex);
 		pcDefine->Kill();
-		mcDefinesTree.Remove(ATRS_OnlyEndOfWordMarker, szName, NULL);
+		mcDefinesTree.Remove(szName);
 	}
 }
 
@@ -429,9 +429,9 @@ char* CDefineMap::GetName(CDefine* pcDefine)
 //////////////////////////////////////////////////////////////////////////
 void CDefineMap::Dump(void)
 {
-	SASCIITreeIter	sIter;
-	int				iWordEnd;
-	CDefine*		pcDefine;
+	SIndexTreeMemoryUnsafeIterator	sIter;
+	int								iWordEnd;
+	CDefine*						pcDefine;
 
 	iWordEnd = (int)mcDefinesTree.StartIteration(&sIter);
 	while (iWordEnd != -1)
