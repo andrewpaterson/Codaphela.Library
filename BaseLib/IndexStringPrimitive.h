@@ -1,5 +1,6 @@
 #ifndef __INDEX_STRING_PRIMITIVE_H__
 #define __INDEX_STRING_PRIMITIVE_H__
+#include "IndexBlock.h"
 #include "IndexStringTemplate.h"
 
 
@@ -12,6 +13,9 @@ public:
 
 	BOOL	Put(char* szKey, D sData, char* szLastCharInclusive = NULL);
 	BOOL	Put(const char* szKey, D sData, const char* szLastCharInclusive = NULL);
+
+	BOOL	StartIteration(SIndexTreeMemoryUnsafeIterator* psIterator, D* pvData, void* pvDestKey, size_t* puiKeySize, size_t uiMaxKeySize);
+	BOOL	Iterate(SIndexTreeMemoryUnsafeIterator* psIterator, D* pvData, void* pvDestKey, size_t* puiKeySize, size_t uiMaxKeySize);
 };
 
 
@@ -77,6 +81,45 @@ BOOL CIndexStringPrimitive<D>::Put(const char* szKey, D sData, const char* szLas
 {
 	return CIndexStringTemplate<D>::Put(szKey, &sData, szLastCharInclusive);
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class D>
+BOOL CIndexStringPrimitive<D>::StartIteration(SIndexTreeMemoryUnsafeIterator* psIterator, D* pvData, void* pvDestKey, size_t* puiKeySize, size_t uiMaxKeySize)
+{
+	D*		pvResult;
+	BOOL	bResult;
+
+	bResult = CIndexBlock::StartIteration(psIterator, (void**)&pvResult, NULL, pvDestKey, puiKeySize, uiMaxKeySize);
+	if (bResult)
+	{
+		*pvData = *pvResult;
+	}
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class D>
+BOOL CIndexStringPrimitive<D>::Iterate(SIndexTreeMemoryUnsafeIterator* psIterator, D* pvData, void* pvDestKey, size_t* puiKeySize, size_t uiMaxKeySize)
+{
+	D*		pvResult;
+	BOOL	bResult;
+
+	bResult = CIndexBlock::Iterate(psIterator, (void**)&pvResult, NULL, pvDestKey, puiKeySize, uiMaxKeySize);
+	if (bResult)
+	{
+		*pvData = *pvResult;
+	}
+	return bResult;
+}
+
 
 
 #endif //!__INDEX_STRING_PRIMITIVE_H__
