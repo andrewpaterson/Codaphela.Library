@@ -50,20 +50,15 @@ public:
 	BOOL			IsEmpty(void);
 	BOOL			Contains(char* szText);
 
-	void			Dump(void);
-	void			DumpWords(void);
-	void			Dump(CArrayInt* pcArrayInt);
-	void			DumpTree(void);
-
 //Unprotected for the CPP Parser Lib
-	int				AddIndex(char* szText, char* szLastCharInclusive = NULL);
-	int				AddIndex(int64 lliID, char* szText, char* szLastCharInclusive = NULL);
-	int				AddOrGet(char* szText, char* szLastCharInclusive);
-	int				AddOrGet(int64 iID, char* szText, char* szLastCharInclusive);
-	int				GetIndex(char* szText, char* szLastCharInclusive = NULL, BOOL bExact = TRUE);
-	int				GetIndexForNew(char* szText, int iLen);
-	char*			GetWord(int iIndex);
-	void			GetBetween(CArrayInt* pcArrayInt, char* szTextZeroTerminatedFirst, char* szTextZeroTerminatedSecond);
+	//int				AddIndex(char* szText, char* szLastCharInclusive = NULL);
+	//int				AddIndex(int64 lliID, char* szText, char* szLastCharInclusive = NULL);
+	//int				AddOrGet(char* szText, char* szLastCharInclusive);
+	//int				AddOrGet(int64 iID, char* szText, char* szLastCharInclusive);
+	//int				GetIndex(char* szText, char* szLastCharInclusive = NULL, BOOL bExact = TRUE);
+	//int				GetIndexForNew(char* szText, int iLen);
+	//char*			GetWord(int iIndex);
+	//void			GetBetween(CArrayInt* pcArrayInt, char* szTextZeroTerminatedFirst, char* szTextZeroTerminatedSecond);
 };
 
 

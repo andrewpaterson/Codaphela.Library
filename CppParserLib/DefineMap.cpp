@@ -262,6 +262,8 @@ CDefine* CDefineMap::AddDefine(CExternalString* pcName)
 	int			iIndex;
 	CDefine*	pcDefine;
 
+	mcDefinesTree.Add(muiID, pcName->msz, pcName->EndInclusive());
+	xxx
 	iIndex = mcDefinesTree.AddIndex(pcName->msz, pcName->EndInclusive());
 	if (iIndex != -1)
 	{
