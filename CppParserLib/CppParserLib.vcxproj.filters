@@ -345,6 +345,9 @@
     <ClCompile Include="Define.cpp">
       <Filter>Source\Preprocessor\Define</Filter>
     </ClCompile>
+    <ClCompile Include="ASCIINameIndex.cpp">
+      <Filter>Source\Preprocessor\ASCII</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AbstractSyntaxTree.h">
@@ -628,6 +631,9 @@
     </ClInclude>
     <ClInclude Include="Define.h">
       <Filter>Source\Preprocessor\Define</Filter>
+    </ClInclude>
+    <ClInclude Include="ASCIINameIndex.h">
+      <Filter>Source\Preprocessor\ASCII</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -21,6 +21,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/Log.h"
+#include "ASCIINameIndex.h"
 #include "ASCIITree.h"
 
 
@@ -50,15 +51,19 @@ void CASCIITree::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CASCIITree::Add(int64 lliID, char* szText, char* szLastCharInclusive)
 {
-	int64	lli;
-	BOOL	bResult;
+	int64				lli;
+	BOOL				bResult;
+	int					iDataSize;
+	SASCIINameIndex*	psData;
 
-	lli = mcIndex.Get(szText, -1, szLastCharInclusive);
-	if (lli == -1LL)
+	bResult = mcIndex.Get(szText, (void**)&psData, &iDataSize, szLastCharInclusive);
+	if (!bResult)
 	{
-		bResult = mcIndex.Put(szText, lliID, szLastCharInclusive);
-		if (bResult)
+		iDataSize = SASCIINameIndex::Size(szText, szLastCharInclusive);
+		psData = (SASCIINameIndex*)mcIndex.Put(szText, iDataSize, szLastCharInclusive);
+		if (psData != NULL)
 		{
+			psData->Init(xxx);
 			return bResult;
 		}
 		else
