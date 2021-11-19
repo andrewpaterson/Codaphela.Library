@@ -183,7 +183,6 @@
     <ClCompile Include="ASTConstExpr.cpp" />
     <ClCompile Include="ASTExpression.cpp" />
     <ClCompile Include="ASTUnaryExpr.cpp" />
-    <ClCompile Include="CharsIDArray.cpp" />
     <ClCompile Include="ASTTernaryExpr.cpp" />
     <ClCompile Include="ASTAccessSpec.cpp" />
     <ClCompile Include="ASTClassSpec.cpp" />
@@ -204,6 +203,7 @@
     <ClCompile Include="ASTReturnStmt.cpp" />
     <ClCompile Include="ASTStatement.cpp" />
     <ClCompile Include="ConditionalStack.cpp" />
+    <ClCompile Include="Define.cpp" />
     <ClCompile Include="DefineArguments.cpp" />
     <ClCompile Include="DefineMap.cpp" />
     <ClCompile Include="FileDefine.cpp" />
@@ -227,7 +227,6 @@
     <ClCompile Include="PPLine.cpp" />
     <ClCompile Include="PPTokenHolder.cpp" />
     <ClCompile Include="TokenHelper.cpp" />
-    <ClCompile Include="ExternalString.cpp" />
     <ClCompile Include="PPText.cpp" />
     <ClCompile Include="PPTextWithSource.cpp" />
     <ClCompile Include="ArrayCBlockSet.cpp" />
@@ -277,9 +276,8 @@
     <ClInclude Include="ASTConstExpr.h" />
     <ClInclude Include="ASTExpression.h" />
     <ClInclude Include="ASTUnaryExpr.h" />
-    <ClInclude Include="CharsID.h" />
-    <ClInclude Include="CharsIDArray.h" />
     <ClInclude Include="ASTTernaryExpr.h" />
+    <ClInclude Include="Define.h" />
     <ClInclude Include="SimpleOperator.h" />
     <ClInclude Include="ASTAccessSpec.h" />
     <ClInclude Include="ASTClassSpec.h" />
@@ -324,7 +322,6 @@
     <ClInclude Include="PPLine.h" />
     <ClInclude Include="PPTokenHolder.h" />
     <ClInclude Include="TokenHelper.h" />
-    <ClInclude Include="ExternalString.h" />
     <ClInclude Include="PPText.h" />
     <ClInclude Include="PPTextWithSource.h" />
     <ClInclude Include="ArrayCBlockSet.h" />

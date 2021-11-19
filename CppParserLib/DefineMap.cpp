@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/ConstructorCall.h"
 #include "GeneralToken.h"
 #include "DefineMap.h"
 
@@ -26,209 +27,10 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDefine::Init(int iIndex, int uiID, CDefineMap* pcDefineMap)
-{
-	CPPLine	cLine;
-
-	memcpy(&mcReplacement, &cLine, sizeof(CPPLine));
-
-	mcReplacement.Init(-1, -1);
-	mcArguments.Init();
-	miIndex = iIndex;
-	miFlags = ((pcDefineMap == NULL) ? 0: DEFINE_FLAGS_IN_MAP);
-	muiID = uiID;
-	mpcDefineMap = pcDefineMap;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CDefine::Kill(void)
-{
-	mcArguments.Kill();
-	mcReplacement.Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CDefine::AddArgument(CExternalString* pcName)
-{
-	mcArguments.Add(pcName->msz, 0, pcName->miLen);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CDefine::AddReplacmentToken(CPPToken* pcToken)
-{
-	mcReplacement.mcTokens.Add(&pcToken);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CDefine::IsBacketed(void)
-{
-	return miFlags & DEFINE_FLAGS_BRACKETED;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CDefine::IsSpecial(void)
-{
-	return miFlags & DEFINE_FLAGS_SPECIAL;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CDefine::IsInMap(void)
-{
-	return miFlags & DEFINE_FLAGS_IN_MAP;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CDefine::SetSpecial(BOOL b)
-{
-	SetFlag(&miFlags, DEFINE_FLAGS_SPECIAL, b);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CDefine::SetBracketed(BOOL b)
-{
-	SetFlag(&miFlags, DEFINE_FLAGS_BRACKETED, b);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CDefine::SetDefineMap(CDefineMap* pcDefineMap)
-{
-	if (pcDefineMap)
-	{
-		SetFlag(&miFlags, DEFINE_FLAGS_IN_MAP, TRUE);
-	}
-	else
-	{
-		SetFlag(&miFlags, DEFINE_FLAGS_IN_MAP, FALSE);
-	}
-	mpcDefineMap = pcDefineMap;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CDefine::Equals(CDefine* pcOther)
-{
-	if (pcOther)
-	{
-		if (IsBacketed() == pcOther->IsBacketed())
-		{
-			if (mcReplacement.Equals(&pcOther->mcReplacement))
-			{
-				return TRUE;
-			}
-		}
-	}
-	return FALSE;
-}
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-char* CDefine::GetName(void)
-{
-	return mpcDefineMap->GetName(this);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CDefine::Dump(void)
-{
-	CChars	sz;
-	int		i;
-	CChars*	psz;
-
-	sz.Init();
-
-	if (IsInMap())
-	{
-		sz.Append(GetName());
-	}
-	else
-	{
-		sz.Append("*Not In Map*");
-	}
-
-	if (IsBacketed())
-	{
-		sz.Append('(');
-		for (i = 0; i < mcArguments.NumElements(); i++)
-		{
-			psz = mcArguments.Get(i);
-			sz.Append(psz->Text());
-
-			if (i != mcArguments.NumElements()-1)
-			{
-				sz.Append(", ");
-			}
-		}
-		sz.Append(')');
-	}
-
-	if (mcReplacement.TokenLength() > 0)
-	{
-		sz.Append(' ');
-		mcReplacement.Append(&sz);
-	}
-	else
-	{
-		sz.AppendNewLine();
-	}
-
-	sz.Dump();
-	sz.Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CDefineMap::Init(void)
 {
-	mcDefinesArray.Init();
-	mcDefinesTree.Init();
+	mcIDToDefineIndex.Init();
+	mcNameToIDIndex.Init();
 	muiID = 0;
 }
 
@@ -239,17 +41,20 @@ void CDefineMap::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CDefineMap::Kill(void)
 {
-	int			i;
-	CDefine*	pcDefine;
+	CDefine* pcDefine;
+	SIndexTreeMemoryUnsafeIterator		sIter;
+	int64								lli;
+	BOOL								bHasNext;
 
-	for (i = 0; i < mcDefinesArray.NumElements(); i++)
+	bHasNext = mcIDToDefineIndex.StartIteration(&sIter, &pcDefine, &lli);
+	while (bHasNext)
 	{
-		pcDefine = mcDefinesArray.Get(i);
 		pcDefine->Kill();
+		bHasNext = mcIDToDefineIndex.Iterate(&sIter, &pcDefine, &lli);
 	}
 
-	mcDefinesArray.Kill();
-	mcDefinesTree.Kill();
+	mcIDToDefineIndex.Kill();
+	mcNameToIDIndex.Kill();
 }
 
 
@@ -260,19 +65,12 @@ void CDefineMap::Kill(void)
 CDefine* CDefineMap::AddDefine(CExternalString* pcName)
 {
 	int			iIndex;
-	CDefine*	pcDefine;
+	CDefine		cDefine;
 
-	mcDefinesTree.Add(muiID, pcName->msz, pcName->EndInclusive());
-	xxx
-	iIndex = mcDefinesTree.AddIndex(pcName->msz, pcName->EndInclusive());
-	if (iIndex != -1)
-	{
-		pcDefine = (CDefine*)mcDefinesArray.GrowToAtLeastNumElements(iIndex+1, TRUE, 0);
-		pcDefine->Init(iIndex, muiID, this);
-		muiID++;
-		return pcDefine;
-	}
-	return NULL;
+	mcNameToIDIndex.Add(muiID, pcName->msz, pcName->EndInclusive());
+	mcIDToDefineIndex.Put(muiID, &cDefine);
+	cDefine.Init(pcName, muiID, this);
+	muiID++;
 }
 
 
@@ -285,14 +83,14 @@ CDefine* CDefineMap::AddDefine(CExternalString* pcName, CDefine* pcSource)
 	int			iIndex;
 	CDefine*	pcDefine;
 
-	iIndex = mcDefinesTree.AddIndex(pcName->msz, pcName->EndInclusive());
+	iIndex = mcNameToIDIndex.AddIndex(pcName->msz, pcName->EndInclusive());
 	if (iIndex != -1)
 	{
 		//The define must have been setup correctly before hand.
 		//Other processes will have depended on it.
 		if ((iIndex == pcSource->miIndex) && (muiID == pcSource->muiID))
 		{
-			pcDefine = (CDefine*)mcDefinesArray.GrowToAtLeastNumElements(iIndex+1, TRUE, 0);
+			pcDefine = (CDefine*)mcIDToDefineIndex.GrowToAtLeastNumElements(iIndex+1, TRUE, 0);
 
 			//It is safe to just overwrite mcReplacement and mcArguments provided that source isn't killed, just ignored.
 			memcpy(pcDefine, pcSource, sizeof(CDefine));
@@ -316,18 +114,13 @@ CDefine* CDefineMap::AddDefine(CExternalString* pcName, CDefine* pcSource)
 //////////////////////////////////////////////////////////////////////////
 CDefine* CDefineMap::AddDefine(char* szName)
 {
-	int			iIndex;
-	CDefine*	pcDefine;
+	CExternalString		cExternalString;
+	int					iLen;
 
-	iIndex = mcDefinesTree.AddIndex(szName);
-	if (iIndex != -1)
-	{
-		pcDefine = (CDefine*)mcDefinesArray.GrowToAtLeastNumElements(iIndex+1, TRUE, 0);
-		pcDefine->Init(iIndex, muiID, this);
-		muiID++;
-		return pcDefine;
-	}
-	return NULL;
+	iLen = (int)strlen(szName);
+	cExternalString.Init(szName, iLen);
+
+	return AddDefine(&cExternalString);
 }
 
 
@@ -337,16 +130,19 @@ CDefine* CDefineMap::AddDefine(char* szName)
 //////////////////////////////////////////////////////////////////////////
 CDefine* CDefineMap::GetDefine(CExternalString* pcName)
 {
-	int			iIndex;
+	int64		lliID;
 	CDefine*	pcDefine;
 
-	iIndex = mcDefinesTree.GetIndex(pcName->msz, pcName->EndInclusive(), TRUE);
-	if (iIndex == -1)
+	lliID = mcNameToIDIndex.Get(pcName->msz, pcName->EndInclusive());
+	if (lliID != -1)
+	{
+		pcDefine = mcIDToDefineIndex.Get(lliID);
+		return pcDefine;
+	}
+	else
 	{
 		return NULL;
 	}
-	pcDefine = mcDefinesArray.Get(iIndex);
-	return pcDefine;
 }
 
 
@@ -384,15 +180,19 @@ CDefine* CDefineMap::GetDefine(char* szName)
 //////////////////////////////////////////////////////////////////////////
 void CDefineMap::RemoveDefine(CExternalString* pcName)
 {
-	int			iIndex;
+	int64		lliID;
 	CDefine*	pcDefine;
 
-	iIndex = mcDefinesTree.GetIndex(pcName->msz, pcName->EndInclusive(), TRUE);
-	if (iIndex != -1)
+	lliID = mcNameToIDIndex.Get(pcName->msz, pcName->EndInclusive());
+	if (lliID != -1)
 	{
-		pcDefine = mcDefinesArray.Get(iIndex);
-		pcDefine->Kill();
-		mcDefinesTree.Remove(pcName->msz, pcName->EndInclusive());
+		pcDefine = mcIDToDefineIndex.Get(lliID);
+		if (pcDefine)
+		{
+			pcDefine->Kill();
+			mcNameToIDIndex.Remove(pcName->msz, pcName->EndInclusive());
+			mcIDToDefineIndex.Remove(lliID);
+		}
 	}
 }
 
@@ -402,16 +202,13 @@ void CDefineMap::RemoveDefine(CExternalString* pcName)
 //////////////////////////////////////////////////////////////////////////
 void CDefineMap::RemoveDefine(char* szName)
 {
-	int			iIndex;
-	CDefine*	pcDefine;
+	CExternalString	cExternalString;
+	int				iLen;
 
-	iIndex = mcDefinesTree.GetIndex(szName, NULL, TRUE);
-	if (iIndex != -1)
-	{
-		pcDefine = mcDefinesArray.Get(iIndex);
-		pcDefine->Kill();
-		mcDefinesTree.Remove(szName);
-	}
+	iLen = (int)strlen(szName);
+	cExternalString.Init(szName, iLen);
+
+	RemoveDefine(&cExternalString);
 }
 
 
@@ -421,7 +218,7 @@ void CDefineMap::RemoveDefine(char* szName)
 //////////////////////////////////////////////////////////////////////////
 char* CDefineMap::GetName(CDefine* pcDefine)
 {
-	return mcDefinesTree.GetWord(pcDefine->miIndex);
+	return mcNameToIDIndex.GetWord(pcDefine->miIndex);
 }
 
 
@@ -435,13 +232,13 @@ void CDefineMap::Dump(void)
 	int								iWordEnd;
 	CDefine*						pcDefine;
 
-	iWordEnd = (int)mcDefinesTree.StartIteration(&sIter);
+	iWordEnd = (int)mcNameToIDIndex.StartIteration(&sIter);
 	while (iWordEnd != -1)
 	{
-		pcDefine = mcDefinesArray.Get(iWordEnd);
+		pcDefine = mcIDToDefineIndex.Get(iWordEnd);
 		pcDefine->Dump();
 
-		iWordEnd = (int)mcDefinesTree.Iterate(&sIter);
+		iWordEnd = (int)mcNameToIDIndex.Iterate(&sIter);
 	}
 }
 

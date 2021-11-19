@@ -20,8 +20,8 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __P_P_TEXT_H__
 #define __P_P_TEXT_H__
+#include "BaseLib/ExternalString.h"
 #include "PPToken.h"
-#include "ExternalString.h"
 
 
 enum EPreprocessorText

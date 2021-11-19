@@ -23,6 +23,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __CHARS_H__
 #define __CHARS_H__
 #include "StringHelper.h"
+#include "ExternalString.h"
 #include "ArrayChar.h"
 #include "DataTypes.h"
 #include "ArrayTemplate.h"
@@ -51,6 +52,7 @@ public:
 	CChars*	Init(CChars sz, int iStartInclusive, int iEndExclusive);
 	CChars* Init(const char* sz, int iStartInclusive, int iEndExclusive);
 	CChars* Init(char cPadCharacter, int iNumber);
+	CChars* Init(CExternalString* pcString);
 	CChars* InitList(const char* szFirst, ...);
 	CChars* InitList(CChars* szFirst, ...);
 	CChars* InitLength(int iLength);

@@ -41,6 +41,7 @@ char* MethodToString(const char* szFile, int iLine, const char* szFunction);
 char* IntToFlags(int iInt);
 char* ShortToFlags(int siShort);
 char* StringToString(char* sz);
+char* StringToString(char* szStart, char* szLastCharInclusive);
 
 extern char gaszLogToStringScratchPad[LOG_TO_STRING_SCRATCH_PAD_SIZE][LOG_TO_STRING_MAX_LENGTH];
 extern int  giLogToStringCount;

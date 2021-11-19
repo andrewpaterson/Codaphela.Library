@@ -24,14 +24,13 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define __ASCII_TREE_H__
 #include "BaseLib/ArrayChars.h"
 #include "BaseLib/IndexStringLong.h"
-#include "CharsIDArray.h"
+#include "BaseLib/IndexLongString.h"
 
 
 class CASCIITree
 {
 public:
 	CIndexStringLong	mcIndex;
-	CCharsIDArray		mcWords;
 
 	void			Init(void);
 	void			Kill(void);
@@ -49,16 +48,6 @@ public:
 
 	BOOL			IsEmpty(void);
 	BOOL			Contains(char* szText);
-
-//Unprotected for the CPP Parser Lib
-	//int				AddIndex(char* szText, char* szLastCharInclusive = NULL);
-	//int				AddIndex(int64 lliID, char* szText, char* szLastCharInclusive = NULL);
-	//int				AddOrGet(char* szText, char* szLastCharInclusive);
-	//int				AddOrGet(int64 iID, char* szText, char* szLastCharInclusive);
-	//int				GetIndex(char* szText, char* szLastCharInclusive = NULL, BOOL bExact = TRUE);
-	//int				GetIndexForNew(char* szText, int iLen);
-	//char*			GetWord(int iIndex);
-	//void			GetBetween(CArrayInt* pcArrayInt, char* szTextZeroTerminatedFirst, char* szTextZeroTerminatedSecond);
 };
 
 

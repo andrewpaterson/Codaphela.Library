@@ -26,7 +26,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "MapPrimitiveTemplate.h"
 #include "IntegerHelper.h"
 
-//Used in CoreLib by CIndexedMap.
+
 template<class D>
 class CMapLongTemplate : public CMapPrimitiveTemplate<int64, D>
 {

@@ -28,8 +28,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 class CMapStringString : public CMapStringBlock
 {
 public:
-	BOOL	Put(char* szKey, char* szValue);
 	char*	Get(char* szKey);
+	BOOL	Put(char* szKey, char* szValue);
 	void	Dump(void);
 };
 

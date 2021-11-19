@@ -235,11 +235,40 @@ char* StringToString(char* sz)
 	}
 	else
 	{
-		int		iCount = IncrementLogToStringCount();
-		char*	sz = gaszLogToStringScratchPad[iCount];
+		return gszEmptyString;
+	}
+}
 
-		sz[0] = 0;
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* StringToString(char* szStart, char* szLastCharInclusive)
+{
+	int		iCount;
+	char*	sz;
+	int		iLength;
+
+	if (szStart != NULL)
+	{
+		if (szLastCharInclusive == NULL)
+		{
+			return szStart;
+		}
+		else
+		{
+			iCount = IncrementLogToStringCount();
+			sz = gaszLogToStringScratchPad[iCount];
+			iLength = StrLen(szStart, szLastCharInclusive);
+			memcpy(sz, szStart, iLength);
+			sz[iLength] = '\0';
+		}
 		return sz;
+	}
+	else
+	{
+		return gszEmptyString;
 	}
 }
 

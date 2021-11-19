@@ -56,7 +56,7 @@ public:
 	template<class Subclass>
 	Class* 		PostMalloc(Subclass* pv, int iNumElements, int iStride);
 
-	BOOL 	RequiresVirtualFunctionTable(void);
+	BOOL 		RequiresVirtualFunctionTable(void);
 };
 
 

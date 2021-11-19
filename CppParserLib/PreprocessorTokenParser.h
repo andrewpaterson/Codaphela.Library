@@ -22,7 +22,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __PREPROCESSOR_TOKEN_PARSER_H__
 #include "BaseLib/Define.h"
 #include "PPLine.h"
-#include "ExternalString.h"
+#include "BaseLib/ExternalString.h"
 
 
 struct SPPHolderMark
