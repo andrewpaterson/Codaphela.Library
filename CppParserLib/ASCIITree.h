@@ -23,14 +23,13 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __ASCII_TREE_H__
 #define __ASCII_TREE_H__
 #include "BaseLib/ArrayChars.h"
-#include "BaseLib/IndexStringLong.h"
-#include "BaseLib/IndexLongString.h"
+#include "BaseLib/IndexStringBlock.h"
 
 
 class CASCIITree
 {
 public:
-	CIndexStringLong	mcIndex;
+	CIndexStringBlock	mcIndex;
 
 	void			Init(void);
 	void			Kill(void);

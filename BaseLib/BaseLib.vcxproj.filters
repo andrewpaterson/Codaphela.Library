@@ -1005,6 +1005,9 @@
     <ClInclude Include="ExternalString.h">
       <Filter>Source\Data\String</Filter>
     </ClInclude>
+    <ClInclude Include="IndexStringBlock.h">
+      <Filter>Source\Data\Map\Index\String</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -1588,6 +1591,9 @@
     </ClCompile>
     <ClCompile Include="ExternalString.cpp">
       <Filter>Source\Data\String</Filter>
+    </ClCompile>
+    <ClCompile Include="IndexStringBlock.cpp">
+      <Filter>Source\Data\Map\Index\String</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

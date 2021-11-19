@@ -1,10 +1,10 @@
 #ifndef __INDEX_STRING_TEMPLATE_H__
 #define __INDEX_STRING_TEMPLATE_H__
-#include "IndexBlock.h"
+#include "IndexStringBlock.h"
 
 
 template<class D>
-class CIndexStringTemplate : public CIndexBlock
+class CIndexStringTemplate : public CIndexStringBlock
 {
 public:
 	D*		Get(char* szKey, char* szLastCharInclusive = NULL);
@@ -14,12 +14,6 @@ public:
 	BOOL	Put(char* szKey, D* psData, char* szLastCharInclusive = NULL);
 	D*		Put(const char* szKey, const char* szLastCharInclusive = NULL);
 	BOOL	Put(const char* szKey, D* psData, const char* szLastCharInclusive = NULL);
-
-	BOOL	HasKey(char* szKey, char* szLastCharInclusive = NULL);
-	BOOL	HasKey(const char* szKey, const char* szLastCharInclusive = NULL);
-
-	BOOL	Remove(char* szKey, char* szLastCharInclusive = NULL);
-	BOOL	Remove(const char* szKey, const char* szLastCharInclusive = NULL);
 };
 
 
@@ -30,8 +24,7 @@ public:
 template<class D>
 D* CIndexStringTemplate<D>::Get(char* szKey, char* szLastCharInclusive)
 {
-	int iKeySize = StrLen(szKey, szLastCharInclusive);
-	return (D*)CIndexBlock::Get(szKey, iKeySize);
+	return (D*)CIndexStringBlock::Get(szKey, szLastCharInclusive);
 }
 
 
@@ -42,8 +35,7 @@ D* CIndexStringTemplate<D>::Get(char* szKey, char* szLastCharInclusive)
 template<class D>
 D* CIndexStringTemplate<D>::Get(const char* szKey, char* szLastCharInclusive)
 {
-	int iKeySize = StrLen(szKey, szLastCharInclusive);
-	return (D*)CIndexBlock::Get((void*)szKey, iKeySize);
+	return (D*)CIndexStringBlock::Get((void*)szKey, szLastCharInclusive);
 }
 
 
@@ -54,8 +46,7 @@ D* CIndexStringTemplate<D>::Get(const char* szKey, char* szLastCharInclusive)
 template<class D>
 D* CIndexStringTemplate<D>::Put(char* szKey, char* szLastCharInclusive)
 {
-	int iKeySize = StrLen(szKey, szLastCharInclusive);
-	return (D*)CIndexBlock::Put(szKey, iKeySize, sizeof(D));
+	return (D*)CIndexStringBlock::Put(szKey, sizeof(D), szLastCharInclusive);
 }
 
 
@@ -66,8 +57,7 @@ D* CIndexStringTemplate<D>::Put(char* szKey, char* szLastCharInclusive)
 template<class D>
 BOOL CIndexStringTemplate<D>::Put(char* szKey, D* psData, char* szLastCharInclusive)
 {
-	int iKeySize = StrLen(szKey, szLastCharInclusive);
-	return CIndexBlock::Put(szKey, iKeySize, psData, sizeof(D));
+	return CIndexStringBlock::Put(szKey, psData, sizeof(D), szLastCharInclusive);
 }
 
 
@@ -78,8 +68,7 @@ BOOL CIndexStringTemplate<D>::Put(char* szKey, D* psData, char* szLastCharInclus
 template<class D>
 D* CIndexStringTemplate<D>::Put(const char* szKey, const char* szLastCharInclusive)
 {
-	int iKeySize = StrLen(szKey, szLastCharInclusive);
-	return (D*)CIndexBlock::Put(szKey, iKeySize, sizeof(D));
+	return (D*)CIndexStringBlock::Put(szKey, iKeySize, sizeof(D), szLastCharInclusive);
 }
 
 
@@ -90,56 +79,7 @@ D* CIndexStringTemplate<D>::Put(const char* szKey, const char* szLastCharInclusi
 template<class D>
 BOOL CIndexStringTemplate<D>::Put(const char* szKey, D* psData, const char* szLastCharInclusive)
 {
-	int iKeySize = StrLen(szKey, szLastCharInclusive);
-	return CIndexBlock::Put((void*)szKey, iKeySize, psData, sizeof(D));
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class D>
-BOOL CIndexStringTemplate<D>::HasKey(char* szKey, char* szLastCharInclusive)
-{
-	int iKeySize = StrLen(szKey, szLastCharInclusive);
-	return CIndexBlock::HasKey(szKey, iKeySize);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class D>
-BOOL CIndexStringTemplate<D>::HasKey(const char* szKey, const char* szLastCharInclusive )
-{
-	int iKeySize = StrLen(szKey, szLastCharInclusive);
-	return CIndexBlock::HasKey(szKey, iKeySize);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class D>
-BOOL CIndexStringTemplate<D>::Remove(char* szKey, char* szLastCharInclusive)
-{
-	int iKeySize = StrLen(szKey, szLastCharInclusive);
-	return CIndexBlock::Remove(szKey, iKeySize);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class D>
-BOOL CIndexStringTemplate<D>::Remove(const char* szKey, const char* szLastCharInclusive)
-{
-	int iKeySize = StrLen(szKey, szLastCharInclusive);
-	return CIndexBlock::Remove(szKey, iKeySize);
+	return CIndexStringBlock::Put((void*)szKey, iKeySize, psData, sizeof(D), szLastCharInclusive);
 }
 
 
