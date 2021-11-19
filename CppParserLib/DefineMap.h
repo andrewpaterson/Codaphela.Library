@@ -20,53 +20,20 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __DEFINE_MAP_H__
 #define __DEFINE_MAP_H__
-#include "BaseLib/ArrayTemplate.h"
+#include "BaseLib/IndexPrimitiveTemplate.h"
 #include "ASCIITree.h"
-#include "PPLine.h"
-#include "ExternalString.h"
+#include "Define.h"
 
 
-#define DEFINE_FLAGS_BRACKETED	0x01
-#define DEFINE_FLAGS_SPECIAL	0x02
-#define DEFINE_FLAGS_IN_MAP		0x04
-
-
-class CDefineMap;
-class CDefine
-{
-public:
-	int				miIndex;  //Index back into the ASCIITree (for the name).
-	CPPLine			mcReplacement;
-	CArrayChars		mcArguments;  //This is unnecessary but useful for reference.
-	unsigned int	muiID;  //If a token is undef'd and redef'd it's muiID will change.
-	CDefineMap*		mpcDefineMap;
-	int				miFlags;
-
-	void 	Init(int iIndex, int uiID, CDefineMap* pcDefineMap);
-	void 	Kill(void);
-	void 	AddArgument(CExternalString* pcName);
-	void 	AddReplacmentToken(CPPToken* pcToken);
-	BOOL 	Equals(CDefine* pcOther);
-	char*	GetName(void);
-	BOOL	IsBacketed(void);
-	BOOL	IsSpecial(void);
-	BOOL	IsInMap(void);
-	void	SetSpecial(BOOL b);
-	void	SetBracketed(BOOL b);
-	void	SetDefineMap(CDefineMap* pcDefineMap);
-	void	Dump(void);
-};
-
-
-typedef CArrayTemplate<CDefine>	CArrayDefines;
+typedef CIndexPrimitiveTemplate<int64, CDefine>	CDefinesIndex;
 
 
 class CDefineMap
 {
 public:
-	CArrayDefines	mcDefinesArray;
-	CASCIITree		mcDefinesTree;
-	unsigned int	muiID;
+	CASCIITree			mcNameToIDIndex;
+	CDefinesIndex		mcIDToDefineIndex;
+	unsigned int		muiID;
 
 	void 		Init(void);
 	void 		Kill(void);

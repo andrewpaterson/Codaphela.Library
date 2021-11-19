@@ -73,6 +73,9 @@
     <Filter Include="Source\Parser\Types">
       <UniqueIdentifier>{8cfc5778-3a0e-4377-bf98-b9ad12fdcbbc}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Preprocessor\Define">
+      <UniqueIdentifier>{bc091d05-7603-4f67-b06d-d5a1d95ae072}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AbstractSyntaxTree.cpp">
@@ -159,19 +162,7 @@
     <ClCompile Include="ConditionalStack.cpp">
       <Filter>Source\Preprocessor</Filter>
     </ClCompile>
-    <ClCompile Include="DefineArguments.cpp">
-      <Filter>Source\Preprocessor</Filter>
-    </ClCompile>
-    <ClCompile Include="DefineMap.cpp">
-      <Filter>Source\Preprocessor</Filter>
-    </ClCompile>
-    <ClCompile Include="FileDefine.cpp">
-      <Filter>Source\Preprocessor</Filter>
-    </ClCompile>
     <ClCompile Include="LinePreprocessor.cpp">
-      <Filter>Source\Preprocessor</Filter>
-    </ClCompile>
-    <ClCompile Include="NamedDefine.cpp">
       <Filter>Source\Preprocessor</Filter>
     </ClCompile>
     <ClCompile Include="Preprocessor.cpp">
@@ -227,9 +218,6 @@
     </ClCompile>
     <ClCompile Include="TokenHelper.cpp">
       <Filter>Source\Preprocessor\Tokens\Helpers</Filter>
-    </ClCompile>
-    <ClCompile Include="ExternalString.cpp">
-      <Filter>Source\Preprocessor\Tokens\Text</Filter>
     </ClCompile>
     <ClCompile Include="PPText.cpp">
       <Filter>Source\Preprocessor\Tokens\Text</Filter>
@@ -342,8 +330,20 @@
     <ClCompile Include="ASCIITree.cpp">
       <Filter>Source\Preprocessor\ASCII</Filter>
     </ClCompile>
-    <ClCompile Include="CharsIDArray.cpp">
-      <Filter>Source\Preprocessor\ASCII</Filter>
+    <ClCompile Include="NamedDefine.cpp">
+      <Filter>Source\Preprocessor\Define</Filter>
+    </ClCompile>
+    <ClCompile Include="FileDefine.cpp">
+      <Filter>Source\Preprocessor\Define</Filter>
+    </ClCompile>
+    <ClCompile Include="DefineMap.cpp">
+      <Filter>Source\Preprocessor\Define</Filter>
+    </ClCompile>
+    <ClCompile Include="DefineArguments.cpp">
+      <Filter>Source\Preprocessor\Define</Filter>
+    </ClCompile>
+    <ClCompile Include="Define.cpp">
+      <Filter>Source\Preprocessor\Define</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -440,19 +440,7 @@
     <ClInclude Include="ConditionalStack.h">
       <Filter>Source\Preprocessor</Filter>
     </ClInclude>
-    <ClInclude Include="DefineArguments.h">
-      <Filter>Source\Preprocessor</Filter>
-    </ClInclude>
-    <ClInclude Include="DefineMap.h">
-      <Filter>Source\Preprocessor</Filter>
-    </ClInclude>
-    <ClInclude Include="FileDefine.h">
-      <Filter>Source\Preprocessor</Filter>
-    </ClInclude>
     <ClInclude Include="LinePreprocessor.h">
-      <Filter>Source\Preprocessor</Filter>
-    </ClInclude>
-    <ClInclude Include="NamedDefine.h">
       <Filter>Source\Preprocessor</Filter>
     </ClInclude>
     <ClInclude Include="Preprocessor.h">
@@ -508,9 +496,6 @@
     </ClInclude>
     <ClInclude Include="TokenHelper.h">
       <Filter>Source\Preprocessor\Tokens\Helpers</Filter>
-    </ClInclude>
-    <ClInclude Include="ExternalString.h">
-      <Filter>Source\Preprocessor\Tokens\Text</Filter>
     </ClInclude>
     <ClInclude Include="PPText.h">
       <Filter>Source\Preprocessor\Tokens\Text</Filter>
@@ -626,14 +611,23 @@
     <ClInclude Include="ASCIITree.h">
       <Filter>Source\Preprocessor\ASCII</Filter>
     </ClInclude>
-    <ClInclude Include="CharsID.h">
-      <Filter>Source\Preprocessor\ASCII</Filter>
-    </ClInclude>
-    <ClInclude Include="CharsIDArray.h">
-      <Filter>Source\Preprocessor\ASCII</Filter>
-    </ClInclude>
     <ClInclude Include="ClassType.h">
       <Filter>Source\Parser\Types</Filter>
+    </ClInclude>
+    <ClInclude Include="NamedDefine.h">
+      <Filter>Source\Preprocessor\Define</Filter>
+    </ClInclude>
+    <ClInclude Include="FileDefine.h">
+      <Filter>Source\Preprocessor\Define</Filter>
+    </ClInclude>
+    <ClInclude Include="DefineMap.h">
+      <Filter>Source\Preprocessor\Define</Filter>
+    </ClInclude>
+    <ClInclude Include="DefineArguments.h">
+      <Filter>Source\Preprocessor\Define</Filter>
+    </ClInclude>
+    <ClInclude Include="Define.h">
+      <Filter>Source\Preprocessor\Define</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

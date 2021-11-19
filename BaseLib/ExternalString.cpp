@@ -49,13 +49,24 @@ void CExternalString::Init(char* sz, int iLen)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CExternalString::Init(char* szStart, char* szLastCharInclusive)
+{
+	msz = szStart;
+	miLen = StrLen(szLastCharInclusive);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 char* CExternalString::EndInclusive(void)
 {
 	if (miLen != 0)
 	{
-		return msz + (miLen-1);
+		return msz + (miLen - 1);
 	}
-	return NULL;	
+	return NULL;
 }
 
 

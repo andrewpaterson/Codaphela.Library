@@ -20,8 +20,8 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __P_P_INCLUDE_H__
 #define __P_P_INCLUDE_H__
+#include "BaseLib/ExternalString.h"
 #include "PPDirective.h"
-#include "ExternalString.h"
 
 
 class CPPInclude : public CPPDirective

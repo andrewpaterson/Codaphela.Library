@@ -23,7 +23,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "ASCIITree.h"
 #include "PPToken.h"
 #include "PreprocessorParser.h"
-#include "ExternalString.h"
+#include "BaseLib/ExternalString.h"
 #include "PPLine.h"
 #include "PPText.h"
 

@@ -196,9 +196,13 @@
     <ClInclude Include="Double4.h" />
     <ClInclude Include="Double4x4.h" />
     <ClInclude Include="EnumeratorNode.h" />
+    <ClInclude Include="ExternalString.h" />
     <ClInclude Include="GlobalDataTypesIO.h" />
+    <ClInclude Include="IndexLongString.h" />
+    <ClInclude Include="IndexPrimitiveTemplate.h" />
     <ClInclude Include="IndexMapAccess.h" />
     <ClInclude Include="IndexMapIterator.h" />
+    <ClInclude Include="IndexPrimitiveBlock.h" />
     <ClInclude Include="IndexStringInt.h" />
     <ClInclude Include="IndexStringLong.h" />
     <ClInclude Include="IndexStringPrimitive.h" />
@@ -441,7 +445,9 @@
     <ClCompile Include="Double3.cpp" />
     <ClCompile Include="Double4.cpp" />
     <ClCompile Include="Double4x4.cpp" />
+    <ClCompile Include="ExternalString.cpp" />
     <ClCompile Include="GlobalDataTypesIO.cpp" />
+    <ClCompile Include="IndexLongString.cpp" />
     <ClCompile Include="IndexMapAccess.cpp" />
     <ClCompile Include="IndexMapIterator.cpp" />
     <ClCompile Include="LogToMemory.cpp" />

@@ -253,6 +253,9 @@
     <Filter Include="Source\Data\Map\Index\String">
       <UniqueIdentifier>{d7374108-0cc8-4ec3-93e2-6498f1646f2c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Data\Map\Index\Primitive">
+      <UniqueIdentifier>{406e33e0-eebc-45ac-b6e5-6b9ebf6ff776}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DataMacro.h">
@@ -990,6 +993,18 @@
     <ClInclude Include="IndexStringLong.h">
       <Filter>Source\Data\Map\Index\String</Filter>
     </ClInclude>
+    <ClInclude Include="IndexPrimitiveBlock.h">
+      <Filter>Source\Data\Map\Index\Primitive</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexLongString.h">
+      <Filter>Source\Data\Map\Index\Primitive</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexPrimitiveTemplate.h">
+      <Filter>Source\Data\Map\Index\Primitive</Filter>
+    </ClInclude>
+    <ClInclude Include="ExternalString.h">
+      <Filter>Source\Data\String</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -1567,6 +1582,12 @@
     </ClCompile>
     <ClCompile Include="TimSort.cpp">
       <Filter>Source\Sort</Filter>
+    </ClCompile>
+    <ClCompile Include="IndexLongString.cpp">
+      <Filter>Source\Data\Map\Index\Primitive</Filter>
+    </ClCompile>
+    <ClCompile Include="ExternalString.cpp">
+      <Filter>Source\Data\String</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

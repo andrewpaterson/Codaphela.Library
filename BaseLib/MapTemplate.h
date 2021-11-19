@@ -39,6 +39,8 @@ public:
 	D*		Put(M* psKey);
 	BOOL	Put(M* psKey, D* psData);
 
+	BOOL	HasKey(M* psKey);
+
 	BOOL	Remove(M* psKey);
 };
 
@@ -76,6 +78,17 @@ template<class M, class D>
 BOOL CMapTemplate<M, D>::Put(M* psKey, D* psData)
 {
 	return CMapBlock::Put(psKey, sizeof(M), psData, sizeof(D));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M, class D>
+BOOL CMapTemplate<M, D>::HasKey(M* psKey)
+{
+	return CMapBlock::HasKey(psKey, sizeof(M));
 }
 
 

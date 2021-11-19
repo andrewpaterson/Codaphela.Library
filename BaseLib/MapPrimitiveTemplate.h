@@ -34,6 +34,7 @@ public:
 	D*		Get(M iKey);
 	D*		Put(M iKey);
 	BOOL	Put(M iKey, D* psData);
+	BOOL	HasKey(M iKey);
 	BOOL	Remove(M iKey);
 };
 
@@ -90,6 +91,17 @@ template<class M, class D>
 BOOL CMapPrimitiveTemplate<M, D>::Put(M iKey, D* psData)
 {
 	return CMapTemplate<M, D>::Put(&iKey, psData);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M, class D>
+BOOL CMapPrimitiveTemplate<M, D>::HasKey(M iKey)
+{
+	return CMapTemplate<M, D>::HasKey(&iKey);
 }
 
 
