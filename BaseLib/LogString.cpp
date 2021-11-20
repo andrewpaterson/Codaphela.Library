@@ -248,7 +248,6 @@ char* StringToString(char* szStart, char* szLastCharInclusive)
 {
 	int		iCount;
 	char*	sz;
-	int		iLength;
 
 	if (szStart != NULL)
 	{
@@ -260,9 +259,7 @@ char* StringToString(char* szStart, char* szLastCharInclusive)
 		{
 			iCount = IncrementLogToStringCount();
 			sz = gaszLogToStringScratchPad[iCount];
-			iLength = StrLen(szStart, szLastCharInclusive);
-			memcpy(sz, szStart, iLength);
-			sz[iLength] = '\0';
+			StrCpy(sz, szStart, szLastCharInclusive);
 		}
 		return sz;
 	}

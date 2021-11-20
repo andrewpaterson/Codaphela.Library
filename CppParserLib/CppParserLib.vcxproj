@@ -175,6 +175,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AbstractSyntaxTree.cpp" />
+    <ClCompile Include="ASCIIIndex.cpp" />
     <ClCompile Include="ASCIINameIndex.cpp" />
     <ClCompile Include="ASCIITree.cpp" />
     <ClCompile Include="ASTAggregate.cpp" />
@@ -207,10 +208,12 @@
     <ClCompile Include="Define.cpp" />
     <ClCompile Include="DefineArguments.cpp" />
     <ClCompile Include="DefineMap.cpp" />
+    <ClCompile Include="DirectiveMap.cpp" />
     <ClCompile Include="FileDefine.cpp" />
     <ClCompile Include="LinePreprocessor.cpp" />
     <ClCompile Include="NamedDefine.cpp" />
     <ClCompile Include="Preprocessor.cpp" />
+    <ClCompile Include="PreprocessorDirective.cpp" />
     <ClCompile Include="Preprocessor_Windows.cpp" />
     <ClCompile Include="PreprocessorParser.cpp" />
     <ClCompile Include="PreprocessorTokeniser.cpp" />
@@ -268,6 +271,7 @@
   <ItemGroup>
     <ClInclude Include="AbstractSyntaxTree.h" />
     <ClInclude Include="AbstractSyntaxTypes.h" />
+    <ClInclude Include="ASCIIIndex.h" />
     <ClInclude Include="ASCIINameIndex.h" />
     <ClInclude Include="ASCIITree.h" />
     <ClInclude Include="ASTAggregate.h" />
@@ -280,6 +284,8 @@
     <ClInclude Include="ASTUnaryExpr.h" />
     <ClInclude Include="ASTTernaryExpr.h" />
     <ClInclude Include="Define.h" />
+    <ClInclude Include="PreprocessorDirective.h" />
+    <ClInclude Include="DirectiveMap.h" />
     <ClInclude Include="SimpleOperator.h" />
     <ClInclude Include="ASTAccessSpec.h" />
     <ClInclude Include="ASTClassSpec.h" />

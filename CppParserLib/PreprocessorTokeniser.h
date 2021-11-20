@@ -22,7 +22,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __PREPROCESSOR_TOKENISER_H__
 #include "BaseLib/Define.h"
 #include "CFile.h"
-#include "ASCIITree.h"
+#include "DirectiveMap.h"
 #include "PreprocessorParser.h"
 #include "PPDirective.h"
 
@@ -33,7 +33,7 @@ class CPPConditional;
 class CPreprocessorTokeniser
 {
 public:
-	CASCIITree				mcDirectives;
+	CDirectiveMap			mcDirectives;
 	CPreprocessorParser		mcParser;
 	CPPConditional*			mpcPrev;
 

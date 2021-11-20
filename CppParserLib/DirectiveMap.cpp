@@ -21,16 +21,16 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/ConstructorCall.h"
 #include "ASCIINameIndex.h"
 #include "GeneralToken.h"
-#include "DefineMap.h"
+#include "DirectiveMap.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDefineMap::Init(void)
+void CDirectiveMap::Init(void)
 {
-	mcIDToDefineIndex.Init();
+	mcIDToDirectiveIndex.Init();
 	mcNameToIDIndex.Init();
 }
 
@@ -39,21 +39,21 @@ void CDefineMap::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDefineMap::Kill(void)
+void CDirectiveMap::Kill(void)
 {
-	CDefine* pcDefine;
+	CPreprocessorDirective*				pcDirective;
 	SIndexTreeMemoryUnsafeIterator		sIter;
 	int64								lli;
 	BOOL								bHasNext;
 
-	bHasNext = mcIDToDefineIndex.StartIteration(&sIter, &pcDefine, &lli);
+	bHasNext = mcIDToDirectiveIndex.StartIteration(&sIter, &pcDirective, &lli);
 	while (bHasNext)
 	{
-		pcDefine->Kill();
-		bHasNext = mcIDToDefineIndex.Iterate(&sIter, &pcDefine, &lli);
+		pcDirective->Kill();
+		bHasNext = mcIDToDirectiveIndex.Iterate(&sIter, &pcDirective, &lli);
 	}
 
-	mcIDToDefineIndex.Kill();
+	mcIDToDirectiveIndex.Kill();
 	mcNameToIDIndex.Kill();
 }
 
@@ -62,22 +62,22 @@ void CDefineMap::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CDefine* CDefineMap::AddDefine(CExternalString* pcName)
+CPreprocessorDirective* CDirectiveMap::AddDirective(CExternalString* pcName, EPreprocessorDirective eDirective)
 {
-	CDefine		cDefine;
-	CDefine*	pcDefine;
-	int64		lliID;
-	BOOL		bResult;
+	CPreprocessorDirective		cDirective;
+	CPreprocessorDirective*		pcDirective;
+	int64						lliID;
+	BOOL						bResult;
 
 	lliID = mcNameToIDIndex.Add(pcName->msz, pcName->EndInclusive());
 	if (lliID != -1)
 	{
-		bResult = mcIDToDefineIndex.Put(lliID, &cDefine);
+		bResult = mcIDToDirectiveIndex.Put(lliID, &cDirective);
 		if (bResult)
 		{
-			pcDefine = mcIDToDefineIndex.Get(lliID);
-			pcDefine->Init(pcName, lliID, this);
-			return pcDefine;
+			pcDirective = mcIDToDirectiveIndex.Get(lliID);
+			pcDirective->Init(pcName, eDirective, lliID, this);
+			return pcDirective;
 		}
 		else
 		{
@@ -96,18 +96,7 @@ CDefine* CDefineMap::AddDefine(CExternalString* pcName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CDefine* CDefineMap::AddDefine(CExternalString* pcName, CDefine* pcSource)
-{
-	//If NULL is returned then source must still be killed.
-	return NULL;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CDefine* CDefineMap::AddDefine(char* szName)
+CPreprocessorDirective* CDirectiveMap::AddDirective(char* szName, EPreprocessorDirective eDirective)
 {
 	CExternalString		cExternalString;
 	int					iLen;
@@ -115,7 +104,7 @@ CDefine* CDefineMap::AddDefine(char* szName)
 	iLen = (int)strlen(szName);
 	cExternalString.Init(szName, iLen);
 
-	return AddDefine(&cExternalString);
+	return AddDirective(&cExternalString, eDirective);
 }
 
 
@@ -123,16 +112,16 @@ CDefine* CDefineMap::AddDefine(char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CDefine* CDefineMap::GetDefine(CExternalString* pcName)
+CPreprocessorDirective* CDirectiveMap::GetDirective(CExternalString* pcName, BOOL bExact)
 {
-	SASCIINameIndex*	psNameIndex;
-	CDefine*			pcDefine;
+	SASCIINameIndex* psNameIndex;
+	CPreprocessorDirective* pcDirective;
 
 	psNameIndex = mcNameToIDIndex.Get(pcName->msz, pcName->EndInclusive());
 	if (psNameIndex)
 	{
-		pcDefine = mcIDToDefineIndex.Get(psNameIndex->mlliID);
-		return pcDefine;
+		pcDirective = mcIDToDirectiveIndex.Get(psNameIndex->mlliID);
+		return pcDirective;
 	}
 	else
 	{
@@ -145,12 +134,12 @@ CDefine* CDefineMap::GetDefine(CExternalString* pcName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CDefine* CDefineMap::GetDefine(CChars* pszName)
+CPreprocessorDirective* CDirectiveMap::GetDirective(CChars* pszName, BOOL bExact)
 {
 	CExternalString	cExternalString;
 
 	cExternalString.Init(pszName->Text(), pszName->Length());
-	return GetDefine(&cExternalString);
+	return GetDirective(&cExternalString, bExact);
 }
 
 
@@ -158,14 +147,14 @@ CDefine* CDefineMap::GetDefine(CChars* pszName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CDefine* CDefineMap::GetDefine(char* szName)
+CPreprocessorDirective* CDirectiveMap::GetDirective(char* szName, BOOL bExact)
 {
 	CExternalString	cExternalString;
 	int				iLen;
 
 	iLen = (int)strlen(szName);
 	cExternalString.Init(szName, iLen);
-	return GetDefine(&cExternalString);
+	return GetDirective(&cExternalString, bExact);
 }
 
 
@@ -173,29 +162,30 @@ CDefine* CDefineMap::GetDefine(char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDefineMap::RemoveDefine(CExternalString* pcName)
+void CDirectiveMap::RemoveDirective(CExternalString* pcName)
 {
-	SASCIINameIndex*	psNameIndex;
-	CDefine*			pcDefine;
+	SASCIINameIndex* psNameIndex;
+	CPreprocessorDirective* pcDirective;
 
 	psNameIndex = mcNameToIDIndex.Get(pcName->msz, pcName->EndInclusive());
 	if (psNameIndex)
 	{
-		pcDefine = mcIDToDefineIndex.Get(psNameIndex->mlliID);
-		if (pcDefine)
+		pcDirective = mcIDToDirectiveIndex.Get(psNameIndex->mlliID);
+		if (pcDirective)
 		{
-			pcDefine->Kill();
+			pcDirective->Kill();
 			mcNameToIDIndex.Remove(pcName->msz, pcName->EndInclusive());
-			mcIDToDefineIndex.Remove(psNameIndex->mlliID);
+			mcIDToDirectiveIndex.Remove(psNameIndex->mlliID);
 		}
 	}
 }
+
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDefineMap::RemoveDefine(char* szName)
+void CDirectiveMap::RemoveDirective(char* szName)
 {
 	CExternalString	cExternalString;
 	int				iLen;
@@ -203,7 +193,7 @@ void CDefineMap::RemoveDefine(char* szName)
 	iLen = (int)strlen(szName);
 	cExternalString.Init(szName, iLen);
 
-	RemoveDefine(&cExternalString);
+	RemoveDirective(&cExternalString);
 }
 
 
@@ -211,17 +201,17 @@ void CDefineMap::RemoveDefine(char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDefineMap::Dump(void)
+void CDirectiveMap::Dump(void)
 {
 	SIndexTreeMemoryUnsafeIterator	sIter;
 	int								iWordEnd;
-	CDefine*						pcDefine;
+	CPreprocessorDirective*			pcDirective;
 
 	iWordEnd = (int)mcNameToIDIndex.StartIteration(&sIter);
 	while (iWordEnd != -1)
 	{
-		pcDefine = mcIDToDefineIndex.Get(iWordEnd);
-		pcDefine->Dump();
+		pcDirective = mcIDToDirectiveIndex.Get(iWordEnd);
+		pcDirective->Dump();
 
 		iWordEnd = (int)mcNameToIDIndex.Iterate(&sIter);
 	}

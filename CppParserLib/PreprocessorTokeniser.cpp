@@ -34,17 +34,17 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 void CPreprocessorTokeniser::Init(void)
 {
 	mcDirectives.Init();
-	mcDirectives.AddIndex("ifdef");
-	mcDirectives.AddIndex("ifndef");
-	mcDirectives.AddIndex("endif");
-	mcDirectives.AddIndex("else");
-	mcDirectives.AddIndex("if");
-	mcDirectives.AddIndex("elif");
-	mcDirectives.AddIndex("define");
-	mcDirectives.AddIndex("include");
-	mcDirectives.AddIndex("undef");
-	mcDirectives.AddIndex("error");
-	mcDirectives.AddIndex("pragma");
+	mcDirectives.AddDirective("ifdef", PPD_ifdef);
+	mcDirectives.AddDirective("ifndef", PPD_ifndef);
+	mcDirectives.AddDirective("endif", PPD_endif);
+	mcDirectives.AddDirective("else", PPD_else);
+	mcDirectives.AddDirective("if", PPD_if);
+	mcDirectives.AddDirective("elif", PPD_elif);
+	mcDirectives.AddDirective("define", PPD_define);
+	mcDirectives.AddDirective("include", PPD_include);
+	mcDirectives.AddDirective("undef", PPD_undef);
+	mcDirectives.AddDirective("error", PPD_error);
+	mcDirectives.AddDirective("pragma", PPD_pragma);
 }
 
 
@@ -236,8 +236,8 @@ void CPreprocessorTokeniser::TokeniseDefine(CPPTokenHolder* pcHolder, char* sz, 
 //////////////////////////////////////////////////////////////////////////
 EPreprocessorDirective CPreprocessorTokeniser::GetDirective(void)
 {
-	int			iIndex;
-	CChars*		szDirective;
+	CPreprocessorDirective* pcDirective;
+	CExternalString			cName;
 
 	mcParser.SkipWhiteSpace();
 	if (mcParser.mbEndOfFile)
@@ -245,14 +245,14 @@ EPreprocessorDirective CPreprocessorTokeniser::GetDirective(void)
 		return PPD_nomore;
 	}
 
-	iIndex = mcDirectives.GetIndex(mcParser.mszPos, mcParser.mszEnd, FALSE);
-	if (iIndex == -1)
+	cName.Init(mcParser.mszPos, mcParser.mszEnd);
+	pcDirective = mcDirectives.GetDirective(&cName, FALSE);
+	if (pcDirective == NULL)
 	{
 		return PPD_unknown;
 	}
-	szDirective = mcDirectives.mcWords.Get(iIndex);
-	mcParser.StepRight(szDirective->Length());
-	return (EPreprocessorDirective)iIndex;
+	mcParser.StepRight(pcDirective->GetNameLength());
+	return pcDirective->GetType();
 }
 
 //////////////////////////////////////////////////////////////////////////

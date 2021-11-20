@@ -30,11 +30,11 @@ typedef CIndexPrimitiveTemplate<int64, CDefine>	CDefinesIndex;
 
 class CDefineMap
 {
-public:
+protected:
 	CASCIITree			mcNameToIDIndex;
 	CDefinesIndex		mcIDToDefineIndex;
-	unsigned int		muiID;
 
+public:
 	void 		Init(void);
 	void 		Kill(void);
 	CDefine*	AddDefine(CExternalString* pcName);
@@ -45,7 +45,6 @@ public:
 	CDefine*	GetDefine(CExternalString* pcName);
 	CDefine*	GetDefine(CChars* pszName);
 	CDefine*	GetDefine(char* szName);
-	char*		GetName(CDefine* pcDefine);
 	void		Dump(void);
 };
 

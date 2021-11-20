@@ -39,7 +39,7 @@ char*		IToA(unsigned long long int ulliValue, char* szResult, int iBase = 10);
 char*		StrRev(char* szString);
 char*		StrRev(char* szString, int iLength);
 const char*	FindChar(const char* szString, char c, BOOL bReverse = 0);
-void		StrCpySafe(char* szDest, const char* szSource, int iDestLength);
+char*		StrCpySafe(char* szDest, const char* szSource, int iDestLength);
 void		ToLower(char* szString);
 void		ToUpper(char* szString);
 char		ToLower(char c);
@@ -49,6 +49,7 @@ int			StrPrintable(const char* szString);
 int			StrPrintable(const char* szString, int iLength);
 size_t		StrLen(const char* szString, const char* szLastCharInclusive = NULL);
 char*		NullToEmpty(const char* szString);
+char*		StrCpy(char* szDest, const char* szString, const char* szLastCharInclusive);
 
 extern char	gszEmptyString[4];
 

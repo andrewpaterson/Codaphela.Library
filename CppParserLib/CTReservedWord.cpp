@@ -28,7 +28,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CCTReservedWord::Init(void)
 {
-	miReservedWord = -1;
+	mlliReservedWord = -1;
 }
 
 
@@ -36,9 +36,9 @@ void CCTReservedWord::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCTReservedWord::Init(int iReservedWord)
+void CCTReservedWord::Init(int64 iReservedWord)
 {
-	miReservedWord = iReservedWord;
+	mlliReservedWord = iReservedWord;
 }
 
 
@@ -68,6 +68,7 @@ void CCTReservedWord::Append(CChars* psz, CTokeniser* pcTokeniser)
 {
 	char*	sz;
 
-	sz = pcTokeniser->mcReservedWords.GetWord(miReservedWord);
+	sz = pcTokeniser->mcReservedWords.Get(mlliReservedWord);
 	psz->Append(sz);
 }
+
