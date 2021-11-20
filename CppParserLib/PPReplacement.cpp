@@ -36,11 +36,11 @@ void CPPReplacement::Init(int iLine, int iColumn)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPPReplacement::Init(int iDefineIndex, int iArgIndex, int iLine, int iColumn)
+void CPPReplacement::Init(int64 lliDefineID, int iArgIndex, int iLine, int iColumn)
 {
 	Set(iLine, iColumn);
 	miArgIndex = iArgIndex;
-	miDefineIndex = iDefineIndex;
+	mlliDefineID = lliDefineID;;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -87,7 +87,7 @@ void CPPReplacement::Copy(CPPToken* pcSource, CMemoryStackExtended* pcStack)
 		pcCast = (CPPReplacement*)pcSource;
 		Set(pcCast->miLine, pcCast->miColumn);
 		miArgIndex = pcCast->miArgIndex;
-		miDefineIndex = pcCast->miDefineIndex;
+		mlliDefineID = pcCast->mlliDefineID;
 	}
 }
 

@@ -247,8 +247,7 @@ BOOL CPreprocessor::ProcessHashDefine(CPreprocessorTokenParser* pcParser)
 		else
 		{
 			pcExisting = GetDefine(&cIdentifier);
-			pcDefine = (CDefine*)malloc(sizeof(CDefine));
-			pcDefine->Init(mcDefines.mcDefinesTree.GetIndexForNew(cIdentifier.msz, cIdentifier.miLen), mcDefines.muiID, NULL);
+			pcDefine = mcDefines.AddDefine(&cIdentifier);
 		}
 
 		bResult = pcParser->GetExactDecorator('(', FALSE);
@@ -289,7 +288,7 @@ BOOL CPreprocessor::ProcessHashDefine(CPreprocessorTokenParser* pcParser)
 					if (iReplaceArg != -1)
 					{
 						pcReplacement = CPPReplacement::Construct(mpcStack->Add(sizeof(CPPReplacement)));
-						pcReplacement->Init(pcDefine->miIndex, iReplaceArg, -1, -1);
+						pcReplacement->Init(pcDefine->GetID(), iReplaceArg, -1, -1);
 						pcToken = pcReplacement;
 						bAllocated = TRUE;
 					}
@@ -1064,7 +1063,7 @@ BOOL CPreprocessor::ProcessIdentifier(CPPTokenHolder* pcDest, CPPText* pcText, C
 		if (pcDefine->IsBacketed())
 		{
 			pcParser->NextToken();
-			psArguments = mcArguments.Add(pcDefine->miIndex);
+			psArguments = mcArguments.Add(pcDefine->GetID());
 			iArgIndex = mcArguments.mcDefineToArguments.GetIndex(psArguments);
 			bResult = FindArguments(pcParser, &psArguments->mcArguments);
 			if ((!bResult) || (psArguments->mcArguments.NumElements() != pcDefine->mcArguments.NumElements()))
@@ -1075,7 +1074,7 @@ BOOL CPreprocessor::ProcessIdentifier(CPPTokenHolder* pcDest, CPPText* pcText, C
 					pcTokenHolder = psArguments->mcArguments.Get(i);
 					pcTokenHolder->Kill();
 				}
-				mcArguments.Remove(pcDefine->miIndex);
+				mcArguments.Remove(pcDefine->GetID());
 				return FALSE;
 			}
 		}
@@ -1094,13 +1093,13 @@ BOOL CPreprocessor::ProcessIdentifier(CPPTokenHolder* pcDest, CPPText* pcText, C
 		//I'm not sure if it's safe to do this anymore... another define might refer to it.
 		if (iArgIndex != -1)
 		{
-			psArguments = mcArguments.Get(pcDefine->miIndex);
+			psArguments = mcArguments.Get(pcDefine->GetID());
 			for (i = 0; i < psArguments->mcArguments.NumElements(); i++)
 			{
 				pcTokenHolder = psArguments->mcArguments.Get(i);
 				pcTokenHolder->Kill();
 			}
-			mcArguments.Remove(pcDefine->miIndex);
+			mcArguments.Remove(pcDefine->GetID());
 		}
 		return TRUE;
 	}
@@ -1202,7 +1201,7 @@ void CPreprocessor::ExpandReplacement(CPPReplacement* pcReplacement, CPPTokenHol
 	CPPLine						cLine;
 	SDefineArgument*			psDefineArgument;
 
-	psDefineArgument = mcArguments.Get(pcReplacement->miDefineIndex);
+	psDefineArgument = mcArguments.Get(pcReplacement->mlliDefineID);
 	pcArguments = &psDefineArgument->mcArguments;
 	if (pcArguments)
 	{
@@ -1720,6 +1719,7 @@ void CPreprocessor::DeltaDefines(CArrayNamedDefines* pcDelta, CMemoryStackExtend
 			else
 			{
 				pcExisting = GetDefine(pcNamedDefine->mszName.Text());
+				mcDefines.AddDefine(xxx)
 				pcDefine = (CDefine*)malloc(sizeof(CDefine));
 				pcDefine->Init(mcDefines.mcDefinesTree.GetIndexForNew(cIdentifier.msz, cIdentifier.miLen), mcDefines.muiID, NULL);
 			}

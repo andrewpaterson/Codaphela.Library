@@ -28,11 +28,11 @@ class CPPReplacement : public CPPToken
 {
 public:
 	int		miArgIndex;
-	int		miDefineIndex;
+	int64	mlliDefineID;
 
 	TOKEN_CONSTRUCT(CPPReplacement);
 	void 		Init(int iLine, int iColumn);
-	void 		Init(int iDefineIndex, int iArgIndex, int iLine, int iColumn);
+	void 		Init(int64 lliDefineID, int iArgIndex, int iLine, int iColumn);
 	void 		Kill(void);
 	BOOL 		IsReplacement(void);
 	void 		Append(CChars* psz);
