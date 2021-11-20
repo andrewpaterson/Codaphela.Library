@@ -25,7 +25,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 struct SDefineArgument 
 {
-	int						iDefine;
+	int64					mlliDefineID;
 	CArrayPPTokenHolders	mcArguments;
 };
 
@@ -40,9 +40,9 @@ public:
 
 	void 					Init(void);
 	void 					Kill(void);
-	SDefineArgument*		Get(int iDefine);
-	SDefineArgument*		Add(int iDefine);
-	void					Remove(int iDefine);
+	SDefineArgument*		Get(int64 lliDefineID);
+	SDefineArgument*		Add(int64 lliDefineID);
+	void					Remove(int64 lliDefineID);
 };
 
 

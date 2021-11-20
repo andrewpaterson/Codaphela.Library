@@ -17,7 +17,7 @@ class CDefine
 public:
 	CPPLine			mcReplacement;
 	CArrayChars		mcArguments;	//This is unnecessary but useful for reference.
-	int64			muiID;			//If a token is undef'd and redef'd it's muiID will change.
+	int64			mlliID;			//If a token is undef'd and redef'd it's muiID will change.
 	CDefineMap*		mpcDefineMap;
 	int				miFlags;
 	CChars			mszName;
@@ -28,6 +28,7 @@ public:
 	void 	AddReplacmentToken(CPPToken* pcToken);
 	BOOL 	Equals(CDefine* pcOther);
 	char*	GetName(void);
+	int64	GetID(void);
 	BOOL	IsBacketed(void);
 	BOOL	IsSpecial(void);
 	BOOL	IsInMap(void);

@@ -55,7 +55,7 @@ void CDefineArguments::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SDefineArgument* CDefineArguments::Get(int iDefine)
+SDefineArgument* CDefineArguments::Get(int64 lliDefineID)
 {
 	int					i;
 	SDefineArgument*	psDefineArg;
@@ -63,7 +63,7 @@ SDefineArgument* CDefineArguments::Get(int iDefine)
 	for (i = 0; i < mcDefineToArguments.NumElements(); i++)
 	{
 		psDefineArg = mcDefineToArguments.Get(i);
-		if (psDefineArg->iDefine == iDefine)
+		if (psDefineArg->mlliDefineID == lliDefineID)
 		{
 			return psDefineArg;
 		}
@@ -76,11 +76,11 @@ SDefineArgument* CDefineArguments::Get(int iDefine)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SDefineArgument* CDefineArguments::Add(int iDefine)
+SDefineArgument* CDefineArguments::Add(int64 lliDefineID)
 {
 	SDefineArgument*	psDefineArg;
 
-	psDefineArg = Get(iDefine);
+	psDefineArg = Get(lliDefineID);
 	if (psDefineArg)
 	{
 		psDefineArg->mcArguments.Kill();
@@ -90,7 +90,7 @@ SDefineArgument* CDefineArguments::Add(int iDefine)
 		psDefineArg = mcDefineToArguments.Add();
 	}
 	psDefineArg->mcArguments.Init();
-	psDefineArg->iDefine = iDefine;
+	psDefineArg->mlliDefineID = lliDefineID;
 	return psDefineArg;
 }
 
@@ -100,7 +100,7 @@ SDefineArgument* CDefineArguments::Add(int iDefine)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDefineArguments::Remove(int iDefine)
+void CDefineArguments::Remove(int64 lliDefineID)
 {
 	int					i;
 	SDefineArgument*	psDefineArg;
@@ -108,7 +108,7 @@ void CDefineArguments::Remove(int iDefine)
 	for (i = 0; i < mcDefineToArguments.NumElements(); i++)
 	{
 		psDefineArg = mcDefineToArguments.Get(i);
-		if (psDefineArg->iDefine == iDefine)
+		if (psDefineArg->mlliDefineID == lliDefineID)
 		{
 			psDefineArg->mcArguments.Kill();
 			mcDefineToArguments.RemoveAt(i, FALSE);

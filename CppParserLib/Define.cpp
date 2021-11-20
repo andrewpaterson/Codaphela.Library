@@ -16,7 +16,7 @@ void CDefine::Init(CExternalString* pcName, int64 uiID, CDefineMap* pcDefineMap)
 	mcReplacement.Init(-1, -1);
 	mcArguments.Init();
 	miFlags = ((pcDefineMap == NULL) ? 0 : DEFINE_FLAGS_IN_MAP);
-	muiID = uiID;
+	mlliID = uiID;
 	mpcDefineMap = pcDefineMap;
 	mszName.Init(pcName);
 }
@@ -148,6 +148,16 @@ BOOL CDefine::Equals(CDefine* pcOther)
 char* CDefine::GetName(void)
 {
 	return mszName.Text();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int64 CDefine::GetID(void)
+{
+	return mlliID;
 }
 
 
