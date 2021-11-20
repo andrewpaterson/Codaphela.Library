@@ -11,3 +11,14 @@ int SASCIINameIndex::Size(char* szText, char* szLastCharInclusive)
 	return StrLen(szText, szLastCharInclusive) + 1 + sizeof(int64);
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void SASCIINameIndex::Init(int64 lliID, char* szText, char* szLastCharInclusive)
+{
+	mlliID = lliID;
+	StrCpy(mszName, szText, szLastCharInclusive);
+}
+

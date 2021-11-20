@@ -22,7 +22,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __C_P_P_TOKENISER_H__
 #include "BaseLib/ArrayTemplate.h"
 #include "BaseLib/TextParser.h"
-#include "ASCIITree.h"
+#include "ASCIIIndex.h"
 #include "CppTokens.h"
 #include "CppToken.h"
 #include "PreprocessorTokenParser.h"
@@ -34,8 +34,8 @@ typedef CArrayTemplate<CCppToken*>	CCTArrayTokens;
 class CTokeniser
 {
 public:
-	CASCIITree					mcReservedWords;
-	CASCIITree					mcIdentifiers;
+	CASCIIIndex					mcReservedWords;
+	CASCIIIndex					mcIdentifiers;
 	CCTArrayTokens				mcTokens;
 	CMemoryStackExtended		mcStack;
 	

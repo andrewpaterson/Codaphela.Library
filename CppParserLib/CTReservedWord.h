@@ -26,11 +26,11 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 class CCTReservedWord : public CCppToken
 {
 public:
-	int		miReservedWord;
+	int64	mlliReservedWord;
 
 	TOKEN_CONSTRUCT(CCTReservedWord);
 	void Init(void);
-	void Init(int iReservedWord);
+	void Init(int64 iReservedWord);
 	void Kill(void);
 	BOOL IsReservedWord(void);
 	void Append(CChars* psz, CTokeniser* pcTokeniser);

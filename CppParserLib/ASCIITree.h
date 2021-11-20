@@ -24,29 +24,31 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define __ASCII_TREE_H__
 #include "BaseLib/ArrayChars.h"
 #include "BaseLib/IndexStringBlock.h"
+#include "ASCIINameIndex.h"
 
 
 class CASCIITree
 {
 public:
 	CIndexStringBlock	mcIndex;
+	int64				mlliID;
 
-	void			Init(void);
-	void			Kill(void);
+	void				Init(void);
+	void				Kill(void);
 
-	BOOL			Add(int64 lliID, char* szText, char* szLastCharInclusive = NULL);
+	int64				Add(char* szText, char* szLastCharInclusive = NULL);
 
-	int64			Get(char* szText, char* szLastCharInclusive = NULL /*, BOOL bExact = TRUE */ );
+	SASCIINameIndex*	Get(char* szText, char* szLastCharInclusive = NULL /*, BOOL bExact = TRUE */ );
 
-	BOOL			Remove(char* szText, char* szLastCharInclusive = NULL);
+	BOOL				Remove(char* szText, char* szLastCharInclusive = NULL);
 
-	int				NumElements(void);
+	int					NumElements(void);
 
-	int64			StartIteration(SIndexTreeMemoryUnsafeIterator* psIter);
-	int64			Iterate(SIndexTreeMemoryUnsafeIterator* psIter);
+	int64				StartIteration(SIndexTreeMemoryUnsafeIterator* psIter);
+	int64				Iterate(SIndexTreeMemoryUnsafeIterator* psIter);
 
-	BOOL			IsEmpty(void);
-	BOOL			Contains(char* szText);
+	BOOL				IsEmpty(void);
+	BOOL				Contains(char* szText);
 };
 
 

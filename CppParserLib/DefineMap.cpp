@@ -19,6 +19,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/ConstructorCall.h"
+#include "ASCIINameIndex.h"
 #include "GeneralToken.h"
 #include "DefineMap.h"
 
@@ -31,7 +32,6 @@ void CDefineMap::Init(void)
 {
 	mcIDToDefineIndex.Init();
 	mcNameToIDIndex.Init();
-	muiID = 0;
 }
 
 
@@ -64,13 +64,31 @@ void CDefineMap::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 CDefine* CDefineMap::AddDefine(CExternalString* pcName)
 {
-	int			iIndex;
 	CDefine		cDefine;
+	CDefine*	pcDefine;
+	int64		lliID;
+	BOOL		bResult;
 
-	mcNameToIDIndex.Add(muiID, pcName->msz, pcName->EndInclusive());
-	mcIDToDefineIndex.Put(muiID, &cDefine);
-	cDefine.Init(pcName, muiID, this);
-	muiID++;
+	lliID = mcNameToIDIndex.Add(pcName->msz, pcName->EndInclusive());
+	if (lliID != -1)
+	{
+		bResult = mcIDToDefineIndex.Put(lliID, &cDefine);
+		if (bResult)
+		{
+			pcDefine = mcIDToDefineIndex.Get(lliID);
+			pcDefine->Init(pcName, lliID, this);
+			return pcDefine;
+		}
+		else
+		{
+			mcNameToIDIndex.Remove(pcName->msz, pcName->EndInclusive());
+			return NULL;
+		}
+	}
+	else
+	{
+		return NULL;
+	}
 }
 
 
@@ -80,29 +98,6 @@ CDefine* CDefineMap::AddDefine(CExternalString* pcName)
 //////////////////////////////////////////////////////////////////////////
 CDefine* CDefineMap::AddDefine(CExternalString* pcName, CDefine* pcSource)
 {
-	int			iIndex;
-	CDefine*	pcDefine;
-
-	iIndex = mcNameToIDIndex.AddIndex(pcName->msz, pcName->EndInclusive());
-	if (iIndex != -1)
-	{
-		//The define must have been setup correctly before hand.
-		//Other processes will have depended on it.
-		if ((iIndex == pcSource->miIndex) && (muiID == pcSource->muiID))
-		{
-			pcDefine = (CDefine*)mcIDToDefineIndex.GrowToAtLeastNumElements(iIndex+1, TRUE, 0);
-
-			//It is safe to just overwrite mcReplacement and mcArguments provided that source isn't killed, just ignored.
-			memcpy(pcDefine, pcSource, sizeof(CDefine));
-
-			pcDefine->muiID = muiID;
-			pcDefine->miIndex = iIndex;
-			muiID++;
-			pcDefine->SetDefineMap(this);
-			return pcDefine;
-		}
-	}
-
 	//If NULL is returned then source must still be killed.
 	return NULL;
 }
@@ -130,13 +125,13 @@ CDefine* CDefineMap::AddDefine(char* szName)
 //////////////////////////////////////////////////////////////////////////
 CDefine* CDefineMap::GetDefine(CExternalString* pcName)
 {
-	int64		lliID;
-	CDefine*	pcDefine;
+	SASCIINameIndex*	psNameIndex;
+	CDefine*			pcDefine;
 
-	lliID = mcNameToIDIndex.Get(pcName->msz, pcName->EndInclusive());
-	if (lliID != -1)
+	psNameIndex = mcNameToIDIndex.Get(pcName->msz, pcName->EndInclusive());
+	if (psNameIndex)
 	{
-		pcDefine = mcIDToDefineIndex.Get(lliID);
+		pcDefine = mcIDToDefineIndex.Get(psNameIndex->mlliID);
 		return pcDefine;
 	}
 	else
@@ -180,18 +175,18 @@ CDefine* CDefineMap::GetDefine(char* szName)
 //////////////////////////////////////////////////////////////////////////
 void CDefineMap::RemoveDefine(CExternalString* pcName)
 {
-	int64		lliID;
-	CDefine*	pcDefine;
+	SASCIINameIndex*	psNameIndex;
+	CDefine*			pcDefine;
 
-	lliID = mcNameToIDIndex.Get(pcName->msz, pcName->EndInclusive());
-	if (lliID != -1)
+	psNameIndex = mcNameToIDIndex.Get(pcName->msz, pcName->EndInclusive());
+	if (psNameIndex)
 	{
-		pcDefine = mcIDToDefineIndex.Get(lliID);
+		pcDefine = mcIDToDefineIndex.Get(psNameIndex->mlliID);
 		if (pcDefine)
 		{
 			pcDefine->Kill();
 			mcNameToIDIndex.Remove(pcName->msz, pcName->EndInclusive());
-			mcIDToDefineIndex.Remove(lliID);
+			mcIDToDefineIndex.Remove(psNameIndex->mlliID);
 		}
 	}
 }
@@ -209,16 +204,6 @@ void CDefineMap::RemoveDefine(char* szName)
 	cExternalString.Init(szName, iLen);
 
 	RemoveDefine(&cExternalString);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-char* CDefineMap::GetName(CDefine* pcDefine)
-{
-	return mcNameToIDIndex.GetWord(pcDefine->miIndex);
 }
 
 

@@ -28,7 +28,7 @@ class CConfig
 {
 public:
 	CChars			mszName;
-	CArrayChars	maszDefines;
+	CArrayChars		maszDefines;
 
 	void Init(char* szName);
 	void Kill(void);

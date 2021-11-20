@@ -535,7 +535,7 @@ const char* FindChar(const char* szString, char c, BOOL bReverse)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void StrCpySafe(char* szDest, const char* szSource, int iDestLength)
+char* StrCpySafe(char* szDest, const char* szSource, int iDestLength)
 {
 	int iLen;	
 
@@ -546,6 +546,8 @@ void StrCpySafe(char* szDest, const char* szSource, int iDestLength)
 	}
 	memcpy(szDest, szSource, iLen);
 	szDest[iLen] = 0;
+
+	return szDest;
 }
 
 
@@ -747,5 +749,21 @@ char* NullToEmpty(const char* szString)
 	{
 		return (char*)szString;
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* StrCpy(char* szDest, const char* szString, const char* szLastCharInclusive)
+{
+	size_t	uiLength;
+
+	uiLength = StrLen(szString, szLastCharInclusive);
+	memcpy(szDest, szString, uiLength);
+	szDest[uiLength] = '\0';
+
+	return szDest;
 }
 

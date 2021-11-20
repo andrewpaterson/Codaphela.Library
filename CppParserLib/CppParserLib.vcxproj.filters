@@ -348,6 +348,15 @@
     <ClCompile Include="ASCIINameIndex.cpp">
       <Filter>Source\Preprocessor\ASCII</Filter>
     </ClCompile>
+    <ClCompile Include="ASCIIIndex.cpp">
+      <Filter>Source\Preprocessor\ASCII</Filter>
+    </ClCompile>
+    <ClCompile Include="PreprocessorDirective.cpp">
+      <Filter>Source\Preprocessor</Filter>
+    </ClCompile>
+    <ClCompile Include="DirectiveMap.cpp">
+      <Filter>Source\Preprocessor</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AbstractSyntaxTree.h">
@@ -634,6 +643,15 @@
     </ClInclude>
     <ClInclude Include="ASCIINameIndex.h">
       <Filter>Source\Preprocessor\ASCII</Filter>
+    </ClInclude>
+    <ClInclude Include="ASCIIIndex.h">
+      <Filter>Source\Preprocessor\ASCII</Filter>
+    </ClInclude>
+    <ClInclude Include="DirectiveMap.h">
+      <Filter>Source\Preprocessor</Filter>
+    </ClInclude>
+    <ClInclude Include="PreprocessorDirective.h">
+      <Filter>Source\Preprocessor</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

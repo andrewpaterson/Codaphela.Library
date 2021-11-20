@@ -32,6 +32,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 void CASCIITree::Init(void)
 {
 	mcIndex.Init();
+	mlliID = 0;
 }
 
 
@@ -49,12 +50,12 @@ void CASCIITree::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CASCIITree::Add(int64 lliID, char* szText, char* szLastCharInclusive)
+int64 CASCIITree::Add(char* szText, char* szLastCharInclusive)
 {
-	int64				lli;
 	BOOL				bResult;
 	int					iDataSize;
 	SASCIINameIndex*	psData;
+	int64				lliID;
 
 	bResult = mcIndex.Get(szText, (void**)&psData, &iDataSize, szLastCharInclusive);
 	if (!bResult)
@@ -63,18 +64,20 @@ BOOL CASCIITree::Add(int64 lliID, char* szText, char* szLastCharInclusive)
 		psData = (SASCIINameIndex*)mcIndex.Put(szText, iDataSize, szLastCharInclusive);
 		if (psData != NULL)
 		{
-			psData->Init(xxx);
-			return bResult;
+			lliID = mlliID;
+			mlliID++;
+			psData->Init(lliID, szText, szLastCharInclusive);
+			return lliID;
 		}
 		else
 		{
-			gcLogger.Error2(__METHOD__, " Cannot add key [", StringToString(szText, szLastCharInclusive), "] with ID [", LongLongToString(lliID), "].", NULL);
+			gcLogger.Error2(__METHOD__, " Cannot add key [", StringToString(szText, szLastCharInclusive), "] with ID [", LongLongToString(mlliID), "].", NULL);
 			return FALSE;
 		}
 	}
 	else
 	{
-		gcLogger.Error2(__METHOD__, " Cannot add key [", StringToString(szText, szLastCharInclusive), "] with ID [", LongLongToString(lliID), "].  Key already exists.", NULL);
+		gcLogger.Error2(__METHOD__, " Cannot add key [", StringToString(szText, szLastCharInclusive), "] with ID [", LongLongToString(mlliID), "].  Key already exists.", NULL);
 		return FALSE;
 	}
 }
@@ -84,9 +87,9 @@ BOOL CASCIITree::Add(int64 lliID, char* szText, char* szLastCharInclusive)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int64 CASCIITree::Get(char* szText, char* szLastCharInclusive /*, BOOL bExact */)
+SASCIINameIndex* CASCIITree::Get(char* szText, char* szLastCharInclusive /*, BOOL bExact */)
 {
-	return mcIndex.Get(szText, -1LL, szLastCharInclusive);
+	return (SASCIINameIndex*)mcIndex.Get(szText, szLastCharInclusive);
 }
 
 
@@ -116,13 +119,13 @@ int CASCIITree::NumElements(void)
 //////////////////////////////////////////////////////////////////////////
 int64 CASCIITree::StartIteration(SIndexTreeMemoryUnsafeIterator* psIter)
 {
-	int64	lli;
-	BOOL	bResult;
+	BOOL				bResult;
+	SASCIINameIndex*	psNameIndex;
 
-	bResult = mcIndex.StartIteration(psIter, &lli, NULL, NULL, 0);
+	bResult = mcIndex.StartIteration(psIter, (void**)&psNameIndex, NULL, NULL, NULL, 0);
 	if (bResult)
 	{
-		return lli;
+		return psNameIndex->mlliID;
 	}
 	else
 	{
@@ -137,13 +140,13 @@ int64 CASCIITree::StartIteration(SIndexTreeMemoryUnsafeIterator* psIter)
 //////////////////////////////////////////////////////////////////////////
 int64 CASCIITree::Iterate(SIndexTreeMemoryUnsafeIterator* psIter)
 {
-	int64	lli;
-	BOOL	bResult;
+	SASCIINameIndex*	psNameIndex;
+	BOOL				bResult;
 
-	bResult = mcIndex.Iterate(psIter, &lli, NULL, NULL, 0);
+	bResult = mcIndex.Iterate(psIter, (void**)&psNameIndex, NULL, NULL, NULL, 0);
 	if (bResult)
 	{
-		return lli;
+		return psNameIndex->mlliID;
 	}
 	else
 	{

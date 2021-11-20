@@ -36,7 +36,7 @@ BOOL CIndexPrimitiveTemplate<M, D>::Get(M sData, D** ppsData)
 template<class M, class D>
 D* CIndexPrimitiveTemplate<M, D>::Get(M sData)
 {
-	return CIndexPrimitiveBlock<M>::Get(sData);
+	return (D*)CIndexPrimitiveBlock<M>::Get(sData);
 }
 
 
@@ -58,7 +58,7 @@ D* CIndexPrimitiveTemplate<M, D>::Put(M sData)
 template<class M, class D>
 BOOL CIndexPrimitiveTemplate<M, D>::Put(M sData, D* psData)
 {
-	return CIndexPrimitiveBlock<M>::Put(sData, psData, sizef(D));
+	return CIndexPrimitiveBlock<M>::Put(sData, psData, sizeof(D));
 }
 
 
@@ -69,7 +69,7 @@ BOOL CIndexPrimitiveTemplate<M, D>::Put(M sData, D* psData)
 template<class M, class D>
 BOOL CIndexPrimitiveTemplate<M, D>::StartIteration(SIndexTreeMemoryUnsafeIterator* psIterator, D** ppsData, M* psDestKey)
 {
-	return CIndexPrimitiveBlock<M>::StartIteration(psIterator, ppsData, NULL, psDestKey);
+	return CIndexPrimitiveBlock<M>::StartIteration(psIterator, (void**)ppsData, NULL, psDestKey);
 }
 
 
@@ -80,7 +80,7 @@ BOOL CIndexPrimitiveTemplate<M, D>::StartIteration(SIndexTreeMemoryUnsafeIterato
 template<class M, class D>
 BOOL CIndexPrimitiveTemplate<M, D>::Iterate(SIndexTreeMemoryUnsafeIterator* psIterator, D** ppsData, M* psDestKey)
 {
-	return CIndexPrimitiveBlock<M>::Iterate(psIterator, ppsData, NULL, psDestKey);
+	return CIndexPrimitiveBlock<M>::Iterate(psIterator, (void**)ppsData, NULL, psDestKey);
 }
 
 

@@ -5,10 +5,12 @@
 
 struct SASCIINameIndex
 {
-	int64	lliID;
-	char	szName[1];
+	int64	mlliID;
+	char	mszName[1];
 
-	static	int Size(char* szText, char* szLastCharInclusive);
+	static	int		Size(char* szText, char* szLastCharInclusive);
+
+			void	Init(int64 lliID, char* szText, char* szLastCharInclusive);
 };
 
 
