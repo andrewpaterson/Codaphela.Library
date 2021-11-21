@@ -49,6 +49,28 @@ BOOL CIndexStringBlock::Get(const char* szKey, void** ppvData, int* piDataSize, 
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
+void* CIndexStringBlock::GetLongestPartial(char* szKey, char* szLastCharInclusive)
+{
+	int iKeySize = StrLen(szKey, szLastCharInclusive);
+	return CIndexBlock::GetLongestPartial(szKey, iKeySize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexStringBlock::GetLongestPartial(char* szKey, void** ppvData, int* piDataSize, char* szLastCharInclusive)
+{
+	int iKeySize = StrLen(szKey, szLastCharInclusive);
+	return CIndexBlock::GetLongestPartial(szKey, iKeySize, ppvData, piDataSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
 void* CIndexStringBlock::Put(char* szKey, int iDataSize, char* szLastCharInclusive)
 {
 	int iKeySize = StrLen(szKey, szLastCharInclusive);
