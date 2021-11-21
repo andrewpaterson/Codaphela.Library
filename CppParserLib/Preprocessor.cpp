@@ -121,16 +121,6 @@ void CPreprocessor::AddIncludeDirectory(CHeaderNameMap* pcHeaderMapName)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CDefine* CPreprocessor::AddDefine(CExternalString* pcString)
-{
-	return mcDefines.AddDefine(pcString);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
 CDefine* CPreprocessor::GetDefine(CExternalString* pcString)
 {
 	return mcDefines.GetDefine(pcString);
@@ -151,9 +141,13 @@ CDefine* CPreprocessor::GetDefine(char* szName)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessor::RemoveDefine(CExternalString* pcString)
+CDefine* CPreprocessor::AddSpecialDefine(char* szDefine)
 {
-	mcDefines.RemoveDefine(pcString);
+	CDefine* pcDefine;
+
+	pcDefine = mcDefines.AddDefine(szDefine);
+	pcDefine->SetSpecial(TRUE);
+	return pcDefine;
 }
 
 
@@ -171,20 +165,6 @@ CDefine* CPreprocessor::AddDefine(char* szDefine)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CDefine* CPreprocessor::AddSpecialDefine(char* szDefine)
-{
-	CDefine* pcDefine;
-
-	pcDefine = AddDefine(szDefine);
-	pcDefine->SetSpecial(TRUE);
-	return pcDefine;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
 CDefine* CPreprocessor::AddDefine(char* szDefine, char* szReplacement)
 {
 	CDefine*				pcDefine;
@@ -194,7 +174,7 @@ CDefine* CPreprocessor::AddDefine(char* szDefine, char* szReplacement)
 	CPreprocessorTokeniser	cTokeniser;
 
 	iLen = (int)strlen(szReplacement);
-	pcDefine = AddDefine(szDefine);
+	pcDefine = mcDefines.AddDefine(szDefine);
 	sz = (char*)gcTokenStrings.Add(iLen+1);
 	memcpy(sz, szReplacement, iLen+1);
 
@@ -203,16 +183,6 @@ CDefine* CPreprocessor::AddDefine(char* szDefine, char* szReplacement)
 	cTokeniser.Kill();
 
 	return pcDefine;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-CDefine* CPreprocessor::AddDefine(CExternalString* pcString, CDefine* pcDefine)
-{
-	return mcDefines.AddDefine(pcString, pcDefine);
 }
 
 
@@ -233,22 +203,16 @@ BOOL CPreprocessor::ProcessHashDefine(CPreprocessorTokenParser* pcParser)
 	BOOL				bAllocated;
 	BOOL				bAllowWhiteSpace;
 	CDefine*			pcExisting;
-	CDefine*			pcNew;
-	CChars				sz;
 
 	bResult = pcParser->GetIdentifier(&cIdentifier);
 	if (bResult)
 	{
-		pcDefine = AddDefine(&cIdentifier);
-		if (pcDefine)
+		pcExisting = mcDefines.GetDefine(&cIdentifier);
+		if (pcExisting)
 		{
-			pcExisting = NULL;
+			mcDefines.RemoveDefine(&cIdentifier);
 		}
-		else
-		{
-			pcExisting = GetDefine(&cIdentifier);
-			pcDefine = mcDefines.AddDefine(&cIdentifier);
-		}
+		pcDefine = mcDefines.AddDefine(&cIdentifier);
 
 		bResult = pcParser->GetExactDecorator('(', FALSE);
 		if (bResult)
@@ -307,39 +271,13 @@ BOOL CPreprocessor::ProcessHashDefine(CPreprocessorTokenParser* pcParser)
 
 			pcParser->NextToken();
 		}
-
-		bResult = TRUE;
-		if (pcExisting)
-		{
-			if (!pcExisting->Equals(pcDefine))
-			{
-				//Removing a define will not change the index or the ID of our new define.  Phew.
-				RemoveDefine(&cIdentifier);
-				pcNew = AddDefine(&cIdentifier, pcDefine);
-				if (!pcNew)
-				{
-					sz.Init("Could not redefine #define ");
-					sz.AppendSubString(cIdentifier.msz, cIdentifier.EndInclusive()+1);
-					sz.Append(".  Probably index or ID is different.");
-					gcUserError.Set(sz.Text());
-					sz.Kill();
-					bResult = FALSE;
-				}
-			}
-			else
-			{
-				//Only kill the define if the existing one is identical.
-				//pcNew depends on the allocations in the non-identical define case.
-				pcDefine->Kill();
-			}
-			free(pcDefine);
-		}
+		return TRUE;
 	}
 	else
 	{
 		gcUserError.Set("Could not get an identifier for a #define.  Add one.");
+		return FALSE;
 	}
-	return bResult;
 }
 
 
@@ -1680,7 +1618,7 @@ void CPreprocessor::AddConfigDefines(CConfig* pcConfig)
 		for (i = 0; i < pcConfig->maszDefines.NumElements(); i++)
 		{
 			pszText = pcConfig->maszDefines.Get(i);
-			AddDefine(pszText->Text());
+			mcDefines.AddDefine(pszText->Text());
 		}
 	}
 }
@@ -1696,10 +1634,7 @@ void CPreprocessor::DeltaDefines(CArrayNamedDefines* pcDelta, CMemoryStackExtend
 	CNamedDefine*		pcNamedDefine;
 	CDefine*			pcExisting;
 	CDefine*			pcDefine;
-	CDefine*			pcNew;
-	BOOL				bResult;
 	CExternalString		cIdentifier;
-	CChars				sz;
 
 	for (i = 0; i < pcDelta->NumElements(); i++)
 	{
@@ -1707,53 +1642,20 @@ void CPreprocessor::DeltaDefines(CArrayNamedDefines* pcDelta, CMemoryStackExtend
 		cIdentifier.Init(pcNamedDefine->mszName.Text(), pcNamedDefine->mszName.Length());
 		if (pcNamedDefine->miFlags & NAMED_DEFINE_FLAGS_UNDEFFED)
 		{
-			RemoveDefine(&cIdentifier);
+			mcDefines.RemoveDefine(&cIdentifier);
 		}
 		else
 		{
-			pcDefine = AddDefine(&cIdentifier);
-			if (pcDefine)
+			pcExisting = mcDefines.GetDefine(&cIdentifier);
+			if (pcExisting)
 			{
-				pcExisting = NULL;
+				mcDefines.RemoveDefine(&cIdentifier);
 			}
-			else
-			{
-				pcExisting = GetDefine(pcNamedDefine->mszName.Text());
-				mcDefines.AddDefine(xxx)
-				pcDefine = (CDefine*)malloc(sizeof(CDefine));
-				pcDefine->Init(mcDefines.mcDefinesTree.GetIndexForNew(cIdentifier.msz, cIdentifier.miLen), mcDefines.muiID, NULL);
-			}
+			pcDefine = mcDefines.AddDefine(&cIdentifier);
 
 			pcDefine->mcArguments.Copy(&pcNamedDefine->mcArguments);
 			pcDefine->mcReplacement.Copy(&pcNamedDefine->mcReplacement, pcStack);
 			pcDefine->SetBracketed(pcNamedDefine->IsBacketed());
-
-			bResult = TRUE;
-			if (pcExisting)
-			{
-				if (!pcExisting->Equals(pcDefine))
-				{
-					//Removing a define will not change the index or the ID of our new define.  Phew.
-					RemoveDefine(&cIdentifier);
-					pcNew = AddDefine(&cIdentifier, pcDefine);
-					if (!pcNew)
-					{
-						sz.Init("Could not redefine #define ");
-						sz.AppendSubString(cIdentifier.msz, cIdentifier.EndInclusive()+1);
-						sz.Append(".  Probably index or ID is different.");
-						gcUserError.Set(sz.Text());
-						sz.Kill();
-						bResult = FALSE;
-					}
-				}
-				else
-				{
-					//Only kill the define if the existing one is identical.
-					//pcNew depends on the allocations in the non-identical define case.
-					pcDefine->Kill();
-				}
-				free(pcDefine);
-			}
 		}
 	}
 }

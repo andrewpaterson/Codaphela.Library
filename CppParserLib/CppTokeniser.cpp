@@ -417,7 +417,7 @@ BOOL CTokeniser::ReservedWord(void)
 {
 	int64				lliID;
 	CCTReservedWord*	pcReservedWord;
-	CChars*				pszWord;
+	char*				szWord;
 	CPPText*			pcText;
 	char				szTemp[1024];
 	int					iLen;
@@ -443,9 +443,10 @@ BOOL CTokeniser::ReservedWord(void)
 			mcParser.ToDecortatorString(szTemp, 1024, &iLen);
 			lliID = mcReservedWords.Get(szTemp, szTemp + (iLen - 1), FALSE);
 		}
+
 		if (lliID != -1)
 		{
-			pszWord = mcReservedWords.Get(lliID);
+			szWord = mcReservedWords.Get(lliID, &iLen);
 
 			//Move the parser on.
 			if (pcText->meType != PPT_Decorator)
@@ -456,7 +457,7 @@ BOOL CTokeniser::ReservedWord(void)
 			else
 			{
 				//Each letter was a single decorator.  Skip them all.
-				mcParser.NextToken(pszWord->Length());
+				mcParser.NextToken(iLen);
 			}
 
 			pcReservedWord = CCTReservedWord::Construct(mcStack.Add(sizeof(CCTReservedWord)));
@@ -475,7 +476,7 @@ BOOL CTokeniser::ReservedWord(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CTokeniser::Identifier(void)
 {
-	int					iIndex;
+	int64				lliID;
 	CCTIdentifier*		pcIdentifier;
 	CExternalString		cIdentifier;
 	BOOL				bResult;
@@ -483,11 +484,12 @@ BOOL CTokeniser::Identifier(void)
 	bResult = mcParser.GetIdentifier(&cIdentifier);
 	if (bResult)
 	{
-		iIndex = mcIdentifiers.AddOrGet(cIdentifier.msz, cIdentifier.EndInclusive());
-		if (iIndex != -1)
+		lliID = mcIdentifiers.Get(cIdentifier.msz, cIdentifier.EndInclusive(), TRUE);
+		if (lliID != -1)
 		{
+			lliID = mcIdentifiers.Add(cIdentifier.msz, cIdentifier.EndInclusive());
 			pcIdentifier = CCTIdentifier::Construct(mcStack.Add(sizeof(CCTIdentifier)));
-			pcIdentifier->Init(iIndex);
+			pcIdentifier->Init(lliID);
 			AddToken(pcIdentifier);
 			return TRUE;
 		}

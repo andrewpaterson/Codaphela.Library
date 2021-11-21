@@ -27,18 +27,18 @@ void CASCIIIndex::Kill(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int64 CASCIIIndex::Add(char* sz)
+int64 CASCIIIndex::Add(char* sz, char* szLastCharInclusive)
 {
 	int64	lliID;
 	BOOL	bResult;
 
-	lliID = mcNameToIDIndex.Add(sz);
+	lliID = mcNameToIDIndex.Add(sz, szLastCharInclusive);
 	if (lliID == -1)
 	{
-		bResult = mcIDToNameIndex.Put(lliID, sz);
+		bResult = mcIDToNameIndex.Put(lliID, sz, szLastCharInclusive);
 		if (!bResult)
 		{
-			mcNameToIDIndex.Remove(sz);
+			mcNameToIDIndex.Remove(sz, szLastCharInclusive);
 			lliID = -1;
 		}
 	}

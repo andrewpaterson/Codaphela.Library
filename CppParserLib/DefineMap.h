@@ -39,7 +39,6 @@ public:
 	void 		Kill(void);
 	CDefine*	AddDefine(CExternalString* pcName);
 	CDefine*	AddDefine(char* szName);
-	CDefine*	AddDefine(CExternalString* pcName, CDefine* pcDefine);
 	void		RemoveDefine(CExternalString* pcName);
 	void		RemoveDefine(char* szName);
 	CDefine*	GetDefine(CExternalString* pcName);

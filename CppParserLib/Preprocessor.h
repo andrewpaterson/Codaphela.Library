@@ -76,14 +76,11 @@ public:
 	void				AddIncludeDirectories(CArrayHeaderNameMap* pcHeaderNames);
 	void				AddIncludeDirectory(CHeaderNameMap* pcHeaderNames);
 
-	CDefine*			AddDefine(CExternalString* pcString);
 	CDefine*			GetDefine(CExternalString* pcString);
 	CDefine*			GetDefine(char* szName);
 	CDefine* 			AddDefine(char* szDefine);
 	CDefine*			AddDefine(char* szDefine, char* szReplacement);
-	CDefine*			AddDefine(CExternalString* pcString, CDefine* pcDefine);
 	CDefine*			AddSpecialDefine(char* szDefine);
-	void				RemoveDefine(CExternalString* pcString);
 
 	BOOL				PreprocessBlockSets(CCFile* pcFile, CCFile* pcFromFile);
 	SCTokenBlock		PreprocessTokens(CPPTokenHolder* pcDestTokens, CMemoryStackExtended* pcStack, CPPTokenHolder* pcSourceTokens, int iBlock, int iToken);

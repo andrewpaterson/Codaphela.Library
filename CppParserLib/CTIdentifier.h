@@ -26,11 +26,11 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 class CCTIdentifier : public CCppToken
 {
 public:
-	int		miIdentifier;
+	int64	mlliIdentifier;
 
 	TOKEN_CONSTRUCT(CCTIdentifier);
 	void Init(void);
-	void Init(int iIdentifier);
+	void Init(int64 lliIdentifier);
 	void Kill(void);
 	BOOL IsIdentifier(void);
 	void Append(CChars* psz, CTokeniser* pcTokeniser);
