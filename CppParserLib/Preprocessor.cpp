@@ -325,6 +325,11 @@ BOOL CPreprocessor::ProcessHashInclude(CPreprocessorTokenParser* pcParser)
 	CHeaderNameMapDirectory*	pcNewDirectory;
 	CHeaderNameMapDirectory*	pcCurrentDirectory;
 	CChars						szPath;
+	int							iLine;
+	int							iColumn;
+
+	iLine = pcParser->Line();
+	iColumn = pcParser->Column();
 
 	pcParser->SkipWhiteSpace();
 	bResult = pcParser->GetStringDoubleQuoted(&cExternalString);
@@ -356,7 +361,14 @@ BOOL CPreprocessor::ProcessHashInclude(CPreprocessorTokenParser* pcParser)
 		return bResult;
 	}
 
-	sz.Init("Could not include file ");
+	sz.Init();
+	sz.Append(mpcCurrentFile->ShortName());
+	sz.Append(": ");
+	sz.Append(iLine);
+	sz.Append(", ");
+	sz.Append(iColumn);
+	sz.Append(": ");
+	sz.Append("Could not include file ");
 	sz.AppendSubString(cExternalString.msz, cExternalString.EndInclusive()+1);
 	gcUserError.Set(sz.Text());
 	sz.Kill();
@@ -1502,13 +1514,14 @@ SCTokenBlock CPreprocessor::PreprocessTokens(CPPTokenHolder* pcDestTokens, CMemo
 				gcUserError.Set("Parsing went backwards.  WTF!");
 				bResult = FALSE;
 			}
-			cParser.Kill();
 
 			if (((sLine.iTokenIndex == -1) && (sLine.iBlockIndex == -1)) || (!bResult))
 			{
+				cParser.Kill();
 				sLine.Init(-1, -1);
 				break;
 			}
+			cParser.Kill();
 
 			if (sLine.iTokenIndex == -1)
 			{

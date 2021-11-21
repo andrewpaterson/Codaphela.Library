@@ -37,7 +37,7 @@ public:
 	CChars						mszBaseDirectory;
 	BOOL						mbSystem;
 
-	void Init(char* szBaseDirectory, CHeaderFileMap* pcFileMap, BOOL bSystem);
+	BOOL Init(char* szBaseDirectory, CHeaderFileMap* pcFileMap, BOOL bSystem);
 	void Kill(void);
 
 	void AddFiles(void);
