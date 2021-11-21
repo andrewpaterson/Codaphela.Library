@@ -89,7 +89,14 @@ int64 CASCIITree::Add(char* szText, char* szLastCharInclusive)
 //////////////////////////////////////////////////////////////////////////
 SASCIINameIndex* CASCIITree::Get(char* szText, char* szLastCharInclusive, BOOL bExact)
 {
-	return (SASCIINameIndex*)mcIndex.Get(szText, szLastCharInclusive);
+	if (bExact)
+	{
+		return (SASCIINameIndex*)mcIndex.Get(szText, szLastCharInclusive);
+	}
+	else
+	{
+		return (SASCIINameIndex*)mcIndex.GetLongestPartial(szText, szLastCharInclusive);
+	}
 }
 
 

@@ -233,7 +233,7 @@ CIndexTreeNodeMemory* CIndexTreeMemory::GetNodeFromLongestPartialKey(void* pvKey
 		pcCurrent = pcCurrent->Get(c);
 		if (pcCurrent == NULL)
 		{
-			return NULL;
+			break;
 		}
 		if (pcCurrent->HasData())
 		{
@@ -268,7 +268,7 @@ BOOL CIndexTreeMemory::GetLongestPartial(void* pvKey, int iKeySize, void* pvDest
 	CIndexTreeNodeMemory*	pcNode;
 	uint16					uiDataSize;
 
-	pcNode = GetNode(pvKey, iKeySize);
+	pcNode = GetNodeFromLongestPartialKey(pvKey, iKeySize);
 	return GetNodeData(pcNode, uiDataSize, puiDataSize, pvDestData, uiMaxDataSize);
 }
 

@@ -10,6 +10,8 @@ public:
 	void*	Get(const char* szKey, const char* szLastCharInclusive = NULL);
 	BOOL	Get(char* szKey, void** ppvData, int* piDataSize, char* szLastCharInclusive = NULL);
 	BOOL	Get(const char* szKey, void** ppvData, int* piDataSize, const char* szLastCharInclusive = NULL);
+	void*	GetLongestPartial(char* szKey, char* szLastCharInclusive = NULL);
+	BOOL	GetLongestPartial(char* szKey, void** ppvData, int* piDataSize, char* szLastCharInclusive = NULL);
 
 	void*	Put(char* szKey, int iDataSize, char* szLastCharInclusive = NULL);
 	BOOL	Put(char* szKey, void* pvData, int iDataSize, char* szLastCharInclusive = NULL);
