@@ -123,6 +123,50 @@ void* CIndexBlock::Get(void* pvKey, int iKeySize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
+BOOL CIndexBlock::GetLongestPartial(void* pvKey, int iKeySize, void** ppvData, int* piDataSize)
+{
+	SIndexBlockNode		sNode;
+	BOOL				bResult;
+
+	bResult = mcIndex.GetLongestPartial(pvKey, iKeySize, &sNode, NULL, sizeof(SIndexBlockNode));
+	if (bResult)
+	{
+		SafeAssign(ppvData, sNode.pvData);
+		SafeAssign(piDataSize, sNode.iDataSize);
+		return TRUE;
+	}
+	else
+	{
+		return FALSE;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void* CIndexBlock::GetLongestPartial(void* pvKey, int iKeySize)
+{
+	SIndexBlockNode		sNode;
+	BOOL				bResult;
+
+	bResult = mcIndex.GetLongestPartial(pvKey, iKeySize, &sNode, NULL, sizeof(SIndexBlockNode));
+	if (bResult)
+	{
+		return sNode.pvData;
+	}
+	else
+	{
+		return NULL;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
 void* CIndexBlock::Put(void* pvKey, int iKeySize, int iDataSize)
 {
 	SIndexBlockNode		sNode;
