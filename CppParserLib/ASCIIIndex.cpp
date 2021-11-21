@@ -87,7 +87,7 @@ int64 CASCIIIndex::Get(char* szText, char* szLastCharInclusive, BOOL bExact)
 {
 	SASCIINameIndex*	psNameIndex;
 
-	psNameIndex = mcNameToIDIndex.Get(szText, szLastCharInclusive);
+	psNameIndex = mcNameToIDIndex.Get(szText, szLastCharInclusive, bExact);
 	if (psNameIndex)
 	{
 		return psNameIndex->mlliID;

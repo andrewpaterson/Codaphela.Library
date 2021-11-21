@@ -210,6 +210,39 @@ CIndexTreeNodeMemory* CIndexTreeMemory::GetNode(void* pvKey, int iKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+CIndexTreeNodeMemory* CIndexTreeMemory::GetNodeFromLongestPartialKey(void* pvKey, int iKeySize)
+{
+	CIndexTreeNodeMemory* pcCurrent;
+	int						i;
+	unsigned char			c;
+	BOOL					bExecute;
+
+	if ((iKeySize == 0) || (pvKey == NULL))
+	{
+		return NULL;
+	}
+
+	pcCurrent = mpcRoot;
+	bExecute = StartKey(&i, iKeySize);
+	while (bExecute)
+	{
+		c = ((unsigned char*)pvKey)[i];
+
+		pcCurrent = pcCurrent->Get(c);
+		if (pcCurrent == NULL)
+		{
+			return NULL;
+		}
+		bExecute = LoopKey(&i, iKeySize);
+	}
+	return pcCurrent;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL CIndexTreeMemory::Get(void* pvKey, int iKeySize, void* pvDestData, size_t* puiDataSize, size_t uiMaxDataSize)
 {
 	CIndexTreeNodeMemory*	pcNode;
@@ -217,31 +250,56 @@ BOOL CIndexTreeMemory::Get(void* pvKey, int iKeySize, void* pvDestData, size_t* 
 	uint16					uiDataSize;
 
 	pcNode = GetNode(pvKey, iKeySize);
+	return GetNodeData(pcNode, uiDataSize, puiDataSize, pvDestData, uiMaxDataSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeMemory::GetLongestPartial(void* pvKey, int iKeySize, void* pvDestData, size_t* puiDataSize, size_t uiMaxDataSize)
+{
+	CIndexTreeNodeMemory*	pcNode;
+	void*					pvData;
+	uint16					uiDataSize;
+
+	pcNode = GetNode(pvKey, iKeySize);
+	return GetNodeData(pcNode, uiDataSize, puiDataSize, pvDestData, uiMaxDataSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CIndexTreeMemory::GetNodeData(CIndexTreeNodeMemory* pcNode, uint16& uiDataSize, size_t* puiDataSize, void* pvDestData, size_t uiMaxDataSize)
+{
+	void* pvData;
+
 	if (pcNode == NULL)
 	{
 		return FALSE;
 	}
+
+	if (pcNode->HasData())
+	{
+		GetReorderData(pcNode);
+
+		uiDataSize = pcNode->GetDataSize();
+		SafeAssign(puiDataSize, uiDataSize);
+		pvData = pcNode->GetDataPtr();
+		if (pvDestData)
+		{
+			pvData = pcNode->GetDataPtr();
+			memcpy(pvDestData, pvData, MinDataSize(uiDataSize, uiMaxDataSize));
+		}
+
+		return TRUE;
+	}
 	else
 	{
-		if (pcNode->HasData())
-		{
-			GetReorderData(pcNode);
-
-			uiDataSize = pcNode->GetDataSize();
-			SafeAssign(puiDataSize, uiDataSize);
-			pvData = pcNode->GetDataPtr();
-			if (pvDestData)
-			{
-				pvData = pcNode->GetDataPtr();
-				memcpy(pvDestData, pvData, MinDataSize(uiDataSize, uiMaxDataSize));
-			}
-
-			return TRUE;
-		}
-		else
-		{
-			return FALSE;
-		}
+		return FALSE;
 	}
 }
 

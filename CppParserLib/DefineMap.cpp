@@ -70,7 +70,7 @@ CDefine* CDefineMap::AddDefine(CExternalString* pcName)
 	BOOL				bResult;
 	SASCIINameIndex* psNameIndex;
 
-	psNameIndex = mcNameToIDIndex.Get(pcName->msz, pcName->EndInclusive());
+	psNameIndex = mcNameToIDIndex.Get(pcName->msz, pcName->EndInclusive(), TRUE);
 	if (psNameIndex == NULL)
 	{
 		lliID = mcNameToIDIndex.Add(pcName->msz, pcName->EndInclusive());
@@ -126,7 +126,7 @@ CDefine* CDefineMap::GetDefine(CExternalString* pcName)
 	SASCIINameIndex*	psNameIndex;
 	CDefine*			pcDefine;
 
-	psNameIndex = mcNameToIDIndex.Get(pcName->msz, pcName->EndInclusive());
+	psNameIndex = mcNameToIDIndex.Get(pcName->msz, pcName->EndInclusive(), TRUE);
 	if (psNameIndex)
 	{
 		pcDefine = mcIDToDefineIndex.Get(psNameIndex->mlliID);
@@ -176,7 +176,7 @@ void CDefineMap::RemoveDefine(CExternalString* pcName)
 	SASCIINameIndex*	psNameIndex;
 	CDefine*			pcDefine;
 
-	psNameIndex = mcNameToIDIndex.Get(pcName->msz, pcName->EndInclusive());
+	psNameIndex = mcNameToIDIndex.Get(pcName->msz, pcName->EndInclusive(), TRUE);
 	if (psNameIndex)
 	{
 		pcDefine = mcIDToDefineIndex.Get(psNameIndex->mlliID);

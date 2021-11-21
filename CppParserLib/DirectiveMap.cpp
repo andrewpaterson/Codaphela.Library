@@ -117,7 +117,7 @@ CPreprocessorDirective* CDirectiveMap::GetDirective(CExternalString* pcName, BOO
 	SASCIINameIndex* psNameIndex;
 	CPreprocessorDirective* pcDirective;
 
-	psNameIndex = mcNameToIDIndex.Get(pcName->msz, pcName->EndInclusive());
+	psNameIndex = mcNameToIDIndex.Get(pcName->msz, pcName->EndInclusive(), bExact);
 	if (psNameIndex)
 	{
 		pcDirective = mcIDToDirectiveIndex.Get(psNameIndex->mlliID);
@@ -167,7 +167,7 @@ void CDirectiveMap::RemoveDirective(CExternalString* pcName)
 	SASCIINameIndex* psNameIndex;
 	CPreprocessorDirective* pcDirective;
 
-	psNameIndex = mcNameToIDIndex.Get(pcName->msz, pcName->EndInclusive());
+	psNameIndex = mcNameToIDIndex.Get(pcName->msz, pcName->EndInclusive(), TRUE);
 	if (psNameIndex)
 	{
 		pcDirective = mcIDToDirectiveIndex.Get(psNameIndex->mlliID);
