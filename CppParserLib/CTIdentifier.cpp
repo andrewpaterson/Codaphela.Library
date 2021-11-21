@@ -28,7 +28,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CCTIdentifier::Init(void)
 {
-	miIdentifier = -1;
+	mlliIdentifier = -1;
 }
 
 
@@ -36,9 +36,9 @@ void CCTIdentifier::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCTIdentifier::Init(int iIdentifier)
+void CCTIdentifier::Init(int64 lliIdentifier)
 {
-	miIdentifier = iIdentifier;
+	mlliIdentifier = lliIdentifier;
 }
 
 
@@ -70,6 +70,7 @@ void CCTIdentifier::Append(CChars* psz, CTokeniser* pcTokeniser)
 	char*	sz;
 
 	psz->Append("@");
-	sz = pcTokeniser->mcIdentifiers.GetWord(miIdentifier);
+	sz = pcTokeniser->mcIdentifiers.Get(mlliIdentifier);
 	psz->Append(sz);
 }
+

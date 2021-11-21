@@ -64,24 +64,33 @@ void CDefineMap::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 CDefine* CDefineMap::AddDefine(CExternalString* pcName)
 {
-	CDefine		cDefine;
-	CDefine*	pcDefine;
-	int64		lliID;
-	BOOL		bResult;
+	CDefine				cDefine;
+	CDefine* pcDefine;
+	int64				lliID;
+	BOOL				bResult;
+	SASCIINameIndex* psNameIndex;
 
-	lliID = mcNameToIDIndex.Add(pcName->msz, pcName->EndInclusive());
-	if (lliID != -1)
+	psNameIndex = mcNameToIDIndex.Get(pcName->msz, pcName->EndInclusive());
+	if (psNameIndex == NULL)
 	{
-		bResult = mcIDToDefineIndex.Put(lliID, &cDefine);
-		if (bResult)
+		lliID = mcNameToIDIndex.Add(pcName->msz, pcName->EndInclusive());
+		if (lliID != -1)
 		{
-			pcDefine = mcIDToDefineIndex.Get(lliID);
-			pcDefine->Init(pcName, lliID, this);
-			return pcDefine;
+			bResult = mcIDToDefineIndex.Put(lliID, &cDefine);
+			if (bResult)
+			{
+				pcDefine = mcIDToDefineIndex.Get(lliID);
+				pcDefine->Init(pcName, lliID, this);
+				return pcDefine;
+			}
+			else
+			{
+				mcNameToIDIndex.Remove(pcName->msz, pcName->EndInclusive());
+				return NULL;
+			}
 		}
 		else
 		{
-			mcNameToIDIndex.Remove(pcName->msz, pcName->EndInclusive());
 			return NULL;
 		}
 	}
@@ -89,17 +98,6 @@ CDefine* CDefineMap::AddDefine(CExternalString* pcName)
 	{
 		return NULL;
 	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CDefine* CDefineMap::AddDefine(CExternalString* pcName, CDefine* pcSource)
-{
-	//If NULL is returned then source must still be killed.
-	return NULL;
 }
 
 
