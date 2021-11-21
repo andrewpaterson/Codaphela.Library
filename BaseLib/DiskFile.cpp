@@ -312,7 +312,7 @@ filePos CDiskFile::Write(const void* pvBuffer, filePos iSize, filePos iCount)
 	filePos			iByteLength;
 	unsigned int	uiTruncatedLength;
 
-	if (IsOpen())
+	if (IsOpen() && (iSize > 0) && (iCount > 0))
 	{
 		iByteLength = iSize * iCount;
 		if (iByteLength <= MAX_UINT)

@@ -255,6 +255,7 @@ EPreprocessorDirective CPreprocessorTokeniser::GetDirective(void)
 	return pcDirective->GetType();
 }
 
+
 //////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//

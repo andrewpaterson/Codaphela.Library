@@ -52,7 +52,7 @@ void CExternalString::Init(char* sz, int iLen)
 void CExternalString::Init(char* szStart, char* szLastCharInclusive)
 {
 	msz = szStart;
-	miLen = StrLen(szLastCharInclusive);
+	miLen = StrLen(szStart, szLastCharInclusive);
 }
 
 

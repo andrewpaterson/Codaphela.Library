@@ -43,6 +43,7 @@ public:
 	BOOL					Kill(void);
 
 	BOOL					Get(void* pvKey, int iKeySize, void* pvDestData, size_t* puiDataSize, size_t uiMaxDataSize);
+	BOOL					GetLongestPartial(void* pvKey, int iKeySize, void* pvDestData, size_t* puiDataSize, size_t uiMaxDataSize);
 	void*					Put(void* pvKey, int iKeySize, void* pvData, size_t iDataSize);
 	BOOL					Remove(void* pvKey, int iKeySize);
 	BOOL					HasKey(void* pvKey, int iKeySize);
@@ -78,11 +79,13 @@ public:
 
 protected:
 	CIndexTreeNodeMemory*	GetNode(void* pvKey, int iKeySize);
+	CIndexTreeNodeMemory*	GetNodeFromLongestPartialKey(void* pvKey, int iKeySize);
 	CIndexTreeNodeMemory*	GetNodeForData(void* pvData);
 	int						GetNodeKeySize(CIndexTreeNode* pcNode);
 	int						GetNodeKey(CIndexTreeNode* pcNode, char* pvDestKey, int iDestKeySize);
 	uint16					GetNodeDataSize(CIndexTreeNode* pcNode);
 	uint16					GetNodeData(CIndexTreeNode* pcNode, void* pvDestData, int iDestDataSize);
+	BOOL					GetNodeData(CIndexTreeNodeMemory* pcNode, uint16& uiDataSize, size_t* puiDataSize, void* pvDestData, size_t uiMaxDataSize);
 
 	void					RecurseKill(CIndexTreeNodeMemory* pcNode);
 
