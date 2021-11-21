@@ -27,14 +27,30 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHeaderNameMap::Init(char* szBaseDirectory, CHeaderFileMap* pcFileMap, BOOL bSystem)
+BOOL CHeaderNameMap::Init(char* szBaseDirectory, CHeaderFileMap* pcFileMap, BOOL bSystem)
 {
+	CFileUtil cFileUtil;
+
+	if (!cFileUtil.Exists(szBaseDirectory))
+	{
+		CChars	sz;
+
+		sz.Init();
+		sz.Append("Directory [");
+		sz.Append(szBaseDirectory);
+		sz.Append("] does not exist.");
+		gcUserError.Set(sz.Text());
+		sz.Kill();
+		return FALSE;
+	}
+
 	mszBaseDirectory.Init(szBaseDirectory);
 	mcFileNames.Init(16, FALSE);
 	mpcFileMap = pcFileMap;
 	mbSystem = bSystem;
 
 	AddFiles();
+	return TRUE;
 }
 
 
