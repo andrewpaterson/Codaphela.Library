@@ -35,7 +35,7 @@ D* CIndexStringTemplate<D>::Get(char* szKey, char* szLastCharInclusive)
 template<class D>
 D* CIndexStringTemplate<D>::Get(const char* szKey, char* szLastCharInclusive)
 {
-	return (D*)CIndexStringBlock::Get((void*)szKey, szLastCharInclusive);
+	return (D*)CIndexStringBlock::Get(szKey, szLastCharInclusive);
 }
 
 
@@ -79,7 +79,7 @@ D* CIndexStringTemplate<D>::Put(const char* szKey, const char* szLastCharInclusi
 template<class D>
 BOOL CIndexStringTemplate<D>::Put(const char* szKey, D* psData, const char* szLastCharInclusive)
 {
-	return CIndexStringBlock::Put((void*)szKey, iKeySize, psData, sizeof(D), szLastCharInclusive);
+	return CIndexStringBlock::Put(szKey, psData, sizeof(D), szLastCharInclusive);
 }
 
 

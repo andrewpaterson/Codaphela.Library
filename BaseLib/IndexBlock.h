@@ -39,6 +39,9 @@ public:
 	BOOL				Get(void* pvKey, int iKeySize, void** ppvData, int* piDataSize);
 	void*				Get(void* pvKey, int iKeySize);
 
+	BOOL				GetLongestPartial(void* pvKey, int iKeySize, void** ppvData, int* piDataSize);
+	void*				GetLongestPartial(void* pvKey, int iKeySize);
+
 	void*				Put(void* pvKey, int iKeySize, int iDataSize);
 	BOOL				Put(void* pvKey, int iKeySize, void* pvData, int iDataSize);
 

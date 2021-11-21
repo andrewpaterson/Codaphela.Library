@@ -212,16 +212,18 @@ CIndexTreeNodeMemory* CIndexTreeMemory::GetNode(void* pvKey, int iKeySize)
 //////////////////////////////////////////////////////////////////////////
 CIndexTreeNodeMemory* CIndexTreeMemory::GetNodeFromLongestPartialKey(void* pvKey, int iKeySize)
 {
-	CIndexTreeNodeMemory* pcCurrent;
+	CIndexTreeNodeMemory*	pcCurrent;
 	int						i;
 	unsigned char			c;
 	BOOL					bExecute;
+	CIndexTreeNodeMemory*	pcFound;
 
 	if ((iKeySize == 0) || (pvKey == NULL))
 	{
 		return NULL;
 	}
 
+	pcFound = NULL;
 	pcCurrent = mpcRoot;
 	bExecute = StartKey(&i, iKeySize);
 	while (bExecute)
@@ -233,9 +235,13 @@ CIndexTreeNodeMemory* CIndexTreeMemory::GetNodeFromLongestPartialKey(void* pvKey
 		{
 			return NULL;
 		}
+		if (pcCurrent->HasData())
+		{
+			pcFound = pcCurrent;
+		}
 		bExecute = LoopKey(&i, iKeySize);
 	}
-	return pcCurrent;
+	return pcFound;
 }
 
 
@@ -246,7 +252,6 @@ CIndexTreeNodeMemory* CIndexTreeMemory::GetNodeFromLongestPartialKey(void* pvKey
 BOOL CIndexTreeMemory::Get(void* pvKey, int iKeySize, void* pvDestData, size_t* puiDataSize, size_t uiMaxDataSize)
 {
 	CIndexTreeNodeMemory*	pcNode;
-	void*					pvData;
 	uint16					uiDataSize;
 
 	pcNode = GetNode(pvKey, iKeySize);
@@ -261,7 +266,6 @@ BOOL CIndexTreeMemory::Get(void* pvKey, int iKeySize, void* pvDestData, size_t* 
 BOOL CIndexTreeMemory::GetLongestPartial(void* pvKey, int iKeySize, void* pvDestData, size_t* puiDataSize, size_t uiMaxDataSize)
 {
 	CIndexTreeNodeMemory*	pcNode;
-	void*					pvData;
 	uint16					uiDataSize;
 
 	pcNode = GetNode(pvKey, iKeySize);
