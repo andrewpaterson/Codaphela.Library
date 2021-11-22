@@ -214,7 +214,7 @@ public:
 	int  		IntValue(void);
 	float		FloatValue(void);
 	char		GetDigit(int iDigit);  //zero returns '.' or '\0'.
-	void		ToString(CChars* pcChars);
+	void		Print(CChars* pcChars);
 	void		Dump(BOOL bNewLine = TRUE);
 };
 

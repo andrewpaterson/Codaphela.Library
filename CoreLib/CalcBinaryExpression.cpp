@@ -79,3 +79,17 @@ void CCalcBinaryExpression::Set(CCalcExpression* pcLeft, CCalcOperator* pcOp, CC
 	mpcRight = pcRight;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCalcBinaryExpression::Print(CChars* psz)
+{
+	mpcLeft->Print(psz);
+	psz->Append(" ");
+	mpcOp->Print(psz);
+	psz->Append(" ");
+	mpcRight->Print(psz);
+}
+

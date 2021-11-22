@@ -28,11 +28,11 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/ArrayTemplateMinimal.h"
 #include "BaseLib/ChunkFile.h"
 #include "BaseLib/ArrayIntMinimal.h"
-#include "StandardLib/NamedObject.h"
+#include "StandardLib/Object.h"
 #include "TrackerTypes.h"
 
 
-class CInstance : public CNamedObject
+class CInstance : public CObject
 {
 CONSTRUCTABLE(CInstance);
 public:

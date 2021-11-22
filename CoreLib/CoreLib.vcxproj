@@ -182,6 +182,7 @@
     <Lib />
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="CalcObject.cpp" />
     <ClCompile Include="Codabase.cpp" />
     <ClCompile Include="CodabaseFactory.cpp" />
     <ClCompile Include="FileIterator.cpp" />

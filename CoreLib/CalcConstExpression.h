@@ -35,6 +35,7 @@ public:
 	void	Kill(void);
 	CNumber	Evaluate(void);
 	void	SetValue(CNumber* pcNumber);
+	void	Print(CChars* psz);
 };
 
 

@@ -260,14 +260,14 @@ void CTriangle::Dump(void)
 
 	sz.Init();
 	sz.Append("--------------------\n");
-	mpsNormal->ToString(&sz, 4);
+	mpsNormal->Print(&sz, 4);
 	sz.AppendNewLine();
 	sz.AppendNewLine();
-	mpsPosition->ToString(&sz, 4);
+	mpsPosition->Print(&sz, 4);
 	sz.AppendNewLine();
-	mpsPosition1->ToString(&sz, 4);
+	mpsPosition1->Print(&sz, 4);
 	sz.AppendNewLine();
-	mpsPosition2->ToString(&sz, 4);
+	mpsPosition2->Print(&sz, 4);
 	sz.AppendNewLine();
 	sz.Dump();
 	sz.Kill();

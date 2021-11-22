@@ -119,7 +119,7 @@ void CMarkupBase::SetLineAndColumn(int iLine, int iColumn)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CMarkupBase::ToString(CChars* pszDest, CChars* pszMutableSource, int iDepth, int iLine, BOOL bAllowSameLine)
+int CMarkupBase::Print(CChars* pszDest, CChars* pszMutableSource, int iDepth, int iLine, BOOL bAllowSameLine)
 {
 	int				iNewLines;
 	CChars			szPadding;

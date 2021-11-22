@@ -495,9 +495,9 @@ BOOL CMarkupTag::Swap(CMarkupBase* pcNew, CMarkupBase* pcOld)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMarkupTag::ToString(CChars* psz)
+void CMarkupTag::Print(CChars* psz)
 {
-	ToString(psz, 0, 0);
+	Print(psz, 0, 0);
 }
 
 
@@ -505,7 +505,7 @@ void CMarkupTag::ToString(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CMarkupTag::ToString(CChars* psz, int iDepth, int iLine)
+int CMarkupTag::Print(CChars* psz, int iDepth, int iLine)
 {
 	int				i;
 	CMarkupBase*	pcBase;
@@ -550,7 +550,7 @@ int CMarkupTag::ToString(CChars* psz, int iDepth, int iLine)
 		{
 			szText.Init();
 			GetText(&szText);
-			iLine = CMarkupBase::ToString(psz, &szText, iDepth+1, iLine, TRUE);
+			iLine = CMarkupBase::Print(psz, &szText, iDepth+1, iLine, TRUE);
 			szText.Kill();
 		}
 		else
@@ -558,7 +558,7 @@ int CMarkupTag::ToString(CChars* psz, int iDepth, int iLine)
 			for (i = 0; i < macBases.NumElements(); i++)
 			{
 				pcBase = *macBases.Get(i);
-				iLine = pcBase->ToString(psz, iDepth + 1, iLine);
+				iLine = pcBase->Print(psz, iDepth + 1, iLine);
 			}
 		}
 
@@ -586,7 +586,7 @@ void CMarkupTag::Dump(void)
 	CChars	sz;
 
 	sz.Init();
-	ToString(&sz);
+	Print(&sz);
 	sz.Dump();
 	sz.Kill();
 }

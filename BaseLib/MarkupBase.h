@@ -63,9 +63,9 @@ public:
 			void	SetLineAndColumn(int iLine, int iColumn);
 
 			void	ReplaceIllegalChars(CChars* pszMutableSource);
-			int		ToString(CChars* pszDest, CChars* pszMutableSource, int iDepth, int iLine, BOOL bAllowSameLine);
+			int		Print(CChars* pszDest, CChars* pszMutableSource, int iDepth, int iLine, BOOL bAllowSameLine);
 
-	virtual int		ToString(CChars* psz, int iDepth, int iLine) =0;
+	virtual int		Print(CChars* psz, int iDepth, int iLine) =0;
 };
 
 

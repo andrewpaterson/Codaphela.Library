@@ -22,7 +22,7 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __CONNECTION_ANIMATION_H__
 #include "BaseLib/ChunkFile.h"
 #include "BaseLib/GeometricTypes.h"
-#include "StandardLib/NamedObject.h"
+#include "StandardLib/Object.h"
 
 
 enum EKeyframeType
@@ -65,7 +65,7 @@ struct CAnimKeyFrame
 typedef CArrayTemplate<CAnimKeyFrame>	CArrayAnimKeyFrame;
 
 
-class CConnectionAnimation : public CNamedObject
+class CConnectionAnimation : public CObject
 {
 CONSTRUCTABLE(CConnectionAnimation);
 public:

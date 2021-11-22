@@ -55,7 +55,7 @@ public:
 	SFloat3*	Up(void);
 	SFloat3*	Across(void);
 	SFloat3*	Pos(void);
-	void		ToString(CChars* psz, BOOL bOneLine, int iWholeNumbers = -1, int iDecimals = 2);
+	void		Print(CChars* psz, BOOL bOneLine, int iWholeNumbers = -1, int iDecimals = 2);
 	void 		Dump(void);
 };
 

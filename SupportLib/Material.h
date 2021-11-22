@@ -21,12 +21,12 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __MATERIAL_H__
 #define __MATERIAL_H__
 #include "BaseLib/ChunkFile.h"
-#include "StandardLib/NamedObject.h"
+#include "StandardLib/Object.h"
 #include "MaterialImage.h"
 #include "MaterialProperties.h"
 
 
-class CMaterial : public CNamedObject
+class CMaterial : public CObject
 {
 CONSTRUCTABLE(CMaterial);
 public:

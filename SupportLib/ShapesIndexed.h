@@ -24,7 +24,7 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/ChunkFile.h"
 #include "BaseLib/GeometricTypes.h"
 #include "BaseLib/ArrayIntMinimal.h"
-#include "StandardLib/NamedObject.h"
+#include "StandardLib/Object.h"
 #include "Sphere.h"
 #include "Triangle.h"
 

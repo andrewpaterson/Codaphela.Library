@@ -52,7 +52,7 @@ public:
 	int						GetWastedArea(void);
 	void					GetPackedRectangles(CArrayPackedRectangle* pacPackedRectangles);
 	SInt2					GetPackedImageSize(void);
-	void					ToString(CChars* psz);
+	void					Print(CChars* psz);
 	void					Dump(void);
 };
 

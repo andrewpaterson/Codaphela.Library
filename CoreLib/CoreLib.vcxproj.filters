@@ -501,6 +501,9 @@
     <ClCompile Include="TransientSequence.cpp">
       <Filter>Source\Sequence</Filter>
     </ClCompile>
+    <ClCompile Include="CalcObject.cpp">
+      <Filter>Source\Text\Calculator\Abstract</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="IndexedData.h">

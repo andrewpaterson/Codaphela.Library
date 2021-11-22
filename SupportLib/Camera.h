@@ -21,7 +21,7 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __CAMERA_H__
 #define __CAMERA_H__
 #include "BaseLib/ChunkFile.h"
-#include "StandardLib/NamedObject.h"
+#include "StandardLib/Object.h"
 
 
 enum ECameraType
@@ -32,7 +32,7 @@ enum ECameraType
 };
 
 
-class CCamera : public CNamedObject
+class CCamera : public CObject
 {
 CONSTRUCTABLE(CCamera); 
 public:
