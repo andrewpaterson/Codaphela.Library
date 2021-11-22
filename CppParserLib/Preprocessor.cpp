@@ -998,13 +998,14 @@ BOOL CPreprocessor::ProcessIdentifier(CPPTokenHolder* pcDest, CPPText* pcText, C
 	CPPToken*				pcToken;
 	CDefine*				pcDefine;
 	BOOL					bResult;
-	CPPAbstractHolder*				pcHolder;
+	CPPAbstractHolder*		pcHolder;
 	CPPText*				pcDecorator;
 	char*					pcValue;
 	int						i;
 	CPPTokenHolder*			pcTokenHolder;
 	SDefineArgument*		psArguments;
 	int						iArgIndex;
+	BOOL					bOpenBracket;
 
 	pcDefine = mcDefines.GetDefine(&pcText->mcText);
 	if (pcDefine)
@@ -1058,7 +1059,7 @@ BOOL CPreprocessor::ProcessIdentifier(CPPTokenHolder* pcDest, CPPText* pcText, C
 		bResult = pcParser->GetExactIdentifier("defined", TRUE, TRUE);
 		if (bResult)
 		{
-			pcParser->GetExactDecorator('(');
+			bOpenBracket = pcParser->GetExactDecorator('(');
 			pcParser->SkipWhiteSpace();
 			pcToken = pcParser->GetToken();
 			pcDecorator = CPPText::Construct(mpcStack->Add(sizeof(CPPText)));
@@ -1081,8 +1082,11 @@ BOOL CPreprocessor::ProcessIdentifier(CPPTokenHolder* pcDest, CPPText* pcText, C
 					}
 				}
 				pcDest->Add((CPPToken**)&pcDecorator);
-				pcParser->SkipWhiteSpace();
-				pcParser->GetExactDecorator(')');
+				if (bOpenBracket)
+				{
+					pcParser->SkipWhiteSpace();
+					pcParser->GetExactDecorator(')');
+				}
 			}
 			return TRUE;
 		}
