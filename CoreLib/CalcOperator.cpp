@@ -284,3 +284,94 @@ BOOL CCalcOperator::IsAmbiguous(void)
 	}
 	return FALSE;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCalcOperator::Print(CChars* psz)
+{
+	switch (meOp)
+	{
+	case CO_Increment:
+		psz->Append("++");
+		break;
+	case CO_Decrement:
+		psz->Append("--");
+		break;
+	case CO_EqualTo:
+		psz->Append("==");
+		break;
+	case CO_NotEqualTo:
+		psz->Append("!=");
+		break;
+	case CO_GreaterThanEqualTo:
+		psz->Append(">=");
+		break;
+	case CO_LessThanEqualTo:
+		psz->Append("<=");
+		break;
+	case CO_LogicalOr:
+		psz->Append("||");
+		break;
+	case CO_LogicalAnd:
+		psz->Append("&&");
+		break;
+	case CO_LeftShift:
+		psz->Append("<<");
+		break;
+	case CO_RightShift:
+		psz->Append(">>");
+		break;
+	case CO_Add:
+		psz->Append("+");
+		break;
+	case CO_Subtract:
+		psz->Append("-");
+		break;
+	case CO_Multiply:
+		psz->Append("*");
+		break;
+	case CO_Divide:
+		psz->Append("/");
+		break;
+	case CO_Modulus:
+		psz->Append("%");
+		break;
+	case CO_LogicalNot:
+		psz->Append("!");
+		break;
+	case CO_BitwiseAnd:
+		psz->Append("&");
+		break;
+	case CO_BitwiseOr:
+		psz->Append("|");
+		break;
+	case CO_BitwiseXor:
+		psz->Append("^");
+		break;
+	case CO_LessThan:
+		psz->Append("<");
+		break;
+	case CO_GreaterThan:
+		psz->Append(">");
+		break;
+	case CO_BitwiseNot:
+		psz->Append("~");
+		break;
+	case CO_UnaryAdd:
+		psz->Append("+");
+		break;
+	case CO_UnarySubtract:
+		psz->Append("-");
+		break;
+	case CO_invalid:
+		psz->Append("INVALID_OPERATOR");
+		break;
+	default:
+		psz->Append("UNKNOWN_OPERATOR");
+		break;
+	}
+}
+

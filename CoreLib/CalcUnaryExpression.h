@@ -36,6 +36,7 @@ public:
 	void	Kill(void);
 	CNumber	Evaluate(void);
 	void	Set(CCalcExpression* mpcExpression, CCalcOperator* mpcOp);
+	void	Print(CChars* psz);
 };
 
 

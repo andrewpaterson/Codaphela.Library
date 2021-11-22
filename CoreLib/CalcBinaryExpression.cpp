@@ -86,10 +86,12 @@ void CCalcBinaryExpression::Set(CCalcExpression* pcLeft, CCalcOperator* pcOp, CC
 //////////////////////////////////////////////////////////////////////////
 void CCalcBinaryExpression::Print(CChars* psz)
 {
+	psz->Append("(");
 	mpcLeft->Print(psz);
 	psz->Append(" ");
 	mpcOp->Print(psz);
 	psz->Append(" ");
 	mpcRight->Print(psz);
+	psz->Append(")");
 }
 

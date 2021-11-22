@@ -33,7 +33,7 @@ public:
 	virtual void Kill(void) =0;
 	virtual BOOL IsExpression(void) =0;
 	virtual BOOL IsOperator(void) =0;
-	virtual void Print(CChars* psz);
+	virtual void Print(CChars* psz) =0;
 			void Dump(void);
 };
 

@@ -35,6 +35,7 @@ public:
 	void	Kill(void);
 	CNumber	Evaluate(void);
 	void	SetExpression(CCalcExpression* pcExpression);
+	void	Print(CChars* psz);
 };
 
 
