@@ -97,9 +97,9 @@ CMarkupTag* CMarkupDoc::SetRootTag(char* szTagName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CMarkupDoc::ToString(CChars* psz)
+int CMarkupDoc::Print(CChars* psz)
 {
-	return ToString(psz, 0, 0);
+	return Print(psz, 0, 0);
 }
 
 
@@ -107,7 +107,7 @@ int CMarkupDoc::ToString(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CMarkupDoc::ToString(CChars* psz, int iDepth, int iLine)
+int CMarkupDoc::Print(CChars* psz, int iDepth, int iLine)
 {
 	if (!mpcRootTag)
 	{
@@ -117,7 +117,7 @@ int CMarkupDoc::ToString(CChars* psz, int iDepth, int iLine)
 	}
 	else
 	{
-		iLine = mpcRootTag->ToString(psz, iDepth, iLine);
+		iLine = mpcRootTag->Print(psz, iDepth, iLine);
 	}
 	return iLine;
 }
@@ -222,7 +222,7 @@ void CMarkupDoc::Dump(void)
 	CChars	sz;
 
 	sz.Init();
-	ToString(&sz);
+	Print(&sz);
 	sz.Dump();
 	sz.Kill();
 }

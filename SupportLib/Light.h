@@ -22,7 +22,7 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __LIGHT_H__
 #include "BaseLib/ChunkFile.h"
 #include "BaseLib/GeometricTypes.h"
-#include "StandardLib/NamedObject.h"
+#include "StandardLib/Object.h"
 #include "ImageColour.h"
 
 
@@ -42,7 +42,7 @@ enum ELightType
 };
 
 
-class CLight : public CNamedObject
+class CLight : public CObject
 {
 CONSTRUCTABLE(CLight);
 public:

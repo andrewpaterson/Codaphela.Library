@@ -69,12 +69,12 @@ char* CMarkupText::Text(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CMarkupText::ToString(CChars* psz, int iDepth, int iLine)
+int CMarkupText::Print(CChars* psz, int iDepth, int iLine)
 {
 	CChars	szText;
 
 	szText.Init(mszText);
-	iLine = CMarkupBase::ToString(psz, &szText, iDepth, iLine, FALSE);
+	iLine = CMarkupBase::Print(psz, &szText, iDepth, iLine, FALSE);
 	szText.Kill();
 	return iLine;
 }

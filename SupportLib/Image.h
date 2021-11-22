@@ -24,7 +24,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #ifndef __IMAGE__H__
 #define __IMAGE__H__
 #include "BaseLib/GeometricTypes.h"
-#include "StandardLib/NamedObject.h"
+#include "StandardLib/Object.h"
 #include "StandardLib/Channels.h"
 #include "StandardLib/Array.h"
 #include "ImageChannel.h"
@@ -45,7 +45,7 @@ struct SImageChangingDesc
 };
 
 
-class CImage : public CNamedObject
+class CImage : public CObject
 {
 CONSTRUCTABLE(CImage);
 public:

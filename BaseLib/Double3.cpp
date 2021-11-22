@@ -409,7 +409,7 @@ int SDouble3::WholeNumbers(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void SDouble3::ToString(CChars* psx, int iWholeNumbers, int iDecimals)
+void SDouble3::Print(CChars* psx, int iWholeNumbers, int iDecimals)
 {
 	CChars		sz;
 	int			iWidth;
@@ -457,7 +457,7 @@ void SDouble3::Dump(void)
 	CChars	sz;
 
 	sz.Init();
-	ToString(&sz, 4);
+	Print(&sz, 4);
 	sz.AppendNewLine();
 	sz.Dump();
 	sz.Kill();

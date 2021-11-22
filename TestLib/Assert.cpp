@@ -782,8 +782,8 @@ BOOL PrivateAssertNumber(const char* szExpected, CNumber* pcActual, int iLine, c
 	pcExpected->Init(szExpected, pcActual->mcMaxWholeNumbers, iDecimals);
 	if (!pcExpected->Equals(pcActual))
 	{
-		pcExpected->ToString(&szExpectedAsChars);
-		pcActual->ToString(&szActual);
+		pcExpected->Print(&szExpectedAsChars);
+		pcActual->Print(&szActual);
 		bResult = Failed((const char*)szExpectedAsChars.Text(), (const char*)szActual.Text(), iLine, szFile);
 		szExpectedAsChars.Kill();
 		szActual.Kill();
@@ -1170,7 +1170,7 @@ void ToFloat3String(SFloat3* psFloat3, char* sz, int iWholeNumbers, int iDecimal
 	CChars	c;
 
 	c.Init();
-	psFloat3->ToString(&c, iWholeNumbers, iDecimals);
+	psFloat3->Print(&c, iWholeNumbers, iDecimals);
 	strcpy(sz, c.Text());
 	c.Kill();
 }

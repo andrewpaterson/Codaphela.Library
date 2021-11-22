@@ -55,7 +55,7 @@ public:
 	SDouble3*	Up(void);
 	SDouble3*	Across(void);
 	SDouble3*	Pos(void);
-	void		ToString(CChars* psz, BOOL bOneLine, int iWholeNumbers = -1, int iDecimals = 2);
+	void		Print(CChars* psz, BOOL bOneLine, int iWholeNumbers = -1, int iDecimals = 2);
 	void 		Dump(void);
 };
 

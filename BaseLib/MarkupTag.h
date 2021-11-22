@@ -70,8 +70,8 @@ public:
 	BOOL				AddAttribute(char* szAttribute, char* szValue);
 	BOOL				ContainsOnlyText(void);
 	BOOL				Swap(CMarkupBase* pcNew, CMarkupBase* pcOld);
-	void				ToString(CChars* psz);
-	int					ToString(CChars* psz, int iDepth, int iLine);
+	void				Print(CChars* psz);
+	int					Print(CChars* psz, int iDepth, int iLine);
 	void				Dump(void);
 };
 

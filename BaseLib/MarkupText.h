@@ -36,7 +36,7 @@ public:
 	void 	Kill(void);
 
 	char*	Text(void);
-	int		ToString(CChars* psz, int iDepth, int iLine);
+	int		Print(CChars* psz, int iDepth, int iLine);
 };
 
 

@@ -50,12 +50,12 @@ void CMarkupRefText::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CMarkupRefText::ToString(CChars* psz, int iDepth, int iLine)
+int CMarkupRefText::Print(CChars* psz, int iDepth, int iLine)
 {
 	CChars	szText;
 
 	szText.Init(mpcRef->mszText);
-	iLine = CMarkupBase::ToString(psz, &szText, iDepth, iLine, FALSE);
+	iLine = CMarkupBase::Print(psz, &szText, iDepth, iLine, FALSE);
 	szText.Kill();
 	return iLine;
 }
@@ -88,9 +88,9 @@ void CMarkupRefDoc::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CMarkupRefDoc::ToString(CChars* psz, int iDepth, int iLine)
+int CMarkupRefDoc::Print(CChars* psz, int iDepth, int iLine)
 {
-	iLine = mpcRef->mpcDoc->ToString(psz, iDepth, iLine);
+	iLine = mpcRef->mpcDoc->Print(psz, iDepth, iLine);
 	return iLine;
 }
 
@@ -140,7 +140,7 @@ void CMarkupNamedRef::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CMarkupNamedRef::ToString(CChars* psz, int iDepth, int iLine)
+int CMarkupNamedRef::Print(CChars* psz, int iDepth, int iLine)
 {
 	miLine = iLine;
 	miColumn = iDepth*2;

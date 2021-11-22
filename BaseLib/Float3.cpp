@@ -409,7 +409,7 @@ int SFloat3::WholeNumbers(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void SFloat3::ToString(CChars* psx, int iWholeNumbers, int iDecimals)
+void SFloat3::Print(CChars* psx, int iWholeNumbers, int iDecimals)
 {
 	CChars		sz;
 	int			iWidth;
@@ -457,7 +457,7 @@ void SFloat3::Dump(void)
 	CChars	sz;
 
 	sz.Init();
-	ToString(&sz, 4);
+	Print(&sz, 4);
 	sz.AppendNewLine();
 	sz.Dump();
 	sz.Kill();

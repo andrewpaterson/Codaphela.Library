@@ -3453,7 +3453,7 @@ char* CNumber::DigitToArray(int iDigit)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNumber::ToString(CChars* pcChars)
+void CNumber::Print(CChars* pcChars)
 {
 	int		iFirstDigit;
 	int		iLastDigit;
@@ -3542,7 +3542,7 @@ void CNumber::Dump(BOOL bNewLine)
 {
 	CChars		sz;
 
-	ToString(&sz);
+	Print(&sz);
 	if (bNewLine)
 	{
 		sz.AppendNewLine();

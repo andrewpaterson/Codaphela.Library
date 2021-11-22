@@ -46,7 +46,7 @@ public:
 	CPackRectangleAttempt*	Get(void* pvUserData);
 	void					GetPackedRectangles(CArrayPackedRectangle* pacPackedRectangles);
 
-	void					ToString(CChars* psz);
+	void					Print(CChars* psz);
 };
 
 

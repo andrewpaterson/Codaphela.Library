@@ -66,7 +66,7 @@ public:
 	
 	void 	Fix(void);
 	int		WholeNumbers(void);
-	void	ToString(CChars* psz, int iWholeNumbers = -1, int iDecimals = 2);
+	void	Print(CChars* psz, int iWholeNumbers = -1, int iDecimals = 2);
 	void	Dump(void);
 };
 

@@ -285,7 +285,7 @@ void SDouble4::Dump(void)
 	CChars	sz;
 
 	sz.Init();
-	ToString(&sz, 4);
+	Print(&sz, 4);
 	sz.AppendNewLine();
 	sz.Dump();
 	sz.Kill();
@@ -314,7 +314,7 @@ int SDouble4::WholeNumbers(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void SDouble4::ToString(CChars* psz, int iWholeNumbers, int iDecimals)
+void SDouble4::Print(CChars* psz, int iWholeNumbers, int iDecimals)
 {
 	CChars		sz;
 	int			iWidth;

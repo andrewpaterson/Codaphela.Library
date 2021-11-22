@@ -24,12 +24,12 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #ifndef __IMAGE_CEL_GROUP_H__
 #define __IMAGE_CEL_GROUP_H__
 #include "BaseLib/Chars.h"
-#include "StandardLib/NamedObject.h"
+#include "StandardLib/Object.h"
 #include "StandardLib/ArrayType.h"
 #include "ImageCel.h"
 
 
-class CImageCelGroup : public CNamedObject
+class CImageCelGroup : public CObject
 {
 CONSTRUCTABLE(CImageCelGroup);
 public:

@@ -222,7 +222,7 @@ void CPackedLine::GetPackedRectangles(CArrayPackedRectangle* pacPackedRectangles
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPackedLine::ToString(CChars* psz)
+void CPackedLine::Print(CChars* psz)
 {
 	int						i;
 	CPackRectangleAttempt*	pcRect;

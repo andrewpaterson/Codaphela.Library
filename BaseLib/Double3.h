@@ -67,7 +67,7 @@ public:
 	BOOL 	Load(CFileReader* pcFile);
 
 	void 	Fix(void);
-	void 	ToString(CChars* psx, int iWholeNumbers = -1, int iDecimals = 2);
+	void 	Print(CChars* psx, int iWholeNumbers = -1, int iDecimals = 2);
 	int		WholeNumbers(void);
 	void	Dump(void);
 

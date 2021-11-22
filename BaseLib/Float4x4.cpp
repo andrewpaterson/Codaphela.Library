@@ -126,7 +126,7 @@ BOOL SFloat4x4::Load(CFileReader* pcFile)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void SFloat4x4::ToString(CChars* psz, BOOL bOneLine, int iWholeNumbers, int iDecimals)
+void SFloat4x4::Print(CChars* psz, BOOL bOneLine, int iWholeNumbers, int iDecimals)
 {
 	int	i[4];
 
@@ -144,13 +144,13 @@ void SFloat4x4::ToString(CChars* psz, BOOL bOneLine, int iWholeNumbers, int iDec
 		iWholeNumbers = LargestInt(i, 4);
 	}
 
-	x.ToString(psz, iWholeNumbers, iDecimals);
+	x.Print(psz, iWholeNumbers, iDecimals);
 	if (!bOneLine) psz->AppendNewLine();
-	y.ToString(psz, iWholeNumbers, iDecimals);
+	y.Print(psz, iWholeNumbers, iDecimals);
 	if (!bOneLine) psz->AppendNewLine();
-	z.ToString(psz, iWholeNumbers, iDecimals);
+	z.Print(psz, iWholeNumbers, iDecimals);
 	if (!bOneLine) psz->AppendNewLine();
-	pos.ToString(psz, iWholeNumbers, iDecimals);
+	pos.Print(psz, iWholeNumbers, iDecimals);
 	if (!bOneLine) psz->AppendNewLine();
 }
 
@@ -164,7 +164,7 @@ void SFloat4x4::Dump(void)
 	CChars	sz;
 
 	sz.Init();
-	ToString(&sz, FALSE);
+	Print(&sz, FALSE);
 	sz.Dump();
 	sz.Kill();
 }

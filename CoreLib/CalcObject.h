@@ -25,6 +25,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "BaseLib/ConstructorCall.h"
 
 
+class CChars;
 class CCalcObject
 {
 public:

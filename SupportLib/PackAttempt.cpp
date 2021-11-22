@@ -287,7 +287,7 @@ SInt2 CPackAttempt::GetPackedImageSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPackAttempt::ToString(CChars* psz)
+void CPackAttempt::Print(CChars* psz)
 {
 	int				i;
 	CPackedLine*	pcLine;
@@ -303,7 +303,7 @@ void CPackAttempt::ToString(CChars* psz)
 	for (i = 0; i < macLines.NumElements(); i++)
 	{
 		pcLine = macLines.Get(i);
-		pcLine->ToString(psz);
+		pcLine->Print(psz);
 	}
 }
 
@@ -317,7 +317,7 @@ void CPackAttempt::Dump(void)
 	CChars	sz;
 
 	sz.Init();
-	ToString(&sz);
+	Print(&sz);
 	sz.Dump();
 	sz.Kill();
 }

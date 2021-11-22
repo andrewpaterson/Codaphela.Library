@@ -40,7 +40,7 @@ public:
 	void 	Init(CMarkupSubText* pcRef, CMarkupTag* pcParent);
 	void 	Kill(void);
 
-	int		ToString(CChars* psz, int iDepth, int iLine);
+	int		Print(CChars* psz, int iDepth, int iLine);
 };
 
 
@@ -55,7 +55,7 @@ public:
 
 	BOOL		Is(char* szName);
 	CMarkupTag*	GetRootTag(void);
-	int			ToString(CChars* psz, int iDepth, int iLine);
+	int			Print(CChars* psz, int iDepth, int iLine);
 };
 
 
@@ -67,7 +67,7 @@ public:
 	void 	Init(char* szName, CMarkupTag* pcParent);
 	void 	Kill(void);
 
-	int		ToString(CChars* psz, int iDepth, int iLine);
+	int		Print(CChars* psz, int iDepth, int iLine);
 };
 
 
