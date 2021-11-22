@@ -29,9 +29,9 @@ class CASTCommon
 public:
 	AbstractSyntaxTypes		meType;
 
-	virtual void		Init(void) = 0;
-	virtual void		Kill(void) = 0;
-	virtual CASTCommon*	Next(void) = 0;
+	virtual void		Init(void) =0;
+	virtual void		Kill(void) =0;
+	virtual CASTCommon*	Next(void) =0;
 };
 
 

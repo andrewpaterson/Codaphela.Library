@@ -28,10 +28,12 @@ Microsoft Windows is Copyright Microsoft Corporation
 class CCalcObject
 {
 public:
-	virtual void Init(void) = 0;
-	virtual void Kill(void) = 0;
-	virtual BOOL IsExpression(void) = 0;
-	virtual BOOL IsOperator(void) = 0;
+	virtual void Init(void) =0;
+	virtual void Kill(void) =0;
+	virtual BOOL IsExpression(void) =0;
+	virtual BOOL IsOperator(void) =0;
+	virtual void Print(CChars* psz);
+			void Dump(void);
 };
 
 

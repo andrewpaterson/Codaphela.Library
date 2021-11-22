@@ -33,8 +33,8 @@ public:
 	int		miLine;
 	int		miColumn;
 	
-	virtual void Init(int iLine, int iColumn) = 0;
-	virtual void Kill(void) = 0;
+	virtual void Init(int iLine, int iColumn) =0;
+	virtual void Kill(void) =0;
 	virtual BOOL IsDirective(void);
 	virtual BOOL IsText(void);
 	virtual BOOL IsWhiteSpace(void);
@@ -45,11 +45,11 @@ public:
 	virtual BOOL IsHolder(void);
 	virtual BOOL IsFile(void);
 	virtual BOOL IsBlock(void);
-	virtual BOOL IsEmpty(void) = 0;
+	virtual BOOL IsEmpty(void) =0;
 			void Set(int iLine, int iColumn);
-	virtual void Append(CChars* psz) = 0;
-	virtual void Copy(CPPToken* pcSource, CMemoryStackExtended* pcStack) = 0;
-	virtual BOOL Equals(CPPToken* pcOther) = 0;
+	virtual void Append(CChars* psz) =0;
+	virtual void Copy(CPPToken* pcSource, CMemoryStackExtended* pcStack) =0;
+	virtual BOOL Equals(CPPToken* pcOther) =0;
 };
 
 

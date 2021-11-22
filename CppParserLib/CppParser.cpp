@@ -3092,7 +3092,7 @@ CCppReturn CCppParser::CompoundName(int* piNameCount, BOOL bAllowDesctructor)
 
 	mcParser.PushPosition();
 
-	(*piNameCount) = 0;
+	(*piNameCount) =0;
 	iOldCount = 0;
 	for (;;)
 	{
