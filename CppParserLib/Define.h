@@ -9,6 +9,7 @@
 #define DEFINE_FLAGS_BRACKETED	0x01
 #define DEFINE_FLAGS_SPECIAL	0x02
 #define DEFINE_FLAGS_IN_MAP		0x04
+#define DEFINE_FLAGS_VARIADIC	0x08
 
 
 class CDefineMap;
@@ -25,6 +26,7 @@ public:
 	void 	Init(CExternalString* pcName, int64 uiID, CDefineMap* pcDefineMap);
 	void 	Kill(void);
 	void 	AddArgument(CExternalString* pcName);
+	void	AddVariadic(void);
 	void 	AddReplacmentToken(CPPToken* pcToken);
 	BOOL 	Equals(CDefine* pcOther);
 	char*	GetName(void);

@@ -278,6 +278,59 @@ BOOL CPreprocessorTokenParser::GetExactDecorator(char c, BOOL bSkipWhiteSpace)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL CPreprocessorTokenParser::GetExactDecorator(char* sz, BOOL bSkipWhiteSpace)
+{
+	CPPText*	pcText;
+	int			iLength;
+	int			i;
+	char		c;
+
+	if (!mpsCurrent->pcCurrentToken)
+	{
+		return FALSE;
+	}
+
+	PushPosition();
+
+	if (bSkipWhiteSpace)
+	{
+		SkipWhiteSpace();
+		if (!mpsCurrent->pcCurrentToken)
+		{
+			PassPosition();
+			return FALSE;
+		}
+	}
+
+	if (mpsCurrent->pcCurrentToken->IsText())
+	{
+		pcText = (CPPText*)mpsCurrent->pcCurrentToken;
+		if (pcText->meType == PPT_Decorator)
+		{
+			iLength = strlen(sz);
+			for (i = 0; i < iLength; i++)
+			{
+				c = sz[i];
+				if (pcText->mcText.msz[0] != c)
+				{
+					PopPosition();
+					return FALSE;
+				}
+			}
+			NextToken();
+			PassPosition();
+			return TRUE;
+		}
+	}
+	PopPosition();
+	return FALSE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL CPreprocessorTokenParser::GetExactIdentifier(char* szIdentifier, BOOL bCaseSensitive, BOOL bSkipWhiteSpace)
 {
 	CPPText*	pcText;
@@ -299,6 +352,7 @@ BOOL CPreprocessorTokenParser::GetExactIdentifier(char* szIdentifier, BOOL bCase
 		SkipWhiteSpace();
 		if (!mpsCurrent->pcCurrentToken)
 		{
+			PassPosition();
 			return FALSE;
 		}
 	}
