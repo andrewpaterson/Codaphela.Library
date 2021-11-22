@@ -84,7 +84,7 @@ protected:
 
 protected:
 	virtual void*	Put(void* pvKey, int iKeySize, void* pvData, size_t iDataSize) =0;
-	virtual void*	Get(void* pvKey, int iKeySize, size_t* piDataSize) = 0;
+	virtual void*	Get(void* pvKey, int iKeySize, size_t* piDataSize) =0;
 	virtual size_t	DataSize(void* pvKey, int iKeySize) =0;
 	virtual BOOL	Remove(void* pvKey, int iKeySize) =0;
 	virtual BOOL	Has(void* pvKey, int iKeySize) =0;

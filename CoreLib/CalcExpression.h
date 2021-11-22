@@ -30,7 +30,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 class CCalcExpression : public CCalcObject
 {
 public:
-	virtual CNumber	Evaluate(void) = 0;
+	virtual CNumber	Evaluate(void) =0;
 			BOOL 	IsExpression(void);
 			BOOL 	IsOperator(void);	
 };

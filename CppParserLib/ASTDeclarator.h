@@ -28,8 +28,8 @@ class CASTDeclarator : public CASTCommon
 public:
 	CASTCommon*	mpcNext;
 
-	virtual void		Init(void) = 0;
-	virtual void		Kill(void) = 0;
+	virtual void		Init(void) =0;
+	virtual void		Kill(void) =0;
 			CASTCommon*	Next(void);
 };
 

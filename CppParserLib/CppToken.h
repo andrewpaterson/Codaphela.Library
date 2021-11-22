@@ -29,8 +29,8 @@ class CTokeniser;
 class CCppToken
 {
 public:
-	virtual void Init(void) = 0;
-	virtual void Kill(void) = 0;
+	virtual void Init(void) =0;
+	virtual void Kill(void) =0;
 	virtual BOOL IsReservedWord(void);
 	virtual BOOL IsIdentifier(void);
 	virtual BOOL IsNumber(void);
@@ -38,7 +38,7 @@ public:
 	virtual BOOL IsChar(void);
 	virtual BOOL IsBool(void);
 	virtual BOOL IsHelper(void);
-	virtual void Append(CChars* psz, CTokeniser* pcTokeniser) = 0;
+	virtual void Append(CChars* psz, CTokeniser* pcTokeniser) =0;
 };
 
 
