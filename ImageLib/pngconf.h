@@ -1308,14 +1308,6 @@ typedef z_stream FAR *  png_zstreamp;
     (( defined(_Windows) || defined(_WINDOWS) || \
        defined(WIN32) || defined(_WIN32) || defined(__WIN32__) ))
 
-#  ifndef PNGAPI
-#     if defined(__GNUC__) || (defined (_MSC_VER) && (_MSC_VER >= 800))
-#        define PNGAPI __cdecl
-#     else
-#        define PNGAPI _cdecl
-#     endif
-#  endif
-
 #  if !defined(PNG_IMPEXP) && (!defined(PNG_DLL) || \
        0 /* WINCOMPILER_WITH_NO_SUPPORT_FOR_DECLIMPEXP */)
 #     define PNG_IMPEXP
