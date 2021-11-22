@@ -67,11 +67,11 @@ public:
 	BOOL 		GetIdentifier(CExternalString* pcIdentifier);
 	BOOL		GetNumber(CExternalString* pcIdentifier);
 	BOOL 		GetExactDecorator(char c, BOOL bSkipWhiteSpace = TRUE);
+	BOOL		GetExactDecorator(char* sz, BOOL bSkipWhiteSpace = TRUE);
 	BOOL 		GetExactIdentifier(char* szIdentifier, BOOL bCaseSensitive, BOOL bSkipWhiteSpace);
 	void 		SkipWhiteSpace(void);
 	void 		NextToken(void);
 	void		NextToken(int iNumToSkip);
-	char*		NextCharacter(void);
 	BOOL 		GetQuotedCharacterSequence(char cOpen, char cClosed, CExternalString* pcSequence);
 	BOOL 		GetStringDoubleQuoted(CExternalString* pcString);
 	BOOL 		GetStringSingleQuoted(CExternalString* pcString, BOOL bSkipWhiteSpace);

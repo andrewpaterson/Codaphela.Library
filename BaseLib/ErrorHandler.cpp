@@ -50,7 +50,7 @@ void CUserError::Kill(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CUserError::Set(const char* szError)
+BOOL CUserError::Set(const char* szError)
 {
 	gcLogger.Add("FATAL ERROR: ");
 	gcLogger.Add(szError);
@@ -61,6 +61,7 @@ void CUserError::Set(const char* szError)
 		mbUserError = TRUE;
 		gcLogger.Break();
 	}
+	return FALSE;
 }
 
 
@@ -86,7 +87,7 @@ char* CUserError::Get(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CUserError::Set2(const char* szText, ...)
+BOOL CUserError::Set2(const char* szText, ...)
 {
 	va_list		vaMarker;
 	char*		sz;
@@ -119,4 +120,5 @@ void CUserError::Set2(const char* szText, ...)
 	{
 		Set("");
 	}
+	return FALSE;
 }

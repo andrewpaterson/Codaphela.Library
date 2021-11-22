@@ -225,6 +225,7 @@ BOOL CPreprocessor::ProcessHashDefine(CPreprocessorTokenParser* pcParser)
 				{
 					break;
 				}
+
 				bResult = pcParser->GetIdentifier(&cArgument);
 				if (bResult)
 				{
@@ -233,7 +234,15 @@ BOOL CPreprocessor::ProcessHashDefine(CPreprocessorTokenParser* pcParser)
 				}
 				else
 				{
-					//Expected an Identifier.
+					bResult = pcParser->GetExactDecorator("...");
+					if (bResult)
+					{
+						pcDefine->AddVariadic();
+					}
+					else
+					{
+						return gcUserError.Set("Expected an Identifier.");
+					}
 				}
 			}
 		}
@@ -275,8 +284,7 @@ BOOL CPreprocessor::ProcessHashDefine(CPreprocessorTokenParser* pcParser)
 	}
 	else
 	{
-		gcUserError.Set("Could not get an identifier for a #define.  Add one.");
-		return FALSE;
+		return gcUserError.Set("Could not get an identifier for a #define.  Add one.");
 	}
 }
 
@@ -999,13 +1007,10 @@ BOOL CPreprocessor::ProcessIdentifier(CPPTokenHolder* pcDest, CPPText* pcText, C
 	CDefine*				pcDefine;
 	BOOL					bResult;
 	CPPAbstractHolder*		pcHolder;
-	CPPText*				pcDecorator;
-	char*					pcValue;
 	int						i;
 	CPPTokenHolder*			pcTokenHolder;
 	SDefineArgument*		psArguments;
 	int						iArgIndex;
-	BOOL					bOpenBracket;
 
 	pcDefine = mcDefines.GetDefine(&pcText->mcText);
 	if (pcDefine)
@@ -1056,46 +1061,123 @@ BOOL CPreprocessor::ProcessIdentifier(CPPTokenHolder* pcDest, CPPText* pcText, C
 	}
 	else if (bAllowDefined)
 	{
-		bResult = pcParser->GetExactIdentifier("defined", TRUE, TRUE);
+		bResult = ProcessDefinedIdentifier(pcDest, pcText, pcParser);
 		if (bResult)
 		{
-			bOpenBracket = pcParser->GetExactDecorator('(');
-			pcParser->SkipWhiteSpace();
-			pcToken = pcParser->GetToken();
-			pcDecorator = CPPText::Construct(mpcStack->Add(sizeof(CPPText)));
-			pcValue = (char*)gcTokenStrings.Add(1);
-			*pcValue = '0';
-			pcDecorator->Init(PPT_Number, -1, -1, pcValue, pcValue+1);
-			if (pcToken)
-			{
-				if (pcToken->IsText())
-				{
-					pcText = (CPPText*)pcToken;
-					if (pcText->meType == PPT_Identifier)
-					{
-						pcDefine = mcDefines.GetDefine(&pcText->mcText);
-						pcParser->NextToken();
-						if (pcDefine)
-						{
-							*pcValue = '1';
-						}
-					}
-				}
-				pcDest->Add((CPPToken**)&pcDecorator);
-				if (bOpenBracket)
-				{
-					pcParser->SkipWhiteSpace();
-					pcParser->GetExactDecorator(')');
-				}
-			}
 			return TRUE;
 		}
+
+
+		//"__has_attribute"
+		//"__has_cpp_attribute"
+		//"__has_builtin"
+		//"__has_include"
 	}
 
 	pcToken = DuplicatePPToken(pcText, mpcStack);
 	pcDest->Add(&pcToken);
 	pcParser->NextToken();
 	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+BOOL CPreprocessor::ProcessDefinedIdentifier(CPPTokenHolder* pcDest, CPPText* pcText, CPreprocessorTokenParser* pcParser)
+{
+	CPPToken*	pcToken;
+	CDefine*	pcDefine;
+	BOOL		bResult;
+	CPPText*	pcDecorator;
+	char*		pcValue;
+	BOOL		bOpenBracket;
+
+	bResult = pcParser->GetExactIdentifier("defined", TRUE, TRUE);
+	if (bResult)
+	{
+		bOpenBracket = pcParser->GetExactDecorator('(');
+		pcParser->SkipWhiteSpace();
+		pcToken = pcParser->GetToken();
+		pcDecorator = CPPText::Construct(mpcStack->Add(sizeof(CPPText)));
+		pcValue = (char*)gcTokenStrings.Add(1);
+		*pcValue = '0';
+		pcDecorator->Init(PPT_Number, -1, -1, pcValue, pcValue + 1);
+		if (pcToken)
+		{
+			if (pcToken->IsText())
+			{
+				pcText = (CPPText*)pcToken;
+				if (pcText->meType == PPT_Identifier)
+				{
+					pcDefine = mcDefines.GetDefine(&pcText->mcText);
+					pcParser->NextToken();
+					if (pcDefine)
+					{
+						*pcValue = '1';
+					}
+				}
+			}
+			pcDest->Add((CPPToken**)&pcDecorator);
+			if (bOpenBracket)
+			{
+				pcParser->SkipWhiteSpace();
+				pcParser->GetExactDecorator(')');
+			}
+		}
+	}
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+BOOL CPreprocessor::ProcessHasIncludeIdentifier(CPPTokenHolder* pcDest, CPPText* pcText, CPreprocessorTokenParser* pcParser)
+{
+	CPPToken*	pcToken;
+	CDefine*	pcDefine;
+	BOOL		bResult;
+	CPPText*	pcDecorator;
+	char*		pcValue;
+	BOOL		bOpenBracket;
+
+	bResult = pcParser->GetExactIdentifier("__has_include", TRUE, TRUE);
+	if (bResult)
+	{
+		bOpenBracket = pcParser->GetExactDecorator('(');
+		pcParser->SkipWhiteSpace();
+		pcToken = pcParser->GetToken();
+		pcDecorator = CPPText::Construct(mpcStack->Add(sizeof(CPPText)));
+		pcValue = (char*)gcTokenStrings.Add(1);
+		*pcValue = '0';
+		pcDecorator->Init(PPT_Number, -1, -1, pcValue, pcValue + 1);
+		if (pcToken)
+		{
+			if (pcToken->IsText())
+			{
+				pcText = (CPPText*)pcToken;
+				if (pcText->meType == PPT_Identifier)
+				{
+					pcDefine = mcDefines.GetDefine(&pcText->mcText);
+					pcParser->NextToken();
+					if (pcDefine)
+					{
+						*pcValue = '1';
+					}
+				}
+			}
+			pcDest->Add((CPPToken**)&pcDecorator);
+			if (bOpenBracket)
+			{
+				pcParser->SkipWhiteSpace();
+				pcParser->GetExactDecorator(')');
+			}
+		}
+	}
+	return bResult;
 }
 
 

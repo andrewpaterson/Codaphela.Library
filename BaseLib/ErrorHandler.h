@@ -37,8 +37,8 @@ private:
 public:
 	void 	Init(void);
 	void 	Kill(void);
-	void 	Set(const char* szError);
-	void 	Set2(const char* szError, ...);
+	BOOL 	Set(const char* szError);
+	BOOL 	Set2(const char* szError, ...);
 	char*	Get(void);
 };
 
