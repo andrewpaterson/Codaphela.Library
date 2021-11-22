@@ -72,3 +72,17 @@ void CCalcUnaryExpression::Set(CCalcExpression* pcExpression, CCalcOperator* pcO
 	mpcExpression = pcExpression;
 	mpcOp = pcOp;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCalcUnaryExpression::Print(CChars* psz)
+{
+	psz->Append("(");
+	mpcOp->Print(psz);
+	mpcExpression->Print(psz);
+	psz->Append(")");
+}
+

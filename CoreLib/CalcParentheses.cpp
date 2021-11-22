@@ -62,3 +62,15 @@ void CCalcParentheses::SetExpression(CCalcExpression* pcExpression)
 	mpcExpression = pcExpression;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCalcParentheses::Print(CChars* psz)
+{
+	psz->Append("(");
+	mpcExpression->Print(psz);
+	psz->Append(")");
+}
+

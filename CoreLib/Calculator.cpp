@@ -268,7 +268,11 @@ BOOL CCalculator::Value(CCalcConstExpression** ppcConst)
 	tResult = mcParser.GetNumber(&cNumber);
 	if (tResult == TRITRUE)
 	{
-		mcParser.GetExactCharacter('L', FALSE);
+		tResult = mcParser.GetExactCharacter('L', FALSE);
+		if (tResult == FALSE)
+		{
+			tResult = mcParser.GetExactCharacter('l', FALSE);
+		}
 		*ppcConst = NewMalloc<CCalcConstExpression>();
 		(*ppcConst)->SetValue(&cNumber);
 		return TRUE;
@@ -374,7 +378,7 @@ BOOL CCalculator::Parentheses(CCalcParentheses** ppcParentheses)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCalculator::BuildExpression(CCalcExpression** ppcExpression, CArrayIntAndPointer* pcArray)
+BOOL CCalculator::BuildExpression(CCalcExpression** ppcExpression, CArrayIntAndPointer* pcArray)
 {
 	int						iIndex;
 	CCalcOperator*			pcOperator;
@@ -387,24 +391,24 @@ void CCalculator::BuildExpression(CCalcExpression** ppcExpression, CArrayIntAndP
 	CCalcExpression*		pcOperandLeft;
 	CCalcExpression*		pcOperandRight;
 	int						iOldUsedElements;
+	CChars					szStart;
+
+	szStart.Init();
+	Print(&szStart, pcArray);
 
 	iOldUsedElements = pcArray->NumElements();
 	while (pcArray->NumElements() > 1)
 	{
 		if (pcArray->NumElements() > iOldUsedElements)
 		{
-			gcUserError.Set("Number of elements in expression INCREASED?");
-			*ppcExpression = NULL;					
-			return;
+			return SetError(&szStart, pcArray, ppcExpression, "Number of elements in expression INCREASED from [", "] to [", "] which should not be possible.");
 		}
 		iOldUsedElements = pcArray->NumElements();
 
 		iIndex = GetMinPrecedence(pcArray);
 		if (iIndex == -1)
 		{
-			gcUserError.Set("Confused trying to find order of precedence");
-			*ppcExpression = NULL;					
-			return;
+			return SetError(&szStart, pcArray, ppcExpression, "Confused trying to find order of precedence for inital [", "] with current [", "].");
 		}
 		pcOperator = (CCalcOperator*)pcArray->GetPtr(iIndex);
 
@@ -429,15 +433,12 @@ void CCalculator::BuildExpression(CCalcExpression** ppcExpression, CArrayIntAndP
 				}
 				else
 				{
-					gcUserError.Set("Unary operator only works on expressions.");
-					*ppcExpression = NULL;					
-					return;
+					return SetError(&szStart, pcArray, ppcExpression, "Unary operator only works on expressions given inital [", "] and current [", "].");
 				}
 			}
 			else
 			{
-				*ppcExpression = NULL;
-				gcUserError.Set("Unary operator needs right hand operand.");
+				return SetError(&szStart, pcArray, ppcExpression, "Unary operator needs right hand operand for inital [", "] with current [", "].");
 			}
 		}
 		else if (pcOperator->IsBinary())
@@ -460,34 +461,28 @@ void CCalculator::BuildExpression(CCalcExpression** ppcExpression, CArrayIntAndP
 					}
 					else
 					{
-						gcUserError.Set("Binary operator only works on expressions.");
-						*ppcExpression = NULL;					
-						return;
+						return SetError(&szStart, pcArray, ppcExpression, "Binary operator only works on expressions given inital [", "] and current [", "].");
 					}
 
 				}
 				else
 				{
-					gcUserError.Set("Binary operator needs right hand operand.");
-					*ppcExpression = NULL;					
-					return;
+					return SetError(&szStart, pcArray, ppcExpression, "Binary operator needs right hand operand for inital [", "] with current [", "].");
 				}
 			}
 			else
 			{
-				gcUserError.Set("Binary operator needs left hand operand.");
-				*ppcExpression = NULL;					
-				return;
+				return SetError(&szStart, pcArray, ppcExpression, "Binary operator needs left hand operand for inital [", "] with current [", "].");
 			}
 		}
 		else
 		{
-			gcUserError.Set("Don't know what style of operator this is.");
-			*ppcExpression = NULL;					
-			return;
+			return SetError(&szStart, pcArray, ppcExpression, "Don't know what style of operator this is [", "] with current [", "].");
 		}
 	}
 	*ppcExpression = (CCalcExpression*)pcArray->GetPtr(0);
+	szStart.Kill();
+	return TRUE;
 }
 
 
@@ -552,5 +547,54 @@ void CCalculator::ResolveAmbiguity(CCalcOperator* pcOperator, BOOL bIsUnary)
 			pcOperator->meOp = CO_Subtract;
 		}
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CCalculator::SetError(CChars* pszStart, CArrayIntAndPointer* pcArray, CCalcExpression** ppcExpression, char* szLeft, char* szMiddle, char* szRight)
+{
+	CChars	szCurrent;
+
+	szCurrent.Init();
+	Print(&szCurrent, pcArray);
+	gcUserError.Set2(szLeft, pszStart->Text(), szMiddle, szCurrent.Text(), szRight, NULL);
+	szCurrent.Kill();
+	pszStart->Kill();
+	*ppcExpression = NULL;
+	return FALSE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCalculator::Print(CChars* psz, CArrayIntAndPointer* pcArray)
+{
+	int				i;
+	CCalcObject*	pcObject;
+
+	for (i = 0; i < pcArray->NumElements(); i++)
+	{
+		pcObject = (CCalcObject*)pcArray->GetPtr(i);
+		pcObject->Print(psz);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCalculator::Dump(CArrayIntAndPointer* pcArray)
+{
+	CChars sz;
+
+	sz.Init();
+	Print(&sz, pcArray);
+	sz.DumpKill();
 }
 

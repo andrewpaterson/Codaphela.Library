@@ -3462,8 +3462,6 @@ void CNumber::Print(CChars* pcChars)
 	int		iStart;
 	int		iStop;
 
-	pcChars->Init();
-
 	if (IsNAN())
 	{
 		pcChars->Append("Not a number");
@@ -3542,6 +3540,7 @@ void CNumber::Dump(BOOL bNewLine)
 {
 	CChars		sz;
 
+	sz.Init();
 	Print(&sz);
 	if (bNewLine)
 	{

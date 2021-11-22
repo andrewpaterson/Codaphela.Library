@@ -62,16 +62,17 @@ class CCalcOperator : public CCalcObject
 public:
 	ECalcOperator	meOp;
 
-	void Init(void);
-	void Kill(void);
-	void Set(ECalcOperator eOp);
-	void Evaluate(CNumber* pcAnswer, CNumber* pcNumberLeft, CNumber* pcNumberRight);
-	void Evaluate(CNumber* pcAnswer, CNumber* pcNumber);
-	BOOL IsExpression(void);
-	BOOL IsOperator(void);
-	BOOL IsUnary(void);
-	BOOL IsBinary(void);
-	BOOL IsAmbiguous(void);
+	void	Init(void);
+	void	Kill(void);
+	void	Set(ECalcOperator eOp);
+	void	Evaluate(CNumber* pcAnswer, CNumber* pcNumberLeft, CNumber* pcNumberRight);
+	void	Evaluate(CNumber* pcAnswer, CNumber* pcNumber);
+	BOOL	IsExpression(void);
+	BOOL	IsOperator(void);
+	BOOL	IsUnary(void);
+	BOOL	IsBinary(void);
+	BOOL	IsAmbiguous(void);
+	void	Print(CChars* psz);
 };
 
 

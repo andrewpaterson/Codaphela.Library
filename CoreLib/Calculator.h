@@ -38,7 +38,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 class CCalculator
 {
 public:
-	CArrayChars	mszOperators;
+	CArrayChars		mszOperators;
 	CTextParser		mcParser;
 	CArrayInt		maiPrecedence;
 
@@ -51,9 +51,12 @@ public:
 	BOOL		Parentheses(CCalcParentheses** ppcParentheses);
 	BOOL		Value(CCalcConstExpression** ppcConst);
 	BOOL		Identifier(CCalcConstExpression** ppcConst);
-	void		BuildExpression(CCalcExpression** ppcExpression, CArrayIntAndPointer* pcArray);
+	BOOL		BuildExpression(CCalcExpression** ppcExpression, CArrayIntAndPointer* pcArray);
 	int			GetMinPrecedence(CArrayIntAndPointer* pcArray);
 	void		ResolveAmbiguity(CCalcOperator* pcOperator, BOOL bIsUnary);
+	BOOL		SetError(CChars* pszFirst, CArrayIntAndPointer* pcArray, CCalcExpression** ppcExpression, char* szLeft, char* szMiddle, char* szRight);
+	void		Print(CChars* psz, CArrayIntAndPointer* pcArray);
+	void		Dump(CArrayIntAndPointer* pcArray);
 };
 
 

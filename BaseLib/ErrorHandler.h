@@ -25,7 +25,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "Define.h"
 
 
-#define MAX_USER_ERROR_CHARS 512
+#define MAX_USER_ERROR_CHARS 4096
 
 
 class CUserError
@@ -38,6 +38,7 @@ public:
 	void 	Init(void);
 	void 	Kill(void);
 	void 	Set(const char* szError);
+	void 	Set2(const char* szError, ...);
 	char*	Get(void);
 };
 
