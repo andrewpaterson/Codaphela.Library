@@ -25,6 +25,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/MapStringString.h"
 #include "BaseLib/TextParser.h"
 #include "DefineMap.h"
+#include "SpecialOperatorMap.h"
 #include "ConditionalStack.h"
 #include "ASCIITree.h"
 #include "PreprocessorTokeniser.h"
@@ -49,6 +50,7 @@ public:
 	CCFile*							mpcCurrentFile;
 	CASCIITree						mcDirectives;
 	CDefineMap						mcDefines;
+	CSpecialOperatorMap				mcSpecialOperators;
 	CDefineArguments				mcArguments;
 	int								miIncludeDepth;
 	CArrayHeaderNameMapPtr			mcHeaderNames;
@@ -82,6 +84,10 @@ public:
 	CDefine*			AddDefine(char* szDefine, char* szReplacement);
 	CDefine*			AddSpecialDefine(char* szDefine);
 
+	CSpecialOperator*	GetSpecialOperator(CExternalString* pcString);
+	CSpecialOperator*	GetSpecialOperator(char* szName);
+	CSpecialOperator*	AddSpecialOperator(char* szSpecialOperator, EPreprocessorSpecialOperator eType);
+
 	BOOL				PreprocessBlockSets(CCFile* pcFile, CCFile* pcFromFile);
 	SCTokenBlock		PreprocessTokens(CPPTokenHolder* pcDestTokens, CMemoryStackExtended* pcStack, CPPTokenHolder* pcSourceTokens, int iBlock, int iToken);
 	BOOL				PreprocessTranslationUnit(CTranslationUnit* pcFile);
@@ -101,9 +107,13 @@ public:
 
 	BOOL				Evaluate(char* szText);
 
-	BOOL				ProcessIdentifier(CPPTokenHolder* pcDest, CPPText* pcText, CPreprocessorTokenParser* pcParser, BOOL bAllowDefined, int iDepth);
+	BOOL				ProcessIdentifier(CPPTokenHolder* pcDest, CPPText* pcText, CPreprocessorTokenParser* pcParser, BOOL bAllowConditional, int iDepth);
 	BOOL				ProcessDefinedIdentifier(CPPTokenHolder* pcDest, CPPText* pcText, CPreprocessorTokenParser* pcParser);
 	BOOL				ProcessHasIncludeIdentifier(CPPTokenHolder* pcDest, CPPText* pcText, CPreprocessorTokenParser* pcParser);
+	BOOL				ProcessHasAttributeIdentifier(CPPTokenHolder* pcDest, CPPText* pcText, CPreprocessorTokenParser* pcParser);
+	BOOL				ProcessHasCPPAttributeIdentifier(CPPTokenHolder* pcDest, CPPText* pcText, CPreprocessorTokenParser* pcParser);
+	BOOL				ProcessHasBuiltInIdentifier(CPPTokenHolder* pcDest, CPPText* pcText, CPreprocessorTokenParser* pcParser);
+	BOOL				ProcessIncludeFile(CPreprocessorTokenParser* pcParser, CHeaderFile** ppcCFile, CHeaderNameMap** ppcHeaderNameMap);
 	BOOL				ProcessLine(CPPTokenHolder* pcTokenHolder, CPreprocessorTokenParser* pcParser, BOOL bAllowDefined, int iDepth);
 	BOOL				ProcessSingleHash(CPPTokenHolder* pcDest, CPPHashes* pcHash, CPreprocessorTokenParser* pcParser);
 	BOOL				ProcessDoubleHash(CPPTokenHolder* pcDest, CPPHashes* pcHash, CPreprocessorTokenParser* pcParser);
@@ -122,6 +132,7 @@ public:
 	void				LogBlocks(CCFile* pcFile, SCTokenBlock sResult);
 	void				LogIncludes(CCFile* pcFile);
 	void				TranslationUnitLogging(CTranslationUnit* pcFile);
+	CSpecialOperator*	ProcessSpecialOperator(CPreprocessorTokenParser* pcParser);
 
 	static void			Preprocess(char* szSource, CChars* szDest);
 };

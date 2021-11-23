@@ -41,7 +41,5 @@ public:
 };
 
 
-typedef CArrayTemplate<CDefine>	CArrayDefines;
-
-
 #endif // !__PP_DEFINE_H__
+

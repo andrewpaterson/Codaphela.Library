@@ -30,20 +30,12 @@ void CPreprocessor::InitPlatformSpecific(void)
 {
 	CChars	sz;
 
-	AddSpecialDefine("__FUNCTION__");
 	AddSpecialDefine("__FUNCSIG__");
 	AddSpecialDefine("__COUNTER__");
 	AddSpecialDefine("__FUNCDNAME__");
 
 	AddDefine("_M_IX86");
 	AddDefine("__inline", "inline");
-	
-#ifdef __cplusplus
-	sz.Init();
-	sz.Append(__cplusplus);
-	AddDefine("__cplusplus", sz.Text());
-	sz.Kill();
-#endif
 
 #ifdef _ATL_VER
 	AddDefine("_ATL_VER", _ATL_VER);
@@ -120,15 +112,6 @@ void CPreprocessor::InitPlatformSpecific(void)
 	sz.Append(_MSC_FULL_VER);
 	AddDefine("_MSC_FULL_VER", sz.Text());
 	sz.Kill();
-#endif
-
-#ifdef __STDC_VERSION__
-	sz.Init();
-	sz.Append(_MSC_FULL_VER);
-	AddDefine("__STDC_VERSION__", sz.Text());
-	sz.Kill();
-#else
-	AddDefine("__STDC_VERSION__", "0");
 #endif
 
 #ifdef _WIN32_WINNT

@@ -357,6 +357,12 @@
     <ClCompile Include="DirectiveMap.cpp">
       <Filter>Source\Preprocessor</Filter>
     </ClCompile>
+    <ClCompile Include="SpecialOperatorMap.cpp">
+      <Filter>Source\Preprocessor\Define</Filter>
+    </ClCompile>
+    <ClCompile Include="SpecialOperator.cpp">
+      <Filter>Source\Preprocessor\Define</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AbstractSyntaxTree.h">
@@ -652,6 +658,12 @@
     </ClInclude>
     <ClInclude Include="PreprocessorDirective.h">
       <Filter>Source\Preprocessor</Filter>
+    </ClInclude>
+    <ClInclude Include="SpecialOperatorMap.h">
+      <Filter>Source\Preprocessor\Define</Filter>
+    </ClInclude>
+    <ClInclude Include="SpecialOperator.h">
+      <Filter>Source\Preprocessor\Define</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

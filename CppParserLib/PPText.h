@@ -30,7 +30,7 @@ enum EPreprocessorText
 	PPT_Number,
 	PPT_Decorator,
 	PPT_DoubleQuoted,
-	PPT_SingleQuoted,
+	PPT_SingleQuoted
 };
 
 
