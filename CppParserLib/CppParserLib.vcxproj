@@ -230,6 +230,8 @@
     <ClCompile Include="PPHolder.cpp" />
     <ClCompile Include="PPLine.cpp" />
     <ClCompile Include="PPTokenHolder.cpp" />
+    <ClCompile Include="SpecialOperator.cpp" />
+    <ClCompile Include="SpecialOperatorMap.cpp" />
     <ClCompile Include="TokenHelper.cpp" />
     <ClCompile Include="PPText.cpp" />
     <ClCompile Include="PPTextWithSource.cpp" />
@@ -329,6 +331,8 @@
     <ClInclude Include="PPHolder.h" />
     <ClInclude Include="PPLine.h" />
     <ClInclude Include="PPTokenHolder.h" />
+    <ClInclude Include="SpecialOperator.h" />
+    <ClInclude Include="SpecialOperatorMap.h" />
     <ClInclude Include="TokenHelper.h" />
     <ClInclude Include="PPText.h" />
     <ClInclude Include="PPTextWithSource.h" />
