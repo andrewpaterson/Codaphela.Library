@@ -40,6 +40,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "TranslationUnit.h"
 #include "CBlockToken.h"
 #include "HeaderNameMap.h"
+#include "PreprocessorPosition.h"
 #include "HeaderNameMapStack.h"
 
 
@@ -48,6 +49,8 @@ class CPreprocessor
 public:
 	CConditionalStack				mcConditionalStack;
 	CCFile*							mpcCurrentFile;
+	CPPDirective*					mpcCurrentDirective;
+	CPreprocessorTokenParser*		mpcCurrentLineParser;
 	CASCIITree						mcDirectives;
 	CDefineMap						mcDefines;
 	CSpecialOperatorMap				mcSpecialOperators;
@@ -77,17 +80,15 @@ public:
 	void				LogDumping(BOOL bDumpLogs);
 	void				AddIncludeDirectories(CArrayHeaderNameMap* pcHeaderNames);
 	void				AddIncludeDirectory(CHeaderNameMap* pcHeaderNames);
-	void				MarkPosition(void);
-	CChars				GetPosition(void);
 
-	CDefine*			GetDefine(CExternalString* pcString);
-	CDefine*			GetDefine(char* szName);
+	CDefine*			GetDefine(CExternalString* pcString, BOOL bExact);
+	CDefine*			GetDefine(char* szName, BOOL bExact);
 	CDefine* 			AddDefine(char* szDefine);
 	CDefine*			AddDefine(char* szDefine, char* szReplacement);
 	CDefine*			AddSpecialDefine(char* szDefine);
 
-	CSpecialOperator*	GetSpecialOperator(CExternalString* pcString);
-	CSpecialOperator*	GetSpecialOperator(char* szName);
+	CSpecialOperator*	GetSpecialOperator(CExternalString* pcString, BOOL bExact);
+	CSpecialOperator*	GetSpecialOperator(char* szName, BOOL bExact);
 	CSpecialOperator*	AddSpecialOperator(char* szSpecialOperator, EPreprocessorSpecialOperator eType);
 
 	BOOL				PreprocessBlockSets(CCFile* pcFile, CCFile* pcFromFile);
@@ -129,12 +130,13 @@ public:
 	void				ExpandReplacement(CPPReplacement* pcReplacement, CPPTokenHolder* pcDest, BOOL bAllowDefined, int iDepth);
 	CPPToken*			QuoteTokens(CPPTokenHolder* pcDest, CPPAbstractHolder* pcHolder);
 	CPPToken*			ConcaternateTokens(CPPTokenHolder* pcDest, CPPToken* pcLeft, CPPToken* pcRight);
-	void				LoadFile(CCFile* pcFile);
+	BOOL				TokeniseFile(CCFile* pcFile);
 	void				DeltaDefines(CArrayNamedDefines* pcDelta, CMemoryStackExtended* pcStack);
 	void				LogBlocks(CCFile* pcFile, SCTokenBlock sResult);
 	void				LogIncludes(CCFile* pcFile);
 	void				TranslationUnitLogging(CTranslationUnit* pcFile);
 	CSpecialOperator*	ProcessSpecialOperator(CPreprocessorTokenParser* pcParser);
+	void				MarkPositionForError(SPreprocessorPosition* psPos);
 
 	static void			Preprocess(char* szSource, CChars* szDest);
 };

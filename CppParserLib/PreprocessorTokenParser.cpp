@@ -1022,7 +1022,7 @@ int CPreprocessorTokenParser::Line(void)
 {
 	if (HasToken())
 	{
-		return mpsCurrent->pcCurrentToken->miLine;
+		return mpsCurrent->pcCurrentToken->Line();
 	}
 	return -1;
 }
@@ -1036,7 +1036,7 @@ int CPreprocessorTokenParser::Column(void)
 {
 	if (HasToken())
 	{
-		return mpsCurrent->pcCurrentToken->miColumn;
+		return mpsCurrent->pcCurrentToken->Column();
 	}
 	return -1;
 }

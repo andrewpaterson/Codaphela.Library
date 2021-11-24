@@ -29,27 +29,31 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 class CPPToken
 {
-public:
+protected:
 	int		miLine;
 	int		miColumn;
 	
-	virtual void Init(int iLine, int iColumn) =0;
-	virtual void Kill(void) =0;
-	virtual BOOL IsDirective(void);
-	virtual BOOL IsText(void);
-	virtual BOOL IsWhiteSpace(void);
-	virtual BOOL IsReplacement(void);
-	virtual BOOL IsHash(void);
-	virtual BOOL IsAbstractHolder(void);
-	virtual BOOL IsLine(void);
-	virtual BOOL IsHolder(void);
-	virtual BOOL IsFile(void);
-	virtual BOOL IsBlock(void);
-	virtual BOOL IsEmpty(void) =0;
-			void Set(int iLine, int iColumn);
-	virtual void Append(CChars* psz) =0;
-	virtual void Copy(CPPToken* pcSource, CMemoryStackExtended* pcStack) =0;
-	virtual BOOL Equals(CPPToken* pcOther) =0;
+public:
+	virtual void	Init(int iLine, int iColumn) =0;
+	virtual void	Kill(void) =0;
+	virtual BOOL	IsDirective(void);
+	virtual BOOL	IsText(void);
+	virtual BOOL	IsWhiteSpace(void);
+	virtual BOOL	IsReplacement(void);
+	virtual BOOL	IsHash(void);
+	virtual BOOL	IsAbstractHolder(void);
+	virtual BOOL	IsLine(void);
+	virtual BOOL	IsHolder(void);
+	virtual BOOL	IsFile(void);
+	virtual BOOL	IsBlock(void);
+	virtual BOOL	IsEmpty(void) =0;
+			void	Set(int iLine, int iColumn);
+	virtual void	Append(CChars* psz) =0;
+	virtual void	Copy(CPPToken* pcSource, CMemoryStackExtended* pcStack) =0;
+	virtual BOOL	Equals(CPPToken* pcOther) =0;
+
+			int		Line(void);
+			int		Column(void);
 };
 
 

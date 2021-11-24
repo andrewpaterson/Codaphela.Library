@@ -28,6 +28,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define MAX_USER_ERROR_CHARS 4096
 
 
+class CChars;
 class CUserError
 {
 private:
@@ -39,6 +40,7 @@ public:
 	void 	Kill(void);
 	BOOL 	Set(const char* szError);
 	BOOL 	Set2(const char* szError, ...);
+	BOOL 	Set(CChars* pszError, BOOL bKillErrorString = TRUE);
 	char*	Get(void);
 };
 
