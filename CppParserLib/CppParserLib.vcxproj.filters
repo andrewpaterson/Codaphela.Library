@@ -363,6 +363,9 @@
     <ClCompile Include="SpecialOperator.cpp">
       <Filter>Source\Preprocessor\Define</Filter>
     </ClCompile>
+    <ClCompile Include="PreprocessorPosition.cpp">
+      <Filter>Source\Preprocessor</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AbstractSyntaxTree.h">
@@ -664,6 +667,9 @@
     </ClInclude>
     <ClInclude Include="SpecialOperator.h">
       <Filter>Source\Preprocessor\Define</Filter>
+    </ClInclude>
+    <ClInclude Include="PreprocessorPosition.h">
+      <Filter>Source\Preprocessor</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

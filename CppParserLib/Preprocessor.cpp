@@ -30,6 +30,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "PPConditional.h"
 #include "TokenHelper.h"
 #include "GeneralToken.h"
+#include "PreprocessorPosition.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -381,13 +382,11 @@ BOOL CPreprocessor::ProcessHashInclude(CPreprocessorTokenParser* pcParser)
 	CHeaderNameMapDirectory*	pcNewDirectory;
 	CHeaderNameMapDirectory*	pcCurrentDirectory;
 	CChars						szPath;
-	int							iLine;
-	int							iColumn;
+	SPreprocessorPosition		sPos;
 
 	pcParser->SkipWhiteSpace();
 
-	iLine = pcParser->Line();
-	iColumn = pcParser->Column();
+	sPos.Init(pcParser, mpcCurrentFile);
 
 	bResult = ProcessIncludeFile(pcParser, &pcIncludeFile, &pcHeaderNameMap);
 	if (bResult)
@@ -410,13 +409,7 @@ BOOL CPreprocessor::ProcessHashInclude(CPreprocessorTokenParser* pcParser)
 		}
 		else
 		{
-			sz.Init();
-			sz.Append(mpcCurrentFile->ShortName());
-			sz.Append(": ");
-			sz.Append(iLine);
-			sz.Append(", ");
-			sz.Append(iColumn);
-			sz.Append(": ");
+			sPos.Message(&sz);
 			sz.Append("Could not include file ");
 			sz.AppendSubString(cExternalString.msz, cExternalString.EndInclusive() + 1);
 			gcUserError.Set(sz.Text());
@@ -868,7 +861,7 @@ SCTokenBlock CPreprocessor::ProcessHashIfdef(CPreprocessorTokenParser* pcParser,
 	}	
 	else
 	{
-		mcConditionalStack.PushIfDefined(TRUE);	
+		mcConditionalStack.PushIfDefined(FALSE);	
 	}
 
 	return Condition(pcCond, iLine);
@@ -932,20 +925,48 @@ SCTokenBlock CPreprocessor::ProcessHashElse(CPreprocessorTokenParser* pcParser, 
 //////////////////////////////////////////////////////////////////////////
 SCTokenBlock CPreprocessor::ProcessHashIf(CPreprocessorTokenParser* pcParser, CPPConditional* pcCond, SCTokenBlock iLine)
 {
-	BOOL			bEvaluated;
-	CPPTokenHolder	cTokenHolder;
-	CChars			sz;
+	TRISTATE				sEvaluated;
+	CPPTokenHolder			cTokenHolder;
+	CChars					sz;
+	SCTokenBlock			sIndex;
+	SPreprocessorPosition	sPos;
+	CChars					szCaclulatorError;
+	CChars					szError;
+
+	sPos.Init(pcParser, mpcCurrentFile);
 
 	cTokenHolder.Init();
 	ProcessLine(&cTokenHolder, pcParser, TRUE, 0);
 	sz.Init();
 	cTokenHolder.Append(&sz);
-	bEvaluated = Evaluate(sz.Text());;
-	mcConditionalStack.PushIf(bEvaluated);
-	sz.Kill();
-	cTokenHolder.Kill();
+	szCaclulatorError.Init();
+	sEvaluated = EvaluateEquation(sz.Text(), &szCaclulatorError);
+	if (sEvaluated != TRIERROR)
+	{
+		szCaclulatorError.Kill();
+		mcConditionalStack.PushIf(sEvaluated == TRITRUE);
+		sz.Kill();
+		cTokenHolder.Kill();
 
-	return Condition(pcCond, iLine);
+		return Condition(pcCond, iLine);
+	}
+	else
+	{
+		cTokenHolder.Kill();
+
+		sPos.Message(&szError);
+		szError.Append("Calculator error parsing \"");
+		szError.Append(sz);
+		szError.Append("\".  ");
+		sz.Kill();
+		szError.Append(szCaclulatorError);
+		gcUserError.Set(szError.Text());
+		szCaclulatorError.Kill();
+		szError.Kill();
+
+		sIndex.Init(-1, -1);  //-1, -1 doesn't seem to strictly mean an error but it does mean stop.
+		return sIndex;
+	}
 }
 
 
@@ -955,20 +976,44 @@ SCTokenBlock CPreprocessor::ProcessHashIf(CPreprocessorTokenParser* pcParser, CP
 //////////////////////////////////////////////////////////////////////////
 SCTokenBlock CPreprocessor::ProcessHashElif(CPreprocessorTokenParser* pcParser, CPPConditional* pcCond, SCTokenBlock iLine)
 {
-	BOOL			bEvaluated;
-	CPPTokenHolder	cTokenHolder;
-	CChars			sz;
+	TRISTATE				sEvaluated;
+	CPPTokenHolder			cTokenHolder;
+	CChars					sz;
+	SCTokenBlock			sIndex;
+	SPreprocessorPosition	sPos;
+	CChars					szCaclulatorError;
+	CChars					szError;
 
 	cTokenHolder.Init();
+	szCaclulatorError.Init();
 	ProcessLine(&cTokenHolder, pcParser, TRUE, 0);
 	sz.Init();
 	cTokenHolder.Append(&sz);
-	bEvaluated = Evaluate(sz.Text());;
-	mcConditionalStack.SwapForElseIf(bEvaluated);
-	sz.Kill();
-	cTokenHolder.Kill();
+	sEvaluated = EvaluateEquation(sz.Text(), &szCaclulatorError);;
+	if (sEvaluated != TRIERROR)
+	{
+		szCaclulatorError.Kill();
+		mcConditionalStack.SwapForElseIf(sEvaluated == TRITRUE);
+		sz.Kill();
+		cTokenHolder.Kill();
 
-	return Condition(pcCond, iLine);
+		return Condition(pcCond, iLine);
+	}
+	else
+	{
+		sz.Kill();
+		cTokenHolder.Kill();
+
+		sPos.Message(&szError);
+		szError.Append(szCaclulatorError);
+		gcUserError.Set(szError.Text());
+		szCaclulatorError.Kill();
+		szError.Kill();
+
+		sIndex.Init(-1, -1);  //-1, -1 doesn't seem to strictly mean an error but it does mean stop.
+		return sIndex;
+
+	}
 }
 
 
@@ -1799,19 +1844,31 @@ void CPreprocessor::Preprocess(char* szSource, CChars* szDest)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CPreprocessor::Evaluate(char* szText)
+TRISTATE CPreprocessor::EvaluateEquation(char* szText, CChars* szCalculatorError)
 {
 	CCalculator	cCalculator;
 	CNumber		cAnswer;
 
-	cCalculator.Init();
+	cCalculator.Init(FALSE);
 	cAnswer = cCalculator.Eval(szText);
-	cCalculator.Kill();
-
-	if (cAnswer.IsZero())
-		return FALSE;
+	if (cCalculator.HasError())
+	{
+		szCalculatorError->Append(cCalculator.GetError());
+		cCalculator.Kill();
+		return TRIERROR;
+	}
 	else
-		return TRUE;
+	{
+		cCalculator.Kill();
+		if (cAnswer.IsZero())
+		{
+			return TRIFALSE;
+		}
+		else
+		{
+			return TRITRUE;
+		}
+	}
 }
 
 

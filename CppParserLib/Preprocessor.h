@@ -77,6 +77,8 @@ public:
 	void				LogDumping(BOOL bDumpLogs);
 	void				AddIncludeDirectories(CArrayHeaderNameMap* pcHeaderNames);
 	void				AddIncludeDirectory(CHeaderNameMap* pcHeaderNames);
+	void				MarkPosition(void);
+	CChars				GetPosition(void);
 
 	CDefine*			GetDefine(CExternalString* pcString);
 	CDefine*			GetDefine(char* szName);
@@ -105,7 +107,7 @@ public:
 	BOOL 				ProcessHashPragma(CPreprocessorTokenParser* pcParser);
 	BOOL				ProcessNormalLine(CPreprocessorTokenParser* pcParser);
 
-	BOOL				Evaluate(char* szText);
+	TRISTATE			EvaluateEquation(char* szText, CChars* szCalculatorError);
 
 	BOOL				ProcessIdentifier(CPPTokenHolder* pcDest, CPPText* pcText, CPreprocessorTokenParser* pcParser, BOOL bAllowConditional, int iDepth);
 	BOOL				ProcessDefinedIdentifier(CPPTokenHolder* pcDest, CPPText* pcText, CPreprocessorTokenParser* pcParser);
