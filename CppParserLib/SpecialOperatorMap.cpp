@@ -106,12 +106,12 @@ CSpecialOperator* CSpecialOperatorMap::AddSpecialOperator(char* szName, EPreproc
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CSpecialOperator* CSpecialOperatorMap::GetSpecialOperator(CExternalString* pcName)
+CSpecialOperator* CSpecialOperatorMap::GetSpecialOperator(CExternalString* pcName, BOOL bExact)
 {
 	SASCIINameIndex* psNameIndex;
 	CSpecialOperator* pcSpecialOperator;
 
-	psNameIndex = mcNameToIDIndex.Get(pcName->msz, pcName->EndInclusive(), TRUE);
+	psNameIndex = mcNameToIDIndex.Get(pcName->msz, pcName->EndInclusive(), bExact);
 	if (psNameIndex)
 	{
 		pcSpecialOperator = mcIDToSpecialOperatorIndex.Get(psNameIndex->mlliID);
@@ -133,7 +133,7 @@ CSpecialOperator* CSpecialOperatorMap::GetSpecialOperator(CChars* pszName)
 	CExternalString	cExternalString;
 
 	cExternalString.Init(pszName->Text(), pszName->Length());
-	return GetSpecialOperator(&cExternalString);
+	return GetSpecialOperator(&cExternalString, TRUE);
 }
 
 
@@ -141,14 +141,14 @@ CSpecialOperator* CSpecialOperatorMap::GetSpecialOperator(CChars* pszName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CSpecialOperator* CSpecialOperatorMap::GetSpecialOperator(char* szName)
+CSpecialOperator* CSpecialOperatorMap::GetSpecialOperator(char* szName, BOOL bExact)
 {
 	CExternalString	cExternalString;
 	int				iLen;
 
 	iLen = (int)strlen(szName);
 	cExternalString.Init(szName, iLen);
-	return GetSpecialOperator(&cExternalString);
+	return GetSpecialOperator(&cExternalString, bExact);
 }
 
 

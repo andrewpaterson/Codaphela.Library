@@ -41,9 +41,9 @@ public:
 	CDefine*	AddDefine(char* szName);
 	void		RemoveDefine(CExternalString* pcName);
 	void		RemoveDefine(char* szName);
-	CDefine*	GetDefine(CExternalString* pcName);
+	CDefine*	GetDefine(CExternalString* pcName, BOOL bExact);
 	CDefine*	GetDefine(CChars* pszName);
-	CDefine*	GetDefine(char* szName);
+	CDefine*	GetDefine(char* szName, BOOL bExact);
 	void		Dump(void);
 };
 

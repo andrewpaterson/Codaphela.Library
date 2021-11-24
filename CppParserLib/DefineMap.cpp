@@ -121,12 +121,12 @@ CDefine* CDefineMap::AddDefine(char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CDefine* CDefineMap::GetDefine(CExternalString* pcName)
+CDefine* CDefineMap::GetDefine(CExternalString* pcName, BOOL bExact)
 {
 	SASCIINameIndex*	psNameIndex;
 	CDefine*			pcDefine;
 
-	psNameIndex = mcNameToIDIndex.Get(pcName->msz, pcName->EndInclusive(), TRUE);
+	psNameIndex = mcNameToIDIndex.Get(pcName->msz, pcName->EndInclusive(), bExact);
 	if (psNameIndex)
 	{
 		pcDefine = mcIDToDefineIndex.Get(psNameIndex->mlliID);
@@ -148,7 +148,7 @@ CDefine* CDefineMap::GetDefine(CChars* pszName)
 	CExternalString	cExternalString;
 
 	cExternalString.Init(pszName->Text(), pszName->Length());
-	return GetDefine(&cExternalString);
+	return GetDefine(&cExternalString, TRUE);
 }
 
 
@@ -156,14 +156,14 @@ CDefine* CDefineMap::GetDefine(CChars* pszName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CDefine* CDefineMap::GetDefine(char* szName)
+CDefine* CDefineMap::GetDefine(char* szName, BOOL bExact)
 {
 	CExternalString	cExternalString;
 	int				iLen;
 
 	iLen = (int)strlen(szName);
 	cExternalString.Init(szName, iLen);
-	return GetDefine(&cExternalString);
+	return GetDefine(&cExternalString, bExact);
 }
 
 
