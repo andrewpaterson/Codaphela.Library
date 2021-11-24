@@ -41,8 +41,11 @@ public:
 	CArrayChars		mszOperators;
 	CTextParser		mcParser;
 	CArrayInt		maiPrecedence;
+	CChars			mszError;
+	BOOL			mbUseUserError;
 
 	void		Init(void);
+	void		Init(BOOL bUseUserError);
 	void		Kill(void);
 	CNumber		Eval(char* szText);
 	BOOL		Expression(CCalcExpression** ppcExpression);
@@ -55,8 +58,11 @@ public:
 	int			GetMinPrecedence(CArrayIntAndPointer* pcArray);
 	void		ResolveAmbiguity(CCalcOperator* pcOperator, BOOL bIsUnary);
 	BOOL		SetError(CChars* pszFirst, CArrayIntAndPointer* pcArray, CCalcExpression** ppcExpression, char* szLeft, char* szMiddle, char* szRight);
+	void		SetError(char* szError);
 	void		Print(CChars* psz, CArrayIntAndPointer* pcArray);
 	void		Dump(CArrayIntAndPointer* pcArray);
+	BOOL		HasError(void);
+	char*		GetError(void);
 };
 
 

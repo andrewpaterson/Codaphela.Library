@@ -214,6 +214,7 @@
     <ClCompile Include="NamedDefine.cpp" />
     <ClCompile Include="Preprocessor.cpp" />
     <ClCompile Include="PreprocessorDirective.cpp" />
+    <ClCompile Include="PreprocessorPosition.cpp" />
     <ClCompile Include="Preprocessor_Windows.cpp" />
     <ClCompile Include="PreprocessorParser.cpp" />
     <ClCompile Include="PreprocessorTokeniser.cpp" />
@@ -288,6 +289,7 @@
     <ClInclude Include="Define.h" />
     <ClInclude Include="PreprocessorDirective.h" />
     <ClInclude Include="DirectiveMap.h" />
+    <ClInclude Include="PreprocessorPosition.h" />
     <ClInclude Include="SimpleOperator.h" />
     <ClInclude Include="ASTAccessSpec.h" />
     <ClInclude Include="ASTClassSpec.h" />

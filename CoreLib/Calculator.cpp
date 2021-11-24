@@ -31,6 +31,16 @@ Microsoft Windows is Copyright Microsoft Corporation
 //////////////////////////////////////////////////////////////////////////
 void CCalculator::Init(void)
 {
+	Init(TRUE);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCalculator::Init(BOOL bUseUserError)
+{
 	mszOperators.Init();
 	mszOperators.Add("++");
 	mszOperators.Add("--");
@@ -78,6 +88,9 @@ void CCalculator::Init(void)
 	maiPrecedence.Add(5);	// CO_LessThan,
 	maiPrecedence.Add(5);	// CO_GreaterThan,
 	maiPrecedence.Add(1);	// CO_BitwiseNot,
+
+	mbUseUserError = bUseUserError;
+	mszError.Init();
 }
 
 
@@ -87,6 +100,7 @@ void CCalculator::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CCalculator::Kill(void)
 {
+	mszError.Kill();
 	maiPrecedence.Kill();
 	mszOperators.Kill();
 }
@@ -103,6 +117,8 @@ CNumber CCalculator::Eval(char* szText)
 	BOOL				bResult;
 	CChars				sz;
 
+	mszError.Reinit();
+
 	mcParser.Init(szText);
 	bResult = Expression(&pcExpression);
 	mcParser.Kill();
@@ -114,12 +130,15 @@ CNumber CCalculator::Eval(char* szText)
 	}
 	else
 	{
-		sz.Init("Cannot evaluate expression [");
-		sz.Append(szText);
-		sz.Append("]\n");
-		gcUserError.Set(sz.Text());
-		sz.Kill();
-		cAnswer.Zero();
+		if (!HasError())
+		{
+			sz.Init("Cannot evaluate expression [");
+			sz.Append(szText);
+			sz.Append("]\n");
+			SetError(sz.Text());
+			sz.Kill();
+		}
+		cAnswer.NotANumber();
 	}
 
 	return cAnswer;
@@ -154,6 +173,12 @@ BOOL CCalculator::Expression(CCalcExpression** ppcExpression)
 		}
 
 		bOperand = Operand(&pcOperand);
+		if (HasError())
+		{
+			cArray.Kill();
+			return FALSE;
+		}
+
 		if (!bOperand && !bOperator)
 		{
 			if (bFirst)
@@ -557,14 +582,41 @@ void CCalculator::ResolveAmbiguity(CCalcOperator* pcOperator, BOOL bIsUnary)
 BOOL CCalculator::SetError(CChars* pszStart, CArrayIntAndPointer* pcArray, CCalcExpression** ppcExpression, char* szLeft, char* szMiddle, char* szRight)
 {
 	CChars	szCurrent;
+	CChars	sz;
 
 	szCurrent.Init();
 	Print(&szCurrent, pcArray);
-	gcUserError.Set2(szLeft, pszStart->Text(), szMiddle, szCurrent.Text(), szRight, NULL);
+	sz.InitList(szLeft, pszStart->Text(), szMiddle, szCurrent.Text(), szRight, NULL);
+	SetError(sz.Text());
+	sz.Kill();
 	szCurrent.Kill();
 	pszStart->Kill();
 	*ppcExpression = NULL;
 	return FALSE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCalculator::SetError(char* szError)
+{
+	mszError.Append(szError);
+	if (mbUseUserError)
+	{
+		gcUserError.Set(szError);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CCalculator::HasError(void)
+{
+	return !mszError.Empty();
 }
 
 
@@ -596,5 +648,15 @@ void CCalculator::Dump(CArrayIntAndPointer* pcArray)
 	sz.Init();
 	Print(&sz, pcArray);
 	sz.DumpKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CCalculator::GetError(void)
+{
+	return mszError.Text();
 }
 
