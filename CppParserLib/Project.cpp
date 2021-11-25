@@ -243,7 +243,7 @@ void CProject::Process(char* szConfiguration)
 			cPreprocessor.Kill();
 			break;
 		}
-		miBlockReuse += cPreprocessor.miBlockReuse;
+		miBlockReuse += cPreprocessor.GetBlockReuse();
 
 		WritePost(pcFile);
 
