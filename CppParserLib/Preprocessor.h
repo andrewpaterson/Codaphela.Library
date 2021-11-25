@@ -46,7 +46,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 class CPreprocessor
 {
-public:
+protected:
 	CConditionalStack				mcConditionalStack;
 	CCFile*							mpcCurrentFile;
 	CPPDirective*					mpcCurrentDirective;
@@ -71,6 +71,7 @@ public:
 	CChars*							mpszIncludesLog;
 	int								miDefineReuse;
 
+public:
 	void 				Init(CConfig* pcConfig, CMemoryStackExtended* pcStack);
 	void 				Kill(void);
 	void				InitPlatformSpecific(void);
@@ -80,6 +81,7 @@ public:
 	void				LogDumping(BOOL bDumpLogs);
 	void				AddIncludeDirectories(CArrayHeaderNameMap* pcHeaderNames);
 	void				AddIncludeDirectory(CHeaderNameMap* pcHeaderNames);
+	int					GetBlockReuse(void);
 
 	CDefine*			GetDefine(CExternalString* pcString, BOOL bExact);
 	CDefine*			GetDefine(char* szName, BOOL bExact);

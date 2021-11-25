@@ -36,7 +36,7 @@ void CNamedDefine::Define(CExternalString* pcName, CDefine* pcSource, CMemorySta
 	miFlags = pcSource->IsBacketed() ? NAMED_DEFINE_FLAGS_BRACKETED : 0;
 	mcArguments.Init();
 	mcArguments.Copy(&pcSource->mcArguments);
-	mcReplacement.Init(pcSource->mcReplacement.miLine, pcSource->mcReplacement.miColumn);
+	mcReplacement.Init(pcSource->mcReplacement.Line(), pcSource->mcReplacement.Column());
 	mcReplacement.Copy(&pcSource->mcReplacement, mpcStack);
 }
 
