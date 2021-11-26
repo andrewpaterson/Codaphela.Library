@@ -54,6 +54,7 @@ public:
 
 			int		Line(void);
 			int		Column(void);
+			void	Dump(void);
 };
 
 

@@ -49,7 +49,7 @@ class CPreprocessor
 protected:
 	CConditionalStack				mcConditionalStack;
 	CCFile*							mpcCurrentFile;
-	CPPDirective*					mpcCurrentDirective;
+	CPPLine*						mpcCurrentLine;
 	CPreprocessorTokenParser*		mpcCurrentLineParser;
 	CASCIITree						mcDirectives;
 	CDefineMap						mcDefines;
@@ -70,6 +70,7 @@ protected:
 	CChars*							mpszBlocksLog;
 	CChars*							mpszIncludesLog;
 	int								miDefineReuse;
+	CChars							mszVaArgs;
 
 public:
 	void 				Init(CConfig* pcConfig, CMemoryStackExtended* pcStack);
@@ -139,6 +140,7 @@ public:
 	void				TranslationUnitLogging(CTranslationUnit* pcFile);
 	CSpecialOperator*	ProcessSpecialOperator(CPreprocessorTokenParser* pcParser);
 	void				MarkPositionForError(SPreprocessorPosition* psPos);
+	void				KillArguments(SDefineArgument* psArguments);
 
 	static void			Preprocess(char* szSource, CChars* szDest);
 };

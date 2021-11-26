@@ -53,6 +53,7 @@ public:
 	virtual	char*	TextStart(void);
 	virtual	char*	TextEndInclusive(void);
 	BOOL			IsEmpty(void);
+	int				Length(void);
 };
 
 

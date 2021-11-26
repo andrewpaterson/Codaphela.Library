@@ -281,9 +281,11 @@ BOOL CPreprocessorTokenParser::GetExactDecorator(char c, BOOL bSkipWhiteSpace)
 BOOL CPreprocessorTokenParser::GetExactDecorator(char* sz, BOOL bSkipWhiteSpace)
 {
 	CPPText*	pcText;
-	int			iLength;
+	int			iExpectedLength;
+	int			iTokenLength;
 	int			i;
 	char		c;
+	int			iDone;
 
 	if (!mpsCurrent->pcCurrentToken)
 	{
@@ -295,35 +297,49 @@ BOOL CPreprocessorTokenParser::GetExactDecorator(char* sz, BOOL bSkipWhiteSpace)
 	if (bSkipWhiteSpace)
 	{
 		SkipWhiteSpace();
-		if (!mpsCurrent->pcCurrentToken)
+		if (mpsCurrent->pcCurrentToken == NULL)
 		{
 			PassPosition();
 			return FALSE;
 		}
 	}
 
-	if (mpsCurrent->pcCurrentToken->IsText())
+	iDone = 0;
+	iExpectedLength = strlen(sz);
+	while (iDone < iExpectedLength)
 	{
-		pcText = (CPPText*)mpsCurrent->pcCurrentToken;
-		if (pcText->meType == PPT_Decorator)
+		if (mpsCurrent->pcCurrentToken->IsText())
 		{
-			iLength = strlen(sz);
-			for (i = 0; i < iLength; i++)
+			pcText = (CPPText*)mpsCurrent->pcCurrentToken;
+			if (pcText->meType == PPT_Decorator)
 			{
-				c = sz[i];
-				if (pcText->mcText.msz[0] != c)
+				iTokenLength = pcText->Length();
+				for (i = 0; i < iExpectedLength && i < iTokenLength; i++)
 				{
-					PopPosition();
-					return FALSE;
+					c = sz[i];
+					if (pcText->mcText.msz[0] != c)
+					{
+						PopPosition();
+						return FALSE;
+					}
 				}
+				iDone += iTokenLength;
+				NextToken();
 			}
-			NextToken();
-			PassPosition();
-			return TRUE;
+			else
+			{
+				PopPosition();
+				return FALSE;
+			}
+		}
+		else
+		{
+			PopPosition();
+			return FALSE;
 		}
 	}
-	PopPosition();
-	return FALSE;
+	PassPosition();
+	return TRUE;
 }
 
 
@@ -933,7 +949,7 @@ BOOL CPreprocessorTokenParser::GetOctal(uint64* pulli, int* piNumDigits)
 void CPreprocessorTokenParser::NextToken(void)
 {
 	CPPAbstractHolder*	pcHolder;
-	int			iIndex;
+	int					iIndex;
 
 	if (mpsCurrent->pcCurrentToken)
 	{
