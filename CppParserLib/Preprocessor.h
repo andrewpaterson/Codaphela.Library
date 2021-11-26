@@ -77,6 +77,9 @@ protected:
 	CPPToken*						mpcPPComma;
 
 public:
+	static void			Preprocess(char* szSource, CChars* szDest);
+
+public:
 	void 				Init(CConfig* pcConfig, CMemoryStackExtended* pcStack);
 	void 				Kill(void);
 	void				InitPlatformSpecific(void);
@@ -146,8 +149,6 @@ public:
 	CSpecialOperator*	ProcessSpecialOperator(CPreprocessorTokenParser* pcParser);
 	void				MarkPositionForError(SPreprocessorPosition* psPos);
 	void				KillArguments(SDefineArgument* psArguments);
-
-	static void			Preprocess(char* szSource, CChars* szDest);
 };
 
 
