@@ -246,7 +246,6 @@ CDefine* CPreprocessor::AddDefine(char* szDefine, char* szReplacement)
 BOOL CPreprocessor::ProcessHashDefine(CPreprocessorTokenParser* pcParser)
 {
 	CExternalString			cIdentifier;
-	CExternalString			cArgument;
 	BOOL					bResult;
 	CDefine*				pcDefine;
 	CPPText*				pcText;
@@ -256,13 +255,12 @@ BOOL CPreprocessor::ProcessHashDefine(CPreprocessorTokenParser* pcParser)
 	BOOL					bAllocated;
 	BOOL					bAllowWhiteSpace;
 	CDefine*				pcExisting;
-	BOOL					bVariadicFound;
+
 	SPreprocessorPosition	sPos;
 	CChars					szError;
 
 	MarkPositionForError(&sPos);
 
-	bVariadicFound = FALSE;
 	bResult = pcParser->GetIdentifier(&cIdentifier);
 	if (bResult)
 	{
@@ -276,55 +274,10 @@ BOOL CPreprocessor::ProcessHashDefine(CPreprocessorTokenParser* pcParser)
 		bResult = pcParser->GetExactDecorator('(', FALSE);
 		if (bResult)
 		{
-			pcDefine->SetBracketed(TRUE);
-			for (;;)
+			bResult = ProcessHashDefineBracketted(pcParser, pcDefine);
+			if (!bResult)
 			{
-				bResult = pcParser->GetExactDecorator(')');
-				if (bResult)
-				{
-					break;
-				}
-
-				if (bVariadicFound)
-				{
-					sPos.Message(&szError);
-					szError.Append("Expected ')' after \"...\"");
-					return gcUserError.Set(&szError);
-				}
-
-				bResult = pcParser->GetExactDecorator("...");
-				if (bResult)
-				{
-					cArgument.Init(mszVaArgs.Text(), mszVaArgs.Length());
-					pcDefine->AddArgument(&cArgument);
-					pcDefine->SetVariadic();
-					bVariadicFound = TRUE;
-				}
-				else
-				{
-					bResult = pcParser->GetIdentifier(&cArgument);
-					if (bResult)
-					{
-						pcDefine->AddArgument(&cArgument);
-
-						bResult = pcParser->GetExactDecorator("...");
-						if (bResult)
-						{
-							pcDefine->SetVariadic();
-							bVariadicFound = TRUE;
-						}
-						else
-						{
-							pcParser->GetExactDecorator(',');
-						}
-					}
-					else
-					{
-						sPos.Message(&szError);
-						szError.Append("Expected identifier");
-						return gcUserError.Set(&szError);
-					}
-				}
+				return FALSE;
 			}
 		}
 
@@ -369,6 +322,74 @@ BOOL CPreprocessor::ProcessHashDefine(CPreprocessorTokenParser* pcParser)
 		szError.Append("Expected identifier");
 		return gcUserError.Set(&szError);
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+BOOL CPreprocessor::ProcessHashDefineBracketted(CPreprocessorTokenParser* pcParser, CDefine* pcDefine)
+{
+	CExternalString			cArgument;
+	BOOL					bResult;
+	BOOL					bVariadicFound;
+	SPreprocessorPosition	sPos;
+	CChars					szError;
+
+	bVariadicFound = FALSE;
+	pcDefine->SetBracketed(TRUE);
+	for (;;)
+	{
+		bResult = pcParser->GetExactDecorator(')');
+		if (bResult)
+		{
+			break;
+		}
+
+		if (bVariadicFound)
+		{
+			sPos.Message(&szError);
+			szError.Append("Expected ')' after \"...\".");
+			return gcUserError.Set(&szError);
+		}
+
+		bResult = pcParser->GetExactDecorator("...");
+		if (bResult)
+		{
+			cArgument.Init(mszVaArgs.Text(), mszVaArgs.Length());
+			pcDefine->AddArgument(&cArgument);
+			pcDefine->SetVariadic();
+			bVariadicFound = TRUE;
+		}
+		else
+		{
+			bResult = pcParser->GetIdentifier(&cArgument);
+			if (bResult)
+			{
+				pcDefine->AddArgument(&cArgument);
+
+				bResult = pcParser->GetExactDecorator("...");
+				if (bResult)
+				{
+					pcDefine->SetVariadic();
+					bVariadicFound = TRUE;
+				}
+				else
+				{
+					pcParser->GetExactDecorator(',');
+				}
+			}
+			else
+			{
+				sPos.Message(&szError);
+				szError.Append("Expected identifier.");
+				return gcUserError.Set(&szError);
+			}
+		}
+	}
+
+	return TRUE;
 }
 
 
