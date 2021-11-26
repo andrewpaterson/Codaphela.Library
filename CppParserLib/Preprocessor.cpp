@@ -83,6 +83,8 @@ void CPreprocessor::Init(CConfig* pcConfig, CMemoryStackExtended* pcStack)
 	InitPlatformSpecific();
 	AddConfigDefines(pcConfig);
 	mszVaArgs.Init("__VA_ARGS__");
+	mcPPComma.Init(PPT_Decorator, -1, -1, ", ", 2);
+	mpcPPComma = &mcPPComma;
 	mpcStack = NULL;
 }
 
@@ -93,6 +95,7 @@ void CPreprocessor::Init(CConfig* pcConfig, CMemoryStackExtended* pcStack)
 //////////////////////////////////////////////////////////////////////////
 void CPreprocessor::Kill(void)
 {
+	mcPPComma.Kill();
 	mszVaArgs.Kill();
 	mpcPost = NULL;
 	mpcCurrentFile = NULL;
@@ -255,6 +258,9 @@ BOOL CPreprocessor::ProcessHashDefine(CPreprocessorTokenParser* pcParser)
 	BOOL					bAllocated;
 	BOOL					bAllowWhiteSpace;
 	CDefine*				pcExisting;
+	int						iNumArguments;
+	int						iReplacementNum;
+	BOOL					bVariadic;
 
 	SPreprocessorPosition	sPos;
 	CChars					szError;
@@ -281,6 +287,9 @@ BOOL CPreprocessor::ProcessHashDefine(CPreprocessorTokenParser* pcParser)
 			}
 		}
 
+		iNumArguments = pcDefine->mcArguments.NumElements();
+		iReplacementNum = 0;
+		bVariadic = pcDefine->IsVariadic();
 		bAllowWhiteSpace = FALSE;
 		while (pcParser->HasToken())
 		{
@@ -295,9 +304,10 @@ BOOL CPreprocessor::ProcessHashDefine(CPreprocessorTokenParser* pcParser)
 					if (iReplaceArg != -1)
 					{
 						pcReplacement = CPPReplacement::Construct(mpcStack->Add(sizeof(CPPReplacement)));
-						pcReplacement->Init(pcDefine->GetID(), iReplaceArg, -1, -1);
+						pcReplacement->Init(pcDefine->GetID(), iReplaceArg, -1, -1, bVariadic && (iReplacementNum == iNumArguments - 1));
 						pcToken = pcReplacement;
 						bAllocated = TRUE;
+						iReplacementNum++;
 					}
 				}
 			}
@@ -1519,18 +1529,46 @@ void CPreprocessor::ExpandReplacement(CPPReplacement* pcReplacement, CPPTokenHol
 	CPreprocessorTokenParser	cParser;
 	CPPLine						cLine;
 	SDefineArgument*			psDefineArgument;
+	int							i;
+	BOOL						bFirst;
 
 	psDefineArgument = mcArguments.Get(pcReplacement->mlliDefineID);
 	pcArguments = &psDefineArgument->mcArguments;
 	if (pcArguments)
 	{
-		pcArgument = pcArguments->Get(pcReplacement->miArgIndex);
-		if (pcArgument)
+		if (!pcReplacement->IsVariadic())
 		{
-			cLine.Fake(pcArgument);
-			cParser.Init(&cLine);
-			ProcessLine(pcDest, &cParser, bAllowDefined, iDepth);
-			cParser.Kill();
+			pcArgument = pcArguments->Get(pcReplacement->miArgIndex);
+			if (pcArgument)
+			{
+				cLine.Fake(pcArgument);
+				cParser.Init(&cLine);
+				ProcessLine(pcDest, &cParser, bAllowDefined, iDepth);
+				cParser.Kill();
+			}
+		}
+		else
+		{
+			bFirst = TRUE;
+			for (i = pcReplacement->miArgIndex; i < pcArguments->NumElements(); i++)
+			{
+				pcArgument = pcArguments->Get(i);
+				if (pcArgument)
+				{
+					if (bFirst)
+					{
+						bFirst = FALSE;
+					}
+					else
+					{
+						pcDest->Add(&mpcPPComma);
+					}
+					cLine.Fake(pcArgument);
+					cParser.Init(&cLine);
+					ProcessLine(pcDest, &cParser, bAllowDefined, iDepth);
+					cParser.Kill();
+				}
+			}
 		}
 	}
 }

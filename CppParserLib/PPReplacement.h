@@ -29,16 +29,18 @@ class CPPReplacement : public CPPToken
 public:
 	int		miArgIndex;
 	int64	mlliDefineID;
+	BOOL	mbVariadic;
 
 	TOKEN_CONSTRUCT(CPPReplacement);
 	void 		Init(int iLine, int iColumn);
-	void 		Init(int64 lliDefineID, int iArgIndex, int iLine, int iColumn);
+	void 		Init(int64 lliDefineID, int iArgIndex, int iLine, int iColumn, BOOL bVariadic);
 	void 		Kill(void);
 	BOOL 		IsReplacement(void);
 	void 		Append(CChars* psz);
 	void 		Copy(CPPToken* pcSource, CMemoryStackExtended* pcStack);
 	BOOL		Equals(CPPToken* pcOther);
 	BOOL		IsEmpty(void);
+	BOOL		IsVariadic(void);
 };
 
 

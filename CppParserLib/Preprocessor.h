@@ -32,6 +32,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "PPDirective.h"
 #include "PPHolder.h"
 #include "PPText.h"
+#include "PPTextWithSource.h"
 #include "PPHashes.h"
 #include "PPReplacement.h"
 #include "PreprocessorTokenParser.h"
@@ -71,6 +72,9 @@ protected:
 	CChars*							mpszIncludesLog;
 	int								miDefineReuse;
 	CChars							mszVaArgs;
+
+	CPPTextWithSource				mcPPComma;
+	CPPToken*						mpcPPComma;
 
 public:
 	void 				Init(CConfig* pcConfig, CMemoryStackExtended* pcStack);

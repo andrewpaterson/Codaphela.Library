@@ -36,11 +36,12 @@ void CPPReplacement::Init(int iLine, int iColumn)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPPReplacement::Init(int64 lliDefineID, int iArgIndex, int iLine, int iColumn)
+void CPPReplacement::Init(int64 lliDefineID, int iArgIndex, int iLine, int iColumn, BOOL bVariadic)
 {
 	Set(iLine, iColumn);
 	miArgIndex = iArgIndex;
 	mlliDefineID = lliDefineID;;
+	mbVariadic = bVariadic;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -60,6 +61,10 @@ void CPPReplacement::Append(CChars* psz)
 {
 	psz->Append("/* Replacement: ");
 	psz->Append(miArgIndex);
+	if (mbVariadic)
+	{
+		psz->Append(" ... ");
+	}
 	psz->Append("*/");
 }
 
@@ -88,6 +93,7 @@ void CPPReplacement::Copy(CPPToken* pcSource, CMemoryStackExtended* pcStack)
 		Set(pcCast->miLine, pcCast->miColumn);
 		miArgIndex = pcCast->miArgIndex;
 		mlliDefineID = pcCast->mlliDefineID;
+		mbVariadic = pcCast->mbVariadic;
 	}
 }
 
@@ -124,3 +130,14 @@ BOOL CPPReplacement::IsEmpty(void)
 {
 	return FALSE;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CPPReplacement::IsVariadic(void)
+{
+	return mbVariadic;
+}
+
