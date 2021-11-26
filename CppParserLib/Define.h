@@ -26,12 +26,14 @@ public:
 	void 	Init(CExternalString* pcName, int64 uiID, CDefineMap* pcDefineMap);
 	void 	Kill(void);
 	void 	AddArgument(CExternalString* pcName);
-	void	AddVariadic(void);
+	void	SetVariadic(void);
 	void 	AddReplacmentToken(CPPToken* pcToken);
 	BOOL 	Equals(CDefine* pcOther);
+	BOOL	CanProcessArguments(int iNumArguments);
 	char*	GetName(void);
 	int64	GetID(void);
 	BOOL	IsBacketed(void);
+	BOOL	IsVariadic(void);
 	BOOL	IsSpecial(void);
 	BOOL	IsInMap(void);
 	void	SetSpecial(BOOL b);

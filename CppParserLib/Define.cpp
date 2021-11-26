@@ -48,7 +48,7 @@ void CDefine::AddArgument(CExternalString* pcName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDefine::AddVariadic(void)
+void CDefine::SetVariadic(void)
 {
 	SetFlag(&miFlags, DEFINE_FLAGS_VARIADIC, TRUE);
 }
@@ -71,6 +71,16 @@ void CDefine::AddReplacmentToken(CPPToken* pcToken)
 BOOL CDefine::IsBacketed(void)
 {
 	return miFlags & DEFINE_FLAGS_BRACKETED;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CDefine::IsVariadic(void)
+{
+	return miFlags & DEFINE_FLAGS_VARIADIC;
 }
 
 
@@ -151,6 +161,24 @@ BOOL CDefine::Equals(CDefine* pcOther)
 	return FALSE;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CDefine::CanProcessArguments(int iNumArguments)
+{
+	if (!IsVariadic())
+	{
+		return iNumArguments == mcArguments.NumElements();
+	}
+	else
+	{
+		return iNumArguments >= (mcArguments.NumElements() - 1);
+	}
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -204,6 +232,11 @@ void CDefine::Dump(void)
 			{
 				sz.Append(", ");
 			}
+		}
+
+		if (IsVariadic())
+		{
+			sz.Append("...");
 		}
 		sz.Append(')');
 	}

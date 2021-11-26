@@ -23,7 +23,17 @@ void SPreprocessorPosition::Init(int iLine, int iColumn, char* szShortName)
 //////////////////////////////////////////////////////////////////////////
 void SPreprocessorPosition::Init(CPreprocessorTokenParser* pcParser, CCFile* pcFile)
 {
-	Init(pcParser->Line(), pcParser->Column(), pcFile->ShortName());
+	char*	szShortName;
+
+	if (pcFile)
+	{
+		szShortName = pcFile->ShortName();
+	}
+	else
+	{
+		szShortName = NULL;
+	}
+	Init(pcParser->Line(), pcParser->Column(), szShortName);
 }
 
 
