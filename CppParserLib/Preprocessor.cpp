@@ -1207,7 +1207,7 @@ BOOL CPreprocessor::ProcessIdentifier(CPPTokenHolder* pcDest, CPPText* pcText, C
 	SDefineArgument*		psArguments;
 	int						iArgIndex;
 
-	pcDefine = mcDefines.GetDefine(&pcText->mcText, FALSE);
+	pcDefine = mcDefines.GetDefine(&pcText->mcText, TRUE);
 	if (pcDefine)
 	{
 		iArgIndex = -1;
@@ -1357,7 +1357,7 @@ BOOL CPreprocessor::ProcessDefinedIdentifier(CPPTokenHolder* pcDest, CPPText* pc
 				}
 				else
 				{
-					pcDefine = mcDefines.GetDefine(&pcText->mcText, FALSE);
+					pcDefine = mcDefines.GetDefine(&pcText->mcText, TRUE);
 					if (pcDefine)
 					{
 						*pcValue = '1';
@@ -2005,7 +2005,6 @@ void CPreprocessor::Preprocess(char* szSource, CChars* szDest)
 	cPreprocessor.Init(NULL, &cStack);
 	cPreprocessor.PreprocessTokens(&cProcessedTokens, &cStack, &cRawTokens, 0, 0);
 
-	szDest->Init();
 	cProcessedTokens.Append(szDest);
 
 	cProcessedTokens.Kill();

@@ -215,7 +215,8 @@ public:
 	float		FloatValue(void);
 	char		GetDigit(int iDigit);  //zero returns '.' or '\0'.
 	void		Print(CChars* pcChars);
-	void		Dump(BOOL bNewLine = TRUE);
+	void		Dump(void);
+	void		Dump(BOOL bNewLine);
 };
 
 
