@@ -70,7 +70,7 @@ void CDefine::AddReplacmentToken(CPPToken* pcToken)
 //////////////////////////////////////////////////////////////////////////
 BOOL CDefine::IsBacketed(void)
 {
-	return miFlags & DEFINE_FLAGS_BRACKETED;
+	return FixBool(miFlags & DEFINE_FLAGS_BRACKETED);
 }
 
 
@@ -80,7 +80,7 @@ BOOL CDefine::IsBacketed(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CDefine::IsVariadic(void)
 {
-	return miFlags & DEFINE_FLAGS_VARIADIC;
+	return FixBool(miFlags & DEFINE_FLAGS_VARIADIC);
 }
 
 
@@ -90,7 +90,7 @@ BOOL CDefine::IsVariadic(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CDefine::IsSpecial(void)
 {
-	return miFlags & DEFINE_FLAGS_SPECIAL;
+	return FixBool(miFlags & DEFINE_FLAGS_SPECIAL);
 }
 
 
@@ -100,7 +100,7 @@ BOOL CDefine::IsSpecial(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CDefine::IsInMap(void)
 {
-	return miFlags & DEFINE_FLAGS_IN_MAP;
+	return FixBool(miFlags & DEFINE_FLAGS_IN_MAP);
 }
 
 
