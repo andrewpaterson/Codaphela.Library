@@ -70,7 +70,7 @@ public:
 	BOOL		GetExactDecorator(char* sz, BOOL bSkipWhiteSpace = TRUE);
 	BOOL 		GetExactIdentifier(char* szIdentifier, BOOL bCaseSensitive, BOOL bSkipWhiteSpace);
 	void 		SkipWhiteSpace(void);
-	void 		NextToken(void);
+	BOOL 		NextToken(void);
 	void		NextToken(int iNumToSkip);
 	BOOL 		GetQuotedCharacterSequence(char cOpen, char cClosed, CExternalString* pcSequence);
 	BOOL 		GetStringDoubleQuoted(CExternalString* pcString);
