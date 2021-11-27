@@ -117,7 +117,8 @@ public:
 
 	TRISTATE			EvaluateEquation(char* szText, CChars* szCalculatorError);
 
-	BOOL				ProcessIdentifier(CPPTokenHolder* pcDest, CPPText* pcText, CPreprocessorTokenParser* pcParser, BOOL bAllowConditional, BOOL bEmptyToZero, int iDepth);
+	BOOL				ProcessIdentifier(CPPTokenHolder* pcDest, CPPText* pcText, CPreprocessorTokenParser* pcParser, BOOL bDirectiveLine, BOOL bEmptyToZero, int iDepth);
+	BOOL				ProcessIdentifierNormalLine(CPPTokenHolder* pcDest, CPPText* pcText, CPreprocessorTokenParser* pcParser, int iDepth);
 	BOOL				ProcessDefinedIdentifier(CPPTokenHolder* pcDest, CPPText* pcText, CPreprocessorTokenParser* pcParser);
 	BOOL				ProcessHasIncludeIdentifier(CPPTokenHolder* pcDest, CPPText* pcText, CPreprocessorTokenParser* pcParser);
 	BOOL				ProcessHasAttributeIdentifier(CPPTokenHolder* pcDest, CPPText* pcText, CPreprocessorTokenParser* pcParser);
@@ -125,7 +126,8 @@ public:
 	BOOL				ProcessHasBuiltInIdentifier(CPPTokenHolder* pcDest, CPPText* pcText, CPreprocessorTokenParser* pcParser);
 	BOOL				ProcessHashDefineBracketted(CPreprocessorTokenParser* pcParser, CDefine* pcDefine);
 	BOOL				ProcessIncludeFile(CPreprocessorTokenParser* pcParser, CHeaderFile** ppcCFile, CHeaderNameMap** ppcHeaderNameMap);
-	BOOL				ProcessLine(CPPTokenHolder* pcTokenHolder, CPreprocessorTokenParser* pcParser, BOOL bAllowDefined, BOOL bEmptyToZero, int iDepth);
+	BOOL				ProcessDirectiveLine(CPPTokenHolder* pcTokenHolder, CPreprocessorTokenParser* pcParser, BOOL bDirectiveLine, BOOL bEmptyToZero, int iDepth);
+	BOOL				ProcessNormalLine(CPPTokenHolder* pcTokenHolder, CPreprocessorTokenParser* pcParser, int iDepth);
 	BOOL				ProcessSingleHash(CPPTokenHolder* pcDest, CPPHashes* pcHash, CPreprocessorTokenParser* pcParser);
 	BOOL				ProcessDoubleHash(CPPTokenHolder* pcDest, CPPHashes* pcHash, CPreprocessorTokenParser* pcParser);
 	void				FindBestInclude(CExternalString* pcInclude, BOOL bSystemFile, CHeaderFile** ppcCFile, CHeaderNameMap** ppcHeaderNameMap);
@@ -133,9 +135,12 @@ public:
 	SCTokenBlock		Condition(CPPConditional* pcCond, SCTokenBlock iLine);
 	void				AddTokenToArgument(CPPTokenHolder* pcArgument, CPPToken* pcToken);
 	CPPToken*			AddToken(CPPToken* pcToken, CArrayPPTokens* pcTokens);
-	void				ExpandDefined(CPPAbstractHolder* pcHolder, CDefine* pcDefine, BOOL bAllowDefined, BOOL bEmptyToZero, int iDepth);
-	BOOL				ExpandTokenIfNecessary(CPPToken* pcToken, CPPTokenHolder* pcDest, CPreprocessorTokenParser* pcParser, BOOL bAllowDefined, BOOL bEmptyToZero, int iDepth);
-	void				ExpandReplacement(CPPReplacement* pcReplacement, CPPTokenHolder* pcDest, BOOL bAllowDefined, BOOL bEmptyToZero, int iDepth);
+	void				ExpandDefined(CPPAbstractHolder* pcHolder, CDefine* pcDefine, BOOL bDirectiveLine, BOOL bEmptyToZero, int iDepth);
+	void				ExpandDefinedNormalLine(CPPAbstractHolder* pcHolder, CDefine* pcDefine, int iDepth);
+	BOOL				ExpandTokenIfNecessary(CPPToken* pcToken, CPPTokenHolder* pcDest, CPreprocessorTokenParser* pcParser, BOOL bDirectiveLine, BOOL bEmptyToZero, int iDepth);
+	BOOL				ExpandTokenIfNecessaryNormalLine(CPPToken* pcToken, CPPTokenHolder* pcDest, CPreprocessorTokenParser* pcParser, int iDepth);
+	void				ExpandReplacement(CPPReplacement* pcReplacement, CPPTokenHolder* pcDest, BOOL bDirectiveLine, BOOL bEmptyToZero, int iDepth);
+	void				ExpandReplacementNormalLine(CPPReplacement* pcReplacement, CPPTokenHolder* pcDest, int iDepth);
 	CPPToken*			QuoteTokens(CPPTokenHolder* pcDest, CPPAbstractHolder* pcHolder);
 	CPPToken*			ConcaternateTokens(CPPTokenHolder* pcDest, CPPToken* pcLeft, CPPToken* pcRight);
 	BOOL				TokeniseFile(CCFile* pcFile);
