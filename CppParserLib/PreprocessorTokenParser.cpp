@@ -946,7 +946,7 @@ BOOL CPreprocessorTokenParser::GetOctal(uint64* pulli, int* piNumDigits)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessorTokenParser::NextToken(void)
+BOOL CPreprocessorTokenParser::NextToken(void)
 {
 	CPPAbstractHolder*	pcHolder;
 	int					iIndex;
@@ -965,7 +965,9 @@ void CPreprocessorTokenParser::NextToken(void)
 			AssignCurrent(NULL, -1);
 			MarkUp();
 		}
+		return TRUE;
 	}
+	return FALSE;
 }
 
 
