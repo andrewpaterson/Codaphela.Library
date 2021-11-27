@@ -29,13 +29,13 @@ class CPPTokenHolder
 public:
 	CArrayPPTokens	mcArray;
 
-	void Init(void);
-	void Kill(void);
-	void Append(CChars* psz);
-	void Add(CPPToken** ppcToken);
-	BOOL Equals(CPPTokenHolder* pcOther);
-	void SavageAppend(CChars* psz, int iDepth);
-	void Dump(void);
+	void	Init(void);
+	void	Kill(void);
+	char*	Append(CChars* psz);
+	void	Add(CPPToken** ppcToken);
+	BOOL	Equals(CPPTokenHolder* pcOther);
+	void	SavageAppend(CChars* psz, int iDepth);
+	void	Dump(void);
 };
 
 

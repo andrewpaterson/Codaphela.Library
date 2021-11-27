@@ -27,13 +27,13 @@ class CPPWhiteSpace : public CPPToken
 {
 public:
 	TOKEN_CONSTRUCT(CPPWhiteSpace);
-	void Init(int iLine, int iColumn);
-	void Kill(void);
-	BOOL IsWhiteSpace(void);
-	void Append(CChars* psz);
-	void Copy(CPPToken* pcSource, CMemoryStackExtended* pcStack);
-	BOOL Equals(CPPToken* pcOther);
-	BOOL IsEmpty(void);
+	void	Init(int iLine, int iColumn);
+	void	Kill(void);
+	BOOL	IsWhiteSpace(void);
+	char*	Append(CChars* psz);
+	void	Copy(CPPToken* pcSource, CMemoryStackExtended* pcStack);
+	BOOL	Equals(CPPToken* pcOther);
+	BOOL	IsEmpty(void);
 };
 
 

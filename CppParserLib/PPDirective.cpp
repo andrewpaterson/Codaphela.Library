@@ -67,7 +67,7 @@ void CPPDirective::Set(EPreprocessorDirective eType)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPPDirective::Append(CChars* psz)
+char* CPPDirective::Append(CChars* psz)
 {
 	psz->Append('#');
 
@@ -116,6 +116,8 @@ void CPPDirective::Append(CChars* psz)
 	{
 		psz->AppendNewLine();
 	}
+
+	return psz->Text();
 }
 
 

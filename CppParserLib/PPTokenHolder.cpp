@@ -55,7 +55,7 @@ void CPPTokenHolder::Kill(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CPPTokenHolder::Append(CChars* psz)
+char* CPPTokenHolder::Append(CChars* psz)
 {
 	CPPToken*	pcToken;
 	int			i;
@@ -65,6 +65,7 @@ void CPPTokenHolder::Append(CChars* psz)
 		pcToken = *mcArray.Get(i);
 		pcToken->Append(psz);
 	}
+	return psz->Text();
 }
 
 

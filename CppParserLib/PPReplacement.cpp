@@ -57,7 +57,7 @@ void CPPReplacement::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPPReplacement::Append(CChars* psz)
+char* CPPReplacement::Append(CChars* psz)
 {
 	psz->Append("/* Replacement: ");
 	psz->Append(miArgIndex);
@@ -66,6 +66,7 @@ void CPPReplacement::Append(CChars* psz)
 		psz->Append(" ... ");
 	}
 	psz->Append("*/");
+	return psz->Text();
 }
 
 

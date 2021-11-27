@@ -73,9 +73,6 @@ protected:
 	int								miDefineReuse;
 	CChars							mszVaArgs;
 
-	CPPTextWithSource				mcPPComma;
-	CPPToken*						mpcPPComma;
-
 public:
 	static void			Preprocess(char* szSource, CChars* szDest);
 
@@ -120,7 +117,7 @@ public:
 
 	TRISTATE			EvaluateEquation(char* szText, CChars* szCalculatorError);
 
-	BOOL				ProcessIdentifier(CPPTokenHolder* pcDest, CPPText* pcText, CPreprocessorTokenParser* pcParser, BOOL bAllowConditional, int iDepth);
+	BOOL				ProcessIdentifier(CPPTokenHolder* pcDest, CPPText* pcText, CPreprocessorTokenParser* pcParser, BOOL bAllowConditional, BOOL bEmptyToZero, int iDepth);
 	BOOL				ProcessDefinedIdentifier(CPPTokenHolder* pcDest, CPPText* pcText, CPreprocessorTokenParser* pcParser);
 	BOOL				ProcessHasIncludeIdentifier(CPPTokenHolder* pcDest, CPPText* pcText, CPreprocessorTokenParser* pcParser);
 	BOOL				ProcessHasAttributeIdentifier(CPPTokenHolder* pcDest, CPPText* pcText, CPreprocessorTokenParser* pcParser);
@@ -128,7 +125,7 @@ public:
 	BOOL				ProcessHasBuiltInIdentifier(CPPTokenHolder* pcDest, CPPText* pcText, CPreprocessorTokenParser* pcParser);
 	BOOL				ProcessHashDefineBracketted(CPreprocessorTokenParser* pcParser, CDefine* pcDefine);
 	BOOL				ProcessIncludeFile(CPreprocessorTokenParser* pcParser, CHeaderFile** ppcCFile, CHeaderNameMap** ppcHeaderNameMap);
-	BOOL				ProcessLine(CPPTokenHolder* pcTokenHolder, CPreprocessorTokenParser* pcParser, BOOL bAllowDefined, int iDepth);
+	BOOL				ProcessLine(CPPTokenHolder* pcTokenHolder, CPreprocessorTokenParser* pcParser, BOOL bAllowDefined, BOOL bEmptyToZero, int iDepth);
 	BOOL				ProcessSingleHash(CPPTokenHolder* pcDest, CPPHashes* pcHash, CPreprocessorTokenParser* pcParser);
 	BOOL				ProcessDoubleHash(CPPTokenHolder* pcDest, CPPHashes* pcHash, CPreprocessorTokenParser* pcParser);
 	void				FindBestInclude(CExternalString* pcInclude, BOOL bSystemFile, CHeaderFile** ppcCFile, CHeaderNameMap** ppcHeaderNameMap);
@@ -136,9 +133,9 @@ public:
 	SCTokenBlock		Condition(CPPConditional* pcCond, SCTokenBlock iLine);
 	void				AddTokenToArgument(CPPTokenHolder* pcArgument, CPPToken* pcToken);
 	CPPToken*			AddToken(CPPToken* pcToken, CArrayPPTokens* pcTokens);
-	void				ExpandDefined(CPPAbstractHolder* pcHolder, CDefine* pcDefine, BOOL bAllowDefined, int iDepth);
-	BOOL				ExpandTokenIfNecessary(CPPToken* pcToken, CPPTokenHolder* pcDest, CPreprocessorTokenParser* pcParser, BOOL bAllowDefined, int iDepth);
-	void				ExpandReplacement(CPPReplacement* pcReplacement, CPPTokenHolder* pcDest, BOOL bAllowDefined, int iDepth);
+	void				ExpandDefined(CPPAbstractHolder* pcHolder, CDefine* pcDefine, BOOL bAllowDefined, BOOL bEmptyToZero, int iDepth);
+	BOOL				ExpandTokenIfNecessary(CPPToken* pcToken, CPPTokenHolder* pcDest, CPreprocessorTokenParser* pcParser, BOOL bAllowDefined, BOOL bEmptyToZero, int iDepth);
+	void				ExpandReplacement(CPPReplacement* pcReplacement, CPPTokenHolder* pcDest, BOOL bAllowDefined, BOOL bEmptyToZero, int iDepth);
 	CPPToken*			QuoteTokens(CPPTokenHolder* pcDest, CPPAbstractHolder* pcHolder);
 	CPPToken*			ConcaternateTokens(CPPTokenHolder* pcDest, CPPToken* pcLeft, CPPToken* pcRight);
 	BOOL				TokeniseFile(CCFile* pcFile);
@@ -149,6 +146,9 @@ public:
 	CSpecialOperator*	ProcessSpecialOperator(CPreprocessorTokenParser* pcParser);
 	void				MarkPositionForError(SPreprocessorPosition* psPos);
 	void				KillArguments(SDefineArgument* psArguments);
+
+	void				AddComma(CPPTokenHolder* pcDest);
+	void				AddZero(CPPTokenHolder* pcDest);
 };
 
 

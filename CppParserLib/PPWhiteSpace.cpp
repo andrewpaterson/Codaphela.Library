@@ -43,9 +43,10 @@ void CPPWhiteSpace::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPPWhiteSpace::Append(CChars* psz)
+char* CPPWhiteSpace::Append(CChars* psz)
 {
 	psz->Append(' ');
+	return psz->Text();
 }
 
 

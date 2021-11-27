@@ -45,10 +45,11 @@ void CPPUnknown::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPPUnknown::Append(CChars* psz)
+char* CPPUnknown::Append(CChars* psz)
 {
 	psz->Append("#!UNKNOWN!");
 	psz->Append(' ');
 	CPPLine::Append(psz);
+	return psz->Text();
 }
 
