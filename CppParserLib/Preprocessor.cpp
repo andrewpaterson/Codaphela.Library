@@ -83,8 +83,7 @@ void CPreprocessor::Init(CConfig* pcConfig, CMemoryStackExtended* pcStack)
 	InitPlatformSpecific();
 	AddConfigDefines(pcConfig);
 	mszVaArgs.Init("__VA_ARGS__");
-	mcPPComma.Init(PPT_Decorator, -1, -1, ", ", 2);
-	mpcPPComma = &mcPPComma;
+
 	mpcStack = NULL;
 }
 
@@ -95,7 +94,6 @@ void CPreprocessor::Init(CConfig* pcConfig, CMemoryStackExtended* pcStack)
 //////////////////////////////////////////////////////////////////////////
 void CPreprocessor::Kill(void)
 {
-	mcPPComma.Kill();
 	mszVaArgs.Kill();
 	mpcPost = NULL;
 	mpcCurrentFile = NULL;
@@ -1010,7 +1008,7 @@ SCTokenBlock CPreprocessor::ProcessHashIf(CPreprocessorTokenParser* pcParser, CP
 	MarkPositionForError(&sPos);
 
 	cTokenHolder.Init();
-	ProcessLine(&cTokenHolder, pcParser, TRUE, 0);
+	ProcessLine(&cTokenHolder, pcParser, TRUE, TRUE, 0);
 	sz.Init();
 	cTokenHolder.Append(&sz);
 	szCaclulatorError.Init();
@@ -1062,7 +1060,7 @@ SCTokenBlock CPreprocessor::ProcessHashElif(CPreprocessorTokenParser* pcParser, 
 
 	cTokenHolder.Init();
 	szCaclulatorError.Init();
-	ProcessLine(&cTokenHolder, pcParser, TRUE, 0);
+	ProcessLine(&cTokenHolder, pcParser, TRUE, TRUE, 0);
 	sz.Init();
 	cTokenHolder.Append(&sz);
 	sEvaluated = EvaluateEquation(sz.Text(), &szCaclulatorError);;
@@ -1155,7 +1153,7 @@ BOOL CPreprocessor::ProcessNormalLine(CPreprocessorTokenParser* pcParser)
 	{
 		pcLine = CPPLine::Construct(mpcStack->Add(sizeof(CPPLine)));
 		pcLine->Init(pcParser->Line(), pcParser->Column());
-		bResult = ProcessLine(&pcLine->mcTokens, pcParser, FALSE, 0);
+		bResult = ProcessLine(&pcLine->mcTokens, pcParser, FALSE, FALSE, 0);
 		if (bResult)
 		{
 			if (pcLine->TokenLength() > 0)
@@ -1197,7 +1195,7 @@ BOOL CPreprocessor::ProcessDoubleHash(CPPTokenHolder* pcDest, CPPHashes* pcHash,
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CPreprocessor::ProcessIdentifier(CPPTokenHolder* pcDest, CPPText* pcText, CPreprocessorTokenParser* pcParser, BOOL bAllowConditional, int iDepth)
+BOOL CPreprocessor::ProcessIdentifier(CPPTokenHolder* pcDest, CPPText* pcText, CPreprocessorTokenParser* pcParser, BOOL bAllowConditional, BOOL bEmptyToZero, int iDepth)
 {
 	CPPToken*				pcToken;
 	CDefine*				pcDefine;
@@ -1206,6 +1204,7 @@ BOOL CPreprocessor::ProcessIdentifier(CPPTokenHolder* pcDest, CPPText* pcText, C
 	CPPAbstractHolder*		pcHolder;
 	SDefineArgument*		psArguments;
 	int						iArgIndex;
+	int						iReplacementTokens;
 
 	pcDefine = mcDefines.GetDefine(&pcText->mcText, TRUE);
 	if (pcDefine)
@@ -1236,12 +1235,18 @@ BOOL CPreprocessor::ProcessIdentifier(CPPTokenHolder* pcDest, CPPText* pcText, C
 			pcParser->NextToken();
 		}
 
-		if (pcDefine->mcReplacement.mcTokens.mcArray.NumElements() > 0)
+		iReplacementTokens = pcDefine->mcReplacement.mcTokens.mcArray.NumElements();
+		if (iReplacementTokens > 0)
 		{
 			pcHolder = ADD_TOKEN(CPPHolder, &pcDest->mcArray, mpcStack->Add(sizeof(CPPHolder)));
 			pcHolder->Init(-1, -1);
-			ExpandDefined(pcHolder, pcDefine, bAllowConditional, iDepth + 1);
+			ExpandDefined(pcHolder, pcDefine, bAllowConditional, bEmptyToZero, iDepth + 1);
 		}
+		else if (bEmptyToZero && iReplacementTokens == 0)
+		{
+			AddZero(pcDest);
+		}
+
 
 		//I'm not sure if it's safe to do this anymore... another define might refer to it.
 		if (iArgIndex != -1)
@@ -1478,7 +1483,7 @@ BOOL CPreprocessor::ProcessHasBuiltInIdentifier(CPPTokenHolder* pcDest, CPPText*
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CPreprocessor::ExpandTokenIfNecessary(CPPToken* pcToken, CPPTokenHolder* pcDest, CPreprocessorTokenParser* pcParser, BOOL bAllowDefined, int iDepth)
+BOOL CPreprocessor::ExpandTokenIfNecessary(CPPToken* pcToken, CPPTokenHolder* pcDest, CPreprocessorTokenParser* pcParser, BOOL bAllowConditional, BOOL bEmptyToZero, int iDepth)
 {		
 	CPPToken*				pcNewToken;
 	CPPText*				pcText;
@@ -1490,7 +1495,7 @@ BOOL CPreprocessor::ExpandTokenIfNecessary(CPPToken* pcToken, CPPTokenHolder* pc
 		pcText = (CPPText*)pcToken;
 		if (pcText->meType == PPT_Identifier)
 		{
-			bResult = ProcessIdentifier(pcDest, pcText, pcParser, bAllowDefined, iDepth);
+			bResult = ProcessIdentifier(pcDest, pcText, pcParser, bAllowConditional, bEmptyToZero, iDepth);
 			return bResult;
 		}
 		else
@@ -1504,7 +1509,7 @@ BOOL CPreprocessor::ExpandTokenIfNecessary(CPPToken* pcToken, CPPTokenHolder* pc
 	else if (pcToken->IsReplacement())
 	{
 		pcReplacement = (CPPReplacement*)pcToken;
-		ExpandReplacement(pcReplacement, pcDest, bAllowDefined, iDepth);
+		ExpandReplacement(pcReplacement, pcDest, bAllowConditional, bEmptyToZero, iDepth);
 		pcParser->NextToken();
 		return TRUE;
 	}
@@ -1522,7 +1527,7 @@ BOOL CPreprocessor::ExpandTokenIfNecessary(CPPToken* pcToken, CPPTokenHolder* pc
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessor::ExpandReplacement(CPPReplacement* pcReplacement, CPPTokenHolder* pcDest, BOOL bAllowDefined, int iDepth)
+void CPreprocessor::ExpandReplacement(CPPReplacement* pcReplacement, CPPTokenHolder* pcDest, BOOL bAllowDefined, BOOL bEmptyToZero, int iDepth)
 {
 	CArrayPPTokenHolders*		pcArguments;
 	CPPTokenHolder*				pcArgument;
@@ -1543,7 +1548,7 @@ void CPreprocessor::ExpandReplacement(CPPReplacement* pcReplacement, CPPTokenHol
 			{
 				cLine.Fake(pcArgument);
 				cParser.Init(&cLine);
-				ProcessLine(pcDest, &cParser, bAllowDefined, iDepth);
+				ProcessLine(pcDest, &cParser, bAllowDefined, bEmptyToZero, iDepth);
 				cParser.Kill();
 			}
 		}
@@ -1561,11 +1566,11 @@ void CPreprocessor::ExpandReplacement(CPPReplacement* pcReplacement, CPPTokenHol
 					}
 					else
 					{
-						pcDest->Add(&mpcPPComma);
+						AddComma(pcDest);
 					}
 					cLine.Fake(pcArgument);
 					cParser.Init(&cLine);
-					ProcessLine(pcDest, &cParser, bAllowDefined, iDepth);
+					ProcessLine(pcDest, &cParser, bAllowDefined, bEmptyToZero, iDepth);
 					cParser.Kill();
 				}
 			}
@@ -1578,7 +1583,7 @@ void CPreprocessor::ExpandReplacement(CPPReplacement* pcReplacement, CPPTokenHol
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CPreprocessor::ProcessLine(CPPTokenHolder* pcDest, CPreprocessorTokenParser* pcParser, BOOL bAllowDefined, int iDepth)
+BOOL CPreprocessor::ProcessLine(CPPTokenHolder* pcDest, CPreprocessorTokenParser* pcParser, BOOL bAllowConditional, BOOL bEmptyToZero, int iDepth)
 {
 	CPPHashes*				pcHash;
 	CPPHolder				cHolder;
@@ -1604,12 +1609,12 @@ BOOL CPreprocessor::ProcessLine(CPPTokenHolder* pcDest, CPreprocessorTokenParser
 		if (iHashCount == 0)
 		{
 			pcTemp = pcToken;
-			ExpandTokenIfNecessary(pcToken, pcDest, pcParser, bAllowDefined, iDepth);
+			ExpandTokenIfNecessary(pcToken, pcDest, pcParser, bAllowConditional, bEmptyToZero, iDepth);
 		}
 		else if (iHashCount == 1)  //# Quote following.
 		{
 			cHolder.Init(-1, -1);
-			ExpandTokenIfNecessary(pcToken, &cHolder.mcTokens, pcParser, bAllowDefined, iDepth);
+			ExpandTokenIfNecessary(pcToken, &cHolder.mcTokens, pcParser, bAllowConditional, bEmptyToZero, iDepth);
 			pcTemp = QuoteTokens(pcDest, &cHolder);
 			cHolder.Kill();
 		}
@@ -1706,12 +1711,12 @@ CPPToken* CPreprocessor::QuoteTokens(CPPTokenHolder* pcDest, CPPAbstractHolder* 
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessor::ExpandDefined(CPPAbstractHolder* pcHolder, CDefine* pcDefine, BOOL bAllowDefined, int iDepth)
+void CPreprocessor::ExpandDefined(CPPAbstractHolder* pcHolder, CDefine* pcDefine, BOOL bAllowDefined, BOOL bEmptyToZero, int iDepth)
 {
 	CPreprocessorTokenParser	cParser;
 
 	cParser.Init(&pcDefine->mcReplacement);
-	ProcessLine(&pcHolder->mcTokens, &cParser, bAllowDefined, iDepth);
+	ProcessLine(&pcHolder->mcTokens, &cParser, bAllowDefined, bEmptyToZero, iDepth);
 	cParser.Kill();
 }
 
@@ -2173,5 +2178,31 @@ void CPreprocessor::MarkPositionForError(SPreprocessorPosition* psPos)
 int CPreprocessor::GetBlockReuse(void)
 {
 	return miBlockReuse;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CPreprocessor::AddComma(CPPTokenHolder* pcDest)
+{
+	CPPTextWithSource*	pcPPComma;
+
+	pcPPComma = ADD_TOKEN(CPPTextWithSource, &pcDest->mcArray, mpcStack->Add(sizeof(CPPTextWithSource)));
+	pcPPComma->Init(PPT_Decorator, -1, -1, ", ", 2);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CPreprocessor::AddZero(CPPTokenHolder* pcDest)
+{
+	CPPTextWithSource* pcPPZero;
+
+	pcPPZero = ADD_TOKEN(CPPTextWithSource, &pcDest->mcArray, mpcStack->Add(sizeof(CPPTextWithSource)));
+	pcPPZero->Init(PPT_Decorator, -1, -1, "0", 1);
 }
 

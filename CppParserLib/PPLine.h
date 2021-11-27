@@ -29,15 +29,15 @@ class CPPLine : public CPPAbstractHolder
 {
 public:
 	TOKEN_CONSTRUCT(CPPLine);
-	void Init(int iLine, int miColumn);
-	void Kill(void);
-	void Fake(CPPTokenHolder* pcTokens);
-	BOOL IsLine(void);
-	void Append(CChars* psz);
-	void AppendNoNewline(CChars* psz);
-	void Copy(CPPToken* pcSource, CMemoryStackExtended* pcStack);
-	void Dump(void);
-	BOOL Equals(CPPToken* pcOther);
+	void	Init(int iLine, int miColumn);
+	void	Kill(void);
+	void	Fake(CPPTokenHolder* pcTokens);
+	BOOL	IsLine(void);
+	char*	Append(CChars* psz);
+	void	AppendNoNewline(CChars* psz);
+	void	Copy(CPPToken* pcSource, CMemoryStackExtended* pcStack);
+	void	Dump(void);
+	BOOL	Equals(CPPToken* pcOther);
 };
 
 

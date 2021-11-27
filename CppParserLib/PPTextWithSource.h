@@ -23,7 +23,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "PPText.h"
 
 
-class CPPTextWithSource : public CPPText 
+class CPPTextWithSource : public CPPText
 {
 public:
 	char*	mszText;

@@ -68,13 +68,14 @@ BOOL CPPLine::IsLine(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPPLine::Append(CChars* psz)
+char* CPPLine::Append(CChars* psz)
 {
 	if (mcTokens.mcArray.NumElements() > 0)
 	{
 		CPPAbstractHolder::Append(psz);
 		psz->AppendNewLine();
 	}
+	return psz->Text();
 }
 
 

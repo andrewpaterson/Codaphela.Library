@@ -29,14 +29,14 @@ public:
 	int		miCount;
 
 	TOKEN_CONSTRUCT(CPPHashes);
-	void Init(int iLine, int iColumn);
-	void Init(int iCount, int iLine, int iColumn);
-	void Kill(void);
-	BOOL IsHash(void);
-	void Append(CChars* psz);
-	void Copy(CPPToken* pcSource, CMemoryStackExtended* pcStack);
-	BOOL Equals(CPPToken* pcOther);
-	BOOL IsEmpty(void);
+	void	Init(int iLine, int iColumn);
+	void	Init(int iCount, int iLine, int iColumn);
+	void	Kill(void);
+	BOOL	IsHash(void);
+	char*	Append(CChars* psz);
+	void	Copy(CPPToken* pcSource, CMemoryStackExtended* pcStack);
+	BOOL	Equals(CPPToken* pcOther);
+	BOOL	IsEmpty(void);
 };
 
 

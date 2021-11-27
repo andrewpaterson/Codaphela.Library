@@ -29,9 +29,9 @@ class CPPUnknown : public CPPDirective
 {
 public:
 	TOKEN_CONSTRUCT(CPPUnknown);
-	void Init(int iLine, int iColumn);
-	void Kill(void);
-	void Append(CChars* psz);
+	void	Init(int iLine, int iColumn);
+	void	Kill(void);
+	char*	Append(CChars* psz);
 };
 
 

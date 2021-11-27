@@ -57,12 +57,13 @@ BOOL CPPAbstractHolder::IsAbstractHolder(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPPAbstractHolder::Append(CChars* psz)
+char* CPPAbstractHolder::Append(CChars* psz)
 {
 	if (mcTokens.mcArray.IsNotEmpty())
 	{
 		mcTokens.Append(psz);
 	}
+	return psz->Text();
 }
 
 

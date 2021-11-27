@@ -32,7 +32,7 @@ public:
 	void 		Init(int iLine, int iColumn);
 	void 		Kill(void);
 	BOOL 		IsAbstractHolder(void);
-	void 		Append(CChars* psz);
+	char* 		Append(CChars* psz);
 	void 		Copy(CPPAbstractHolder* pcCast, CMemoryStackExtended* pcStack);
 	int	 		TokenLength(void);
 	CPPToken*	Get(int iIndex);

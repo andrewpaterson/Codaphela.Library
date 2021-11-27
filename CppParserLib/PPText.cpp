@@ -77,7 +77,7 @@ BOOL CPPText::IsText(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPPText::Append(CChars* psz)
+char* CPPText::Append(CChars* psz)
 {
 	char	szDest[4];
 	BOOL	bResult;
@@ -104,6 +104,7 @@ void CPPText::Append(CChars* psz)
 			}
 		}
 	}
+	return psz->Text();
 }
 
 
