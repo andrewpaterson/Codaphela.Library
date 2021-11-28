@@ -35,9 +35,9 @@ void CNamedDefine::Define(CExternalString* pcName, CDefine* pcSource, CMemorySta
 	mszName.AppendSubString(pcName->msz, pcName->miLen);
 	miFlags = pcSource->IsBacketed() ? NAMED_DEFINE_FLAGS_BRACKETED : 0;
 	mcArguments.Init();
-	mcArguments.Copy(&pcSource->mcArguments);
-	mcReplacement.Init(pcSource->mcReplacement.Line(), pcSource->mcReplacement.Column());
-	mcReplacement.Copy(&pcSource->mcReplacement, mpcStack);
+	mcArguments.Copy(pcSource->GetArguments());
+	mcReplacement.Init(pcSource->GetReplacement()->Line(), pcSource->GetReplacement()->Column());
+	mcReplacement.Copy(pcSource->GetReplacement(), mpcStack);
 }
 
 
@@ -89,11 +89,11 @@ BOOL CNamedDefine::Equals(CNamedDefine* pcOther)
 {
 	if (mszName.Equals(pcOther->mszName))
 	{
-		if (mcReplacement.Equals(&pcOther->mcReplacement))
+		if (mcReplacement.Equals(pcOther->GetReplacement()))
 		{
 			if (miFlags == pcOther->miFlags)
 			{
-				if (mcArguments.Equals(&pcOther->mcArguments))
+				if (mcArguments.Equals(pcOther->GetArguments()))
 				{
 					return TRUE;
 				}
@@ -192,5 +192,58 @@ void CArrayNamedDefines::Dump(void)
 		pcDefine = Get(i);
 		pcDefine->Dump();
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CNamedDefine::IsUndeffed(void)
+{
+	return FixBool(miFlags & NAMED_DEFINE_FLAGS_UNDEFFED);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CNamedDefine::GetName(void)
+{
+	return mszName.Text();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CNamedDefine::GetNameLength(void)
+{
+	return mszName.Length();
+}
+
+
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CArrayChars* CNamedDefine::GetArguments(void)
+{
+	return &mcArguments;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CPPLine* CNamedDefine::GetReplacement(void)
+{
+	return &mcReplacement;
 }
 

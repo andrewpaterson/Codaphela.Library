@@ -54,6 +54,7 @@ void CPreprocessor::Init(CConfig* pcConfig, CMemoryStackExtended* pcStack)
 	mpcCurrentFile = NULL;
 	mpcCurrentLine = NULL;
 	mpcCurrentLineParser = NULL;
+	miProcessTokensCalledCount = 0;
 	mcHeadersStack.Init();
 
 	mpcStack = pcStack;
@@ -233,7 +234,7 @@ CDefine* CPreprocessor::AddDefine(char* szDefine, char* szReplacement)
 	memcpy(sz, szReplacement, iLen+1);
 
 	cTokeniser.Init();
-	cTokeniser.TokeniseDefine(&pcDefine->mcReplacement.mcTokens, sz, mpcStack);
+	cTokeniser.TokeniseDefine(&pcDefine->GetReplacement()->mcTokens, sz, mpcStack);
 	cTokeniser.Kill();
 
 	return pcDefine;
@@ -259,7 +260,6 @@ BOOL CPreprocessor::ProcessHashDefine(CPreprocessorTokenParser* pcParser)
 	int						iNumArguments;
 	int						iReplacementNum;
 	BOOL					bVariadic;
-
 	SPreprocessorPosition	sPos;
 	CChars					szError;
 
@@ -285,7 +285,7 @@ BOOL CPreprocessor::ProcessHashDefine(CPreprocessorTokenParser* pcParser)
 			}
 		}
 
-		iNumArguments = pcDefine->mcArguments.NumElements();
+		iNumArguments = pcDefine->GetArguments()->NumElements();
 		iReplacementNum = 0;
 		bVariadic = pcDefine->IsVariadic();
 		bAllowWhiteSpace = FALSE;
@@ -298,7 +298,7 @@ BOOL CPreprocessor::ProcessHashDefine(CPreprocessorTokenParser* pcParser)
 				pcText = (CPPText*)pcToken;
 				if (pcText->meType == PPT_Identifier)
 				{
-					iReplaceArg = pcDefine->mcArguments.GetIndex(pcText->mcText.msz, pcText->mcText.miLen);
+					iReplaceArg = pcDefine->GetArguments()->GetIndex(pcText->mcText.msz, pcText->mcText.miLen);
 					if (iReplaceArg != -1)
 					{
 						pcReplacement = CPPReplacement::Construct(mpcStack->Add(sizeof(CPPReplacement)));
@@ -1366,13 +1366,13 @@ BOOL CPreprocessor::ProcessIdentifierDirective(CPPTokenHolder* pcDest, CPPText* 
 			pcParser->NextToken();
 		}
 
-		iReplacementTokens = pcDefine->mcReplacement.mcTokens.mcArray.NumElements();
+		iReplacementTokens = pcDefine->GetReplacement()->mcTokens.mcArray.NumElements();
 		if (iReplacementTokens > 0)
 		{
 			pcHolder = ADD_TOKEN(CPPHolder, &pcDest->mcArray, mpcStack->Add(sizeof(CPPHolder)));
 			pcHolder->Init(-1, -1);
 
-			cParser.Init(&pcDefine->mcReplacement);
+			cParser.Init(pcDefine->GetReplacement());
 			ProcessDirectiveLine(&pcHolder->mcTokens, &cParser, iDepth);
 			cParser.Kill();
 		}
@@ -1440,13 +1440,13 @@ BOOL CPreprocessor::ProcessIdentifierNormalLine(CPPTokenHolder* pcDest, CPPText*
 			pcParser->NextToken();
 		}
 
-		iReplacementTokens = pcDefine->mcReplacement.mcTokens.mcArray.NumElements();
+		iReplacementTokens = pcDefine->GetReplacement()->mcTokens.mcArray.NumElements();
 		if (iReplacementTokens > 0)
 		{
 			pcHolder = ADD_TOKEN(CPPHolder, &pcDest->mcArray, mpcStack->Add(sizeof(CPPHolder)));
 			pcHolder->Init(-1, -1);
 			
-			cParser.Init(&pcDefine->mcReplacement);
+			cParser.Init(pcDefine->GetReplacement());
 			ProcessNormalLine(&pcHolder->mcTokens, &cParser, iDepth);
 			cParser.Kill();
 		}
@@ -2188,9 +2188,22 @@ SCTokenBlock CPreprocessor::PreprocessTokens(CPPTokenHolder* pcDestTokens, CMemo
 	CPreprocessorTokenParser	cParser;
 	BOOL						bResult;
 	int							iOldLine;
+	CChars						szError;
+	SPreprocessorPosition		sPos;
 
 	mpcPost = pcDestTokens;
 	mpcStack = pcStack;
+
+	if (miProcessTokensCalledCount > 0)
+	{
+		MarkPositionForError(&sPos);
+		sPos.Message(&szError);
+		gcUserError.Set("PreprocessTokens has already been called.");
+		sLine.Init(-1, -1);
+		return sLine;
+	}
+
+	miProcessTokensCalledCount++;
 
 	mcArguments.Init();
 
@@ -2312,6 +2325,7 @@ SCTokenBlock CPreprocessor::PreprocessTokens(CPPTokenHolder* pcDestTokens, CMemo
 	//Seriously, do something about this.  They should be passed as parameters, not global variables.
 	//mpcPost = NULL;
 	//mpcStack = NULL;
+	miProcessTokensCalledCount--;
 	return sLine;
 }
 
@@ -2415,8 +2429,8 @@ void CPreprocessor::DeltaDefines(CArrayNamedDefines* pcDelta, CMemoryStackExtend
 	for (i = 0; i < pcDelta->NumElements(); i++)
 	{
 		pcNamedDefine = pcDelta->Get(i);
-		cIdentifier.Init(pcNamedDefine->mszName.Text(), pcNamedDefine->mszName.Length());
-		if (pcNamedDefine->miFlags & NAMED_DEFINE_FLAGS_UNDEFFED)
+		cIdentifier.Init(pcNamedDefine->GetName(), pcNamedDefine->GetNameLength());
+		if (pcNamedDefine->IsUndeffed())
 		{
 			mcDefines.RemoveDefine(&cIdentifier);
 		}
@@ -2429,8 +2443,8 @@ void CPreprocessor::DeltaDefines(CArrayNamedDefines* pcDelta, CMemoryStackExtend
 			}
 			pcDefine = mcDefines.AddDefine(&cIdentifier);
 
-			pcDefine->mcArguments.Copy(&pcNamedDefine->mcArguments);
-			pcDefine->mcReplacement.Copy(&pcNamedDefine->mcReplacement, pcStack);
+			pcDefine->GetArguments()->Copy(pcNamedDefine->GetArguments());
+			pcDefine->GetReplacement()->Copy(pcNamedDefine->GetReplacement(), pcStack);
 			pcDefine->SetBracketed(pcNamedDefine->IsBacketed());
 		}
 	}
