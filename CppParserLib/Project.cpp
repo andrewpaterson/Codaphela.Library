@@ -68,12 +68,12 @@ void CProject::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CLibrary* CProject::AddLibrary(char* szName, char* szBaseDir)
+CLibrary* CProject::AddLibrary(char* szName, char* szBaseDir, BOOL bIncludeSubDirectories)
 {
 	CLibrary*	pcLibrary;
 
 	pcLibrary = mcLibraries.InsertAfterTail();
-	pcLibrary->Init(szName, szBaseDir, &mcIncludeFiles);
+	pcLibrary->Init(szName, szBaseDir, bIncludeSubDirectories, &mcIncludeFiles);
 
 	return pcLibrary;
 }
@@ -83,9 +83,9 @@ CLibrary* CProject::AddLibrary(char* szName, char* szBaseDir)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CProject::AddIncludeDirectory(char* szBaseDir, BOOL bSystem)
+void CProject::AddIncludeDirectory(char* szBaseDir, BOOL bIncludeSubDirectories, BOOL bSystem)
 {
-	mcIncludeNames.Add(szBaseDir, bSystem);
+	mcIncludeNames.Add(szBaseDir, bIncludeSubDirectories, bSystem);
 }
 
 

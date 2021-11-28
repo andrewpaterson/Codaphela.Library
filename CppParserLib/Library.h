@@ -42,7 +42,7 @@ public:
 	CChars						mszBaseDir;
 	CListConfigs				mcConfigs;
 
-	void				Init(char* szName, char* szBaseDir, CHeaderFileMap* pcHeaderFileMap);
+	void				Init(char* szName, char* szBaseDir, BOOL bIncludeSubDirectories, CHeaderFileMap* pcHeaderFileMap);
 	void				Kill(void);
 	CTranslationUnit*  	AddFile(char* szRelativeNameFile, BOOL bLogIncludes = FALSE, BOOL bLogBlocks = FALSE);
 	void				AddAllFiles(BOOL bLogIncludes = FALSE, BOOL bLogBlocks = FALSE);

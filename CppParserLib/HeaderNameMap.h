@@ -37,10 +37,10 @@ public:
 	CChars						mszBaseDirectory;
 	BOOL						mbSystem;
 
-	BOOL Init(char* szBaseDirectory, CHeaderFileMap* pcFileMap, BOOL bSystem);
+	BOOL Init(char* szBaseDirectory, CHeaderFileMap* pcFileMap, BOOL bIncludeSubDirectories, BOOL bSystem);
 	void Kill(void);
 
-	void AddFiles(void);
+	void AddFiles(BOOL bIncludeSubDirectories);
 	void AddFile(char* szFile);
 
 	void Dump(void);
