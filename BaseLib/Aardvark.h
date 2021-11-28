@@ -53,8 +53,6 @@ void DoStuff();
 
 #define F1(X) X##__##X
 
-char	gszF1[] = D3(F1(H));
-
 
 #endif // !__AARDVARK_H__
 

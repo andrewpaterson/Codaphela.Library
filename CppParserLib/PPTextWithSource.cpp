@@ -41,6 +41,11 @@ void CPPTextWithSource::Init(EPreprocessorText eType, int iLine, int iColumn, ch
 	mszText = (char*)malloc(iLength+1);
 	memcpy(mszText, szStart, iLength+1);
 	CPPText::Init(eType, iLine, iColumn, mszText, iLength);
+
+	if ((eType == PPT_Decorator) && (iLength != 1))
+	{
+		int xxx = 0;
+	}
 }
 
 

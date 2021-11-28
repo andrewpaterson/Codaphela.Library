@@ -46,9 +46,9 @@ CChars* SPreprocessorPosition::Message(CChars* pszUninitialised)
 	pszUninitialised->Init();
 	pszUninitialised->Append(mszShortName);
 	pszUninitialised->Append(" (");
-	pszUninitialised->Append(miLine);
+	pszUninitialised->Append(miLine + 1);
 	pszUninitialised->Append(", ");
-	pszUninitialised->Append(miColumn);
+	pszUninitialised->Append(miColumn + 1);
 	pszUninitialised->Append("): ");
 	return pszUninitialised;
 }
