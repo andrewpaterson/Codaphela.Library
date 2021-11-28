@@ -26,7 +26,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CLibrary::Init(char* szName, char* szBaseDir, CHeaderFileMap* pcHeaderFileMap)
+void CLibrary::Init(char* szName, char* szBaseDir, BOOL bIncludeSubDirectories, CHeaderFileMap* pcHeaderFileMap)
 {
 	CFileUtil	cFileUtil;
 	CChars		szPath;
@@ -39,7 +39,7 @@ void CLibrary::Init(char* szName, char* szBaseDir, CHeaderFileMap* pcHeaderFileM
 	szPath.Kill();
 	mcConfigs.Init();
 	mcTranslationUnits.Init(this);
-	mcHeaderNameMap.Init(mszBaseDir.Text(), pcHeaderFileMap, FALSE);
+	mcHeaderNameMap.Init(mszBaseDir.Text(), pcHeaderFileMap, bIncludeSubDirectories, FALSE);
 }
 
 

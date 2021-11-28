@@ -27,7 +27,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CHeaderNameMap::Init(char* szBaseDirectory, CHeaderFileMap* pcFileMap, BOOL bSystem)
+BOOL CHeaderNameMap::Init(char* szBaseDirectory, CHeaderFileMap* pcFileMap, BOOL bIncludeSubDirectories, BOOL bSystem)
 {
 	CFileUtil cFileUtil;
 
@@ -49,7 +49,7 @@ BOOL CHeaderNameMap::Init(char* szBaseDirectory, CHeaderFileMap* pcFileMap, BOOL
 	mpcFileMap = pcFileMap;
 	mbSystem = bSystem;
 
-	AddFiles();
+	AddFiles(bIncludeSubDirectories);
 	return TRUE;
 }
 
@@ -69,10 +69,10 @@ void CHeaderNameMap::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHeaderNameMap::AddFiles(void)
+void CHeaderNameMap::AddFiles(BOOL bIncludeSubDirectories)
 {
 	CChars					szTemp;
-	CArrayChars				aszTemp;
+	CArrayChars				aszHeaderExtensions;
 	int						i;
 	int						j;
 	char*					szFile;
@@ -81,24 +81,29 @@ void CHeaderNameMap::AddFiles(void)
 	CArrayChars				aszFileNames;
 	CFileUtil				cFileUtil;
 	BOOL					bIsExtension;
+	int						iNumFileNames;
+	int						iNumExtensions;
 
 	szTemp.Init("h;inl;hpp;rh;");
 
-	aszTemp.Init();
-	szTemp.Split(&aszTemp, ';');
+	aszHeaderExtensions.Init();
+	szTemp.Split(&aszHeaderExtensions, ';'); 
+	szTemp.Kill();
 	iBaseDirLen = mszBaseDirectory.Length();
 
 
 	aszFileNames.Init();
-	cFileUtil.FindAllFiles(mszBaseDirectory.Text(), &aszFileNames, FALSE, FALSE);
+	cFileUtil.FindAllFiles(mszBaseDirectory.Text(), &aszFileNames, bIncludeSubDirectories, FALSE);
 
-	for (j = 0; j < aszFileNames.NumElements(); j++)
+	iNumExtensions = aszHeaderExtensions.NumElements();
+	iNumFileNames = aszFileNames.NumElements();
+	for (j = 0; j < iNumFileNames; j++)
 	{
 		szFile = aszFileNames.Get(j)->Text();
 
-		for (i = 0; i < aszTemp.NumElements(); i++)
+		for (i = 0; i < iNumExtensions; i++)
 		{
-			szExtension = aszTemp.Get(i)->Text();
+			szExtension = aszHeaderExtensions.Get(i)->Text();
 			bIsExtension = cFileUtil.IsExtension(szFile, szExtension);
 			if (bIsExtension)
 			{
@@ -109,10 +114,7 @@ void CHeaderNameMap::AddFiles(void)
 	}
 
 	aszFileNames.Kill();
-
-
-	szTemp.Kill();
-	aszTemp.Kill();
+	aszHeaderExtensions.Kill();
 }
 
 

@@ -33,7 +33,7 @@ public:
 	void Init(CHeaderFileMap* pcFileMap);
 	void Kill(void);
 	
-	void Add(char* szDirectoryName, BOOL bSystem);
+	void Add(char* szDirectoryName, BOOL bIncludeSubDirectories, BOOL bSystem);
 };
 
 

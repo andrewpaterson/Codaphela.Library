@@ -568,28 +568,41 @@ BOOL CPreprocessor::ProcessIncludeFile(CPreprocessorTokenParser* pcParser, CHead
 	CExternalString				cExternalString;
 	SPreprocessorPosition		sPos;
 	CChars						sz;
+	char						cOpen;
+	char						cClose;
 
 	MarkPositionForError(&sPos);
 
+	cOpen = ' ';
+	cClose = ' ';
 	bResult = pcParser->GetStringDoubleQuoted(&cExternalString);
 	if (!bResult)
 	{
 		bResult = pcParser->GetQuotedCharacterSequence('<', '>', &cExternalString);
-		if (!bResult)
+		if (bResult)
 		{
-			sPos.Message(&sz);
-			sz.Append("Could not include file ");
-			sz.AppendSubString(cExternalString.msz, cExternalString.EndInclusive() + 1);
-			return gcUserError.Set(&sz);
+			cOpen = '<';
+			cClose = '>';
 		}
 	}
+	else
+	{
+		cOpen = '"';
+		cClose = '"';
+	}
 
-	FindBestInclude(&cExternalString, FALSE, ppcCFile, ppcHeaderNameMap);
-	if (*ppcCFile == NULL)
+	if (bResult)
+	{
+		FindBestInclude(&cExternalString, FALSE, ppcCFile, ppcHeaderNameMap);
+	}
+
+	if ((!bResult) || (*ppcCFile == NULL))
 	{
 		sPos.Message(&sz);
 		sz.Append("Could not include file ");
+		sz.Append(cOpen);
 		sz.AppendSubString(cExternalString.msz, cExternalString.EndInclusive() + 1);
+		sz.Append(cClose);
 		return gcUserError.Set(&sz);
 	}
 	return TRUE;
