@@ -244,7 +244,6 @@ BOOL CCalcOperator::IsBinary(void)
 		return TRUE;
 	}
 	return FALSE;
-
 }
 
 

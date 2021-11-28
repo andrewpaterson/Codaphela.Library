@@ -149,6 +149,8 @@ public:
 	void		SetErrorEndOfFile(void);
 	void		SetErrorSyntaxError(void);
 
+	void		Dump(void);
+
 	template<class M>	TRISTATE	GetEnumeratorIdentifier(__CEnumeratorTemplate<M>* pcEnumerator, int* piID);
 };
 

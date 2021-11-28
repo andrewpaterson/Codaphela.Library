@@ -782,8 +782,12 @@ BOOL PrivateAssertNumber(const char* szExpected, CNumber* pcActual, int iLine, c
 	pcExpected->Init(szExpected, pcActual->mcMaxWholeNumbers, iDecimals);
 	if (!pcExpected->Equals(pcActual))
 	{
+		szExpectedAsChars.Init();
 		pcExpected->Print(&szExpectedAsChars);
+
+		szActual.Init();
 		pcActual->Print(&szActual);
+
 		bResult = Failed((const char*)szExpectedAsChars.Text(), (const char*)szActual.Text(), iLine, szFile);
 		szExpectedAsChars.Kill();
 		szActual.Kill();

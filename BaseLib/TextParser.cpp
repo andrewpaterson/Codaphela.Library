@@ -2326,6 +2326,29 @@ void CTextParser::SetErrorSyntaxError(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CTextParser::Dump(void)
+{
+	CChars				sz;
+	CExternalString		pac;
+	int					iBefore;
+
+	pac.Init(mszStartOfText, mszEndOfText);
+	sz.Init(&pac);
+
+	iBefore = mszParserPos - mszStartOfText;
+	sz.AppendNewLine();
+	sz.Append(' ', iBefore);
+	sz.Append('^');
+	sz.AppendNewLine();
+
+	sz.DumpKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 TRISTATE ParseInteger(int* pi, char* szText)
 {
 	CTextParser	cTextParser;
@@ -2385,3 +2408,4 @@ TRISTATE ParseFloat(double* pf, char* szText)
 
 	return tResult;
 }
+
