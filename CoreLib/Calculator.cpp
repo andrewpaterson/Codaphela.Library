@@ -126,6 +126,7 @@ CNumber CCalculator::Eval(char* szText)
 	if (bResult)
 	{
 		cAnswer = pcExpression->Evaluate();
+		cAnswer.Clean();
 		SafeKill(pcExpression);
 	}
 	else
@@ -151,12 +152,12 @@ CNumber CCalculator::Eval(char* szText)
 //////////////////////////////////////////////////////////////////////////
 BOOL CCalculator::Expression(CCalcExpression** ppcExpression)
 {
-	BOOL				bOperator;
-	BOOL				bOperand;
-	BOOL				bFirst;
+	BOOL					bOperator;
+	BOOL					bOperand;
+	BOOL					bFirst;
 	CArrayIntAndPointer		cArray;
-	CCalcOperator*		pcOperator;
-	CCalcExpression*	pcOperand;
+	CCalcOperator*			pcOperator;
+	CCalcExpression*		pcOperand;
 
 	cArray.Init();
 	bFirst = TRUE;
@@ -417,6 +418,7 @@ BOOL CCalculator::BuildExpression(CCalcExpression** ppcExpression, CArrayIntAndP
 	CCalcExpression*		pcOperandRight;
 	int						iOldUsedElements;
 	CChars					szStart;
+	BOOL					bUnary;
 
 	szStart.Init();
 	Print(&szStart, pcArray);
@@ -439,7 +441,20 @@ BOOL CCalculator::BuildExpression(CCalcExpression** ppcExpression, CArrayIntAndP
 
 		if (pcOperator->IsAmbiguous())
 		{
-			ResolveAmbiguity(pcOperator, pcArray->SafeGetPtr(iIndex-1) == NULL);
+			pcObject = (CCalcObject*)pcArray->SafeGetPtr(iIndex - 1);
+			bUnary = FALSE;
+			if (pcObject == NULL)
+			{
+				bUnary = TRUE;
+			}
+			else
+			{
+				if (pcObject->IsOperator())
+				{
+					bUnary = TRUE;
+				}
+			}
+			ResolveAmbiguity(pcOperator, bUnary);
 		}
 
 		if (pcOperator->IsUnary())
