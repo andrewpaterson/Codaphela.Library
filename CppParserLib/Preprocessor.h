@@ -73,6 +73,8 @@ protected:
 	int								miDefineReuse;
 	CChars							mszVaArgs;
 
+	int								miProcessTokensCalledCount;
+
 public:
 	static void			Preprocess(char* szSource, CChars* szDest);
 

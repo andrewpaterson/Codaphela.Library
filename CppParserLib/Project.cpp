@@ -213,7 +213,6 @@ void CProject::Process(char* szConfiguration)
 	CTranslationUnit*			pcFile;
 	CConfig*					pcConfig;
 	BOOL						bResult;
-	CCppParser					cParser;
 	CPreprocessor				cPreprocessor;
 	SProcessIter				sPreIter;
 
@@ -231,15 +230,12 @@ void CProject::Process(char* szConfiguration)
 		cPreprocessor.AddIncludeDirectory(&pcFile->mpcLibrary->mcHeaderNameMap);
 		cPreprocessor.LogDumping(mbDumpLogs);
 
-		cParser.Init();
-
 		ClearPragmaOnceFromAllFiles();
 
 		bResult = cPreprocessor.PreprocessTranslationUnit(pcFile);
 		if (!bResult)
 		{
 			sPreIter.bError = TRUE;
-			cParser.Kill();
 			cPreprocessor.Kill();
 			break;
 		}
@@ -247,7 +243,6 @@ void CProject::Process(char* szConfiguration)
 
 		WritePost(pcFile);
 
-		cParser.Kill();
 		cPreprocessor.Kill();
 		pcFile = Iterate(&sPreIter);
 	}

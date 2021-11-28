@@ -26,22 +26,29 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #define NAMED_DEFINE_FLAGS_BRACKETED	DEFINE_FLAGS_BRACKETED
-#define NAMED_DEFINE_FLAGS_UNDEFFED		0x02
+#define NAMED_DEFINE_FLAGS_UNDEFFED		0x40
+
 
 class CNamedDefine
 {
-public:
+protected:
 	CPPLine			mcReplacement;
 	CArrayChars		mcArguments;
 	int				miFlags;
 	CChars			mszName;
 
-	void Define(CExternalString* pcName, CDefine* pcSource, CMemoryStackExtended* mpcStack);
-	void Undef(CExternalString* pcName);
-	void Kill(void);
-	BOOL IsBacketed(void);
-	BOOL Equals(CNamedDefine* pcOther);
-	void Dump(void);
+public:
+	void			Define(CExternalString* pcName, CDefine* pcSource, CMemoryStackExtended* mpcStack);
+	void			Undef(CExternalString* pcName);
+	void			Kill(void);
+	BOOL			IsBacketed(void);
+	BOOL			IsUndeffed(void);
+	BOOL			Equals(CNamedDefine* pcOther);
+	char*			GetName(void);
+	int				GetNameLength(void);
+	CArrayChars*	GetArguments(void);
+	CPPLine*		GetReplacement(void);
+	void			Dump(void);
 };
 
 
