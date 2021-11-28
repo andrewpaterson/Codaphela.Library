@@ -23,7 +23,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include <string.h>
 #include <stdlib.h>
 #include "Logger.h"
-#include "Define.h"  //For EngineOutput
+#include "Define.h"
 #include "Chars.h"
 #include "AbstractFile.h"
 #include "DiskFile.h"

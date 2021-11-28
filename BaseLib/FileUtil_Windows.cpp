@@ -22,8 +22,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifdef _WIN32
 #include <stdio.h>
-#include <windows.h>
-#include <shlwapi.h>
+#include "WindowsHeaders.h"
 #include "Logger.h"
 #include "FilePosition.h"
 #include "FileUtil.h"

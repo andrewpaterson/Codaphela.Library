@@ -21,8 +21,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
 #include "Timer.h"
-#ifdef WIN32
-#include <windows.h>
+#ifdef _WIN32
+#include "BaseLib/WindowsHeaders.h"
 
 
 CTimer	gcTimer;
