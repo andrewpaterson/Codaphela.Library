@@ -24,7 +24,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define __DEBUG_OUTPUT_H__
 
 #ifdef _MSC_VER
-#include <windows.h>
+#include "WindowsHeaders.h"
 #define EngineOutput(p)	OutputDebugString(p)
 #endif // _MSC_VER
 
