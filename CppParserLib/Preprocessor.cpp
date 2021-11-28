@@ -1609,7 +1609,61 @@ BOOL CPreprocessor::ProcessHasAttributeIdentifier(CPPTokenHolder* pcDest, CPPTex
 //////////////////////////////////////////////////////////////////////////
 BOOL CPreprocessor::ProcessHasCPPAttributeIdentifier(CPPTokenHolder* pcDest, CPPText* pcText, CPreprocessorTokenParser* pcParser)
 {
-	return FALSE;
+	BOOL					bResult;
+	SPreprocessorPosition	sPos;
+	CChars					szError;
+	CChars					szAttribute;
+	BOOL					bClosingBracket;
+	CExternalString			pcIdentifier;
+
+	MarkPositionForError(&sPos);
+
+	bResult = pcParser->GetExactDecorator('(');
+	if (!bResult)
+	{
+		sPos.Message(&szError);
+		szError.Append("Expected '(' after __has_cpp_attribute.");
+		return gcUserError.Set(&szError);
+	}
+
+	szAttribute.Init();
+	bClosingBracket = pcParser->GetExactDecorator(')');
+	while (!bClosingBracket)
+	{
+		bResult = pcParser->GetIdentifier(&pcIdentifier);
+		if (!bResult)
+		{
+			szAttribute.Kill();
+			sPos.Message(&szError);
+			szError.Append("Expected '(' after __has_cpp_attribute.");
+			return gcUserError.Set(&szError);
+		}
+
+		szAttribute.Append(pcIdentifier.msz, pcIdentifier.miLen);
+
+		bResult = pcParser->GetExactDecorator("::", FALSE);
+		if (bResult)
+		{
+			szAttribute.Append("::");
+		}
+		else 
+		{
+			bClosingBracket = pcParser->GetExactDecorator(')');
+			if (!bClosingBracket)
+			{
+				szAttribute.Kill();
+				sPos.Message(&szError);
+				szError.Append("Expected ')'.");
+				return gcUserError.Set(&szError);
+			}
+		}
+	}
+
+	//We have no attributes at all so always subsitute zero.
+	AddZero(pcDest);
+
+	szAttribute.Kill();
+	return TRUE;
 }
 
 
@@ -2444,9 +2498,13 @@ int CPreprocessor::GetBlockReuse(void)
 void CPreprocessor::AddComma(CPPTokenHolder* pcDest)
 {
 	CPPTextWithSource*	pcPPComma;
+	CPPTextWithSource*	pcPPSpace;
 
 	pcPPComma = ADD_TOKEN(CPPTextWithSource, &pcDest->mcArray, mpcStack->Add(sizeof(CPPTextWithSource)));
-	pcPPComma->Init(PPT_Decorator, -1, -1, ", ", 2);
+	pcPPComma->Init(PPT_Decorator, -1, -1, ",", 1);
+
+	pcPPSpace = ADD_TOKEN(CPPTextWithSource, &pcDest->mcArray, mpcStack->Add(sizeof(CPPTextWithSource)));
+	pcPPSpace->Init(PPT_Decorator, -1, -1, " ", 1);
 }
 
 

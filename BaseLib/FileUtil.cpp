@@ -735,7 +735,7 @@ BOOL CFileUtil::IsExtension(const char* szFileName, const char* szExtension)
 	}
 	else
 	{
-		return FALSE;
+		return StrEmpty(szExtension);
 	}
 }
 

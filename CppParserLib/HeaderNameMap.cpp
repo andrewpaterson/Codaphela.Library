@@ -72,42 +72,44 @@ void CHeaderNameMap::Kill(void)
 void CHeaderNameMap::AddFiles(void)
 {
 	CChars					szTemp;
-	CArrayChars			aszTemp;
+	CArrayChars				aszTemp;
 	int						i;
-	CChars*					pszFile;
-	int						iIndex;
 	int						j;
 	char*					szFile;
 	char*					szExtension;
 	int						iBaseDirLen;
-	CArrayChars			aszFileNames;
+	CArrayChars				aszFileNames;
 	CFileUtil				cFileUtil;
+	BOOL					bIsExtension;
 
-	szTemp.Init("*.h;*.inl;*.hpp;*.rh");
+	szTemp.Init("h;inl;hpp;rh;");
 
 	aszTemp.Init();
 	szTemp.Split(&aszTemp, ';');
 	iBaseDirLen = mszBaseDirectory.Length();
 
-	for (i = 0; i < aszTemp.NumElements(); i++)
+
+	aszFileNames.Init();
+	cFileUtil.FindAllFiles(mszBaseDirectory.Text(), &aszFileNames, FALSE, FALSE);
+
+	for (j = 0; j < aszFileNames.NumElements(); j++)
 	{
-		pszFile = aszTemp.Get(i);
-		pszFile->StripWhiteSpace();
+		szFile = aszFileNames.Get(j)->Text();
 
-		iIndex = pszFile->Find(0, ".");
-		szExtension = pszFile->Text(iIndex+1);
-
-		aszFileNames.Init();
-		cFileUtil.FindFilesWithExtension(mszBaseDirectory.Text(), szExtension, &aszFileNames);
-
-		for (j = 0; j < aszFileNames.NumElements(); j++)
+		for (i = 0; i < aszTemp.NumElements(); i++)
 		{
-			szFile = aszFileNames.Get(j)->Text();
-			AddFile(&szFile[iBaseDirLen+1]);
+			szExtension = aszTemp.Get(i)->Text();
+			bIsExtension = cFileUtil.IsExtension(szFile, szExtension);
+			if (bIsExtension)
+			{
+				AddFile(&szFile[iBaseDirLen + 1]);
+				break;
+			}
 		}
-
-		aszFileNames.Kill();
 	}
+
+	aszFileNames.Kill();
+
 
 	szTemp.Kill();
 	aszTemp.Kill();

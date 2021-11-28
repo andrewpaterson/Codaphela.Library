@@ -22,7 +22,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __CONSTRUCTOR_CALL_H__
 #define __CONSTRUCTOR_CALL_H__
-#include <new> 
+#include <new>
 #include <stdlib.h>
 #ifdef LINUX_GNU_32
 #include <type_traits>
