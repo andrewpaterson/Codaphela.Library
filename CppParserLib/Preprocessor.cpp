@@ -1073,14 +1073,23 @@ SCTokenBlock CPreprocessor::ProcessHashIf(CPreprocessorTokenParser* pcParser, CP
 	CPPTokenHolder			cTokenHolder;
 	CChars					sz;
 	SCTokenBlock			sIndex;
-	SPreprocessorPosition	sPos;
 	CChars					szCaclulatorError;
+	SPreprocessorPosition	sPos;
 	CChars					szError;
+	BOOL					bResult;
 
 	MarkPositionForError(&sPos);
 
 	cTokenHolder.Init();
-	ProcessDirectiveLine(&cTokenHolder, pcParser, 0);
+	bResult = ProcessDirectiveLine(&cTokenHolder, pcParser, 0);
+	if (!bResult)
+	{
+		cTokenHolder.Kill();
+
+		sIndex.Init(-1, -1);  //-1, -1 doesn't seem to strictly mean an error but it does mean stop.
+		return sIndex;
+	}
+
 	sz.Init();
 	cTokenHolder.Append(&sz);
 	szCaclulatorError.Init();
@@ -1820,48 +1829,26 @@ void CPreprocessor::ExpandReplacementNormalLine(CPPReplacement* pcReplacement, C
 //////////////////////////////////////////////////////////////////////////
 BOOL CPreprocessor::ProcessDirectiveLine(CPPTokenHolder* pcDest, CPreprocessorTokenParser* pcParser, int iDepth)
 {
-	CPPHashes*				pcHash;
 	CPPHolder				cHolder;
 	int						iHashCount;
-	CPPToken*				pcTemp;
-	CPPToken*				pcPrev;
 	CPPToken*				pcToken;
+	SPreprocessorPosition	sPos;
+	CChars					szError;
+
+	MarkPositionForError(&sPos);
 
 	iHashCount = 0;
-	pcTemp = NULL;
-	pcPrev = NULL;
 	while (pcParser->HasToken())
 	{
 		pcToken = pcParser->GetToken();
 		if (pcToken->IsHash())
 		{
-			pcHash = (CPPHashes*)pcToken;
-			iHashCount = pcHash->miCount;
-			pcParser->NextToken();
-			continue;
+			sPos.Message(&szError);
+			szError.Append("Unexpected '#'.");
+			return gcUserError.Set(&szError);
 		}
 
-		if (iHashCount == 0)
-		{
-			pcTemp = pcToken;
-			ExpandDirectiveTokenIfNecessary(pcToken, pcDest, pcParser, iDepth);
-		}
-		else if (iHashCount == 1)  //# Quote following.
-		{
-			//Shouldn't occur in a director.  Error instead.
-			cHolder.Init(-1, -1);
-			ExpandDirectiveTokenIfNecessary(pcToken, &cHolder.mcTokens, pcParser, iDepth);
-			pcTemp = QuoteTokens(pcDest, &cHolder);
-			cHolder.Kill();
-		}
-		else if (iHashCount == 2)  //## Concaternate.
-		{
-			//Shouldn't occur in a director.  Error instead.
-			pcTemp = ConcaternateTokens(pcDest, pcPrev, pcToken);
-		}
-
-		pcPrev = pcTemp;
-		iHashCount = 0;
+		ExpandDirectiveTokenIfNecessary(pcToken, pcDest, pcParser, iDepth);
 	}
 	return TRUE;
 }
@@ -2021,16 +2008,13 @@ BOOL CPreprocessor::FindArguments(CPreprocessorTokenParser* pcParser, CArrayPPTo
 	CPPToken*				pcSomeToken;
 	BOOL					bReturn;
 	SPreprocessorPosition	sPos;
-	CChars					szError;
 
 	MarkPositionForError(&sPos);
 
 	bResult = pcParser->GetExactDecorator('(');
 	if (!bResult)
 	{
-		sPos.Message(&szError);
-		szError.Append("Expected '(' after macro.");
-		return gcUserError.Set(&szError);
+		return FALSE;
 	}
 
 	iBracketDepth = 1;
