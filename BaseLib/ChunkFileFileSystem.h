@@ -1,7 +1,7 @@
 #ifndef __CHUNK_FILE_FILE_SYSTEM_H__
 #define __CHUNK_FILE_FILE_SYSTEM_H__
-#include "BaseLib/ArrayChars.h"
-#include "BaseLib/ChunkFile.h"
+#include "ArrayChars.h"
+#include "ChunkFile.h"
 
 
 struct SChunkFileNameIterator

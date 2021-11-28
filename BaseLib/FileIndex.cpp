@@ -1,5 +1,5 @@
-#include "BaseLib/Logger.h"
-#include "BaseLib/LogString.h"
+#include "Logger.h"
+#include "LogString.h"
 #include "FileIndex.h"
 
 
