@@ -1,6 +1,6 @@
 #ifndef __MEMORY_CACHE_EVICTION_CALLBACK_H__
 #define __MEMORY_CACHE_EVICTION_CALLBACK_H__
-#include "BaseLib/Bool.h"
+#include "Bool.h"
 
 
 struct SMemoryCacheDescriptor;

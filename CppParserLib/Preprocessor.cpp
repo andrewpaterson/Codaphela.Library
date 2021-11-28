@@ -585,6 +585,13 @@ BOOL CPreprocessor::ProcessIncludeFile(CPreprocessorTokenParser* pcParser, CHead
 	}
 
 	FindBestInclude(&cExternalString, FALSE, ppcCFile, ppcHeaderNameMap);
+	if (*ppcCFile == NULL)
+	{
+		sPos.Message(&sz);
+		sz.Append("Could not include file ");
+		sz.AppendSubString(cExternalString.msz, cExternalString.EndInclusive() + 1);
+		return gcUserError.Set(&sz);
+	}
 	return TRUE;
 }
 

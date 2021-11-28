@@ -54,7 +54,7 @@ public:
 	void				Init(BOOL bDumpLogs = FALSE);
 	void				Kill(void);
 	CLibrary*			AddLibrary(char* szName, char* szBaseDir);
-	void				AddIncludeDirectory(char* szBaseDir, BOOL bSystem);
+	void				AddIncludeDirectory(char* szBaseDir, BOOL bIncludeSubDirectories, BOOL bSystem);
 	CLibrary*			GetLibrary(char* szLibrary);
 	void				Process(char* szConfiguration);
 	void				CreatePost(void);
