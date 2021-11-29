@@ -45,7 +45,7 @@ enum EPreprocessorDirective
 
 class CPPDirective : public CPPLine
 {
-private:
+protected:
 	EPreprocessorDirective	meType;
 
 public:
