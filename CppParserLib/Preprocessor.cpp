@@ -2269,7 +2269,7 @@ SCTokenBlock CPreprocessor::PreprocessTokens(CPPTokenHolder* pcDestTokens, CMemo
 				{
 					sLine = ProcessHashIf(&cParser, (CPPConditional*)pcDirective, sLine);
 				}
-				else if (pcDirective->Is(PPD_ifndef))
+				else if (pcDirective->Is(PPD_elif))
 				{
 					sLine = ProcessHashElif(&cParser, (CPPConditional*)pcDirective, sLine);
 				}
