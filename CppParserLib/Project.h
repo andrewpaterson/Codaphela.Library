@@ -43,15 +43,17 @@ struct SProcessIter
 
 class CProject
 {
-public:
+protected:
 	CListLibraries		mcLibraries;
 	int					miNumSystemLibraries;
 	int					miBlockReuse;
 	BOOL				mbDumpLogs;
+	BOOL				mbLogBlocks;
 	CHeaders			mcIncludeNames;
 	CHeaderFileMap		mcIncludeFiles;
 
-	void				Init(BOOL bDumpLogs = FALSE);
+public:
+	void				Init(BOOL bDumpLogs = FALSE, BOOL bLogBlocks = FALSE);
 	void				Kill(void);
 	CLibrary*			AddLibrary(char* szName, char* szBaseDir, BOOL bIncludeSubDirectories);
 	void				AddIncludeDirectory(char* szBaseDir, BOOL bIncludeSubDirectories, BOOL bSystem);

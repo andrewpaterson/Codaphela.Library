@@ -41,7 +41,7 @@ void CCBlock::Init(CCBlockSet* pcBlockSet, int iLine, int iColumn)
 {
 	Init(iLine, iColumn);
 	mpcBlockSet = pcBlockSet;
-	mpcStack = pcBlockSet->mpcStack;
+	mpcStack = pcBlockSet->GetStack();
 	msNext.Init(-1, -1);
 }
 

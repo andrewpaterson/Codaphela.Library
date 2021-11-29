@@ -85,6 +85,7 @@ public:
 	void				AddConfigDefines(CConfig* pcConfig);	
 	void				LogIncludes(CChars* pszIncludesLog);
 	void				LogBlocks(CChars* pszBlocksLog);
+	void				LogBlocks(BOOL bLogBlocks);
 	void				LogDumping(BOOL bDumpLogs);
 	void				AddIncludeDirectories(CArrayHeaderNameMap* pcHeaderNames);
 	void				AddIncludeDirectory(CHeaderNameMap* pcHeaderNames);
@@ -100,7 +101,7 @@ public:
 	CSpecialOperator*	GetSpecialOperator(char* szName, BOOL bExact);
 	CSpecialOperator*	AddSpecialOperator(char* szSpecialOperator, EPreprocessorSpecialOperator eType);
 
-	BOOL				PreprocessBlockSets(CCFile* pcFile, CCFile* pcFromFile);
+	BOOL				PreprocessFile(CCFile* pcFile, CCFile* pcFromFile);
 	SCTokenBlock		PreprocessTokens(CPPTokenHolder* pcDestTokens, CMemoryStackExtended* pcStack, CPPTokenHolder* pcSourceTokens, int iBlock, int iToken);
 	BOOL				PreprocessTranslationUnit(CTranslationUnit* pcFile);
 

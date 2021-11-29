@@ -27,7 +27,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 class CCFile;
 class CCBlockSet
 {
-public:
+protected:
 	CPPTokenHolder			mcRawTokens;
 	CMemoryStackExtended*	mpcStack;  //From CFile
 	CCFile*					mpcFile;  //The file this block is a part of
@@ -39,15 +39,22 @@ public:
 	//If TextBlocks then the following are valid.  Otherwise this is a # directive block.
 	CArrayPtrCBlocks		mapcBlocks;
 
-	void 		Init(CCFile* pcFile, int iLine, int iBlock, BOOL bTextBlocks);
-	void 		Kill(void);
-	CCBlock*	GetMatchingBlock(CCBlock* pcOtherBlock);
-	CCBlock*	CreateBlock(void);
-	CCBlock*	AddBlock(void);
-	BOOL		AddBlock(CCBlock* pcBlock);
-	BOOL		IsLastToken(int iToken);
-	BOOL		IsDirective(void);
-	void		DumpRawTokens(void);
+public:
+	void 					Init(CCFile* pcFile, int iLine, int iBlock, BOOL bTextBlocks);
+	void 					Kill(void);
+	CCBlock*				GetMatchingBlock(CCBlock* pcOtherBlock);
+	CCBlock*				CreateBlock(void);
+	CCBlock*				AddBlock(void);
+	BOOL					AddBlock(CCBlock* pcBlock);
+	BOOL					IsLastToken(int iToken);
+	BOOL					IsDirective(void);
+	void					DumpRawTokens(void);
+	CMemoryStackExtended*	GetStack(void);
+	CPPTokenHolder*			GetTokenHolder(void);
+	int						Line(void);
+	int						Column(void);
+	int						Block(void);
+	char*					GetFileName(void);
 };
 
 

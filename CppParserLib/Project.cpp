@@ -29,13 +29,14 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CProject::Init(BOOL bDumpLogs)
+void CProject::Init(BOOL bDumpLogs, BOOL bLogBlocks)
 {
 	mcLibraries.Init();
 
 	miNumSystemLibraries = 0;
 	miBlockReuse = 0;
 	mbDumpLogs = bDumpLogs;
+	mbLogBlocks = bLogBlocks;
 	mcIncludeFiles.Init();
 	mcIncludeNames.Init(&mcIncludeFiles);
 }
@@ -229,6 +230,7 @@ void CProject::Process(char* szConfiguration)
 		cPreprocessor.AddIncludeDirectories(&mcIncludeNames.mcHeaderNames);
 		cPreprocessor.AddIncludeDirectory(&pcFile->mpcLibrary->mcHeaderNameMap);
 		cPreprocessor.LogDumping(mbDumpLogs);
+		cPreprocessor.LogBlocks(mbLogBlocks);
 
 		ClearPragmaOnceFromAllFiles();
 
