@@ -132,7 +132,7 @@ void CPPTokenHolder::SavageAppend(CChars* psz, int iDepth)
 		if (pcToken->IsAbstractHolder())
 		{
 			pcHolder = (CPPAbstractHolder*)pcToken;
-			pcHolder->mcTokens.SavageAppend(psz, iDepth+1);
+			pcHolder->GetTokens()->SavageAppend(psz, iDepth+1);
 		}
 		else
 		{

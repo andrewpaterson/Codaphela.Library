@@ -224,11 +224,11 @@ void CProject::Process(char* szConfiguration)
 	{
 		DumpProcessedCPPFileName(pcFile);
 		
-		pcConfig = pcFile->mpcLibrary->GetConfig(szConfiguration);
+		pcConfig = pcFile->GetLibrary()->GetConfig(szConfiguration);
 
 		cPreprocessor.Init(pcConfig, &pcFile->mcStack);
 		cPreprocessor.AddIncludeDirectories(&mcIncludeNames.mcHeaderNames);
-		cPreprocessor.AddIncludeDirectory(&pcFile->mpcLibrary->mcHeaderNameMap);
+		cPreprocessor.AddIncludeDirectory(&pcFile->GetLibrary()->mcHeaderNameMap);
 		cPreprocessor.LogDumping(mbDumpLogs);
 		cPreprocessor.LogBlocks(mbLogBlocks);
 

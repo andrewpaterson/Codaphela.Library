@@ -79,7 +79,7 @@ void CTranslationUnit::Kill(void)
 		free(mpcLogs);
 	}
 
-	mcTokens.mcTokens.mcArray.Kill();  //Kill isn't called on mcTokens because it will free the tokens in the blocks also.
+	mcTokens.GetTokens()->mcArray.Kill();  //Kill isn't called on mcTokens because it will free the tokens in the blocks also.
 	CCFile::Kill();
 }
 
@@ -166,5 +166,35 @@ BOOL CTranslationUnit::IsPragmaOnced(void)
 BOOL CTranslationUnit::IsSystemFile(void)
 {
 	return FALSE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CPPHolder* CTranslationUnit::GetTokens(void)
+{
+	return &mcTokens;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+STULog* CTranslationUnit::GetLogs(void)
+{
+	return mpcLogs;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CLibrary* CTranslationUnit::GetLibrary(void)
+{
+	return mpcLibrary;
 }
 

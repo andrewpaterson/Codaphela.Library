@@ -236,7 +236,7 @@ CDefine* CPreprocessor::AddDefine(char* szDefine, char* szReplacement)
 	memcpy(sz, szReplacement, iLen+1);
 
 	cTokeniser.Init();
-	cTokeniser.TokeniseDefine(&pcDefine->GetReplacement()->mcTokens, sz, mpcStack);
+	cTokeniser.TokeniseDefine(pcDefine->GetReplacement()->GetTokens(), sz, mpcStack);
 	cTokeniser.Kill();
 
 	return pcDefine;
@@ -902,7 +902,7 @@ BOOL CPreprocessor::PreprocessFile(CCFile* pcFile, CCFile* pcFromFile)
 				pcFile->mcStack.Mark(&cMark);
 
 				pcBlockProcessed = pcBlocksSet->CreateBlock();
-				sResult = PreprocessTokens(&pcBlockProcessed->mcTokens, &pcFile->mcStack, pcBlocksSet->GetTokenHolder(), sResult.iBlockIndex, sResult.iTokenIndex);
+				sResult = PreprocessTokens(pcBlockProcessed->GetTokens(), &pcFile->mcStack, pcBlocksSet->GetTokenHolder(), sResult.iBlockIndex, sResult.iTokenIndex);
 
 				pcBlockMatching = pcBlocksSet->GetMatchingBlock(pcBlockProcessed);
 				if (!pcBlockMatching)
@@ -926,7 +926,7 @@ BOOL CPreprocessor::PreprocessFile(CCFile* pcFile, CCFile* pcFromFile)
 					break;	
 				}
 
-				mpcUnit->mcTokens.mcTokens.mcArray.Add((CPPToken**)&pcBlockMatching);
+				mpcUnit->GetTokens()->GetTokens()->mcArray.Add((CPPToken**)&pcBlockMatching);
 			}
 
 			pcBlocksSet = pcFile->macBlockSets.SafeGet(sResult.iBlockIndex);
@@ -955,11 +955,11 @@ void CPreprocessor::TranslationUnitLogging(CTranslationUnit* pcFile)
 {
 	if (pcFile->LogInlucdes())
 	{
-		LogIncludes(&pcFile->mpcLogs->szIncludesLog);
+		LogIncludes(&pcFile->GetLogs()->szIncludesLog);
 	}
 	if (pcFile->LogBlocks())
 	{
-		LogBlocks(&pcFile->mpcLogs->szBlocksLog);
+		LogBlocks(&pcFile->GetLogs()->szBlocksLog);
 	}
 }
 
@@ -992,7 +992,7 @@ BOOL CPreprocessor::TokeniseFile(CCFile* pcFile)
 	pcFile->Load();
 	cTokeniser.Init();
 
-	bResult = cTokeniser.Tokenise(&pcFile->macBlockSets, pcFile->mszContents.Text(), pcFile->mszContents.Length(), !pcFile->IsSystemFile());
+	bResult = cTokeniser.Tokenise(&pcFile->macBlockSets, pcFile->GetContents(), pcFile->GetContentsLength(), !pcFile->IsSystemFile());
 	cTokeniser.Kill();
 
 	return bResult;
@@ -1257,7 +1257,7 @@ BOOL CPreprocessor::ProcessHashPragma(CPreprocessorTokenParser* pcParser)
 		if (mpcCurrentFile->IsHeader())
 		{
 			pcHeader = (CHeaderFile*)mpcCurrentFile;
-			pcHeader->mbPragmaOnce = TRUE;
+			pcHeader->SetPragmaOnce();
 		}
 	}
 	return TRUE;
@@ -1277,7 +1277,7 @@ BOOL CPreprocessor::ProcessNormalLine(CPreprocessorTokenParser* pcParser)
 	{
 		pcLine = CPPLine::Construct(mpcStack->Add(sizeof(CPPLine)));
 		pcLine->Init(pcParser->Line(), pcParser->Column());
-		bResult = ProcessNormalLine(&pcLine->mcTokens, pcParser, 0);
+		bResult = ProcessNormalLine(pcLine->GetTokens(), pcParser, 0);
 		if (bResult)
 		{
 			if (pcLine->TokenLength() > 0)
@@ -1389,14 +1389,14 @@ BOOL CPreprocessor::ProcessIdentifierDirective(CPPTokenHolder* pcDest, CPPText* 
 			pcParser->NextToken();
 		}
 
-		iReplacementTokens = pcDefine->GetReplacement()->mcTokens.mcArray.NumElements();
+		iReplacementTokens = pcDefine->GetReplacement()->GetTokens()->mcArray.NumElements();
 		if (iReplacementTokens > 0)
 		{
 			pcHolder = ADD_TOKEN(CPPHolder, &pcDest->mcArray, mpcStack->Add(sizeof(CPPHolder)));
 			pcHolder->Init(-1, -1);
 
 			cParser.Init(pcDefine->GetReplacement());
-			ProcessDirectiveLine(&pcHolder->mcTokens, &cParser, iDepth);
+			ProcessDirectiveLine(pcHolder->GetTokens(), &cParser, iDepth);
 			cParser.Kill();
 		}
 		else if (iReplacementTokens == 0)
@@ -1463,14 +1463,14 @@ BOOL CPreprocessor::ProcessIdentifierNormalLine(CPPTokenHolder* pcDest, CPPText*
 			pcParser->NextToken();
 		}
 
-		iReplacementTokens = pcDefine->GetReplacement()->mcTokens.mcArray.NumElements();
+		iReplacementTokens = pcDefine->GetReplacement()->GetTokens()->mcArray.NumElements();
 		if (iReplacementTokens > 0)
 		{
 			pcHolder = ADD_TOKEN(CPPHolder, &pcDest->mcArray, mpcStack->Add(sizeof(CPPHolder)));
 			pcHolder->Init(-1, -1);
 			
 			cParser.Init(pcDefine->GetReplacement());
-			ProcessNormalLine(&pcHolder->mcTokens, &cParser, iDepth);
+			ProcessNormalLine(pcHolder->GetTokens(), &cParser, iDepth);
 			cParser.Kill();
 		}
 
@@ -1986,7 +1986,7 @@ BOOL CPreprocessor::ProcessNormalLine(CPPTokenHolder* pcDest, CPreprocessorToken
 		else if (iHashCount == 1)  //# Quote following.
 		{
 			cHolder.Init(-1, -1);
-			ExpandNormalLineTokenIfNecessary(pcToken, &cHolder.mcTokens, pcParser, iDepth);
+			ExpandNormalLineTokenIfNecessary(pcToken, cHolder.GetTokens(), pcParser, iDepth);
 			pcTemp = QuoteTokens(pcDest, &cHolder);
 			cHolder.Kill();
 		}
@@ -2059,9 +2059,9 @@ CPPToken* CPreprocessor::QuoteTokens(CPPTokenHolder* pcDest, CPPAbstractHolder* 
 
 	szQuoted.Init();
 	szQuoted.Append('"');
-	for (j = 0; j < pcHolder->mcTokens.mcArray.NumElements(); j++)
+	for (j = 0; j < pcHolder->GetTokens()->mcArray.NumElements(); j++)
 	{
-		pcToken = *(pcHolder->mcTokens.mcArray.Get(j));
+		pcToken = *(pcHolder->GetTokens()->mcArray.Get(j));
 		pcToken->Append(&szQuoted);
 	}
 	szQuoted.Append('"');
