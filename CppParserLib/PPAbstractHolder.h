@@ -26,20 +26,22 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 class CPPAbstractHolder : public CPPToken
 {
-public:
+protected:
 	CPPTokenHolder	mcTokens;
 
-	void 		Init(int iLine, int iColumn);
-	void 		Kill(void);
-	BOOL 		IsAbstractHolder(void);
-	char* 		Append(CChars* psz);
-	void 		Copy(CPPAbstractHolder* pcCast, CMemoryStackExtended* pcStack);
-	int	 		TokenLength(void);
-	CPPToken*	Get(int iIndex);
-	void		Dump(void);
-	void		SavageDump(void);
-	BOOL		Equals(CPPToken* pcOther);
-	BOOL		IsEmpty(void);
+public:
+	void 				Init(int iLine, int iColumn);
+	void 				Kill(void);
+	BOOL 				IsAbstractHolder(void);
+	char* 				Append(CChars* psz);
+	void 				Copy(CPPAbstractHolder* pcCast, CMemoryStackExtended* pcStack);
+	int	 				TokenLength(void);
+	CPPToken*			Get(int iIndex);
+	void				Dump(void);
+	void				SavageDump(void);
+	BOOL				Equals(CPPToken* pcOther);
+	BOOL				IsEmpty(void);
+	CPPTokenHolder*		GetTokens(void);
 };
 
 

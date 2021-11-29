@@ -27,11 +27,12 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 class CLibrary;
 class CCFile
 {
-public:
+protected:
 	CChars					mszContents;
 	CChars					mszFullName;
 	BOOL					mbLoaded;
 
+public:
 	CMemoryStackExtended	mcStack;  //All tokens for this file.
 	CArrayCBlockSet			macBlockSets;
 
@@ -48,6 +49,8 @@ public:
 	virtual BOOL	IsPragmaOnced(void) =0;
 	virtual BOOL	IsSystemFile(void) =0;
 			void	Path(CChars* pszPath);
+			char*	GetContents(void);
+			int		GetContentsLength(void);
 };
 
 

@@ -25,18 +25,20 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 class CHeaderFile : public CCFile
 {
-public:
+protected:
 	BOOL	mbSystemFile;
 	BOOL	mbPragmaOnce;
 
-	void Init(char* szFullName, BOOL bSystemFile);
-	void Kill(void);
-	BOOL IsTranslationUnit(void);
-	BOOL IsHeader(void);
-	BOOL IsPragmaOnced(void);
-	BOOL IsSystemFile(void);
+public:
+	void	Init(char* szFullName, BOOL bSystemFile);
+	void	Kill(void);
+	BOOL	IsTranslationUnit(void);
+	BOOL	IsHeader(void);
+	BOOL	IsPragmaOnced(void);
+	BOOL	IsSystemFile(void);
 
-	void ClearPragmaOnce(void);
+	void	ClearPragmaOnce(void);
+	void	SetPragmaOnce(void);
 };
 
 
