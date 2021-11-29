@@ -143,13 +143,13 @@ BOOL CPreprocessorTokeniser::Tokenise(CArrayCBlockSet* pacBlockSets, char* szPos
 		if (bMustAdd)
 		{
 			pcBlockSet = pacBlockSets->Add(iLine, !bDirective);
-			iBlock = pcBlockSet->miBlock;
+			iBlock = pcBlockSet->Block();
 		}
 
 		if (pcToken)
 		{
-			pcBlockSet->mcRawTokens.Add(&pcToken);
-			iIndex = pcBlockSet->mcRawTokens.mcArray.NumElements();
+			pcBlockSet->GetTokenHolder()->Add(&pcToken);
+			iIndex = pcBlockSet->GetTokenHolder()->mcArray.NumElements();
 		}
 
 		bLastDirective = bDirective;
@@ -158,7 +158,7 @@ BOOL CPreprocessorTokeniser::Tokenise(CArrayCBlockSet* pacBlockSets, char* szPos
 	//Debug shit.
 	if (FALSE)
 	{
-		pcBlockSet->mpcFile->mszFullName.Dump();
+		CChars::Dump(pcBlockSet->GetFileName());
 		CChars::Dump("\n");
 		for (int i = 0; i < pacBlockSets->NumElements(); i++)
 		{

@@ -49,6 +49,8 @@ void CPreprocessor::Init(CConfig* pcConfig, CMemoryStackExtended* pcStack)
 	mbLogInlucdes = FALSE;
 	mbDumpLogs = FALSE;
 	miDefineReuse = 0;
+	mpszBlocksLog = NULL;
+	mpszIncludesLog = NULL;
 
 	mcConditionalStack.Init();
 	mpcCurrentFile = NULL;
@@ -535,7 +537,7 @@ BOOL CPreprocessor::ProcessHashInclude(CPreprocessorTokenParser* pcParser)
 			pcNewDirectory->Init(pcHeaderNameMap, szPath.Text());
 			szPath.Kill();
 
-			bResult = PreprocessBlockSets(pcIncludeFile, mpcCurrentFile);
+			bResult = PreprocessFile(pcIncludeFile, mpcCurrentFile);
 
 			pcNewDirectory = mcHeadersStack.Tail();
 			pcNewDirectory->Kill();
@@ -719,13 +721,18 @@ void CPreprocessor::LogIncludes(CCFile* pcFile)
 		sz.Append(' ', miIncludeDepth*4);
 		sz.Append(" ");
 		sz.Append(pcFile->ShortName());
-		sz.Append("\n");
+		sz.Append(" (Included)");
+		sz.AppendNewLine();
 
 		if (mbDumpLogs)
 		{
 			sz.Dump();
 		}
-		mpszIncludesLog->Append(sz);
+
+		if (mpszIncludesLog)
+		{
+			mpszIncludesLog->Append(sz);
+		}
 		sz.Kill();
 	}
 }
@@ -743,7 +750,8 @@ void CPreprocessor::LogBlocks(CCFile* pcFile, SCTokenBlock sResult)
 	if (mbLogBlocks)
 	{
 		szLine.Init();
-
+		szLine.Append(' ', miIncludeDepth * 4);
+		szLine.Append(' ');
 		szLine.Append(mpcCurrentFile->ShortName());
 		if (mcConditionalStack.IsParsing())
 		{
@@ -763,7 +771,7 @@ void CPreprocessor::LogBlocks(CCFile* pcFile, SCTokenBlock sResult)
 		else
 		{
 			szLine.Append(" (");
-			szLine.Append(pcBlocksSet->miLine);
+			szLine.Append(pcBlocksSet->Line() + 1);
 			szLine.Append(")\n");
 		}
 
@@ -772,7 +780,11 @@ void CPreprocessor::LogBlocks(CCFile* pcFile, SCTokenBlock sResult)
 			szLine.Dump();
 		}
 
-		mpszBlocksLog->Append(szLine);
+		if (mpszBlocksLog)
+		{
+			mpszBlocksLog->Append(szLine);
+		}
+
 		szLine.Kill();
 	}
 }
@@ -820,6 +832,17 @@ void CPreprocessor::LogBlocks(CChars* pszBlocksLog)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
+void CPreprocessor::LogBlocks(BOOL bLogBlocks)
+{
+	mpszBlocksLog = NULL;
+	mbLogBlocks = bLogBlocks;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
 void CPreprocessor::LogDumping(BOOL bDumpLogs)
 {
 	mbDumpLogs = bDumpLogs;
@@ -830,7 +853,7 @@ void CPreprocessor::LogDumping(BOOL bDumpLogs)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CPreprocessor::PreprocessBlockSets(CCFile* pcFile, CCFile* pcFromFile)
+BOOL CPreprocessor::PreprocessFile(CCFile* pcFile, CCFile* pcFromFile)
 {
 	CCBlockSet*			pcBlocksSet;
 	SCTokenBlock		sResult;
@@ -862,8 +885,8 @@ BOOL CPreprocessor::PreprocessBlockSets(CCFile* pcFile, CCFile* pcFromFile)
 
 			if (pcBlocksSet->IsDirective())
 			{
-				//The conditional directives need to be expanded so &pcFile->mcStack is needed.  I suspect a #define directive will be expanded too.  I don't know if this is good or bad.  It's bad.  Write a test for it.
-				sResult = PreprocessTokens(NULL, &pcFile->mcStack, &pcBlocksSet->mcRawTokens, sResult.iBlockIndex, sResult.iTokenIndex);
+				//The conditional directives need to be expanded so &pcFile->mcStack is needed.  A #define directive will be expanded too.  Write a test for it.
+				sResult = PreprocessTokens(NULL, &pcFile->mcStack, pcBlocksSet->GetTokenHolder(), sResult.iBlockIndex, sResult.iTokenIndex);
 				if (sResult.iTokenIndex == -1)	
 				{
 					bResult = FALSE; 
@@ -879,7 +902,7 @@ BOOL CPreprocessor::PreprocessBlockSets(CCFile* pcFile, CCFile* pcFromFile)
 				pcFile->mcStack.Mark(&cMark);
 
 				pcBlockProcessed = pcBlocksSet->CreateBlock();
-				sResult = PreprocessTokens(&pcBlockProcessed->mcTokens, &pcFile->mcStack, &pcBlocksSet->mcRawTokens, sResult.iBlockIndex, sResult.iTokenIndex);
+				sResult = PreprocessTokens(&pcBlockProcessed->mcTokens, &pcFile->mcStack, pcBlocksSet->GetTokenHolder(), sResult.iBlockIndex, sResult.iTokenIndex);
 
 				pcBlockMatching = pcBlocksSet->GetMatchingBlock(pcBlockProcessed);
 				if (!pcBlockMatching)
@@ -909,7 +932,7 @@ BOOL CPreprocessor::PreprocessBlockSets(CCFile* pcFile, CCFile* pcFromFile)
 			pcBlocksSet = pcFile->macBlockSets.SafeGet(sResult.iBlockIndex);
 			if (pcBlocksSet)
 			{
-				if (pcBlocksSet->mcRawTokens.mcArray.NumElements() == sResult.iTokenIndex)
+				if (pcBlocksSet->GetTokenHolder()->mcArray.NumElements() == sResult.iTokenIndex)
 				{
 					sResult.iBlockIndex++;
 					sResult.iTokenIndex = 0;
@@ -951,7 +974,7 @@ BOOL CPreprocessor::PreprocessTranslationUnit(CTranslationUnit* pcFile)
 	
 	TranslationUnitLogging(pcFile);
 	mpcUnit = pcFile;
-	bResult = PreprocessBlockSets(pcFile, NULL);
+	bResult = PreprocessFile(pcFile, NULL);
 	mpcUnit = NULL;
 	return bResult;
 }
@@ -2188,24 +2211,26 @@ SCTokenBlock CPreprocessor::PreprocessTokens(CPPTokenHolder* pcDestTokens, CMemo
 	CPreprocessorTokenParser	cParser;
 	BOOL						bResult;
 	int							iOldLine;
-	CChars						szError;
-	SPreprocessorPosition		sPos;
+	//CChars						szError;
+	//SPreprocessorPosition		sPos;
 
 	mpcPost = pcDestTokens;
 	mpcStack = pcStack;
 
 	if (miProcessTokensCalledCount > 0)
 	{
-		MarkPositionForError(&sPos);
-		sPos.Message(&szError);
-		gcUserError.Set("PreprocessTokens has already been called.");
-		sLine.Init(-1, -1);
-		return sLine;
+		//MarkPositionForError(&sPos);
+		//sPos.Message(&szError);
+		//gcUserError.Set("PreprocessTokens has already been called.");
+		//sLine.Init(-1, -1);
+		//return sLine;
+	}
+	else
+	{
+		mcArguments.Init();
 	}
 
 	miProcessTokensCalledCount++;
-
-	mcArguments.Init();
 
 	bResult = TRUE;
 	iNumLines = pcSourceTokens->mcArray.NumElements();
@@ -2320,12 +2345,16 @@ SCTokenBlock CPreprocessor::PreprocessTokens(CPPTokenHolder* pcDestTokens, CMemo
 		}
 	}
 
-	mcArguments.Kill();
-
 	//Seriously, do something about this.  They should be passed as parameters, not global variables.
 	//mpcPost = NULL;
 	//mpcStack = NULL;
 	miProcessTokensCalledCount--;
+
+	if (miProcessTokensCalledCount == 0)
+	{
+		mcArguments.Kill();
+
+	}
 	return sLine;
 }
 

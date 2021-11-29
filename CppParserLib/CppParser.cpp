@@ -341,7 +341,7 @@ void CCppParser::BuildAST(char* szSourze)
 		char*	szStart;
 
 		sz.Init("Parsing Broke (");
-		sz.Append(mcParser.Line()+1);
+		sz.Append(mcParser.Line() + 1);
 		sz.Append("): ");
 		szPos = mcParser.mszParserPos;
 		mcParser.FindStartOfLine();

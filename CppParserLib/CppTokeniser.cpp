@@ -303,7 +303,7 @@ void CTokeniser::PrintError(CPPLine* pcLine)
 	CChars		sz;
 
 	sz.Init("Tokenising Broke (");
-	sz.Append(mcParser.Line()+1);
+	sz.Append(mcParser.Line() + 1);
 	sz.Append(", ");
 	sz.Append(mcParser.Column()+1);
 	sz.Append("): ");
