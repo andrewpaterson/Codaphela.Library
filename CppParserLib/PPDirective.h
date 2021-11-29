@@ -32,6 +32,7 @@ enum EPreprocessorDirective
 	PPD_else,
 	PPD_if,
 	PPD_elif,
+
 	PPD_define,
 	PPD_include,
 	PPD_undef,
@@ -44,9 +45,10 @@ enum EPreprocessorDirective
 
 class CPPDirective : public CPPLine
 {
-public:
+private:
 	EPreprocessorDirective	meType;
 
+public:
 	TOKEN_CONSTRUCT(CPPDirective);
 	void	Init(int iLine, int iColumn);
 	void	Init(EPreprocessorDirective eType, int iLine, int iColumn);
@@ -54,6 +56,8 @@ public:
 	void	Set(EPreprocessorDirective eType);
 	char*	Append(CChars* psz);
 	void	Copy(CPPToken* pcSource, CMemoryStackExtended* pcStack);
+	BOOL	Is(EPreprocessorDirective eType);
+	BOOL	IsConditional(void);
 };
 
 

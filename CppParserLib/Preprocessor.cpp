@@ -1077,7 +1077,7 @@ SCTokenBlock CPreprocessor::Condition(CPPConditional* pcCond, SCTokenBlock iLine
 			sIndex.iTokenIndex = pcNext->msIndex.iTokenIndex;
 			return sIndex;
 		}
-		else if (pcCond->meType == PPD_endif)
+		else if (pcCond->Is(PPD_endif))
 		{
 			sIndex.iBlockIndex = pcCond->msIndex.iBlockIndex;
 			sIndex.iTokenIndex = -1;
@@ -2247,52 +2247,57 @@ SCTokenBlock CPreprocessor::PreprocessTokens(CPPTokenHolder* pcDestTokens, CMemo
 			mpcCurrentLine = pcDirective;
 			mpcCurrentLineParser = &cParser;
 			cParser.Init(pcDirective);
-			if (pcDirective->meType <= PPD_elif)
+			if (pcDirective->IsConditional())
 			{
-				switch (pcDirective->meType)
+				if (pcDirective->Is(PPD_ifdef))
 				{
-				case PPD_ifdef:
 					sLine = ProcessHashIfdef(&cParser, (CPPConditional*)pcDirective, sLine);
-					break;
-				case PPD_ifndef:
+				}
+				else if (pcDirective->Is(PPD_ifndef))
+				{
 					sLine = ProcessHashIfndef(&cParser, (CPPConditional*)pcDirective, sLine);
-					break;
-				case PPD_endif:
+				}
+				else if (pcDirective->Is(PPD_endif))
+				{
 					sLine = ProcessHashEndif(&cParser, (CPPConditional*)pcDirective, sLine);
-					break;
-				case PPD_else:
+				}
+				else if (pcDirective->Is(PPD_else))
+				{
 					sLine = ProcessHashElse(&cParser, (CPPConditional*)pcDirective, sLine);
-					break;
-				case PPD_if:
+				}
+				else if (pcDirective->Is(PPD_if))
+				{
 					sLine = ProcessHashIf(&cParser, (CPPConditional*)pcDirective, sLine);
-					break;
-				case PPD_elif:
+				}
+				else if (pcDirective->Is(PPD_ifndef))
+				{
 					sLine = ProcessHashElif(&cParser, (CPPConditional*)pcDirective, sLine);
-					break;
 				}
 			}
 			else
 			{
 				if (mcConditionalStack.IsParsing())
 				{
-					switch (pcDirective->meType)
+					if (pcDirective->Is(PPD_define))
 					{
-					case PPD_define:
 						bResult = ProcessHashDefine(&cParser);
-						break;
-					case PPD_include:
+					}
+					else if (pcDirective->Is(PPD_include))
+					{
 						bResult = ProcessHashInclude(&cParser);
-						break;
-					case PPD_undef:
+					}
+					else if (pcDirective->Is(PPD_undef))
+					{
 						ProcessHashUndef(&cParser);
-						break;
-					case PPD_error:
+					}
+					else if (pcDirective->Is(PPD_error))
+					{
 						ProcessHashError(&cParser);
 						bResult = FALSE;
-						break;
-					case PPD_pragma:
+					}
+					else if (pcDirective->Is(PPD_pragma))
+					{
 						bResult = ProcessHashPragma(&cParser);
-						break;
 					}
 				}
 				sLine.iTokenIndex++;
