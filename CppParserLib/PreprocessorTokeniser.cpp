@@ -499,7 +499,7 @@ CPPLine* CPreprocessorTokeniser::Line(CMemoryStackExtended* pcStack)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CPPToken* CPreprocessorTokeniser::AddToken(CPPToken* pcToken, CArrayPPTokens* pcTokens)
+CPPToken* CPreprocessorTokeniser::AddToken(CPPToken* pcToken, CArrayPPTokenPtrs* pcTokens)
 {
 	CPPToken**	ppcToken;
 

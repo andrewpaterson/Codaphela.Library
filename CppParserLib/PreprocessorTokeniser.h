@@ -59,7 +59,7 @@ public:
 	CPPDirective*			TokeniseHashError(CMemoryStackExtended* mpcStackGetIndex);
 	CPPDirective*			TokeniseHashPragma(CMemoryStackExtended* mpcStackGetIndex);
 
-	CPPToken*				AddToken(CPPToken* pcToken, CArrayPPTokens* pcTokens);
+	CPPToken*				AddToken(CPPToken* pcToken, CArrayPPTokenPtrs* pcTokens);
 	void					NextConditional(CPPConditional* pcCurrent);
 };
 

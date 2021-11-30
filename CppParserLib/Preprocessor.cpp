@@ -2087,7 +2087,7 @@ CPPToken* CPreprocessor::QuoteTokens(CPPTokenHolder* pcDest, CPPAbstractHolder* 
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CPPToken* CPreprocessor::AddToken(CPPToken* pcToken, CArrayPPTokens* pcTokens)
+CPPToken* CPreprocessor::AddToken(CPPToken* pcToken, CArrayPPTokenPtrs* pcTokens)
 {
 	CPPToken**	ppcToken;
 
