@@ -27,7 +27,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 class CPPTokenHolder
 {
 public:
-	CArrayPPTokens	mcArray;
+	CArrayPPTokenPtrs	mcArray;
 
 	void	Init(void);
 	void	Kill(void);

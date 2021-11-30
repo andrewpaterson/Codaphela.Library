@@ -58,7 +58,7 @@ public:
 };
 
 
-typedef CArrayTemplate<CPPToken*> CArrayPPTokens;
+typedef CArrayTemplate<CPPToken*> CArrayPPTokenPtrs;
 
 
 #endif // !__P_P_TOKEN_H__

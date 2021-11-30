@@ -43,7 +43,7 @@ void CLinePreprocessor::Do(CPPTokenHolder* pcLinesTokens, CPreprocessorParser* p
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CLinePreprocessor::Preprocess(CArrayPPTokens* pcTokens, CPreprocessorParser* pcParser, CMemoryStackExtended* pcStack, BOOL bAllowEscapes)
+void CLinePreprocessor::Preprocess(CArrayPPTokenPtrs* pcTokens, CPreprocessorParser* pcParser, CMemoryStackExtended* pcStack, BOOL bAllowEscapes)
 {
 	mpcParser = pcParser;
 	mpcTokens = pcTokens;
@@ -463,7 +463,7 @@ void CLinePreprocessor::AddAnnotationToken(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CPPToken* CLinePreprocessor::AddToken(CPPToken* pcToken, CArrayPPTokens* pcTokens)
+CPPToken* CLinePreprocessor::AddToken(CPPToken* pcToken, CArrayPPTokenPtrs* pcTokens)
 {
 	CPPToken**	ppcToken;
 

@@ -138,7 +138,7 @@ public:
 	BOOL				FindArguments(CPreprocessorTokenParser* pcParser, CArrayPPTokenHolders* pacArguments);
 	SCTokenBlock		Condition(CPPConditional* pcCond, SCTokenBlock iLine);
 	void				AddTokenToArgument(CPPTokenHolder* pcArgument, CPPToken* pcToken);
-	CPPToken*			AddToken(CPPToken* pcToken, CArrayPPTokens* pcTokens);
+	CPPToken*			AddToken(CPPToken* pcToken, CArrayPPTokenPtrs* pcTokens);
 	BOOL				ExpandDirectiveTokenIfNecessary(CPPToken* pcToken, CPPTokenHolder* pcDest, CPreprocessorTokenParser* pcParser, int iDepth);
 	BOOL				ExpandNormalLineTokenIfNecessary(CPPToken* pcToken, CPPTokenHolder* pcDest, CPreprocessorTokenParser* pcParser, int iDepth);
 	void				ExpandDirectiveReplacement(CPPReplacement* pcReplacement, CPPTokenHolder* pcDest, int iDepth);
