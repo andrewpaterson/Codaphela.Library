@@ -26,7 +26,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCppParser::Init(void)
+void CCPPParser::Init(void)
 {
 	mcAST.Init();
 	mcParser.Init();
@@ -260,7 +260,7 @@ A	, 			Comma.  This operator can just fuck-off already!
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCppParser::Kill(void)
+void CCPPParser::Kill(void)
 {
 	maszCallStack.Kill();
 	mszReservedWords.Kill();
@@ -277,7 +277,7 @@ void CCppParser::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCppParser::Expected(char* szString)
+void CCPPParser::Expected(char* szString)
 {
 	//EngineOutput("Expected: ");
 	//EngineOutput(szString);
@@ -289,7 +289,7 @@ void CCppParser::Expected(char* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCppParser::DebugPush(char* szMethod)
+void CCPPParser::DebugPush(char* szMethod)
 {
 	maszCallStack.Add(szMethod);
 }
@@ -299,7 +299,7 @@ void CCppParser::DebugPush(char* szMethod)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCppParser::DebugPop(CCppReturn bSuccessful)
+void CCPPParser::DebugPop(CCPPReturn bSuccessful)
 {
 	//CChars*		szMethod;
 	int			iTail;
@@ -319,9 +319,9 @@ void CCppParser::DebugPop(CCppReturn bSuccessful)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCppParser::BuildAST(char* szSourze)
+void CCPPParser::BuildAST(char* szSourze)
 {
-	CCppReturn	cReturn;
+	CCPPReturn	cReturn;
 
 	mcParser.Kill();
 	mcParser.Init(szSourze);
@@ -362,11 +362,11 @@ void CCppParser::BuildAST(char* szSourze)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::BlockBody(void)
+CCPPReturn CCPPParser::BlockBody(void)
 {
 	PARSE_PUSH("BlockBody");
 
-	CCppReturn	cReturn;
+	CCPPReturn	cReturn;
 
 	for (;;)
 	{
@@ -413,7 +413,7 @@ CCppReturn CCppParser::BlockBody(void)
 		}
 		break;
 	}
-	PARSE_POP(CCppReturn::True());
+	PARSE_POP(CCPPReturn::True());
 }
 
 
@@ -421,11 +421,11 @@ CCppReturn CCppParser::BlockBody(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::ClassBody(void)
+CCPPReturn CCPPParser::ClassBody(void)
 {
 	PARSE_PUSH("ClassBody");
 
-	CCppReturn	cReturn;
+	CCPPReturn	cReturn;
 	BOOL		bDefn;
 
 	for (;;)
@@ -493,7 +493,7 @@ CCppReturn CCppParser::ClassBody(void)
 		}
 		break;
 	}
-	PARSE_POP(CCppReturn::True());
+	PARSE_POP(CCPPReturn::True());
 }
 
 
@@ -501,11 +501,11 @@ CCppReturn CCppParser::ClassBody(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::NamespaceBody(void)
+CCPPReturn CCPPParser::NamespaceBody(void)
 {
 	PARSE_PUSH("NamespaceBody");
 
-	CCppReturn	cReturn;
+	CCPPReturn	cReturn;
 	BOOL		bDefn;
 
 	for (;;)
@@ -580,7 +580,7 @@ CCppReturn CCppParser::NamespaceBody(void)
 
 		break;
 	}
-	PARSE_POP(CCppReturn::True());
+	PARSE_POP(CCPPReturn::True());
 }
 
 
@@ -588,11 +588,11 @@ CCppReturn CCppParser::NamespaceBody(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::ClassDecl(void)
+CCPPReturn CCPPParser::ClassDecl(void)
 {
 	PARSE_PUSH("ClassDecl");
 
-	CCppReturn	cReturn;
+	CCPPReturn	cReturn;
 	TRISTATE	tResult;
 	EClassType	eClassType;
 
@@ -602,17 +602,17 @@ CCppReturn CCppParser::ClassDecl(void)
 		cReturn = Name();
 		if (cReturn.IsNotFound())
 		{
-			PARSE_POP(CCppReturn::NotFound());
+			PARSE_POP(CCPPReturn::NotFound());
 		}
 
 		tResult = mcParser.GetExactCharacter(';');
 		if (tResult == TRITRUE)
 		{
-			PARSE_POP(CCppReturn::True());
+			PARSE_POP(CCPPReturn::True());
 		}
 		else if (tResult == TRIERROR)
 		{
-			PARSE_POP(CCppReturn::NotFound());
+			PARSE_POP(CCPPReturn::NotFound());
 		}
 
 		cReturn = ClassDefn();
@@ -620,7 +620,7 @@ CCppReturn CCppParser::ClassDecl(void)
 	}
 	else
 	{
-		PARSE_POP(CCppReturn::NotFound());
+		PARSE_POP(CCPPReturn::NotFound());
 	}
 }
 
@@ -629,12 +629,12 @@ CCppReturn CCppParser::ClassDecl(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::ClassDefn(void)
+CCPPReturn CCPPParser::ClassDefn(void)
 {
 	PARSE_PUSH("ClassDefn");
 
 	TRISTATE	tResult;
-	CCppReturn	cReturn;
+	CCPPReturn	cReturn;
 
 	tResult = mcParser.GetExactCharacter(':');
 	if (tResult == TRITRUE)
@@ -649,16 +649,16 @@ CCppReturn CCppParser::ClassDefn(void)
 		cReturn = ClosingCurlyColon();
 		if (cReturn.IsTrue())
 		{
-			PARSE_POP(CCppReturn::True());
+			PARSE_POP(CCPPReturn::True());
 		}
 		else 
 		{
-			PARSE_POP(CCppReturn::NotFound());
+			PARSE_POP(CCPPReturn::NotFound());
 		}
 	}
 	else
 	{
-		PARSE_POP(CCppReturn::NotFound());
+		PARSE_POP(CCPPReturn::NotFound());
 	}
 }
 
@@ -667,11 +667,11 @@ CCppReturn CCppParser::ClassDefn(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::ClassInheritance(void)
+CCPPReturn CCPPParser::ClassInheritance(void)
 {
 	PARSE_PUSH("ClassInheritance");
 
-	CCppReturn			cReturn;
+	CCPPReturn			cReturn;
 	EAccessSpecifiers	eSpec;
 	int					iCount;
 
@@ -690,15 +690,15 @@ CCppReturn CCppParser::ClassInheritance(void)
 		{
 			if (iCount >0)
 			{
-				PARSE_POP(CCppReturn::True());
+				PARSE_POP(CCPPReturn::True());
 			}
 			else
 			{
-				PARSE_POP(CCppReturn::NotFound());
+				PARSE_POP(CCPPReturn::NotFound());
 			}
 		}
 	}
-	PARSE_POP(CCppReturn::InternalError());
+	PARSE_POP(CCPPReturn::InternalError());
 }
 
 
@@ -706,7 +706,7 @@ CCppReturn CCppParser::ClassInheritance(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::AccessSpecifier(EAccessSpecifiers* peSimpleType)
+CCPPReturn CCPPParser::AccessSpecifier(EAccessSpecifiers* peSimpleType)
 {
 	PARSE_PUSH("AccessSpecifier");
 
@@ -721,14 +721,14 @@ CCppReturn CCppParser::AccessSpecifier(EAccessSpecifiers* peSimpleType)
 		if (tResult == TRITRUE)
 		{
 			*peSimpleType = (EAccessSpecifiers)i;
-			PARSE_POP(CCppReturn::True());
+			PARSE_POP(CCPPReturn::True());
 		}
 		else if (tResult == TRIERROR)
 		{
-			PARSE_POP(CCppReturn::NotFound());
+			PARSE_POP(CCPPReturn::NotFound());
 		}
 	}
-	PARSE_POP(CCppReturn::NotFound());
+	PARSE_POP(CCPPReturn::NotFound());
 }
 
 
@@ -736,11 +736,11 @@ CCppReturn CCppParser::AccessSpecifier(EAccessSpecifiers* peSimpleType)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::ClassAccess(void)
+CCPPReturn CCPPParser::ClassAccess(void)
 {
 	PARSE_PUSH("ClassAccess");
 
-	CCppReturn			cReturn;
+	CCPPReturn			cReturn;
 	EAccessSpecifiers	eSpec;
 	TRISTATE			tResult;
 
@@ -750,17 +750,17 @@ CCppReturn CCppParser::ClassAccess(void)
 		tResult = mcParser.GetExactCharacter(':');
 		if (tResult == TRITRUE)
 		{
-			PARSE_POP(CCppReturn::True());
+			PARSE_POP(CCPPReturn::True());
 		}
 		else
 		{
 			Expected(":");
-			PARSE_POP(CCppReturn::NotFound());
+			PARSE_POP(CCPPReturn::NotFound());
 		}
 	}
 	else 
 	{
-		PARSE_POP(CCppReturn::NotFound());
+		PARSE_POP(CCPPReturn::NotFound());
 	}
 }
 
@@ -768,11 +768,11 @@ CCppReturn CCppParser::ClassAccess(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::EnumDecl(void)
+CCPPReturn CCPPParser::EnumDecl(void)
 {
 	PARSE_PUSH("EnumDecl");
 
-	CCppReturn	cReturn;
+	CCPPReturn	cReturn;
 	TRISTATE	tResult;
 
 	cReturn = EnumSpec();
@@ -782,20 +782,20 @@ CCppReturn CCppParser::EnumDecl(void)
 		if (cReturn.IsNotFound())
 		{
 			Expected("Name");
-			PARSE_POP(CCppReturn::NotFound());
+			PARSE_POP(CCPPReturn::NotFound());
 		}
 
 		tResult = mcParser.GetExactCharacter(';');
 		if (tResult == TRITRUE)
 		{
-			PARSE_POP(CCppReturn::True());
+			PARSE_POP(CCPPReturn::True());
 		}
 		cReturn = EnumDefn();
 		PARSE_POP(cReturn);
 	}
 	else
 	{
-		PARSE_POP(CCppReturn::NotFound());
+		PARSE_POP(CCPPReturn::NotFound());
 	}
 }
 
@@ -804,11 +804,11 @@ CCppReturn CCppParser::EnumDecl(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::FunctionPointerDecl(BOOL bAllowsName)
+CCPPReturn CCPPParser::FunctionPointerDecl(BOOL bAllowsName)
 {
 	PARSE_PUSH("FunctionPointerDecl");
 
-	CCppReturn		cReturn;
+	CCPPReturn		cReturn;
 	TRISTATE		tResult;
 	ESimpleTypes	eSpec;
 	int				iPointers;
@@ -835,14 +835,14 @@ CCppReturn CCppParser::FunctionPointerDecl(BOOL bAllowsName)
 					if (cReturn.IsTrue())
 					{
 						mcParser.PassPosition();
-						PARSE_POP(CCppReturn::True());
+						PARSE_POP(CCPPReturn::True());
 					}
 				}
 			}
 		}
 	}
 	mcParser.PopPosition();
-	PARSE_POP(CCppReturn::NotFound());
+	PARSE_POP(CCPPReturn::NotFound());
 }
 
 
@@ -851,11 +851,11 @@ CCppReturn CCppParser::FunctionPointerDecl(BOOL bAllowsName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::VariablesDecl(void)
+CCPPReturn CCPPParser::VariablesDecl(void)
 {
 	PARSE_PUSH("VariablesDecl");
 
-	CCppReturn			cReturn;
+	CCPPReturn			cReturn;
 	TRISTATE			tResult;
 
 	cReturn = FunctionPointerDecl(TRUE);
@@ -864,12 +864,12 @@ CCppReturn CCppParser::VariablesDecl(void)
 		tResult = mcParser.GetExactCharacter(';');
 		if (tResult == TRITRUE)
 		{
-			PARSE_POP(CCppReturn::True());
+			PARSE_POP(CCPPReturn::True());
 		}
 		else
 		{
 			Expected(";");
-			PARSE_POP(CCppReturn::NotFound());
+			PARSE_POP(CCPPReturn::NotFound());
 		}
 	}
 
@@ -882,11 +882,11 @@ CCppReturn CCppParser::VariablesDecl(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::ListDecl(void)
+CCPPReturn CCPPParser::ListDecl(void)
 {
 	PARSE_PUSH("ListDecl");
 
-	CCppReturn			cReturn;
+	CCPPReturn			cReturn;
 	TRISTATE			tResult;
 	ESimpleTypes		eSpec;
 	int					iPointers;
@@ -912,12 +912,12 @@ CCppReturn CCppParser::ListDecl(void)
 				{
 					//Whoops, was a funcion definition.
 					mcParser.PopPosition();
-					PARSE_POP(CCppReturn::NotFound());
+					PARSE_POP(CCPPReturn::NotFound());
 				}
 				else if (tResult == TRIERROR)
 				{
 					mcParser.PopPosition();
-					PARSE_POP(CCppReturn::NotFound());
+					PARSE_POP(CCPPReturn::NotFound());
 				}
 			}
 
@@ -925,19 +925,19 @@ CCppReturn CCppParser::ListDecl(void)
 			if (tResult == TRITRUE)
 			{
 				mcParser.PassPosition();
-				PARSE_POP(CCppReturn::True());
+				PARSE_POP(CCPPReturn::True());
 			}
 			else if (tResult == TRIERROR)
 			{
 				mcParser.PopPosition();
-				PARSE_POP(CCppReturn::NotFound());
+				PARSE_POP(CCPPReturn::NotFound());
 			}
 
 			tResult = mcParser.GetExactCharacter(',');
 			if (tResult != TRITRUE)
 			{
 				mcParser.PopPosition();
-				PARSE_POP(CCppReturn::NotFound());
+				PARSE_POP(CCPPReturn::NotFound());
 			}
 		}
 	}
@@ -953,11 +953,11 @@ CCppReturn CCppParser::ListDecl(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::SingleVariableDeclaration(void)
+CCPPReturn CCPPParser::SingleVariableDeclaration(void)
 {
 	PARSE_PUSH("SingleVariableDeclaration");
 
-	CCppReturn	cReturn;
+	CCPPReturn	cReturn;
 	TRISTATE	tResult;
 
 	cReturn = Name();
@@ -982,23 +982,23 @@ CCppReturn CCppParser::SingleVariableDeclaration(void)
 				if (cReturn.IsNotFound())
 				{
 					//This deals with the constructor case
-					PARSE_POP(CCppReturn::NotFound());
+					PARSE_POP(CCPPReturn::NotFound());
 				}
 
 				tResult = mcParser.GetExactCharacter(')');
 				if (tResult == TRITRUE)
 				{
-					PARSE_POP(CCppReturn::True());
+					PARSE_POP(CCPPReturn::True());
 				}
 				else
 				{
 					Expected(")");
-					PARSE_POP(CCppReturn::NotFound());
+					PARSE_POP(CCPPReturn::NotFound());
 				}
 			}
 			else
 			{
-				PARSE_POP(CCppReturn::True());
+				PARSE_POP(CCPPReturn::True());
 			}
 		}
 	}
@@ -1013,12 +1013,12 @@ CCppReturn CCppParser::SingleVariableDeclaration(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::DeclInitialisers(void)
+CCPPReturn CCPPParser::DeclInitialisers(void)
 {
 	PARSE_PUSH("DeclInitialisers");
 
 	TRISTATE	tResult;
-	CCppReturn	cReturn;
+	CCPPReturn	cReturn;
 	int			iCount;
 
 	tResult = mcParser.GetExactCharacter('{');
@@ -1030,11 +1030,11 @@ CCppReturn CCppParser::DeclInitialisers(void)
 		if (tResult != TRITRUE)
 		{
 			Expected("}");
-			PARSE_POP(CCppReturn::NotFound());
+			PARSE_POP(CCPPReturn::NotFound());
 		}
 		else
 		{
-			PARSE_POP(CCppReturn::True());
+			PARSE_POP(CCPPReturn::True());
 		}
 	}
 	else
@@ -1047,7 +1047,7 @@ CCppReturn CCppParser::DeclInitialisers(void)
 		else
 		{
 			Expected("Expression");
-			PARSE_POP(CCppReturn::NotFound());
+			PARSE_POP(CCPPReturn::NotFound());
 		}
 	}
 }
@@ -1057,11 +1057,11 @@ CCppReturn CCppParser::DeclInitialisers(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::DeclInitialisersContstructor(void)
+CCPPReturn CCPPParser::DeclInitialisersContstructor(void)
 {
 	PARSE_PUSH("DeclInitialisersContstructor");
 
-	CCppReturn	cReturn;
+	CCPPReturn	cReturn;
 	int			iCount;
 
 	cReturn = Aggregate(&iCount);
@@ -1073,12 +1073,12 @@ CCppReturn CCppParser::DeclInitialisersContstructor(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::Aggregate(int* piExpressions)
+CCPPReturn CCPPParser::Aggregate(int* piExpressions)
 {
 	PARSE_PUSH("Aggregate");
 
 	TRISTATE	tResult;
-	CCppReturn	cReturn;
+	CCPPReturn	cReturn;
 
 	*piExpressions = 0;
 	for (;;)
@@ -1097,12 +1097,12 @@ CCppReturn CCppParser::Aggregate(int* piExpressions)
 		{
 			if (*piExpressions == 0)
 			{
-				PARSE_POP(CCppReturn::NotFound());
+				PARSE_POP(CCPPReturn::NotFound());
 			}
 			break;
 		}
 	}
-	PARSE_POP(CCppReturn::True());	
+	PARSE_POP(CCPPReturn::True());	
 }
 
 
@@ -1110,7 +1110,7 @@ CCppReturn CCppParser::Aggregate(int* piExpressions)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::Name(void)
+CCPPReturn CCPPParser::Name(void)
 {
 	PARSE_PUSH("Name");
 
@@ -1124,7 +1124,7 @@ CCppReturn CCppParser::Name(void)
 	if (bResult)
 	{
 		mcParser.PopPosition();
-		PARSE_POP(CCppReturn::NotFound());
+		PARSE_POP(CCPPReturn::NotFound());
 	}
 	mcParser.PassPosition();
 
@@ -1141,11 +1141,11 @@ CCppReturn CCppParser::Name(void)
 			mcParser.GetIdentifier(sz);
 			free(sz);
 		}
-		PARSE_POP(CCppReturn::True());
+		PARSE_POP(CCPPReturn::True());
 	}
 	else
 	{
-		PARSE_POP(CCppReturn::NotFound());
+		PARSE_POP(CCPPReturn::NotFound());
 	}
 }
 
@@ -1154,11 +1154,11 @@ CCppReturn CCppParser::Name(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::ArrayDecl(void)
+CCPPReturn CCPPParser::ArrayDecl(void)
 {
 	PARSE_PUSH("ArrayDecl");
 
-	CCppReturn	cReturn;
+	CCPPReturn	cReturn;
 	int			iCount;
 
 	iCount = 0;
@@ -1177,11 +1177,11 @@ CCppReturn CCppParser::ArrayDecl(void)
 
 	if (iCount > 0)
 	{
-		PARSE_POP(CCppReturn::True());
+		PARSE_POP(CCPPReturn::True());
 	}
 	else
 	{
-		PARSE_POP(CCppReturn::NotFound());
+		PARSE_POP(CCPPReturn::NotFound());
 	}
 }
 
@@ -1190,12 +1190,12 @@ CCppReturn CCppParser::ArrayDecl(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::ArrayBody(void)
+CCPPReturn CCPPParser::ArrayBody(void)
 {
 	PARSE_PUSH("ArrayBody");
 
 	TRISTATE	tResult;
-	CCppReturn	cReturn;
+	CCPPReturn	cReturn;
 
 	tResult = mcParser.GetExactCharacter('[');
 	if (tResult == TRITRUE)
@@ -1203,7 +1203,7 @@ CCppReturn CCppParser::ArrayBody(void)
 		tResult = mcParser.GetExactCharacter(']');
 		if (tResult == TRITRUE)
 		{
-			PARSE_POP(CCppReturn::True());
+			PARSE_POP(CCPPReturn::True());
 		}
 		else
 		{
@@ -1213,21 +1213,21 @@ CCppReturn CCppParser::ArrayBody(void)
 				tResult = mcParser.GetExactCharacter(']');
 				if (tResult == TRITRUE)
 				{
-					PARSE_POP(CCppReturn::True());
+					PARSE_POP(CCPPReturn::True());
 				}
 				else
 				{
 					Expected("]");
-					PARSE_POP(CCppReturn::NotFound());
+					PARSE_POP(CCPPReturn::NotFound());
 				}
 			}
 			Expected("Expression");
-			PARSE_POP(CCppReturn::NotFound());
+			PARSE_POP(CCPPReturn::NotFound());
 		}
 	}
 	else
 	{
-		PARSE_POP(CCppReturn::NotFound());
+		PARSE_POP(CCPPReturn::NotFound());
 	}
 }
 
@@ -1237,7 +1237,7 @@ CCppReturn CCppParser::ArrayBody(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::ArrayOperator(void)
+CCPPReturn CCPPParser::ArrayOperator(void)
 {
 	PARSE_PUSH("ArrayBody");
 
@@ -1249,15 +1249,15 @@ CCppReturn CCppParser::ArrayOperator(void)
 		tResult = mcParser.GetExactCharacter(']');
 		if (tResult == TRITRUE)
 		{
-			PARSE_POP(CCppReturn::True());
+			PARSE_POP(CCPPReturn::True());
 		}
 		else
 		{
 			Expected("]");
-			PARSE_POP(CCppReturn::NotFound());
+			PARSE_POP(CCPPReturn::NotFound());
 		}
 	}
-	PARSE_POP(CCppReturn::NotFound());
+	PARSE_POP(CCPPReturn::NotFound());
 }
 
 
@@ -1265,11 +1265,11 @@ CCppReturn CCppParser::ArrayOperator(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::Expressable(void)
+CCPPReturn CCPPParser::Expressable(void)
 {
 	PARSE_PUSH("Expressable");
 
-	CCppReturn			cReturn;
+	CCPPReturn			cReturn;
 	ESimpleOperators	eOp;
 	ESimpleTypes		eType;
 	TRISTATE			tResult;
@@ -1277,54 +1277,54 @@ CCppReturn CCppParser::Expressable(void)
 	cReturn = Constant();
 	if (cReturn.IsTrue())
 	{
-		PARSE_POP(CCppReturn::True());
+		PARSE_POP(CCPPReturn::True());
 	}
 	
 	cReturn = SimpleOperator(&eOp);
 	if (cReturn.IsTrue())
 	{
-		PARSE_POP(CCppReturn::True());
+		PARSE_POP(CCPPReturn::True());
 	}
 
 	//Could be a type cast, a bracketted expression or a function call.
 	cReturn = Parentheses();
 	if (cReturn.IsTrue())
 	{
-		PARSE_POP(CCppReturn::True());
+		PARSE_POP(CCPPReturn::True());
 	}
 
 	cReturn = ArrayAccess();
 	if (cReturn.IsTrue())
 	{
-		PARSE_POP(CCppReturn::True());
+		PARSE_POP(CCPPReturn::True());
 	}
 
 	cReturn = SimpleType(&eType);
 	if (cReturn.IsTrue())
 	{
-		PARSE_POP(CCppReturn::True());
+		PARSE_POP(CCPPReturn::True());
 	}
 
 	tResult = mcParser.GetExactIdentifier("this");
 	if (tResult == TRITRUE)
 	{
-		PARSE_POP(CCppReturn::True());
+		PARSE_POP(CCPPReturn::True());
 	}
 
 	tResult = mcParser.GetExactCharacter(',');
 	if (tResult == TRITRUE)
 	{
-		PARSE_POP(CCppReturn::True());
+		PARSE_POP(CCPPReturn::True());
 	}
 
 	cReturn = Name();
 	if (cReturn.IsTrue())
 	{
-		PARSE_POP(CCppReturn::True());
+		PARSE_POP(CCPPReturn::True());
 	}
 
 
-	PARSE_POP(CCppReturn::NotFound());
+	PARSE_POP(CCPPReturn::NotFound());
 }
 
 
@@ -1332,11 +1332,11 @@ CCppReturn CCppParser::Expressable(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::Expression(void)
+CCPPReturn CCPPParser::Expression(void)
 {
 	PARSE_PUSH("Expression");
 
-	CCppReturn			cReturn;
+	CCPPReturn			cReturn;
 	int					iCount;
 
 	for (iCount = 0;; iCount++)
@@ -1350,11 +1350,11 @@ CCppReturn CCppParser::Expression(void)
 
 	if (iCount == 0)
 	{
-		PARSE_POP(CCppReturn::NotFound());
+		PARSE_POP(CCPPReturn::NotFound());
 	}
 	else
 	{
-		PARSE_POP(CCppReturn::True());
+		PARSE_POP(CCPPReturn::True());
 	}
 }
 
@@ -1363,11 +1363,11 @@ CCppReturn CCppParser::Expression(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::ArrayAccess(void)
+CCPPReturn CCPPParser::ArrayAccess(void)
 {
 	PARSE_PUSH("ArrayAccess");
 
-	CCppReturn	cReturn;
+	CCPPReturn	cReturn;
 	int			iCount;
 
 	iCount = 0;
@@ -1386,11 +1386,11 @@ CCppReturn CCppParser::ArrayAccess(void)
 
 	if (iCount > 0)
 	{
-		PARSE_POP(CCppReturn::True());
+		PARSE_POP(CCPPReturn::True());
 	}
 	else
 	{
-		PARSE_POP(CCppReturn::NotFound());
+		PARSE_POP(CCPPReturn::NotFound());
 	}
 }
 
@@ -1399,7 +1399,7 @@ CCppReturn CCppParser::ArrayAccess(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::Reference(void)
+CCPPReturn CCPPParser::Reference(void)
 {
 	PARSE_PUSH("Reference");
 
@@ -1419,7 +1419,7 @@ CCppReturn CCppParser::Reference(void)
 		}
 		else if (tResult == TRIERROR)
 		{
-			PARSE_POP(CCppReturn::NotFound());
+			PARSE_POP(CCPPReturn::NotFound());
 		}
 		tResult = mcParser.GetExactCharacter('&');
 		if (tResult == TRITRUE)
@@ -1429,17 +1429,17 @@ CCppReturn CCppParser::Reference(void)
 		}
 		else if (tResult == TRIERROR)
 		{
-			PARSE_POP(CCppReturn::NotFound());
+			PARSE_POP(CCPPReturn::NotFound());
 		}
 		break;
 	}
 	if (iRef+iDeref > 0)
 	{
-		PARSE_POP(CCppReturn::True());
+		PARSE_POP(CCPPReturn::True());
 	}
 	else
 	{
-		PARSE_POP(CCppReturn::NotFound());
+		PARSE_POP(CCPPReturn::NotFound());
 	}
 }
 
@@ -1448,11 +1448,11 @@ CCppReturn CCppParser::Reference(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::Constant(void)
+CCPPReturn CCPPParser::Constant(void)
 {
 	PARSE_PUSH("Constant");
 
-	CCppReturn	cReturn;
+	CCPPReturn	cReturn;
 	TRISTATE	tResult;
 
 	cReturn = BooleanConst();
@@ -1485,10 +1485,10 @@ CCppReturn CCppParser::Constant(void)
 	{
 		tResult = mcParser.GetExactCharacter('f', FALSE);
 		tResult = mcParser.GetExactCharacter('F', FALSE);
-		PARSE_POP(CCppReturn::True());
+		PARSE_POP(CCPPReturn::True());
 	}
 
-	PARSE_POP(CCppReturn::NotFound());
+	PARSE_POP(CCPPReturn::NotFound());
 }
 
 
@@ -1496,7 +1496,7 @@ CCppReturn CCppParser::Constant(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::DoubleConst(void)
+CCPPReturn CCPPParser::DoubleConst(void)
 {
 	PARSE_PUSH("DoubleConst");
 
@@ -1514,22 +1514,22 @@ CCppReturn CCppParser::DoubleConst(void)
 			tResult = mcParser.GetInteger(&iExponent, &iTemp, FALSE);
 			if (tResult == TRITRUE)
 			{
-				PARSE_POP(CCppReturn::True());
+				PARSE_POP(CCPPReturn::True());
 			}
 			else
 			{
 				Expected("Integer");
-				PARSE_POP(CCppReturn::NotFound());
+				PARSE_POP(CCPPReturn::NotFound());
 			}
 		}
 		else
 		{
-			PARSE_POP(CCppReturn::True());
+			PARSE_POP(CCPPReturn::True());
 		}
 	}
 	else
 	{
-		PARSE_POP(CCppReturn::NotFound());
+		PARSE_POP(CCPPReturn::NotFound());
 	}
 }
 
@@ -1538,7 +1538,7 @@ CCppReturn CCppParser::DoubleConst(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::BooleanConst(void)
+CCPPReturn CCPPParser::BooleanConst(void)
 {
 	PARSE_PUSH("BooleanConst");
 
@@ -1547,23 +1547,23 @@ CCppReturn CCppParser::BooleanConst(void)
 	tResult = mcParser.GetExactIdentifier("true");
 	if (tResult == TRITRUE)
 	{
-		PARSE_POP(CCppReturn::True());
+		PARSE_POP(CCPPReturn::True());
 	}
 	else if (tResult == TRIFALSE)
 	{
 		tResult = mcParser.GetExactIdentifier("false");
 		if (tResult == TRITRUE)
 		{
-			PARSE_POP(CCppReturn::True());
+			PARSE_POP(CCPPReturn::True());
 		}
 		else
 		{
-			PARSE_POP(CCppReturn::NotFound());
+			PARSE_POP(CCPPReturn::NotFound());
 		}
 	}
 	else
 	{
-		PARSE_POP(CCppReturn::NotFound());
+		PARSE_POP(CCPPReturn::NotFound());
 	}
 }
 
@@ -1572,7 +1572,7 @@ CCppReturn CCppParser::BooleanConst(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::CharConst(void)
+CCPPReturn CCPPParser::CharConst(void)
 {
 	PARSE_PUSH("CharConst");
 
@@ -1586,19 +1586,19 @@ CCppReturn CCppParser::CharConst(void)
 		if (tResult == TRIERROR)
 		{
 			Expected("Character");
-			PARSE_POP(CCppReturn::NotFound());
+			PARSE_POP(CCPPReturn::NotFound());
 		}
 		tResult = mcParser.GetExactCharacter('\'');
 		if (tResult == TRIERROR)
 		{
 			Expected("'");
-			PARSE_POP(CCppReturn::NotFound());
+			PARSE_POP(CCPPReturn::NotFound());
 		}
-		PARSE_POP(CCppReturn::True());
+		PARSE_POP(CCPPReturn::True());
 	}
 	else
 	{
-		PARSE_POP(CCppReturn::NotFound());
+		PARSE_POP(CCPPReturn::NotFound());
 	}
 }
 
@@ -1607,7 +1607,7 @@ CCppReturn CCppParser::CharConst(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::StringConst(void)
+CCPPReturn CCPPParser::StringConst(void)
 {
 	PARSE_PUSH("StringConst");
 
@@ -1628,11 +1628,11 @@ CCppReturn CCppParser::StringConst(void)
 			mcParser.GetQuotedCharacterSequence('"', '"', sz);
 			free(sz);
 		}
-		PARSE_POP(CCppReturn::True());
+		PARSE_POP(CCPPReturn::True());
 	}
 	else if (tResult == TRIFALSE)
 	{
-		PARSE_POP(CCppReturn::NotFound());
+		PARSE_POP(CCPPReturn::NotFound());
 	}
 	else
 	{
@@ -1640,7 +1640,7 @@ CCppReturn CCppParser::StringConst(void)
 		{
 			Expected("\"");
 		}
-		PARSE_POP(CCppReturn::NotFound());
+		PARSE_POP(CCPPReturn::NotFound());
 	}
 }
 
@@ -1648,7 +1648,7 @@ CCppReturn CCppParser::StringConst(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::DecimalInteger(void)
+CCPPReturn CCPPParser::DecimalInteger(void)
 {
 	PARSE_PUSH("DecimalInteger");
 
@@ -1666,14 +1666,14 @@ CCppReturn CCppParser::DecimalInteger(void)
 		if (mcParser.mszParserPos[0] == '.')
 		{
 			mcParser.PopPosition();
-			PARSE_POP(CCppReturn::NotFound());
+			PARSE_POP(CCPPReturn::NotFound());
 		}
 
 		mcParser.PassPosition();
-		PARSE_POP(CCppReturn::True());
+		PARSE_POP(CCPPReturn::True());
 	}
 	mcParser.PopPosition();
-	PARSE_POP(CCppReturn::NotFound());
+	PARSE_POP(CCPPReturn::NotFound());
 }
 
 
@@ -1681,20 +1681,20 @@ CCppReturn CCppParser::DecimalInteger(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::IntegerConst(void)
+CCPPReturn CCPPParser::IntegerConst(void)
 {
 	PARSE_PUSH("IntegerConst");
 
 	unsigned long long int	ulliNumber;
 	int						iNumDigits;
 	TRISTATE				tResult;
-	CCppReturn				cReturn;
+	CCPPReturn				cReturn;
 
 	cReturn = DecimalInteger();
 	if (cReturn.IsTrue())
 	{
 		IntegerConstType();
-		PARSE_POP(CCppReturn::True());
+		PARSE_POP(CCPPReturn::True());
 	}
 	else
 	{
@@ -1702,7 +1702,7 @@ CCppReturn CCppParser::IntegerConst(void)
 		if (tResult == TRITRUE)
 		{
 			IntegerConstType();
-			PARSE_POP(CCppReturn::True());
+			PARSE_POP(CCPPReturn::True());
 		}
 		else
 		{
@@ -1710,11 +1710,11 @@ CCppReturn CCppParser::IntegerConst(void)
 			if (tResult == TRITRUE)
 			{
 				IntegerConstType();
-				PARSE_POP(CCppReturn::True());
+				PARSE_POP(CCPPReturn::True());
 			}
 			else
 			{
-				PARSE_POP(CCppReturn::NotFound());
+				PARSE_POP(CCPPReturn::NotFound());
 			}
 		}
 	}
@@ -1725,7 +1725,7 @@ CCppReturn CCppParser::IntegerConst(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::IntegerConstType(void)
+CCPPReturn CCPPParser::IntegerConstType(void)
 {
 	PARSE_PUSH("IntegerConst");
 
@@ -1737,7 +1737,7 @@ CCppReturn CCppParser::IntegerConstType(void)
 	tResult = mcParser.GetExactCaseInsensitiveCharacter('L', FALSE);
 	tResult = mcParser.GetExactCaseInsensitiveCharacter('L', FALSE);
 
-	PARSE_POP(CCppReturn::True());
+	PARSE_POP(CCPPReturn::True());
 }
 
 
@@ -1745,12 +1745,12 @@ CCppReturn CCppParser::IntegerConstType(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::Arguments(void)
+CCPPReturn CCPPParser::Arguments(void)
 {
 	PARSE_PUSH("Arguments");
 
 	TRISTATE	tResult;
-	CCppReturn	cReturn;
+	CCPPReturn	cReturn;
 	int			iCount;
 
 	tResult = mcParser.GetExactCharacter('(');
@@ -1759,12 +1759,12 @@ CCppReturn CCppParser::Arguments(void)
 		tResult = mcParser.GetExactCharacter(')');
 		if (tResult == TRITRUE)
 		{
-			PARSE_POP(CCppReturn::True());
+			PARSE_POP(CCPPReturn::True());
 		}
 		else if (tResult == TRIERROR)
 		{
 			Expected(")");
-			PARSE_POP(CCppReturn::NotFound());
+			PARSE_POP(CCPPReturn::NotFound());
 		}
 		
 		cReturn = Aggregate(&iCount);
@@ -1773,24 +1773,24 @@ CCppReturn CCppParser::Arguments(void)
 			tResult = mcParser.GetExactCharacter(')');
 			if (tResult == TRITRUE)
 			{
-				PARSE_POP(CCppReturn::True());
+				PARSE_POP(CCPPReturn::True());
 			}
 			else if (tResult == TRIERROR)
 			{
 				Expected(")");
-				PARSE_POP(CCppReturn::NotFound());
+				PARSE_POP(CCPPReturn::NotFound());
 			}
 		}
 		else
 		{
 			Expected("Aggregate");
-			PARSE_POP(CCppReturn::NotFound());
+			PARSE_POP(CCPPReturn::NotFound());
 		}
-		PARSE_POP(CCppReturn::True());
+		PARSE_POP(CCPPReturn::True());
 	}
 	else
 	{
-		PARSE_POP(CCppReturn::NotFound());
+		PARSE_POP(CCPPReturn::NotFound());
 	}
 }
 
@@ -1799,16 +1799,16 @@ CCppReturn CCppParser::Arguments(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::Operator(ESimpleOperators* peOp, BOOL bEmptyTypeCast)
+CCPPReturn CCPPParser::Operator(ESimpleOperators* peOp, BOOL bEmptyTypeCast)
 {
 	PARSE_PUSH("Operator");
 
-	CCppReturn			cReturn;
+	CCPPReturn			cReturn;
 
 	cReturn = SimpleOperator(peOp);
 	if (cReturn.IsTrue())
 	{
-		PARSE_POP(CCppReturn::True());
+		PARSE_POP(CCPPReturn::True());
 	}
 	else
 	{
@@ -1816,7 +1816,7 @@ CCppReturn CCppParser::Operator(ESimpleOperators* peOp, BOOL bEmptyTypeCast)
 		if (cReturn.IsTrue())
 		{
 			*peOp = SO_TypeCast;
-			PARSE_POP(CCppReturn::True());
+			PARSE_POP(CCPPReturn::True());
 		}
 		else
 		{
@@ -1824,12 +1824,12 @@ CCppReturn CCppParser::Operator(ESimpleOperators* peOp, BOOL bEmptyTypeCast)
 			if (cReturn.IsTrue())
 			{
 				*peOp = SO_Array;
-				PARSE_POP(CCppReturn::True());
+				PARSE_POP(CCPPReturn::True());
 			}
 		}
 	}
 	*peOp = SO_invalid;
-	PARSE_POP(CCppReturn::NotFound());
+	PARSE_POP(CCPPReturn::NotFound());
 }
 
 
@@ -1837,12 +1837,12 @@ CCppReturn CCppParser::Operator(ESimpleOperators* peOp, BOOL bEmptyTypeCast)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::Parentheses(void)
+CCPPReturn CCPPParser::Parentheses(void)
 {
 	PARSE_PUSH("Parentheses");
 
 	TRISTATE	tResult;
-	CCppReturn	cReturn;
+	CCPPReturn	cReturn;
 
 	mcParser.PushPosition();
 	tResult = mcParser.GetExactCharacter('(');
@@ -1852,7 +1852,7 @@ CCppReturn CCppParser::Parentheses(void)
 		if (tResult == TRITRUE)
 		{
 			mcParser.PassPosition();
-			PARSE_POP(CCppReturn::True());
+			PARSE_POP(CCPPReturn::True());
 		}
 		else
 		{
@@ -1863,17 +1863,17 @@ CCppReturn CCppParser::Parentheses(void)
 				if (tResult == TRITRUE)
 				{
 					mcParser.PassPosition();
-					PARSE_POP(CCppReturn::True());
+					PARSE_POP(CCPPReturn::True());
 				}
 			}
 			mcParser.PopPosition();
-			PARSE_POP(CCppReturn::NotFound());
+			PARSE_POP(CCPPReturn::NotFound());
 		}
 	}
 	else
 	{
 		mcParser.PopPosition();
-		PARSE_POP(CCppReturn::NotFound());
+		PARSE_POP(CCPPReturn::NotFound());
 	}
 }
 
@@ -1884,11 +1884,11 @@ CCppReturn CCppParser::Parentheses(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::TemplateParameters(void)
+CCPPReturn CCPPParser::TemplateParameters(void)
 {
 	PARSE_PUSH("TemplateParameters");
 
-	CCppReturn			cReturn;
+	CCPPReturn			cReturn;
 	TRISTATE			tResult;
 	ESimpleTypes		eSimpleType;
 	int					iPointerCount;
@@ -1911,17 +1911,17 @@ CCppReturn CCppParser::TemplateParameters(void)
 		tResult = mcParser.GetExactCharacter('>');
 		if (tResult == TRITRUE)
 		{
-			PARSE_POP(CCppReturn::True());
+			PARSE_POP(CCPPReturn::True());
 		}
 		else
 		{
 			Expected(">");
-			PARSE_POP(CCppReturn::NotFound());
+			PARSE_POP(CCPPReturn::NotFound());
 		}
 	}
 	else
 	{
-		PARSE_POP(CCppReturn::NotFound());
+		PARSE_POP(CCPPReturn::NotFound());
 	}
 }
 
@@ -1930,11 +1930,11 @@ CCppReturn CCppParser::TemplateParameters(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::FunctionParametersDecl(BOOL bLooksLikeConstructor)
+CCPPReturn CCPPParser::FunctionParametersDecl(BOOL bLooksLikeConstructor)
 {
 	PARSE_PUSH("FunctionParametersDecl");
 
-	CCppReturn			cReturn;
+	CCPPReturn			cReturn;
 	TRISTATE			tResult;
 	int					iParameterCount;
 
@@ -1947,23 +1947,23 @@ CCppReturn CCppParser::FunctionParametersDecl(BOOL bLooksLikeConstructor)
 		//Parameters can never fail so this is pointless.
 		if (cReturn.IsNotFound())
 		{
-			PARSE_POP(CCppReturn::NotFound());
+			PARSE_POP(CCPPReturn::NotFound());
 		}
 
 		tResult = mcParser.GetExactCharacter(')');
 		if (tResult == TRITRUE)
 		{
-			PARSE_POP(CCppReturn::True());
+			PARSE_POP(CCPPReturn::True());
 		}
 		else
 		{
 			Expected(")");
-			PARSE_POP(CCppReturn::NotFound());
+			PARSE_POP(CCPPReturn::NotFound());
 		}
 	}
 	else
 	{
-		PARSE_POP(CCppReturn::NotFound());
+		PARSE_POP(CCPPReturn::NotFound());
 	}
 }
 
@@ -1972,13 +1972,13 @@ CCppReturn CCppParser::FunctionParametersDecl(BOOL bLooksLikeConstructor)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::FunctionDecl(BOOL* pbDefn)
+CCPPReturn CCPPParser::FunctionDecl(BOOL* pbDefn)
 {
 	PARSE_PUSH("FunctionDecl");
 
-	CCppReturn			cType;
-	CCppReturn			cName;
-	CCppReturn			cReturn;
+	CCPPReturn			cType;
+	CCPPReturn			cName;
+	CCPPReturn			cReturn;
 	TRISTATE			tResult;
 	ESimpleTypes		eSpec;
 	int					iPointers;
@@ -2008,24 +2008,24 @@ CCppReturn CCppParser::FunctionDecl(BOOL* pbDefn)
 		{
 			*pbDefn = FALSE;
 			mcParser.PassPosition();
-			PARSE_POP(CCppReturn::True());
+			PARSE_POP(CCPPReturn::True());
 		}
 		else if (tResult == TRIERROR)
 		{
 			mcParser.PopPosition();
-			PARSE_POP(CCppReturn::NotFound());
+			PARSE_POP(CCPPReturn::NotFound());
 		}
 		else 
 		{
 			*pbDefn = TRUE;
 			mcParser.PassPosition();
-			PARSE_POP(CCppReturn::True());
+			PARSE_POP(CCPPReturn::True());
 		}
 	}
 	else
 	{
 		mcParser.PopPosition();
-		PARSE_POP(CCppReturn::NotFound());
+		PARSE_POP(CCPPReturn::NotFound());
 
 	}
 }
@@ -2035,7 +2035,7 @@ CCppReturn CCppParser::FunctionDecl(BOOL* pbDefn)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::ClassSpec(EClassType* pcClassType)
+CCPPReturn CCPPParser::ClassSpec(EClassType* pcClassType)
 {
 	PARSE_PUSH("ClassSpec");
 
@@ -2046,7 +2046,7 @@ CCppReturn CCppParser::ClassSpec(EClassType* pcClassType)
 	if (tResult == TRITRUE)
 	{
 		*pcClassType = CT_Class;
-		PARSE_POP(CCppReturn::True());
+		PARSE_POP(CCPPReturn::True());
 	}
 	else if (tResult == TRIFALSE)
 	{
@@ -2054,7 +2054,7 @@ CCppReturn CCppParser::ClassSpec(EClassType* pcClassType)
 		if (tResult == TRITRUE)
 		{
 			*pcClassType = CT_Struct;
-			PARSE_POP(CCppReturn::True());
+			PARSE_POP(CCPPReturn::True());
 		}
 		else
 		{
@@ -2062,17 +2062,17 @@ CCppReturn CCppParser::ClassSpec(EClassType* pcClassType)
 			if (tResult == TRITRUE)
 			{
 				*pcClassType = CT_Union;
-				PARSE_POP(CCppReturn::True());
+				PARSE_POP(CCPPReturn::True());
 			}
 			else
 			{
-				PARSE_POP(CCppReturn::NotFound());
+				PARSE_POP(CCPPReturn::NotFound());
 			}
 		}
 	}
 	else
 	{
-		PARSE_POP(CCppReturn::NotFound());
+		PARSE_POP(CCPPReturn::NotFound());
 	}
 }
 
@@ -2081,7 +2081,7 @@ CCppReturn CCppParser::ClassSpec(EClassType* pcClassType)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::SimpleType(ESimpleTypes* peSimpleType)
+CCPPReturn CCPPParser::SimpleType(ESimpleTypes* peSimpleType)
 {
 	PARSE_PUSH("SimpleType");
 
@@ -2096,14 +2096,14 @@ CCppReturn CCppParser::SimpleType(ESimpleTypes* peSimpleType)
 		if (tResult == TRITRUE)
 		{
 			*peSimpleType = (ESimpleTypes)i;
-			PARSE_POP(CCppReturn::True());
+			PARSE_POP(CCPPReturn::True());
 		}
 		else if (tResult == TRIERROR)
 		{
-			PARSE_POP(CCppReturn::NotFound());
+			PARSE_POP(CCPPReturn::NotFound());
 		}
 	}
-	PARSE_POP(CCppReturn::NotFound());
+	PARSE_POP(CCPPReturn::NotFound());
 }
 
 
@@ -2111,7 +2111,7 @@ CCppReturn CCppParser::SimpleType(ESimpleTypes* peSimpleType)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::SimpleModifier(ESimpleModifiers* peSimpleModifier)
+CCPPReturn CCPPParser::SimpleModifier(ESimpleModifiers* peSimpleModifier)
 {
 	PARSE_PUSH("SimpleModifier");
 
@@ -2126,14 +2126,14 @@ CCppReturn CCppParser::SimpleModifier(ESimpleModifiers* peSimpleModifier)
 		if (tResult == TRITRUE)
 		{
 			*peSimpleModifier = (ESimpleModifiers)i;
-			PARSE_POP(CCppReturn::True());
+			PARSE_POP(CCPPReturn::True());
 		}
 		else if (tResult == TRIERROR)
 		{
-			PARSE_POP(CCppReturn::NotFound());
+			PARSE_POP(CCPPReturn::NotFound());
 		}
 	}
-	PARSE_POP(CCppReturn::NotFound());
+	PARSE_POP(CCPPReturn::NotFound());
 }
 
 
@@ -2141,7 +2141,7 @@ CCppReturn CCppParser::SimpleModifier(ESimpleModifiers* peSimpleModifier)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::SimpleOperator(ESimpleOperators* peOp)
+CCPPReturn CCPPParser::SimpleOperator(ESimpleOperators* peOp)
 {
 	PARSE_PUSH("SimpleOperator");
 
@@ -2159,19 +2159,19 @@ CCppReturn CCppParser::SimpleOperator(ESimpleOperators* peOp)
 		{
 			*peOp = (ESimpleOperators)i;
 			mcParser.PassPosition();
-			PARSE_POP(CCppReturn::True());
+			PARSE_POP(CCPPReturn::True());
 		}
 		else if (tResult == TRIERROR)
 		{
 			*peOp = SO_invalid;
 			mcParser.PopPosition();
-			PARSE_POP(CCppReturn::NotFound());
+			PARSE_POP(CCPPReturn::NotFound());
 		}
 	}
 
 	*peOp = SO_invalid;
 	mcParser.PopPosition();
-	PARSE_POP(CCppReturn::NotFound());
+	PARSE_POP(CCPPReturn::NotFound());
 }
 
 
@@ -2179,12 +2179,12 @@ CCppReturn CCppParser::SimpleOperator(ESimpleOperators* peOp)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::TypeCast(BOOL bEmpty)
+CCPPReturn CCPPParser::TypeCast(BOOL bEmpty)
 {
 	PARSE_PUSH("TypeCast");
 
 	TRISTATE			tResult;
-	CCppReturn			cReturn;
+	CCPPReturn			cReturn;
 	
 	mcParser.PushPosition();
 
@@ -2198,7 +2198,7 @@ CCppReturn CCppParser::TypeCast(BOOL bEmpty)
 			{
 				Expected("Type");
 				mcParser.PopPosition();
-				PARSE_POP(CCppReturn::NotFound());
+				PARSE_POP(CCPPReturn::NotFound());
 			}
 		}
 			
@@ -2206,19 +2206,19 @@ CCppReturn CCppParser::TypeCast(BOOL bEmpty)
 		if (tResult == TRITRUE)
 		{
 			mcParser.PassPosition();
-			PARSE_POP(CCppReturn::True());
+			PARSE_POP(CCPPReturn::True());
 		}
 		else
 		{
 			Expected(")");
 			mcParser.PopPosition();
-			PARSE_POP(CCppReturn::NotFound());
+			PARSE_POP(CCPPReturn::NotFound());
 		}
 	}
 	else
 	{
 		mcParser.PopPosition();
-		PARSE_POP(CCppReturn::NotFound());
+		PARSE_POP(CCPPReturn::NotFound());
 	}
 }
 
@@ -2227,11 +2227,11 @@ CCppReturn CCppParser::TypeCast(BOOL bEmpty)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::TypeOrFunctionPointer(BOOL bAllowsName)
+CCPPReturn CCPPParser::TypeOrFunctionPointer(BOOL bAllowsName)
 {
 	PARSE_PUSH("TypeOrFunctionPointer");
 
-	CCppReturn			cReturn;
+	CCPPReturn			cReturn;
 	ESimpleTypes		eType;
 	int					iPointerCount;
 
@@ -2241,7 +2241,7 @@ CCppReturn CCppParser::TypeOrFunctionPointer(BOOL bAllowsName)
 	if (cReturn.IsTrue())
 	{
 		mcParser.PassPosition();
-		PARSE_POP(CCppReturn::True());
+		PARSE_POP(CCPPReturn::True());
 	}
 
 	cReturn = Type(&eType, &iPointerCount, FALSE);
@@ -2252,11 +2252,11 @@ CCppReturn CCppParser::TypeOrFunctionPointer(BOOL bAllowsName)
 			cReturn = Name();
 		}
 		mcParser.PassPosition();
-		PARSE_POP(CCppReturn::True());
+		PARSE_POP(CCPPReturn::True());
 	}
 
 	mcParser.PopPosition();
-	PARSE_POP(CCppReturn::NotFound());
+	PARSE_POP(CCPPReturn::NotFound());
 }
 
 
@@ -2264,11 +2264,11 @@ CCppReturn CCppParser::TypeOrFunctionPointer(BOOL bAllowsName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::Type(ESimpleTypes* peSimpleType, int* piPointerCount, BOOL bAllowDesctructor)
+CCPPReturn CCPPParser::Type(ESimpleTypes* peSimpleType, int* piPointerCount, BOOL bAllowDesctructor)
 {
 	PARSE_PUSH("Type");
 
-	CCppReturn			cReturn;
+	CCPPReturn			cReturn;
 	int					iNameElements;
 	int					iSimpleTypes;
 	int					iSimpleModifiers;
@@ -2311,7 +2311,7 @@ CCppReturn CCppParser::Type(ESimpleTypes* peSimpleType, int* piPointerCount, BOO
 		}
 
 		Pointers(piPointerCount);
-		PARSE_POP(CCppReturn::True());
+		PARSE_POP(CCPPReturn::True());
 	}
 
 	cReturn = CompoundName(&iNameElements, bAllowDesctructor);
@@ -2319,12 +2319,12 @@ CCppReturn CCppParser::Type(ESimpleTypes* peSimpleType, int* piPointerCount, BOO
 	{
 		PointersOrReference(piPointerCount, &bRef);	
 		*peSimpleType = ST_notsimple;
-		PARSE_POP(CCppReturn::True());
+		PARSE_POP(CCPPReturn::True());
 	}
 	else
 	{
 		*peSimpleType = ST_invalid;
-		PARSE_POP(CCppReturn::NotFound());
+		PARSE_POP(CCPPReturn::NotFound());
 	}
 }
 
@@ -2333,7 +2333,7 @@ CCppReturn CCppParser::Type(ESimpleTypes* peSimpleType, int* piPointerCount, BOO
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::Pointers(int* piPointerCount)
+CCPPReturn CCPPParser::Pointers(int* piPointerCount)
 {
 	PARSE_PUSH("Pointers");
 
@@ -2353,15 +2353,15 @@ CCppReturn CCppParser::Pointers(int* piPointerCount)
 			}
 			(*piPointerCount)++;
 		}
-		PARSE_POP(CCppReturn::True());
+		PARSE_POP(CCPPReturn::True());
 	}
 	else if (tResult == TRIERROR)
 	{
-		PARSE_POP(CCppReturn::NotFound());
+		PARSE_POP(CCPPReturn::NotFound());
 	}
 	else
 	{
-		PARSE_POP(CCppReturn::NotFound());
+		PARSE_POP(CCPPReturn::NotFound());
 	}
 }
 
@@ -2370,12 +2370,12 @@ CCppReturn CCppParser::Pointers(int* piPointerCount)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::PointersOrReference(int* piPointerCount, BOOL* pbReference)
+CCPPReturn CCPPParser::PointersOrReference(int* piPointerCount, BOOL* pbReference)
 {
 	PARSE_PUSH("PointersOrReference");
 
 	TRISTATE	tResult;
-	CCppReturn	cReturn;
+	CCPPReturn	cReturn;
 
 	tResult = mcParser.GetExactCharacter('&');
 	*piPointerCount = 0;
@@ -2383,11 +2383,11 @@ CCppReturn CCppParser::PointersOrReference(int* piPointerCount, BOOL* pbReferenc
 	if (tResult == TRITRUE)
 	{
 		*pbReference = TRUE;
-		PARSE_POP(CCppReturn::True());
+		PARSE_POP(CCPPReturn::True());
 	}
 	else if (tResult == TRIERROR)
 	{
-		PARSE_POP(CCppReturn::NotFound());
+		PARSE_POP(CCPPReturn::NotFound());
 	}
 
 	cReturn = Pointers(piPointerCount);
@@ -2399,7 +2399,7 @@ CCppReturn CCppParser::PointersOrReference(int* piPointerCount, BOOL* pbReferenc
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::ClosingCurlyColon(void)
+CCPPReturn CCPPParser::ClosingCurlyColon(void)
 {
 	PARSE_PUSH("ClosingCurlyColon");
 
@@ -2413,19 +2413,19 @@ CCppReturn CCppParser::ClosingCurlyColon(void)
 		if (tResult == TRITRUE)
 		{
 			mcParser.PassPosition();
-			PARSE_POP(CCppReturn::True());
+			PARSE_POP(CCPPReturn::True());
 		}
 		else
 		{
 			Expected(";");
 			mcParser.PopPosition();
-			PARSE_POP(CCppReturn::NotFound());
+			PARSE_POP(CCPPReturn::NotFound());
 		}
 	}
 	else
 	{
 		mcParser.PopPosition();
-		PARSE_POP(CCppReturn::NotFound());
+		PARSE_POP(CCPPReturn::NotFound());
 	}
 }
 
@@ -2436,17 +2436,17 @@ CCppReturn CCppParser::ClosingCurlyColon(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::Parameter(void)
+CCPPReturn CCPPParser::Parameter(void)
 {
 	PARSE_PUSH("Parameter");
 
 	TRISTATE		tResult;
-	CCppReturn		cReturn;
+	CCPPReturn		cReturn;
 
 	tResult = mcParser.GetExactCharacterSequence("...");
 	if (tResult == TRITRUE)
 	{
-		PARSE_POP(CCppReturn::True());
+		PARSE_POP(CCPPReturn::True());
 	}
 
 	cReturn = TypeOrFunctionPointer(TRUE);
@@ -2459,14 +2459,14 @@ CCppReturn CCppParser::Parameter(void)
 			if (cReturn.IsNotFound())
 			{
 				Expected("Expression");
-				PARSE_POP(CCppReturn::NotFound());
+				PARSE_POP(CCPPReturn::NotFound());
 			}
 		}
-		PARSE_POP(CCppReturn::True());
+		PARSE_POP(CCPPReturn::True());
 	}
 	else
 	{
-		PARSE_POP(CCppReturn::True());
+		PARSE_POP(CCPPReturn::True());
 	}
 }
 
@@ -2475,12 +2475,12 @@ CCppReturn CCppParser::Parameter(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::Parameters(int* piParameterCount)
+CCPPReturn CCPPParser::Parameters(int* piParameterCount)
 {
 	PARSE_PUSH("Parameters");
 
 	TRISTATE		tResult;
-	CCppReturn		cReturn;
+	CCPPReturn		cReturn;
 
 	*piParameterCount = 0;
 	for (;;)
@@ -2500,7 +2500,7 @@ CCppReturn CCppParser::Parameters(int* piParameterCount)
 
 		break;
 	}
-	PARSE_POP(CCppReturn::True());
+	PARSE_POP(CCPPReturn::True());
 }
 
 
@@ -2508,12 +2508,12 @@ CCppReturn CCppParser::Parameters(int* piParameterCount)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::FunctionDefn(void)
+CCPPReturn CCPPParser::FunctionDefn(void)
 {
 	PARSE_PUSH("FunctionDefn");
 
 	TRISTATE	tResult;
-	CCppReturn	cReturn;
+	CCPPReturn	cReturn;
 
 	tResult = mcParser.GetExactCharacter('{');
 	if (tResult == TRITRUE)
@@ -2523,17 +2523,17 @@ CCppReturn CCppParser::FunctionDefn(void)
 		tResult = mcParser.GetExactCharacter('}');
 		if (tResult == TRITRUE)
 		{
-			PARSE_POP(CCppReturn::True());
+			PARSE_POP(CCPPReturn::True());
 		}
 		else
 		{
 			Expected("}");
-			PARSE_POP(CCppReturn::NotFound());
+			PARSE_POP(CCPPReturn::NotFound());
 		}
 	}
 	else
 	{
-		PARSE_POP(CCppReturn::NotFound());
+		PARSE_POP(CCPPReturn::NotFound());
 	}
 }
 
@@ -2542,11 +2542,11 @@ CCppReturn CCppParser::FunctionDefn(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::FunctionBody(void)
+CCPPReturn CCPPParser::FunctionBody(void)
 {
 	PARSE_PUSH("FunctionBody");
 
-	CCppReturn	cReturn;
+	CCPPReturn	cReturn;
 
 	cReturn = BlockBody();
 	PARSE_POP(cReturn);
@@ -2557,74 +2557,74 @@ CCppReturn CCppParser::FunctionBody(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::Statement(void)
+CCPPReturn CCPPParser::Statement(void)
 {
 	PARSE_PUSH("Statement");
 
-	CCppReturn	cReturn;
+	CCPPReturn	cReturn;
 
 	cReturn = ReturnStatement();
 	if (cReturn.IsTrue())
 	{
-		PARSE_POP(CCppReturn::True());
+		PARSE_POP(CCPPReturn::True());
 	}
 
 	cReturn = ContinueStatement();
 	if (cReturn.IsTrue())
 	{
-		PARSE_POP(CCppReturn::True());
+		PARSE_POP(CCPPReturn::True());
 	}
 
 	cReturn = BreakStatement();
 	if (cReturn.IsTrue())
 	{
-		PARSE_POP(CCppReturn::True());
+		PARSE_POP(CCPPReturn::True());
 	}
 
 	cReturn = ForStatement();
 	if (cReturn.IsTrue())
 	{
-		PARSE_POP(CCppReturn::True());
+		PARSE_POP(CCPPReturn::True());
 	}
 
 
 	cReturn = ElseStatement();
 	if (cReturn.IsTrue())
 	{
-		PARSE_POP(CCppReturn::True());
+		PARSE_POP(CCPPReturn::True());
 	}
 
 	cReturn = IfStatement();
 	if (cReturn.IsTrue())
 	{
-		PARSE_POP(CCppReturn::True());
+		PARSE_POP(CCPPReturn::True());
 	}
 
 	cReturn = WhileStatement();
 	if (cReturn.IsTrue())
 	{
-		PARSE_POP(CCppReturn::True());
+		PARSE_POP(CCPPReturn::True());
 	}
 
 	cReturn = DoStatement();
 	if (cReturn.IsTrue())
 	{
-		PARSE_POP(CCppReturn::True());
+		PARSE_POP(CCPPReturn::True());
 	}
 
 	cReturn = BlockStatement();
 	if (cReturn.IsTrue())
 	{
-		PARSE_POP(CCppReturn::True());
+		PARSE_POP(CCPPReturn::True());
 	}
 
 	cReturn = ExpressionStatement();
 	if (cReturn.IsTrue())
 	{
-		PARSE_POP(CCppReturn::True());
+		PARSE_POP(CCPPReturn::True());
 	}
 
-	PARSE_POP(CCppReturn::NotFound());
+	PARSE_POP(CCPPReturn::NotFound());
 }
 
 
@@ -2632,11 +2632,11 @@ CCppReturn CCppParser::Statement(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::ExpressionStatement(void)
+CCPPReturn CCPPParser::ExpressionStatement(void)
 {
 	PARSE_PUSH("ExpressionStatement");
 
-	CCppReturn	cReturn;
+	CCPPReturn	cReturn;
 
 	cReturn = Expression();
 	if (cReturn.IsTrue())
@@ -2645,7 +2645,7 @@ CCppReturn CCppParser::ExpressionStatement(void)
 		PARSE_POP(cReturn);
 	}
 
-	PARSE_POP(CCppReturn::NotFound());
+	PARSE_POP(CCPPReturn::NotFound());
 }
 
 
@@ -2653,25 +2653,25 @@ CCppReturn CCppParser::ExpressionStatement(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::ForStatement(void)
+CCPPReturn CCPPParser::ForStatement(void)
 {
 	PARSE_PUSH("ForStatement");
 
-	CCppReturn	cReturn;
+	CCPPReturn	cReturn;
 	TRISTATE	tResult;
 	int			iExpressions;
 
 	tResult = mcParser.GetExactIdentifier("for");
 	if (tResult == TRIFALSE)
 	{
-		PARSE_POP(CCppReturn::NotFound());
+		PARSE_POP(CCPPReturn::NotFound());
 	}
 
 	tResult = mcParser.GetExactCharacter('(');
 	if (tResult != TRITRUE)
 	{
 		Expected("(");
-		PARSE_POP(CCppReturn::NotFound());
+		PARSE_POP(CCPPReturn::NotFound());
 	}
 
 	cReturn = Expression();
@@ -2681,7 +2681,7 @@ CCppReturn CCppParser::ForStatement(void)
 		if (tResult != TRITRUE)
 		{
 			Expected(";");
-			PARSE_POP(CCppReturn::NotFound());
+			PARSE_POP(CCPPReturn::NotFound());
 		}	
 	}
 	else
@@ -2693,7 +2693,7 @@ CCppReturn CCppParser::ForStatement(void)
 			if (tResult != TRITRUE)
 			{
 				Expected(";");
-				PARSE_POP(CCppReturn::NotFound());
+				PARSE_POP(CCPPReturn::NotFound());
 			}	
 		}
 	}
@@ -2705,7 +2705,7 @@ CCppReturn CCppParser::ForStatement(void)
 	if (tResult != TRITRUE)
 	{
 		Expected(";");
-		PARSE_POP(CCppReturn::NotFound());
+		PARSE_POP(CCPPReturn::NotFound());
 	}
 
 	cReturn = Aggregate(&iExpressions);
@@ -2715,10 +2715,10 @@ CCppReturn CCppParser::ForStatement(void)
 	if (tResult != TRITRUE)
 	{
 		Expected(")");
-		PARSE_POP(CCppReturn::NotFound());
+		PARSE_POP(CCPPReturn::NotFound());
 	}
 
-	PARSE_POP(CCppReturn::True());
+	PARSE_POP(CCPPReturn::True());
 }
 
 
@@ -2726,42 +2726,42 @@ CCppReturn CCppParser::ForStatement(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::IfStatement(void)
+CCPPReturn CCPPParser::IfStatement(void)
 {
 	PARSE_PUSH("IfStatement");
 
-	CCppReturn	cReturn;
+	CCPPReturn	cReturn;
 	TRISTATE	tResult;
 
 	tResult = mcParser.GetExactIdentifier("if");
 	if (tResult == TRIFALSE)
 	{
-		PARSE_POP(CCppReturn::NotFound());
+		PARSE_POP(CCPPReturn::NotFound());
 	}
 
 	tResult = mcParser.GetExactCharacter('(');
 	if (tResult != TRITRUE)
 	{
 		Expected("(");
-		PARSE_POP(CCppReturn::NotFound());
+		PARSE_POP(CCPPReturn::NotFound());
 	}
 
 	cReturn = Expression();
 	if (cReturn.IsNotFound())
 	{
 		Expected("Expression");
-		PARSE_POP(CCppReturn::NotFound());
+		PARSE_POP(CCPPReturn::NotFound());
 	}
 
 	tResult = mcParser.GetExactCharacter(')');
 	if (tResult != TRITRUE)
 	{
 		Expected(")");
-		PARSE_POP(CCppReturn::NotFound());
+		PARSE_POP(CCPPReturn::NotFound());
 	}
 
 
-	PARSE_POP(CCppReturn::True());
+	PARSE_POP(CCPPReturn::True());
 }
 
 
@@ -2769,7 +2769,7 @@ CCppReturn CCppParser::IfStatement(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::DoStatement(void)
+CCPPReturn CCPPParser::DoStatement(void)
 {
 	PARSE_PUSH("DoStatement");
 
@@ -2778,10 +2778,10 @@ CCppReturn CCppParser::DoStatement(void)
 	tResult = mcParser.GetExactIdentifier("do");
 	if (tResult == TRIFALSE)
 	{
-		PARSE_POP(CCppReturn::NotFound());
+		PARSE_POP(CCPPReturn::NotFound());
 	}
 
-	PARSE_POP(CCppReturn::True());
+	PARSE_POP(CCPPReturn::True());
 }
 
 
@@ -2789,41 +2789,41 @@ CCppReturn CCppParser::DoStatement(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::WhileStatement(void)
+CCPPReturn CCPPParser::WhileStatement(void)
 {
 	PARSE_PUSH("WhileStatement");
 
-	CCppReturn	cReturn;
+	CCPPReturn	cReturn;
 	TRISTATE	tResult;
 
 	tResult = mcParser.GetExactIdentifier("while");
 	if (tResult == TRIFALSE)
 	{
-		PARSE_POP(CCppReturn::NotFound());
+		PARSE_POP(CCPPReturn::NotFound());
 	}
 
 	tResult = mcParser.GetExactCharacter('(');
 	if (tResult != TRITRUE)
 	{
 		Expected("(");
-		PARSE_POP(CCppReturn::NotFound());
+		PARSE_POP(CCPPReturn::NotFound());
 	}
 
 	cReturn = Expression();
 	if (cReturn.IsNotFound())
 	{
 		Expected("Expression");
-		PARSE_POP(CCppReturn::NotFound());
+		PARSE_POP(CCPPReturn::NotFound());
 	}
 
 	tResult = mcParser.GetExactCharacter(')');	
 	if (tResult != TRITRUE)
 	{
 		Expected(")");
-		PARSE_POP(CCppReturn::NotFound());
+		PARSE_POP(CCPPReturn::NotFound());
 	}
 
-	PARSE_POP(CCppReturn::True());
+	PARSE_POP(CCPPReturn::True());
 }
 
 
@@ -2831,17 +2831,17 @@ CCppReturn CCppParser::WhileStatement(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::ReturnStatement(void)
+CCPPReturn CCPPParser::ReturnStatement(void)
 {
 	PARSE_PUSH("ReturnStatement");
 
-	CCppReturn	cReturn;
+	CCPPReturn	cReturn;
 	TRISTATE	tResult;
 
 	tResult = mcParser.GetExactIdentifier("return");
 	if (tResult == TRIFALSE)
 	{
-		PARSE_POP(CCppReturn::NotFound());
+		PARSE_POP(CCPPReturn::NotFound());
 	}
 
 	cReturn = Expression();
@@ -2854,7 +2854,7 @@ CCppReturn CCppParser::ReturnStatement(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::EndStatement(void)
+CCPPReturn CCPPParser::EndStatement(void)
 {
 	PARSE_PUSH("EndStatement");
 
@@ -2863,12 +2863,12 @@ CCppReturn CCppParser::EndStatement(void)
 	tResult = mcParser.GetExactCharacter(';');
 	if (tResult == TRITRUE)
 	{
-		PARSE_POP(CCppReturn::True());
+		PARSE_POP(CCPPReturn::True());
 	}
 	else 
 	{
 		Expected(";");
-		PARSE_POP(CCppReturn::NotFound());
+		PARSE_POP(CCPPReturn::NotFound());
 	}
 }
 
@@ -2877,12 +2877,12 @@ CCppReturn CCppParser::EndStatement(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::BlockStatement(void)
+CCPPReturn CCPPParser::BlockStatement(void)
 {
 	PARSE_PUSH("BlockStatement");
 
 	TRISTATE	tResult;
-	CCppReturn	cReturn;
+	CCPPReturn	cReturn;
 
 	tResult = mcParser.GetExactCharacter('{');
 	if (tResult == TRITRUE)
@@ -2891,17 +2891,17 @@ CCppReturn CCppParser::BlockStatement(void)
 		tResult = mcParser.GetExactCharacter('}');
 		if (tResult == TRITRUE)
 		{
-			PARSE_POP(CCppReturn::True());
+			PARSE_POP(CCPPReturn::True());
 		}
 		else
 		{
 			Expected("}");
-			PARSE_POP(CCppReturn::NotFound());
+			PARSE_POP(CCPPReturn::NotFound());
 		}
 	}
 	else
 	{
-		PARSE_POP(CCppReturn::NotFound());
+		PARSE_POP(CCPPReturn::NotFound());
 	}
 }
 
@@ -2910,7 +2910,7 @@ CCppReturn CCppParser::BlockStatement(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCppParser::ReservedWord(void)
+BOOL CCPPParser::ReservedWord(void)
 {
 	TRISTATE		tResult;
 	int				i;
@@ -2933,7 +2933,7 @@ BOOL CCppParser::ReservedWord(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::EnumSpec(void)
+CCPPReturn CCPPParser::EnumSpec(void)
 {
 	PARSE_PUSH("EnumSpec");
 
@@ -2942,11 +2942,11 @@ CCppReturn CCppParser::EnumSpec(void)
 	tResult = mcParser.GetExactIdentifier("enum");
 	if (tResult == TRITRUE)
 	{
-		PARSE_POP(CCppReturn::True());
+		PARSE_POP(CCPPReturn::True());
 	}
 	else
 	{
-		PARSE_POP(CCppReturn::NotFound());
+		PARSE_POP(CCPPReturn::NotFound());
 	}
 }
 
@@ -2955,12 +2955,12 @@ CCppReturn CCppParser::EnumSpec(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::EnumDefn(void)
+CCPPReturn CCPPParser::EnumDefn(void)
 {
 	PARSE_PUSH("EnumDefn");
 
 	TRISTATE	tResult;
-	CCppReturn	cReturn;
+	CCPPReturn	cReturn;
 
 	tResult = mcParser.GetExactCharacter('{');
 	if (tResult == TRITRUE)
@@ -2969,11 +2969,11 @@ CCppReturn CCppParser::EnumDefn(void)
 		cReturn = ClosingCurlyColon();
 		if (cReturn.IsTrue())
 		{
-			PARSE_POP(CCppReturn::True());
+			PARSE_POP(CCPPReturn::True());
 		}
 		else 
 		{
-			PARSE_POP(CCppReturn::NotFound());
+			PARSE_POP(CCPPReturn::NotFound());
 		}
 	}
 	else
@@ -2982,9 +2982,9 @@ CCppReturn CCppParser::EnumDefn(void)
 		if (cReturn.IsNotFound())
 		{
 			Expected("Enum Value");
-			PARSE_POP(CCppReturn::NotFound());
+			PARSE_POP(CCPPReturn::NotFound());
 		}
-		PARSE_POP(CCppReturn::True());
+		PARSE_POP(CCPPReturn::True());
 	}
 }
 
@@ -2993,11 +2993,11 @@ CCppReturn CCppParser::EnumDefn(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::EnumBody(void)
+CCPPReturn CCPPParser::EnumBody(void)
 {
 	PARSE_PUSH("EnumBody");
 
-	CCppReturn	cReturn;
+	CCPPReturn	cReturn;
 	TRISTATE	tResult;
 
 	for (;;)
@@ -3012,7 +3012,7 @@ CCppReturn CCppParser::EnumBody(void)
 			}
 			else if (tResult == TRIERROR)
 			{
-				PARSE_POP(CCppReturn::NotFound());
+				PARSE_POP(CCPPReturn::NotFound());
 			}
 		}
 		else
@@ -3022,7 +3022,7 @@ CCppReturn CCppParser::EnumBody(void)
 	}
 
 	//Even an empty body is OK.
-	PARSE_POP(CCppReturn::True());
+	PARSE_POP(CCPPReturn::True());
 }
 
 
@@ -3030,11 +3030,11 @@ CCppReturn CCppParser::EnumBody(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::EnumValue(void)
+CCPPReturn CCPPParser::EnumValue(void)
 {
 	PARSE_PUSH("EnumValue");
 
-	CCppReturn	cReturn;
+	CCPPReturn	cReturn;
 	TRISTATE	tResult;
 
 	cReturn = Name();
@@ -3046,27 +3046,27 @@ CCppReturn CCppParser::EnumValue(void)
 			cReturn = Expression();
 			if (cReturn.IsTrue())
 			{
-				PARSE_POP(CCppReturn::True());
+				PARSE_POP(CCPPReturn::True());
 			}
 			else 
 			{
 				Expected("Expression");
-				PARSE_POP(CCppReturn::NotFound());
+				PARSE_POP(CCPPReturn::NotFound());
 			}
 		}
 		else if (tResult == TRIERROR)
 		{
-			PARSE_POP(CCppReturn::NotFound());	
+			PARSE_POP(CCPPReturn::NotFound());	
 		}
 		else
 		{
-			PARSE_POP(CCppReturn::True());
+			PARSE_POP(CCPPReturn::True());
 		}
 	}
 	else
 	{
 		Expected("Name");
-		PARSE_POP(CCppReturn::NotFound());
+		PARSE_POP(CCPPReturn::NotFound());
 	}
 }
 
@@ -3075,16 +3075,16 @@ CCppReturn CCppParser::EnumValue(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::CompoundName(int* piNameCount, BOOL bAllowDesctructor)
+CCPPReturn CCPPParser::CompoundName(int* piNameCount, BOOL bAllowDesctructor)
 {
 	PARSE_PUSH("CompoundName");
 
 	TRISTATE			tDoubleColon;
-	CCppReturn			cName;
+	CCPPReturn			cName;
 	TRISTATE			tDestructor;
 	int					iOldCount;
-	CCppReturn			cTemplate;
-	CCppReturn			cReturn;
+	CCPPReturn			cTemplate;
+	CCPPReturn			cReturn;
 	TRISTATE			tOperator;
 	ESimpleOperators	eOp;
 	ESimpleTypes		eCastType;
@@ -3100,7 +3100,7 @@ CCppReturn CCppParser::CompoundName(int* piNameCount, BOOL bAllowDesctructor)
 		if (tDoubleColon == TRIERROR)
 		{
 			mcParser.PopPosition();
-			PARSE_POP(CCppReturn::NotFound());
+			PARSE_POP(CCPPReturn::NotFound());
 		}
 
 		if (tDoubleColon == TRITRUE)
@@ -3129,7 +3129,7 @@ CCppReturn CCppParser::CompoundName(int* piNameCount, BOOL bAllowDesctructor)
 		if ((iOldCount > 0) && (iOldCount == *piNameCount))
 		{
 			mcParser.PassPosition();
-			PARSE_POP(CCppReturn::True());
+			PARSE_POP(CCPPReturn::True());
 		}
 
 		tOperator = mcParser.GetExactIdentifier("operator");
@@ -3141,7 +3141,7 @@ CCppReturn CCppParser::CompoundName(int* piNameCount, BOOL bAllowDesctructor)
 			{
 				Expected("Operator");
 				mcParser.PopPosition();
-				PARSE_POP(CCppReturn::NotFound());
+				PARSE_POP(CCPPReturn::NotFound());
 			}
 			(*piNameCount)++;
 		}
@@ -3153,12 +3153,12 @@ CCppReturn CCppParser::CompoundName(int* piNameCount, BOOL bAllowDesctructor)
 				if (*piNameCount == 0)
 				{
 					mcParser.PopPosition();
-					PARSE_POP(CCppReturn::NotFound());
+					PARSE_POP(CCPPReturn::NotFound());
 				}
 				else
 				{
 					mcParser.PassPosition();
-					PARSE_POP(CCppReturn::True());
+					PARSE_POP(CCPPReturn::True());
 				}
 			}
 			else if (cName.IsTrue())
@@ -3177,17 +3177,17 @@ CCppReturn CCppParser::CompoundName(int* piNameCount, BOOL bAllowDesctructor)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::BreakStatement(void)
+CCPPReturn CCPPParser::BreakStatement(void)
 {
 	PARSE_PUSH("BreakStatement");
 
-	CCppReturn	cReturn;
+	CCPPReturn	cReturn;
 	TRISTATE	tResult;
 
 	tResult = mcParser.GetExactIdentifier("break");
 	if (tResult == TRIFALSE)
 	{
-		PARSE_POP(CCppReturn::NotFound());
+		PARSE_POP(CCPPReturn::NotFound());
 	}
 
 	cReturn = EndStatement();
@@ -3199,17 +3199,17 @@ CCppReturn CCppParser::BreakStatement(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::ContinueStatement(void)
+CCPPReturn CCPPParser::ContinueStatement(void)
 {
 	PARSE_PUSH("ContinueStatement");
 
-	CCppReturn	cReturn;
+	CCPPReturn	cReturn;
 	TRISTATE	tResult;
 
 	tResult = mcParser.GetExactIdentifier("continue");
 	if (tResult == TRIFALSE)
 	{
-		PARSE_POP(CCppReturn::NotFound());
+		PARSE_POP(CCPPReturn::NotFound());
 	}
 
 	cReturn = EndStatement();
@@ -3221,7 +3221,7 @@ CCppReturn CCppParser::ContinueStatement(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::ElseStatement(void)
+CCPPReturn CCPPParser::ElseStatement(void)
 {
 	PARSE_PUSH("ElseStatement");
 
@@ -3230,10 +3230,10 @@ CCppReturn CCppParser::ElseStatement(void)
 	tResult = mcParser.GetExactIdentifier("else");
 	if (tResult == TRIFALSE)
 	{
-		PARSE_POP(CCppReturn::NotFound());
+		PARSE_POP(CCPPReturn::NotFound());
 	}
 
-	PARSE_POP(CCppReturn::True());
+	PARSE_POP(CCPPReturn::True());
 }
 
 
@@ -3241,41 +3241,41 @@ CCppReturn CCppParser::ElseStatement(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::SwitchStatement(void)
+CCPPReturn CCPPParser::SwitchStatement(void)
 {
 	PARSE_PUSH("SwitchStatement");
 
-	CCppReturn	cReturn;
+	CCPPReturn	cReturn;
 	TRISTATE	tResult;
 
 	tResult = mcParser.GetExactIdentifier("switch");
 	if (tResult == TRIFALSE)
 	{
-		PARSE_POP(CCppReturn::NotFound());
+		PARSE_POP(CCPPReturn::NotFound());
 	}
 
 	tResult = mcParser.GetExactCharacter('(');
 	if (tResult != TRITRUE)
 	{
 		Expected("(");
-		PARSE_POP(CCppReturn::NotFound());
+		PARSE_POP(CCPPReturn::NotFound());
 	}
 
 	cReturn = ExpressionStatement();
 	if (cReturn.IsNotFound())
 	{
 		Expected("Expression");
-		PARSE_POP(CCppReturn::NotFound());
+		PARSE_POP(CCPPReturn::NotFound());
 	}
 
 	tResult = mcParser.GetExactCharacter(')');
 	if (tResult != TRITRUE)
 	{
 		Expected(")");
-		PARSE_POP(CCppReturn::NotFound());
+		PARSE_POP(CCPPReturn::NotFound());
 	}
 
-	PARSE_POP(CCppReturn::True());
+	PARSE_POP(CCPPReturn::True());
 }
 
 
@@ -3283,32 +3283,32 @@ CCppReturn CCppParser::SwitchStatement(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::CaseStatement(void)
+CCPPReturn CCPPParser::CaseStatement(void)
 {
 	PARSE_PUSH("CaseStatement");
 
-	CCppReturn	cReturn;
+	CCPPReturn	cReturn;
 	TRISTATE	tResult;
 
 	tResult = mcParser.GetExactIdentifier("case");
 	if (tResult == TRIFALSE)
 	{
-		PARSE_POP(CCppReturn::NotFound());
+		PARSE_POP(CCPPReturn::NotFound());
 	}
 	cReturn = ExpressionStatement();
 	if (cReturn.IsNotFound())
 	{
 		Expected("Expression");
-		PARSE_POP(CCppReturn::NotFound());
+		PARSE_POP(CCPPReturn::NotFound());
 	}
 
 	tResult = mcParser.GetExactCharacter(':');
 	if (tResult != TRITRUE)
 	{
 		Expected(":");
-		PARSE_POP(CCppReturn::NotFound());
+		PARSE_POP(CCPPReturn::NotFound());
 	}
-	PARSE_POP(CCppReturn::True());
+	PARSE_POP(CCPPReturn::True());
 }
 
 
@@ -3316,24 +3316,24 @@ CCppReturn CCppParser::CaseStatement(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::GotoStatement(void)
+CCPPReturn CCPPParser::GotoStatement(void)
 {
 	PARSE_PUSH("GotoStatement");
 
-	CCppReturn	cReturn;
+	CCPPReturn	cReturn;
 	TRISTATE	tResult;
 
 	tResult = mcParser.GetExactIdentifier("goto");
 	if (tResult == TRIFALSE)
 	{
-		PARSE_POP(CCppReturn::NotFound());
+		PARSE_POP(CCPPReturn::NotFound());
 	}
 
 	cReturn = Name();
 	if (cReturn.IsNotFound())
 	{
 		Expected("Name");
-		PARSE_POP(CCppReturn::NotFound());
+		PARSE_POP(CCPPReturn::NotFound());
 	}
 
 	cReturn = EndStatement();
@@ -3345,24 +3345,24 @@ CCppReturn CCppParser::GotoStatement(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::TypedefDecl(void)
+CCPPReturn CCPPParser::TypedefDecl(void)
 {
 	PARSE_PUSH("TypedefDecl");
 
-	CCppReturn			cReturn;
+	CCPPReturn			cReturn;
 	TRISTATE			tResult;
 
 	tResult = mcParser.GetExactIdentifier("typedef");
 	if (tResult == TRIFALSE)
 	{
-		PARSE_POP(CCppReturn::NotFound());
+		PARSE_POP(CCPPReturn::NotFound());
 	}
 
 	cReturn = TypeOrFunctionPointer(TRUE);
 	if (cReturn.IsNotFound())
 	{
 		Expected("Type");
-		PARSE_POP(CCppReturn::NotFound());
+		PARSE_POP(CCPPReturn::NotFound());
 	}
 
 	cReturn = EndStatement();
@@ -3374,11 +3374,11 @@ CCppReturn CCppParser::TypedefDecl(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::LabelStatement(void)
+CCPPReturn CCPPParser::LabelStatement(void)
 {
 	PARSE_PUSH("LabelStatement");
 
-	CCppReturn	cReturn;
+	CCPPReturn	cReturn;
 	TRISTATE	tResult;
 
 	mcParser.PushPosition();
@@ -3393,13 +3393,13 @@ CCppReturn CCppParser::LabelStatement(void)
 	if (tResult == TRITRUE)
 	{
 		mcParser.PassPosition();
-		PARSE_POP(CCppReturn::True());
+		PARSE_POP(CCPPReturn::True());
 	}
 	else
 	{
 		Expected(":");
 		mcParser.PopPosition();
-		PARSE_POP(CCppReturn::NotFound());
+		PARSE_POP(CCPPReturn::NotFound());
 	}
 }
 
@@ -3408,11 +3408,11 @@ CCppReturn CCppParser::LabelStatement(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::TemplateDecl(void)
+CCPPReturn CCPPParser::TemplateDecl(void)
 {
 	PARSE_PUSH("TemplateDecl");
 
-	CCppReturn			cReturn;
+	CCPPReturn			cReturn;
 
 	cReturn = Template();
 	PARSE_POP(cReturn);
@@ -3423,11 +3423,11 @@ CCppReturn CCppParser::TemplateDecl(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::TemplateCompilation(void)
+CCPPReturn CCPPParser::TemplateCompilation(void)
 {
 	PARSE_PUSH("Template");
 
-	CCppReturn			cReturn;
+	CCPPReturn			cReturn;
 	TRISTATE			tResult;
 
 	mcParser.PushPosition();
@@ -3436,14 +3436,14 @@ CCppReturn CCppParser::TemplateCompilation(void)
 	if (tResult != TRITRUE)
 	{
 		mcParser.PopPosition();
-		PARSE_POP(CCppReturn::NotFound());
+		PARSE_POP(CCPPReturn::NotFound());
 	}
 
 	tResult = mcParser.GetExactIdentifier("class");
 	if (tResult != TRITRUE)
 	{
 		mcParser.PopPosition();
-		PARSE_POP(CCppReturn::NotFound());
+		PARSE_POP(CCPPReturn::NotFound());
 	}
 
 	cReturn = TypeOrFunctionPointer(TRUE);
@@ -3451,7 +3451,7 @@ CCppReturn CCppParser::TemplateCompilation(void)
 	{
 		Expected("Type");
 		mcParser.PopPosition();
-		PARSE_POP(CCppReturn::NotFound());
+		PARSE_POP(CCPPReturn::NotFound());
 	}
 
 	tResult = mcParser.GetExactCharacter(';');
@@ -3459,11 +3459,11 @@ CCppReturn CCppParser::TemplateCompilation(void)
 	{
 		Expected(";");
 		mcParser.PopPosition();
-		PARSE_POP(CCppReturn::NotFound());
+		PARSE_POP(CCPPReturn::NotFound());
 	}
 
 	mcParser.PassPosition();
-	PARSE_POP(CCppReturn::True());
+	PARSE_POP(CCPPReturn::True());
 }
 
 
@@ -3471,11 +3471,11 @@ CCppReturn CCppParser::TemplateCompilation(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::Template(void)
+CCPPReturn CCPPParser::Template(void)
 {
 	PARSE_PUSH("Template");
 
-	CCppReturn			cReturn;
+	CCPPReturn			cReturn;
 	TRISTATE			tResult;
 
 	mcParser.PushPosition();
@@ -3484,7 +3484,7 @@ CCppReturn CCppParser::Template(void)
 	if (tResult != TRITRUE)
 	{
 		mcParser.PopPosition();
-		PARSE_POP(CCppReturn::NotFound());
+		PARSE_POP(CCPPReturn::NotFound());
 	}
 
 	tResult = mcParser.GetExactCharacter('<');
@@ -3492,7 +3492,7 @@ CCppReturn CCppParser::Template(void)
 	{
 		Expected("<");
 		mcParser.PopPosition();
-		PARSE_POP(CCppReturn::NotFound());
+		PARSE_POP(CCPPReturn::NotFound());
 	}
 
 	cReturn = TemplateBody();
@@ -3500,7 +3500,7 @@ CCppReturn CCppParser::Template(void)
 	{
 		Expected("TemplateBody");
 		mcParser.PopPosition();
-		PARSE_POP(CCppReturn::NotFound());
+		PARSE_POP(CCPPReturn::NotFound());
 	}
 
 	tResult = mcParser.GetExactCharacter('>');
@@ -3508,11 +3508,11 @@ CCppReturn CCppParser::Template(void)
 	{
 		Expected(">");
 		mcParser.PopPosition();
-		PARSE_POP(CCppReturn::NotFound());
+		PARSE_POP(CCPPReturn::NotFound());
 	}
 
 	mcParser.PassPosition();
-	PARSE_POP(CCppReturn::True());
+	PARSE_POP(CCPPReturn::True());
 }
 
 
@@ -3520,11 +3520,11 @@ CCppReturn CCppParser::Template(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::TemplateBody(void)
+CCPPReturn CCPPParser::TemplateBody(void)
 {
 	PARSE_PUSH("TemplateBody");
 
-	CCppReturn	cReturn;
+	CCPPReturn	cReturn;
 	TRISTATE	tResult;
 	int			iCount;
 
@@ -3566,7 +3566,7 @@ CCppReturn CCppParser::TemplateBody(void)
 
 		break;
 	}
-	PARSE_POP(CCppReturn::True());
+	PARSE_POP(CCPPReturn::True());
 }
 
 
@@ -3574,22 +3574,22 @@ CCppReturn CCppParser::TemplateBody(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::ClassParam(void)
+CCPPReturn CCPPParser::ClassParam(void)
 {
 	PARSE_PUSH("ClassParam");
 
 	TRISTATE	tResult;
-	CCppReturn	cReturn;
+	CCPPReturn	cReturn;
 
 	tResult = mcParser.GetExactIdentifier("class");
 	if (tResult != TRITRUE)
 	{
-		PARSE_POP(CCppReturn::NotFound());
+		PARSE_POP(CCPPReturn::NotFound());
 	}
 
 	cReturn = Name();
 
-	PARSE_POP(CCppReturn::True());
+	PARSE_POP(CCPPReturn::True());
 }
 
 
@@ -3597,22 +3597,22 @@ CCppReturn CCppParser::ClassParam(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::TypenameParam(void)
+CCPPReturn CCPPParser::TypenameParam(void)
 {
 	PARSE_PUSH("TypenameParam");
 
 	TRISTATE	tResult;
-	CCppReturn	cReturn;
+	CCPPReturn	cReturn;
 
 	tResult = mcParser.GetExactIdentifier("typename");
 	if (tResult != TRITRUE)
 	{
-		PARSE_POP(CCppReturn::NotFound());
+		PARSE_POP(CCPPReturn::NotFound());
 	}
 
 	cReturn = Name();
 
-	PARSE_POP(CCppReturn::True());
+	PARSE_POP(CCPPReturn::True());
 }
 
 
@@ -3620,17 +3620,17 @@ CCppReturn CCppParser::TypenameParam(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::TemplateParam(void)
+CCPPReturn CCPPParser::TemplateParam(void)
 {
 	PARSE_PUSH("TemplateParam");
 
-	CCppReturn			cReturn;
+	CCPPReturn			cReturn;
 	TRISTATE			tResult;
 
 	cReturn = Template();
 	if (cReturn.IsNotFound())
 	{
-		PARSE_POP(CCppReturn::NotFound());
+		PARSE_POP(CCPPReturn::NotFound());
 	}
 
 	tResult = mcParser.GetExactIdentifier("class");
@@ -3640,11 +3640,11 @@ CCppReturn CCppParser::TemplateParam(void)
 		if (cReturn.IsNotFound())
 		{
 			Expected("Name");
-			PARSE_POP(CCppReturn::NotFound());
+			PARSE_POP(CCPPReturn::NotFound());
 		}
 	}
 
-	PARSE_POP(CCppReturn::True());
+	PARSE_POP(CCPPReturn::True());
 }
 
 
@@ -3652,11 +3652,11 @@ CCppReturn CCppParser::TemplateParam(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::DeclaratorParam(void)
+CCPPReturn CCPPParser::DeclaratorParam(void)
 {
 	PARSE_PUSH("DeclaratorParam");
 
-	CCppReturn			cReturn;
+	CCPPReturn			cReturn;
 
 	cReturn = SingleVariableDeclaration();
 	PARSE_POP(cReturn);
@@ -3667,24 +3667,24 @@ CCppReturn CCppParser::DeclaratorParam(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::NamespaceDecl(void)
+CCPPReturn CCPPParser::NamespaceDecl(void)
 {
 	PARSE_PUSH("NamespaceDecl");
 
-	CCppReturn			cReturn;
+	CCPPReturn			cReturn;
 	TRISTATE			tResult;
 
 	tResult = mcParser.GetExactIdentifier("namespace");
 	if (tResult != TRITRUE)
 	{
-		PARSE_POP(CCppReturn::NotFound());
+		PARSE_POP(CCPPReturn::NotFound());
 	}
 
 	cReturn = Name();
 	if (cReturn.IsNotFound())
 	{
 		Expected("Name");
-		PARSE_POP(CCppReturn::NotFound());
+		PARSE_POP(CCPPReturn::NotFound());
 	}
 
 	tResult = mcParser.GetExactCharacter('=');
@@ -3694,22 +3694,22 @@ CCppReturn CCppParser::NamespaceDecl(void)
 		if (cReturn.IsNotFound())
 		{
 			Expected("Name");
-			PARSE_POP(CCppReturn::NotFound());
+			PARSE_POP(CCPPReturn::NotFound());
 		}
 		
 		tResult = mcParser.GetExactCharacter(';');
 		if (tResult == TRITRUE)
 		{
-			PARSE_POP(CCppReturn::True());
+			PARSE_POP(CCPPReturn::True());
 		}
 		else
 		{
-			PARSE_POP(CCppReturn::NotFound());
+			PARSE_POP(CCPPReturn::NotFound());
 		}
 	}
 	else if (tResult == TRIERROR)
 	{
-		PARSE_POP(CCppReturn::NotFound());
+		PARSE_POP(CCPPReturn::NotFound());
 	}
 	else
 	{
@@ -3717,10 +3717,10 @@ CCppReturn CCppParser::NamespaceDecl(void)
 		if (cReturn.IsNotFound())
 		{
 			Expected("Namespace Block");
-			PARSE_POP(CCppReturn::NotFound());
+			PARSE_POP(CCPPReturn::NotFound());
 		}
 
-		PARSE_POP(CCppReturn::True());
+		PARSE_POP(CCPPReturn::True());
 	}
 }
 
@@ -3730,12 +3730,12 @@ CCppReturn CCppParser::NamespaceDecl(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::NamespaceDefn(void)
+CCPPReturn CCPPParser::NamespaceDefn(void)
 {
 	PARSE_PUSH("NamespaceDefn");
 
 	TRISTATE	tResult;
-	CCppReturn	cReturn;
+	CCPPReturn	cReturn;
 
 
 	tResult = mcParser.GetExactCharacter('{');
@@ -3745,17 +3745,17 @@ CCppReturn CCppParser::NamespaceDefn(void)
 		tResult = mcParser.GetExactCharacter('}');
 		if (tResult == TRITRUE)
 		{
-			PARSE_POP(CCppReturn::True());
+			PARSE_POP(CCPPReturn::True());
 		}
 		else 
 		{
 			Expected("}");
-			PARSE_POP(CCppReturn::NotFound());
+			PARSE_POP(CCPPReturn::NotFound());
 		}
 	}
 	else
 	{
-		PARSE_POP(CCppReturn::NotFound());
+		PARSE_POP(CCPPReturn::NotFound());
 	}
 }
 
@@ -3764,24 +3764,24 @@ CCppReturn CCppParser::NamespaceDefn(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::Using(void)
+CCPPReturn CCPPParser::Using(void)
 {
 	PARSE_PUSH("Using");
 
-	CCppReturn			cReturn;
+	CCPPReturn			cReturn;
 	TRISTATE			tResult;
 	int					iCount;
 
 	tResult = mcParser.GetExactIdentifier("using");
 	if (tResult != TRITRUE)
 	{
-		PARSE_POP(CCppReturn::NotFound());
+		PARSE_POP(CCPPReturn::NotFound());
 	}
 
 	tResult = mcParser.GetExactIdentifier("namespace");
 	if (tResult == TRIERROR)
 	{
-		PARSE_POP(CCppReturn::NotFound());
+		PARSE_POP(CCPPReturn::NotFound());
 	}
 	else if (tResult == TRITRUE)
 	{
@@ -3789,10 +3789,10 @@ CCppReturn CCppParser::Using(void)
 		if (cReturn.IsNotFound())
 		{
 			Expected("Compound Name");
-			PARSE_POP(CCppReturn::NotFound());
+			PARSE_POP(CCPPReturn::NotFound());
 		}
 
-		PARSE_POP(CCppReturn::True());
+		PARSE_POP(CCPPReturn::True());
 	}
 	else
 	{
@@ -3800,10 +3800,10 @@ CCppReturn CCppParser::Using(void)
 		if (cReturn.IsNotFound())
 		{
 			Expected("Compound Name");
-			PARSE_POP(CCppReturn::NotFound());
+			PARSE_POP(CCPPReturn::NotFound());
 		}
 
-		PARSE_POP(CCppReturn::True());
+		PARSE_POP(CCPPReturn::True());
 	}
 }
 
@@ -3812,7 +3812,7 @@ CCppReturn CCppParser::Using(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCppReturn CCppParser::EmptyDecl(void)
+CCPPReturn CCPPParser::EmptyDecl(void)
 {
 	PARSE_PUSH("EmptyDecl");
 
@@ -3821,8 +3821,8 @@ CCppReturn CCppParser::EmptyDecl(void)
 	tResult = mcParser.GetExactCharacter(';');
 	if (tResult != TRITRUE)
 	{
-		PARSE_POP(CCppReturn::NotFound());
+		PARSE_POP(CCPPReturn::NotFound());
 	}
-	PARSE_POP(CCppReturn::True());
+	PARSE_POP(CCPPReturn::True());
 }
 

@@ -23,7 +23,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "CppToken.h"
 
 
-class CCTWideString : public CCppToken
+class CCTWideString : public CCPPToken
 {
 public:
 	short*	mwszString;
@@ -33,7 +33,7 @@ public:
 	void Init(char* szStart, char* szEnd);
 	void Kill(void);
 	BOOL IsString(void);
-	void Append(CChars* psz, CTokeniser* pcTokeniser);
+	void Append(CChars* psz, CCPPTokeniser* pcTokeniser);
 };
 
 

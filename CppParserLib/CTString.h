@@ -23,7 +23,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "CppToken.h"
 
 
-class CCTString : public CCppToken
+class CCTString : public CCPPToken
 {
 public:
 	char*	mszStart;  //This is the starting quote (") inclusive.
@@ -34,7 +34,7 @@ public:
 	void Init(char* szStart, char* szEnd);
 	void Kill(void);
 	BOOL IsString(void);
-	void Append(CChars* psz, CTokeniser* pcTokeniser);
+	void Append(CChars* psz, CCPPTokeniser* pcTokeniser);
 };
 
 

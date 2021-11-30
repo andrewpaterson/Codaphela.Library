@@ -66,7 +66,7 @@ BOOL CCTChar::IsChar(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCTChar::Append(CChars* psz, CTokeniser* pcTokeniser)
+void CCTChar::Append(CChars* psz, CCPPTokeniser* pcTokeniser)
 {
 	char	szDest[4];
 	BOOL	bResult;

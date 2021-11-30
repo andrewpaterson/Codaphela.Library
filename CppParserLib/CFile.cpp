@@ -34,7 +34,7 @@ void CCFile::Init(char* szName)
 	mszContents.Init();
 	mszFullName.Init(szName);
 	mbLoaded = FALSE;
-	mcStack.Init(8 KB);
+	mcStack.Init(4 KB);
 	macBlockSets.Init(this);
 }
 

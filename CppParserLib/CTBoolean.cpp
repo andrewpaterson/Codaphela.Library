@@ -65,7 +65,7 @@ BOOL CCTBoolean::IsBool(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCTBoolean::Append(CChars* psz, CTokeniser* pcTokeniser)
+void CCTBoolean::Append(CChars* psz, CCPPTokeniser* pcTokeniser)
 {
 	psz->Append("(bool)");
 	if (mcBool)

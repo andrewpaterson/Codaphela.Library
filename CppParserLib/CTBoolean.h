@@ -23,7 +23,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "CppToken.h"
 
 
-class CCTBoolean : public CCppToken
+class CCTBoolean : public CCPPToken
 {
 public:
 	bool	mcBool;
@@ -33,7 +33,7 @@ public:
 	void Init(bool bBool);
 	void Kill(void);
 	BOOL IsBool(void);
-	void Append(CChars* psz, CTokeniser* pcTokeniser);
+	void Append(CChars* psz, CCPPTokeniser* pcTokeniser);
 };
 
 

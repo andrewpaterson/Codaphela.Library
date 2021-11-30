@@ -69,7 +69,7 @@ BOOL CCTLongLong::IsSigned(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCTLongLong::Append(CChars* psz, CTokeniser* pcTokeniser)
+void CCTLongLong::Append(CChars* psz, CCPPTokeniser* pcTokeniser)
 {
 	psz->Append("(");
 	if (mbSigned)

@@ -23,7 +23,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "CppToken.h"
 
 
-class CCTReservedWord : public CCppToken
+class CCTReservedWord : public CCPPToken
 {
 public:
 	int64	mlliReservedWord;
@@ -33,7 +33,7 @@ public:
 	void Init(int64 iReservedWord);
 	void Kill(void);
 	BOOL IsReservedWord(void);
-	void Append(CChars* psz, CTokeniser* pcTokeniser);
+	void Append(CChars* psz, CCPPTokeniser* pcTokeniser);
 };
 
 

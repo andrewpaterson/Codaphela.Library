@@ -34,7 +34,7 @@ public:
 	void Init(unsigned short int s);
 	void Kill(void);
 	BOOL IsSigned(void);
-	void Append(CChars* psz, CTokeniser* pcTokeniser);
+	void Append(CChars* psz, CCPPTokeniser* pcTokeniser);
 };
 
 

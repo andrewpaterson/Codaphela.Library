@@ -25,7 +25,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCppToken::IsReservedWord(void)
+BOOL CCPPToken::IsReservedWord(void)
 {
 	return FALSE;
 }
@@ -35,7 +35,7 @@ BOOL CCppToken::IsReservedWord(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCppToken::IsIdentifier(void)
+BOOL CCPPToken::IsIdentifier(void)
 {
 	return FALSE;
 }
@@ -45,7 +45,7 @@ BOOL CCppToken::IsIdentifier(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCppToken::IsNumber(void)
+BOOL CCPPToken::IsNumber(void)
 {
 	return FALSE;
 }
@@ -55,7 +55,7 @@ BOOL CCppToken::IsNumber(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCppToken::IsString(void)
+BOOL CCPPToken::IsString(void)
 {
 	return FALSE;
 }
@@ -65,7 +65,7 @@ BOOL CCppToken::IsString(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCppToken::IsChar(void)
+BOOL CCPPToken::IsChar(void)
 {
 	return FALSE;
 }
@@ -75,7 +75,7 @@ BOOL CCppToken::IsChar(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCppToken::IsBool(void)
+BOOL CCPPToken::IsBool(void)
 {
 	return FALSE;
 }
@@ -85,7 +85,7 @@ BOOL CCppToken::IsBool(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCppToken::IsHelper(void)
+BOOL CCPPToken::IsHelper(void)
 {
 	return FALSE;
 }

@@ -44,7 +44,7 @@ void CCTNewLine::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCTNewLine::Append(CChars* psz, CTokeniser* pcTokeniser)
+void CCTNewLine::Append(CChars* psz, CCPPTokeniser* pcTokeniser)
 {
 	psz->AppendNewLine();
 }

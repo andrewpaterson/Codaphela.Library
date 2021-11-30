@@ -40,9 +40,9 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTokeniser::Init(void)
+void CCPPTokeniser::Init(void)
 {
-	mcStack.Init(128 KB);
+	mcStack.Init(16 KB);
 
 	mcIdentifiers.Init();
 	mcTokens.Init();
@@ -182,10 +182,10 @@ void CTokeniser::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTokeniser::Kill(void)
+void CCPPTokeniser::Kill(void)
 {
 	int				i;
-	CCppToken*		pcToken;
+	CCPPToken*		pcToken;
 
 	for (i = 0; i < mcTokens.NumElements(); i++)
 	{
@@ -204,7 +204,7 @@ void CTokeniser::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CTokeniser::Line(void)
+BOOL CCPPTokeniser::Line(void)
 {
 	BOOL		bResult;
 	int			iTokenNum;
@@ -248,7 +248,7 @@ BOOL CTokeniser::Line(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CTokeniser::Tokenise(CPPTokenHolder* pcSource)
+BOOL CCPPTokeniser::Tokenise(CPPTokenHolder* pcSource)
 {
 	int			i;
 	BOOL		bResult;
@@ -298,7 +298,7 @@ BOOL CTokeniser::Tokenise(CPPTokenHolder* pcSource)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTokeniser::PrintError(CPPLine* pcLine)
+void CCPPTokeniser::PrintError(CPPLine* pcLine)
 {
 	CChars		sz;
 
@@ -323,10 +323,10 @@ void CTokeniser::PrintError(CPPLine* pcLine)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTokeniser::PrintTokens(void)
+void CCPPTokeniser::PrintTokens(void)
 {
 	int			j;
-	CCppToken*	pcToken;
+	CCPPToken*	pcToken;
 	CChars		sz;
 	BOOL		bPrevNewLine;
 
@@ -365,7 +365,7 @@ void CTokeniser::PrintTokens(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CTokeniser::Literal(void)
+BOOL CCPPTokeniser::Literal(void)
 {
 	BOOL		bReturn;
 
@@ -413,7 +413,7 @@ BOOL CTokeniser::Literal(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CTokeniser::ReservedWord(void)
+BOOL CCPPTokeniser::ReservedWord(void)
 {
 	int64				lliID;
 	CCTReservedWord*	pcReservedWord;
@@ -474,7 +474,7 @@ BOOL CTokeniser::ReservedWord(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CTokeniser::Identifier(void)
+BOOL CCPPTokeniser::Identifier(void)
 {
 	int64				lliID;
 	CCTIdentifier*		pcIdentifier;
@@ -503,7 +503,7 @@ BOOL CTokeniser::Identifier(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CTokeniser::DoubleLiteral(void)
+BOOL CCPPTokeniser::DoubleLiteral(void)
 {
 	long double				f;
 	unsigned long long int	ulliExponent;
@@ -552,7 +552,7 @@ BOOL CTokeniser::DoubleLiteral(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CTokeniser::BooleanLiteral(void)
+BOOL CCPPTokeniser::BooleanLiteral(void)
 {
 	BOOL			bResult;
 	CCTBoolean* 	pcBoolean;
@@ -587,7 +587,7 @@ BOOL CTokeniser::BooleanLiteral(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CTokeniser::SingleQuotedLiteral(BOOL bShort)
+BOOL CCPPTokeniser::SingleQuotedLiteral(BOOL bShort)
 {
 	BOOL			bResult;
 	CCTChar*		pcChar;
@@ -687,7 +687,7 @@ BOOL CTokeniser::SingleQuotedLiteral(BOOL bShort)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CTokeniser::StringLiteral(void)
+BOOL CCPPTokeniser::StringLiteral(void)
 {
 	BOOL				bResult;
 	CCTString*			pcString;
@@ -712,7 +712,7 @@ BOOL CTokeniser::StringLiteral(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CTokeniser::WideStringLiteral(void)
+BOOL CCPPTokeniser::WideStringLiteral(void)
 {
 	BOOL				bResult;
 	CCTWideString*		pcString;
@@ -737,7 +737,7 @@ BOOL CTokeniser::WideStringLiteral(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CTokeniser::DecimalInteger(void)
+BOOL CCPPTokeniser::DecimalInteger(void)
 {
 	BOOL					bResult;
 	unsigned long long int  ulli;
@@ -761,7 +761,7 @@ BOOL CTokeniser::DecimalInteger(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CTokeniser::IntegerLiteral(void)
+BOOL CCPPTokeniser::IntegerLiteral(void)
 {
 	unsigned long long int	ulliNumber;
 	int						iNumDigits;
@@ -800,7 +800,7 @@ BOOL CTokeniser::IntegerLiteral(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CTokeniser::ShortLiteral(void)
+BOOL CCPPTokeniser::ShortLiteral(void)
 {
 	BOOL			bResult;
 
@@ -836,7 +836,7 @@ BOOL CTokeniser::ShortLiteral(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTokeniser::IntegerType(unsigned long long int ulliValue)
+void CCPPTokeniser::IntegerType(unsigned long long int ulliValue)
 {
 	BOOL			bResult;
 	BOOL			bUnsigned;
@@ -914,7 +914,7 @@ void CTokeniser::IntegerType(unsigned long long int ulliValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTokeniser::DoubleType(long double ldValue)
+void CCPPTokeniser::DoubleType(long double ldValue)
 {
 	BOOL			bResult;
 	CCTFloat*		pcFloat;
@@ -951,9 +951,9 @@ void CTokeniser::DoubleType(long double ldValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTokeniser::AddToken(CCppToken* pcToken)
+void CCPPTokeniser::AddToken(CCPPToken* pcToken)
 {
-	CCppToken**	ppcToken;
+	CCPPToken**	ppcToken;
 
 	ppcToken = mcTokens.Add();
 	*ppcToken = pcToken;
@@ -964,7 +964,7 @@ void CTokeniser::AddToken(CCppToken* pcToken)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTokeniser::Error(char* szError)
+void CCPPTokeniser::Error(char* szError)
 {
 	CChars::Dump(szError);
 	CChars::Dump("\n");
