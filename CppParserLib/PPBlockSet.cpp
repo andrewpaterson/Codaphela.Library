@@ -20,7 +20,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include "PPDirective.h"
 #include "CFile.h"
-#include "PPBlockSet.h"
+#include "CBlockSet.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -93,7 +93,7 @@ CPPBlock* CPPBlockSet::CreateBlock(void)
 {
 	CPPBlock*	pcBlock;
 
-	pcBlock = mpcFileTokens->AddBlock();
+	pcBlock = CPPBlock::Construct(mpcFileTokens->Add(sizeof(CPPBlock)));
 	pcBlock->Init(this, miLine, miColumn);
 	return pcBlock;
 }
@@ -119,7 +119,7 @@ CPPBlock* CPPBlockSet::AddBlock(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CPPBlockSet::AddBlock(CPPBlock* pcBlock)
 {
-	if (pcBlock->IsForBlockSet(this))
+	if (pcBlock->mpcBlockSet == this)
 	{
 		mapcBlocks.Add(&pcBlock);
 		return TRUE;
@@ -197,7 +197,7 @@ BOOL CPPBlockSet::IsDirective(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPPTokens* CPPBlockSet::GetFileTokens(void)
+CMemoryStackExtended* CPPBlockSet::GetStack(void)
 {
 	return mpcFileTokens;
 }
@@ -207,7 +207,7 @@ CPPTokens* CPPBlockSet::GetFileTokens(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPPTokenHolder* CPPBlockSet::GetRawTokensHolder(void)
+CPPTokenHolder* CPPBlockSet::GetTokenHolder(void)
 {
 	return &mcRawTokens;
 }

@@ -41,7 +41,7 @@ struct STULog
 class CTranslationUnit : public CCFile
 {
 protected:
-	CPPHolder	mcTokensHolder;  //This is really just an array of CBlock*'s but the parser only works with CPPHolder's.
+	CPPHolder	mcTokens;  //This is really just an array of CBlock*'s but the parser only works with CPPHolder's.
 	STULog*		mpcLogs;
 	CLibrary*	mpcLibrary;
 
@@ -55,7 +55,7 @@ public:
 	BOOL			LogInlucdes(void);
 	BOOL			IsPragmaOnced(void);
 	BOOL			IsSystemFile(void);
-	CPPHolder*		GetTokensHolder(void);
+	CPPHolder*		GetTokens(void);
 	STULog*			GetLogs(void);
 	CLibrary*		GetLibrary(void);
 };

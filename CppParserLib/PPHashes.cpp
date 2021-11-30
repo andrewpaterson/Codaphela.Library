@@ -76,7 +76,7 @@ char* CPPHashes::Print(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPPHashes::Copy(CPPToken* pcSource, CPPTokens* pcTokens)
+void CPPHashes::Copy(CPPToken* pcSource, CMemoryStackExtended* pcStack)
 {
 	CPPHashes*	pcCast;
 

@@ -50,8 +50,8 @@ public:
 	BOOL					IsLastToken(int iToken);
 	BOOL					IsDirective(void);
 	void					DumpRawTokens(void);
-	CPPTokens*				GetFileTokens(void);
-	CPPTokenHolder*			GetRawTokensHolder(void);
+	CMemoryStackExtended*	GetStack(void);
+	CPPTokenHolder*			GetTokenHolder(void);
 	int						Line(void);
 	int						Column(void);
 	int						Block(void);

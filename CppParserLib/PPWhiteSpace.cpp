@@ -64,7 +64,7 @@ BOOL CPPWhiteSpace::IsWhiteSpace(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPPWhiteSpace::Copy(CPPToken* pcSource, CPPTokens* pcTokens)
+void CPPWhiteSpace::Copy(CPPToken* pcSource, CMemoryStackExtended* pcStack)
 {
 	CPPWhiteSpace*	pcCast;
 

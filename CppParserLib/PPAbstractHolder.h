@@ -34,7 +34,7 @@ public:
 	void 				Kill(void);
 	BOOL 				IsAbstractHolder(void);
 	char*				Print(CChars* psz);
-	void 				Copy(CPPAbstractHolder* pcCast, CPPTokens* pcTokens);
+	void 				Copy(CPPAbstractHolder* pcCast, CMemoryStackExtended* pcStack);
 	int	 				TokenLength(void);
 	CPPToken*			Get(int iIndex);
 	void				Dump(void);

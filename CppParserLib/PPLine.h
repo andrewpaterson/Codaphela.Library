@@ -35,7 +35,7 @@ public:
 	BOOL	IsLine(void);
 	char*	Print(CChars* psz);
 	void	AppendNoNewline(CChars* psz);
-	void	Copy(CPPToken* pcSource, CPPTokens* pcTokens);
+	void	Copy(CPPToken* pcSource, CMemoryStackExtended* pcStack);
 	void	Dump(void);
 	BOOL	Equals(CPPToken* pcOther);
 };

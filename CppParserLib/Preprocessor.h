@@ -62,7 +62,7 @@ protected:
 
 	CPPTokenHolder*					mpcPost;
 	CTranslationUnit*				mpcUnit;
-	CPPTokens*						mpcTokens;
+	CMemoryStackExtended*			mpcStack;
 
 	int								miBlockReuse;
 	BOOL							mbLogBlocks;
@@ -79,7 +79,7 @@ public:
 	static void			Preprocess(char* szSource, CChars* szDest);
 
 public:
-	void 				Init(CConfig* pcConfig, CPPTokens* pcTokens);
+	void 				Init(CConfig* pcConfig, CMemoryStackExtended* pcStack);
 	void 				Kill(void);
 	void				InitPlatformSpecific(void);
 	void				AddConfigDefines(CConfig* pcConfig);	
@@ -102,18 +102,18 @@ public:
 	CSpecialOperator*	AddSpecialOperator(char* szSpecialOperator, EPreprocessorSpecialOperator eType);
 
 	BOOL				PreprocessFile(CCFile* pcFile, CCFile* pcFromFile);
-	SPPTokenBlockIndex	PreprocessTokens(CPPTokenHolder* pcDestTokens, CPPTokens* pcTokens, CPPTokenHolder* pcSourceTokens, int iBlock, int iToken);
+	SPPTokenBlockIndex		PreprocessTokens(CPPTokenHolder* pcDestTokens, CMemoryStackExtended* pcStack, CPPTokenHolder* pcSourceTokens, int iBlock, int iToken);
 	BOOL				PreprocessTranslationUnit(CTranslationUnit* pcFile);
 
 	BOOL 				ProcessHashDefine(CPreprocessorTokenParser* pcParser);
 	BOOL 				ProcessHashUndef(CPreprocessorTokenParser* pcParser);
 	BOOL 				ProcessHashInclude(CPreprocessorTokenParser* pcParser);
-	SPPTokenBlockIndex	ProcessHashEndif(CPreprocessorTokenParser* pcParser, CPPConditional* pcCond, SPPTokenBlockIndex iLine);
-	SPPTokenBlockIndex 	ProcessHashIfndef(CPreprocessorTokenParser* pcParser, CPPConditional* pcCond, SPPTokenBlockIndex iLine);
-	SPPTokenBlockIndex 	ProcessHashIfdef(CPreprocessorTokenParser* pcParser, CPPConditional* pcCond, SPPTokenBlockIndex iLine);
-	SPPTokenBlockIndex 	ProcessHashElse(CPreprocessorTokenParser* pcParser, CPPConditional* pcCond, SPPTokenBlockIndex iLine);
-	SPPTokenBlockIndex 	ProcessHashIf(CPreprocessorTokenParser* pcParser, CPPConditional* pcCond, SPPTokenBlockIndex iLine);
-	SPPTokenBlockIndex 	ProcessHashElif(CPreprocessorTokenParser* pcParser, CPPConditional* pcCond, SPPTokenBlockIndex iLine);
+	SPPTokenBlockIndex		ProcessHashEndif(CPreprocessorTokenParser* pcParser, CPPConditional* pcCond, SPPTokenBlockIndex iLine);
+	SPPTokenBlockIndex 		ProcessHashIfndef(CPreprocessorTokenParser* pcParser, CPPConditional* pcCond, SPPTokenBlockIndex iLine);
+	SPPTokenBlockIndex 		ProcessHashIfdef(CPreprocessorTokenParser* pcParser, CPPConditional* pcCond, SPPTokenBlockIndex iLine);
+	SPPTokenBlockIndex 		ProcessHashElse(CPreprocessorTokenParser* pcParser, CPPConditional* pcCond, SPPTokenBlockIndex iLine);
+	SPPTokenBlockIndex 		ProcessHashIf(CPreprocessorTokenParser* pcParser, CPPConditional* pcCond, SPPTokenBlockIndex iLine);
+	SPPTokenBlockIndex 		ProcessHashElif(CPreprocessorTokenParser* pcParser, CPPConditional* pcCond, SPPTokenBlockIndex iLine);
 	BOOL 				ProcessHashError(CPreprocessorTokenParser* pcParser);
 	BOOL 				ProcessHashPragma(CPreprocessorTokenParser* pcParser);
 	BOOL				ProcessNormalLine(CPreprocessorTokenParser* pcParser);
@@ -136,7 +136,7 @@ public:
 	BOOL				ProcessDoubleHash(CPPTokenHolder* pcDest, CPPHashes* pcHash, CPreprocessorTokenParser* pcParser);
 	void				FindBestInclude(CExternalString* pcInclude, BOOL bSystemFile, CHeaderFile** ppcCFile, CHeaderNameMap** ppcHeaderNameMap);
 	BOOL				FindArguments(CPreprocessorTokenParser* pcParser, CArrayPPTokenHolders* pacArguments);
-	SPPTokenBlockIndex	Condition(CPPConditional* pcCond, SPPTokenBlockIndex iLine);
+	SPPTokenBlockIndex		Condition(CPPConditional* pcCond, SPPTokenBlockIndex iLine);
 	void				AddTokenToArgument(CPPTokenHolder* pcArgument, CPPToken* pcToken);
 	CPPToken*			AddToken(CPPToken* pcToken, CArrayPPTokenPtrs* pcTokens);
 	BOOL				ExpandDirectiveTokenIfNecessary(CPPToken* pcToken, CPPTokenHolder* pcDest, CPreprocessorTokenParser* pcParser, int iDepth);
@@ -146,7 +146,7 @@ public:
 	CPPToken*			QuoteTokens(CPPTokenHolder* pcDest, CPPAbstractHolder* pcHolder);
 	CPPToken*			ConcaternateTokens(CPPTokenHolder* pcDest, CPPToken* pcLeft, CPPToken* pcRight);
 	BOOL				TokeniseFile(CCFile* pcFile);
-	void				DeltaDefines(CArrayNamedDefines* pcDelta, CPPTokens* pcTokens);
+	void				DeltaDefines(CArrayNamedDefines* pcDelta, CMemoryStackExtended* pcStack);
 	void				LogBlocks(CCFile* pcFile, SPPTokenBlockIndex sResult);
 	void				LogIncludes(CCFile* pcFile);
 	void				TranslationUnitLogging(CTranslationUnit* pcFile);

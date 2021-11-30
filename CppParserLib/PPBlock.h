@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __P_P_BLOCK_H__
-#define __P_P_BLOCK_H__
+#ifndef __C_BLOCK_H__
+#define __C_BLOCK_H__
 #include "BaseLib/MemoryStackExtended.h"
 #include "BaseLib/ArrayTemplate.h"
 #include "BaseLib/ArrayIntAndPointer.h"
@@ -31,29 +31,27 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 class CPPBlockSet;
 class CPPBlock : public CPPAbstractHolder
 {
-protected:
+public:
 	CPPBlockSet*			mpcBlockSet;  //The blockset this block is in.
-	CPPTokens*				mpcFileTokens;  //From CFile (from CBlockSet).
+	CMemoryStackExtended*	mpcStack;  //From CFile (from CBlockSet).
 	SPPTokenBlockIndex		msNext;
 
-public:
 	TOKEN_CONSTRUCT(CPPBlock);
-	void 				Init(int iLine, int iColumn);
-	void 				Init(CPPBlockSet* pcBlockSet, int iLine, int iColumn);
-	void 				Kill(void);
-	BOOL 				IsBlock(void);
-	BOOL				IsForBlockSet(CPPBlockSet* pcBlockSet);
-	void				Copy(CPPToken* pcSource, CPPTokens* pcTokens);
-	void				SetNext(int	iTokenIndex, int iBlockIndex);
-	BOOL				Equals(CPPToken* pcOther);
-	SPPTokenBlockIndex	GetNextTokenBlock(void);
-	void				Dump(CArrayIntAndPointer* papc);
-	void				DumpTokens(void);
+	void 	Init(int iLine, int iColumn);
+	void 	Init(CPPBlockSet* pcBlockSet, int iLine, int iColumn);
+	void 	Kill(void);
+	BOOL 	IsBlock(void);
+	void	Copy(CPPToken* pcSource, CMemoryStackExtended* pcStack);
+	void	SetNext(int	iTokenIndex, int iBlockIndex);
+	void*	Allocate(int iSize);
+	BOOL	Equals(CPPToken* pcOther);
+	void	Dump(CArrayIntAndPointer* papc);
+	void	DumpTokens(void);
 };
 
 
 typedef CArrayTemplate<CPPBlock*>	CArrayPtrCBlocks;
 
 
-#endif //__P_P_BLOCK_H__
+#endif //__C_BLOCK_H__
 

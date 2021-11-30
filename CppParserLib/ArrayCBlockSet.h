@@ -33,10 +33,10 @@ public:
 	BOOL		mbRawProcessed;
 	CCFile*		mpcFile;
 
-	void 			Init(CCFile* pcFile);
-	void			RawProcessed(void);
-	BOOL			IsRawProcessed(void);
-	CPPBlockSet*	Add(int iLine, BOOL bTextBlocks);
+	void 		Init(CCFile* pcFile);
+	void		RawProcessed(void);
+	BOOL		IsRawProcessed(void);
+	CPPBlockSet* Add(int iLine, BOOL bTextBlocks);
 };
 
 

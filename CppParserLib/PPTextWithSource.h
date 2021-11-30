@@ -33,7 +33,7 @@ public:
 	void 	Init(EPreprocessorText eType, int iLine, int iColumn, char* szStart, int iLength);
 	void 	Init(EPreprocessorText eType, int iLine, int iColumn, char* szStart, char* szEndExclusive);
 	void 	Kill(void);
-	void 	Copy(CPPToken* pcSource, CPPTokens* pcTokens);
+	void 	Copy(CPPToken* pcSource, CMemoryStackExtended* pcStack);
 	BOOL 	HasSource(void);
 	char*	TextStart(void);
 	char*	TextEndInclusive(void);
