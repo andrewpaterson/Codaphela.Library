@@ -96,7 +96,7 @@ void CPPLine::AppendNoNewline(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPPLine::Copy(CPPToken* pcSource, CPPTokens* pcTokens)
+void CPPLine::Copy(CPPToken* pcSource, CMemoryStackExtended* pcStack)
 {
 	CPPLine*	pcCast;
 	CPPToken*	pcToken;
@@ -109,7 +109,7 @@ void CPPLine::Copy(CPPToken* pcSource, CPPTokens* pcTokens)
 
 		for (i = 0; i < pcCast->mcTokens.mcArray.NumElements(); i++)
 		{
-			pcToken = DuplicatePPToken(*pcCast->mcTokens.mcArray.Get(i), pcTokens);
+			pcToken = DuplicatePPToken(*pcCast->mcTokens.mcArray.Get(i), pcStack);
 			mcTokens.Add(pcToken);
 		}
 	}

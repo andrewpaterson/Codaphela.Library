@@ -26,13 +26,13 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/ExternalString.h"
 #include "PPLine.h"
 #include "PPText.h"
-#include "PPTokens.h"
+#include "PPtokens.h"
 
 
 class CLinePreprocessor
 {
 public:
-	CArrayPPTokenPtrs*		mpcTokenPtrs;
+	CArrayPPTokenPtrs*		mpcTokens;
 	char*					mszWhiteSpaceStart;
 	char*					mszIdentifierStart;
 	char*					mszDecorationStart;
@@ -42,20 +42,20 @@ public:
 	char*					mszNumberStart;
 	BOOL					mbOnlyWhiteSpace;
 	CPreprocessorParser*	mpcParser;
-	CPPTokens*				mpcTokens;
+	CMemoryStackExtended*	mpcStack;
 	BOOL					mbContainsEscapes;
 	BOOL					mbContainsLineContinuers;
 
-	static void	Do(CPPTokenHolder* pcLinesTokens, CPreprocessorParser* pcParser, CPPTokens* pcTokens, BOOL bAllowEscapes);
+	static void	Do(CPPTokenHolder* pcLinesTokens, CPreprocessorParser* pcParser, CMemoryStackExtended* pcStack, BOOL bAllowEscapes);
 
-	void		Preprocess(CArrayPPTokenPtrs* pcTokenPtrs, CPreprocessorParser* pcParser, CPPTokens* pcTokens, BOOL bAllowEscapes);
+	void		Preprocess(CArrayPPTokenPtrs* pcTokens, CPreprocessorParser* pcParser, CMemoryStackExtended* pcStack, BOOL bAllowEscapes);
 	BOOL		PossibleComment(void);
 	void		AddRelevantToken(void);
 	CPPText* 	AddText(EPreprocessorText eType, char* szStart, char* szEndExclusive);
 	void		AddDoubleQuotedToken(void);
 	void		AddSingleQuotedToken(void);
 	void		AddAnnotationToken(void);
-	CPPToken*	AddToken(CPPToken* pcToken, CArrayPPTokenPtrs* pcTokenPtrs);
+	CPPToken*	AddToken(CPPToken* pcToken, CArrayPPTokenPtrs* pcTokens);
 	void		NullAll(void);
 	void		ReplaceEscapeCodes(CChars* psz, char* szStart, char* szEnd, char cQuotes);
 	void		ReplaceLineContinuers(CChars* psz, char* szStart, char* szEnd);

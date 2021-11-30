@@ -27,7 +27,6 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "GeneralToken.h"
 
 
-class CPPTokens;
 class CPPToken
 {
 protected:
@@ -50,7 +49,7 @@ public:
 	virtual BOOL	IsEmpty(void) =0;
 			void	Set(int iLine, int iColumn);
 	virtual char*	Print(CChars* psz) =0;
-	virtual void	Copy(CPPToken* pcSource, CPPTokens* pcTokens) =0;
+	virtual void	Copy(CPPToken* pcSource, CMemoryStackExtended* pcStack) =0;
 	virtual BOOL	Equals(CPPToken* pcOther) =0;
 
 			int		Line(void);

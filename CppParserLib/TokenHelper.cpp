@@ -34,7 +34,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPPToken* DuplicatePPToken(CPPToken* pcSource, CPPTokens* pcTokens)
+CPPToken* DuplicatePPToken(CPPToken* pcSource, CMemoryStackExtended* pcStack)
 {
 	CPPDirective*			pcDirective;
 	CPPLine*				pcLine;
@@ -48,59 +48,59 @@ CPPToken* DuplicatePPToken(CPPToken* pcSource, CPPTokens* pcTokens)
 
 	if (pcSource->IsDirective())
 	{
-		pcDirective = pcTokens->AddDirective();
-		pcDirective->Copy((CPPDirective*)pcSource, pcTokens);
+		pcDirective = CPPDirective::Construct(pcStack->Add(sizeof(CPPDirective)));
+		pcDirective->Copy((CPPDirective*)pcSource, pcStack);
 		return pcDirective;
 	}
 	else if (pcSource->IsWhiteSpace())
 	{
-		pcWhiteSpace = pcTokens->AddWhiteSpace();
-		pcWhiteSpace->Copy((CPPWhiteSpace*)pcSource, pcTokens);
+		pcWhiteSpace = CPPWhiteSpace::Construct(pcStack->Add(sizeof(CPPWhiteSpace)));
+		pcWhiteSpace->Copy((CPPWhiteSpace*)pcSource, pcStack);
 		return pcWhiteSpace;
 	}
 	else if (pcSource->IsReplacement())
 	{
-		pcReplacement = pcTokens->AddReplacement();
-		pcReplacement->Copy((CPPReplacement*)pcSource, pcTokens);
+		pcReplacement = CPPReplacement::Construct(pcStack->Add(sizeof(CPPReplacement)));
+		pcReplacement->Copy((CPPReplacement*)pcSource, pcStack);
 		return pcReplacement;
 	}
 	else if (pcSource->IsText())
 	{
 		if (((CPPText*)pcSource)->HasSource())
 		{
-			pcTextWithSource = pcTokens->AddTextWithSource();
-			pcTextWithSource->Copy((CPPTextWithSource*)pcSource, pcTokens);
+			pcTextWithSource = CPPTextWithSource::Construct(pcStack->Add(sizeof(CPPTextWithSource)));
+			pcTextWithSource->Copy((CPPTextWithSource*)pcSource, pcStack);
 			return pcTextWithSource;
 		}
 		else
 		{
-			pcText = pcTokens->AddText();
-			pcText->Copy((CPPText*)pcSource, pcTokens);
+			pcText = CPPText::Construct(pcStack->Add(sizeof(CPPText)));
+			pcText->Copy((CPPText*)pcSource, pcStack);
 			return pcText;
 		}
 	}
 	else if (pcSource->IsHash())
 	{
-		pcHashes = pcTokens->AddHashes();
-		pcHashes->Copy((CPPHashes*)pcSource, pcTokens);
+		pcHashes = CPPHashes::Construct(pcStack->Add(sizeof(CPPHashes)));
+		pcHashes->Copy((CPPHashes*)pcSource, pcStack);
 		return pcHashes;
 	}
 	else if (pcSource->IsLine())
 	{
-		pcLine = pcTokens->AddLine();
-		pcLine->Copy((CPPLine*)pcSource, pcTokens);
+		pcLine = CPPLine::Construct(pcStack->Add(sizeof(CPPLine)));
+		pcLine->Copy((CPPLine*)pcSource, pcStack);
 		return pcLine;
 	}
 	else if (pcSource->IsBlock())
 	{
-		pcBlock = pcTokens->AddBlock();
-		pcBlock->Copy((CPPBlock*)pcSource, pcTokens);
+		pcBlock = CPPBlock::Construct(pcStack->Add(sizeof(CPPBlock)));
+		pcBlock->Copy((CPPBlock*)pcSource, pcStack);
 		return pcBlock;
 	}	
 	else if (pcSource->IsHolder())
 	{
-		pcHolder = pcTokens->AddHolder();
-		pcHolder->Copy((CPPHolder*)pcSource, pcTokens);
+		pcHolder = CPPHolder::Construct(pcStack->Add(sizeof(CPPHolder)));
+		pcHolder->Copy((CPPHolder*)pcSource, pcStack);
 		return pcHolder;
 	}
 	else

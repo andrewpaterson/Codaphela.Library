@@ -37,7 +37,7 @@ public:
 	void 		Kill(void);
 	BOOL 		IsReplacement(void);
 	char* 		Print(CChars* psz);
-	void 		Copy(CPPToken* pcSource, CPPTokens* pcTokens);
+	void 		Copy(CPPToken* pcSource, CMemoryStackExtended* pcStack);
 	BOOL		Equals(CPPToken* pcOther);
 	BOOL		IsEmpty(void);
 	BOOL		IsVariadic(void);

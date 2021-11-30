@@ -32,7 +32,6 @@ CPPBlock* CPPTokens::AddBlock(void)
 		
 	pcToken = (CPPBlock*)mcStack.Add(sizeof(CPPBlock));
 	CPPBlock::Construct(pcToken);
-	return pcToken;
 }
 
 
@@ -46,7 +45,6 @@ CPPWhiteSpace* CPPTokens::AddWhiteSpace(void)
 
 	pcToken = (CPPWhiteSpace*)mcStack.Add(sizeof(CPPWhiteSpace));
 	CPPWhiteSpace::Construct(pcToken);
-	return pcToken;
 }
 
 
@@ -60,7 +58,6 @@ CPPHashes* CPPTokens::AddHashes(void)
 
 	pcToken = (CPPHashes*)mcStack.Add(sizeof(CPPHashes));
 	CPPHashes::Construct(pcToken);
-	return pcToken;
 }
 
 
@@ -74,7 +71,6 @@ CPPReplacement* CPPTokens::AddReplacement(void)
 
 	pcToken = (CPPReplacement*)mcStack.Add(sizeof(CPPReplacement));
 	CPPReplacement::Construct(pcToken);
-	return pcToken;
 }
 
 
@@ -88,21 +84,6 @@ CPPText* CPPTokens::AddText(void)
 
 	pcToken = (CPPText*)mcStack.Add(sizeof(CPPText));
 	CPPText::Construct(pcToken);
-	return pcToken;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CPPTextWithSource* CPPTokens::AddTextWithSource(void)
-{
-	CPPTextWithSource* pcToken;
-
-	pcToken = (CPPTextWithSource*)mcStack.Add(sizeof(CPPTextWithSource));
-	CPPTextWithSource::Construct(pcToken);
-	return pcToken;
 }
 
 
@@ -116,7 +97,6 @@ CPPHolder* CPPTokens::AddHolder(void)
 
 	pcToken = (CPPHolder*)mcStack.Add(sizeof(CPPHolder));
 	CPPHolder::Construct(pcToken);
-	return pcToken;
 }
 
 
@@ -130,68 +110,6 @@ CPPLine* CPPTokens::AddLine(void)
 
 	pcToken = (CPPLine*)mcStack.Add(sizeof(CPPLine));
 	CPPLine::Construct(pcToken);
-	return pcToken;
 }
 
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CPPDirective* CPPTokens::AddDirective(void)
-{
-	CPPDirective* pcToken;
-
-	pcToken = (CPPDirective*)mcStack.Add(sizeof(CPPDirective));
-	CPPDirective::Construct(pcToken);
-	return pcToken;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CPPConditional* CPPTokens::AddConditional(void)
-{
-	CPPConditional* pcToken;
-
-	pcToken = (CPPConditional*)mcStack.Add(sizeof(CPPConditional));
-	CPPConditional::Construct(pcToken);
-	return pcToken;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CPPInclude* CPPTokens::AddInclude(void)
-{
-	CPPInclude* pcToken;
-
-	pcToken = (CPPInclude*)mcStack.Add(sizeof(CPPInclude));
-	CPPInclude::Construct(pcToken);
-	return pcToken;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CPPTokens::Mark(CStackMarkExtended* psMark)
-{
-	mcStack.Mark(psMark);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CPPTokens::Rollback(CStackMarkExtended* psMark)
-{
-	mcStack.Rollback(psMark);
-}
 

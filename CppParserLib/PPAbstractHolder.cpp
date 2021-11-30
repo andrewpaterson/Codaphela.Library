@@ -71,7 +71,7 @@ char* CPPAbstractHolder::Print(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPPAbstractHolder::Copy(CPPAbstractHolder* pcCast, CPPTokens* pcTokens)
+void CPPAbstractHolder::Copy(CPPAbstractHolder* pcCast, CMemoryStackExtended* pcStack)
 {
 	int			i;
 	CPPToken*	pcToken;
@@ -80,7 +80,7 @@ void CPPAbstractHolder::Copy(CPPAbstractHolder* pcCast, CPPTokens* pcTokens)
 
 	for (i = 0; i < pcCast->mcTokens.mcArray.NumElements(); i++)
 	{
-		pcToken = DuplicatePPToken(*pcCast->mcTokens.mcArray.Get(i), pcTokens);
+		pcToken = DuplicatePPToken(*pcCast->mcTokens.mcArray.Get(i), pcStack);
 		mcTokens.Add(pcToken);
 	}
 }

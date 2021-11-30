@@ -41,7 +41,7 @@ void CPPBlock::Init(CPPBlockSet* pcBlockSet, int iLine, int iColumn)
 {
 	Init(iLine, iColumn);
 	mpcBlockSet = pcBlockSet;
-	mpcFileTokens = pcBlockSet->GetFileTokens();
+	mpcStack = pcBlockSet->GetStack();
 	msNext.Init(-1, -1);
 }
 
@@ -54,7 +54,7 @@ void CPPBlock::Kill(void)
 {
 	CPPAbstractHolder::Kill();
 	mpcBlockSet = NULL;
-	mpcFileTokens = NULL;
+	mpcStack = NULL;
 }
 
 
@@ -72,17 +72,7 @@ BOOL CPPBlock::IsBlock(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPPBlock::IsForBlockSet(CPPBlockSet* pcBlockSet)
-{
-	return this->mpcBlockSet == pcBlockSet;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CPPBlock::Copy(CPPToken* pcSource, CPPTokens* pcTokens)
+void CPPBlock::Copy(CPPToken* pcSource, CMemoryStackExtended* pcStack)
 {
 	CPPBlock*	pcCast;
 	CPPToken*	pcToken;
@@ -95,13 +85,23 @@ void CPPBlock::Copy(CPPToken* pcSource, CPPTokens* pcTokens)
 
 		for (i = 0; i < pcCast->mcTokens.mcArray.NumElements(); i++)
 		{
-			pcToken = DuplicatePPToken(*pcCast->mcTokens.mcArray.Get(i), pcTokens);
+			pcToken = DuplicatePPToken(*pcCast->mcTokens.mcArray.Get(i), pcStack);
 			mcTokens.Add(pcToken);
 		}
 
 		mpcBlockSet = pcCast->mpcBlockSet;
-		mpcFileTokens = pcCast->mpcFileTokens;
+		mpcStack = pcCast->mpcStack;
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void* CPPBlock::Allocate(int iSize)
+{
+	return mpcStack->Add(iSize);
 }
 
 
@@ -161,15 +161,5 @@ void CPPBlock::Dump(CArrayIntAndPointer* papc)
 void CPPBlock::DumpTokens(void)
 {
 	CPPAbstractHolder::Dump();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-SPPTokenBlockIndex CPPBlock::GetNextTokenBlock(void)
-{
-	return msNext;
 }
 

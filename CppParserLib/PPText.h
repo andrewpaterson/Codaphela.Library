@@ -47,7 +47,7 @@ public:
 	void 			Kill(void);
 	BOOL 			IsText(void);
 	char* 			Print(CChars* psz);
-	void 			Copy(CPPToken* pcSource, CPPTokens* pcTokens);
+	void 			Copy(CPPToken* pcSource, CMemoryStackExtended* pcStack);
 	virtual BOOL	HasSource(void);
 	BOOL			Equals(CPPToken* pcOther);
 	virtual	char*	TextStart(void);

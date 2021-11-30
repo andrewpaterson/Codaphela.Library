@@ -102,4 +102,3 @@ void CHeaderFile::SetPragmaOnce(void)
 	mbPragmaOnce = TRUE;
 }
 
-
