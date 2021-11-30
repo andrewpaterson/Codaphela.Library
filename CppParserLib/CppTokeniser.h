@@ -28,7 +28,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "PreprocessorTokenParser.h"
 
 
-typedef CArrayTemplate<CCPPToken*>	CCTArrayTokens;
+typedef CArrayTemplate<CCPPToken*>	CArrayCTokenPtrs;
 
 
 class CCPPTokeniser
@@ -36,7 +36,7 @@ class CCPPTokeniser
 public:
 	CASCIIIndex					mcReservedWords;
 	CASCIIIndex					mcIdentifiers;
-	CCTArrayTokens				mcTokens;
+	CArrayCTokenPtrs			mcTokens;
 	CMemoryStackExtended		mcStack;
 	
 	CPreprocessorTokenParser	mcParser;

@@ -112,7 +112,7 @@ char* CPPText::Print(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPPText::Copy(CPPToken* pcSource, CMemoryStackExtended* pcStack)
+void CPPText::Copy(CPPToken* pcSource, CPPTokens* pcTokens)
 {
 	CPPText*	pcCast;
 

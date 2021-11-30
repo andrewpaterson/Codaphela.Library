@@ -41,23 +41,23 @@ public:
 	void 					Kill(void);
 
 	BOOL					Tokenise(CArrayCBlockSet* pacBlockSets, char* szPos, int iLength, BOOL bAllowAnnotations);
-	BOOL					Tokenise(CPPTokenHolder* pcTokens, CMemoryStackExtended* pcStackGetIndex, char* szPos, int iLength, BOOL bAllowAnnotations, int iBlock, int iIndex);
-	void					TokeniseDefine(CPPTokenHolder* pcHolder, char* sz, CMemoryStackExtended* pcStackGetIndex);
+	BOOL					Tokenise(CPPTokenHolder* pcTokenHolders, CPPTokens* pcTokens, char* szPos, int iLength, BOOL bAllowAnnotations, int iBlock, int iIndex);
+	void					TokeniseDefine(CPPTokenHolder* pcHolder, char* sz, CPPTokens* pcTokens);
 	EPreprocessorDirective	GetDirective(void);
-	CPPDirective*			TokeniseDirective(CMemoryStackExtended* mpcStackGetIndex, EPreprocessorDirective eDirective, int iBlock, int iIndex);
-	CPPLine*				Line(CMemoryStackExtended* mpcStackGetIndex);
+	CPPDirective*			TokeniseDirective(CPPTokens* pcTokens, EPreprocessorDirective eDirective, int iBlock, int iIndex);
+	CPPLine*				Line(CPPTokens* pcTokens);
 
-	CPPDirective*			TokeniseHashDefine(CMemoryStackExtended* mpcStackGetIndex);
-	CPPDirective*			TokeniseHashUndef(CMemoryStackExtended* mpcStackGetIndex);
-	CPPDirective*			TokeniseHashInclude(CMemoryStackExtended* mpcStackGetIndex);
-	CPPDirective*			TokeniseHashEndif(CMemoryStackExtended* mpcStackGetIndex, int iBlock, int iIndex);
-	CPPDirective*			TokeniseHashIfndef(CMemoryStackExtended* mpcStackGetIndex, int iBlock, int iIndex);
-	CPPDirective*			TokeniseHashIfdef(CMemoryStackExtended* mpcStackGetIndex, int iBlock, int iIndex);
-	CPPDirective*			TokeniseHashElse(CMemoryStackExtended* mpcStackGetIndex, int iBlock, int iIndex);
-	CPPDirective*			TokeniseHashIf(CMemoryStackExtended* mpcStackGetIndex, int iBlock, int iIndex);
-	CPPDirective*			TokeniseHashElif(CMemoryStackExtended* mpcStackGetIndex, int iBlock, int iIndex);
-	CPPDirective*			TokeniseHashError(CMemoryStackExtended* mpcStackGetIndex);
-	CPPDirective*			TokeniseHashPragma(CMemoryStackExtended* mpcStackGetIndex);
+	CPPDirective*			TokeniseHashDefine(CPPTokens* pcTokens);
+	CPPDirective*			TokeniseHashUndef(CPPTokens* pcTokens);
+	CPPDirective*			TokeniseHashInclude(CPPTokens* pcTokens);
+	CPPDirective*			TokeniseHashEndif(CPPTokens* pcTokens, int iBlock, int iIndex);
+	CPPDirective*			TokeniseHashIfndef(CPPTokens* pcTokens, int iBlock, int iIndex);
+	CPPDirective*			TokeniseHashIfdef(CPPTokens* pcTokens, int iBlock, int iIndex);
+	CPPDirective*			TokeniseHashElse(CPPTokens* pcTokens, int iBlock, int iIndex);
+	CPPDirective*			TokeniseHashIf(CPPTokens* pcTokens, int iBlock, int iIndex);
+	CPPDirective*			TokeniseHashElif(CPPTokens* pcTokens, int iBlock, int iIndex);
+	CPPDirective*			TokeniseHashError(CPPTokens* pcTokens);
+	CPPDirective*			TokeniseHashPragma(CPPTokens* pcTokens);
 
 	CPPToken*				AddToken(CPPToken* pcToken, CArrayPPTokenPtrs* pcTokens);
 	void					NextConditional(CPPConditional* pcCurrent);

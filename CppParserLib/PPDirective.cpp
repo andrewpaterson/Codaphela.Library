@@ -125,14 +125,14 @@ char* CPPDirective::Print(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPPDirective::Copy(CPPToken* pcSource, CMemoryStackExtended* pcStack)
+void CPPDirective::Copy(CPPToken* pcSource, CPPTokens* pcTokens)
 {
 	CPPDirective*	pcCast;
 
 	if (pcSource->IsDirective())
 	{
 		pcCast = (CPPDirective*)pcSource;
-		CPPLine::Copy(pcSource, pcStack);
+		CPPLine::Copy(pcSource, pcTokens);
 		meType = pcCast->meType;
 	}
 }

@@ -45,11 +45,11 @@ void CPPHolder::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPPHolder::Copy(CPPToken* pcSource, CMemoryStackExtended* pcStack)
+void CPPHolder::Copy(CPPToken* pcSource, CPPTokens* pcTokens)
 {
 	if (pcSource->IsHolder())
 	{
-		CPPAbstractHolder::Copy((CPPAbstractHolder*)pcSource, pcStack);
+		CPPAbstractHolder::Copy((CPPAbstractHolder*)pcSource, pcTokens);
 	}
 }
 
