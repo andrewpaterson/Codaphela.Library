@@ -32,7 +32,7 @@ public:
 	void Init(void);
 	void Init(float f);
 	void Kill(void);
-	void Append(CChars* psz, CTokeniser* pcTokeniser);
+	void Append(CChars* psz, CCPPTokeniser* pcTokeniser);
 };
 
 

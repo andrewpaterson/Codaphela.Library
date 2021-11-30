@@ -26,12 +26,13 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/ExternalString.h"
 #include "PPLine.h"
 #include "PPText.h"
+#include "PPtokens.h"
 
 
 class CLinePreprocessor
 {
 public:
-	CArrayPPTokenPtrs*			mpcTokens;
+	CArrayPPTokenPtrs*		mpcTokens;
 	char*					mszWhiteSpaceStart;
 	char*					mszIdentifierStart;
 	char*					mszDecorationStart;

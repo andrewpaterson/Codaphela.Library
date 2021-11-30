@@ -56,7 +56,7 @@ void CCTFloat::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCTFloat::Append(CChars* psz, CTokeniser* pcTokeniser)
+void CCTFloat::Append(CChars* psz, CCPPTokeniser* pcTokeniser)
 {
 	psz->Append("(float)");
 	psz->Append(mcValue);

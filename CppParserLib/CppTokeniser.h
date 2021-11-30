@@ -28,10 +28,10 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "PreprocessorTokenParser.h"
 
 
-typedef CArrayTemplate<CCppToken*>	CCTArrayTokens;
+typedef CArrayTemplate<CCPPToken*>	CCTArrayTokens;
 
 
-class CTokeniser
+class CCPPTokeniser
 {
 public:
 	CASCIIIndex					mcReservedWords;
@@ -58,7 +58,7 @@ public:
 	void	IntegerType(unsigned long long int ulliValue);
 	void	DoubleType(long double ldValue);
 	BOOL	DecimalInteger(void);
-	void	AddToken(CCppToken* pcToken);
+	void	AddToken(CCPPToken* pcToken);
 	void	Error(char* szError);
 	void	PrintError(CPPLine* pcLine);
 	void	PrintTokens(void);

@@ -23,14 +23,14 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "CppToken.h"
 
 
-class CCTNewLine : public CCppToken
+class CCTNewLine : public CCPPToken
 {
 public:
 	TOKEN_CONSTRUCT(CCTNewLine);
 	void Init(void);
 	void Kill(void);
 	BOOL IsHelper(void);
-	void Append(CChars* psz, CTokeniser* pcTokeniser);
+	void Append(CChars* psz, CCPPTokeniser* pcTokeniser);
 };
 
 

@@ -23,7 +23,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "CppToken.h"
 
 
-class CCTChar : public CCppToken
+class CCTChar : public CCPPToken
 {
 public:
 	char	mcChar;  //This represents a char literal ie: 'c'
@@ -33,7 +33,7 @@ public:
 	void Init(char c);
 	void Kill(void);
 	BOOL IsChar(void);
-	void Append(CChars* psz, CTokeniser* pcTokeniser);
+	void Append(CChars* psz, CCPPTokeniser* pcTokeniser);
 };
 
 

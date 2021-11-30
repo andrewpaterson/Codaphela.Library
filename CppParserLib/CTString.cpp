@@ -67,7 +67,7 @@ BOOL CCTString::IsString(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCTString::Append(CChars* psz, CTokeniser* pcTokeniser)
+void CCTString::Append(CChars* psz, CCPPTokeniser* pcTokeniser)
 {
 	psz->Append("\"");
 	psz->Append(mszStart, (int)(mszEnd-mszStart)+1);

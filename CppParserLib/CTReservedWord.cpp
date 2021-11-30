@@ -64,7 +64,7 @@ BOOL CCTReservedWord::IsReservedWord(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCTReservedWord::Append(CChars* psz, CTokeniser* pcTokeniser)
+void CCTReservedWord::Append(CChars* psz, CCPPTokeniser* pcTokeniser)
 {
 	char*	sz;
 

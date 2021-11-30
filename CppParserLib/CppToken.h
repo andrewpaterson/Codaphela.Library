@@ -25,8 +25,8 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "GeneralToken.h"
 
 
-class CTokeniser;
-class CCppToken
+class CCPPTokeniser;
+class CCPPToken
 {
 public:
 	virtual void Init(void) =0;
@@ -38,7 +38,7 @@ public:
 	virtual BOOL IsChar(void);
 	virtual BOOL IsBool(void);
 	virtual BOOL IsHelper(void);
-	virtual void Append(CChars* psz, CTokeniser* pcTokeniser) =0;
+	virtual void Append(CChars* psz, CCPPTokeniser* pcTokeniser) =0;
 };
 
 

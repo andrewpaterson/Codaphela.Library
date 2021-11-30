@@ -57,7 +57,7 @@ void CCTLongDouble::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCTLongDouble::Append(CChars* psz, CTokeniser* pcTokeniser)
+void CCTLongDouble::Append(CChars* psz, CCPPTokeniser* pcTokeniser)
 {
 	psz->Append("(long double)");
 	psz->Append((double)mcValue);

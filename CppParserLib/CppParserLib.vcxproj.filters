@@ -264,7 +264,7 @@
     <ClCompile Include="CppParser.cpp">
       <Filter>Source\Parser</Filter>
     </ClCompile>
-    <ClCompile Include="CppReturn.cpp">
+    <ClCompile Include="CPPReturn.cpp">
       <Filter>Source\Parser</Filter>
     </ClCompile>
     <ClCompile Include="Config.cpp">
@@ -276,10 +276,10 @@
     <ClCompile Include="Project.cpp">
       <Filter>Source\Library</Filter>
     </ClCompile>
-    <ClCompile Include="CppTokeniser.cpp">
+    <ClCompile Include="CPPTokeniser.cpp">
       <Filter>Source\Tokeniser</Filter>
     </ClCompile>
-    <ClCompile Include="CppToken.cpp">
+    <ClCompile Include="CPPToken.cpp">
       <Filter>Source\Tokeniser\Tokens</Filter>
     </ClCompile>
     <ClCompile Include="CTBoolean.cpp">
@@ -365,6 +365,9 @@
     </ClCompile>
     <ClCompile Include="PreprocessorPosition.cpp">
       <Filter>Source\Preprocessor</Filter>
+    </ClCompile>
+    <ClCompile Include="PPTokens.cpp">
+      <Filter>Source\Preprocessor\Tokens</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -560,10 +563,10 @@
     <ClInclude Include="TranslationUnitFileArray.h">
       <Filter>Source\Preprocessor\Maybe</Filter>
     </ClInclude>
-    <ClInclude Include="CppParser.h">
+    <ClInclude Include="CPPParser.h">
       <Filter>Source\Parser</Filter>
     </ClInclude>
-    <ClInclude Include="CppReturn.h">
+    <ClInclude Include="CPPReturn.h">
       <Filter>Source\Parser</Filter>
     </ClInclude>
     <ClInclude Include="Config.h">
@@ -575,13 +578,13 @@
     <ClInclude Include="Project.h">
       <Filter>Source\Library</Filter>
     </ClInclude>
-    <ClInclude Include="CppTokeniser.h">
+    <ClInclude Include="CPPTokeniser.h">
       <Filter>Source\Tokeniser</Filter>
     </ClInclude>
-    <ClInclude Include="CppTokens.h">
+    <ClInclude Include="CPPTokens.h">
       <Filter>Source\Tokeniser</Filter>
     </ClInclude>
-    <ClInclude Include="CppToken.h">
+    <ClInclude Include="CPPToken.h">
       <Filter>Source\Tokeniser\Tokens</Filter>
     </ClInclude>
     <ClInclude Include="CTBoolean.h">
@@ -670,6 +673,9 @@
     </ClInclude>
     <ClInclude Include="PreprocessorPosition.h">
       <Filter>Source\Preprocessor</Filter>
+    </ClInclude>
+    <ClInclude Include="PPTokens.h">
+      <Filter>Source\Preprocessor\Tokens\Text</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

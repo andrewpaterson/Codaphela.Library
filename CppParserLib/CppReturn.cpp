@@ -25,7 +25,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCppReturn::IsTrue(void)
+BOOL CCPPReturn::IsTrue(void)
 {
 	return eResult == RFR_True;
 }
@@ -35,7 +35,7 @@ BOOL CCppReturn::IsTrue(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCppReturn::IsNotFound(void)
+BOOL CCPPReturn::IsNotFound(void)
 {
 	return eResult == RFR_FalseNotFound;
 }

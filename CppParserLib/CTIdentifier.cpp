@@ -65,7 +65,7 @@ BOOL CCTIdentifier::IsIdentifier(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCTIdentifier::Append(CChars* psz, CTokeniser* pcTokeniser)
+void CCTIdentifier::Append(CChars* psz, CCPPTokeniser* pcTokeniser)
 {
 	char*	sz;
 

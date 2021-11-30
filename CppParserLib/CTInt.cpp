@@ -69,7 +69,7 @@ BOOL CCTInt::IsSigned(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCTInt::Append(CChars* psz, CTokeniser* pcTokeniser)
+void CCTInt::Append(CChars* psz, CCPPTokeniser* pcTokeniser)
 {
 	psz->Append("(");
 	if (mbSigned)

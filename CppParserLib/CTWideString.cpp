@@ -78,7 +78,7 @@ BOOL CCTWideString::IsString(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCTWideString::Append(CChars* psz, CTokeniser* pcTokeniser)
+void CCTWideString::Append(CChars* psz, CCPPTokeniser* pcTokeniser)
 {
 	int		i;
 	short	s;

@@ -57,7 +57,7 @@ void CCTDouble::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCTDouble::Append(CChars* psz, CTokeniser* pcTokeniser)
+void CCTDouble::Append(CChars* psz, CCPPTokeniser* pcTokeniser)
 {
 	psz->Append("(double)");
 	psz->Append(mcValue);

@@ -24,35 +24,35 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/Logger.h"
 
 
-enum ECppReturn
+enum ECPPReturn
 {
 	RFR_True,
 	RFR_FalseNotFound,
 };
 
 
-class CCppReturn
+class CCPPReturn
 {
 public:
-	ECppReturn	eResult;
+	ECPPReturn	eResult;
 
-	static CCppReturn True(void)
+	static CCPPReturn True(void)
 	{
-		CCppReturn	cReturn;
+		CCPPReturn	cReturn;
 
 		cReturn.eResult = RFR_True;
 		return cReturn;
 	}
 
-	static CCppReturn NotFound(void)
+	static CCPPReturn NotFound(void)
 	{
-		CCppReturn	cReturn;
+		CCPPReturn	cReturn;
 
 		cReturn.eResult = RFR_FalseNotFound;
 		return cReturn;
 	}
 
-	static CCppReturn InternalError(void)
+	static CCPPReturn InternalError(void)
 	{
 		gcLogger.Error("Internal Parser Error!\n");
 		exit(1);

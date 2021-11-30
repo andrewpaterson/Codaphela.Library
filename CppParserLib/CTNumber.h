@@ -36,7 +36,7 @@ enum ECTNumberType
 
 
 
-class CCTNumber : public CCppToken
+class CCTNumber : public CCPPToken
 {
 public:
 	ECTNumberType	meType;
