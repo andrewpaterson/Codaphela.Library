@@ -18,8 +18,9 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "PPAbstractHolder.h"
 #include "TokenHelper.h"
+#include "PPTokens.h"
+#include "PPAbstractHolder.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -71,7 +72,7 @@ char* CPPAbstractHolder::Print(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPPAbstractHolder::Copy(CPPAbstractHolder* pcCast, CMemoryStackExtended* pcStack)
+void CPPAbstractHolder::Copy(CPPAbstractHolder* pcCast, CPPTokens* pcTokens)
 {
 	int			i;
 	CPPToken*	pcToken;
@@ -80,7 +81,7 @@ void CPPAbstractHolder::Copy(CPPAbstractHolder* pcCast, CMemoryStackExtended* pc
 
 	for (i = 0; i < pcCast->mcTokens.mcArray.NumElements(); i++)
 	{
-		pcToken = DuplicatePPToken(*pcCast->mcTokens.mcArray.Get(i), pcStack);
+		pcToken = DuplicatePPToken(*pcCast->mcTokens.mcArray.Get(i), pcTokens);
 		mcTokens.Add(pcToken);
 	}
 }

@@ -34,7 +34,7 @@ public:
 	void	Kill(void);
 	BOOL	IsHash(void);
 	char*	Print(CChars* psz);
-	void	Copy(CPPToken* pcSource, CMemoryStackExtended* pcStack);
+	void	Copy(CPPToken* pcSource, CPPTokens* pcTokens);
 	BOOL	Equals(CPPToken* pcOther);
 	BOOL	IsEmpty(void);
 };

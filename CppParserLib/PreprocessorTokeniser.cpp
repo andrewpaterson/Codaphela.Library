@@ -148,8 +148,8 @@ BOOL CPreprocessorTokeniser::Tokenise(CArrayCBlockSet* pacBlockSets, char* szPos
 
 		if (pcToken)
 		{
-			pcBlockSet->GetTokenHolder()->Add(pcToken);
-			iIndex = pcBlockSet->GetTokenHolder()->mcArray.NumElements();
+			pcBlockSet->GetRawTokensHolder()->Add(pcToken);
+			iIndex = pcBlockSet->GetRawTokensHolder()->mcArray.NumElements();
 		}
 
 		bLastDirective = bDirective;

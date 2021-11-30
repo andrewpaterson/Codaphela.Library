@@ -41,7 +41,7 @@ void CPPBlock::Init(CPPBlockSet* pcBlockSet, int iLine, int iColumn)
 {
 	Init(iLine, iColumn);
 	mpcBlockSet = pcBlockSet;
-	mpcStack = pcBlockSet->GetStack();
+	mpcFileTokens = pcBlockSet->GetFileTokens();
 	msNext.Init(-1, -1);
 }
 
@@ -54,7 +54,7 @@ void CPPBlock::Kill(void)
 {
 	CPPAbstractHolder::Kill();
 	mpcBlockSet = NULL;
-	mpcStack = NULL;
+	mpcFileTokens = NULL;
 }
 
 
@@ -72,7 +72,17 @@ BOOL CPPBlock::IsBlock(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPPBlock::Copy(CPPToken* pcSource, CMemoryStackExtended* pcStack)
+BOOL CPPBlock::IsForBlockSet(CPPBlockSet* pcBlockSet)
+{
+	return this->mpcBlockSet == pcBlockSet;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CPPBlock::Copy(CPPToken* pcSource, CPPTokens* pcTokens)
 {
 	CPPBlock*	pcCast;
 	CPPToken*	pcToken;
@@ -85,23 +95,13 @@ void CPPBlock::Copy(CPPToken* pcSource, CMemoryStackExtended* pcStack)
 
 		for (i = 0; i < pcCast->mcTokens.mcArray.NumElements(); i++)
 		{
-			pcToken = DuplicatePPToken(*pcCast->mcTokens.mcArray.Get(i), pcStack);
+			pcToken = DuplicatePPToken(*pcCast->mcTokens.mcArray.Get(i), pcTokens);
 			mcTokens.Add(pcToken);
 		}
 
 		mpcBlockSet = pcCast->mpcBlockSet;
-		mpcStack = pcCast->mpcStack;
+		mpcFileTokens = pcCast->mpcFileTokens;
 	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void* CPPBlock::Allocate(int iSize)
-{
-	return mpcStack->Add(iSize);
 }
 
 
@@ -161,5 +161,15 @@ void CPPBlock::Dump(CArrayIntAndPointer* papc)
 void CPPBlock::DumpTokens(void)
 {
 	CPPAbstractHolder::Dump();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+SPPTokenBlockIndex CPPBlock::GetNextTokenBlock(void)
+{
+	return msNext;
 }
 
