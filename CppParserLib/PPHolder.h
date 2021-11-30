@@ -29,7 +29,7 @@ public:
 	TOKEN_CONSTRUCT(CPPHolder);
 	void 		Init(int iLine, int iColumn);
 	void 		Kill(void);
-	void 		Copy(CPPToken* pcSource, CMemoryStackExtended* pcStack);
+	void 		Copy(CPPToken* pcSource, CPPTokens* pcTokens);
 	BOOL		Equals(CPPToken* pcOther);
 	BOOL		IsHolder(void);
 };

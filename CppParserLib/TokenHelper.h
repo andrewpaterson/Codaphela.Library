@@ -20,11 +20,11 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __TOKEN_HELPER_H__
 #define __TOKEN_HELPER_H__
-#include "PPToken.h"
+#include "PPTokens.h"
 #include "PPText.h"
 
 
-CPPToken* DuplicatePPToken(CPPToken* pcSource, CMemoryStackExtended* pcStack);
+CPPToken* DuplicatePPToken(CPPToken* pcSource, CPPTokens* pcTokens);
 
 
 #endif // !__TOKEN_HELPER_H__
