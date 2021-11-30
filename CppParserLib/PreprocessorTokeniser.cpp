@@ -148,7 +148,7 @@ BOOL CPreprocessorTokeniser::Tokenise(CArrayCBlockSet* pacBlockSets, char* szPos
 
 		if (pcToken)
 		{
-			pcBlockSet->GetTokenHolder()->Add(&pcToken);
+			pcBlockSet->GetTokenHolder()->Add(pcToken);
 			iIndex = pcBlockSet->GetTokenHolder()->mcArray.NumElements();
 		}
 
@@ -209,7 +209,7 @@ BOOL CPreprocessorTokeniser::Tokenise(CPPTokenHolder* pcTokens, CMemoryStackExte
 
 		if (pcToken)
 		{
-			pcTokens->Add(&pcToken);
+			pcTokens->Add(pcToken);
 		}
 
 		//Add Token here.

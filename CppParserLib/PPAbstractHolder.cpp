@@ -81,7 +81,7 @@ void CPPAbstractHolder::Copy(CPPAbstractHolder* pcCast, CMemoryStackExtended* pc
 	for (i = 0; i < pcCast->mcTokens.mcArray.NumElements(); i++)
 	{
 		pcToken = DuplicatePPToken(*pcCast->mcTokens.mcArray.Get(i), pcStack);
-		mcTokens.Add(&pcToken);
+		mcTokens.Add(pcToken);
 	}
 }
 

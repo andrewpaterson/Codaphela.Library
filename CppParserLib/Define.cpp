@@ -61,7 +61,7 @@ void CDefine::SetVariadic(void)
 //////////////////////////////////////////////////////////////////////////
 void CDefine::AddReplacmentToken(CPPToken* pcToken)
 {
-	mcReplacement.GetTokens()->Add(&pcToken);
+	mcReplacement.GetTokens()->Add(pcToken);
 }
 
 
