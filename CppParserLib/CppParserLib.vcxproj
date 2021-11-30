@@ -238,9 +238,9 @@
     <ClCompile Include="PPText.cpp" />
     <ClCompile Include="PPTextWithSource.cpp" />
     <ClCompile Include="ArrayCBlockSet.cpp" />
-    <ClCompile Include="CBlock.cpp" />
-    <ClCompile Include="CBlockSet.cpp" />
-    <ClCompile Include="CBlockToken.cpp" />
+    <ClCompile Include="PPBlock.cpp" />
+    <ClCompile Include="PPBlockSet.cpp" />
+    <ClCompile Include="PPTokenBlockIndex.cpp" />
     <ClCompile Include="CFile.cpp" />
     <ClCompile Include="HeaderFile.cpp" />
     <ClCompile Include="HeaderFileMap.cpp" />
@@ -341,9 +341,9 @@
     <ClInclude Include="PPText.h" />
     <ClInclude Include="PPTextWithSource.h" />
     <ClInclude Include="ArrayCBlockSet.h" />
-    <ClInclude Include="CBlock.h" />
-    <ClInclude Include="CBlockSet.h" />
-    <ClInclude Include="CBlockToken.h" />
+    <ClInclude Include="PPBlock.h" />
+    <ClInclude Include="PPBlockSet.h" />
+    <ClInclude Include="PPTokenBlockIndex.h" />
     <ClInclude Include="CFile.h" />
     <ClInclude Include="HeaderFile.h" />
     <ClInclude Include="HeaderFileMap.h" />

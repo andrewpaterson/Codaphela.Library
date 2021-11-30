@@ -27,7 +27,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "PPTextWithSource.h"
 #include "PPHashes.h"
 #include "PPHolder.h"
-#include "CBlock.h"
+#include "PPBlock.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -44,7 +44,7 @@ CPPToken* DuplicatePPToken(CPPToken* pcSource, CMemoryStackExtended* pcStack)
 	CPPTextWithSource*		pcTextWithSource;
 	CPPHolder*				pcHolder;
 	CPPHashes*				pcHashes;
-	CCBlock*				pcBlock;
+	CPPBlock*				pcBlock;
 
 	if (pcSource->IsDirective())
 	{
@@ -93,8 +93,8 @@ CPPToken* DuplicatePPToken(CPPToken* pcSource, CMemoryStackExtended* pcStack)
 	}
 	else if (pcSource->IsBlock())
 	{
-		pcBlock = CCBlock::Construct(pcStack->Add(sizeof(CCBlock)));
-		pcBlock->Copy((CCBlock*)pcSource, pcStack);
+		pcBlock = CPPBlock::Construct(pcStack->Add(sizeof(CPPBlock)));
+		pcBlock->Copy((CPPBlock*)pcSource, pcStack);
 		return pcBlock;
 	}	
 	else if (pcSource->IsHolder())

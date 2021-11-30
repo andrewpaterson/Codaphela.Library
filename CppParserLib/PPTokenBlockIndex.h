@@ -18,43 +18,21 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "CBlockToken.h"
-#include "BaseLib/Chars.h"
+#ifndef __C_BLOCK_TOKEN_H__
+#define __C_BLOCK_TOKEN_H__
 
 
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void SCTokenBlock::Init(int iTokenIndex, int iBlockIndex)
+class CChars;
+struct SPPTokenBlockIndex
 {
-	this->iTokenIndex = iTokenIndex;
-	this->iBlockIndex = iBlockIndex;
-}
+	int	iTokenIndex;
+	int iBlockIndex;
+
+	void Init(int iTokenIndex, int iBlockIndex);
+	void Print(CChars* psz);
+	void Dump(void);
+};
 
 
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void SCTokenBlock::Print(CChars* psz)
-{
-	psz->Append(iBlockIndex);
-	psz->Append(", ");
-	psz->Append(iTokenIndex);
-}
+#endif // !__C_BLOCK_TOKEN_H__
 
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void SCTokenBlock::Dump(void)
-{
-	CChars sz;
-
-	sz.Init();
-	Print(&sz);
-	sz.Dump();
-	sz.Kill();
-}

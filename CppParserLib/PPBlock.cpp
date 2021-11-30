@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "CBlock.h"
-#include "CBlockSet.h"
+#include "PPBlock.h"
+#include "PPBlockSet.h"
 #include "TokenHelper.h"
 
 
@@ -27,7 +27,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCBlock::Init(int iLine, int iColumn)
+void CPPBlock::Init(int iLine, int iColumn)
 {
 	CPPAbstractHolder::Init(iLine, iColumn);
 }
@@ -37,7 +37,7 @@ void CCBlock::Init(int iLine, int iColumn)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCBlock::Init(CCBlockSet* pcBlockSet, int iLine, int iColumn)
+void CPPBlock::Init(CPPBlockSet* pcBlockSet, int iLine, int iColumn)
 {
 	Init(iLine, iColumn);
 	mpcBlockSet = pcBlockSet;
@@ -50,7 +50,7 @@ void CCBlock::Init(CCBlockSet* pcBlockSet, int iLine, int iColumn)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCBlock::Kill(void)
+void CPPBlock::Kill(void)
 {
 	CPPAbstractHolder::Kill();
 	mpcBlockSet = NULL;
@@ -62,7 +62,7 @@ void CCBlock::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCBlock::IsBlock(void)
+BOOL CPPBlock::IsBlock(void)
 {
 	return TRUE;
 }
@@ -72,15 +72,15 @@ BOOL CCBlock::IsBlock(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCBlock::Copy(CPPToken* pcSource, CMemoryStackExtended* pcStack)
+void CPPBlock::Copy(CPPToken* pcSource, CMemoryStackExtended* pcStack)
 {
-	CCBlock*	pcCast;
+	CPPBlock*	pcCast;
 	CPPToken*	pcToken;
 	int			i;
 
 	if (pcSource->IsBlock())
 	{
-		pcCast = (CCBlock*)pcSource;
+		pcCast = (CPPBlock*)pcSource;
 		Init(pcCast->miLine, pcCast->miColumn);
 
 		for (i = 0; i < pcCast->mcTokens.mcArray.NumElements(); i++)
@@ -99,7 +99,7 @@ void CCBlock::Copy(CPPToken* pcSource, CMemoryStackExtended* pcStack)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CCBlock::Allocate(int iSize)
+void* CPPBlock::Allocate(int iSize)
 {
 	return mpcStack->Add(iSize);
 }
@@ -109,7 +109,7 @@ void* CCBlock::Allocate(int iSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCBlock::Equals(CPPToken* pcOther)
+BOOL CPPBlock::Equals(CPPToken* pcOther)
 {
 	if (pcOther->IsBlock())
 	{
@@ -126,7 +126,7 @@ BOOL CCBlock::Equals(CPPToken* pcOther)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCBlock::SetNext(int iTokenIndex, int iBlockIndex)
+void CPPBlock::SetNext(int iTokenIndex, int iBlockIndex)
 {
 	msNext.Init(iTokenIndex, iBlockIndex);
 }
@@ -136,7 +136,7 @@ void CCBlock::SetNext(int iTokenIndex, int iBlockIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCBlock::Dump(CArrayIntAndPointer* papc)
+void CPPBlock::Dump(CArrayIntAndPointer* papc)
 {
 	int		i;
 	char*	sz;
@@ -158,7 +158,7 @@ void CCBlock::Dump(CArrayIntAndPointer* papc)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCBlock::DumpTokens(void)
+void CPPBlock::DumpTokens(void)
 {
 	CPPAbstractHolder::Dump();
 }

@@ -21,14 +21,14 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __P_P_CONDITIONAL_H__
 #define __P_P_CONDITIONAL_H__
 #include "PPDirective.h"
-#include "CBlockToken.h"
+#include "PPTokenBlockIndex.h"
 
 
 class CPPConditional : public CPPDirective
 {
 public:
 	CPPConditional*		mpcNext;
-	SCTokenBlock		msIndex;
+	SPPTokenBlockIndex		msIndex;
 
 	TOKEN_CONSTRUCT(CPPConditional);
 	void Init(EPreprocessorDirective eType, int iBlockIndex, int iTokenIndex, int iLine, int iColumn);

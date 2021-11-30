@@ -66,7 +66,7 @@ BOOL CPreprocessorTokeniser::Tokenise(CArrayCBlockSet* pacBlockSets, char* szPos
 {
 	char*					szEnd;
 	EPreprocessorDirective	eDirective;
-	CCBlockSet*				pcBlockSet;
+	CPPBlockSet*				pcBlockSet;
 	BOOL					bNewBlock;
 	BOOL					bLastDirective;
 	BOOL					bDirective;

@@ -228,13 +228,13 @@
     <ClCompile Include="ArrayCBlockSet.cpp">
       <Filter>Source\Preprocessor\Maybe</Filter>
     </ClCompile>
-    <ClCompile Include="CBlock.cpp">
+    <ClCompile Include="PPBlock.cpp">
       <Filter>Source\Preprocessor\Maybe</Filter>
     </ClCompile>
-    <ClCompile Include="CBlockSet.cpp">
+    <ClCompile Include="PPBlockSet.cpp">
       <Filter>Source\Preprocessor\Maybe</Filter>
     </ClCompile>
-    <ClCompile Include="CBlockToken.cpp">
+    <ClCompile Include="PPTokenBlockIndex.cpp">
       <Filter>Source\Preprocessor\Maybe</Filter>
     </ClCompile>
     <ClCompile Include="CFile.cpp">
@@ -530,13 +530,13 @@
     <ClInclude Include="ArrayCBlockSet.h">
       <Filter>Source\Preprocessor\Maybe</Filter>
     </ClInclude>
-    <ClInclude Include="CBlock.h">
+    <ClInclude Include="PPBlock.h">
       <Filter>Source\Preprocessor\Maybe</Filter>
     </ClInclude>
-    <ClInclude Include="CBlockSet.h">
+    <ClInclude Include="PPBlockSet.h">
       <Filter>Source\Preprocessor\Maybe</Filter>
     </ClInclude>
-    <ClInclude Include="CBlockToken.h">
+    <ClInclude Include="PPTokenBlockIndex.h">
       <Filter>Source\Preprocessor\Maybe</Filter>
     </ClInclude>
     <ClInclude Include="CFile.h">

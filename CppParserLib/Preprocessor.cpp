@@ -31,6 +31,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "TokenHelper.h"
 #include "GeneralToken.h"
 #include "PreprocessorPosition.h"
+#include "PPTokens.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -499,7 +500,7 @@ BOOL CPreprocessor::ProcessHashUndef(CPreprocessorTokenParser* pcParser)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-SCTokenBlock CPreprocessor::ProcessHashEndif(CPreprocessorTokenParser* pcParser, CPPConditional* pcCond, SCTokenBlock iLine)
+SPPTokenBlockIndex CPreprocessor::ProcessHashEndif(CPreprocessorTokenParser* pcParser, CPPConditional* pcCond, SPPTokenBlockIndex iLine)
 {
 	mcConditionalStack.PopEndIf();
 
@@ -744,10 +745,10 @@ void CPreprocessor::LogIncludes(CCFile* pcFile)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessor::LogBlocks(CCFile* pcFile, SCTokenBlock sResult)
+void CPreprocessor::LogBlocks(CCFile* pcFile, SPPTokenBlockIndex sResult)
 {
 	CChars			szLine;
-	CCBlockSet*		pcBlocksSet;
+	CPPBlockSet*		pcBlocksSet;
 
 	if (mbLogBlocks)
 	{
@@ -857,8 +858,8 @@ void CPreprocessor::LogDumping(BOOL bDumpLogs)
 //////////////////////////////////////////////////////////////////////////
 BOOL CPreprocessor::PreprocessFile(CCFile* pcFile, CCFile* pcFromFile)
 {
-	CCBlockSet*			pcBlocksSet;
-	SCTokenBlock		sResult;
+	CPPBlockSet*			pcBlocksSet;
+	SPPTokenBlockIndex		sResult;
 	BOOL				bResult;
 
 	miIncludeDepth++;
@@ -888,7 +889,7 @@ BOOL CPreprocessor::PreprocessFile(CCFile* pcFile, CCFile* pcFromFile)
 			if (pcBlocksSet->IsDirective())
 			{
 				//The conditional directives need to be expanded so &pcFile->mcStack is needed.  A #define directive will be expanded too.  Write a test for it.
-				sResult = PreprocessTokens(NULL, &pcFile->mcStack, pcBlocksSet->GetTokenHolder(), sResult.iBlockIndex, sResult.iTokenIndex);
+				sResult = PreprocessTokens(NULL, &pcFile->GetTokens(), pcBlocksSet->GetTokenHolder(), sResult.iBlockIndex, sResult.iTokenIndex);
 				if (sResult.iTokenIndex == -1)	
 				{
 					bResult = FALSE; 
@@ -898,8 +899,8 @@ BOOL CPreprocessor::PreprocessFile(CCFile* pcFile, CCFile* pcFromFile)
 			else
 			{
 				CStackMarkExtended	cMark;
-				CCBlock*			pcBlockProcessed;
-				CCBlock*			pcBlockMatching;
+				CPPBlock*			pcBlockProcessed;
+				CPPBlock*			pcBlockMatching;
 
 				pcFile->mcStack.Mark(&cMark);
 
@@ -1005,7 +1006,7 @@ BOOL CPreprocessor::TokeniseFile(CCFile* pcFile)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-SCTokenBlock CPreprocessor::ProcessHashIfndef(CPreprocessorTokenParser* pcParser, CPPConditional* pcCond, SCTokenBlock iLine)
+SPPTokenBlockIndex CPreprocessor::ProcessHashIfndef(CPreprocessorTokenParser* pcParser, CPPConditional* pcCond, SPPTokenBlockIndex iLine)
 {
 	CExternalString		cIdentifier;
 	CDefine*			pcDefine;
@@ -1033,7 +1034,7 @@ SCTokenBlock CPreprocessor::ProcessHashIfndef(CPreprocessorTokenParser* pcParser
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-SCTokenBlock CPreprocessor::ProcessHashIfdef(CPreprocessorTokenParser* pcParser, CPPConditional* pcCond, SCTokenBlock iLine)
+SPPTokenBlockIndex CPreprocessor::ProcessHashIfdef(CPreprocessorTokenParser* pcParser, CPPConditional* pcCond, SPPTokenBlockIndex iLine)
 {
 	CExternalString		cIdentifier;
 	CDefine*			pcDefine;
@@ -1060,10 +1061,10 @@ SCTokenBlock CPreprocessor::ProcessHashIfdef(CPreprocessorTokenParser* pcParser,
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-SCTokenBlock CPreprocessor::Condition(CPPConditional* pcCond, SCTokenBlock iLine)
+SPPTokenBlockIndex CPreprocessor::Condition(CPPConditional* pcCond, SPPTokenBlockIndex iLine)
 {
 	CPPConditional*	pcNext;
-	SCTokenBlock	sIndex;
+	SPPTokenBlockIndex	sIndex;
 
 	if (mcConditionalStack.IsParsing())
 	{
@@ -1100,7 +1101,7 @@ SCTokenBlock CPreprocessor::Condition(CPPConditional* pcCond, SCTokenBlock iLine
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-SCTokenBlock CPreprocessor::ProcessHashElse(CPreprocessorTokenParser* pcParser, CPPConditional* pcCond, SCTokenBlock iLine)
+SPPTokenBlockIndex CPreprocessor::ProcessHashElse(CPreprocessorTokenParser* pcParser, CPPConditional* pcCond, SPPTokenBlockIndex iLine)
 {
 	mcConditionalStack.SwapForElse();
 
@@ -1112,12 +1113,12 @@ SCTokenBlock CPreprocessor::ProcessHashElse(CPreprocessorTokenParser* pcParser, 
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-SCTokenBlock CPreprocessor::ProcessHashIf(CPreprocessorTokenParser* pcParser, CPPConditional* pcCond, SCTokenBlock iLine)
+SPPTokenBlockIndex CPreprocessor::ProcessHashIf(CPreprocessorTokenParser* pcParser, CPPConditional* pcCond, SPPTokenBlockIndex iLine)
 {
 	TRISTATE				sEvaluated;
 	CPPTokenHolder			cTokenHolder;
 	CChars					sz;
-	SCTokenBlock			sIndex;
+	SPPTokenBlockIndex			sIndex;
 	CChars					szCaclulatorError;
 	SPreprocessorPosition	sPos;
 	CChars					szError;
@@ -1172,12 +1173,12 @@ SCTokenBlock CPreprocessor::ProcessHashIf(CPreprocessorTokenParser* pcParser, CP
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-SCTokenBlock CPreprocessor::ProcessHashElif(CPreprocessorTokenParser* pcParser, CPPConditional* pcCond, SCTokenBlock iLine)
+SPPTokenBlockIndex CPreprocessor::ProcessHashElif(CPreprocessorTokenParser* pcParser, CPPConditional* pcCond, SPPTokenBlockIndex iLine)
 {
 	TRISTATE				sEvaluated;
 	CPPTokenHolder			cTokenHolder;
 	CChars					sz;
-	SCTokenBlock			sIndex;
+	SPPTokenBlockIndex			sIndex;
 	SPreprocessorPosition	sPos;
 	CChars					szCaclulatorError;
 	CChars					szError;
@@ -2205,9 +2206,9 @@ void CPreprocessor::AddTokenToArgument(CPPTokenHolder* pcArgument, CPPToken* pcT
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-SCTokenBlock CPreprocessor::PreprocessTokens(CPPTokenHolder* pcDestTokens, CMemoryStackExtended* pcStack, CPPTokenHolder* pcSourceTokens, int iBlock, int iToken)
+SPPTokenBlockIndex CPreprocessor::PreprocessTokens(CPPTokenHolder* pcDestTokens, CMemoryStackExtended* pcStack, CPPTokenHolder* pcSourceTokens, int iBlock, int iToken)
 {
-	SCTokenBlock				sLine;
+	SPPTokenBlockIndex				sLine;
 	int							iNumLines;
 	CPPToken*					pcToken;
 	CPPDirective*				pcDirective;
@@ -2376,7 +2377,7 @@ void CPreprocessor::Preprocess(char* szSource, CChars* szDest)
 	CPreprocessor				cPreprocessor;
 	CPreprocessorTokeniser		cTokeniser;
 	int							iLen;
-	CMemoryStackExtended		cStack;
+	CPPTokens					cTokens;
 	CPPTokenHolder				cRawTokens;
 	CPPTokenHolder				cProcessedTokens;
 

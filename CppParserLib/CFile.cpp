@@ -23,6 +23,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/FileUtil.h"
 #include "Library.h"
 #include "CFile.h"
+#include "PPTokens.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -34,7 +35,7 @@ void CCFile::Init(char* szName)
 	mszContents.Init();
 	mszFullName.Init(szName);
 	mbLoaded = FALSE;
-	mcStack.Init(4 KB);
+	mcTokens.Init();
 	macBlockSets.Init(this);
 }
 
@@ -46,7 +47,7 @@ void CCFile::Init(char* szName)
 void CCFile::Kill(void)
 {
 	int				i;
-	CCBlockSet*		pcBlockSet;
+	CPPBlockSet*		pcBlockSet;
 
 	for (i = 0; i < macBlockSets.NumElements(); i++)
 	{
@@ -54,7 +55,7 @@ void CCFile::Kill(void)
 		pcBlockSet->Kill();
 	}
 	macBlockSets.Kill();
-	mcStack.Kill();
+	mcTokens.Kill();
 	mszFullName.Kill();
 	mszContents.Kill();
 	mbLoaded = FALSE;
@@ -141,7 +142,7 @@ char* CCFile::ShortName(void)
 void CCFile::DumpRawTokens(void)
 {
 	int				i;
-	CCBlockSet*		pcBlockSet;
+	CPPBlockSet*		pcBlockSet;
 
 	for (i = 0; i < macBlockSets.NumElements(); i++)
 	{
@@ -183,4 +184,13 @@ int CCFile::GetContentsLength(void)
 	return mszContents.Length();
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+CPPTokens* CCFile::GetTokens(void)
+{
+	return &mcTokens;
+}
 

@@ -24,21 +24,21 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/ArrayTemplate.h"
 #include "BaseLib/ArrayIntAndPointer.h"
 #include "DefineMap.h"
-#include "CBlockToken.h"
+#include "PPTokenBlockIndex.h"
 #include "NamedDefine.h"
 
 
-class CCBlockSet;
-class CCBlock : public CPPAbstractHolder
+class CPPBlockSet;
+class CPPBlock : public CPPAbstractHolder
 {
 public:
-	CCBlockSet*				mpcBlockSet;  //The blockset this block is in.
+	CPPBlockSet*			mpcBlockSet;  //The blockset this block is in.
 	CMemoryStackExtended*	mpcStack;  //From CFile (from CBlockSet).
-	SCTokenBlock			msNext;
+	SPPTokenBlockIndex		msNext;
 
-	TOKEN_CONSTRUCT(CCBlock);
+	TOKEN_CONSTRUCT(CPPBlock);
 	void 	Init(int iLine, int iColumn);
-	void 	Init(CCBlockSet* pcBlockSet, int iLine, int iColumn);
+	void 	Init(CPPBlockSet* pcBlockSet, int iLine, int iColumn);
 	void 	Kill(void);
 	BOOL 	IsBlock(void);
 	void	Copy(CPPToken* pcSource, CMemoryStackExtended* pcStack);
@@ -50,7 +50,7 @@ public:
 };
 
 
-typedef CArrayTemplate<CCBlock*>	CArrayPtrCBlocks;
+typedef CArrayTemplate<CPPBlock*>	CArrayPtrCBlocks;
 
 
 #endif //__C_BLOCK_H__

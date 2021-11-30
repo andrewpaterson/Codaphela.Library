@@ -20,16 +20,17 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __C_BLOCK_SET_H__
 #define __C_BLOCK_SET_H__
-#include "CBlock.h"
+#include "PPBlock.h"
 #include "DefineMap.h"
+#include "PPTokens.h"
 
 
 class CCFile;
-class CCBlockSet
+class CPPBlockSet
 {
 protected:
 	CPPTokenHolder			mcRawTokens;
-	CMemoryStackExtended*	mpcStack;  //From CFile
+	CPPTokens*				mpcFileTokens;
 	CCFile*					mpcFile;  //The file this block is a part of
 	int						miLine;
 	int						miColumn;
@@ -42,10 +43,10 @@ protected:
 public:
 	void 					Init(CCFile* pcFile, int iLine, int iBlock, BOOL bTextBlocks);
 	void 					Kill(void);
-	CCBlock*				GetMatchingBlock(CCBlock* pcOtherBlock);
-	CCBlock*				CreateBlock(void);
-	CCBlock*				AddBlock(void);
-	BOOL					AddBlock(CCBlock* pcBlock);
+	CPPBlock*				GetMatchingBlock(CPPBlock* pcOtherBlock);
+	CPPBlock*				CreateBlock(void);
+	CPPBlock*				AddBlock(void);
+	BOOL					AddBlock(CPPBlock* pcBlock);
 	BOOL					IsLastToken(int iToken);
 	BOOL					IsDirective(void);
 	void					DumpRawTokens(void);

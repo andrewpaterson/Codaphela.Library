@@ -22,6 +22,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __C_FILE_H__
 #include "BaseLib/Chars.h"
 #include "ArrayCBlockSet.h"
+#include "PPTokens.h"
 
 
 class CLibrary;
@@ -33,24 +34,25 @@ protected:
 	BOOL					mbLoaded;
 
 public:
-	CMemoryStackExtended	mcStack;  //All tokens for this file.
+	CPPTokens				mcTokens;  //All tokens for this file.
 	CArrayCBlockSet			macBlockSets;
 
-			void	Init(char* pszFullName);
-	virtual void	Kill(void);
-			void	Load(void);
-			void	SetContents(const char* sz);
-			BOOL	IsLoaded(void);
-			BOOL	IsNamed(char* szName);
-			void	DumpRawTokens(void);
-	virtual BOOL	IsTranslationUnit(void) =0;
-	virtual BOOL	IsHeader(void) =0;
-			char*	ShortName(void);
-	virtual BOOL	IsPragmaOnced(void) =0;
-	virtual BOOL	IsSystemFile(void) =0;
-			void	Path(CChars* pszPath);
-			char*	GetContents(void);
-			int		GetContentsLength(void);
+			void		Init(char* pszFullName);
+	virtual void		Kill(void);
+			void		Load(void);
+			void		SetContents(const char* sz);
+			BOOL		IsLoaded(void);
+			BOOL		IsNamed(char* szName);
+			void		DumpRawTokens(void);
+	virtual BOOL		IsTranslationUnit(void) =0;
+	virtual BOOL		IsHeader(void) =0;
+			char*		ShortName(void);
+	virtual BOOL		IsPragmaOnced(void) =0;
+	virtual BOOL		IsSystemFile(void) =0;
+			void		Path(CChars* pszPath);
+			char*		GetContents(void);
+			int			GetContentsLength(void);
+			CPPTokens*	GetTokens(void);
 };
 
 
