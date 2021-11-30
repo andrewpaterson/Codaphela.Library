@@ -580,8 +580,6 @@ BOOL CPreprocessor::ProcessIncludeFile(CPreprocessorTokenParser* pcParser, CHead
 
 	cOpen = ' ';
 	cClose = ' ';
-	cExternalString.Init();
-
 	bResult = pcParser->GetStringDoubleQuoted(&cExternalString);
 	if (!bResult)
 	{
@@ -931,7 +929,7 @@ BOOL CPreprocessor::PreprocessFile(CCFile* pcFile, CCFile* pcFromFile)
 					break;	
 				}
 
-				mpcUnit->GetTokensHolder()->GetTokens()->mcArray.Add((CPPToken**)&pcBlockMatching);
+				mpcUnit->GetTokens()->GetTokens()->mcArray.Add((CPPToken**)&pcBlockMatching);
 			}
 
 			pcBlocksSet = pcFile->GetBlockSet(sResult.iBlockIndex);
