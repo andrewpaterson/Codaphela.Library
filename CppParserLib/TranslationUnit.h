@@ -22,7 +22,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __TRANSLATION_UNIT_H__
 #include "BaseLib/MapStringTemplate.h"
 #include "CFile.h"
-#include "CBlock.h"
+#include "PPBlock.h"
 #include "PPHolder.h"
 
 

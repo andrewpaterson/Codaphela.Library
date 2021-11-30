@@ -21,10 +21,10 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __ARRAY_C_BLOCK_SET_H__
 #define __ARRAY_C_BLOCK_SET_H__
 #include "BaseLib/ArrayTemplate.h"
-#include "CBlockSet.h"
+#include "PPBlockSet.h"
 
 
-typedef CArrayTemplate<CCBlockSet> __CArrayCBlockSet;
+typedef CArrayTemplate<CPPBlockSet> __CArrayCBlockSet;
 
 
 class CArrayCBlockSet : public __CArrayCBlockSet
@@ -36,7 +36,7 @@ public:
 	void 		Init(CCFile* pcFile);
 	void		RawProcessed(void);
 	BOOL		IsRawProcessed(void);
-	CCBlockSet* Add(int iLine, BOOL bTextBlocks);
+	CPPBlockSet* Add(int iLine, BOOL bTextBlocks);
 };
 
 

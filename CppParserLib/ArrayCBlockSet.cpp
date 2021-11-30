@@ -58,9 +58,9 @@ BOOL CArrayCBlockSet::IsRawProcessed(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCBlockSet* CArrayCBlockSet::Add(int iLine, BOOL bTextBlocks)
+CPPBlockSet* CArrayCBlockSet::Add(int iLine, BOOL bTextBlocks)
 {
-	CCBlockSet* pcBlockSet;
+	CPPBlockSet* pcBlockSet;
 
 	pcBlockSet = __CArrayCBlockSet::Add();
 	pcBlockSet->Init(mpcFile, iLine, miUsedElements-1, bTextBlocks);

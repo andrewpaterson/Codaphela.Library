@@ -30,7 +30,7 @@ public:
 	void	Init(int iLine, int iColumn);
 	void	Kill(void);
 	BOOL	IsWhiteSpace(void);
-	char* Print(CChars* psz);
+	char*	Print(CChars* psz);
 	void	Copy(CPPToken* pcSource, CMemoryStackExtended* pcStack);
 	BOOL	Equals(CPPToken* pcOther);
 	BOOL	IsEmpty(void);

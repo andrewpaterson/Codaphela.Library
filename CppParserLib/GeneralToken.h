@@ -31,9 +31,9 @@ extern CMemoryStackExtended gcTokenMemory;
 extern CMemoryStackExtended gcTokenStrings;
 
 
-#define TOKEN_CONSTRUCT(p) 	static p* Construct(void* pvMem)\
+#define TOKEN_CONSTRUCT(TOKEN) 	static TOKEN* Construct(TOKEN* pvMem)\
 {\
-	return new(pvMem) p();\
+	return new(pvMem) TOKEN();\
 }
 
 

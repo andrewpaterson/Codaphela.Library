@@ -21,16 +21,34 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __P_P_TOKENS_H__
 #define __P_P_TOKENS_H__
 #include "BaseLib/MemoryStackExtended.h"
+#include "PPBlock.h"
+#include "PPReplacement.h"
+#include "PPWhiteSpace.h"
+#include "PPHashes.h"
+#include "PPText.h"
+#include "PPHolder.h"
 
 
 class CPPTokens
 {
+protected:
 	CMemoryStackExtended	mcStack;
 
-	void	Init(void);
-	void	Kill(void);
+	void				Init(void);
+	void				Kill(void);
+
+public:
+	CPPHashes*			AddHashes(void);
+	CPPReplacement*		AddReplacement(void);
+	CPPText*			AddText(void);
+	CPPWhiteSpace*		AddWhiteSpace(void);
+
+	CPPBlock*			AddBlock(void);
+	CPPHolder*			AddHolder(void);
+	CPPLine*			AddLine(void);
 };
 
 
 #endif // !__P_P_TOKENS_H__
+
 

@@ -39,7 +39,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "DefineArguments.h"
 #include "Library.h"
 #include "TranslationUnit.h"
-#include "CBlockToken.h"
+#include "PPTokenBlockIndex.h"
 #include "HeaderNameMap.h"
 #include "PreprocessorPosition.h"
 #include "HeaderNameMapStack.h"
@@ -102,18 +102,18 @@ public:
 	CSpecialOperator*	AddSpecialOperator(char* szSpecialOperator, EPreprocessorSpecialOperator eType);
 
 	BOOL				PreprocessFile(CCFile* pcFile, CCFile* pcFromFile);
-	SCTokenBlock		PreprocessTokens(CPPTokenHolder* pcDestTokens, CMemoryStackExtended* pcStack, CPPTokenHolder* pcSourceTokens, int iBlock, int iToken);
+	SPPTokenBlockIndex		PreprocessTokens(CPPTokenHolder* pcDestTokens, CMemoryStackExtended* pcStack, CPPTokenHolder* pcSourceTokens, int iBlock, int iToken);
 	BOOL				PreprocessTranslationUnit(CTranslationUnit* pcFile);
 
 	BOOL 				ProcessHashDefine(CPreprocessorTokenParser* pcParser);
 	BOOL 				ProcessHashUndef(CPreprocessorTokenParser* pcParser);
 	BOOL 				ProcessHashInclude(CPreprocessorTokenParser* pcParser);
-	SCTokenBlock		ProcessHashEndif(CPreprocessorTokenParser* pcParser, CPPConditional* pcCond, SCTokenBlock iLine);
-	SCTokenBlock 		ProcessHashIfndef(CPreprocessorTokenParser* pcParser, CPPConditional* pcCond, SCTokenBlock iLine);
-	SCTokenBlock 		ProcessHashIfdef(CPreprocessorTokenParser* pcParser, CPPConditional* pcCond, SCTokenBlock iLine);
-	SCTokenBlock 		ProcessHashElse(CPreprocessorTokenParser* pcParser, CPPConditional* pcCond, SCTokenBlock iLine);
-	SCTokenBlock 		ProcessHashIf(CPreprocessorTokenParser* pcParser, CPPConditional* pcCond, SCTokenBlock iLine);
-	SCTokenBlock 		ProcessHashElif(CPreprocessorTokenParser* pcParser, CPPConditional* pcCond, SCTokenBlock iLine);
+	SPPTokenBlockIndex		ProcessHashEndif(CPreprocessorTokenParser* pcParser, CPPConditional* pcCond, SPPTokenBlockIndex iLine);
+	SPPTokenBlockIndex 		ProcessHashIfndef(CPreprocessorTokenParser* pcParser, CPPConditional* pcCond, SPPTokenBlockIndex iLine);
+	SPPTokenBlockIndex 		ProcessHashIfdef(CPreprocessorTokenParser* pcParser, CPPConditional* pcCond, SPPTokenBlockIndex iLine);
+	SPPTokenBlockIndex 		ProcessHashElse(CPreprocessorTokenParser* pcParser, CPPConditional* pcCond, SPPTokenBlockIndex iLine);
+	SPPTokenBlockIndex 		ProcessHashIf(CPreprocessorTokenParser* pcParser, CPPConditional* pcCond, SPPTokenBlockIndex iLine);
+	SPPTokenBlockIndex 		ProcessHashElif(CPreprocessorTokenParser* pcParser, CPPConditional* pcCond, SPPTokenBlockIndex iLine);
 	BOOL 				ProcessHashError(CPreprocessorTokenParser* pcParser);
 	BOOL 				ProcessHashPragma(CPreprocessorTokenParser* pcParser);
 	BOOL				ProcessNormalLine(CPreprocessorTokenParser* pcParser);
@@ -136,7 +136,7 @@ public:
 	BOOL				ProcessDoubleHash(CPPTokenHolder* pcDest, CPPHashes* pcHash, CPreprocessorTokenParser* pcParser);
 	void				FindBestInclude(CExternalString* pcInclude, BOOL bSystemFile, CHeaderFile** ppcCFile, CHeaderNameMap** ppcHeaderNameMap);
 	BOOL				FindArguments(CPreprocessorTokenParser* pcParser, CArrayPPTokenHolders* pacArguments);
-	SCTokenBlock		Condition(CPPConditional* pcCond, SCTokenBlock iLine);
+	SPPTokenBlockIndex		Condition(CPPConditional* pcCond, SPPTokenBlockIndex iLine);
 	void				AddTokenToArgument(CPPTokenHolder* pcArgument, CPPToken* pcToken);
 	CPPToken*			AddToken(CPPToken* pcToken, CArrayPPTokenPtrs* pcTokens);
 	BOOL				ExpandDirectiveTokenIfNecessary(CPPToken* pcToken, CPPTokenHolder* pcDest, CPreprocessorTokenParser* pcParser, int iDepth);
@@ -147,7 +147,7 @@ public:
 	CPPToken*			ConcaternateTokens(CPPTokenHolder* pcDest, CPPToken* pcLeft, CPPToken* pcRight);
 	BOOL				TokeniseFile(CCFile* pcFile);
 	void				DeltaDefines(CArrayNamedDefines* pcDelta, CMemoryStackExtended* pcStack);
-	void				LogBlocks(CCFile* pcFile, SCTokenBlock sResult);
+	void				LogBlocks(CCFile* pcFile, SPPTokenBlockIndex sResult);
 	void				LogIncludes(CCFile* pcFile);
 	void				TranslationUnitLogging(CTranslationUnit* pcFile);
 	CSpecialOperator*	ProcessSpecialOperator(CPreprocessorTokenParser* pcParser);

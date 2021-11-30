@@ -27,11 +27,11 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCBlockSet::Init(CCFile* pcFile, int iLine, int iBlock, BOOL bTextBlocks)
+void CPPBlockSet::Init(CCFile* pcFile, int iLine, int iBlock, BOOL bTextBlocks)
 {
 	mcRawTokens.Init();
 	mapcBlocks.Init();
-	mpcStack = &pcFile->mcStack;
+	mpcFileTokens = pcFile->GetTokens();
 	mpcFile = pcFile;
 	miColumn = 0;
 	miLine = iLine;
@@ -44,10 +44,10 @@ void CCBlockSet::Init(CCFile* pcFile, int iLine, int iBlock, BOOL bTextBlocks)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCBlockSet::Kill(void)
+void CPPBlockSet::Kill(void)
 {
 	int			i;
-	CCBlock*	pcBlock;
+	CPPBlock*	pcBlock;
 
 	for (i = 0; i < mapcBlocks.NumElements(); i++)
 	{
@@ -57,7 +57,7 @@ void CCBlockSet::Kill(void)
 
 	mapcBlocks.Kill();
 	mcRawTokens.Kill();
-	mpcStack = NULL;
+	mpcFileTokens = NULL;
 	mpcFile = NULL;
 }
 
@@ -66,10 +66,10 @@ void CCBlockSet::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCBlock* CCBlockSet::GetMatchingBlock(CCBlock* pcOtherBlock)
+CPPBlock* CPPBlockSet::GetMatchingBlock(CPPBlock* pcOtherBlock)
 {
 	int				i;
-	CCBlock*		pcBlock;
+	CPPBlock*		pcBlock;
 	BOOL			bResult;
 
 	for (i = mapcBlocks.NumElements()-1; i >= 0; i--)
@@ -89,11 +89,11 @@ CCBlock* CCBlockSet::GetMatchingBlock(CCBlock* pcOtherBlock)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCBlock* CCBlockSet::CreateBlock(void)
+CPPBlock* CPPBlockSet::CreateBlock(void)
 {
-	CCBlock*	pcBlock;
+	CPPBlock*	pcBlock;
 
-	pcBlock = CCBlock::Construct(mpcStack->Add(sizeof(CCBlock)));
+	pcBlock = CPPBlock::Construct(mpcFileTokens->Add(sizeof(CPPBlock)));
 	pcBlock->Init(this, miLine, miColumn);
 	return pcBlock;
 }
@@ -103,9 +103,9 @@ CCBlock* CCBlockSet::CreateBlock(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCBlock* CCBlockSet::AddBlock(void)
+CPPBlock* CPPBlockSet::AddBlock(void)
 {
-	CCBlock*	pcBlock;
+	CPPBlock*	pcBlock;
 
 	pcBlock = CreateBlock();
 	mapcBlocks.Add(&pcBlock);
@@ -117,7 +117,7 @@ CCBlock* CCBlockSet::AddBlock(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCBlockSet::AddBlock(CCBlock* pcBlock)
+BOOL CPPBlockSet::AddBlock(CPPBlock* pcBlock)
 {
 	if (pcBlock->mpcBlockSet == this)
 	{
@@ -132,7 +132,7 @@ BOOL CCBlockSet::AddBlock(CCBlock* pcBlock)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCBlockSet::IsLastToken(int iToken)
+BOOL CPPBlockSet::IsLastToken(int iToken)
 {
 	CPPToken*	pcToken;
 	int			i;
@@ -158,7 +158,7 @@ BOOL CCBlockSet::IsLastToken(int iToken)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CCBlockSet::DumpRawTokens(void)
+void CPPBlockSet::DumpRawTokens(void)
 {
 	CChars			sz;
 	int				iLast;
@@ -187,7 +187,7 @@ void CCBlockSet::DumpRawTokens(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCBlockSet::IsDirective(void)
+BOOL CPPBlockSet::IsDirective(void)
 {
 	return !mbTextBlocks;
 }
@@ -197,9 +197,9 @@ BOOL CCBlockSet::IsDirective(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CMemoryStackExtended* CCBlockSet::GetStack(void)
+CMemoryStackExtended* CPPBlockSet::GetStack(void)
 {
-	return mpcStack;
+	return mpcFileTokens;
 }
 
 
@@ -207,7 +207,7 @@ CMemoryStackExtended* CCBlockSet::GetStack(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPPTokenHolder* CCBlockSet::GetTokenHolder(void)
+CPPTokenHolder* CPPBlockSet::GetTokenHolder(void)
 {
 	return &mcRawTokens;
 }
@@ -217,7 +217,7 @@ CPPTokenHolder* CCBlockSet::GetTokenHolder(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CCBlockSet::Line(void)
+int CPPBlockSet::Line(void)
 {
 	return miLine;
 }
@@ -227,7 +227,7 @@ int CCBlockSet::Line(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CCBlockSet::Column(void)
+int CPPBlockSet::Column(void)
 {
 	return miColumn;
 }
@@ -237,7 +237,7 @@ int CCBlockSet::Column(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CCBlockSet::Block(void)
+int CPPBlockSet::Block(void)
 {
 	return miBlock;
 }
@@ -247,7 +247,7 @@ int CCBlockSet::Block(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CCBlockSet::GetFileName(void)
+char* CPPBlockSet::GetFileName(void)
 {
 	return mpcFile->ShortName();
 }
