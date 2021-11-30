@@ -106,7 +106,7 @@ public:
 	BOOL				PreprocessTranslationUnit(CTranslationUnit* pcFile);
 
 	BOOL 				ProcessHashDefine(CPreprocessorTokenParser* pcParser);
-	void 				ProcessHashUndef(CPreprocessorTokenParser* pcParser);
+	BOOL 				ProcessHashUndef(CPreprocessorTokenParser* pcParser);
 	BOOL 				ProcessHashInclude(CPreprocessorTokenParser* pcParser);
 	SCTokenBlock		ProcessHashEndif(CPreprocessorTokenParser* pcParser, CPPConditional* pcCond, SCTokenBlock iLine);
 	SCTokenBlock 		ProcessHashIfndef(CPreprocessorTokenParser* pcParser, CPPConditional* pcCond, SCTokenBlock iLine);
@@ -114,7 +114,7 @@ public:
 	SCTokenBlock 		ProcessHashElse(CPreprocessorTokenParser* pcParser, CPPConditional* pcCond, SCTokenBlock iLine);
 	SCTokenBlock 		ProcessHashIf(CPreprocessorTokenParser* pcParser, CPPConditional* pcCond, SCTokenBlock iLine);
 	SCTokenBlock 		ProcessHashElif(CPreprocessorTokenParser* pcParser, CPPConditional* pcCond, SCTokenBlock iLine);
-	void 				ProcessHashError(CPreprocessorTokenParser* pcParser);
+	BOOL 				ProcessHashError(CPreprocessorTokenParser* pcParser);
 	BOOL 				ProcessHashPragma(CPreprocessorTokenParser* pcParser);
 	BOOL				ProcessNormalLine(CPreprocessorTokenParser* pcParser);
 

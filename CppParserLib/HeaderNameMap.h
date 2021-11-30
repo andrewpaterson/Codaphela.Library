@@ -32,8 +32,8 @@ class CHeaderFileMap;
 class CHeaderNameMap
 {
 public:
-	CMapStringHeaderFilePtr		mcFileNames;
 	CHeaderFileMap*				mpcFileMap;
+	CMapStringHeaderFilePtr		mcFileNames;
 	CChars						mszBaseDirectory;
 	BOOL						mbSystem;
 

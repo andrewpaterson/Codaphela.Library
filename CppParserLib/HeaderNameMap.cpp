@@ -45,7 +45,7 @@ BOOL CHeaderNameMap::Init(char* szBaseDirectory, CHeaderFileMap* pcFileMap, BOOL
 	}
 
 	mszBaseDirectory.Init(szBaseDirectory);
-	mcFileNames.Init(16, FALSE);
+	mcFileNames.Init(TRUE, FALSE);
 	mpcFileMap = pcFileMap;
 	mbSystem = bSystem;
 
@@ -62,6 +62,7 @@ void CHeaderNameMap::Kill(void)
 {
 	mcFileNames.Kill();
 	mszBaseDirectory.Kill();
+	mpcFileMap = NULL;
 }
 
 

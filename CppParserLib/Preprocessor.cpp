@@ -479,7 +479,7 @@ BOOL CPreprocessor::ProcessHashDefineBracketted(CPreprocessorTokenParser* pcPars
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessor::ProcessHashUndef(CPreprocessorTokenParser* pcParser)
+BOOL CPreprocessor::ProcessHashUndef(CPreprocessorTokenParser* pcParser)
 {
 	BOOL				bResult;
 	CExternalString		cIdentifier;
@@ -490,6 +490,8 @@ void CPreprocessor::ProcessHashUndef(CPreprocessorTokenParser* pcParser)
 	{
 		mcDefines.RemoveDefine(&cIdentifier);
 	}
+
+	return TRUE;
 }
 
 
@@ -1219,7 +1221,7 @@ SCTokenBlock CPreprocessor::ProcessHashElif(CPreprocessorTokenParser* pcParser, 
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessor::ProcessHashError(CPreprocessorTokenParser* pcParser)
+BOOL CPreprocessor::ProcessHashError(CPreprocessorTokenParser* pcParser)
 {
 	CChars			szError;
 	CPPToken*		pcToken;
@@ -1238,6 +1240,8 @@ void CPreprocessor::ProcessHashError(CPreprocessorTokenParser* pcParser)
 	szError.AppendNewLine();
 	szError.Dump();
 	szError.Kill();
+
+	return FALSE;
 }
 
 
@@ -2288,12 +2292,11 @@ SCTokenBlock CPreprocessor::PreprocessTokens(CPPTokenHolder* pcDestTokens, CMemo
 					}
 					else if (pcDirective->Is(PPD_undef))
 					{
-						ProcessHashUndef(&cParser);
+						bResult = ProcessHashUndef(&cParser);
 					}
 					else if (pcDirective->Is(PPD_error))
 					{
-						ProcessHashError(&cParser);
-						bResult = FALSE;
+						bResult = ProcessHashError(&cParser);
 					}
 					else if (pcDirective->Is(PPD_pragma))
 					{

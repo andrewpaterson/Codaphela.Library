@@ -266,8 +266,10 @@ void CArrayBlockSorted::SortMerge(CArrayBlock* paMergedArray)
 {
 	CArrayBlock*	paHoldingArray;
 	int				i;
+	int				iNumElements;
 
-	for (i = 0; i < maaHoldingArrays.NumElements(); i++)
+	iNumElements = maaHoldingArrays.NumElements();
+	for (i = 0; i < iNumElements; i++)
 	{
 		paHoldingArray = maaHoldingArrays.Get(i);
 		paMergedArray->InsertArrayAfterEnd(paHoldingArray);
