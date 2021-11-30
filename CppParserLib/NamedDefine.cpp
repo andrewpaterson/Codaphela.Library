@@ -25,7 +25,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNamedDefine::Define(CExternalString* pcName, CDefine* pcSource, CMemoryStackExtended* mpcStack)
+void CNamedDefine::Define(CExternalString* pcName, CDefine* pcSource, CPPTokens* pcTokens)
 {
 	CPPLine	cLine;
 
@@ -37,7 +37,7 @@ void CNamedDefine::Define(CExternalString* pcName, CDefine* pcSource, CMemorySta
 	mcArguments.Init();
 	mcArguments.Copy(pcSource->GetArguments());
 	mcReplacement.Init(pcSource->GetReplacement()->Line(), pcSource->GetReplacement()->Column());
-	mcReplacement.Copy(pcSource->GetReplacement(), mpcStack);
+	mcReplacement.Copy(pcSource->GetReplacement(), pcTokens);
 }
 
 

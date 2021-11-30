@@ -38,7 +38,7 @@ protected:
 	CChars			mszName;
 
 public:
-	void			Define(CExternalString* pcName, CDefine* pcSource, CMemoryStackExtended* mpcStack);
+	void			Define(CExternalString* pcName, CDefine* pcSource, CPPTokens* pcTokens);
 	void			Undef(CExternalString* pcName);
 	void			Kill(void);
 	BOOL			IsBacketed(void);
