@@ -109,13 +109,13 @@ BOOL CPreprocessorTokeniser::Tokenise(CArrayCBlockSet* pacBlockSets, char* szPos
 				return FALSE;
 			}
 			pcLine = NULL;
-			pcDirective = TokeniseDirective(&pacBlockSets->mpcFile->mcStack, eDirective, iBlock, iIndex);
+			pcDirective = TokeniseDirective(pacBlockSets->mpcFile->GetTokens()->GetStack(), eDirective, iBlock, iIndex);
 			pcToken = pcDirective;
 		}
 		else
 		{
 			pcDirective = NULL;
-			pcLine = Line(&pacBlockSets->mpcFile->mcStack);
+			pcLine = Line(pacBlockSets->mpcFile->GetTokens()->GetStack());
 			pcToken = pcLine;
 			if (pcLine)
 			{

@@ -889,7 +889,7 @@ BOOL CPreprocessor::PreprocessFile(CCFile* pcFile, CCFile* pcFromFile)
 			if (pcBlocksSet->IsDirective())
 			{
 				//The conditional directives need to be expanded so &pcFile->mcStack is needed.  A #define directive will be expanded too.  Write a test for it.
-				sResult = PreprocessTokens(NULL, &pcFile->GetTokens(), pcBlocksSet->GetTokenHolder(), sResult.iBlockIndex, sResult.iTokenIndex);
+				sResult = PreprocessTokens(NULL, pcFile->GetTokens()->GetStack(), pcBlocksSet->GetTokenHolder(), sResult.iBlockIndex, sResult.iTokenIndex);
 				if (sResult.iTokenIndex == -1)	
 				{
 					bResult = FALSE; 
@@ -902,10 +902,10 @@ BOOL CPreprocessor::PreprocessFile(CCFile* pcFile, CCFile* pcFromFile)
 				CPPBlock*			pcBlockProcessed;
 				CPPBlock*			pcBlockMatching;
 
-				pcFile->mcStack.Mark(&cMark);
+				pcFile->GetTokens()->GetStack()->Mark(&cMark);
 
 				pcBlockProcessed = pcBlocksSet->CreateBlock();
-				sResult = PreprocessTokens(pcBlockProcessed->GetTokens(), &pcFile->mcStack, pcBlocksSet->GetTokenHolder(), sResult.iBlockIndex, sResult.iTokenIndex);
+				sResult = PreprocessTokens(pcBlockProcessed->GetTokens(), pcFile->GetTokens()->GetStack(), pcBlocksSet->GetTokenHolder(), sResult.iBlockIndex, sResult.iTokenIndex);
 
 				pcBlockMatching = pcBlocksSet->GetMatchingBlock(pcBlockProcessed);
 				if (!pcBlockMatching)
@@ -917,7 +917,7 @@ BOOL CPreprocessor::PreprocessFile(CCFile* pcFile, CCFile* pcFromFile)
 				else
 				{
 					pcBlockProcessed->Kill();
-					pcFile->mcStack.Rollback(&cMark);
+					pcFile->GetTokens()->GetStack()->Rollback(&cMark);
 					miBlockReuse++;
 					sResult = pcBlockMatching->msNext;
 				}
@@ -929,7 +929,7 @@ BOOL CPreprocessor::PreprocessFile(CCFile* pcFile, CCFile* pcFromFile)
 					break;	
 				}
 
-				mpcUnit->GetTokens()->GetTokens()->mcArray.Add((CPPToken**)&pcBlockMatching);
+				mpcUnit->GetHolder()->GetTokens()->mcArray.Add((CPPToken**)&pcBlockMatching);
 			}
 
 			pcBlocksSet = pcFile->macBlockSets.SafeGet(sResult.iBlockIndex);
@@ -2382,21 +2382,21 @@ void CPreprocessor::Preprocess(char* szSource, CChars* szDest)
 	CPPTokenHolder				cProcessedTokens;
 
 	cTokeniser.Init();
-	cStack.Init(4 KB);
+	cTokens.Init();
 	cRawTokens.Init();
 	iLen = (int)strlen(szSource);
-	cTokeniser.Tokenise(&cRawTokens, &cStack, szSource, iLen, TRUE, 0, 0);
+	cTokeniser.Tokenise(&cRawTokens, cTokens.GetStack(), szSource, iLen, TRUE, 0, 0);
 	cTokeniser.Kill();
 
 	cProcessedTokens.Init();
-	cPreprocessor.Init(NULL, &cStack);
-	cPreprocessor.PreprocessTokens(&cProcessedTokens, &cStack, &cRawTokens, 0, 0);
+	cPreprocessor.Init(NULL, cTokens.GetStack());
+	cPreprocessor.PreprocessTokens(&cProcessedTokens, cTokens.GetStack(), &cRawTokens, 0, 0);
 
 	cProcessedTokens.Print(szDest);
 
 	cProcessedTokens.Kill();
 	cRawTokens.Kill();
-	cStack.Kill();
+	cTokens.Kill();
 }
 
 
