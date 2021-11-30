@@ -29,7 +29,7 @@ struct SCTokenBlock
 	int iBlockIndex;
 
 	void Init(int iTokenIndex, int iBlockIndex);
-	void Append(CChars* psz);
+	void Print(CChars* psz);
 	void Dump(void);
 };
 

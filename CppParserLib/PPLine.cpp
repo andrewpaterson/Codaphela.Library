@@ -68,11 +68,11 @@ BOOL CPPLine::IsLine(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CPPLine::Append(CChars* psz)
+char* CPPLine::Print(CChars* psz)
 {
 	if (mcTokens.mcArray.NumElements() > 0)
 	{
-		CPPAbstractHolder::Append(psz);
+		CPPAbstractHolder::Print(psz);
 		psz->AppendNewLine();
 	}
 	return psz->Text();
@@ -87,7 +87,7 @@ void CPPLine::AppendNoNewline(CChars* psz)
 {
 	if (mcTokens.mcArray.NumElements() > 0)
 	{
-		CPPAbstractHolder::Append(psz);
+		CPPAbstractHolder::Print(psz);
 	}
 }
 
@@ -125,7 +125,7 @@ void CPPLine::Dump(void)
 	CChars	sz;
 
 	sz.Init();
-	Append(&sz);
+	Print(&sz);
 	sz.Dump();
 	sz.Kill();
 }

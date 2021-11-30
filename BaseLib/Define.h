@@ -54,7 +54,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define _WIN32_IE 0x0600
 #endif // _WIN32_IE
 
-#include <stdlib.h>
+#include <malloc.h>
 #include <memory.h>
 
 #define FILE_SEPARATOR "\\"

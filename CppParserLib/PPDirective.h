@@ -54,7 +54,7 @@ public:
 	void	Init(EPreprocessorDirective eType, int iLine, int iColumn);
 	BOOL	IsDirective(void);
 	void	Set(EPreprocessorDirective eType);
-	char*	Append(CChars* psz);
+	char*	Print(CChars* psz);
 	void	Copy(CPPToken* pcSource, CMemoryStackExtended* pcStack);
 	BOOL	Is(EPreprocessorDirective eType);
 	BOOL	IsConditional(void);

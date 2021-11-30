@@ -177,7 +177,7 @@ void CCBlockSet::DumpRawTokens(void)
 		sz.Append(miLine);
 		sz.Append(" ---- */\n");
 	}
-	mcRawTokens.Append(&sz);
+	mcRawTokens.Print(&sz);
 	sz.Dump();
 	sz.Kill();
 }

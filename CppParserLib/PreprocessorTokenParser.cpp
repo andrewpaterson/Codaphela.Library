@@ -1105,7 +1105,7 @@ BOOL CPreprocessorTokenParser::AppendRemaining(CChars* psz, CPPAbstractHolder* p
 
 			if (bAppending)
 			{
-				pcToken->Append(psz);
+				pcToken->Print(psz);
 			}
 		}
 	}
@@ -1258,7 +1258,7 @@ void CPreprocessorTokenParser::DumpAll(void)
 
 	sz.Init();
 	psMark = macPPHolderMark.Get(0);
-	psMark->pcHolder->Append(&sz);
+	psMark->pcHolder->Print(&sz);
 	sz.AppendNewLine();
 	sz.Dump();
 	sz.Kill();

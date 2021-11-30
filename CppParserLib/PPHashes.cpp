@@ -65,7 +65,7 @@ BOOL CPPHashes::IsHash(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CPPHashes::Append(CChars* psz)
+char* CPPHashes::Print(CChars* psz)
 {
 	psz->Append('#', miCount);
 	return psz->Text();

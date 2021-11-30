@@ -55,7 +55,7 @@ void CPPTokenHolder::Kill(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-char* CPPTokenHolder::Append(CChars* psz)
+char* CPPTokenHolder::Print(CChars* psz)
 {
 	CPPToken*	pcToken;
 	int			i;
@@ -63,7 +63,7 @@ char* CPPTokenHolder::Append(CChars* psz)
 	for (i = 0; i < mcArray.NumElements(); i++)
 	{
 		pcToken = *mcArray.Get(i);
-		pcToken->Append(psz);
+		pcToken->Print(psz);
 	}
 	return psz->Text();
 }
@@ -139,7 +139,7 @@ void CPPTokenHolder::SavageAppend(CChars* psz, int iDepth)
 			psz->Append(iDepth);
 			psz->Append(": ");
 			psz->Append(' ', iDepth*2);
-			pcToken->Append(psz);
+			pcToken->Print(psz);
 			psz->AppendNewLine();
 		}
 	}
@@ -155,7 +155,7 @@ void CPPTokenHolder::Dump(void)
 	CChars	sz;
 
 	sz.Init();
-	Append(&sz);
+	Print(&sz);
 	sz.Dump();
 	sz.Kill();
 }

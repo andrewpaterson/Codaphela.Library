@@ -245,7 +245,7 @@ void CDefine::Dump(void)
 	if (mcReplacement.TokenLength() > 0)
 	{
 		sz.Append(' ');
-		mcReplacement.Append(&sz);
+		mcReplacement.Print(&sz);
 	}
 	else
 	{

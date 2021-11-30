@@ -48,7 +48,7 @@ public:
 	virtual BOOL	IsBlock(void);
 	virtual BOOL	IsEmpty(void) =0;
 			void	Set(int iLine, int iColumn);
-	virtual char*	Append(CChars* psz) =0;
+	virtual char*	Print(CChars* psz) =0;
 	virtual void	Copy(CPPToken* pcSource, CMemoryStackExtended* pcStack) =0;
 	virtual BOOL	Equals(CPPToken* pcOther) =0;
 

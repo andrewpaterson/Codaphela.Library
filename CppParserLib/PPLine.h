@@ -33,7 +33,7 @@ public:
 	void	Kill(void);
 	void	Fake(CPPTokenHolder* pcTokens);
 	BOOL	IsLine(void);
-	char*	Append(CChars* psz);
+	char*	Print(CChars* psz);
 	void	AppendNoNewline(CChars* psz);
 	void	Copy(CPPToken* pcSource, CMemoryStackExtended* pcStack);
 	void	Dump(void);
