@@ -120,7 +120,8 @@ CTranslationUnit* CTranslationUnitFileArray::AddFile(char* szRelativeFileName, B
 
 	pcTranslationUnit = mcFiles.InsertAfterTail();
 	memcpy(pcTranslationUnit, &cTranslationUnit, sizeof(CTranslationUnit));
-	pcTranslationUnit->macBlockSets.mpcFile = pcTranslationUnit;
+	pcTranslationUnit->SetBlockSetsFile(pcTranslationUnit);
 
 	return pcTranslationUnit;
 }
+
