@@ -20,7 +20,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include "PPDirective.h"
 #include "CFile.h"
-#include "CBlockSet.h"
+#include "PPBlockSet.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -93,7 +93,7 @@ CPPBlock* CPPBlockSet::CreateBlock(void)
 {
 	CPPBlock*	pcBlock;
 
-	pcBlock = CPPBlock::Construct(mpcFileTokens->Add(sizeof(CPPBlock)));
+	pcBlock = CPPBlock::Construct(mpcFileTokens->GetStack()->Add(sizeof(CPPBlock)));
 	pcBlock->Init(this, miLine, miColumn);
 	return pcBlock;
 }
@@ -199,7 +199,7 @@ BOOL CPPBlockSet::IsDirective(void)
 //////////////////////////////////////////////////////////////////////////
 CMemoryStackExtended* CPPBlockSet::GetStack(void)
 {
-	return mpcFileTokens;
+	return mpcFileTokens->GetStack();
 }
 
 

@@ -32,6 +32,7 @@ CPPBlock* CPPTokens::AddBlock(void)
 		
 	pcToken = (CPPBlock*)mcStack.Add(sizeof(CPPBlock));
 	CPPBlock::Construct(pcToken);
+	return pcToken;
 }
 
 
@@ -45,6 +46,7 @@ CPPWhiteSpace* CPPTokens::AddWhiteSpace(void)
 
 	pcToken = (CPPWhiteSpace*)mcStack.Add(sizeof(CPPWhiteSpace));
 	CPPWhiteSpace::Construct(pcToken);
+	return pcToken;
 }
 
 
@@ -58,6 +60,7 @@ CPPHashes* CPPTokens::AddHashes(void)
 
 	pcToken = (CPPHashes*)mcStack.Add(sizeof(CPPHashes));
 	CPPHashes::Construct(pcToken);
+	return pcToken;
 }
 
 
@@ -71,6 +74,7 @@ CPPReplacement* CPPTokens::AddReplacement(void)
 
 	pcToken = (CPPReplacement*)mcStack.Add(sizeof(CPPReplacement));
 	CPPReplacement::Construct(pcToken);
+	return pcToken;
 }
 
 
@@ -84,6 +88,7 @@ CPPText* CPPTokens::AddText(void)
 
 	pcToken = (CPPText*)mcStack.Add(sizeof(CPPText));
 	CPPText::Construct(pcToken);
+	return pcToken;
 }
 
 
@@ -97,6 +102,7 @@ CPPHolder* CPPTokens::AddHolder(void)
 
 	pcToken = (CPPHolder*)mcStack.Add(sizeof(CPPHolder));
 	CPPHolder::Construct(pcToken);
+	return pcToken;
 }
 
 
@@ -110,6 +116,16 @@ CPPLine* CPPTokens::AddLine(void)
 
 	pcToken = (CPPLine*)mcStack.Add(sizeof(CPPLine));
 	CPPLine::Construct(pcToken);
+	return pcToken;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CMemoryStackExtended* CPPTokens::GetStack(void)
+{
+	return &mcStack;
+}
 

@@ -34,10 +34,10 @@ class CPPTokens
 protected:
 	CMemoryStackExtended	mcStack;
 
+public:
 	void				Init(void);
 	void				Kill(void);
 
-public:
 	CPPHashes*			AddHashes(void);
 	CPPReplacement*		AddReplacement(void);
 	CPPText*			AddText(void);
@@ -46,6 +46,8 @@ public:
 	CPPBlock*			AddBlock(void);
 	CPPHolder*			AddHolder(void);
 	CPPLine*			AddLine(void);
+
+	CMemoryStackExtended*	GetStack(void);
 };
 
 
