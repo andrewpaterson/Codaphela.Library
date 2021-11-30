@@ -73,12 +73,9 @@ char* CPPTokenHolder::Print(CChars* psz)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CPPTokenHolder::Add(CPPToken** ppcToken)
+void CPPTokenHolder::Add(CPPToken* pcToken)
 {
-	CPPToken*	pcToken;
-
-	pcToken = *ppcToken;
-	mcArray.Add(ppcToken);
+	mcArray.Add(&pcToken);
 }
 
 

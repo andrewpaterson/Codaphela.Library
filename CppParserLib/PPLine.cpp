@@ -110,7 +110,7 @@ void CPPLine::Copy(CPPToken* pcSource, CMemoryStackExtended* pcStack)
 		for (i = 0; i < pcCast->mcTokens.mcArray.NumElements(); i++)
 		{
 			pcToken = DuplicatePPToken(*pcCast->mcTokens.mcArray.Get(i), pcStack);
-			mcTokens.Add(&pcToken);
+			mcTokens.Add(pcToken);
 		}
 	}
 }

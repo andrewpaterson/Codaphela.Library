@@ -1286,7 +1286,7 @@ BOOL CPreprocessor::ProcessNormalLine(CPreprocessorTokenParser* pcParser)
 		{
 			if (pcLine->TokenLength() > 0)
 			{
-				mpcPost->Add((CPPToken**)&pcLine);
+				mpcPost->Add(pcLine);
 			}
 			return TRUE;
 		}
@@ -1490,7 +1490,7 @@ BOOL CPreprocessor::ProcessIdentifierNormalLine(CPPTokenHolder* pcDest, CPPText*
 	else
 	{
 		pcToken = DuplicatePPToken(pcText, mpcStack);
-		pcDest->Add(&pcToken);
+		pcDest->Add(pcToken);
 		pcParser->NextToken();
 		return TRUE;
 	}
@@ -1562,7 +1562,7 @@ BOOL CPreprocessor::ProcessDefinedIdentifier(CPPTokenHolder* pcDest, CPPText* pc
 				pcParser->NextToken();
 			}
 		}
-		pcDest->Add((CPPToken**)&pcDecorator);
+		pcDest->Add(pcDecorator);
 		if (bOpenBracket)
 		{
 			bResult = pcParser->GetExactDecorator(')');
@@ -1616,7 +1616,7 @@ BOOL CPreprocessor::ProcessHasIncludeIdentifier(CPPTokenHolder* pcDest, CPPText*
 			bResult = pcParser->GetExactDecorator(')', TRUE);
 			if (bResult)
 			{
-				pcDest->Add((CPPToken**)&pcDecorator);
+				pcDest->Add(pcDecorator);
 				return TRUE;
 			}
 			else
@@ -1746,7 +1746,7 @@ BOOL CPreprocessor::ExpandDirectiveTokenIfNecessary(CPPToken* pcToken, CPPTokenH
 		else
 		{
 			pcNewToken = DuplicatePPToken(pcToken, mpcStack);
-			pcDest->Add(&pcNewToken);
+			pcDest->Add(pcNewToken);
 			pcParser->NextToken();
 			return TRUE;
 		}
@@ -1761,7 +1761,7 @@ BOOL CPreprocessor::ExpandDirectiveTokenIfNecessary(CPPToken* pcToken, CPPTokenH
 	else
 	{
 		pcNewToken = DuplicatePPToken(pcToken, mpcStack);
-		pcDest->Add(&pcNewToken);
+		pcDest->Add(pcNewToken);
 		pcParser->NextToken();
 		return TRUE;
 	}
@@ -1790,7 +1790,7 @@ BOOL CPreprocessor::ExpandNormalLineTokenIfNecessary(CPPToken* pcToken, CPPToken
 		else
 		{
 			pcNewToken = DuplicatePPToken(pcToken, mpcStack);
-			pcDest->Add(&pcNewToken);
+			pcDest->Add(pcNewToken);
 			pcParser->NextToken();
 			return TRUE;
 		}
@@ -1805,7 +1805,7 @@ BOOL CPreprocessor::ExpandNormalLineTokenIfNecessary(CPPToken* pcToken, CPPToken
 	else
 	{
 		pcNewToken = DuplicatePPToken(pcToken, mpcStack);
-		pcDest->Add(&pcNewToken);
+		pcDest->Add(pcNewToken);
 		pcParser->NextToken();
 		return TRUE;
 	}
@@ -2040,7 +2040,7 @@ CPPToken* CPreprocessor::ConcaternateTokens(CPPTokenHolder* pcDest, CPPToken* pc
 		}
 		else
 		{
-			pcDest->Add(&pcRight);
+			pcDest->Add(pcRight);
 			return pcRight;
 		}
 	}
@@ -2075,7 +2075,7 @@ CPPToken* CPreprocessor::QuoteTokens(CPPTokenHolder* pcDest, CPPAbstractHolder* 
 	memcpy(szInStrings, szQuoted.Text(), szQuoted.Length()+1);
 	pcQuoted = CPPText::Construct(mpcStack->Add(sizeof(CPPText)));
 	pcQuoted->Init(PPT_DoubleQuoted, -1, -1, szInStrings, szInStrings+szQuoted.Length());
-	pcDest->Add((CPPToken**)&pcQuoted);
+	pcDest->Add(pcQuoted);
 
 	szQuoted.Kill();
 
@@ -2197,7 +2197,7 @@ BOOL CPreprocessor::FindArguments(CPreprocessorTokenParser* pcParser, CArrayPPTo
 void CPreprocessor::AddTokenToArgument(CPPTokenHolder* pcArgument, CPPToken* pcToken)
 {
 	pcToken = DuplicatePPToken(pcToken, mpcStack);
-	pcArgument->Add(&pcToken);
+	pcArgument->Add(pcToken);
 }
 
 
