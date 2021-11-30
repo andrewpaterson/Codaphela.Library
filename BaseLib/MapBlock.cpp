@@ -308,7 +308,7 @@ SMNode* CMapBlock::GetNode(void* pvKey, int iKeySize)
 
 	psSourceNode = (SMNode*)ac;
 
-	psSourceNode->pcMapBlock = this;
+	psSourceNode->fKeyCompare = fKeyCompare;
 	psSourceNode->iDataSize = 0;
 	psSourceNode->iKeySize = iKeySize;
 	pvSourceKey = RemapSinglePointer(psSourceNode, sizeof(SMNode));
@@ -630,7 +630,7 @@ SMNode* CMapBlock::AllocateNode(int iKeySize, int iDataSize, void** ppvKey, void
 
 	psNode->iKeySize = iKeySize;
 	psNode->iDataSize = iDataSize;
-	psNode->pcMapBlock = this;
+	psNode->fKeyCompare = fKeyCompare;
 
 	RemapKeyAndData(psNode, ppvKey, ppvData);
 	if (psNode->iKeySize > miLargestKeySize)

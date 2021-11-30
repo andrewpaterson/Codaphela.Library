@@ -2,6 +2,7 @@
 #include "MapBlock.h"
 #include "StringHelper.h"
 #include "MapNode.h"
+#include "Chars.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -10,7 +11,7 @@
 //////////////////////////////////////////////////////////////////////////
 int SMNode::KeyCompare(const void* arg1, const void* arg2)
 {
-	return pcMapBlock->fKeyCompare(arg1, arg2);
+	return fKeyCompare(arg1, arg2);
 }
 
 
