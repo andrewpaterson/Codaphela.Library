@@ -763,7 +763,7 @@ void CPreprocessor::LogBlocks(CCFile* pcFile, SCTokenBlock sResult)
 		{
 			szLine.Append("          : ");
 		}
-		sResult.Append(&szLine);
+		sResult.Print(&szLine);
 
 		pcBlocksSet = pcFile->macBlockSets.SafeGet(sResult.iBlockIndex);
 		if (!pcBlocksSet)
@@ -1136,7 +1136,7 @@ SCTokenBlock CPreprocessor::ProcessHashIf(CPreprocessorTokenParser* pcParser, CP
 	}
 
 	sz.Init();
-	cTokenHolder.Append(&sz);
+	cTokenHolder.Print(&sz);
 	szCaclulatorError.Init();
 	sEvaluated = EvaluateEquation(sz.Text(), &szCaclulatorError);
 	if (sEvaluated != TRIERROR)
@@ -1188,7 +1188,7 @@ SCTokenBlock CPreprocessor::ProcessHashElif(CPreprocessorTokenParser* pcParser, 
 	szCaclulatorError.Init();
 	ProcessDirectiveLine(&cTokenHolder, pcParser, 0);
 	sz.Init();
-	cTokenHolder.Append(&sz);
+	cTokenHolder.Print(&sz);
 	sEvaluated = EvaluateEquation(sz.Text(), &szCaclulatorError);;
 	if (sEvaluated != TRIERROR)
 	{
@@ -1234,7 +1234,7 @@ BOOL CPreprocessor::ProcessHashError(CPreprocessorTokenParser* pcParser)
 	while (pcParser->HasToken())
 	{
 		pcToken = pcParser->GetToken();
-		pcToken->Append(&szError);
+		pcToken->Print(&szError);
 		pcParser->NextToken();
 	}		
 	szError.AppendNewLine();
@@ -2026,8 +2026,8 @@ CPPToken* CPreprocessor::ConcaternateTokens(CPPTokenHolder* pcDest, CPPToken* pc
 			((pcLeftText->meType == PPT_Number) && (pcRightText->meType == PPT_Number)))
 		{
 			szConcaternated.Init();
-			pcLeftText->Append(&szConcaternated);
-			pcRightText->Append(&szConcaternated);
+			pcLeftText->Print(&szConcaternated);
+			pcRightText->Print(&szConcaternated);
 
 			szInStrings = (char*)gcTokenStrings.Add(szConcaternated.Length()+1);
 			memcpy(szInStrings, szConcaternated.Text(), szConcaternated.Length()+1);
@@ -2066,7 +2066,7 @@ CPPToken* CPreprocessor::QuoteTokens(CPPTokenHolder* pcDest, CPPAbstractHolder* 
 	for (j = 0; j < pcHolder->GetTokens()->mcArray.NumElements(); j++)
 	{
 		pcToken = *(pcHolder->GetTokens()->mcArray.Get(j));
-		pcToken->Append(&szQuoted);
+		pcToken->Print(&szQuoted);
 	}
 	szQuoted.Append('"');
 	bQuoteNextReplacement = FALSE;
@@ -2391,7 +2391,7 @@ void CPreprocessor::Preprocess(char* szSource, CChars* szDest)
 	cPreprocessor.Init(NULL, &cStack);
 	cPreprocessor.PreprocessTokens(&cProcessedTokens, &cStack, &cRawTokens, 0, 0);
 
-	cProcessedTokens.Append(szDest);
+	cProcessedTokens.Print(szDest);
 
 	cProcessedTokens.Kill();
 	cRawTokens.Kill();

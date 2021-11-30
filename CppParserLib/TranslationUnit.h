@@ -48,7 +48,7 @@ protected:
 public:
 	void			Init(char* szFullName, CLibrary* pcLibrary, BOOL bLogIncludes, BOOL bLogBlocks);
 	void			Kill(void);
-	char*			Append(CChars* psz);
+	char*			Print(CChars* psz);
 	BOOL			IsTranslationUnit(void);
 	BOOL			IsHeader(void);
 	BOOL			LogBlocks(void);

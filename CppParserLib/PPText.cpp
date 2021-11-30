@@ -77,7 +77,7 @@ BOOL CPPText::IsText(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CPPText::Append(CChars* psz)
+char* CPPText::Print(CChars* psz)
 {
 	char	szDest[4];
 	BOOL	bResult;

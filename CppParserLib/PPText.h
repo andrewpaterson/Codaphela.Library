@@ -46,7 +46,7 @@ public:
 	void 			Init(EPreprocessorText eType, int iLine, int iColumn, char* szStart, char* szEndExclusive);
 	void 			Kill(void);
 	BOOL 			IsText(void);
-	char* 			Append(CChars* psz);
+	char* 			Print(CChars* psz);
 	void 			Copy(CPPToken* pcSource, CMemoryStackExtended* pcStack);
 	virtual BOOL	HasSource(void);
 	BOOL			Equals(CPPToken* pcOther);

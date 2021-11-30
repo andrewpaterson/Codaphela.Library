@@ -88,9 +88,9 @@ void CTranslationUnit::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CTranslationUnit::Append(CChars* psz)
+char* CTranslationUnit::Print(CChars* psz)
 {
-	mcTokens.Append(psz);
+	mcTokens.Print(psz);
 	return psz->Text();
 }
 

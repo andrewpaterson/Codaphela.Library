@@ -164,7 +164,7 @@ void CPPToken::Dump(void)
 	CChars	sz;
 
 	sz.Init();
-	Append(&sz);
+	Print(&sz);
 	sz.DumpKill();
 }
 

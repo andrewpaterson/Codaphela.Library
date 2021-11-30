@@ -33,7 +33,7 @@ public:
 	void	Init(int iCount, int iLine, int iColumn);
 	void	Kill(void);
 	BOOL	IsHash(void);
-	char*	Append(CChars* psz);
+	char*	Print(CChars* psz);
 	void	Copy(CPPToken* pcSource, CMemoryStackExtended* pcStack);
 	BOOL	Equals(CPPToken* pcOther);
 	BOOL	IsEmpty(void);

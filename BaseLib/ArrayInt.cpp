@@ -20,7 +20,6 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-#include <stdlib.h>
 #include "DebugOutput.h"
 #include "ArrayInt.h"
 #include "StringHelper.h"

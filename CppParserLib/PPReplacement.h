@@ -36,7 +36,7 @@ public:
 	void 		Init(int64 lliDefineID, int iArgIndex, int iLine, int iColumn, BOOL bVariadic);
 	void 		Kill(void);
 	BOOL 		IsReplacement(void);
-	char* 		Append(CChars* psz);
+	char* 		Print(CChars* psz);
 	void 		Copy(CPPToken* pcSource, CMemoryStackExtended* pcStack);
 	BOOL		Equals(CPPToken* pcOther);
 	BOOL		IsEmpty(void);

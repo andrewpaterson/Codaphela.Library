@@ -31,7 +31,7 @@ public:
 
 	void	Init(void);
 	void	Kill(void);
-	char*	Append(CChars* psz);
+	char*	Print(CChars* psz);
 	void	Add(CPPToken** ppcToken);
 	BOOL	Equals(CPPTokenHolder* pcOther);
 	void	SavageAppend(CChars* psz, int iDepth);

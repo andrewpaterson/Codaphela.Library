@@ -67,7 +67,7 @@ void CPPDirective::Set(EPreprocessorDirective eType)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CPPDirective::Append(CChars* psz)
+char* CPPDirective::Print(CChars* psz)
 {
 	psz->Append('#');
 
@@ -110,7 +110,7 @@ char* CPPDirective::Append(CChars* psz)
 	if (mcTokens.mcArray.IsNotEmpty())
 	{
 		psz->Append(' ');
-		CPPLine::Append(psz);
+		CPPLine::Print(psz);
 	}
 	else
 	{

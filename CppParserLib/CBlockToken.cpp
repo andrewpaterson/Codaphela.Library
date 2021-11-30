@@ -37,7 +37,7 @@ void SCTokenBlock::Init(int iTokenIndex, int iBlockIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void SCTokenBlock::Append(CChars* psz)
+void SCTokenBlock::Print(CChars* psz)
 {
 	psz->Append(iBlockIndex);
 	psz->Append(", ");
@@ -54,7 +54,7 @@ void SCTokenBlock::Dump(void)
 	CChars sz;
 
 	sz.Init();
-	Append(&sz);
+	Print(&sz);
 	sz.Dump();
 	sz.Kill();
 }

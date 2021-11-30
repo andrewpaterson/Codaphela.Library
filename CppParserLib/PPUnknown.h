@@ -31,7 +31,7 @@ public:
 	TOKEN_CONSTRUCT(CPPUnknown);
 	void	Init(int iLine, int iColumn);
 	void	Kill(void);
-	char*	Append(CChars* psz);
+	char*	Print(CChars* psz);
 };
 
 
