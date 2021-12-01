@@ -37,6 +37,7 @@ public:
 	BOOL 	HasSource(void);
 	char*	TextStart(void);
 	char*	TextEndInclusive(void);
+	int		Sizeof(void);
 };
 
 

@@ -38,18 +38,21 @@ protected:
 	int					miElements;
 
 public:
-	void	Init(int iChunkSize);
-	void	Clear(void);
-	void	Kill(void);
+	void			Init(int iChunkSize);
+	void			Clear(void);
+	void			Kill(void);
 
-	void*	Add(int iSize);
-	void	Remove(void);
-	void	Remove(int iNumToRemove);  //This is the number of elements to remove, not the amount of memory to remove.
-	void	Mark(CStackMarkExtended* psMark);
-	void	Rollback(CStackMarkExtended* psMark);
+	void*			Add(int iSize);
+	void			Remove(void);
+	void			Remove(int iNumToRemove);  //This is the number of elements to remove, not the amount of memory to remove.
+	void			Mark(CStackMarkExtended* psMark);
+	void			Rollback(CStackMarkExtended* psMark);
 
-	int		GetTotalMemory(void);
-	int		GetUsedMemory(void);
+	int				GetTotalMemory(void);
+	int				GetUsedMemory(void);
+	CMemoryStack*	GetStack(int iIndex);
+	int				NumStacks(void);
+
 };
 
 

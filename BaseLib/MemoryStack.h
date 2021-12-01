@@ -50,6 +50,7 @@ public:
 	int			GetUsedMemory(void);
 	int			GetRemainingMemory(void);
 	void*		GetData(void);
+	int			NumElements(void);
 };
 
 

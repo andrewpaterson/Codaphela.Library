@@ -26,13 +26,17 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 class CPPConditional : public CPPDirective
 {
-public:
+protected:
 	CPPConditional*		mpcNext;
-	SPPTokenBlockIndex		msIndex;
+	SPPTokenBlockIndex	msIndex;
 
+public:
 	TOKEN_CONSTRUCT(CPPConditional);
-	void Init(EPreprocessorDirective eType, int iBlockIndex, int iTokenIndex, int iLine, int iColumn);
-	void Set(CPPConditional* pcNext);
+	void				Init(EPreprocessorDirective eType, int iBlockIndex, int iTokenIndex, int iLine, int iColumn);
+	void				Set(CPPConditional* pcNext);
+	int					Sizeof(void);
+	CPPConditional*		GetNext(void);
+	SPPTokenBlockIndex	GetTokenBlock(void);
 };
 
 

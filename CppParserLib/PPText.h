@@ -54,6 +54,7 @@ public:
 	virtual	char*	TextEndInclusive(void);
 	BOOL			IsEmpty(void);
 	int				Length(void);
+	int				Sizeof(void);
 };
 
 

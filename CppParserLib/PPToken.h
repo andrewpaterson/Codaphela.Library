@@ -52,6 +52,7 @@ public:
 	virtual char*	Print(CChars* psz) =0;
 	virtual void	Copy(CPPToken* pcSource, CPPTokens* pcTokens) =0;
 	virtual BOOL	Equals(CPPToken* pcOther) =0;
+	virtual int		Sizeof(void) =0;
 
 			int		Line(void);
 			int		Column(void);

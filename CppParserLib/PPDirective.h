@@ -58,6 +58,7 @@ public:
 	void	Copy(CPPToken* pcSource, CPPTokens* pcTokens);
 	BOOL	Is(EPreprocessorDirective eType);
 	BOOL	IsConditional(void);
+	int		Sizeof(void);
 };
 
 

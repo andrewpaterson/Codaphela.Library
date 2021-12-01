@@ -38,14 +38,6 @@ void CPPTokenHolder::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CPPTokenHolder::Kill(void)
 {
-	int			i;
-	CPPToken*	pcPPToken;
-
-	for (i = 0; i < mcArray.NumElements(); i++)
-	{
-		pcPPToken = *(mcArray.Get(i));
-		pcPPToken->Kill();
-	}
 	mcArray.Kill();
 }
 

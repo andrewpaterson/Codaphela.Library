@@ -49,6 +49,7 @@ public:
 	SPPTokenBlockIndex	GetNextTokenBlock(void);
 	void				Dump(CArrayIntAndPointer* papc);
 	void				DumpTokens(void);
+	int					Sizeof(void);
 };
 
 
