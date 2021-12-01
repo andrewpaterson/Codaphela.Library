@@ -37,9 +37,6 @@ extern CMemoryStackExtended gcTokenStrings;
 }
 
 
-#define ADD_TOKEN(p, q, mem)	(p*)AddToken(p::Construct(mem), q)
-
-
 void InitTokenMemory(void);
 void KillTokenMemory(void);
 

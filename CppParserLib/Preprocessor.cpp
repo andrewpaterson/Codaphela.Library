@@ -237,7 +237,7 @@ CDefine* CPreprocessor::AddDefine(char* szDefine, char* szReplacement)
 	memcpy(sz, szReplacement, iLen+1);
 
 	cTokeniser.Init();
-	cTokeniser.TokeniseDefine(pcDefine->GetReplacement()->GetTokens(), sz, mpcTokens->GetStack());
+	cTokeniser.TokeniseDefine(pcDefine->GetReplacement()->GetTokens(), sz, mpcTokens);
 	cTokeniser.Kill();
 
 	return pcDefine;
@@ -902,7 +902,7 @@ BOOL CPreprocessor::PreprocessFile(CCFile* pcFile, CCFile* pcFromFile)
 				CPPBlock*			pcBlockProcessed;
 				CPPBlock*			pcBlockMatching;
 
-				pcFile->GetTokens()->GetStack()->Mark(&cMark);
+				pcFile->GetTokens()->Mark(&cMark);
 
 				pcBlockProcessed = pcBlocksSet->CreateBlock();
 				sResult = PreprocessTokens(pcBlockProcessed->GetTokens(), pcFile->GetTokens(), pcBlocksSet->GetRawTokensHolder(), sResult.iBlockIndex, sResult.iTokenIndex);
@@ -917,7 +917,7 @@ BOOL CPreprocessor::PreprocessFile(CCFile* pcFile, CCFile* pcFromFile)
 				else
 				{
 					pcBlockProcessed->Kill();
-					pcFile->GetTokens()->GetStack()->Rollback(&cMark);
+					pcFile->GetTokens()->Rollback(&cMark);
 					miBlockReuse++;
 					sResult = pcBlockMatching->GetNextTokenBlock();
 				}
@@ -2387,7 +2387,7 @@ void CPreprocessor::Preprocess(char* szSource, CChars* szDest)
 	cTokens.Init();
 	cRawTokens.Init();
 	iLen = (int)strlen(szSource);
-	cTokeniser.Tokenise(&cRawTokens, cTokens.GetStack(), szSource, iLen, TRUE, 0, 0);
+	cTokeniser.Tokenise(&cRawTokens, &cTokens, szSource, iLen, TRUE, 0, 0);
 	cTokeniser.Kill();
 
 	cProcessedTokens.Init();
