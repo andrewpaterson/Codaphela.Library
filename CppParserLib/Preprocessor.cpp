@@ -1063,7 +1063,7 @@ SPPTokenBlockIndex CPreprocessor::ProcessHashIfdef(CPreprocessorTokenParser* pcP
 //////////////////////////////////////////////////////////////////////////
 SPPTokenBlockIndex CPreprocessor::Condition(CPPConditional* pcCond, SPPTokenBlockIndex iLine)
 {
-	CPPConditional*	pcNext;
+	CPPConditional*		pcNext;
 	SPPTokenBlockIndex	sIndex;
 
 	if (mcConditionalStack.IsParsing())
@@ -1073,16 +1073,15 @@ SPPTokenBlockIndex CPreprocessor::Condition(CPPConditional* pcCond, SPPTokenBloc
 	}
 	else
 	{
-		pcNext = pcCond->mpcNext;
+		pcNext = pcCond->GetNext();
 		if (pcNext)
 		{
-			sIndex.iBlockIndex = pcNext->msIndex.iBlockIndex;
-			sIndex.iTokenIndex = pcNext->msIndex.iTokenIndex;
+			sIndex = pcNext->GetTokenBlock();
 			return sIndex;
 		}
 		else if (pcCond->Is(PPD_endif))
 		{
-			sIndex.iBlockIndex = pcCond->msIndex.iBlockIndex;
+			sIndex.iBlockIndex = pcCond->GetTokenBlock().iBlockIndex;
 			sIndex.iTokenIndex = -1;
 			return sIndex;
 		}

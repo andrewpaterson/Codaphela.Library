@@ -18,6 +18,29 @@ void CPPTokens::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CPPTokens::Kill(void)
 {
+	int				iStack;
+	CPPToken*		pcPPToken;
+	int				iNumStacks;
+	CMemoryStack*	pcStack;
+	int				iElement;
+	int				iNumElements;
+	void*			pvStackData;
+
+	iNumStacks = mcStack.NumStacks();
+	for (iStack = 0; iStack < iNumStacks; iStack++)
+	{
+		pcStack = mcStack.GetStack(iStack);
+		pvStackData = pcStack->GetData();
+		iNumElements = pcStack->NumElements();
+		for (iElement = 0; iElement < iNumElements; iElement++)
+		{
+			pcPPToken = (CPPToken*)pvStackData;
+			pcPPToken->Kill();
+
+			pvStackData = RemapSinglePointer(pvStackData, pcPPToken->Sizeof());
+		}
+	}
+
 	mcStack.Kill();
 }
 

@@ -42,6 +42,7 @@ public:
 	BOOL				Equals(CPPToken* pcOther);
 	BOOL				IsEmpty(void);
 	CPPTokenHolder*		GetTokens(void);
+	int					Sizeof(void);
 };
 
 

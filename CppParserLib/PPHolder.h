@@ -27,11 +27,12 @@ class CPPHolder : public CPPAbstractHolder
 {
 public:
 	TOKEN_CONSTRUCT(CPPHolder);
-	void 		Init(int iLine, int iColumn);
-	void 		Kill(void);
-	void 		Copy(CPPToken* pcSource, CPPTokens* pcTokens);
-	BOOL		Equals(CPPToken* pcOther);
-	BOOL		IsHolder(void);
+	void 	Init(int iLine, int iColumn);
+	void 	Kill(void);
+	void 	Copy(CPPToken* pcSource, CPPTokens* pcTokens);
+	BOOL	Equals(CPPToken* pcOther);
+	BOOL	IsHolder(void);
+	int		Sizeof(void);
 };
 
 
