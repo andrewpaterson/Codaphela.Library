@@ -298,6 +298,7 @@ void CProject::CreatePost(void)
 	cFileUtil.FullPath(&szPath);
 	cFileUtil.RemoveDir(szPath.Text());
 	cFileUtil.MakeDir(szPath.Text());
+	szPath.Kill();
 }
 
 
@@ -324,6 +325,7 @@ void CProject::WritePost(CTranslationUnit* pcTU)
 	cDestFile.Write(sz.Text(), sz.Length(), 1);
 	//	EngineOutput(sz.Text());
 	sz.Kill();
+	szPath.Kill();
 	cDestFile.Close();
 	cDestFile.Kill();
 }
