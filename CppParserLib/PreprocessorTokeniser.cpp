@@ -66,7 +66,7 @@ BOOL CPreprocessorTokeniser::Tokenise(CArrayCBlockSet* pacBlockSets, char* szPos
 {
 	char*					szEnd;
 	EPreprocessorDirective	eDirective;
-	CPPBlockSet*				pcBlockSet;
+	CPPBlockSet*			pcBlockSet;
 	BOOL					bNewBlock;
 	BOOL					bLastDirective;
 	BOOL					bDirective;
@@ -109,13 +109,13 @@ BOOL CPreprocessorTokeniser::Tokenise(CArrayCBlockSet* pacBlockSets, char* szPos
 				return FALSE;
 			}
 			pcLine = NULL;
-			pcDirective = TokeniseDirective(pacBlockSets->mpcFile->GetTokens()->GetStack(), eDirective, iBlock, iIndex);
+			pcDirective = TokeniseDirective(pacBlockSets->mpcFile->GetTokens(), eDirective, iBlock, iIndex);
 			pcToken = pcDirective;
 		}
 		else
 		{
 			pcDirective = NULL;
-			pcLine = Line(pacBlockSets->mpcFile->GetTokens()->GetStack());
+			pcLine = Line(pacBlockSets->mpcFile->GetTokens());
 			pcToken = pcLine;
 			if (pcLine)
 			{
@@ -176,7 +176,7 @@ BOOL CPreprocessorTokeniser::Tokenise(CArrayCBlockSet* pacBlockSets, char* szPos
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CPreprocessorTokeniser::Tokenise(CPPTokenHolder* pcTokens, CMemoryStackExtended* pcStack, char* szPos, int iLength, BOOL bAllowAnnotations, int iBlock, int iIndex)
+BOOL CPreprocessorTokeniser::Tokenise(CPPTokenHolder* pcTokenHolder, CPPTokens* pcTokens, char* szPos, int iLength, BOOL bAllowAnnotations, int iBlock, int iIndex)
 {
 	char*					szEnd;
 	int						iLine;
@@ -200,16 +200,16 @@ BOOL CPreprocessorTokeniser::Tokenise(CPPTokenHolder* pcTokens, CMemoryStackExte
 				return FALSE;
 			}
 
-			pcToken = TokeniseDirective(pcStack, eDirective, iBlock, iIndex+iLine);
+			pcToken = TokeniseDirective(pcTokens, eDirective, iBlock, iIndex+iLine);
 		}
 		else
 		{
-			pcToken = Line(pcStack);
+			pcToken = Line(pcTokens);
 		}
 
 		if (pcToken)
 		{
-			pcTokens->Add(pcToken);
+			pcTokenHolder->Add(pcToken);
 		}
 
 		//Add Token here.
@@ -223,10 +223,10 @@ BOOL CPreprocessorTokeniser::Tokenise(CPPTokenHolder* pcTokens, CMemoryStackExte
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessorTokeniser::TokeniseDefine(CPPTokenHolder* pcHolder, char* sz, CMemoryStackExtended* pcStack)
+void CPreprocessorTokeniser::TokeniseDefine(CPPTokenHolder* pcHolder, char* sz, CPPTokens* pcTokens)
 {
 	mcParser.Init(sz, NULL, FALSE);
-	CLinePreprocessor::Do(pcHolder, &mcParser, pcStack, TRUE);
+	CLinePreprocessor::Do(pcHolder, &mcParser, pcTokens, TRUE);
 }
 
 
@@ -260,32 +260,32 @@ EPreprocessorDirective CPreprocessorTokeniser::GetDirective(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CPPDirective* CPreprocessorTokeniser::TokeniseDirective(CMemoryStackExtended* pcStack, EPreprocessorDirective eDirective, int iBlock, int iIndex)
+CPPDirective* CPreprocessorTokeniser::TokeniseDirective(CPPTokens* pcTokens, EPreprocessorDirective eDirective, int iBlock, int iIndex)
 {
 	switch (eDirective)
 	{
 	case PPD_include:
-		return TokeniseHashInclude(pcStack);
+		return TokeniseHashInclude(pcTokens);
 	case PPD_define:
-		return TokeniseHashDefine(pcStack);
+		return TokeniseHashDefine(pcTokens);
 	case PPD_ifdef:
-		return TokeniseHashIfdef(pcStack, iBlock, iIndex);
+		return TokeniseHashIfdef(pcTokens, iBlock, iIndex);
 	case PPD_ifndef:
-		return TokeniseHashIfndef(pcStack, iBlock, iIndex);
+		return TokeniseHashIfndef(pcTokens, iBlock, iIndex);
 	case PPD_endif:
-		return TokeniseHashEndif(pcStack, iBlock, iIndex);
+		return TokeniseHashEndif(pcTokens, iBlock, iIndex);
 	case PPD_else:
-		return TokeniseHashElse(pcStack, iBlock, iIndex);
+		return TokeniseHashElse(pcTokens, iBlock, iIndex);
 	case PPD_if:
-		return TokeniseHashIf(pcStack, iBlock, iIndex);
+		return TokeniseHashIf(pcTokens, iBlock, iIndex);
 	case PPD_elif:
-		return TokeniseHashElif(pcStack, iBlock, iIndex);
+		return TokeniseHashElif(pcTokens, iBlock, iIndex);
 	case PPD_undef:
-		return TokeniseHashUndef(pcStack);
+		return TokeniseHashUndef(pcTokens);
 	case PPD_error:
-		return TokeniseHashError(pcStack);
+		return TokeniseHashError(pcTokens);
 	case PPD_pragma:
-		return TokeniseHashPragma(pcStack);
+		return TokeniseHashPragma(pcTokens);
 	}
 	return NULL;
 }
@@ -295,15 +295,15 @@ CPPDirective* CPreprocessorTokeniser::TokeniseDirective(CMemoryStackExtended* pc
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CPPDirective* CPreprocessorTokeniser::TokeniseHashDefine(CMemoryStackExtended* pcStack)
+CPPDirective* CPreprocessorTokeniser::TokeniseHashDefine(CPPTokens* pcTokens)
 {
 	CPPDirective*	pcDefine;
 
 	mcParser.SkipWhiteSpace();
 	
-	pcDefine = CPPDirective::Construct(pcStack->Add(sizeof(CPPDirective)));
+	pcDefine = pcTokens->AddDirective();
 	pcDefine->Init(PPD_define, mcParser.miLine, mcParser.miColumn);
-	CLinePreprocessor::Do(pcDefine->GetTokens(), &mcParser, pcStack, TRUE);
+	CLinePreprocessor::Do(pcDefine->GetTokens(), &mcParser, pcTokens, TRUE);
 	return pcDefine; 
 }
 
@@ -312,15 +312,15 @@ CPPDirective* CPreprocessorTokeniser::TokeniseHashDefine(CMemoryStackExtended* p
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CPPDirective* CPreprocessorTokeniser::TokeniseHashUndef(CMemoryStackExtended* pcStack)
+CPPDirective* CPreprocessorTokeniser::TokeniseHashUndef(CPPTokens* pcTokens)
 {
 	CPPDirective*			pcUndef;
 
 	mcParser.SkipWhiteSpace();
 
-	pcUndef = CPPDirective::Construct(pcStack->Add(sizeof(CPPDirective)));
+	pcUndef = pcTokens->AddDirective();
 	pcUndef->Init(PPD_undef, mcParser.miLine, mcParser.miColumn);
-	CLinePreprocessor::Do(pcUndef->GetTokens(), &mcParser, pcStack, TRUE);
+	CLinePreprocessor::Do(pcUndef->GetTokens(), &mcParser, pcTokens, TRUE);
 	return pcUndef;
 }
 
@@ -329,15 +329,15 @@ CPPDirective* CPreprocessorTokeniser::TokeniseHashUndef(CMemoryStackExtended* pc
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CPPDirective* CPreprocessorTokeniser::TokeniseHashInclude(CMemoryStackExtended* pcStack)
+CPPDirective* CPreprocessorTokeniser::TokeniseHashInclude(CPPTokens* pcTokens)
 {
 	CPPInclude*			pcInclude;
 
 	mcParser.SkipWhiteSpace();
 
-	pcInclude = CPPInclude::Construct(pcStack->Add(sizeof(CPPInclude)));
+	pcInclude = pcTokens->AddInclude();
 	pcInclude->Init(mcParser.miLine, mcParser.miColumn);
-	CLinePreprocessor::Do(pcInclude->GetTokens(), &mcParser, pcStack, FALSE);
+	CLinePreprocessor::Do(pcInclude->GetTokens(), &mcParser, pcTokens, FALSE);
 	return pcInclude;
 }
 
@@ -346,13 +346,13 @@ CPPDirective* CPreprocessorTokeniser::TokeniseHashInclude(CMemoryStackExtended* 
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CPPDirective* CPreprocessorTokeniser::TokeniseHashIfndef(CMemoryStackExtended* pcStack, int iBlock, int iIndex)
+CPPDirective* CPreprocessorTokeniser::TokeniseHashIfndef(CPPTokens* pcTokens, int iBlock, int iIndex)
 {
 	CPPConditional*		pcIfNDef;
 
-	pcIfNDef = CPPConditional::Construct(pcStack->Add(sizeof(CPPConditional)));
+	pcIfNDef = pcTokens->AddConditional();
 	pcIfNDef->Init(PPD_ifndef, iBlock, iIndex, mcParser.miLine, mcParser.miColumn);
-	CLinePreprocessor::Do(pcIfNDef->GetTokens(), &mcParser, pcStack, TRUE);
+	CLinePreprocessor::Do(pcIfNDef->GetTokens(), &mcParser, pcTokens, TRUE);
 	NextConditional(pcIfNDef);
 	return pcIfNDef;
 }
@@ -362,13 +362,13 @@ CPPDirective* CPreprocessorTokeniser::TokeniseHashIfndef(CMemoryStackExtended* p
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CPPDirective* CPreprocessorTokeniser::TokeniseHashIfdef(CMemoryStackExtended* pcStack, int iBlock, int iIndex)
+CPPDirective* CPreprocessorTokeniser::TokeniseHashIfdef(CPPTokens* pcTokens, int iBlock, int iIndex)
 {
 	CPPConditional*		pcIfDef;
 
-	pcIfDef = CPPConditional::Construct(pcStack->Add(sizeof(CPPConditional)));
+	pcIfDef = pcTokens->AddConditional();
 	pcIfDef->Init(PPD_ifdef, iBlock, iIndex, mcParser.miLine, mcParser.miColumn);
-	CLinePreprocessor::Do(pcIfDef->GetTokens(), &mcParser, pcStack, TRUE);
+	CLinePreprocessor::Do(pcIfDef->GetTokens(), &mcParser, pcTokens, TRUE);
 	NextConditional(pcIfDef);
 	return pcIfDef;
 }
@@ -378,13 +378,13 @@ CPPDirective* CPreprocessorTokeniser::TokeniseHashIfdef(CMemoryStackExtended* pc
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CPPDirective* CPreprocessorTokeniser::TokeniseHashElse(CMemoryStackExtended* pcStack, int iBlock, int iIndex)
+CPPDirective* CPreprocessorTokeniser::TokeniseHashElse(CPPTokens* pcTokens, int iBlock, int iIndex)
 {
 	CPPConditional*		pcElse;
 
-	pcElse = CPPConditional::Construct(pcStack->Add(sizeof(CPPConditional)));
+	pcElse = pcTokens->AddConditional();
 	pcElse->Init(PPD_else, iBlock, iIndex, mcParser.miLine, mcParser.miColumn);
-	CLinePreprocessor::Do(pcElse->GetTokens(), &mcParser, pcStack, TRUE);
+	CLinePreprocessor::Do(pcElse->GetTokens(), &mcParser, pcTokens, TRUE);
 	NextConditional(pcElse);
 	return pcElse;
 }
@@ -394,14 +394,14 @@ CPPDirective* CPreprocessorTokeniser::TokeniseHashElse(CMemoryStackExtended* pcS
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CPPDirective* CPreprocessorTokeniser::TokeniseHashIf(CMemoryStackExtended* pcStack, int iBlock, int iIndex)
+CPPDirective* CPreprocessorTokeniser::TokeniseHashIf(CPPTokens* pcTokens, int iBlock, int iIndex)
 {
 	//IF and Elif are special cases because the calculator does it's own parsing.
 	CPPConditional*		pcIf;
 
-	pcIf = CPPConditional::Construct(pcStack->Add(sizeof(CPPConditional)));
+	pcIf = pcTokens->AddConditional();
 	pcIf->Init(PPD_if, iBlock, iIndex, mcParser.miLine, mcParser.miColumn);
-	CLinePreprocessor::Do(pcIf->GetTokens(), &mcParser, pcStack, TRUE);
+	CLinePreprocessor::Do(pcIf->GetTokens(), &mcParser, pcTokens, TRUE);
 	NextConditional(pcIf);
 	return pcIf;
 }
@@ -411,14 +411,14 @@ CPPDirective* CPreprocessorTokeniser::TokeniseHashIf(CMemoryStackExtended* pcSta
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CPPDirective* CPreprocessorTokeniser::TokeniseHashElif(CMemoryStackExtended* pcStack, int iBlock, int iIndex)
+CPPDirective* CPreprocessorTokeniser::TokeniseHashElif(CPPTokens* pcTokens, int iBlock, int iIndex)
 {
 	//IF and Elif are special cases because the calculator does it's own parsing.
 	CPPConditional*		pcElif;
 
-	pcElif = CPPConditional::Construct(pcStack->Add(sizeof(CPPConditional)));
+	pcElif = pcTokens->AddConditional();
 	pcElif->Init(PPD_elif, iBlock, iIndex, mcParser.miLine, mcParser.miColumn);
-	CLinePreprocessor::Do(pcElif->GetTokens(), &mcParser, pcStack, TRUE);
+	CLinePreprocessor::Do(pcElif->GetTokens(), &mcParser, pcTokens, TRUE);
 	NextConditional(pcElif);
 	return pcElif;
 }
@@ -428,13 +428,13 @@ CPPDirective* CPreprocessorTokeniser::TokeniseHashElif(CMemoryStackExtended* pcS
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CPPDirective* CPreprocessorTokeniser::TokeniseHashEndif(CMemoryStackExtended* pcStack, int iBlock, int iIndex)
+CPPDirective* CPreprocessorTokeniser::TokeniseHashEndif(CPPTokens* pcTokens, int iBlock, int iIndex)
 {
 	CPPConditional*		pcEndif;
 
-	pcEndif = CPPConditional::Construct(pcStack->Add(sizeof(CPPConditional)));
+	pcEndif = pcTokens->AddConditional();
 	pcEndif->Init(PPD_endif, iBlock, iIndex, mcParser.miLine, mcParser.miColumn);
-	CLinePreprocessor::Do(pcEndif->GetTokens(), &mcParser, pcStack, TRUE);
+	CLinePreprocessor::Do(pcEndif->GetTokens(), &mcParser, pcTokens, TRUE);
 	NextConditional(pcEndif);
 	return pcEndif;
 }
@@ -444,13 +444,13 @@ CPPDirective* CPreprocessorTokeniser::TokeniseHashEndif(CMemoryStackExtended* pc
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CPPDirective* CPreprocessorTokeniser::TokeniseHashError(CMemoryStackExtended* pcStack)
+CPPDirective* CPreprocessorTokeniser::TokeniseHashError(CPPTokens* pcTokens)
 {
 	CPPDirective*		pcError;
 
-	pcError = CPPDirective::Construct(pcStack->Add(sizeof(CPPDirective)));
+	pcError = pcTokens->AddDirective();
 	pcError->Init(PPD_error, mcParser.miLine, mcParser.miColumn);
-	CLinePreprocessor::Do(pcError->GetTokens(), &mcParser, pcStack, FALSE);
+	CLinePreprocessor::Do(pcError->GetTokens(), &mcParser, pcTokens, FALSE);
 	return pcError;
 }
 
@@ -459,13 +459,13 @@ CPPDirective* CPreprocessorTokeniser::TokeniseHashError(CMemoryStackExtended* pc
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CPPDirective* CPreprocessorTokeniser::TokeniseHashPragma(CMemoryStackExtended* pcStack)
+CPPDirective* CPreprocessorTokeniser::TokeniseHashPragma(CPPTokens* pcTokens)
 {
 	CPPDirective*		pcPragma;
 
-	pcPragma = CPPDirective::Construct(pcStack->Add(sizeof(CPPDirective)));
+	pcPragma = pcTokens->AddDirective();
 	pcPragma->Init(PPD_pragma, mcParser.miLine, mcParser.miColumn);
-	CLinePreprocessor::Do(pcPragma->GetTokens(), &mcParser, pcStack, FALSE);
+	CLinePreprocessor::Do(pcPragma->GetTokens(), &mcParser, pcTokens, FALSE);
 	return pcPragma;
 }
 
@@ -474,13 +474,13 @@ CPPDirective* CPreprocessorTokeniser::TokeniseHashPragma(CMemoryStackExtended* p
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CPPLine* CPreprocessorTokeniser::Line(CMemoryStackExtended* pcStack)
+CPPLine* CPreprocessorTokeniser::Line(CPPTokens* pcTokens)
 {
 	CPPLine		cLine;
 	CPPLine*	pcLine;
 
 	cLine.Init(mcParser.miLine, mcParser.miColumn);
-	CLinePreprocessor::Do(cLine.GetTokens(), &mcParser, pcStack, TRUE);
+	CLinePreprocessor::Do(cLine.GetTokens(), &mcParser, pcTokens, TRUE);
 	if (cLine.IsEmpty())
 	{
 		cLine.Kill();  //Stuff is still allocated on pcStack, it'll be killed when the stack is.  It's too small to worry about.
@@ -488,7 +488,7 @@ CPPLine* CPreprocessorTokeniser::Line(CMemoryStackExtended* pcStack)
 	}
 	else
 	{
-		pcLine = (CPPLine*)pcStack->Add(sizeof(CPPLine));
+		pcLine = pcTokens->AddLine();
 		memcpy(pcLine, &cLine, sizeof(CPPLine));
 		return pcLine;
 	}

@@ -58,8 +58,6 @@ public:
 
 	CPPConditional*		AddConditional(void);
 	CPPInclude*			AddInclude(void);
-
-	CMemoryStackExtended*	GetStack(void);
 };
 
 

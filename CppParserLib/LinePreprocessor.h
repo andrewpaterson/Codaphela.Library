@@ -32,7 +32,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 class CLinePreprocessor
 {
 public:
-	CArrayPPTokenPtrs*		mpcTokens;
+	CArrayPPTokenPtrs*		mpcTokenPtrs;
 	char*					mszWhiteSpaceStart;
 	char*					mszIdentifierStart;
 	char*					mszDecorationStart;
@@ -42,13 +42,13 @@ public:
 	char*					mszNumberStart;
 	BOOL					mbOnlyWhiteSpace;
 	CPreprocessorParser*	mpcParser;
-	CMemoryStackExtended*	mpcStack;
+	CPPTokens*				mpcTokens;
 	BOOL					mbContainsEscapes;
 	BOOL					mbContainsLineContinuers;
 
-	static void	Do(CPPTokenHolder* pcLinesTokens, CPreprocessorParser* pcParser, CMemoryStackExtended* pcStack, BOOL bAllowEscapes);
+	static void	Do(CPPTokenHolder* pcLinesTokens, CPreprocessorParser* pcParser, CPPTokens* pcTokens, BOOL bAllowEscapes);
 
-	void		Preprocess(CArrayPPTokenPtrs* pcTokens, CPreprocessorParser* pcParser, CMemoryStackExtended* pcStack, BOOL bAllowEscapes);
+	void		Preprocess(CArrayPPTokenPtrs* pcTokenPtrs, CPreprocessorParser* pcParser, CPPTokens* pcTokens, BOOL bAllowEscapes);
 	BOOL		PossibleComment(void);
 	void		AddRelevantToken(void);
 	CPPText* 	AddText(EPreprocessorText eType, char* szStart, char* szEndExclusive);
