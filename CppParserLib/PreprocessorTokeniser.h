@@ -32,11 +32,12 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 class CPPConditional;
 class CPreprocessorTokeniser
 {
-public:
+protected:
 	CDirectiveMap			mcDirectives;
 	CPreprocessorParser		mcParser;
 	CPPConditional*			mpcPrev;
 
+public:
 	void 					Init(void);
 	void 					Kill(void);
 
