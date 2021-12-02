@@ -31,11 +31,27 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CLinePreprocessor::Do(CPPTokenHolder* pcLinesTokens, CPreprocessorParser* pcParser, CPPTokens* pcTokens, BOOL bAllowEscapes)
+void CLinePreprocessor::Preprocess(CPPTokenHolder* pcLinesTokens, CPreprocessorParser* pcParser, CPPTokens* pcTokens, BOOL bAllowEscapes)
 {
 	CLinePreprocessor	cLinePreprocessor;
 
-	cLinePreprocessor.Preprocess(&pcLinesTokens->mcArray, pcParser, pcTokens, bAllowEscapes);
+	cLinePreprocessor.Init(&pcLinesTokens->mcArray, pcParser, pcTokens, bAllowEscapes);
+	cLinePreprocessor.Preprocess();
+	cLinePreprocessor.Kill();
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CLinePreprocessor::Init(CArrayPPTokenPtrs* pcTokenPtrs, CPreprocessorParser* pcParser, CPPTokens* pcTokens, BOOL bAllowEscapes)
+{
+	mpcParser = pcParser;
+	mpcTokenPtrs = pcTokenPtrs;
+	mpcTokens = pcTokens;
+	mbOnlyWhiteSpace = TRUE;
+	mbAllowEscapes = bAllowEscapes;
+	NullAll();
 }
 
 
@@ -43,14 +59,18 @@ void CLinePreprocessor::Do(CPPTokenHolder* pcLinesTokens, CPreprocessorParser* p
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CLinePreprocessor::Preprocess(CArrayPPTokenPtrs* pcTokenPtrs, CPreprocessorParser* pcParser, CPPTokens* pcTokens, BOOL bAllowEscapes)
+void CLinePreprocessor::Kill(void)
 {
-	mpcParser = pcParser;
-	mpcTokenPtrs = pcTokenPtrs;
-	mpcTokens = pcTokens;
-	mbOnlyWhiteSpace = TRUE;
-	NullAll();
 
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CLinePreprocessor::Preprocess(void)
+{
 	//Remember that at this point the hash and directive have already been strippeed if they existed.
 	//Any existing hashes are... something else.
 	while (!mpcParser->mbEndOfFile)
@@ -94,7 +114,6 @@ void CLinePreprocessor::Preprocess(CArrayPPTokenPtrs* pcTokenPtrs, CPreprocessor
 					AddRelevantToken();  //It's illegal to have it outside of a string but add the previous token anyway.
 					NullAll();
 				}
-				mbContainsEscapes = (TRUE && bAllowEscapes);
 				mpcParser->StepRight();
 			}
 		}
@@ -405,7 +424,7 @@ void CLinePreprocessor::AddDoubleQuotedToken(void)
 
 	if (mszDoubleQuoteStart)
 	{
-		if (!mbContainsEscapes)
+		if (!mbAllowEscapes)
 		{
 			pcText = mpcTokens->AddText();
 			AddToken(pcText, mpcTokenPtrs);
@@ -437,7 +456,7 @@ void CLinePreprocessor::AddSingleQuotedToken(void)
 
 	if (mszSingleQuoteStart)
 	{
-		if (!mbContainsEscapes)
+		if (!mbAllowEscapes)
 		{
 			pcText = mpcTokens->AddText();
 			AddToken(pcText, mpcTokenPtrs);
@@ -494,7 +513,6 @@ void CLinePreprocessor::NullAll(void)
 	mszSingleQuoteStart = NULL;
 	mszHashStart = NULL;
 	mszNumberStart = NULL;
-	mbContainsEscapes = FALSE;
 	mbContainsLineContinuers = FALSE;
 }
 
