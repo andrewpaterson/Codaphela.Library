@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __LINE_PREPROCESSOR_H__
-#define __LINE_PREPROCESSOR_H__
+#ifndef __PREPROCESSOR_LINE_TOKENISER_H__
+#define __PREPROCESSOR_LINE_TOKENISER_H__
 #include "ASCIITree.h"
 #include "PPToken.h"
 #include "PreprocessorParser.h"
@@ -29,7 +29,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "PPtokens.h"
 
 
-class CLinePreprocessor
+class CPreprocessorLineTokensier
 {
 protected:
 	CArrayPPTokenPtrs*		mpcTokenPtrs;
@@ -66,5 +66,5 @@ public:
 };
 
 
-#endif // !__LINE_PREPROCESSOR_H__
+#endif // !__PREPROCESSOR_LINE_TOKENISER_H__
 

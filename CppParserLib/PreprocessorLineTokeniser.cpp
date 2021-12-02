@@ -19,7 +19,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/EscapeCodes.h"
-#include "LinePreprocessor.h"
+#include "PreprocessorLineTokeniser.h"
 #include "GeneralToken.h"
 #include "PPText.h"
 #include "PPTextWithSource.h"
@@ -31,9 +31,9 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CLinePreprocessor::Preprocess(CPPTokenHolder* pcLinesTokens, CPreprocessorParser* pcParser, CPPTokens* pcTokens, BOOL bAllowEscapes)
+void CPreprocessorLineTokensier::Preprocess(CPPTokenHolder* pcLinesTokens, CPreprocessorParser* pcParser, CPPTokens* pcTokens, BOOL bAllowEscapes)
 {
-	CLinePreprocessor	cLinePreprocessor;
+	CPreprocessorLineTokensier	cLinePreprocessor;
 
 	cLinePreprocessor.Init(&pcLinesTokens->mcArray, pcParser, pcTokens, bAllowEscapes);
 	cLinePreprocessor.Preprocess();
@@ -44,7 +44,7 @@ void CLinePreprocessor::Preprocess(CPPTokenHolder* pcLinesTokens, CPreprocessorP
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CLinePreprocessor::Init(CArrayPPTokenPtrs* pcTokenPtrs, CPreprocessorParser* pcParser, CPPTokens* pcTokens, BOOL bAllowEscapes)
+void CPreprocessorLineTokensier::Init(CArrayPPTokenPtrs* pcTokenPtrs, CPreprocessorParser* pcParser, CPPTokens* pcTokens, BOOL bAllowEscapes)
 {
 	mpcParser = pcParser;
 	mpcTokenPtrs = pcTokenPtrs;
@@ -59,7 +59,7 @@ void CLinePreprocessor::Init(CArrayPPTokenPtrs* pcTokenPtrs, CPreprocessorParser
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CLinePreprocessor::Kill(void)
+void CPreprocessorLineTokensier::Kill(void)
 {
 
 }
@@ -69,7 +69,7 @@ void CLinePreprocessor::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CLinePreprocessor::Preprocess(void)
+void CPreprocessorLineTokensier::Preprocess(void)
 {
 	//Remember that at this point the hash and directive have already been strippeed if they existed.
 	//Any existing hashes are... something else.
@@ -244,7 +244,7 @@ void CLinePreprocessor::Preprocess(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CLinePreprocessor::PossibleComment(void)
+BOOL CPreprocessorLineTokensier::PossibleComment(void)
 {
 	//If we're in a quote then comments are ignored.
 	if (!(mszSingleQuoteStart || mszDoubleQuoteStart))
@@ -343,7 +343,7 @@ BOOL CLinePreprocessor::PossibleComment(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CLinePreprocessor::AddRelevantToken(void)
+void CPreprocessorLineTokensier::AddRelevantToken(void)
 {
 	CPPWhiteSpace*	pcWhiteSpace;
 	CPPHashes*		pcHashes;
@@ -385,7 +385,7 @@ void CLinePreprocessor::AddRelevantToken(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CPPText* CLinePreprocessor::AddText(EPreprocessorText eType, char* szStart, char* szEndExclusive)
+CPPText* CPreprocessorLineTokensier::AddText(EPreprocessorText eType, char* szStart, char* szEndExclusive)
 {
 	CPPText*			pcText;
 	CChars				sz;
@@ -416,7 +416,7 @@ CPPText* CLinePreprocessor::AddText(EPreprocessorText eType, char* szStart, char
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CLinePreprocessor::AddDoubleQuotedToken(void)
+void CPreprocessorLineTokensier::AddDoubleQuotedToken(void)
 {
 	CPPText*			pcText;
 	CPPTextWithSource*	pcTextWithSource;
@@ -448,7 +448,7 @@ void CLinePreprocessor::AddDoubleQuotedToken(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CLinePreprocessor::AddSingleQuotedToken(void)
+void CPreprocessorLineTokensier::AddSingleQuotedToken(void)
 {
 	CPPText*			pcText;
 	CPPTextWithSource*	pcTextWithSource;
@@ -480,7 +480,7 @@ void CLinePreprocessor::AddSingleQuotedToken(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CLinePreprocessor::AddAnnotationToken(void)
+void CPreprocessorLineTokensier::AddAnnotationToken(void)
 {
 	//Oi!  Annotations please.
 }
@@ -490,7 +490,7 @@ void CLinePreprocessor::AddAnnotationToken(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CPPToken* CLinePreprocessor::AddToken(CPPToken* pcToken, CArrayPPTokenPtrs* pcTokens)
+CPPToken* CPreprocessorLineTokensier::AddToken(CPPToken* pcToken, CArrayPPTokenPtrs* pcTokens)
 {
 	CPPToken**	ppcToken;
 
@@ -504,7 +504,7 @@ CPPToken* CLinePreprocessor::AddToken(CPPToken* pcToken, CArrayPPTokenPtrs* pcTo
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CLinePreprocessor::NullAll(void)
+void CPreprocessorLineTokensier::NullAll(void)
 {
 	mszWhiteSpaceStart = NULL;
 	mszIdentifierStart = NULL;
@@ -521,7 +521,7 @@ void CLinePreprocessor::NullAll(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CLinePreprocessor::ReplaceEscapeCodes(CChars* psz, char* szStart, char* szEnd, char cQuotes)
+void CPreprocessorLineTokensier::ReplaceEscapeCodes(CChars* psz, char* szStart, char* szEnd, char cQuotes)
 {
 	char*	pc;
 	char	cReturn;
@@ -565,7 +565,7 @@ void CLinePreprocessor::ReplaceEscapeCodes(CChars* psz, char* szStart, char* szE
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CLinePreprocessor::ReplaceLineContinuers(CChars* psz, char* szStart, char* szEnd)
+void CPreprocessorLineTokensier::ReplaceLineContinuers(CChars* psz, char* szStart, char* szEnd)
 {
 	char*	pc;
 	BOOL	bEscape;
