@@ -42,7 +42,7 @@ void CPreprocessor::Init(CConfig* pcConfig, CPPTokens* pcTokens)
 {
 	mcDefines.Init();
 	mcSpecialOperators.Init();
-	mpcPost = NULL;
+	mpcPostprocessedTokens = NULL;
 	mpcUnit = NULL;
 	miIncludeDepth = 0;
 	miBlockReuse = 0;
@@ -99,7 +99,7 @@ void CPreprocessor::Init(CConfig* pcConfig, CPPTokens* pcTokens)
 void CPreprocessor::Kill(void)
 {
 	mszVaArgs.Kill();
-	mpcPost = NULL;
+	mpcPostprocessedTokens = NULL;
 	mpcCurrentFile = NULL;
 	mpcUnit = NULL;
 	mpcTokens = NULL;
@@ -889,7 +889,7 @@ BOOL CPreprocessor::PreprocessFile(CCFile* pcFile, CCFile* pcFromFile)
 			if (pcBlocksSet->IsDirective())
 			{
 				//The conditional directives need to be expanded so &pcFile->mcStack is needed.  A #define directive will be expanded too.  Write a test for it.
-				sResult = PreprocessTokens(NULL, pcFile->GetTokens(), pcBlocksSet->GetRawTokensHolder(), sResult.iBlockIndex, sResult.iTokenIndex);
+				sResult = PreprocessDirectiveTokens(NULL, pcFile->GetTokens(), pcBlocksSet->GetRawTokensHolder(), sResult.iBlockIndex, sResult.iTokenIndex);
 				if (sResult.iTokenIndex == -1)	
 				{
 					bResult = FALSE; 
@@ -905,7 +905,7 @@ BOOL CPreprocessor::PreprocessFile(CCFile* pcFile, CCFile* pcFromFile)
 				pcFile->GetTokens()->Mark(&cMark);
 
 				pcBlockProcessed = pcBlocksSet->CreateBlock();
-				sResult = PreprocessTokens(pcBlockProcessed->GetTokens(), pcFile->GetTokens(), pcBlocksSet->GetRawTokensHolder(), sResult.iBlockIndex, sResult.iTokenIndex);
+				sResult = PreprocessNormalLineTokens(pcBlockProcessed->GetTokens(), pcFile->GetTokens(), pcBlocksSet->GetRawTokensHolder(), sResult.iBlockIndex, sResult.iTokenIndex);
 
 				pcBlockMatching = pcBlocksSet->GetMatchingBlock(pcBlockProcessed);
 				if (!pcBlockMatching)
@@ -1286,7 +1286,7 @@ BOOL CPreprocessor::ProcessNormalLine(CPreprocessorTokenParser* pcParser)
 		{
 			if (pcLine->TokenLength() > 0)
 			{
-				mpcPost->Add(pcLine);
+				mpcPostprocessedTokens->Add(pcLine);
 			}
 			return TRUE;
 		}
@@ -2207,20 +2207,19 @@ void CPreprocessor::AddTokenToArgument(CPPTokenHolder* pcArgument, CPPToken* pcT
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-SPPTokenBlockIndex CPreprocessor::PreprocessTokens(CPPTokenHolder* pcDestTokens, CPPTokens* pcTokens, CPPTokenHolder* pcSourceTokens, int iBlock, int iToken)
+SPPTokenBlockIndex CPreprocessor::PreprocessDirectiveTokens(CPPTokenHolder* pcDestTokens, CPPTokens* pcTokens, CPPTokenHolder* pcSourceTokens, int iBlock, int iToken)
 {
 	SPPTokenBlockIndex			sLine;
 	int							iNumLines;
 	CPPToken*					pcToken;
 	CPPDirective*				pcDirective;
-	CPPLine*					pcLine;
 	CPreprocessorTokenParser	cParser;
 	BOOL						bResult;
 	int							iOldLine;
-	//CChars						szError;
+	//CChars					szError;
 	//SPreprocessorPosition		sPos;
 
-	mpcPost = pcDestTokens;
+	mpcPostprocessedTokens = pcDestTokens;
 	mpcTokens = pcTokens;
 
 	if (miProcessTokensCalledCount > 0)
@@ -2334,7 +2333,73 @@ SPPTokenBlockIndex CPreprocessor::PreprocessTokens(CPPTokenHolder* pcDestTokens,
 				break;
 			}
 		}
-		else if (pcToken->IsLine())
+	else
+		{
+			bResult = FALSE;
+			gcUserError.Set("Got a token which wasn't a directive");
+			sLine.Init(-1, -1);
+			break;
+		}
+	}
+
+	//Seriously, do something about this.  They should be passed as parameters, not global variables.
+	//mpcPostprocessedTokens = NULL;
+	//mpcStack = NULL;
+	miProcessTokensCalledCount--;
+
+	if (miProcessTokensCalledCount == 0)
+	{
+		mcArguments.Kill();
+
+	}
+	return sLine;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+SPPTokenBlockIndex CPreprocessor::PreprocessNormalLineTokens(CPPTokenHolder* pcDestTokens, CPPTokens* pcTokens, CPPTokenHolder* pcSourceTokens, int iBlock, int iToken)
+{
+	SPPTokenBlockIndex			sLine;
+	int							iNumLines;
+	CPPToken*					pcToken;
+	CPPLine*					pcLine;
+	CPreprocessorTokenParser	cParser;
+	BOOL						bResult;
+	int							iOldLine;
+	//CChars						szError;
+	//SPreprocessorPosition		sPos;
+
+	mpcPostprocessedTokens = pcDestTokens;
+	mpcTokens = pcTokens;
+
+	if (miProcessTokensCalledCount > 0)
+	{
+		//MarkPositionForError(&sPos);
+		//sPos.Message(&szError);
+		//gcUserError.Set("PreprocessTokens has already been called.");
+		//sLine.Init(-1, -1);
+		//return sLine;
+	}
+	else
+	{
+		mcArguments.Init();
+	}
+
+	miProcessTokensCalledCount++;
+
+	bResult = TRUE;
+	iNumLines = pcSourceTokens->mcArray.NumElements();
+	sLine.iBlockIndex = iBlock;
+	for (sLine.iTokenIndex = iToken; sLine.iTokenIndex < iNumLines; )
+	{
+		mpcCurrentLine = NULL;
+		mpcCurrentLineParser = NULL;
+		iOldLine = sLine.iTokenIndex;
+		pcToken = *(pcSourceTokens->mcArray.Get(sLine.iTokenIndex));
+		if (pcToken->IsLine())
 		{
 			mpcCurrentLineParser = &cParser;
 			if (mcConditionalStack.IsParsing())
@@ -2356,7 +2421,7 @@ SPPTokenBlockIndex CPreprocessor::PreprocessTokens(CPPTokenHolder* pcDestTokens,
 	}
 
 	//Seriously, do something about this.  They should be passed as parameters, not global variables.
-	//mpcPost = NULL;
+	//mpcPostprocessedTokens = NULL;
 	//mpcStack = NULL;
 	miProcessTokensCalledCount--;
 
@@ -2391,7 +2456,7 @@ void CPreprocessor::Preprocess(char* szSource, CChars* szDest)
 
 	cProcessedTokens.Init();
 	cPreprocessor.Init(NULL, &cTokens);
-	cPreprocessor.PreprocessTokens(&cProcessedTokens, &cTokens, &cRawTokens, 0, 0);
+	cPreprocessor.PreprocessNormalLineTokens(&cProcessedTokens, &cTokens, &cRawTokens, 0, 0);
 
 	cProcessedTokens.Print(szDest);
 
