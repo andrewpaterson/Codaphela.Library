@@ -211,7 +211,7 @@
     <ClCompile Include="DefineMap.cpp" />
     <ClCompile Include="DirectiveMap.cpp" />
     <ClCompile Include="FileDefine.cpp" />
-    <ClCompile Include="LinePreprocessor.cpp" />
+    <ClCompile Include="PreprocessorLineTokeniser.cpp" />
     <ClCompile Include="NamedDefine.cpp" />
     <ClCompile Include="Preprocessor.cpp" />
     <ClCompile Include="PreprocessorDirective.cpp" />
@@ -316,7 +316,7 @@
     <ClInclude Include="DefineArguments.h" />
     <ClInclude Include="DefineMap.h" />
     <ClInclude Include="FileDefine.h" />
-    <ClInclude Include="LinePreprocessor.h" />
+    <ClInclude Include="PreprocessorLineTokeniser.h" />
     <ClInclude Include="NamedDefine.h" />
     <ClInclude Include="Preprocessor.h" />
     <ClInclude Include="Preprocessor_Linux.h" />

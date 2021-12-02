@@ -76,6 +76,9 @@
     <Filter Include="Source\Preprocessor\Define">
       <UniqueIdentifier>{bc091d05-7603-4f67-b06d-d5a1d95ae072}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Preprocessor\Tokeniser">
+      <UniqueIdentifier>{7dd06059-176f-42b0-a4e6-e6e55bb46568}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AbstractSyntaxTree.cpp">
@@ -162,9 +165,6 @@
     <ClCompile Include="ConditionalStack.cpp">
       <Filter>Source\Preprocessor</Filter>
     </ClCompile>
-    <ClCompile Include="LinePreprocessor.cpp">
-      <Filter>Source\Preprocessor</Filter>
-    </ClCompile>
     <ClCompile Include="Preprocessor.cpp">
       <Filter>Source\Preprocessor</Filter>
     </ClCompile>
@@ -172,9 +172,6 @@
       <Filter>Source\Preprocessor</Filter>
     </ClCompile>
     <ClCompile Include="PreprocessorParser.cpp">
-      <Filter>Source\Preprocessor</Filter>
-    </ClCompile>
-    <ClCompile Include="PreprocessorTokeniser.cpp">
       <Filter>Source\Preprocessor</Filter>
     </ClCompile>
     <ClCompile Include="PreprocessorTokenParser.cpp">
@@ -369,6 +366,12 @@
     <ClCompile Include="PPTokens.cpp">
       <Filter>Source\Preprocessor\Tokens</Filter>
     </ClCompile>
+    <ClCompile Include="PreprocessorTokeniser.cpp">
+      <Filter>Source\Preprocessor\Tokeniser</Filter>
+    </ClCompile>
+    <ClCompile Include="PreprocessorLineTokeniser.cpp">
+      <Filter>Source\Preprocessor\Tokeniser</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AbstractSyntaxTree.h">
@@ -464,9 +467,6 @@
     <ClInclude Include="ConditionalStack.h">
       <Filter>Source\Preprocessor</Filter>
     </ClInclude>
-    <ClInclude Include="LinePreprocessor.h">
-      <Filter>Source\Preprocessor</Filter>
-    </ClInclude>
     <ClInclude Include="Preprocessor.h">
       <Filter>Source\Preprocessor</Filter>
     </ClInclude>
@@ -474,9 +474,6 @@
       <Filter>Source\Preprocessor</Filter>
     </ClInclude>
     <ClInclude Include="PreprocessorParser.h">
-      <Filter>Source\Preprocessor</Filter>
-    </ClInclude>
-    <ClInclude Include="PreprocessorTokeniser.h">
       <Filter>Source\Preprocessor</Filter>
     </ClInclude>
     <ClInclude Include="PreprocessorTokenParser.h">
@@ -676,6 +673,12 @@
     </ClInclude>
     <ClInclude Include="PPTokens.h">
       <Filter>Source\Preprocessor\Tokens\Text</Filter>
+    </ClInclude>
+    <ClInclude Include="PreprocessorTokeniser.h">
+      <Filter>Source\Preprocessor\Tokeniser</Filter>
+    </ClInclude>
+    <ClInclude Include="PreprocessorLineTokeniser.h">
+      <Filter>Source\Preprocessor\Tokeniser</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
