@@ -7,12 +7,13 @@
 class CDirectiveMap;
 class CPreprocessorDirective
 {
-public:
+protected:
 	EPreprocessorDirective	meType;
 	CChars					mszName;
 	int64					muiID;
 	CDirectiveMap*			mpcDirectiveMap;
 
+public:
 	void					Init(CExternalString* pcName, EPreprocessorDirective eType, int64 lliID, CDirectiveMap* pcDirectiveMap);
 	void					Kill(void);
 

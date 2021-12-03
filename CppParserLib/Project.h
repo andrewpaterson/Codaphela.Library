@@ -66,6 +66,7 @@ public:
 	CTranslationUnit*	Start(SProcessIter* psIter, char* szConfiguration);
 	CTranslationUnit*	Iterate(SProcessIter* psIter);
 	void				DumpProcessedCPPFileName(CCFile* pcFile);
+	int					GetBlockReuse(void);
 };
 
 

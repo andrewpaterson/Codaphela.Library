@@ -37,6 +37,7 @@ void CPreprocessorLineTokensier::Preprocess(CPPTokenHolder* pcLinesTokens, CPrep
 
 	cLinePreprocessor.Init(&pcLinesTokens->mcArray, pcParser, pcTokens, bAllowEscapes);
 	cLinePreprocessor.Preprocess();
+	pcTokens->Dump();
 	cLinePreprocessor.Kill();
 }
 

@@ -33,6 +33,14 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "PPInclude.h"
 
 
+struct SPPTokenIterator
+{
+	int				iStack;
+	int				iElement;
+	void*			pvStackData;
+};
+
+
 class CPPTokens
 {
 protected:
@@ -58,6 +66,11 @@ public:
 
 	CPPConditional*		AddConditional(void);
 	CPPInclude*			AddInclude(void);
+
+	CPPToken*			StartIteration(SPPTokenIterator* psIter);
+	CPPToken*			Iterate(SPPTokenIterator* psIter);
+	char*				Print(CChars* psz);
+	void				Dump(void);
 };
 
 
