@@ -50,8 +50,10 @@ char* CPPTokenHolder::Print(CChars* psz)
 {
 	CPPToken*	pcToken;
 	int			i;
+	int			iNumTokens;
 
-	for (i = 0; i < mcArray.NumElements(); i++)
+	iNumTokens = mcArray.NumElements();
+	for (i = 0; i < iNumTokens; i++)
 	{
 		pcToken = *mcArray.Get(i);
 		pcToken->Print(psz);

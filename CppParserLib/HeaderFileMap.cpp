@@ -71,8 +71,6 @@ CHeaderFile* CHeaderFileMap::AddFile(char* szAbsoluteFileName, BOOL bSystem)
 		
 		cHeader.Init(szName, bSystem);
 		memcpy(pcHeader, &cHeader, sizeof(CHeaderFile));  //Initialise virtual function table.
-
-		pcHeader->macBlockSets.mpcFile = pcHeader;
 	}
 	return pcHeader;
 }

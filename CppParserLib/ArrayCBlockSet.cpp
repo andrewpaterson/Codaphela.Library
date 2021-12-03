@@ -25,10 +25,10 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayCBlockSet::Init(CCFile* pcFile)
+void CArrayCBlockSet::Init(CPPTokens* pcTokenMemory)
 {
 	mbRawProcessed = FALSE;
-	mpcFile = pcFile;
+	mpcTokenMemory = pcTokenMemory;
 	__CArrayCBlockSet::Init();
 }
 
@@ -63,7 +63,24 @@ CPPBlockSet* CArrayCBlockSet::Add(int iLine, BOOL bTextBlocks)
 	CPPBlockSet* pcBlockSet;
 
 	pcBlockSet = __CArrayCBlockSet::Add();
-	pcBlockSet->Init(mpcFile, iLine, miUsedElements-1, bTextBlocks);
+	pcBlockSet->Init(mpcTokenMemory, iLine, miUsedElements-1, bTextBlocks);
 	return pcBlockSet;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CArrayCBlockSet::Dump(void)
+{
+	int				i;
+	CPPBlockSet*	pcBlockSet;
+
+	for (i = 0; i < NumElements(); i++)
+	{
+		pcBlockSet = Get(i);
+		pcBlockSet->Dump();
+	}
 }
 
