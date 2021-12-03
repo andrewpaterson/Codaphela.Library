@@ -32,27 +32,27 @@ protected:
 	CChars					mszContents;
 	CChars					mszFullName;
 	BOOL					mbLoaded;
-
-public:
 	CPPTokens				mcTokens;  //All tokens for this file.
 	CArrayCBlockSet			macBlockSets;
 
-			void		Init(char* pszFullName);
-	virtual void		Kill(void);
-			void		Load(void);
-			void		SetContents(const char* sz);
-			BOOL		IsLoaded(void);
-			BOOL		IsNamed(char* szName);
-			void		DumpRawTokens(void);
-	virtual BOOL		IsTranslationUnit(void) =0;
-	virtual BOOL		IsHeader(void) =0;
-			char*		ShortName(void);
-	virtual BOOL		IsPragmaOnced(void) =0;
-	virtual BOOL		IsSystemFile(void) =0;
-			void		Path(CChars* pszPath);
-			char*		GetContents(void);
-			int			GetContentsLength(void);
-			CPPTokens*	GetTokens(void);
+public:
+			void				Init(char* pszFullName);
+	virtual void				Kill(void);
+			void				Load(void);
+			void				SetContents(const char* sz);
+			BOOL				IsLoaded(void);
+			BOOL				IsNamed(char* szName);
+			void				Dump(void);
+	virtual BOOL				IsTranslationUnit(void) =0;
+	virtual BOOL				IsHeader(void) =0;
+			char*				ShortName(void);
+	virtual BOOL				IsPragmaOnced(void) =0;
+	virtual BOOL				IsSystemFile(void) =0;
+			void				Path(CChars* pszPath);
+			char*				GetContents(void);
+			int					GetContentsLength(void);
+			CArrayCBlockSet*	GetBlockSets(void);
+			CPPTokens*			GetTokens(void);
 };
 
 

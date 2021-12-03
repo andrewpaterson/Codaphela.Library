@@ -109,13 +109,13 @@ BOOL CPreprocessorTokeniser::Tokenise(CArrayCBlockSet* pacBlockSets, char* szPos
 				return FALSE;
 			}
 			pcLine = NULL;
-			pcDirective = TokeniseDirective(pacBlockSets->mpcFile->GetTokens(), eDirective, iBlock, iIndex);
+			pcDirective = TokeniseDirective(pacBlockSets->mpcTokenMemory, eDirective, iBlock, iIndex);
 			pcToken = pcDirective;
 		}
 		else
 		{
 			pcDirective = NULL;
-			pcLine = Line(pacBlockSets->mpcFile->GetTokens());
+			pcLine = Line(pacBlockSets->mpcTokenMemory);
 			pcToken = pcLine;
 			if (pcLine)
 			{
@@ -153,19 +153,6 @@ BOOL CPreprocessorTokeniser::Tokenise(CArrayCBlockSet* pacBlockSets, char* szPos
 		}
 
 		bLastDirective = bDirective;
-	}
-
-	//Debug shit.
-	if (FALSE)
-	{
-		CChars::Dump(pcBlockSet->GetFileName());
-		CChars::Dump("\n");
-		for (int i = 0; i < pacBlockSets->NumElements(); i++)
-		{
-			pcBlockSet = pacBlockSets->Get(i);
-			pcBlockSet->DumpRawTokens();
-		}
-		CChars::Dump("\n\n");
 	}
 
 	return TRUE;

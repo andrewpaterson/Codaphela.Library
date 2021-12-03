@@ -42,7 +42,6 @@ void CPreprocessor::Init(CConfig* pcConfig, CPPTokens* pcTokens)
 {
 	mcDefines.Init();
 	mcSpecialOperators.Init();
-	mpcPostprocessedTokens = NULL;
 	mpcUnit = NULL;
 	miIncludeDepth = 0;
 	miBlockReuse = 0;
@@ -99,7 +98,6 @@ void CPreprocessor::Init(CConfig* pcConfig, CPPTokens* pcTokens)
 void CPreprocessor::Kill(void)
 {
 	mszVaArgs.Kill();
-	mpcPostprocessedTokens = NULL;
 	mpcCurrentFile = NULL;
 	mpcUnit = NULL;
 	mpcTokens = NULL;
@@ -714,7 +712,7 @@ void CPreprocessor::FindBestInclude(CExternalString* pcInclude, BOOL bSystemFile
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessor::LogIncludes(CCFile* pcFile)
+void CPreprocessor::LogInclude(CCFile* pcFile)
 {
 	CChars			sz;
 
@@ -745,7 +743,24 @@ void CPreprocessor::LogIncludes(CCFile* pcFile)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessor::LogBlocks(CCFile* pcFile, SPPTokenBlockIndex sResult)
+char* CPreprocessor::GetFileName(void)
+{
+	if (mpcCurrentFile)
+	{
+		return mpcCurrentFile->ShortName();
+	}
+	else
+	{
+		return "* No File *";
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CPreprocessor::LogBlocks(CArrayCBlockSet* pacBlockSets, SPPTokenBlockIndex sResult)
 {
 	CChars			szLine;
 	CPPBlockSet*		pcBlocksSet;
@@ -755,7 +770,8 @@ void CPreprocessor::LogBlocks(CCFile* pcFile, SPPTokenBlockIndex sResult)
 		szLine.Init();
 		szLine.Append(' ', miIncludeDepth * 4);
 		szLine.Append(' ');
-		szLine.Append(mpcCurrentFile->ShortName());
+		szLine.Append(GetFileName());
+
 		if (mcConditionalStack.IsParsing())
 		{
 			szLine.Append(" (Parsing): ");
@@ -764,9 +780,10 @@ void CPreprocessor::LogBlocks(CCFile* pcFile, SPPTokenBlockIndex sResult)
 		{
 			szLine.Append("          : ");
 		}
+
 		sResult.Print(&szLine);
 
-		pcBlocksSet = pcFile->macBlockSets.SafeGet(sResult.iBlockIndex);
+		pcBlocksSet = pacBlockSets->SafeGet(sResult.iBlockIndex);
 		if (!pcBlocksSet)
 		{
 			szLine.AppendNewLine();
@@ -856,14 +873,96 @@ void CPreprocessor::LogDumping(BOOL bDumpLogs)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CPreprocessor::PreprocessFile(CCFile* pcFile, CCFile* pcFromFile)
+BOOL CPreprocessor::PreprocessBlockSets(CArrayCBlockSet* pacBlockSets, CPPTokens* pcSourceTokenMemory)
 {
 	CPPBlockSet*			pcBlocksSet;
 	SPPTokenBlockIndex		sResult;
-	BOOL				bResult;
+
+	sResult.Init(0, 0);
+
+	for (;;)
+	{
+		LogBlocks(pacBlockSets, sResult);
+
+		pcBlocksSet = pacBlockSets->SafeGet(sResult.iBlockIndex);
+		if (!pcBlocksSet)
+		{
+			return FALSE;
+		}
+
+		if (pcBlocksSet->IsDirective())
+		{
+			//The conditional directives need to be expanded so &pcFile->mcStack is needed.  A #define directive will be expanded too.  Write a test for it.
+			sResult = PreprocessDirectiveTokens(pcSourceTokenMemory, pcBlocksSet->GetRawTokensHolder(), sResult.iBlockIndex, sResult.iTokenIndex);
+			if (sResult.iTokenIndex == -1)
+			{
+				return FALSE;
+			}
+		}
+		else
+		{
+			CStackMarkExtended	cMark;
+			CPPBlock* pcBlockProcessed;
+			CPPBlock* pcBlockMatching;
+
+			pcSourceTokenMemory->Mark(&cMark);
+
+			pcBlockProcessed = pcBlocksSet->CreateBlock();
+			sResult = PreprocessNormalLineTokens(pcBlockProcessed->GetTokens(), pcSourceTokenMemory, pcBlocksSet->GetRawTokensHolder(), sResult.iBlockIndex, sResult.iTokenIndex);
+
+			pcBlockMatching = pcBlocksSet->GetMatchingBlock(pcBlockProcessed);
+			if (!pcBlockMatching)
+			{
+				pcBlocksSet->AddBlock(pcBlockProcessed);
+				pcBlockProcessed->SetNext(sResult.iTokenIndex, sResult.iBlockIndex);
+				pcBlockMatching = pcBlockProcessed;
+			}
+			else
+			{
+				pcBlockProcessed->Kill();
+				pcSourceTokenMemory->Rollback(&cMark);
+				miBlockReuse++;
+				sResult = pcBlockMatching->GetNextTokenBlock();
+			}
+			cMark.Kill();
+
+			if (sResult.iTokenIndex == -1)
+			{
+				return FALSE;
+			}
+
+			mpcUnit->GetHolder()->GetTokens()->mcArray.Add((CPPToken**)&pcBlockMatching);
+		}
+
+		pcBlocksSet = pacBlockSets->SafeGet(sResult.iBlockIndex);
+		if (pcBlocksSet)
+		{
+			if (pcBlocksSet->GetRawTokensHolder()->mcArray.NumElements() == sResult.iTokenIndex)
+			{
+				sResult.iBlockIndex++;
+				sResult.iTokenIndex = 0;
+			}
+		}
+		else
+		{
+			return TRUE;
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+BOOL CPreprocessor::PreprocessFile(CCFile* pcFile, CCFile* pcFromFile)
+{
+	BOOL					bResult;
+	CArrayCBlockSet*		pacBlockSets;
+	CPPTokens*				pcSourceTokenMemory;
 
 	miIncludeDepth++;
-	LogIncludes(pcFile);
+	LogInclude(pcFile);
 	mpcCurrentFile = pcFile;
 
 	bResult = TokeniseFile(pcFile);
@@ -875,73 +974,9 @@ BOOL CPreprocessor::PreprocessFile(CCFile* pcFile, CCFile* pcFromFile)
 	bResult = TRUE;
 	if (!mpcCurrentFile->IsPragmaOnced())
 	{
-		sResult.Init(0, 0);
-		for (;;)
-		{
-			LogBlocks(pcFile, sResult);
-			
-			pcBlocksSet = pcFile->macBlockSets.SafeGet(sResult.iBlockIndex);
-			if (!pcBlocksSet)
-			{
-				break;
-			}
-
-			if (pcBlocksSet->IsDirective())
-			{
-				//The conditional directives need to be expanded so &pcFile->mcStack is needed.  A #define directive will be expanded too.  Write a test for it.
-				sResult = PreprocessDirectiveTokens(NULL, pcFile->GetTokens(), pcBlocksSet->GetRawTokensHolder(), sResult.iBlockIndex, sResult.iTokenIndex);
-				if (sResult.iTokenIndex == -1)	
-				{
-					bResult = FALSE; 
-					break;	
-				}
-			}
-			else
-			{
-				CStackMarkExtended	cMark;
-				CPPBlock*			pcBlockProcessed;
-				CPPBlock*			pcBlockMatching;
-
-				pcFile->GetTokens()->Mark(&cMark);
-
-				pcBlockProcessed = pcBlocksSet->CreateBlock();
-				sResult = PreprocessNormalLineTokens(pcBlockProcessed->GetTokens(), pcFile->GetTokens(), pcBlocksSet->GetRawTokensHolder(), sResult.iBlockIndex, sResult.iTokenIndex);
-
-				pcBlockMatching = pcBlocksSet->GetMatchingBlock(pcBlockProcessed);
-				if (!pcBlockMatching)
-				{	
-					pcBlocksSet->AddBlock(pcBlockProcessed);
-					pcBlockProcessed->SetNext(sResult.iTokenIndex, sResult.iBlockIndex);
-					pcBlockMatching = pcBlockProcessed;
-				}
-				else
-				{
-					pcBlockProcessed->Kill();
-					pcFile->GetTokens()->Rollback(&cMark);
-					miBlockReuse++;
-					sResult = pcBlockMatching->GetNextTokenBlock();
-				}
-				cMark.Kill();
-
-				if (sResult.iTokenIndex == -1)	
-				{	
-					bResult = FALSE;
-					break;	
-				}
-
-				mpcUnit->GetHolder()->GetTokens()->mcArray.Add((CPPToken**)&pcBlockMatching);
-			}
-
-			pcBlocksSet = pcFile->macBlockSets.SafeGet(sResult.iBlockIndex);
-			if (pcBlocksSet)
-			{
-				if (pcBlocksSet->GetRawTokensHolder()->mcArray.NumElements() == sResult.iTokenIndex)
-				{
-					sResult.iBlockIndex++;
-					sResult.iTokenIndex = 0;
-				}
-			}
-		}
+		pacBlockSets = pcFile->GetBlockSets();
+		pcSourceTokenMemory = pcFile->GetTokens();
+		bResult = PreprocessBlockSets(pacBlockSets, pcSourceTokenMemory);
 	}
 
 	mpcCurrentFile = pcFromFile;
@@ -995,7 +1030,7 @@ BOOL CPreprocessor::TokeniseFile(CCFile* pcFile)
 	pcFile->Load();
 	cTokeniser.Init();
 
-	bResult = cTokeniser.Tokenise(&pcFile->macBlockSets, pcFile->GetContents(), pcFile->GetContentsLength(), !pcFile->IsSystemFile());
+	bResult = cTokeniser.Tokenise(pcFile->GetBlockSets(), pcFile->GetContents(), pcFile->GetContentsLength(), !pcFile->IsSystemFile());
 	cTokeniser.Kill();
 
 	return bResult;
@@ -1228,7 +1263,7 @@ BOOL CPreprocessor::ProcessHashError(CPreprocessorTokenParser* pcParser)
 
 	pcParser->SkipWhiteSpace();
 	szError.Init("Error (");
-	szError.Append(mpcCurrentFile->ShortName());
+	szError.Append(GetFileName());
 	szError.Append("):");
 
 	while (pcParser->HasToken())
@@ -1258,10 +1293,13 @@ BOOL CPreprocessor::ProcessHashPragma(CPreprocessorTokenParser* pcParser)
 	bResult = pcParser->GetExactIdentifier("once", TRUE, TRUE);
 	if (bResult == TRITRUE)
 	{
-		if (mpcCurrentFile->IsHeader())
+		if (mpcCurrentFile)
 		{
-			pcHeader = (CHeaderFile*)mpcCurrentFile;
-			pcHeader->SetPragmaOnce();
+			if (mpcCurrentFile->IsHeader())
+			{
+				pcHeader = (CHeaderFile*)mpcCurrentFile;
+				pcHeader->SetPragmaOnce();
+			}
 		}
 	}
 	return TRUE;
@@ -1272,7 +1310,7 @@ BOOL CPreprocessor::ProcessHashPragma(CPreprocessorTokenParser* pcParser)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CPreprocessor::ProcessNormalLine(CPreprocessorTokenParser* pcParser)
+BOOL CPreprocessor::ProcessNormalLine(CPPTokenHolder* pcDest, CPreprocessorTokenParser* pcParser)
 {
 	CPPLine*	pcLine;
 	BOOL		bResult;
@@ -1286,7 +1324,7 @@ BOOL CPreprocessor::ProcessNormalLine(CPreprocessorTokenParser* pcParser)
 		{
 			if (pcLine->TokenLength() > 0)
 			{
-				mpcPostprocessedTokens->Add(pcLine);
+				pcDest->Add(pcLine);
 			}
 			return TRUE;
 		}
@@ -2207,7 +2245,7 @@ void CPreprocessor::AddTokenToArgument(CPPTokenHolder* pcArgument, CPPToken* pcT
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-SPPTokenBlockIndex CPreprocessor::PreprocessDirectiveTokens(CPPTokenHolder* pcDestTokens, CPPTokens* pcTokens, CPPTokenHolder* pcSourceTokens, int iBlock, int iToken)
+SPPTokenBlockIndex CPreprocessor::PreprocessDirectiveTokens(CPPTokens* pcTokens, CPPTokenHolder* pcSourceTokens, int iBlock, int iToken)
 {
 	SPPTokenBlockIndex			sLine;
 	int							iNumLines;
@@ -2216,11 +2254,11 @@ SPPTokenBlockIndex CPreprocessor::PreprocessDirectiveTokens(CPPTokenHolder* pcDe
 	CPreprocessorTokenParser	cParser;
 	BOOL						bResult;
 	int							iOldLine;
-	CChars					szError;
+	CChars						szError;
 	SPreprocessorPosition		sPos;
 
-	mpcPostprocessedTokens = pcDestTokens;
 	mpcTokens = pcTokens;
+	mpcCurrentLineParser = NULL;
 
 	MarkPositionForError(&sPos);
 
@@ -2377,8 +2415,8 @@ SPPTokenBlockIndex CPreprocessor::PreprocessNormalLineTokens(CPPTokenHolder* pcD
 	CChars						szError;
 	SPreprocessorPosition		sPos;
 
-	mpcPostprocessedTokens = pcDestTokens;
 	mpcTokens = pcTokens;
+	mpcCurrentLineParser = NULL;
 
 	MarkPositionForError(&sPos);
 
@@ -2412,7 +2450,7 @@ SPPTokenBlockIndex CPreprocessor::PreprocessNormalLineTokens(CPPTokenHolder* pcD
 			{
 				pcLine = (CPPLine*)pcToken;
 				cParser.Init(pcLine);
-				ProcessNormalLine(&cParser);
+				ProcessNormalLine(pcDestTokens, &cParser);
 				cParser.Kill();
 			}
 			sLine.iTokenIndex++;
@@ -2454,27 +2492,29 @@ void CPreprocessor::Preprocess(char* szSource, CChars* pszDest)
 	CPreprocessorTokeniser	cTokeniser;
 	int						iLen;
 	CPPTokens				cTokenMemory;
-	CPPTokenHolder			cInputTokens;
 	CPPTokenHolder			cOutputTokens;
+	CArrayCBlockSet			acBlockSets;
+	BOOL					bResult;
 
 	cTokeniser.Init();
 	cTokenMemory.Init();
-	cInputTokens.Init();
 	iLen = (int)strlen(szSource);
-	cTokeniser.Tokenise(&cInputTokens, &cTokenMemory, szSource, iLen, TRUE, 0, 0);
+	acBlockSets.Init(&cTokenMemory);
+	bResult = cTokeniser.Tokenise(&acBlockSets, szSource, iLen, FALSE);
 	cTokeniser.Kill();
 
 	cOutputTokens.Init();
 	cPreprocessor.Init(NULL, &cTokenMemory);
-	cPreprocessor.PreprocessNormalLineTokens(&cOutputTokens, &cTokenMemory, &cInputTokens, 0, 0);
+	cPreprocessor.PreprocessBlockSets(&acBlockSets, &cTokenMemory);
 
 	if (pszDest)
 	{
 		cOutputTokens.Print(pszDest);
 	}
 
+	acBlockSets.Kill();
+
 	cOutputTokens.Kill();
-	cInputTokens.Kill();
 	cTokenMemory.Kill();
 }
 
@@ -2603,14 +2643,7 @@ void CPreprocessor::MarkPositionForError(SPreprocessorPosition* psPos)
 {
 	char* szShortFileName;
 
-	if (mpcCurrentFile)
-	{
-		szShortFileName = mpcCurrentFile->ShortName();
-	}
-	else
-	{
-		szShortFileName = "";
-	}
+	szShortFileName = GetFileName();
 	if (mpcCurrentLineParser)
 	{
 		if (mpcCurrentLineParser->Line() == -1)

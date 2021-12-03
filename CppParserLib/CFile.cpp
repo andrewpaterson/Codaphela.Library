@@ -36,7 +36,7 @@ void CCFile::Init(char* szName)
 	mszFullName.Init(szName);
 	mbLoaded = FALSE;
 	mcTokens.Init();
-	macBlockSets.Init(this);
+	macBlockSets.Init(&mcTokens);
 }
 
 
@@ -139,7 +139,7 @@ char* CCFile::ShortName(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CCFile::DumpRawTokens(void)
+void CCFile::Dump(void)
 {
 	int				i;
 	CPPBlockSet*		pcBlockSet;
@@ -147,7 +147,7 @@ void CCFile::DumpRawTokens(void)
 	for (i = 0; i < macBlockSets.NumElements(); i++)
 	{
 		pcBlockSet = macBlockSets.Get(i);
-		pcBlockSet->DumpRawTokens();
+		pcBlockSet->Dump();
 	}
 }
 
@@ -193,4 +193,15 @@ CPPTokens* CCFile::GetTokens(void)
 {
 	return &mcTokens;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+CArrayCBlockSet* CCFile::GetBlockSets(void)
+{
+	return &macBlockSets;
+}
+
 

@@ -27,12 +27,11 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPPBlockSet::Init(CCFile* pcFile, int iLine, int iBlock, BOOL bTextBlocks)
+void CPPBlockSet::Init(CPPTokens* pcFileTokens, int iLine, int iBlock, BOOL bTextBlocks)
 {
 	mcRawTokens.Init();
 	mapcBlocks.Init();
-	mpcFileTokens = pcFile->GetTokens();
-	mpcFile = pcFile;
+	mpcFileTokens = pcFileTokens;
 	miColumn = 0;
 	miLine = iLine;
 	miBlock = iBlock;
@@ -58,7 +57,6 @@ void CPPBlockSet::Kill(void)
 	mapcBlocks.Kill();
 	mcRawTokens.Kill();
 	mpcFileTokens = NULL;
-	mpcFile = NULL;
 }
 
 
@@ -158,7 +156,7 @@ BOOL CPPBlockSet::IsLastToken(int iToken)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CPPBlockSet::DumpRawTokens(void)
+void CPPBlockSet::Dump(void)
 {
 	CChars			sz;
 	int				iLast;
@@ -168,13 +166,13 @@ void CPPBlockSet::DumpRawTokens(void)
 	if (mbTextBlocks)
 	{
 		sz.Append("/* ------- text ");
-		sz.Append(miLine);
+		sz.Append(miLine + 1);
 		sz.Append(" ------- */\n");
 	}
 	else
 	{
 		sz.Append("/* ---- #directive ");
-		sz.Append(miLine);
+		sz.Append(miLine + 1);
 		sz.Append(" ---- */\n");
 	}
 	mcRawTokens.Print(&sz);
@@ -242,13 +240,4 @@ int CPPBlockSet::Block(void)
 	return miBlock;
 }
 
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-char* CPPBlockSet::GetFileName(void)
-{
-	return mpcFile->ShortName();
-}
 

@@ -60,12 +60,7 @@ BOOL CPPAbstractHolder::IsAbstractHolder(void)
 //////////////////////////////////////////////////////////////////////////
 char* CPPAbstractHolder::Print(CChars* psz)
 {
-	if (mcTokens.mcArray.NumElements() > 0)
-	{
-		PrintWithoutNewline(psz);
-		psz->AppendNewLine();
-	}
-	return psz->Text();
+	return PrintWithoutNewline(psz);
 }
 
 

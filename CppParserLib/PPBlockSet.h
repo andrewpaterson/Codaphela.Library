@@ -25,13 +25,11 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "PPTokens.h"
 
 
-class CCFile;
 class CPPBlockSet
 {
 protected:
 	CPPTokenHolder			mcRawTokens;
 	CPPTokens*				mpcFileTokens;
-	CCFile*					mpcFile;  //The file this block is a part of
 	int						miLine;
 	int						miColumn;
 	int						miBlock;
@@ -41,7 +39,7 @@ protected:
 	CArrayPtrCBlocks		mapcBlocks;
 
 public:
-	void 					Init(CCFile* pcFile, int iLine, int iBlock, BOOL bTextBlocks);
+	void 					Init(CPPTokens* pcFileTokens, int iLine, int iBlock, BOOL bTextBlocks);
 	void 					Kill(void);
 	CPPBlock*				GetMatchingBlock(CPPBlock* pcOtherBlock);
 	CPPBlock*				CreateBlock(void);
@@ -49,13 +47,12 @@ public:
 	BOOL					AddBlock(CPPBlock* pcBlock);
 	BOOL					IsLastToken(int iToken);
 	BOOL					IsDirective(void);
-	void					DumpRawTokens(void);
 	CPPTokens*				GetFileTokens(void);
 	CPPTokenHolder*			GetRawTokensHolder(void);
 	int						Line(void);
 	int						Column(void);
 	int						Block(void);
-	char*					GetFileName(void);
+	void					Dump(void);
 };
 
 

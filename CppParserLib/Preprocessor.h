@@ -60,7 +60,6 @@ protected:
 	CArrayHeaderNameMapPtr			mcHeaderNames;
 	CHeaderNameMapStack				mcHeadersStack;
 
-	CPPTokenHolder*					mpcPostprocessedTokens;
 	CTranslationUnit*				mpcUnit;
 	CPPTokens*						mpcTokens;
 
@@ -102,7 +101,8 @@ public:
 	CSpecialOperator*	AddSpecialOperator(char* szSpecialOperator, EPreprocessorSpecialOperator eType);
 
 	BOOL				PreprocessFile(CCFile* pcFile, CCFile* pcFromFile);
-	SPPTokenBlockIndex	PreprocessDirectiveTokens(CPPTokenHolder* pcDestTokens, CPPTokens* pcTokens, CPPTokenHolder* pcSourceTokens, int iBlock, int iToken);
+	BOOL				PreprocessBlockSets(CArrayCBlockSet* pacBlockSets, CPPTokens* pcSourceTokenMemory);
+	SPPTokenBlockIndex	PreprocessDirectiveTokens(CPPTokens* pcTokens, CPPTokenHolder* pcSourceTokens, int iBlock, int iToken);
 	SPPTokenBlockIndex	PreprocessNormalLineTokens(CPPTokenHolder* pcDestTokens, CPPTokens* pcTokens, CPPTokenHolder* pcSourceTokens, int iBlock, int iToken);
 	BOOL				PreprocessTranslationUnit(CTranslationUnit* pcFile);
 
@@ -117,7 +117,7 @@ public:
 	SPPTokenBlockIndex 	ProcessHashElif(CPreprocessorTokenParser* pcParser, CPPConditional* pcCond, SPPTokenBlockIndex iLine);
 	BOOL 				ProcessHashError(CPreprocessorTokenParser* pcParser);
 	BOOL 				ProcessHashPragma(CPreprocessorTokenParser* pcParser);
-	BOOL				ProcessNormalLine(CPreprocessorTokenParser* pcParser);
+	BOOL				ProcessNormalLine(CPPTokenHolder* pcDest, CPreprocessorTokenParser* pcParser);
 
 	TRISTATE			EvaluateEquation(char* szText, CChars* szCalculatorError);
 
@@ -148,12 +148,13 @@ public:
 	CPPToken*			ConcaternateTokens(CPPTokenHolder* pcDest, CPPToken* pcLeft, CPPToken* pcRight);
 	BOOL				TokeniseFile(CCFile* pcFile);
 	void				DeltaDefines(CArrayNamedDefines* pcDelta, CPPTokens* pcTokens);
-	void				LogBlocks(CCFile* pcFile, SPPTokenBlockIndex sResult);
-	void				LogIncludes(CCFile* pcFile);
+	void				LogBlocks(CArrayCBlockSet* pacBlockSets, SPPTokenBlockIndex sResult);
+	void				LogInclude(CCFile* pcFile);
 	void				TranslationUnitLogging(CTranslationUnit* pcFile);
 	CSpecialOperator*	ProcessSpecialOperator(CPreprocessorTokenParser* pcParser);
 	void				MarkPositionForError(SPreprocessorPosition* psPos);
 	void				KillArguments(SDefineArgument* psArguments);
+	char*				GetFileName(void);
 
 	void				AddComma(CPPTokenHolder* pcDest);
 	void				AddZero(CPPTokenHolder* pcDest);
