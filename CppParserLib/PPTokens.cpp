@@ -18,27 +18,14 @@ void CPPTokens::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CPPTokens::Kill(void)
 {
-	int				iStack;
-	CPPToken*		pcPPToken;
-	int				iNumStacks;
-	CMemoryStack*	pcStack;
-	int				iElement;
-	int				iNumElements;
-	void*			pvStackData;
+	SPPTokenIterator	sIter;
+	CPPToken*			pcPPToken;
 
-	iNumStacks = mcStack.NumStacks();
-	for (iStack = 0; iStack < iNumStacks; iStack++)
+	pcPPToken = StartIteration(&sIter);
+	while (pcPPToken)
 	{
-		pcStack = mcStack.GetStack(iStack);
-		pvStackData = pcStack->GetData();
-		iNumElements = pcStack->NumElements();
-		for (iElement = 0; iElement < iNumElements; iElement++)
-		{
-			pcPPToken = (CPPToken*)pvStackData;
-			pcPPToken->Kill();
-
-			pvStackData = RemapSinglePointer(pvStackData, pcPPToken->Sizeof());
-		}
+		pcPPToken->Kill();
+		pcPPToken = Iterate(&sIter);
 	}
 
 	mcStack.Kill();
@@ -216,5 +203,102 @@ void CPPTokens::Mark(CStackMarkExtended* psMark)
 void CPPTokens::Rollback(CStackMarkExtended* psMark)
 {
 	mcStack.Rollback(psMark);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CPPToken* CPPTokens::StartIteration(SPPTokenIterator* psIter)
+{
+	CPPToken*		pcPPToken;
+	int				iNumStacks;
+	CMemoryStack*	pcStack;
+	int				iNumElements;
+
+	iNumStacks = mcStack.NumStacks();
+	psIter->iStack = 0;
+	psIter->iElement = 0;
+
+	for (; psIter->iStack < iNumStacks; )
+	{
+		pcStack = mcStack.GetStack(psIter->iStack);
+		psIter->pvStackData = pcStack->GetData();
+		iNumElements = pcStack->NumElements();
+		if (psIter->iElement < iNumElements)
+		{
+			pcPPToken = (CPPToken*)psIter->pvStackData;
+			psIter->pvStackData = RemapSinglePointer(psIter->pvStackData, pcPPToken->Sizeof());
+			return pcPPToken;
+		}
+		psIter->iStack++;
+		psIter->iElement = 0;
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CPPToken* CPPTokens::Iterate(SPPTokenIterator* psIter)
+{
+	CPPToken*		pcPPToken;
+	int				iNumStacks;
+	CMemoryStack*	pcStack;
+	int				iNumElements;
+
+	iNumStacks = mcStack.NumStacks();
+	for (; psIter->iStack < iNumStacks; )
+	{
+		pcStack = mcStack.GetStack(psIter->iStack);
+		psIter->pvStackData = pcStack->GetData();
+		iNumElements = pcStack->NumElements();
+		for (; psIter->iElement < iNumElements; )
+		{
+			pcPPToken = (CPPToken*)psIter->pvStackData;
+			psIter->pvStackData = RemapSinglePointer(psIter->pvStackData, pcPPToken->Sizeof());
+			psIter->iElement++;
+			return pcPPToken;
+		}
+		psIter->iStack++;
+		psIter->iElement = 0;
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CPPTokens::Print(CChars* psz)
+{
+	SPPTokenIterator	sIter;
+	CPPToken* pcPPToken;
+
+	pcPPToken = StartIteration(&sIter);
+	while (pcPPToken)
+	{
+		pcPPToken->Print(psz);
+		pcPPToken = Iterate(&sIter);
+	}
+	return psz->Text();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CPPTokens::Dump(void)
+{
+	CChars	sz;
+
+	sz.Init();
+	Print(&sz);
+	sz.DumpKill();
 }
 
