@@ -2216,15 +2216,16 @@ SPPTokenBlockIndex CPreprocessor::PreprocessDirectiveTokens(CPPTokenHolder* pcDe
 	CPreprocessorTokenParser	cParser;
 	BOOL						bResult;
 	int							iOldLine;
-	//CChars					szError;
-	//SPreprocessorPosition		sPos;
+	CChars					szError;
+	SPreprocessorPosition		sPos;
 
 	mpcPostprocessedTokens = pcDestTokens;
 	mpcTokens = pcTokens;
 
+	MarkPositionForError(&sPos);
+
 	if (miProcessTokensCalledCount > 0)
 	{
-		//MarkPositionForError(&sPos);
 		//sPos.Message(&szError);
 		//gcUserError.Set("PreprocessTokens has already been called.");
 		//sLine.Init(-1, -1);
@@ -2333,10 +2334,14 @@ SPPTokenBlockIndex CPreprocessor::PreprocessDirectiveTokens(CPPTokenHolder* pcDe
 				break;
 			}
 		}
-	else
+		else
 		{
 			bResult = FALSE;
-			gcUserError.Set("Got a token which wasn't a directive");
+			sPos.Message(&szError);
+			szError.Append("Expected a Directive got [");
+			szError.Append(pcToken->ClassName());
+			szError.Append("].");
+			gcUserError.Set(&szError);
 			sLine.Init(-1, -1);
 			break;
 		}
@@ -2369,15 +2374,16 @@ SPPTokenBlockIndex CPreprocessor::PreprocessNormalLineTokens(CPPTokenHolder* pcD
 	CPreprocessorTokenParser	cParser;
 	BOOL						bResult;
 	int							iOldLine;
-	//CChars						szError;
-	//SPreprocessorPosition		sPos;
+	CChars						szError;
+	SPreprocessorPosition		sPos;
 
 	mpcPostprocessedTokens = pcDestTokens;
 	mpcTokens = pcTokens;
 
+	MarkPositionForError(&sPos);
+
 	if (miProcessTokensCalledCount > 0)
 	{
-		//MarkPositionForError(&sPos);
 		//sPos.Message(&szError);
 		//gcUserError.Set("PreprocessTokens has already been called.");
 		//sLine.Init(-1, -1);
@@ -2414,7 +2420,11 @@ SPPTokenBlockIndex CPreprocessor::PreprocessNormalLineTokens(CPPTokenHolder* pcD
 		else
 		{
 			bResult = FALSE;
-			gcUserError.Set("Got a token which wasn't a line");
+			sPos.Message(&szError);
+			szError.Append("Expected a Normal Line got [");
+			szError.Append(pcToken->ClassName());
+			szError.Append("].");
+			gcUserError.Set(&szError);
 			sLine.Init(-1, -1);
 			break;
 		}
@@ -2438,31 +2448,34 @@ SPPTokenBlockIndex CPreprocessor::PreprocessNormalLineTokens(CPPTokenHolder* pcD
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessor::Preprocess(char* szSource, CChars* szDest)
+void CPreprocessor::Preprocess(char* szSource, CChars* pszDest)
 {
 	CPreprocessor			cPreprocessor;
 	CPreprocessorTokeniser	cTokeniser;
 	int						iLen;
-	CPPTokens				cTokens;
-	CPPTokenHolder			cRawTokens;
-	CPPTokenHolder			cProcessedTokens;
+	CPPTokens				cTokenMemory;
+	CPPTokenHolder			cInputTokens;
+	CPPTokenHolder			cOutputTokens;
 
 	cTokeniser.Init();
-	cTokens.Init();
-	cRawTokens.Init();
+	cTokenMemory.Init();
+	cInputTokens.Init();
 	iLen = (int)strlen(szSource);
-	cTokeniser.Tokenise(&cRawTokens, &cTokens, szSource, iLen, TRUE, 0, 0);
+	cTokeniser.Tokenise(&cInputTokens, &cTokenMemory, szSource, iLen, TRUE, 0, 0);
 	cTokeniser.Kill();
 
-	cProcessedTokens.Init();
-	cPreprocessor.Init(NULL, &cTokens);
-	cPreprocessor.PreprocessNormalLineTokens(&cProcessedTokens, &cTokens, &cRawTokens, 0, 0);
+	cOutputTokens.Init();
+	cPreprocessor.Init(NULL, &cTokenMemory);
+	cPreprocessor.PreprocessNormalLineTokens(&cOutputTokens, &cTokenMemory, &cInputTokens, 0, 0);
 
-	cProcessedTokens.Print(szDest);
+	if (pszDest)
+	{
+		cOutputTokens.Print(pszDest);
+	}
 
-	cProcessedTokens.Kill();
-	cRawTokens.Kill();
-	cTokens.Kill();
+	cOutputTokens.Kill();
+	cInputTokens.Kill();
+	cTokenMemory.Kill();
 }
 
 
@@ -2615,6 +2628,10 @@ void CPreprocessor::MarkPositionForError(SPreprocessorPosition* psPos)
 		{
 			psPos->Init(mpcCurrentLineParser, mpcCurrentFile);
 		}
+	}
+	else
+	{
+		psPos->Init(-1, -1, gszEmptyString);
 	}
 }
 

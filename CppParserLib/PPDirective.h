@@ -43,7 +43,7 @@ enum EPreprocessorDirective
 };
 
 
-class CPPDirective : public CPPLine
+class CPPDirective : public CPPAbstractHolder
 {
 protected:
 	EPreprocessorDirective	meType;
@@ -58,7 +58,7 @@ public:
 	void	Copy(CPPToken* pcSource, CPPTokens* pcTokens);
 	BOOL	Is(EPreprocessorDirective eType);
 	BOOL	IsConditional(void);
-	int		Sizeof(void);
+	BOOL	Equals(CPPToken* pcOther);
 };
 
 

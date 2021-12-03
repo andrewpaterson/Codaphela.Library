@@ -32,17 +32,17 @@ protected:
 public:
 	void 				Init(int iLine, int iColumn);
 	void 				Kill(void);
+	void				Fake(CPPTokenHolder* pcTokens);
 	BOOL 				IsAbstractHolder(void);
 	char*				Print(CChars* psz);
+	char*				PrintWithoutNewline(CChars* psz);
 	void 				Copy(CPPAbstractHolder* pcCast, CPPTokens* pcTokens);
 	int	 				TokenLength(void);
 	CPPToken*			Get(int iIndex);
-	void				Dump(void);
 	void				SavageDump(void);
 	BOOL				Equals(CPPToken* pcOther);
 	BOOL				IsEmpty(void);
 	CPPTokenHolder*		GetTokens(void);
-	int					Sizeof(void);
 };
 
 

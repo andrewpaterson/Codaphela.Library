@@ -229,7 +229,8 @@ CPPToken* CPPTokens::StartIteration(SPPTokenIterator* psIter)
 		if (psIter->iElement < iNumElements)
 		{
 			pcPPToken = (CPPToken*)psIter->pvStackData;
-			psIter->pvStackData = RemapSinglePointer(psIter->pvStackData, pcPPToken->Sizeof());
+			psIter->pvStackData = RemapSinglePointer(psIter->pvStackData, pcPPToken->ClassSize());
+			psIter->iElement++;
 			return pcPPToken;
 		}
 		psIter->iStack++;
@@ -246,27 +247,32 @@ CPPToken* CPPTokens::StartIteration(SPPTokenIterator* psIter)
 CPPToken* CPPTokens::Iterate(SPPTokenIterator* psIter)
 {
 	CPPToken*		pcPPToken;
-	int				iNumStacks;
 	CMemoryStack*	pcStack;
 	int				iNumElements;
 
-	iNumStacks = mcStack.NumStacks();
-	for (; psIter->iStack < iNumStacks; )
+	for (;;)
 	{
 		pcStack = mcStack.GetStack(psIter->iStack);
-		psIter->pvStackData = pcStack->GetData();
 		iNumElements = pcStack->NumElements();
 		for (; psIter->iElement < iNumElements; )
 		{
 			pcPPToken = (CPPToken*)psIter->pvStackData;
-			psIter->pvStackData = RemapSinglePointer(psIter->pvStackData, pcPPToken->Sizeof());
+			psIter->pvStackData = RemapSinglePointer(psIter->pvStackData, pcPPToken->ClassSize());
 			psIter->iElement++;
 			return pcPPToken;
 		}
 		psIter->iStack++;
 		psIter->iElement = 0;
+		pcStack = mcStack.GetStack(psIter->iStack);
+		if (pcStack)
+		{
+			psIter->pvStackData = pcStack->GetData();
+		}
+		else
+		{
+			return NULL;
+		}
 	}
-	return NULL;
 }
 
 

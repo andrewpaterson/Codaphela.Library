@@ -24,6 +24,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/ArrayTemplate.h"
 #include "BaseLib/Define.h"
 #include "BaseLib/MemoryStackExtended.h"
+#include "BaseLib/Constructable.h"
 #include "GeneralToken.h"
 
 
@@ -35,28 +36,32 @@ protected:
 	int		miColumn;
 	
 public:
-	virtual void	Init(int iLine, int iColumn) =0;
-	virtual void	Kill(void) =0;
-	virtual BOOL	IsDirective(void);
-	virtual BOOL	IsText(void);
-	virtual BOOL	IsWhiteSpace(void);
-	virtual BOOL	IsReplacement(void);
-	virtual BOOL	IsHash(void);
-	virtual BOOL	IsAbstractHolder(void);
-	virtual BOOL	IsLine(void);
-	virtual BOOL	IsHolder(void);
-	virtual BOOL	IsFile(void);
-	virtual BOOL	IsBlock(void);
-	virtual BOOL	IsEmpty(void) =0;
-			void	Set(int iLine, int iColumn);
-	virtual char*	Print(CChars* psz) =0;
-	virtual void	Copy(CPPToken* pcSource, CPPTokens* pcTokens) =0;
-	virtual BOOL	Equals(CPPToken* pcOther) =0;
-	virtual int		Sizeof(void) =0;
+	virtual void			Init(int iLine, int iColumn) =0;
+	virtual void			Kill(void) =0;
 
-			int		Line(void);
-			int		Column(void);
-			void	Dump(void);
+	virtual const char*		ClassName(void) =0;
+	virtual unsigned int	ClassSize(void) =0;
+
+	virtual BOOL			IsDirective(void);
+	virtual BOOL			IsText(void);
+	virtual BOOL			IsWhiteSpace(void);
+	virtual BOOL			IsReplacement(void);
+	virtual BOOL			IsHash(void);
+	virtual BOOL			IsAbstractHolder(void);
+	virtual BOOL			IsLine(void);
+	virtual BOOL			IsHolder(void);
+	virtual BOOL			IsFile(void);
+	virtual BOOL			IsBlock(void);
+	virtual BOOL			IsUnknown(void);
+	virtual BOOL			IsEmpty(void) =0;
+			void			Set(int iLine, int iColumn);
+	virtual char*			Print(CChars* psz) =0;
+	virtual void			Copy(CPPToken* pcSource, CPPTokens* pcTokens) =0;
+	virtual BOOL			Equals(CPPToken* pcOther) =0;
+
+			int				Line(void);
+			int				Column(void);
+			void			Dump(void);
 };
 
 

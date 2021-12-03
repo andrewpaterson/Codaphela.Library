@@ -34,7 +34,6 @@ public:
 	void	Copy(CPPToken* pcSource, CPPTokens* pcTokens);
 	BOOL	Equals(CPPToken* pcOther);
 	BOOL	IsEmpty(void);
-	int		Sizeof(void);
 };
 
 
